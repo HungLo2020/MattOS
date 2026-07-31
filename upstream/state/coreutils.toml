@@ -1,0 +1,7 @@
+component = "coreutils"
+repo = "https://github.com/uutils/coreutils.git"
+branch = "main"
+imported_commit = "91f6543cad721aba0bf17806e803e84a116f8603"
+imported_at_utc = "2026-07-31T03:54:42.179070400+00:00"
+sync_method = "copy"
+destination_path = "userland/coreutils"

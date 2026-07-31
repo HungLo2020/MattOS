@@ -1,0 +1,24 @@
+# Official upstream definitions for imported source trees.
+# sync = "copy" means sources are copied into this repository as tracked files.
+# Future enhancement: use git subtree commits for provenance at git history level.
+
+[[component]]
+name = "linux"
+repo = "https://github.com/torvalds/linux.git"
+branch = "master"
+path = "kernel/linux"
+sync = "copy"
+
+[[component]]
+name = "brush"
+repo = "https://github.com/reubeno/brush.git"
+branch = "main"
+path = "userland/brush"
+sync = "copy"
+
+[[component]]
+name = "coreutils"
+repo = "https://github.com/uutils/coreutils.git"
+branch = "main"
+path = "userland/coreutils"
+sync = "copy"

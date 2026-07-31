@@ -1,0 +1,7 @@
+component = "linux"
+repo = "https://github.com/torvalds/linux.git"
+branch = "master"
+imported_commit = "8ba098e6b6ff0db8edf28528d1552be261af30d4"
+imported_at_utc = "2026-07-31T03:53:52.067238500+00:00"
+sync_method = "copy"
+destination_path = "kernel/linux"

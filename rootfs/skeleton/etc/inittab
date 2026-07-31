@@ -1,0 +1,3 @@
+::sysinit:/sbin/init
+::respawn:-/bin/brush
+::ctrlaltdel:/bin/echo Ctrl-Alt-Del ignored
