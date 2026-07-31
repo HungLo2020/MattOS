@@ -1,0 +1,12 @@
+[workspace]
+members = [
+    "tools/mattos-build",
+    "userland/init"
+]
+resolver = "2"
+
+[workspace.package]
+edition = "2024"
+license = "MIT"
+authors = ["MattOS Contributors"]
+repository = "https://example.invalid/mattos"
