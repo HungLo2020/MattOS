@@ -131,7 +131,7 @@ fn spawn_brush() -> io::Result<Child> {
     .arg("--noediting")
     .arg("--input-backend")
     .arg("basic")
-        .env("PS1", "MattOS # ")
+        .env("PS1", "\\u@\\h:\\w\\$ ")
         .env("PATH", "/bin:/usr/bin:/sbin:/usr/sbin")
     .env("HOME", "/root")
     .env("TERM", "linux")

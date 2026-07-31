@@ -5,6 +5,7 @@ export LOGNAME=root
 export SHELL=/bin/brush
 export PATH=/bin:/usr/bin:/sbin:/usr/sbin
 export TERM=${TERM:-linux}
+export PS1='\u@\h:\w\$ '
 if [ -d /root ]; then
     cd /root || cd /
 fi
