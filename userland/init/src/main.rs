@@ -75,8 +75,16 @@ fn reap_zombies_nonblocking() {
 fn spawn_brush() -> io::Result<Child> {
     Command::new("/bin/brush")
         .arg("-i")
+    .arg("--no-config")
+    .arg("--noprofile")
+    .arg("--norc")
+    .arg("--noediting")
+    .arg("--input-backend")
+    .arg("basic")
         .env("PS1", "MattOS # ")
         .env("PATH", "/bin:/usr/bin:/sbin:/usr/sbin")
+    .env("HOME", "/root")
+    .env("TERM", "linux")
         .stdin(Stdio::inherit())
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
@@ -151,7 +159,6 @@ fn run_rescue_shell() {
 fn supervise_brush() {
     match spawn_brush() {
         Ok(mut child) => loop {
-            reap_zombies_nonblocking();
             match child.try_wait() {
                 Ok(Some(status)) => {
                     eprintln!("mattos-init: brush exited with {status}");

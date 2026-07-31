@@ -198,6 +198,10 @@ fn doctor() -> Result<()> {
 	let mut missing_optional = Vec::new();
 
 	println!("\n[Required tools]");
+	let local_tools = local_tool_env(&std::env::current_dir().context("cwd")?);
+	let local_path_hint = local_tools
+		.as_ref()
+		.map(|e| e.tool_bin_dir.display().to_string());
 	for tool in [
 		"git",
 		"cargo",
@@ -216,14 +220,14 @@ fn doctor() -> Result<()> {
 		"pkg-config",
 		"bash",
 	] {
-		if !check_host_tool(tool, true)? {
+		if !check_host_tool_with_hint(tool, true, local_path_hint.as_deref())? {
 			missing_required.push(tool);
 		}
 	}
 
 	println!("\n[Optional tools]");
 	for tool in ["qemu-system-x86_64", "clang", "bison", "flex"] {
-		if !check_host_tool(tool, false)? {
+		if !check_host_tool_with_hint(tool, false, local_path_hint.as_deref())? {
 			missing_optional.push(tool);
 		}
 	}
@@ -661,13 +665,25 @@ fn preferred_distro(distros: &[String]) -> Option<String> {
 }
 
 fn check_host_tool(cmd: &str, required: bool) -> Result<bool> {
+	check_host_tool_with_hint(cmd, required, None)
+}
+
+fn check_host_tool_with_hint(cmd: &str, required: bool, local_path_hint: Option<&str>) -> Result<bool> {
 	let found = command_exists_host(cmd)?;
 	if found {
 		println!("[ok]      {cmd}");
 	} else if required {
-		println!("[missing] {cmd} (required)");
+		if let Some(path_hint) = local_path_hint {
+			println!("[missing] {cmd} (required; also searched rootless fallback at {path_hint})");
+		} else {
+			println!("[missing] {cmd} (required)");
+		}
 	} else {
-		println!("[missing] {cmd} (optional)");
+		if let Some(path_hint) = local_path_hint {
+			println!("[missing] {cmd} (optional; also searched rootless fallback at {path_hint})");
+		} else {
+			println!("[missing] {cmd} (optional)");
+		}
 	}
 	Ok(found)
 }
@@ -1245,8 +1261,52 @@ fn build_kernel(repo_root: &Path) -> Result<()> {
 	fs::write(linux.join(".config"), config_text)
 		.with_context(|| format!("failed to stage kernel config from {}", config.display()))?;
 
-	run_cmd(&linux, "make", &["olddefconfig"])?;
-	run_cmd(&linux, "make", &["-j", "4"])
+	let env = local_tool_env(repo_root);
+	if let Some(env) = &env {
+		println!("Using local rootless toolchain from {}", env.tool_root.display());
+	}
+	run_cmd_with_env(&linux, "make", &["olddefconfig"], env.as_ref())?;
+	run_cmd_with_env(&linux, "make", &["-j", "4"], env.as_ref())
+		.context("kernel build failed")?;
+
+	let bz = linux.join("arch/x86/boot/bzImage");
+	if !bz.exists() {
+		bail!("kernel build finished without bzImage at {}", bz.display())
+	}
+	Ok(())
+
+	
+}
+
+#[derive(Debug, Clone)]
+struct LocalToolEnv {
+	tool_root: PathBuf,
+	tool_bin_dir: PathBuf,
+	tool_lib_dir: PathBuf,
+	tool_include_dir: PathBuf,
+	bison_pkg_data_dir: PathBuf,
+	m4_bin: PathBuf,
+}
+
+fn local_tool_env(repo_root: &Path) -> Option<LocalToolEnv> {
+	let root = repo_root.join(".tools/rootless/usr");
+	let bin = root.join("bin");
+	let lib = root.join("lib/x86_64-linux-gnu");
+	let include = root.join("include");
+	let bison_pkg = root.join("share/bison");
+	let m4 = bin.join("m4");
+	if bin.exists() && lib.exists() && include.exists() && bison_pkg.exists() && m4.exists() {
+		Some(LocalToolEnv {
+			tool_root: root,
+			tool_bin_dir: bin,
+			tool_lib_dir: lib,
+			tool_include_dir: include,
+			bison_pkg_data_dir: bison_pkg,
+			m4_bin: m4,
+		})
+	} else {
+		None
+	}
 }
 
 fn assert_kernel_build_path_safe(repo_root: &Path) -> Result<()> {
@@ -1309,6 +1369,7 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 		fs::remove_dir_all(&out).with_context(|| format!("failed to clean {}", out.display()))?;
 	}
 	copy_tree_excluding_dotgit(&skeleton, &out)?;
+	fs::create_dir_all(out.join("root")).context("failed to create /root in rootfs")?;
 
 	let init_bin = repo_root.join("target/release/mattos-init");
 	if !init_bin.exists() {
@@ -1543,6 +1604,48 @@ fn run_cmd_status(cwd: &Path, program: &str, args: &[&str]) -> Result<std::proce
 		.current_dir(cwd)
 		.status()
 		.with_context(|| format!("failed to spawn command: {program}"))
+}
+
+fn run_cmd_with_env(
+	cwd: &Path,
+	program: &str,
+	args: &[&str],
+	tool_env: Option<&LocalToolEnv>,
+) -> Result<()> {
+	println!("> {} {}", program, args.join(" "));
+	let mut cmd = Command::new(program);
+	cmd.args(args).current_dir(cwd);
+
+	if let Some(env) = tool_env {
+		let current_path = std::env::var("PATH").unwrap_or_default();
+		let composed_path = format!("{}:{}", env.tool_bin_dir.display(), current_path);
+		let current_ld = std::env::var("LD_LIBRARY_PATH").unwrap_or_default();
+		let composed_ld = if current_ld.is_empty() {
+			env.tool_lib_dir.display().to_string()
+		} else {
+			format!("{}:{current_ld}", env.tool_lib_dir.display())
+		};
+		let include = env.tool_include_dir.display().to_string();
+		let lib = env.tool_lib_dir.display().to_string();
+
+		cmd.env("PATH", composed_path)
+			.env("LD_LIBRARY_PATH", composed_ld)
+			.env("BISON_PKGDATADIR", env.bison_pkg_data_dir.display().to_string())
+			.env("M4", env.m4_bin.display().to_string())
+			.env("CFLAGS", format!("-I{include}"))
+			.env("HOSTCFLAGS", format!("-I{include}"))
+			.env("LDFLAGS", format!("-L{lib}"))
+			.env("HOSTLDFLAGS", format!("-L{lib}"));
+	}
+
+	let status = cmd
+		.status()
+		.with_context(|| format!("failed to spawn command: {program}"))?;
+	if status.success() {
+		Ok(())
+	} else {
+		bail!("command failed with status {status}: {} {}", program, args.join(" "))
+	}
 }
 
 fn run_cmd_output(cwd: &Path, program: &str, args: &[&str]) -> Result<Output> {
