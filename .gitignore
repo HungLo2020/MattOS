@@ -11,17 +11,21 @@
 /.tools/
 
 # Linux kernel build byproducts in source tree
-/kernel/linux/.config
-/kernel/linux/.config.old
-/kernel/linux/Module.symvers
-/kernel/linux/System.map
-/kernel/linux/vmlinux
-/kernel/linux/vmlinux.o
-/kernel/linux/arch/x86/boot/bzImage
-/kernel/linux/.tmp_versions/
-/kernel/linux/*.cmd
+/src/kernel/linux/.config
+/src/kernel/linux/.config.old
+/src/kernel/linux/Module.symvers
+/src/kernel/linux/System.map
+/src/kernel/linux/vmlinux
+/src/kernel/linux/vmlinux.o
+/src/kernel/linux/arch/x86/boot/bzImage
+/src/kernel/linux/.tmp_versions/
+/src/kernel/linux/*.cmd
 
 # Local editor/OS noise
 *.swp
 *.swo
 .DS_Store
+
+# Python helper cache artifacts
+__pycache__/
+*.pyc
