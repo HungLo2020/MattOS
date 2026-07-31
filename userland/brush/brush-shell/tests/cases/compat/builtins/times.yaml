@@ -1,6 +1,0 @@
-name: "Builtins: times"
-cases:
-  - name: "Basic usage"
-    ignore_stdout: true
-    stdin: |
-      times

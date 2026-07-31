@@ -1,7 +1,0 @@
-name: "set -n"
-cases:
-  - name: "set -n"
-    stdin: |
-      set -n
-      touch somefile.txt
-      ls

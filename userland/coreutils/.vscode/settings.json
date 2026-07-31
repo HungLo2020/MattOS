@@ -1,6 +1,0 @@
-{
-    "cSpell.import": [
-        "./.vscode/cSpell.json"
-    ],
-    "rust-analyzer.check.command": "clippy"
-}

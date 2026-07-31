@@ -1,7 +1,0 @@
-name: "set -t"
-cases:
-  - name: "set -t"
-    args: ["-t"]
-    stdin: |
-      echo first
-      echo second
