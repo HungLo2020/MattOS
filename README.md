@@ -1,41 +1,74 @@
 # MattOS
 
-A source-controlled Linux-based operating system project built and orchestrated with ProjectTaskforge.
+MattOS is a Linux-compatible OS project with upstream source imported directly as ordinary tracked files in one repository.
 
-## Quick start (Windows host)
+## Repository model
 
-1. Bootstrap WSL and Linux build dependencies:
+- `kernel/linux`: upstream Linux kernel source
+- `userland/brush`: upstream Brush shell source
+- `userland/coreutils`: upstream uutils/coreutils source
+- `userland/init`: MattOS-owned Rust PID 1
+- `tools/mattos-build`: MattOS-owned Rust orchestrator
 
-```
-cargo run -p mattos-build -- bootstrap-wsl
-```
+No Git submodules are used.
 
-2. Validate host + WSL requirements:
+## Native Linux quick start
+
+1. Check prerequisites:
 
 ```
 cargo run -p mattos-build -- doctor
 ```
 
-3. Build ISO in WSL Linux filesystem and copy artifact back to Windows:
+2. Inspect imported upstream state:
 
 ```
-cargo run -p mattos-build -- build-wsl-iso
+cargo run -p mattos-build -- upstream status
 ```
 
-4. Optional explicit ISO copyback command:
+3. Build all components and ISO:
 
 ```
-cargo run -p mattos-build -- copy-iso-from-wsl
+cargo run -p mattos-build -- build
 ```
 
-5. If WSL distro install is blocked by policy, run this exact elevated command:
+4. Run in QEMU:
 
 ```
-wsl --install -d Ubuntu
+cargo run -p mattos-build -- run
 ```
 
 Expected ISO artifact:
 
 ```
 out/images/mattos-x86_64.iso
+```
+
+## Upstream workflows
+
+```
+cargo run -p mattos-build -- upstream import --all
+cargo run -p mattos-build -- upstream sync --all
+cargo run -p mattos-build -- upstream sync linux
+```
+
+See `docs/UPSTREAM_SYNC.md` for conflict behavior and metadata.
+
+## Build stages
+
+```
+cargo run -p mattos-build -- build kernel
+cargo run -p mattos-build -- build brush
+cargo run -p mattos-build -- build coreutils
+cargo run -p mattos-build -- build init
+cargo run -p mattos-build -- image
+```
+
+## Cleanup
+
+```
+cargo run -p mattos-build -- clean artifacts
+cargo run -p mattos-build -- clean logs
+cargo run -p mattos-build -- clean cargo
+cargo run -p mattos-build -- clean all
 ```

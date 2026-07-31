@@ -18,6 +18,21 @@ struct Cli {
 #[derive(Subcommand, Debug)]
 enum Commands {
 	Doctor,
+	Upstream {
+		#[command(subcommand)]
+		command: UpstreamCommands,
+	},
+	Build {
+		#[arg(value_enum)]
+		stage: Option<BuildStage>,
+	},
+	Image,
+	Run,
+	Clean {
+		#[arg(value_enum)]
+		target: Option<CleanTarget>,
+	},
+	#[command(hide = true)]
 	BootstrapWsl {
 		#[arg(long, default_value = "Ubuntu")]
 		distro: String,
@@ -26,6 +41,7 @@ enum Commands {
 		#[arg(long)]
 		skip_package_install: bool,
 	},
+	#[command(hide = true)]
 	BuildWslIso {
 		#[arg(long, default_value = "Ubuntu")]
 		distro: String,
@@ -34,6 +50,7 @@ enum Commands {
 		#[arg(long)]
 		skip_boot_test: bool,
 	},
+	#[command(hide = true)]
 	CopyIsoFromWsl {
 		#[arg(long, default_value = "Ubuntu")]
 		distro: String,
@@ -42,6 +59,7 @@ enum Commands {
 		#[arg(long)]
 		windows_destination: Option<String>,
 	},
+	#[command(hide = true)]
 	BootstrapWindows {
 		#[arg(long, default_value = "Ubuntu")]
 		distro: String,
@@ -50,6 +68,7 @@ enum Commands {
 		#[arg(long)]
 		skip_package_install: bool,
 	},
+	#[command(hide = true)]
 	Import {
 		#[arg(long)]
 		all: bool,
@@ -58,11 +77,23 @@ enum Commands {
 		#[arg(long)]
 		update: bool,
 	},
-	Build {
-		#[arg(value_enum)]
-		stage: BuildStage,
-	},
+	#[command(hide = true)]
 	RunQemu,
+}
+
+#[derive(Subcommand, Debug)]
+enum UpstreamCommands {
+	Status,
+	Import {
+		#[arg(long)]
+		all: bool,
+		component: Option<String>,
+	},
+	Sync {
+		#[arg(long)]
+		all: bool,
+		component: Option<String>,
+	},
 }
 
 #[derive(Clone, Debug, ValueEnum)]
@@ -74,6 +105,14 @@ enum BuildStage {
 	Rootfs,
 	Initramfs,
 	Iso,
+	All,
+}
+
+#[derive(Clone, Debug, ValueEnum)]
+enum CleanTarget {
+	Artifacts,
+	Logs,
+	Cargo,
 	All,
 }
 
@@ -114,6 +153,11 @@ fn main() -> Result<()> {
 
 	match cli.command {
 		Commands::Doctor => doctor(),
+		Commands::Upstream { command } => upstream_command(&repo_root, command),
+		Commands::Build { stage } => build(&repo_root, stage.unwrap_or(BuildStage::All)),
+		Commands::Image => build_image(&repo_root),
+		Commands::Run => run_qemu(&repo_root),
+		Commands::Clean { target } => clean(&repo_root, target.unwrap_or(CleanTarget::Artifacts)),
 		Commands::BootstrapWsl {
 			distro,
 			repo_path,
@@ -139,7 +183,6 @@ fn main() -> Result<()> {
 			component,
 			update,
 		} => import_sources(&repo_root, all, component, update),
-		Commands::Build { stage } => build(&repo_root, stage),
 		Commands::RunQemu => run_qemu(&repo_root),
 	}
 }
@@ -147,96 +190,157 @@ fn main() -> Result<()> {
 fn doctor() -> Result<()> {
 	println!("MattOS doctor");
 
-	let mut hard_fail = false;
-	let mut warnings = false;
-
 	if cfg!(windows) {
-		println!("\n[Windows host requirements]");
-		hard_fail |= !check_host_tool("git", true)?;
-		hard_fail |= !check_host_tool("cargo", true)?;
-		hard_fail |= !check_host_tool("rustc", true)?;
-		let wsl_ok = check_host_tool("wsl", true)?;
-		hard_fail |= !wsl_ok;
+		bail!("MattOS build is Linux-native for this milestone; run doctor from Linux filesystem")
+	}
 
-		println!("\n[WSL/Linux build requirements]");
-		if wsl_ok {
-			let status = detect_wsl_status()?;
-			if status.distros.is_empty() {
-				hard_fail = true;
-				println!("[missing] WSL distro (required)");
-				println!("         Install one with: wsl --install -d Ubuntu");
-			} else {
-				let distro = preferred_distro(&status.distros)
-					.ok_or_else(|| anyhow!("unable to select WSL distro"))?;
-				println!("Using WSL distro: {distro}");
-				for tool in [
-					"git",
-					"make",
-					"gcc",
-					"ld",
-					"objcopy",
-					"cpio",
-					"gzip",
-					"grub-mkrescue",
-					"xorriso",
-					"bash",
-					"cargo",
-					"rustc",
-				] {
-					hard_fail |= !check_wsl_tool(&distro, tool, true)?;
-				}
-			}
-		}
+	let mut missing_required = Vec::new();
+	let mut missing_optional = Vec::new();
 
-		println!("\n[Optional QEMU validation]");
-		let qemu_host = check_host_tool("qemu-system-x86_64", false)?;
-		let qemu_wsl = {
-			let status = detect_wsl_status()?;
-			if let Some(distro) = preferred_distro(&status.distros) {
-				check_wsl_tool(&distro, "qemu-system-x86_64", false)?
-			} else {
-				false
-			}
-		};
-		if !qemu_host && !qemu_wsl {
-			warnings = true;
-			println!("[missing] qemu-system-x86_64 in both Windows and WSL (optional)");
-		}
-	} else {
-		println!("\n[Linux host requirements]");
-		for tool in [
-			"git",
-			"cargo",
-			"rustc",
-			"make",
-			"gcc",
-			"ld",
-			"objcopy",
-			"cpio",
-			"gzip",
-			"grub-mkrescue",
-			"xorriso",
-			"bash",
-		] {
-			hard_fail |= !check_host_tool(tool, true)?;
-		}
-
-		println!("\n[Optional QEMU validation]");
-		if !check_host_tool("qemu-system-x86_64", false)? {
-			warnings = true;
+	println!("\n[Required tools]");
+	for tool in [
+		"git",
+		"cargo",
+		"rustc",
+		"make",
+		"gcc",
+		"ld",
+		"objcopy",
+		"perl",
+		"python3",
+		"bc",
+		"cpio",
+		"gzip",
+		"grub-mkrescue",
+		"xorriso",
+		"pkg-config",
+		"bash",
+	] {
+		if !check_host_tool(tool, true)? {
+			missing_required.push(tool);
 		}
 	}
 
-	if hard_fail {
+	println!("\n[Optional tools]");
+	for tool in ["qemu-system-x86_64", "clang", "bison", "flex"] {
+		if !check_host_tool(tool, false)? {
+			missing_optional.push(tool);
+		}
+	}
+
+	if !missing_required.is_empty() || !missing_optional.is_empty() {
+		println!("\n[Suggested packages]");
+		if let Some(cmd) = suggested_package_command(&missing_required, &missing_optional)? {
+			println!("{cmd}");
+		} else {
+			println!("No package manager hint available; install missing tools manually.");
+		}
+	}
+
+	if !missing_required.is_empty() {
 		bail!("doctor detected missing required prerequisites")
 	}
 
-	if warnings {
+	if !missing_optional.is_empty() {
 		println!("doctor completed with optional warnings");
 	} else {
 		println!("doctor completed successfully");
 	}
 	Ok(())
+}
+
+fn upstream_command(repo_root: &Path, command: UpstreamCommands) -> Result<()> {
+	match command {
+		UpstreamCommands::Status => upstream_status(repo_root),
+		UpstreamCommands::Import { all, component } => import_sources(repo_root, all, component, false),
+		UpstreamCommands::Sync { all, component } => import_sources(repo_root, all, component, true),
+	}
+}
+
+fn upstream_status(repo_root: &Path) -> Result<()> {
+	let sources = read_sources(repo_root)?;
+	println!("MattOS upstream status");
+	for comp in &sources.component {
+		let destination = resolve_component_destination(repo_root, &comp.path)?;
+		let exists = destination.join(".").exists();
+		println!("\ncomponent: {}", comp.name);
+		println!("  repo:      {}", comp.repo);
+		println!("  branch:    {}", comp.branch);
+		println!("  path:      {}", comp.path);
+		println!("  present:   {}", if exists { "yes" } else { "no" });
+
+		if let Some(state) = read_sync_state(repo_root, &comp.name)? {
+			println!("  commit:    {}", state.imported_commit);
+			println!("  imported:  {}", state.imported_at_utc);
+		} else {
+			println!("  commit:    <not imported>");
+		}
+	}
+	Ok(())
+}
+
+fn build_image(repo_root: &Path) -> Result<()> {
+	build_rootfs(repo_root)?;
+	build_initramfs(repo_root)?;
+	build_iso(repo_root)
+}
+
+fn clean(repo_root: &Path, target: CleanTarget) -> Result<()> {
+	match target {
+		CleanTarget::Artifacts => {
+			remove_path_if_exists(&repo_root.join("out/build"))?;
+			remove_path_if_exists(&repo_root.join("out/images"))?;
+		}
+		CleanTarget::Logs => {
+			remove_path_if_exists(&repo_root.join("out/logs"))?;
+		}
+		CleanTarget::Cargo => {
+			remove_path_if_exists(&repo_root.join("target"))?;
+			remove_path_if_exists(&repo_root.join("userland/brush/target"))?;
+			remove_path_if_exists(&repo_root.join("userland/coreutils/target"))?;
+		}
+		CleanTarget::All => {
+			remove_path_if_exists(&repo_root.join("out"))?;
+			remove_path_if_exists(&repo_root.join("target"))?;
+			remove_path_if_exists(&repo_root.join("userland/brush/target"))?;
+			remove_path_if_exists(&repo_root.join("userland/coreutils/target"))?;
+			remove_path_if_exists(&repo_root.join("upstream/.tmp"))?;
+		}
+	}
+
+	println!("cleaned target: {target:?}");
+	Ok(())
+}
+
+fn remove_path_if_exists(path: &Path) -> Result<()> {
+	if path.exists() {
+		if path.is_dir() {
+			fs::remove_dir_all(path)
+				.with_context(|| format!("failed to remove directory {}", path.display()))?;
+		} else {
+			fs::remove_file(path)
+				.with_context(|| format!("failed to remove file {}", path.display()))?;
+		}
+	}
+	Ok(())
+}
+
+fn suggested_package_command(required: &[&str], optional: &[&str]) -> Result<Option<String>> {
+	let os_release = fs::read_to_string("/etc/os-release").unwrap_or_default();
+	let all: Vec<&str> = required.iter().chain(optional.iter()).copied().collect();
+	let package_list = all.join(" ");
+
+	if os_release.contains("ID=ubuntu") || os_release.contains("ID=debian") {
+		return Ok(Some(format!("sudo apt update && sudo apt install -y {package_list}")));
+	}
+	if os_release.contains("ID=fedora") || os_release.contains("ID=centos") || os_release.contains("ID=rhel") {
+		return Ok(Some(format!("sudo dnf install -y {package_list}")));
+	}
+	if os_release.contains("ID=arch") || os_release.contains("ID_LIKE=arch") {
+		return Ok(Some(format!("sudo pacman -S --needed {package_list}")));
+	}
+
+	Ok(None)
 }
 
 fn bootstrap_windows(distro: &str, install_distro: bool, skip_package_install: bool) -> Result<()> {
@@ -642,6 +746,8 @@ fn shell_escape(value: &str) -> String {
 }
 
 fn import_sources(repo_root: &Path, all: bool, component: Option<String>, update: bool) -> Result<()> {
+	assert_repo_clean(repo_root)?;
+
 	let sources = read_sources(repo_root)?;
 	let selected = select_components(&sources.component, all, component)?;
 
@@ -649,6 +755,18 @@ fn import_sources(repo_root: &Path, all: bool, component: Option<String>, update
 		import_component(repo_root, comp, update)?;
 	}
 
+	Ok(())
+}
+
+fn assert_repo_clean(repo_root: &Path) -> Result<()> {
+	let output = run_cmd_output(repo_root, "git", &["status", "--porcelain"])?;
+	if !output.status.success() {
+		bail!("failed to inspect git status")
+	}
+	let text = String::from_utf8(output.stdout).context("git status output was not UTF-8")?;
+	if text.lines().any(|line| !line.trim().is_empty()) {
+		bail!("working tree is dirty; commit or stash changes before upstream import/sync")
+	}
 	Ok(())
 }
 
@@ -897,6 +1015,10 @@ fn validate_component_name(name: &str) -> Result<()> {
 }
 
 fn resolve_component_destination(repo_root: &Path, rel_path: &str) -> Result<PathBuf> {
+	if rel_path.contains('\\') {
+		bail!("component path must use forward slashes only: {rel_path}")
+	}
+
 	let rel = Path::new(rel_path);
 	if rel.is_absolute() {
 		bail!("component path must be relative: {rel_path}")
@@ -1004,19 +1126,71 @@ fn copy_tree_excluding_dotgit(src: &Path, dst: &Path) -> Result<()> {
 		let entry = entry?;
 		let from = entry.path();
 		let name = entry.file_name();
+		let metadata = fs::symlink_metadata(&from)
+			.with_context(|| format!("failed to read metadata: {}", from.display()))?;
 
 		if name == OsStr::new(".git") {
 			continue;
 		}
 
 		let to = dst.join(&name);
-		if from.is_dir() {
+		if metadata.file_type().is_symlink() {
+			copy_symlink(&from, &to)?;
+		} else if metadata.is_dir() {
 			copy_tree_excluding_dotgit(&from, &to)?;
 		} else {
 			fs::copy(&from, &to)
 				.with_context(|| format!("failed to copy {} to {}", from.display(), to.display()))?;
+			preserve_permissions(&metadata, &to)?;
 		}
 	}
+	Ok(())
+}
+
+#[cfg(unix)]
+fn copy_symlink(from: &Path, to: &Path) -> Result<()> {
+	use std::os::unix::fs::symlink;
+
+	if to.exists() {
+		fs::remove_file(to).with_context(|| format!("failed to remove {}", to.display()))?;
+	}
+	let target = fs::read_link(from)
+		.with_context(|| format!("failed to read symlink {}", from.display()))?;
+	symlink(&target, to)
+		.with_context(|| format!("failed to create symlink {}", to.display()))?;
+	Ok(())
+}
+
+#[cfg(not(unix))]
+fn copy_symlink(from: &Path, to: &Path) -> Result<()> {
+	let target = fs::read_link(from)
+		.with_context(|| format!("failed to read symlink {}", from.display()))?;
+	let parent = to
+		.parent()
+		.ok_or_else(|| anyhow!("missing parent for {}", to.display()))?;
+	fs::create_dir_all(parent)
+		.with_context(|| format!("failed to create parent {}", parent.display()))?;
+	let resolved = from
+		.parent()
+		.ok_or_else(|| anyhow!("missing parent for {}", from.display()))?
+		.join(target);
+	fs::copy(&resolved, to)
+		.with_context(|| format!("failed to copy symlink fallback {}", resolved.display()))?;
+	Ok(())
+}
+
+#[cfg(unix)]
+fn preserve_permissions(metadata: &fs::Metadata, to: &Path) -> Result<()> {
+	use std::os::unix::fs::PermissionsExt;
+
+	let mode = metadata.permissions().mode();
+	fs::set_permissions(to, fs::Permissions::from_mode(mode))
+		.with_context(|| format!("failed to set permissions on {}", to.display()))?;
+	Ok(())
+}
+
+#[cfg(not(unix))]
+fn preserve_permissions(_metadata: &fs::Metadata, _to: &Path) -> Result<()> {
 	Ok(())
 }
 
@@ -1024,9 +1198,12 @@ fn write_sync_state(repo_root: &Path, name: &str, state: &SyncState) -> Result<(
 	let dir = repo_root.join("upstream/state");
 	fs::create_dir_all(&dir).context("failed to create upstream/state")?;
 	let path = dir.join(format!("{name}.toml"));
+	let temp_path = dir.join(format!("{name}.toml.tmp"));
 	let body = toml::to_string_pretty(state).context("failed to serialize sync state")?;
-	fs::write(&path, body)
-		.with_context(|| format!("failed to write sync state: {}", path.display()))?;
+	fs::write(&temp_path, body)
+		.with_context(|| format!("failed to write temporary sync state: {}", temp_path.display()))?;
+	fs::rename(&temp_path, &path)
+		.with_context(|| format!("failed to publish sync state: {}", path.display()))?;
 	Ok(())
 }
 
@@ -1055,10 +1232,20 @@ fn build(repo_root: &Path, stage: BuildStage) -> Result<()> {
 fn build_kernel(repo_root: &Path) -> Result<()> {
 	assert_kernel_build_path_safe(repo_root)?;
 	let linux = repo_root.join("kernel/linux");
+	let config = repo_root.join("kernel/config/x86_64_mattos.config");
 	if !linux.join("Makefile").exists() {
 		bail!("kernel source not found in {}; run import first", linux.display());
 	}
-	run_cmd(&linux, "make", &["defconfig"])?;
+	if !config.exists() {
+		bail!("kernel config missing at {}; add configuration first", config.display());
+	}
+
+	let config_text = fs::read_to_string(&config)
+		.with_context(|| format!("failed to read {}", config.display()))?;
+	fs::write(linux.join(".config"), config_text)
+		.with_context(|| format!("failed to stage kernel config from {}", config.display()))?;
+
+	run_cmd(&linux, "make", &["olddefconfig"])?;
 	run_cmd(&linux, "make", &["-j", "4"])
 }
 
@@ -1080,11 +1267,7 @@ fn build_brush(repo_root: &Path) -> Result<()> {
 	if !brush.join("Cargo.toml").exists() {
 		bail!("brush source not found in {}; run import first", brush.display());
 	}
-	run_cmd(
-		&brush,
-		"cargo",
-		&["build", "--release", "--target", "x86_64-unknown-linux-musl"],
-	)
+	run_cmd(&brush, "cargo", &["build", "--release", "-p", "brush"])
 }
 
 fn build_coreutils(repo_root: &Path) -> Result<()> {
@@ -1098,7 +1281,15 @@ fn build_coreutils(repo_root: &Path) -> Result<()> {
 	run_cmd(
 		&coreutils,
 		"cargo",
-		&["build", "--release", "--target", "x86_64-unknown-linux-musl"],
+		&[
+			"build",
+			"--release",
+			"-p",
+			"coreutils",
+			"--no-default-features",
+			"--features",
+			"unix,feat_Tier1",
+		],
 	)
 }
 
@@ -1106,27 +1297,20 @@ fn build_init(repo_root: &Path) -> Result<()> {
 	run_cmd(
 		repo_root,
 		"cargo",
-		&[
-			"build",
-			"--release",
-			"--manifest-path",
-			"userland/init/Cargo.toml",
-			"--target",
-			"x86_64-unknown-linux-musl",
-		],
+		&["build", "--release", "--manifest-path", "userland/init/Cargo.toml"],
 	)
 }
 
 fn build_rootfs(repo_root: &Path) -> Result<()> {
 	let skeleton = repo_root.join("rootfs/skeleton");
-	let out = repo_root.join("build/rootfs");
+	let out = repo_root.join("out/build/rootfs");
 
 	if out.exists() {
 		fs::remove_dir_all(&out).with_context(|| format!("failed to clean {}", out.display()))?;
 	}
 	copy_tree_excluding_dotgit(&skeleton, &out)?;
 
-	let init_bin = repo_root.join("target/x86_64-unknown-linux-musl/release/mattos-init");
+	let init_bin = repo_root.join("target/release/mattos-init");
 	if !init_bin.exists() {
 		bail!(
 			"init binary missing at {}; run build init first",
@@ -1141,22 +1325,22 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 			init_bin.display()
 		)
 	})?;
+	copy_runtime_dependencies(&init_bin, &out)?;
 
 	let brush_candidates = [
-		repo_root.join("userland/brush/target/x86_64-unknown-linux-musl/release/brush"),
+		repo_root.join("userland/brush/target/release/brush"),
 		repo_root.join("userland/brush/target/release/brush"),
 	];
 	let brush_bin = brush_candidates.iter().find(|p| p.exists()).cloned();
 
 	if let Some(brush_bin) = brush_bin {
 		fs::copy(&brush_bin, out.join("bin/brush")).context("failed to copy brush binary")?;
+		copy_runtime_dependencies(&brush_bin, &out)?;
 	} else {
-		println!("warning: brush binary not found in musl or native release targets");
+		bail!("brush binary not found; run build brush first")
 	}
 
 	let coreutils_candidates = [
-		repo_root.join("userland/coreutils/target/x86_64-unknown-linux-musl/release/coreutils"),
-		repo_root.join("userland/coreutils/target/x86_64-unknown-linux-musl/release/uutils"),
 		repo_root.join("userland/coreutils/target/release/coreutils"),
 		repo_root.join("userland/coreutils/target/release/uutils"),
 	];
@@ -1168,11 +1352,21 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 		fs::copy(&bin, &dst).with_context(|| {
 			format!("failed to copy coreutils multicall binary from {}", bin.display())
 		})?;
+		copy_runtime_dependencies(&bin, &out)?;
 
 		create_coreutils_symlinks(&out)?;
 	} else {
-		println!("warning: coreutils multicall binary not found");
+		bail!("coreutils multicall binary not found; run build coreutils first")
 	}
+
+	let sh_link = out.join("bin/sh");
+	if sh_link.exists() {
+		fs::remove_file(&sh_link)
+			.with_context(|| format!("failed to remove existing {}", sh_link.display()))?;
+	}
+	#[cfg(unix)]
+	std::os::unix::fs::symlink("/bin/brush", &sh_link)
+		.with_context(|| format!("failed to create {}", sh_link.display()))?;
 
 	Ok(())
 }
@@ -1182,6 +1376,9 @@ fn create_coreutils_symlinks(rootfs: &Path) -> Result<()> {
 	use std::os::unix::fs::symlink;
 
 	let bin = rootfs.join("bin");
+	let usr_bin = rootfs.join("usr/bin");
+	fs::create_dir_all(&usr_bin)
+		.with_context(|| format!("failed to create {}", usr_bin.display()))?;
 	for applet in ["pwd", "ls", "echo", "uname", "cat", "mkdir", "touch"] {
 		let link = bin.join(applet);
 		if link.exists() {
@@ -1190,6 +1387,14 @@ fn create_coreutils_symlinks(rootfs: &Path) -> Result<()> {
 		}
 		symlink("/bin/coreutils", &link)
 			.with_context(|| format!("failed to create symlink {}", link.display()))?;
+
+		let usr_link = usr_bin.join(applet);
+		if usr_link.exists() {
+			fs::remove_file(&usr_link)
+				.with_context(|| format!("failed to remove existing symlink {}", usr_link.display()))?;
+		}
+		symlink("/bin/coreutils", &usr_link)
+			.with_context(|| format!("failed to create symlink {}", usr_link.display()))?;
 	}
 	Ok(())
 }
@@ -1201,12 +1406,13 @@ fn create_coreutils_symlinks(_rootfs: &Path) -> Result<()> {
 }
 
 fn build_initramfs(repo_root: &Path) -> Result<()> {
-	let rootfs = repo_root.join("build/rootfs");
+	let rootfs = repo_root.join("out/build/rootfs");
 	if !rootfs.exists() {
 		bail!("rootfs not found; run build rootfs first");
 	}
 
-	fs::create_dir_all(repo_root.join("build")).context("failed to create build directory")?;
+	let out_build = repo_root.join("out/build");
+	fs::create_dir_all(&out_build).context("failed to create out/build directory")?;
 
 	run_cmd(
 		&rootfs,
@@ -1227,12 +1433,16 @@ fn build_iso(repo_root: &Path) -> Result<()> {
 		);
 	}
 
-	let initramfs = repo_root.join("build/initramfs.cpio.gz");
+	let initramfs = repo_root.join("out/build/initramfs.cpio.gz");
 	if !initramfs.exists() {
 		bail!("initramfs missing at {}; run build initramfs", initramfs.display());
 	}
 
-	let iso_root = repo_root.join("build/iso");
+	let iso_root = repo_root.join("out/build/iso");
+	if iso_root.exists() {
+		fs::remove_dir_all(&iso_root)
+			.with_context(|| format!("failed to clean {}", iso_root.display()))?;
+	}
 	let grub_dir = iso_root.join("boot/grub");
 	fs::create_dir_all(&grub_dir).context("failed to create ISO directory layout")?;
 
@@ -1250,7 +1460,7 @@ fn build_iso(repo_root: &Path) -> Result<()> {
 		&[
 			"-o",
 			"out/images/mattos-x86_64.iso",
-			"build/iso",
+			"out/build/iso",
 		],
 	)
 }
@@ -1260,6 +1470,9 @@ fn run_qemu(repo_root: &Path) -> Result<()> {
 	if !iso.exists() {
 		bail!("ISO missing at {}; run build iso first", iso.display());
 	}
+	let logs = repo_root.join("out/logs");
+	fs::create_dir_all(&logs).context("failed to create out/logs")?;
+	let log_path = logs.join("qemu-boot.log");
 
 	run_cmd(
 		repo_root,
@@ -1269,12 +1482,49 @@ fn run_qemu(repo_root: &Path) -> Result<()> {
 			iso.to_str().ok_or_else(|| anyhow!("invalid ISO path"))?,
 			"-m",
 			"1024",
+			"-nographic",
 			"-serial",
-			"mon:stdio",
-			"-boot",
-			"d",
+			"stdio",
+			"-monitor",
+			"none",
+			"-no-reboot",
+			"-D",
+			log_path
+				.to_str()
+				.ok_or_else(|| anyhow!("invalid qemu log path"))?,
 		],
 	)
+}
+
+fn copy_runtime_dependencies(binary: &Path, rootfs: &Path) -> Result<()> {
+	let binary_str = binary
+		.to_str()
+		.ok_or_else(|| anyhow!("invalid binary path {}", binary.display()))?;
+	let output = run_cmd_output(Path::new("/"), "ldd", &[binary_str])?;
+	if !output.status.success() {
+		return Ok(());
+	}
+	let text = String::from_utf8(output.stdout).context("ldd output was not UTF-8")?;
+
+	for token in text.split_whitespace() {
+		if !token.starts_with('/') {
+			continue;
+		}
+		let src = Path::new(token);
+		if !src.exists() {
+			continue;
+		}
+		let rel = src.strip_prefix("/").unwrap_or(src);
+		let dst = rootfs.join(rel);
+		if let Some(parent) = dst.parent() {
+			fs::create_dir_all(parent)
+				.with_context(|| format!("failed to create {}", parent.display()))?;
+		}
+		fs::copy(src, &dst)
+			.with_context(|| format!("failed to copy runtime dependency {}", src.display()))?;
+	}
+
+	Ok(())
 }
 
 fn run_cmd(cwd: &Path, program: &str, args: &[&str]) -> Result<()> {

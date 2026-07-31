@@ -3,24 +3,26 @@ use std::ffi::CString;
 #[cfg(unix)]
 use std::fs;
 #[cfg(unix)]
-use std::io;
+use std::io::{self, BufRead, Write};
 #[cfg(unix)]
-use std::io::BufRead;
+use std::process::{Child, Command, Stdio};
 #[cfg(unix)]
-use std::process::Command;
+use std::thread;
+#[cfg(unix)]
+use std::time::Duration;
 
 #[cfg(unix)]
-fn mount_fs(source: &str, target: &str, fstype: &str) -> io::Result<()> {
-    let source = CString::new(source).expect("valid source CString");
+fn mount_fs(source: Option<&str>, target: &str, fstype: &str, flags: libc::c_ulong) -> io::Result<()> {
+    let source = source.map(|s| CString::new(s).expect("valid source CString"));
     let target = CString::new(target).expect("valid target CString");
     let fstype = CString::new(fstype).expect("valid fstype CString");
 
     let rc = unsafe {
         libc::mount(
-            source.as_ptr(),
+            source.as_ref().map_or(std::ptr::null(), |s| s.as_ptr()),
             target.as_ptr(),
             fstype.as_ptr(),
-            0,
+            flags,
             std::ptr::null(),
         )
     };
@@ -39,15 +41,46 @@ fn try_mounts() {
     let _ = fs::create_dir_all("/dev");
     let _ = fs::create_dir_all("/tmp");
 
-    if let Err(err) = mount_fs("proc", "/proc", "proc") {
+    if let Err(err) = mount_fs(Some("proc"), "/proc", "proc", 0) {
         eprintln!("mattos-init: mount /proc failed: {err}");
     }
-    if let Err(err) = mount_fs("sysfs", "/sys", "sysfs") {
+    if let Err(err) = mount_fs(Some("sysfs"), "/sys", "sysfs", 0) {
         eprintln!("mattos-init: mount /sys failed: {err}");
     }
-    if let Err(err) = mount_fs("devtmpfs", "/dev", "devtmpfs") {
+    if let Err(err) = mount_fs(Some("devtmpfs"), "/dev", "devtmpfs", 0) {
         eprintln!("mattos-init: mount /dev failed: {err}");
     }
+    if let Err(err) = mount_fs(
+        Some("tmpfs"),
+        "/tmp",
+        "tmpfs",
+        (libc::MS_NOSUID | libc::MS_NODEV) as libc::c_ulong,
+    ) {
+        eprintln!("mattos-init: mount /tmp failed: {err}");
+    }
+}
+
+#[cfg(unix)]
+fn reap_zombies_nonblocking() {
+    loop {
+        let mut status: libc::c_int = 0;
+        let pid = unsafe { libc::waitpid(-1, &mut status as *mut _, libc::WNOHANG) };
+        if pid <= 0 {
+            break;
+        }
+    }
+}
+
+#[cfg(unix)]
+fn spawn_brush() -> io::Result<Child> {
+    Command::new("/bin/brush")
+        .arg("-i")
+        .env("PS1", "MattOS # ")
+        .env("PATH", "/bin:/usr/bin:/sbin:/usr/sbin")
+        .stdin(Stdio::inherit())
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .spawn()
 }
 
 #[cfg(unix)]
@@ -70,13 +103,6 @@ fn run_command_line(line: &str) -> io::Result<()> {
         return Ok(());
     }
 
-    if cmd == "uname" {
-        if args == ["-s"] || args.is_empty() {
-            println!("Linux");
-            return Ok(());
-        }
-    }
-
     let candidate = format!("/bin/{cmd}");
     let exec = if fs::metadata(&candidate).is_ok() {
         candidate
@@ -97,28 +123,67 @@ fn run_command_line(line: &str) -> io::Result<()> {
 }
 
 #[cfg(unix)]
-fn main() {
-    println!("mattos-init: pid1 starting");
-    // Emit a stable startup marker for boot-test synchronization.
-    println!("__MATTOS_START__");
-    try_mounts();
-
+fn run_rescue_shell() {
+    eprintln!("mattos-init: entering emergency rescue shell");
     let stdin = io::stdin();
-    for line in stdin.lock().lines() {
-        match line {
-            Ok(line) => {
+    loop {
+        reap_zombies_nonblocking();
+        print!("mattos-rescue# ");
+        let _ = io::stdout().flush();
+
+        let mut line = String::new();
+        match stdin.lock().read_line(&mut line) {
+            Ok(0) => thread::sleep(Duration::from_millis(250)),
+            Ok(_) => {
                 if let Err(err) = run_command_line(&line) {
                     eprintln!("mattos-init: command failed: {err}");
                 }
             }
-            Err(err) => eprintln!("mattos-init: stdin read failed: {err}"),
+            Err(err) => {
+                eprintln!("mattos-init: stdin read failed: {err}");
+                thread::sleep(Duration::from_millis(250));
+            }
         }
     }
-    eprintln!("mattos-init: stdin closed; idling");
+}
 
-    loop {
-        std::thread::sleep(std::time::Duration::from_secs(1));
+#[cfg(unix)]
+fn supervise_brush() {
+    match spawn_brush() {
+        Ok(mut child) => loop {
+            reap_zombies_nonblocking();
+            match child.try_wait() {
+                Ok(Some(status)) => {
+                    eprintln!("mattos-init: brush exited with {status}");
+                    run_rescue_shell();
+                }
+                Ok(None) => thread::sleep(Duration::from_millis(100)),
+                Err(err) => {
+                    eprintln!("mattos-init: brush wait failed: {err}");
+                    run_rescue_shell();
+                }
+            }
+        },
+        Err(err) => {
+            eprintln!("mattos-init: failed to start /bin/brush: {err}");
+            run_rescue_shell();
+        }
     }
+}
+
+#[cfg(unix)]
+fn main() {
+    let pid = unsafe { libc::getpid() };
+    println!("mattos-init: starting as pid {pid}");
+    println!("__MATTOS_START__");
+    println!("MattOS boot: mounting pseudo-filesystems and launching Brush");
+
+    if pid != 1 {
+        eprintln!("mattos-init: warning - not running as PID 1");
+    }
+
+    try_mounts();
+    supervise_brush();
 }
 
 #[cfg(not(unix))]

@@ -1,28 +1,8 @@
 # Building MattOS
 
-The build orchestration tool is implemented in Rust and the first bootable ISO flow must run in a Linux filesystem inside WSL (not from `/mnt/c`).
+All builds for this milestone are Linux-native and must run on a case-sensitive filesystem.
 
-## Windows -> WSL-native workflow
-
-1. Bootstrap WSL distro, packages, and Linux-side repo mirror (`~/src/MattOS` by default):
-
-```
-cargo run -p mattos-build -- bootstrap-wsl
-```
-
-2. If distro installation is blocked by policy, run this exact elevated command:
-
-```
-wsl --install -d Ubuntu
-```
-
-3. Optional script wrapper:
-
-```
-powershell -ExecutionPolicy Bypass -File tools/bootstrap-wsl.ps1
-```
-
-## Validate prerequisites
+## Prerequisites
 
 Run:
 
@@ -30,63 +10,64 @@ Run:
 cargo run -p mattos-build -- doctor
 ```
 
-Doctor distinguishes:
+Required tools are reported separately from optional tools. Missing-tool package hints are printed for common Linux distributions.
 
-- Windows host requirements (git/cargo/rustc/wsl)
-- WSL/Linux build requirements (kernel + ISO toolchain)
-- Optional QEMU validation requirements
-
-## Full WSL build
-
-Run the complete import + build + optional boot validation pipeline in WSL:
+## Upstream source status
 
 ```
-cargo run -p mattos-build -- build-wsl-iso
+cargo run -p mattos-build -- upstream status
 ```
 
-This performs:
-
-1. Linux-side upstream re-import (`linux`, `brush`, `coreutils`) on case-sensitive filesystem.
-2. Build stages: kernel, mattos-init, brush, coreutils, rootfs, initramfs, bootloader, ISO.
-3. QEMU serial boot test for interactive shell commands unless disabled.
-4. Copy completed ISO from WSL tree back to Windows-visible path.
-
-To skip the QEMU boot test in constrained environments:
+Optional import/sync commands:
 
 ```
-cargo run -p mattos-build -- build-wsl-iso --skip-boot-test
+cargo run -p mattos-build -- upstream import --all
+cargo run -p mattos-build -- upstream sync --all
 ```
 
-To copy ISO again later:
+## Full build
 
 ```
-cargo run -p mattos-build -- copy-iso-from-wsl
+cargo run -p mattos-build -- build
 ```
 
-Expected ISO output path:
+The pipeline stages are:
+
+1. `kernel`: Linux kernel build using `kernel/config/x86_64_mattos.config`
+2. `brush`: Brush release build
+3. `coreutils`: uutils/coreutils multicall build
+4. `init`: MattOS init build
+5. `rootfs`: root filesystem assembly at `out/build/rootfs`
+6. `initramfs`: archive at `out/build/initramfs.cpio.gz`
+7. `iso`: bootable ISO at `out/images/mattos-x86_64.iso`
+
+## Incremental builds
 
 ```
-out/images/mattos-x86_64.iso
+cargo run -p mattos-build -- build kernel
+cargo run -p mattos-build -- build brush
+cargo run -p mattos-build -- build coreutils
+cargo run -p mattos-build -- build init
+cargo run -p mattos-build -- image
 ```
 
-## Boot validation
+`image` reassembles rootfs, initramfs, and ISO without forcing unrelated recompilation.
 
-Automatic validation in `build-wsl-iso` checks:
+## QEMU boot
 
 ```
-pwd
-ls /
-echo MattOS
-uname -a
-cat /proc/version
-mkdir /tmp/test
-touch /tmp/test/file
-ls /tmp/test
+cargo run -p mattos-build -- run
 ```
 
-## Milestone completion criteria
+Boot logs are written to `out/logs/qemu-boot.log`.
 
-1. Upstream trees imported as tracked files (no git submodules)
-2. `upstream/state/*.toml` contains repo/branch/imported commit metadata
-3. `out/images/mattos-x86_64.iso` generated
-4. ISO boot-tested in QEMU
+## Cleanup
+
+```
+cargo run -p mattos-build -- clean artifacts
+cargo run -p mattos-build -- clean logs
+cargo run -p mattos-build -- clean cargo
+cargo run -p mattos-build -- clean all
+```
+
+Cleanup never deletes imported upstream source trees.

@@ -1,0 +1,27 @@
+# Rust/Cargo build outputs
+/target/
+
+# MattOS build and runtime artifacts
+/out/
+
+# Temporary upstream synchronization workspace
+/upstream/.tmp/
+
+# Local temporary bootstrap tools
+/.tools/
+
+# Linux kernel build byproducts in source tree
+/kernel/linux/.config
+/kernel/linux/.config.old
+/kernel/linux/Module.symvers
+/kernel/linux/System.map
+/kernel/linux/vmlinux
+/kernel/linux/vmlinux.o
+/kernel/linux/arch/x86/boot/bzImage
+/kernel/linux/.tmp_versions/
+/kernel/linux/*.cmd
+
+# Local editor/OS noise
+*.swp
+*.swo
+.DS_Store
