@@ -7,6 +7,7 @@ MattOS is a Linux-compatible OS project with upstream source imported directly a
 - `src/kernel/linux`: upstream Linux kernel source
 - `src/userland/brush`: upstream Brush shell source
 - `src/userland/coreutils`: upstream uutils/coreutils source
+- `src/system/systemd`: upstream systemd source
 - `src/userland/init`: MattOS-owned Rust PID 1
 - `src/tools/mattos-build`: MattOS-owned Rust orchestrator
 
@@ -38,6 +39,8 @@ cargo run -p mattos-build -- upstream status
 cargo run -p mattos-build -- build
 ```
 
+This includes a minimal systemd build in `out/build/systemd/`.
+
 5. Run in QEMU:
 
 ```
@@ -63,6 +66,8 @@ out/images/mattos-x86_64.iso
 cargo run -p mattos-build -- upstream import --all
 cargo run -p mattos-build -- upstream sync --all
 cargo run -p mattos-build -- upstream sync linux
+cargo run -p mattos-build -- upstream import systemd
+cargo run -p mattos-build -- upstream sync systemd
 ```
 
 See `docs/UPSTREAM_SYNC.md` for conflict behavior and metadata.
@@ -73,6 +78,7 @@ See `docs/UPSTREAM_SYNC.md` for conflict behavior and metadata.
 cargo run -p mattos-build -- build kernel
 cargo run -p mattos-build -- build brush
 cargo run -p mattos-build -- build coreutils
+cargo run -p mattos-build -- build systemd
 cargo run -p mattos-build -- build init
 cargo run -p mattos-build -- image
 ```

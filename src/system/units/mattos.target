@@ -1,0 +1,5 @@
+[Unit]
+Description=MattOS Interactive Boot Target
+Requires=multi-user.target mattos-shell.service
+After=multi-user.target
+AllowIsolate=yes

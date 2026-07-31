@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -14,6 +15,9 @@ REQUIRED_TOOLS = [
     "rustc",
     "make",
     "gcc",
+    "meson",
+    "ninja",
+    "gperf",
     "ld",
     "objcopy",
     "perl",
@@ -38,12 +42,23 @@ EXTRA_KERNEL_PACKAGES = [
     "libelf-dev",
 ]
 
+EXTRA_SYSTEMD_PACKAGES = [
+    "meson",
+    "ninja-build",
+    "gperf",
+    "python3-jinja2",
+    "libmount-dev",
+]
+
 DEBIAN_TOOL_PACKAGES: Dict[str, List[str]] = {
     "git": ["git"],
     "cargo": ["cargo"],
     "rustc": ["rustc"],
     "make": ["build-essential"],
     "gcc": ["build-essential"],
+    "meson": ["meson"],
+    "ninja": ["ninja-build"],
+    "gperf": ["gperf"],
     "ld": ["binutils"],
     "objcopy": ["binutils"],
     "perl": ["perl"],
@@ -120,6 +135,11 @@ def compute_missing_packages(missing_tools: List[str], dry_run: bool) -> List[st
             seen.add(package_name)
             packages.append(package_name)
 
+    for package_name in EXTRA_SYSTEMD_PACKAGES:
+        if not package_installed(package_name) and package_name not in seen:
+            seen.add(package_name)
+            packages.append(package_name)
+
     return packages
 
 
@@ -157,6 +177,22 @@ def run_doctor(repo_root: Path, dry_run: bool) -> int:
     )
 
 
+def format_shell_command(args: List[str]) -> str:
+    return " ".join(args)
+
+
+def build_install_commands(packages: List[str], use_sudo: bool) -> List[List[str]]:
+    prefix = ["sudo"] if use_sudo else []
+    return [
+        [*prefix, "apt-get", "update"],
+        [*prefix, "apt-get", "install", "-y", *packages],
+    ]
+
+
+def should_use_sudo() -> bool:
+    return os.geteuid() != 0
+
+
 def main() -> int:
     args = parse_args()
 
@@ -191,22 +227,29 @@ def main() -> int:
             print("Installation cancelled by user.")
             return 1
 
+        use_sudo = should_use_sudo()
+        install_commands = build_install_commands(missing_packages, use_sudo)
+
+        if use_sudo and not command_exists("sudo"):
+            raise RepoError("sudo is required for package installation when not running as root")
+
+        if use_sudo and not args.dry_run and not sys.stdin.isatty():
+            print("Non-interactive session detected; cannot prompt for sudo password.")
+            print("Run this command manually:")
+            print("  " + format_shell_command(install_commands[0]) + " && " + format_shell_command(install_commands[1]))
+            return 1
+
         if args.dry_run:
-            run_command(["sudo", "apt-get", "update"], cwd=repo_root, dry_run=True)
-            run_command(
-                ["sudo", "apt-get", "install", "-y", *missing_packages],
-                cwd=repo_root,
-                dry_run=True,
-            )
+            for cmd in install_commands:
+                run_command(cmd, cwd=repo_root, dry_run=True)
         else:
             install_performed = True
             try:
-                run_command(["sudo", "apt-get", "update"], cwd=repo_root, dry_run=False)
-                run_command(
-                    ["sudo", "apt-get", "install", "-y", *missing_packages],
-                    cwd=repo_root,
-                    dry_run=False,
-                )
+                if use_sudo:
+                    print("About to request sudo access for package installation.")
+                    print("If prompted, enter your account password in the terminal.")
+                for cmd in install_commands:
+                    run_command(cmd, cwd=repo_root, dry_run=False)
             except RepoError as exc:
                 raise RepoError(
                     "package installation failed. Review the apt output above and rerun setup after fixing the issue."

@@ -22,3 +22,10 @@ repo = "https://github.com/uutils/coreutils.git"
 branch = "main"
 path = "src/userland/coreutils"
 sync = "copy"
+
+[[component]]
+name = "systemd"
+repo = "https://github.com/systemd/systemd.git"
+branch = "main"
+path = "src/system/systemd"
+sync = "copy"

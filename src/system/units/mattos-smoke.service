@@ -1,0 +1,22 @@
+[Unit]
+Description=MattOS Boot Smoke Validation
+After=multi-user.target
+
+[Service]
+Type=oneshot
+StandardOutput=journal+console
+StandardError=journal+console
+ExecStart=/bin/echo __MATTOS_SMOKE_BEGIN__
+ExecStart=/bin/cat /proc/1/comm
+ExecStart=/usr/bin/systemctl --version
+-ExecStart=/usr/bin/systemctl --no-pager status multi-user.target
+-ExecStart=/usr/bin/systemctl --no-pager list-units
+-ExecStart=/usr/bin/journalctl -b --no-pager
+ExecStart=/bin/pwd
+ExecStart=/bin/ls /
+ExecStart=/bin/echo MattOS
+ExecStart=/bin/uname -a
+ExecStart=/bin/echo __MATTOS_SMOKE_END__
+
+[Install]
+WantedBy=multi-user.target

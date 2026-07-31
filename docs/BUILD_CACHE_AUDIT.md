@@ -42,6 +42,18 @@ Notes:
 Notes:
 - ISO assembly step copies prebuilt binaries; if binaries are unchanged, Cargo should reuse prior artifacts.
 
+### systemd (Meson/Ninja)
+
+| Mechanism | Path | Component | Persistent | Invalidated by | Assessment |
+|---|---|---|---|---|---|
+| Meson build directory | `out/build/systemd/build/` | systemd | Yes | explicit clean, source/flag/toolchain changes, Meson reconfigure | Correct incremental Ninja reuse |
+| Meson option stamp | `out/build/systemd/meson-options.txt` | systemd config cache key | Yes | option changes | Correct targeted reconfigure trigger |
+| Install staging root | `out/build/systemd/install/` | systemd runtime image | Recreated per `build systemd` | every install pass | Deterministic output staging |
+
+Notes:
+- `build systemd` avoids full build-dir wipes and only runs `meson setup --reconfigure` when option stamps change.
+- `ninja -C out/build/systemd/build` provides normal incremental compilation for source edits.
+
 ### Rootfs, initramfs, and ISO
 
 | Mechanism | Path | Component | Persistent | Invalidated by | Assessment |
@@ -61,7 +73,7 @@ Notes:
 |---|---|---|---|---|---|
 | Temporary clones/merge repos | `upstream/.tmp/` | upstream import/sync | Ephemeral | per import/sync run or `clean all` | Correct for safety, not optimized for repeated fetches |
 | Upstream state metadata | `upstream/state/*.toml` | provenance tracking | Yes | successful import/sync metadata updates | Correct |
-| Imported source trees | `src/kernel/linux`, `src/userland/brush`, `src/userland/coreutils` | working source | Yes | explicit import/sync or manual edits | Correct |
+| Imported source trees | `src/kernel/linux`, `src/userland/brush`, `src/userland/coreutils`, `src/system/systemd` | working source | Yes | explicit import/sync or manual edits | Correct |
 
 ### Other cache layers
 
@@ -77,6 +89,7 @@ Notes:
 2. Upstream import/update uses fresh shallow clones in `upstream/.tmp/` and does not keep a reusable local mirror cache.
 3. Kernel build is in-tree; build artifacts remain in imported Linux tree and are not isolated in a dedicated out-of-tree output dir.
 4. Rust caches are split between workspace (`target/`) and upstream userland subprojects (`src/userland/brush/target`, `src/userland/coreutils/target`), which is functional but duplicates cache surfaces.
+5. systemd install staging is intentionally recreated every `build systemd`; compile cache remains incremental in Meson/Ninja build dir.
 
 ## Potential Improvements (Future Task)
 

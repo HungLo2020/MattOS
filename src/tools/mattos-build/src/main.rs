@@ -101,6 +101,7 @@ enum BuildStage {
 	Kernel,
 	Brush,
 	Coreutils,
+	Systemd,
 	Init,
 	Rootfs,
 	Initramfs,
@@ -210,6 +211,9 @@ fn doctor() -> Result<()> {
 		"rustc",
 		"make",
 		"gcc",
+		"meson",
+		"ninja",
+		"gperf",
 		"ld",
 		"objcopy",
 		"perl",
@@ -232,6 +236,8 @@ fn doctor() -> Result<()> {
 	for (tool, args) in [
 		("mformat", vec!["-V"]),
 		("mcopy", vec!["-V"]),
+		("meson", vec!["--version"]),
+		("ninja", vec!["--version"]),
 		("grub-mkrescue", vec!["--version"]),
 		("xorriso", vec!["-version"]),
 	] {
@@ -242,6 +248,16 @@ fn doctor() -> Result<()> {
 			println!("[broken]  {tool} ({message})");
 			broken_required.push(tool);
 		}
+	}
+
+	if let Some(message) = check_tool_runtime("python3", &["-c", "import jinja2"])? {
+		println!("[broken]  python3-jinja2 ({message})");
+		broken_required.push("python3-jinja2");
+	}
+
+	if let Some(message) = check_tool_runtime("pkg-config", &["--exists", "mount"])? {
+		println!("[broken]  libmount-dev ({message})");
+		broken_required.push("libmount-dev");
 	}
 
 	println!("\n[Optional tools]");
@@ -413,6 +429,8 @@ fn packages_for_tool<'a>(tool: &'a str, os_release: &str) -> Vec<&'a str> {
 			"grub-mkrescue" => vec!["grub-pc-bin", "grub-common"],
 			"mformat" | "mcopy" => vec!["mtools"],
 			"qemu-system-x86_64" => vec!["qemu-system-x86"],
+			"ninja" => vec!["ninja-build"],
+			"python3-jinja2" => vec!["python3-jinja2"],
 			_ => vec![tool],
 		};
 	}
@@ -422,6 +440,7 @@ fn packages_for_tool<'a>(tool: &'a str, os_release: &str) -> Vec<&'a str> {
 			"grub-mkrescue" => vec!["grub2-tools"],
 			"mformat" | "mcopy" => vec!["mtools"],
 			"qemu-system-x86_64" => vec!["qemu-system-x86"],
+			"python3-jinja2" => vec!["python3-jinja2"],
 			_ => vec![tool],
 		};
 	}
@@ -430,6 +449,7 @@ fn packages_for_tool<'a>(tool: &'a str, os_release: &str) -> Vec<&'a str> {
 		return match tool {
 			"grub-mkrescue" => vec!["grub"],
 			"mformat" | "mcopy" => vec!["mtools"],
+			"python3-jinja2" => vec!["python-jinja"],
 			_ => vec![tool],
 		};
 	}
@@ -1356,6 +1376,7 @@ fn build(repo_root: &Path, stage: BuildStage) -> Result<()> {
 		BuildStage::Kernel => build_kernel(repo_root),
 		BuildStage::Brush => build_brush(repo_root),
 		BuildStage::Coreutils => build_coreutils(repo_root),
+		BuildStage::Systemd => build_systemd(repo_root),
 		BuildStage::Init => build_init(repo_root),
 		BuildStage::Rootfs => build_rootfs(repo_root),
 		BuildStage::Initramfs => build_initramfs(repo_root),
@@ -1364,6 +1385,7 @@ fn build(repo_root: &Path, stage: BuildStage) -> Result<()> {
 			build_kernel(repo_root)?;
 			build_brush(repo_root)?;
 			build_coreutils(repo_root)?;
+			build_systemd(repo_root)?;
 			build_init(repo_root)?;
 			build_rootfs(repo_root)?;
 			build_initramfs(repo_root)?;
@@ -1489,6 +1511,144 @@ fn build_init(repo_root: &Path) -> Result<()> {
 	)
 }
 
+fn build_systemd(repo_root: &Path) -> Result<()> {
+	let systemd_src = repo_root.join("src/system/systemd");
+	if !systemd_src.join("meson.build").exists() {
+		bail!(
+			"systemd source not found in {}; run upstream import systemd first",
+			systemd_src.display()
+		);
+	}
+
+	let out_root = repo_root.join("out/build/systemd");
+	let build_dir = out_root.join("build");
+	let install_dir = out_root.join("install");
+	let options_path = out_root.join("meson-options.txt");
+	fs::create_dir_all(&out_root)
+		.with_context(|| format!("failed to create {}", out_root.display()))?;
+
+	let options = systemd_meson_options();
+	let options_text = format!("{}\n", options.join("\n"));
+	let existing_options = fs::read_to_string(&options_path).ok();
+	let needs_reconfigure = existing_options.as_deref() != Some(options_text.as_str());
+	let configured = build_dir.join("build.ninja").exists();
+
+	if !configured {
+		let mut setup_args = vec![
+			"setup".to_string(),
+			build_dir.display().to_string(),
+			systemd_src.display().to_string(),
+		];
+		setup_args.extend(options.clone());
+		let setup_refs: Vec<&str> = setup_args.iter().map(String::as_str).collect();
+		run_cmd(repo_root, "meson", &setup_refs)?;
+		fs::write(&options_path, &options_text)
+			.with_context(|| format!("failed to write {}", options_path.display()))?;
+	} else if needs_reconfigure {
+		let mut setup_args = vec![
+			"setup".to_string(),
+			"--reconfigure".to_string(),
+			build_dir.display().to_string(),
+			systemd_src.display().to_string(),
+		];
+		setup_args.extend(options.clone());
+		let setup_refs: Vec<&str> = setup_args.iter().map(String::as_str).collect();
+		run_cmd(repo_root, "meson", &setup_refs)?;
+		fs::write(&options_path, &options_text)
+			.with_context(|| format!("failed to write {}", options_path.display()))?;
+	}
+
+	let ninja_args = vec!["-C", build_dir.to_str().ok_or_else(|| anyhow!("invalid build dir"))?];
+	run_cmd(repo_root, "ninja", &ninja_args)?;
+
+	if install_dir.exists() {
+		fs::remove_dir_all(&install_dir)
+			.with_context(|| format!("failed to clean {}", install_dir.display()))?;
+	}
+	fs::create_dir_all(&install_dir)
+		.with_context(|| format!("failed to create {}", install_dir.display()))?;
+
+	let install_args = vec![
+		"install",
+		"-C",
+		build_dir.to_str().ok_or_else(|| anyhow!("invalid build dir"))?,
+		"--no-rebuild",
+		"--destdir",
+		install_dir
+			.to_str()
+			.ok_or_else(|| anyhow!("invalid install dir"))?,
+	];
+	run_cmd(repo_root, "meson", &install_args)?;
+
+	let pid1 = install_dir.join("usr/lib/systemd/systemd");
+	if !pid1.exists() {
+		bail!("systemd install did not produce {}", pid1.display());
+	}
+
+	Ok(())
+}
+
+fn systemd_meson_options() -> Vec<String> {
+	vec![
+		"--prefix=/usr".to_string(),
+		"--sysconfdir=/etc".to_string(),
+		"--localstatedir=/var".to_string(),
+		"--libdir=lib/x86_64-linux-gnu".to_string(),
+		"-Dmode=release".to_string(),
+		"-Dtests=false".to_string(),
+		"-Dman=disabled".to_string(),
+		"-Dhtml=disabled".to_string(),
+		"-Dtranslations=false".to_string(),
+		"-Dnetworkd=false".to_string(),
+		"-Dresolve=false".to_string(),
+		"-Dtimesyncd=false".to_string(),
+		"-Dhomed=disabled".to_string(),
+		"-Dportabled=false".to_string(),
+		"-Dnspawn=disabled".to_string(),
+		"-Dbootloader=disabled".to_string(),
+		"-Dfirstboot=false".to_string(),
+		"-Drepart=disabled".to_string(),
+		"-Doomd=false".to_string(),
+		"-Duserdb=false".to_string(),
+		"-Dremote=disabled".to_string(),
+		"-Dsysupdate=disabled".to_string(),
+		"-Dsysupdated=disabled".to_string(),
+		"-Dsysinstall=false".to_string(),
+		"-Dimportd=disabled".to_string(),
+		"-Dvmspawn=disabled".to_string(),
+		"-Dcoredump=false".to_string(),
+		"-Dpstore=false".to_string(),
+		"-Dmachined=false".to_string(),
+		"-Dhostnamed=false".to_string(),
+		"-Dlocaled=false".to_string(),
+		"-Dtimedated=false".to_string(),
+		"-Dnsresourced=false".to_string(),
+		"-Ddefault-network=false".to_string(),
+		"-Ddbus=disabled".to_string(),
+		"-Dglib=disabled".to_string(),
+		"-Dseccomp=disabled".to_string(),
+		"-Dacl=disabled".to_string(),
+		"-Daudit=disabled".to_string(),
+		"-Dblkid=disabled".to_string(),
+		"-Dkmod=disabled".to_string(),
+		"-Dlibmount=enabled".to_string(),
+		"-Dpam=disabled".to_string(),
+		"-Dlibcryptsetup=disabled".to_string(),
+		"-Dopenssl=disabled".to_string(),
+		"-Dgnutls=disabled".to_string(),
+		"-Dlibfido2=disabled".to_string(),
+		"-Dtpm=false".to_string(),
+		"-Dtpm2=disabled".to_string(),
+		"-Dqrencode=disabled".to_string(),
+		"-Dbpf-framework=disabled".to_string(),
+		"-Dvmlinux-h=disabled".to_string(),
+		"-Dkernel-install=false".to_string(),
+		"-Danalyze=false".to_string(),
+		"-Dcreate-log-dirs=false".to_string(),
+		"-Djournal-storage-default=volatile".to_string(),
+	]
+}
+
 fn build_rootfs(repo_root: &Path) -> Result<()> {
 	let skeleton = repo_root.join("src/rootfs/skeleton");
 	let out = repo_root.join("out/build/rootfs");
@@ -1497,7 +1657,28 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 		fs::remove_dir_all(&out).with_context(|| format!("failed to clean {}", out.display()))?;
 	}
 	copy_tree_excluding_dotgit(&skeleton, &out)?;
+	ensure_merged_usr_layout(&out)?;
 	fs::create_dir_all(out.join("root")).context("failed to create /root in rootfs")?;
+	fs::create_dir_all(out.join("run")).context("failed to create /run in rootfs")?;
+	fs::create_dir_all(out.join("var/log")).context("failed to create /var/log in rootfs")?;
+	fs::create_dir_all(out.join("var/tmp")).context("failed to create /var/tmp in rootfs")?;
+	fs::create_dir_all(out.join("etc/systemd/system")).context("failed to create /etc/systemd/system")?;
+	fs::create_dir_all(out.join("usr/libexec/mattos")).context("failed to create rescue init dir")?;
+	fs::write(out.join("etc/machine-id"), "").context("failed to create /etc/machine-id")?;
+
+	let systemd_install = repo_root.join("out/build/systemd/install");
+	let systemd_pid1 = systemd_install.join("usr/lib/systemd/systemd");
+	if !systemd_pid1.exists() {
+		bail!(
+			"systemd install output missing at {}; run build systemd first",
+			systemd_pid1.display()
+		);
+	}
+	copy_tree_excluding_dotgit(&systemd_install, &out)?;
+	copy_shared_object_and_deps("libmount.so.1", &out)?;
+	copy_host_binary_and_deps("/usr/bin/mount", &out)?;
+	copy_host_binary_and_deps("/usr/sbin/ldconfig", &out)?;
+	install_mattos_system_units(repo_root, &out)?;
 
 	let init_bin = repo_root.join("target/release/mattos-init");
 	if !init_bin.exists() {
@@ -1507,14 +1688,14 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 		);
 	}
 
-	fs::create_dir_all(out.join("sbin")).context("failed to create /sbin in rootfs")?;
-	fs::copy(&init_bin, out.join("sbin/init")).with_context(|| {
+	let rescue_init = out.join("usr/libexec/mattos/rescue-init");
+	fs::copy(&init_bin, &rescue_init).with_context(|| {
 		format!(
-			"failed to copy init binary from {} into rootfs",
+			"failed to copy rescue init binary from {} into rootfs",
 			init_bin.display()
 		)
 	})?;
-	copy_runtime_dependencies(&init_bin, &out)?;
+	copy_runtime_dependencies(&rescue_init, &out)?;
 
 	let brush_candidates = [
 		repo_root.join("src/userland/brush/target/release/brush"),
@@ -1523,8 +1704,9 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 	let brush_bin = brush_candidates.iter().find(|p| p.exists()).cloned();
 
 	if let Some(brush_bin) = brush_bin {
-		fs::copy(&brush_bin, out.join("bin/brush")).context("failed to copy brush binary")?;
-		copy_runtime_dependencies(&brush_bin, &out)?;
+		let dst = out.join("usr/bin/brush");
+		fs::copy(&brush_bin, &dst).context("failed to copy brush binary")?;
+		copy_runtime_dependencies(&dst, &out)?;
 	} else {
 		bail!("brush binary not found; run build brush first")
 	}
@@ -1537,18 +1719,18 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 	let coreutils_multicall = coreutils_candidates.iter().find(|p| p.exists()).cloned();
 
 	if let Some(bin) = coreutils_multicall {
-		let dst = out.join("bin/coreutils");
+		let dst = out.join("usr/bin/coreutils");
 		fs::copy(&bin, &dst).with_context(|| {
 			format!("failed to copy coreutils multicall binary from {}", bin.display())
 		})?;
-		copy_runtime_dependencies(&bin, &out)?;
+		copy_runtime_dependencies(&dst, &out)?;
 
 		create_coreutils_symlinks(&out)?;
 	} else {
 		bail!("coreutils multicall binary not found; run build coreutils first")
 	}
 
-	let sh_link = out.join("bin/sh");
+	let sh_link = out.join("usr/bin/sh");
 	if sh_link.exists() {
 		fs::remove_file(&sh_link)
 			.with_context(|| format!("failed to remove existing {}", sh_link.display()))?;
@@ -1557,6 +1739,108 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 	std::os::unix::fs::symlink("/bin/brush", &sh_link)
 		.with_context(|| format!("failed to create {}", sh_link.display()))?;
 
+	copy_systemd_runtime_dependencies(&out)?;
+
+	Ok(())
+}
+
+#[cfg(unix)]
+fn ensure_merged_usr_layout(rootfs: &Path) -> Result<()> {
+	use std::os::unix::fs::symlink;
+
+	fs::create_dir_all(rootfs.join("usr/bin")).context("failed to create /usr/bin")?;
+	fs::create_dir_all(rootfs.join("usr/sbin")).context("failed to create /usr/sbin")?;
+	fs::create_dir_all(rootfs.join("usr/lib")).context("failed to create /usr/lib")?;
+	fs::create_dir_all(rootfs.join("usr/lib64")).context("failed to create /usr/lib64")?;
+
+	for (name, target) in [
+		("bin", "usr/bin"),
+		("sbin", "usr/sbin"),
+		("lib", "usr/lib"),
+		("lib64", "usr/lib64"),
+	] {
+		let path = rootfs.join(name);
+		if path.exists() {
+			let meta = fs::symlink_metadata(&path)
+				.with_context(|| format!("failed to stat {}", path.display()))?;
+			if meta.file_type().is_symlink() {
+				fs::remove_file(&path)
+					.with_context(|| format!("failed to remove symlink {}", path.display()))?;
+			} else if meta.is_dir() {
+				fs::remove_dir_all(&path)
+					.with_context(|| format!("failed to remove directory {}", path.display()))?;
+			} else {
+				fs::remove_file(&path)
+					.with_context(|| format!("failed to remove file {}", path.display()))?;
+			}
+		}
+		symlink(target, &path)
+			.with_context(|| format!("failed to create symlink {} -> {}", path.display(), target))?;
+	}
+
+	Ok(())
+}
+
+#[cfg(not(unix))]
+fn ensure_merged_usr_layout(_rootfs: &Path) -> Result<()> {
+	bail!("merged /usr rootfs layout requires Unix symlink support")
+}
+
+fn install_mattos_system_units(repo_root: &Path, rootfs: &Path) -> Result<()> {
+	let units_src = repo_root.join("src/system/units");
+	if !units_src.exists() {
+		bail!(
+			"MattOS systemd units missing at {}; expected MattOS-owned units",
+			units_src.display()
+		);
+	}
+	let units_dst = rootfs.join("usr/lib/systemd/system");
+	fs::create_dir_all(&units_dst)
+		.with_context(|| format!("failed to create {}", units_dst.display()))?;
+	copy_tree_excluding_dotgit(&units_src, &units_dst)?;
+
+	let default_target = rootfs.join("etc/systemd/system/default.target");
+	if default_target.exists() {
+		fs::remove_file(&default_target)
+			.with_context(|| format!("failed to remove {}", default_target.display()))?;
+	}
+	#[cfg(unix)]
+	std::os::unix::fs::symlink("/usr/lib/systemd/system/mattos.target", &default_target)
+		.with_context(|| format!("failed to create {}", default_target.display()))?;
+
+	let smoke_wants = rootfs.join("etc/systemd/system/multi-user.target.wants");
+	fs::create_dir_all(&smoke_wants)
+		.with_context(|| format!("failed to create {}", smoke_wants.display()))?;
+	let smoke_link = smoke_wants.join("mattos-smoke.service");
+	if smoke_link.exists() {
+		fs::remove_file(&smoke_link)
+			.with_context(|| format!("failed to remove {}", smoke_link.display()))?;
+	}
+	#[cfg(unix)]
+	std::os::unix::fs::symlink("/usr/lib/systemd/system/mattos-smoke.service", &smoke_link)
+		.with_context(|| format!("failed to create {}", smoke_link.display()))?;
+
+	Ok(())
+}
+
+fn copy_systemd_runtime_dependencies(rootfs: &Path) -> Result<()> {
+	let mut binaries = Vec::new();
+	for rel in [
+		"usr/lib/systemd/systemd",
+		"usr/lib/systemd/systemd-journald",
+		"usr/lib/systemd/systemd-udevd",
+		"usr/bin/systemctl",
+		"usr/bin/journalctl",
+	] {
+		let p = rootfs.join(rel);
+		if p.exists() {
+			binaries.push(p);
+		}
+	}
+
+	for bin in binaries {
+		copy_runtime_dependencies(&bin, rootfs)?;
+	}
 	Ok(())
 }
 
@@ -1719,6 +2003,65 @@ fn copy_runtime_dependencies(binary: &Path, rootfs: &Path) -> Result<()> {
 	}
 
 	Ok(())
+}
+
+fn copy_host_binary_and_deps(path: &str, rootfs: &Path) -> Result<()> {
+	let src = Path::new(path);
+	if !src.exists() {
+		return Ok(());
+	}
+
+	let rel = src.strip_prefix("/").unwrap_or(src);
+	let dst = rootfs.join(rel);
+	if let Some(parent) = dst.parent() {
+		fs::create_dir_all(parent)
+			.with_context(|| format!("failed to create {}", parent.display()))?;
+	}
+	fs::copy(src, &dst)
+		.with_context(|| format!("failed to copy host binary {}", src.display()))?;
+	copy_runtime_dependencies(src, rootfs)?;
+	Ok(())
+}
+
+fn copy_shared_object_and_deps(soname: &str, rootfs: &Path) -> Result<()> {
+	let src = resolve_shared_object_path(soname)?;
+	let rel = src.strip_prefix("/").unwrap_or(src.as_path());
+	let dst = rootfs.join(rel);
+	if let Some(parent) = dst.parent() {
+		fs::create_dir_all(parent)
+			.with_context(|| format!("failed to create {}", parent.display()))?;
+	}
+	fs::copy(&src, &dst)
+		.with_context(|| format!("failed to copy runtime dependency {}", src.display()))?;
+	copy_runtime_dependencies(&src, rootfs)?;
+	Ok(())
+}
+
+fn resolve_shared_object_path(soname: &str) -> Result<PathBuf> {
+	let output = run_cmd_output(Path::new("/"), "ldconfig", &["-p"])?;
+	if output.status.success() {
+		let text = String::from_utf8(output.stdout).context("ldconfig output was not UTF-8")?;
+		for line in text.lines() {
+			if !line.contains(soname) || !line.contains("=>") {
+				continue;
+			}
+			if let Some((_, path_part)) = line.split_once("=>") {
+				let candidate = PathBuf::from(path_part.trim());
+				if candidate.exists() {
+					return Ok(candidate);
+				}
+			}
+		}
+	}
+
+	for base in ["/lib", "/lib64", "/usr/lib", "/usr/lib64", "/lib/x86_64-linux-gnu", "/usr/lib/x86_64-linux-gnu"] {
+		let candidate = Path::new(base).join(soname);
+		if candidate.exists() {
+			return Ok(candidate);
+		}
+	}
+
+	bail!("required shared object {} not found on host", soname)
 }
 
 fn run_cmd(cwd: &Path, program: &str, args: &[&str]) -> Result<()> {
@@ -2240,6 +2583,168 @@ mod tests {
 				assert!(result.is_err());
 			}
 		}
+	}
+
+	#[test]
+	fn read_sources_parses_systemd_component() {
+		let tmp = tempfile::tempdir().expect("tempdir");
+		let root = tmp.path();
+		write(
+			&root.join("upstream/sources.toml"),
+			"[[component]]\nname='systemd'\nrepo='https://github.com/systemd/systemd.git'\nbranch='main'\npath='src/system/systemd'\nsync='copy'\n",
+		);
+		let sources = read_sources(root).expect("read sources");
+		assert_eq!(sources.component.len(), 1);
+		assert_eq!(sources.component[0].name, "systemd");
+		assert_eq!(sources.component[0].path, "src/system/systemd");
+	}
+
+	#[test]
+	fn systemd_import_destination_is_safe() {
+		let root = std::env::temp_dir().join("mattos-systemd-path");
+		let safe = resolve_component_destination(&root, "src/system/systemd").expect("resolve");
+		assert!(safe.ends_with("src/system/systemd"));
+		assert!(resolve_component_destination(&root, "src/system/../escape").is_err());
+	}
+
+	#[test]
+	fn systemd_initial_import_writes_state() {
+		let upstream = tempfile::tempdir().expect("upstream tempdir");
+		let upstream_root = upstream.path();
+		run_ok(upstream_root, "git", &["init", "-b", "main"]);
+		run_ok(upstream_root, "git", &["config", "user.name", "Upstream User"]);
+		run_ok(
+			upstream_root,
+			"git",
+			&["config", "user.email", "upstream@example.invalid"],
+		);
+		write(&upstream_root.join("meson.build"), "project('systemd', 'c')\n");
+		run_ok(upstream_root, "git", &["add", "."]);
+		run_ok(upstream_root, "git", &["commit", "-m", "init"]);
+
+		let workspace = tempfile::tempdir().expect("workspace tempdir");
+		let root = workspace.path();
+		run_ok(root, "git", &["init"]);
+		run_ok(root, "git", &["config", "user.name", "MattOS User"]);
+		run_ok(root, "git", &["config", "user.email", "mattos@example.invalid"]);
+		write(&root.join("README.md"), "repo\n");
+		run_ok(root, "git", &["add", "."]);
+		run_ok(root, "git", &["commit", "-m", "init"]);
+
+		let comp = ComponentDef {
+			name: "systemd".to_string(),
+			repo: upstream_root.to_string_lossy().to_string(),
+			branch: "main".to_string(),
+			path: "src/system/systemd".to_string(),
+			sync: "copy".to_string(),
+		};
+		import_component(root, &comp, false).expect("initial import");
+		assert!(root.join("src/system/systemd/meson.build").exists());
+
+		let state = read_sync_state(root, "systemd")
+			.expect("read state")
+			.expect("state exists");
+		assert_eq!(state.component, "systemd");
+		assert_eq!(state.repo, comp.repo);
+		assert_eq!(state.destination_path, "src/system/systemd");
+	}
+
+	#[test]
+	fn systemd_sync_preserves_local_modifications() {
+		let upstream = tempfile::tempdir().expect("upstream tempdir");
+		let upstream_root = upstream.path();
+		run_ok(upstream_root, "git", &["init", "-b", "main"]);
+		run_ok(upstream_root, "git", &["config", "user.name", "Upstream User"]);
+		run_ok(
+			upstream_root,
+			"git",
+			&["config", "user.email", "upstream@example.invalid"],
+		);
+		write(&upstream_root.join("meson.build"), "base\n");
+		run_ok(upstream_root, "git", &["add", "."]);
+		run_ok(upstream_root, "git", &["commit", "-m", "base"]);
+
+		let workspace = tempfile::tempdir().expect("workspace tempdir");
+		let root = workspace.path();
+		run_ok(root, "git", &["init"]);
+		run_ok(root, "git", &["config", "user.name", "MattOS User"]);
+		run_ok(root, "git", &["config", "user.email", "mattos@example.invalid"]);
+		write(&root.join("README.md"), "repo\n");
+		run_ok(root, "git", &["add", "."]);
+		run_ok(root, "git", &["commit", "-m", "init"]);
+
+		let comp = ComponentDef {
+			name: "systemd".to_string(),
+			repo: upstream_root.to_string_lossy().to_string(),
+			branch: "main".to_string(),
+			path: "src/system/systemd".to_string(),
+			sync: "copy".to_string(),
+		};
+		import_component(root, &comp, false).expect("initial import");
+		run_ok(root, "git", &["add", "."]);
+		run_ok(root, "git", &["commit", "-m", "import"]);
+
+		write(&root.join("src/system/systemd/meson.build"), "local change\n");
+		run_ok(root, "git", &["add", "src/system/systemd/meson.build"]);
+		run_ok(root, "git", &["commit", "-m", "local"]);
+
+		write(&upstream_root.join("README"), "upstream only\n");
+		run_ok(upstream_root, "git", &["add", "README"]);
+		run_ok(upstream_root, "git", &["commit", "-m", "upstream"]);
+
+		import_component(root, &comp, true).expect("update without conflict");
+		let local = fs::read_to_string(root.join("src/system/systemd/meson.build")).expect("read local file");
+		assert_eq!(local, "local change\n");
+	}
+
+	#[test]
+	fn systemd_sync_conflict_behavior_surfaces_markers() {
+		let upstream = tempfile::tempdir().expect("upstream tempdir");
+		let upstream_root = upstream.path();
+		run_ok(upstream_root, "git", &["init", "-b", "main"]);
+		run_ok(upstream_root, "git", &["config", "user.name", "Upstream User"]);
+		run_ok(
+			upstream_root,
+			"git",
+			&["config", "user.email", "upstream@example.invalid"],
+		);
+		write(&upstream_root.join("meson.build"), "base\n");
+		run_ok(upstream_root, "git", &["add", "."]);
+		run_ok(upstream_root, "git", &["commit", "-m", "base"]);
+
+		let workspace = tempfile::tempdir().expect("workspace tempdir");
+		let root = workspace.path();
+		run_ok(root, "git", &["init"]);
+		run_ok(root, "git", &["config", "user.name", "MattOS User"]);
+		run_ok(root, "git", &["config", "user.email", "mattos@example.invalid"]);
+		write(&root.join("README.md"), "repo\n");
+		run_ok(root, "git", &["add", "."]);
+		run_ok(root, "git", &["commit", "-m", "init"]);
+
+		let comp = ComponentDef {
+			name: "systemd".to_string(),
+			repo: upstream_root.to_string_lossy().to_string(),
+			branch: "main".to_string(),
+			path: "src/system/systemd".to_string(),
+			sync: "copy".to_string(),
+		};
+		import_component(root, &comp, false).expect("initial import");
+		run_ok(root, "git", &["add", "."]);
+		run_ok(root, "git", &["commit", "-m", "import"]);
+
+		write(&root.join("src/system/systemd/meson.build"), "local\n");
+		run_ok(root, "git", &["add", "src/system/systemd/meson.build"]);
+		run_ok(root, "git", &["commit", "-m", "local"]);
+
+		write(&upstream_root.join("meson.build"), "upstream\n");
+		run_ok(upstream_root, "git", &["add", "meson.build"]);
+		run_ok(upstream_root, "git", &["commit", "-m", "upstream"]);
+
+		let result = import_component(root, &comp, true);
+		assert!(result.is_err());
+		let merged = fs::read_to_string(root.join("src/system/systemd/meson.build")).expect("read merged");
+		assert!(merged.contains("<<<<<<<"));
+		assert!(merged.contains(">>>>>>>"));
 	}
 
 }
