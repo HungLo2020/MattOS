@@ -4,6 +4,19 @@ All builds for this milestone are Linux-native and must run on a case-sensitive 
 
 ## Prerequisites
 
+For first-time setup on a native Linux host:
+
+```
+python3 DevUtils/setup.py
+```
+
+Read-only checks:
+
+```
+python3 DevUtils/setup.py --check
+python3 DevUtils/setup.py --dry-run
+```
+
 Run:
 
 ```
@@ -11,6 +24,7 @@ cargo run -p mattos-build -- doctor
 ```
 
 Required tools are reported separately from optional tools. Missing-tool package hints are printed for common Linux distributions.
+`DevUtils/run_qemu.py` also runs `doctor` first and will direct you to `python3 DevUtils/setup.py` if required prerequisites are missing.
 
 ## Upstream source status
 

@@ -57,6 +57,19 @@ def build_if_needed(repo_root: Path, args: argparse.Namespace) -> None:
     if args.no_build:
         return
 
+    # Fail fast on missing or broken toolchain prerequisites before expensive builds.
+    try:
+        run_command(
+            ["cargo", "run", "-p", "mattos-build", "--", "doctor"],
+            cwd=repo_root,
+            dry_run=args.dry_run,
+        )
+    except RepoError as exc:
+        raise RepoError(
+            "mattos-build doctor reported missing or broken prerequisites. "
+            "Run: python3 DevUtils/setup.py"
+        ) from exc
+
     if args.clean:
         run_command(
             ["cargo", "run", "-p", "mattos-build", "--", "clean", "artifacts"],

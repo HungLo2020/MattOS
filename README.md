@@ -14,25 +14,31 @@ No Git submodules are used.
 
 ## Native Linux quick start
 
-1. Check prerequisites:
+1. First-time machine setup:
+
+```
+python3 DevUtils/setup.py
+```
+
+2. Check prerequisites:
 
 ```
 cargo run -p mattos-build -- doctor
 ```
 
-2. Inspect imported upstream state:
+3. Inspect imported upstream state:
 
 ```
 cargo run -p mattos-build -- upstream status
 ```
 
-3. Build all components and ISO:
+4. Build all components and ISO:
 
 ```
 cargo run -p mattos-build -- build
 ```
 
-4. Run in QEMU:
+5. Run in QEMU:
 
 ```
 cargo run -p mattos-build -- run
@@ -41,6 +47,7 @@ cargo run -p mattos-build -- run
 Or use the development launcher:
 
 ```
+python3 DevUtils/setup.py --check
 python3 DevUtils/run_qemu.py
 ```
 

@@ -195,7 +195,9 @@ fn doctor() -> Result<()> {
 	}
 
 	let mut missing_required = Vec::new();
+	let mut broken_required = Vec::new();
 	let mut missing_optional = Vec::new();
+	let mut broken_optional = Vec::new();
 
 	println!("\n[Required tools]");
 	let local_tools = local_tool_env(&std::env::current_dir().context("cwd")?);
@@ -215,6 +217,8 @@ fn doctor() -> Result<()> {
 		"bc",
 		"cpio",
 		"gzip",
+		"mformat",
+		"mcopy",
 		"grub-mkrescue",
 		"xorriso",
 		"pkg-config",
@@ -225,6 +229,21 @@ fn doctor() -> Result<()> {
 		}
 	}
 
+	for (tool, args) in [
+		("mformat", vec!["-V"]),
+		("mcopy", vec!["-V"]),
+		("grub-mkrescue", vec!["--version"]),
+		("xorriso", vec!["-version"]),
+	] {
+		if missing_required.contains(&tool) {
+			continue;
+		}
+		if let Some(message) = check_tool_runtime(tool, &args)? {
+			println!("[broken]  {tool} ({message})");
+			broken_required.push(tool);
+		}
+	}
+
 	println!("\n[Optional tools]");
 	for tool in ["qemu-system-x86_64", "clang", "bison", "flex"] {
 		if !check_host_tool_with_hint(tool, false, local_path_hint.as_deref())? {
@@ -232,9 +251,31 @@ fn doctor() -> Result<()> {
 		}
 	}
 
-	if !missing_required.is_empty() || !missing_optional.is_empty() {
+	for (tool, args) in [("qemu-system-x86_64", vec!["--version"])] {
+		if missing_optional.contains(&tool) {
+			continue;
+		}
+		if let Some(message) = check_tool_runtime(tool, &args)? {
+			println!("[broken]  {tool} ({message})");
+			broken_optional.push(tool);
+		}
+	}
+
+	let mut required_issues: Vec<&str> = Vec::new();
+	required_issues.extend(missing_required.iter().copied());
+	required_issues.extend(broken_required.iter().copied());
+	required_issues.sort_unstable();
+	required_issues.dedup();
+
+	let mut optional_issues: Vec<&str> = Vec::new();
+	optional_issues.extend(missing_optional.iter().copied());
+	optional_issues.extend(broken_optional.iter().copied());
+	optional_issues.sort_unstable();
+	optional_issues.dedup();
+
+	if !required_issues.is_empty() || !optional_issues.is_empty() {
 		println!("\n[Suggested packages]");
-		if let Some(cmd) = suggested_package_command(&missing_required, &missing_optional)? {
+		if let Some(cmd) = suggested_package_command(&required_issues, &optional_issues)? {
 			println!("{cmd}");
 		} else {
 			println!("No package manager hint available; install missing tools manually.");
@@ -242,10 +283,17 @@ fn doctor() -> Result<()> {
 	}
 
 	if !missing_required.is_empty() {
-		bail!("doctor detected missing required prerequisites")
+		println!("\n[Required missing tools] {}", missing_required.join(", "));
+	}
+	if !broken_required.is_empty() {
+		println!("[Required broken tools] {}", broken_required.join(", "));
 	}
 
-	if !missing_optional.is_empty() {
+	if !missing_required.is_empty() || !broken_required.is_empty() {
+		bail!("doctor detected missing or broken required prerequisites")
+	}
+
+	if !missing_optional.is_empty() || !broken_optional.is_empty() {
 		println!("doctor completed with optional warnings");
 	} else {
 		println!("doctor completed successfully");
@@ -331,8 +379,20 @@ fn remove_path_if_exists(path: &Path) -> Result<()> {
 
 fn suggested_package_command(required: &[&str], optional: &[&str]) -> Result<Option<String>> {
 	let os_release = fs::read_to_string("/etc/os-release").unwrap_or_default();
-	let all: Vec<&str> = required.iter().chain(optional.iter()).copied().collect();
-	let package_list = all.join(" ");
+	let mut all_tools: Vec<&str> = required.iter().chain(optional.iter()).copied().collect();
+	all_tools.sort_unstable();
+	all_tools.dedup();
+
+	let mut package_list: Vec<&str> = Vec::new();
+	for tool in all_tools {
+		for pkg in packages_for_tool(tool, &os_release) {
+			if !package_list.contains(&pkg) {
+				package_list.push(pkg);
+			}
+		}
+	}
+
+	let package_list = package_list.join(" ");
 
 	if os_release.contains("ID=ubuntu") || os_release.contains("ID=debian") {
 		return Ok(Some(format!("sudo apt update && sudo apt install -y {package_list}")));
@@ -345,6 +405,59 @@ fn suggested_package_command(required: &[&str], optional: &[&str]) -> Result<Opt
 	}
 
 	Ok(None)
+}
+
+fn packages_for_tool<'a>(tool: &'a str, os_release: &str) -> Vec<&'a str> {
+	if os_release.contains("ID=ubuntu") || os_release.contains("ID=debian") {
+		return match tool {
+			"grub-mkrescue" => vec!["grub-pc-bin", "grub-common"],
+			"mformat" | "mcopy" => vec!["mtools"],
+			"qemu-system-x86_64" => vec!["qemu-system-x86"],
+			_ => vec![tool],
+		};
+	}
+
+	if os_release.contains("ID=fedora") || os_release.contains("ID=centos") || os_release.contains("ID=rhel") {
+		return match tool {
+			"grub-mkrescue" => vec!["grub2-tools"],
+			"mformat" | "mcopy" => vec!["mtools"],
+			"qemu-system-x86_64" => vec!["qemu-system-x86"],
+			_ => vec![tool],
+		};
+	}
+
+	if os_release.contains("ID=arch") || os_release.contains("ID_LIKE=arch") {
+		return match tool {
+			"grub-mkrescue" => vec!["grub"],
+			"mformat" | "mcopy" => vec!["mtools"],
+			_ => vec![tool],
+		};
+	}
+
+	vec![tool]
+}
+
+fn check_tool_runtime(cmd: &str, args: &[&str]) -> Result<Option<String>> {
+	let output = Command::new(cmd)
+		.args(args)
+		.output()
+		.with_context(|| format!("failed to execute tool check: {cmd} {}", args.join(" ")))?;
+
+	if output.status.success() {
+		return Ok(None);
+	}
+
+	let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+	let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+	let detail = if !stderr.is_empty() {
+		stderr
+	} else if !stdout.is_empty() {
+		stdout
+	} else {
+		format!("exit status {}", output.status)
+	};
+
+	Ok(Some(detail))
 }
 
 fn bootstrap_windows(distro: &str, install_distro: bool, skip_package_install: bool) -> Result<()> {

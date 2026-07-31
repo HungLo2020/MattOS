@@ -1,7 +1,7 @@
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Iterable, Sequence
+from typing import Dict, Iterable, Sequence
 
 
 class RepoError(RuntimeError):
@@ -32,6 +32,33 @@ def ensure_tools(tools: Iterable[str]) -> None:
     missing = [tool for tool in tools if shutil.which(tool) is None]
     if missing:
         raise RepoError(f"missing required tools: {', '.join(missing)}")
+
+
+def command_exists(tool: str) -> bool:
+    return shutil.which(tool) is not None
+
+
+def read_os_release(path: Path = Path("/etc/os-release")) -> Dict[str, str]:
+    try:
+        raw = path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise RepoError(f"failed to read {path}: {exc}") from exc
+
+    data: Dict[str, str] = {}
+    for line in raw.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
+            value = value[1:-1]
+        data[key] = value
+
+    if "ID" not in data:
+        raise RepoError(f"invalid {path}: missing ID field")
+
+    return data
 
 
 def run_command(
