@@ -3,13 +3,22 @@ use std::ffi::CString;
 #[cfg(unix)]
 use std::fs;
 #[cfg(unix)]
+use std::fs::OpenOptions;
+#[cfg(unix)]
 use std::io::{self, BufRead, Write};
+#[cfg(unix)]
+use std::os::fd::AsRawFd;
 #[cfg(unix)]
 use std::process::{Child, Command, Stdio};
 #[cfg(unix)]
 use std::thread;
 #[cfg(unix)]
 use std::time::Duration;
+
+#[cfg(unix)]
+const VT_ACTIVATE_IOCTL: libc::c_ulong = 0x5606;
+#[cfg(unix)]
+const VT_WAITACTIVE_IOCTL: libc::c_ulong = 0x5607;
 
 #[cfg(unix)]
 fn mount_fs(source: Option<&str>, target: &str, fstype: &str, flags: libc::c_ulong) -> io::Result<()> {
@@ -58,6 +67,47 @@ fn try_mounts() {
     ) {
         eprintln!("mattos-init: mount /tmp failed: {err}");
     }
+}
+
+#[cfg(unix)]
+fn attach_to_graphical_tty() -> io::Result<()> {
+    // Ask the kernel VT layer to switch to tty1 so interactive output appears in the VGA window.
+    if let Ok(tty0) = OpenOptions::new().read(true).write(true).open("/dev/tty0") {
+        let fd = tty0.as_raw_fd();
+        unsafe {
+            let _ = libc::ioctl(fd, VT_ACTIVATE_IOCTL, 1);
+            let _ = libc::ioctl(fd, VT_WAITACTIVE_IOCTL, 1);
+        }
+    }
+
+    let tty1 = OpenOptions::new().read(true).write(true).open("/dev/tty1")?;
+    let fd = tty1.as_raw_fd();
+
+    unsafe {
+        let rc = libc::setsid();
+        if rc < 0 {
+            let err = io::Error::last_os_error();
+            if err.raw_os_error() != Some(libc::EPERM) {
+                return Err(err);
+            }
+        }
+
+        let rc = libc::ioctl(fd, libc::TIOCSCTTY as _, 0);
+        if rc < 0 {
+            let err = io::Error::last_os_error();
+            if err.raw_os_error() != Some(libc::EPERM) {
+                return Err(err);
+            }
+        }
+
+        for stdfd in [libc::STDIN_FILENO, libc::STDOUT_FILENO, libc::STDERR_FILENO] {
+            if libc::dup2(fd, stdfd) < 0 {
+                return Err(io::Error::last_os_error());
+            }
+        }
+    }
+
+    Ok(())
 }
 
 #[cfg(unix)]
@@ -181,15 +231,20 @@ fn supervise_brush() {
 #[cfg(unix)]
 fn main() {
     let pid = unsafe { libc::getpid() };
-    println!("mattos-init: starting as pid {pid}");
-    println!("__MATTOS_START__");
-    println!("MattOS boot: mounting pseudo-filesystems and launching Brush");
-
     if pid != 1 {
         eprintln!("mattos-init: warning - not running as PID 1");
     }
 
     try_mounts();
+
+    if let Err(err) = attach_to_graphical_tty() {
+        eprintln!("mattos-init: failed to attach to /dev/tty1, continuing on inherited console: {err}");
+    }
+
+    println!("mattos-init: starting as pid {pid}");
+    println!("__MATTOS_START__");
+    println!("MattOS boot: mounting pseudo-filesystems and launching Brush");
+
     supervise_brush();
 }
 

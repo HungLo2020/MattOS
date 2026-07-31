@@ -1549,21 +1549,26 @@ fn run_qemu(repo_root: &Path) -> Result<()> {
 	let logs = repo_root.join("out/logs");
 	fs::create_dir_all(&logs).context("failed to create out/logs")?;
 	let log_path = logs.join("qemu-boot.log");
+	let serial_log_path = logs.join("qemu-serial.log");
+	let serial_arg = format!(
+		"file:{}",
+		serial_log_path
+			.to_str()
+			.ok_or_else(|| anyhow!("invalid qemu serial log path"))?
+	);
 
 	run_cmd(
 		repo_root,
 		"qemu-system-x86_64",
 		&[
-			"-cdrom",
-			iso.to_str().ok_or_else(|| anyhow!("invalid ISO path"))?,
 			"-m",
 			"1024",
-			"-nographic",
+			"-cdrom",
+			iso.to_str().ok_or_else(|| anyhow!("invalid ISO path"))?,
+			"-boot",
+			"d",
 			"-serial",
-			"stdio",
-			"-monitor",
-			"none",
-			"-no-reboot",
+			serial_arg.as_str(),
 			"-D",
 			log_path
 				.to_str()
