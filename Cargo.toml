@@ -1,7 +1,7 @@
 [workspace]
 members = [
-    "tools/mattos-build",
-    "userland/init"
+    "src/tools/mattos-build",
+    "src/userland/init"
 ]
 resolver = "2"
 

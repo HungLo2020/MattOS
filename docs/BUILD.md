@@ -33,7 +33,7 @@ cargo run -p mattos-build -- build
 
 The pipeline stages are:
 
-1. `kernel`: Linux kernel build using `kernel/config/x86_64_mattos.config`
+1. `kernel`: Linux kernel build using `src/kernel/config/x86_64_mattos.config`
 2. `brush`: Brush release build
 3. `coreutils`: uutils/coreutils multicall build
 4. `init`: MattOS init build

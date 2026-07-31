@@ -6,19 +6,19 @@
 name = "linux"
 repo = "https://github.com/torvalds/linux.git"
 branch = "master"
-path = "kernel/linux"
+path = "src/kernel/linux"
 sync = "copy"
 
 [[component]]
 name = "brush"
 repo = "https://github.com/reubeno/brush.git"
 branch = "main"
-path = "userland/brush"
+path = "src/userland/brush"
 sync = "copy"
 
 [[component]]
 name = "coreutils"
 repo = "https://github.com/uutils/coreutils.git"
 branch = "main"
-path = "userland/coreutils"
+path = "src/userland/coreutils"
 sync = "copy"

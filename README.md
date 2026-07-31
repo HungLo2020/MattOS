@@ -4,11 +4,11 @@ MattOS is a Linux-compatible OS project with upstream source imported directly a
 
 ## Repository model
 
-- `kernel/linux`: upstream Linux kernel source
-- `userland/brush`: upstream Brush shell source
-- `userland/coreutils`: upstream uutils/coreutils source
-- `userland/init`: MattOS-owned Rust PID 1
-- `tools/mattos-build`: MattOS-owned Rust orchestrator
+- `src/kernel/linux`: upstream Linux kernel source
+- `src/userland/brush`: upstream Brush shell source
+- `src/userland/coreutils`: upstream uutils/coreutils source
+- `src/userland/init`: MattOS-owned Rust PID 1
+- `src/tools/mattos-build`: MattOS-owned Rust orchestrator
 
 No Git submodules are used.
 
@@ -36,6 +36,12 @@ cargo run -p mattos-build -- build
 
 ```
 cargo run -p mattos-build -- run
+```
+
+Or use the development launcher:
+
+```
+python3 DevUtils/run_qemu.py
 ```
 
 Expected ISO artifact:
@@ -72,3 +78,13 @@ cargo run -p mattos-build -- clean logs
 cargo run -p mattos-build -- clean cargo
 cargo run -p mattos-build -- clean all
 ```
+
+## Source layout
+
+Project-managed source trees live under `src/`:
+
+- `src/kernel/`
+- `src/userland/`
+- `src/boot/`
+- `src/rootfs/`
+- `src/tools/`

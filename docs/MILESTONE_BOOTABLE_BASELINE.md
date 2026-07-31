@@ -49,7 +49,7 @@ From `out/logs/qemu-milestone-final.log`:
 - Boot mode: BIOS GRUB ISO (`grub-mkrescue`)
 - Kernel: Linux `arch/x86/boot/bzImage` with MattOS seed config
 - Initramfs: generated cpio gzip archive from `out/build/rootfs`
-- PID 1: `userland/init` (`/sbin/init`)
+- PID 1: `src/userland/init` (`/sbin/init`)
 - Interactive shell: `brush` launched by init
 - Core user commands: provided by multicall `coreutils` with links in `/bin` and `/usr/bin`
 
@@ -65,5 +65,5 @@ From `out/logs/qemu-milestone-final.log`:
 - Brush crash at startup was resolved by enabling:
   - `CONFIG_NET=y`
   - `CONFIG_UNIX=y`
-- Minimal identity files were added under `rootfs/skeleton/etc`:
+- Minimal identity files were added under `src/rootfs/skeleton/etc`:
   - `passwd`, `group`, `hostname`, `os-release`
