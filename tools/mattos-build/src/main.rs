@@ -385,6 +385,10 @@ fn bootstrap_windows(distro: &str, install_distro: bool, skip_package_install: b
 	println!("Selected distro: {selected}");
 	if skip_package_install {
 		println!("Skipping Linux package installation (--skip-package-install)");
+		println!("Checking expected WSL tools (non-fatal while package install is skipped):");
+		for tool in ["bash", "git", "cargo", "make"] {
+			check_wsl_tool(&selected, tool, false)?;
+		}
 		return Ok(());
 	}
 
@@ -411,6 +415,21 @@ fn bootstrap_windows(distro: &str, install_distro: bool, skip_package_install: b
 
 	let rust_cmd = "command -v rustup >/dev/null 2>&1 || curl https://sh.rustup.rs -sSf | sh -s -- -y";
 	run_wsl_bash(&selected, None, rust_cmd)?;
+
+	let mut missing_required = Vec::new();
+	println!("Checking required WSL tools after bootstrap:");
+	for tool in ["bash", "git", "cargo", "make"] {
+		if !check_wsl_tool(&selected, tool, true)? {
+			missing_required.push(tool);
+		}
+	}
+	if !missing_required.is_empty() {
+		bail!(
+			"missing required tools in WSL distro {}: {}",
+			selected,
+			missing_required.join(", ")
+		);
+	}
 
 	println!("Bootstrap completed. Re-run doctor to verify prerequisites.");
 	Ok(())
@@ -662,10 +681,6 @@ fn preferred_distro(distros: &[String]) -> Option<String> {
 		.find(|d| d.to_ascii_lowercase().starts_with("ubuntu"))
 		.cloned()
 		.or_else(|| distros.first().cloned())
-}
-
-fn check_host_tool(cmd: &str, required: bool) -> Result<bool> {
-	check_host_tool_with_hint(cmd, required, None)
 }
 
 fn check_host_tool_with_hint(cmd: &str, required: bool, local_path_hint: Option<&str>) -> Result<bool> {
