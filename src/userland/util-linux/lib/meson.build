@@ -1,0 +1,122 @@
+lib_common_sources = '''
+	blkdev.c
+	buffer.c
+	canonicalize.c
+	color-names.c
+	crc32.c
+	crc32c.c
+	crc64.c
+	c_strtod.c
+	debug.c
+	default_shell.c
+	encode.c
+	env.c
+	fileutils.c
+	jsonwrt.c
+	mangle.c
+	match.c
+	mbsalign.c
+	mbsedit.c
+	pidutils.c
+	pwdutils.c
+	sha256.c
+	signames.c
+	timeutils.c
+	ttyutils.c
+	xxhash.c
+	configs.c
+'''.split()
+
+idcache_c = files('idcache.c')
+randutils_c = files('randutils.c')
+md5_c = files('md5.c')
+sha1_c = files('sha1.c')
+strutils_c = files('strutils.c')
+strv_c = files('strv.c')
+pager_c = files('pager.c')
+
+lib_common_sources += [idcache_c,
+                       randutils_c,
+                       md5_c,
+                       sha1_c,
+                       strutils_c,
+                       strv_c]
+
+netlink_files_c = files('netlink.c', 'netaddrq.c')
+
+monotonic_c = files('monotonic.c')
+timer_c = files('timer.c')
+swapprober_c = files('swapprober.c')
+pty_session_c = files('pty-session.c')
+ismounted_c = files('ismounted.c')
+exec_shell_c = files('exec_shell.c')
+fileeq_c = files('fileeq.c')
+lib_common_logindefs = static_library('common_logindefs',
+  sources : ['logindefs.c'],
+  include_directories : dir_include,
+  dependencies : lib_econf,
+)
+
+lib_common_shells = static_library('common_shells',
+  sources : ['shells.c'],
+  include_directories : dir_include,
+  dependencies : lib_econf,
+)
+
+dl_utils_c = files('dl-utils.c')
+dl_cryptsetup_c = files('dl-cryptsetup.c')
+dl_selinux_c = files('dl-selinux.c')
+
+selinux_utils_c = files('selinux-utils.c')
+
+caputils_c = files('caputils.c')
+
+if LINUX
+  lib_common_sources += '''
+    linux_version.c
+    loopdev.c
+    pidfd-utils.c
+'''.split()
+endif
+
+if build_plymouth_support
+  lib_common_sources += '''
+        plymouth-ctrl.c
+'''.split()
+endif
+
+if conf.get('HAVE_LANGINFO_H') not in [1]
+  lib_common_sources += 'langinfo.c'
+endif
+
+if conf.get('HAVE_CPU_SET_T') in [1]
+  lib_common_sources += 'cpuset.c'
+endif
+
+if conf.get('HAVE_OPENAT') in [1] and conf.get('HAVE_DIRFD') in [1]
+  lib_common_sources += '''
+    path.c
+    procfs.c
+    sysfs.c
+'''.split()
+endif
+
+lib_common = static_library(
+  'common',
+  lib_common_sources,
+  include_directories : dir_include)
+
+
+lib_color_sources = files('''
+  colors.c
+  color-names.c
+'''.split())
+# colors.h include/color-names.h
+
+lib_tcolors = static_library(
+  'tcolors',
+  lib_color_sources,
+  include_directories : dir_include,
+  dependencies : curses_libs)
+
+lib_tcolors_manadocs = files('terminal-colors.d.5.adoc')

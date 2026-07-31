@@ -1,0 +1,18 @@
+NAME        KNAME     FSTYPE   MOUNTPOINT MOUNTPOINTS
+sda         sda                           
+|-sda1      sda1      vfat     /boot/efi  /boot/efi
+|-sda2      sda2      ext4     /boot      /boot
+|-sda3      sda3      ext4     /var       /var
+|-sda4      sda4      ext4     /          /
+`-sda5      sda5      ext4     /var/cache /var/cache
+sdb         sdb                           
+`-sdb1      sdb1      ext4     /mnt/virt  /mnt/virt
+sdc         sdc                           
+|-sdc1      sdc1      bcachefs /mnt/test  /mnt/test
+`-sdc2      sdc2      bcachefs /mnt/test  /mnt/test
+sr0         sr0                           
+nvme0n1     nvme0n1                       
+|-nvme0n1p1 nvme0n1p1 xfs      /home/data /home/data
+|-nvme0n1p2 nvme0n1p2 xfs      /home/work /home/work
+|-nvme0n1p3 nvme0n1p3 xfs      /home/mail /home/mail
+`-nvme0n1p4 nvme0n1p4 xfs      /home/kzak /home/kzak

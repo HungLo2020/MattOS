@@ -24,6 +24,13 @@ path = "src/userland/coreutils"
 sync = "copy"
 
 [[component]]
+name = "util-linux"
+repo = "https://github.com/util-linux/util-linux.git"
+branch = "master"
+path = "src/userland/util-linux"
+sync = "copy"
+
+[[component]]
 name = "systemd"
 repo = "https://github.com/systemd/systemd.git"
 branch = "main"

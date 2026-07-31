@@ -1,0 +1,32 @@
+     TARGET <string>        mountpoint
+     ACTION <string>        action detected by --poll
+      AVAIL <string|number> filesystem size available, use <number> if --bytes is given
+       FREQ <integer>       dump(8) period in days [fstab only]
+     FSROOT <string>        filesystem root
+     FSTYPE <string>        filesystem type
+ FS-OPTIONS <string>        FS specific mount options
+         ID <integer>       mount ID
+  INO.AVAIL <string>        number of available inodes
+  INO.TOTAL <string>        total number of inodes
+   INO.USED <string>        number of used inodes
+   INO.USE% <string>        percentage of INO.USED divided by INO.TOTAL
+      LABEL <string>        filesystem label
+    MAJ:MIN <string>        major:minor device number
+OLD-OPTIONS <string>        old mount options saved by --poll
+ OLD-TARGET <string>        old mountpoint saved by --poll
+    OPTIONS <string>        all mount options
+ OPT-FIELDS <string>        optional mount fields
+     PARENT <integer>       mount parent ID
+  PARTLABEL <string>        partition label
+   PARTUUID <string>        partition UUID
+     PASSNO <integer>       pass number on parallel fsck(8) [fstab only]
+PROPAGATION <string>        VFS propagation flags
+       SIZE <string|number> filesystem size, use <number> if --bytes is given
+     SOURCE <string>        source device
+    SOURCES <string>        all possible source devices
+        TID <integer>       task ID
+    UNIQ-ID <integer>       mount 64-bit ID (requires --kernel=listmount)
+       USED <string|number> filesystem size used, use <number> if --bytes is given
+       USE% <string>        filesystem use percentage
+       UUID <string>        filesystem UUID
+VFS-OPTIONS <string>        VFS specific mount options

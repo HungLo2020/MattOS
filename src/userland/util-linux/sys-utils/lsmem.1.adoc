@@ -1,0 +1,128 @@
+//po4a: entry man manual
+= lsmem(1)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: lsmem
+:smartcols-json:
+
+== NAME
+
+lsmem - list the ranges of available memory with their online status
+
+== SYNOPSIS
+
+*lsmem* [options]
+
+== DESCRIPTION
+
+The *lsmem* command lists the ranges of available memory with their online status. The listed memory blocks correspond to the memory block representation in sysfs. The command also shows the size of a single memory block and the total amounts of memory in online and offline state.
+
+The default output is compatible with the original implementation from s390-tools, but it's strongly recommended to avoid using default outputs in your scripts. Always explicitly define expected columns by using the *--output* option together with a columns list in environments where a stable output is required.
+
+The *lsmem* command always lists a new memory range when the current memory block differs from the previous block by some output column. This default behavior can be overridden with the *--split* option (for example: *lsmem --split=ZONES*). The special word *none* may be used with *--split* to ignore all differences between memory blocks and to create contiguous ranges that are as large as possible. The opposite semantics has *--all*, which lists all individual memory blocks.
+
+Note that some output columns may provide inaccurate information if a splitting policy forces *lsmem* to ignore differences in some attributes. For example, if you merge removable and non-removable memory blocks into a single range, then the whole range will be marked as non-removable in *lsmem* output.
+
+The supported columns are *RANGE*, *SIZE*, *STATE*, *REMOVABLE*, *BLOCK*, *NODE*, *ZONES*, *CONFIGURED*, and *MEMMAP-ON-MEMORY*.
+____
+*RANGE*::
+The start and end physical addresses of the memory range.
+
+*SIZE*::
+The size of the memory range, representing the total amount of memory in that range.
+
+*STATE*::
+The current online status of the memory range. Common states include online, offline, and transitional states.
+
+*REMOVABLE*::
+Whether the memory is removable.
+
+*BLOCK*::
+The specific memory block number or range.
+
+*NODE*::
+The NUMA (Non-Uniform Memory Access) node to which the memory block belongs.
+
+*ZONES*::
+The memory zones to which the blocks belongs, such as DMA, Normal, Movable.
+
+*CONFIGURED*::
+The configuration state of a memory block. Refer to *chmem*(8) for details on configuring or deconfiguring memory blocks.
+
+*MEMMAP-ON-MEMORY*::
+The memmap-on-memory state of the memory block at configuration time. This setting indicates where memory hotplug stores its internal metadata (the struct pages array or memmap). If MEMMAP-ON-MEMORY is set to 1, the metadata is allocated directly from the newly added hotplugged memory, enabling hot-add operations even when the system is under high memory pressure. If set to 0, the memmap metadata is allocated from existing system memory.
+____
+
+Not all columns are supported on all systems. If an unsupported column is specified, *lsmem* prints the column but does not provide any data for it. Additionally, *lsmem* may skip columns like *CONFIGURED* or *MEMMAP-ON-MEMORY* if these states are not relevant to the system's architecture.
+
+On systems that can configure/deconfigure memory, memory needs to be configured
+before it can come online.
+
+The "Memmap on memory parameter" summary line shows the global memmap-on-memory setting for memory_hotplug.  This is typically set on the kernel command line via memory_hotplug.memmap_on_memory.
+
+== OPTIONS
+
+*-a*, *--all*::
+List each individual memory block, instead of combining memory blocks with similar attributes.
+
+*-b*, *--bytes*::
+include::man-common/in-bytes.adoc[]
+
+*-J*, *--json*::
+Use JSON output format.
+
+*-n*, *--noheadings*::
+Do not print a header line.
+
+*-o*, *--output* _list_::
+Specify which output columns to print. Use *--help* to obtain a list of all supported columns. To extend the default list of columns specify _list_ in the format **+**__list__. For example, *lsmem -o +NODE*.
+
+*--output-all*::
+Output all available columns.
+
+*-P*, *--pairs*::
+Produce output in the form of key="value" pairs. All potentially unsafe value characters are hex-escaped (\x<code>).
+
+*-r*, *--raw*::
+Produce output in raw format. All potentially unsafe characters are hex-escaped (\x<code>).
+
+*-S*, *--split* _list_::
+Specify which columns are used to split memory blocks into ranges. The supported columns are *STATE*, *REMOVABLE*, *NODE*, *ZONES*, *CONFIGURED*, *MEMMAP-ON-MEMORY*, and *none*. Other column names are silently ignored. For more details see *DESCRIPTION* above.
+
+*-s*, *--sysroot* _directory_::
+Gather memory data for a Linux instance other than the instance from which the *lsmem* command is issued. The specified _directory_ is the system root of the Linux instance to be inspected.
+
+*--summary*[**=**_when_]::
+This option controls summary lines output. The optional argument _when_ can be *never*, *always* or *only*. If the _when_ argument is omitted, it defaults to *only*. The summary output is suppressed for *--raw*, *--pairs*, and *--json*.
+
+include::man-common/annotate.adoc[]
+
+include::man-common/help-version.adoc[]
+
+== ENVIRONMENT
+
+include::man-common/env-smartcols.adoc[]
+
+*LSMEM_COLUMNS*::
+Specify a comma-separated list of output columns to print. All columns listed in *--help* can be used.
+
+*ULPATH_DEBUG*=all::
+Enable path debug output.
+
+== AUTHORS
+
+*lsmem* was originally written by Gerald Schaefer for s390-tools in Perl. The C version for util-linux was written by Clemens von Mann, Heiko Carstens and Karel Zak.
+
+== SEE ALSO
+
+*chmem*(8)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

@@ -1,0 +1,163 @@
+#!/usr/bin/env bash
+
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="outputs"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_FINDMNT"
+ts_check_test_command "$TS_CMD_HEXDUMP"
+
+ts_init_subtest "all"
+LC_ALL=C.UTF-8 $TS_CMD_FINDMNT --all --tab-file "$TS_SELF/files/mountinfo" >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+ts_finalize_subtest
+
+ts_init_subtest "list"
+$TS_CMD_FINDMNT --all --list --tab-file "$TS_SELF/files/mountinfo" >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+ts_finalize_subtest
+
+ts_init_subtest "list-columns"
+$TS_CMD_FINDMNT --list-columns >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+ts_finalize_subtest
+
+ts_init_subtest "raw"
+$TS_CMD_FINDMNT --raw --tab-file "$TS_SELF/files/mountinfo" >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+ts_finalize_subtest
+
+ts_init_subtest "real"
+$TS_CMD_FINDMNT --real --tab-file "$TS_SELF/files/mountinfo" >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+ts_finalize_subtest
+
+ts_init_subtest "pseudo"
+$TS_CMD_FINDMNT --pseudo --tab-file "$TS_SELF/files/mountinfo" >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+ts_finalize_subtest
+
+ts_init_subtest "invert-pseudo"
+$TS_CMD_FINDMNT --invert --pseudo --tab-file "$TS_SELF/files/mountinfo" >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+ts_finalize_subtest
+
+ts_init_subtest "pairs"
+$TS_CMD_FINDMNT --pairs --tab-file "$TS_SELF/files/mountinfo" >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+ts_finalize_subtest
+
+ts_init_subtest "direction-forward"
+$TS_CMD_FINDMNT --types cgroup --direction forward --first-only --tab-file "$TS_SELF/files/mountinfo" >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+ts_finalize_subtest
+
+ts_init_subtest "direction-backward"
+$TS_CMD_FINDMNT --types cgroup --direction backward --first-only --tab-file "$TS_SELF/files/mountinfo" >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+ts_finalize_subtest
+
+ts_init_subtest "bytes"
+$TS_CMD_FINDMNT --types ext3 --output AVAIL --noheadings --bytes --tab-file "$TS_SELF/files/mountinfo" >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+sed -i -e 's/^[[:space:]]*[0-9]*$/<bytes>/g' "$TS_OUTPUT" 2>>"$TS_ERRLOG"
+ts_finalize_subtest
+
+ts_init_subtest "verify"
+TEST_TABLE="$TS_OUTDIR/$TS_TESTNAME.table"
+cat <<'EOF' >"$TEST_TABLE"
+/dev/null /           ext4    defaults        0       2
+EOF
+# expected fail
+$TS_CMD_FINDMNT --verify --verbose --tab-file "$TEST_TABLE" >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+rm -f "$TEST_TABLE"
+ts_finalize_subtest
+
+ts_init_subtest "nofsroot"
+$TS_CMD_FINDMNT --nofsroot --tab-file "$TS_SELF/files/mountinfo-messy" >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+ts_finalize_subtest
+
+ts_init_subtest "output-all"
+avail_cols="$("$TS_CMD_FINDMNT" --list-columns | awk '{print $1}' \
+                    | sed -E '/(ACTION|OLD-(OPTIONS|TARGET))/d' \
+                    | sort )"
+
+printed_columns="$("$TS_CMD_FINDMNT" --output-all --tab-file "$TS_SELF/files/mountinfo" \
+                    | sed -e 's/ /\n/g' -e '1q' \
+                    | sed -e '/^[[:space:]]*$/d' \
+                    | sort)"
+
+comm -13 <(echo "$avail_cols") <(echo "$printed_columns" | sort) >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+
+ts_finalize_subtest
+
+ts_init_subtest "ascii"
+LC_ALL=C.UTF-8 $TS_CMD_FINDMNT --all --ascii --tab-file "$TS_SELF/files/mountinfo" >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+ts_finalize_subtest
+
+ts_init_subtest "json"
+$TS_CMD_FINDMNT --all --json --tab-file "$TS_SELF/files/mountinfo" >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+ts_finalize_subtest
+
+ts_init_subtest "id"
+$TS_CMD_FINDMNT --id 15 --tab-file "$TS_SELF/files/mountinfo" >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+ts_finalize_subtest
+
+ts_init_subtest "hyperlink"
+$TS_CMD_FINDMNT --all --noheadings --hyperlink=always --tab-file "$TS_SELF/files/mountinfo" >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+osc8_start_sequence="$($TS_CMD_HEXDUMP --no-squeezing --length 5 --format '"%_c"' "$TS_OUTPUT" 2>>"$TS_ERRLOG")"
+echo "$osc8_start_sequence" >"$TS_OUTPUT"
+ts_finalize_subtest
+
+ts_init_subtest "canonicalization"
+# We'll create a symlink to the filesystem root directory
+# and test whether findmnt properly canonicalizes it to its
+# real path.
+TEST_LINK="$TS_OUTDIR/fakelink"
+
+if ! ln -s / "$TEST_LINK"; then
+    ts_skip "failed to create symbolic link to root filesystem"
+else
+    # This return the right mount target
+    $TS_CMD_FINDMNT --output TARGET --canonicalize "$TEST_LINK" >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+    # This should not return anything
+    $TS_CMD_FINDMNT --output TARGET --nocanonicalize "$TEST_LINK" >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+    rm -f "$TEST_LINK"
+fi
+ts_finalize_subtest
+
+ts_init_subtest "default"
+$TS_CMD_FINDMNT --tab-file "$TS_SELF/files/mountinfo" &> "$TS_OUTPUT"
+echo rc=$? >> "$TS_OUTPUT"
+ts_finalize_subtest
+
+ts_init_subtest "kernel"
+$TS_CMD_FINDMNT --kernel --tab-file "$TS_SELF/files/mountinfo" &> "$TS_OUTPUT"
+echo rc=$? >> "$TS_OUTPUT"
+ts_finalize_subtest
+
+ts_init_subtest "force-tree"
+$TS_CMD_FINDMNT --tree --kernel --tab-file "$TS_SELF/files/mountinfo" &> "$TS_OUTPUT"
+echo rc=$? >> "$TS_OUTPUT"
+ts_finalize_subtest
+
+ts_init_subtest "submounts"
+$TS_CMD_FINDMNT /sys --submounts --kernel --tab-file "$TS_SELF/files/mountinfo" &> "$TS_OUTPUT"
+echo rc=$? >> "$TS_OUTPUT"
+ts_finalize_subtest
+
+ts_init_subtest "messy-mountinfo"
+$TS_CMD_FINDMNT --tab-file "$TS_SELF/files/mountinfo-messy" &> "$TS_OUTPUT"
+echo rc=$? >> "$TS_OUTPUT"
+ts_finalize_subtest
+
+ts_init_subtest "empty-file"
+touch "$TS_OUTDIR/empty"
+$TS_CMD_FINDMNT --tab-file "$TS_OUTDIR/empty" &> "$TS_OUTPUT"
+echo rc=$? >> "$TS_OUTPUT"
+ts_finalize_subtest
+
+ts_finalize

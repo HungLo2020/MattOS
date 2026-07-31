@@ -1,0 +1,2 @@
+TARGET                 SOURCE FSTYPE OPTIONS
+/sys/fs/cgroup/systemd cgroup cgroup rw,nosuid,nodev,noexec,relatime,release_agent=/lib/systemd/systemd-cgroups-agent,name=systemd

@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# Copyright (C) 2026 Christian Goeschel Ndjomouo <cgoesc2@wgu.edu>
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="options"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_skip_nonroot
+
+ts_check_test_command "$TS_CMD_CHSH"
+ts_check_prog "useradd"
+ts_check_prog "userdel"
+ts_check_prog "diff"
+ts_check_prog "awk"
+
+export LIBUSER_CONF=/dev/null
+TEST_USERNAME="chsh_test_user"
+
+useradd --uid 10000 -m --shell /bin/bash "$TEST_USERNAME" \
+    || ts_skip "unable to create test user ($TEST_USERNAME)"
+
+
+ts_init_subtest "list-shells"
+
+diff <(grep '^/' /etc/shells) <("$TS_CMD_CHSH" --list-shells) >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+
+ts_finalize_subtest
+
+
+ts_init_subtest "shell"
+
+{
+    "$TS_CMD_CHSH" --shell /bin/sh "$TEST_USERNAME"
+     awk -F: -v u="^$TEST_USERNAME"  '$1 ~ u {print $7}' /etc/passwd
+} >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+
+ts_finalize_subtest
+
+userdel --remove "$TEST_USERNAME"
+
+ts_finalize

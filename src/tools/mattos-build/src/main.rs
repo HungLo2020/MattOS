@@ -101,6 +101,7 @@ enum BuildStage {
 	Kernel,
 	Brush,
 	Coreutils,
+	UtilLinux,
 	Systemd,
 	Init,
 	Rootfs,
@@ -1376,6 +1377,7 @@ fn build(repo_root: &Path, stage: BuildStage) -> Result<()> {
 		BuildStage::Kernel => build_kernel(repo_root),
 		BuildStage::Brush => build_brush(repo_root),
 		BuildStage::Coreutils => build_coreutils(repo_root),
+		BuildStage::UtilLinux => build_util_linux(repo_root),
 		BuildStage::Systemd => build_systemd(repo_root),
 		BuildStage::Init => build_init(repo_root),
 		BuildStage::Rootfs => build_rootfs(repo_root),
@@ -1385,6 +1387,7 @@ fn build(repo_root: &Path, stage: BuildStage) -> Result<()> {
 			build_kernel(repo_root)?;
 			build_brush(repo_root)?;
 			build_coreutils(repo_root)?;
+			build_util_linux(repo_root)?;
 			build_systemd(repo_root)?;
 			build_init(repo_root)?;
 			build_rootfs(repo_root)?;
@@ -1509,6 +1512,112 @@ fn build_init(repo_root: &Path) -> Result<()> {
 		"cargo",
 		&["build", "--release", "--manifest-path", "src/userland/init/Cargo.toml"],
 	)
+}
+
+fn build_util_linux(repo_root: &Path) -> Result<()> {
+	let util_linux_src = repo_root.join("src/userland/util-linux");
+	if !util_linux_src.join("meson.build").exists() {
+		bail!(
+			"util-linux source not found in {}; run upstream import util-linux first",
+			util_linux_src.display()
+		);
+	}
+
+	let out_root = repo_root.join("out/build/util-linux");
+	let build_dir = out_root.join("build");
+	let install_dir = out_root.join("install");
+	let options_path = out_root.join("meson-options.txt");
+	fs::create_dir_all(&out_root)
+		.with_context(|| format!("failed to create {}", out_root.display()))?;
+
+	let options = util_linux_meson_options();
+	let options_text = format!("{}\n", options.join("\n"));
+	let existing_options = fs::read_to_string(&options_path).ok();
+	let needs_reconfigure = existing_options.as_deref() != Some(options_text.as_str());
+	let configured = build_dir.join("build.ninja").exists();
+
+	if !configured {
+		let mut setup_args = vec![
+			"setup".to_string(),
+			build_dir.display().to_string(),
+			util_linux_src.display().to_string(),
+		];
+		setup_args.extend(options.clone());
+		let setup_refs: Vec<&str> = setup_args.iter().map(String::as_str).collect();
+		run_cmd(repo_root, "meson", &setup_refs)?;
+		fs::write(&options_path, &options_text)
+			.with_context(|| format!("failed to write {}", options_path.display()))?;
+	} else if needs_reconfigure {
+		let mut setup_args = vec![
+			"setup".to_string(),
+			"--reconfigure".to_string(),
+			build_dir.display().to_string(),
+			util_linux_src.display().to_string(),
+		];
+		setup_args.extend(options.clone());
+		let setup_refs: Vec<&str> = setup_args.iter().map(String::as_str).collect();
+		run_cmd(repo_root, "meson", &setup_refs)?;
+		fs::write(&options_path, &options_text)
+			.with_context(|| format!("failed to write {}", options_path.display()))?;
+	}
+
+	run_cmd(
+		repo_root,
+		"ninja",
+		&[
+			"-C",
+			build_dir
+				.to_str()
+				.ok_or_else(|| anyhow!("invalid util-linux build dir"))?,
+			"agetty",
+		],
+	)?;
+
+	if install_dir.exists() {
+		fs::remove_dir_all(&install_dir)
+			.with_context(|| format!("failed to clean {}", install_dir.display()))?;
+	}
+	fs::create_dir_all(&install_dir)
+		.with_context(|| format!("failed to create {}", install_dir.display()))?;
+
+	run_cmd(
+		repo_root,
+		"meson",
+		&[
+			"install",
+			"-C",
+			build_dir
+				.to_str()
+				.ok_or_else(|| anyhow!("invalid util-linux build dir"))?,
+			"--no-rebuild",
+			"--destdir",
+			install_dir
+				.to_str()
+				.ok_or_else(|| anyhow!("invalid util-linux install dir"))?,
+		],
+	)?;
+
+	let agetty = install_dir.join("usr/sbin/agetty");
+	if !agetty.exists() {
+		bail!("util-linux install did not produce {}", agetty.display());
+	}
+
+	Ok(())
+}
+
+fn util_linux_meson_options() -> Vec<String> {
+	vec![
+		"--prefix=/usr".to_string(),
+		"--sbindir=/usr/sbin".to_string(),
+		"--libdir=lib/x86_64-linux-gnu".to_string(),
+		"--auto-features=disabled".to_string(),
+		"-Dbuild-agetty=enabled".to_string(),
+		"-Dsystemd=disabled".to_string(),
+		"-Dnls=disabled".to_string(),
+		"-Dbuild-bash-completion=disabled".to_string(),
+		"-Dbuild-python=disabled".to_string(),
+		"-Dbuild-pylibmount=disabled".to_string(),
+	]
 }
 
 fn build_systemd(repo_root: &Path) -> Result<()> {
@@ -1658,7 +1767,9 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 	}
 	copy_tree_excluding_dotgit(&skeleton, &out)?;
 	ensure_merged_usr_layout(&out)?;
+	set_mode(out.join("usr/libexec/mattos/brush-login"), 0o755)?;
 	fs::create_dir_all(out.join("root")).context("failed to create /root in rootfs")?;
+	set_mode(out.join("root"), 0o700)?;
 	fs::create_dir_all(out.join("run")).context("failed to create /run in rootfs")?;
 	fs::create_dir_all(out.join("var/log")).context("failed to create /var/log in rootfs")?;
 	fs::create_dir_all(out.join("var/tmp")).context("failed to create /var/tmp in rootfs")?;
@@ -1667,6 +1778,7 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 	fs::write(out.join("etc/machine-id"), "").context("failed to create /etc/machine-id")?;
 
 	let systemd_install = repo_root.join("out/build/systemd/install");
+	let util_linux_install = repo_root.join("out/build/util-linux/install");
 	let systemd_pid1 = systemd_install.join("usr/lib/systemd/systemd");
 	if !systemd_pid1.exists() {
 		bail!(
@@ -1678,6 +1790,21 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 	copy_shared_object_and_deps("libmount.so.1", &out)?;
 	copy_host_binary_and_deps("/usr/bin/mount", &out)?;
 	copy_host_binary_and_deps("/usr/sbin/ldconfig", &out)?;
+	let agetty_src = util_linux_install.join("usr/sbin/agetty");
+	if !agetty_src.exists() {
+		bail!(
+			"util-linux install output missing at {}; run build util-linux first",
+			agetty_src.display()
+		);
+	}
+	let agetty_dst = out.join("usr/sbin/agetty");
+	if let Some(parent) = agetty_dst.parent() {
+		fs::create_dir_all(parent)
+			.with_context(|| format!("failed to create {}", parent.display()))?;
+	}
+	fs::copy(&agetty_src, &agetty_dst)
+		.with_context(|| format!("failed to copy {}", agetty_src.display()))?;
+	copy_runtime_dependencies(&agetty_dst, &out)?;
 	install_mattos_system_units(repo_root, &out)?;
 
 	let init_bin = repo_root.join("target/release/mattos-init");
@@ -1808,18 +1935,48 @@ fn install_mattos_system_units(repo_root: &Path, rootfs: &Path) -> Result<()> {
 	std::os::unix::fs::symlink("/usr/lib/systemd/system/mattos.target", &default_target)
 		.with_context(|| format!("failed to create {}", default_target.display()))?;
 
-	let smoke_wants = rootfs.join("etc/systemd/system/multi-user.target.wants");
-	fs::create_dir_all(&smoke_wants)
-		.with_context(|| format!("failed to create {}", smoke_wants.display()))?;
-	let smoke_link = smoke_wants.join("mattos-smoke.service");
-	if smoke_link.exists() {
-		fs::remove_file(&smoke_link)
-			.with_context(|| format!("failed to remove {}", smoke_link.display()))?;
+	let getty_wants = rootfs.join("etc/systemd/system/getty.target.wants");
+	fs::create_dir_all(&getty_wants)
+		.with_context(|| format!("failed to create {}", getty_wants.display()))?;
+	let tty1_getty = getty_wants.join("getty@tty1.service");
+	if tty1_getty.exists() {
+		fs::remove_file(&tty1_getty)
+			.with_context(|| format!("failed to remove {}", tty1_getty.display()))?;
 	}
 	#[cfg(unix)]
-	std::os::unix::fs::symlink("/usr/lib/systemd/system/mattos-smoke.service", &smoke_link)
-		.with_context(|| format!("failed to create {}", smoke_link.display()))?;
+	std::os::unix::fs::symlink("/usr/lib/systemd/system/getty@.service", &tty1_getty)
+		.with_context(|| format!("failed to create {}", tty1_getty.display()))?;
 
+	for masked in [
+		"systemd-logind.service",
+		"systemd-logind-varlink.socket",
+		"ldconfig.service",
+		"mattos-shell.service",
+	] {
+		let mask = rootfs.join("etc/systemd/system").join(masked);
+		if mask.exists() {
+			fs::remove_file(&mask)
+				.with_context(|| format!("failed to remove {}", mask.display()))?;
+		}
+		#[cfg(unix)]
+		std::os::unix::fs::symlink("/dev/null", &mask)
+			.with_context(|| format!("failed to create {}", mask.display()))?;
+	}
+
+	Ok(())
+}
+
+fn set_mode(path: PathBuf, mode: u32) -> Result<()> {
+	#[cfg(unix)]
+	{
+		let perms = std::os::unix::fs::PermissionsExt::from_mode(mode);
+		fs::set_permissions(&path, perms)
+			.with_context(|| format!("failed to set mode {:o} on {}", mode, path.display()))?;
+	}
+	#[cfg(not(unix))]
+	{
+		let _ = (path, mode);
+	}
 	Ok(())
 }
 

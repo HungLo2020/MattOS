@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# Copyright (C) 2026 Christian Goeschel Ndjomouo <cgoesc2@wgu.edu>
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="partition details"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_SFDISK"
+ts_check_test_command "$TS_CMD_BLKID"
+
+ts_check_prog "udevadm"
+ts_skip_nonroot
+
+# set global variable TS_DEVICE
+ts_scsi_debug_init dev_size_mb=50 sector_size=512
+
+"$TS_CMD_SFDISK" "$TS_DEVICE" >>"$TS_OUTPUT" 2>>"$TS_ERRLOG" <<EOF
+label: gpt
+label-id: 2bd8d7ca-b5c1-4eb9-a2a7-222b423e58d8
+
+size=10M, type=L, name="part-1", uuid=2ac15a44-dd77-467e-9032-9984c5b3e537
+size=+, type=L, name="part-2", uuid=0de9eab3-1562-4511-b96e-5451401727aa
+EOF
+ts_fdisk_clean "$TS_DEVICE"
+udevadm settle
+
+PART1="${TS_DEVICE}1"
+PART2="${TS_DEVICE}2"
+
+ts_init_subtest "hide"
+{
+        "$TS_CMD_BLKID" --probe --no-part-details "$PART1"
+        "$TS_CMD_BLKID" --probe --no-part-details "$PART2"
+} >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+ts_finalize_subtest
+
+ts_init_subtest "show"
+{
+        "$TS_CMD_BLKID" --probe "$PART1"
+        "$TS_CMD_BLKID" --probe "$PART2"
+} >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+
+sed -i -e "s@${PART1}@<removed>@" "$TS_OUTPUT"
+sed -i -e "s@${PART2}@<removed>@" "$TS_OUTPUT"
+sed -i -e 's/ /\n/g; s/\"[^"]*\"/"<removed>"/g; s/\n/ /g' "$TS_OUTPUT"
+ts_finalize_subtest
+
+ts_finalize

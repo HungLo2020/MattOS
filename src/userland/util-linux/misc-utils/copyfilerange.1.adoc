@@ -1,0 +1,87 @@
+//po4a: entry man manual
+= copyfilerange(1)
+:doctype: manpage
+:man manual: User Commands
+:man source: util-linux {release-version}
+:page-layout: base
+:command: copyfilerange
+
+== NAME
+
+copyfilerange - copy range(s) from source to destination file
+
+== SYNOPSIS
+
+*copyfilerange* [options] _source_ _destination_ _range_...
+
+== DESCRIPTION
+
+The *copyfilerange* command copies byte ranges from source to destination file.
+It is a wrapper around the *copy_file_range*(2) system call.
+
+The command can be used to create files with unallocated gaps (sparse files)
+and/or with shared blocks between multiple files (reflinks).
+
+Each _range_ is of the form _source_offset_**:**_destination_offset_**:**_length_,
+with all values in bytes. If _length_ is 0, then as much data as is available is
+copied. Multiple ranges may be supplied.
+
+When one or both of the offsets are omitted, the operation uses the last-used
+file location, starting with 0.
+
+== OPTIONS
+
+*-r*, *--ranges* _file_::
+Read range(s) separated by newlines from this _file_.
+
+*-v*, *--verbose*::
+Verbose output of the copied ranges.
+
+include::man-common/help-version.adoc[]
+
+== EXIT STATUS
+
+*0*::
+success
+*1*::
+unspecified failure
+
+== NOTES
+
+The *copy_file_range*(2) system call has some serious caveats: the source and destination files must use the same filesystem type, and some virtual filesystems (like procfs) won't work. *copy_file_range*(2) will use reflinks when the filesystem supports this. To use reflinks, the file range most often needs to align with the filesystem block size on both the source and destination file.
+
+== AUTHORS
+
+mailto:dick@mrns.nl[Dick Marinus]
+
+== EXAMPLES
+
+....
+copyfilerange original-file reflink ::
+
+copyfilerange original-file first-block ::4096
+
+copyfilerange original-file even-blocks -r <(seq 0 8192 40960|awk '{print $1"::4096"}')
+
+copyfilerange original-file sparse-file 0:1M:1
+
+copyfilerange original-file split-first-mb ::1M
+
+copyfilerange original-file split-remainder 1M::
+
+copyfilerange split-first-mb join ::
+
+copyfilerange split-remainder join :1M:
+....
+
+== SEE ALSO
+
+*copy_file_range*(2)
+
+include::man-common/bugreports.adoc[]
+
+include::man-common/footer.adoc[]
+
+ifdef::translation[]
+include::man-common/translation.adoc[]
+endif::[]

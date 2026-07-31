@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+
+#
+# Copyright (C) 2009 Karel Zak <kzak@redhat.com>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="caching"
+
+. "$TS_TOPDIR"/functions.sh
+
+ts_init "$*"
+
+ts_skip_nonroot
+ts_check_test_command "$TS_CMD_BLKID"
+ts_check_test_command "$TS_CMD_MKSWAP"
+ts_check_losetup
+
+ts_device_init
+
+"$TS_CMD_MKSWAP" --quiet --pagesize 4096 --endianness little \
+	--uuid 11111111-1111-1111-1111-111111111111 \
+	"$TS_LODEV" \
+	>> "$TS_OUTPUT" 2>> "$TS_ERRLOG"
+
+"$TS_CMD_BLKID" "$TS_LODEV" \
+	| sed -e "s|$TS_LODEV|DEVICE|" \
+	>> "$TS_OUTPUT" 2>> "$TS_ERRLOG"
+
+cat "$BLKID_FILE" | grep "$TS_LODEV" \
+	| sed -e 's/DEVNO="[^"]*"/DEVNO=""/' \
+	      -e 's/TIME="[^"]*"/TIME=""/' \
+	      -e "s|$TS_LODEV|DEVICE|" \
+	>> "$TS_OUTPUT"
+
+# Test the cache garbage collection by detaching a newly registered
+# loop device before garbage collection.
+# We expect $TS_LODEV (/dev/loopX) to not be present in $BLKID_FILE
+# anymore after the operation.
+
+# Initialize another loop device to keep at least the previously 
+# attached one in the cache. We do this because otherwise the list of
+# block devices (blkid_cache->bic_devs) will be empty and that will
+# prevent an update of the cache.
+# See libblkid/src/save.c::blkid_flush_cache()
+ts_device_init
+
+"$TS_CMD_MKSWAP" --quiet --pagesize 4096 --endianness little \
+	--uuid 221ffb62-649b-4f86-87ae-0ebd15daf169 \
+	"$TS_LODEV" &>/dev/null
+
+# Update the cache with new loop device
+"$TS_CMD_BLKID" &>/dev/null
+
+ts_device_deinit "$TS_LODEV"
+
+"$TS_CMD_BLKID" --garbage-collect &>/dev/null
+
+if grep "$TS_LODEV" "$BLKID_FILE" &>/dev/null ; then
+	ts_failed "cache garbage collection failed"
+fi
+
+
+ts_finalize

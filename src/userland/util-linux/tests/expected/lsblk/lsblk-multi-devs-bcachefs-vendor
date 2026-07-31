@@ -1,0 +1,18 @@
+NAME        MODEL                   VENDOR        REV
+sda         KINGSTON_SH103S3240G    ATA      580ABBF0
+|-sda1                                       
+|-sda2                                       
+|-sda3                                       
+|-sda4                                       
+`-sda5                                       
+sdb         WDC_WD800JD-00MSA1      ATA      10.01E01
+`-sdb1                                       
+sdc         scsi_debug              Linux        0191
+|-sdc1                                       
+`-sdc2                                       
+sr0         HL-DT-ST_DVD+_-RW_GH82N HL-DT-ST     A101
+nvme0n1     KINGSTON SFYR2S1T0               SGW00110
+|-nvme0n1p1                                  
+|-nvme0n1p2                                  
+|-nvme0n1p3                                  
+`-nvme0n1p4                                  

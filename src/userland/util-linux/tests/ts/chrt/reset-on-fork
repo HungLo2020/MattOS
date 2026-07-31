@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# Copyright (C) 2026 Christian Goeschel Ndjomouo <cgoesc2@wgu.edu>
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="reset-on-fork"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_CHRT"
+ts_check_test_command "$TS_HELPER_CHILD_CREATE"
+ts_skip_nonroot
+ts_skip_docker
+ts_skip_qemu_user
+
+trap 'kill $PARENT_PID 2>/dev/null' EXIT
+
+# We want immediate feedback from the helper, not upon termination
+"$TS_HELPER_CHILD_CREATE" 3 >>"$TS_OUTPUT" 2>>"$TS_ERRLOG" &
+PARENT_PID=$!
+"$TS_CMD_CHRT" --reset-on-fork --fifo --pid 33 "$PARENT_PID" >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+
+# Let's wait until the helper forked
+sleep 1
+
+for t in 0.1 0.1 0.1 1; do
+    CHILD_PID="$(awk -F: '/^Child PID: [0-9]+$/ {print $2}' "$TS_OUTPUT" 2>>"$TS_ERRLOG")"
+    CHILD_PID="${CHILD_PID// /}"
+    if [[ "$CHILD_PID" =~ ^[0-9]+$ ]] ; then
+        break
+    fi
+    sleep $t
+done
+
+if [ -z "$CHILD_PID" ]; then
+    ts_failed "Failed to obtain child PID"
+fi
+
+"$TS_CMD_CHRT" --pid "$PARENT_PID" 2>>"$TS_ERRLOG" | sed -e "s@$PARENT_PID@<parent>@g" >>"$TS_OUTPUT"
+"$TS_CMD_CHRT" --pid "$CHILD_PID" 2>>"$TS_ERRLOG" | sed -e "s@$CHILD_PID@<child>@g" >>"$TS_OUTPUT"
+sed -i -E '/(runtime parameter|(Parent|Child) PID:)/d' "$TS_OUTPUT"
+
+# We don't need the helper anymore
+kill "$PARENT_PID" 2>/dev/null
+wait "$PARENT_PID" 2>/dev/null
+
+ts_finalize

@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# Copyright (C) 2026 Christian Goeschel Ndjomouo <cgoesc2@wgu.edu>
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="clear environment variables"
+
+. "$TS_TOPDIR/functions.sh"
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_UNSHARE"
+ts_check_test_command "$TS_HELPER_STRERROR"
+
+
+ts_init_subtest "clear-env"
+export UL_TEST_ENV=foo
+"$TS_CMD_UNSHARE" --clear-env /bin/bash -c 'echo "${UL_TEST_ENV:-CLEARED}"' >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+unset -v UL_TEST_ENV
+
+if grep -q "$($TS_HELPER_STRERROR EPERM)" "$TS_OUTPUT" "$TS_ERRLOG"; then
+        ts_skip "missing permissions"
+fi
+ts_finalize_subtest
+
+
+ts_init_subtest "whitelist-env"
+export UL_TEST_ENV1=foo
+export UL_TEST_ENV2=bar
+"$TS_CMD_UNSHARE" --whitelist-env UL_TEST_ENV1 /bin/bash -c 'echo "${UL_TEST_ENV1}${UL_TEST_ENV2}"' >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+
+if grep -q "$($TS_HELPER_STRERROR EPERM)" "$TS_OUTPUT" "$TS_ERRLOG"; then
+        ts_skip "missing permissions"
+fi
+ts_finalize_subtest
+
+ts_finalize

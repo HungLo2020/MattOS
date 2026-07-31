@@ -1,5 +1,6 @@
 [Unit]
 Description=MattOS Interactive Boot Target
-Requires=multi-user.target mattos-shell.service
-After=multi-user.target
+Requires=multi-user.target
+Wants=getty@tty1.service
+After=multi-user.target getty@tty1.service
 AllowIsolate=yes

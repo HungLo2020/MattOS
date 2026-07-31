@@ -1,0 +1,113 @@
+/*
+ * islocal.c - returns true if user is registered in the local
+ * /etc/passwd file. Written by Álvaro Martínez Echevarria,
+ * alvaro@enano.etsit.upm.es, to allow peaceful coexistence with yp. Nov 94.
+ *
+ * Hacked a bit by poe@daimi.aau.dk
+ * See also ftp://ftp.daimi.aau.dk/pub/linux/poe/admutil*
+ *
+ * Hacked by Peter Breitenlohner, peb@mppmu.mpg.de,
+ *   to distinguish user names where one is a prefix of the other,
+ *   and to use "pathnames.h". Oct 5, 96.
+ *
+ * 1999-02-22 Arkadiusz Miśkiewicz <misiek@pld.ORG.PL>
+ * - added Native Language Support
+ *
+ * 2008-04-06 James Youngman, jay@gnu.org
+ * - Completely rewritten to remove assumption that /etc/passwd
+ *   lines are < 1024 characters long.  Also added unit tests.
+ */
+
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "closestream.h"
+#include "islocal.h"
+#include "nls.h"
+#include "pathnames.h"
+
+static int is_local_in_file(const char *user, const char *filename)
+{
+	int local = 0;
+	size_t idx;
+	int chin, skip;
+	FILE *f;
+
+	f = fopen(filename, "r");
+	if (!f)
+		return -1;
+
+	idx = 0;
+	skip = 0;
+	while ((chin = fgetc(f)) != EOF) {
+		if (skip) {
+			/* Looking for the start of the next line. */
+			if (chin == '\n') {
+				/* Start matching username at the next char. */
+				skip = 0;
+				idx = 0;
+			}
+		} else {
+			if (chin == ':') {
+				if (user[idx] == '\0') {
+					/* Success. */
+					local = 1;
+					/* next line has no test coverage,
+					 * but it is just an optimisation
+					 * anyway.  */
+					break;
+				}
+				/* we read a whole username, but it
+				 * is the wrong user.  Skip to the
+				 * next line.  */
+				skip = 1;
+			} else if (chin == '\n') {
+				/* This line contains no colon; it's
+				 * malformed.  No skip since we are already
+				 * at the start of the next line.  */
+				idx = 0;
+			} else if (chin != user[idx]) {
+				/* username does not match. */
+				skip = 1;
+			} else {
+				++idx;
+			}
+		}
+	}
+	fclose(f);
+	return local;
+}
+
+int is_local(const char *user)
+{
+	int rv;
+
+	rv = is_local_in_file(user, _PATH_PASSWD);
+	if (rv < 0)
+		err(EXIT_FAILURE, _("cannot open %s"), _PATH_PASSWD);
+	return rv;
+}
+
+#ifdef TEST_PROGRAM
+int main(int argc, char *argv[])
+{
+	close_stdout_atexit();
+	if (argc <= 2) {
+		fprintf(stderr, _("Usage: %s <passwordfile> <username>...\n"),
+			argv[0]);
+		return 1;
+	}
+
+	int i;
+	for (i = 2; i < argc; i++) {
+		const int rv = is_local_in_file(argv[i], argv[1]);
+		if (rv < 0) {
+			perror(argv[1]);
+			return 2;
+		}
+		printf("%d:%s\n", rv, argv[i]);
+	}
+	return 0;
+}
+#endif

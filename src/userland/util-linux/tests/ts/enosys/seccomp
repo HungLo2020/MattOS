@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+# Copyright (C) 2026 Christian Goeschel Ndjomouo <cgoesc2@wgu.edu>
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="seccomp-filter"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_ENOSYS"
+ts_check_test_command "$TS_CMD_SETPRIV"
+ts_check_prog "mktemp"
+ts_check_prog "awk"
+
+"$TS_CMD_ENOSYS" true >/dev/null 2>>"$TS_ERRLOG"
+ts_skip_exitcode_not_supported
+
+SECCOMP_FILTER_FILE="$(mktemp "${TS_OUTDIR}/${TS_TESTNAME}"XXXXXXX)"
+if [ ! -f "$SECCOMP_FILTER_FILE" ]; then
+    ts_skip "failed to create temporary seccomp filter file"
+fi
+
+"$TS_CMD_ENOSYS" --dump >"$SECCOMP_FILTER_FILE" 2>>"$TS_ERRLOG"
+if [ ! -s "$SECCOMP_FILTER_FILE" ]; then
+    ts_failed "failed to dump seccomp filter data :/"
+fi
+
+curr_nseccomp_filters="$(awk -F: '/^Seccomp_filters:[[:space:]]*/ {print $2}' /proc/self/status 2>>"$TS_ERRLOG" \
+                            | tr -d ' \t' 2>>"$TS_ERRLOG")"
+
+[ -z "$curr_nseccomp_filters" ] && ts_skip "Seccomp_filters not available"
+
+# shellcheck disable=SC2016
+child_proc_nseccomp_filters="$("$TS_CMD_SETPRIV" --seccomp-filter "$SECCOMP_FILTER_FILE" \
+                            awk -F: '/^Seccomp_filters:[[:space:]]*/ {print $2}' /proc/self/status \
+                            | tr -d ' \t' 2>>"$TS_ERRLOG")"
+
+if (( curr_nseccomp_filters >=  child_proc_nseccomp_filters)); then
+    ts_failed "failed to apply seccomp filter on child process"
+fi
+
+rm -f "$SECCOMP_FILTER_FILE"
+ts_finalize

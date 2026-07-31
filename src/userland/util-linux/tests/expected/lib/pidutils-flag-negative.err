@@ -1,0 +1,7 @@
+test_parsepid: failed to parse PID '1:': EINVAL
+test_parsepid: failed to parse PID '-1:0': EINVAL
+test_parsepid: failed to parse PID '1:-122': ERANGE
+test_parsepid: failed to parse PID '1:0': ERANGE
+test_parsepid: failed to parse PID '-1:122': EINVAL
+test_parsepid: failed to parse PID '-2147:78': EINVAL
+test_parsepid: failed to parse PID '0': ERANGE

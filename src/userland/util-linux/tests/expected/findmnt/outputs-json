@@ -1,0 +1,192 @@
+{
+   "filesystems": [
+      {
+         "target": "/",
+         "source": "/dev/sda4",
+         "fstype": "ext3",
+         "options": "rw,noatime,errors=continue,user_xattr,acl,barrier=0,data=ordered",
+         "children": [
+            {
+               "target": "/proc",
+               "source": "/proc",
+               "fstype": "proc",
+               "options": "rw,relatime",
+               "children": [
+                  {
+                     "target": "/proc/sys/fs/binfmt_misc",
+                     "source": "systemd-1",
+                     "fstype": "autofs",
+                     "options": "rw,relatime,fd=25,pgrp=1,timeout=300,minproto=5,maxproto=5,direct",
+                     "children": [
+                        {
+                           "target": "/proc/sys/fs/binfmt_misc",
+                           "source": "none",
+                           "fstype": "binfmt_misc",
+                           "options": "rw,relatime"
+                        }
+                     ]
+                  },{
+                     "target": "/proc/bus/usb",
+                     "source": "/proc/bus/usb",
+                     "fstype": "usbfs",
+                     "options": "rw,relatime"
+                  }
+               ]
+            },{
+               "target": "/sys",
+               "source": "/sys",
+               "fstype": "sysfs",
+               "options": "rw,relatime",
+               "children": [
+                  {
+                     "target": "/sys/fs/cgroup",
+                     "source": "tmpfs",
+                     "fstype": "tmpfs",
+                     "options": "rw,nosuid,nodev,noexec,relatime,mode=755",
+                     "children": [
+                        {
+                           "target": "/sys/fs/cgroup/systemd",
+                           "source": "cgroup",
+                           "fstype": "cgroup",
+                           "options": "rw,nosuid,nodev,noexec,relatime,release_agent=/lib/systemd/systemd-cgroups-agent,name=systemd"
+                        },{
+                           "target": "/sys/fs/cgroup/cpuset",
+                           "source": "cgroup",
+                           "fstype": "cgroup",
+                           "options": "rw,nosuid,nodev,noexec,relatime,cpuset"
+                        },{
+                           "target": "/sys/fs/cgroup/ns",
+                           "source": "cgroup",
+                           "fstype": "cgroup",
+                           "options": "rw,nosuid,nodev,noexec,relatime,ns"
+                        },{
+                           "target": "/sys/fs/cgroup/cpu",
+                           "source": "cgroup",
+                           "fstype": "cgroup",
+                           "options": "rw,nosuid,nodev,noexec,relatime,cpu"
+                        },{
+                           "target": "/sys/fs/cgroup/cpuacct",
+                           "source": "cgroup",
+                           "fstype": "cgroup",
+                           "options": "rw,nosuid,nodev,noexec,relatime,cpuacct"
+                        },{
+                           "target": "/sys/fs/cgroup/memory",
+                           "source": "cgroup",
+                           "fstype": "cgroup",
+                           "options": "rw,nosuid,nodev,noexec,relatime,memory"
+                        },{
+                           "target": "/sys/fs/cgroup/devices",
+                           "source": "cgroup",
+                           "fstype": "cgroup",
+                           "options": "rw,nosuid,nodev,noexec,relatime,devices"
+                        },{
+                           "target": "/sys/fs/cgroup/freezer",
+                           "source": "cgroup",
+                           "fstype": "cgroup",
+                           "options": "rw,nosuid,nodev,noexec,relatime,freezer"
+                        },{
+                           "target": "/sys/fs/cgroup/net_cls",
+                           "source": "cgroup",
+                           "fstype": "cgroup",
+                           "options": "rw,nosuid,nodev,noexec,relatime,net_cls"
+                        },{
+                           "target": "/sys/fs/cgroup/blkio",
+                           "source": "cgroup",
+                           "fstype": "cgroup",
+                           "options": "rw,nosuid,nodev,noexec,relatime,blkio"
+                        }
+                     ]
+                  },{
+                     "target": "/sys/kernel/security",
+                     "source": "systemd-1",
+                     "fstype": "autofs",
+                     "options": "rw,relatime,fd=22,pgrp=1,timeout=300,minproto=5,maxproto=5,direct"
+                  },{
+                     "target": "/sys/kernel/debug",
+                     "source": "systemd-1",
+                     "fstype": "autofs",
+                     "options": "rw,relatime,fd=24,pgrp=1,timeout=300,minproto=5,maxproto=5,direct"
+                  },{
+                     "target": "/sys/fs/fuse/connections",
+                     "source": "fusectl",
+                     "fstype": "fusectl",
+                     "options": "rw,relatime"
+                  }
+               ]
+            },{
+               "target": "/dev",
+               "source": "udev",
+               "fstype": "devtmpfs",
+               "options": "rw,relatime,size=1983516k,nr_inodes=495879,mode=755",
+               "children": [
+                  {
+                     "target": "/dev/pts",
+                     "source": "devpts",
+                     "fstype": "devpts",
+                     "options": "rw,relatime,gid=5,mode=620,ptmxmode=000"
+                  },{
+                     "target": "/dev/shm",
+                     "source": "tmpfs",
+                     "fstype": "tmpfs",
+                     "options": "rw,relatime"
+                  },{
+                     "target": "/dev/hugepages",
+                     "source": "systemd-1",
+                     "fstype": "autofs",
+                     "options": "rw,relatime,fd=23,pgrp=1,timeout=300,minproto=5,maxproto=5,direct",
+                     "children": [
+                        {
+                           "target": "/dev/hugepages",
+                           "source": "hugetlbfs",
+                           "fstype": "hugetlbfs",
+                           "options": "rw,relatime"
+                        }
+                     ]
+                  },{
+                     "target": "/dev/mqueue",
+                     "source": "systemd-1",
+                     "fstype": "autofs",
+                     "options": "rw,relatime,fd=26,pgrp=1,timeout=300,minproto=5,maxproto=5,direct",
+                     "children": [
+                        {
+                           "target": "/dev/mqueue",
+                           "source": "mqueue",
+                           "fstype": "mqueue",
+                           "options": "rw,relatime"
+                        }
+                     ]
+                  }
+               ]
+            },{
+               "target": "/boot",
+               "source": "/dev/sda6",
+               "fstype": "ext3",
+               "options": "rw,noatime,errors=continue,barrier=0,data=ordered"
+            },{
+               "target": "/home/kzak",
+               "source": "/dev/mapper/kzak-home",
+               "fstype": "ext4",
+               "options": "rw,noatime,barrier=1,data=ordered",
+               "children": [
+                  {
+                     "target": "/home/kzak/.gvfs",
+                     "source": "gvfs-fuse-daemon",
+                     "fstype": "fuse.gvfs-fuse-daemon",
+                     "options": "rw,nosuid,nodev,relatime,user_id=500,group_id=500"
+                  }
+               ]
+            },{
+               "target": "/var/lib/nfs/rpc_pipefs",
+               "source": "sunrpc",
+               "fstype": "rpc_pipefs",
+               "options": "rw,relatime"
+            },{
+               "target": "/mnt/sounds",
+               "source": "//foo.home/bar/",
+               "fstype": "cifs",
+               "options": "rw,relatime,unc=\\\\foo.home\\bar,username=kzak,domain=SRGROUP,uid=0,noforceuid,gid=0,noforcegid,addr=192.168.111.1,posixpaths,serverino,acl,rsize=16384,wsize=57344"
+            }
+         ]
+      }
+   ]
+}

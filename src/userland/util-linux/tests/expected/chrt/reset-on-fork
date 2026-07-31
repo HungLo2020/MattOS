@@ -1,0 +1,4 @@
+pid <parent>'s current scheduling policy: SCHED_FIFO|SCHED_RESET_ON_FORK
+pid <parent>'s current scheduling priority: 33
+pid <child>'s current scheduling policy: SCHED_OTHER
+pid <child>'s current scheduling priority: 0

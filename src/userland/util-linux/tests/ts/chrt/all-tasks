@@ -1,0 +1,139 @@
+#!/usr/bin/env bash
+
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# Copyright (C) 2026 Christian Goeschel Ndjomouo <cgoesc2@wgu.edu>
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="all tasks"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_CHRT"
+ts_check_test_command "$TS_HELPER_THREADS_CREATE"
+ts_skip_nonroot
+ts_skip_docker
+ts_skip_qemu_user
+
+HELPER_PID=
+function start_threads_create() {
+    local rc sleep_time nthreads
+    sleep_time=${1:-5}
+    nthreads=${2:-10}
+
+    "$TS_HELPER_THREADS_CREATE" --sleep "$sleep_time" "$nthreads" >>"$TS_OUTPUT" &
+    HELPER_PID=$!
+
+    rc=1
+    for time in 0.3 0.3 1 1; do
+        ntasks="$(find /proc/$HELPER_PID/task/ -mindepth 1 -maxdepth 1 -type d -iname "[0-9]*" | wc -l)"
+        if (( ntasks == nthreads + 1 )); then
+            rc=0
+            break
+        fi
+        sleep "$time"
+    done
+
+    if [ $rc -ne 0 ]; then
+          kill "$HELPER_PID" 2>/dev/null
+          wait "$HELPER_PID" 2>/dev/null
+    fi
+
+    return $rc
+}
+
+function search_tids() {
+    local rc helper_output chrt_output
+    helper_output="$1"
+    chrt_output="$2"
+    rc=0
+
+    for tid in ${helper_output}; do
+        if ! grep -E "^$tid$" <(echo "$chrt_output") &>/dev/null; then
+            echo "cannot find thread $tid" >>"$TS_ERRLOG"
+            ((rc++))
+        fi
+    done
+
+    return "$rc"
+}
+
+ts_init_subtest "get-attributes"
+
+if ! start_threads_create 5 5; then
+    ts_failed "failed to start threads helper program"
+else
+    chrt_output="$("$TS_CMD_CHRT" --all-tasks --pid "$HELPER_PID" 2>>"$TS_ERRLOG"\
+                    | sed -E 's/pid ([0-9]*).*/\1/g' | sort | uniq)"
+
+    wait "$HELPER_PID"
+    sed -i -E 's|(Thread [0-9]*: *)([0-9]*)|\2|g' "$TS_OUTPUT"
+    helper_output="$(sort "$TS_OUTPUT" | tr '\n' ' ')"
+    echo "" >"$TS_OUTPUT"
+
+    if ! search_tids "$helper_output" "$chrt_output"; then
+        {
+            echo "THREADS HELPER TID LIST"
+            echo "${helper_output// /$'\n'}"
+            echo "-------"
+            echo "CHRT TID LIST"
+            echo "$chrt_output"
+        } >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+    else
+        echo "retrieved real-time scheduling attributes for all tasks" >"$TS_OUTPUT"
+    fi
+fi
+ts_finalize_subtest
+
+
+ts_init_subtest "set-attributes"
+
+PRIORITY=33
+if ! start_threads_create 5 5; then
+    ts_failed "failed to start threads helper program"
+else
+    # Set the real-time scheduling attributes for all tasks
+    "$TS_CMD_CHRT" --all-tasks --fifo --pid "$PRIORITY" "$HELPER_PID" 2>>"$TS_ERRLOG"
+    # Get the real-time scheduling attributes of all tasks
+    chrt_tid_list="$("$TS_CMD_CHRT" --all-tasks --pid "$HELPER_PID" 2>>"$TS_ERRLOG" \
+            | tee >(grep -E '(policy|priority)'                             \
+                        | sed -E 's|(pid )([0-9]*)(.*)|\1<removed>\3|g'     \
+                        >>"$TS_OUTPUT" 2>>"$TS_ERRLOG")                     \
+            | sed -E 's/pid ([0-9]*).*/\1/g' \
+            | sort \
+            | uniq)"
+
+    wait "$HELPER_PID"
+    
+    helper_tid_list="$(grep -E 'Thread [0-9]*:' "$TS_OUTPUT" \
+                        | sed -E 's|^(Thread [0-9]*: *)([0-9]*)|\2|g' \
+                        | sort | tr '\n' ' ')"
+    sed -i -E '/^Thread [0-9]*:/d' "$TS_OUTPUT"
+
+    if ! search_tids "$helper_tid_list" "$chrt_tid_list"; then
+        {
+            echo "THREADS HELPER TID LIST"
+            echo "${helper_tid_list// /$'\n'}"
+            echo "-------"
+            echo "CHRT TID LIST"
+            echo "$chrt_tid_list"
+        } >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+    else
+        echo "set real-time scheduling attributes for all tasks" >>"$TS_OUTPUT"
+    fi
+fi
+ts_finalize_subtest
+
+
+ts_finalize

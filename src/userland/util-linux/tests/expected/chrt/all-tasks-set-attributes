@@ -1,0 +1,13 @@
+pid <removed>'s current scheduling policy: SCHED_FIFO
+pid <removed>'s current scheduling priority: 33
+pid <removed>'s current scheduling policy: SCHED_FIFO
+pid <removed>'s current scheduling priority: 33
+pid <removed>'s current scheduling policy: SCHED_FIFO
+pid <removed>'s current scheduling priority: 33
+pid <removed>'s current scheduling policy: SCHED_FIFO
+pid <removed>'s current scheduling priority: 33
+pid <removed>'s current scheduling policy: SCHED_FIFO
+pid <removed>'s current scheduling priority: 33
+pid <removed>'s current scheduling policy: SCHED_FIFO
+pid <removed>'s current scheduling priority: 33
+set real-time scheduling attributes for all tasks

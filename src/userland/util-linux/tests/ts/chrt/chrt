@@ -1,0 +1,161 @@
+#!/usr/bin/env bash
+#
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="chrt"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_CHRT"
+ts_skip_nonroot
+ts_skip_docker
+ts_skip_qemu_user
+
+CHRT_MAX=$($TS_CMD_CHRT --max) || ts_failed "failed to obtain scheduling policies"
+
+function do_chrt {
+	local filter='s/.* policy: //; s/.* priority: //'
+	# kernel >= 6.12 reports a platform-dependent default runtime parameter
+	# even without --sched-runtime; filter it out unless explicitly set
+	case "$*" in
+		*--sched-runtime*) ;;
+		*) filter="$filter; /runtime parameter/d" ;;
+	esac
+	$TS_CMD_CHRT "$@" $TS_CMD_CHRT --pid 0 | sed "$filter" >> "$TS_OUTPUT" 2>> "$TS_ERRLOG"
+}
+
+# skip_policy <POLICY_NAME> [chrt-option priority]
+function skip_policy {
+	local name=$1; shift
+
+	if ! echo "$CHRT_MAX" | grep -q "$name.*priority"; then
+		ts_skip "unsupported"
+		ts_finalize_subtest
+		return 1
+	fi
+
+	# runtime probe -- verify the kernel actually supports the policy;
+	# last arg is the priority, everything before is the chrt option(s)
+	if [ $# -gt 0 ]; then
+		local probe_args=("$@")
+		local priority="${probe_args[$#-1]}"
+		unset 'probe_args[$#-1]'
+		if ! $TS_CMD_CHRT "${probe_args[@]}" --pid "$priority" 0 >/dev/null 2>&1; then
+			ts_skip "unsupported by kernel"
+			ts_finalize_subtest
+			return 1
+		fi
+	fi
+	return 0
+}
+
+function skip_kernel_lt {
+	if ts_kernel_ver_lt $1 $2 $3; then
+		ts_skip "kernel version must be >= $1.$2.$3"
+		ts_finalize_subtest
+		return 1
+	fi
+	return 0
+}
+
+function cleanup_output {
+	sed -i -e 's/pid [0-9]*/<removed>/' "$TS_OUTPUT"
+}
+
+
+ts_init_subtest "fifo"
+if skip_policy SCHED_FIFO --fifo 1; then
+	do_chrt --fifo 1
+	do_chrt --fifo 99
+	cleanup_output
+	ts_finalize_subtest
+fi
+
+
+ts_init_subtest "batch"
+if skip_policy SCHED_BATCH --batch 0; then
+	do_chrt --batch 0
+	cleanup_output
+	ts_finalize_subtest
+fi
+
+
+ts_init_subtest "batch-custom-slice"
+if skip_policy SCHED_BATCH --batch 0 && skip_kernel_lt 6 12 0; then
+	do_chrt --batch --sched-runtime 100000 0
+	cleanup_output
+	ts_finalize_subtest
+fi
+
+
+ts_init_subtest "other"
+if skip_policy SCHED_OTHER --other 0; then
+	do_chrt --other 0
+	cleanup_output
+	ts_finalize_subtest
+fi
+
+
+ts_init_subtest "other-custom-slice"
+if skip_policy SCHED_OTHER --other 0 && skip_kernel_lt 6 12 0; then
+	do_chrt --other --sched-runtime 100000 0
+	cleanup_output
+	ts_finalize_subtest
+fi
+
+
+ts_init_subtest "rr"
+if skip_policy SCHED_RR --rr 1; then
+	do_chrt --rr 1
+	do_chrt --rr 99
+	cleanup_output
+	ts_finalize_subtest
+fi
+
+
+ts_init_subtest "idle"
+if skip_policy SCHED_IDLE --idle 0; then
+	do_chrt --idle 0
+	cleanup_output
+	ts_finalize_subtest
+fi
+
+
+ts_init_subtest "deadline"
+if skip_policy SCHED_DEADLINE --deadline --sched-period 130000 0; then
+	do_chrt --deadline --sched-period 130000 0
+	do_chrt --deadline --sched-period 130000 --sched-deadline 120000 0
+	do_chrt --deadline --sched-period 130000 --sched-deadline 120000 --sched-runtime 100000 0
+	cleanup_output
+	ts_finalize_subtest
+fi
+
+ts_init_subtest "ext"
+if skip_policy SCHED_EXT --ext 0; then
+	do_chrt --ext 0
+	do_chrt -e 0
+	cleanup_output
+	ts_finalize_subtest
+fi
+
+# failed -- let's report kernel limits
+#
+if [ $TS_NSUBFAILED -ne 0 ]; then
+	echo "Supported policies:"
+	$TS_CMD_CHRT --max
+fi
+
+ts_finalize

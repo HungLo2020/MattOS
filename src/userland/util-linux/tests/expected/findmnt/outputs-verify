@@ -1,0 +1,5 @@
+/
+   [ ] target exists
+   [W] source /dev/null is not a block device
+   [W] cannot detect on-disk filesystem type (Invalid argument)
+   [W] recommended root FS passno is 1 (current is 2)

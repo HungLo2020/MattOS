@@ -1,0 +1,10 @@
+#!/bin/sh
+export HOME=/root
+export USER=root
+export LOGNAME=root
+export SHELL=/bin/brush
+export PATH=/bin:/usr/bin:/sbin:/usr/sbin
+export TERM=${TERM:-linux}
+if [ -d /root ]; then
+    cd /root || cd /
+fi

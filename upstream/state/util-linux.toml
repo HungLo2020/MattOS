@@ -1,0 +1,7 @@
+component = "util-linux"
+repo = "https://github.com/util-linux/util-linux.git"
+branch = "master"
+imported_commit = "fd82c4043fab942b889f478800118c66edfbc39f"
+imported_at_utc = "2026-07-31T22:42:36Z"
+sync_method = "copy"
+destination_path = "src/userland/util-linux"

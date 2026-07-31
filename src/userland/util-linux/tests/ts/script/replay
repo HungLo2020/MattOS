@@ -1,0 +1,126 @@
+#!/usr/bin/env bash
+
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="replay"
+
+. "$TS_TOPDIR/functions.sh"
+ts_init "$*"
+
+ts_check_test_command "$TS_CMD_SCRIPT"
+ts_check_test_command "$TS_CMD_SCRIPTREPLAY"
+ts_check_test_command "$TS_CMD_SCRIPTLIVE"
+
+LOG_OUT_FILE="${TS_OUTDIR}/${TS_TESTNAME}-logfile-out"
+LOG_IN_FILE="${TS_OUTDIR}/${TS_TESTNAME}-logfile-in"
+LOG_IO_FILE="${TS_OUTDIR}/${TS_TESTNAME}-logfile-io"
+TIMING_FILE="${TS_OUTDIR}/${TS_TESTNAME}-logfile-tm"
+
+rm -f $TIMING_FILE $LOG_IN_FILE $LOG_OUT_FILE $LOG_IO_FILE
+
+
+#
+# Old command line format
+#
+ts_init_subtest "basic"
+echo "===recording" >"$TS_OUTPUT"
+$TS_CMD_SCRIPT \
+	--command "echo hello world; sleep 0.5; echo all done" \
+	--timing="$TIMING_FILE" \
+	"$LOG_OUT_FILE" >> "$TS_OUTPUT" 2>> "$TS_ERRLOG"
+
+echo "===replaying" >>"$TS_OUTPUT"
+$TS_CMD_SCRIPTREPLAY "$TIMING_FILE" "$LOG_OUT_FILE" 1.5 >> "$TS_OUTPUT" 2>> "$TS_ERRLOG"
+
+sed -i "s|$TIMING_FILE|timingfile|g; s|$LOG_OUT_FILE|outlog|g" "$TS_OUTPUT" "$TS_ERRLOG"
+ts_finalize_subtest
+
+
+#
+# Divisor must scale the complete delay, not divide tv_sec and tv_usec
+# independently (see https://github.com/util-linux/util-linux/issues/4500).
+# A 1.000000 s delay with divisor 2 has to become ~0.5 s; the old per-field
+# division truncated the whole-seconds field and collapsed it to 0 s.
+#
+ts_init_subtest "divisor-fractional"
+printf '1.000000 1\n' >"$TS_OUTDIR/${TS_TESTNAME}-div-timing"
+printf 'Script started\nX' >"$TS_OUTDIR/${TS_TESTNAME}-div-typescript"
+
+start=$(date +%s.%N)
+$TS_CMD_SCRIPTREPLAY \
+	--divisor 2 \
+	"$TS_OUTDIR/${TS_TESTNAME}-div-timing" \
+	"$TS_OUTDIR/${TS_TESTNAME}-div-typescript" \
+	</dev/null >/dev/null 2>>"$TS_ERRLOG"
+end=$(date +%s.%N)
+elapsed=$(awk -v e="$end" -v s="$start" 'BEGIN{printf "%.3f", e - s}')
+
+# The fix sleeps ~0.5 s; the bug returned in ~0 s.  Use a window that is
+# robust to scheduler jitter but excludes both 0 s (bug) and 1 s (no scaling).
+awk -v t="$elapsed" 'BEGIN{exit (t < 0.20 || t > 0.90) ? 1 : 0}' || {
+	echo "elapsed=${elapsed}s (expected ~0.5s)" >>"$TS_OUTPUT"
+	ts_failed "divisor collapsed delay (elapsed=${elapsed}s)"
+}
+ts_finalize_subtest
+
+
+#
+# New command line format
+#
+ts_init_subtest "output"
+echo "===recording" >"$TS_OUTPUT"
+NUMBER=1 $TS_CMD_SCRIPT \
+        --command 'echo "result is $(($NUMBER + 1))"' \
+	--log-out "$LOG_OUT_FILE" \
+	--log-timing "$TIMING_FILE"    >> "$TS_OUTPUT" 2>> "$TS_ERRLOG"
+
+echo "===replaying" >>"$TS_OUTPUT"
+$TS_CMD_SCRIPTREPLAY \
+	--log-out "$LOG_OUT_FILE" \
+	--log-timing "$TIMING_FILE" >> "$TS_OUTPUT" 2>> "$TS_ERRLOG"
+
+sed -i "s|$TIMING_FILE|timingfile|g; s|$LOG_OUT_FILE|outlog|g" "$TS_OUTPUT" "$TS_ERRLOG"
+ts_finalize_subtest
+
+
+#
+# Log input
+#
+ts_init_subtest "input"
+echo "===recording" >"$TS_OUTPUT"
+echo 'echo "result is $(($NUMBER + 1))"' | $TS_CMD_SCRIPT \
+	--command 'sh' \
+	--log-in "$LOG_IN_FILE" \
+	--log-timing "$TIMING_FILE" >> /dev/null 2>> "$TS_ERRLOG"
+
+echo "===replaying" >>"$TS_OUTPUT"
+$TS_CMD_SCRIPTREPLAY \
+	--log-in "$LOG_IN_FILE" \
+	--log-timing "$TIMING_FILE" >> "$TS_OUTPUT" 2>> "$TS_ERRLOG"
+ts_finalize_subtest
+
+
+#
+# Live replay 
+#
+ts_init_subtest "live"
+TS_KNOWN_FAIL="yes"
+NUMBER=123 $TS_CMD_SCRIPTLIVE \
+	--command 'sh' \
+	--log-in "$LOG_IN_FILE" \
+	--log-timing "$TIMING_FILE" >> "$TS_OUTPUT" 2>> "$TS_ERRLOG"
+sed -i 's/^[[:alnum:][:punct:][:blank:]]*[\$\#] /prompt> /g' "$TS_OUTPUT"
+ts_finalize_subtest
+
+ts_finalize

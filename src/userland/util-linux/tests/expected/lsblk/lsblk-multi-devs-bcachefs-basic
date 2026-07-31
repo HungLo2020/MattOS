@@ -1,0 +1,18 @@
+NAME        KNAME     MAJ:MIN RM   SIZE TYPE MOUNTPOINT
+sda         sda         8:0    0 223.6G disk 
+|-sda1      sda1        8:1    0   200M part /boot/efi
+|-sda2      sda2        8:2    0     5G part /boot
+|-sda3      sda3        8:3    0 125.5G part /var
+|-sda4      sda4        8:4    0    50G part /
+`-sda5      sda5        8:5    0  42.9G part /var/cache
+sdb         sdb         8:16   0  74.5G disk 
+`-sdb1      sdb1        8:17   0  74.5G part /mnt/virt
+sdc         sdc         8:32   0   500M disk 
+|-sdc1      sdc1        8:33   0   250M part /mnt/test
+`-sdc2      sdc2        8:34   0   249M part /mnt/test
+sr0         sr0        11:0    1  1024M rom  
+nvme0n1     nvme0n1   259:0    0 953.9G disk 
+|-nvme0n1p1 nvme0n1p1 259:1    0   200G part /home/data
+|-nvme0n1p2 nvme0n1p2 259:2    0   200G part /home/work
+|-nvme0n1p3 nvme0n1p3 259:3    0   400G part /home/mail
+`-nvme0n1p4 nvme0n1p4 259:4    0 153.9G part /home/kzak

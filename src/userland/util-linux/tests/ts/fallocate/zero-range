@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+
+# This file is part of util-linux.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# Copyright (C) 2026 Christian Goeschel Ndjomouo <cgoesc2@wgu.edu>
+
+TS_TOPDIR="${0%/*}/../.."
+TS_DESC="zero-range"
+
+. "$TS_TOPDIR"/functions.sh
+ts_init "$*"
+ts_skip_nonroot
+[ -w /proc/sys/vm/drop_caches ] || ts_skip "/proc/sys/vm/drop_caches not writable"
+
+ts_check_test_command "$TS_CMD_FALLOCATE"
+ts_check_test_command "$TS_CMD_FINDMNT"
+ts_check_test_command "$TS_CMD_HEXDUMP"
+ts_check_prog "stat"
+ts_check_prog "grep"
+
+
+# The --zero-range option is only supported by ext4 and xfs
+fstype="$("$TS_CMD_FINDMNT" -o FSTYPE --noheadings --target "$TS_OUTDIR")"
+if [[ ! "$fstype" =~ (xfs|ext4) ]]; then
+    ts_skip "unsupported file system type $fstype"
+fi
+
+TEST_FILE="${TS_OUTDIR}/${TS_TESTNAME}.data"
+# We will use the logical block size to deliberately misalign
+# the range to be zeroed, so that we can include two partial
+# blocks and one full.
+BLKSIZE="$(stat --file-system --format=%s "$TS_OUTDIR")"
+
+# Starting point:
+#
+# 0        4096     8192     12288
+# |AAAAAAAA|BBBBBBBB|DDDDDDDD|
+#      |                 |
+#    Preallocated zero range
+
+# Expected result:
+#
+# 0        4096       8192     12288
+# |AAAA0000|(00000000)|0000DDDD|
+#          |          |
+#               ^------- data hole (logically filled)
+#
+# The zeroes in the data hole are not actually on disk
+# the zeroes are merely logical because the extents are
+# unwritten.
+# However, the zeroes in the other two partial blocks
+# are written.
+{
+  printf "%*s" "$BLKSIZE" '' | tr ' ' '\252'
+  printf "%*s" "$BLKSIZE" '' | tr ' ' '\273'
+  printf "%*s" "$BLKSIZE" '' | tr ' ' '\335'
+} >"$TEST_FILE"
+
+size_before="$(stat --format=%s "$TEST_FILE" 2>>"$TS_ERRLOG")"
+
+"$TS_CMD_FALLOCATE" --zero-range --keep-size --offset $(( BLKSIZE - ( BLKSIZE / 2 ) )) \
+                        --length $(( BLKSIZE * 2 )) "$TEST_FILE" >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+
+# Due to cache incoherency we have to flush the VFS cache,
+# so we can get the correct extent mapping for $TEST_FILE,
+# and lseek(... SEEK_HOLE) does not falsely report holes.
+echo 3 > /proc/sys/vm/drop_caches 2>>"$TS_ERRLOG"
+
+size_after="$(stat --format=%s "$TEST_FILE" 2>>"$TS_ERRLOG")"
+
+if (( size_before != size_after )); then
+    rm -f "$TEST_FILE"
+    ts_failed "file size changed unexpectedly (before: $size_before, after: $size_after, block size: $BLKSIZE)"
+fi
+
+{
+    "$TS_CMD_FALLOCATE" --report-holes "$TEST_FILE" | grep -o 'data holes: 1 holes'
+    "$TS_CMD_HEXDUMP" --canonical "$TEST_FILE" | sed -e 's/^[[:alnum:]]*[[:space:]]*//g'
+} >>"$TS_OUTPUT" 2>>"$TS_ERRLOG"
+
+rm -f "$TEST_FILE"
+ts_finalize
