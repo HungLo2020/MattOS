@@ -4,9 +4,9 @@ This document tracks command provenance for the MattOS base userland.
 
 ## Build Snapshot
 
-- Date: 2026-07-31
+- Date: 2026-08-01
 - ISO: `out/images/mattos-x86_64.iso`
-- ISO size: `57,403,392` bytes (about `55M`)
+- ISO size: `63,363,072` bytes (about `61M`)
 
 ## Upstream Commits
 
@@ -16,6 +16,9 @@ This document tracks command provenance for the MattOS base userland.
 - `uutils/findutils`: `6ef1fd6cd4885c2970ea99a6d259c9c911a18e04`
 - `uutils/diffutils`: `4e8c5099485af4b15fa0b0221d51a5316ca43ad3`
 - `util-linux`: `fd82c4043fab942b889f478800118c66edfbc39f`
+- `kmod`: `5086df53090b2fe9fa1c31351c05a78a12a4ba71`
+- `procps-ng`: `619562d36cbd48fb6958043577558cbc32a6ba79`
+- `ncurses`: `c7556ecbc951326acab37c9cf1e7d690456959e0`
 
 ## Inventory Source
 
@@ -35,10 +38,10 @@ Entries use `provider:command` format.
 
 Measured counts from this build:
 
-- `implemented_upstream`: `118`
-- `compiled`: `116`
-- `installed`: `119`
-- `intentionally_excluded`: `2`
+- `implemented_upstream`: `168`
+- `compiled`: `166`
+- `installed`: `168`
+- `intentionally_excluded`: `3`
 - `failed_compatibility`: `2`
 
 ## Command Providers
@@ -49,7 +52,7 @@ Measured counts from this build:
 - Applet links are generated dynamically from `coreutils --list`.
 - Current provider label: `uutils/coreutils`.
 - Applets reported by `coreutils --list`: `107`
-- Applets exposed in MattOS: `107`
+- Applets exposed in MattOS: `106` (`uptime` is owned by procps-ng)
 
 ### uutils/grep
 
@@ -88,6 +91,24 @@ Measured counts from this build:
 - Provider label: `util-linux`
 - This remains intentionally separate from Rust/uutils command expansion.
 
+### kmod
+
+- Commands: `kmod`, `modprobe`, `insmod`, `rmmod`, `lsmod`, `modinfo`, `depmod`
+- Paths: `/usr/bin/kmod` and `/usr/sbin/*`
+- Provider label: `kmod`
+
+### procps-ng
+
+- Commands: `ps`, `top`, `free`, `uptime`, `pgrep`, `pkill`, `pidof`, `watch`, `sysctl`, `vmstat`, `w`, `pmap`, `pwdx`, `tload`, `slabtop`, `hugetop`
+- Provider label: `procps-ng`
+- The uutils `uptime` link is intentionally excluded so ownership remains unique.
+
+### ncurses
+
+- Commands: `clear`, `tput`, `tic`, `toe`, `infocmp`
+- Provider label: `ncurses`
+- These are real ncurses executables backed by the selected compiled terminfo database.
+
 ### Brush shell and built-ins
 
 - Shell binary: `brush` at `/usr/bin/brush`
@@ -113,128 +134,14 @@ Measured counts from this build:
 
 - Result: no duplicate command/provider conflicts detected.
 
-## Installed Commands (provider:command)
+## Installed command snapshot
 
-Exact installed entries from `out/build/rootfs/usr/share/mattos/userland-commands.txt`:
+The generated inventory is the exact full list. This build records 168 installed provider/command pairs. The newly added portion is:
 
 ```text
-brush:brush
-brush:sh
-util-linux:agetty
-uutils/coreutils:[
-uutils/coreutils:arch
-uutils/coreutils:b2sum
-uutils/coreutils:base32
-uutils/coreutils:base64
-uutils/coreutils:basename
-uutils/coreutils:basenc
-uutils/coreutils:cat
-uutils/coreutils:chgrp
-uutils/coreutils:chmod
-uutils/coreutils:chown
-uutils/coreutils:chroot
-uutils/coreutils:cksum
-uutils/coreutils:comm
-uutils/coreutils:cp
-uutils/coreutils:csplit
-uutils/coreutils:cut
-uutils/coreutils:date
-uutils/coreutils:dd
-uutils/coreutils:df
-uutils/coreutils:dir
-uutils/coreutils:dircolors
-uutils/coreutils:dirname
-uutils/coreutils:du
-uutils/coreutils:echo
-uutils/coreutils:env
-uutils/coreutils:expand
-uutils/coreutils:expr
-uutils/coreutils:factor
-uutils/coreutils:false
-uutils/coreutils:fmt
-uutils/coreutils:fold
-uutils/coreutils:groups
-uutils/coreutils:head
-uutils/coreutils:hostid
-uutils/coreutils:hostname
-uutils/coreutils:id
-uutils/coreutils:install
-uutils/coreutils:join
-uutils/coreutils:kill
-uutils/coreutils:link
-uutils/coreutils:ln
-uutils/coreutils:logname
-uutils/coreutils:ls
-uutils/coreutils:md5sum
-uutils/coreutils:mkdir
-uutils/coreutils:mkfifo
-uutils/coreutils:mknod
-uutils/coreutils:mktemp
-uutils/coreutils:more
-uutils/coreutils:mv
-uutils/coreutils:nice
-uutils/coreutils:nl
-uutils/coreutils:nohup
-uutils/coreutils:nproc
-uutils/coreutils:numfmt
-uutils/coreutils:od
-uutils/coreutils:paste
-uutils/coreutils:pathchk
-uutils/coreutils:pinky
-uutils/coreutils:pr
-uutils/coreutils:printenv
-uutils/coreutils:printf
-uutils/coreutils:ptx
-uutils/coreutils:pwd
-uutils/coreutils:readlink
-uutils/coreutils:realpath
-uutils/coreutils:rm
-uutils/coreutils:rmdir
-uutils/coreutils:seq
-uutils/coreutils:sha1sum
-uutils/coreutils:sha224sum
-uutils/coreutils:sha256sum
-uutils/coreutils:sha384sum
-uutils/coreutils:sha512sum
-uutils/coreutils:shred
-uutils/coreutils:shuf
-uutils/coreutils:sleep
-uutils/coreutils:sort
-uutils/coreutils:split
-uutils/coreutils:stat
-uutils/coreutils:stdbuf
-uutils/coreutils:stty
-uutils/coreutils:sum
-uutils/coreutils:sync
-uutils/coreutils:tac
-uutils/coreutils:tail
-uutils/coreutils:tee
-uutils/coreutils:test
-uutils/coreutils:timeout
-uutils/coreutils:touch
-uutils/coreutils:tr
-uutils/coreutils:true
-uutils/coreutils:truncate
-uutils/coreutils:tsort
-uutils/coreutils:tty
-uutils/coreutils:uname
-uutils/coreutils:unexpand
-uutils/coreutils:uniq
-uutils/coreutils:unlink
-uutils/coreutils:uptime
-uutils/coreutils:users
-uutils/coreutils:vdir
-uutils/coreutils:wc
-uutils/coreutils:who
-uutils/coreutils:whoami
-uutils/coreutils:yes
-uutils/diffutils:cmp
-uutils/diffutils:diff
-uutils/diffutils:diffutils
-uutils/findutils:find
-uutils/findutils:locate
-uutils/findutils:updatedb
-uutils/findutils:xargs
-uutils/grep:grep
-uutils/sed:sed
+kmod: depmod insmod kmod lsmod modinfo modprobe rmmod
+ncurses: clear infocmp tic toe tput
+procps-ng: free hugetop pgrep pidof pkill pmap ps pwdx slabtop sysctl tload top uptime vmstat w watch
 ```
+
+The existing Brush, Linux-PAM, Shadow, sudo-rs, util-linux, uutils/coreutils, grep, sed, findutils, and diffutils entries remain in the machine-readable file. `uutils/coreutils:uptime` moved to `intentionally_excluded`; `procps-ng:uptime` is installed.

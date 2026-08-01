@@ -1,0 +1,35 @@
+#!/bin/bash
+# SPDX-FileCopyrightText: 2024 Emil Velikov <emil.l.velikov@gmail.com>
+# SPDX-FileCopyrightText: 2024 Lucas De Marchi <lucas.de.marchi@gmail.com>
+#
+# SPDX-License-Identifier: LGPL-2.1-or-later
+
+export DEBIAN_FRONTEND=noninteractive
+export TZ=Etc/UTC
+
+. /etc/os-release
+
+mbedtls_pkgs=()
+if [[ "$VERSION_CODENAME" == "resolute" ]]; then
+    mbedtls_pkgs=("libmbedtls-dev")
+fi
+
+apt-get update
+apt-get install --yes \
+    bash \
+    build-essential \
+    curl \
+    clang \
+    gcc-multilib \
+    gcovr \
+    git \
+    gtk-doc-tools \
+    liblzma-dev \
+    libssl-dev \
+    libzstd-dev \
+    linux-headers-generic \
+    meson \
+    "${mbedtls_pkgs[@]}" \
+    scdoc \
+    zlib1g-dev \
+    zstd

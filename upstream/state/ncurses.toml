@@ -1,0 +1,7 @@
+component = "ncurses"
+repo = "https://github.com/ThomasDickey/ncurses-snapshots.git"
+branch = "master"
+imported_commit = "c7556ecbc951326acab37c9cf1e7d690456959e0"
+imported_at_utc = "2026-08-01T19:49:33.412577165+00:00"
+sync_method = "copy"
+destination_path = "src/system/terminal/ncurses"

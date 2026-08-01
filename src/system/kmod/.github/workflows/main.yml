@@ -1,0 +1,190 @@
+# SPDX-FileCopyrightText: 2024 Emil Velikov <emil.l.velikov@gmail.com>
+# SPDX-FileCopyrightText: 2024 Lucas De Marchi <lucas.de.marchi@gmail.com>
+#
+# SPDX-License-Identifier: LGPL-2.1-or-later
+
+name: Build and Test
+
+on:
+  push:
+    branches: [master, ci-test]
+  pull_request:
+    branches: [master]
+  schedule:
+    - cron: "30 2 * * 0"
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  KDIR: 'any'
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - container: 'alpine:latest'
+            meson_setup: '-Db_sanitize=none'
+            only_bits: '64'
+          - container: 'archlinux:multilib-devel'
+          - container: 'debian:bookworm-slim'
+            meson_setup: '-Dzstd=disabled -Dxz=disabled -Dzlib=disabled -Dmbedtls=disabled'
+            only_compiler: 'gcc'
+          - container: 'debian:unstable'
+          - container: 'fedora:latest'
+            only_bits: '64'
+          - container: 'ubuntu:22.04'
+            meson_setup: '-Dmbedtls=disabled'
+          - container: 'ubuntu:24.04'
+            meson_setup: '-Dmbedtls=disabled'
+          - container: 'ubuntu:26.04'
+
+          # Special configurations
+
+          # Variants with different compression options
+          - container: 'fedora:latest'
+            meson_setup: '-Dxz=disabled -Ddlopen=all'
+            only_bits: '64'
+            custom: 'no-xz-dlopen-all'
+          - container: 'ubuntu:22.04'
+            meson_setup: '-Ddlopen=zstd,zlib -Dmbedtls=disabled'
+            only_bits: '64'
+            custom: 'dlopen-zstd-zlib'
+
+          # Variant with lld as linker
+          - container: 'archlinux:multilib-devel'
+            only_bits: '64'
+            only_compiler: 'clang'
+            custom: 'ldd-as-linker'
+            linker: 'lld'
+
+          # Variants with moduledir
+          - container: 'archlinux:multilib-devel'
+            meson_setup: '-Dmoduledir=/usr/lib/modules'
+            only_bits: '64'
+            only_compiler: 'gcc'
+            custom: 'usr-moduledir'
+          - container: 'archlinux:multilib-devel'
+            meson_setup: '-Dmoduledir=/kernel-modules'
+            only_bits: '64'
+            only_compiler: 'gcc'
+            custom: 'custom-moduledir'
+
+          # Variant without openssl - only mbedtls
+          - container: 'archlinux:multilib-devel'
+            meson_setup: '-Dopenssl=disabled'
+            only_bits: '64'
+            only_compiler: 'gcc'
+            custom: 'mbedtls-only'
+
+    container:
+      image: ${{ matrix.container }}
+
+    steps:
+      - name: Sparse checkout the local actions
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          sparse-checkout: .github
+          path: local-actions
+
+      - name: Setup OS
+        uses: ./local-actions/.github/actions/setup-os
+
+      - name: Cleanup local actions
+        run: |
+          rm -rf local-actions
+          # The sparse checkout with REST API creates the current dir with the wrong
+          # user. Tell git to just ignore.
+          git config --global --add safe.directory '*'
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: configure checks
+        run: |
+          should_fail() {
+            rm -rf build-setup-test/
+            if meson setup "$@" build-setup-test/; then
+              echo Command was expected to fail, but was successful
+              return 1
+            fi
+          }
+          should_pass() {
+            rm -rf build-setup-test/
+            meson setup "$@" build-setup-test/
+          }
+
+          should_fail -D distconfdir=relative/
+          should_fail -D moduledir=relative/
+          should_fail -D dlopen=nonexistent
+          should_fail -D xz=disabled -D dlopen=xz
+
+          should_pass -D mbedtls=disabled -D dlopen=xz
+          should_pass -D mbedtls=disabled -D dlopen=xz -D xz=enabled
+
+      - name: configure
+        run: |
+          do_setup() {
+            setup_options="${{ matrix.meson_setup }}"
+
+            if [[ "$2" == "32" ]]; then
+              echo "::notice::TODO fix and reuse the original options."
+              setup_options="$setup_options -Dzstd=disabled -Dxz=disabled -Dzlib=disabled -Dopenssl=disabled -Dmbedtls=disabled"
+
+              echo "::notice::TODO fix and re-enable sanitizer(s)."
+              setup_options="$setup_options -Db_sanitize=none"
+            fi
+
+            [[ -n "${{ matrix.linker }}" ]] && export CC_LD="${{ matrix.linker }}"
+            meson setup --native-file build-dev.ini $setup_options "$1"
+          }
+
+          source .github/functions.sh
+          for_each_config "${{ matrix.only_compiler }}" "${{ matrix.only_bits }}" "${{ matrix.custom }}" do_setup
+
+      - name: build
+        run: |
+          do_build() {
+            meson compile -C "$1"
+          }
+          source .github/functions.sh
+          for_each_config "${{ matrix.only_compiler }}" "${{ matrix.only_bits }}" "${{ matrix.custom }}" do_build
+
+      - name: test
+        run: |
+          do_test() {
+            if [[ -n "${{ matrix.skip_test }}" && "${{ matrix.skip_test }}" == "$2" ]]; then
+              echo "::notice::Skipping tests"
+              return 0
+            fi
+            meson test -C "$1" || meson test -C "$1" --verbose
+          }
+          source .github/functions.sh
+          for_each_config "${{ matrix.only_compiler }}" "${{ matrix.only_bits }}" "${{ matrix.custom }}" do_test
+
+      - name: install
+        run: |
+          do_install() {
+            DESTDIR=$PWD/inst meson install -C "$1"
+          }
+          source .github/functions.sh
+          for_each_config "${{ matrix.only_compiler }}" "${{ matrix.only_bits }}" "${{ matrix.custom }}" do_install
+
+      - name: distcheck
+        run: |
+          do_distcheck() {
+            if [[ "$2" == "32" ]]; then
+              echo "::notice::Skipping 32bit distcheck"
+              return 0
+            fi
+            meson dist -C "$1"
+          }
+          source .github/functions.sh
+          for_each_config "${{ matrix.only_compiler }}" "${{ matrix.only_bits }}" "${{ matrix.custom }}" do_distcheck

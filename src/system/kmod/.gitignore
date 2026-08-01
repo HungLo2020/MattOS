@@ -1,0 +1,13 @@
+/*.tar.xz
+/*.md5sum
+/*.mbx
+/*.cover
+
+/kmod-*.tar.*
+/build
+/build-*
+
+*~
+.*.swp
+cscope.out
+tags

@@ -43,7 +43,8 @@ The build directory is kept for incremental Ninja rebuilds. Reconfigure is trigg
 The current integrated configuration is intentionally minimal and disables optional subsystems not required for this milestone:
 
 - Disabled stacks: `networkd`, `resolved`, `timesyncd`, `homed`, `portabled`, `nspawn`, `oomd`, `remote`, `userdb`, `firstboot`, `bootloader`, `importd`, `vmspawn`, `coredump`, `pstore`, `machined`, `hostnamed`, `localed`, `timedated`, `nsresourced`
-- Disabled security/optional integrations: `pam`, `seccomp`, `acl`, `audit`, `blkid`, `kmod`, `libcryptsetup`, `openssl`, `gnutls`, `libfido2`, `tpm2`, `qrencode`, `bpf-framework`
+- Enabled base-system integration: locally built kmod 34 from `out/build/kmod/install`
+- Disabled security/optional integrations: `pam`, `seccomp`, `acl`, `audit`, `blkid`, `libcryptsetup`, `openssl`, `gnutls`, `libfido2`, `tpm2`, `qrencode`, `bpf-framework`
 - Disabled extras: docs, man pages, html, translations, tests, kernel-install extras, analyze utility
 - Journal default: volatile (`journal-storage-default=volatile`)
 

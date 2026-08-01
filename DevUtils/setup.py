@@ -36,6 +36,9 @@ REQUIRED_TOOLS = [
     "bash",
     "bison",
     "flex",
+    "file",
+    "readelf",
+    "ldd",
 ]
 
 # These are pulled in by the existing kernel workflow and WSL bootstrap logic.
@@ -88,6 +91,9 @@ DEBIAN_TOOL_PACKAGES: Dict[str, List[str]] = {
     "bash": ["bash"],
     "bison": ["bison"],
     "flex": ["flex"],
+    "file": ["file"],
+    "readelf": ["binutils"],
+    "ldd": ["libc-bin"],
 }
 
 

@@ -1,0 +1,7 @@
+component = "procps-ng"
+repo = "https://gitlab.com/procps-ng/procps.git"
+branch = "master"
+imported_commit = "619562d36cbd48fb6958043577558cbc32a6ba79"
+imported_at_utc = "2026-08-01T19:49:31.361706025+00:00"
+sync_method = "copy"
+destination_path = "src/userland/procps-ng"

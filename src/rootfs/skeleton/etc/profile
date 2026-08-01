@@ -1,5 +1,5 @@
 #!/bin/sh
-export PATH=${PATH:-/bin:/usr/bin:/sbin:/usr/sbin}
+export PATH=/bin:/usr/bin:/sbin:/usr/sbin
 export TERM=${TERM:-linux}
 if [ "$(id -u 2>/dev/null)" = "0" ]; then
     export PS1='\u@\h:\w# '

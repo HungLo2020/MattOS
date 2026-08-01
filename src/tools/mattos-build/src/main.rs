@@ -27,6 +27,9 @@ const UTIL_LINUX_PROVIDER: &str = "util-linux";
 const LINUX_PAM_PROVIDER: &str = "linux-pam";
 const SHADOW_PROVIDER: &str = "shadow";
 const SUDO_RS_PROVIDER: &str = "sudo-rs";
+const KMOD_PROVIDER: &str = "kmod";
+const PROCPS_PROVIDER: &str = "procps-ng";
+const NCURSES_PROVIDER: &str = "ncurses";
 const REQUIRED_PAM_MODULES: &[&str] = &[
 	"pam_unix.so",
 	"pam_env.so",
@@ -48,6 +51,72 @@ struct BinaryInstallSpec {
 	install_name: &'static str,
 	command_name: &'static str,
 }
+
+#[derive(Debug, Clone, Copy)]
+struct ComponentBinarySpec {
+	source_rel: &'static str,
+	destination_rel: &'static str,
+	command_name: &'static str,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct ComponentInstallManifest {
+	provider: &'static str,
+	install_root_rel: &'static str,
+	binaries: &'static [ComponentBinarySpec],
+}
+
+const KMOD_BINARIES: &[ComponentBinarySpec] = &[
+	ComponentBinarySpec { source_rel: "usr/bin/kmod", destination_rel: "usr/bin/kmod", command_name: "kmod" },
+	ComponentBinarySpec { source_rel: "usr/sbin/modprobe", destination_rel: "usr/sbin/modprobe", command_name: "modprobe" },
+	ComponentBinarySpec { source_rel: "usr/sbin/insmod", destination_rel: "usr/sbin/insmod", command_name: "insmod" },
+	ComponentBinarySpec { source_rel: "usr/sbin/rmmod", destination_rel: "usr/sbin/rmmod", command_name: "rmmod" },
+	ComponentBinarySpec { source_rel: "usr/sbin/lsmod", destination_rel: "usr/sbin/lsmod", command_name: "lsmod" },
+	ComponentBinarySpec { source_rel: "usr/sbin/modinfo", destination_rel: "usr/sbin/modinfo", command_name: "modinfo" },
+	ComponentBinarySpec { source_rel: "usr/sbin/depmod", destination_rel: "usr/sbin/depmod", command_name: "depmod" },
+];
+
+const PROCPS_BINARIES: &[ComponentBinarySpec] = &[
+	ComponentBinarySpec { source_rel: "usr/bin/ps", destination_rel: "usr/bin/ps", command_name: "ps" },
+	ComponentBinarySpec { source_rel: "usr/bin/top", destination_rel: "usr/bin/top", command_name: "top" },
+	ComponentBinarySpec { source_rel: "usr/bin/free", destination_rel: "usr/bin/free", command_name: "free" },
+	ComponentBinarySpec { source_rel: "usr/bin/uptime", destination_rel: "usr/bin/uptime", command_name: "uptime" },
+	ComponentBinarySpec { source_rel: "usr/bin/pgrep", destination_rel: "usr/bin/pgrep", command_name: "pgrep" },
+	ComponentBinarySpec { source_rel: "usr/bin/pkill", destination_rel: "usr/bin/pkill", command_name: "pkill" },
+	ComponentBinarySpec { source_rel: "usr/bin/pidof", destination_rel: "usr/bin/pidof", command_name: "pidof" },
+	ComponentBinarySpec { source_rel: "usr/bin/watch", destination_rel: "usr/bin/watch", command_name: "watch" },
+	ComponentBinarySpec { source_rel: "usr/sbin/sysctl", destination_rel: "usr/sbin/sysctl", command_name: "sysctl" },
+	ComponentBinarySpec { source_rel: "usr/bin/vmstat", destination_rel: "usr/bin/vmstat", command_name: "vmstat" },
+	ComponentBinarySpec { source_rel: "usr/bin/w", destination_rel: "usr/bin/w", command_name: "w" },
+	ComponentBinarySpec { source_rel: "usr/bin/pmap", destination_rel: "usr/bin/pmap", command_name: "pmap" },
+	ComponentBinarySpec { source_rel: "usr/bin/pwdx", destination_rel: "usr/bin/pwdx", command_name: "pwdx" },
+	ComponentBinarySpec { source_rel: "usr/bin/tload", destination_rel: "usr/bin/tload", command_name: "tload" },
+	ComponentBinarySpec { source_rel: "usr/bin/slabtop", destination_rel: "usr/bin/slabtop", command_name: "slabtop" },
+	ComponentBinarySpec { source_rel: "usr/bin/hugetop", destination_rel: "usr/bin/hugetop", command_name: "hugetop" },
+];
+
+const NCURSES_BINARIES: &[ComponentBinarySpec] = &[
+	ComponentBinarySpec { source_rel: "usr/bin/clear", destination_rel: "usr/bin/clear", command_name: "clear" },
+	ComponentBinarySpec { source_rel: "usr/bin/tput", destination_rel: "usr/bin/tput", command_name: "tput" },
+	ComponentBinarySpec { source_rel: "usr/bin/tic", destination_rel: "usr/bin/tic", command_name: "tic" },
+	ComponentBinarySpec { source_rel: "usr/bin/toe", destination_rel: "usr/bin/toe", command_name: "toe" },
+	ComponentBinarySpec { source_rel: "usr/bin/infocmp", destination_rel: "usr/bin/infocmp", command_name: "infocmp" },
+];
+
+const COMPONENT_INSTALL_MANIFESTS: &[ComponentInstallManifest] = &[
+	ComponentInstallManifest { provider: KMOD_PROVIDER, install_root_rel: "out/build/kmod/install", binaries: KMOD_BINARIES },
+	ComponentInstallManifest { provider: PROCPS_PROVIDER, install_root_rel: "out/build/procps-ng/install", binaries: PROCPS_BINARIES },
+	ComponentInstallManifest { provider: NCURSES_PROVIDER, install_root_rel: "out/build/ncurses/install", binaries: NCURSES_BINARIES },
+];
+
+const TERMINFO_ENTRIES: &[&str] = &[
+	"linux",
+	"xterm",
+	"xterm-256color",
+	"screen",
+	"screen-256color",
+	"vt100",
+];
 
 const USERLAND_BINARY_INSTALLS: &[BinaryInstallSpec] = &[
 	BinaryInstallSpec {
@@ -226,6 +295,9 @@ enum BuildStage {
 	Sed,
 	Findutils,
 	Diffutils,
+	Kmod,
+	Procps,
+	Ncurses,
 	Pam,
 	Shadow,
 	SudoRs,
@@ -341,6 +413,7 @@ fn doctor() -> Result<()> {
 		"make",
 		"gcc",
 		"autoreconf",
+		"autopoint",
 		"meson",
 		"ninja",
 		"gperf",
@@ -359,6 +432,9 @@ fn doctor() -> Result<()> {
 		"bash",
 		"bison",
 		"flex",
+		"file",
+		"readelf",
+		"ldd",
 	] {
 		if !check_host_tool_with_hint(tool, true, local_path_hint.as_deref())? {
 			missing_required.push(tool);
@@ -1530,8 +1606,11 @@ fn build_plan(stage: BuildStage) -> Vec<BuildStage> {
 			BuildStage::Sed,
 			BuildStage::Findutils,
 			BuildStage::Diffutils,
+			BuildStage::Ncurses,
+			BuildStage::Procps,
 			BuildStage::Pam,
 			BuildStage::UtilLinux,
+			BuildStage::Kmod,
 			BuildStage::Shadow,
 			BuildStage::SudoRs,
 			BuildStage::Systemd,
@@ -1554,6 +1633,9 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
 		BuildStage::Sed => build_sed(repo_root),
 		BuildStage::Findutils => build_findutils(repo_root),
 		BuildStage::Diffutils => build_diffutils(repo_root),
+		BuildStage::Kmod => build_kmod(repo_root),
+		BuildStage::Procps => build_procps(repo_root),
+		BuildStage::Ncurses => build_ncurses(repo_root),
 		BuildStage::Pam => build_linux_pam(repo_root),
 		BuildStage::Shadow => build_shadow(repo_root),
 		BuildStage::SudoRs => build_sudo_rs(repo_root),
@@ -2216,6 +2298,215 @@ fn util_linux_meson_options() -> Vec<String> {
 	]
 }
 
+fn build_kmod(repo_root: &Path) -> Result<()> {
+	let source = repo_root.join("src/system/kmod");
+	if !source.join("meson.build").exists() {
+		bail!("kmod source not found in {}; run upstream import kmod first", source.display());
+	}
+
+	let out_root = repo_root.join("out/build/kmod");
+	let build_dir = out_root.join("build");
+	let install_dir = out_root.join("install");
+	let options_path = out_root.join("meson-options.txt");
+	fs::create_dir_all(&out_root)
+		.with_context(|| format!("failed to create {}", out_root.display()))?;
+	let options = kmod_meson_options();
+	let options_text = format!("{}\n", options.join("\n"));
+	let configured = build_dir.join("build.ninja").exists();
+	let changed = fs::read_to_string(&options_path).ok().as_deref() != Some(options_text.as_str());
+
+	let mut args = vec!["setup".to_string()];
+	if configured && changed {
+		args.push("--reconfigure".to_string());
+	}
+	if !configured || changed {
+		args.push(build_dir.display().to_string());
+		args.push(source.display().to_string());
+		args.extend(options.clone());
+		let refs: Vec<&str> = args.iter().map(String::as_str).collect();
+		run_cmd(repo_root, "meson", &refs)?;
+		fs::write(&options_path, &options_text)
+			.with_context(|| format!("failed to write {}", options_path.display()))?;
+	}
+
+	run_cmd(repo_root, "meson", &["compile", "-C", path_str(&build_dir)?])?;
+	remove_path_if_exists(&install_dir)?;
+	fs::create_dir_all(&install_dir)
+		.with_context(|| format!("failed to create {}", install_dir.display()))?;
+	run_cmd(
+		repo_root,
+		"meson",
+		&["install", "-C", path_str(&build_dir)?, "--no-rebuild", "--destdir", path_str(&install_dir)?],
+	)?;
+	for command in KMOD_BINARIES {
+		let path = install_dir.join(command.source_rel);
+		if !path_entry_exists(&path) {
+			bail!("kmod install did not produce {}", path.display());
+		}
+	}
+	Ok(())
+}
+
+fn kmod_meson_options() -> Vec<String> {
+	vec![
+		"--prefix=/usr".to_string(),
+		"--sbindir=/usr/sbin".to_string(),
+		"--libdir=lib/x86_64-linux-gnu".to_string(),
+		"--sysconfdir=/etc".to_string(),
+		"--auto-features=disabled".to_string(),
+		"-Dzstd=disabled".to_string(),
+		"-Dxz=disabled".to_string(),
+		"-Dzlib=disabled".to_string(),
+		"-Dopenssl=disabled".to_string(),
+		"-Dmbedtls=disabled".to_string(),
+		"-Ddlopen=[]".to_string(),
+		"-Dtools=true".to_string(),
+		"-Dlogging=true".to_string(),
+		"-Dbuild-tests=false".to_string(),
+		"-Dmanpages=false".to_string(),
+		"-Ddocs=false".to_string(),
+	]
+}
+
+fn build_ncurses(repo_root: &Path) -> Result<()> {
+	let source = repo_root.join("src/system/terminal/ncurses");
+	let configure = source.join("configure");
+	if !configure.exists() {
+		bail!("ncurses source not found in {}; run upstream import ncurses first", source.display());
+	}
+	let out_root = repo_root.join("out/build/ncurses");
+	let build_dir = out_root.join("build");
+	let install_dir = out_root.join("install");
+	let stamp = out_root.join("configure-options.txt");
+	let options = ncurses_configure_options();
+	let options_text = format!("{}\n", options.join("\n"));
+	if build_dir.join("Makefile").exists()
+		&& fs::read_to_string(&stamp).ok().as_deref() != Some(options_text.as_str())
+	{
+		remove_path_if_exists(&build_dir)?;
+	}
+	fs::create_dir_all(&build_dir)
+		.with_context(|| format!("failed to create {}", build_dir.display()))?;
+	if !build_dir.join("Makefile").exists() {
+		run_cmd(&build_dir, path_str(&configure)?, &options)?;
+		fs::write(&stamp, &options_text)
+			.with_context(|| format!("failed to write {}", stamp.display()))?;
+	}
+	run_cmd(&build_dir, "make", &["-j", "4"])?;
+	remove_path_if_exists(&install_dir)?;
+	fs::create_dir_all(&install_dir)
+		.with_context(|| format!("failed to create {}", install_dir.display()))?;
+	run_cmd(&build_dir, "make", &[&format!("DESTDIR={}", install_dir.display()), "install"])?;
+	for command in NCURSES_BINARIES {
+		let path = install_dir.join(command.source_rel);
+		if !path.exists() {
+			bail!("ncurses install did not produce {}", path.display());
+		}
+	}
+	verify_terminfo_entries(&install_dir.join("usr/share/terminfo"))?;
+	Ok(())
+}
+
+fn ncurses_configure_options() -> Vec<&'static str> {
+	vec![
+		"--prefix=/usr",
+		"--libdir=/usr/lib/x86_64-linux-gnu",
+		"--with-shared",
+		"--without-normal",
+		"--without-debug",
+		"--without-ada",
+		"--without-cxx",
+		"--without-cxx-binding",
+		"--without-tests",
+		"--without-manpages",
+		"--disable-stripping",
+		"--enable-widec",
+		"--with-termlib",
+		"--enable-pc-files",
+		"--with-pkg-config-libdir=/usr/lib/x86_64-linux-gnu/pkgconfig",
+	]
+}
+
+fn build_procps(repo_root: &Path) -> Result<()> {
+	let source = repo_root.join("src/userland/procps-ng");
+	if !source.join("configure.ac").exists() {
+		bail!("procps-ng source not found in {}; run upstream import procps-ng first", source.display());
+	}
+	if !source.join("configure").exists() {
+		run_cmd(&source, "./autogen.sh", &[])?;
+	}
+	let ncurses_install = repo_root.join("out/build/ncurses/install/usr");
+	if !ncurses_install.join("lib/x86_64-linux-gnu/libncursesw.so.6").exists() {
+		bail!("ncurses runtime missing at {}; run build ncurses first", ncurses_install.display());
+	}
+	let out_root = repo_root.join("out/build/procps-ng");
+	let build_dir = out_root.join("build");
+	let install_dir = out_root.join("install");
+	let stamp = out_root.join("configure-options.txt");
+	let options = procps_configure_options();
+	let env = vec![
+		("PKG_CONFIG_PATH", ncurses_install.join("lib/x86_64-linux-gnu/pkgconfig").display().to_string()),
+		("CPPFLAGS", format!("-I{}", ncurses_install.join("include").display())),
+		("LDFLAGS", format!("-L{}", ncurses_install.join("lib/x86_64-linux-gnu").display())),
+		("NCURSES_CFLAGS", format!("-I{}", ncurses_install.join("include").display())),
+		("NCURSES_LIBS", format!("-L{} -lncursesw -ltinfow", ncurses_install.join("lib/x86_64-linux-gnu").display())),
+	];
+	let stamp_text = format!(
+		"{}\n{}\n",
+		options.join("\n"),
+		env.iter().map(|(k, v)| format!("{k}={v}")).collect::<Vec<_>>().join("\n")
+	);
+	if build_dir.join("Makefile").exists()
+		&& fs::read_to_string(&stamp).ok().as_deref() != Some(stamp_text.as_str())
+	{
+		remove_path_if_exists(&build_dir)?;
+	}
+	fs::create_dir_all(&build_dir)
+		.with_context(|| format!("failed to create {}", build_dir.display()))?;
+	if !build_dir.join("Makefile").exists() {
+		run_cmd_with_env_overrides(&build_dir, path_str(&source.join("configure"))?, &options, &env)?;
+		fs::write(&stamp, &stamp_text)
+			.with_context(|| format!("failed to write {}", stamp.display()))?;
+	}
+	run_cmd_with_env_overrides(&build_dir, "make", &["-j", "4"], &env)?;
+	remove_path_if_exists(&install_dir)?;
+	fs::create_dir_all(&install_dir)
+		.with_context(|| format!("failed to create {}", install_dir.display()))?;
+	run_cmd_with_env_overrides(
+		&build_dir,
+		"make",
+		&[&format!("DESTDIR={}", install_dir.display()), "install"],
+		&env,
+	)?;
+	for command in PROCPS_BINARIES {
+		let path = install_dir.join(command.source_rel);
+		if !path.exists() {
+			bail!("procps-ng install did not produce {}", path.display());
+		}
+	}
+	Ok(())
+}
+
+fn procps_configure_options() -> Vec<&'static str> {
+	vec![
+		"--prefix=/usr",
+		"--libdir=/usr/lib/x86_64-linux-gnu",
+		"--sysconfdir=/etc",
+		"--disable-nls",
+		"--without-systemd",
+		"--without-elogind",
+		"--disable-numa",
+		"--disable-kill",
+		"--disable-pidwait",
+		"--disable-examples",
+		"--disable-static",
+	]
+}
+
+fn path_str(path: &Path) -> Result<&str> {
+	path.to_str().ok_or_else(|| anyhow!("invalid path {}", path.display()))
+}
+
 fn build_systemd(repo_root: &Path) -> Result<()> {
 	let systemd_src = repo_root.join("src/system/systemd");
 	if !systemd_src.join("meson.build").exists() {
@@ -2229,6 +2520,20 @@ fn build_systemd(repo_root: &Path) -> Result<()> {
 	let build_dir = out_root.join("build");
 	let install_dir = out_root.join("install");
 	let options_path = out_root.join("meson-options.txt");
+	let env_path = out_root.join("meson-env.txt");
+	let kmod_install = repo_root.join("out/build/kmod/install/usr");
+	if !kmod_install.join("lib/x86_64-linux-gnu/libkmod.so.2").exists() {
+		bail!("kmod development files missing at {}; run build kmod first", kmod_install.display());
+	}
+	let env_overrides = vec![
+		("PKG_CONFIG_PATH", kmod_install.join("lib/x86_64-linux-gnu/pkgconfig").display().to_string()),
+		("CFLAGS", format!("-I{}", kmod_install.join("include").display())),
+		("LDFLAGS", format!("-L{}", kmod_install.join("lib/x86_64-linux-gnu").display())),
+	];
+	let env_text = format!(
+		"{}\n",
+		env_overrides.iter().map(|(k, v)| format!("{k}={v}")).collect::<Vec<_>>().join("\n")
+	);
 	fs::create_dir_all(&out_root)
 		.with_context(|| format!("failed to create {}", out_root.display()))?;
 
@@ -2236,7 +2541,11 @@ fn build_systemd(repo_root: &Path) -> Result<()> {
 	let options_text = format!("{}\n", options.join("\n"));
 	let existing_options = fs::read_to_string(&options_path).ok();
 	let needs_reconfigure = existing_options.as_deref() != Some(options_text.as_str());
-	let configured = build_dir.join("build.ninja").exists();
+	let mut configured = build_dir.join("build.ninja").exists();
+	if configured && fs::read_to_string(&env_path).ok().as_deref() != Some(env_text.as_str()) {
+		remove_path_if_exists(&build_dir)?;
+		configured = false;
+	}
 
 	if !configured {
 		let mut setup_args = vec![
@@ -2246,9 +2555,11 @@ fn build_systemd(repo_root: &Path) -> Result<()> {
 		];
 		setup_args.extend(options.clone());
 		let setup_refs: Vec<&str> = setup_args.iter().map(String::as_str).collect();
-		run_cmd(repo_root, "meson", &setup_refs)?;
+		run_cmd_with_env_overrides(repo_root, "meson", &setup_refs, &env_overrides)?;
 		fs::write(&options_path, &options_text)
 			.with_context(|| format!("failed to write {}", options_path.display()))?;
+		fs::write(&env_path, &env_text)
+			.with_context(|| format!("failed to write {}", env_path.display()))?;
 	} else if needs_reconfigure {
 		let mut setup_args = vec![
 			"setup".to_string(),
@@ -2258,13 +2569,15 @@ fn build_systemd(repo_root: &Path) -> Result<()> {
 		];
 		setup_args.extend(options.clone());
 		let setup_refs: Vec<&str> = setup_args.iter().map(String::as_str).collect();
-		run_cmd(repo_root, "meson", &setup_refs)?;
+		run_cmd_with_env_overrides(repo_root, "meson", &setup_refs, &env_overrides)?;
 		fs::write(&options_path, &options_text)
 			.with_context(|| format!("failed to write {}", options_path.display()))?;
+		fs::write(&env_path, &env_text)
+			.with_context(|| format!("failed to write {}", env_path.display()))?;
 	}
 
 	let ninja_args = vec!["-C", build_dir.to_str().ok_or_else(|| anyhow!("invalid build dir"))?];
-	run_cmd(repo_root, "ninja", &ninja_args)?;
+	run_cmd_with_env_overrides(repo_root, "ninja", &ninja_args, &env_overrides)?;
 
 	if install_dir.exists() {
 		fs::remove_dir_all(&install_dir)
@@ -2283,7 +2596,7 @@ fn build_systemd(repo_root: &Path) -> Result<()> {
 			.to_str()
 			.ok_or_else(|| anyhow!("invalid install dir"))?,
 	];
-	run_cmd(repo_root, "meson", &install_args)?;
+	run_cmd_with_env_overrides(repo_root, "meson", &install_args, &env_overrides)?;
 
 	let pid1 = install_dir.join("usr/lib/systemd/systemd");
 	if !pid1.exists() {
@@ -2335,7 +2648,7 @@ fn systemd_meson_options() -> Vec<String> {
 		"-Dacl=disabled".to_string(),
 		"-Daudit=disabled".to_string(),
 		"-Dblkid=disabled".to_string(),
-		"-Dkmod=disabled".to_string(),
+		"-Dkmod=enabled".to_string(),
 		"-Dlibmount=enabled".to_string(),
 		"-Dpam=disabled".to_string(),
 		"-Dlibcryptsetup=disabled".to_string(),
@@ -2409,6 +2722,7 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 		);
 	}
 	copy_tree_excluding_dotgit(&systemd_install, &out)?;
+	copy_systemd_runtime_dependencies(&out)?;
 	install_linux_pam_runtime(&pam_install, &out)?;
 	copy_shared_object_and_deps("libmount.so.1", &out)?;
 	copy_host_binary_and_deps("/usr/bin/mount", &out)?;
@@ -2553,9 +2867,24 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 		inventory.add_implemented(COREUTILS_PROVIDER, applet);
 		inventory.add_compiled(COREUTILS_PROVIDER, applet);
 	}
-	create_coreutils_symlinks(&out, &coreutils_applets)?;
-	for applet in &coreutils_applets {
+	let component_commands: BTreeSet<&str> = COMPONENT_INSTALL_MANIFESTS
+		.iter()
+		.flat_map(|manifest| manifest.binaries.iter().map(|binary| binary.command_name))
+		.collect();
+	let installed_coreutils_applets: Vec<String> = coreutils_applets
+		.iter()
+		.filter(|applet| !component_commands.contains(applet.as_str()))
+		.cloned()
+		.collect();
+	create_coreutils_symlinks(&out, &installed_coreutils_applets)?;
+	for applet in &installed_coreutils_applets {
 		inventory.add_installed(COREUTILS_PROVIDER, applet);
+	}
+	for applet in coreutils_applets
+		.iter()
+		.filter(|applet| component_commands.contains(applet.as_str()))
+	{
+		inventory.add_excluded(COREUTILS_PROVIDER, applet);
 	}
 
 	for spec in USERLAND_BINARY_INSTALLS {
@@ -2576,8 +2905,12 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 		}
 	}
 
+	let component_provider_commands =
+		install_component_manifests(repo_root, &out, &mut inventory)?;
+	install_component_configuration(repo_root, &out)?;
+
 	let mut provider_commands = BTreeMap::<&str, Vec<String>>::new();
-	provider_commands.insert(COREUTILS_PROVIDER, coreutils_applets.clone());
+	provider_commands.insert(COREUTILS_PROVIDER, installed_coreutils_applets.clone());
 	for spec in USERLAND_BINARY_INSTALLS {
 		provider_commands
 			.entry(spec.provider)
@@ -2588,6 +2921,9 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 		.entry(DIFFUTILS_PROVIDER)
 		.or_default()
 		.extend(DIFFUTILS_AVAILABLE_ALIASES.iter().map(|s| s.to_string()));
+	for (provider, commands) in component_provider_commands {
+		provider_commands.insert(provider, commands);
+	}
 	validate_no_duplicate_commands(&provider_commands)?;
 
 	for expected in [
@@ -2609,6 +2945,17 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 		"groupdel",
 		"chpasswd",
 		"getent",
+		"modprobe",
+		"lsmod",
+		"ps",
+		"top",
+		"free",
+		"uptime",
+		"pgrep",
+		"pkill",
+		"clear",
+		"tput",
+		"infocmp",
 	] {
 		let path = out.join("usr/bin").join(expected);
 		let alt = out.join("usr/sbin").join(expected);
@@ -2634,9 +2981,189 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 	inventory.add_excluded(DIFFUTILS_PROVIDER, "sdiff");
 	write_userland_inventory(&out, &inventory)?;
 
-	copy_systemd_runtime_dependencies(&out)?;
-
 	Ok(())
+}
+
+fn install_component_manifests(
+	repo_root: &Path,
+	rootfs: &Path,
+	inventory: &mut UserlandInventory,
+) -> Result<BTreeMap<&'static str, Vec<String>>> {
+	let install_roots: Vec<PathBuf> = COMPONENT_INSTALL_MANIFESTS
+		.iter()
+		.map(|manifest| repo_root.join(manifest.install_root_rel))
+		.collect();
+	let library_dirs: Vec<PathBuf> = install_roots
+		.iter()
+		.map(|root| root.join("usr/lib/x86_64-linux-gnu"))
+		.filter(|path| path.exists())
+		.collect();
+	let mut providers = BTreeMap::new();
+
+	for manifest in COMPONENT_INSTALL_MANIFESTS {
+		let install_root = repo_root.join(manifest.install_root_rel);
+		let mut commands = Vec::new();
+		for binary in manifest.binaries {
+			let source = install_root.join(binary.source_rel);
+			let destination = rootfs.join(binary.destination_rel);
+			inspect_and_stage_executable(
+				&source,
+				&destination,
+				rootfs,
+				&install_roots,
+				&library_dirs,
+			)?;
+			inventory.add_implemented(manifest.provider, binary.command_name);
+			inventory.add_compiled(manifest.provider, binary.command_name);
+			inventory.add_installed(manifest.provider, binary.command_name);
+			commands.push(binary.command_name.to_string());
+		}
+		providers.insert(manifest.provider, commands);
+	}
+
+	Ok(providers)
+}
+
+fn inspect_and_stage_executable(
+	source: &Path,
+	destination: &Path,
+	rootfs: &Path,
+	install_roots: &[PathBuf],
+	library_dirs: &[PathBuf],
+) -> Result<()> {
+	if !source.exists() {
+		bail!("component executable missing at {}", source.display());
+	}
+	let file_output = Command::new("file")
+		.arg("-L")
+		.arg(source)
+		.output()
+		.with_context(|| format!("failed to inspect {} with file", source.display()))?;
+	if !file_output.status.success() {
+		bail!("file inspection failed for {}", source.display());
+	}
+	let file_text = String::from_utf8_lossy(&file_output.stdout);
+	if !file_text.contains("ELF") {
+		bail!("expected an ELF executable, file reported: {}", file_text.trim());
+	}
+	let readelf = Command::new("readelf")
+		.args(["-d"])
+		.arg(source)
+		.output()
+		.with_context(|| format!("failed to inspect {} with readelf", source.display()))?;
+	if !readelf.status.success() {
+		bail!("readelf inspection failed for {}", source.display());
+	}
+
+	let library_path = std::env::join_paths(library_dirs)
+		.context("failed to construct component LD_LIBRARY_PATH")?;
+	let ldd = Command::new("ldd")
+		.arg(source)
+		.env("LD_LIBRARY_PATH", library_path)
+		.output()
+		.with_context(|| format!("failed to inspect {} with ldd", source.display()))?;
+	if !ldd.status.success() {
+		bail!("ldd inspection failed for {}", source.display());
+	}
+	let ldd_text = String::from_utf8(ldd.stdout).context("ldd output was not UTF-8")?;
+	if ldd_text.contains("not found") {
+		bail!("unresolved runtime dependency for {}:\n{}", source.display(), ldd_text);
+	}
+
+	if let Some(parent) = destination.parent() {
+		fs::create_dir_all(parent)
+			.with_context(|| format!("failed to create {}", parent.display()))?;
+	}
+	fs::copy(source, destination)
+		.with_context(|| format!("failed to stage {}", source.display()))?;
+	for token in ldd_text.split_whitespace().filter(|token| token.starts_with('/')) {
+		let dependency = Path::new(token);
+		if dependency.exists() {
+			stage_resolved_dependency(dependency, rootfs, install_roots)?;
+		}
+	}
+	println!("inspected and staged {}", destination.display());
+	Ok(())
+}
+
+fn stage_resolved_dependency(source: &Path, rootfs: &Path, install_roots: &[PathBuf]) -> Result<()> {
+	let relative = install_roots
+		.iter()
+		.find_map(|root| source.strip_prefix(root).ok().map(Path::to_path_buf))
+		.or_else(|| source.strip_prefix("/").ok().map(Path::to_path_buf))
+		.ok_or_else(|| anyhow!("cannot map runtime dependency {} into rootfs", source.display()))?;
+	let destination = rootfs.join(relative);
+	if let Some(parent) = destination.parent() {
+		fs::create_dir_all(parent)
+			.with_context(|| format!("failed to create {}", parent.display()))?;
+	}
+	fs::copy(source, &destination)
+		.with_context(|| format!("failed to stage runtime dependency {}", source.display()))?;
+	Ok(())
+}
+
+fn install_component_configuration(repo_root: &Path, rootfs: &Path) -> Result<()> {
+	for directory in [
+		"etc/depmod.d",
+		"etc/modprobe.d",
+		"etc/modules-load.d",
+		"usr/lib/depmod.d",
+		"usr/lib/modprobe.d",
+		"usr/lib/modules-load.d",
+		"etc/sysctl.d",
+	] {
+		fs::create_dir_all(rootfs.join(directory))
+			.with_context(|| format!("failed to create /{directory}"))?;
+	}
+	let kmod_install = repo_root.join("out/build/kmod/install");
+	for library in ["libkmod.so.2", "libkmod.so.2.5.1"] {
+		let source = kmod_install.join("usr/lib/x86_64-linux-gnu").join(library);
+		if !source.exists() {
+			bail!("required kmod runtime library missing at {}", source.display());
+		}
+		stage_resolved_dependency(&source, rootfs, std::slice::from_ref(&kmod_install))?;
+	}
+
+	let sysctl_source = repo_root.join("src/userland/procps-ng/sysctl.conf");
+	fs::copy(&sysctl_source, rootfs.join("etc/sysctl.conf"))
+		.with_context(|| format!("failed to stage {}", sysctl_source.display()))?;
+
+	let source_db = repo_root.join("out/build/ncurses/install/usr/share/terminfo");
+	verify_terminfo_entries(&source_db)?;
+	for terminal in TERMINFO_ENTRIES {
+		let source = terminfo_entry_path(&source_db, terminal)
+			.ok_or_else(|| anyhow!("terminfo entry {terminal} missing from {}", source_db.display()))?;
+		let relative = source
+			.strip_prefix(&source_db)
+			.with_context(|| format!("invalid terminfo path {}", source.display()))?;
+		let destination = rootfs.join("usr/share/terminfo").join(relative);
+		if let Some(parent) = destination.parent() {
+			fs::create_dir_all(parent)
+				.with_context(|| format!("failed to create {}", parent.display()))?;
+		}
+		fs::copy(&source, &destination)
+			.with_context(|| format!("failed to stage terminfo entry {terminal}"))?;
+	}
+	verify_terminfo_entries(&rootfs.join("usr/share/terminfo"))?;
+	Ok(())
+}
+
+fn verify_terminfo_entries(database: &Path) -> Result<()> {
+	for terminal in TERMINFO_ENTRIES {
+		if terminfo_entry_path(database, terminal).is_none() {
+			bail!("terminfo database {} lacks required entry {terminal}", database.display());
+		}
+	}
+	Ok(())
+}
+
+fn terminfo_entry_path(database: &Path, terminal: &str) -> Option<PathBuf> {
+	let first = terminal.as_bytes().first().copied()?;
+	let candidates = [
+		database.join(char::from(first).to_string()).join(terminal),
+		database.join(format!("{first:x}")).join(terminal),
+	];
+	candidates.into_iter().find(|path| path.exists())
 }
 
 #[cfg(unix)]
@@ -4481,6 +5008,15 @@ mod tests {
 		assert!(plan.contains(&BuildStage::Sed));
 		assert!(plan.contains(&BuildStage::Findutils));
 		assert!(plan.contains(&BuildStage::Diffutils));
+		assert!(plan.contains(&BuildStage::Kmod));
+		assert!(plan.contains(&BuildStage::Ncurses));
+		assert!(plan.contains(&BuildStage::Procps));
+		let ncurses = plan.iter().position(|stage| *stage == BuildStage::Ncurses).unwrap();
+		let procps = plan.iter().position(|stage| *stage == BuildStage::Procps).unwrap();
+		let kmod = plan.iter().position(|stage| *stage == BuildStage::Kmod).unwrap();
+		let systemd = plan.iter().position(|stage| *stage == BuildStage::Systemd).unwrap();
+		assert!(ncurses < procps);
+		assert!(kmod < systemd);
 		assert!(plan.contains(&BuildStage::Pam));
 		assert!(plan.contains(&BuildStage::Shadow));
 		assert!(plan.contains(&BuildStage::SudoRs));
@@ -4667,6 +5203,75 @@ mod tests {
 		assert_eq!(sources.component.len(), 2);
 		assert_eq!(sources.component[0].name, "grep");
 		assert_eq!(sources.component[1].name, "sed");
+	}
+
+	#[test]
+	fn read_sources_parses_administration_components() {
+		let tmp = tempfile::tempdir().expect("tempdir");
+		let root = tmp.path();
+		write(
+			&root.join("upstream/sources.toml"),
+			"[[component]]\nname='kmod'\nrepo='https://github.com/kmod-project/kmod.git'\nbranch='master'\npath='src/system/kmod'\nsync='copy'\n\n[[component]]\nname='procps-ng'\nrepo='https://gitlab.com/procps-ng/procps.git'\nbranch='master'\npath='src/userland/procps-ng'\nsync='copy'\n\n[[component]]\nname='ncurses'\nrepo='https://github.com/ThomasDickey/ncurses-snapshots.git'\nbranch='master'\npath='src/system/terminal/ncurses'\nsync='copy'\n",
+		);
+		let sources = read_sources(root).expect("read sources");
+		assert_eq!(sources.component.len(), 3);
+		assert_eq!(sources.component[0].path, "src/system/kmod");
+		assert_eq!(sources.component[1].path, "src/userland/procps-ng");
+		assert_eq!(sources.component[2].path, "src/system/terminal/ncurses");
+		for component in sources.component {
+			resolve_component_destination(root, &component.path).expect("safe component path");
+		}
+	}
+
+	#[test]
+	fn administration_build_stage_names_dispatch() {
+		assert_eq!(BuildStage::from_str("kmod", true).unwrap(), BuildStage::Kmod);
+		assert_eq!(BuildStage::from_str("procps", true).unwrap(), BuildStage::Procps);
+		assert_eq!(BuildStage::from_str("ncurses", true).unwrap(), BuildStage::Ncurses);
+	}
+
+	#[test]
+	fn component_manifests_have_required_commands_and_unique_paths() {
+		let mut commands = BTreeSet::new();
+		let mut destinations = BTreeSet::new();
+		for manifest in COMPONENT_INSTALL_MANIFESTS {
+			for binary in manifest.binaries {
+				assert!(commands.insert(binary.command_name), "duplicate command {}", binary.command_name);
+				assert!(destinations.insert(binary.destination_rel), "duplicate path {}", binary.destination_rel);
+				assert!(binary.destination_rel.starts_with("usr/bin/") || binary.destination_rel.starts_with("usr/sbin/"));
+			}
+		}
+		for required in [
+			"modprobe", "insmod", "rmmod", "lsmod", "modinfo", "depmod", "ps", "top", "free",
+			"uptime", "pgrep", "pkill", "pidof", "watch", "sysctl", "vmstat", "w", "clear", "tput",
+			"tic", "toe", "infocmp",
+		] {
+			assert!(commands.contains(required), "missing {required}");
+		}
+	}
+
+	#[test]
+	fn terminfo_validation_requires_every_selected_entry() {
+		let tmp = tempfile::tempdir().expect("tempdir");
+		for terminal in TERMINFO_ENTRIES {
+			let first = terminal.chars().next().unwrap().to_string();
+			write(&tmp.path().join(first).join(terminal), "compiled terminfo\n");
+		}
+		verify_terminfo_entries(tmp.path()).expect("complete terminfo set");
+		fs::remove_file(tmp.path().join("l/linux")).expect("remove linux entry");
+		assert!(verify_terminfo_entries(tmp.path()).is_err());
+	}
+
+	#[test]
+	fn local_runtime_dependency_maps_to_rootfs_usr_lib() {
+		let tmp = tempfile::tempdir().expect("tempdir");
+		let install = tmp.path().join("install");
+		let rootfs = tmp.path().join("rootfs");
+		let library = install.join("usr/lib/x86_64-linux-gnu/libexample.so.1");
+		write(&library, "library\n");
+		stage_resolved_dependency(&library, &rootfs, &[install]).expect("stage local dependency");
+		assert!(rootfs.join("usr/lib/x86_64-linux-gnu/libexample.so.1").exists());
+		assert!(!rootfs.join("home").exists());
 	}
 
 }

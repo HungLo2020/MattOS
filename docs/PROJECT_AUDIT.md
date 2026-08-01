@@ -1,10 +1,10 @@
 # MattOS Project Audit
 
-Date: 2026-07-31
+Date: 2026-08-01
 
 ## 1. Executive Summary
 
-MattOS is currently a coherent Linux-native bootstrap system with a working systemd boot path, a conventional tty1 getty/autologin handoff into Brush, a rescue-init path, and a reproducible build pipeline. The project is still early-stage: authentication, user management, persistent installation, networking, and a large part of the standard userland are intentionally absent.
+MattOS is a coherent Linux-native bootstrap system with systemd PID 1, non-root live autologin, PAM/Shadow/sudo-rs authentication and account tools, Brush, a rescue-init path, and a reproducible build pipeline. This audit adds real kmod, procps-ng, ncurses, and terminfo support. Persistent installation, networking, package management, firmware packaging, and a graphical desktop remain intentionally absent.
 
 The previous GRUB source-of-truth ambiguity has been resolved by keeping only `src/boot/grub/grub.cfg` as tracked source and validating that path in `mattos-build`. The most important remaining architectural limitation is that the runtime closure is still copied from the host via `ldd` rather than from a MattOS-built sysroot.
 
@@ -17,8 +17,8 @@ Boot flow:
 1. GRUB loads the Linux kernel and initramfs.
 2. The normal entry starts PID 1 at `/usr/lib/systemd/systemd` with `systemd.unit=mattos.target`.
 3. `mattos.target` pulls in `multi-user.target` and `getty@tty1.service`.
-4. `getty@tty1.service` is overridden to autologin `root` and use `/usr/libexec/mattos/brush-login`.
-5. `brush-login` sets the session environment and execs `/bin/brush`.
+4. `getty@tty1.service` is overridden to autologin the non-root `mattos` live user through `/bin/login` and PAM.
+5. The account's `/bin/brush` login shell reads the MattOS profile and starts with the merged-`/usr` command PATH.
 6. The rescue entry starts `mattos-init`, which mounts the pseudo-filesystems and spawns Brush directly.
 
 Prompt behavior:
@@ -36,6 +36,9 @@ Prompt behavior:
 | uutils/coreutils | https://github.com/uutils/coreutils.git | `main` | `91f6543cad721aba0bf17806e803e84a116f8603` | `src/userland/coreutils/` |
 | util-linux | https://github.com/util-linux/util-linux.git | `master` | `fd82c4043fab942b889f478800118c66edfbc39f` | `src/userland/util-linux/` |
 | systemd | https://github.com/systemd/systemd.git | `main` | `91d2131e20ca304ee1d9dabf71b351d6b4cfcddc` | `src/system/systemd/` |
+| kmod | https://github.com/kmod-project/kmod.git | `master` | `5086df53090b2fe9fa1c31351c05a78a12a4ba71` | `src/system/kmod/` |
+| procps-ng | https://gitlab.com/procps-ng/procps.git | `master` | `619562d36cbd48fb6958043577558cbc32a6ba79` | `src/userland/procps-ng/` |
+| ncurses | https://github.com/ThomasDickey/ncurses-snapshots.git | `master` | `c7556ecbc951326acab37c9cf1e7d690456959e0` | `src/system/terminal/ncurses/` |
 
 State tracking lives in `upstream/state/*.toml`, and component manifests live in `upstream/sources.toml`.
 
@@ -61,6 +64,9 @@ The build orchestrator is `src/tools/mattos-build/src/main.rs`. It currently own
 - Brush build
 - coreutils build
 - util-linux build
+- kmod build
+- procps-ng build
+- ncurses build and terminfo selection
 - systemd build
 - init build
 - rootfs assembly
@@ -131,7 +137,7 @@ Intentionally disabled systemd areas include:
 - `oomd`, `userdb`, `remote`, `sysupdate`, `sysupdated`, `sysinstall`
 - `importd`, `vmspawn`
 - `coredump`, `pstore`, `machined`, `hostnamed`, `localed`, `timedated`, `nsresourced`
-- `dbus`, `glib`, `seccomp`, `acl`, `audit`, `blkid`, `kmod`
+- `dbus`, `glib`, `seccomp`, `acl`, `audit`, `blkid`
 - `libcryptsetup`, `openssl`, `gnutls`, `libfido2`, `tpm`, `tpm2`, `qrencode`, `bpf-framework`
 - `kernel-install`, `analyze`, `create-log-dirs`
 
@@ -139,7 +145,7 @@ Consequences:
 
 - No network manager or resolver.
 - No time sync.
-- No PAM-backed session or login stack.
+- PAM is intentionally provided by the separate MattOS authentication stack rather than systemd's optional PAM feature.
 - No systemd user-management or home-directory stack.
 - No container/VM spawn tooling.
 - No coredump or persistence-oriented service stack.
@@ -147,7 +153,7 @@ Consequences:
 Current unit state:
 
 - `mattos.target` wants `getty@tty1.service`.
-- `getty@tty1.service` is overridden for root autologin.
+- `getty@tty1.service` is overridden for non-root `mattos` live autologin through `/bin/login` and PAM.
 - `mattos-shell.service` remains in the tree but is masked and no longer on the active path.
 - `systemd-logind.service` and `systemd-logind-varlink.socket` are masked in the image.
 - `mattos-smoke.service` is present as a boot-time diagnostics helper.
@@ -228,7 +234,7 @@ shutdown
 
 `/bin` and `/sbin` are merged symlinks into `/usr/bin` and `/usr/sbin`.
 
-Notably absent from the current image are many basic distro commands such as `grep`, `sed`, `awk`, `find`, `ps`, `free`, package tools, and authentication tools.
+The generated inventory at `/usr/share/mattos/userland-commands.txt` is authoritative. It now includes grep, sed, findutils, the PAM/Shadow/sudo-rs administration commands, kmod tools, procps-ng tools, and ncurses terminal tools. Package tools, networking tools, and installation tools remain absent by design.
 
 ## 9. Cache Assessment
 
@@ -237,6 +243,7 @@ Current caching behavior:
 - `target/` caches workspace Rust builds.
 - `src/userland/brush/target/` and `src/userland/coreutils/target/` cache imported Rust project builds.
 - `out/build/systemd/build/` and `out/build/util-linux/build/` cache Meson/Ninja state.
+- `out/build/kmod/build/`, `out/build/ncurses/build/`, and `out/build/procps-ng/build/` keep their native build-system caches outside imported source.
 - `src/kernel/linux/` keeps in-tree kernel build outputs.
 - `out/build/rootfs/`, `out/build/initramfs.cpio.gz`, and `out/images/mattos-x86_64.iso` are regenerated from upstream build artifacts.
 - `upstream/.tmp/` style clones are ephemeral and intentionally not preserved.
@@ -251,7 +258,7 @@ This is correct for a bootstrap system, but it is not especially efficient. The 
 
 ### Medium
 
-- The current runtime closure is host-copied rather than built from a MattOS sysroot. It works now, but it is not an owned runtime.
+- Much of the bootstrap runtime closure is host-copied rather than built from a MattOS sysroot. The new libkmod, libproc2, ncurses, and terminfo artifacts are staged from their component build outputs.
 - The build orchestrator is large enough to be a maintenance risk and should eventually be split into smaller modules.
 
 ### Low
@@ -289,17 +296,17 @@ Detailed classification:
 | Rootfs/initramfs/ISO always regenerated | known bootstrap limitation | Informational |
 | Kernel built in-tree | known bootstrap limitation | Informational |
 | systemd feature set intentionally minimized | known bootstrap limitation | Informational |
-| Root-only autologin bootstrap path | known bootstrap limitation | Informational |
+| Ephemeral non-root live-user autologin policy | known bootstrap limitation | Informational |
 | No in-guest automation for graphical validation | architectural risk | Informational |
 | Command inventory intentionally narrow | known bootstrap limitation | Informational |
 | Existing unit masking strategy (logind/logind-varlink/ldconfig/mattos-shell) | known bootstrap limitation | Informational |
 | Prompt now centralized in MattOS-owned startup config | informational state | Informational |
-| Graphical prompt rendering still requires manual in-window confirmation | known bootstrap limitation | Informational |
+| Graphical tty1 validation is manual rather than a committed automated harness | known bootstrap limitation | Informational |
 
 ## 11. Risks and Technical Debt
 
 - Host-linked runtime libraries are the biggest long-term portability risk.
-- The current login model is root-only autologin with no auth stack.
+- The current login model is an ephemeral live-user policy; it is not a persistent installed-system account model.
 - There is no persistent installation flow yet.
 - There is no automated in-guest command runner for boot smoke validation.
 - systemd is built with many intentional feature gaps, so a large amount of conventional distro functionality is still absent.
@@ -309,12 +316,8 @@ Detailed classification:
 
 ### Needed soon
 
-- real password login
-- PAM
-- Shadow
-- regular user creation
-- `grep`, `sed`, `find`, `awk`
-- `procps-ng`
+- broader util-linux and filesystem administration coverage
+- persistent account and home-directory policy for a future installed system
 - basic mount and disk utility coverage
 - persistent shell history/config plumbing
 
@@ -347,8 +350,8 @@ Detailed classification:
 ## 13. Recommended Milestone Order
 
 1. Keep the current systemd/getty/Brush boot path stable and tested.
-2. Add real authentication stack pieces: Shadow and PAM.
-3. Add regular user creation and persistent home/rootfs handling.
+2. Keep the completed PAM, Shadow, sudo-rs, `su`, and non-root live-login stack stable and tested.
+3. Add persistent account and home/rootfs handling when an installed-system milestone begins.
 4. Build persistent installation and package management.
 5. Add networking, DNS, certificates, and time sync.
 6. Move more runtime libraries and core utilities from host copies to owned source or a sysroot.
@@ -381,7 +384,7 @@ MattOS should integrate upstream projects rather than rewriting these:
 1. Add an automated boot smoke test that checks prompt behavior and a few core commands.
 2. Reduce host-library dependency by planning a real sysroot/runtime closure.
 3. Split `mattos-build` into smaller modules when the next feature round starts.
-4. Add login/auth groundwork before any user-management or persistent-install work.
+4. Preserve the validated authentication stack when future persistent-install work begins.
 5. Expand in-guest validation coverage for getty/session checks without relying on serial prompt parsing.
 
 ## 16. Validation Summary
@@ -395,6 +398,8 @@ Verified successfully during this audit pass:
 - `cargo run -p mattos-build -- upstream status`
 - `cargo run -p mattos-build -- build all`
 - `cargo run -p mattos-build -- image`
-- `python3 DevUtils/run_qemu.py` launched the current image boot path
+- `python3 DevUtils/run_qemu.py` launched the current graphical image boot path
+- tty1 live-user identity, systemd PID 1, sudo, provider paths, procps output, ncurses/terminfo, `top`, Brush interaction, and session restart were directly observed
+- the rescue GRUB entry booted `rescue-init` as PID 1 and reached its root Brush prompt
 
-The graphical tty1 prompt was not directly observed with the available tooling, so the prompt is validated by configuration and build/boot wiring rather than by visual capture.
+The remaining module-related boot message is precisely scoped: systemd's real libkmod integration probes `autofs4`, while the intentionally monolithic kernel has `CONFIG_MODULES=n` and `CONFIG_AUTOFS_FS=n`. The `configfs` and `fuse` module service attempts finish successfully, and no module helper fails because an executable is absent.

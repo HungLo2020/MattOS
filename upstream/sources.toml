@@ -85,3 +85,24 @@ repo = "https://github.com/trifectatechfoundation/sudo-rs.git"
 branch = "main"
 path = "src/system/auth/sudo-rs"
 sync = "copy"
+
+[[component]]
+name = "kmod"
+repo = "https://github.com/kmod-project/kmod.git"
+branch = "master"
+path = "src/system/kmod"
+sync = "copy"
+
+[[component]]
+name = "procps-ng"
+repo = "https://gitlab.com/procps-ng/procps.git"
+branch = "master"
+path = "src/userland/procps-ng"
+sync = "copy"
+
+[[component]]
+name = "ncurses"
+repo = "https://github.com/ThomasDickey/ncurses-snapshots.git"
+branch = "master"
+path = "src/system/terminal/ncurses"
+sync = "copy"

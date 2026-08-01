@@ -8,6 +8,9 @@ MattOS is a Linux-compatible OS project with upstream source imported directly a
 - `src/userland/brush`: upstream Brush shell source
 - `src/userland/coreutils`: upstream uutils/coreutils source
 - `src/system/systemd`: upstream systemd source
+- `src/system/kmod`: upstream kmod source
+- `src/system/terminal/ncurses`: upstream ncurses source
+- `src/userland/procps-ng`: upstream procps-ng source
 - `src/userland/init`: MattOS-owned Rust PID 1
 - `src/tools/mattos-build`: MattOS-owned Rust orchestrator
 
@@ -74,12 +77,17 @@ See `docs/UPSTREAM_SYNC.md` for conflict behavior and metadata.
 
 See `docs/AUTHENTICATION.md` for the PAM, account, login, su, and sudo-rs architecture.
 
+See `docs/BASE_ADMINISTRATION.md` for kmod, procps-ng, ncurses, terminfo, and kernel-module status.
+
 ## Build stages
 
 ```
 cargo run -p mattos-build -- build kernel
 cargo run -p mattos-build -- build brush
 cargo run -p mattos-build -- build coreutils
+cargo run -p mattos-build -- build kmod
+cargo run -p mattos-build -- build ncurses
+cargo run -p mattos-build -- build procps
 cargo run -p mattos-build -- build systemd
 cargo run -p mattos-build -- build pam
 cargo run -p mattos-build -- build util-linux

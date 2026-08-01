@@ -1,0 +1,7 @@
+component = "kmod"
+repo = "https://github.com/kmod-project/kmod.git"
+branch = "master"
+imported_commit = "5086df53090b2fe9fa1c31351c05a78a12a4ba71"
+imported_at_utc = "2026-08-01T19:49:29.748556284+00:00"
+sync_method = "copy"
+destination_path = "src/system/kmod"

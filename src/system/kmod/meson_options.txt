@@ -1,0 +1,121 @@
+# Directories
+option(
+  'distconfdir',
+  type : 'string',
+  description : 'Directory to search for distribution configuration files. ' +
+                'Default: $prefix/lib',
+)
+
+option(
+  'moduledir',
+  type : 'string',
+  description : 'Directory to look for kernel modules. Default: /lib/modules',
+)
+
+option(
+  'bashcompletiondir',
+  type : 'string',
+  description : 'Bash completions directory. Use "no" to disable.',
+)
+
+option(
+  'fishcompletiondir',
+  type : 'string',
+  description : 'Fish completions directory. Use "no" to disable.',
+)
+
+option(
+  'zshcompletiondir',
+  type : 'string',
+  description : 'Zsh completions directory. Use "no" to disable.',
+)
+
+# Compression options
+option(
+  'zstd',
+  type : 'feature',
+  value : 'enabled',
+  description : 'Handle Zstandard-compressed modules. Default: enabled',
+)
+
+option(
+  'xz',
+  type : 'feature',
+  value : 'enabled',
+  description : 'Handle Xz-compressed modules. Default: enabled',
+)
+
+option(
+  'zlib',
+  type : 'feature',
+  value : 'enabled',
+  description : 'Handle gzip-compressed modules. Default: enabled',
+)
+
+# Signed modules
+option(
+  'openssl',
+  type : 'feature',
+  value : 'enabled',
+  description : 'Openssl support, PKCS7 signatures. Default: enabled',
+)
+
+option(
+  'mbedtls',
+  type : 'feature',
+  value : 'enabled',
+  description : 'MbedTLS support, PKCS7 signatures. Default: enabled',
+)
+
+option(
+  'tools',
+  type : 'boolean',
+  value : true,
+  description : 'Build the tools - kmod, depmod, lsmod ... Default: true',
+)
+
+option(
+  'dlopen',
+  type : 'array',
+  choices : ['zstd', 'xz', 'zlib', 'openssl', 'mbedtls', 'all'],
+  value : ['all'],
+  description : 'Libraries to dlopen rather than linking. Default: "all"',
+)
+
+option(
+  'logging',
+  type : 'boolean',
+  value : true,
+  description : 'Build with system logging. Default: true',
+)
+
+option(
+  'debug-messages',
+  type : 'boolean',
+  value : false,
+  description : 'Enable debug messages. Default: false',
+)
+
+# XXX: workaround a meson bug, where the tests are always build even
+# when explicitly annotated as "build_by_default: false"
+# See: https://github.com/mesonbuild/meson/issues/2518
+option(
+  'build-tests',
+  type : 'boolean',
+  value : false,
+  description : 'Always build the test suite. Default: false',
+)
+
+option(
+  'manpages',
+  type : 'boolean',
+  value : true,
+  description : 'Build the manpages. Default: true',
+)
+
+option(
+  'docs',
+  type : 'boolean',
+  value : false,
+  description : 'Build the documentation. Default: false',
+)
