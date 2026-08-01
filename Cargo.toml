@@ -3,6 +3,12 @@ members = [
     "src/tools/mattos-build",
     "src/userland/init"
 ]
+exclude = [
+    "src/userland/grep",
+    "src/userland/sed",
+    "src/userland/findutils",
+    "src/userland/diffutils"
+]
 resolver = "2"
 
 [workspace.package]

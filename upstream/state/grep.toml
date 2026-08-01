@@ -1,0 +1,7 @@
+component = "grep"
+repo = "https://github.com/uutils/grep.git"
+branch = "main"
+imported_commit = "3e5552d8f78a94fb14149a7d3ba3f642725aafb9"
+imported_at_utc = "2026-08-01T00:27:16.438468970+00:00"
+sync_method = "copy"
+destination_path = "src/userland/grep"

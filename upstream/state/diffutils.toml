@@ -1,0 +1,7 @@
+component = "diffutils"
+repo = "https://github.com/uutils/diffutils.git"
+branch = "main"
+imported_commit = "4e8c5099485af4b15fa0b0221d51a5316ca43ad3"
+imported_at_utc = "2026-08-01T00:27:22.412894407+00:00"
+sync_method = "copy"
+destination_path = "src/userland/diffutils"

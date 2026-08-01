@@ -2,6 +2,7 @@ use anyhow::{Context, Result, anyhow, bail};
 use chrono::Utc;
 use clap::{Parser, Subcommand, ValueEnum};
 use serde::{Deserialize, Serialize};
+use std::collections::{BTreeMap, BTreeSet};
 use std::ffi::OsStr;
 use std::fs;
 use std::path::{Component, Path, PathBuf};
@@ -13,6 +14,105 @@ const GRUB_SYSTEMD_ENTRY: &str = "menuentry \"MattOS (systemd)\"";
 const GRUB_RESCUE_ENTRY: &str = "menuentry \"MattOS (rescue init)\"";
 const GRUB_SYSTEMD_RDINIT: &str = "rdinit=/usr/lib/systemd/systemd";
 const GRUB_RESCUE_RDINIT: &str = "rdinit=/usr/libexec/mattos/rescue-init";
+const SAFE_IMPORT_PLACEHOLDER_FILES: &[&str] = &[".gitkeep", "README.md"];
+const USERLAND_INVENTORY_PATH: &str = "usr/share/mattos/userland-commands.txt";
+
+const COREUTILS_PROVIDER: &str = "uutils/coreutils";
+const GREP_PROVIDER: &str = "uutils/grep";
+const SED_PROVIDER: &str = "uutils/sed";
+const FINDUTILS_PROVIDER: &str = "uutils/findutils";
+const DIFFUTILS_PROVIDER: &str = "uutils/diffutils";
+const UTIL_LINUX_PROVIDER: &str = "util-linux";
+
+const DIFFUTILS_EXPECTED_COMMANDS: &[&str] = &["diff", "cmp", "diff3", "sdiff"];
+const DIFFUTILS_AVAILABLE_ALIASES: &[&str] = &["diff", "cmp"];
+
+#[derive(Debug, Clone, Copy)]
+struct BinaryInstallSpec {
+	provider: &'static str,
+	source_rel: &'static str,
+	install_name: &'static str,
+	command_name: &'static str,
+}
+
+const USERLAND_BINARY_INSTALLS: &[BinaryInstallSpec] = &[
+	BinaryInstallSpec {
+		provider: GREP_PROVIDER,
+		source_rel: "src/userland/grep/target/release/grep",
+		install_name: "grep",
+		command_name: "grep",
+	},
+	BinaryInstallSpec {
+		provider: SED_PROVIDER,
+		source_rel: "src/userland/sed/target/release/sed",
+		install_name: "sed",
+		command_name: "sed",
+	},
+	BinaryInstallSpec {
+		provider: FINDUTILS_PROVIDER,
+		source_rel: "src/userland/findutils/target/release/find",
+		install_name: "find",
+		command_name: "find",
+	},
+	BinaryInstallSpec {
+		provider: FINDUTILS_PROVIDER,
+		source_rel: "src/userland/findutils/target/release/xargs",
+		install_name: "xargs",
+		command_name: "xargs",
+	},
+	BinaryInstallSpec {
+		provider: FINDUTILS_PROVIDER,
+		source_rel: "src/userland/findutils/target/release/locate",
+		install_name: "locate",
+		command_name: "locate",
+	},
+	BinaryInstallSpec {
+		provider: FINDUTILS_PROVIDER,
+		source_rel: "src/userland/findutils/target/release/updatedb",
+		install_name: "updatedb",
+		command_name: "updatedb",
+	},
+	BinaryInstallSpec {
+		provider: DIFFUTILS_PROVIDER,
+		source_rel: "src/userland/diffutils/target/release/diffutils",
+		install_name: "diffutils",
+		command_name: "diffutils",
+	},
+];
+
+#[derive(Default)]
+struct UserlandInventory {
+	implemented_upstream: BTreeSet<String>,
+	compiled: BTreeSet<String>,
+	installed: BTreeSet<String>,
+	intentionally_excluded: BTreeSet<String>,
+	failed_compatibility: BTreeSet<String>,
+}
+
+impl UserlandInventory {
+	fn add_implemented(&mut self, provider: &str, command: &str) {
+		self.implemented_upstream
+			.insert(format!("{provider}:{command}"));
+	}
+
+	fn add_compiled(&mut self, provider: &str, command: &str) {
+		self.compiled.insert(format!("{provider}:{command}"));
+	}
+
+	fn add_installed(&mut self, provider: &str, command: &str) {
+		self.installed.insert(format!("{provider}:{command}"));
+	}
+
+	fn add_excluded(&mut self, provider: &str, command: &str) {
+		self.intentionally_excluded
+			.insert(format!("{provider}:{command}"));
+	}
+
+	fn add_failed(&mut self, provider: &str, command: &str, reason: &str) {
+		self.failed_compatibility
+			.insert(format!("{provider}:{command} ({reason})"));
+	}
+}
 
 #[derive(Parser, Debug)]
 #[command(name = "mattos-build")]
@@ -103,11 +203,15 @@ enum UpstreamCommands {
 	},
 }
 
-#[derive(Clone, Debug, ValueEnum)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
 enum BuildStage {
 	Kernel,
 	Brush,
 	Coreutils,
+	Grep,
+	Sed,
+	Findutils,
+	Diffutils,
 	UtilLinux,
 	Systemd,
 	Init,
@@ -374,12 +478,20 @@ fn clean(repo_root: &Path, target: CleanTarget) -> Result<()> {
 			remove_path_if_exists(&repo_root.join("target"))?;
 			remove_path_if_exists(&repo_root.join("src/userland/brush/target"))?;
 			remove_path_if_exists(&repo_root.join("src/userland/coreutils/target"))?;
+			remove_path_if_exists(&repo_root.join("src/userland/grep/target"))?;
+			remove_path_if_exists(&repo_root.join("src/userland/sed/target"))?;
+			remove_path_if_exists(&repo_root.join("src/userland/findutils/target"))?;
+			remove_path_if_exists(&repo_root.join("src/userland/diffutils/target"))?;
 		}
 		CleanTarget::All => {
 			remove_path_if_exists(&repo_root.join("out"))?;
 			remove_path_if_exists(&repo_root.join("target"))?;
 			remove_path_if_exists(&repo_root.join("src/userland/brush/target"))?;
 			remove_path_if_exists(&repo_root.join("src/userland/coreutils/target"))?;
+			remove_path_if_exists(&repo_root.join("src/userland/grep/target"))?;
+			remove_path_if_exists(&repo_root.join("src/userland/sed/target"))?;
+			remove_path_if_exists(&repo_root.join("src/userland/findutils/target"))?;
+			remove_path_if_exists(&repo_root.join("src/userland/diffutils/target"))?;
 			remove_path_if_exists(&repo_root.join("upstream/.tmp"))?;
 		}
 	}
@@ -639,7 +751,7 @@ fn build_wsl_iso(repo_root: &Path, preferred: &str, repo_path: &str, skip_boot_t
 
 	let repo_expr = shell_escape(&linux_repo);
 	let build_cmd = format!(
-		"set -euo pipefail; case {0} in /mnt/*) echo 'Refusing to build from Windows-mounted path: ' {0} >&2; exit 12;; esac; cd {0}; source $HOME/.cargo/env 2>/dev/null || true; rm -rf src/kernel/linux src/userland/brush src/userland/coreutils upstream/state; mkdir -p src/kernel/linux src/userland/brush src/userland/coreutils upstream/state; cargo run -p mattos-build -- import --all --update; cargo run -p mattos-build -- build all; test -f out/images/mattos-x86_64.iso",
+		"set -euo pipefail; case {0} in /mnt/*) echo 'Refusing to build from Windows-mounted path: ' {0} >&2; exit 12;; esac; cd {0}; source $HOME/.cargo/env 2>/dev/null || true; rm -rf src/kernel/linux src/userland/brush src/userland/coreutils src/userland/grep src/userland/sed src/userland/findutils src/userland/diffutils upstream/state; mkdir -p src/kernel/linux src/userland/brush src/userland/coreutils src/userland/grep src/userland/sed src/userland/findutils src/userland/diffutils upstream/state; cargo run -p mattos-build -- import --all --update; cargo run -p mattos-build -- build all; test -f out/images/mattos-x86_64.iso",
 		repo_expr
 	);
 	run_wsl_bash(&distro, None, &build_cmd)?;
@@ -738,7 +850,7 @@ fn sync_repo_to_wsl(repo_root: &Path, distro: &str, repo_path: &str) -> Result<(
 	let source_expr = shell_escape(&source);
 	let repo_expr = shell_escape(repo_path);
 	let cmd = format!(
-		"set -euo pipefail; case {0} in /mnt/*) echo 'Refusing Linux worktree on Windows mount: ' {0} >&2; exit 13;; esac; mkdir -p {0}; rsync -a --delete --exclude 'target/' --exclude 'upstream/.tmp/' --exclude 'src/kernel/linux/' --exclude 'src/userland/brush/' --exclude 'src/userland/coreutils/' --exclude 'upstream/state/' {1}/ {0}/",
+		"set -euo pipefail; case {0} in /mnt/*) echo 'Refusing Linux worktree on Windows mount: ' {0} >&2; exit 13;; esac; mkdir -p {0}; rsync -a --delete --exclude 'target/' --exclude 'upstream/.tmp/' --exclude 'src/kernel/linux/' --exclude 'src/userland/brush/' --exclude 'src/userland/coreutils/' --exclude 'src/userland/grep/' --exclude 'src/userland/sed/' --exclude 'src/userland/findutils/' --exclude 'src/userland/diffutils/' --exclude 'upstream/state/' {1}/ {0}/",
 		repo_expr,
 		source_expr
 	);
@@ -918,8 +1030,6 @@ fn shell_escape(value: &str) -> String {
 }
 
 fn import_sources(repo_root: &Path, all: bool, component: Option<String>, update: bool) -> Result<()> {
-	assert_repo_clean(repo_root)?;
-
 	let sources = read_sources(repo_root)?;
 	let selected = select_components(&sources.component, all, component)?;
 
@@ -927,18 +1037,6 @@ fn import_sources(repo_root: &Path, all: bool, component: Option<String>, update
 		import_component(repo_root, comp, update)?;
 	}
 
-	Ok(())
-}
-
-fn assert_repo_clean(repo_root: &Path) -> Result<()> {
-	let output = run_cmd_output(repo_root, "git", &["status", "--porcelain"])?;
-	if !output.status.success() {
-		bail!("failed to inspect git status")
-	}
-	let text = String::from_utf8(output.stdout).context("git status output was not UTF-8")?;
-	if text.lines().any(|line| !line.trim().is_empty()) {
-		bail!("working tree is dirty; commit or stash changes before upstream import/sync")
-	}
 	Ok(())
 }
 
@@ -976,8 +1074,6 @@ fn import_component(repo_root: &Path, comp: &ComponentDef, update: bool) -> Resu
 	fs::create_dir_all(&destination)
 		.with_context(|| format!("failed to create destination: {}", destination.display()))?;
 
-	assert_clean_destination(repo_root, &comp.path)?;
-
 	if update {
 		if let Some(prior_state) = read_sync_state(repo_root, &comp.name)? {
 			if prior_state.repo != comp.repo || prior_state.branch != comp.branch {
@@ -1012,8 +1108,7 @@ fn is_scaffold_directory(dir: &Path) -> Result<bool> {
 
 	for entry in fs::read_dir(dir).with_context(|| format!("failed to read {}", dir.display()))? {
 		let entry = entry?;
-		let name = entry.file_name();
-		if name == OsStr::new(".gitkeep") || name == OsStr::new("README.md") {
+		if is_safe_placeholder_entry(&entry)? {
 			continue;
 		}
 		return Ok(false);
@@ -1021,19 +1116,22 @@ fn is_scaffold_directory(dir: &Path) -> Result<bool> {
 	Ok(true)
 }
 
-fn initial_import_component(repo_root: &Path, comp: &ComponentDef, destination: &Path) -> Result<()> {
-	let non_placeholder_entries = fs::read_dir(destination)
-		.with_context(|| format!("failed to inspect destination: {}", destination.display()))?
-		.filter_map(|e| e.ok())
-		.filter(|e| e.file_name() != OsStr::new(".gitkeep"))
-		.count();
-
-	if non_placeholder_entries > 0 {
-		bail!(
-			"destination {} is not empty; rerun with --update",
-			destination.display()
-		);
+fn is_safe_placeholder_entry(entry: &fs::DirEntry) -> Result<bool> {
+	let name = entry.file_name();
+	if !SAFE_IMPORT_PLACEHOLDER_FILES
+		.iter()
+		.any(|allowed| name == OsStr::new(allowed))
+	{
+		return Ok(false);
 	}
+	let meta = entry
+		.file_type()
+		.with_context(|| format!("failed to inspect placeholder type for {}", entry.path().display()))?;
+	Ok(meta.is_file())
+}
+
+fn initial_import_component(repo_root: &Path, comp: &ComponentDef, destination: &Path) -> Result<()> {
+	assert_initial_destination_safe(destination)?;
 
 	let tmp = prepare_tmp_clone(repo_root, comp)?;
 	let commit = run_cmd_capture(&tmp, "git", &["rev-parse", "HEAD"])?;
@@ -1056,6 +1154,39 @@ fn initial_import_component(repo_root: &Path, comp: &ComponentDef, destination: 
 		.with_context(|| format!("failed to remove temporary directory: {}", tmp.display()))?;
 
 	println!("Imported {} at commit {}", comp.name, state.imported_commit);
+	Ok(())
+}
+
+fn assert_initial_destination_safe(destination: &Path) -> Result<()> {
+	if !destination.exists() {
+		return Ok(());
+	}
+
+	let mut unsafe_entries = Vec::new();
+	for entry in fs::read_dir(destination)
+		.with_context(|| format!("failed to inspect destination: {}", destination.display()))?
+	{
+		let entry = entry?;
+		if is_safe_placeholder_entry(&entry)? {
+			continue;
+		}
+		unsafe_entries.push(
+			entry
+				.file_name()
+				.to_string_lossy()
+				.to_string(),
+		);
+	}
+
+	if !unsafe_entries.is_empty() {
+		unsafe_entries.sort();
+		bail!(
+			"initial import refused: destination {} contains non-placeholder files: {}",
+			destination.display(),
+			unsafe_entries.join(", ")
+		)
+	}
+
 	Ok(())
 }
 
@@ -1212,26 +1343,6 @@ fn resolve_component_destination(repo_root: &Path, rel_path: &str) -> Result<Pat
 	Ok(joined)
 }
 
-fn assert_clean_destination(repo_root: &Path, rel_path: &str) -> Result<()> {
-	let output = run_cmd_output(repo_root, "git", &["status", "--porcelain", "--", rel_path])?;
-	if !output.status.success() {
-		bail!("failed to inspect git status for path: {rel_path}")
-	}
-	let text = String::from_utf8(output.stdout).context("git status output was not UTF-8")?;
-	let has_non_untracked_changes = text
-		.lines()
-		.map(str::trim)
-		.any(|line| !line.is_empty() && !line.starts_with("?? "));
-
-	if has_non_untracked_changes {
-		bail!(
-			"destination path {} has uncommitted changes; commit/stash first",
-			rel_path
-		)
-	}
-	Ok(())
-}
-
 fn read_sync_state(repo_root: &Path, name: &str) -> Result<Option<SyncState>> {
 	let path = repo_root.join("upstream/state").join(format!("{name}.toml"));
 	if !path.exists() {
@@ -1380,28 +1491,50 @@ fn write_sync_state(repo_root: &Path, name: &str, state: &SyncState) -> Result<(
 }
 
 fn build(repo_root: &Path, stage: BuildStage) -> Result<()> {
+	for next in build_plan(stage) {
+		build_stage(repo_root, next)?;
+	}
+	Ok(())
+}
+
+fn build_plan(stage: BuildStage) -> Vec<BuildStage> {
+	if stage == BuildStage::All {
+		return vec![
+			BuildStage::Kernel,
+			BuildStage::Brush,
+			BuildStage::Coreutils,
+			BuildStage::Grep,
+			BuildStage::Sed,
+			BuildStage::Findutils,
+			BuildStage::Diffutils,
+			BuildStage::UtilLinux,
+			BuildStage::Systemd,
+			BuildStage::Init,
+			BuildStage::Rootfs,
+			BuildStage::Initramfs,
+			BuildStage::Iso,
+		];
+	}
+
+	vec![stage]
+}
+
+fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
 	match stage {
 		BuildStage::Kernel => build_kernel(repo_root),
 		BuildStage::Brush => build_brush(repo_root),
 		BuildStage::Coreutils => build_coreutils(repo_root),
+		BuildStage::Grep => build_grep(repo_root),
+		BuildStage::Sed => build_sed(repo_root),
+		BuildStage::Findutils => build_findutils(repo_root),
+		BuildStage::Diffutils => build_diffutils(repo_root),
 		BuildStage::UtilLinux => build_util_linux(repo_root),
 		BuildStage::Systemd => build_systemd(repo_root),
 		BuildStage::Init => build_init(repo_root),
 		BuildStage::Rootfs => build_rootfs(repo_root),
 		BuildStage::Initramfs => build_initramfs(repo_root),
 		BuildStage::Iso => build_iso(repo_root),
-		BuildStage::All => {
-			build_kernel(repo_root)?;
-			build_brush(repo_root)?;
-			build_coreutils(repo_root)?;
-			build_util_linux(repo_root)?;
-			build_systemd(repo_root)?;
-			build_init(repo_root)?;
-			build_rootfs(repo_root)?;
-			build_initramfs(repo_root)?;
-			build_iso(repo_root)?;
-			Ok(())
-		}
+		BuildStage::All => bail!("internal error: BuildStage::All should be expanded by build_plan"),
 	}
 }
 
@@ -1508,7 +1641,88 @@ fn build_coreutils(repo_root: &Path) -> Result<()> {
 			"coreutils",
 			"--no-default-features",
 			"--features",
-			"unix,feat_Tier1",
+			"unix",
+		],
+	)
+}
+
+fn build_grep(repo_root: &Path) -> Result<()> {
+	let grep = repo_root.join("src/userland/grep");
+	if !grep.join("Cargo.toml").exists() {
+		bail!("grep source not found in {}; run import first", grep.display());
+	}
+	run_cmd(
+		repo_root,
+		"cargo",
+		&[
+			"build",
+			"--release",
+			"--manifest-path",
+			"src/userland/grep/Cargo.toml",
+			"--bin",
+			"grep",
+		],
+	)
+}
+
+fn build_sed(repo_root: &Path) -> Result<()> {
+	let sed = repo_root.join("src/userland/sed");
+	if !sed.join("Cargo.toml").exists() {
+		bail!("sed source not found in {}; run import first", sed.display());
+	}
+	run_cmd(
+		repo_root,
+		"cargo",
+		&[
+			"build",
+			"--release",
+			"--manifest-path",
+			"src/userland/sed/Cargo.toml",
+			"--bin",
+			"sed",
+		],
+	)
+}
+
+fn build_findutils(repo_root: &Path) -> Result<()> {
+	let findutils = repo_root.join("src/userland/findutils");
+	if !findutils.join("Cargo.toml").exists() {
+		bail!(
+			"findutils source not found in {}; run import first",
+			findutils.display()
+		);
+	}
+	run_cmd(
+		repo_root,
+		"cargo",
+		&[
+			"build",
+			"--release",
+			"--manifest-path",
+			"src/userland/findutils/Cargo.toml",
+			"--bins",
+		],
+	)
+}
+
+fn build_diffutils(repo_root: &Path) -> Result<()> {
+	let diffutils = repo_root.join("src/userland/diffutils");
+	if !diffutils.join("Cargo.toml").exists() {
+		bail!(
+			"diffutils source not found in {}; run import first",
+			diffutils.display()
+		);
+	}
+	run_cmd(
+		repo_root,
+		"cargo",
+		&[
+			"build",
+			"--release",
+			"--manifest-path",
+			"src/userland/diffutils/Cargo.toml",
+			"--bin",
+			"diffutils",
 		],
 	)
 }
@@ -1831,6 +2045,10 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 		)
 	})?;
 	copy_runtime_dependencies(&rescue_init, &out)?;
+	let mut inventory = UserlandInventory::default();
+	inventory.add_implemented(UTIL_LINUX_PROVIDER, "agetty");
+	inventory.add_compiled(UTIL_LINUX_PROVIDER, "agetty");
+	inventory.add_installed(UTIL_LINUX_PROVIDER, "agetty");
 
 	let brush_candidates = [
 		repo_root.join("src/userland/brush/target/release/brush"),
@@ -1842,27 +2060,74 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 		let dst = out.join("usr/bin/brush");
 		fs::copy(&brush_bin, &dst).context("failed to copy brush binary")?;
 		copy_runtime_dependencies(&dst, &out)?;
+		inventory.add_implemented("brush", "brush");
+		inventory.add_compiled("brush", "brush");
+		inventory.add_installed("brush", "brush");
 	} else {
 		bail!("brush binary not found; run build brush first")
 	}
 
-	let coreutils_candidates = [
-		repo_root.join("src/userland/coreutils/target/release/coreutils"),
-		repo_root.join("src/userland/coreutils/target/release/uutils"),
-	];
+	let coreutils_multicall = resolve_coreutils_multicall(repo_root)?;
+	let coreutils_dst = out.join("usr/bin/coreutils");
+	fs::copy(&coreutils_multicall, &coreutils_dst).with_context(|| {
+		format!(
+			"failed to copy coreutils multicall binary from {}",
+			coreutils_multicall.display()
+		)
+	})?;
+	copy_runtime_dependencies(&coreutils_dst, &out)?;
 
-	let coreutils_multicall = coreutils_candidates.iter().find(|p| p.exists()).cloned();
+	let coreutils_applets = list_coreutils_applets(&coreutils_multicall)?;
+	for applet in &coreutils_applets {
+		inventory.add_implemented(COREUTILS_PROVIDER, applet);
+		inventory.add_compiled(COREUTILS_PROVIDER, applet);
+	}
+	create_coreutils_symlinks(&out, &coreutils_applets)?;
+	for applet in &coreutils_applets {
+		inventory.add_installed(COREUTILS_PROVIDER, applet);
+	}
 
-	if let Some(bin) = coreutils_multicall {
-		let dst = out.join("usr/bin/coreutils");
-		fs::copy(&bin, &dst).with_context(|| {
-			format!("failed to copy coreutils multicall binary from {}", bin.display())
-		})?;
-		copy_runtime_dependencies(&dst, &out)?;
+	for spec in USERLAND_BINARY_INSTALLS {
+		install_userland_binary(repo_root, &out, spec)?;
+		inventory.add_implemented(spec.provider, spec.command_name);
+		inventory.add_compiled(spec.provider, spec.command_name);
+		inventory.add_installed(spec.provider, spec.command_name);
+	}
 
-		create_coreutils_symlinks(&out)?;
-	} else {
-		bail!("coreutils multicall binary not found; run build coreutils first")
+	create_command_aliases(&out, "diffutils", DIFFUTILS_AVAILABLE_ALIASES)?;
+	for alias in DIFFUTILS_AVAILABLE_ALIASES {
+		inventory.add_implemented(DIFFUTILS_PROVIDER, alias);
+		inventory.add_installed(DIFFUTILS_PROVIDER, alias);
+	}
+	for expected in DIFFUTILS_EXPECTED_COMMANDS {
+		if !DIFFUTILS_AVAILABLE_ALIASES.contains(expected) {
+			inventory.add_failed(DIFFUTILS_PROVIDER, expected, "not implemented upstream");
+		}
+	}
+
+	let mut provider_commands = BTreeMap::<&str, Vec<String>>::new();
+	provider_commands.insert(COREUTILS_PROVIDER, coreutils_applets.clone());
+	for spec in USERLAND_BINARY_INSTALLS {
+		provider_commands
+			.entry(spec.provider)
+			.or_default()
+			.push(spec.command_name.to_string());
+	}
+	provider_commands
+		.entry(DIFFUTILS_PROVIDER)
+		.or_default()
+		.extend(DIFFUTILS_AVAILABLE_ALIASES.iter().map(|s| s.to_string()));
+	validate_no_duplicate_commands(&provider_commands)?;
+
+	for expected in ["grep", "sed", "find", "xargs", "diff", "cmp"] {
+		let path = out.join("usr/bin").join(expected);
+		if !path_entry_exists(&path) {
+			bail!(
+				"required command {} missing from rootfs at {}",
+				expected,
+				path.display()
+			)
+		}
 	}
 
 	let sh_link = out.join("usr/bin/sh");
@@ -1873,6 +2138,10 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 	#[cfg(unix)]
 	std::os::unix::fs::symlink("/bin/brush", &sh_link)
 		.with_context(|| format!("failed to create {}", sh_link.display()))?;
+	inventory.add_installed("brush", "sh");
+	inventory.add_excluded(DIFFUTILS_PROVIDER, "diff3");
+	inventory.add_excluded(DIFFUTILS_PROVIDER, "sdiff");
+	write_userland_inventory(&out, &inventory)?;
 
 	copy_systemd_runtime_dependencies(&out)?;
 
@@ -1955,6 +2224,39 @@ fn install_mattos_system_units(repo_root: &Path, rootfs: &Path) -> Result<()> {
 	std::os::unix::fs::symlink("/usr/lib/systemd/system/getty@.service", &tty1_getty)
 		.with_context(|| format!("failed to create {}", tty1_getty.display()))?;
 
+	// Install autologin overrides in /etc with highest precedence.
+	for (source_rel, destination_rel, label) in [
+		(
+			"getty@tty1.service.d/autologin.conf",
+			"etc/systemd/system/getty@tty1.service.d/autologin.conf",
+			"tty1 getty",
+		),
+		(
+			"serial-getty@ttyS0.service.d/autologin.conf",
+			"etc/systemd/system/serial-getty@ttyS0.service.d/autologin.conf",
+			"ttyS0 serial-getty",
+		),
+	] {
+		let src = units_src.join(source_rel);
+		if !src.exists() {
+			bail!("{} autologin override missing at {}", label, src.display());
+		}
+		let dst = rootfs.join(destination_rel);
+		let dst_parent = dst
+			.parent()
+			.ok_or_else(|| anyhow!("missing destination parent for {}", dst.display()))?;
+		fs::create_dir_all(dst_parent)
+			.with_context(|| format!("failed to create {}", dst_parent.display()))?;
+		fs::copy(&src, &dst).with_context(|| {
+			format!(
+				"failed to copy {} autologin override from {} to {}",
+				label,
+				src.display(),
+				dst.display()
+			)
+		})?;
+	}
+
 	for masked in [
 		"systemd-logind.service",
 		"systemd-logind-varlink.socket",
@@ -2010,16 +2312,16 @@ fn copy_systemd_runtime_dependencies(rootfs: &Path) -> Result<()> {
 }
 
 #[cfg(unix)]
-fn create_coreutils_symlinks(rootfs: &Path) -> Result<()> {
+fn create_coreutils_symlinks(rootfs: &Path, applets: &[String]) -> Result<()> {
 	use std::os::unix::fs::symlink;
 
 	let bin = rootfs.join("bin");
 	let usr_bin = rootfs.join("usr/bin");
 	fs::create_dir_all(&usr_bin)
 		.with_context(|| format!("failed to create {}", usr_bin.display()))?;
-	for applet in ["pwd", "ls", "echo", "uname", "cat", "mkdir", "touch"] {
+	for applet in applets {
 		let link = bin.join(applet);
-		if link.exists() {
+		if path_entry_exists(&link) {
 			fs::remove_file(&link)
 				.with_context(|| format!("failed to remove existing symlink {}", link.display()))?;
 		}
@@ -2027,7 +2329,7 @@ fn create_coreutils_symlinks(rootfs: &Path) -> Result<()> {
 			.with_context(|| format!("failed to create symlink {}", link.display()))?;
 
 		let usr_link = usr_bin.join(applet);
-		if usr_link.exists() {
+		if path_entry_exists(&usr_link) {
 			fs::remove_file(&usr_link)
 				.with_context(|| format!("failed to remove existing symlink {}", usr_link.display()))?;
 		}
@@ -2038,9 +2340,162 @@ fn create_coreutils_symlinks(rootfs: &Path) -> Result<()> {
 }
 
 #[cfg(not(unix))]
-fn create_coreutils_symlinks(_rootfs: &Path) -> Result<()> {
+fn create_coreutils_symlinks(_rootfs: &Path, _applets: &[String]) -> Result<()> {
 	println!("warning: coreutils symlink generation skipped on non-Unix host");
 	Ok(())
+}
+
+fn resolve_coreutils_multicall(repo_root: &Path) -> Result<PathBuf> {
+	let candidates = [
+		repo_root.join("src/userland/coreutils/target/release/coreutils"),
+		repo_root.join("src/userland/coreutils/target/release/uutils"),
+	];
+	candidates
+		.iter()
+		.find(|p| p.exists())
+		.cloned()
+		.ok_or_else(|| anyhow!("coreutils multicall binary not found; run build coreutils first"))
+}
+
+fn list_coreutils_applets(coreutils_multicall: &Path) -> Result<Vec<String>> {
+	let output = Command::new(coreutils_multicall)
+		.arg("--list")
+		.output()
+		.with_context(|| format!("failed to run {} --list", coreutils_multicall.display()))?;
+	if !output.status.success() {
+		bail!("coreutils --list failed with status {}", output.status)
+	}
+
+	let raw = String::from_utf8(output.stdout).context("coreutils --list output was not UTF-8")?;
+	let mut applets: Vec<String> = raw
+		.lines()
+		.map(str::trim)
+		.filter(|line| !line.is_empty())
+		.filter(|line| !line.starts_with('<') && *line != "uutils")
+		.map(ToOwned::to_owned)
+		.collect();
+	applets.sort();
+	applets.dedup();
+	if applets.is_empty() {
+		bail!("coreutils --list returned no applets")
+	}
+	Ok(applets)
+}
+
+fn install_userland_binary(repo_root: &Path, rootfs: &Path, spec: &BinaryInstallSpec) -> Result<()> {
+	let source = repo_root.join(spec.source_rel);
+	if !source.exists() {
+		bail!(
+			"{} binary missing at {}; run the matching build stage first",
+			spec.command_name,
+			source.display()
+		)
+	}
+
+	let dst = rootfs.join("usr/bin").join(spec.install_name);
+	if let Some(parent) = dst.parent() {
+		fs::create_dir_all(parent)
+			.with_context(|| format!("failed to create {}", parent.display()))?;
+	}
+	fs::copy(&source, &dst)
+		.with_context(|| format!("failed to copy {} into rootfs", source.display()))?;
+	copy_runtime_dependencies(&dst, rootfs)?;
+	Ok(())
+}
+
+#[cfg(unix)]
+fn create_command_aliases(rootfs: &Path, target_binary: &str, aliases: &[&str]) -> Result<()> {
+	use std::os::unix::fs::symlink;
+
+	let usr_bin = rootfs.join("usr/bin");
+	for alias in aliases {
+		let link = usr_bin.join(alias);
+		if path_entry_exists(&link) {
+			fs::remove_file(&link)
+				.with_context(|| format!("failed to remove existing alias {}", link.display()))?;
+		}
+		symlink(format!("/bin/{target_binary}"), &link)
+			.with_context(|| format!("failed to create alias {}", link.display()))?;
+	}
+	Ok(())
+}
+
+#[cfg(not(unix))]
+fn create_command_aliases(_rootfs: &Path, _target_binary: &str, _aliases: &[&str]) -> Result<()> {
+	bail!("command alias generation requires Unix symlink support")
+}
+
+fn validate_no_duplicate_commands(provider_commands: &BTreeMap<&str, Vec<String>>) -> Result<()> {
+	let mut owners = BTreeMap::<String, Vec<&str>>::new();
+	for (provider, commands) in provider_commands {
+		for command in commands {
+			owners.entry(command.clone()).or_default().push(provider);
+		}
+	}
+
+	let duplicates: Vec<String> = owners
+		.iter()
+		.filter_map(|(cmd, providers)| {
+			if providers.len() > 1 {
+				Some(format!("{} [{}]", cmd, providers.join(", ")))
+			} else {
+				None
+			}
+		})
+		.collect();
+
+	if !duplicates.is_empty() {
+		bail!(
+			"duplicate command ownership detected: {}",
+			duplicates.join("; ")
+		)
+	}
+
+	Ok(())
+}
+
+fn path_entry_exists(path: &Path) -> bool {
+	fs::symlink_metadata(path).is_ok()
+}
+
+fn write_userland_inventory(rootfs: &Path, inventory: &UserlandInventory) -> Result<()> {
+	let path = rootfs.join(USERLAND_INVENTORY_PATH);
+	if let Some(parent) = path.parent() {
+		fs::create_dir_all(parent)
+			.with_context(|| format!("failed to create {}", parent.display()))?;
+	}
+
+	let mut lines = Vec::new();
+	lines.push("# MattOS userland command inventory".to_string());
+	lines.push("# format: provider:command".to_string());
+	lines.push(String::new());
+	lines.push("[implemented_upstream]".to_string());
+	for entry in &inventory.implemented_upstream {
+		lines.push(entry.clone());
+	}
+	lines.push(String::new());
+	lines.push("[compiled]".to_string());
+	for entry in &inventory.compiled {
+		lines.push(entry.clone());
+	}
+	lines.push(String::new());
+	lines.push("[installed]".to_string());
+	for entry in &inventory.installed {
+		lines.push(entry.clone());
+	}
+	lines.push(String::new());
+	lines.push("[intentionally_excluded]".to_string());
+	for entry in &inventory.intentionally_excluded {
+		lines.push(entry.clone());
+	}
+	lines.push(String::new());
+	lines.push("[failed_compatibility]".to_string());
+	for entry in &inventory.failed_compatibility {
+		lines.push(entry.clone());
+	}
+
+	fs::write(&path, lines.join("\n") + "\n")
+		.with_context(|| format!("failed to write {}", path.display()))
 }
 
 fn build_initramfs(repo_root: &Path) -> Result<()> {
@@ -2392,6 +2847,22 @@ mod tests {
 		fs::write(path, body).expect("write file");
 	}
 
+	fn init_git_repo(path: &Path) {
+		run_ok(path, "git", &["init", "-b", "main"]);
+		run_ok(path, "git", &["config", "user.name", "Test User"]);
+		run_ok(path, "git", &["config", "user.email", "test@example.invalid"]);
+	}
+
+	fn make_upstream_component_repo(name: &str, file_name: &str, body: &str) -> tempfile::TempDir {
+		let upstream = tempfile::tempdir().expect("upstream tempdir");
+		let root = upstream.path();
+		init_git_repo(root);
+		write(&root.join(file_name), body);
+		run_ok(root, "git", &["add", "."]);
+		run_ok(root, "git", &["commit", "-m", &format!("init {name}")]);
+		upstream
+	}
+
 	#[test]
 	fn path_safety_rejects_parent_dir() {
 		let root = std::env::temp_dir().join("mattos-path-safety");
@@ -2400,20 +2871,23 @@ mod tests {
 	}
 
 	#[test]
-	fn dirty_tree_protection_rejects_changes() {
+	fn initial_import_refuses_meaningful_preexisting_files() {
 		let tmp = tempfile::tempdir().expect("tempdir");
 		let root = tmp.path();
-		run_ok(root, "git", &["init"]);
-		run_ok(root, "git", &["config", "user.name", "Test User"]);
-		run_ok(root, "git", &["config", "user.email", "test@example.invalid"]);
-
-		write(&root.join("src/kernel/linux/README"), "base\n");
-		run_ok(root, "git", &["add", "."]);
-		run_ok(root, "git", &["commit", "-m", "base"]);
-
-		write(&root.join("src/kernel/linux/README"), "dirty\n");
-		let result = assert_clean_destination(root, "src/kernel/linux");
+		let destination = root.join("src/userland/grep");
+		write(&destination.join("real.rs"), "fn main() {}\n");
+		let result = assert_initial_destination_safe(&destination);
 		assert!(result.is_err());
+	}
+
+	#[test]
+	fn initial_import_allows_placeholder_only_destination() {
+		let tmp = tempfile::tempdir().expect("tempdir");
+		let root = tmp.path();
+		let destination = root.join("src/userland/grep");
+		write(&destination.join(".gitkeep"), "");
+		write(&destination.join("README.md"), "placeholder\n");
+		assert_initial_destination_safe(&destination).expect("placeholder-only destination should pass");
 	}
 
 	#[test]
@@ -2486,6 +2960,175 @@ mod tests {
 		let merged = fs::read_to_string(root.join("src/kernel/linux/README")).expect("read merged file");
 		assert!(merged.contains("<<<<<<<"));
 		assert!(merged.contains(">>>>>>>"));
+	}
+
+	#[test]
+	fn unrelated_dirty_files_do_not_block_component_import() {
+		let grep_upstream = make_upstream_component_repo("grep", "Cargo.toml", "[package]\nname='uu_grep'\nversion='0.1.0'\n");
+
+		let workspace = tempfile::tempdir().expect("workspace tempdir");
+		let root = workspace.path();
+		init_git_repo(root);
+		write(&root.join("README.md"), "base\n");
+		run_ok(root, "git", &["add", "."]);
+		run_ok(root, "git", &["commit", "-m", "init"]);
+
+		write(
+			&root.join("upstream/sources.toml"),
+			&format!(
+				"[[component]]\nname='grep'\nrepo='{}'\nbranch='main'\npath='src/userland/grep'\nsync='copy'\n",
+				grep_upstream.path().display()
+			),
+		);
+		write(&root.join("docs/dirty-note.md"), "unrelated dirty file\n");
+
+		import_sources(root, false, Some("grep".to_string()), false).expect("import should succeed");
+		assert!(root.join("src/userland/grep/Cargo.toml").exists());
+	}
+
+	#[test]
+	fn dirty_other_component_does_not_block_selected_component_import() {
+		let grep_upstream = make_upstream_component_repo("grep", "Cargo.toml", "[package]\nname='uu_grep'\nversion='0.1.0'\n");
+		let sed_upstream = make_upstream_component_repo("sed", "Cargo.toml", "[package]\nname='sed'\nversion='0.1.0'\n");
+
+		let workspace = tempfile::tempdir().expect("workspace tempdir");
+		let root = workspace.path();
+		init_git_repo(root);
+		write(&root.join("README.md"), "repo\n");
+		run_ok(root, "git", &["add", "."]);
+		run_ok(root, "git", &["commit", "-m", "init"]);
+
+		write(
+			&root.join("upstream/sources.toml"),
+			&format!(
+				"[[component]]\nname='grep'\nrepo='{}'\nbranch='main'\npath='src/userland/grep'\nsync='copy'\n\n[[component]]\nname='sed'\nrepo='{}'\nbranch='main'\npath='src/userland/sed'\nsync='copy'\n",
+				grep_upstream.path().display(),
+				sed_upstream.path().display()
+			),
+		);
+
+		write(&root.join("src/userland/sed/local.txt"), "dirty sed tree\n");
+		import_sources(root, false, Some("grep".to_string()), false).expect("grep import should succeed");
+		assert!(root.join("src/userland/grep/Cargo.toml").exists());
+	}
+
+	#[test]
+	fn failed_initial_import_does_not_write_state_metadata() {
+		let upstream = make_upstream_component_repo("grep", "Cargo.toml", "[package]\nname='uu_grep'\nversion='0.1.0'\n");
+
+		let workspace = tempfile::tempdir().expect("workspace tempdir");
+		let root = workspace.path();
+		init_git_repo(root);
+		write(&root.join("README.md"), "repo\n");
+		run_ok(root, "git", &["add", "."]);
+		run_ok(root, "git", &["commit", "-m", "init"]);
+
+		let comp = ComponentDef {
+			name: "grep".to_string(),
+			repo: upstream.path().to_string_lossy().to_string(),
+			branch: "main".to_string(),
+			path: "src/userland/grep".to_string(),
+			sync: "copy".to_string(),
+		};
+
+		write(&root.join("src/userland/grep/not-placeholder.txt"), "data\n");
+		let result = import_component(root, &comp, false);
+		assert!(result.is_err());
+		assert!(read_sync_state(root, "grep").expect("read state").is_none());
+	}
+
+	#[test]
+	fn failed_sync_conflict_does_not_advance_state_commit() {
+		let upstream = tempfile::tempdir().expect("upstream tempdir");
+		let upstream_root = upstream.path();
+		init_git_repo(upstream_root);
+		write(&upstream_root.join("README"), "base\n");
+		run_ok(upstream_root, "git", &["add", "."]);
+		run_ok(upstream_root, "git", &["commit", "-m", "base"]);
+
+		let workspace = tempfile::tempdir().expect("workspace tempdir");
+		let root = workspace.path();
+		init_git_repo(root);
+		write(&root.join("README.md"), "repo\n");
+		run_ok(root, "git", &["add", "."]);
+		run_ok(root, "git", &["commit", "-m", "init"]);
+
+		let comp = ComponentDef {
+			name: "grep".to_string(),
+			repo: upstream_root.to_string_lossy().to_string(),
+			branch: "main".to_string(),
+			path: "src/userland/grep".to_string(),
+			sync: "copy".to_string(),
+		};
+
+		import_component(root, &comp, false).expect("initial import");
+		run_ok(root, "git", &["add", "."]);
+		run_ok(root, "git", &["commit", "-m", "import"]);
+		let before = read_sync_state(root, "grep")
+			.expect("read state")
+			.expect("present")
+			.imported_commit;
+
+		write(&root.join("src/userland/grep/README"), "local\n");
+		run_ok(root, "git", &["add", "src/userland/grep/README"]);
+		run_ok(root, "git", &["commit", "-m", "local"]);
+
+		write(&upstream_root.join("README"), "upstream\n");
+		run_ok(upstream_root, "git", &["add", "README"]);
+		run_ok(upstream_root, "git", &["commit", "-m", "upstream"]);
+
+		let result = import_component(root, &comp, true);
+		assert!(result.is_err());
+		let after = read_sync_state(root, "grep")
+			.expect("read state")
+			.expect("present")
+			.imported_commit;
+		assert_eq!(before, after);
+	}
+
+	#[test]
+	fn sync_preserves_uncommitted_local_component_changes() {
+		let upstream = tempfile::tempdir().expect("upstream tempdir");
+		let upstream_root = upstream.path();
+		init_git_repo(upstream_root);
+		write(&upstream_root.join("README"), "base\n");
+		run_ok(upstream_root, "git", &["add", "."]);
+		run_ok(upstream_root, "git", &["commit", "-m", "base"]);
+
+		let workspace = tempfile::tempdir().expect("workspace tempdir");
+		let root = workspace.path();
+		init_git_repo(root);
+		write(&root.join("README.md"), "repo\n");
+		run_ok(root, "git", &["add", "."]);
+		run_ok(root, "git", &["commit", "-m", "init"]);
+
+		let comp = ComponentDef {
+			name: "grep".to_string(),
+			repo: upstream_root.to_string_lossy().to_string(),
+			branch: "main".to_string(),
+			path: "src/userland/grep".to_string(),
+			sync: "copy".to_string(),
+		};
+
+		import_component(root, &comp, false).expect("initial import");
+		run_ok(root, "git", &["add", "."]);
+		run_ok(root, "git", &["commit", "-m", "import"]);
+
+		write(&upstream_root.join("NEWS"), "upstream change\n");
+		run_ok(upstream_root, "git", &["add", "NEWS"]);
+		run_ok(upstream_root, "git", &["commit", "-m", "news"]);
+
+		write(&root.join("src/userland/grep/local-only.txt"), "local edit\n");
+		import_component(root, &comp, true).expect("update should include local edits");
+
+		assert_eq!(
+			fs::read_to_string(root.join("src/userland/grep/local-only.txt")).expect("read local file"),
+			"local edit\n"
+		);
+		assert_eq!(
+			fs::read_to_string(root.join("src/userland/grep/NEWS")).expect("read upstream news"),
+			"upstream change\n"
+		);
 	}
 
 	#[test]
@@ -3036,6 +3679,83 @@ mod tests {
 		let merged = fs::read_to_string(root.join("src/system/systemd/meson.build")).expect("read merged");
 		assert!(merged.contains("<<<<<<<"));
 		assert!(merged.contains(">>>>>>>"));
+	}
+
+	#[test]
+	fn build_plan_all_includes_uutils_stages() {
+		let plan = build_plan(BuildStage::All);
+		assert_eq!(plan[0], BuildStage::Kernel);
+		assert!(plan.contains(&BuildStage::Grep));
+		assert!(plan.contains(&BuildStage::Sed));
+		assert!(plan.contains(&BuildStage::Findutils));
+		assert!(plan.contains(&BuildStage::Diffutils));
+		assert_eq!(plan.last().copied(), Some(BuildStage::Iso));
+	}
+
+	#[test]
+	fn duplicate_command_detection_flags_conflicts() {
+		let mut providers = BTreeMap::<&str, Vec<String>>::new();
+		providers.insert(COREUTILS_PROVIDER, vec!["cat".to_string()]);
+		providers.insert(GREP_PROVIDER, vec!["cat".to_string()]);
+		let result = validate_no_duplicate_commands(&providers);
+		assert!(result.is_err());
+	}
+
+	#[test]
+	fn duplicate_command_detection_allows_unique_set() {
+		let mut providers = BTreeMap::<&str, Vec<String>>::new();
+		providers.insert(COREUTILS_PROVIDER, vec!["cat".to_string()]);
+		providers.insert(GREP_PROVIDER, vec!["grep".to_string()]);
+		validate_no_duplicate_commands(&providers).expect("unique set should pass");
+	}
+
+	#[test]
+	fn install_userland_binary_reports_missing_executable() {
+		let tmp = tempfile::tempdir().expect("tempdir");
+		let root = tmp.path();
+		let rootfs = root.join("rootfs");
+		fs::create_dir_all(root.join("src/userland/grep/target/release")).expect("mkdir");
+
+		let spec = BinaryInstallSpec {
+			provider: GREP_PROVIDER,
+			source_rel: "src/userland/grep/target/release/grep",
+			install_name: "grep",
+			command_name: "grep",
+		};
+		let result = install_userland_binary(root, &rootfs, &spec);
+		assert!(result.is_err());
+	}
+
+	#[test]
+	fn userland_inventory_writer_emits_sections() {
+		let tmp = tempfile::tempdir().expect("tempdir");
+		let root = tmp.path();
+		let mut inventory = UserlandInventory::default();
+		inventory.add_implemented(COREUTILS_PROVIDER, "cat");
+		inventory.add_compiled(COREUTILS_PROVIDER, "cat");
+		inventory.add_installed(COREUTILS_PROVIDER, "cat");
+		inventory.add_excluded(DIFFUTILS_PROVIDER, "sdiff");
+		inventory.add_failed(DIFFUTILS_PROVIDER, "diff3", "not implemented upstream");
+
+		write_userland_inventory(root, &inventory).expect("write inventory");
+		let body = fs::read_to_string(root.join(USERLAND_INVENTORY_PATH)).expect("read inventory");
+		assert!(body.contains("[implemented_upstream]"));
+		assert!(body.contains("uutils/coreutils:cat"));
+		assert!(body.contains("[failed_compatibility]"));
+	}
+
+	#[test]
+	fn read_sources_parses_uutils_component_set() {
+		let tmp = tempfile::tempdir().expect("tempdir");
+		let root = tmp.path();
+		write(
+			&root.join("upstream/sources.toml"),
+			"[[component]]\nname='grep'\nrepo='https://github.com/uutils/grep.git'\nbranch='main'\npath='src/userland/grep'\nsync='copy'\n\n[[component]]\nname='sed'\nrepo='https://github.com/uutils/sed.git'\nbranch='main'\npath='src/userland/sed'\nsync='copy'\n",
+		);
+		let sources = read_sources(root).expect("read sources");
+		assert_eq!(sources.component.len(), 2);
+		assert_eq!(sources.component[0].name, "grep");
+		assert_eq!(sources.component[1].name, "sed");
 	}
 
 }

@@ -1,0 +1,7 @@
+component = "findutils"
+repo = "https://github.com/uutils/findutils.git"
+branch = "main"
+imported_commit = "6ef1fd6cd4885c2970ea99a6d259c9c911a18e04"
+imported_at_utc = "2026-08-01T00:27:20.458651260+00:00"
+sync_method = "copy"
+destination_path = "src/userland/findutils"

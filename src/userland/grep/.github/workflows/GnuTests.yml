@@ -1,0 +1,222 @@
+name: GnuTests
+
+# Run the upstream GNU grep testsuite against the Rust grep implementation to
+# track and guard byte-for-byte compatibility. See util/run-gnu-testsuite.sh.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - '*'
+
+permissions:
+  contents: write # Publish grep instead of discarding
+
+# End the current execution if there is a new changeset in the PR.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+env:
+  DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+  TEST_FULL_SUMMARY_FILE: 'grep-gnu-full-result.json'
+
+jobs:
+  native:
+    name: Run GNU grep testsuite
+    runs-on: ubuntu-24.04
+    steps:
+    - name: Checkout code (grep)
+      uses: actions/checkout@v7
+      with:
+        path: 'grep'
+        persist-credentials: false
+    - uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: stable
+    - uses: Swatinem/rust-cache@v2
+      with:
+        workspaces: "./grep -> target"
+
+    - name: Fetch GNU grep testsuite
+      shell: bash
+      run: |
+        ## Download and extract the upstream GNU grep release tarball
+        mkdir -p gnu.grep
+        cd gnu.grep
+        bash ../grep/util/fetch-gnu.sh
+
+    - name: Build Rust grep binary
+      shell: bash
+      run: |
+        cd 'grep'
+        cargo build --release --config=profile.release.strip=true
+        tar -C target/release -cf - grep | zstd -19 -o ../grep-x86_64-unknown-linux-gnu.tar.zst
+    - name: Publish latest commit
+      uses: softprops/action-gh-release@v3
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      with:
+        tag_name: latest-commit
+        body: |
+          commit: ${{ github.sha }}
+        draft: false
+        prerelease: true
+        files: |
+          grep-x86_64-unknown-linux-gnu.tar.zst
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Run GNU grep testsuite
+      shell: bash
+      run: |
+        cd 'grep'
+        export GNU_GREP_DIR="../gnu.grep"
+        ./util/run-gnu-testsuite.sh --json-output "${{ env.TEST_FULL_SUMMARY_FILE }}" || true
+
+    - name: Upload full json results
+      uses: actions/upload-artifact@v7
+      with:
+        name: grep-gnu-full-result
+        path: grep/${{ env.TEST_FULL_SUMMARY_FILE }}
+        if-no-files-found: warn
+
+  aggregate:
+    needs: [native]
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+    name: Aggregate GNU test results
+    runs-on: ubuntu-24.04
+    steps:
+    - name: Initialize workflow variables
+      id: vars
+      shell: bash
+      run: |
+        ## VARs setup
+        outputs() { step_id="${{ github.action }}"; for var in "$@" ; do echo steps.${step_id}.outputs.${var}="${!var}"; echo "${var}=${!var}" >> $GITHUB_OUTPUT; done; }
+        TEST_SUMMARY_FILE='grep-gnu-result.json'
+        outputs TEST_SUMMARY_FILE
+
+    - name: Checkout code (grep)
+      uses: actions/checkout@v7
+      with:
+        path: 'grep'
+        persist-credentials: false
+
+    - name: Retrieve reference artifacts
+      uses: dawidd6/action-download-artifact@v21
+      continue-on-error: true
+      with:
+        workflow: GnuTests.yml
+        branch: "${{ env.DEFAULT_BRANCH }}"
+        workflow_conclusion: completed
+        path: "reference"
+        if_no_artifact_found: warn
+
+    - name: Download full json results
+      uses: actions/download-artifact@v8
+      with:
+        name: grep-gnu-full-result
+        path: results
+
+    - name: Extract/summarize testing info
+      id: summary
+      shell: bash
+      run: |
+        ## Extract/summarize testing info
+        outputs() { step_id="${{ github.action }}"; for var in "$@" ; do echo steps.${step_id}.outputs.${var}="${!var}"; echo "${var}=${!var}" >> $GITHUB_OUTPUT; done; }
+
+        RESULT_FILE="results/${{ env.TEST_FULL_SUMMARY_FILE }}"
+        if [[ ! -f "$RESULT_FILE" ]]; then
+          echo "::error ::Result file $RESULT_FILE not found"
+          find results -type f || true
+          exit 1
+        fi
+
+        TOTAL=$(jq -r '.summary.total // 0' "$RESULT_FILE")
+        PASS=$(jq -r '.summary.passed // 0' "$RESULT_FILE")
+        FAIL=$(jq -r '.summary.failed // 0' "$RESULT_FILE")
+        SKIP=$(jq -r '.summary.skipped // 0' "$RESULT_FILE")
+        ERROR=0  # Our format doesn't distinguish errors from failures
+
+        output="GNU grep tests summary = TOTAL: $TOTAL / PASS: $PASS / FAIL: $FAIL / SKIP: $SKIP"
+        echo "${output}"
+        if [[ "$FAIL" -gt 0 ]]; then
+          echo "::warning ::${output}"
+        fi
+
+        # Build the date-keyed summary consumed by the grep-tracking repo.
+        jq -n \
+              --arg date "$(date --rfc-email)" \
+              --arg sha "$GITHUB_SHA" \
+              --arg total "$TOTAL" \
+              --arg pass "$PASS" \
+              --arg skip "$SKIP" \
+              --arg fail "$FAIL" \
+              --arg error "$ERROR" \
+              '{($date): { sha: $sha, total: $total, pass: $pass, skip: $skip, fail: $fail, error: $error }}' > '${{ steps.vars.outputs.TEST_SUMMARY_FILE }}'
+
+        HASH=$(sha1sum '${{ steps.vars.outputs.TEST_SUMMARY_FILE }}' | cut --delim=" " -f 1)
+        outputs HASH TOTAL PASS FAIL SKIP
+
+    - name: Upload SHA1/ID of 'test-summary'
+      uses: actions/upload-artifact@v7
+      with:
+        name: "${{ steps.summary.outputs.HASH }}"
+        path: "${{ steps.vars.outputs.TEST_SUMMARY_FILE }}"
+
+    - name: Upload test results summary
+      uses: actions/upload-artifact@v7
+      with:
+        name: test-summary
+        path: "${{ steps.vars.outputs.TEST_SUMMARY_FILE }}"
+
+    - name: Compare test failures VS reference
+      shell: bash
+      run: |
+        ## Compare current results against the reference summary from the default branch
+        REF_SUMMARY_FILE='reference/grep-gnu-full-result/${{ env.TEST_FULL_SUMMARY_FILE }}'
+        CURRENT_SUMMARY_FILE="results/${{ env.TEST_FULL_SUMMARY_FILE }}"
+        IGNORE_INTERMITTENT="grep/.github/workflows/ignore-intermittent.txt"
+
+        # Set up comment directory for the GnuComment workflow.
+        COMMENT_DIR="reference/comment"
+        mkdir -p ${COMMENT_DIR}
+        echo ${{ github.event.number }} > ${COMMENT_DIR}/NR
+        COMMENT_LOG="${COMMENT_DIR}/result.txt"
+        : > "${COMMENT_LOG}"
+
+        COMPARISON_RESULT=0
+        if test -f "${REF_SUMMARY_FILE}"; then
+          python3 grep/util/compare_test_results.py \
+            --ignore-file "${IGNORE_INTERMITTENT}" \
+            --output "${COMMENT_LOG}" \
+            "${CURRENT_SUMMARY_FILE}" "${REF_SUMMARY_FILE}" || COMPARISON_RESULT=$?
+        else
+          echo "::warning ::Skipping test comparison; no prior reference summary at '${REF_SUMMARY_FILE}'."
+        fi
+
+        if [ ${COMPARISON_RESULT} -eq 1 ]; then
+          echo "::error ::Found new non-intermittent test failures"
+          UPLOAD_EXIT=1
+        else
+          echo "::notice ::No new test failures detected"
+          UPLOAD_EXIT=0
+        fi
+        echo "UPLOAD_EXIT=${UPLOAD_EXIT}" >> $GITHUB_ENV
+
+    - name: Upload comparison log (for GnuComment workflow)
+      if: success() || failure()
+      uses: actions/upload-artifact@v7
+      with:
+        name: comment
+        path: reference/comment/
+
+    - name: Report test results
+      if: success() || failure()
+      shell: bash
+      run: |
+        echo "::notice ::GNU grep testsuite: TOTAL ${{ steps.summary.outputs.TOTAL }} / PASS ${{ steps.summary.outputs.PASS }} / FAIL ${{ steps.summary.outputs.FAIL }} / SKIP ${{ steps.summary.outputs.SKIP }}"
+        # Fail the job if the comparison found new non-intermittent regressions.
+        exit "${UPLOAD_EXIT:-0}"

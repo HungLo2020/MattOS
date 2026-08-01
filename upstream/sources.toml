@@ -24,6 +24,34 @@ path = "src/userland/coreutils"
 sync = "copy"
 
 [[component]]
+name = "grep"
+repo = "https://github.com/uutils/grep.git"
+branch = "main"
+path = "src/userland/grep"
+sync = "copy"
+
+[[component]]
+name = "sed"
+repo = "https://github.com/uutils/sed.git"
+branch = "main"
+path = "src/userland/sed"
+sync = "copy"
+
+[[component]]
+name = "findutils"
+repo = "https://github.com/uutils/findutils.git"
+branch = "main"
+path = "src/userland/findutils"
+sync = "copy"
+
+[[component]]
+name = "diffutils"
+repo = "https://github.com/uutils/diffutils.git"
+branch = "main"
+path = "src/userland/diffutils"
+sync = "copy"
+
+[[component]]
 name = "util-linux"
 repo = "https://github.com/util-linux/util-linux.git"
 branch = "master"

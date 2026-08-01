@@ -1,0 +1,7 @@
+component = "sed"
+repo = "https://github.com/uutils/sed.git"
+branch = "main"
+imported_commit = "7239fb0e08d7d3ba2742ecc3c28f0d0e3eb5a4dd"
+imported_at_utc = "2026-08-01T00:27:18.507072425+00:00"
+sync_method = "copy"
+destination_path = "src/userland/sed"

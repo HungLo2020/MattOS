@@ -1,0 +1,54 @@
+
+[package]
+name = "unified-diff-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2018"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4.7"
+diffutils = { path = "../" }
+
+# Prevent this from interfering with workspaces
+[workspace]
+members = ["."]
+
+[[bin]]
+name = "fuzz_cmp"
+path = "fuzz_targets/fuzz_cmp.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_cmp_args"
+path = "fuzz_targets/fuzz_cmp_args.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_patch"
+path = "fuzz_targets/fuzz_patch.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_normal"
+path = "fuzz_targets/fuzz_normal.rs"
+test = false
+doc = false
+
+
+[[bin]]
+name = "fuzz_ed"
+path = "fuzz_targets/fuzz_ed.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_side"
+path = "fuzz_targets/fuzz_side.rs"
+test = false
+doc = false
