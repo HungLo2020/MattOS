@@ -6,7 +6,7 @@ Date: 2026-07-31
 
 MattOS is currently a coherent Linux-native bootstrap system with a working systemd boot path, a conventional tty1 getty/autologin handoff into Brush, a rescue-init path, and a reproducible build pipeline. The project is still early-stage: authentication, user management, persistent installation, networking, and a large part of the standard userland are intentionally absent.
 
-The most important structural issue is duplicated GRUB configuration at the repository root and under `src/`, which increases drift risk. The most important architectural limitation is that the runtime closure is still copied from the host via `ldd` rather than from a MattOS-built sysroot.
+The previous GRUB source-of-truth ambiguity has been resolved by keeping only `src/boot/grub/grub.cfg` as tracked source and validating that path in `mattos-build`. The most important remaining architectural limitation is that the runtime closure is still copied from the host via `ldd` rather than from a MattOS-built sysroot.
 
 The static Brush prompt source has been replaced. The interactive prompt now comes from MattOS-owned startup configuration using normal Brush/Bash-style prompt semantics.
 
@@ -47,7 +47,7 @@ The top-level structure is understandable: `src/` holds the active source tree, 
 
 Confirmed structure concerns:
 
-- `boot/grub/grub.cfg` duplicates `src/boot/grub/grub.cfg`.
+- GRUB source-of-truth has been consolidated to `src/boot/grub/grub.cfg`; legacy `boot/grub/grub.cfg` was removed.
 - Generated build products live at the root in `out/` and `target/`, but imported trees also contain their own `target/` directories (`src/userland/brush/target/`, `src/userland/coreutils/target/`) and Linux build artifacts stay in-tree.
 - The source ownership boundary is mostly clear, but imported upstream trees still carry their own build caches and outputs inside the imported directories.
 
@@ -247,7 +247,7 @@ This is correct for a bootstrap system, but it is not especially efficient. The 
 
 ### High
 
-- Duplicated GRUB config exists at both `boot/grub/grub.cfg` and `src/boot/grub/grub.cfg`. The files are currently identical, but the duplication is a real drift risk.
+- No currently open high-severity confirmed defect in the audited scope.
 
 ### Medium
 
@@ -271,16 +271,16 @@ The audit classifies each item as one of:
 Summary counts:
 
 - Critical: 0
-- High: 1
+- High: 0
 - Medium: 2
 - Low: 2
-- Informational: 9
+- Informational: 10
 
 Detailed classification:
 
 | Finding | Type | Severity |
 | --- | --- | --- |
-| Duplicate GRUB configuration paths (`boot/grub/grub.cfg` and `src/boot/grub/grub.cfg`) | confirmed defect | High |
+| Duplicate GRUB configuration paths were resolved by removing `boot/grub/grub.cfg` and validating only `src/boot/grub/grub.cfg` | resolved defect | Informational |
 | Host-derived runtime closure via `ldd` copy strategy | known bootstrap limitation | Medium |
 | Large monolithic build orchestrator (`src/tools/mattos-build/src/main.rs`) | architectural risk | Medium |
 | Legacy `etc/inittab` present while systemd is active init | future enhancement | Low |
@@ -294,6 +294,7 @@ Detailed classification:
 | Command inventory intentionally narrow | known bootstrap limitation | Informational |
 | Existing unit masking strategy (logind/logind-varlink/ldconfig/mattos-shell) | known bootstrap limitation | Informational |
 | Prompt now centralized in MattOS-owned startup config | informational state | Informational |
+| Graphical prompt rendering still requires manual in-window confirmation | known bootstrap limitation | Informational |
 
 ## 11. Risks and Technical Debt
 
@@ -377,11 +378,11 @@ MattOS should integrate upstream projects rather than rewriting these:
 
 ## 15. Prioritized Next Actions
 
-1. Consolidate the duplicated GRUB config into a single source of truth.
-2. Add an automated boot smoke test that checks prompt behavior and a few core commands.
-3. Reduce host-library dependency by planning a real sysroot/runtime closure.
-4. Split `mattos-build` into smaller modules when the next feature round starts.
-5. Add login/auth groundwork before any user-management or persistent-install work.
+1. Add an automated boot smoke test that checks prompt behavior and a few core commands.
+2. Reduce host-library dependency by planning a real sysroot/runtime closure.
+3. Split `mattos-build` into smaller modules when the next feature round starts.
+4. Add login/auth groundwork before any user-management or persistent-install work.
+5. Expand in-guest validation coverage for getty/session checks without relying on serial prompt parsing.
 
 ## 16. Validation Summary
 

@@ -7,6 +7,13 @@ use std::fs;
 use std::path::{Component, Path, PathBuf};
 use std::process::{Command, Output};
 
+const AUTHORITATIVE_GRUB_CFG: &str = "src/boot/grub/grub.cfg";
+const OBSOLETE_GRUB_CFG_PATHS: &[&str] = &["boot/grub/grub.cfg"];
+const GRUB_SYSTEMD_ENTRY: &str = "menuentry \"MattOS (systemd)\"";
+const GRUB_RESCUE_ENTRY: &str = "menuentry \"MattOS (rescue init)\"";
+const GRUB_SYSTEMD_RDINIT: &str = "rdinit=/usr/lib/systemd/systemd";
+const GRUB_RESCUE_RDINIT: &str = "rdinit=/usr/libexec/mattos/rescue-init";
+
 #[derive(Parser, Debug)]
 #[command(name = "mattos-build")]
 #[command(about = "MattOS build and upstream orchestration tool")]
@@ -1768,6 +1775,7 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 	copy_tree_excluding_dotgit(&skeleton, &out)?;
 	ensure_merged_usr_layout(&out)?;
 	set_mode(out.join("usr/libexec/mattos/brush-login"), 0o755)?;
+	set_mode(out.join("usr/libexec/mattos/validate-shell-env"), 0o755)?;
 	fs::create_dir_all(out.join("root")).context("failed to create /root in rootfs")?;
 	set_mode(out.join("root"), 0o700)?;
 	fs::create_dir_all(out.join("run")).context("failed to create /run in rootfs")?;
@@ -2055,6 +2063,8 @@ fn build_initramfs(repo_root: &Path) -> Result<()> {
 }
 
 fn build_iso(repo_root: &Path) -> Result<()> {
+	let grub_src = validate_grub_config_source(repo_root)?;
+
 	let kernel = repo_root.join("src/kernel/linux/arch/x86/boot/bzImage");
 	if !kernel.exists() {
 		bail!(
@@ -2079,8 +2089,21 @@ fn build_iso(repo_root: &Path) -> Result<()> {
 	fs::copy(&kernel, iso_root.join("boot/vmlinuz")).context("failed to stage kernel into ISO tree")?;
 	fs::copy(&initramfs, iso_root.join("boot/initramfs.cpio.gz"))
 		.context("failed to stage initramfs into ISO tree")?;
-	fs::copy(repo_root.join("src/boot/grub/grub.cfg"), grub_dir.join("grub.cfg"))
-		.context("failed to copy grub config")?;
+	let staged_grub_cfg = grub_dir.join("grub.cfg");
+	fs::copy(&grub_src, &staged_grub_cfg).context("failed to copy grub config")?;
+	validate_staged_grub_config(&staged_grub_cfg)?;
+
+	let src_grub_text = fs::read_to_string(&grub_src)
+		.with_context(|| format!("failed to read {}", grub_src.display()))?;
+	let staged_grub_text = fs::read_to_string(&staged_grub_cfg)
+		.with_context(|| format!("failed to read {}", staged_grub_cfg.display()))?;
+	if src_grub_text != staged_grub_text {
+		bail!(
+			"staged GRUB config at {} differs from authoritative source {}",
+			staged_grub_cfg.display(),
+			grub_src.display()
+		);
+	}
 
 	let out_images = repo_root.join("out/images");
 	fs::create_dir_all(&out_images).context("failed to create out/images")?;
@@ -2093,6 +2116,52 @@ fn build_iso(repo_root: &Path) -> Result<()> {
 			"out/build/iso",
 		],
 	)
+}
+
+fn validate_grub_config_source(repo_root: &Path) -> Result<PathBuf> {
+	let authoritative = repo_root.join(AUTHORITATIVE_GRUB_CFG);
+	if !authoritative.exists() {
+		bail!(
+			"authoritative GRUB config missing at {}; expected single source at {}",
+			authoritative.display(),
+			AUTHORITATIVE_GRUB_CFG
+		);
+	}
+
+	for obsolete in OBSOLETE_GRUB_CFG_PATHS {
+		let obsolete_path = repo_root.join(obsolete);
+		if obsolete_path.exists() {
+			bail!(
+				"obsolete GRUB config path detected at {}; remove stale duplicate and keep only {}",
+				obsolete_path.display(),
+				AUTHORITATIVE_GRUB_CFG
+			);
+		}
+	}
+
+	Ok(authoritative)
+}
+
+fn validate_staged_grub_config(path: &Path) -> Result<()> {
+	let content = fs::read_to_string(path)
+		.with_context(|| format!("failed to read staged grub config {}", path.display()))?;
+
+	for needle in [
+		GRUB_SYSTEMD_ENTRY,
+		GRUB_RESCUE_ENTRY,
+		GRUB_SYSTEMD_RDINIT,
+		GRUB_RESCUE_RDINIT,
+	] {
+		if !content.contains(needle) {
+			bail!(
+				"staged GRUB config {} is missing required marker: {}",
+				path.display(),
+				needle
+			);
+		}
+	}
+
+	Ok(())
 }
 
 fn run_qemu(repo_root: &Path) -> Result<()> {
@@ -2613,6 +2682,71 @@ mod tests {
 		let sources = read_sources(root).expect("read sources");
 		assert_eq!(sources.component.len(), 1);
 		assert_eq!(sources.component[0].name, "linux");
+	}
+
+	#[test]
+	fn grub_source_validation_requires_authoritative_path() {
+		let tmp = tempfile::tempdir().expect("tempdir");
+		let result = validate_grub_config_source(tmp.path());
+		assert!(result.is_err());
+		let err = result.expect_err("missing source should fail").to_string();
+		assert!(err.contains(AUTHORITATIVE_GRUB_CFG));
+	}
+
+	#[test]
+	fn grub_source_validation_rejects_obsolete_duplicate_path() {
+		let tmp = tempfile::tempdir().expect("tempdir");
+		let root = tmp.path();
+		write(
+			&root.join(AUTHORITATIVE_GRUB_CFG),
+			"menuentry \"MattOS (systemd)\" {}\nmenuentry \"MattOS (rescue init)\" {}\n",
+		);
+		write(&root.join(OBSOLETE_GRUB_CFG_PATHS[0]), "legacy duplicate\n");
+
+		let result = validate_grub_config_source(root);
+		assert!(result.is_err());
+		let err = result.expect_err("duplicate should fail").to_string();
+		assert!(err.contains(OBSOLETE_GRUB_CFG_PATHS[0]));
+	}
+
+	#[test]
+	fn grub_source_validation_accepts_single_authoritative_path() {
+		let tmp = tempfile::tempdir().expect("tempdir");
+		let root = tmp.path();
+		write(
+			&root.join(AUTHORITATIVE_GRUB_CFG),
+			"menuentry \"MattOS (systemd)\" {}\nmenuentry \"MattOS (rescue init)\" {}\n",
+		);
+
+		let source = validate_grub_config_source(root).expect("authoritative source should pass");
+		assert!(source.ends_with(AUTHORITATIVE_GRUB_CFG));
+	}
+
+	#[test]
+	fn staged_grub_validation_requires_normal_and_rescue_entries() {
+		let tmp = tempfile::tempdir().expect("tempdir");
+		let path = tmp.path().join("grub.cfg");
+		write(
+			&path,
+			"set default=0\nmenuentry \"MattOS (systemd)\" { linux /boot/vmlinuz rdinit=/usr/lib/systemd/systemd }\n",
+		);
+
+		let result = validate_staged_grub_config(&path);
+		assert!(result.is_err());
+		let err = result.expect_err("missing rescue should fail").to_string();
+		assert!(err.contains(GRUB_RESCUE_ENTRY));
+	}
+
+	#[test]
+	fn staged_grub_validation_accepts_required_markers() {
+		let tmp = tempfile::tempdir().expect("tempdir");
+		let path = tmp.path().join("grub.cfg");
+		write(
+			&path,
+			"menuentry \"MattOS (systemd)\" { linux /boot/vmlinuz rdinit=/usr/lib/systemd/systemd }\nmenuentry \"MattOS (rescue init)\" { linux /boot/vmlinuz rdinit=/usr/libexec/mattos/rescue-init }\n",
+		);
+
+		validate_staged_grub_config(&path).expect("valid staged config should pass");
 	}
 
 	#[test]
