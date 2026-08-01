@@ -72,6 +72,8 @@ cargo run -p mattos-build -- upstream sync systemd
 
 See `docs/UPSTREAM_SYNC.md` for conflict behavior and metadata.
 
+See `docs/AUTHENTICATION.md` for the PAM, account, login, su, and sudo-rs architecture.
+
 ## Build stages
 
 ```
@@ -79,6 +81,10 @@ cargo run -p mattos-build -- build kernel
 cargo run -p mattos-build -- build brush
 cargo run -p mattos-build -- build coreutils
 cargo run -p mattos-build -- build systemd
+cargo run -p mattos-build -- build pam
+cargo run -p mattos-build -- build util-linux
+cargo run -p mattos-build -- build shadow
+cargo run -p mattos-build -- build sudo-rs
 cargo run -p mattos-build -- build init
 cargo run -p mattos-build -- image
 ```

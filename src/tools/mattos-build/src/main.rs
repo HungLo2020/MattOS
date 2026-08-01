@@ -16,6 +16,7 @@ const GRUB_SYSTEMD_RDINIT: &str = "rdinit=/usr/lib/systemd/systemd";
 const GRUB_RESCUE_RDINIT: &str = "rdinit=/usr/libexec/mattos/rescue-init";
 const SAFE_IMPORT_PLACEHOLDER_FILES: &[&str] = &[".gitkeep", "README.md"];
 const USERLAND_INVENTORY_PATH: &str = "usr/share/mattos/userland-commands.txt";
+const INITRAMFS_ARCHIVE_OWNER: &str = "0:0";
 
 const COREUTILS_PROVIDER: &str = "uutils/coreutils";
 const GREP_PROVIDER: &str = "uutils/grep";
@@ -26,6 +27,16 @@ const UTIL_LINUX_PROVIDER: &str = "util-linux";
 const LINUX_PAM_PROVIDER: &str = "linux-pam";
 const SHADOW_PROVIDER: &str = "shadow";
 const SUDO_RS_PROVIDER: &str = "sudo-rs";
+const REQUIRED_PAM_MODULES: &[&str] = &[
+	"pam_unix.so",
+	"pam_env.so",
+	"pam_nologin.so",
+	"pam_rootok.so",
+	"pam_permit.so",
+	"pam_deny.so",
+	"pam_shells.so",
+	"pam_securetty.so",
+];
 
 const DIFFUTILS_EXPECTED_COMMANDS: &[&str] = &["diff", "cmp", "diff3", "sdiff"];
 const DIFFUTILS_AVAILABLE_ALIASES: &[&str] = &["diff", "cmp"];
@@ -1879,25 +1890,58 @@ fn build_shadow(repo_root: &Path) -> Result<()> {
 	let build_dir = out_root.join("build");
 	let install_dir = out_root.join("install");
 	let stamp = build_dir.join("config.stamp");
+	let configure_args = [
+		"--prefix=/usr",
+		"--sysconfdir=/etc",
+		"--disable-nls",
+		"--with-libpam",
+		"--without-selinux",
+		"--disable-logind",
+		"--with-yescrypt",
+		"--without-btrfs",
+		"--without-nscd",
+		"--without-sssd",
+	];
+	let pam_install = repo_root.join("out/build/linux-pam/install");
+	let pam_include = pam_install.join("usr/include");
+	let pam_lib = pam_install.join("usr/lib/x86_64-linux-gnu");
+	let pam_pkgconfig = pam_lib.join("pkgconfig");
+	if !pam_include.join("security/pam_appl.h").exists() || !pam_lib.join("libpam.so").exists() {
+		bail!("linux-pam development files missing at {}; run build pam first", pam_install.display());
+	}
+	let env_overrides = vec![
+		("CPPFLAGS", format!("-I{}", pam_include.display())),
+		("LDFLAGS", format!("-L{}", pam_lib.display())),
+		("LIBRARY_PATH", pam_lib.display().to_string()),
+		("PKG_CONFIG_PATH", pam_pkgconfig.display().to_string()),
+	];
+	let config_text = format!(
+		"{}\n{}",
+		configure_args.join("\n"),
+		env_overrides
+			.iter()
+			.map(|(key, value)| format!("{key}={value}"))
+			.collect::<Vec<_>>()
+			.join("\n")
+	);
+	if stamp.exists() && fs::read_to_string(&stamp).ok().as_deref() != Some(config_text.as_str()) {
+		fs::remove_dir_all(&build_dir)
+			.with_context(|| format!("failed to reset {}", build_dir.display()))?;
+	}
 	fs::create_dir_all(&build_dir)
 		.with_context(|| format!("failed to create {}", build_dir.display()))?;
 
 	if !stamp.exists() {
-		run_cmd(
+		run_cmd_with_env_overrides(
 			&build_dir,
 			shadow_src
 				.join("configure")
 				.to_str()
 				.ok_or_else(|| anyhow!("invalid shadow configure path"))?,
-			&[
-				"--prefix=/usr",
-				"--sysconfdir=/etc",
-				"--disable-nls",
-				"--with-libpam",
-				"--without-selinux",
-			],
+			&configure_args,
+			&env_overrides,
 		)?;
-		fs::write(&stamp, "configured\n")
+		fs::write(&stamp, &config_text)
 			.with_context(|| format!("failed to write {}", stamp.display()))?;
 	}
 
@@ -2365,9 +2409,10 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 		);
 	}
 	copy_tree_excluding_dotgit(&systemd_install, &out)?;
-	copy_tree_excluding_dotgit(&pam_install, &out)?;
+	install_linux_pam_runtime(&pam_install, &out)?;
 	copy_shared_object_and_deps("libmount.so.1", &out)?;
 	copy_host_binary_and_deps("/usr/bin/mount", &out)?;
+	copy_host_binary_and_deps("/usr/bin/getent", &out)?;
 	copy_host_binary_and_deps("/usr/sbin/ldconfig", &out)?;
 	for rel in ["usr/sbin/agetty", "usr/bin/login", "usr/bin/su"] {
 		let src = util_linux_install.join(rel);
@@ -2397,7 +2442,6 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 		"usr/sbin/chpasswd",
 		"usr/bin/chage",
 		"usr/bin/newgrp",
-		"usr/bin/groups",
 	] {
 		copy_built_binary_and_runtime(&shadow_install.join(rel), &out.join(rel), &out)?;
 	}
@@ -2411,6 +2455,7 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 	apply_live_profile(repo_root, &out)?;
 	validate_account_database(&out)?;
 	enforce_auth_file_modes(&out)?;
+	validate_auth_file_modes(&out)?;
 	install_mattos_system_units(repo_root, &out)?;
 
 	let init_bin = repo_root.join("target/release/mattos-init");
@@ -2467,7 +2512,6 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 		"chpasswd",
 		"chage",
 		"newgrp",
-		"groups",
 	] {
 		inventory.add_implemented(SHADOW_PROVIDER, cmd);
 		inventory.add_compiled(SHADOW_PROVIDER, cmd);
@@ -2564,6 +2608,7 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 		"groupmod",
 		"groupdel",
 		"chpasswd",
+		"getent",
 	] {
 		let path = out.join("usr/bin").join(expected);
 		let alt = out.join("usr/sbin").join(expected);
@@ -2755,23 +2800,29 @@ fn apply_live_profile(repo_root: &Path, rootfs: &Path) -> Result<()> {
 	Ok(())
 }
 
+fn install_linux_pam_runtime(pam_install: &Path, rootfs: &Path) -> Result<()> {
+	for rel in [
+		"usr/lib/x86_64-linux-gnu/libpam.so.0",
+		"usr/lib/x86_64-linux-gnu/libpam_misc.so.0",
+		"usr/sbin/unix_chkpwd",
+	] {
+		copy_built_binary_and_runtime(&pam_install.join(rel), &rootfs.join(rel), rootfs)?;
+	}
+
+	for module in REQUIRED_PAM_MODULES {
+		let rel = PathBuf::from("usr/lib/x86_64-linux-gnu/security").join(module);
+		copy_built_binary_and_runtime(&pam_install.join(&rel), &rootfs.join(&rel), rootfs)?;
+	}
+
+	Ok(())
+}
+
 fn verify_required_pam_modules(rootfs: &Path) -> Result<()> {
 	let security_dirs = [
 		rootfs.join("usr/lib/x86_64-linux-gnu/security"),
 		rootfs.join("usr/lib/security"),
 	];
-	let required = [
-		"pam_unix.so",
-		"pam_env.so",
-		"pam_nologin.so",
-		"pam_rootok.so",
-		"pam_permit.so",
-		"pam_deny.so",
-		"pam_shells.so",
-		"pam_securetty.so",
-	];
-
-	for module in required {
+	for module in REQUIRED_PAM_MODULES {
 		let mut found = false;
 		for dir in &security_dirs {
 			if dir.join(module).exists() {
@@ -2829,6 +2880,62 @@ fn enforce_auth_file_modes(rootfs: &Path) -> Result<()> {
 	}
 
 	Ok(())
+}
+
+#[cfg(unix)]
+fn validate_auth_file_modes(rootfs: &Path) -> Result<()> {
+	use std::os::unix::fs::PermissionsExt;
+
+	for (rel, expected_mode) in [
+		("etc/shadow", 0o600),
+		("etc/gshadow", 0o600),
+		("etc/passwd", 0o644),
+		("etc/group", 0o644),
+		("etc/sudoers", 0o440),
+		("etc/sudoers.d", 0o750),
+		("usr/bin/login", 0o4755),
+		("usr/bin/su", 0o4755),
+		("usr/bin/passwd", 0o4755),
+		("usr/bin/sudo", 0o4755),
+		("root", 0o700),
+		("home/mattos", 0o750),
+	] {
+		let path = rootfs.join(rel);
+		let actual_mode = fs::metadata(&path)
+			.with_context(|| format!("failed to stat security-sensitive path {}", path.display()))?
+			.permissions()
+			.mode()
+			& 0o7777;
+		if actual_mode != expected_mode {
+			bail!(
+				"unsafe mode {:04o} on {}; expected {:04o}",
+				actual_mode,
+				path.display(),
+				expected_mode
+			);
+		}
+	}
+
+	for rel in ["etc/sudoers.d/00-mattos-live", "etc/sudoers.d/README"] {
+		let path = rootfs.join(rel);
+		if path.exists() {
+			let actual_mode = fs::metadata(&path)
+				.with_context(|| format!("failed to stat {}", path.display()))?
+				.permissions()
+				.mode()
+				& 0o7777;
+			if actual_mode != 0o440 {
+				bail!("unsafe mode {:04o} on {}; expected 0440", actual_mode, path.display());
+			}
+		}
+	}
+
+	Ok(())
+}
+
+#[cfg(not(unix))]
+fn validate_auth_file_modes(_rootfs: &Path) -> Result<()> {
+	bail!("authentication file-mode validation requires a Unix host")
 }
 
 fn validate_account_database(rootfs: &Path) -> Result<()> {
@@ -3160,15 +3267,23 @@ fn build_initramfs(repo_root: &Path) -> Result<()> {
 
 	let out_build = repo_root.join("out/build");
 	fs::create_dir_all(&out_build).context("failed to create out/build directory")?;
+	validate_initramfs_archive_owner(INITRAMFS_ARCHIVE_OWNER)?;
+	let archive_command = format!(
+		"find . -print0 | cpio --null -ov --owner={INITRAMFS_ARCHIVE_OWNER} --format=newc | gzip -9 > ../initramfs.cpio.gz"
+	);
 
 	run_cmd(
 		&rootfs,
 		"bash",
-		&[
-			"-lc",
-			"find . -print0 | cpio --null -ov --owner=0:0 --format=newc | gzip -9 > ../initramfs.cpio.gz",
-		],
+		&["-lc", &archive_command],
 	)
+}
+
+fn validate_initramfs_archive_owner(owner: &str) -> Result<()> {
+	if owner != "0:0" {
+		bail!("unsafe initramfs archive owner {owner}; expected root ownership 0:0")
+	}
+	Ok(())
 }
 
 fn build_iso(repo_root: &Path) -> Result<()> {
@@ -4449,6 +4564,43 @@ mod tests {
 			.mode()
 			& 0o7777;
 		assert_eq!(shadow_mode, 0o600);
+		validate_auth_file_modes(root).expect("secure modes should validate");
+	}
+
+	#[test]
+	#[cfg(unix)]
+	fn auth_file_mode_validation_rejects_unsafe_permissions() {
+		use std::os::unix::fs::PermissionsExt;
+
+		let tmp = tempfile::tempdir().expect("tempdir");
+		let root = tmp.path();
+		for rel in [
+			"etc/shadow",
+			"etc/gshadow",
+			"etc/passwd",
+			"etc/group",
+			"etc/sudoers",
+			"etc/sudoers.d/00-mattos-live",
+			"usr/bin/login",
+			"usr/bin/su",
+			"usr/bin/passwd",
+			"usr/bin/sudo",
+		] {
+			write(&root.join(rel), "x\n");
+		}
+		fs::create_dir_all(root.join("root")).expect("root dir");
+		fs::create_dir_all(root.join("home/mattos")).expect("home dir");
+		enforce_auth_file_modes(root).expect("set modes");
+
+		fs::set_permissions(root.join("etc/shadow"), fs::Permissions::from_mode(0o644))
+			.expect("make shadow unsafe");
+		assert!(validate_auth_file_modes(root).is_err());
+	}
+
+	#[test]
+	fn initramfs_owner_validation_rejects_non_root_ownership() {
+		validate_initramfs_archive_owner("0:0").expect("root ownership should pass");
+		assert!(validate_initramfs_archive_owner("1000:1000").is_err());
 	}
 
 	#[test]

@@ -16,6 +16,7 @@ REQUIRED_TOOLS = [
     "make",
     "gcc",
     "autoreconf",
+    "autopoint",
     "meson",
     "ninja",
     "gperf",
@@ -54,6 +55,12 @@ EXTRA_SYSTEMD_PACKAGES = [
     "libtool",
 ]
 
+EXTRA_AUTH_PACKAGES = [
+    "libpam0g-dev",
+    "libcrypt-dev",
+    "libbsd-dev",
+]
+
 DEBIAN_TOOL_PACKAGES: Dict[str, List[str]] = {
     "git": ["git"],
     "cargo": ["cargo"],
@@ -61,6 +68,7 @@ DEBIAN_TOOL_PACKAGES: Dict[str, List[str]] = {
     "make": ["build-essential"],
     "gcc": ["build-essential"],
     "autoreconf": ["autoconf", "automake", "libtool"],
+    "autopoint": ["autopoint"],
     "meson": ["meson"],
     "ninja": ["ninja-build"],
     "gperf": ["gperf"],
@@ -141,6 +149,11 @@ def compute_missing_packages(missing_tools: List[str], dry_run: bool) -> List[st
             packages.append(package_name)
 
     for package_name in EXTRA_SYSTEMD_PACKAGES:
+        if not package_installed(package_name) and package_name not in seen:
+            seen.add(package_name)
+            packages.append(package_name)
+
+    for package_name in EXTRA_AUTH_PACKAGES:
         if not package_installed(package_name) and package_name not in seen:
             seen.add(package_name)
             packages.append(package_name)
