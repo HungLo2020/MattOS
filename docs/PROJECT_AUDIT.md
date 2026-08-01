@@ -4,7 +4,7 @@ Date: 2026-08-01
 
 ## 1. Executive Summary
 
-MattOS is a coherent Linux-native bootstrap system with systemd PID 1, non-root live autologin, PAM/Shadow/sudo-rs authentication and account tools, Brush, a rescue-init path, and a reproducible build pipeline. This audit adds real kmod, procps-ng, ncurses, and terminfo support. Persistent installation, networking, package management, firmware packaging, and a graphical desktop remain intentionally absent.
+MattOS is a coherent Linux-native bootstrap system with systemd PID 1, non-root live autologin, PAM/Shadow/sudo-rs authentication and account tools, Brush, a rescue-init path, and a reproducible build pipeline. It now includes real kmod, procps-ng, ncurses, and a complete QEMU/wired IPv4 path with DHCP, DNS, time synchronization, network inspection, ping, and HTTP/HTTPS. Persistent installation, package management, SSH, Wi-Fi, firewall policy, firmware packaging, and a graphical desktop remain intentionally absent.
 
 The previous GRUB source-of-truth ambiguity has been resolved by keeping only `src/boot/grub/grub.cfg` as tracked source and validating that path in `mattos-build`. The most important remaining architectural limitation is that the runtime closure is still copied from the host via `ldd` rather than from a MattOS-built sysroot.
 
@@ -39,6 +39,9 @@ Prompt behavior:
 | kmod | https://github.com/kmod-project/kmod.git | `master` | `5086df53090b2fe9fa1c31351c05a78a12a4ba71` | `src/system/kmod/` |
 | procps-ng | https://gitlab.com/procps-ng/procps.git | `master` | `619562d36cbd48fb6958043577558cbc32a6ba79` | `src/userland/procps-ng/` |
 | ncurses | https://github.com/ThomasDickey/ncurses-snapshots.git | `master` | `c7556ecbc951326acab37c9cf1e7d690456959e0` | `src/system/terminal/ncurses/` |
+| iproute2 | https://git.kernel.org/pub/scm/network/iproute2/iproute2.git | `main` | `5696fee4c69fe3cc12e8cc821630633f616db8e2` | `src/userland/iproute2/` |
+| iputils | https://github.com/iputils/iputils.git | `master` | `75cd9d544baad45f81ed5c72bca332f577c3d81e` | `src/userland/iputils/` |
+| curl | https://github.com/curl/curl.git | `master` | `527573490eb2564b3d7c9dd51d8bff963b5d6303` | `src/userland/curl/` |
 
 State tracking lives in `upstream/state/*.toml`, and component manifests live in `upstream/sources.toml`.
 
@@ -67,6 +70,7 @@ The build orchestrator is `src/tools/mattos-build/src/main.rs`. It currently own
 - kmod build
 - procps-ng build
 - ncurses build and terminfo selection
+- iproute2, iputils, and HTTP/HTTPS-only curl builds
 - systemd build
 - init build
 - rootfs assembly
@@ -130,9 +134,8 @@ This is enough for the current image, but it is still host-derived and therefore
 
 The minimal systemd build is intentionally stripped down and produces the current bootable baseline.
 
-Intentionally disabled systemd areas include:
+Enabled systemd networking areas are `networkd`, `resolve`, and `timesyncd`. Intentionally disabled systemd areas include:
 
-- `networkd`, `resolve`, `timesyncd`
 - `homed`, `portabled`, `nspawn`, `bootloader`, `firstboot`, `repart`
 - `oomd`, `userdb`, `remote`, `sysupdate`, `sysupdated`, `sysinstall`
 - `importd`, `vmspawn`
@@ -143,8 +146,8 @@ Intentionally disabled systemd areas include:
 
 Consequences:
 
-- No network manager or resolver.
-- No time sync.
+- Ethernet links use IPv4 DHCP through networkd; DNS goes through resolved and time sync through timesyncd.
+- There is no Wi-Fi, SSH, firewall policy, persistent network configuration UI, or broadened physical NIC support.
 - PAM is intentionally provided by the separate MattOS authentication stack rather than systemd's optional PAM feature.
 - No systemd user-management or home-directory stack.
 - No container/VM spawn tooling.
@@ -234,7 +237,7 @@ shutdown
 
 `/bin` and `/sbin` are merged symlinks into `/usr/bin` and `/usr/sbin`.
 
-The generated inventory at `/usr/share/mattos/userland-commands.txt` is authoritative. It now includes grep, sed, findutils, the PAM/Shadow/sudo-rs administration commands, kmod tools, procps-ng tools, and ncurses terminal tools. Package tools, networking tools, and installation tools remain absent by design.
+The generated inventory at `/usr/share/mattos/userland-commands.txt` is authoritative. It includes grep, sed, findutils, the PAM/Shadow/sudo-rs administration commands, kmod tools, procps-ng tools, ncurses terminal tools, iproute2, iputils, curl, and systemd's network control commands. Package and installation tools remain absent by design.
 
 ## 9. Cache Assessment
 
@@ -309,6 +312,7 @@ Detailed classification:
 - The current login model is an ephemeral live-user policy; it is not a persistent installed-system account model.
 - There is no persistent installation flow yet.
 - There is no automated in-guest command runner for boot smoke validation.
+- There is no system D-Bus daemon yet, so non-root `systemctl` and `timedatectl` cannot connect even though the network and time daemons are active.
 - systemd is built with many intentional feature gaps, so a large amount of conventional distro functionality is still absent.
 - Brush history/config persistence is not yet provisioned in the live image.
 
@@ -325,10 +329,7 @@ Detailed classification:
 
 - persistent filesystem support and installer flow
 - package model
-- networking stack
-- DNS
-- time synchronization
-- CA certificates
+- persistent networking policy beyond the ephemeral wired/QEMU DHCP baseline
 - glibc built from source
 - firmware packaging strategy
 
@@ -353,7 +354,7 @@ Detailed classification:
 2. Keep the completed PAM, Shadow, sudo-rs, `su`, and non-root live-login stack stable and tested.
 3. Add persistent account and home/rootfs handling when an installed-system milestone begins.
 4. Build persistent installation and package management.
-5. Add networking, DNS, certificates, and time sync.
+5. Preserve the completed wired/QEMU networking, DNS, certificates, and time-sync baseline while later adding installed-system policy.
 6. Move more runtime libraries and core utilities from host copies to owned source or a sysroot.
 7. Expand hardware support for physical machines.
 
@@ -401,5 +402,9 @@ Verified successfully during this audit pass:
 - `python3 DevUtils/run_qemu.py` launched the current graphical image boot path
 - tty1 live-user identity, systemd PID 1, sudo, provider paths, procps output, ncurses/terminfo, `top`, Brush interaction, and session restart were directly observed
 - the rescue GRUB entry booted `rescue-init` as PID 1 and reached its root Brush prompt
+- default QEMU virtio networking produced `ens3`, DHCP `10.0.2.15/24`, a default route via `10.0.2.2`, and DNS via `10.0.2.3`
+- gateway and named-host pings completed without packet loss; `getent` resolved through glibc; HTTPS headers and body downloads passed certificate validation
+- networkd, resolved, and timesyncd were active; timesyncd contacted `time.cloudflare.com`, logged initial synchronization, and created its synchronization marker
+- `--no-network` omitted the NIC/backend and reached a loopback-only live prompt without hanging
 
 The remaining module-related boot message is precisely scoped: systemd's real libkmod integration probes `autofs4`, while the intentionally monolithic kernel has `CONFIG_MODULES=n` and `CONFIG_AUTOFS_FS=n`. The `configfs` and `fuse` module service attempts finish successfully, and no module helper fails because an executable is absent.

@@ -17,6 +17,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--memory", type=int, default=1024, help="VM memory in MiB (default: 1024)")
     parser.add_argument("--cpus", type=int, default=1, help="virtual CPU count (default: 1)")
     parser.add_argument(
+        "--no-network",
+        action="store_true",
+        help="disable the default unprivileged QEMU user-mode network",
+    )
+    parser.add_argument(
         "--serial-console",
         action="store_true",
         help="run terminal-oriented diagnostic mode (-nographic, serial stdio)",
@@ -29,6 +34,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--dry-run", action="store_true", help="print commands without executing")
     return parser.parse_args()
+
+
+def network_arguments(disabled: bool) -> List[str]:
+    if disabled:
+        return []
+    return ["-netdev", "user,id=net0", "-device", "virtio-net-pci,netdev=net0"]
 
 
 def choose_graphical_display(repo_root: Path) -> str:
@@ -106,6 +117,7 @@ def launch_qemu(repo_root: Path, iso_path: Path, args: argparse.Namespace) -> in
         "-boot",
         "d",
     ]
+    qemu_cmd.extend(network_arguments(args.no_network))
 
     if args.serial_console:
         qemu_cmd.extend(["-nographic", "-serial", "stdio", "-monitor", "none", "-no-reboot", "-no-shutdown"])

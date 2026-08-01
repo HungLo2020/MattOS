@@ -26,7 +26,7 @@ cargo run -p mattos-build -- doctor
 Required tools are reported separately from optional tools. Missing-tool package hints are printed for common Linux distributions.
 `DevUtils/run_qemu.py` also runs `doctor` first and will direct you to `python3 DevUtils/setup.py` if required prerequisites are missing.
 
-This milestone also requires the systemd, Autotools, and ELF-inspection toolchain declared by `DevUtils/setup.py`, including Meson/Ninja, Autoconf/Automake/libtool, `file`, `ldd`, and `readelf`.
+This milestone also requires the systemd, Autotools, networking, and ELF-inspection toolchain declared by `DevUtils/setup.py`, including Meson/Ninja, Autoconf/Automake/libtool, `rsync`, OpenSSL development metadata, `file`, `ldd`, and `readelf`.
 
 ## Upstream source status
 
@@ -44,6 +44,9 @@ cargo run -p mattos-build -- upstream sync systemd
 cargo run -p mattos-build -- upstream import kmod
 cargo run -p mattos-build -- upstream import procps-ng
 cargo run -p mattos-build -- upstream import ncurses
+cargo run -p mattos-build -- upstream import iproute2
+cargo run -p mattos-build -- upstream import iputils
+cargo run -p mattos-build -- upstream import curl
 ```
 
 ## Full build
@@ -59,13 +62,16 @@ The pipeline stages are:
 3. `coreutils`: uutils/coreutils multicall build
 4. `ncurses`: terminal libraries, tools, and compiled terminfo database
 5. `procps`: process-management tools linked to the local ncurses build
-6. `pam`, `util-linux`, `shadow`, `sudo-rs`: existing authentication stack
-7. `kmod`: module administration tools and libkmod
-8. `systemd`: minimal Meson/Ninja build with local kmod integration
-9. `init`: MattOS rescue init build
-10. `rootfs`, `initramfs`, `iso`: image assembly
+6. `iproute2`: `ip`, `ss`, `bridge`, and `tc`
+7. `iputils`: unprivileged `ping` and `tracepath`
+8. `curl`: HTTP/HTTPS client using OpenSSL and the pinned MattOS CA path
+9. `pam`, `util-linux`, `shadow`, `sudo-rs`: existing authentication stack
+10. `kmod`: module administration tools and libkmod
+11. `systemd`: minimal Meson/Ninja build with kmod, networkd, resolved, and timesyncd
+12. `init`: MattOS rescue init build
+13. `rootfs`, `initramfs`, `iso`: image assembly
 
-Systemd configuration is intentionally minimal for this boot milestone and disables optional subsystems including networkd, resolved, timesyncd, homed, nspawn, bootloader tools, remote journal stack, docs, tests, translations, TPM/FIDO, and BPF extras.
+Systemd configuration remains intentionally minimal. This milestone enables only networkd, resolved, and timesyncd from the networking stack while continuing to disable homed, nspawn, bootloader tools, the remote journal stack, docs, tests, translations, TPM/FIDO, and BPF extras.
 
 ## Incremental builds
 
@@ -76,6 +82,9 @@ cargo run -p mattos-build -- build coreutils
 cargo run -p mattos-build -- build kmod
 cargo run -p mattos-build -- build ncurses
 cargo run -p mattos-build -- build procps
+cargo run -p mattos-build -- build iproute2
+cargo run -p mattos-build -- build iputils
+cargo run -p mattos-build -- build curl
 cargo run -p mattos-build -- build systemd
 cargo run -p mattos-build -- build init
 cargo run -p mattos-build -- image
@@ -90,6 +99,15 @@ cargo run -p mattos-build -- run
 ```
 
 Boot logs are written to `out/logs/qemu-boot.log`.
+
+The Python launcher adds `virtio-net-pci` backed by QEMU user-mode networking by default:
+
+```
+python3 DevUtils/run_qemu.py
+python3 DevUtils/run_qemu.py --no-network
+```
+
+`--no-network` omits both the QEMU network backend and NIC. It is the supported negative-test path for confirming that boot and the local authentication/base-administration stack do not depend on connectivity.
 
 The default GRUB entry boots `init=/usr/lib/systemd/systemd systemd.unit=mattos.target`.
 A rescue GRUB entry is also provided and boots MattOS Rust rescue init from `/usr/libexec/mattos/rescue-init`.

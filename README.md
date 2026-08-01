@@ -11,6 +11,10 @@ MattOS is a Linux-compatible OS project with upstream source imported directly a
 - `src/system/kmod`: upstream kmod source
 - `src/system/terminal/ncurses`: upstream ncurses source
 - `src/userland/procps-ng`: upstream procps-ng source
+- `src/userland/iproute2`: upstream iproute2 source
+- `src/userland/iputils`: upstream iputils source
+- `src/userland/curl`: upstream curl source
+- `src/system/network`: MattOS-owned network, resolver, time, NSS, and CA configuration
 - `src/userland/init`: MattOS-owned Rust PID 1
 - `src/tools/mattos-build`: MattOS-owned Rust orchestrator
 
@@ -79,6 +83,8 @@ See `docs/AUTHENTICATION.md` for the PAM, account, login, su, and sudo-rs archit
 
 See `docs/BASE_ADMINISTRATION.md` for kmod, procps-ng, ncurses, terminfo, and kernel-module status.
 
+See `docs/NETWORKING.md` for the wired/QEMU IPv4, DNS, time-sync, HTTPS, and CA-certificate architecture.
+
 ## Build stages
 
 ```
@@ -88,6 +94,9 @@ cargo run -p mattos-build -- build coreutils
 cargo run -p mattos-build -- build kmod
 cargo run -p mattos-build -- build ncurses
 cargo run -p mattos-build -- build procps
+cargo run -p mattos-build -- build iproute2
+cargo run -p mattos-build -- build iputils
+cargo run -p mattos-build -- build curl
 cargo run -p mattos-build -- build systemd
 cargo run -p mattos-build -- build pam
 cargo run -p mattos-build -- build util-linux
@@ -96,6 +105,8 @@ cargo run -p mattos-build -- build sudo-rs
 cargo run -p mattos-build -- build init
 cargo run -p mattos-build -- image
 ```
+
+The development launcher gives the guest a QEMU user-mode virtio-net interface by default. Use `python3 DevUtils/run_qemu.py --no-network` for an isolated boot.
 
 ## Cleanup
 

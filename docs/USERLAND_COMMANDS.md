@@ -6,7 +6,7 @@ This document tracks command provenance for the MattOS base userland.
 
 - Date: 2026-08-01
 - ISO: `out/images/mattos-x86_64.iso`
-- ISO size: `63,363,072` bytes (about `61M`)
+- ISO size: `73,824,256` bytes (about `71M`)
 
 ## Upstream Commits
 
@@ -19,6 +19,9 @@ This document tracks command provenance for the MattOS base userland.
 - `kmod`: `5086df53090b2fe9fa1c31351c05a78a12a4ba71`
 - `procps-ng`: `619562d36cbd48fb6958043577558cbc32a6ba79`
 - `ncurses`: `c7556ecbc951326acab37c9cf1e7d690456959e0`
+- `iproute2`: `5696fee4c69fe3cc12e8cc821630633f616db8e2`
+- `iputils`: `75cd9d544baad45f81ed5c72bca332f577c3d81e`
+- `curl`: `527573490eb2564b3d7c9dd51d8bff963b5d6303`
 
 ## Inventory Source
 
@@ -38,9 +41,9 @@ Entries use `provider:command` format.
 
 Measured counts from this build:
 
-- `implemented_upstream`: `168`
-- `compiled`: `166`
-- `installed`: `168`
+- `implemented_upstream`: `178`
+- `compiled`: `176`
+- `installed`: `178`
 - `intentionally_excluded`: `3`
 - `failed_compatibility`: `2`
 
@@ -109,6 +112,16 @@ Measured counts from this build:
 - Provider label: `ncurses`
 - These are real ncurses executables backed by the selected compiled terminfo database.
 
+### Networking
+
+- `iproute2`: `ip`, `ss`, `bridge`, `tc`
+- `iputils`: `ping`, `tracepath`
+- `curl`: `curl`
+- `systemd`: `networkctl`, `resolvectl`, `timedatectl`
+- `ping` uses Linux ICMP datagram sockets allowed by `/etc/sysctl.d/99-mattos-network.conf`; the initramfs format does not preserve file capabilities, so MattOS does not make `ping` setuid or depend on `setcap`.
+- curl is intentionally limited to HTTP and HTTPS, uses OpenSSL, and defaults to `/etc/ssl/certs/ca-certificates.crt`.
+- `networkctl` and `resolvectl` work through the enabled network services. The minimal image has no system D-Bus daemon, so `timedatectl` and non-root `systemctl` cannot connect; root `systemctl` status works through systemd's private manager socket. Timesync state remains observable through the timesyncd service status and `/run/systemd/timesync/synchronized`.
+
 ### Brush shell and built-ins
 
 - Shell binary: `brush` at `/usr/bin/brush`
@@ -136,12 +149,16 @@ Measured counts from this build:
 
 ## Installed command snapshot
 
-The generated inventory is the exact full list. This build records 168 installed provider/command pairs. The newly added portion is:
+The generated inventory is the exact full list. This build records 178 installed provider/command pairs. The networking portion is:
 
 ```text
+curl: curl
+iproute2: bridge ip ss tc
+iputils: ping tracepath
 kmod: depmod insmod kmod lsmod modinfo modprobe rmmod
 ncurses: clear infocmp tic toe tput
 procps-ng: free hugetop pgrep pidof pkill pmap ps pwdx slabtop sysctl tload top uptime vmstat w watch
+systemd: networkctl resolvectl timedatectl
 ```
 
 The existing Brush, Linux-PAM, Shadow, sudo-rs, util-linux, uutils/coreutils, grep, sed, findutils, and diffutils entries remain in the machine-readable file. `uutils/coreutils:uptime` moved to `intentionally_excluded`; `procps-ng:uptime` is installed.

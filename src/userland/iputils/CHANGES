@@ -1,0 +1,466 @@
+===== 20250605 =====
+Released June 05, 2025
+
+Fixing regression in ping.
+
+* ping
+- fix: ping: Fix regression in -c1 (issue: #596, PR: #597, commit: a41fbf3)
+
+===== 20250602 =====
+Released June 02, 2025
+
+Security release, fixes CVE-2025-47268 and CVE-2025-48964.
+
+* ping
+- fix CVE-2025-48964: Fix moving average rtt calculation (commit: afa3639)
+  https://github.com/iputils/iputils/security/advisories/GHSA-25fr-jw29-74f9
+- fix CVE-2025-47268: Fix signed 64-bit integer overflow in RTT calculation
+  (issue: #584, PR: #585, commit: 070cfac)
+- fix: Fix integer overflow in large -s and -l values (PR: #586, commit: f30f0e5)
+- fix: Fix integer overflow in large -W value (PR: #588, commit: f7d1989)
+- fix sS90x: Fix ipv4 ttl value when using SOCK_DGRAM on big endian systems
+  (PR: #591, commit: c9c82b4, regression from 7e7ffff)
+- fix man: Fix ping man page syntax error (commit: e8c9d6d)
+- fix: Translate error message (commit: 9651db5)
+
+* tracepath
+- fix: Cleanup min value of -l (PR: #572, commit: 65e3837)
+
+* Meson build system
+- fix: Fix installation of prebuilt manpages in dist tarball (commit: dca2358)
+- fix: build.sh: Fix tarball name (commit: b912d64)
+
+* Localization
+- New languages: Kabyle, Romanian
+- Updated most of the languages
+
+===== 20240905 =====
+Released September 05, 2024
+
+Mostly ping fixes release.
+
+* Notable changes (for details see below)
+- Allow to disable reverse DNS resolution (PTR lookup) with with environment
+  variable IPUTILS_PING_PTR_LOOKUP=0
+- Lower max allowed -s value to 65507 (IPv4) or 65527 (IPv6). That is the
+  maximum the Linux kernel supports.
+- Include pre-generated man pages & HTML docs in dist tarballs. This allows to
+  avoid libxslt, docbook, ... as a build dependencies.
+- require meson >= 0.44
+- ping has new option -3
+
+* ping
+- Allow to disable reverse DNS resolution (PTR lookup) with with environment
+  variable IPUTILS_PING_PTR_LOOKUP=0 (commit: 6fc68b1, PR: #553, issue: #531)
+- Add option -3 (don't round up the RTT time) (commit: 48ae5c9, PR: #540)
+- fix: Fix IPv4 checksum check always succeeding once again (commit: bacf1b7,
+  PR: #534)
+- fix: Lower max allowed -s value to 65507 (IPv4) or 65527 (IPv6) (commit:
+  1e24c5b, issue: #542, PR: #550)
+- fix: Fix node info exit code (commit: 3840637, issue: #528)
+- fix: Fix integer overflow for high -s values (commit: aaa3dc3, issue: #542, PR:
+  #550)
+- fix: Fix EMSGSIZE on -s > 65527 on ICMP datagram socket (commit: aaa3dc3,
+  issue: #542, PR: #550)
+- fix: Fix print time_t problem on 32 bits platform (commit: 0fd2db7, PR: #533)
+- fix: Fix exit code on missing target (commit: 294a65f, issue: #528)
+- fix: check return value of write() to avoid integer overflow (commit: 0f12e6d,
+  PR: #545)
+- setcap-setuid.sh: Add cap_net_admin for ping (commit: 19718b0, issue: #515)
+- man: Document CAP_NET_ADMIN for -m (commit: 5b7ba7d, issue: #515)
+- reduce duplicity in warnings (commit: 0c08152, issue: #515)
+
+* arping
+- fix: Fix exit code if receive more replies than sent (commit: b589819, issue:
+  #538, PR: #546)
+- fix: Fix unsolicited ARP regressions on -c > 1 (commit: 5de892d, issue: #536,
+  PR: #543)
+- fix: Fix 1s delay on exit for unsolicited arpings (commit: 4db1de6, issue:
+  #536, PR: #541)
+
+* clockdiff
+- fix: Fix print time_t problem on 32 bits musl (commit: f2c322a)
+- fix: Fix loading localization on clockdiff (commit: c1b0e28)
+
+* tracepath
+- fix: Fix print time_t problem on 32 bits musl (commit: 536d40e)
+
+* Meson build system
+- include pre-generated man pages & HTML docs in dist tarballs (commit:
+  535f6de, issue: #479, PR: #520, https://bugs.gentoo.org/908817
+  https://bugs.gentoo.org/920901)
+- require meson >= 0.44 (released 2017, commit: c4bed6d)
+
+* CI
+- test 'meson dist' (commit: 2e8b3b2, b698ef6)
+- add 32bit build (commit: 22debcf)
+- build.sh: Configure with meson properly (commit: 01434a6)
+- remove Centos 7 (EOL, commit: 8037de5)
+
+* Localization
+- 100% translated: Czech, Finnish, Georgian, German, Indonesian, Japanese,
+  Korean, Portuguese (Brazil), Turkish, Ukrainian
+- Mostly translated: Chinese (Simplified), French
+- Fix loading localization on clockdiff
+
+===== 20240117 =====
+Released January 17, 2024
+
+* ping
+- fix: Restore -i0 (commit: 7a51494, PR: #519, regression from 2a63b94)
+
+* localization
+- Updated Turkish and Indonesian
+- 100% translated: Chinese (Simplified), Czech, French, Georgian, German,
+  Korean, Portuguese (Brazil), Turkish, Ukrainian
+- > 90% translated: Finnish, Indonesian, Japanese
+
+===== 20231222 =====
+Released December 22, 2023
+
+* arping
+- fix: Properly fix -Wpedantic warnings (commit: 80a580a, PR: #505)
+
+* clockdiff
+- fix: Set ppoll timeout minimum to 1ms (commit: 471942d, issue: #326, PR:
+  #459)
+
+* ping
+- feature: Add option -H to force reverse DNS resolution (commit: dd5a81a,
+  issue: #421, https://bugs.debian.org/650479, PR: #494)
+- feature: Decode unreachable codes added in RFC 4443 (commit: c4c7d52, PR:
+  #447)
+- feature: Allow over-PMTU-sized packets with DF set using PMTUDISC_PROBE
+  (commit: e123cab, PR: #448)
+- fix: Revert "ping: use random value for the identifier field" to use PID
+  again (commit: d466aab, issue: #489, PR: #503, regression from s20200821)
+- fix: Fix support for DSCP (Traffic Class, option -Q) (commit: 425f711, PR:
+  #468, broken since s20060425)
+- fix: Fix the errno handling for strtod (commit: 33e78be, PR: #450, regression
+  from s20190324)
+- fix: Drop redundant setsockopt(IPV6_TCLASS) call (commit: d38519a, PR: #468,
+  regression from s20150815)
+- fix: Fix overflow on negative -i (commit: 2a63b94, issue: #465)
+- fix: Fix sporadically missing DNS record on targets with multiple IP
+  addresses (commit: 80a580a, PR: #505, regression from s20200821)
+- fix: Handle interval correctly in the first second after booting (commit:
+  7448c33, PR: #499)
+- fix: Fix presentation of IPv6 addresses with no reverse DNS (commit: bc3f2e3,
+  issue: #455, PR: #478)
+- fix: Add missing whitespace in IPv6 output (commit: 14472fc, PR: #455)
+- fix: Allow to localize help (commit: e13508a)
+- fix: Use print target when empty ai_canonname (commit: c68afd5, issue: #421)
+- Improve interval error message (commit: fb75557, PR: #487)
+- man: Mention broadcast and multicast limit for non-root (commit: e7aafa7,
+  PR: #486)
+- man: Document collisions and pid_max (commit: c515a0d, PR: #507)
+- man: Add missing parameter for -e (commit: 2400215)
+- man: Update TTL details (commit: 2beff77, issue: #488, PR: #497)
+- man: Describe the defaults for -n option, reword (commit: a6e6d24)
+
+* tracepath
+- fix: Restore the MTU probing behavior") (commit: a75feb0, PR: #448,
+  regression from s20190709)
+- fix: Fix behavior during the first second after booting (commit: c64bcd8, PR:
+  #499)
+- Add NULL pointer assert() check (commit: 065daad, PR: #498)
+- man: Fix output related docs (commit: 40c7bc3, issue: #469, PR: #470)
+- man: Document error messages (commit: 90371d2, issue: #463, PR: #495)
+
+* CI
+- Add Add CentOS Stream 9 and Rocky Linux 8 and 9 (commit: 26edb41, 0ce30ae,
+  PR: #457, #476)
+
+* localization
+- 100% translated: Chinese (Simplified), Czech, French, Georgian, German,
+  Korean, Portuguese (Brazil), Ukrainian
+- > 90% translated: Finnish, Turkish, Indonesian, Japanese
+
+===== 20221126 =====
+Released November 26, 2022
+
+* removed tools (issue: #363)
+- ninfod (commit: 8f0d897, reason: experimental unused protocol)
+- rarpd  (commit: fba7b62, reason: superseded by DHCP protocol)
+- rdisc  (commit: 7447806, reason: superseded by DHCP protocol)
+
+* license
+- use SPDX identifiers for license names
+
+* tree
+- make _GNU_SOURCE mandatory (commit: 2410ed1, PR: #402)
+
+* arping
+- fix: exit 0 if running in deadline mode and we see replies (commit: 854873b,
+  PR: #395)
+- fix: check correct variable (commit: 8a6a2ce, PR: #395)
+- man: Mention IPv4 only and ndisc6(8) (commit: 6becbb3)
+
+* clockdiff
+- setcap-setuid.sh: Add cap_sys_nice for clockdiff (commit: 9139397, issue:
+  #326, #422)
+- document CAP_SYS_NICE requirement (PR: #416)
+
+* ping
+- feature: add option -C to call connect() before sending/receiving - useful
+  when using Path MTU Discovery (commit: 07eca4a, PR: #391)
+- feature: add option -e to set Identifier field for ICMP ECHO_REQUEST (commit:
+  43e38f2, PR: #426)
+- feature: print various debug info on -v (issue: #411)
+- feature: print config options on -V (PR: #432)
+- fix: -m (SO_MARK) in 32-bit archs (commit: fecf335, PR: #394, more fixes will
+  come next release)
+- fix: potential memory leakage on -p option (commit: 626ea66, PR: #409)
+- fix: socket error reporting (commit: bbe451f, issue: #406)
+- fix: make ping_rts struct static - fix occasional segfault (commit: 7861af9,
+  issue: #423)
+- fix: add SA_RESTART to sa_flags - avoid missing output in write on aarch64
+  (commit: 09f1b37, issue: #424)
+- security: drop capabilities for IPv4 (commit: 5990843, PR: #400)
+- print warning on missing '%'-notation (commit: c4b8b44, issue: #398, PR: #405)
+- man: add "IPV6 LINK-LOCAL DESTINATIONS" section (PR: #405)
+- man: use "ICMP datagram socket" (PR: #405)
+
+* CI
+- Debian: unstable -> testing (stability)
+- Ubuntu: xenial -> bionic, groovy -> jammy (EOL)
+- remove CentOS 8 (EOL, commit: 931504a)
+
+* localization
+- new translations: Georgian (by Temuri Doghonadze)
+- many updates
+- 100% translated: Czech, Finnish, Georgian, Korean, Turkish, Ukrainian
+
+* tests
+- don't fail when ip binary missing (issue: #383, PR: #390)
+
+===== 20211215 =====
+Released December 15, 2021
+
+* removed tools (issue: #363)
+- tftpd: removing commit: 341975a, PR: #369
+  replacement:
+  - tftp-hpa (https://git.kernel.org/pub/scm/network/tftp/tftp-hpa.git)
+  - dnsmasq (https://thekelleys.org.uk/dnsmasq/doc.html)
+- traceroute6: removing commit: a139421, PR: #362
+  replacement:
+  - mtr (https://www.bitwizard.nl/mtr/)
+  - traceroute (http://traceroute.sourceforge.net/)
+  - tracepath (https://github.com/iputils/iputils/blob/master/tracepath.c)
+
+  WARNING: More tools (ninfod, rarpd, rdisc) are going to be removed in next
+  release, see issue: #363
+
+* Meson build system
+- require version 0.40 (due multiple install_dir for custom_target; commit: 65941ab)
+
+* arping
+- fix: ARP protocol field for AX.25 and NETROM (PR: #360)
+
+* clockdiff
+- fix man: remove duplicated word (PR: #384)
+
+* ninfod
+- fix: build with -DNINFOD_MESSAGES=false (commit: a0b3917)
+- systemd unit: add ProtectHostname, ProtectKernelLogs (PR: #375)
+
+* ping
+- fix: remove 'unsupported IPv6' warning on disabled IPv6 (issue: #293, PR: #370)
+- fix: ping6 binding to VRF and address (PR: #344)
+- fix: print reply from Subnet-Router anycast address (issue: #371)
+- fix: print reply with wrong source with warning (issue: #371)
+- fix: set mark (SO_MARK) on probe socket (PR: #340)
+- fix: man: update lowered minimum ping interval (issue: #367)
+- fix: mark is unsigned int, not signed (PR: #345)
+
+* rarpd
+- systemd unit: add ProtectHostname, ProtectKernelLogs (PR: #375)
+
+* rdisc
+- systemd unit: add ProtectHostname, ProtectKernelLogs (PR: #375)
+
+* localization
+- fix: add missing cs, id, ko languages (commit: be8f704)
+- new translations: Finnish, Korean
+- updated translations: German, Japanese, Turkish, Ukrainian
+
+* CI
+- add build with some non-default options (commit: c4a5373)
+- remove Tumbleweed (not only ocassional bugs: 086de3c, b19df68, but the way
+  how repos are published often breaks using it)
+- add latest CentOS (currently CentOS 8, commit: 5f3711e)
+
+* tests
+- add -V test for all binaries (commit: 802fade)
+- make tests optional with -DSKIP_TESTS=true (PR: #359)
+
+===== 20210722 =====
+Released July 22, 2021
+
+* Meson build system
+- enable NO_SETCAP_OR_SUID by default
+
+* clockdiff
+- fix missing new line
+
+* ping
+- lower minimal interval for flooding to 2 (issue: #317)
+- revert f7710a1 ("Add strict pattern matching on response when pattern was
+  provided") to fix broken report of truncated packets (issue: #320, PR: #331)
+
+* rdisc
+- systemd unit: remove PrivateUsers=yes from systemd service file (issue: #314)
+- systemd unit: support /etc/default/rdisc environment file (for Debian, PR: #356)
+- systemd unit: Add DynamicUser=yes (PR: #358)
+- systemd unit: add CAP_NET_ADMIN capability (PR: #351)
+- Add support for capability/setuid (PR: #347, #348) NOTE: This is strongly
+  discouraged as normal uses could possibly modify routing tables, recommended
+  way is to run it as systemd service which does not require it to be enabled.
+  It's added just for non-systemd users, which should run allow it to run just
+  for dedicated user.
+- set correct caps in setcap-setuid.sh
+
+* traceroute6
+- mention -V in usage() (PR: #323)
+
+* localization
+- new translations: Czech (100%), Indonesian (94%)
+- updated translations: Portuguese (Brazil, 95%), Indonesian (94%), French:
+  (58%), Chinese (Simplified, 53%)
+- fully translated languages in this release: Czech, Turkish, Ukrainian
+
+* CI
+- migrate from Travis CI to GitHub Actions (PR: #336)
+- add very basic ping testing (issue: #338, PR: #243)
+- skip tests on Ubuntu Xenial (commit: 9833cae)
+- various build.sh improvements
+
+* tests
+- skip tests on disabled IPv6 (commit: f10bfd8)
+- fix: flood ping test should pass on root (commit: 3dff080)
+
+===== 20210202 =====
+Released February 2, 2021
+
+* version scheme change: dropped leading 's' (issue: #269)
+
+* Meson build system
+- new variable INSTALL_SYSTEMD_UNITS forces installing systemd units even if
+  systemd is not installed on build host (PR: #297)
+
+* all
+- fix infinite loop when getrandom fails (issue: #291)
+
+* arping
+- make update neighbours work again (issue: #298)
+
+* ping
+- fix dead loop problem (issue: #276)
+- process interrupts in ping*_receive_error_msg (commit: 2583fb7)
+- restore -W 0 as infinite timeout (issue: #290, PR: #306)
+- man: fix formatting (commit: b1ebe35)
+
+* tftpd:
+- fix: recvfile: avoid closing the file twice (PR: #311)
+- fix: install into sbindir: the xinet.d config expects the daemon to live
+  in sbin (PR: #310)
+
+* localization
+- update POTFILES and iputils.pot (PR: #280)
+- updated translations: Portuguese (Brazil) (86%), French (55%),
+  Japanese (rebased after PR: #280)
+
+* Travis CI
+- Use Ubuntu 20.10 groovy instead of Eoan
+
+===== s20200821 =====
+Released August 21, 2020
+
+* incompatible changes
+Handling numeric options changed
+- ping: use '.' (dot) as a decimal separator regardless locale (for -i/-W
+  options). Since s20121121 till s20190709 decimal separator for -i option
+  depended on locales ($LC_NUMERIC), but only when compiled with USE_IDN=yes.
+  (issue #290, commit: d865d4c, 1530bc9)
+- ping: temporarily allow -i option to contain trailing non-numeric characters.
+  Previously only -W option allowed this (non-numeric characters were silently
+  discharged), now both -i/-W print warning. This will become fatal error in
+  the future. (issue: #236, #290, commit: 562e0d5)
+
+* arping
+- [security] disable setcap and setuid (prevent ARP Poisoning, issue: #203)
+- fix wrong exit code for -D option (issue: #209, originally reported:
+  https://github.com/void-linux/void-packages/issues/13304)
+- fix -f quit on first reply (issue: #211, originally reported:
+  https://bugs.debian.org/935946)
+- do not fail when unsolicited ARP mode destination does not answer when use -U
+  or -A  (issue: #247)
+
+* clockdiff
+- add timeformat options: -T/--time-format <ctime|iso> and -I (alias for
+  --time-format=iso)
+- use strftime() instead of deprecated ctime_r() (commit: d6e1d77)
+
+* ninfod
+- fix build with libcap 2.29 (issue: #246)
+- fix struct qtypeinfo packing (commit: f0a6348)
+
+* ping
+- [security] use random value for the identifier field instead of PID when using
+  SOCK_RAW socket
+- allow user to specify VRF and source IP (commit: 9e08707)
+- try next addrinfo on connect failure (fixes reachability when getaddrinfo()
+  returns IPv6 results first on hosts with only IPv4 routes available, commit:
+  2705c82, c249e48)
+- fix IPv6 name resolution for hostnames with link-local addresses (commit: d217170)
+- fix print gateway IP on little endian architectures on IPPROTO_ICMP sockets
+  (commit: e2e9a2d)
+- discard packets with wrong source address (comply RFC 1122, commit: 5e052ad)
+- suppress duplicate reply messages when ping multicast (issue: #195,
+  originally reported: https://bugs.debian.org/498429)
+- allow any package size (-s) to be defined by user (issue: #210)
+- use C locale for parsing -i/-W options without IDN (commit: d865d4c)
+- yet another fix for round-trip time (RTT) (commit: 5b6c194, never ending
+  story, see issue: #232)
+- reintroduce support of flow label for very old systems (issue: #268,
+  regression: s20190324, originally reported: https://bugs.debian.org/682511,
+  https://src.fedoraproject.org/rpms/iputils/blob/0bbd37701742cc6da0e91f6cc5ba6cf6a522fca2/f/iputils-20100418-flowlabel.patch,
+  originally fixes in fed7e6306f37a18 from November 2012)
+- fix IPv6 error handling for old kernels without ping socket (regression: s20161105)
+- move sources subdirectory (affects built binary location)
+
+* rdisc
+- report in --version whether compiled with server support
+
+* tftpd
+- stop building by default (use dnsmasq instead)
+- add example xinetd file
+- move sources subdirectory (affects built binary location)
+
+* localization
+- new translations: Ukrainian (100%), Turkish (100%), German (53%), French
+  (40%), Portuguese (Brazil) (43%), Chinese (Simplified, zh_CN) (38%)
+- updated: Japanese (84%)
+- starting to manage translations via Fedora's Weblate
+  https://translate.fedoraproject.org/projects/iputils/iputils/
+  (issue: #271)
+
+* general cleanup (across code)
+- add md5 implementation to avoiding linking to crypto libraries, or expect
+  kernel api to provide md5 functionality (issue: #239)
+- use clock_gettime() rather gettimeofday() (issue: #213, #214, #215)
+- use CLOCK_MONOTONIC instead of CLOCK_MONOTONIC_RAW
+- various fixes discovered via LGTM scan and clang-tidy (missing includes,
+  incorrect types and declarations, etc)
+- man pages spelling fixes
+- refactoring
+
+* Meson build system
+- Allow to set using setcap-setuid.sh per application (commit: 054670a)
+- fix build for non-systemd builds
+- don't require xsltproc any more (instead skip building man and html)
+- fix static build with libidn2
+
+* Travis CI
+- switch to docker based builds to tests on different distro releases,
+  including cross-compilation and musl libc (issue: #169)

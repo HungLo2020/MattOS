@@ -40,9 +40,11 @@ The build directory is kept for incremental Ninja rebuilds. Reconfigure is trigg
 
 ## Minimal Meson Configuration
 
-The current integrated configuration is intentionally minimal and disables optional subsystems not required for this milestone:
+The current integrated configuration is intentionally minimal. Networking enables only the services required by the wired/QEMU milestone:
 
-- Disabled stacks: `networkd`, `resolved`, `timesyncd`, `homed`, `portabled`, `nspawn`, `oomd`, `remote`, `userdb`, `firstboot`, `bootloader`, `importd`, `vmspawn`, `coredump`, `pstore`, `machined`, `hostnamed`, `localed`, `timedated`, `nsresourced`
+- Enabled networking services: `systemd-networkd`, `systemd-resolved`, `systemd-timesyncd`
+- Fixed ephemeral service IDs: `systemd-network` 192, `systemd-resolve` 193, `systemd-timesync` 194
+- Disabled stacks: `homed`, `portabled`, `nspawn`, `oomd`, `remote`, `userdb`, `firstboot`, `bootloader`, `importd`, `vmspawn`, `coredump`, `pstore`, `machined`, `hostnamed`, `localed`, `timedated`, `nsresourced`
 - Enabled base-system integration: locally built kmod 34 from `out/build/kmod/install`
 - Disabled security/optional integrations: `pam`, `seccomp`, `acl`, `audit`, `blkid`, `libcryptsetup`, `openssl`, `gnutls`, `libfido2`, `tpm2`, `qrencode`, `bpf-framework`
 - Disabled extras: docs, man pages, html, translations, tests, kernel-install extras, analyze utility
@@ -89,6 +91,11 @@ Minimum runtime paths/files created for this milestone include:
 - `/var/log/`
 - `/var/tmp/`
 - `/etc/machine-id` (empty for ephemeral live image initialization)
+- `/etc/systemd/network/20-mattos-wired.network` (Ethernet IPv4 DHCP)
+- `/etc/systemd/resolved.conf`, `/etc/systemd/timesyncd.conf`
+- `/etc/nsswitch.conf`, `/etc/hosts`, `/etc/networks`
+- `/etc/resolv.conf -> /run/systemd/resolve/stub-resolv.conf`
+- `/etc/ssl/certs/ca-certificates.crt` (pinned Mozilla-derived bundle)
 
 ## Runtime Library Closure
 
@@ -125,6 +132,7 @@ This milestone intentionally does not provide:
 - PAM-enabled login/session stack
 - non-root user sessions
 - persistent journal
-- networking stack integration
+- Wi-Fi, SSH, a firewall policy, or physical Ethernet driver expansion beyond the QEMU virtio NIC
+- a system D-Bus daemon; networkctl/resolvectl use the enabled network services directly, while non-root systemctl and timedatectl remain unavailable until that base-system dependency is integrated
 - installed-disk boot/install support
 - package management

@@ -39,6 +39,7 @@ REQUIRED_TOOLS = [
     "file",
     "readelf",
     "ldd",
+    "rsync",
 ]
 
 # These are pulled in by the existing kernel workflow and WSL bootstrap logic.
@@ -94,6 +95,7 @@ DEBIAN_TOOL_PACKAGES: Dict[str, List[str]] = {
     "file": ["file"],
     "readelf": ["binutils"],
     "ldd": ["libc-bin"],
+    "rsync": ["rsync"],
 }
 
 

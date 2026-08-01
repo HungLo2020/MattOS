@@ -1,0 +1,7 @@
+component = "iproute2"
+repo = "https://git.kernel.org/pub/scm/network/iproute2/iproute2.git"
+branch = "main"
+imported_commit = "5696fee4c69fe3cc12e8cc821630633f616db8e2"
+imported_at_utc = "2026-08-01T20:43:17.386674685+00:00"
+sync_method = "copy"
+destination_path = "src/userland/iproute2"

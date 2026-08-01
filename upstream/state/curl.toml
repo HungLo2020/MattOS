@@ -1,0 +1,7 @@
+component = "curl"
+repo = "https://github.com/curl/curl.git"
+branch = "master"
+imported_commit = "527573490eb2564b3d7c9dd51d8bff963b5d6303"
+imported_at_utc = "2026-08-01T20:43:33.384020526+00:00"
+sync_method = "copy"
+destination_path = "src/userland/curl"

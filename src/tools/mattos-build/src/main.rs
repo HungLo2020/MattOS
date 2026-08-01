@@ -30,6 +30,10 @@ const SUDO_RS_PROVIDER: &str = "sudo-rs";
 const KMOD_PROVIDER: &str = "kmod";
 const PROCPS_PROVIDER: &str = "procps-ng";
 const NCURSES_PROVIDER: &str = "ncurses";
+const IPROUTE2_PROVIDER: &str = "iproute2";
+const IPUTILS_PROVIDER: &str = "iputils";
+const CURL_PROVIDER: &str = "curl";
+const SYSTEMD_PROVIDER: &str = "systemd";
 const REQUIRED_PAM_MODULES: &[&str] = &[
 	"pam_unix.so",
 	"pam_env.so",
@@ -103,10 +107,29 @@ const NCURSES_BINARIES: &[ComponentBinarySpec] = &[
 	ComponentBinarySpec { source_rel: "usr/bin/infocmp", destination_rel: "usr/bin/infocmp", command_name: "infocmp" },
 ];
 
+const IPROUTE2_BINARIES: &[ComponentBinarySpec] = &[
+	ComponentBinarySpec { source_rel: "usr/sbin/ip", destination_rel: "usr/sbin/ip", command_name: "ip" },
+	ComponentBinarySpec { source_rel: "usr/sbin/ss", destination_rel: "usr/sbin/ss", command_name: "ss" },
+	ComponentBinarySpec { source_rel: "usr/sbin/bridge", destination_rel: "usr/sbin/bridge", command_name: "bridge" },
+	ComponentBinarySpec { source_rel: "usr/sbin/tc", destination_rel: "usr/sbin/tc", command_name: "tc" },
+];
+
+const IPUTILS_BINARIES: &[ComponentBinarySpec] = &[
+	ComponentBinarySpec { source_rel: "usr/bin/ping", destination_rel: "usr/bin/ping", command_name: "ping" },
+	ComponentBinarySpec { source_rel: "usr/bin/tracepath", destination_rel: "usr/bin/tracepath", command_name: "tracepath" },
+];
+
+const CURL_BINARIES: &[ComponentBinarySpec] = &[
+	ComponentBinarySpec { source_rel: "usr/bin/curl", destination_rel: "usr/bin/curl", command_name: "curl" },
+];
+
 const COMPONENT_INSTALL_MANIFESTS: &[ComponentInstallManifest] = &[
 	ComponentInstallManifest { provider: KMOD_PROVIDER, install_root_rel: "out/build/kmod/install", binaries: KMOD_BINARIES },
 	ComponentInstallManifest { provider: PROCPS_PROVIDER, install_root_rel: "out/build/procps-ng/install", binaries: PROCPS_BINARIES },
 	ComponentInstallManifest { provider: NCURSES_PROVIDER, install_root_rel: "out/build/ncurses/install", binaries: NCURSES_BINARIES },
+	ComponentInstallManifest { provider: IPROUTE2_PROVIDER, install_root_rel: "out/build/iproute2/install", binaries: IPROUTE2_BINARIES },
+	ComponentInstallManifest { provider: IPUTILS_PROVIDER, install_root_rel: "out/build/iputils/install", binaries: IPUTILS_BINARIES },
+	ComponentInstallManifest { provider: CURL_PROVIDER, install_root_rel: "out/build/curl/install", binaries: CURL_BINARIES },
 ];
 
 const TERMINFO_ENTRIES: &[&str] = &[
@@ -298,6 +321,9 @@ enum BuildStage {
 	Kmod,
 	Procps,
 	Ncurses,
+	Iproute2,
+	Iputils,
+	Curl,
 	Pam,
 	Shadow,
 	SudoRs,
@@ -435,6 +461,7 @@ fn doctor() -> Result<()> {
 		"file",
 		"readelf",
 		"ldd",
+		"rsync",
 	] {
 		if !check_host_tool_with_hint(tool, true, local_path_hint.as_deref())? {
 			missing_required.push(tool);
@@ -466,6 +493,10 @@ fn doctor() -> Result<()> {
 	if let Some(message) = check_tool_runtime("pkg-config", &["--exists", "mount"])? {
 		println!("[broken]  libmount-dev ({message})");
 		broken_required.push("libmount-dev");
+	}
+	if let Some(message) = check_tool_runtime("pkg-config", &["--exists", "openssl"])? {
+		println!("[broken]  libssl-dev ({message})");
+		broken_required.push("libssl-dev");
 	}
 
 	println!("\n[Optional tools]");
@@ -1608,6 +1639,9 @@ fn build_plan(stage: BuildStage) -> Vec<BuildStage> {
 			BuildStage::Diffutils,
 			BuildStage::Ncurses,
 			BuildStage::Procps,
+			BuildStage::Iproute2,
+			BuildStage::Iputils,
+			BuildStage::Curl,
 			BuildStage::Pam,
 			BuildStage::UtilLinux,
 			BuildStage::Kmod,
@@ -1636,6 +1670,9 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
 		BuildStage::Kmod => build_kmod(repo_root),
 		BuildStage::Procps => build_procps(repo_root),
 		BuildStage::Ncurses => build_ncurses(repo_root),
+		BuildStage::Iproute2 => build_iproute2(repo_root),
+		BuildStage::Iputils => build_iputils(repo_root),
+		BuildStage::Curl => build_curl(repo_root),
 		BuildStage::Pam => build_linux_pam(repo_root),
 		BuildStage::Shadow => build_shadow(repo_root),
 		BuildStage::SudoRs => build_sudo_rs(repo_root),
@@ -2503,6 +2540,216 @@ fn procps_configure_options() -> Vec<&'static str> {
 	]
 }
 
+fn sync_build_source(source: &Path, destination: &Path) -> Result<()> {
+	fs::create_dir_all(destination)
+		.with_context(|| format!("failed to create {}", destination.display()))?;
+	let source_arg = format!("{}/", source.display());
+	let destination_arg = format!("{}/", destination.display());
+	run_cmd(
+		Path::new("/"),
+		"rsync",
+		&["-a", "--exclude=.git/", &source_arg, &destination_arg],
+	)
+}
+
+fn build_iproute2(repo_root: &Path) -> Result<()> {
+	let source = repo_root.join("src/userland/iproute2");
+	if !source.join("Makefile").exists() {
+		bail!("iproute2 source not found in {}; run upstream import iproute2 first", source.display());
+	}
+	let out_root = repo_root.join("out/build/iproute2");
+	let build_dir = out_root.join("build");
+	let install_dir = out_root.join("install");
+	let stamp_path = out_root.join("build-stamp.txt");
+	let state = fs::read_to_string(repo_root.join("upstream/state/iproute2.toml"))
+		.context("failed to read iproute2 upstream state")?;
+	let stamp = format!("{state}\nPREFIX=/usr\nSBINDIR=/usr/sbin\nLIBDIR=/usr/lib/x86_64-linux-gnu\nSHARED_LIBS=n\n");
+	if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+		remove_path_if_exists(&build_dir)?;
+	}
+	fs::create_dir_all(&out_root)
+		.with_context(|| format!("failed to create {}", out_root.display()))?;
+	sync_build_source(&source, &build_dir)?;
+	if !build_dir.join("config.mk").exists() {
+		run_cmd(
+			&build_dir,
+			"./configure",
+			&["--prefix=/usr", "--libdir=/usr/lib/x86_64-linux-gnu"],
+		)?;
+	}
+	run_cmd(
+		&build_dir,
+		"make",
+		&["-j", "4", "PREFIX=/usr", "SBINDIR=/usr/sbin", "SHARED_LIBS=n"],
+	)?;
+	remove_path_if_exists(&install_dir)?;
+	fs::create_dir_all(&install_dir)
+		.with_context(|| format!("failed to create {}", install_dir.display()))?;
+	let destdir = format!("DESTDIR={}", install_dir.display());
+	run_cmd(
+		&build_dir,
+		"make",
+		&["install", &destdir, "PREFIX=/usr", "SBINDIR=/usr/sbin", "SHARED_LIBS=n"],
+	)?;
+	for binary in IPROUTE2_BINARIES {
+		if !install_dir.join(binary.source_rel).exists() {
+			bail!("iproute2 install did not produce {}", binary.source_rel);
+		}
+	}
+	fs::write(&stamp_path, stamp)
+		.with_context(|| format!("failed to write {}", stamp_path.display()))?;
+	Ok(())
+}
+
+fn build_iputils(repo_root: &Path) -> Result<()> {
+	let source = repo_root.join("src/userland/iputils");
+	if !source.join("meson.build").exists() {
+		bail!("iputils source not found in {}; run upstream import iputils first", source.display());
+	}
+	let out_root = repo_root.join("out/build/iputils");
+	let build_dir = out_root.join("build");
+	let install_dir = out_root.join("install");
+	let options_path = out_root.join("meson-options.txt");
+	let options = vec![
+		"--prefix=/usr",
+		"--bindir=bin",
+		"--sbindir=sbin",
+		"-DUSE_CAP=false",
+		"-DUSE_IDN=false",
+		"-DUSE_GETTEXT=false",
+		"-DBUILD_ARPING=false",
+		"-DBUILD_CLOCKDIFF=false",
+		"-DBUILD_PING=true",
+		"-DBUILD_TRACEPATH=true",
+		"-DBUILD_MANS=false",
+		"-DBUILD_HTML_MANS=false",
+		"-DNO_SETCAP_OR_SUID=true",
+		"-DINSTALL_SYSTEMD_UNITS=false",
+		"-DSKIP_TESTS=true",
+	];
+	let options_text = format!("{}\n", options.join("\n"));
+	fs::create_dir_all(&out_root)
+		.with_context(|| format!("failed to create {}", out_root.display()))?;
+	let configured = build_dir.join("build.ninja").exists();
+	if !configured {
+		let mut args = vec!["setup", path_str(&build_dir)?, path_str(&source)?];
+		args.extend(options.iter().copied());
+		run_cmd(repo_root, "meson", &args)?;
+	} else if fs::read_to_string(&options_path).ok().as_deref() != Some(options_text.as_str()) {
+		let mut args = vec!["setup", "--reconfigure", path_str(&build_dir)?, path_str(&source)?];
+		args.extend(options.iter().copied());
+		run_cmd(repo_root, "meson", &args)?;
+	}
+	fs::write(&options_path, &options_text)
+		.with_context(|| format!("failed to write {}", options_path.display()))?;
+	run_cmd(repo_root, "ninja", &["-C", path_str(&build_dir)?])?;
+	remove_path_if_exists(&install_dir)?;
+	fs::create_dir_all(&install_dir)
+		.with_context(|| format!("failed to create {}", install_dir.display()))?;
+	run_cmd(
+		repo_root,
+		"meson",
+		&["install", "-C", path_str(&build_dir)?, "--no-rebuild", "--destdir", path_str(&install_dir)?],
+	)?;
+	for binary in IPUTILS_BINARIES {
+		if !install_dir.join(binary.source_rel).exists() {
+			bail!("iputils install did not produce {}", binary.source_rel);
+		}
+	}
+	Ok(())
+}
+
+fn curl_configure_options() -> Vec<&'static str> {
+	vec![
+		"--prefix=/usr",
+		"--libdir=/usr/lib/x86_64-linux-gnu",
+		"--sysconfdir=/etc",
+		"--with-openssl",
+		"--with-ca-bundle=/etc/ssl/certs/ca-certificates.crt",
+		"--without-ca-path",
+		"--enable-http",
+		"--disable-static",
+		"--enable-shared",
+		"--disable-ipv6",
+		"--disable-threaded-resolver",
+		"--disable-manual",
+		"--disable-docs",
+		"--disable-libcurl-option",
+		"--disable-ipfs",
+		"--disable-websockets",
+		"--disable-ftp",
+		"--disable-file",
+		"--disable-ldap",
+		"--disable-ldaps",
+		"--disable-rtsp",
+		"--disable-dict",
+		"--disable-telnet",
+		"--disable-tftp",
+		"--disable-pop3",
+		"--disable-imap",
+		"--disable-smb",
+		"--disable-smtp",
+		"--disable-gopher",
+		"--disable-mqtt",
+		"--without-libpsl",
+		"--without-zlib",
+		"--without-brotli",
+		"--without-zstd",
+		"--without-libidn2",
+		"--without-nghttp2",
+		"--without-ngtcp2",
+		"--without-nghttp3",
+		"--without-libssh2",
+		"--disable-dependency-tracking",
+	]
+}
+
+fn build_curl(repo_root: &Path) -> Result<()> {
+	let source = repo_root.join("src/userland/curl");
+	if !source.join("configure.ac").exists() {
+		bail!("curl source not found in {}; run upstream import curl first", source.display());
+	}
+	let out_root = repo_root.join("out/build/curl");
+	let source_copy = out_root.join("source");
+	let build_dir = out_root.join("build");
+	let install_dir = out_root.join("install");
+	let stamp_path = out_root.join("build-stamp.txt");
+	let state = fs::read_to_string(repo_root.join("upstream/state/curl.toml"))
+		.context("failed to read curl upstream state")?;
+	let options = curl_configure_options();
+	let stamp = format!("{state}\n{}\n", options.join("\n"));
+	if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+		remove_path_if_exists(&source_copy)?;
+		remove_path_if_exists(&build_dir)?;
+	}
+	fs::create_dir_all(&out_root)
+		.with_context(|| format!("failed to create {}", out_root.display()))?;
+	sync_build_source(&source, &source_copy)?;
+	if !source_copy.join("configure").exists() {
+		run_cmd(&source_copy, "autoreconf", &["-fi"])?;
+	}
+	fs::create_dir_all(&build_dir)
+		.with_context(|| format!("failed to create {}", build_dir.display()))?;
+	if !build_dir.join("Makefile").exists() {
+		let configure = source_copy.join("configure");
+		run_cmd(&build_dir, path_str(&configure)?, &options)?;
+	}
+	run_cmd(&build_dir, "make", &["-j", "4"])?;
+	remove_path_if_exists(&install_dir)?;
+	fs::create_dir_all(&install_dir)
+		.with_context(|| format!("failed to create {}", install_dir.display()))?;
+	let destdir = format!("DESTDIR={}", install_dir.display());
+	run_cmd(&build_dir, "make", &["install", &destdir])?;
+	for binary in CURL_BINARIES {
+		if !install_dir.join(binary.source_rel).exists() {
+			bail!("curl install did not produce {}", binary.source_rel);
+		}
+	}
+	fs::write(&stamp_path, stamp)
+		.with_context(|| format!("failed to write {}", stamp_path.display()))?;
+	Ok(())
+}
+
 fn path_str(path: &Path) -> Result<&str> {
 	path.to_str().ok_or_else(|| anyhow!("invalid path {}", path.display()))
 }
@@ -2617,9 +2864,12 @@ fn systemd_meson_options() -> Vec<String> {
 		"-Dman=disabled".to_string(),
 		"-Dhtml=disabled".to_string(),
 		"-Dtranslations=false".to_string(),
-		"-Dnetworkd=false".to_string(),
-		"-Dresolve=false".to_string(),
-		"-Dtimesyncd=false".to_string(),
+		"-Dnetworkd=true".to_string(),
+		"-Dresolve=true".to_string(),
+		"-Dtimesyncd=true".to_string(),
+		"-Dsystemd-network-uid=192".to_string(),
+		"-Dsystemd-resolve-uid=193".to_string(),
+		"-Dsystemd-timesync-uid=194".to_string(),
 		"-Dhomed=disabled".to_string(),
 		"-Dportabled=false".to_string(),
 		"-Dnspawn=disabled".to_string(),
@@ -2653,6 +2903,7 @@ fn systemd_meson_options() -> Vec<String> {
 		"-Dpam=disabled".to_string(),
 		"-Dlibcryptsetup=disabled".to_string(),
 		"-Dopenssl=disabled".to_string(),
+		"-Dlibidn2=disabled".to_string(),
 		"-Dgnutls=disabled".to_string(),
 		"-Dlibfido2=disabled".to_string(),
 		"-Dtpm=false".to_string(),
@@ -2771,6 +3022,7 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 	enforce_auth_file_modes(&out)?;
 	validate_auth_file_modes(&out)?;
 	install_mattos_system_units(repo_root, &out)?;
+	install_network_configuration(repo_root, &out)?;
 
 	let init_bin = repo_root.join("target/release/mattos-init");
 	if !init_bin.exists() {
@@ -2908,6 +3160,11 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 	let component_provider_commands =
 		install_component_manifests(repo_root, &out, &mut inventory)?;
 	install_component_configuration(repo_root, &out)?;
+	for command in ["networkctl", "resolvectl", "timedatectl"] {
+		inventory.add_implemented(SYSTEMD_PROVIDER, command);
+		inventory.add_compiled(SYSTEMD_PROVIDER, command);
+		inventory.add_installed(SYSTEMD_PROVIDER, command);
+	}
 
 	let mut provider_commands = BTreeMap::<&str, Vec<String>>::new();
 	provider_commands.insert(COREUTILS_PROVIDER, installed_coreutils_applets.clone());
@@ -2924,6 +3181,10 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 	for (provider, commands) in component_provider_commands {
 		provider_commands.insert(provider, commands);
 	}
+	provider_commands.insert(
+		SYSTEMD_PROVIDER,
+		vec!["networkctl".to_string(), "resolvectl".to_string(), "timedatectl".to_string()],
+	);
 	validate_no_duplicate_commands(&provider_commands)?;
 
 	for expected in [
@@ -2956,6 +3217,16 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 		"clear",
 		"tput",
 		"infocmp",
+		"ip",
+		"ss",
+		"bridge",
+		"tc",
+		"ping",
+		"tracepath",
+		"curl",
+		"networkctl",
+		"resolvectl",
+		"timedatectl",
 	] {
 		let path = out.join("usr/bin").join(expected);
 		let alt = out.join("usr/sbin").join(expected);
@@ -3258,6 +3529,127 @@ fn install_mattos_system_units(repo_root: &Path, rootfs: &Path) -> Result<()> {
 			.with_context(|| format!("failed to create {}", mask.display()))?;
 	}
 
+	Ok(())
+}
+
+fn install_network_configuration(repo_root: &Path, rootfs: &Path) -> Result<()> {
+	let source = repo_root.join("src/system/network");
+	if !source.join("network/20-mattos-wired.network").exists() {
+		bail!("MattOS network configuration missing at {}", source.display());
+	}
+	copy_tree_excluding_dotgit(&source.join("network"), &rootfs.join("etc/systemd/network"))?;
+	for (source_name, destination) in [
+		("resolved.conf", "etc/systemd/resolved.conf"),
+		("timesyncd.conf", "etc/systemd/timesyncd.conf"),
+		("nsswitch.conf", "etc/nsswitch.conf"),
+		("hosts", "etc/hosts"),
+		("networks", "etc/networks"),
+		("99-mattos-network.conf", "etc/sysctl.d/99-mattos-network.conf"),
+		("ca-certificates.crt", "etc/ssl/certs/ca-certificates.crt"),
+	] {
+		let target = rootfs.join(destination);
+		if let Some(parent) = target.parent() {
+			fs::create_dir_all(parent)
+				.with_context(|| format!("failed to create {}", parent.display()))?;
+		}
+		fs::copy(source.join(source_name), &target)
+			.with_context(|| format!("failed to install network configuration {source_name}"))?;
+	}
+
+	fs::create_dir_all(rootfs.join("run/systemd/resolve"))
+		.context("failed to create /run/systemd/resolve")?;
+	let resolv_conf = rootfs.join("etc/resolv.conf");
+	if path_entry_exists(&resolv_conf) {
+		remove_path_if_exists(&resolv_conf)?;
+	}
+	#[cfg(unix)]
+	std::os::unix::fs::symlink("/run/systemd/resolve/stub-resolv.conf", &resolv_conf)
+		.context("failed to create resolved-managed /etc/resolv.conf")?;
+
+	let wants = rootfs.join("etc/systemd/system/multi-user.target.wants");
+	fs::create_dir_all(&wants)
+		.with_context(|| format!("failed to create {}", wants.display()))?;
+	for service in [
+		"systemd-networkd.service",
+		"systemd-resolved.service",
+		"systemd-timesyncd.service",
+	] {
+		let unit = rootfs.join("usr/lib/systemd/system").join(service);
+		if !unit.exists() {
+			bail!("required networking unit missing at {}", unit.display());
+		}
+		let link = wants.join(service);
+		if path_entry_exists(&link) {
+			remove_path_if_exists(&link)?;
+		}
+		#[cfg(unix)]
+		std::os::unix::fs::symlink(format!("/usr/lib/systemd/system/{service}"), &link)
+			.with_context(|| format!("failed to enable {service}"))?;
+	}
+
+	validate_network_configuration(rootfs)
+}
+
+fn validate_network_configuration(rootfs: &Path) -> Result<()> {
+	for rel in [
+		"etc/systemd/network/20-mattos-wired.network",
+		"etc/systemd/resolved.conf",
+		"etc/systemd/timesyncd.conf",
+		"etc/nsswitch.conf",
+		"etc/ssl/certs/ca-certificates.crt",
+		"run/systemd/resolve",
+		"usr/lib/systemd/systemd-networkd",
+		"usr/lib/systemd/systemd-resolved",
+		"usr/lib/systemd/systemd-timesyncd",
+		"usr/lib/x86_64-linux-gnu/libnss_resolve.so.2",
+		"etc/systemd/system/multi-user.target.wants/systemd-networkd.service",
+		"etc/systemd/system/multi-user.target.wants/systemd-resolved.service",
+		"etc/systemd/system/multi-user.target.wants/systemd-timesyncd.service",
+	] {
+		if !path_entry_exists(&rootfs.join(rel)) {
+			bail!("required network runtime path missing: /{rel}");
+		}
+	}
+	let network = fs::read_to_string(rootfs.join("etc/systemd/network/20-mattos-wired.network"))?;
+	if !network.contains("Type=ether") || !network.contains("DHCP=ipv4") {
+		bail!("wired network configuration must match Ethernet by type and enable IPv4 DHCP");
+	}
+	let nsswitch = fs::read_to_string(rootfs.join("etc/nsswitch.conf"))?;
+	for database in ["passwd:", "group:", "shadow:", "hosts:", "networks:"] {
+		if !nsswitch.lines().any(|line| line.starts_with(database)) {
+			bail!("nsswitch configuration lacks {database}");
+		}
+	}
+	if !nsswitch.lines().any(|line| line.starts_with("hosts:") && line.contains("resolve")) {
+		bail!("nsswitch hosts database does not use systemd-resolved");
+	}
+	let ca_bundle = fs::read(rootfs.join("etc/ssl/certs/ca-certificates.crt"))?;
+	if ca_bundle.len() < 100_000 || !ca_bundle.windows(27).any(|window| window == b"-----BEGIN CERTIFICATE-----") {
+		bail!("CA bundle is missing or does not contain PEM certificates");
+	}
+	#[cfg(unix)]
+	{
+		let target = fs::read_link(rootfs.join("etc/resolv.conf"))?;
+		if target != Path::new("/run/systemd/resolve/stub-resolv.conf") {
+			bail!("/etc/resolv.conf has unexpected target {}", target.display());
+		}
+	}
+
+	let account_ids = [("systemd-network", 192_u32), ("systemd-resolve", 193_u32), ("systemd-timesync", 194_u32)];
+	let passwd = fs::read_to_string(rootfs.join("etc/passwd"))?;
+	let group = fs::read_to_string(rootfs.join("etc/group"))?;
+	for (name, id) in account_ids {
+		let id_field = format!(":{id}:");
+		if passwd.lines().any(|line| line.contains(&id_field)) || group.lines().any(|line| line.contains(&id_field)) {
+			bail!("network service account {name} ID {id} collides with a static account");
+		}
+		let sysusers = rootfs.join("usr/lib/sysusers.d").join(format!("{name}.conf"));
+		let body = fs::read_to_string(&sysusers)
+			.with_context(|| format!("missing sysusers definition for {name}"))?;
+		if !body.lines().any(|line| line.contains(name) && line.split_whitespace().any(|field| field == id.to_string())) {
+			bail!("sysusers definition for {name} does not pin ID {id}");
+		}
+	}
 	Ok(())
 }
 
@@ -3584,8 +3976,14 @@ fn copy_systemd_runtime_dependencies(rootfs: &Path) -> Result<()> {
 		"usr/lib/systemd/systemd",
 		"usr/lib/systemd/systemd-journald",
 		"usr/lib/systemd/systemd-udevd",
+		"usr/lib/systemd/systemd-networkd",
+		"usr/lib/systemd/systemd-resolved",
+		"usr/lib/systemd/systemd-timesyncd",
 		"usr/bin/systemctl",
 		"usr/bin/journalctl",
+		"usr/bin/networkctl",
+		"usr/bin/resolvectl",
+		"usr/bin/timedatectl",
 	] {
 		let p = rootfs.join(rel);
 		if p.exists() {
@@ -5011,6 +5409,9 @@ mod tests {
 		assert!(plan.contains(&BuildStage::Kmod));
 		assert!(plan.contains(&BuildStage::Ncurses));
 		assert!(plan.contains(&BuildStage::Procps));
+		assert!(plan.contains(&BuildStage::Iproute2));
+		assert!(plan.contains(&BuildStage::Iputils));
+		assert!(plan.contains(&BuildStage::Curl));
 		let ncurses = plan.iter().position(|stage| *stage == BuildStage::Ncurses).unwrap();
 		let procps = plan.iter().position(|stage| *stage == BuildStage::Procps).unwrap();
 		let kmod = plan.iter().position(|stage| *stage == BuildStage::Kmod).unwrap();
@@ -5231,6 +5632,29 @@ mod tests {
 	}
 
 	#[test]
+	fn read_sources_parses_networking_components_and_safe_destinations() {
+		let tmp = tempfile::tempdir().expect("tempdir");
+		let root = tmp.path();
+		write(
+			&root.join("upstream/sources.toml"),
+			"[[component]]\nname='iproute2'\nrepo='https://git.kernel.org/pub/scm/network/iproute2/iproute2.git'\nbranch='main'\npath='src/userland/iproute2'\nsync='copy'\n\n[[component]]\nname='iputils'\nrepo='https://github.com/iputils/iputils.git'\nbranch='master'\npath='src/userland/iputils'\nsync='copy'\n\n[[component]]\nname='curl'\nrepo='https://github.com/curl/curl.git'\nbranch='master'\npath='src/userland/curl'\nsync='copy'\n",
+		);
+		let sources = read_sources(root).expect("read networking sources");
+		assert_eq!(sources.component.len(), 3);
+		for component in sources.component {
+			let destination = resolve_component_destination(root, &component.path).expect("safe destination");
+			assert!(destination.starts_with(root.join("src/userland")));
+		}
+	}
+
+	#[test]
+	fn networking_build_stage_names_dispatch() {
+		assert_eq!(BuildStage::from_str("iproute2", true).unwrap(), BuildStage::Iproute2);
+		assert_eq!(BuildStage::from_str("iputils", true).unwrap(), BuildStage::Iputils);
+		assert_eq!(BuildStage::from_str("curl", true).unwrap(), BuildStage::Curl);
+	}
+
+	#[test]
 	fn component_manifests_have_required_commands_and_unique_paths() {
 		let mut commands = BTreeSet::new();
 		let mut destinations = BTreeSet::new();
@@ -5245,9 +5669,57 @@ mod tests {
 			"modprobe", "insmod", "rmmod", "lsmod", "modinfo", "depmod", "ps", "top", "free",
 			"uptime", "pgrep", "pkill", "pidof", "watch", "sysctl", "vmstat", "w", "clear", "tput",
 			"tic", "toe", "infocmp",
+			"ip", "ss", "bridge", "tc", "ping", "tracepath", "curl",
 		] {
 			assert!(commands.contains(required), "missing {required}");
 		}
+	}
+
+	#[cfg(unix)]
+	#[test]
+	fn network_configuration_validation_covers_resolver_services_accounts_and_ca() {
+		use std::os::unix::fs::symlink;
+
+		let tmp = tempfile::tempdir().expect("tempdir");
+		let rootfs = tmp.path();
+		write(
+			&rootfs.join("etc/systemd/network/20-mattos-wired.network"),
+			"[Match]\nType=ether\n[Network]\nDHCP=ipv4\n",
+		);
+		write(&rootfs.join("etc/systemd/resolved.conf"), "[Resolve]\nDNSStubListener=yes\n");
+		write(&rootfs.join("etc/systemd/timesyncd.conf"), "[Time]\nNTP=time.example\n");
+		write(
+			&rootfs.join("etc/nsswitch.conf"),
+			"passwd: files systemd\ngroup: files systemd\nshadow: files systemd\nhosts: files resolve dns\nnetworks: files dns\n",
+		);
+		write(
+			&rootfs.join("etc/ssl/certs/ca-certificates.crt"),
+			&"-----BEGIN CERTIFICATE-----\ncertificate\n-----END CERTIFICATE-----\n".repeat(2_000),
+		);
+		for rel in [
+			"usr/lib/systemd/systemd-networkd",
+			"usr/lib/systemd/systemd-resolved",
+			"usr/lib/systemd/systemd-timesyncd",
+			"usr/lib/x86_64-linux-gnu/libnss_resolve.so.2",
+			"etc/systemd/system/multi-user.target.wants/systemd-networkd.service",
+			"etc/systemd/system/multi-user.target.wants/systemd-resolved.service",
+			"etc/systemd/system/multi-user.target.wants/systemd-timesyncd.service",
+		] {
+			write(&rootfs.join(rel), "present\n");
+		}
+		fs::create_dir_all(rootfs.join("run/systemd/resolve")).expect("resolve runtime dir");
+		fs::create_dir_all(rootfs.join("etc")).expect("etc dir");
+		symlink("/run/systemd/resolve/stub-resolv.conf", rootfs.join("etc/resolv.conf"))
+			.expect("resolv.conf symlink");
+		write(&rootfs.join("etc/passwd"), "root:x:0:0:root:/root:/bin/brush\nmattos:x:1000:1000:MattOS:/home/mattos:/bin/brush\n");
+		write(&rootfs.join("etc/group"), "root:x:0:\nmattos:x:1000:\n");
+		for (name, id) in [("systemd-network", 192), ("systemd-resolve", 193), ("systemd-timesync", 194)] {
+			write(
+				&rootfs.join("usr/lib/sysusers.d").join(format!("{name}.conf")),
+				&format!("u! {name} {id} \"service account\"\n"),
+			);
+		}
+		validate_network_configuration(rootfs).expect("valid network configuration");
 	}
 
 	#[test]

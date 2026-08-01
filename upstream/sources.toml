@@ -106,3 +106,24 @@ repo = "https://github.com/ThomasDickey/ncurses-snapshots.git"
 branch = "master"
 path = "src/system/terminal/ncurses"
 sync = "copy"
+
+[[component]]
+name = "iproute2"
+repo = "https://git.kernel.org/pub/scm/network/iproute2/iproute2.git"
+branch = "main"
+path = "src/userland/iproute2"
+sync = "copy"
+
+[[component]]
+name = "iputils"
+repo = "https://github.com/iputils/iputils.git"
+branch = "master"
+path = "src/userland/iputils"
+sync = "copy"
+
+[[component]]
+name = "curl"
+repo = "https://github.com/curl/curl.git"
+branch = "master"
+path = "src/userland/curl"
+sync = "copy"
