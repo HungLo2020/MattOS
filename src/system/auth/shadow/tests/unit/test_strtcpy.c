@@ -1,0 +1,67 @@
+/*
+ * SPDX-FileCopyrightText: 2023, Alejandro Colomar <alx@kernel.org>
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+
+#include "config.h"
+
+#include <string.h>
+
+#include <stdarg.h>  // Required by <cmocka.h>
+#include <stddef.h>  // Required by <cmocka.h>
+#include <setjmp.h>  // Required by <cmocka.h>
+#include <stdint.h>  // Required by <cmocka.h>
+#include <cmocka.h>
+
+#include "sizeof.h"
+#include "string/strcpy/strtcpy.h"
+#include "attr.h"
+
+static void test_strtcpy_a_trunc(MAYBE_UNUSED void ** _1);
+static void test_strtcpy_a_ok(MAYBE_UNUSED void ** _1);
+
+
+int
+main(void)
+{
+    const struct CMUnitTest  tests[] = {
+        cmocka_unit_test(test_strtcpy_a_trunc),
+        cmocka_unit_test(test_strtcpy_a_ok),
+    };
+
+    return cmocka_run_group_tests(tests, NULL, NULL);
+}
+
+
+static void
+test_strtcpy_a_trunc(MAYBE_UNUSED void ** _1)
+{
+	char  buf[countof("foo")];
+
+	// Test that we're not returning SIZE_MAX
+	assert_true(strtcpy_a(buf, "fooo") < 0);
+	assert_string_equal(buf, "foo");
+
+	assert_int_equal(strtcpy_a(buf, "barbaz"), -1);
+	assert_string_equal(buf, "bar");
+}
+
+
+static void
+test_strtcpy_a_ok(MAYBE_UNUSED void ** _1)
+{
+	char  buf[countof("foo")];
+
+	assert_int_equal(strtcpy_a(buf, "foo"), strlen("foo"));
+	assert_string_equal(buf, "foo");
+
+	assert_int_equal(strtcpy_a(buf, "fo"), strlen("fo"));
+	assert_string_equal(buf, "fo");
+
+	assert_int_equal(strtcpy_a(buf, "f"), strlen("f"));
+	assert_string_equal(buf, "f");
+
+	assert_int_equal(strtcpy_a(buf, ""), strlen(""));
+	assert_string_equal(buf, "");
+}

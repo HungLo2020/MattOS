@@ -1,0 +1,2 @@
+# Files in this directory are loaded from /etc/sudoers.
+# The live profile adds /etc/sudoers.d/00-mattos-live for temporary NOPASSWD use.

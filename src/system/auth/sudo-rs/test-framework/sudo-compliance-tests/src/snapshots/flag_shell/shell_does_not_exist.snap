@@ -1,0 +1,5 @@
+---
+source: sudo-compliance-tests/src/sudo/flag_shell.rs
+expression: stderr
+---
+sudo: /root/my-shell: command not found

@@ -64,3 +64,24 @@ repo = "https://github.com/systemd/systemd.git"
 branch = "main"
 path = "src/system/systemd"
 sync = "copy"
+
+[[component]]
+name = "linux-pam"
+repo = "https://github.com/linux-pam/linux-pam.git"
+branch = "master"
+path = "src/system/auth/linux-pam"
+sync = "copy"
+
+[[component]]
+name = "shadow"
+repo = "https://github.com/shadow-maint/shadow.git"
+branch = "master"
+path = "src/system/auth/shadow"
+sync = "copy"
+
+[[component]]
+name = "sudo-rs"
+repo = "https://github.com/trifectatechfoundation/sudo-rs.git"
+branch = "main"
+path = "src/system/auth/sudo-rs"
+sync = "copy"

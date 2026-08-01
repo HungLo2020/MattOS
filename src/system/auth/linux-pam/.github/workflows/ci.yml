@@ -1,0 +1,71 @@
+name: CI
+
+on: [push, pull_request]
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  VERBOSE: 1
+
+jobs:
+  whitespace-errors:
+    name: Check for whitespace errors
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+      - name: check
+        run: git diff-index --check --cached 4b825dc642cb6eb9a060e54bf8d69288fbee4904
+
+  build-check:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        cc: [gcc-15, gcc-14, gcc-13, gcc-12, gcc-11, gcc-10, gcc-9, clang-19, clang-18, clang-17, clang-16, clang-15, clang-14]
+        variant: [base, debug, logind, openssl, sanitizers, novendordir]
+        exclude:
+          - { cc: clang-19, variant: sanitizers }
+          - { cc: clang-18, variant: sanitizers }
+          - { cc: clang-17, variant: sanitizers }
+          - { cc: clang-16, variant: sanitizers }
+          - { cc: clang-15, variant: sanitizers }
+          - { cc: clang-14, variant: sanitizers }
+    name: Build ${{ matrix.cc }}-x86_64-${{ matrix.variant }}
+    env:
+      CC: ${{ matrix.cc }}
+      TARGET: x86_64
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set environment variables
+        env:
+          VARIANT: ${{ matrix.variant }}
+        run: |
+          case "$VARIANT" in
+            base) ;;
+            debug) echo 'ENABLE_DEBUG=yes' >> "$GITHUB_ENV" ;;
+            logind) echo 'USE_LOGIND=yes' >> "$GITHUB_ENV" ;;
+            openssl) echo 'USE_OPENSSL=yes' >> "$GITHUB_ENV" ;;
+            sanitizers)
+              echo 'CFLAGS=-O1 -g -fsanitize=address -fsanitize-address-use-after-scope -fno-omit-frame-pointer -fsanitize=undefined -Wno-error=inline -Wno-error=format-overflow' >> "$GITHUB_ENV"
+              echo 'LDFLAGS=-fsanitize=address -fsanitize-address-use-after-scope -fno-omit-frame-pointer -fsanitize=undefined' >> "$GITHUB_ENV"
+              echo 'ASAN_OPTIONS=strict_string_checks=1:detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1' >> "$GITHUB_ENV"
+              echo 'UBSAN_OPTIONS=print_stacktrace=1:print_summary=1:halt_on_error=1' >> "$GITHUB_ENV"
+              ;;
+            novendordir) echo 'VENDORDIR=' >> "$GITHUB_ENV" ;;
+          esac
+
+      - name: Install dependencies
+        run: ci/install-dependencies.sh
+
+      - name: Build check
+        run: ci/build.sh

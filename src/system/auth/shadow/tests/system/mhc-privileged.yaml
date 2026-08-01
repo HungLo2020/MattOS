@@ -1,0 +1,13 @@
+provisioned_topologies:
+- shadow-privileged
+
+domains:
+- id: shadow-privileged
+  hosts:
+  - hostname: shadow-priv.test
+    role: shadow
+    conn:
+      type: podman
+      container: builder-privileged
+    artifacts:
+    - /var/log/*

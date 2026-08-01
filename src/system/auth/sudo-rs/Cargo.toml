@@ -1,0 +1,56 @@
+[package]
+name = "sudo-rs"
+description = "A memory safe implementation of sudo and su."
+version = "0.2.14"
+license = "Apache-2.0 OR MIT"
+edition = "2024"
+repository = "https://github.com/trifectatechfoundation/sudo-rs"
+homepage = "https://github.com/trifectatechfoundation/sudo-rs"
+publish = true
+categories = ["command-line-interface"]
+exclude = ["audit", "proofs", "util"]
+
+rust-version = "1.85"
+
+default-run = "sudo"
+
+[dependencies]
+libc = "0.2.176"
+glob = "0.3.0"
+
+[features]
+default = []
+
+# when enabled, use "sudo-i" PAM service name for sudo -i instead of "sudo"
+# ONLY ENABLE THIS FEATURE if you know that original sudo uses "sudo-i"
+# on the system you are building sudo for (e.g. Debian, Fedora, but not Arch)
+pam-login = []
+
+# this enables enforcing of AppArmor profiles
+apparmor = []
+
+# whether to enable 'gettext' support for giving localized user-facing messages
+gettext = []
+
+# whether to enable the unstable '@socket' feature for fetching a remote sudoers
+unstable-remote-sudoers = []
+
+# enable detailed logging (use for development only) to /tmp
+# this will compromise the security of sudo-rs somewhat
+dev = []
+
+# this feature should never be enabled, but it is here to prevent accidental
+# compilation using "cargo --all-features", which should not be used on sudo-rs
+do-not-use-all-features = []
+
+[profile.release]
+strip = "symbols"
+lto = true
+opt-level = "s"
+
+[lints.rust]
+unsafe_op_in_unsafe_fn = { level = "deny" }
+
+[lints.clippy]
+undocumented_unsafe_blocks = "warn"
+uninlined_format_args = "warn"

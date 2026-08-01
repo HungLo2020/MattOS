@@ -1,0 +1,7 @@
+component = "sudo-rs"
+repo = "https://github.com/trifectatechfoundation/sudo-rs.git"
+branch = "main"
+imported_commit = "e5a01fd7a20a5bfe5da6bc1b5cf7628e721c35c8"
+imported_at_utc = "2026-08-01T01:09:59.765052601+00:00"
+sync_method = "copy"
+destination_path = "src/system/auth/sudo-rs"

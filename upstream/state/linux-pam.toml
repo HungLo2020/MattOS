@@ -1,0 +1,7 @@
+component = "linux-pam"
+repo = "https://github.com/linux-pam/linux-pam.git"
+branch = "master"
+imported_commit = "dd74fc113a9ba1f94d5469f6f7857a1884b3f550"
+imported_at_utc = "2026-08-01T01:09:55.279364230+00:00"
+sync_method = "copy"
+destination_path = "src/system/auth/linux-pam"

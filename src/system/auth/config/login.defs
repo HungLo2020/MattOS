@@ -1,0 +1,12 @@
+# MattOS baseline defaults for local account management.
+MAIL_DIR        /var/mail
+PASS_MAX_DAYS   99999
+PASS_MIN_DAYS   0
+PASS_WARN_AGE   7
+UID_MIN         1000
+UID_MAX         60000
+GID_MIN         1000
+GID_MAX         60000
+CREATE_HOME     yes
+UMASK           077
+USERGROUPS_ENAB yes

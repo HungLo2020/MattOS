@@ -7,7 +7,8 @@ exclude = [
     "src/userland/grep",
     "src/userland/sed",
     "src/userland/findutils",
-    "src/userland/diffutils"
+    "src/userland/diffutils",
+    "src/system/auth/sudo-rs"
 ]
 resolver = "2"
 

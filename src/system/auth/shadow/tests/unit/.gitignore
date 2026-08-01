@@ -1,0 +1,7 @@
+# General files applicable to all test files
+*.log
+*.trs
+
+# All test executables
+test_*
+!test_*.c

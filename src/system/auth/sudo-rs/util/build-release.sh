@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)
+PROJECT_DIR=$(dirname "$SCRIPT_DIR")
+SUDO_RS_VERSION="$(cargo metadata --format-version 1 --manifest-path "$PROJECT_DIR/Cargo.toml" | jq '.packages[] | select(.name=="sudo-rs") | .version' -r)"
+BUILDER_IMAGE_TAG="sudo-rs-release-builder:latest"
+TARGET_DIR_BASE="$PROJECT_DIR/target/pkg"
+
+set -eo pipefail
+
+# Clear any previous builds
+rm -rf "$TARGET_DIR_BASE"
+
+# Fetch the date from the changelog
+DATE=$(grep -m1 '^##' "$PROJECT_DIR"/CHANGELOG.md | grep -o '[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}')
+
+# Build binaries
+docker build --pull --tag "$BUILDER_IMAGE_TAG" --file "$SCRIPT_DIR/Dockerfile-release" "$SCRIPT_DIR"
+docker run --rm --user "$(id -u):$(id -g)" -v "$PROJECT_DIR:/build" -w "/build" "$BUILDER_IMAGE_TAG" cargo clean --locked
+docker run --rm --user "$(id -u):$(id -g)" -v "$PROJECT_DIR:/build" -w "/build" "$BUILDER_IMAGE_TAG" cargo build --locked --release --features pam-login,apparmor
+
+# Set target directories
+target_dir_sudo="$TARGET_DIR_BASE/sudo"
+target_dir_su="$TARGET_DIR_BASE/su"
+target_sudo="$TARGET_DIR_BASE/sudo-$SUDO_RS_VERSION.tar.gz"
+target_su="$TARGET_DIR_BASE/su-$SUDO_RS_VERSION.tar.gz"
+
+# Show what is happening
+set -x
+
+# Build sudo
+install -d -m 0755 "$target_dir_sudo/bin"
+install -d -m 0755 "$target_dir_sudo/share/man/man8"
+install -d -m 0755 "$target_dir_sudo/share/man/man5"
+install -m 0755 "$PROJECT_DIR/target/release/sudo" "$target_dir_sudo/bin/sudo"
+install -m 0755 "$PROJECT_DIR/target/release/visudo" "$target_dir_sudo/bin/visudo"
+ln -s sudo "$target_dir_sudo/bin/sudoedit"
+install -m 0644 "$PROJECT_DIR/docs/man/sudo.8.man" "$target_dir_sudo/share/man/man8/sudo.8"
+install -m 0644 "$PROJECT_DIR/docs/man/visudo.8.man" "$target_dir_sudo/share/man/man8/visudo.8"
+install -m 0644 "$PROJECT_DIR/docs/man/sudoers.5.man" "$target_dir_sudo/share/man/man5/sudoers.5"
+ln -s "sudo.8" "$target_dir_sudo/share/man/man8/sudoedit.8"
+install -d -m 0755 "$target_dir_sudo/share/doc/sudo-rs/sudo"
+install -m 0644 "$PROJECT_DIR/README.md" "$target_dir_sudo/share/doc/sudo-rs/sudo/README.md"
+install -m 0644 "$PROJECT_DIR/CHANGELOG.md" "$target_dir_sudo/share/doc/sudo-rs/sudo/CHANGELOG.md"
+install -m 0644 "$PROJECT_DIR/SECURITY.md" "$target_dir_sudo/share/doc/sudo-rs/sudo/SECURITY.md"
+install -m 0644 "$PROJECT_DIR/COPYRIGHT" "$target_dir_sudo/share/doc/sudo-rs/sudo/COPYRIGHT"
+install -m 0644 "$PROJECT_DIR/LICENSE-APACHE" "$target_dir_sudo/share/doc/sudo-rs/sudo/LICENSE-APACHE"
+install -m 0644 "$PROJECT_DIR/LICENSE-MIT" "$target_dir_sudo/share/doc/sudo-rs/sudo/LICENSE-MIT"
+
+fakeroot -- bash <<EOF
+set -eo pipefail
+set -x
+chown -R root:root "$target_dir_sudo"
+chmod 4755 "$target_dir_sudo/bin/sudo"
+(cd $target_dir_sudo && tar --mtime="UTC $DATE 00:00:00" --sort=name --use-compress-program='gzip -9n' -cpvf "$target_sudo" *)
+EOF
+
+# Build su
+install -d -m 0755 "$target_dir_su/bin"
+install -d -m 0755 "$target_dir_su/share/man/man1"
+install -m 0755 "$PROJECT_DIR/target/release/su" "$target_dir_su/bin/su"
+install -m 0644 "$PROJECT_DIR/docs/man/su.1.man" "$target_dir_su/share/man/man1/su.1"
+install -d -m 0755 "$target_dir_su/share/doc/sudo-rs/su"
+install -m 0644 "$PROJECT_DIR/README.md" "$target_dir_su/share/doc/sudo-rs/su/README.md"
+install -m 0644 "$PROJECT_DIR/CHANGELOG.md" "$target_dir_su/share/doc/sudo-rs/su/CHANGELOG.md"
+install -m 0644 "$PROJECT_DIR/SECURITY.md" "$target_dir_su/share/doc/sudo-rs/su/SECURITY.md"
+install -m 0644 "$PROJECT_DIR/COPYRIGHT" "$target_dir_su/share/doc/sudo-rs/su/COPYRIGHT"
+install -m 0644 "$PROJECT_DIR/LICENSE-APACHE" "$target_dir_su/share/doc/sudo-rs/su/LICENSE-APACHE"
+install -m 0644 "$PROJECT_DIR/LICENSE-MIT" "$target_dir_su/share/doc/sudo-rs/su/LICENSE-MIT"
+
+fakeroot -- bash <<EOF
+set -eo pipefail
+set -x
+chown -R root:root "$target_dir_su"
+chmod 4755 "$target_dir_su/bin/su"
+(cd $target_dir_su && tar --mtime="UTC $DATE 00:00:00" --sort=name --use-compress-program='gzip -9n' -cpvf "$target_su" *)
+EOF
+
+(cd $TARGET_DIR_BASE && sha256sum -b *-$SUDO_RS_VERSION.tar.gz > "$TARGET_DIR_BASE/SHA256SUMS")

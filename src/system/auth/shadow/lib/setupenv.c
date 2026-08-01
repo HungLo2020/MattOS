@@ -1,0 +1,202 @@
+/*
+ * SPDX-FileCopyrightText: 1989 - 1994, Julianne Frances Haugh
+ * SPDX-FileCopyrightText: 1996 - 2000, Marek Michałkiewicz
+ * SPDX-FileCopyrightText: 2001 - 2006, Tomasz Kłoczko
+ * SPDX-FileCopyrightText: 2007 - 2010, Nicolas François
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+/*
+ * Separated from setup.c.  --marekm
+ */
+
+#include "config.h"
+
+#include <ctype.h>
+#include <pwd.h>
+#include <stddef.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdio.h>
+
+#include "prototypes.h"
+#include "defines.h"
+#include "getdef.h"
+#include "io/fgets/fgets.h"
+#include "shadowlog.h"
+#include "string/sprintf/aprintf.h"
+#include "string/strcmp/streq.h"
+#include "string/strcmp/strprefix.h"
+#include "string/strdup/strdup.h"
+#include "string/strspn/stpspn.h"
+#include "string/strtok/stpsep.h"
+
+
+#ifndef USE_PAM
+static void
+addenv_path(const char *varname, const char *dirname, const char *filename)
+{
+	char  *buf;
+
+	buf = xaprintf("%s/%s", dirname, filename);
+	addenv(varname, buf);
+	free(buf);
+}
+
+static void read_env_file (const char *filename)
+{
+	FILE *fp;
+	char buf[1024];
+	char *cp, *name, *val;
+
+	fp = fopen (filename, "r");
+	if (NULL == fp) {
+		return;
+	}
+	while (fgets_a(buf, fp) != NULL) {
+		if (stpsep(buf, "\n") == NULL)
+			break;
+
+		cp = buf;
+		/* ignore whitespace and comments */
+		cp = stpspn(cp, " \t");
+		if (streq(cp, "") || strprefix(cp, "#")) {
+			continue;
+		}
+		/*
+		 * ignore lines which don't follow the name=value format
+		 * (for example, the "export NAME" shell commands)
+		 */
+		name = cp;
+		val = stpsep(cp, "=");
+		if (val == NULL)
+			continue;
+		if (strpbrk(name, " \t"))
+			continue;
+		/*
+		 * XXX - should handle quotes, backslash escapes, etc.
+		 * like the shell does.
+		 */
+		addenv (name, val);
+	}
+	(void) fclose (fp);
+}
+#endif				/* USE_PAM */
+
+
+/*
+ *	change to the user's home directory
+ *	set the HOME, SHELL, MAIL, PATH, and LOGNAME or USER environmental
+ *	variables.
+ */
+
+void setup_env (struct passwd *info)
+{
+#ifndef USE_PAM
+	const char *envf;
+#endif
+	const char *cp;
+
+	/*
+	 * Change the current working directory to be the home directory
+	 * of the user.  It is a fatal error for this process to be unable
+	 * to change to that directory.  There is no "default" home
+	 * directory.
+	 *
+	 * We no longer do it as root - should work better on NFS-mounted
+	 * home directories.  Some systems default to HOME=/, so we make
+	 * this a configurable option.  --marekm
+	 */
+
+	if (chdir (info->pw_dir) == -1) {
+		if (!getdef_bool ("DEFAULT_HOME") || chdir ("/") == -1) {
+			fprintf (log_get_logfd(), _("Unable to cd to '%s'\n"),
+				 info->pw_dir);
+			SYSLOG(LOG_WARN,
+				"unable to cd to `%s' for user `%s'\n",
+				info->pw_dir, info->pw_name);
+			closelog ();
+			exit (EXIT_FAILURE);
+		}
+		(void) puts (_("No directory, logging in with HOME=/"));
+		free (info->pw_dir);
+		info->pw_dir = xstrdup ("/");
+	}
+
+	/*
+	 * Create the HOME environmental variable and export it.
+	 */
+
+	addenv ("HOME", info->pw_dir);
+
+	/*
+	 * Create the SHELL environmental variable and export it.
+	 */
+
+	if ((NULL == info->pw_shell) || streq(info->pw_shell, "")) {
+		free (info->pw_shell);
+		info->pw_shell = xstrdup (SHELL);
+	}
+
+	addenv ("SHELL", info->pw_shell);
+
+	/*
+	 * Export the user name.  For BSD derived systems, it's "USER", for
+	 * all others it's "LOGNAME".  We set both of them.
+	 */
+
+	addenv ("USER", info->pw_name);
+	addenv ("LOGNAME", info->pw_name);
+
+	/*
+	 * Create the PATH environmental variable and export it.
+	 */
+
+	cp = getdef_str ((info->pw_uid == 0) ? "ENV_SUPATH" : "ENV_PATH");
+
+	if (NULL == cp) {
+		/* not specified, use a minimal default */
+		addenv ((info->pw_uid == 0) ? "PATH=/sbin:/bin:/usr/sbin:/usr/bin" : "PATH=/bin:/usr/bin", NULL);
+	} else if (strchr(cp, '=')) {
+		/* specified as name=value (PATH=...) */
+		addenv (cp, NULL);
+	} else {
+		/* only value specified without "PATH=" */
+		addenv ("PATH", cp);
+	}
+
+#ifndef USE_PAM
+	/*
+	 * Create the MAIL environmental variable and export it.  login.defs
+	 * knows the prefix.
+	 */
+
+	if (getdef_bool ("MAIL_CHECK_ENAB")) {
+		cp = getdef_str ("MAIL_DIR");
+		if (NULL != cp) {
+			addenv_path ("MAIL", cp, info->pw_name);
+		} else {
+			cp = getdef_str ("MAIL_FILE");
+			if (NULL != cp) {
+				addenv_path ("MAIL", info->pw_dir, cp);
+			} else {
+#if defined(MAIL_SPOOL_FILE)
+				addenv_path ("MAIL", info->pw_dir, MAIL_SPOOL_FILE);
+#elif defined(MAIL_SPOOL_DIR)
+				addenv_path ("MAIL", MAIL_SPOOL_DIR, info->pw_name);
+#endif
+			}
+		}
+	}
+
+	/*
+	 * Read environment from optional config file.  --marekm
+	 */
+	envf = getdef_str ("ENVIRON_FILE");
+	if (NULL != envf) {
+		read_env_file (envf);
+	}
+#endif				/* !USE_PAM */
+}
+

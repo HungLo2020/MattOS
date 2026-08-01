@@ -1,0 +1,15 @@
+[package]
+name = "sudo-test"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+
+[lib]
+doctest = false
+
+[dependencies]
+tar = { version = "0.4", default-features = false }
+tempfile = "3.4.0"
+
+[features]
+apparmor = []

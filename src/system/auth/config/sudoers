@@ -1,0 +1,8 @@
+Defaults secure_path="/usr/sbin:/usr/bin:/sbin:/bin"
+Defaults env_reset
+Defaults use_pty
+
+root ALL=(ALL:ALL) ALL
+%sudo ALL=(ALL:ALL) ALL
+
+@includedir /etc/sudoers.d

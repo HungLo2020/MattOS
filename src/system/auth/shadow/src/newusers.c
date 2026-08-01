@@ -1,0 +1,1191 @@
+/*
+ * SPDX-FileCopyrightText: 1990 - 1993, Julianne Frances Haugh
+ * SPDX-FileCopyrightText: 1996 - 2000, Marek Michałkiewicz
+ * SPDX-FileCopyrightText: 2000 - 2006, Tomasz Kłoczko
+ * SPDX-FileCopyrightText: 2007 - 2011, Nicolas François
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+/*
+ *	newusers - create users from a batch file
+ *
+ *	newusers creates a collection of entries in /etc/passwd
+ *	and related files by reading a passwd-format file and
+ *	adding entries in the related directories.
+ */
+
+#include "config.h"
+
+#ident "$Id$"
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdio.h>
+#include <pwd.h>
+#include <grp.h>
+#include <fcntl.h>
+#include <getopt.h>
+#include <ctype.h>
+#include <errno.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <string.h>
+
+#include "alloc/reallocf.h"
+#include "atoi/a2i.h"
+#include "atoi/getnum.h"
+#include "attr.h"
+#include "chkname.h"
+#include "defines.h"
+#include "getdef.h"
+#include "groupio.h"
+#include "io/fgets/fgets.h"
+#include "io/fprintf.h"
+#include "io/syslog.h"
+#include "nscd.h"
+#include "prototypes.h"
+#include "pwio.h"
+#include "sgroupio.h"
+#include "shadowio.h"
+#ifdef ENABLE_SUBIDS
+#include "subordinateio.h"
+#endif				/* ENABLE_SUBIDS */
+#include "shadow/gshadow/sgrp.h"
+#include "shadowlog.h"
+#include "sssd.h"
+#include "string/ctype/isascii.h"
+#include "string/sprintf/stprintf.h"
+#include "string/strcmp/streq.h"
+#include "string/strdup/strdup.h"
+#include "string/strtok/stpsep.h"
+#include "string/strtok/strsep2arr.h"
+
+struct option_flags {
+	bool chroot;
+};
+
+
+/*
+ * Global variables
+ */
+static const char Prog[] = "newusers";
+
+static bool bflg = false;
+static bool rflg = false;	/* create a system account */
+#ifndef USE_PAM
+static /*@null@*//*@observer@*/char *crypt_method = NULL;
+#define cflg (NULL != crypt_method)
+static bool sflg = false;
+static long sha_rounds = 5000;
+#ifdef USE_BCRYPT
+static long bcrypt_rounds = 13;
+#endif				/* USE_BCRYPT */
+#ifdef USE_YESCRYPT
+static long yescrypt_cost = 5;
+#endif				/* USE_YESCRYPT */
+#endif				/* !USE_PAM */
+
+static bool is_shadow;
+#ifdef SHADOWGRP
+static bool is_shadow_grp;
+static bool sgr_locked = false;
+#endif
+static bool pw_locked = false;
+static bool gr_locked = false;
+static bool spw_locked = false;
+#ifdef ENABLE_SUBIDS
+static bool is_sub_uid = false;
+static bool is_sub_gid = false;
+static bool sub_uid_locked = false;
+static bool sub_gid_locked = false;
+#endif				/* ENABLE_SUBIDS */
+
+/* local function prototypes */
+NORETURN static void usage (int status);
+NORETURN static void fail_exit (int, bool);
+static int add_group (const char *, const char *, gid_t *, gid_t);
+static int get_user_id (const char *, uid_t *);
+static int add_user (const char *, uid_t, gid_t);
+#ifndef USE_PAM
+static int update_passwd (struct passwd *, const char *);
+#endif				/* !USE_PAM */
+static int add_passwd (struct passwd *, const char *);
+static void process_flags (int argc, char **argv, struct option_flags *flags);
+static void check_flags (void);
+static void open_files (bool process_selinux);
+static void close_files(const struct option_flags *flags);
+
+
+/*
+ * usage - display usage message and exit
+ */
+static void usage (int status)
+{
+	FILE *usageout = (EXIT_SUCCESS != status) ? stderr : stdout;
+	(void) fprintf (usageout,
+	                _("Usage: %s [options]\n"
+	                  "\n"
+	                  "Options:\n"),
+	                Prog);
+	(void) fputs (_("  -b, --badname                 allow bad names\n"), usageout);
+#ifndef USE_PAM
+	(void) fprintf (usageout,
+	                _("  -c, --crypt-method METHOD     the crypt method (one of %s)\n"),
+	                "NONE SHA256 SHA512"
+#if defined(USE_BCRYPT)
+	                " BCRYPT"
+#endif
+#if defined(USE_YESCRYPT)
+	                " YESCRYPT"
+#endif
+	               );
+#endif				/* !USE_PAM */
+	(void) fputs (_("  -h, --help                    display this help message and exit\n"), usageout);
+	(void) fputs (_("  -r, --system                  create system accounts\n"), usageout);
+	(void) fputs (_("  -R, --root CHROOT_DIR         directory to chroot into\n"), usageout);
+#ifndef USE_PAM
+	(void) fputs (_("  -s, --sha-rounds              number of rounds for the SHA, BCRYPT\n"
+	                "                                or YESCRYPT crypt algorithms\n"),
+	              usageout);
+#endif				/* !USE_PAM */
+	(void) fputs ("\n", usageout);
+
+	exit (status);
+}
+
+/*
+ * fail_exit - undo as much as possible
+ */
+static void fail_exit (int code, bool process_selinux)
+{
+	if (spw_locked) {
+		if (spw_unlock (process_selinux) == 0) {
+			eprintf(_("%s: failed to unlock %s\n"), Prog, spw_dbname());
+			SYSLOG(LOG_ERR, "failed to unlock %s", spw_dbname());
+			/* continue */
+		}
+	}
+	if (pw_locked) {
+		if (pw_unlock (process_selinux) == 0) {
+			eprintf(_("%s: failed to unlock %s\n"), Prog, pw_dbname());
+			SYSLOG(LOG_ERR, "failed to unlock %s", pw_dbname());
+			/* continue */
+		}
+	}
+	if (gr_locked) {
+		if (gr_unlock (process_selinux) == 0) {
+			eprintf(_("%s: failed to unlock %s\n"), Prog, gr_dbname());
+			SYSLOG(LOG_ERR, "failed to unlock %s", gr_dbname());
+			/* continue */
+		}
+	}
+#ifdef	SHADOWGRP
+	if (sgr_locked) {
+		if (sgr_unlock (process_selinux) == 0) {
+			eprintf(_("%s: failed to unlock %s\n"), Prog, sgr_dbname());
+			SYSLOG(LOG_ERR, "failed to unlock %s", sgr_dbname());
+			/* continue */
+		}
+	}
+#endif
+#ifdef ENABLE_SUBIDS
+	if (sub_uid_locked) {
+		if (sub_uid_unlock (process_selinux) == 0) {
+			eprintf(_("%s: failed to unlock %s\n"), Prog, sub_uid_dbname());
+			SYSLOG(LOG_ERR, "failed to unlock %s", sub_uid_dbname());
+			/* continue */
+		}
+	}
+	if (sub_gid_locked) {
+		if (sub_gid_unlock (process_selinux) == 0) {
+			eprintf(_("%s: failed to unlock %s\n"), Prog, sub_gid_dbname());
+			SYSLOG(LOG_ERR, "failed to unlock %s", sub_gid_dbname());
+			/* continue */
+		}
+	}
+#endif				/* ENABLE_SUBIDS */
+
+	exit (code);
+}
+
+/*
+ * add_group - create a new group or add a user to an existing group
+ */
+static int add_group (const char *name, const char *gid, gid_t *ngid, uid_t uid)
+{
+	const struct group *grp;
+	struct group grent;
+	char *members[1];
+#ifdef SHADOWGRP
+	const struct sgrp *sg;
+#endif
+
+	/*
+	 * Start by seeing if the named group already exists. This will be
+	 * very easy to deal with if it does.
+	 */
+	grp = getgrnam (gid);
+	if (NULL == grp) {
+		grp = gr_locate (gid);
+	}
+	if (NULL != grp) {
+		/* The user will use this ID for her primary group */
+		*ngid = grp->gr_gid;
+		/* Don't check gshadow */
+		return 0;
+	}
+
+	if (!streq(gid, "") && strisdigit_c(gid)) {
+		/*
+		 * The GID is a number, which means either this is a brand
+		 * new group, or an existing group.
+		 */
+
+		if (get_gid(gid, &grent.gr_gid) == -1) {
+			eprintf(_("%s: invalid group ID '%s'\n"), Prog, gid);
+			return -1;
+		}
+
+		/* Look in both the system database (getgrgid) and in the
+		 * internal database (gr_locate_gid), which may contain
+		 * uncommitted changes */
+		if (   (getgrgid (grent.gr_gid) != NULL)
+		    || (gr_locate_gid (grent.gr_gid) != NULL)) {
+			/* The user will use this ID for her
+			 * primary group */
+			*ngid = grent.gr_gid;
+			return 0;
+		}
+
+		/* Do not create groups with GID == (gid_t)-1 */
+		if (grent.gr_gid == (gid_t)-1) {
+			eprintf(_("%s: invalid group ID '%s'\n"), Prog, gid);
+			return -1;
+		}
+	} else {
+		/* The gid parameter can be "" or a name which is not
+		 * already the name of an existing group.
+		 * In both cases, figure out what group ID can be used.
+		 */
+		if (find_new_gid(rflg, &grent.gr_gid, &uid) < 0) {
+			return -1;
+		}
+	}
+
+	/*
+	 * Now I have all of the fields required to create the new group.
+	 */
+	if (!streq(gid, "") && !strisdigit_c(gid)) {
+		grent.gr_name = xstrdup (gid);
+	} else {
+		grent.gr_name = xstrdup (name);
+/* FIXME: check if the group exists */
+	}
+
+	/* Check if this is a valid group name */
+	if (!is_valid_group_name(grent.gr_name)) {
+		eprintf(_("%s: invalid group name '%s'\n"), Prog, grent.gr_name);
+		free (grent.gr_name);
+		return -1;
+	}
+
+	grent.gr_passwd = "*";	/* XXX warning: const */
+	members[0] = NULL;
+	grent.gr_mem = members;
+
+	*ngid = grent.gr_gid;
+
+#ifdef SHADOWGRP
+	if (is_shadow_grp) {
+		sg = sgr_locate (grent.gr_name);
+
+		if (NULL != sg) {
+			eprintf(_("%s: group '%s' is a shadow group, but does not exist in /etc/group\n"),
+			         Prog, grent.gr_name);
+			return -1;
+		}
+	}
+#endif
+
+#ifdef SHADOWGRP
+	if (is_shadow_grp) {
+		struct sgrp sgrent;
+		char *admins[1];
+		sgrent.sg_namp = grent.gr_name;
+		sgrent.sg_passwd = "*";	/* XXX warning: const */
+		grent.gr_passwd  = "x";	/* XXX warning: const */
+		admins[0] = NULL;
+		sgrent.sg_adm = admins;
+		sgrent.sg_mem = members;
+
+		if (sgr_update (&sgrent) == 0) {
+			return -1;
+		}
+	}
+#endif
+
+	if (gr_update (&grent) == 0) {
+		return -1;
+	}
+
+	return 0;
+}
+
+static int get_user_id (const char *uid, uid_t *nuid) {
+
+	/*
+	 * The first guess for the UID is either the numerical UID that the
+	 * caller provided, or the next available UID.
+	 */
+	if (!streq(uid, "") && strisdigit_c(uid)) {
+		if ((get_uid(uid, nuid) == -1) || (*nuid == (uid_t)-1)) {
+			eprintf(_("%s: invalid user ID '%s'\n"), Prog, uid);
+			return -1;
+		}
+	} else {
+		if (!streq(uid, "")) {
+			const struct passwd *pwd;
+			/* local, no need for xgetpwnam */
+			pwd = getpwnam (uid);
+			if (pwd == NULL)
+				pwd = pw_locate (uid);
+
+			if (pwd == NULL) {
+				eprintf(_("%s: user '%s' does not exist\n"),
+				         Prog, uid);
+				return -1;
+			}
+
+			*nuid = pwd->pw_uid;
+		} else {
+			if (find_new_uid (rflg, nuid, NULL) < 0)
+				return -1;
+		}
+	}
+
+	return 0;
+}
+
+/*
+ * add_user - create a new user ID
+ */
+static int add_user (const char *name, uid_t uid, gid_t gid)
+{
+	struct passwd pwent;
+
+	/* Check if this is a valid user name */
+	if (!is_valid_user_name(name, bflg)) {
+		if (errno == EILSEQ) {
+			eprintf(_("%s: invalid user name '%s': use --badname to ignore\n"),
+			        Prog, name);
+		} else {
+			eprintf(_("%s: invalid user name '%s'\n"), Prog, name);
+		}
+		return -1;
+	}
+
+	/*
+	 * I don't want to fill in the entire password structure members
+	 * JUST YET, since there is still more data to be added. So, I fill
+	 * in the parts that I have.
+	 */
+	pwent.pw_name = xstrdup (name);
+	pwent.pw_uid = uid;
+	pwent.pw_passwd = "x";	/* XXX warning: const */
+	pwent.pw_gid = gid;
+	pwent.pw_gecos = "";	/* XXX warning: const */
+	pwent.pw_dir = "";	/* XXX warning: const */
+	pwent.pw_shell = "";	/* XXX warning: const */
+
+	return (pw_update (&pwent) == 0) ? -1 : 0;
+}
+
+#ifndef USE_PAM
+/*
+ * update_passwd - update the password in the passwd entry
+ *
+ * Return 0 if successful.
+ */
+static int update_passwd (struct passwd *pwd, const char *password)
+{
+	void *crypt_arg = NULL;
+	char *cp;
+	if (NULL != crypt_method) {
+		if (sflg) {
+			if (   streq(crypt_method, "SHA256")
+				|| streq(crypt_method, "SHA512")) {
+				crypt_arg = &sha_rounds;
+			}
+		}
+#if defined(USE_BCRYPT)
+		if (sflg) {
+			if (streq(crypt_method, "BCRYPT")) {
+				crypt_arg = &bcrypt_rounds;
+			}
+		}
+#endif				/* USE_BCRYPT */
+#if defined(USE_YESCRYPT)
+		if (sflg) {
+			if (streq(crypt_method, "YESCRYPT")) {
+				crypt_arg = &yescrypt_cost;
+			}
+		}
+#endif				/* USE_YESCRYPT */
+	}
+
+	if ((NULL != crypt_method) && streq(crypt_method, "NONE")) {
+		pwd->pw_passwd = (char *)password;
+	} else {
+		const char *salt = crypt_make_salt (crypt_method, crypt_arg);
+		cp = pw_encrypt (password, salt);
+		if (NULL == cp) {
+			eprinte(_("%s: failed to crypt password with salt '%s'"),
+			        Prog, salt);
+			return 1;
+		}
+		pwd->pw_passwd = cp;
+	}
+
+	return 0;
+}
+#endif				/* !USE_PAM */
+
+/*
+ * add_passwd - add or update the encrypted password
+ */
+static int
+add_passwd(struct passwd *pwd, MAYBE_UNUSED const char *password)
+{
+	const struct spwd *sp;
+	struct spwd spent;
+#ifndef USE_PAM
+	char *cp;
+#endif				/* !USE_PAM */
+
+#ifndef USE_PAM
+	void *crypt_arg = NULL;
+	if (NULL != crypt_method) {
+		if (sflg) {
+			if (streq(crypt_method, "SHA256")
+			    || streq(crypt_method, "SHA512"))
+			{
+				crypt_arg = &sha_rounds;
+			}
+		}
+#if defined(USE_BCRYPT)
+		if (sflg) {
+			if (streq(crypt_method, "BCRYPT")) {
+				crypt_arg = &bcrypt_rounds;
+			}
+		}
+#endif				/* USE_BCRYPT */
+#if defined(USE_YESCRYPT)
+		if (sflg) {
+			if (streq(crypt_method, "YESCRYPT")) {
+				crypt_arg = &yescrypt_cost;
+			}
+		}
+#endif				/* USE_PAM */
+	}
+
+	/*
+	 * In the case of regular password files, this is real easy - pwd
+	 * points to the entry in the password file. Shadow files are
+	 * harder since there are zillions of things to do ...
+	 */
+	if (!is_shadow) {
+		return update_passwd (pwd, password);
+	}
+#endif				/* USE_PAM */
+
+	/*
+	 * Do the first and easiest shadow file case. The user already
+	 * exists in the shadow password file.
+	 */
+	sp = spw_locate (pwd->pw_name);
+#ifndef USE_PAM
+	if (NULL != sp) {
+		spent = *sp;
+		if (   (NULL != crypt_method)
+		    && streq(crypt_method, "NONE"))
+		{
+			spent.sp_pwdp = (char *)password;
+		} else {
+			const char *salt = crypt_make_salt (crypt_method,
+			                                    crypt_arg);
+			cp = pw_encrypt (password, salt);
+			if (NULL == cp) {
+				eprinte(_("%s: failed to crypt password with salt '%s'"),
+				        Prog, salt);
+				return 1;
+			}
+			spent.sp_pwdp = cp;
+		}
+		spent.sp_lstchg = gettime () / DAY;
+		if (0 == spent.sp_lstchg) {
+			/* Better disable aging than requiring a password
+			 * change */
+			spent.sp_lstchg = -1;
+		}
+		return (spw_update (&spent) == 0);
+	}
+
+	/*
+	 * Pick the next easiest case - the user has an encrypted password
+	 * which isn't equal to "x". The password was set to "x" earlier
+	 * when the entry was created, so this user would have to have had
+	 * the password set someplace else.
+	 */
+	if (!streq(pwd->pw_passwd, "x")) {
+		return update_passwd (pwd, password);
+	}
+#else				/* USE_PAM */
+	/*
+	 * If there is already a shadow entry, do not touch it.
+	 * If there is already a passwd entry with a password, do not
+	 * touch it.
+	 * The password will be updated later for all users using PAM.
+	 */
+	if (   (NULL != sp)
+	    || !streq(pwd->pw_passwd, "x")) {
+		return 0;
+	}
+#endif				/* USE_PAM */
+
+	/*
+	 * Now the really hard case - I need to create an entirely new
+	 * shadow password file entry.
+	 */
+	spent.sp_namp = pwd->pw_name;
+#ifndef USE_PAM
+	if ((crypt_method != NULL) && streq(crypt_method, "NONE")) {
+		spent.sp_pwdp = (char *)password;
+	} else {
+		const char *salt = crypt_make_salt (crypt_method, crypt_arg);
+		cp = pw_encrypt (password, salt);
+		if (NULL == cp) {
+			eprinte(_("%s: failed to crypt password with salt '%s'"),
+			        Prog, salt);
+			return 1;
+		}
+		spent.sp_pwdp = cp;
+	}
+#else
+	/*
+	 * Lock the password.
+	 * The password will be updated later for all users using PAM.
+	 */
+	spent.sp_pwdp = "!";
+#endif
+	spent.sp_lstchg = gettime () / DAY;
+	if (0 == spent.sp_lstchg) {
+		/* Better disable aging than requiring a password change */
+		spent.sp_lstchg = -1;
+	}
+	spent.sp_min    = -1;
+	spent.sp_max    = getdef_num ("PASS_MAX_DAYS", -1);
+	spent.sp_warn   = getdef_num ("PASS_WARN_AGE", -1);
+	spent.sp_inact  = -1;
+	spent.sp_expire = -1;
+	spent.sp_flag   = SHADOW_SP_FLAG_UNSET;
+
+	return (spw_update (&spent) == 0);
+}
+
+/*
+ * process_flags - parse the command line options
+ *
+ *	It will not return if an error is encountered.
+ */
+static void process_flags (int argc, char **argv, struct option_flags *flags)
+{
+	int c;
+#ifndef USE_PAM
+	int bad_s;
+#endif 				/* !USE_PAM */
+	static struct option long_options[] = {
+		{"badname",      no_argument,       NULL, 'b'},
+#ifndef USE_PAM
+		{"crypt-method", required_argument, NULL, 'c'},
+#endif				/* !USE_PAM */
+		{"help",         no_argument,       NULL, 'h'},
+		{"system",       no_argument,       NULL, 'r'},
+		{"root",         required_argument, NULL, 'R'},
+#ifndef USE_PAM
+		{"sha-rounds",   required_argument, NULL, 's'},
+#endif				/* !USE_PAM */
+		{NULL, 0, NULL, '\0'}
+	};
+
+	while ((c = getopt_long (argc, argv,
+#ifndef USE_PAM
+	                         "c:bhrs:",
+#else				/* USE_PAM */
+	                         "bhr",
+#endif
+	                         long_options, NULL)) != -1) {
+		switch (c) {
+		case 'b':
+			bflg = true;
+			break;
+#ifndef USE_PAM
+		case 'c':
+			crypt_method = optarg;
+			break;
+#endif				/* !USE_PAM */
+		case 'h':
+			usage (EXIT_SUCCESS);
+			break;
+		case 'r':
+			rflg = true;
+			break;
+		case 'R': /* no-op, handled in process_root_flag () */
+			flags->chroot = true;
+			break;
+#ifndef USE_PAM
+		case 's':
+			sflg = true;
+			bad_s = 0;
+
+			if (!crypt_method){
+				eprintf(_("%s: Provide '--crypt-method' before number of rounds\n"),
+						Prog);
+				usage (EXIT_FAILURE);
+			}
+			if (  (   (streq(crypt_method, "SHA256") || streq(crypt_method, "SHA512"))
+			       && (-1 == str2sl(&sha_rounds, optarg)))) {
+				bad_s = 1;
+			}
+#if defined(USE_BCRYPT)
+			if (  (   streq(crypt_method, "BCRYPT")
+			       && (-1 == str2sl(&bcrypt_rounds, optarg)))) {
+				bad_s = 1;
+			}
+#endif				/* USE_BCRYPT */
+#if defined(USE_YESCRYPT)
+			if (  (   streq(crypt_method, "YESCRYPT")
+			       && (-1 == str2sl(&yescrypt_cost, optarg)))) {
+				bad_s = 1;
+			}
+#endif				/* USE_YESCRYPT */
+			if (bad_s != 0) {
+				eprintf(_("%s: invalid numeric argument '%s'\n"),
+				         Prog, optarg);
+				usage (EXIT_FAILURE);
+			}
+			break;
+#endif				/* !USE_PAM */
+		default:
+			usage (EXIT_FAILURE);
+			break;
+		}
+	}
+
+	if (   (optind != argc)
+	    && (optind + 1 != argc)) {
+		usage (EXIT_FAILURE);
+	}
+
+	if (argv[optind] != NULL) {
+		if (freopen (argv[optind], "r", stdin) == NULL) {
+			char  buf[BUFSIZ];
+
+			stprintf_a(buf, "%s: %s", Prog, argv[1]);
+			perror (buf);
+			fail_exit (EXIT_FAILURE, !flags->chroot);
+		}
+	}
+
+	/* validate options */
+	check_flags ();
+}
+
+/*
+ * check_flags - check flags and parameters consistency
+ *
+ *	It will not return if an error is encountered.
+ */
+static void check_flags (void)
+{
+#ifndef USE_PAM
+	if (sflg && !cflg) {
+		eprintf(_("%s: %s flag is only allowed with the %s flag\n"),
+		         Prog, "-s", "-c");
+		usage (EXIT_FAILURE);
+	}
+
+	if (cflg) {
+		if (   !streq(crypt_method, "NONE")
+		    && !streq(crypt_method, "SHA256")
+		    && !streq(crypt_method, "SHA512")
+#ifdef USE_BCRYPT
+		    && !streq(crypt_method, "BCRYPT")
+#endif				/* USE_BCRYPT */
+#ifdef USE_YESCRYPT
+		    && !streq(crypt_method, "YESCRYPT")
+#endif				/* USE_YESCRYPT */
+		    ) {
+			eprintf(_("%s: unsupported crypt method: %s\n"),
+			         Prog, crypt_method);
+			usage (EXIT_FAILURE);
+		}
+	}
+#endif				/* !USE_PAM */
+}
+
+/*
+ * open_files - lock and open the password, group and shadow databases
+ */
+static void open_files (bool process_selinux)
+{
+	/*
+	 * Lock the password files and open them for update. This will bring
+	 * all of the entries into memory where they may be searched for an
+	 * modified, or new entries added. The password file is the key - if
+	 * it gets locked, assume the others can be locked right away.
+	 */
+	if (pw_lock () == 0) {
+		eprintf(_("%s: cannot lock %s; try again later.\n"),
+		         Prog, pw_dbname ());
+		fail_exit (EXIT_FAILURE, process_selinux);
+	}
+	pw_locked = true;
+	if (is_shadow) {
+		if (spw_lock () == 0) {
+			eprintf(_("%s: cannot lock %s; try again later.\n"),
+			         Prog, spw_dbname ());
+			fail_exit (EXIT_FAILURE, process_selinux);
+		}
+		spw_locked = true;
+	}
+	if (gr_lock () == 0) {
+		eprintf(_("%s: cannot lock %s; try again later.\n"),
+		         Prog, gr_dbname ());
+		fail_exit (EXIT_FAILURE, process_selinux);
+	}
+	gr_locked = true;
+#ifdef SHADOWGRP
+	if (is_shadow_grp) {
+		if (sgr_lock () == 0) {
+			eprintf(_("%s: cannot lock %s; try again later.\n"),
+			         Prog, sgr_dbname ());
+			fail_exit (EXIT_FAILURE, process_selinux);
+		}
+		sgr_locked = true;
+	}
+#endif
+#ifdef ENABLE_SUBIDS
+	if (is_sub_uid) {
+		if (sub_uid_lock () == 0) {
+			eprintf(_("%s: cannot lock %s; try again later.\n"),
+			         Prog, sub_uid_dbname ());
+			fail_exit (EXIT_FAILURE, process_selinux);
+		}
+		sub_uid_locked = true;
+	}
+	if (is_sub_gid) {
+		if (sub_gid_lock () == 0) {
+			eprintf(_("%s: cannot lock %s; try again later.\n"),
+			         Prog, sub_gid_dbname ());
+			fail_exit (EXIT_FAILURE, process_selinux);
+		}
+		sub_gid_locked = true;
+	}
+#endif				/* ENABLE_SUBIDS */
+
+	if (pw_open (O_CREAT | O_RDWR) == 0) {
+		eprintf(_("%s: cannot open %s\n"), Prog, pw_dbname());
+		fail_exit (EXIT_FAILURE, process_selinux);
+	}
+	if (is_shadow && (spw_open (O_CREAT | O_RDWR) == 0)) {
+		eprintf(_("%s: cannot open %s\n"), Prog, spw_dbname());
+		fail_exit (EXIT_FAILURE, process_selinux);
+	}
+	if (gr_open (O_CREAT | O_RDWR) == 0) {
+		eprintf(_("%s: cannot open %s\n"), Prog, gr_dbname());
+		fail_exit (EXIT_FAILURE, process_selinux);
+	}
+#ifdef SHADOWGRP
+	if (is_shadow_grp && (sgr_open (O_CREAT | O_RDWR) == 0)) {
+		eprintf(_("%s: cannot open %s\n"), Prog, sgr_dbname());
+		fail_exit (EXIT_FAILURE, process_selinux);
+	}
+#endif
+#ifdef ENABLE_SUBIDS
+	if (is_sub_uid) {
+		if (sub_uid_open (O_CREAT | O_RDWR) == 0) {
+			eprintf(_("%s: cannot open %s\n"), Prog, sub_uid_dbname());
+			fail_exit (EXIT_FAILURE, process_selinux);
+		}
+	}
+	if (is_sub_gid) {
+		if (sub_gid_open (O_CREAT | O_RDWR) == 0) {
+			eprintf(_("%s: cannot open %s\n"), Prog, sub_gid_dbname());
+			fail_exit (EXIT_FAILURE, process_selinux);
+		}
+	}
+#endif				/* ENABLE_SUBIDS */
+}
+
+/*
+ * close_files - close and unlock the password, group and shadow databases
+ */
+static void close_files(const struct option_flags *flags)
+{
+	bool process_selinux;
+
+	process_selinux = !flags->chroot;
+
+	if (pw_close (process_selinux) == 0) {
+		eprintf(_("%s: failure while writing changes to %s\n"), Prog, pw_dbname());
+		SYSLOG(LOG_ERR, "failure while writing changes to %s", pw_dbname());
+		fail_exit (EXIT_FAILURE, process_selinux);
+	}
+	if (pw_unlock (process_selinux) == 0) {
+		eprintf(_("%s: failed to unlock %s\n"), Prog, pw_dbname());
+		SYSLOG(LOG_ERR, "failed to unlock %s", pw_dbname());
+		/* continue */
+	}
+	pw_locked = false;
+
+	if (is_shadow) {
+		if (spw_close (process_selinux) == 0) {
+			eprintf(_("%s: failure while writing changes to %s\n"),
+			         Prog, spw_dbname ());
+			SYSLOG(LOG_ERR, "failure while writing changes to %s", spw_dbname());
+			fail_exit (EXIT_FAILURE, process_selinux);
+		}
+		if (spw_unlock (process_selinux) == 0) {
+			eprintf(_("%s: failed to unlock %s\n"), Prog, spw_dbname());
+			SYSLOG(LOG_ERR, "failed to unlock %s", spw_dbname());
+			/* continue */
+		}
+		spw_locked = false;
+	}
+
+	if (gr_close (process_selinux) == 0) {
+		eprintf(_("%s: failure while writing changes to %s\n"),
+		         Prog, gr_dbname ());
+		SYSLOG(LOG_ERR, "failure while writing changes to %s", gr_dbname());
+		fail_exit (EXIT_FAILURE, process_selinux);
+	}
+#ifdef ENABLE_SUBIDS
+	if (is_sub_uid  && (sub_uid_close (process_selinux) == 0)) {
+		eprintf(_("%s: failure while writing changes to %s\n"), Prog, sub_uid_dbname());
+		SYSLOG(LOG_ERR, "failure while writing changes to %s", sub_uid_dbname());
+		fail_exit (EXIT_FAILURE, process_selinux);
+	}
+	if (is_sub_gid  && (sub_gid_close (process_selinux) == 0)) {
+		eprintf(_("%s: failure while writing changes to %s\n"), Prog, sub_gid_dbname());
+		SYSLOG(LOG_ERR, "failure while writing changes to %s", sub_gid_dbname());
+		fail_exit (EXIT_FAILURE, process_selinux);
+	}
+#endif				/* ENABLE_SUBIDS */
+
+	if (gr_unlock (process_selinux) == 0) {
+		eprintf(_("%s: failed to unlock %s\n"), Prog, gr_dbname());
+		SYSLOG(LOG_ERR, "failed to unlock %s", gr_dbname());
+		/* continue */
+	}
+	gr_locked = false;
+
+#ifdef SHADOWGRP
+	if (is_shadow_grp) {
+		if (sgr_close (process_selinux) == 0) {
+			eprintf(_("%s: failure while writing changes to %s\n"),
+			         Prog, sgr_dbname ());
+			SYSLOG(LOG_ERR, "failure while writing changes to %s", sgr_dbname());
+			fail_exit (EXIT_FAILURE, process_selinux);
+		}
+		if (sgr_unlock (process_selinux) == 0) {
+			eprintf(_("%s: failed to unlock %s\n"), Prog, sgr_dbname());
+			SYSLOG(LOG_ERR, "failed to unlock %s", sgr_dbname());
+			/* continue */
+		}
+		sgr_locked = false;
+	}
+#endif
+#ifdef ENABLE_SUBIDS
+	if (is_sub_uid) {
+		if (sub_uid_unlock (process_selinux) == 0) {
+			eprintf(_("%s: failed to unlock %s\n"), Prog, sub_uid_dbname());
+			SYSLOG(LOG_ERR, "failed to unlock %s", sub_uid_dbname());
+			/* continue */
+		}
+		sub_uid_locked = false;
+	}
+	if (is_sub_gid) {
+		if (sub_gid_unlock (process_selinux) == 0) {
+			eprintf(_("%s: failed to unlock %s\n"), Prog, sub_gid_dbname());
+			SYSLOG(LOG_ERR, "failed to unlock %s", sub_gid_dbname());
+			/* continue */
+		}
+		sub_gid_locked = false;
+	}
+#endif				/* ENABLE_SUBIDS */
+}
+
+int main (int argc, char **argv)
+{
+	char buf[BUFSIZ];
+	char *fields[7];
+	const struct passwd *pw;
+	struct passwd newpw;
+	intmax_t line = 0;
+	uid_t uid;
+	gid_t gid;
+#ifdef USE_PAM
+	intmax_t *lines = NULL;
+	char **usernames = NULL;
+	char **passwords = NULL;
+	size_t nusers = 0;
+#endif				/* USE_PAM */
+	struct option_flags  flags = {.chroot = false};
+	bool process_selinux;
+
+	log_set_progname(Prog);
+	log_set_logfd(stderr);
+
+	(void) setlocale (LC_ALL, "");
+	(void) bindtextdomain (PACKAGE, LOCALEDIR);
+	(void) textdomain (PACKAGE);
+
+	/* FIXME: will not work with an input file */
+	process_root_flag ("-R", argc, argv);
+
+	OPENLOG ("newusers");
+
+	process_flags (argc, argv, &flags);
+	process_selinux = !flags.chroot;
+
+	is_shadow = spw_file_present ();
+
+#ifdef SHADOWGRP
+	is_shadow_grp = sgr_file_present ();
+#endif
+#ifdef ENABLE_SUBIDS
+	is_sub_uid = want_subuid_file() && sub_uid_file_present() && !rflg;
+	is_sub_gid = want_subgid_file() && sub_gid_file_present() && !rflg;
+#endif				/* ENABLE_SUBIDS */
+
+	open_files (process_selinux);
+
+	/*
+	 * Read each line. The line has the same format as a password file
+	 * entry, except that certain fields are not constrained to be
+	 * numerical values. If a group ID is entered which does not already
+	 * exist, an attempt is made to allocate the same group ID as the
+	 * numerical user ID. Should that fail, the next available group ID
+	 * over 100 is allocated. The pw_gid field will be updated with that
+	 * value.
+	 */
+	while (fgets_a(buf, stdin) != NULL) {
+		line++;
+		if (stpsep(buf, "\n") == NULL && feof(stdin) == 0) {
+			eprintf(_("%s: line %jd: line too long\n"), Prog, line);
+			fail_exit (EXIT_FAILURE, process_selinux);
+		}
+
+		if (strsep2arr_a(buf, ":", fields) == -1) {
+			eprintf(_("%s: line %jd: invalid line\n"), Prog, line);
+			fail_exit (EXIT_FAILURE, process_selinux);
+		}
+
+		/*
+		 * First check if we have to create or update a user
+		 */
+		pw = pw_locate (fields[0]);
+		/* local, no need for xgetpwnam */
+		if (NULL == pw && getpwnam(fields[0]) != NULL) {
+			eprintf(_("%s: cannot update the entry of user %s (not in the passwd database)\n"),
+				 Prog, fields[0]);
+			fail_exit (EXIT_FAILURE, process_selinux);
+		}
+
+		if (NULL == pw && get_user_id(fields[2], &uid) != 0) {
+			eprintf(_("%s: line %jd: can't create user\n"),
+			         Prog, line);
+			fail_exit (EXIT_FAILURE, process_selinux);
+		}
+
+		/*
+		 * Processed is the group name. A new group will be
+		 * created if the group name is non-numeric and does not
+		 * already exist. If the group name is a number (which is not
+		 * an existing GID), a group with the same name as the user
+		 * will be created, with the given GID. The given or created
+		 * group will be the primary group of the user. If
+		 * there is no named group to be a member of, the UID will
+		 * be figured out and that value will be a candidate for a
+		 * new group, if that group ID exists, a whole new group ID
+		 * will be made up.
+		 */
+		if (   (NULL == pw)
+		    && (add_group (fields[0], fields[3], &gid, uid) != 0)) {
+			eprintf(_("%s: line %jd: can't create group\n"),
+			         Prog, line);
+			fail_exit (EXIT_FAILURE, process_selinux);
+		}
+
+		/*
+		 * Now we work on the user ID. It has to be specified either
+		 * as a numerical value, or left blank. If it is a numerical
+		 * value, that value will be used, otherwise the next
+		 * available user ID is computed and used. After this there
+		 * will at least be a (struct passwd) for the user.
+		 */
+		if (   (NULL == pw)
+		    && (add_user (fields[0], uid, gid) != 0)) {
+			eprintf(_("%s: line %jd: can't create user\n"),
+			         Prog, line);
+			fail_exit (EXIT_FAILURE, process_selinux);
+		}
+
+		/*
+		 * The password, gecos field, directory, and shell fields
+		 * all come next.
+		 */
+		pw = pw_locate (fields[0]);
+		if (NULL == pw) {
+			eprintf(_("%s: line %jd: user '%s' does not exist in %s\n"),
+			         Prog, line, fields[0], pw_dbname ());
+			fail_exit (EXIT_FAILURE, process_selinux);
+		}
+		newpw = *pw;
+
+#ifdef USE_PAM
+		/* keep the list of user/password for later update by PAM */
+		nusers++;
+		lines     = reallocf_T(lines, nusers, intmax_t);
+		usernames = reallocf_T(usernames, nusers, char *);
+		passwords = reallocf_T(passwords, nusers, char *);
+		if (lines == NULL || usernames == NULL || passwords == NULL) {
+			eprinte(_("%s: line %jd"), Prog, line);
+			fail_exit (EXIT_FAILURE, process_selinux);
+		}
+		lines[nusers-1]     = line;
+		usernames[nusers-1] = xstrdup(fields[0]);
+		passwords[nusers-1] = xstrdup(fields[1]);
+#endif				/* USE_PAM */
+		if (!streq(fields[1], "") && add_passwd(&newpw, fields[1]) != 0) {
+			eprintf(_("%s: line %jd: can't update password\n"),
+			         Prog, line);
+			fail_exit (EXIT_FAILURE, process_selinux);
+		}
+		if (!streq(fields[4], "")) {
+			newpw.pw_gecos = fields[4];
+		}
+
+		if (!streq(fields[5], "")) {
+			newpw.pw_dir = fields[5];
+		}
+
+		if (!streq(fields[6], "")) {
+			newpw.pw_shell = fields[6];
+		}
+
+		if (   !streq(fields[5], "")
+		    && (access (newpw.pw_dir, F_OK) != 0)) {
+/* FIXME: should check for directory */
+			mode_t mode = getdef_num ("HOME_MODE",
+			                          0777 & ~getdef_num ("UMASK", GETDEF_DEFAULT_UMASK));
+			if (newpw.pw_dir[0] != '/') {
+				eprintf(_("%s: line %jd: homedir must be an absolute path\n"),
+					Prog, line);
+				fail_exit (EXIT_FAILURE, process_selinux);
+			}
+			if (mkdir (newpw.pw_dir, mode) != 0) {
+				eprinte(_("%s: line %jd: mkdir %s failed"),
+				        Prog, line, newpw.pw_dir);
+				if (errno != EEXIST) {
+					fail_exit (EXIT_FAILURE, process_selinux);
+				}
+			}
+			if (chown(newpw.pw_dir, newpw.pw_uid, newpw.pw_gid) != 0)
+			{
+				eprinte(_("%s: line %jd: chown %s failed"),
+				        Prog, line, newpw.pw_dir);
+				fail_exit (EXIT_FAILURE, process_selinux);
+			}
+		}
+
+		/*
+		 * Update the password entry with the new changes made.
+		 */
+		if (pw_update (&newpw) == 0) {
+			eprintf(_("%s: line %jd: can't update entry\n"),
+			         Prog, line);
+			fail_exit (EXIT_FAILURE, process_selinux);
+		}
+
+#ifdef ENABLE_SUBIDS
+		/*
+		 * Add subordinate uids if the user does not have them.
+		 */
+		if (is_sub_uid && !local_sub_uid_assigned(fields[0])) {
+			uid_t sub_uid_start = 0;
+			unsigned long sub_uid_count = 0;
+			if (find_new_sub_uids(newpw.pw_uid, &sub_uid_start, &sub_uid_count) != 0)
+			{
+				eprinte(_("%s: can't find subordinate user range"), Prog);
+				SYSLOGE(LOG_WARN, "can't find subordinate user range");
+				fail_exit (EXIT_FAILURE, process_selinux);
+			}
+			if (sub_uid_add(fields[0], sub_uid_start, sub_uid_count) == 0)
+			{
+				eprintf(_("%s: failed to prepare new %s entry\n"),
+					Prog, sub_uid_dbname ());
+				fail_exit (EXIT_FAILURE, process_selinux);
+			}
+		}
+
+		/*
+		 * Add subordinate gids if the user does not have them.
+		 */
+		if (is_sub_gid && !local_sub_gid_assigned(fields[0])) {
+			gid_t sub_gid_start = 0;
+			unsigned long sub_gid_count = 0;
+			if (find_new_sub_gids(newpw.pw_uid, &sub_gid_start, &sub_gid_count) != 0) {
+				eprinte(_("%s: can't find subordinate group range"), Prog);
+				SYSLOGE(LOG_WARN, "can't find subordinate group range");
+				fail_exit (EXIT_FAILURE, process_selinux);
+			}
+			if (sub_gid_add(fields[0], sub_gid_start, sub_gid_count) == 0) {
+				eprintf(_("%s: failed to prepare new %s entry\n"),
+					Prog, sub_uid_dbname ());
+				fail_exit (EXIT_FAILURE, process_selinux);
+			}
+		}
+#endif				/* ENABLE_SUBIDS */
+	}
+
+	/*
+	 * Any detected errors will cause the entire set of changes to be
+	 * aborted. Unlocking the password file will cause all of the
+	 * changes to be ignored. Otherwise the file is closed, causing the
+	 * changes to be written out all at once, and then unlocked
+	 * afterwards.
+	 */
+	close_files (&flags);
+
+	nscd_flush_cache ("passwd");
+	nscd_flush_cache ("group");
+	sssd_flush_cache (SSSD_DB_PASSWD | SSSD_DB_GROUP);
+
+#ifdef USE_PAM
+	/* Now update the passwords using PAM */
+	for (size_t i = 0; i < nusers; i++) {
+		if (streq(passwords[i], ""))
+			continue;
+		if (do_pam_passwd_non_interactive ("newusers", usernames[i], passwords[i]) != 0) {
+			eprintf(_("%s: (line %jd, user %s) password not changed\n"),
+			         Prog, lines[i], usernames[i]);
+			exit (EXIT_FAILURE);
+		}
+	}
+#endif				/* USE_PAM */
+
+	exit (EXIT_SUCCESS);
+}
+

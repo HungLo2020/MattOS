@@ -1,0 +1,61 @@
+/*
+ * SPDX-FileCopyrightText: 1997 - 1999, Marek Michałkiewicz
+ * SPDX-FileCopyrightText: 2001 - 2005, Tomasz Kłoczko
+ * SPDX-FileCopyrightText: 2008       , Nicolas François
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+#include "config.h"
+
+#ifdef USE_PAM
+
+/* Copied from src/passwd.c */
+#define E_PAM_ERR	10	/* PAM returned an error */
+
+#ident "$Id$"
+
+
+/*
+ * Change the user's password using PAM.
+ */
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include "defines.h"
+#include "pam_defs.h"
+#include "prototypes.h"
+#include "shadowlog.h"
+
+void do_pam_passwd (const char *user, bool silent, bool change_expired)
+{
+	pam_handle_t *pamh = NULL;
+	int flags = 0, ret;
+
+	if (silent)
+		flags |= PAM_SILENT;
+	if (change_expired)
+		flags |= PAM_CHANGE_EXPIRED_AUTHTOK;
+
+	ret = pam_start ("passwd", user, &conv, &pamh);
+	if (ret != PAM_SUCCESS) {
+		fprintf (log_get_logfd(),
+			 _("passwd: pam_start() failed, error %d\n"), ret);
+		exit (E_PAM_ERR);
+	}
+
+	ret = pam_chauthtok (pamh, flags);
+	if (ret != PAM_SUCCESS) {
+		fprintf (log_get_logfd(), _("passwd: %s\n"), pam_strerror (pamh, ret));
+		fputs (_("passwd: password unchanged\n"), log_get_logfd());
+		pam_end (pamh, ret);
+		exit (E_PAM_ERR);
+	}
+
+	fputs (_("passwd: password updated successfully\n"), log_get_logfd());
+	(void) pam_end (pamh, PAM_SUCCESS);
+}
+#else				/* !USE_PAM */
+extern int ISO_C_forbids_an_empty_translation_unit;
+#endif				/* !USE_PAM */

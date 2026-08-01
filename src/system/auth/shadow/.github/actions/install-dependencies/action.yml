@@ -1,0 +1,26 @@
+name: 'Install dependencies'
+description: 'Install dependencies to build shadow-utils'
+runs:
+  using: "composite"
+  steps:
+  - shell: bash
+    run: |
+      if [ -f /etc/apt/sources.list.d/ubuntu.sources ]; then
+        echo "Found new-style sources.list.d"
+        cat /etc/apt/sources.list.d/ubuntu.sources
+        sudo sed -i 's/^Types: deb/Types: deb deb-src/' /etc/apt/sources.list.d/ubuntu.sources
+      else
+        echo "Found legacy sources.list"
+        cat /etc/apt/sources.list
+        sudo sed -i '/deb-src/d' /etc/apt/sources.list
+        sudo sed -i '/^deb /p;s/ /-src /' /etc/apt/sources.list
+      fi
+      export DEBIAN_PRIORITY=critical
+      export DEBIAN_FRONTEND=noninteractive
+      sudo apt purge -y man-db
+      # let's try to work around upgrade breakage in a pkg we don't care about
+      sudo apt-mark hold grub-efi-amd64-bin grub-efi-amd64-signed
+      sudo apt-get update
+      sudo apt-get -y dist-upgrade
+      sudo apt-get -y install ubuntu-dev-tools automake autopoint xsltproc gettext expect libtool libbsd-dev libltdl-dev libsystemd-dev pkgconf libcmocka-dev
+      sudo apt-get -y build-dep shadow

@@ -1,0 +1,99 @@
+# To run the release workflow push a tag with the expected SHA256SUMS as tag message body.
+
+name: Release
+
+on:
+  push:
+    tags: '*'
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    permissions: {}
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Sanity checks
+        run: |
+          # GHA makes the tag point to the commit rather than the tag object.
+          # Remove the tag and fetch it again to get the real tag object.
+          git tag -d "$(echo "$GITHUB_REF" | sed 's/refs\/tags\///')"
+          git fetch https://github.com/trifectatechfoundation/sudo-rs.git --tags
+
+          # Check if the tag has a signature to prevent accidentally pushing an unsigned tag.
+          git tag -l --format='%(contents:signature)' "$(echo "$GITHUB_REF" | sed 's/refs\/tags\///')" | grep --quiet SIGNATURE || (echo "Tag not signed"; exit 1)
+
+      - name: Run build
+        run: ./util/build-release.sh
+
+      # Upload the built tarballs first before comparing checksums to help with debugging.
+      - name: Upload artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release_files
+          path: |
+            target/pkg/SHA256SUMS
+            target/pkg/*.tar.gz
+
+      - name: Compare checksums
+        run: |
+          # Get the expected checksums from the tag message.
+          git tag -l --format='%(contents:body)' "$(echo "$GITHUB_REF" | sed 's/refs\/tags\///')" | tr -s '\n' > expected_checksums.txt
+
+          # Check that the actual checksums match what we expected. If not fail
+          # the release and have the person doing the release check again for
+          # reproducibility problems.
+          cat expected_checksums.txt
+          diff -u expected_checksums.txt target/pkg/SHA256SUMS
+
+  release:
+    runs-on: ubuntu-24.04
+    permissions:
+       contents: write
+    needs: build
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Download artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: release_files
+          path: release_files
+
+      - name: Prepare release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Release files:"
+          ls -l release_files
+          echo
+
+          # Add the fixed header to the release notes
+          echo 'To use the precompiled binaries attached below, consult our [manual installation instructions](https://github.com/trifectatechfoundation/sudo-rs?tab=readme-ov-file#installing-our-pre-compiled-x86-64-binaries)' > notes.md
+
+          # Extract the first changelog entry from CHANGELOG.md
+          echo "Changelog:"
+          sed -n '4,${ /^## /q; p; }' CHANGELOG.md | tee -a notes.md
+
+          util/gh-credits.sh >> notes.md
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # GHA makes the tag point to the commit rather than the tag object.
+          # Remove the tag and fetch it again to get the real tag object.
+          RELEASE="$(echo "$GITHUB_REF" | sed 's/refs\/tags\///')"
+          git tag -d "$RELEASE"
+          git fetch https://github.com/trifectatechfoundation/sudo-rs.git --tags
+
+          gh release create "$RELEASE" --draft \
+            --title "Version ${RELEASE#v}" \
+            --notes-file notes.md release_files/* \
+            --verify-tag
+          echo "Draft release successfully created. Please review and publish."

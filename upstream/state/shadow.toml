@@ -1,0 +1,7 @@
+component = "shadow"
+repo = "https://github.com/shadow-maint/shadow.git"
+branch = "master"
+imported_commit = "855d15a04625818fa28a94e693dd4dc7acfb5af3"
+imported_at_utc = "2026-08-01T01:09:58.249206763+00:00"
+sync_method = "copy"
+destination_path = "src/system/auth/shadow"

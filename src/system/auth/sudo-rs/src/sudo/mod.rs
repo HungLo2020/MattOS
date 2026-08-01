@@ -1,0 +1,156 @@
+#![deny(unsafe_code)]
+
+use crate::common::Error;
+use crate::common::resolve::CurrentUser;
+use crate::log::dev_info;
+use crate::system::User;
+use crate::system::interface::UserId;
+use crate::system::timestamp::RecordScope;
+use crate::system::{Process, timestamp::SessionRecordFile};
+#[cfg(test)]
+pub(crate) use cli::SudoAction;
+#[cfg(not(test))]
+use cli::SudoAction;
+use std::{path::PathBuf, time::Duration};
+
+mod cli;
+pub(crate) use cli::{SudoEditOptions, SudoListOptions, SudoRunOptions, SudoValidateOptions};
+mod edit;
+
+pub(crate) mod diagnostic;
+mod env;
+pub(crate) use env::environment::PATH_DEFAULT;
+mod pam;
+mod pipeline;
+
+#[cfg_attr(not(feature = "dev"), allow(dead_code))]
+fn unstable_warning() {
+    let check_var = std::env::var("SUDO_RS_IS_UNSTABLE").unwrap_or_else(|_| "".to_string());
+
+    if check_var != "I accept that my system may break unexpectedly" {
+        eprintln_ignore_io_error!(
+            "WARNING!
+Sudo-rs is compiled with development logs on, which means it is less secure and could potentially
+break your system. We recommend that you do not run this on any production environment.
+To turn off this warning and use sudo-rs you need to set the environment variable
+SUDO_RS_IS_UNSTABLE to the value `I accept that my system may break unexpectedly`."
+        );
+
+        std::process::exit(1);
+    }
+}
+
+const VERSION: &str = if let Some(version_override) = std::option_env!("SUDO_RS_VERSION") {
+    version_override
+} else {
+    std::env!("CARGO_PKG_VERSION")
+};
+
+pub(crate) fn candidate_sudoers_file() -> PathBuf {
+    let mut path = if cfg!(target_os = "freebsd") {
+        option_env!("LOCALBASE").unwrap_or("/usr/local").into()
+    } else {
+        PathBuf::from("/")
+    };
+    path.push("etc/sudoers-rs");
+    if !path.exists() {
+        path.set_file_name("sudoers");
+    };
+
+    dev_info!("Running with {} file", path.display());
+    path
+}
+
+fn sudo_process() -> Result<(), Error> {
+    crate::log::SudoLogger::new("sudo: ").into_global_logger();
+
+    dev_info!("development logs are enabled");
+
+    #[cfg(feature = "gettext")]
+    crate::gettext::textdomain(c"sudo-rs");
+
+    self_check()?;
+
+    let usage_msg: &str;
+    let long_help: fn() -> String;
+    if cli::is_sudoedit(std::env::args_os().next()) {
+        usage_msg = cli::help_edit::usage_msg();
+        long_help = cli::help_edit::long_help_message;
+    } else {
+        usage_msg = cli::help::usage_msg();
+        long_help = cli::help::long_help_message;
+    }
+
+    // parse cli options
+    match SudoAction::from_env() {
+        Ok(action) => match action {
+            SudoAction::Help(_) => {
+                println_ignore_io_error!("{}", long_help());
+                std::process::exit(0);
+            }
+            SudoAction::Version(_) => {
+                println_ignore_io_error!("sudo-rs {VERSION}");
+                std::process::exit(0);
+            }
+            SudoAction::RemoveTimestamp(_) => {
+                let user = CurrentUser::resolve()?;
+                let mut record_file = SessionRecordFile::open_for_user(&user, Duration::default())?;
+                record_file.reset()?;
+                Ok(())
+            }
+            SudoAction::ResetTimestamp(_) => {
+                let user = CurrentUser::resolve()?;
+                let process = Process::new();
+                for record_scope in [RecordScope::for_tty, RecordScope::for_ppid] {
+                    if let Some(scope) = record_scope(&process) {
+                        let mut record_file =
+                            SessionRecordFile::open_for_user(&user, Duration::default())?;
+                        record_file.disable(scope)?;
+                    }
+                }
+                Ok(())
+            }
+            SudoAction::Validate(options) => pipeline::run_validate(options),
+            SudoAction::Run(options) => {
+                #[cfg(feature = "dev")]
+                unstable_warning();
+
+                // SudoAction::from_env() should already ensure this
+                assert!(!options.positional_args.is_empty() || options.shell || options.login);
+
+                pipeline::run(options)
+            }
+            SudoAction::List(options) => pipeline::run_list(options),
+            SudoAction::Edit(options) => pipeline::run_edit(options),
+        },
+        Err(e) => {
+            eprintln_ignore_io_error!("{e}\n{}", usage_msg);
+            std::process::exit(1);
+        }
+    }
+}
+
+fn self_check() -> Result<(), Error> {
+    if User::effective_uid() != UserId::ROOT {
+        #[cfg(target_os = "linux")]
+        if crate::system::audit::no_new_privs_enabled()? {
+            return Err(Error::SelfCheckNoNewPrivs);
+        }
+
+        return Err(Error::SelfCheckSetuid);
+    }
+
+    Ok(())
+}
+
+pub fn main() {
+    match sudo_process() {
+        Ok(()) => (),
+        Err(error) => {
+            if !error.is_silent() {
+                diagnostic::diagnostic!("{error}");
+            }
+            std::process::exit(1);
+        }
+    }
+}

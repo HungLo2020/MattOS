@@ -15,6 +15,7 @@ REQUIRED_TOOLS = [
     "rustc",
     "make",
     "gcc",
+    "autoreconf",
     "meson",
     "ninja",
     "gperf",
@@ -48,6 +49,9 @@ EXTRA_SYSTEMD_PACKAGES = [
     "gperf",
     "python3-jinja2",
     "libmount-dev",
+    "autoconf",
+    "automake",
+    "libtool",
 ]
 
 DEBIAN_TOOL_PACKAGES: Dict[str, List[str]] = {
@@ -56,6 +60,7 @@ DEBIAN_TOOL_PACKAGES: Dict[str, List[str]] = {
     "rustc": ["rustc"],
     "make": ["build-essential"],
     "gcc": ["build-essential"],
+    "autoreconf": ["autoconf", "automake", "libtool"],
     "meson": ["meson"],
     "ninja": ["ninja-build"],
     "gperf": ["gperf"],

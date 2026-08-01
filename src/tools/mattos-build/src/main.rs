@@ -23,6 +23,9 @@ const SED_PROVIDER: &str = "uutils/sed";
 const FINDUTILS_PROVIDER: &str = "uutils/findutils";
 const DIFFUTILS_PROVIDER: &str = "uutils/diffutils";
 const UTIL_LINUX_PROVIDER: &str = "util-linux";
+const LINUX_PAM_PROVIDER: &str = "linux-pam";
+const SHADOW_PROVIDER: &str = "shadow";
+const SUDO_RS_PROVIDER: &str = "sudo-rs";
 
 const DIFFUTILS_EXPECTED_COMMANDS: &[&str] = &["diff", "cmp", "diff3", "sdiff"];
 const DIFFUTILS_AVAILABLE_ALIASES: &[&str] = &["diff", "cmp"];
@@ -212,6 +215,9 @@ enum BuildStage {
 	Sed,
 	Findutils,
 	Diffutils,
+	Pam,
+	Shadow,
+	SudoRs,
 	UtilLinux,
 	Systemd,
 	Init,
@@ -323,6 +329,7 @@ fn doctor() -> Result<()> {
 		"rustc",
 		"make",
 		"gcc",
+		"autoreconf",
 		"meson",
 		"ninja",
 		"gperf",
@@ -339,6 +346,8 @@ fn doctor() -> Result<()> {
 		"xorriso",
 		"pkg-config",
 		"bash",
+		"bison",
+		"flex",
 	] {
 		if !check_host_tool_with_hint(tool, true, local_path_hint.as_deref())? {
 			missing_required.push(tool);
@@ -373,7 +382,7 @@ fn doctor() -> Result<()> {
 	}
 
 	println!("\n[Optional tools]");
-	for tool in ["qemu-system-x86_64", "clang", "bison", "flex"] {
+	for tool in ["qemu-system-x86_64", "clang"] {
 		if !check_host_tool_with_hint(tool, false, local_path_hint.as_deref())? {
 			missing_optional.push(tool);
 		}
@@ -482,6 +491,7 @@ fn clean(repo_root: &Path, target: CleanTarget) -> Result<()> {
 			remove_path_if_exists(&repo_root.join("src/userland/sed/target"))?;
 			remove_path_if_exists(&repo_root.join("src/userland/findutils/target"))?;
 			remove_path_if_exists(&repo_root.join("src/userland/diffutils/target"))?;
+			remove_path_if_exists(&repo_root.join("src/system/auth/sudo-rs/target"))?;
 		}
 		CleanTarget::All => {
 			remove_path_if_exists(&repo_root.join("out"))?;
@@ -492,6 +502,7 @@ fn clean(repo_root: &Path, target: CleanTarget) -> Result<()> {
 			remove_path_if_exists(&repo_root.join("src/userland/sed/target"))?;
 			remove_path_if_exists(&repo_root.join("src/userland/findutils/target"))?;
 			remove_path_if_exists(&repo_root.join("src/userland/diffutils/target"))?;
+			remove_path_if_exists(&repo_root.join("src/system/auth/sudo-rs/target"))?;
 			remove_path_if_exists(&repo_root.join("upstream/.tmp"))?;
 		}
 	}
@@ -550,6 +561,7 @@ fn packages_for_tool<'a>(tool: &'a str, os_release: &str) -> Vec<&'a str> {
 			"mformat" | "mcopy" => vec!["mtools"],
 			"qemu-system-x86_64" => vec!["qemu-system-x86"],
 			"ninja" => vec!["ninja-build"],
+			"autoreconf" => vec!["autoconf", "automake", "libtool"],
 			"python3-jinja2" => vec!["python3-jinja2"],
 			_ => vec![tool],
 		};
@@ -1507,7 +1519,10 @@ fn build_plan(stage: BuildStage) -> Vec<BuildStage> {
 			BuildStage::Sed,
 			BuildStage::Findutils,
 			BuildStage::Diffutils,
+			BuildStage::Pam,
 			BuildStage::UtilLinux,
+			BuildStage::Shadow,
+			BuildStage::SudoRs,
 			BuildStage::Systemd,
 			BuildStage::Init,
 			BuildStage::Rootfs,
@@ -1528,6 +1543,9 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
 		BuildStage::Sed => build_sed(repo_root),
 		BuildStage::Findutils => build_findutils(repo_root),
 		BuildStage::Diffutils => build_diffutils(repo_root),
+		BuildStage::Pam => build_linux_pam(repo_root),
+		BuildStage::Shadow => build_shadow(repo_root),
+		BuildStage::SudoRs => build_sudo_rs(repo_root),
 		BuildStage::UtilLinux => build_util_linux(repo_root),
 		BuildStage::Systemd => build_systemd(repo_root),
 		BuildStage::Init => build_init(repo_root),
@@ -1735,23 +1753,23 @@ fn build_init(repo_root: &Path) -> Result<()> {
 	)
 }
 
-fn build_util_linux(repo_root: &Path) -> Result<()> {
-	let util_linux_src = repo_root.join("src/userland/util-linux");
-	if !util_linux_src.join("meson.build").exists() {
+fn build_linux_pam(repo_root: &Path) -> Result<()> {
+	let pam_src = repo_root.join("src/system/auth/linux-pam");
+	if !pam_src.join("meson.build").exists() {
 		bail!(
-			"util-linux source not found in {}; run upstream import util-linux first",
-			util_linux_src.display()
+			"linux-pam source not found in {}; run upstream import linux-pam first",
+			pam_src.display()
 		);
 	}
 
-	let out_root = repo_root.join("out/build/util-linux");
+	let out_root = repo_root.join("out/build/linux-pam");
 	let build_dir = out_root.join("build");
 	let install_dir = out_root.join("install");
 	let options_path = out_root.join("meson-options.txt");
 	fs::create_dir_all(&out_root)
 		.with_context(|| format!("failed to create {}", out_root.display()))?;
 
-	let options = util_linux_meson_options();
+	let options = linux_pam_meson_options();
 	let options_text = format!("{}\n", options.join("\n"));
 	let existing_options = fs::read_to_string(&options_path).ok();
 	let needs_reconfigure = existing_options.as_deref() != Some(options_text.as_str());
@@ -1761,7 +1779,7 @@ fn build_util_linux(repo_root: &Path) -> Result<()> {
 		let mut setup_args = vec![
 			"setup".to_string(),
 			build_dir.display().to_string(),
-			util_linux_src.display().to_string(),
+			pam_src.display().to_string(),
 		];
 		setup_args.extend(options.clone());
 		let setup_refs: Vec<&str> = setup_args.iter().map(String::as_str).collect();
@@ -1773,7 +1791,7 @@ fn build_util_linux(repo_root: &Path) -> Result<()> {
 			"setup".to_string(),
 			"--reconfigure".to_string(),
 			build_dir.display().to_string(),
-			util_linux_src.display().to_string(),
+			pam_src.display().to_string(),
 		];
 		setup_args.extend(options.clone());
 		let setup_refs: Vec<&str> = setup_args.iter().map(String::as_str).collect();
@@ -1784,13 +1802,13 @@ fn build_util_linux(repo_root: &Path) -> Result<()> {
 
 	run_cmd(
 		repo_root,
-		"ninja",
+		"meson",
 		&[
+			"compile",
 			"-C",
 			build_dir
 				.to_str()
-				.ok_or_else(|| anyhow!("invalid util-linux build dir"))?,
-			"agetty",
+				.ok_or_else(|| anyhow!("invalid linux-pam build dir"))?,
 		],
 	)?;
 
@@ -1809,6 +1827,310 @@ fn build_util_linux(repo_root: &Path) -> Result<()> {
 			"-C",
 			build_dir
 				.to_str()
+				.ok_or_else(|| anyhow!("invalid linux-pam build dir"))?,
+			"--no-rebuild",
+			"--destdir",
+			install_dir
+				.to_str()
+				.ok_or_else(|| anyhow!("invalid linux-pam install dir"))?,
+		],
+	)?;
+
+	let pam_lib = install_dir.join("usr/lib/x86_64-linux-gnu/libpam.so.0");
+	if !pam_lib.exists() {
+		bail!("linux-pam install did not produce {}", pam_lib.display());
+	}
+
+	Ok(())
+}
+
+fn linux_pam_meson_options() -> Vec<String> {
+	vec![
+		"--prefix=/usr".to_string(),
+		"--sysconfdir=/etc".to_string(),
+		"--libdir=lib/x86_64-linux-gnu".to_string(),
+		"-Ddocs=disabled".to_string(),
+		"-Di18n=disabled".to_string(),
+		"-Daudit=disabled".to_string(),
+		"-Dselinux=disabled".to_string(),
+		"-Dlogind=disabled".to_string(),
+		"-Delogind=disabled".to_string(),
+		"-Deconf=disabled".to_string(),
+		"-Dexamples=false".to_string(),
+		"-Dxtests=false".to_string(),
+		"-Dsecuredir=/usr/lib/x86_64-linux-gnu/security".to_string(),
+	]
+}
+
+fn build_shadow(repo_root: &Path) -> Result<()> {
+	let shadow_src = repo_root.join("src/system/auth/shadow");
+	if !shadow_src.join("configure.ac").exists() {
+		bail!(
+			"shadow source not found in {}; run upstream import shadow first",
+			shadow_src.display()
+		);
+	}
+
+	if !shadow_src.join("configure").exists() {
+		run_cmd(&shadow_src, "autoreconf", &["-v", "-f", "-i"])?;
+	}
+
+	let out_root = repo_root.join("out/build/shadow");
+	let build_dir = out_root.join("build");
+	let install_dir = out_root.join("install");
+	let stamp = build_dir.join("config.stamp");
+	fs::create_dir_all(&build_dir)
+		.with_context(|| format!("failed to create {}", build_dir.display()))?;
+
+	if !stamp.exists() {
+		run_cmd(
+			&build_dir,
+			shadow_src
+				.join("configure")
+				.to_str()
+				.ok_or_else(|| anyhow!("invalid shadow configure path"))?,
+			&[
+				"--prefix=/usr",
+				"--sysconfdir=/etc",
+				"--disable-nls",
+				"--with-libpam",
+				"--without-selinux",
+			],
+		)?;
+		fs::write(&stamp, "configured\n")
+			.with_context(|| format!("failed to write {}", stamp.display()))?;
+	}
+
+	run_cmd(&build_dir, "make", &["-j", "4"])?;
+
+	if install_dir.exists() {
+		fs::remove_dir_all(&install_dir)
+			.with_context(|| format!("failed to clean {}", install_dir.display()))?;
+	}
+	fs::create_dir_all(&install_dir)
+		.with_context(|| format!("failed to create {}", install_dir.display()))?;
+
+	run_cmd(
+		&build_dir,
+		"make",
+		&[
+			"install",
+			&format!(
+				"DESTDIR={}",
+				install_dir
+					.to_str()
+					.ok_or_else(|| anyhow!("invalid shadow install dir"))?
+			),
+		],
+	)?;
+
+	let passwd_bin = install_dir.join("usr/bin/passwd");
+	if !passwd_bin.exists() {
+		bail!("shadow install did not produce {}", passwd_bin.display());
+	}
+
+	Ok(())
+}
+
+fn build_sudo_rs(repo_root: &Path) -> Result<()> {
+	let sudo_src = repo_root.join("src/system/auth/sudo-rs");
+	if !sudo_src.join("Cargo.toml").exists() {
+		bail!(
+			"sudo-rs source not found in {}; run upstream import sudo-rs first",
+			sudo_src.display()
+		);
+	}
+
+	let pam_install = repo_root.join("out/build/linux-pam/install");
+	let pam_lib = pam_install.join("usr/lib/x86_64-linux-gnu");
+	if !pam_lib.join("libpam.so").exists() && !pam_lib.join("libpam.so.0").exists() {
+		bail!(
+			"linux-pam libraries missing at {}; run build pam first",
+			pam_lib.display()
+		);
+	}
+	let current_rustflags = std::env::var("RUSTFLAGS").unwrap_or_default();
+	let rustflags = if current_rustflags.is_empty() {
+		format!("-L native={}", pam_lib.display())
+	} else {
+		format!("-L native={} {current_rustflags}", pam_lib.display())
+	};
+	let current_library_path = std::env::var("LIBRARY_PATH").unwrap_or_default();
+	let library_path = if current_library_path.is_empty() {
+		pam_lib.display().to_string()
+	} else {
+		format!("{}:{current_library_path}", pam_lib.display())
+	};
+	let env_overrides = vec![
+		("RUSTFLAGS", rustflags),
+		("LIBRARY_PATH", library_path),
+	];
+
+	run_cmd_with_env_overrides(
+		repo_root,
+		"cargo",
+		&[
+			"build",
+			"--release",
+			"--manifest-path",
+			"src/system/auth/sudo-rs/Cargo.toml",
+			"--bin",
+			"sudo",
+			"--bin",
+			"visudo",
+		],
+		&env_overrides,
+	)?;
+
+	let out_root = repo_root.join("out/build/sudo-rs");
+	let install_dir = out_root.join("install");
+	if install_dir.exists() {
+		fs::remove_dir_all(&install_dir)
+			.with_context(|| format!("failed to clean {}", install_dir.display()))?;
+	}
+	fs::create_dir_all(install_dir.join("usr/bin"))
+		.with_context(|| format!("failed to create {}", install_dir.join("usr/bin").display()))?;
+
+	for bin in ["sudo", "visudo"] {
+		let src = repo_root.join(format!("src/system/auth/sudo-rs/target/release/{bin}"));
+		if !src.exists() {
+			bail!("sudo-rs build did not produce {}", src.display());
+		}
+		let dst = install_dir.join("usr/bin").join(bin);
+		fs::copy(&src, &dst).with_context(|| format!("failed to copy {}", src.display()))?;
+	}
+
+	Ok(())
+}
+
+fn build_util_linux(repo_root: &Path) -> Result<()> {
+	let util_linux_src = repo_root.join("src/userland/util-linux");
+	if !util_linux_src.join("meson.build").exists() {
+		bail!(
+			"util-linux source not found in {}; run upstream import util-linux first",
+			util_linux_src.display()
+		);
+	}
+
+	let out_root = repo_root.join("out/build/util-linux");
+	let build_dir = out_root.join("build");
+	let install_dir = out_root.join("install");
+	let options_path = out_root.join("meson-options.txt");
+	let env_path = out_root.join("meson-env.txt");
+	let pam_install = repo_root.join("out/build/linux-pam/install");
+	let pam_pkgconfig = pam_install.join("usr/lib/x86_64-linux-gnu/pkgconfig");
+	let pam_include = pam_install.join("usr/include");
+	let pam_lib = pam_install.join("usr/lib/x86_64-linux-gnu");
+	if !pam_pkgconfig.exists() {
+		bail!(
+			"linux-pam pkg-config directory missing at {}; run build pam first",
+			pam_pkgconfig.display()
+		);
+	}
+
+	let current_pkg_config = std::env::var("PKG_CONFIG_PATH").unwrap_or_default();
+	let pkg_config_path = if current_pkg_config.is_empty() {
+		pam_pkgconfig.display().to_string()
+	} else {
+		format!("{}:{current_pkg_config}", pam_pkgconfig.display())
+	};
+	let current_cflags = std::env::var("CFLAGS").unwrap_or_default();
+	let cflags = if current_cflags.is_empty() {
+		format!("-I{}", pam_include.display())
+	} else {
+		format!("-I{} {current_cflags}", pam_include.display())
+	};
+	let current_ldflags = std::env::var("LDFLAGS").unwrap_or_default();
+	let ldflags = if current_ldflags.is_empty() {
+		format!("-L{}", pam_lib.display())
+	} else {
+		format!("-L{} {current_ldflags}", pam_lib.display())
+	};
+	let env_overrides = vec![
+		("PKG_CONFIG_PATH", pkg_config_path),
+		("CFLAGS", cflags),
+		("LDFLAGS", ldflags),
+	];
+	let env_text = format!(
+		"PKG_CONFIG_PATH={}\nCFLAGS={}\nLDFLAGS={}\n",
+		env_overrides[0].1, env_overrides[1].1, env_overrides[2].1
+	);
+	let existing_env = fs::read_to_string(&env_path).ok();
+	fs::create_dir_all(&out_root)
+		.with_context(|| format!("failed to create {}", out_root.display()))?;
+
+	let options = util_linux_meson_options();
+	let options_text = format!("{}\n", options.join("\n"));
+	let existing_options = fs::read_to_string(&options_path).ok();
+	let needs_reconfigure = existing_options.as_deref() != Some(options_text.as_str());
+	let env_changed = existing_env.as_deref() != Some(env_text.as_str());
+	let mut configured = build_dir.join("build.ninja").exists();
+
+	if configured && env_changed {
+		fs::remove_dir_all(&build_dir)
+			.with_context(|| format!("failed to reset {}", build_dir.display()))?;
+		configured = false;
+	}
+
+	if !configured {
+		let mut setup_args = vec![
+			"setup".to_string(),
+			build_dir.display().to_string(),
+			util_linux_src.display().to_string(),
+		];
+		setup_args.extend(options.clone());
+		let setup_refs: Vec<&str> = setup_args.iter().map(String::as_str).collect();
+		run_cmd_with_env_overrides(repo_root, "meson", &setup_refs, &env_overrides)?;
+		fs::write(&options_path, &options_text)
+			.with_context(|| format!("failed to write {}", options_path.display()))?;
+		fs::write(&env_path, &env_text)
+			.with_context(|| format!("failed to write {}", env_path.display()))?;
+	} else if needs_reconfigure {
+		let mut setup_args = vec![
+			"setup".to_string(),
+			"--reconfigure".to_string(),
+			build_dir.display().to_string(),
+			util_linux_src.display().to_string(),
+		];
+		setup_args.extend(options.clone());
+		let setup_refs: Vec<&str> = setup_args.iter().map(String::as_str).collect();
+		run_cmd_with_env_overrides(repo_root, "meson", &setup_refs, &env_overrides)?;
+		fs::write(&options_path, &options_text)
+			.with_context(|| format!("failed to write {}", options_path.display()))?;
+		fs::write(&env_path, &env_text)
+			.with_context(|| format!("failed to write {}", env_path.display()))?;
+	}
+
+	run_cmd_with_env_overrides(
+		repo_root,
+		"ninja",
+		&[
+			"-C",
+			build_dir
+				.to_str()
+				.ok_or_else(|| anyhow!("invalid util-linux build dir"))?,
+			"agetty",
+			"login",
+			"su",
+		],
+		&env_overrides,
+	)?;
+
+	if install_dir.exists() {
+		fs::remove_dir_all(&install_dir)
+			.with_context(|| format!("failed to clean {}", install_dir.display()))?;
+	}
+	fs::create_dir_all(&install_dir)
+		.with_context(|| format!("failed to create {}", install_dir.display()))?;
+
+	run_cmd_with_env_overrides(
+		repo_root,
+		"meson",
+		&[
+			"install",
+			"-C",
+			build_dir
+				.to_str()
 				.ok_or_else(|| anyhow!("invalid util-linux build dir"))?,
 			"--no-rebuild",
 			"--destdir",
@@ -1816,11 +2138,17 @@ fn build_util_linux(repo_root: &Path) -> Result<()> {
 				.to_str()
 				.ok_or_else(|| anyhow!("invalid util-linux install dir"))?,
 		],
+		&env_overrides,
 	)?;
 
-	let agetty = install_dir.join("usr/sbin/agetty");
-	if !agetty.exists() {
-		bail!("util-linux install did not produce {}", agetty.display());
+	for path in [
+		install_dir.join("usr/sbin/agetty"),
+		install_dir.join("usr/bin/login"),
+		install_dir.join("usr/bin/su"),
+	] {
+		if !path.exists() {
+			bail!("util-linux install did not produce {}", path.display());
+		}
 	}
 
 	Ok(())
@@ -1833,11 +2161,14 @@ fn util_linux_meson_options() -> Vec<String> {
 		"--libdir=lib/x86_64-linux-gnu".to_string(),
 		"--auto-features=disabled".to_string(),
 		"-Dbuild-agetty=enabled".to_string(),
+		"-Dbuild-login=enabled".to_string(),
+		"-Dbuild-su=enabled".to_string(),
 		"-Dsystemd=disabled".to_string(),
 		"-Dnls=disabled".to_string(),
 		"-Dbuild-bash-completion=disabled".to_string(),
 		"-Dbuild-python=disabled".to_string(),
 		"-Dbuild-pylibmount=disabled".to_string(),
+		"-Dbuild-mount=disabled".to_string(),
 	]
 }
 
@@ -1992,6 +2323,7 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 	set_mode(out.join("usr/libexec/mattos/validate-shell-env"), 0o755)?;
 	fs::create_dir_all(out.join("root")).context("failed to create /root in rootfs")?;
 	set_mode(out.join("root"), 0o700)?;
+	fs::create_dir_all(out.join("home")).context("failed to create /home in rootfs")?;
 	fs::create_dir_all(out.join("run")).context("failed to create /run in rootfs")?;
 	fs::create_dir_all(out.join("var/log")).context("failed to create /var/log in rootfs")?;
 	fs::create_dir_all(out.join("var/tmp")).context("failed to create /var/tmp in rootfs")?;
@@ -1999,34 +2331,86 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 	fs::create_dir_all(out.join("usr/libexec/mattos")).context("failed to create rescue init dir")?;
 	fs::write(out.join("etc/machine-id"), "").context("failed to create /etc/machine-id")?;
 
+	let pam_install = repo_root.join("out/build/linux-pam/install");
+	let shadow_install = repo_root.join("out/build/shadow/install");
+	let sudo_rs_install = repo_root.join("out/build/sudo-rs/install");
 	let systemd_install = repo_root.join("out/build/systemd/install");
 	let util_linux_install = repo_root.join("out/build/util-linux/install");
 	let systemd_pid1 = systemd_install.join("usr/lib/systemd/systemd");
+	let pam_lib = pam_install.join("usr/lib/x86_64-linux-gnu/libpam.so.0");
+	let shadow_passwd = shadow_install.join("usr/bin/passwd");
+	let sudo_bin = sudo_rs_install.join("usr/bin/sudo");
 	if !systemd_pid1.exists() {
 		bail!(
 			"systemd install output missing at {}; run build systemd first",
 			systemd_pid1.display()
 		);
 	}
+	if !pam_lib.exists() {
+		bail!(
+			"linux-pam install output missing at {}; run build pam first",
+			pam_lib.display()
+		);
+	}
+	if !shadow_passwd.exists() {
+		bail!(
+			"shadow install output missing at {}; run build shadow first",
+			shadow_passwd.display()
+		);
+	}
+	if !sudo_bin.exists() {
+		bail!(
+			"sudo-rs install output missing at {}; run build sudo-rs first",
+			sudo_bin.display()
+		);
+	}
 	copy_tree_excluding_dotgit(&systemd_install, &out)?;
+	copy_tree_excluding_dotgit(&pam_install, &out)?;
 	copy_shared_object_and_deps("libmount.so.1", &out)?;
 	copy_host_binary_and_deps("/usr/bin/mount", &out)?;
 	copy_host_binary_and_deps("/usr/sbin/ldconfig", &out)?;
-	let agetty_src = util_linux_install.join("usr/sbin/agetty");
-	if !agetty_src.exists() {
-		bail!(
-			"util-linux install output missing at {}; run build util-linux first",
-			agetty_src.display()
-		);
+	for rel in ["usr/sbin/agetty", "usr/bin/login", "usr/bin/su"] {
+		let src = util_linux_install.join(rel);
+		if !src.exists() {
+			bail!(
+				"util-linux install output missing at {}; run build util-linux first",
+				src.display()
+			);
+		}
+		let dst = out.join(rel);
+		if let Some(parent) = dst.parent() {
+			fs::create_dir_all(parent)
+				.with_context(|| format!("failed to create {}", parent.display()))?;
+		}
+		fs::copy(&src, &dst).with_context(|| format!("failed to copy {}", src.display()))?;
+		copy_runtime_dependencies(&dst, &out)?;
 	}
-	let agetty_dst = out.join("usr/sbin/agetty");
-	if let Some(parent) = agetty_dst.parent() {
-		fs::create_dir_all(parent)
-			.with_context(|| format!("failed to create {}", parent.display()))?;
+
+	for rel in [
+		"usr/bin/passwd",
+		"usr/sbin/useradd",
+		"usr/sbin/usermod",
+		"usr/sbin/userdel",
+		"usr/sbin/groupadd",
+		"usr/sbin/groupmod",
+		"usr/sbin/groupdel",
+		"usr/sbin/chpasswd",
+		"usr/bin/chage",
+		"usr/bin/newgrp",
+		"usr/bin/groups",
+	] {
+		copy_built_binary_and_runtime(&shadow_install.join(rel), &out.join(rel), &out)?;
 	}
-	fs::copy(&agetty_src, &agetty_dst)
-		.with_context(|| format!("failed to copy {}", agetty_src.display()))?;
-	copy_runtime_dependencies(&agetty_dst, &out)?;
+
+	for rel in ["usr/bin/sudo", "usr/bin/visudo"] {
+		copy_built_binary_and_runtime(&sudo_rs_install.join(rel), &out.join(rel), &out)?;
+	}
+
+	verify_required_pam_modules(&out)?;
+	copy_auth_configuration(repo_root, &out)?;
+	apply_live_profile(repo_root, &out)?;
+	validate_account_database(&out)?;
+	enforce_auth_file_modes(&out)?;
 	install_mattos_system_units(repo_root, &out)?;
 
 	let init_bin = repo_root.join("target/release/mattos-init");
@@ -2047,8 +2431,51 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 	copy_runtime_dependencies(&rescue_init, &out)?;
 	let mut inventory = UserlandInventory::default();
 	inventory.add_implemented(UTIL_LINUX_PROVIDER, "agetty");
+	inventory.add_implemented(UTIL_LINUX_PROVIDER, "login");
+	inventory.add_implemented(UTIL_LINUX_PROVIDER, "su");
 	inventory.add_compiled(UTIL_LINUX_PROVIDER, "agetty");
+	inventory.add_compiled(UTIL_LINUX_PROVIDER, "login");
+	inventory.add_compiled(UTIL_LINUX_PROVIDER, "su");
 	inventory.add_installed(UTIL_LINUX_PROVIDER, "agetty");
+	inventory.add_installed(UTIL_LINUX_PROVIDER, "login");
+	inventory.add_installed(UTIL_LINUX_PROVIDER, "su");
+
+	for module in [
+		"libpam",
+		"pam_unix",
+		"pam_env",
+		"pam_nologin",
+		"pam_rootok",
+		"pam_permit",
+		"pam_deny",
+		"pam_shells",
+		"pam_securetty",
+	] {
+		inventory.add_implemented(LINUX_PAM_PROVIDER, module);
+		inventory.add_compiled(LINUX_PAM_PROVIDER, module);
+		inventory.add_installed(LINUX_PAM_PROVIDER, module);
+	}
+
+	for cmd in [
+		"passwd",
+		"useradd",
+		"usermod",
+		"userdel",
+		"groupadd",
+		"groupmod",
+		"groupdel",
+		"chpasswd",
+		"chage",
+		"newgrp",
+		"groups",
+	] {
+		inventory.add_implemented(SHADOW_PROVIDER, cmd);
+		inventory.add_compiled(SHADOW_PROVIDER, cmd);
+		inventory.add_installed(SHADOW_PROVIDER, cmd);
+	}
+	inventory.add_implemented(SUDO_RS_PROVIDER, "sudo");
+	inventory.add_compiled(SUDO_RS_PROVIDER, "sudo");
+	inventory.add_installed(SUDO_RS_PROVIDER, "sudo");
 
 	let brush_candidates = [
 		repo_root.join("src/userland/brush/target/release/brush"),
@@ -2119,9 +2546,28 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 		.extend(DIFFUTILS_AVAILABLE_ALIASES.iter().map(|s| s.to_string()));
 	validate_no_duplicate_commands(&provider_commands)?;
 
-	for expected in ["grep", "sed", "find", "xargs", "diff", "cmp"] {
+	for expected in [
+		"grep",
+		"sed",
+		"find",
+		"xargs",
+		"diff",
+		"cmp",
+		"login",
+		"su",
+		"passwd",
+		"sudo",
+		"useradd",
+		"usermod",
+		"userdel",
+		"groupadd",
+		"groupmod",
+		"groupdel",
+		"chpasswd",
+	] {
 		let path = out.join("usr/bin").join(expected);
-		if !path_entry_exists(&path) {
+		let alt = out.join("usr/sbin").join(expected);
+		if !path_entry_exists(&path) && !path_entry_exists(&alt) {
 			bail!(
 				"required command {} missing from rootfs at {}",
 				expected,
@@ -2224,39 +2670,6 @@ fn install_mattos_system_units(repo_root: &Path, rootfs: &Path) -> Result<()> {
 	std::os::unix::fs::symlink("/usr/lib/systemd/system/getty@.service", &tty1_getty)
 		.with_context(|| format!("failed to create {}", tty1_getty.display()))?;
 
-	// Install autologin overrides in /etc with highest precedence.
-	for (source_rel, destination_rel, label) in [
-		(
-			"getty@tty1.service.d/autologin.conf",
-			"etc/systemd/system/getty@tty1.service.d/autologin.conf",
-			"tty1 getty",
-		),
-		(
-			"serial-getty@ttyS0.service.d/autologin.conf",
-			"etc/systemd/system/serial-getty@ttyS0.service.d/autologin.conf",
-			"ttyS0 serial-getty",
-		),
-	] {
-		let src = units_src.join(source_rel);
-		if !src.exists() {
-			bail!("{} autologin override missing at {}", label, src.display());
-		}
-		let dst = rootfs.join(destination_rel);
-		let dst_parent = dst
-			.parent()
-			.ok_or_else(|| anyhow!("missing destination parent for {}", dst.display()))?;
-		fs::create_dir_all(dst_parent)
-			.with_context(|| format!("failed to create {}", dst_parent.display()))?;
-		fs::copy(&src, &dst).with_context(|| {
-			format!(
-				"failed to copy {} autologin override from {} to {}",
-				label,
-				src.display(),
-				dst.display()
-			)
-		})?;
-	}
-
 	for masked in [
 		"systemd-logind.service",
 		"systemd-logind-varlink.socket",
@@ -2271,6 +2684,247 @@ fn install_mattos_system_units(repo_root: &Path, rootfs: &Path) -> Result<()> {
 		#[cfg(unix)]
 		std::os::unix::fs::symlink("/dev/null", &mask)
 			.with_context(|| format!("failed to create {}", mask.display()))?;
+	}
+
+	Ok(())
+}
+
+fn copy_built_binary_and_runtime(src: &Path, dst: &Path, rootfs: &Path) -> Result<()> {
+	if !src.exists() {
+		bail!("required binary missing at {}", src.display());
+	}
+	if let Some(parent) = dst.parent() {
+		fs::create_dir_all(parent)
+			.with_context(|| format!("failed to create {}", parent.display()))?;
+	}
+	fs::copy(src, dst).with_context(|| format!("failed to copy {}", src.display()))?;
+	copy_runtime_dependencies(dst, rootfs)
+}
+
+fn copy_auth_configuration(repo_root: &Path, rootfs: &Path) -> Result<()> {
+	let auth_src = repo_root.join("src/system/auth/config");
+	if !auth_src.exists() {
+		bail!(
+			"MattOS auth config missing at {}; expected local auth policy files",
+			auth_src.display()
+		);
+	}
+
+	let etc_dst = rootfs.join("etc");
+	fs::create_dir_all(&etc_dst).with_context(|| format!("failed to create {}", etc_dst.display()))?;
+
+	for (src_rel, dst_rel) in [
+		("pam.d", "pam.d"),
+		("sudoers.d", "sudoers.d"),
+		("default", "default"),
+	] {
+		copy_tree_excluding_dotgit(&auth_src.join(src_rel), &etc_dst.join(dst_rel))?;
+	}
+
+	for (src_rel, dst_rel) in [
+		("login.defs", "login.defs"),
+		("sudoers", "sudoers"),
+	] {
+		fs::copy(auth_src.join(src_rel), etc_dst.join(dst_rel)).with_context(|| {
+			format!(
+				"failed to copy auth config {} to {}",
+				auth_src.join(src_rel).display(),
+				etc_dst.join(dst_rel).display()
+			)
+		})?;
+	}
+
+	Ok(())
+}
+
+fn apply_live_profile(repo_root: &Path, rootfs: &Path) -> Result<()> {
+	let live_src = repo_root.join("src/system/profiles/live");
+	if !live_src.exists() {
+		bail!(
+			"MattOS live profile missing at {}; expected live profile overlay",
+			live_src.display()
+		);
+	}
+	copy_tree_excluding_dotgit(&live_src, rootfs)?;
+
+	let notice_script = rootfs.join("etc/profile.d/10-mattos-live-notice.sh");
+	if notice_script.exists() {
+		set_mode(notice_script, 0o755)?;
+	}
+
+	Ok(())
+}
+
+fn verify_required_pam_modules(rootfs: &Path) -> Result<()> {
+	let security_dirs = [
+		rootfs.join("usr/lib/x86_64-linux-gnu/security"),
+		rootfs.join("usr/lib/security"),
+	];
+	let required = [
+		"pam_unix.so",
+		"pam_env.so",
+		"pam_nologin.so",
+		"pam_rootok.so",
+		"pam_permit.so",
+		"pam_deny.so",
+		"pam_shells.so",
+		"pam_securetty.so",
+	];
+
+	for module in required {
+		let mut found = false;
+		for dir in &security_dirs {
+			if dir.join(module).exists() {
+				found = true;
+				break;
+			}
+		}
+		if !found {
+			bail!("required PAM module {} missing from rootfs security dirs", module);
+		}
+	}
+
+	Ok(())
+}
+
+fn enforce_auth_file_modes(rootfs: &Path) -> Result<()> {
+	for (rel, mode) in [
+		("etc/shadow", 0o600),
+		("etc/gshadow", 0o600),
+		("etc/passwd", 0o644),
+		("etc/group", 0o644),
+		("etc/sudoers", 0o440),
+		("usr/bin/login", 0o4755),
+		("usr/bin/su", 0o4755),
+		("usr/bin/passwd", 0o4755),
+		("usr/bin/sudo", 0o4755),
+	] {
+		let path = rootfs.join(rel);
+		if !path.exists() {
+			bail!("expected auth file missing at {}", path.display());
+		}
+		set_mode(path, mode)?;
+	}
+
+	let sudoers_dir = rootfs.join("etc/sudoers.d");
+	if !sudoers_dir.exists() {
+		bail!("expected sudoers include dir missing at {}", sudoers_dir.display());
+	}
+	set_mode(sudoers_dir, 0o750)?;
+
+	for rel in ["etc/sudoers.d/00-mattos-live", "etc/sudoers.d/README"] {
+		let path = rootfs.join(rel);
+		if path.exists() {
+			set_mode(path, 0o440)?;
+		}
+	}
+
+	let root_home = rootfs.join("root");
+	if root_home.exists() {
+		set_mode(root_home, 0o700)?;
+	}
+	let live_home = rootfs.join("home/mattos");
+	if live_home.exists() {
+		set_mode(live_home, 0o750)?;
+	}
+
+	Ok(())
+}
+
+fn validate_account_database(rootfs: &Path) -> Result<()> {
+	let passwd_path = rootfs.join("etc/passwd");
+	let group_path = rootfs.join("etc/group");
+	let shadow_path = rootfs.join("etc/shadow");
+	let gshadow_path = rootfs.join("etc/gshadow");
+
+	for path in [&passwd_path, &group_path, &shadow_path, &gshadow_path] {
+		if !path.exists() {
+			bail!("required account database file missing at {}", path.display());
+		}
+	}
+
+	let passwd_body = fs::read_to_string(&passwd_path)
+		.with_context(|| format!("failed to read {}", passwd_path.display()))?;
+	let group_body = fs::read_to_string(&group_path)
+		.with_context(|| format!("failed to read {}", group_path.display()))?;
+
+	if passwd_body.contains("matt-alienware") || passwd_body.contains("matt:") {
+		bail!("passwd file appears to contain host developer username leakage")
+	}
+
+	let mut seen_uids = BTreeSet::<u32>::new();
+	let mut seen_gids = BTreeSet::<u32>::new();
+	let mut saw_root = false;
+	let mut saw_live = false;
+
+	for line in passwd_body.lines() {
+		if line.trim().is_empty() {
+			continue;
+		}
+		let parts: Vec<&str> = line.split(':').collect();
+		if parts.len() != 7 {
+			bail!("invalid passwd entry format: {line}");
+		}
+		let user = parts[0];
+		let uid = parts[2]
+			.parse::<u32>()
+			.with_context(|| format!("invalid uid in passwd entry: {line}"))?;
+		let gid = parts[3]
+			.parse::<u32>()
+			.with_context(|| format!("invalid gid in passwd entry: {line}"))?;
+
+		if !seen_uids.insert(uid) {
+			bail!("duplicate uid detected in passwd: {uid}")
+		}
+
+		if user == "root" {
+			saw_root = true;
+			if uid != 0 || gid != 0 || parts[5] != "/root" || parts[6] != "/bin/brush" {
+				bail!("root account entry does not match expected MattOS policy")
+			}
+		}
+
+		if user == "mattos" {
+			saw_live = true;
+			if uid != 1000 || gid != 1000 || parts[5] != "/home/mattos" || parts[6] != "/bin/brush" {
+				bail!("live user mattos entry does not match expected MattOS policy")
+			}
+		}
+	}
+
+	if !saw_root {
+		bail!("root account missing from passwd")
+	}
+	if !saw_live {
+		bail!("live user mattos missing from passwd")
+	}
+
+	let mut saw_sudo_group = false;
+	for line in group_body.lines() {
+		if line.trim().is_empty() {
+			continue;
+		}
+		let parts: Vec<&str> = line.split(':').collect();
+		if parts.len() != 4 {
+			bail!("invalid group entry format: {line}");
+		}
+		let name = parts[0];
+		let gid = parts[2]
+			.parse::<u32>()
+			.with_context(|| format!("invalid gid in group entry: {line}"))?;
+		if !seen_gids.insert(gid) {
+			bail!("duplicate gid detected in group: {gid}")
+		}
+		if name == "sudo" {
+			saw_sudo_group = true;
+			if !parts[3].split(',').any(|m| m == "mattos") {
+				bail!("sudo group exists but mattos is not a member")
+			}
+		}
+	}
+
+	if !saw_sudo_group {
+		bail!("sudo administrative group missing from group database")
 	}
 
 	Ok(())
@@ -2512,7 +3166,7 @@ fn build_initramfs(repo_root: &Path) -> Result<()> {
 		"bash",
 		&[
 			"-lc",
-			"find . -print0 | cpio --null -ov --format=newc | gzip -9 > ../initramfs.cpio.gz",
+			"find . -print0 | cpio --null -ov --owner=0:0 --format=newc | gzip -9 > ../initramfs.cpio.gz",
 		],
 	)
 }
@@ -2793,6 +3447,29 @@ fn run_cmd_with_env(
 			.env("HOSTCFLAGS", format!("-I{include}"))
 			.env("LDFLAGS", format!("-L{lib}"))
 			.env("HOSTLDFLAGS", format!("-L{lib}"));
+	}
+
+	let status = cmd
+		.status()
+		.with_context(|| format!("failed to spawn command: {program}"))?;
+	if status.success() {
+		Ok(())
+	} else {
+		bail!("command failed with status {status}: {} {}", program, args.join(" "))
+	}
+}
+
+fn run_cmd_with_env_overrides(
+	cwd: &Path,
+	program: &str,
+	args: &[&str],
+	env_overrides: &[(&str, String)],
+) -> Result<()> {
+	println!("> {} {}", program, args.join(" "));
+	let mut cmd = Command::new(program);
+	cmd.args(args).current_dir(cwd);
+	for (key, value) in env_overrides {
+		cmd.env(key, value);
 	}
 
 	let status = cmd
@@ -3689,7 +4366,89 @@ mod tests {
 		assert!(plan.contains(&BuildStage::Sed));
 		assert!(plan.contains(&BuildStage::Findutils));
 		assert!(plan.contains(&BuildStage::Diffutils));
+		assert!(plan.contains(&BuildStage::Pam));
+		assert!(plan.contains(&BuildStage::Shadow));
+		assert!(plan.contains(&BuildStage::SudoRs));
 		assert_eq!(plan.last().copied(), Some(BuildStage::Iso));
+	}
+
+	#[test]
+	fn account_database_validation_accepts_live_profile_shape() {
+		let tmp = tempfile::tempdir().expect("tempdir");
+		let root = tmp.path();
+		write(
+			&root.join("etc/passwd"),
+			"root:x:0:0:root:/root:/bin/brush\nmattos:x:1000:1000:MattOS Live User:/home/mattos:/bin/brush\n",
+		);
+		write(
+			&root.join("etc/group"),
+			"root:x:0:\nsudo:x:27:mattos\nmattos:x:1000:\n",
+		);
+		write(&root.join("etc/shadow"), "root:!:::::::\nmattos:!:::::::\n");
+		write(&root.join("etc/gshadow"), "root:!::\nsudo:!::mattos\nmattos:!::\n");
+
+		validate_account_database(root).expect("valid live account database should pass");
+	}
+
+	#[test]
+	fn account_database_validation_rejects_duplicate_uid() {
+		let tmp = tempfile::tempdir().expect("tempdir");
+		let root = tmp.path();
+		write(
+			&root.join("etc/passwd"),
+			"root:x:0:0:root:/root:/bin/brush\nmattos:x:0:1000:MattOS Live User:/home/mattos:/bin/brush\n",
+		);
+		write(
+			&root.join("etc/group"),
+			"root:x:0:\nsudo:x:27:mattos\nmattos:x:1000:\n",
+		);
+		write(&root.join("etc/shadow"), "root:!:::::::\nmattos:!:::::::\n");
+		write(&root.join("etc/gshadow"), "root:!::\nsudo:!::mattos\nmattos:!::\n");
+
+		let result = validate_account_database(root);
+		assert!(result.is_err());
+	}
+
+	#[test]
+	#[cfg(unix)]
+	fn enforce_auth_file_modes_sets_secure_permissions() {
+		use std::os::unix::fs::PermissionsExt;
+
+		let tmp = tempfile::tempdir().expect("tempdir");
+		let root = tmp.path();
+		for rel in [
+			"etc/shadow",
+			"etc/gshadow",
+			"etc/passwd",
+			"etc/group",
+			"etc/sudoers",
+			"etc/sudoers.d/00-mattos-live",
+			"etc/sudoers.d/README",
+			"usr/bin/login",
+			"usr/bin/su",
+			"usr/bin/passwd",
+			"usr/bin/sudo",
+		] {
+			write(&root.join(rel), "x\n");
+		}
+		fs::create_dir_all(root.join("root")).expect("root dir");
+		fs::create_dir_all(root.join("home/mattos")).expect("home dir");
+
+		enforce_auth_file_modes(root).expect("set modes");
+
+		let sudo_mode = fs::metadata(root.join("usr/bin/sudo"))
+			.expect("sudo metadata")
+			.permissions()
+			.mode()
+			& 0o7777;
+		assert_eq!(sudo_mode, 0o4755);
+
+		let shadow_mode = fs::metadata(root.join("etc/shadow"))
+			.expect("shadow metadata")
+			.permissions()
+			.mode()
+			& 0o7777;
+		assert_eq!(shadow_mode, 0o600);
 	}
 
 	#[test]

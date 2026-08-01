@@ -1,0 +1,90 @@
+#include "config.h"
+
+#include "btrfs.h"
+
+#include <linux/btrfs_tree.h>
+#include <linux/magic.h>
+#include <sys/statfs.h>
+#include <stdbool.h>
+
+#include "prototypes.h"
+
+
+#define PATH_ENV  "/usr/bin/env"
+
+
+static int run_btrfs_subvolume_cmd(const char *subcmd, const char *arg1, const char *arg2)
+{
+	int status = 0;
+	const char *cmd = PATH_ENV;
+	const char *argv[] = {
+		"env",
+		"btrfs",
+		"subvolume",
+		subcmd,
+		arg1,
+		arg2,
+		NULL
+	};
+
+	if (access(cmd, X_OK) == -1)
+		return 1;
+
+	if (run_command(cmd, argv, NULL, &status))
+		return -1;
+
+	return status;
+}
+
+
+int btrfs_create_subvolume(const char *path)
+{
+	return run_btrfs_subvolume_cmd("create", path, NULL);
+}
+
+
+int btrfs_remove_subvolume(const char *path)
+{
+	return run_btrfs_subvolume_cmd("delete", "-C", path);
+}
+
+
+/* Adapted from btrfsprogs */
+/*
+ * This intentionally duplicates btrfs_util_is_subvolume_fd() instead of opening
+ * a file descriptor and calling it, because fstat() and fstatfs() don't accept
+ * file descriptors opened with O_PATH on old kernels (before v3.6 and before
+ * v3.12, respectively), but stat() and statfs() can be called on a path that
+ * the user doesn't have read or write permissions to.
+ *
+ * returns:
+ *   1 - btrfs subvolume
+ *   0 - not btrfs subvolume
+ *  -1 - error
+ */
+int btrfs_is_subvolume(const char *path)
+{
+	struct stat    st;
+	struct statfs  sfs;
+
+	if (statfs(path, &sfs) == -1)
+		return -1;
+	if (!is_btrfs(&sfs))
+		return 0;
+
+	if (stat(path, &st) == -1)
+		return -1;
+
+	if (st.st_ino != BTRFS_FIRST_FREE_OBJECTID || !S_ISDIR(st.st_mode)) {
+		return 0;
+	}
+
+	return 1;
+}
+
+
+bool
+is_btrfs(const struct statfs *sfs)
+{
+	return sfs->f_type == BTRFS_SUPER_MAGIC;
+}

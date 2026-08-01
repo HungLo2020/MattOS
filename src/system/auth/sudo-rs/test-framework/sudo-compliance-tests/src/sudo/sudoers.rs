@@ -1,0 +1,289 @@
+use std::collections::HashSet;
+
+use sudo_test::{Command, ETC_DIR, Env, ROOT_GROUP, TextFile, User};
+
+use crate::{PASSWORD, SUDOERS_ROOT_ALL_NOPASSWD, USERNAME};
+
+mod cmnd;
+mod cmnd_alias;
+mod cwd;
+mod env;
+mod host_alias;
+mod host_list;
+mod include;
+mod includedir;
+mod noexec;
+mod passwd_timeout;
+mod run_as;
+mod runas_alias;
+mod runcwd;
+mod secure_path;
+mod specific_defaults;
+mod timestamp_timeout;
+mod timestamp_type;
+mod user_list;
+
+const KEYWORDS: &[&str] = &[
+    "ALL",
+    "CHROOT",
+    "CWD",
+    "Cmnd_Alias",
+    "Defaults",
+    "FOLLOW",
+    "Host_Alias",
+    "INTERCEPT",
+    "LOG_INPUT",
+    "LOG_OUTPUT",
+    "MAIL",
+    "NOEXEC",
+    "NOFOLLOW",
+    "NOINTERCEPT",
+    "NOLOG_INPUT",
+    "NOLOG_OUTPUT",
+    "NOMAIL",
+    "NOPASSWD",
+    "NOSETENV",
+    "NOTAFTER",
+    "NOTBEFORE",
+    "PASSWD",
+    "Runas_Alias",
+    "SETENV",
+    "ROLE",
+    "TIMEOUT",
+    "TYPE",
+    "User_Alias",
+    "env_check",
+    "env_delete",
+    "env_editor",
+    "env_keep",
+    "include",
+    "includedir",
+    "secure_path",
+    "timestamp_timeout",
+    "use_pty",
+];
+
+const KEYWORDS_ALIAS_BAD: &[&str] = &[
+    "ALL",
+    "CHROOT",
+    "CWD",
+    "Cmnd_Alias",
+    "Defaults",
+    "Host_Alias",
+    "NOTAFTER",
+    "NOTBEFORE",
+    "Runas_Alias",
+    "ROLE",
+    "TIMEOUT",
+    "TYPE",
+    "User_Alias",
+    "env_check",
+    "env_delete",
+    "env_editor",
+    "env_keep",
+    "include",
+    "includedir",
+    "secure_path",
+    "timestamp_timeout",
+    "use_pty",
+];
+
+const RESERVED_ALIAS_KEYWORDS: &[&str] = &[
+    "ALL",
+    "CHROOT",
+    "CWD",
+    "NOTAFTER",
+    "NOTBEFORE",
+    "ROLE",
+    "TIMEOUT",
+    "TYPE",
+];
+
+const CMND_ALIAS_POSITION_KEYWORDS: &[&str] = &[
+    "FOLLOW",
+    "INTERCEPT",
+    "LOG_INPUT",
+    "LOG_OUTPUT",
+    "MAIL",
+    "NOEXEC",
+    "NOFOLLOW",
+    "NOINTERCEPT",
+    "NOLOG_INPUT",
+    "NOLOG_OUTPUT",
+    "NOMAIL",
+    "NOPASSWD",
+    "NOSETENV",
+    "PASSWD",
+    "SETENV",
+];
+
+fn is_reserved_alias_keyword(keyword: &str) -> bool {
+    RESERVED_ALIAS_KEYWORDS.contains(&keyword)
+}
+
+fn keywords_alias_good_for_cmnd_alias() -> HashSet<&'static str> {
+    keywords_alias_good()
+        .into_iter()
+        .filter(|keyword| !CMND_ALIAS_POSITION_KEYWORDS.contains(keyword))
+        .collect()
+}
+
+fn keywords_alias_good() -> HashSet<&'static str> {
+    KEYWORDS
+        .iter()
+        .filter(|keyword| !KEYWORDS_ALIAS_BAD.contains(keyword))
+        .copied()
+        .collect()
+}
+
+#[test]
+fn cannot_sudo_if_sudoers_file_is_world_writable() {
+    let env = Env(TextFile(SUDOERS_ROOT_ALL_NOPASSWD).chmod("446")).build();
+
+    let output = Command::new("sudo").arg("true").output(&env);
+    output.assert_exit_code(1);
+
+    let diagnostic = if sudo_test::is_original_sudo() {
+        format!("{ETC_DIR}/sudoers is world writable")
+    } else {
+        format!("invalid configuration: {ETC_DIR}/sudoers cannot be world-writable")
+    };
+    assert_contains!(output.stderr(), diagnostic);
+}
+
+#[test]
+fn cannot_sudo_if_sudoers_file_is_group_writable() {
+    let env = Env(TextFile(SUDOERS_ROOT_ALL_NOPASSWD)
+        .chmod("464")
+        .chown("root:1234"))
+    .user(User(USERNAME).password(PASSWORD))
+    .build();
+
+    let output = Command::new("sudo").arg("true").output(&env);
+    output.assert_exit_code(1);
+
+    let diagnostic = if sudo_test::is_original_sudo() {
+        format!("{ETC_DIR}/sudoers is owned by gid 1234, should be 0")
+    } else {
+        format!("invalid configuration: {ETC_DIR}/sudoers cannot be group-writable")
+    };
+    assert_contains!(output.stderr(), diagnostic);
+}
+
+#[test]
+fn can_sudo_if_sudoers_file_is_owner_writable() {
+    let env = Env(TextFile(SUDOERS_ROOT_ALL_NOPASSWD).chmod("644")).build();
+
+    let output = Command::new("sudo").arg("true").output(&env);
+    output.assert_success();
+}
+
+#[test]
+fn cannot_sudo_if_sudoers_file_is_not_owned_by_root() {
+    let env = Env(TextFile(SUDOERS_ROOT_ALL_NOPASSWD).chown(format!("1234:{ROOT_GROUP}")))
+        .user(User(USERNAME).password(PASSWORD))
+        .build();
+
+    let output = Command::new("sudo").arg("true").output(&env);
+    output.assert_exit_code(1);
+
+    let diagnostic = if sudo_test::is_original_sudo() {
+        format!("{ETC_DIR}/sudoers is owned by uid 1234, should be 0")
+    } else {
+        format!("invalid configuration: {ETC_DIR}/sudoers must be owned by root")
+    };
+    assert_contains!(output.stderr(), diagnostic);
+}
+
+#[test]
+fn cannot_sudo_if_sudoers_file_is_missing() {
+    let env = Env("").build();
+
+    Command::new("rm")
+        .arg(format!("{ETC_DIR}/sudoers"))
+        .output(&env)
+        .assert_success();
+
+    let output = Command::new("sudo").arg("true").output(&env);
+    output.assert_exit_code(1);
+
+    let diagnostic = if sudo_test::is_original_sudo() {
+        format!("sudo: unable to open {ETC_DIR}/sudoers: No such file or directory")
+    } else {
+        format!("sudo: sudoers file not found: {ETC_DIR}/sudoers")
+    };
+    assert_contains!(output.stderr(), diagnostic);
+}
+
+#[test]
+fn user_specifications_evaluated_bottom_to_top() {
+    let env = Env(format!(
+        r#"{USERNAME} ALL=(ALL:ALL) NOPASSWD: ALL
+{USERNAME} ALL=(ALL:ALL) ALL"#
+    ))
+    .user(User(USERNAME).password(PASSWORD))
+    .build();
+
+    let output = Command::new("sudo")
+        .args(["-S", "true"])
+        .as_user(USERNAME)
+        .output(&env);
+    output.assert_exit_code(1);
+
+    let diagnostic = if sudo_test::is_original_sudo() {
+        "no password was provided"
+    } else {
+        "Authentication required but not attempted"
+    };
+    assert_contains!(output.stderr(), diagnostic);
+
+    Command::new("sudo")
+        .args(["-S", "true"])
+        .as_user(USERNAME)
+        .stdin(PASSWORD)
+        .output(&env)
+        .assert_success();
+}
+
+#[test]
+fn accepts_sudoers_file_that_has_no_trailing_newline() {
+    let env = Env(TextFile(SUDOERS_ROOT_ALL_NOPASSWD).no_trailing_newline())
+        .user(User(USERNAME).password(PASSWORD))
+        .build();
+
+    Command::new("sudo")
+        .arg("true")
+        .output(&env)
+        .assert_success();
+}
+
+#[test]
+fn negated_defaults_errors() {
+    let env = Env("Defaults !unsupported\nDefaults !passwd_tries").build();
+
+    let output = Command::new("sudo").arg("true").output(&env);
+    output.assert_exit_code(1);
+
+    let diagnostic1 = if sudo_test::is_original_sudo() {
+        "unknown defaults entry \"unsupported\""
+    } else {
+        "unknown setting: 'unsupported'"
+    };
+    assert_contains!(output.stderr(), diagnostic1);
+
+    let diagnostic2 = if sudo_test::is_original_sudo() {
+        "no value specified for \"passwd_tries\""
+    } else {
+        "'passwd_tries' cannot be used in a boolean context"
+    };
+    assert_contains!(output.stderr(), diagnostic2);
+}
+
+#[test]
+fn regex_not_interpreted_literally() {
+    let env = Env("ALL ALL=(ALL:ALL) NOPASSWD: /bin/echo ^huk$").build();
+
+    let output = Command::new("sudo").args(["echo", "^huk$"]).output(&env);
+
+    output.assert_exit_code(1);
+}

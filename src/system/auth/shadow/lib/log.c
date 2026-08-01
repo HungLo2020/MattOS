@@ -1,0 +1,111 @@
+/*
+ * SPDX-FileCopyrightText: 1989 - 1994, Julianne Frances Haugh
+ * SPDX-FileCopyrightText: 1996 - 1998, Marek Michałkiewicz
+ * SPDX-FileCopyrightText: 2003 - 2005, Tomasz Kłoczko
+ * SPDX-FileCopyrightText: 2008       , Nicolas François
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+#include "config.h"
+
+#include <lastlog.h>
+#include <paths.h>
+#include <pwd.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <time.h>
+
+#include "attr.h"
+#include "defines.h"
+#include "io/syslog.h"
+#include "prototypes.h"
+#include "string/memset/memzero.h"
+#include "string/strcpy/strncpy.h"
+#include "string/strcpy/strtcpy.h"
+
+
+/*
+ * dolastlog - create lastlog entry
+ *
+ *	A "last login" entry is created for the user being logged in.  The
+ *	UID is extracted from the global (struct passwd) entry and the
+ *	TTY information is gotten from the (struct utmpx).
+ */
+void dolastlog (
+	struct lastlog *ll,
+	const struct passwd *pw,
+	/*@unique@*/const char *line,
+	MAYBE_UNUSED /*@unique@*/const char *host)
+{
+	int fd;
+	off_t offset;
+	struct lastlog newlog;
+	time_t ll_time;
+
+	/*
+	 * If the file does not exist, don't create it.
+	 */
+
+	fd = open(_PATH_LASTLOG, O_RDWR);
+	if (-1 == fd) {
+		return;
+	}
+
+	/*
+	 * The file is indexed by UID number.  Seek to the record
+	 * for this UID.  Negative UID's will create problems, but ...
+	 */
+
+	offset = (off_t) pw->pw_uid * sizeof(newlog);
+
+	if (lseek (fd, offset, SEEK_SET) != offset) {
+		SYSLOG(LOG_WARN,
+		       "Can't read last lastlog entry for UID %lu in %s. Entry not updated.",
+		       (unsigned long) pw->pw_uid, _PATH_LASTLOG);
+		(void) close (fd);
+		return;
+	}
+
+	/*
+	 * Read the old entry so we can tell the user when they last
+	 * logged in.  Then construct the new entry and write it out
+	 * the way we read the old one in.
+	 */
+
+	if (read(fd, &newlog, sizeof(newlog)) != (ssize_t) sizeof(newlog)) {
+		memzero(&newlog, sizeof(newlog));
+	}
+	if (NULL != ll) {
+		*ll = newlog;
+	}
+
+	ll_time = newlog.ll_time;
+	ll_time = time(NULL);
+	newlog.ll_time = ll_time;
+	strtcpy_a(newlog.ll_line, line);
+#if HAVE_LL_HOST
+	strncpy_a(newlog.ll_host, host);
+#endif
+	if (   (lseek (fd, offset, SEEK_SET) != offset)
+	    || (write_full(fd, &newlog, sizeof(newlog)) == -1)) {
+		goto err_write;
+	}
+
+	if (close (fd) != 0 && errno != EINTR) {
+		goto err_close;
+	}
+
+	return;
+
+err_write:
+	{
+		int saved_errno = errno;
+		(void) close (fd);
+		errno = saved_errno;
+	}
+err_close:
+	SYSLOGE(LOG_WARN,
+	        "Can't write lastlog entry for UID %lu in %s",
+	        (unsigned long) pw->pw_uid, _PATH_LASTLOG);
+}
