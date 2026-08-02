@@ -280,6 +280,8 @@ enum BuildStage {
 	Iproute2,
 	Iputils,
 	Curl,
+	Expat,
+	Libcap,
 	Pam,
 	Shadow,
 	SudoRs,
@@ -383,6 +385,7 @@ fn doctor() -> Result<()> {
 		"gperf",
 		"ld",
 		"objcopy",
+		"objdump",
 		"perl",
 		"python3",
 		"bc",
@@ -635,6 +638,7 @@ fn packages_for_tool<'a>(tool: &'a str, os_release: &str) -> Vec<&'a str> {
 			"libexpat1-dev" => vec!["libexpat1-dev"],
 			"dpkg-scanpackages" => vec!["dpkg-dev"],
 			"apt-ftparchive" => vec!["apt-utils"],
+			"objdump" => vec!["binutils"],
 			"xz" => vec!["xz-utils"],
 			_ => vec![tool],
 		};
@@ -1382,6 +1386,8 @@ fn build_plan(stage: BuildStage) -> Vec<BuildStage> {
 			BuildStage::Sed,
 			BuildStage::Findutils,
 			BuildStage::Diffutils,
+			BuildStage::Expat,
+			BuildStage::Libcap,
 			BuildStage::Ncurses,
 			BuildStage::Procps,
 			BuildStage::Iproute2,
@@ -1421,6 +1427,8 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
 		BuildStage::Iproute2 => build_iproute2(repo_root),
 		BuildStage::Iputils => build_iputils(repo_root),
 		BuildStage::Curl => build_curl(repo_root),
+		BuildStage::Expat => build_expat(repo_root),
+		BuildStage::Libcap => build_libcap(repo_root),
 		BuildStage::Pam => build_linux_pam(repo_root),
 		BuildStage::Shadow => build_shadow(repo_root),
 		BuildStage::SudoRs => build_sudo_rs(repo_root),
@@ -1994,6 +2002,132 @@ fn sync_build_source(source: &Path, destination: &Path) -> Result<()> {
 	run_cmd(Path::new("/"), "rsync", &["-a", "--exclude=.git/", &source_arg, &destination_arg])
 }
 
+fn build_expat(repo_root: &Path) -> Result<()> {
+	let source = repo_root.join("src/system/libraries/expat/expat");
+	if !source.join("CMakeLists.txt").is_file() {
+		bail!("Expat source not found in {}; run upstream import expat first", source.display());
+	}
+	let out_root = repo_root.join("out/build/expat");
+	let build_dir = out_root.join("build");
+	let install_dir = out_root.join("install");
+	let stamp_path = out_root.join("build-stamp.txt");
+	let options = [
+		"-DCMAKE_BUILD_TYPE=Release",
+		"-DCMAKE_INSTALL_PREFIX=/usr",
+		"-DCMAKE_INSTALL_LIBDIR=lib/x86_64-linux-gnu",
+		"-DEXPAT_SHARED_LIBS=ON",
+		"-DEXPAT_BUILD_TOOLS=OFF",
+		"-DEXPAT_BUILD_EXAMPLES=OFF",
+		"-DEXPAT_BUILD_TESTS=OFF",
+		"-DEXPAT_BUILD_DOCS=OFF",
+		"-DEXPAT_BUILD_FUZZERS=OFF",
+		"-DEXPAT_BUILD_PKGCONFIG=ON",
+	];
+	let state = fs::read_to_string(repo_root.join("upstream/state/expat.toml")).context("failed to read Expat upstream state")?;
+	let stamp = format!("{state}\n{}\n", options.join("\n"));
+	if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+		remove_path_if_exists(&build_dir)?;
+	}
+	fs::create_dir_all(&out_root).with_context(|| format!("failed to create {}", out_root.display()))?;
+	if !build_dir.join("CMakeCache.txt").is_file() {
+		let mut args = vec!["-S", path_str(&source)?, "-B", path_str(&build_dir)?, "-G", "Ninja"];
+		args.extend(options);
+		run_cmd(repo_root, "cmake", &args)?;
+	}
+	run_cmd(repo_root, "cmake", &["--build", path_str(&build_dir)?, "--parallel", "4"])?;
+	remove_path_if_exists(&install_dir)?;
+	fs::create_dir_all(&install_dir).with_context(|| format!("failed to create {}", install_dir.display()))?;
+	run_cmd_with_env_overrides(
+		repo_root,
+		"cmake",
+		&["--install", path_str(&build_dir)?],
+		&[("DESTDIR", install_dir.display().to_string())],
+	)?;
+	let soname = install_dir.join("usr/lib/x86_64-linux-gnu/libexpat.so.1");
+	if !soname.exists() {
+		bail!("Expat install did not produce {}", soname.display());
+	}
+	fs::write(&stamp_path, stamp).with_context(|| format!("failed to write {}", stamp_path.display()))?;
+	Ok(())
+}
+
+fn build_libcap(repo_root: &Path) -> Result<()> {
+	let source = repo_root.join("src/system/libraries/libcap");
+	if !source.join("libcap/Makefile").is_file() {
+		bail!("libcap source not found in {}; run upstream import libcap first", source.display());
+	}
+	let out_root = repo_root.join("out/build/libcap");
+	let source_copy = out_root.join("source");
+	let install_dir = out_root.join("install");
+	let stamp_path = out_root.join("build-stamp.txt");
+	let state = fs::read_to_string(repo_root.join("upstream/state/libcap.toml")).context("failed to read libcap upstream state")?;
+	let make_options = [
+		"prefix=/usr",
+		"lib=lib/x86_64-linux-gnu",
+		"PTHREADS=no",
+		"PAM_CAP=no",
+		"GOLANG=no",
+		"SHARED=yes",
+		"USE_GPERF=yes",
+	];
+	let stamp = format!("{state}\n{}\n", make_options.join("\n"));
+	if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+		remove_path_if_exists(&source_copy)?;
+	}
+	fs::create_dir_all(&out_root).with_context(|| format!("failed to create {}", out_root.display()))?;
+	sync_build_source(&source, &source_copy)?;
+	let libcap_dir = source_copy.join("libcap");
+	// Upstream's cap_magic.o rule includes cap_names.h indirectly without listing
+	// it as a prerequisite, so this focused library build must remain serial.
+	let mut build_args = vec!["libcap.so"];
+	build_args.extend(make_options);
+	run_cmd(&libcap_dir, "make", &build_args)?;
+	remove_path_if_exists(&install_dir)?;
+	fs::create_dir_all(&install_dir).with_context(|| format!("failed to create {}", install_dir.display()))?;
+	let destdir = format!("DESTDIR={}", install_dir.display());
+	let mut install_args = vec!["install-shared-cap", destdir.as_str()];
+	install_args.extend(make_options);
+	run_cmd(&libcap_dir, "make", &install_args)?;
+	let soname = install_dir.join("usr/lib/x86_64-linux-gnu/libcap.so.2");
+	if !soname.exists() {
+		bail!("libcap install did not produce {}", soname.display());
+	}
+	fs::write(&stamp_path, stamp).with_context(|| format!("failed to write {}", stamp_path.display()))?;
+	Ok(())
+}
+
+fn validate_dependency_resolves_from(binary: &Path, soname: &str, expected_dir: &Path, search_dirs: &[&Path]) -> Result<()> {
+	let library_path = std::env::join_paths(search_dirs)?;
+	let output = Command::new("ldd")
+		.arg(binary)
+		.env("LD_LIBRARY_PATH", library_path)
+		.output()
+		.with_context(|| format!("failed to inspect {} with ldd", binary.display()))?;
+	let stdout = String::from_utf8(output.stdout)?;
+	if !output.status.success() || stdout.contains("not found") {
+		bail!("unresolved runtime dependency for {}:\n{stdout}", binary.display());
+	}
+	let resolved = stdout.lines().find_map(|line| {
+		let mut fields = line.split_whitespace();
+		if fields.next()? != soname || fields.next()? != "=>" {
+			return None;
+		}
+		Some(PathBuf::from(fields.next()?))
+	}).ok_or_else(|| anyhow!("{} does not resolve required dependency {soname}", binary.display()))?;
+	let canonical_expected = fs::canonicalize(expected_dir)?;
+	let canonical_resolved = fs::canonicalize(&resolved)
+		.with_context(|| format!("unable to canonicalize {soname} resolution {}", resolved.display()))?;
+	if !canonical_resolved.starts_with(&canonical_expected) {
+		bail!(
+			"{} unexpectedly resolves {soname} from host path {}; expected {}",
+			binary.display(),
+			canonical_resolved.display(),
+			canonical_expected.display()
+		);
+	}
+	Ok(())
+}
+
 fn build_iproute2(repo_root: &Path) -> Result<()> {
 	let source = repo_root.join("src/userland/iproute2");
 	if !source.join("Makefile").exists() {
@@ -2003,25 +2137,41 @@ fn build_iproute2(repo_root: &Path) -> Result<()> {
 	let build_dir = out_root.join("build");
 	let install_dir = out_root.join("install");
 	let stamp_path = out_root.join("build-stamp.txt");
+	let libcap_install = repo_root.join("out/build/libcap/install/usr");
+	let libcap_lib = libcap_install.join("lib/x86_64-linux-gnu");
+	let libcap_pc = libcap_lib.join("pkgconfig");
+	if !libcap_lib.join("libcap.so").exists() || !libcap_pc.join("libcap.pc").is_file() {
+		bail!("MattOS-built libcap development files missing at {}; run build libcap first", libcap_install.display());
+	}
+	let env = vec![
+		("PKG_CONFIG_PATH", libcap_pc.display().to_string()),
+		("CPPFLAGS", format!("-I{}", libcap_install.join("include").display())),
+		("LDFLAGS", format!("-L{}", libcap_lib.display())),
+		("LIBRARY_PATH", libcap_lib.display().to_string()),
+		("LD_LIBRARY_PATH", libcap_lib.display().to_string()),
+	];
 	let state = fs::read_to_string(repo_root.join("upstream/state/iproute2.toml")).context("failed to read iproute2 upstream state")?;
-	let stamp = format!("{state}\nPREFIX=/usr\nSBINDIR=/usr/sbin\nLIBDIR=/usr/lib/x86_64-linux-gnu\nSHARED_LIBS=n\n");
+	let libcap_state = fs::read_to_string(repo_root.join("upstream/state/libcap.toml")).context("failed to read libcap upstream state")?;
+	let stamp = format!("{state}\n{libcap_state}\nPREFIX=/usr\nSBINDIR=/usr/sbin\nLIBDIR=/usr/lib/x86_64-linux-gnu\nSHARED_LIBS=n\n{}\n", env.iter().map(|(key, value)| format!("{key}={value}")).collect::<Vec<_>>().join("\n"));
 	if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
 		remove_path_if_exists(&build_dir)?;
 	}
 	fs::create_dir_all(&out_root).with_context(|| format!("failed to create {}", out_root.display()))?;
 	sync_build_source(&source, &build_dir)?;
 	if !build_dir.join("config.mk").exists() {
-		run_cmd(&build_dir, "./configure", &["--prefix=/usr", "--libdir=/usr/lib/x86_64-linux-gnu"])?;
+		run_cmd_with_env_overrides(&build_dir, "./configure", &["--prefix=/usr", "--libdir=/usr/lib/x86_64-linux-gnu"], &env)?;
 	}
-	run_cmd(&build_dir, "make", &["-j", "4", "PREFIX=/usr", "SBINDIR=/usr/sbin", "SHARED_LIBS=n"])?;
+	run_cmd_with_env_overrides(&build_dir, "make", &["-j", "4", "PREFIX=/usr", "SBINDIR=/usr/sbin", "SHARED_LIBS=n"], &env)?;
 	remove_path_if_exists(&install_dir)?;
 	fs::create_dir_all(&install_dir).with_context(|| format!("failed to create {}", install_dir.display()))?;
 	let destdir = format!("DESTDIR={}", install_dir.display());
-	run_cmd(&build_dir, "make", &["install", &destdir, "PREFIX=/usr", "SBINDIR=/usr/sbin", "SHARED_LIBS=n"])?;
+	run_cmd_with_env_overrides(&build_dir, "make", &["install", &destdir, "PREFIX=/usr", "SBINDIR=/usr/sbin", "SHARED_LIBS=n"], &env)?;
 	for binary in IPROUTE2_BINARIES {
-		if !install_dir.join(binary.source_rel).exists() {
+		let installed = install_dir.join(binary.source_rel);
+		if !installed.exists() {
 			bail!("iproute2 install did not produce {}", binary.source_rel);
 		}
+		validate_dependency_resolves_from(&installed, "libcap.so.2", &libcap_lib, &[&libcap_lib])?;
 	}
 	fs::write(&stamp_path, stamp).with_context(|| format!("failed to write {}", stamp_path.display()))?;
 	Ok(())
@@ -2314,6 +2464,12 @@ fn build_dbus_broker(repo_root: &Path) -> Result<()> {
 	if !systemd_lib.join("libsystemd.so").exists() || !systemd_lib_pc.join("libsystemd.pc").exists() || !systemd_share_pc.join("systemd.pc").exists() {
 		bail!("systemd development files missing at {}; run build systemd first", systemd_install.display());
 	}
+	let expat_install = repo_root.join("out/build/expat/install/usr");
+	let expat_lib = expat_install.join("lib/x86_64-linux-gnu");
+	let expat_pc = expat_lib.join("pkgconfig");
+	if !expat_lib.join("libexpat.so").exists() || !expat_pc.join("expat.pc").is_file() {
+		bail!("MattOS-built Expat development files missing at {}; run build expat first", expat_install.display());
+	}
 
 	let out_root = repo_root.join("out/build/dbus-broker");
 	let source_copy = out_root.join("source");
@@ -2336,16 +2492,17 @@ fn build_dbus_broker(repo_root: &Path) -> Result<()> {
 		"-Dselinux=false".to_string(),
 		"-Dunstable=false".to_string(),
 	];
-	let pkg_config_path = std::env::join_paths([&systemd_lib_pc, &systemd_share_pc]).context("failed to construct dbus-broker PKG_CONFIG_PATH")?.to_string_lossy().to_string();
+	let pkg_config_path = std::env::join_paths([&expat_pc, &systemd_lib_pc, &systemd_share_pc]).context("failed to construct dbus-broker PKG_CONFIG_PATH")?.to_string_lossy().to_string();
 	let env_overrides = vec![
 		("PKG_CONFIG_PATH", pkg_config_path),
-		("CFLAGS", format!("-I{}", systemd_install.join("include").display())),
-		("LDFLAGS", format!("-L{}", systemd_lib.display())),
-		("LIBRARY_PATH", systemd_lib.display().to_string()),
-		("LD_LIBRARY_PATH", systemd_lib.display().to_string()),
+		("CFLAGS", format!("-I{} -I{}", expat_install.join("include").display(), systemd_install.join("include").display())),
+		("LDFLAGS", format!("-L{} -L{}", expat_lib.display(), systemd_lib.display())),
+		("LIBRARY_PATH", std::env::join_paths([&expat_lib, &systemd_lib])?.to_string_lossy().to_string()),
+		("LD_LIBRARY_PATH", std::env::join_paths([&expat_lib, &systemd_lib])?.to_string_lossy().to_string()),
 	];
 	let state = fs::read_to_string(repo_root.join("upstream/state/dbus-broker.toml")).context("failed to read dbus-broker upstream state")?;
-	let stamp = format!("{state}\n{}\n{}\n", options.join("\n"), env_overrides.iter().map(|(key, value)| format!("{key}={value}")).collect::<Vec<_>>().join("\n"));
+	let expat_state = fs::read_to_string(repo_root.join("upstream/state/expat.toml")).context("failed to read Expat upstream state")?;
+	let stamp = format!("{state}\n{expat_state}\n{}\n{}\n", options.join("\n"), env_overrides.iter().map(|(key, value)| format!("{key}={value}")).collect::<Vec<_>>().join("\n"));
 	if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
 		remove_path_if_exists(&source_copy)?;
 		remove_path_if_exists(&build_dir)?;
@@ -2370,6 +2527,12 @@ fn build_dbus_broker(repo_root: &Path) -> Result<()> {
 			bail!("dbus-broker install did not produce {rel}");
 		}
 	}
+	validate_dependency_resolves_from(
+		&install_dir.join("usr/bin/dbus-broker-launch"),
+		"libexpat.so.1",
+		&expat_lib,
+		&[&expat_lib, &systemd_lib],
+	)?;
 	fs::write(&stamp_path, stamp).with_context(|| format!("failed to write {}", stamp_path.display()))?;
 	Ok(())
 }
@@ -4533,16 +4696,44 @@ mod tests {
 		assert!(plan.contains(&BuildStage::Iproute2));
 		assert!(plan.contains(&BuildStage::Iputils));
 		assert!(plan.contains(&BuildStage::Curl));
+		assert!(plan.contains(&BuildStage::Expat));
+		assert!(plan.contains(&BuildStage::Libcap));
 		let ncurses = plan.iter().position(|stage| *stage == BuildStage::Ncurses).unwrap();
 		let procps = plan.iter().position(|stage| *stage == BuildStage::Procps).unwrap();
 		let kmod = plan.iter().position(|stage| *stage == BuildStage::Kmod).unwrap();
 		let systemd = plan.iter().position(|stage| *stage == BuildStage::Systemd).unwrap();
+		let expat = plan.iter().position(|stage| *stage == BuildStage::Expat).unwrap();
+		let libcap = plan.iter().position(|stage| *stage == BuildStage::Libcap).unwrap();
+		let dbus_broker = plan.iter().position(|stage| *stage == BuildStage::DbusBroker).unwrap();
+		let iproute2 = plan.iter().position(|stage| *stage == BuildStage::Iproute2).unwrap();
 		assert!(ncurses < procps);
 		assert!(kmod < systemd);
+		assert!(expat < dbus_broker);
+		assert!(libcap < iproute2);
 		assert!(plan.contains(&BuildStage::Pam));
 		assert!(plan.contains(&BuildStage::Shadow));
 		assert!(plan.contains(&BuildStage::SudoRs));
 		assert_eq!(plan.last().copied(), Some(BuildStage::Iso));
+	}
+
+	#[test]
+	fn small_library_build_stage_names_dispatch() {
+		assert_eq!(BuildStage::from_str("expat", true).unwrap(), BuildStage::Expat);
+		assert_eq!(BuildStage::from_str("libcap", true).unwrap(), BuildStage::Libcap);
+	}
+
+	#[test]
+	fn migrated_consumer_rejects_host_library_resolution() {
+		let expected = tempfile::tempdir().expect("expected library directory");
+		let error = validate_dependency_resolves_from(
+			Path::new("/usr/bin/tar"),
+			"libc.so.6",
+			expected.path(),
+			&[expected.path()],
+		)
+		.unwrap_err()
+		.to_string();
+		assert!(error.contains("unexpectedly resolves libc.so.6 from host path"));
 	}
 
 	#[test]

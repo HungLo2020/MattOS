@@ -2,7 +2,7 @@
 
 MattOS uses Debian binary packages, `dpkg`, and APT without using Debian or Ubuntu as a binary source. Editable source and package policy live in this monorepo. Generated `.deb` files and repository indexes live under `out/` and are ignored build artifacts.
 
-This is a hybrid bootstrap, not a self-hosted distribution. Thirty packages own the initial base, package-manager runtime, selected administration/networking tools, D-Bus broker, and authentication stack. Full systemd executables and a few host utilities still follow the proven legacy assembly path.
+This is a hybrid bootstrap, not a self-hosted distribution. Thirty-two packages own the initial base, package-manager runtime, selected source-built libraries, administration/networking tools, D-Bus broker, and authentication stack. Full systemd executables and a few host utilities still follow the proven legacy assembly path.
 
 ## Imported package-manager sources
 
@@ -19,6 +19,7 @@ The imports are ordinary editable files without nested Git repositories. `upstre
 cargo run -p mattos-build -- package build --all
 cargo run -p mattos-build -- package repo
 cargo run -p mattos-build -- package inspect mattos-apt
+cargo run -p mattos-build -- package audit
 cargo run -p mattos-build -- package status
 ```
 
@@ -54,6 +55,7 @@ Versions use `<upstream-version>-1mattos1`. Package modes and timestamps are nor
 | `mattos-libkmod2`, `mattos-kmod` | important | source-built libkmod and selected module administration commands |
 | `mattos-libproc2`, `mattos-procps` | important | source-built libproc2, selected procps commands, and `/etc/sysctl.conf` |
 | `mattos-libsystemd0`, `mattos-libudev1` | important | narrow source-built public systemd libraries; not a full systemd package migration |
+| `mattos-libexpat1`, `mattos-libcap2` | important | source-built Expat and libcap ABI libraries and SONAME links |
 | `mattos-dbus-broker` | important | broker/launcher, system and user units, bus policy, and sysusers definition |
 | `mattos-libpam0`, `mattos-libpam-misc0` | required | source-built public Linux-PAM runtime libraries |
 | `mattos-pam-modules`, `mattos-pam-runtime` | required | selected PAM modules, helper, and MattOS PAM policy |
@@ -64,7 +66,7 @@ Versions use `<upstream-version>-1mattos1`. Package modes and timestamps are nor
 
 Directories may be shared. Regular files and symlinks may have only one package owner. The builder rejects package/package collisions before archive creation and rejects later legacy overwrites by snapshotting package-owned paths.
 
-### Third-milestone path migration map
+### Package path migration map
 
 | Former rootfs path | New package owner | Legacy path after migration |
 | --- | --- | --- |
@@ -80,6 +82,7 @@ Directories may be shared. Regular files and symlinks may have only one package 
 | `agetty`, `login`, `su` | `mattos-util-linux-auth` | no command copy |
 | selected iproute2/iputils commands and iproute2 data | network command packages | validates package-installed commands |
 | public `libsystemd.so.0`, `libudev.so.1` | narrow systemd library packages | full systemd tree copy skips owned paths |
+| `libexpat.so.1`, `libcap.so.2` | `mattos-libexpat1`, `mattos-libcap2` | excluded from bootstrap closure and rejected if restored |
 
 The dependency-aware order is computed from declared edges rather than this table or `PACKAGE_NAMES`. Independent packages retain a stable declaration-order tie break. A cycle or unknown MattOS dependency stops repository creation and rootfs installation.
 
@@ -103,7 +106,7 @@ Mutable lists, archives, logs, partial files, and locks are never package payloa
 
 `mattos-bootstrap-runtime` is an explicit transitional package, not a glibc package. At build time the packager runs `ldd` over every selected packaged ELF root. It resolves against MattOS component install trees first, excludes every library now owned by a dedicated package, normalizes the remaining closure under `/usr/lib/x86_64-linux-gnu` and the loader under `/usr/lib64`, and records destination, source, reason, and SHA-256 for every file in `runtime-files.tsv`.
 
-The package also owns `/usr/bin/tar`, which source-built dpkg invokes to unpack data archives. It no longer owns libudev, libsystemd, PAM, ncurses, kmod, or procps libraries. The migration changed its staged payload from 21 files/links, 18 libraries, and 19,975,054 regular-file bytes to 25 files/links, 22 libraries, and 17,605,064 bytes; the archive fell from 6,530,650 to 5,830,090 bytes. The file count rose because libbsd, libcap, libcrypt, libelf, and libexpat dependencies that the old legacy copy path left unowned are now represented honestly. The byte and archive reductions come from moving source-built libraries to their proper packages. Most remaining files are host-derived libc, compression, crypto, or compiler support, so this remains a portability and trust limitation.
+The package also owns `/usr/bin/tar`, which source-built dpkg invokes to unpack data archives. It no longer owns libudev, libsystemd, PAM, ncurses, kmod, procps, Expat, or libcap libraries. The complete pre-migration audit found 23 payload files and 17,600,184 bytes; moving Expat and libcap reduced that to 21 files and 17,365,960 bytes. Most remaining files are host-derived libc, compression, crypto, or compiler support, so this remains a portability and trust limitation. See `docs/BOOTSTRAP_RUNTIME.md` and the generated `out/reports/bootstrap-runtime-audit.toml`.
 
 `mattos-curl` continues to carry its matching source-built `libcurl.so.4` because splitting one small ABI pair would add churn without improving this milestone. It depends on the exact bootstrap runtime and on `mattos-ca-certificates`.
 
@@ -123,7 +126,8 @@ mattos-apt -> mattos-bootstrap-runtime (= exact), mattos-dpkg (= exact),
 mattos-brush/coreutils -> mattos-bootstrap-runtime (= exact)
 mattos-curl -> mattos-bootstrap-runtime (= exact), mattos-ca-certificates
 mattos-procps -> mattos-libproc2, mattos-libncursesw6, mattos-libtinfow6 (= exact)
-mattos-dbus-broker -> mattos-libsystemd0 (= exact)
+mattos-dbus-broker -> mattos-libsystemd0, mattos-libexpat1 (= exact)
+mattos-iproute2 -> mattos-libcap2 (= exact)
 mattos-pam-runtime -> mattos-libpam0, mattos-pam-modules (= exact)
 mattos-shadow/sudo-rs/util-linux-auth -> exact PAM packages
 ```

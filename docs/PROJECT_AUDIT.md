@@ -4,7 +4,7 @@ Date: 2026-08-01
 
 ## 1. Executive Summary
 
-MattOS is a coherent Linux-native bootstrap system with systemd PID 1, separate system and per-user dbus-broker buses, registered logind console sessions, session-bound per-user managers, non-root live autologin, PAM/Shadow/sudo-rs authentication and account tools, Brush, a rescue-init path, and a reproducible build pipeline. It includes real kmod, procps-ng, ncurses, a complete QEMU/wired IPv4 path, and a working Debian-package foundation. Thirty MattOS packages are installed through a real dpkg database from an embedded local repository. MattOS-built dpkg and APT can update, inspect, download, and reinstall packages entirely from that local repository, including with the QEMU NIC removed. Selected administration, terminal, authentication, D-Bus, and networking payloads now have package ownership; full systemd and a few bootstrap host utilities remain on the legacy path. Persistent installation, an online repository, Polkit, SSH, Wi-Fi, firewall policy, firmware packaging, and a graphical desktop remain intentionally absent.
+MattOS is a coherent Linux-native bootstrap system with systemd PID 1, separate system and per-user dbus-broker buses, registered logind console sessions, session-bound per-user managers, non-root live autologin, PAM/Shadow/sudo-rs authentication and account tools, Brush, a rescue-init path, and a reproducible build pipeline. It includes real kmod, procps-ng, ncurses, a complete QEMU/wired IPv4 path, and a working Debian-package foundation. Thirty-two MattOS packages are installed through a real dpkg database from an embedded local repository. MattOS-built dpkg and APT can update, inspect, download, and reinstall packages entirely from that local repository, including with the QEMU NIC removed. Selected administration, terminal, authentication, D-Bus, networking, Expat, and libcap payloads now have package ownership; full systemd and a few bootstrap host utilities remain on the legacy path. Persistent installation, an online repository, Polkit, SSH, Wi-Fi, firewall policy, firmware packaging, and a graphical desktop remain intentionally absent.
 
 The previous GRUB source-of-truth ambiguity has been resolved by keeping only `src/boot/grub/grub.cfg` as tracked source and validating that path in `mattos-build`. The most important remaining architectural limitation is that the runtime closure is still copied from the host via `ldd` rather than from a MattOS-built sysroot.
 
@@ -45,6 +45,8 @@ Prompt behavior:
 | curl | https://github.com/curl/curl.git | `master` | `527573490eb2564b3d7c9dd51d8bff963b5d6303` | `src/userland/curl/` |
 | dpkg | https://git.dpkg.org/git/dpkg/dpkg.git | `main` | `ff7e9d8bf01379e8b022028a65afaa262e2c25cd` | `src/system/packages/dpkg/` |
 | APT | https://salsa.debian.org/apt-team/apt.git | `main` | `5e6dcc8d0c8bdce61e9cc7f497abadb5349d509a` | `src/system/packages/apt/` |
+| Expat | https://github.com/libexpat/libexpat.git | `master` | `236c3f8f949209501b568032553c17577901c7ec` | `src/system/libraries/expat/` |
+| libcap | https://git.kernel.org/pub/scm/libs/libcap/libcap.git | `master` | `bd54ca54ff9fc963954f11ffd9acffbaf1447723` | `src/system/libraries/libcap/` |
 
 State tracking lives in `upstream/state/*.toml`, and component manifests live in `upstream/sources.toml`.
 
@@ -104,7 +106,7 @@ Current limitations:
 
 ## 6. Runtime and Rootfs Assessment
 
-The assembled rootfs is a merged `/usr` layout with `/bin`, `/sbin`, `/lib`, and `/lib64` symlinked into the `/usr` tree. Thirty packages own the initial base plus selected ncurses, kmod, procps, systemd-library, dbus-broker, PAM, Shadow, sudo-rs, util-linux-auth, iproute2, and iputils payloads and are installed with real dpkg semantics. `/var/lib/dpkg` contains normal status, conffile, md5sum, file-list, and ownership data. The local repository is embedded at `/usr/share/mattos/repository`, APT is configured only for that `file:` source, and no Debian or Ubuntu source is configured.
+The assembled rootfs is a merged `/usr` layout with `/bin`, `/sbin`, `/lib`, and `/lib64` symlinked into the `/usr` tree. Thirty-two packages own the initial base plus selected ncurses, kmod, procps, systemd-library, Expat, libcap, dbus-broker, PAM, Shadow, sudo-rs, util-linux-auth, iproute2, and iputils payloads and are installed with real dpkg semantics. `/var/lib/dpkg` contains normal status, conffile, md5sum, file-list, and ownership data. The local repository is embedded at `/usr/share/mattos/repository`, APT is configured only for that `file:` source, and no Debian or Ubuntu source is configured.
 
 APT mutable lists and archive cache are initialized as writable live state rather than shipped package content. Its selected commands, private library, local methods, helpers, configuration, CA trust, source-built `libapt-pkg`, and exact ELF closure all have package ownership. The transitional bootstrap-runtime package documents each host-derived input and checksum; it does not claim to be a MattOS glibc build.
 
@@ -278,7 +280,7 @@ This is correct for a bootstrap system, but it is not especially efficient. The 
 
 ### Medium
 
-- Much of the bootstrap runtime closure is host-copied rather than built from a MattOS sysroot. Source-built libkmod, libproc2, ncurses, PAM, libsystemd, and libudev now have dedicated package owners; every remaining compatibility file is checksummed with a reason in the bootstrap manifest.
+- Much of the bootstrap runtime closure is host-copied rather than built from a MattOS sysroot. Source-built libkmod, libproc2, ncurses, PAM, libsystemd, libudev, Expat, and libcap now have dedicated package owners; every remaining compatibility file is checksummed with a reason in the bootstrap manifest. The full 23-entry baseline, classifications, consumer graph, confidence, 21-entry result, and recommended migration order are in `docs/BOOTSTRAP_RUNTIME.md`.
 - The build orchestrator is large enough to be a maintenance risk and should eventually be split into smaller modules.
 
 ### Low
@@ -418,8 +420,8 @@ Verified successfully during this audit pass:
 - `cargo run -p mattos-build -- upstream status`
 - `cargo run -p mattos-build -- build all`
 - `cargo run -p mattos-build -- image`
-- all 30 `.deb` files built and the repository dependency/ELF ownership validation passed
-- the computed dependency order installed all 30 packages through real dpkg semantics into the rootfs
+- all 32 `.deb` files built and the repository dependency/ELF ownership validation passed
+- the computed dependency order installed all 32 packages through real dpkg semantics into the rootfs
 - representative ownership queries resolved PAM, ncurses, kmod, procps, dbus-broker, sudo, passwd, login, ip, and ping paths to their dedicated packages
 - the embedded `file:` repository safely reinstalled `mattos-iputils`, `mattos-procps`, and `mattos-ncurses-bin`
 - ten session-critical packages were separately extracted and inspected without replacing active PAM/login/sudo/D-Bus/systemd files

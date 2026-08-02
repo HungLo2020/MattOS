@@ -98,6 +98,7 @@ const IPROUTE2_RUNTIME_PATHS: &[&str] = &[
     "usr/sbin/tc",
 ];
 const IPUTILS_RUNTIME_PATHS: &[&str] = &["usr/bin/ping", "usr/bin/tracepath"];
+const MIGRATED_BOOTSTRAP_SONAME_PREFIXES: &[&str] = &["libexpat.so", "libcap.so"];
 const PACKAGE_NAMES: &[&str] = &[
     "mattos-filesystem",
     "mattos-bootstrap-runtime",
@@ -119,6 +120,8 @@ const PACKAGE_NAMES: &[&str] = &[
     "mattos-procps",
     "mattos-libsystemd0",
     "mattos-libudev1",
+    "mattos-libexpat1",
+    "mattos-libcap2",
     "mattos-dbus-broker",
     "mattos-libpam0",
     "mattos-libpam-misc0",
@@ -142,6 +145,7 @@ pub(crate) enum PackageCommands {
     Inspect {
         package: String,
     },
+    Audit,
     Status,
 }
 
@@ -186,6 +190,51 @@ struct Provenance<'a> {
     upstream_commit: &'a str,
     build_configuration: &'a str,
     runtime_libraries: &'a [String],
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct BootstrapAuditReport {
+    schema_version: u32,
+    package: String,
+    snapshot: String,
+    entry_count: u64,
+    payload_bytes: u64,
+    classification_totals: BTreeMap<String, u64>,
+    entries: Vec<BootstrapAuditEntry>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct BootstrapAuditEntry {
+    path: String,
+    file_type: String,
+    size: u64,
+    mode: String,
+    symlink_target: Option<String>,
+    sha256: String,
+    file_description: String,
+    elf_type: Option<String>,
+    elf_interpreter: Option<String>,
+    soname: Option<String>,
+    dt_needed: Vec<String>,
+    objdump_needed: Vec<String>,
+    ldd_resolved: Vec<String>,
+    confirmed_host_package: Option<String>,
+    upstream_project: Option<String>,
+    source_attribution: String,
+    source_already_exists_in_mattos: bool,
+    consumers: Vec<BootstrapConsumer>,
+    reason_in_bootstrap_runtime: String,
+    recommended_future_package: String,
+    migration_difficulty: String,
+    attribution_confidence: String,
+    classification: String,
+    boundary_group: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+struct BootstrapConsumer {
+    package: String,
+    path: String,
 }
 
 fn package_specs() -> Vec<PackageSpec> {
@@ -430,10 +479,36 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
+            name: "mattos-libexpat1",
+            description: "Expat XML parser runtime library built for MattOS",
+            source_component: "expat",
+            depends: &["mattos-bootstrap-runtime"],
+            provides: &["libexpat1"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "mattos-libcap2",
+            description: "Linux capabilities runtime library built for MattOS",
+            source_component: "libcap",
+            depends: &["mattos-bootstrap-runtime"],
+            provides: &["libcap2"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
             name: "mattos-dbus-broker",
             description: "D-Bus message broker and MattOS bus policy",
             source_component: "dbus-broker",
-            depends: &["mattos-bootstrap-runtime", "mattos-libsystemd0"],
+            depends: &[
+                "mattos-bootstrap-runtime",
+                "mattos-libexpat1",
+                "mattos-libsystemd0",
+            ],
             provides: &["dbus-system-bus"],
             conflicts: &["dbus-daemon"],
             replaces: &[],
@@ -539,7 +614,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-iproute2",
             description: "Linux routing and network configuration tools built for MattOS",
             source_component: "iproute2",
-            depends: &["mattos-bootstrap-runtime"],
+            depends: &["mattos-bootstrap-runtime", "mattos-libcap2"],
             provides: &["iproute2"],
             conflicts: &["iproute2"],
             replaces: &["iproute2"],
@@ -615,6 +690,7 @@ pub(crate) fn run_package_command(repo_root: &Path, command: PackageCommands) ->
         }
         PackageCommands::Repo => generate_repository(repo_root),
         PackageCommands::Inspect { package } => inspect_package(repo_root, &package),
+        PackageCommands::Audit => generate_bootstrap_audit(repo_root),
         PackageCommands::Status => print_inventory(repo_root),
     }
 }
@@ -783,6 +859,22 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
             &staging,
             "systemd",
             &["libudev.so.1.7.14", "libudev.so.1"],
+        )?,
+        "mattos-libexpat1" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "expat",
+            "libexpat.so.1",
+            "src/system/libraries/expat/expat/COPYING",
+            "mattos-libexpat1",
+        )?,
+        "mattos-libcap2" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "libcap",
+            "libcap.so.2",
+            "src/system/libraries/libcap/License",
+            "mattos-libcap2",
         )?,
         "mattos-dbus-broker" => stage_dbus_broker(repo_root, &staging)?,
         "mattos-libpam0" => stage_library_family(
@@ -1006,6 +1098,40 @@ fn stage_library_family(
     for name in names {
         copy_path_preserving(&source.join(name), &destination.join(name))?;
     }
+    Ok(())
+}
+
+fn stage_imported_soname_library(
+    repo_root: &Path,
+    staging: &Path,
+    component: &str,
+    soname: &str,
+    license_rel: &str,
+    package: &str,
+) -> Result<()> {
+    let source_dir = component_install(repo_root, component).join("usr/lib/x86_64-linux-gnu");
+    let source_soname = source_dir.join(soname);
+    let destination_dir = staging.join("usr/lib/x86_64-linux-gnu");
+    fs::create_dir_all(&destination_dir)?;
+    let metadata = fs::symlink_metadata(&source_soname)
+        .with_context(|| format!("{component} did not install {soname}"))?;
+    if metadata.file_type().is_symlink() {
+        let target = fs::read_link(&source_soname)?;
+        if target.is_absolute() || target.components().count() != 1 {
+            bail!("{component} installed unsafe SONAME target {} -> {}", source_soname.display(), target.display());
+        }
+        copy_preserving(&source_dir.join(&target), &destination_dir.join(&target))?;
+        #[cfg(unix)]
+        std::os::unix::fs::symlink(&target, destination_dir.join(soname))?;
+        #[cfg(not(unix))]
+        copy_preserving(&source_dir.join(&target), &destination_dir.join(soname))?;
+    } else {
+        copy_preserving(&source_soname, &destination_dir.join(soname))?;
+    }
+    copy_preserving(
+        &repo_root.join(license_rel),
+        &staging.join("usr/share/doc").join(package).join("copyright"),
+    )?;
     Ok(())
 }
 
@@ -1375,6 +1501,7 @@ fn stage_bootstrap_runtime(repo_root: &Path, staging: &Path) -> Result<()> {
             "libpam_misc.so",
         ]
         .iter()
+        .chain(MIGRATED_BOOTSTRAP_SONAME_PREFIXES.iter())
         .any(|prefix| name.starts_with(prefix))
         {
             continue;
@@ -1404,6 +1531,7 @@ fn stage_bootstrap_runtime(repo_root: &Path, staging: &Path) -> Result<()> {
         ));
     }
     manifest.sort();
+    validate_migrated_bootstrap_absent(&manifest)?;
     fs::create_dir_all(staging.join("usr/share/doc/mattos-bootstrap-runtime"))?;
     fs::write(
         staging.join("usr/share/doc/mattos-bootstrap-runtime/runtime-files.tsv"),
@@ -1412,6 +1540,25 @@ fn stage_bootstrap_runtime(repo_root: &Path, staging: &Path) -> Result<()> {
             manifest.join("\n")
         ),
     )?;
+    Ok(())
+}
+
+fn validate_migrated_bootstrap_absent(manifest: &[String]) -> Result<()> {
+    for row in manifest {
+        if let Some(name) = row
+            .split('\t')
+            .next()
+            .and_then(|path| Path::new(path).file_name())
+            .and_then(OsStr::to_str)
+        {
+            if MIGRATED_BOOTSTRAP_SONAME_PREFIXES
+                .iter()
+                .any(|prefix| name.starts_with(prefix))
+            {
+                bail!("migrated runtime library {name} remains in mattos-bootstrap-runtime")
+            }
+        }
+    }
     Ok(())
 }
 
@@ -1445,6 +1592,233 @@ fn ldd_dependency_paths(binary: &Path, library_path: &std::ffi::OsStr) -> Result
         }
     }
     Ok(paths.into_iter().collect())
+}
+
+fn command_text(program: &str, args: &[&str], path: &Path) -> Result<Option<String>> {
+    let output = Command::new(program)
+        .args(args)
+        .arg(path)
+        .output()
+        .with_context(|| format!("failed to run {program} on {}", path.display()))?;
+    if !output.status.success() {
+        return Ok(None);
+    }
+    Ok(Some(String::from_utf8(output.stdout)?))
+}
+
+fn dynamic_value(text: &str, label: &str) -> Option<String> {
+    text.lines().find_map(|line| {
+        let marker = format!("{label}: [");
+        let (_, value) = line.split_once(&marker)?;
+        Some(value.trim_end_matches(']').to_string())
+    })
+}
+
+fn dynamic_values(text: &str, label: &str) -> Vec<String> {
+    let marker = format!("{label}: [");
+    text.lines()
+        .filter_map(|line| line.split_once(&marker).map(|(_, value)| value.trim_end_matches(']').to_string()))
+        .collect()
+}
+
+fn bootstrap_source_attribution(name: &str) -> (Option<&'static str>, &'static str, &'static str, &'static str, &'static str) {
+    match name {
+        "tar" => (Some("GNU tar"), "F", "mattos-tar", "medium", "high"),
+        "libacl.so.1" => (Some("Linux ACL utilities"), "C", "mattos-libacl1", "low", "high"),
+        "libbsd.so.0" => (Some("libbsd"), "C", "mattos-libbsd0", "low", "high"),
+        "libbz2.so.1.0" => (Some("bzip2"), "C", "mattos-libbz2-1.0", "low", "high"),
+        "libc.so.6" | "libm.so.6" | "ld-linux-x86-64.so.2" => (Some("glibc"), "D", "future MattOS libc runtime", "very-high", "high"),
+        "libcap.so.2" => (Some("libcap"), "A", "mattos-libcap2", "low", "high"),
+        "libcrypt.so.1" => (Some("libxcrypt"), "C", "mattos-libcrypt1", "medium", "high"),
+        "libcrypto.so.3" | "libssl.so.3" => (Some("OpenSSL"), "C", "future MattOS OpenSSL runtime packages", "high", "high"),
+        "libelf.so.1" => (Some("elfutils"), "C", "mattos-libelf1", "medium", "high"),
+        "libexpat.so.1" => (Some("Expat"), "A", "mattos-libexpat1", "low", "high"),
+        "libgcc_s.so.1" => (Some("GCC runtime"), "D", "future MattOS compiler runtime", "very-high", "high"),
+        "liblz4.so.1" => (Some("LZ4"), "C", "mattos-liblz4-1", "low", "high"),
+        "liblzma.so.5" => (Some("XZ Utils"), "C", "mattos-liblzma5", "low", "high"),
+        "libmd.so.0" => (Some("libmd"), "C", "mattos-libmd0", "low", "high"),
+        "libpcre2-8.so.0" => (Some("PCRE2"), "C", "mattos-libpcre2-8-0", "medium", "high"),
+        "libselinux.so.1" => (Some("SELinux userspace"), "C", "mattos-libselinux1", "high", "high"),
+        "libstdc++.so.6" => (Some("GCC libstdc++ runtime"), "D", "future MattOS C++ runtime", "very-high", "high"),
+        "libxxhash.so.0" => (Some("xxHash"), "C", "mattos-libxxhash0", "low", "high"),
+        "libz.so.1" => (Some("zlib"), "C", "mattos-zlib1g", "low", "high"),
+        "libzstd.so.1" => (Some("Zstandard"), "C", "mattos-libzstd1", "low", "high"),
+        _ => (None, "E", "unresolved", "unknown", "low"),
+    }
+}
+
+fn bootstrap_consumers(repo_root: &Path) -> Result<BTreeMap<String, Vec<BootstrapConsumer>>> {
+    let staging_root = repo_root.join("out/packages/staging");
+    let mut graph = BTreeMap::<String, Vec<BootstrapConsumer>>::new();
+    if !staging_root.is_dir() {
+        bail!("package staging tree missing at {}; build packages first", staging_root.display());
+    }
+    let mut package_dirs = fs::read_dir(&staging_root)?.collect::<std::io::Result<Vec<_>>>()?;
+    package_dirs.sort_by_key(|entry| entry.file_name());
+    for package_entry in package_dirs {
+        let package_root = package_entry.path();
+        if !package_root.is_dir() {
+            continue;
+        }
+        let package = package_entry.file_name().to_string_lossy().to_string();
+        walk_tree(&package_root, &mut |path, metadata| {
+            if !metadata.is_file() || path.starts_with(package_root.join("DEBIAN")) {
+                return Ok(());
+            }
+            let Some(dynamic) = command_text("readelf", &["-d"], path)? else {
+                return Ok(());
+            };
+            let consumer_path = format!("/{}", path.strip_prefix(&package_root)?.display());
+            for needed in dynamic_values(&dynamic, "Shared library") {
+                graph.entry(needed).or_default().push(BootstrapConsumer {
+                    package: package.clone(),
+                    path: consumer_path.clone(),
+                });
+            }
+            Ok(())
+        })?;
+    }
+    for consumers in graph.values_mut() {
+        consumers.sort_by(|a, b| (&a.package, &a.path).cmp(&(&b.package, &b.path)));
+        consumers.dedup_by(|a, b| a.package == b.package && a.path == b.path);
+    }
+    Ok(graph)
+}
+
+fn confirmed_host_package(source: &Path) -> Result<Option<String>> {
+    let canonical = fs::canonicalize(source).unwrap_or_else(|_| source.to_path_buf());
+    let output = Command::new("dpkg-query").args(["-S"]).arg(&canonical).output()?;
+    if !output.status.success() {
+        return Ok(None);
+    }
+    Ok(String::from_utf8(output.stdout)?
+        .lines()
+        .next()
+        .and_then(|line| line.split_once(": ").map(|(package, _)| package.to_string())))
+}
+
+fn bootstrap_boundary_group(name: &str, consumers: &[BootstrapConsumer]) -> String {
+    match name {
+        "tar" => "standalone utility".to_string(),
+        "libc.so.6" | "libm.so.6" | "ld-linux-x86-64.so.2" => "glibc boundary".to_string(),
+        "libstdc++.so.6" => "C++ runtime boundary".to_string(),
+        "libgcc_s.so.1" => "compiler runtime boundary".to_string(),
+        "libcrypto.so.3" | "libssl.so.3" => "crypto boundary".to_string(),
+        "libbz2.so.1.0" | "liblz4.so.1" | "liblzma.so.5" | "libxxhash.so.0" | "libz.so.1" | "libzstd.so.1" => "compression boundary".to_string(),
+        _ if consumers.iter().map(|consumer| &consumer.package).collect::<BTreeSet<_>>().len() > 2 => "widely shared library".to_string(),
+        _ => "leaf library".to_string(),
+    }
+}
+
+fn generate_bootstrap_audit(repo_root: &Path) -> Result<()> {
+    #[cfg(unix)]
+    use std::os::unix::fs::PermissionsExt;
+
+    let staging = repo_root.join("out/packages/staging/mattos-bootstrap-runtime");
+    let manifest_path = staging.join("usr/share/doc/mattos-bootstrap-runtime/runtime-files.tsv");
+    let manifest = fs::read_to_string(&manifest_path)
+        .with_context(|| format!("bootstrap manifest missing at {}; build mattos-bootstrap-runtime first", manifest_path.display()))?;
+    let consumers = bootstrap_consumers(repo_root)?;
+    let mut entries = Vec::new();
+    let mut payload_bytes = 0u64;
+    let mut classification_totals = BTreeMap::<String, u64>::new();
+    for line in manifest.lines().skip(1).filter(|line| !line.trim().is_empty()) {
+        let fields = line.splitn(4, '\t').collect::<Vec<_>>();
+        if fields.len() != 4 {
+            bail!("invalid bootstrap manifest row: {line}");
+        }
+        let destination = fields[0];
+        let source = PathBuf::from(fields[1]);
+        let reason = fields[2].to_string();
+        let staged = staging.join(destination.trim_start_matches('/'));
+        let metadata = fs::symlink_metadata(&staged)?;
+        let name = Path::new(destination).file_name().and_then(OsStr::to_str).ok_or_else(|| anyhow!("invalid bootstrap path {destination}"))?;
+        let inspected = fs::canonicalize(&staged).unwrap_or_else(|_| staged.clone());
+        let file_description = command_text("file", &["-b"], &inspected)?.unwrap_or_else(|| "unknown".to_string()).trim().to_string();
+        let header = command_text("readelf", &["-h"], &inspected)?.unwrap_or_default();
+        let program_headers = command_text("readelf", &["-l"], &inspected)?.unwrap_or_default();
+        let dynamic = command_text("readelf", &["-d"], &inspected)?.unwrap_or_default();
+        let objdump = command_text("objdump", &["-p"], &inspected)?.unwrap_or_default();
+        let ldd = command_text("ldd", &[], &inspected)?.unwrap_or_default();
+        let elf_type = header.lines().find_map(|line| line.trim().strip_prefix("Type:").map(|value| value.trim().to_string()));
+        let elf_interpreter = program_headers.lines().find_map(|line| {
+            line.split_once("Requesting program interpreter:")
+                .map(|(_, value)| value.trim().trim_end_matches(']').to_string())
+        });
+        let soname = dynamic_value(&dynamic, "Library soname");
+        let dt_needed = dynamic_values(&dynamic, "Shared library");
+        let objdump_needed = objdump.lines().filter_map(|line| line.trim().strip_prefix("NEEDED").map(|value| value.trim().to_string())).collect();
+        let ldd_resolved = ldd.lines().map(str::trim).filter(|line| !line.is_empty()).map(str::to_string).collect();
+        let symlink_target = metadata.file_type().is_symlink().then(|| fs::read_link(&staged).map(|path| path.display().to_string())).transpose()?;
+        let sha256 = if metadata.file_type().is_symlink() {
+            let target = symlink_target.as_deref().unwrap_or_default();
+            format!("{:x}", Sha256::digest(target.as_bytes()))
+        } else {
+            sha256_file(&staged)?
+        };
+        let (upstream_project, classification, recommended, difficulty, confidence) = bootstrap_source_attribution(name);
+        *classification_totals.entry(classification.to_string()).or_default() += 1;
+        let entry_consumers = consumers.get(name).cloned().unwrap_or_default();
+        let source_exists = match name {
+            "libexpat.so.1" => repo_root.join("src/system/libraries/expat").is_dir(),
+            "libcap.so.2" => repo_root.join("src/system/libraries/libcap").is_dir(),
+            _ => false,
+        };
+        let file_type = if metadata.file_type().is_symlink() { "symlink" } else if metadata.is_file() { "regular" } else { "other" };
+        payload_bytes += metadata.len();
+        entries.push(BootstrapAuditEntry {
+            path: destination.to_string(),
+            file_type: file_type.to_string(),
+            size: metadata.len(),
+            mode: format!("{:04o}", metadata.permissions().mode() & 0o7777),
+            symlink_target,
+            sha256,
+            file_description,
+            elf_type,
+            elf_interpreter,
+            soname,
+            dt_needed,
+            objdump_needed,
+            ldd_resolved,
+            confirmed_host_package: confirmed_host_package(&source)?,
+            upstream_project: upstream_project.map(str::to_string),
+            source_attribution: if upstream_project.is_some() { "inferred" } else { "unknown" }.to_string(),
+            source_already_exists_in_mattos: source_exists,
+            boundary_group: bootstrap_boundary_group(name, &entry_consumers),
+            consumers: entry_consumers,
+            reason_in_bootstrap_runtime: reason,
+            recommended_future_package: recommended.to_string(),
+            migration_difficulty: difficulty.to_string(),
+            attribution_confidence: confidence.to_string(),
+            classification: classification.to_string(),
+        });
+    }
+    let snapshot = if entries.iter().any(|entry| {
+        matches!(
+            entry.path.as_str(),
+            "/usr/lib/x86_64-linux-gnu/libexpat.so.1"
+                | "/usr/lib/x86_64-linux-gnu/libcap.so.2"
+        )
+    }) {
+        "pre-small-library-migration"
+    } else {
+        "post-small-library-migration"
+    };
+    let report = BootstrapAuditReport {
+        schema_version: 1,
+        package: "mattos-bootstrap-runtime".to_string(),
+        snapshot: snapshot.to_string(),
+        entry_count: entries.len() as u64,
+        payload_bytes,
+        classification_totals,
+        entries,
+    };
+    let reports = repo_root.join("out/reports");
+    fs::create_dir_all(&reports)?;
+    let destination = reports.join("bootstrap-runtime-audit.toml");
+    fs::write(&destination, toml::to_string_pretty(&report)?)?;
+    println!("generated bootstrap runtime audit at {}", destination.display());
+    Ok(())
 }
 
 fn package_dependencies(repo_root: &Path, spec: &PackageSpec) -> Result<Vec<String>> {
@@ -1547,6 +1921,8 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "mattos-libsystemd0" | "mattos-libudev1" => {
             component_snapshot_version(repo_root, "systemd")?
         }
+        "mattos-libexpat1" => component_snapshot_version(repo_root, "expat")?,
+        "mattos-libcap2" => component_snapshot_version(repo_root, "libcap")?,
         "mattos-dbus-broker" => component_snapshot_version(repo_root, "dbus-broker")?,
         "mattos-libpam0" | "mattos-libpam-misc0" | "mattos-pam-modules" | "mattos-pam-runtime" => {
             component_snapshot_version(repo_root, "linux-pam")?
@@ -1753,7 +2129,7 @@ fn write_provenance(
             "per-file SHA-256 manifest".to_string(),
             "ldd closure of all packaged ELF runtimes".to_string(),
         ),
-        component @ ("ncurses" | "kmod" | "procps-ng" | "systemd" | "dbus-broker" | "linux-pam" | "shadow" | "sudo-rs" | "util-linux" | "iproute2" | "iputils") => {
+        component @ ("ncurses" | "kmod" | "procps-ng" | "systemd" | "dbus-broker" | "linux-pam" | "shadow" | "sudo-rs" | "util-linux" | "iproute2" | "iputils" | "expat" | "libcap") => {
             let state = read_sync_state(repo_root, component)?
                 .ok_or_else(|| anyhow!("upstream state missing for {component}"))?;
             (
@@ -1886,6 +2262,8 @@ fn runtime_libraries_for_spec(repo_root: &Path, spec: &PackageSpec) -> Result<Ve
                 | "mattos-procps"
                 | "mattos-libsystemd0"
                 | "mattos-libudev1"
+                | "mattos-libexpat1"
+                | "mattos-libcap2"
                 | "mattos-dbus-broker"
                 | "mattos-libpam0"
                 | "mattos-libpam-misc0"
@@ -2060,12 +2438,24 @@ fn detect_staging_collisions(staging_root: &Path, specs: &[PackageSpec]) -> Resu
 fn validate_staged_runtime_ownership(repo_root: &Path, specs: &[PackageSpec]) -> Result<()> {
     let staging_root = repo_root.join("out/packages/staging");
     let mut owners = BTreeMap::<String, &str>::new();
+    let mut soname_owners = BTreeMap::<String, &str>::new();
     for spec in specs {
         let root = staging_root.join(spec.name);
         walk_tree(&root, &mut |path, metadata| {
             if !metadata.is_dir() && !path.starts_with(root.join("DEBIAN")) {
                 if let Some(name) = path.file_name().and_then(OsStr::to_str) {
                     owners.entry(name.to_string()).or_insert(spec.name);
+                }
+                if let Some(dynamic) = command_text("readelf", &["-d"], path)? {
+                    if let Some(soname) = dynamic_value(&dynamic, "Library soname") {
+                        if let Some(owner) = soname_owners.get(&soname) {
+                            if *owner != spec.name {
+                                bail!("SONAME {soname} has multiple package owners: {owner} and {}", spec.name);
+                            }
+                        } else {
+                            soname_owners.insert(soname, spec.name);
+                        }
+                    }
                 }
             }
             Ok(())
@@ -2080,8 +2470,9 @@ fn validate_staged_runtime_ownership(repo_root: &Path, specs: &[PackageSpec]) ->
             if name.starts_with("linux-vdso.so") {
                 continue;
             }
-            let owner = owners
+            let owner = soname_owners
                 .get(name)
+                .or_else(|| owners.get(name))
                 .ok_or_else(|| anyhow!("{} has unowned runtime dependency {name}", spec.name))?;
             if *owner != spec.name && !spec.depends.contains(owner) {
                 bail!(
@@ -2672,6 +3063,14 @@ pub(crate) fn validate_dpkg_database(rootfs: &Path) -> Result<()> {
         ),
         ("/usr/lib/x86_64-linux-gnu/libkmod.so.2", "mattos-libkmod2"),
         ("/usr/lib/x86_64-linux-gnu/libproc2.so.1", "mattos-libproc2"),
+        (
+            "/usr/lib/x86_64-linux-gnu/libexpat.so.1",
+            "mattos-libexpat1",
+        ),
+        (
+            "/usr/lib/x86_64-linux-gnu/libcap.so.2",
+            "mattos-libcap2",
+        ),
         ("/usr/bin/dbus-broker", "mattos-dbus-broker"),
         ("/usr/bin/sudo", "mattos-sudo-rs"),
         ("/usr/bin/passwd", "mattos-shadow"),
@@ -3029,7 +3428,143 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 30);
+        assert_eq!(PACKAGE_NAMES.len(), 32);
+    }
+
+    #[test]
+    fn small_library_migration_definitions_are_complete() {
+        let specs = package_specs();
+        let expat = specs.iter().find(|spec| spec.name == "mattos-libexpat1").unwrap();
+        let libcap = specs.iter().find(|spec| spec.name == "mattos-libcap2").unwrap();
+        let broker = specs.iter().find(|spec| spec.name == "mattos-dbus-broker").unwrap();
+        let iproute2 = specs.iter().find(|spec| spec.name == "mattos-iproute2").unwrap();
+        assert_eq!(expat.source_component, "expat");
+        assert_eq!(libcap.source_component, "libcap");
+        assert!(broker.depends.contains(&"mattos-libexpat1"));
+        assert!(iproute2.depends.contains(&"mattos-libcap2"));
+        assert_eq!(MIGRATED_BOOTSTRAP_SONAME_PREFIXES, &["libexpat.so", "libcap.so"]);
+    }
+
+    #[test]
+    fn migrated_libraries_cannot_remain_in_bootstrap_manifest() {
+        assert!(validate_migrated_bootstrap_absent(&[
+            "/usr/bin/tar\t/usr/bin/tar\treason\thash".into(),
+            "/usr/lib/x86_64-linux-gnu/libc.so.6\t/lib/libc.so.6\treason\thash".into(),
+        ])
+        .is_ok());
+        let error = validate_migrated_bootstrap_absent(&[
+            "/usr/lib/x86_64-linux-gnu/libexpat.so.1\t/lib/libexpat.so.1\treason\thash".into(),
+        ])
+        .unwrap_err()
+        .to_string();
+        assert!(error.contains("libexpat.so.1 remains"));
+    }
+
+    #[test]
+    fn bootstrap_inventory_shrinks_by_selected_library_payloads() {
+        let before = [
+            ("libc.so.6", 2_326_088u64),
+            ("libexpat.so.1", 182_608),
+            ("libcap.so.2", 51_616),
+        ];
+        let after = before
+            .iter()
+            .filter(|(name, _)| {
+                !MIGRATED_BOOTSTRAP_SONAME_PREFIXES
+                    .iter()
+                    .any(|prefix| name.starts_with(prefix))
+            })
+            .copied()
+            .collect::<Vec<_>>();
+        assert_eq!(before.len() - after.len(), 2);
+        assert_eq!(
+            before.iter().map(|(_, size)| size).sum::<u64>()
+                - after.iter().map(|(_, size)| size).sum::<u64>(),
+            234_224
+        );
+    }
+
+    #[test]
+    fn bootstrap_source_classifications_cover_known_and_unknown_entries() {
+        assert_eq!(bootstrap_source_attribution("libexpat.so.1").1, "A");
+        assert_eq!(bootstrap_source_attribution("libcap.so.2").1, "A");
+        assert_eq!(bootstrap_source_attribution("libc.so.6").1, "D");
+        assert_eq!(bootstrap_source_attribution("tar").1, "F");
+        let unknown = bootstrap_source_attribution("libunknown.so.9");
+        assert!(unknown.0.is_none());
+        assert_eq!(unknown.1, "E");
+        assert_eq!(unknown.4, "low");
+    }
+
+    #[test]
+    fn bootstrap_audit_schema_roundtrips_and_preserves_inference() {
+        let report = BootstrapAuditReport {
+            schema_version: 1,
+            package: "mattos-bootstrap-runtime".into(),
+            snapshot: "test".into(),
+            entry_count: 1,
+            payload_bytes: 4,
+            classification_totals: BTreeMap::from([("C".into(), 1)]),
+            entries: vec![BootstrapAuditEntry {
+                path: "/usr/lib/libsample.so.1".into(),
+                file_type: "regular".into(),
+                size: 4,
+                mode: "0644".into(),
+                symlink_target: None,
+                sha256: "00".repeat(32),
+                file_description: "ELF shared object".into(),
+                elf_type: Some("DYN".into()),
+                elf_interpreter: None,
+                soname: Some("libsample.so.1".into()),
+                dt_needed: vec!["libc.so.6".into()],
+                objdump_needed: vec!["libc.so.6".into()],
+                ldd_resolved: vec!["libc.so.6 => /usr/lib/libc.so.6".into()],
+                confirmed_host_package: Some("libsample1:amd64".into()),
+                upstream_project: Some("sample upstream".into()),
+                source_attribution: "inferred".into(),
+                source_already_exists_in_mattos: false,
+                consumers: vec![BootstrapConsumer { package: "mattos-sample".into(), path: "/usr/bin/sample".into() }],
+                reason_in_bootstrap_runtime: "temporary closure".into(),
+                recommended_future_package: "mattos-libsample1".into(),
+                migration_difficulty: "low".into(),
+                attribution_confidence: "medium".into(),
+                classification: "C".into(),
+                boundary_group: "leaf library".into(),
+            }],
+        };
+        let body = toml::to_string_pretty(&report).unwrap();
+        let parsed: BootstrapAuditReport = toml::from_str(&body).unwrap();
+        assert_eq!(parsed.schema_version, 1);
+        assert_eq!(parsed.entries[0].source_attribution, "inferred");
+        assert_eq!(parsed.entries[0].confirmed_host_package.as_deref(), Some("libsample1:amd64"));
+        assert_eq!(parsed.entries[0].consumers[0].package, "mattos-sample");
+    }
+
+    #[test]
+    fn bootstrap_consumer_graph_uses_actual_dt_needed_entries() {
+        let temp = tempfile::tempdir().unwrap();
+        let staging = temp.path().join("out/packages/staging/mattos-consumer/usr/bin");
+        fs::create_dir_all(&staging).unwrap();
+        fs::write(temp.path().join("library.c"), "int mattos_audit_symbol(void) { return 7; }\n").unwrap();
+        fs::write(temp.path().join("consumer.c"), "extern int mattos_audit_symbol(void); int main(void) { return mattos_audit_symbol(); }\n").unwrap();
+        let library = temp.path().join("libaudit.so.1");
+        run_ok(temp.path(), "gcc", &["-shared", "-fPIC", "-Wl,-soname,libaudit.so.1", "library.c", "-o", path_str(&library).unwrap()]);
+        let consumer = staging.join("consumer");
+        run_ok(temp.path(), "gcc", &["consumer.c", path_str(&library).unwrap(), "-o", path_str(&consumer).unwrap()]);
+        let graph = bootstrap_consumers(temp.path()).unwrap();
+        let uses = graph.get("libaudit.so.1").unwrap();
+        assert_eq!(uses.len(), 1);
+        assert_eq!(uses[0].package, "mattos-consumer");
+        assert_eq!(uses[0].path, "/usr/bin/consumer");
+    }
+
+    #[test]
+    fn host_package_attribution_is_confirmed_separately_from_upstream_inference() {
+        let package = confirmed_host_package(Path::new("/usr/bin/tar")).unwrap();
+        assert!(package.as_deref().is_some_and(|name| name.starts_with("tar")));
+        let upstream = bootstrap_source_attribution("tar");
+        assert_eq!(upstream.0, Some("GNU tar"));
+        assert_eq!(upstream.1, "F");
     }
 
     #[test]
@@ -3152,6 +3687,8 @@ mod tests {
         assert!(position("mattos-dpkg") < position("mattos-apt"));
         assert!(position("mattos-libapt-pkg") < position("mattos-apt"));
         assert!(position("mattos-libudev1") < position("mattos-libapt-pkg"));
+        assert!(position("mattos-libexpat1") < position("mattos-dbus-broker"));
+        assert!(position("mattos-libcap2") < position("mattos-iproute2"));
         assert!(position("mattos-libpam0") < position("mattos-pam-runtime"));
         assert!(position("mattos-pam-runtime") < position("mattos-util-linux-auth"));
         assert!(position("mattos-libtinfow6") < position("mattos-ncurses-bin"));
@@ -3183,6 +3720,22 @@ mod tests {
         )
         .unwrap();
         assert!(detect_staging_collisions(temp.path(), specs).is_err());
+    }
+
+    #[test]
+    fn soname_ownership_rejects_different_packages_with_the_same_abi() {
+        let temp = tempfile::tempdir().unwrap();
+        let staging_root = temp.path().join("out/packages/staging");
+        let specs = package_specs().into_iter().filter(|spec| matches!(spec.name, "mattos-libexpat1" | "mattos-libcap2")).collect::<Vec<_>>();
+        fs::write(temp.path().join("duplicate.c"), "int duplicate_abi(void) { return 1; }\n").unwrap();
+        for (index, spec) in specs.iter().enumerate() {
+            let directory = staging_root.join(spec.name).join(format!("usr/lib/{index}"));
+            fs::create_dir_all(&directory).unwrap();
+            let output = directory.join(format!("libduplicate-{index}.so"));
+            run_ok(temp.path(), "gcc", &["-shared", "-fPIC", "-Wl,-soname,libduplicate.so.1", "duplicate.c", "-o", path_str(&output).unwrap()]);
+        }
+        let error = validate_staged_runtime_ownership(temp.path(), &specs).unwrap_err().to_string();
+        assert!(error.contains("SONAME libduplicate.so.1 has multiple package owners"));
     }
 
     #[test]

@@ -1,0 +1,7 @@
+component = "libcap"
+repo = "https://git.kernel.org/pub/scm/libs/libcap/libcap.git"
+branch = "master"
+imported_commit = "bd54ca54ff9fc963954f11ffd9acffbaf1447723"
+imported_at_utc = "2026-08-02T16:50:31.340583507+00:00"
+sync_method = "copy"
+destination_path = "src/system/libraries/libcap"

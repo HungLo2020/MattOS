@@ -148,3 +148,17 @@ repo = "https://salsa.debian.org/apt-team/apt.git"
 branch = "main"
 path = "src/system/packages/apt"
 sync = "copy"
+
+[[component]]
+name = "expat"
+repo = "https://github.com/libexpat/libexpat.git"
+branch = "master"
+path = "src/system/libraries/expat"
+sync = "copy"
+
+[[component]]
+name = "libcap"
+repo = "https://git.kernel.org/pub/scm/libs/libcap/libcap.git"
+branch = "master"
+path = "src/system/libraries/libcap"
+sync = "copy"

@@ -1,0 +1,7 @@
+component = "expat"
+repo = "https://github.com/libexpat/libexpat.git"
+branch = "master"
+imported_commit = "236c3f8f949209501b568032553c17577901c7ec"
+imported_at_utc = "2026-08-02T16:50:27.845747704+00:00"
+sync_method = "copy"
+destination_path = "src/system/libraries/expat"

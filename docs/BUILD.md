@@ -91,6 +91,8 @@ cargo run -p mattos-build -- build procps
 cargo run -p mattos-build -- build iproute2
 cargo run -p mattos-build -- build iputils
 cargo run -p mattos-build -- build curl
+cargo run -p mattos-build -- build expat
+cargo run -p mattos-build -- build libcap
 cargo run -p mattos-build -- build systemd
 cargo run -p mattos-build -- build dbus-broker
 cargo run -p mattos-build -- build dpkg
@@ -107,10 +109,11 @@ Package and repository commands:
 cargo run -p mattos-build -- package build --all
 cargo run -p mattos-build -- package repo
 cargo run -p mattos-build -- package inspect mattos-apt
+cargo run -p mattos-build -- package audit
 cargo run -p mattos-build -- package status
 ```
 
-The complete prototype stack currently consists of 30 packages. In addition to filesystem, package-manager, Brush, coreutils, curl, and CA packages, it now splits ncurses/terminfo, kmod, procps, the public systemd libraries, dbus-broker, Linux-PAM, Shadow, sudo-rs, util-linux authentication tools, iproute2, and iputils into deliberate ownership boundaries. Repository creation validates the complete dependency graph, detects cycles, computes install order, and checks staged ELF ownership before image embedding. See `docs/PACKAGING.md` for the exact boundaries and migration map.
+The complete prototype stack currently consists of 32 packages. In addition to filesystem, package-manager, Brush, coreutils, curl, and CA packages, it now splits ncurses/terminfo, kmod, procps, the public systemd libraries, Expat, libcap, dbus-broker, Linux-PAM, Shadow, sudo-rs, util-linux authentication tools, iproute2, and iputils into deliberate ownership boundaries. Repository creation validates the complete dependency graph, detects cycles, computes install order, checks staged ELF ownership, and rejects a migrated library in the bootstrap closure before image embedding. See `docs/PACKAGING.md` and `docs/BOOTSTRAP_RUNTIME.md` for the exact boundaries and migration map.
 
 ## QEMU boot
 
