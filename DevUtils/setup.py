@@ -40,6 +40,7 @@ REQUIRED_TOOLS = [
     "readelf",
     "ldd",
     "rsync",
+    "bindgen",
 ]
 
 # These are pulled in by the existing kernel workflow and WSL bootstrap logic.
@@ -63,6 +64,10 @@ EXTRA_AUTH_PACKAGES = [
     "libpam0g-dev",
     "libcrypt-dev",
     "libbsd-dev",
+]
+
+EXTRA_DBUS_BROKER_PACKAGES = [
+    "libexpat1-dev",
 ]
 
 DEBIAN_TOOL_PACKAGES: Dict[str, List[str]] = {
@@ -96,6 +101,7 @@ DEBIAN_TOOL_PACKAGES: Dict[str, List[str]] = {
     "readelf": ["binutils"],
     "ldd": ["libc-bin"],
     "rsync": ["rsync"],
+    "bindgen": ["bindgen"],
 }
 
 
@@ -162,6 +168,11 @@ def compute_missing_packages(missing_tools: List[str], dry_run: bool) -> List[st
             packages.append(package_name)
 
     for package_name in EXTRA_AUTH_PACKAGES:
+        if not package_installed(package_name) and package_name not in seen:
+            seen.add(package_name)
+            packages.append(package_name)
+
+    for package_name in EXTRA_DBUS_BROKER_PACKAGES:
         if not package_installed(package_name) and package_name not in seen:
             seen.add(package_name)
             packages.append(package_name)

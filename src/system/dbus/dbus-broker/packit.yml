@@ -1,0 +1,79 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: D-Bus Broker Developers
+
+create_sync_note: false
+downstream_package_name: "dbus-broker"
+upstream_package_name: "dbus-broker"
+upstream_tag_template: "v{version}"
+
+specfile_path: ".dist-git/dbus-broker.spec"
+
+files_to_sync:
+- "packit.yml"
+- src: ".dist-git/dbus-broker.spec"
+  dest: "dbus-broker.spec"
+
+srpm_build_deps:
+- "meson"
+
+actions:
+  post-upstream-clone:
+    # Prepare sources for offline builds
+    - meson subprojects download
+    # Use the downstream configuration
+    - git clone --depth=1 "https://src.fedoraproject.org/rpms/dbus-broker" ".dist-git"
+    # Drop "sources" so rebase-helper does not treat this as dist-git
+    - rm -fv ".dist-git/sources"
+    # Drop backported patches
+    - sed -ri '/^Patch.*\:.+\.patch$/d' ".dist-git/dbus-broker.spec"
+    # Change licensing line
+    - sed -ri 's/^%license LICENSE$/%license LICENSES\/\*/' ".dist-git/dbus-broker.spec"
+
+  create-archive:
+    # Override `git archive`, since we use subprojects.
+    - bash -c 'tar -pczf .dist-git/$PACKIT_PROJECT_NAME_VERSION.tar.gz --exclude="./.*" --transform="s/^\./$PACKIT_PROJECT_NAME_VERSION/" .'
+    - bash -c "echo .dist-git/$PACKIT_PROJECT_NAME_VERSION.tar.gz"
+
+jobs:
+- job: copr_build
+  trigger: commit
+  targets:
+  - fedora-all-aarch64
+  - fedora-all-i386
+  - fedora-all-ppc64le
+  - fedora-all-s390x
+  - fedora-all-x86_64
+
+- job: copr_build
+  trigger: pull_request
+  targets:
+  - fedora-all-aarch64
+  - fedora-all-i386
+  - fedora-all-ppc64le
+  - fedora-all-s390x
+  - fedora-all-x86_64
+
+- job: tests
+  trigger: commit
+  fmf_path: test/integration/
+  tmt_plan: upstream_ci
+  targets:
+  - fedora-latest-stable-aarch64
+  - fedora-latest-stable-x86_64
+  - fedora-rawhide-aarch64
+  - fedora-rawhide-x86_64
+
+- job: tests
+  trigger: pull_request
+  fmf_path: test/integration/
+  tmt_plan: upstream_ci
+  targets:
+  - fedora-latest-stable-aarch64
+  - fedora-latest-stable-x86_64
+  - fedora-rawhide-aarch64
+  - fedora-rawhide-x86_64
+
+- job: propose_downstream
+  trigger: release
+  dist_git_branches:
+  - main

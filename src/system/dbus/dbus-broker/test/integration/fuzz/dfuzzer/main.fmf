@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: D-Bus Broker Developers
+
+summary: Run dfuzzer on a couple of D-Bus interfaces
+test: ./test.sh
+recommend:
+    - dfuzzer
+    - systemd
+    - util-linux
+duration: 30m

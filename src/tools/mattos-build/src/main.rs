@@ -33,7 +33,9 @@ const NCURSES_PROVIDER: &str = "ncurses";
 const IPROUTE2_PROVIDER: &str = "iproute2";
 const IPUTILS_PROVIDER: &str = "iputils";
 const CURL_PROVIDER: &str = "curl";
+const DBUS_BROKER_PROVIDER: &str = "dbus-broker";
 const SYSTEMD_PROVIDER: &str = "systemd";
+const SYSTEMD_PAM_MODULE_REL: &str = "usr/lib/x86_64-linux-gnu/security/pam_systemd.so";
 const REQUIRED_PAM_MODULES: &[&str] = &[
 	"pam_unix.so",
 	"pam_env.so",
@@ -123,6 +125,11 @@ const CURL_BINARIES: &[ComponentBinarySpec] = &[
 	ComponentBinarySpec { source_rel: "usr/bin/curl", destination_rel: "usr/bin/curl", command_name: "curl" },
 ];
 
+const DBUS_BROKER_BINARIES: &[ComponentBinarySpec] = &[
+	ComponentBinarySpec { source_rel: "usr/bin/dbus-broker", destination_rel: "usr/bin/dbus-broker", command_name: "dbus-broker" },
+	ComponentBinarySpec { source_rel: "usr/bin/dbus-broker-launch", destination_rel: "usr/bin/dbus-broker-launch", command_name: "dbus-broker-launch" },
+];
+
 const COMPONENT_INSTALL_MANIFESTS: &[ComponentInstallManifest] = &[
 	ComponentInstallManifest { provider: KMOD_PROVIDER, install_root_rel: "out/build/kmod/install", binaries: KMOD_BINARIES },
 	ComponentInstallManifest { provider: PROCPS_PROVIDER, install_root_rel: "out/build/procps-ng/install", binaries: PROCPS_BINARIES },
@@ -130,6 +137,7 @@ const COMPONENT_INSTALL_MANIFESTS: &[ComponentInstallManifest] = &[
 	ComponentInstallManifest { provider: IPROUTE2_PROVIDER, install_root_rel: "out/build/iproute2/install", binaries: IPROUTE2_BINARIES },
 	ComponentInstallManifest { provider: IPUTILS_PROVIDER, install_root_rel: "out/build/iputils/install", binaries: IPUTILS_BINARIES },
 	ComponentInstallManifest { provider: CURL_PROVIDER, install_root_rel: "out/build/curl/install", binaries: CURL_BINARIES },
+	ComponentInstallManifest { provider: DBUS_BROKER_PROVIDER, install_root_rel: "out/build/dbus-broker/install", binaries: DBUS_BROKER_BINARIES },
 ];
 
 const TERMINFO_ENTRIES: &[&str] = &[
@@ -329,6 +337,7 @@ enum BuildStage {
 	SudoRs,
 	UtilLinux,
 	Systemd,
+	DbusBroker,
 	Init,
 	Rootfs,
 	Initramfs,
@@ -462,6 +471,7 @@ fn doctor() -> Result<()> {
 		"readelf",
 		"ldd",
 		"rsync",
+		"bindgen",
 	] {
 		if !check_host_tool_with_hint(tool, true, local_path_hint.as_deref())? {
 			missing_required.push(tool);
@@ -475,6 +485,7 @@ fn doctor() -> Result<()> {
 		("ninja", vec!["--version"]),
 		("grub-mkrescue", vec!["--version"]),
 		("xorriso", vec!["-version"]),
+		("bindgen", vec!["--version"]),
 	] {
 		if missing_required.contains(&tool) {
 			continue;
@@ -497,6 +508,10 @@ fn doctor() -> Result<()> {
 	if let Some(message) = check_tool_runtime("pkg-config", &["--exists", "openssl"])? {
 		println!("[broken]  libssl-dev ({message})");
 		broken_required.push("libssl-dev");
+	}
+	if let Some(message) = check_tool_runtime("pkg-config", &["--atleast-version=2.2", "expat"])? {
+		println!("[broken]  libexpat1-dev ({message})");
+		broken_required.push("libexpat1-dev");
 	}
 
 	println!("\n[Optional tools]");
@@ -681,6 +696,7 @@ fn packages_for_tool<'a>(tool: &'a str, os_release: &str) -> Vec<&'a str> {
 			"ninja" => vec!["ninja-build"],
 			"autoreconf" => vec!["autoconf", "automake", "libtool"],
 			"python3-jinja2" => vec!["python3-jinja2"],
+			"libexpat1-dev" => vec!["libexpat1-dev"],
 			_ => vec![tool],
 		};
 	}
@@ -1648,6 +1664,7 @@ fn build_plan(stage: BuildStage) -> Vec<BuildStage> {
 			BuildStage::Shadow,
 			BuildStage::SudoRs,
 			BuildStage::Systemd,
+			BuildStage::DbusBroker,
 			BuildStage::Init,
 			BuildStage::Rootfs,
 			BuildStage::Initramfs,
@@ -1678,6 +1695,7 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
 		BuildStage::SudoRs => build_sudo_rs(repo_root),
 		BuildStage::UtilLinux => build_util_linux(repo_root),
 		BuildStage::Systemd => build_systemd(repo_root),
+		BuildStage::DbusBroker => build_dbus_broker(repo_root),
 		BuildStage::Init => build_init(repo_root),
 		BuildStage::Rootfs => build_rootfs(repo_root),
 		BuildStage::Initramfs => build_initramfs(repo_root),
@@ -2889,7 +2907,7 @@ fn systemd_meson_options() -> Vec<String> {
 		"-Dmachined=false".to_string(),
 		"-Dhostnamed=false".to_string(),
 		"-Dlocaled=false".to_string(),
-		"-Dtimedated=false".to_string(),
+		"-Dtimedated=true".to_string(),
 		"-Dnsresourced=false".to_string(),
 		"-Ddefault-network=false".to_string(),
 		"-Ddbus=disabled".to_string(),
@@ -2900,7 +2918,7 @@ fn systemd_meson_options() -> Vec<String> {
 		"-Dblkid=disabled".to_string(),
 		"-Dkmod=enabled".to_string(),
 		"-Dlibmount=enabled".to_string(),
-		"-Dpam=disabled".to_string(),
+		"-Dpam=enabled".to_string(),
 		"-Dlibcryptsetup=disabled".to_string(),
 		"-Dopenssl=disabled".to_string(),
 		"-Dlibidn2=disabled".to_string(),
@@ -2916,6 +2934,128 @@ fn systemd_meson_options() -> Vec<String> {
 		"-Dcreate-log-dirs=false".to_string(),
 		"-Djournal-storage-default=volatile".to_string(),
 	]
+}
+
+fn build_dbus_broker(repo_root: &Path) -> Result<()> {
+	let source = repo_root.join("src/system/dbus/dbus-broker");
+	if !source.join("meson.build").exists() {
+		bail!(
+			"dbus-broker source not found in {}; run upstream import dbus-broker first",
+			source.display()
+		);
+	}
+
+	let systemd_install = repo_root.join("out/build/systemd/install/usr");
+	let systemd_lib = systemd_install.join("lib/x86_64-linux-gnu");
+	let systemd_lib_pc = systemd_lib.join("pkgconfig");
+	let systemd_share_pc = systemd_install.join("share/pkgconfig");
+	if !systemd_lib.join("libsystemd.so").exists()
+		|| !systemd_lib_pc.join("libsystemd.pc").exists()
+		|| !systemd_share_pc.join("systemd.pc").exists()
+	{
+		bail!(
+			"systemd development files missing at {}; run build systemd first",
+			systemd_install.display()
+		);
+	}
+
+	let out_root = repo_root.join("out/build/dbus-broker");
+	let source_copy = out_root.join("source");
+	let build_dir = out_root.join("build");
+	let install_dir = out_root.join("install");
+	let stamp_path = out_root.join("build-stamp.txt");
+	let options = vec![
+		"--prefix=/usr".to_string(),
+		"--bindir=bin".to_string(),
+		"--libdir=lib/x86_64-linux-gnu".to_string(),
+		"--buildtype=release".to_string(),
+		"--wrap-mode=forcefallback".to_string(),
+		"-Dlauncher=true".to_string(),
+		"-Dtests=false".to_string(),
+		"-Ddocs=false".to_string(),
+		"-Ddoctest=false".to_string(),
+		"-Dreference-test=false".to_string(),
+		"-Daudit=false".to_string(),
+		"-Dapparmor=false".to_string(),
+		"-Dselinux=false".to_string(),
+		"-Dunstable=false".to_string(),
+	];
+	let pkg_config_path = std::env::join_paths([&systemd_lib_pc, &systemd_share_pc])
+		.context("failed to construct dbus-broker PKG_CONFIG_PATH")?
+		.to_string_lossy()
+		.to_string();
+	let env_overrides = vec![
+		("PKG_CONFIG_PATH", pkg_config_path),
+		("CFLAGS", format!("-I{}", systemd_install.join("include").display())),
+		("LDFLAGS", format!("-L{}", systemd_lib.display())),
+		("LIBRARY_PATH", systemd_lib.display().to_string()),
+		("LD_LIBRARY_PATH", systemd_lib.display().to_string()),
+	];
+	let state = fs::read_to_string(repo_root.join("upstream/state/dbus-broker.toml"))
+		.context("failed to read dbus-broker upstream state")?;
+	let stamp = format!(
+		"{state}\n{}\n{}\n",
+		options.join("\n"),
+		env_overrides
+			.iter()
+			.map(|(key, value)| format!("{key}={value}"))
+			.collect::<Vec<_>>()
+			.join("\n")
+	);
+	if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+		remove_path_if_exists(&source_copy)?;
+		remove_path_if_exists(&build_dir)?;
+	}
+
+	fs::create_dir_all(&out_root)
+		.with_context(|| format!("failed to create {}", out_root.display()))?;
+	sync_build_source(&source, &source_copy)?;
+	if !build_dir.join("build.ninja").exists() {
+		let mut setup_args = vec![
+			"setup".to_string(),
+			build_dir.display().to_string(),
+			source_copy.display().to_string(),
+		];
+		setup_args.extend(options.clone());
+		let setup_refs: Vec<&str> = setup_args.iter().map(String::as_str).collect();
+		run_cmd_with_env_overrides(repo_root, "meson", &setup_refs, &env_overrides)?;
+	}
+
+	run_cmd_with_env_overrides(
+		repo_root,
+		"meson",
+		&["compile", "-C", path_str(&build_dir)?],
+		&env_overrides,
+	)?;
+	remove_path_if_exists(&install_dir)?;
+	fs::create_dir_all(&install_dir)
+		.with_context(|| format!("failed to create {}", install_dir.display()))?;
+	run_cmd_with_env_overrides(
+		repo_root,
+		"meson",
+		&[
+			"install",
+			"-C",
+			path_str(&build_dir)?,
+			"--no-rebuild",
+			"--destdir",
+			path_str(&install_dir)?,
+		],
+		&env_overrides,
+	)?;
+
+	for rel in [
+		"usr/bin/dbus-broker",
+		"usr/bin/dbus-broker-launch",
+		"usr/lib/systemd/system/dbus-broker.service",
+	] {
+		if !install_dir.join(rel).exists() {
+			bail!("dbus-broker install did not produce {rel}");
+		}
+	}
+	fs::write(&stamp_path, stamp)
+		.with_context(|| format!("failed to write {}", stamp_path.display()))?;
+	Ok(())
 }
 
 fn build_rootfs(repo_root: &Path) -> Result<()> {
@@ -2974,6 +3114,14 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 	}
 	copy_tree_excluding_dotgit(&systemd_install, &out)?;
 	copy_systemd_runtime_dependencies(&out)?;
+	let pam_systemd = out.join(SYSTEMD_PAM_MODULE_REL);
+	if !pam_systemd.is_file() {
+		bail!(
+			"systemd PAM module missing at {}; ensure the imported systemd build has PAM enabled",
+			pam_systemd.display()
+		);
+	}
+	copy_runtime_dependencies(&pam_systemd, &out)?;
 	install_linux_pam_runtime(&pam_install, &out)?;
 	copy_shared_object_and_deps("libmount.so.1", &out)?;
 	copy_host_binary_and_deps("/usr/bin/mount", &out)?;
@@ -3061,6 +3209,7 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 		"pam_deny",
 		"pam_shells",
 		"pam_securetty",
+		"pam_systemd",
 	] {
 		inventory.add_implemented(LINUX_PAM_PROVIDER, module);
 		inventory.add_compiled(LINUX_PAM_PROVIDER, module);
@@ -3160,7 +3309,9 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 	let component_provider_commands =
 		install_component_manifests(repo_root, &out, &mut inventory)?;
 	install_component_configuration(repo_root, &out)?;
-	for command in ["networkctl", "resolvectl", "timedatectl"] {
+	install_user_session_configuration(repo_root, &out)?;
+	install_dbus_configuration(repo_root, &out)?;
+	for command in ["busctl", "loginctl", "networkctl", "resolvectl", "timedatectl"] {
 		inventory.add_implemented(SYSTEMD_PROVIDER, command);
 		inventory.add_compiled(SYSTEMD_PROVIDER, command);
 		inventory.add_installed(SYSTEMD_PROVIDER, command);
@@ -3183,7 +3334,13 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 	}
 	provider_commands.insert(
 		SYSTEMD_PROVIDER,
-		vec!["networkctl".to_string(), "resolvectl".to_string(), "timedatectl".to_string()],
+		vec![
+			"busctl".to_string(),
+			"loginctl".to_string(),
+			"networkctl".to_string(),
+			"resolvectl".to_string(),
+			"timedatectl".to_string(),
+		],
 	);
 	validate_no_duplicate_commands(&provider_commands)?;
 
@@ -3224,6 +3381,10 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 		"ping",
 		"tracepath",
 		"curl",
+		"dbus-broker",
+		"dbus-broker-launch",
+		"busctl",
+		"loginctl",
 		"networkctl",
 		"resolvectl",
 		"timedatectl",
@@ -3263,6 +3424,7 @@ fn install_component_manifests(
 	let install_roots: Vec<PathBuf> = COMPONENT_INSTALL_MANIFESTS
 		.iter()
 		.map(|manifest| repo_root.join(manifest.install_root_rel))
+		.chain(std::iter::once(repo_root.join("out/build/systemd/install")))
 		.collect();
 	let library_dirs: Vec<PathBuf> = install_roots
 		.iter()
@@ -3514,8 +3676,6 @@ fn install_mattos_system_units(repo_root: &Path, rootfs: &Path) -> Result<()> {
 		.with_context(|| format!("failed to create {}", tty1_getty.display()))?;
 
 	for masked in [
-		"systemd-logind.service",
-		"systemd-logind-varlink.socket",
 		"ldconfig.service",
 		"mattos-shell.service",
 	] {
@@ -3588,6 +3748,415 @@ fn install_network_configuration(repo_root: &Path, rootfs: &Path) -> Result<()> 
 	}
 
 	validate_network_configuration(rootfs)
+}
+
+fn install_user_session_configuration(repo_root: &Path, rootfs: &Path) -> Result<()> {
+	let source = repo_root.join("src/system/session");
+	let units_source = source.join("user-units");
+	let dbus_config = source.join("dbus/session.conf");
+	for required in [
+		units_source.join("dbus.socket"),
+		units_source.join("dbus-broker.service"),
+		dbus_config.clone(),
+	] {
+		if !required.is_file() {
+			bail!("MattOS user-session unit missing at {}", required.display());
+		}
+	}
+
+	let user_units = rootfs.join("usr/lib/systemd/user");
+	fs::create_dir_all(&user_units)
+		.with_context(|| format!("failed to create {}", user_units.display()))?;
+	copy_tree_excluding_dotgit(&units_source, &user_units)?;
+	for rel in ["dbus.socket", "dbus-broker.service"] {
+		set_mode(user_units.join(rel), 0o644)?;
+	}
+
+	let dbus_alias = user_units.join("dbus.service");
+	if path_entry_exists(&dbus_alias) {
+		remove_path_if_exists(&dbus_alias)?;
+	}
+	#[cfg(unix)]
+	std::os::unix::fs::symlink("dbus-broker.service", &dbus_alias)
+		.context("failed to create user dbus.service alias")?;
+
+	let sockets_wants = user_units.join("sockets.target.wants");
+	fs::create_dir_all(&sockets_wants)
+		.with_context(|| format!("failed to create {}", sockets_wants.display()))?;
+	let socket_link = sockets_wants.join("dbus.socket");
+	if path_entry_exists(&socket_link) {
+		remove_path_if_exists(&socket_link)?;
+	}
+	#[cfg(unix)]
+	std::os::unix::fs::symlink("../dbus.socket", &socket_link)
+		.context("failed to enable the per-user D-Bus socket")?;
+
+	for directory in [
+		"usr/share/dbus-1/session.d",
+		"usr/share/dbus-1/services",
+		"etc/dbus-1/session.d",
+	] {
+		fs::create_dir_all(rootfs.join(directory))
+			.with_context(|| format!("failed to create /{directory}"))?;
+	}
+	fs::copy(&dbus_config, rootfs.join("usr/share/dbus-1/session.conf"))
+		.context("failed to install per-user D-Bus policy")?;
+	set_mode(rootfs.join("usr/share/dbus-1/session.conf"), 0o644)?;
+
+	// MattOS supplies a deliberately small effective systemd-user PAM stack in /etc.
+	// Remove the imported vendor fallback, which references optional PAM modules that
+	// are outside the current image's authentication scope.
+	let vendor_systemd_user = rootfs.join("usr/lib/pam.d/systemd-user");
+	if path_entry_exists(&vendor_systemd_user) {
+		remove_path_if_exists(&vendor_systemd_user)?;
+	}
+
+	validate_user_session_configuration(rootfs)
+}
+
+fn validate_user_session_configuration(rootfs: &Path) -> Result<()> {
+	for rel in [
+		SYSTEMD_PAM_MODULE_REL,
+		"etc/pam.d/login",
+		"etc/pam.d/su-l",
+		"etc/pam.d/systemd-user",
+		"usr/lib/systemd/system/systemd-logind.service",
+		"usr/lib/systemd/system/user@.service",
+		"usr/lib/systemd/system/user-runtime-dir@.service",
+		"usr/lib/systemd/systemd-user-runtime-dir",
+		"usr/lib/systemd/user/basic.target",
+		"usr/lib/systemd/user/default.target",
+		"usr/lib/systemd/user/sockets.target",
+		"usr/lib/systemd/user/dbus.socket",
+		"usr/lib/systemd/user/dbus-broker.service",
+		"usr/lib/systemd/user/dbus.service",
+		"usr/lib/systemd/user/sockets.target.wants/dbus.socket",
+		"usr/share/dbus-1/session.conf",
+		"usr/share/dbus-1/session.d",
+		"usr/share/dbus-1/services",
+		"etc/dbus-1/session.d",
+		"usr/lib/systemd/user-environment-generators/30-systemd-environment-d-generator",
+	] {
+		if !path_entry_exists(&rootfs.join(rel)) {
+			bail!("required user-session rootfs path missing: /{rel}");
+		}
+	}
+
+	let expected_hook = "session    optional     pam_systemd.so";
+	for stack in ["login", "su-l", "systemd-user"] {
+		let body = fs::read_to_string(rootfs.join("etc/pam.d").join(stack))
+			.with_context(|| format!("failed to read effective PAM stack {stack}"))?;
+		if body.matches(expected_hook).count() != 1 {
+			bail!("PAM stack {stack} must contain exactly one optional pam_systemd session hook");
+		}
+	}
+	for entry in fs::read_dir(rootfs.join("etc/pam.d"))? {
+		let path = entry?.path();
+		if !path.is_file() {
+			continue;
+		}
+		let name = path.file_name().and_then(OsStr::to_str).unwrap_or_default();
+		if matches!(name, "login" | "su-l" | "systemd-user") {
+			continue;
+		}
+		if fs::read_to_string(&path)?.contains("pam_systemd.so") {
+			bail!("pam_systemd is present in inappropriate PAM stack {name}");
+		}
+	}
+
+	let user_socket = fs::read_to_string(rootfs.join("usr/lib/systemd/user/dbus.socket"))?;
+	if user_socket.matches("ListenStream=%t/bus").count() != 1
+		|| user_socket.contains("/run/dbus/system_bus_socket")
+	{
+		bail!("user dbus.socket must own only the per-user %t/bus endpoint");
+	}
+	let user_broker = fs::read_to_string(rootfs.join("usr/lib/systemd/user/dbus-broker.service"))?;
+	if user_broker.matches("ExecStart=/usr/bin/dbus-broker-launch --scope user").count() != 1
+		|| user_broker.contains("--scope system")
+	{
+		bail!("user dbus-broker.service must launch exactly one user-scope broker");
+	}
+	let session_policy = fs::read_to_string(rootfs.join("usr/share/dbus-1/session.conf"))?;
+	for required in [
+		"<type>session</type>",
+		"<auth>EXTERNAL</auth>",
+		"<standard_session_servicedirs/>",
+		"<allow own=\"*\"/>",
+	] {
+		if !session_policy.contains(required) {
+			bail!("per-user D-Bus policy is missing required contract: {required}");
+		}
+	}
+	if session_policy.contains("<type>system</type>")
+		|| session_policy.contains("<user>messagebus</user>")
+		|| session_policy.contains("/run/dbus/system_bus_socket")
+	{
+		bail!("per-user D-Bus policy must remain separate from the system bus");
+	}
+
+	for rel in [
+		"etc/pam.d/login",
+		"etc/pam.d/su-l",
+		"etc/pam.d/systemd-user",
+		"usr/lib/systemd/user/dbus.socket",
+		"usr/lib/systemd/user/dbus-broker.service",
+		"usr/share/dbus-1/session.conf",
+	] {
+		let body = fs::read_to_string(rootfs.join(rel))?;
+		if body.contains("/run/user/1000") || body.contains("user@1000") {
+			bail!("generic user-session configuration hardcodes the live UID in /{rel}");
+		}
+	}
+	if path_entry_exists(&rootfs.join("run/user")) {
+		bail!("stale /run/user content must not be baked into the staged rootfs");
+	}
+
+	validate_executable_runtime_closure(&rootfs.join(SYSTEMD_PAM_MODULE_REL), rootfs)?;
+	validate_executable_runtime_closure(&rootfs.join("usr/lib/systemd/systemd-user-runtime-dir"), rootfs)?;
+	Ok(())
+}
+
+fn install_dbus_configuration(repo_root: &Path, rootfs: &Path) -> Result<()> {
+	let source = repo_root.join("src/system/dbus");
+	let config_source = source.join("config/system.conf");
+	let sysusers_source = source.join("config/dbus.conf");
+	let units_source = source.join("units");
+	for required in [&config_source, &sysusers_source, &units_source.join("dbus.socket"), &units_source.join("dbus-broker.service")] {
+		if !required.exists() {
+			bail!("MattOS D-Bus integration file missing at {}", required.display());
+		}
+	}
+
+	for directory in [
+		"etc/dbus-1/system.d",
+		"usr/share/dbus-1/system-services",
+		"usr/share/dbus-1/system.d",
+		"usr/lib/sysusers.d",
+		"usr/lib/systemd/system",
+	] {
+		fs::create_dir_all(rootfs.join(directory))
+			.with_context(|| format!("failed to create /{directory}"))?;
+	}
+	fs::copy(&config_source, rootfs.join("etc/dbus-1/system.conf"))
+		.context("failed to install MattOS system-bus configuration")?;
+	fs::copy(&sysusers_source, rootfs.join("usr/lib/sysusers.d/dbus.conf"))
+		.context("failed to install messagebus sysusers definition")?;
+	copy_tree_excluding_dotgit(&units_source, &rootfs.join("usr/lib/systemd/system"))?;
+	for rel in [
+		"etc/dbus-1/system.conf",
+		"usr/lib/sysusers.d/dbus.conf",
+		"usr/lib/systemd/system/dbus.socket",
+		"usr/lib/systemd/system/dbus-broker.service",
+	] {
+		set_mode(rootfs.join(rel), 0o644)?;
+	}
+
+	let aliases = [
+		("dbus.service", "dbus-broker.service"),
+		("dbus-org.freedesktop.network1.service", "systemd-networkd.service"),
+		("dbus-org.freedesktop.resolve1.service", "systemd-resolved.service"),
+		("dbus-org.freedesktop.timesync1.service", "systemd-timesyncd.service"),
+		("dbus-org.freedesktop.timedate1.service", "systemd-timedated.service"),
+		("dbus-org.freedesktop.login1.service", "systemd-logind.service"),
+	];
+	for (alias, target) in aliases {
+		install_systemd_service_alias(rootfs, alias, target)?;
+	}
+
+	let sockets_wants = rootfs.join("etc/systemd/system/sockets.target.wants");
+	fs::create_dir_all(&sockets_wants)
+		.with_context(|| format!("failed to create {}", sockets_wants.display()))?;
+	let socket_link = sockets_wants.join("dbus.socket");
+	if path_entry_exists(&socket_link) {
+		remove_path_if_exists(&socket_link)?;
+	}
+	#[cfg(unix)]
+	std::os::unix::fs::symlink("/usr/lib/systemd/system/dbus.socket", &socket_link)
+		.context("failed to enable dbus.socket")?;
+
+	validate_dbus_configuration(rootfs)
+}
+
+#[cfg(unix)]
+fn install_systemd_service_alias(rootfs: &Path, alias: &str, target: &str) -> Result<()> {
+	use std::os::unix::fs::symlink;
+
+	let unit_dir = rootfs.join("usr/lib/systemd/system");
+	let target_path = unit_dir.join(target);
+	if !target_path.is_file() {
+		bail!("refusing D-Bus alias {alias}: target unit {target} is missing");
+	}
+	let alias_path = unit_dir.join(alias);
+	if path_entry_exists(&alias_path) {
+		remove_path_if_exists(&alias_path)?;
+	}
+	symlink(target, &alias_path)
+		.with_context(|| format!("failed to create D-Bus service alias {alias} -> {target}"))?;
+	Ok(())
+}
+
+#[cfg(not(unix))]
+fn install_systemd_service_alias(_rootfs: &Path, _alias: &str, _target: &str) -> Result<()> {
+	bail!("systemd service alias installation requires a Unix host")
+}
+
+fn validate_dbus_configuration(rootfs: &Path) -> Result<()> {
+	for rel in [
+		"usr/bin/dbus-broker",
+		"usr/bin/dbus-broker-launch",
+		"usr/bin/busctl",
+		"etc/dbus-1/system.conf",
+		"etc/dbus-1/system.d",
+		"usr/share/dbus-1/system-services",
+		"usr/share/dbus-1/system.d",
+		"usr/lib/sysusers.d/dbus.conf",
+		"usr/lib/systemd/system/dbus.socket",
+		"usr/lib/systemd/system/dbus-broker.service",
+		"etc/systemd/system/sockets.target.wants/dbus.socket",
+	] {
+		if !path_entry_exists(&rootfs.join(rel)) {
+			bail!("required D-Bus rootfs path missing: /{rel}");
+		}
+	}
+
+	let system_conf = fs::read_to_string(rootfs.join("etc/dbus-1/system.conf"))
+		.context("failed to read installed system.conf")?;
+	for required in [
+		"<user>messagebus</user>",
+		"<deny own=\"*\"/>",
+		"<deny send_type=\"method_call\"/>",
+		"<includedir>/usr/share/dbus-1/system.d</includedir>",
+		"<includedir>/etc/dbus-1/system.d</includedir>",
+	] {
+		if !system_conf.contains(required) {
+			bail!("system-bus policy is missing required boundary: {required}");
+		}
+	}
+	if system_conf.contains("<allow own=\"*\"/>") {
+		bail!("system-bus policy must not allow arbitrary name ownership");
+	}
+
+	let socket_unit = fs::read_to_string(rootfs.join("usr/lib/systemd/system/dbus.socket"))
+		.context("failed to read dbus.socket")?;
+	if socket_unit.matches("ListenStream=/run/dbus/system_bus_socket").count() != 1 {
+		bail!("dbus.socket must own exactly one conventional system-bus socket");
+	}
+	if path_entry_exists(&rootfs.join("run/dbus/system_bus_socket")) {
+		bail!("stale system-bus socket must not be present in rootfs staging");
+	}
+	if rootfs.join("usr/bin/dbus-daemon").exists() || rootfs.join("usr/sbin/dbus-daemon").exists() {
+		bail!("competing dbus-daemon binary found in rootfs");
+	}
+	for binary in ["usr/bin/dbus-broker", "usr/bin/dbus-broker-launch"] {
+		validate_executable_runtime_closure(&rootfs.join(binary), rootfs)?;
+	}
+
+	let broker_unit = fs::read_to_string(rootfs.join("usr/lib/systemd/system/dbus-broker.service"))
+		.context("failed to read dbus-broker.service")?;
+	if broker_unit.matches("ExecStart=/usr/bin/dbus-broker-launch").count() != 1
+		|| broker_unit.contains("dbus-daemon")
+	{
+		bail!("dbus-broker.service must launch exactly one system-bus implementation");
+	}
+
+	let sysusers = fs::read_to_string(rootfs.join("usr/lib/sysusers.d/dbus.conf"))
+		.context("failed to read dbus sysusers definition")?;
+	let fields: Vec<&str> = sysusers.split_whitespace().collect();
+	if fields.get(0) != Some(&"u!") || fields.get(1) != Some(&"messagebus") || fields.get(2) != Some(&"195") {
+		bail!("messagebus sysusers definition must pin UID/GID 195");
+	}
+	for entry in fs::read_dir(rootfs.join("usr/lib/sysusers.d"))? {
+		let path = entry?.path();
+		if path.ends_with("dbus.conf") || !path.is_file() {
+			continue;
+		}
+		let body = fs::read_to_string(&path).unwrap_or_default();
+		for line in body.lines() {
+			let fields: Vec<&str> = line.split_whitespace().collect();
+			if fields.get(2) == Some(&"195") {
+				bail!("messagebus UID/GID 195 collides with {}", path.display());
+			}
+		}
+	}
+
+	for name in ["systemd1", "network1", "resolve1", "timesync1", "timedate1", "login1"] {
+		let policy = rootfs.join(format!("usr/share/dbus-1/system.d/org.freedesktop.{name}.conf"));
+		let service = rootfs.join(format!("usr/share/dbus-1/system-services/org.freedesktop.{name}.service"));
+		if !policy.is_file() || !service.is_file() {
+			bail!("D-Bus policy/service descriptor missing for org.freedesktop.{name}");
+		}
+	}
+
+	for (alias, target) in [
+		("dbus.service", "dbus-broker.service"),
+		("dbus-org.freedesktop.network1.service", "systemd-networkd.service"),
+		("dbus-org.freedesktop.resolve1.service", "systemd-resolved.service"),
+		("dbus-org.freedesktop.timesync1.service", "systemd-timesyncd.service"),
+		("dbus-org.freedesktop.timedate1.service", "systemd-timedated.service"),
+		("dbus-org.freedesktop.login1.service", "systemd-logind.service"),
+	] {
+		let path = rootfs.join("usr/lib/systemd/system").join(alias);
+		let actual = fs::read_link(&path)
+			.with_context(|| format!("missing D-Bus service alias {alias}"))?;
+		if actual != Path::new(target) {
+			bail!("invalid D-Bus alias {alias}: expected {target}, got {}", actual.display());
+		}
+	}
+
+	Ok(())
+}
+
+fn validate_executable_runtime_closure(binary: &Path, rootfs: &Path) -> Result<()> {
+	let file = Command::new("file")
+		.args(["-L", path_str(binary)?])
+		.output()
+		.with_context(|| format!("failed to inspect {} with file", binary.display()))?;
+	if !file.status.success() || !String::from_utf8_lossy(&file.stdout).contains("ELF") {
+		bail!("runtime closure target is not an ELF executable: {}", binary.display());
+	}
+	let readelf = Command::new("readelf")
+		.args(["-d", path_str(binary)?])
+		.output()
+		.with_context(|| format!("failed to inspect {} with readelf", binary.display()))?;
+	if !readelf.status.success() {
+		bail!("readelf failed for runtime closure target {}", binary.display());
+	}
+
+	let library_dirs = [
+		rootfs.join("usr/lib/x86_64-linux-gnu"),
+		rootfs.join("usr/lib/x86_64-linux-gnu/systemd"),
+		rootfs.join("lib/x86_64-linux-gnu"),
+		rootfs.join("usr/lib"),
+		rootfs.join("lib"),
+	];
+	let library_path = std::env::join_paths(library_dirs.iter())
+		.context("failed to construct rootfs runtime library path")?;
+	let ldd = Command::new("ldd")
+		.arg(binary)
+		.env("LD_LIBRARY_PATH", library_path)
+		.output()
+		.with_context(|| format!("failed to inspect {} with ldd", binary.display()))?;
+	let ldd_text = String::from_utf8(ldd.stdout).context("ldd output was not UTF-8")?;
+	if !ldd.status.success() || ldd_text.contains("not found") {
+		bail!("unresolved runtime dependency for {}:\n{}", binary.display(), ldd_text);
+	}
+	for token in ldd_text.split_whitespace().filter(|token| token.starts_with('/')) {
+		let dependency = Path::new(token);
+		let staged = if dependency.starts_with(rootfs) {
+			dependency.to_path_buf()
+		} else {
+			rootfs.join(dependency.strip_prefix("/").unwrap_or(dependency))
+		};
+		if !staged.exists() {
+			bail!(
+				"runtime dependency {} for {} is not staged at {}",
+				dependency.display(),
+				binary.display(),
+				staged.display()
+			);
+		}
+	}
+	Ok(())
 }
 
 fn validate_network_configuration(rootfs: &Path) -> Result<()> {
@@ -3979,8 +4548,13 @@ fn copy_systemd_runtime_dependencies(rootfs: &Path) -> Result<()> {
 		"usr/lib/systemd/systemd-networkd",
 		"usr/lib/systemd/systemd-resolved",
 		"usr/lib/systemd/systemd-timesyncd",
+		"usr/lib/systemd/systemd-timedated",
+		"usr/lib/systemd/systemd-logind",
+		"usr/lib/systemd/systemd-user-runtime-dir",
 		"usr/bin/systemctl",
 		"usr/bin/journalctl",
+		"usr/bin/busctl",
+		"usr/bin/loginctl",
 		"usr/bin/networkctl",
 		"usr/bin/resolvectl",
 		"usr/bin/timedatectl",
@@ -5425,6 +5999,112 @@ mod tests {
 	}
 
 	#[test]
+	fn systemd_build_enables_imported_pam_module() {
+		let options = systemd_meson_options();
+		assert!(options.iter().any(|option| option == "-Dpam=enabled"));
+		assert!(!options.iter().any(|option| option == "-Dpam=disabled"));
+		assert_eq!(
+			SYSTEMD_PAM_MODULE_REL,
+			"usr/lib/x86_64-linux-gnu/security/pam_systemd.so"
+		);
+	}
+
+	#[cfg(unix)]
+	fn make_user_session_test_trees() -> (tempfile::TempDir, PathBuf, PathBuf) {
+		let tmp = tempfile::tempdir().expect("tempdir");
+		let repo = tmp.path().join("repo");
+		let rootfs = tmp.path().join("rootfs");
+		write(
+			&repo.join("src/system/session/user-units/dbus.socket"),
+			"[Socket]\nListenStream=%t/bus\nExecStartPost=-/usr/bin/systemctl --user set-environment DBUS_SESSION_BUS_ADDRESS=unix:path=%t/bus\n",
+		);
+		write(
+			&repo.join("src/system/session/user-units/dbus-broker.service"),
+			"[Service]\nExecStart=/usr/bin/dbus-broker-launch --scope user\n",
+		);
+		write(
+			&repo.join("src/system/session/dbus/session.conf"),
+			"<busconfig>\n<type>session</type>\n<auth>EXTERNAL</auth>\n<standard_session_servicedirs/>\n<allow own=\"*\"/>\n</busconfig>\n",
+		);
+		for (stack, body) in [
+			("login", "session    optional     pam_systemd.so\n"),
+			("su-l", "session    optional     pam_systemd.so\n"),
+			("su", "session    required     pam_unix.so\n"),
+			("sudo", "session    required     pam_unix.so\n"),
+			("passwd", "password   required     pam_unix.so\n"),
+			(
+				"systemd-user",
+				"account    required     pam_unix.so\nsession    required     pam_unix.so\nsession    optional     pam_systemd.so\n",
+			),
+		] {
+			write(&rootfs.join("etc/pam.d").join(stack), body);
+		}
+		for rel in [
+			"usr/lib/systemd/system/systemd-logind.service",
+			"usr/lib/systemd/system/user@.service",
+			"usr/lib/systemd/system/user-runtime-dir@.service",
+			"usr/lib/systemd/user/basic.target",
+			"usr/lib/systemd/user/default.target",
+			"usr/lib/systemd/user/sockets.target",
+			"usr/lib/systemd/user-environment-generators/30-systemd-environment-d-generator",
+			"usr/lib/pam.d/systemd-user",
+		] {
+			write(&rootfs.join(rel), "installed\n");
+		}
+		for rel in [SYSTEMD_PAM_MODULE_REL, "usr/lib/systemd/systemd-user-runtime-dir"] {
+			let destination = rootfs.join(rel);
+			if let Some(parent) = destination.parent() {
+				fs::create_dir_all(parent).expect("runtime parent");
+			}
+			fs::copy("/bin/true", &destination).expect("test ELF");
+			copy_runtime_dependencies(&destination, &rootfs).expect("test dependency closure");
+		}
+		fs::create_dir_all(rootfs.join("run")).expect("empty runtime root");
+		(tmp, repo, rootfs)
+	}
+
+	#[cfg(unix)]
+	#[test]
+	fn user_session_installation_is_generic_complete_and_bus_scoped() {
+		let (_tmp, repo, rootfs) = make_user_session_test_trees();
+		install_user_session_configuration(&repo, &rootfs).expect("install user session");
+		assert!(rootfs.join(SYSTEMD_PAM_MODULE_REL).is_file());
+		assert!(rootfs.join("usr/lib/systemd/system/user@.service").is_file());
+		assert!(rootfs.join("usr/lib/systemd/system/user-runtime-dir@.service").is_file());
+		assert_eq!(
+			fs::read_link(rootfs.join("usr/lib/systemd/user/dbus.service")).unwrap(),
+			Path::new("dbus-broker.service")
+		);
+		assert_eq!(
+			fs::read_link(rootfs.join("usr/lib/systemd/user/sockets.target.wants/dbus.socket")).unwrap(),
+			Path::new("../dbus.socket")
+		);
+		assert!(!path_entry_exists(&rootfs.join("run/user")));
+		assert!(!path_entry_exists(&rootfs.join("usr/lib/pam.d/systemd-user")));
+	}
+
+	#[cfg(unix)]
+	#[test]
+	fn user_session_validation_rejects_inappropriate_pam_hook_and_stale_runtime() {
+		let (_tmp, repo, rootfs) = make_user_session_test_trees();
+		install_user_session_configuration(&repo, &rootfs).expect("install user session");
+		write(
+			&rootfs.join("etc/pam.d/sudo"),
+			"session    optional     pam_systemd.so\n",
+		);
+		assert!(validate_user_session_configuration(&rootfs)
+			.expect_err("sudo session hook must fail")
+			.to_string()
+			.contains("inappropriate PAM stack sudo"));
+		write(&rootfs.join("etc/pam.d/sudo"), "session required pam_unix.so\n");
+		fs::create_dir_all(rootfs.join("run/user/4242")).expect("stale runtime directory");
+		assert!(validate_user_session_configuration(&rootfs)
+			.expect_err("stale runtime content must fail")
+			.to_string()
+			.contains("stale /run/user"));
+	}
+
+	#[test]
 	fn account_database_validation_accepts_live_profile_shape() {
 		let tmp = tempfile::tempdir().expect("tempdir");
 		let root = tmp.path();
@@ -5655,6 +6335,155 @@ mod tests {
 	}
 
 	#[test]
+	fn dbus_broker_upstream_metadata_has_safe_system_destination() {
+		let tmp = tempfile::tempdir().expect("tempdir");
+		let root = tmp.path();
+		write(
+			&root.join("upstream/sources.toml"),
+			"[[component]]\nname='dbus-broker'\nrepo='https://github.com/bus1/dbus-broker.git'\nbranch='main'\npath='src/system/dbus/dbus-broker'\nsync='copy'\n",
+		);
+		let sources = read_sources(root).expect("read D-Bus source metadata");
+		let component = &sources.component[0];
+		assert_eq!(component.name, "dbus-broker");
+		assert_eq!(component.repo, "https://github.com/bus1/dbus-broker.git");
+		assert_eq!(component.branch, "main");
+		assert_eq!(component.sync, "copy");
+		let destination = resolve_component_destination(root, &component.path).expect("safe D-Bus destination");
+		assert_eq!(destination, root.join("src/system/dbus/dbus-broker"));
+	}
+
+	#[test]
+	fn dbus_broker_build_stage_name_dispatches() {
+		assert_eq!(BuildStage::from_str("dbus-broker", true).unwrap(), BuildStage::DbusBroker);
+		assert!(build_plan(BuildStage::All)
+			.windows(2)
+			.any(|pair| pair == [BuildStage::Systemd, BuildStage::DbusBroker]));
+	}
+
+	#[test]
+	fn dbus_broker_manifest_requires_broker_and_launcher() {
+		let manifest = COMPONENT_INSTALL_MANIFESTS
+			.iter()
+			.find(|manifest| manifest.provider == DBUS_BROKER_PROVIDER)
+			.expect("dbus-broker install manifest");
+		assert_eq!(manifest.install_root_rel, "out/build/dbus-broker/install");
+		assert!(manifest.binaries.iter().any(|binary| binary.command_name == "dbus-broker"));
+		assert!(manifest.binaries.iter().any(|binary| binary.command_name == "dbus-broker-launch"));
+	}
+
+	#[cfg(unix)]
+	fn make_dbus_test_trees() -> (tempfile::TempDir, PathBuf, PathBuf) {
+		let tmp = tempfile::tempdir().expect("tempdir");
+		let repo = tmp.path().join("repo");
+		let rootfs = tmp.path().join("rootfs");
+		let source = repo.join("src/system/dbus");
+		write(
+			&source.join("config/system.conf"),
+			"<busconfig>\n<user>messagebus</user>\n<deny own=\"*\"/>\n<deny send_type=\"method_call\"/>\n<includedir>/usr/share/dbus-1/system.d</includedir>\n<includedir>/etc/dbus-1/system.d</includedir>\n</busconfig>\n",
+		);
+		write(&source.join("config/dbus.conf"), "u! messagebus 195 \"D-Bus System Message Bus\"\n");
+		write(
+			&source.join("units/dbus.socket"),
+			"[Socket]\nListenStream=/run/dbus/system_bus_socket\nSocketMode=0666\n",
+		);
+		write(
+			&source.join("units/dbus-broker.service"),
+			"[Service]\nExecStart=/usr/bin/dbus-broker-launch --scope system --config-file=/etc/dbus-1/system.conf\n",
+		);
+
+		for target in [
+			"systemd-networkd.service",
+			"systemd-resolved.service",
+			"systemd-timesyncd.service",
+			"systemd-timedated.service",
+			"systemd-logind.service",
+		] {
+			write(&rootfs.join("usr/lib/systemd/system").join(target), "[Service]\nExecStart=/bin/true\n");
+		}
+		for name in ["systemd1", "network1", "resolve1", "timesync1", "timedate1", "login1"] {
+			write(
+				&rootfs.join(format!("usr/share/dbus-1/system.d/org.freedesktop.{name}.conf")),
+				"<busconfig/>\n",
+			);
+			write(
+				&rootfs.join(format!("usr/share/dbus-1/system-services/org.freedesktop.{name}.service")),
+				&format!("[D-BUS Service]\nName=org.freedesktop.{name}\n"),
+			);
+		}
+		fs::create_dir_all(rootfs.join("run")).expect("runtime staging directory");
+		let roots = vec![PathBuf::from("/")];
+		let libraries = vec![PathBuf::from("/lib/x86_64-linux-gnu"), PathBuf::from("/usr/lib/x86_64-linux-gnu")];
+		for binary in ["dbus-broker", "dbus-broker-launch"] {
+			inspect_and_stage_executable(
+				Path::new("/bin/true"),
+				&rootfs.join("usr/bin").join(binary),
+				&rootfs,
+				&roots,
+				&libraries,
+			)
+			.expect("stage test ELF and dependency closure");
+		}
+		write(&rootfs.join("usr/bin/busctl"), "present\n");
+		(tmp, repo, rootfs)
+	}
+
+	#[cfg(unix)]
+	#[test]
+	fn dbus_installation_has_units_socket_policy_paths_and_aliases() {
+		let (_tmp, repo, rootfs) = make_dbus_test_trees();
+		install_dbus_configuration(&repo, &rootfs).expect("install D-Bus integration");
+		assert!(rootfs.join("etc/dbus-1/system.conf").is_file());
+		assert!(rootfs.join("usr/lib/systemd/system/dbus.socket").is_file());
+		assert_eq!(
+			fs::read_link(rootfs.join("usr/lib/systemd/system/dbus.service")).unwrap(),
+			Path::new("dbus-broker.service")
+		);
+		assert_eq!(
+			fs::read_link(rootfs.join("usr/lib/systemd/system/dbus-org.freedesktop.network1.service")).unwrap(),
+			Path::new("systemd-networkd.service")
+		);
+		assert!(!path_entry_exists(&rootfs.join("run/dbus/system_bus_socket")));
+	}
+
+	#[cfg(unix)]
+	#[test]
+	fn dbus_alias_installation_rejects_missing_service() {
+		let tmp = tempfile::tempdir().expect("tempdir");
+		let error = install_systemd_service_alias(tmp.path(), "dbus-org.example.service", "missing.service")
+			.expect_err("missing alias target must be rejected");
+		assert!(error.to_string().contains("target unit missing.service is missing"));
+	}
+
+	#[cfg(unix)]
+	#[test]
+	fn dbus_validation_rejects_competing_owner_and_stale_socket() {
+		let (_tmp, repo, rootfs) = make_dbus_test_trees();
+		install_dbus_configuration(&repo, &rootfs).expect("install D-Bus integration");
+		write(&rootfs.join("usr/bin/dbus-daemon"), "competing daemon\n");
+		assert!(validate_dbus_configuration(&rootfs)
+			.expect_err("competing owner must fail")
+			.to_string()
+			.contains("competing dbus-daemon"));
+		fs::remove_file(rootfs.join("usr/bin/dbus-daemon")).unwrap();
+		write(&rootfs.join("run/dbus/system_bus_socket"), "stale\n");
+		assert!(validate_dbus_configuration(&rootfs)
+			.expect_err("stale socket must fail")
+			.to_string()
+			.contains("stale system-bus socket"));
+	}
+
+	#[cfg(unix)]
+	#[test]
+	fn dbus_runtime_dependency_closure_is_complete() {
+		let (_tmp, repo, rootfs) = make_dbus_test_trees();
+		install_dbus_configuration(&repo, &rootfs).expect("install D-Bus integration");
+		validate_executable_runtime_closure(&rootfs.join("usr/bin/dbus-broker"), &rootfs)
+			.expect("broker runtime closure");
+		validate_executable_runtime_closure(&rootfs.join("usr/bin/dbus-broker-launch"), &rootfs)
+			.expect("launcher runtime closure");
+	}
+
+	#[test]
 	fn component_manifests_have_required_commands_and_unique_paths() {
 		let mut commands = BTreeSet::new();
 		let mut destinations = BTreeSet::new();
@@ -5669,7 +6498,8 @@ mod tests {
 			"modprobe", "insmod", "rmmod", "lsmod", "modinfo", "depmod", "ps", "top", "free",
 			"uptime", "pgrep", "pkill", "pidof", "watch", "sysctl", "vmstat", "w", "clear", "tput",
 			"tic", "toe", "infocmp",
-			"ip", "ss", "bridge", "tc", "ping", "tracepath", "curl",
+			"ip", "ss", "bridge", "tc", "ping", "tracepath", "curl", "dbus-broker",
+			"dbus-broker-launch",
 		] {
 			assert!(commands.contains(required), "missing {required}");
 		}

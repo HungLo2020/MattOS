@@ -40,13 +40,14 @@ The build directory is kept for incremental Ninja rebuilds. Reconfigure is trigg
 
 ## Minimal Meson Configuration
 
-The current integrated configuration is intentionally minimal. Networking enables only the services required by the wired/QEMU milestone:
+The current integrated configuration is intentionally minimal. It enables the base services required by the wired/QEMU and system D-Bus milestones:
 
-- Enabled networking services: `systemd-networkd`, `systemd-resolved`, `systemd-timesyncd`
+- Enabled services: `systemd-networkd`, `systemd-resolved`, `systemd-timesyncd`, `systemd-timedated`, `systemd-logind`
 - Fixed ephemeral service IDs: `systemd-network` 192, `systemd-resolve` 193, `systemd-timesync` 194
-- Disabled stacks: `homed`, `portabled`, `nspawn`, `oomd`, `remote`, `userdb`, `firstboot`, `bootloader`, `importd`, `vmspawn`, `coredump`, `pstore`, `machined`, `hostnamed`, `localed`, `timedated`, `nsresourced`
+- Disabled stacks: `homed`, `portabled`, `nspawn`, `oomd`, `remote`, `userdb`, `firstboot`, `bootloader`, `importd`, `vmspawn`, `coredump`, `pstore`, `machined`, `hostnamed`, `localed`, `nsresourced`
 - Enabled base-system integration: locally built kmod 34 from `out/build/kmod/install`
-- Disabled security/optional integrations: `pam`, `seccomp`, `acl`, `audit`, `blkid`, `libcryptsetup`, `openssl`, `gnutls`, `libfido2`, `tpm2`, `qrencode`, `bpf-framework`
+- Enabled login integration: systemd's PAM support and locally built `pam_systemd.so`
+- Disabled security/optional integrations: `seccomp`, `acl`, `audit`, `blkid`, `libcryptsetup`, `openssl`, `gnutls`, `libfido2`, `tpm2`, `qrencode`, `bpf-framework`
 - Disabled extras: docs, man pages, html, translations, tests, kernel-install extras, analyze utility
 - Journal default: volatile (`journal-storage-default=volatile`)
 
@@ -57,7 +58,7 @@ The full option list is defined by `systemd_meson_options()` in `src/tools/matto
 Normal boot flow:
 
 ```text
-GRUB -> Linux -> /usr/lib/systemd/systemd (PID 1) -> mattos.target -> mattos-shell.service -> Brush on tty1
+GRUB -> Linux -> systemd (PID 1) -> getty -> login/PAM -> pam_systemd -> logind -> systemd --user -> Brush
 ```
 
 Rescue flow:
@@ -92,6 +93,10 @@ Minimum runtime paths/files created for this milestone include:
 - `/var/tmp/`
 - `/etc/machine-id` (empty for ephemeral live image initialization)
 - `/etc/systemd/network/20-mattos-wired.network` (Ethernet IPv4 DHCP)
+- `/etc/dbus-1/system.conf` and `/etc/dbus-1/system.d/`
+- `/usr/share/dbus-1/system.d/` and `/usr/share/dbus-1/system-services/`
+- `/run/dbus/system_bus_socket` (created by the system `dbus.socket` at runtime)
+- `/run/user/$UID` and `/run/user/$UID/bus` (created only at runtime by systemd/logind and the user socket)
 - `/etc/systemd/resolved.conf`, `/etc/systemd/timesyncd.conf`
 - `/etc/nsswitch.conf`, `/etc/hosts`, `/etc/networks`
 - `/etc/resolv.conf -> /run/systemd/resolve/stub-resolv.conf`
@@ -126,13 +131,13 @@ alongside existing kernel/ISO/QEMU prerequisites.
 
 ## Known Limitations
 
-This milestone intentionally does not provide:
+The current image intentionally does not provide:
 
-- login authentication
-- PAM-enabled login/session stack
-- non-root user sessions
+- persistent installed-system users or sessions
 - persistent journal
 - Wi-Fi, SSH, a firewall policy, or physical Ethernet driver expansion beyond the QEMU virtio NIC
-- a system D-Bus daemon; networkctl/resolvectl use the enabled network services directly, while non-root systemctl and timedatectl remain unavailable until that base-system dependency is integrated
+- Polkit or another interactive D-Bus authorization agent; privileged operations require root or sudo
 - installed-disk boot/install support
 - package management
+
+The production system bus is the separately built dbus-broker described in `docs/DBUS.md`. `systemd-logind` owns `org.freedesktop.login1`; PAM-registered sessions start UID-generic per-user managers and a separate socket-activated user broker as described in `docs/SESSIONS.md`.

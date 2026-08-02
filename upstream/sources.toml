@@ -66,6 +66,13 @@ path = "src/system/systemd"
 sync = "copy"
 
 [[component]]
+name = "dbus-broker"
+repo = "https://github.com/bus1/dbus-broker.git"
+branch = "main"
+path = "src/system/dbus/dbus-broker"
+sync = "copy"
+
+[[component]]
 name = "linux-pam"
 repo = "https://github.com/linux-pam/linux-pam.git"
 branch = "master"

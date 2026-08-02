@@ -99,4 +99,4 @@ The 2026-08-01 graphical QEMU validation observed:
 - a loopback-only, route-free but otherwise clean `--no-network` boot;
 - unchanged non-root autologin, sudo, Brush, procps, ncurses, session restart, and rescue-init behavior.
 
-The current image does not include a system D-Bus daemon. Consequently, non-root `systemctl` and `timedatectl` cannot connect to the system bus. `sudo systemctl status ...` works through PID 1's private manager socket, while time synchronization is validated from the timesyncd status/journal and synchronization marker. Adding a source-built system message bus is a future base-system milestone, not part of this wired/QEMU networking scope.
+The image now includes the source-built dbus-broker system bus. Non-root `networkctl`, `resolvectl status`, `timedatectl`, and `systemctl status` connect through `/run/dbus/system_bus_socket`, and the networkd, resolved, timesyncd, and timedated well-known names resolve through their installed policies and aliases. MattOS has no Polkit, so administrative changes can still be denied even though read-only bus access works.

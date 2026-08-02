@@ -1,0 +1,17 @@
+# Adapted from the upstream dbus-broker user service for MattOS's minimal user session.
+[Unit]
+Description=D-Bus User Message Bus
+Documentation=man:dbus-broker-launch(1)
+DefaultDependencies=false
+After=dbus.socket
+Before=basic.target shutdown.target
+Conflicts=shutdown.target
+Requires=dbus.socket
+
+[Service]
+Type=notify-reload
+ExecStart=/usr/bin/dbus-broker-launch --scope user
+Slice=session.slice
+
+[Install]
+Alias=dbus.service

@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: D-Bus Broker Developers
+
+[Unit]
+Description=D-Bus User Message Bus Metrics Socket
+
+[Socket]
+ListenStream=%t/bus_metrics
+Service=dbus.service
+
+[Install]
+Alias=dbus-metrics.socket

@@ -8,6 +8,7 @@ MattOS is a Linux-compatible OS project with upstream source imported directly a
 - `src/userland/brush`: upstream Brush shell source
 - `src/userland/coreutils`: upstream uutils/coreutils source
 - `src/system/systemd`: upstream systemd source
+- `src/system/dbus/dbus-broker`: upstream dbus-broker source
 - `src/system/kmod`: upstream kmod source
 - `src/system/terminal/ncurses`: upstream ncurses source
 - `src/userland/procps-ng`: upstream procps-ng source
@@ -85,6 +86,10 @@ See `docs/BASE_ADMINISTRATION.md` for kmod, procps-ng, ncurses, terminfo, and ke
 
 See `docs/NETWORKING.md` for the wired/QEMU IPv4, DNS, time-sync, HTTPS, and CA-certificate architecture.
 
+See `docs/DBUS.md` for the dbus-broker system bus, service policy, activation aliases, and non-root client behavior.
+
+See `docs/SESSIONS.md` for pam_systemd, logind sessions, runtime directories, per-user systemd managers, and user D-Bus.
+
 ## Build stages
 
 ```
@@ -98,6 +103,7 @@ cargo run -p mattos-build -- build iproute2
 cargo run -p mattos-build -- build iputils
 cargo run -p mattos-build -- build curl
 cargo run -p mattos-build -- build systemd
+cargo run -p mattos-build -- build dbus-broker
 cargo run -p mattos-build -- build pam
 cargo run -p mattos-build -- build util-linux
 cargo run -p mattos-build -- build shadow

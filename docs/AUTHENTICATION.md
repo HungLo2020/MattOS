@@ -22,12 +22,13 @@ MattOS-owned policy remains outside those imported trees in `src/system/auth/con
 
 ## Build configuration
 
-Linux-PAM is built with Meson under `/usr`, with `/etc` configuration, an x86-64 library directory, and `/usr/lib/x86_64-linux-gnu/security` as the module directory. Documentation, i18n, audit, SELinux, logind/elogind, examples, and extended tests are disabled for the image build.
+Linux-PAM is built with Meson under `/usr`, with `/etc` configuration, an x86-64 library directory, and `/usr/lib/x86_64-linux-gnu/security` as the module directory. Documentation, i18n, audit, SELinux, logind/elogind, examples, and extended tests are disabled for the image build. Systemd separately builds `pam_systemd.so` for session registration against this PAM stack.
 
 Only the local-authentication runtime is staged:
 
 - `libpam.so.0` and `libpam_misc.so.0`;
 - `pam_unix`, `pam_env`, `pam_nologin`, `pam_rootok`, `pam_permit`, `pam_deny`, `pam_shells`, and `pam_securetty`;
+- systemd's locally built `pam_systemd` session module;
 - `unix_chkpwd` for `pam_unix` password verification.
 
 Traditional util-linux builds only `agetty`, `login`, and `su`, with PAM supplied by the local Linux-PAM build. Its other Meson auto-features, systemd integration, NLS, mount tools, Python bindings, and completions are disabled.
@@ -40,13 +41,14 @@ sudo-rs builds the `sudo` and `visudo` binaries in release mode and links agains
 
 PAM service files are installed from `src/system/auth/config/pam.d/`:
 
-- `login`: nologin and secure-TTY checks, environment setup, and Unix authentication/account/session handling;
-- `su` and `su-l`: root short-circuit plus Unix authentication/account/session handling;
+- `login`: nologin and secure-TTY checks, environment setup, Unix authentication/account/session handling, and optional `pam_systemd` registration;
+- `su` and `su-l`: root short-circuit plus Unix authentication/account/session handling; the login form additionally registers the session with `pam_systemd`;
 - `sudo`: environment setup plus Unix authentication/account/session handling;
 - `passwd`: Unix password updates;
+- `systemd-user`: the minimal account/session stack used when systemd starts a per-user manager, including optional `pam_systemd` environment setup;
 - `other`: deny by default.
 
-`su-l` is separate because util-linux selects that PAM service for `su --login` and `su -`.
+`su-l` is separate because util-linux selects that PAM service for `su --login` and `su -`. `pam_systemd` is deliberately absent from `sudo`, plain `su`, `passwd`, and `other`; it is a session hook, not an authentication or password policy.
 
 ## Accounts and authorization
 
@@ -86,6 +88,8 @@ The authentication binaries and modules use the staged ELF loader plus `libc.so.
 ## Confirmed QEMU behavior
 
 Both tty1 and ttyS0 autologin as the non-root `mattos` user with the prompt `mattos@MattOS:~$`, `/home/mattos` as the home and working directory, `/bin/brush` as the shell, and systemd as PID 1. `sudo --version` reports sudo-rs and the live-only `sudo id` succeeds without a password. Exiting Brush causes getty to start a fresh live session.
+
+The session milestone adds the optional `pam_systemd` hook without changing authentication decisions. `loginctl` lists both live consoles: tty1 is associated with `seat0`, while ttyS0 correctly has no seat. Each login receives `/run/user/1000`, a session-bound `user@1000.service`, and a per-user D-Bus connection. See `SESSIONS.md` for lifecycle and bus details.
 
 Runtime validation also confirmed:
 

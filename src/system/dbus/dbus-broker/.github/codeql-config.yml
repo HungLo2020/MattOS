@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: D-Bus Broker Developers
+
+#
+# CodeQL Configuration
+#
+# Custom configuration for the codeql-action of GitHub. It is sourced by the
+# CodeQL workflow, but can be used by local builds as well.
+#
+
+name: "CodeQL Configuration"
+
+disable-default-queries: false
+
+queries:
+- name: "Custom Queries for dbus-broker"
+  uses: "./.github/codeql-custom.qls"

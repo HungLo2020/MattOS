@@ -4,7 +4,7 @@ Date: 2026-08-01
 
 ## 1. Executive Summary
 
-MattOS is a coherent Linux-native bootstrap system with systemd PID 1, non-root live autologin, PAM/Shadow/sudo-rs authentication and account tools, Brush, a rescue-init path, and a reproducible build pipeline. It now includes real kmod, procps-ng, ncurses, and a complete QEMU/wired IPv4 path with DHCP, DNS, time synchronization, network inspection, ping, and HTTP/HTTPS. Persistent installation, package management, SSH, Wi-Fi, firewall policy, firmware packaging, and a graphical desktop remain intentionally absent.
+MattOS is a coherent Linux-native bootstrap system with systemd PID 1, separate system and per-user dbus-broker buses, registered logind console sessions, session-bound per-user managers, non-root live autologin, PAM/Shadow/sudo-rs authentication and account tools, Brush, a rescue-init path, and a reproducible build pipeline. It includes real kmod, procps-ng, ncurses, and a complete QEMU/wired IPv4 path with DHCP, DNS, time synchronization, network inspection, ping, and HTTP/HTTPS. Persistent installation, package management, Polkit, SSH, Wi-Fi, firewall policy, firmware packaging, and a graphical desktop remain intentionally absent.
 
 The previous GRUB source-of-truth ambiguity has been resolved by keeping only `src/boot/grub/grub.cfg` as tracked source and validating that path in `mattos-build`. The most important remaining architectural limitation is that the runtime closure is still copied from the host via `ldd` rather than from a MattOS-built sysroot.
 
@@ -36,6 +36,7 @@ Prompt behavior:
 | uutils/coreutils | https://github.com/uutils/coreutils.git | `main` | `91f6543cad721aba0bf17806e803e84a116f8603` | `src/userland/coreutils/` |
 | util-linux | https://github.com/util-linux/util-linux.git | `master` | `fd82c4043fab942b889f478800118c66edfbc39f` | `src/userland/util-linux/` |
 | systemd | https://github.com/systemd/systemd.git | `main` | `91d2131e20ca304ee1d9dabf71b351d6b4cfcddc` | `src/system/systemd/` |
+| dbus-broker | https://github.com/bus1/dbus-broker.git | `main` | `2956b5d381deeea709c53d02f10e799e50e44f4b` | `src/system/dbus/dbus-broker/` |
 | kmod | https://github.com/kmod-project/kmod.git | `master` | `5086df53090b2fe9fa1c31351c05a78a12a4ba71` | `src/system/kmod/` |
 | procps-ng | https://gitlab.com/procps-ng/procps.git | `master` | `619562d36cbd48fb6958043577558cbc32a6ba79` | `src/userland/procps-ng/` |
 | ncurses | https://github.com/ThomasDickey/ncurses-snapshots.git | `master` | `c7556ecbc951326acab37c9cf1e7d690456959e0` | `src/system/terminal/ncurses/` |
@@ -72,6 +73,7 @@ The build orchestrator is `src/tools/mattos-build/src/main.rs`. It currently own
 - ncurses build and terminfo selection
 - iproute2, iputils, and HTTP/HTTPS-only curl builds
 - systemd build
+- dbus-broker build
 - init build
 - rootfs assembly
 - initramfs generation
@@ -124,6 +126,7 @@ Runtime libraries copied into the image currently include:
 - `libpcre2-8.so.0`
 - `libselinux.so.1`
 - `libsystemd.so.0.44.0`
+- `libexpat.so.1`
 - `libudev.so.1.7.14`
 - `libsystemd-core-262.so`
 - `libsystemd-shared-262.so`
@@ -134,12 +137,12 @@ This is enough for the current image, but it is still host-derived and therefore
 
 The minimal systemd build is intentionally stripped down and produces the current bootable baseline.
 
-Enabled systemd networking areas are `networkd`, `resolve`, and `timesyncd`. Intentionally disabled systemd areas include:
+Enabled systemd service areas are `networkd`, `resolve`, `timesyncd`, `timedated`, `logind`, and PAM-backed login sessions. Intentionally disabled systemd areas include:
 
 - `homed`, `portabled`, `nspawn`, `bootloader`, `firstboot`, `repart`
 - `oomd`, `userdb`, `remote`, `sysupdate`, `sysupdated`, `sysinstall`
 - `importd`, `vmspawn`
-- `coredump`, `pstore`, `machined`, `hostnamed`, `localed`, `timedated`, `nsresourced`
+- `coredump`, `pstore`, `machined`, `hostnamed`, `localed`, `nsresourced`
 - `dbus`, `glib`, `seccomp`, `acl`, `audit`, `blkid`
 - `libcryptsetup`, `openssl`, `gnutls`, `libfido2`, `tpm`, `tpm2`, `qrencode`, `bpf-framework`
 - `kernel-install`, `analyze`, `create-log-dirs`
@@ -148,20 +151,25 @@ Consequences:
 
 - Ethernet links use IPv4 DHCP through networkd; DNS goes through resolved and time sync through timesyncd.
 - There is no Wi-Fi, SSH, firewall policy, persistent network configuration UI, or broadened physical NIC support.
-- PAM is intentionally provided by the separate MattOS authentication stack rather than systemd's optional PAM feature.
-- No systemd user-management or home-directory stack.
+- Linux-PAM is provided by the separate MattOS authentication build; systemd's PAM feature is enabled specifically to build its compatible `pam_systemd` session module.
+- No `systemd-homed`, persistent user database, or home-directory management stack; the per-user service manager is enabled.
 - No container/VM spawn tooling.
 - No coredump or persistence-oriented service stack.
+- `dbus-broker` provides the conventional `/run/dbus/system_bus_socket`; systemd's Meson `dbus` option remains off because it controls optional reference-libdbus integration rather than sd-bus.
+- MattOS has no Polkit. Read-only non-root clients work, while privileged D-Bus actions are denied unless run as root or through sudo.
 
 Current unit state:
 
 - `mattos.target` wants `getty@tty1.service`.
 - `getty@tty1.service` is overridden for non-root `mattos` live autologin through `/bin/login` and PAM.
 - `mattos-shell.service` remains in the tree but is masked and no longer on the active path.
-- `systemd-logind.service` and `systemd-logind-varlink.socket` are masked in the image.
+- `systemd-logind.service` and `systemd-logind-varlink.socket` are enabled and healthy; `org.freedesktop.login1` resolves to logind.
+- `login`, `su-l`, and `systemd-user` use the optional `pam_systemd` session hook. Logind registers tty1 on `seat0` and ttyS0 without a seat, and starts the UID-scoped runtime directory and user manager.
+- `dbus.socket` is enabled, `dbus.service` aliases `dbus-broker.service`, and exactly one launcher/broker pair owns the system bus.
+- The user `dbus.socket` listens at `%t/bus`; a separate `--scope user` broker starts on demand for each logged-in UID.
 - `mattos-smoke.service` is present as a boot-time diagnostics helper.
 
-This is a sensible bootstrap state, but it is not yet a conventional multi-user Linux login model.
+This is a conventional ephemeral console-session model, but it is not yet a persistent installed multi-user system.
 
 ## 8. Userland Command Inventory
 
@@ -300,9 +308,10 @@ Detailed classification:
 | Kernel built in-tree | known bootstrap limitation | Informational |
 | systemd feature set intentionally minimized | known bootstrap limitation | Informational |
 | Ephemeral non-root live-user autologin policy | known bootstrap limitation | Informational |
+| Missing logind session registration and per-user bus | resolved defect | Informational |
 | No in-guest automation for graphical validation | architectural risk | Informational |
 | Command inventory intentionally narrow | known bootstrap limitation | Informational |
-| Existing unit masking strategy (logind/logind-varlink/ldconfig/mattos-shell) | known bootstrap limitation | Informational |
+| Remaining unit masking strategy (`ldconfig`/`mattos-shell`) | known bootstrap limitation | Informational |
 | Prompt now centralized in MattOS-owned startup config | informational state | Informational |
 | Graphical tty1 validation is manual rather than a committed automated harness | known bootstrap limitation | Informational |
 
@@ -312,7 +321,8 @@ Detailed classification:
 - The current login model is an ephemeral live-user policy; it is not a persistent installed-system account model.
 - There is no persistent installation flow yet.
 - There is no automated in-guest command runner for boot smoke validation.
-- There is no system D-Bus daemon yet, so non-root `systemctl` and `timedatectl` cannot connect even though the network and time daemons are active.
+- The system bus and per-user buses are separate and complete for the enabled console services, but MattOS has no Polkit.
+- Session state is intentionally ephemeral and lingering is disabled; persistent installed-user policy remains future work.
 - systemd is built with many intentional feature gaps, so a large amount of conventional distro functionality is still absent.
 - Brush history/config persistence is not yet provisioned in the live image.
 
@@ -350,8 +360,8 @@ Detailed classification:
 
 ## 13. Recommended Milestone Order
 
-1. Keep the current systemd/getty/Brush boot path stable and tested.
-2. Keep the completed PAM, Shadow, sudo-rs, `su`, and non-root live-login stack stable and tested.
+1. Keep the current systemd/dbus-broker/logind/per-user-manager/getty/Brush boot path stable and tested.
+2. Keep the completed PAM, `pam_systemd`, Shadow, sudo-rs, `su`, and non-root live-login stack stable and tested.
 3. Add persistent account and home/rootfs handling when an installed-system milestone begins.
 4. Build persistent installation and package management.
 5. Preserve the completed wired/QEMU networking, DNS, certificates, and time-sync baseline while later adding installed-system policy.
@@ -400,11 +410,19 @@ Verified successfully during this audit pass:
 - `cargo run -p mattos-build -- build all`
 - `cargo run -p mattos-build -- image`
 - `python3 DevUtils/run_qemu.py` launched the current graphical image boot path
-- tty1 live-user identity, systemd PID 1, sudo, provider paths, procps output, ncurses/terminfo, `top`, Brush interaction, and session restart were directly observed
+- tty1 live-user identity, systemd PID 1, sudo, Brush interaction, and getty session restart were directly observed
+- `/run/dbus/system_bus_socket` existed and `dbus-broker.service`/`dbus.service` were active with one launcher and one broker process
+- non-root `busctl`, `systemctl status`, `networkctl`, `resolvectl status`, `timedatectl`, and `loginctl` connected successfully
+- `busctl status` resolved `systemd1`, `network1`, `resolve1`, `timesync1`, `timedate1`, and `login1`; logind and timedated were active
+- `loginctl` reported both tty1/seat0 and ttyS0 sessions, `/run/user/1000` was mode `0700` and owned by `mattos`, and `user@1000.service` was active
+- `systemctl --user` reported a running user manager with no failed units, and socket activation made both user `dbus.socket` and `dbus.service` active
+- `busctl --user` connected to `/run/user/1000/bus` and enumerated the user bus independently of the system bus
+- a harmless non-root service restart reached PID 1 through D-Bus and was denied with `Access denied`, confirming the no-Polkit policy boundary
 - the rescue GRUB entry booted `rescue-init` as PID 1 and reached its root Brush prompt
 - default QEMU virtio networking produced `ens3`, DHCP `10.0.2.15/24`, a default route via `10.0.2.2`, and DNS via `10.0.2.3`
 - gateway and named-host pings completed without packet loss; `getent` resolved through glibc; HTTPS headers and body downloads passed certificate validation
 - networkd, resolved, and timesyncd were active; timesyncd contacted `time.cloudflare.com`, logged initial synchronization, and created its synchronization marker
 - `--no-network` omitted the NIC/backend and reached a loopback-only live prompt without hanging
+- the disconnected boot still had an active system bus and successful non-root `busctl` access
 
 The remaining module-related boot message is precisely scoped: systemd's real libkmod integration probes `autofs4`, while the intentionally monolithic kernel has `CONFIG_MODULES=n` and `CONFIG_AUTOFS_FS=n`. The `configfs` and `fuse` module service attempts finish successfully, and no module helper fails because an executable is absent.

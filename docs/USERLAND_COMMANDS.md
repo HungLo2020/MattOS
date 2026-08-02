@@ -6,7 +6,7 @@ This document tracks command provenance for the MattOS base userland.
 
 - Date: 2026-08-01
 - ISO: `out/images/mattos-x86_64.iso`
-- ISO size: `73,824,256` bytes (about `71M`)
+- ISO size: `74,125,312` bytes (about `71M`)
 
 ## Upstream Commits
 
@@ -22,6 +22,7 @@ This document tracks command provenance for the MattOS base userland.
 - `iproute2`: `5696fee4c69fe3cc12e8cc821630633f616db8e2`
 - `iputils`: `75cd9d544baad45f81ed5c72bca332f577c3d81e`
 - `curl`: `527573490eb2564b3d7c9dd51d8bff963b5d6303`
+- `dbus-broker`: `2956b5d381deeea709c53d02f10e799e50e44f4b`
 
 ## Inventory Source
 
@@ -41,9 +42,9 @@ Entries use `provider:command` format.
 
 Measured counts from this build:
 
-- `implemented_upstream`: `178`
-- `compiled`: `176`
-- `installed`: `178`
+- `implemented_upstream`: `181`
+- `compiled`: `179`
+- `installed`: `181`
 - `intentionally_excluded`: `3`
 - `failed_compatibility`: `2`
 
@@ -117,10 +118,12 @@ Measured counts from this build:
 - `iproute2`: `ip`, `ss`, `bridge`, `tc`
 - `iputils`: `ping`, `tracepath`
 - `curl`: `curl`
-- `systemd`: `networkctl`, `resolvectl`, `timedatectl`
+- `systemd`: `busctl`, `loginctl`, `networkctl`, `resolvectl`, `timedatectl`
+- `dbus-broker`: `dbus-broker`, `dbus-broker-launch`
 - `ping` uses Linux ICMP datagram sockets allowed by `/etc/sysctl.d/99-mattos-network.conf`; the initramfs format does not preserve file capabilities, so MattOS does not make `ping` setuid or depend on `setcap`.
 - curl is intentionally limited to HTTP and HTTPS, uses OpenSSL, and defaults to `/etc/ssl/certs/ca-certificates.crt`.
-- `networkctl` and `resolvectl` work through the enabled network services. The minimal image has no system D-Bus daemon, so `timedatectl` and non-root `systemctl` cannot connect; root `systemctl` status works through systemd's private manager socket. Timesync state remains observable through the timesyncd service status and `/run/systemd/timesync/synchronized`.
+- These systemd clients connect to the dbus-broker system bus as the non-root live user. Read-only inspection works; administrative calls remain policy-controlled and may require root because MattOS does not include Polkit.
+- `systemctl --user` and `busctl --user` instead connect to the current UID's per-user manager and broker through `/run/user/$UID`; they do not grant system-service privileges.
 
 ### Brush shell and built-ins
 
@@ -149,16 +152,17 @@ Measured counts from this build:
 
 ## Installed command snapshot
 
-The generated inventory is the exact full list. This build records 178 installed provider/command pairs. The networking portion is:
+The generated inventory is the exact full list. This build records 181 installed provider/command pairs. The networking and system-bus portion is:
 
 ```text
 curl: curl
+dbus-broker: dbus-broker dbus-broker-launch
 iproute2: bridge ip ss tc
 iputils: ping tracepath
 kmod: depmod insmod kmod lsmod modinfo modprobe rmmod
 ncurses: clear infocmp tic toe tput
 procps-ng: free hugetop pgrep pidof pkill pmap ps pwdx slabtop sysctl tload top uptime vmstat w watch
-systemd: networkctl resolvectl timedatectl
+systemd: busctl networkctl resolvectl timedatectl
 ```
 
 The existing Brush, Linux-PAM, Shadow, sudo-rs, util-linux, uutils/coreutils, grep, sed, findutils, and diffutils entries remain in the machine-readable file. `uutils/coreutils:uptime` moved to `intentionally_excluded`; `procps-ng:uptime` is installed.

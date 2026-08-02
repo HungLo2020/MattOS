@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: D-Bus Broker Developers
+
+#
+# This plan discovers and executes all (enabled) integration tests
+#
+
+summary: Upstream integration test suite
+discover:
+  how: fmf
+execute:
+  how: tmt

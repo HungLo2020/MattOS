@@ -1,0 +1,25 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: D-Bus Broker Developers
+
+[Unit]
+Description=D-Bus System Message Bus
+Documentation=man:dbus-broker-launch(1)
+DefaultDependencies=false
+
+After=dbus.socket dbus-metrics.socket
+Before=basic.target shutdown.target
+Conflicts=shutdown.target
+Requires=dbus.socket
+Wants=dbus-metrics.socket
+
+[Service]
+Type=notify-reload
+OOMScoreAdjust=-900
+LimitNOFILE=16384
+ProtectSystem=full
+PrivateTmp=true
+PrivateDevices=true
+ExecStart=@bindir@/dbus-broker-launch --scope system --audit
+
+[Install]
+Alias=dbus.service
