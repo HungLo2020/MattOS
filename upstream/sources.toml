@@ -162,3 +162,39 @@ repo = "https://git.kernel.org/pub/scm/libs/libcap/libcap.git"
 branch = "master"
 path = "src/system/libraries/libcap"
 sync = "copy"
+
+[[component]]
+name = "tar"
+repo = "https://git.savannah.gnu.org/git/tar.git"
+branch = "v1.35"
+path = "src/userland/tar"
+sync = "copy"
+
+[[component]]
+name = "paxutils"
+repo = "https://git.savannah.gnu.org/git/paxutils.git"
+branch = "master"
+revision = "481bae11050fcbdca67a66eb57390267b280a312"
+path = "src/build-support/paxutils"
+sync = "copy"
+
+[[component]]
+name = "acl"
+repo = "https://git.savannah.nongnu.org/git/acl.git"
+branch = "v2.3.2"
+path = "src/system/libraries/acl"
+sync = "copy"
+
+[[component]]
+name = "zlib"
+repo = "https://github.com/madler/zlib.git"
+branch = "v1.3.2"
+path = "src/system/libraries/zlib"
+sync = "copy"
+
+[[component]]
+name = "bzip2"
+repo = "https://sourceware.org/git/bzip2.git"
+branch = "bzip2-1.0.8"
+path = "src/system/libraries/bzip2"
+sync = "copy"

@@ -282,6 +282,10 @@ enum BuildStage {
 	Curl,
 	Expat,
 	Libcap,
+	Tar,
+	Acl,
+	Zlib,
+	Bzip2,
 	Pam,
 	Shadow,
 	SudoRs,
@@ -315,6 +319,8 @@ struct ComponentDef {
 	name: String,
 	repo: String,
 	branch: String,
+	#[serde(default)]
+	revision: Option<String>,
 	path: String,
 	sync: String,
 }
@@ -380,6 +386,7 @@ fn doctor() -> Result<()> {
 		"gcc",
 		"autoreconf",
 		"autopoint",
+		"gnulib-tool",
 		"meson",
 		"ninja",
 		"gperf",
@@ -1237,6 +1244,10 @@ fn prepare_tmp_clone(repo_root: &Path, comp: &ComponentDef) -> Result<PathBuf> {
 	}
 
 	run_cmd(repo_root, "git", &["clone", "--depth", "1", "--branch", &comp.branch, &comp.repo, tmp.to_str().ok_or_else(|| anyhow!("invalid temp path"))?])?;
+	if let Some(revision) = comp.revision.as_deref() {
+		run_cmd(&tmp, "git", &["fetch", "--depth", "1", "origin", revision])?;
+		run_cmd(&tmp, "git", &["checkout", "--detach", revision])?;
+	}
 
 	Ok(tmp)
 }
@@ -1388,6 +1399,10 @@ fn build_plan(stage: BuildStage) -> Vec<BuildStage> {
 			BuildStage::Diffutils,
 			BuildStage::Expat,
 			BuildStage::Libcap,
+			BuildStage::Acl,
+			BuildStage::Zlib,
+			BuildStage::Bzip2,
+			BuildStage::Tar,
 			BuildStage::Ncurses,
 			BuildStage::Procps,
 			BuildStage::Iproute2,
@@ -1429,6 +1444,10 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
 		BuildStage::Curl => build_curl(repo_root),
 		BuildStage::Expat => build_expat(repo_root),
 		BuildStage::Libcap => build_libcap(repo_root),
+		BuildStage::Tar => build_tar(repo_root),
+		BuildStage::Acl => build_acl(repo_root),
+		BuildStage::Zlib => build_zlib(repo_root),
+		BuildStage::Bzip2 => build_bzip2(repo_root),
 		BuildStage::Pam => build_linux_pam(repo_root),
 		BuildStage::Shadow => build_shadow(repo_root),
 		BuildStage::SudoRs => build_sudo_rs(repo_root),
@@ -2091,6 +2110,198 @@ fn build_libcap(repo_root: &Path) -> Result<()> {
 	let soname = install_dir.join("usr/lib/x86_64-linux-gnu/libcap.so.2");
 	if !soname.exists() {
 		bail!("libcap install did not produce {}", soname.display());
+	}
+	fs::write(&stamp_path, stamp).with_context(|| format!("failed to write {}", stamp_path.display()))?;
+	Ok(())
+}
+
+fn build_acl(repo_root: &Path) -> Result<()> {
+	let source = repo_root.join("src/system/libraries/acl");
+	if !source.join("configure.ac").is_file() {
+		bail!("ACL source not found in {}; run upstream import acl first", source.display());
+	}
+	let out_root = repo_root.join("out/build/acl");
+	let source_copy = out_root.join("source");
+	let build_dir = out_root.join("build");
+	let install_dir = out_root.join("install");
+	let stamp_path = out_root.join("build-stamp.txt");
+	let state = fs::read_to_string(repo_root.join("upstream/state/acl.toml")).context("failed to read ACL upstream state")?;
+	let options = [
+		"--prefix=/usr",
+		"--libdir=/usr/lib/x86_64-linux-gnu",
+		"--disable-static",
+		"--disable-nls",
+	];
+	let stamp = format!("{state}\n{}\n", options.join("\n"));
+	if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+		remove_path_if_exists(&source_copy)?;
+		remove_path_if_exists(&build_dir)?;
+	}
+	fs::create_dir_all(&out_root).with_context(|| format!("failed to create {}", out_root.display()))?;
+	sync_build_source(&source, &source_copy)?;
+	if !source_copy.join("configure").is_file() {
+		run_cmd(&source_copy, "./autogen.sh", &[])?;
+	}
+	fs::create_dir_all(&build_dir).with_context(|| format!("failed to create {}", build_dir.display()))?;
+	if !build_dir.join("Makefile").is_file() {
+		let configure = source_copy.join("configure");
+		run_cmd(&build_dir, path_str(&configure)?, &options)?;
+	}
+	run_cmd(&build_dir, "make", &["-j", "4"])?;
+	remove_path_if_exists(&install_dir)?;
+	fs::create_dir_all(&install_dir).with_context(|| format!("failed to create {}", install_dir.display()))?;
+	run_cmd(&build_dir, "make", &["install", &format!("DESTDIR={}", install_dir.display())])?;
+	let soname = install_dir.join("usr/lib/x86_64-linux-gnu/libacl.so.1");
+	if !soname.exists() {
+		bail!("ACL install did not produce {}", soname.display());
+	}
+	fs::write(&stamp_path, stamp).with_context(|| format!("failed to write {}", stamp_path.display()))?;
+	Ok(())
+}
+
+fn build_zlib(repo_root: &Path) -> Result<()> {
+	let source = repo_root.join("src/system/libraries/zlib");
+	if !source.join("configure").is_file() {
+		bail!("zlib source not found in {}; run upstream import zlib first", source.display());
+	}
+	let out_root = repo_root.join("out/build/zlib");
+	let build_dir = out_root.join("build");
+	let install_dir = out_root.join("install");
+	let stamp_path = out_root.join("build-stamp.txt");
+	let state = fs::read_to_string(repo_root.join("upstream/state/zlib.toml")).context("failed to read zlib upstream state")?;
+	let options = ["--prefix=/usr", "--libdir=/usr/lib/x86_64-linux-gnu"];
+	let stamp = format!("{state}\n{}\n", options.join("\n"));
+	if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+		remove_path_if_exists(&build_dir)?;
+	}
+	fs::create_dir_all(&build_dir).with_context(|| format!("failed to create {}", build_dir.display()))?;
+	if !build_dir.join("Makefile").is_file() {
+		run_cmd(&build_dir, path_str(&source.join("configure"))?, &options)?;
+	}
+	run_cmd(&build_dir, "make", &["-j", "4"])?;
+	remove_path_if_exists(&install_dir)?;
+	fs::create_dir_all(&install_dir).with_context(|| format!("failed to create {}", install_dir.display()))?;
+	run_cmd(&build_dir, "make", &["install", &format!("DESTDIR={}", install_dir.display())])?;
+	let soname = install_dir.join("usr/lib/x86_64-linux-gnu/libz.so.1");
+	if !soname.exists() {
+		bail!("zlib install did not produce {}", soname.display());
+	}
+	fs::write(&stamp_path, stamp).with_context(|| format!("failed to write {}", stamp_path.display()))?;
+	Ok(())
+}
+
+fn build_bzip2(repo_root: &Path) -> Result<()> {
+	let source = repo_root.join("src/system/libraries/bzip2");
+	if !source.join("Makefile-libbz2_so").is_file() {
+		bail!("bzip2 source not found in {}; run upstream import bzip2 first", source.display());
+	}
+	let out_root = repo_root.join("out/build/bzip2");
+	let source_copy = out_root.join("source");
+	let install_dir = out_root.join("install");
+	let stamp_path = out_root.join("build-stamp.txt");
+	let state = fs::read_to_string(repo_root.join("upstream/state/bzip2.toml")).context("failed to read bzip2 upstream state")?;
+	let stamp = format!("{state}\nMakefile-libbz2_so\n");
+	if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+		remove_path_if_exists(&source_copy)?;
+	}
+	fs::create_dir_all(&out_root).with_context(|| format!("failed to create {}", out_root.display()))?;
+	sync_build_source(&source, &source_copy)?;
+	run_cmd(&source_copy, "make", &["-f", "Makefile-libbz2_so", "-j", "4"])?;
+	remove_path_if_exists(&install_dir)?;
+	let libdir = install_dir.join("usr/lib/x86_64-linux-gnu");
+	let includedir = install_dir.join("usr/include");
+	fs::create_dir_all(&libdir)?;
+	fs::create_dir_all(&includedir)?;
+	fs::copy(source_copy.join("libbz2.so.1.0.8"), libdir.join("libbz2.so.1.0.8"))?;
+	std::os::unix::fs::symlink("libbz2.so.1.0.8", libdir.join("libbz2.so.1.0"))?;
+	std::os::unix::fs::symlink("libbz2.so.1.0", libdir.join("libbz2.so"))?;
+	fs::copy(source_copy.join("bzlib.h"), includedir.join("bzlib.h"))?;
+	fs::write(&stamp_path, stamp).with_context(|| format!("failed to write {}", stamp_path.display()))?;
+	Ok(())
+}
+
+fn build_tar(repo_root: &Path) -> Result<()> {
+	let source = repo_root.join("src/userland/tar");
+	let paxutils = repo_root.join("src/build-support/paxutils");
+	if !source.join("bootstrap").is_file() {
+		bail!("GNU tar source not found in {}; run upstream import tar first", source.display());
+	}
+	if !paxutils.join("DISTFILES").is_file() {
+		bail!("GNU paxutils build support not found in {}; run upstream import paxutils first", paxutils.display());
+	}
+	let acl_install = repo_root.join("out/build/acl/install");
+	let acl_libdir = acl_install.join("usr/lib/x86_64-linux-gnu");
+	if !acl_install.join("usr/include/sys/acl.h").is_file() || !acl_libdir.join("libacl.so").exists() {
+		bail!("MattOS-built ACL development files missing at {}; run build acl first", acl_install.display());
+	}
+	let out_root = repo_root.join("out/build/tar");
+	let source_copy = out_root.join("source");
+	let build_dir = out_root.join("build");
+	let install_dir = out_root.join("install");
+	let stamp_path = out_root.join("build-stamp.txt");
+	let state = fs::read_to_string(repo_root.join("upstream/state/tar.toml")).context("failed to read GNU tar upstream state")?;
+	let paxutils_state = fs::read_to_string(repo_root.join("upstream/state/paxutils.toml")).context("failed to read paxutils upstream state")?;
+	let acl_state = fs::read_to_string(repo_root.join("upstream/state/acl.toml")).context("failed to read ACL upstream state")?;
+	let options = [
+		"--prefix=/usr",
+		"--disable-nls",
+		"--without-selinux",
+		"--with-posix-acls",
+	];
+	let stamp = format!("{state}\n{paxutils_state}\n{acl_state}\n{}\n", options.join("\n"));
+	if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+		remove_path_if_exists(&source_copy)?;
+		remove_path_if_exists(&build_dir)?;
+	}
+	fs::create_dir_all(&out_root).with_context(|| format!("failed to create {}", out_root.display()))?;
+	sync_build_source(&source, &source_copy)?;
+	sync_build_source(&paxutils, &source_copy.join("paxutils"))?;
+	if !source_copy.join("configure").is_file() {
+		run_cmd(
+			&source_copy,
+			"./bootstrap",
+			&[
+				"--gen",
+				"--force",
+				"--no-git",
+				"--skip-po",
+				"--copy",
+				"--no-bootstrap-sync",
+				"--gnulib-srcdir=/usr/share/gnulib",
+			],
+		)?;
+	}
+	fs::create_dir_all(&build_dir).with_context(|| format!("failed to create {}", build_dir.display()))?;
+	let include = acl_install.join("usr/include").display().to_string();
+	let lib = acl_libdir.display().to_string();
+	let pkgconfig = acl_libdir.join("pkgconfig").display().to_string();
+	let configure_env = [
+		("CPPFLAGS", format!("-I{include}")),
+		("LDFLAGS", format!("-L{lib}")),
+		("LD_LIBRARY_PATH", lib.clone()),
+		("PKG_CONFIG_PATH", pkgconfig),
+	];
+	if !build_dir.join("Makefile").is_file() {
+		let configure = source_copy.join("configure");
+		run_cmd_with_env_overrides(&build_dir, path_str(&configure)?, &options, &configure_env)?;
+	}
+	run_cmd_with_env_overrides(&build_dir, "make", &["-j", "4", "MAKEINFO=true"], &configure_env)?;
+	remove_path_if_exists(&install_dir)?;
+	fs::create_dir_all(&install_dir)?;
+	run_cmd_with_env_overrides(
+		&build_dir,
+		"make",
+		&["install", "MAKEINFO=true", &format!("DESTDIR={}", install_dir.display())],
+		&configure_env,
+	)?;
+	let tar = install_dir.join("usr/bin/tar");
+	if !tar.is_file() {
+		bail!("GNU tar install did not produce {}", tar.display());
+	}
+	validate_dependency_resolves_from(&tar, "libacl.so.1", &acl_libdir, &[&acl_libdir])?;
+	let needed = run_cmd_capture(repo_root, "readelf", &["-d", path_str(&tar)?])?;
+	if needed.contains("libselinux.so") {
+		bail!("MattOS GNU tar unexpectedly links against host SELinux");
 	}
 	fs::write(&stamp_path, stamp).with_context(|| format!("failed to write {}", stamp_path.display()))?;
 	Ok(())
@@ -4090,7 +4301,7 @@ mod tests {
 		run_ok(root, "git", &["add", "."]);
 		run_ok(root, "git", &["commit", "-m", "init"]);
 
-		let comp = ComponentDef { name: "linux".to_string(), repo: upstream_root.to_string_lossy().to_string(), branch: "main".to_string(), path: "src/kernel/linux".to_string(), sync: "copy".to_string() };
+		let comp = ComponentDef { name: "linux".to_string(), repo: upstream_root.to_string_lossy().to_string(), branch: "main".to_string(), revision: None, path: "src/kernel/linux".to_string(), sync: "copy".to_string() };
 		import_component(root, &comp, false).expect("initial import");
 		run_ok(root, "git", &["add", "."]);
 		run_ok(root, "git", &["commit", "-m", "import"]);
@@ -4166,7 +4377,7 @@ mod tests {
 		run_ok(root, "git", &["add", "."]);
 		run_ok(root, "git", &["commit", "-m", "init"]);
 
-		let comp = ComponentDef { name: "grep".to_string(), repo: upstream.path().to_string_lossy().to_string(), branch: "main".to_string(), path: "src/userland/grep".to_string(), sync: "copy".to_string() };
+		let comp = ComponentDef { name: "grep".to_string(), repo: upstream.path().to_string_lossy().to_string(), branch: "main".to_string(), revision: None, path: "src/userland/grep".to_string(), sync: "copy".to_string() };
 
 		write(&root.join("src/userland/grep/not-placeholder.txt"), "data\n");
 		let result = import_component(root, &comp, false);
@@ -4190,7 +4401,7 @@ mod tests {
 		run_ok(root, "git", &["add", "."]);
 		run_ok(root, "git", &["commit", "-m", "init"]);
 
-		let comp = ComponentDef { name: "grep".to_string(), repo: upstream_root.to_string_lossy().to_string(), branch: "main".to_string(), path: "src/userland/grep".to_string(), sync: "copy".to_string() };
+		let comp = ComponentDef { name: "grep".to_string(), repo: upstream_root.to_string_lossy().to_string(), branch: "main".to_string(), revision: None, path: "src/userland/grep".to_string(), sync: "copy".to_string() };
 
 		import_component(root, &comp, false).expect("initial import");
 		run_ok(root, "git", &["add", "."]);
@@ -4227,7 +4438,7 @@ mod tests {
 		run_ok(root, "git", &["add", "."]);
 		run_ok(root, "git", &["commit", "-m", "init"]);
 
-		let comp = ComponentDef { name: "grep".to_string(), repo: upstream_root.to_string_lossy().to_string(), branch: "main".to_string(), path: "src/userland/grep".to_string(), sync: "copy".to_string() };
+		let comp = ComponentDef { name: "grep".to_string(), repo: upstream_root.to_string_lossy().to_string(), branch: "main".to_string(), revision: None, path: "src/userland/grep".to_string(), sync: "copy".to_string() };
 
 		import_component(root, &comp, false).expect("initial import");
 		run_ok(root, "git", &["add", "."]);
@@ -4272,7 +4483,7 @@ mod tests {
 
 	#[test]
 	fn source_selection_requires_flag() {
-		let components = vec![ComponentDef { name: "linux".to_string(), repo: "x".to_string(), branch: "main".to_string(), path: "src/kernel/linux".to_string(), sync: "copy".to_string() }];
+		let components = vec![ComponentDef { name: "linux".to_string(), repo: "x".to_string(), branch: "main".to_string(), revision: None, path: "src/kernel/linux".to_string(), sync: "copy".to_string() }];
 		let result = select_components(&components, false, None);
 		assert!(result.is_err());
 	}
@@ -4317,8 +4528,8 @@ mod tests {
 	#[test]
 	fn source_selection_by_component() {
 		let components = vec![
-			ComponentDef { name: "linux".to_string(), repo: "x".to_string(), branch: "main".to_string(), path: "src/kernel/linux".to_string(), sync: "copy".to_string() },
-			ComponentDef { name: "brush".to_string(), repo: "y".to_string(), branch: "main".to_string(), path: "src/userland/brush".to_string(), sync: "copy".to_string() },
+			ComponentDef { name: "linux".to_string(), repo: "x".to_string(), branch: "main".to_string(), revision: None, path: "src/kernel/linux".to_string(), sync: "copy".to_string() },
+			ComponentDef { name: "brush".to_string(), repo: "y".to_string(), branch: "main".to_string(), revision: None, path: "src/userland/brush".to_string(), sync: "copy".to_string() },
 		];
 		let selected = select_components(&components, false, Some("brush".to_string())).expect("select component");
 		assert_eq!(selected.len(), 1);
@@ -4348,8 +4559,8 @@ mod tests {
 	#[test]
 	fn selected_all_returns_everything() {
 		let components = vec![
-			ComponentDef { name: "linux".to_string(), repo: "x".to_string(), branch: "main".to_string(), path: "src/kernel/linux".to_string(), sync: "copy".to_string() },
-			ComponentDef { name: "brush".to_string(), repo: "y".to_string(), branch: "main".to_string(), path: "src/userland/brush".to_string(), sync: "copy".to_string() },
+			ComponentDef { name: "linux".to_string(), repo: "x".to_string(), branch: "main".to_string(), revision: None, path: "src/kernel/linux".to_string(), sync: "copy".to_string() },
+			ComponentDef { name: "brush".to_string(), repo: "y".to_string(), branch: "main".to_string(), revision: None, path: "src/userland/brush".to_string(), sync: "copy".to_string() },
 		];
 		let selected = select_components(&components, true, None).expect("select all");
 		assert_eq!(selected.len(), 2);
@@ -4376,7 +4587,7 @@ mod tests {
 
 	#[test]
 	fn no_duplicate_component_names_required_for_selection_logic() {
-		let components = vec![ComponentDef { name: "linux".to_string(), repo: "x".to_string(), branch: "main".to_string(), path: "src/kernel/linux".to_string(), sync: "copy".to_string() }];
+		let components = vec![ComponentDef { name: "linux".to_string(), repo: "x".to_string(), branch: "main".to_string(), revision: None, path: "src/kernel/linux".to_string(), sync: "copy".to_string() }];
 		let selected = select_components(&components, false, Some("linux".to_string())).expect("select linux");
 		assert_eq!(selected[0].path, "src/kernel/linux");
 	}
@@ -4468,7 +4679,7 @@ mod tests {
 
 	#[test]
 	fn source_selection_unknown_component_fails() {
-		let components = vec![ComponentDef { name: "linux".to_string(), repo: "x".to_string(), branch: "main".to_string(), path: "src/kernel/linux".to_string(), sync: "copy".to_string() }];
+		let components = vec![ComponentDef { name: "linux".to_string(), repo: "x".to_string(), branch: "main".to_string(), revision: None, path: "src/kernel/linux".to_string(), sync: "copy".to_string() }];
 		let result = select_components(&components, false, Some("missing".to_string()));
 		assert!(result.is_err());
 	}
@@ -4495,7 +4706,7 @@ mod tests {
 
 	#[test]
 	fn source_selection_all_ignores_component_flag() {
-		let components = vec![ComponentDef { name: "linux".to_string(), repo: "x".to_string(), branch: "main".to_string(), path: "src/kernel/linux".to_string(), sync: "copy".to_string() }];
+		let components = vec![ComponentDef { name: "linux".to_string(), repo: "x".to_string(), branch: "main".to_string(), revision: None, path: "src/kernel/linux".to_string(), sync: "copy".to_string() }];
 		let selected = select_components(&components, true, Some("missing".to_string())).expect("select all");
 		assert_eq!(selected.len(), 1);
 	}
@@ -4594,7 +4805,7 @@ mod tests {
 		run_ok(root, "git", &["add", "."]);
 		run_ok(root, "git", &["commit", "-m", "init"]);
 
-		let comp = ComponentDef { name: "systemd".to_string(), repo: upstream_root.to_string_lossy().to_string(), branch: "main".to_string(), path: "src/system/systemd".to_string(), sync: "copy".to_string() };
+		let comp = ComponentDef { name: "systemd".to_string(), repo: upstream_root.to_string_lossy().to_string(), branch: "main".to_string(), revision: None, path: "src/system/systemd".to_string(), sync: "copy".to_string() };
 		import_component(root, &comp, false).expect("initial import");
 		assert!(root.join("src/system/systemd/meson.build").exists());
 
@@ -4624,7 +4835,7 @@ mod tests {
 		run_ok(root, "git", &["add", "."]);
 		run_ok(root, "git", &["commit", "-m", "init"]);
 
-		let comp = ComponentDef { name: "systemd".to_string(), repo: upstream_root.to_string_lossy().to_string(), branch: "main".to_string(), path: "src/system/systemd".to_string(), sync: "copy".to_string() };
+		let comp = ComponentDef { name: "systemd".to_string(), repo: upstream_root.to_string_lossy().to_string(), branch: "main".to_string(), revision: None, path: "src/system/systemd".to_string(), sync: "copy".to_string() };
 		import_component(root, &comp, false).expect("initial import");
 		run_ok(root, "git", &["add", "."]);
 		run_ok(root, "git", &["commit", "-m", "import"]);
@@ -4662,7 +4873,7 @@ mod tests {
 		run_ok(root, "git", &["add", "."]);
 		run_ok(root, "git", &["commit", "-m", "init"]);
 
-		let comp = ComponentDef { name: "systemd".to_string(), repo: upstream_root.to_string_lossy().to_string(), branch: "main".to_string(), path: "src/system/systemd".to_string(), sync: "copy".to_string() };
+		let comp = ComponentDef { name: "systemd".to_string(), repo: upstream_root.to_string_lossy().to_string(), branch: "main".to_string(), revision: None, path: "src/system/systemd".to_string(), sync: "copy".to_string() };
 		import_component(root, &comp, false).expect("initial import");
 		run_ok(root, "git", &["add", "."]);
 		run_ok(root, "git", &["commit", "-m", "import"]);
@@ -4698,18 +4909,31 @@ mod tests {
 		assert!(plan.contains(&BuildStage::Curl));
 		assert!(plan.contains(&BuildStage::Expat));
 		assert!(plan.contains(&BuildStage::Libcap));
+		assert!(plan.contains(&BuildStage::Acl));
+		assert!(plan.contains(&BuildStage::Zlib));
+		assert!(plan.contains(&BuildStage::Bzip2));
+		assert!(plan.contains(&BuildStage::Tar));
 		let ncurses = plan.iter().position(|stage| *stage == BuildStage::Ncurses).unwrap();
 		let procps = plan.iter().position(|stage| *stage == BuildStage::Procps).unwrap();
 		let kmod = plan.iter().position(|stage| *stage == BuildStage::Kmod).unwrap();
 		let systemd = plan.iter().position(|stage| *stage == BuildStage::Systemd).unwrap();
 		let expat = plan.iter().position(|stage| *stage == BuildStage::Expat).unwrap();
 		let libcap = plan.iter().position(|stage| *stage == BuildStage::Libcap).unwrap();
+		let acl = plan.iter().position(|stage| *stage == BuildStage::Acl).unwrap();
+		let zlib = plan.iter().position(|stage| *stage == BuildStage::Zlib).unwrap();
+		let bzip2 = plan.iter().position(|stage| *stage == BuildStage::Bzip2).unwrap();
+		let tar = plan.iter().position(|stage| *stage == BuildStage::Tar).unwrap();
+		let dpkg = plan.iter().position(|stage| *stage == BuildStage::Dpkg).unwrap();
+		let apt = plan.iter().position(|stage| *stage == BuildStage::Apt).unwrap();
 		let dbus_broker = plan.iter().position(|stage| *stage == BuildStage::DbusBroker).unwrap();
 		let iproute2 = plan.iter().position(|stage| *stage == BuildStage::Iproute2).unwrap();
 		assert!(ncurses < procps);
 		assert!(kmod < systemd);
 		assert!(expat < dbus_broker);
 		assert!(libcap < iproute2);
+		assert!(acl < tar);
+		assert!(zlib < dpkg && bzip2 < dpkg && tar < dpkg);
+		assert!(zlib < apt && bzip2 < apt);
 		assert!(plan.contains(&BuildStage::Pam));
 		assert!(plan.contains(&BuildStage::Shadow));
 		assert!(plan.contains(&BuildStage::SudoRs));
@@ -4720,6 +4944,10 @@ mod tests {
 	fn small_library_build_stage_names_dispatch() {
 		assert_eq!(BuildStage::from_str("expat", true).unwrap(), BuildStage::Expat);
 		assert_eq!(BuildStage::from_str("libcap", true).unwrap(), BuildStage::Libcap);
+		assert_eq!(BuildStage::from_str("acl", true).unwrap(), BuildStage::Acl);
+		assert_eq!(BuildStage::from_str("zlib", true).unwrap(), BuildStage::Zlib);
+		assert_eq!(BuildStage::from_str("bzip2", true).unwrap(), BuildStage::Bzip2);
+		assert_eq!(BuildStage::from_str("tar", true).unwrap(), BuildStage::Tar);
 	}
 
 	#[test]

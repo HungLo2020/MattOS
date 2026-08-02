@@ -1,0 +1,7 @@
+component = "paxutils"
+repo = "https://git.savannah.gnu.org/git/paxutils.git"
+branch = "master"
+imported_commit = "481bae11050fcbdca67a66eb57390267b280a312"
+imported_at_utc = "2026-08-02T18:27:39.710561301+00:00"
+sync_method = "copy"
+destination_path = "src/build-support/paxutils"

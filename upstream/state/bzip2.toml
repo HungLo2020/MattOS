@@ -1,0 +1,7 @@
+component = "bzip2"
+repo = "https://sourceware.org/git/bzip2.git"
+branch = "bzip2-1.0.8"
+imported_commit = "6a8690fc8d26c815e798c588f796eabe9d684cf0"
+imported_at_utc = "2026-08-02T18:24:44.736611637+00:00"
+sync_method = "copy"
+destination_path = "src/system/libraries/bzip2"

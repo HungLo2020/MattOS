@@ -1,0 +1,7 @@
+component = "zlib"
+repo = "https://github.com/madler/zlib.git"
+branch = "v1.3.2"
+imported_commit = "da607da739fa6047df13e66a2af6b8bec7c2a498"
+imported_at_utc = "2026-08-02T18:24:43.268491477+00:00"
+sync_method = "copy"
+destination_path = "src/system/libraries/zlib"

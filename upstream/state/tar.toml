@@ -1,0 +1,7 @@
+component = "tar"
+repo = "https://git.savannah.gnu.org/git/tar.git"
+branch = "v1.35"
+imported_commit = "e545d446dfe6564265cdf4186641ee76f4acc7fa"
+imported_at_utc = "2026-08-02T18:24:40.664920570+00:00"
+sync_method = "copy"
+destination_path = "src/userland/tar"

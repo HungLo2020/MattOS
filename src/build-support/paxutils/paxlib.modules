@@ -1,0 +1,27 @@
+# List of gnulib modules needed for GNU paxutils itself.
+# A module name per line. Empty lines and comments are ignored.
+
+argp
+argp-version-etc
+c-ctype
+dirname
+error
+fileblocks
+full-write
+getline
+getopt-gnu
+gettext-h
+hash
+iconv
+progname
+quote
+quotearg
+safe-read
+savedir
+stdbool
+strtoimax
+strtol
+strtoumax
+unlocked-io
+verify
+xalloc

@@ -1,0 +1,7 @@
+component = "acl"
+repo = "https://git.savannah.nongnu.org/git/acl.git"
+branch = "v2.3.2"
+imported_commit = "214c7d146945c31a9dc04cb7094b85053f52a21e"
+imported_at_utc = "2026-08-02T18:24:42.054461104+00:00"
+sync_method = "copy"
+destination_path = "src/system/libraries/acl"

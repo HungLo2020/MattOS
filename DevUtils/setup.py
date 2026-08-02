@@ -17,6 +17,7 @@ REQUIRED_TOOLS = [
     "gcc",
     "autoreconf",
     "autopoint",
+    "gnulib-tool",
     "meson",
     "ninja",
     "gperf",
@@ -86,6 +87,8 @@ EXTRA_DBUS_BROKER_PACKAGES = [
 # libraries below are for building the imported dpkg and APT sources; they are
 # not copied into MattOS from Debian packages.
 EXTRA_PACKAGING_PACKAGES = [
+    "gnulib",
+    "libattr1-dev",
     "dpkg-dev",
     "apt-utils",
     "libdb-dev",
@@ -105,6 +108,7 @@ DEBIAN_TOOL_PACKAGES: Dict[str, List[str]] = {
     "gcc": ["build-essential"],
     "autoreconf": ["autoconf", "automake", "libtool"],
     "autopoint": ["autopoint"],
+    "gnulib-tool": ["gnulib"],
     "meson": ["meson"],
     "ninja": ["ninja-build"],
     "gperf": ["gperf"],

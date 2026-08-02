@@ -1,0 +1,112 @@
+# List of gnulib modules needed for GNU tar.
+# A module name per line. Empty lines and comments are ignored.
+
+# Copyright 2005-2023 Free Software Foundation, Inc.
+
+# This file is part of GNU tar.
+
+# GNU tar is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+
+# GNU tar is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+alloca
+areadlinkat-with-size
+argmatch
+argp
+argp-version-etc
+attribute
+backupfile
+closeout
+configmake
+dirname
+dup2
+error
+exclude
+extern-inline
+exitfail
+faccessat
+fchmodat
+fchownat
+fcntl-h
+fdopendir
+fdutimensat
+file-has-acl
+fileblocks
+flexmember
+fnmatch-gnu
+fprintftime
+free-posix
+fseeko
+fstatat
+full-write
+futimens
+getline
+getopt-gnu
+getpagesize
+gettext-h
+gettime
+gitlog-to-changelog
+hash
+human
+idx
+inttostr
+inttypes
+lchown
+linkat
+localcharset
+manywarnings
+mkdirat
+mkdtemp
+mkfifoat
+modechange
+obstack
+openat
+parse-datetime
+priv-set
+progname
+quote
+quotearg
+readlinkat
+renameat
+root-uid
+rpmatch
+full-read
+savedir
+selinux-at
+setenv
+snprintf
+stat-time
+stdbool
+stdint
+stpcpy
+stdopen
+strdup-posix
+strerror
+strnlen
+strtoimax
+strtol
+strtoul
+strtoumax
+symlinkat
+timespec
+timespec-sub
+unlinkat
+unlinkdir
+unlocked-io
+utimensat
+version-etc-fsf
+xalloc
+xalloc-die
+xgetcwd
+xstrtoumax
+xvasprintf
+year2038-recommended
