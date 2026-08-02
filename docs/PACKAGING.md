@@ -1,74 +1,158 @@
 # MattOS Debian Packaging
 
-MattOS uses the Debian binary package format, `dpkg` as the low-level installer and package database, and APT as the planned dependency-resolving frontend. This choice provides a mature archive format, file ownership database, conffile semantics, and repository metadata without making Debian or Ubuntu a source of MattOS base-system binaries.
+MattOS uses Debian binary packages, `dpkg`, and APT without using Debian or Ubuntu as a binary source. Editable source and package policy live in this monorepo. Generated `.deb` files and repository indexes live under `out/` and are ignored build artifacts.
 
-The source monorepo and the generated package repository have different roles. Editable component source and MattOS packaging policy live in this repository. Binary packages and APT indexes are reproducible build artifacts under `out/`; they are not source and remain ignored by Git.
+This is a hybrid bootstrap, not a self-hosted distribution. Thirty packages own the initial base, package-manager runtime, selected administration/networking tools, D-Bus broker, and authentication stack. Full systemd executables and a few host utilities still follow the proven legacy assembly path.
 
 ## Imported package-manager sources
-
-Both imports are ordinary editable files with no nested `.git` directories:
 
 | Component | Official repository | Branch | Imported commit | Destination |
 | --- | --- | --- | --- | --- |
 | dpkg | `https://git.dpkg.org/git/dpkg/dpkg.git` | `main` | `ff7e9d8bf01379e8b022028a65afaa262e2c25cd` | `src/system/packages/dpkg/` |
 | APT | `https://salsa.debian.org/apt-team/apt.git` | `main` | `5e6dcc8d0c8bdce61e9cc7f497abadb5349d509a` | `src/system/packages/apt/` |
 
-`upstream/sources.toml` is the manifest and `upstream/state/{dpkg,apt}.toml` records the URL, branch, exact commit, import time, destination, and copy-sync method. The normal component-scoped `upstream import`, `upstream status`, and conflict-exposing `upstream sync` commands apply.
+The imports are ordinary editable files without nested Git repositories. `upstream/sources.toml` is authoritative and `upstream/state/{dpkg,apt}.toml` records the exact imports.
 
-## Naming, versions, and architecture
+## Commands and artifacts
 
-MattOS-owned binary packages use the `mattos-` prefix. Names follow Debian's lowercase package-name grammar. The initial architecture is Debian's `amd64`, even though ISO filenames use `x86_64`.
-
-Versions are deterministic:
-
-```
-<upstream-version>-<MattOS-revision>
-```
-
-The first revision is `1mattos1`, producing versions such as `0.4.0-1mattos1`. Mutable timestamps are never package versions. Source repository, exact commit, MattOS path, build configuration, runtime library inventory, package version, and architecture are installed in `/usr/share/doc/<package>/mattos-build-info.toml`.
-
-## Commands and output
-
-```
-cargo run -p mattos-build -- package build mattos-brush
+```text
 cargo run -p mattos-build -- package build --all
 cargo run -p mattos-build -- package repo
-cargo run -p mattos-build -- package inspect mattos-brush
+cargo run -p mattos-build -- package inspect mattos-apt
 cargo run -p mattos-build -- package status
 ```
 
-Staging trees and packages are written to:
+Outputs are deterministic and written to:
 
-```
+```text
 out/packages/staging/<package>/
 out/packages/amd64/<package>_<version>_amd64.deb
 out/packages/inventory.toml
-```
-
-The inventory records name, version, architecture, artifact path, source component, package dependencies, legacy runtime-library closure, file count, and SHA-256. Package timestamps are normalized with a fixed `SOURCE_DATE_EPOCH`; `dpkg-deb --root-owner-group` records root ownership without requiring root on the host. Package modes are normalized, symlinks remain symlinks, and no maintainer scripts are used.
-
-## Prototype ownership
-
-| Package | Owned content | Runtime relationship |
-| --- | --- | --- |
-| `mattos-filesystem` | core directories and merged-`/usr` structural symlinks | no package dependency |
-| `mattos-base-files` | MattOS identity, hostname default, issue, profile, shells, and local-only APT source | depends on `mattos-filesystem` |
-| `mattos-brush` | `/usr/bin/brush` | depends on `mattos-filesystem`; library SONAMEs are recorded as a bootstrap closure |
-| `mattos-coreutils` | `/usr/bin/coreutils` and discovered non-conflicting applet symlinks | depends on `mattos-filesystem`; provides/conflicts/replaces `coreutils` |
-| `mattos-curl` | `/usr/bin/curl`, matching `libcurl.so.4` runtime | depends on `mattos-filesystem`; provides/conflicts/replaces `curl`; CA bundle remains legacy-owned |
-
-Directories may be shared. Two packages may not own the same regular file, symlink, configuration file, or command alias. The builder rejects non-directory collisions before archive creation. The coreutils package consumes the existing `coreutils --list` inventory and excludes commands supplied by another selected component; there is no second hand-maintained applet list.
-
-`mattos-base-files` marks mutable baseline files as conffiles. `/etc/os-release` is immutable package identity. Live-only passwd/shadow state, autologin overrides, the live sudo policy, live notice, live home skeleton, and live tmpfiles policy remain in `src/system/profiles/live` and are not permanent package payloads. Maintainer scripts are prohibited for this prototype; future scripts must be minimal, deterministic, idempotent, documented, and offline.
-
-Dynamic library package dependencies cannot yet be expressed as `Depends` because glibc, OpenSSL, systemd, and other runtime libraries are still installed by legacy rootfs assembly rather than owning MattOS packages. `mattos-curl` carries the `libcurl.so.4` built alongside its executable so the ABI pair cannot drift; the rest of its closure remains legacy-owned. The exact SONAME closure is therefore recorded in `X-MattOS-Legacy-Runtime-Libraries` and provenance instead of inventing Debian package dependencies. Converting those libraries to MattOS packages is required before these fields can become normal dependency relationships.
-
-## Local APT repository
-
-`package repo` creates only MattOS content:
-
-```
 out/repository/
+```
+
+Versions use `<upstream-version>-1mattos1`. Package modes and timestamps are normalized, directory walks are sorted, `dpkg-deb --root-owner-group` records root ownership, symlinks remain symlinks, and repository gzip headers and Release dates are fixed. No package in this milestone has a maintainer script.
+
+`package inspect` reports Essential, Priority, Depends, Provides, Conflicts, Replaces, conffiles, installed size, detected ELF dependencies, package-owned shared libraries, and repository dependency resolution in deterministic order. Provenance is installed as `/usr/share/doc/<package>/mattos-build-info.toml`.
+
+## Package ownership
+
+| Package | Priority | Selected payload and role |
+| --- | --- | --- |
+| `mattos-filesystem` | required, Essential | merged-`/usr` structural directories and symlinks |
+| `mattos-bootstrap-runtime` | required | exact temporary ELF closure plus `/usr/bin/tar` required by dpkg |
+| `mattos-base-files` | required | MattOS identity, hostname default, profile, issue, and shells |
+| `mattos-ca-certificates` | important | pinned Mozilla-derived CA bundle and update provenance |
+| `mattos-brush` | required | `/usr/bin/brush` |
+| `mattos-coreutils` | required | uutils multicall binary and non-conflicting applet symlinks |
+| `mattos-curl` | optional | curl CLI and its source-built matching `libcurl.so.4` ABI |
+| `mattos-dpkg` | required | the selected source-built dpkg runtime and support data |
+| `mattos-libapt-pkg` | important | source-built `libapt-pkg.so.7.0` runtime and SONAME links |
+| `mattos-apt` | important | APT commands, private library, local methods, helpers, solvers, planners, and configuration |
+| `mattos-libtinfow6`, `mattos-libncursesw6` | important | source-built ncurses ABI libraries and SONAME links |
+| `mattos-terminfo`, `mattos-ncurses-bin` | important | six required terminal descriptions and selected ncurses commands |
+| `mattos-libkmod2`, `mattos-kmod` | important | source-built libkmod and selected module administration commands |
+| `mattos-libproc2`, `mattos-procps` | important | source-built libproc2, selected procps commands, and `/etc/sysctl.conf` |
+| `mattos-libsystemd0`, `mattos-libudev1` | important | narrow source-built public systemd libraries; not a full systemd package migration |
+| `mattos-dbus-broker` | important | broker/launcher, system and user units, bus policy, and sysusers definition |
+| `mattos-libpam0`, `mattos-libpam-misc0` | required | source-built public Linux-PAM runtime libraries |
+| `mattos-pam-modules`, `mattos-pam-runtime` | required | selected PAM modules, helper, and MattOS PAM policy |
+| `mattos-shadow` | required | selected account administration tools, `login.defs`, and `default/useradd` |
+| `mattos-sudo-rs` | required | `sudo`, `visudo`, sudoers policy, and secure modes |
+| `mattos-util-linux-auth` | required | source-built `agetty`, `login`, and `su` |
+| `mattos-iproute2`, `mattos-iputils` | important | selected routing and network diagnostic commands plus iproute2 data |
+
+Directories may be shared. Regular files and symlinks may have only one package owner. The builder rejects package/package collisions before archive creation and rejects later legacy overwrites by snapshotting package-owned paths.
+
+### Third-milestone path migration map
+
+| Former rootfs path | New package owner | Legacy path after migration |
+| --- | --- | --- |
+| selected ncurses commands | `mattos-ncurses-bin` | validates package-installed commands |
+| selected terminfo entries | `mattos-terminfo` | validates the installed database |
+| `libtinfow.so.6`, `libncursesw.so.6` | dedicated ncurses library packages | no direct library copy |
+| kmod commands and `libkmod.so.2` | `mattos-kmod`, `mattos-libkmod2` | no command/library copy |
+| procps commands, `libproc2.so.1`, `sysctl.conf` | procps binary/library packages | configuration comparison only |
+| dbus-broker binaries, policy, units, session policy | `mattos-dbus-broker` | validation plus aliases/wants only |
+| PAM libraries, selected modules, helper, `/etc/pam.d` | four PAM packages | no auth-runtime/config copy |
+| Shadow commands and static configuration | `mattos-shadow` | no command/config copy |
+| sudo-rs commands and permanent sudoers policy | `mattos-sudo-rs` | live-profile overlay remains separate |
+| `agetty`, `login`, `su` | `mattos-util-linux-auth` | no command copy |
+| selected iproute2/iputils commands and iproute2 data | network command packages | validates package-installed commands |
+| public `libsystemd.so.0`, `libudev.so.1` | narrow systemd library packages | full systemd tree copy skips owned paths |
+
+The dependency-aware order is computed from declared edges rather than this table or `PACKAGE_NAMES`. Independent packages retain a stable declaration-order tie break. A cycle or unknown MattOS dependency stops repository creation and rootfs installation.
+
+### dpkg boundary
+
+`mattos-dpkg` owns the built C/ELF commands `dpkg`, `dpkg-deb`, `dpkg-divert`, `dpkg-query`, `dpkg-realpath`, `dpkg-split`, `dpkg-statoverride`, `dpkg-trigger`, `update-alternatives`, and `start-stop-daemon`. It also owns `/usr/share/dpkg`, `/etc/dpkg/dpkg.cfg`, the configuration directory, and alternatives directory scaffolding.
+
+`dpkg-maintscript-helper` is deliberately excluded because the upstream output is a Perl program and MattOS does not yet provide a packaged Perl runtime. Existence in an upstream install tree is not treated as runtime support.
+
+The package never ships `/var/lib/dpkg/status`, `available`, generated `info/`, `updates/`, locks, or other database state. Rootfs assembly initializes these and real host `dpkg` operations populate them.
+
+### APT boundary
+
+`mattos-apt` owns `apt`, `apt-get`, `apt-cache`, `apt-config`, and `apt-mark`; `/usr/lib/apt/apt-helper`; the `copy`, `file`, and `store` methods; planners and solvers; `libapt-private.so.0.0`; `/etc/apt`; and empty writable state directory scaffolding.
+
+HTTP/HTTPS methods, `gpgv`, `apt-ftparchive`, and apt-utils are intentionally excluded from the guest runtime. The immediate contract is the embedded `file:` repository. Repository generation continues to use host `apt-ftparchive`.
+
+Mutable lists, archives, logs, partial files, and locks are never package payload files. The package creates only directories such as `/var/lib/apt/lists/partial`, `/var/cache/apt/archives/partial`, and `/var/log/apt`; live commands create their ephemeral contents.
+
+### Bootstrap runtime boundary
+
+`mattos-bootstrap-runtime` is an explicit transitional package, not a glibc package. At build time the packager runs `ldd` over every selected packaged ELF root. It resolves against MattOS component install trees first, excludes every library now owned by a dedicated package, normalizes the remaining closure under `/usr/lib/x86_64-linux-gnu` and the loader under `/usr/lib64`, and records destination, source, reason, and SHA-256 for every file in `runtime-files.tsv`.
+
+The package also owns `/usr/bin/tar`, which source-built dpkg invokes to unpack data archives. It no longer owns libudev, libsystemd, PAM, ncurses, kmod, or procps libraries. The migration changed its staged payload from 21 files/links, 18 libraries, and 19,975,054 regular-file bytes to 25 files/links, 22 libraries, and 17,605,064 bytes; the archive fell from 6,530,650 to 5,830,090 bytes. The file count rose because libbsd, libcap, libcrypt, libelf, and libexpat dependencies that the old legacy copy path left unowned are now represented honestly. The byte and archive reductions come from moving source-built libraries to their proper packages. Most remaining files are host-derived libc, compression, crypto, or compiler support, so this remains a portability and trust limitation.
+
+`mattos-curl` continues to carry its matching source-built `libcurl.so.4` because splitting one small ABI pair would add churn without improving this milestone. It depends on the exact bootstrap runtime and on `mattos-ca-certificates`.
+
+### CA certificates
+
+`mattos-ca-certificates` owns `/etc/ssl/certs/ca-certificates.crt`. `src/system/network/ca-bundle.toml` records the pinned curl CA Extract URL/date, SHA-256, destination, MPL-2.0 license, and validated count of 119 certificates. Ordinary builds never download a mutable `latest` bundle. The installed `UPDATE.md` describes the explicit checksum-and-count update process.
+
+## Dependency and Essential policy
+
+ABI-coupled relationships use exact versions:
+
+```text
+mattos-dpkg -> mattos-bootstrap-runtime (= exact)
+mattos-libapt-pkg -> mattos-bootstrap-runtime (= exact)
+mattos-apt -> mattos-bootstrap-runtime (= exact), mattos-dpkg (= exact),
+              mattos-libapt-pkg (= exact), mattos-ca-certificates
+mattos-brush/coreutils -> mattos-bootstrap-runtime (= exact)
+mattos-curl -> mattos-bootstrap-runtime (= exact), mattos-ca-certificates
+mattos-procps -> mattos-libproc2, mattos-libncursesw6, mattos-libtinfow6 (= exact)
+mattos-dbus-broker -> mattos-libsystemd0 (= exact)
+mattos-pam-runtime -> mattos-libpam0, mattos-pam-modules (= exact)
+mattos-shadow/sudo-rs/util-linux-auth -> exact PAM packages
+```
+
+Only `mattos-filesystem` is `Essential: yes`, because removing the merged-`/usr` structure makes all packages unsafe. `mattos-base-files` and `mattos-dpkg` are Priority `required` but deliberately non-Essential during the prototype so the Essential set does not grow ahead of a mature recovery policy. Removal of core packages is not tested in the primary image.
+
+Repository generation parses its finished `Packages` index and fails if a package is absent, an architecture is not `amd64`, an exact version does not resolve, a dependency or `Provides` target is missing, or a package/version/architecture key is duplicated. The builder also computes a deterministic topological install order, rejects cycles, and verifies every staged ELF SONAME is owned by itself or a declared dependency. This validation occurs before the repository is embedded.
+
+## Conffile policy
+
+APT owns and marks these as conffiles:
+
+```text
+/etc/apt/apt.conf.d/01mattos
+/etc/apt/sources.list.d/mattos.sources
+```
+
+dpkg owns and marks `/etc/dpkg/dpkg.cfg` as a conffile. `mattos-base-files` retains its identity and profile conffiles. No generated `/var` state is a conffile. Normal dpkg reinstall semantics therefore preserve an administrator-modified configuration or surface the standard conffile decision rather than silently replacing it.
+
+The expanded packages also mark `/etc/sysctl.conf`, `/etc/dbus-1/system.conf`, every MattOS `/etc/pam.d/*` stack, `/etc/login.defs`, `/etc/default/useradd`, `/etc/sudoers`, and `/etc/sudoers.d/README` as conffiles. No package contains passwd/group/shadow/gshadow databases, machine-id, sockets, `/run/user`, locks, journals, leases, APT lists, or dpkg status.
+
+## MattOS APT vendor and local repository
+
+APT is compiled with `CURRENT_VENDOR=mattos`. Vendored build metadata lives in `src/system/packages/apt/vendor/mattos`; runtime policy lives in `/etc/apt/apt.conf.d/01mattos`. Future persistent releases must keep `/etc/os-release`, the repository Codename/Suite, and vendor metadata aligned on `mattos` or a documented release codename. Debian release aliases and default sources are not installed.
+
+The repository layout is:
+
+```text
+/usr/share/mattos/repository/
 ├── pool/main/*.deb
 └── dists/mattos/
     ├── Release
@@ -77,32 +161,28 @@ out/repository/
         └── Packages.gz
 ```
 
-`dpkg-scanpackages` generates `Packages`; deterministic gzip generates `Packages.gz`; `apt-ftparchive` generates a `Release` file with checksums and MattOS origin/suite/codename fields. The repository is embedded at `/usr/share/mattos/repository`. `/etc/apt/sources.list.d/mattos.sources` uses only `file:/usr/share/mattos/repository`.
+`/etc/apt/sources.list.d/mattos.sources` contains only `file:/usr/share/mattos/repository`, suite `mattos`, component `main`, architecture `amd64`, and `Trusted: yes`. The trust flag is a narrowly scoped unsigned local-bootstrap exception. It does not enable unauthenticated remote repositories and must not be reused when an HTTP(S) repository is introduced.
 
-The repository is unsigned for this local bootstrap and is explicitly marked `Trusted: yes` only in the local file source. This exception must never be copied to an HTTP(S) repository. Online publication requires repository signing, key rotation policy, release promotion, and removal of the local trust exception.
+The temporary live APT policy also uses the root sandbox identity because `_apt` is not yet a MattOS system account, and disables APT's pager because a pager package is outside this milestone. Both choices are explicit transitional policies.
 
-## Bootstrap tools and source builds
+## Offline workflow
 
-Package construction currently uses host `dpkg-deb` and `dpkg`; repository indexing uses host `dpkg-scanpackages`, `apt-ftparchive`, and `gzip`. `zstd`, `xz`, and `tar` are setup prerequisites used by the package toolchain. Root ownership is encoded by `dpkg-deb`, so fakeroot is not required by the implemented path. This is an explicit bootstrap boundary, not self-hosting.
+The live rootfs contains no pre-baked APT list or archive state. With or without a QEMU NIC:
 
-`mattos build dpkg` builds the imported source with Autotools into `out/build/dpkg/install`. A deterministic `.dist-version` and exact `.dist-vcs-id` are added only to its isolated build copy because an ordinary imported Git snapshot has no `.git` directory. The built `dpkg`, `dpkg-deb`, and `dpkg-query` are staged into the image and use `/etc/dpkg` and `/var/lib/dpkg`.
+```text
+sudo apt-get update
+sudo apt-get install --reinstall -y mattos-brush
+sudo apt-get install --reinstall -y mattos-iputils mattos-procps mattos-ncurses-bin
+cd /tmp
+apt-get download mattos-brush
+```
 
-`mattos build apt` builds imported APT 3.3.2 with CMake/Ninja into `out/build/apt/install`, with docs, tests, and NLS disabled and the MattOS vendor selected. APT runtime is intentionally not installed yet. Its current output needs the built `libapt-pkg`/`libapt-private`, method/helper trees, C++ runtime, compression libraries, libudev/libsystemd, OpenSSL, and xxHash. Those dependencies are not yet represented by MattOS packages, so copying them as another unowned closure would weaken the package boundary and risk the bootable baseline.
+Update reads only the embedded `file:` source. Reinstall selects that artifact, invokes MattOS-built dpkg, preserves the database and unrelated files, and leaves Brush executable. Ordinary-user download produces a user-owned `.deb` with the same SHA-256 as `pool/main`.
 
-## Hybrid rootfs migration
+## Hybrid assembly and remaining migration
 
-The prototype replaces these direct-copy operations:
+Rootfs assembly builds all packages and the repository, initializes an empty dpkg database, installs packages in computed dependency order through real host `dpkg` under `fakeroot`, snapshots owned paths, layers only non-migrated components, initializes writable APT state, and embeds the repository. `fakeroot` permits normal archive modes and ownership semantics without making generated workspace files root-owned. There is no later legacy copy of APT, dpkg, the migrated ncurses/kmod/procps/auth/network/D-Bus payload, their selected libraries, or the CA bundle. Legacy integration functions validate authoritative package-installed configuration before creating only runtime aliases and enablement links.
 
-| Previous rootfs action | Package replacement |
-| --- | --- |
-| create merged-`/usr` hierarchy and symlinks | `mattos-filesystem` |
-| copy baseline identity/profile files from the skeleton | `mattos-base-files` |
-| copy Brush binary | `mattos-brush` |
-| copy coreutils multicall binary and create applet links | `mattos-coreutils` |
-| copy curl command through the component manifest | `mattos-curl` |
+Host `dpkg-deb` and `dpkg` still build and install archives. Host `dpkg-scanpackages`, `apt-ftparchive`, and deterministic `gzip` still create indexes. Host `file`, `readelf`, and `ldd` support closure inspection. This is a bootstrap boundary, not self-hosting.
 
-Authentication, systemd, D-Bus, networking, non-curl administration tools, runtime libraries, live overlay, rescue init, initramfs, and ISO assembly stay on their proven legacy paths.
-
-Rootfs assembly creates an empty staging root, builds the packages/repository, initializes `/var/lib/dpkg`, installs all five packages through real host `dpkg` semantics, snapshots every package-owned path, and then layers only non-migrated content. Explicit destination checks reject known legacy/package overlaps and the final snapshot rejects any silent change to package-owned files. The real database contains `status`, `available`, `info/`, `updates/`, file lists, md5sums, conffile state, and ownership records. MattOS-built `dpkg-query` can perform `-W`, `-L`, and `-S` inside the guest.
-
-Future milestones can package the runtime libraries, certificates, dpkg itself, APT and its helpers, then progressively remove the remaining legacy-copy boundary. A future installer should assemble targets from this same repository rather than copying the live rootfs. Persistent installation, an online repository, signing infrastructure, and automatic updates are deliberately outside this milestone.
+The next safe migration order is: host compatibility libraries currently recorded in the bootstrap manifest, a MattOS-built libc and dynamic loader, compiler runtimes, compression/crypto libraries, a standalone libcurl package if justified, Perl plus the remaining dpkg helpers, then full systemd packaging. Repository signing, online publication, persistence, installation, and automatic upgrades are separate future milestones.

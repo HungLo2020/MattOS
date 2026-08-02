@@ -26,7 +26,7 @@ cargo run -p mattos-build -- doctor
 Required tools are reported separately from optional tools. Missing-tool package hints are printed for common Linux distributions.
 `DevUtils/run_qemu.py` also runs `doctor` first and will direct you to `python3 DevUtils/setup.py` if required prerequisites are missing.
 
-This milestone also requires the systemd, dbus-broker, Autotools, networking, packaging, and ELF-inspection toolchain declared by `DevUtils/setup.py`, including Meson/Ninja, CMake, Autoconf/Automake/libtool, `rsync`, `bindgen`, Expat and OpenSSL development metadata, `dpkg-deb`, `dpkg-scanpackages`, `apt-ftparchive`, `zstd`, `xz`, `file`, `ldd`, and `readelf`.
+This milestone also requires the systemd, dbus-broker, Autotools, networking, packaging, and ELF-inspection toolchain declared by `DevUtils/setup.py`, including Meson/Ninja, CMake, Autoconf/Automake/libtool, `rsync`, `bindgen`, Expat and OpenSSL development metadata, `dpkg-deb`, `dpkg-scanpackages`, `apt-ftparchive`, `fakeroot`, `zstd`, `xz`, `file`, `ldd`, and `readelf`.
 
 ## Upstream source status
 
@@ -106,11 +106,11 @@ Package and repository commands:
 ```
 cargo run -p mattos-build -- package build --all
 cargo run -p mattos-build -- package repo
-cargo run -p mattos-build -- package inspect mattos-brush
+cargo run -p mattos-build -- package inspect mattos-apt
 cargo run -p mattos-build -- package status
 ```
 
-See `docs/PACKAGING.md` for the bootstrap tooling boundary, ownership policy, local repository, and hybrid rootfs migration.
+The complete prototype stack currently consists of 30 packages. In addition to filesystem, package-manager, Brush, coreutils, curl, and CA packages, it now splits ncurses/terminfo, kmod, procps, the public systemd libraries, dbus-broker, Linux-PAM, Shadow, sudo-rs, util-linux authentication tools, iproute2, and iputils into deliberate ownership boundaries. Repository creation validates the complete dependency graph, detects cycles, computes install order, and checks staged ELF ownership before image embedding. See `docs/PACKAGING.md` for the exact boundaries and migration map.
 
 ## QEMU boot
 
@@ -127,7 +127,7 @@ python3 DevUtils/run_qemu.py
 python3 DevUtils/run_qemu.py --no-network
 ```
 
-`--no-network` omits both the QEMU network backend and NIC. It is the supported negative-test path for confirming that boot and the local authentication/base-administration stack do not depend on connectivity.
+`--no-network` omits both the QEMU network backend and NIC. It is the supported negative-test path for confirming that boot and the local authentication/base-administration stack do not depend on connectivity. The embedded package repository is also expected to support `apt-get update` and safe reinstall of `mattos-iputils`, `mattos-procps`, and `mattos-ncurses-bin` in this mode. Critical PAM, login, sudo, D-Bus, and systemd-related packages are inspected/extracted in a separate validation root rather than reinstalled underneath the active session.
 
 The default GRUB entry boots `init=/usr/lib/systemd/systemd systemd.unit=mattos.target`.
 A rescue GRUB entry is also provided and boots MattOS Rust rescue init from `/usr/libexec/mattos/rescue-init`.

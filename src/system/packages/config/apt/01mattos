@@ -1,0 +1,14 @@
+// MattOS bootstrap APT policy. The local file: repository is trusted by its
+// deb822 source entry; this does not weaken authentication for remote sources.
+APT::Architecture "amd64";
+APT::Get::List-Cleanup "true";
+// Remove upstream distro convenience maps. These are not active sources, but
+// MattOS should not advertise Debian/Ubuntu changelog or snapshot defaults.
+#clear Acquire::Changelogs::URI::Origin;
+#clear Acquire::Changelogs::AlwaysOnline::Origin;
+#clear Acquire::Snapshots::URI;
+// The live image deliberately has no pager package yet. Keep interactive APT
+// output usable without probing a host-assumed /usr/bin/pager.
+Pager "false";
+// Transitional live-image policy: MattOS does not create an _apt account yet.
+APT::Sandbox::User "root";

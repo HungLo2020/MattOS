@@ -406,6 +406,7 @@ fn doctor() -> Result<()> {
 		"dpkg-deb",
 		"dpkg-query",
 		"dpkg-scanpackages",
+		"fakeroot",
 		"apt-ftparchive",
 		"zstd",
 		"xz",
@@ -1278,6 +1279,43 @@ fn copy_tree_excluding_dotgit(src: &Path, dst: &Path) -> Result<()> {
 		}
 	}
 	Ok(())
+}
+
+fn copy_tree_excluding_package_owned(
+	src: &Path,
+	rootfs: &Path,
+	owned: &BTreeSet<PathBuf>,
+) -> Result<()> {
+	fn copy_inner(src: &Path, dst: &Path, rootfs: &Path, owned: &BTreeSet<PathBuf>) -> Result<()> {
+		fs::create_dir_all(dst).with_context(|| format!("failed to create copy destination: {}", dst.display()))?;
+		let mut entries = fs::read_dir(src)?.collect::<std::io::Result<Vec<_>>>()?;
+		entries.sort_by_key(|entry| entry.file_name());
+		for entry in entries {
+			let from = entry.path();
+			if entry.file_name() == OsStr::new(".git") {
+				continue;
+			}
+			let to = dst.join(entry.file_name());
+			let metadata = fs::symlink_metadata(&from)?;
+			if metadata.is_dir() {
+				copy_inner(&from, &to, rootfs, owned)?;
+				continue;
+			}
+			let rel = to.strip_prefix(rootfs)?;
+			if owned.contains(rel) {
+				continue;
+			}
+			if metadata.file_type().is_symlink() {
+				copy_symlink(&from, &to)?;
+			} else {
+				fs::copy(&from, &to)?;
+				preserve_permissions(&metadata, &to)?;
+			}
+		}
+		Ok(())
+	}
+
+	copy_inner(src, rootfs, rootfs, owned)
 }
 
 #[cfg(unix)]
@@ -2368,62 +2406,23 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 	fs::create_dir_all(out.join("usr/libexec/mattos")).context("failed to create rescue init dir")?;
 	fs::write(out.join("etc/machine-id"), "").context("failed to create /etc/machine-id")?;
 
-	let pam_install = repo_root.join("out/build/linux-pam/install");
-	let shadow_install = repo_root.join("out/build/shadow/install");
-	let sudo_rs_install = repo_root.join("out/build/sudo-rs/install");
 	let systemd_install = repo_root.join("out/build/systemd/install");
-	let util_linux_install = repo_root.join("out/build/util-linux/install");
 	let systemd_pid1 = systemd_install.join("usr/lib/systemd/systemd");
-	let pam_lib = pam_install.join("usr/lib/x86_64-linux-gnu/libpam.so.0");
-	let shadow_passwd = shadow_install.join("usr/bin/passwd");
-	let sudo_bin = sudo_rs_install.join("usr/bin/sudo");
 	if !systemd_pid1.exists() {
 		bail!("systemd install output missing at {}; run build systemd first", systemd_pid1.display());
 	}
-	if !pam_lib.exists() {
-		bail!("linux-pam install output missing at {}; run build pam first", pam_lib.display());
-	}
-	if !shadow_passwd.exists() {
-		bail!("shadow install output missing at {}; run build shadow first", shadow_passwd.display());
-	}
-	if !sudo_bin.exists() {
-		bail!("sudo-rs install output missing at {}; run build sudo-rs first", sudo_bin.display());
-	}
-	copy_tree_excluding_dotgit(&systemd_install, &out)?;
+	copy_tree_excluding_package_owned(&systemd_install, &out, &package_owned)?;
 	copy_systemd_runtime_dependencies(&out)?;
 	let pam_systemd = out.join(SYSTEMD_PAM_MODULE_REL);
 	if !pam_systemd.is_file() {
 		bail!("systemd PAM module missing at {}; ensure the imported systemd build has PAM enabled", pam_systemd.display());
 	}
 	copy_runtime_dependencies(&pam_systemd, &out)?;
-	install_linux_pam_runtime(&pam_install, &out)?;
 	copy_shared_object_and_deps("libmount.so.1", &out)?;
 	copy_host_binary_and_deps("/usr/bin/mount", &out)?;
 	copy_host_binary_and_deps("/usr/bin/getent", &out)?;
 	copy_host_binary_and_deps("/usr/sbin/ldconfig", &out)?;
-	for rel in ["usr/sbin/agetty", "usr/bin/login", "usr/bin/su"] {
-		let src = util_linux_install.join(rel);
-		if !src.exists() {
-			bail!("util-linux install output missing at {}; run build util-linux first", src.display());
-		}
-		let dst = out.join(rel);
-		if let Some(parent) = dst.parent() {
-			fs::create_dir_all(parent).with_context(|| format!("failed to create {}", parent.display()))?;
-		}
-		fs::copy(&src, &dst).with_context(|| format!("failed to copy {}", src.display()))?;
-		copy_runtime_dependencies(&dst, &out)?;
-	}
-
-	for rel in ["usr/bin/passwd", "usr/sbin/useradd", "usr/sbin/usermod", "usr/sbin/userdel", "usr/sbin/groupadd", "usr/sbin/groupmod", "usr/sbin/groupdel", "usr/sbin/chpasswd", "usr/bin/chage", "usr/bin/newgrp"] {
-		copy_built_binary_and_runtime(&shadow_install.join(rel), &out.join(rel), &out)?;
-	}
-
-	for rel in ["usr/bin/sudo", "usr/bin/visudo"] {
-		copy_built_binary_and_runtime(&sudo_rs_install.join(rel), &out.join(rel), &out)?;
-	}
-
 	verify_required_pam_modules(&out)?;
-	copy_auth_configuration(repo_root, &out)?;
 	apply_live_profile(repo_root, &out)?;
 	validate_account_database(&out)?;
 	enforce_auth_file_modes(&out)?;
@@ -2609,7 +2608,6 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 	inventory.add_excluded(DIFFUTILS_PROVIDER, "diff3");
 	inventory.add_excluded(DIFFUTILS_PROVIDER, "sdiff");
 	write_userland_inventory(&out, &inventory)?;
-	packaging::stage_built_dpkg_runtime(repo_root, &out, &package_owned)?;
 	packaging::embed_repository(repo_root, &out)?;
 	packaging::validate_dpkg_database(&out)?;
 	packaging::validate_package_snapshot(&out, &package_snapshot)?;
@@ -2618,8 +2616,6 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 }
 
 fn install_component_manifests(repo_root: &Path, rootfs: &Path, inventory: &mut UserlandInventory) -> Result<BTreeMap<&'static str, Vec<String>>> {
-	let install_roots: Vec<PathBuf> = COMPONENT_INSTALL_MANIFESTS.iter().map(|manifest| repo_root.join(manifest.install_root_rel)).chain(std::iter::once(repo_root.join("out/build/systemd/install"))).collect();
-	let library_dirs: Vec<PathBuf> = install_roots.iter().map(|root| root.join("usr/lib/x86_64-linux-gnu")).filter(|path| path.exists()).collect();
 	let mut providers = BTreeMap::new();
 
 	for manifest in COMPONENT_INSTALL_MANIFESTS {
@@ -2631,7 +2627,12 @@ fn install_component_manifests(repo_root: &Path, rootfs: &Path, inventory: &mut 
 		for binary in manifest.binaries {
 			let source = install_root.join(binary.source_rel);
 			let destination = rootfs.join(binary.destination_rel);
-			inspect_and_stage_executable(&source, &destination, rootfs, &install_roots, &library_dirs)?;
+			if !source.is_file() {
+				bail!("component executable missing at {}", source.display());
+			}
+			if !destination.is_file() {
+				bail!("package did not install required component executable /{}", binary.destination_rel);
+			}
 			inventory.add_implemented(manifest.provider, binary.command_name);
 			inventory.add_compiled(manifest.provider, binary.command_name);
 			inventory.add_installed(manifest.provider, binary.command_name);
@@ -2643,6 +2644,7 @@ fn install_component_manifests(repo_root: &Path, rootfs: &Path, inventory: &mut 
 	Ok(providers)
 }
 
+#[cfg(test)]
 fn inspect_and_stage_executable(source: &Path, destination: &Path, rootfs: &Path, install_roots: &[PathBuf], library_dirs: &[PathBuf]) -> Result<()> {
 	if !source.exists() {
 		bail!("component executable missing at {}", source.display());
@@ -2684,6 +2686,7 @@ fn inspect_and_stage_executable(source: &Path, destination: &Path, rootfs: &Path
 	Ok(())
 }
 
+#[cfg(test)]
 fn stage_resolved_dependency(source: &Path, rootfs: &Path, install_roots: &[PathBuf]) -> Result<()> {
 	let relative = install_roots
 		.iter()
@@ -2702,29 +2705,13 @@ fn install_component_configuration(repo_root: &Path, rootfs: &Path) -> Result<()
 	for directory in ["etc/depmod.d", "etc/modprobe.d", "etc/modules-load.d", "usr/lib/depmod.d", "usr/lib/modprobe.d", "usr/lib/modules-load.d", "etc/sysctl.d"] {
 		fs::create_dir_all(rootfs.join(directory)).with_context(|| format!("failed to create /{directory}"))?;
 	}
-	let kmod_install = repo_root.join("out/build/kmod/install");
-	for library in ["libkmod.so.2", "libkmod.so.2.5.1"] {
-		let source = kmod_install.join("usr/lib/x86_64-linux-gnu").join(library);
-		if !source.exists() {
-			bail!("required kmod runtime library missing at {}", source.display());
-		}
-		stage_resolved_dependency(&source, rootfs, std::slice::from_ref(&kmod_install))?;
-	}
-
 	let sysctl_source = repo_root.join("src/userland/procps-ng/sysctl.conf");
-	fs::copy(&sysctl_source, rootfs.join("etc/sysctl.conf")).with_context(|| format!("failed to stage {}", sysctl_source.display()))?;
+	if fs::read(&sysctl_source)? != fs::read(rootfs.join("etc/sysctl.conf"))? {
+		bail!("mattos-procps did not install the authoritative /etc/sysctl.conf");
+	}
 
 	let source_db = repo_root.join("out/build/ncurses/install/usr/share/terminfo");
 	verify_terminfo_entries(&source_db)?;
-	for terminal in TERMINFO_ENTRIES {
-		let source = terminfo_entry_path(&source_db, terminal).ok_or_else(|| anyhow!("terminfo entry {terminal} missing from {}", source_db.display()))?;
-		let relative = source.strip_prefix(&source_db).with_context(|| format!("invalid terminfo path {}", source.display()))?;
-		let destination = rootfs.join("usr/share/terminfo").join(relative);
-		if let Some(parent) = destination.parent() {
-			fs::create_dir_all(parent).with_context(|| format!("failed to create {}", parent.display()))?;
-		}
-		fs::copy(&source, &destination).with_context(|| format!("failed to stage terminfo entry {terminal}"))?;
-	}
 	verify_terminfo_entries(&rootfs.join("usr/share/terminfo"))?;
 	Ok(())
 }
@@ -2794,7 +2781,6 @@ fn install_network_configuration(repo_root: &Path, rootfs: &Path) -> Result<()> 
 		("hosts", "etc/hosts"),
 		("networks", "etc/networks"),
 		("99-mattos-network.conf", "etc/sysctl.d/99-mattos-network.conf"),
-		("ca-certificates.crt", "etc/ssl/certs/ca-certificates.crt"),
 	] {
 		let target = rootfs.join(destination);
 		if let Some(parent) = target.parent() {
@@ -2841,7 +2827,11 @@ fn install_user_session_configuration(repo_root: &Path, rootfs: &Path) -> Result
 
 	let user_units = rootfs.join("usr/lib/systemd/user");
 	fs::create_dir_all(&user_units).with_context(|| format!("failed to create {}", user_units.display()))?;
-	copy_tree_excluding_dotgit(&units_source, &user_units)?;
+	for rel in ["dbus.socket", "dbus-broker.service"] {
+		if fs::read(units_source.join(rel))? != fs::read(user_units.join(rel))? {
+			bail!("mattos-dbus-broker did not install authoritative user unit {rel}");
+		}
+	}
 	for rel in ["dbus.socket", "dbus-broker.service"] {
 		set_mode(user_units.join(rel), 0o644)?;
 	}
@@ -2865,7 +2855,9 @@ fn install_user_session_configuration(repo_root: &Path, rootfs: &Path) -> Result
 	for directory in ["usr/share/dbus-1/session.d", "usr/share/dbus-1/services", "etc/dbus-1/session.d"] {
 		fs::create_dir_all(rootfs.join(directory)).with_context(|| format!("failed to create /{directory}"))?;
 	}
-	fs::copy(&dbus_config, rootfs.join("usr/share/dbus-1/session.conf")).context("failed to install per-user D-Bus policy")?;
+	if fs::read(&dbus_config)? != fs::read(rootfs.join("usr/share/dbus-1/session.conf"))? {
+		bail!("mattos-dbus-broker did not install authoritative session bus policy");
+	}
 	set_mode(rootfs.join("usr/share/dbus-1/session.conf"), 0o644)?;
 
 	// MattOS supplies a deliberately small effective systemd-user PAM stack in /etc.
@@ -2975,9 +2967,16 @@ fn install_dbus_configuration(repo_root: &Path, rootfs: &Path) -> Result<()> {
 	for directory in ["etc/dbus-1/system.d", "usr/share/dbus-1/system-services", "usr/share/dbus-1/system.d", "usr/lib/sysusers.d", "usr/lib/systemd/system"] {
 		fs::create_dir_all(rootfs.join(directory)).with_context(|| format!("failed to create /{directory}"))?;
 	}
-	fs::copy(&config_source, rootfs.join("etc/dbus-1/system.conf")).context("failed to install MattOS system-bus configuration")?;
-	fs::copy(&sysusers_source, rootfs.join("usr/lib/sysusers.d/dbus.conf")).context("failed to install messagebus sysusers definition")?;
-	copy_tree_excluding_dotgit(&units_source, &rootfs.join("usr/lib/systemd/system"))?;
+	for (source, destination) in [
+		(&config_source, rootfs.join("etc/dbus-1/system.conf")),
+		(&sysusers_source, rootfs.join("usr/lib/sysusers.d/dbus.conf")),
+		(&units_source.join("dbus.socket"), rootfs.join("usr/lib/systemd/system/dbus.socket")),
+		(&units_source.join("dbus-broker.service"), rootfs.join("usr/lib/systemd/system/dbus-broker.service")),
+	] {
+		if fs::read(source)? != fs::read(&destination)? {
+			bail!("mattos-dbus-broker did not install authoritative /{}", destination.strip_prefix(rootfs)?.display());
+		}
+	}
 	for rel in ["etc/dbus-1/system.conf", "usr/lib/sysusers.d/dbus.conf", "usr/lib/systemd/system/dbus.socket", "usr/lib/systemd/system/dbus-broker.service"] {
 		set_mode(rootfs.join(rel), 0o644)?;
 	}
@@ -3210,37 +3209,6 @@ fn validate_network_configuration(rootfs: &Path) -> Result<()> {
 	Ok(())
 }
 
-fn copy_built_binary_and_runtime(src: &Path, dst: &Path, rootfs: &Path) -> Result<()> {
-	if !src.exists() {
-		bail!("required binary missing at {}", src.display());
-	}
-	if let Some(parent) = dst.parent() {
-		fs::create_dir_all(parent).with_context(|| format!("failed to create {}", parent.display()))?;
-	}
-	fs::copy(src, dst).with_context(|| format!("failed to copy {}", src.display()))?;
-	copy_runtime_dependencies(dst, rootfs)
-}
-
-fn copy_auth_configuration(repo_root: &Path, rootfs: &Path) -> Result<()> {
-	let auth_src = repo_root.join("src/system/auth/config");
-	if !auth_src.exists() {
-		bail!("MattOS auth config missing at {}; expected local auth policy files", auth_src.display());
-	}
-
-	let etc_dst = rootfs.join("etc");
-	fs::create_dir_all(&etc_dst).with_context(|| format!("failed to create {}", etc_dst.display()))?;
-
-	for (src_rel, dst_rel) in [("pam.d", "pam.d"), ("sudoers.d", "sudoers.d"), ("default", "default")] {
-		copy_tree_excluding_dotgit(&auth_src.join(src_rel), &etc_dst.join(dst_rel))?;
-	}
-
-	for (src_rel, dst_rel) in [("login.defs", "login.defs"), ("sudoers", "sudoers")] {
-		fs::copy(auth_src.join(src_rel), etc_dst.join(dst_rel)).with_context(|| format!("failed to copy auth config {} to {}", auth_src.join(src_rel).display(), etc_dst.join(dst_rel).display()))?;
-	}
-
-	Ok(())
-}
-
 fn apply_live_profile(repo_root: &Path, rootfs: &Path) -> Result<()> {
 	let live_src = repo_root.join("src/system/profiles/live");
 	if !live_src.exists() {
@@ -3251,19 +3219,6 @@ fn apply_live_profile(repo_root: &Path, rootfs: &Path) -> Result<()> {
 	let notice_script = rootfs.join("etc/profile.d/10-mattos-live-notice.sh");
 	if notice_script.exists() {
 		set_mode(notice_script, 0o755)?;
-	}
-
-	Ok(())
-}
-
-fn install_linux_pam_runtime(pam_install: &Path, rootfs: &Path) -> Result<()> {
-	for rel in ["usr/lib/x86_64-linux-gnu/libpam.so.0", "usr/lib/x86_64-linux-gnu/libpam_misc.so.0", "usr/sbin/unix_chkpwd"] {
-		copy_built_binary_and_runtime(&pam_install.join(rel), &rootfs.join(rel), rootfs)?;
-	}
-
-	for module in REQUIRED_PAM_MODULES {
-		let rel = PathBuf::from("usr/lib/x86_64-linux-gnu/security").join(module);
-		copy_built_binary_and_runtime(&pam_install.join(&rel), &rootfs.join(&rel), rootfs)?;
 	}
 
 	Ok(())
@@ -4606,6 +4561,14 @@ mod tests {
 		write(&repo.join("src/system/session/user-units/dbus.socket"), "[Socket]\nListenStream=%t/bus\nExecStartPost=-/usr/bin/systemctl --user set-environment DBUS_SESSION_BUS_ADDRESS=unix:path=%t/bus\n");
 		write(&repo.join("src/system/session/user-units/dbus-broker.service"), "[Service]\nExecStart=/usr/bin/dbus-broker-launch --scope user\n");
 		write(&repo.join("src/system/session/dbus/session.conf"), "<busconfig>\n<type>session</type>\n<auth>EXTERNAL</auth>\n<standard_session_servicedirs/>\n<allow own=\"*\"/>\n</busconfig>\n");
+		for (source, destination) in [
+			("src/system/session/user-units/dbus.socket", "usr/lib/systemd/user/dbus.socket"),
+			("src/system/session/user-units/dbus-broker.service", "usr/lib/systemd/user/dbus-broker.service"),
+			("src/system/session/dbus/session.conf", "usr/share/dbus-1/session.conf"),
+		] {
+			let body = fs::read_to_string(repo.join(source)).expect("packaged source");
+			write(&rootfs.join(destination), &body);
+		}
 		for (stack, body) in [
 			("login", "session    optional     pam_systemd.so\n"),
 			("su-l", "session    optional     pam_systemd.so\n"),
@@ -4889,6 +4852,15 @@ mod tests {
 		write(&source.join("config/dbus.conf"), "u! messagebus 195 \"D-Bus System Message Bus\"\n");
 		write(&source.join("units/dbus.socket"), "[Socket]\nListenStream=/run/dbus/system_bus_socket\nSocketMode=0666\n");
 		write(&source.join("units/dbus-broker.service"), "[Service]\nExecStart=/usr/bin/dbus-broker-launch --scope system --config-file=/etc/dbus-1/system.conf\n");
+		for (source_rel, destination_rel) in [
+			("config/system.conf", "etc/dbus-1/system.conf"),
+			("config/dbus.conf", "usr/lib/sysusers.d/dbus.conf"),
+			("units/dbus.socket", "usr/lib/systemd/system/dbus.socket"),
+			("units/dbus-broker.service", "usr/lib/systemd/system/dbus-broker.service"),
+		] {
+			let body = fs::read_to_string(source.join(source_rel)).expect("packaged D-Bus fixture");
+			write(&rootfs.join(destination_rel), &body);
+		}
 
 		for target in ["systemd-networkd.service", "systemd-resolved.service", "systemd-timesyncd.service", "systemd-timedated.service", "systemd-logind.service"] {
 			write(&rootfs.join("usr/lib/systemd/system").join(target), "[Service]\nExecStart=/bin/true\n");
