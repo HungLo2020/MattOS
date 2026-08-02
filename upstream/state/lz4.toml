@@ -1,0 +1,7 @@
+component = "lz4"
+repo = "https://github.com/lz4/lz4.git"
+branch = "v1.10.0"
+imported_commit = "ebb370ca83af193212df4dcbadcc5d87bc0de2f0"
+imported_at_utc = "2026-08-02T19:36:10.381201461+00:00"
+sync_method = "copy"
+destination_path = "src/system/libraries/lz4"

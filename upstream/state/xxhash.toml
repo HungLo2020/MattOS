@@ -1,0 +1,7 @@
+component = "xxhash"
+repo = "https://github.com/Cyan4973/xxHash.git"
+branch = "v0.8.3"
+imported_commit = "e626a72bc2321cd320e953a0ccf1584cad60f363"
+imported_at_utc = "2026-08-02T19:36:12.831292030+00:00"
+sync_method = "copy"
+destination_path = "src/system/libraries/xxhash"

@@ -50,6 +50,10 @@ cargo run -p mattos-build -- upstream import curl
 cargo run -p mattos-build -- upstream import acl
 cargo run -p mattos-build -- upstream import zlib
 cargo run -p mattos-build -- upstream import bzip2
+cargo run -p mattos-build -- upstream import lz4
+cargo run -p mattos-build -- upstream import xz
+cargo run -p mattos-build -- upstream import xxhash
+cargo run -p mattos-build -- upstream import zstd
 cargo run -p mattos-build -- upstream import paxutils
 cargo run -p mattos-build -- upstream import tar
 cargo run -p mattos-build -- upstream import dbus-broker
@@ -68,7 +72,7 @@ The pipeline stages are:
 1. `kernel`: Linux kernel build using `src/kernel/config/x86_64_mattos.config`
 2. `brush`: Brush release build
 3. `coreutils`: uutils/coreutils multicall build
-4. `expat`, `libcap`, `acl`, `zlib`, `bzip2`: focused source-built runtime libraries
+4. `expat`, `libcap`, `acl`, `zlib`, `bzip2`, `lz4`, `xz`, `xxhash`, `zstd`: focused source-built runtime libraries
 5. `tar`: GNU tar built with the MattOS ACL ABI and without SELinux
 6. `ncurses`: terminal libraries, tools, and compiled terminfo database
 7. `procps`: process-management tools linked to the local ncurses build
@@ -79,8 +83,8 @@ The pipeline stages are:
 12. `kmod`: module administration tools and libkmod
 13. `systemd`: minimal Meson/Ninja build with kmod, networkd, resolved, timesyncd, timedated, logind, and `pam_systemd`
 14. `dbus-broker`: upstream Meson/Ninja system-bus broker and launcher
-15. `dpkg`: imported dpkg Autotools build against MattOS zlib and bzip2
-16. `apt`: imported APT CMake/Ninja build against MattOS zlib and bzip2
+15. `dpkg`: imported dpkg Autotools build against MattOS zlib, bzip2, and liblzma
+16. `apt`: imported APT CMake/Ninja build against MattOS zlib, bzip2, LZ4, liblzma, and xxHash
 17. `init`: MattOS rescue init build
 18. `rootfs`, `initramfs`, `iso`: hybrid package/legacy image assembly
 
@@ -103,6 +107,10 @@ cargo run -p mattos-build -- build libcap
 cargo run -p mattos-build -- build acl
 cargo run -p mattos-build -- build zlib
 cargo run -p mattos-build -- build bzip2
+cargo run -p mattos-build -- build lz4
+cargo run -p mattos-build -- build xz
+cargo run -p mattos-build -- build xxhash
+cargo run -p mattos-build -- build zstd
 cargo run -p mattos-build -- build tar
 cargo run -p mattos-build -- build systemd
 cargo run -p mattos-build -- build dbus-broker
@@ -124,7 +132,7 @@ cargo run -p mattos-build -- package audit
 cargo run -p mattos-build -- package status
 ```
 
-The complete prototype stack currently consists of 36 packages. In addition to filesystem, package-manager, Brush, coreutils, curl, and CA packages, it now splits GNU tar, ACL, zlib, bzip2, ncurses/terminfo, kmod, procps, the public systemd libraries, Expat, libcap, dbus-broker, Linux-PAM, Shadow, sudo-rs, util-linux authentication tools, iproute2, and iputils into deliberate ownership boundaries. Repository creation validates the complete dependency graph, detects cycles, computes install order, checks staged ELF ownership, and rejects migrated payloads in the bootstrap closure before image embedding. See `docs/PACKAGING.md` and `docs/BOOTSTRAP_RUNTIME.md` for the exact boundaries and migration map.
+The complete prototype stack currently consists of 39 packages. In addition to filesystem, package-manager, Brush, coreutils, curl, and CA packages, it now splits GNU tar, ACL, zlib, bzip2, LZ4, liblzma, xxHash, ncurses/terminfo, kmod, procps, the public systemd libraries, Expat, libcap, dbus-broker, Linux-PAM, Shadow, sudo-rs, util-linux authentication tools, iproute2, and iputils into deliberate ownership boundaries. Zstandard is imported and source-built, but remains bootstrap-owned at runtime until its OpenSSL/libelf consumer cycle can be split coherently. Repository creation validates the complete dependency graph, detects cycles, computes install order, checks staged ELF ownership, and rejects migrated payloads in the bootstrap closure before image embedding. See `docs/PACKAGING.md` and `docs/BOOTSTRAP_RUNTIME.md` for the exact boundaries and migration map.
 
 ## QEMU boot
 

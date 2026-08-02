@@ -198,3 +198,31 @@ repo = "https://sourceware.org/git/bzip2.git"
 branch = "bzip2-1.0.8"
 path = "src/system/libraries/bzip2"
 sync = "copy"
+
+[[component]]
+name = "lz4"
+repo = "https://github.com/lz4/lz4.git"
+branch = "v1.10.0"
+path = "src/system/libraries/lz4"
+sync = "copy"
+
+[[component]]
+name = "xz"
+repo = "https://github.com/tukaani-project/xz.git"
+branch = "v5.8.1"
+path = "src/system/libraries/xz"
+sync = "copy"
+
+[[component]]
+name = "xxhash"
+repo = "https://github.com/Cyan4973/xxHash.git"
+branch = "v0.8.3"
+path = "src/system/libraries/xxhash"
+sync = "copy"
+
+[[component]]
+name = "zstd"
+repo = "https://github.com/facebook/zstd.git"
+branch = "v1.5.7"
+path = "src/system/libraries/zstd"
+sync = "copy"

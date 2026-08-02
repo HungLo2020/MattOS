@@ -286,6 +286,10 @@ enum BuildStage {
 	Acl,
 	Zlib,
 	Bzip2,
+	Lz4,
+	Xz,
+	Xxhash,
+	Zstd,
 	Pam,
 	Shadow,
 	SudoRs,
@@ -1402,6 +1406,10 @@ fn build_plan(stage: BuildStage) -> Vec<BuildStage> {
 			BuildStage::Acl,
 			BuildStage::Zlib,
 			BuildStage::Bzip2,
+			BuildStage::Lz4,
+			BuildStage::Xz,
+			BuildStage::Xxhash,
+			BuildStage::Zstd,
 			BuildStage::Tar,
 			BuildStage::Ncurses,
 			BuildStage::Procps,
@@ -1448,6 +1456,10 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
 		BuildStage::Acl => build_acl(repo_root),
 		BuildStage::Zlib => build_zlib(repo_root),
 		BuildStage::Bzip2 => build_bzip2(repo_root),
+		BuildStage::Lz4 => build_lz4(repo_root),
+		BuildStage::Xz => build_xz(repo_root),
+		BuildStage::Xxhash => build_xxhash(repo_root),
+		BuildStage::Zstd => build_zstd(repo_root),
 		BuildStage::Pam => build_linux_pam(repo_root),
 		BuildStage::Shadow => build_shadow(repo_root),
 		BuildStage::SudoRs => build_sudo_rs(repo_root),
@@ -2217,6 +2229,174 @@ fn build_bzip2(repo_root: &Path) -> Result<()> {
 	std::os::unix::fs::symlink("libbz2.so.1.0", libdir.join("libbz2.so"))?;
 	fs::copy(source_copy.join("bzlib.h"), includedir.join("bzlib.h"))?;
 	fs::write(&stamp_path, stamp).with_context(|| format!("failed to write {}", stamp_path.display()))?;
+	Ok(())
+}
+
+fn build_lz4(repo_root: &Path) -> Result<()> {
+	let source = repo_root.join("src/system/libraries/lz4");
+	if !source.join("lib/Makefile").is_file() {
+		bail!("LZ4 source not found in {}; run upstream import lz4 first", source.display());
+	}
+	let out_root = repo_root.join("out/build/lz4");
+	let source_copy = out_root.join("source");
+	let install_dir = out_root.join("install");
+	let stamp_path = out_root.join("build-stamp.txt");
+	let state = fs::read_to_string(repo_root.join("upstream/state/lz4.toml")).context("failed to read LZ4 upstream state")?;
+	let stamp = format!("{state}\nmake lib\n");
+	if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+		remove_path_if_exists(&source_copy)?;
+	}
+	fs::create_dir_all(&out_root)?;
+	sync_build_source(&source, &source_copy)?;
+	let library_source = source_copy.join("lib");
+	run_cmd(&library_source, "make", &["-j", "4", "lib"])?;
+	remove_path_if_exists(&install_dir)?;
+	run_cmd(
+		&library_source,
+		"make",
+		&[
+			"install",
+			&format!("DESTDIR={}", install_dir.display()),
+			"PREFIX=/usr",
+			"LIBDIR=/usr/lib/x86_64-linux-gnu",
+		],
+	)?;
+	let soname = install_dir.join("usr/lib/x86_64-linux-gnu/liblz4.so.1");
+	if !soname.exists() {
+		bail!("LZ4 install did not produce {}", soname.display());
+	}
+	fs::write(&stamp_path, stamp)?;
+	Ok(())
+}
+
+fn build_xz(repo_root: &Path) -> Result<()> {
+	let source = repo_root.join("src/system/libraries/xz");
+	if !source.join("configure.ac").is_file() {
+		bail!("XZ Utils source not found in {}; run upstream import xz first", source.display());
+	}
+	let out_root = repo_root.join("out/build/xz");
+	let source_copy = out_root.join("source");
+	let build_dir = out_root.join("build");
+	let install_dir = out_root.join("install");
+	let stamp_path = out_root.join("build-stamp.txt");
+	let state = fs::read_to_string(repo_root.join("upstream/state/xz.toml")).context("failed to read XZ Utils upstream state")?;
+	let options = [
+		"--prefix=/usr",
+		"--libdir=/usr/lib/x86_64-linux-gnu",
+		"--disable-static",
+		"--disable-nls",
+		"--disable-doc",
+	];
+	let stamp = format!("{state}\n{}\n", options.join("\n"));
+	if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+		remove_path_if_exists(&source_copy)?;
+		remove_path_if_exists(&build_dir)?;
+	}
+	fs::create_dir_all(&out_root)?;
+	sync_build_source(&source, &source_copy)?;
+	if !source_copy.join("configure").is_file() {
+		run_cmd(&source_copy, "./autogen.sh", &["--no-po4a"])?;
+	}
+	fs::create_dir_all(&build_dir)?;
+	if !build_dir.join("Makefile").is_file() {
+		run_cmd(&build_dir, path_str(&source_copy.join("configure"))?, &options)?;
+	}
+	run_cmd(&build_dir, "make", &["-j", "4"])?;
+	remove_path_if_exists(&install_dir)?;
+	run_cmd(&build_dir, "make", &["install", &format!("DESTDIR={}", install_dir.display())])?;
+	let soname = install_dir.join("usr/lib/x86_64-linux-gnu/liblzma.so.5");
+	if !soname.exists() {
+		bail!("XZ Utils install did not produce {}", soname.display());
+	}
+	fs::write(&stamp_path, stamp)?;
+	Ok(())
+}
+
+fn build_xxhash(repo_root: &Path) -> Result<()> {
+	let source = repo_root.join("src/system/libraries/xxhash");
+	if !source.join("Makefile").is_file() {
+		bail!("xxHash source not found in {}; run upstream import xxhash first", source.display());
+	}
+	let out_root = repo_root.join("out/build/xxhash");
+	let source_copy = out_root.join("source");
+	let install_dir = out_root.join("install");
+	let stamp_path = out_root.join("build-stamp.txt");
+	let state = fs::read_to_string(repo_root.join("upstream/state/xxhash.toml")).context("failed to read xxHash upstream state")?;
+	let stamp = format!("{state}\nmake libxxhash\n");
+	if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+		remove_path_if_exists(&source_copy)?;
+	}
+	fs::create_dir_all(&out_root)?;
+	sync_build_source(&source, &source_copy)?;
+	run_cmd(&source_copy, "make", &["-j", "4", "libxxhash"])?;
+	remove_path_if_exists(&install_dir)?;
+	run_cmd(
+		&source_copy,
+		"make",
+		&[
+			"install_libxxhash",
+			"install_libxxhash.includes",
+			"install_libxxhash.pc",
+			&format!("DESTDIR={}", install_dir.display()),
+			"PREFIX=/usr",
+			"LIBDIR=/usr/lib/x86_64-linux-gnu",
+			"INCLUDEDIR=/usr/include",
+			"PKGCONFIGDIR=/usr/lib/x86_64-linux-gnu/pkgconfig",
+		],
+	)?;
+	let soname = install_dir.join("usr/lib/x86_64-linux-gnu/libxxhash.so.0");
+	if !soname.exists() {
+		bail!("xxHash install did not produce {}", soname.display());
+	}
+	fs::write(&stamp_path, stamp)?;
+	Ok(())
+}
+
+fn build_zstd(repo_root: &Path) -> Result<()> {
+	let source = repo_root.join("src/system/libraries/zstd");
+	if !source.join("build/cmake/CMakeLists.txt").is_file() {
+		bail!("Zstandard source not found in {}; run upstream import zstd first", source.display());
+	}
+	let out_root = repo_root.join("out/build/zstd");
+	let build_dir = out_root.join("build");
+	let install_dir = out_root.join("install");
+	let stamp_path = out_root.join("build-stamp.txt");
+	let state = fs::read_to_string(repo_root.join("upstream/state/zstd.toml")).context("failed to read Zstandard upstream state")?;
+	let options = [
+		"-G",
+		"Ninja",
+		"-DCMAKE_BUILD_TYPE=Release",
+		"-DCMAKE_INSTALL_PREFIX=/usr",
+		"-DCMAKE_INSTALL_LIBDIR=lib/x86_64-linux-gnu",
+		"-DZSTD_BUILD_PROGRAMS=OFF",
+		"-DZSTD_BUILD_TESTS=OFF",
+		"-DZSTD_BUILD_STATIC=OFF",
+		"-DZSTD_BUILD_SHARED=ON",
+	];
+	let stamp = format!("{state}\n{}\n", options.join("\n"));
+	if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+		remove_path_if_exists(&build_dir)?;
+	}
+	fs::create_dir_all(&out_root)?;
+	if !build_dir.join("build.ninja").is_file() {
+		let cmake_source = source.join("build/cmake");
+		let mut args = vec!["-S", path_str(&cmake_source)?, "-B", path_str(&build_dir)?];
+		args.extend(options);
+		run_cmd(repo_root, "cmake", &args)?;
+	}
+	run_cmd(repo_root, "cmake", &["--build", path_str(&build_dir)?, "--parallel", "4"])?;
+	remove_path_if_exists(&install_dir)?;
+	run_cmd_with_env_overrides(
+		repo_root,
+		"cmake",
+		&["--install", path_str(&build_dir)?],
+		&[("DESTDIR", install_dir.display().to_string())],
+	)?;
+	let soname = install_dir.join("usr/lib/x86_64-linux-gnu/libzstd.so.1");
+	if !soname.exists() {
+		bail!("Zstandard install did not produce {}", soname.display());
+	}
+	fs::write(&stamp_path, stamp)?;
 	Ok(())
 }
 
@@ -4912,6 +5092,10 @@ mod tests {
 		assert!(plan.contains(&BuildStage::Acl));
 		assert!(plan.contains(&BuildStage::Zlib));
 		assert!(plan.contains(&BuildStage::Bzip2));
+		assert!(plan.contains(&BuildStage::Lz4));
+		assert!(plan.contains(&BuildStage::Xz));
+		assert!(plan.contains(&BuildStage::Xxhash));
+		assert!(plan.contains(&BuildStage::Zstd));
 		assert!(plan.contains(&BuildStage::Tar));
 		let ncurses = plan.iter().position(|stage| *stage == BuildStage::Ncurses).unwrap();
 		let procps = plan.iter().position(|stage| *stage == BuildStage::Procps).unwrap();
@@ -4922,6 +5106,10 @@ mod tests {
 		let acl = plan.iter().position(|stage| *stage == BuildStage::Acl).unwrap();
 		let zlib = plan.iter().position(|stage| *stage == BuildStage::Zlib).unwrap();
 		let bzip2 = plan.iter().position(|stage| *stage == BuildStage::Bzip2).unwrap();
+		let lz4 = plan.iter().position(|stage| *stage == BuildStage::Lz4).unwrap();
+		let xz = plan.iter().position(|stage| *stage == BuildStage::Xz).unwrap();
+		let xxhash = plan.iter().position(|stage| *stage == BuildStage::Xxhash).unwrap();
+		let zstd = plan.iter().position(|stage| *stage == BuildStage::Zstd).unwrap();
 		let tar = plan.iter().position(|stage| *stage == BuildStage::Tar).unwrap();
 		let dpkg = plan.iter().position(|stage| *stage == BuildStage::Dpkg).unwrap();
 		let apt = plan.iter().position(|stage| *stage == BuildStage::Apt).unwrap();
@@ -4933,7 +5121,9 @@ mod tests {
 		assert!(libcap < iproute2);
 		assert!(acl < tar);
 		assert!(zlib < dpkg && bzip2 < dpkg && tar < dpkg);
-		assert!(zlib < apt && bzip2 < apt);
+		assert!(xz < dpkg);
+		assert!(zlib < apt && bzip2 < apt && lz4 < apt && xz < apt && xxhash < apt);
+		assert!(zstd < dpkg && zstd < apt);
 		assert!(plan.contains(&BuildStage::Pam));
 		assert!(plan.contains(&BuildStage::Shadow));
 		assert!(plan.contains(&BuildStage::SudoRs));
@@ -4947,6 +5137,10 @@ mod tests {
 		assert_eq!(BuildStage::from_str("acl", true).unwrap(), BuildStage::Acl);
 		assert_eq!(BuildStage::from_str("zlib", true).unwrap(), BuildStage::Zlib);
 		assert_eq!(BuildStage::from_str("bzip2", true).unwrap(), BuildStage::Bzip2);
+		assert_eq!(BuildStage::from_str("lz4", true).unwrap(), BuildStage::Lz4);
+		assert_eq!(BuildStage::from_str("xz", true).unwrap(), BuildStage::Xz);
+		assert_eq!(BuildStage::from_str("xxhash", true).unwrap(), BuildStage::Xxhash);
+		assert_eq!(BuildStage::from_str("zstd", true).unwrap(), BuildStage::Zstd);
 		assert_eq!(BuildStage::from_str("tar", true).unwrap(), BuildStage::Tar);
 	}
 

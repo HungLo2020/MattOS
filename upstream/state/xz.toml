@@ -1,0 +1,7 @@
+component = "xz"
+repo = "https://github.com/tukaani-project/xz.git"
+branch = "v5.8.1"
+imported_commit = "a522a226545730551f7e7c2685fab27cf567746c"
+imported_at_utc = "2026-08-02T19:36:11.784376053+00:00"
+sync_method = "copy"
+destination_path = "src/system/libraries/xz"
