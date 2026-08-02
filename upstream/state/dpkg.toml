@@ -1,0 +1,7 @@
+component = "dpkg"
+repo = "https://git.dpkg.org/git/dpkg/dpkg.git"
+branch = "main"
+imported_commit = "ff7e9d8bf01379e8b022028a65afaa262e2c25cd"
+imported_at_utc = "2026-08-02T01:52:37.902642936+00:00"
+sync_method = "copy"
+destination_path = "src/system/packages/dpkg"

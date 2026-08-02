@@ -1,0 +1,7 @@
+component = "apt"
+repo = "https://salsa.debian.org/apt-team/apt.git"
+branch = "main"
+imported_commit = "5e6dcc8d0c8bdce61e9cc7f497abadb5349d509a"
+imported_at_utc = "2026-08-02T01:52:42.523214229+00:00"
+sync_method = "copy"
+destination_path = "src/system/packages/apt"

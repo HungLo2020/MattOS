@@ -1,0 +1,13 @@
+libdpkg-dev
+libdpkg-perl
+dpkg
+dpkg-dev
+dselect
+tmp
+files
+autoreconf.after
+autoreconf.before
+debhelper-build-stamp
+*.substvars
+*.debhelper
+*.debhelper.log

@@ -8,6 +8,8 @@ use std::fs;
 use std::path::{Component, Path, PathBuf};
 use std::process::{Command, Output};
 
+mod packaging;
+
 const AUTHORITATIVE_GRUB_CFG: &str = "src/boot/grub/grub.cfg";
 const OBSOLETE_GRUB_CFG_PATHS: &[&str] = &["boot/grub/grub.cfg"];
 const GRUB_SYSTEMD_ENTRY: &str = "menuentry \"MattOS (systemd)\"";
@@ -36,16 +38,7 @@ const CURL_PROVIDER: &str = "curl";
 const DBUS_BROKER_PROVIDER: &str = "dbus-broker";
 const SYSTEMD_PROVIDER: &str = "systemd";
 const SYSTEMD_PAM_MODULE_REL: &str = "usr/lib/x86_64-linux-gnu/security/pam_systemd.so";
-const REQUIRED_PAM_MODULES: &[&str] = &[
-	"pam_unix.so",
-	"pam_env.so",
-	"pam_nologin.so",
-	"pam_rootok.so",
-	"pam_permit.so",
-	"pam_deny.so",
-	"pam_shells.so",
-	"pam_securetty.so",
-];
+const REQUIRED_PAM_MODULES: &[&str] = &["pam_unix.so", "pam_env.so", "pam_nologin.so", "pam_rootok.so", "pam_permit.so", "pam_deny.so", "pam_shells.so", "pam_securetty.so"];
 
 const DIFFUTILS_EXPECTED_COMMANDS: &[&str] = &["diff", "cmp", "diff3", "sdiff"];
 const DIFFUTILS_AVAILABLE_ALIASES: &[&str] = &["diff", "cmp"];
@@ -116,14 +109,10 @@ const IPROUTE2_BINARIES: &[ComponentBinarySpec] = &[
 	ComponentBinarySpec { source_rel: "usr/sbin/tc", destination_rel: "usr/sbin/tc", command_name: "tc" },
 ];
 
-const IPUTILS_BINARIES: &[ComponentBinarySpec] = &[
-	ComponentBinarySpec { source_rel: "usr/bin/ping", destination_rel: "usr/bin/ping", command_name: "ping" },
-	ComponentBinarySpec { source_rel: "usr/bin/tracepath", destination_rel: "usr/bin/tracepath", command_name: "tracepath" },
-];
+const IPUTILS_BINARIES: &[ComponentBinarySpec] =
+	&[ComponentBinarySpec { source_rel: "usr/bin/ping", destination_rel: "usr/bin/ping", command_name: "ping" }, ComponentBinarySpec { source_rel: "usr/bin/tracepath", destination_rel: "usr/bin/tracepath", command_name: "tracepath" }];
 
-const CURL_BINARIES: &[ComponentBinarySpec] = &[
-	ComponentBinarySpec { source_rel: "usr/bin/curl", destination_rel: "usr/bin/curl", command_name: "curl" },
-];
+const CURL_BINARIES: &[ComponentBinarySpec] = &[ComponentBinarySpec { source_rel: "usr/bin/curl", destination_rel: "usr/bin/curl", command_name: "curl" }];
 
 const DBUS_BROKER_BINARIES: &[ComponentBinarySpec] = &[
 	ComponentBinarySpec { source_rel: "usr/bin/dbus-broker", destination_rel: "usr/bin/dbus-broker", command_name: "dbus-broker" },
@@ -140,58 +129,16 @@ const COMPONENT_INSTALL_MANIFESTS: &[ComponentInstallManifest] = &[
 	ComponentInstallManifest { provider: DBUS_BROKER_PROVIDER, install_root_rel: "out/build/dbus-broker/install", binaries: DBUS_BROKER_BINARIES },
 ];
 
-const TERMINFO_ENTRIES: &[&str] = &[
-	"linux",
-	"xterm",
-	"xterm-256color",
-	"screen",
-	"screen-256color",
-	"vt100",
-];
+const TERMINFO_ENTRIES: &[&str] = &["linux", "xterm", "xterm-256color", "screen", "screen-256color", "vt100"];
 
 const USERLAND_BINARY_INSTALLS: &[BinaryInstallSpec] = &[
-	BinaryInstallSpec {
-		provider: GREP_PROVIDER,
-		source_rel: "src/userland/grep/target/release/grep",
-		install_name: "grep",
-		command_name: "grep",
-	},
-	BinaryInstallSpec {
-		provider: SED_PROVIDER,
-		source_rel: "src/userland/sed/target/release/sed",
-		install_name: "sed",
-		command_name: "sed",
-	},
-	BinaryInstallSpec {
-		provider: FINDUTILS_PROVIDER,
-		source_rel: "src/userland/findutils/target/release/find",
-		install_name: "find",
-		command_name: "find",
-	},
-	BinaryInstallSpec {
-		provider: FINDUTILS_PROVIDER,
-		source_rel: "src/userland/findutils/target/release/xargs",
-		install_name: "xargs",
-		command_name: "xargs",
-	},
-	BinaryInstallSpec {
-		provider: FINDUTILS_PROVIDER,
-		source_rel: "src/userland/findutils/target/release/locate",
-		install_name: "locate",
-		command_name: "locate",
-	},
-	BinaryInstallSpec {
-		provider: FINDUTILS_PROVIDER,
-		source_rel: "src/userland/findutils/target/release/updatedb",
-		install_name: "updatedb",
-		command_name: "updatedb",
-	},
-	BinaryInstallSpec {
-		provider: DIFFUTILS_PROVIDER,
-		source_rel: "src/userland/diffutils/target/release/diffutils",
-		install_name: "diffutils",
-		command_name: "diffutils",
-	},
+	BinaryInstallSpec { provider: GREP_PROVIDER, source_rel: "src/userland/grep/target/release/grep", install_name: "grep", command_name: "grep" },
+	BinaryInstallSpec { provider: SED_PROVIDER, source_rel: "src/userland/sed/target/release/sed", install_name: "sed", command_name: "sed" },
+	BinaryInstallSpec { provider: FINDUTILS_PROVIDER, source_rel: "src/userland/findutils/target/release/find", install_name: "find", command_name: "find" },
+	BinaryInstallSpec { provider: FINDUTILS_PROVIDER, source_rel: "src/userland/findutils/target/release/xargs", install_name: "xargs", command_name: "xargs" },
+	BinaryInstallSpec { provider: FINDUTILS_PROVIDER, source_rel: "src/userland/findutils/target/release/locate", install_name: "locate", command_name: "locate" },
+	BinaryInstallSpec { provider: FINDUTILS_PROVIDER, source_rel: "src/userland/findutils/target/release/updatedb", install_name: "updatedb", command_name: "updatedb" },
+	BinaryInstallSpec { provider: DIFFUTILS_PROVIDER, source_rel: "src/userland/diffutils/target/release/diffutils", install_name: "diffutils", command_name: "diffutils" },
 ];
 
 #[derive(Default)]
@@ -205,8 +152,7 @@ struct UserlandInventory {
 
 impl UserlandInventory {
 	fn add_implemented(&mut self, provider: &str, command: &str) {
-		self.implemented_upstream
-			.insert(format!("{provider}:{command}"));
+		self.implemented_upstream.insert(format!("{provider}:{command}"));
 	}
 
 	fn add_compiled(&mut self, provider: &str, command: &str) {
@@ -218,13 +164,11 @@ impl UserlandInventory {
 	}
 
 	fn add_excluded(&mut self, provider: &str, command: &str) {
-		self.intentionally_excluded
-			.insert(format!("{provider}:{command}"));
+		self.intentionally_excluded.insert(format!("{provider}:{command}"));
 	}
 
 	fn add_failed(&mut self, provider: &str, command: &str, reason: &str) {
-		self.failed_compatibility
-			.insert(format!("{provider}:{command} ({reason})"));
+		self.failed_compatibility.insert(format!("{provider}:{command} ({reason})"));
 	}
 }
 
@@ -242,6 +186,10 @@ enum Commands {
 	Upstream {
 		#[command(subcommand)]
 		command: UpstreamCommands,
+	},
+	Package {
+		#[command(subcommand)]
+		command: packaging::PackageCommands,
 	},
 	Build {
 		#[arg(value_enum)]
@@ -338,6 +286,8 @@ enum BuildStage {
 	UtilLinux,
 	Systemd,
 	DbusBroker,
+	Dpkg,
+	Apt,
 	Init,
 	Rootfs,
 	Initramfs,
@@ -391,35 +341,16 @@ fn main() -> Result<()> {
 	match cli.command {
 		Commands::Doctor => doctor(),
 		Commands::Upstream { command } => upstream_command(&repo_root, command),
+		Commands::Package { command } => packaging::run_package_command(&repo_root, command),
 		Commands::Build { stage } => build(&repo_root, stage.unwrap_or(BuildStage::All)),
 		Commands::Image => build_image(&repo_root),
 		Commands::Run => run_qemu(&repo_root),
 		Commands::Clean { target } => clean(&repo_root, target.unwrap_or(CleanTarget::Artifacts)),
-		Commands::BootstrapWsl {
-			distro,
-			repo_path,
-			skip_package_install,
-		} => bootstrap_wsl(&repo_root, &distro, &repo_path, skip_package_install),
-		Commands::BuildWslIso {
-			distro,
-			repo_path,
-			skip_boot_test,
-		} => build_wsl_iso(&repo_root, &distro, &repo_path, skip_boot_test),
-		Commands::CopyIsoFromWsl {
-			distro,
-			repo_path,
-			windows_destination,
-		} => copy_iso_from_wsl(&repo_root, &distro, &repo_path, windows_destination.as_deref()),
-		Commands::BootstrapWindows {
-			distro,
-			install_distro,
-			skip_package_install,
-		} => bootstrap_windows(&distro, install_distro, skip_package_install),
-		Commands::Import {
-			all,
-			component,
-			update,
-		} => import_sources(&repo_root, all, component, update),
+		Commands::BootstrapWsl { distro, repo_path, skip_package_install } => bootstrap_wsl(&repo_root, &distro, &repo_path, skip_package_install),
+		Commands::BuildWslIso { distro, repo_path, skip_boot_test } => build_wsl_iso(&repo_root, &distro, &repo_path, skip_boot_test),
+		Commands::CopyIsoFromWsl { distro, repo_path, windows_destination } => copy_iso_from_wsl(&repo_root, &distro, &repo_path, windows_destination.as_deref()),
+		Commands::BootstrapWindows { distro, install_distro, skip_package_install } => bootstrap_windows(&distro, install_distro, skip_package_install),
+		Commands::Import { all, component, update } => import_sources(&repo_root, all, component, update),
 		Commands::RunQemu => run_qemu(&repo_root),
 	}
 }
@@ -438,9 +369,7 @@ fn doctor() -> Result<()> {
 
 	println!("\n[Required tools]");
 	let local_tools = local_tool_env(&std::env::current_dir().context("cwd")?);
-	let local_path_hint = local_tools
-		.as_ref()
-		.map(|e| e.tool_bin_dir.display().to_string());
+	let local_path_hint = local_tools.as_ref().map(|e| e.tool_bin_dir.display().to_string());
 	for tool in [
 		"git",
 		"cargo",
@@ -472,21 +401,23 @@ fn doctor() -> Result<()> {
 		"ldd",
 		"rsync",
 		"bindgen",
+		"cmake",
+		"dpkg",
+		"dpkg-deb",
+		"dpkg-query",
+		"dpkg-scanpackages",
+		"apt-ftparchive",
+		"zstd",
+		"xz",
+		"tar",
+		"triehash",
 	] {
 		if !check_host_tool_with_hint(tool, true, local_path_hint.as_deref())? {
 			missing_required.push(tool);
 		}
 	}
 
-	for (tool, args) in [
-		("mformat", vec!["-V"]),
-		("mcopy", vec!["-V"]),
-		("meson", vec!["--version"]),
-		("ninja", vec!["--version"]),
-		("grub-mkrescue", vec!["--version"]),
-		("xorriso", vec!["-version"]),
-		("bindgen", vec!["--version"]),
-	] {
+	for (tool, args) in [("mformat", vec!["-V"]), ("mcopy", vec!["-V"]), ("meson", vec!["--version"]), ("ninja", vec!["--version"]), ("grub-mkrescue", vec!["--version"]), ("xorriso", vec!["-version"]), ("bindgen", vec!["--version"])] {
 		if missing_required.contains(&tool) {
 			continue;
 		}
@@ -512,6 +443,12 @@ fn doctor() -> Result<()> {
 	if let Some(message) = check_tool_runtime("pkg-config", &["--atleast-version=2.2", "expat"])? {
 		println!("[broken]  libexpat1-dev ({message})");
 		broken_required.push("libexpat1-dev");
+	}
+	for (module, package) in [("zlib", "zlib1g-dev"), ("liblzma", "liblzma-dev"), ("libzstd", "libzstd-dev"), ("liblz4", "liblz4-dev"), ("libxxhash", "libxxhash-dev")] {
+		if let Some(message) = check_tool_runtime("pkg-config", &["--exists", module])? {
+			println!("[broken]  {package} ({message})");
+			broken_required.push(package);
+		}
 	}
 
 	println!("\n[Optional tools]");
@@ -647,11 +584,9 @@ fn clean(repo_root: &Path, target: CleanTarget) -> Result<()> {
 fn remove_path_if_exists(path: &Path) -> Result<()> {
 	if path.exists() {
 		if path.is_dir() {
-			fs::remove_dir_all(path)
-				.with_context(|| format!("failed to remove directory {}", path.display()))?;
+			fs::remove_dir_all(path).with_context(|| format!("failed to remove directory {}", path.display()))?;
 		} else {
-			fs::remove_file(path)
-				.with_context(|| format!("failed to remove file {}", path.display()))?;
+			fs::remove_file(path).with_context(|| format!("failed to remove file {}", path.display()))?;
 		}
 	}
 	Ok(())
@@ -697,6 +632,9 @@ fn packages_for_tool<'a>(tool: &'a str, os_release: &str) -> Vec<&'a str> {
 			"autoreconf" => vec!["autoconf", "automake", "libtool"],
 			"python3-jinja2" => vec!["python3-jinja2"],
 			"libexpat1-dev" => vec!["libexpat1-dev"],
+			"dpkg-scanpackages" => vec!["dpkg-dev"],
+			"apt-ftparchive" => vec!["apt-utils"],
+			"xz" => vec!["xz-utils"],
 			_ => vec![tool],
 		};
 	}
@@ -724,10 +662,7 @@ fn packages_for_tool<'a>(tool: &'a str, os_release: &str) -> Vec<&'a str> {
 }
 
 fn check_tool_runtime(cmd: &str, args: &[&str]) -> Result<Option<String>> {
-	let output = Command::new(cmd)
-		.args(args)
-		.output()
-		.with_context(|| format!("failed to execute tool check: {cmd} {}", args.join(" ")))?;
+	let output = Command::new(cmd).args(args).output().with_context(|| format!("failed to execute tool check: {cmd} {}", args.join(" ")))?;
 
 	if output.status.success() {
 		return Ok(None);
@@ -753,9 +688,7 @@ fn bootstrap_windows(distro: &str, install_distro: bool, skip_package_install: b
 
 	println!("MattOS Windows bootstrap");
 	println!("Preferred distro: {distro}");
-	println!(
-		"Repository script: src/tools/bootstrap-wsl.ps1 (run in elevated PowerShell when needed)"
-	);
+	println!("Repository script: src/tools/bootstrap-wsl.ps1 (run in elevated PowerShell when needed)");
 
 	let status = detect_wsl_status()?;
 	if !status.wsl_installed {
@@ -767,15 +700,10 @@ fn bootstrap_windows(distro: &str, install_distro: bool, skip_package_install: b
 		if install_distro {
 			println!("> wsl --install -d {distro}");
 			run_cmd(Path::new("."), "wsl", &["--install", "-d", distro])?;
-			println!(
-				"If installation required admin approval and did not complete, rerun exactly: wsl --install -d {distro}"
-			);
+			println!("If installation required admin approval and did not complete, rerun exactly: wsl --install -d {distro}");
 			distro.to_string()
 		} else {
-			bail!(
-				"No WSL distro installed. Install one with: wsl --install -d {}",
-				distro
-			)
+			bail!("No WSL distro installed. Install one with: wsl --install -d {}", distro)
 		}
 	} else {
 		preferred_distro(&status.distros).ok_or_else(|| anyhow!("unable to select WSL distro"))?
@@ -791,25 +719,9 @@ fn bootstrap_windows(distro: &str, install_distro: bool, skip_package_install: b
 		return Ok(());
 	}
 
-	let packages = [
-		"build-essential",
-		"git",
-		"cpio",
-		"gzip",
-		"xorriso",
-		"grub-pc-bin",
-		"grub-common",
-		"qemu-system-x86",
-		"curl",
-		"ca-certificates",
-		"pkg-config",
-		"musl-tools",
-	];
+	let packages = ["build-essential", "git", "cpio", "gzip", "xorriso", "grub-pc-bin", "grub-common", "qemu-system-x86", "curl", "ca-certificates", "pkg-config", "musl-tools"];
 
-	let pkg_cmd = format!(
-		"sudo apt-get update && sudo apt-get install -y {}",
-		packages.join(" ")
-	);
+	let pkg_cmd = format!("sudo apt-get update && sudo apt-get install -y {}", packages.join(" "));
 	run_wsl_bash(&selected, None, &pkg_cmd)?;
 
 	let rust_cmd = "command -v rustup >/dev/null 2>&1 || curl https://sh.rustup.rs -sSf | sh -s -- -y";
@@ -823,11 +735,7 @@ fn bootstrap_windows(distro: &str, install_distro: bool, skip_package_install: b
 		}
 	}
 	if !missing_required.is_empty() {
-		bail!(
-			"missing required tools in WSL distro {}: {}",
-			selected,
-			missing_required.join(", ")
-		);
+		bail!("missing required tools in WSL distro {}: {}", selected, missing_required.join(", "));
 	}
 
 	println!("Bootstrap completed. Re-run doctor to verify prerequisites.");
@@ -844,39 +752,14 @@ fn bootstrap_wsl(repo_root: &Path, preferred: &str, repo_path: &str, skip_packag
 	println!("Using WSL distro: {distro}");
 
 	if !skip_package_install {
-		let packages = [
-			"build-essential",
-			"git",
-			"cpio",
-			"gzip",
-			"xorriso",
-			"grub-pc-bin",
-			"grub-common",
-			"qemu-system-x86",
-			"curl",
-			"ca-certificates",
-			"pkg-config",
-			"musl-tools",
-			"bc",
-			"bison",
-			"flex",
-			"libssl-dev",
-			"libelf-dev",
-			"rsync",
-		];
-		let pkg_cmd = format!(
-			"sudo apt-get update && sudo apt-get install -y {}",
-			packages.join(" ")
-		);
+		let packages =
+			["build-essential", "git", "cpio", "gzip", "xorriso", "grub-pc-bin", "grub-common", "qemu-system-x86", "curl", "ca-certificates", "pkg-config", "musl-tools", "bc", "bison", "flex", "libssl-dev", "libelf-dev", "rsync"];
+		let pkg_cmd = format!("sudo apt-get update && sudo apt-get install -y {}", packages.join(" "));
 		run_wsl_bash(&distro, None, &pkg_cmd)?;
 
 		let rust_cmd = "command -v rustup >/dev/null 2>&1 || curl https://sh.rustup.rs -sSf | sh -s -- -y";
 		run_wsl_bash(&distro, None, rust_cmd)?;
-		run_wsl_bash(
-			&distro,
-			None,
-			"bash -lc 'source $HOME/.cargo/env 2>/dev/null || true; rustup target add x86_64-unknown-linux-musl'",
-		)?;
+		run_wsl_bash(&distro, None, "bash -lc 'source $HOME/.cargo/env 2>/dev/null || true; rustup target add x86_64-unknown-linux-musl'")?;
 	}
 
 	let linux_repo = resolve_wsl_repo_path(&distro, repo_path)?;
@@ -916,12 +799,7 @@ fn build_wsl_iso(repo_root: &Path, preferred: &str, repo_path: &str, skip_boot_t
 	Ok(())
 }
 
-fn copy_iso_from_wsl(
-	repo_root: &Path,
-	preferred: &str,
-	repo_path: &str,
-	windows_destination: Option<&str>,
-) -> Result<()> {
+fn copy_iso_from_wsl(repo_root: &Path, preferred: &str, repo_path: &str, windows_destination: Option<&str>) -> Result<()> {
 	if !cfg!(windows) {
 		bail!("copy-iso-from-wsl is intended to be run from Windows host")
 	}
@@ -929,31 +807,18 @@ fn copy_iso_from_wsl(
 	let distro = require_wsl_ubuntu(preferred)?;
 	let linux_repo = resolve_wsl_repo_path(&distro, repo_path)?;
 
-	let windows_dst = if let Some(dst) = windows_destination {
-		PathBuf::from(dst)
-	} else {
-		repo_root.join("out/images/mattos-x86_64.iso")
-	};
+	let windows_dst = if let Some(dst) = windows_destination { PathBuf::from(dst) } else { repo_root.join("out/images/mattos-x86_64.iso") };
 
 	if let Some(parent) = windows_dst.parent() {
-		fs::create_dir_all(parent)
-			.with_context(|| format!("failed to create destination dir {}", parent.display()))?;
+		fs::create_dir_all(parent).with_context(|| format!("failed to create destination dir {}", parent.display()))?;
 	}
 
-	let windows_dst_abs = if windows_dst.is_absolute() {
-		windows_dst
-	} else {
-		repo_root.join(windows_dst)
-	};
+	let windows_dst_abs = if windows_dst.is_absolute() { windows_dst } else { repo_root.join(windows_dst) };
 	let wsl_dst = windows_path_to_wsl(&windows_dst_abs)?;
 	let repo_expr = shell_escape(&linux_repo);
 	let wsl_dst_expr = shell_escape(&wsl_dst);
 
-	let copy_cmd = format!(
-		"set -euo pipefail; test -f {0}/out/images/mattos-x86_64.iso; mkdir -p $(dirname {1}); cp {0}/out/images/mattos-x86_64.iso {1}",
-		repo_expr,
-		wsl_dst_expr
-	);
+	let copy_cmd = format!("set -euo pipefail; test -f {0}/out/images/mattos-x86_64.iso; mkdir -p $(dirname {1}); cp {0}/out/images/mattos-x86_64.iso {1}", repo_expr, wsl_dst_expr);
 	run_wsl_bash(&distro, None, &copy_cmd)?;
 	println!("Copied ISO to {}", windows_dst_abs.display());
 	Ok(())
@@ -969,26 +834,15 @@ fn require_wsl_ubuntu(preferred: &str) -> Result<String> {
 		bail!("No WSL distro installed. Run exactly (elevated PowerShell): wsl --install -d Ubuntu")
 	}
 
-	if status
-		.distros
-		.iter()
-		.any(|d| d.eq_ignore_ascii_case(preferred))
-	{
+	if status.distros.iter().any(|d| d.eq_ignore_ascii_case(preferred)) {
 		return Ok(preferred.to_string());
 	}
 
-	if let Some(ubuntu) = status
-		.distros
-		.iter()
-		.find(|d| d.to_ascii_lowercase().starts_with("ubuntu"))
-	{
+	if let Some(ubuntu) = status.distros.iter().find(|d| d.to_ascii_lowercase().starts_with("ubuntu")) {
 		return Ok(ubuntu.clone());
 	}
 
-	bail!(
-		"Ubuntu WSL distribution not found. Installed distros: {}. Install with: wsl --install -d Ubuntu",
-		status.distros.join(", ")
-	)
+	bail!("Ubuntu WSL distribution not found. Installed distros: {}. Install with: wsl --install -d Ubuntu", status.distros.join(", "))
 }
 
 fn sync_repo_to_wsl(repo_root: &Path, distro: &str, repo_path: &str) -> Result<()> {
@@ -997,8 +851,7 @@ fn sync_repo_to_wsl(repo_root: &Path, distro: &str, repo_path: &str) -> Result<(
 	let repo_expr = shell_escape(repo_path);
 	let cmd = format!(
 		"set -euo pipefail; case {0} in /mnt/*) echo 'Refusing Linux worktree on Windows mount: ' {0} >&2; exit 13;; esac; mkdir -p {0}; rsync -a --delete --exclude 'target/' --exclude 'upstream/.tmp/' --exclude 'src/kernel/linux/' --exclude 'src/userland/brush/' --exclude 'src/userland/coreutils/' --exclude 'src/userland/grep/' --exclude 'src/userland/sed/' --exclude 'src/userland/findutils/' --exclude 'src/userland/diffutils/' --exclude 'upstream/state/' {1}/ {0}/",
-		repo_expr,
-		source_expr
+		repo_expr, source_expr
 	);
 	run_wsl_bash(distro, None, &cmd)
 }
@@ -1015,10 +868,7 @@ fn resolve_wsl_repo_path(distro: &str, repo_path: &str) -> Result<String> {
 }
 
 fn query_wsl_home(distro: &str) -> Result<String> {
-	let output = Command::new("wsl")
-		.args(["-d", distro, "--", "bash", "-lc", "printf %s \"$HOME\""])
-		.output()
-		.with_context(|| format!("failed to query HOME for distro {distro}"))?;
+	let output = Command::new("wsl").args(["-d", distro, "--", "bash", "-lc", "printf %s \"$HOME\""]).output().with_context(|| format!("failed to query HOME for distro {distro}"))?;
 	if !output.status.success() {
 		bail!("failed to query WSL HOME for distro {distro}")
 	}
@@ -1032,16 +882,10 @@ fn query_wsl_home(distro: &str) -> Result<String> {
 fn detect_wsl_status() -> Result<WslStatus> {
 	let wsl_installed = command_exists_host("wsl")?;
 	if !wsl_installed {
-		return Ok(WslStatus {
-			wsl_installed,
-			distros: Vec::new(),
-		});
+		return Ok(WslStatus { wsl_installed, distros: Vec::new() });
 	}
 
-	let output = Command::new("wsl")
-		.args(["-l", "-q"])
-		.output()
-		.context("failed to query WSL distributions")?;
+	let output = Command::new("wsl").args(["-l", "-q"]).output().context("failed to query WSL distributions")?;
 
 	let mut distros = Vec::new();
 	let normalized = decode_wsl_text(&output.stdout).replace('\u{0}', "\n");
@@ -1055,19 +899,13 @@ fn detect_wsl_status() -> Result<WslStatus> {
 		}
 	}
 
-	Ok(WslStatus {
-		wsl_installed,
-		distros,
-	})
+	Ok(WslStatus { wsl_installed, distros })
 }
 
 fn decode_wsl_text(bytes: &[u8]) -> String {
 	let likely_utf16 = bytes.len() >= 2 && bytes.iter().skip(1).step_by(2).any(|b| *b == 0);
 	if likely_utf16 && bytes.len() % 2 == 0 {
-		let words: Vec<u16> = bytes
-			.chunks_exact(2)
-			.map(|c| u16::from_le_bytes([c[0], c[1]]))
-			.collect();
+		let words: Vec<u16> = bytes.chunks_exact(2).map(|c| u16::from_le_bytes([c[0], c[1]])).collect();
 		String::from_utf16_lossy(&words)
 	} else {
 		String::from_utf8_lossy(bytes).to_string()
@@ -1075,11 +913,7 @@ fn decode_wsl_text(bytes: &[u8]) -> String {
 }
 
 fn preferred_distro(distros: &[String]) -> Option<String> {
-	distros
-		.iter()
-		.find(|d| d.to_ascii_lowercase().starts_with("ubuntu"))
-		.cloned()
-		.or_else(|| distros.first().cloned())
+	distros.iter().find(|d| d.to_ascii_lowercase().starts_with("ubuntu")).cloned().or_else(|| distros.first().cloned())
 }
 
 fn check_host_tool_with_hint(cmd: &str, required: bool, local_path_hint: Option<&str>) -> Result<bool> {
@@ -1103,12 +937,7 @@ fn check_host_tool_with_hint(cmd: &str, required: bool, local_path_hint: Option<
 }
 
 fn command_exists_host(cmd: &str) -> Result<bool> {
-	let status = if cfg!(windows) {
-		Command::new("where").arg(cmd).status()
-	} else {
-		Command::new("which").arg(cmd).status()
-	}
-	.with_context(|| format!("failed to probe tool {cmd}"))?;
+	let status = if cfg!(windows) { Command::new("where").arg(cmd).status() } else { Command::new("which").arg(cmd).status() }.with_context(|| format!("failed to probe tool {cmd}"))?;
 	Ok(status.success())
 }
 
@@ -1127,11 +956,7 @@ fn check_wsl_tool(distro: &str, cmd: &str, required: bool) -> Result<bool> {
 
 fn run_wsl_bash(distro: &str, cwd: Option<&Path>, cmd: &str) -> Result<()> {
 	let status = run_wsl_bash_status_code(distro, cwd, cmd)?;
-	if status == 0 {
-		Ok(())
-	} else {
-		bail!("WSL command failed (exit {status}): {cmd}")
-	}
+	if status == 0 { Ok(()) } else { bail!("WSL command failed (exit {status}): {cmd}") }
 }
 
 fn run_wsl_bash_status(distro: &str, cwd: Option<&Path>, cmd: &str) -> Result<bool> {
@@ -1146,10 +971,7 @@ fn run_wsl_bash_status_code(distro: &str, cwd: Option<&Path>, cmd: &str) -> Resu
 		cmd.to_string()
 	};
 
-	let status = Command::new("wsl")
-		.args(["-d", distro, "--", "bash", "-lc", &wrapped])
-		.status()
-		.with_context(|| format!("failed to run WSL command: {wrapped}"))?;
+	let status = Command::new("wsl").args(["-d", distro, "--", "bash", "-lc", &wrapped]).status().with_context(|| format!("failed to run WSL command: {wrapped}"))?;
 
 	Ok(status.code().unwrap_or(1))
 }
@@ -1157,11 +979,7 @@ fn run_wsl_bash_status_code(distro: &str, cwd: Option<&Path>, cmd: &str) -> Resu
 fn windows_path_to_wsl(path: &Path) -> Result<String> {
 	let s = path.to_string_lossy();
 	if s.len() >= 2 && s.as_bytes()[1] == b':' {
-		let drive = s
-			.chars()
-			.next()
-			.ok_or_else(|| anyhow!("invalid Windows path"))?
-			.to_ascii_lowercase();
+		let drive = s.chars().next().ok_or_else(|| anyhow!("invalid Windows path"))?.to_ascii_lowercase();
 		let rest = s[2..].replace('\\', "/");
 		return Ok(format!("/mnt/{drive}{rest}"));
 	}
@@ -1188,16 +1006,11 @@ fn import_sources(repo_root: &Path, all: bool, component: Option<String>, update
 
 fn read_sources(repo_root: &Path) -> Result<Sources> {
 	let path = repo_root.join("upstream/sources.toml");
-	let text = fs::read_to_string(&path)
-		.with_context(|| format!("failed to read sources file: {}", path.display()))?;
+	let text = fs::read_to_string(&path).with_context(|| format!("failed to read sources file: {}", path.display()))?;
 	toml::from_str(&text).context("failed to parse upstream/sources.toml")
 }
 
-fn select_components<'a>(
-	components: &'a [ComponentDef],
-	all: bool,
-	component: Option<String>,
-) -> Result<Vec<&'a ComponentDef>> {
+fn select_components<'a>(components: &'a [ComponentDef], all: bool, component: Option<String>) -> Result<Vec<&'a ComponentDef>> {
 	if all {
 		return Ok(components.iter().collect());
 	}
@@ -1217,30 +1030,19 @@ fn import_component(repo_root: &Path, comp: &ComponentDef, update: bool) -> Resu
 	validate_component_name(&comp.name)?;
 	let destination = resolve_component_destination(repo_root, &comp.path)?;
 
-	fs::create_dir_all(&destination)
-		.with_context(|| format!("failed to create destination: {}", destination.display()))?;
+	fs::create_dir_all(&destination).with_context(|| format!("failed to create destination: {}", destination.display()))?;
 
 	if update {
 		if let Some(prior_state) = read_sync_state(repo_root, &comp.name)? {
 			if prior_state.repo != comp.repo || prior_state.branch != comp.branch {
-				bail!(
-					"state mismatch for {} (repo/branch changed); inspect upstream/state/{}.toml",
-					comp.name,
-					comp.name
-				)
+				bail!("state mismatch for {} (repo/branch changed); inspect upstream/state/{}.toml", comp.name, comp.name)
 			}
 			update_component(repo_root, comp, &destination, &prior_state)
 		} else if is_scaffold_directory(&destination)? {
-			println!(
-				"No existing sync state for {}; performing initial import into scaffold directory",
-				comp.name
-			);
+			println!("No existing sync state for {}; performing initial import into scaffold directory", comp.name);
 			initial_import_component(repo_root, comp, &destination)
 		} else {
-			bail!(
-				"missing upstream state for {}; run initial import before --update",
-				comp.name
-			)
+			bail!("missing upstream state for {}; run initial import before --update", comp.name)
 		}
 	} else {
 		initial_import_component(repo_root, comp, &destination)
@@ -1264,15 +1066,10 @@ fn is_scaffold_directory(dir: &Path) -> Result<bool> {
 
 fn is_safe_placeholder_entry(entry: &fs::DirEntry) -> Result<bool> {
 	let name = entry.file_name();
-	if !SAFE_IMPORT_PLACEHOLDER_FILES
-		.iter()
-		.any(|allowed| name == OsStr::new(allowed))
-	{
+	if !SAFE_IMPORT_PLACEHOLDER_FILES.iter().any(|allowed| name == OsStr::new(allowed)) {
 		return Ok(false);
 	}
-	let meta = entry
-		.file_type()
-		.with_context(|| format!("failed to inspect placeholder type for {}", entry.path().display()))?;
+	let meta = entry.file_type().with_context(|| format!("failed to inspect placeholder type for {}", entry.path().display()))?;
 	Ok(meta.is_file())
 }
 
@@ -1296,8 +1093,7 @@ fn initial_import_component(repo_root: &Path, comp: &ComponentDef, destination: 
 	};
 	write_sync_state(repo_root, &comp.name, &state)?;
 
-	fs::remove_dir_all(&tmp)
-		.with_context(|| format!("failed to remove temporary directory: {}", tmp.display()))?;
+	fs::remove_dir_all(&tmp).with_context(|| format!("failed to remove temporary directory: {}", tmp.display()))?;
 
 	println!("Imported {} at commit {}", comp.name, state.imported_commit);
 	Ok(())
@@ -1309,130 +1105,61 @@ fn assert_initial_destination_safe(destination: &Path) -> Result<()> {
 	}
 
 	let mut unsafe_entries = Vec::new();
-	for entry in fs::read_dir(destination)
-		.with_context(|| format!("failed to inspect destination: {}", destination.display()))?
-	{
+	for entry in fs::read_dir(destination).with_context(|| format!("failed to inspect destination: {}", destination.display()))? {
 		let entry = entry?;
 		if is_safe_placeholder_entry(&entry)? {
 			continue;
 		}
-		unsafe_entries.push(
-			entry
-				.file_name()
-				.to_string_lossy()
-				.to_string(),
-		);
+		unsafe_entries.push(entry.file_name().to_string_lossy().to_string());
 	}
 
 	if !unsafe_entries.is_empty() {
 		unsafe_entries.sort();
-		bail!(
-			"initial import refused: destination {} contains non-placeholder files: {}",
-			destination.display(),
-			unsafe_entries.join(", ")
-		)
+		bail!("initial import refused: destination {} contains non-placeholder files: {}", destination.display(), unsafe_entries.join(", "))
 	}
 
 	Ok(())
 }
 
-fn update_component(
-	repo_root: &Path,
-	comp: &ComponentDef,
-	destination: &Path,
-	prior_state: &SyncState,
-) -> Result<()> {
+fn update_component(repo_root: &Path, comp: &ComponentDef, destination: &Path, prior_state: &SyncState) -> Result<()> {
 	let tmp_upstream = prepare_tmp_clone(repo_root, comp)?;
 	let new_commit = run_cmd_capture(&tmp_upstream, "git", &["rev-parse", "HEAD"])?;
 
 	let old_commit = prior_state.imported_commit.trim();
-	run_cmd(
-		&tmp_upstream,
-		"git",
-		&["fetch", "--depth", "1", "origin", old_commit],
-	)?;
+	run_cmd(&tmp_upstream, "git", &["fetch", "--depth", "1", "origin", old_commit])?;
 
 	let tmp_root = repo_root.join("upstream/.tmp");
 	let tmp_merge = tmp_root.join(format!("{}-merge", comp.name));
 	if tmp_merge.exists() {
-		fs::remove_dir_all(&tmp_merge)
-			.with_context(|| format!("failed to clean {}", tmp_merge.display()))?;
+		fs::remove_dir_all(&tmp_merge).with_context(|| format!("failed to clean {}", tmp_merge.display()))?;
 	}
-	fs::create_dir_all(&tmp_merge)
-		.with_context(|| format!("failed to create {}", tmp_merge.display()))?;
+	fs::create_dir_all(&tmp_merge).with_context(|| format!("failed to create {}", tmp_merge.display()))?;
 
 	run_cmd(&tmp_merge, "git", &["init"])?;
-	run_cmd(
-		&tmp_merge,
-		"git",
-		&[
-			"remote",
-			"add",
-			"upstream",
-			tmp_upstream
-				.to_str()
-				.ok_or_else(|| anyhow!("invalid path: {}", tmp_upstream.display()))?,
-		],
-	)?;
+	run_cmd(&tmp_merge, "git", &["remote", "add", "upstream", tmp_upstream.to_str().ok_or_else(|| anyhow!("invalid path: {}", tmp_upstream.display()))?])?;
 	run_cmd(&tmp_merge, "git", &["fetch", "upstream", old_commit])?;
-	run_cmd(
-		&tmp_merge,
-		"git",
-		&["fetch", "upstream", new_commit.trim()],
-	)?;
-	run_cmd(
-		&tmp_merge,
-		"git",
-		&["checkout", "-q", "-b", "local", old_commit],
-	)?;
+	run_cmd(&tmp_merge, "git", &["fetch", "upstream", new_commit.trim()])?;
+	run_cmd(&tmp_merge, "git", &["checkout", "-q", "-b", "local", old_commit])?;
 
 	clear_directory_contents(&tmp_merge)?;
 	copy_tree_excluding_dotgit(destination, &tmp_merge)?;
 	run_cmd(&tmp_merge, "git", &["add", "-A"])?;
-	run_cmd(
-		&tmp_merge,
-		"git",
-		&[
-			"-c",
-			"user.name=MattOS Sync Bot",
-			"-c",
-			"user.email=syncbot@example.invalid",
-			"commit",
-			"-m",
-			"MattOS local snapshot before upstream sync",
-		],
-	)?;
+	run_cmd(&tmp_merge, "git", &["-c", "user.name=MattOS Sync Bot", "-c", "user.email=syncbot@example.invalid", "commit", "-m", "MattOS local snapshot before upstream sync"])?;
 
-	let merge_status = run_cmd_status(
-		&tmp_merge,
-		"git",
-		&["merge", "--no-commit", "--no-ff", new_commit.trim()],
-	)?;
+	let merge_status = run_cmd_status(&tmp_merge, "git", &["merge", "--no-commit", "--no-ff", new_commit.trim()])?;
 	let has_conflicts = merge_status.code() == Some(1);
 	if !merge_status.success() && !has_conflicts {
-		bail!(
-			"sync merge failed unexpectedly with status {}",
-			merge_status
-				.code()
-				.map(|c| c.to_string())
-				.unwrap_or_else(|| "unknown".to_string())
-		);
+		bail!("sync merge failed unexpectedly with status {}", merge_status.code().map(|c| c.to_string()).unwrap_or_else(|| "unknown".to_string()));
 	}
 
 	clear_directory_contents(destination)?;
 	copy_tree_excluding_dotgit(&tmp_merge, destination)?;
 
-	fs::remove_dir_all(&tmp_upstream)
-		.with_context(|| format!("failed to remove {}", tmp_upstream.display()))?;
-	fs::remove_dir_all(&tmp_merge)
-		.with_context(|| format!("failed to remove {}", tmp_merge.display()))?;
+	fs::remove_dir_all(&tmp_upstream).with_context(|| format!("failed to remove {}", tmp_upstream.display()))?;
+	fs::remove_dir_all(&tmp_merge).with_context(|| format!("failed to remove {}", tmp_merge.display()))?;
 
 	if has_conflicts {
-		bail!(
-			"upstream sync for {} produced merge conflicts under {}; resolve conflicts and rerun --update",
-			comp.name,
-			comp.path
-		);
+		bail!("upstream sync for {} produced merge conflicts under {}; resolve conflicts and rerun --update", comp.name, comp.path);
 	}
 
 	let state = SyncState {
@@ -1454,10 +1181,7 @@ fn validate_component_name(name: &str) -> Result<()> {
 	if name.is_empty() {
 		bail!("component name must not be empty")
 	}
-	if !name
-		.chars()
-		.all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
-	{
+	if !name.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_') {
 		bail!("component name contains unsupported characters: {name}")
 	}
 	Ok(())
@@ -1494,10 +1218,8 @@ fn read_sync_state(repo_root: &Path, name: &str) -> Result<Option<SyncState>> {
 	if !path.exists() {
 		return Ok(None);
 	}
-	let body = fs::read_to_string(&path)
-		.with_context(|| format!("failed to read sync state: {}", path.display()))?;
-	let state = toml::from_str::<SyncState>(&body)
-		.with_context(|| format!("failed to parse sync state: {}", path.display()))?;
+	let body = fs::read_to_string(&path).with_context(|| format!("failed to read sync state: {}", path.display()))?;
+	let state = toml::from_str::<SyncState>(&body).with_context(|| format!("failed to parse sync state: {}", path.display()))?;
 	Ok(Some(state))
 }
 
@@ -1506,23 +1228,10 @@ fn prepare_tmp_clone(repo_root: &Path, comp: &ComponentDef) -> Result<PathBuf> {
 	fs::create_dir_all(&tmp_base).context("failed to create temporary import directory")?;
 	let tmp = tmp_base.join(format!("{}-clone", comp.name));
 	if tmp.exists() {
-		fs::remove_dir_all(&tmp)
-			.with_context(|| format!("failed to remove previous temp dir: {}", tmp.display()))?;
+		fs::remove_dir_all(&tmp).with_context(|| format!("failed to remove previous temp dir: {}", tmp.display()))?;
 	}
 
-	run_cmd(
-		repo_root,
-		"git",
-		&[
-			"clone",
-			"--depth",
-			"1",
-			"--branch",
-			&comp.branch,
-			&comp.repo,
-			tmp.to_str().ok_or_else(|| anyhow!("invalid temp path"))?,
-		],
-	)?;
+	run_cmd(repo_root, "git", &["clone", "--depth", "1", "--branch", &comp.branch, &comp.repo, tmp.to_str().ok_or_else(|| anyhow!("invalid temp path"))?])?;
 
 	Ok(tmp)
 }
@@ -1538,25 +1247,21 @@ fn clear_directory_contents(dir: &Path) -> Result<()> {
 			continue;
 		}
 		if p.is_dir() {
-			fs::remove_dir_all(&p)
-				.with_context(|| format!("failed to remove directory: {}", p.display()))?;
+			fs::remove_dir_all(&p).with_context(|| format!("failed to remove directory: {}", p.display()))?;
 		} else {
-			fs::remove_file(&p)
-				.with_context(|| format!("failed to remove file: {}", p.display()))?;
+			fs::remove_file(&p).with_context(|| format!("failed to remove file: {}", p.display()))?;
 		}
 	}
 	Ok(())
 }
 
 fn copy_tree_excluding_dotgit(src: &Path, dst: &Path) -> Result<()> {
-	fs::create_dir_all(dst)
-		.with_context(|| format!("failed to create copy destination: {}", dst.display()))?;
+	fs::create_dir_all(dst).with_context(|| format!("failed to create copy destination: {}", dst.display()))?;
 	for entry in fs::read_dir(src).with_context(|| format!("failed to read source dir: {}", src.display()))? {
 		let entry = entry?;
 		let from = entry.path();
 		let name = entry.file_name();
-		let metadata = fs::symlink_metadata(&from)
-			.with_context(|| format!("failed to read metadata: {}", from.display()))?;
+		let metadata = fs::symlink_metadata(&from).with_context(|| format!("failed to read metadata: {}", from.display()))?;
 
 		if name == OsStr::new(".git") {
 			continue;
@@ -1568,8 +1273,7 @@ fn copy_tree_excluding_dotgit(src: &Path, dst: &Path) -> Result<()> {
 		} else if metadata.is_dir() {
 			copy_tree_excluding_dotgit(&from, &to)?;
 		} else {
-			fs::copy(&from, &to)
-				.with_context(|| format!("failed to copy {} to {}", from.display(), to.display()))?;
+			fs::copy(&from, &to).with_context(|| format!("failed to copy {} to {}", from.display(), to.display()))?;
 			preserve_permissions(&metadata, &to)?;
 		}
 	}
@@ -1583,28 +1287,18 @@ fn copy_symlink(from: &Path, to: &Path) -> Result<()> {
 	if to.exists() {
 		fs::remove_file(to).with_context(|| format!("failed to remove {}", to.display()))?;
 	}
-	let target = fs::read_link(from)
-		.with_context(|| format!("failed to read symlink {}", from.display()))?;
-	symlink(&target, to)
-		.with_context(|| format!("failed to create symlink {}", to.display()))?;
+	let target = fs::read_link(from).with_context(|| format!("failed to read symlink {}", from.display()))?;
+	symlink(&target, to).with_context(|| format!("failed to create symlink {}", to.display()))?;
 	Ok(())
 }
 
 #[cfg(not(unix))]
 fn copy_symlink(from: &Path, to: &Path) -> Result<()> {
-	let target = fs::read_link(from)
-		.with_context(|| format!("failed to read symlink {}", from.display()))?;
-	let parent = to
-		.parent()
-		.ok_or_else(|| anyhow!("missing parent for {}", to.display()))?;
-	fs::create_dir_all(parent)
-		.with_context(|| format!("failed to create parent {}", parent.display()))?;
-	let resolved = from
-		.parent()
-		.ok_or_else(|| anyhow!("missing parent for {}", from.display()))?
-		.join(target);
-	fs::copy(&resolved, to)
-		.with_context(|| format!("failed to copy symlink fallback {}", resolved.display()))?;
+	let target = fs::read_link(from).with_context(|| format!("failed to read symlink {}", from.display()))?;
+	let parent = to.parent().ok_or_else(|| anyhow!("missing parent for {}", to.display()))?;
+	fs::create_dir_all(parent).with_context(|| format!("failed to create parent {}", parent.display()))?;
+	let resolved = from.parent().ok_or_else(|| anyhow!("missing parent for {}", from.display()))?.join(target);
+	fs::copy(&resolved, to).with_context(|| format!("failed to copy symlink fallback {}", resolved.display()))?;
 	Ok(())
 }
 
@@ -1613,8 +1307,7 @@ fn preserve_permissions(metadata: &fs::Metadata, to: &Path) -> Result<()> {
 	use std::os::unix::fs::PermissionsExt;
 
 	let mode = metadata.permissions().mode();
-	fs::set_permissions(to, fs::Permissions::from_mode(mode))
-		.with_context(|| format!("failed to set permissions on {}", to.display()))?;
+	fs::set_permissions(to, fs::Permissions::from_mode(mode)).with_context(|| format!("failed to set permissions on {}", to.display()))?;
 	Ok(())
 }
 
@@ -1629,10 +1322,8 @@ fn write_sync_state(repo_root: &Path, name: &str, state: &SyncState) -> Result<(
 	let path = dir.join(format!("{name}.toml"));
 	let temp_path = dir.join(format!("{name}.toml.tmp"));
 	let body = toml::to_string_pretty(state).context("failed to serialize sync state")?;
-	fs::write(&temp_path, body)
-		.with_context(|| format!("failed to write temporary sync state: {}", temp_path.display()))?;
-	fs::rename(&temp_path, &path)
-		.with_context(|| format!("failed to publish sync state: {}", path.display()))?;
+	fs::write(&temp_path, body).with_context(|| format!("failed to write temporary sync state: {}", temp_path.display()))?;
+	fs::rename(&temp_path, &path).with_context(|| format!("failed to publish sync state: {}", path.display()))?;
 	Ok(())
 }
 
@@ -1665,6 +1356,8 @@ fn build_plan(stage: BuildStage) -> Vec<BuildStage> {
 			BuildStage::SudoRs,
 			BuildStage::Systemd,
 			BuildStage::DbusBroker,
+			BuildStage::Dpkg,
+			BuildStage::Apt,
 			BuildStage::Init,
 			BuildStage::Rootfs,
 			BuildStage::Initramfs,
@@ -1696,11 +1389,15 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
 		BuildStage::UtilLinux => build_util_linux(repo_root),
 		BuildStage::Systemd => build_systemd(repo_root),
 		BuildStage::DbusBroker => build_dbus_broker(repo_root),
+		BuildStage::Dpkg => packaging::build_dpkg(repo_root),
+		BuildStage::Apt => packaging::build_apt(repo_root),
 		BuildStage::Init => build_init(repo_root),
 		BuildStage::Rootfs => build_rootfs(repo_root),
 		BuildStage::Initramfs => build_initramfs(repo_root),
 		BuildStage::Iso => build_iso(repo_root),
-		BuildStage::All => bail!("internal error: BuildStage::All should be expanded by build_plan"),
+		BuildStage::All => {
+			bail!("internal error: BuildStage::All should be expanded by build_plan")
+		}
 	}
 }
 
@@ -1715,26 +1412,21 @@ fn build_kernel(repo_root: &Path) -> Result<()> {
 		bail!("kernel config missing at {}; add configuration first", config.display());
 	}
 
-	let config_text = fs::read_to_string(&config)
-		.with_context(|| format!("failed to read {}", config.display()))?;
-	fs::write(linux.join(".config"), config_text)
-		.with_context(|| format!("failed to stage kernel config from {}", config.display()))?;
+	let config_text = fs::read_to_string(&config).with_context(|| format!("failed to read {}", config.display()))?;
+	fs::write(linux.join(".config"), config_text).with_context(|| format!("failed to stage kernel config from {}", config.display()))?;
 
 	let env = local_tool_env(repo_root);
 	if let Some(env) = &env {
 		println!("Using local rootless toolchain from {}", env.tool_root.display());
 	}
 	run_cmd_with_env(&linux, "make", &["olddefconfig"], env.as_ref())?;
-	run_cmd_with_env(&linux, "make", &["-j", "4"], env.as_ref())
-		.context("kernel build failed")?;
+	run_cmd_with_env(&linux, "make", &["-j", "4"], env.as_ref()).context("kernel build failed")?;
 
 	let bz = linux.join("arch/x86/boot/bzImage");
 	if !bz.exists() {
 		bail!("kernel build finished without bzImage at {}", bz.display())
 	}
 	Ok(())
-
-	
 }
 
 #[derive(Debug, Clone)]
@@ -1755,14 +1447,7 @@ fn local_tool_env(repo_root: &Path) -> Option<LocalToolEnv> {
 	let bison_pkg = root.join("share/bison");
 	let m4 = bin.join("m4");
 	if bin.exists() && lib.exists() && include.exists() && bison_pkg.exists() && m4.exists() {
-		Some(LocalToolEnv {
-			tool_root: root,
-			tool_bin_dir: bin,
-			tool_lib_dir: lib,
-			tool_include_dir: include,
-			bison_pkg_data_dir: bison_pkg,
-			m4_bin: m4,
-		})
+		Some(LocalToolEnv { tool_root: root, tool_bin_dir: bin, tool_lib_dir: lib, tool_include_dir: include, bison_pkg_data_dir: bison_pkg, m4_bin: m4 })
 	} else {
 		None
 	}
@@ -1772,10 +1457,7 @@ fn assert_kernel_build_path_safe(repo_root: &Path) -> Result<()> {
 	if cfg!(unix) && std::env::var("WSL_DISTRO_NAME").is_ok() {
 		let root = repo_root.to_string_lossy();
 		if root.starts_with("/mnt/") {
-			bail!(
-				"refusing kernel build from Windows-mounted path {}. Use Linux filesystem path like ~/src/MattOS",
-				repo_root.display()
-			)
+			bail!("refusing kernel build from Windows-mounted path {}. Use Linux filesystem path like ~/src/MattOS", repo_root.display())
 		}
 	}
 	Ok(())
@@ -1792,24 +1474,9 @@ fn build_brush(repo_root: &Path) -> Result<()> {
 fn build_coreutils(repo_root: &Path) -> Result<()> {
 	let coreutils = repo_root.join("src/userland/coreutils");
 	if !coreutils.join("Cargo.toml").exists() {
-		bail!(
-			"coreutils source not found in {}; run import first",
-			coreutils.display()
-		);
+		bail!("coreutils source not found in {}; run import first", coreutils.display());
 	}
-	run_cmd(
-		&coreutils,
-		"cargo",
-		&[
-			"build",
-			"--release",
-			"-p",
-			"coreutils",
-			"--no-default-features",
-			"--features",
-			"unix",
-		],
-	)
+	run_cmd(&coreutils, "cargo", &["build", "--release", "-p", "coreutils", "--no-default-features", "--features", "unix"])
 }
 
 fn build_grep(repo_root: &Path) -> Result<()> {
@@ -1817,18 +1484,7 @@ fn build_grep(repo_root: &Path) -> Result<()> {
 	if !grep.join("Cargo.toml").exists() {
 		bail!("grep source not found in {}; run import first", grep.display());
 	}
-	run_cmd(
-		repo_root,
-		"cargo",
-		&[
-			"build",
-			"--release",
-			"--manifest-path",
-			"src/userland/grep/Cargo.toml",
-			"--bin",
-			"grep",
-		],
-	)
+	run_cmd(repo_root, "cargo", &["build", "--release", "--manifest-path", "src/userland/grep/Cargo.toml", "--bin", "grep"])
 }
 
 fn build_sed(repo_root: &Path) -> Result<()> {
@@ -1836,86 +1492,40 @@ fn build_sed(repo_root: &Path) -> Result<()> {
 	if !sed.join("Cargo.toml").exists() {
 		bail!("sed source not found in {}; run import first", sed.display());
 	}
-	run_cmd(
-		repo_root,
-		"cargo",
-		&[
-			"build",
-			"--release",
-			"--manifest-path",
-			"src/userland/sed/Cargo.toml",
-			"--bin",
-			"sed",
-		],
-	)
+	run_cmd(repo_root, "cargo", &["build", "--release", "--manifest-path", "src/userland/sed/Cargo.toml", "--bin", "sed"])
 }
 
 fn build_findutils(repo_root: &Path) -> Result<()> {
 	let findutils = repo_root.join("src/userland/findutils");
 	if !findutils.join("Cargo.toml").exists() {
-		bail!(
-			"findutils source not found in {}; run import first",
-			findutils.display()
-		);
+		bail!("findutils source not found in {}; run import first", findutils.display());
 	}
-	run_cmd(
-		repo_root,
-		"cargo",
-		&[
-			"build",
-			"--release",
-			"--manifest-path",
-			"src/userland/findutils/Cargo.toml",
-			"--bins",
-		],
-	)
+	run_cmd(repo_root, "cargo", &["build", "--release", "--manifest-path", "src/userland/findutils/Cargo.toml", "--bins"])
 }
 
 fn build_diffutils(repo_root: &Path) -> Result<()> {
 	let diffutils = repo_root.join("src/userland/diffutils");
 	if !diffutils.join("Cargo.toml").exists() {
-		bail!(
-			"diffutils source not found in {}; run import first",
-			diffutils.display()
-		);
+		bail!("diffutils source not found in {}; run import first", diffutils.display());
 	}
-	run_cmd(
-		repo_root,
-		"cargo",
-		&[
-			"build",
-			"--release",
-			"--manifest-path",
-			"src/userland/diffutils/Cargo.toml",
-			"--bin",
-			"diffutils",
-		],
-	)
+	run_cmd(repo_root, "cargo", &["build", "--release", "--manifest-path", "src/userland/diffutils/Cargo.toml", "--bin", "diffutils"])
 }
 
 fn build_init(repo_root: &Path) -> Result<()> {
-	run_cmd(
-		repo_root,
-		"cargo",
-		&["build", "--release", "--manifest-path", "src/userland/init/Cargo.toml"],
-	)
+	run_cmd(repo_root, "cargo", &["build", "--release", "--manifest-path", "src/userland/init/Cargo.toml"])
 }
 
 fn build_linux_pam(repo_root: &Path) -> Result<()> {
 	let pam_src = repo_root.join("src/system/auth/linux-pam");
 	if !pam_src.join("meson.build").exists() {
-		bail!(
-			"linux-pam source not found in {}; run upstream import linux-pam first",
-			pam_src.display()
-		);
+		bail!("linux-pam source not found in {}; run upstream import linux-pam first", pam_src.display());
 	}
 
 	let out_root = repo_root.join("out/build/linux-pam");
 	let build_dir = out_root.join("build");
 	let install_dir = out_root.join("install");
 	let options_path = out_root.join("meson-options.txt");
-	fs::create_dir_all(&out_root)
-		.with_context(|| format!("failed to create {}", out_root.display()))?;
+	fs::create_dir_all(&out_root).with_context(|| format!("failed to create {}", out_root.display()))?;
 
 	let options = linux_pam_meson_options();
 	let options_text = format!("{}\n", options.join("\n"));
@@ -1924,65 +1534,27 @@ fn build_linux_pam(repo_root: &Path) -> Result<()> {
 	let configured = build_dir.join("build.ninja").exists();
 
 	if !configured {
-		let mut setup_args = vec![
-			"setup".to_string(),
-			build_dir.display().to_string(),
-			pam_src.display().to_string(),
-		];
+		let mut setup_args = vec!["setup".to_string(), build_dir.display().to_string(), pam_src.display().to_string()];
 		setup_args.extend(options.clone());
 		let setup_refs: Vec<&str> = setup_args.iter().map(String::as_str).collect();
 		run_cmd(repo_root, "meson", &setup_refs)?;
-		fs::write(&options_path, &options_text)
-			.with_context(|| format!("failed to write {}", options_path.display()))?;
+		fs::write(&options_path, &options_text).with_context(|| format!("failed to write {}", options_path.display()))?;
 	} else if needs_reconfigure {
-		let mut setup_args = vec![
-			"setup".to_string(),
-			"--reconfigure".to_string(),
-			build_dir.display().to_string(),
-			pam_src.display().to_string(),
-		];
+		let mut setup_args = vec!["setup".to_string(), "--reconfigure".to_string(), build_dir.display().to_string(), pam_src.display().to_string()];
 		setup_args.extend(options.clone());
 		let setup_refs: Vec<&str> = setup_args.iter().map(String::as_str).collect();
 		run_cmd(repo_root, "meson", &setup_refs)?;
-		fs::write(&options_path, &options_text)
-			.with_context(|| format!("failed to write {}", options_path.display()))?;
+		fs::write(&options_path, &options_text).with_context(|| format!("failed to write {}", options_path.display()))?;
 	}
 
-	run_cmd(
-		repo_root,
-		"meson",
-		&[
-			"compile",
-			"-C",
-			build_dir
-				.to_str()
-				.ok_or_else(|| anyhow!("invalid linux-pam build dir"))?,
-		],
-	)?;
+	run_cmd(repo_root, "meson", &["compile", "-C", build_dir.to_str().ok_or_else(|| anyhow!("invalid linux-pam build dir"))?])?;
 
 	if install_dir.exists() {
-		fs::remove_dir_all(&install_dir)
-			.with_context(|| format!("failed to clean {}", install_dir.display()))?;
+		fs::remove_dir_all(&install_dir).with_context(|| format!("failed to clean {}", install_dir.display()))?;
 	}
-	fs::create_dir_all(&install_dir)
-		.with_context(|| format!("failed to create {}", install_dir.display()))?;
+	fs::create_dir_all(&install_dir).with_context(|| format!("failed to create {}", install_dir.display()))?;
 
-	run_cmd(
-		repo_root,
-		"meson",
-		&[
-			"install",
-			"-C",
-			build_dir
-				.to_str()
-				.ok_or_else(|| anyhow!("invalid linux-pam build dir"))?,
-			"--no-rebuild",
-			"--destdir",
-			install_dir
-				.to_str()
-				.ok_or_else(|| anyhow!("invalid linux-pam install dir"))?,
-		],
-	)?;
+	run_cmd(repo_root, "meson", &["install", "-C", build_dir.to_str().ok_or_else(|| anyhow!("invalid linux-pam build dir"))?, "--no-rebuild", "--destdir", install_dir.to_str().ok_or_else(|| anyhow!("invalid linux-pam install dir"))?])?;
 
 	let pam_lib = install_dir.join("usr/lib/x86_64-linux-gnu/libpam.so.0");
 	if !pam_lib.exists() {
@@ -2013,10 +1585,7 @@ fn linux_pam_meson_options() -> Vec<String> {
 fn build_shadow(repo_root: &Path) -> Result<()> {
 	let shadow_src = repo_root.join("src/system/auth/shadow");
 	if !shadow_src.join("configure.ac").exists() {
-		bail!(
-			"shadow source not found in {}; run upstream import shadow first",
-			shadow_src.display()
-		);
+		bail!("shadow source not found in {}; run upstream import shadow first", shadow_src.display());
 	}
 
 	if !shadow_src.join("configure").exists() {
@@ -2027,18 +1596,7 @@ fn build_shadow(repo_root: &Path) -> Result<()> {
 	let build_dir = out_root.join("build");
 	let install_dir = out_root.join("install");
 	let stamp = build_dir.join("config.stamp");
-	let configure_args = [
-		"--prefix=/usr",
-		"--sysconfdir=/etc",
-		"--disable-nls",
-		"--with-libpam",
-		"--without-selinux",
-		"--disable-logind",
-		"--with-yescrypt",
-		"--without-btrfs",
-		"--without-nscd",
-		"--without-sssd",
-	];
+	let configure_args = ["--prefix=/usr", "--sysconfdir=/etc", "--disable-nls", "--with-libpam", "--without-selinux", "--disable-logind", "--with-yescrypt", "--without-btrfs", "--without-nscd", "--without-sssd"];
 	let pam_install = repo_root.join("out/build/linux-pam/install");
 	let pam_include = pam_install.join("usr/include");
 	let pam_lib = pam_install.join("usr/lib/x86_64-linux-gnu");
@@ -2046,64 +1604,26 @@ fn build_shadow(repo_root: &Path) -> Result<()> {
 	if !pam_include.join("security/pam_appl.h").exists() || !pam_lib.join("libpam.so").exists() {
 		bail!("linux-pam development files missing at {}; run build pam first", pam_install.display());
 	}
-	let env_overrides = vec![
-		("CPPFLAGS", format!("-I{}", pam_include.display())),
-		("LDFLAGS", format!("-L{}", pam_lib.display())),
-		("LIBRARY_PATH", pam_lib.display().to_string()),
-		("PKG_CONFIG_PATH", pam_pkgconfig.display().to_string()),
-	];
-	let config_text = format!(
-		"{}\n{}",
-		configure_args.join("\n"),
-		env_overrides
-			.iter()
-			.map(|(key, value)| format!("{key}={value}"))
-			.collect::<Vec<_>>()
-			.join("\n")
-	);
+	let env_overrides = vec![("CPPFLAGS", format!("-I{}", pam_include.display())), ("LDFLAGS", format!("-L{}", pam_lib.display())), ("LIBRARY_PATH", pam_lib.display().to_string()), ("PKG_CONFIG_PATH", pam_pkgconfig.display().to_string())];
+	let config_text = format!("{}\n{}", configure_args.join("\n"), env_overrides.iter().map(|(key, value)| format!("{key}={value}")).collect::<Vec<_>>().join("\n"));
 	if stamp.exists() && fs::read_to_string(&stamp).ok().as_deref() != Some(config_text.as_str()) {
-		fs::remove_dir_all(&build_dir)
-			.with_context(|| format!("failed to reset {}", build_dir.display()))?;
+		fs::remove_dir_all(&build_dir).with_context(|| format!("failed to reset {}", build_dir.display()))?;
 	}
-	fs::create_dir_all(&build_dir)
-		.with_context(|| format!("failed to create {}", build_dir.display()))?;
+	fs::create_dir_all(&build_dir).with_context(|| format!("failed to create {}", build_dir.display()))?;
 
 	if !stamp.exists() {
-		run_cmd_with_env_overrides(
-			&build_dir,
-			shadow_src
-				.join("configure")
-				.to_str()
-				.ok_or_else(|| anyhow!("invalid shadow configure path"))?,
-			&configure_args,
-			&env_overrides,
-		)?;
-		fs::write(&stamp, &config_text)
-			.with_context(|| format!("failed to write {}", stamp.display()))?;
+		run_cmd_with_env_overrides(&build_dir, shadow_src.join("configure").to_str().ok_or_else(|| anyhow!("invalid shadow configure path"))?, &configure_args, &env_overrides)?;
+		fs::write(&stamp, &config_text).with_context(|| format!("failed to write {}", stamp.display()))?;
 	}
 
 	run_cmd(&build_dir, "make", &["-j", "4"])?;
 
 	if install_dir.exists() {
-		fs::remove_dir_all(&install_dir)
-			.with_context(|| format!("failed to clean {}", install_dir.display()))?;
+		fs::remove_dir_all(&install_dir).with_context(|| format!("failed to clean {}", install_dir.display()))?;
 	}
-	fs::create_dir_all(&install_dir)
-		.with_context(|| format!("failed to create {}", install_dir.display()))?;
+	fs::create_dir_all(&install_dir).with_context(|| format!("failed to create {}", install_dir.display()))?;
 
-	run_cmd(
-		&build_dir,
-		"make",
-		&[
-			"install",
-			&format!(
-				"DESTDIR={}",
-				install_dir
-					.to_str()
-					.ok_or_else(|| anyhow!("invalid shadow install dir"))?
-			),
-		],
-	)?;
+	run_cmd(&build_dir, "make", &["install", &format!("DESTDIR={}", install_dir.to_str().ok_or_else(|| anyhow!("invalid shadow install dir"))?)])?;
 
 	let passwd_bin = install_dir.join("usr/bin/passwd");
 	if !passwd_bin.exists() {
@@ -2116,61 +1636,28 @@ fn build_shadow(repo_root: &Path) -> Result<()> {
 fn build_sudo_rs(repo_root: &Path) -> Result<()> {
 	let sudo_src = repo_root.join("src/system/auth/sudo-rs");
 	if !sudo_src.join("Cargo.toml").exists() {
-		bail!(
-			"sudo-rs source not found in {}; run upstream import sudo-rs first",
-			sudo_src.display()
-		);
+		bail!("sudo-rs source not found in {}; run upstream import sudo-rs first", sudo_src.display());
 	}
 
 	let pam_install = repo_root.join("out/build/linux-pam/install");
 	let pam_lib = pam_install.join("usr/lib/x86_64-linux-gnu");
 	if !pam_lib.join("libpam.so").exists() && !pam_lib.join("libpam.so.0").exists() {
-		bail!(
-			"linux-pam libraries missing at {}; run build pam first",
-			pam_lib.display()
-		);
+		bail!("linux-pam libraries missing at {}; run build pam first", pam_lib.display());
 	}
 	let current_rustflags = std::env::var("RUSTFLAGS").unwrap_or_default();
-	let rustflags = if current_rustflags.is_empty() {
-		format!("-L native={}", pam_lib.display())
-	} else {
-		format!("-L native={} {current_rustflags}", pam_lib.display())
-	};
+	let rustflags = if current_rustflags.is_empty() { format!("-L native={}", pam_lib.display()) } else { format!("-L native={} {current_rustflags}", pam_lib.display()) };
 	let current_library_path = std::env::var("LIBRARY_PATH").unwrap_or_default();
-	let library_path = if current_library_path.is_empty() {
-		pam_lib.display().to_string()
-	} else {
-		format!("{}:{current_library_path}", pam_lib.display())
-	};
-	let env_overrides = vec![
-		("RUSTFLAGS", rustflags),
-		("LIBRARY_PATH", library_path),
-	];
+	let library_path = if current_library_path.is_empty() { pam_lib.display().to_string() } else { format!("{}:{current_library_path}", pam_lib.display()) };
+	let env_overrides = vec![("RUSTFLAGS", rustflags), ("LIBRARY_PATH", library_path)];
 
-	run_cmd_with_env_overrides(
-		repo_root,
-		"cargo",
-		&[
-			"build",
-			"--release",
-			"--manifest-path",
-			"src/system/auth/sudo-rs/Cargo.toml",
-			"--bin",
-			"sudo",
-			"--bin",
-			"visudo",
-		],
-		&env_overrides,
-	)?;
+	run_cmd_with_env_overrides(repo_root, "cargo", &["build", "--release", "--manifest-path", "src/system/auth/sudo-rs/Cargo.toml", "--bin", "sudo", "--bin", "visudo"], &env_overrides)?;
 
 	let out_root = repo_root.join("out/build/sudo-rs");
 	let install_dir = out_root.join("install");
 	if install_dir.exists() {
-		fs::remove_dir_all(&install_dir)
-			.with_context(|| format!("failed to clean {}", install_dir.display()))?;
+		fs::remove_dir_all(&install_dir).with_context(|| format!("failed to clean {}", install_dir.display()))?;
 	}
-	fs::create_dir_all(install_dir.join("usr/bin"))
-		.with_context(|| format!("failed to create {}", install_dir.join("usr/bin").display()))?;
+	fs::create_dir_all(install_dir.join("usr/bin")).with_context(|| format!("failed to create {}", install_dir.join("usr/bin").display()))?;
 
 	for bin in ["sudo", "visudo"] {
 		let src = repo_root.join(format!("src/system/auth/sudo-rs/target/release/{bin}"));
@@ -2187,10 +1674,7 @@ fn build_sudo_rs(repo_root: &Path) -> Result<()> {
 fn build_util_linux(repo_root: &Path) -> Result<()> {
 	let util_linux_src = repo_root.join("src/userland/util-linux");
 	if !util_linux_src.join("meson.build").exists() {
-		bail!(
-			"util-linux source not found in {}; run upstream import util-linux first",
-			util_linux_src.display()
-		);
+		bail!("util-linux source not found in {}; run upstream import util-linux first", util_linux_src.display());
 	}
 
 	let out_root = repo_root.join("out/build/util-linux");
@@ -2203,42 +1687,19 @@ fn build_util_linux(repo_root: &Path) -> Result<()> {
 	let pam_include = pam_install.join("usr/include");
 	let pam_lib = pam_install.join("usr/lib/x86_64-linux-gnu");
 	if !pam_pkgconfig.exists() {
-		bail!(
-			"linux-pam pkg-config directory missing at {}; run build pam first",
-			pam_pkgconfig.display()
-		);
+		bail!("linux-pam pkg-config directory missing at {}; run build pam first", pam_pkgconfig.display());
 	}
 
 	let current_pkg_config = std::env::var("PKG_CONFIG_PATH").unwrap_or_default();
-	let pkg_config_path = if current_pkg_config.is_empty() {
-		pam_pkgconfig.display().to_string()
-	} else {
-		format!("{}:{current_pkg_config}", pam_pkgconfig.display())
-	};
+	let pkg_config_path = if current_pkg_config.is_empty() { pam_pkgconfig.display().to_string() } else { format!("{}:{current_pkg_config}", pam_pkgconfig.display()) };
 	let current_cflags = std::env::var("CFLAGS").unwrap_or_default();
-	let cflags = if current_cflags.is_empty() {
-		format!("-I{}", pam_include.display())
-	} else {
-		format!("-I{} {current_cflags}", pam_include.display())
-	};
+	let cflags = if current_cflags.is_empty() { format!("-I{}", pam_include.display()) } else { format!("-I{} {current_cflags}", pam_include.display()) };
 	let current_ldflags = std::env::var("LDFLAGS").unwrap_or_default();
-	let ldflags = if current_ldflags.is_empty() {
-		format!("-L{}", pam_lib.display())
-	} else {
-		format!("-L{} {current_ldflags}", pam_lib.display())
-	};
-	let env_overrides = vec![
-		("PKG_CONFIG_PATH", pkg_config_path),
-		("CFLAGS", cflags),
-		("LDFLAGS", ldflags),
-	];
-	let env_text = format!(
-		"PKG_CONFIG_PATH={}\nCFLAGS={}\nLDFLAGS={}\n",
-		env_overrides[0].1, env_overrides[1].1, env_overrides[2].1
-	);
+	let ldflags = if current_ldflags.is_empty() { format!("-L{}", pam_lib.display()) } else { format!("-L{} {current_ldflags}", pam_lib.display()) };
+	let env_overrides = vec![("PKG_CONFIG_PATH", pkg_config_path), ("CFLAGS", cflags), ("LDFLAGS", ldflags)];
+	let env_text = format!("PKG_CONFIG_PATH={}\nCFLAGS={}\nLDFLAGS={}\n", env_overrides[0].1, env_overrides[1].1, env_overrides[2].1);
 	let existing_env = fs::read_to_string(&env_path).ok();
-	fs::create_dir_all(&out_root)
-		.with_context(|| format!("failed to create {}", out_root.display()))?;
+	fs::create_dir_all(&out_root).with_context(|| format!("failed to create {}", out_root.display()))?;
 
 	let options = util_linux_meson_options();
 	let options_text = format!("{}\n", options.join("\n"));
@@ -2248,85 +1709,41 @@ fn build_util_linux(repo_root: &Path) -> Result<()> {
 	let mut configured = build_dir.join("build.ninja").exists();
 
 	if configured && env_changed {
-		fs::remove_dir_all(&build_dir)
-			.with_context(|| format!("failed to reset {}", build_dir.display()))?;
+		fs::remove_dir_all(&build_dir).with_context(|| format!("failed to reset {}", build_dir.display()))?;
 		configured = false;
 	}
 
 	if !configured {
-		let mut setup_args = vec![
-			"setup".to_string(),
-			build_dir.display().to_string(),
-			util_linux_src.display().to_string(),
-		];
+		let mut setup_args = vec!["setup".to_string(), build_dir.display().to_string(), util_linux_src.display().to_string()];
 		setup_args.extend(options.clone());
 		let setup_refs: Vec<&str> = setup_args.iter().map(String::as_str).collect();
 		run_cmd_with_env_overrides(repo_root, "meson", &setup_refs, &env_overrides)?;
-		fs::write(&options_path, &options_text)
-			.with_context(|| format!("failed to write {}", options_path.display()))?;
-		fs::write(&env_path, &env_text)
-			.with_context(|| format!("failed to write {}", env_path.display()))?;
+		fs::write(&options_path, &options_text).with_context(|| format!("failed to write {}", options_path.display()))?;
+		fs::write(&env_path, &env_text).with_context(|| format!("failed to write {}", env_path.display()))?;
 	} else if needs_reconfigure {
-		let mut setup_args = vec![
-			"setup".to_string(),
-			"--reconfigure".to_string(),
-			build_dir.display().to_string(),
-			util_linux_src.display().to_string(),
-		];
+		let mut setup_args = vec!["setup".to_string(), "--reconfigure".to_string(), build_dir.display().to_string(), util_linux_src.display().to_string()];
 		setup_args.extend(options.clone());
 		let setup_refs: Vec<&str> = setup_args.iter().map(String::as_str).collect();
 		run_cmd_with_env_overrides(repo_root, "meson", &setup_refs, &env_overrides)?;
-		fs::write(&options_path, &options_text)
-			.with_context(|| format!("failed to write {}", options_path.display()))?;
-		fs::write(&env_path, &env_text)
-			.with_context(|| format!("failed to write {}", env_path.display()))?;
+		fs::write(&options_path, &options_text).with_context(|| format!("failed to write {}", options_path.display()))?;
+		fs::write(&env_path, &env_text).with_context(|| format!("failed to write {}", env_path.display()))?;
 	}
 
-	run_cmd_with_env_overrides(
-		repo_root,
-		"ninja",
-		&[
-			"-C",
-			build_dir
-				.to_str()
-				.ok_or_else(|| anyhow!("invalid util-linux build dir"))?,
-			"agetty",
-			"login",
-			"su",
-		],
-		&env_overrides,
-	)?;
+	run_cmd_with_env_overrides(repo_root, "ninja", &["-C", build_dir.to_str().ok_or_else(|| anyhow!("invalid util-linux build dir"))?, "agetty", "login", "su"], &env_overrides)?;
 
 	if install_dir.exists() {
-		fs::remove_dir_all(&install_dir)
-			.with_context(|| format!("failed to clean {}", install_dir.display()))?;
+		fs::remove_dir_all(&install_dir).with_context(|| format!("failed to clean {}", install_dir.display()))?;
 	}
-	fs::create_dir_all(&install_dir)
-		.with_context(|| format!("failed to create {}", install_dir.display()))?;
+	fs::create_dir_all(&install_dir).with_context(|| format!("failed to create {}", install_dir.display()))?;
 
 	run_cmd_with_env_overrides(
 		repo_root,
 		"meson",
-		&[
-			"install",
-			"-C",
-			build_dir
-				.to_str()
-				.ok_or_else(|| anyhow!("invalid util-linux build dir"))?,
-			"--no-rebuild",
-			"--destdir",
-			install_dir
-				.to_str()
-				.ok_or_else(|| anyhow!("invalid util-linux install dir"))?,
-		],
+		&["install", "-C", build_dir.to_str().ok_or_else(|| anyhow!("invalid util-linux build dir"))?, "--no-rebuild", "--destdir", install_dir.to_str().ok_or_else(|| anyhow!("invalid util-linux install dir"))?],
 		&env_overrides,
 	)?;
 
-	for path in [
-		install_dir.join("usr/sbin/agetty"),
-		install_dir.join("usr/bin/login"),
-		install_dir.join("usr/bin/su"),
-	] {
+	for path in [install_dir.join("usr/sbin/agetty"), install_dir.join("usr/bin/login"), install_dir.join("usr/bin/su")] {
 		if !path.exists() {
 			bail!("util-linux install did not produce {}", path.display());
 		}
@@ -2363,8 +1780,7 @@ fn build_kmod(repo_root: &Path) -> Result<()> {
 	let build_dir = out_root.join("build");
 	let install_dir = out_root.join("install");
 	let options_path = out_root.join("meson-options.txt");
-	fs::create_dir_all(&out_root)
-		.with_context(|| format!("failed to create {}", out_root.display()))?;
+	fs::create_dir_all(&out_root).with_context(|| format!("failed to create {}", out_root.display()))?;
 	let options = kmod_meson_options();
 	let options_text = format!("{}\n", options.join("\n"));
 	let configured = build_dir.join("build.ninja").exists();
@@ -2380,19 +1796,13 @@ fn build_kmod(repo_root: &Path) -> Result<()> {
 		args.extend(options.clone());
 		let refs: Vec<&str> = args.iter().map(String::as_str).collect();
 		run_cmd(repo_root, "meson", &refs)?;
-		fs::write(&options_path, &options_text)
-			.with_context(|| format!("failed to write {}", options_path.display()))?;
+		fs::write(&options_path, &options_text).with_context(|| format!("failed to write {}", options_path.display()))?;
 	}
 
 	run_cmd(repo_root, "meson", &["compile", "-C", path_str(&build_dir)?])?;
 	remove_path_if_exists(&install_dir)?;
-	fs::create_dir_all(&install_dir)
-		.with_context(|| format!("failed to create {}", install_dir.display()))?;
-	run_cmd(
-		repo_root,
-		"meson",
-		&["install", "-C", path_str(&build_dir)?, "--no-rebuild", "--destdir", path_str(&install_dir)?],
-	)?;
+	fs::create_dir_all(&install_dir).with_context(|| format!("failed to create {}", install_dir.display()))?;
+	run_cmd(repo_root, "meson", &["install", "-C", path_str(&build_dir)?, "--no-rebuild", "--destdir", path_str(&install_dir)?])?;
 	for command in KMOD_BINARIES {
 		let path = install_dir.join(command.source_rel);
 		if !path_entry_exists(&path) {
@@ -2435,22 +1845,17 @@ fn build_ncurses(repo_root: &Path) -> Result<()> {
 	let stamp = out_root.join("configure-options.txt");
 	let options = ncurses_configure_options();
 	let options_text = format!("{}\n", options.join("\n"));
-	if build_dir.join("Makefile").exists()
-		&& fs::read_to_string(&stamp).ok().as_deref() != Some(options_text.as_str())
-	{
+	if build_dir.join("Makefile").exists() && fs::read_to_string(&stamp).ok().as_deref() != Some(options_text.as_str()) {
 		remove_path_if_exists(&build_dir)?;
 	}
-	fs::create_dir_all(&build_dir)
-		.with_context(|| format!("failed to create {}", build_dir.display()))?;
+	fs::create_dir_all(&build_dir).with_context(|| format!("failed to create {}", build_dir.display()))?;
 	if !build_dir.join("Makefile").exists() {
 		run_cmd(&build_dir, path_str(&configure)?, &options)?;
-		fs::write(&stamp, &options_text)
-			.with_context(|| format!("failed to write {}", stamp.display()))?;
+		fs::write(&stamp, &options_text).with_context(|| format!("failed to write {}", stamp.display()))?;
 	}
 	run_cmd(&build_dir, "make", &["-j", "4"])?;
 	remove_path_if_exists(&install_dir)?;
-	fs::create_dir_all(&install_dir)
-		.with_context(|| format!("failed to create {}", install_dir.display()))?;
+	fs::create_dir_all(&install_dir).with_context(|| format!("failed to create {}", install_dir.display()))?;
 	run_cmd(&build_dir, "make", &[&format!("DESTDIR={}", install_dir.display()), "install"])?;
 	for command in NCURSES_BINARIES {
 		let path = install_dir.join(command.source_rel);
@@ -2506,33 +1911,19 @@ fn build_procps(repo_root: &Path) -> Result<()> {
 		("NCURSES_CFLAGS", format!("-I{}", ncurses_install.join("include").display())),
 		("NCURSES_LIBS", format!("-L{} -lncursesw -ltinfow", ncurses_install.join("lib/x86_64-linux-gnu").display())),
 	];
-	let stamp_text = format!(
-		"{}\n{}\n",
-		options.join("\n"),
-		env.iter().map(|(k, v)| format!("{k}={v}")).collect::<Vec<_>>().join("\n")
-	);
-	if build_dir.join("Makefile").exists()
-		&& fs::read_to_string(&stamp).ok().as_deref() != Some(stamp_text.as_str())
-	{
+	let stamp_text = format!("{}\n{}\n", options.join("\n"), env.iter().map(|(k, v)| format!("{k}={v}")).collect::<Vec<_>>().join("\n"));
+	if build_dir.join("Makefile").exists() && fs::read_to_string(&stamp).ok().as_deref() != Some(stamp_text.as_str()) {
 		remove_path_if_exists(&build_dir)?;
 	}
-	fs::create_dir_all(&build_dir)
-		.with_context(|| format!("failed to create {}", build_dir.display()))?;
+	fs::create_dir_all(&build_dir).with_context(|| format!("failed to create {}", build_dir.display()))?;
 	if !build_dir.join("Makefile").exists() {
 		run_cmd_with_env_overrides(&build_dir, path_str(&source.join("configure"))?, &options, &env)?;
-		fs::write(&stamp, &stamp_text)
-			.with_context(|| format!("failed to write {}", stamp.display()))?;
+		fs::write(&stamp, &stamp_text).with_context(|| format!("failed to write {}", stamp.display()))?;
 	}
 	run_cmd_with_env_overrides(&build_dir, "make", &["-j", "4"], &env)?;
 	remove_path_if_exists(&install_dir)?;
-	fs::create_dir_all(&install_dir)
-		.with_context(|| format!("failed to create {}", install_dir.display()))?;
-	run_cmd_with_env_overrides(
-		&build_dir,
-		"make",
-		&[&format!("DESTDIR={}", install_dir.display()), "install"],
-		&env,
-	)?;
+	fs::create_dir_all(&install_dir).with_context(|| format!("failed to create {}", install_dir.display()))?;
+	run_cmd_with_env_overrides(&build_dir, "make", &[&format!("DESTDIR={}", install_dir.display()), "install"], &env)?;
 	for command in PROCPS_BINARIES {
 		let path = install_dir.join(command.source_rel);
 		if !path.exists() {
@@ -2559,15 +1950,10 @@ fn procps_configure_options() -> Vec<&'static str> {
 }
 
 fn sync_build_source(source: &Path, destination: &Path) -> Result<()> {
-	fs::create_dir_all(destination)
-		.with_context(|| format!("failed to create {}", destination.display()))?;
+	fs::create_dir_all(destination).with_context(|| format!("failed to create {}", destination.display()))?;
 	let source_arg = format!("{}/", source.display());
 	let destination_arg = format!("{}/", destination.display());
-	run_cmd(
-		Path::new("/"),
-		"rsync",
-		&["-a", "--exclude=.git/", &source_arg, &destination_arg],
-	)
+	run_cmd(Path::new("/"), "rsync", &["-a", "--exclude=.git/", &source_arg, &destination_arg])
 }
 
 fn build_iproute2(repo_root: &Path) -> Result<()> {
@@ -2579,43 +1965,27 @@ fn build_iproute2(repo_root: &Path) -> Result<()> {
 	let build_dir = out_root.join("build");
 	let install_dir = out_root.join("install");
 	let stamp_path = out_root.join("build-stamp.txt");
-	let state = fs::read_to_string(repo_root.join("upstream/state/iproute2.toml"))
-		.context("failed to read iproute2 upstream state")?;
+	let state = fs::read_to_string(repo_root.join("upstream/state/iproute2.toml")).context("failed to read iproute2 upstream state")?;
 	let stamp = format!("{state}\nPREFIX=/usr\nSBINDIR=/usr/sbin\nLIBDIR=/usr/lib/x86_64-linux-gnu\nSHARED_LIBS=n\n");
 	if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
 		remove_path_if_exists(&build_dir)?;
 	}
-	fs::create_dir_all(&out_root)
-		.with_context(|| format!("failed to create {}", out_root.display()))?;
+	fs::create_dir_all(&out_root).with_context(|| format!("failed to create {}", out_root.display()))?;
 	sync_build_source(&source, &build_dir)?;
 	if !build_dir.join("config.mk").exists() {
-		run_cmd(
-			&build_dir,
-			"./configure",
-			&["--prefix=/usr", "--libdir=/usr/lib/x86_64-linux-gnu"],
-		)?;
+		run_cmd(&build_dir, "./configure", &["--prefix=/usr", "--libdir=/usr/lib/x86_64-linux-gnu"])?;
 	}
-	run_cmd(
-		&build_dir,
-		"make",
-		&["-j", "4", "PREFIX=/usr", "SBINDIR=/usr/sbin", "SHARED_LIBS=n"],
-	)?;
+	run_cmd(&build_dir, "make", &["-j", "4", "PREFIX=/usr", "SBINDIR=/usr/sbin", "SHARED_LIBS=n"])?;
 	remove_path_if_exists(&install_dir)?;
-	fs::create_dir_all(&install_dir)
-		.with_context(|| format!("failed to create {}", install_dir.display()))?;
+	fs::create_dir_all(&install_dir).with_context(|| format!("failed to create {}", install_dir.display()))?;
 	let destdir = format!("DESTDIR={}", install_dir.display());
-	run_cmd(
-		&build_dir,
-		"make",
-		&["install", &destdir, "PREFIX=/usr", "SBINDIR=/usr/sbin", "SHARED_LIBS=n"],
-	)?;
+	run_cmd(&build_dir, "make", &["install", &destdir, "PREFIX=/usr", "SBINDIR=/usr/sbin", "SHARED_LIBS=n"])?;
 	for binary in IPROUTE2_BINARIES {
 		if !install_dir.join(binary.source_rel).exists() {
 			bail!("iproute2 install did not produce {}", binary.source_rel);
 		}
 	}
-	fs::write(&stamp_path, stamp)
-		.with_context(|| format!("failed to write {}", stamp_path.display()))?;
+	fs::write(&stamp_path, stamp).with_context(|| format!("failed to write {}", stamp_path.display()))?;
 	Ok(())
 }
 
@@ -2646,8 +2016,7 @@ fn build_iputils(repo_root: &Path) -> Result<()> {
 		"-DSKIP_TESTS=true",
 	];
 	let options_text = format!("{}\n", options.join("\n"));
-	fs::create_dir_all(&out_root)
-		.with_context(|| format!("failed to create {}", out_root.display()))?;
+	fs::create_dir_all(&out_root).with_context(|| format!("failed to create {}", out_root.display()))?;
 	let configured = build_dir.join("build.ninja").exists();
 	if !configured {
 		let mut args = vec!["setup", path_str(&build_dir)?, path_str(&source)?];
@@ -2658,17 +2027,11 @@ fn build_iputils(repo_root: &Path) -> Result<()> {
 		args.extend(options.iter().copied());
 		run_cmd(repo_root, "meson", &args)?;
 	}
-	fs::write(&options_path, &options_text)
-		.with_context(|| format!("failed to write {}", options_path.display()))?;
+	fs::write(&options_path, &options_text).with_context(|| format!("failed to write {}", options_path.display()))?;
 	run_cmd(repo_root, "ninja", &["-C", path_str(&build_dir)?])?;
 	remove_path_if_exists(&install_dir)?;
-	fs::create_dir_all(&install_dir)
-		.with_context(|| format!("failed to create {}", install_dir.display()))?;
-	run_cmd(
-		repo_root,
-		"meson",
-		&["install", "-C", path_str(&build_dir)?, "--no-rebuild", "--destdir", path_str(&install_dir)?],
-	)?;
+	fs::create_dir_all(&install_dir).with_context(|| format!("failed to create {}", install_dir.display()))?;
+	run_cmd(repo_root, "meson", &["install", "-C", path_str(&build_dir)?, "--no-rebuild", "--destdir", path_str(&install_dir)?])?;
 	for binary in IPUTILS_BINARIES {
 		if !install_dir.join(binary.source_rel).exists() {
 			bail!("iputils install did not produce {}", binary.source_rel);
@@ -2732,30 +2095,26 @@ fn build_curl(repo_root: &Path) -> Result<()> {
 	let build_dir = out_root.join("build");
 	let install_dir = out_root.join("install");
 	let stamp_path = out_root.join("build-stamp.txt");
-	let state = fs::read_to_string(repo_root.join("upstream/state/curl.toml"))
-		.context("failed to read curl upstream state")?;
+	let state = fs::read_to_string(repo_root.join("upstream/state/curl.toml")).context("failed to read curl upstream state")?;
 	let options = curl_configure_options();
 	let stamp = format!("{state}\n{}\n", options.join("\n"));
 	if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
 		remove_path_if_exists(&source_copy)?;
 		remove_path_if_exists(&build_dir)?;
 	}
-	fs::create_dir_all(&out_root)
-		.with_context(|| format!("failed to create {}", out_root.display()))?;
+	fs::create_dir_all(&out_root).with_context(|| format!("failed to create {}", out_root.display()))?;
 	sync_build_source(&source, &source_copy)?;
 	if !source_copy.join("configure").exists() {
 		run_cmd(&source_copy, "autoreconf", &["-fi"])?;
 	}
-	fs::create_dir_all(&build_dir)
-		.with_context(|| format!("failed to create {}", build_dir.display()))?;
+	fs::create_dir_all(&build_dir).with_context(|| format!("failed to create {}", build_dir.display()))?;
 	if !build_dir.join("Makefile").exists() {
 		let configure = source_copy.join("configure");
 		run_cmd(&build_dir, path_str(&configure)?, &options)?;
 	}
 	run_cmd(&build_dir, "make", &["-j", "4"])?;
 	remove_path_if_exists(&install_dir)?;
-	fs::create_dir_all(&install_dir)
-		.with_context(|| format!("failed to create {}", install_dir.display()))?;
+	fs::create_dir_all(&install_dir).with_context(|| format!("failed to create {}", install_dir.display()))?;
 	let destdir = format!("DESTDIR={}", install_dir.display());
 	run_cmd(&build_dir, "make", &["install", &destdir])?;
 	for binary in CURL_BINARIES {
@@ -2763,8 +2122,7 @@ fn build_curl(repo_root: &Path) -> Result<()> {
 			bail!("curl install did not produce {}", binary.source_rel);
 		}
 	}
-	fs::write(&stamp_path, stamp)
-		.with_context(|| format!("failed to write {}", stamp_path.display()))?;
+	fs::write(&stamp_path, stamp).with_context(|| format!("failed to write {}", stamp_path.display()))?;
 	Ok(())
 }
 
@@ -2775,10 +2133,7 @@ fn path_str(path: &Path) -> Result<&str> {
 fn build_systemd(repo_root: &Path) -> Result<()> {
 	let systemd_src = repo_root.join("src/system/systemd");
 	if !systemd_src.join("meson.build").exists() {
-		bail!(
-			"systemd source not found in {}; run upstream import systemd first",
-			systemd_src.display()
-		);
+		bail!("systemd source not found in {}; run upstream import systemd first", systemd_src.display());
 	}
 
 	let out_root = repo_root.join("out/build/systemd");
@@ -2795,12 +2150,8 @@ fn build_systemd(repo_root: &Path) -> Result<()> {
 		("CFLAGS", format!("-I{}", kmod_install.join("include").display())),
 		("LDFLAGS", format!("-L{}", kmod_install.join("lib/x86_64-linux-gnu").display())),
 	];
-	let env_text = format!(
-		"{}\n",
-		env_overrides.iter().map(|(k, v)| format!("{k}={v}")).collect::<Vec<_>>().join("\n")
-	);
-	fs::create_dir_all(&out_root)
-		.with_context(|| format!("failed to create {}", out_root.display()))?;
+	let env_text = format!("{}\n", env_overrides.iter().map(|(k, v)| format!("{k}={v}")).collect::<Vec<_>>().join("\n"));
+	fs::create_dir_all(&out_root).with_context(|| format!("failed to create {}", out_root.display()))?;
 
 	let options = systemd_meson_options();
 	let options_text = format!("{}\n", options.join("\n"));
@@ -2813,54 +2164,30 @@ fn build_systemd(repo_root: &Path) -> Result<()> {
 	}
 
 	if !configured {
-		let mut setup_args = vec![
-			"setup".to_string(),
-			build_dir.display().to_string(),
-			systemd_src.display().to_string(),
-		];
+		let mut setup_args = vec!["setup".to_string(), build_dir.display().to_string(), systemd_src.display().to_string()];
 		setup_args.extend(options.clone());
 		let setup_refs: Vec<&str> = setup_args.iter().map(String::as_str).collect();
 		run_cmd_with_env_overrides(repo_root, "meson", &setup_refs, &env_overrides)?;
-		fs::write(&options_path, &options_text)
-			.with_context(|| format!("failed to write {}", options_path.display()))?;
-		fs::write(&env_path, &env_text)
-			.with_context(|| format!("failed to write {}", env_path.display()))?;
+		fs::write(&options_path, &options_text).with_context(|| format!("failed to write {}", options_path.display()))?;
+		fs::write(&env_path, &env_text).with_context(|| format!("failed to write {}", env_path.display()))?;
 	} else if needs_reconfigure {
-		let mut setup_args = vec![
-			"setup".to_string(),
-			"--reconfigure".to_string(),
-			build_dir.display().to_string(),
-			systemd_src.display().to_string(),
-		];
+		let mut setup_args = vec!["setup".to_string(), "--reconfigure".to_string(), build_dir.display().to_string(), systemd_src.display().to_string()];
 		setup_args.extend(options.clone());
 		let setup_refs: Vec<&str> = setup_args.iter().map(String::as_str).collect();
 		run_cmd_with_env_overrides(repo_root, "meson", &setup_refs, &env_overrides)?;
-		fs::write(&options_path, &options_text)
-			.with_context(|| format!("failed to write {}", options_path.display()))?;
-		fs::write(&env_path, &env_text)
-			.with_context(|| format!("failed to write {}", env_path.display()))?;
+		fs::write(&options_path, &options_text).with_context(|| format!("failed to write {}", options_path.display()))?;
+		fs::write(&env_path, &env_text).with_context(|| format!("failed to write {}", env_path.display()))?;
 	}
 
 	let ninja_args = vec!["-C", build_dir.to_str().ok_or_else(|| anyhow!("invalid build dir"))?];
 	run_cmd_with_env_overrides(repo_root, "ninja", &ninja_args, &env_overrides)?;
 
 	if install_dir.exists() {
-		fs::remove_dir_all(&install_dir)
-			.with_context(|| format!("failed to clean {}", install_dir.display()))?;
+		fs::remove_dir_all(&install_dir).with_context(|| format!("failed to clean {}", install_dir.display()))?;
 	}
-	fs::create_dir_all(&install_dir)
-		.with_context(|| format!("failed to create {}", install_dir.display()))?;
+	fs::create_dir_all(&install_dir).with_context(|| format!("failed to create {}", install_dir.display()))?;
 
-	let install_args = vec![
-		"install",
-		"-C",
-		build_dir.to_str().ok_or_else(|| anyhow!("invalid build dir"))?,
-		"--no-rebuild",
-		"--destdir",
-		install_dir
-			.to_str()
-			.ok_or_else(|| anyhow!("invalid install dir"))?,
-	];
+	let install_args = vec!["install", "-C", build_dir.to_str().ok_or_else(|| anyhow!("invalid build dir"))?, "--no-rebuild", "--destdir", install_dir.to_str().ok_or_else(|| anyhow!("invalid install dir"))?];
 	run_cmd_with_env_overrides(repo_root, "meson", &install_args, &env_overrides)?;
 
 	let pid1 = install_dir.join("usr/lib/systemd/systemd");
@@ -2939,24 +2266,15 @@ fn systemd_meson_options() -> Vec<String> {
 fn build_dbus_broker(repo_root: &Path) -> Result<()> {
 	let source = repo_root.join("src/system/dbus/dbus-broker");
 	if !source.join("meson.build").exists() {
-		bail!(
-			"dbus-broker source not found in {}; run upstream import dbus-broker first",
-			source.display()
-		);
+		bail!("dbus-broker source not found in {}; run upstream import dbus-broker first", source.display());
 	}
 
 	let systemd_install = repo_root.join("out/build/systemd/install/usr");
 	let systemd_lib = systemd_install.join("lib/x86_64-linux-gnu");
 	let systemd_lib_pc = systemd_lib.join("pkgconfig");
 	let systemd_share_pc = systemd_install.join("share/pkgconfig");
-	if !systemd_lib.join("libsystemd.so").exists()
-		|| !systemd_lib_pc.join("libsystemd.pc").exists()
-		|| !systemd_share_pc.join("systemd.pc").exists()
-	{
-		bail!(
-			"systemd development files missing at {}; run build systemd first",
-			systemd_install.display()
-		);
+	if !systemd_lib.join("libsystemd.so").exists() || !systemd_lib_pc.join("libsystemd.pc").exists() || !systemd_share_pc.join("systemd.pc").exists() {
+		bail!("systemd development files missing at {}; run build systemd first", systemd_install.display());
 	}
 
 	let out_root = repo_root.join("out/build/dbus-broker");
@@ -2980,10 +2298,7 @@ fn build_dbus_broker(repo_root: &Path) -> Result<()> {
 		"-Dselinux=false".to_string(),
 		"-Dunstable=false".to_string(),
 	];
-	let pkg_config_path = std::env::join_paths([&systemd_lib_pc, &systemd_share_pc])
-		.context("failed to construct dbus-broker PKG_CONFIG_PATH")?
-		.to_string_lossy()
-		.to_string();
+	let pkg_config_path = std::env::join_paths([&systemd_lib_pc, &systemd_share_pc]).context("failed to construct dbus-broker PKG_CONFIG_PATH")?.to_string_lossy().to_string();
 	let env_overrides = vec![
 		("PKG_CONFIG_PATH", pkg_config_path),
 		("CFLAGS", format!("-I{}", systemd_install.join("include").display())),
@@ -2991,70 +2306,33 @@ fn build_dbus_broker(repo_root: &Path) -> Result<()> {
 		("LIBRARY_PATH", systemd_lib.display().to_string()),
 		("LD_LIBRARY_PATH", systemd_lib.display().to_string()),
 	];
-	let state = fs::read_to_string(repo_root.join("upstream/state/dbus-broker.toml"))
-		.context("failed to read dbus-broker upstream state")?;
-	let stamp = format!(
-		"{state}\n{}\n{}\n",
-		options.join("\n"),
-		env_overrides
-			.iter()
-			.map(|(key, value)| format!("{key}={value}"))
-			.collect::<Vec<_>>()
-			.join("\n")
-	);
+	let state = fs::read_to_string(repo_root.join("upstream/state/dbus-broker.toml")).context("failed to read dbus-broker upstream state")?;
+	let stamp = format!("{state}\n{}\n{}\n", options.join("\n"), env_overrides.iter().map(|(key, value)| format!("{key}={value}")).collect::<Vec<_>>().join("\n"));
 	if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
 		remove_path_if_exists(&source_copy)?;
 		remove_path_if_exists(&build_dir)?;
 	}
 
-	fs::create_dir_all(&out_root)
-		.with_context(|| format!("failed to create {}", out_root.display()))?;
+	fs::create_dir_all(&out_root).with_context(|| format!("failed to create {}", out_root.display()))?;
 	sync_build_source(&source, &source_copy)?;
 	if !build_dir.join("build.ninja").exists() {
-		let mut setup_args = vec![
-			"setup".to_string(),
-			build_dir.display().to_string(),
-			source_copy.display().to_string(),
-		];
+		let mut setup_args = vec!["setup".to_string(), build_dir.display().to_string(), source_copy.display().to_string()];
 		setup_args.extend(options.clone());
 		let setup_refs: Vec<&str> = setup_args.iter().map(String::as_str).collect();
 		run_cmd_with_env_overrides(repo_root, "meson", &setup_refs, &env_overrides)?;
 	}
 
-	run_cmd_with_env_overrides(
-		repo_root,
-		"meson",
-		&["compile", "-C", path_str(&build_dir)?],
-		&env_overrides,
-	)?;
+	run_cmd_with_env_overrides(repo_root, "meson", &["compile", "-C", path_str(&build_dir)?], &env_overrides)?;
 	remove_path_if_exists(&install_dir)?;
-	fs::create_dir_all(&install_dir)
-		.with_context(|| format!("failed to create {}", install_dir.display()))?;
-	run_cmd_with_env_overrides(
-		repo_root,
-		"meson",
-		&[
-			"install",
-			"-C",
-			path_str(&build_dir)?,
-			"--no-rebuild",
-			"--destdir",
-			path_str(&install_dir)?,
-		],
-		&env_overrides,
-	)?;
+	fs::create_dir_all(&install_dir).with_context(|| format!("failed to create {}", install_dir.display()))?;
+	run_cmd_with_env_overrides(repo_root, "meson", &["install", "-C", path_str(&build_dir)?, "--no-rebuild", "--destdir", path_str(&install_dir)?], &env_overrides)?;
 
-	for rel in [
-		"usr/bin/dbus-broker",
-		"usr/bin/dbus-broker-launch",
-		"usr/lib/systemd/system/dbus-broker.service",
-	] {
+	for rel in ["usr/bin/dbus-broker", "usr/bin/dbus-broker-launch", "usr/lib/systemd/system/dbus-broker.service"] {
 		if !install_dir.join(rel).exists() {
 			bail!("dbus-broker install did not produce {rel}");
 		}
 	}
-	fs::write(&stamp_path, stamp)
-		.with_context(|| format!("failed to write {}", stamp_path.display()))?;
+	fs::write(&stamp_path, stamp).with_context(|| format!("failed to write {}", stamp_path.display()))?;
 	Ok(())
 }
 
@@ -3065,8 +2343,19 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 	if out.exists() {
 		fs::remove_dir_all(&out).with_context(|| format!("failed to clean {}", out.display()))?;
 	}
-	copy_tree_excluding_dotgit(&skeleton, &out)?;
-	ensure_merged_usr_layout(&out)?;
+	fs::create_dir_all(&out).with_context(|| format!("failed to create {}", out.display()))?;
+	packaging::install_prototype_packages(repo_root, &out)?;
+	let package_owned = packaging::package_owned_paths(&out)?;
+	let package_snapshot = packaging::snapshot_package_files(&out, &package_owned)?;
+	for rel in ["README.md", "etc/group", "etc/inittab", "etc/passwd", "usr/libexec/mattos/brush-login", "usr/libexec/mattos/validate-shell-env"] {
+		packaging::reject_legacy_collision(&package_owned, Path::new(rel))?;
+		let source = skeleton.join(rel);
+		let destination = out.join(rel);
+		if let Some(parent) = destination.parent() {
+			fs::create_dir_all(parent)?;
+		}
+		fs::copy(&source, &destination).with_context(|| format!("failed to install legacy skeleton file {}", source.display()))?;
+	}
 	set_mode(out.join("usr/libexec/mattos/brush-login"), 0o755)?;
 	set_mode(out.join("usr/libexec/mattos/validate-shell-env"), 0o755)?;
 	fs::create_dir_all(out.join("root")).context("failed to create /root in rootfs")?;
@@ -3089,37 +2378,22 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 	let shadow_passwd = shadow_install.join("usr/bin/passwd");
 	let sudo_bin = sudo_rs_install.join("usr/bin/sudo");
 	if !systemd_pid1.exists() {
-		bail!(
-			"systemd install output missing at {}; run build systemd first",
-			systemd_pid1.display()
-		);
+		bail!("systemd install output missing at {}; run build systemd first", systemd_pid1.display());
 	}
 	if !pam_lib.exists() {
-		bail!(
-			"linux-pam install output missing at {}; run build pam first",
-			pam_lib.display()
-		);
+		bail!("linux-pam install output missing at {}; run build pam first", pam_lib.display());
 	}
 	if !shadow_passwd.exists() {
-		bail!(
-			"shadow install output missing at {}; run build shadow first",
-			shadow_passwd.display()
-		);
+		bail!("shadow install output missing at {}; run build shadow first", shadow_passwd.display());
 	}
 	if !sudo_bin.exists() {
-		bail!(
-			"sudo-rs install output missing at {}; run build sudo-rs first",
-			sudo_bin.display()
-		);
+		bail!("sudo-rs install output missing at {}; run build sudo-rs first", sudo_bin.display());
 	}
 	copy_tree_excluding_dotgit(&systemd_install, &out)?;
 	copy_systemd_runtime_dependencies(&out)?;
 	let pam_systemd = out.join(SYSTEMD_PAM_MODULE_REL);
 	if !pam_systemd.is_file() {
-		bail!(
-			"systemd PAM module missing at {}; ensure the imported systemd build has PAM enabled",
-			pam_systemd.display()
-		);
+		bail!("systemd PAM module missing at {}; ensure the imported systemd build has PAM enabled", pam_systemd.display());
 	}
 	copy_runtime_dependencies(&pam_systemd, &out)?;
 	install_linux_pam_runtime(&pam_install, &out)?;
@@ -3130,32 +2404,17 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 	for rel in ["usr/sbin/agetty", "usr/bin/login", "usr/bin/su"] {
 		let src = util_linux_install.join(rel);
 		if !src.exists() {
-			bail!(
-				"util-linux install output missing at {}; run build util-linux first",
-				src.display()
-			);
+			bail!("util-linux install output missing at {}; run build util-linux first", src.display());
 		}
 		let dst = out.join(rel);
 		if let Some(parent) = dst.parent() {
-			fs::create_dir_all(parent)
-				.with_context(|| format!("failed to create {}", parent.display()))?;
+			fs::create_dir_all(parent).with_context(|| format!("failed to create {}", parent.display()))?;
 		}
 		fs::copy(&src, &dst).with_context(|| format!("failed to copy {}", src.display()))?;
 		copy_runtime_dependencies(&dst, &out)?;
 	}
 
-	for rel in [
-		"usr/bin/passwd",
-		"usr/sbin/useradd",
-		"usr/sbin/usermod",
-		"usr/sbin/userdel",
-		"usr/sbin/groupadd",
-		"usr/sbin/groupmod",
-		"usr/sbin/groupdel",
-		"usr/sbin/chpasswd",
-		"usr/bin/chage",
-		"usr/bin/newgrp",
-	] {
+	for rel in ["usr/bin/passwd", "usr/sbin/useradd", "usr/sbin/usermod", "usr/sbin/userdel", "usr/sbin/groupadd", "usr/sbin/groupmod", "usr/sbin/groupdel", "usr/sbin/chpasswd", "usr/bin/chage", "usr/bin/newgrp"] {
 		copy_built_binary_and_runtime(&shadow_install.join(rel), &out.join(rel), &out)?;
 	}
 
@@ -3174,19 +2433,11 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 
 	let init_bin = repo_root.join("target/release/mattos-init");
 	if !init_bin.exists() {
-		bail!(
-			"init binary missing at {}; run build init first",
-			init_bin.display()
-		);
+		bail!("init binary missing at {}; run build init first", init_bin.display());
 	}
 
 	let rescue_init = out.join("usr/libexec/mattos/rescue-init");
-	fs::copy(&init_bin, &rescue_init).with_context(|| {
-		format!(
-			"failed to copy rescue init binary from {} into rootfs",
-			init_bin.display()
-		)
-	})?;
+	fs::copy(&init_bin, &rescue_init).with_context(|| format!("failed to copy rescue init binary from {} into rootfs", init_bin.display()))?;
 	copy_runtime_dependencies(&rescue_init, &out)?;
 	let mut inventory = UserlandInventory::default();
 	inventory.add_implemented(UTIL_LINUX_PROVIDER, "agetty");
@@ -3199,35 +2450,13 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 	inventory.add_installed(UTIL_LINUX_PROVIDER, "login");
 	inventory.add_installed(UTIL_LINUX_PROVIDER, "su");
 
-	for module in [
-		"libpam",
-		"pam_unix",
-		"pam_env",
-		"pam_nologin",
-		"pam_rootok",
-		"pam_permit",
-		"pam_deny",
-		"pam_shells",
-		"pam_securetty",
-		"pam_systemd",
-	] {
+	for module in ["libpam", "pam_unix", "pam_env", "pam_nologin", "pam_rootok", "pam_permit", "pam_deny", "pam_shells", "pam_securetty", "pam_systemd"] {
 		inventory.add_implemented(LINUX_PAM_PROVIDER, module);
 		inventory.add_compiled(LINUX_PAM_PROVIDER, module);
 		inventory.add_installed(LINUX_PAM_PROVIDER, module);
 	}
 
-	for cmd in [
-		"passwd",
-		"useradd",
-		"usermod",
-		"userdel",
-		"groupadd",
-		"groupmod",
-		"groupdel",
-		"chpasswd",
-		"chage",
-		"newgrp",
-	] {
+	for cmd in ["passwd", "useradd", "usermod", "userdel", "groupadd", "groupmod", "groupdel", "chpasswd", "chage", "newgrp"] {
 		inventory.add_implemented(SHADOW_PROVIDER, cmd);
 		inventory.add_compiled(SHADOW_PROVIDER, cmd);
 		inventory.add_installed(SHADOW_PROVIDER, cmd);
@@ -3236,31 +2465,20 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 	inventory.add_compiled(SUDO_RS_PROVIDER, "sudo");
 	inventory.add_installed(SUDO_RS_PROVIDER, "sudo");
 
-	let brush_candidates = [
-		repo_root.join("src/userland/brush/target/release/brush"),
-		repo_root.join("src/userland/brush/target/release/brush"),
-	];
-	let brush_bin = brush_candidates.iter().find(|p| p.exists()).cloned();
-
-	if let Some(brush_bin) = brush_bin {
-		let dst = out.join("usr/bin/brush");
-		fs::copy(&brush_bin, &dst).context("failed to copy brush binary")?;
-		copy_runtime_dependencies(&dst, &out)?;
-		inventory.add_implemented("brush", "brush");
-		inventory.add_compiled("brush", "brush");
-		inventory.add_installed("brush", "brush");
-	} else {
-		bail!("brush binary not found; run build brush first")
+	let brush_dst = out.join("usr/bin/brush");
+	if !brush_dst.is_file() {
+		bail!("mattos-brush package did not install /usr/bin/brush")
 	}
+	copy_runtime_dependencies(&brush_dst, &out)?;
+	inventory.add_implemented("brush", "brush");
+	inventory.add_compiled("brush", "brush");
+	inventory.add_installed("brush", "brush");
 
 	let coreutils_multicall = resolve_coreutils_multicall(repo_root)?;
 	let coreutils_dst = out.join("usr/bin/coreutils");
-	fs::copy(&coreutils_multicall, &coreutils_dst).with_context(|| {
-		format!(
-			"failed to copy coreutils multicall binary from {}",
-			coreutils_multicall.display()
-		)
-	})?;
+	if !coreutils_dst.is_file() {
+		bail!("mattos-coreutils package did not install /usr/bin/coreutils")
+	}
 	copy_runtime_dependencies(&coreutils_dst, &out)?;
 
 	let coreutils_applets = list_coreutils_applets(&coreutils_multicall)?;
@@ -3268,23 +2486,15 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 		inventory.add_implemented(COREUTILS_PROVIDER, applet);
 		inventory.add_compiled(COREUTILS_PROVIDER, applet);
 	}
-	let component_commands: BTreeSet<&str> = COMPONENT_INSTALL_MANIFESTS
-		.iter()
-		.flat_map(|manifest| manifest.binaries.iter().map(|binary| binary.command_name))
-		.collect();
-	let installed_coreutils_applets: Vec<String> = coreutils_applets
-		.iter()
-		.filter(|applet| !component_commands.contains(applet.as_str()))
-		.cloned()
-		.collect();
-	create_coreutils_symlinks(&out, &installed_coreutils_applets)?;
+	let component_commands: BTreeSet<&str> = COMPONENT_INSTALL_MANIFESTS.iter().flat_map(|manifest| manifest.binaries.iter().map(|binary| binary.command_name)).collect();
+	let installed_coreutils_applets: Vec<String> = coreutils_applets.iter().filter(|applet| !component_commands.contains(applet.as_str())).cloned().collect();
 	for applet in &installed_coreutils_applets {
+		if !path_entry_exists(&out.join("usr/bin").join(applet)) {
+			bail!("mattos-coreutils package did not install alias /usr/bin/{applet}")
+		}
 		inventory.add_installed(COREUTILS_PROVIDER, applet);
 	}
-	for applet in coreutils_applets
-		.iter()
-		.filter(|applet| component_commands.contains(applet.as_str()))
-	{
+	for applet in coreutils_applets.iter().filter(|applet| component_commands.contains(applet.as_str())) {
 		inventory.add_excluded(COREUTILS_PROVIDER, applet);
 	}
 
@@ -3306,8 +2516,15 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 		}
 	}
 
-	let component_provider_commands =
-		install_component_manifests(repo_root, &out, &mut inventory)?;
+	let component_provider_commands = install_component_manifests(repo_root, &out, &mut inventory)?;
+	let curl_dst = out.join("usr/bin/curl");
+	if !curl_dst.is_file() {
+		bail!("mattos-curl package did not install /usr/bin/curl")
+	}
+	copy_runtime_dependencies(&curl_dst, &out)?;
+	inventory.add_implemented(CURL_PROVIDER, "curl");
+	inventory.add_compiled(CURL_PROVIDER, "curl");
+	inventory.add_installed(CURL_PROVIDER, "curl");
 	install_component_configuration(repo_root, &out)?;
 	install_user_session_configuration(repo_root, &out)?;
 	install_dbus_configuration(repo_root, &out)?;
@@ -3320,28 +2537,14 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 	let mut provider_commands = BTreeMap::<&str, Vec<String>>::new();
 	provider_commands.insert(COREUTILS_PROVIDER, installed_coreutils_applets.clone());
 	for spec in USERLAND_BINARY_INSTALLS {
-		provider_commands
-			.entry(spec.provider)
-			.or_default()
-			.push(spec.command_name.to_string());
+		provider_commands.entry(spec.provider).or_default().push(spec.command_name.to_string());
 	}
-	provider_commands
-		.entry(DIFFUTILS_PROVIDER)
-		.or_default()
-		.extend(DIFFUTILS_AVAILABLE_ALIASES.iter().map(|s| s.to_string()));
+	provider_commands.entry(DIFFUTILS_PROVIDER).or_default().extend(DIFFUTILS_AVAILABLE_ALIASES.iter().map(|s| s.to_string()));
 	for (provider, commands) in component_provider_commands {
 		provider_commands.insert(provider, commands);
 	}
-	provider_commands.insert(
-		SYSTEMD_PROVIDER,
-		vec![
-			"busctl".to_string(),
-			"loginctl".to_string(),
-			"networkctl".to_string(),
-			"resolvectl".to_string(),
-			"timedatectl".to_string(),
-		],
-	);
+	provider_commands.insert(CURL_PROVIDER, vec!["curl".to_string()]);
+	provider_commands.insert(SYSTEMD_PROVIDER, vec!["busctl".to_string(), "loginctl".to_string(), "networkctl".to_string(), "resolvectl".to_string(), "timedatectl".to_string()]);
 	validate_no_duplicate_commands(&provider_commands)?;
 
 	for expected in [
@@ -3392,60 +2595,43 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 		let path = out.join("usr/bin").join(expected);
 		let alt = out.join("usr/sbin").join(expected);
 		if !path_entry_exists(&path) && !path_entry_exists(&alt) {
-			bail!(
-				"required command {} missing from rootfs at {}",
-				expected,
-				path.display()
-			)
+			bail!("required command {} missing from rootfs at {}", expected, path.display())
 		}
 	}
 
 	let sh_link = out.join("usr/bin/sh");
 	if sh_link.exists() {
-		fs::remove_file(&sh_link)
-			.with_context(|| format!("failed to remove existing {}", sh_link.display()))?;
+		fs::remove_file(&sh_link).with_context(|| format!("failed to remove existing {}", sh_link.display()))?;
 	}
 	#[cfg(unix)]
-	std::os::unix::fs::symlink("/bin/brush", &sh_link)
-		.with_context(|| format!("failed to create {}", sh_link.display()))?;
+	std::os::unix::fs::symlink("/bin/brush", &sh_link).with_context(|| format!("failed to create {}", sh_link.display()))?;
 	inventory.add_installed("brush", "sh");
 	inventory.add_excluded(DIFFUTILS_PROVIDER, "diff3");
 	inventory.add_excluded(DIFFUTILS_PROVIDER, "sdiff");
 	write_userland_inventory(&out, &inventory)?;
+	packaging::stage_built_dpkg_runtime(repo_root, &out, &package_owned)?;
+	packaging::embed_repository(repo_root, &out)?;
+	packaging::validate_dpkg_database(&out)?;
+	packaging::validate_package_snapshot(&out, &package_snapshot)?;
 
 	Ok(())
 }
 
-fn install_component_manifests(
-	repo_root: &Path,
-	rootfs: &Path,
-	inventory: &mut UserlandInventory,
-) -> Result<BTreeMap<&'static str, Vec<String>>> {
-	let install_roots: Vec<PathBuf> = COMPONENT_INSTALL_MANIFESTS
-		.iter()
-		.map(|manifest| repo_root.join(manifest.install_root_rel))
-		.chain(std::iter::once(repo_root.join("out/build/systemd/install")))
-		.collect();
-	let library_dirs: Vec<PathBuf> = install_roots
-		.iter()
-		.map(|root| root.join("usr/lib/x86_64-linux-gnu"))
-		.filter(|path| path.exists())
-		.collect();
+fn install_component_manifests(repo_root: &Path, rootfs: &Path, inventory: &mut UserlandInventory) -> Result<BTreeMap<&'static str, Vec<String>>> {
+	let install_roots: Vec<PathBuf> = COMPONENT_INSTALL_MANIFESTS.iter().map(|manifest| repo_root.join(manifest.install_root_rel)).chain(std::iter::once(repo_root.join("out/build/systemd/install"))).collect();
+	let library_dirs: Vec<PathBuf> = install_roots.iter().map(|root| root.join("usr/lib/x86_64-linux-gnu")).filter(|path| path.exists()).collect();
 	let mut providers = BTreeMap::new();
 
 	for manifest in COMPONENT_INSTALL_MANIFESTS {
+		if manifest.provider == CURL_PROVIDER {
+			continue;
+		}
 		let install_root = repo_root.join(manifest.install_root_rel);
 		let mut commands = Vec::new();
 		for binary in manifest.binaries {
 			let source = install_root.join(binary.source_rel);
 			let destination = rootfs.join(binary.destination_rel);
-			inspect_and_stage_executable(
-				&source,
-				&destination,
-				rootfs,
-				&install_roots,
-				&library_dirs,
-			)?;
+			inspect_and_stage_executable(&source, &destination, rootfs, &install_roots, &library_dirs)?;
 			inventory.add_implemented(manifest.provider, binary.command_name);
 			inventory.add_compiled(manifest.provider, binary.command_name);
 			inventory.add_installed(manifest.provider, binary.command_name);
@@ -3457,21 +2643,11 @@ fn install_component_manifests(
 	Ok(providers)
 }
 
-fn inspect_and_stage_executable(
-	source: &Path,
-	destination: &Path,
-	rootfs: &Path,
-	install_roots: &[PathBuf],
-	library_dirs: &[PathBuf],
-) -> Result<()> {
+fn inspect_and_stage_executable(source: &Path, destination: &Path, rootfs: &Path, install_roots: &[PathBuf], library_dirs: &[PathBuf]) -> Result<()> {
 	if !source.exists() {
 		bail!("component executable missing at {}", source.display());
 	}
-	let file_output = Command::new("file")
-		.arg("-L")
-		.arg(source)
-		.output()
-		.with_context(|| format!("failed to inspect {} with file", source.display()))?;
+	let file_output = Command::new("file").arg("-L").arg(source).output().with_context(|| format!("failed to inspect {} with file", source.display()))?;
 	if !file_output.status.success() {
 		bail!("file inspection failed for {}", source.display());
 	}
@@ -3479,22 +2655,13 @@ fn inspect_and_stage_executable(
 	if !file_text.contains("ELF") {
 		bail!("expected an ELF executable, file reported: {}", file_text.trim());
 	}
-	let readelf = Command::new("readelf")
-		.args(["-d"])
-		.arg(source)
-		.output()
-		.with_context(|| format!("failed to inspect {} with readelf", source.display()))?;
+	let readelf = Command::new("readelf").args(["-d"]).arg(source).output().with_context(|| format!("failed to inspect {} with readelf", source.display()))?;
 	if !readelf.status.success() {
 		bail!("readelf inspection failed for {}", source.display());
 	}
 
-	let library_path = std::env::join_paths(library_dirs)
-		.context("failed to construct component LD_LIBRARY_PATH")?;
-	let ldd = Command::new("ldd")
-		.arg(source)
-		.env("LD_LIBRARY_PATH", library_path)
-		.output()
-		.with_context(|| format!("failed to inspect {} with ldd", source.display()))?;
+	let library_path = std::env::join_paths(library_dirs).context("failed to construct component LD_LIBRARY_PATH")?;
+	let ldd = Command::new("ldd").arg(source).env("LD_LIBRARY_PATH", library_path).output().with_context(|| format!("failed to inspect {} with ldd", source.display()))?;
 	if !ldd.status.success() {
 		bail!("ldd inspection failed for {}", source.display());
 	}
@@ -3504,11 +2671,9 @@ fn inspect_and_stage_executable(
 	}
 
 	if let Some(parent) = destination.parent() {
-		fs::create_dir_all(parent)
-			.with_context(|| format!("failed to create {}", parent.display()))?;
+		fs::create_dir_all(parent).with_context(|| format!("failed to create {}", parent.display()))?;
 	}
-	fs::copy(source, destination)
-		.with_context(|| format!("failed to stage {}", source.display()))?;
+	fs::copy(source, destination).with_context(|| format!("failed to stage {}", source.display()))?;
 	for token in ldd_text.split_whitespace().filter(|token| token.starts_with('/')) {
 		let dependency = Path::new(token);
 		if dependency.exists() {
@@ -3527,26 +2692,15 @@ fn stage_resolved_dependency(source: &Path, rootfs: &Path, install_roots: &[Path
 		.ok_or_else(|| anyhow!("cannot map runtime dependency {} into rootfs", source.display()))?;
 	let destination = rootfs.join(relative);
 	if let Some(parent) = destination.parent() {
-		fs::create_dir_all(parent)
-			.with_context(|| format!("failed to create {}", parent.display()))?;
+		fs::create_dir_all(parent).with_context(|| format!("failed to create {}", parent.display()))?;
 	}
-	fs::copy(source, &destination)
-		.with_context(|| format!("failed to stage runtime dependency {}", source.display()))?;
+	fs::copy(source, &destination).with_context(|| format!("failed to stage runtime dependency {}", source.display()))?;
 	Ok(())
 }
 
 fn install_component_configuration(repo_root: &Path, rootfs: &Path) -> Result<()> {
-	for directory in [
-		"etc/depmod.d",
-		"etc/modprobe.d",
-		"etc/modules-load.d",
-		"usr/lib/depmod.d",
-		"usr/lib/modprobe.d",
-		"usr/lib/modules-load.d",
-		"etc/sysctl.d",
-	] {
-		fs::create_dir_all(rootfs.join(directory))
-			.with_context(|| format!("failed to create /{directory}"))?;
+	for directory in ["etc/depmod.d", "etc/modprobe.d", "etc/modules-load.d", "usr/lib/depmod.d", "usr/lib/modprobe.d", "usr/lib/modules-load.d", "etc/sysctl.d"] {
+		fs::create_dir_all(rootfs.join(directory)).with_context(|| format!("failed to create /{directory}"))?;
 	}
 	let kmod_install = repo_root.join("out/build/kmod/install");
 	for library in ["libkmod.so.2", "libkmod.so.2.5.1"] {
@@ -3558,24 +2712,18 @@ fn install_component_configuration(repo_root: &Path, rootfs: &Path) -> Result<()
 	}
 
 	let sysctl_source = repo_root.join("src/userland/procps-ng/sysctl.conf");
-	fs::copy(&sysctl_source, rootfs.join("etc/sysctl.conf"))
-		.with_context(|| format!("failed to stage {}", sysctl_source.display()))?;
+	fs::copy(&sysctl_source, rootfs.join("etc/sysctl.conf")).with_context(|| format!("failed to stage {}", sysctl_source.display()))?;
 
 	let source_db = repo_root.join("out/build/ncurses/install/usr/share/terminfo");
 	verify_terminfo_entries(&source_db)?;
 	for terminal in TERMINFO_ENTRIES {
-		let source = terminfo_entry_path(&source_db, terminal)
-			.ok_or_else(|| anyhow!("terminfo entry {terminal} missing from {}", source_db.display()))?;
-		let relative = source
-			.strip_prefix(&source_db)
-			.with_context(|| format!("invalid terminfo path {}", source.display()))?;
+		let source = terminfo_entry_path(&source_db, terminal).ok_or_else(|| anyhow!("terminfo entry {terminal} missing from {}", source_db.display()))?;
+		let relative = source.strip_prefix(&source_db).with_context(|| format!("invalid terminfo path {}", source.display()))?;
 		let destination = rootfs.join("usr/share/terminfo").join(relative);
 		if let Some(parent) = destination.parent() {
-			fs::create_dir_all(parent)
-				.with_context(|| format!("failed to create {}", parent.display()))?;
+			fs::create_dir_all(parent).with_context(|| format!("failed to create {}", parent.display()))?;
 		}
-		fs::copy(&source, &destination)
-			.with_context(|| format!("failed to stage terminfo entry {terminal}"))?;
+		fs::copy(&source, &destination).with_context(|| format!("failed to stage terminfo entry {terminal}"))?;
 	}
 	verify_terminfo_entries(&rootfs.join("usr/share/terminfo"))?;
 	Ok(())
@@ -3592,101 +2740,42 @@ fn verify_terminfo_entries(database: &Path) -> Result<()> {
 
 fn terminfo_entry_path(database: &Path, terminal: &str) -> Option<PathBuf> {
 	let first = terminal.as_bytes().first().copied()?;
-	let candidates = [
-		database.join(char::from(first).to_string()).join(terminal),
-		database.join(format!("{first:x}")).join(terminal),
-	];
+	let candidates = [database.join(char::from(first).to_string()).join(terminal), database.join(format!("{first:x}")).join(terminal)];
 	candidates.into_iter().find(|path| path.exists())
-}
-
-#[cfg(unix)]
-fn ensure_merged_usr_layout(rootfs: &Path) -> Result<()> {
-	use std::os::unix::fs::symlink;
-
-	fs::create_dir_all(rootfs.join("usr/bin")).context("failed to create /usr/bin")?;
-	fs::create_dir_all(rootfs.join("usr/sbin")).context("failed to create /usr/sbin")?;
-	fs::create_dir_all(rootfs.join("usr/lib")).context("failed to create /usr/lib")?;
-	fs::create_dir_all(rootfs.join("usr/lib64")).context("failed to create /usr/lib64")?;
-
-	for (name, target) in [
-		("bin", "usr/bin"),
-		("sbin", "usr/sbin"),
-		("lib", "usr/lib"),
-		("lib64", "usr/lib64"),
-	] {
-		let path = rootfs.join(name);
-		if path.exists() {
-			let meta = fs::symlink_metadata(&path)
-				.with_context(|| format!("failed to stat {}", path.display()))?;
-			if meta.file_type().is_symlink() {
-				fs::remove_file(&path)
-					.with_context(|| format!("failed to remove symlink {}", path.display()))?;
-			} else if meta.is_dir() {
-				fs::remove_dir_all(&path)
-					.with_context(|| format!("failed to remove directory {}", path.display()))?;
-			} else {
-				fs::remove_file(&path)
-					.with_context(|| format!("failed to remove file {}", path.display()))?;
-			}
-		}
-		symlink(target, &path)
-			.with_context(|| format!("failed to create symlink {} -> {}", path.display(), target))?;
-	}
-
-	Ok(())
-}
-
-#[cfg(not(unix))]
-fn ensure_merged_usr_layout(_rootfs: &Path) -> Result<()> {
-	bail!("merged /usr rootfs layout requires Unix symlink support")
 }
 
 fn install_mattos_system_units(repo_root: &Path, rootfs: &Path) -> Result<()> {
 	let units_src = repo_root.join("src/system/units");
 	if !units_src.exists() {
-		bail!(
-			"MattOS systemd units missing at {}; expected MattOS-owned units",
-			units_src.display()
-		);
+		bail!("MattOS systemd units missing at {}; expected MattOS-owned units", units_src.display());
 	}
 	let units_dst = rootfs.join("usr/lib/systemd/system");
-	fs::create_dir_all(&units_dst)
-		.with_context(|| format!("failed to create {}", units_dst.display()))?;
+	fs::create_dir_all(&units_dst).with_context(|| format!("failed to create {}", units_dst.display()))?;
 	copy_tree_excluding_dotgit(&units_src, &units_dst)?;
 
 	let default_target = rootfs.join("etc/systemd/system/default.target");
 	if default_target.exists() {
-		fs::remove_file(&default_target)
-			.with_context(|| format!("failed to remove {}", default_target.display()))?;
+		fs::remove_file(&default_target).with_context(|| format!("failed to remove {}", default_target.display()))?;
 	}
 	#[cfg(unix)]
-	std::os::unix::fs::symlink("/usr/lib/systemd/system/mattos.target", &default_target)
-		.with_context(|| format!("failed to create {}", default_target.display()))?;
+	std::os::unix::fs::symlink("/usr/lib/systemd/system/mattos.target", &default_target).with_context(|| format!("failed to create {}", default_target.display()))?;
 
 	let getty_wants = rootfs.join("etc/systemd/system/getty.target.wants");
-	fs::create_dir_all(&getty_wants)
-		.with_context(|| format!("failed to create {}", getty_wants.display()))?;
+	fs::create_dir_all(&getty_wants).with_context(|| format!("failed to create {}", getty_wants.display()))?;
 	let tty1_getty = getty_wants.join("getty@tty1.service");
 	if tty1_getty.exists() {
-		fs::remove_file(&tty1_getty)
-			.with_context(|| format!("failed to remove {}", tty1_getty.display()))?;
+		fs::remove_file(&tty1_getty).with_context(|| format!("failed to remove {}", tty1_getty.display()))?;
 	}
 	#[cfg(unix)]
-	std::os::unix::fs::symlink("/usr/lib/systemd/system/getty@.service", &tty1_getty)
-		.with_context(|| format!("failed to create {}", tty1_getty.display()))?;
+	std::os::unix::fs::symlink("/usr/lib/systemd/system/getty@.service", &tty1_getty).with_context(|| format!("failed to create {}", tty1_getty.display()))?;
 
-	for masked in [
-		"ldconfig.service",
-		"mattos-shell.service",
-	] {
+	for masked in ["ldconfig.service", "mattos-shell.service"] {
 		let mask = rootfs.join("etc/systemd/system").join(masked);
 		if mask.exists() {
-			fs::remove_file(&mask)
-				.with_context(|| format!("failed to remove {}", mask.display()))?;
+			fs::remove_file(&mask).with_context(|| format!("failed to remove {}", mask.display()))?;
 		}
 		#[cfg(unix)]
-		std::os::unix::fs::symlink("/dev/null", &mask)
-			.with_context(|| format!("failed to create {}", mask.display()))?;
+		std::os::unix::fs::symlink("/dev/null", &mask).with_context(|| format!("failed to create {}", mask.display()))?;
 	}
 
 	Ok(())
@@ -3709,31 +2798,22 @@ fn install_network_configuration(repo_root: &Path, rootfs: &Path) -> Result<()> 
 	] {
 		let target = rootfs.join(destination);
 		if let Some(parent) = target.parent() {
-			fs::create_dir_all(parent)
-				.with_context(|| format!("failed to create {}", parent.display()))?;
+			fs::create_dir_all(parent).with_context(|| format!("failed to create {}", parent.display()))?;
 		}
-		fs::copy(source.join(source_name), &target)
-			.with_context(|| format!("failed to install network configuration {source_name}"))?;
+		fs::copy(source.join(source_name), &target).with_context(|| format!("failed to install network configuration {source_name}"))?;
 	}
 
-	fs::create_dir_all(rootfs.join("run/systemd/resolve"))
-		.context("failed to create /run/systemd/resolve")?;
+	fs::create_dir_all(rootfs.join("run/systemd/resolve")).context("failed to create /run/systemd/resolve")?;
 	let resolv_conf = rootfs.join("etc/resolv.conf");
 	if path_entry_exists(&resolv_conf) {
 		remove_path_if_exists(&resolv_conf)?;
 	}
 	#[cfg(unix)]
-	std::os::unix::fs::symlink("/run/systemd/resolve/stub-resolv.conf", &resolv_conf)
-		.context("failed to create resolved-managed /etc/resolv.conf")?;
+	std::os::unix::fs::symlink("/run/systemd/resolve/stub-resolv.conf", &resolv_conf).context("failed to create resolved-managed /etc/resolv.conf")?;
 
 	let wants = rootfs.join("etc/systemd/system/multi-user.target.wants");
-	fs::create_dir_all(&wants)
-		.with_context(|| format!("failed to create {}", wants.display()))?;
-	for service in [
-		"systemd-networkd.service",
-		"systemd-resolved.service",
-		"systemd-timesyncd.service",
-	] {
+	fs::create_dir_all(&wants).with_context(|| format!("failed to create {}", wants.display()))?;
+	for service in ["systemd-networkd.service", "systemd-resolved.service", "systemd-timesyncd.service"] {
 		let unit = rootfs.join("usr/lib/systemd/system").join(service);
 		if !unit.exists() {
 			bail!("required networking unit missing at {}", unit.display());
@@ -3743,8 +2823,7 @@ fn install_network_configuration(repo_root: &Path, rootfs: &Path) -> Result<()> 
 			remove_path_if_exists(&link)?;
 		}
 		#[cfg(unix)]
-		std::os::unix::fs::symlink(format!("/usr/lib/systemd/system/{service}"), &link)
-			.with_context(|| format!("failed to enable {service}"))?;
+		std::os::unix::fs::symlink(format!("/usr/lib/systemd/system/{service}"), &link).with_context(|| format!("failed to enable {service}"))?;
 	}
 
 	validate_network_configuration(rootfs)
@@ -3754,19 +2833,14 @@ fn install_user_session_configuration(repo_root: &Path, rootfs: &Path) -> Result
 	let source = repo_root.join("src/system/session");
 	let units_source = source.join("user-units");
 	let dbus_config = source.join("dbus/session.conf");
-	for required in [
-		units_source.join("dbus.socket"),
-		units_source.join("dbus-broker.service"),
-		dbus_config.clone(),
-	] {
+	for required in [units_source.join("dbus.socket"), units_source.join("dbus-broker.service"), dbus_config.clone()] {
 		if !required.is_file() {
 			bail!("MattOS user-session unit missing at {}", required.display());
 		}
 	}
 
 	let user_units = rootfs.join("usr/lib/systemd/user");
-	fs::create_dir_all(&user_units)
-		.with_context(|| format!("failed to create {}", user_units.display()))?;
+	fs::create_dir_all(&user_units).with_context(|| format!("failed to create {}", user_units.display()))?;
 	copy_tree_excluding_dotgit(&units_source, &user_units)?;
 	for rel in ["dbus.socket", "dbus-broker.service"] {
 		set_mode(user_units.join(rel), 0o644)?;
@@ -3777,30 +2851,21 @@ fn install_user_session_configuration(repo_root: &Path, rootfs: &Path) -> Result
 		remove_path_if_exists(&dbus_alias)?;
 	}
 	#[cfg(unix)]
-	std::os::unix::fs::symlink("dbus-broker.service", &dbus_alias)
-		.context("failed to create user dbus.service alias")?;
+	std::os::unix::fs::symlink("dbus-broker.service", &dbus_alias).context("failed to create user dbus.service alias")?;
 
 	let sockets_wants = user_units.join("sockets.target.wants");
-	fs::create_dir_all(&sockets_wants)
-		.with_context(|| format!("failed to create {}", sockets_wants.display()))?;
+	fs::create_dir_all(&sockets_wants).with_context(|| format!("failed to create {}", sockets_wants.display()))?;
 	let socket_link = sockets_wants.join("dbus.socket");
 	if path_entry_exists(&socket_link) {
 		remove_path_if_exists(&socket_link)?;
 	}
 	#[cfg(unix)]
-	std::os::unix::fs::symlink("../dbus.socket", &socket_link)
-		.context("failed to enable the per-user D-Bus socket")?;
+	std::os::unix::fs::symlink("../dbus.socket", &socket_link).context("failed to enable the per-user D-Bus socket")?;
 
-	for directory in [
-		"usr/share/dbus-1/session.d",
-		"usr/share/dbus-1/services",
-		"etc/dbus-1/session.d",
-	] {
-		fs::create_dir_all(rootfs.join(directory))
-			.with_context(|| format!("failed to create /{directory}"))?;
+	for directory in ["usr/share/dbus-1/session.d", "usr/share/dbus-1/services", "etc/dbus-1/session.d"] {
+		fs::create_dir_all(rootfs.join(directory)).with_context(|| format!("failed to create /{directory}"))?;
 	}
-	fs::copy(&dbus_config, rootfs.join("usr/share/dbus-1/session.conf"))
-		.context("failed to install per-user D-Bus policy")?;
+	fs::copy(&dbus_config, rootfs.join("usr/share/dbus-1/session.conf")).context("failed to install per-user D-Bus policy")?;
 	set_mode(rootfs.join("usr/share/dbus-1/session.conf"), 0o644)?;
 
 	// MattOS supplies a deliberately small effective systemd-user PAM stack in /etc.
@@ -3844,8 +2909,7 @@ fn validate_user_session_configuration(rootfs: &Path) -> Result<()> {
 
 	let expected_hook = "session    optional     pam_systemd.so";
 	for stack in ["login", "su-l", "systemd-user"] {
-		let body = fs::read_to_string(rootfs.join("etc/pam.d").join(stack))
-			.with_context(|| format!("failed to read effective PAM stack {stack}"))?;
+		let body = fs::read_to_string(rootfs.join("etc/pam.d").join(stack)).with_context(|| format!("failed to read effective PAM stack {stack}"))?;
 		if body.matches(expected_hook).count() != 1 {
 			bail!("PAM stack {stack} must contain exactly one optional pam_systemd session hook");
 		}
@@ -3865,43 +2929,24 @@ fn validate_user_session_configuration(rootfs: &Path) -> Result<()> {
 	}
 
 	let user_socket = fs::read_to_string(rootfs.join("usr/lib/systemd/user/dbus.socket"))?;
-	if user_socket.matches("ListenStream=%t/bus").count() != 1
-		|| user_socket.contains("/run/dbus/system_bus_socket")
-	{
+	if user_socket.matches("ListenStream=%t/bus").count() != 1 || user_socket.contains("/run/dbus/system_bus_socket") {
 		bail!("user dbus.socket must own only the per-user %t/bus endpoint");
 	}
 	let user_broker = fs::read_to_string(rootfs.join("usr/lib/systemd/user/dbus-broker.service"))?;
-	if user_broker.matches("ExecStart=/usr/bin/dbus-broker-launch --scope user").count() != 1
-		|| user_broker.contains("--scope system")
-	{
+	if user_broker.matches("ExecStart=/usr/bin/dbus-broker-launch --scope user").count() != 1 || user_broker.contains("--scope system") {
 		bail!("user dbus-broker.service must launch exactly one user-scope broker");
 	}
 	let session_policy = fs::read_to_string(rootfs.join("usr/share/dbus-1/session.conf"))?;
-	for required in [
-		"<type>session</type>",
-		"<auth>EXTERNAL</auth>",
-		"<standard_session_servicedirs/>",
-		"<allow own=\"*\"/>",
-	] {
+	for required in ["<type>session</type>", "<auth>EXTERNAL</auth>", "<standard_session_servicedirs/>", "<allow own=\"*\"/>"] {
 		if !session_policy.contains(required) {
 			bail!("per-user D-Bus policy is missing required contract: {required}");
 		}
 	}
-	if session_policy.contains("<type>system</type>")
-		|| session_policy.contains("<user>messagebus</user>")
-		|| session_policy.contains("/run/dbus/system_bus_socket")
-	{
+	if session_policy.contains("<type>system</type>") || session_policy.contains("<user>messagebus</user>") || session_policy.contains("/run/dbus/system_bus_socket") {
 		bail!("per-user D-Bus policy must remain separate from the system bus");
 	}
 
-	for rel in [
-		"etc/pam.d/login",
-		"etc/pam.d/su-l",
-		"etc/pam.d/systemd-user",
-		"usr/lib/systemd/user/dbus.socket",
-		"usr/lib/systemd/user/dbus-broker.service",
-		"usr/share/dbus-1/session.conf",
-	] {
+	for rel in ["etc/pam.d/login", "etc/pam.d/su-l", "etc/pam.d/systemd-user", "usr/lib/systemd/user/dbus.socket", "usr/lib/systemd/user/dbus-broker.service", "usr/share/dbus-1/session.conf"] {
 		let body = fs::read_to_string(rootfs.join(rel))?;
 		if body.contains("/run/user/1000") || body.contains("user@1000") {
 			bail!("generic user-session configuration hardcodes the live UID in /{rel}");
@@ -3927,27 +2972,13 @@ fn install_dbus_configuration(repo_root: &Path, rootfs: &Path) -> Result<()> {
 		}
 	}
 
-	for directory in [
-		"etc/dbus-1/system.d",
-		"usr/share/dbus-1/system-services",
-		"usr/share/dbus-1/system.d",
-		"usr/lib/sysusers.d",
-		"usr/lib/systemd/system",
-	] {
-		fs::create_dir_all(rootfs.join(directory))
-			.with_context(|| format!("failed to create /{directory}"))?;
+	for directory in ["etc/dbus-1/system.d", "usr/share/dbus-1/system-services", "usr/share/dbus-1/system.d", "usr/lib/sysusers.d", "usr/lib/systemd/system"] {
+		fs::create_dir_all(rootfs.join(directory)).with_context(|| format!("failed to create /{directory}"))?;
 	}
-	fs::copy(&config_source, rootfs.join("etc/dbus-1/system.conf"))
-		.context("failed to install MattOS system-bus configuration")?;
-	fs::copy(&sysusers_source, rootfs.join("usr/lib/sysusers.d/dbus.conf"))
-		.context("failed to install messagebus sysusers definition")?;
+	fs::copy(&config_source, rootfs.join("etc/dbus-1/system.conf")).context("failed to install MattOS system-bus configuration")?;
+	fs::copy(&sysusers_source, rootfs.join("usr/lib/sysusers.d/dbus.conf")).context("failed to install messagebus sysusers definition")?;
 	copy_tree_excluding_dotgit(&units_source, &rootfs.join("usr/lib/systemd/system"))?;
-	for rel in [
-		"etc/dbus-1/system.conf",
-		"usr/lib/sysusers.d/dbus.conf",
-		"usr/lib/systemd/system/dbus.socket",
-		"usr/lib/systemd/system/dbus-broker.service",
-	] {
+	for rel in ["etc/dbus-1/system.conf", "usr/lib/sysusers.d/dbus.conf", "usr/lib/systemd/system/dbus.socket", "usr/lib/systemd/system/dbus-broker.service"] {
 		set_mode(rootfs.join(rel), 0o644)?;
 	}
 
@@ -3964,15 +2995,13 @@ fn install_dbus_configuration(repo_root: &Path, rootfs: &Path) -> Result<()> {
 	}
 
 	let sockets_wants = rootfs.join("etc/systemd/system/sockets.target.wants");
-	fs::create_dir_all(&sockets_wants)
-		.with_context(|| format!("failed to create {}", sockets_wants.display()))?;
+	fs::create_dir_all(&sockets_wants).with_context(|| format!("failed to create {}", sockets_wants.display()))?;
 	let socket_link = sockets_wants.join("dbus.socket");
 	if path_entry_exists(&socket_link) {
 		remove_path_if_exists(&socket_link)?;
 	}
 	#[cfg(unix)]
-	std::os::unix::fs::symlink("/usr/lib/systemd/system/dbus.socket", &socket_link)
-		.context("failed to enable dbus.socket")?;
+	std::os::unix::fs::symlink("/usr/lib/systemd/system/dbus.socket", &socket_link).context("failed to enable dbus.socket")?;
 
 	validate_dbus_configuration(rootfs)
 }
@@ -3990,8 +3019,7 @@ fn install_systemd_service_alias(rootfs: &Path, alias: &str, target: &str) -> Re
 	if path_entry_exists(&alias_path) {
 		remove_path_if_exists(&alias_path)?;
 	}
-	symlink(target, &alias_path)
-		.with_context(|| format!("failed to create D-Bus service alias {alias} -> {target}"))?;
+	symlink(target, &alias_path).with_context(|| format!("failed to create D-Bus service alias {alias} -> {target}"))?;
 	Ok(())
 }
 
@@ -4019,15 +3047,8 @@ fn validate_dbus_configuration(rootfs: &Path) -> Result<()> {
 		}
 	}
 
-	let system_conf = fs::read_to_string(rootfs.join("etc/dbus-1/system.conf"))
-		.context("failed to read installed system.conf")?;
-	for required in [
-		"<user>messagebus</user>",
-		"<deny own=\"*\"/>",
-		"<deny send_type=\"method_call\"/>",
-		"<includedir>/usr/share/dbus-1/system.d</includedir>",
-		"<includedir>/etc/dbus-1/system.d</includedir>",
-	] {
+	let system_conf = fs::read_to_string(rootfs.join("etc/dbus-1/system.conf")).context("failed to read installed system.conf")?;
+	for required in ["<user>messagebus</user>", "<deny own=\"*\"/>", "<deny send_type=\"method_call\"/>", "<includedir>/usr/share/dbus-1/system.d</includedir>", "<includedir>/etc/dbus-1/system.d</includedir>"] {
 		if !system_conf.contains(required) {
 			bail!("system-bus policy is missing required boundary: {required}");
 		}
@@ -4036,8 +3057,7 @@ fn validate_dbus_configuration(rootfs: &Path) -> Result<()> {
 		bail!("system-bus policy must not allow arbitrary name ownership");
 	}
 
-	let socket_unit = fs::read_to_string(rootfs.join("usr/lib/systemd/system/dbus.socket"))
-		.context("failed to read dbus.socket")?;
+	let socket_unit = fs::read_to_string(rootfs.join("usr/lib/systemd/system/dbus.socket")).context("failed to read dbus.socket")?;
 	if socket_unit.matches("ListenStream=/run/dbus/system_bus_socket").count() != 1 {
 		bail!("dbus.socket must own exactly one conventional system-bus socket");
 	}
@@ -4051,16 +3071,12 @@ fn validate_dbus_configuration(rootfs: &Path) -> Result<()> {
 		validate_executable_runtime_closure(&rootfs.join(binary), rootfs)?;
 	}
 
-	let broker_unit = fs::read_to_string(rootfs.join("usr/lib/systemd/system/dbus-broker.service"))
-		.context("failed to read dbus-broker.service")?;
-	if broker_unit.matches("ExecStart=/usr/bin/dbus-broker-launch").count() != 1
-		|| broker_unit.contains("dbus-daemon")
-	{
+	let broker_unit = fs::read_to_string(rootfs.join("usr/lib/systemd/system/dbus-broker.service")).context("failed to read dbus-broker.service")?;
+	if broker_unit.matches("ExecStart=/usr/bin/dbus-broker-launch").count() != 1 || broker_unit.contains("dbus-daemon") {
 		bail!("dbus-broker.service must launch exactly one system-bus implementation");
 	}
 
-	let sysusers = fs::read_to_string(rootfs.join("usr/lib/sysusers.d/dbus.conf"))
-		.context("failed to read dbus sysusers definition")?;
+	let sysusers = fs::read_to_string(rootfs.join("usr/lib/sysusers.d/dbus.conf")).context("failed to read dbus sysusers definition")?;
 	let fields: Vec<&str> = sysusers.split_whitespace().collect();
 	if fields.get(0) != Some(&"u!") || fields.get(1) != Some(&"messagebus") || fields.get(2) != Some(&"195") {
 		bail!("messagebus sysusers definition must pin UID/GID 195");
@@ -4096,8 +3112,7 @@ fn validate_dbus_configuration(rootfs: &Path) -> Result<()> {
 		("dbus-org.freedesktop.login1.service", "systemd-logind.service"),
 	] {
 		let path = rootfs.join("usr/lib/systemd/system").join(alias);
-		let actual = fs::read_link(&path)
-			.with_context(|| format!("missing D-Bus service alias {alias}"))?;
+		let actual = fs::read_link(&path).with_context(|| format!("missing D-Bus service alias {alias}"))?;
 		if actual != Path::new(target) {
 			bail!("invalid D-Bus alias {alias}: expected {target}, got {}", actual.display());
 		}
@@ -4107,53 +3122,27 @@ fn validate_dbus_configuration(rootfs: &Path) -> Result<()> {
 }
 
 fn validate_executable_runtime_closure(binary: &Path, rootfs: &Path) -> Result<()> {
-	let file = Command::new("file")
-		.args(["-L", path_str(binary)?])
-		.output()
-		.with_context(|| format!("failed to inspect {} with file", binary.display()))?;
+	let file = Command::new("file").args(["-L", path_str(binary)?]).output().with_context(|| format!("failed to inspect {} with file", binary.display()))?;
 	if !file.status.success() || !String::from_utf8_lossy(&file.stdout).contains("ELF") {
 		bail!("runtime closure target is not an ELF executable: {}", binary.display());
 	}
-	let readelf = Command::new("readelf")
-		.args(["-d", path_str(binary)?])
-		.output()
-		.with_context(|| format!("failed to inspect {} with readelf", binary.display()))?;
+	let readelf = Command::new("readelf").args(["-d", path_str(binary)?]).output().with_context(|| format!("failed to inspect {} with readelf", binary.display()))?;
 	if !readelf.status.success() {
 		bail!("readelf failed for runtime closure target {}", binary.display());
 	}
 
-	let library_dirs = [
-		rootfs.join("usr/lib/x86_64-linux-gnu"),
-		rootfs.join("usr/lib/x86_64-linux-gnu/systemd"),
-		rootfs.join("lib/x86_64-linux-gnu"),
-		rootfs.join("usr/lib"),
-		rootfs.join("lib"),
-	];
-	let library_path = std::env::join_paths(library_dirs.iter())
-		.context("failed to construct rootfs runtime library path")?;
-	let ldd = Command::new("ldd")
-		.arg(binary)
-		.env("LD_LIBRARY_PATH", library_path)
-		.output()
-		.with_context(|| format!("failed to inspect {} with ldd", binary.display()))?;
+	let library_dirs = [rootfs.join("usr/lib/x86_64-linux-gnu"), rootfs.join("usr/lib/x86_64-linux-gnu/systemd"), rootfs.join("lib/x86_64-linux-gnu"), rootfs.join("usr/lib"), rootfs.join("lib")];
+	let library_path = std::env::join_paths(library_dirs.iter()).context("failed to construct rootfs runtime library path")?;
+	let ldd = Command::new("ldd").arg(binary).env("LD_LIBRARY_PATH", library_path).output().with_context(|| format!("failed to inspect {} with ldd", binary.display()))?;
 	let ldd_text = String::from_utf8(ldd.stdout).context("ldd output was not UTF-8")?;
 	if !ldd.status.success() || ldd_text.contains("not found") {
 		bail!("unresolved runtime dependency for {}:\n{}", binary.display(), ldd_text);
 	}
 	for token in ldd_text.split_whitespace().filter(|token| token.starts_with('/')) {
 		let dependency = Path::new(token);
-		let staged = if dependency.starts_with(rootfs) {
-			dependency.to_path_buf()
-		} else {
-			rootfs.join(dependency.strip_prefix("/").unwrap_or(dependency))
-		};
+		let staged = if dependency.starts_with(rootfs) { dependency.to_path_buf() } else { rootfs.join(dependency.strip_prefix("/").unwrap_or(dependency)) };
 		if !staged.exists() {
-			bail!(
-				"runtime dependency {} for {} is not staged at {}",
-				dependency.display(),
-				binary.display(),
-				staged.display()
-			);
+			bail!("runtime dependency {} for {} is not staged at {}", dependency.display(), binary.display(), staged.display());
 		}
 	}
 	Ok(())
@@ -4213,8 +3202,7 @@ fn validate_network_configuration(rootfs: &Path) -> Result<()> {
 			bail!("network service account {name} ID {id} collides with a static account");
 		}
 		let sysusers = rootfs.join("usr/lib/sysusers.d").join(format!("{name}.conf"));
-		let body = fs::read_to_string(&sysusers)
-			.with_context(|| format!("missing sysusers definition for {name}"))?;
+		let body = fs::read_to_string(&sysusers).with_context(|| format!("missing sysusers definition for {name}"))?;
 		if !body.lines().any(|line| line.contains(name) && line.split_whitespace().any(|field| field == id.to_string())) {
 			bail!("sysusers definition for {name} does not pin ID {id}");
 		}
@@ -4227,8 +3215,7 @@ fn copy_built_binary_and_runtime(src: &Path, dst: &Path, rootfs: &Path) -> Resul
 		bail!("required binary missing at {}", src.display());
 	}
 	if let Some(parent) = dst.parent() {
-		fs::create_dir_all(parent)
-			.with_context(|| format!("failed to create {}", parent.display()))?;
+		fs::create_dir_all(parent).with_context(|| format!("failed to create {}", parent.display()))?;
 	}
 	fs::copy(src, dst).with_context(|| format!("failed to copy {}", src.display()))?;
 	copy_runtime_dependencies(dst, rootfs)
@@ -4237,34 +3224,18 @@ fn copy_built_binary_and_runtime(src: &Path, dst: &Path, rootfs: &Path) -> Resul
 fn copy_auth_configuration(repo_root: &Path, rootfs: &Path) -> Result<()> {
 	let auth_src = repo_root.join("src/system/auth/config");
 	if !auth_src.exists() {
-		bail!(
-			"MattOS auth config missing at {}; expected local auth policy files",
-			auth_src.display()
-		);
+		bail!("MattOS auth config missing at {}; expected local auth policy files", auth_src.display());
 	}
 
 	let etc_dst = rootfs.join("etc");
 	fs::create_dir_all(&etc_dst).with_context(|| format!("failed to create {}", etc_dst.display()))?;
 
-	for (src_rel, dst_rel) in [
-		("pam.d", "pam.d"),
-		("sudoers.d", "sudoers.d"),
-		("default", "default"),
-	] {
+	for (src_rel, dst_rel) in [("pam.d", "pam.d"), ("sudoers.d", "sudoers.d"), ("default", "default")] {
 		copy_tree_excluding_dotgit(&auth_src.join(src_rel), &etc_dst.join(dst_rel))?;
 	}
 
-	for (src_rel, dst_rel) in [
-		("login.defs", "login.defs"),
-		("sudoers", "sudoers"),
-	] {
-		fs::copy(auth_src.join(src_rel), etc_dst.join(dst_rel)).with_context(|| {
-			format!(
-				"failed to copy auth config {} to {}",
-				auth_src.join(src_rel).display(),
-				etc_dst.join(dst_rel).display()
-			)
-		})?;
+	for (src_rel, dst_rel) in [("login.defs", "login.defs"), ("sudoers", "sudoers")] {
+		fs::copy(auth_src.join(src_rel), etc_dst.join(dst_rel)).with_context(|| format!("failed to copy auth config {} to {}", auth_src.join(src_rel).display(), etc_dst.join(dst_rel).display()))?;
 	}
 
 	Ok(())
@@ -4273,10 +3244,7 @@ fn copy_auth_configuration(repo_root: &Path, rootfs: &Path) -> Result<()> {
 fn apply_live_profile(repo_root: &Path, rootfs: &Path) -> Result<()> {
 	let live_src = repo_root.join("src/system/profiles/live");
 	if !live_src.exists() {
-		bail!(
-			"MattOS live profile missing at {}; expected live profile overlay",
-			live_src.display()
-		);
+		bail!("MattOS live profile missing at {}; expected live profile overlay", live_src.display());
 	}
 	copy_tree_excluding_dotgit(&live_src, rootfs)?;
 
@@ -4289,11 +3257,7 @@ fn apply_live_profile(repo_root: &Path, rootfs: &Path) -> Result<()> {
 }
 
 fn install_linux_pam_runtime(pam_install: &Path, rootfs: &Path) -> Result<()> {
-	for rel in [
-		"usr/lib/x86_64-linux-gnu/libpam.so.0",
-		"usr/lib/x86_64-linux-gnu/libpam_misc.so.0",
-		"usr/sbin/unix_chkpwd",
-	] {
+	for rel in ["usr/lib/x86_64-linux-gnu/libpam.so.0", "usr/lib/x86_64-linux-gnu/libpam_misc.so.0", "usr/sbin/unix_chkpwd"] {
 		copy_built_binary_and_runtime(&pam_install.join(rel), &rootfs.join(rel), rootfs)?;
 	}
 
@@ -4306,10 +3270,7 @@ fn install_linux_pam_runtime(pam_install: &Path, rootfs: &Path) -> Result<()> {
 }
 
 fn verify_required_pam_modules(rootfs: &Path) -> Result<()> {
-	let security_dirs = [
-		rootfs.join("usr/lib/x86_64-linux-gnu/security"),
-		rootfs.join("usr/lib/security"),
-	];
+	let security_dirs = [rootfs.join("usr/lib/x86_64-linux-gnu/security"), rootfs.join("usr/lib/security")];
 	for module in REQUIRED_PAM_MODULES {
 		let mut found = false;
 		for dir in &security_dirs {
@@ -4327,17 +3288,9 @@ fn verify_required_pam_modules(rootfs: &Path) -> Result<()> {
 }
 
 fn enforce_auth_file_modes(rootfs: &Path) -> Result<()> {
-	for (rel, mode) in [
-		("etc/shadow", 0o600),
-		("etc/gshadow", 0o600),
-		("etc/passwd", 0o644),
-		("etc/group", 0o644),
-		("etc/sudoers", 0o440),
-		("usr/bin/login", 0o4755),
-		("usr/bin/su", 0o4755),
-		("usr/bin/passwd", 0o4755),
-		("usr/bin/sudo", 0o4755),
-	] {
+	for (rel, mode) in
+		[("etc/shadow", 0o600), ("etc/gshadow", 0o600), ("etc/passwd", 0o644), ("etc/group", 0o644), ("etc/sudoers", 0o440), ("usr/bin/login", 0o4755), ("usr/bin/su", 0o4755), ("usr/bin/passwd", 0o4755), ("usr/bin/sudo", 0o4755)]
+	{
 		let path = rootfs.join(rel);
 		if !path.exists() {
 			bail!("expected auth file missing at {}", path.display());
@@ -4389,29 +3342,16 @@ fn validate_auth_file_modes(rootfs: &Path) -> Result<()> {
 		("home/mattos", 0o750),
 	] {
 		let path = rootfs.join(rel);
-		let actual_mode = fs::metadata(&path)
-			.with_context(|| format!("failed to stat security-sensitive path {}", path.display()))?
-			.permissions()
-			.mode()
-			& 0o7777;
+		let actual_mode = fs::metadata(&path).with_context(|| format!("failed to stat security-sensitive path {}", path.display()))?.permissions().mode() & 0o7777;
 		if actual_mode != expected_mode {
-			bail!(
-				"unsafe mode {:04o} on {}; expected {:04o}",
-				actual_mode,
-				path.display(),
-				expected_mode
-			);
+			bail!("unsafe mode {:04o} on {}; expected {:04o}", actual_mode, path.display(), expected_mode);
 		}
 	}
 
 	for rel in ["etc/sudoers.d/00-mattos-live", "etc/sudoers.d/README"] {
 		let path = rootfs.join(rel);
 		if path.exists() {
-			let actual_mode = fs::metadata(&path)
-				.with_context(|| format!("failed to stat {}", path.display()))?
-				.permissions()
-				.mode()
-				& 0o7777;
+			let actual_mode = fs::metadata(&path).with_context(|| format!("failed to stat {}", path.display()))?.permissions().mode() & 0o7777;
 			if actual_mode != 0o440 {
 				bail!("unsafe mode {:04o} on {}; expected 0440", actual_mode, path.display());
 			}
@@ -4438,10 +3378,8 @@ fn validate_account_database(rootfs: &Path) -> Result<()> {
 		}
 	}
 
-	let passwd_body = fs::read_to_string(&passwd_path)
-		.with_context(|| format!("failed to read {}", passwd_path.display()))?;
-	let group_body = fs::read_to_string(&group_path)
-		.with_context(|| format!("failed to read {}", group_path.display()))?;
+	let passwd_body = fs::read_to_string(&passwd_path).with_context(|| format!("failed to read {}", passwd_path.display()))?;
+	let group_body = fs::read_to_string(&group_path).with_context(|| format!("failed to read {}", group_path.display()))?;
 
 	if passwd_body.contains("matt-alienware") || passwd_body.contains("matt:") {
 		bail!("passwd file appears to contain host developer username leakage")
@@ -4461,12 +3399,8 @@ fn validate_account_database(rootfs: &Path) -> Result<()> {
 			bail!("invalid passwd entry format: {line}");
 		}
 		let user = parts[0];
-		let uid = parts[2]
-			.parse::<u32>()
-			.with_context(|| format!("invalid uid in passwd entry: {line}"))?;
-		let gid = parts[3]
-			.parse::<u32>()
-			.with_context(|| format!("invalid gid in passwd entry: {line}"))?;
+		let uid = parts[2].parse::<u32>().with_context(|| format!("invalid uid in passwd entry: {line}"))?;
+		let gid = parts[3].parse::<u32>().with_context(|| format!("invalid gid in passwd entry: {line}"))?;
 
 		if !seen_uids.insert(uid) {
 			bail!("duplicate uid detected in passwd: {uid}")
@@ -4504,9 +3438,7 @@ fn validate_account_database(rootfs: &Path) -> Result<()> {
 			bail!("invalid group entry format: {line}");
 		}
 		let name = parts[0];
-		let gid = parts[2]
-			.parse::<u32>()
-			.with_context(|| format!("invalid gid in group entry: {line}"))?;
+		let gid = parts[2].parse::<u32>().with_context(|| format!("invalid gid in group entry: {line}"))?;
 		if !seen_gids.insert(gid) {
 			bail!("duplicate gid detected in group: {gid}")
 		}
@@ -4529,8 +3461,7 @@ fn set_mode(path: PathBuf, mode: u32) -> Result<()> {
 	#[cfg(unix)]
 	{
 		let perms = std::os::unix::fs::PermissionsExt::from_mode(mode);
-		fs::set_permissions(&path, perms)
-			.with_context(|| format!("failed to set mode {:o} on {}", mode, path.display()))?;
+		fs::set_permissions(&path, perms).with_context(|| format!("failed to set mode {:o} on {}", mode, path.display()))?;
 	}
 	#[cfg(not(unix))]
 	{
@@ -4571,69 +3502,19 @@ fn copy_systemd_runtime_dependencies(rootfs: &Path) -> Result<()> {
 	Ok(())
 }
 
-#[cfg(unix)]
-fn create_coreutils_symlinks(rootfs: &Path, applets: &[String]) -> Result<()> {
-	use std::os::unix::fs::symlink;
-
-	let bin = rootfs.join("bin");
-	let usr_bin = rootfs.join("usr/bin");
-	fs::create_dir_all(&usr_bin)
-		.with_context(|| format!("failed to create {}", usr_bin.display()))?;
-	for applet in applets {
-		let link = bin.join(applet);
-		if path_entry_exists(&link) {
-			fs::remove_file(&link)
-				.with_context(|| format!("failed to remove existing symlink {}", link.display()))?;
-		}
-		symlink("/bin/coreutils", &link)
-			.with_context(|| format!("failed to create symlink {}", link.display()))?;
-
-		let usr_link = usr_bin.join(applet);
-		if path_entry_exists(&usr_link) {
-			fs::remove_file(&usr_link)
-				.with_context(|| format!("failed to remove existing symlink {}", usr_link.display()))?;
-		}
-		symlink("/bin/coreutils", &usr_link)
-			.with_context(|| format!("failed to create symlink {}", usr_link.display()))?;
-	}
-	Ok(())
-}
-
-#[cfg(not(unix))]
-fn create_coreutils_symlinks(_rootfs: &Path, _applets: &[String]) -> Result<()> {
-	println!("warning: coreutils symlink generation skipped on non-Unix host");
-	Ok(())
-}
-
 fn resolve_coreutils_multicall(repo_root: &Path) -> Result<PathBuf> {
-	let candidates = [
-		repo_root.join("src/userland/coreutils/target/release/coreutils"),
-		repo_root.join("src/userland/coreutils/target/release/uutils"),
-	];
-	candidates
-		.iter()
-		.find(|p| p.exists())
-		.cloned()
-		.ok_or_else(|| anyhow!("coreutils multicall binary not found; run build coreutils first"))
+	let candidates = [repo_root.join("src/userland/coreutils/target/release/coreutils"), repo_root.join("src/userland/coreutils/target/release/uutils")];
+	candidates.iter().find(|p| p.exists()).cloned().ok_or_else(|| anyhow!("coreutils multicall binary not found; run build coreutils first"))
 }
 
 fn list_coreutils_applets(coreutils_multicall: &Path) -> Result<Vec<String>> {
-	let output = Command::new(coreutils_multicall)
-		.arg("--list")
-		.output()
-		.with_context(|| format!("failed to run {} --list", coreutils_multicall.display()))?;
+	let output = Command::new(coreutils_multicall).arg("--list").output().with_context(|| format!("failed to run {} --list", coreutils_multicall.display()))?;
 	if !output.status.success() {
 		bail!("coreutils --list failed with status {}", output.status)
 	}
 
 	let raw = String::from_utf8(output.stdout).context("coreutils --list output was not UTF-8")?;
-	let mut applets: Vec<String> = raw
-		.lines()
-		.map(str::trim)
-		.filter(|line| !line.is_empty())
-		.filter(|line| !line.starts_with('<') && *line != "uutils")
-		.map(ToOwned::to_owned)
-		.collect();
+	let mut applets: Vec<String> = raw.lines().map(str::trim).filter(|line| !line.is_empty()).filter(|line| !line.starts_with('<') && *line != "uutils").map(ToOwned::to_owned).collect();
 	applets.sort();
 	applets.dedup();
 	if applets.is_empty() {
@@ -4645,20 +3526,14 @@ fn list_coreutils_applets(coreutils_multicall: &Path) -> Result<Vec<String>> {
 fn install_userland_binary(repo_root: &Path, rootfs: &Path, spec: &BinaryInstallSpec) -> Result<()> {
 	let source = repo_root.join(spec.source_rel);
 	if !source.exists() {
-		bail!(
-			"{} binary missing at {}; run the matching build stage first",
-			spec.command_name,
-			source.display()
-		)
+		bail!("{} binary missing at {}; run the matching build stage first", spec.command_name, source.display())
 	}
 
 	let dst = rootfs.join("usr/bin").join(spec.install_name);
 	if let Some(parent) = dst.parent() {
-		fs::create_dir_all(parent)
-			.with_context(|| format!("failed to create {}", parent.display()))?;
+		fs::create_dir_all(parent).with_context(|| format!("failed to create {}", parent.display()))?;
 	}
-	fs::copy(&source, &dst)
-		.with_context(|| format!("failed to copy {} into rootfs", source.display()))?;
+	fs::copy(&source, &dst).with_context(|| format!("failed to copy {} into rootfs", source.display()))?;
 	copy_runtime_dependencies(&dst, rootfs)?;
 	Ok(())
 }
@@ -4671,11 +3546,9 @@ fn create_command_aliases(rootfs: &Path, target_binary: &str, aliases: &[&str]) 
 	for alias in aliases {
 		let link = usr_bin.join(alias);
 		if path_entry_exists(&link) {
-			fs::remove_file(&link)
-				.with_context(|| format!("failed to remove existing alias {}", link.display()))?;
+			fs::remove_file(&link).with_context(|| format!("failed to remove existing alias {}", link.display()))?;
 		}
-		symlink(format!("/bin/{target_binary}"), &link)
-			.with_context(|| format!("failed to create alias {}", link.display()))?;
+		symlink(format!("/bin/{target_binary}"), &link).with_context(|| format!("failed to create alias {}", link.display()))?;
 	}
 	Ok(())
 }
@@ -4693,22 +3566,10 @@ fn validate_no_duplicate_commands(provider_commands: &BTreeMap<&str, Vec<String>
 		}
 	}
 
-	let duplicates: Vec<String> = owners
-		.iter()
-		.filter_map(|(cmd, providers)| {
-			if providers.len() > 1 {
-				Some(format!("{} [{}]", cmd, providers.join(", ")))
-			} else {
-				None
-			}
-		})
-		.collect();
+	let duplicates: Vec<String> = owners.iter().filter_map(|(cmd, providers)| if providers.len() > 1 { Some(format!("{} [{}]", cmd, providers.join(", "))) } else { None }).collect();
 
 	if !duplicates.is_empty() {
-		bail!(
-			"duplicate command ownership detected: {}",
-			duplicates.join("; ")
-		)
+		bail!("duplicate command ownership detected: {}", duplicates.join("; "))
 	}
 
 	Ok(())
@@ -4721,8 +3582,7 @@ fn path_entry_exists(path: &Path) -> bool {
 fn write_userland_inventory(rootfs: &Path, inventory: &UserlandInventory) -> Result<()> {
 	let path = rootfs.join(USERLAND_INVENTORY_PATH);
 	if let Some(parent) = path.parent() {
-		fs::create_dir_all(parent)
-			.with_context(|| format!("failed to create {}", parent.display()))?;
+		fs::create_dir_all(parent).with_context(|| format!("failed to create {}", parent.display()))?;
 	}
 
 	let mut lines = Vec::new();
@@ -4754,8 +3614,7 @@ fn write_userland_inventory(rootfs: &Path, inventory: &UserlandInventory) -> Res
 		lines.push(entry.clone());
 	}
 
-	fs::write(&path, lines.join("\n") + "\n")
-		.with_context(|| format!("failed to write {}", path.display()))
+	fs::write(&path, lines.join("\n") + "\n").with_context(|| format!("failed to write {}", path.display()))
 }
 
 fn build_initramfs(repo_root: &Path) -> Result<()> {
@@ -4767,15 +3626,9 @@ fn build_initramfs(repo_root: &Path) -> Result<()> {
 	let out_build = repo_root.join("out/build");
 	fs::create_dir_all(&out_build).context("failed to create out/build directory")?;
 	validate_initramfs_archive_owner(INITRAMFS_ARCHIVE_OWNER)?;
-	let archive_command = format!(
-		"find . -print0 | cpio --null -ov --owner={INITRAMFS_ARCHIVE_OWNER} --format=newc | gzip -9 > ../initramfs.cpio.gz"
-	);
+	let archive_command = format!("find . -print0 | cpio --null -ov --owner={INITRAMFS_ARCHIVE_OWNER} --format=newc | gzip -9 > ../initramfs.cpio.gz");
 
-	run_cmd(
-		&rootfs,
-		"bash",
-		&["-lc", &archive_command],
-	)
+	run_cmd(&rootfs, "bash", &["-lc", &archive_command])
 }
 
 fn validate_initramfs_archive_owner(owner: &str) -> Result<()> {
@@ -4790,10 +3643,7 @@ fn build_iso(repo_root: &Path) -> Result<()> {
 
 	let kernel = repo_root.join("src/kernel/linux/arch/x86/boot/bzImage");
 	if !kernel.exists() {
-		bail!(
-			"kernel image missing at {}; build kernel first",
-			kernel.display()
-		);
+		bail!("kernel image missing at {}; build kernel first", kernel.display());
 	}
 
 	let initramfs = repo_root.join("out/build/initramfs.cpio.gz");
@@ -4803,62 +3653,38 @@ fn build_iso(repo_root: &Path) -> Result<()> {
 
 	let iso_root = repo_root.join("out/build/iso");
 	if iso_root.exists() {
-		fs::remove_dir_all(&iso_root)
-			.with_context(|| format!("failed to clean {}", iso_root.display()))?;
+		fs::remove_dir_all(&iso_root).with_context(|| format!("failed to clean {}", iso_root.display()))?;
 	}
 	let grub_dir = iso_root.join("boot/grub");
 	fs::create_dir_all(&grub_dir).context("failed to create ISO directory layout")?;
 
 	fs::copy(&kernel, iso_root.join("boot/vmlinuz")).context("failed to stage kernel into ISO tree")?;
-	fs::copy(&initramfs, iso_root.join("boot/initramfs.cpio.gz"))
-		.context("failed to stage initramfs into ISO tree")?;
+	fs::copy(&initramfs, iso_root.join("boot/initramfs.cpio.gz")).context("failed to stage initramfs into ISO tree")?;
 	let staged_grub_cfg = grub_dir.join("grub.cfg");
 	fs::copy(&grub_src, &staged_grub_cfg).context("failed to copy grub config")?;
 	validate_staged_grub_config(&staged_grub_cfg)?;
 
-	let src_grub_text = fs::read_to_string(&grub_src)
-		.with_context(|| format!("failed to read {}", grub_src.display()))?;
-	let staged_grub_text = fs::read_to_string(&staged_grub_cfg)
-		.with_context(|| format!("failed to read {}", staged_grub_cfg.display()))?;
+	let src_grub_text = fs::read_to_string(&grub_src).with_context(|| format!("failed to read {}", grub_src.display()))?;
+	let staged_grub_text = fs::read_to_string(&staged_grub_cfg).with_context(|| format!("failed to read {}", staged_grub_cfg.display()))?;
 	if src_grub_text != staged_grub_text {
-		bail!(
-			"staged GRUB config at {} differs from authoritative source {}",
-			staged_grub_cfg.display(),
-			grub_src.display()
-		);
+		bail!("staged GRUB config at {} differs from authoritative source {}", staged_grub_cfg.display(), grub_src.display());
 	}
 
 	let out_images = repo_root.join("out/images");
 	fs::create_dir_all(&out_images).context("failed to create out/images")?;
-	run_cmd(
-		repo_root,
-		"grub-mkrescue",
-		&[
-			"-o",
-			"out/images/mattos-x86_64.iso",
-			"out/build/iso",
-		],
-	)
+	run_cmd(repo_root, "grub-mkrescue", &["-o", "out/images/mattos-x86_64.iso", "out/build/iso"])
 }
 
 fn validate_grub_config_source(repo_root: &Path) -> Result<PathBuf> {
 	let authoritative = repo_root.join(AUTHORITATIVE_GRUB_CFG);
 	if !authoritative.exists() {
-		bail!(
-			"authoritative GRUB config missing at {}; expected single source at {}",
-			authoritative.display(),
-			AUTHORITATIVE_GRUB_CFG
-		);
+		bail!("authoritative GRUB config missing at {}; expected single source at {}", authoritative.display(), AUTHORITATIVE_GRUB_CFG);
 	}
 
 	for obsolete in OBSOLETE_GRUB_CFG_PATHS {
 		let obsolete_path = repo_root.join(obsolete);
 		if obsolete_path.exists() {
-			bail!(
-				"obsolete GRUB config path detected at {}; remove stale duplicate and keep only {}",
-				obsolete_path.display(),
-				AUTHORITATIVE_GRUB_CFG
-			);
+			bail!("obsolete GRUB config path detected at {}; remove stale duplicate and keep only {}", obsolete_path.display(), AUTHORITATIVE_GRUB_CFG);
 		}
 	}
 
@@ -4866,21 +3692,11 @@ fn validate_grub_config_source(repo_root: &Path) -> Result<PathBuf> {
 }
 
 fn validate_staged_grub_config(path: &Path) -> Result<()> {
-	let content = fs::read_to_string(path)
-		.with_context(|| format!("failed to read staged grub config {}", path.display()))?;
+	let content = fs::read_to_string(path).with_context(|| format!("failed to read staged grub config {}", path.display()))?;
 
-	for needle in [
-		GRUB_SYSTEMD_ENTRY,
-		GRUB_RESCUE_ENTRY,
-		GRUB_SYSTEMD_RDINIT,
-		GRUB_RESCUE_RDINIT,
-	] {
+	for needle in [GRUB_SYSTEMD_ENTRY, GRUB_RESCUE_ENTRY, GRUB_SYSTEMD_RDINIT, GRUB_RESCUE_RDINIT] {
 		if !content.contains(needle) {
-			bail!(
-				"staged GRUB config {} is missing required marker: {}",
-				path.display(),
-				needle
-			);
+			bail!("staged GRUB config {} is missing required marker: {}", path.display(), needle);
 		}
 	}
 
@@ -4896,38 +3712,19 @@ fn run_qemu(repo_root: &Path) -> Result<()> {
 	fs::create_dir_all(&logs).context("failed to create out/logs")?;
 	let log_path = logs.join("qemu-boot.log");
 	let serial_log_path = logs.join("qemu-serial.log");
-	let serial_arg = format!(
-		"file:{}",
-		serial_log_path
-			.to_str()
-			.ok_or_else(|| anyhow!("invalid qemu serial log path"))?
-	);
+	let serial_arg = format!("file:{}", serial_log_path.to_str().ok_or_else(|| anyhow!("invalid qemu serial log path"))?);
 
 	run_cmd(
 		repo_root,
 		"qemu-system-x86_64",
-		&[
-			"-m",
-			"1024",
-			"-cdrom",
-			iso.to_str().ok_or_else(|| anyhow!("invalid ISO path"))?,
-			"-boot",
-			"d",
-			"-serial",
-			serial_arg.as_str(),
-			"-D",
-			log_path
-				.to_str()
-				.ok_or_else(|| anyhow!("invalid qemu log path"))?,
-		],
+		&["-m", "1024", "-cdrom", iso.to_str().ok_or_else(|| anyhow!("invalid ISO path"))?, "-boot", "d", "-serial", serial_arg.as_str(), "-D", log_path.to_str().ok_or_else(|| anyhow!("invalid qemu log path"))?],
 	)
 }
 
 fn copy_runtime_dependencies(binary: &Path, rootfs: &Path) -> Result<()> {
-	let binary_str = binary
-		.to_str()
-		.ok_or_else(|| anyhow!("invalid binary path {}", binary.display()))?;
-	let output = run_cmd_output(Path::new("/"), "ldd", &[binary_str])?;
+	let library_path = std::env::join_paths([rootfs.join("usr/lib/x86_64-linux-gnu"), rootfs.join("usr/lib/x86_64-linux-gnu/systemd"), rootfs.join("lib/x86_64-linux-gnu"), rootfs.join("usr/lib"), rootfs.join("lib")])
+		.context("failed to construct rootfs runtime library path")?;
+	let output = Command::new("ldd").arg(binary).env("LD_LIBRARY_PATH", library_path).output().with_context(|| format!("failed to inspect runtime dependencies for {}", binary.display()))?;
 	if !output.status.success() {
 		return Ok(());
 	}
@@ -4941,14 +3738,18 @@ fn copy_runtime_dependencies(binary: &Path, rootfs: &Path) -> Result<()> {
 		if !src.exists() {
 			continue;
 		}
+		if src.starts_with(rootfs) {
+			continue;
+		}
 		let rel = src.strip_prefix("/").unwrap_or(src);
 		let dst = rootfs.join(rel);
-		if let Some(parent) = dst.parent() {
-			fs::create_dir_all(parent)
-				.with_context(|| format!("failed to create {}", parent.display()))?;
+		if dst.exists() {
+			continue;
 		}
-		fs::copy(src, &dst)
-			.with_context(|| format!("failed to copy runtime dependency {}", src.display()))?;
+		if let Some(parent) = dst.parent() {
+			fs::create_dir_all(parent).with_context(|| format!("failed to create {}", parent.display()))?;
+		}
+		fs::copy(src, &dst).with_context(|| format!("failed to copy runtime dependency {}", src.display()))?;
 	}
 
 	Ok(())
@@ -4963,11 +3764,9 @@ fn copy_host_binary_and_deps(path: &str, rootfs: &Path) -> Result<()> {
 	let rel = src.strip_prefix("/").unwrap_or(src);
 	let dst = rootfs.join(rel);
 	if let Some(parent) = dst.parent() {
-		fs::create_dir_all(parent)
-			.with_context(|| format!("failed to create {}", parent.display()))?;
+		fs::create_dir_all(parent).with_context(|| format!("failed to create {}", parent.display()))?;
 	}
-	fs::copy(src, &dst)
-		.with_context(|| format!("failed to copy host binary {}", src.display()))?;
+	fs::copy(src, &dst).with_context(|| format!("failed to copy host binary {}", src.display()))?;
 	copy_runtime_dependencies(src, rootfs)?;
 	Ok(())
 }
@@ -4977,11 +3776,9 @@ fn copy_shared_object_and_deps(soname: &str, rootfs: &Path) -> Result<()> {
 	let rel = src.strip_prefix("/").unwrap_or(src.as_path());
 	let dst = rootfs.join(rel);
 	if let Some(parent) = dst.parent() {
-		fs::create_dir_all(parent)
-			.with_context(|| format!("failed to create {}", parent.display()))?;
+		fs::create_dir_all(parent).with_context(|| format!("failed to create {}", parent.display()))?;
 	}
-	fs::copy(&src, &dst)
-		.with_context(|| format!("failed to copy runtime dependency {}", src.display()))?;
+	fs::copy(&src, &dst).with_context(|| format!("failed to copy runtime dependency {}", src.display()))?;
 	copy_runtime_dependencies(&src, rootfs)?;
 	Ok(())
 }
@@ -5016,27 +3813,14 @@ fn resolve_shared_object_path(soname: &str) -> Result<PathBuf> {
 fn run_cmd(cwd: &Path, program: &str, args: &[&str]) -> Result<()> {
 	println!("> {} {}", program, args.join(" "));
 	let status = run_cmd_status(cwd, program, args)?;
-	if status.success() {
-		Ok(())
-	} else {
-		bail!("command failed with status {status}: {} {}", program, args.join(" "))
-	}
+	if status.success() { Ok(()) } else { bail!("command failed with status {status}: {} {}", program, args.join(" ")) }
 }
 
 fn run_cmd_status(cwd: &Path, program: &str, args: &[&str]) -> Result<std::process::ExitStatus> {
-	Command::new(program)
-		.args(args)
-		.current_dir(cwd)
-		.status()
-		.with_context(|| format!("failed to spawn command: {program}"))
+	Command::new(program).args(args).current_dir(cwd).status().with_context(|| format!("failed to spawn command: {program}"))
 }
 
-fn run_cmd_with_env(
-	cwd: &Path,
-	program: &str,
-	args: &[&str],
-	tool_env: Option<&LocalToolEnv>,
-) -> Result<()> {
+fn run_cmd_with_env(cwd: &Path, program: &str, args: &[&str], tool_env: Option<&LocalToolEnv>) -> Result<()> {
 	println!("> {} {}", program, args.join(" "));
 	let mut cmd = Command::new(program);
 	cmd.args(args).current_dir(cwd);
@@ -5045,11 +3829,7 @@ fn run_cmd_with_env(
 		let current_path = std::env::var("PATH").unwrap_or_default();
 		let composed_path = format!("{}:{}", env.tool_bin_dir.display(), current_path);
 		let current_ld = std::env::var("LD_LIBRARY_PATH").unwrap_or_default();
-		let composed_ld = if current_ld.is_empty() {
-			env.tool_lib_dir.display().to_string()
-		} else {
-			format!("{}:{current_ld}", env.tool_lib_dir.display())
-		};
+		let composed_ld = if current_ld.is_empty() { env.tool_lib_dir.display().to_string() } else { format!("{}:{current_ld}", env.tool_lib_dir.display()) };
 		let include = env.tool_include_dir.display().to_string();
 		let lib = env.tool_lib_dir.display().to_string();
 
@@ -5063,22 +3843,11 @@ fn run_cmd_with_env(
 			.env("HOSTLDFLAGS", format!("-L{lib}"));
 	}
 
-	let status = cmd
-		.status()
-		.with_context(|| format!("failed to spawn command: {program}"))?;
-	if status.success() {
-		Ok(())
-	} else {
-		bail!("command failed with status {status}: {} {}", program, args.join(" "))
-	}
+	let status = cmd.status().with_context(|| format!("failed to spawn command: {program}"))?;
+	if status.success() { Ok(()) } else { bail!("command failed with status {status}: {} {}", program, args.join(" ")) }
 }
 
-fn run_cmd_with_env_overrides(
-	cwd: &Path,
-	program: &str,
-	args: &[&str],
-	env_overrides: &[(&str, String)],
-) -> Result<()> {
+fn run_cmd_with_env_overrides(cwd: &Path, program: &str, args: &[&str], env_overrides: &[(&str, String)]) -> Result<()> {
 	println!("> {} {}", program, args.join(" "));
 	let mut cmd = Command::new(program);
 	cmd.args(args).current_dir(cwd);
@@ -5086,33 +3855,18 @@ fn run_cmd_with_env_overrides(
 		cmd.env(key, value);
 	}
 
-	let status = cmd
-		.status()
-		.with_context(|| format!("failed to spawn command: {program}"))?;
-	if status.success() {
-		Ok(())
-	} else {
-		bail!("command failed with status {status}: {} {}", program, args.join(" "))
-	}
+	let status = cmd.status().with_context(|| format!("failed to spawn command: {program}"))?;
+	if status.success() { Ok(()) } else { bail!("command failed with status {status}: {} {}", program, args.join(" ")) }
 }
 
 fn run_cmd_output(cwd: &Path, program: &str, args: &[&str]) -> Result<Output> {
-	Command::new(program)
-		.args(args)
-		.current_dir(cwd)
-		.output()
-		.with_context(|| format!("failed to spawn command: {program}"))
+	Command::new(program).args(args).current_dir(cwd).output().with_context(|| format!("failed to spawn command: {program}"))
 }
 
 fn run_cmd_capture(cwd: &Path, program: &str, args: &[&str]) -> Result<String> {
 	let output = run_cmd_output(cwd, program, args)?;
 	if !output.status.success() {
-		bail!(
-			"command failed with status {}: {} {}",
-			output.status,
-			program,
-			args.join(" ")
-		);
+		bail!("command failed with status {}: {} {}", output.status, program, args.join(" "));
 	}
 	let text = String::from_utf8(output.stdout).context("stdout was not valid UTF-8")?;
 	Ok(text)
@@ -5123,11 +3877,7 @@ mod tests {
 	use super::*;
 
 	fn run_ok(cwd: &Path, program: &str, args: &[&str]) {
-		let status = Command::new(program)
-			.args(args)
-			.current_dir(cwd)
-			.status()
-			.expect("spawn test command");
+		let status = Command::new(program).args(args).current_dir(cwd).status().expect("spawn test command");
 		assert!(status.success(), "command failed: {program} {}", args.join(" "));
 	}
 
@@ -5208,11 +3958,7 @@ mod tests {
 		let upstream_root = upstream.path();
 		run_ok(upstream_root, "git", &["init", "-b", "main"]);
 		run_ok(upstream_root, "git", &["config", "user.name", "Upstream User"]);
-		run_ok(
-			upstream_root,
-			"git",
-			&["config", "user.email", "upstream@example.invalid"],
-		);
+		run_ok(upstream_root, "git", &["config", "user.email", "upstream@example.invalid"]);
 		write(&upstream_root.join("README"), "base\n");
 		run_ok(upstream_root, "git", &["add", "."]);
 		run_ok(upstream_root, "git", &["commit", "-m", "base"]);
@@ -5226,13 +3972,7 @@ mod tests {
 		run_ok(root, "git", &["add", "."]);
 		run_ok(root, "git", &["commit", "-m", "init"]);
 
-		let comp = ComponentDef {
-			name: "linux".to_string(),
-			repo: upstream_root.to_string_lossy().to_string(),
-			branch: "main".to_string(),
-			path: "src/kernel/linux".to_string(),
-			sync: "copy".to_string(),
-		};
+		let comp = ComponentDef { name: "linux".to_string(), repo: upstream_root.to_string_lossy().to_string(), branch: "main".to_string(), path: "src/kernel/linux".to_string(), sync: "copy".to_string() };
 		import_component(root, &comp, false).expect("initial import");
 		run_ok(root, "git", &["add", "."]);
 		run_ok(root, "git", &["commit", "-m", "import"]);
@@ -5264,13 +4004,7 @@ mod tests {
 		run_ok(root, "git", &["add", "."]);
 		run_ok(root, "git", &["commit", "-m", "init"]);
 
-		write(
-			&root.join("upstream/sources.toml"),
-			&format!(
-				"[[component]]\nname='grep'\nrepo='{}'\nbranch='main'\npath='src/userland/grep'\nsync='copy'\n",
-				grep_upstream.path().display()
-			),
-		);
+		write(&root.join("upstream/sources.toml"), &format!("[[component]]\nname='grep'\nrepo='{}'\nbranch='main'\npath='src/userland/grep'\nsync='copy'\n", grep_upstream.path().display()));
 		write(&root.join("docs/dirty-note.md"), "unrelated dirty file\n");
 
 		import_sources(root, false, Some("grep".to_string()), false).expect("import should succeed");
@@ -5314,13 +4048,7 @@ mod tests {
 		run_ok(root, "git", &["add", "."]);
 		run_ok(root, "git", &["commit", "-m", "init"]);
 
-		let comp = ComponentDef {
-			name: "grep".to_string(),
-			repo: upstream.path().to_string_lossy().to_string(),
-			branch: "main".to_string(),
-			path: "src/userland/grep".to_string(),
-			sync: "copy".to_string(),
-		};
+		let comp = ComponentDef { name: "grep".to_string(), repo: upstream.path().to_string_lossy().to_string(), branch: "main".to_string(), path: "src/userland/grep".to_string(), sync: "copy".to_string() };
 
 		write(&root.join("src/userland/grep/not-placeholder.txt"), "data\n");
 		let result = import_component(root, &comp, false);
@@ -5344,21 +4072,12 @@ mod tests {
 		run_ok(root, "git", &["add", "."]);
 		run_ok(root, "git", &["commit", "-m", "init"]);
 
-		let comp = ComponentDef {
-			name: "grep".to_string(),
-			repo: upstream_root.to_string_lossy().to_string(),
-			branch: "main".to_string(),
-			path: "src/userland/grep".to_string(),
-			sync: "copy".to_string(),
-		};
+		let comp = ComponentDef { name: "grep".to_string(), repo: upstream_root.to_string_lossy().to_string(), branch: "main".to_string(), path: "src/userland/grep".to_string(), sync: "copy".to_string() };
 
 		import_component(root, &comp, false).expect("initial import");
 		run_ok(root, "git", &["add", "."]);
 		run_ok(root, "git", &["commit", "-m", "import"]);
-		let before = read_sync_state(root, "grep")
-			.expect("read state")
-			.expect("present")
-			.imported_commit;
+		let before = read_sync_state(root, "grep").expect("read state").expect("present").imported_commit;
 
 		write(&root.join("src/userland/grep/README"), "local\n");
 		run_ok(root, "git", &["add", "src/userland/grep/README"]);
@@ -5370,10 +4089,7 @@ mod tests {
 
 		let result = import_component(root, &comp, true);
 		assert!(result.is_err());
-		let after = read_sync_state(root, "grep")
-			.expect("read state")
-			.expect("present")
-			.imported_commit;
+		let after = read_sync_state(root, "grep").expect("read state").expect("present").imported_commit;
 		assert_eq!(before, after);
 	}
 
@@ -5393,13 +4109,7 @@ mod tests {
 		run_ok(root, "git", &["add", "."]);
 		run_ok(root, "git", &["commit", "-m", "init"]);
 
-		let comp = ComponentDef {
-			name: "grep".to_string(),
-			repo: upstream_root.to_string_lossy().to_string(),
-			branch: "main".to_string(),
-			path: "src/userland/grep".to_string(),
-			sync: "copy".to_string(),
-		};
+		let comp = ComponentDef { name: "grep".to_string(), repo: upstream_root.to_string_lossy().to_string(), branch: "main".to_string(), path: "src/userland/grep".to_string(), sync: "copy".to_string() };
 
 		import_component(root, &comp, false).expect("initial import");
 		run_ok(root, "git", &["add", "."]);
@@ -5412,14 +4122,8 @@ mod tests {
 		write(&root.join("src/userland/grep/local-only.txt"), "local edit\n");
 		import_component(root, &comp, true).expect("update should include local edits");
 
-		assert_eq!(
-			fs::read_to_string(root.join("src/userland/grep/local-only.txt")).expect("read local file"),
-			"local edit\n"
-		);
-		assert_eq!(
-			fs::read_to_string(root.join("src/userland/grep/NEWS")).expect("read upstream news"),
-			"upstream change\n"
-		);
+		assert_eq!(fs::read_to_string(root.join("src/userland/grep/local-only.txt")).expect("read local file"), "local edit\n");
+		assert_eq!(fs::read_to_string(root.join("src/userland/grep/NEWS")).expect("read upstream news"), "upstream change\n");
 	}
 
 	#[test]
@@ -5450,13 +4154,7 @@ mod tests {
 
 	#[test]
 	fn source_selection_requires_flag() {
-		let components = vec![ComponentDef {
-			name: "linux".to_string(),
-			repo: "x".to_string(),
-			branch: "main".to_string(),
-			path: "src/kernel/linux".to_string(),
-			sync: "copy".to_string(),
-		}];
+		let components = vec![ComponentDef { name: "linux".to_string(), repo: "x".to_string(), branch: "main".to_string(), path: "src/kernel/linux".to_string(), sync: "copy".to_string() }];
 		let result = select_components(&components, false, None);
 		assert!(result.is_err());
 	}
@@ -5501,23 +4199,10 @@ mod tests {
 	#[test]
 	fn source_selection_by_component() {
 		let components = vec![
-			ComponentDef {
-				name: "linux".to_string(),
-				repo: "x".to_string(),
-				branch: "main".to_string(),
-				path: "src/kernel/linux".to_string(),
-				sync: "copy".to_string(),
-			},
-			ComponentDef {
-				name: "brush".to_string(),
-				repo: "y".to_string(),
-				branch: "main".to_string(),
-				path: "src/userland/brush".to_string(),
-				sync: "copy".to_string(),
-			},
+			ComponentDef { name: "linux".to_string(), repo: "x".to_string(), branch: "main".to_string(), path: "src/kernel/linux".to_string(), sync: "copy".to_string() },
+			ComponentDef { name: "brush".to_string(), repo: "y".to_string(), branch: "main".to_string(), path: "src/userland/brush".to_string(), sync: "copy".to_string() },
 		];
-		let selected = select_components(&components, false, Some("brush".to_string()))
-			.expect("select component");
+		let selected = select_components(&components, false, Some("brush".to_string())).expect("select component");
 		assert_eq!(selected.len(), 1);
 		assert_eq!(selected[0].name, "brush");
 	}
@@ -5525,11 +4210,7 @@ mod tests {
 	#[test]
 	fn path_safety_rejects_absolute() {
 		let root = std::env::temp_dir().join("mattos-path-absolute");
-		let absolute = if cfg!(windows) {
-			"C:/absolute/path"
-		} else {
-			"/absolute/path"
-		};
+		let absolute = if cfg!(windows) { "C:/absolute/path" } else { "/absolute/path" };
 		assert!(resolve_component_destination(&root, absolute).is_err());
 	}
 
@@ -5542,31 +4223,15 @@ mod tests {
 	fn run_cmd_capture_reads_stdout() {
 		let tmp = tempfile::tempdir().expect("tempdir");
 		let root = tmp.path();
-		let text = if cfg!(windows) {
-			run_cmd_capture(root, "cmd", &["/C", "echo", "hello"]).expect("capture")
-		} else {
-			run_cmd_capture(root, "sh", &["-c", "echo hello"]).expect("capture")
-		};
+		let text = if cfg!(windows) { run_cmd_capture(root, "cmd", &["/C", "echo", "hello"]).expect("capture") } else { run_cmd_capture(root, "sh", &["-c", "echo hello"]).expect("capture") };
 		assert!(text.to_ascii_lowercase().contains("hello"));
 	}
 
 	#[test]
 	fn selected_all_returns_everything() {
 		let components = vec![
-			ComponentDef {
-				name: "linux".to_string(),
-				repo: "x".to_string(),
-				branch: "main".to_string(),
-				path: "src/kernel/linux".to_string(),
-				sync: "copy".to_string(),
-			},
-			ComponentDef {
-				name: "brush".to_string(),
-				repo: "y".to_string(),
-				branch: "main".to_string(),
-				path: "src/userland/brush".to_string(),
-				sync: "copy".to_string(),
-			},
+			ComponentDef { name: "linux".to_string(), repo: "x".to_string(), branch: "main".to_string(), path: "src/kernel/linux".to_string(), sync: "copy".to_string() },
+			ComponentDef { name: "brush".to_string(), repo: "y".to_string(), branch: "main".to_string(), path: "src/userland/brush".to_string(), sync: "copy".to_string() },
 		];
 		let selected = select_components(&components, true, None).expect("select all");
 		assert_eq!(selected.len(), 2);
@@ -5593,15 +4258,8 @@ mod tests {
 
 	#[test]
 	fn no_duplicate_component_names_required_for_selection_logic() {
-		let components = vec![ComponentDef {
-			name: "linux".to_string(),
-			repo: "x".to_string(),
-			branch: "main".to_string(),
-			path: "src/kernel/linux".to_string(),
-			sync: "copy".to_string(),
-		}];
-		let selected = select_components(&components, false, Some("linux".to_string()))
-			.expect("select linux");
+		let components = vec![ComponentDef { name: "linux".to_string(), repo: "x".to_string(), branch: "main".to_string(), path: "src/kernel/linux".to_string(), sync: "copy".to_string() }];
+		let selected = select_components(&components, false, Some("linux".to_string())).expect("select linux");
 		assert_eq!(selected[0].path, "src/kernel/linux");
 	}
 
@@ -5609,10 +4267,7 @@ mod tests {
 	fn read_sources_parses_components() {
 		let tmp = tempfile::tempdir().expect("tempdir");
 		let root = tmp.path();
-		write(
-			&root.join("upstream/sources.toml"),
-			"[[component]]\nname='linux'\nrepo='https://example.invalid/linux.git'\nbranch='main'\npath='src/kernel/linux'\nsync='copy'\n",
-		);
+		write(&root.join("upstream/sources.toml"), "[[component]]\nname='linux'\nrepo='https://example.invalid/linux.git'\nbranch='main'\npath='src/kernel/linux'\nsync='copy'\n");
 		let sources = read_sources(root).expect("read sources");
 		assert_eq!(sources.component.len(), 1);
 		assert_eq!(sources.component[0].name, "linux");
@@ -5631,10 +4286,7 @@ mod tests {
 	fn grub_source_validation_rejects_obsolete_duplicate_path() {
 		let tmp = tempfile::tempdir().expect("tempdir");
 		let root = tmp.path();
-		write(
-			&root.join(AUTHORITATIVE_GRUB_CFG),
-			"menuentry \"MattOS (systemd)\" {}\nmenuentry \"MattOS (rescue init)\" {}\n",
-		);
+		write(&root.join(AUTHORITATIVE_GRUB_CFG), "menuentry \"MattOS (systemd)\" {}\nmenuentry \"MattOS (rescue init)\" {}\n");
 		write(&root.join(OBSOLETE_GRUB_CFG_PATHS[0]), "legacy duplicate\n");
 
 		let result = validate_grub_config_source(root);
@@ -5647,10 +4299,7 @@ mod tests {
 	fn grub_source_validation_accepts_single_authoritative_path() {
 		let tmp = tempfile::tempdir().expect("tempdir");
 		let root = tmp.path();
-		write(
-			&root.join(AUTHORITATIVE_GRUB_CFG),
-			"menuentry \"MattOS (systemd)\" {}\nmenuentry \"MattOS (rescue init)\" {}\n",
-		);
+		write(&root.join(AUTHORITATIVE_GRUB_CFG), "menuentry \"MattOS (systemd)\" {}\nmenuentry \"MattOS (rescue init)\" {}\n");
 
 		let source = validate_grub_config_source(root).expect("authoritative source should pass");
 		assert!(source.ends_with(AUTHORITATIVE_GRUB_CFG));
@@ -5660,10 +4309,7 @@ mod tests {
 	fn staged_grub_validation_requires_normal_and_rescue_entries() {
 		let tmp = tempfile::tempdir().expect("tempdir");
 		let path = tmp.path().join("grub.cfg");
-		write(
-			&path,
-			"set default=0\nmenuentry \"MattOS (systemd)\" { linux /boot/vmlinuz rdinit=/usr/lib/systemd/systemd }\n",
-		);
+		write(&path, "set default=0\nmenuentry \"MattOS (systemd)\" { linux /boot/vmlinuz rdinit=/usr/lib/systemd/systemd }\n");
 
 		let result = validate_staged_grub_config(&path);
 		assert!(result.is_err());
@@ -5675,10 +4321,7 @@ mod tests {
 	fn staged_grub_validation_accepts_required_markers() {
 		let tmp = tempfile::tempdir().expect("tempdir");
 		let path = tmp.path().join("grub.cfg");
-		write(
-			&path,
-			"menuentry \"MattOS (systemd)\" { linux /boot/vmlinuz rdinit=/usr/lib/systemd/systemd }\nmenuentry \"MattOS (rescue init)\" { linux /boot/vmlinuz rdinit=/usr/libexec/mattos/rescue-init }\n",
-		);
+		write(&path, "menuentry \"MattOS (systemd)\" { linux /boot/vmlinuz rdinit=/usr/lib/systemd/systemd }\nmenuentry \"MattOS (rescue init)\" { linux /boot/vmlinuz rdinit=/usr/libexec/mattos/rescue-init }\n");
 
 		validate_staged_grub_config(&path).expect("valid staged config should pass");
 	}
@@ -5707,13 +4350,7 @@ mod tests {
 
 	#[test]
 	fn source_selection_unknown_component_fails() {
-		let components = vec![ComponentDef {
-			name: "linux".to_string(),
-			repo: "x".to_string(),
-			branch: "main".to_string(),
-			path: "src/kernel/linux".to_string(),
-			sync: "copy".to_string(),
-		}];
+		let components = vec![ComponentDef { name: "linux".to_string(), repo: "x".to_string(), branch: "main".to_string(), path: "src/kernel/linux".to_string(), sync: "copy".to_string() }];
 		let result = select_components(&components, false, Some("missing".to_string()));
 		assert!(result.is_err());
 	}
@@ -5740,15 +4377,8 @@ mod tests {
 
 	#[test]
 	fn source_selection_all_ignores_component_flag() {
-		let components = vec![ComponentDef {
-			name: "linux".to_string(),
-			repo: "x".to_string(),
-			branch: "main".to_string(),
-			path: "src/kernel/linux".to_string(),
-			sync: "copy".to_string(),
-		}];
-		let selected = select_components(&components, true, Some("missing".to_string()))
-			.expect("select all");
+		let components = vec![ComponentDef { name: "linux".to_string(), repo: "x".to_string(), branch: "main".to_string(), path: "src/kernel/linux".to_string(), sync: "copy".to_string() }];
+		let selected = select_components(&components, true, Some("missing".to_string())).expect("select all");
 		assert_eq!(selected.len(), 1);
 	}
 
@@ -5759,10 +4389,7 @@ mod tests {
 		let dst = tmp.path().join("dst");
 		write(&src.join("dir/nested.txt"), "nested");
 		copy_tree_excluding_dotgit(&src, &dst).expect("copy");
-		assert_eq!(
-			fs::read_to_string(dst.join("dir/nested.txt")).expect("read nested"),
-			"nested"
-		);
+		assert_eq!(fs::read_to_string(dst.join("dir/nested.txt")).expect("read nested"), "nested");
 	}
 
 	#[test]
@@ -5814,10 +4441,7 @@ mod tests {
 	fn read_sources_parses_systemd_component() {
 		let tmp = tempfile::tempdir().expect("tempdir");
 		let root = tmp.path();
-		write(
-			&root.join("upstream/sources.toml"),
-			"[[component]]\nname='systemd'\nrepo='https://github.com/systemd/systemd.git'\nbranch='main'\npath='src/system/systemd'\nsync='copy'\n",
-		);
+		write(&root.join("upstream/sources.toml"), "[[component]]\nname='systemd'\nrepo='https://github.com/systemd/systemd.git'\nbranch='main'\npath='src/system/systemd'\nsync='copy'\n");
 		let sources = read_sources(root).expect("read sources");
 		assert_eq!(sources.component.len(), 1);
 		assert_eq!(sources.component[0].name, "systemd");
@@ -5838,11 +4462,7 @@ mod tests {
 		let upstream_root = upstream.path();
 		run_ok(upstream_root, "git", &["init", "-b", "main"]);
 		run_ok(upstream_root, "git", &["config", "user.name", "Upstream User"]);
-		run_ok(
-			upstream_root,
-			"git",
-			&["config", "user.email", "upstream@example.invalid"],
-		);
+		run_ok(upstream_root, "git", &["config", "user.email", "upstream@example.invalid"]);
 		write(&upstream_root.join("meson.build"), "project('systemd', 'c')\n");
 		run_ok(upstream_root, "git", &["add", "."]);
 		run_ok(upstream_root, "git", &["commit", "-m", "init"]);
@@ -5856,19 +4476,11 @@ mod tests {
 		run_ok(root, "git", &["add", "."]);
 		run_ok(root, "git", &["commit", "-m", "init"]);
 
-		let comp = ComponentDef {
-			name: "systemd".to_string(),
-			repo: upstream_root.to_string_lossy().to_string(),
-			branch: "main".to_string(),
-			path: "src/system/systemd".to_string(),
-			sync: "copy".to_string(),
-		};
+		let comp = ComponentDef { name: "systemd".to_string(), repo: upstream_root.to_string_lossy().to_string(), branch: "main".to_string(), path: "src/system/systemd".to_string(), sync: "copy".to_string() };
 		import_component(root, &comp, false).expect("initial import");
 		assert!(root.join("src/system/systemd/meson.build").exists());
 
-		let state = read_sync_state(root, "systemd")
-			.expect("read state")
-			.expect("state exists");
+		let state = read_sync_state(root, "systemd").expect("read state").expect("state exists");
 		assert_eq!(state.component, "systemd");
 		assert_eq!(state.repo, comp.repo);
 		assert_eq!(state.destination_path, "src/system/systemd");
@@ -5880,11 +4492,7 @@ mod tests {
 		let upstream_root = upstream.path();
 		run_ok(upstream_root, "git", &["init", "-b", "main"]);
 		run_ok(upstream_root, "git", &["config", "user.name", "Upstream User"]);
-		run_ok(
-			upstream_root,
-			"git",
-			&["config", "user.email", "upstream@example.invalid"],
-		);
+		run_ok(upstream_root, "git", &["config", "user.email", "upstream@example.invalid"]);
 		write(&upstream_root.join("meson.build"), "base\n");
 		run_ok(upstream_root, "git", &["add", "."]);
 		run_ok(upstream_root, "git", &["commit", "-m", "base"]);
@@ -5898,13 +4506,7 @@ mod tests {
 		run_ok(root, "git", &["add", "."]);
 		run_ok(root, "git", &["commit", "-m", "init"]);
 
-		let comp = ComponentDef {
-			name: "systemd".to_string(),
-			repo: upstream_root.to_string_lossy().to_string(),
-			branch: "main".to_string(),
-			path: "src/system/systemd".to_string(),
-			sync: "copy".to_string(),
-		};
+		let comp = ComponentDef { name: "systemd".to_string(), repo: upstream_root.to_string_lossy().to_string(), branch: "main".to_string(), path: "src/system/systemd".to_string(), sync: "copy".to_string() };
 		import_component(root, &comp, false).expect("initial import");
 		run_ok(root, "git", &["add", "."]);
 		run_ok(root, "git", &["commit", "-m", "import"]);
@@ -5928,11 +4530,7 @@ mod tests {
 		let upstream_root = upstream.path();
 		run_ok(upstream_root, "git", &["init", "-b", "main"]);
 		run_ok(upstream_root, "git", &["config", "user.name", "Upstream User"]);
-		run_ok(
-			upstream_root,
-			"git",
-			&["config", "user.email", "upstream@example.invalid"],
-		);
+		run_ok(upstream_root, "git", &["config", "user.email", "upstream@example.invalid"]);
 		write(&upstream_root.join("meson.build"), "base\n");
 		run_ok(upstream_root, "git", &["add", "."]);
 		run_ok(upstream_root, "git", &["commit", "-m", "base"]);
@@ -5946,13 +4544,7 @@ mod tests {
 		run_ok(root, "git", &["add", "."]);
 		run_ok(root, "git", &["commit", "-m", "init"]);
 
-		let comp = ComponentDef {
-			name: "systemd".to_string(),
-			repo: upstream_root.to_string_lossy().to_string(),
-			branch: "main".to_string(),
-			path: "src/system/systemd".to_string(),
-			sync: "copy".to_string(),
-		};
+		let comp = ComponentDef { name: "systemd".to_string(), repo: upstream_root.to_string_lossy().to_string(), branch: "main".to_string(), path: "src/system/systemd".to_string(), sync: "copy".to_string() };
 		import_component(root, &comp, false).expect("initial import");
 		run_ok(root, "git", &["add", "."]);
 		run_ok(root, "git", &["commit", "-m", "import"]);
@@ -6003,10 +4595,7 @@ mod tests {
 		let options = systemd_meson_options();
 		assert!(options.iter().any(|option| option == "-Dpam=enabled"));
 		assert!(!options.iter().any(|option| option == "-Dpam=disabled"));
-		assert_eq!(
-			SYSTEMD_PAM_MODULE_REL,
-			"usr/lib/x86_64-linux-gnu/security/pam_systemd.so"
-		);
+		assert_eq!(SYSTEMD_PAM_MODULE_REL, "usr/lib/x86_64-linux-gnu/security/pam_systemd.so");
 	}
 
 	#[cfg(unix)]
@@ -6014,28 +4603,16 @@ mod tests {
 		let tmp = tempfile::tempdir().expect("tempdir");
 		let repo = tmp.path().join("repo");
 		let rootfs = tmp.path().join("rootfs");
-		write(
-			&repo.join("src/system/session/user-units/dbus.socket"),
-			"[Socket]\nListenStream=%t/bus\nExecStartPost=-/usr/bin/systemctl --user set-environment DBUS_SESSION_BUS_ADDRESS=unix:path=%t/bus\n",
-		);
-		write(
-			&repo.join("src/system/session/user-units/dbus-broker.service"),
-			"[Service]\nExecStart=/usr/bin/dbus-broker-launch --scope user\n",
-		);
-		write(
-			&repo.join("src/system/session/dbus/session.conf"),
-			"<busconfig>\n<type>session</type>\n<auth>EXTERNAL</auth>\n<standard_session_servicedirs/>\n<allow own=\"*\"/>\n</busconfig>\n",
-		);
+		write(&repo.join("src/system/session/user-units/dbus.socket"), "[Socket]\nListenStream=%t/bus\nExecStartPost=-/usr/bin/systemctl --user set-environment DBUS_SESSION_BUS_ADDRESS=unix:path=%t/bus\n");
+		write(&repo.join("src/system/session/user-units/dbus-broker.service"), "[Service]\nExecStart=/usr/bin/dbus-broker-launch --scope user\n");
+		write(&repo.join("src/system/session/dbus/session.conf"), "<busconfig>\n<type>session</type>\n<auth>EXTERNAL</auth>\n<standard_session_servicedirs/>\n<allow own=\"*\"/>\n</busconfig>\n");
 		for (stack, body) in [
 			("login", "session    optional     pam_systemd.so\n"),
 			("su-l", "session    optional     pam_systemd.so\n"),
 			("su", "session    required     pam_unix.so\n"),
 			("sudo", "session    required     pam_unix.so\n"),
 			("passwd", "password   required     pam_unix.so\n"),
-			(
-				"systemd-user",
-				"account    required     pam_unix.so\nsession    required     pam_unix.so\nsession    optional     pam_systemd.so\n",
-			),
+			("systemd-user", "account    required     pam_unix.so\nsession    required     pam_unix.so\nsession    optional     pam_systemd.so\n"),
 		] {
 			write(&rootfs.join("etc/pam.d").join(stack), body);
 		}
@@ -6071,14 +4648,8 @@ mod tests {
 		assert!(rootfs.join(SYSTEMD_PAM_MODULE_REL).is_file());
 		assert!(rootfs.join("usr/lib/systemd/system/user@.service").is_file());
 		assert!(rootfs.join("usr/lib/systemd/system/user-runtime-dir@.service").is_file());
-		assert_eq!(
-			fs::read_link(rootfs.join("usr/lib/systemd/user/dbus.service")).unwrap(),
-			Path::new("dbus-broker.service")
-		);
-		assert_eq!(
-			fs::read_link(rootfs.join("usr/lib/systemd/user/sockets.target.wants/dbus.socket")).unwrap(),
-			Path::new("../dbus.socket")
-		);
+		assert_eq!(fs::read_link(rootfs.join("usr/lib/systemd/user/dbus.service")).unwrap(), Path::new("dbus-broker.service"));
+		assert_eq!(fs::read_link(rootfs.join("usr/lib/systemd/user/sockets.target.wants/dbus.socket")).unwrap(), Path::new("../dbus.socket"));
 		assert!(!path_entry_exists(&rootfs.join("run/user")));
 		assert!(!path_entry_exists(&rootfs.join("usr/lib/pam.d/systemd-user")));
 	}
@@ -6088,34 +4659,19 @@ mod tests {
 	fn user_session_validation_rejects_inappropriate_pam_hook_and_stale_runtime() {
 		let (_tmp, repo, rootfs) = make_user_session_test_trees();
 		install_user_session_configuration(&repo, &rootfs).expect("install user session");
-		write(
-			&rootfs.join("etc/pam.d/sudo"),
-			"session    optional     pam_systemd.so\n",
-		);
-		assert!(validate_user_session_configuration(&rootfs)
-			.expect_err("sudo session hook must fail")
-			.to_string()
-			.contains("inappropriate PAM stack sudo"));
+		write(&rootfs.join("etc/pam.d/sudo"), "session    optional     pam_systemd.so\n");
+		assert!(validate_user_session_configuration(&rootfs).expect_err("sudo session hook must fail").to_string().contains("inappropriate PAM stack sudo"));
 		write(&rootfs.join("etc/pam.d/sudo"), "session required pam_unix.so\n");
 		fs::create_dir_all(rootfs.join("run/user/4242")).expect("stale runtime directory");
-		assert!(validate_user_session_configuration(&rootfs)
-			.expect_err("stale runtime content must fail")
-			.to_string()
-			.contains("stale /run/user"));
+		assert!(validate_user_session_configuration(&rootfs).expect_err("stale runtime content must fail").to_string().contains("stale /run/user"));
 	}
 
 	#[test]
 	fn account_database_validation_accepts_live_profile_shape() {
 		let tmp = tempfile::tempdir().expect("tempdir");
 		let root = tmp.path();
-		write(
-			&root.join("etc/passwd"),
-			"root:x:0:0:root:/root:/bin/brush\nmattos:x:1000:1000:MattOS Live User:/home/mattos:/bin/brush\n",
-		);
-		write(
-			&root.join("etc/group"),
-			"root:x:0:\nsudo:x:27:mattos\nmattos:x:1000:\n",
-		);
+		write(&root.join("etc/passwd"), "root:x:0:0:root:/root:/bin/brush\nmattos:x:1000:1000:MattOS Live User:/home/mattos:/bin/brush\n");
+		write(&root.join("etc/group"), "root:x:0:\nsudo:x:27:mattos\nmattos:x:1000:\n");
 		write(&root.join("etc/shadow"), "root:!:::::::\nmattos:!:::::::\n");
 		write(&root.join("etc/gshadow"), "root:!::\nsudo:!::mattos\nmattos:!::\n");
 
@@ -6126,14 +4682,8 @@ mod tests {
 	fn account_database_validation_rejects_duplicate_uid() {
 		let tmp = tempfile::tempdir().expect("tempdir");
 		let root = tmp.path();
-		write(
-			&root.join("etc/passwd"),
-			"root:x:0:0:root:/root:/bin/brush\nmattos:x:0:1000:MattOS Live User:/home/mattos:/bin/brush\n",
-		);
-		write(
-			&root.join("etc/group"),
-			"root:x:0:\nsudo:x:27:mattos\nmattos:x:1000:\n",
-		);
+		write(&root.join("etc/passwd"), "root:x:0:0:root:/root:/bin/brush\nmattos:x:0:1000:MattOS Live User:/home/mattos:/bin/brush\n");
+		write(&root.join("etc/group"), "root:x:0:\nsudo:x:27:mattos\nmattos:x:1000:\n");
 		write(&root.join("etc/shadow"), "root:!:::::::\nmattos:!:::::::\n");
 		write(&root.join("etc/gshadow"), "root:!::\nsudo:!::mattos\nmattos:!::\n");
 
@@ -6148,19 +4698,7 @@ mod tests {
 
 		let tmp = tempfile::tempdir().expect("tempdir");
 		let root = tmp.path();
-		for rel in [
-			"etc/shadow",
-			"etc/gshadow",
-			"etc/passwd",
-			"etc/group",
-			"etc/sudoers",
-			"etc/sudoers.d/00-mattos-live",
-			"etc/sudoers.d/README",
-			"usr/bin/login",
-			"usr/bin/su",
-			"usr/bin/passwd",
-			"usr/bin/sudo",
-		] {
+		for rel in ["etc/shadow", "etc/gshadow", "etc/passwd", "etc/group", "etc/sudoers", "etc/sudoers.d/00-mattos-live", "etc/sudoers.d/README", "usr/bin/login", "usr/bin/su", "usr/bin/passwd", "usr/bin/sudo"] {
 			write(&root.join(rel), "x\n");
 		}
 		fs::create_dir_all(root.join("root")).expect("root dir");
@@ -6168,18 +4706,10 @@ mod tests {
 
 		enforce_auth_file_modes(root).expect("set modes");
 
-		let sudo_mode = fs::metadata(root.join("usr/bin/sudo"))
-			.expect("sudo metadata")
-			.permissions()
-			.mode()
-			& 0o7777;
+		let sudo_mode = fs::metadata(root.join("usr/bin/sudo")).expect("sudo metadata").permissions().mode() & 0o7777;
 		assert_eq!(sudo_mode, 0o4755);
 
-		let shadow_mode = fs::metadata(root.join("etc/shadow"))
-			.expect("shadow metadata")
-			.permissions()
-			.mode()
-			& 0o7777;
+		let shadow_mode = fs::metadata(root.join("etc/shadow")).expect("shadow metadata").permissions().mode() & 0o7777;
 		assert_eq!(shadow_mode, 0o600);
 		validate_auth_file_modes(root).expect("secure modes should validate");
 	}
@@ -6191,26 +4721,14 @@ mod tests {
 
 		let tmp = tempfile::tempdir().expect("tempdir");
 		let root = tmp.path();
-		for rel in [
-			"etc/shadow",
-			"etc/gshadow",
-			"etc/passwd",
-			"etc/group",
-			"etc/sudoers",
-			"etc/sudoers.d/00-mattos-live",
-			"usr/bin/login",
-			"usr/bin/su",
-			"usr/bin/passwd",
-			"usr/bin/sudo",
-		] {
+		for rel in ["etc/shadow", "etc/gshadow", "etc/passwd", "etc/group", "etc/sudoers", "etc/sudoers.d/00-mattos-live", "usr/bin/login", "usr/bin/su", "usr/bin/passwd", "usr/bin/sudo"] {
 			write(&root.join(rel), "x\n");
 		}
 		fs::create_dir_all(root.join("root")).expect("root dir");
 		fs::create_dir_all(root.join("home/mattos")).expect("home dir");
 		enforce_auth_file_modes(root).expect("set modes");
 
-		fs::set_permissions(root.join("etc/shadow"), fs::Permissions::from_mode(0o644))
-			.expect("make shadow unsafe");
+		fs::set_permissions(root.join("etc/shadow"), fs::Permissions::from_mode(0o644)).expect("make shadow unsafe");
 		assert!(validate_auth_file_modes(root).is_err());
 	}
 
@@ -6244,12 +4762,7 @@ mod tests {
 		let rootfs = root.join("rootfs");
 		fs::create_dir_all(root.join("src/userland/grep/target/release")).expect("mkdir");
 
-		let spec = BinaryInstallSpec {
-			provider: GREP_PROVIDER,
-			source_rel: "src/userland/grep/target/release/grep",
-			install_name: "grep",
-			command_name: "grep",
-		};
+		let spec = BinaryInstallSpec { provider: GREP_PROVIDER, source_rel: "src/userland/grep/target/release/grep", install_name: "grep", command_name: "grep" };
 		let result = install_userland_binary(root, &rootfs, &spec);
 		assert!(result.is_err());
 	}
@@ -6338,10 +4851,7 @@ mod tests {
 	fn dbus_broker_upstream_metadata_has_safe_system_destination() {
 		let tmp = tempfile::tempdir().expect("tempdir");
 		let root = tmp.path();
-		write(
-			&root.join("upstream/sources.toml"),
-			"[[component]]\nname='dbus-broker'\nrepo='https://github.com/bus1/dbus-broker.git'\nbranch='main'\npath='src/system/dbus/dbus-broker'\nsync='copy'\n",
-		);
+		write(&root.join("upstream/sources.toml"), "[[component]]\nname='dbus-broker'\nrepo='https://github.com/bus1/dbus-broker.git'\nbranch='main'\npath='src/system/dbus/dbus-broker'\nsync='copy'\n");
 		let sources = read_sources(root).expect("read D-Bus source metadata");
 		let component = &sources.component[0];
 		assert_eq!(component.name, "dbus-broker");
@@ -6355,17 +4865,12 @@ mod tests {
 	#[test]
 	fn dbus_broker_build_stage_name_dispatches() {
 		assert_eq!(BuildStage::from_str("dbus-broker", true).unwrap(), BuildStage::DbusBroker);
-		assert!(build_plan(BuildStage::All)
-			.windows(2)
-			.any(|pair| pair == [BuildStage::Systemd, BuildStage::DbusBroker]));
+		assert!(build_plan(BuildStage::All).windows(2).any(|pair| pair == [BuildStage::Systemd, BuildStage::DbusBroker]));
 	}
 
 	#[test]
 	fn dbus_broker_manifest_requires_broker_and_launcher() {
-		let manifest = COMPONENT_INSTALL_MANIFESTS
-			.iter()
-			.find(|manifest| manifest.provider == DBUS_BROKER_PROVIDER)
-			.expect("dbus-broker install manifest");
+		let manifest = COMPONENT_INSTALL_MANIFESTS.iter().find(|manifest| manifest.provider == DBUS_BROKER_PROVIDER).expect("dbus-broker install manifest");
 		assert_eq!(manifest.install_root_rel, "out/build/dbus-broker/install");
 		assert!(manifest.binaries.iter().any(|binary| binary.command_name == "dbus-broker"));
 		assert!(manifest.binaries.iter().any(|binary| binary.command_name == "dbus-broker-launch"));
@@ -6382,46 +4887,21 @@ mod tests {
 			"<busconfig>\n<user>messagebus</user>\n<deny own=\"*\"/>\n<deny send_type=\"method_call\"/>\n<includedir>/usr/share/dbus-1/system.d</includedir>\n<includedir>/etc/dbus-1/system.d</includedir>\n</busconfig>\n",
 		);
 		write(&source.join("config/dbus.conf"), "u! messagebus 195 \"D-Bus System Message Bus\"\n");
-		write(
-			&source.join("units/dbus.socket"),
-			"[Socket]\nListenStream=/run/dbus/system_bus_socket\nSocketMode=0666\n",
-		);
-		write(
-			&source.join("units/dbus-broker.service"),
-			"[Service]\nExecStart=/usr/bin/dbus-broker-launch --scope system --config-file=/etc/dbus-1/system.conf\n",
-		);
+		write(&source.join("units/dbus.socket"), "[Socket]\nListenStream=/run/dbus/system_bus_socket\nSocketMode=0666\n");
+		write(&source.join("units/dbus-broker.service"), "[Service]\nExecStart=/usr/bin/dbus-broker-launch --scope system --config-file=/etc/dbus-1/system.conf\n");
 
-		for target in [
-			"systemd-networkd.service",
-			"systemd-resolved.service",
-			"systemd-timesyncd.service",
-			"systemd-timedated.service",
-			"systemd-logind.service",
-		] {
+		for target in ["systemd-networkd.service", "systemd-resolved.service", "systemd-timesyncd.service", "systemd-timedated.service", "systemd-logind.service"] {
 			write(&rootfs.join("usr/lib/systemd/system").join(target), "[Service]\nExecStart=/bin/true\n");
 		}
 		for name in ["systemd1", "network1", "resolve1", "timesync1", "timedate1", "login1"] {
-			write(
-				&rootfs.join(format!("usr/share/dbus-1/system.d/org.freedesktop.{name}.conf")),
-				"<busconfig/>\n",
-			);
-			write(
-				&rootfs.join(format!("usr/share/dbus-1/system-services/org.freedesktop.{name}.service")),
-				&format!("[D-BUS Service]\nName=org.freedesktop.{name}\n"),
-			);
+			write(&rootfs.join(format!("usr/share/dbus-1/system.d/org.freedesktop.{name}.conf")), "<busconfig/>\n");
+			write(&rootfs.join(format!("usr/share/dbus-1/system-services/org.freedesktop.{name}.service")), &format!("[D-BUS Service]\nName=org.freedesktop.{name}\n"));
 		}
 		fs::create_dir_all(rootfs.join("run")).expect("runtime staging directory");
 		let roots = vec![PathBuf::from("/")];
 		let libraries = vec![PathBuf::from("/lib/x86_64-linux-gnu"), PathBuf::from("/usr/lib/x86_64-linux-gnu")];
 		for binary in ["dbus-broker", "dbus-broker-launch"] {
-			inspect_and_stage_executable(
-				Path::new("/bin/true"),
-				&rootfs.join("usr/bin").join(binary),
-				&rootfs,
-				&roots,
-				&libraries,
-			)
-			.expect("stage test ELF and dependency closure");
+			inspect_and_stage_executable(Path::new("/bin/true"), &rootfs.join("usr/bin").join(binary), &rootfs, &roots, &libraries).expect("stage test ELF and dependency closure");
 		}
 		write(&rootfs.join("usr/bin/busctl"), "present\n");
 		(tmp, repo, rootfs)
@@ -6434,14 +4914,8 @@ mod tests {
 		install_dbus_configuration(&repo, &rootfs).expect("install D-Bus integration");
 		assert!(rootfs.join("etc/dbus-1/system.conf").is_file());
 		assert!(rootfs.join("usr/lib/systemd/system/dbus.socket").is_file());
-		assert_eq!(
-			fs::read_link(rootfs.join("usr/lib/systemd/system/dbus.service")).unwrap(),
-			Path::new("dbus-broker.service")
-		);
-		assert_eq!(
-			fs::read_link(rootfs.join("usr/lib/systemd/system/dbus-org.freedesktop.network1.service")).unwrap(),
-			Path::new("systemd-networkd.service")
-		);
+		assert_eq!(fs::read_link(rootfs.join("usr/lib/systemd/system/dbus.service")).unwrap(), Path::new("dbus-broker.service"));
+		assert_eq!(fs::read_link(rootfs.join("usr/lib/systemd/system/dbus-org.freedesktop.network1.service")).unwrap(), Path::new("systemd-networkd.service"));
 		assert!(!path_entry_exists(&rootfs.join("run/dbus/system_bus_socket")));
 	}
 
@@ -6449,8 +4923,7 @@ mod tests {
 	#[test]
 	fn dbus_alias_installation_rejects_missing_service() {
 		let tmp = tempfile::tempdir().expect("tempdir");
-		let error = install_systemd_service_alias(tmp.path(), "dbus-org.example.service", "missing.service")
-			.expect_err("missing alias target must be rejected");
+		let error = install_systemd_service_alias(tmp.path(), "dbus-org.example.service", "missing.service").expect_err("missing alias target must be rejected");
 		assert!(error.to_string().contains("target unit missing.service is missing"));
 	}
 
@@ -6460,16 +4933,10 @@ mod tests {
 		let (_tmp, repo, rootfs) = make_dbus_test_trees();
 		install_dbus_configuration(&repo, &rootfs).expect("install D-Bus integration");
 		write(&rootfs.join("usr/bin/dbus-daemon"), "competing daemon\n");
-		assert!(validate_dbus_configuration(&rootfs)
-			.expect_err("competing owner must fail")
-			.to_string()
-			.contains("competing dbus-daemon"));
+		assert!(validate_dbus_configuration(&rootfs).expect_err("competing owner must fail").to_string().contains("competing dbus-daemon"));
 		fs::remove_file(rootfs.join("usr/bin/dbus-daemon")).unwrap();
 		write(&rootfs.join("run/dbus/system_bus_socket"), "stale\n");
-		assert!(validate_dbus_configuration(&rootfs)
-			.expect_err("stale socket must fail")
-			.to_string()
-			.contains("stale system-bus socket"));
+		assert!(validate_dbus_configuration(&rootfs).expect_err("stale socket must fail").to_string().contains("stale system-bus socket"));
 	}
 
 	#[cfg(unix)]
@@ -6477,10 +4944,8 @@ mod tests {
 	fn dbus_runtime_dependency_closure_is_complete() {
 		let (_tmp, repo, rootfs) = make_dbus_test_trees();
 		install_dbus_configuration(&repo, &rootfs).expect("install D-Bus integration");
-		validate_executable_runtime_closure(&rootfs.join("usr/bin/dbus-broker"), &rootfs)
-			.expect("broker runtime closure");
-		validate_executable_runtime_closure(&rootfs.join("usr/bin/dbus-broker-launch"), &rootfs)
-			.expect("launcher runtime closure");
+		validate_executable_runtime_closure(&rootfs.join("usr/bin/dbus-broker"), &rootfs).expect("broker runtime closure");
+		validate_executable_runtime_closure(&rootfs.join("usr/bin/dbus-broker-launch"), &rootfs).expect("launcher runtime closure");
 	}
 
 	#[test]
@@ -6495,10 +4960,36 @@ mod tests {
 			}
 		}
 		for required in [
-			"modprobe", "insmod", "rmmod", "lsmod", "modinfo", "depmod", "ps", "top", "free",
-			"uptime", "pgrep", "pkill", "pidof", "watch", "sysctl", "vmstat", "w", "clear", "tput",
-			"tic", "toe", "infocmp",
-			"ip", "ss", "bridge", "tc", "ping", "tracepath", "curl", "dbus-broker",
+			"modprobe",
+			"insmod",
+			"rmmod",
+			"lsmod",
+			"modinfo",
+			"depmod",
+			"ps",
+			"top",
+			"free",
+			"uptime",
+			"pgrep",
+			"pkill",
+			"pidof",
+			"watch",
+			"sysctl",
+			"vmstat",
+			"w",
+			"clear",
+			"tput",
+			"tic",
+			"toe",
+			"infocmp",
+			"ip",
+			"ss",
+			"bridge",
+			"tc",
+			"ping",
+			"tracepath",
+			"curl",
+			"dbus-broker",
 			"dbus-broker-launch",
 		] {
 			assert!(commands.contains(required), "missing {required}");
@@ -6512,20 +5003,11 @@ mod tests {
 
 		let tmp = tempfile::tempdir().expect("tempdir");
 		let rootfs = tmp.path();
-		write(
-			&rootfs.join("etc/systemd/network/20-mattos-wired.network"),
-			"[Match]\nType=ether\n[Network]\nDHCP=ipv4\n",
-		);
+		write(&rootfs.join("etc/systemd/network/20-mattos-wired.network"), "[Match]\nType=ether\n[Network]\nDHCP=ipv4\n");
 		write(&rootfs.join("etc/systemd/resolved.conf"), "[Resolve]\nDNSStubListener=yes\n");
 		write(&rootfs.join("etc/systemd/timesyncd.conf"), "[Time]\nNTP=time.example\n");
-		write(
-			&rootfs.join("etc/nsswitch.conf"),
-			"passwd: files systemd\ngroup: files systemd\nshadow: files systemd\nhosts: files resolve dns\nnetworks: files dns\n",
-		);
-		write(
-			&rootfs.join("etc/ssl/certs/ca-certificates.crt"),
-			&"-----BEGIN CERTIFICATE-----\ncertificate\n-----END CERTIFICATE-----\n".repeat(2_000),
-		);
+		write(&rootfs.join("etc/nsswitch.conf"), "passwd: files systemd\ngroup: files systemd\nshadow: files systemd\nhosts: files resolve dns\nnetworks: files dns\n");
+		write(&rootfs.join("etc/ssl/certs/ca-certificates.crt"), &"-----BEGIN CERTIFICATE-----\ncertificate\n-----END CERTIFICATE-----\n".repeat(2_000));
 		for rel in [
 			"usr/lib/systemd/systemd-networkd",
 			"usr/lib/systemd/systemd-resolved",
@@ -6539,15 +5021,11 @@ mod tests {
 		}
 		fs::create_dir_all(rootfs.join("run/systemd/resolve")).expect("resolve runtime dir");
 		fs::create_dir_all(rootfs.join("etc")).expect("etc dir");
-		symlink("/run/systemd/resolve/stub-resolv.conf", rootfs.join("etc/resolv.conf"))
-			.expect("resolv.conf symlink");
+		symlink("/run/systemd/resolve/stub-resolv.conf", rootfs.join("etc/resolv.conf")).expect("resolv.conf symlink");
 		write(&rootfs.join("etc/passwd"), "root:x:0:0:root:/root:/bin/brush\nmattos:x:1000:1000:MattOS:/home/mattos:/bin/brush\n");
 		write(&rootfs.join("etc/group"), "root:x:0:\nmattos:x:1000:\n");
 		for (name, id) in [("systemd-network", 192), ("systemd-resolve", 193), ("systemd-timesync", 194)] {
-			write(
-				&rootfs.join("usr/lib/sysusers.d").join(format!("{name}.conf")),
-				&format!("u! {name} {id} \"service account\"\n"),
-			);
+			write(&rootfs.join("usr/lib/sysusers.d").join(format!("{name}.conf")), &format!("u! {name} {id} \"service account\"\n"));
 		}
 		validate_network_configuration(rootfs).expect("valid network configuration");
 	}
@@ -6575,5 +5053,4 @@ mod tests {
 		assert!(rootfs.join("usr/lib/x86_64-linux-gnu/libexample.so.1").exists());
 		assert!(!rootfs.join("home").exists());
 	}
-
 }

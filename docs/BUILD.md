@@ -26,7 +26,7 @@ cargo run -p mattos-build -- doctor
 Required tools are reported separately from optional tools. Missing-tool package hints are printed for common Linux distributions.
 `DevUtils/run_qemu.py` also runs `doctor` first and will direct you to `python3 DevUtils/setup.py` if required prerequisites are missing.
 
-This milestone also requires the systemd, dbus-broker, Autotools, networking, and ELF-inspection toolchain declared by `DevUtils/setup.py`, including Meson/Ninja, Autoconf/Automake/libtool, `rsync`, `bindgen`, Expat and OpenSSL development metadata, `file`, `ldd`, and `readelf`.
+This milestone also requires the systemd, dbus-broker, Autotools, networking, packaging, and ELF-inspection toolchain declared by `DevUtils/setup.py`, including Meson/Ninja, CMake, Autoconf/Automake/libtool, `rsync`, `bindgen`, Expat and OpenSSL development metadata, `dpkg-deb`, `dpkg-scanpackages`, `apt-ftparchive`, `zstd`, `xz`, `file`, `ldd`, and `readelf`.
 
 ## Upstream source status
 
@@ -48,6 +48,8 @@ cargo run -p mattos-build -- upstream import iproute2
 cargo run -p mattos-build -- upstream import iputils
 cargo run -p mattos-build -- upstream import curl
 cargo run -p mattos-build -- upstream import dbus-broker
+cargo run -p mattos-build -- upstream import dpkg
+cargo run -p mattos-build -- upstream import apt
 ```
 
 ## Full build
@@ -70,8 +72,10 @@ The pipeline stages are:
 10. `kmod`: module administration tools and libkmod
 11. `systemd`: minimal Meson/Ninja build with kmod, networkd, resolved, timesyncd, timedated, logind, and `pam_systemd`
 12. `dbus-broker`: upstream Meson/Ninja system-bus broker and launcher
-13. `init`: MattOS rescue init build
-14. `rootfs`, `initramfs`, `iso`: image assembly
+13. `dpkg`: imported dpkg Autotools build
+14. `apt`: imported APT CMake/Ninja build
+15. `init`: MattOS rescue init build
+16. `rootfs`, `initramfs`, `iso`: hybrid package/legacy image assembly
 
 Systemd configuration remains intentionally minimal. It enables networkd, resolved, timesyncd, timedated, logind, PAM integration, and `busctl` while continuing to disable homed, nspawn, bootloader tools, the remote journal stack, docs, tests, translations, TPM/FIDO, and BPF extras. The separate dbus-broker stage supplies both the system-scope binary and the binary used by MattOS-owned user units; systemd's Meson `dbus` option remains disabled because it controls the optional reference `libdbus` dependency, not sd-bus support.
 
@@ -89,11 +93,24 @@ cargo run -p mattos-build -- build iputils
 cargo run -p mattos-build -- build curl
 cargo run -p mattos-build -- build systemd
 cargo run -p mattos-build -- build dbus-broker
+cargo run -p mattos-build -- build dpkg
+cargo run -p mattos-build -- build apt
 cargo run -p mattos-build -- build init
 cargo run -p mattos-build -- image
 ```
 
 `image` reassembles rootfs, initramfs, and ISO without forcing unrelated recompilation.
+
+Package and repository commands:
+
+```
+cargo run -p mattos-build -- package build --all
+cargo run -p mattos-build -- package repo
+cargo run -p mattos-build -- package inspect mattos-brush
+cargo run -p mattos-build -- package status
+```
+
+See `docs/PACKAGING.md` for the bootstrap tooling boundary, ownership policy, local repository, and hybrid rootfs migration.
 
 ## QEMU boot
 

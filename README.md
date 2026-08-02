@@ -9,6 +9,8 @@ MattOS is a Linux-compatible OS project with upstream source imported directly a
 - `src/userland/coreutils`: upstream uutils/coreutils source
 - `src/system/systemd`: upstream systemd source
 - `src/system/dbus/dbus-broker`: upstream dbus-broker source
+- `src/system/packages/dpkg`: upstream dpkg source
+- `src/system/packages/apt`: upstream APT source plus MattOS vendor policy
 - `src/system/kmod`: upstream kmod source
 - `src/system/terminal/ncurses`: upstream ncurses source
 - `src/userland/procps-ng`: upstream procps-ng source
@@ -90,6 +92,8 @@ See `docs/DBUS.md` for the dbus-broker system bus, service policy, activation al
 
 See `docs/SESSIONS.md` for pam_systemd, logind sessions, runtime directories, per-user systemd managers, and user D-Bus.
 
+See `docs/PACKAGING.md` for `.deb` construction, the local MattOS APT repository, imported dpkg/APT builds, and hybrid rootfs assembly.
+
 ## Build stages
 
 ```
@@ -104,12 +108,23 @@ cargo run -p mattos-build -- build iputils
 cargo run -p mattos-build -- build curl
 cargo run -p mattos-build -- build systemd
 cargo run -p mattos-build -- build dbus-broker
+cargo run -p mattos-build -- build dpkg
+cargo run -p mattos-build -- build apt
 cargo run -p mattos-build -- build pam
 cargo run -p mattos-build -- build util-linux
 cargo run -p mattos-build -- build shadow
 cargo run -p mattos-build -- build sudo-rs
 cargo run -p mattos-build -- build init
 cargo run -p mattos-build -- image
+```
+
+## Package prototype
+
+```
+cargo run -p mattos-build -- package build --all
+cargo run -p mattos-build -- package repo
+cargo run -p mattos-build -- package inspect mattos-brush
+cargo run -p mattos-build -- package status
 ```
 
 The development launcher gives the guest a QEMU user-mode virtio-net interface by default. Use `python3 DevUtils/run_qemu.py --no-network` for an isolated boot.

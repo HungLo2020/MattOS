@@ -1,0 +1,74 @@
+image: debian:sid
+
+variables:
+  FF_DISABLE_UMASK_FOR_DOCKER_EXECUTOR: 1
+
+before_script:
+  - apt update -qq
+  - apt install -qq -y eatmydata
+  - eatmydata apt -P pkg.dpkg.author-release build-dep -qq -y .
+  - ./autogen
+
+# Test whether the release can be done.
+dist-check:
+  stage: test
+  script:
+    - ./configure
+    - make -j$(nproc) distcheck
+
+# Test whether the author checks pass.
+author-check:
+  stage: test
+  script:
+    - eatmydata apt -P pkg.dpkg.author-testing build-dep -qq -y .
+    - ./configure
+    - make -j$(nproc) authorcheck
+           TEST_VERBOSE=1 TEST_PARALLEL=$(nproc)
+
+# Test whether the unit tests pass.
+unit-tests:
+  stage: test
+  script:
+    - ./configure --enable-compiler-sanitizer
+    - make -j$(nproc) -C lib check
+           TEST_VERBOSE=1 TEST_PARALLEL=$(nproc)
+
+# Test whether the unit tests pass on a VPATH build.
+vpath-tests:
+  stage: test
+  script:
+    - mkdir -p build-tree
+    - cd build-tree
+    - ../configure
+    - make -j$(nproc) check
+           TEST_VERBOSE=1 TEST_PARALLEL=$(nproc)
+
+# Test whether the unit tests pass with minimal library dependencies.
+minlib-tests:
+  stage: test
+  script:
+    - ./configure
+        --without-liblzma
+        --without-libz
+        --without-libz-ng
+        --without-libzstd
+        --without-libbz2
+        --without-libselinux
+    - make -j$(nproc) check
+           TEST_VERBOSE=1 TEST_PARALLEL=$(nproc)
+
+# Test whether we can build the shared library.
+shlib-tests:
+  stage: test
+  script:
+    - AUTHOR_TESTING=1 ./configure --enable-shared
+    - make -j$(nproc) check
+           TEST_VERBOSE=1 TEST_PARALLEL=$(nproc)
+
+# Test whether the functional tests pass.
+func-tests:
+  stage: test
+  script:
+    - ./configure --enable-compiler-sanitizer
+    - make
+    - eatmydata make -C tests test

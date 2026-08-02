@@ -1,0 +1,25 @@
+#!/bin/sh
+set -e
+
+TESTDIR="$(readlink -f "$(dirname "$0")")"
+. "$TESTDIR/framework"
+setupenvironment
+configarchitecture 'amd64'
+
+insertpackage 'unstable' 'foo' 'all' '1'
+
+buildaptarchive
+setupdistsaptarchive
+
+for RELEASE in $(find aptarchive -name 'Release'); do
+	# note the missing --armor
+	if command sq --cli-version 0.40 version 2>/dev/null; then
+		sq sign --binary --signer-file "keys/joesixpack.sec" --output "${RELEASE}.gpg" --signature-file "${RELEASE}"
+	else
+		sq sign --binary --signer-file "keys/joesixpack.sec" --signature-file "${RELEASE}.gpg" "${RELEASE}"
+	fi
+done
+
+testfailure apt show foo
+testfailure aptget update
+testfailure apt show foo

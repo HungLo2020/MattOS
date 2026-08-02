@@ -1,0 +1,39 @@
+#!/bin/sh
+set -e
+
+TESTDIR="$(readlink -f "$(dirname "$0")")"
+. "$TESTDIR/framework"
+setupenvironment
+configarchitecture "i386"
+
+insertinstalledpackage 'foo' 'i386' '1.0'
+insertpackage 'unstable' 'foo' 'i386' '2.0' 'Recommends: bar'
+
+setupaptarchive
+
+UPGRADE_KEEP="Reading package lists...
+Building dependency tree...
+Calculating upgrade...
+The following packages have been kept back:
+  foo
+0 upgraded, 0 newly installed, 0 to remove and 1 not upgraded."
+testsuccessequal "$UPGRADE_KEEP" aptget upgrade -s
+
+UPGRADE_KEEP="Reading package lists...
+Building dependency tree...
+Calculating upgrade...
+The following packages have been kept back:
+  foo
+0 upgraded, 0 newly installed, 0 to remove and 1 not upgraded."
+testsuccessequal "$UPGRADE_KEEP" apt upgrade -s
+
+UPGRADE_KEEP="Reading package lists...
+Building dependency tree...
+Calculating upgrade...
+The following packages will be upgraded:
+  foo
+1 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+Inst foo [1.0] (2.0 unstable [i386])
+Conf foo (2.0 unstable [i386])"
+testsuccessequal "$UPGRADE_KEEP" aptget dist-upgrade -s
+

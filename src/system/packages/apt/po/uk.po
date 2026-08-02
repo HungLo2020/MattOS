@@ -1,0 +1,4985 @@
+# translation of apt-all.po to Українська
+#
+# Licensing is complex as the msgid come from several files, please see
+# the individual files for licensing information.
+#
+# This file originally stated:
+# This file is put in the public domain.
+#
+# A. Bondarenko <artem.brz@gmail.com>, 2006, 2012.
+# неможливо + не вдалося
+# parse на аналізувати
+# Release
+# вихідні тексти
+# y/n замість т/н
+# binary = двійковий
+msgid ""
+msgstr ""
+"Project-Id-Version: apt 3.3.1\n"
+"Report-Msgid-Bugs-To: APT Development Team <deity@lists.debian.org>\n"
+"POT-Creation-Date: 2026-07-30 20:45+0000\n"
+"PO-Revision-Date: 2026-05-18 08:21+0000\n"
+"Last-Translator: Andriy Pysyk <ep.nestor@gmail.com>\n"
+"Language-Team: Українська <uk@li.org>\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Poedit 3.6\n"
+
+#: apt-pkg/acquire-item.cc
+msgid ""
+"Updating from such a repository can't be done securely, and is therefore "
+"disabled by default."
+msgstr ""
+"З такого репозиторію неможливо безпечно оновитись, тому типово його вимкнено."
+
+#: apt-pkg/acquire-item.cc
+msgid ""
+"Data from such a repository can't be authenticated and is therefore "
+"potentially dangerous to use."
+msgstr ""
+"Дані з такого репозиторію неможливо перевірити на автентичність, тому їх "
+"використання потенційно небезпечне."
+
+#: apt-pkg/acquire-item.cc
+msgid ""
+"See apt-secure(8) manpage for repository creation and user configuration "
+"details."
+msgstr ""
+"Дивіться man-сторінку apt-secure(8) для деталей про створення репозиторію та "
+"налаштування користувача."
+
+#: apt-pkg/acquire-item.cc
+#, c-format
+msgid "The repository '%s' is no longer signed."
+msgstr "Сховище '%s' більше не має підпису."
+
+#: apt-pkg/acquire-item.cc
+#, c-format
+msgid "The repository '%s' no longer has a Release file."
+msgstr "Сховище '%s' більше не має файлу Release."
+
+#: apt-pkg/acquire-item.cc
+msgid ""
+"This is normally not allowed, but the option "
+"Acquire::AllowDowngradeToInsecureRepositories was given to override it."
+msgstr ""
+"Зазвичай це не дозволено, але щоб це обійти було задано опцію "
+"Acquire::AllowDowngradeToInsecureRepositories."
+
+#: apt-pkg/acquire-item.cc
+#, c-format
+msgid "The repository '%s' is not signed."
+msgstr "Сховище '%s' не підписано."
+
+#: apt-pkg/acquire-item.cc
+#, c-format
+msgid "The repository '%s' does not have a Release file."
+msgstr "Сховище '%s' не має файлу Release."
+
+#: apt-pkg/acquire-item.cc
+#, c-format
+msgid "The repository '%s' provides only weak security information."
+msgstr "Сховище '%s' надає лише ненадійні дані для перевірки безпеки."
+
+#: apt-pkg/acquire-item.cc ftparchive/writer.cc
+#, c-format
+msgid "Failed to readlink %s"
+msgstr "Не вдалося прочитати, куди вказує символьне посилання %s"
+
+#: apt-pkg/acquire-item.cc ftparchive/cachedb.cc methods/rred.cc
+#, c-format
+msgid "Failed to stat %s"
+msgstr "Не вдалося отримати дані про файл %s"
+
+#: apt-pkg/acquire-item.cc
+msgid "Hash Sum mismatch"
+msgstr "Хеш‑суми не збігаються"
+
+#: apt-pkg/acquire-item.cc
+msgid "Insufficient information available to perform this download securely"
+msgstr "Недостатньо даних для безпечного завантаження"
+
+#: apt-pkg/acquire-item.cc apt-pkg/contrib/fileutl.cc
+#, c-format
+msgid "rename failed, %s (%s -> %s)."
+msgstr "не вдалося перейменувати %s (%s -> %s)."
+
+#: apt-pkg/acquire-item.cc
+msgid "Size mismatch"
+msgstr "Розмір не збігається"
+
+#: apt-pkg/acquire-item.cc
+msgid "Invalid file format"
+msgstr "Неприпустимий формат файлу"
+
+#: apt-pkg/acquire-item.cc
+msgid "Signature error"
+msgstr "Помилка підпису"
+
+#. TRANSLATORS: %s is a single techy word like 'NODATA'
+#: apt-pkg/acquire-item.cc methods/gpgv.cc
+#, c-format
+msgid ""
+"Clearsigned file isn't valid, got '%s' (does the network require "
+"authentication?)"
+msgstr ""
+"Файл із відкритим підписом недійсний, отримано '%s' (мережа вимагає "
+"автентифікацію?)"
+
+#: apt-pkg/acquire-item.cc
+#, fuzzy, c-format
+#| msgid ""
+#| "An error occurred during the signature verification. The repository is "
+#| "not updated and the previous index files will be used. OpenPGP signature "
+#| "verification failed: %s: %s"
+msgid ""
+"An error occurred during the signature verification. The repository is not "
+"updated and the previous index files will be used. Signature verification "
+"failed: %s: %s"
+msgstr ""
+"Під час перевірки підпису сталася помилка. Сховище не оновлено, і буде "
+"використано попередні індексні файли. Перевірка підпису OpenPGP не вдалася: "
+"%s: %s"
+
+#. Invalid signature file, reject (LP: #346386) (Closes: #627642)
+#: apt-pkg/acquire-item.cc
+#, fuzzy, c-format
+#| msgid "OpenPGP signature verification failed: %s: %s"
+msgid "Signature verification failed: %s: %s"
+msgstr "Перевірка підпису OpenPGP не вдалася: %s: %s"
+
+#: apt-pkg/acquire-item.cc
+#, c-format
+msgid ""
+"Skipping acquire of configured file '%s' as repository '%s' doesn't have the "
+"component '%s' (component misspelt in sources.list?)"
+msgstr ""
+"Пропущено отримання налаштованого файлу '%s', оскільки сховище '%s' не "
+"містить компоненту '%s' (компонент вказано з помилкою в sources.list?)"
+
+#: apt-pkg/acquire-item.cc
+#, c-format
+msgid ""
+"Skipping acquire of configured file '%s' as repository '%s' doesn't support "
+"architecture '%s'"
+msgstr ""
+"Пропущено отримання налаштованого файлу '%s', оскільки сховище '%s' не "
+"підтримує архітектуру '%s'"
+
+#: apt-pkg/acquire-item.cc
+#, c-format
+msgid ""
+"Skipping acquire of configured file '%s' as repository '%s' does not seem to "
+"provide it (sources.list entry misspelt?)"
+msgstr ""
+"Пропущено отримання налаштованого файлу '%s', оскільки сховище '%s' не "
+"виглядає таким, що надає його (запис sources.list містить помилку?)"
+
+#: apt-pkg/acquire-item.cc
+#, c-format
+msgid ""
+"Skipping acquire of configured file '%s' as repository '%s' provides only "
+"weak security information for it"
+msgstr ""
+"Пропущено отримання налаштованого файлу '%s', оскільки сховище '%s' надає "
+"щодо нього лише ненадійні дані для перевірки безпеки"
+
+#. TRANSLATOR: The first %s is the URL of the bad Release file, the second is
+#. the time since then the file is invalid - formatted in the same way as in
+#. the download progress display (e.g. 7d 3h 42min 1s)
+#: apt-pkg/acquire-item.cc
+#, c-format
+msgid ""
+"Release file for %s is expired (invalid since %s). Updates for this "
+"repository will not be applied."
+msgstr ""
+"Файл Release для %s застарів (недійсний з %s). Оновлення до цього сховища не "
+"буде застосовано."
+
+#. TRANSLATOR: The first %s is the URL of the bad Release file, the second is
+#. the time until the file will be valid - formatted in the same way as in
+#. the download progress display (e.g. 7d 3h 42min 1s)
+#: apt-pkg/acquire-item.cc
+#, c-format
+msgid ""
+"Release file for %s is not valid yet (invalid for another %s). Updates for "
+"this repository will not be applied."
+msgstr ""
+"Файл Release для %s ще недійсний (недійсний ще протягом %s). Оновлення для "
+"цього сховища не буде застосовано."
+
+#: apt-pkg/acquire-item.cc
+#, c-format
+msgid "Conflicting distribution: %s (expected %s but got %s)"
+msgstr "Невідповідність дистрибутиву: %s (очікувався %s, отримано %s)"
+
+#: apt-pkg/acquire-item.cc
+#, c-format
+msgid "Repository '%s' changed its '%s' value from '%s' to '%s'"
+msgstr "Сховище '%s' змінило значення поля '%s' з '%s' на '%s'"
+
+#: apt-pkg/acquire-item.cc
+#, c-format
+msgid "Repository '%s' changed its default priority for %s from %hi to %hi."
+msgstr "Сховище '%s' змінило типовий пріоритет для %s з %hi на %hi."
+
+#. TRANSLATOR: the "this" refers to changes in the repository like a new release or owner change
+#: apt-pkg/acquire-item.cc
+#, c-format
+msgid ""
+"More information about this can be found online in the Release notes at: %s"
+msgstr ""
+"Додаткову інформацію про ці зміни можна знайти онлайн у нотатках до випуску "
+"за адресою: %s"
+
+#. TRANSLATOR: %s is the name of the manpage in question, e.g. apt-secure(8)
+#: apt-pkg/acquire-item.cc
+#, c-format
+msgid ""
+"This must be accepted explicitly before updates for this repository can be "
+"applied. See %s manpage for details."
+msgstr ""
+"Це потрібно підтвердити вручну, перш ніж можна буде застосувати оновлення "
+"для цього сховища. Докладніше див. у man‑сторінці %s."
+
+#: apt-pkg/acquire-item.cc apt-pkg/update.cc apt-private/private-download.cc
+#, c-format
+msgid "Failed to fetch %s  %s"
+msgstr "Не вдалося отримати %s  %s"
+
+#: apt-pkg/acquire-item.cc
+#, c-format
+msgid ""
+"Repositories should provide a clear-signed InRelease file, but none found at "
+"%s."
+msgstr ""
+"У сховищі має бути файл InRelease з відкритим підписом, але за адресою %s "
+"його не знайдено."
+
+#: apt-pkg/acquire-item.cc
+#, c-format
+msgid ""
+"I wasn't able to locate a file for the %s package. This might mean you need "
+"to manually fix this package. (due to missing arch)"
+msgstr ""
+"Не вдалося знайти файл пакунка %s. Можливо, цей пакунок доведеться виправити "
+"вручну (відсутня відповідна архітектура)."
+
+#: apt-pkg/acquire-item.cc
+#, c-format
+msgid "Can't find a source to download version '%s' of '%s'"
+msgstr "Не знайдено джерела для завантаження версії ‘%s’ пакунку ‘%s’"
+
+#. TRANSLATOR: %s=%s is sourcename=sourceversion, e.g. apt=1.1
+#: apt-pkg/acquire-item.cc
+#, c-format
+msgid "Changelog unavailable for %s=%s"
+msgstr "Журнал змін недоступний для %s=%s"
+
+#: apt-pkg/acquire-worker.cc
+#, c-format
+msgid "The method '%s' is explicitly disabled via configuration."
+msgstr "Метод '%s' вимкнено в конфігурації."
+
+#: apt-pkg/acquire-worker.cc methods/connect.cc
+#, c-format
+msgid "If you meant to use Tor remember to use %s instead of %s."
+msgstr ""
+"Якщо ви мали намір використовувати Tor, пам’ятайте: слід використовувати %s "
+"замість %s."
+
+#: apt-pkg/acquire-worker.cc
+#, c-format
+msgid "The method driver %s could not be found."
+msgstr "Драйвер методу %s не знайдено."
+
+#: apt-pkg/acquire-worker.cc
+#, c-format
+msgid "Is the package %s installed?"
+msgstr "Чи встановлено пакунок %s?"
+
+#: apt-pkg/acquire-worker.cc
+#, c-format
+msgid "Method %s did not start correctly"
+msgstr "Метод %s не запустився коректно"
+
+#: apt-pkg/acquire-worker.cc
+#, c-format
+msgid ""
+"Please insert the disc labeled: '%s' in the drive '%s' and press [Enter]."
+msgstr ""
+"Будь ласка, вставте диск із міткою: '%s' у привід '%s' та натисніть [Enter]."
+
+#: apt-pkg/acquire.cc apt-pkg/cdrom.cc
+#, c-format
+msgid "List directory %s is missing."
+msgstr "Каталог списків %s відсутній."
+
+#: apt-pkg/acquire.cc
+#, c-format
+msgid "Archives directory %s is missing."
+msgstr "Каталог архівів %s відсутній."
+
+#: apt-pkg/acquire.cc
+#, c-format
+msgid "Unable to lock directory %s"
+msgstr "Не вдається заблокувати каталог %s"
+
+#: apt-pkg/acquire.cc
+#, c-format
+msgid "No sandbox user '%s' on the system, can not drop privileges"
+msgstr "У системі немає користувача sandbox '%s', неможливо знизити привілеї"
+
+#: apt-pkg/acquire.cc
+#, c-format
+msgid ""
+"Download is performed unsandboxed as root as file '%s' couldn't be accessed "
+"by user '%s'."
+msgstr ""
+"Завантаження виконується без ізоляції від імені root, оскільки файл '%s' "
+"недоступний для користувача '%s'."
+
+#: apt-pkg/acquire.cc apt-pkg/clean.cc
+#, c-format
+msgid "Clean of %s is not supported"
+msgstr "Очищення для %s не підтримується"
+
+#. Only warn if there are no sources.list.d.
+#. Only warn if there is no sources.list file.
+#: apt-pkg/acquire.cc apt-pkg/clean.cc apt-pkg/contrib/cdromutl.cc
+#: apt-pkg/contrib/fileutl.cc apt-pkg/deb/dpkgpm.cc apt-pkg/init.cc
+#: apt-pkg/policy.cc apt-pkg/sourcelist.cc
+#, c-format
+msgid "Unable to read %s"
+msgstr "Не вдалось прочитати %s"
+
+#: apt-pkg/acquire.cc
+#, c-format
+msgid "Retrieving file %li of %li (%s remaining)"
+msgstr "Отримання файлу %li з %li (залишилось %s)"
+
+#: apt-pkg/acquire.cc
+#, c-format
+msgid "Retrieving file %li of %li"
+msgstr "Отримання файлу %li з %li"
+
+#: apt-pkg/algorithms.cc
+#, c-format
+msgid ""
+"The package %s needs to be reinstalled, but I can't find an archive for it."
+msgstr "Пакунок %s потрібно перевстановити, але не вдається знайти його архів."
+
+#: apt-pkg/algorithms.cc
+msgid ""
+"Error, pkgProblemResolver::Resolve generated breaks, this may be caused by "
+"held packages."
+msgstr ""
+"Помилка, pkgProblemResolver::Resolve створив конфлікти, причиною можуть бути "
+"утримувані пакунки."
+
+#: apt-pkg/algorithms.cc
+msgid "Unable to correct problems, you have held broken packages."
+msgstr "Не вдалося виправити проблеми, ви маєте зламані пакунки."
+
+#: apt-pkg/cachefile.cc
+msgid "The package lists or status file could not be parsed or opened."
+msgstr "Не вдалося проаналізувати чи відкрити списки пакунків або файл стану."
+
+#: apt-pkg/cachefile.cc
+msgid "You may want to run apt-get update to correct these problems"
+msgstr "Можливо, варто виконати apt-get update, щоб виправити ці проблеми"
+
+#: apt-pkg/cachefile.cc methods/mirror.cc
+msgid "The list of sources could not be read."
+msgstr "Список джерел не вдалося прочитати."
+
+#: apt-pkg/cachefilter-patterns.cc apt-pkg/cachefilter.cc
+#: apt-private/private-output.cc
+#, c-format
+msgid "Regex compilation error - %s"
+msgstr "Помилка компіляції регулярного виразу - %s"
+
+#: apt-pkg/cacheset.cc
+#, c-format
+msgid "Couldn't find task '%s'"
+msgstr "Не вдалось знайти завдання '%s'"
+
+#: apt-pkg/cacheset.cc
+#, c-format
+msgid "Couldn't find any package by regex '%s'"
+msgstr "Не вдалося знайти жодного пакунка за регулярним виразом '%s'"
+
+#: apt-pkg/cacheset.cc
+#, c-format
+msgid "Couldn't find any package by glob '%s'"
+msgstr "Не вдалося знайти жодного пакунка, що відповідає шаблону '%s'"
+
+#: apt-pkg/cacheset.cc apt-private/private-show.cc
+#, c-format
+msgid "Unable to locate package %s"
+msgstr "Не вдається знайти пакунок %s"
+
+#: apt-pkg/cacheset.cc
+#, c-format
+msgid "Can't select versions from package '%s' as it is purely virtual"
+msgstr "Неможливо вибрати версії з пакунка '%s', оскільки він віртуальний"
+
+#: apt-pkg/cacheset.cc
+#, c-format
+msgid "Can't select newest version from package '%s' as it is purely virtual"
+msgstr ""
+"Неможливо вибрати найновішу версію пакунка '%s', оскільки він віртуальний"
+
+#: apt-pkg/cacheset.cc
+#, c-format
+msgid "Can't select candidate version from package %s as it has no candidate"
+msgstr ""
+"Неможливо вибрати версію-кандидат для пакунка %s, оскільки такої версії немає"
+
+#: apt-pkg/cacheset.cc
+#, c-format
+msgid "Can't select installed version from package %s as it is not installed"
+msgstr ""
+"Неможливо вибрати встановлену версію для пакунка %s, оскільки його не "
+"встановлено"
+
+#: apt-pkg/cacheset.cc
+#, c-format
+msgid ""
+"Can't select installed nor candidate version from package '%s' as it has "
+"neither of them"
+msgstr ""
+"Неможливо вибрати встановлену чи версію-кандидат для пакунка '%s', оскільки "
+"він не має жодної з них"
+
+#: apt-pkg/cacheset.cc
+#, c-format
+msgid "Release '%s' for '%s' was not found"
+msgstr "Реліз '%s' для '%s' не знайдено"
+
+#: apt-pkg/cacheset.cc
+#, c-format
+msgid "Version '%s' for '%s' was not found"
+msgstr "Версію '%s' для '%s' не знайдено"
+
+#: apt-pkg/cdrom.cc
+msgid "Unmounting CD-ROM...\n"
+msgstr "Відмонтування CD-ROM...\n"
+
+#: apt-pkg/cdrom.cc
+#, c-format
+msgid "Using CD-ROM mount point %s\n"
+msgstr "Використовується точка монтування CD-ROM %s\n"
+
+#: apt-pkg/cdrom.cc
+msgid "Waiting for disc...\n"
+msgstr "Очікування диска...\n"
+
+#: apt-pkg/cdrom.cc
+msgid "Mounting CD-ROM...\n"
+msgstr "Монтування CD-ROM...\n"
+
+#: apt-pkg/cdrom.cc
+msgid "Identifying... "
+msgstr "Розпізнавання... "
+
+#: apt-pkg/cdrom.cc
+#, c-format
+msgid "Stored label: %s\n"
+msgstr "Збережена мітка: %s\n"
+
+#: apt-pkg/cdrom.cc
+msgid "Scanning disc for index files...\n"
+msgstr "Сканування диска на наявність індексних файлів...\n"
+
+#: apt-pkg/cdrom.cc
+#, c-format
+msgid ""
+"Found %zu package indexes, %zu source indexes, %zu translation indexes and "
+"%zu signatures\n"
+msgstr ""
+"Знайдено %zu індексів пакунків, %zu індексів вихідних пакунків, %zu індексів "
+"перекладів та %zu підписів\n"
+
+#: apt-pkg/cdrom.cc
+msgid ""
+"Unable to locate any package files, perhaps this is not a Debian Disc or the "
+"wrong architecture?"
+msgstr ""
+"Не вдається знайти жодних файлів пакунків; можливо, це не диск Debian або "
+"архітектура хибна?"
+
+#: apt-pkg/cdrom.cc
+#, c-format
+msgid "Found label '%s'\n"
+msgstr "Знайдено мітку: '%s'\n"
+
+#: apt-pkg/cdrom.cc
+msgid "That is not a valid name, try again.\n"
+msgstr "Це некоректне ім'я, спробуйте ще раз.\n"
+
+#: apt-pkg/cdrom.cc
+#, c-format
+msgid ""
+"This disc is called: \n"
+"'%s'\n"
+msgstr ""
+"Цей диск називається: \n"
+"'%s'\n"
+
+#: apt-pkg/cdrom.cc
+msgid "Copying package lists..."
+msgstr "Копіювання списків пакунків..."
+
+#: apt-pkg/cdrom.cc
+msgid "Writing new source list\n"
+msgstr "Запис нового списку джерел пакунків\n"
+
+#: apt-pkg/cdrom.cc
+msgid "Source list entries for this disc are:\n"
+msgstr "Записи списку джерел пакунків для цього диска:\n"
+
+#: apt-pkg/clean.cc
+#, c-format
+msgid "Unable to stat %s."
+msgstr "Не вдається отримати інформацію про %s."
+
+#: apt-pkg/contrib/arfile.cc
+msgid "Invalid archive signature"
+msgstr "Недійсний підпис архіву"
+
+#: apt-pkg/contrib/arfile.cc
+msgid "Error reading archive member header"
+msgstr "Помилка читання заголовка частини архіву"
+
+#: apt-pkg/contrib/arfile.cc
+msgid "Invalid archive member header"
+msgstr "Недійсний заголовок частини архіву"
+
+#: apt-pkg/contrib/arfile.cc
+msgid "Archive is too short"
+msgstr "Архів занадто короткий"
+
+#: apt-pkg/contrib/arfile.cc
+msgid "Failed to read the archive headers"
+msgstr "Не вдалося прочитати заголовки архіву"
+
+#: apt-pkg/contrib/cdromutl.cc
+#, c-format
+msgid "Unable to stat the mount point %s"
+msgstr "Не вдалося отримати інформацію про точку монтування %s"
+
+#: apt-pkg/contrib/cdromutl.cc
+msgid "Failed to stat the cdrom"
+msgstr "Не вдалося отримати інформацію про cdrom"
+
+#: apt-pkg/contrib/cmndline.cc
+#, c-format
+msgid ""
+"Command line option '%c' [from %s] is not understood in combination with the "
+"other options."
+msgstr "Параметр командного рядка '%c' [з %s] несумісний з іншими параметрами."
+
+#: apt-pkg/contrib/cmndline.cc
+#, c-format
+msgid ""
+"Command line option %s is not understood in combination with the other "
+"options"
+msgstr "Параметр командного рядка %s несумісний з іншими параметрами"
+
+#: apt-pkg/contrib/cmndline.cc
+#, c-format
+msgid "Command line option %s is not boolean"
+msgstr "Параметр командного рядка %s очікує булеве значення"
+
+#: apt-pkg/contrib/cmndline.cc
+#, c-format
+msgid "Option %s requires an argument."
+msgstr "Параметр %s вимагає аргумент."
+
+#: apt-pkg/contrib/cmndline.cc
+#, c-format
+msgid "Option %s: Configuration item specification must have an =<val>."
+msgstr "Параметр %s: у специфікації має бути =<val>."
+
+#: apt-pkg/contrib/cmndline.cc
+#, c-format
+msgid "Option %s requires an integer argument, not '%s'"
+msgstr "Параметр %s вимагає аргумент‑ціле число, а не '%s'"
+
+#: apt-pkg/contrib/cmndline.cc
+#, c-format
+msgid "Option '%s' is too long"
+msgstr "Параметр '%s' занадто довгий"
+
+#: apt-pkg/contrib/cmndline.cc
+#, c-format
+msgid "Sense %s is not understood, try true or false."
+msgstr "Значення %s не розпізнано, спробуйте true або false."
+
+#: apt-pkg/contrib/cmndline.cc
+#, c-format
+msgid "Invalid operation %s"
+msgstr "Недійсна операція %s"
+
+#: apt-pkg/contrib/configuration.cc
+#, c-format
+msgid "Unrecognized type abbreviation: '%c'"
+msgstr "Нерозпізнана абревіатура типу: '%c'"
+
+#: apt-pkg/contrib/configuration.cc
+#, c-format
+msgid "Syntax error %s:%u: Block starts with no name."
+msgstr "Синтаксична помилка %s:%u: блок починається без назви."
+
+#: apt-pkg/contrib/configuration.cc
+#, c-format
+msgid "Syntax error %s:%u: Malformed tag"
+msgstr "Синтаксична помилка %s:%u: некоректний тег"
+
+#: apt-pkg/contrib/configuration.cc
+#, c-format
+msgid "Syntax error %s:%u: Extra junk after value"
+msgstr "Синтаксична помилка %s:%u: зайві дані після значення"
+
+#: apt-pkg/contrib/configuration.cc
+#, c-format
+msgid "Syntax error %s:%u: Directives can only be done at the top level"
+msgstr ""
+"Синтаксична помилка %s:%u: директиви можна використовувати лише на верхньому "
+"рівні"
+
+#: apt-pkg/contrib/configuration.cc
+#, c-format
+msgid "Syntax error %s:%u: Too many nested includes"
+msgstr "Синтаксична помилка %s:%u: занадто багато вкладених include"
+
+#: apt-pkg/contrib/configuration.cc
+#, c-format
+msgid "Syntax error %s:%u: Included from here"
+msgstr "Синтаксична помилка %s:%u: включено звідси"
+
+#: apt-pkg/contrib/configuration.cc
+#, c-format
+msgid "Syntax error %s:%u: Unsupported directive '%s'"
+msgstr "Синтаксична помилка %s:%u: директива '%s' не підтримується"
+
+#: apt-pkg/contrib/configuration.cc
+#, c-format
+msgid "Syntax error %s:%u: clear directive requires an option tree as argument"
+msgstr ""
+"Синтаксична помилка %s:%u: директива clear вимагає дерево опцій як аргумент"
+
+#: apt-pkg/contrib/configuration.cc
+#, c-format
+msgid "Syntax error %s:%u: Extra junk at end of file"
+msgstr "Синтаксична помилка %s:%u: зайві дані в кінці файлу"
+
+#. TRANSLATOR: This is a warning level displayed before the message
+#: apt-pkg/contrib/error.cc
+msgid "Error:"
+msgstr "Помилка:"
+
+#. TRANSLATOR: This is a warning level displayed before the message
+#: apt-pkg/contrib/error.cc
+msgid "Warning:"
+msgstr "Попередження:"
+
+#. TRANSLATOR: This is a warning level displayed before the message
+#: apt-pkg/contrib/error.cc
+msgid "Notice:"
+msgstr "Повідомлення:"
+
+#: apt-pkg/contrib/error.cc
+msgid "Audit:"
+msgstr "Аудит:"
+
+#. TRANSLATOR: This is a warning level displayed before the message
+#: apt-pkg/contrib/error.cc
+msgid "Debug:"
+msgstr "Налагодження:"
+
+#: apt-pkg/contrib/extracttar.cc
+#, c-format
+msgid "Cannot find a configured compressor for '%s'"
+msgstr "Не вдалося знайти налаштований компресор для ‘%s’"
+
+#: apt-pkg/contrib/extracttar.cc
+msgid "Corrupted archive"
+msgstr "Пошкоджений архів"
+
+#: apt-pkg/contrib/extracttar.cc
+msgid "Tar checksum failed, archive corrupted"
+msgstr "Помилка контрольної суми tar - архів пошкоджений"
+
+#: apt-pkg/contrib/extracttar.cc
+#, c-format
+msgid "Unknown TAR header type %u"
+msgstr "Невідомий тип заголовка TAR %u"
+
+#: apt-pkg/contrib/fileutl.cc
+#, c-format
+msgid "Problem unlinking the file %s"
+msgstr "Проблема з видаленням файлу %s"
+
+#: apt-pkg/contrib/fileutl.cc
+#, c-format
+msgid "Not using locking for read only lock file %s"
+msgstr "Блокування не застосовується: файл %s доступний лише для читання"
+
+#: apt-pkg/contrib/fileutl.cc
+#, c-format
+msgid "Could not open lock file %s"
+msgstr "Неможливо відкрити файл блокування %s"
+
+#: apt-pkg/contrib/fileutl.cc
+#, c-format
+msgid "Not using locking for nfs mounted lock file %s"
+msgstr ""
+"Блокування не використовується для lock‑файлу %s, розташованого на "
+"NFS‑монтуванні"
+
+#: apt-pkg/contrib/fileutl.cc
+#, c-format
+msgid "Could not get lock %s. It is held by process %d"
+msgstr "Не вдалося отримати блокування %s. Його утримує процес %d"
+
+#: apt-pkg/contrib/fileutl.cc
+#, c-format
+msgid "Could not get lock %s. It is held by process %d (%s)"
+msgstr "Не вдалося отримати блокування %s. Його утримує процес %d (%s)"
+
+#: apt-pkg/contrib/fileutl.cc
+#, c-format
+msgid "Could not get lock %s"
+msgstr "Не вдалося отримати блокування %s"
+
+#: apt-pkg/contrib/fileutl.cc
+msgid ""
+"Be aware that removing the lock file is not a solution and may break your "
+"system."
+msgstr ""
+"Попередження: видалення lock‑файлу не вирішує проблему і може пошкодити "
+"систему."
+
+#: apt-pkg/contrib/fileutl.cc
+#, c-format
+msgid "List of files can't be created as '%s' is not a directory"
+msgstr "Неможливо створити список файлів, оскільки ‘%s’ не є каталогом"
+
+#: apt-pkg/contrib/fileutl.cc
+#, c-format
+msgid "Ignoring '%s' in directory '%s' as it is not a regular file"
+msgstr "Ігнорування '%s' у каталозі '%s', оскільки це не звичайний файл"
+
+#: apt-pkg/contrib/fileutl.cc
+#, c-format
+msgid "Ignoring file '%s' in directory '%s' as it has no filename extension"
+msgstr "Ігнорування файлу '%s' у каталозі '%s', оскільки він не має розширення"
+
+#: apt-pkg/contrib/fileutl.cc
+#, c-format
+msgid ""
+"Ignoring file '%s' in directory '%s' as it has an invalid filename extension"
+msgstr ""
+"Ігнорування файлу '%s' у каталозі '%s', оскільки він має недійсне розширення"
+
+#: apt-pkg/contrib/fileutl.cc apt-pkg/contrib/gpgv.cc apt-pkg/deb/debsystem.cc
+#: cmdline/apt-dump-solver.cc
+#, c-format
+msgid "Waited for %s but it wasn't there"
+msgstr "Очікував на %s, але його не виявилося"
+
+#: apt-pkg/contrib/fileutl.cc
+#, c-format
+msgid "Sub-process %s received a segmentation fault."
+msgstr "Підпроцес %s завершився з помилкою сегментації."
+
+#: apt-pkg/contrib/fileutl.cc
+#, c-format
+msgid "Sub-process %s received signal %u."
+msgstr "Підпроцес %s отримав сигнал %u."
+
+#. we forward the statuscode, so don't generate a message on the fd in this case
+#: apt-pkg/contrib/fileutl.cc apt-pkg/contrib/gpgv.cc
+#, c-format
+msgid "Sub-process %s returned an error code (%u)"
+msgstr "Підпроцес %s повернув код помилки (%u)"
+
+#: apt-pkg/contrib/fileutl.cc apt-pkg/contrib/gpgv.cc
+#, c-format
+msgid "Sub-process %s exited unexpectedly"
+msgstr "Підпроцес %s несподівано завершився"
+
+#: apt-pkg/contrib/fileutl.cc
+msgid "Read error"
+msgstr "Помилка читання"
+
+#: apt-pkg/contrib/fileutl.cc
+msgid "Write error"
+msgstr "Помилка запису"
+
+#: apt-pkg/contrib/fileutl.cc
+#, c-format
+msgid "Problem closing the gzip file %s"
+msgstr "Проблема під час закриття gzip-файлу %s"
+
+#: apt-pkg/contrib/fileutl.cc
+msgid "Unexpected end of file"
+msgstr "Неочікуваний кінець файлу"
+
+#: apt-pkg/contrib/fileutl.cc
+msgid "Failed to create subprocess IPC"
+msgstr "Не вдалося створити IPC для підпроцесу"
+
+#: apt-pkg/contrib/fileutl.cc
+msgid "Failed to exec compressor "
+msgstr "Не вдалося запустити компресор "
+
+#: apt-pkg/contrib/fileutl.cc
+#, c-format
+msgid "Could not open file %s"
+msgstr "Не вдалося відкрити файл %s"
+
+#: apt-pkg/contrib/fileutl.cc
+#, c-format
+msgid "Could not open file descriptor %d"
+msgstr "Не вдалося відкрити файловий дескриптор %d"
+
+#: apt-pkg/contrib/fileutl.cc
+#, c-format
+msgid "read, still have %llu to read but none left"
+msgstr "під час читання: залишалося прочитати %llu, але дані закінчилися"
+
+#: apt-pkg/contrib/fileutl.cc
+#, c-format
+msgid "write, still have %llu to write but couldn't"
+msgstr "під час запису: залишалося записати %llu, але не вдалося"
+
+#: apt-pkg/contrib/fileutl.cc
+#, c-format
+msgid "Problem closing the file %s"
+msgstr "Проблема під час закриття файлу %s"
+
+#: apt-pkg/contrib/fileutl.cc
+#, c-format
+msgid "Problem renaming the file %s to %s"
+msgstr "Проблема під час перейменування файлу %s на %s"
+
+#: apt-pkg/contrib/fileutl.cc
+msgid "Problem syncing the file"
+msgstr "Проблема під час синхронізації файлу"
+
+#: apt-pkg/contrib/fileutl.cc
+#, c-format
+msgid "Unable to mkstemp %s"
+msgstr "Не вдалося створити тимчасовий файл через mkstemp для %s"
+
+#: apt-pkg/contrib/fileutl.cc
+#, c-format
+msgid "Unable to write to %s"
+msgstr "Не вдалося записати до %s"
+
+#: apt-pkg/contrib/mmap.cc
+msgid "Can't mmap an empty file"
+msgstr "Неможливо створити mmap для порожнього файлу"
+
+#: apt-pkg/contrib/mmap.cc
+#, c-format
+msgid "Couldn't make mmap of %llu bytes"
+msgstr "Неможливо створити mmap для %llu байтів"
+
+#: apt-pkg/contrib/mmap.cc
+#, c-format
+msgid "Couldn't duplicate file descriptor %i"
+msgstr "Не вдалося дублювати файловий дескриптор %i"
+
+#: apt-pkg/contrib/mmap.cc
+msgid "Unable to close mmap"
+msgstr "Не вдалося закрити mmap"
+
+#: apt-pkg/contrib/mmap.cc
+msgid "Unable to synchronize mmap"
+msgstr "Не вдалося синхронізувати mmap"
+
+#: apt-pkg/contrib/mmap.cc
+#, c-format
+msgid "Couldn't make mmap of %lu bytes"
+msgstr "Неможливо створити mmap для %lu байтів"
+
+#: apt-pkg/contrib/mmap.cc
+msgid "Failed to truncate file"
+msgstr "Не вдалося обрізати файл"
+
+#: apt-pkg/contrib/mmap.cc
+#, c-format
+msgid ""
+"Dynamic MMap ran out of room. Please increase the size of APT::Cache-Start. "
+"Current value: %lu. (man 5 apt.conf)"
+msgstr ""
+"Динамічний MMap вичерпав доступний простір. Будь ласка, збільште розмір "
+"APT::Cache-Start. Поточне значення: %lu. (man 5 apt.conf)"
+
+#: apt-pkg/contrib/mmap.cc
+#, c-format
+msgid ""
+"Unable to increase the size of the MMap as the limit of %lu bytes is already "
+"reached."
+msgstr ""
+"Не вдалося збільшити розмір MMap, оскільки ліміт у %lu байтів уже досягнуто."
+
+#: apt-pkg/contrib/mmap.cc
+msgid ""
+"Unable to increase size of the MMap as automatic growing is disabled by user."
+msgstr ""
+"Не вдалося збільшити розмір MMap, оскільки автоматичне розширення вимкнено "
+"користувачем."
+
+#: apt-pkg/contrib/netrc.cc
+#, c-format
+msgid ""
+"%s: Credentials for %s match, but the protocol is not encrypted. Annotate "
+"with %s:// to use."
+msgstr ""
+"%s: Облікові дані для %s збігаються, але протокол без шифрування. Додайте "
+"префікс %s://."
+
+#: apt-pkg/contrib/progress.cc
+#, c-format
+msgid "%c%s... Error!"
+msgstr "%c%s... Помилка!"
+
+#: apt-pkg/contrib/progress.cc
+#, c-format
+msgid "%c%s... Done"
+msgstr "%c%s... Виконано"
+
+#: apt-pkg/contrib/progress.cc
+msgid "..."
+msgstr "..."
+
+#: apt-pkg/contrib/progress.cc
+#, c-format
+msgid "%c%s... %llu/%llus"
+msgstr "%c%s... %llu/%lluс"
+
+#: apt-pkg/contrib/progress.cc
+#, c-format
+msgid "%c%s... %llus"
+msgstr "%c%s... %lluс"
+
+#: apt-pkg/contrib/progress.cc
+#, c-format
+msgid "%c%s... %u%%"
+msgstr "%c%s... %u%%"
+
+#. TRANSLATOR: d means days, h means hours, min means minutes, s means seconds
+#: apt-pkg/contrib/strutl.cc
+#, c-format
+msgid "%lid %lih %limin %lis"
+msgstr "%liд %liг %liхв %liс"
+
+#. TRANSLATOR: h means hours, min means minutes, s means seconds
+#: apt-pkg/contrib/strutl.cc
+#, c-format
+msgid "%lih %limin %lis"
+msgstr "%liг %liхв %liс"
+
+#. TRANSLATOR: min means minutes, s means seconds
+#: apt-pkg/contrib/strutl.cc
+#, c-format
+msgid "%limin %lis"
+msgstr "%liхв %liс"
+
+#. TRANSLATOR: s means seconds
+#: apt-pkg/contrib/strutl.cc
+#, c-format
+msgid "%lis"
+msgstr "%liс"
+
+#: apt-pkg/contrib/strutl.cc
+#, c-format
+msgid "Selection %s not found"
+msgstr "Елемент %s не знайдено"
+
+#: apt-pkg/deb/debfile.cc
+#, c-format
+msgid "This is not a valid DEB archive, missing '%s' member"
+msgstr "Це некоректний DEB‑архів: відсутній компонент '%s'"
+
+#: apt-pkg/deb/debfile.cc
+#, c-format
+msgid "Internal error, could not locate member %s"
+msgstr "Внутрішня помилка, не вдалося знайти компонент %s"
+
+#: apt-pkg/deb/debfile.cc
+msgid "Unparsable control file"
+msgstr "Неможливо розібрати контрольний файл"
+
+#: apt-pkg/deb/debindexfile.cc
+#, c-format
+msgid "Could not read meta data from %s"
+msgstr "Не вдалося прочитати метадані з %s"
+
+#. TRANSLATOR: an identifier like Packages; Releasefile key indicating
+#. a file like main/binary-amd64/Packages; another identifier like Contents;
+#. filename and linenumber of the sources.list entry currently parsed
+#: apt-pkg/deb/debmetaindex.cc
+#, c-format
+msgid "Target %s wants to acquire the same file (%s) as %s from source %s"
+msgstr ""
+"Ціль %s намагається отримати той самий файл (%s), що й %s, з джерела %s"
+
+#. TRANSLATOR: an identifier like Packages; Releasefile key indicating
+#. a file like main/binary-amd64/Packages; filename and linenumber of
+#. two sources.list entries
+#: apt-pkg/deb/debmetaindex.cc
+#, c-format
+msgid "Target %s (%s) is configured multiple times in %s and %s"
+msgstr "Ціль %s (%s) налаштовано кілька разів у %s і %s"
+
+#: apt-pkg/deb/debmetaindex.cc
+#, c-format
+msgid "Unable to parse Release file %s"
+msgstr "Не вдалось розібрати файл Release %s"
+
+#: apt-pkg/deb/debmetaindex.cc
+#, c-format
+msgid "No sections in Release file %s"
+msgstr "У файлі Release %s немає жодної секції"
+
+#: apt-pkg/deb/debmetaindex.cc
+#, c-format
+msgid "No Hash entry in Release file %s"
+msgstr "У файлі Release %s немає запису хешу"
+
+#: apt-pkg/deb/debmetaindex.cc
+#, c-format
+msgid ""
+"No Hash entry in Release file %s which is considered strong enough for "
+"security purposes"
+msgstr ""
+"У файлі Release %s немає запису хешу, який вважався б достатньо сильним із "
+"міркувань безпеки"
+
+#: apt-pkg/deb/debmetaindex.cc
+#, c-format
+msgid "Invalid '%s' entry in Release file %s"
+msgstr "Некоректний запис '%s' у файлі Release %s"
+
+#. TRANSLATOR: The first is an option name from sources.list manpage, the other two URI and Suite
+#: apt-pkg/deb/debmetaindex.cc
+#, c-format
+msgid "Conflicting values set for option %s regarding source %s %s"
+msgstr "Для опції %s встановлено конфліктні значення щодо джерела %s %s"
+
+#: apt-pkg/deb/debmetaindex.cc
+#, c-format
+msgid "Invalid value set for option %s regarding source %s %s (%s)"
+msgstr "Для опції %s встановлено некоректне значення щодо джерела %s %s (%s)"
+
+#: apt-pkg/deb/debmetaindex.cc
+#, c-format
+msgid "Conflicting values set for option %s regarding source %s %s: %s != %s"
+msgstr ""
+"Для опції %s встановлено конфліктні значення щодо джерела %s %s: %s != %s"
+
+#: apt-pkg/deb/debrecords.cc apt-pkg/tagfile.cc
+#, c-format
+msgid "Unable to parse package file %s (%d)"
+msgstr "Не вдалося розібрати файл пакунка %s (%d)"
+
+#: apt-pkg/deb/debsystem.cc
+#, c-format
+msgid "Waiting for cache lock: %s"
+msgstr "Очікування на блокування кешу: %s"
+
+#: apt-pkg/deb/debsystem.cc
+#, c-format
+msgid ""
+"Unable to acquire the dpkg frontend lock (%s), is another process using it?"
+msgstr ""
+"Не вдалося отримати блокування інтерфейсу dpkg (%s), можливо, його "
+"використовує інший процес?"
+
+#: apt-pkg/deb/debsystem.cc
+#, c-format
+msgid "Unable to acquire the dpkg frontend lock (%s), are you root?"
+msgstr ""
+"Не вдалося отримати блокування інтерфейсу dpkg (%s), можливо, потрібні права "
+"root?"
+
+#. TRANSLATORS: the %s contains the recovery command, usually
+#. dpkg --configure -a
+#: apt-pkg/deb/debsystem.cc
+#, c-format
+msgid ""
+"dpkg was interrupted, you must manually run '%s' to correct the problem. "
+msgstr ""
+"роботу dpkg було перервано; для виправлення проблеми вам потрібно вручну "
+"виконати '%s'. "
+
+#: apt-pkg/deb/debsystem.cc
+#, c-format
+msgid ""
+"Unable to lock the administration directory (%s), is another process using "
+"it?"
+msgstr ""
+"Не вдалося заблокувати каталог адміністрування (%s), можливо, його "
+"використовує інший процес?"
+
+#: apt-pkg/deb/debsystem.cc
+#, c-format
+msgid "Unable to lock the administration directory (%s), are you root?"
+msgstr ""
+"Не вдалося заблокувати каталог адміністрування (%s), можливо, потрібні права "
+"root?"
+
+#: apt-pkg/deb/debsystem.cc
+msgid "Not locked"
+msgstr "Не заблоковано"
+
+#: apt-pkg/deb/debsystem.cc
+msgid ""
+"The dpkg executable set in Dir::Bin::dpkg is missing, falling back to using "
+"default dpkg."
+msgstr ""
+"Виконуваний файл dpkg, вказаний у Dir::Bin::dpkg, відсутній; буде "
+"використано стандартний dpkg."
+
+#. we don't care for the difference
+#: apt-pkg/deb/dpkgpm.cc
+#, c-format
+msgid "Preparing %s"
+msgstr "Підготовка %s"
+
+#: apt-pkg/deb/dpkgpm.cc
+#, c-format
+msgid "Preparing to configure %s"
+msgstr "Підготовка до налаштування %s"
+
+#: apt-pkg/deb/dpkgpm.cc
+#, c-format
+msgid "Preparing for removal of %s"
+msgstr "Підготовка до видалення %s"
+
+#: apt-pkg/deb/dpkgpm.cc
+#, c-format
+msgid "Preparing to completely remove %s"
+msgstr "Підготовка до повного видалення %s"
+
+#: apt-pkg/deb/dpkgpm.cc
+#, c-format
+msgid "Noting disappearance of %s"
+msgstr "Зафіксовано зникнення %s"
+
+#: apt-pkg/deb/dpkgpm.cc
+#, c-format
+msgid "Running post-installation trigger %s"
+msgstr "Виконання тригера після встановлення %s"
+
+#: apt-pkg/deb/dpkgpm.cc
+#, c-format
+msgid "Installed %s"
+msgstr "Встановлено %s"
+
+#: apt-pkg/deb/dpkgpm.cc
+#, c-format
+msgid "Configuring %s"
+msgstr "Налаштування %s"
+
+#. FIXME: use a better string after freeze
+#: apt-pkg/deb/dpkgpm.cc
+#, c-format
+msgid "Directory '%s' missing"
+msgstr "Каталог '%s' відсутній"
+
+#: apt-pkg/deb/dpkgpm.cc apt-pkg/edsp.cc
+#, c-format
+msgid "Could not open file '%s'"
+msgstr "Не вдалось відкрити файл '%s'"
+
+#: apt-pkg/deb/dpkgpm.cc
+#, c-format
+msgid "Unpacking %s"
+msgstr "Розпакування %s"
+
+#: apt-pkg/deb/dpkgpm.cc
+#, c-format
+msgid "Installing %s"
+msgstr "Встановлення %s"
+
+#: apt-pkg/deb/dpkgpm.cc
+#, c-format
+msgid "Removing %s"
+msgstr "Видалення %s"
+
+#: apt-pkg/deb/dpkgpm.cc
+#, c-format
+msgid "Completely removing %s"
+msgstr "Повне видалення %s"
+
+#: apt-pkg/deb/dpkgpm.cc
+#, c-format
+msgid "Completely removed %s"
+msgstr "Повністю видалено %s"
+
+#: apt-pkg/deb/dpkgpm.cc
+#, c-format
+msgid "Can not write log (%s)"
+msgstr "Не вдалося записати журнал (%s)"
+
+#: apt-pkg/deb/dpkgpm.cc
+msgid "Is /dev/pts mounted?"
+msgstr "Чи змонтовано /dev/pts?"
+
+#: apt-pkg/deb/dpkgpm.cc
+msgid "Operation was interrupted before it could finish"
+msgstr "Операцію було перервано до її завершення"
+
+#: apt-pkg/deb/dpkgpm.cc
+msgid "No apport report written because MaxReports is reached already"
+msgstr "Звіт apport не створено, оскільки вже досягнуто межі MaxReports"
+
+#. check if its not a follow up error
+#: apt-pkg/deb/dpkgpm.cc
+msgid "dependency problems - leaving unconfigured"
+msgstr "проблеми залежностей - залишено неналаштованим"
+
+#: apt-pkg/deb/dpkgpm.cc
+msgid ""
+"No apport report written because the error message indicates its a followup "
+"error from a previous failure."
+msgstr ""
+"Звіт apport не створено, оскільки повідомлення про помилку свідчить, що це "
+"наслідок попереднього збою."
+
+#: apt-pkg/deb/dpkgpm.cc
+msgid ""
+"No apport report written because the error message indicates a disk full "
+"error"
+msgstr ""
+"Звіт apport не створено, оскільки повідомлення про помилку свідчить про "
+"переповнення диска"
+
+#: apt-pkg/deb/dpkgpm.cc
+msgid ""
+"No apport report written because the error message indicates a out of memory "
+"error"
+msgstr ""
+"Звіт apport не створено, оскільки повідомлення про помилку свідчить про брак "
+"пам'яті"
+
+#: apt-pkg/deb/dpkgpm.cc
+msgid ""
+"No apport report written because the error message indicates an issue on the "
+"local system"
+msgstr ""
+"Звіт apport не створено, оскільки повідомлення про помилку свідчить про "
+"проблему в локальній системі"
+
+#: apt-pkg/deb/dpkgpm.cc
+msgid ""
+"No apport report written because the error message indicates a dpkg I/O error"
+msgstr ""
+"Звіт apport не створено, оскільки повідомлення про помилку свідчить про "
+"помилку вводу/виводу dpkg"
+
+#: apt-pkg/depcache.cc
+msgid "Building dependency tree"
+msgstr "Побудова дерева залежностей"
+
+#: apt-pkg/depcache.cc
+msgid "Candidate versions"
+msgstr "Версії-кандидати"
+
+#: apt-pkg/depcache.cc
+msgid "Dependency generation"
+msgstr "Генерування залежностей"
+
+#: apt-pkg/depcache.cc
+msgid "Reading state information"
+msgstr "Зчитування інформації про стан"
+
+#: apt-pkg/depcache.cc
+#, c-format
+msgid "Failed to open StateFile %s"
+msgstr "Не вдалося відкрити StateFile %s"
+
+#: apt-pkg/depcache.cc
+#, c-format
+msgid "Failed to write temporary StateFile %s"
+msgstr "Не вдалося записати тимчасовий StateFile %s"
+
+#: apt-pkg/dirstream.cc
+#, c-format
+msgid "Failed to write file %s"
+msgstr "Не вдалося записати файл %s"
+
+#: apt-pkg/dirstream.cc
+#, c-format
+msgid "Failed to close file %s"
+msgstr "Не вдалося закрити файл %s"
+
+#: apt-pkg/edsp.cc
+msgid "Send scenario to solver"
+msgstr "Надсилання сценарію розв’язувачу"
+
+#: apt-pkg/edsp.cc
+msgid "Send request to solver"
+msgstr "Надсилання запиту розв’язувачу"
+
+#: apt-pkg/edsp.cc
+msgid "Prepare for receiving solution"
+msgstr "Підготовка до отримання рішення"
+
+#: apt-pkg/edsp.cc
+msgid "External solver failed without a proper error message"
+msgstr ""
+"Зовнішній розв’язувач завершився збоєм без коректного повідомлення про "
+"помилку"
+
+#: apt-pkg/edsp.cc apt-pkg/upgrade.cc
+msgid "Calculating upgrade"
+msgstr "Розрахунок оновлення"
+
+#: apt-pkg/edsp.cc
+msgid "Solving dependencies"
+msgstr "Вирішення залежностей"
+
+#: apt-pkg/edsp.cc
+msgid "Execute external solver"
+msgstr "Запуск зовнішнього розв'язувача"
+
+#: apt-pkg/edsp.cc
+msgid "Execute external planner"
+msgstr "Запуск зовнішнього планувальника"
+
+#: apt-pkg/edsp.cc
+msgid "Send request to planner"
+msgstr "Надсилання запиту планувальнику"
+
+#: apt-pkg/edsp.cc
+msgid "Send scenario to planner"
+msgstr "Надсилання сценарію планувальнику"
+
+#: apt-pkg/edsp.cc
+msgid "External planner failed without a proper error message"
+msgstr ""
+"Зовнішній планувальник завершився збоєм без коректного повідомлення про "
+"помилку"
+
+#: apt-pkg/history.cc
+#, c-format
+msgid "Unknown flag: %s"
+msgstr "Невідомий прапорець: %s"
+
+#: apt-pkg/history.cc
+#, c-format
+msgid "Cannot find history files: %s"
+msgstr "Не вдалося знайти файли історії: %s"
+
+#: apt-pkg/history.cc
+#, c-format
+msgid "Could not open file: %s"
+msgstr "Не вдалося відкрити файл: %s"
+
+#: apt-pkg/history.cc
+#, c-format
+msgid "Could not parse file: %s"
+msgstr "Не вдалося розібрати файл: %s"
+
+#: apt-pkg/history.cc
+#, c-format
+msgid "Could not close file: %s"
+msgstr "Не вдалося закрити файл: %s"
+
+#: apt-pkg/indexcopy.cc
+#, c-format
+msgid "Wrote %i records.\n"
+msgstr "Записано %i записів.\n"
+
+#: apt-pkg/indexcopy.cc
+#, c-format
+msgid "Wrote %i records with %i missing files.\n"
+msgstr "Записано %i записів із %i файлами, яких бракує.\n"
+
+#: apt-pkg/indexcopy.cc
+#, c-format
+msgid "Wrote %i records with %i mismatched files\n"
+msgstr "Записано %i записів із %i файлами, що не збігаються\n"
+
+#: apt-pkg/indexcopy.cc
+#, c-format
+msgid "Wrote %i records with %i missing files and %i mismatched files\n"
+msgstr ""
+"Записано %i записів із %i файлами, яких бракує, і %i файлами, що не "
+"збігаються\n"
+
+#: apt-pkg/indexcopy.cc
+#, c-format
+msgid "Can't find authentication record for: %s"
+msgstr "Не вдалося знайти запис автентифікації для: %s"
+
+#: apt-pkg/indexcopy.cc
+#, c-format
+msgid "Hash mismatch for: %s"
+msgstr "Не збігається хеш для: %s"
+
+#: apt-pkg/init.cc
+#, c-format
+msgid "Packaging system '%s' is not supported"
+msgstr "Система пакування '%s' не підтримується"
+
+#: apt-pkg/init.cc
+msgid "Unable to determine a suitable packaging system type"
+msgstr "Не вдалося визначити тип придатної системи пакування"
+
+#: apt-pkg/install-progress.cc
+#, c-format
+msgid "Progress: [%3li%%]"
+msgstr "Поступ: [%3li%%]"
+
+#. send status information that we are about to fork dpkg
+#: apt-pkg/install-progress.cc
+msgid "Running dpkg"
+msgstr "Запуск dpkg"
+
+#: apt-pkg/packagemanager.cc
+#, c-format
+msgid ""
+"Could not perform immediate configuration on '%s'. Please see man 5 apt.conf "
+"under APT::Immediate-Configure for details. (%d)"
+msgstr ""
+"Не вдалося виконати негайне налаштування '%s'. Докладніше див. у man 5 "
+"apt.conf, розділ APT::Immediate-Configure. (%d)"
+
+#: apt-pkg/packagemanager.cc
+#, c-format
+msgid "Could not configure '%s'. "
+msgstr "Не вдалося налаштувати '%s'. "
+
+#: apt-pkg/packagemanager.cc
+#, c-format
+msgid ""
+"This installation run will require temporarily removing the essential "
+"package %s due to a Conflicts/Pre-Depends loop. This is often bad, but if "
+"you really want to do it, activate the APT::Force-LoopBreak option."
+msgstr ""
+"Під час цієї інсталяції доведеться тимчасово вилучити критично важливий "
+"пакунок %s через цикл у Conflicts/Pre‑Depends. Це зазвичай погано, але якщо "
+"ви наполягаєте, увімкніть параметр APT::Force-LoopBreak."
+
+#: apt-pkg/pkgcache.cc
+msgid "Empty package cache"
+msgstr "Порожній кеш пакунків"
+
+#: apt-pkg/pkgcache.cc
+msgid "The package cache file is corrupted"
+msgstr "Файл кешу пакунків пошкоджений"
+
+#: apt-pkg/pkgcache.cc
+msgid "The package cache file is an incompatible version"
+msgstr "Файл кешу пакунків має несумісну версію"
+
+#: apt-pkg/pkgcache.cc
+#, c-format
+msgid "This APT does not support the versioning system '%s'"
+msgstr "Цей APT не підтримує систему версіонування ‘%s’"
+
+#: apt-pkg/pkgcache.cc
+#, c-format
+msgid "The package cache was built for different architectures: %s vs %s"
+msgstr "Кеш пакунків створено для різних архітектур: %s і %s"
+
+#: apt-pkg/pkgcache.cc
+msgid "The package cache file is corrupted, it has the wrong hash"
+msgstr "Файл кешу пакунків пошкоджений: хеш неправильний"
+
+#: apt-pkg/pkgcache.cc
+msgid "Depends"
+msgstr "Залежності"
+
+#: apt-pkg/pkgcache.cc
+msgid "PreDepends"
+msgstr "Попередні залежності"
+
+#: apt-pkg/pkgcache.cc
+msgid "Suggests"
+msgstr "Пропоновані"
+
+#: apt-pkg/pkgcache.cc
+msgid "Conflicts"
+msgstr "Конфліктує"
+
+#: apt-pkg/pkgcache.cc
+msgid "Recommends"
+msgstr "Рекомендовані"
+
+#: apt-pkg/pkgcache.cc
+msgid "Replaces"
+msgstr "Замінює"
+
+#: apt-pkg/pkgcache.cc
+msgid "Breaks"
+msgstr "Порушує"
+
+#: apt-pkg/pkgcache.cc
+msgid "Enhances"
+msgstr "Покращує"
+
+# Застарює?
+#: apt-pkg/pkgcache.cc
+msgid "Obsoletes"
+msgstr "Робить застарілим"
+
+#: apt-pkg/pkgcache.cc
+msgid "important"
+msgstr "важливий"
+
+#: apt-pkg/pkgcache.cc
+msgid "required"
+msgstr "обов’язковий"
+
+#: apt-pkg/pkgcache.cc
+msgid "standard"
+msgstr "стандартний"
+
+#: apt-pkg/pkgcache.cc
+msgid "extra"
+msgstr "додатковий"
+
+#: apt-pkg/pkgcache.cc
+msgid "optional"
+msgstr "необов’язковий"
+
+#: apt-pkg/pkgcachegen.cc
+msgid "Cache has an incompatible versioning system"
+msgstr "Система версіонування кешу несумісна"
+
+#. TRANSLATOR: The first placeholder is a package name,
+#. the other two should be copied verbatim as they include debug info
+#: apt-pkg/pkgcachegen.cc
+#, c-format
+msgid "Error occurred while processing %s (%s%d)"
+msgstr "Під час обробки %s (%s%d) сталася помилка"
+
+#: apt-pkg/pkgcachegen.cc
+msgid "Wow, you exceeded the number of package names this APT is capable of."
+msgstr "Ого, перевищено кількість назв пакунків, які може обробити цей APT."
+
+#: apt-pkg/pkgcachegen.cc
+msgid "Wow, you exceeded the number of versions this APT is capable of."
+msgstr "Ого, перевищено кількість версій, які може обробити цей APT."
+
+#: apt-pkg/pkgcachegen.cc
+msgid "Wow, you exceeded the number of descriptions this APT is capable of."
+msgstr "Ого, перевищено кількість описів, які може обробити цей APT."
+
+#: apt-pkg/pkgcachegen.cc
+msgid "Wow, you exceeded the number of dependencies this APT is capable of."
+msgstr "Ого, перевищено кількість залежностей, які може обробити цей APT."
+
+#: apt-pkg/pkgcachegen.cc
+msgid "Reading package lists"
+msgstr "Читаю переліки пакунків"
+
+#: apt-pkg/pkgcachegen.cc
+msgid "IO Error saving source cache"
+msgstr "Помилка вводу-виводу під час збереження кешу джерел"
+
+#: apt-pkg/pkgrecords.cc
+#, c-format
+msgid "Index file type '%s' is not supported"
+msgstr "Тип індексного файлу '%s' не підтримується"
+
+#: apt-pkg/policy.cc
+#, c-format
+msgid ""
+"The value '%s' is invalid for APT::Default-Release as such a release is not "
+"available in the sources"
+msgstr ""
+"Значення ‘%s’ некоректне для APT::Default-Release, оскільки такого випуску "
+"немає в джерелах"
+
+#: apt-pkg/policy.cc
+#, c-format
+msgid "Invalid record in the preferences file %s, no Package header"
+msgstr "Недійсний запис у файлі налаштувань %s: відсутній заголовок Package"
+
+#: apt-pkg/policy.cc
+#, c-format
+msgid "Did not understand pin type %s"
+msgstr "Не вдалося розпізнати тип фіксації %s"
+
+#: apt-pkg/policy.cc
+#, c-format
+msgid ""
+"%s: The special 'Pin-Priority: %s' can only be used for 'Package: *' records"
+msgstr ""
+"%s: Спеціальне значення ‘Pin-Priority: %s’ можна використовувати лише для "
+"записів ‘Package: *’"
+
+#: apt-pkg/policy.cc
+#, c-format
+msgid "%s: Value %s is outside the range of valid pin priorities (%d to %d)"
+msgstr ""
+"%s: Значення %s поза межами допустимого діапазону пріоритетів фіксації (%d – "
+"%d)"
+
+#: apt-pkg/policy.cc
+msgid "No priority (or zero) specified for pin"
+msgstr "Для фіксації не вказано пріоритет (або він нульовий)"
+
+#. TRANSLATOR: %u is a line number, the first %s is a filename of a file with the extension "second %s" and the third %s is a unique identifier for bugreports
+#: apt-pkg/sourcelist.cc
+#, c-format
+msgid "Malformed entry %u in %s file %s (%s)"
+msgstr "Неправильно сформований запис %u у файлі %s.%s (%s)"
+
+#: apt-pkg/sourcelist.cc
+#, c-format
+msgid "Malformed line %u in source list %s (type)"
+msgstr "Некоректний рядок %u у списку джерел %s (тип)"
+
+#: apt-pkg/sourcelist.cc
+#, c-format
+msgid "Type '%s' is not known on line %u in source list %s"
+msgstr "Тип '%s' невідомий у рядку %u у списку джерел %s"
+
+#: apt-pkg/sourcelist.cc
+#, c-format
+msgid "Malformed stanza %u in source list %s (type)"
+msgstr "Некоректний запис %u (stanza) у списку джерел %s (тип)"
+
+#: apt-pkg/sourcelist.cc
+#, c-format
+msgid "Type '%s' is not known on stanza %u in source list %s"
+msgstr "Тип '%s' невідомий у записі (stanza) %u у списку джерел %s"
+
+#: apt-pkg/sourcelist.cc apt-private/private-install.cc
+#, c-format
+msgid "Unsupported file %s given on commandline"
+msgstr "У командному рядку задано непідтримуваний файл %s"
+
+#: apt-pkg/srcrecords.cc
+msgid "You must put some 'deb-src' URIs in your sources.list"
+msgstr "У файл sources.list потрібно додати URI типу ‘deb-src’"
+
+#: apt-pkg/tagfile.cc
+#, c-format
+msgid "Cannot convert %s to integer: out of range"
+msgstr "Неможливо перетворити %s на ціле число: поза діапазоном"
+
+#: apt-pkg/update.cc
+msgid ""
+"Some index files failed to download. They have been ignored, or old ones "
+"used instead."
+msgstr ""
+"Деякі індексні файли не вдалося завантажити. Їх проігноровано або "
+"використано старі версії."
+
+#. TRANSLATOR: Very short word to be displayed before unchanged files in 'apt-get update'
+#: apt-private/acqprogress.cc
+#, c-format
+msgid "Hit:%lu %s"
+msgstr "В кеші:%lu %s"
+
+#. TRANSLATOR: Very short word to be displayed for files processed in 'apt-get update'
+#. Potentially replaced later by "Hit:", "Ign:" or "Err:" if something (bad) happens
+#: apt-private/acqprogress.cc
+#, c-format
+msgid "Get:%lu %s"
+msgstr "Отр:%lu %s"
+
+#. TRANSLATOR: Very short word to be displayed for files in 'apt-get update'
+#. which failed to download, but the error is ignored (compare "Err:")
+#: apt-private/acqprogress.cc
+#, c-format
+msgid "Ign:%lu %s"
+msgstr "Ігн:%lu %s"
+
+#. TRANSLATOR: Very short word to be displayed for files in 'apt-get update'
+#. which failed to download and the error is critical (compare "Ign:")
+#: apt-private/acqprogress.cc
+#, c-format
+msgid "Err:%lu %s"
+msgstr "Пом:%lu %s"
+
+#: apt-private/acqprogress.cc
+#, c-format
+msgid "Fetched %sB in %s (%sB/s)\n"
+msgstr "Отримано %sB за %s (%sB/s)\n"
+
+#: apt-private/acqprogress.cc
+msgid " [Working]"
+msgstr " [Виконується]"
+
+#: apt-private/acqprogress.cc
+#, c-format
+msgid ""
+"Media change: please insert the disc labeled\n"
+" '%s'\n"
+"in the drive '%s' and press [Enter]\n"
+msgstr ""
+"Зміна носія: вставте диск з міткою\n"
+" '%s'\n"
+"у привід '%s' і натисніть [Enter]\n"
+
+#: apt-private/acqprogress.cc
+msgid ""
+"Do you want to accept these changes and continue updating from this "
+"repository?"
+msgstr "Прийняти ці зміни та продовжити оновлення з цього сховища?"
+
+#: apt-private/private-cachefile.cc
+msgid "Correcting dependencies..."
+msgstr "Виправлення залежностей..."
+
+#: apt-private/private-cachefile.cc
+msgid " failed."
+msgstr " помилка."
+
+#: apt-private/private-cachefile.cc
+msgid "Unable to correct dependencies"
+msgstr "Не вдається виправити залежності"
+
+#: apt-private/private-cachefile.cc
+msgid "Unable to minimize the upgrade set"
+msgstr "Не вдається скоротити набір оновлень"
+
+#: apt-private/private-cachefile.cc
+msgid " Done"
+msgstr " Виконано"
+
+#: apt-private/private-cachefile.cc apt-private/private-install.cc
+msgid "You might want to run 'apt --fix-broken install' to correct these."
+msgstr "Варто виконати ‘apt --fix-broken install’, щоб це виправити."
+
+#: apt-private/private-cachefile.cc apt-private/private-install.cc
+msgid ""
+"Unmet dependencies. Try 'apt --fix-broken install' with no packages (or "
+"specify a solution)."
+msgstr ""
+"Невиконані залежності. Спробуйте виконати ‘apt --fix-broken install’ без "
+"пакунків (або вкажіть спосіб розв’язання конфлікту)."
+
+#: apt-private/private-cacheset.cc apt-private/private-search.cc
+msgid "Sorting"
+msgstr "Сортування"
+
+#: apt-private/private-cacheset.cc
+#, c-format
+msgid "Note, selecting '%s' for task '%s'\n"
+msgstr "Зауважте: вибрано ‘%s’ для завдання ‘%s’\n"
+
+#: apt-private/private-cacheset.cc
+#, c-format
+msgid "Note, selecting '%s' for glob '%s'\n"
+msgstr "Зауважте: вибрано '%s' для шаблону '%s'\n"
+
+#: apt-private/private-cacheset.cc
+#, c-format
+msgid "Note, selecting '%s' for regex '%s'\n"
+msgstr "Зауважте: вибрано '%s' для регулярного виразу '%s'\n"
+
+#: apt-private/private-cacheset.cc
+#, c-format
+msgid "Package %s is a virtual package provided by:\n"
+msgstr "Пакунок %s є віртуальним пакунком, який забезпечують такі пакунки:\n"
+
+#: apt-private/private-cacheset.cc
+msgid " [Installed]"
+msgstr " [Встановлено]"
+
+#: apt-private/private-cacheset.cc
+msgid " [Not candidate version]"
+msgstr " [Не кандидатна версія]"
+
+#: apt-private/private-cacheset.cc
+msgid "You should explicitly select one to install."
+msgstr "Потрібно явно вказати, який саме встановити."
+
+#: apt-private/private-cacheset.cc
+#, c-format
+msgid ""
+"Package %s is not available, but is referred to by another package.\n"
+"This may mean that the package is missing, has been obsoleted, or\n"
+"is only available from another source\n"
+msgstr ""
+"Пакунок %s недоступний, але на нього є посилання з іншого\n"
+"пакунку. Це може означати, що пакунок відсутній, позначений\n"
+"як застарілий або доступний лише з іншого джерела\n"
+
+#: apt-private/private-cacheset.cc
+msgid "However the following packages replace it:"
+msgstr "Втім, його замінюють такі пакунки:"
+
+#: apt-private/private-cacheset.cc
+#, c-format
+msgid "Package '%s' has no installation candidate"
+msgstr "Для пакунка ‘%s’ не знайдено кандидатної версії для встановлення"
+
+#: apt-private/private-cacheset.cc
+#, c-format
+msgid "Virtual packages like '%s' can't be removed\n"
+msgstr "Віртуальні пакунки, такі як ‘%s’, не можна видалити\n"
+
+#. TRANSLATORS: Note, this is not an interactive question
+#: apt-private/private-cacheset.cc apt-private/private-install.cc
+#, c-format
+msgid "Package '%s' is not installed, so not removed. Did you mean '%s'?\n"
+msgstr ""
+"Пакунок ‘%s’ не встановлено, тому його не видалено. Можливо, мається на "
+"увазі ‘%s’.\n"
+
+#: apt-private/private-cacheset.cc apt-private/private-install.cc
+#, c-format
+msgid "Package '%s' is not installed, so not removed\n"
+msgstr "Пакунок '%s' не встановлено, тому його не видалено\n"
+
+#: apt-private/private-cacheset.cc
+#, c-format
+msgid "Note, selecting '%s' instead of '%s'\n"
+msgstr "Зауважте: вибрано ‘%s’ замість ‘%s’\n"
+
+#: apt-private/private-cmndline.cc
+msgid "Most used commands:"
+msgstr "Найуживаніші команди:"
+
+#: apt-private/private-cmndline.cc
+#, c-format
+msgid "See %s for more information about the available commands."
+msgstr "Див. %s для докладнішої інформації про доступні команди."
+
+#: apt-private/private-cmndline.cc
+msgid ""
+"Configuration options and syntax is detailed in apt.conf(5).\n"
+"Information about how to configure sources can be found in sources.list(5).\n"
+"Package and version choices can be expressed via apt_preferences(5).\n"
+"Security details are available in apt-secure(8).\n"
+msgstr ""
+"Параметри конфігурації та синтаксис докладно описано в apt.conf(5).\n"
+"Інформацію про налаштування джерел наведено в sources.list(5).\n"
+"Вибір пакунків і версій можна визначити через apt_preferences(5).\n"
+"Відомості про безпеку містяться в apt-secure(8).\n"
+
+#: apt-private/private-cmndline.cc
+msgid "This APT has Super Cow Powers."
+msgstr "APT має коров’ячу суперсилу."
+
+#: apt-private/private-cmndline.cc
+msgid "This APT helper has Super Meep Powers."
+msgstr "Допоміжна утиліта APT має суперсилу Meep."
+
+#: apt-private/private-cmndline.cc
+msgid ""
+"--force-yes is deprecated, use one of the options starting with --allow "
+"instead."
+msgstr ""
+"--force-yes застарів; замість нього використовуйте один із параметрів, що "
+"починаються з --allow."
+
+#: apt-private/private-depends.cc apt-private/private-download.cc
+#: apt-private/private-show.cc cmdline/apt-mark.cc
+msgid "No packages found"
+msgstr "Пакунків не знайдено"
+
+#: apt-private/private-download.cc
+msgid "WARNING: The following packages cannot be authenticated!"
+msgstr "УВАГА: наведені нижче пакунки не можуть бути автентифіковані!"
+
+#: apt-private/private-download.cc
+msgid "Authentication warning overridden.\n"
+msgstr "Операцію виконано попри попередження автентифікації.\n"
+
+#: apt-private/private-download.cc
+msgid "Some packages could not be authenticated"
+msgstr "Деякі пакунки не можуть бути автентифіковані"
+
+#: apt-private/private-download.cc
+msgid "Install these packages without verification?"
+msgstr "Встановити ці пакунки без перевірки?"
+
+#: apt-private/private-download.cc
+msgid ""
+"There were unauthenticated packages and -y was used without --allow-"
+"unauthenticated"
+msgstr ""
+"Виявлено неавтентифіковані пакунки, а параметр -y використано без --allow-"
+"unauthenticated"
+
+#: apt-private/private-download.cc
+#, c-format
+msgid "Couldn't determine free space in %s"
+msgstr "Не вдалося визначити вільне місце в %s"
+
+#: apt-private/private-download.cc
+#, c-format
+msgid "Couldn't determine filesystem statistics of %s."
+msgstr "Не вдалося отримати статистику файлової системи для %s."
+
+#: apt-private/private-download.cc
+#, c-format
+msgid "You don't have enough free space in %s."
+msgstr "Недостатньо вільного місця в %s."
+
+#: apt-private/private-download.cc
+msgid "Unable to lock the download directory"
+msgstr "Не вдалося заблокувати каталог завантажень"
+
+#: apt-private/private-history.cc
+msgid "Install"
+msgstr "Встановити"
+
+#: apt-private/private-history.cc
+msgid "Reinstall"
+msgstr "Перевстановити"
+
+#: apt-private/private-history.cc
+msgid "Upgrade"
+msgstr "Оновити"
+
+#: apt-private/private-history.cc
+msgid "Downgrade"
+msgstr "Понизити версію"
+
+#: apt-private/private-history.cc
+msgid "Remove"
+msgstr "Видалити"
+
+#: apt-private/private-history.cc
+msgid "Purge"
+msgstr "Повністю видалити"
+
+#: apt-private/private-history.cc
+msgid "Undefined"
+msgstr "Невизначено"
+
+#. TRANSLATORS: a number used as identifier.
+#: apt-private/private-history.cc
+msgid "ID"
+msgstr "ID"
+
+#. TRANSLATORS: input on the terminal console.
+#: apt-private/private-history.cc
+msgid "Command line"
+msgstr "Командний рядок"
+
+#. TRANSLATORS: indicates when the entry occurred.
+#: apt-private/private-history.cc
+msgid "Date and Time"
+msgstr "Дата й час"
+
+#. TRANSLATORS: the type of operation that was performed.
+#: apt-private/private-history.cc
+msgid "Action"
+msgstr "Дія"
+
+#. TRANSLATORS: changes as a quantity.
+#: apt-private/private-history.cc
+msgid "Changes"
+msgstr "Зміни"
+
+#: apt-private/private-history.cc
+msgid "automatic"
+msgstr "автоматично"
+
+#: apt-private/private-history.cc
+msgid "Transaction ID"
+msgstr "ID транзакції"
+
+#: apt-private/private-history.cc
+msgid "Start time"
+msgstr "Час початку"
+
+#: apt-private/private-history.cc
+msgid "End time"
+msgstr "Час завершення"
+
+#: apt-private/private-history.cc
+msgid "Requested by"
+msgstr "Ініціатор"
+
+#: apt-private/private-history.cc
+msgid "Error"
+msgstr "Помилка"
+
+#: apt-private/private-history.cc
+msgid "Comment"
+msgstr "Коментар"
+
+#. For each performed action, print what it did to each package
+#: apt-private/private-history.cc
+msgid "Packages changed"
+msgstr "Змінені пакунки"
+
+#: apt-private/private-history.cc
+#, c-format
+msgid "Could not find package %s"
+msgstr "Не вдалося знайти пакунок %s"
+
+#: apt-private/private-history.cc
+#, c-format
+msgid "Tried to remove %s, but it is not installed"
+msgstr "Здійснено спробу видалити %s, але його не встановлено"
+
+#: apt-private/private-history.cc
+#, c-format
+msgid "Could not find given version %s of %s"
+msgstr "Не вдалося знайти задану версію %s пакунка %s"
+
+#: apt-private/private-history.cc
+msgid "Incorrect usage, no ID was given."
+msgstr "Неправильне використання, ID не вказано."
+
+#: apt-private/private-history.cc
+#, c-format
+msgid "'%s' not a valid ID."
+msgstr "'%s' не є дійсним ID."
+
+#: apt-private/private-history.cc
+#, c-format
+msgid "Transaction ID '%ld' out of bounds."
+msgstr "ID транзакції '%ld' поза допустимими межами."
+
+#: apt-private/private-history.cc
+#, c-format
+msgid "Could not read %s"
+msgstr "Не вдалося прочитати %s"
+
+#: apt-private/private-history.cc
+#, c-format
+msgid "Could not read: %s"
+msgstr "Не вдалося прочитати: %s"
+
+#: apt-private/private-install.cc
+msgid ""
+"Some packages could not be installed. This may mean that you have\n"
+"requested an impossible situation or if you are using the unstable\n"
+"distribution that some required packages have not yet been created\n"
+"or been moved out of Incoming."
+msgstr ""
+"Деякі пакунки неможливо встановити. Це може означати, що\n"
+"виникла ситуація, яку неможливо виконати, або якщо ви\n"
+"використовуєте нестабільну гілку, деякі потрібні пакунки ще\n"
+"не створено або їх уже переміщено з Incoming."
+
+#.
+#. if (Packages == 1)
+#. {
+#. c1out << std::endl;
+#. c1out <<
+#. _("Since you only requested a single operation it is extremely likely that\n"
+#. "the package is simply not installable and a bug report against\n"
+#. "that package should be filed.") << std::endl;
+#. }
+#.
+#: apt-private/private-install.cc
+msgid "The following information may help to resolve the situation:"
+msgstr "Наведена нижче інформація може допомогти розв’язати проблему:"
+
+#: apt-private/private-install.cc
+msgid "Broken packages"
+msgstr "Проблемні пакунки"
+
+#: apt-private/private-install.cc
+msgid "Writing error report"
+msgstr "Створення звіту про помилку"
+
+#: apt-private/private-install.cc
+msgid ""
+"Unmerged usr is no longer supported, use usrmerge to convert to a merged-usr "
+"system."
+msgstr ""
+"Конфігурація з не об’єднаним /usr більше не підтримується. Використайте "
+"usrmerge, щоб перейти на систему з об’єднаним /usr."
+
+#. TRANSLATORS: %s is a url to a page describing merged-usr (bookworm release notes)
+#: apt-private/private-install.cc
+#, c-format
+msgid "See %s for more details."
+msgstr "Див. %s для подробиць."
+
+#: apt-private/private-install.cc
+msgid ""
+"Unable to fetch some archives, maybe run apt update or try with --fix-"
+"missing?"
+msgstr ""
+"Не вдалося отримати деякі архіви; можливо, варто запустити apt update або "
+"спробувати з параметром --fix-missing?"
+
+#: apt-private/private-install.cc
+msgid "Internal error, InstallPackages was called with broken packages!"
+msgstr ""
+"Внутрішня помилка: InstallPackages викликано з пакунками з порушеними "
+"залежностями!"
+
+#: apt-private/private-install.cc
+msgid "Packages need to be removed but remove is disabled."
+msgstr "Потрібно видалити пакунки, але видалення вимкнено."
+
+#: apt-private/private-install.cc
+msgid ""
+"Essential packages were removed and -y was used without --allow-remove-"
+"essential."
+msgstr ""
+"Основні пакунки було видалено, а параметр -y використано без --allow-remove-"
+"essential."
+
+#: apt-private/private-install.cc
+msgid "Packages were downgraded and -y was used without --allow-downgrades."
+msgstr ""
+"Версії пакунків було знижено, а параметр -y використано без --allow-"
+"downgrades."
+
+#: apt-private/private-install.cc
+msgid ""
+"Held packages were changed and -y was used without --allow-change-held-"
+"packages."
+msgstr ""
+"Утримувані пакунки було змінено, а параметр -y використано без --allow-"
+"change-held-packages."
+
+#: apt-private/private-install.cc
+msgid "Internal error, Ordering didn't finish"
+msgstr "Внутрішня помилка: упорядкування не завершилося"
+
+#: apt-private/private-install.cc
+msgid "How odd... The sizes didn't match, email apt@packages.debian.org"
+msgstr "Дивно… Розміри не збіглися. Напишіть на apt@packages.debian.org"
+
+#: apt-private/private-install.cc
+#, c-format
+msgid "  Download size: %sB / %sB\n"
+msgstr " Розмір завантаження: %sB / %sB\n"
+
+#. TRANSLATOR: The required space between number and unit is already included
+#. in the replacement strings, so %sB will be correctly translate in e.g. 1,5 MB
+#: apt-private/private-install.cc
+#, c-format
+msgid "Need to get %sB/%sB of archives.\n"
+msgstr "Потрібно отримати %sB/%sB архівів.\n"
+
+#: apt-private/private-install.cc
+#, c-format
+msgid "  Download size: %sB\n"
+msgstr " Розмір завантаження: %sB\n"
+
+#. TRANSLATOR: The required space between number and unit is already included
+#. in the replacement string, so %sB will be correctly translate in e.g. 1,5 MB
+#: apt-private/private-install.cc
+#, c-format
+msgid "Need to get %sB of archives.\n"
+msgstr ""
+"Потрібно отримати %sB архівів.\n"
+"\n"
+
+#: apt-private/private-install.cc
+#, c-format
+msgid "After this operation, %sB of additional disk space will be used.\n"
+msgstr ""
+"Після цієї операції буде використано додатково %sB дискового простору.\n"
+
+#. TRANSLATOR: The required space between number and unit is already included
+#. in the replacement string, so %sB will be correctly translate in e.g. 1,5 MB
+#: apt-private/private-install.cc
+#, c-format
+msgid "Space needed: %sB / %sB available\n"
+msgstr "Потрібно місця: %sB / %sB доступно\n"
+
+#. TRANSLATOR: The required space between number and unit is already included
+#. in the replacement string, so %sB will be correctly translate in e.g. 1,5 MB
+#: apt-private/private-install.cc
+#, c-format
+msgid "More space needed than available: %sB > %sB, installation may fail"
+msgstr ""
+"Потрібно більше місця, ніж доступно: %sB > %sB, встановлення може не вдатися"
+
+#. TRANSLATOR: The required space between number and unit is already included
+#. in the replacement string, so %sB will be correctly translate in e.g. 1,5 MB -
+#. The first %s is the location of the boot directory (determined from Dir::Boot),
+#. and it tells the space being needed there.
+#. (We have two spaces to align with parent "space needed:"for /boot)
+#: apt-private/private-install.cc
+#, c-format
+msgid "in %s:  %sB / %sB available\n"
+msgstr "у %s:  %sB / %sB доступно\n"
+
+#. TRANSLATOR: The required space between number and unit is already included
+#. in the replacement string, so %sB will be correctly translate in e.g. 1,5 MB
+#. The first %s is the location of the boot directory (determined from Dir::Boot)
+#: apt-private/private-install.cc
+#, c-format
+msgid ""
+"More space needed in %s than available: %sB > %sB, installation may fail"
+msgstr ""
+"Потрібно більше місця в %s, ніж доступно: %sB > %sB, встановлення може не "
+"вдатися"
+
+#: apt-private/private-install.cc
+#, c-format
+msgid "Space needed: %sB\n"
+msgstr "Потрібно місця: %sB\n"
+
+#: apt-private/private-install.cc
+#, c-format
+msgid "  Freed space: %sB\n"
+msgstr "  Звільнено місця: %sB\n"
+
+#. TRANSLATOR: The required space between number and unit is already included
+#. in the replacement string, so %sB will be correctly translate in e.g. 1,5 MB
+#: apt-private/private-install.cc
+#, c-format
+msgid "After this operation, %sB disk space will be freed.\n"
+msgstr "Після цієї операції буде звільнено %sB дискового простору.\n"
+
+#: apt-private/private-install.cc
+msgid "Trivial Only specified but this is not a trivial operation."
+msgstr ""
+"Увімкнено режим Trivial Only, але ця операція не належить до тривіальних."
+
+#: apt-private/private-install.cc
+msgid ""
+"Removing essential system-critical packages is not permitted. This might "
+"break the system."
+msgstr ""
+"Видалення основних (essential) пакунків заборонено. Це може порушити роботу "
+"системи."
+
+#: apt-private/private-install.cc
+msgid "Continue anyway?"
+msgstr "Все одно продовжити?"
+
+#: apt-private/private-install.cc
+msgid "Continue?"
+msgstr "Продовжити?"
+
+#: apt-private/private-install.cc cmdline/apt-mark.cc
+msgid "Do you want to continue?"
+msgstr "Бажаєте продовжити?"
+
+#: apt-private/private-install.cc
+msgid "Abort."
+msgstr "Перервано."
+
+#: apt-private/private-install.cc
+msgid "Some files failed to download"
+msgstr "Деякі файли не вдалося завантажити"
+
+#: apt-private/private-install.cc apt-private/private-source.cc
+msgid "Download complete and in download only mode"
+msgstr "Завантаження завершено, увімкнено режим download‑only"
+
+#: apt-private/private-install.cc
+msgid "--fix-missing and media swapping is not currently supported"
+msgstr "--fix-missing і заміна носіїв наразі не підтримуються"
+
+#: apt-private/private-install.cc
+msgid "Unable to correct missing packages."
+msgstr "Не вдається виправити відсутні залежності."
+
+#: apt-private/private-install.cc
+msgid "Aborting install."
+msgstr "Перериваю встановлення."
+
+#: apt-private/private-install.cc
+msgid ""
+"The following package disappeared from your system as\n"
+"all files have been overwritten by other packages:"
+msgid_plural ""
+"The following packages disappeared from your system as\n"
+"all files have been overwritten by other packages:"
+msgstr[0] ""
+"Наступний пакунок зник із системи, оскільки всі\n"
+"його файли були перезаписані іншими пакунками:"
+msgstr[1] ""
+"Наступні пакунки зникли із системи, оскільки всі\n"
+"їх файли були перезаписані іншими пакунками:"
+msgstr[2] ""
+"Наступні пакунки зникли із системи, оскільки всі\n"
+"їх файли були перезаписані іншими пакунками:"
+
+#: apt-private/private-install.cc
+msgid "Note: This is done automatically and on purpose by dpkg."
+msgstr "Примітка: це виконується dpkg автоматично й навмисно."
+
+#: apt-private/private-install.cc
+msgid "We are not supposed to delete stuff, can't start AutoRemover"
+msgstr "Видалення тут не передбачене, тому AutoRemover не може бути запущено"
+
+#: apt-private/private-install.cc
+msgid ""
+"Hmm, seems like the AutoRemover destroyed something which really\n"
+"shouldn't happen. Please file a bug report against apt."
+msgstr ""
+"Хм, схоже, AutoRemover видалив щось, чого не мав би\n"
+"видаляти. Будь ласка, надішліть звіт про помилку щодо apt."
+
+#: apt-private/private-install.cc
+msgid "Internal Error, AutoRemover broke stuff"
+msgstr "Внутрішня помилка: AutoRemover пошкодив систему"
+
+#: apt-private/private-install.cc
+#, c-format
+msgid "Use '%s' to remove it."
+msgid_plural "Use '%s' to remove them."
+msgstr[0] "Використовуйте '%s', щоб видалити його."
+msgstr[1] "Використовуйте '%s', щоб видалити їх."
+msgstr[2] "Використовуйте '%s', щоб видалити їх."
+
+#: apt-private/private-install.cc
+msgid ""
+"The following package was automatically installed and is no longer required:"
+msgid_plural ""
+"The following packages were automatically installed and are no longer "
+"required:"
+msgstr[0] ""
+"Наступний пакунок було встановлено автоматично і він вже не потрібен:"
+msgstr[1] ""
+"Наступні пакунки було встановлено автоматично і вони вже не потрібні:"
+msgstr[2] ""
+"Наступні пакунки було встановлено автоматично і вони вже не потрібні:"
+
+#: apt-private/private-install.cc
+#, c-format
+msgid "%lu package was automatically installed and is no longer required.\n"
+msgid_plural ""
+"%lu packages were automatically installed and are no longer required.\n"
+msgstr[0] "%lu пакунок було встановлено автоматично і він вже не потрібен.\n"
+msgstr[1] "%lu пакунки було встановлено автоматично і вони вже не потрібні.\n"
+msgstr[2] "%lu пакунків було встановлено автоматично і вони вже не потрібні.\n"
+
+#: apt-private/private-install.cc
+msgid "Result calculated by the 3.0 solver."
+msgstr "Результат обчислено розв’язувачем 3.0."
+
+#: apt-private/private-install.cc
+msgid "Suggested packages:"
+msgstr "Пропоновані пакунки:"
+
+#: apt-private/private-install.cc
+msgid "Recommended packages:"
+msgstr "Рекомендовані пакунки:"
+
+#: apt-private/private-install.cc
+msgid "The following additional packages will be installed:"
+msgstr "Буде встановлено такі додаткові пакунки:"
+
+#: apt-private/private-install.cc
+#, c-format
+msgid "Skipping %s, it is already installed and upgrade is not set.\n"
+msgstr "Пропускаю %s: його вже встановлено, а оновлення не задано.\n"
+
+#: apt-private/private-install.cc
+#, c-format
+msgid "Skipping %s, it is not installed and only upgrades are requested.\n"
+msgstr "Пропускаю %s: його не встановлено, а запитано лише оновлення.\n"
+
+#: apt-private/private-install.cc
+#, c-format
+msgid "Reinstallation of %s is not possible, it cannot be downloaded.\n"
+msgstr "Перевстановлення %s неможливе, оскільки його не можна завантажити.\n"
+
+#. TRANSLATORS: First string is package name, second is version
+#: apt-private/private-install.cc
+#, c-format
+msgid "%s is already the newest version (%s).\n"
+msgstr "%s вже найновішої версії (%s).\n"
+
+#: apt-private/private-install.cc cmdline/apt-get.cc cmdline/apt-mark.cc
+#, c-format
+msgid "%s set to manually installed.\n"
+msgstr "%s позначено як встановлений вручну.\n"
+
+#: apt-private/private-install.cc
+#, c-format
+msgid "Selected version '%s' (%s) for '%s'\n"
+msgstr "Обрано версію '%s' (%s) для '%s'\n"
+
+#: apt-private/private-install.cc
+#, c-format
+msgid "Selected version '%s' (%s) for '%s' because of '%s'\n"
+msgstr "Обрано версію '%s' (%s) для '%s' через '%s'\n"
+
+#: apt-private/private-list.cc
+msgid "Listing"
+msgstr "Виведення списку"
+
+#: apt-private/private-list.cc
+#, c-format
+msgid "There is %i additional version. Please use the '-a' switch to see it"
+msgid_plural ""
+"There are %i additional versions. Please use the '-a' switch to see them."
+msgstr[0] ""
+"Доступна ще %i версія. Скористайтеся параметром '-a', щоб переглянути її"
+msgstr[1] ""
+"Доступно %i додаткові версії. Скористайтеся параметром '-a', щоб переглянути "
+"їх."
+msgstr[2] ""
+"Доступно %i додаткових версій. Скористайтеся параметром '-a', щоб "
+"переглянути їх."
+
+#. TRANSLATORS: placeholder is a binary name like apt or apt-get
+#: apt-private/private-main.cc
+#, c-format
+msgid ""
+"NOTE: This is only a simulation!\n"
+"      %s needs root privileges for real execution.\n"
+"      Keep also in mind that locking is deactivated,\n"
+"      so don't depend on the relevance to the real current situation!\n"
+msgstr ""
+"ПРИМІТКА: Це лише симуляція!\n"
+"       %s потребує прав root для реального виконання.\n"
+"       Майте також на увазі, що блокування вимкнено, тому не\n"
+"       покладайтеся на відповідність результатів реальній ситуації.\n"
+
+#: apt-private/private-output.cc apt-private/private-show.cc
+msgid "unknown"
+msgstr "невідомо"
+
+#: apt-private/private-output.cc
+#, c-format
+msgid "[installed,upgradable to: %s]"
+msgstr "[встановлено, оновлюється до: %s]"
+
+#: apt-private/private-output.cc
+msgid "[installed,local]"
+msgstr "[встановлено, локально]"
+
+#: apt-private/private-output.cc
+msgid "[installed,auto-removable]"
+msgstr "[встановлено, автоматично видаляється]"
+
+#: apt-private/private-output.cc
+msgid "[installed,automatic]"
+msgstr "[встановлено, автоматично]"
+
+#: apt-private/private-output.cc
+msgid "[installed]"
+msgstr "[встановлено]"
+
+#: apt-private/private-output.cc
+#, c-format
+msgid "[upgradable from: %s]"
+msgstr "[оновлюється з: %s]"
+
+#: apt-private/private-output.cc
+msgid "[residual-config]"
+msgstr "[залишкові конфігурації]"
+
+#: apt-private/private-output.cc
+#, c-format
+msgid "but %s is installed"
+msgstr "але %s встановлено"
+
+#: apt-private/private-output.cc
+#, c-format
+msgid "but %s is to be installed"
+msgstr "але %s має бути встановлено"
+
+#: apt-private/private-output.cc
+msgid "but it is not installable"
+msgstr "але його не можна встановити"
+
+#: apt-private/private-output.cc
+msgid "but it is a virtual package"
+msgstr "але це віртуальний пакунок"
+
+#: apt-private/private-output.cc
+msgid "but it is not going to be installed"
+msgstr "але його не буде встановлено"
+
+#: apt-private/private-output.cc
+msgid "but it is not installed"
+msgstr "але його не встановлено"
+
+#: apt-private/private-output.cc
+msgid " or"
+msgstr " або"
+
+#: apt-private/private-output.cc
+msgid "The following packages have unmet dependencies:"
+msgstr "Наступні пакунки мають невиконані залежності:"
+
+#: apt-private/private-output.cc
+msgid "Unsatisfied dependencies:"
+msgstr "Невиконані залежності:"
+
+#: apt-private/private-output.cc
+msgid "The following NEW packages will be installed:"
+msgstr "Буде встановлено такі НОВІ пакунки:"
+
+#: apt-private/private-output.cc
+msgid "Installing:"
+msgstr "Встановлення:"
+
+#: apt-private/private-output.cc
+msgid "Installing dependencies:"
+msgstr "Встановлення залежностей:"
+
+#: apt-private/private-output.cc
+msgid "REMOVING:"
+msgstr "ВИДАЛЕННЯ:"
+
+#: apt-private/private-output.cc
+msgid "The following packages will be REMOVED:"
+msgstr "Наступні пакунки буде ВИДАЛЕНО:"
+
+#: apt-private/private-output.cc
+msgid "The following upgrades have been deferred due to phasing:"
+msgstr "Наступні оновлення відкладено через поетапне впровадження:"
+
+#: apt-private/private-output.cc
+msgid "Not upgrading yet due to phasing:"
+msgstr "Ще не оновлюється через поетапне впровадження:"
+
+#: apt-private/private-output.cc
+msgid "Not upgrading:"
+msgstr "Не оновлюється:"
+
+#: apt-private/private-output.cc
+msgid "The following packages have been kept back:"
+msgstr "Наступні пакунки залишено без оновлення:"
+
+#: apt-private/private-output.cc
+msgid "The following packages will be upgraded:"
+msgstr "Наступні пакунки буде оновлено:"
+
+#: apt-private/private-output.cc
+msgid "Upgrading:"
+msgstr "Оновлення:"
+
+#: apt-private/private-output.cc
+msgid "DOWNGRADING:"
+msgstr "ПОНИЖЕННЯ ВЕРСІЇ:"
+
+#: apt-private/private-output.cc
+msgid "The following packages will be DOWNGRADED:"
+msgstr "Наступні пакунки буде ПОНИЖЕНО до попередніх версій:"
+
+#: apt-private/private-output.cc
+msgid "Changing held packages:"
+msgstr "Зміна зафіксованих пакунків:"
+
+#: apt-private/private-output.cc
+msgid "The following held packages will be changed:"
+msgstr "Наступні зафіксовані пакунки буде змінено:"
+
+#: apt-private/private-output.cc
+#, c-format
+msgid "%s (due to %s)"
+msgstr "%s (через %s)"
+
+#: apt-private/private-output.cc
+msgid ""
+"WARNING: The following essential packages will be removed.\n"
+"This should NOT be done unless you know exactly what you are doing!"
+msgstr ""
+"УВАГА: Наступні основні пакунки буде видалено.\n"
+"Цього НЕ СЛІД робити, якщо ви точно не знаєте, що робите!"
+
+#: apt-private/private-output.cc
+msgid "Summary:"
+msgstr "Підсумок:"
+
+#: apt-private/private-output.cc
+#, c-format
+msgid "%lu upgraded, %lu newly installed, "
+msgstr "оновлено %lu, встановлено %lu нових, "
+
+#: apt-private/private-output.cc
+#, c-format
+msgid "Upgrading: %lu, Installing: %lu, "
+msgstr "Оновлення: %lu, Встановлення: %lu, "
+
+#: apt-private/private-output.cc
+#, c-format
+msgid "%lu reinstalled, "
+msgstr "%lu перевстановлено, "
+
+#: apt-private/private-output.cc
+#, c-format
+msgid "Reinstalling: %lu, "
+msgstr "Перевстановлення: %lu, "
+
+#: apt-private/private-output.cc
+#, c-format
+msgid "%lu downgraded, "
+msgstr "%lu понижено до попередніх версій, "
+
+#: apt-private/private-output.cc
+#, c-format
+msgid "Downgrading: %lu, "
+msgstr "Пониження до попередніх версій: %lu, "
+
+#: apt-private/private-output.cc
+#, c-format
+msgid "%lu to remove and %lu not upgraded.\n"
+msgstr "%lu відмічено для видалення і %lu не оновлено.\n"
+
+#: apt-private/private-output.cc
+#, c-format
+msgid "Removing: %lu, Not Upgrading: %lu\n"
+msgstr "Видалення: %lu, Не оновлюються: %lu\n"
+
+#: apt-private/private-output.cc
+#, c-format
+msgid "%lu not fully installed or removed.\n"
+msgstr "%lu не повністю встановлено або видалено.\n"
+
+#. TRANSLATOR: Yes/No question help-text: defaulting to Y[es]
+#. e.g. "Do you want to continue? [Y/n] "
+#. The user has to answer with an input matching the
+#. YESEXPR/NOEXPR defined in your l10n.
+#: apt-private/private-output.cc
+msgid "[Y/n]"
+msgstr "[Y/n] (Y = так, n = ні)"
+
+#. TRANSLATOR: Yes/No question help-text: defaulting to N[o]
+#. e.g. "Should this file be removed? [y/N] "
+#. The user has to answer with an input matching the
+#. YESEXPR/NOEXPR defined in your l10n.
+#: apt-private/private-output.cc
+msgid "[y/N]"
+msgstr "[y/N] (y = так, N = ні)"
+
+#. TRANSLATOR: "Yes" answer printed for a yes/no question if --assume-yes is set
+#: apt-private/private-output.cc
+msgid "Y"
+msgstr "Y (Y = так)"
+
+#. TRANSLATOR: "No" answer printed for a yes/no question if --assume-no is set
+#: apt-private/private-output.cc apt-private/private-sources.cc
+msgid "N"
+msgstr "N (N = ні)"
+
+#: apt-private/private-search.cc
+msgid "You must give at least one search pattern"
+msgstr "Потрібно вказати принаймні один шаблон пошуку"
+
+#: apt-private/private-search.cc
+msgid "Full Text Search"
+msgstr "Повнотекстовий пошук"
+
+#: apt-private/private-show.cc
+#, c-format
+msgid "There is %i additional record. Please use the '-a' switch to see it"
+msgid_plural ""
+"There are %i additional records. Please use the '-a' switch to see them."
+msgstr[0] "Є ще %i запис. Скористайтеся параметром '-a', щоб переглянути його"
+msgstr[1] "Є ще %i записи. Скористайтеся параметром '-a', щоб переглянути їх."
+msgstr[2] "Є ще %i записів. Скористайтеся параметром '-a', щоб переглянути їх."
+
+#: apt-private/private-show.cc
+msgid "not a real package (virtual)"
+msgstr "не справжній пакунок (віртуальний)"
+
+#: apt-private/private-show.cc
+msgid "Package files:"
+msgstr "Файли пакунків:"
+
+#: apt-private/private-show.cc
+msgid "Cache is out of sync, can't x-ref a package file"
+msgstr ""
+"Кеш не синхронізований, неможливо виконати перехресне посилання на файл "
+"пакунка"
+
+#. Show any packages have explicit pins
+#: apt-private/private-show.cc
+msgid "Pinned packages:"
+msgstr "Закріплені пакунки:"
+
+#. Print the package name and the version we are forcing to
+#: apt-private/private-show.cc
+#, c-format
+msgid "%s -> %s with priority %d\n"
+msgstr "%s -> %s з пріоритетом %d\n"
+
+#: apt-private/private-show.cc
+msgid "  Installed: "
+msgstr "  Встановлено: "
+
+#: apt-private/private-show.cc
+msgid "  Candidate: "
+msgstr "  Кандидат: "
+
+#: apt-private/private-show.cc
+msgid "(none)"
+msgstr "(немає)"
+
+#. Show the priority tables
+#: apt-private/private-show.cc
+msgid "  Version table:"
+msgstr "  Таблиця версій:"
+
+#: apt-private/private-show.cc
+msgid "phased"
+msgstr "поетапний"
+
+#: apt-private/private-source.cc
+#, c-format
+msgid "Can not find a package for architecture '%s'"
+msgstr "Не вдається знайти пакунок для архітектури '%s'"
+
+#: apt-private/private-source.cc
+#, c-format
+msgid "Can not find a package '%s' with version '%s'"
+msgstr "Не вдається знайти пакунок '%s' з версією '%s'"
+
+#: apt-private/private-source.cc
+#, c-format
+msgid "Can not find a package '%s' with release '%s'"
+msgstr "Не вдається знайти пакунок '%s' з випуском '%s'"
+
+#: apt-private/private-source.cc
+#, c-format
+msgid "Picking '%s' as source package instead of '%s'\n"
+msgstr "Обрано '%s' як вихідний пакунок замість '%s'\n"
+
+#: apt-private/private-source.cc
+#, c-format
+msgid "Can not find version '%s' of package '%s'"
+msgstr "Не вдається знайти версію '%s' пакунка '%s'"
+
+#: apt-private/private-source.cc
+msgid "Must specify at least one package to fetch source for"
+msgstr "Потрібно вказати принаймні один пакунок для отримання вихідних кодів"
+
+#: apt-private/private-source.cc
+#, c-format
+msgid "Unable to find a source package for %s"
+msgstr "Не вдалося знайти вихідний пакунок для %s"
+
+#: apt-private/private-source.cc
+#, c-format
+msgid ""
+"NOTICE: '%s' packaging is maintained in the '%s' version control system at:\n"
+"%s\n"
+msgstr ""
+"УВАГА: супровід пакунка ‘%s’ ведеться у системі контролю версій ‘%s’ за "
+"адресою:\n"
+"%s\n"
+
+#: apt-private/private-source.cc
+#, c-format
+msgid ""
+"Please use:\n"
+"%s\n"
+"to retrieve the latest (possibly unreleased) updates to the package.\n"
+msgstr ""
+"Будь ласка, скористайтеся:\n"
+"%s\n"
+"для отримання останніх (можливо, невипущених) оновлень пакунку.\n"
+
+#: apt-private/private-source.cc
+#, c-format
+msgid "Skipping already downloaded file '%s'\n"
+msgstr "Пропускається вже завантажений файл '%s'\n"
+
+#. TRANSLATOR: The required space between number and unit is already included
+#. in the replacement strings, so %sB will be correctly translate in e.g. 1,5 MB
+#: apt-private/private-source.cc
+#, c-format
+msgid "Need to get %sB/%sB of source archives.\n"
+msgstr "Потрібно отримати %sB/%sB архівів із вихідними кодами.\n"
+
+#. TRANSLATOR: The required space between number and unit is already included
+#. in the replacement string, so %sB will be correctly translate in e.g. 1,5 MB
+#: apt-private/private-source.cc
+#, c-format
+msgid "Need to get %sB of source archives.\n"
+msgstr "Потрібно отримати %sB архівів із вихідними кодами.\n"
+
+#: apt-private/private-source.cc
+#, c-format
+msgid "Fetch source %s\n"
+msgstr "Отримання вихідного пакунка %s\n"
+
+#: apt-private/private-source.cc
+msgid "Failed to fetch some archives."
+msgstr "Не вдалося отримати деякі архіви."
+
+#: apt-private/private-source.cc
+#, c-format
+msgid "Skipping unpack of already unpacked source in %s\n"
+msgstr "Пропускається розпакування вже розпакованого вихідного пакунка в %s\n"
+
+#: apt-private/private-source.cc
+#, c-format
+msgid "Unpack command '%s' failed.\n"
+msgstr "Команда розпакування '%s' завершилася невдало.\n"
+
+#: apt-private/private-source.cc
+msgid "Check if the 'dpkg-dev' package is installed.\n"
+msgstr "Перевірте, чи встановлено пакунок 'dpkg-dev'.\n"
+
+#: apt-private/private-source.cc
+#, c-format
+msgid "Build command '%s' failed.\n"
+msgstr "Команда збірки '%s' завершилася невдало.\n"
+
+#: apt-private/private-source.cc
+#, c-format
+msgid "Unable to get build-dependency information for %s"
+msgstr "Не вдається отримати інформацію про залежності збірки для %s"
+
+#: apt-private/private-source.cc
+#, c-format
+msgid "%s has no build depends.\n"
+msgstr "%s не має залежностей збірки.\n"
+
+#: apt-private/private-source.cc
+#, c-format
+msgid ""
+"No architecture information available for %s. See apt.conf(5) "
+"APT::Architectures for setup"
+msgstr ""
+"Інформація про архітектуру для %s недоступна. Див. apt.conf(5) "
+"APT::Architectures для налаштування"
+
+#: apt-private/private-source.cc
+msgid "Must specify at least one package to check builddeps for"
+msgstr ""
+"Потрібно вказати принаймні один пакунок для перевірки залежностей збірки"
+
+#: apt-private/private-source.cc
+#, c-format
+msgid ""
+"Invalid operator '%c' at offset %d, did you mean '%c%c' or '%c='? - in: %s"
+msgstr ""
+"Недійсний оператор '%c' на позиції %d, ви мали на увазі '%c%c' чи '%c='? - "
+"у: %s"
+
+#: apt-private/private-source.cc
+#, c-format
+msgid "Note, using directory '%s' to get the build dependencies\n"
+msgstr ""
+"Зверніть увагу, що для отримання залежностей збірки використовується каталог "
+"'%s'\n"
+
+#: apt-private/private-source.cc
+#, c-format
+msgid "Note, using file '%s' to get the build dependencies\n"
+msgstr ""
+"Зверніть увагу, що для отримання залежностей збірки використовується файл "
+"'%s'\n"
+
+#: apt-private/private-source.cc
+msgid "Failed to process build dependencies"
+msgstr "Не вдалося обробити залежності збірки"
+
+#: apt-private/private-sources.cc
+#, c-format
+msgid "Failed to parse %s. Edit again? "
+msgstr "Не вдалося розібрати %s. Редагувати ще раз? "
+
+#: apt-private/private-sources.cc
+#, c-format
+msgid "Your '%s' file changed, please run 'apt-get update'.\n"
+msgstr "Ваш файл '%s' змінився, будь ласка, виконайте 'apt-get update'.\n"
+
+#: apt-private/private-sources.cc
+#, c-format
+msgid "Rewrite %zu sources?"
+msgstr "Переписати %zu джерел?"
+
+#: apt-private/private-unmet.cc
+#, c-format
+msgid "Package %s version %s has an unmet dep:\n"
+msgstr "Пакунок %s версії %s має невиконану залежність:\n"
+
+#: apt-private/private-update.cc
+msgid "The update command takes no arguments"
+msgstr "Команда update не приймає аргументів"
+
+#. TRANSLATOR: the first two are manpage references, the last the URI from a sources.list
+#: apt-private/private-update.cc
+#, c-format
+msgid ""
+"Usage of %s should be preferred over embedding login information directly in "
+"the %s entry for '%s'"
+msgstr ""
+"Краще використовуйте %s замість вбудовування інформації для входу "
+"безпосередньо в запис %s для '%s'"
+
+#. TRANSLATOR: the first is manpage reference, the last the URI from a sources.list
+#: apt-private/private-update.cc
+#, c-format
+msgid "The %s entry for '%s' should be upgraded to deb822 .sources"
+msgstr "Запис %s для '%s' слід оновити до формату deb822 .sources"
+
+#. TRANSLATOR: the first is manpage reference, the last the URI from a sources.list
+#: apt-private/private-update.cc
+#, c-format
+msgid "Missing Signed-By in the %s entry for '%s'"
+msgstr "Відсутній параметр Signed-By у записі %s для ‘%s’"
+
+#: apt-private/private-update.cc
+msgid ""
+"Consider migrating all sources.list(5) entries to the deb822 .sources format"
+msgstr ""
+"Розгляньте можливість перенесення всіх записів sources.list(5) у формат "
+"deb822 .sources"
+
+#: apt-private/private-update.cc
+msgid ""
+"The deb822 .sources format supports both embedded as well as external "
+"OpenPGP keys"
+msgstr ""
+"Формат deb822 .sources підтримує як вбудовані, так і зовнішні ключі OpenPGP"
+
+#: apt-private/private-update.cc
+msgid "See apt-secure(8) for best practices in configuring repository signing."
+msgstr ""
+"Дивіться apt-secure(8) для отримання інформації про найкращі практики "
+"налаштування підпису сховища."
+
+#: apt-private/private-update.cc
+msgid "Some sources can be modernized. Run 'apt modernize-sources' to do so."
+msgstr ""
+"Деякі джерела можна модернізувати. Виконайте ‘apt modernize-sources’, щоб це "
+"зробити."
+
+#: apt-private/private-update.cc
+#, c-format
+msgid "%i package can be upgraded. Run 'apt list --upgradable' to see it.\n"
+msgid_plural ""
+"%i packages can be upgraded. Run 'apt list --upgradable' to see them.\n"
+msgstr[0] ""
+"%i пакунок можна оновити. Щоб побачити його, виконайте команду 'apt list --"
+"upgradable'.\n"
+msgstr[1] ""
+"%i пакунки можна оновити. Щоб побачити їх, виконайте команду 'apt list --"
+"upgradable'.\n"
+msgstr[2] ""
+"%i пакунків можна оновити. Щоб побачити їх, виконайте команду 'apt list --"
+"upgradable'.\n"
+
+#: apt-private/private-update.cc
+msgid "All packages are up to date."
+msgstr "Усі пакунки оновлено."
+
+#: cmdline/apt-cache.cc cmdline/apt-mark.cc
+#, c-format
+msgid "%s does not take any arguments"
+msgstr "%s не приймає аргументів"
+
+#: cmdline/apt-cache.cc
+msgid "Total package names: "
+msgstr "Всього імен пакунків: "
+
+#: cmdline/apt-cache.cc
+msgid "Total package structures: "
+msgstr "Всього структур пакунків: "
+
+#: cmdline/apt-cache.cc
+msgid "  Normal packages: "
+msgstr "  Звичайних пакунків: "
+
+#: cmdline/apt-cache.cc
+msgid "  Pure virtual packages: "
+msgstr "  Чисто віртуальних пакунків: "
+
+#: cmdline/apt-cache.cc
+msgid "  Single virtual packages: "
+msgstr "  Одинарних віртуальних пакунків: "
+
+#: cmdline/apt-cache.cc
+msgid "  Mixed virtual packages: "
+msgstr "  Змішаних віртуальних пакунків: "
+
+#: cmdline/apt-cache.cc
+msgid "  Missing: "
+msgstr "  Відсутні: "
+
+#: cmdline/apt-cache.cc
+msgid "Total distinct source versions: "
+msgstr "Усього унікальних версій вихідних пакунків: "
+
+#: cmdline/apt-cache.cc
+msgid "Total distinct versions: "
+msgstr "Всього унікальних версій: "
+
+#: cmdline/apt-cache.cc
+msgid "Total distinct descriptions: "
+msgstr "Всього унікальних описів: "
+
+#: cmdline/apt-cache.cc
+msgid "Total dependencies: "
+msgstr "Всього залежностей: "
+
+#: cmdline/apt-cache.cc
+msgid "Total ver/file relations: "
+msgstr "Всього зв’язків версія/файл: "
+
+#: cmdline/apt-cache.cc
+msgid "Total Desc/File relations: "
+msgstr "Всього зв’язків опис/файл: "
+
+#: cmdline/apt-cache.cc
+msgid "Total Provides mappings: "
+msgstr "Всього відповідностей Provides: "
+
+#: cmdline/apt-cache.cc
+msgid "Total globbed strings: "
+msgstr "Всього рядків, зіставлених за шаблоном: "
+
+#: cmdline/apt-cache.cc
+msgid "Total slack space: "
+msgstr "Загальний обсяг невикористаного простору в блоках: "
+
+#: cmdline/apt-cache.cc
+msgid "Total space accounted for: "
+msgstr "Загальний обсяг врахованого простору: "
+
+#: cmdline/apt-cache.cc
+msgid "This command is deprecated. Please use 'apt-mark showauto' instead."
+msgstr ""
+"Ця команда застаріла. Будь ласка, використовуйте замість неї 'apt-mark "
+"showauto'."
+
+#: cmdline/apt-cache.cc
+msgid ""
+"Usage: apt-cache [options] command\n"
+"       apt-cache [options] show pkg1 [pkg2 ...]\n"
+"\n"
+"apt-cache queries and displays available information about installed\n"
+"and installable packages. It works exclusively on the data acquired\n"
+"into the local cache via the 'update' command of e.g. apt-get. The\n"
+"displayed information may therefore be outdated if the last update was\n"
+"too long ago, but in exchange apt-cache works independently of the\n"
+"availability of the configured sources (e.g. offline).\n"
+msgstr ""
+"Використання: apt-cache [опції] команда\n"
+"       apt-cache [опції] show пак1 [пак2 ...]\n"
+"\n"
+"apt-cache запитує та показує доступну інформацію про встановлені\n"
+"та встановлювані пакунки. Він працює виключно з даними, отриманими\n"
+"до локального кешу за допомогою команди 'update', наприклад apt-get.\n"
+"Тому показана інформація може бути застарілою, якщо останнє\n"
+"оновлення було занадто давно, але натомість apt-cache працює незалежно\n"
+"від доступності налаштованих джерел (наприклад, офлайн).\n"
+
+#: cmdline/apt-cache.cc
+msgid "Show source records"
+msgstr "Показати записи джерел"
+
+#: cmdline/apt-cache.cc
+msgid "Search the package list for a regex pattern"
+msgstr "Пошук у списку пакунків за шаблоном регулярного виразу"
+
+#: cmdline/apt-cache.cc
+msgid "Show raw dependency information for a package"
+msgstr "Показати необроблену інформацію про залежності для пакунка"
+
+#: cmdline/apt-cache.cc
+msgid "Show reverse dependency information for a package"
+msgstr "Показати інформацію про зворотну залежність для пакунка"
+
+#: cmdline/apt-cache.cc
+msgid "Show a readable record for the package"
+msgstr "Показати читабельний запис для пакунка"
+
+#: cmdline/apt-cache.cc
+msgid "List the names of all packages in the system"
+msgstr "Перелічити назви всіх пакунків у системі"
+
+#: cmdline/apt-cache.cc
+msgid "Show policy settings"
+msgstr "Показати налаштування політики"
+
+#: cmdline/apt-cdrom.cc
+msgid "Please provide a name for this Disc, such as 'Debian 5.0.3 Disk 1'"
+msgstr ""
+"Будь ласка, вкажіть назву цього диска, наприклад, 'Debian 5.0.3 Диск 1'"
+
+#: cmdline/apt-cdrom.cc
+msgid "Please insert a Disc in the drive and press [Enter]"
+msgstr "Вставте диск у привід і натисніть [Enter]"
+
+#: cmdline/apt-cdrom.cc
+#, c-format
+msgid "Failed to mount '%s' to '%s'"
+msgstr "Не вдалося змонтувати '%s' на '%s'"
+
+#: cmdline/apt-cdrom.cc
+msgid ""
+"No CD-ROM could be auto-detected or found using the default mount point.\n"
+"You may try the --cdrom option to set the CD-ROM mount point.\n"
+"See 'man apt-cdrom' for more information about the CD-ROM auto-detection and "
+"mount point."
+msgstr ""
+"Не вдалося автоматично визначити або знайти CD-ROM за допомогою типової\n"
+"точки монтування. Ви можете спробувати параметр --cdrom, щоб задати\n"
+"точку монтування CD-ROM. Див. 'man apt-cdrom' для отримання додаткової\n"
+"інформації про автоматичне визначення CD-ROM і точку монтування."
+
+#: cmdline/apt-cdrom.cc
+msgid "Repeat this process for the rest of the CDs in your set."
+msgstr "Повторіть цей процес для решти CD у вашому комплекті."
+
+#: cmdline/apt-cdrom.cc
+msgid ""
+"Usage: apt-cdrom [options] command\n"
+"\n"
+"apt-cdrom is used to add CDROM's, USB flashdrives and other removable\n"
+"media types as package sources to APT. The mount point and device\n"
+"information is taken from apt.conf(5), udev(7) and fstab(5).\n"
+msgstr ""
+"Використання: apt-cdrom [опції] команда\n"
+"\n"
+"Команда apt-cdrom використовується для додавання CD-ROM, USB-накопичувачів\n"
+"та інших типів знімних носіїв як джерел пакунків для APT. Інформація про "
+"точку\n"
+"монтування та пристрій береться з apt.conf(5), udev(7) та fstab(5).\n"
+
+#: cmdline/apt-config.cc
+msgid "Arguments not in pairs"
+msgstr "Аргументи не в парах"
+
+#: cmdline/apt-config.cc
+msgid ""
+"Usage: apt-config [options] command\n"
+"\n"
+"apt-config is an interface to the configuration settings used by\n"
+"all APT tools, mainly intended for debugging and shell scripting.\n"
+msgstr ""
+"Використання: apt-config [опції] команда\n"
+"\n"
+"apt-config - це інтерфейс до параметрів конфігурації, що використовуються\n"
+"усіма інструментами APT; він призначений головним чином для\n"
+"налагодження та написання сценаріїв оболонки.\n"
+
+#: cmdline/apt-config.cc
+msgid "get configuration values via shell evaluation"
+msgstr "отримати значення конфігурації через виконання оболонки"
+
+#: cmdline/apt-config.cc
+msgid "show the active configuration setting"
+msgstr "показати активний параметр конфігурації"
+
+#: cmdline/apt-dump-solver.cc
+msgid ""
+"Usage: apt-dump-solver\n"
+"\n"
+"apt-dump-solver is an interface to store an EDSP scenario in\n"
+"a file and optionally forwards it to another solver.\n"
+msgstr ""
+"Використання: apt-dump-solver\n"
+"\n"
+"apt-dump-solver - це інтерфейс для зберігання сценарію EDSP\n"
+"у файлі та, за потреби, його пересилання іншому розв'язувачу.\n"
+
+#: cmdline/apt-extracttemplates.cc
+msgid ""
+"Usage: apt-extracttemplates file1 [file2 ...]\n"
+"\n"
+"apt-extracttemplates is used to extract config and template files\n"
+"from debian packages. It is used mainly by debconf(1) to prompt for\n"
+"configuration questions before installation of packages.\n"
+msgstr ""
+"Використання: apt-extracttemplates файл1 [файл2 ...]\n"
+"\n"
+"apt-extracttemplates використовується для виокремлення файлів конфігурації\n"
+"та шаблонів із пакунків Debian. Він переважно використовується debconf(1)\n"
+"для запиту параметрів налаштування перед встановленням пакунків.\n"
+
+#: cmdline/apt-extracttemplates.cc
+msgid "Cannot get debconf version. Is debconf installed?"
+msgstr "Не вдається отримати версію debconf. debconf встановлено?"
+
+#: cmdline/apt-get.cc
+#, c-format
+msgid "Couldn't find package %s"
+msgstr "Не вдалося знайти пакунок %s"
+
+#: cmdline/apt-get.cc cmdline/apt-mark.cc
+#, c-format
+msgid "%s set to automatically installed.\n"
+msgstr "%s позначено як автоматично встановлений.\n"
+
+#: cmdline/apt-get.cc cmdline/apt-mark.cc
+msgid ""
+"This command is deprecated. Please use 'apt-mark auto' and 'apt-mark manual' "
+"instead."
+msgstr ""
+"Ця команда застаріла. Будь ласка, використовуйте замість неї 'apt-mark auto' "
+"і 'apt-mark manual'."
+
+#: cmdline/apt-get.cc
+msgid "Internal error, problem resolver broke stuff"
+msgstr "Внутрішня помилка: засіб розв’язання залежностей пошкодив пакунки"
+
+#: cmdline/apt-get.cc
+msgid "Supported modules:"
+msgstr "Підтримувані модулі:"
+
+#: cmdline/apt-get.cc
+msgid ""
+"Usage: apt-get [options] command\n"
+"       apt-get [options] install|remove pkg1 [pkg2 ...]\n"
+"       apt-get [options] source pkg1 [pkg2 ...]\n"
+"\n"
+"apt-get is a command line interface for retrieval of packages\n"
+"and information about them from authenticated sources and\n"
+"for installation, upgrade and removal of packages together\n"
+"with their dependencies.\n"
+msgstr ""
+"Використання: apt-get [опції] команда\n"
+"       apt-get [опції] install|remove пак1 [пак2 ...]\n"
+"       apt-get [опції] source пак1 [пак2 ...]\n"
+"\n"
+"apt-get - це інтерфейс командного рядка для отримання пакунків\n"
+"та інформації про них з автентифікованих джерел, а також\n"
+"для встановлення, оновлення й видалення пакунків разом\n"
+"із їхніми залежностями.\n"
+
+#: cmdline/apt-get.cc
+msgid "Retrieve new lists of packages"
+msgstr "Отримати нові списки пакунків"
+
+#: cmdline/apt-get.cc
+msgid "Perform an upgrade"
+msgstr "Виконати оновлення"
+
+#: cmdline/apt-get.cc
+msgid "Install new packages (pkg is libc6 not libc6.deb)"
+msgstr "Встановити нові пакунки (пак - це libc6, а не libc6.deb)"
+
+#: cmdline/apt-get.cc
+msgid "Reinstall packages (pkg is libc6 not libc6.deb)"
+msgstr "Перевстановити пакунки (пак - це libc6, а не libc6.deb)"
+
+#: cmdline/apt-get.cc
+msgid "Remove packages"
+msgstr "Видалити пакунки"
+
+#: cmdline/apt-get.cc
+msgid "Remove packages and config files"
+msgstr "Видалити пакунки та файли конфігурації"
+
+#: cmdline/apt-get.cc
+msgid "Remove automatically all unused packages"
+msgstr "Автоматично видалити всі невикористовувані пакунки"
+
+#: cmdline/apt-get.cc
+msgid "Distribution upgrade, see apt-get(8)"
+msgstr "Оновлення дистрибутиву, див. apt-get(8)"
+
+#: cmdline/apt-get.cc
+msgid "Follow dselect selections"
+msgstr "Дотримуватися вибору dselect"
+
+#: cmdline/apt-get.cc
+msgid "Configure build-dependencies for source packages"
+msgstr "Налаштувати залежності для збирання вихідних пакунків"
+
+#: cmdline/apt-get.cc
+msgid "Satisfy dependency strings"
+msgstr "Задовольнити рядки залежностей"
+
+#: cmdline/apt-get.cc
+msgid "Erase downloaded archive files"
+msgstr "Видалити завантажені архівні файли"
+
+#: cmdline/apt-get.cc
+msgid "Erase old downloaded archive files"
+msgstr "Видалити старі завантажені архівні файли"
+
+#: cmdline/apt-get.cc
+msgid "Verify that there are no broken dependencies"
+msgstr "Перевірити відсутність пошкоджених залежностей"
+
+#: cmdline/apt-get.cc
+msgid "Download source archives"
+msgstr "Завантажити архіви вихідних кодів"
+
+#: cmdline/apt-get.cc
+msgid "Download the binary package into the current directory"
+msgstr "Завантажити бінарний пакунок у поточний каталог"
+
+#: cmdline/apt-get.cc
+msgid "Download and display the changelog for the given package"
+msgstr "Завантажити та показати журнал змін для заданого пакунку"
+
+#: cmdline/apt-helper.cc
+msgid "Need one URL as argument"
+msgstr "Потрібна одна URL-адреса як аргумент"
+
+#: cmdline/apt-helper.cc
+msgid "Must specify at least one pair url/filename"
+msgstr "Потрібно вказати принаймні одну пару URL/ім'я файлу"
+
+#: cmdline/apt-helper.cc
+msgid "Download Failed"
+msgstr "Завантаження не вдалося"
+
+#: cmdline/apt-helper.cc
+#, c-format
+msgid "GetSrvRec failed for %s"
+msgstr "Не вдалося виконати GetSrvRec для %s"
+
+#: cmdline/apt-helper.cc
+msgid ""
+"Usage: apt-helper [options] command\n"
+"       apt-helper [options] cat-file file ...\n"
+"       apt-helper [options] download-file uri target-path\n"
+"\n"
+"apt-helper bundles a variety of commands for shell scripts to use\n"
+"e.g. the same proxy configuration or acquire system as APT would.\n"
+msgstr ""
+"Використання: apt-helper [опції] команда\n"
+"       apt-helper [опції] cat-file файл ...\n"
+"       apt-helper [опції] download-file uri шлях-призначення\n"
+"\n"
+"apt-helper об'єднує різноманітні команди для використання в сценаріях "
+"оболонки,\n"
+"наприклад, ту саму конфігурацію проксі або систему отримання, що й APT.\n"
+
+#: cmdline/apt-helper.cc
+msgid "download the given uri to the target-path"
+msgstr "завантажити заданий URI до шляху призначення"
+
+#: cmdline/apt-helper.cc
+msgid "lookup a SRV record (e.g. _http._tcp.ftp.debian.org)"
+msgstr "пошук запису SRV (напр., _http._tcp.ftp.debian.org)"
+
+#: cmdline/apt-helper.cc
+msgid "concatenate files, with automatic decompression"
+msgstr "об'єднати файли з автоматичною декомпресією"
+
+#: cmdline/apt-helper.cc
+msgid "hash file"
+msgstr "хешувати файл"
+
+#: cmdline/apt-helper.cc
+msgid "detect proxy using apt.conf"
+msgstr "виявити проксі за допомогою apt.conf"
+
+#: cmdline/apt-helper.cc
+msgid "wait for system to be online"
+msgstr "очікувати, поки система буде онлайн"
+
+#: cmdline/apt-helper.cc
+msgid "drop privileges before running given command"
+msgstr "скинути привілеї перед виконанням заданої команди"
+
+#: cmdline/apt-helper.cc
+msgid "analyse a pattern"
+msgstr "аналізувати шаблон"
+
+#: cmdline/apt-internal-planner.cc
+msgid ""
+"Usage: apt-internal-planner\n"
+"\n"
+"apt-internal-planner is an interface to use the current internal\n"
+"installation planner for the APT family like an external one,\n"
+"for debugging or the like.\n"
+msgstr ""
+"Використання: apt-internal-planner\n"
+"\n"
+"apt-internal-planner - це інтерфейс для використання поточного\n"
+"внутрішнього планувальника встановлення для сімейства APT\n"
+"як зовнішнього - для налагодження та подібних завдань.\n"
+
+#: cmdline/apt-internal-solver.cc
+msgid ""
+"Usage: apt-internal-solver\n"
+"\n"
+"apt-internal-solver is an interface to use the current internal\n"
+"resolver for the APT family like an external one, for debugging or\n"
+"the like.\n"
+msgstr ""
+"Використання: apt-internal-solver\n"
+"\n"
+"apt-internal-solver - це інтерфейс для використання поточного\n"
+"внутрішнього розв’язувача залежностей для сімейства APT як\n"
+"зовнішнього - для налагодження та подібних завдань.\n"
+
+#: cmdline/apt-mark.cc
+#, c-format
+msgid "%s can not be marked as it is not installed.\n"
+msgstr "%s неможливо позначити, оскільки його не встановлено.\n"
+
+#: cmdline/apt-mark.cc
+#, c-format
+msgid "%s was already set to manually installed.\n"
+msgstr "%s уже позначено як встановлений вручну.\n"
+
+#: cmdline/apt-mark.cc
+#, c-format
+msgid "%s was already set to automatically installed.\n"
+msgstr "%s уже позначено як автоматично встановлений.\n"
+
+#: cmdline/apt-mark.cc
+msgid "No changes necessary"
+msgstr "Зміни не потрібні"
+
+#: cmdline/apt-mark.cc
+msgid "The following packages will be marked as automatically installed:"
+msgstr "Наступні пакунки будуть позначені як автоматично встановлені:"
+
+#: cmdline/apt-mark.cc
+#, c-format
+msgid "%s was already set on hold.\n"
+msgstr "%s уже зафіксовано.\n"
+
+#: cmdline/apt-mark.cc
+#, c-format
+msgid "%s was already not on hold.\n"
+msgstr "%s уже не був зафіксований.\n"
+
+#: cmdline/apt-mark.cc
+msgid "Executing dpkg failed. Are you root?"
+msgstr "Не вдалося виконати dpkg. Ви root?"
+
+#: cmdline/apt-mark.cc
+#, c-format
+msgid "%s set on hold.\n"
+msgstr "%s зафіксовано.\n"
+
+#: cmdline/apt-mark.cc
+#, c-format
+msgid "Canceled hold on %s.\n"
+msgstr "Фіксацію для %s скасовано.\n"
+
+#: cmdline/apt-mark.cc
+#, c-format
+msgid "Selected %s for purge.\n"
+msgstr "%s вибрано для очищення.\n"
+
+#: cmdline/apt-mark.cc
+#, c-format
+msgid "Selected %s for removal.\n"
+msgstr "%s вибрано для видалення.\n"
+
+#: cmdline/apt-mark.cc
+#, c-format
+msgid "Selected %s for installation.\n"
+msgstr "%s вибрано для встановлення.\n"
+
+#: cmdline/apt-mark.cc
+msgid ""
+"Usage: apt-mark [options] {auto|manual} pkg1 [pkg2 ...]\n"
+"\n"
+"apt-mark is a simple command line interface for marking packages\n"
+"as manually or automatically installed. It can also be used to\n"
+"manipulate the dpkg(1) selection states of packages, and to list\n"
+"all packages with or without a certain marking.\n"
+msgstr ""
+"Використання: apt-mark [опції] {auto|manual} пак1 [пак2 ...]\n"
+"\n"
+"apt-mark - це простий інтерфейс командного рядка для позначення\n"
+"пакунків як встановлених вручну або автоматично. Його також можна\n"
+"використовувати для керування станами вибору пакунків у dpkg(1) та\n"
+"для перегляду всіх пакунків із певною позначкою або без неї.\n"
+
+#: cmdline/apt-mark.cc
+msgid "Mark the given packages as automatically installed"
+msgstr "Позначити вказані пакунки як автоматично встановлені"
+
+#: cmdline/apt-mark.cc
+msgid "Mark the given packages as manually installed"
+msgstr "Позначити вказані пакунки як встановлені вручну"
+
+#: cmdline/apt-mark.cc
+msgid "Mark all dependencies of meta packages as automatically installed."
+msgstr "Позначити всі залежності метапакунків як автоматично встановлені."
+
+#: cmdline/apt-mark.cc
+msgid "Mark a package as held back"
+msgstr "Позначити пакунок як утримуваний"
+
+#: cmdline/apt-mark.cc
+msgid "Unset a package set as held back"
+msgstr "Зняти утримування з пакунка"
+
+#: cmdline/apt-mark.cc
+msgid "Print the list of automatically installed packages"
+msgstr "Вивести список автоматично встановлених пакунків"
+
+#: cmdline/apt-mark.cc
+msgid "Print the list of manually installed packages"
+msgstr "Вивести список пакунків, встановлених вручну"
+
+#: cmdline/apt-mark.cc
+msgid "Print the list of packages on hold"
+msgstr "Вивести список утримуваних пакунків"
+
+#: cmdline/apt-sortpkgs.cc
+msgid "Unknown package record!"
+msgstr "Невідомий запис про пакунок!"
+
+#: cmdline/apt-sortpkgs.cc
+msgid ""
+"Usage: apt-sortpkgs [options] file1 [file2 ...]\n"
+"\n"
+"apt-sortpkgs is a simple tool to sort package information files.\n"
+"By default it sorts by binary package information, but the -s option\n"
+"can be used to switch to source package ordering instead.\n"
+msgstr ""
+"Використання: apt-sortpkgs [опції] файл1 [файл2 ...]\n"
+"\n"
+"apt-sortpkgs - це простий інструмент для сортування файлів інформації\n"
+"про пакунки. Типово він сортує за інформацією про бінарні пакунки,\n"
+"але параметр -s перемикає на сортування за вихідними пакунками.\n"
+
+#: cmdline/apt.cc
+msgid ""
+"Usage: apt [options] command\n"
+"\n"
+"apt is a commandline package manager and provides commands for\n"
+"searching and managing as well as querying information about packages.\n"
+"It provides the same functionality as the specialized APT tools,\n"
+"like apt-get and apt-cache, but enables options more suitable for\n"
+"interactive use by default.\n"
+msgstr ""
+"Використання: apt [опції] команда\n"
+"\n"
+"apt - це менеджер пакунків командного рядка, який надає команди для\n"
+"пошуку, керування та отримання інформації про пакунки. Він забезпечує\n"
+"ту саму функціональність, що й спеціалізовані інструменти APT, такі як\n"
+"apt-get та apt-cache, але типово використовує параметри, більш придатні\n"
+"для інтерактивного використання.\n"
+
+#. query
+#: cmdline/apt.cc
+msgid "list packages based on package names"
+msgstr "вивести список пакунків на основі їхніх назв"
+
+#: cmdline/apt.cc
+msgid "search in package descriptions"
+msgstr "шукати в описах пакунків"
+
+#: cmdline/apt.cc
+msgid "show package details"
+msgstr "показати подробиці про пакунок"
+
+#. package stuff
+#: cmdline/apt.cc
+msgid "install packages"
+msgstr "встановити пакунки"
+
+#: cmdline/apt.cc
+msgid "reinstall packages"
+msgstr "перевстановити пакунки"
+
+#: cmdline/apt.cc
+msgid "remove packages"
+msgstr "видалити пакунки"
+
+#: cmdline/apt.cc
+msgid "automatically remove all unused packages"
+msgstr "автоматично видалити всі невикористовувані пакунки"
+
+#. system wide stuff
+#: cmdline/apt.cc
+msgid "update list of available packages"
+msgstr "оновити список доступних пакунків"
+
+#: cmdline/apt.cc
+msgid "upgrade the system by installing/upgrading packages"
+msgstr "оновити систему, встановивши/оновивши пакунки"
+
+#: cmdline/apt.cc
+msgid "upgrade the system by removing/installing/upgrading packages"
+msgstr "оновити систему шляхом видалення/встановлення/оновлення пакунків"
+
+#. history stuff
+#: cmdline/apt.cc
+msgid "show list of history"
+msgstr "показати список історії"
+
+#: cmdline/apt.cc
+msgid "show info on specific transactions"
+msgstr "показати інформацію про певні транзакції"
+
+#: cmdline/apt.cc
+msgid "redo transactions"
+msgstr "повторити транзакції"
+
+#: cmdline/apt.cc
+msgid "undo transactions"
+msgstr "скасувати транзакції"
+
+#: cmdline/apt.cc
+msgid "rollback transactions"
+msgstr "відкотити транзакції"
+
+#. misc
+#: cmdline/apt.cc
+msgid "edit the source information file"
+msgstr "редагувати файл інформації про джерела пакунків"
+
+#: cmdline/apt.cc
+msgid "modernize .list files to .sources files"
+msgstr "оновити формат файлів .list до формату .sources"
+
+#: cmdline/apt.cc
+msgid "satisfy dependency strings"
+msgstr "задовольнити вирази залежностей"
+
+#: cmdline/apt.cc
+msgid "produce a reason trace for the current state of the package"
+msgstr "вивести ланцюжок причин поточного стану пакунка"
+
+#: dselect/install
+msgid "Bad default setting!"
+msgstr "Погане типове налаштування!"
+
+#: dselect/install dselect/update
+msgid "Press [Enter] to continue."
+msgstr "Натисніть [Enter], щоб продовжити."
+
+#: dselect/install
+msgid "Do you want to erase any previously downloaded .deb files?"
+msgstr "Ви хочете видалити раніше завантажені файли .deb?"
+
+#: dselect/install
+msgid "Some errors occurred while unpacking. Packages that were installed"
+msgstr "Під час розпакування виникли деякі помилки. Встановлені пакунки"
+
+#: dselect/install
+msgid "will be configured. This may result in duplicate errors"
+msgstr "буде налаштовано. Це може призвести до повторних помилок"
+
+#: dselect/install
+msgid "or errors caused by missing dependencies. This is OK, only the errors"
+msgstr ""
+"або помилок, спричинених відсутніми залежностями. Це нормально, лише помилки"
+
+#: dselect/install
+msgid ""
+"above this message are important. Please fix them and run [I]nstall again"
+msgstr ""
+"зазначені вище є важливими. Будь ласка, виправте їх і запустіть [І]nstall ще "
+"раз"
+
+#: dselect/update
+msgid "Merging available information"
+msgstr "Об’єднання доступної інформації"
+
+#: ftparchive/apt-ftparchive.cc
+msgid "Package extension list is too long"
+msgstr "Список розширень пакунків занадто довгий"
+
+#: ftparchive/apt-ftparchive.cc
+#, c-format
+msgid "Error processing directory %s"
+msgstr "Помилка обробки каталогу %s"
+
+#: ftparchive/apt-ftparchive.cc
+msgid "Source extension list is too long"
+msgstr "Список розширень джерел занадто довгий"
+
+#: ftparchive/apt-ftparchive.cc
+msgid "Error writing header to contents file"
+msgstr "Помилка запису заголовка до файлу вмісту"
+
+#: ftparchive/apt-ftparchive.cc
+#, c-format
+msgid "Error processing contents %s"
+msgstr "Помилка обробки файлу Contents %s"
+
+#: ftparchive/apt-ftparchive.cc
+msgid ""
+"Usage: apt-ftparchive [options] command\n"
+"Commands: packages binarypath [overridefile [pathprefix]]\n"
+"          sources srcpath [overridefile [pathprefix]]\n"
+"          contents path\n"
+"          release path\n"
+"          generate config [groups]\n"
+"          clean config\n"
+"\n"
+"apt-ftparchive generates index files for Debian archives. It supports\n"
+"many styles of generation from fully automated to functional replacements\n"
+"for dpkg-scanpackages and dpkg-scansources\n"
+"\n"
+"apt-ftparchive generates Package files from a tree of .debs. The\n"
+"Package file contains the contents of all the control fields from\n"
+"each package as well as the MD5 hash and filesize. An override file\n"
+"is supported to force the value of Priority and Section.\n"
+"\n"
+"Similarly apt-ftparchive generates Sources files from a tree of .dscs.\n"
+"The --source-override option can be used to specify a src override file\n"
+"\n"
+"The 'packages' and 'sources' command should be run in the root of the\n"
+"tree. BinaryPath should point to the base of the recursive search and \n"
+"override file should contain the override flags. Pathprefix is\n"
+"appended to the filename fields if present. Example usage from the \n"
+"Debian archive:\n"
+"   apt-ftparchive packages dists/potato/main/binary-i386/ > \\\n"
+"               dists/potato/main/binary-i386/Packages\n"
+"\n"
+"Options:\n"
+"  -h    This help text\n"
+"  --md5 Control MD5 generation\n"
+"  -s=?  Source override file\n"
+"  -q    Quiet\n"
+"  -d=?  Select the optional caching database\n"
+"  --no-delink Enable delinking debug mode\n"
+"  --contents  Control contents file generation\n"
+"  -c=?  Read this configuration file\n"
+"  -o=?  Set an arbitrary configuration option"
+msgstr ""
+"Використання: apt-ftparchive [опції] команда\n"
+"Команди: packages шлях_бінарних [файл_перевизначень [префікс]]\n"
+"          sources шлях_вихідних [файл_перевизначень [префікс]]\n"
+"          contents шлях\n"
+"          release шлях\n"
+"          generate конфіг [групи]\n"
+"          clean конфіг\n"
+"\n"
+"apt-ftparchive створює індексні файли для архівів Debian.\n"
+"Може працювати як повністю автоматично, так і замінювати\n"
+"утиліти dpkg-scanpackages та dpkg-scansources.\n"
+"\n"
+"Команда `packages` генерує файл Packages з дерева .deb.\n"
+"Файл містить усі контрольні поля кожного пакунка, а також\n"
+"MD5‑хеш і розмір. Можна використати файл перевизначень для\n"
+"примусового задання Priority і Section.\n"
+"\n"
+"Команда `sources` генерує файл Sources з дерева .dsc.\n"
+"Опція `--source-override` дозволяє вказати файл перевизначень\n"
+"для вихідних пакунків.\n"
+"\n"
+"Команди `packages` і `sources` слід запускати з кореня дерева.\n"
+"`шлях_бінарних` має вказувати на базовий каталог рекурсивного\n"
+"пошуку, файл_перевизначень містить прапорці перевизначень,\n"
+"а `префікс` додається до назв файлів, якщо задано.\n"
+"\n"
+"Приклад використання:\n"
+"   apt-ftparchive packages dists/potato/main/binary-i386/ > \\\n"
+"               dists/potato/main/binary-i386/Packages\n"
+"\n"
+"\n"
+"Опції:\n"
+"  -h           показати цей текст довідки\n"
+"  --md5        керувати генерацією MD5\n"
+"  -s=?         файл перевизначень для вихідних пакунків\n"
+"  -q           тихий режим\n"
+"  -d=?         вибрати додаткову кешуючу базу даних\n"
+"  --no-delink  увімкнути режим налагодження delink\n"
+"  --contents   керувати генерацією файлу Contents\n"
+"  -c=?         прочитати цей конфігураційний файл\n"
+"  -o=?         задати довільний параметр конфігурації"
+
+#: ftparchive/apt-ftparchive.cc
+msgid "No selections matched"
+msgstr "Жоден пакунок не відповідає вибору"
+
+#: ftparchive/apt-ftparchive.cc
+#, c-format
+msgid "Some files are missing in the package file group `%s'"
+msgstr "Деякі файли відсутні у групі файлів пакунка `%s'"
+
+#: ftparchive/cachedb.cc
+#, c-format
+msgid "DB was corrupted, file renamed to %s.old"
+msgstr "Базу даних пошкоджено, файл перейменовано на %s.old"
+
+#: ftparchive/cachedb.cc
+#, c-format
+msgid "DB is old, attempting to upgrade %s"
+msgstr "База даних застаріла, виконується спроба оновлення %s"
+
+#: ftparchive/cachedb.cc
+msgid ""
+"DB format is invalid. If you upgraded from an older version of apt, please "
+"remove and re-create the database."
+msgstr ""
+"Формат бази даних недійсний. Якщо ви оновилися зі старішої версії apt, "
+"видаліть і створіть базу даних заново."
+
+#: ftparchive/cachedb.cc
+#, c-format
+msgid "Unable to open DB file %s: %s"
+msgstr "Не вдалося відкрити файл бази даних %s: %s"
+
+#: ftparchive/cachedb.cc
+msgid "Failed to read .dsc"
+msgstr "Не вдалося прочитати .dsc"
+
+#: ftparchive/cachedb.cc
+msgid "Archive has no control record"
+msgstr "В архіві немає контрольного запису"
+
+#: ftparchive/cachedb.cc
+msgid "Unable to get a cursor"
+msgstr "Не вдалося отримати курсор бази даних"
+
+#: ftparchive/multicompress.cc
+#, c-format
+msgid "Unknown compression algorithm '%s'"
+msgstr "Невідомий алгоритм стиснення '%s'"
+
+#: ftparchive/multicompress.cc
+#, c-format
+msgid "Compressed output %s needs a compression set"
+msgstr "Для стисненого виходу %s потрібно задати набір стиснення"
+
+#: ftparchive/multicompress.cc
+msgid "Failed to create IPC pipe to subprocess"
+msgstr "Не вдалося створити IPC-канал для підпроцесу"
+
+#: ftparchive/multicompress.cc
+msgid "Failed to fork"
+msgstr "Не вдалося створити новий процес (fork)"
+
+#: ftparchive/multicompress.cc
+msgid "Compress child"
+msgstr "Підпроцес стиснення"
+
+#: ftparchive/multicompress.cc
+#, c-format
+msgid "Internal error, failed to create %s"
+msgstr "Внутрішня помилка, не вдалося створити %s"
+
+#: ftparchive/multicompress.cc
+msgid "IO to subprocess/file failed"
+msgstr "Помилка вводу‑виводу до підпроцесу/файлу"
+
+#: ftparchive/multicompress.cc
+msgid "Failed to read while computing MD5"
+msgstr "Не вдалося прочитати під час обчислення MD5"
+
+#: ftparchive/multicompress.cc
+#, c-format
+msgid "Failed to rename %s to %s"
+msgstr "Не вдалося перейменувати %s на %s"
+
+#: ftparchive/override.cc
+#, c-format
+msgid "Unable to open %s"
+msgstr "Не вдалося відкрити %s"
+
+#. skip spaces
+#. find end of word
+#: ftparchive/override.cc
+#, c-format
+msgid "Malformed override %s line %llu (%s)"
+msgstr "Неправильно сформоване перевизначення %s у рядку %llu (%s)"
+
+#: ftparchive/override.cc
+#, c-format
+msgid "Failed to read the override file %s"
+msgstr "Не вдалося прочитати файл перевизначення %s"
+
+#: ftparchive/override.cc
+#, c-format
+msgid "Malformed override %s line %llu #1"
+msgstr "Неправильно сформоване перевизначення %s у рядку %llu #1"
+
+#: ftparchive/override.cc
+#, c-format
+msgid "Malformed override %s line %llu #2"
+msgstr "Неправильно сформоване перевизначення %s у рядку %llu #2"
+
+#: ftparchive/override.cc
+#, c-format
+msgid "Malformed override %s line %llu #3"
+msgstr "Неправильно сформоване перевизначення %s у рядку %llu #3"
+
+#: ftparchive/writer.cc
+#, c-format
+msgid "W: Unable to read directory %s\n"
+msgstr "W: Не вдалося прочитати каталог %s\n"
+
+#: ftparchive/writer.cc
+#, c-format
+msgid "W: Unable to stat %s\n"
+msgstr "W: Не вдалося отримати атрибути %s\n"
+
+#: ftparchive/writer.cc
+msgid "E: "
+msgstr "E: "
+
+#: ftparchive/writer.cc
+msgid "W: "
+msgstr "W: "
+
+#: ftparchive/writer.cc
+msgid "E: Errors apply to file "
+msgstr "E: Помилки стосуються файлу "
+
+#: ftparchive/writer.cc
+#, c-format
+msgid "Failed to resolve %s"
+msgstr "Не вдалося розв'язати %s"
+
+#: ftparchive/writer.cc
+msgid "Tree walking failed"
+msgstr "Збій під час обходу дерева"
+
+#: ftparchive/writer.cc
+#, c-format
+msgid "Failed to open %s"
+msgstr "Не вдалося відкрити %s"
+
+#: ftparchive/writer.cc
+#, c-format
+msgid " DeLink %s [%s]\n"
+msgstr " Розрив посилання %s [%s]\n"
+
+#: ftparchive/writer.cc
+#, c-format
+msgid "*** Failed to link %s to %s"
+msgstr "*** Не вдалося створити посилання %s на %s"
+
+#: ftparchive/writer.cc
+#, c-format
+msgid " DeLink limit of %sB hit.\n"
+msgstr " Досягнуто ліміту розриву посилань у %sB.\n"
+
+#: ftparchive/writer.cc
+msgid "Archive had no package field"
+msgstr "Архів не мав поля Package"
+
+#: ftparchive/writer.cc
+#, c-format
+msgid "  %.*s has no override entry\n"
+msgstr "  %.*s не має запису перевизначення\n"
+
+#: ftparchive/writer.cc
+#, c-format
+msgid "  %.*s maintainer is %.*s not %s\n"
+msgstr "  Супровідником %.*s є %.*s, а не %s\n"
+
+#: ftparchive/writer.cc
+#, c-format
+msgid "  %.*s has no source override entry\n"
+msgstr "  %.*s не має запису перевизначення для вихідного пакунка\n"
+
+#: ftparchive/writer.cc
+#, c-format
+msgid "  %.*s has no binary override entry either\n"
+msgstr "  %.*s не має запису перевизначення для бінарного пакунка\n"
+
+#: methods/basehttp.cc
+msgid "Waiting for headers"
+msgstr "Очікування на заголовки"
+
+#: methods/basehttp.cc
+msgid "The HTTP server sent an invalid reply header"
+msgstr "HTTP‑сервер надіслав некоректний заголовок відповіді"
+
+#: methods/basehttp.cc
+msgid "Bad header line"
+msgstr "Неправильний рядок заголовка"
+
+#: methods/basehttp.cc
+msgid "The HTTP server sent an invalid Content-Length header"
+msgstr "HTTP‑сервер надіслав некоректний заголовок Content-Length"
+
+#: methods/basehttp.cc
+msgid "The HTTP server sent an invalid Content-Range header"
+msgstr "HTTP‑сервер надіслав некоректний заголовок Content-Range"
+
+#: methods/basehttp.cc
+msgid "This HTTP server has broken range support"
+msgstr "Цей HTTP‑сервер має некоректну підтримку діапазонів"
+
+#: methods/basehttp.cc
+msgid "Unknown date format"
+msgstr "Невідомий формат дати"
+
+#: methods/basehttp.cc
+#, c-format
+msgid ""
+"Authentication credentials may be configured in %s, but the file(s) are not "
+"readable by the current user. Try running this command as root."
+msgstr ""
+"Облікові дані автентифікації можуть бути налаштовані в %s, але файл(и) "
+"недоступні для читання поточним користувачем. Спробуйте виконати цю команду "
+"від імені root."
+
+#: methods/basehttp.cc
+msgid "Bad header data"
+msgstr "Неправильні дані заголовка"
+
+#: methods/basehttp.cc
+msgid "Connection failed"
+msgstr "Помилка підключення"
+
+#: methods/basehttp.cc methods/http.cc
+#, c-format
+msgid "File has unexpected size (%llu != %llu). Mirror sync in progress?"
+msgstr ""
+"Файл має неочікуваний розмір (%llu != %llu). Триває синхронізація дзеркала?"
+
+#: methods/basehttp.cc
+#, c-format
+msgid ""
+"Automatically disabled %s due to incorrect response from server/proxy. (man "
+"5 apt.conf)"
+msgstr ""
+"Автоматично вимкнено %s через неправильну відповідь від сервера/проксі. (man "
+"5 apt.conf)"
+
+#: methods/basehttp.cc
+msgid "Internal error"
+msgstr "Внутрішня помилка"
+
+#: methods/cdrom.cc
+#, c-format
+msgid "Unable to read the cdrom database %s"
+msgstr "Не вдалося прочитати базу даних %s з CD-ROM"
+
+#: methods/cdrom.cc
+msgid ""
+"Please use apt-cdrom to make this CD-ROM recognized by APT. apt-get update "
+"cannot be used to add new CD-ROMs"
+msgstr ""
+"Будь ласка, скористайтеся apt-cdrom, щоб APT розпізнав цей CD-ROM. apt-get "
+"update не можна використовувати для додавання нових CD-ROM"
+
+#: methods/cdrom.cc
+msgid "Wrong CD-ROM"
+msgstr "Неправильний CD-ROM"
+
+#: methods/cdrom.cc
+#, c-format
+msgid "Unable to unmount the CD-ROM in %s, it may still be in use."
+msgstr "Не вдалося відмонтувати CD-ROM у %s, можливо, він ще використовується."
+
+#: methods/cdrom.cc
+msgid "Disk not found."
+msgstr "Диск не знайдено."
+
+#: methods/cdrom.cc methods/file.cc
+msgid "File not found"
+msgstr "Файл не знайдено"
+
+#. TRANSLATOR: %s is e.g. Tor's ".onion" which would likely fail or leak info (RFC7686)
+#: methods/connect.cc
+#, c-format
+msgid "Direct connection to %s domains is blocked by default."
+msgstr "Пряме підключення до доменів %s типово заблоковано."
+
+#: methods/connect.cc
+#, c-format
+msgid "[IP: %s %s]"
+msgstr "[IP: %s %s]"
+
+#: methods/connect.cc
+#, c-format
+msgid "Connected to %s (%s)"
+msgstr "З'єднано з %s (%s)"
+
+#: methods/connect.cc methods/http.cc
+#, c-format
+msgid "Connecting to %s (%s)"
+msgstr "З'єднання з %s (%s)"
+
+#: methods/connect.cc
+#, c-format
+msgid "Could not create a socket for %s (f=%u t=%u p=%u)"
+msgstr "Не вдалося створити сокет для %s (f=%u t=%u p=%u)"
+
+#: methods/connect.cc
+#, c-format
+msgid "Cannot initiate the connection to %s:%s (%s)."
+msgstr "Не вдалося ініціювати з'єднання з %s:%s (%s)."
+
+#: methods/connect.cc
+msgid "Failed"
+msgstr "Помилка"
+
+#: methods/connect.cc
+#, c-format
+msgid "Could not connect to %s:%s (%s)."
+msgstr "Не вдалося з'єднатися з %s:%s (%s)."
+
+#: methods/connect.cc
+#, c-format
+msgid "Could not connect to %s:%s (%s), connection timed out"
+msgstr "Не вдалося з'єднатися з %s:%s (%s), час очікування з'єднання минув"
+
+#: methods/connect.cc
+#, c-format
+msgid "Connecting to %s"
+msgstr "З'єднання з %s"
+
+#: methods/connect.cc
+#, c-format
+msgid "Could not resolve '%s'"
+msgstr "Не вдалося розв’язати ім’я ‘%s’"
+
+#: methods/connect.cc
+#, c-format
+msgid "Temporary failure resolving '%s'"
+msgstr "Тимчасова помилка під час розв’язання імені '%s'"
+
+#: methods/connect.cc
+#, c-format
+msgid "System error resolving '%s:%s'"
+msgstr "Системна помилка під час під час розв’язання '%s:%s'"
+
+#: methods/connect.cc
+#, c-format
+msgid "Something wicked happened resolving '%s:%s' (%i - %s)"
+msgstr "Під час розв’язання ‘%s:%s’ сталася незвичайна помилка (%i - %s)"
+
+#: methods/connect.cc
+#, c-format
+msgid "Unable to connect to %s:%s:"
+msgstr "Не вдалося з’єднатися з %s:%s:"
+
+#: methods/copy.cc
+msgid "Failed to stat"
+msgstr "Не вдалося отримати інформацію про файл"
+
+#: methods/file.cc
+msgid "Invalid URI, local URIS must not start with //"
+msgstr "Недійсний URI, локальні URI не повинні починатися з //"
+
+#: methods/gpgv.cc
+#, c-format
+msgid "untrusted public key algorithm: %s"
+msgstr "ненадійний алгоритм відкритого ключа: %s"
+
+#: methods/gpgv.cc
+#, c-format
+msgid "%s will be deprecated in a future release"
+msgstr "%s стане застарілим у майбутньому випуску"
+
+#. TRANSLATORS: %s is a single techy word like 'NODATA'
+#: methods/gpgv.cc
+#, c-format
+msgid ""
+"Signed file isn't valid, got '%s' (does the network require authentication?)"
+msgstr ""
+"Підписаний файл недійсний, отримано '%s' (мережа вимагає автентифікацію?)"
+
+#: methods/gpgv.cc
+msgid "At least one invalid signature was encountered."
+msgstr "Виявлено щонайменше один недійсний підпис."
+
+#: methods/gpgv.cc
+msgid ""
+"Internal error: Good signature, but could not determine key fingerprint?!"
+msgstr ""
+"Внутрішня помилка: коректний підпис, але не вдалося визначити відбиток "
+"ключа?!"
+
+#: methods/gpgv.cc
+msgid "Could not execute 'gpgv' to verify signature (is gnupg installed?)"
+msgstr ""
+"Не вдалося виконати 'gpgv' для перевірки підпису (чи встановлено gnupg?)"
+
+#: methods/gpgv.cc
+msgid "Unknown error executing gpgv"
+msgstr "Невідома помилка під час виконання gpgv"
+
+#. TRANSLATORS: The second %s is the reason and is untranslated for repository owners.
+#: methods/gpgv.cc
+#, c-format
+msgid "Signature by key %s uses weak algorithm (%s)"
+msgstr "Підпис ключем %s використовує слабкий алгоритм (%s)"
+
+#: methods/gpgv.cc
+msgid "The following signatures were invalid:\n"
+msgstr "Наступні підписи були недійсними:\n"
+
+#: methods/gpgv.cc
+msgid ""
+"The following signatures couldn't be verified because the public key is not "
+"available:\n"
+msgstr ""
+"Наступні підписи не вдалося перевірити, оскільки відкритий ключ "
+"недоступний:\n"
+
+#: methods/http.cc
+msgid "Error reading from server. Remote end closed connection"
+msgstr "Помилка читання з сервера. Віддалена сторона розірвала з’єднання"
+
+#: methods/http.cc
+msgid "Error reading from server"
+msgstr "Помилка читання з сервера"
+
+#: methods/http.cc
+msgid "Error writing to file"
+msgstr "Помилка запису у файл"
+
+#: methods/http.cc
+msgid "Select failed"
+msgstr "Помилка виклику select"
+
+#: methods/http.cc
+msgid "Connection timed out"
+msgstr "Час очікування з'єднання минув"
+
+#: methods/http.cc
+msgid "Problem hashing file"
+msgstr "Проблема з хешуванням файлу"
+
+#: methods/rred.cc
+msgid "Failed to set modification time"
+msgstr "Не вдалося встановити час зміни"
+
+#: methods/store.cc
+msgid "Empty files can't be valid archives"
+msgstr "Порожні файли не можуть бути дійсними архівами"
+
+#~ msgid "realloc - Failed to allocate memory"
+#~ msgstr "realloc - Не вдалося виділити пам'ять"
+
+#, c-format
+#~ msgid "GPG error: %s: %s"
+#~ msgstr "Помилка GPG: %s: %s"
+
+#~ msgid "Logging in"
+#~ msgstr "Логінюсь в"
+
+#~ msgid "Unable to determine the peer name"
+#~ msgstr "Неможливо визначити назву вузла"
+
+#~ msgid "Unable to determine the local name"
+#~ msgstr "Неможливо визначити локальну назву"
+
+#, c-format
+#~ msgid "The server refused the connection and said: %s"
+#~ msgstr "Сервер розірвав з'єднання, відповівши: %s"
+
+#, c-format
+#~ msgid "USER failed, server said: %s"
+#~ msgstr "USER невдало, сервер мовив: %s"
+
+#, c-format
+#~ msgid "PASS failed, server said: %s"
+#~ msgstr "PASS невдало, сервер мовив: %s"
+
+#~ msgid ""
+#~ "A proxy server was specified but no login script, "
+#~ "Acquire::ftp::ProxyLogin is empty."
+#~ msgstr ""
+#~ "Вказано проксі-сервер, але відсутній скрипт логіну, "
+#~ "Acquire::ftp::ProxyLogin пустий."
+
+#, c-format
+#~ msgid "Login script command '%s' failed, server said: %s"
+#~ msgstr "Команда '%s' у скрипті логіна не вдалася, сервер мовив: %s"
+
+#, c-format
+#~ msgid "TYPE failed, server said: %s"
+#~ msgstr "TYPE невдало, сервер мовив: %s"
+
+#~ msgid "Connection timeout"
+#~ msgstr "Час з'єднання вичерпався"
+
+#~ msgid "Server closed the connection"
+#~ msgstr "Сервер закрив з'єднання"
+
+#~ msgid "A response overflowed the buffer."
+#~ msgstr "Відповідь переповнила буфер."
+
+#~ msgid "Protocol corruption"
+#~ msgstr "Спотворений протокол"
+
+#~ msgid "Could not create a socket"
+#~ msgstr "Неможливо створити сокет (socket)"
+
+#~ msgid "Could not connect data socket, connection timed out"
+#~ msgstr ""
+#~ "Неможливо під'єднати сокет (socket) з даними, час з'єднання вичерпався"
+
+#~ msgid "Could not connect passive socket."
+#~ msgstr "Неможливо під'єднати пасивний сокет (passive socket)."
+
+#~ msgid "getaddrinfo was unable to get a listening socket"
+#~ msgstr "Виклик getaddrinfo не зміг отримати слухаючий сокет"
+
+#~ msgid "Could not bind a socket"
+#~ msgstr "Неможливо приєднатися до сокета"
+
+#~ msgid "Could not listen on the socket"
+#~ msgstr "Неможливо прослухати на сокеті"
+
+#~ msgid "Could not determine the socket's name"
+#~ msgstr "Не вдалося визначити назву сокета"
+
+#~ msgid "Unable to send PORT command"
+#~ msgstr "Неможливо відіслати команду PORT"
+
+#, c-format
+#~ msgid "Unknown address family %u (AF_*)"
+#~ msgstr "Невідоме адресове сімейство %u (AF_*)"
+
+#, c-format
+#~ msgid "EPRT failed, server said: %s"
+#~ msgstr "EPRT невдало, сервер мовив: %s"
+
+#~ msgid "Data socket connect timed out"
+#~ msgstr "Час з'єднання з сокетом даних вичерпався"
+
+#~ msgid "Unable to accept connection"
+#~ msgstr "Неможливо прийняти з'єднання"
+
+#, c-format
+#~ msgid "Unable to fetch file, server said '%s'"
+#~ msgstr "Неможливо завантажити файл, сервер мовив: '%s'"
+
+#~ msgid "Data socket timed out"
+#~ msgstr "Час з'єднання з сокетом (socket) з даними вичерпався"
+
+#, c-format
+#~ msgid "Data transfer failed, server said '%s'"
+#~ msgstr "Передача даних обірвалася, сервер мовив '%s'"
+
+#~ msgid "Query"
+#~ msgstr "Черга"
+
+#~ msgid "Unable to invoke "
+#~ msgstr "Неможливо викликати "
+
+#~ msgid "Connection closed prematurely"
+#~ msgstr "З'єднання завершено передчасно"
+
+#, fuzzy, c-format
+#~| msgid "  Installed: "
+#~ msgid "  Installed size: %sB\n"
+#~ msgstr "  Встановлено: "
+
+#, fuzzy
+#~| msgid "The following held packages will be changed:"
+#~ msgid "Changing held packages:Changing held packages:"
+#~ msgstr "Пакунки, які мали б залишитися без змін, але будуть замінені:"
+
+#~ msgid "Yes, do as I say!"
+#~ msgstr "Так, робити, як я скажу!"
+
+#, c-format
+#~ msgid ""
+#~ "You are about to do something potentially harmful.\n"
+#~ "To continue type in the phrase '%s'\n"
+#~ " ?] "
+#~ msgstr ""
+#~ "Те, що ви хочете зробити, може мати небажані наслідки.\n"
+#~ "Щоб продовжити, введіть фразу: '%s'\n"
+#~ " ?] "
+
+#, c-format
+#~ msgid "Line %u too long in source list %s."
+#~ msgstr "Рядок %u є занадто довгим у переліку джерел %s."
+
+#~ msgid "Error writing to output file"
+#~ msgstr "Помилка запису у вихідний файл"
+
+#~ msgid "Error writing to the file"
+#~ msgstr "Помилка запису у файл"
+
+#, fuzzy
+#~ msgid "Invalid archive member header %s"
+#~ msgstr "Невірний заголовок 'member' %s в архіві"
+
+#~ msgid "The path %s is too long"
+#~ msgstr "Шлях %s занадто довгий"
+
+#~ msgid "Unpacking %s more than once"
+#~ msgstr "Розпакування %s більш ніж один раз"
+
+#, fuzzy
+#~ msgid "The directory %s is diverted"
+#~ msgstr "Директорія %s є відхиленою (diverted)"
+
+#~ msgid "The package is trying to write to the diversion target %s/%s"
+#~ msgstr "Пакунок пробує записати у ціль з diversion %s/%s"
+
+#, fuzzy
+#~ msgid "The diversion path is too long"
+#~ msgstr "Шлях 'diversion' є занадто довгим"
+
+#~ msgid "The directory %s is being replaced by a non-directory"
+#~ msgstr "Директорія %s замінюється не директорією"
+
+#, fuzzy
+#~ msgid "Failed to locate node in its hash bucket"
+#~ msgstr "Не вдалося знайти вузол у його наборі хешів"
+
+#~ msgid "The path is too long"
+#~ msgstr "Шлях занадто довгий"
+
+#~ msgid "Overwrite package match with no version for %s"
+#~ msgstr "Перезаписати відповідність пакунка без версії для %s"
+
+#~ msgid "File %s/%s overwrites the one in the package %s"
+#~ msgstr "Файл %s/%s перезаписує інший файл в пакунку %s"
+
+#~ msgid "Unable to stat %s"
+#~ msgstr "Неможливо прочитати атрибути %s"
+
+#~ msgid "DropNode called on still linked node"
+#~ msgstr "DropNode було викликано для вузла, що ще використовувався"
+
+#~ msgid "Failed to locate the hash element!"
+#~ msgstr "Не вдалося знайти елемент хеша!"
+
+#, fuzzy
+#~ msgid "Failed to allocate diversion"
+#~ msgstr "Не вдалося створити diversion"
+
+#~ msgid "Internal error in AddDiversion"
+#~ msgstr "Внутрішня помилка в AddDiversion"
+
+#, fuzzy
+#~ msgid "Trying to overwrite a diversion, %s -> %s and %s/%s"
+#~ msgstr "Спроба перезапису diversion, %s -> %s і %s/%s"
+
+#, fuzzy
+#~ msgid "Double add of diversion %s -> %s"
+#~ msgstr "Подвійне додавання diversion %s -> %s"
+
+#~ msgid "Duplicate conf file %s/%s"
+#~ msgstr "Копія конфігураційного файлу %s/%s"
+
+#~ msgid "Unable to change to %s"
+#~ msgstr "Неможливо змінити на %s"
+
+#~ msgid "Package file %s is out of sync."
+#~ msgstr "Перелік пакунків %s розсинхронізований."
+
+#~ msgid ""
+#~ "The package index files are corrupted. No Filename: field for package %s."
+#~ msgstr ""
+#~ "Індексні файли пакунків пошкоджені. Немає поля 'Filename' для пакунку %s."
+
+#~ msgid "No mirror file '%s' found "
+#~ msgstr "Не знайдено файла дзеркала '%s' "
+
+#, fuzzy
+#~ msgid "No entry found in mirror file '%s'"
+#~ msgstr "Неможливо прочитати файл дзеркала '%s'"
+
+#~ msgid "[Mirror: %s]"
+#~ msgstr "[Дзеркало: %s]"
+
+#~ msgid "Opening configuration file %s"
+#~ msgstr "Відкривається конфігураційний файл %s"
+
+#~ msgid "Opening %s"
+#~ msgstr "Відкриття %s"
+
+#~ msgid ""
+#~ "Unable to find expected entry '%s' in Release file (Wrong sources.list "
+#~ "entry or malformed file)"
+#~ msgstr ""
+#~ "Неможливо знайти очікуваний запис '%s' у 'Release' файлі (Невірний запис "
+#~ "у sources.list, або пошкоджений файл)"
+
+#~ msgid "Unmet dependencies. Try using --fix-broken."
+#~ msgstr "Незадоволені залежності. Спробуйте використати --fix-broken."
+
+#~ msgid "You might want to run 'apt --fix-broken install' to correct these:"
+#~ msgstr ""
+#~ "Можливо, для виправлення цих помилок Ви захочете скористатися 'apt-get -f "
+#~ "install':"
+
+#~ msgid "(not found)"
+#~ msgstr "(не знайдено)"
+
+#~ msgid "  Package pin: "
+#~ msgstr "  Фіксатор(pin) пакунка: "
+
+#~ msgid "There is no public key available for the following key IDs:\n"
+#~ msgstr "Відсутній публічний ключ для заданих ідентифікаторів (ID) ключа:\n"
+
+#, fuzzy
+#~ msgid "The repository is insufficiently signed by key %s (%s)"
+#~ msgstr "Директорія %s є відхиленою (diverted)"
+
+#~ msgid ""
+#~ "%s dependency for %s can't be satisfied because %s is not allowed on '%s' "
+#~ "packages"
+#~ msgstr ""
+#~ "Залежність типу %s для %s не може бути задоволена, бо %s не є дозволеним "
+#~ "на '%s' пакунках"
+
+#~ msgid ""
+#~ "%s dependency for %s cannot be satisfied because the package %s cannot be "
+#~ "found"
+#~ msgstr ""
+#~ "Залежність типу %s для %s не може бути задоволена, бо пакунок %s не "
+#~ "знайдено"
+
+#~ msgid ""
+#~ "Failed to satisfy %s dependency for %s: Installed package %s is too new"
+#~ msgstr ""
+#~ "Не вдалося задовольнити залежність типу %s для %s: Встановлений пакунок "
+#~ "%s новіше, аніж треба"
+
+#~ msgid ""
+#~ "%s dependency for %s cannot be satisfied because candidate version of "
+#~ "package %s can't satisfy version requirements"
+#~ msgstr ""
+#~ "Залежність типу %s для %s не може бути задоволена, бо версія пакунку-"
+#~ "кандидата %s не задовольняє умови по версіям"
+
+#~ msgid ""
+#~ "%s dependency for %s cannot be satisfied because package %s has no "
+#~ "candidate version"
+#~ msgstr ""
+#~ "Залежність типу %s для %s не може бути задоволена, бо немає пакунку-"
+#~ "кандидата %s потрібної версії"
+
+#~ msgid "Build-dependencies for %s could not be satisfied."
+#~ msgstr "Залежності для побудови %s не можуть бути задоволені."
+
+#~ msgid "Problem unlinking %s"
+#~ msgstr "Не вдалося видалити %s"
+
+#~ msgid "Failed to unlink %s"
+#~ msgstr "Не вдалося видалити посилання (unlink) %s"
+
+#~ msgid ""
+#~ "Usage: apt-cache [options] command\n"
+#~ "       apt-cache [options] show pkg1 [pkg2 ...]\n"
+#~ "\n"
+#~ "apt-cache is a low-level tool used to query information\n"
+#~ "from APT's binary cache files\n"
+#~ msgstr ""
+#~ "Використання: apt-cache [опції] команда\n"
+#~ "              apt-cache [опції] show пакунок1 [пкн2 ...]\n"
+#~ "\n"
+#~ "apt-cache - низькорівневий інструмент, що використовується для запиту\n"
+#~ "інформації з двійкових кеш-файлів APT\n"
+
+#~ msgid ""
+#~ "Options:\n"
+#~ "  -h   This help text.\n"
+#~ "  -p=? The package cache.\n"
+#~ "  -s=? The source cache.\n"
+#~ "  -q   Disable progress indicator.\n"
+#~ "  -i   Show only important deps for the unmet command.\n"
+#~ "  -c=? Read this configuration file\n"
+#~ "  -o=? Set an arbitrary configuration option, eg -o dir::cache=/tmp\n"
+#~ "See the apt-cache(8) and apt.conf(5) manual pages for more information.\n"
+#~ msgstr ""
+#~ "Опції:\n"
+#~ "  -h   Цей текст допомоги.\n"
+#~ "  -p=? Кеш пакунків.\n"
+#~ "  -s=? Кеш вихідних текстів.\n"
+#~ "  -q   Не показувати індикатор прогресу.\n"
+#~ "  -i   Показувати тільки важливі залежності для команди unmet.\n"
+#~ "  -c=? Читати зазначений файл конфігурації.\n"
+#~ "  -o=? Встановити умовну опцію конфігурації, наприклад, -o dir::cache=/"
+#~ "tmp\n"
+#~ "Дивіться подробиці на man-сторінках apt-cache(8) і apt.conf(5).\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Options:\n"
+#~ "  -h   This help text\n"
+#~ "  -d   CD-ROM mount point\n"
+#~ "  -r   Rename a recognized CD-ROM\n"
+#~ "  -m   No mounting\n"
+#~ "  -f   Fast mode, don't check package files\n"
+#~ "  -a   Thorough scan mode\n"
+#~ "  --no-auto-detect Do not try to auto detect drive and mount point\n"
+#~ "  -c=? Read this configuration file\n"
+#~ "  -o=? Set an arbitrary configuration option, eg -o dir::cache=/tmp\n"
+#~ "See fstab(5)\n"
+#~ msgstr ""
+#~ "Опції:\n"
+#~ "  -h   Цей текст допомоги.\n"
+#~ "  -q   Не показувати індикатор прогресу.\n"
+#~ "  -qq Виводити тільки повідомлення про помилки\n"
+#~ "  -s  Не виконувати реальних дій. Імітація роботи\n"
+#~ "  -f   Читати/писати позначки авто/вручну у вказаному файлі\n"
+#~ "  -c=? Читати зазначений файл конфігурації.\n"
+#~ "  -o=? Встановити умовну опцію конфігурації, наприклад, -o dir::cache=/"
+#~ "tmp\n"
+#~ "Для докладної інформації дивіться керівництва для apt-mark(8) і "
+#~ "apt.conf(5)."
+
+#~ msgid ""
+#~ "Options:\n"
+#~ "  -h   This help text.\n"
+#~ "  -c=? Read this configuration file\n"
+#~ "  -o=? Set an arbitrary configuration option, eg -o dir::cache=/tmp\n"
+#~ msgstr ""
+#~ "Опції:\n"
+#~ "   -h   Цей текст допомоги.\n"
+#~ "   -с=? Читати зазначений конфігураційний файл.\n"
+#~ "   -o=? Встановити умовну опцію, наприклад, -o dir::cache=/tmp\n"
+
+#~ msgid ""
+#~ "Options:\n"
+#~ "  -h  This help text.\n"
+#~ "  -q  Loggable output - no progress indicator\n"
+#~ "  -qq No output except for errors\n"
+#~ "  -s  No-act. Just prints what would be done.\n"
+#~ "  -f  read/write auto/manual marking in the given file\n"
+#~ "  -c=? Read this configuration file\n"
+#~ "  -o=? Set an arbitrary configuration option, eg -o dir::cache=/tmp\n"
+#~ "See the apt-mark(8) and apt.conf(5) manual pages for more information."
+#~ msgstr ""
+#~ "Опції:\n"
+#~ "  -h   Цей текст допомоги.\n"
+#~ "  -q   Не показувати індикатор прогресу.\n"
+#~ "  -qq Виводити тільки повідомлення про помилки\n"
+#~ "  -s  Не виконувати реальних дій. Імітація роботи\n"
+#~ "  -f   Читати/писати позначки авто/вручну у вказаному файлі\n"
+#~ "  -c=? Читати зазначений файл конфігурації.\n"
+#~ "  -o=? Встановити умовну опцію конфігурації, наприклад, -o dir::cache=/"
+#~ "tmp\n"
+#~ "Для докладної інформації дивіться керівництва для apt-mark(8) і "
+#~ "apt.conf(5)."
+
+#~ msgid ""
+#~ "Usage: apt-sortpkgs [options] file1 [file2 ...]\n"
+#~ "\n"
+#~ "apt-sortpkgs is a simple tool to sort package files. The -s option is "
+#~ "used\n"
+#~ "to indicate what kind of file it is.\n"
+#~ "\n"
+#~ "Options:\n"
+#~ "  -h   This help text\n"
+#~ "  -s   Use source file sorting\n"
+#~ "  -c=? Read this configuration file\n"
+#~ "  -o=? Set an arbitrary configuration option, eg -o dir::cache=/tmp\n"
+#~ msgstr ""
+#~ "Використання: apt-sortpkgs [options] file1 [file2 ...]\n"
+#~ "\n"
+#~ "apt-sortpkgs - простий інструмент для сортування переліків пакунків. "
+#~ "Опція -s\n"
+#~ "використається, щоб вказати тип списку.\n"
+#~ "\n"
+#~ "Опції:\n"
+#~ "  -h   цей текст\n"
+#~ "  -s   сортувати список файлів з вихідними текстами\n"
+#~ "  -c=? читати зазначений файл конфігурації\n"
+#~ "  -o=? встановити довільну опцію, наприклад, -o dir::cache=/tmp\n"
+
+#~ msgid "Child process failed"
+#~ msgstr "Породжений процес завершився невдало"
+
+#, fuzzy
+#~ msgid "Must specifc at least one srv record"
+#~ msgstr ""
+#~ "Вкажіть як мінімум один пакунок, для якого необхідно завантажити вихідні "
+#~ "тексти"
+
+#~ msgid "Failed to create pipes"
+#~ msgstr "Не вдалося створити канали (pipes)"
+
+#~ msgid "Failed to exec gzip "
+#~ msgstr "Не вдалося виконати gzip "
+
+#~ msgid "%s %s for %s compiled on %s %s\n"
+#~ msgstr "%s %s для %s скомпільовано %s %s\n"
+
+#~ msgid "Failed to create FILE*"
+#~ msgstr "Не вдалося створити FILE*"
+
+#, fuzzy
+#~ msgid "Malformed stanza %u in source list %s (URI parse)"
+#~ msgstr "Спотворений рядок %lu у переліку джерел %s (аналіз URI)"
+
+#~ msgid "Malformed line %lu in source list %s ([option] unparseable)"
+#~ msgstr ""
+#~ "Спотворений рядок %lu у переліку джерел %s (нечитабельний [параметр])"
+
+#~ msgid "Malformed line %lu in source list %s ([option] too short)"
+#~ msgstr ""
+#~ "Спотворений рядок %lu у переліку джерел %s ([параметр] занадто короткий)"
+
+#~ msgid "Malformed line %lu in source list %s ([%s] is not an assignment)"
+#~ msgstr "Спотворений рядок %lu у переліку джерел %s ([%s] не є призначенням)"
+
+#~ msgid "Malformed line %lu in source list %s ([%s] has no key)"
+#~ msgstr "Спотворений рядок %lu у переліку джерел %s ([%s] не має ключа)"
+
+#~ msgid "Malformed line %lu in source list %s ([%s] key %s has no value)"
+#~ msgstr ""
+#~ "Спотворений рядок %lu у переліку джерел %s ([%s] ключ %s не має значення)"
+
+#~ msgid "Malformed line %lu in source list %s (URI)"
+#~ msgstr "Спотворений рядок %lu у переліку джерел %s (проблема з URI)"
+
+#~ msgid "Malformed line %lu in source list %s (dist)"
+#~ msgstr "Спотворений рядок %lu у переліку джерел %s (dist)"
+
+#~ msgid "Malformed line %lu in source list %s (URI parse)"
+#~ msgstr "Спотворений рядок %lu у переліку джерел %s (аналіз URI)"
+
+#~ msgid "Malformed line %lu in source list %s (absolute dist)"
+#~ msgstr "Спотворений рядок %lu у переліку джерел %s (absolute dist)"
+
+#~ msgid "Malformed line %lu in source list %s (dist parse)"
+#~ msgstr "Спотворений рядок %lu у переліку джерел %s (dist parse)"
+
+#~ msgid "Package %s %s was not found while processing file dependencies"
+#~ msgstr "Пакунок %s %s не був знайдений під час обробки залежностей"
+
+#~ msgid "Couldn't stat source package list %s"
+#~ msgstr "Не вдалося прочитати атрибути переліку вихідних текстів %s"
+
+#, fuzzy
+#~ msgid "Collecting File Provides"
+#~ msgstr "Збирання інформації про 'File Provides'"
+
+#, fuzzy
+#~ msgid "Does not start with a cleartext signature"
+#~ msgstr "Файл %s починається з не 'clearsigned' повідомленням"
+
+#~ msgid "Unable to find hash sum for '%s' in Release file"
+#~ msgstr "Неможливо знайти хеш-суму для '%s' у 'Release' файлі"
+
+#~ msgid "Vendor block %s contains no fingerprint"
+#~ msgstr "Блок постачальника %s не містить відбитку (fingerprint)"
+
+#, fuzzy
+#~ msgid "Total dependency version space: "
+#~ msgstr "Всього інформації про залежності: "
+
+#~ msgid "You don't have enough free space in %s"
+#~ msgstr "Недостатньо місця в %s"
+
+#~ msgid "Done"
+#~ msgstr "Виконано"
+
+#~ msgid "No keyring installed in %s."
+#~ msgstr "Не встановлено 'keyring' у %s."
+
+#, fuzzy
+#~ msgid "Internal error, Upgrade broke stuff"
+#~ msgstr "Внутрішня помилка, AllUpgrade щось поламав"
+
+#~ msgid ""
+#~ "Using CD-ROM mount point %s\n"
+#~ "Mounting CD-ROM\n"
+#~ msgstr ""
+#~ "Використовується точка монтування CD-ROM: %s\n"
+#~ "Монтується CD-ROM\n"
+
+#~ msgid ""
+#~ "Could not patch %s with mmap and with file operation usage - the patch "
+#~ "seems to be corrupt."
+#~ msgstr ""
+#~ "Неможливо пропатчити %s з mmap і з 'file operation usage' - патч виглядає "
+#~ "пошкодженим."
+
+#~ msgid ""
+#~ "Could not patch %s with mmap (but no mmap specific fail) - the patch "
+#~ "seems to be corrupt."
+#~ msgstr ""
+#~ "Неможливо пропатчити %s з mmap (але не видно конкретної вини mmap) - патч "
+#~ "виглядає пошкодженим."
+
+#~ msgid "Ignore unavailable target release '%s' of package '%s'"
+#~ msgstr "Ігнорувати недоступний випуск '%s' пакунку '%s'"
+
+#~ msgid "This is not a valid DEB archive, it has no '%s', '%s' or '%s' member"
+#~ msgstr "Це невірний DEB архів, відсутній член '%s', '%s' чи '%s'"
+
+#~ msgid "MD5Sum mismatch"
+#~ msgstr "Невідповідність MD5Sum"
+
+#~ msgid ""
+#~ "I wasn't able to locate a file for the %s package. This might mean you "
+#~ "need to manually fix this package."
+#~ msgstr ""
+#~ "Я не зміг знайти файл для пакунку %s. Можливо, це значить, що вам "
+#~ "потрібно власноруч виправити цей пакунок."
+
+#~ msgid "Can not write log, openpty() failed (/dev/pts not mounted?)\n"
+#~ msgstr ""
+#~ "Неможливо записати в лог, проблема з openpty() (не змонтовано /dev/pts?)\n"
+
+#~ msgid "Skipping nonexistent file %s"
+#~ msgstr "Пропускається неіснуючий файл %s"
+
+#~ msgid "Failed to remove %s"
+#~ msgstr "Не вдалося видалити %s"
+
+#~ msgid "Unable to create %s"
+#~ msgstr "Неможливо створити %s"
+
+#~ msgid "Failed to stat %sinfo"
+#~ msgstr "Не вдалося прочитати атрибути %sinfo"
+
+#~ msgid "The info and temp directories need to be on the same filesystem"
+#~ msgstr "Директорії info і temp повинні бути на тій самій файловій системі"
+
+#~ msgid "Failed to change to the admin dir %sinfo"
+#~ msgstr "Не вдалося переміститися до директорії адміністратора %sinfo"
+
+#~ msgid "Internal error getting a package name"
+#~ msgstr "Внутрішня помилка при отриманні назви пакунку"
+
+#~ msgid "Reading file listing"
+#~ msgstr "Зчитування переліку файлів"
+
+#~ msgid ""
+#~ "Failed to open the list file '%sinfo/%s'. If you cannot restore this file "
+#~ "then make it empty and immediately re-install the same version of the "
+#~ "package!"
+#~ msgstr ""
+#~ "Не вдалося відкрити list файл '%sinfo/%s'. Якщо Ви не можете відновити "
+#~ "цей файл, тоді зробіть його пустим і негайно реінсталюйте ту ж саму "
+#~ "версію пакунка!"
+
+#~ msgid "Failed reading the list file %sinfo/%s"
+#~ msgstr "Невдача зчитування 'list' файла %sinfo/%s"
+
+#, fuzzy
+#~ msgid "Internal error getting a node"
+#~ msgstr "Внутрішня помилка при отриманні 'node'"
+
+#, fuzzy
+#~ msgid "Failed to open the diversions file %sdiversions"
+#~ msgstr "Не вдалося відкрити 'diversions' файл %sdiversions"
+
+#, fuzzy
+#~ msgid "The diversion file is corrupted"
+#~ msgstr "Файл з 'diversions' пошкоджений"
+
+#, fuzzy
+#~ msgid "Invalid line in the diversion file: %s"
+#~ msgstr "Невірний рядок у 'diversion' файлі: %s"
+
+#, fuzzy
+#~ msgid "Internal error adding a diversion"
+#~ msgstr "Внутрішня помилка при додаванні diversion"
+
+#~ msgid "The pkg cache must be initialized first"
+#~ msgstr "Кеш пакунків повинен бути ініційованим першим"
+
+#~ msgid "Failed to find a Package: header, offset %lu"
+#~ msgstr "Не вдалося знайти Пакунок: заголовок, зсув %lu"
+
+#~ msgid "Bad ConfFile section in the status file. Offset %lu"
+#~ msgstr "Погана секція ConfFile у статусному файлі. Зсув %lu"
+
+#~ msgid "Error parsing MD5. Offset %lu"
+#~ msgstr "Помилка обробки MD5. Зсув %lu"
+
+#~ msgid "Couldn't change to %s"
+#~ msgstr "Неможливо змінити %s"
+
+#~ msgid "Failed to locate a valid control file"
+#~ msgstr "Не вдалося знайти правильний контрольний (control) файл"
+
+#~ msgid "Couldn't open pipe for %s"
+#~ msgstr "Неможливо відкрити канал (pipe) для %s"
+
+#~ msgid "Read error from %s process"
+#~ msgstr "Помилка зчитування з процесу %s"
+
+#~ msgid "Got a single header line over %u chars"
+#~ msgstr "Отримано один рядок заголовків понад %u символів"
+
+#~ msgid "Malformed override %s line %lu #1"
+#~ msgstr "Спотворений запис про перепризначення (override) %s на рядку %lu #1"
+
+#~ msgid "Malformed override %s line %lu #2"
+#~ msgstr "Спотворений запис про перепризначення (override) %s на рядку %lu #2"
+
+#~ msgid "Malformed override %s line %lu #3"
+#~ msgstr "Спотворений запис про перепризначення (override) %s на рядку %lu #3"
+
+#~ msgid "decompressor"
+#~ msgstr "декомпресор"
+
+#~ msgid "read, still have %lu to read but none left"
+#~ msgstr "зчитування, мало прочитати ще %lu байт, але нічого більше нема"
+
+#~ msgid "write, still have %lu to write but couldn't"
+#~ msgstr "запис, мало записати ще %lu байт, але не змогло"
+
+#~ msgid "Error occurred while processing %s (NewPackage)"
+#~ msgstr "Сталася помилка під час обробки %s (NewPackage)"
+
+#~ msgid "Error occurred while processing %s (UsePackage1)"
+#~ msgstr "Сталася помилка під час обробки %s (UsePackage1)"
+
+#~ msgid "Error occurred while processing %s (NewFileDesc1)"
+#~ msgstr "Сталася помилка під час обробки %s (NewFileDesc1)"
+
+#~ msgid "Error occurred while processing %s (UsePackage2)"
+#~ msgstr "Сталася помилка під час обробки %s (UsePackage2)"
+
+#~ msgid "Error occurred while processing %s (NewFileVer1)"
+#~ msgstr "Сталася помилка під час обробки %s (NewFileVer1)"
+
+#~ msgid "Error occurred while processing %s (NewVersion%d)"
+#~ msgstr "Сталася помилка під час обробки %s (NewVersion%d)"
+
+#~ msgid "Error occurred while processing %s (UsePackage3)"
+#~ msgstr "Сталася помилка під час обробки %s (UsePackage3)"
+
+#~ msgid "Error occurred while processing %s (NewFileDesc2)"
+#~ msgstr "Сталася помилка під час обробки %s (NewFileDesc2)"
+
+#~ msgid "Error occurred while processing %s (FindPkg)"
+#~ msgstr "Сталася помилка під час обробки %s (FindPkg)"
+
+#~ msgid "Error occurred while processing %s (CollectFileProvides)"
+#~ msgstr "Сталася помилка під час обробки %s (CollectFileProvides)"
+
+#~ msgid "Internal error, could not locate member"
+#~ msgstr "Внутрішня помилка, не можу знайти member"
+
+#~ msgid "E: Argument list from Acquire::gpgv::Options too long. Exiting."
+#~ msgstr ""
+#~ "E: Перелік аргументів з Acquire::gpgv::Options занадто довгий. Відміна."
+
+#~ msgid "Error occurred while processing %s (NewVersion2)"
+#~ msgstr "Сталася помилка під час обробки %s (NewVersion2)"
+
+#~ msgid "Malformed line %u in source list %s (vendor id)"
+#~ msgstr "Спотворений рядок %u у переліку джерел %s (vendor id)"
+
+#~ msgid "Couldn't access keyring: '%s'"
+#~ msgstr "Неможливо отримати доступ до набору ключів (keyring): '%s'"
+
+#~ msgid "Could not patch file"
+#~ msgstr "Неможливо накласти латку на файл"
+
+#~ msgid "       %4i %s\n"
+#~ msgstr "       %4i %s\n"
+
+#~ msgid "%4i %s\n"
+#~ msgstr "%4i %s\n"
+
+#~ msgid "Processing triggers for %s"
+#~ msgstr "Обробляються ініціатори для %s"
+
+#~ msgid ""
+#~ "Since you only requested a single operation it is extremely likely that\n"
+#~ "the package is simply not installable and a bug report against\n"
+#~ "that package should be filed."
+#~ msgstr ""
+#~ "Так як Ви просили виконати тільки одну операцію, те найімовірніше, що\n"
+#~ "пакунок просто не може бути встановлений через помилки в самому пакунку.\n"
+#~ "Необхідно відіслати звіт про цю помилку."
+
+#~ msgid "Line %d too long (max %lu)"
+#~ msgstr "Рядок %d є занадто довгим (максимум %lu)"
+
+#~ msgid "Line %d too long (max %d)"
+#~ msgstr "Рядок %d є занадто довгим (максимум %d)"
+
+#~ msgid "Error occured while processing %s (NewFileDesc1)"
+#~ msgstr "Сталася помилка під час обробки %s (NewFileDesc1)"
+
+#~ msgid "Error occured while processing %s (NewFileDesc2)"
+#~ msgstr "Сталася помилка під час обробки %s (NewFileDesc2)"
+
+#~ msgid "Stored label: %s \n"
+#~ msgstr "Записано мітку: %s \n"
+
+#~ msgid ""
+#~ "Found %i package indexes, %i source indexes, %i translation indexes and "
+#~ "%i signatures\n"
+#~ msgstr ""
+#~ "Знайдено %i індексів пакунків, %i індексів вихідних текстів, %i індексів "
+#~ "перекладів і %i підписів\n"
+
+#~ msgid "openpty failed\n"
+#~ msgstr "openpty не вдався\n"

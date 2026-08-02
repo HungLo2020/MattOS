@@ -1,0 +1,12 @@
+<!-- MattOS uses only its embedded/local package repository. -->
+<!ENTITY keyring-distro "MattOS">
+<!ENTITY keyring-package "MattOS local repository metadata">
+<!ENTITY current-codename "mattos">
+
+<!ENTITY sourceslist-list-format "deb [trusted=yes] file:/usr/share/mattos/repository mattos main">
+<!ENTITY sourceslist-sources-format "Types: deb
+URIs: file:/usr/share/mattos/repository
+Suites: mattos
+Components: main
+Architectures: amd64
+Trusted: yes">

@@ -1,0 +1,526 @@
+#!/bin/sh
+set -e
+
+TESTDIR="$(readlink -f "$(dirname "$0")")"
+. "$TESTDIR/framework"
+
+setupenvironment
+configarchitecture "i386"
+
+export APT_DONT_SIGN='Release.gpg'
+buildaptarchive
+setupflataptarchive
+changetowebserver
+
+prepare() {
+	local DATE="${2:-now}"
+	if [ "$DATE" = 'now' ]; then
+		if [ "$1" = "${PKGFILE}-new" ]; then
+			DATE='now - 1 day'
+		else
+			DATE='now - 7 day'
+		fi
+	fi
+	for release in $(find rootdir/var/lib/apt/lists 2> /dev/null); do
+		touch -d 'now - 1 year' "$release"
+	done
+	aptget clean
+	cp "$1" aptarchive/Packages
+	find aptarchive -name 'Release' -delete
+	compressfile 'aptarchive/Packages' "$DATE"
+	generatereleasefiles "$DATE" 'now + 1 month'
+}
+
+installaptold() {
+	rm -rf rootdir/var/cache/apt/archives
+	testsuccessequal "Reading package lists...
+Building dependency tree...
+Suggested packages:
+  aptitude | synaptic | wajig dpkg-dev apt-doc bzip2 lzma python-apt
+The following NEW packages will be installed:
+  apt
+0 upgraded, 1 newly installed, 0 to remove and 0 not upgraded.
+Need to get 3 B of archives.
+After this operation, 5370 kB of additional disk space will be used.
+Get:1 http://localhost:${APTHTTPPORT}  apt 0.7.25.3 [3 B]
+Download complete and in download only mode" aptget install apt -dy
+}
+
+installaptnew() {
+	rm -rf rootdir/var/cache/apt/archives
+	testsuccessequal "Reading package lists...
+Building dependency tree...
+Suggested packages:
+  aptitude | synaptic | wajig dpkg-dev apt-doc bzip2 lzma python-apt
+The following NEW packages will be installed:
+  apt
+0 upgraded, 1 newly installed, 0 to remove and 0 not upgraded.
+Need to get 3 B of archives.
+After this operation, 5808 kB of additional disk space will be used.
+Get:1 http://localhost:${APTHTTPPORT}  apt 0.8.0~pre1 [3 B]
+Download complete and in download only mode" aptget install apt -dy
+}
+
+failaptold() {
+	testfailureequal 'Reading package lists...
+Building dependency tree...
+Suggested packages:
+  aptitude | synaptic | wajig dpkg-dev apt-doc bzip2 lzma python-apt
+The following NEW packages will be installed:
+  apt
+0 upgraded, 1 newly installed, 0 to remove and 0 not upgraded.
+Need to get 3 B of archives.
+After this operation, 5370 kB of additional disk space will be used.
+WARNING: The following packages cannot be authenticated!
+  apt
+E: There were unauthenticated packages and -y was used without --allow-unauthenticated' aptget install apt -dy
+}
+
+failaptnew() {
+	testfailureequal 'Reading package lists...
+Building dependency tree...
+Suggested packages:
+  aptitude | synaptic | wajig dpkg-dev apt-doc bzip2 lzma python-apt
+The following NEW packages will be installed:
+  apt
+0 upgraded, 1 newly installed, 0 to remove and 0 not upgraded.
+Need to get 3 B of archives.
+After this operation, 5808 kB of additional disk space will be used.
+WARNING: The following packages cannot be authenticated!
+  apt
+E: There were unauthenticated packages and -y was used without --allow-unauthenticated' aptget install apt -dy
+}
+
+# fake our downloadable file
+echo -n 'apt' > aptarchive/apt.deb
+
+PKGFILE="${TESTDIR}/$(echo "$(basename "$0")" | sed 's#^test-#Packages-#')"
+
+updatewithwarnings() {
+	testwarning aptget update -o Debug::pkgAcquire::Worker=1 -o Debug::Acquire::gpgv=1 -o Debug::Acquire::sqv=1
+	testsuccess grep -E "$1" rootdir/tmp/testwarning.output
+}
+
+foreachgpg() {
+    rm -f rootdir/etc/apt/apt.conf.d/00gpgvcmd
+	local sqv="true"
+	if [ "$1" = "--no-sqv" ]; then
+		local sqv=
+		shift
+	fi
+	if [ "$sqv" ]; then
+		"$@"
+	fi
+	for GPGV in "gpgv-sq" "gpgv-g10code"; do
+		msgmsg "Forcing $GPGV to be used"
+		echo "APT::Key::GPGVCommand \"$GPGV\";" > "rootdir/etc/apt/apt.conf.d/00gpgvcmd"
+		"$@"
+	done
+}
+
+runtest() {
+	msgmsg 'Cold archive signed by' 'Joe Sixpack'
+	prepare "${PKGFILE}"
+	rm -rf rootdir/var/lib/apt/lists
+	signreleasefiles 'Joe Sixpack'
+	successfulaptgetupdate
+	testsuccessequal "$(cat "${PKGFILE}")
+" aptcache show apt
+	installaptold
+
+	if [ "$(id -u)" != '0' ]; then
+		msgmsg 'Cold archive signed by' 'Joe Sixpack + unreadable key'
+		rm -rf rootdir/var/lib/apt/lists
+		echo 'foobar' > rootdir/etc/apt/trusted.gpg.d/unreadablekey.gpg
+		chmod 000 rootdir/etc/apt/trusted.gpg.d/unreadablekey.gpg
+		updatewithwarnings '^W: .* is not readable by user'
+		chmod 644 rootdir/etc/apt/trusted.gpg.d/unreadablekey.gpg
+		rm -f rootdir/etc/apt/trusted.gpg.d/unreadablekey.gpg
+		testsuccessequal "$(cat "${PKGFILE}")
+" aptcache show apt
+		installaptold
+	fi
+
+	msgmsg 'Good warm archive signed by' 'Joe Sixpack'
+	prepare "${PKGFILE}-new"
+	signreleasefiles 'Joe Sixpack'
+	successfulaptgetupdate
+	testsuccessequal "$(cat "${PKGFILE}-new")
+" aptcache show apt
+	installaptnew
+
+	msgmsg 'Cold archive signed by' 'Rex Expired'
+	prepare "${PKGFILE}"
+	rm -rf rootdir/var/lib/apt/lists
+	cp keys/rexexpired.pub rootdir/etc/apt/trusted.gpg.d/rexexpired.gpg
+	signreleasefiles 'Rex Expired'
+	updatewithwarnings '^W: .* (EXPKEYSIG|Expired)'
+	testsuccessequal "$(cat "${PKGFILE}")
+" aptcache show apt
+	failaptold
+	rm -f rootdir/etc/apt/trusted.gpg.d/rexexpired.gpg
+
+	msgmsg 'Cold archive signed by' 'Joe Sixpack,Marvin Paranoid'
+	prepare "${PKGFILE}"
+	rm -rf rootdir/var/lib/apt/lists
+	signreleasefiles 'Joe Sixpack,Marvin Paranoid'
+	successfulaptgetupdate 'NO_PUBKEY\|GOODSIG 34A8E9D18DB320F367E8EAA05A90D141DBAC8DAE'
+	testsuccessequal "$(cat "${PKGFILE}")
+" aptcache show apt
+	installaptold
+
+	msgmsg 'Cold archive signed by' 'Joe Sixpack,Rex Expired'
+	prepare "${PKGFILE}"
+	rm -rf rootdir/var/lib/apt/lists
+	signreleasefiles 'Joe Sixpack,Rex Expired'
+	cp keys/rexexpired.pub rootdir/etc/apt/trusted.gpg.d/rexexpired.gpg
+	successfulaptgetupdate 'EXPKEYSIG\|GOODSIG 34A8E9D18DB320F367E8EAA05A90D141DBAC8DAE'
+	rm -f rootdir/etc/apt/trusted.gpg.d/rexexpired.gpg
+	testsuccessequal "$(cat "${PKGFILE}")
+" aptcache show apt
+	installaptold
+
+	msgmsg 'Cold archive signed by' 'Marvin Paranoid'
+	prepare "${PKGFILE}"
+	rm -rf rootdir/var/lib/apt/lists
+	signreleasefiles 'Marvin Paranoid'
+	updatewithwarnings '^W: .* (NO_PUBKEY|Missing key)'
+	testsuccessequal "$(cat "${PKGFILE}")
+" aptcache show apt
+	failaptold
+
+	msgmsg 'Bad warm archive signed by' 'Joe Sixpack'
+	prepare "${PKGFILE}-new"
+	signreleasefiles 'Joe Sixpack'
+	successfulaptgetupdate
+	testsuccessequal "$(cat "${PKGFILE}-new")
+" aptcache show apt
+	installaptnew
+
+	msgmsg 'Cold archive signed by' 'Joe Sixpack'
+	prepare "${PKGFILE}"
+	rm -rf rootdir/var/lib/apt/lists
+	signreleasefiles 'Joe Sixpack'
+	successfulaptgetupdate
+	testsuccessequal "$(cat "${PKGFILE}")
+" aptcache show apt
+	installaptold
+
+	msgmsg 'Good warm archive signed by' 'Marvin Paranoid'
+	prepare "${PKGFILE}-new"
+	signreleasefiles 'Marvin Paranoid'
+	updatewithwarnings '^W: .* (NO_PUBKEY|Missing key)'
+	testsuccessequal "$(cat "${PKGFILE}")
+" aptcache show apt
+	installaptold
+
+	msgmsg 'Good warm archive signed by' 'Rex Expired'
+	prepare "${PKGFILE}-new"
+    # Use a colon here to test weird filenames too
+	cp keys/rexexpired.pub rootdir/etc/apt/trusted.gpg.d/rex:expired.gpg
+	signreleasefiles 'Rex Expired'
+	updatewithwarnings '^W: .* (EXPKEYSIG|Expired)'
+	testsuccessequal "$(cat "${PKGFILE}")
+" aptcache show apt
+	installaptold
+	rm rootdir/etc/apt/trusted.gpg.d/rex:expired.gpg
+
+	msgmsg 'Good warm archive signed by' 'Joe Sixpack'
+	prepare "${PKGFILE}-new"
+	signreleasefiles
+	successfulaptgetupdate
+	testsuccessequal "$(cat "${PKGFILE}-new")
+" aptcache show apt
+	installaptnew
+
+	msgmsg 'Cold archive signed by bad keyring' 'Joe Sixpack'
+	rm -rf rootdir/var/lib/apt/lists
+	local MARVIN="$(readlink -f keys/marvinparanoid.pub)"
+	sed -i "s#^\(deb\(-src\)\?\) #\1 [signed-by=$MARVIN] #" rootdir/etc/apt/sources.list.d/*
+	updatewithwarnings '^W: .* (NO_PUBKEY|Missing key)'
+
+	msgmsg 'Cold archive signed by good keyring' 'Marvin Paranoid'
+	prepare "${PKGFILE}"
+	signreleasefiles 'Marvin Paranoid'
+	rm -rf rootdir/var/lib/apt/lists
+	successfulaptgetupdate
+	testsuccessequal "$(cat "${PKGFILE}")
+" aptcache show apt
+	installaptold
+
+	msgmsg 'Cold archive signed by good keyrings' 'Marvin Paranoid, Joe Sixpack'
+	rm -rf rootdir/var/lib/apt/lists
+	local SIXPACK="$(readlink -f keys/joesixpack.pub)"
+	sed -i "s# \[signed-by=[^]]\+\] # [signed-by=$MARVIN,$SIXPACK] #" rootdir/etc/apt/sources.list.d/*
+	successfulaptgetupdate
+	testsuccessequal "$(cat "${PKGFILE}")
+" aptcache show apt
+	installaptold
+
+	msgmsg 'Cold archive signed by good keyrings' 'Joe Sixpack, Marvin Paranoid'
+	rm -rf rootdir/var/lib/apt/lists
+	local SIXPACK="$(readlink -f keys/joesixpack.pub)"
+	sed -i "s# \[signed-by=[^]]\+\] # [signed-by=$SIXPACK,$MARVIN] #" rootdir/etc/apt/sources.list.d/*
+	successfulaptgetupdate
+	testsuccessequal "$(cat "${PKGFILE}")
+" aptcache show apt
+	installaptold
+	sed -i "s# \[signed-by=[^]]\+\] # #" rootdir/etc/apt/sources.list.d/*
+
+	local MARVIN="DE66AECA9151AFA1877EC31DE8525D47528144E2"
+	msgmsg 'Cold archive signed by bad keyid' 'Joe Sixpack'
+	rm -rf rootdir/var/lib/apt/lists
+	signreleasefiles 'Joe Sixpack'
+	sed -i "s#^\(deb\(-src\)\?\) #\1 [signed-by=$MARVIN] #" rootdir/etc/apt/sources.list.d/*
+	updatewithwarnings '^W: .* (be verified because the public key is not available: .*|No good signature from required signer)'
+
+	msgmsg 'Cold archive signed by good keyid' 'Marvin Paranoid'
+	rm -rf rootdir/var/lib/apt/lists
+	signreleasefiles 'Marvin Paranoid'
+	cp keys/marvinparanoid.pub rootdir/etc/apt/trusted.gpg.d/marvinparanoid.gpg
+	successfulaptgetupdate
+	testsuccessequal "$(cat "${PKGFILE}")
+" aptcache show apt
+	installaptold
+
+	msgmsg 'Cold archive signed by good keyid' 'Marvin Paranoid,Joe Sixpack'
+	rm -rf rootdir/var/lib/apt/lists
+	signreleasefiles 'Marvin Paranoid,Joe Sixpack'
+	successfulaptgetupdate 'NoPubKey: GOODSIG\|DE66AECA9151AFA1877EC31DE8525D47528144E2'
+	testsuccessequal "$(cat "${PKGFILE}")
+" aptcache show apt
+	installaptold
+
+	local SIXPACK="34A8E9D18DB320F367E8EAA05A90D141DBAC8DAE"
+	msgmsg 'Cold archive signed by good keyids' 'Joe Sixpack'
+	rm -rf rootdir/var/lib/apt/lists
+	signreleasefiles 'Joe Sixpack'
+	sed -i "s#^\(deb\(-src\)\?\) \[signed-by=$MARVIN\] #\1 [signed-by=${SIXPACK},${MARVIN}] #" rootdir/etc/apt/sources.list.d/*
+	successfulaptgetupdate
+	testsuccessequal "$(cat "${PKGFILE}")
+" aptcache show apt
+	installaptold
+
+	msgmsg 'Cold archive signed by good keyids' 'Joe Sixpack'
+	rm -rf rootdir/var/lib/apt/lists
+	sed -i "s#^\(deb\(-src\)\?\) \[signed-by=${SIXPACK},${MARVIN}\] #\1 [signed-by=${MARVIN},${SIXPACK}] #" rootdir/etc/apt/sources.list.d/*
+	successfulaptgetupdate
+	testsuccessequal "$(cat "${PKGFILE}")
+" aptcache show apt
+	installaptold
+	rm -f rootdir/etc/apt/trusted.gpg.d/marvinparanoid.gpg
+	sed -i "s#^\(deb\(-src\)\?\) \[signed-by=${MARVIN},${SIXPACK}\] #\1 #" rootdir/etc/apt/sources.list.d/*
+
+	rm -rf rootdir/var/lib/apt/lists-bak
+	cp -a rootdir/var/lib/apt/lists rootdir/var/lib/apt/lists-bak
+	prepare "${PKGFILE}-new"
+	signreleasefiles 'Joe Sixpack'
+
+	msgmsg 'Warm archive with signed-by' 'Joe Sixpack'
+	sed -i "/^Valid-Until: / a\
+Signed-By: ${SIXPACK}" rootdir/var/lib/apt/lists/*Release
+	touch -d 'now - 1 year' rootdir/var/lib/apt/lists/*Release
+	successfulaptgetupdate
+	testsuccessequal "$(cat "${PKGFILE}-new")
+" aptcache show apt
+	installaptnew
+
+	msgmsg 'Warm archive with signed-by' 'Marvin Paranoid'
+	rm -rf rootdir/var/lib/apt/lists
+	cp -a rootdir/var/lib/apt/lists-bak rootdir/var/lib/apt/lists
+	sed -i "/^Valid-Until: / a\
+Signed-By: ${MARVIN}" rootdir/var/lib/apt/lists/*Release
+	touch -d 'now - 1 year' rootdir/var/lib/apt/lists/*Release
+	updatewithwarnings 'W: .* (public key is not available: GOODSIG|No good signature from required signer:)'
+	testsuccessequal "$(cat "${PKGFILE}")
+" aptcache show apt
+	installaptold
+
+	msgmsg 'Warm archive with outdated signed-by' 'Marvin Paranoid'
+	rm -rf rootdir/var/lib/apt/lists
+	cp -a rootdir/var/lib/apt/lists-bak rootdir/var/lib/apt/lists
+	sed -i "/^Valid-Until: / a\
+Valid-Until: $(date -u -d "now - 2min" '+%a, %d %b %Y %H:%M:%S %Z') \\
+Signed-By: ${MARVIN}" rootdir/var/lib/apt/lists/*Release
+	touch -d 'now - 1 year' rootdir/var/lib/apt/lists/*Release
+	successfulaptgetupdate
+	testsuccessequal "$(cat "${PKGFILE}-new")
+" aptcache show apt
+	installaptnew
+
+	msgmsg 'Warm archive with two signed-bys' 'Joe Sixpack'
+	rm -rf rootdir/var/lib/apt/lists
+	cp -a rootdir/var/lib/apt/lists-bak rootdir/var/lib/apt/lists
+	sed -i "/^Valid-Until: / a\
+Signed-By: ${MARVIN} ${MARVIN}, \\
+ ${SIXPACK}" rootdir/var/lib/apt/lists/*Release
+	touch -d 'now - 1 year' rootdir/var/lib/apt/lists/*Release
+	successfulaptgetupdate
+	testsuccessequal "$(cat "${PKGFILE}-new")
+" aptcache show apt
+	installaptnew
+
+	cp -a keys/sebastiansubkey.pub rootdir/etc/apt/trusted.gpg.d/sebastiansubkey.gpg
+	local SEBASTIAN="648E6A33FDE5CB5BA2D896A3CA3E1DFF1E6BE149"
+	msgmsg 'Warm archive with subkey signing' 'Sebastian Subkey'
+	rm -rf rootdir/var/lib/apt/lists
+	cp -a rootdir/var/lib/apt/lists-bak rootdir/var/lib/apt/lists
+	signreleasefiles 'Sebastian Subkey'
+	sed -i "/^Valid-Until: / a\
+Signed-By: ${SEBASTIAN}" rootdir/var/lib/apt/lists/*Release
+	touch -d 'now - 1 year' rootdir/var/lib/apt/lists/*Release
+	successfulaptgetupdate
+	testsuccessequal "$(cat "${PKGFILE}-new")
+" aptcache show apt
+	installaptnew
+
+	if [ -z "$GPGV" ] && test -e "${METHODSDIR}/sqv"; then
+	msgmsg 'Warm archive with ahead-policy-rejected subkey signing' 'Sebastian Subkey'
+    cat > test-sequoia.config << EOF
+[asymmetric_algorithms]
+rsa3072 = $(date +%Y-%m-%d --date="now + 6 months")
+EOF
+	APT_SEQUOIA_CRYPTO_POLICY=$PWD/test-sequoia.config updatewithwarnings "W: http://localhost:${APTHTTPPORT}/.*Release.*: Policy will reject signature within a year, see --audit for details"
+    fi
+
+	msgmsg 'Warm archive with wrong exact subkey signing' 'Sebastian Subkey'
+	rm -rf rootdir/var/lib/apt/lists
+	cp -a rootdir/var/lib/apt/lists-bak rootdir/var/lib/apt/lists
+	sed -i "/^Valid-Until: / a\
+Signed-By: ${SEBASTIAN}!" rootdir/var/lib/apt/lists/*Release
+	touch -d 'now - 1 year' rootdir/var/lib/apt/lists/*Release
+	updatewithwarnings 'W: .* (public key is not available: GOODSIG|No good signature from required signer:)'
+	testsuccessequal "$(cat "${PKGFILE}")
+" aptcache show apt
+	installaptold
+
+	local SUBKEY="4281DEDBD466EAE8C1F4157E5B6896415D44C43E"
+	# This is only supported for gpgv, so require an explicit gpgv command,
+	# otherwise the default verification backend may be sqv.
+	if [ "$GPGV" ]; then
+	msgmsg 'Warm archive with correct exact subkey signing' 'Sebastian Subkey'
+	rm -rf rootdir/var/lib/apt/lists
+	cp -a rootdir/var/lib/apt/lists-bak rootdir/var/lib/apt/lists
+		sed -i "/^Valid-Until: / a\
+Signed-By: ${SUBKEY}!" rootdir/var/lib/apt/lists/*Release
+		touch -d 'now - 1 year' rootdir/var/lib/apt/lists/*Release
+		successfulaptgetupdate
+		testsuccessequal "$(cat "${PKGFILE}-new")
+" aptcache show apt
+		installaptnew
+	fi
+	rm -f rootdir/etc/apt/trusted.gpg.d/sebastiansubkey.gpg
+}
+
+runtest2() {
+	msgmsg 'Cold archive signed by' 'Joe Sixpack'
+	prepare "${PKGFILE}"
+	rm -rf rootdir/var/lib/apt/lists
+	signreleasefiles 'Joe Sixpack'
+	successfulaptgetupdate
+
+	# New .deb but now an unsigned archive. For example MITM to circumvent
+	# package verification.
+	msgmsg 'Warm archive signed by' 'nobody'
+	prepare "${PKGFILE}-new"
+	find aptarchive/ \( -name InRelease -o -name Release.gpg \) -delete
+	updatewithwarnings 'W: .* no longer signed.'
+	testsuccessequal "$(cat "${PKGFILE}-new")
+" aptcache show apt
+	failaptnew
+
+	msgmsg 'Cold archive signed by' 'Empty signature'
+	rm -rf rootdir/var/lib/apt/lists
+	find aptarchive -name Release -exec touch {}.gpg \;
+	testfailuremsg "E: Signature verification failed: http://localhost:${APTHTTPPORT}  Release: Signed file isn't valid, got 'NODATA' (does the network require authentication?)" aptget update -o Debug::gpgv=1
+
+	msgmsg 'Cold archive signed by' 'Unknown format signature'
+	rm -rf rootdir/var/lib/apt/lists
+	find aptarchive -name Release -exec sh -c "echo Hello > {}.gpg" \;
+	testfailuremsg "E: Signature verification failed: http://localhost:${APTHTTPPORT}  Release: Signed file isn't valid, got 'NODATA' (does the network require authentication?)" aptget update
+
+	find aptarchive/ \( -name InRelease -o -name Release.gpg \) -delete
+
+	# Unsigned archive from the beginning must also be detected.
+	msgmsg 'Cold archive signed by' 'nobody'
+	rm -rf rootdir/var/lib/apt/lists
+	updatewithwarnings 'W: .* is not signed.'
+	testsuccessequal "$(cat "${PKGFILE}-new")
+" aptcache show apt
+	failaptnew
+}
+
+runtest3() {
+	echo "APT::Hashes::$APT_TESTS_DIGEST_ALGO::$1 \"yes\";" > rootdir/etc/apt/apt.conf.d/truststate
+	msgmsg "Running base test with $1 digest"
+	runtest2
+
+	for DELETEFILE in 'InRelease' 'Release.gpg'; do
+		export APT_DONT_SIGN="$DELETEFILE"
+		msgmsg "Running test with deletion of $DELETEFILE and $1 digest"
+		runtest
+		export APT_DONT_SIGN='Release.gpg'
+	done
+}
+
+# disable some protection by default and ensure we still do the verification
+# correctly
+cat > rootdir/etc/apt/apt.conf.d/weaken-security <<EOF
+Acquire::AllowInsecureRepositories "1";
+Acquire::AllowDowngradeToInsecureRepositories "1";
+EOF
+# the hash marked as configurable in our gpgv method
+export APT_TESTS_DIGEST_ALGO='SHA512'
+
+successfulaptgetupdate() {
+	testsuccess aptget update -o Debug::pkgAcquire::Worker=1 -o Debug::Acquire::gpgv=1 -o Debug::Acquire::sqv=1
+	if [ -n "$1" ]; then
+		cp rootdir/tmp/testsuccess.output aptupdate.output
+		testsuccess grep "$1" aptupdate.output
+	fi
+}
+foreachgpg runtest3 'Trusted'
+
+successfulaptgetupdate() {
+	testwarning aptget update -o Debug::pkgAcquire::Worker=1 -o Debug::Acquire::gpgv=1 -o Debug::Acquire::sqv=1
+	if [ -n "$1" ]; then
+		testsuccess grep "$1" rootdir/tmp/testwarning.output
+	fi
+	testsuccess grep 'uses weak algorithm' rootdir/tmp/testwarning.output
+}
+foreachgpg --no-sqv runtest3 'Weak'
+
+msgmsg "Running test with apt-untrusted digest"
+echo "APT::Hashes::$APT_TESTS_DIGEST_ALGO::Untrusted \"yes\";" > rootdir/etc/apt/apt.conf.d/truststate
+runfailure() {
+	for DELETEFILE in 'InRelease' 'Release.gpg'; do
+		export APT_DONT_SIGN="$DELETEFILE"
+		msgmsg 'Cold archive signed by' 'Joe Sixpack'
+		prepare "${PKGFILE}"
+		rm -rf rootdir/var/lib/apt/lists
+		signreleasefiles 'Joe Sixpack'
+		testfailure aptget update --no-allow-insecure-repositories -o Debug::pkgAcquire::Worker=1 -o Debug::Acquire::gpgv=1 -o Debug::Acquire::sqv=1
+		testsuccess grep 'The following signatures were invalid\|MD5 is not considered secure' rootdir/tmp/testfailure.output
+		testnopackage 'apt'
+		testwarning aptget update --allow-insecure-repositories -o Debug::pkgAcquire::Worker=1 -o Debug::Acquire::gpgv=1 -o Debug::Acquire::sqv=1
+		failaptold
+		rm -rf rootdir/var/lib/apt/lists
+		sed -i 's#^deb\(-src\)\? #deb\1 [allow-insecure=yes] #' rootdir/etc/apt/sources.list.d/*
+		testwarning aptget update --no-allow-insecure-repositories -o Debug::pkgAcquire::Worker=1 -o Debug::Acquire::gpgv=1 -o Debug::Acquire::sqv=1
+		failaptold
+		sed -i 's#^deb\(-src\)\? \[allow-insecure=yes\] #deb\1 #' rootdir/etc/apt/sources.list.d/*
+
+		msgmsg 'Cold archive signed by' 'Marvin Paranoid'
+		prepare "${PKGFILE}"
+		rm -rf rootdir/var/lib/apt/lists
+		signreleasefiles 'Marvin Paranoid'
+		testfailure aptget update --no-allow-insecure-repositories -o Debug::pkgAcquire::Worker=1 -o Debug::Acquire::gpgv=1 -o Debug::Acquire::sqv=1
+		testnopackage 'apt'
+		updatewithwarnings '^W: .* (NO_PUBKEY|Missing key)'
+		testsuccessequal "$(cat "${PKGFILE}")
+" aptcache show apt
+		failaptold
+		export APT_DONT_SIGN='Release.gpg'
+	done
+}
+foreachgpg --no-sqv runfailure

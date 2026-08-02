@@ -41,6 +41,16 @@ REQUIRED_TOOLS = [
     "ldd",
     "rsync",
     "bindgen",
+    "cmake",
+    "dpkg",
+    "dpkg-deb",
+    "dpkg-query",
+    "dpkg-scanpackages",
+    "apt-ftparchive",
+    "zstd",
+    "xz",
+    "tar",
+    "triehash",
 ]
 
 # These are pulled in by the existing kernel workflow and WSL bootstrap logic.
@@ -68,6 +78,21 @@ EXTRA_AUTH_PACKAGES = [
 
 EXTRA_DBUS_BROKER_PACKAGES = [
     "libexpat1-dev",
+]
+
+# Host package tooling is an explicit bootstrap dependency.  The development
+# libraries below are for building the imported dpkg and APT sources; they are
+# not copied into MattOS from Debian packages.
+EXTRA_PACKAGING_PACKAGES = [
+    "dpkg-dev",
+    "apt-utils",
+    "libdb-dev",
+    "libbz2-dev",
+    "liblzma-dev",
+    "liblz4-dev",
+    "libxxhash-dev",
+    "libzstd-dev",
+    "zlib1g-dev",
 ]
 
 DEBIAN_TOOL_PACKAGES: Dict[str, List[str]] = {
@@ -102,6 +127,16 @@ DEBIAN_TOOL_PACKAGES: Dict[str, List[str]] = {
     "ldd": ["libc-bin"],
     "rsync": ["rsync"],
     "bindgen": ["bindgen"],
+    "cmake": ["cmake"],
+    "dpkg": ["dpkg"],
+    "dpkg-deb": ["dpkg"],
+    "dpkg-query": ["dpkg"],
+    "dpkg-scanpackages": ["dpkg-dev"],
+    "apt-ftparchive": ["apt-utils"],
+    "zstd": ["zstd"],
+    "xz": ["xz-utils"],
+    "tar": ["tar"],
+    "triehash": ["triehash"],
 }
 
 
@@ -173,6 +208,11 @@ def compute_missing_packages(missing_tools: List[str], dry_run: bool) -> List[st
             packages.append(package_name)
 
     for package_name in EXTRA_DBUS_BROKER_PACKAGES:
+        if not package_installed(package_name) and package_name not in seen:
+            seen.add(package_name)
+            packages.append(package_name)
+
+    for package_name in EXTRA_PACKAGING_PACKAGES:
         if not package_installed(package_name) and package_name not in seen:
             seen.add(package_name)
             packages.append(package_name)

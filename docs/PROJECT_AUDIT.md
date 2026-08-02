@@ -4,7 +4,7 @@ Date: 2026-08-01
 
 ## 1. Executive Summary
 
-MattOS is a coherent Linux-native bootstrap system with systemd PID 1, separate system and per-user dbus-broker buses, registered logind console sessions, session-bound per-user managers, non-root live autologin, PAM/Shadow/sudo-rs authentication and account tools, Brush, a rescue-init path, and a reproducible build pipeline. It includes real kmod, procps-ng, ncurses, and a complete QEMU/wired IPv4 path with DHCP, DNS, time synchronization, network inspection, ping, and HTTP/HTTPS. Persistent installation, package management, Polkit, SSH, Wi-Fi, firewall policy, firmware packaging, and a graphical desktop remain intentionally absent.
+MattOS is a coherent Linux-native bootstrap system with systemd PID 1, separate system and per-user dbus-broker buses, registered logind console sessions, session-bound per-user managers, non-root live autologin, PAM/Shadow/sudo-rs authentication and account tools, Brush, a rescue-init path, and a reproducible build pipeline. It includes real kmod, procps-ng, ncurses, a complete QEMU/wired IPv4 path, and a first working Debian-package foundation. Five MattOS packages are installed through a real dpkg database from an embedded local repository while the remaining rootfs stays on the proven legacy path. Persistent installation, runtime APT, an online repository, Polkit, SSH, Wi-Fi, firewall policy, firmware packaging, and a graphical desktop remain intentionally absent.
 
 The previous GRUB source-of-truth ambiguity has been resolved by keeping only `src/boot/grub/grub.cfg` as tracked source and validating that path in `mattos-build`. The most important remaining architectural limitation is that the runtime closure is still copied from the host via `ldd` rather than from a MattOS-built sysroot.
 
@@ -43,6 +43,8 @@ Prompt behavior:
 | iproute2 | https://git.kernel.org/pub/scm/network/iproute2/iproute2.git | `main` | `5696fee4c69fe3cc12e8cc821630633f616db8e2` | `src/userland/iproute2/` |
 | iputils | https://github.com/iputils/iputils.git | `master` | `75cd9d544baad45f81ed5c72bca332f577c3d81e` | `src/userland/iputils/` |
 | curl | https://github.com/curl/curl.git | `master` | `527573490eb2564b3d7c9dd51d8bff963b5d6303` | `src/userland/curl/` |
+| dpkg | https://git.dpkg.org/git/dpkg/dpkg.git | `main` | `ff7e9d8bf01379e8b022028a65afaa262e2c25cd` | `src/system/packages/dpkg/` |
+| APT | https://salsa.debian.org/apt-team/apt.git | `main` | `5e6dcc8d0c8bdce61e9cc7f497abadb5349d509a` | `src/system/packages/apt/` |
 
 State tracking lives in `upstream/state/*.toml`, and component manifests live in `upstream/sources.toml`.
 
@@ -78,6 +80,8 @@ The build orchestrator is `src/tools/mattos-build/src/main.rs`. It currently own
 - rootfs assembly
 - initramfs generation
 - ISO generation
+- `.deb` staging, metadata, collision checks, inventory, and local APT indexing
+- imported dpkg and APT source builds
 
 This is functional but large and tightly coupled. The main risks are maintainability and accidental cross-stage coupling, not current correctness failure.
 
@@ -94,10 +98,12 @@ Current limitations:
 - Host runtime dependencies are copied with `ldd`-based scanning.
 - Kernel is built in-tree.
 - The orchestrator is large enough that stage-specific logic should eventually be split into modules.
+- Host dpkg/APT utilities still bootstrap archive creation and indexing.
+- APT is source-built but not installed at runtime until its library/helper closure is represented by MattOS packages.
 
 ## 6. Runtime and Rootfs Assessment
 
-The assembled rootfs is a merged `/usr` layout with `/bin`, `/sbin`, `/lib`, and `/lib64` symlinked into the `/usr` tree.
+The assembled rootfs is a merged `/usr` layout with `/bin`, `/sbin`, `/lib`, and `/lib64` symlinked into the `/usr` tree. `mattos-filesystem`, `mattos-base-files`, `mattos-brush`, `mattos-coreutils`, and `mattos-curl` now own their selected payloads and are installed with real dpkg semantics; all other components remain legacy-staged. `/var/lib/dpkg` contains normal status, conffile, md5sum, file-list, and ownership data. The local repository is embedded at `/usr/share/mattos/repository` and no Debian or Ubuntu source is configured.
 
 Core identity files currently present in the skeleton:
 

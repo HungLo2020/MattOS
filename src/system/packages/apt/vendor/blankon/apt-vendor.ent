@@ -1,0 +1,13 @@
+<!-- details about the keys used by the distribution -->
+<!ENTITY keyring-distro "BlankOn">
+<!ENTITY keyring-package "<package>blankon-keyring</package>">
+<!ENTITY current-codename "tambora">
+
+<!ENTITY sourceslist-list-format "deb http://arsip.blankonlinux.or.id/blankon &current-codename; main restricted
+deb http://arsip.blankonlinux.or.id/blankon &current-codename;-security main restricted
+deb http://arsip.blankonlinux.or.id/blankon &current-codename;-updates main restricted">
+
+<!ENTITY sourceslist-sources-format "Types: deb
+URIs: http://arsip.blankonlinux.or.id/blankon
+Suites: &current-codename; &current-codename;-security &current-codename;-updates
+Components: main restricted">

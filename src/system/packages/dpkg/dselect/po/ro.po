@@ -1,0 +1,1843 @@
+# Translation of dselect to Romanian
+# Copyright © 2005-2026 Dpkg Developers
+# This file is distributed under the same license as the dpkg package.
+#
+# Rușeț Zeno <rzeno@cwazy.co.uk>, 2005.
+# Eddy Petrișor <eddy.petrisor@gmail.com>, 2005, 2006, 2007, 2008.
+# Sorin Batariuc <sorin@bonbon.net>, 2005.
+# Remus-Gabriel Chelu <remusgabriel.chelu@disroot.org>, 2023, 2025, 2026.
+#
+# Explicații legate de modul de traducere:
+# - la mesajele emise în urma acțiunilor programului se folosește forma impersonală,
+#   folosită și în versiunea în engleză
+# - se păstrează denumirile în engleză pentru:
+#   - numele funcților și a argumentelor acestora
+#   - numele și opțiunile programelor
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: dselect 1.23.7\n"
+"Report-Msgid-Bugs-To: debian-dpkg@lists.debian.org\n"
+"POT-Creation-Date: 2026-03-07 00:40+0100\n"
+"PO-Revision-Date: 2026-06-24 23:21+0200\n"
+"Last-Translator: Remus-Gabriel Chelu <remusgabriel.chelu@disroot.org>\n"
+"Language-Team: Romanian <debian-l10n-romanian@lists.debian.org>\n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
+"20)) ? 1 : 2;\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"X-Generator: Poedit 3.8\n"
+
+#  spațiile sunt necesare!!
+#: dselect/basecmds.cc
+msgid "Search for ? "
+msgstr "Ce căutați ? "
+
+#: dselect/basecmds.cc
+msgid "Error: "
+msgstr "Eroare: "
+
+#: dselect/basecmds.cc
+msgid "Help: "
+msgstr "Ajutor: "
+
+#: dselect/basecmds.cc
+msgid "Press ? for help menu, . for next topic, <space> to exit help."
+msgstr ""
+"Apăsați ? pentru meniul de ajutor, . pentru următorul subiect, <spațiu> "
+"pentru a ieși."
+
+#: dselect/basecmds.cc
+msgid "Help information is available under the following topics:"
+msgstr "Informații ajutătoare sunt disponibile pentru următoarele subiecte:"
+
+#: dselect/basecmds.cc
+msgid ""
+"Press a key from the list above, <space> or 'q' to exit help,\n"
+"  or '.' (full stop) to read each help page in turn. "
+msgstr ""
+"Apăsați o tastă din lista care urmează, <spațiu> sau „q” pentru a ieși din "
+"ajutor,\n"
+"  sau  „.” (oprire totală) pentru a citi fiecare pagină de ajutor. "
+
+#: dselect/basecmds.cc
+msgid "error reading keyboard in help"
+msgstr "eroare la citirea tastaturii în ajutor"
+
+#: dselect/baselist.cc
+msgid "cannot update screen after window resize"
+msgstr "nu se poate actualiza ecranul după redimensionarea ferestrei"
+
+#: dselect/baselist.cc
+msgid "cannot allocate color pair"
+msgstr "nu se poate aloca perechea de culori"
+
+#: dselect/baselist.cc
+msgid "failed to create title window"
+msgstr "eșec la crearea titlului ferestrei"
+
+#: dselect/baselist.cc
+msgid "failed to create whatinfo window"
+msgstr "eșec la crearea ferestrei de informații"
+
+#: dselect/baselist.cc
+msgid "failed to create baselist pad"
+msgstr "eșec la crearea zonei listei de bază"
+
+#: dselect/baselist.cc
+msgid "failed to create heading pad"
+msgstr "eșec la crearea zonei pentru titlu"
+
+#: dselect/baselist.cc
+msgid "failed to create thisstate pad"
+msgstr "eșec la crearea zonei despre starea curentă"
+
+#: dselect/baselist.cc
+msgid "failed to create info pad"
+msgstr "eșec la crearea zonei de informare"
+
+#: dselect/baselist.cc
+msgid "failed to create query window"
+msgstr "eșec la crearea ferestrei de interogare"
+
+#: dselect/baselist.cc
+msgid "Keybindings"
+msgstr "Combinații de taste"
+
+#: dselect/baselist.cc
+#, c-format
+msgid "  -- %d%%, press "
+msgstr "  -- %d%%, apăsați "
+
+#: dselect/baselist.cc
+#, c-format
+msgid "%s for more"
+msgstr "%s pentru mai mult"
+
+#: dselect/baselist.cc
+#, c-format
+msgid "%s to go back"
+msgstr "%s pentru a merge înapoi"
+
+#: dselect/bindings.cc
+msgctxt "keybinding"
+msgid "[not bound]"
+msgstr "[neasignată]"
+
+#: dselect/bindings.cc
+#, c-format
+msgctxt "keybinding"
+msgid "[unk: %d]"
+msgstr "[necunoscut: %d]"
+
+#: dselect/bindings.cc
+msgid "Scroll onwards through help/information"
+msgstr "Derulare înainte prin ajutor/informații"
+
+#: dselect/bindings.cc
+msgid "Scroll backwards through help/information"
+msgstr "Derulare înapoi prin ajutor/informații"
+
+#: dselect/bindings.cc
+msgid "Move up"
+msgstr "Deplasare în sus"
+
+#: dselect/bindings.cc
+msgid "Move down"
+msgstr "Deplasare în jos"
+
+#: dselect/bindings.cc
+msgid "Go to top of list"
+msgstr "Salt la începutul listei"
+
+#: dselect/bindings.cc
+msgid "Go to end of list"
+msgstr "Salt la sfârșitul listei"
+
+#: dselect/bindings.cc
+msgid "Request help (cycle through help screens)"
+msgstr "Cerere de ajutor (carusel printre ecranele de ajutor)"
+
+#: dselect/bindings.cc
+msgid "Cycle through information displays"
+msgstr "Carusel printre ecranele de informații"
+
+#: dselect/bindings.cc
+msgid "Redraw display"
+msgstr "Redesenare ecran"
+
+#: dselect/bindings.cc
+msgid "Scroll onwards through list by 1 line"
+msgstr "Derulare înainte prin listă cu 1 rând"
+
+#: dselect/bindings.cc
+msgid "Scroll backwards through list by 1 line"
+msgstr "Derulare înapoi prin listă cu 1 rând"
+
+#: dselect/bindings.cc
+msgid "Scroll onwards through help/information by 1 line"
+msgstr "Derulare înainte prin ajutor/informații cu 1 rând"
+
+#: dselect/bindings.cc
+msgid "Scroll backwards through help/information by 1 line"
+msgstr "Derulare înapoi prin ajutor/informații cu 1 rând"
+
+#: dselect/bindings.cc
+msgid "Scroll onwards through list"
+msgstr "Derulare înainte prin listă"
+
+#: dselect/bindings.cc
+msgid "Scroll backwards through list"
+msgstr "Derulare înapoi prin listă"
+
+#: dselect/bindings.cc
+msgid "Mark package(s) for installation"
+msgstr "Marchează pachet(ul/ele) pentru instalare"
+
+#: dselect/bindings.cc
+msgid "Mark package(s) for deinstallation"
+msgstr "Marchează pachet(ul/ele) pentru dezinstalare"
+
+#: dselect/bindings.cc
+msgid "Mark package(s) for deinstall and purge"
+msgstr "Marchează pachet(ul/ele) pentru dezinstalare și curățare"
+
+#: dselect/bindings.cc
+msgid "Make highlight more specific"
+msgstr "Evidențierea este mai specifică"
+
+#: dselect/bindings.cc
+msgid "Make highlight less specific"
+msgstr "Evidențierea este mai generică"
+
+#: dselect/bindings.cc
+msgid "Search for a package whose name contains a string"
+msgstr "Caută pachetul al cărui nume conține un șir de caractere"
+
+#: dselect/bindings.cc
+msgid "Repeat last search"
+msgstr "Repetă ultima căutare"
+
+#: dselect/bindings.cc
+msgid "Swap sort order priority/section"
+msgstr "Comută ordinea de sortare prioritate/secțiune"
+
+#: dselect/bindings.cc
+msgid "Quit, confirming, and checking dependencies"
+msgstr "Ieșire, după confirmare, și verificarea dependențelor"
+
+#: dselect/bindings.cc
+msgid "Quit, confirming without check"
+msgstr "Ieșire, după confirmare, fără verificarea dependențelor"
+
+#: dselect/bindings.cc
+msgid "Quit, rejecting conflict/dependency suggestions"
+msgstr "Ieșire, se refuză sugestiile legate de conflicte/dependențe"
+
+#: dselect/bindings.cc
+msgid "Abort - quit without making changes"
+msgstr "Abandon - iese fără a face schimbări"
+
+#: dselect/bindings.cc
+msgid "Revert to old state for all packages"
+msgstr "Revenire la vechile stări pentru toate pachetele"
+
+#: dselect/bindings.cc
+msgid "Revert to suggested state for all packages"
+msgstr "Revenire la stările sugerate pentru toate pachetele"
+
+#: dselect/bindings.cc
+msgid "Revert to directly requested state for all packages"
+msgstr "Revenire direct la stările cerute pentru toate pachetele"
+
+#: dselect/bindings.cc
+msgid "Revert to currently installed state for all packages"
+msgstr "Revenire la starea instalată acum pentru toate pachetele"
+
+#: dselect/bindings.cc
+msgid "Select currently-highlighted access method"
+msgstr "Selctează metoda care este evidențiată acum"
+
+#: dselect/bindings.cc
+msgid "Quit without changing selected access method"
+msgstr "Iese fără schimbarea metodei de acces selectate"
+
+#: dselect/helpmsgs.cc
+msgid "Keystrokes"
+msgstr "Combinații taste"
+
+#: dselect/helpmsgs.cc
+msgid ""
+"Motion keys: Next/Previous, Top/End, Up/Down, Backwards/Forwards:\n"
+"  j, Down-arrow         k, Up-arrow             move highlight\n"
+"  N, Page-down, Space   P, Page-up, Backspace   scroll list by 1 page\n"
+"  ^n                    ^p                      scroll list by 1 line\n"
+"  t, Home               e, End                  jump to top/end of list\n"
+"  u                     d                       scroll info by 1 page\n"
+"  ^u                    ^d                      scroll info by 1 line\n"
+"  B, Left-arrow         F, Right-arrow          pan display by 1/3 screen\n"
+"  ^b                    ^f                      pan display by 1 character\n"
+"\n"
+"Mark packages for later processing:\n"
+" +, Insert  install or upgrade      =, H  hold in present version\n"
+" -, Delete  remove                  :, G  unhold: upgrade or leave "
+"uninstalled\n"
+" _          remove & purge config\n"
+"                                             Miscellaneous:\n"
+"Quit, exit, overwrite (note capitals!):       ?, F1 request help (also "
+"Help)\n"
+" Return  Confirm, quit (check dependencies)   i, I  toggle/cycle info "
+"displays\n"
+"   Q     Confirm, quit (override dep.s)       o, O  cycle through sort "
+"options\n"
+" X, Esc  eXit, abandoning any changes made   v, A, V  change status display "
+"opts\n"
+"   R     Revert to state before this list      ^l   redraw display\n"
+"   U     set all to sUggested state             /   search (Return to "
+"cancel)\n"
+"   D     set all to Directly requested state  n, \\  repeat last search\n"
+msgstr ""
+"Taste de deplasare: Următor/Anterior, Cap/Coadă, Sus/Jos, Înainte/Înapoi:\n"
+"  j, Săgeată-jos        k, Săgeată-sus          mută cursorul\n"
+"  N, Page-down, Space   P, Page-up, Backspace   derulează lista cu 1 pagină\n"
+"  ^n                    ^p                      derulează lista cu 1 linie\n"
+"  t, Home               e, End                  sare la capul/coada listei\n"
+"  u                     d                       derulează info cu 1 pagină\n"
+"  ^u                    ^d                      derulează info cu 1 linie\n"
+"  B, Săgeată-stânga     F, Săgeată-dreapta      mută afișajul cu 1/3 de "
+"ecran\n"
+"  ^b                    ^f                      mută afișajul cu 1 caracter\n"
+"\n"
+"Marchează pachetele pentru prelucrare ulterioară:\n"
+" +, Insert  instalare/actualizare     =, H  păstrare în versiunea prezentă\n"
+" -, Delete  șterge                    :, G  eliberare: actualizare sau se "
+"lasă neinstalat\n"
+" _          dezinstalează și șterge configurația\n"
+"                                                  Diverse:\n"
+"Termină, iese, suprascriere (litere mari/mici!):   ?, F1 cerere de ajutor "
+"(la fel și Ajutor)\n"
+" Return  Confirmă, termină (verifică dependențe)   i, I  comută/rotește "
+"ecranele info\n"
+"   Q     Confirmă, termină (suprascriere dep.)     o, O  circulă între "
+"opțiunile de sortare\n"
+" X, Esc  ieșire, abandonează schimbările făcute    v, V  schimbă starea "
+"opțiunilor de afișare\n"
+"   R     Revenire la starea anterioară a listei      ^l   redesenare ecran\n"
+"   U     plasează tot în starea sUgerată             /   caută (Return "
+"pentru renunțare)\n"
+"   D     plasează tot, Direct în starea cerută      n, \\  repetă ultima "
+"căutare\n"
+
+#: dselect/helpmsgs.cc
+msgid "Introduction to package selections"
+msgstr "Introducere în selecția pachetelor"
+
+#: dselect/helpmsgs.cc
+msgid ""
+"Welcome to dselect's main package listing.\n"
+"\n"
+"You will be presented with a list of packages which are installed or "
+"available\n"
+"for installation.  You can navigate around the list using the cursor keys,\n"
+"mark packages for installation (using '+') or deinstallation (using '-').\n"
+"Packages can be marked either singly or in groups; initially you will see "
+"that\n"
+"the line 'All packages' is selected.  '+', '-' and so on will affect all "
+"the\n"
+"packages described by the highlighted line.\n"
+"\n"
+"Some of your choices will cause conflicts or dependency problems; you will "
+"be\n"
+"given a sub-list of the relevant packages, so that you can solve the "
+"problems.\n"
+"\n"
+"You should read the list of keys and the explanations of the display.\n"
+"Much on-line help is available, please make use of it - press '?' at\n"
+"any time for help.\n"
+"\n"
+"When you have finished selecting packages, press <enter> to confirm "
+"changes,\n"
+"or 'X' to quit without saving changes. A final check on conflicts and\n"
+"dependencies will be done - here too you may see a sublist.\n"
+"\n"
+"Press <space> to leave help and enter the list now.\n"
+msgstr ""
+"Bine ați venit la lista principală de pachete a «dselect».\n"
+"\n"
+"Vă va fi prezentată o listă de pachete care sunt instalate sau disponibile\n"
+"pentru instalare. Puteți naviga prin listă folosind tastele cursorului, "
+"puteți\n"
+"marca pachetele pentru instalare (folosind „+”) sau dezinstalare (folosind "
+"„-”).\n"
+"Pachetele pot fi marcate fie individual fie în grupuri, inițial veți vedea "
+"că\n"
+"linia „Toate pachetele” este selectată.  „+”, „-” și toate celelalte vor "
+"afecta\n"
+"toate pachetele descrise de linia evidențiată.\n"
+"\n"
+"Unele din alegerile dvs. vor cauza conflicte sau probleme de dependențe; vă "
+"va\n"
+"fi oferită o sub-listă de pachete relevante, ceea ce vă va permite să "
+"rezolvați\n"
+"problemele.\n"
+"\n"
+"Ar trebui să citiți lista de taste și explicațiile de pe ecran.\n"
+"Este disponibil mult ajutor imediat, folosiți-l - apăsați tasta „?” în "
+"orice\n"
+"moment pentru a primi ajutor.\n"
+"\n"
+"Când ați terminat de selectat pachetele, apăsați <Enter> pentru a confirma "
+"schimbările,\n"
+"sau „X” pentru a ieși fără să salvați schimbările. O verificare finală "
+"pentru conflicte\n"
+"și dependențe va fi făcută - aici de asemenea veți putea vedea o sub-listă.\n"
+"\n"
+"Apăsați <bara de spațiu> pentru a părăsi ajutorul și a intra în listă.\n"
+
+#: dselect/helpmsgs.cc
+msgid "Introduction to read-only package list browser"
+msgstr "Introducere la navigatorul listei de pachete numai-pentru-citire"
+
+#: dselect/helpmsgs.cc
+msgid ""
+"Welcome to dselect's main package listing.\n"
+"\n"
+"You will be presented with a list of packages which are installed or "
+"available\n"
+"for installation.  Since you do not have the privilege necessary to update\n"
+"package states, you are in a read-only mode.  You can navigate around the\n"
+"list using the cursor keys (please see the 'Keystrokes' help screen), "
+"observe\n"
+"the status of the packages and read information about them.\n"
+"\n"
+"You should read the list of keys and the explanations of the display.\n"
+"Much on-line help is available, please make use of it - press '?' at\n"
+"any time for help.\n"
+"\n"
+"When you have finished browsing, press 'Q' or <enter> to quit.\n"
+"\n"
+"Press <space> to leave help and enter the list now.\n"
+msgstr ""
+"Bine ați venit la lista principală de pachete a «dselect».\n"
+"\n"
+"Vă va fi arătată o listă de pachete care sunt instalate sau disponibile "
+"pentru\n"
+"instalare. Din moment ce nu aveți privilegiile necesare pentru a actualiza "
+"starea \n"
+"pachetelor, sunteți în modul doar-citire. Puteți naviga prin listă folosind "
+"tastele\n"
+"pentru cursor (vedeți ecranul de ajutor „Combinații taste”), observa starea\n"
+"pachetelor și citi informațiile despre ele.\n"
+"\n"
+"Ar trebui să citiți lista de taste și explicațiile de pe ecran.\n"
+"Este disponibil mult ajutor imediat, folosiți-l - apăsați oricând doriți "
+"tasta\n"
+"„?” pentru a primi ajutor.\n"
+"\n"
+"Când ați terminat de răsfoit pachetele, apăsați „Q” sau <Enter> pentru a "
+"ieși.\n"
+"\n"
+"Apăsați <bara de spațiu> pentru a părăsi ajutorul și a intra în listă.\n"
+
+#: dselect/helpmsgs.cc
+msgid "Introduction to conflict/dependency resolution sub-list"
+msgstr "Introducere a sublistei de rezolvare a conflictelor/dependențelor"
+
+#: dselect/helpmsgs.cc
+msgid ""
+"Dependency/conflict resolution - introduction.\n"
+"\n"
+"One or more of your choices have raised a conflict or dependency problem -\n"
+"some packages should only be installed in conjunction with certain others, "
+"and\n"
+"some combinations of packages may not be installed together.\n"
+"\n"
+"You will see a sub-list containing the packages involved.  The bottom half "
+"of\n"
+"the display shows relevant conflicts and dependencies; use 'i' to cycle "
+"between\n"
+"that, the package descriptions and the internal package metadata.\n"
+"\n"
+"A set of 'suggested' packages has been calculated, and the initial markings "
+"in\n"
+"this sub-list have been set to match those, so you can just hit Return to\n"
+"accept the suggestions if you wish.  You may abort the change(s) which "
+"caused\n"
+"the problem(s), and go back to the main list, by pressing capital 'X'.\n"
+"\n"
+"You can also move around the list and change the markings so that they are "
+"more\n"
+"like what you want, and you can 'reject' my suggestions by using the "
+"capital\n"
+"'D' or 'R' keys (see the keybindings help screen).  You can use capital 'Q' "
+"to\n"
+"force to accept the situation currently displayed, in case you want to\n"
+"override a recommendation or think that the program is mistaken.\n"
+"\n"
+"Press <space> to leave help and enter the sub-list; remember: press '?' for "
+"help.\n"
+msgstr ""
+"Rezoluție de dependențe/conflicte - introducere.\n"
+"\n"
+"Una sau mai multe dintre alegerile dvs. vor determina conflicte sau probleme "
+"de\n"
+"dependențe - unele pachete ar trebui instalate doar împreună cu anumite "
+"altele,\n"
+"și unele combinații de pachete nu pot fi instalate împreună.\n"
+"\n"
+"Veți vedea o sub-listă conținând pachetele implicate.  Jumătatea inferioară "
+"a\n"
+"afișajului arată conflictele și dependențele relevante; folosiți tasta „i”\n"
+"pentru a circula între acestea, descrierile pachetelor și metadatele "
+"interne\n"
+"ale pachetului.\n"
+"\n"
+"Au fost calculate un set de pachete „sugerate”, și selecțiile inițiale în\n"
+"această sub-listă au fost aranjate să se potrivească cu acelea, astfel încât "
+"doar\n"
+"apăsați tasta «Enter» pentru a accepta sugestiile, dacă doriți. Puteți "
+"anula\n"
+"schimbările care determină probleme, și să vă întoarceți la lista "
+"principală, \n"
+"apăsând majuscula „X”.\n"
+"\n"
+"Puteți de asemenea să navigați prin listă, să schimbați selecțiile după "
+"dorință,\n"
+"și puteți anula sugestiile folosind majusculele „D” ori „R” (vedeți ecranul "
+"de\n"
+"ajutor cu combinațiile de taste). Puteți folosi majuscula „Q” pentru a "
+"forța\n"
+"acceptarea în situația curent afișată, în caz că vreți să treceți peste o\n"
+"recomandare sau vă gândiți că programul se înșală.\n"
+"\n"
+"Apasați <bara de spațiu> pentru a părăsi ajutorul și a intra în sub-listă;\n"
+"nu uitați: apăsați tasta „?” pentru ajutor.\n"
+
+#: dselect/helpmsgs.cc
+msgid "Display, part 1: package listing and status chars"
+msgstr "Afișare, partea 1: lista de pachete și caracterele de stare"
+
+#: dselect/helpmsgs.cc
+msgid ""
+"The top half of the screen shows a list of packages.  For each package you "
+"see\n"
+"four columns for its current status on the system and mark.  In terse mode "
+"(use\n"
+"'v' to toggle verbose display) these are single characters, from left to "
+"right:\n"
+"\n"
+" Error flag: Space - no error (but package may be in broken state - see "
+"below)\n"
+"              'R'  - serious error during installation, needs "
+"reinstallation;\n"
+" Installed state:     Space    - not installed;\n"
+"                       '*'     - installed;\n"
+"                       '-'     - not installed but config files remain;\n"
+"   packages in these { 'U'     - unpacked but not yet configured;\n"
+"   states are not    { 'C'     - half-configured (an error happened);\n"
+"   (quite) properly  { 'I'     - half-installed (an error happened);\n"
+"   installed         { 'W','t' - triggers are awaited resp. pending.\n"
+" Old mark: what was requested for this package before presenting this list;\n"
+" Mark: what is requested for this package:\n"
+"  '*': marked for installation or upgrade;\n"
+"  '-': marked for removal, but any configuration files will remain;\n"
+"  '=': on hold: package will not be installed, upgraded or removed;\n"
+"  '_': marked for purge completely - even remove configuration;\n"
+"  'n': package is new and has yet to be marked for install/remove/&c.\n"
+"\n"
+"Also displayed are each package's Priority, Section, name, installed and\n"
+"available version numbers (shift-V to display/hide) and summary "
+"description.\n"
+msgstr ""
+"Jumătatea superioară a ecranului arată o listă de pachete. La fiecare pachet "
+"veți\n"
+"vedea patru coloane pentru starea curentă în sistem și marcajul. În modul "
+"concis\n"
+"(folosiți „v” pentru a comuta la afișajul detaliat) acestea sunt caractere\n"
+"individuale, de la stânga la dreapta:\n"
+"\n"
+" Fanion de eroare:     Spațiu - fără eroare (dar pachetul ar putea fi "
+"deteriorat;\n"
+"                               vedeți mai jos)\n"
+"                        „R”  - eroare gravă în timpul instalării, are nevoie "
+"de\n"
+"                               reinstalare;\n"
+" Starea instalării:    Spațiu    - neinstalat;\n"
+"                         „*”     - instalat;\n"
+"                         „-”     - neinstalat dar fișierele de configurare "
+"au\n"
+"                                   rămas;\n"
+"   pachetele în aceste { „U”     - despachetat dar încă neconfigurat;\n"
+"   stări nu sunt       { „C”     - semi-configurat (a apărut o eroare);\n"
+"   (chiar) bine        { „I”     - semi-instalat (a apărut o eroare).\n"
+"   instalate           { „W”,„t” - declanșatorii sunt așteptați, respectiv "
+"în\n"
+"                                   așteptare.\n"
+" Vechiul marcaj: ceea ce s-a cerut pentru acest pachet înainte de a afișa\n"
+"                 această listă;\n"
+" Marcaj: ceea ce se cere pentru acest pachet:\n"
+"  „*”: marcat pentru instalare sau înnoire;\n"
+"  „-”: marcat pentru eliminare, dar fișierele de configurare rămân;\n"
+"  „=”: pentru păstrare: pachetul nu va fi instalat, înnoit sau eliminat;\n"
+"  „_”: marcat pentru ștergere completă - inclusiv configurarea;\n"
+"  „n”: pachetul este nou și poate încă fi marcat pentru instalare/ștergere/"
+"&c.\n"
+"\n"
+"De asemenea, pentru fiecare pachet, sunt afișate:\n"
+"Prioritatea, Secțiunea, numele, versiunea instalată și cea disponibilă "
+"(shift-V\n"
+"pentru a afișa/ascunde) și descrierea pe scurt.\n"
+
+#: dselect/helpmsgs.cc
+msgid "Display, part 2: list highlight; information display"
+msgstr "Afișare, partea a 2-a: evidențierea în listă; afișarea informației"
+
+#: dselect/helpmsgs.cc
+msgid ""
+"* Highlight: One line in the package list will be highlighted.  It "
+"indicates\n"
+"  which package(s) will be affected by presses of '+', '-' and '_'.\n"
+"\n"
+"* The dividing line in the middle of the screen shows a brief explanation "
+"of\n"
+"  the status of the currently-highlighted package, or a description of "
+"which\n"
+"  group is highlighted if a group line is.  If you don't understand the\n"
+"  meaning of some of the status characters displayed, go to the relevant\n"
+"  package and look at this divider line, or use the 'v' key for a verbose\n"
+"  display (press 'v' again to go back to the terse display).\n"
+"\n"
+"* The bottom of the screen shows more information about the\n"
+"  currently-highlighted package (if there is only one).\n"
+"\n"
+"  It can show an extended description of the package, the internal package\n"
+"  control details (either for the installed or available version of the\n"
+"  package), or information about conflicts and dependencies involving the\n"
+"  current package (in conflict/dependency resolution sublists).\n"
+"\n"
+"  Use the 'i' key to cycle through the displays, and 'I' to hide the\n"
+"  information display or expand it to use almost all of the screen.\n"
+msgstr ""
+"* Evidențierea: O linie din lista de pachete va fi evidențiată. Aceasta "
+"indică\n"
+"  ce pachete sunt afectate de apăsarea tastelor „+”, „-” și „_”.\n"
+"\n"
+"* Linia despărțitoare din mijlocul ecranului arată o scurtă descriere a\n"
+"  stării pachetului curent evidențiat, sau o descriere a grupului care "
+"este \n"
+"  evidențiat dacă este o linie de grupuri. Dacă nu înțelegeți sensul unora\n"
+"  dintre caracterele de stare afișate, duceți-vă la pachetul respectiv și\n"
+"  uitați-vă la linia despărțitoare, sau folosiți tasta „v” pentru afișare\n"
+"  detaliată (apăsați din nou „v” pentru a vă reîntoarce la afișarea "
+"concisă).\n"
+"\n"
+"* Partea inferioară a ecranului arată mai multe informații despre pachetul "
+"curent\n"
+"  evidențiat (dacă este vreunul).\n"
+"\n"
+"  Poate arăta descrierea extinsă a pachetului, detalii interne de control\n"
+"  ale pachetului (fie pentru versiunea instalată fie pentru cea "
+"disponibilă),\n"
+"  sau informații despre conflicte și dependențe implicate de pachetul "
+"curent\n"
+"  (în sub-lista de rezoluții de conflicte/dependențe).\n"
+"\n"
+"  Folosiți tasta „i” pentru a circula printre afișaje, și „I” pentru a "
+"ascunde\n"
+"  afișajul de informații sau a-l mări până la a utiliza aproape tot "
+"ecranul.\n"
+
+#: dselect/helpmsgs.cc
+msgid "Introduction to method selection display"
+msgstr "Introducere a afișării selecției metodei"
+
+#: dselect/helpmsgs.cc
+msgid ""
+"dselect and dpkg can do automatic installation, loading the package files to "
+"be\n"
+"installed from one of a number of different possible places.\n"
+"\n"
+"This list allows you to select one of these installation methods.\n"
+"\n"
+"Move the highlight to the method you wish to use, and hit Enter.  You will "
+"then\n"
+"be prompted for the information required to do the installation.\n"
+"\n"
+"As you move the highlight a description of each method, where available, is\n"
+"displayed in the bottom half of the screen.\n"
+"\n"
+"If you wish to quit without changing anything use the 'x' key while in the "
+"list\n"
+"of installation methods.\n"
+"\n"
+"A full list of keystrokes is available by pressing 'k' now, or from the "
+"help\n"
+"menu reachable by pressing '?'.\n"
+msgstr ""
+"«dselect» și «dpkg» pot face o instalare automată, încărcând fișierele "
+"pachetelor\n"
+"care urmează să fie instalate dintr-un număr de diferite posibile locuri.\n"
+"\n"
+"Această listă vă permite să selectați una din aceste metode de instalare.\n"
+"\n"
+"Deplasați evidențierea către metoda pe care doriți s-o folosiți, și apăsați\n"
+"tata «Enter». Veți fi chestionat pentru informațiile necesare pentru "
+"instalare.\n"
+"\n"
+"Pe măsură ce deplasați evidențierea, în jumătatea de jos a ecranului este "
+"afișată\n"
+"o descriere a fiecărei metode, dacă este disponibilă.\n"
+"\n"
+"Dacă doriți să ieșiți fără a modifica nimic, folosiți tasta „x” în timp ce\n"
+"sunteți în lista metodelor de instalare.\n"
+"\n"
+"O listă completă a combinațiilor de taste este disponibilă apăsând „k” "
+"acum,\n"
+"sau din meniul de ajutor, accesibil apăsând tasta „?”.\n"
+
+#: dselect/helpmsgs.cc
+msgid "Keystrokes for method selection"
+msgstr "Combinații de taste pentru selectarea metodei"
+
+#: dselect/helpmsgs.cc
+msgid ""
+"Motion keys: Next/Previous, Top/End, Up/Down, Backwards/Forwards:\n"
+"  j, Down-arrow         k, Up-arrow             move highlight\n"
+"  N, Page-down, Space   P, Page-up, Backspace   scroll list by 1 page\n"
+"  ^n                    ^p                      scroll list by 1 line\n"
+"  t, Home               e, End                  jump to top/end of list\n"
+"  u                     d                       scroll info by 1 page\n"
+"  ^u                    ^d                      scroll info by 1 line\n"
+"  B, Left-arrow         F, Right-arrow          pan display by 1/3 screen\n"
+"  ^b                    ^f                      pan display by 1 character\n"
+"(These are the same motion keys as in the package list display.)\n"
+"\n"
+"Quit:\n"
+" Return, Enter    select this method and go to its configuration dialogue\n"
+" x, X             exit without changing or setting up the installation "
+"method\n"
+"\n"
+"Miscellaneous:\n"
+"  ?, Help, F1      request help\n"
+" ^l                redraw display\n"
+"  /                search (just return to cancel)\n"
+"  \\                repeat last search\n"
+msgstr ""
+"Taste de deplasare: Următor/Anterior, Început/Sfârșit, Sus/Jos, Înapoi/"
+"Înainte:\n"
+"  j, Săgeată-jos        k, Săgeată-sus          mută selecția\n"
+"  N, Page-down, Space   P, Page-up, Backspace   derulează lista cu 1 pagină\n"
+"  ^n                    ^p                      derulează lista cu 1 linie\n"
+"  t, Home               e, End                  sare la începutul/sfârșitul "
+"listei\n"
+"  u                     d                       derulează info cu 1 pagină\n"
+"  ^u                    ^d                      derulează info cu 1 linie\n"
+"  B, Săgeată-stânga     F, Săgeată-dreapta      mută afișarea cu 1/3 de "
+"ecran\n"
+"  ^b                    ^f                      mută afișarea cu 1 caracter\n"
+"(Acestea sunt aceleași taste de deplasare ca în afișarea listei de "
+"pachete.)\n"
+"\n"
+"Termină:\n"
+" Return, Enter    selectează această metodă și trece la dialogul ei de "
+"configurare\n"
+" x, X             termină fără schimbări sau configurarea metodei de "
+"instalare\n"
+"\n"
+"Diverse:\n"
+"  ?, Help, F1      cerere de ajutor\n"
+" ^l                redesenare ecran\n"
+"  /                căutare (enter pentru renunțare)\n"
+"  \\                repetă ultima căutare\n"
+
+#: dselect/main.cc
+msgid "Type dselect --help for help."
+msgstr "Tastați «dselect --help» pentru ajutor."
+
+#: dselect/main.cc
+msgid "a"
+msgstr "a"
+
+#: dselect/main.cc
+msgid "[A]ccess"
+msgstr "[A]cces"
+
+#: dselect/main.cc
+msgid "Choose the access method to use."
+msgstr "Alegeți metoda de acces folosită."
+
+#: dselect/main.cc
+msgid "u"
+msgstr "u"
+
+#: dselect/main.cc
+msgid "[U]pdate"
+msgstr "Act[u]alizare"
+
+#: dselect/main.cc
+msgid "Update list of available packages, if possible."
+msgstr "Actualizează lista pachetelor disponibile, dacă este posibil."
+
+#: dselect/main.cc
+msgid "s"
+msgstr "s"
+
+#: dselect/main.cc
+msgid "[S]elect"
+msgstr "[S]elecție"
+
+#: dselect/main.cc
+msgid "Request which packages you want on your system."
+msgstr "Cereți pachetele pe care le doriți în sistemul dvs."
+
+#: dselect/main.cc
+msgid "i"
+msgstr "i"
+
+#: dselect/main.cc
+msgid "[I]nstall"
+msgstr "[I]nstalare"
+
+#: dselect/main.cc
+msgid "Install and upgrade wanted packages."
+msgstr "Instalează și actualizează pachetele dorite."
+
+#: dselect/main.cc
+msgid "c"
+msgstr "c"
+
+#: dselect/main.cc
+msgid "[C]onfig"
+msgstr "[C]onfigurare"
+
+#: dselect/main.cc
+msgid "Configure any packages that are unconfigured."
+msgstr "Configurează orice pachet ce nu este configurat."
+
+#: dselect/main.cc
+msgid "r"
+msgstr "r"
+
+#: dselect/main.cc
+msgid "[R]emove"
+msgstr "Elimina[r]e"
+
+#: dselect/main.cc
+msgid "Remove unwanted software."
+msgstr "Elimină programele nedorite."
+
+# semnifică tasta care trebuie apăsată, poate fi schimbată dar trebuie să verificăm conflictele
+#: dselect/main.cc
+msgid "q"
+msgstr "q"
+
+#: dselect/main.cc
+msgid "[Q]uit"
+msgstr "Ieșire [q]"
+
+#: dselect/main.cc
+msgid "Quit dselect."
+msgstr "Ieșire din dselect."
+
+#: dselect/main.cc
+msgid "menu"
+msgstr "meniu"
+
+#: dselect/main.cc
+#, c-format
+msgid "Debian '%s' package handling frontend version %s.\n"
+msgstr "Interfață de manipulare a pachetelor Debian „%s”, versiunea %s.\n"
+
+#: dselect/main.cc
+msgid ""
+"This is free software; see the GNU General Public License version 2 or\n"
+"later for copying conditions. There is NO warranty.\n"
+msgstr ""
+"Acesta este software liber; consultați GNU General Public License versiunea "
+"2\n"
+"sau ulterioară pentru condițiile de copiere. NU există NICI o garanție.\n"
+
+#: dselect/main.cc
+msgid "<standard output>"
+msgstr "<ieșire standard>"
+
+#: dselect/main.cc
+#, c-format
+msgid ""
+"Usage: %s [<option>...] [<command>...]\n"
+"\n"
+msgstr ""
+"Utilizare: %s [<opțiune> ...] [<comanda> ...]\n"
+"\n"
+
+#: dselect/main.cc
+#, c-format
+msgid "Commands:\n"
+msgstr "Comenzi:\n"
+
+#: dselect/main.cc
+#, c-format
+msgid ""
+"Options:\n"
+"      --admindir <directory>       Use <directory> instead of %s.\n"
+"      --instdir <directory>        Use <directory> instead of %s.\n"
+"      --root <directory>           Use <directory> instead of %s.\n"
+"      --expert                     Turn on expert mode.\n"
+"  -D, --debug <file>               Turn on debugging, send output to "
+"<file>.\n"
+"      --color <color-spec>         Configure screen colors.\n"
+"      --colour <color-spec>        Ditto.\n"
+msgstr ""
+"Opțiuni:\n"
+"      --admindir <director>        Folosește <director> în loc de %s.\n"
+"      --instdir <director>         Folosește <director> în loc de %s.\n"
+"      --root <director>            Folosește <director> în loc de %s.\n"
+"      --expert                     Activează modul expert.\n"
+"  -D, --debug <fișier>             Activează depanarea, trimițând ieșirea\n"
+"                                   în <fișier>.\n"
+"      --color <caracteristică-culoare>   Configurează culorile ecranului.\n"
+"      --colour <caracteristică-culoare>  La fel.\n"
+
+#: dselect/main.cc
+#, c-format
+msgid ""
+"  -?, --help                       Show this help message.\n"
+"      --version                    Show the version.\n"
+"\n"
+msgstr ""
+"  -?, --help                       Afișează acest mesaj de ajutor.\n"
+"      --version                    Afișează versiunea.\n"
+"\n"
+
+#: dselect/main.cc
+#, c-format
+msgid ""
+"<color-spec> is <screen-part>:[<foreground>],[<background>][:"
+"<attr>[+<attr>]...]\n"
+msgstr ""
+"<caracteristică-culoare> este <componente-ecran>:[<prim-plan>],[<fundal>][:"
+"<atribut>[+<atribut>]...]\n"
+
+#: dselect/main.cc
+#, c-format
+msgid "<screen-part> is:"
+msgstr "<componente-ecran> sunt:"
+
+#: dselect/main.cc
+#, c-format
+msgid "<color> is:"
+msgstr "<culoare> este:"
+
+#: dselect/main.cc
+#, c-format
+msgid "<attr> is:"
+msgstr "<atribut> este:"
+
+#: dselect/main.cc
+#, c-format
+msgid "cannot open debug file '%s'\n"
+msgstr "nu se poate deschide fișierul de depanare „%s”\n"
+
+#: dselect/main.cc
+#, c-format
+msgid "invalid %s '%s'"
+msgstr "nevalid %s „%s”"
+
+#: dselect/main.cc
+msgid "screen part"
+msgstr "componentă ecran"
+
+#: dselect/main.cc
+msgid "missing color specification"
+msgstr "specificația de culoare lipsește"
+
+#: dselect/main.cc
+msgid "color"
+msgstr "culoare"
+
+#: dselect/main.cc
+msgid "color attribute"
+msgstr "atribut culoare"
+
+#: dselect/main.cc
+msgid "Terminal does not appear to support cursor addressing.\n"
+msgstr "Terminalul nu pare să aibă suport pentru gestionarea cursorului.\n"
+
+#: dselect/main.cc
+msgid "Terminal does not appear to support highlighting.\n"
+msgstr "Terminalul nu pare să aibă suport pentru evidențiere.\n"
+
+#: dselect/main.cc
+#, c-format
+msgid ""
+"Set your TERM variable correctly, use a better terminal,\n"
+"or make do with the per-package management tool %s.\n"
+msgstr ""
+"Inițializați corect variabila de mediu TERM, folosiți un terminal mai bun,\n"
+"sau faceți asta cu programul de gestionare per pachet %s.\n"
+
+#: dselect/main.cc
+msgid "terminal lacks necessary features, giving up"
+msgstr "terminalul nu are caracteristicile necesare, se renunță"
+
+#: dselect/main.cc
+msgid ""
+"\n"
+"\n"
+"Move around with Ctrl+P and Ctrl+N, cursor keys, initial letters, or "
+"digits;\n"
+"Press <enter> to confirm selection. Ctrl+L redraws screen.\n"
+"\n"
+msgstr ""
+"\n"
+"\n"
+"Deplasare cu «Ctrl+P» și «Ctrl+N», tastele cursor, literele inițiale, sau "
+"cifre;\n"
+"Apăsați «Enter>» pentru confirmarea selecției. «Ctrl+L» redesenează "
+"ecranul.\n"
+"\n"
+
+#: dselect/main.cc
+msgid ""
+"Copyright (C) 1994-1996 Ian Jackson.\n"
+"Copyright (C) 2000,2001 Wichert Akkerman.\n"
+msgstr ""
+"Drepturi de autor © 1994-1996 Ian Jackson.\n"
+"Drepturi de autor © 2000,2001 Wichert Akkerman.\n"
+
+#: dselect/main.cc
+msgid ""
+"\n"
+"\n"
+"Read-only access: only preview of selections is available!"
+msgstr ""
+"\n"
+"\n"
+"Acces numai-pentru-citire: este disponibilă doar vizualizarea selecțiilor!"
+
+#: dselect/main.cc
+msgid "failed to getch in main menu"
+msgstr "getch() a eșuat în meniul principal"
+
+#: dselect/main.cc
+#, c-format
+msgid "unknown action string '%s'"
+msgstr "șir de acțiune necunoscut „%s”"
+
+#: dselect/methlist.cc
+msgid "Abbrev."
+msgstr "Presc."
+
+#: dselect/methlist.cc dselect/pkgdisplay.cc dselect/pkginfo.cc
+msgid "Description"
+msgstr "Descriere"
+
+#: dselect/methlist.cc
+msgid "dselect - list of access methods"
+msgstr "dselect - lista metodelor de acces"
+
+#: dselect/methlist.cc
+#, c-format
+msgid "Access method '%s'."
+msgstr "Metoda de acces „%s”."
+
+#: dselect/methlist.cc dselect/pkglist.cc
+msgid "doupdate failed"
+msgstr "doupdate() a eșuat"
+
+#: dselect/methlist.cc dselect/pkglist.cc
+msgid "getch failed"
+msgstr "getch() a eșuat"
+
+#: dselect/methlist.cc
+msgid "Explanation"
+msgstr "Explicație"
+
+#: dselect/methlist.cc
+msgid "No explanation available."
+msgstr "Nici o explicație disponibilă."
+
+#: dselect/method.cc
+msgid ""
+"\n"
+"Press <enter> to continue."
+msgstr ""
+"\n"
+"Apăsați «Enter» pentru a continua."
+
+#: dselect/method.cc
+msgid "cannot unlock access method area"
+msgstr "nu se poate debloca zona metodei de acces"
+
+#: dselect/method.cc
+msgid "no access methods are available"
+msgstr "nu sunt disponibile metode de acces"
+
+#: dselect/method.cc
+msgid "requested operation requires superuser privilege"
+msgstr "operația solicitată necesită drepturi de superutilizator"
+
+#: dselect/method.cc
+msgid "cannot open or create access method lockfile"
+msgstr "nu se poate deschide sau crea fișierul de blocare al metodei de acces"
+
+#: dselect/method.cc
+msgid "the access method area is already locked"
+msgstr "zona metodei de acces este deja blocată"
+
+#: dselect/method.cc
+msgid "cannot lock access method area"
+msgstr "nu se poate bloca zona metodei de acces"
+
+#: dselect/method.cc
+#, c-format
+msgid "Press <enter> to continue.\n"
+msgstr "Apăsați «Enter» pentru a continua.\n"
+
+#: dselect/method.cc
+msgid "<standard error>"
+msgstr "<ieșirea de eroare standard>"
+
+#: dselect/method.cc
+msgid "error reading acknowledgement of program failure message"
+msgstr "eroare la citirea confirmării mesajului de eșec al programului"
+
+#: dselect/method.cc
+msgid "no access method is selected or configured"
+msgstr "nu este selectată sau configurată nicio metodă de acces"
+
+#: dselect/method.cc
+msgid "update available list script"
+msgstr "script de actualizare a listei de pachete disponibile"
+
+#: dselect/method.cc
+msgid "installation script"
+msgstr "script de instalare"
+
+#: dselect/method.cc
+#, c-format
+msgid "running %s %s ...\n"
+msgstr "rulează %s %s ..\n"
+
+#: dselect/method.cc
+msgid "query/setup script"
+msgstr "script de interogare/pregătire"
+
+#: dselect/methparse.cc
+#, c-format
+msgid "syntax error in method options file '%s' -- %s"
+msgstr "eroare de sintaxă în fișierul de opțiuni pentru metode „%s” -- %s"
+
+#: dselect/methparse.cc
+#, c-format
+msgid "error reading options file '%s'"
+msgstr "eroare la citirea fișierului de opțiuni „%s”"
+
+#: dselect/methparse.cc
+#, c-format
+msgid "unable to read '%s' directory for reading methods"
+msgstr "nu se poate citi directorul „%s” pentru metodele de citire"
+
+#: dselect/methparse.cc
+#, c-format
+msgid "method '%s' has name that is too long (%d > %d characters)"
+msgstr "metoda „%s” are un nume prea lung (%d > %d caractere)"
+
+#: dselect/methparse.cc
+#, c-format
+msgid "unable to access method script '%s'"
+msgstr "nu se poate accesa scriptul metodei „%s”"
+
+#: dselect/methparse.cc
+#, c-format
+msgid "unable to read method options file '%s'"
+msgstr "nu se poate citi fișierul de opțiuni de metode „%s”"
+
+#: dselect/methparse.cc
+msgid "non-digit where digit wanted"
+msgstr "s-a găsit un caracter non-numeric când se aștepta unul numeric"
+
+#: dselect/methparse.cc
+msgid "end of file in index string"
+msgstr "sfârșit de fișier în șirul index"
+
+#: dselect/methparse.cc
+msgid "index string too long"
+msgstr "șir de index prea lung"
+
+#: dselect/methparse.cc
+msgid "newline before option name start"
+msgstr "linie nouă înainte de începerea numelui opțiunii"
+
+#: dselect/methparse.cc
+msgid "end of file before option name start"
+msgstr "sfârșit de fișier înainte de începerea numelui opțiunii"
+
+#: dselect/methparse.cc
+msgid "nonalpha where option name start wanted"
+msgstr "nu este literă unde trebuie să înceapă numele opțiunii"
+
+#: dselect/methparse.cc
+msgid "non-alphanum in option name"
+msgstr "caracter non-alfanumeric în numele opțiunii"
+
+#: dselect/methparse.cc
+msgid "end of file in option name"
+msgstr "sfârșit de fișier în numele opțiunii"
+
+#: dselect/methparse.cc
+msgid "newline before summary"
+msgstr "linie nouă înainte de sumar"
+
+#: dselect/methparse.cc
+msgid "end of file before summary"
+msgstr "sfârșit de fișier înainte de sumar"
+
+#: dselect/methparse.cc
+msgid "end of file in summary - missing newline"
+msgstr "sfârșit de fișier în sumar - lipsește linie nouă"
+
+#: dselect/methparse.cc
+#, c-format
+msgid "cannot load option description file '%s'"
+msgstr "nu se poate încărca fișierul de descriere a opțiunilor „%s”"
+
+#: dselect/methparse.cc
+#, c-format
+msgid "error during read of method options file '%s'"
+msgstr "eroare în timpul citirii fișierului cu opțiuni pentru metode „%s”"
+
+#: dselect/methparse.cc
+#, c-format
+msgid "unable to open current option file '%s'"
+msgstr "imposibil de a deschide fișierul de opțiuni curent „%s”"
+
+#: dselect/methparse.cc
+#, c-format
+msgid "unable to write new option to '%s'"
+msgstr "imposibil de a scrie noua opțiune în „%s”"
+
+#: dselect/pkgdisplay.cc
+msgid "new package"
+msgstr "pachet nou"
+
+#: dselect/pkgdisplay.cc
+msgid "install"
+msgstr "instalează"
+
+#: dselect/pkgdisplay.cc
+msgid "hold"
+msgstr "păstrează"
+
+#: dselect/pkgdisplay.cc
+msgid "remove"
+msgstr "elimină"
+
+#: dselect/pkgdisplay.cc
+msgid "purge"
+msgstr "curăță"
+
+#: dselect/pkgdisplay.cc
+msgid " "
+msgstr " "
+
+#: dselect/pkgdisplay.cc
+msgid "REINSTALL"
+msgstr "REINSTALEAZĂ"
+
+#: dselect/pkgdisplay.cc
+msgid "not installed"
+msgstr "neinstalat"
+
+#: dselect/pkgdisplay.cc
+msgid "removed (configs remain)"
+msgstr "eliminat (configurarea a rămas)"
+
+#: dselect/pkgdisplay.cc
+msgid "half installed"
+msgstr "parțial instalat"
+
+#: dselect/pkgdisplay.cc
+msgid "unpacked (not set up)"
+msgstr "despachetat (neconfigurat)"
+
+#: dselect/pkgdisplay.cc
+msgid "half configured (config failed)"
+msgstr "semi-configurat (configurarea a eșuat)"
+
+#: dselect/pkgdisplay.cc
+msgid "awaiting trigger processing"
+msgstr "se așteaptă procesarea declanșatorilor"
+
+#: dselect/pkgdisplay.cc
+msgid "triggered"
+msgstr "declanșat"
+
+#: dselect/pkgdisplay.cc
+msgid "installed"
+msgstr "instalat"
+
+#: dselect/pkgdisplay.cc
+msgid "Required"
+msgstr "Necesar"
+
+#: dselect/pkgdisplay.cc
+msgid "Important"
+msgstr "Important"
+
+#: dselect/pkgdisplay.cc
+msgid "Standard"
+msgstr "Standard"
+
+#: dselect/pkgdisplay.cc
+msgid "Optional"
+msgstr "Opțional"
+
+#: dselect/pkgdisplay.cc
+msgid "Extra"
+msgstr "Extra"
+
+#: dselect/pkgdisplay.cc
+msgid "Unclassified"
+msgstr "Neclasificat"
+
+#: dselect/pkgdisplay.cc
+msgid "suggests"
+msgstr "sugerează"
+
+#: dselect/pkgdisplay.cc
+msgid "recommends"
+msgstr "recomandă"
+
+#: dselect/pkgdisplay.cc
+msgid "depends on"
+msgstr "depinde de"
+
+#: dselect/pkgdisplay.cc
+msgid "pre-depends on"
+msgstr "pre-depinde de"
+
+#: dselect/pkgdisplay.cc
+msgid "breaks"
+msgstr "corupe"
+
+#: dselect/pkgdisplay.cc
+msgid "conflicts with"
+msgstr "în conflict cu"
+
+#: dselect/pkgdisplay.cc
+msgid "provides"
+msgstr "furnizează"
+
+#: dselect/pkgdisplay.cc
+msgid "replaces"
+msgstr "înlocuiește"
+
+#: dselect/pkgdisplay.cc
+msgid "enhances"
+msgstr "îmbunătățește"
+
+#: dselect/pkgdisplay.cc
+msgid "Req"
+msgstr "Ncs"
+
+#: dselect/pkgdisplay.cc
+msgid "Imp"
+msgstr "Imp"
+
+#: dselect/pkgdisplay.cc
+msgid "Std"
+msgstr "Std"
+
+#: dselect/pkgdisplay.cc
+msgid "Opt"
+msgstr "Opț"
+
+#: dselect/pkgdisplay.cc
+msgid "Xtr"
+msgstr "Sup"
+
+# R-GC, scrie:
+# o interpretare hazlie,
+# a mesajului original!
+# 😇️
+#: dselect/pkgdisplay.cc
+msgid "bUG"
+msgstr "Hibă"
+
+#: dselect/pkgdisplay.cc
+msgid "?"
+msgstr "?"
+
+#: dselect/pkgdisplay.cc
+msgid "Broken"
+msgstr "Deteriorat"
+
+#: dselect/pkgdisplay.cc
+msgid "New"
+msgstr "Nou"
+
+#: dselect/pkgdisplay.cc
+msgid "Upgradable"
+msgstr "Actualizabil"
+
+#: dselect/pkgdisplay.cc
+msgid "Obsolete/local"
+msgstr "Învechit/local"
+
+#: dselect/pkgdisplay.cc
+msgid "Installed"
+msgstr "Instalat"
+
+#: dselect/pkgdisplay.cc
+msgid "Available"
+msgstr "Disponibil"
+
+#: dselect/pkgdisplay.cc
+msgid "Removed"
+msgstr "Eliminat"
+
+#: dselect/pkgdisplay.cc
+msgid "Brokenly installed packages"
+msgstr "Pachete instalate defectuos"
+
+#: dselect/pkgdisplay.cc
+msgid "Newly available packages"
+msgstr "Pachete noi disponibile"
+
+#: dselect/pkgdisplay.cc
+msgid "Upgradable packages"
+msgstr "Pachete actualizabile"
+
+#: dselect/pkgdisplay.cc
+msgid "Obsolete and locally created packages"
+msgstr "Pachete învechite și create local"
+
+#: dselect/pkgdisplay.cc
+msgid "Installed packages"
+msgstr "Pachete instalate"
+
+#: dselect/pkgdisplay.cc
+msgid "Available not installed packages"
+msgstr "Pachete disponibile, dar neinstalate"
+
+#: dselect/pkgdisplay.cc
+msgid "Removed and no longer available packages"
+msgstr "Pachete eliminate și care nu mai sunt disponibile"
+
+#: dselect/pkgdisplay.cc
+msgid "Removed packages (configuration still present)"
+msgstr "Pachete eliminate (configurarea încă prezentă)"
+
+#: dselect/pkgdisplay.cc
+msgid "Purged packages and those never installed"
+msgstr "Pachete curățate și cele care nu au fost niciodată instalate"
+
+#: dselect/pkgdisplay.cc
+msgid "Purged"
+msgstr "Curățate"
+
+#: dselect/pkgdisplay.cc
+msgid "Error"
+msgstr "Eroare"
+
+#: dselect/pkgdisplay.cc
+msgid "Installed?"
+msgstr "Instalat?"
+
+#: dselect/pkgdisplay.cc
+msgid "Old mark"
+msgstr "Marcaj vechi"
+
+#: dselect/pkgdisplay.cc
+msgid "Marked for"
+msgstr "Marcat pentru"
+
+#: dselect/pkgdisplay.cc
+msgid "EIOM"
+msgstr "EIOM"
+
+#: dselect/pkgdisplay.cc
+msgid "Section"
+msgstr "Secțiune"
+
+#: dselect/pkgdisplay.cc
+msgid "Priority"
+msgstr "Prioritate"
+
+#: dselect/pkgdisplay.cc
+msgid "Package"
+msgstr "Pachet"
+
+#: dselect/pkgdisplay.cc
+msgid "Avail.arch"
+msgstr "Arh. disp"
+
+#: dselect/pkgdisplay.cc
+msgid "Inst.arch"
+msgstr "Arh. inst"
+
+#: dselect/pkgdisplay.cc
+msgid "Avail.ver"
+msgstr "Ver. disp"
+
+#: dselect/pkgdisplay.cc
+msgid "Inst.ver"
+msgstr "Ver. inst"
+
+#: dselect/pkgdisplay.cc
+msgid "dselect - recursive package listing"
+msgstr "dselect - afișare recursivă a pachetelor"
+
+#: dselect/pkgdisplay.cc
+msgid "dselect - inspection of package states"
+msgstr "dselect - inspecția stării pachetelor"
+
+#: dselect/pkgdisplay.cc
+msgid "dselect - main package listing"
+msgstr "dselect - lista principală a pachetelor"
+
+#: dselect/pkgdisplay.cc
+msgid " (by section)"
+msgstr " (după secțiune)"
+
+#: dselect/pkgdisplay.cc
+msgid " (avail., section)"
+msgstr " (disponibil, secțiune)"
+
+#: dselect/pkgdisplay.cc
+msgid " (status, section)"
+msgstr " (stare, secțiune)"
+
+#: dselect/pkgdisplay.cc
+msgid " (by priority)"
+msgstr " (după prioritate)"
+
+#: dselect/pkgdisplay.cc
+msgid " (avail., priority)"
+msgstr " (disponibil, prioritate)"
+
+#: dselect/pkgdisplay.cc
+msgid " (status, priority)"
+msgstr " (stare, prioritate)"
+
+#: dselect/pkgdisplay.cc
+msgid " (alphabetically)"
+msgstr " (alfabetic)"
+
+#: dselect/pkgdisplay.cc
+msgid " (by availability)"
+msgstr " (după disponibilitate)"
+
+#: dselect/pkgdisplay.cc
+msgid " (by status)"
+msgstr " (după stare)"
+
+#: dselect/pkgdisplay.cc
+msgid " mark:+/=/- terse:v help:?"
+msgstr " marchează:+/=/- concis:v ajutor:?"
+
+#: dselect/pkgdisplay.cc
+msgid " mark:+/=/- verbose:v help:?"
+msgstr " marchează:+/=/- detaliat:v ajutor:?"
+
+#: dselect/pkgdisplay.cc
+msgid " terse:v help:?"
+msgstr " concis:v ajutor:?"
+
+#: dselect/pkgdisplay.cc
+msgid " verbose:v help:?"
+msgstr " detaliat:v ajutor:?"
+
+#: dselect/pkginfo.cc
+msgid ""
+"The line you have highlighted represents many packages; if you ask to "
+"install, remove, hold, etc. it you will affect all the packages which match "
+"the criterion shown.\n"
+"\n"
+"If you move the highlight to a line for a particular package you will see "
+"information about that package displayed here.\n"
+"You can use 'o' and 'O' to change the sort order and give yourself the "
+"opportunity to mark packages in different kinds of groups."
+msgstr ""
+"Rândul evidențiat reprezintă mai multe pachete; dacă cereți instalare, "
+"îndepărtare, păstrare, etc. va afecta toate pachete care respectă criteriul "
+"arătat.\n"
+"\n"
+"Dacă mutați cursorul pe un rând cu un pachet anume, veți vedea aici "
+"informații despre acel pachet.\n"
+"Puteți folosi „o” și „O” pentru schimbarea ordinii de sortare dându-vă "
+"posibilitatea să marcați pachetele în diferite moduri de grupare."
+
+#: dselect/pkginfo.cc
+msgid "Interrelationships"
+msgstr "Inter-relații"
+
+#: dselect/pkginfo.cc
+msgid "No description available."
+msgstr "Nici o descriere disponibilă."
+
+#: dselect/pkginfo.cc
+msgid "Installed control file information"
+msgstr "Informația de control instalată"
+
+#: dselect/pkginfo.cc
+msgid "Available control file information"
+msgstr "Informația de control disponibilă"
+
+#: dselect/pkglist.cc
+msgid "there are no packages"
+msgstr "nu există pachete"
+
+#: dselect/pkglist.cc
+msgid "invalid search option given"
+msgstr "opțiunea de căutare dată nu este validă"
+
+#: dselect/pkglist.cc
+msgid "error in regular expression"
+msgstr "eroare în expresia regulată"
+
+#: dselect/pkgsublist.cc
+msgid " does not appear to be available\n"
+msgstr " nu pare să fie disponibil\n"
+
+#: dselect/pkgsublist.cc
+msgid " or "
+msgstr " sau "
+
+#: dselect/pkgtop.cc
+msgid "All"
+msgstr "Toate"
+
+#: dselect/pkgtop.cc
+msgid "All packages"
+msgstr "Toate pachetele"
+
+#: dselect/pkgtop.cc
+#, c-format
+msgid "%s packages without a section"
+msgstr "%s pachete fără o secțiune"
+
+#: dselect/pkgtop.cc
+#, c-format
+msgid "%s packages in section %s"
+msgstr "%s pachete în secțiunea %s"
+
+#: dselect/pkgtop.cc
+#, c-format
+msgid "%s %s packages"
+msgstr "%s %s pachete"
+
+#: dselect/pkgtop.cc
+#, c-format
+msgid "%s %s packages without a section"
+msgstr "%s %s pachete fără o secțiune"
+
+#: dselect/pkgtop.cc
+#, c-format
+msgid "%s %s packages in section %s"
+msgstr "%s %s pachete în secțiunea %s"
+
+#: dselect/pkgtop.cc
+#, c-format
+msgid "%-*s %s%s%s;  %s (was: %s).  %s"
+msgstr "%-*s %s%s%s;  %s (a fost: %s).  %s"
+
+#, c-format
+#~ msgid "unable to open option description file '%s'"
+#~ msgstr "nu se poate deschide fișierul de descriere a opțiunilor „%s”"
+
+#, c-format
+#~ msgid "unable to stat option description file '%s'"
+#~ msgstr "nu se poate citi fișierul de descriere a opțiunilor „%s”"
+
+#, c-format
+#~ msgid "error during read of option description file '%s'"
+#~ msgstr "eroare în timpul citirii fișierului cu descrierile opțiunilor „%s”"
+
+#~ msgid "ioctl(TIOCGWINSZ) failed"
+#~ msgstr "eșec ioctl(TIOCGWINSZ)"
+
+#~ msgid "doupdate in SIGWINCH handler failed"
+#~ msgstr "eșec doupdate în descriptorul SIGWINCH"
+
+#~ msgid "failed to restore old SIGWINCH sigact"
+#~ msgstr "eșec la restaurarea vechiului sigact pentru SIGWINCH"
+
+#~ msgid "failed to restore old signal mask"
+#~ msgstr "eșec la restaurarea vechii măști de semnal"
+
+#~ msgid "failed to unblock SIGWINCH"
+#~ msgstr "eșec la deblocarea lui SIGWINCH"
+
+#~ msgid "failed to block SIGWINCH"
+#~ msgstr "eșec la blocarea lui SIGWINCH"
+
+#~ msgid "failed to get old signal mask"
+#~ msgstr "eșec la preluarea vechii măști de semnal"
+
+#~ msgid "failed to get old SIGWINCH sigact"
+#~ msgstr "eșec la preluarea vechiului sigact pentru SIGWINCH"
+
+#~ msgid "failed to set new SIGWINCH sigact"
+#~ msgstr "eșec la inițializarea noului sigact pentru SIGWINCH"
+
+#~ msgid ""
+#~ "\n"
+#~ "\n"
+#~ "%s: %s\n"
+#~ msgstr ""
+#~ "\n"
+#~ "\n"
+#~ "%s: %s\n"
+
+#~ msgid "failed to re-block SIGWINCH"
+#~ msgstr "eșec la reblocarea lui SIGWINCH"
+
+#, fuzzy
+#~| msgid "Section"
+#~ msgid "Actions:\n"
+#~ msgstr "Secțiune"
+
+#~ msgid "Colours:\n"
+#~ msgstr "Culori:\n"
+
+#~ msgid "Attributes:\n"
+#~ msgstr "Atribute:\n"
+
+#~ msgid "EOF before option name start"
+#~ msgstr "EOF înainte de începerea numelui opțiunii"
+
+#~ msgid "EOF before summary"
+#~ msgstr "EOF înainte de sumar"
+
+#~ msgid "!Bug!"
+#~ msgstr "!Defect!"
+
+#~ msgid "Updated"
+#~ msgstr "Actualizat"
+
+#~ msgid "Up-to-date"
+#~ msgstr "La-zi"
+
+#~ msgid "Updated packages (newer version is available)"
+#~ msgstr "Pachete actualizate (este disponibilă o versiune mai nouă)"
+
+#~ msgid "Available packages (not currently installed)"
+#~ msgstr "Pachete disponibile (neinstalate încă)"
+
+#~ msgid ""
+#~ "Actions:\n"
+#~ "  access update select install config remove quit\n"
+#~ "\n"
+#~ msgstr ""
+#~ "Acțiuni:\n"
+#~ "  access update select install config remove quit\n"
+#~ "\n"
+
+#~ msgid "unable to open new option file `%s'"
+#~ msgstr "imposibil a deschide fișierulu nou de opțiuni „%s”"
+
+#~ msgid "unable to close new option file `%s'"
+#~ msgstr "imposibil a închide fișierul nou de opțiuni „%s”"
+
+#~ msgid "unable to install new option as `%s'"
+#~ msgstr "imposibil a instala noile opțiuni ca „%s”"
+
+#~ msgid "returned error exit status %d.\n"
+#~ msgstr "s-a returnat stare de ieșire eronată %d.\n"
+
+#~ msgid "was interrupted.\n"
+#~ msgstr "a fost întrerupt.\n"
+
+#~ msgid "was terminated by a signal: %s.\n"
+#~ msgstr "a fost terminat de un semnal: %s.\n"
+
+#~ msgid "(It left a coredump.)\n"
+#~ msgstr "(A părăsit o stare coredump.)\n"
+
+#~ msgid "failed with an unknown wait return code %d.\n"
+#~ msgstr "eșuat cu returnarea unui cod de așteptare necunoscut %d.\n"
+
+# sirul de la process e cale de acces la executabil
+#~ msgid "unable to run %s process `%s'"
+#~ msgstr "nu pot rula %s proces „%s”"
+
+#~ msgid "failed config"
+#~ msgstr "configurare eșuată"
+
+#~ msgid "unable to wait for %s"
+#~ msgstr "nu pot aștepta după %s"
+
+#~ msgid "got wrong child's status - asked for %ld, got %ld"
+#~ msgstr ""
+#~ "am recepționat o stare greșită a procesului-fiu - cerut %ld, recepționat "
+#~ "%ld"
+
+#~ msgid "Recommended"
+#~ msgstr "Recomandat"
+
+#~ msgid "Contrib"
+#~ msgstr "Contrib"
+
+#~ msgid "Rec"
+#~ msgstr "Nec"
+
+#~ msgid "Ctb"
+#~ msgstr "Ctb"
+
+#~ msgid ""
+#~ "baselist::startdisplay() done ...\n"
+#~ "\n"
+#~ " xmax=%d, ymax=%d;\n"
+#~ "\n"
+#~ " title_height=%d, colheads_height=%d, list_height=%d;\n"
+#~ " thisstate_height=%d, info_height=%d, whatinfo_height=%d;\n"
+#~ "\n"
+#~ " colheads_row=%d, thisstate_row=%d, info_row=%d;\n"
+#~ " whatinfo_row=%d, list_row=%d;\n"
+#~ "\n"
+#~ msgstr ""
+#~ "baselist::startdisplay() terminat ...\n"
+#~ "\n"
+#~ " xmax=%d, ymax=%d;\n"
+#~ "\n"
+#~ " title_height=%d, colheads_height=%d, list_height=%d;\n"
+#~ " thisstate_height=%d, info_height=%d, whatinfo_height=%d;\n"
+#~ "\n"
+#~ " colheads_row=%d, thisstate_row=%d, info_row=%d;\n"
+#~ " whatinfo_row=%d, list_row=%d;\n"
+#~ "\n"
+
+#~ msgid "[none]"
+#~ msgstr "[niciuna]"
+
+#~ msgid "error un-catching signal %d: %s\n"
+#~ msgstr "eroare semnal necapturat %d: %s\n"
+
+#~ msgid "unable to ignore signal %d before running %s"
+#~ msgstr "nu pot ignora semnalul %d înainte de a rula %s"
+
+#~ msgid "(no clientdata)"
+#~ msgstr "(date client lipsă)"
+
+#~ msgid "<null>"
+#~ msgstr "<null>"
+
+#~ msgid "interrelationships affecting "
+#~ msgstr "relații interne care afectează "
+
+#~ msgid "description of "
+#~ msgstr "descriere a "
+
+#~ msgid "description"
+#~ msgstr "descriere"
+
+#~ msgid "currently installed control info"
+#~ msgstr "informația de control instalată în prezent"
+
+#~ msgid "available version of control info for "
+#~ msgstr "versiune disponibilă a informației de control pentru"

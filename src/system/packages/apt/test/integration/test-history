@@ -1,0 +1,177 @@
+#!/bin/sh
+set -e
+
+TESTDIR="$(readlink -f "$(dirname "$0")")"
+. "$TESTDIR/framework"
+setupenvironment
+configarchitecture 'amd64'
+
+buildsimplenativepackage 'pkg1' 'amd64' '1' 'stable'
+buildsimplenativepackage 'pkg2' 'amd64' '1' 'stable'
+
+
+setupaptarchive
+
+cathistory() {
+    sed rootdir/var/log/apt/history.log -re 's/^(Commandline|Start-Date|End-Date):.*/\1: dummy/'
+}
+
+
+testsuccess aptget install pkg1
+
+testequal "
+Start-Date: dummy
+Commandline: dummy
+Install: pkg1:amd64 (1)
+End-Date: dummy" cathistory
+
+testsuccess aptget install pkg2 --comment="A test comment"
+
+testequal "
+Start-Date: dummy
+Commandline: dummy
+Install: pkg1:amd64 (1)
+End-Date: dummy
+
+Start-Date: dummy
+Commandline: dummy
+Comment: A test comment
+Install: pkg2:amd64 (1)
+End-Date: dummy" cathistory
+
+normalizedinfo() {
+    apt history-info 0 | sed -E \
+    -e 's/^( *-?Start time *: ).*/\1dummy/' \
+    -e 's/^( *-?End time *: ).*/\1dummy/' \
+    -e 's|^( *-?Command line *: ).*/(.*)|\1\2|'
+}
+
+testsuccessequal "Transaction ID: 0
+Start time: dummy
+End time: dummy
+Requested by: 
+Command line: apt-get install pkg1
+Packages changed:
+    Install pkg1:amd64 (1)
+" normalizedinfo
+
+
+################################################################################
+# Read previous history for manipulation
+################################################################################
+
+# Test history
+# 0 - Install pkg1
+# 1 - Install pkg2
+# 2 - Remove pkg1 (undo ID 0)
+# 3 - Install pkg1 (undo ID 2)
+# 4 - Remove pkg1 (redo ID 2)
+# 5 - Install pkg1 (rollback to ID 1)
+# 6 - Remove pkg1 (rollback to ID 2)
+
+testdpkginstalled pkg1
+# undo the first package install
+apt history-undo 0 -y >> /dev/null
+testdpkgnotinstalled pkg1
+# ...which generates a new id that we also undo
+apt history-undo 2 -y >>/dev/null
+testdpkginstalled pkg1
+
+# redo the removal
+apt history-redo 2 -y >> /dev/null
+testdpkgnotinstalled pkg1
+
+# rollback to ID 1 and it should be installed
+apt history-rollback 1 -y >> /dev/null 
+testdpkginstalled pkg1
+# rollback to ID 2 and it should be removed
+apt history-rollback 2 -y >> /dev/null
+testdpkgnotinstalled pkg1
+# rollback to ID 0 and it should be installed
+apt history-rollback 0 -y >> /dev/null
+testdpkginstalled pkg1
+# rollback to ID 4 and it should be removed
+apt history-rollback 4 -y >> /dev/null
+testdpkgnotinstalled pkg1
+
+################################################################################
+# Reset history log
+################################################################################
+
+msgmsg "Actionless group"
+cat > rootdir/var/log/apt/history.log << EOF
+Start-Date: dummy
+Commandline: install nothing
+End-Date: dummy
+EOF
+
+testsuccessequal "ID  Command line     Date and Time  Action  Changes
+
+0   install nothing  dummy                  0      " apt history-list
+
+testsuccessequal "Transaction ID: 0
+Start time: dummy
+End time: dummy
+Requested by: 
+Command line: install nothing
+Packages changed:" normalizedinfo
+
+cat > rootdir/var/log/apt/history.log << EOF
+Start-Date: 1970-01-01 00:00:00
+Commandline: install nothing
+Install: nothing
+End-Date: 1970-01-01 00:00:00
+
+Start-Date: 1971-01-01 00:00:00
+Commandline: remove something
+Remove: something
+End-Date: 1971-01-01 00:00:00
+EOF
+
+testsuccessequal "ID  Command line     Date and Time        Action  Changes
+
+0   install nothing  1970-01-01 00:00:00  Install 1      
+1   remove something 1971-01-01 00:00:00  Remove  1      " apt history-list
+
+################################################################################
+# Test different column widths
+################################################################################
+settestcolumnwidth() {
+    local columns=$1
+    local A_chars
+    A_chars=$(printf 'a%.0s' $(seq 1 "$columns"))
+
+    cat > rootdir/var/log/apt/history.log << EOF
+Start-Date: dummy
+Commandline: $A_chars
+Install: nothing
+End-Date: dummy
+EOF
+
+    export COLUMNS="$columns"
+}
+
+settestcolumnwidth 80
+testsuccessequal "ID  Command line                                  Date and Time  Action  Changes
+
+0   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...dummy          Install 1      " apt history-list
+
+settestcolumnwidth 50
+testsuccessequal "ID  Command line    Date and Time  Action  Changes
+
+0   aaaaaaaaaaaaa...dummy          Install 1      " apt history-list
+
+settestcolumnwidth 100
+testsuccessequal "ID  Command line                                                      Date and Time  Action  Changes
+
+0   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...dummy          Install 1      " apt history-list
+
+settestcolumnwidth 60
+testsuccessequal "ID  Command line              Date and Time  Action  Changes
+
+0   aaaaaaaaaaaaaaaaaaaaaaa...dummy          Install 1      " apt history-list
+
+
+testfailureequal "E: Incorrect usage, no ID was given." apt history-redo
+testfailureequal "E: Incorrect usage, no ID was given." apt history-undo
+testfailureequal "E: Incorrect usage, no ID was given." apt history-rollback

@@ -1,0 +1,15 @@
+Tests: pkg-config-test
+Restrictions: superficial
+Depends: libapt-pkg-dev, pkg-config, g++
+
+Tests: run-tests
+Restrictions: allow-stderr
+Depends: @, @builddeps@, dpkg (>= 1.20.8), expect, fakeroot, wget, stunnel4, lsof, db-util,
+         gpgv,
+         gpgv-sq,
+         sq (>= 0.40),
+         sqv,
+         moreutils,
+         jq,
+         libfile-fcntllock-perl, python3-apt, aptitude,
+         valgrind-if-available [!armhf !ppc64el], gdb

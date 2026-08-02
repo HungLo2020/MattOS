@@ -134,3 +134,17 @@ repo = "https://github.com/curl/curl.git"
 branch = "master"
 path = "src/userland/curl"
 sync = "copy"
+
+[[component]]
+name = "dpkg"
+repo = "https://git.dpkg.org/git/dpkg/dpkg.git"
+branch = "main"
+path = "src/system/packages/dpkg"
+sync = "copy"
+
+[[component]]
+name = "apt"
+repo = "https://salsa.debian.org/apt-team/apt.git"
+branch = "main"
+path = "src/system/packages/apt"
+sync = "copy"
