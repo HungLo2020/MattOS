@@ -1,0 +1,19 @@
+	$ mkdir d
+	$ touch d/f
+	$ touch d/l
+	$ setfattr -n user.name -v value d/f
+	$ [ "$(id -u)" != 0 ] || setfattr -h -n trusted.name -v value d/l
+
+	$ getfattr -RP d > physical
+
+	$ setfattr --restore=physical
+	> Warning: option --restore=file is unsafe without option -P (--physical) as it traverses symbolic links in pathnames
+	> Warning: option --restore=file is unsafe without option -h (--no-dereference) as it dereferences symbolic link pathnames
+
+	$ setfattr --restore=physical -h
+	> Warning: option --restore=file is unsafe without option -P (--physical) as it traverses symbolic links in pathnames
+
+	$ setfattr --restore=physical --physical
+	> Warning: option --restore=file is unsafe without option -h (--no-dereference) as it dereferences symbolic link pathnames
+
+	$ setfattr --restore=physical -h --physical

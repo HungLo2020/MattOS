@@ -1,0 +1,28 @@
+noinst_LTLIBRARIES += libmisc.la
+
+noinst_HEADERS += \
+	libmisc/proc-self-fd.h
+
+libmisc_la_SOURCES = \
+	libmisc/getxattrat_compat.c \
+	libmisc/high_water_alloc.c \
+	libmisc/listxattrat_compat.c \
+	libmisc/next_line.c \
+	libmisc/proc-self-fd.c \
+	libmisc/quote.c \
+	libmisc/removexattrat_compat.c \
+	libmisc/setxattrat_compat.c \
+	libmisc/unquote.c \
+	libmisc/walk_tree.c
+
+if NEED_XATTRAT
+libmisc_la_SOURCES += \
+	libmisc/xattrat.c
+endif
+
+if USE_OPENAT2
+if !HAVE_OPENAT2
+libmisc_la_SOURCES += \
+	libmisc/openat2.c
+endif
+endif

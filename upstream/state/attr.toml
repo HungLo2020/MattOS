@@ -1,0 +1,7 @@
+component = "attr"
+repo = "https://git.savannah.nongnu.org/git/attr.git"
+branch = "v2.6.0"
+imported_commit = "c440855d6b33446edf4b5eb1a2d892281f15a99b"
+imported_at_utc = "2026-08-03T05:26:42.969680060+00:00"
+sync_method = "copy"
+destination_path = "src/system/libraries/attr"

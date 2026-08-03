@@ -1,0 +1,8 @@
+#! /usr/bin/perl -w
+
+undef $/;
+my @blocks = sort split(/\n\n/, <>);
+for my $block (@blocks) {
+    my @lines = grep { !/^security\.selinux/ } split(/\n/, $block);
+    print join("\n", @lines) . "\n\n" if @lines > 1;
+}

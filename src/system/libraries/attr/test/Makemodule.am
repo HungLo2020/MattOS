@@ -1,0 +1,22 @@
+TEST_EXTENSIONS = .run
+
+TESTS = \
+	test/attr.run \
+	test/root/getfattr.run
+
+if UNSAFE_RESTORE_WARNINGS
+TESTS += \
+	test/restore.run
+endif
+
+EXTRA_DIST += \
+	test/README \
+	test/run \
+	test/sort-getfattr-output \
+	$(TESTS)
+
+# Make sure translations don't break tests when matching output.
+AM_TESTS_ENVIRONMENT = \
+	export LC_MESSAGES=C; \
+	PATH="$(abs_top_builddir):$$PATH";
+RUN_LOG_COMPILER = $(srcdir)/test/run

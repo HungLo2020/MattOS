@@ -1,0 +1,7 @@
+component = "glibc"
+repo = "git://sourceware.org/git/glibc.git"
+branch = "glibc-2.43"
+imported_commit = "f762ccf84f122d1354f103a151cba8bde797d521"
+imported_at_utc = "2026-08-03T04:35:46.069681512+00:00"
+sync_method = "copy"
+destination_path = "src/system/libc/glibc"
