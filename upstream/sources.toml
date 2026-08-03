@@ -240,3 +240,46 @@ repo = "https://gitlab.freedesktop.org/libbsd/libbsd.git"
 branch = "0.12.2"
 path = "src/system/libraries/libbsd"
 sync = "copy"
+
+[[component]]
+name = "openssl"
+repo = "https://github.com/openssl/openssl.git"
+branch = "openssl-3.5.7"
+path = "src/system/libraries/openssl"
+sync = "copy"
+
+[[component]]
+name = "elfutils"
+repo = "https://sourceware.org/git/elfutils.git"
+branch = "elfutils-0.195"
+path = "src/system/libraries/elfutils"
+sync = "copy"
+
+[[component]]
+name = "pcre2"
+repo = "https://github.com/PCRE2Project/pcre2.git"
+branch = "pcre2-10.47"
+path = "src/system/libraries/pcre2"
+sync = "copy"
+
+[[component]]
+name = "sljit"
+repo = "https://github.com/zherczeg/sljit.git"
+branch = "master"
+revision = "45f910b78c6605ebf5b53d3ec7cb00f2312fe417"
+path = "src/build-support/sljit"
+sync = "copy"
+
+[[component]]
+name = "selinux"
+repo = "https://github.com/SELinuxProject/selinux.git"
+branch = "3.10"
+path = "src/system/security/selinux"
+sync = "copy"
+
+[[component]]
+name = "libxcrypt"
+repo = "https://github.com/besser82/libxcrypt.git"
+branch = "v4.4.38"
+path = "src/system/libraries/libxcrypt"
+sync = "copy"

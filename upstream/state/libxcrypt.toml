@@ -1,0 +1,7 @@
+component = "libxcrypt"
+repo = "https://github.com/besser82/libxcrypt.git"
+branch = "v4.4.38"
+imported_commit = "55ea777e8d567e5e86ffac917c28815ac54cc341"
+imported_at_utc = "2026-08-03T02:54:04.192503924+00:00"
+sync_method = "copy"
+destination_path = "src/system/libraries/libxcrypt"

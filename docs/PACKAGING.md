@@ -2,7 +2,7 @@
 
 MattOS uses Debian binary packages, `dpkg`, and APT without using Debian or Ubuntu as a binary source. Editable source and package policy live in this monorepo. Generated `.deb` files and repository indexes live under `out/` and are ignored build artifacts.
 
-This is a hybrid bootstrap, not a self-hosted distribution. Forty-one packages own the initial base, package-manager runtime, selected source-built libraries and GNU tar, administration/networking tools, D-Bus broker, and authentication stack. Full systemd executables and several host runtime libraries still follow the proven legacy assembly path.
+This is a hybrid bootstrap, not a self-hosted distribution. Fifty-two packages own the initial base, package-manager runtime, selected source-built libraries and GNU tar, administration/networking tools, D-Bus broker, and authentication stack. Full systemd executables still follow the legacy assembly path, while only five glibc/GCC runtime files remain host-derived.
 
 ## Imported package-manager sources
 
@@ -48,6 +48,11 @@ Versions use `<upstream-version>-1mattos1`. Package modes and timestamps are nor
 | `mattos-coreutils` | required | uutils multicall binary and non-conflicting applet symlinks |
 | `mattos-curl` | optional | curl CLI and its source-built matching `libcurl.so.4` ABI |
 | `mattos-libmd0`, `mattos-libbsd0` | important | source-built message-digest and BSD portability ABIs and SONAME links |
+| `mattos-libzstd1` | important | source-built Zstandard runtime ABI and SONAME links |
+| `mattos-libcrypto3`, `mattos-libssl3` | important | source-built OpenSSL crypto and TLS runtime ABIs and SONAME links |
+| `mattos-libelf1` | important | source-built elfutils `libelf.so.1` runtime ABI and SONAME links |
+| `mattos-libpcre2-8-0`, `mattos-libselinux1`, `mattos-libcrypt1` | important/required | source-built PCRE2, SELinux compatibility, and password-hashing runtime ABIs |
+| `mattos-libblkid1`, `mattos-libmount1`, `mattos-libsmartcols1`, `mattos-mount` | important/required | source-built util-linux mount closure replacing the former host mount/library copy path |
 | `mattos-dpkg` | required | the selected source-built dpkg runtime and support data |
 | `mattos-libapt-pkg` | important | source-built `libapt-pkg.so.7.0` runtime and SONAME links |
 | `mattos-apt` | important | APT commands, private library, local methods, helpers, solvers, planners, and configuration |
@@ -90,6 +95,9 @@ Directories may be shared. Regular files and symlinks may have only one package 
 | `/usr/bin/tar`, `libacl.so.1`, `libz.so.1`, `libbz2.so.1.0` | `mattos-tar`, `mattos-libacl1`, `mattos-zlib1g`, `mattos-libbz2-1.0` | excluded from bootstrap closure and rejected if restored |
 | `liblz4.so.1`, `liblzma.so.5`, `libxxhash.so.0` | `mattos-liblz4-1`, `mattos-liblzma5`, `mattos-libxxhash0` | excluded from bootstrap closure and rejected if restored |
 | `libmd.so.0`, `libbsd.so.0` | `mattos-libmd0`, `mattos-libbsd0` | excluded from bootstrap closure and rejected if restored |
+| `libzstd.so.1`, `libcrypto.so.3`, `libssl.so.3`, `libelf.so.1` | `mattos-libzstd1`, `mattos-libcrypto3`, `mattos-libssl3`, `mattos-libelf1` | excluded from bootstrap closure and rejected if restored |
+| `libpcre2-8.so.0`, `libselinux.so.1`, `libcrypt.so.1` | `mattos-libpcre2-8-0`, `mattos-libselinux1`, `mattos-libcrypt1` | excluded from bootstrap closure and rejected if restored |
+| `mount`, `umount`, `libblkid.so.1`, `libmount.so.1`, `libsmartcols.so.1` | four util-linux packages | former host-copy path removed; every file is dpkg-owned |
 
 The dependency-aware order is computed from declared edges rather than this table or `PACKAGE_NAMES`. Independent packages retain a stable declaration-order tie break. A cycle or unknown MattOS dependency stops repository creation and rootfs installation.
 
@@ -115,9 +123,15 @@ Mutable lists, archives, logs, partial files, and locks are never package payloa
 
 `mattos-bootstrap-runtime` is an explicit transitional package, not a glibc package. At build time the packager runs `ldd` over every selected packaged ELF root. It resolves against MattOS component install trees first, excludes every library now owned by a dedicated package, normalizes the remaining closure under `/usr/lib/x86_64-linux-gnu` and the loader under `/usr/lib64`, and records destination, source, reason, and SHA-256 for every file in `runtime-files.tsv`.
 
-The package no longer owns GNU tar, ACL, zlib, bzip2, LZ4, liblzma, xxHash, libmd, libbsd, libudev, libsystemd, PAM, ncurses, kmod, procps, Expat, or libcap. The original audit found 23 payload files and 17,600,184 bytes; Expat/libcap reduced that to 21 files and 17,365,960 bytes, tar/ACL/zlib/bzip2 reduced it to 17 files and 16,669,816 bytes, compression reduced it to 14 files and 16,191,736 bytes, and libmd/libbsd reduce it to 12 files and 16,042,648 bytes. Zstandard remains bootstrap-owned because bootstrap-owned OpenSSL and libelf directly consume it; introducing `mattos-libzstd1` now would create a bootstrap dependency cycle. This remains a portability and trust limitation. See `docs/BOOTSTRAP_RUNTIME.md` and the generated `out/reports/bootstrap-runtime-audit.toml`.
+The package no longer owns GNU tar, ACL, zlib, bzip2, LZ4, liblzma, xxHash, Zstandard, OpenSSL, elfutils, libmd, libbsd, PCRE2, SELinux, libxcrypt, libudev, libsystemd, PAM, ncurses, kmod, procps, Expat, or libcap. The original audit found 23 payload files and 17,600,184 bytes; the prior coordinated migration reached 8 files and 7,639,680 bytes, and this final pre-toolchain milestone reaches 5 files and 6,518,032 bytes. Only `libc.so.6`, `libm.so.6`, the ELF loader, `libgcc_s.so.1`, and `libstdc++.so.6` remain. See `docs/BOOTSTRAP_RUNTIME.md` and the generated `out/reports/bootstrap-runtime-audit.toml`.
 
-`mattos-curl` continues to carry its matching source-built `libcurl.so.4` because splitting one small ABI pair would add churn without improving this milestone. It depends on the exact bootstrap runtime and on `mattos-ca-certificates`.
+`mattos-curl` continues to carry its matching source-built `libcurl.so.4` because splitting one small ABI pair would add churn without improving this milestone. It depends on the exact bootstrap runtime, CA bundle, zlib, Zstandard, libcrypto, and libssl packages.
+
+### OpenSSL runtime policy
+
+OpenSSL is configured for shared `linux-x86_64` libraries under `/usr/lib/x86_64-linux-gnu`, with `OPENSSLDIR=/etc/ssl`, zlib and Zstandard enabled, and applications, tests, documentation, the legacy provider, and loadable modules disabled. With `no-module`, the default provider is compiled into `libcrypto`; no provider module tree or OpenSSL configuration file is runtime payload. `mattos-libcrypto3` owns `libcrypto.so.3`, and `mattos-libssl3` owns `libssl.so.3` and depends on the exact crypto package.
+
+curl is rebuilt against those exact staged libraries. Its compiled CA file is `/etc/ssl/certs/ca-certificates.crt`, its default CA directory is disabled, and ordinary HTTPS verification remains enabled.
 
 ### CA certificates
 
@@ -134,21 +148,38 @@ mattos-apt -> mattos-bootstrap-runtime (= exact), mattos-dpkg (= exact),
               mattos-libapt-pkg (= exact), mattos-ca-certificates
 mattos-brush/coreutils -> mattos-bootstrap-runtime (= exact)
 mattos-curl -> mattos-bootstrap-runtime (= exact), mattos-ca-certificates
+mattos-libzstd1 -> mattos-bootstrap-runtime (= exact)
+mattos-libcrypto3 -> mattos-bootstrap-runtime, mattos-zlib1g,
+                     mattos-libzstd1 (= exact)
+mattos-libssl3 -> mattos-bootstrap-runtime, mattos-libcrypto3,
+                  mattos-zlib1g, mattos-libzstd1 (= exact)
+mattos-libelf1 -> mattos-bootstrap-runtime, mattos-zlib1g,
+                  mattos-libzstd1 (= exact)
+mattos-curl -> mattos-zlib1g, mattos-libzstd1, mattos-libcrypto3,
+               mattos-libssl3 (= exact)
 mattos-tar -> mattos-bootstrap-runtime, mattos-libacl1 (= exact)
-mattos-dpkg -> mattos-tar, mattos-zlib1g, mattos-libbz2-1.0 (= exact)
+mattos-dpkg -> mattos-tar, mattos-zlib1g, mattos-libbz2-1.0,
+               mattos-libzstd1 (= exact)
 mattos-dpkg -> mattos-liblzma5 (= exact)
 mattos-dpkg -> mattos-libmd0 (= exact)
 mattos-libbsd0 -> mattos-libmd0 (= exact)
 mattos-shadow -> mattos-libbsd0, mattos-libmd0 (= exact)
 mattos-libapt-pkg/mattos-apt -> mattos-zlib1g, mattos-libbz2-1.0,
                                 mattos-liblz4-1, mattos-liblzma5,
-                                mattos-libxxhash0 (= exact)
-mattos-curl/mattos-iproute2 -> mattos-zlib1g (= exact, required by their transitive ELF closures)
+                                mattos-libxxhash0, mattos-libzstd1,
+                                mattos-libcrypto3 (= exact)
+mattos-iproute2 -> mattos-zlib1g, mattos-libzstd1, mattos-libelf1 (= exact)
 mattos-procps -> mattos-libproc2, mattos-libncursesw6, mattos-libtinfow6 (= exact)
 mattos-dbus-broker -> mattos-libsystemd0, mattos-libexpat1 (= exact)
 mattos-iproute2 -> mattos-libcap2 (= exact)
 mattos-pam-runtime -> mattos-libpam0, mattos-pam-modules (= exact)
 mattos-shadow/sudo-rs/util-linux-auth -> exact PAM packages
+mattos-libselinux1 -> mattos-libpcre2-8-0 (= exact)
+mattos-dpkg/mattos-iproute2 -> mattos-libselinux1, mattos-libpcre2-8-0 (= exact)
+mattos-pam-modules/mattos-pam-runtime/mattos-shadow -> mattos-libcrypt1 (= exact)
+mattos-libmount1 -> mattos-libblkid1 (= exact)
+mattos-mount -> mattos-libblkid1, mattos-libmount1,
+                mattos-libsmartcols1, mattos-libselinux1 (= exact)
 ```
 
 Only `mattos-filesystem` is `Essential: yes`, because removing the merged-`/usr` structure makes all packages unsafe. `mattos-base-files` and `mattos-dpkg` are Priority `required` but deliberately non-Essential during the prototype so the Essential set does not grow ahead of a mature recovery policy. Removal of core packages is not tested in the primary image.
@@ -196,6 +227,7 @@ The live rootfs contains no pre-baked APT list or archive state. With or without
 sudo apt-get update
 sudo apt-get install --reinstall -y mattos-brush
 sudo apt-get install --reinstall -y mattos-libbsd0
+sudo apt-get install --reinstall -y mattos-libzstd1
 sudo apt-get install --reinstall -y mattos-iputils mattos-procps mattos-ncurses-bin
 cd /tmp
 apt-get download mattos-brush
@@ -209,4 +241,4 @@ Rootfs assembly builds all packages and the repository, initializes an empty dpk
 
 Host `dpkg-deb` and `dpkg` still build and install archives. Host `dpkg-scanpackages`, `apt-ftparchive`, and deterministic `gzip` still create indexes. Host `file`, `readelf`, and `ldd` support closure inspection. This is a bootstrap boundary, not self-hosting.
 
-The next safe migration order is a coordinated OpenSSL/elfutils split that releases the Zstandard dependency cycle, then PCRE2/libxcrypt/SELinux. A MattOS-built libc and dynamic loader and the GCC/libstdc++ runtimes remain later toolchain boundaries. A standalone libcurl package, Perl and remaining dpkg helpers, and full systemd packaging can follow independently. Repository signing, online publication, persistence, installation, and automatic upgrades are separate future milestones.
+The next coordinated migration must bootstrap glibc (`libc.so.6`, `libm.so.6`, and the ELF loader) and then the GCC runtime/toolchain (`libgcc_s.so.1` and `libstdc++.so.6`). A standalone libcurl package, Perl and remaining dpkg helpers, and full systemd packaging can follow independently. Repository signing, online publication, persistence, installation, and automatic upgrades are separate future milestones.

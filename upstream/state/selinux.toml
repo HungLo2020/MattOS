@@ -1,0 +1,7 @@
+component = "selinux"
+repo = "https://github.com/SELinuxProject/selinux.git"
+branch = "3.10"
+imported_commit = "ca10fc4204ed60540d41d2499127c18ad0643f9e"
+imported_at_utc = "2026-08-03T02:54:02.826922950+00:00"
+sync_method = "copy"
+destination_path = "src/system/security/selinux"

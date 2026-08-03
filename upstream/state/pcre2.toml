@@ -1,0 +1,7 @@
+component = "pcre2"
+repo = "https://github.com/PCRE2Project/pcre2.git"
+branch = "pcre2-10.47"
+imported_commit = "f454e231fe5006dd7ff8f4693fd2b8eb94333429"
+imported_at_utc = "2026-08-03T02:54:00.419568887+00:00"
+sync_method = "copy"
+destination_path = "src/system/libraries/pcre2"

@@ -267,44 +267,49 @@ enum UpstreamCommands {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
 enum BuildStage {
-	Kernel,
-	Brush,
-	Coreutils,
-	Grep,
-	Sed,
-	Findutils,
-	Diffutils,
-	Kmod,
-	Procps,
-	Ncurses,
-	Iproute2,
-	Iputils,
-	Curl,
-	Expat,
-	Libcap,
-	Tar,
-	Acl,
-	Zlib,
-	Bzip2,
-	Lz4,
-	Xz,
-	Xxhash,
-	Zstd,
-	Libmd,
-	Libbsd,
-	Pam,
-	Shadow,
-	SudoRs,
-	UtilLinux,
-	Systemd,
-	DbusBroker,
-	Dpkg,
-	Apt,
-	Init,
-	Rootfs,
-	Initramfs,
-	Iso,
-	All,
+    Kernel,
+    Brush,
+    Coreutils,
+    Grep,
+    Sed,
+    Findutils,
+    Diffutils,
+    Kmod,
+    Procps,
+    Ncurses,
+    Iproute2,
+    Iputils,
+    Curl,
+    Expat,
+    Libcap,
+    Tar,
+    Acl,
+    Zlib,
+    Bzip2,
+    Lz4,
+    Xz,
+    Xxhash,
+    Zstd,
+    Openssl,
+    Elfutils,
+    Pcre2,
+    Selinux,
+    Libxcrypt,
+    Libmd,
+    Libbsd,
+    Pam,
+    Shadow,
+    SudoRs,
+    UtilLinux,
+    Systemd,
+    DbusBroker,
+    Dpkg,
+    Apt,
+    Init,
+    Rootfs,
+    Initramfs,
+    Iso,
+    All,
 }
 
 #[derive(Clone, Debug, ValueEnum)]
@@ -370,159 +375,176 @@ fn main() -> Result<()> {
 }
 
 fn doctor() -> Result<()> {
-	println!("MattOS doctor");
+    println!("MattOS doctor");
 
-	if cfg!(windows) {
-		bail!("MattOS build is Linux-native for this milestone; run doctor from Linux filesystem")
-	}
+    if cfg!(windows) {
+        bail!("MattOS build is Linux-native for this milestone; run doctor from Linux filesystem")
+    }
 
-	let mut missing_required = Vec::new();
-	let mut broken_required = Vec::new();
-	let mut missing_optional = Vec::new();
-	let mut broken_optional = Vec::new();
+    let mut missing_required = Vec::new();
+    let mut broken_required = Vec::new();
+    let mut missing_optional = Vec::new();
+    let mut broken_optional = Vec::new();
 
-	println!("\n[Required tools]");
-	let local_tools = local_tool_env(&std::env::current_dir().context("cwd")?);
-	let local_path_hint = local_tools.as_ref().map(|e| e.tool_bin_dir.display().to_string());
-	for tool in [
-		"git",
-		"cargo",
-		"rustc",
-		"make",
-		"gcc",
-		"autoreconf",
-		"autopoint",
-		"gnulib-tool",
-		"meson",
-		"ninja",
-		"gperf",
-		"ld",
-		"objcopy",
-		"objdump",
-		"perl",
-		"python3",
-		"bc",
-		"cpio",
-		"gzip",
-		"mformat",
-		"mcopy",
-		"grub-mkrescue",
-		"xorriso",
-		"pkg-config",
-		"bash",
-		"bison",
-		"flex",
-		"file",
-		"readelf",
-		"ldd",
-		"rsync",
-		"bindgen",
-		"cmake",
-		"dpkg",
-		"dpkg-deb",
-		"dpkg-query",
-		"dpkg-scanpackages",
-		"fakeroot",
-		"apt-ftparchive",
-		"zstd",
-		"xz",
-		"tar",
-		"triehash",
-	] {
-		if !check_host_tool_with_hint(tool, true, local_path_hint.as_deref())? {
-			missing_required.push(tool);
-		}
-	}
+    println!("\n[Required tools]");
+    let local_tools = local_tool_env(&std::env::current_dir().context("cwd")?);
+    let local_path_hint = local_tools
+        .as_ref()
+        .map(|e| e.tool_bin_dir.display().to_string());
+    for tool in [
+        "git",
+        "cargo",
+        "rustc",
+        "make",
+        "gcc",
+        "autoreconf",
+        "autopoint",
+        "gnulib-tool",
+        "meson",
+        "ninja",
+        "gperf",
+        "gawk",
+        "ld",
+        "objcopy",
+        "objdump",
+        "perl",
+        "python3",
+        "bc",
+        "cpio",
+        "gzip",
+        "mformat",
+        "mcopy",
+        "grub-mkrescue",
+        "xorriso",
+        "pkg-config",
+        "bash",
+        "bison",
+        "flex",
+        "file",
+        "readelf",
+        "ldd",
+        "rsync",
+        "bindgen",
+        "cmake",
+        "dpkg",
+        "dpkg-deb",
+        "dpkg-query",
+        "dpkg-scanpackages",
+        "fakeroot",
+        "apt-ftparchive",
+        "zstd",
+        "xz",
+        "tar",
+        "triehash",
+    ] {
+        if !check_host_tool_with_hint(tool, true, local_path_hint.as_deref())? {
+            missing_required.push(tool);
+        }
+    }
 
-	for (tool, args) in [("mformat", vec!["-V"]), ("mcopy", vec!["-V"]), ("meson", vec!["--version"]), ("ninja", vec!["--version"]), ("grub-mkrescue", vec!["--version"]), ("xorriso", vec!["-version"]), ("bindgen", vec!["--version"])] {
-		if missing_required.contains(&tool) {
-			continue;
-		}
-		if let Some(message) = check_tool_runtime(tool, &args)? {
-			println!("[broken]  {tool} ({message})");
-			broken_required.push(tool);
-		}
-	}
+    for (tool, args) in [
+        ("mformat", vec!["-V"]),
+        ("mcopy", vec!["-V"]),
+        ("meson", vec!["--version"]),
+        ("ninja", vec!["--version"]),
+        ("grub-mkrescue", vec!["--version"]),
+        ("xorriso", vec!["-version"]),
+        ("bindgen", vec!["--version"]),
+    ] {
+        if missing_required.contains(&tool) {
+            continue;
+        }
+        if let Some(message) = check_tool_runtime(tool, &args)? {
+            println!("[broken]  {tool} ({message})");
+            broken_required.push(tool);
+        }
+    }
 
-	if let Some(message) = check_tool_runtime("python3", &["-c", "import jinja2"])? {
-		println!("[broken]  python3-jinja2 ({message})");
-		broken_required.push("python3-jinja2");
-	}
+    if let Some(message) = check_tool_runtime("python3", &["-c", "import jinja2"])? {
+        println!("[broken]  python3-jinja2 ({message})");
+        broken_required.push("python3-jinja2");
+    }
 
-	if let Some(message) = check_tool_runtime("pkg-config", &["--exists", "mount"])? {
-		println!("[broken]  libmount-dev ({message})");
-		broken_required.push("libmount-dev");
-	}
-	if let Some(message) = check_tool_runtime("pkg-config", &["--exists", "openssl"])? {
-		println!("[broken]  libssl-dev ({message})");
-		broken_required.push("libssl-dev");
-	}
-	if let Some(message) = check_tool_runtime("pkg-config", &["--atleast-version=2.2", "expat"])? {
-		println!("[broken]  libexpat1-dev ({message})");
-		broken_required.push("libexpat1-dev");
-	}
-	for (module, package) in [("zlib", "zlib1g-dev"), ("liblzma", "liblzma-dev"), ("libzstd", "libzstd-dev"), ("liblz4", "liblz4-dev"), ("libxxhash", "libxxhash-dev")] {
-		if let Some(message) = check_tool_runtime("pkg-config", &["--exists", module])? {
-			println!("[broken]  {package} ({message})");
-			broken_required.push(package);
-		}
-	}
+    if let Some(message) = check_tool_runtime("pkg-config", &["--exists", "mount"])? {
+        println!("[broken]  libmount-dev ({message})");
+        broken_required.push("libmount-dev");
+    }
+    if let Some(message) = check_tool_runtime("pkg-config", &["--exists", "openssl"])? {
+        println!("[broken]  libssl-dev ({message})");
+        broken_required.push("libssl-dev");
+    }
+    if let Some(message) = check_tool_runtime("pkg-config", &["--atleast-version=2.2", "expat"])? {
+        println!("[broken]  libexpat1-dev ({message})");
+        broken_required.push("libexpat1-dev");
+    }
+    for (module, package) in [
+        ("zlib", "zlib1g-dev"),
+        ("liblzma", "liblzma-dev"),
+        ("libzstd", "libzstd-dev"),
+        ("liblz4", "liblz4-dev"),
+        ("libxxhash", "libxxhash-dev"),
+    ] {
+        if let Some(message) = check_tool_runtime("pkg-config", &["--exists", module])? {
+            println!("[broken]  {package} ({message})");
+            broken_required.push(package);
+        }
+    }
 
-	println!("\n[Optional tools]");
-	for tool in ["qemu-system-x86_64", "clang"] {
-		if !check_host_tool_with_hint(tool, false, local_path_hint.as_deref())? {
-			missing_optional.push(tool);
-		}
-	}
+    println!("\n[Optional tools]");
+    for tool in ["qemu-system-x86_64", "clang"] {
+        if !check_host_tool_with_hint(tool, false, local_path_hint.as_deref())? {
+            missing_optional.push(tool);
+        }
+    }
 
-	for (tool, args) in [("qemu-system-x86_64", vec!["--version"])] {
-		if missing_optional.contains(&tool) {
-			continue;
-		}
-		if let Some(message) = check_tool_runtime(tool, &args)? {
-			println!("[broken]  {tool} ({message})");
-			broken_optional.push(tool);
-		}
-	}
+    for (tool, args) in [("qemu-system-x86_64", vec!["--version"])] {
+        if missing_optional.contains(&tool) {
+            continue;
+        }
+        if let Some(message) = check_tool_runtime(tool, &args)? {
+            println!("[broken]  {tool} ({message})");
+            broken_optional.push(tool);
+        }
+    }
 
-	let mut required_issues: Vec<&str> = Vec::new();
-	required_issues.extend(missing_required.iter().copied());
-	required_issues.extend(broken_required.iter().copied());
-	required_issues.sort_unstable();
-	required_issues.dedup();
+    let mut required_issues: Vec<&str> = Vec::new();
+    required_issues.extend(missing_required.iter().copied());
+    required_issues.extend(broken_required.iter().copied());
+    required_issues.sort_unstable();
+    required_issues.dedup();
 
-	let mut optional_issues: Vec<&str> = Vec::new();
-	optional_issues.extend(missing_optional.iter().copied());
-	optional_issues.extend(broken_optional.iter().copied());
-	optional_issues.sort_unstable();
-	optional_issues.dedup();
+    let mut optional_issues: Vec<&str> = Vec::new();
+    optional_issues.extend(missing_optional.iter().copied());
+    optional_issues.extend(broken_optional.iter().copied());
+    optional_issues.sort_unstable();
+    optional_issues.dedup();
 
-	if !required_issues.is_empty() || !optional_issues.is_empty() {
-		println!("\n[Suggested packages]");
-		if let Some(cmd) = suggested_package_command(&required_issues, &optional_issues)? {
-			println!("{cmd}");
-		} else {
-			println!("No package manager hint available; install missing tools manually.");
-		}
-	}
+    if !required_issues.is_empty() || !optional_issues.is_empty() {
+        println!("\n[Suggested packages]");
+        if let Some(cmd) = suggested_package_command(&required_issues, &optional_issues)? {
+            println!("{cmd}");
+        } else {
+            println!("No package manager hint available; install missing tools manually.");
+        }
+    }
 
-	if !missing_required.is_empty() {
-		println!("\n[Required missing tools] {}", missing_required.join(", "));
-	}
-	if !broken_required.is_empty() {
-		println!("[Required broken tools] {}", broken_required.join(", "));
-	}
+    if !missing_required.is_empty() {
+        println!("\n[Required missing tools] {}", missing_required.join(", "));
+    }
+    if !broken_required.is_empty() {
+        println!("[Required broken tools] {}", broken_required.join(", "));
+    }
 
-	if !missing_required.is_empty() || !broken_required.is_empty() {
-		bail!("doctor detected missing or broken required prerequisites")
-	}
+    if !missing_required.is_empty() || !broken_required.is_empty() {
+        bail!("doctor detected missing or broken required prerequisites")
+    }
 
-	if !missing_optional.is_empty() || !broken_optional.is_empty() {
-		println!("doctor completed with optional warnings");
-	} else {
-		println!("doctor completed successfully");
-	}
-	Ok(())
+    if !missing_optional.is_empty() || !broken_optional.is_empty() {
+        println!("doctor completed with optional warnings");
+    } else {
+        println!("doctor completed successfully");
+    }
+    Ok(())
 }
 
 fn upstream_command(repo_root: &Path, command: UpstreamCommands) -> Result<()> {
@@ -1394,94 +1416,104 @@ fn build(repo_root: &Path, stage: BuildStage) -> Result<()> {
 }
 
 fn build_plan(stage: BuildStage) -> Vec<BuildStage> {
-	if stage == BuildStage::All {
-		return vec![
-			BuildStage::Kernel,
-			BuildStage::Brush,
-			BuildStage::Coreutils,
-			BuildStage::Grep,
-			BuildStage::Sed,
-			BuildStage::Findutils,
-			BuildStage::Diffutils,
-			BuildStage::Expat,
-			BuildStage::Libcap,
-			BuildStage::Acl,
-			BuildStage::Zlib,
-			BuildStage::Bzip2,
-			BuildStage::Lz4,
-			BuildStage::Xz,
-			BuildStage::Xxhash,
-			BuildStage::Zstd,
-			BuildStage::Libmd,
-			BuildStage::Libbsd,
-			BuildStage::Tar,
-			BuildStage::Ncurses,
-			BuildStage::Procps,
-			BuildStage::Iproute2,
-			BuildStage::Iputils,
-			BuildStage::Curl,
-			BuildStage::Pam,
-			BuildStage::UtilLinux,
-			BuildStage::Kmod,
-			BuildStage::Shadow,
-			BuildStage::SudoRs,
-			BuildStage::Systemd,
-			BuildStage::DbusBroker,
-			BuildStage::Dpkg,
-			BuildStage::Apt,
-			BuildStage::Init,
-			BuildStage::Rootfs,
-			BuildStage::Initramfs,
-			BuildStage::Iso,
-		];
-	}
+    if stage == BuildStage::All {
+        return vec![
+            BuildStage::Kernel,
+            BuildStage::Brush,
+            BuildStage::Coreutils,
+            BuildStage::Grep,
+            BuildStage::Sed,
+            BuildStage::Findutils,
+            BuildStage::Diffutils,
+            BuildStage::Expat,
+            BuildStage::Libcap,
+            BuildStage::Acl,
+            BuildStage::Zlib,
+            BuildStage::Bzip2,
+            BuildStage::Lz4,
+            BuildStage::Xz,
+            BuildStage::Xxhash,
+            BuildStage::Zstd,
+            BuildStage::Openssl,
+            BuildStage::Elfutils,
+            BuildStage::Pcre2,
+            BuildStage::Selinux,
+            BuildStage::Libxcrypt,
+            BuildStage::Libmd,
+            BuildStage::Libbsd,
+            BuildStage::Tar,
+            BuildStage::Ncurses,
+            BuildStage::Procps,
+            BuildStage::Iproute2,
+            BuildStage::Iputils,
+            BuildStage::Curl,
+            BuildStage::Pam,
+            BuildStage::UtilLinux,
+            BuildStage::Kmod,
+            BuildStage::Shadow,
+            BuildStage::SudoRs,
+            BuildStage::Systemd,
+            BuildStage::DbusBroker,
+            BuildStage::Dpkg,
+            BuildStage::Apt,
+            BuildStage::Init,
+            BuildStage::Rootfs,
+            BuildStage::Initramfs,
+            BuildStage::Iso,
+        ];
+    }
 
-	vec![stage]
+    vec![stage]
 }
 
 fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
-	match stage {
-		BuildStage::Kernel => build_kernel(repo_root),
-		BuildStage::Brush => build_brush(repo_root),
-		BuildStage::Coreutils => build_coreutils(repo_root),
-		BuildStage::Grep => build_grep(repo_root),
-		BuildStage::Sed => build_sed(repo_root),
-		BuildStage::Findutils => build_findutils(repo_root),
-		BuildStage::Diffutils => build_diffutils(repo_root),
-		BuildStage::Kmod => build_kmod(repo_root),
-		BuildStage::Procps => build_procps(repo_root),
-		BuildStage::Ncurses => build_ncurses(repo_root),
-		BuildStage::Iproute2 => build_iproute2(repo_root),
-		BuildStage::Iputils => build_iputils(repo_root),
-		BuildStage::Curl => build_curl(repo_root),
-		BuildStage::Expat => build_expat(repo_root),
-		BuildStage::Libcap => build_libcap(repo_root),
-		BuildStage::Tar => build_tar(repo_root),
-		BuildStage::Acl => build_acl(repo_root),
-		BuildStage::Zlib => build_zlib(repo_root),
-		BuildStage::Bzip2 => build_bzip2(repo_root),
-		BuildStage::Lz4 => build_lz4(repo_root),
-		BuildStage::Xz => build_xz(repo_root),
-		BuildStage::Xxhash => build_xxhash(repo_root),
-		BuildStage::Zstd => build_zstd(repo_root),
-		BuildStage::Libmd => build_libmd(repo_root),
-		BuildStage::Libbsd => build_libbsd(repo_root),
-		BuildStage::Pam => build_linux_pam(repo_root),
-		BuildStage::Shadow => build_shadow(repo_root),
-		BuildStage::SudoRs => build_sudo_rs(repo_root),
-		BuildStage::UtilLinux => build_util_linux(repo_root),
-		BuildStage::Systemd => build_systemd(repo_root),
-		BuildStage::DbusBroker => build_dbus_broker(repo_root),
-		BuildStage::Dpkg => packaging::build_dpkg(repo_root),
-		BuildStage::Apt => packaging::build_apt(repo_root),
-		BuildStage::Init => build_init(repo_root),
-		BuildStage::Rootfs => build_rootfs(repo_root),
-		BuildStage::Initramfs => build_initramfs(repo_root),
-		BuildStage::Iso => build_iso(repo_root),
-		BuildStage::All => {
-			bail!("internal error: BuildStage::All should be expanded by build_plan")
-		}
-	}
+    match stage {
+        BuildStage::Kernel => build_kernel(repo_root),
+        BuildStage::Brush => build_brush(repo_root),
+        BuildStage::Coreutils => build_coreutils(repo_root),
+        BuildStage::Grep => build_grep(repo_root),
+        BuildStage::Sed => build_sed(repo_root),
+        BuildStage::Findutils => build_findutils(repo_root),
+        BuildStage::Diffutils => build_diffutils(repo_root),
+        BuildStage::Kmod => build_kmod(repo_root),
+        BuildStage::Procps => build_procps(repo_root),
+        BuildStage::Ncurses => build_ncurses(repo_root),
+        BuildStage::Iproute2 => build_iproute2(repo_root),
+        BuildStage::Iputils => build_iputils(repo_root),
+        BuildStage::Curl => build_curl(repo_root),
+        BuildStage::Expat => build_expat(repo_root),
+        BuildStage::Libcap => build_libcap(repo_root),
+        BuildStage::Tar => build_tar(repo_root),
+        BuildStage::Acl => build_acl(repo_root),
+        BuildStage::Zlib => build_zlib(repo_root),
+        BuildStage::Bzip2 => build_bzip2(repo_root),
+        BuildStage::Lz4 => build_lz4(repo_root),
+        BuildStage::Xz => build_xz(repo_root),
+        BuildStage::Xxhash => build_xxhash(repo_root),
+        BuildStage::Zstd => build_zstd(repo_root),
+        BuildStage::Openssl => build_openssl(repo_root),
+        BuildStage::Elfutils => build_elfutils(repo_root),
+        BuildStage::Pcre2 => build_pcre2(repo_root),
+        BuildStage::Selinux => build_selinux(repo_root),
+        BuildStage::Libxcrypt => build_libxcrypt(repo_root),
+        BuildStage::Libmd => build_libmd(repo_root),
+        BuildStage::Libbsd => build_libbsd(repo_root),
+        BuildStage::Pam => build_linux_pam(repo_root),
+        BuildStage::Shadow => build_shadow(repo_root),
+        BuildStage::SudoRs => build_sudo_rs(repo_root),
+        BuildStage::UtilLinux => build_util_linux(repo_root),
+        BuildStage::Systemd => build_systemd(repo_root),
+        BuildStage::DbusBroker => build_dbus_broker(repo_root),
+        BuildStage::Dpkg => packaging::build_dpkg(repo_root),
+        BuildStage::Apt => packaging::build_apt(repo_root),
+        BuildStage::Init => build_init(repo_root),
+        BuildStage::Rootfs => build_rootfs(repo_root),
+        BuildStage::Initramfs => build_initramfs(repo_root),
+        BuildStage::Iso => build_iso(repo_root),
+        BuildStage::All => {
+            bail!("internal error: BuildStage::All should be expanded by build_plan")
+        }
+    }
 }
 
 fn build_kernel(repo_root: &Path) -> Result<()> {
@@ -1608,41 +1640,64 @@ fn build_linux_pam(repo_root: &Path) -> Result<()> {
 	let build_dir = out_root.join("build");
 	let install_dir = out_root.join("install");
 	let options_path = out_root.join("meson-options.txt");
+	let libxcrypt = repo_root.join("out/build/libxcrypt/install/usr");
+	let libxcrypt_lib = libxcrypt.join("lib/x86_64-linux-gnu");
+	if !libxcrypt.join("include/crypt.h").is_file() || !libxcrypt_lib.join("libcrypt.so").exists() {
+		bail!("MattOS-built libxcrypt development files are missing; run build libxcrypt first");
+	}
 	fs::create_dir_all(&out_root).with_context(|| format!("failed to create {}", out_root.display()))?;
 
 	let options = linux_pam_meson_options();
-	let options_text = format!("{}\n", options.join("\n"));
+	let env_overrides = [
+		("CPPFLAGS", format!("-I{}", libxcrypt.join("include").display())),
+		("LDFLAGS", format!("-L{}", libxcrypt_lib.display())),
+		("LIBRARY_PATH", libxcrypt_lib.display().to_string()),
+		("LD_LIBRARY_PATH", libxcrypt_lib.display().to_string()),
+		("PKG_CONFIG_PATH", libxcrypt_lib.join("pkgconfig").display().to_string()),
+	];
+	let options_text = format!(
+		"{}\n{}\n",
+		options.join("\n"),
+		env_overrides.iter().map(|(key, value)| format!("{key}={value}")).collect::<Vec<_>>().join("\n")
+	);
 	let existing_options = fs::read_to_string(&options_path).ok();
 	let needs_reconfigure = existing_options.as_deref() != Some(options_text.as_str());
+	if needs_reconfigure && build_dir.exists() {
+		fs::remove_dir_all(&build_dir).with_context(|| format!("failed to reset {}", build_dir.display()))?;
+	}
 	let configured = build_dir.join("build.ninja").exists();
 
 	if !configured {
 		let mut setup_args = vec!["setup".to_string(), build_dir.display().to_string(), pam_src.display().to_string()];
 		setup_args.extend(options.clone());
 		let setup_refs: Vec<&str> = setup_args.iter().map(String::as_str).collect();
-		run_cmd(repo_root, "meson", &setup_refs)?;
+		run_cmd_with_env_overrides(repo_root, "meson", &setup_refs, &env_overrides)?;
 		fs::write(&options_path, &options_text).with_context(|| format!("failed to write {}", options_path.display()))?;
 	} else if needs_reconfigure {
 		let mut setup_args = vec!["setup".to_string(), "--reconfigure".to_string(), build_dir.display().to_string(), pam_src.display().to_string()];
 		setup_args.extend(options.clone());
 		let setup_refs: Vec<&str> = setup_args.iter().map(String::as_str).collect();
-		run_cmd(repo_root, "meson", &setup_refs)?;
+		run_cmd_with_env_overrides(repo_root, "meson", &setup_refs, &env_overrides)?;
 		fs::write(&options_path, &options_text).with_context(|| format!("failed to write {}", options_path.display()))?;
 	}
 
-	run_cmd(repo_root, "meson", &["compile", "-C", build_dir.to_str().ok_or_else(|| anyhow!("invalid linux-pam build dir"))?])?;
+	run_cmd_with_env_overrides(repo_root, "meson", &["compile", "-C", build_dir.to_str().ok_or_else(|| anyhow!("invalid linux-pam build dir"))?], &env_overrides)?;
 
 	if install_dir.exists() {
 		fs::remove_dir_all(&install_dir).with_context(|| format!("failed to clean {}", install_dir.display()))?;
 	}
 	fs::create_dir_all(&install_dir).with_context(|| format!("failed to create {}", install_dir.display()))?;
 
-	run_cmd(repo_root, "meson", &["install", "-C", build_dir.to_str().ok_or_else(|| anyhow!("invalid linux-pam build dir"))?, "--no-rebuild", "--destdir", install_dir.to_str().ok_or_else(|| anyhow!("invalid linux-pam install dir"))?])?;
+	run_cmd_with_env_overrides(repo_root, "meson", &["install", "-C", build_dir.to_str().ok_or_else(|| anyhow!("invalid linux-pam build dir"))?, "--no-rebuild", "--destdir", install_dir.to_str().ok_or_else(|| anyhow!("invalid linux-pam install dir"))?], &env_overrides)?;
 
 	let pam_lib = install_dir.join("usr/lib/x86_64-linux-gnu/libpam.so.0");
 	if !pam_lib.exists() {
 		bail!("linux-pam install did not produce {}", pam_lib.display());
 	}
+	for rel in ["usr/lib/x86_64-linux-gnu/security/pam_unix.so", "usr/sbin/unix_chkpwd"] {
+		validate_dependency_resolves_from(&install_dir.join(rel), "libcrypt.so.1", &libxcrypt_lib, &[&libxcrypt_lib])?;
+	}
+	println!("Linux-PAM libcrypt origin: {}", libxcrypt_lib.display());
 
 	Ok(())
 }
@@ -1688,17 +1743,22 @@ fn build_shadow(repo_root: &Path) -> Result<()> {
 	let libbsd_include = libbsd_install.join("include");
 	let libbsd_lib = libbsd_install.join("lib/x86_64-linux-gnu");
 	let libmd_lib = repo_root.join("out/build/libmd/install/usr/lib/x86_64-linux-gnu");
+	let libxcrypt_install = repo_root.join("out/build/libxcrypt/install/usr");
+	let libxcrypt_lib = libxcrypt_install.join("lib/x86_64-linux-gnu");
 	if !pam_include.join("security/pam_appl.h").exists() || !pam_lib.join("libpam.so").exists() {
 		bail!("linux-pam development files missing at {}; run build pam first", pam_install.display());
 	}
 	if !libbsd_include.join("bsd/readpassphrase.h").is_file() || !libbsd_lib.join("libbsd.so").exists() || !libmd_lib.join("libmd.so").exists() {
 		bail!("MattOS-built libbsd/libmd development files missing; run build libmd and build libbsd first");
 	}
-	let library_path = std::env::join_paths([&pam_lib, &libbsd_lib, &libmd_lib])?.to_string_lossy().to_string();
-	let pkgconfig_path = std::env::join_paths([&pam_pkgconfig, &libbsd_lib.join("pkgconfig"), &libmd_lib.join("pkgconfig")])?.to_string_lossy().to_string();
+	if !libxcrypt_install.join("include/crypt.h").is_file() || !libxcrypt_lib.join("libcrypt.so").exists() {
+		bail!("MattOS-built libxcrypt development files missing; run build libxcrypt first");
+	}
+	let library_path = std::env::join_paths([&pam_lib, &libbsd_lib, &libmd_lib, &libxcrypt_lib])?.to_string_lossy().to_string();
+	let pkgconfig_path = std::env::join_paths([&pam_pkgconfig, &libbsd_lib.join("pkgconfig"), &libmd_lib.join("pkgconfig"), &libxcrypt_lib.join("pkgconfig")])?.to_string_lossy().to_string();
 	let env_overrides = vec![
-		("CPPFLAGS", format!("-I{} -I{} -I{} -DLIBBSD_OVERLAY", pam_include.display(), libbsd_include.display(), libbsd_include.join("bsd").display())),
-		("LDFLAGS", format!("-L{} -L{} -L{}", pam_lib.display(), libbsd_lib.display(), libmd_lib.display())),
+		("CPPFLAGS", format!("-I{} -I{} -I{} -I{} -DLIBBSD_OVERLAY", pam_include.display(), libbsd_include.display(), libbsd_include.join("bsd").display(), libxcrypt_install.join("include").display())),
+		("LDFLAGS", format!("-L{} -L{} -L{} -L{}", pam_lib.display(), libbsd_lib.display(), libmd_lib.display(), libxcrypt_lib.display())),
 		("LIBBSD_CFLAGS", format!("-I{} -DLIBBSD_OVERLAY", libbsd_include.join("bsd").display())),
 		("LIBBSD_LIBS", format!("-L{} -lbsd", libbsd_lib.display())),
 		("LIBRARY_PATH", library_path.clone()),
@@ -1729,11 +1789,14 @@ fn build_shadow(repo_root: &Path) -> Result<()> {
 	if !passwd_bin.exists() {
 		bail!("shadow install did not produce {}", passwd_bin.display());
 	}
-	let shadow_lib_dirs: [&Path; 2] = [&libbsd_lib, &libmd_lib];
+	let shadow_lib_dirs: [&Path; 3] = [&libbsd_lib, &libmd_lib, &libxcrypt_lib];
 	for rel in ["usr/bin/chage", "usr/bin/newgrp", "usr/bin/passwd", "usr/sbin/chpasswd", "usr/sbin/groupadd", "usr/sbin/groupdel", "usr/sbin/groupmod", "usr/sbin/useradd", "usr/sbin/userdel", "usr/sbin/usermod"] {
 		validate_dependency_resolves_from(&install_dir.join(rel), "libbsd.so.0", &libbsd_lib, &shadow_lib_dirs)?;
 	}
-	println!("Shadow libbsd origin: {}; transitive libmd origin: {}", libbsd_lib.display(), libmd_lib.display());
+	for rel in ["usr/bin/newgrp", "usr/bin/passwd", "usr/sbin/chpasswd"] {
+		validate_dependency_resolves_from(&install_dir.join(rel), "libcrypt.so.1", &libxcrypt_lib, &shadow_lib_dirs)?;
+	}
+	println!("Shadow origins: libbsd={} transitive-libmd={} libcrypt={}", libbsd_lib.display(), libmd_lib.display(), libxcrypt_lib.display());
 
 	Ok(())
 }
@@ -1791,18 +1854,33 @@ fn build_util_linux(repo_root: &Path) -> Result<()> {
 	let pam_pkgconfig = pam_install.join("usr/lib/x86_64-linux-gnu/pkgconfig");
 	let pam_include = pam_install.join("usr/include");
 	let pam_lib = pam_install.join("usr/lib/x86_64-linux-gnu");
+	let selinux_install = repo_root.join("out/build/selinux/install/usr");
+	let selinux_pkgconfig = selinux_install.join("lib/x86_64-linux-gnu/pkgconfig");
+	let selinux_include = selinux_install.join("include");
+	let selinux_lib = selinux_install.join("lib/x86_64-linux-gnu");
+	let pcre2_install = repo_root.join("out/build/pcre2/install/usr");
+	let pcre2_pkgconfig = pcre2_install.join("lib/x86_64-linux-gnu/pkgconfig");
+	let pcre2_include = pcre2_install.join("include");
+	let pcre2_lib = pcre2_install.join("lib/x86_64-linux-gnu");
 	if !pam_pkgconfig.exists() {
 		bail!("linux-pam pkg-config directory missing at {}; run build pam first", pam_pkgconfig.display());
 	}
+	if !selinux_lib.join("libselinux.so.1").exists() || !pcre2_lib.join("libpcre2-8.so.0").exists() {
+		bail!("staged SELinux/PCRE2 libraries are missing; run build selinux first");
+	}
 
 	let current_pkg_config = std::env::var("PKG_CONFIG_PATH").unwrap_or_default();
-	let pkg_config_path = if current_pkg_config.is_empty() { pam_pkgconfig.display().to_string() } else { format!("{}:{current_pkg_config}", pam_pkgconfig.display()) };
+	let staged_pkg_config = std::env::join_paths([&pam_pkgconfig, &selinux_pkgconfig, &pcre2_pkgconfig])?.to_string_lossy().to_string();
+	let pkg_config_path = if current_pkg_config.is_empty() { staged_pkg_config } else { format!("{staged_pkg_config}:{current_pkg_config}") };
 	let current_cflags = std::env::var("CFLAGS").unwrap_or_default();
-	let cflags = if current_cflags.is_empty() { format!("-I{}", pam_include.display()) } else { format!("-I{} {current_cflags}", pam_include.display()) };
+	let staged_cflags = format!("-I{} -I{} -I{}", pam_include.display(), selinux_include.display(), pcre2_include.display());
+	let cflags = if current_cflags.is_empty() { staged_cflags } else { format!("{staged_cflags} {current_cflags}") };
 	let current_ldflags = std::env::var("LDFLAGS").unwrap_or_default();
-	let ldflags = if current_ldflags.is_empty() { format!("-L{}", pam_lib.display()) } else { format!("-L{} {current_ldflags}", pam_lib.display()) };
-	let env_overrides = vec![("PKG_CONFIG_PATH", pkg_config_path), ("CFLAGS", cflags), ("LDFLAGS", ldflags)];
-	let env_text = format!("PKG_CONFIG_PATH={}\nCFLAGS={}\nLDFLAGS={}\n", env_overrides[0].1, env_overrides[1].1, env_overrides[2].1);
+	let staged_ldflags = format!("-L{} -L{} -L{}", pam_lib.display(), selinux_lib.display(), pcre2_lib.display());
+	let ldflags = if current_ldflags.is_empty() { staged_ldflags } else { format!("{staged_ldflags} {current_ldflags}") };
+	let library_path = std::env::join_paths([&pam_lib, &selinux_lib, &pcre2_lib])?.to_string_lossy().to_string();
+	let env_overrides = vec![("PKG_CONFIG_PATH", pkg_config_path), ("CFLAGS", cflags), ("LDFLAGS", ldflags), ("LIBRARY_PATH", library_path.clone()), ("LD_LIBRARY_PATH", library_path)];
+	let env_text = format!("{}\n", env_overrides.iter().map(|(key, value)| format!("{key}={value}")).collect::<Vec<_>>().join("\n"));
 	let existing_env = fs::read_to_string(&env_path).ok();
 	fs::create_dir_all(&out_root).with_context(|| format!("failed to create {}", out_root.display()))?;
 
@@ -1834,7 +1912,7 @@ fn build_util_linux(repo_root: &Path) -> Result<()> {
 		fs::write(&env_path, &env_text).with_context(|| format!("failed to write {}", env_path.display()))?;
 	}
 
-	run_cmd_with_env_overrides(repo_root, "ninja", &["-C", build_dir.to_str().ok_or_else(|| anyhow!("invalid util-linux build dir"))?, "agetty", "login", "su"], &env_overrides)?;
+	run_cmd_with_env_overrides(repo_root, "ninja", &["-C", build_dir.to_str().ok_or_else(|| anyhow!("invalid util-linux build dir"))?], &env_overrides)?;
 
 	if install_dir.exists() {
 		fs::remove_dir_all(&install_dir).with_context(|| format!("failed to clean {}", install_dir.display()))?;
@@ -1848,10 +1926,18 @@ fn build_util_linux(repo_root: &Path) -> Result<()> {
 		&env_overrides,
 	)?;
 
-	for path in [install_dir.join("usr/sbin/agetty"), install_dir.join("usr/bin/login"), install_dir.join("usr/bin/su")] {
+	for path in [install_dir.join("usr/sbin/agetty"), install_dir.join("usr/bin/login"), install_dir.join("usr/bin/su"), install_dir.join("usr/bin/mount"), install_dir.join("usr/bin/umount"), install_dir.join("usr/lib/x86_64-linux-gnu/libblkid.so.1"), install_dir.join("usr/lib/x86_64-linux-gnu/libmount.so.1"), install_dir.join("usr/lib/x86_64-linux-gnu/libsmartcols.so.1")] {
 		if !path.exists() {
 			bail!("util-linux install did not produce {}", path.display());
 		}
+	}
+	let util_linux_lib = install_dir.join("usr/lib/x86_64-linux-gnu");
+	let runtime_dirs: [&Path; 4] = [&util_linux_lib, &selinux_lib, &pcre2_lib, &pam_lib];
+	validate_dependency_resolves_from(&install_dir.join("usr/lib/x86_64-linux-gnu/libmount.so.1"), "libblkid.so.1", &util_linux_lib, &runtime_dirs)?;
+	validate_dependency_resolves_from(&install_dir.join("usr/bin/mount"), "libmount.so.1", &util_linux_lib, &runtime_dirs)?;
+	let mount_strings = run_cmd_capture(repo_root, "strings", &[path_str(&install_dir.join("usr/bin/mount"))?])?;
+	if !mount_strings.contains("libselinux.so.1") {
+		bail!("util-linux mount lost its configured SELinux compatibility loader");
 	}
 
 	Ok(())
@@ -1866,12 +1952,16 @@ fn util_linux_meson_options() -> Vec<String> {
 		"-Dbuild-agetty=enabled".to_string(),
 		"-Dbuild-login=enabled".to_string(),
 		"-Dbuild-su=enabled".to_string(),
+		"-Dbuild-libblkid=enabled".to_string(),
+		"-Dbuild-libmount=enabled".to_string(),
+		"-Dbuild-libsmartcols=enabled".to_string(),
+		"-Dbuild-mount=enabled".to_string(),
+		"-Dselinux=enabled".to_string(),
 		"-Dsystemd=disabled".to_string(),
 		"-Dnls=disabled".to_string(),
 		"-Dbuild-bash-completion=disabled".to_string(),
 		"-Dbuild-python=disabled".to_string(),
 		"-Dbuild-pylibmount=disabled".to_string(),
-		"-Dbuild-mount=disabled".to_string(),
 	]
 }
 
@@ -2428,6 +2518,517 @@ fn build_zstd(repo_root: &Path) -> Result<()> {
 	Ok(())
 }
 
+fn build_openssl(repo_root: &Path) -> Result<()> {
+    let source = repo_root.join("src/system/libraries/openssl");
+    if !source.join("Configure").is_file() {
+        bail!(
+            "OpenSSL source not found in {}; run upstream import openssl first",
+            source.display()
+        );
+    }
+    let out_root = repo_root.join("out/build/openssl");
+    let source_copy = out_root.join("source");
+    let build_dir = out_root.join("build");
+    let install_dir = out_root.join("install");
+    let stamp_path = out_root.join("build-stamp.txt");
+    let zlib = repo_root.join("out/build/zlib/install/usr");
+    let zstd = repo_root.join("out/build/zstd/install/usr");
+    let zlib_lib = zlib.join("lib/x86_64-linux-gnu");
+    let zstd_lib = zstd.join("lib/x86_64-linux-gnu");
+    if !zlib_lib.join("libz.so").exists() || !zstd_lib.join("libzstd.so").exists() {
+        bail!("MattOS OpenSSL dependencies are missing; run build zlib and build zstd first")
+    }
+    let state = fs::read_to_string(repo_root.join("upstream/state/openssl.toml"))
+        .context("failed to read OpenSSL upstream state")?;
+    let options = openssl_configure_options(&zlib, &zstd);
+    let library_path = std::env::join_paths([&zlib_lib, &zstd_lib])?
+        .to_string_lossy()
+        .to_string();
+    let env = [
+        (
+            "CPPFLAGS",
+            format!(
+                "-I{} -I{}",
+                zlib.join("include").display(),
+                zstd.join("include").display()
+            ),
+        ),
+        (
+            "LDFLAGS",
+            format!("-L{} -L{}", zlib_lib.display(), zstd_lib.display()),
+        ),
+        ("LIBRARY_PATH", library_path.clone()),
+        ("LD_LIBRARY_PATH", library_path),
+        (
+            "PKG_CONFIG_PATH",
+            std::env::join_paths([zlib_lib.join("pkgconfig"), zstd_lib.join("pkgconfig")])?
+                .to_string_lossy()
+                .to_string(),
+        ),
+    ];
+    let stamp = format!(
+        "{state}\n{}\n{}\n",
+        options.join("\n"),
+        env.iter()
+            .map(|(key, value)| format!("{key}={value}"))
+            .collect::<Vec<_>>()
+            .join("\n")
+    );
+    if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+        remove_path_if_exists(&source_copy)?;
+        remove_path_if_exists(&build_dir)?;
+    }
+    fs::create_dir_all(&out_root)?;
+    sync_build_source(&source, &source_copy)?;
+    fs::create_dir_all(&build_dir)?;
+    if !build_dir.join("Makefile").is_file() {
+        let option_refs = options.iter().map(String::as_str).collect::<Vec<_>>();
+        run_cmd_with_env_overrides(
+            &build_dir,
+            "perl",
+            &[path_str(&source_copy.join("Configure"))?]
+                .into_iter()
+                .chain(option_refs)
+                .collect::<Vec<_>>()
+                .as_slice(),
+            &env,
+        )?;
+    }
+    run_cmd_with_env_overrides(&build_dir, "make", &["-j", "4"], &env)?;
+    remove_path_if_exists(&install_dir)?;
+    run_cmd_with_env_overrides(
+        &build_dir,
+        "make",
+        &["install_sw", &format!("DESTDIR={}", install_dir.display())],
+        &env,
+    )?;
+    let libdir = install_dir.join("usr/lib/x86_64-linux-gnu");
+    for soname in ["libcrypto.so.3", "libssl.so.3"] {
+        if !libdir.join(soname).exists() {
+            bail!(
+                "OpenSSL install did not produce {}",
+                libdir.join(soname).display()
+            )
+        }
+    }
+    let search_dirs: [&Path; 3] = [&libdir, &zlib_lib, &zstd_lib];
+    validate_dependency_resolves_from(
+        &libdir.join("libcrypto.so.3"),
+        "libz.so.1",
+        &zlib_lib,
+        &search_dirs,
+    )?;
+    validate_dependency_resolves_from(
+        &libdir.join("libcrypto.so.3"),
+        "libzstd.so.1",
+        &zstd_lib,
+        &search_dirs,
+    )?;
+    validate_dependency_resolves_from(
+        &libdir.join("libssl.so.3"),
+        "libcrypto.so.3",
+        &libdir,
+        &search_dirs,
+    )?;
+    fs::write(&stamp_path, stamp)?;
+    println!(
+        "OpenSSL origins: zlib={} zstd={}; OPENSSLDIR=/etc/ssl",
+        zlib_lib.display(),
+        zstd_lib.display()
+    );
+    Ok(())
+}
+
+fn openssl_configure_options(zlib: &Path, zstd: &Path) -> Vec<String> {
+    let zlib_lib = zlib.join("lib/x86_64-linux-gnu");
+    let zstd_lib = zstd.join("lib/x86_64-linux-gnu");
+    vec![
+        "linux-x86_64".to_string(),
+        "shared".to_string(),
+        "zlib".to_string(),
+        "enable-zstd".to_string(),
+        "no-tests".to_string(),
+        "no-docs".to_string(),
+        "no-apps".to_string(),
+        "no-legacy".to_string(),
+        "no-module".to_string(),
+        "--prefix=/usr".to_string(),
+        "--openssldir=/etc/ssl".to_string(),
+        "--libdir=lib/x86_64-linux-gnu".to_string(),
+        format!("--with-zlib-include={}", zlib.join("include").display()),
+        format!("--with-zlib-lib={}", zlib_lib.display()),
+        format!("--with-zstd-include={}", zstd.join("include").display()),
+        format!("--with-zstd-lib={}", zstd_lib.display()),
+    ]
+}
+
+fn build_elfutils(repo_root: &Path) -> Result<()> {
+    let source = repo_root.join("src/system/libraries/elfutils");
+    if !source.join("configure.ac").is_file() {
+        bail!(
+            "elfutils source not found in {}; run upstream import elfutils first",
+            source.display()
+        );
+    }
+    let out_root = repo_root.join("out/build/elfutils");
+    let source_copy = out_root.join("source");
+    let build_dir = out_root.join("build");
+    let install_dir = out_root.join("install");
+    let stamp_path = out_root.join("build-stamp.txt");
+    let zlib = repo_root.join("out/build/zlib/install/usr");
+    let zstd = repo_root.join("out/build/zstd/install/usr");
+    let zlib_lib = zlib.join("lib/x86_64-linux-gnu");
+    let zstd_lib = zstd.join("lib/x86_64-linux-gnu");
+    if !zlib_lib.join("libz.so").exists() || !zstd_lib.join("libzstd.so").exists() {
+        bail!("MattOS elfutils dependencies are missing; run build zlib and build zstd first")
+    }
+    let options = [
+        "--prefix=/usr",
+        "--libdir=/usr/lib/x86_64-linux-gnu",
+        "--enable-maintainer-mode",
+        "--disable-nls",
+        "--disable-libdebuginfod",
+        "--disable-debuginfod",
+        "--disable-demangler",
+        "--with-zlib",
+        "--with-zstd",
+        "--without-bzlib",
+        "--without-lzma",
+    ];
+    let library_path = std::env::join_paths([&zlib_lib, &zstd_lib])?
+        .to_string_lossy()
+        .to_string();
+    let env = [
+        (
+            "CPPFLAGS",
+            format!(
+                "-I{} -I{}",
+                zlib.join("include").display(),
+                zstd.join("include").display()
+            ),
+        ),
+        (
+            "LDFLAGS",
+            format!("-L{} -L{}", zlib_lib.display(), zstd_lib.display()),
+        ),
+        ("LIBRARY_PATH", library_path.clone()),
+        ("LD_LIBRARY_PATH", library_path),
+        (
+            "PKG_CONFIG_PATH",
+            std::env::join_paths([zlib_lib.join("pkgconfig"), zstd_lib.join("pkgconfig")])?
+                .to_string_lossy()
+                .to_string(),
+        ),
+    ];
+    let state = fs::read_to_string(repo_root.join("upstream/state/elfutils.toml"))
+        .context("failed to read elfutils upstream state")?;
+    let stamp = format!(
+        "{state}\n{}\n{}\n",
+        options.join("\n"),
+        env.iter()
+            .map(|(key, value)| format!("{key}={value}"))
+            .collect::<Vec<_>>()
+            .join("\n")
+    );
+    if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+        remove_path_if_exists(&source_copy)?;
+        remove_path_if_exists(&build_dir)?;
+    }
+    fs::create_dir_all(&out_root)?;
+    sync_build_source(&source, &source_copy)?;
+    if !source_copy.join("configure").is_file() {
+        run_cmd(&source_copy, "autoreconf", &["-fi"])?;
+    }
+    fs::create_dir_all(&build_dir)?;
+    if !build_dir.join("Makefile").is_file() {
+        run_cmd_with_env_overrides(
+            &build_dir,
+            path_str(&source_copy.join("configure"))?,
+            &options,
+            &env,
+        )?;
+    }
+    run_cmd_with_env_overrides(&build_dir, "make", &["-C", "lib", "-j", "4"], &env)?;
+    run_cmd_with_env_overrides(&build_dir, "make", &["-C", "libelf", "-j", "4"], &env)?;
+    remove_path_if_exists(&install_dir)?;
+    run_cmd_with_env_overrides(
+        &build_dir,
+        "make",
+        &[
+            "-C",
+            "libelf",
+            "install",
+            &format!("DESTDIR={}", install_dir.display()),
+        ],
+        &env,
+    )?;
+    let pkgconfig = install_dir.join("usr/lib/x86_64-linux-gnu/pkgconfig");
+    fs::create_dir_all(&pkgconfig)?;
+    fs::copy(
+        build_dir.join("config/libelf.pc"),
+        pkgconfig.join("libelf.pc"),
+    )?;
+    let libdir = install_dir.join("usr/lib/x86_64-linux-gnu");
+    if !libdir.join("libelf.so.1").exists() {
+        bail!(
+            "elfutils install did not produce {}",
+            libdir.join("libelf.so.1").display()
+        )
+    }
+    let search_dirs: [&Path; 3] = [&libdir, &zlib_lib, &zstd_lib];
+    validate_dependency_resolves_from(
+        &libdir.join("libelf.so.1"),
+        "libz.so.1",
+        &zlib_lib,
+        &search_dirs,
+    )?;
+    validate_dependency_resolves_from(
+        &libdir.join("libelf.so.1"),
+        "libzstd.so.1",
+        &zstd_lib,
+        &search_dirs,
+    )?;
+    fs::write(&stamp_path, stamp)?;
+    println!(
+        "libelf origins: zlib={} zstd={}",
+        zlib_lib.display(),
+        zstd_lib.display()
+    );
+    Ok(())
+}
+
+fn build_pcre2(repo_root: &Path) -> Result<()> {
+    let source = repo_root.join("src/system/libraries/pcre2");
+    if !source.join("CMakeLists.txt").is_file() {
+        bail!(
+            "PCRE2 source not found in {}; run upstream import pcre2 first",
+            source.display()
+        );
+    }
+    let out_root = repo_root.join("out/build/pcre2");
+    let source_copy = out_root.join("source");
+    let build_dir = out_root.join("build");
+    let install_dir = out_root.join("install");
+    let stamp_path = out_root.join("build-stamp.txt");
+    let state = fs::read_to_string(repo_root.join("upstream/state/pcre2.toml"))
+        .context("failed to read PCRE2 upstream state")?;
+    let sljit = repo_root.join("src/build-support/sljit");
+    if !sljit.join("sljit_src/sljitLir.c").is_file() {
+        bail!("PCRE2 SLJIT source is missing; run upstream import sljit first");
+    }
+    let sljit_state = fs::read_to_string(repo_root.join("upstream/state/sljit.toml"))
+        .context("failed to read SLJIT upstream state")?;
+    let options = [
+        "-G",
+        "Ninja",
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-DCMAKE_INSTALL_PREFIX=/usr",
+        "-DCMAKE_INSTALL_LIBDIR=lib/x86_64-linux-gnu",
+        "-DBUILD_SHARED_LIBS=ON",
+        "-DBUILD_STATIC_LIBS=OFF",
+        "-DPCRE2_BUILD_PCRE2_8=ON",
+        "-DPCRE2_BUILD_PCRE2_16=OFF",
+        "-DPCRE2_BUILD_PCRE2_32=OFF",
+        "-DPCRE2_BUILD_PCRE2GREP=OFF",
+        "-DPCRE2_BUILD_TESTS=OFF",
+        "-DPCRE2_SUPPORT_JIT=ON",
+        "-DPCRE2_SUPPORT_UNICODE=ON",
+        "-DPCRE2_SYMVERS=ON",
+    ];
+    let stamp = format!("{state}\n{sljit_state}\n{}\n", options.join("\n"));
+    if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+        remove_path_if_exists(&source_copy)?;
+        remove_path_if_exists(&build_dir)?;
+    }
+    fs::create_dir_all(&out_root)?;
+    sync_build_source(&source, &source_copy)?;
+    sync_build_source(&sljit, &source_copy.join("deps/sljit"))?;
+    if !build_dir.join("build.ninja").is_file() {
+        let mut args = vec!["-S", path_str(&source_copy)?, "-B", path_str(&build_dir)?];
+        args.extend(options);
+        run_cmd(repo_root, "cmake", &args)?;
+    }
+    run_cmd(
+        repo_root,
+        "cmake",
+        &["--build", path_str(&build_dir)?, "--parallel", "4"],
+    )?;
+    remove_path_if_exists(&install_dir)?;
+    run_cmd_with_env_overrides(
+        repo_root,
+        "cmake",
+        &["--install", path_str(&build_dir)?],
+        &[("DESTDIR", install_dir.display().to_string())],
+    )?;
+    let libdir = install_dir.join("usr/lib/x86_64-linux-gnu");
+    let soname = libdir.join("libpcre2-8.so.0");
+    if !soname.exists() {
+        bail!("PCRE2 install did not produce {}", soname.display());
+    }
+    for unwanted in ["libpcre2-16.so", "libpcre2-32.so"] {
+        if libdir.join(unwanted).exists() {
+            bail!("PCRE2 unexpectedly built non-runtime variant {unwanted}");
+        }
+    }
+    fs::write(&stamp_path, stamp)?;
+    println!("PCRE2 origin: {}", install_dir.display());
+    Ok(())
+}
+
+fn build_selinux(repo_root: &Path) -> Result<()> {
+    let source = repo_root.join("src/system/security/selinux");
+    if !source.join("libselinux/src/Makefile").is_file() {
+        bail!(
+            "SELinux source not found in {}; run upstream import selinux first",
+            source.display()
+        );
+    }
+    let pcre2 = repo_root.join("out/build/pcre2/install/usr");
+    let pcre2_lib = pcre2.join("lib/x86_64-linux-gnu");
+    if !pcre2.join("include/pcre2.h").is_file() || !pcre2_lib.join("libpcre2-8.so").exists() {
+        bail!("MattOS-built PCRE2 development files are missing; run build pcre2 first");
+    }
+    let out_root = repo_root.join("out/build/selinux");
+    let source_copy = out_root.join("source");
+    let install_dir = out_root.join("install");
+    let stamp_path = out_root.join("build-stamp.txt");
+    let state = fs::read_to_string(repo_root.join("upstream/state/selinux.toml"))
+        .context("failed to read SELinux upstream state")?;
+    let pcre2_state = fs::read_to_string(repo_root.join("upstream/state/pcre2.toml"))
+        .context("failed to read PCRE2 upstream state")?;
+    let make_vars = [
+        "PREFIX=/usr".to_string(),
+        "LIBDIR=/usr/lib/x86_64-linux-gnu".to_string(),
+        "SHLIBDIR=/usr/lib/x86_64-linux-gnu".to_string(),
+        "USE_PCRE2=y".to_string(),
+        "DISABLE_SETRANS=y".to_string(),
+        "DISABLE_RPM=y".to_string(),
+        format!(
+            "PCRE_CFLAGS=-DUSE_PCRE2 -DPCRE2_CODE_UNIT_WIDTH=8 -I{}",
+            pcre2.join("include").display()
+        ),
+        format!("PCRE_LDLIBS=-L{} -lpcre2-8", pcre2_lib.display()),
+    ];
+    let library_path = pcre2_lib.display().to_string();
+    let env = [
+        ("LDFLAGS", format!("-L{}", pcre2_lib.display())),
+        ("LIBRARY_PATH", library_path.clone()),
+        ("LD_LIBRARY_PATH", library_path),
+        (
+            "PKG_CONFIG_PATH",
+            pcre2_lib.join("pkgconfig").display().to_string(),
+        ),
+    ];
+    let stamp = format!(
+        "{state}\n{pcre2_state}\n{}\n{}\n",
+        make_vars.join("\n"),
+        env.iter()
+            .map(|(key, value)| format!("{key}={value}"))
+            .collect::<Vec<_>>()
+            .join("\n")
+    );
+    if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+        remove_path_if_exists(&source_copy)?;
+    }
+    fs::create_dir_all(&out_root)?;
+    sync_build_source(&source, &source_copy)?;
+    let libselinux = source_copy.join("libselinux");
+    let mut build_args = vec!["-C", "src", "-j", "4", "all"];
+    build_args.extend(make_vars.iter().map(String::as_str));
+    run_cmd_with_env_overrides(&libselinux, "make", &build_args, &env)?;
+    remove_path_if_exists(&install_dir)?;
+    let destdir = format!("DESTDIR={}", install_dir.display());
+    let mut install_args = vec!["-C", "src", "install", destdir.as_str()];
+    install_args.extend(make_vars.iter().map(String::as_str));
+    run_cmd_with_env_overrides(&libselinux, "make", &install_args, &env)?;
+    run_cmd(
+        &libselinux,
+        "make",
+        &["-C", "include", "install", destdir.as_str(), "PREFIX=/usr"],
+    )?;
+    let libdir = install_dir.join("usr/lib/x86_64-linux-gnu");
+    let soname = libdir.join("libselinux.so.1");
+    if !soname.exists() {
+        bail!("SELinux install did not produce {}", soname.display());
+    }
+    validate_dependency_resolves_from(&soname, "libpcre2-8.so.0", &pcre2_lib, &[&pcre2_lib])?;
+    fs::write(&stamp_path, stamp)?;
+    println!("libselinux origin: {}; PCRE2 origin: {}", install_dir.display(), pcre2_lib.display());
+    Ok(())
+}
+
+const LIBXCRYPT_REQUIRED_SYMBOL_VERSIONS: &[&str] =
+    &["GLIBC_2.2.5", "XCRYPT_2.0", "XCRYPT_4.3", "XCRYPT_4.4"];
+
+fn libxcrypt_configure_options() -> [&'static str; 7] {
+    [
+        "--prefix=/usr",
+        "--libdir=/usr/lib/x86_64-linux-gnu",
+        "--disable-static",
+        "--enable-shared",
+        "--enable-hashes=all",
+        "--enable-obsolete-api=glibc",
+        "--disable-xcrypt-compat-files",
+    ]
+}
+
+fn build_libxcrypt(repo_root: &Path) -> Result<()> {
+    let source = repo_root.join("src/system/libraries/libxcrypt");
+    if !source.join("configure.ac").is_file() {
+        bail!(
+            "libxcrypt source not found in {}; run upstream import libxcrypt first",
+            source.display()
+        );
+    }
+    let out_root = repo_root.join("out/build/libxcrypt");
+    let source_copy = out_root.join("source");
+    let build_dir = out_root.join("build");
+    let install_dir = out_root.join("install");
+    let stamp_path = out_root.join("build-stamp.txt");
+    let state = fs::read_to_string(repo_root.join("upstream/state/libxcrypt.toml"))
+        .context("failed to read libxcrypt upstream state")?;
+    let options = libxcrypt_configure_options();
+    let stamp = format!("{state}\n{}\n", options.join("\n"));
+    if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+        remove_path_if_exists(&source_copy)?;
+        remove_path_if_exists(&build_dir)?;
+    }
+    fs::create_dir_all(&out_root)?;
+    sync_build_source(&source, &source_copy)?;
+    if !source_copy.join("configure").is_file() {
+        run_cmd(&source_copy, "./autogen.sh", &[])?;
+    }
+    fs::create_dir_all(&build_dir)?;
+    if !build_dir.join("Makefile").is_file() {
+        run_cmd(
+            &build_dir,
+            path_str(&source_copy.join("configure"))?,
+            &options,
+        )?;
+    }
+    run_cmd(&build_dir, "make", &["-j", "4"])?;
+    run_cmd(&build_dir, "make", &["check", "-j", "4"])?;
+    remove_path_if_exists(&install_dir)?;
+    run_cmd(
+        &build_dir,
+        "make",
+        &["install", &format!("DESTDIR={}", install_dir.display())],
+    )?;
+    let soname = install_dir.join("usr/lib/x86_64-linux-gnu/libcrypt.so.1");
+    if !soname.exists() {
+        bail!("libxcrypt install did not produce {}", soname.display());
+    }
+    let versions = run_cmd_capture(repo_root, "readelf", &["--version-info", path_str(&soname)?])?;
+    for required in LIBXCRYPT_REQUIRED_SYMBOL_VERSIONS {
+        if !versions.contains(required) {
+            bail!("libxcrypt is missing required symbol version {required}");
+        }
+    }
+    fs::write(&stamp_path, stamp)?;
+    println!("libxcrypt origin: {}; yescrypt covered by upstream check suite", install_dir.display());
+    Ok(())
+}
+
 fn build_libmd(repo_root: &Path) -> Result<()> {
 	let source = repo_root.join("src/system/libraries/libmd");
 	if !source.join("configure.ac").is_file() {
@@ -2651,52 +3252,167 @@ fn validate_dependency_resolves_from(binary: &Path, soname: &str, expected_dir: 
 }
 
 fn build_iproute2(repo_root: &Path) -> Result<()> {
-	let source = repo_root.join("src/userland/iproute2");
-	if !source.join("Makefile").exists() {
-		bail!("iproute2 source not found in {}; run upstream import iproute2 first", source.display());
-	}
-	let out_root = repo_root.join("out/build/iproute2");
-	let build_dir = out_root.join("build");
-	let install_dir = out_root.join("install");
-	let stamp_path = out_root.join("build-stamp.txt");
-	let libcap_install = repo_root.join("out/build/libcap/install/usr");
-	let libcap_lib = libcap_install.join("lib/x86_64-linux-gnu");
-	let libcap_pc = libcap_lib.join("pkgconfig");
-	if !libcap_lib.join("libcap.so").exists() || !libcap_pc.join("libcap.pc").is_file() {
-		bail!("MattOS-built libcap development files missing at {}; run build libcap first", libcap_install.display());
-	}
-	let env = vec![
-		("PKG_CONFIG_PATH", libcap_pc.display().to_string()),
-		("CPPFLAGS", format!("-I{}", libcap_install.join("include").display())),
-		("LDFLAGS", format!("-L{}", libcap_lib.display())),
-		("LIBRARY_PATH", libcap_lib.display().to_string()),
-		("LD_LIBRARY_PATH", libcap_lib.display().to_string()),
-	];
-	let state = fs::read_to_string(repo_root.join("upstream/state/iproute2.toml")).context("failed to read iproute2 upstream state")?;
-	let libcap_state = fs::read_to_string(repo_root.join("upstream/state/libcap.toml")).context("failed to read libcap upstream state")?;
-	let stamp = format!("{state}\n{libcap_state}\nPREFIX=/usr\nSBINDIR=/usr/sbin\nLIBDIR=/usr/lib/x86_64-linux-gnu\nSHARED_LIBS=n\n{}\n", env.iter().map(|(key, value)| format!("{key}={value}")).collect::<Vec<_>>().join("\n"));
-	if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
-		remove_path_if_exists(&build_dir)?;
-	}
-	fs::create_dir_all(&out_root).with_context(|| format!("failed to create {}", out_root.display()))?;
-	sync_build_source(&source, &build_dir)?;
-	if !build_dir.join("config.mk").exists() {
-		run_cmd_with_env_overrides(&build_dir, "./configure", &["--prefix=/usr", "--libdir=/usr/lib/x86_64-linux-gnu"], &env)?;
-	}
-	run_cmd_with_env_overrides(&build_dir, "make", &["-j", "4", "PREFIX=/usr", "SBINDIR=/usr/sbin", "SHARED_LIBS=n"], &env)?;
-	remove_path_if_exists(&install_dir)?;
-	fs::create_dir_all(&install_dir).with_context(|| format!("failed to create {}", install_dir.display()))?;
-	let destdir = format!("DESTDIR={}", install_dir.display());
-	run_cmd_with_env_overrides(&build_dir, "make", &["install", &destdir, "PREFIX=/usr", "SBINDIR=/usr/sbin", "SHARED_LIBS=n"], &env)?;
-	for binary in IPROUTE2_BINARIES {
-		let installed = install_dir.join(binary.source_rel);
-		if !installed.exists() {
-			bail!("iproute2 install did not produce {}", binary.source_rel);
-		}
-		validate_dependency_resolves_from(&installed, "libcap.so.2", &libcap_lib, &[&libcap_lib])?;
-	}
-	fs::write(&stamp_path, stamp).with_context(|| format!("failed to write {}", stamp_path.display()))?;
-	Ok(())
+    let source = repo_root.join("src/userland/iproute2");
+    if !source.join("Makefile").exists() {
+        bail!(
+            "iproute2 source not found in {}; run upstream import iproute2 first",
+            source.display()
+        );
+    }
+    let out_root = repo_root.join("out/build/iproute2");
+    let build_dir = out_root.join("build");
+    let install_dir = out_root.join("install");
+    let stamp_path = out_root.join("build-stamp.txt");
+    let libcap_install = repo_root.join("out/build/libcap/install/usr");
+    let libcap_lib = libcap_install.join("lib/x86_64-linux-gnu");
+    let libcap_pc = libcap_lib.join("pkgconfig");
+    let libelf_install = repo_root.join("out/build/elfutils/install/usr");
+    let libelf_lib = libelf_install.join("lib/x86_64-linux-gnu");
+    let zlib_install = repo_root.join("out/build/zlib/install/usr");
+    let zlib_lib = zlib_install.join("lib/x86_64-linux-gnu");
+    let zstd_install = repo_root.join("out/build/zstd/install/usr");
+    let zstd_lib = zstd_install.join("lib/x86_64-linux-gnu");
+    let selinux_install = repo_root.join("out/build/selinux/install/usr");
+    let selinux_lib = selinux_install.join("lib/x86_64-linux-gnu");
+    let pcre2_install = repo_root.join("out/build/pcre2/install/usr");
+    let pcre2_lib = pcre2_install.join("lib/x86_64-linux-gnu");
+    if !libcap_lib.join("libcap.so").exists()
+        || !libcap_pc.join("libcap.pc").is_file()
+        || !libelf_lib.join("libelf.so").exists()
+        || !libelf_lib.join("pkgconfig/libelf.pc").is_file()
+        || !zlib_lib.join("libz.so").exists()
+        || !zstd_lib.join("libzstd.so").exists()
+        || !selinux_lib.join("libselinux.so").exists()
+        || !pcre2_lib.join("libpcre2-8.so").exists()
+    {
+        bail!(
+            "MattOS iproute2 development files are missing; run build libcap, elfutils, zlib, zstd, pcre2, and selinux first"
+        );
+    }
+    let library_path = std::env::join_paths([&libcap_lib, &libelf_lib, &zlib_lib, &zstd_lib, &selinux_lib, &pcre2_lib])?
+        .to_string_lossy()
+        .to_string();
+    let env = vec![
+        (
+            "PKG_CONFIG_PATH",
+            std::env::join_paths([
+                libcap_pc,
+                libelf_lib.join("pkgconfig"),
+                zlib_lib.join("pkgconfig"),
+                zstd_lib.join("pkgconfig"),
+                selinux_lib.join("pkgconfig"),
+                pcre2_lib.join("pkgconfig"),
+            ])?
+            .to_string_lossy()
+            .to_string(),
+        ),
+        (
+            "CPPFLAGS",
+            format!(
+                "-I{} -I{} -I{} -I{} -I{} -I{}",
+                libcap_install.join("include").display(),
+                libelf_install.join("include").display(),
+                zlib_install.join("include").display(),
+                zstd_install.join("include").display(),
+                selinux_install.join("include").display(),
+                pcre2_install.join("include").display()
+            ),
+        ),
+        (
+            "LDFLAGS",
+            format!(
+                "-L{} -L{} -L{} -L{} -L{} -L{}",
+                libcap_lib.display(),
+                libelf_lib.display(),
+                zlib_lib.display(),
+                zstd_lib.display(),
+                selinux_lib.display(),
+                pcre2_lib.display()
+            ),
+        ),
+        ("LIBRARY_PATH", library_path.clone()),
+        ("LD_LIBRARY_PATH", library_path),
+    ];
+    let state = fs::read_to_string(repo_root.join("upstream/state/iproute2.toml"))
+        .context("failed to read iproute2 upstream state")?;
+    let libcap_state = fs::read_to_string(repo_root.join("upstream/state/libcap.toml"))
+        .context("failed to read libcap upstream state")?;
+    let libelf_state = fs::read_to_string(repo_root.join("upstream/state/elfutils.toml"))
+        .context("failed to read elfutils upstream state")?;
+    let zstd_state = fs::read_to_string(repo_root.join("upstream/state/zstd.toml"))
+        .context("failed to read Zstandard upstream state")?;
+    let selinux_state = fs::read_to_string(repo_root.join("upstream/state/selinux.toml"))
+        .context("failed to read SELinux upstream state")?;
+    let pcre2_state = fs::read_to_string(repo_root.join("upstream/state/pcre2.toml"))
+        .context("failed to read PCRE2 upstream state")?;
+    let stamp = format!(
+        "{state}\n{libcap_state}\n{libelf_state}\n{zstd_state}\n{selinux_state}\n{pcre2_state}\nPREFIX=/usr\nSBINDIR=/usr/sbin\nLIBDIR=/usr/lib/x86_64-linux-gnu\nSHARED_LIBS=n\n{}\n",
+        env.iter()
+            .map(|(key, value)| format!("{key}={value}"))
+            .collect::<Vec<_>>()
+            .join("\n")
+    );
+    if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+        remove_path_if_exists(&build_dir)?;
+    }
+    fs::create_dir_all(&out_root)
+        .with_context(|| format!("failed to create {}", out_root.display()))?;
+    sync_build_source(&source, &build_dir)?;
+    if !build_dir.join("config.mk").exists() {
+        run_cmd_with_env_overrides(
+            &build_dir,
+            "./configure",
+            &["--prefix=/usr", "--libdir=/usr/lib/x86_64-linux-gnu"],
+            &env,
+        )?;
+    }
+    run_cmd_with_env_overrides(
+        &build_dir,
+        "make",
+        &[
+            "-j",
+            "4",
+            "PREFIX=/usr",
+            "SBINDIR=/usr/sbin",
+            "SHARED_LIBS=n",
+        ],
+        &env,
+    )?;
+    remove_path_if_exists(&install_dir)?;
+    fs::create_dir_all(&install_dir)
+        .with_context(|| format!("failed to create {}", install_dir.display()))?;
+    let destdir = format!("DESTDIR={}", install_dir.display());
+    run_cmd_with_env_overrides(
+        &build_dir,
+        "make",
+        &[
+            "install",
+            &destdir,
+            "PREFIX=/usr",
+            "SBINDIR=/usr/sbin",
+            "SHARED_LIBS=n",
+        ],
+        &env,
+    )?;
+    let runtime_dirs: [&Path; 6] = [&libcap_lib, &libelf_lib, &zlib_lib, &zstd_lib, &selinux_lib, &pcre2_lib];
+    for binary in IPROUTE2_BINARIES {
+        let installed = install_dir.join(binary.source_rel);
+        if !installed.exists() {
+            bail!("iproute2 install did not produce {}", binary.source_rel);
+        }
+        validate_dependency_resolves_from(&installed, "libcap.so.2", &libcap_lib, &runtime_dirs)?;
+    }
+    for rel in ["usr/sbin/ip", "usr/sbin/tc"] {
+        let installed = install_dir.join(rel);
+        validate_dependency_resolves_from(&installed, "libelf.so.1", &libelf_lib, &runtime_dirs)?;
+        validate_dependency_resolves_from(&installed, "libzstd.so.1", &zstd_lib, &runtime_dirs)?;
+    }
+    for rel in ["usr/sbin/ip", "usr/sbin/ss"] {
+        validate_dependency_resolves_from(&install_dir.join(rel), "libselinux.so.1", &selinux_lib, &runtime_dirs)?;
+    }
+    fs::write(&stamp_path, stamp)
+        .with_context(|| format!("failed to write {}", stamp_path.display()))?;
+    Ok(())
 }
 
 fn build_iputils(repo_root: &Path) -> Result<()> {
@@ -2796,44 +3512,114 @@ fn curl_configure_options() -> Vec<&'static str> {
 }
 
 fn build_curl(repo_root: &Path) -> Result<()> {
-	let source = repo_root.join("src/userland/curl");
-	if !source.join("configure.ac").exists() {
-		bail!("curl source not found in {}; run upstream import curl first", source.display());
-	}
-	let out_root = repo_root.join("out/build/curl");
-	let source_copy = out_root.join("source");
-	let build_dir = out_root.join("build");
-	let install_dir = out_root.join("install");
-	let stamp_path = out_root.join("build-stamp.txt");
-	let state = fs::read_to_string(repo_root.join("upstream/state/curl.toml")).context("failed to read curl upstream state")?;
-	let options = curl_configure_options();
-	let stamp = format!("{state}\n{}\n", options.join("\n"));
-	if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
-		remove_path_if_exists(&source_copy)?;
-		remove_path_if_exists(&build_dir)?;
-	}
-	fs::create_dir_all(&out_root).with_context(|| format!("failed to create {}", out_root.display()))?;
-	sync_build_source(&source, &source_copy)?;
-	if !source_copy.join("configure").exists() {
-		run_cmd(&source_copy, "autoreconf", &["-fi"])?;
-	}
-	fs::create_dir_all(&build_dir).with_context(|| format!("failed to create {}", build_dir.display()))?;
-	if !build_dir.join("Makefile").exists() {
-		let configure = source_copy.join("configure");
-		run_cmd(&build_dir, path_str(&configure)?, &options)?;
-	}
-	run_cmd(&build_dir, "make", &["-j", "4"])?;
-	remove_path_if_exists(&install_dir)?;
-	fs::create_dir_all(&install_dir).with_context(|| format!("failed to create {}", install_dir.display()))?;
-	let destdir = format!("DESTDIR={}", install_dir.display());
-	run_cmd(&build_dir, "make", &["install", &destdir])?;
-	for binary in CURL_BINARIES {
-		if !install_dir.join(binary.source_rel).exists() {
-			bail!("curl install did not produce {}", binary.source_rel);
-		}
-	}
-	fs::write(&stamp_path, stamp).with_context(|| format!("failed to write {}", stamp_path.display()))?;
-	Ok(())
+    let source = repo_root.join("src/userland/curl");
+    if !source.join("configure.ac").exists() {
+        bail!(
+            "curl source not found in {}; run upstream import curl first",
+            source.display()
+        );
+    }
+    let out_root = repo_root.join("out/build/curl");
+    let source_copy = out_root.join("source");
+    let build_dir = out_root.join("build");
+    let install_dir = out_root.join("install");
+    let stamp_path = out_root.join("build-stamp.txt");
+    let state = fs::read_to_string(repo_root.join("upstream/state/curl.toml"))
+        .context("failed to read curl upstream state")?;
+    let openssl = repo_root.join("out/build/openssl/install/usr");
+    let openssl_lib = openssl.join("lib/x86_64-linux-gnu");
+    let zlib = repo_root.join("out/build/zlib/install/usr");
+    let zlib_lib = zlib.join("lib/x86_64-linux-gnu");
+    let zstd = repo_root.join("out/build/zstd/install/usr");
+    let zstd_lib = zstd.join("lib/x86_64-linux-gnu");
+    if !openssl_lib.join("libcrypto.so").exists()
+        || !openssl_lib.join("libssl.so").exists()
+        || !zlib_lib.join("libz.so").exists()
+        || !zstd_lib.join("libzstd.so").exists()
+    {
+        bail!("MattOS curl TLS dependencies are missing; run build openssl, zlib, and zstd first")
+    }
+    let options = curl_configure_options();
+    let openssl_state = fs::read_to_string(repo_root.join("upstream/state/openssl.toml"))
+        .context("failed to read OpenSSL upstream state")?;
+    let library_path = std::env::join_paths([&openssl_lib, &zlib_lib, &zstd_lib])?
+        .to_string_lossy()
+        .to_string();
+    let env = [
+        (
+            "CPPFLAGS",
+            format!(
+                "-I{} -I{} -I{}",
+                openssl.join("include").display(),
+                zlib.join("include").display(),
+                zstd.join("include").display()
+            ),
+        ),
+        (
+            "LDFLAGS",
+            format!(
+                "-L{} -L{} -L{}",
+                openssl_lib.display(),
+                zlib_lib.display(),
+                zstd_lib.display()
+            ),
+        ),
+        ("LIBRARY_PATH", library_path.clone()),
+        ("LD_LIBRARY_PATH", library_path),
+        (
+            "PKG_CONFIG_PATH",
+            std::env::join_paths([
+                openssl_lib.join("pkgconfig"),
+                zlib_lib.join("pkgconfig"),
+                zstd_lib.join("pkgconfig"),
+            ])?
+            .to_string_lossy()
+            .to_string(),
+        ),
+    ];
+    let stamp = format!(
+        "{state}\n{openssl_state}\n{}\n{}\n",
+        options.join("\n"),
+        env.iter()
+            .map(|(key, value)| format!("{key}={value}"))
+            .collect::<Vec<_>>()
+            .join("\n")
+    );
+    if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+        remove_path_if_exists(&source_copy)?;
+        remove_path_if_exists(&build_dir)?;
+    }
+    fs::create_dir_all(&out_root)
+        .with_context(|| format!("failed to create {}", out_root.display()))?;
+    sync_build_source(&source, &source_copy)?;
+    if !source_copy.join("configure").exists() {
+        run_cmd(&source_copy, "autoreconf", &["-fi"])?;
+    }
+    fs::create_dir_all(&build_dir)
+        .with_context(|| format!("failed to create {}", build_dir.display()))?;
+    if !build_dir.join("Makefile").exists() {
+        let configure = source_copy.join("configure");
+        run_cmd_with_env_overrides(&build_dir, path_str(&configure)?, &options, &env)?;
+    }
+    run_cmd_with_env_overrides(&build_dir, "make", &["-j", "4"], &env)?;
+    remove_path_if_exists(&install_dir)?;
+    fs::create_dir_all(&install_dir)
+        .with_context(|| format!("failed to create {}", install_dir.display()))?;
+    let destdir = format!("DESTDIR={}", install_dir.display());
+    run_cmd_with_env_overrides(&build_dir, "make", &["install", &destdir], &env)?;
+    for binary in CURL_BINARIES {
+        if !install_dir.join(binary.source_rel).exists() {
+            bail!("curl install did not produce {}", binary.source_rel);
+        }
+    }
+    let runtime_dirs: [&Path; 3] = [&openssl_lib, &zlib_lib, &zstd_lib];
+    let libcurl = install_dir.join("usr/lib/x86_64-linux-gnu/libcurl.so.4.8.0");
+    validate_dependency_resolves_from(&libcurl, "libssl.so.3", &openssl_lib, &runtime_dirs)?;
+    validate_dependency_resolves_from(&libcurl, "libcrypto.so.3", &openssl_lib, &runtime_dirs)?;
+    validate_dependency_resolves_from(&libcurl, "libzstd.so.1", &zstd_lib, &runtime_dirs)?;
+    fs::write(&stamp_path, stamp)
+        .with_context(|| format!("failed to write {}", stamp_path.display()))?;
+    Ok(())
 }
 
 fn path_str(path: &Path) -> Result<&str> {
@@ -2855,10 +3641,18 @@ fn build_systemd(repo_root: &Path) -> Result<()> {
 	if !kmod_install.join("lib/x86_64-linux-gnu/libkmod.so.2").exists() {
 		bail!("kmod development files missing at {}; run build kmod first", kmod_install.display());
 	}
+	let util_linux_install = repo_root.join("out/build/util-linux/install/usr");
+	let util_linux_lib = util_linux_install.join("lib/x86_64-linux-gnu");
+	if !util_linux_lib.join("libmount.so.1").exists() || !util_linux_lib.join("pkgconfig/mount.pc").exists() {
+		bail!("util-linux libmount development files missing at {}; run build util-linux first", util_linux_install.display());
+	}
+	let system_library_path = std::env::join_paths([kmod_install.join("lib/x86_64-linux-gnu"), util_linux_lib.clone()])?.to_string_lossy().to_string();
 	let env_overrides = vec![
-		("PKG_CONFIG_PATH", kmod_install.join("lib/x86_64-linux-gnu/pkgconfig").display().to_string()),
-		("CFLAGS", format!("-I{}", kmod_install.join("include").display())),
-		("LDFLAGS", format!("-L{}", kmod_install.join("lib/x86_64-linux-gnu").display())),
+		("PKG_CONFIG_PATH", std::env::join_paths([kmod_install.join("lib/x86_64-linux-gnu/pkgconfig"), util_linux_lib.join("pkgconfig")])?.to_string_lossy().to_string()),
+		("CFLAGS", format!("-I{} -I{}", kmod_install.join("include").display(), util_linux_install.join("include").display())),
+		("LDFLAGS", format!("-L{} -L{}", kmod_install.join("lib/x86_64-linux-gnu").display(), util_linux_lib.display())),
+		("LIBRARY_PATH", system_library_path.clone()),
+		("LD_LIBRARY_PATH", system_library_path),
 	];
 	let env_text = format!("{}\n", env_overrides.iter().map(|(k, v)| format!("{k}={v}")).collect::<Vec<_>>().join("\n"));
 	fs::create_dir_all(&out_root).with_context(|| format!("failed to create {}", out_root.display()))?;
@@ -3103,8 +3897,6 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 		bail!("systemd PAM module missing at {}; ensure the imported systemd build has PAM enabled", pam_systemd.display());
 	}
 	copy_runtime_dependencies(&pam_systemd, &out)?;
-	copy_shared_object_and_deps("libmount.so.1", &out)?;
-	copy_host_binary_and_deps("/usr/bin/mount", &out)?;
 	copy_host_binary_and_deps("/usr/bin/getent", &out)?;
 	copy_host_binary_and_deps("/usr/sbin/ldconfig", &out)?;
 	verify_required_pam_modules(&out)?;
@@ -4411,45 +5203,6 @@ fn copy_host_binary_and_deps(path: &str, rootfs: &Path) -> Result<()> {
 	Ok(())
 }
 
-fn copy_shared_object_and_deps(soname: &str, rootfs: &Path) -> Result<()> {
-	let src = resolve_shared_object_path(soname)?;
-	let rel = src.strip_prefix("/").unwrap_or(src.as_path());
-	let dst = rootfs.join(rel);
-	if let Some(parent) = dst.parent() {
-		fs::create_dir_all(parent).with_context(|| format!("failed to create {}", parent.display()))?;
-	}
-	fs::copy(&src, &dst).with_context(|| format!("failed to copy runtime dependency {}", src.display()))?;
-	copy_runtime_dependencies(&src, rootfs)?;
-	Ok(())
-}
-
-fn resolve_shared_object_path(soname: &str) -> Result<PathBuf> {
-	let output = run_cmd_output(Path::new("/"), "ldconfig", &["-p"])?;
-	if output.status.success() {
-		let text = String::from_utf8(output.stdout).context("ldconfig output was not UTF-8")?;
-		for line in text.lines() {
-			if !line.contains(soname) || !line.contains("=>") {
-				continue;
-			}
-			if let Some((_, path_part)) = line.split_once("=>") {
-				let candidate = PathBuf::from(path_part.trim());
-				if candidate.exists() {
-					return Ok(candidate);
-				}
-			}
-		}
-	}
-
-	for base in ["/lib", "/lib64", "/usr/lib", "/usr/lib64", "/lib/x86_64-linux-gnu", "/usr/lib/x86_64-linux-gnu"] {
-		let candidate = Path::new(base).join(soname);
-		if candidate.exists() {
-			return Ok(candidate);
-		}
-	}
-
-	bail!("required shared object {} not found on host", soname)
-}
-
 fn run_cmd(cwd: &Path, program: &str, args: &[&str]) -> Result<()> {
 	println!("> {} {}", program, args.join(" "));
 	let status = run_cmd_status(cwd, program, args)?;
@@ -5227,6 +5980,11 @@ mod tests {
 		assert!(plan.contains(&BuildStage::Xz));
 		assert!(plan.contains(&BuildStage::Xxhash));
 		assert!(plan.contains(&BuildStage::Zstd));
+		assert!(plan.contains(&BuildStage::Openssl));
+		assert!(plan.contains(&BuildStage::Elfutils));
+		assert!(plan.contains(&BuildStage::Pcre2));
+		assert!(plan.contains(&BuildStage::Selinux));
+		assert!(plan.contains(&BuildStage::Libxcrypt));
 		assert!(plan.contains(&BuildStage::Libmd));
 		assert!(plan.contains(&BuildStage::Libbsd));
 		assert!(plan.contains(&BuildStage::Tar));
@@ -5243,6 +6001,11 @@ mod tests {
 		let xz = plan.iter().position(|stage| *stage == BuildStage::Xz).unwrap();
 		let xxhash = plan.iter().position(|stage| *stage == BuildStage::Xxhash).unwrap();
 		let zstd = plan.iter().position(|stage| *stage == BuildStage::Zstd).unwrap();
+		let openssl = plan.iter().position(|stage| *stage == BuildStage::Openssl).unwrap();
+		let elfutils = plan.iter().position(|stage| *stage == BuildStage::Elfutils).unwrap();
+		let pcre2 = plan.iter().position(|stage| *stage == BuildStage::Pcre2).unwrap();
+		let selinux = plan.iter().position(|stage| *stage == BuildStage::Selinux).unwrap();
+		let libxcrypt = plan.iter().position(|stage| *stage == BuildStage::Libxcrypt).unwrap();
 		let libmd = plan.iter().position(|stage| *stage == BuildStage::Libmd).unwrap();
 		let libbsd = plan.iter().position(|stage| *stage == BuildStage::Libbsd).unwrap();
 		let tar = plan.iter().position(|stage| *stage == BuildStage::Tar).unwrap();
@@ -5259,6 +6022,13 @@ mod tests {
 		assert!(xz < dpkg);
 		assert!(zlib < apt && bzip2 < apt && lz4 < apt && xz < apt && xxhash < apt);
 		assert!(zstd < dpkg && zstd < apt);
+		assert!(zstd < openssl && zstd < elfutils);
+		assert!(openssl < plan.iter().position(|stage| *stage == BuildStage::Curl).unwrap());
+		assert!(openssl < apt);
+		assert!(elfutils < iproute2);
+		assert!(pcre2 < selinux && selinux < iproute2 && selinux < dpkg);
+		assert!(libxcrypt < plan.iter().position(|stage| *stage == BuildStage::Pam).unwrap());
+		assert!(libxcrypt < plan.iter().position(|stage| *stage == BuildStage::Shadow).unwrap());
 		assert!(libmd < libbsd && libbsd < plan.iter().position(|stage| *stage == BuildStage::Shadow).unwrap());
 		assert!(libmd < dpkg);
 		assert!(plan.contains(&BuildStage::Pam));
@@ -5278,9 +6048,60 @@ mod tests {
 		assert_eq!(BuildStage::from_str("xz", true).unwrap(), BuildStage::Xz);
 		assert_eq!(BuildStage::from_str("xxhash", true).unwrap(), BuildStage::Xxhash);
 		assert_eq!(BuildStage::from_str("zstd", true).unwrap(), BuildStage::Zstd);
+		assert_eq!(BuildStage::from_str("openssl", true).unwrap(), BuildStage::Openssl);
+		assert_eq!(BuildStage::from_str("elfutils", true).unwrap(), BuildStage::Elfutils);
+		assert_eq!(BuildStage::from_str("pcre2", true).unwrap(), BuildStage::Pcre2);
+		assert_eq!(BuildStage::from_str("selinux", true).unwrap(), BuildStage::Selinux);
+		assert_eq!(BuildStage::from_str("libxcrypt", true).unwrap(), BuildStage::Libxcrypt);
 		assert_eq!(BuildStage::from_str("libmd", true).unwrap(), BuildStage::Libmd);
 		assert_eq!(BuildStage::from_str("libbsd", true).unwrap(), BuildStage::Libbsd);
 		assert_eq!(BuildStage::from_str("tar", true).unwrap(), BuildStage::Tar);
+	}
+
+	#[test]
+	fn libxcrypt_preserves_yescrypt_and_required_compatibility_versions() {
+		let options = libxcrypt_configure_options();
+		assert!(options.contains(&"--enable-hashes=all"));
+		assert!(options.contains(&"--enable-obsolete-api=glibc"));
+		assert!(options.contains(&"--disable-xcrypt-compat-files"));
+		assert_eq!(
+			LIBXCRYPT_REQUIRED_SYMBOL_VERSIONS,
+			["GLIBC_2.2.5", "XCRYPT_2.0", "XCRYPT_4.3", "XCRYPT_4.4"]
+		);
+	}
+
+	#[test]
+	fn util_linux_mount_closure_keeps_selinux_compatibility_enabled() {
+		let options = util_linux_meson_options();
+		for required in [
+			"-Dbuild-libblkid=enabled",
+			"-Dbuild-libmount=enabled",
+			"-Dbuild-libsmartcols=enabled",
+			"-Dbuild-mount=enabled",
+			"-Dselinux=enabled",
+		] {
+			assert!(options.contains(&required.to_string()));
+		}
+	}
+
+	#[test]
+	fn openssl_runtime_configuration_is_minimal_and_explicit() {
+		let zlib = Path::new("/mattos/zlib/usr");
+		let zstd = Path::new("/mattos/zstd/usr");
+		let options = openssl_configure_options(zlib, zstd);
+		assert!(options.contains(&"shared".to_string()));
+		assert!(options.contains(&"--openssldir=/etc/ssl".to_string()));
+		assert!(options.contains(&"no-module".to_string()));
+		assert!(options.contains(&"no-legacy".to_string()));
+		assert!(options.contains(&"enable-zstd".to_string()));
+	}
+
+	#[test]
+	fn curl_preserves_mattos_ca_bundle_and_openssl_backend() {
+		let options = curl_configure_options();
+		assert!(options.contains(&"--with-openssl"));
+		assert!(options.contains(&"--with-ca-bundle=/etc/ssl/certs/ca-certificates.crt"));
+		assert!(options.contains(&"--without-ca-path"));
 	}
 
 	#[test]

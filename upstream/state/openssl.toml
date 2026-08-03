@@ -1,0 +1,7 @@
+component = "openssl"
+repo = "https://github.com/openssl/openssl.git"
+branch = "openssl-3.5.7"
+imported_commit = "8cf17aaeb4599f8af87fefd810b5b5fee90fe69e"
+imported_at_utc = "2026-08-03T01:28:42.648207285+00:00"
+sync_method = "copy"
+destination_path = "src/system/libraries/openssl"

@@ -1,0 +1,7 @@
+component = "sljit"
+repo = "https://github.com/zherczeg/sljit.git"
+branch = "master"
+imported_commit = "45f910b78c6605ebf5b53d3ec7cb00f2312fe417"
+imported_at_utc = "2026-08-03T03:05:26.910551083+00:00"
+sync_method = "copy"
+destination_path = "src/build-support/sljit"

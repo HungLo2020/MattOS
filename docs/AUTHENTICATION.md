@@ -17,6 +17,7 @@ The authentication projects are editable source trees, not submodules. `upstream
 | Linux-PAM | `https://github.com/linux-pam/linux-pam.git` | `master` | `dd74fc113a9ba1f94d5469f6f7857a1884b3f550` |
 | Shadow | `https://github.com/shadow-maint/shadow.git` | `master` | `855d15a04625818fa28a94e693dd4dc7acfb5af3` |
 | sudo-rs | `https://github.com/trifectatechfoundation/sudo-rs.git` | `main` | `e5a01fd7a20a5bfe5da6bc1b5cf7628e721c35c8` |
+| libxcrypt | `https://github.com/besser82/libxcrypt.git` | `develop` (`v4.4.38`) | `55ea777e8d567e5e86ffac917c28815ac54cc341` |
 
 MattOS-owned policy remains outside those imported trees in `src/system/auth/config/` and `src/system/profiles/live/`.
 
@@ -31,9 +32,13 @@ Only the local-authentication runtime is staged:
 - systemd's locally built `pam_systemd` session module;
 - `unix_chkpwd` for `pam_unix` password verification.
 
-Traditional util-linux builds only `agetty`, `login`, and `su`, with PAM supplied by the local Linux-PAM build. Its other Meson auto-features, systemd integration, NLS, mount tools, Python bindings, and completions are disabled.
+Traditional util-linux builds `agetty`, `login`, and `su` with local PAM, plus the libblkid/libmount/libsmartcols and mount/umount closure that the exact rootfs graph requires. SELinux compatibility is compiled against the staged MattOS libselinux/PCRE2 build, while systemd integration, NLS, Python bindings, completions, and unrelated tools remain disabled.
 
 Shadow is configured with PAM and yescrypt, and without NLS, SELinux, logind, Btrfs, nscd, or sssd. `/etc/login.defs` specifies `ENCRYPT_METHOD YESCRYPT`; QEMU validation confirmed newly assigned passwords use the `$y$` yescrypt format.
+
+`mattos-libcrypt1` comes from libxcrypt `v4.4.38`, configured with all hashing algorithms and glibc-compatible obsolete APIs. The upstream suite passes its yescrypt generation/verification cases. The installed `libcrypt.so.1` exports `GLIBC_2.2.5`, `XCRYPT_2.0`, `XCRYPT_4.3`, and `XCRYPT_4.4`; PAM requires `crypt_checksalt@XCRYPT_4.3` plus `crypt_r` and `crypt_gensalt_rn` at `XCRYPT_2.0`, while Shadow requires `crypt` and `crypt_gensalt` at `XCRYPT_2.0`. PAM, Shadow, and their helpers are rebuilt with staged include, pkg-config, linker, and runtime paths so host libcrypt fallback fails the build.
+
+The source-built `libselinux.so.1` is compatibility runtime only. MattOS installs no SELinux policy, boot mode, relabeling tools, enforcing/permissive configuration, or policy compiler.
 
 sudo-rs builds the `sudo` and `visudo` binaries in release mode and links against the local Linux-PAM build. MattOS does not include C sudo.
 

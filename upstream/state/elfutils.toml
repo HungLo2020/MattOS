@@ -1,0 +1,7 @@
+component = "elfutils"
+repo = "https://sourceware.org/git/elfutils.git"
+branch = "elfutils-0.195"
+imported_commit = "302252356da5475670ac5b10dadd091c59689425"
+imported_at_utc = "2026-08-03T01:28:46.440908158+00:00"
+sync_method = "copy"
+destination_path = "src/system/libraries/elfutils"

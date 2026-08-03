@@ -1,10 +1,10 @@
 # MattOS Project Audit
 
-Date: 2026-08-01
+Date: 2026-08-02
 
 ## 1. Executive Summary
 
-MattOS is a coherent Linux-native bootstrap system with systemd PID 1, separate system and per-user dbus-broker buses, registered logind console sessions, session-bound per-user managers, non-root live autologin, PAM/Shadow/sudo-rs authentication and account tools, Brush, a rescue-init path, and a reproducible build pipeline. It includes real kmod, procps-ng, ncurses, a complete QEMU/wired IPv4 path, and a working Debian-package foundation. Forty-one MattOS packages are installed through a real dpkg database from an embedded local repository. MattOS-built dpkg and APT can update, inspect, download, and reinstall packages entirely from that local repository, including with the QEMU NIC removed. Selected administration, terminal, authentication, D-Bus, networking, GNU tar, ACL, compression, libmd, libbsd, Expat, and libcap payloads now have package ownership; full systemd and several bootstrap host libraries remain on the legacy path. Persistent installation, an online repository, Polkit, SSH, Wi-Fi, firewall policy, firmware packaging, and a graphical desktop remain intentionally absent.
+MattOS is a coherent Linux-native bootstrap system with systemd PID 1, separate system and per-user dbus-broker buses, registered logind console sessions, session-bound per-user managers, non-root live autologin, PAM/Shadow/sudo-rs authentication and account tools, Brush, a rescue-init path, and a reproducible build pipeline. Fifty-two MattOS packages are installed through a real dpkg database from an embedded local repository. PCRE2, SELinux userspace compatibility, libxcrypt, and the util-linux mount closure are now source-built and package-owned. MattOS-built dpkg and APT work from the embedded repository with or without the QEMU NIC. Full systemd executables still use the hybrid assembly path, and only five glibc/GCC runtime files remain host-derived. Persistent installation, an online repository, Polkit, SSH, Wi-Fi, firewall policy, firmware packaging, and a graphical desktop remain intentionally absent.
 
 The previous GRUB source-of-truth ambiguity has been resolved by keeping only `src/boot/grub/grub.cfg` as tracked source and validating that path in `mattos-build`. The most important remaining architectural limitation is that the runtime closure is still copied from the host via `ldd` rather than from a MattOS-built sysroot.
 
@@ -51,6 +51,12 @@ Prompt behavior:
 | XZ Utils | https://github.com/tukaani-project/xz.git | `v5.8.1` | `a522a226545730551f7e7c2685fab27cf567746c` | `src/system/libraries/xz/` |
 | xxHash | https://github.com/Cyan4973/xxHash.git | `v0.8.3` | `e626a72bc2321cd320e953a0ccf1584cad60f363` | `src/system/libraries/xxhash/` |
 | Zstandard | https://github.com/facebook/zstd.git | `v1.5.7` | `f8745da6ff1ad1e7bab384bd1f9d742439278e99` | `src/system/libraries/zstd/` |
+| OpenSSL | https://github.com/openssl/openssl.git | `openssl-3.5.7` | `8cf17aaeb4599f8af87fefd810b5b5fee90fe69e` | `src/system/libraries/openssl/` |
+| elfutils | https://sourceware.org/git/elfutils.git | `elfutils-0.195` | `302252356da5475670ac5b10dadd091c59689425` | `src/system/libraries/elfutils/` |
+| PCRE2 | https://github.com/PCRE2Project/pcre2.git | `pcre2-10.47` | `f454e231fe5006dd7ff8f4693fd2b8eb94333429` | `src/system/libraries/pcre2/` |
+| SLJIT build support | https://github.com/zherczeg/sljit.git | `master` | `45f910b78c6605ebf5b53d3ec7cb00f2312fe417` | `src/build-support/sljit/` |
+| SELinux userspace | https://github.com/SELinuxProject/selinux.git | `3.10` | `ca10fc4204ed60540d41d2499127c18ad0643f9e` | `src/system/security/selinux/` |
+| libxcrypt | https://github.com/besser82/libxcrypt.git | `develop` / `v4.4.38` | `55ea777e8d567e5e86ffac917c28815ac54cc341` | `src/system/libraries/libxcrypt/` |
 | libmd | https://git.hadrons.org/git/libmd.git | `1.2.0` | `90c4f432134c608c7e2b4dd0a1d7ca5c40b92c7a` | `src/system/libraries/libmd/` |
 | libbsd | https://gitlab.freedesktop.org/libbsd/libbsd.git | `0.12.2` | `04a24db27ad1572f766bad772cdd9c146e6d9cf0` | `src/system/libraries/libbsd/` |
 
@@ -82,6 +88,9 @@ The build orchestrator is `src/tools/mattos-build/src/main.rs`. It currently own
 - procps-ng build
 - ncurses build and terminfo selection
 - iproute2, iputils, and HTTP/HTTPS-only curl builds
+- focused Zstandard, OpenSSL libcrypto/libssl, and elfutils libelf builds with explicit staged dependency paths
+- focused PCRE2 8-bit, libselinux, and libxcrypt builds with explicit staged dependency paths and ABI checks
+- source-built util-linux libblkid/libmount/libsmartcols and mount/umount closure
 - systemd build
 - dbus-broker build
 - init build
@@ -112,7 +121,7 @@ Current limitations:
 
 ## 6. Runtime and Rootfs Assessment
 
-The assembled rootfs is a merged `/usr` layout with `/bin`, `/sbin`, `/lib`, and `/lib64` symlinked into the `/usr` tree. Forty-one packages own the initial base plus selected ncurses, kmod, procps, systemd-library, Expat, libcap, ACL, zlib, bzip2, LZ4, liblzma, xxHash, libmd, libbsd, GNU tar, dbus-broker, PAM, Shadow, sudo-rs, util-linux-auth, iproute2, and iputils payloads and are installed with real dpkg semantics. `/var/lib/dpkg` contains normal status, conffile, md5sum, file-list, and ownership data. The local repository is embedded at `/usr/share/mattos/repository`, APT is configured only for that `file:` source, and no Debian or Ubuntu source is configured.
+The assembled rootfs is a merged `/usr` layout with `/bin`, `/sbin`, `/lib`, and `/lib64` symlinked into the `/usr` tree. Fifty-two packages own the initial base and selected source-built payloads, including PCRE2, libselinux, libxcrypt, libblkid, libmount, libsmartcols, mount, and umount. They are installed with real dpkg semantics, and `/var/lib/dpkg` contains normal status, conffile, md5sum, file-list, and ownership data. The local repository is embedded at `/usr/share/mattos/repository`, APT is configured only for that `file:` source, and no Debian or Ubuntu source is configured.
 
 APT mutable lists and archive cache are initialized as writable live state rather than shipped package content. Its selected commands, private library, local methods, helpers, configuration, CA trust, source-built `libapt-pkg`, and exact ELF closure all have package ownership. The transitional bootstrap-runtime package documents each host-derived input and checksum; it does not claim to be a MattOS glibc build.
 
@@ -131,13 +140,14 @@ Rootfs modes and directories:
 - `/run`, `/var/log`, `/var/tmp`, `/etc/systemd/system`, and `/usr/libexec/mattos` are created during assembly.
 - `/etc/machine-id` is empty, which matches the current ephemeral-image model.
 
-Runtime libraries copied into the image currently include:
+Representative runtime libraries in the image currently include:
 
 - `libblkid.so.1`
 - `libc.so.6`
 - `libgcc_s.so.1`
 - `libm.so.6`
 - `libmount.so.1`
+- `libsmartcols.so.1`
 - `libnss_myhostname.so.2`
 - `libnss_systemd.so.2`
 - `libpcre2-8.so.0`
@@ -148,7 +158,7 @@ Runtime libraries copied into the image currently include:
 - `libsystemd-core-262.so`
 - `libsystemd-shared-262.so`
 
-This is enough for the current image, but it is still host-derived and therefore an architectural bootstrap limitation.
+The three target libraries and the util-linux mount closure above are package-owned source builds. The remaining host-derived runtime boundary is exactly glibc's `libc.so.6`, `libm.so.6`, and loader plus GCC's `libgcc_s.so.1` and `libstdc++.so.6`.
 
 ## 7. systemd and Login Assessment
 
@@ -286,7 +296,7 @@ This is correct for a bootstrap system, but it is not especially efficient. The 
 
 ### Medium
 
-- Much of the bootstrap runtime closure is host-copied rather than built from a MattOS sysroot. Source-built libkmod, libproc2, ncurses, PAM, libsystemd, libudev, Expat, libcap, LZ4, liblzma, xxHash, libmd, and libbsd now have dedicated package owners; every remaining compatibility file is checksummed with a reason in the bootstrap manifest. The full 23-entry baseline, classifications, consumer graph, current 12-entry result, and recommended migration order are in `docs/BOOTSTRAP_RUNTIME.md`.
+- Five runtime/toolchain files remain host-copied rather than built from a MattOS sysroot. Every separable pre-toolchain library now has a dedicated package owner; the remaining glibc/GCC files are checksummed with their complete consumer graph in `docs/BOOTSTRAP_RUNTIME.md`.
 - The build orchestrator is large enough to be a maintenance risk and should eventually be split into smaller modules.
 
 ### Low
@@ -347,7 +357,7 @@ Detailed classification:
 
 ### Needed soon
 
-- broader util-linux and filesystem administration coverage
+- broader filesystem administration coverage beyond the now source-built mount closure
 - persistent account and home-directory policy for a future installed system
 - basic mount and disk utility coverage
 - persistent shell history/config plumbing
@@ -426,18 +436,31 @@ Verified successfully during this audit pass:
 - `cargo run -p mattos-build -- upstream status`
 - `cargo run -p mattos-build -- build all`
 - `cargo run -p mattos-build -- image`
-- all 41 `.deb` files built and the repository dependency/ELF ownership validation passed
-- the computed dependency order installed all 41 packages through real dpkg semantics into the rootfs
+- all 52 `.deb` files built and the repository dependency/ELF ownership validation passed
+- the computed dependency order installed all 52 packages through real dpkg semantics into the rootfs
 - GNU tar 1.35, ACL 2.3.2, zlib 1.3.2, and bzip2 1.0.8 were imported at exact commits, built outside their source trees, and split into four new runtime packages
 - the assembled rootfs used package-owned GNU tar to create, list, and extract an archive and used source-built `dpkg-deb` to extract `mattos-brush`
 - the bootstrap boundary shrank from 21 entries / 17,365,960 bytes to 17 entries / 16,669,816 bytes
 - LZ4 1.10.0, XZ Utils 5.8.1, xxHash 0.8.3, and Zstandard 1.5.7 were imported at exact stable tags and built outside their source trees
 - dpkg and APT were rebuilt with explicit MattOS compression include/link/runtime paths; LZ4, liblzma, and xxHash moved into three ABI packages
 - the current bootstrap boundary shrank from 17 entries / 16,669,816 bytes to 14 entries / 16,191,736 bytes
-- Zstandard remains bootstrap-owned because its bootstrap OpenSSL/libelf consumers would otherwise create a rejected dependency cycle
+- OpenSSL 3.5.7 and elfutils 0.195 were imported at exact release tags and commits as ordinary editable files, with no nested Git repositories
+- Zstandard, OpenSSL libcrypto/libssl, and elfutils libelf were built in dependency order and split into `mattos-libzstd1`, `mattos-libcrypto3`, `mattos-libssl3`, and `mattos-libelf1`
+- curl, APT, dpkg, and iproute2 were rebuilt against explicit staged include/link/runtime paths; assembled-rootfs loader checks resolved every migrated SONAME inside the rootfs
+- the bootstrap boundary shrank from 12 entries / 16,042,648 bytes to 8 entries / 7,639,680 bytes
 - libmd 1.2.0 and libbsd 0.12.2 were imported from their canonical upstream repositories at exact stable commits and built out of source with Autotools
 - libbsd was forced to the MattOS libmd headers and library; eight dpkg-family commands and ten Shadow commands were rebuilt with explicit staged paths and validated against the assembled rootfs loader
 - `mattos-libmd0` and `mattos-libbsd0` uniquely own their SONAMEs, and the bootstrap boundary shrank from 14 entries / 16,191,736 bytes to 12 entries / 16,042,648 bytes
+- PCRE2 10.47, SELinux userspace 3.10, and libxcrypt 4.4.38 were imported at exact release commits, built outside their source trees, and split into three ABI packages
+- dpkg, iproute2, PAM, and Shadow direct consumers were rebuilt with staged paths; the exact rootfs graph contains no unowned direct consumer of the migrated SONAMEs
+- util-linux libblkid/libmount/libsmartcols and mount/umount were source-built and split into four packages, eliminating the former host mount/library copy path while retaining the SELinux compatibility loader
+- libxcrypt's upstream tests passed yescrypt coverage and the installed ABI exports all required `GLIBC_2.2.5` and `XCRYPT_2.0`/`4.3`/`4.4` nodes
+- the bootstrap boundary shrank from 8 entries / 7,639,680 bytes to 5 entries / 6,518,032 bytes
+- two consecutive full package/repository builds produced identical aggregate hashes: 52 packages `3aefddd9419391a04c7366337afc58a8025b0729c7caf5ba6fdb19dbd5c07882`; 55 repository files `8ba00fae4273017332afffb903a8b61cafe9387cecce02ff1083894ef8c56b82`
+- normal serial QEMU boot reached a `running` systemd system with the live `mattos` session, passwordless live-profile sudo, both system and user D-Bus, routable `ens3`, DHCP/DNS/NTP, and certificate-verified HTTPS
+- the embedded repository updated successfully and safely reinstalled `mattos-mount` and the libselinux-dependent `mattos-iproute2` during normal boot
+- temporary interactive authentication checks covered incorrect and successful manual login, yescrypt password creation, self-service password change, `su`, prompted administrative sudo rejection/success, non-administrator sudo denial, and locked-root rejection
+- no-network QEMU boot retained login, sudo, both D-Bus scopes, a `running` systemd state, and loopback-only network state; local APT updated and reinstalled `mattos-brush`, `mattos-mount`, and `mattos-iproute2`
 - representative ownership queries resolved PAM, ncurses, kmod, procps, dbus-broker, sudo, passwd, login, ip, and ping paths to their dedicated packages
 - the embedded `file:` repository safely reinstalled `mattos-iputils`, `mattos-procps`, and `mattos-ncurses-bin`
 - ten session-critical packages were separately extracted and inspected without replacing active PAM/login/sudo/D-Bus/systemd files
@@ -450,7 +473,7 @@ Verified successfully during this audit pass:
 - `systemctl --user` reported a running user manager with no failed units, and socket activation made both user `dbus.socket` and `dbus.service` active
 - `busctl --user` connected to `/run/user/1000/bus` and enumerated the user bus independently of the system bus
 - a harmless non-root service restart reached PID 1 through D-Bus and was denied with `Access denied`, confirming the no-Polkit policy boundary
-- the rescue GRUB entry booted `rescue-init` as PID 1 and reached its root Brush prompt
+- the rescue GRUB entry selected `rdinit=/usr/libexec/mattos/rescue-init`; the kernel captured the exact `Run /usr/libexec/mattos/rescue-init as init process` handoff, preserving the independently validated PID-1 root Brush path on tty1
 - default QEMU virtio networking produced `ens3`, DHCP `10.0.2.15/24`, a default route via `10.0.2.2`, and DNS via `10.0.2.3`
 - gateway and named-host pings completed without packet loss; `getent` resolved through glibc; HTTPS headers and body downloads passed certificate validation
 - networkd, resolved, and timesyncd were active; timesyncd contacted `time.cloudflare.com`, logged initial synchronization, and created its synchronization marker
