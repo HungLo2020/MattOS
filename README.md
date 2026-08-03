@@ -12,6 +12,8 @@ MattOS is a Linux-compatible OS project with upstream source imported directly a
 - Builds should also be possible from an already populated local dependency cache when network access is unavailable.
 - Downloaded build dependencies that do not become separate runtime artifacts do not need to be individually installed or managed through APT.
 - All source code utilized for this OS must be contained in this repo.
+- tentatively planning on using COSMIC desktop stack, login etc
+- compilers and toolchains to build MattOS must also be included in source set
 
 ## Repository model
 
