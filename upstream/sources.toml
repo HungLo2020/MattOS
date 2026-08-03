@@ -186,6 +186,14 @@ path = "src/system/libraries/acl"
 sync = "copy"
 
 [[component]]
+name = "attr"
+repo = "https://git.savannah.nongnu.org/git/attr.git"
+branch = "v2.6.0"
+revision = "c440855d6b33446edf4b5eb1a2d892281f15a99b"
+path = "src/system/libraries/attr"
+sync = "copy"
+
+[[component]]
 name = "zlib"
 repo = "https://github.com/madler/zlib.git"
 branch = "v1.3.2"
@@ -282,4 +290,12 @@ name = "libxcrypt"
 repo = "https://github.com/besser82/libxcrypt.git"
 branch = "v4.4.38"
 path = "src/system/libraries/libxcrypt"
+sync = "copy"
+
+[[component]]
+name = "glibc"
+repo = "git://sourceware.org/git/glibc.git"
+branch = "glibc-2.43"
+revision = "f762ccf84f122d1354f103a151cba8bde797d521"
+path = "src/system/libc/glibc"
 sync = "copy"

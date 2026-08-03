@@ -100,3 +100,7 @@ The 2026-08-01 graphical QEMU validation observed:
 - unchanged non-root autologin, sudo, Brush, procps, ncurses, session restart, and rescue-init behavior.
 
 The image now includes the source-built dbus-broker system bus. Non-root `networkctl`, `resolvectl status`, `timedatectl`, and `systemctl status` connect through `/run/dbus/system_bus_socket`, and the networkd, resolved, timesyncd, and timedated well-known names resolve through their installed policies and aliases. MattOS has no Polkit, so administrative changes can still be denied even though read-only bus access works.
+
+## glibc resolver boundary
+
+glibc and every native networking consumer are rebuilt against the MattOS sysroot. `mattos-libc6` owns `libresolv.so.2`, `libnss_dns.so.2`, and `libnss_files.so.2`; systemd packages continue to provide `libnss_resolve.so.2`. The existing `hosts: files resolve [!UNAVAIL=return] dns` and `networks: files dns` configuration is unchanged. Consequently `getent hosts`, `ping`, curl, APT, PAM account resolution, and ordinary application APIs all use the MattOS-built loader and resolver rather than a hidden host libc fallback. HTTPS certificate verification remains pinned to `/etc/ssl/certs/ca-certificates.crt` and is not disabled by this transition.

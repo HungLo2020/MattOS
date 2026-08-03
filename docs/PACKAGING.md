@@ -2,7 +2,7 @@
 
 MattOS uses Debian binary packages, `dpkg`, and APT without using Debian or Ubuntu as a binary source. Editable source and package policy live in this monorepo. Generated `.deb` files and repository indexes live under `out/` and are ignored build artifacts.
 
-This is a hybrid bootstrap, not a self-hosted distribution. Fifty-two packages own the initial base, package-manager runtime, selected source-built libraries and GNU tar, administration/networking tools, D-Bus broker, and authentication stack. Full systemd executables still follow the legacy assembly path, while only five glibc/GCC runtime files remain host-derived.
+This is a hybrid bootstrap, not a self-hosted distribution. Fifty-four packages own the initial base, package-manager runtime, MattOS-built glibc, selected source-built libraries and GNU tar, administration/networking tools, D-Bus broker, and authentication stack. Full systemd executables still follow the legacy assembly path, while only the two GCC runtime files `libgcc_s.so.1` and `libstdc++.so.6` remain host-derived.
 
 ## Imported package-manager sources
 
@@ -41,7 +41,8 @@ Versions use `<upstream-version>-1mattos1`. Package modes and timestamps are nor
 | Package | Priority | Selected payload and role |
 | --- | --- | --- |
 | `mattos-filesystem` | required, Essential | merged-`/usr` structural directories and symlinks |
-| `mattos-bootstrap-runtime` | required | exact temporary host-derived ELF closure; GNU tar is excluded |
+| `mattos-libc6`, `mattos-libc-bin` | required | source-built glibc loader/runtime/NSS modules and selected runtime utilities |
+| `mattos-bootstrap-runtime` | required | exact temporary host-derived GCC runtime closure: only libgcc_s and libstdc++ |
 | `mattos-base-files` | required | MattOS identity, hostname default, profile, issue, and shells |
 | `mattos-ca-certificates` | important | pinned Mozilla-derived CA bundle and update provenance |
 | `mattos-brush` | required | `/usr/bin/brush` |
@@ -121,9 +122,11 @@ Mutable lists, archives, logs, partial files, and locks are never package payloa
 
 ### Bootstrap runtime boundary
 
-`mattos-bootstrap-runtime` is an explicit transitional package, not a glibc package. At build time the packager runs `ldd` over every selected packaged ELF root. It resolves against MattOS component install trees first, excludes every library now owned by a dedicated package, normalizes the remaining closure under `/usr/lib/x86_64-linux-gnu` and the loader under `/usr/lib64`, and records destination, source, reason, and SHA-256 for every file in `runtime-files.tsv`.
+`mattos-libc6` is the foundational runtime package and has no dependency on the compiler-runtime bootstrap package. It owns the loader, glibc runtime DSOs, compatibility DSOs, NSS modules, resolver, license, provenance, and a checksummed runtime manifest. `mattos-libc-bin` owns `getent`, `locale`, `ldd`, and `ldconfig`. Development headers, crt objects, static archives, and linker inputs stay in `out/sysroot` and are not installed on the runtime ISO.
 
-The package no longer owns GNU tar, ACL, zlib, bzip2, LZ4, liblzma, xxHash, Zstandard, OpenSSL, elfutils, libmd, libbsd, PCRE2, SELinux, libxcrypt, libudev, libsystemd, PAM, ncurses, kmod, procps, Expat, or libcap. The original audit found 23 payload files and 17,600,184 bytes; the prior coordinated migration reached 8 files and 7,639,680 bytes, and this final pre-toolchain milestone reaches 5 files and 6,518,032 bytes. Only `libc.so.6`, `libm.so.6`, the ELF loader, `libgcc_s.so.1`, and `libstdc++.so.6` remain. See `docs/BOOTSTRAP_RUNTIME.md` and the generated `out/reports/bootstrap-runtime-audit.toml`.
+`mattos-bootstrap-runtime` is an explicit transitional GCC-runtime package, not a glibc package. At build time the packager analyzes every selected packaged ELF root and records destination, source, reason, and SHA-256 for every remaining host-derived file in `runtime-files.tsv`.
+
+The package no longer owns libc, libm, the ELF loader, or any previously migrated library. The pre-glibc boundary was 5 files and 6,518,032 bytes; it is now 2 files and 2,832,624 bytes. Only `libgcc_s.so.1` and `libstdc++.so.6` remain host-derived. The package provides `mattos-bootstrap-gcc-runtime`, depends on `mattos-libc6`, and cannot form a cycle because `mattos-libc6` depends only on `mattos-filesystem`. See `docs/BOOTSTRAP_RUNTIME.md`, `docs/GLIBC_BOOTSTRAP.md`, and the generated audit.
 
 `mattos-curl` continues to carry its matching source-built `libcurl.so.4` because splitting one small ABI pair would add churn without improving this milestone. It depends on the exact bootstrap runtime, CA bundle, zlib, Zstandard, libcrypto, and libssl packages.
 
@@ -168,6 +171,7 @@ mattos-libapt-pkg/mattos-apt -> mattos-zlib1g, mattos-libbz2-1.0,
                                 mattos-liblz4-1, mattos-liblzma5,
                                 mattos-libxxhash0, mattos-libzstd1,
                                 mattos-libcrypto3 (= exact)
+mattos-libapt-pkg -> mattos-libudev1, mattos-libsystemd0 (= exact)
 mattos-iproute2 -> mattos-zlib1g, mattos-libzstd1, mattos-libelf1 (= exact)
 mattos-procps -> mattos-libproc2, mattos-libncursesw6, mattos-libtinfow6 (= exact)
 mattos-dbus-broker -> mattos-libsystemd0, mattos-libexpat1 (= exact)
@@ -241,4 +245,4 @@ Rootfs assembly builds all packages and the repository, initializes an empty dpk
 
 Host `dpkg-deb` and `dpkg` still build and install archives. Host `dpkg-scanpackages`, `apt-ftparchive`, and deterministic `gzip` still create indexes. Host `file`, `readelf`, and `ldd` support closure inspection. This is a bootstrap boundary, not self-hosting.
 
-The next coordinated migration must bootstrap glibc (`libc.so.6`, `libm.so.6`, and the ELF loader) and then the GCC runtime/toolchain (`libgcc_s.so.1` and `libstdc++.so.6`). A standalone libcurl package, Perl and remaining dpkg helpers, and full systemd packaging can follow independently. Repository signing, online publication, persistence, installation, and automatic upgrades are separate future milestones.
+The next coordinated runtime migration is GCC's `libgcc_s.so.1` and `libstdc++.so.6`, followed later by a compiler/Binutils bootstrap. A standalone libcurl package, Perl and remaining dpkg helpers, and full systemd packaging can follow independently. Repository signing, online publication, persistence, installation, and automatic upgrades are separate future milestones.

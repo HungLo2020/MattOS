@@ -110,3 +110,9 @@ Runtime validation also confirmed:
 ## Persistence boundary
 
 The current root filesystem is an initramfs. Accounts, groups, password hashes, homes, and policy changes made at runtime disappear at reboot. A future installed-system profile must create persistent users and omit the live account database, both autologin overrides, the live MOTD, and `00-mattos-live`; installation is intentionally outside this milestone.
+
+## glibc and NSS boundary
+
+Authentication executables, PAM modules, Shadow, sudo-rs, systemd-logind, and the Rust userland are rebuilt after the MattOS glibc sysroot is installed. Their final ELF interpreter is `/lib64/ld-linux-x86-64.so.2`, owned by `mattos-libc6`; loader resolution is checked entirely within the assembled rootfs.
+
+The package includes glibc's `libnss_files.so.2` and resolver modules. systemd supplies `libnss_systemd.so.2` and `libnss_resolve.so.2`, preserving the existing `passwd: files systemd`, `group: files systemd`, and `shadow: files systemd` policy. `getent passwd mattos`, PAM account lookup, login, `su`, sudo, and logind session creation therefore exercise the MattOS-built libc/NSS stack. The password policy, yescrypt configuration, live autologin, setuid modes, sudo policy, and locked-root policy are unchanged by the libc migration.

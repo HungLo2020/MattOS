@@ -1,6 +1,6 @@
 # Bootstrap runtime audit
 
-`mattos-bootstrap-runtime` is a transitional closure of host-derived runtime files. It is not a libc package and does not make MattOS self-hosting. The complete pre-migration machine report is generated at `out/reports/bootstrap-runtime-audit.toml` by:
+`mattos-bootstrap-runtime` is a transitional closure of host-derived compiler runtime files. It is not a libc package and does not make MattOS self-hosting. The complete machine report is generated at `out/reports/bootstrap-runtime-audit.toml` by:
 
 ```text
 cargo run -p mattos-build -- package audit
@@ -116,4 +116,6 @@ The exact direct graph is PCRE2 to `libselinux.so.1`; SELinux to dpkg, dpkg-stat
 
 libxcrypt is built with all hash algorithms and glibc-compatible obsolete APIs. Its test suite covers yescrypt, and the installed ABI exports `GLIBC_2.2.5`, `XCRYPT_2.0`, `XCRYPT_4.3`, and `XCRYPT_4.4`, satisfying the exact PAM and Shadow references. The three target runtime packages contain only runtime shared objects/SONAME links, license, and provenance.
 
-The bootstrap manifest now contains 5 files and 6,518,032 bytes, down from 8 files and 7,639,680 bytes. The remaining boundary is deliberately coordinated: glibc must provide `libc.so.6`, `libm.so.6`, and `ld-linux-x86-64.so.2`; the GCC runtime/toolchain must then provide `libgcc_s.so.1` and `libstdc++.so.6`. Those five files are the final host-derived runtime/toolchain boundary. MattOS does not claim self-hosting.
+That pre-glibc bootstrap manifest contained 5 files and 6,518,032 bytes. The glibc milestone moves `libc.so.6`, `libm.so.6`, and `ld-linux-x86-64.so.2` to `mattos-libc6`. The bootstrap manifest now contains only `libgcc_s.so.1` and `libstdc++.so.6`, totaling 2,832,624 bytes. It provides the accurately named `mattos-bootstrap-gcc-runtime` virtual boundary and depends on `mattos-libc6`; libc does not depend back on it.
+
+All dynamically linked target userspace now uses the MattOS-built glibc loader and runtime. The compiler, assembler, linker, libgcc, and libstdc++ used for this build remain host-bootstrap inputs, so MattOS still does not claim self-hosting. See `GLIBC_BOOTSTRAP.md` for the exact source, sysroot, configure, package, loader, and consumer-rebuild design.

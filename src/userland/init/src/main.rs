@@ -21,7 +21,12 @@ const VT_ACTIVATE_IOCTL: libc::c_ulong = 0x5606;
 const VT_WAITACTIVE_IOCTL: libc::c_ulong = 0x5607;
 
 #[cfg(unix)]
-fn mount_fs(source: Option<&str>, target: &str, fstype: &str, flags: libc::c_ulong) -> io::Result<()> {
+fn mount_fs(
+    source: Option<&str>,
+    target: &str,
+    fstype: &str,
+    flags: libc::c_ulong,
+) -> io::Result<()> {
     let source = source.map(|s| CString::new(s).expect("valid source CString"));
     let target = CString::new(target).expect("valid target CString");
     let fstype = CString::new(fstype).expect("valid fstype CString");
@@ -80,7 +85,10 @@ fn attach_to_graphical_tty() -> io::Result<()> {
         }
     }
 
-    let tty1 = OpenOptions::new().read(true).write(true).open("/dev/tty1")?;
+    let tty1 = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .open("/dev/tty1")?;
     let fd = tty1.as_raw_fd();
 
     unsafe {
@@ -125,16 +133,16 @@ fn reap_zombies_nonblocking() {
 fn spawn_brush() -> io::Result<Child> {
     Command::new("/bin/brush")
         .arg("-i")
-    .arg("--no-config")
-    .arg("--noprofile")
-    .arg("--norc")
-    .arg("--noediting")
-    .arg("--input-backend")
-    .arg("basic")
+        .arg("--no-config")
+        .arg("--noprofile")
+        .arg("--norc")
+        .arg("--noediting")
+        .arg("--input-backend")
+        .arg("basic")
         .env("PS1", "\\u@\\h:\\w\\$ ")
         .env("PATH", "/bin:/usr/bin:/sbin:/usr/sbin")
-    .env("HOME", "/root")
-    .env("TERM", "linux")
+        .env("HOME", "/root")
+        .env("TERM", "linux")
         .stdin(Stdio::inherit())
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
@@ -238,7 +246,9 @@ fn main() {
     try_mounts();
 
     if let Err(err) = attach_to_graphical_tty() {
-        eprintln!("mattos-init: failed to attach to /dev/tty1, continuing on inherited console: {err}");
+        eprintln!(
+            "mattos-init: failed to attach to /dev/tty1, continuing on inherited console: {err}"
+        );
     }
 
     println!("mattos-init: starting as pid {pid}");

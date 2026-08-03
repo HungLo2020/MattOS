@@ -15,6 +15,8 @@ REQUIRED_TOOLS = [
     "rustc",
     "make",
     "gcc",
+    "g++",
+    "as",
     "autoreconf",
     "autopoint",
     "gnulib-tool",
@@ -68,38 +70,19 @@ EXTRA_SYSTEMD_PACKAGES = [
     "ninja-build",
     "gperf",
     "python3-jinja2",
-    "libmount-dev",
     "autoconf",
     "automake",
     "libtool",
 ]
 
-EXTRA_AUTH_PACKAGES = [
-    "libpam0g-dev",
-    "libcrypt-dev",
-    "libbsd-dev",
-]
+EXTRA_AUTH_PACKAGES: List[str] = []
 
-EXTRA_DBUS_BROKER_PACKAGES = [
-    "libexpat1-dev",
-]
+EXTRA_DBUS_BROKER_PACKAGES: List[str] = []
 
-# Host package tooling is an explicit bootstrap dependency.  The development
-# libraries below are for building the imported dpkg and APT sources; they are
-# not copied into MattOS from Debian packages.
-EXTRA_PACKAGING_PACKAGES = [
-    "gnulib",
-    "libattr1-dev",
-    "dpkg-dev",
-    "apt-utils",
-    "libdb-dev",
-    "libbz2-dev",
-    "liblzma-dev",
-    "liblz4-dev",
-    "libxxhash-dev",
-    "libzstd-dev",
-    "zlib1g-dev",
-]
+# Host archive/repository commands remain explicit bootstrap tools through
+# REQUIRED_TOOLS. Target development libraries come from imported MattOS source
+# builds and the controlled sysroot, not distro -dev packages.
+EXTRA_PACKAGING_PACKAGES: List[str] = []
 
 DEBIAN_TOOL_PACKAGES: Dict[str, List[str]] = {
     "git": ["git"],
@@ -107,6 +90,8 @@ DEBIAN_TOOL_PACKAGES: Dict[str, List[str]] = {
     "rustc": ["rustc"],
     "make": ["build-essential"],
     "gcc": ["build-essential"],
+    "g++": ["build-essential"],
+    "as": ["binutils"],
     "autoreconf": ["autoconf", "automake", "libtool"],
     "autopoint": ["autopoint"],
     "gnulib-tool": ["gnulib"],
