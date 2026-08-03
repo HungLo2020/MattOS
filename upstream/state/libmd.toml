@@ -1,0 +1,7 @@
+component = "libmd"
+repo = "https://git.hadrons.org/git/libmd.git"
+branch = "1.2.0"
+imported_commit = "90c4f432134c608c7e2b4dd0a1d7ca5c40b92c7a"
+imported_at_utc = "2026-08-02T23:43:19.357661271+00:00"
+sync_method = "copy"
+destination_path = "src/system/libraries/libmd"

@@ -2,7 +2,7 @@
 
 MattOS uses Debian binary packages, `dpkg`, and APT without using Debian or Ubuntu as a binary source. Editable source and package policy live in this monorepo. Generated `.deb` files and repository indexes live under `out/` and are ignored build artifacts.
 
-This is a hybrid bootstrap, not a self-hosted distribution. Thirty-nine packages own the initial base, package-manager runtime, selected source-built libraries and GNU tar, administration/networking tools, D-Bus broker, and authentication stack. Full systemd executables and several host runtime libraries still follow the proven legacy assembly path.
+This is a hybrid bootstrap, not a self-hosted distribution. Forty-one packages own the initial base, package-manager runtime, selected source-built libraries and GNU tar, administration/networking tools, D-Bus broker, and authentication stack. Full systemd executables and several host runtime libraries still follow the proven legacy assembly path.
 
 ## Imported package-manager sources
 
@@ -47,6 +47,7 @@ Versions use `<upstream-version>-1mattos1`. Package modes and timestamps are nor
 | `mattos-brush` | required | `/usr/bin/brush` |
 | `mattos-coreutils` | required | uutils multicall binary and non-conflicting applet symlinks |
 | `mattos-curl` | optional | curl CLI and its source-built matching `libcurl.so.4` ABI |
+| `mattos-libmd0`, `mattos-libbsd0` | important | source-built message-digest and BSD portability ABIs and SONAME links |
 | `mattos-dpkg` | required | the selected source-built dpkg runtime and support data |
 | `mattos-libapt-pkg` | important | source-built `libapt-pkg.so.7.0` runtime and SONAME links |
 | `mattos-apt` | important | APT commands, private library, local methods, helpers, solvers, planners, and configuration |
@@ -88,12 +89,15 @@ Directories may be shared. Regular files and symlinks may have only one package 
 | `libexpat.so.1`, `libcap.so.2` | `mattos-libexpat1`, `mattos-libcap2` | excluded from bootstrap closure and rejected if restored |
 | `/usr/bin/tar`, `libacl.so.1`, `libz.so.1`, `libbz2.so.1.0` | `mattos-tar`, `mattos-libacl1`, `mattos-zlib1g`, `mattos-libbz2-1.0` | excluded from bootstrap closure and rejected if restored |
 | `liblz4.so.1`, `liblzma.so.5`, `libxxhash.so.0` | `mattos-liblz4-1`, `mattos-liblzma5`, `mattos-libxxhash0` | excluded from bootstrap closure and rejected if restored |
+| `libmd.so.0`, `libbsd.so.0` | `mattos-libmd0`, `mattos-libbsd0` | excluded from bootstrap closure and rejected if restored |
 
 The dependency-aware order is computed from declared edges rather than this table or `PACKAGE_NAMES`. Independent packages retain a stable declaration-order tie break. A cycle or unknown MattOS dependency stops repository creation and rootfs installation.
 
 ### dpkg boundary
 
 `mattos-dpkg` owns the built C/ELF commands `dpkg`, `dpkg-deb`, `dpkg-divert`, `dpkg-query`, `dpkg-realpath`, `dpkg-split`, `dpkg-statoverride`, `dpkg-trigger`, `update-alternatives`, and `start-stop-daemon`. It also owns `/usr/share/dpkg`, `/etc/dpkg/dpkg.cfg`, the configuration directory, and alternatives directory scaffolding.
+
+The eight `dpkg*` ELF commands above directly need `libmd.so.0` and resolve it from `mattos-libmd0`. Shadow's `chage`, `newgrp`, `passwd`, `chpasswd`, `groupadd`, `groupdel`, `groupmod`, `useradd`, `userdel`, and `usermod` directly need `libbsd.so.0`; libbsd in turn needs `libmd.so.0`. Their builds receive explicit staged include, linker, pkg-config, and runtime-library paths, and post-build loader checks reject host fallback.
 
 `dpkg-maintscript-helper` is deliberately excluded because the upstream output is a Perl program and MattOS does not yet provide a packaged Perl runtime. Existence in an upstream install tree is not treated as runtime support.
 
@@ -111,7 +115,7 @@ Mutable lists, archives, logs, partial files, and locks are never package payloa
 
 `mattos-bootstrap-runtime` is an explicit transitional package, not a glibc package. At build time the packager runs `ldd` over every selected packaged ELF root. It resolves against MattOS component install trees first, excludes every library now owned by a dedicated package, normalizes the remaining closure under `/usr/lib/x86_64-linux-gnu` and the loader under `/usr/lib64`, and records destination, source, reason, and SHA-256 for every file in `runtime-files.tsv`.
 
-The package no longer owns GNU tar, ACL, zlib, bzip2, LZ4, liblzma, xxHash, libudev, libsystemd, PAM, ncurses, kmod, procps, Expat, or libcap. The original audit found 23 payload files and 17,600,184 bytes; Expat/libcap reduced that to 21 files and 17,365,960 bytes, tar/ACL/zlib/bzip2 reduced it to 17 files and 16,669,816 bytes, and the current compression migration reduces it to 14 files and 16,191,736 bytes. Zstandard remains bootstrap-owned because bootstrap-owned OpenSSL and libelf directly consume it; introducing `mattos-libzstd1` now would create a bootstrap dependency cycle. This remains a portability and trust limitation. See `docs/BOOTSTRAP_RUNTIME.md` and the generated `out/reports/bootstrap-runtime-audit.toml`.
+The package no longer owns GNU tar, ACL, zlib, bzip2, LZ4, liblzma, xxHash, libmd, libbsd, libudev, libsystemd, PAM, ncurses, kmod, procps, Expat, or libcap. The original audit found 23 payload files and 17,600,184 bytes; Expat/libcap reduced that to 21 files and 17,365,960 bytes, tar/ACL/zlib/bzip2 reduced it to 17 files and 16,669,816 bytes, compression reduced it to 14 files and 16,191,736 bytes, and libmd/libbsd reduce it to 12 files and 16,042,648 bytes. Zstandard remains bootstrap-owned because bootstrap-owned OpenSSL and libelf directly consume it; introducing `mattos-libzstd1` now would create a bootstrap dependency cycle. This remains a portability and trust limitation. See `docs/BOOTSTRAP_RUNTIME.md` and the generated `out/reports/bootstrap-runtime-audit.toml`.
 
 `mattos-curl` continues to carry its matching source-built `libcurl.so.4` because splitting one small ABI pair would add churn without improving this milestone. It depends on the exact bootstrap runtime and on `mattos-ca-certificates`.
 
@@ -133,6 +137,9 @@ mattos-curl -> mattos-bootstrap-runtime (= exact), mattos-ca-certificates
 mattos-tar -> mattos-bootstrap-runtime, mattos-libacl1 (= exact)
 mattos-dpkg -> mattos-tar, mattos-zlib1g, mattos-libbz2-1.0 (= exact)
 mattos-dpkg -> mattos-liblzma5 (= exact)
+mattos-dpkg -> mattos-libmd0 (= exact)
+mattos-libbsd0 -> mattos-libmd0 (= exact)
+mattos-shadow -> mattos-libbsd0, mattos-libmd0 (= exact)
 mattos-libapt-pkg/mattos-apt -> mattos-zlib1g, mattos-libbz2-1.0,
                                 mattos-liblz4-1, mattos-liblzma5,
                                 mattos-libxxhash0 (= exact)
@@ -188,6 +195,7 @@ The live rootfs contains no pre-baked APT list or archive state. With or without
 ```text
 sudo apt-get update
 sudo apt-get install --reinstall -y mattos-brush
+sudo apt-get install --reinstall -y mattos-libbsd0
 sudo apt-get install --reinstall -y mattos-iputils mattos-procps mattos-ncurses-bin
 cd /tmp
 apt-get download mattos-brush
@@ -201,4 +209,4 @@ Rootfs assembly builds all packages and the repository, initializes an empty dpk
 
 Host `dpkg-deb` and `dpkg` still build and install archives. Host `dpkg-scanpackages`, `apt-ftparchive`, and deterministic `gzip` still create indexes. Host `file`, `readelf`, and `ldd` support closure inspection. This is a bootstrap boundary, not self-hosting.
 
-The next safe migration order is libmd/libbsd, then a coordinated OpenSSL/elfutils split that releases the Zstandard dependency cycle, then PCRE2/libxcrypt/SELinux. A MattOS-built libc and dynamic loader and the GCC/libstdc++ runtimes remain later toolchain boundaries. A standalone libcurl package, Perl and remaining dpkg helpers, and full systemd packaging can follow independently. Repository signing, online publication, persistence, installation, and automatic upgrades are separate future milestones.
+The next safe migration order is a coordinated OpenSSL/elfutils split that releases the Zstandard dependency cycle, then PCRE2/libxcrypt/SELinux. A MattOS-built libc and dynamic loader and the GCC/libstdc++ runtimes remain later toolchain boundaries. A standalone libcurl package, Perl and remaining dpkg helpers, and full systemd packaging can follow independently. Repository signing, online publication, persistence, installation, and automatic upgrades are separate future milestones.

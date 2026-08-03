@@ -290,6 +290,8 @@ enum BuildStage {
 	Xz,
 	Xxhash,
 	Zstd,
+	Libmd,
+	Libbsd,
 	Pam,
 	Shadow,
 	SudoRs,
@@ -1410,6 +1412,8 @@ fn build_plan(stage: BuildStage) -> Vec<BuildStage> {
 			BuildStage::Xz,
 			BuildStage::Xxhash,
 			BuildStage::Zstd,
+			BuildStage::Libmd,
+			BuildStage::Libbsd,
 			BuildStage::Tar,
 			BuildStage::Ncurses,
 			BuildStage::Procps,
@@ -1460,6 +1464,8 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
 		BuildStage::Xz => build_xz(repo_root),
 		BuildStage::Xxhash => build_xxhash(repo_root),
 		BuildStage::Zstd => build_zstd(repo_root),
+		BuildStage::Libmd => build_libmd(repo_root),
+		BuildStage::Libbsd => build_libbsd(repo_root),
 		BuildStage::Pam => build_linux_pam(repo_root),
 		BuildStage::Shadow => build_shadow(repo_root),
 		BuildStage::SudoRs => build_sudo_rs(repo_root),
@@ -1673,15 +1679,32 @@ fn build_shadow(repo_root: &Path) -> Result<()> {
 	let build_dir = out_root.join("build");
 	let install_dir = out_root.join("install");
 	let stamp = build_dir.join("config.stamp");
-	let configure_args = ["--prefix=/usr", "--sysconfdir=/etc", "--disable-nls", "--with-libpam", "--without-selinux", "--disable-logind", "--with-yescrypt", "--without-btrfs", "--without-nscd", "--without-sssd"];
+	let configure_args = ["--prefix=/usr", "--sysconfdir=/etc", "--disable-nls", "--with-libpam", "--with-libbsd", "--without-selinux", "--disable-logind", "--with-yescrypt", "--without-btrfs", "--without-nscd", "--without-sssd"];
 	let pam_install = repo_root.join("out/build/linux-pam/install");
 	let pam_include = pam_install.join("usr/include");
 	let pam_lib = pam_install.join("usr/lib/x86_64-linux-gnu");
 	let pam_pkgconfig = pam_lib.join("pkgconfig");
+	let libbsd_install = repo_root.join("out/build/libbsd/install/usr");
+	let libbsd_include = libbsd_install.join("include");
+	let libbsd_lib = libbsd_install.join("lib/x86_64-linux-gnu");
+	let libmd_lib = repo_root.join("out/build/libmd/install/usr/lib/x86_64-linux-gnu");
 	if !pam_include.join("security/pam_appl.h").exists() || !pam_lib.join("libpam.so").exists() {
 		bail!("linux-pam development files missing at {}; run build pam first", pam_install.display());
 	}
-	let env_overrides = vec![("CPPFLAGS", format!("-I{}", pam_include.display())), ("LDFLAGS", format!("-L{}", pam_lib.display())), ("LIBRARY_PATH", pam_lib.display().to_string()), ("PKG_CONFIG_PATH", pam_pkgconfig.display().to_string())];
+	if !libbsd_include.join("bsd/readpassphrase.h").is_file() || !libbsd_lib.join("libbsd.so").exists() || !libmd_lib.join("libmd.so").exists() {
+		bail!("MattOS-built libbsd/libmd development files missing; run build libmd and build libbsd first");
+	}
+	let library_path = std::env::join_paths([&pam_lib, &libbsd_lib, &libmd_lib])?.to_string_lossy().to_string();
+	let pkgconfig_path = std::env::join_paths([&pam_pkgconfig, &libbsd_lib.join("pkgconfig"), &libmd_lib.join("pkgconfig")])?.to_string_lossy().to_string();
+	let env_overrides = vec![
+		("CPPFLAGS", format!("-I{} -I{} -I{} -DLIBBSD_OVERLAY", pam_include.display(), libbsd_include.display(), libbsd_include.join("bsd").display())),
+		("LDFLAGS", format!("-L{} -L{} -L{}", pam_lib.display(), libbsd_lib.display(), libmd_lib.display())),
+		("LIBBSD_CFLAGS", format!("-I{} -DLIBBSD_OVERLAY", libbsd_include.join("bsd").display())),
+		("LIBBSD_LIBS", format!("-L{} -lbsd", libbsd_lib.display())),
+		("LIBRARY_PATH", library_path.clone()),
+		("LD_LIBRARY_PATH", library_path),
+		("PKG_CONFIG_PATH", pkgconfig_path),
+	];
 	let config_text = format!("{}\n{}", configure_args.join("\n"), env_overrides.iter().map(|(key, value)| format!("{key}={value}")).collect::<Vec<_>>().join("\n"));
 	if stamp.exists() && fs::read_to_string(&stamp).ok().as_deref() != Some(config_text.as_str()) {
 		fs::remove_dir_all(&build_dir).with_context(|| format!("failed to reset {}", build_dir.display()))?;
@@ -1706,6 +1729,11 @@ fn build_shadow(repo_root: &Path) -> Result<()> {
 	if !passwd_bin.exists() {
 		bail!("shadow install did not produce {}", passwd_bin.display());
 	}
+	let shadow_lib_dirs: [&Path; 2] = [&libbsd_lib, &libmd_lib];
+	for rel in ["usr/bin/chage", "usr/bin/newgrp", "usr/bin/passwd", "usr/sbin/chpasswd", "usr/sbin/groupadd", "usr/sbin/groupdel", "usr/sbin/groupmod", "usr/sbin/useradd", "usr/sbin/userdel", "usr/sbin/usermod"] {
+		validate_dependency_resolves_from(&install_dir.join(rel), "libbsd.so.0", &libbsd_lib, &shadow_lib_dirs)?;
+	}
+	println!("Shadow libbsd origin: {}; transitive libmd origin: {}", libbsd_lib.display(), libmd_lib.display());
 
 	Ok(())
 }
@@ -2397,6 +2425,109 @@ fn build_zstd(repo_root: &Path) -> Result<()> {
 		bail!("Zstandard install did not produce {}", soname.display());
 	}
 	fs::write(&stamp_path, stamp)?;
+	Ok(())
+}
+
+fn build_libmd(repo_root: &Path) -> Result<()> {
+	let source = repo_root.join("src/system/libraries/libmd");
+	if !source.join("configure.ac").is_file() {
+		bail!("libmd source not found in {}; run upstream import libmd first", source.display());
+	}
+	let out_root = repo_root.join("out/build/libmd");
+	let source_copy = out_root.join("source");
+	let build_dir = out_root.join("build");
+	let install_dir = out_root.join("install");
+	let stamp_path = out_root.join("build-stamp.txt");
+	let state = fs::read_to_string(repo_root.join("upstream/state/libmd.toml")).context("failed to read libmd upstream state")?;
+	let options = ["--prefix=/usr", "--libdir=/usr/lib/x86_64-linux-gnu", "--disable-static"];
+	let stamp = format!("{state}\n{}\n", options.join("\n"));
+	if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+		remove_path_if_exists(&source_copy)?;
+		remove_path_if_exists(&build_dir)?;
+	}
+	fs::create_dir_all(&out_root)?;
+	sync_build_source(&source, &source_copy)?;
+	fs::write(source_copy.join(".dist-version"), "1.2.0\n")?;
+	if !source_copy.join("configure").is_file() {
+		run_cmd(&source_copy, "./autogen", &[])?;
+	}
+	fs::create_dir_all(&build_dir)?;
+	if !build_dir.join("Makefile").is_file() {
+		run_cmd(&build_dir, path_str(&source_copy.join("configure"))?, &options)?;
+	}
+	run_cmd(&build_dir, "make", &["-j", "4"])?;
+	remove_path_if_exists(&install_dir)?;
+	run_cmd(&build_dir, "make", &["install", &format!("DESTDIR={}", install_dir.display())])?;
+	let soname = install_dir.join("usr/lib/x86_64-linux-gnu/libmd.so.0");
+	if !soname.exists() {
+		bail!("libmd install did not produce {}", soname.display());
+	}
+	remove_path_if_exists(&install_dir.join("usr/lib/x86_64-linux-gnu/libmd.la"))?;
+	fs::write(&stamp_path, stamp)?;
+	println!("libmd origin: {}", install_dir.display());
+	Ok(())
+}
+
+fn build_libbsd(repo_root: &Path) -> Result<()> {
+	let source = repo_root.join("src/system/libraries/libbsd");
+	if !source.join("configure.ac").is_file() {
+		bail!("libbsd source not found in {}; run upstream import libbsd first", source.display());
+	}
+	let libmd_install = repo_root.join("out/build/libmd/install/usr");
+	let libmd_lib = libmd_install.join("lib/x86_64-linux-gnu");
+	if !libmd_install.join("include/md5.h").is_file() || !libmd_lib.join("libmd.so").exists() {
+		bail!("MattOS-built libmd development files missing at {}; run build libmd first", libmd_install.display());
+	}
+	let out_root = repo_root.join("out/build/libbsd");
+	let source_copy = out_root.join("source");
+	let build_dir = out_root.join("build");
+	let install_dir = out_root.join("install");
+	let stamp_path = out_root.join("build-stamp.txt");
+	let state = fs::read_to_string(repo_root.join("upstream/state/libbsd.toml")).context("failed to read libbsd upstream state")?;
+	let options = ["--prefix=/usr", "--libdir=/usr/lib/x86_64-linux-gnu", "--disable-static"];
+	let env_overrides = [
+		("CPPFLAGS", format!("-I{}", libmd_install.join("include").display())),
+		("LDFLAGS", format!("-L{}", libmd_lib.display())),
+		("LIBRARY_PATH", libmd_lib.display().to_string()),
+		("LD_LIBRARY_PATH", libmd_lib.display().to_string()),
+		("PKG_CONFIG_PATH", libmd_lib.join("pkgconfig").display().to_string()),
+	];
+	let stamp = format!(
+		"{state}\n{}\n{}\n",
+		options.join("\n"),
+		env_overrides.iter().map(|(key, value)| format!("{key}={value}")).collect::<Vec<_>>().join("\n")
+	);
+	if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+		remove_path_if_exists(&source_copy)?;
+		remove_path_if_exists(&build_dir)?;
+	}
+	fs::create_dir_all(&out_root)?;
+	sync_build_source(&source, &source_copy)?;
+	fs::write(source_copy.join(".dist-version"), "0.12.2\n")?;
+	if !source_copy.join("configure").is_file() {
+		run_cmd(&source_copy, "./autogen", &[])?;
+	}
+	fs::create_dir_all(&build_dir)?;
+	if !build_dir.join("Makefile").is_file() {
+		run_cmd_with_env_overrides(&build_dir, path_str(&source_copy.join("configure"))?, &options, &env_overrides)?;
+	}
+	run_cmd_with_env_overrides(&build_dir, "make", &["-j", "4"], &env_overrides)?;
+	remove_path_if_exists(&install_dir)?;
+	run_cmd_with_env_overrides(&build_dir, "make", &["install", &format!("DESTDIR={}", install_dir.display())], &env_overrides)?;
+	let soname = install_dir.join("usr/lib/x86_64-linux-gnu/libbsd.so.0");
+	if !soname.exists() {
+		bail!("libbsd install did not produce {}", soname.display());
+	}
+	let libdir = install_dir.join("usr/lib/x86_64-linux-gnu");
+	let linker_name = libdir.join("libbsd.so");
+	let versioned_target = fs::read_link(&soname).context("libbsd SONAME link is not a symlink")?;
+	remove_path_if_exists(&linker_name)?;
+	#[cfg(unix)]
+	std::os::unix::fs::symlink(&versioned_target, &linker_name)?;
+	remove_path_if_exists(&libdir.join("libbsd.la"))?;
+	validate_dependency_resolves_from(&soname, "libmd.so.0", &libmd_lib, &[&libmd_lib])?;
+	fs::write(&stamp_path, stamp)?;
+	println!("libbsd origin: {}; libmd origin: {}", install_dir.display(), libmd_lib.display());
 	Ok(())
 }
 
@@ -5096,6 +5227,8 @@ mod tests {
 		assert!(plan.contains(&BuildStage::Xz));
 		assert!(plan.contains(&BuildStage::Xxhash));
 		assert!(plan.contains(&BuildStage::Zstd));
+		assert!(plan.contains(&BuildStage::Libmd));
+		assert!(plan.contains(&BuildStage::Libbsd));
 		assert!(plan.contains(&BuildStage::Tar));
 		let ncurses = plan.iter().position(|stage| *stage == BuildStage::Ncurses).unwrap();
 		let procps = plan.iter().position(|stage| *stage == BuildStage::Procps).unwrap();
@@ -5110,6 +5243,8 @@ mod tests {
 		let xz = plan.iter().position(|stage| *stage == BuildStage::Xz).unwrap();
 		let xxhash = plan.iter().position(|stage| *stage == BuildStage::Xxhash).unwrap();
 		let zstd = plan.iter().position(|stage| *stage == BuildStage::Zstd).unwrap();
+		let libmd = plan.iter().position(|stage| *stage == BuildStage::Libmd).unwrap();
+		let libbsd = plan.iter().position(|stage| *stage == BuildStage::Libbsd).unwrap();
 		let tar = plan.iter().position(|stage| *stage == BuildStage::Tar).unwrap();
 		let dpkg = plan.iter().position(|stage| *stage == BuildStage::Dpkg).unwrap();
 		let apt = plan.iter().position(|stage| *stage == BuildStage::Apt).unwrap();
@@ -5124,6 +5259,8 @@ mod tests {
 		assert!(xz < dpkg);
 		assert!(zlib < apt && bzip2 < apt && lz4 < apt && xz < apt && xxhash < apt);
 		assert!(zstd < dpkg && zstd < apt);
+		assert!(libmd < libbsd && libbsd < plan.iter().position(|stage| *stage == BuildStage::Shadow).unwrap());
+		assert!(libmd < dpkg);
 		assert!(plan.contains(&BuildStage::Pam));
 		assert!(plan.contains(&BuildStage::Shadow));
 		assert!(plan.contains(&BuildStage::SudoRs));
@@ -5141,6 +5278,8 @@ mod tests {
 		assert_eq!(BuildStage::from_str("xz", true).unwrap(), BuildStage::Xz);
 		assert_eq!(BuildStage::from_str("xxhash", true).unwrap(), BuildStage::Xxhash);
 		assert_eq!(BuildStage::from_str("zstd", true).unwrap(), BuildStage::Zstd);
+		assert_eq!(BuildStage::from_str("libmd", true).unwrap(), BuildStage::Libmd);
+		assert_eq!(BuildStage::from_str("libbsd", true).unwrap(), BuildStage::Libbsd);
 		assert_eq!(BuildStage::from_str("tar", true).unwrap(), BuildStage::Tar);
 	}
 

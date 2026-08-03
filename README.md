@@ -11,6 +11,7 @@ MattOS is a Linux-compatible OS project with upstream source imported directly a
 - Self-hosting does not require a completely offline build. MattOS may download pinned source and build dependencies through normal systems such as Cargo or project build tools.
 - Builds should also be possible from an already populated local dependency cache when network access is unavailable.
 - Downloaded build dependencies that do not become separate runtime artifacts do not need to be individually installed or managed through APT.
+- All source code utilized for this OS must be contained in this repo.
 
 ## Repository model
 

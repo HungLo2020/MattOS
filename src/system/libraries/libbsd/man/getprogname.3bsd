@@ -1,0 +1,83 @@
+.\" Copyright (c) 2022 Guillem Jover <guillem@hadrons.org>
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. The name of the author may not be used to endorse or promote products
+.\"    derived from this software without specific prior written permission.
+.\" .
+.\" THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES,
+.\" INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+.\" AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL
+.\" THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+.\" EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+.\" PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+.\" OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+.\" WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+.\" OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+.\" ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+.\"
+.Dd August 03, 2022
+.Dt getprogname 3bsd
+.Os
+.Sh NAME
+.Nm getprogname ,
+.Nm setprogname
+.Nd get and set program name
+.Sh LIBRARY
+.ds str-Lb-libbsd Utility functions from BSD systems (libbsd, \-lbsd)
+.ds doc-str-Lb-libbsd \*[str-Lb-libbsd]
+.Lb libbsd
+.Sh SYNOPSIS
+.In stdlib.h
+(See
+.Xr libbsd 7
+for include usage.)
+.Ft const char *
+.Fn getprogname "void"
+.Ft void
+.Fn setprogname "const char *progname"
+.Sh DESCRIPTION
+The
+.Fn getprogname
+returns a string with the current program name,
+excluding any directory component.
+The function will return
+.Dv NULL
+if it was unable to get the program name from any known source.
+.Pp
+The
+.Fn setprogname
+function sets the current program name,
+stripping any directory component prefix.
+The function will keep a reference to the passed string pointer,
+so it must not be freed or modified while these functions might
+be called.
+.Pp
+The implementations on most BSDs will try to initialize the program name
+at program startup time, and
+.Nm libbsd
+will try to infer it from various known sources depending on the
+target system.
+But it is not a portable assumption that the program name will be set
+without calling
+.Fn setprogname ,
+so portable programs should always call it after starting up.
+.Sh SEE ALSO
+.Xr setproctitle 3bsd .
+.Sh HISTORY
+The
+.Fn setprogname
+and
+.Fn getprogname
+functions first appeared in
+.Nx 1.6 ,
+.Fx 4.4 ,
+.Dx 2.1
+and
+.Ox 5.4 .

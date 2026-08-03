@@ -1,0 +1,7 @@
+component = "libbsd"
+repo = "https://gitlab.freedesktop.org/libbsd/libbsd.git"
+branch = "0.12.2"
+imported_commit = "04a24db27ad1572f766bad772cdd9c146e6d9cf0"
+imported_at_utc = "2026-08-02T23:43:22.355661034+00:00"
+sync_method = "copy"
+destination_path = "src/system/libraries/libbsd"

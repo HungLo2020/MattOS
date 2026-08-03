@@ -54,6 +54,8 @@ cargo run -p mattos-build -- upstream import lz4
 cargo run -p mattos-build -- upstream import xz
 cargo run -p mattos-build -- upstream import xxhash
 cargo run -p mattos-build -- upstream import zstd
+cargo run -p mattos-build -- upstream import libmd
+cargo run -p mattos-build -- upstream import libbsd
 cargo run -p mattos-build -- upstream import paxutils
 cargo run -p mattos-build -- upstream import tar
 cargo run -p mattos-build -- upstream import dbus-broker
@@ -72,18 +74,18 @@ The pipeline stages are:
 1. `kernel`: Linux kernel build using `src/kernel/config/x86_64_mattos.config`
 2. `brush`: Brush release build
 3. `coreutils`: uutils/coreutils multicall build
-4. `expat`, `libcap`, `acl`, `zlib`, `bzip2`, `lz4`, `xz`, `xxhash`, `zstd`: focused source-built runtime libraries
+4. `expat`, `libcap`, `acl`, `zlib`, `bzip2`, `lz4`, `xz`, `xxhash`, `zstd`, `libmd`, `libbsd`: focused source-built runtime libraries; libmd precedes libbsd
 5. `tar`: GNU tar built with the MattOS ACL ABI and without SELinux
 6. `ncurses`: terminal libraries, tools, and compiled terminfo database
 7. `procps`: process-management tools linked to the local ncurses build
 8. `iproute2`: `ip`, `ss`, `bridge`, and `tc`
 9. `iputils`: unprivileged `ping` and `tracepath`
 10. `curl`: HTTP/HTTPS client using OpenSSL and the pinned MattOS CA path
-11. `pam`, `util-linux`, `shadow`, `sudo-rs`: existing authentication stack
+11. `pam`, `util-linux`, `shadow`, `sudo-rs`: existing authentication stack; Shadow resolves libbsd and its libmd closure from the staged builds
 12. `kmod`: module administration tools and libkmod
 13. `systemd`: minimal Meson/Ninja build with kmod, networkd, resolved, timesyncd, timedated, logind, and `pam_systemd`
 14. `dbus-broker`: upstream Meson/Ninja system-bus broker and launcher
-15. `dpkg`: imported dpkg Autotools build against MattOS zlib, bzip2, and liblzma
+15. `dpkg`: imported dpkg Autotools build against MattOS zlib, bzip2, liblzma, and libmd
 16. `apt`: imported APT CMake/Ninja build against MattOS zlib, bzip2, LZ4, liblzma, and xxHash
 17. `init`: MattOS rescue init build
 18. `rootfs`, `initramfs`, `iso`: hybrid package/legacy image assembly
@@ -111,6 +113,8 @@ cargo run -p mattos-build -- build lz4
 cargo run -p mattos-build -- build xz
 cargo run -p mattos-build -- build xxhash
 cargo run -p mattos-build -- build zstd
+cargo run -p mattos-build -- build libmd
+cargo run -p mattos-build -- build libbsd
 cargo run -p mattos-build -- build tar
 cargo run -p mattos-build -- build systemd
 cargo run -p mattos-build -- build dbus-broker
@@ -132,7 +136,7 @@ cargo run -p mattos-build -- package audit
 cargo run -p mattos-build -- package status
 ```
 
-The complete prototype stack currently consists of 39 packages. In addition to filesystem, package-manager, Brush, coreutils, curl, and CA packages, it now splits GNU tar, ACL, zlib, bzip2, LZ4, liblzma, xxHash, ncurses/terminfo, kmod, procps, the public systemd libraries, Expat, libcap, dbus-broker, Linux-PAM, Shadow, sudo-rs, util-linux authentication tools, iproute2, and iputils into deliberate ownership boundaries. Zstandard is imported and source-built, but remains bootstrap-owned at runtime until its OpenSSL/libelf consumer cycle can be split coherently. Repository creation validates the complete dependency graph, detects cycles, computes install order, checks staged ELF ownership, and rejects migrated payloads in the bootstrap closure before image embedding. See `docs/PACKAGING.md` and `docs/BOOTSTRAP_RUNTIME.md` for the exact boundaries and migration map.
+The complete prototype stack currently consists of 41 packages. In addition to filesystem, package-manager, Brush, coreutils, curl, and CA packages, it now splits GNU tar, ACL, zlib, bzip2, LZ4, liblzma, xxHash, libmd, libbsd, ncurses/terminfo, kmod, procps, the public systemd libraries, Expat, libcap, dbus-broker, Linux-PAM, Shadow, sudo-rs, util-linux authentication tools, iproute2, and iputils into deliberate ownership boundaries. libmd and libbsd use their upstream Autotools builds under `out/build/`; libbsd and all rebuilt dpkg/Shadow consumers receive explicit staged include/link/runtime paths. Zstandard is imported and source-built, but remains bootstrap-owned at runtime until its OpenSSL/libelf consumer cycle can be split coherently. Repository creation validates the complete dependency graph, detects cycles, computes install order, checks staged ELF ownership, and rejects migrated payloads in the bootstrap closure before image embedding. See `docs/PACKAGING.md` and `docs/BOOTSTRAP_RUNTIME.md` for the exact boundaries and migration map.
 
 ## QEMU boot
 
@@ -149,7 +153,7 @@ python3 DevUtils/run_qemu.py
 python3 DevUtils/run_qemu.py --no-network
 ```
 
-`--no-network` omits both the QEMU network backend and NIC. It is the supported negative-test path for confirming that boot and the local authentication/base-administration stack do not depend on connectivity. The embedded package repository is also expected to support `apt-get update` and safe reinstall of `mattos-brush`, `mattos-tar`, and selected leaf-library consumers in this mode. Critical PAM, login, sudo, D-Bus, and systemd-related packages are inspected/extracted in a separate validation root rather than reinstalled underneath the active session.
+`--no-network` omits both the QEMU network backend and NIC. It is the supported negative-test path for confirming that boot and the local authentication/base-administration stack do not depend on connectivity. The embedded package repository is also expected to support `apt-get update` and safe reinstall of `mattos-brush`, `mattos-tar`, `mattos-libbsd0`, and selected leaf-library consumers in this mode. Critical PAM, login, sudo, D-Bus, and systemd-related packages are inspected/extracted in a separate validation root rather than reinstalled underneath the active session.
 
 The default GRUB entry boots `init=/usr/lib/systemd/systemd systemd.unit=mattos.target`.
 A rescue GRUB entry is also provided and boots MattOS Rust rescue init from `/usr/libexec/mattos/rescue-init`.

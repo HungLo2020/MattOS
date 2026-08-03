@@ -4,7 +4,7 @@ Date: 2026-08-01
 
 ## 1. Executive Summary
 
-MattOS is a coherent Linux-native bootstrap system with systemd PID 1, separate system and per-user dbus-broker buses, registered logind console sessions, session-bound per-user managers, non-root live autologin, PAM/Shadow/sudo-rs authentication and account tools, Brush, a rescue-init path, and a reproducible build pipeline. It includes real kmod, procps-ng, ncurses, a complete QEMU/wired IPv4 path, and a working Debian-package foundation. Thirty-nine MattOS packages are installed through a real dpkg database from an embedded local repository. MattOS-built dpkg and APT can update, inspect, download, and reinstall packages entirely from that local repository, including with the QEMU NIC removed. Selected administration, terminal, authentication, D-Bus, networking, GNU tar, ACL, compression, Expat, and libcap payloads now have package ownership; full systemd and several bootstrap host libraries remain on the legacy path. Persistent installation, an online repository, Polkit, SSH, Wi-Fi, firewall policy, firmware packaging, and a graphical desktop remain intentionally absent.
+MattOS is a coherent Linux-native bootstrap system with systemd PID 1, separate system and per-user dbus-broker buses, registered logind console sessions, session-bound per-user managers, non-root live autologin, PAM/Shadow/sudo-rs authentication and account tools, Brush, a rescue-init path, and a reproducible build pipeline. It includes real kmod, procps-ng, ncurses, a complete QEMU/wired IPv4 path, and a working Debian-package foundation. Forty-one MattOS packages are installed through a real dpkg database from an embedded local repository. MattOS-built dpkg and APT can update, inspect, download, and reinstall packages entirely from that local repository, including with the QEMU NIC removed. Selected administration, terminal, authentication, D-Bus, networking, GNU tar, ACL, compression, libmd, libbsd, Expat, and libcap payloads now have package ownership; full systemd and several bootstrap host libraries remain on the legacy path. Persistent installation, an online repository, Polkit, SSH, Wi-Fi, firewall policy, firmware packaging, and a graphical desktop remain intentionally absent.
 
 The previous GRUB source-of-truth ambiguity has been resolved by keeping only `src/boot/grub/grub.cfg` as tracked source and validating that path in `mattos-build`. The most important remaining architectural limitation is that the runtime closure is still copied from the host via `ldd` rather than from a MattOS-built sysroot.
 
@@ -51,6 +51,8 @@ Prompt behavior:
 | XZ Utils | https://github.com/tukaani-project/xz.git | `v5.8.1` | `a522a226545730551f7e7c2685fab27cf567746c` | `src/system/libraries/xz/` |
 | xxHash | https://github.com/Cyan4973/xxHash.git | `v0.8.3` | `e626a72bc2321cd320e953a0ccf1584cad60f363` | `src/system/libraries/xxhash/` |
 | Zstandard | https://github.com/facebook/zstd.git | `v1.5.7` | `f8745da6ff1ad1e7bab384bd1f9d742439278e99` | `src/system/libraries/zstd/` |
+| libmd | https://git.hadrons.org/git/libmd.git | `1.2.0` | `90c4f432134c608c7e2b4dd0a1d7ca5c40b92c7a` | `src/system/libraries/libmd/` |
+| libbsd | https://gitlab.freedesktop.org/libbsd/libbsd.git | `0.12.2` | `04a24db27ad1572f766bad772cdd9c146e6d9cf0` | `src/system/libraries/libbsd/` |
 
 State tracking lives in `upstream/state/*.toml`, and component manifests live in `upstream/sources.toml`.
 
@@ -110,7 +112,7 @@ Current limitations:
 
 ## 6. Runtime and Rootfs Assessment
 
-The assembled rootfs is a merged `/usr` layout with `/bin`, `/sbin`, `/lib`, and `/lib64` symlinked into the `/usr` tree. Thirty-nine packages own the initial base plus selected ncurses, kmod, procps, systemd-library, Expat, libcap, ACL, zlib, bzip2, LZ4, liblzma, xxHash, GNU tar, dbus-broker, PAM, Shadow, sudo-rs, util-linux-auth, iproute2, and iputils payloads and are installed with real dpkg semantics. `/var/lib/dpkg` contains normal status, conffile, md5sum, file-list, and ownership data. The local repository is embedded at `/usr/share/mattos/repository`, APT is configured only for that `file:` source, and no Debian or Ubuntu source is configured.
+The assembled rootfs is a merged `/usr` layout with `/bin`, `/sbin`, `/lib`, and `/lib64` symlinked into the `/usr` tree. Forty-one packages own the initial base plus selected ncurses, kmod, procps, systemd-library, Expat, libcap, ACL, zlib, bzip2, LZ4, liblzma, xxHash, libmd, libbsd, GNU tar, dbus-broker, PAM, Shadow, sudo-rs, util-linux-auth, iproute2, and iputils payloads and are installed with real dpkg semantics. `/var/lib/dpkg` contains normal status, conffile, md5sum, file-list, and ownership data. The local repository is embedded at `/usr/share/mattos/repository`, APT is configured only for that `file:` source, and no Debian or Ubuntu source is configured.
 
 APT mutable lists and archive cache are initialized as writable live state rather than shipped package content. Its selected commands, private library, local methods, helpers, configuration, CA trust, source-built `libapt-pkg`, and exact ELF closure all have package ownership. The transitional bootstrap-runtime package documents each host-derived input and checksum; it does not claim to be a MattOS glibc build.
 
@@ -284,7 +286,7 @@ This is correct for a bootstrap system, but it is not especially efficient. The 
 
 ### Medium
 
-- Much of the bootstrap runtime closure is host-copied rather than built from a MattOS sysroot. Source-built libkmod, libproc2, ncurses, PAM, libsystemd, libudev, Expat, libcap, LZ4, liblzma, and xxHash now have dedicated package owners; every remaining compatibility file is checksummed with a reason in the bootstrap manifest. The full 23-entry baseline, classifications, consumer graph, current 14-entry result, and recommended migration order are in `docs/BOOTSTRAP_RUNTIME.md`.
+- Much of the bootstrap runtime closure is host-copied rather than built from a MattOS sysroot. Source-built libkmod, libproc2, ncurses, PAM, libsystemd, libudev, Expat, libcap, LZ4, liblzma, xxHash, libmd, and libbsd now have dedicated package owners; every remaining compatibility file is checksummed with a reason in the bootstrap manifest. The full 23-entry baseline, classifications, consumer graph, current 12-entry result, and recommended migration order are in `docs/BOOTSTRAP_RUNTIME.md`.
 - The build orchestrator is large enough to be a maintenance risk and should eventually be split into smaller modules.
 
 ### Low
@@ -424,8 +426,8 @@ Verified successfully during this audit pass:
 - `cargo run -p mattos-build -- upstream status`
 - `cargo run -p mattos-build -- build all`
 - `cargo run -p mattos-build -- image`
-- all 39 `.deb` files built and the repository dependency/ELF ownership validation passed
-- the computed dependency order installed all 39 packages through real dpkg semantics into the rootfs
+- all 41 `.deb` files built and the repository dependency/ELF ownership validation passed
+- the computed dependency order installed all 41 packages through real dpkg semantics into the rootfs
 - GNU tar 1.35, ACL 2.3.2, zlib 1.3.2, and bzip2 1.0.8 were imported at exact commits, built outside their source trees, and split into four new runtime packages
 - the assembled rootfs used package-owned GNU tar to create, list, and extract an archive and used source-built `dpkg-deb` to extract `mattos-brush`
 - the bootstrap boundary shrank from 21 entries / 17,365,960 bytes to 17 entries / 16,669,816 bytes
@@ -433,6 +435,9 @@ Verified successfully during this audit pass:
 - dpkg and APT were rebuilt with explicit MattOS compression include/link/runtime paths; LZ4, liblzma, and xxHash moved into three ABI packages
 - the current bootstrap boundary shrank from 17 entries / 16,669,816 bytes to 14 entries / 16,191,736 bytes
 - Zstandard remains bootstrap-owned because its bootstrap OpenSSL/libelf consumers would otherwise create a rejected dependency cycle
+- libmd 1.2.0 and libbsd 0.12.2 were imported from their canonical upstream repositories at exact stable commits and built out of source with Autotools
+- libbsd was forced to the MattOS libmd headers and library; eight dpkg-family commands and ten Shadow commands were rebuilt with explicit staged paths and validated against the assembled rootfs loader
+- `mattos-libmd0` and `mattos-libbsd0` uniquely own their SONAMEs, and the bootstrap boundary shrank from 14 entries / 16,191,736 bytes to 12 entries / 16,042,648 bytes
 - representative ownership queries resolved PAM, ncurses, kmod, procps, dbus-broker, sudo, passwd, login, ip, and ping paths to their dedicated packages
 - the embedded `file:` repository safely reinstalled `mattos-iputils`, `mattos-procps`, and `mattos-ncurses-bin`
 - ten session-critical packages were separately extracted and inspected without replacing active PAM/login/sudo/D-Bus/systemd files
