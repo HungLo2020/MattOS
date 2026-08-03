@@ -501,6 +501,7 @@ enum UpstreamCommands {
 enum BuildStage {
     Kernel,
     Glibc,
+    GccRuntime,
     Brush,
     Coreutils,
     Grep,
@@ -1991,7 +1992,10 @@ fn reset_native_consumer_outputs(repo_root: &Path) -> Result<()> {
     let mut entries = fs::read_dir(&output)?.collect::<std::io::Result<Vec<_>>>()?;
     entries.sort_by_key(|entry| entry.file_name());
     for entry in entries {
-        if entry.file_name() == OsStr::new("glibc") {
+        if matches!(
+            entry.file_name().to_str(),
+            Some("glibc") | Some("gcc-runtime")
+        ) {
             continue;
         }
         remove_path_if_exists(&entry.path())?;
@@ -2008,6 +2012,7 @@ fn build_plan(stage: BuildStage) -> Vec<BuildStage> {
         return vec![
             BuildStage::Kernel,
             BuildStage::Glibc,
+            BuildStage::GccRuntime,
             BuildStage::Brush,
             BuildStage::Coreutils,
             BuildStage::Grep,
@@ -2060,6 +2065,7 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
     match stage {
         BuildStage::Kernel => build_kernel(repo_root),
         BuildStage::Glibc => build_glibc(repo_root),
+        BuildStage::GccRuntime => build_gcc_runtime(repo_root),
         BuildStage::Brush => build_brush(repo_root),
         BuildStage::Coreutils => build_coreutils(repo_root),
         BuildStage::Grep => build_grep(repo_root),
@@ -2280,6 +2286,396 @@ fn build_glibc(repo_root: &Path) -> Result<()> {
     println!(
         "glibc runtime and development sysroot installed in {}",
         sysroot.display()
+    );
+    Ok(())
+}
+
+const GCC_RUNTIME_TARGET: &str = "x86_64-pc-linux-gnu";
+const GCC_RUNTIME_LIBSTDCXX_ABI: &str = "libstdc++.so.6.0.34";
+const GCC_RUNTIME_REPRESENTATIVE_CONSUMERS: &[&str] = &[
+    "usr/bin/apt",
+    "usr/bin/apt-get",
+    "usr/bin/dpkg",
+    "usr/bin/curl",
+    "usr/lib/systemd/systemd",
+    "usr/bin/dbus-broker",
+    "usr/bin/brush",
+    "usr/bin/sudo",
+    "usr/bin/login",
+    "usr/libexec/mattos/rescue-init",
+];
+
+fn run_gcc_bootstrap_command(
+    cwd: &Path,
+    program: &Path,
+    args: &[&str],
+    env: &[(&str, String)],
+) -> Result<()> {
+    println!("> {} {}", program.display(), args.join(" "));
+    let mut command = Command::new(program);
+    command.current_dir(cwd).args(args);
+    for (key, value) in env {
+        command.env(key, value);
+    }
+    let status = command.status().with_context(|| {
+        format!(
+            "failed to spawn GCC bootstrap command {}",
+            program.display()
+        )
+    })?;
+    if !status.success() {
+        bail!(
+            "GCC bootstrap command failed with {status}: {} {}",
+            program.display(),
+            args.join(" ")
+        )
+    }
+    Ok(())
+}
+
+fn find_unique_file_named(root: &Path, name: &str) -> Result<PathBuf> {
+    let mut files = Vec::new();
+    collect_regular_files(root, &mut files)?;
+    let matches = files
+        .into_iter()
+        .filter(|path| path.file_name().and_then(OsStr::to_str) == Some(name))
+        .collect::<Vec<_>>();
+    if matches.len() != 1 {
+        bail!(
+            "expected exactly one {name} below {}, found {}",
+            root.display(),
+            matches.len()
+        )
+    }
+    Ok(matches.into_iter().next().unwrap())
+}
+
+fn elf_version_names(path: &Path, prefixes: &[&str]) -> Result<BTreeSet<String>> {
+    let output = Command::new("readelf")
+        .args(["--version-info"])
+        .arg(path)
+        .output()
+        .with_context(|| format!("failed to inspect symbol versions in {}", path.display()))?;
+    if !output.status.success() {
+        bail!(
+            "readelf cannot inspect symbol versions in {}",
+            path.display()
+        )
+    }
+    let text = String::from_utf8_lossy(&output.stdout);
+    let mut versions = BTreeSet::new();
+    for word in text.split_whitespace() {
+        for prefix in prefixes {
+            if let Some(start) = word.find(prefix) {
+                versions.insert(
+                    word[start..]
+                        .trim_matches(|ch: char| {
+                            !ch.is_ascii_alphanumeric() && ch != '_' && ch != '.'
+                        })
+                        .to_string(),
+                );
+            }
+        }
+    }
+    Ok(versions)
+}
+
+fn elf_needed_names(path: &Path) -> Result<BTreeSet<String>> {
+    let output = Command::new("readelf")
+        .args(["-d"])
+        .arg(path)
+        .output()
+        .with_context(|| {
+            format!(
+                "failed to inspect dynamic dependencies in {}",
+                path.display()
+            )
+        })?;
+    if !output.status.success() {
+        bail!(
+            "readelf cannot inspect dynamic dependencies in {}",
+            path.display()
+        )
+    }
+    Ok(String::from_utf8_lossy(&output.stdout)
+        .lines()
+        .filter(|line| line.contains("(NEEDED)"))
+        .filter_map(|line| {
+            line.split('[')
+                .nth(1)
+                .and_then(|part| part.split(']').next())
+                .map(str::to_string)
+        })
+        .collect())
+}
+
+fn validate_gcc_runtime_consumers(repo_root: &Path, sysroot: &Path, runtime: &Path) -> Result<()> {
+    let existing_rootfs = repo_root.join("out/build/rootfs");
+    if !GCC_RUNTIME_REPRESENTATIVE_CONSUMERS
+        .iter()
+        .all(|relative| existing_rootfs.join(relative).is_file())
+    {
+        println!(
+            "previous rootfs is unavailable; representative GCC runtime loader checks are deferred to final rootfs validation"
+        );
+        return Ok(());
+    }
+    let loader = sysroot.join("lib64/ld-linux-x86-64.so.2");
+    let library_path = std::env::join_paths([
+        runtime.to_path_buf(),
+        existing_rootfs.join("usr/lib/x86_64-linux-gnu"),
+        existing_rootfs.join("usr/lib/x86_64-linux-gnu/systemd"),
+        existing_rootfs.join("usr/lib"),
+    ])?;
+    for relative in GCC_RUNTIME_REPRESENTATIVE_CONSUMERS {
+        let program = existing_rootfs.join(relative);
+        let listed = Command::new(&loader)
+            .arg("--library-path")
+            .arg(&library_path)
+            .arg("--list")
+            .arg(&program)
+            .output()
+            .with_context(|| format!("failed isolated loader validation for /{relative}"))?;
+        let output = format!(
+            "{}{}",
+            String::from_utf8_lossy(&listed.stdout),
+            String::from_utf8_lossy(&listed.stderr)
+        );
+        if !listed.status.success() || output.contains("not found") {
+            bail!("isolated GCC runtime loader validation failed for /{relative}: {output}")
+        }
+        if output.lines().any(|line| {
+            line.split("=>")
+                .nth(1)
+                .and_then(|part| part.split_whitespace().next())
+                .is_some_and(|resolved| {
+                    resolved.starts_with('/')
+                        && !Path::new(resolved).starts_with(runtime)
+                        && !Path::new(resolved).starts_with(&existing_rootfs)
+                        && !Path::new(resolved).starts_with(sysroot)
+                })
+        }) {
+            bail!(
+                "isolated GCC runtime loader validation used a host library for /{relative}: {output}"
+            )
+        }
+    }
+    let rescue = existing_rootfs.join("usr/libexec/mattos/rescue-init");
+    if !elf_needed_names(&rescue)?.contains("libgcc_s.so.1") {
+        bail!("Rust rescue-init no longer preserves its libgcc_s unwind dependency")
+    }
+    println!(
+        "validated {} representative consumers against the MattOS GCC runtime before rootfs replacement",
+        GCC_RUNTIME_REPRESENTATIVE_CONSUMERS.len()
+    );
+    Ok(())
+}
+
+fn build_gcc_runtime(repo_root: &Path) -> Result<()> {
+    let source = repo_root.join("src/toolchain/gcc");
+    let output = repo_root.join("out/build/gcc-runtime");
+    let build = output.join("build");
+    let raw_install = output.join("install");
+    let runtime = output.join("runtime/usr/lib/x86_64-linux-gnu");
+    let sysroot = repo_root.join("out/sysroot");
+    if !source.join("configure").is_file() {
+        bail!(
+            "GCC source not found at {}; run `mattos-build upstream import gcc`",
+            source.display()
+        )
+    }
+    if !sysroot.join("usr/lib/x86_64-linux-gnu/libc.so.6").is_file()
+        || !sysroot.join("usr/include/stdio.h").is_file()
+    {
+        bail!("GCC runtime build requires the completed MattOS glibc sysroot")
+    }
+
+    remove_path_if_exists(&output)?;
+    fs::create_dir_all(&build)?;
+    fs::create_dir_all(&raw_install)?;
+    fs::create_dir_all(&runtime)?;
+
+    let configure = source.join("configure");
+    let sysroot_option = format!("--with-sysroot={}", sysroot.display());
+    let build_sysroot_option = format!("--with-build-sysroot={}", sysroot.display());
+    let build_triplet = format!("--build={GCC_RUNTIME_TARGET}");
+    let host_triplet = format!("--host={GCC_RUNTIME_TARGET}");
+    let target_triplet = format!("--target={GCC_RUNTIME_TARGET}");
+    let configure_args = [
+        "--prefix=/usr",
+        "--libdir=/usr/lib/x86_64-linux-gnu",
+        "--libexecdir=/usr/libexec",
+        "--with-toolexeclibdir=/usr/lib/x86_64-linux-gnu",
+        build_triplet.as_str(),
+        host_triplet.as_str(),
+        target_triplet.as_str(),
+        sysroot_option.as_str(),
+        build_sysroot_option.as_str(),
+        "--enable-languages=c,c++",
+        "--disable-bootstrap",
+        "--disable-multilib",
+        "--disable-nls",
+        "--disable-werror",
+        "--disable-checking",
+        "--disable-analyzer",
+        "--enable-shared",
+        "--enable-threads=posix",
+        "--disable-libsanitizer",
+        "--disable-libssp",
+        "--disable-libquadmath",
+        "--disable-libgomp",
+        "--disable-libatomic",
+        "--disable-libvtv",
+        "--disable-libcc1",
+        "--disable-lto",
+        "--disable-plugin",
+        "--disable-libstdcxx-pch",
+        "--without-isl",
+        "--with-system-zlib",
+    ];
+    let prefix_map = format!(
+        "-O2 -g0 -ffile-prefix-map={}=/usr/src/mattos/gcc -fdebug-prefix-map={}=/usr/src/mattos/gcc",
+        repo_root.display(),
+        repo_root.display()
+    );
+    let env = [
+        ("SOURCE_DATE_EPOCH", MATTOS_SOURCE_DATE_EPOCH.to_string()),
+        ("LC_ALL", "C".to_string()),
+        ("TZ", "UTC".to_string()),
+        ("CFLAGS_FOR_TARGET", prefix_map.clone()),
+        ("CXXFLAGS_FOR_TARGET", prefix_map),
+        ("LDFLAGS_FOR_TARGET", "-Wl,-z,relro -Wl,-z,now".to_string()),
+    ];
+    fs::write(
+        output.join("configure-invocation.txt"),
+        format!(
+            "SOURCE_DATE_EPOCH={} LC_ALL=C TZ=UTC CFLAGS_FOR_TARGET='{}' CXXFLAGS_FOR_TARGET='{}' LDFLAGS_FOR_TARGET='-Wl,-z,relro -Wl,-z,now' {} {}\nmake -j4 all-target-libgcc all-target-libstdc++-v3\nmake DESTDIR={} install-target-libgcc install-target-libstdc++-v3\n",
+            MATTOS_SOURCE_DATE_EPOCH,
+            env[3].1,
+            env[4].1,
+            configure.display(),
+            configure_args.join(" "),
+            raw_install.display()
+        ),
+    )?;
+    run_gcc_bootstrap_command(&build, &configure, &configure_args, &env)
+        .context("GCC runtime configure failed")?;
+    run_gcc_bootstrap_command(
+        &build,
+        Path::new("make"),
+        &["-j", "4", "all-target-libgcc", "all-target-libstdc++-v3"],
+        &env,
+    )
+    .context("GCC runtime build failed")?;
+    let destdir = format!("DESTDIR={}", raw_install.display());
+    run_gcc_bootstrap_command(
+        &build,
+        Path::new("make"),
+        &[
+            destdir.as_str(),
+            "install-target-libgcc",
+            "install-target-libstdc++-v3",
+        ],
+        &env,
+    )
+    .context("GCC runtime install failed")?;
+
+    let libgcc = find_unique_file_named(&raw_install, "libgcc_s.so.1")?;
+    let libstdcxx = find_unique_file_named(&raw_install, GCC_RUNTIME_LIBSTDCXX_ABI)?;
+    fs::copy(&libgcc, runtime.join("libgcc_s.so.1"))?;
+    fs::copy(&libstdcxx, runtime.join(GCC_RUNTIME_LIBSTDCXX_ABI))?;
+    std::os::unix::fs::symlink(GCC_RUNTIME_LIBSTDCXX_ABI, runtime.join("libstdc++.so.6"))?;
+
+    let libgcc_needed = elf_needed_names(&runtime.join("libgcc_s.so.1"))?;
+    let libstdcxx_needed = elf_needed_names(&runtime.join(GCC_RUNTIME_LIBSTDCXX_ABI))?;
+    if !libgcc_needed.is_subset(&BTreeSet::from([
+        "libc.so.6".to_string(),
+        "ld-linux-x86-64.so.2".to_string(),
+    ])) {
+        bail!("MattOS libgcc_s has unexpected runtime dependencies: {libgcc_needed:?}")
+    }
+    if !libstdcxx_needed.is_subset(&BTreeSet::from([
+        "libc.so.6".to_string(),
+        "libm.so.6".to_string(),
+        "libgcc_s.so.1".to_string(),
+        "ld-linux-x86-64.so.2".to_string(),
+    ])) {
+        bail!("MattOS libstdc++ has unexpected runtime dependencies: {libstdcxx_needed:?}")
+    }
+
+    let gcc_versions = elf_version_names(&runtime.join("libgcc_s.so.1"), &["GCC_"])?;
+    let cxx_versions = elf_version_names(
+        &runtime.join(GCC_RUNTIME_LIBSTDCXX_ABI),
+        &["GLIBCXX_", "CXXABI_"],
+    )?;
+    for required in ["GCC_3.0", "GCC_4.2.0", "GCC_14.0.0"] {
+        if !gcc_versions.contains(required) {
+            bail!("MattOS libgcc_s is missing required ABI node {required}")
+        }
+    }
+    for required in ["GLIBCXX_3.4.34", "CXXABI_1.3.15"] {
+        if !cxx_versions.contains(required) {
+            bail!("MattOS libstdc++ is missing required ABI node {required}")
+        }
+    }
+    fs::write(
+        output.join("runtime-abi.tsv"),
+        format!(
+            "library\tversion_nodes\nlibgcc_s.so.1\t{}\nlibstdc++.so.6\t{}\n",
+            gcc_versions.into_iter().collect::<Vec<_>>().join(","),
+            cxx_versions.into_iter().collect::<Vec<_>>().join(",")
+        ),
+    )?;
+
+    copy_tree_contents(&output.join("runtime"), &sysroot)?;
+
+    let validation_source = output.join("cxx-unwind-validation.cc");
+    let validation_binary = output.join("cxx-unwind-validation");
+    fs::write(
+        &validation_source,
+        "#include <iostream>\n#include <stdexcept>\n#include <string>\nint main() { try { throw std::runtime_error(std::string(\"mattos\")); } catch (const std::exception &e) { std::cout << \"caught:\" << e.what() << '\\n'; return 0; } return 1; }\n",
+    )?;
+    let sysroot_flag = format!("--sysroot={}", sysroot.display());
+    let library_flag = format!("-L{}", runtime.display());
+    let rpath_link = format!("-Wl,-rpath-link,{}", runtime.display());
+    let validation_source_arg = path_str(&validation_source)?;
+    let validation_binary_arg = path_str(&validation_binary)?;
+    run_gcc_bootstrap_command(
+        repo_root,
+        Path::new("g++"),
+        &[
+            sysroot_flag.as_str(),
+            library_flag.as_str(),
+            rpath_link.as_str(),
+            "-Wl,--dynamic-linker=/lib64/ld-linux-x86-64.so.2",
+            validation_source_arg,
+            "-o",
+            validation_binary_arg,
+        ],
+        &env,
+    )?;
+    let loader = sysroot.join("lib64/ld-linux-x86-64.so.2");
+    let library_path =
+        std::env::join_paths([runtime.clone(), sysroot.join("usr/lib/x86_64-linux-gnu")])?;
+    let validation = Command::new(&loader)
+        .arg("--library-path")
+        .arg(&library_path)
+        .arg(&validation_binary)
+        .output()?;
+    if !validation.status.success()
+        || String::from_utf8_lossy(&validation.stdout).trim() != "caught:mattos"
+    {
+        bail!(
+            "MattOS GCC runtime C++ exception validation failed: {}{}",
+            String::from_utf8_lossy(&validation.stdout),
+            String::from_utf8_lossy(&validation.stderr)
+        )
+    }
+    validate_gcc_runtime_consumers(repo_root, &sysroot, &runtime)?;
+    println!(
+        "GCC runtime-only build installed libgcc_s.so.1 and {} into {}",
+        GCC_RUNTIME_LIBSTDCXX_ABI,
+        runtime.display()
     );
     Ok(())
 }
@@ -6069,11 +6465,30 @@ fn validate_glibc_rootfs(repo_root: &Path, rootfs: &Path) -> Result<()> {
             )
         }
     }
+    for (installed, built) in [
+        (
+            rootfs.join("usr/lib/x86_64-linux-gnu/libgcc_s.so.1"),
+            repo_root.join("out/build/gcc-runtime/runtime/usr/lib/x86_64-linux-gnu/libgcc_s.so.1"),
+        ),
+        (
+            rootfs.join("usr/lib/x86_64-linux-gnu/libstdc++.so.6"),
+            repo_root.join("out/build/gcc-runtime/runtime/usr/lib/x86_64-linux-gnu/libstdc++.so.6"),
+        ),
+    ] {
+        if !installed.is_file() || !built.is_file() || fs::read(&installed)? != fs::read(&built)? {
+            bail!(
+                "rootfs GCC runtime {} does not exactly match MattOS build output {}",
+                installed.display(),
+                built.display()
+            )
+        }
+    }
 
     let mut files = Vec::new();
     collect_regular_files(rootfs, &mut files)?;
     let mut elf_files = Vec::new();
     let mut provided = BTreeSet::new();
+    let mut soname_providers: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for path in files {
         let header = Command::new("readelf").args(["-h"]).arg(&path).output()?;
         if !header.status.success() {
@@ -6092,6 +6507,10 @@ fn validate_glibc_rootfs(repo_root: &Path, rootfs: &Path) -> Result<()> {
                     .and_then(|part| part.split(']').next())
                 {
                     provided.insert(value.to_string());
+                    soname_providers
+                        .entry(value.to_string())
+                        .or_default()
+                        .push(format!("/{}", path.strip_prefix(rootfs)?.display()));
                 }
             }
         }
@@ -6099,6 +6518,11 @@ fn validate_glibc_rootfs(repo_root: &Path, rootfs: &Path) -> Result<()> {
     }
     provided.insert("linux-vdso.so.1".to_string());
     provided.insert("ld-linux-x86-64.so.2".to_string());
+    for (soname, paths) in &soname_providers {
+        if paths.len() > 1 {
+            bail!("duplicate SONAME provider {soname}: {}", paths.join(", "))
+        }
+    }
 
     let mut package_owners = BTreeMap::new();
     let info = rootfs.join("var/lib/dpkg/info");
@@ -6125,6 +6549,7 @@ fn validate_glibc_rootfs(repo_root: &Path, rootfs: &Path) -> Result<()> {
         rootfs.join("usr/lib"),
     ])?;
     let mut rows = Vec::new();
+    let mut gcc_runtime_consumers = Vec::new();
     let mut executable_count = 0usize;
     for path in &elf_files {
         let relative = format!("/{}", path.strip_prefix(rootfs)?.display());
@@ -6170,6 +6595,7 @@ fn validate_glibc_rootfs(repo_root: &Path, rootfs: &Path) -> Result<()> {
 
         let dynamic = Command::new("readelf").args(["-d"]).arg(path).output()?;
         let dynamic_text = String::from_utf8_lossy(&dynamic.stdout);
+        let mut runtime_needs = Vec::new();
         for line in dynamic_text
             .lines()
             .filter(|line| line.contains("(NEEDED)"))
@@ -6183,6 +6609,9 @@ fn validate_glibc_rootfs(repo_root: &Path, rootfs: &Path) -> Result<()> {
                 bail!(
                     "ELF object {relative} needs {needed}, which is absent from the MattOS rootfs"
                 )
+            }
+            if needed == "libgcc_s.so.1" || needed == "libstdc++.so.6" {
+                runtime_needs.push(needed.to_string());
             }
         }
         for line in dynamic_text
@@ -6200,23 +6629,10 @@ fn validate_glibc_rootfs(repo_root: &Path, rootfs: &Path) -> Result<()> {
             }
         }
 
-        let versions = Command::new("readelf")
-            .args(["--version-info"])
-            .arg(path)
-            .output()?;
-        let version_text = String::from_utf8_lossy(&versions.stdout);
-        let mut glibc_versions = BTreeSet::new();
-        for word in version_text.split_whitespace() {
-            if let Some(start) = word.find("GLIBC_") {
-                glibc_versions.insert(
-                    word[start..]
-                        .trim_matches(|ch: char| {
-                            !ch.is_ascii_alphanumeric() && ch != '_' && ch != '.'
-                        })
-                        .to_string(),
-                );
-            }
-        }
+        let glibc_versions = elf_version_names(path, &["GLIBC_"])?;
+        let glibcxx_versions = elf_version_names(path, &["GLIBCXX_"])?;
+        let cxxabi_versions = elf_version_names(path, &["CXXABI_"])?;
+        let gcc_versions = elf_version_names(path, &["GCC_"])?;
         let owner = package_owners
             .get(&relative)
             .cloned()
@@ -6231,13 +6647,26 @@ fn validate_glibc_rootfs(repo_root: &Path, rootfs: &Path) -> Result<()> {
         } else {
             owner.trim_start_matches("mattos-")
         };
+        let glibc_versions = glibc_versions.into_iter().collect::<Vec<_>>().join(",");
+        let glibcxx_versions = glibcxx_versions.into_iter().collect::<Vec<_>>().join(",");
+        let cxxabi_versions = cxxabi_versions.into_iter().collect::<Vec<_>>().join(",");
+        let gcc_versions = gcc_versions.into_iter().collect::<Vec<_>>().join(",");
+        for needed in runtime_needs {
+            gcc_runtime_consumers.push(format!(
+                "{}\t{}\t{}\t{}\t{}\t{}",
+                relative, owner, needed, glibcxx_versions, cxxabi_versions, gcc_versions
+            ));
+        }
         rows.push(format!(
-            "{}\t{}\t{}\t{}\t{}\tvalidated",
+            "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\tvalidated",
             relative,
             owner,
             build_stage,
             interpreter.as_deref().unwrap_or("-"),
-            glibc_versions.into_iter().collect::<Vec<_>>().join(",")
+            glibc_versions,
+            glibcxx_versions,
+            cxxabi_versions,
+            gcc_versions
         ));
     }
     rows.sort();
@@ -6246,8 +6675,16 @@ fn validate_glibc_rootfs(repo_root: &Path, rootfs: &Path) -> Result<()> {
     fs::write(
         reports.join("elf-runtime-inventory.tsv"),
         format!(
-            "path\towner\tbuild_stage\tinterpreter\tglibc_versions\trebuild_status\n{}\n",
+            "path\towner\tbuild_stage\tinterpreter\tglibc_versions\tglibcxx_versions\tcxxabi_versions\tgcc_versions\trebuild_status\n{}\n",
             rows.join("\n")
+        ),
+    )?;
+    gcc_runtime_consumers.sort();
+    fs::write(
+        reports.join("gcc-runtime-consumers.tsv"),
+        format!(
+            "path\towner\tneeded_runtime\tglibcxx_versions\tcxxabi_versions\tgcc_versions\n{}\n",
+            gcc_runtime_consumers.join("\n")
         ),
     )?;
     println!(
@@ -8983,6 +9420,7 @@ mod tests {
         let plan = build_plan(BuildStage::All);
         assert_eq!(plan[0], BuildStage::Kernel);
         assert_eq!(plan[1], BuildStage::Glibc);
+        assert_eq!(plan[2], BuildStage::GccRuntime);
         assert!(plan.contains(&BuildStage::Grep));
         assert!(plan.contains(&BuildStage::Sed));
         assert!(plan.contains(&BuildStage::Findutils));
@@ -9187,6 +9625,126 @@ mod tests {
         assert_eq!(glibc.path, "src/system/libc/glibc");
         assert_eq!(glibc.sync, "copy");
         assert_eq!(GLIBC_MINIMUM_KERNEL, "5.10.0");
+    }
+
+    #[test]
+    fn gcc_runtime_build_stage_and_upstream_metadata_are_pinned() {
+        assert_eq!(
+            BuildStage::from_str("gcc-runtime", true).unwrap(),
+            BuildStage::GccRuntime
+        );
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        let sources = read_sources(&root).expect("read MattOS upstream metadata");
+        let gcc = sources
+            .component
+            .iter()
+            .find(|component| component.name == "gcc")
+            .expect("GCC source metadata");
+        assert_eq!(gcc.repo, "https://gcc.gnu.org/git/gcc.git");
+        assert_eq!(gcc.branch, "releases/gcc-15.3.0");
+        assert_eq!(
+            gcc.revision.as_deref(),
+            Some("4db0e8df15bef836558857c291c323add11d035c")
+        );
+        assert_eq!(gcc.path, "src/toolchain/gcc");
+        assert_eq!(gcc.sync, "copy");
+        assert!(!root.join("src/toolchain/gcc/.git").exists());
+    }
+
+    #[test]
+    fn gcc_runtime_configuration_is_target_only_and_sysrooted() {
+        let source = include_str!("main.rs");
+        let start = source.find("fn build_gcc_runtime").unwrap();
+        let end = source[start..].find("fn copy_tree_contents").unwrap() + start;
+        let build = &source[start..end];
+        for required in [
+            "--with-sysroot=",
+            "--with-build-sysroot=",
+            "--enable-languages=c,c++",
+            "--disable-multilib",
+            "--disable-analyzer",
+            "--disable-libsanitizer",
+            "--disable-libquadmath",
+            "--disable-libstdcxx-pch",
+            "all-target-libgcc",
+            "all-target-libstdc++-v3",
+            "install-target-libgcc",
+            "install-target-libstdc++-v3",
+            "CFLAGS_FOR_TARGET",
+            "CXXFLAGS_FOR_TARGET",
+        ] {
+            assert!(
+                build.contains(required),
+                "missing GCC runtime setting {required}"
+            );
+        }
+        for forbidden in [
+            "install-gcc",
+            "install-g++",
+            "-I/usr/include",
+            "-L/usr/lib ",
+        ] {
+            assert!(
+                !build.contains(forbidden),
+                "forbidden GCC target install/input {forbidden}"
+            );
+        }
+    }
+
+    #[test]
+    fn gcc_symbol_version_inventory_parser_covers_all_runtime_namespaces() {
+        let temp = tempfile::tempdir().unwrap();
+        write(
+            &temp.path().join("runtime.c"),
+            "int mattos_runtime(void) { return 0; }\n",
+        );
+        write(
+            &temp.path().join("runtime.map"),
+            "GCC_14.0.0 { global: mattos_runtime; };\nGLIBCXX_3.4.34 { } GCC_14.0.0;\nCXXABI_1.3.15 { } GLIBCXX_3.4.34;\n",
+        );
+        run_ok(
+            temp.path(),
+            "gcc",
+            &[
+                "-shared",
+                "-fPIC",
+                "runtime.c",
+                "-Wl,--version-script=runtime.map",
+                "-o",
+                "runtime.so",
+            ],
+        );
+        let versions = elf_version_names(
+            &temp.path().join("runtime.so"),
+            &["GCC_", "GLIBCXX_", "CXXABI_"],
+        )
+        .unwrap();
+        for expected in ["GCC_14.0.0", "GLIBCXX_3.4.34", "CXXABI_1.3.15"] {
+            assert!(versions.contains(expected));
+        }
+    }
+
+    #[test]
+    fn representative_consumers_include_cpp_and_rust_unwind_paths() {
+        for consumer in [
+            "usr/bin/apt",
+            "usr/bin/apt-get",
+            "usr/bin/dpkg",
+            "usr/bin/curl",
+            "usr/lib/systemd/systemd",
+            "usr/bin/dbus-broker",
+            "usr/bin/brush",
+            "usr/bin/sudo",
+            "usr/bin/login",
+            "usr/libexec/mattos/rescue-init",
+        ] {
+            assert!(GCC_RUNTIME_REPRESENTATIVE_CONSUMERS.contains(&consumer));
+        }
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        let workspace = fs::read_to_string(root.join("Cargo.toml")).unwrap();
+        let rescue = fs::read_to_string(root.join("src/userland/init/Cargo.toml")).unwrap();
+        assert!(!workspace.contains("panic = \"abort\""));
+        assert!(!rescue.contains("panic = \"abort\""));
     }
 
     #[test]

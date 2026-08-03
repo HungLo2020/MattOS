@@ -98,6 +98,7 @@ const IPROUTE2_RUNTIME_PATHS: &[&str] = &[
     "usr/sbin/tc",
 ];
 const IPUTILS_RUNTIME_PATHS: &[&str] = &["usr/bin/ping", "usr/bin/tracepath"];
+#[cfg(test)]
 const MIGRATED_BOOTSTRAP_SONAME_PREFIXES: &[&str] = &[
     "libc.so",
     "libm.so",
@@ -119,11 +120,14 @@ const MIGRATED_BOOTSTRAP_SONAME_PREFIXES: &[&str] = &[
     "libpcre2-8.so",
     "libselinux.so",
     "libcrypt.so",
+    "libgcc_s.so",
+    "libstdc++.so",
 ];
 const PACKAGE_NAMES: &[&str] = &[
     "mattos-filesystem",
     "mattos-libc6",
-    "mattos-bootstrap-runtime",
+    "mattos-libgcc-s1",
+    "mattos-libstdc++6",
     "mattos-libc-bin",
     "mattos-base-files",
     "mattos-ca-certificates",
@@ -305,11 +309,22 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "required",
         },
         PackageSpec {
-            name: "mattos-bootstrap-runtime",
-            description: "Temporary host-derived GCC runtime closure for MattOS bootstrap packages",
-            source_component: "bootstrap-runtime",
+            name: "mattos-libgcc-s1",
+            description: "GCC shared unwinding runtime built for MattOS",
+            source_component: "gcc",
             depends: &["mattos-filesystem", "mattos-libc6"],
-            provides: &["mattos-bootstrap-gcc-runtime"],
+            provides: &["libgcc-s1"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "required",
+        },
+        PackageSpec {
+            name: "mattos-libstdc++6",
+            description: "GNU C++ runtime library built for MattOS",
+            source_component: "gcc",
+            depends: &["mattos-filesystem", "mattos-libc6", "mattos-libgcc-s1"],
+            provides: &["libstdc++6"],
             conflicts: &[],
             replaces: &[],
             essential: false,
@@ -352,7 +367,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-brush",
             description: "Brush shell built for MattOS",
             source_component: "brush",
-            depends: &["mattos-filesystem", "mattos-bootstrap-runtime"],
+            depends: &["mattos-filesystem", "mattos-libgcc-s1"],
             provides: &["mattos-shell"],
             conflicts: &[],
             replaces: &[],
@@ -363,7 +378,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-coreutils",
             description: "uutils core utilities built for MattOS",
             source_component: "coreutils",
-            depends: &["mattos-filesystem", "mattos-bootstrap-runtime"],
+            depends: &["mattos-filesystem", "mattos-libgcc-s1"],
             provides: &["coreutils"],
             conflicts: &["coreutils"],
             replaces: &["coreutils"],
@@ -376,7 +391,6 @@ fn package_specs() -> Vec<PackageSpec> {
             source_component: "curl",
             depends: &[
                 "mattos-filesystem",
-                "mattos-bootstrap-runtime",
                 "mattos-ca-certificates",
                 "mattos-zlib1g",
                 "mattos-libzstd1",
@@ -393,7 +407,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libmd0",
             description: "libmd message-digest runtime library built for MattOS",
             source_component: "libmd",
-            depends: &["mattos-bootstrap-runtime"],
+            depends: &[],
             provides: &["libmd0"],
             conflicts: &[],
             replaces: &[],
@@ -404,7 +418,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libbsd0",
             description: "libbsd portability runtime library built for MattOS",
             source_component: "libbsd",
-            depends: &["mattos-bootstrap-runtime", "mattos-libmd0"],
+            depends: &["mattos-libmd0"],
             provides: &["libbsd0"],
             conflicts: &[],
             replaces: &[],
@@ -415,7 +429,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libzstd1",
             description: "Zstandard compression runtime library built for MattOS",
             source_component: "zstd",
-            depends: &["mattos-bootstrap-runtime"],
+            depends: &[],
             provides: &["libzstd1"],
             conflicts: &[],
             replaces: &[],
@@ -426,11 +440,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libcrypto3",
             description: "OpenSSL cryptography runtime library built for MattOS",
             source_component: "openssl",
-            depends: &[
-                "mattos-bootstrap-runtime",
-                "mattos-zlib1g",
-                "mattos-libzstd1",
-            ],
+            depends: &["mattos-zlib1g", "mattos-libzstd1"],
             provides: &["libcrypto3"],
             conflicts: &[],
             replaces: &[],
@@ -441,12 +451,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libssl3",
             description: "OpenSSL TLS runtime library built for MattOS",
             source_component: "openssl",
-            depends: &[
-                "mattos-bootstrap-runtime",
-                "mattos-libcrypto3",
-                "mattos-zlib1g",
-                "mattos-libzstd1",
-            ],
+            depends: &["mattos-libcrypto3", "mattos-zlib1g", "mattos-libzstd1"],
             provides: &["libssl3t64"],
             conflicts: &[],
             replaces: &[],
@@ -457,11 +462,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libelf1",
             description: "elfutils libelf runtime library built for MattOS",
             source_component: "elfutils",
-            depends: &[
-                "mattos-bootstrap-runtime",
-                "mattos-zlib1g",
-                "mattos-libzstd1",
-            ],
+            depends: &["mattos-zlib1g", "mattos-libzstd1"],
             provides: &["libelf1t64"],
             conflicts: &[],
             replaces: &[],
@@ -472,7 +473,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libpcre2-8-0",
             description: "PCRE2 8-bit regular expression runtime library built for MattOS",
             source_component: "pcre2",
-            depends: &["mattos-bootstrap-runtime"],
+            depends: &[],
             provides: &["libpcre2-8-0"],
             conflicts: &[],
             replaces: &[],
@@ -483,7 +484,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libselinux1",
             description: "SELinux userspace runtime library built for MattOS",
             source_component: "selinux",
-            depends: &["mattos-bootstrap-runtime", "mattos-libpcre2-8-0"],
+            depends: &["mattos-libpcre2-8-0"],
             provides: &["libselinux1"],
             conflicts: &[],
             replaces: &[],
@@ -494,7 +495,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libcrypt1",
             description: "libxcrypt password hashing runtime library built for MattOS",
             source_component: "libxcrypt",
-            depends: &["mattos-bootstrap-runtime"],
+            depends: &[],
             provides: &["libcrypt1"],
             conflicts: &[],
             replaces: &[],
@@ -505,7 +506,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libblkid1",
             description: "util-linux block device identification runtime library built for MattOS",
             source_component: "util-linux",
-            depends: &["mattos-bootstrap-runtime"],
+            depends: &[],
             provides: &["libblkid1"],
             conflicts: &[],
             replaces: &[],
@@ -516,7 +517,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libmount1",
             description: "util-linux mount runtime library built for MattOS",
             source_component: "util-linux",
-            depends: &["mattos-bootstrap-runtime", "mattos-libblkid1"],
+            depends: &["mattos-libblkid1"],
             provides: &["libmount1"],
             conflicts: &[],
             replaces: &[],
@@ -527,7 +528,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libsmartcols1",
             description: "util-linux structured table runtime library built for MattOS",
             source_component: "util-linux",
-            depends: &["mattos-bootstrap-runtime"],
+            depends: &[],
             provides: &["libsmartcols1"],
             conflicts: &[],
             replaces: &[],
@@ -539,7 +540,6 @@ fn package_specs() -> Vec<PackageSpec> {
             description: "util-linux mount and unmount tools built for MattOS",
             source_component: "util-linux",
             depends: &[
-                "mattos-bootstrap-runtime",
                 "mattos-libblkid1",
                 "mattos-libmount1",
                 "mattos-libsmartcols1",
@@ -557,7 +557,6 @@ fn package_specs() -> Vec<PackageSpec> {
             source_component: "dpkg",
             depends: &[
                 "mattos-filesystem",
-                "mattos-bootstrap-runtime",
                 "mattos-tar",
                 "mattos-zlib1g",
                 "mattos-libbz2-1.0",
@@ -578,7 +577,8 @@ fn package_specs() -> Vec<PackageSpec> {
             description: "APT public runtime library built for MattOS",
             source_component: "apt",
             depends: &[
-                "mattos-bootstrap-runtime",
+                "mattos-libgcc-s1",
+                "mattos-libstdc++6",
                 "mattos-libudev1",
                 "mattos-libsystemd0",
                 "mattos-zlib1g",
@@ -600,7 +600,8 @@ fn package_specs() -> Vec<PackageSpec> {
             description: "APT command-line package manager and local repository methods for MattOS",
             source_component: "apt",
             depends: &[
-                "mattos-bootstrap-runtime",
+                "mattos-libgcc-s1",
+                "mattos-libstdc++6",
                 "mattos-ca-certificates",
                 "mattos-dpkg",
                 "mattos-libapt-pkg",
@@ -624,7 +625,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libtinfow6",
             description: "ncurses wide-character terminfo runtime library built for MattOS",
             source_component: "ncurses",
-            depends: &["mattos-bootstrap-runtime"],
+            depends: &[],
             provides: &["libtinfo6"],
             conflicts: &[],
             replaces: &[],
@@ -635,7 +636,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libncursesw6",
             description: "ncurses wide-character runtime library built for MattOS",
             source_component: "ncurses",
-            depends: &["mattos-bootstrap-runtime", "mattos-libtinfow6"],
+            depends: &["mattos-libtinfow6"],
             provides: &["libncursesw6"],
             conflicts: &[],
             replaces: &[],
@@ -657,11 +658,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-ncurses-bin",
             description: "ncurses terminal utilities built for MattOS",
             source_component: "ncurses",
-            depends: &[
-                "mattos-bootstrap-runtime",
-                "mattos-libtinfow6",
-                "mattos-terminfo",
-            ],
+            depends: &["mattos-libtinfow6", "mattos-terminfo"],
             provides: &["ncurses-bin"],
             conflicts: &["ncurses-bin"],
             replaces: &["ncurses-bin"],
@@ -672,7 +669,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libkmod2",
             description: "kmod runtime library built for MattOS",
             source_component: "kmod",
-            depends: &["mattos-bootstrap-runtime"],
+            depends: &[],
             provides: &["libkmod2"],
             conflicts: &[],
             replaces: &[],
@@ -683,7 +680,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-kmod",
             description: "Linux kernel module management tools built for MattOS",
             source_component: "kmod",
-            depends: &["mattos-bootstrap-runtime", "mattos-libkmod2"],
+            depends: &["mattos-libkmod2"],
             provides: &["kmod"],
             conflicts: &["kmod"],
             replaces: &["kmod"],
@@ -694,7 +691,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libproc2",
             description: "procps process information runtime library built for MattOS",
             source_component: "procps-ng",
-            depends: &["mattos-bootstrap-runtime"],
+            depends: &[],
             provides: &["libproc2-0"],
             conflicts: &[],
             replaces: &[],
@@ -706,7 +703,6 @@ fn package_specs() -> Vec<PackageSpec> {
             description: "procps process inspection utilities built for MattOS",
             source_component: "procps-ng",
             depends: &[
-                "mattos-bootstrap-runtime",
                 "mattos-libproc2",
                 "mattos-libncursesw6",
                 "mattos-libtinfow6",
@@ -721,7 +717,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libsystemd0",
             description: "systemd public runtime library built for MattOS",
             source_component: "systemd",
-            depends: &["mattos-bootstrap-runtime"],
+            depends: &[],
             provides: &["libsystemd0"],
             conflicts: &[],
             replaces: &[],
@@ -732,7 +728,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libudev1",
             description: "systemd device enumeration runtime library built for MattOS",
             source_component: "systemd",
-            depends: &["mattos-bootstrap-runtime"],
+            depends: &[],
             provides: &["libudev1"],
             conflicts: &[],
             replaces: &[],
@@ -743,7 +739,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libexpat1",
             description: "Expat XML parser runtime library built for MattOS",
             source_component: "expat",
-            depends: &["mattos-bootstrap-runtime"],
+            depends: &[],
             provides: &["libexpat1"],
             conflicts: &[],
             replaces: &[],
@@ -754,7 +750,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libcap2",
             description: "Linux capabilities runtime library built for MattOS",
             source_component: "libcap",
-            depends: &["mattos-bootstrap-runtime"],
+            depends: &[],
             provides: &["libcap2"],
             conflicts: &[],
             replaces: &[],
@@ -765,7 +761,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libacl1",
             description: "POSIX access control list runtime library built for MattOS",
             source_component: "acl",
-            depends: &["mattos-bootstrap-runtime"],
+            depends: &[],
             provides: &["libacl1"],
             conflicts: &[],
             replaces: &[],
@@ -776,7 +772,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-zlib1g",
             description: "zlib compression runtime library built for MattOS",
             source_component: "zlib",
-            depends: &["mattos-bootstrap-runtime"],
+            depends: &[],
             provides: &["zlib1g"],
             conflicts: &[],
             replaces: &[],
@@ -787,7 +783,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libbz2-1.0",
             description: "bzip2 compression runtime library built for MattOS",
             source_component: "bzip2",
-            depends: &["mattos-bootstrap-runtime"],
+            depends: &[],
             provides: &["libbz2-1.0"],
             conflicts: &[],
             replaces: &[],
@@ -798,7 +794,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-liblz4-1",
             description: "LZ4 compression runtime library built for MattOS",
             source_component: "lz4",
-            depends: &["mattos-bootstrap-runtime"],
+            depends: &[],
             provides: &["liblz4-1"],
             conflicts: &[],
             replaces: &[],
@@ -809,7 +805,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-liblzma5",
             description: "XZ Utils liblzma compression runtime library built for MattOS",
             source_component: "xz",
-            depends: &["mattos-bootstrap-runtime"],
+            depends: &[],
             provides: &["liblzma5"],
             conflicts: &[],
             replaces: &[],
@@ -820,7 +816,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libxxhash0",
             description: "xxHash runtime library built for MattOS",
             source_component: "xxhash",
-            depends: &["mattos-bootstrap-runtime"],
+            depends: &[],
             provides: &["libxxhash0"],
             conflicts: &[],
             replaces: &[],
@@ -831,7 +827,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-tar",
             description: "GNU tar archive utility built for MattOS",
             source_component: "tar",
-            depends: &["mattos-bootstrap-runtime", "mattos-libacl1"],
+            depends: &["mattos-libacl1"],
             provides: &["tar"],
             conflicts: &["tar"],
             replaces: &["tar"],
@@ -842,11 +838,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-dbus-broker",
             description: "D-Bus message broker and MattOS bus policy",
             source_component: "dbus-broker",
-            depends: &[
-                "mattos-bootstrap-runtime",
-                "mattos-libexpat1",
-                "mattos-libsystemd0",
-            ],
+            depends: &["mattos-libexpat1", "mattos-libsystemd0"],
             provides: &["dbus-system-bus"],
             conflicts: &["dbus-daemon"],
             replaces: &[],
@@ -857,7 +849,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libpam0",
             description: "Linux PAM core runtime library built for MattOS",
             source_component: "linux-pam",
-            depends: &["mattos-bootstrap-runtime"],
+            depends: &[],
             provides: &["libpam0g"],
             conflicts: &[],
             replaces: &[],
@@ -868,7 +860,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libpam-misc0",
             description: "Linux PAM miscellaneous runtime library built for MattOS",
             source_component: "linux-pam",
-            depends: &["mattos-bootstrap-runtime", "mattos-libpam0"],
+            depends: &["mattos-libpam0"],
             provides: &["libpam-misc0"],
             conflicts: &[],
             replaces: &[],
@@ -879,11 +871,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-pam-modules",
             description: "Linux PAM authentication modules built for MattOS",
             source_component: "linux-pam",
-            depends: &[
-                "mattos-bootstrap-runtime",
-                "mattos-libpam0",
-                "mattos-libcrypt1",
-            ],
+            depends: &["mattos-libpam0", "mattos-libcrypt1"],
             provides: &["libpam-modules"],
             conflicts: &[],
             replaces: &[],
@@ -894,12 +882,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-pam-runtime",
             description: "MattOS PAM policy and authentication helper runtime",
             source_component: "linux-pam",
-            depends: &[
-                "mattos-bootstrap-runtime",
-                "mattos-libpam0",
-                "mattos-pam-modules",
-                "mattos-libcrypt1",
-            ],
+            depends: &["mattos-libpam0", "mattos-pam-modules", "mattos-libcrypt1"],
             provides: &["libpam-runtime"],
             conflicts: &[],
             replaces: &[],
@@ -911,7 +894,6 @@ fn package_specs() -> Vec<PackageSpec> {
             description: "Shadow account administration tools built for MattOS",
             source_component: "shadow",
             depends: &[
-                "mattos-bootstrap-runtime",
                 "mattos-libpam0",
                 "mattos-libpam-misc0",
                 "mattos-pam-runtime",
@@ -929,11 +911,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-sudo-rs",
             description: "Privilege delegation tools built for MattOS",
             source_component: "sudo-rs",
-            depends: &[
-                "mattos-bootstrap-runtime",
-                "mattos-libpam0",
-                "mattos-pam-runtime",
-            ],
+            depends: &["mattos-libgcc-s1", "mattos-libpam0", "mattos-pam-runtime"],
             provides: &["sudo"],
             conflicts: &["sudo"],
             replaces: &["sudo"],
@@ -945,7 +923,6 @@ fn package_specs() -> Vec<PackageSpec> {
             description: "util-linux login, su, and agetty tools built for MattOS",
             source_component: "util-linux",
             depends: &[
-                "mattos-bootstrap-runtime",
                 "mattos-libpam0",
                 "mattos-libpam-misc0",
                 "mattos-pam-runtime",
@@ -961,7 +938,6 @@ fn package_specs() -> Vec<PackageSpec> {
             description: "Linux routing and network configuration tools built for MattOS",
             source_component: "iproute2",
             depends: &[
-                "mattos-bootstrap-runtime",
                 "mattos-libcap2",
                 "mattos-zlib1g",
                 "mattos-libzstd1",
@@ -979,7 +955,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-iputils",
             description: "Linux ping and tracepath network diagnostics built for MattOS",
             source_component: "iputils",
-            depends: &["mattos-bootstrap-runtime"],
+            depends: &[],
             provides: &["iputils-ping"],
             conflicts: &["iputils-ping"],
             replaces: &["iputils-ping"],
@@ -1057,6 +1033,26 @@ pub(crate) fn run_package_command(repo_root: &Path, command: PackageCommands) ->
 }
 
 pub(crate) fn build_all_packages(repo_root: &Path) -> Result<()> {
+    remove_path_if_exists(&repo_root.join("out/packages/staging/mattos-bootstrap-runtime"))?;
+    let artifact_root = repo_root.join("out/packages/amd64");
+    if artifact_root.is_dir() {
+        for entry in fs::read_dir(&artifact_root)? {
+            let path = entry?.path();
+            if path
+                .file_name()
+                .and_then(OsStr::to_str)
+                .is_some_and(|name| name.starts_with("mattos-bootstrap-runtime_"))
+            {
+                fs::remove_file(path)?;
+            }
+        }
+    }
+    if let Ok(mut inventory) = read_inventory(repo_root) {
+        inventory
+            .package
+            .retain(|entry| PACKAGE_NAMES.contains(&entry.name.as_str()));
+        write_inventory(repo_root, &inventory)?;
+    }
     build_packages(
         repo_root,
         &PACKAGE_NAMES
@@ -1153,7 +1149,12 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
     match spec.name {
         "mattos-filesystem" => stage_filesystem(&staging)?,
         "mattos-libc6" => stage_glibc_runtime(repo_root, &staging)?,
-        "mattos-bootstrap-runtime" => stage_bootstrap_runtime(repo_root, &staging)?,
+        "mattos-libgcc-s1" => {
+            stage_gcc_runtime_library(repo_root, &staging, "libgcc_s.so.1", "mattos-libgcc-s1")?
+        }
+        "mattos-libstdc++6" => {
+            stage_gcc_runtime_library(repo_root, &staging, "libstdc++.so.6", "mattos-libstdc++6")?
+        }
         "mattos-libc-bin" => stage_glibc_utilities(repo_root, &staging)?,
         "mattos-base-files" => stage_base_files(repo_root, &staging)?,
         "mattos-ca-certificates" => stage_ca_certificates(repo_root, &staging)?,
@@ -1569,6 +1570,64 @@ fn stage_glibc_utilities(repo_root: &Path, staging: &Path) -> Result<()> {
     copy_preserving(
         &repo_root.join("src/system/libc/glibc/LICENSES"),
         &staging.join("usr/share/doc/mattos-libc-bin/LICENSES"),
+    )?;
+    Ok(())
+}
+
+fn stage_gcc_runtime_library(
+    repo_root: &Path,
+    staging: &Path,
+    soname: &str,
+    package: &str,
+) -> Result<()> {
+    let source_libdir = repo_root.join("out/build/gcc-runtime/runtime/usr/lib/x86_64-linux-gnu");
+    let destination_libdir = staging.join("usr/lib/x86_64-linux-gnu");
+    fs::create_dir_all(&destination_libdir)?;
+    let soname_source = source_libdir.join(soname);
+    if !path_entry_exists(&soname_source) {
+        bail!(
+            "GCC runtime build is missing {soname} at {}; build the gcc-runtime stage first",
+            soname_source.display()
+        )
+    }
+    let mut installed = Vec::new();
+    if fs::symlink_metadata(&soname_source)?
+        .file_type()
+        .is_symlink()
+    {
+        let target = fs::read_link(&soname_source)?;
+        let target_name = target
+            .file_name()
+            .ok_or_else(|| anyhow!("invalid GCC runtime symlink {}", soname_source.display()))?;
+        copy_path_preserving(
+            &source_libdir.join(target_name),
+            &destination_libdir.join(target_name),
+        )?;
+        installed.push(target_name.to_string_lossy().to_string());
+    }
+    copy_path_preserving(&soname_source, &destination_libdir.join(soname))?;
+    installed.push(soname.to_string());
+    installed.sort();
+
+    for license in ["COPYING3", "COPYING.RUNTIME"] {
+        copy_preserving(
+            &repo_root.join("src/toolchain/gcc").join(license),
+            &staging.join("usr/share/doc").join(package).join(license),
+        )?;
+    }
+    copy_preserving(
+        &repo_root.join("out/build/gcc-runtime/runtime-abi.tsv"),
+        &staging
+            .join("usr/share/doc")
+            .join(package)
+            .join("runtime-abi.tsv"),
+    )?;
+    fs::write(
+        staging
+            .join("usr/share/doc")
+            .join(package)
+            .join("runtime-files.txt"),
+        format!("{}\n", installed.join("\n")),
     )?;
     Ok(())
 }
@@ -2003,177 +2062,7 @@ fn validate_no_mutable_package_state(staging: &Path) -> Result<()> {
     Ok(())
 }
 
-fn stage_bootstrap_runtime(repo_root: &Path, staging: &Path) -> Result<()> {
-    let apt_install = repo_root.join("out/build/apt/install");
-    let curl_install = repo_root.join("out/build/curl/install");
-    let systemd_install = repo_root.join("out/build/systemd/install");
-    let library_dirs = [
-        apt_install.join("usr/lib/x86_64-linux-gnu"),
-        curl_install.join("usr/lib/x86_64-linux-gnu"),
-        systemd_install.join("usr/lib/x86_64-linux-gnu"),
-        component_install(repo_root, "acl").join("usr/lib/x86_64-linux-gnu"),
-        component_install(repo_root, "zlib").join("usr/lib/x86_64-linux-gnu"),
-        component_install(repo_root, "bzip2").join("usr/lib/x86_64-linux-gnu"),
-        component_install(repo_root, "lz4").join("usr/lib/x86_64-linux-gnu"),
-        component_install(repo_root, "xz").join("usr/lib/x86_64-linux-gnu"),
-        component_install(repo_root, "xxhash").join("usr/lib/x86_64-linux-gnu"),
-        component_install(repo_root, "zstd").join("usr/lib/x86_64-linux-gnu"),
-        component_install(repo_root, "openssl").join("usr/lib/x86_64-linux-gnu"),
-        component_install(repo_root, "elfutils").join("usr/lib/x86_64-linux-gnu"),
-        component_install(repo_root, "libmd").join("usr/lib/x86_64-linux-gnu"),
-        component_install(repo_root, "libbsd").join("usr/lib/x86_64-linux-gnu"),
-        component_install(repo_root, "ncurses").join("usr/lib/x86_64-linux-gnu"),
-        component_install(repo_root, "kmod").join("usr/lib/x86_64-linux-gnu"),
-        component_install(repo_root, "procps-ng").join("usr/lib/x86_64-linux-gnu"),
-        component_install(repo_root, "linux-pam").join("usr/lib/x86_64-linux-gnu"),
-    ];
-    let library_path = std::env::join_paths(library_dirs.iter())?;
-    let mut inputs = vec![
-        repo_root.join("src/userland/brush/target/release/brush"),
-        resolve_coreutils_multicall(repo_root)?,
-        component_install(repo_root, "tar").join("usr/bin/tar"),
-        curl_install.join("usr/bin/curl"),
-        curl_install.join("usr/lib/x86_64-linux-gnu/libcurl.so.4.8.0"),
-    ];
-    for rel in DPKG_RUNTIME_PATHS {
-        inputs.push(repo_root.join("out/build/dpkg/install").join(rel));
-    }
-    for rel in [
-        "usr/bin/apt",
-        "usr/bin/apt-cache",
-        "usr/bin/apt-config",
-        "usr/bin/apt-get",
-        "usr/bin/apt-mark",
-        "usr/lib/apt/apt-helper",
-        "usr/lib/apt/methods/copy",
-        "usr/lib/apt/methods/file",
-        "usr/lib/apt/methods/store",
-        "usr/lib/x86_64-linux-gnu/libapt-pkg.so.7.0.0",
-        "usr/lib/x86_64-linux-gnu/libapt-private.so.0.0.0",
-    ] {
-        inputs.push(apt_install.join(rel));
-    }
-    for (component, paths) in [
-        ("ncurses", NCURSES_RUNTIME_PATHS),
-        ("kmod", KMOD_RUNTIME_PATHS),
-        ("procps-ng", PROCPS_RUNTIME_PATHS),
-        ("shadow", SHADOW_RUNTIME_PATHS),
-        ("util-linux", UTIL_LINUX_AUTH_PATHS),
-        ("iproute2", IPROUTE2_RUNTIME_PATHS),
-        ("iputils", IPUTILS_RUNTIME_PATHS),
-    ] {
-        let install = component_install(repo_root, component);
-        for rel in paths {
-            inputs.push(install.join(rel));
-        }
-    }
-    for rel in ["usr/bin/sudo", "usr/bin/visudo"] {
-        inputs.push(component_install(repo_root, "sudo-rs").join(rel));
-    }
-    for rel in ["usr/bin/dbus-broker", "usr/bin/dbus-broker-launch"] {
-        inputs.push(component_install(repo_root, "dbus-broker").join(rel));
-    }
-    for rel in [
-        "usr/sbin/unix_chkpwd",
-        "usr/lib/x86_64-linux-gnu/libpam.so.0.85.1",
-        "usr/lib/x86_64-linux-gnu/libpam_misc.so.0.82.1",
-    ] {
-        inputs.push(component_install(repo_root, "linux-pam").join(rel));
-    }
-    for module in PAM_MODULES {
-        inputs.push(
-            component_install(repo_root, "linux-pam")
-                .join("usr/lib/x86_64-linux-gnu/security")
-                .join(module),
-        );
-    }
-    for (component, library) in [
-        ("ncurses", "libtinfow.so.6.6"),
-        ("ncurses", "libncursesw.so.6.6"),
-        ("kmod", "libkmod.so.2.5.1"),
-        ("procps-ng", "libproc2.so.1.0.1"),
-        ("systemd", "libsystemd.so.0.44.0"),
-        ("systemd", "libudev.so.1.7.14"),
-    ] {
-        inputs.push(
-            component_install(repo_root, component)
-                .join("usr/lib/x86_64-linux-gnu")
-                .join(library),
-        );
-    }
-
-    let mut dependencies = BTreeSet::new();
-    for input in inputs {
-        if !input.is_file() {
-            bail!("runtime closure input missing at {}", input.display())
-        }
-        for dependency in ldd_dependency_paths(&input, &library_path)? {
-            dependencies.insert(dependency);
-        }
-    }
-
-    let mut manifest = Vec::new();
-    for source in dependencies {
-        let name = source
-            .file_name()
-            .and_then(|name| name.to_str())
-            .ok_or_else(|| anyhow!("invalid runtime library path {}", source.display()))?;
-        if [
-            "libapt-pkg.so",
-            "libapt-private.so",
-            "libcurl.so",
-            "libtinfow.so",
-            "libncursesw.so",
-            "libkmod.so",
-            "libproc2.so",
-            "libsystemd.so",
-            "libudev.so",
-            "libpam.so",
-            "libpam_misc.so",
-        ]
-        .iter()
-        .chain(MIGRATED_BOOTSTRAP_SONAME_PREFIXES.iter())
-        .any(|prefix| name.starts_with(prefix))
-        {
-            continue;
-        }
-        let destination_rel = if name.starts_with("ld-linux-") {
-            PathBuf::from("usr/lib64").join(name)
-        } else {
-            PathBuf::from("usr/lib/x86_64-linux-gnu").join(name)
-        };
-        let destination = staging.join(&destination_rel);
-        if destination.is_file() {
-            if sha256_file(&destination)? != sha256_file(&source)? {
-                bail!(
-                    "different runtime libraries resolve to /{}",
-                    destination_rel.display()
-                )
-            }
-            continue;
-        }
-        copy_preserving(&source, &destination)?;
-        let source_display = source.strip_prefix(repo_root).unwrap_or(&source).display();
-        manifest.push(format!(
-            "/{}\t{}\tELF dependency not yet source-packaged\t{}",
-            destination_rel.display(),
-            source_display,
-            sha256_file(&destination)?
-        ));
-    }
-    manifest.sort();
-    validate_migrated_bootstrap_absent(&manifest)?;
-    fs::create_dir_all(staging.join("usr/share/doc/mattos-bootstrap-runtime"))?;
-    fs::write(
-        staging.join("usr/share/doc/mattos-bootstrap-runtime/runtime-files.tsv"),
-        format!(
-            "destination\tsource\treason\tsha256\n{}\n",
-            manifest.join("\n")
-        ),
-    )?;
-    Ok(())
-}
-
+#[cfg(test)]
 fn validate_migrated_bootstrap_absent(manifest: &[String]) -> Result<()> {
     for row in manifest {
         let destination = row.split('\t').next();
@@ -2193,38 +2082,6 @@ fn validate_migrated_bootstrap_absent(manifest: &[String]) -> Result<()> {
         }
     }
     Ok(())
-}
-
-fn ldd_dependency_paths(binary: &Path, library_path: &std::ffi::OsStr) -> Result<Vec<PathBuf>> {
-    let output = Command::new("ldd")
-        .arg(binary)
-        .env("LD_LIBRARY_PATH", library_path)
-        .output()
-        .with_context(|| {
-            format!(
-                "failed to inspect runtime dependencies for {}",
-                binary.display()
-            )
-        })?;
-    let text = String::from_utf8(output.stdout)?;
-    if !output.status.success() || text.contains("not found") {
-        bail!(
-            "unresolved runtime dependency for {}:\n{text}",
-            binary.display()
-        )
-    }
-    let mut paths = BTreeSet::new();
-    for token in text
-        .split_whitespace()
-        .filter(|token| token.starts_with('/'))
-    {
-        let trimmed = token.trim_end_matches(['(', ':']);
-        let path = PathBuf::from(trimmed);
-        if path.is_file() {
-            paths.insert(path);
-        }
-    }
-    Ok(paths.into_iter().collect())
 }
 
 fn command_text(program: &str, args: &[&str], path: &Path) -> Result<Option<String>> {
@@ -2247,6 +2104,7 @@ fn dynamic_value(text: &str, label: &str) -> Option<String> {
     })
 }
 
+#[cfg(test)]
 fn dynamic_values(text: &str, label: &str) -> Vec<String> {
     let marker = format!("{label}: [");
     text.lines()
@@ -2257,6 +2115,7 @@ fn dynamic_values(text: &str, label: &str) -> Vec<String> {
         .collect()
 }
 
+#[cfg(test)]
 fn bootstrap_source_attribution(
     name: &str,
 ) -> (
@@ -2322,6 +2181,7 @@ fn bootstrap_source_attribution(
     }
 }
 
+#[cfg(test)]
 fn bootstrap_consumers(repo_root: &Path) -> Result<BTreeMap<String, Vec<BootstrapConsumer>>> {
     let staging_root = repo_root.join("out/packages/staging");
     let mut graph = BTreeMap::<String, Vec<BootstrapConsumer>>::new();
@@ -2363,6 +2223,7 @@ fn bootstrap_consumers(repo_root: &Path) -> Result<BTreeMap<String, Vec<Bootstra
     Ok(graph)
 }
 
+#[cfg(test)]
 fn confirmed_host_package(source: &Path) -> Result<Option<String>> {
     let canonical = fs::canonicalize(source).unwrap_or_else(|_| source.to_path_buf());
     let output = Command::new("dpkg-query")
@@ -2381,244 +2242,22 @@ fn confirmed_host_package(source: &Path) -> Result<Option<String>> {
         }))
 }
 
-fn bootstrap_boundary_group(name: &str, consumers: &[BootstrapConsumer]) -> String {
-    match name {
-        "tar" => "standalone utility".to_string(),
-        "libc.so.6" | "libm.so.6" | "ld-linux-x86-64.so.2" => "glibc boundary".to_string(),
-        "libstdc++.so.6" => "C++ runtime boundary".to_string(),
-        "libgcc_s.so.1" => "compiler runtime boundary".to_string(),
-        "libcrypto.so.3" | "libssl.so.3" => "crypto boundary".to_string(),
-        "libbz2.so.1.0" | "liblz4.so.1" | "liblzma.so.5" | "libxxhash.so.0" | "libz.so.1"
-        | "libzstd.so.1" => "compression boundary".to_string(),
-        _ if consumers
-            .iter()
-            .map(|consumer| &consumer.package)
-            .collect::<BTreeSet<_>>()
-            .len()
-            > 2 =>
-        {
-            "widely shared library".to_string()
-        }
-        _ => "leaf library".to_string(),
-    }
-}
-
 fn generate_bootstrap_audit(repo_root: &Path) -> Result<()> {
-    #[cfg(unix)]
-    use std::os::unix::fs::PermissionsExt;
-
-    let staging = repo_root.join("out/packages/staging/mattos-bootstrap-runtime");
-    let manifest_path = staging.join("usr/share/doc/mattos-bootstrap-runtime/runtime-files.tsv");
-    let manifest = fs::read_to_string(&manifest_path).with_context(|| {
-        format!(
-            "bootstrap manifest missing at {}; build mattos-bootstrap-runtime first",
-            manifest_path.display()
-        )
-    })?;
-    let consumers = bootstrap_consumers(repo_root)?;
-    let mut entries = Vec::new();
-    let mut payload_bytes = 0u64;
-    let mut classification_totals = BTreeMap::<String, u64>::new();
-    for line in manifest
-        .lines()
-        .skip(1)
-        .filter(|line| !line.trim().is_empty())
-    {
-        let fields = line.splitn(4, '\t').collect::<Vec<_>>();
-        if fields.len() != 4 {
-            bail!("invalid bootstrap manifest row: {line}");
-        }
-        let destination = fields[0];
-        let source = PathBuf::from(fields[1]);
-        let reason = fields[2].to_string();
-        let staged = staging.join(destination.trim_start_matches('/'));
-        let metadata = fs::symlink_metadata(&staged)?;
-        let name = Path::new(destination)
-            .file_name()
-            .and_then(OsStr::to_str)
-            .ok_or_else(|| anyhow!("invalid bootstrap path {destination}"))?;
-        let inspected = fs::canonicalize(&staged).unwrap_or_else(|_| staged.clone());
-        let file_description = command_text("file", &["-b"], &inspected)?
-            .unwrap_or_else(|| "unknown".to_string())
-            .trim()
-            .to_string();
-        let header = command_text("readelf", &["-h"], &inspected)?.unwrap_or_default();
-        let program_headers = command_text("readelf", &["-l"], &inspected)?.unwrap_or_default();
-        let dynamic = command_text("readelf", &["-d"], &inspected)?.unwrap_or_default();
-        let objdump = command_text("objdump", &["-p"], &inspected)?.unwrap_or_default();
-        let ldd = command_text("ldd", &[], &inspected)?.unwrap_or_default();
-        let elf_type = header.lines().find_map(|line| {
-            line.trim()
-                .strip_prefix("Type:")
-                .map(|value| value.trim().to_string())
-        });
-        let elf_interpreter = program_headers.lines().find_map(|line| {
-            line.split_once("Requesting program interpreter:")
-                .map(|(_, value)| value.trim().trim_end_matches(']').to_string())
-        });
-        let soname = dynamic_value(&dynamic, "Library soname");
-        let dt_needed = dynamic_values(&dynamic, "Shared library");
-        let objdump_needed = objdump
-            .lines()
-            .filter_map(|line| {
-                line.trim()
-                    .strip_prefix("NEEDED")
-                    .map(|value| value.trim().to_string())
-            })
-            .collect();
-        let ldd_resolved = ldd
-            .lines()
-            .map(str::trim)
-            .filter(|line| !line.is_empty())
-            .map(str::to_string)
-            .collect();
-        let symlink_target = metadata
-            .file_type()
-            .is_symlink()
-            .then(|| fs::read_link(&staged).map(|path| path.display().to_string()))
-            .transpose()?;
-        let sha256 = if metadata.file_type().is_symlink() {
-            let target = symlink_target.as_deref().unwrap_or_default();
-            format!("{:x}", Sha256::digest(target.as_bytes()))
-        } else {
-            sha256_file(&staged)?
-        };
-        let (upstream_project, classification, recommended, difficulty, confidence) =
-            bootstrap_source_attribution(name);
-        *classification_totals
-            .entry(classification.to_string())
-            .or_default() += 1;
-        let entry_consumers = consumers.get(name).cloned().unwrap_or_default();
-        let source_exists = match name {
-            "tar" => repo_root.join("src/userland/tar").is_dir(),
-            "libacl.so.1" => repo_root.join("src/system/libraries/acl").is_dir(),
-            "libz.so.1" => repo_root.join("src/system/libraries/zlib").is_dir(),
-            "libbz2.so.1.0" => repo_root.join("src/system/libraries/bzip2").is_dir(),
-            "libexpat.so.1" => repo_root.join("src/system/libraries/expat").is_dir(),
-            "libcap.so.2" => repo_root.join("src/system/libraries/libcap").is_dir(),
-            "liblz4.so.1" => repo_root.join("src/system/libraries/lz4").is_dir(),
-            "liblzma.so.5" => repo_root.join("src/system/libraries/xz").is_dir(),
-            "libxxhash.so.0" => repo_root.join("src/system/libraries/xxhash").is_dir(),
-            "libzstd.so.1" => repo_root.join("src/system/libraries/zstd").is_dir(),
-            "libcrypto.so.3" | "libssl.so.3" => {
-                repo_root.join("src/system/libraries/openssl").is_dir()
-            }
-            "libelf.so.1" => repo_root.join("src/system/libraries/elfutils").is_dir(),
-            "libmd.so.0" => repo_root.join("src/system/libraries/libmd").is_dir(),
-            "libbsd.so.0" => repo_root.join("src/system/libraries/libbsd").is_dir(),
-            "libpcre2-8.so.0" => repo_root.join("src/system/libraries/pcre2").is_dir(),
-            "libselinux.so.1" => repo_root.join("src/system/security/selinux").is_dir(),
-            "libcrypt.so.1" => repo_root.join("src/system/libraries/libxcrypt").is_dir(),
-            _ => false,
-        };
-        let file_type = if metadata.file_type().is_symlink() {
-            "symlink"
-        } else if metadata.is_file() {
-            "regular"
-        } else {
-            "other"
-        };
-        payload_bytes += metadata.len();
-        entries.push(BootstrapAuditEntry {
-            path: destination.to_string(),
-            file_type: file_type.to_string(),
-            size: metadata.len(),
-            mode: format!("{:04o}", metadata.permissions().mode() & 0o7777),
-            symlink_target,
-            sha256,
-            file_description,
-            elf_type,
-            elf_interpreter,
-            soname,
-            dt_needed,
-            objdump_needed,
-            ldd_resolved,
-            confirmed_host_package: confirmed_host_package(&source)?,
-            upstream_project: upstream_project.map(str::to_string),
-            source_attribution: if upstream_project.is_some() {
-                "inferred"
-            } else {
-                "unknown"
-            }
-            .to_string(),
-            source_already_exists_in_mattos: source_exists,
-            boundary_group: bootstrap_boundary_group(name, &entry_consumers),
-            consumers: entry_consumers,
-            reason_in_bootstrap_runtime: reason,
-            recommended_future_package: recommended.to_string(),
-            migration_difficulty: difficulty.to_string(),
-            attribution_confidence: confidence.to_string(),
-            classification: classification.to_string(),
-        });
-    }
-    let pre_tar_migration = entries.iter().any(|entry| {
-        matches!(
-            entry.path.as_str(),
-            "/usr/bin/tar"
-                | "/usr/lib/x86_64-linux-gnu/libacl.so.1"
-                | "/usr/lib/x86_64-linux-gnu/libbz2.so.1.0"
-                | "/usr/lib/x86_64-linux-gnu/libz.so.1"
-        )
-    });
-    let pre_apt_compression_migration = entries.iter().any(|entry| {
-        matches!(
-            entry.path.as_str(),
-            "/usr/lib/x86_64-linux-gnu/liblz4.so.1"
-                | "/usr/lib/x86_64-linux-gnu/liblzma.so.5"
-                | "/usr/lib/x86_64-linux-gnu/libxxhash.so.0"
-        )
-    });
-    let pre_libmd_libbsd_migration = entries.iter().any(|entry| {
-        matches!(
-            entry.path.as_str(),
-            "/usr/lib/x86_64-linux-gnu/libmd.so.0" | "/usr/lib/x86_64-linux-gnu/libbsd.so.0"
-        )
-    });
-    let pre_crypto_elf_zstd_migration = entries.iter().any(|entry| {
-        matches!(
-            entry.path.as_str(),
-            "/usr/lib/x86_64-linux-gnu/libcrypto.so.3"
-                | "/usr/lib/x86_64-linux-gnu/libssl.so.3"
-                | "/usr/lib/x86_64-linux-gnu/libelf.so.1"
-                | "/usr/lib/x86_64-linux-gnu/libzstd.so.1"
-        )
-    });
-    let pre_security_runtime_migration = entries.iter().any(|entry| {
-        matches!(
-            entry.path.as_str(),
-            "/usr/lib/x86_64-linux-gnu/libpcre2-8.so.0"
-                | "/usr/lib/x86_64-linux-gnu/libselinux.so.1"
-                | "/usr/lib/x86_64-linux-gnu/libcrypt.so.1"
-        )
-    });
-    let snapshot = if pre_tar_migration {
-        "pre-tar-leaf-compression-migration"
-    } else if pre_apt_compression_migration {
-        "pre-apt-dpkg-compression-migration"
-    } else if pre_libmd_libbsd_migration {
-        "pre-libmd-libbsd-migration"
-    } else if pre_crypto_elf_zstd_migration {
-        "pre-openssl-elfutils-zstd-migration"
-    } else if pre_security_runtime_migration {
-        "pre-pcre2-selinux-libxcrypt-migration"
-    } else {
-        "post-pcre2-selinux-libxcrypt-migration"
-    };
     let report = BootstrapAuditReport {
         schema_version: 1,
-        package: "mattos-bootstrap-runtime".to_string(),
-        snapshot: snapshot.to_string(),
-        entry_count: entries.len() as u64,
-        payload_bytes,
-        classification_totals,
-        entries,
+        package: "retired".to_string(),
+        snapshot: "runtime-source-closure-complete".to_string(),
+        entry_count: 0,
+        payload_bytes: 0,
+        classification_totals: BTreeMap::new(),
+        entries: Vec::new(),
     };
     let reports = repo_root.join("out/reports");
     fs::create_dir_all(&reports)?;
     let destination = reports.join("bootstrap-runtime-audit.toml");
     fs::write(&destination, toml::to_string_pretty(&report)?)?;
     println!(
-        "generated bootstrap runtime audit at {}",
+        "generated zero-entry retired bootstrap audit at {}",
         destination.display()
     );
     Ok(())
@@ -2714,8 +2353,9 @@ fn copy_preserving(source: &Path, destination: &Path) -> Result<()> {
 
 fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
     let upstream = match spec.name {
-        "mattos-filesystem" | "mattos-base-files" | "mattos-bootstrap-runtime" => "0.1".to_string(),
+        "mattos-filesystem" | "mattos-base-files" => "0.1".to_string(),
         "mattos-libc6" | "mattos-libc-bin" => component_snapshot_version(repo_root, "glibc")?,
+        "mattos-libgcc-s1" | "mattos-libstdc++6" => component_snapshot_version(repo_root, "gcc")?,
         "mattos-ca-certificates" => "2026.07.16".to_string(),
         "mattos-brush" => {
             cargo_package_version(&repo_root.join("src/userland/brush/brush/Cargo.toml"))?
@@ -2957,12 +2597,21 @@ fn write_provenance(
             "sha256:3ff344e30b9b1ed2971044eabb438a08f2e2245ddb5f8ab1a3ad8b63ab4eaf91".to_string(),
             "pinned Mozilla-derived curl CA Extract; 119 certificates; MPL-2.0".to_string(),
         ),
-        "bootstrap-runtime" => (
-            "host and existing MattOS component install trees; see runtime-files.tsv".to_string(),
-            "transitional bootstrap inputs".to_string(),
-            "per-file SHA-256 manifest".to_string(),
-            "ldd closure of all packaged ELF runtimes".to_string(),
-        ),
+        "gcc" => {
+            let state = read_sync_state(repo_root, "gcc")?
+                .ok_or_else(|| anyhow!("upstream state missing for gcc"))?;
+            let configuration = fs::read_to_string(
+                repo_root.join("out/build/gcc-runtime/configure-invocation.txt"),
+            )?
+            .trim()
+            .to_string();
+            (
+                state.destination_path,
+                state.repo,
+                state.imported_commit,
+                configuration,
+            )
+        }
         component @ ("glibc" | "ncurses" | "kmod" | "procps-ng" | "systemd" | "dbus-broker"
         | "linux-pam" | "shadow" | "sudo-rs" | "util-linux" | "iproute2"
         | "iputils" | "expat" | "libcap" | "acl" | "zlib" | "bzip2" | "lz4" | "xz"
@@ -3046,18 +2695,11 @@ fn runtime_libraries_for_spec(repo_root: &Path, spec: &PackageSpec) -> Result<Ve
                 ],
             )
         }
-        "mattos-bootstrap-runtime" => {
-            let manifest = fs::read_to_string(repo_root.join(
-                "out/packages/staging/mattos-bootstrap-runtime/usr/share/doc/mattos-bootstrap-runtime/runtime-files.tsv",
-            ))?;
-            Ok(manifest
-                .lines()
-                .skip(1)
-                .filter_map(|line| line.split('\t').next())
-                .filter_map(|path| Path::new(path).file_name()?.to_str().map(str::to_string))
-                .collect())
-        }
-        name if matches!(name, "mattos-libc6" | "mattos-libc-bin") => {
+        name if matches!(
+            name,
+            "mattos-libc6" | "mattos-libc-bin" | "mattos-libgcc-s1" | "mattos-libstdc++6"
+        ) =>
+        {
             runtime_libraries_in_staging(repo_root, name)
         }
         "mattos-dpkg" => {
@@ -3974,6 +3616,11 @@ pub(crate) fn install_prototype_packages(repo_root: &Path, rootfs: &Path) -> Res
         bail!("dpkg package installation into rootfs failed with {status}");
     }
     validate_dpkg_database(rootfs)?;
+    // dpkg records wall-clock installation timestamps. Preserve that log when
+    // installation fails for diagnostics, but initialize successful images
+    // with empty mutable log state so rootfs and image bytes are reproducible.
+    fs::write(rootfs.join("var/log/dpkg.log"), "")
+        .context("failed to initialize deterministic dpkg log state")?;
     Ok(())
 }
 
@@ -4002,8 +3649,12 @@ pub(crate) fn validate_dpkg_database(rootfs: &Path) -> Result<()> {
             "mattos-libapt-pkg",
         ),
         (
+            "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+            "mattos-libgcc-s1",
+        ),
+        (
             "/usr/lib/x86_64-linux-gnu/libstdc++.so.6",
-            "mattos-bootstrap-runtime",
+            "mattos-libstdc++6",
         ),
         (
             "/etc/ssl/certs/ca-certificates.crt",
@@ -4716,12 +4367,17 @@ mod tests {
         PACKAGE_NAMES
             .iter()
             .map(|name| {
-                let extra = if *name == "mattos-apt" {
+                let apt_extra = if *name == "mattos-apt" {
                     extra_apt_field.unwrap_or("")
                 } else {
                     ""
                 };
-                format!("Package: {name}\nVersion: 1\nArchitecture: amd64\n{extra}\n")
+                let provides = if *name == "mattos-libc6" {
+                    "Provides: mattos-runtime-abi\n"
+                } else {
+                    ""
+                };
+                format!("Package: {name}\nVersion: 1\nArchitecture: amd64\n{provides}{apt_extra}\n")
             })
             .collect()
     }
@@ -4746,7 +4402,7 @@ mod tests {
             &spec,
             "8.22.0-1mattos1",
             42,
-            &["mattos-bootstrap-runtime (= 0.1-1mattos1)".into()],
+            &["mattos-libc6 (= 2.43-1mattos1)".into()],
             &["libc.so.6".into()],
         )
         .unwrap();
@@ -4775,7 +4431,8 @@ mod tests {
             "mattos-libapt-pkg",
             "mattos-apt",
             "mattos-ca-certificates",
-            "mattos-bootstrap-runtime",
+            "mattos-libgcc-s1",
+            "mattos-libstdc++6",
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
@@ -4794,6 +4451,11 @@ mod tests {
         assert!(DPKG_RUNTIME_PATHS.contains(&"usr/bin/update-alternatives"));
         assert!(DPKG_RUNTIME_PATHS.contains(&"usr/sbin/start-stop-daemon"));
         assert!(APT_RUNTIME_PATHS.contains(&"usr/lib/apt/methods/file"));
+        assert!(
+            !specs
+                .iter()
+                .any(|spec| spec.name == "mattos-bootstrap-runtime")
+        );
     }
 
     #[test]
@@ -4827,7 +4489,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 54);
+        assert_eq!(PACKAGE_NAMES.len(), 55);
     }
 
     #[test]
@@ -4990,6 +4652,8 @@ mod tests {
                 "libpcre2-8.so",
                 "libselinux.so",
                 "libcrypt.so",
+                "libgcc_s.so",
+                "libstdc++.so",
             ]
         );
     }
@@ -4997,16 +4661,16 @@ mod tests {
     #[test]
     fn openssl_elfutils_zstd_graph_is_active_and_acyclic() {
         let specs = package_specs();
-        let bootstrap = specs
-            .iter()
-            .find(|spec| spec.name == "mattos-bootstrap-runtime")
-            .unwrap();
-        assert!(!bootstrap.depends.contains(&"mattos-libzstd1"));
+        assert!(
+            !specs
+                .iter()
+                .any(|spec| spec.name == "mattos-bootstrap-runtime")
+        );
         assert!(MIGRATED_BOOTSTRAP_SONAME_PREFIXES.contains(&"libzstd.so"));
 
         let order = package_install_order_for(&specs, PACKAGE_NAMES).unwrap();
         let position = |name: &str| order.iter().position(|entry| *entry == name).unwrap();
-        assert!(position("mattos-bootstrap-runtime") < position("mattos-libzstd1"));
+        assert!(position("mattos-libc6") < position("mattos-libzstd1"));
         assert!(position("mattos-libzstd1") < position("mattos-libcrypto3"));
         assert!(position("mattos-libzstd1") < position("mattos-libelf1"));
         assert!(position("mattos-libcrypto3") < position("mattos-libssl3"));
@@ -5058,7 +4722,7 @@ mod tests {
             package_install_order_for(&specs, PACKAGE_NAMES)
                 .unwrap()
                 .len(),
-            54
+            55
         );
     }
 
@@ -5168,19 +4832,67 @@ mod tests {
             .iter()
             .find(|spec| spec.name == "mattos-libc-bin")
             .unwrap();
-        let bootstrap = specs
+        let libgcc = specs
             .iter()
-            .find(|spec| spec.name == "mattos-bootstrap-runtime")
+            .find(|spec| spec.name == "mattos-libgcc-s1")
+            .unwrap();
+        let libstdcxx = specs
+            .iter()
+            .find(|spec| spec.name == "mattos-libstdc++6")
             .unwrap();
         assert_eq!(libc.depends, &["mattos-filesystem"]);
         assert!(libc_bin.depends.contains(&"mattos-libc6"));
-        assert!(bootstrap.depends.contains(&"mattos-libc6"));
+        assert!(libgcc.depends.contains(&"mattos-libc6"));
+        assert!(libstdcxx.depends.contains(&"mattos-libgcc-s1"));
         assert!(!libc.depends.contains(&"mattos-bootstrap-runtime"));
         let order = package_install_order_for(&specs, PACKAGE_NAMES).unwrap();
         let position = |name: &str| order.iter().position(|entry| *entry == name).unwrap();
         assert!(position("mattos-filesystem") < position("mattos-libc6"));
-        assert!(position("mattos-libc6") < position("mattos-bootstrap-runtime"));
-        assert_eq!(order.len(), 54);
+        assert!(position("mattos-libc6") < position("mattos-libgcc-s1"));
+        assert!(position("mattos-libgcc-s1") < position("mattos-libstdc++6"));
+        assert_eq!(order.len(), 55);
+    }
+
+    #[test]
+    fn gcc_runtime_packages_are_minimal_acyclic_and_replace_bootstrap() {
+        let specs = package_specs();
+        let spec = |name| specs.iter().find(|spec| spec.name == name).unwrap();
+        let libgcc = spec("mattos-libgcc-s1");
+        let libstdcxx = spec("mattos-libstdc++6");
+        assert_eq!(libgcc.source_component, "gcc");
+        assert_eq!(libgcc.depends, &["mattos-filesystem", "mattos-libc6"]);
+        assert_eq!(libgcc.provides, &["libgcc-s1"]);
+        assert_eq!(libstdcxx.source_component, "gcc");
+        assert_eq!(
+            libstdcxx.depends,
+            &["mattos-filesystem", "mattos-libc6", "mattos-libgcc-s1"]
+        );
+        assert_eq!(libstdcxx.provides, &["libstdc++6"]);
+        assert!(!PACKAGE_NAMES.contains(&"mattos-bootstrap-runtime"));
+        assert!(specs.iter().all(|spec| {
+            !spec.depends.contains(&"mattos-bootstrap-runtime")
+                && !spec.depends.contains(&"mattos-bootstrap-gcc-runtime")
+        }));
+        let order = package_install_order_for(&specs, PACKAGE_NAMES).unwrap();
+        let position = |name| order.iter().position(|item| *item == name).unwrap();
+        assert!(position("mattos-libc6") < position("mattos-libgcc-s1"));
+        assert!(position("mattos-libgcc-s1") < position("mattos-libstdc++6"));
+    }
+
+    #[test]
+    fn retired_bootstrap_audit_serializes_zero_host_payloads() {
+        let temp = tempfile::tempdir().unwrap();
+        generate_bootstrap_audit(temp.path()).unwrap();
+        let report: BootstrapAuditReport = toml::from_str(
+            &fs::read_to_string(temp.path().join("out/reports/bootstrap-runtime-audit.toml"))
+                .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(report.package, "retired");
+        assert_eq!(report.snapshot, "runtime-source-closure-complete");
+        assert_eq!(report.entry_count, 0);
+        assert_eq!(report.payload_bytes, 0);
+        assert!(report.entries.is_empty());
     }
 
     #[test]
@@ -5339,11 +5051,7 @@ mod tests {
             Some("3.3.2-1mattos1")
         );
         assert!(exact_dependency_version("mattos-libapt-pkg (>= 3)").is_err());
-        let mut body = repository_packages(Some("Depends: mattos-runtime-abi\n"));
-        body = body.replace(
-            "Package: mattos-bootstrap-runtime\n",
-            "Package: mattos-bootstrap-runtime\nProvides: mattos-runtime-abi\n",
-        );
+        let body = repository_packages(Some("Depends: mattos-runtime-abi\n"));
         assert!(validate_repository_packages(&body).is_ok());
     }
 
@@ -5449,8 +5157,10 @@ mod tests {
                 .position(|candidate| *candidate == name)
                 .unwrap()
         };
-        assert!(position("mattos-filesystem") < position("mattos-bootstrap-runtime"));
-        assert!(position("mattos-bootstrap-runtime") < position("mattos-dpkg"));
+        assert!(position("mattos-filesystem") < position("mattos-libc6"));
+        assert!(position("mattos-libc6") < position("mattos-libgcc-s1"));
+        assert!(position("mattos-libgcc-s1") < position("mattos-libstdc++6"));
+        assert!(position("mattos-libstdc++6") < position("mattos-apt"));
         assert!(position("mattos-dpkg") < position("mattos-apt"));
         assert!(position("mattos-libapt-pkg") < position("mattos-apt"));
         assert!(position("mattos-libudev1") < position("mattos-libapt-pkg"));

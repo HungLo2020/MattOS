@@ -1,0 +1,7 @@
+component = "gcc"
+repo = "https://gcc.gnu.org/git/gcc.git"
+branch = "releases/gcc-15.3.0"
+imported_commit = "4db0e8df15bef836558857c291c323add11d035c"
+imported_at_utc = "2026-08-03T17:06:02.372760255+00:00"
+sync_method = "copy"
+destination_path = "src/toolchain/gcc"

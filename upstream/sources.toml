@@ -299,3 +299,11 @@ branch = "glibc-2.43"
 revision = "f762ccf84f122d1354f103a151cba8bde797d521"
 path = "src/system/libc/glibc"
 sync = "copy"
+
+[[component]]
+name = "gcc"
+repo = "https://gcc.gnu.org/git/gcc.git"
+branch = "releases/gcc-15.3.0"
+revision = "4db0e8df15bef836558857c291c323add11d035c"
+path = "src/toolchain/gcc"
+sync = "copy"

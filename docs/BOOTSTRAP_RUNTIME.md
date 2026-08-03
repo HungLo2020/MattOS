@@ -1,12 +1,12 @@
 # Bootstrap runtime audit
 
-`mattos-bootstrap-runtime` is a transitional closure of host-derived compiler runtime files. It is not a libc package and does not make MattOS self-hosting. The complete machine report is generated at `out/reports/bootstrap-runtime-audit.toml` by:
+The host-derived runtime closure is complete. `mattos-bootstrap-runtime` has been retired from the package set and dependency graph after glibc, `libgcc_s`, and `libstdc++` moved to source-built MattOS packages. MattOS still uses host build tools and does not claim self-hosting. The historical machine-report interface is generated at `out/reports/bootstrap-runtime-audit.toml` by:
 
 ```text
 cargo run -p mattos-build -- package audit
 ```
 
-The report records every regular file and symlink with its path, type, size, mode, target, SHA-256, `file` description, ELF type and interpreter, SONAME, `readelf` and `objdump` dependencies, `ldd` resolution, host package found by `dpkg-query -S`, separately inferred upstream project, source availability, concrete package/ELF consumers, reason, proposed package, difficulty, confidence, classification, and boundary group.
+The successful final report identifies the package as retired and records zero entries and zero payload bytes. The richer per-file schema remains documented by the earlier snapshots below.
 
 ## Baseline and classification
 
@@ -17,21 +17,21 @@ The original audited payload contained 23 files and 17,600,184 bytes. Expat/libc
 | A | 0 | every imported source represented by this audit has moved to package ownership |
 | B | 0 | no imported-but-unbuilt sources |
 | C | 0 | all separable pre-toolchain libraries are package-owned |
-| D | 5 | glibc, loader, GCC runtime, or C++ runtime boundary |
+| D | 0 | glibc, loader, GCC runtime, and C++ runtime are source-built |
 | E | 0 | no unidentified source projects |
 | F | 0 | standalone GNU tar is now source-built and package-owned |
 
-The current machine report contains only category D. GNU tar, ACL, zlib, bzip2, LZ4, liblzma, xxHash, libmd, libbsd, OpenSSL, elfutils, Zstandard, PCRE2, SELinux userspace, and libxcrypt no longer appear in this host-derived boundary.
+The current machine report contains no entries. GNU tar, every separable library, glibc, the ELF loader, libgcc, and libstdc++ are package-owned source builds.
 
-## Complete remaining inventory
+## Previous final-bootstrap inventory
 
 | File | Class | Inferred project | Boundary | Direct consumer packages |
 | --- | --- | --- | --- | --- |
-| `libc.so.6` | D | glibc | glibc | nearly every ELF package; full paths are in the report |
-| `libgcc_s.so.1` | D | GCC runtime | compiler runtime | APT, bootstrap closure, Brush, coreutils, libapt-pkg, sudo-rs |
-| `libm.so.6` | D | glibc | glibc | bootstrap closure, Brush, coreutils, iproute2, libapt-pkg |
-| `libstdc++.so.6` | D | GCC libstdc++ runtime | C++ runtime | APT, libapt-pkg |
-| `ld-linux-x86-64.so.2` | D | glibc | glibc | all dynamically loaded executables; representative paths are in the report |
+| `libc.so.6` | D | glibc | glibc | moved to `mattos-libc6` |
+| `libgcc_s.so.1` | D | GCC runtime | compiler runtime | moved to `mattos-libgcc-s1` |
+| `libm.so.6` | D | glibc | glibc | moved to `mattos-libc6` |
+| `libstdc++.so.6` | D | GCC libstdc++ runtime | C++ runtime | moved to `mattos-libstdc++6` |
+| `ld-linux-x86-64.so.2` | D | glibc | glibc | moved to `mattos-libc6` |
 
 There are no data-file entries in this closure. “Widely shared” means more than two package consumers. The machine report retains every individual consumer path rather than collapsing it to the package summaries above.
 
@@ -116,6 +116,6 @@ The exact direct graph is PCRE2 to `libselinux.so.1`; SELinux to dpkg, dpkg-stat
 
 libxcrypt is built with all hash algorithms and glibc-compatible obsolete APIs. Its test suite covers yescrypt, and the installed ABI exports `GLIBC_2.2.5`, `XCRYPT_2.0`, `XCRYPT_4.3`, and `XCRYPT_4.4`, satisfying the exact PAM and Shadow references. The three target runtime packages contain only runtime shared objects/SONAME links, license, and provenance.
 
-That pre-glibc bootstrap manifest contained 5 files and 6,518,032 bytes. The glibc milestone moves `libc.so.6`, `libm.so.6`, and `ld-linux-x86-64.so.2` to `mattos-libc6`. The bootstrap manifest now contains only `libgcc_s.so.1` and `libstdc++.so.6`, totaling 2,832,624 bytes. It provides the accurately named `mattos-bootstrap-gcc-runtime` virtual boundary and depends on `mattos-libc6`; libc does not depend back on it.
+That pre-glibc bootstrap manifest contained 5 files and 6,518,032 bytes. The glibc milestone moved three files to `mattos-libc6`, leaving 2 files and 2,832,624 bytes. The GCC runtime milestone moves those last files to `mattos-libgcc-s1` and `mattos-libstdc++6`, removes the transitional package, and produces a zero-entry audit.
 
-All dynamically linked target userspace now uses the MattOS-built glibc loader and runtime. The compiler, assembler, linker, libgcc, and libstdc++ used for this build remain host-bootstrap inputs, so MattOS still does not claim self-hosting. See `GLIBC_BOOTSTRAP.md` for the exact source, sysroot, configure, package, loader, and consumer-rebuild design.
+All dynamically linked target userspace now uses MattOS-built glibc and GCC runtime libraries. Host compiler, assembler, linker, and packaging tools remain bootstrap inputs outside the ISO, so MattOS still does not claim self-hosting. See `GLIBC_BOOTSTRAP.md` and `GCC_RUNTIME_BOOTSTRAP.md` for the exact boundaries.

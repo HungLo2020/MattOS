@@ -84,6 +84,14 @@ EXTRA_DBUS_BROKER_PACKAGES: List[str] = []
 # builds and the controlled sysroot, not distro -dev packages.
 EXTRA_PACKAGING_PACKAGES: List[str] = []
 
+# GCC uses these only while building the source-derived target runtimes. They
+# are host bootstrap inputs and are never copied into the MattOS image.
+EXTRA_GCC_RUNTIME_PACKAGES = [
+    "libgmp-dev",
+    "libmpfr-dev",
+    "libmpc-dev",
+]
+
 DEBIAN_TOOL_PACKAGES: Dict[str, List[str]] = {
     "git": ["git"],
     "cargo": ["cargo"],
@@ -208,6 +216,11 @@ def compute_missing_packages(missing_tools: List[str], dry_run: bool) -> List[st
             packages.append(package_name)
 
     for package_name in EXTRA_PACKAGING_PACKAGES:
+        if not package_installed(package_name) and package_name not in seen:
+            seen.add(package_name)
+            packages.append(package_name)
+
+    for package_name in EXTRA_GCC_RUNTIME_PACKAGES:
         if not package_installed(package_name) and package_name not in seen:
             seen.add(package_name)
             packages.append(package_name)

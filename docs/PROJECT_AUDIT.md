@@ -1,12 +1,12 @@
 # MattOS Project Audit
 
-Date: 2026-08-02
+Date: 2026-08-03
 
 ## 1. Executive Summary
 
-MattOS is a coherent Linux-native bootstrap system with systemd PID 1, separate system and per-user dbus-broker buses, registered logind console sessions, session-bound per-user managers, non-root live autologin, PAM/Shadow/sudo-rs authentication and account tools, Brush, a rescue-init path, and a reproducible build pipeline. Fifty-four MattOS packages are installed through a real dpkg database from an embedded local repository. GNU glibc, PCRE2, SELinux userspace compatibility, libxcrypt, and the util-linux mount closure are source-built and package-owned. MattOS-built dpkg and APT work from the embedded repository with or without the QEMU NIC. Full systemd executables still use the hybrid assembly path, while only the GCC runtime files `libgcc_s.so.1` and `libstdc++.so.6` remain host-derived. Persistent installation, an online repository, Polkit, SSH, Wi-Fi, firewall policy, firmware packaging, and a graphical desktop remain intentionally absent.
+MattOS is a coherent Linux-native bootstrap system with systemd PID 1, separate system and per-user dbus-broker buses, registered logind console sessions, session-bound per-user managers, non-root live autologin, PAM/Shadow/sudo-rs authentication and account tools, Brush, a rescue-init path, and a reproducible build pipeline. Fifty-five MattOS packages are installed through a real dpkg database from an embedded local repository. GNU glibc, the GCC shared runtimes, PCRE2, SELinux userspace compatibility, libxcrypt, and the util-linux mount closure are source-built and package-owned. MattOS-built dpkg and APT work from the embedded repository with or without the QEMU NIC. The final ISO contains no host-derived executable or runtime-library payloads. Persistent installation, an online repository, Polkit, SSH, Wi-Fi, firewall policy, firmware packaging, and a graphical desktop remain intentionally absent.
 
-The previous GRUB source-of-truth ambiguity has been resolved by keeping only `src/boot/grub/grub.cfg` as tracked source and validating that path in `mattos-build`. Runtime libc and all source-built native consumers now use the controlled MattOS sysroot. The most important remaining runtime bootstrap limitation is the host-derived GCC runtime pair; host compiler, assembler, linker, and package-construction tools also remain explicit build-time bootstrap inputs.
+The previous GRUB source-of-truth ambiguity has been resolved by keeping only `src/boot/grub/grub.cfg` as tracked source and validating that path in `mattos-build`. Runtime libc, GCC runtimes, and native consumers use the controlled MattOS sysroot. Host compiler, assembler, linker, and package-construction tools remain explicit build-time bootstrap inputs; MattOS is not yet self-hosting.
 
 The static Brush prompt source has been replaced. The interactive prompt now comes from MattOS-owned startup configuration using normal Brush/Bash-style prompt semantics.
 
@@ -33,6 +33,7 @@ Prompt behavior:
 | --- | --- | --- | --- | --- |
 | Linux | https://github.com/torvalds/linux.git | `master` | `f17f39c917cd4aac09db1a6a083ef5ec09b4924d` | `src/kernel/linux/` |
 | GNU glibc | `git://sourceware.org/git/glibc.git` | `master` / `glibc-2.43` | `f762ccf84f122d1354f103a151cba8bde797d521` | `src/system/libc/glibc/` |
+| GCC | `https://gcc.gnu.org/git/gcc.git` | `releases/gcc-15.3.0` | `4db0e8df15bef836558857c291c323add11d035c` | `src/toolchain/gcc/` |
 | Brush | https://github.com/reubeno/brush.git | `main` | `71afef7ce79ad2fd94833fa4f93fa5486c86c56b` | `src/userland/brush/` |
 | uutils/coreutils | https://github.com/uutils/coreutils.git | `main` | `91f6543cad721aba0bf17806e803e84a116f8603` | `src/userland/coreutils/` |
 | util-linux | https://github.com/util-linux/util-linux.git | `master` | `fd82c4043fab942b889f478800118c66edfbc39f` | `src/userland/util-linux/` |
@@ -123,9 +124,9 @@ Current limitations:
 
 ## 6. Runtime and Rootfs Assessment
 
-The assembled rootfs is a merged `/usr` layout with `/bin`, `/sbin`, `/lib`, and `/lib64` symlinked into the `/usr` tree. Fifty-four packages own the initial base and selected source-built payloads, including glibc, PCRE2, libselinux, libxcrypt, libblkid, libmount, libsmartcols, mount, and umount. They are installed with real dpkg semantics, and `/var/lib/dpkg` contains normal status, conffile, md5sum, file-list, and ownership data. The local repository is embedded at `/usr/share/mattos/repository`, APT is configured only for that `file:` source, and no Debian or Ubuntu source is configured.
+The assembled rootfs is a merged `/usr` layout with `/bin`, `/sbin`, `/lib`, and `/lib64` symlinked into the `/usr` tree. Fifty-five packages own the initial base and selected source-built payloads, including glibc, libgcc, libstdc++, PCRE2, libselinux, libxcrypt, and the util-linux mount closure. They are installed with real dpkg semantics, and `/var/lib/dpkg` contains normal status, conffile, md5sum, file-list, and ownership data. The local repository is embedded at `/usr/share/mattos/repository`, APT is configured only for that `file:` source, and no Debian or Ubuntu source is configured.
 
-APT mutable lists and archive cache are initialized as writable live state rather than shipped package content. Its selected commands, private library, local methods, helpers, configuration, CA trust, source-built `libapt-pkg`, and exact ELF closure all have package ownership. The transitional bootstrap-runtime package documents each host-derived input and checksum; it does not claim to be a MattOS glibc build.
+APT mutable lists and archive cache are initialized as writable live state rather than shipped package content. Its selected commands, private library, local methods, helpers, configuration, CA trust, source-built `libapt-pkg`, and exact ELF closure all have package ownership. The retired bootstrap-runtime audit records zero installed host-derived entries.
 
 Core identity files currently present in the skeleton:
 
@@ -160,7 +161,7 @@ Representative runtime libraries in the image currently include:
 - `libsystemd-core-262.so`
 - `libsystemd-shared-262.so`
 
-glibc and the previously migrated libraries above are package-owned source builds. The remaining host-derived runtime boundary is exactly GCC's `libgcc_s.so.1` and `libstdc++.so.6`.
+glibc, the GCC runtime pair, and the previously migrated libraries above are package-owned source builds. The host-derived executable/runtime-library boundary in the ISO is zero.
 
 ## 7. systemd and Login Assessment
 
@@ -298,7 +299,7 @@ This is correct for a bootstrap system, but it is not especially efficient. The 
 
 ### Medium
 
-- Five runtime/toolchain files remain host-copied rather than built from a MattOS sysroot. Every separable pre-toolchain library now has a dedicated package owner; the remaining glibc/GCC files are checksummed with their complete consumer graph in `docs/BOOTSTRAP_RUNTIME.md`.
+- No executable or runtime-library files remain host-copied into the image. Host compiler, linker, language toolchains, and image/package construction tools remain outside the ISO as the next self-hosting boundary.
 - The build orchestrator is large enough to be a maintenance risk and should eventually be split into smaller modules.
 
 ### Low
@@ -493,10 +494,21 @@ The remaining module-related boot message is precisely scoped: systemd's real li
 - the runtime package owns 17 glibc runtime/compatibility/NSS DSOs plus the MattOS ELF loader. The utility package owns `getent`, `locale`, `ldd`, and `ldconfig`; development inputs remain build-only.
 - the host-derived bootstrap boundary shrinks from 5 files / 6,518,032 bytes to 2 files / 2,832,624 bytes: `libgcc_s.so.1` and `libstdc++.so.6`.
 - assembled-rootfs validation requires `/lib64/ld-linux-x86-64.so.2` on every dynamically linked executable, resolves every `DT_NEEDED` entry through that loader inside the image, checks glibc symbol versions, and emits `out/reports/elf-runtime-inventory.tsv`.
-- this is a MattOS-built runtime libc, not a self-hosted toolchain: the compiler, assembler, linker, libgcc, and libstdc++ remain host-bootstrap inputs.
+- this glibc transition was not a self-hosted toolchain; the subsequent GCC-runtime milestone source-builds the target libgcc/libstdc++ payloads while the compiler, assembler, and linker remain host-bootstrap inputs.
 - the final ELF inventory contains 258 objects, including 193 dynamic executables; every dynamic executable requests `/lib64/ld-linux-x86-64.so.2`, and every dependency and required glibc symbol version resolves within the assembled rootfs.
 - isolated loader checks passed for Brush, dpkg, APT, curl, systemd, dbus-broker, login, and sudo before the final rootfs transition.
 - two clean full builds produced byte-identical glibc installs, all 54 packages, all 57 repository files, the ELF inventory, initramfs, and ISO.
 - normal QEMU boot retained systemd, both D-Bus scopes, logind sessions, yescrypt/PAM/Shadow/sudo-rs authentication, DNS, NTP, ping, and certificate-verified HTTPS; MattOS-built APT/dpkg updated the local repository and reinstalled Brush.
 - `--no-network` boot retained systemd, login, sudo, both D-Bus scopes, local APT update, and offline Brush reinstall with loopback only.
 - the rescue entry passed `rdinit=/usr/libexec/mattos/rescue-init`; the kernel executed that dynamically linked Rust binary as PID 1 using the MattOS loader, with its rescue shell on tty1.
+
+## GCC runtime source closure
+
+- GCC 15.3.0 is imported from `https://gcc.gnu.org/git/gcc.git` as ordinary editable source at exact commit `4db0e8df15bef836558857c291c323add11d035c`; no nested Git repository is present.
+- the top-level GCC build uses the MattOS glibc/UAPI sysroot and requests only `all-target-libgcc` and `all-target-libstdc++-v3`; the selected runtime tree excludes compiler drivers, headers, static archives, development links, helper executables, and unrelated runtimes.
+- `mattos-libgcc-s1` and `mattos-libstdc++6` bring the package total to 55. The graph is `libc -> libgcc -> libstdc++`, with direct Rust and C++ consumers declaring the matching runtime package.
+- ABI validation requires the consumer-compatible GCC, GLIBCXX, and CXXABI version nodes and records every exported node in `out/build/gcc-runtime/runtime-abi.tsv`.
+- Rust panic/unwind behavior is preserved; rescue-init retains its direct `libgcc_s.so.1` dependency. A temporary C++ throw/catch program validates exception interoperability through the MattOS loader.
+- `mattos-bootstrap-runtime` is removed from the package set and repository. Its generated audit records zero entries and zero host-derived payload bytes.
+- final ELF validation compares GCC runtime bytes to the source build, rejects duplicate SONAMEs and host resolution, and records GLIBC, GLIBCXX, CXXABI, and GCC nodes for every ELF object.
+- runtime source closure does not make MattOS self-hosting. Host GCC/G++, Binutils, Make, package/image construction tools, and language build toolchains remain future work.

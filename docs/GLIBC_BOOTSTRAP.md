@@ -7,7 +7,7 @@ runtime libc and ELF loader: MattOS-built
 compiler, assembler, linker, and compiler runtimes used to build them: host-bootstrap
 ```
 
-The remaining host-derived target files are `libgcc_s.so.1` and `libstdc++.so.6`. GCC, Binutils, Rust, Python, and other build tools are not built by MattOS yet.
+The later GCC runtime milestone replaces the final host-derived target files, `libgcc_s.so.1` and `libstdc++.so.6`. GCC compiler drivers, Binutils, Rust, Python, and other build tools are not built by MattOS yet.
 
 ## Source and kernel ABI
 
@@ -84,7 +84,7 @@ The selected NSS/resolver inventory includes `libnss_files.so.2`, `libnss_dns.so
 
 `mattos-libc-bin` depends on `mattos-libc6` and owns `getent`, `locale`, `ldd`, and `ldconfig`. Locale data is not bulk-packaged. There is no `mattos-libc6-dev` in the runtime image; headers, crt objects, static archives, and unversioned linker inputs remain build/sysroot-only.
 
-`mattos-bootstrap-runtime` now provides the `mattos-bootstrap-gcc-runtime` virtual boundary, depends on `mattos-libc6`, and owns only host-derived `libgcc_s.so.1` and `libstdc++.so.6`. `mattos-libc6` does not depend on it, so the graph is acyclic. Every other package receives a direct exact-version dependency on `mattos-libc6`; packages needing the compiler runtimes additionally retain the bootstrap-runtime dependency found by ELF analysis.
+`mattos-libgcc-s1` depends on `mattos-libc6`; `mattos-libstdc++6` depends on both. `mattos-bootstrap-runtime` is retired. Every other package receives a direct exact-version dependency on `mattos-libc6`, and direct compiler-runtime consumers declare the appropriate GCC runtime package. See `GCC_RUNTIME_BOOTSTRAP.md`.
 
 ## Loader migration and validation
 
@@ -94,7 +94,7 @@ The assembled rootfs is switched only after the build has validated representati
 - a `DT_NEEDED` SONAME missing from the assembled rootfs;
 - loader resolution to a host path;
 - an unsatisfied glibc symbol-version requirement;
-- duplicate or host-derived libc, libm, or loader payloads.
+- duplicate or host-derived libc, libm, loader, libgcc, or libstdc++ payloads.
 
 The validator invokes the assembled MattOS loader with `--list`; `ldd` is not trusted as the final runtime authority. The kernel is not part of this consumer rebuild because it does not link to libc. The Rust rescue init and all dynamically linked Rust userland use the explicit MattOS linker/sysroot settings and are included in the same ELF inventory.
 
@@ -104,4 +104,4 @@ Two clean full builds produced byte-identical glibc installation trees, all 54 p
 
 ## Remaining toolchain milestone
 
-The next coordinated runtime step is to build and package GCC's `libgcc_s` and `libstdc++` ABIs, then rebuild their consumers. A later compiler/Binutils bootstrap can remove the host build-tool boundary. Until both are complete, MattOS accurately describes itself as using a MattOS-built libc runtime with a host-bootstrap compiler toolchain, not as self-hosting.
+The GCC runtime step is complete. A later compiler/Binutils bootstrap can remove the host build-tool boundary. MattOS accurately describes itself as having source-closed target runtime payloads with a host-bootstrap build toolchain, not as self-hosting.
