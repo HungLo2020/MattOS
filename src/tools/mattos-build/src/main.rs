@@ -502,6 +502,9 @@ enum BuildStage {
     Kernel,
     Glibc,
     GccRuntime,
+    Binutils,
+    GccToolchain,
+    Make,
     Brush,
     Coreutils,
     Grep,
@@ -1994,7 +1997,11 @@ fn reset_native_consumer_outputs(repo_root: &Path) -> Result<()> {
     for entry in entries {
         if matches!(
             entry.file_name().to_str(),
-            Some("glibc") | Some("gcc-runtime")
+            Some("glibc")
+                | Some("gcc-runtime")
+                | Some("binutils")
+                | Some("gcc-toolchain")
+                | Some("make")
         ) {
             continue;
         }
@@ -2013,6 +2020,9 @@ fn build_plan(stage: BuildStage) -> Vec<BuildStage> {
             BuildStage::Kernel,
             BuildStage::Glibc,
             BuildStage::GccRuntime,
+            BuildStage::Binutils,
+            BuildStage::GccToolchain,
+            BuildStage::Make,
             BuildStage::Brush,
             BuildStage::Coreutils,
             BuildStage::Grep,
@@ -2066,6 +2076,9 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::Kernel => build_kernel(repo_root),
         BuildStage::Glibc => build_glibc(repo_root),
         BuildStage::GccRuntime => build_gcc_runtime(repo_root),
+        BuildStage::Binutils => build_binutils(repo_root),
+        BuildStage::GccToolchain => build_gcc_toolchain(repo_root),
+        BuildStage::Make => build_make(repo_root),
         BuildStage::Brush => build_brush(repo_root),
         BuildStage::Coreutils => build_coreutils(repo_root),
         BuildStage::Grep => build_grep(repo_root),
@@ -2195,11 +2208,35 @@ fn build_glibc(repo_root: &Path) -> Result<()> {
     {
         bail!("Linux headers_install did not create the required UAPI header tree")
     }
+    copy_tree_contents(
+        &sysroot.join("usr/include"),
+        &output.join("linux-headers/usr/include"),
+    )?;
+    let mut uapi_files = Vec::new();
+    collect_regular_files(&output.join("linux-headers/usr/include"), &mut uapi_files)?;
+    let mut uapi_inventory = String::from(
+        "revision=f17f39c917cd4aac09db1a6a083ef5ec09b4924d\narchitecture=x86\ncommand=make ARCH=x86 headers_install\n\n",
+    );
+    for path in uapi_files {
+        uapi_inventory.push_str(
+            path.strip_prefix(output.join("linux-headers"))?
+                .to_string_lossy()
+                .as_ref(),
+        );
+        uapi_inventory.push('\n');
+    }
+    fs::write(output.join("linux-headers-inventory.txt"), uapi_inventory)?;
 
     let configure = source.join("configure");
     let headers = sysroot.join("usr/include");
+    let glibc_cflags = format!(
+        "-O2 -g0 -ffile-prefix-map={}=/usr/src/mattos/glibc -fdebug-prefix-map={}=/usr/src/mattos/glibc",
+        repo_root.display(),
+        repo_root.display()
+    );
     let configure_text = format!(
-        "{} \\\n+  --prefix=/usr \\\n+  --libdir=/usr/lib/x86_64-linux-gnu \\\n+  --libexecdir=/usr/libexec \\\n+  --build=x86_64-pc-linux-gnu \\\n+  --host=x86_64-pc-linux-gnu \\\n+  --enable-kernel={} \\\n+  --with-headers={} \\\n+  --without-selinux \\\n+  --disable-werror \\\n+  --disable-profile \\\n+  --disable-build-nscd \\\n+  --disable-nscd \\\n+  --enable-stack-protector=strong \\\n+  --enable-bind-now\n",
+        "CFLAGS='{}' {} \\\n+  --prefix=/usr \\\n+  --libdir=/usr/lib/x86_64-linux-gnu \\\n+  --libexecdir=/usr/libexec \\\n+  --build=x86_64-pc-linux-gnu \\\n+  --host=x86_64-pc-linux-gnu \\\n+  --enable-kernel={} \\\n+  --with-headers={} \\\n+  --without-selinux \\\n+  --disable-werror \\\n+  --disable-profile \\\n+  --disable-build-nscd \\\n+  --disable-nscd \\\n+  --enable-stack-protector=strong \\\n+  --enable-bind-now\n",
+        glibc_cflags,
         configure.display(),
         GLIBC_MINIMUM_KERNEL,
         headers.display()
@@ -2235,6 +2272,7 @@ fn build_glibc(repo_root: &Path) -> Result<()> {
         ("SOURCE_DATE_EPOCH", MATTOS_SOURCE_DATE_EPOCH.to_string()),
         ("LC_ALL", "C".to_string()),
         ("TZ", "UTC".to_string()),
+        ("CFLAGS", glibc_cflags),
         ("libc_cv_slibdir", "/usr/lib/x86_64-linux-gnu".to_string()),
         ("libc_cv_rtlddir", "/lib64".to_string()),
     ];
@@ -2629,6 +2667,27 @@ fn build_gcc_runtime(repo_root: &Path) -> Result<()> {
 
     copy_tree_contents(&output.join("runtime"), &sysroot)?;
 
+    let raw_usr = raw_install.join("usr");
+    copy_tree_contents(
+        &raw_usr.join("include/c++"),
+        &sysroot.join("usr/include/c++"),
+    )?;
+    copy_tree_contents(
+        &raw_usr.join("lib/x86_64-linux-gnu/gcc"),
+        &sysroot.join("usr/lib/x86_64-linux-gnu/gcc"),
+    )?;
+    let raw_cxx_libdir = raw_usr.join("lib/lib64");
+    let target_libdir = sysroot.join("usr/lib/x86_64-linux-gnu");
+    for name in ["libstdc++.a", "libsupc++.a"] {
+        fs::copy(raw_cxx_libdir.join(name), target_libdir.join(name))?;
+    }
+    remove_path_if_exists(&target_libdir.join("libstdc++.so"))?;
+    std::os::unix::fs::symlink("libstdc++.so.6", target_libdir.join("libstdc++.so"))?;
+    fs::write(
+        output.join("development-files.txt"),
+        "usr/include/c++/15.3.0\nusr/lib/x86_64-linux-gnu/gcc/x86_64-pc-linux-gnu/15.3.0\nusr/lib/x86_64-linux-gnu/libstdc++.so\nusr/lib/x86_64-linux-gnu/libstdc++.a\nusr/lib/x86_64-linux-gnu/libsupc++.a\n",
+    )?;
+
     let validation_source = output.join("cxx-unwind-validation.cc");
     let validation_binary = output.join("cxx-unwind-validation");
     fs::write(
@@ -2677,6 +2736,576 @@ fn build_gcc_runtime(repo_root: &Path) -> Result<()> {
         GCC_RUNTIME_LIBSTDCXX_ABI,
         runtime.display()
     );
+    Ok(())
+}
+
+const TOOLCHAIN_BUILD: &str = "x86_64-build-linux-gnu";
+const TOOLCHAIN_TARGET: &str = "x86_64-pc-linux-gnu";
+const GCC_TOOLCHAIN_VERSION: &str = "15.3.0";
+
+fn write_executable_script(path: &Path, body: &str) -> Result<()> {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    fs::write(path, body)?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(path, fs::Permissions::from_mode(0o755))?;
+    }
+    Ok(())
+}
+
+fn write_sysroot_compiler_wrappers(
+    repo_root: &Path,
+    directory: &Path,
+    binutils: &Path,
+) -> Result<(PathBuf, PathBuf)> {
+    let sysroot = repo_root.join("out/sysroot");
+    let map = format!(
+        "-O2 -g0 -ffile-prefix-map={}=/usr/src/mattos -fdebug-prefix-map={}=/usr/src/mattos",
+        repo_root.display(),
+        repo_root.display()
+    );
+    let gcc = directory.join(format!("{TOOLCHAIN_TARGET}-gcc"));
+    let gxx = directory.join(format!("{TOOLCHAIN_TARGET}-g++"));
+    let target_lib = sysroot.join("usr/lib/x86_64-linux-gnu");
+    let target_gcc = target_lib
+        .join("gcc")
+        .join(TOOLCHAIN_TARGET)
+        .join(GCC_TOOLCHAIN_VERSION);
+    let common = format!(
+        "--sysroot={} -B{}/ -B{}/ -B{}/ -L{} {}",
+        shell_escape(path_str(&sysroot)?),
+        shell_escape(path_str(binutils)?),
+        shell_escape(path_str(&target_gcc)?),
+        shell_escape(path_str(&target_lib)?),
+        shell_escape(path_str(&target_lib)?),
+        map
+    );
+    write_executable_script(
+        &gcc,
+        &format!("#!/bin/sh\nexec /usr/bin/gcc {common} \"$@\"\n"),
+    )?;
+    write_executable_script(
+        &gxx,
+        &format!("#!/bin/sh\nexec /usr/bin/g++ {common} \"$@\"\n"),
+    )?;
+    Ok((gcc, gxx))
+}
+
+fn toolchain_environment(
+    cc: &Path,
+    cxx: &Path,
+    binutils: &Path,
+) -> Result<Vec<(&'static str, String)>> {
+    let tool = |name: &str| path_str(&binutils.join(name)).map(str::to_string);
+    let mut paths = vec![
+        cc.parent()
+            .context("toolchain compiler wrapper has no parent directory")?
+            .to_path_buf(),
+    ];
+    if let Some(host_path) = std::env::var_os("PATH") {
+        paths.extend(std::env::split_paths(&host_path));
+    }
+    Ok(vec![
+        ("SOURCE_DATE_EPOCH", MATTOS_SOURCE_DATE_EPOCH.to_string()),
+        ("LC_ALL", "C".to_string()),
+        ("TZ", "UTC".to_string()),
+        (
+            "PATH",
+            std::env::join_paths(paths)?.to_string_lossy().into_owned(),
+        ),
+        ("CC", path_str(cc)?.to_string()),
+        ("CXX", path_str(cxx)?.to_string()),
+        ("AR", tool("ar")?),
+        ("AS", tool("as")?),
+        ("LD", tool("ld")?),
+        ("NM", tool("nm")?),
+        ("RANLIB", tool("ranlib")?),
+        ("STRIP", tool("strip")?),
+        ("CC_FOR_BUILD", "/usr/bin/gcc".to_string()),
+        ("CXX_FOR_BUILD", "/usr/bin/g++".to_string()),
+    ])
+}
+
+fn build_binutils(repo_root: &Path) -> Result<()> {
+    let source = repo_root.join("src/toolchain/binutils");
+    let output = repo_root.join("out/build/binutils");
+    let cross_build = output.join("cross-build");
+    let cross_install = output.join("cross-install");
+    let native_build = output.join("native-build");
+    let native_install = output.join("install");
+    let wrapper_dir = output.join("bootstrap-bin");
+    if !source.join("configure").is_file() {
+        bail!("Binutils source is missing at {}", source.display())
+    }
+    if !repo_root.join("out/sysroot/usr/include/stdio.h").is_file() {
+        bail!("Binutils requires the completed MattOS development sysroot")
+    }
+    remove_path_if_exists(&output)?;
+    for directory in [&cross_build, &cross_install, &native_build, &native_install] {
+        fs::create_dir_all(directory)?;
+    }
+
+    let configure = source.join("configure");
+    let sysroot = repo_root.join("out/sysroot");
+    let sysroot_arg = format!("--with-sysroot={}", sysroot.display());
+    let cross_prefix = format!("--prefix={}", cross_install.join("usr").display());
+    let cross_args = [
+        cross_prefix.as_str(),
+        "--build=x86_64-pc-linux-gnu",
+        "--host=x86_64-pc-linux-gnu",
+        "--target=x86_64-pc-linux-gnu",
+        sysroot_arg.as_str(),
+        "--disable-nls",
+        "--disable-werror",
+        "--disable-gdb",
+        "--disable-gdbserver",
+        "--disable-gprofng",
+        "--disable-gold",
+        "--disable-sim",
+        "--without-zstd",
+        "--enable-deterministic-archives",
+    ];
+    let reproducible_env = [
+        ("SOURCE_DATE_EPOCH", MATTOS_SOURCE_DATE_EPOCH.to_string()),
+        ("LC_ALL", "C".to_string()),
+        ("TZ", "UTC".to_string()),
+        ("CFLAGS", "-O2 -g0".to_string()),
+        ("CXXFLAGS", "-O2 -g0".to_string()),
+    ];
+    run_gcc_bootstrap_command(&cross_build, &configure, &cross_args, &reproducible_env)
+        .context("Binutils bootstrap configure failed")?;
+    run_gcc_bootstrap_command(
+        &cross_build,
+        Path::new("make"),
+        &["-j", "4", "all-binutils", "all-gas", "all-ld"],
+        &reproducible_env,
+    )
+    .context("Binutils bootstrap build failed")?;
+    run_gcc_bootstrap_command(
+        &cross_build,
+        Path::new("make"),
+        &["install-binutils", "install-gas", "install-ld"],
+        &reproducible_env,
+    )?;
+
+    let cross_bin = cross_install.join("usr/bin");
+    let (cc, cxx) = write_sysroot_compiler_wrappers(repo_root, &wrapper_dir, &cross_bin)?;
+    let native_env = toolchain_environment(&cc, &cxx, &cross_bin)?;
+    let native_args = [
+        "--prefix=/usr",
+        "--libdir=/usr/lib/x86_64-linux-gnu",
+        "--build=x86_64-build-linux-gnu",
+        "--host=x86_64-pc-linux-gnu",
+        "--target=x86_64-pc-linux-gnu",
+        "--with-sysroot=/",
+        "--with-build-sysroot=../../sysroot",
+        "--disable-nls",
+        "--disable-werror",
+        "--disable-gdb",
+        "--disable-gdbserver",
+        "--disable-gprofng",
+        "--disable-gold",
+        "--disable-sim",
+        "--without-zstd",
+        "--enable-deterministic-archives",
+    ];
+    run_gcc_bootstrap_command(&native_build, &configure, &native_args, &native_env)
+        .context("MattOS-native Binutils configure failed")?;
+    run_gcc_bootstrap_command(
+        &native_build,
+        Path::new("make"),
+        &["-j", "4", "all-binutils", "all-gas", "all-ld"],
+        &native_env,
+    )
+    .context("MattOS-native Binutils build failed")?;
+    let destdir = format!("DESTDIR={}", native_install.display());
+    run_gcc_bootstrap_command(
+        &native_build,
+        Path::new("make"),
+        &[
+            destdir.as_str(),
+            "install-binutils",
+            "install-gas",
+            "install-ld",
+        ],
+        &native_env,
+    )?;
+    let tools = [
+        "addr2line",
+        "ar",
+        "as",
+        "c++filt",
+        "elfedit",
+        "ld",
+        "nm",
+        "objcopy",
+        "objdump",
+        "ranlib",
+        "readelf",
+        "size",
+        "strings",
+        "strip",
+    ];
+    for tool in tools {
+        if !native_install.join("usr/bin").join(tool).is_file() {
+            bail!("MattOS-native Binutils did not install /usr/bin/{tool}")
+        }
+    }
+    fs::write(
+        output.join("configure-invocation.txt"),
+        format!(
+            "bootstrap: {} {}\nnative: CC={} CXX={} {} {}\n",
+            configure.display(),
+            cross_args.join(" "),
+            cc.display(),
+            cxx.display(),
+            configure.display(),
+            native_args.join(" ")
+        ),
+    )?;
+    println!("built source-native Binutils for {TOOLCHAIN_TARGET}");
+    Ok(())
+}
+
+fn prepare_gcc_prerequisite_sources(repo_root: &Path, output: &Path) -> Result<PathBuf> {
+    let source = repo_root.join("src/toolchain/gcc");
+    let driver = output.join("prerequisite-fetch");
+    // Keep checksum-verified prerequisite archives and extracted sources outside
+    // the disposable stage directory so a warmed tree remains buildable offline.
+    let cache = repo_root.join("out/cache/gcc-prerequisites");
+    fs::create_dir_all(driver.join("gcc"))?;
+    fs::create_dir_all(driver.join("contrib"))?;
+    fs::create_dir_all(&cache)?;
+    for relative in [
+        "gcc/BASE-VER",
+        "contrib/download_prerequisites",
+        "contrib/prerequisites.sha512",
+    ] {
+        let destination = driver.join(relative);
+        if let Some(parent) = destination.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        let metadata = fs::metadata(source.join(relative))?;
+        fs::copy(source.join(relative), &destination)?;
+        preserve_permissions(&metadata, &destination)?;
+    }
+    let directory = format!("--directory={}", cache.display());
+    run_gcc_bootstrap_command(
+        &driver,
+        Path::new("./contrib/download_prerequisites"),
+        &[directory.as_str(), "--no-isl", "--sha512"],
+        &[("LC_ALL", "C".to_string()), ("TZ", "UTC".to_string())],
+    )?;
+    Ok(cache)
+}
+
+fn build_static_prerequisite(
+    source: &Path,
+    build: &Path,
+    install: &Path,
+    configure_extra: &[String],
+    env: &[(&str, String)],
+) -> Result<()> {
+    fs::create_dir_all(build)?;
+    let prefix = format!("--prefix={}", install.display());
+    let mut owned_args = vec![
+        prefix,
+        format!("--build={TOOLCHAIN_BUILD}"),
+        format!("--host={TOOLCHAIN_TARGET}"),
+        "--disable-shared".to_string(),
+        "--enable-static".to_string(),
+    ];
+    owned_args.extend_from_slice(configure_extra);
+    let args = owned_args.iter().map(String::as_str).collect::<Vec<_>>();
+    run_gcc_bootstrap_command(build, &source.join("configure"), &args, env)?;
+    run_gcc_bootstrap_command(build, Path::new("make"), &["-j", "4"], env)?;
+    run_gcc_bootstrap_command(build, Path::new("make"), &["install"], env)?;
+    Ok(())
+}
+
+fn build_gcc_toolchain(repo_root: &Path) -> Result<()> {
+    let output = repo_root.join("out/build/gcc-toolchain");
+    let build = output.join("build");
+    let install = output.join("install");
+    let prereq_install = output.join("prerequisite-install");
+    let binutils = repo_root.join("out/build/binutils/cross-install/usr/bin");
+    if !repo_root.join("src/toolchain/gcc/configure").is_file() {
+        bail!("GCC source is missing; import the pinned GCC component first")
+    }
+    if !binutils.join("as").is_file() || !binutils.join("ld").is_file() {
+        bail!("GCC toolchain build requires the Binutils bootstrap tools")
+    }
+    remove_path_if_exists(&output)?;
+    fs::create_dir_all(&build)?;
+    fs::create_dir_all(&install)?;
+    fs::create_dir_all(&prereq_install)?;
+    #[cfg(unix)]
+    {
+        std::os::unix::fs::symlink(
+            "../prerequisite-install",
+            build.join("prerequisite-install"),
+        )?;
+        std::os::unix::fs::symlink("../../sysroot", output.join("mattos-sysroot"))?;
+        std::os::unix::fs::symlink("../mattos-sysroot", build.join("mattos-sysroot"))?;
+    }
+    let wrappers = output.join("bootstrap-bin");
+    let (cc, cxx) = write_sysroot_compiler_wrappers(repo_root, &wrappers, &binutils)?;
+    let env = toolchain_environment(&cc, &cxx, &binutils)?;
+    let mut env = env;
+    env.extend([
+        ("CFLAGS", "-O2 -g0 -std=gnu17".to_string()),
+        ("CXXFLAGS", "-O2 -g0 -std=gnu++17".to_string()),
+    ]);
+    let prereq_sources = prepare_gcc_prerequisite_sources(repo_root, &output)?;
+    let gmp_source = prereq_sources.join("gmp-6.2.1");
+    let mpfr_source = prereq_sources.join("mpfr-4.1.0");
+    let mpc_source = prereq_sources.join("mpc-1.2.1");
+    build_static_prerequisite(
+        &gmp_source,
+        &output.join("prerequisite-build/gmp"),
+        &prereq_install,
+        &[],
+        &env,
+    )?;
+    let prereq_with_gmp = format!("--with-gmp={}", prereq_install.display());
+    build_static_prerequisite(
+        &mpfr_source,
+        &output.join("prerequisite-build/mpfr"),
+        &prereq_install,
+        std::slice::from_ref(&prereq_with_gmp),
+        &env,
+    )?;
+    let prereq_with_mpfr = format!("--with-mpfr={}", prereq_install.display());
+    build_static_prerequisite(
+        &mpc_source,
+        &output.join("prerequisite-build/mpc"),
+        &prereq_install,
+        &[prereq_with_gmp, prereq_with_mpfr],
+        &env,
+    )?;
+
+    // Invoke GCC through a stable relative path and use stable relative
+    // prerequisite prefixes. GCC exposes its configure command in `gcc -v`,
+    // so absolute workspace paths here would contaminate the installed driver.
+    let configure = PathBuf::from("../../../../src/toolchain/gcc/configure");
+    let with_gmp = "--with-gmp=../prerequisite-install".to_string();
+    let with_mpfr = "--with-mpfr=../prerequisite-install".to_string();
+    let with_mpc = "--with-mpc=../prerequisite-install".to_string();
+    let configure_args = [
+        "--prefix=/usr",
+        "--libdir=/usr/lib/x86_64-linux-gnu",
+        "--libexecdir=/usr/libexec",
+        "--build=x86_64-build-linux-gnu",
+        "--host=x86_64-pc-linux-gnu",
+        "--target=x86_64-pc-linux-gnu",
+        "--with-sysroot=/",
+        "--with-build-sysroot=../mattos-sysroot",
+        "--with-native-system-header-dir=/usr/include",
+        "--with-as=/usr/bin/as",
+        "--with-ld=/usr/bin/ld",
+        with_gmp.as_str(),
+        with_mpfr.as_str(),
+        with_mpc.as_str(),
+        "--without-isl",
+        "--without-zstd",
+        "--enable-languages=c,c++",
+        "--enable-default-pie",
+        "--disable-bootstrap",
+        "--disable-multilib",
+        "--disable-nls",
+        "--disable-werror",
+        "--disable-checking",
+        "--disable-analyzer",
+        "--disable-libsanitizer",
+        "--disable-libssp",
+        "--disable-libquadmath",
+        "--disable-libgomp",
+        "--disable-libatomic",
+        "--disable-libvtv",
+        "--disable-libcc1",
+        "--disable-lto",
+        "--disable-plugin",
+        "--disable-libstdcxx-pch",
+    ];
+    let mut gcc_env = env.clone();
+    gcc_env.extend([
+        ("CFLAGS", "-O2 -g0".to_string()),
+        ("CXXFLAGS", "-O2 -g0".to_string()),
+        ("LDFLAGS", "-Wl,-z,relro -Wl,-z,now".to_string()),
+    ]);
+    run_gcc_bootstrap_command(&build, &configure, &configure_args, &gcc_env)
+        .context("MattOS-native GCC configure failed")?;
+    run_gcc_bootstrap_command(&build, Path::new("make"), &["-j", "4", "all-gcc"], &gcc_env)
+        .context("MattOS-native GCC compiler build failed")?;
+    let destdir = format!("DESTDIR={}", install.display());
+    run_gcc_bootstrap_command(
+        &build,
+        Path::new("make"),
+        &[destdir.as_str(), "install-gcc"],
+        &gcc_env,
+    )?;
+    for relative in [
+        "usr/bin/gcc",
+        "usr/bin/g++",
+        "usr/bin/cpp",
+        "usr/libexec/gcc/x86_64-pc-linux-gnu/15.3.0/cc1",
+        "usr/libexec/gcc/x86_64-pc-linux-gnu/15.3.0/cc1plus",
+        "usr/libexec/gcc/x86_64-pc-linux-gnu/15.3.0/collect2",
+    ] {
+        if !install.join(relative).is_file() {
+            bail!("MattOS-native GCC did not install /{relative}")
+        }
+    }
+    for helper in ["cc1", "cc1plus", "collect2"] {
+        let needed = elf_needed_names(
+            &install
+                .join("usr/libexec/gcc")
+                .join(TOOLCHAIN_TARGET)
+                .join(GCC_TOOLCHAIN_VERSION)
+                .join(helper),
+        )?;
+        if needed.iter().any(|name| {
+            name.starts_with("libgmp")
+                || name.starts_with("libmpfr")
+                || name.starts_with("libmpc")
+                || name.starts_with("libzstd")
+        }) {
+            bail!("installed GCC helper {helper} leaks bootstrap libraries: {needed:?}")
+        }
+    }
+    let mut installed_files = Vec::new();
+    collect_regular_files(&install, &mut installed_files)?;
+    let build_root = repo_root.to_string_lossy();
+    for file in installed_files {
+        let header = Command::new("readelf").args(["-h"]).arg(&file).output()?;
+        if !header.status.success() {
+            continue;
+        }
+        let bytes = fs::read(&file)?;
+        if bytes
+            .windows(build_root.len())
+            .any(|window| window == build_root.as_bytes())
+        {
+            bail!(
+                "installed GCC ELF {} embeds the host build root",
+                file.display()
+            )
+        }
+        let dynamic = Command::new("readelf").args(["-d"]).arg(&file).output()?;
+        let dynamic = String::from_utf8_lossy(&dynamic.stdout);
+        if dynamic
+            .lines()
+            .any(|line| line.contains("(RPATH)") || line.contains("(RUNPATH)"))
+        {
+            bail!(
+                "installed GCC ELF {} contains RPATH/RUNPATH",
+                file.display()
+            )
+        }
+    }
+    fs::write(
+        output.join("configure-invocation.txt"),
+        format!(
+            "CC={} CXX={} CC_FOR_BUILD=/usr/bin/gcc CXX_FOR_BUILD=/usr/bin/g++ {} {}\nmake -j4 all-gcc\nmake DESTDIR={} install-gcc\n",
+            cc.display(),
+            cxx.display(),
+            configure.display(),
+            configure_args.join(" "),
+            install.display()
+        ),
+    )?;
+    println!("built source-native GCC C/C++ compiler for {TOOLCHAIN_TARGET}");
+    Ok(())
+}
+
+fn build_make(repo_root: &Path) -> Result<()> {
+    let imported = repo_root.join("src/build-tools/make");
+    let gnulib = repo_root.join("src/build-support/gnulib");
+    let output = repo_root.join("out/build/make");
+    let source = output.join("source");
+    let build = output.join("build");
+    let install = output.join("install");
+    let binutils = repo_root.join("out/build/binutils/cross-install/usr/bin");
+    if !imported.join("bootstrap").is_file() {
+        bail!("GNU Make source is missing at {}", imported.display())
+    }
+    if !gnulib.join("gnulib-tool").is_file() {
+        bail!("pinned Gnulib source is missing at {}", gnulib.display())
+    }
+    remove_path_if_exists(&output)?;
+    fs::create_dir_all(&source)?;
+    fs::create_dir_all(&build)?;
+    fs::create_dir_all(&install)?;
+    copy_tree_contents(&imported, &source)?;
+    let gnulib_arg = format!("--gnulib-srcdir={}", gnulib.display());
+    run_gcc_bootstrap_command(
+        &source,
+        Path::new("./bootstrap"),
+        &[
+            "--gen",
+            "--no-git",
+            "--no-bootstrap-sync",
+            "--copy",
+            gnulib_arg.as_str(),
+        ],
+        &[
+            ("SOURCE_DATE_EPOCH", MATTOS_SOURCE_DATE_EPOCH.to_string()),
+            ("LC_ALL", "C".to_string()),
+            ("TZ", "UTC".to_string()),
+        ],
+    )?;
+    let wrappers = output.join("bootstrap-bin");
+    let (cc, cxx) = write_sysroot_compiler_wrappers(repo_root, &wrappers, &binutils)?;
+    let mut env = toolchain_environment(&cc, &cxx, &binutils)?;
+    env.extend([
+        ("CC", format!("{TOOLCHAIN_TARGET}-gcc")),
+        ("CXX", format!("{TOOLCHAIN_TARGET}-g++")),
+        ("CFLAGS", "-O2 -g0".to_string()),
+        ("LDFLAGS", "-Wl,-z,relro -Wl,-z,now".to_string()),
+    ]);
+    let configure_args = [
+        "--prefix=/usr",
+        "--build=x86_64-build-linux-gnu",
+        "--host=x86_64-pc-linux-gnu",
+        "--disable-nls",
+    ];
+    run_gcc_bootstrap_command(&build, &source.join("configure"), &configure_args, &env)?;
+    run_gcc_bootstrap_command(
+        &build,
+        Path::new("make"),
+        &["-j", "4", "MAKE_MAINTAINER_MODE=", "MAKE_CFLAGS="],
+        &env,
+    )?;
+    let destdir = format!("DESTDIR={}", install.display());
+    run_gcc_bootstrap_command(
+        &build,
+        Path::new("make"),
+        &[
+            destdir.as_str(),
+            "MAKE_MAINTAINER_MODE=",
+            "MAKE_CFLAGS=",
+            "install",
+        ],
+        &env,
+    )?;
+    if !install.join("usr/bin/make").is_file() {
+        bail!("MattOS-native GNU Make did not install /usr/bin/make")
+    }
+    fs::write(
+        output.join("configure-invocation.txt"),
+        format!(
+            "gnulib={}\nCC={} {} {}\nmake -j4 MAKE_MAINTAINER_MODE= MAKE_CFLAGS=\nmake DESTDIR={} MAKE_MAINTAINER_MODE= MAKE_CFLAGS= install\n",
+            gnulib.display(),
+            format!("{TOOLCHAIN_TARGET}-gcc"),
+            source.join("configure").display(),
+            configure_args.join(" "),
+            install.display()
+        ),
+    )?;
+    println!("built source-native GNU Make for {TOOLCHAIN_TARGET}");
     Ok(())
 }
 
@@ -4447,6 +5076,27 @@ fn build_openssl(repo_root: &Path) -> Result<()> {
             &env,
         )?;
     }
+    let build_info = Command::new("perl")
+        .arg(source_copy.join("util/mkbuildinf.pl"))
+        .arg("gcc -O2 -fPIC")
+        .arg("linux-x86_64")
+        .env("SOURCE_DATE_EPOCH", MATTOS_SOURCE_DATE_EPOCH.to_string())
+        .output()
+        .context("failed to generate sanitized OpenSSL build information")?;
+    if !build_info.status.success() {
+        bail!(
+            "OpenSSL build-information generator failed: {}",
+            String::from_utf8_lossy(&build_info.stderr)
+        )
+    }
+    let build_info_path = build_dir.join("crypto/buildinf.h");
+    fs::create_dir_all(
+        build_info_path
+            .parent()
+            .ok_or_else(|| anyhow!("invalid OpenSSL build-information path"))?,
+    )?;
+    fs::write(&build_info_path, build_info.stdout)
+        .with_context(|| format!("failed to write {}", build_info_path.display()))?;
     run_cmd_with_env_overrides(&build_dir, "make", &["-j", "4"], &env)?;
     remove_path_if_exists(&install_dir)?;
     run_cmd_with_env_overrides(
@@ -5767,11 +6417,17 @@ fn build_systemd(repo_root: &Path) -> Result<()> {
     let pkgconfig_path = std::env::join_paths(pkgconfig_dirs.iter())?
         .to_string_lossy()
         .to_string();
-    let cflags = include_dirs
+    let mut cflags = include_dirs
         .iter()
         .map(|include| format!("-I{}", include.display()))
         .collect::<Vec<_>>()
         .join(" ");
+    cflags.push_str(&format!(
+        " -ffile-prefix-map={}=/usr/src/mattos -fdebug-prefix-map={}=/usr/src/mattos -fmacro-prefix-map={}=/usr/src/mattos",
+        repo_root.display(),
+        repo_root.display(),
+        repo_root.display()
+    ));
     let ldflags = library_dirs
         .iter()
         .flat_map(|library| {
@@ -6399,6 +7055,8 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
         "ping",
         "tracepath",
         "curl",
+        "sh",
+        "bash",
         "dbus-broker",
         "dbus-broker-launch",
         "busctl",
@@ -6418,15 +7076,8 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
         }
     }
 
-    let sh_link = out.join("usr/bin/sh");
-    if sh_link.exists() {
-        fs::remove_file(&sh_link)
-            .with_context(|| format!("failed to remove existing {}", sh_link.display()))?;
-    }
-    #[cfg(unix)]
-    std::os::unix::fs::symlink("/bin/brush", &sh_link)
-        .with_context(|| format!("failed to create {}", sh_link.display()))?;
     inventory.add_installed("brush", "sh");
+    inventory.add_installed("brush", "bash");
     inventory.add_excluded(DIFFUTILS_PROVIDER, "diff3");
     inventory.add_excluded(DIFFUTILS_PROVIDER, "sdiff");
     write_userland_inventory(&out, &inventory)?;
@@ -6493,6 +7144,18 @@ fn validate_glibc_rootfs(repo_root: &Path, rootfs: &Path) -> Result<()> {
         let header = Command::new("readelf").args(["-h"]).arg(&path).output()?;
         if !header.status.success() {
             continue;
+        }
+        let bytes = fs::read(&path)?;
+        let build_root = repo_root.to_string_lossy();
+        if bytes
+            .windows(build_root.len())
+            .any(|window| window == build_root.as_bytes())
+        {
+            bail!(
+                "ELF object /{} embeds the host build root {}",
+                path.strip_prefix(rootfs)?.display(),
+                repo_root.display()
+            )
         }
         if let Some(name) = path.file_name().and_then(|name| name.to_str()) {
             provided.insert(name.to_string());
@@ -8404,13 +9067,23 @@ fn apply_mattos_sysroot_environment(
     };
     for key in ["CPPFLAGS", "CFLAGS", "CXXFLAGS", "LDFLAGS"] {
         let current = value_for(key);
-        let value = if current.split_whitespace().any(|flag| flag == sysroot_flag) {
+        let mut value = if current.split_whitespace().any(|flag| flag == sysroot_flag) {
             current
         } else if current.is_empty() {
             sysroot_flag.clone()
         } else {
             format!("{current} {sysroot_flag}")
         };
+        if matches!(key, "CFLAGS" | "CXXFLAGS") {
+            let prefix_map = format!("-ffile-prefix-map={}=/usr/src/mattos", repo_root.display());
+            if !value.split_whitespace().any(|flag| flag == prefix_map) {
+                value.push_str(&format!(
+                    " {prefix_map} -fdebug-prefix-map={}=/usr/src/mattos -fmacro-prefix-map={}=/usr/src/mattos",
+                    repo_root.display(),
+                    repo_root.display()
+                ));
+            }
+        }
         command.env(key, value);
     }
     if program == "cargo" {
@@ -9652,10 +10325,95 @@ mod tests {
     }
 
     #[test]
+    fn native_toolchain_upstreams_and_stages_are_pinned() {
+        assert_eq!(
+            BuildStage::from_str("binutils", true).unwrap(),
+            BuildStage::Binutils
+        );
+        assert_eq!(
+            BuildStage::from_str("gcc-toolchain", true).unwrap(),
+            BuildStage::GccToolchain
+        );
+        assert_eq!(
+            BuildStage::from_str("make", true).unwrap(),
+            BuildStage::Make
+        );
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        let sources = read_sources(&root).expect("read MattOS upstream metadata");
+        let component = |name| {
+            sources
+                .component
+                .iter()
+                .find(|component| component.name == name)
+                .unwrap()
+        };
+        let binutils = component("binutils");
+        assert_eq!(binutils.repo, "https://sourceware.org/git/binutils-gdb.git");
+        assert_eq!(binutils.branch, "binutils-2_46_1");
+        assert_eq!(
+            binutils.revision.as_deref(),
+            Some("5e56594815854de5eca35c7c04b11705d0f19c02")
+        );
+        assert_eq!(binutils.path, "src/toolchain/binutils");
+        assert_eq!(binutils.sync, "copy");
+        let make = component("make");
+        assert_eq!(make.repo, "https://git.savannah.gnu.org/git/make.git");
+        assert_eq!(make.branch, "4.4.1");
+        assert_eq!(
+            make.revision.as_deref(),
+            Some("d66a65ad5a0e31b287f53930b0f09e31801f1613")
+        );
+        assert_eq!(make.path, "src/build-tools/make");
+        assert_eq!(make.sync, "copy");
+        assert!(!root.join("src/toolchain/binutils/.git").exists());
+        assert!(!root.join("src/build-tools/make/.git").exists());
+    }
+
+    #[test]
+    fn native_compiler_configuration_is_guest_default_and_minimal() {
+        let source = include_str!("main.rs");
+        let start = source.find("fn build_gcc_toolchain").unwrap();
+        let end = source[start..].find("fn build_make").unwrap() + start;
+        let build = &source[start..end];
+        for required in [
+            "--host=x86_64-pc-linux-gnu",
+            "--target=x86_64-pc-linux-gnu",
+            "--with-sysroot=/",
+            "--with-build-sysroot=../mattos-sysroot",
+            "--with-native-system-header-dir=/usr/include",
+            "--with-as=/usr/bin/as",
+            "--with-ld=/usr/bin/ld",
+            "--enable-languages=c,c++",
+            "--enable-default-pie",
+            "--disable-multilib",
+            "--disable-libsanitizer",
+            "--disable-libgomp",
+            "--disable-lto",
+            "all-gcc",
+            "install-gcc",
+        ] {
+            assert!(
+                build.contains(required),
+                "missing native GCC setting {required}"
+            );
+        }
+        for forbidden in [
+            "enable-languages=all",
+            "install-target-libgfortran",
+            "install-target-libgo",
+        ] {
+            assert!(
+                !build.contains(forbidden),
+                "unexpected compiler content {forbidden}"
+            );
+        }
+    }
+
+    #[test]
     fn gcc_runtime_configuration_is_target_only_and_sysrooted() {
         let source = include_str!("main.rs");
         let start = source.find("fn build_gcc_runtime").unwrap();
-        let end = source[start..].find("fn copy_tree_contents").unwrap() + start;
+        let end = source[start..].find("const TOOLCHAIN_BUILD").unwrap() + start;
         let build = &source[start..end];
         for required in [
             "--with-sysroot=",

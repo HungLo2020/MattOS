@@ -4,7 +4,7 @@ Date: 2026-08-03
 
 ## 1. Executive Summary
 
-MattOS is a coherent Linux-native bootstrap system with systemd PID 1, separate system and per-user dbus-broker buses, registered logind console sessions, session-bound per-user managers, non-root live autologin, PAM/Shadow/sudo-rs authentication and account tools, Brush, a rescue-init path, and a reproducible build pipeline. Fifty-five MattOS packages are installed through a real dpkg database from an embedded local repository. GNU glibc, the GCC shared runtimes, PCRE2, SELinux userspace compatibility, libxcrypt, and the util-linux mount closure are source-built and package-owned. MattOS-built dpkg and APT work from the embedded repository with or without the QEMU NIC. The final ISO contains no host-derived executable or runtime-library payloads. Persistent installation, an online repository, Polkit, SSH, Wi-Fi, firewall policy, firmware packaging, and a graphical desktop remain intentionally absent.
+MattOS is a coherent Linux-native bootstrap system with systemd PID 1, separate system and per-user dbus-broker buses, registered logind console sessions, session-bound per-user managers, non-root live autologin, PAM/Shadow/sudo-rs authentication and account tools, Brush, a rescue-init path, and a reproducible build pipeline. Sixty-five MattOS packages are installed through a real dpkg database from an embedded local repository. GNU glibc, the GCC shared runtimes, native C/C++ development toolchain, PCRE2, SELinux userspace compatibility, libxcrypt, and the util-linux mount closure are source-built and package-owned. MattOS-built dpkg and APT work from the embedded repository with or without the QEMU NIC. The final ISO contains no host-derived executable or runtime-library payloads. Persistent installation, an online repository, Polkit, SSH, Wi-Fi, firewall policy, firmware packaging, and a graphical desktop remain intentionally absent.
 
 The previous GRUB source-of-truth ambiguity has been resolved by keeping only `src/boot/grub/grub.cfg` as tracked source and validating that path in `mattos-build`. Runtime libc, GCC runtimes, and native consumers use the controlled MattOS sysroot. Host compiler, assembler, linker, and package-construction tools remain explicit build-time bootstrap inputs; MattOS is not yet self-hosting.
 
@@ -124,7 +124,7 @@ Current limitations:
 
 ## 6. Runtime and Rootfs Assessment
 
-The assembled rootfs is a merged `/usr` layout with `/bin`, `/sbin`, `/lib`, and `/lib64` symlinked into the `/usr` tree. Fifty-five packages own the initial base and selected source-built payloads, including glibc, libgcc, libstdc++, PCRE2, libselinux, libxcrypt, and the util-linux mount closure. They are installed with real dpkg semantics, and `/var/lib/dpkg` contains normal status, conffile, md5sum, file-list, and ownership data. The local repository is embedded at `/usr/share/mattos/repository`, APT is configured only for that `file:` source, and no Debian or Ubuntu source is configured.
+The assembled rootfs is a merged `/usr` layout with `/bin`, `/sbin`, `/lib`, and `/lib64` symlinked into the `/usr` tree. Sixty-five packages own the initial base and selected source-built payloads, including glibc, libgcc, libstdc++, the native C/C++ development toolchain, PCRE2, libselinux, libxcrypt, and the util-linux mount closure. They are installed with real dpkg semantics, and `/var/lib/dpkg` contains normal status, conffile, md5sum, file-list, and ownership data. The local repository is embedded at `/usr/share/mattos/repository`, APT is configured only for that `file:` source, and no Debian or Ubuntu source is configured.
 
 APT mutable lists and archive cache are initialized as writable live state rather than shipped package content. Its selected commands, private library, local methods, helpers, configuration, CA trust, source-built `libapt-pkg`, and exact ELF closure all have package ownership. The retired bootstrap-runtime audit records zero installed host-derived entries.
 
@@ -483,6 +483,14 @@ Verified successfully during this audit pass:
 - the disconnected boot still had an active system bus and successful non-root `busctl` access
 
 The remaining module-related boot message is precisely scoped: systemd's real libkmod integration probes `autofs4`, while the intentionally monolithic kernel has `CONFIG_MODULES=n` and `CONFIG_AUTOFS_FS=n`. The `configfs` and `fuse` module service attempts finish successfully, and no module helper fails because an executable is absent.
+
+## First native development toolchain
+
+- GNU Binutils 2.46.1 and GNU Make 4.4.1 are imported from their canonical repositories at exact release commits as ordinary editable source without nested Git metadata.
+- GCC reuses the pinned 15.3.0 source. Host GCC/Binutils/Make are documented bootstrap inputs only; installed compiler drivers, internal helpers, assembler/linker utilities, and Make are source-built for MattOS.
+- `out/sysroot` is formalized into four development package boundaries covering generated Linux UAPI headers, glibc headers/CRT/linker inputs, libgcc target support, and libstdc++ headers/link inputs.
+- ten new packages bring the dependency graph to 65 with explicit ownership of every compiler driver and internal helper; runtime shared libraries remain in their existing owners.
+- this is a native C/C++ compile-and-package milestone, not compiler self-reproduction or a native MattOS rebuild. Detailed source, configuration, validation, and future milestone boundaries are in `NATIVE_TOOLCHAIN.md`.
 
 ## glibc runtime transition
 

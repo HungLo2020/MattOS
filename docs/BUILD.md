@@ -112,6 +112,11 @@ Systemd configuration remains intentionally minimal. It enables networkd, resolv
 
 ```
 cargo run -p mattos-build -- build kernel
+cargo run -p mattos-build -- build glibc
+cargo run -p mattos-build -- build gcc-runtime
+cargo run -p mattos-build -- build binutils
+cargo run -p mattos-build -- build gcc-toolchain
+cargo run -p mattos-build -- build make
 cargo run -p mattos-build -- build brush
 cargo run -p mattos-build -- build coreutils
 cargo run -p mattos-build -- build kmod
@@ -157,7 +162,7 @@ cargo run -p mattos-build -- package audit
 cargo run -p mattos-build -- package status
 ```
 
-The complete prototype stack consists of 55 packages. `mattos-libc6` and `mattos-libc-bin` supply the MattOS-built glibc runtime, loader, NSS/resolver modules, and selected utilities; `mattos-libgcc-s1` and `mattos-libstdc++6` supply the final source-built compiler runtimes. After glibc and GCC runtime construction, downstream native stages are rebuilt with the controlled sysroot. Repository creation validates the dependency graph, staged ELF ownership, exact interpreter, loader resolution, and GLIBC/GLIBCXX/CXXABI/GCC symbol versions before image embedding. `mattos-bootstrap-runtime` is retired and the final host-derived target-runtime count is zero. See `docs/GLIBC_BOOTSTRAP.md`, `docs/GCC_RUNTIME_BOOTSTRAP.md`, `docs/PACKAGING.md`, and `docs/BOOTSTRAP_RUNTIME.md`.
+The complete prototype stack consists of 65 packages. `mattos-libc6` and `mattos-libc-bin` supply the MattOS-built glibc runtime, loader, NSS/resolver modules, and selected utilities; `mattos-libgcc-s1` and `mattos-libstdc++6` supply the final source-built compiler runtimes. Ten development packages add Linux/glibc/GCC development files, source-built Binutils, GCC C/C++, and GNU Make. After glibc and GCC runtime construction, downstream native stages are rebuilt with the controlled sysroot. Repository creation validates the dependency graph, staged ELF ownership, exact interpreter, loader resolution, and GLIBC/GLIBCXX/CXXABI/GCC symbol versions before image embedding. `mattos-bootstrap-runtime` is retired and the final host-derived target-runtime count is zero. See `docs/GLIBC_BOOTSTRAP.md`, `docs/GCC_RUNTIME_BOOTSTRAP.md`, `docs/NATIVE_TOOLCHAIN.md`, `docs/PACKAGING.md`, and `docs/BOOTSTRAP_RUNTIME.md`.
 
 ## QEMU boot
 

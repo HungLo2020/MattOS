@@ -128,6 +128,16 @@ const PACKAGE_NAMES: &[&str] = &[
     "mattos-libc6",
     "mattos-libgcc-s1",
     "mattos-libstdc++6",
+    "mattos-linux-libc-dev",
+    "mattos-libc6-dev",
+    "mattos-libgcc-dev",
+    "mattos-libstdc++-dev",
+    "mattos-binutils",
+    "mattos-gcc-common",
+    "mattos-cpp",
+    "mattos-gcc",
+    "mattos-g++",
+    "mattos-make",
     "mattos-libc-bin",
     "mattos-base-files",
     "mattos-ca-certificates",
@@ -331,6 +341,121 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "required",
         },
         PackageSpec {
+            name: "mattos-linux-libc-dev",
+            description: "Linux userspace API headers for MattOS native development",
+            source_component: "linux",
+            depends: &["mattos-filesystem"],
+            provides: &["linux-libc-dev"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "mattos-libc6-dev",
+            description: "GNU C Library headers and link-time files for MattOS",
+            source_component: "glibc",
+            depends: &["mattos-libc6", "mattos-linux-libc-dev"],
+            provides: &["libc6-dev"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "mattos-libgcc-dev",
+            description: "GCC support headers and static link libraries for MattOS",
+            source_component: "gcc",
+            depends: &["mattos-libc6-dev", "mattos-libgcc-s1"],
+            provides: &["libgcc-dev"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "mattos-libstdc++-dev",
+            description: "GNU C++ standard library headers and link-time files for MattOS",
+            source_component: "gcc",
+            depends: &["mattos-libc6-dev", "mattos-libgcc-dev", "mattos-libstdc++6"],
+            provides: &["libstdc++-dev"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "mattos-binutils",
+            description: "GNU binary utilities built natively for MattOS",
+            source_component: "binutils",
+            depends: &["mattos-libc6"],
+            provides: &["binutils"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "mattos-gcc-common",
+            description: "Shared compiler support and internal GCC helpers for MattOS",
+            source_component: "gcc",
+            depends: &[
+                "mattos-binutils",
+                "mattos-libgcc-dev",
+                "mattos-libstdc++6",
+                "mattos-zlib1g",
+            ],
+            provides: &["gcc-common"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "mattos-cpp",
+            description: "GNU C preprocessor built natively for MattOS",
+            source_component: "gcc",
+            depends: &["mattos-gcc-common"],
+            provides: &["cpp"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "mattos-gcc",
+            description: "GNU C compiler built natively for MattOS",
+            source_component: "gcc",
+            depends: &["mattos-cpp", "mattos-gcc-common", "mattos-libc6-dev"],
+            provides: &["c-compiler", "gcc"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "mattos-g++",
+            description: "GNU C++ compiler built natively for MattOS",
+            source_component: "gcc",
+            depends: &["mattos-gcc", "mattos-libstdc++-dev"],
+            provides: &["c++-compiler", "g++"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "mattos-make",
+            description: "GNU Make built natively for MattOS",
+            source_component: "make",
+            depends: &["mattos-libc6"],
+            provides: &["make"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
             name: "mattos-libc-bin",
             description: "GNU C Library runtime utilities built for MattOS",
             source_component: "glibc",
@@ -365,10 +490,10 @@ fn package_specs() -> Vec<PackageSpec> {
         },
         PackageSpec {
             name: "mattos-brush",
-            description: "Brush shell built for MattOS",
+            description: "Brush shell with sh and bash entry points built for MattOS",
             source_component: "brush",
             depends: &["mattos-filesystem", "mattos-libgcc-s1"],
-            provides: &["mattos-shell"],
+            provides: &["mattos-shell", "sh", "bash"],
             conflicts: &[],
             replaces: &[],
             essential: false,
@@ -1155,13 +1280,20 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
         "mattos-libstdc++6" => {
             stage_gcc_runtime_library(repo_root, &staging, "libstdc++.so.6", "mattos-libstdc++6")?
         }
+        "mattos-linux-libc-dev" => stage_linux_libc_dev(repo_root, &staging)?,
+        "mattos-libc6-dev" => stage_glibc_development(repo_root, &staging)?,
+        "mattos-libgcc-dev" => stage_gcc_development(repo_root, &staging, false)?,
+        "mattos-libstdc++-dev" => stage_gcc_development(repo_root, &staging, true)?,
+        "mattos-binutils" => stage_native_binutils(repo_root, &staging)?,
+        "mattos-gcc-common" => stage_native_gcc_common(repo_root, &staging)?,
+        "mattos-cpp" => stage_native_compiler_driver(repo_root, &staging, "cpp")?,
+        "mattos-gcc" => stage_native_compiler_driver(repo_root, &staging, "gcc")?,
+        "mattos-g++" => stage_native_compiler_driver(repo_root, &staging, "g++")?,
+        "mattos-make" => stage_native_make(repo_root, &staging)?,
         "mattos-libc-bin" => stage_glibc_utilities(repo_root, &staging)?,
         "mattos-base-files" => stage_base_files(repo_root, &staging)?,
         "mattos-ca-certificates" => stage_ca_certificates(repo_root, &staging)?,
-        "mattos-brush" => {
-            let source = repo_root.join("src/userland/brush/target/release/brush");
-            stage_executable(&source, &staging.join("usr/bin/brush"), 0o755)?;
-        }
+        "mattos-brush" => stage_brush(repo_root, &staging)?,
         "mattos-coreutils" => stage_coreutils(repo_root, &staging)?,
         "mattos-curl" => {
             let source = repo_root.join("out/build/curl/install/usr/bin/curl");
@@ -1441,10 +1573,32 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
         _ => bail!("no staging implementation for {}", spec.name),
     }
 
+    if !matches!(
+        spec.name,
+        "mattos-libc6" | "mattos-libgcc-s1" | "mattos-libstdc++6"
+    ) {
+        strip_staged_debug(repo_root, &staging)?;
+    }
+
     let version = package_version(repo_root, spec)?;
     validate_debian_version(&version)?;
     let runtime_libraries = runtime_libraries_for_spec(repo_root, spec)?;
     write_provenance(repo_root, &staging, spec, &version, &runtime_libraries)?;
+    if matches!(
+        spec.name,
+        "mattos-linux-libc-dev"
+            | "mattos-libc6-dev"
+            | "mattos-libgcc-dev"
+            | "mattos-libstdc++-dev"
+            | "mattos-binutils"
+            | "mattos-gcc-common"
+            | "mattos-cpp"
+            | "mattos-gcc"
+            | "mattos-g++"
+            | "mattos-make"
+    ) {
+        validate_no_embedded_build_root(repo_root, &staging)?;
+    }
     let installed_size = installed_size_kib(&staging)?;
     let dependencies = package_dependencies(repo_root, spec)?;
     let control = render_control(
@@ -1571,6 +1725,20 @@ fn stage_glibc_utilities(repo_root: &Path, staging: &Path) -> Result<()> {
         &repo_root.join("src/system/libc/glibc/LICENSES"),
         &staging.join("usr/share/doc/mattos-libc-bin/LICENSES"),
     )?;
+    Ok(())
+}
+
+fn stage_brush(repo_root: &Path, staging: &Path) -> Result<()> {
+    let bin_dir = staging.join("usr/bin");
+    stage_executable(
+        &repo_root.join("src/userland/brush/target/release/brush"),
+        &bin_dir.join("brush"),
+        0o755,
+    )?;
+    #[cfg(unix)]
+    for alias in ["sh", "bash"] {
+        std::os::unix::fs::symlink("brush", bin_dir.join(alias))?;
+    }
     Ok(())
 }
 
@@ -1988,6 +2156,195 @@ fn stage_iproute2(repo_root: &Path, staging: &Path) -> Result<()> {
     )
 }
 
+fn stage_linux_libc_dev(repo_root: &Path, staging: &Path) -> Result<()> {
+    let glibc_headers = repo_root.join("out/build/glibc/install/usr/include");
+    copy_tree_filtered(
+        &repo_root.join("out/build/glibc/linux-headers/usr/include"),
+        &staging.join("usr/include"),
+        &|relative, _| !path_entry_exists(&glibc_headers.join(relative)),
+    )?;
+    copy_preserving(
+        &repo_root.join("src/kernel/linux/COPYING"),
+        &staging.join("usr/share/doc/mattos-linux-libc-dev/copyright"),
+    )?;
+    copy_preserving(
+        &repo_root.join("out/build/glibc/linux-headers-inventory.txt"),
+        &staging.join("usr/share/doc/mattos-linux-libc-dev/generated-files.txt"),
+    )
+}
+
+fn stage_glibc_development(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = repo_root.join("out/build/glibc/install/usr");
+    copy_tree_preserving(&install.join("include"), &staging.join("usr/include"))?;
+    copy_tree_filtered(
+        &install.join("lib/x86_64-linux-gnu"),
+        &staging.join("usr/lib/x86_64-linux-gnu"),
+        &|relative, _| {
+            relative
+                .file_name()
+                .and_then(OsStr::to_str)
+                .is_some_and(|name| {
+                    name.ends_with(".a") || name.ends_with(".o") || name.ends_with(".so")
+                })
+        },
+    )?;
+    copy_preserving(
+        &repo_root.join("src/system/libc/glibc/COPYING.LIB"),
+        &staging.join("usr/share/doc/mattos-libc6-dev/copyright"),
+    )
+}
+
+fn stage_gcc_development(repo_root: &Path, staging: &Path, cxx: bool) -> Result<()> {
+    let install = repo_root.join("out/build/gcc-runtime/install/usr");
+    if cxx {
+        copy_tree_preserving(
+            &install.join("include/c++"),
+            &staging.join("usr/include/c++"),
+        )?;
+        let source = install.join("lib/lib64");
+        let destination = staging.join("usr/lib/x86_64-linux-gnu");
+        for name in ["libstdc++.a", "libsupc++.a"] {
+            copy_preserving(&source.join(name), &destination.join(name))?;
+        }
+        fs::create_dir_all(&destination)?;
+        std::os::unix::fs::symlink("libstdc++.so.6", destination.join("libstdc++.so"))?;
+        copy_preserving(
+            &repo_root.join("src/toolchain/gcc/COPYING3"),
+            &staging.join("usr/share/doc/mattos-libstdc++-dev/copyright"),
+        )?;
+        copy_preserving(
+            &repo_root.join("src/toolchain/gcc/COPYING.RUNTIME"),
+            &staging.join("usr/share/doc/mattos-libstdc++-dev/copyright.RUNTIME"),
+        )?;
+    } else {
+        copy_tree_preserving(
+            &install.join("lib/x86_64-linux-gnu/gcc"),
+            &staging.join("usr/lib/x86_64-linux-gnu/gcc"),
+        )?;
+        let destination = staging.join("usr/lib/x86_64-linux-gnu");
+        fs::create_dir_all(&destination)?;
+        std::os::unix::fs::symlink("libgcc_s.so.1", destination.join("libgcc_s.so"))?;
+        copy_preserving(
+            &repo_root.join("src/toolchain/gcc/COPYING.RUNTIME"),
+            &staging.join("usr/share/doc/mattos-libgcc-dev/copyright"),
+        )?;
+    }
+    Ok(())
+}
+
+fn stage_native_binutils(repo_root: &Path, staging: &Path) -> Result<()> {
+    let source = repo_root.join("out/build/binutils/install/usr/bin");
+    for name in [
+        "addr2line",
+        "ar",
+        "as",
+        "c++filt",
+        "elfedit",
+        "ld",
+        "nm",
+        "objcopy",
+        "objdump",
+        "ranlib",
+        "readelf",
+        "size",
+        "strings",
+        "strip",
+    ] {
+        copy_preserving(&source.join(name), &staging.join("usr/bin").join(name))?;
+    }
+    copy_preserving(
+        &repo_root.join("src/toolchain/binutils/COPYING3"),
+        &staging.join("usr/share/doc/mattos-binutils/copyright"),
+    )
+}
+
+fn stage_native_gcc_common(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = repo_root.join("out/build/gcc-toolchain/install/usr");
+    copy_tree_preserving(
+        &install.join("libexec/gcc"),
+        &staging.join("usr/libexec/gcc"),
+    )?;
+    if install.join("lib/gcc").is_dir() {
+        copy_tree_preserving(&install.join("lib/gcc"), &staging.join("usr/lib/gcc"))?;
+    }
+    let multiarch_gcc = install.join("lib/x86_64-linux-gnu/gcc");
+    if multiarch_gcc.is_dir() {
+        let runtime_development =
+            repo_root.join("out/build/gcc-runtime/install/usr/lib/x86_64-linux-gnu/gcc");
+        copy_tree_filtered(
+            &multiarch_gcc,
+            &staging.join("usr/lib/x86_64-linux-gnu/gcc"),
+            &|relative, _| !path_entry_exists(&runtime_development.join(relative)),
+        )?;
+    }
+    copy_preserving(
+        &repo_root.join("src/toolchain/gcc/COPYING3"),
+        &staging.join("usr/share/doc/mattos-gcc-common/copyright"),
+    )
+}
+
+fn stage_native_compiler_driver(repo_root: &Path, staging: &Path, driver: &str) -> Result<()> {
+    let source = repo_root.join("out/build/gcc-toolchain/install/usr/bin");
+    copy_preserving(&source.join(driver), &staging.join("usr/bin").join(driver))?;
+    match driver {
+        "gcc" => std::os::unix::fs::symlink("gcc", staging.join("usr/bin/cc"))?,
+        "g++" => std::os::unix::fs::symlink("g++", staging.join("usr/bin/c++"))?,
+        _ => {}
+    }
+    copy_preserving(
+        &repo_root.join("src/toolchain/gcc/COPYING3"),
+        &staging
+            .join("usr/share/doc")
+            .join(format!("mattos-{driver}"))
+            .join("copyright"),
+    )
+}
+
+fn stage_native_make(repo_root: &Path, staging: &Path) -> Result<()> {
+    copy_preserving(
+        &repo_root.join("out/build/make/install/usr/bin/make"),
+        &staging.join("usr/bin/make"),
+    )?;
+    copy_preserving(
+        &repo_root.join("src/build-tools/make/COPYING"),
+        &staging.join("usr/share/doc/mattos-make/copyright"),
+    )
+}
+
+fn copy_tree_filtered(
+    source: &Path,
+    destination: &Path,
+    include: &dyn Fn(&Path, &fs::Metadata) -> bool,
+) -> Result<()> {
+    fn recurse(
+        root: &Path,
+        current: &Path,
+        destination: &Path,
+        include: &dyn Fn(&Path, &fs::Metadata) -> bool,
+    ) -> Result<()> {
+        let mut entries = fs::read_dir(current)?.collect::<std::io::Result<Vec<_>>>()?;
+        entries.sort_by_key(|entry| entry.file_name());
+        for entry in entries {
+            let source = entry.path();
+            let relative = source.strip_prefix(root)?;
+            let metadata = fs::symlink_metadata(&source)?;
+            if metadata.is_dir() {
+                recurse(root, &source, destination, include)?;
+            } else if include(relative, &metadata) {
+                copy_path_preserving(&source, &destination.join(relative))?;
+            }
+        }
+        Ok(())
+    }
+    if !source.is_dir() {
+        bail!(
+            "required package input directory missing at {}",
+            source.display()
+        )
+    }
+    recurse(source, source, destination, include)
+}
+
 fn validate_no_mutable_system_state(staging: &Path) -> Result<()> {
     for forbidden in [
         "etc/passwd",
@@ -2002,6 +2359,55 @@ fn validate_no_mutable_system_state(staging: &Path) -> Result<()> {
     ] {
         if path_entry_exists(&staging.join(forbidden)) {
             bail!("mutable system state must not be packaged: /{forbidden}")
+        }
+    }
+    Ok(())
+}
+
+fn validate_no_embedded_build_root(repo_root: &Path, staging: &Path) -> Result<()> {
+    let needle = repo_root.to_string_lossy();
+    walk_tree(staging, &mut |path, metadata| {
+        if metadata.is_file() && !path.starts_with(staging.join("DEBIAN")) {
+            let bytes = fs::read(path)?;
+            if bytes
+                .windows(needle.len())
+                .any(|window| window == needle.as_bytes())
+            {
+                bail!(
+                    "package payload /{} embeds the host build root",
+                    path.strip_prefix(staging)?.display()
+                )
+            }
+        }
+        Ok(())
+    })
+}
+
+fn strip_staged_debug(repo_root: &Path, staging: &Path) -> Result<()> {
+    let strip = repo_root.join("out/build/binutils/cross-install/usr/bin/strip");
+    if !strip.is_file() {
+        bail!(
+            "source-built Binutils strip is required before package staging at {}",
+            strip.display()
+        )
+    }
+    let mut objects = Vec::new();
+    walk_tree(staging, &mut |path, metadata| {
+        if metadata.is_file() && !path.starts_with(staging.join("DEBIAN")) {
+            let header = Command::new("readelf").args(["-h"]).arg(path).output()?;
+            if header.status.success() {
+                objects.push(path.to_path_buf());
+            }
+        }
+        Ok(())
+    })?;
+    for object in objects {
+        let status = Command::new(&strip)
+            .arg("--strip-debug")
+            .arg(&object)
+            .status()?;
+        if !status.success() {
+            bail!("source-built strip failed for {}", object.display())
         }
     }
     Ok(())
@@ -2354,8 +2760,20 @@ fn copy_preserving(source: &Path, destination: &Path) -> Result<()> {
 fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
     let upstream = match spec.name {
         "mattos-filesystem" | "mattos-base-files" => "0.1".to_string(),
-        "mattos-libc6" | "mattos-libc-bin" => component_snapshot_version(repo_root, "glibc")?,
-        "mattos-libgcc-s1" | "mattos-libstdc++6" => component_snapshot_version(repo_root, "gcc")?,
+        "mattos-libc6" | "mattos-libc6-dev" | "mattos-libc-bin" => {
+            component_snapshot_version(repo_root, "glibc")?
+        }
+        "mattos-linux-libc-dev" => component_snapshot_version(repo_root, "linux")?,
+        "mattos-libgcc-s1"
+        | "mattos-libstdc++6"
+        | "mattos-libgcc-dev"
+        | "mattos-libstdc++-dev"
+        | "mattos-gcc-common"
+        | "mattos-cpp"
+        | "mattos-gcc"
+        | "mattos-g++" => component_snapshot_version(repo_root, "gcc")?,
+        "mattos-binutils" => component_snapshot_version(repo_root, "binutils")?,
+        "mattos-make" => component_snapshot_version(repo_root, "make")?,
         "mattos-ca-certificates" => "2026.07.16".to_string(),
         "mattos-brush" => {
             cargo_package_version(&repo_root.join("src/userland/brush/brush/Cargo.toml"))?
@@ -2600,11 +3018,46 @@ fn write_provenance(
         "gcc" => {
             let state = read_sync_state(repo_root, "gcc")?
                 .ok_or_else(|| anyhow!("upstream state missing for gcc"))?;
+            let invocation = if matches!(
+                spec.name,
+                "mattos-gcc-common" | "mattos-cpp" | "mattos-gcc" | "mattos-g++"
+            ) {
+                "out/build/gcc-toolchain/configure-invocation.txt"
+            } else {
+                "out/build/gcc-runtime/configure-invocation.txt"
+            };
+            let configuration = fs::read_to_string(repo_root.join(invocation))?
+                .trim()
+                .to_string();
+            (
+                state.destination_path,
+                state.repo,
+                state.imported_commit,
+                configuration,
+            )
+        }
+        component @ ("binutils" | "make") => {
+            let state = read_sync_state(repo_root, component)?
+                .ok_or_else(|| anyhow!("upstream state missing for {component}"))?;
             let configuration = fs::read_to_string(
-                repo_root.join("out/build/gcc-runtime/configure-invocation.txt"),
+                repo_root.join(format!("out/build/{component}/configure-invocation.txt")),
             )?
             .trim()
             .to_string();
+            (
+                state.destination_path,
+                state.repo,
+                state.imported_commit,
+                configuration,
+            )
+        }
+        "linux" => {
+            let state = read_sync_state(repo_root, "linux")?
+                .ok_or_else(|| anyhow!("upstream state missing for linux"))?;
+            let configuration =
+                fs::read_to_string(repo_root.join("out/build/glibc/kernel-headers-source.txt"))?
+                    .trim()
+                    .to_string();
             (
                 state.destination_path,
                 state.repo,
@@ -2633,6 +3086,7 @@ fn write_provenance(
             "mattos package staging".to_string(),
         ),
     };
+    let configuration = configuration.replace(repo_root.to_string_lossy().as_ref(), "<repo>");
     let info = Provenance {
         package: spec.name,
         version,
@@ -2697,7 +3151,16 @@ fn runtime_libraries_for_spec(repo_root: &Path, spec: &PackageSpec) -> Result<Ve
         }
         name if matches!(
             name,
-            "mattos-libc6" | "mattos-libc-bin" | "mattos-libgcc-s1" | "mattos-libstdc++6"
+            "mattos-libc6"
+                | "mattos-libc-bin"
+                | "mattos-libgcc-s1"
+                | "mattos-libstdc++6"
+                | "mattos-binutils"
+                | "mattos-gcc-common"
+                | "mattos-cpp"
+                | "mattos-gcc"
+                | "mattos-g++"
+                | "mattos-make"
         ) =>
         {
             runtime_libraries_in_staging(repo_root, name)
@@ -2845,7 +3308,13 @@ fn runtime_libraries_in_staging(repo_root: &Path, package: &str) -> Result<Vec<S
     walk_tree(&staging, &mut |path, metadata| {
         if metadata.is_file() && !path.starts_with(staging.join("DEBIAN")) {
             let output = Command::new("readelf").args(["-h"]).arg(path).output()?;
-            if output.status.success() {
+            let header = String::from_utf8_lossy(&output.stdout);
+            if output.status.success()
+                && header.lines().any(|line| {
+                    let mut fields = line.split_whitespace();
+                    fields.next() == Some("Type:") && matches!(fields.next(), Some("DYN" | "EXEC"))
+                })
+            {
                 binaries.push(path.to_path_buf());
             }
         }
@@ -2853,6 +3322,7 @@ fn runtime_libraries_in_staging(repo_root: &Path, package: &str) -> Result<Vec<S
     })?;
     let library_dirs = [
         staging.join("usr/lib/x86_64-linux-gnu"),
+        repo_root.join("out/sysroot/usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "apt").join("usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "curl").join("usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "ncurses").join("usr/lib/x86_64-linux-gnu"),
@@ -3637,12 +4107,15 @@ pub(crate) fn validate_dpkg_database(rootfs: &Path) -> Result<()> {
     }
     for (path, owner) in [
         ("/usr/bin/brush", "mattos-brush"),
+        ("/usr/bin/sh", "mattos-brush"),
+        ("/usr/bin/bash", "mattos-brush"),
         ("/usr/bin/curl", "mattos-curl"),
         ("/usr/bin/ls", "mattos-coreutils"),
         ("/usr/bin/tar", "mattos-tar"),
         ("/usr/bin/dpkg", "mattos-dpkg"),
         ("/usr/bin/apt", "mattos-apt"),
         ("/usr/bin/apt-get", "mattos-apt"),
+        ("/usr/bin/ldd", "mattos-libc-bin"),
         ("/usr/lib/apt/methods/file", "mattos-apt"),
         (
             "/usr/lib/x86_64-linux-gnu/libapt-pkg.so.7.0",
@@ -3652,6 +4125,7 @@ pub(crate) fn validate_dpkg_database(rootfs: &Path) -> Result<()> {
             "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
             "mattos-libgcc-s1",
         ),
+        ("/usr/lib/x86_64-linux-gnu/libgcc_s.so", "mattos-libgcc-dev"),
         (
             "/usr/lib/x86_64-linux-gnu/libstdc++.so.6",
             "mattos-libstdc++6",
@@ -4489,7 +4963,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 55);
+        assert_eq!(PACKAGE_NAMES.len(), 65);
     }
 
     #[test]
@@ -4722,7 +5196,7 @@ mod tests {
             package_install_order_for(&specs, PACKAGE_NAMES)
                 .unwrap()
                 .len(),
-            55
+            65
         );
     }
 
@@ -4850,7 +5324,7 @@ mod tests {
         assert!(position("mattos-filesystem") < position("mattos-libc6"));
         assert!(position("mattos-libc6") < position("mattos-libgcc-s1"));
         assert!(position("mattos-libgcc-s1") < position("mattos-libstdc++6"));
-        assert_eq!(order.len(), 55);
+        assert_eq!(order.len(), 65);
     }
 
     #[test]
@@ -4877,6 +5351,97 @@ mod tests {
         let position = |name| order.iter().position(|item| *item == name).unwrap();
         assert!(position("mattos-libc6") < position("mattos-libgcc-s1"));
         assert!(position("mattos-libgcc-s1") < position("mattos-libstdc++6"));
+    }
+
+    #[test]
+    fn native_development_package_graph_has_explicit_owners() {
+        let specs = package_specs();
+        let spec = |name| specs.iter().find(|spec| spec.name == name).unwrap();
+        for name in [
+            "mattos-linux-libc-dev",
+            "mattos-libc6-dev",
+            "mattos-libgcc-dev",
+            "mattos-libstdc++-dev",
+            "mattos-binutils",
+            "mattos-gcc-common",
+            "mattos-cpp",
+            "mattos-gcc",
+            "mattos-g++",
+            "mattos-make",
+        ] {
+            assert!(PACKAGE_NAMES.contains(&name), "missing package {name}");
+        }
+        assert!(
+            spec("mattos-libc6-dev")
+                .depends
+                .contains(&"mattos-linux-libc-dev")
+        );
+        assert!(
+            spec("mattos-libstdc++-dev")
+                .depends
+                .contains(&"mattos-libgcc-dev")
+        );
+        assert!(spec("mattos-gcc").depends.contains(&"mattos-gcc-common"));
+        assert!(spec("mattos-g++").depends.contains(&"mattos-gcc"));
+        let order = package_install_order_for(&specs, PACKAGE_NAMES).unwrap();
+        let position = |name| order.iter().position(|item| *item == name).unwrap();
+        assert!(position("mattos-linux-libc-dev") < position("mattos-libc6-dev"));
+        assert!(position("mattos-libc6-dev") < position("mattos-libgcc-dev"));
+        assert!(position("mattos-libgcc-dev") < position("mattos-libstdc++-dev"));
+        assert!(position("mattos-binutils") < position("mattos-gcc-common"));
+        assert!(position("mattos-gcc-common") < position("mattos-gcc"));
+        assert!(position("mattos-gcc") < position("mattos-g++"));
+    }
+
+    #[test]
+    fn libgcc_development_package_owns_shared_linker_name() {
+        let temp = tempfile::tempdir().unwrap();
+        let repo = temp.path();
+        fs::create_dir_all(repo.join("out/build/gcc-runtime/install/usr/lib/x86_64-linux-gnu/gcc"))
+            .unwrap();
+        fs::create_dir_all(repo.join("src/toolchain/gcc")).unwrap();
+        fs::write(
+            repo.join("src/toolchain/gcc/COPYING.RUNTIME"),
+            "runtime license\n",
+        )
+        .unwrap();
+        let staging = repo.join("staging");
+
+        stage_gcc_development(repo, &staging, false).unwrap();
+
+        assert_eq!(
+            fs::read_link(staging.join("usr/lib/x86_64-linux-gnu/libgcc_s.so")).unwrap(),
+            PathBuf::from("libgcc_s.so.1")
+        );
+    }
+
+    #[test]
+    fn brush_package_owns_sh_and_bash_entry_points() {
+        let temp = tempfile::tempdir().unwrap();
+        let repo = temp.path();
+        let source = repo.join("src/userland/brush/target/release/brush");
+        fs::create_dir_all(source.parent().unwrap()).unwrap();
+        fs::write(&source, "source-built brush\n").unwrap();
+        let staging = repo.join("staging");
+
+        stage_brush(repo, &staging).unwrap();
+
+        assert_eq!(
+            fs::read_link(staging.join("usr/bin/sh")).unwrap(),
+            Path::new("brush")
+        );
+        assert_eq!(
+            fs::read_link(staging.join("usr/bin/bash")).unwrap(),
+            Path::new("brush")
+        );
+        assert_eq!(
+            fs::metadata(staging.join("usr/bin/brush"))
+                .unwrap()
+                .permissions()
+                .mode()
+                & 0o777,
+            0o755
+        );
     }
 
     #[test]

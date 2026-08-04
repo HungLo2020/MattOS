@@ -74,7 +74,7 @@ out/sysroot/
 └── usr/lib/x86_64-linux-gnu/
 ```
 
-It holds Linux UAPI headers, glibc headers, crt objects, linker scripts, runtime libraries, and the development files of source-built dependencies needed by later consumers. It contains no mutable rootfs state and is not installed as a runtime development package. Every downstream native stage is cleared after a glibc build and receives explicit C, C++, linker, pkg-config, or Rust linker sysroot settings.
+It holds Linux UAPI headers, glibc headers, crt objects, linker scripts, runtime libraries, and the development files of source-built dependencies needed by later consumers. It contains no mutable rootfs state. The native-toolchain milestone reproduces its development surface through `mattos-linux-libc-dev`, `mattos-libc6-dev`, `mattos-libgcc-dev`, and `mattos-libstdc++-dev`; runtime DSOs remain in their existing unique owners. Every downstream native stage is cleared after a glibc build and receives explicit C, C++, linker, pkg-config, or Rust linker sysroot settings.
 
 ## Runtime packages
 
@@ -82,7 +82,7 @@ It holds Linux UAPI headers, glibc headers, crt objects, linker scripts, runtime
 
 The selected NSS/resolver inventory includes `libnss_files.so.2`, `libnss_dns.so.2`, `libnss_compat.so.2`, `libnss_db.so.2`, `libnss_hesiod.so.2`, and `libresolv.so.2`. systemd continues to provide `libnss_systemd.so.2` and `libnss_resolve.so.2`. This supports MattOS's `files systemd` account databases and `files resolve ... dns` host lookup policy.
 
-`mattos-libc-bin` depends on `mattos-libc6` and owns `getent`, `locale`, `ldd`, and `ldconfig`. Locale data is not bulk-packaged. There is no `mattos-libc6-dev` in the runtime image; headers, crt objects, static archives, and unversioned linker inputs remain build/sysroot-only.
+`mattos-libc-bin` depends on `mattos-libc6` and owns `getent`, `locale`, `ldd`, and `ldconfig`. Locale data is not bulk-packaged. `mattos-libc6-dev` now owns the glibc headers, crt objects, static archives, and unversioned linker inputs required for native compilation, while `mattos-linux-libc-dev` uniquely owns the generated kernel UAPI layer.
 
 `mattos-libgcc-s1` depends on `mattos-libc6`; `mattos-libstdc++6` depends on both. `mattos-bootstrap-runtime` is retired. Every other package receives a direct exact-version dependency on `mattos-libc6`, and direct compiler-runtime consumers declare the appropriate GCC runtime package. See `GCC_RUNTIME_BOOTSTRAP.md`.
 
@@ -102,6 +102,6 @@ The completed inventory contains 258 ELF objects: 193 dynamic executables with t
 
 Two clean full builds produced byte-identical glibc installation trees, all 54 packages, all 57 repository files, the ELF inventory, initramfs, and ISO. Deterministic image construction fixes file timestamps to `SOURCE_DATE_EPOCH`, uses reproducible sorted `cpio` plus headerless gzip output, fixes ISO metadata dates, and emits the supported BIOS GRUB image from the `i386-pc` modules.
 
-## Remaining toolchain milestone
+## Native-toolchain continuation
 
-The GCC runtime step is complete. A later compiler/Binutils bootstrap can remove the host build-tool boundary. MattOS accurately describes itself as having source-closed target runtime payloads with a host-bootstrap build toolchain, not as self-hosting.
+The GCC runtime step remains the source of the target runtime and development artifacts. The native-toolchain milestone adds source-built Binutils, GCC C/C++, and Make to the guest while retaining a documented host-bootstrap boundary. MattOS does not yet claim compiler self-reproduction or a native full-system rebuild; see `NATIVE_TOOLCHAIN.md`.

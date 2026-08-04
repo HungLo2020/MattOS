@@ -128,7 +128,7 @@ Measured counts from this build:
 ### Brush shell and built-ins
 
 - Shell binary: `brush` at `/usr/bin/brush`
-- Login shell symlink: `/usr/bin/sh -> /bin/brush`
+- Package-owned compatibility entry points: `/usr/bin/sh -> brush` and `/usr/bin/bash -> brush`; the merged `/bin` layout therefore also provides `/bin/sh` and `/bin/bash`.
 - Provider label in inventory for shell binary: `brush`
 - Built-ins are internal to Brush and are not listed as standalone ELF binaries.
 

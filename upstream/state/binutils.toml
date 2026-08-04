@@ -1,0 +1,7 @@
+component = "binutils"
+repo = "https://sourceware.org/git/binutils-gdb.git"
+branch = "binutils-2_46_1"
+imported_commit = "5e56594815854de5eca35c7c04b11705d0f19c02"
+imported_at_utc = "2026-08-03T19:26:20.989734450+00:00"
+sync_method = "copy"
+destination_path = "src/toolchain/binutils"

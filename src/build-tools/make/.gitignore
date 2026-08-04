@@ -1,0 +1,76 @@
+# Development artifacts
+ID
+TAGS
+GPATH
+GRTAGS
+GTAGS
+.*cache
+.*gdbinit
+.gdb_history
+.vscode
+*~
+#*
+.#*
+*.diff
+*.patch
+*.orig
+*.rej
+
+# Configure artifacts
+/lib/
+/m4/
+ABOUT-NLS
+INSTALL
+Makefile
+Makefile.in
+Basic.mk
+aclocal.m4
+autom4te.cache/
+build-aux/
+config.cache
+config.h
+config.h.in
+config.log
+config.status
+configure
+/mk/Posix.mk
+stamp-*
+.dirstamp
+gnulib
+*.sed
+
+# Build artifacts
+.deps/
+gmk-default.h
+loadavg
+make
+*.i
+*.o
+*.a
+*.exe
+*.dll.a
+*.obj
+*.lib
+*.pdb
+*.sbr
+
+# Windows build artifacts
+WinDebug/
+WinRel/
+GccDebug/
+GccRel/
+
+# Test artifacts
+makeerror-*
+test-suite.log
+
+# Distribution artifacts
+.dep_segment
+.check-git-HEAD
+ChangeLog
+README
+build.cfg
+mkconfig.h
+make-[0-9]*/
+make-[0-9]*.tar.*
+checkcfg.*.log

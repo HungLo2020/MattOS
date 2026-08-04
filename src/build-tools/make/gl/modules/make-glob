@@ -1,0 +1,112 @@
+Description:
+GNU Make version of fnmatch()/glob() functions.  This is a holdover from
+a very old version of the globbing library.
+
+Files:
+lib/fnmatch.c
+lib/fnmatch.in.h
+lib/glob.c
+lib/glob.in.h
+
+configure.ac:
+# Check the system to see if it provides GNU glob.  If not, use our
+# local version.  Also avoid versions of glibc which have symlink bug
+# https://sourceware.org/bugzilla/show_bug.cgi?id=866 (test from gnulib)
+AC_CACHE_CHECK([if system libc has working GNU glob], [make_cv_sys_gnu_glob],[
+  if ln -s conf-doesntexist conf$$-globtest 2>/dev/null; then
+    make_check_symlink=yes
+  else
+    make_check_symlink=no
+  fi
+  if test $cross_compiling = yes || test $make_check_symlink = no; then
+    # When cross-compiling or without symlink support, check the version
+    AC_COMPILE_IFELSE(
+      [AC_LANG_PROGRAM(
+        [[#include <features.h>
+          #include <gnu-versions.h>
+          #include <glob.h>
+          #include <fnmatch.h>
+        ]],
+        [[
+          #if _GNU_GLOB_INTERFACE_VERSION == 0
+            GNU glob not available in libc
+          #elif __GLIBC__ < 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ < 27)
+            GNU glob in libc has dangling symlink bug
+          #endif
+        ]])],
+      [make_cv_sys_gnu_glob=yes],
+      [make_cv_sys_gnu_glob=no])
+  else
+    # Check for GNU glob, and that it handles dangling symlinks properly
+    AC_RUN_IFELSE(
+      [AC_LANG_PROGRAM(
+        [[#include <features.h>
+          #include <gnu-versions.h>
+          #include <glob.h>
+          #include <fnmatch.h>
+        ]],
+        [[
+          #if _GNU_GLOB_INTERFACE_VERSION == 0
+          return 1;
+          #else
+          glob_t found;
+          if (glob ("conf*-globtest", 0, 0, &found) == GLOB_NOMATCH)
+            return 1;
+          globfree (&found);
+          #endif
+        ]])],
+      [make_cv_sys_gnu_glob=yes],
+      [make_cv_sys_gnu_glob=no],
+      [dnl We don't get here.
+       :
+      ])
+  fi
+  test $make_check_symlink = no || rm -f conf$$-globtest
+])
+
+# Tell automake about this, so it can build the right .c files.
+AM_CONDITIONAL([USE_SYSTEM_GLOB], [test "$make_cv_sys_gnu_glob" = yes])
+
+# Tell build.sh which to use
+USE_SYSTEM_GLOB="$make_cv_sys_gnu_glob"
+AC_SUBST([USE_SYSTEM_GLOB])
+
+Makefile.am:
+if !USE_SYSTEM_GLOB
+libgnu_a_SOURCES += fnmatch.c
+
+BUILT_SOURCES += fnmatch.h
+
+fnmatch.h: fnmatch.in.h $(top_builddir)/config.status
+	$(AM_V_GEN)rm -f $@-t $@ && \
+	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
+	  cat $(srcdir)/fnmatch.in.h; \
+	} > $@-t && \
+	mv -f $@-t $@
+
+MOSTLYCLEANFILES += fnmatch.h fnmatch.h-t
+
+libgnu_a_SOURCES += glob.c
+
+BUILT_SOURCES += glob.h
+
+glob.h: glob.in.h $(top_builddir)/config.status
+	$(AM_V_GEN)rm -f $@-t $@ && \
+	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
+	  cat $(srcdir)/glob.in.h; \
+	} > $@-t && \
+	mv -f $@-t $@
+
+MOSTLYCLEANFILES += glob.h glob.h-t
+endif
+
+EXTRA_DIST += fnmatch.in.h glob.in.h
+
+Include:
+<glob.h>
+
+License:
+LGPLv2+
+
+Maintainer:
+all, glibc

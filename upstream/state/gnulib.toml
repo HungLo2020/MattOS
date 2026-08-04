@@ -1,0 +1,7 @@
+component = "gnulib"
+repo = "https://git.savannah.gnu.org/git/gnulib.git"
+branch = "stable-202301"
+imported_commit = "20932856a6a07f056918d58acd09cea4ba150a52"
+imported_at_utc = "2026-08-03T20:28:09.302975054+00:00"
+sync_method = "copy"
+destination_path = "src/build-support/gnulib"

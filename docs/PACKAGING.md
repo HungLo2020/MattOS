@@ -2,7 +2,7 @@
 
 MattOS uses Debian binary packages, `dpkg`, and APT without using Debian or Ubuntu as a binary source. Editable source and package policy live in this monorepo. Generated `.deb` files and repository indexes live under `out/` and are ignored build artifacts.
 
-This is a hybrid build-tool bootstrap, not a self-hosted distribution. Fifty-five packages own the initial base, package-manager runtime, MattOS-built glibc and GCC runtime libraries, selected source-built libraries and GNU tar, administration/networking tools, D-Bus broker, and authentication stack. The final ISO has no host-derived executable or runtime-library payloads; host compilers and packaging tools remain build inputs.
+This is a hybrid build-tool bootstrap, not a self-hosted distribution. Sixty-five packages own the initial base, package-manager runtime, MattOS-built glibc and GCC runtime libraries, native C/C++ development toolchain, selected source-built libraries and GNU tar, administration/networking tools, D-Bus broker, and authentication stack. The final ISO has no host-derived executable or runtime-library payloads; host compilers and packaging tools remain build inputs.
 
 ## Imported package-manager sources
 
@@ -125,6 +125,8 @@ Mutable lists, archives, logs, partial files, and locks are never package payloa
 
 `mattos-libc6` is the foundational runtime package. It owns the loader, glibc runtime DSOs, compatibility DSOs, NSS modules, resolver, license, provenance, and a checksummed runtime manifest. `mattos-libc-bin` owns `getent`, `locale`, `ldd`, and `ldconfig`. Development headers, crt objects, static archives, and linker inputs stay in `out/sysroot` and are not installed on the runtime ISO.
 
+`mattos-brush` owns the source-built `brush` executable plus the `sh` and `bash` compatibility symlinks. Because MattOS uses a merged `/usr` layout, both `/usr/bin/{sh,bash}` and `/bin/{sh,bash}` resolve to Brush. This lets source-built upstream scripts retain either conventional shell interpreter without an unowned rootfs alias or per-script shebang rewriting.
+
 `mattos-libgcc-s1` owns only `libgcc_s.so.1` plus license, ABI, and provenance metadata. `mattos-libstdc++6` owns only `libstdc++.so.6.0.34`, its SONAME link, license, ABI, and provenance metadata. The latter depends on the former; both depend on `mattos-libc6`. GCC headers, static libraries, unversioned development links, compiler drivers, internal executables, and debugging helpers remain outside package payloads.
 
 The former `mattos-bootstrap-runtime` package is absent from the installed set and repository. Its audit interface remains and reports zero host-derived entries and bytes. See `docs/BOOTSTRAP_RUNTIME.md`, `docs/GLIBC_BOOTSTRAP.md`, `docs/GCC_RUNTIME_BOOTSTRAP.md`, and the generated audit.
@@ -241,4 +243,4 @@ Rootfs assembly builds all packages and the repository, initializes an empty dpk
 
 Host `dpkg-deb` and `dpkg` still build and install archives. Host `dpkg-scanpackages`, `apt-ftparchive`, and deterministic `gzip` still create indexes. Host `file`, `readelf`, and `ldd` support closure inspection. This is a bootstrap boundary, not self-hosting.
 
-Target runtime closure is complete. The next major boundary is a compiler/Binutils and broader build-tool bootstrap. A standalone libcurl package, Perl and remaining dpkg helpers, and full systemd packaging can follow independently. Repository signing, online publication, persistence, installation, and automatic upgrades are separate future milestones.
+Target runtime closure and the first native C/C++ development-tool milestone are complete. The graph now has 65 packages: the additional ten packages split Linux UAPI headers, glibc development files, GCC runtime development files, source-built Binutils, GCC driver/common internals, and GNU Make into unique owners. These are installed through the same dpkg graph and embedded repository as runtime packages; no direct toolchain-copy path exists. See `NATIVE_TOOLCHAIN.md` for the exact boundaries and remaining gaps. A standalone libcurl package, later build systems and languages, remaining dpkg helpers, and full systemd packaging can follow independently. Repository signing, online publication, persistence, installation, and automatic upgrades are separate future milestones.

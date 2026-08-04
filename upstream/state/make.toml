@@ -1,0 +1,7 @@
+component = "make"
+repo = "https://git.savannah.gnu.org/git/make.git"
+branch = "4.4.1"
+imported_commit = "d66a65ad5a0e31b287f53930b0f09e31801f1613"
+imported_at_utc = "2026-08-03T19:26:29.299140684+00:00"
+sync_method = "copy"
+destination_path = "src/build-tools/make"
