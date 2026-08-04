@@ -6917,7 +6917,7 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
     let coreutils_multicall = resolve_coreutils_multicall(repo_root)?;
     let coreutils_dst = out.join("usr/bin/coreutils");
     if !coreutils_dst.is_file() {
-        bail!("mattos-coreutils package did not install /usr/bin/coreutils")
+        bail!("coreutils package did not install /usr/bin/coreutils")
     }
     copy_runtime_dependencies(&coreutils_dst, &out)?;
 
@@ -6937,7 +6937,7 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
         .collect();
     for applet in &installed_coreutils_applets {
         if !path_entry_exists(&out.join("usr/bin").join(applet)) {
-            bail!("mattos-coreutils package did not install alias /usr/bin/{applet}")
+            bail!("coreutils package did not install alias /usr/bin/{applet}")
         }
         inventory.add_installed(COREUTILS_PROVIDER, applet);
     }
@@ -6969,7 +6969,7 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
     let component_provider_commands = install_component_manifests(repo_root, &out, &mut inventory)?;
     let curl_dst = out.join("usr/bin/curl");
     if !curl_dst.is_file() {
-        bail!("mattos-curl package did not install /usr/bin/curl")
+        bail!("curl package did not install /usr/bin/curl")
     }
     copy_runtime_dependencies(&curl_dst, &out)?;
     inventory.add_implemented(CURL_PROVIDER, "curl");
@@ -7523,7 +7523,7 @@ fn install_component_configuration(repo_root: &Path, rootfs: &Path) -> Result<()
     }
     let sysctl_source = repo_root.join("src/userland/procps-ng/sysctl.conf");
     if fs::read(&sysctl_source)? != fs::read(rootfs.join("etc/sysctl.conf"))? {
-        bail!("mattos-procps did not install the authoritative /etc/sysctl.conf");
+        bail!("procps did not install the authoritative /etc/sysctl.conf");
     }
 
     let source_db = repo_root.join("out/build/ncurses/install/usr/share/terminfo");
@@ -7682,7 +7682,7 @@ fn install_user_session_configuration(repo_root: &Path, rootfs: &Path) -> Result
         .with_context(|| format!("failed to create {}", user_units.display()))?;
     for rel in ["dbus.socket", "dbus-broker.service"] {
         if fs::read(units_source.join(rel))? != fs::read(user_units.join(rel))? {
-            bail!("mattos-dbus-broker did not install authoritative user unit {rel}");
+            bail!("dbus-broker did not install authoritative user unit {rel}");
         }
     }
     for rel in ["dbus.socket", "dbus-broker.service"] {
@@ -7717,7 +7717,7 @@ fn install_user_session_configuration(repo_root: &Path, rootfs: &Path) -> Result
             .with_context(|| format!("failed to create /{directory}"))?;
     }
     if fs::read(&dbus_config)? != fs::read(rootfs.join("usr/share/dbus-1/session.conf"))? {
-        bail!("mattos-dbus-broker did not install authoritative session bus policy");
+        bail!("dbus-broker did not install authoritative session bus policy");
     }
     set_mode(rootfs.join("usr/share/dbus-1/session.conf"), 0o644)?;
 
@@ -7886,7 +7886,7 @@ fn install_dbus_configuration(repo_root: &Path, rootfs: &Path) -> Result<()> {
     ] {
         if fs::read(source)? != fs::read(&destination)? {
             bail!(
-                "mattos-dbus-broker did not install authoritative /{}",
+                "dbus-broker did not install authoritative /{}",
                 destination.strip_prefix(rootfs)?.display()
             );
         }

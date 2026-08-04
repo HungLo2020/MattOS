@@ -36,7 +36,7 @@ Traditional util-linux builds `agetty`, `login`, and `su` with local PAM, plus t
 
 Shadow is configured with PAM and yescrypt, and without NLS, SELinux, logind, Btrfs, nscd, or sssd. `/etc/login.defs` specifies `ENCRYPT_METHOD YESCRYPT`; QEMU validation confirmed newly assigned passwords use the `$y$` yescrypt format.
 
-`mattos-libcrypt1` comes from libxcrypt `v4.4.38`, configured with all hashing algorithms and glibc-compatible obsolete APIs. The upstream suite passes its yescrypt generation/verification cases. The installed `libcrypt.so.1` exports `GLIBC_2.2.5`, `XCRYPT_2.0`, `XCRYPT_4.3`, and `XCRYPT_4.4`; PAM requires `crypt_checksalt@XCRYPT_4.3` plus `crypt_r` and `crypt_gensalt_rn` at `XCRYPT_2.0`, while Shadow requires `crypt` and `crypt_gensalt` at `XCRYPT_2.0`. PAM, Shadow, and their helpers are rebuilt with staged include, pkg-config, linker, and runtime paths so host libcrypt fallback fails the build.
+`libcrypt1` comes from libxcrypt `v4.4.38`, configured with all hashing algorithms and glibc-compatible obsolete APIs. The upstream suite passes its yescrypt generation/verification cases. The installed `libcrypt.so.1` exports `GLIBC_2.2.5`, `XCRYPT_2.0`, `XCRYPT_4.3`, and `XCRYPT_4.4`; PAM requires `crypt_checksalt@XCRYPT_4.3` plus `crypt_r` and `crypt_gensalt_rn` at `XCRYPT_2.0`, while Shadow requires `crypt` and `crypt_gensalt` at `XCRYPT_2.0`. PAM, Shadow, and their helpers are rebuilt with staged include, pkg-config, linker, and runtime paths so host libcrypt fallback fails the build.
 
 The source-built `libselinux.so.1` is compatibility runtime only. MattOS installs no SELinux policy, boot mode, relabeling tools, enforcing/permissive configuration, or policy compiler.
 
@@ -113,6 +113,6 @@ The current root filesystem is an initramfs. Accounts, groups, password hashes, 
 
 ## glibc and NSS boundary
 
-Authentication executables, PAM modules, Shadow, sudo-rs, systemd-logind, and the Rust userland are rebuilt after the MattOS glibc sysroot is installed. Their final ELF interpreter is `/lib64/ld-linux-x86-64.so.2`, owned by `mattos-libc6`; loader resolution is checked entirely within the assembled rootfs.
+Authentication executables, PAM modules, Shadow, sudo-rs, systemd-logind, and the Rust userland are rebuilt after the MattOS glibc sysroot is installed. Their final ELF interpreter is `/lib64/ld-linux-x86-64.so.2`, owned by `libc6`; loader resolution is checked entirely within the assembled rootfs.
 
 The package includes glibc's `libnss_files.so.2` and resolver modules. systemd supplies `libnss_systemd.so.2` and `libnss_resolve.so.2`, preserving the existing `passwd: files systemd`, `group: files systemd`, and `shadow: files systemd` policy. `getent passwd mattos`, PAM account lookup, login, `su`, sudo, and logind session creation therefore exercise the MattOS-built libc/NSS stack. The password policy, yescrypt configuration, live autologin, setuid modes, sudo policy, and locked-root policy are unchanged by the libc migration.

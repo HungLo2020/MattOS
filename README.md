@@ -108,6 +108,8 @@ See `docs/SESSIONS.md` for pam_systemd, logind sessions, runtime directories, pe
 
 See `docs/PACKAGING.md` for `.deb` construction, the local MattOS APT repository, imported dpkg/APT builds, and hybrid rootfs assembly.
 
+See `docs/DEBIAN_COMPATIBILITY.md` for the Debian 13 `amd64` contract, package-name mapping, protected-package policy, validation results, and known gaps. See `docs/REMOTE_REPOSITORY.md` for the read-only LinuxScripts publisher integration; nothing is published by the build.
+
 ## Build stages
 
 ```
@@ -139,6 +141,8 @@ cargo run -p mattos-build -- package build --all
 cargo run -p mattos-build -- package repo
 cargo run -p mattos-build -- package inspect mattos-brush
 cargo run -p mattos-build -- package status
+cargo run -p mattos-build -- package compatibility-audit
+cargo run -p mattos-build -- package publish-plan out/packages/amd64/<package>.deb
 ```
 
 The development launcher gives the guest a QEMU user-mode virtio-net interface by default. Use `python3 DevUtils/run_qemu.py --no-network` for an isolated boot.

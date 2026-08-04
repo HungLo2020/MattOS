@@ -33,6 +33,9 @@ const APT_RUNTIME_PATHS: &[&str] = &[
 const APT_CONFFILES: &[&str] = &[
     "/etc/apt/apt.conf.d/01mattos",
     "/etc/apt/sources.list.d/mattos.sources",
+    "/etc/apt/sources.list.d/mattos-hosted.sources",
+    "/etc/apt/sources.list.d/debian-trixie.sources",
+    "/etc/apt/preferences.d/00mattos-priority",
 ];
 const PAM_MODULES: &[&str] = &[
     "pam_unix.so",
@@ -125,70 +128,70 @@ const MIGRATED_BOOTSTRAP_SONAME_PREFIXES: &[&str] = &[
 ];
 const PACKAGE_NAMES: &[&str] = &[
     "mattos-filesystem",
-    "mattos-libc6",
-    "mattos-libgcc-s1",
-    "mattos-libstdc++6",
-    "mattos-linux-libc-dev",
-    "mattos-libc6-dev",
+    "libc6",
+    "libgcc-s1",
+    "libstdc++6",
+    "linux-libc-dev",
+    "libc6-dev",
     "mattos-libgcc-dev",
     "mattos-libstdc++-dev",
-    "mattos-binutils",
+    "binutils",
     "mattos-gcc-common",
-    "mattos-cpp",
-    "mattos-gcc",
-    "mattos-g++",
-    "mattos-make",
-    "mattos-libc-bin",
+    "cpp",
+    "gcc",
+    "g++",
+    "make",
+    "libc-bin",
     "mattos-base-files",
-    "mattos-ca-certificates",
+    "ca-certificates",
     "mattos-brush",
-    "mattos-coreutils",
-    "mattos-curl",
-    "mattos-libmd0",
-    "mattos-libbsd0",
-    "mattos-libzstd1",
+    "coreutils",
+    "curl",
+    "libmd0",
+    "libbsd0",
+    "libzstd1",
     "mattos-libcrypto3",
-    "mattos-libssl3",
-    "mattos-libelf1",
-    "mattos-libpcre2-8-0",
-    "mattos-libselinux1",
-    "mattos-libcrypt1",
-    "mattos-libblkid1",
-    "mattos-libmount1",
-    "mattos-libsmartcols1",
-    "mattos-mount",
-    "mattos-dpkg",
-    "mattos-libapt-pkg",
-    "mattos-apt",
+    "libssl3t64",
+    "libelf1t64",
+    "libpcre2-8-0",
+    "libselinux1",
+    "libcrypt1",
+    "libblkid1",
+    "libmount1",
+    "libsmartcols1",
+    "mount",
+    "dpkg",
+    "libapt-pkg7.0",
+    "apt",
     "mattos-libtinfow6",
-    "mattos-libncursesw6",
-    "mattos-terminfo",
-    "mattos-ncurses-bin",
-    "mattos-libkmod2",
-    "mattos-kmod",
+    "libncursesw6",
+    "ncurses-base",
+    "ncurses-bin",
+    "libkmod2",
+    "kmod",
     "mattos-libproc2",
-    "mattos-procps",
-    "mattos-libsystemd0",
-    "mattos-libudev1",
-    "mattos-libexpat1",
-    "mattos-libcap2",
-    "mattos-libacl1",
-    "mattos-zlib1g",
-    "mattos-libbz2-1.0",
-    "mattos-liblz4-1",
-    "mattos-liblzma5",
-    "mattos-libxxhash0",
-    "mattos-tar",
-    "mattos-dbus-broker",
-    "mattos-libpam0",
+    "procps",
+    "libsystemd0",
+    "libudev1",
+    "libexpat1",
+    "libcap2",
+    "libacl1",
+    "zlib1g",
+    "libbz2-1.0",
+    "liblz4-1",
+    "liblzma5",
+    "libxxhash0",
+    "tar",
+    "dbus-broker",
+    "libpam0g",
     "mattos-libpam-misc0",
-    "mattos-pam-modules",
-    "mattos-pam-runtime",
-    "mattos-shadow",
+    "libpam-modules",
+    "libpam-runtime",
+    "passwd",
     "mattos-sudo-rs",
-    "mattos-util-linux-auth",
-    "mattos-iproute2",
-    "mattos-iputils",
+    "login",
+    "iproute2",
+    "iputils-ping",
 ];
 
 #[derive(Subcommand, Debug)]
@@ -204,6 +207,11 @@ pub(crate) enum PackageCommands {
     },
     Audit,
     Status,
+    CompatibilityAudit,
+    PublishPlan {
+        #[arg(required = true)]
+        artifacts: Vec<PathBuf>,
+    },
 }
 
 #[derive(Clone, Debug)]
@@ -235,6 +243,47 @@ struct PackageInventoryEntry {
     runtime_libraries: Vec<String>,
     file_count: u64,
     sha256: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct DebianCompatibilityManifest {
+    schema_version: u32,
+    suite: String,
+    architecture: String,
+    policy: String,
+    version_policy: String,
+    package: Vec<DebianCompatibilityPackage>,
+}
+
+#[derive(Debug, Deserialize)]
+struct DebianCompatibilityPackage {
+    debian_name: String,
+    mattos_name: String,
+    source_component: String,
+    owned_paths: Vec<String>,
+    provided_abi_or_commands: Vec<String>,
+    protected: bool,
+    current_mattos_version: String,
+    expected_debian_role: String,
+    classification: String,
+    known_gaps: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ProtectedPackageManifest {
+    schema_version: u32,
+    suite: String,
+    packages: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct LinuxScriptsPolicy {
+    schema_version: u32,
+    component: String,
+    authoritative_path: String,
+    sha256: String,
+    policy: String,
+    forbidden_nested_entry: String,
 }
 
 #[derive(Serialize)]
@@ -308,7 +357,7 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "required",
         },
         PackageSpec {
-            name: "mattos-libc6",
+            name: "libc6",
             description: "GNU C Library runtime built for MattOS",
             source_component: "glibc",
             depends: &["mattos-filesystem"],
@@ -319,10 +368,10 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "required",
         },
         PackageSpec {
-            name: "mattos-libgcc-s1",
+            name: "libgcc-s1",
             description: "GCC shared unwinding runtime built for MattOS",
             source_component: "gcc",
-            depends: &["mattos-filesystem", "mattos-libc6"],
+            depends: &["mattos-filesystem", "libc6"],
             provides: &["libgcc-s1"],
             conflicts: &[],
             replaces: &[],
@@ -330,10 +379,10 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "required",
         },
         PackageSpec {
-            name: "mattos-libstdc++6",
+            name: "libstdc++6",
             description: "GNU C++ runtime library built for MattOS",
             source_component: "gcc",
-            depends: &["mattos-filesystem", "mattos-libc6", "mattos-libgcc-s1"],
+            depends: &["mattos-filesystem", "libc6", "libgcc-s1"],
             provides: &["libstdc++6"],
             conflicts: &[],
             replaces: &[],
@@ -341,7 +390,7 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "required",
         },
         PackageSpec {
-            name: "mattos-linux-libc-dev",
+            name: "linux-libc-dev",
             description: "Linux userspace API headers for MattOS native development",
             source_component: "linux",
             depends: &["mattos-filesystem"],
@@ -352,10 +401,10 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "optional",
         },
         PackageSpec {
-            name: "mattos-libc6-dev",
+            name: "libc6-dev",
             description: "GNU C Library headers and link-time files for MattOS",
             source_component: "glibc",
-            depends: &["mattos-libc6", "mattos-linux-libc-dev"],
+            depends: &["libc6", "linux-libc-dev"],
             provides: &["libc6-dev"],
             conflicts: &[],
             replaces: &[],
@@ -366,7 +415,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libgcc-dev",
             description: "GCC support headers and static link libraries for MattOS",
             source_component: "gcc",
-            depends: &["mattos-libc6-dev", "mattos-libgcc-s1"],
+            depends: &["libc6-dev", "libgcc-s1"],
             provides: &["libgcc-dev"],
             conflicts: &[],
             replaces: &[],
@@ -377,7 +426,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libstdc++-dev",
             description: "GNU C++ standard library headers and link-time files for MattOS",
             source_component: "gcc",
-            depends: &["mattos-libc6-dev", "mattos-libgcc-dev", "mattos-libstdc++6"],
+            depends: &["libc6-dev", "mattos-libgcc-dev", "libstdc++6"],
             provides: &["libstdc++-dev"],
             conflicts: &[],
             replaces: &[],
@@ -385,10 +434,10 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "optional",
         },
         PackageSpec {
-            name: "mattos-binutils",
+            name: "binutils",
             description: "GNU binary utilities built natively for MattOS",
             source_component: "binutils",
-            depends: &["mattos-libc6"],
+            depends: &["libc6"],
             provides: &["binutils"],
             conflicts: &[],
             replaces: &[],
@@ -399,12 +448,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-gcc-common",
             description: "Shared compiler support and internal GCC helpers for MattOS",
             source_component: "gcc",
-            depends: &[
-                "mattos-binutils",
-                "mattos-libgcc-dev",
-                "mattos-libstdc++6",
-                "mattos-zlib1g",
-            ],
+            depends: &["binutils", "mattos-libgcc-dev", "libstdc++6", "zlib1g"],
             provides: &["gcc-common"],
             conflicts: &[],
             replaces: &[],
@@ -412,7 +456,7 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "optional",
         },
         PackageSpec {
-            name: "mattos-cpp",
+            name: "cpp",
             description: "GNU C preprocessor built natively for MattOS",
             source_component: "gcc",
             depends: &["mattos-gcc-common"],
@@ -423,10 +467,10 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "optional",
         },
         PackageSpec {
-            name: "mattos-gcc",
+            name: "gcc",
             description: "GNU C compiler built natively for MattOS",
             source_component: "gcc",
-            depends: &["mattos-cpp", "mattos-gcc-common", "mattos-libc6-dev"],
+            depends: &["cpp", "mattos-gcc-common", "libc6-dev"],
             provides: &["c-compiler", "gcc"],
             conflicts: &[],
             replaces: &[],
@@ -434,10 +478,10 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "optional",
         },
         PackageSpec {
-            name: "mattos-g++",
+            name: "g++",
             description: "GNU C++ compiler built natively for MattOS",
             source_component: "gcc",
-            depends: &["mattos-gcc", "mattos-libstdc++-dev"],
+            depends: &["gcc", "mattos-libstdc++-dev"],
             provides: &["c++-compiler", "g++"],
             conflicts: &[],
             replaces: &[],
@@ -445,10 +489,10 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "optional",
         },
         PackageSpec {
-            name: "mattos-make",
+            name: "make",
             description: "GNU Make built natively for MattOS",
             source_component: "make",
-            depends: &["mattos-libc6"],
+            depends: &["libc6"],
             provides: &["make"],
             conflicts: &[],
             replaces: &[],
@@ -456,10 +500,10 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "optional",
         },
         PackageSpec {
-            name: "mattos-libc-bin",
+            name: "libc-bin",
             description: "GNU C Library runtime utilities built for MattOS",
             source_component: "glibc",
-            depends: &["mattos-filesystem", "mattos-libc6"],
+            depends: &["mattos-filesystem", "libc6"],
             provides: &["libc-bin"],
             conflicts: &[],
             replaces: &[],
@@ -478,7 +522,7 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "required",
         },
         PackageSpec {
-            name: "mattos-ca-certificates",
+            name: "ca-certificates",
             description: "Pinned Mozilla certificate authority bundle for MattOS",
             source_component: "ca-certificates",
             depends: &["mattos-filesystem"],
@@ -492,7 +536,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-brush",
             description: "Brush shell with sh and bash entry points built for MattOS",
             source_component: "brush",
-            depends: &["mattos-filesystem", "mattos-libgcc-s1"],
+            depends: &["mattos-filesystem", "libgcc-s1"],
             provides: &["mattos-shell", "sh", "bash"],
             conflicts: &[],
             replaces: &[],
@@ -500,10 +544,10 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "required",
         },
         PackageSpec {
-            name: "mattos-coreutils",
+            name: "coreutils",
             description: "uutils core utilities built for MattOS",
             source_component: "coreutils",
-            depends: &["mattos-filesystem", "mattos-libgcc-s1"],
+            depends: &["mattos-filesystem", "libgcc-s1"],
             provides: &["coreutils"],
             conflicts: &["coreutils"],
             replaces: &["coreutils"],
@@ -511,16 +555,16 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "required",
         },
         PackageSpec {
-            name: "mattos-curl",
+            name: "curl",
             description: "curl command-line transfer client built for MattOS",
             source_component: "curl",
             depends: &[
                 "mattos-filesystem",
-                "mattos-ca-certificates",
-                "mattos-zlib1g",
-                "mattos-libzstd1",
+                "ca-certificates",
+                "zlib1g",
+                "libzstd1",
                 "mattos-libcrypto3",
-                "mattos-libssl3",
+                "libssl3t64",
             ],
             provides: &["curl"],
             conflicts: &["curl"],
@@ -529,7 +573,7 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "optional",
         },
         PackageSpec {
-            name: "mattos-libmd0",
+            name: "libmd0",
             description: "libmd message-digest runtime library built for MattOS",
             source_component: "libmd",
             depends: &[],
@@ -540,10 +584,10 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-libbsd0",
+            name: "libbsd0",
             description: "libbsd portability runtime library built for MattOS",
             source_component: "libbsd",
-            depends: &["mattos-libmd0"],
+            depends: &["libmd0"],
             provides: &["libbsd0"],
             conflicts: &[],
             replaces: &[],
@@ -551,7 +595,7 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-libzstd1",
+            name: "libzstd1",
             description: "Zstandard compression runtime library built for MattOS",
             source_component: "zstd",
             depends: &[],
@@ -565,7 +609,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libcrypto3",
             description: "OpenSSL cryptography runtime library built for MattOS",
             source_component: "openssl",
-            depends: &["mattos-zlib1g", "mattos-libzstd1"],
+            depends: &["zlib1g", "libzstd1"],
             provides: &["libcrypto3"],
             conflicts: &[],
             replaces: &[],
@@ -573,10 +617,10 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-libssl3",
+            name: "libssl3t64",
             description: "OpenSSL TLS runtime library built for MattOS",
             source_component: "openssl",
-            depends: &["mattos-libcrypto3", "mattos-zlib1g", "mattos-libzstd1"],
+            depends: &["mattos-libcrypto3", "zlib1g", "libzstd1"],
             provides: &["libssl3t64"],
             conflicts: &[],
             replaces: &[],
@@ -584,10 +628,10 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-libelf1",
+            name: "libelf1t64",
             description: "elfutils libelf runtime library built for MattOS",
             source_component: "elfutils",
-            depends: &["mattos-zlib1g", "mattos-libzstd1"],
+            depends: &["zlib1g", "libzstd1"],
             provides: &["libelf1t64"],
             conflicts: &[],
             replaces: &[],
@@ -595,7 +639,7 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-libpcre2-8-0",
+            name: "libpcre2-8-0",
             description: "PCRE2 8-bit regular expression runtime library built for MattOS",
             source_component: "pcre2",
             depends: &[],
@@ -606,10 +650,10 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-libselinux1",
+            name: "libselinux1",
             description: "SELinux userspace runtime library built for MattOS",
             source_component: "selinux",
-            depends: &["mattos-libpcre2-8-0"],
+            depends: &["libpcre2-8-0"],
             provides: &["libselinux1"],
             conflicts: &[],
             replaces: &[],
@@ -617,7 +661,7 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-libcrypt1",
+            name: "libcrypt1",
             description: "libxcrypt password hashing runtime library built for MattOS",
             source_component: "libxcrypt",
             depends: &[],
@@ -628,7 +672,7 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "required",
         },
         PackageSpec {
-            name: "mattos-libblkid1",
+            name: "libblkid1",
             description: "util-linux block device identification runtime library built for MattOS",
             source_component: "util-linux",
             depends: &[],
@@ -639,10 +683,10 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-libmount1",
+            name: "libmount1",
             description: "util-linux mount runtime library built for MattOS",
             source_component: "util-linux",
-            depends: &["mattos-libblkid1"],
+            depends: &["libblkid1"],
             provides: &["libmount1"],
             conflicts: &[],
             replaces: &[],
@@ -650,7 +694,7 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-libsmartcols1",
+            name: "libsmartcols1",
             description: "util-linux structured table runtime library built for MattOS",
             source_component: "util-linux",
             depends: &[],
@@ -661,15 +705,10 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-mount",
+            name: "mount",
             description: "util-linux mount and unmount tools built for MattOS",
             source_component: "util-linux",
-            depends: &[
-                "mattos-libblkid1",
-                "mattos-libmount1",
-                "mattos-libsmartcols1",
-                "mattos-libselinux1",
-            ],
+            depends: &["libblkid1", "libmount1", "libsmartcols1", "libselinux1"],
             provides: &["mount"],
             conflicts: &["mount"],
             replaces: &["mount"],
@@ -677,19 +716,19 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "required",
         },
         PackageSpec {
-            name: "mattos-dpkg",
+            name: "dpkg",
             description: "dpkg binary package management runtime built for MattOS",
             source_component: "dpkg",
             depends: &[
                 "mattos-filesystem",
-                "mattos-tar",
-                "mattos-zlib1g",
-                "mattos-libbz2-1.0",
-                "mattos-liblzma5",
-                "mattos-libzstd1",
-                "mattos-libmd0",
-                "mattos-libpcre2-8-0",
-                "mattos-libselinux1",
+                "tar",
+                "zlib1g",
+                "libbz2-1.0",
+                "liblzma5",
+                "libzstd1",
+                "libmd0",
+                "libpcre2-8-0",
+                "libselinux1",
             ],
             provides: &["dpkg"],
             conflicts: &["dpkg"],
@@ -698,20 +737,20 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "required",
         },
         PackageSpec {
-            name: "mattos-libapt-pkg",
+            name: "libapt-pkg7.0",
             description: "APT public runtime library built for MattOS",
             source_component: "apt",
             depends: &[
-                "mattos-libgcc-s1",
-                "mattos-libstdc++6",
-                "mattos-libudev1",
-                "mattos-libsystemd0",
-                "mattos-zlib1g",
-                "mattos-libbz2-1.0",
-                "mattos-liblz4-1",
-                "mattos-liblzma5",
-                "mattos-libxxhash0",
-                "mattos-libzstd1",
+                "libgcc-s1",
+                "libstdc++6",
+                "libudev1",
+                "libsystemd0",
+                "zlib1g",
+                "libbz2-1.0",
+                "liblz4-1",
+                "liblzma5",
+                "libxxhash0",
+                "libzstd1",
                 "mattos-libcrypto3",
             ],
             provides: &["libapt-pkg7.0"],
@@ -721,23 +760,23 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-apt",
+            name: "apt",
             description: "APT command-line package manager and local repository methods for MattOS",
             source_component: "apt",
             depends: &[
-                "mattos-libgcc-s1",
-                "mattos-libstdc++6",
-                "mattos-ca-certificates",
-                "mattos-dpkg",
-                "mattos-libapt-pkg",
-                "mattos-libudev1",
-                "mattos-libsystemd0",
-                "mattos-zlib1g",
-                "mattos-libbz2-1.0",
-                "mattos-liblz4-1",
-                "mattos-liblzma5",
-                "mattos-libxxhash0",
-                "mattos-libzstd1",
+                "libgcc-s1",
+                "libstdc++6",
+                "ca-certificates",
+                "dpkg",
+                "libapt-pkg7.0",
+                "libudev1",
+                "libsystemd0",
+                "zlib1g",
+                "libbz2-1.0",
+                "liblz4-1",
+                "liblzma5",
+                "libxxhash0",
+                "libzstd1",
                 "mattos-libcrypto3",
             ],
             provides: &["apt"],
@@ -751,14 +790,14 @@ fn package_specs() -> Vec<PackageSpec> {
             description: "ncurses wide-character terminfo runtime library built for MattOS",
             source_component: "ncurses",
             depends: &[],
-            provides: &["libtinfo6"],
+            provides: &[],
             conflicts: &[],
             replaces: &[],
             essential: false,
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-libncursesw6",
+            name: "libncursesw6",
             description: "ncurses wide-character runtime library built for MattOS",
             source_component: "ncurses",
             depends: &["mattos-libtinfow6"],
@@ -769,7 +808,7 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-terminfo",
+            name: "ncurses-base",
             description: "MattOS essential terminal capability database",
             source_component: "ncurses",
             depends: &["mattos-filesystem"],
@@ -780,10 +819,10 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-ncurses-bin",
+            name: "ncurses-bin",
             description: "ncurses terminal utilities built for MattOS",
             source_component: "ncurses",
-            depends: &["mattos-libtinfow6", "mattos-terminfo"],
+            depends: &["mattos-libtinfow6", "ncurses-base"],
             provides: &["ncurses-bin"],
             conflicts: &["ncurses-bin"],
             replaces: &["ncurses-bin"],
@@ -791,7 +830,7 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-libkmod2",
+            name: "libkmod2",
             description: "kmod runtime library built for MattOS",
             source_component: "kmod",
             depends: &[],
@@ -802,10 +841,10 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-kmod",
+            name: "kmod",
             description: "Linux kernel module management tools built for MattOS",
             source_component: "kmod",
-            depends: &["mattos-libkmod2"],
+            depends: &["libkmod2"],
             provides: &["kmod"],
             conflicts: &["kmod"],
             replaces: &["kmod"],
@@ -817,21 +856,17 @@ fn package_specs() -> Vec<PackageSpec> {
             description: "procps process information runtime library built for MattOS",
             source_component: "procps-ng",
             depends: &[],
-            provides: &["libproc2-0"],
+            provides: &[],
             conflicts: &[],
             replaces: &[],
             essential: false,
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-procps",
+            name: "procps",
             description: "procps process inspection utilities built for MattOS",
             source_component: "procps-ng",
-            depends: &[
-                "mattos-libproc2",
-                "mattos-libncursesw6",
-                "mattos-libtinfow6",
-            ],
+            depends: &["mattos-libproc2", "libncursesw6", "mattos-libtinfow6"],
             provides: &["procps"],
             conflicts: &["procps"],
             replaces: &["procps"],
@@ -839,7 +874,7 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-libsystemd0",
+            name: "libsystemd0",
             description: "systemd public runtime library built for MattOS",
             source_component: "systemd",
             depends: &[],
@@ -850,7 +885,7 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-libudev1",
+            name: "libudev1",
             description: "systemd device enumeration runtime library built for MattOS",
             source_component: "systemd",
             depends: &[],
@@ -861,7 +896,7 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-libexpat1",
+            name: "libexpat1",
             description: "Expat XML parser runtime library built for MattOS",
             source_component: "expat",
             depends: &[],
@@ -872,7 +907,7 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-libcap2",
+            name: "libcap2",
             description: "Linux capabilities runtime library built for MattOS",
             source_component: "libcap",
             depends: &[],
@@ -883,7 +918,7 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-libacl1",
+            name: "libacl1",
             description: "POSIX access control list runtime library built for MattOS",
             source_component: "acl",
             depends: &[],
@@ -894,7 +929,7 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-zlib1g",
+            name: "zlib1g",
             description: "zlib compression runtime library built for MattOS",
             source_component: "zlib",
             depends: &[],
@@ -905,7 +940,7 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-libbz2-1.0",
+            name: "libbz2-1.0",
             description: "bzip2 compression runtime library built for MattOS",
             source_component: "bzip2",
             depends: &[],
@@ -916,7 +951,7 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-liblz4-1",
+            name: "liblz4-1",
             description: "LZ4 compression runtime library built for MattOS",
             source_component: "lz4",
             depends: &[],
@@ -927,7 +962,7 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-liblzma5",
+            name: "liblzma5",
             description: "XZ Utils liblzma compression runtime library built for MattOS",
             source_component: "xz",
             depends: &[],
@@ -938,7 +973,7 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-libxxhash0",
+            name: "libxxhash0",
             description: "xxHash runtime library built for MattOS",
             source_component: "xxhash",
             depends: &[],
@@ -949,10 +984,10 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-tar",
+            name: "tar",
             description: "GNU tar archive utility built for MattOS",
             source_component: "tar",
-            depends: &["mattos-libacl1"],
+            depends: &["libacl1"],
             provides: &["tar"],
             conflicts: &["tar"],
             replaces: &["tar"],
@@ -960,10 +995,10 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "required",
         },
         PackageSpec {
-            name: "mattos-dbus-broker",
+            name: "dbus-broker",
             description: "D-Bus message broker and MattOS bus policy",
             source_component: "dbus-broker",
-            depends: &["mattos-libexpat1", "mattos-libsystemd0"],
+            depends: &["libexpat1", "libsystemd0"],
             provides: &["dbus-system-bus"],
             conflicts: &["dbus-daemon"],
             replaces: &[],
@@ -971,7 +1006,7 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-libpam0",
+            name: "libpam0g",
             description: "Linux PAM core runtime library built for MattOS",
             source_component: "linux-pam",
             depends: &[],
@@ -985,7 +1020,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-libpam-misc0",
             description: "Linux PAM miscellaneous runtime library built for MattOS",
             source_component: "linux-pam",
-            depends: &["mattos-libpam0"],
+            depends: &["libpam0g"],
             provides: &["libpam-misc0"],
             conflicts: &[],
             replaces: &[],
@@ -993,10 +1028,10 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "required",
         },
         PackageSpec {
-            name: "mattos-pam-modules",
+            name: "libpam-modules",
             description: "Linux PAM authentication modules built for MattOS",
             source_component: "linux-pam",
-            depends: &["mattos-libpam0", "mattos-libcrypt1"],
+            depends: &["libpam0g", "libcrypt1"],
             provides: &["libpam-modules"],
             conflicts: &[],
             replaces: &[],
@@ -1004,10 +1039,10 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "required",
         },
         PackageSpec {
-            name: "mattos-pam-runtime",
+            name: "libpam-runtime",
             description: "MattOS PAM policy and authentication helper runtime",
             source_component: "linux-pam",
-            depends: &["mattos-libpam0", "mattos-pam-modules", "mattos-libcrypt1"],
+            depends: &["libpam0g", "libpam-modules", "libcrypt1"],
             provides: &["libpam-runtime"],
             conflicts: &[],
             replaces: &[],
@@ -1015,16 +1050,16 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "required",
         },
         PackageSpec {
-            name: "mattos-shadow",
+            name: "passwd",
             description: "Shadow account administration tools built for MattOS",
             source_component: "shadow",
             depends: &[
-                "mattos-libpam0",
+                "libpam0g",
                 "mattos-libpam-misc0",
-                "mattos-pam-runtime",
-                "mattos-libbsd0",
-                "mattos-libmd0",
-                "mattos-libcrypt1",
+                "libpam-runtime",
+                "libbsd0",
+                "libmd0",
+                "libcrypt1",
             ],
             provides: &["passwd"],
             conflicts: &["passwd"],
@@ -1036,7 +1071,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-sudo-rs",
             description: "Privilege delegation tools built for MattOS",
             source_component: "sudo-rs",
-            depends: &["mattos-libgcc-s1", "mattos-libpam0", "mattos-pam-runtime"],
+            depends: &["libgcc-s1", "libpam0g", "libpam-runtime"],
             provides: &["sudo"],
             conflicts: &["sudo"],
             replaces: &["sudo"],
@@ -1044,14 +1079,10 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "required",
         },
         PackageSpec {
-            name: "mattos-util-linux-auth",
+            name: "login",
             description: "util-linux login, su, and agetty tools built for MattOS",
             source_component: "util-linux",
-            depends: &[
-                "mattos-libpam0",
-                "mattos-libpam-misc0",
-                "mattos-pam-runtime",
-            ],
+            depends: &["libpam0g", "mattos-libpam-misc0", "libpam-runtime"],
             provides: &["login"],
             conflicts: &["login"],
             replaces: &["login"],
@@ -1059,16 +1090,16 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "required",
         },
         PackageSpec {
-            name: "mattos-iproute2",
+            name: "iproute2",
             description: "Linux routing and network configuration tools built for MattOS",
             source_component: "iproute2",
             depends: &[
-                "mattos-libcap2",
-                "mattos-zlib1g",
-                "mattos-libzstd1",
-                "mattos-libelf1",
-                "mattos-libpcre2-8-0",
-                "mattos-libselinux1",
+                "libcap2",
+                "zlib1g",
+                "libzstd1",
+                "libelf1t64",
+                "libpcre2-8-0",
+                "libselinux1",
             ],
             provides: &["iproute2"],
             conflicts: &["iproute2"],
@@ -1077,7 +1108,7 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
-            name: "mattos-iputils",
+            name: "iputils-ping",
             description: "Linux ping and tracepath network diagnostics built for MattOS",
             source_component: "iputils",
             depends: &[],
@@ -1103,19 +1134,15 @@ fn package_install_order_for(
     let mut remaining: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
     for spec in specs {
         let mut dependencies = BTreeSet::new();
-        for dependency in spec
-            .depends
-            .iter()
-            .copied()
-            .filter(|name| name.starts_with("mattos-"))
-        {
-            if !names.contains(dependency) {
+        for dependency in spec.depends.iter().copied() {
+            if names.contains(dependency) {
+                dependencies.insert(dependency);
+            } else {
                 bail!(
-                    "package {} depends on unknown MattOS package {dependency}",
+                    "package {} depends on unknown package {dependency}",
                     spec.name
                 )
             }
-            dependencies.insert(dependency);
         }
         remaining.insert(spec.name, dependencies);
     }
@@ -1154,19 +1181,289 @@ pub(crate) fn run_package_command(repo_root: &Path, command: PackageCommands) ->
         PackageCommands::Inspect { package } => inspect_package(repo_root, &package),
         PackageCommands::Audit => generate_bootstrap_audit(repo_root),
         PackageCommands::Status => print_inventory(repo_root),
+        PackageCommands::CompatibilityAudit => validate_debian_compatibility(repo_root),
+        PackageCommands::PublishPlan { artifacts } => print_publish_plan(repo_root, &artifacts),
     }
 }
 
+fn validate_debian_compatibility(repo_root: &Path) -> Result<()> {
+    let manifest_path = repo_root.join("src/system/packages/debian-compat/trixie.toml");
+    let manifest: DebianCompatibilityManifest =
+        toml::from_str(&fs::read_to_string(&manifest_path)?)
+            .with_context(|| format!("failed to parse {}", manifest_path.display()))?;
+    if manifest.schema_version != 1
+        || manifest.suite != "trixie"
+        || manifest.architecture != ARCH
+        || manifest.policy.trim().is_empty()
+        || manifest.version_policy.trim().is_empty()
+    {
+        bail!("Debian compatibility manifest header is invalid")
+    }
+    let expected: BTreeSet<&str> = PACKAGE_NAMES.iter().copied().collect();
+    let actual: BTreeSet<&str> = manifest
+        .package
+        .iter()
+        .map(|package| package.mattos_name.as_str())
+        .collect();
+    if actual != expected || manifest.package.len() != PACKAGE_NAMES.len() {
+        bail!("Debian compatibility manifest does not map the complete package inventory")
+    }
+    for package in &manifest.package {
+        validate_package_name(&package.debian_name)?;
+        validate_package_name(&package.mattos_name)?;
+        validate_debian_version(&package.current_mattos_version)?;
+        if package.source_component.trim().is_empty()
+            || package.owned_paths.is_empty()
+            || package.provided_abi_or_commands.is_empty()
+            || package.expected_debian_role.trim().is_empty()
+            || package.known_gaps.is_empty()
+        {
+            bail!("compatibility entry {} is incomplete", package.mattos_name)
+        }
+        match package.classification.as_str() {
+            "mattos-specific" if package.mattos_name.starts_with("mattos-") => {}
+            "debian-compatible" if package.debian_name == package.mattos_name => {}
+            _ => bail!("invalid package classification for {}", package.mattos_name),
+        }
+    }
+
+    let protected_path = repo_root.join("src/system/packages/debian-compat/protected.toml");
+    let protected: ProtectedPackageManifest = toml::from_str(&fs::read_to_string(&protected_path)?)
+        .with_context(|| format!("failed to parse {}", protected_path.display()))?;
+    if protected.schema_version != 1 || protected.suite != "trixie" {
+        bail!("protected-package manifest header is invalid")
+    }
+    let protected_names: BTreeSet<&str> = protected.packages.iter().map(String::as_str).collect();
+    if protected_names.len() != protected.packages.len() {
+        bail!("protected-package manifest contains duplicates")
+    }
+    for required in [
+        "libc6",
+        "libc-bin",
+        "libc6-dev",
+        "linux-libc-dev",
+        "libgcc-s1",
+        "libstdc++6",
+        "systemd",
+        "libsystemd0",
+        "libudev1",
+        "dpkg",
+        "apt",
+        "coreutils",
+        "util-linux",
+        "mount",
+        "login",
+        "passwd",
+        "libpam0g",
+        "libpam-modules",
+        "libpam-runtime",
+        "libssl3t64",
+        "mattos-libcrypto3",
+        "mattos-filesystem",
+        "mattos-base-files",
+    ] {
+        if !protected_names.contains(required) {
+            bail!("protected-package manifest is missing {required}")
+        }
+    }
+    for package in manifest.package.iter().filter(|package| package.protected) {
+        if !protected_names.contains(package.mattos_name.as_str()) {
+            bail!(
+                "protected compatibility package {} is not pinned",
+                package.mattos_name
+            )
+        }
+    }
+
+    validate_apt_compatibility_policy(repo_root, &protected.packages)?;
+    validate_linuxscripts_upstream(repo_root)?;
+    println!(
+        "validated Debian {} {} compatibility policy for {} packages",
+        manifest.suite,
+        manifest.architecture,
+        manifest.package.len()
+    );
+    Ok(())
+}
+
+fn validate_apt_compatibility_policy(repo_root: &Path, protected: &[String]) -> Result<()> {
+    let config = repo_root.join("src/system/packages/config/apt");
+    let preferences = fs::read_to_string(config.join("00mattos-priority"))?;
+    for required in [
+        "Pin: release o=MattOS,l=MattOS Local,n=trixie\nPin-Priority: 1001",
+        "Pin: release o=MattOS,l=MattOS,n=trixie\nPin-Priority: 990",
+        "Pin: release o=Debian,n=trixie\nPin-Priority: 500",
+        "Pin: release o=Debian\nPin-Priority: -1",
+    ] {
+        if !preferences.contains(required) {
+            bail!("APT preferences lack required policy stanza: {required}")
+        }
+    }
+    let protected_stanza = preferences
+        .split("Explanation:")
+        .find(|stanza| stanza.contains("must never replace"))
+        .ok_or_else(|| anyhow!("APT preferences lack protected-package stanza"))?;
+    for name in protected {
+        if !protected_stanza
+            .lines()
+            .find_map(|line| line.strip_prefix("Package: "))
+            .is_some_and(|line| line.split_whitespace().any(|candidate| candidate == name))
+        {
+            bail!("APT protected-package pin is missing {name}")
+        }
+    }
+    let local = fs::read_to_string(config.join("mattos.sources"))?;
+    if !local.contains("URIs: file:/usr/share/mattos/repository")
+        || !local.contains("Suites: trixie")
+        || !local.contains("Trusted: yes")
+    {
+        bail!("embedded MattOS source is invalid")
+    }
+    let hosted = fs::read_to_string(config.join("mattos-hosted.sources"))?;
+    if !hosted.contains("URIs: https://packages.mattsherfey.com")
+        || !hosted.contains("Suites: trixie")
+        || !hosted.contains("Enabled: no")
+        || hosted.contains("Trusted: yes")
+    {
+        bail!("hosted MattOS source scaffold is invalid")
+    }
+    let debian = fs::read_to_string(config.join("debian-trixie.sources"))?;
+    if !debian.contains("URIs: https://deb.debian.org/debian")
+        || !debian.contains("URIs: https://security.debian.org/debian-security")
+        || !debian.contains("Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg")
+        || !debian.contains("Enabled: no")
+        || debian.contains("Trusted: yes")
+    {
+        bail!("Debian Trixie source scaffold is invalid")
+    }
+    Ok(())
+}
+
+fn validate_linuxscripts_upstream(repo_root: &Path) -> Result<PathBuf> {
+    let policy_path = repo_root.join("upstream/policies/linuxscripts.toml");
+    let policy: LinuxScriptsPolicy = toml::from_str(&fs::read_to_string(&policy_path)?)
+        .with_context(|| format!("failed to parse {}", policy_path.display()))?;
+    if policy.schema_version != 1
+        || policy.component != "linuxscripts"
+        || policy.policy.trim().is_empty()
+        || policy.forbidden_nested_entry != ".git"
+    {
+        bail!("LinuxScripts read-only policy is invalid")
+    }
+    let state = read_sync_state(repo_root, "linuxscripts")?
+        .ok_or_else(|| anyhow!("LinuxScripts upstream state is missing"))?;
+    if state.repo != "https://github.com/HungLo2020/LinuxScripts.git"
+        || state.branch != "master"
+        || state.destination_path != "src/infrastructure/LinuxScripts"
+        || state.sync_method != "copy"
+    {
+        bail!("LinuxScripts upstream state does not match the approved source")
+    }
+    let component_root = repo_root.join(&state.destination_path);
+    let authoritative = repo_root.join(&policy.authoritative_path);
+    if !authoritative.is_file() || !authoritative.starts_with(&component_root) {
+        bail!("authoritative repository publisher is missing or outside LinuxScripts")
+    }
+    let actual = sha256_file(&authoritative)?;
+    if actual != policy.sha256 {
+        bail!(
+            "authoritative LinuxScripts publisher changed locally: expected {}, got {actual}; update upstream and sync instead",
+            policy.sha256
+        )
+    }
+    walk_tree(&component_root, &mut |path, _| {
+        if path.file_name() == Some(OsStr::new(&policy.forbidden_nested_entry)) {
+            bail!(
+                "nested Git metadata is forbidden in imported LinuxScripts: {}",
+                path.display()
+            )
+        }
+        Ok(())
+    })?;
+    Ok(authoritative)
+}
+
+fn print_publish_plan(repo_root: &Path, artifacts: &[PathBuf]) -> Result<()> {
+    let publisher = validate_linuxscripts_upstream(repo_root)?;
+    let inventory = read_inventory(repo_root)?;
+    let approved_root = repo_root
+        .join("out/packages")
+        .canonicalize()
+        .with_context(|| {
+            format!(
+                "package output directory is missing at {}",
+                repo_root.join("out/packages").display()
+            )
+        })?;
+    let mut approved = Vec::new();
+    for supplied in artifacts {
+        let candidate = if supplied.is_absolute() {
+            supplied.clone()
+        } else {
+            repo_root.join(supplied)
+        };
+        let canonical = validate_publication_artifact_location(&approved_root, &candidate)?;
+        let relative = relative_display(repo_root, &canonical)?;
+        let entry = inventory
+            .package
+            .iter()
+            .find(|entry| entry.artifact_path == relative)
+            .ok_or_else(|| {
+                anyhow!("artifact is not approved by out/packages/inventory.toml: {relative}")
+            })?;
+        if sha256_file(&canonical)? != entry.sha256 {
+            bail!("artifact checksum differs from approved inventory: {relative}")
+        }
+        approved.push(canonical);
+    }
+    approved.sort();
+    approved.dedup();
+    if approved.len() != artifacts.len() {
+        bail!("duplicate publication artifacts are not allowed")
+    }
+    let command = std::iter::once("python3".to_string())
+        .chain(std::iter::once(shell_escape(path_str(&publisher)?)))
+        .chain(std::iter::once("upload".to_string()))
+        .chain(
+            approved
+                .iter()
+                .map(|path| shell_escape(path_str(path).unwrap())),
+        )
+        .collect::<Vec<_>>()
+        .join(" ");
+    println!("validated non-publishing command (not executed):\n{command}");
+    Ok(())
+}
+
+fn validate_publication_artifact_location(
+    approved_root: &Path,
+    candidate: &Path,
+) -> Result<PathBuf> {
+    let canonical = candidate
+        .canonicalize()
+        .with_context(|| format!("publication artifact is missing: {}", candidate.display()))?;
+    if !canonical.starts_with(approved_root)
+        || canonical.extension().and_then(OsStr::to_str) != Some("deb")
+    {
+        bail!(
+            "publication artifacts must be .deb files inside out/packages: {}",
+            candidate.display()
+        )
+    }
+    Ok(canonical)
+}
+
 pub(crate) fn build_all_packages(repo_root: &Path) -> Result<()> {
+    validate_debian_compatibility(repo_root)?;
     remove_path_if_exists(&repo_root.join("out/packages/staging/mattos-bootstrap-runtime"))?;
     let artifact_root = repo_root.join("out/packages/amd64");
     if artifact_root.is_dir() {
         for entry in fs::read_dir(&artifact_root)? {
             let path = entry?.path();
             if path
-                .file_name()
+                .extension()
                 .and_then(OsStr::to_str)
-                .is_some_and(|name| name.starts_with("mattos-bootstrap-runtime_"))
+                .is_some_and(|extension| extension == "deb")
             {
                 fs::remove_file(path)?;
             }
@@ -1273,29 +1570,29 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
     fs::create_dir_all(staging.join("DEBIAN"))?;
     match spec.name {
         "mattos-filesystem" => stage_filesystem(&staging)?,
-        "mattos-libc6" => stage_glibc_runtime(repo_root, &staging)?,
-        "mattos-libgcc-s1" => {
-            stage_gcc_runtime_library(repo_root, &staging, "libgcc_s.so.1", "mattos-libgcc-s1")?
+        "libc6" => stage_glibc_runtime(repo_root, &staging)?,
+        "libgcc-s1" => {
+            stage_gcc_runtime_library(repo_root, &staging, "libgcc_s.so.1", "libgcc-s1")?
         }
-        "mattos-libstdc++6" => {
-            stage_gcc_runtime_library(repo_root, &staging, "libstdc++.so.6", "mattos-libstdc++6")?
+        "libstdc++6" => {
+            stage_gcc_runtime_library(repo_root, &staging, "libstdc++.so.6", "libstdc++6")?
         }
-        "mattos-linux-libc-dev" => stage_linux_libc_dev(repo_root, &staging)?,
-        "mattos-libc6-dev" => stage_glibc_development(repo_root, &staging)?,
+        "linux-libc-dev" => stage_linux_libc_dev(repo_root, &staging)?,
+        "libc6-dev" => stage_glibc_development(repo_root, &staging)?,
         "mattos-libgcc-dev" => stage_gcc_development(repo_root, &staging, false)?,
         "mattos-libstdc++-dev" => stage_gcc_development(repo_root, &staging, true)?,
-        "mattos-binutils" => stage_native_binutils(repo_root, &staging)?,
+        "binutils" => stage_native_binutils(repo_root, &staging)?,
         "mattos-gcc-common" => stage_native_gcc_common(repo_root, &staging)?,
-        "mattos-cpp" => stage_native_compiler_driver(repo_root, &staging, "cpp")?,
-        "mattos-gcc" => stage_native_compiler_driver(repo_root, &staging, "gcc")?,
-        "mattos-g++" => stage_native_compiler_driver(repo_root, &staging, "g++")?,
-        "mattos-make" => stage_native_make(repo_root, &staging)?,
-        "mattos-libc-bin" => stage_glibc_utilities(repo_root, &staging)?,
+        "cpp" => stage_native_compiler_driver(repo_root, &staging, "cpp")?,
+        "gcc" => stage_native_compiler_driver(repo_root, &staging, "gcc")?,
+        "g++" => stage_native_compiler_driver(repo_root, &staging, "g++")?,
+        "make" => stage_native_make(repo_root, &staging)?,
+        "libc-bin" => stage_glibc_utilities(repo_root, &staging)?,
         "mattos-base-files" => stage_base_files(repo_root, &staging)?,
-        "mattos-ca-certificates" => stage_ca_certificates(repo_root, &staging)?,
+        "ca-certificates" => stage_ca_certificates(repo_root, &staging)?,
         "mattos-brush" => stage_brush(repo_root, &staging)?,
-        "mattos-coreutils" => stage_coreutils(repo_root, &staging)?,
-        "mattos-curl" => {
+        "coreutils" => stage_coreutils(repo_root, &staging)?,
+        "curl" => {
             let source = repo_root.join("out/build/curl/install/usr/bin/curl");
             stage_executable(&source, &staging.join("usr/bin/curl"), 0o755)?;
             let source_libdir = repo_root.join("out/build/curl/install/usr/lib/x86_64-linux-gnu");
@@ -1311,138 +1608,138 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
                 destination_libdir.join("libcurl.so.4"),
             )?;
         }
-        "mattos-dpkg" => stage_dpkg(repo_root, &staging)?,
-        "mattos-libapt-pkg" => stage_libapt_pkg(repo_root, &staging)?,
-        "mattos-apt" => stage_apt(repo_root, &staging)?,
+        "dpkg" => stage_dpkg(repo_root, &staging)?,
+        "libapt-pkg7.0" => stage_libapt_pkg(repo_root, &staging)?,
+        "apt" => stage_apt(repo_root, &staging)?,
         "mattos-libtinfow6" => stage_library_family(
             repo_root,
             &staging,
             "ncurses",
             &["libtinfow.so.6.6", "libtinfow.so.6"],
         )?,
-        "mattos-libncursesw6" => stage_library_family(
+        "libncursesw6" => stage_library_family(
             repo_root,
             &staging,
             "ncurses",
             &["libncursesw.so.6.6", "libncursesw.so.6"],
         )?,
-        "mattos-terminfo" => stage_terminfo(repo_root, &staging)?,
-        "mattos-ncurses-bin" => {
+        "ncurses-base" => stage_terminfo(repo_root, &staging)?,
+        "ncurses-bin" => {
             stage_runtime_paths(repo_root, &staging, "ncurses", NCURSES_RUNTIME_PATHS)?
         }
-        "mattos-libkmod2" => stage_library_family(
+        "libkmod2" => stage_library_family(
             repo_root,
             &staging,
             "kmod",
             &["libkmod.so.2.5.1", "libkmod.so.2"],
         )?,
-        "mattos-kmod" => stage_runtime_paths(repo_root, &staging, "kmod", KMOD_RUNTIME_PATHS)?,
+        "kmod" => stage_runtime_paths(repo_root, &staging, "kmod", KMOD_RUNTIME_PATHS)?,
         "mattos-libproc2" => stage_library_family(
             repo_root,
             &staging,
             "procps-ng",
             &["libproc2.so.1.0.1", "libproc2.so.1"],
         )?,
-        "mattos-procps" => stage_procps(repo_root, &staging)?,
-        "mattos-libsystemd0" => stage_library_family(
+        "procps" => stage_procps(repo_root, &staging)?,
+        "libsystemd0" => stage_library_family(
             repo_root,
             &staging,
             "systemd",
             &["libsystemd.so.0.44.0", "libsystemd.so.0"],
         )?,
-        "mattos-libudev1" => stage_library_family(
+        "libudev1" => stage_library_family(
             repo_root,
             &staging,
             "systemd",
             &["libudev.so.1.7.14", "libudev.so.1"],
         )?,
-        "mattos-libexpat1" => stage_imported_soname_library(
+        "libexpat1" => stage_imported_soname_library(
             repo_root,
             &staging,
             "expat",
             "libexpat.so.1",
             "src/system/libraries/expat/expat/COPYING",
-            "mattos-libexpat1",
+            "libexpat1",
         )?,
-        "mattos-libcap2" => stage_imported_soname_library(
+        "libcap2" => stage_imported_soname_library(
             repo_root,
             &staging,
             "libcap",
             "libcap.so.2",
             "src/system/libraries/libcap/License",
-            "mattos-libcap2",
+            "libcap2",
         )?,
-        "mattos-libacl1" => stage_imported_soname_library(
+        "libacl1" => stage_imported_soname_library(
             repo_root,
             &staging,
             "acl",
             "libacl.so.1",
             "src/system/libraries/acl/doc/COPYING.LGPL",
-            "mattos-libacl1",
+            "libacl1",
         )?,
-        "mattos-zlib1g" => stage_imported_soname_library(
+        "zlib1g" => stage_imported_soname_library(
             repo_root,
             &staging,
             "zlib",
             "libz.so.1",
             "src/system/libraries/zlib/LICENSE",
-            "mattos-zlib1g",
+            "zlib1g",
         )?,
-        "mattos-libbz2-1.0" => stage_imported_soname_library(
+        "libbz2-1.0" => stage_imported_soname_library(
             repo_root,
             &staging,
             "bzip2",
             "libbz2.so.1.0",
             "src/system/libraries/bzip2/LICENSE",
-            "mattos-libbz2-1.0",
+            "libbz2-1.0",
         )?,
-        "mattos-liblz4-1" => stage_imported_soname_library(
+        "liblz4-1" => stage_imported_soname_library(
             repo_root,
             &staging,
             "lz4",
             "liblz4.so.1",
             "src/system/libraries/lz4/LICENSE",
-            "mattos-liblz4-1",
+            "liblz4-1",
         )?,
-        "mattos-liblzma5" => stage_imported_soname_library(
+        "liblzma5" => stage_imported_soname_library(
             repo_root,
             &staging,
             "xz",
             "liblzma.so.5",
             "src/system/libraries/xz/COPYING",
-            "mattos-liblzma5",
+            "liblzma5",
         )?,
-        "mattos-libxxhash0" => stage_imported_soname_library(
+        "libxxhash0" => stage_imported_soname_library(
             repo_root,
             &staging,
             "xxhash",
             "libxxhash.so.0",
             "src/system/libraries/xxhash/LICENSE",
-            "mattos-libxxhash0",
+            "libxxhash0",
         )?,
-        "mattos-libmd0" => stage_imported_soname_library(
+        "libmd0" => stage_imported_soname_library(
             repo_root,
             &staging,
             "libmd",
             "libmd.so.0",
             "src/system/libraries/libmd/COPYING",
-            "mattos-libmd0",
+            "libmd0",
         )?,
-        "mattos-libbsd0" => stage_imported_soname_library(
+        "libbsd0" => stage_imported_soname_library(
             repo_root,
             &staging,
             "libbsd",
             "libbsd.so.0",
             "src/system/libraries/libbsd/COPYING",
-            "mattos-libbsd0",
+            "libbsd0",
         )?,
-        "mattos-libzstd1" => stage_imported_soname_library(
+        "libzstd1" => stage_imported_soname_library(
             repo_root,
             &staging,
             "zstd",
             "libzstd.so.1",
             "src/system/libraries/zstd/LICENSE",
-            "mattos-libzstd1",
+            "libzstd1",
         )?,
         "mattos-libcrypto3" => stage_imported_soname_library(
             repo_root,
@@ -1452,77 +1749,77 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
             "src/system/libraries/openssl/LICENSE.txt",
             "mattos-libcrypto3",
         )?,
-        "mattos-libssl3" => stage_imported_soname_library(
+        "libssl3t64" => stage_imported_soname_library(
             repo_root,
             &staging,
             "openssl",
             "libssl.so.3",
             "src/system/libraries/openssl/LICENSE.txt",
-            "mattos-libssl3",
+            "libssl3t64",
         )?,
-        "mattos-libelf1" => {
+        "libelf1t64" => {
             stage_imported_soname_library(
                 repo_root,
                 &staging,
                 "elfutils",
                 "libelf.so.1",
                 "src/system/libraries/elfutils/COPYING-LGPLV3",
-                "mattos-libelf1",
+                "libelf1t64",
             )?;
             copy_preserving(
                 &repo_root.join("src/system/libraries/elfutils/COPYING-GPLV2"),
-                &staging.join("usr/share/doc/mattos-libelf1/copyright.GPL-2"),
+                &staging.join("usr/share/doc/libelf1t64/copyright.GPL-2"),
             )?;
         }
-        "mattos-libpcre2-8-0" => stage_imported_soname_library(
+        "libpcre2-8-0" => stage_imported_soname_library(
             repo_root,
             &staging,
             "pcre2",
             "libpcre2-8.so.0",
             "src/system/libraries/pcre2/LICENCE.md",
-            "mattos-libpcre2-8-0",
+            "libpcre2-8-0",
         )?,
-        "mattos-libselinux1" => stage_imported_soname_library(
+        "libselinux1" => stage_imported_soname_library(
             repo_root,
             &staging,
             "selinux",
             "libselinux.so.1",
             "src/system/security/selinux/libselinux/LICENSE",
-            "mattos-libselinux1",
+            "libselinux1",
         )?,
-        "mattos-libcrypt1" => stage_imported_soname_library(
+        "libcrypt1" => stage_imported_soname_library(
             repo_root,
             &staging,
             "libxcrypt",
             "libcrypt.so.1",
             "src/system/libraries/libxcrypt/COPYING.LIB",
-            "mattos-libcrypt1",
+            "libcrypt1",
         )?,
-        "mattos-libblkid1" => stage_imported_soname_library(
+        "libblkid1" => stage_imported_soname_library(
             repo_root,
             &staging,
             "util-linux",
             "libblkid.so.1",
             "src/userland/util-linux/COPYING",
-            "mattos-libblkid1",
+            "libblkid1",
         )?,
-        "mattos-libmount1" => stage_imported_soname_library(
+        "libmount1" => stage_imported_soname_library(
             repo_root,
             &staging,
             "util-linux",
             "libmount.so.1",
             "src/userland/util-linux/COPYING",
-            "mattos-libmount1",
+            "libmount1",
         )?,
-        "mattos-libsmartcols1" => stage_imported_soname_library(
+        "libsmartcols1" => stage_imported_soname_library(
             repo_root,
             &staging,
             "util-linux",
             "libsmartcols.so.1",
             "src/userland/util-linux/COPYING",
-            "mattos-libsmartcols1",
+            "libsmartcols1",
         )?,
-        "mattos-mount" => {
+        "mount" => {
             stage_runtime_paths(
                 repo_root,
                 &staging,
@@ -1531,13 +1828,13 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
             )?;
             copy_preserving(
                 &repo_root.join("src/userland/util-linux/COPYING"),
-                &staging.join("usr/share/doc/mattos-mount/copyright"),
+                &staging.join("usr/share/doc/mount/copyright"),
             )?;
             for rel in ["usr/bin/mount", "usr/bin/umount"] {
                 set_mode(staging.join(rel), 0o4755)?;
             }
         }
-        "mattos-tar" => {
+        "tar" => {
             stage_executable(
                 &repo_root.join("out/build/tar/install/usr/bin/tar"),
                 &staging.join("usr/bin/tar"),
@@ -1545,11 +1842,11 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
             )?;
             copy_preserving(
                 &repo_root.join("src/userland/tar/COPYING"),
-                &staging.join("usr/share/doc/mattos-tar/copyright"),
+                &staging.join("usr/share/doc/tar/copyright"),
             )?;
         }
-        "mattos-dbus-broker" => stage_dbus_broker(repo_root, &staging)?,
-        "mattos-libpam0" => stage_library_family(
+        "dbus-broker" => stage_dbus_broker(repo_root, &staging)?,
+        "libpam0g" => stage_library_family(
             repo_root,
             &staging,
             "linux-pam",
@@ -1561,22 +1858,19 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
             "linux-pam",
             &["libpam_misc.so.0.82.1", "libpam_misc.so.0"],
         )?,
-        "mattos-pam-modules" => stage_pam_modules(repo_root, &staging)?,
-        "mattos-pam-runtime" => stage_pam_runtime(repo_root, &staging)?,
-        "mattos-shadow" => stage_shadow(repo_root, &staging)?,
+        "libpam-modules" => stage_pam_modules(repo_root, &staging)?,
+        "libpam-runtime" => stage_pam_runtime(repo_root, &staging)?,
+        "passwd" => stage_shadow(repo_root, &staging)?,
         "mattos-sudo-rs" => stage_sudo_rs(repo_root, &staging)?,
-        "mattos-util-linux-auth" => stage_util_linux_auth(repo_root, &staging)?,
-        "mattos-iproute2" => stage_iproute2(repo_root, &staging)?,
-        "mattos-iputils" => {
+        "login" => stage_util_linux_auth(repo_root, &staging)?,
+        "iproute2" => stage_iproute2(repo_root, &staging)?,
+        "iputils-ping" => {
             stage_runtime_paths(repo_root, &staging, "iputils", IPUTILS_RUNTIME_PATHS)?
         }
         _ => bail!("no staging implementation for {}", spec.name),
     }
 
-    if !matches!(
-        spec.name,
-        "mattos-libc6" | "mattos-libgcc-s1" | "mattos-libstdc++6"
-    ) {
+    if !matches!(spec.name, "libc6" | "libgcc-s1" | "libstdc++6") {
         strip_staged_debug(repo_root, &staging)?;
     }
 
@@ -1586,16 +1880,16 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
     write_provenance(repo_root, &staging, spec, &version, &runtime_libraries)?;
     if matches!(
         spec.name,
-        "mattos-linux-libc-dev"
-            | "mattos-libc6-dev"
+        "linux-libc-dev"
+            | "libc6-dev"
             | "mattos-libgcc-dev"
             | "mattos-libstdc++-dev"
-            | "mattos-binutils"
+            | "binutils"
             | "mattos-gcc-common"
-            | "mattos-cpp"
-            | "mattos-gcc"
-            | "mattos-g++"
-            | "mattos-make"
+            | "cpp"
+            | "gcc"
+            | "g++"
+            | "make"
     ) {
         validate_no_embedded_build_root(repo_root, &staging)?;
     }
@@ -1689,14 +1983,14 @@ fn stage_glibc_runtime(repo_root: &Path, staging: &Path) -> Result<()> {
     manifest.sort();
     copy_preserving(
         &repo_root.join("src/system/libc/glibc/COPYING.LIB"),
-        &staging.join("usr/share/doc/mattos-libc6/copyright"),
+        &staging.join("usr/share/doc/libc6/copyright"),
     )?;
     copy_preserving(
         &repo_root.join("src/system/libc/glibc/LICENSES"),
-        &staging.join("usr/share/doc/mattos-libc6/LICENSES"),
+        &staging.join("usr/share/doc/libc6/LICENSES"),
     )?;
     fs::write(
-        staging.join("usr/share/doc/mattos-libc6/runtime-files.tsv"),
+        staging.join("usr/share/doc/libc6/runtime-files.tsv"),
         format!("path\tsha256\n{}\n", manifest.join("\n")),
     )?;
     Ok(())
@@ -1719,11 +2013,11 @@ fn stage_glibc_utilities(repo_root: &Path, staging: &Path) -> Result<()> {
     )?;
     copy_preserving(
         &repo_root.join("src/system/libc/glibc/COPYING.LIB"),
-        &staging.join("usr/share/doc/mattos-libc-bin/copyright"),
+        &staging.join("usr/share/doc/libc-bin/copyright"),
     )?;
     copy_preserving(
         &repo_root.join("src/system/libc/glibc/LICENSES"),
-        &staging.join("usr/share/doc/mattos-libc-bin/LICENSES"),
+        &staging.join("usr/share/doc/libc-bin/LICENSES"),
     )?;
     Ok(())
 }
@@ -1840,10 +2134,10 @@ fn stage_ca_certificates(repo_root: &Path, staging: &Path) -> Result<()> {
     copy_preserving(&bundle, &staging.join("etc/ssl/certs/ca-certificates.crt"))?;
     copy_preserving(
         &metadata,
-        &staging.join("usr/share/doc/mattos-ca-certificates/ca-bundle.toml"),
+        &staging.join("usr/share/doc/ca-certificates/ca-bundle.toml"),
     )?;
     fs::write(
-        staging.join("usr/share/doc/mattos-ca-certificates/UPDATE.md"),
+        staging.join("usr/share/doc/ca-certificates/UPDATE.md"),
         "Update only by replacing the pinned curl CA Extract input, then update the source URL, Mozilla data timestamp, SHA-256, certificate count, and MPL-2.0 license metadata in ca-bundle.toml. Ordinary builds never download a mutable CA bundle.\n",
     )?;
     Ok(())
@@ -1901,6 +2195,16 @@ fn stage_apt(repo_root: &Path, staging: &Path) -> Result<()> {
     copy_preserving(
         &config.join("01mattos"),
         &staging.join("etc/apt/apt.conf.d/01mattos"),
+    )?;
+    for name in ["mattos-hosted.sources", "debian-trixie.sources"] {
+        copy_preserving(
+            &config.join(name),
+            &staging.join("etc/apt/sources.list.d").join(name),
+        )?;
+    }
+    copy_preserving(
+        &config.join("00mattos-priority"),
+        &staging.join("etc/apt/preferences.d/00mattos-priority"),
     )?;
     for rel in [
         "etc/apt/auth.conf.d",
@@ -2165,11 +2469,11 @@ fn stage_linux_libc_dev(repo_root: &Path, staging: &Path) -> Result<()> {
     )?;
     copy_preserving(
         &repo_root.join("src/kernel/linux/COPYING"),
-        &staging.join("usr/share/doc/mattos-linux-libc-dev/copyright"),
+        &staging.join("usr/share/doc/linux-libc-dev/copyright"),
     )?;
     copy_preserving(
         &repo_root.join("out/build/glibc/linux-headers-inventory.txt"),
-        &staging.join("usr/share/doc/mattos-linux-libc-dev/generated-files.txt"),
+        &staging.join("usr/share/doc/linux-libc-dev/generated-files.txt"),
     )
 }
 
@@ -2190,7 +2494,7 @@ fn stage_glibc_development(repo_root: &Path, staging: &Path) -> Result<()> {
     )?;
     copy_preserving(
         &repo_root.join("src/system/libc/glibc/COPYING.LIB"),
-        &staging.join("usr/share/doc/mattos-libc6-dev/copyright"),
+        &staging.join("usr/share/doc/libc6-dev/copyright"),
     )
 }
 
@@ -2254,7 +2558,7 @@ fn stage_native_binutils(repo_root: &Path, staging: &Path) -> Result<()> {
     }
     copy_preserving(
         &repo_root.join("src/toolchain/binutils/COPYING3"),
-        &staging.join("usr/share/doc/mattos-binutils/copyright"),
+        &staging.join("usr/share/doc/binutils/copyright"),
     )
 }
 
@@ -2293,10 +2597,7 @@ fn stage_native_compiler_driver(repo_root: &Path, staging: &Path, driver: &str) 
     }
     copy_preserving(
         &repo_root.join("src/toolchain/gcc/COPYING3"),
-        &staging
-            .join("usr/share/doc")
-            .join(format!("mattos-{driver}"))
-            .join("copyright"),
+        &staging.join("usr/share/doc").join(driver).join("copyright"),
     )
 }
 
@@ -2307,7 +2608,7 @@ fn stage_native_make(repo_root: &Path, staging: &Path) -> Result<()> {
     )?;
     copy_preserving(
         &repo_root.join("src/build-tools/make/COPYING"),
-        &staging.join("usr/share/doc/mattos-make/copyright"),
+        &staging.join("usr/share/doc/make/copyright"),
     )
 }
 
@@ -2532,16 +2833,10 @@ fn bootstrap_source_attribution(
     &'static str,
 ) {
     match name {
-        "tar" => (Some("GNU tar"), "A", "mattos-tar", "medium", "high"),
-        "libacl.so.1" => (
-            Some("Linux ACL utilities"),
-            "A",
-            "mattos-libacl1",
-            "low",
-            "high",
-        ),
-        "libbsd.so.0" => (Some("libbsd"), "A", "mattos-libbsd0", "low", "high"),
-        "libbz2.so.1.0" => (Some("bzip2"), "A", "mattos-libbz2-1.0", "low", "high"),
+        "tar" => (Some("GNU tar"), "A", "tar", "medium", "high"),
+        "libacl.so.1" => (Some("Linux ACL utilities"), "A", "libacl1", "low", "high"),
+        "libbsd.so.0" => (Some("libbsd"), "A", "libbsd0", "low", "high"),
+        "libbz2.so.1.0" => (Some("bzip2"), "A", "libbz2-1.0", "low", "high"),
         "libc.so.6" | "libm.so.6" | "ld-linux-x86-64.so.2" => (
             Some("glibc"),
             "D",
@@ -2549,12 +2844,12 @@ fn bootstrap_source_attribution(
             "very-high",
             "high",
         ),
-        "libcap.so.2" => (Some("libcap"), "A", "mattos-libcap2", "low", "high"),
-        "libcrypt.so.1" => (Some("libxcrypt"), "A", "mattos-libcrypt1", "medium", "high"),
+        "libcap.so.2" => (Some("libcap"), "A", "libcap2", "low", "high"),
+        "libcrypt.so.1" => (Some("libxcrypt"), "A", "libcrypt1", "medium", "high"),
         "libcrypto.so.3" => (Some("OpenSSL"), "A", "mattos-libcrypto3", "high", "high"),
-        "libssl.so.3" => (Some("OpenSSL"), "A", "mattos-libssl3", "high", "high"),
-        "libelf.so.1" => (Some("elfutils"), "A", "mattos-libelf1", "medium", "high"),
-        "libexpat.so.1" => (Some("Expat"), "A", "mattos-libexpat1", "low", "high"),
+        "libssl.so.3" => (Some("OpenSSL"), "A", "libssl3t64", "high", "high"),
+        "libelf.so.1" => (Some("elfutils"), "A", "libelf1t64", "medium", "high"),
+        "libexpat.so.1" => (Some("Expat"), "A", "libexpat1", "low", "high"),
         "libgcc_s.so.1" => (
             Some("GCC runtime"),
             "D",
@@ -2562,14 +2857,14 @@ fn bootstrap_source_attribution(
             "very-high",
             "high",
         ),
-        "liblz4.so.1" => (Some("LZ4"), "C", "mattos-liblz4-1", "low", "high"),
-        "liblzma.so.5" => (Some("XZ Utils"), "C", "mattos-liblzma5", "low", "high"),
-        "libmd.so.0" => (Some("libmd"), "A", "mattos-libmd0", "low", "high"),
-        "libpcre2-8.so.0" => (Some("PCRE2"), "A", "mattos-libpcre2-8-0", "medium", "high"),
+        "liblz4.so.1" => (Some("LZ4"), "C", "liblz4-1", "low", "high"),
+        "liblzma.so.5" => (Some("XZ Utils"), "C", "liblzma5", "low", "high"),
+        "libmd.so.0" => (Some("libmd"), "A", "libmd0", "low", "high"),
+        "libpcre2-8.so.0" => (Some("PCRE2"), "A", "libpcre2-8-0", "medium", "high"),
         "libselinux.so.1" => (
             Some("SELinux userspace"),
             "A",
-            "mattos-libselinux1",
+            "libselinux1",
             "high",
             "high",
         ),
@@ -2580,9 +2875,9 @@ fn bootstrap_source_attribution(
             "very-high",
             "high",
         ),
-        "libxxhash.so.0" => (Some("xxHash"), "C", "mattos-libxxhash0", "low", "high"),
-        "libz.so.1" => (Some("zlib"), "A", "mattos-zlib1g", "low", "high"),
-        "libzstd.so.1" => (Some("Zstandard"), "A", "mattos-libzstd1", "low", "high"),
+        "libxxhash.so.0" => (Some("xxHash"), "C", "libxxhash0", "low", "high"),
+        "libz.so.1" => (Some("zlib"), "A", "zlib1g", "low", "high"),
+        "libzstd.so.1" => (Some("Zstandard"), "A", "libzstd1", "low", "high"),
         _ => (None, "E", "unresolved", "unknown", "low"),
     }
 }
@@ -2671,10 +2966,11 @@ fn generate_bootstrap_audit(repo_root: &Path) -> Result<()> {
 
 fn package_dependencies(repo_root: &Path, spec: &PackageSpec) -> Result<Vec<String>> {
     let specs = package_specs();
+    let names: BTreeSet<&str> = specs.iter().map(|candidate| candidate.name).collect();
     effective_dependencies(spec)
         .into_iter()
         .map(|dependency| {
-            if dependency.starts_with("mattos-") {
+            if names.contains(dependency) {
                 let target = specs
                     .iter()
                     .find(|candidate| candidate.name == dependency)
@@ -2692,11 +2988,9 @@ fn package_dependencies(repo_root: &Path, spec: &PackageSpec) -> Result<Vec<Stri
 
 fn effective_dependencies(spec: &PackageSpec) -> Vec<&'static str> {
     let mut dependencies = spec.depends.to_vec();
-    if spec.name != "mattos-filesystem"
-        && spec.name != "mattos-libc6"
-        && !dependencies.contains(&"mattos-libc6")
+    if spec.name != "mattos-filesystem" && spec.name != "libc6" && !dependencies.contains(&"libc6")
     {
-        dependencies.insert(0, "mattos-libc6");
+        dependencies.insert(0, "libc6");
     }
     dependencies
 }
@@ -2760,72 +3054,66 @@ fn copy_preserving(source: &Path, destination: &Path) -> Result<()> {
 fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
     let upstream = match spec.name {
         "mattos-filesystem" | "mattos-base-files" => "0.1".to_string(),
-        "mattos-libc6" | "mattos-libc6-dev" | "mattos-libc-bin" => {
-            component_snapshot_version(repo_root, "glibc")?
-        }
-        "mattos-linux-libc-dev" => component_snapshot_version(repo_root, "linux")?,
-        "mattos-libgcc-s1"
-        | "mattos-libstdc++6"
+        "libc6" | "libc6-dev" | "libc-bin" => component_snapshot_version(repo_root, "glibc")?,
+        "linux-libc-dev" => component_snapshot_version(repo_root, "linux")?,
+        "libgcc-s1"
+        | "libstdc++6"
         | "mattos-libgcc-dev"
         | "mattos-libstdc++-dev"
         | "mattos-gcc-common"
-        | "mattos-cpp"
-        | "mattos-gcc"
-        | "mattos-g++" => component_snapshot_version(repo_root, "gcc")?,
-        "mattos-binutils" => component_snapshot_version(repo_root, "binutils")?,
-        "mattos-make" => component_snapshot_version(repo_root, "make")?,
-        "mattos-ca-certificates" => "2026.07.16".to_string(),
+        | "cpp"
+        | "gcc"
+        | "g++" => component_snapshot_version(repo_root, "gcc")?,
+        "binutils" => component_snapshot_version(repo_root, "binutils")?,
+        "make" => component_snapshot_version(repo_root, "make")?,
+        "ca-certificates" => "2026.07.16".to_string(),
         "mattos-brush" => {
             cargo_package_version(&repo_root.join("src/userland/brush/brush/Cargo.toml"))?
         }
-        "mattos-coreutils" => {
+        "coreutils" => {
             cargo_workspace_version(&repo_root.join("src/userland/coreutils/Cargo.toml"))?
         }
-        "mattos-curl" => curl_version(&repo_root.join("src/userland/curl/include/curl/curlver.h"))?,
-        "mattos-dpkg" => fs::read_to_string(repo_root.join("out/build/dpkg/source/.dist-version"))?
+        "curl" => curl_version(&repo_root.join("src/userland/curl/include/curl/curlver.h"))?,
+        "dpkg" => fs::read_to_string(repo_root.join("out/build/dpkg/source/.dist-version"))?
             .trim()
             .to_string(),
-        "mattos-libapt-pkg" | "mattos-apt" => apt_version(repo_root)?,
-        "mattos-libtinfow6" | "mattos-libncursesw6" | "mattos-terminfo" | "mattos-ncurses-bin" => {
+        "libapt-pkg7.0" | "apt" => apt_version(repo_root)?,
+        "mattos-libtinfow6" | "libncursesw6" | "ncurses-base" | "ncurses-bin" => {
             component_snapshot_version(repo_root, "ncurses")?
         }
-        "mattos-libkmod2" | "mattos-kmod" => component_snapshot_version(repo_root, "kmod")?,
-        "mattos-libproc2" | "mattos-procps" => component_snapshot_version(repo_root, "procps-ng")?,
-        "mattos-libsystemd0" | "mattos-libudev1" => {
-            component_snapshot_version(repo_root, "systemd")?
-        }
-        "mattos-libexpat1" => component_snapshot_version(repo_root, "expat")?,
-        "mattos-libcap2" => component_snapshot_version(repo_root, "libcap")?,
-        "mattos-libacl1" => component_snapshot_version(repo_root, "acl")?,
-        "mattos-zlib1g" => component_snapshot_version(repo_root, "zlib")?,
-        "mattos-libbz2-1.0" => component_snapshot_version(repo_root, "bzip2")?,
-        "mattos-liblz4-1" => component_snapshot_version(repo_root, "lz4")?,
-        "mattos-liblzma5" => component_snapshot_version(repo_root, "xz")?,
-        "mattos-libxxhash0" => component_snapshot_version(repo_root, "xxhash")?,
-        "mattos-libmd0" => component_snapshot_version(repo_root, "libmd")?,
-        "mattos-libbsd0" => component_snapshot_version(repo_root, "libbsd")?,
-        "mattos-libzstd1" => component_snapshot_version(repo_root, "zstd")?,
-        "mattos-libcrypto3" | "mattos-libssl3" => component_snapshot_version(repo_root, "openssl")?,
-        "mattos-libelf1" => component_snapshot_version(repo_root, "elfutils")?,
-        "mattos-libpcre2-8-0" => component_snapshot_version(repo_root, "pcre2")?,
-        "mattos-libselinux1" => component_snapshot_version(repo_root, "selinux")?,
-        "mattos-libcrypt1" => component_snapshot_version(repo_root, "libxcrypt")?,
-        "mattos-tar" => component_snapshot_version(repo_root, "tar")?,
-        "mattos-dbus-broker" => component_snapshot_version(repo_root, "dbus-broker")?,
-        "mattos-libpam0" | "mattos-libpam-misc0" | "mattos-pam-modules" | "mattos-pam-runtime" => {
+        "libkmod2" | "kmod" => component_snapshot_version(repo_root, "kmod")?,
+        "mattos-libproc2" | "procps" => component_snapshot_version(repo_root, "procps-ng")?,
+        "libsystemd0" | "libudev1" => component_snapshot_version(repo_root, "systemd")?,
+        "libexpat1" => component_snapshot_version(repo_root, "expat")?,
+        "libcap2" => component_snapshot_version(repo_root, "libcap")?,
+        "libacl1" => component_snapshot_version(repo_root, "acl")?,
+        "zlib1g" => component_snapshot_version(repo_root, "zlib")?,
+        "libbz2-1.0" => component_snapshot_version(repo_root, "bzip2")?,
+        "liblz4-1" => component_snapshot_version(repo_root, "lz4")?,
+        "liblzma5" => component_snapshot_version(repo_root, "xz")?,
+        "libxxhash0" => component_snapshot_version(repo_root, "xxhash")?,
+        "libmd0" => component_snapshot_version(repo_root, "libmd")?,
+        "libbsd0" => component_snapshot_version(repo_root, "libbsd")?,
+        "libzstd1" => component_snapshot_version(repo_root, "zstd")?,
+        "mattos-libcrypto3" | "libssl3t64" => component_snapshot_version(repo_root, "openssl")?,
+        "libelf1t64" => component_snapshot_version(repo_root, "elfutils")?,
+        "libpcre2-8-0" => component_snapshot_version(repo_root, "pcre2")?,
+        "libselinux1" => component_snapshot_version(repo_root, "selinux")?,
+        "libcrypt1" => component_snapshot_version(repo_root, "libxcrypt")?,
+        "tar" => component_snapshot_version(repo_root, "tar")?,
+        "dbus-broker" => component_snapshot_version(repo_root, "dbus-broker")?,
+        "libpam0g" | "mattos-libpam-misc0" | "libpam-modules" | "libpam-runtime" => {
             component_snapshot_version(repo_root, "linux-pam")?
         }
-        "mattos-shadow" => component_snapshot_version(repo_root, "shadow")?,
+        "passwd" => component_snapshot_version(repo_root, "shadow")?,
         "mattos-sudo-rs" => {
             cargo_package_version(&repo_root.join("src/system/auth/sudo-rs/Cargo.toml"))?
         }
-        "mattos-libblkid1"
-        | "mattos-libmount1"
-        | "mattos-libsmartcols1"
-        | "mattos-mount"
-        | "mattos-util-linux-auth" => component_snapshot_version(repo_root, "util-linux")?,
-        "mattos-iproute2" => component_snapshot_version(repo_root, "iproute2")?,
-        "mattos-iputils" => component_snapshot_version(repo_root, "iputils")?,
+        "libblkid1" | "libmount1" | "libsmartcols1" | "mount" | "login" => {
+            component_snapshot_version(repo_root, "util-linux")?
+        }
+        "iproute2" => component_snapshot_version(repo_root, "iproute2")?,
+        "iputils-ping" => component_snapshot_version(repo_root, "iputils")?,
         _ => bail!("unknown package {}", spec.name),
     };
     Ok(format!("{upstream}-{REVISION}"))
@@ -2834,11 +3122,41 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
 fn component_snapshot_version(repo_root: &Path, component: &str) -> Result<String> {
     let state = read_sync_state(repo_root, component)?
         .ok_or_else(|| anyhow!("upstream state missing for {component}"))?;
+    if let Some(version) = release_version_from_branch(&state.branch) {
+        return Ok(version);
+    }
     let short = state
         .imported_commit
         .get(..12)
         .unwrap_or(&state.imported_commit);
-    Ok(format!("0+git.{short}"))
+    Ok(format!("0~git.{short}"))
+}
+
+fn release_version_from_branch(branch: &str) -> Option<String> {
+    let normalized = branch.replace('_', ".");
+    let mut candidate = normalized.rsplit('/').next()?;
+    for prefix in [
+        "binutils-",
+        "bzip2-",
+        "elfutils-",
+        "gcc-",
+        "glibc-",
+        "openssl-",
+        "pcre2-",
+    ] {
+        candidate = candidate.strip_prefix(prefix).unwrap_or(candidate);
+    }
+    candidate = candidate.strip_prefix('v').unwrap_or(candidate);
+    let version = candidate
+        .trim_end_matches(|ch: char| !(ch.is_ascii_alphanumeric() || ch == '.' || ch == '~'))
+        .replace("-rc", "~rc");
+    if version.chars().next().is_some_and(|ch| ch.is_ascii_digit())
+        && version.chars().any(|ch| ch == '.')
+    {
+        Some(version)
+    } else {
+        None
+    }
 }
 
 fn apt_version(repo_root: &Path) -> Result<String> {
@@ -2952,14 +3270,32 @@ fn render_control(
     if spec.essential {
         fields.push("Essential: yes".to_string());
     }
-    if !spec.provides.is_empty() {
-        fields.push(format!("Provides: {}", spec.provides.join(", ")));
+    let provides = spec
+        .provides
+        .iter()
+        .copied()
+        .filter(|relation| *relation != spec.name)
+        .collect::<Vec<_>>();
+    let conflicts = spec
+        .conflicts
+        .iter()
+        .copied()
+        .filter(|relation| *relation != spec.name)
+        .collect::<Vec<_>>();
+    let replaces = spec
+        .replaces
+        .iter()
+        .copied()
+        .filter(|relation| *relation != spec.name)
+        .collect::<Vec<_>>();
+    if !provides.is_empty() {
+        fields.push(format!("Provides: {}", provides.join(", ")));
     }
-    if !spec.conflicts.is_empty() {
-        fields.push(format!("Conflicts: {}", spec.conflicts.join(", ")));
+    if !conflicts.is_empty() {
+        fields.push(format!("Conflicts: {}", conflicts.join(", ")));
     }
-    if !spec.replaces.is_empty() {
-        fields.push(format!("Replaces: {}", spec.replaces.join(", ")));
+    if !replaces.is_empty() {
+        fields.push(format!("Replaces: {}", replaces.join(", ")));
     }
     if !runtime_libraries.is_empty() {
         fields.push(format!(
@@ -3018,10 +3354,7 @@ fn write_provenance(
         "gcc" => {
             let state = read_sync_state(repo_root, "gcc")?
                 .ok_or_else(|| anyhow!("upstream state missing for gcc"))?;
-            let invocation = if matches!(
-                spec.name,
-                "mattos-gcc-common" | "mattos-cpp" | "mattos-gcc" | "mattos-g++"
-            ) {
+            let invocation = if matches!(spec.name, "mattos-gcc-common" | "cpp" | "gcc" | "g++") {
                 "out/build/gcc-toolchain/configure-invocation.txt"
             } else {
                 "out/build/gcc-runtime/configure-invocation.txt"
@@ -3130,8 +3463,8 @@ fn runtime_libraries_for_spec(repo_root: &Path, spec: &PackageSpec) -> Result<Ve
             &repo_root.join("src/userland/brush/target/release/brush"),
             None,
         ),
-        "mattos-coreutils" => ldd_sonames(&resolve_coreutils_multicall(repo_root)?, None),
-        "mattos-curl" => {
+        "coreutils" => ldd_sonames(&resolve_coreutils_multicall(repo_root)?, None),
+        "curl" => {
             let install = repo_root.join("out/build/curl/install");
             let openssl = repo_root.join("out/build/openssl/install/usr/lib/x86_64-linux-gnu");
             let zlib = repo_root.join("out/build/zlib/install/usr/lib/x86_64-linux-gnu");
@@ -3151,21 +3484,21 @@ fn runtime_libraries_for_spec(repo_root: &Path, spec: &PackageSpec) -> Result<Ve
         }
         name if matches!(
             name,
-            "mattos-libc6"
-                | "mattos-libc-bin"
-                | "mattos-libgcc-s1"
-                | "mattos-libstdc++6"
-                | "mattos-binutils"
+            "libc6"
+                | "libc-bin"
+                | "libgcc-s1"
+                | "libstdc++6"
+                | "binutils"
                 | "mattos-gcc-common"
-                | "mattos-cpp"
-                | "mattos-gcc"
-                | "mattos-g++"
-                | "mattos-make"
+                | "cpp"
+                | "gcc"
+                | "g++"
+                | "make"
         ) =>
         {
             runtime_libraries_in_staging(repo_root, name)
         }
-        "mattos-dpkg" => {
+        "dpkg" => {
             let install = repo_root.join("out/build/dpkg/install");
             let zlib = repo_root.join("out/build/zlib/install/usr/lib/x86_64-linux-gnu");
             let bzip2 = repo_root.join("out/build/bzip2/install/usr/lib/x86_64-linux-gnu");
@@ -3190,7 +3523,7 @@ fn runtime_libraries_for_spec(repo_root: &Path, spec: &PackageSpec) -> Result<Ve
                 &[zlib, bzip2, xz, zstd, libmd, selinux, pcre2],
             )
         }
-        "mattos-libapt-pkg" => {
+        "libapt-pkg7.0" => {
             let install = repo_root.join("out/build/apt/install");
             let systemd = repo_root.join("out/build/systemd/install/usr/lib/x86_64-linux-gnu");
             let zlib = repo_root.join("out/build/zlib/install/usr/lib/x86_64-linux-gnu");
@@ -3215,7 +3548,7 @@ fn runtime_libraries_for_spec(repo_root: &Path, spec: &PackageSpec) -> Result<Ve
                 ],
             )
         }
-        "mattos-apt" => {
+        "apt" => {
             let install = repo_root.join("out/build/apt/install");
             let systemd = repo_root.join("out/build/systemd/install/usr/lib/x86_64-linux-gnu");
             let zlib = repo_root.join("out/build/zlib/install/usr/lib/x86_64-linux-gnu");
@@ -3254,46 +3587,46 @@ fn runtime_libraries_for_spec(repo_root: &Path, spec: &PackageSpec) -> Result<Ve
         name if matches!(
             name,
             "mattos-libtinfow6"
-                | "mattos-libncursesw6"
-                | "mattos-ncurses-bin"
-                | "mattos-libkmod2"
-                | "mattos-kmod"
+                | "libncursesw6"
+                | "ncurses-bin"
+                | "libkmod2"
+                | "kmod"
                 | "mattos-libproc2"
-                | "mattos-procps"
-                | "mattos-libsystemd0"
-                | "mattos-libudev1"
-                | "mattos-libexpat1"
-                | "mattos-libcap2"
-                | "mattos-libacl1"
-                | "mattos-zlib1g"
-                | "mattos-libbz2-1.0"
-                | "mattos-liblz4-1"
-                | "mattos-liblzma5"
-                | "mattos-libxxhash0"
-                | "mattos-libmd0"
-                | "mattos-libbsd0"
-                | "mattos-libzstd1"
+                | "procps"
+                | "libsystemd0"
+                | "libudev1"
+                | "libexpat1"
+                | "libcap2"
+                | "libacl1"
+                | "zlib1g"
+                | "libbz2-1.0"
+                | "liblz4-1"
+                | "liblzma5"
+                | "libxxhash0"
+                | "libmd0"
+                | "libbsd0"
+                | "libzstd1"
                 | "mattos-libcrypto3"
-                | "mattos-libssl3"
-                | "mattos-libelf1"
-                | "mattos-libpcre2-8-0"
-                | "mattos-libselinux1"
-                | "mattos-libcrypt1"
-                | "mattos-libblkid1"
-                | "mattos-libmount1"
-                | "mattos-libsmartcols1"
-                | "mattos-mount"
-                | "mattos-tar"
-                | "mattos-dbus-broker"
-                | "mattos-libpam0"
+                | "libssl3t64"
+                | "libelf1t64"
+                | "libpcre2-8-0"
+                | "libselinux1"
+                | "libcrypt1"
+                | "libblkid1"
+                | "libmount1"
+                | "libsmartcols1"
+                | "mount"
+                | "tar"
+                | "dbus-broker"
+                | "libpam0g"
                 | "mattos-libpam-misc0"
-                | "mattos-pam-modules"
-                | "mattos-pam-runtime"
-                | "mattos-shadow"
+                | "libpam-modules"
+                | "libpam-runtime"
+                | "passwd"
                 | "mattos-sudo-rs"
-                | "mattos-util-linux-auth"
-                | "mattos-iproute2"
-                | "mattos-iputils"
+                | "login"
+                | "iproute2"
+                | "iputils-ping"
         ) =>
         {
             runtime_libraries_in_staging(repo_root, name)
@@ -3729,7 +4062,7 @@ fn inspect_package(repo_root: &Path, name: &str) -> Result<()> {
         Ok(())
     })?;
     let repository_packages =
-        repo_root.join("out/repository/dists/mattos/main/binary-amd64/Packages");
+        repo_root.join("out/repository/dists/trixie/main/binary-amd64/Packages");
     let repository_resolution = if repository_packages.is_file() {
         validate_repository_packages(&fs::read_to_string(repository_packages)?)?;
         "valid"
@@ -3814,7 +4147,7 @@ pub(crate) fn generate_repository(repo_root: &Path) -> Result<()> {
     let repository = repo_root.join("out/repository");
     remove_path_if_exists(&repository)?;
     let pool = repository.join("pool/main");
-    let index_dir = repository.join("dists/mattos/main/binary-amd64");
+    let index_dir = repository.join("dists/trixie/main/binary-amd64");
     fs::create_dir_all(&pool)?;
     fs::create_dir_all(&index_dir)?;
     for entry in &inventory.package {
@@ -3850,11 +4183,11 @@ pub(crate) fn generate_repository(repo_root: &Path) -> Result<()> {
             "-o",
             "APT::FTPArchive::Release::Origin=MattOS",
             "-o",
-            "APT::FTPArchive::Release::Label=MattOS",
+            "APT::FTPArchive::Release::Label=MattOS Local",
             "-o",
-            "APT::FTPArchive::Release::Suite=mattos",
+            "APT::FTPArchive::Release::Suite=trixie",
             "-o",
-            "APT::FTPArchive::Release::Codename=mattos",
+            "APT::FTPArchive::Release::Codename=trixie",
             "-o",
             "APT::FTPArchive::Release::Architectures=amd64",
             "-o",
@@ -3862,7 +4195,7 @@ pub(crate) fn generate_repository(repo_root: &Path) -> Result<()> {
             "-o",
             "APT::FTPArchive::Release::Description=Local MattOS bootstrap repository",
             "release",
-            "dists/mattos",
+            "dists/trixie",
         ])
         .env("SOURCE_DATE_EPOCH", SOURCE_DATE_EPOCH.to_string())
         .current_dir(&repository)
@@ -3887,7 +4220,7 @@ pub(crate) fn generate_repository(repo_root: &Path) -> Result<()> {
         .collect::<Vec<_>>()
         .join("\n")
         + "\n";
-    fs::write(repository.join("dists/mattos/Release"), release_body)?;
+    fs::write(repository.join("dists/trixie/Release"), release_body)?;
     validate_repository(&repository)?;
     println!(
         "generated local MattOS repository at {}",
@@ -3897,16 +4230,17 @@ pub(crate) fn generate_repository(repo_root: &Path) -> Result<()> {
 }
 
 fn validate_repository(repository: &Path) -> Result<()> {
-    let packages = fs::read_to_string(repository.join("dists/mattos/main/binary-amd64/Packages"))?;
+    let packages = fs::read_to_string(repository.join("dists/trixie/main/binary-amd64/Packages"))?;
     if packages.contains("deb.debian.org") || packages.contains("archive.ubuntu.com") {
         bail!("foreign repository URL found in Packages");
     }
     validate_repository_packages(&packages)?;
-    let release = fs::read_to_string(repository.join("dists/mattos/Release"))?;
+    let release = fs::read_to_string(repository.join("dists/trixie/Release"))?;
     for field in [
         "Origin: MattOS",
-        "Suite: mattos",
-        "Codename: mattos",
+        "Label: MattOS Local",
+        "Suite: trixie",
+        "Codename: trixie",
         "Architectures: amd64",
         "Components: main",
         "SHA256:",
@@ -4109,75 +4443,45 @@ pub(crate) fn validate_dpkg_database(rootfs: &Path) -> Result<()> {
         ("/usr/bin/brush", "mattos-brush"),
         ("/usr/bin/sh", "mattos-brush"),
         ("/usr/bin/bash", "mattos-brush"),
-        ("/usr/bin/curl", "mattos-curl"),
-        ("/usr/bin/ls", "mattos-coreutils"),
-        ("/usr/bin/tar", "mattos-tar"),
-        ("/usr/bin/dpkg", "mattos-dpkg"),
-        ("/usr/bin/apt", "mattos-apt"),
-        ("/usr/bin/apt-get", "mattos-apt"),
-        ("/usr/bin/ldd", "mattos-libc-bin"),
-        ("/usr/lib/apt/methods/file", "mattos-apt"),
+        ("/usr/bin/curl", "curl"),
+        ("/usr/bin/ls", "coreutils"),
+        ("/usr/bin/tar", "tar"),
+        ("/usr/bin/dpkg", "dpkg"),
+        ("/usr/bin/apt", "apt"),
+        ("/usr/bin/apt-get", "apt"),
+        ("/usr/bin/ldd", "libc-bin"),
+        ("/usr/lib/apt/methods/file", "apt"),
         (
             "/usr/lib/x86_64-linux-gnu/libapt-pkg.so.7.0",
-            "mattos-libapt-pkg",
+            "libapt-pkg7.0",
         ),
-        (
-            "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
-            "mattos-libgcc-s1",
-        ),
+        ("/usr/lib/x86_64-linux-gnu/libgcc_s.so.1", "libgcc-s1"),
         ("/usr/lib/x86_64-linux-gnu/libgcc_s.so", "mattos-libgcc-dev"),
-        (
-            "/usr/lib/x86_64-linux-gnu/libstdc++.so.6",
-            "mattos-libstdc++6",
-        ),
-        (
-            "/etc/ssl/certs/ca-certificates.crt",
-            "mattos-ca-certificates",
-        ),
-        ("/usr/lib/x86_64-linux-gnu/libpam.so.0", "mattos-libpam0"),
-        (
-            "/usr/lib/x86_64-linux-gnu/libncursesw.so.6",
-            "mattos-libncursesw6",
-        ),
-        ("/usr/lib/x86_64-linux-gnu/libkmod.so.2", "mattos-libkmod2"),
+        ("/usr/lib/x86_64-linux-gnu/libstdc++.so.6", "libstdc++6"),
+        ("/etc/ssl/certs/ca-certificates.crt", "ca-certificates"),
+        ("/usr/lib/x86_64-linux-gnu/libpam.so.0", "libpam0g"),
+        ("/usr/lib/x86_64-linux-gnu/libncursesw.so.6", "libncursesw6"),
+        ("/usr/lib/x86_64-linux-gnu/libkmod.so.2", "libkmod2"),
         ("/usr/lib/x86_64-linux-gnu/libproc2.so.1", "mattos-libproc2"),
-        (
-            "/usr/lib/x86_64-linux-gnu/libexpat.so.1",
-            "mattos-libexpat1",
-        ),
-        ("/usr/lib/x86_64-linux-gnu/libcap.so.2", "mattos-libcap2"),
-        (
-            "/usr/lib/x86_64-linux-gnu/libpcre2-8.so.0",
-            "mattos-libpcre2-8-0",
-        ),
-        (
-            "/usr/lib/x86_64-linux-gnu/libselinux.so.1",
-            "mattos-libselinux1",
-        ),
-        (
-            "/usr/lib/x86_64-linux-gnu/libcrypt.so.1",
-            "mattos-libcrypt1",
-        ),
-        ("/usr/lib/x86_64-linux-gnu/libacl.so.1", "mattos-libacl1"),
-        ("/usr/lib/x86_64-linux-gnu/libz.so.1", "mattos-zlib1g"),
-        (
-            "/usr/lib/x86_64-linux-gnu/libbz2.so.1.0",
-            "mattos-libbz2-1.0",
-        ),
-        ("/usr/lib/x86_64-linux-gnu/liblz4.so.1", "mattos-liblz4-1"),
-        ("/usr/lib/x86_64-linux-gnu/liblzma.so.5", "mattos-liblzma5"),
-        (
-            "/usr/lib/x86_64-linux-gnu/libxxhash.so.0",
-            "mattos-libxxhash0",
-        ),
-        ("/usr/lib/x86_64-linux-gnu/libmd.so.0", "mattos-libmd0"),
-        ("/usr/lib/x86_64-linux-gnu/libbsd.so.0", "mattos-libbsd0"),
-        ("/usr/bin/dbus-broker", "mattos-dbus-broker"),
+        ("/usr/lib/x86_64-linux-gnu/libexpat.so.1", "libexpat1"),
+        ("/usr/lib/x86_64-linux-gnu/libcap.so.2", "libcap2"),
+        ("/usr/lib/x86_64-linux-gnu/libpcre2-8.so.0", "libpcre2-8-0"),
+        ("/usr/lib/x86_64-linux-gnu/libselinux.so.1", "libselinux1"),
+        ("/usr/lib/x86_64-linux-gnu/libcrypt.so.1", "libcrypt1"),
+        ("/usr/lib/x86_64-linux-gnu/libacl.so.1", "libacl1"),
+        ("/usr/lib/x86_64-linux-gnu/libz.so.1", "zlib1g"),
+        ("/usr/lib/x86_64-linux-gnu/libbz2.so.1.0", "libbz2-1.0"),
+        ("/usr/lib/x86_64-linux-gnu/liblz4.so.1", "liblz4-1"),
+        ("/usr/lib/x86_64-linux-gnu/liblzma.so.5", "liblzma5"),
+        ("/usr/lib/x86_64-linux-gnu/libxxhash.so.0", "libxxhash0"),
+        ("/usr/lib/x86_64-linux-gnu/libmd.so.0", "libmd0"),
+        ("/usr/lib/x86_64-linux-gnu/libbsd.so.0", "libbsd0"),
+        ("/usr/bin/dbus-broker", "dbus-broker"),
         ("/usr/bin/sudo", "mattos-sudo-rs"),
-        ("/usr/bin/passwd", "mattos-shadow"),
-        ("/usr/bin/login", "mattos-util-linux-auth"),
-        ("/usr/sbin/ip", "mattos-iproute2"),
-        ("/usr/bin/ping", "mattos-iputils"),
+        ("/usr/bin/passwd", "passwd"),
+        ("/usr/bin/login", "login"),
+        ("/usr/sbin/ip", "iproute2"),
+        ("/usr/bin/ping", "iputils-ping"),
     ] {
         let output = Command::new("dpkg-query")
             .arg(format!("--admindir={}", admindir.display()))
@@ -4261,7 +4565,7 @@ pub(crate) fn validate_package_snapshot(
 
 pub(crate) fn embed_repository(repo_root: &Path, rootfs: &Path) -> Result<()> {
     let source = repo_root.join("out/repository");
-    if !source.join("dists/mattos/Release").is_file() {
+    if !source.join("dists/trixie/Release").is_file() {
         bail!("local repository has not been generated");
     }
     copy_tree_excluding_dotgit(&source, &rootfs.join("usr/share/mattos/repository"))
@@ -4841,12 +5145,12 @@ mod tests {
         PACKAGE_NAMES
             .iter()
             .map(|name| {
-                let apt_extra = if *name == "mattos-apt" {
+                let apt_extra = if *name == "apt" {
                     extra_apt_field.unwrap_or("")
                 } else {
                     ""
                 };
-                let provides = if *name == "mattos-libc6" {
+                let provides = if *name == "libc6" {
                     "Provides: mattos-runtime-abi\n"
                 } else {
                     ""
@@ -4858,7 +5162,7 @@ mod tests {
 
     #[test]
     fn validates_package_names_versions_and_architecture() {
-        assert!(validate_package_name("mattos-coreutils").is_ok());
+        assert!(validate_package_name("coreutils").is_ok());
         assert!(validate_package_name("MattOS").is_err());
         assert!(validate_package_name("mattos_coreutils").is_err());
         assert!(validate_debian_version("0.9.0-1mattos1").is_ok());
@@ -4870,13 +5174,13 @@ mod tests {
     fn control_contains_required_metadata() {
         let spec = package_specs()
             .into_iter()
-            .find(|s| s.name == "mattos-curl")
+            .find(|s| s.name == "curl")
             .unwrap();
         let control = render_control(
             &spec,
             "8.22.0-1mattos1",
             42,
-            &["mattos-libc6 (= 2.43-1mattos1)".into()],
+            &["libc6 (= 2.43-1mattos1)".into()],
             &["libc.so.6".into()],
         )
         .unwrap();
@@ -4887,9 +5191,6 @@ mod tests {
             "Maintainer:",
             "Description:",
             "Depends:",
-            "Provides:",
-            "Conflicts:",
-            "Replaces:",
             "Installed-Size:",
             "X-MattOS-ELF-Dependencies:",
         ] {
@@ -4901,12 +5202,12 @@ mod tests {
     fn package_manager_definitions_are_complete_and_deliberate() {
         let specs = package_specs();
         for name in [
-            "mattos-dpkg",
-            "mattos-libapt-pkg",
-            "mattos-apt",
-            "mattos-ca-certificates",
-            "mattos-libgcc-s1",
-            "mattos-libstdc++6",
+            "dpkg",
+            "libapt-pkg7.0",
+            "apt",
+            "ca-certificates",
+            "libgcc-s1",
+            "libstdc++6",
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
@@ -4914,10 +5215,7 @@ mod tests {
             .iter()
             .find(|spec| spec.name == "mattos-filesystem")
             .unwrap();
-        let dpkg = specs
-            .iter()
-            .find(|spec| spec.name == "mattos-dpkg")
-            .unwrap();
+        let dpkg = specs.iter().find(|spec| spec.name == "dpkg").unwrap();
         assert!(filesystem.essential);
         assert_eq!(filesystem.priority, "required");
         assert!(!dpkg.essential);
@@ -4937,29 +5235,29 @@ mod tests {
         let specs = package_specs();
         for name in [
             "mattos-libtinfow6",
-            "mattos-libncursesw6",
-            "mattos-terminfo",
-            "mattos-ncurses-bin",
-            "mattos-libkmod2",
-            "mattos-kmod",
+            "libncursesw6",
+            "ncurses-base",
+            "ncurses-bin",
+            "libkmod2",
+            "kmod",
             "mattos-libproc2",
-            "mattos-procps",
-            "mattos-libsystemd0",
-            "mattos-libudev1",
-            "mattos-dbus-broker",
-            "mattos-libpam0",
+            "procps",
+            "libsystemd0",
+            "libudev1",
+            "dbus-broker",
+            "libpam0g",
             "mattos-libpam-misc0",
-            "mattos-pam-modules",
-            "mattos-pam-runtime",
-            "mattos-shadow",
+            "libpam-modules",
+            "libpam-runtime",
+            "passwd",
             "mattos-sudo-rs",
-            "mattos-util-linux-auth",
-            "mattos-libblkid1",
-            "mattos-libmount1",
-            "mattos-libsmartcols1",
-            "mattos-mount",
-            "mattos-iproute2",
-            "mattos-iputils",
+            "login",
+            "libblkid1",
+            "libmount1",
+            "libsmartcols1",
+            "mount",
+            "iproute2",
+            "iputils-ping",
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
@@ -4969,88 +5267,40 @@ mod tests {
     #[test]
     fn small_library_migration_definitions_are_complete() {
         let specs = package_specs();
-        let expat = specs
-            .iter()
-            .find(|spec| spec.name == "mattos-libexpat1")
-            .unwrap();
-        let libcap = specs
-            .iter()
-            .find(|spec| spec.name == "mattos-libcap2")
-            .unwrap();
+        let expat = specs.iter().find(|spec| spec.name == "libexpat1").unwrap();
+        let libcap = specs.iter().find(|spec| spec.name == "libcap2").unwrap();
         let broker = specs
             .iter()
-            .find(|spec| spec.name == "mattos-dbus-broker")
+            .find(|spec| spec.name == "dbus-broker")
             .unwrap();
-        let iproute2 = specs
-            .iter()
-            .find(|spec| spec.name == "mattos-iproute2")
-            .unwrap();
-        let acl = specs
-            .iter()
-            .find(|spec| spec.name == "mattos-libacl1")
-            .unwrap();
-        let zlib = specs
-            .iter()
-            .find(|spec| spec.name == "mattos-zlib1g")
-            .unwrap();
-        let bzip2 = specs
-            .iter()
-            .find(|spec| spec.name == "mattos-libbz2-1.0")
-            .unwrap();
-        let lz4 = specs
-            .iter()
-            .find(|spec| spec.name == "mattos-liblz4-1")
-            .unwrap();
-        let xz = specs
-            .iter()
-            .find(|spec| spec.name == "mattos-liblzma5")
-            .unwrap();
-        let xxhash = specs
-            .iter()
-            .find(|spec| spec.name == "mattos-libxxhash0")
-            .unwrap();
-        let libmd = specs
-            .iter()
-            .find(|spec| spec.name == "mattos-libmd0")
-            .unwrap();
-        let libbsd = specs
-            .iter()
-            .find(|spec| spec.name == "mattos-libbsd0")
-            .unwrap();
-        let zstd = specs
-            .iter()
-            .find(|spec| spec.name == "mattos-libzstd1")
-            .unwrap();
+        let iproute2 = specs.iter().find(|spec| spec.name == "iproute2").unwrap();
+        let acl = specs.iter().find(|spec| spec.name == "libacl1").unwrap();
+        let zlib = specs.iter().find(|spec| spec.name == "zlib1g").unwrap();
+        let bzip2 = specs.iter().find(|spec| spec.name == "libbz2-1.0").unwrap();
+        let lz4 = specs.iter().find(|spec| spec.name == "liblz4-1").unwrap();
+        let xz = specs.iter().find(|spec| spec.name == "liblzma5").unwrap();
+        let xxhash = specs.iter().find(|spec| spec.name == "libxxhash0").unwrap();
+        let libmd = specs.iter().find(|spec| spec.name == "libmd0").unwrap();
+        let libbsd = specs.iter().find(|spec| spec.name == "libbsd0").unwrap();
+        let zstd = specs.iter().find(|spec| spec.name == "libzstd1").unwrap();
         let crypto = specs
             .iter()
             .find(|spec| spec.name == "mattos-libcrypto3")
             .unwrap();
-        let ssl = specs
-            .iter()
-            .find(|spec| spec.name == "mattos-libssl3")
-            .unwrap();
-        let elf = specs
-            .iter()
-            .find(|spec| spec.name == "mattos-libelf1")
-            .unwrap();
-        let shadow = specs
-            .iter()
-            .find(|spec| spec.name == "mattos-shadow")
-            .unwrap();
-        let tar = specs.iter().find(|spec| spec.name == "mattos-tar").unwrap();
-        let dpkg = specs
-            .iter()
-            .find(|spec| spec.name == "mattos-dpkg")
-            .unwrap();
+        let ssl = specs.iter().find(|spec| spec.name == "libssl3t64").unwrap();
+        let elf = specs.iter().find(|spec| spec.name == "libelf1t64").unwrap();
+        let shadow = specs.iter().find(|spec| spec.name == "passwd").unwrap();
+        let tar = specs.iter().find(|spec| spec.name == "tar").unwrap();
+        let dpkg = specs.iter().find(|spec| spec.name == "dpkg").unwrap();
         let apt = specs
             .iter()
-            .find(|spec| spec.name == "mattos-libapt-pkg")
+            .find(|spec| spec.name == "libapt-pkg7.0")
             .unwrap();
         assert_eq!(expat.source_component, "expat");
         assert_eq!(libcap.source_component, "libcap");
-        assert!(broker.depends.contains(&"mattos-libexpat1"));
-        assert!(iproute2.depends.contains(&"mattos-libcap2"));
-        assert!(iproute2.depends.contains(&"mattos-zlib1g"));
+        assert!(broker.depends.contains(&"libexpat1"));
+        assert!(iproute2.depends.contains(&"libcap2"));
+        assert!(iproute2.depends.contains(&"zlib1g"));
         assert_eq!(acl.source_component, "acl");
         assert_eq!(zlib.source_component, "zlib");
         assert_eq!(bzip2.source_component, "bzip2");
@@ -5059,50 +5309,47 @@ mod tests {
         assert_eq!(xxhash.source_component, "xxhash");
         assert_eq!(libmd.source_component, "libmd");
         assert_eq!(libbsd.source_component, "libbsd");
-        assert!(libbsd.depends.contains(&"mattos-libmd0"));
+        assert!(libbsd.depends.contains(&"libmd0"));
         assert_eq!(zstd.source_component, "zstd");
         assert_eq!(crypto.source_component, "openssl");
-        assert!(crypto.depends.contains(&"mattos-libzstd1"));
+        assert!(crypto.depends.contains(&"libzstd1"));
         assert_eq!(ssl.source_component, "openssl");
         assert!(ssl.depends.contains(&"mattos-libcrypto3"));
         assert_eq!(elf.source_component, "elfutils");
-        assert!(elf.depends.contains(&"mattos-libzstd1"));
-        assert!(shadow.depends.contains(&"mattos-libbsd0"));
-        assert!(shadow.depends.contains(&"mattos-libmd0"));
+        assert!(elf.depends.contains(&"libzstd1"));
+        assert!(shadow.depends.contains(&"libbsd0"));
+        assert!(shadow.depends.contains(&"libmd0"));
         assert_eq!(tar.source_component, "tar");
-        assert!(tar.depends.contains(&"mattos-libacl1"));
+        assert!(tar.depends.contains(&"libacl1"));
         assert_eq!(tar.provides, &["tar"]);
         assert_eq!(tar.conflicts, &["tar"]);
         assert_eq!(tar.replaces, &["tar"]);
-        assert!(dpkg.depends.contains(&"mattos-tar"));
-        assert!(dpkg.depends.contains(&"mattos-zlib1g"));
-        assert!(dpkg.depends.contains(&"mattos-libbz2-1.0"));
-        assert!(dpkg.depends.contains(&"mattos-liblzma5"));
-        assert!(dpkg.depends.contains(&"mattos-libzstd1"));
-        assert!(dpkg.depends.contains(&"mattos-libmd0"));
-        assert!(apt.depends.contains(&"mattos-zlib1g"));
-        assert!(apt.depends.contains(&"mattos-libbz2-1.0"));
-        assert!(apt.depends.contains(&"mattos-liblz4-1"));
-        assert!(apt.depends.contains(&"mattos-liblzma5"));
-        assert!(apt.depends.contains(&"mattos-libxxhash0"));
-        assert!(apt.depends.contains(&"mattos-libzstd1"));
+        assert!(dpkg.depends.contains(&"tar"));
+        assert!(dpkg.depends.contains(&"zlib1g"));
+        assert!(dpkg.depends.contains(&"libbz2-1.0"));
+        assert!(dpkg.depends.contains(&"liblzma5"));
+        assert!(dpkg.depends.contains(&"libzstd1"));
+        assert!(dpkg.depends.contains(&"libmd0"));
+        assert!(apt.depends.contains(&"zlib1g"));
+        assert!(apt.depends.contains(&"libbz2-1.0"));
+        assert!(apt.depends.contains(&"liblz4-1"));
+        assert!(apt.depends.contains(&"liblzma5"));
+        assert!(apt.depends.contains(&"libxxhash0"));
+        assert!(apt.depends.contains(&"libzstd1"));
         assert!(apt.depends.contains(&"mattos-libcrypto3"));
-        let apt_cli = specs.iter().find(|spec| spec.name == "mattos-apt").unwrap();
-        assert!(apt_cli.depends.contains(&"mattos-zlib1g"));
-        assert!(apt_cli.depends.contains(&"mattos-libbz2-1.0"));
-        assert!(apt_cli.depends.contains(&"mattos-liblz4-1"));
-        assert!(apt_cli.depends.contains(&"mattos-liblzma5"));
-        assert!(apt_cli.depends.contains(&"mattos-libxxhash0"));
-        assert!(apt_cli.depends.contains(&"mattos-libzstd1"));
+        let apt_cli = specs.iter().find(|spec| spec.name == "apt").unwrap();
+        assert!(apt_cli.depends.contains(&"zlib1g"));
+        assert!(apt_cli.depends.contains(&"libbz2-1.0"));
+        assert!(apt_cli.depends.contains(&"liblz4-1"));
+        assert!(apt_cli.depends.contains(&"liblzma5"));
+        assert!(apt_cli.depends.contains(&"libxxhash0"));
+        assert!(apt_cli.depends.contains(&"libzstd1"));
         assert!(apt_cli.depends.contains(&"mattos-libcrypto3"));
-        let curl = specs
-            .iter()
-            .find(|spec| spec.name == "mattos-curl")
-            .unwrap();
-        assert!(curl.depends.contains(&"mattos-zlib1g"));
-        assert!(curl.depends.contains(&"mattos-libzstd1"));
+        let curl = specs.iter().find(|spec| spec.name == "curl").unwrap();
+        assert!(curl.depends.contains(&"zlib1g"));
+        assert!(curl.depends.contains(&"libzstd1"));
         assert!(curl.depends.contains(&"mattos-libcrypto3"));
-        assert!(curl.depends.contains(&"mattos-libssl3"));
+        assert!(curl.depends.contains(&"libssl3t64"));
         assert_eq!(
             MIGRATED_BOOTSTRAP_SONAME_PREFIXES,
             &[
@@ -5144,51 +5391,27 @@ mod tests {
 
         let order = package_install_order_for(&specs, PACKAGE_NAMES).unwrap();
         let position = |name: &str| order.iter().position(|entry| *entry == name).unwrap();
-        assert!(position("mattos-libc6") < position("mattos-libzstd1"));
-        assert!(position("mattos-libzstd1") < position("mattos-libcrypto3"));
-        assert!(position("mattos-libzstd1") < position("mattos-libelf1"));
-        assert!(position("mattos-libcrypto3") < position("mattos-libssl3"));
-        assert!(position("mattos-libssl3") < position("mattos-curl"));
+        assert!(position("libc6") < position("libzstd1"));
+        assert!(position("libzstd1") < position("mattos-libcrypto3"));
+        assert!(position("libzstd1") < position("libelf1t64"));
+        assert!(position("mattos-libcrypto3") < position("libssl3t64"));
+        assert!(position("libssl3t64") < position("curl"));
     }
 
     #[test]
     fn pcre2_selinux_libxcrypt_graph_is_active_and_acyclic() {
         let specs = package_specs();
         let spec = |name| specs.iter().find(|spec| spec.name == name).unwrap();
-        assert!(
-            spec("mattos-libselinux1")
-                .depends
-                .contains(&"mattos-libpcre2-8-0")
-        );
-        assert!(spec("mattos-dpkg").depends.contains(&"mattos-libselinux1"));
-        assert!(
-            spec("mattos-iproute2")
-                .depends
-                .contains(&"mattos-libselinux1")
-        );
-        assert!(
-            spec("mattos-pam-modules")
-                .depends
-                .contains(&"mattos-libcrypt1")
-        );
-        assert!(
-            spec("mattos-pam-runtime")
-                .depends
-                .contains(&"mattos-libcrypt1")
-        );
-        assert!(spec("mattos-shadow").depends.contains(&"mattos-libcrypt1"));
-        assert!(
-            spec("mattos-libmount1")
-                .depends
-                .contains(&"mattos-libblkid1")
-        );
-        assert!(spec("mattos-mount").depends.contains(&"mattos-libmount1"));
-        assert!(
-            spec("mattos-mount")
-                .depends
-                .contains(&"mattos-libsmartcols1")
-        );
-        assert!(spec("mattos-mount").depends.contains(&"mattos-libselinux1"));
+        assert!(spec("libselinux1").depends.contains(&"libpcre2-8-0"));
+        assert!(spec("dpkg").depends.contains(&"libselinux1"));
+        assert!(spec("iproute2").depends.contains(&"libselinux1"));
+        assert!(spec("libpam-modules").depends.contains(&"libcrypt1"));
+        assert!(spec("libpam-runtime").depends.contains(&"libcrypt1"));
+        assert!(spec("passwd").depends.contains(&"libcrypt1"));
+        assert!(spec("libmount1").depends.contains(&"libblkid1"));
+        assert!(spec("mount").depends.contains(&"libmount1"));
+        assert!(spec("mount").depends.contains(&"libsmartcols1"));
+        assert!(spec("mount").depends.contains(&"libselinux1"));
         for prefix in ["libpcre2-8.so", "libselinux.so", "libcrypt.so"] {
             assert!(MIGRATED_BOOTSTRAP_SONAME_PREFIXES.contains(&prefix));
         }
@@ -5207,7 +5430,7 @@ mod tests {
                 name: "mattos-bootstrap-runtime",
                 description: "test bootstrap",
                 source_component: "test",
-                depends: &["mattos-libzstd1"],
+                depends: &["libzstd1"],
                 provides: &[],
                 conflicts: &[],
                 replaces: &[],
@@ -5215,7 +5438,7 @@ mod tests {
                 priority: "required",
             },
             PackageSpec {
-                name: "mattos-libzstd1",
+                name: "libzstd1",
                 description: "test zstd",
                 source_component: "zstd",
                 depends: &["mattos-bootstrap-runtime"],
@@ -5226,10 +5449,9 @@ mod tests {
                 priority: "important",
             },
         ];
-        let error =
-            package_install_order_for(&specs, &["mattos-bootstrap-runtime", "mattos-libzstd1"])
-                .unwrap_err()
-                .to_string();
+        let error = package_install_order_for(&specs, &["mattos-bootstrap-runtime", "libzstd1"])
+            .unwrap_err()
+            .to_string();
         assert!(error.contains("circular or unresolvable"));
     }
 
@@ -5298,32 +5520,20 @@ mod tests {
     #[test]
     fn glibc_runtime_graph_is_foundational_and_acyclic() {
         let specs = package_specs();
-        let libc = specs
-            .iter()
-            .find(|spec| spec.name == "mattos-libc6")
-            .unwrap();
-        let libc_bin = specs
-            .iter()
-            .find(|spec| spec.name == "mattos-libc-bin")
-            .unwrap();
-        let libgcc = specs
-            .iter()
-            .find(|spec| spec.name == "mattos-libgcc-s1")
-            .unwrap();
-        let libstdcxx = specs
-            .iter()
-            .find(|spec| spec.name == "mattos-libstdc++6")
-            .unwrap();
+        let libc = specs.iter().find(|spec| spec.name == "libc6").unwrap();
+        let libc_bin = specs.iter().find(|spec| spec.name == "libc-bin").unwrap();
+        let libgcc = specs.iter().find(|spec| spec.name == "libgcc-s1").unwrap();
+        let libstdcxx = specs.iter().find(|spec| spec.name == "libstdc++6").unwrap();
         assert_eq!(libc.depends, &["mattos-filesystem"]);
-        assert!(libc_bin.depends.contains(&"mattos-libc6"));
-        assert!(libgcc.depends.contains(&"mattos-libc6"));
-        assert!(libstdcxx.depends.contains(&"mattos-libgcc-s1"));
+        assert!(libc_bin.depends.contains(&"libc6"));
+        assert!(libgcc.depends.contains(&"libc6"));
+        assert!(libstdcxx.depends.contains(&"libgcc-s1"));
         assert!(!libc.depends.contains(&"mattos-bootstrap-runtime"));
         let order = package_install_order_for(&specs, PACKAGE_NAMES).unwrap();
         let position = |name: &str| order.iter().position(|entry| *entry == name).unwrap();
-        assert!(position("mattos-filesystem") < position("mattos-libc6"));
-        assert!(position("mattos-libc6") < position("mattos-libgcc-s1"));
-        assert!(position("mattos-libgcc-s1") < position("mattos-libstdc++6"));
+        assert!(position("mattos-filesystem") < position("libc6"));
+        assert!(position("libc6") < position("libgcc-s1"));
+        assert!(position("libgcc-s1") < position("libstdc++6"));
         assert_eq!(order.len(), 65);
     }
 
@@ -5331,15 +5541,15 @@ mod tests {
     fn gcc_runtime_packages_are_minimal_acyclic_and_replace_bootstrap() {
         let specs = package_specs();
         let spec = |name| specs.iter().find(|spec| spec.name == name).unwrap();
-        let libgcc = spec("mattos-libgcc-s1");
-        let libstdcxx = spec("mattos-libstdc++6");
+        let libgcc = spec("libgcc-s1");
+        let libstdcxx = spec("libstdc++6");
         assert_eq!(libgcc.source_component, "gcc");
-        assert_eq!(libgcc.depends, &["mattos-filesystem", "mattos-libc6"]);
+        assert_eq!(libgcc.depends, &["mattos-filesystem", "libc6"]);
         assert_eq!(libgcc.provides, &["libgcc-s1"]);
         assert_eq!(libstdcxx.source_component, "gcc");
         assert_eq!(
             libstdcxx.depends,
-            &["mattos-filesystem", "mattos-libc6", "mattos-libgcc-s1"]
+            &["mattos-filesystem", "libc6", "libgcc-s1"]
         );
         assert_eq!(libstdcxx.provides, &["libstdc++6"]);
         assert!(!PACKAGE_NAMES.contains(&"mattos-bootstrap-runtime"));
@@ -5349,8 +5559,8 @@ mod tests {
         }));
         let order = package_install_order_for(&specs, PACKAGE_NAMES).unwrap();
         let position = |name| order.iter().position(|item| *item == name).unwrap();
-        assert!(position("mattos-libc6") < position("mattos-libgcc-s1"));
-        assert!(position("mattos-libgcc-s1") < position("mattos-libstdc++6"));
+        assert!(position("libc6") < position("libgcc-s1"));
+        assert!(position("libgcc-s1") < position("libstdc++6"));
     }
 
     #[test]
@@ -5358,39 +5568,35 @@ mod tests {
         let specs = package_specs();
         let spec = |name| specs.iter().find(|spec| spec.name == name).unwrap();
         for name in [
-            "mattos-linux-libc-dev",
-            "mattos-libc6-dev",
+            "linux-libc-dev",
+            "libc6-dev",
             "mattos-libgcc-dev",
             "mattos-libstdc++-dev",
-            "mattos-binutils",
+            "binutils",
             "mattos-gcc-common",
-            "mattos-cpp",
-            "mattos-gcc",
-            "mattos-g++",
-            "mattos-make",
+            "cpp",
+            "gcc",
+            "g++",
+            "make",
         ] {
             assert!(PACKAGE_NAMES.contains(&name), "missing package {name}");
         }
-        assert!(
-            spec("mattos-libc6-dev")
-                .depends
-                .contains(&"mattos-linux-libc-dev")
-        );
+        assert!(spec("libc6-dev").depends.contains(&"linux-libc-dev"));
         assert!(
             spec("mattos-libstdc++-dev")
                 .depends
                 .contains(&"mattos-libgcc-dev")
         );
-        assert!(spec("mattos-gcc").depends.contains(&"mattos-gcc-common"));
-        assert!(spec("mattos-g++").depends.contains(&"mattos-gcc"));
+        assert!(spec("gcc").depends.contains(&"mattos-gcc-common"));
+        assert!(spec("g++").depends.contains(&"gcc"));
         let order = package_install_order_for(&specs, PACKAGE_NAMES).unwrap();
         let position = |name| order.iter().position(|item| *item == name).unwrap();
-        assert!(position("mattos-linux-libc-dev") < position("mattos-libc6-dev"));
-        assert!(position("mattos-libc6-dev") < position("mattos-libgcc-dev"));
+        assert!(position("linux-libc-dev") < position("libc6-dev"));
+        assert!(position("libc6-dev") < position("mattos-libgcc-dev"));
         assert!(position("mattos-libgcc-dev") < position("mattos-libstdc++-dev"));
-        assert!(position("mattos-binutils") < position("mattos-gcc-common"));
-        assert!(position("mattos-gcc-common") < position("mattos-gcc"));
-        assert!(position("mattos-gcc") < position("mattos-g++"));
+        assert!(position("binutils") < position("mattos-gcc-common"));
+        assert!(position("mattos-gcc-common") < position("gcc"));
+        assert!(position("gcc") < position("g++"));
     }
 
     #[test]
@@ -5608,14 +5814,14 @@ mod tests {
     #[test]
     fn dependency_parser_handles_exact_versions_and_provides() {
         assert_eq!(
-            dependency_name("mattos-libapt-pkg (= 3.3.2-1mattos1)").unwrap(),
-            "mattos-libapt-pkg"
+            dependency_name("libapt-pkg7.0 (= 3.3.2-1mattos1)").unwrap(),
+            "libapt-pkg7.0"
         );
         assert_eq!(
-            exact_dependency_version("mattos-libapt-pkg (= 3.3.2-1mattos1)").unwrap(),
+            exact_dependency_version("libapt-pkg7.0 (= 3.3.2-1mattos1)").unwrap(),
             Some("3.3.2-1mattos1")
         );
-        assert!(exact_dependency_version("mattos-libapt-pkg (>= 3)").is_err());
+        assert!(exact_dependency_version("libapt-pkg7.0 (>= 3)").is_err());
         let body = repository_packages(Some("Depends: mattos-runtime-abi\n"));
         assert!(validate_repository_packages(&body).is_ok());
     }
@@ -5624,7 +5830,7 @@ mod tests {
     fn repository_dependency_closure_rejects_missing_and_wrong_exact_versions() {
         assert!(
             validate_repository_packages(&repository_packages(Some(
-                "Depends: mattos-libapt-pkg (= 1)\n"
+                "Depends: libapt-pkg7.0 (= 1)\n"
             )))
             .is_ok()
         );
@@ -5634,7 +5840,7 @@ mod tests {
         );
         assert!(
             validate_repository_packages(&repository_packages(Some(
-                "Depends: mattos-libapt-pkg (= 2)\n"
+                "Depends: libapt-pkg7.0 (= 2)\n"
             )))
             .is_err()
         );
@@ -5643,7 +5849,7 @@ mod tests {
     #[test]
     fn repository_rejects_duplicate_package_version_architecture() {
         let mut body = repository_packages(None);
-        body.push_str("Package: mattos-apt\nVersion: 1\nArchitecture: amd64\n\n");
+        body.push_str("Package: apt\nVersion: 1\nArchitecture: amd64\n\n");
         assert!(validate_repository_packages(&body).is_err());
     }
 
@@ -5663,7 +5869,7 @@ mod tests {
         assert!(config.contains("Pager \"false\""));
         assert!(config.contains("#clear Acquire::Changelogs::URI::Origin"));
         assert!(config.contains("#clear Acquire::Snapshots::URI"));
-        assert_eq!(APT_CONFFILES.len(), 2);
+        assert_eq!(APT_CONFFILES.len(), 5);
         assert!(
             APT_CONFFILES
                 .iter()
@@ -5722,29 +5928,29 @@ mod tests {
                 .position(|candidate| *candidate == name)
                 .unwrap()
         };
-        assert!(position("mattos-filesystem") < position("mattos-libc6"));
-        assert!(position("mattos-libc6") < position("mattos-libgcc-s1"));
-        assert!(position("mattos-libgcc-s1") < position("mattos-libstdc++6"));
-        assert!(position("mattos-libstdc++6") < position("mattos-apt"));
-        assert!(position("mattos-dpkg") < position("mattos-apt"));
-        assert!(position("mattos-libapt-pkg") < position("mattos-apt"));
-        assert!(position("mattos-libudev1") < position("mattos-libapt-pkg"));
-        assert!(position("mattos-libexpat1") < position("mattos-dbus-broker"));
-        assert!(position("mattos-libcap2") < position("mattos-iproute2"));
-        assert!(position("mattos-libpcre2-8-0") < position("mattos-libselinux1"));
-        assert!(position("mattos-libselinux1") < position("mattos-iproute2"));
-        assert!(position("mattos-libselinux1") < position("mattos-dpkg"));
-        assert!(position("mattos-libcrypt1") < position("mattos-pam-modules"));
-        assert!(position("mattos-libcrypt1") < position("mattos-shadow"));
-        assert!(position("mattos-libblkid1") < position("mattos-libmount1"));
-        assert!(position("mattos-libmount1") < position("mattos-mount"));
-        assert!(position("mattos-libsmartcols1") < position("mattos-mount"));
-        assert!(position("mattos-libmd0") < position("mattos-libbsd0"));
-        assert!(position("mattos-libbsd0") < position("mattos-shadow"));
-        assert!(position("mattos-libmd0") < position("mattos-dpkg"));
-        assert!(position("mattos-libpam0") < position("mattos-pam-runtime"));
-        assert!(position("mattos-pam-runtime") < position("mattos-util-linux-auth"));
-        assert!(position("mattos-libtinfow6") < position("mattos-ncurses-bin"));
+        assert!(position("mattos-filesystem") < position("libc6"));
+        assert!(position("libc6") < position("libgcc-s1"));
+        assert!(position("libgcc-s1") < position("libstdc++6"));
+        assert!(position("libstdc++6") < position("apt"));
+        assert!(position("dpkg") < position("apt"));
+        assert!(position("libapt-pkg7.0") < position("apt"));
+        assert!(position("libudev1") < position("libapt-pkg7.0"));
+        assert!(position("libexpat1") < position("dbus-broker"));
+        assert!(position("libcap2") < position("iproute2"));
+        assert!(position("libpcre2-8-0") < position("libselinux1"));
+        assert!(position("libselinux1") < position("iproute2"));
+        assert!(position("libselinux1") < position("dpkg"));
+        assert!(position("libcrypt1") < position("libpam-modules"));
+        assert!(position("libcrypt1") < position("passwd"));
+        assert!(position("libblkid1") < position("libmount1"));
+        assert!(position("libmount1") < position("mount"));
+        assert!(position("libsmartcols1") < position("mount"));
+        assert!(position("libmd0") < position("libbsd0"));
+        assert!(position("libbsd0") < position("passwd"));
+        assert!(position("libmd0") < position("dpkg"));
+        assert!(position("libpam0g") < position("libpam-runtime"));
+        assert!(position("libpam-runtime") < position("login"));
+        assert!(position("mattos-libtinfow6") < position("ncurses-bin"));
         assert_eq!(order.len(), PACKAGE_NAMES.len());
     }
 
@@ -5781,7 +5987,7 @@ mod tests {
         let staging_root = temp.path().join("out/packages/staging");
         let specs = package_specs()
             .into_iter()
-            .filter(|spec| matches!(spec.name, "mattos-libexpat1" | "mattos-libcap2"))
+            .filter(|spec| matches!(spec.name, "libexpat1" | "libcap2"))
             .collect::<Vec<_>>();
         fs::write(
             temp.path().join("duplicate.c"),
@@ -5920,14 +6126,14 @@ mod tests {
     #[test]
     fn repository_layout_and_release_metadata_are_validated() {
         let temp = tempfile::tempdir().unwrap();
-        let index = temp.path().join("dists/mattos/main/binary-amd64");
+        let index = temp.path().join("dists/trixie/main/binary-amd64");
         fs::create_dir_all(&index).unwrap();
         let packages = PACKAGE_NAMES
             .iter()
             .map(|name| format!("Package: {name}\nVersion: 1\nArchitecture: amd64\n\n"))
             .collect::<String>();
         fs::write(index.join("Packages"), packages).unwrap();
-        fs::write(temp.path().join("dists/mattos/Release"), "Origin: MattOS\nSuite: mattos\nCodename: mattos\nArchitectures: amd64\nComponents: main\nSHA256:\n").unwrap();
+        fs::write(temp.path().join("dists/trixie/Release"), "Origin: MattOS\nLabel: MattOS Local\nSuite: trixie\nCodename: trixie\nArchitectures: amd64\nComponents: main\nSHA256:\n").unwrap();
         assert!(validate_repository(temp.path()).is_ok());
         fs::write(
             index.join("Packages"),
@@ -5982,5 +6188,149 @@ mod tests {
         assert!(owned.status.success());
         assert!(String::from_utf8_lossy(&owned.stdout).starts_with("mattos-test:"));
         assert!(admindir.join("status").metadata().unwrap().len() > 0);
+    }
+
+    #[test]
+    fn debian_version_policy_covers_release_epoch_prerelease_and_revision_ordering() {
+        let compares = [
+            ("2.43-1mattos1", "gt", "2.41-12+deb13u3"),
+            ("1:1.0-1mattos1", "gt", "9.0-99"),
+            ("7.2~rc5-1mattos1", "lt", "7.2-1mattos1"),
+            ("15.3.0-1mattos2", "gt", "15.3.0-1mattos1"),
+            ("3.5.7-1mattos1", "gt", "3.5.6-1~deb13u1"),
+        ];
+        for (left, operator, right) in compares {
+            assert!(
+                Command::new("dpkg")
+                    .args(["--compare-versions", left, operator, right])
+                    .status()
+                    .unwrap()
+                    .success(),
+                "expected {left} {operator} {right}"
+            );
+        }
+        assert_eq!(
+            release_version_from_branch("releases/gcc-15.3.0"),
+            Some("15.3.0".into())
+        );
+        assert_eq!(
+            release_version_from_branch("v7.2-rc5"),
+            Some("7.2~rc5".into())
+        );
+        assert_eq!(release_version_from_branch("master"), None);
+    }
+
+    #[test]
+    fn compatibility_manifest_pins_and_read_only_publisher_validate() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        validate_debian_compatibility(&root).unwrap();
+        let preferences =
+            fs::read_to_string(root.join("src/system/packages/config/apt/00mattos-priority"))
+                .unwrap();
+        let local = preferences.find("Pin-Priority: 1001").unwrap();
+        let hosted = preferences.find("Pin-Priority: 990").unwrap();
+        let debian = preferences.find("Pin-Priority: 500").unwrap();
+        let blocked = preferences.find("Pin-Priority: -1").unwrap();
+        assert!(local < hosted && hosted < debian && debian < blocked);
+        assert!(!root.join("src/infrastructure/LinuxScripts/.git").exists());
+        assert_eq!(
+            sha256_file(
+                &root.join(
+                    "src/infrastructure/LinuxScripts/GenericScripts/ManageMattOSRepository.py"
+                )
+            )
+            .unwrap(),
+            "90d516f75d9dd38b2cfa1693cdc2833d71ef003ca9248e4a0d1ab0f8e58ec477"
+        );
+    }
+
+    #[test]
+    fn apt_sources_are_signed_disabled_scaffolds_and_never_trust_debian() {
+        let hosted = include_str!("../../../system/packages/config/apt/mattos-hosted.sources");
+        let debian = include_str!("../../../system/packages/config/apt/debian-trixie.sources");
+        assert!(hosted.contains("Enabled: no"));
+        assert!(hosted.contains("https://packages.mattsherfey.com"));
+        assert!(hosted.contains("Signed-By:"));
+        assert!(debian.contains("Enabled: no"));
+        assert!(debian.contains("https://deb.debian.org/debian"));
+        assert!(debian.contains("Signed-By:"));
+        assert!(!hosted.contains("Trusted: yes"));
+        assert!(!debian.contains("Trusted: yes"));
+    }
+
+    #[test]
+    fn debian_equivalents_use_real_names_and_gaps_do_not_false_provide() {
+        let specs = package_specs();
+        for name in [
+            "libc6",
+            "libgcc-s1",
+            "libstdc++6",
+            "apt",
+            "dpkg",
+            "coreutils",
+            "libssl3t64",
+            "libpam0g",
+            "login",
+            "iputils-ping",
+        ] {
+            assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
+        }
+        assert!(
+            specs
+                .iter()
+                .find(|spec| spec.name == "mattos-libtinfow6")
+                .unwrap()
+                .provides
+                .is_empty()
+        );
+        assert!(
+            specs
+                .iter()
+                .find(|spec| spec.name == "mattos-libproc2")
+                .unwrap()
+                .provides
+                .is_empty()
+        );
+    }
+
+    #[test]
+    fn publication_path_policy_rejects_escape_missing_non_deb_and_symlink_escape() {
+        let temp = tempfile::tempdir().unwrap();
+        let approved = temp.path().join("out/packages");
+        fs::create_dir_all(&approved).unwrap();
+        let package = approved.join("safe.deb");
+        fs::write(&package, "deb").unwrap();
+        let outside = temp.path().join("outside.deb");
+        fs::write(&outside, "deb").unwrap();
+        let text = approved.join("not-a-package.txt");
+        fs::write(&text, "text").unwrap();
+        assert_eq!(
+            validate_publication_artifact_location(&approved.canonicalize().unwrap(), &package)
+                .unwrap(),
+            package.canonicalize().unwrap()
+        );
+        assert!(
+            validate_publication_artifact_location(&approved.canonicalize().unwrap(), &outside)
+                .is_err()
+        );
+        assert!(
+            validate_publication_artifact_location(&approved.canonicalize().unwrap(), &text)
+                .is_err()
+        );
+        assert!(
+            validate_publication_artifact_location(
+                &approved.canonicalize().unwrap(),
+                &approved.join("missing.deb")
+            )
+            .is_err()
+        );
+        symlink(&outside, approved.join("escape.deb")).unwrap();
+        assert!(
+            validate_publication_artifact_location(
+                &approved.canonicalize().unwrap(),
+                &approved.join("escape.deb")
+            )
+            .is_err()
+        );
     }
 }

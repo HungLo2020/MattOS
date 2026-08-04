@@ -12,3 +12,7 @@ APT::Get::List-Cleanup "true";
 Pager "false";
 // Transitional live-image policy: MattOS does not create an _apt account yet.
 APT::Sandbox::User "root";
+Acquire::Retries "0";
+Acquire::http::Timeout "5";
+Acquire::https::Timeout "5";
+Acquire::Languages "none";

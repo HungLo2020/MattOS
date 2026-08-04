@@ -1,0 +1,7 @@
+component = "linuxscripts"
+repo = "https://github.com/HungLo2020/LinuxScripts.git"
+branch = "master"
+imported_commit = "91fefdbcc878e3e66c19cb9858e1acaae5aebba2"
+imported_at_utc = "2026-08-04T05:14:41.471251191+00:00"
+sync_method = "copy"
+destination_path = "src/infrastructure/LinuxScripts"

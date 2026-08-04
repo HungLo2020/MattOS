@@ -1,0 +1,18 @@
+- search:
+    provider: duckduckgo
+    target: _blank
+- datetime:
+    text_size: xl
+    format:
+      timeStyle: short
+      dateStyle: short
+- openmeteo:
+    label: Ridgecrest
+    latitude: 35.6225
+    longitude: -117.6709
+    timezone: America/Los_Angeles
+    units: imperial
+    cache: 5
+- resources:
+    cpu: true
+    memory: true

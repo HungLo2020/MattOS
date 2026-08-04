@@ -1,0 +1,5 @@
+KDEProfiles/
+.bw_master_password
+Tools/PlexToJellyfin/exports/
+__pycache__/
+*.py[cod]

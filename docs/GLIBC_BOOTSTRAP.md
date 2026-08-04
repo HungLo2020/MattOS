@@ -74,17 +74,17 @@ out/sysroot/
 └── usr/lib/x86_64-linux-gnu/
 ```
 
-It holds Linux UAPI headers, glibc headers, crt objects, linker scripts, runtime libraries, and the development files of source-built dependencies needed by later consumers. It contains no mutable rootfs state. The native-toolchain milestone reproduces its development surface through `mattos-linux-libc-dev`, `mattos-libc6-dev`, `mattos-libgcc-dev`, and `mattos-libstdc++-dev`; runtime DSOs remain in their existing unique owners. Every downstream native stage is cleared after a glibc build and receives explicit C, C++, linker, pkg-config, or Rust linker sysroot settings.
+It holds Linux UAPI headers, glibc headers, crt objects, linker scripts, runtime libraries, and the development files of source-built dependencies needed by later consumers. It contains no mutable rootfs state. The native-toolchain milestone reproduces its development surface through `linux-libc-dev`, `libc6-dev`, `mattos-libgcc-dev`, and `mattos-libstdc++-dev`; runtime DSOs remain in their existing unique owners. Every downstream native stage is cleared after a glibc build and receives explicit C, C++, linker, pkg-config, or Rust linker sysroot settings.
 
 ## Runtime packages
 
-`mattos-libc6` is the foundational runtime package. It owns the MattOS loader at `/usr/lib64/ld-linux-x86-64.so.2` (reachable through the merged `/lib64` layout), `libc.so.6`, `libm.so.6`, `libmvec.so.1`, compatibility DSOs, resolver support, and the glibc NSS modules. Its complete shared-object inventory is recorded in `/usr/share/doc/mattos-libc6/runtime-files.tsv` with SHA-256 values.
+`libc6` is the foundational runtime package. It owns the MattOS loader at `/usr/lib64/ld-linux-x86-64.so.2` (reachable through the merged `/lib64` layout), `libc.so.6`, `libm.so.6`, `libmvec.so.1`, compatibility DSOs, resolver support, and the glibc NSS modules. Its complete shared-object inventory is recorded in `/usr/share/doc/libc6/runtime-files.tsv` with SHA-256 values.
 
 The selected NSS/resolver inventory includes `libnss_files.so.2`, `libnss_dns.so.2`, `libnss_compat.so.2`, `libnss_db.so.2`, `libnss_hesiod.so.2`, and `libresolv.so.2`. systemd continues to provide `libnss_systemd.so.2` and `libnss_resolve.so.2`. This supports MattOS's `files systemd` account databases and `files resolve ... dns` host lookup policy.
 
-`mattos-libc-bin` depends on `mattos-libc6` and owns `getent`, `locale`, `ldd`, and `ldconfig`. Locale data is not bulk-packaged. `mattos-libc6-dev` now owns the glibc headers, crt objects, static archives, and unversioned linker inputs required for native compilation, while `mattos-linux-libc-dev` uniquely owns the generated kernel UAPI layer.
+`libc-bin` depends on `libc6` and owns `getent`, `locale`, `ldd`, and `ldconfig`. Locale data is not bulk-packaged. `libc6-dev` now owns the glibc headers, crt objects, static archives, and unversioned linker inputs required for native compilation, while `linux-libc-dev` uniquely owns the generated kernel UAPI layer.
 
-`mattos-libgcc-s1` depends on `mattos-libc6`; `mattos-libstdc++6` depends on both. `mattos-bootstrap-runtime` is retired. Every other package receives a direct exact-version dependency on `mattos-libc6`, and direct compiler-runtime consumers declare the appropriate GCC runtime package. See `GCC_RUNTIME_BOOTSTRAP.md`.
+`libgcc-s1` depends on `libc6`; `libstdc++6` depends on both. `mattos-bootstrap-runtime` is retired. Every other package receives a direct exact-version dependency on `libc6`, and direct compiler-runtime consumers declare the appropriate GCC runtime package. See `GCC_RUNTIME_BOOTSTRAP.md`.
 
 ## Loader migration and validation
 

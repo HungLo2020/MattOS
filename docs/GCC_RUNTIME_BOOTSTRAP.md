@@ -58,9 +58,9 @@ The complete generated invocation is recorded in `out/build/gcc-runtime/configur
 
 ## ABI and packages
 
-`mattos-libgcc-s1` owns `libgcc_s.so.1`, the runtime exception/license text, ABI inventory, and provenance. It depends on the exact MattOS libc runtime.
+`libgcc-s1` owns `libgcc_s.so.1`, the runtime exception/license text, ABI inventory, and provenance. It depends on the exact MattOS libc runtime.
 
-`mattos-libstdc++6` owns `libstdc++.so.6.0.34`, its `libstdc++.so.6` SONAME link, the runtime exception/license text, ABI inventory, and provenance. It depends on MattOS libc and `mattos-libgcc-s1`.
+`libstdc++6` owns `libstdc++.so.6.0.34`, its `libstdc++.so.6` SONAME link, the runtime exception/license text, ABI inventory, and provenance. It depends on MattOS libc and `libgcc-s1`.
 
 The build requires the compatibility nodes already used by MattOS consumers, including `GCC_3.0`, `GCC_4.2.0`, `GCC_14.0.0`, `GLIBCXX_3.4.34`, and `CXXABI_1.3.15`. The complete exported sets are written to `out/build/gcc-runtime/runtime-abi.tsv`. Unexpected dynamic dependencies, including GMP/MPFR/MPC/zlib leakage into the target shared runtimes, fail the build.
 
@@ -76,4 +76,4 @@ Rust's existing unwind behavior is preserved. MattOS does not globally switch Ru
 
 Final rootfs validation compares both GCC runtime files byte-for-byte with the selected GCC build output, rejects duplicate SONAME providers, checks every interpreter and `DT_NEEDED` provider, invokes the MattOS loader for every dynamic executable, rejects host resolution and host-style RPATH/RUNPATH entries, and records GLIBC, GLIBCXX, CXXABI, and GCC version nodes in `out/reports/elf-runtime-inventory.tsv`.
 
-The runtime-only package boundary remains unchanged, but the subsequent native-toolchain milestone packages the installed headers/static link support separately as `mattos-libgcc-dev` and `mattos-libstdc++-dev`, then adds source-built Binutils, GCC C/C++, and GNU Make. Python, Perl, Rust/rustc/Cargo, Git, general build systems, compiler self-reproduction, and native image/package construction remain future work. See `NATIVE_TOOLCHAIN.md`.
+The runtime-only package boundary remains unchanged, but the subsequent native-toolchain milestone packages the GCC 15 headers/static link support separately as `mattos-libgcc-dev` and `mattos-libstdc++-dev`, then adds source-built Binutils, GCC C/C++, and GNU Make. These MattOS-specific names deliberately avoid claiming Trixie's GCC 14 development-package identities. Python, Perl, Rust/rustc/Cargo, Git, general build systems, compiler self-reproduction, and native image/package construction remain future work. See `NATIVE_TOOLCHAIN.md`.

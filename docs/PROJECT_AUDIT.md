@@ -447,12 +447,12 @@ Verified successfully during this audit pass:
 - dpkg and APT were rebuilt with explicit MattOS compression include/link/runtime paths; LZ4, liblzma, and xxHash moved into three ABI packages
 - the current bootstrap boundary shrank from 17 entries / 16,669,816 bytes to 14 entries / 16,191,736 bytes
 - OpenSSL 3.5.7 and elfutils 0.195 were imported at exact release tags and commits as ordinary editable files, with no nested Git repositories
-- Zstandard, OpenSSL libcrypto/libssl, and elfutils libelf were built in dependency order and split into `mattos-libzstd1`, `mattos-libcrypto3`, `mattos-libssl3`, and `mattos-libelf1`
+- Zstandard, OpenSSL libcrypto/libssl, and elfutils libelf were built in dependency order and split into `libzstd1`, `mattos-libcrypto3`, `libssl3t64`, and `libelf1t64`
 - curl, APT, dpkg, and iproute2 were rebuilt against explicit staged include/link/runtime paths; assembled-rootfs loader checks resolved every migrated SONAME inside the rootfs
 - the bootstrap boundary shrank from 12 entries / 16,042,648 bytes to 8 entries / 7,639,680 bytes
 - libmd 1.2.0 and libbsd 0.12.2 were imported from their canonical upstream repositories at exact stable commits and built out of source with Autotools
 - libbsd was forced to the MattOS libmd headers and library; eight dpkg-family commands and ten Shadow commands were rebuilt with explicit staged paths and validated against the assembled rootfs loader
-- `mattos-libmd0` and `mattos-libbsd0` uniquely own their SONAMEs, and the bootstrap boundary shrank from 14 entries / 16,191,736 bytes to 12 entries / 16,042,648 bytes
+- `libmd0` and `libbsd0` uniquely own their SONAMEs, and the bootstrap boundary shrank from 14 entries / 16,191,736 bytes to 12 entries / 16,042,648 bytes
 - PCRE2 10.47, SELinux userspace 3.10, and libxcrypt 4.4.38 were imported at exact release commits, built outside their source trees, and split into three ABI packages
 - dpkg, iproute2, PAM, and Shadow direct consumers were rebuilt with staged paths; the exact rootfs graph contains no unowned direct consumer of the migrated SONAMEs
 - util-linux libblkid/libmount/libsmartcols and mount/umount were source-built and split into four packages, eliminating the former host mount/library copy path while retaining the SELinux compatibility loader
@@ -460,11 +460,11 @@ Verified successfully during this audit pass:
 - the bootstrap boundary shrank from 8 entries / 7,639,680 bytes to 5 entries / 6,518,032 bytes
 - two consecutive pre-glibc package/repository builds produced identical aggregate hashes: 52 packages `3aefddd9419391a04c7366337afc58a8025b0729c7caf5ba6fdb19dbd5c07882`; 55 repository files `8ba00fae4273017332afffb903a8b61cafe9387cecce02ff1083894ef8c56b82`
 - normal serial QEMU boot reached a `running` systemd system with the live `mattos` session, passwordless live-profile sudo, both system and user D-Bus, routable `ens3`, DHCP/DNS/NTP, and certificate-verified HTTPS
-- the embedded repository updated successfully and safely reinstalled `mattos-mount` and the libselinux-dependent `mattos-iproute2` during normal boot
+- the embedded repository updated successfully and safely reinstalled `mount` and the libselinux-dependent `iproute2` during normal boot
 - temporary interactive authentication checks covered incorrect and successful manual login, yescrypt password creation, self-service password change, `su`, prompted administrative sudo rejection/success, non-administrator sudo denial, and locked-root rejection
-- no-network QEMU boot retained login, sudo, both D-Bus scopes, a `running` systemd state, and loopback-only network state; local APT updated and reinstalled `mattos-brush`, `mattos-mount`, and `mattos-iproute2`
+- no-network QEMU boot retained login, sudo, both D-Bus scopes, a `running` systemd state, and loopback-only network state; local APT updated and reinstalled `mattos-brush`, `mount`, and `iproute2`
 - representative ownership queries resolved PAM, ncurses, kmod, procps, dbus-broker, sudo, passwd, login, ip, and ping paths to their dedicated packages
-- the embedded `file:` repository safely reinstalled `mattos-iputils`, `mattos-procps`, and `mattos-ncurses-bin`
+- the embedded `file:` repository safely reinstalled `iputils-ping`, `procps`, and `ncurses-bin`
 - ten session-critical packages were separately extracted and inspected without replacing active PAM/login/sudo/D-Bus/systemd files
 - `python3 DevUtils/run_qemu.py` launched the current graphical image boot path
 - tty1 live-user identity, systemd PID 1, sudo, Brush interaction, and getty session restart were directly observed
@@ -492,13 +492,28 @@ The remaining module-related boot message is precisely scoped: systemd's real li
 - ten new packages bring the dependency graph to 65 with explicit ownership of every compiler driver and internal helper; runtime shared libraries remain in their existing owners.
 - this is a native C/C++ compile-and-package milestone, not compiler self-reproduction or a native MattOS rebuild. Detailed source, configuration, validation, and future milestone boundaries are in `NATIVE_TOOLCHAIN.md`.
 
+## Debian 13 compatibility policy
+
+- all 65 package definitions are mapped in the machine-readable Trixie `amd64` contract; true equivalents use Debian binary names while eleven MattOS-specific boundaries remain explicitly prefixed
+- Brush owns `brush`, `sh`, and `bash` command paths without claiming Debian's `bash` package identity
+- deterministic release versions use `-1mattos1`; unreleased source snapshots use `0~git.<commit>-1mattos1`, with `dpkg` comparison tests covering epochs, prereleases, revisions, and downgrade protection
+- APT priorities are local MattOS `1001`, hosted MattOS `990`, and Debian `500`; Debian-origin protected names are ineligible at `-1`
+- the embedded repository identifies as `Origin: MattOS`, `Label: MattOS Local`, `Suite: trixie`, `Codename: trixie`; remote deb822 files are signed, disabled scaffolds so disconnected boot remains local-only
+- isolated APT resolution selected Debian `hello`, `vtable-dumper`, and `anacron` while retaining MattOS protected dependencies; metadata, ELF dependencies, units, and maintainer scripts were inspected without modifying the host root
+- an ephemeral MattOS guest installed, executed, and removed Debian `hello` 2.10-5 through MattOS `dpkg`; normal and disconnected guests completed safe local upgrade simulations, and the disconnected guest reinstalled `iputils-ping` from embedded media
+- LinuxScripts is pinned at commit `91fefdbcc878e3e66c19cb9858e1acaae5aebba2`; its publisher checksum is enforced as `90d516f75d9dd38b2cfa1693cdc2833d71ef003ca9248e4a0d1ab0f8e58ec477`
+- the publication integration validates selected inventory artifacts and prints an exact future command only; it never invokes LinuxScripts, accesses credentials, signs, or publishes
+- incomplete `systemd` and `util-linux` package ownership, libcurl/PAM/OpenSSL split differences, terminfo/proc SONAME differences, Trixie's GCC 14 development names, and full maintainer-helper support remain documented gaps
+
+See `DEBIAN_COMPATIBILITY.md` and `REMOTE_REPOSITORY.md` for the complete contract and operational boundary.
+
 ## glibc runtime transition
 
 - GNU glibc 2.43 is imported as ordinary editable source at commit `f762ccf84f122d1354f103a151cba8bde797d521`; no nested Git repository is present.
 - Linux UAPI headers are regenerated with `make ARCH=x86 headers_install` from imported Linux revision `f17f39c917cd4aac09db1a6a083ef5ec09b4924d`.
 - glibc is built out of source with a 5.10.0 minimum kernel and installed into the controlled `out/sysroot` before any native consumer rebuild.
 - every post-glibc native build stage is invalidated and rebuilt with explicit sysroot/include/link/pkg-config settings; the kernel is correctly excluded from the libc consumer set.
-- `mattos-libc6` and `mattos-libc-bin` bring the package total to 54. libc is foundational and acyclic; all other packages depend directly on it.
+- `libc6` and `libc-bin` bring the package total to 54. libc is foundational and acyclic; all other packages depend directly on it.
 - the runtime package owns 17 glibc runtime/compatibility/NSS DSOs plus the MattOS ELF loader. The utility package owns `getent`, `locale`, `ldd`, and `ldconfig`; development inputs remain build-only.
 - the host-derived bootstrap boundary shrinks from 5 files / 6,518,032 bytes to 2 files / 2,832,624 bytes: `libgcc_s.so.1` and `libstdc++.so.6`.
 - assembled-rootfs validation requires `/lib64/ld-linux-x86-64.so.2` on every dynamically linked executable, resolves every `DT_NEEDED` entry through that loader inside the image, checks glibc symbol versions, and emits `out/reports/elf-runtime-inventory.tsv`.
@@ -514,7 +529,7 @@ The remaining module-related boot message is precisely scoped: systemd's real li
 
 - GCC 15.3.0 is imported from `https://gcc.gnu.org/git/gcc.git` as ordinary editable source at exact commit `4db0e8df15bef836558857c291c323add11d035c`; no nested Git repository is present.
 - the top-level GCC build uses the MattOS glibc/UAPI sysroot and requests only `all-target-libgcc` and `all-target-libstdc++-v3`; the selected runtime tree excludes compiler drivers, headers, static archives, development links, helper executables, and unrelated runtimes.
-- `mattos-libgcc-s1` and `mattos-libstdc++6` bring the package total to 55. The graph is `libc -> libgcc -> libstdc++`, with direct Rust and C++ consumers declaring the matching runtime package.
+- `libgcc-s1` and `libstdc++6` bring the package total to 55. The graph is `libc -> libgcc -> libstdc++`, with direct Rust and C++ consumers declaring the matching runtime package.
 - ABI validation requires the consumer-compatible GCC, GLIBCXX, and CXXABI version nodes and records every exported node in `out/build/gcc-runtime/runtime-abi.tsv`.
 - Rust panic/unwind behavior is preserved; rescue-init retains its direct `libgcc_s.so.1` dependency. A temporary C++ throw/catch program validates exception interoperability through the MattOS loader.
 - `mattos-bootstrap-runtime` is removed from the package set and repository. Its generated audit records zero entries and zero host-derived payload bytes.

@@ -1,7 +1,6 @@
 Types: deb
 URIs: file:/usr/share/mattos/repository
-Suites: mattos
+Suites: trixie
 Components: main
 Architectures: amd64
 Trusted: yes
-

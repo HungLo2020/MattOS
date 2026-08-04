@@ -66,6 +66,13 @@ path = "src/system/systemd"
 sync = "copy"
 
 [[component]]
+name = "linuxscripts"
+repo = "https://github.com/HungLo2020/LinuxScripts.git"
+branch = "master"
+path = "src/infrastructure/LinuxScripts"
+sync = "copy"
+
+[[component]]
 name = "dbus-broker"
 repo = "https://github.com/bus1/dbus-broker.git"
 branch = "main"

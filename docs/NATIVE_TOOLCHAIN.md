@@ -86,19 +86,19 @@ The package graph adds these ten packages:
 
 | Package | Principal ownership |
 | --- | --- |
-| `mattos-linux-libc-dev` | exported Linux userspace UAPI headers |
-| `mattos-libc6-dev` | glibc public headers, CRT objects, linker scripts, static link support |
-| `mattos-libgcc-dev` | GCC target headers, CRT objects, and libgcc link support |
-| `mattos-libstdc++-dev` | C++ headers, development linker name, `libstdc++.a`, `libsupc++.a` |
-| `mattos-binutils` | assembler, linker, archive, object-inspection, and binary-manipulation tools |
+| `linux-libc-dev` | exported Linux userspace UAPI headers |
+| `libc6-dev` | glibc public headers, CRT objects, linker scripts, static link support |
+| `mattos-libgcc-dev` | GCC 15 target headers, CRT objects, and libgcc link support |
+| `mattos-libstdc++-dev` | GCC 15 C++ headers, development linker name, `libstdc++.a`, `libsupc++.a` |
+| `binutils` | assembler, linker, archive, object-inspection, and binary-manipulation tools |
 | `mattos-gcc-common` | installed GCC internal helpers and target-independent compiler support |
-| `mattos-cpp` | C preprocessor driver |
-| `mattos-gcc` | C compiler driver and `/usr/bin/cc` |
-| `mattos-g++` | C++ compiler driver and `/usr/bin/c++` |
-| `mattos-make` | `/usr/bin/make` |
+| `cpp` | C preprocessor driver |
+| `gcc` | C compiler driver and `/usr/bin/cc` |
+| `g++` | C++ compiler driver and `/usr/bin/c++` |
+| `make` | `/usr/bin/make` |
 
-Runtime libraries remain owned only by `mattos-libc6`, `mattos-libgcc-s1`, and
-`mattos-libstdc++6`.  Development packages depend on those runtime owners and
+Runtime libraries remain owned only by `libc6`, `libgcc-s1`, and
+`libstdc++6`.  Development packages depend on those runtime owners and
 do not duplicate their versioned shared objects.  Package staging, repository
 auditing, and rootfs construction reject duplicate paths, unresolved ELF
 dependencies, unowned helpers, host RPATH/RUNPATH, and embedded host paths.

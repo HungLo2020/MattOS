@@ -1,0 +1,97 @@
+- AI Engines:
+    - Stable Diffusion:
+        href: http://localhost:7861
+        description: AUTOMATIC1111
+        icon: mdi-image-outline-#8b5cf6
+        server: local
+        container: automatic1111
+    - Open WebUI:
+        href: http://localhost:3000
+        description: LLM interface
+        icon: mdi-monitor-dashboard-#22c55e
+        server: local
+        container: open-webui
+
+- Media:
+    - Plex:
+        href: https://app.plex.tv/desktop/
+        description: Media Server
+        icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/plex.png
+        server: local
+        container: plex
+    - Jellyfin:
+        href: http://localhost:8096/
+        description: Media Server
+        icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/jellyfin.png
+        server: local
+        container: jellyfin
+    - Seerr:
+        href: http://localhost:5055/
+        description: Media Request
+        icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/seerr.png
+        server: local
+        container: seerr
+
+- Interfaces:
+    - Homepage:
+        href: http://localhost:3001
+        description: Dashboard
+        icon: mdi-view-grid-outline-#f59e0b
+        server: local
+        container: homepage
+    - Admin Panel:
+        href: https://localhost:9443
+        description: Admin Panel
+        icon: mdi-view-grid-outline-#f59e0b
+        server: local
+        container: portainer
+    - Uptime Kuma:
+        href: http://100.85.155.22:3002
+        description: Service Monitor
+        icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/uptime-kuma.png
+        server: local
+        container: uptime-kuma
+
+- Backend Services:
+    - Sonarr:
+        href: http://localhost:8989/
+        description: TV Show Management
+        icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/sonarr.png
+        server: local
+        container: sonarr
+    - Radarr:
+        href: http://localhost:7878/
+        description: Movie Management
+        icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/radarr.png
+        server: local
+        container: radarr
+    - qBittorrent:
+        href: http://localhost:8080/
+        description: Torrent Client
+        icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/qbittorrent.png
+        server: local
+        container: qbittorrent
+    - Jackett:
+        href: http://localhost:9117/
+        description: Torrent Indexer
+        icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/jackett.png
+        server: local
+        container: jackett
+
+- Links:
+    - GitHub:
+        href: https://github.com/HungLo2020/
+        description: Code hosting
+        icon: si-github-#181717
+    - YouTube:
+        href: https://www.youtube.com/
+        description: Video
+        icon: si-youtube-#ff0000
+    - Reddit:
+        href: https://www.reddit.com/
+        description: Community
+        icon: si-reddit-#ff4500
+    - Cloudflare:
+        href: https://dash.cloudflare.com/
+        description: Dynamic DNS
+        icon: https://cdn.jvr.net/gh/homarr-labs/dashboard-icons/png/cloudflare.png

@@ -1,0 +1,785 @@
+schema_version = 1
+suite = "trixie"
+architecture = "amd64"
+policy = "Best-effort Debian 13 binary compatibility with a MattOS-built protected base"
+version_policy = "<upstream>-1mattos<N>; snapshots use 0~git.<commit>-1mattos<N>; no timestamps"
+
+[[package]]
+debian_name = "mattos-filesystem"
+mattos_name = "mattos-filesystem"
+source_component = "MattOS"
+owned_paths = ["/bin -> usr/bin"]
+provided_abi_or_commands = ["filesystem hierarchy"]
+protected = true
+current_mattos_version = "0.1-1mattos1"
+expected_debian_role = "MattOS filesystem owner"
+classification = "mattos-specific"
+known_gaps = ["No Debian package identity claimed"]
+
+[[package]]
+debian_name = "libc6"
+mattos_name = "libc6"
+source_component = "glibc"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libc.so.6"]
+provided_abi_or_commands = ["GLIBC_2.43 and ld-linux-x86-64.so.2"]
+protected = true
+current_mattos_version = "2.43-1mattos1"
+expected_debian_role = "C runtime"
+classification = "debian-compatible"
+known_gaps = ["Not every Debian locale archive is shipped"]
+
+[[package]]
+debian_name = "libgcc-s1"
+mattos_name = "libgcc-s1"
+source_component = "gcc"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libgcc_s.so.1"]
+provided_abi_or_commands = ["GCC_15 runtime"]
+protected = true
+current_mattos_version = "15.3.0-1mattos1"
+expected_debian_role = "compiler support runtime"
+classification = "debian-compatible"
+known_gaps = ["Debian maintainer metadata is intentionally smaller"]
+
+[[package]]
+debian_name = "libstdc++6"
+mattos_name = "libstdc++6"
+source_component = "gcc"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libstdc++.so.6"]
+provided_abi_or_commands = ["GLIBCXX_3.4.34"]
+protected = true
+current_mattos_version = "15.3.0-1mattos1"
+expected_debian_role = "C++ runtime"
+classification = "debian-compatible"
+known_gaps = ["Only amd64 is contracted"]
+
+[[package]]
+debian_name = "linux-libc-dev"
+mattos_name = "linux-libc-dev"
+source_component = "linux"
+owned_paths = ["/usr/include/linux"]
+provided_abi_or_commands = ["Linux UAPI headers"]
+protected = true
+current_mattos_version = "0~git.f17f39c917cd-1mattos1"
+expected_debian_role = "kernel userspace headers"
+classification = "debian-compatible"
+known_gaps = ["Snapshot version sorts below released Debian and relies on protection"]
+
+[[package]]
+debian_name = "libc6-dev"
+mattos_name = "libc6-dev"
+source_component = "glibc"
+owned_paths = ["/usr/include/stdio.h"]
+provided_abi_or_commands = ["libc.so linker script"]
+protected = true
+current_mattos_version = "2.43-1mattos1"
+expected_debian_role = "C development contract"
+classification = "debian-compatible"
+known_gaps = ["Debian static development auxiliaries are incomplete"]
+
+[[package]]
+debian_name = "libgcc-14-dev"
+mattos_name = "mattos-libgcc-dev"
+source_component = "gcc"
+owned_paths = ["/usr/lib/gcc/x86_64-pc-linux-gnu/15.3.0"]
+provided_abi_or_commands = ["libgcc development files"]
+protected = true
+current_mattos_version = "15.3.0-1mattos1"
+expected_debian_role = "GCC 15 development runtime"
+classification = "mattos-specific"
+known_gaps = ["Does not claim Trixie's libgcc-14-dev identity because the payload targets GCC 15"]
+
+[[package]]
+debian_name = "libstdc++-14-dev"
+mattos_name = "mattos-libstdc++-dev"
+source_component = "gcc"
+owned_paths = ["/usr/include/c++/15.3.0"]
+provided_abi_or_commands = ["C++ headers and linker files"]
+protected = true
+current_mattos_version = "15.3.0-1mattos1"
+expected_debian_role = "GCC 15 C++ development files"
+classification = "mattos-specific"
+known_gaps = ["Does not claim Trixie's libstdc++-14-dev identity because the payload targets GCC 15"]
+
+[[package]]
+debian_name = "binutils"
+mattos_name = "binutils"
+source_component = "binutils"
+owned_paths = ["/usr/bin/ld"]
+provided_abi_or_commands = ["GNU assembler and linker"]
+protected = true
+current_mattos_version = "2.46.1-1mattos1"
+expected_debian_role = "binary utilities"
+classification = "debian-compatible"
+known_gaps = ["Debian ancillary binaries and alternatives are incomplete"]
+
+[[package]]
+debian_name = "mattos-gcc-common"
+mattos_name = "mattos-gcc-common"
+source_component = "gcc"
+owned_paths = ["/usr/libexec/gcc"]
+provided_abi_or_commands = ["GCC internal helpers"]
+protected = false
+current_mattos_version = "15.3.0-1mattos1"
+expected_debian_role = "MattOS compiler implementation split"
+classification = "mattos-specific"
+known_gaps = ["No Debian package identity claimed"]
+
+[[package]]
+debian_name = "cpp"
+mattos_name = "cpp"
+source_component = "gcc"
+owned_paths = ["/usr/bin/cpp"]
+provided_abi_or_commands = ["cpp command"]
+protected = true
+current_mattos_version = "15.3.0-1mattos1"
+expected_debian_role = "C preprocessor"
+classification = "debian-compatible"
+known_gaps = ["Debian versioned cpp split is not reproduced"]
+
+[[package]]
+debian_name = "gcc"
+mattos_name = "gcc"
+source_component = "gcc"
+owned_paths = ["/usr/bin/gcc"]
+provided_abi_or_commands = ["gcc and cc commands"]
+protected = true
+current_mattos_version = "15.3.0-1mattos1"
+expected_debian_role = "C compiler"
+classification = "debian-compatible"
+known_gaps = ["Debian versioned gcc split is not reproduced"]
+
+[[package]]
+debian_name = "g++"
+mattos_name = "g++"
+source_component = "gcc"
+owned_paths = ["/usr/bin/g++"]
+provided_abi_or_commands = ["g++ and c++ commands"]
+protected = true
+current_mattos_version = "15.3.0-1mattos1"
+expected_debian_role = "C++ compiler"
+classification = "debian-compatible"
+known_gaps = ["Debian versioned g++ split is not reproduced"]
+
+[[package]]
+debian_name = "make"
+mattos_name = "make"
+source_component = "make"
+owned_paths = ["/usr/bin/make"]
+provided_abi_or_commands = ["make command"]
+protected = true
+current_mattos_version = "4.4.1-1mattos1"
+expected_debian_role = "build tool"
+classification = "debian-compatible"
+known_gaps = ["Documentation payload is smaller"]
+
+[[package]]
+debian_name = "libc-bin"
+mattos_name = "libc-bin"
+source_component = "glibc"
+owned_paths = ["/usr/sbin/ldconfig"]
+provided_abi_or_commands = ["ldconfig and ldd"]
+protected = true
+current_mattos_version = "2.43-1mattos1"
+expected_debian_role = "libc runtime utilities"
+classification = "debian-compatible"
+known_gaps = ["Maintainer scripts and locale helpers are incomplete"]
+
+[[package]]
+debian_name = "mattos-base-files"
+mattos_name = "mattos-base-files"
+source_component = "MattOS"
+owned_paths = ["/etc/os-release"]
+provided_abi_or_commands = ["MattOS identity"]
+protected = true
+current_mattos_version = "0.1-1mattos1"
+expected_debian_role = "MattOS base configuration"
+classification = "mattos-specific"
+known_gaps = ["Conflicts with Debian base-files by design"]
+
+[[package]]
+debian_name = "ca-certificates"
+mattos_name = "ca-certificates"
+source_component = "ca-certificates"
+owned_paths = ["/etc/ssl/certs/ca-certificates.crt"]
+provided_abi_or_commands = ["Mozilla CA bundle"]
+protected = false
+current_mattos_version = "2026.07.16-1mattos1"
+expected_debian_role = "TLS trust roots"
+classification = "debian-compatible"
+known_gaps = ["update-ca-certificates and triggers are not yet shipped"]
+
+[[package]]
+debian_name = "mattos-brush"
+mattos_name = "mattos-brush"
+source_component = "brush"
+owned_paths = ["/usr/bin/brush"]
+provided_abi_or_commands = ["sh and bash command entry points"]
+protected = true
+current_mattos_version = "0.4.0-1mattos1"
+expected_debian_role = "MattOS shell"
+classification = "mattos-specific"
+known_gaps = ["Provides command-level sh and bash compatibility but not Debian Bash package semantics"]
+
+[[package]]
+debian_name = "coreutils"
+mattos_name = "coreutils"
+source_component = "coreutils"
+owned_paths = ["/usr/bin/coreutils"]
+provided_abi_or_commands = ["GNU-compatible core commands"]
+protected = true
+current_mattos_version = "0.9.0-1mattos1"
+expected_debian_role = "essential command suite"
+classification = "debian-compatible"
+known_gaps = ["Not every GNU extension is guaranteed"]
+
+[[package]]
+debian_name = "curl"
+mattos_name = "curl"
+source_component = "curl"
+owned_paths = ["/usr/bin/curl"]
+provided_abi_or_commands = ["curl command and libcurl.so.4"]
+protected = false
+current_mattos_version = "8.22.0-1mattos1"
+expected_debian_role = "transfer client"
+classification = "debian-compatible"
+known_gaps = ["libcurl4t64 is not yet a separate binary package"]
+
+[[package]]
+debian_name = "libmd0"
+mattos_name = "libmd0"
+source_component = "libmd"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libmd.so.0"]
+provided_abi_or_commands = ["libmd.so.0"]
+protected = false
+current_mattos_version = "1.2.0-1mattos1"
+expected_debian_role = "message digest runtime"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
+debian_name = "libbsd0"
+mattos_name = "libbsd0"
+source_component = "libbsd"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libbsd.so.0"]
+provided_abi_or_commands = ["libbsd.so.0"]
+protected = false
+current_mattos_version = "0.12.2-1mattos1"
+expected_debian_role = "BSD compatibility runtime"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
+debian_name = "libzstd1"
+mattos_name = "libzstd1"
+source_component = "zstd"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libzstd.so.1"]
+provided_abi_or_commands = ["libzstd.so.1"]
+protected = false
+current_mattos_version = "1.5.7-1mattos1"
+expected_debian_role = "compression runtime"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
+debian_name = "mattos-libcrypto3"
+mattos_name = "mattos-libcrypto3"
+source_component = "openssl"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libcrypto.so.3"]
+provided_abi_or_commands = ["OPENSSL_3.5.0"]
+protected = true
+current_mattos_version = "3.5.7-1mattos1"
+expected_debian_role = "MattOS OpenSSL crypto split"
+classification = "mattos-specific"
+known_gaps = ["Debian ships libcrypto.so.3 inside libssl3t64"]
+
+[[package]]
+debian_name = "libssl3t64"
+mattos_name = "libssl3t64"
+source_component = "openssl"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libssl.so.3"]
+provided_abi_or_commands = ["OPENSSL_3.5.0"]
+protected = true
+current_mattos_version = "3.5.7-1mattos1"
+expected_debian_role = "OpenSSL runtime"
+classification = "debian-compatible"
+known_gaps = ["Depends on MattOS-specific crypto split"]
+
+[[package]]
+debian_name = "libelf1t64"
+mattos_name = "libelf1t64"
+source_component = "elfutils"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libelf.so.1"]
+provided_abi_or_commands = ["ELFUTILS_1.7"]
+protected = false
+current_mattos_version = "0.195-1mattos1"
+expected_debian_role = "ELF access runtime"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
+debian_name = "libpcre2-8-0"
+mattos_name = "libpcre2-8-0"
+source_component = "pcre2"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libpcre2-8.so.0"]
+provided_abi_or_commands = ["libpcre2-8.so.0"]
+protected = false
+current_mattos_version = "10.47-1mattos1"
+expected_debian_role = "regular expression runtime"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
+debian_name = "libselinux1"
+mattos_name = "libselinux1"
+source_component = "selinux"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libselinux.so.1"]
+provided_abi_or_commands = ["LIBSELINUX_1.0"]
+protected = false
+current_mattos_version = "3.10-1mattos1"
+expected_debian_role = "SELinux runtime"
+classification = "debian-compatible"
+known_gaps = ["Policy tooling is not included"]
+
+[[package]]
+debian_name = "libcrypt1"
+mattos_name = "libcrypt1"
+source_component = "libxcrypt"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libcrypt.so.1"]
+provided_abi_or_commands = ["XCRYPT_4.4"]
+protected = false
+current_mattos_version = "4.4.38-1mattos1"
+expected_debian_role = "password hashing runtime"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
+debian_name = "libblkid1"
+mattos_name = "libblkid1"
+source_component = "util-linux"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libblkid.so.1"]
+provided_abi_or_commands = ["BLKID_2.40"]
+protected = false
+current_mattos_version = "0~git.fd82c4043fab-1mattos1"
+expected_debian_role = "block device identification runtime"
+classification = "debian-compatible"
+known_gaps = ["Snapshot version relies on repository policy"]
+
+[[package]]
+debian_name = "libmount1"
+mattos_name = "libmount1"
+source_component = "util-linux"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libmount.so.1"]
+provided_abi_or_commands = ["MOUNT_2.40"]
+protected = false
+current_mattos_version = "0~git.fd82c4043fab-1mattos1"
+expected_debian_role = "mount runtime"
+classification = "debian-compatible"
+known_gaps = ["Snapshot version relies on repository policy"]
+
+[[package]]
+debian_name = "libsmartcols1"
+mattos_name = "libsmartcols1"
+source_component = "util-linux"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libsmartcols.so.1"]
+provided_abi_or_commands = ["SMARTCOLS_2.40"]
+protected = false
+current_mattos_version = "0~git.fd82c4043fab-1mattos1"
+expected_debian_role = "table formatting runtime"
+classification = "debian-compatible"
+known_gaps = ["Snapshot version relies on repository policy"]
+
+[[package]]
+debian_name = "mount"
+mattos_name = "mount"
+source_component = "util-linux"
+owned_paths = ["/usr/bin/mount"]
+provided_abi_or_commands = ["mount and umount commands"]
+protected = true
+current_mattos_version = "0~git.fd82c4043fab-1mattos1"
+expected_debian_role = "mount tools"
+classification = "debian-compatible"
+known_gaps = ["Debian maintainer scripts are not reproduced"]
+
+[[package]]
+debian_name = "dpkg"
+mattos_name = "dpkg"
+source_component = "dpkg"
+owned_paths = ["/usr/bin/dpkg"]
+provided_abi_or_commands = ["dpkg database and package commands"]
+protected = true
+current_mattos_version = "1.23.8+git.ff7e9d8b-1mattos1"
+expected_debian_role = "package manager"
+classification = "debian-compatible"
+known_gaps = ["Perl-based helper suite is intentionally absent"]
+
+[[package]]
+debian_name = "libapt-pkg7.0"
+mattos_name = "libapt-pkg7.0"
+source_component = "apt"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libapt-pkg.so.7.0"]
+provided_abi_or_commands = ["APTPKG_7.0"]
+protected = true
+current_mattos_version = "3.3.2-1mattos1"
+expected_debian_role = "APT library"
+classification = "debian-compatible"
+known_gaps = ["Only required methods and solvers are shipped"]
+
+[[package]]
+debian_name = "apt"
+mattos_name = "apt"
+source_component = "apt"
+owned_paths = ["/usr/bin/apt"]
+provided_abi_or_commands = ["apt and apt-get commands"]
+protected = true
+current_mattos_version = "3.3.2-1mattos1"
+expected_debian_role = "package resolver"
+classification = "debian-compatible"
+known_gaps = ["Remote sources are disabled until keys and networking are explicitly enabled"]
+
+[[package]]
+debian_name = "mattos-libtinfow6"
+mattos_name = "mattos-libtinfow6"
+source_component = "ncurses"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libtinfow.so.6"]
+provided_abi_or_commands = ["libtinfow.so.6"]
+protected = false
+current_mattos_version = "0~git.c7556ecbc951-1mattos1"
+expected_debian_role = "wide terminfo runtime"
+classification = "mattos-specific"
+known_gaps = ["Does not provide Debian libtinfo6 SONAME"]
+
+[[package]]
+debian_name = "libncursesw6"
+mattos_name = "libncursesw6"
+source_component = "ncurses"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libncursesw.so.6"]
+provided_abi_or_commands = ["libncursesw.so.6"]
+protected = false
+current_mattos_version = "0~git.c7556ecbc951-1mattos1"
+expected_debian_role = "wide terminal runtime"
+classification = "debian-compatible"
+known_gaps = ["Depends on MattOS wide terminfo split"]
+
+[[package]]
+debian_name = "ncurses-base"
+mattos_name = "ncurses-base"
+source_component = "ncurses"
+owned_paths = ["/usr/share/terminfo"]
+provided_abi_or_commands = ["terminfo database"]
+protected = false
+current_mattos_version = "0~git.c7556ecbc951-1mattos1"
+expected_debian_role = "terminal database"
+classification = "debian-compatible"
+known_gaps = ["Payload is focused on generated runtime entries"]
+
+[[package]]
+debian_name = "ncurses-bin"
+mattos_name = "ncurses-bin"
+source_component = "ncurses"
+owned_paths = ["/usr/bin/tic"]
+provided_abi_or_commands = ["tic tput and clear commands"]
+protected = false
+current_mattos_version = "0~git.c7556ecbc951-1mattos1"
+expected_debian_role = "terminal utilities"
+classification = "debian-compatible"
+known_gaps = ["Depends on MattOS wide terminfo split"]
+
+[[package]]
+debian_name = "libkmod2"
+mattos_name = "libkmod2"
+source_component = "kmod"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libkmod.so.2"]
+provided_abi_or_commands = ["LIBKMOD_5"]
+protected = false
+current_mattos_version = "0~git.5086df53090b-1mattos1"
+expected_debian_role = "kernel module runtime"
+classification = "debian-compatible"
+known_gaps = ["Snapshot version relies on repository policy"]
+
+[[package]]
+debian_name = "kmod"
+mattos_name = "kmod"
+source_component = "kmod"
+owned_paths = ["/usr/bin/kmod"]
+provided_abi_or_commands = ["kmod and module commands"]
+protected = false
+current_mattos_version = "0~git.5086df53090b-1mattos1"
+expected_debian_role = "kernel module tools"
+classification = "debian-compatible"
+known_gaps = ["Compressed module coverage is best effort"]
+
+[[package]]
+debian_name = "mattos-libproc2"
+mattos_name = "mattos-libproc2"
+source_component = "procps-ng"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libproc2.so.1"]
+provided_abi_or_commands = ["libproc2.so.1"]
+protected = false
+current_mattos_version = "0~git.619562d36cbd-1mattos1"
+expected_debian_role = "MattOS procps runtime"
+classification = "mattos-specific"
+known_gaps = ["Debian libproc2-0 uses a different SONAME and is not provided"]
+
+[[package]]
+debian_name = "procps"
+mattos_name = "procps"
+source_component = "procps-ng"
+owned_paths = ["/usr/bin/ps"]
+provided_abi_or_commands = ["ps top and sysctl commands"]
+protected = false
+current_mattos_version = "0~git.619562d36cbd-1mattos1"
+expected_debian_role = "process utilities"
+classification = "debian-compatible"
+known_gaps = ["Internal libproc split differs from Debian"]
+
+[[package]]
+debian_name = "libsystemd0"
+mattos_name = "libsystemd0"
+source_component = "systemd"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libsystemd.so.0"]
+provided_abi_or_commands = ["LIBSYSTEMD_209"]
+protected = true
+current_mattos_version = "0~git.91d2131e20ca-1mattos1"
+expected_debian_role = "systemd public runtime"
+classification = "debian-compatible"
+known_gaps = ["Snapshot version relies on repository policy"]
+
+[[package]]
+debian_name = "libudev1"
+mattos_name = "libudev1"
+source_component = "systemd"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libudev.so.1"]
+provided_abi_or_commands = ["LIBUDEV_183"]
+protected = true
+current_mattos_version = "0~git.91d2131e20ca-1mattos1"
+expected_debian_role = "udev runtime"
+classification = "debian-compatible"
+known_gaps = ["Snapshot version relies on repository policy"]
+
+[[package]]
+debian_name = "libexpat1"
+mattos_name = "libexpat1"
+source_component = "expat"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libexpat.so.1"]
+provided_abi_or_commands = ["EXPAT_2.0.1"]
+protected = false
+current_mattos_version = "0~git.236c3f8f9492-1mattos1"
+expected_debian_role = "XML runtime"
+classification = "debian-compatible"
+known_gaps = ["Snapshot version relies on repository policy"]
+
+[[package]]
+debian_name = "libcap2"
+mattos_name = "libcap2"
+source_component = "libcap"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libcap.so.2"]
+provided_abi_or_commands = ["LIBCAP_1.10"]
+protected = false
+current_mattos_version = "0~git.bd54ca54ff9f-1mattos1"
+expected_debian_role = "capability runtime"
+classification = "debian-compatible"
+known_gaps = ["Snapshot version relies on repository policy"]
+
+[[package]]
+debian_name = "libacl1"
+mattos_name = "libacl1"
+source_component = "acl"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libacl.so.1"]
+provided_abi_or_commands = ["ACL_1.0"]
+protected = false
+current_mattos_version = "2.3.2-1mattos1"
+expected_debian_role = "ACL runtime"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
+debian_name = "zlib1g"
+mattos_name = "zlib1g"
+source_component = "zlib"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libz.so.1"]
+provided_abi_or_commands = ["ZLIB_1.2.0"]
+protected = false
+current_mattos_version = "1.3.2-1mattos1"
+expected_debian_role = "compression runtime"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
+debian_name = "libbz2-1.0"
+mattos_name = "libbz2-1.0"
+source_component = "bzip2"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libbz2.so.1.0"]
+provided_abi_or_commands = ["libbz2.so.1.0"]
+protected = false
+current_mattos_version = "1.0.8-1mattos1"
+expected_debian_role = "compression runtime"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
+debian_name = "liblz4-1"
+mattos_name = "liblz4-1"
+source_component = "lz4"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/liblz4.so.1"]
+provided_abi_or_commands = ["liblz4.so.1"]
+protected = false
+current_mattos_version = "1.10.0-1mattos1"
+expected_debian_role = "compression runtime"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
+debian_name = "liblzma5"
+mattos_name = "liblzma5"
+source_component = "xz"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/liblzma.so.5"]
+provided_abi_or_commands = ["XZ_5.0"]
+protected = false
+current_mattos_version = "5.8.1-1mattos1"
+expected_debian_role = "compression runtime"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
+debian_name = "libxxhash0"
+mattos_name = "libxxhash0"
+source_component = "xxhash"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libxxhash.so.0"]
+provided_abi_or_commands = ["libxxhash.so.0"]
+protected = false
+current_mattos_version = "0.8.3-1mattos1"
+expected_debian_role = "hash runtime"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
+debian_name = "tar"
+mattos_name = "tar"
+source_component = "tar"
+owned_paths = ["/usr/bin/tar"]
+provided_abi_or_commands = ["GNU tar command"]
+protected = false
+current_mattos_version = "1.35-1mattos1"
+expected_debian_role = "archive utility"
+classification = "debian-compatible"
+known_gaps = ["Documentation and localization are reduced"]
+
+[[package]]
+debian_name = "dbus-broker"
+mattos_name = "dbus-broker"
+source_component = "dbus-broker"
+owned_paths = ["/usr/bin/dbus-broker"]
+provided_abi_or_commands = ["D-Bus broker and units"]
+protected = false
+current_mattos_version = "0~git.2956b5d381de-1mattos1"
+expected_debian_role = "system bus implementation"
+classification = "debian-compatible"
+known_gaps = ["Debian dependency alternatives are only partially reproduced"]
+
+[[package]]
+debian_name = "libpam0g"
+mattos_name = "libpam0g"
+source_component = "linux-pam"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libpam.so.0"]
+provided_abi_or_commands = ["LIBPAM_1.0"]
+protected = true
+current_mattos_version = "0~git.dd74fc113a9b-1mattos1"
+expected_debian_role = "PAM core runtime"
+classification = "debian-compatible"
+known_gaps = ["libpam_misc remains in a MattOS-specific companion split"]
+
+[[package]]
+debian_name = "mattos-libpam-misc0"
+mattos_name = "mattos-libpam-misc0"
+source_component = "linux-pam"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libpam_misc.so.0"]
+provided_abi_or_commands = ["LIBPAM_MISC_1.0"]
+protected = false
+current_mattos_version = "0~git.dd74fc113a9b-1mattos1"
+expected_debian_role = "MattOS PAM companion split"
+classification = "mattos-specific"
+known_gaps = ["Debian includes this SONAME in libpam0g"]
+
+[[package]]
+debian_name = "libpam-modules"
+mattos_name = "libpam-modules"
+source_component = "linux-pam"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/security/pam_unix.so"]
+provided_abi_or_commands = ["PAM module ABI"]
+protected = true
+current_mattos_version = "0~git.dd74fc113a9b-1mattos1"
+expected_debian_role = "PAM authentication modules"
+classification = "debian-compatible"
+known_gaps = ["Module selection is deliberately smaller than Debian"]
+
+[[package]]
+debian_name = "libpam-runtime"
+mattos_name = "libpam-runtime"
+source_component = "linux-pam"
+owned_paths = ["/etc/pam.d"]
+provided_abi_or_commands = ["PAM policy"]
+protected = true
+current_mattos_version = "0~git.dd74fc113a9b-1mattos1"
+expected_debian_role = "PAM policy and helpers"
+classification = "debian-compatible"
+known_gaps = ["Debian pam-auth-update is not shipped"]
+
+[[package]]
+debian_name = "passwd"
+mattos_name = "passwd"
+source_component = "shadow"
+owned_paths = ["/usr/bin/passwd"]
+provided_abi_or_commands = ["passwd and account commands"]
+protected = true
+current_mattos_version = "0~git.855d15a04625-1mattos1"
+expected_debian_role = "account administration"
+classification = "debian-compatible"
+known_gaps = ["Some Debian conffiles and helpers are absent"]
+
+[[package]]
+debian_name = "mattos-sudo-rs"
+mattos_name = "mattos-sudo-rs"
+source_component = "sudo-rs"
+owned_paths = ["/usr/bin/sudo"]
+provided_abi_or_commands = ["sudo command"]
+protected = true
+current_mattos_version = "0.2.14-1mattos1"
+expected_debian_role = "MattOS privilege delegation"
+classification = "mattos-specific"
+known_gaps = ["Does not claim Debian sudo package identity"]
+
+[[package]]
+debian_name = "login"
+mattos_name = "login"
+source_component = "util-linux"
+owned_paths = ["/usr/bin/login"]
+provided_abi_or_commands = ["login su and agetty commands"]
+protected = true
+current_mattos_version = "0~git.fd82c4043fab-1mattos1"
+expected_debian_role = "login command package"
+classification = "debian-compatible"
+known_gaps = ["Payload also contains commands Debian places in util-linux"]
+
+[[package]]
+debian_name = "iproute2"
+mattos_name = "iproute2"
+source_component = "iproute2"
+owned_paths = ["/usr/sbin/ip"]
+provided_abi_or_commands = ["ip ss bridge and tc commands"]
+protected = false
+current_mattos_version = "0~git.5696fee4c69f-1mattos1"
+expected_debian_role = "network configuration"
+classification = "debian-compatible"
+known_gaps = ["Optional plugins and documentation are absent"]
+
+[[package]]
+debian_name = "iputils-ping"
+mattos_name = "iputils-ping"
+source_component = "iputils"
+owned_paths = ["/usr/bin/ping"]
+provided_abi_or_commands = ["ping and tracepath commands"]
+protected = false
+current_mattos_version = "0~git.75cd9d544baa-1mattos1"
+expected_debian_role = "network diagnostics"
+classification = "debian-compatible"
+known_gaps = ["Debian splits tracepath separately"]

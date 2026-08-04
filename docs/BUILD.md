@@ -70,6 +70,7 @@ cargo run -p mattos-build -- upstream import tar
 cargo run -p mattos-build -- upstream import dbus-broker
 cargo run -p mattos-build -- upstream import dpkg
 cargo run -p mattos-build -- upstream import apt
+cargo run -p mattos-build -- upstream import linuxscripts
 ```
 
 ## Full build
@@ -157,12 +158,13 @@ Package and repository commands:
 ```
 cargo run -p mattos-build -- package build --all
 cargo run -p mattos-build -- package repo
-cargo run -p mattos-build -- package inspect mattos-apt
+cargo run -p mattos-build -- package inspect apt
 cargo run -p mattos-build -- package audit
 cargo run -p mattos-build -- package status
+cargo run -p mattos-build -- package compatibility-audit
 ```
 
-The complete prototype stack consists of 65 packages. `mattos-libc6` and `mattos-libc-bin` supply the MattOS-built glibc runtime, loader, NSS/resolver modules, and selected utilities; `mattos-libgcc-s1` and `mattos-libstdc++6` supply the final source-built compiler runtimes. Ten development packages add Linux/glibc/GCC development files, source-built Binutils, GCC C/C++, and GNU Make. After glibc and GCC runtime construction, downstream native stages are rebuilt with the controlled sysroot. Repository creation validates the dependency graph, staged ELF ownership, exact interpreter, loader resolution, and GLIBC/GLIBCXX/CXXABI/GCC symbol versions before image embedding. `mattos-bootstrap-runtime` is retired and the final host-derived target-runtime count is zero. See `docs/GLIBC_BOOTSTRAP.md`, `docs/GCC_RUNTIME_BOOTSTRAP.md`, `docs/NATIVE_TOOLCHAIN.md`, `docs/PACKAGING.md`, and `docs/BOOTSTRAP_RUNTIME.md`.
+The complete prototype stack consists of 65 packages. `libc6` and `libc-bin` supply the MattOS-built glibc runtime, loader, NSS/resolver modules, and selected utilities; `libgcc-s1` and `libstdc++6` supply the final source-built compiler runtimes. Ten development packages add Linux/glibc/GCC development files, source-built Binutils, GCC C/C++, and GNU Make. After glibc and GCC runtime construction, downstream native stages are rebuilt with the controlled sysroot. Repository creation validates the dependency graph, staged ELF ownership, exact interpreter, loader resolution, and GLIBC/GLIBCXX/CXXABI/GCC symbol versions before image embedding. `mattos-bootstrap-runtime` is retired and the final host-derived target-runtime count is zero. The compatibility audit also validates all package classifications, versions, protected pins, source scaffolds, and the immutable LinuxScripts publisher. See `docs/GLIBC_BOOTSTRAP.md`, `docs/GCC_RUNTIME_BOOTSTRAP.md`, `docs/NATIVE_TOOLCHAIN.md`, `docs/PACKAGING.md`, `docs/DEBIAN_COMPATIBILITY.md`, `docs/REMOTE_REPOSITORY.md`, and `docs/BOOTSTRAP_RUNTIME.md`.
 
 ## QEMU boot
 
@@ -179,7 +181,7 @@ python3 DevUtils/run_qemu.py
 python3 DevUtils/run_qemu.py --no-network
 ```
 
-`--no-network` omits both the QEMU network backend and NIC. It is the supported negative-test path for confirming that boot and the local authentication/base-administration stack do not depend on connectivity. The embedded package repository is also expected to support `apt-get update` and safe reinstall of `mattos-brush`, `mattos-tar`, `mattos-libbsd0`, `mattos-libzstd1`, and selected leaf-library consumers in this mode. Critical PAM, login, sudo, D-Bus, and systemd-related packages are inspected/extracted in a separate validation root rather than reinstalled underneath the active session.
+`--no-network` omits both the QEMU network backend and NIC. It is the supported negative-test path for confirming that boot and the local authentication/base-administration stack do not depend on connectivity. The embedded package repository is also expected to support `apt-get update` and safe reinstall of `mattos-brush`, `tar`, `libbsd0`, `libzstd1`, and selected leaf-library consumers in this mode. Critical PAM, login, sudo, D-Bus, and systemd-related packages are inspected/extracted in a separate validation root rather than reinstalled underneath the active session.
 
 The default GRUB entry boots `rdinit=/usr/lib/systemd/systemd systemd.unit=mattos.target`.
 A rescue GRUB entry is also provided and boots MattOS Rust rescue init from `/usr/libexec/mattos/rescue-init`.
