@@ -33,6 +33,11 @@ def parse_args() -> argparse.Namespace:
         help="additional raw QEMU argument (repeatable)",
     )
     parser.add_argument("--dry-run", action="store_true", help="print commands without executing")
+    parser.add_argument(
+        "--build-only",
+        action="store_true",
+        help="build the dependency-correct ISO once and exit without launching QEMU",
+    )
     return parser.parse_args()
 
 
@@ -64,6 +69,16 @@ def ensure_iso_exists(repo_root: Path) -> Path:
     return iso_path
 
 
+def image_build_commands(clean: bool) -> List[List[str]]:
+    commands: List[List[str]] = []
+    if clean:
+        commands.append(["cargo", "run", "-p", "mattos-build", "--", "clean", "artifacts"])
+    # `build all` formally ends with the ISO stage. Calling `image` afterward
+    # would rebuild packages, the rootfs, initramfs, and ISO a second time.
+    commands.append(["cargo", "run", "-p", "mattos-build", "--", "build", "all"])
+    return commands
+
+
 def build_if_needed(repo_root: Path, args: argparse.Namespace) -> None:
     if args.no_build:
         return
@@ -81,24 +96,8 @@ def build_if_needed(repo_root: Path, args: argparse.Namespace) -> None:
             "Run: python3 DevUtils/setup.py"
         ) from exc
 
-    if args.clean:
-        run_command(
-            ["cargo", "run", "-p", "mattos-build", "--", "clean", "artifacts"],
-            cwd=repo_root,
-            dry_run=args.dry_run,
-        )
-
-    # Reuse existing orchestrator behavior for incremental compilation and image assembly.
-    run_command(
-        ["cargo", "run", "-p", "mattos-build", "--", "build", "all"],
-        cwd=repo_root,
-        dry_run=args.dry_run,
-    )
-    run_command(
-        ["cargo", "run", "-p", "mattos-build", "--", "image"],
-        cwd=repo_root,
-        dry_run=args.dry_run,
-    )
+    for command in image_build_commands(args.clean):
+        run_command(command, cwd=repo_root, dry_run=args.dry_run)
 
 
 def launch_qemu(repo_root: Path, iso_path: Path, args: argparse.Namespace) -> int:
@@ -162,6 +161,11 @@ def main() -> int:
         raise RepoError("python3 not available")
 
     build_if_needed(repo_root, args)
+
+    if args.build_only:
+        if not args.dry_run:
+            ensure_iso_exists(repo_root)
+        return 0
 
     if args.dry_run:
         iso_path = repo_root / "out" / "images" / "mattos-x86_64.iso"

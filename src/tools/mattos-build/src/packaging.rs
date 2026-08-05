@@ -214,7 +214,7 @@ pub(crate) enum PackageCommands {
     },
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 struct PackageSpec {
     name: &'static str,
     description: &'static str,
@@ -243,6 +243,81 @@ struct PackageInventoryEntry {
     runtime_libraries: Vec<String>,
     file_count: u64,
     sha256: String,
+}
+
+const PACKAGE_CACHE_SCHEMA_VERSION: u32 = 1;
+const PACKAGE_AUDIT_SCHEMA_VERSION: u32 = 1;
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+struct PackageCacheManifest {
+    schema_version: u32,
+    package: String,
+    cache_key: String,
+    definition_digest: String,
+    payload_source_digest: String,
+    dependency_digest: String,
+    payload_inventory_digest: String,
+    artifact_sha256: String,
+    artifact_path: String,
+    inventory_entry: PackageInventoryEntry,
+}
+
+#[derive(Clone, Debug)]
+struct PackageCacheInput {
+    cache_key: String,
+    definition_digest: String,
+    payload_source_digest: String,
+    dependency_digest: String,
+}
+
+#[derive(Clone, Debug)]
+struct PreparedPackage {
+    spec: PackageSpec,
+    version: String,
+    staging: PathBuf,
+    artifact: PathBuf,
+    input: PackageCacheInput,
+    reused: Option<PackageCacheManifest>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct PackageAuditManifest {
+    schema_version: u32,
+    input_digest: String,
+    package_count: usize,
+    policy: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct PackageFacts {
+    schema_version: u32,
+    artifact_sha256: String,
+    package: String,
+    version: String,
+    architecture: String,
+    control: BTreeMap<String, String>,
+    conffiles: Vec<String>,
+    payload: Vec<PackagePayloadFact>,
+    elf_members: Vec<PackageElfMember>,
+    dependencies: Vec<String>,
+    installed_size_kib: u64,
+    provenance: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct PackagePayloadFact {
+    path: String,
+    kind: String,
+    mode: u32,
+    symlink_target: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct PackageElfMember {
+    path: String,
+    content_sha256: String,
+    soname: Option<String>,
+    needed: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -1456,19 +1531,6 @@ fn validate_publication_artifact_location(
 pub(crate) fn build_all_packages(repo_root: &Path) -> Result<()> {
     validate_debian_compatibility(repo_root)?;
     remove_path_if_exists(&repo_root.join("out/packages/staging/mattos-bootstrap-runtime"))?;
-    let artifact_root = repo_root.join("out/packages/amd64");
-    if artifact_root.is_dir() {
-        for entry in fs::read_dir(&artifact_root)? {
-            let path = entry?.path();
-            if path
-                .extension()
-                .and_then(OsStr::to_str)
-                .is_some_and(|extension| extension == "deb")
-            {
-                fs::remove_file(path)?;
-            }
-        }
-    }
     if let Ok(mut inventory) = read_inventory(repo_root) {
         inventory
             .package
@@ -1500,8 +1562,42 @@ fn build_packages(repo_root: &Path, names: &[String]) -> Result<()> {
     let artifact_root = repo_root.join("out/packages/amd64");
     fs::create_dir_all(&staging_root)?;
     fs::create_dir_all(&artifact_root)?;
+    let mut source_digests = BTreeMap::new();
+    let mut prepared = Vec::new();
     for spec in &selected {
-        stage_package(repo_root, spec)?;
+        let version = package_version(repo_root, spec)?;
+        let staging = staging_root.join(spec.name);
+        let artifact = artifact_root.join(format!("{}_{}_{}.deb", spec.name, version, ARCH));
+        let input = package_cache_input(repo_root, spec, &version, &mut source_digests)?;
+        let reused =
+            validate_package_cache(repo_root, spec, &version, &staging, &artifact, &input).ok();
+        if reused.is_some() {
+            performance::timed(
+                &format!("package:{}", spec.name),
+                "hit",
+                "package key, staging inventory, control metadata, and artifact SHA-256 matched",
+                &input.cache_key,
+                || Ok(()),
+            )?;
+            println!("package cache hit: {}", spec.name);
+        } else {
+            performance::timed(
+                &format!("package-staging:{}", spec.name),
+                "miss",
+                "package inputs or cached artifact validation changed",
+                &input.cache_key,
+                || stage_package(repo_root, spec),
+            )?;
+            println!("package cache miss: {}", spec.name);
+        }
+        prepared.push(PreparedPackage {
+            spec: spec.clone(),
+            version,
+            staging,
+            artifact,
+            input,
+            reused,
+        });
     }
     // Check the complete prototype set whenever it is fully staged, otherwise the
     // selected subset. Shared directories are intentionally permitted.
@@ -1513,55 +1609,516 @@ fn build_packages(repo_root: &Path, names: &[String]) -> Result<()> {
     } else {
         selected.clone()
     };
-    detect_staging_collisions(&staging_root, &collision_specs)?;
-    if collision_specs.len() == PACKAGE_NAMES.len() {
-        validate_staged_runtime_ownership(repo_root, &collision_specs)?;
+    let audit_input = performance::digest_value(&(
+        PACKAGE_AUDIT_SCHEMA_VERSION,
+        prepared
+            .iter()
+            .map(|package| (&package.spec.name, &package.input.cache_key))
+            .collect::<Vec<_>>(),
+        "collision-soname-dependency-compatibility-v1",
+    ))?;
+    let audit_path = repo_root.join("out/state/audits/package-global.json");
+    let audit_reusable = fs::read(&audit_path)
+        .ok()
+        .and_then(|body| serde_json::from_slice::<PackageAuditManifest>(&body).ok())
+        .is_some_and(|manifest| {
+            manifest.schema_version == PACKAGE_AUDIT_SCHEMA_VERSION
+                && manifest.input_digest == audit_input
+                && manifest.package_count == collision_specs.len()
+                && manifest.policy == "collision-soname-dependency-compatibility-v1"
+        });
+    if audit_reusable {
+        performance::timed(
+            "package-audits",
+            "hit",
+            "all package fact keys and the global validation policy matched",
+            &audit_input,
+            || Ok(()),
+        )?;
+    } else {
+        performance::timed(
+            "package-audits",
+            "miss",
+            "package fact graph or global validation policy changed",
+            &audit_input,
+            || {
+                detect_staging_collisions(&staging_root, &collision_specs)?;
+                if collision_specs.len() == PACKAGE_NAMES.len() {
+                    validate_staged_runtime_ownership(repo_root, &collision_specs)?;
+                }
+                Ok(())
+            },
+        )?;
+        performance::atomic_write_json(
+            &audit_path,
+            &PackageAuditManifest {
+                schema_version: PACKAGE_AUDIT_SCHEMA_VERSION,
+                input_digest: audit_input,
+                package_count: collision_specs.len(),
+                policy: "collision-soname-dependency-compatibility-v1".into(),
+            },
+        )?;
     }
 
     let mut inventory = read_inventory(repo_root).unwrap_or(PackageInventory {
         package: Vec::new(),
     });
-    for spec in selected {
-        let version = package_version(repo_root, &spec)?;
-        let staging = staging_root.join(spec.name);
-        normalize_tree_timestamps(&staging)?;
-        let artifact = artifact_root.join(format!("{}_{}_{}.deb", spec.name, version, ARCH));
-        let staging_arg = path_str(&staging)?;
-        let artifact_arg = path_str(&artifact)?;
-        let status = Command::new("dpkg-deb")
-            .args([
-                "--root-owner-group",
-                "-Zzstd",
-                "-z19",
-                "--build",
-                staging_arg,
-                artifact_arg,
-            ])
-            .env("SOURCE_DATE_EPOCH", SOURCE_DATE_EPOCH.to_string())
-            .status()
-            .context("failed to run dpkg-deb")?;
-        if !status.success() {
-            bail!("dpkg-deb failed for {} with {status}", spec.name)
-        }
-        verify_deb(&artifact, spec.name, &version)?;
-        let runtime_libraries = runtime_libraries_for_spec(repo_root, &spec)?;
-        let entry = PackageInventoryEntry {
-            name: spec.name.to_string(),
-            version,
-            architecture: ARCH.to_string(),
-            artifact_path: relative_display(repo_root, &artifact)?,
-            source_component: spec.source_component.to_string(),
-            dependencies: package_dependencies(repo_root, &spec)?,
-            runtime_libraries,
-            file_count: count_package_entries(&staging)?,
-            sha256: sha256_file(&artifact)?,
+    for package in prepared {
+        let entry = if let Some(cached) = package.reused {
+            cached.inventory_entry
+        } else {
+            normalize_tree_timestamps(&package.staging)?;
+            let staging_arg = path_str(&package.staging)?;
+            let artifact_arg = path_str(&package.artifact)?;
+            performance::timed(
+                &format!("deb:{}", package.spec.name),
+                "miss",
+                "package payload changed; creating deterministic zstd level 19 archive",
+                &package.input.cache_key,
+                || {
+                    let status = Command::new("dpkg-deb")
+                        .args([
+                            "--root-owner-group",
+                            "-Zzstd",
+                            "-z19",
+                            "--build",
+                            staging_arg,
+                            artifact_arg,
+                        ])
+                        .env("SOURCE_DATE_EPOCH", SOURCE_DATE_EPOCH.to_string())
+                        .status()
+                        .context("failed to run dpkg-deb")?;
+                    if !status.success() {
+                        bail!("dpkg-deb failed for {} with {status}", package.spec.name)
+                    }
+                    Ok(())
+                },
+            )?;
+            verify_deb(&package.artifact, package.spec.name, &package.version)?;
+            let entry = PackageInventoryEntry {
+                name: package.spec.name.to_string(),
+                version: package.version.clone(),
+                architecture: ARCH.to_string(),
+                artifact_path: relative_display(repo_root, &package.artifact)?,
+                source_component: package.spec.source_component.to_string(),
+                dependencies: package_dependencies(repo_root, &package.spec)?,
+                runtime_libraries: runtime_libraries_for_spec(repo_root, &package.spec)?,
+                file_count: count_package_entries(&package.staging)?,
+                sha256: sha256_file(&package.artifact)?,
+            };
+            let manifest = PackageCacheManifest {
+                schema_version: PACKAGE_CACHE_SCHEMA_VERSION,
+                package: package.spec.name.to_string(),
+                cache_key: package.input.cache_key,
+                definition_digest: package.input.definition_digest,
+                payload_source_digest: package.input.payload_source_digest,
+                dependency_digest: package.input.dependency_digest,
+                payload_inventory_digest: performance::output_path_digest(
+                    repo_root,
+                    &package.staging,
+                )?,
+                artifact_sha256: entry.sha256.clone(),
+                artifact_path: entry.artifact_path.clone(),
+                inventory_entry: entry.clone(),
+            };
+            performance::atomic_write_json(
+                &package_cache_manifest_path(repo_root, package.spec.name),
+                &manifest,
+            )?;
+            entry
         };
         inventory.package.retain(|old| old.name != entry.name);
         inventory.package.push(entry);
     }
     inventory.package.sort_by(|a, b| a.name.cmp(&b.name));
     write_inventory(repo_root, &inventory)?;
+    ensure_package_facts(repo_root, &inventory)?;
     print_inventory(repo_root)
+}
+
+fn ensure_package_facts(repo_root: &Path, inventory: &PackageInventory) -> Result<()> {
+    for entry in &inventory.package {
+        let path = repo_root
+            .join("out/state/package-facts")
+            .join(format!("{}.json", entry.sha256));
+        let reusable = fs::read(&path)
+            .ok()
+            .and_then(|body| serde_json::from_slice::<PackageFacts>(&body).ok())
+            .is_some_and(|facts| {
+                facts.schema_version == 1
+                    && facts.artifact_sha256 == entry.sha256
+                    && facts.package == entry.name
+            });
+        if reusable {
+            continue;
+        }
+        let staging = repo_root.join("out/packages/staging").join(&entry.name);
+        let control_body = fs::read_to_string(staging.join("DEBIAN/control"))?;
+        let control = parse_control_paragraphs(&control_body)?
+            .into_iter()
+            .next()
+            .ok_or_else(|| anyhow!("empty control metadata for {}", entry.name))?;
+        let conffiles_path = staging.join("DEBIAN/conffiles");
+        let conffiles = if conffiles_path.is_file() {
+            fs::read_to_string(conffiles_path)?
+                .lines()
+                .map(str::to_string)
+                .collect()
+        } else {
+            Vec::new()
+        };
+        let mut payload = Vec::new();
+        let mut elf_members = Vec::new();
+        walk_tree(&staging, &mut |member, metadata| {
+            if member.starts_with(staging.join("DEBIAN")) {
+                return Ok(());
+            }
+            #[cfg(unix)]
+            let mode = {
+                use std::os::unix::fs::PermissionsExt;
+                metadata.permissions().mode() & 0o7777
+            };
+            #[cfg(not(unix))]
+            let mode = 0;
+            let relative = format!("/{}", member.strip_prefix(&staging)?.display());
+            let kind = if metadata.file_type().is_symlink() {
+                "symlink"
+            } else if metadata.is_dir() {
+                "directory"
+            } else {
+                "file"
+            };
+            payload.push(PackagePayloadFact {
+                path: relative.clone(),
+                kind: kind.into(),
+                mode,
+                symlink_target: if metadata.file_type().is_symlink() {
+                    Some(fs::read_link(member)?.display().to_string())
+                } else {
+                    None
+                },
+            });
+            if metadata.is_file() {
+                if let Some(facts) = elf_cache::inspect(repo_root, member)? {
+                    elf_members.push(PackageElfMember {
+                        path: relative,
+                        content_sha256: facts.content_sha256,
+                        soname: facts.soname,
+                        needed: facts.needed,
+                    });
+                }
+            }
+            Ok(())
+        })?;
+        payload.sort_by(|a, b| a.path.cmp(&b.path));
+        elf_members.sort_by(|a, b| a.path.cmp(&b.path));
+        let facts = PackageFacts {
+            schema_version: 1,
+            artifact_sha256: entry.sha256.clone(),
+            package: entry.name.clone(),
+            version: entry.version.clone(),
+            architecture: entry.architecture.clone(),
+            control,
+            conffiles,
+            payload,
+            elf_members,
+            dependencies: entry.dependencies.clone(),
+            installed_size_kib: installed_size_kib(&staging)?,
+            provenance: entry.source_component.clone(),
+        };
+        performance::atomic_write_json(&path, &facts)?;
+    }
+    Ok(())
+}
+
+pub(crate) fn package_facts_status(repo_root: &Path) -> Result<String> {
+    let root = repo_root.join("out/state/package-facts");
+    let count = if root.is_dir() {
+        fs::read_dir(root)?.count()
+    } else {
+        0
+    };
+    Ok(format!(
+        "package-audit: {count} content-addressed package fact record(s)"
+    ))
+}
+
+pub(crate) fn invalidate_package_facts(repo_root: &Path) -> Result<usize> {
+    let mut count = 0;
+    for root in [
+        repo_root.join("out/state/package-facts"),
+        repo_root.join("out/state/audits"),
+    ] {
+        if root.is_dir() {
+            count += fs::read_dir(&root)?.count();
+            fs::remove_dir_all(root)?;
+        }
+    }
+    Ok(count)
+}
+
+fn package_cache_manifest_path(repo_root: &Path, package: &str) -> PathBuf {
+    repo_root
+        .join("out/state/packages")
+        .join(format!("{package}.json"))
+}
+
+fn package_definition_digest(spec: &PackageSpec) -> Result<String> {
+    performance::digest_value(&(
+        PACKAGE_CACHE_SCHEMA_VERSION,
+        spec,
+        ARCH,
+        REVISION,
+        SOURCE_DATE_EPOCH,
+        "dpkg-deb --root-owner-group -Zzstd -z19",
+    ))
+}
+
+fn package_cache_input(
+    repo_root: &Path,
+    spec: &PackageSpec,
+    version: &str,
+    source_digests: &mut BTreeMap<String, String>,
+) -> Result<PackageCacheInput> {
+    let definition_digest = package_definition_digest(spec)?;
+    let source_key = spec.source_component.to_string();
+    let payload_source_digest = if let Some(digest) = source_digests.get(&source_key) {
+        digest.clone()
+    } else {
+        let roots = package_source_roots(spec.source_component)
+            .iter()
+            .map(PathBuf::from)
+            .collect::<Vec<_>>();
+        let digest = performance::tracked_source_digest(repo_root, &roots, false)?;
+        source_digests.insert(source_key, digest.clone());
+        digest
+    };
+    let stage_dependencies = package_stage_dependencies(spec.source_component);
+    let mut dependency_values = BTreeMap::new();
+    for dependency in stage_dependencies {
+        let value = match performance::read_stage_manifest(repo_root, dependency) {
+            Ok(manifest) => format!(
+                "{}:{}",
+                manifest.inputs.full_digest, manifest.output_content_digest
+            ),
+            Err(_) => "<missing>".to_string(),
+        };
+        dependency_values.insert(dependency.to_string(), value);
+    }
+    let dependency_digest = performance::digest_value(&dependency_values)?;
+    let resolved_dependencies = package_dependencies(repo_root, spec)?;
+    let cache_key = performance::digest_value(&(
+        PACKAGE_CACHE_SCHEMA_VERSION,
+        spec.name,
+        version,
+        ARCH,
+        &definition_digest,
+        &payload_source_digest,
+        &dependency_digest,
+        &resolved_dependencies,
+        SOURCE_DATE_EPOCH,
+        "deb-format=2.0;compression=zstd;level=19;root-owner-group=true",
+    ))?;
+    Ok(PackageCacheInput {
+        cache_key,
+        definition_digest,
+        payload_source_digest,
+        dependency_digest,
+    })
+}
+
+fn validate_package_cache(
+    repo_root: &Path,
+    spec: &PackageSpec,
+    version: &str,
+    staging: &Path,
+    artifact: &Path,
+    input: &PackageCacheInput,
+) -> Result<PackageCacheManifest> {
+    let path = package_cache_manifest_path(repo_root, spec.name);
+    let manifest: PackageCacheManifest = serde_json::from_slice(
+        &fs::read(&path)
+            .with_context(|| format!("package cache manifest missing: {}", path.display()))?,
+    )
+    .with_context(|| format!("package cache manifest is invalid: {}", path.display()))?;
+    if manifest.schema_version != PACKAGE_CACHE_SCHEMA_VERSION {
+        bail!("package cache schema changed")
+    }
+    if manifest.package != spec.name || manifest.cache_key != input.cache_key {
+        bail!("package cache input key changed")
+    }
+    if manifest.definition_digest != input.definition_digest
+        || manifest.payload_source_digest != input.payload_source_digest
+        || manifest.dependency_digest != input.dependency_digest
+    {
+        bail!("package cache component digest changed")
+    }
+    if !staging.is_dir() || !artifact.is_file() {
+        bail!("cached package staging tree or artifact is missing")
+    }
+    if performance::output_path_digest(repo_root, staging)? != manifest.payload_inventory_digest {
+        bail!("cached package payload inventory/content/modes changed")
+    }
+    let artifact_sha = sha256_file(artifact)?;
+    if artifact_sha != manifest.artifact_sha256 {
+        bail!("cached package artifact checksum changed")
+    }
+    verify_deb(artifact, spec.name, version)?;
+    if manifest.inventory_entry.name != spec.name
+        || manifest.inventory_entry.version != version
+        || manifest.inventory_entry.architecture != ARCH
+        || manifest.inventory_entry.sha256 != artifact_sha
+        || repo_root.join(&manifest.artifact_path) != artifact
+    {
+        bail!("cached package inventory/control metadata changed")
+    }
+    Ok(manifest)
+}
+
+fn package_stage_dependencies(source_component: &str) -> &'static [&'static str] {
+    match source_component {
+        "MattOS" | "ca-certificates" | "test" => &[],
+        "linux" => &["linux-headers"],
+        "gcc" => &["gcc-runtime", "gcc-compiler"],
+        "glibc" => &["glibc", "formal-sysroot"],
+        "make" => &["make"],
+        "procps-ng" => &["procps-ng"],
+        "linux-pam" => &["linux-pam"],
+        "sudo-rs" => &["sudo-rs"],
+        other => match other {
+            "brush" => &["brush"],
+            "coreutils" => &["coreutils"],
+            "binutils" => &["binutils"],
+            "apt" => &["apt"],
+            "dpkg" => &["dpkg"],
+            "systemd" => &["systemd"],
+            "dbus-broker" => &["dbus-broker"],
+            "util-linux" => &["util-linux"],
+            "iproute2" => &["iproute2"],
+            "iputils" => &["iputils"],
+            "ncurses" => &["ncurses"],
+            "kmod" => &["kmod"],
+            "shadow" => &["shadow"],
+            "curl" => &["curl"],
+            "tar" => &["tar"],
+            "expat" => &["expat"],
+            "libcap" => &["libcap"],
+            "acl" => &["acl"],
+            "zlib" => &["zlib"],
+            "bzip2" => &["bzip2"],
+            "lz4" => &["lz4"],
+            "xz" => &["xz"],
+            "xxhash" => &["xxhash"],
+            "zstd" => &["zstd"],
+            "openssl" => &["openssl"],
+            "elfutils" => &["elfutils"],
+            "pcre2" => &["pcre2"],
+            "selinux" => &["selinux"],
+            "libxcrypt" => &["libxcrypt"],
+            "libmd" => &["libmd"],
+            "libbsd" => &["libbsd"],
+            _ => &[],
+        },
+    }
+}
+
+fn package_source_roots(source_component: &str) -> &'static [&'static str] {
+    match source_component {
+        "MattOS" => &["src/rootfs/skeleton", "src/system/packages/config"],
+        "ca-certificates" => &["src/system/network"],
+        "linux" => &["src/kernel/linux"],
+        "glibc" => &["src/system/libc/glibc"],
+        "gcc" => &["src/toolchain/gcc"],
+        "binutils" => &["src/toolchain/binutils"],
+        "make" => &["src/build-tools/make"],
+        "brush" => &["src/userland/brush"],
+        "coreutils" => &["src/userland/coreutils"],
+        "curl" => &["src/userland/curl"],
+        "libmd" => &["src/system/libraries/libmd"],
+        "libbsd" => &["src/system/libraries/libbsd"],
+        "zstd" => &["src/system/libraries/zstd"],
+        "openssl" => &["src/system/libraries/openssl"],
+        "elfutils" => &["src/system/libraries/elfutils"],
+        "pcre2" => &["src/system/libraries/pcre2"],
+        "selinux" => &["src/system/security/selinux"],
+        "libxcrypt" => &["src/system/libraries/libxcrypt"],
+        "util-linux" => &["src/userland/util-linux"],
+        "dpkg" => &["src/system/packages/dpkg"],
+        "apt" => &["src/system/packages/apt"],
+        "ncurses" => &["src/system/terminal/ncurses"],
+        "kmod" => &["src/system/kmod"],
+        "procps-ng" => &["src/userland/procps-ng"],
+        "systemd" => &["src/system/systemd"],
+        "expat" => &["src/system/libraries/expat/expat"],
+        "libcap" => &["src/system/libraries/libcap"],
+        "acl" => &["src/system/libraries/acl"],
+        "zlib" => &["src/system/libraries/zlib"],
+        "bzip2" => &["src/system/libraries/bzip2"],
+        "lz4" => &["src/system/libraries/lz4"],
+        "xz" => &["src/system/libraries/xz"],
+        "xxhash" => &["src/system/libraries/xxhash"],
+        "tar" => &["src/userland/tar"],
+        "dbus-broker" => &["src/system/dbus/dbus-broker"],
+        "linux-pam" => &["src/system/auth/linux-pam"],
+        "shadow" => &["src/system/auth/shadow"],
+        "sudo-rs" => &["src/system/auth/sudo-rs"],
+        "iproute2" => &["src/userland/iproute2"],
+        "iputils" => &["src/userland/iputils"],
+        _ => &[],
+    }
+}
+
+pub(crate) fn print_package_cache_status(repo_root: &Path) -> Result<()> {
+    let mut hits = 0usize;
+    for name in PACKAGE_NAMES {
+        let path = package_cache_manifest_path(repo_root, name);
+        if path.is_file() {
+            hits += 1;
+            println!("package:{name}: manifest present");
+        } else {
+            println!("package:{name}: rebuild: manifest absent");
+        }
+    }
+    println!("package cache manifests: {hits}/{}", PACKAGE_NAMES.len());
+    Ok(())
+}
+
+pub(crate) fn explain_package_cache(repo_root: &Path, name: &str) -> Result<()> {
+    validate_package_name(name)?;
+    let spec = package_specs()
+        .into_iter()
+        .find(|spec| spec.name == name)
+        .ok_or_else(|| anyhow!("unknown MattOS package {name}"))?;
+    let version = package_version(repo_root, &spec)?;
+    let mut source_digests = BTreeMap::new();
+    let input = package_cache_input(repo_root, &spec, &version, &mut source_digests)?;
+    let staging = repo_root.join("out/packages/staging").join(name);
+    let artifact = repo_root
+        .join("out/packages/amd64")
+        .join(format!("{name}_{version}_{ARCH}.deb"));
+    match validate_package_cache(repo_root, &spec, &version, &staging, &artifact, &input) {
+        Ok(_) => println!("package:{name}: reusable; key={}", input.cache_key),
+        Err(error) => println!("package:{name}: rebuild: {error:#}"),
+    }
+    Ok(())
+}
+
+pub(crate) fn invalidate_package_cache(repo_root: &Path, name: &str) -> Result<()> {
+    validate_package_name(name)?;
+    if !PACKAGE_NAMES.contains(&name) {
+        bail!("unknown MattOS package {name}")
+    }
+    let path = package_cache_manifest_path(repo_root, name);
+    if path.exists() {
+        fs::remove_file(&path)?;
+        println!("invalidated package cache manifest: {name}");
+    } else {
+        println!("package cache manifest was already absent: {name}");
+    }
+    println!(
+        "staging and .deb outputs were preserved; the next package build will validate/rebuild them"
+    );
+    Ok(())
 }
 
 fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
@@ -4123,6 +4680,57 @@ fn inspect_package(repo_root: &Path, name: &str) -> Result<()> {
 }
 
 pub(crate) fn generate_repository(repo_root: &Path) -> Result<()> {
+    let spec = repository_stage_spec(repo_root)?;
+    performance::execute_cached_stage(
+        repo_root,
+        &spec,
+        || {
+            validate_repository_against_inventory(
+                &repo_root.join("out/repository"),
+                &read_inventory(repo_root)?,
+            )
+        },
+        || generate_repository_atomic(repo_root),
+    )
+}
+
+pub(crate) fn repository_stage_spec(repo_root: &Path) -> Result<performance::StageSpec> {
+    // inventory.toml is the ordered package name/version/architecture/SHA set.
+    // Do not hash every .deb again merely to compute the key; package manifests
+    // already validate those artifacts and a miss validates every copied pool
+    // object against the recorded SHA before publication.
+    let _ = read_inventory(repo_root)?;
+    let inputs = vec![PathBuf::from("out/packages/inventory.toml")];
+    Ok(performance::StageSpec {
+        id: "repository".into(),
+        source_inputs: Vec::new(),
+        configuration_inputs: inputs,
+        tools: vec![
+            "dpkg-scanpackages".into(),
+            "apt-ftparchive".into(),
+            "gzip".into(),
+        ],
+        dependencies: Vec::new(),
+        outputs: vec!["out/repository".into()],
+        recipe: format!(
+            "repository-v2:suite=trixie:codename=trixie:component=main:arch={ARCH}:origin=MattOS:label=MattOS Local:gzip=-n,-9:epoch={SOURCE_DATE_EPOCH}:manifest-schema={}",
+            performance::STAGE_MANIFEST_SCHEMA_VERSION
+        ),
+    })
+}
+
+fn generate_repository_atomic(repo_root: &Path) -> Result<()> {
+    let repository = repo_root.join("out/repository");
+    let temp = performance::temporary_sibling(&repository, "building")?;
+    let result = generate_repository_inner(repo_root, &temp);
+    if let Err(error) = result {
+        let _ = remove_path_if_exists(&temp);
+        return Err(error);
+    }
+    performance::atomic_replace_path(&temp, &repository)
+}
+
+fn generate_repository_inner(repo_root: &Path, repository: &Path) -> Result<()> {
     let inventory = read_inventory(repo_root)?;
     for name in PACKAGE_NAMES {
         if !inventory.package.iter().any(|entry| entry.name == *name) {
@@ -4144,8 +4752,6 @@ pub(crate) fn generate_repository(repo_root: &Path) -> Result<()> {
             )
         }
     }
-    let repository = repo_root.join("out/repository");
-    remove_path_if_exists(&repository)?;
     let pool = repository.join("pool/main");
     let index_dir = repository.join("dists/trixie/main/binary-amd64");
     fs::create_dir_all(&pool)?;
@@ -4221,7 +4827,7 @@ pub(crate) fn generate_repository(repo_root: &Path) -> Result<()> {
         .join("\n")
         + "\n";
     fs::write(repository.join("dists/trixie/Release"), release_body)?;
-    validate_repository(&repository)?;
+    validate_repository_against_inventory(repository, &inventory)?;
     println!(
         "generated local MattOS repository at {}",
         repository.display()
@@ -4247,6 +4853,106 @@ fn validate_repository(repository: &Path) -> Result<()> {
     ] {
         if !release.contains(field) {
             bail!("Release missing {field}");
+        }
+    }
+    Ok(())
+}
+
+fn validate_repository_against_inventory(
+    repository: &Path,
+    inventory: &PackageInventory,
+) -> Result<()> {
+    validate_repository(repository)?;
+    let packages_path = repository.join("dists/trixie/main/binary-amd64/Packages");
+    let packages_body = fs::read_to_string(&packages_path)?;
+    let paragraphs = parse_control_paragraphs(&packages_body)?;
+    if paragraphs.len() != inventory.package.len() {
+        bail!("Packages entry count differs from package inventory");
+    }
+    let mut expected_files = BTreeSet::new();
+    for entry in &inventory.package {
+        let artifact_name = Path::new(&entry.artifact_path)
+            .file_name()
+            .and_then(OsStr::to_str)
+            .ok_or_else(|| anyhow!("invalid package artifact path {}", entry.artifact_path))?;
+        let relative = format!("pool/main/{artifact_name}");
+        expected_files.insert(relative.clone());
+        let pool_artifact = repository.join(&relative);
+        if sha256_file(&pool_artifact)? != entry.sha256 {
+            bail!("repository artifact digest differs for {}", entry.name);
+        }
+        let paragraph = paragraphs
+            .iter()
+            .find(|paragraph| paragraph.get("Package") == Some(&entry.name))
+            .ok_or_else(|| anyhow!("Packages index missing {}", entry.name))?;
+        if control_field(paragraph, "Version")? != entry.version
+            || control_field(paragraph, "Architecture")? != entry.architecture
+            || control_field(paragraph, "Filename")? != relative
+            || control_field(paragraph, "SHA256")? != entry.sha256
+        {
+            bail!(
+                "Packages metadata differs from inventory for {}",
+                entry.name
+            );
+        }
+    }
+    let pool = repository.join("pool/main");
+    let actual_files = fs::read_dir(&pool)?
+        .map(|entry| {
+            entry.map(|entry| format!("pool/main/{}", entry.file_name().to_string_lossy()))
+        })
+        .collect::<std::io::Result<BTreeSet<_>>>()?;
+    if actual_files != expected_files {
+        bail!("repository pool path set differs from package inventory");
+    }
+
+    let compressed = Command::new("gzip")
+        .args([
+            "-dc",
+            path_str(&packages_path.with_file_name("Packages.gz"))?,
+        ])
+        .output()?;
+    if !compressed.status.success() || compressed.stdout != packages_body.as_bytes() {
+        bail!("Packages.gz is corrupt or differs from Packages");
+    }
+    validate_release_sha256(repository)?;
+    Ok(())
+}
+
+fn validate_release_sha256(repository: &Path) -> Result<()> {
+    let release_path = repository.join("dists/trixie/Release");
+    let body = fs::read_to_string(&release_path)?;
+    let mut in_sha256 = false;
+    let mut checked = BTreeSet::new();
+    for line in body.lines() {
+        if line == "SHA256:" {
+            in_sha256 = true;
+            continue;
+        }
+        if in_sha256 && !line.starts_with(' ') {
+            break;
+        }
+        if !in_sha256 || line.trim().is_empty() {
+            continue;
+        }
+        let fields = line.split_whitespace().collect::<Vec<_>>();
+        if fields.len() != 3 {
+            bail!("invalid SHA256 entry in Release: {line}");
+        }
+        let relative = fields[2];
+        let path = release_path.parent().unwrap().join(relative);
+        let metadata = fs::metadata(&path)?;
+        if metadata.len().to_string() != fields[1] || sha256_file(&path)? != fields[0] {
+            bail!("Release SHA256 mismatch for {relative}");
+        }
+        checked.insert(relative.to_string());
+    }
+    for required in [
+        "main/binary-amd64/Packages",
+        "main/binary-amd64/Packages.gz",
+    ] {
+        if !checked.contains(required) {
+            bail!("Release SHA256 inventory missing {required}");
         }
     }
     Ok(())
@@ -4385,9 +5091,8 @@ fn exact_dependency_version(relation: &str) -> Result<Option<&str>> {
 }
 
 pub(crate) fn install_prototype_packages(repo_root: &Path, rootfs: &Path) -> Result<()> {
-    build_all_packages(repo_root)?;
-    generate_repository(repo_root)?;
     let inventory = read_inventory(repo_root)?;
+    validate_repository_against_inventory(&repo_root.join("out/repository"), &inventory)?;
     let admindir = rootfs.join("var/lib/dpkg");
     for rel in ["info", "updates", "triggers", "parts"] {
         fs::create_dir_all(admindir.join(rel))?;
@@ -4420,6 +5125,17 @@ pub(crate) fn install_prototype_packages(repo_root: &Path, rootfs: &Path) -> Res
         bail!("dpkg package installation into rootfs failed with {status}");
     }
     validate_dpkg_database(rootfs)?;
+    // dpkg creates empty advisory lock files even for an offline target root.
+    // They are transaction state, not image payload, and a cached rootfs must
+    // never retain them.
+    for rel in [
+        "var/lib/dpkg/lock",
+        "var/lib/dpkg/lock-frontend",
+        "var/lib/apt/lists/lock",
+        "var/cache/apt/archives/lock",
+    ] {
+        remove_path_if_exists(&rootfs.join(rel))?;
+    }
     // dpkg records wall-clock installation timestamps. Preserve that log when
     // installation fails for diagnostics, but initialize successful images
     // with empty mutable log state so rootfs and image bytes are reproducible.
@@ -6144,6 +6860,40 @@ mod tests {
     }
 
     #[test]
+    fn release_checksum_validation_rejects_corrupt_index() {
+        let temp = tempfile::tempdir().unwrap();
+        let dist = temp.path().join("dists/trixie");
+        let index = dist.join("main/binary-amd64/Packages");
+        fs::create_dir_all(index.parent().unwrap()).unwrap();
+        fs::write(&index, "stable\n").unwrap();
+        let digest = sha256_file(&index).unwrap();
+        fs::write(
+            dist.join("Release"),
+            format!("SHA256:\n {digest} 7 main/binary-amd64/Packages\n"),
+        )
+        .unwrap();
+        validate_release_sha256(temp.path()).unwrap_err(); // Packages.gz is required.
+        let compressed = Command::new("gzip")
+            .args(["-n", "-9", "-c", path_str(&index).unwrap()])
+            .output()
+            .unwrap();
+        let gz = index.with_file_name("Packages.gz");
+        fs::write(&gz, compressed.stdout).unwrap();
+        let gz_digest = sha256_file(&gz).unwrap();
+        let gz_size = fs::metadata(&gz).unwrap().len();
+        fs::write(
+            dist.join("Release"),
+            format!(
+                "SHA256:\n {digest} 7 main/binary-amd64/Packages\n {gz_digest} {gz_size} main/binary-amd64/Packages.gz\n"
+            ),
+        )
+        .unwrap();
+        validate_release_sha256(temp.path()).unwrap();
+        fs::write(&index, "corrupt\n").unwrap();
+        assert!(validate_release_sha256(temp.path()).is_err());
+    }
+
+    #[test]
     fn dpkg_semantics_create_database_and_ownership_queries() {
         let temp = tempfile::tempdir().unwrap();
         let stage = temp.path().join("stage");
@@ -6331,6 +7081,107 @@ mod tests {
                 &approved.join("escape.deb")
             )
             .is_err()
+        );
+    }
+
+    #[test]
+    fn package_definition_change_invalidates_only_that_definition_digest() {
+        let specs = package_specs();
+        let libc = specs.iter().find(|spec| spec.name == "libc6").unwrap();
+        let coreutils = specs.iter().find(|spec| spec.name == "coreutils").unwrap();
+        let libc_before = package_definition_digest(libc).unwrap();
+        let coreutils_before = package_definition_digest(coreutils).unwrap();
+        let mut changed = libc.clone();
+        changed.description = "changed test description";
+        assert_ne!(libc_before, package_definition_digest(&changed).unwrap());
+        assert_eq!(
+            coreutils_before,
+            package_definition_digest(coreutils).unwrap()
+        );
+    }
+
+    #[test]
+    fn package_checksum_mismatch_forces_cache_rejection() {
+        use std::io::Write as _;
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        let staging = root.join("out/packages/staging/mattos-test");
+        let artifact = root.join("out/packages/amd64/mattos-test_1.0-1mattos1_amd64.deb");
+        fs::create_dir_all(staging.join("DEBIAN")).unwrap();
+        fs::create_dir_all(staging.join("usr/bin")).unwrap();
+        fs::create_dir_all(artifact.parent().unwrap()).unwrap();
+        fs::write(
+            staging.join("DEBIAN/control"),
+            "Package: mattos-test\nVersion: 1.0-1mattos1\nArchitecture: amd64\nMaintainer: MattOS Test <test@mattos.invalid>\nDescription: cache test\n",
+        )
+        .unwrap();
+        fs::write(staging.join("usr/bin/test"), "payload\n").unwrap();
+        let status = Command::new("dpkg-deb")
+            .args([
+                "--root-owner-group",
+                "--build",
+                path_str(&staging).unwrap(),
+                path_str(&artifact).unwrap(),
+            ])
+            .status()
+            .unwrap();
+        assert!(status.success());
+        let spec = PackageSpec {
+            name: "mattos-test",
+            description: "cache test",
+            source_component: "test",
+            depends: &[],
+            provides: &[],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        };
+        let sha = sha256_file(&artifact).unwrap();
+        let input = PackageCacheInput {
+            cache_key: "key".to_string(),
+            definition_digest: "definition".to_string(),
+            payload_source_digest: "payload-source".to_string(),
+            dependency_digest: "dependencies".to_string(),
+        };
+        let entry = PackageInventoryEntry {
+            name: "mattos-test".to_string(),
+            version: "1.0-1mattos1".to_string(),
+            architecture: ARCH.to_string(),
+            artifact_path: relative_display(root, &artifact).unwrap(),
+            source_component: "test".to_string(),
+            dependencies: Vec::new(),
+            runtime_libraries: Vec::new(),
+            file_count: count_package_entries(&staging).unwrap(),
+            sha256: sha.clone(),
+        };
+        let manifest = PackageCacheManifest {
+            schema_version: PACKAGE_CACHE_SCHEMA_VERSION,
+            package: "mattos-test".to_string(),
+            cache_key: input.cache_key.clone(),
+            definition_digest: input.definition_digest.clone(),
+            payload_source_digest: input.payload_source_digest.clone(),
+            dependency_digest: input.dependency_digest.clone(),
+            payload_inventory_digest: performance::output_path_digest(root, &staging).unwrap(),
+            artifact_sha256: sha,
+            artifact_path: entry.artifact_path.clone(),
+            inventory_entry: entry,
+        };
+        performance::atomic_write_json(
+            &package_cache_manifest_path(root, "mattos-test"),
+            &manifest,
+        )
+        .unwrap();
+        validate_package_cache(root, &spec, "1.0-1mattos1", &staging, &artifact, &input).unwrap();
+        fs::OpenOptions::new()
+            .append(true)
+            .open(&artifact)
+            .unwrap()
+            .write_all(b"corrupt")
+            .unwrap();
+        assert!(
+            validate_package_cache(root, &spec, "1.0-1mattos1", &staging, &artifact, &input,)
+                .is_err()
         );
     }
 }

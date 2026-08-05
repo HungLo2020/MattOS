@@ -1,6 +1,6 @@
 # MattOS Project Audit
 
-Date: 2026-08-03
+Date: 2026-08-04
 
 ## 1. Executive Summary
 
@@ -9,6 +9,21 @@ MattOS is a coherent Linux-native bootstrap system with systemd PID 1, separate 
 The previous GRUB source-of-truth ambiguity has been resolved by keeping only `src/boot/grub/grub.cfg` as tracked source and validating that path in `mattos-build`. Runtime libc, GCC runtimes, and native consumers use the controlled MattOS sysroot. Host compiler, assembler, linker, and package-construction tools remain explicit build-time bootstrap inputs; MattOS is not yet self-hosting.
 
 The static Brush prompt source has been replaced. The interactive prompt now comes from MattOS-owned startup configuration using normal Brush/Bash-style prompt semantics.
+
+The two build-performance milestones add content-addressed stage/package/repository/rootfs/initramfs/ISO manifests, package and ELF fact stores, complete content/mode/ownership inventory validation, dependency-digest invalidation, atomic layer replacement, quiet native-stage logs, structured timing, and scoped cache inspection/invalidation. Release validation remains unchanged; details and safety rules are in `docs/BUILD_PERFORMANCE.md`.
+
+The first performance milestone reduced the audit's 53:00.44 unchanged `build all` to 4:04.45. The second milestone's required second unchanged run completed in 3:50.94 with 116 cache hits, zero misses, and no non-cacheable timing records. A scoped independent layer rebuild reproduced all 65 packages, repository files, rootfs and ELF inventories, initramfs, and ISO byte-for-byte/content-digest-for-content-digest. A subsequent fresh-process defect audit found raw inherited `PATH`/`LC_ALL`, a final logging-only configuration edit, and dependency input identities behind unstable foundational decisions. Schema-3 normalization corrected those causes. Two consecutive ordinary launcher runs now report eight foundational hits and zero misses, and a following direct run reports the same. Normal and no-network boots reached the live prompt, the rescue entry reached rescue-init, and the normal guest passed native C/C++/Make, `.deb`, and Brush `sh`/`bash` checks after the correction.
+
+## Foundational cache-stability audit
+
+- Exact pre-build manifest comparison showed unchanged Linux/glibc source but changed configuration/environment; replaying the prior integrated-terminal environment proved raw `PATH` and `LC_ALL` were the unstable fields. The launcher adds no build environment or build argument and `doctor` does not mutate stage inputs.
+- Quiet/verbose console streaming, log paths, terminal dimensions/colors, QEMU variables, and other launcher presentation state are now excluded. Output-producing subprocesses run with `LC_ALL=C`, `LANG=C`, `TZ=UTC`, and epoch `1767225600`; caller-controlled output variables use an explicit allowlist. Tools are represented by canonical executable, file SHA-256, stable version line, and target.
+- Logging/cache-observability implementation is no longer a compilation configuration input. Output-producing builder recipe source, manifests/lock, sources, genuine flags, selected tools, and dependency output bytes remain fail-closed inputs.
+- Dependency diagnostics retain upstream input identity for explanation, but consumer keys use output-content digest. A byte-identical Linux republish therefore cannot falsely cascade; a changed Linux UAPI or glibc output still invalidates true consumers.
+- The manifest schema advanced from 2 to 3 once. The establishing build took 3,135.76 seconds; fresh launcher runs took 347.80 and 336.19 seconds, and a fresh direct run took 335.96 seconds. Every warm run produced 8 foundational hits / 0 misses.
+- `cache explain linux --details` and `cache explain glibc --details` report every digest/detail group unchanged and deterministic map ordering. Unit coverage includes volatile environment changes, genuine flag/tool/source/configuration/dependency changes, PATH noise, and identical-output republishing.
+- Package status still contains 65 packages; the compatibility audit validates all 65 against Debian Trixie; the retired bootstrap audit has zero entries. Normal boot passed PID-1/target, system and user D-Bus, DHCP/DNS/HTTPS, package count, native C/C++/Make/`.deb`, and Brush alias checks. Offline boot passed PID-1/target, loopback-only state, and local APT. The rescue GRUB entry produced the exact rescue-init handoff.
+- Pre/post SHA-256 remained identical for the 181-MiB initramfs (`a685aff1…a9b92`) and 183-MiB ISO (`88e97477…20f4`), proving the key correction did not alter shipped artifacts. The image still has the pre-existing `systemd-hwdb-update.service` failure and therefore reports `degraded`; the cache correction neither introduced nor changed it, as the ISO is byte-identical.
 
 ## 2. Current Boot Architecture
 
@@ -114,7 +129,8 @@ Positive properties:
 
 Current limitations:
 
-- Rootfs/initramfs/ISO are always regenerated.
+- Repository, live-rootfs, initramfs, and ISO outputs are reused only after content and policy validation. A separate immutable base-rootfs materialization remains future work.
+- Parallel stage scheduling, compiler caches, remote caches, and QEMU snapshots remain future performance work.
 - The two remaining host GCC runtime libraries are copied through a narrow, checksum-recorded bootstrap manifest; final ELF resolution uses the MattOS loader rather than `ldd`.
 - Kernel is built in-tree.
 - The orchestrator is large enough that stage-specific logic should eventually be split into modules.

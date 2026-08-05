@@ -8,7 +8,9 @@ use std::fs;
 use std::path::{Component, Path, PathBuf};
 use std::process::{Command, Output};
 
+mod elf_cache;
 mod packaging;
+mod performance;
 
 const AUTHORITATIVE_GRUB_CFG: &str = "src/boot/grub/grub.cfg";
 const OBSOLETE_GRUB_CFG_PATHS: &[&str] = &["boot/grub/grub.cfg"];
@@ -415,6 +417,11 @@ struct Cli {
 #[derive(Subcommand, Debug)]
 enum Commands {
     Doctor,
+    Timings,
+    Cache {
+        #[command(subcommand)]
+        command: CacheCommands,
+    },
     Upstream {
         #[command(subcommand)]
         command: UpstreamCommands,
@@ -494,6 +501,21 @@ enum UpstreamCommands {
         #[arg(long)]
         all: bool,
         component: Option<String>,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+enum CacheCommands {
+    Status,
+    Explain {
+        #[arg(long)]
+        details: bool,
+        stage: String,
+    },
+    Invalidate {
+        #[arg(long)]
+        dependents: bool,
+        stage: String,
     },
 }
 
@@ -594,9 +616,23 @@ struct WslStatus {
 fn main() -> Result<()> {
     let cli = Cli::parse();
     let repo_root = std::env::current_dir().context("unable to determine current directory")?;
+    let timing_command = match &cli.command {
+        Commands::Build { stage } => Some(format!(
+            "build {}",
+            stage.map(build_stage_id).unwrap_or("all")
+        )),
+        Commands::Image => Some("image".to_string()),
+        Commands::Package { command } => Some(format!("package {command:?}")),
+        _ => None,
+    };
+    if let Some(command) = timing_command.as_deref() {
+        performance::start_timing_run(&repo_root, command)?;
+    }
 
-    match cli.command {
+    let result = match cli.command {
         Commands::Doctor => doctor(),
+        Commands::Timings => performance::show_latest_timings(&repo_root),
+        Commands::Cache { command } => cache_command(&repo_root, command),
         Commands::Upstream { command } => upstream_command(&repo_root, command),
         Commands::Package { command } => packaging::run_package_command(&repo_root, command),
         Commands::Build { stage } => build(&repo_root, stage.unwrap_or(BuildStage::All)),
@@ -634,7 +670,16 @@ fn main() -> Result<()> {
             update,
         } => import_sources(&repo_root, all, component, update),
         Commands::RunQemu => run_qemu(&repo_root),
+    };
+    if timing_command.is_some()
+        && let Err(timing_error) = performance::finish_timing_run(&result)
+    {
+        if result.is_ok() {
+            return Err(timing_error);
+        }
+        eprintln!("warning: failed to finish timing report: {timing_error:#}");
     }
+    result
 }
 
 fn doctor() -> Result<()> {
@@ -1977,40 +2022,446 @@ fn write_sync_state(repo_root: &Path, name: &str, state: &SyncState) -> Result<(
 }
 
 fn build(repo_root: &Path, stage: BuildStage) -> Result<()> {
-    let rebuild_all_consumers = stage == BuildStage::All;
     for next in build_plan(stage) {
-        if rebuild_all_consumers && next == BuildStage::Brush {
-            reset_native_consumer_outputs(repo_root)?;
+        if matches!(
+            next,
+            BuildStage::Rootfs | BuildStage::Initramfs | BuildStage::Iso
+        ) {
+            build_stage(repo_root, next)?;
+            continue;
         }
-        build_stage(repo_root, next)?;
+        let spec = build_stage_spec(next);
+        if is_cacheable_stage(next) {
+            performance::execute_cached_stage(
+                repo_root,
+                &spec,
+                || validate_cached_build_stage(repo_root, next),
+                || build_stage(repo_root, next),
+            )?;
+        } else {
+            let inputs = performance::compute_stage_inputs(repo_root, &spec)?;
+            performance::timed(
+                build_stage_id(next),
+                "n/a",
+                "stage is intentionally non-cacheable in this milestone",
+                &inputs.full_digest,
+                || build_stage(repo_root, next),
+            )?;
+        }
+        if next == BuildStage::Glibc {
+            performance::record_virtual_stage(repo_root, &linux_headers_stage_spec())?;
+        }
+        if next == BuildStage::Make {
+            performance::record_virtual_stage(repo_root, &formal_sysroot_stage_spec())?;
+        }
     }
     Ok(())
 }
 
-fn reset_native_consumer_outputs(repo_root: &Path) -> Result<()> {
-    let output = repo_root.join("out/build");
-    if !output.is_dir() {
-        return Ok(());
+fn is_cacheable_stage(stage: BuildStage) -> bool {
+    !matches!(
+        stage,
+        BuildStage::Rootfs | BuildStage::Initramfs | BuildStage::Iso | BuildStage::All
+    )
+}
+
+fn build_stage_id(stage: BuildStage) -> &'static str {
+    match stage {
+        BuildStage::Kernel => "linux",
+        BuildStage::Glibc => "glibc",
+        BuildStage::GccRuntime => "gcc-runtime",
+        BuildStage::Binutils => "binutils",
+        BuildStage::GccToolchain => "gcc-compiler",
+        BuildStage::Make => "make",
+        BuildStage::Brush => "brush",
+        BuildStage::Coreutils => "coreutils",
+        BuildStage::Grep => "grep",
+        BuildStage::Sed => "sed",
+        BuildStage::Findutils => "findutils",
+        BuildStage::Diffutils => "diffutils",
+        BuildStage::Kmod => "kmod",
+        BuildStage::Procps => "procps-ng",
+        BuildStage::Ncurses => "ncurses",
+        BuildStage::Iproute2 => "iproute2",
+        BuildStage::Iputils => "iputils",
+        BuildStage::Curl => "curl",
+        BuildStage::Expat => "expat",
+        BuildStage::Libcap => "libcap",
+        BuildStage::Attr => "attr",
+        BuildStage::Tar => "tar",
+        BuildStage::Acl => "acl",
+        BuildStage::Zlib => "zlib",
+        BuildStage::Bzip2 => "bzip2",
+        BuildStage::Lz4 => "lz4",
+        BuildStage::Xz => "xz",
+        BuildStage::Xxhash => "xxhash",
+        BuildStage::Zstd => "zstd",
+        BuildStage::Openssl => "openssl",
+        BuildStage::Elfutils => "elfutils",
+        BuildStage::Pcre2 => "pcre2",
+        BuildStage::Selinux => "selinux",
+        BuildStage::Libxcrypt => "libxcrypt",
+        BuildStage::Libmd => "libmd",
+        BuildStage::Libbsd => "libbsd",
+        BuildStage::Pam => "linux-pam",
+        BuildStage::Shadow => "shadow",
+        BuildStage::SudoRs => "sudo-rs",
+        BuildStage::UtilLinux => "util-linux",
+        BuildStage::Systemd => "systemd",
+        BuildStage::DbusBroker => "dbus-broker",
+        BuildStage::Dpkg => "dpkg",
+        BuildStage::Apt => "apt",
+        BuildStage::Init => "init",
+        BuildStage::Rootfs => "rootfs",
+        BuildStage::Initramfs => "initramfs",
+        BuildStage::Iso => "iso",
+        BuildStage::All => "all",
     }
-    let mut entries = fs::read_dir(&output)?.collect::<std::io::Result<Vec<_>>>()?;
-    entries.sort_by_key(|entry| entry.file_name());
-    for entry in entries {
-        if matches!(
-            entry.file_name().to_str(),
-            Some("glibc")
-                | Some("gcc-runtime")
-                | Some("binutils")
-                | Some("gcc-toolchain")
-                | Some("make")
-        ) {
-            continue;
+}
+
+fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
+    let id = build_stage_id(stage);
+    let sources: &[&str] = match stage {
+        BuildStage::Kernel => &["src/kernel/linux", "src/kernel/config/x86_64_mattos.config"],
+        BuildStage::Glibc => &["src/system/libc/glibc", "src/kernel/linux"],
+        BuildStage::GccRuntime | BuildStage::GccToolchain => &["src/toolchain/gcc"],
+        BuildStage::Binutils => &["src/toolchain/binutils"],
+        BuildStage::Make => &["src/build-tools/make", "src/build-support/gnulib"],
+        BuildStage::Brush => &["src/userland/brush"],
+        BuildStage::Coreutils => &["src/userland/coreutils"],
+        BuildStage::Grep => &["src/userland/grep"],
+        BuildStage::Sed => &["src/userland/sed"],
+        BuildStage::Findutils => &["src/userland/findutils"],
+        BuildStage::Diffutils => &["src/userland/diffutils"],
+        BuildStage::Kmod => &["src/system/kmod"],
+        BuildStage::Procps => &["src/userland/procps-ng"],
+        BuildStage::Ncurses => &["src/system/terminal/ncurses"],
+        BuildStage::Iproute2 => &["src/userland/iproute2"],
+        BuildStage::Iputils => &["src/userland/iputils"],
+        BuildStage::Curl => &["src/userland/curl"],
+        BuildStage::Expat => &["src/system/libraries/expat/expat"],
+        BuildStage::Libcap => &["src/system/libraries/libcap"],
+        BuildStage::Attr => &["src/system/libraries/attr"],
+        BuildStage::Tar => &["src/userland/tar"],
+        BuildStage::Acl => &["src/system/libraries/acl"],
+        BuildStage::Zlib => &["src/system/libraries/zlib"],
+        BuildStage::Bzip2 => &["src/system/libraries/bzip2"],
+        BuildStage::Lz4 => &["src/system/libraries/lz4"],
+        BuildStage::Xz => &["src/system/libraries/xz"],
+        BuildStage::Xxhash => &["src/system/libraries/xxhash"],
+        BuildStage::Zstd => &["src/system/libraries/zstd"],
+        BuildStage::Openssl => &["src/system/libraries/openssl"],
+        BuildStage::Elfutils => &["src/system/libraries/elfutils"],
+        BuildStage::Pcre2 => &["src/system/libraries/pcre2"],
+        BuildStage::Selinux => &["src/system/security/selinux"],
+        BuildStage::Libxcrypt => &["src/system/libraries/libxcrypt"],
+        BuildStage::Libmd => &["src/system/libraries/libmd"],
+        BuildStage::Libbsd => &["src/system/libraries/libbsd"],
+        BuildStage::Pam => &["src/system/auth/linux-pam"],
+        BuildStage::Shadow => &["src/system/auth/shadow"],
+        BuildStage::SudoRs => &["src/system/auth/sudo-rs"],
+        BuildStage::UtilLinux => &["src/userland/util-linux"],
+        BuildStage::Systemd => &["src/system/systemd"],
+        BuildStage::DbusBroker => &["src/system/dbus/dbus-broker"],
+        BuildStage::Dpkg => &["src/system/packages/dpkg"],
+        BuildStage::Apt => &["src/system/packages/apt"],
+        BuildStage::Init => &["src/userland/init"],
+        BuildStage::Rootfs => &["src/rootfs", "config"],
+        BuildStage::Initramfs => &[],
+        BuildStage::Iso => &[AUTHORITATIVE_GRUB_CFG],
+        BuildStage::All => &[],
+    };
+    let outputs: Vec<PathBuf> = match stage {
+        BuildStage::Kernel => vec!["src/kernel/linux/arch/x86/boot/bzImage".into()],
+        BuildStage::Glibc => vec![
+            "out/build/glibc/install".into(),
+            "out/build/glibc/linux-headers".into(),
+            "out/build/glibc/linux-headers-inventory.txt".into(),
+            "out/sysroot/usr/include/stdio.h".into(),
+            "out/sysroot/usr/lib/x86_64-linux-gnu/libc.so.6".into(),
+            "out/sysroot/lib64/ld-linux-x86-64.so.2".into(),
+        ],
+        BuildStage::GccRuntime => vec![
+            "out/build/gcc-runtime/install".into(),
+            "out/build/gcc-runtime/runtime".into(),
+            "out/build/gcc-runtime/runtime-abi.tsv".into(),
+            "out/sysroot/usr/lib/x86_64-linux-gnu/libgcc_s.so.1".into(),
+            "out/sysroot/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.34".into(),
+        ],
+        BuildStage::Binutils => vec![
+            "out/build/binutils/cross-install".into(),
+            "out/build/binutils/install".into(),
+            "out/build/binutils/configure-invocation.txt".into(),
+        ],
+        BuildStage::GccToolchain => vec![
+            "out/build/gcc-toolchain/install".into(),
+            "out/build/gcc-toolchain/configure-invocation.txt".into(),
+        ],
+        BuildStage::Make => vec!["out/build/make/install".into()],
+        BuildStage::Brush => vec!["src/userland/brush/target/release/brush".into()],
+        BuildStage::Coreutils => vec!["src/userland/coreutils/target/release/coreutils".into()],
+        BuildStage::Grep => vec!["src/userland/grep/target/release/grep".into()],
+        BuildStage::Sed => vec!["src/userland/sed/target/release/sed".into()],
+        BuildStage::Findutils => vec!["src/userland/findutils/target/release/find".into()],
+        BuildStage::Diffutils => vec!["src/userland/diffutils/target/release/diffutils".into()],
+        BuildStage::SudoRs => vec!["src/system/auth/sudo-rs/target/release/sudo".into()],
+        BuildStage::Init => vec!["target/release/mattos-init".into()],
+        BuildStage::Initramfs => vec!["out/build/initramfs.cpio.gz".into()],
+        BuildStage::Iso => vec![
+            "out/build/iso".into(),
+            "out/images/mattos-x86_64.iso".into(),
+        ],
+        BuildStage::Rootfs => vec!["out/build/rootfs".into()],
+        _ => vec![format!("out/build/{}/install", stage_output_directory(stage)).into()],
+    };
+    let tools = if matches!(
+        stage,
+        BuildStage::Brush
+            | BuildStage::Coreutils
+            | BuildStage::Grep
+            | BuildStage::Sed
+            | BuildStage::Findutils
+            | BuildStage::Diffutils
+            | BuildStage::SudoRs
+            | BuildStage::Init
+    ) {
+        vec![
+            "cargo".to_string(),
+            "rustc".to_string(),
+            "gcc".to_string(),
+            "ld".to_string(),
+        ]
+    } else {
+        vec![
+            "gcc".to_string(),
+            "g++".to_string(),
+            "as".to_string(),
+            "ld".to_string(),
+            "make".to_string(),
+        ]
+    };
+    performance::StageSpec {
+        id: id.to_string(),
+        source_inputs: sources.iter().map(PathBuf::from).collect(),
+        configuration_inputs: {
+            let mut inputs = vec![
+                "src/tools/mattos-build/src/main.rs".into(),
+                "src/tools/mattos-build/Cargo.toml".into(),
+                "Cargo.lock".into(),
+            ];
+            match stage {
+                BuildStage::Rootfs => {
+                    inputs.push("out/packages/inventory.toml".into());
+                    inputs.push("out/repository".into());
+                }
+                BuildStage::Initramfs => inputs.push("out/build/rootfs".into()),
+                BuildStage::Iso => inputs.push("out/build/initramfs.cpio.gz".into()),
+                _ => {}
+            }
+            inputs
+        },
+        tools,
+        dependencies: build_stage_dependencies(stage)
+            .iter()
+            .map(|value| value.to_string())
+            .collect(),
+        outputs,
+        recipe: format!(
+            "mattos-build-stage:{id}:schema={}",
+            performance::STAGE_MANIFEST_SCHEMA_VERSION
+        ),
+    }
+}
+
+fn stage_output_directory(stage: BuildStage) -> &'static str {
+    match stage {
+        BuildStage::GccToolchain => "gcc-toolchain",
+        BuildStage::Procps => "procps-ng",
+        BuildStage::Iputils => "iputils",
+        BuildStage::Pam => "linux-pam",
+        _ => build_stage_id(stage),
+    }
+}
+
+fn build_stage_dependencies(stage: BuildStage) -> &'static [&'static str] {
+    match stage {
+        BuildStage::Kernel => &[],
+        BuildStage::Glibc => &["linux"],
+        BuildStage::GccRuntime => &["glibc", "linux-headers"],
+        BuildStage::Binutils => &["gcc-runtime"],
+        BuildStage::GccToolchain => &["binutils", "gcc-runtime"],
+        BuildStage::Make => &["gcc-compiler", "binutils", "gcc-runtime"],
+        BuildStage::Acl => &["formal-sysroot", "attr"],
+        BuildStage::Openssl => &["formal-sysroot", "zlib", "zstd"],
+        BuildStage::Elfutils => &["formal-sysroot", "zlib", "zstd"],
+        BuildStage::Selinux => &["formal-sysroot", "pcre2"],
+        BuildStage::Libbsd => &["formal-sysroot", "libmd"],
+        BuildStage::Tar => &["formal-sysroot", "acl", "attr"],
+        BuildStage::Procps => &["formal-sysroot", "ncurses"],
+        BuildStage::Iproute2 => &[
+            "formal-sysroot",
+            "libcap",
+            "zlib",
+            "zstd",
+            "elfutils",
+            "pcre2",
+            "selinux",
+        ],
+        BuildStage::Curl => &["formal-sysroot", "openssl", "zlib", "zstd"],
+        BuildStage::Pam => &["formal-sysroot", "libxcrypt"],
+        BuildStage::UtilLinux => &["formal-sysroot", "linux-pam", "selinux", "pcre2"],
+        BuildStage::Shadow => &[
+            "formal-sysroot",
+            "linux-pam",
+            "libbsd",
+            "libmd",
+            "libxcrypt",
+        ],
+        BuildStage::SudoRs => &["formal-sysroot", "linux-pam"],
+        BuildStage::Systemd => &[
+            "formal-sysroot",
+            "kmod",
+            "util-linux",
+            "linux-pam",
+            "libcap",
+            "openssl",
+            "pcre2",
+        ],
+        BuildStage::DbusBroker => &["formal-sysroot", "systemd", "expat"],
+        BuildStage::Dpkg => &[
+            "formal-sysroot",
+            "zlib",
+            "bzip2",
+            "xz",
+            "zstd",
+            "libmd",
+            "selinux",
+            "pcre2",
+        ],
+        BuildStage::Apt => &[
+            "formal-sysroot",
+            "dpkg",
+            "openssl",
+            "zlib",
+            "bzip2",
+            "xz",
+            "zstd",
+            "systemd",
+        ],
+        BuildStage::Rootfs => &[
+            "apt",
+            "dpkg",
+            "systemd",
+            "dbus-broker",
+            "init",
+            "repository",
+        ],
+        BuildStage::Initramfs => &["rootfs"],
+        BuildStage::Iso => &["linux", "initramfs"],
+        BuildStage::All => &[],
+        _ => &["formal-sysroot"],
+    }
+}
+
+fn linux_headers_stage_spec() -> performance::StageSpec {
+    performance::StageSpec {
+        id: "linux-headers".to_string(),
+        source_inputs: vec!["src/kernel/linux".into()],
+        configuration_inputs: vec!["src/tools/mattos-build/src/main.rs".into()],
+        tools: vec!["make".to_string(), "gcc".to_string()],
+        dependencies: vec!["linux".to_string(), "glibc".to_string()],
+        outputs: vec![
+            "out/build/glibc/linux-headers".into(),
+            "out/build/glibc/linux-headers-inventory.txt".into(),
+        ],
+        recipe: "make ARCH=x86 headers_install".to_string(),
+    }
+}
+
+fn formal_sysroot_stage_spec() -> performance::StageSpec {
+    performance::StageSpec {
+        id: "formal-sysroot".to_string(),
+        source_inputs: Vec::new(),
+        configuration_inputs: vec!["src/tools/mattos-build/src/main.rs".into()],
+        tools: vec!["gcc".to_string(), "ld".to_string()],
+        dependencies: vec![
+            "linux-headers".to_string(),
+            "glibc".to_string(),
+            "gcc-runtime".to_string(),
+        ],
+        outputs: vec![
+            "out/sysroot/usr/include/stdio.h".into(),
+            "out/sysroot/usr/include/linux/version.h".into(),
+            "out/sysroot/usr/lib/x86_64-linux-gnu/libc.so.6".into(),
+            "out/sysroot/lib64/ld-linux-x86-64.so.2".into(),
+            "out/sysroot/usr/lib/x86_64-linux-gnu/libgcc_s.so.1".into(),
+            "out/sysroot/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.34".into(),
+        ],
+        recipe: "formal MattOS sysroot inventory".to_string(),
+    }
+}
+
+fn validate_cached_build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
+    match stage {
+        BuildStage::Kernel => {
+            if !repo_root
+                .join("src/kernel/linux/arch/x86/boot/bzImage")
+                .is_file()
+            {
+                bail!("cached Linux image is missing")
+            }
         }
-        remove_path_if_exists(&entry.path())?;
+        BuildStage::Glibc => {
+            for path in [
+                "out/sysroot/usr/include/stdio.h",
+                "out/sysroot/usr/lib/x86_64-linux-gnu/libc.so.6",
+                "out/sysroot/lib64/ld-linux-x86-64.so.2",
+            ] {
+                if !repo_root.join(path).exists() {
+                    bail!("cached glibc/sysroot output is missing: {path}")
+                }
+            }
+        }
+        BuildStage::GccRuntime => {
+            if !repo_root
+                .join("out/sysroot/usr/lib/x86_64-linux-gnu/libgcc_s.so.1")
+                .is_file()
+            {
+                bail!("cached GCC runtime is missing")
+            }
+        }
+        BuildStage::Binutils => {
+            for tool in ["as", "ld", "readelf", "strip"] {
+                if !repo_root
+                    .join("out/build/binutils/install/usr/bin")
+                    .join(tool)
+                    .is_file()
+                {
+                    bail!("cached native Binutils tool is missing: {tool}")
+                }
+            }
+        }
+        BuildStage::GccToolchain => {
+            for tool in ["gcc", "g++"] {
+                if !repo_root
+                    .join("out/build/gcc-toolchain/install/usr/bin")
+                    .join(tool)
+                    .is_file()
+                {
+                    bail!("cached native compiler is missing: {tool}")
+                }
+            }
+        }
+        BuildStage::Make => {
+            if !repo_root
+                .join("out/build/make/install/usr/bin/make")
+                .is_file()
+            {
+                bail!("cached native GNU Make is missing")
+            }
+        }
+        _ => {}
     }
-    println!(
-        "cleared native consumer outputs so every post-glibc stage rebuilds against {}",
-        repo_root.join("out/sysroot").display()
-    );
     Ok(())
 }
 
@@ -2069,6 +2520,145 @@ fn build_plan(stage: BuildStage) -> Vec<BuildStage> {
     }
 
     vec![stage]
+}
+
+fn cacheable_stage_specs(repo_root: &Path) -> Result<Vec<performance::StageSpec>> {
+    let mut specs = build_plan(BuildStage::All)
+        .into_iter()
+        .filter(|stage| {
+            is_cacheable_stage(*stage)
+                || matches!(
+                    stage,
+                    BuildStage::Rootfs | BuildStage::Initramfs | BuildStage::Iso
+                )
+        })
+        .map(build_stage_spec)
+        .collect::<Vec<_>>();
+    specs.push(linux_headers_stage_spec());
+    specs.push(formal_sysroot_stage_spec());
+    if let Ok(repository) = packaging::repository_stage_spec(repo_root) {
+        specs.push(repository);
+    }
+    specs.sort_by(|a, b| a.id.cmp(&b.id));
+    Ok(specs)
+}
+
+fn cache_command(repo_root: &Path, command: CacheCommands) -> Result<()> {
+    let specs = cacheable_stage_specs(repo_root)?;
+    match command {
+        CacheCommands::Status => {
+            for spec in &specs {
+                println!("{}", performance::explain_stage(repo_root, spec)?);
+            }
+            packaging::print_package_cache_status(repo_root)?;
+            println!("{}", packaging::package_facts_status(repo_root)?);
+            println!("{}", elf_cache::status(repo_root)?);
+            println!(
+                "rootfs-base: not materialized separately; live assembly currently consumes package staging directly"
+            );
+            Ok(())
+        }
+        CacheCommands::Explain { stage, details } => {
+            if let Some(package) = stage.strip_prefix("package:") {
+                return packaging::explain_package_cache(repo_root, package);
+            }
+            if stage == "elf-facts" {
+                println!("{}", elf_cache::status(repo_root)?);
+                return Ok(());
+            }
+            if stage == "package-audit" {
+                println!("{}", packaging::package_facts_status(repo_root)?);
+                return Ok(());
+            }
+            if stage == "rootfs-base" || stage == "rootfs-live" {
+                let spec = resolve_cache_stage(&specs, "rootfs")?;
+                if details {
+                    print!("{}", performance::explain_stage_details(repo_root, spec)?);
+                } else {
+                    println!("{}", performance::explain_stage(repo_root, spec)?);
+                }
+                return Ok(());
+            }
+            let spec = resolve_cache_stage(&specs, &stage)?;
+            if details {
+                print!("{}", performance::explain_stage_details(repo_root, spec)?);
+            } else {
+                println!("{}", performance::explain_stage(repo_root, spec)?);
+            }
+            Ok(())
+        }
+        CacheCommands::Invalidate { dependents, stage } => {
+            if let Some(package) = stage.strip_prefix("package:") {
+                return packaging::invalidate_package_cache(repo_root, package);
+            }
+            if stage == "elf-facts" {
+                println!(
+                    "invalidated {} ELF fact record(s)",
+                    elf_cache::invalidate(repo_root)?
+                );
+                return Ok(());
+            }
+            if stage == "package-audit" {
+                println!(
+                    "invalidated {} package fact/audit record(s)",
+                    packaging::invalidate_package_facts(repo_root)?
+                );
+                return Ok(());
+            }
+            let stage = if stage == "rootfs-base" || stage == "rootfs-live" {
+                "rootfs".to_string()
+            } else {
+                stage
+            };
+            let root = resolve_cache_stage(&specs, &stage)?.id.clone();
+            let mut selected = BTreeSet::from([root.clone()]);
+            if dependents {
+                loop {
+                    let before = selected.len();
+                    for spec in &specs {
+                        if spec
+                            .dependencies
+                            .iter()
+                            .any(|dependency| selected.contains(dependency))
+                        {
+                            selected.insert(spec.id.clone());
+                        }
+                    }
+                    if selected.len() == before {
+                        break;
+                    }
+                }
+            }
+            for stage in selected {
+                if performance::invalidate_manifest(repo_root, &stage)? {
+                    println!("invalidated cache manifest: {stage}");
+                } else {
+                    println!("cache manifest was already absent: {stage}");
+                }
+            }
+            println!(
+                "build outputs were preserved; the next dependency-correct build will refresh them"
+            );
+            Ok(())
+        }
+    }
+}
+
+fn resolve_cache_stage<'a>(
+    specs: &'a [performance::StageSpec],
+    supplied: &str,
+) -> Result<&'a performance::StageSpec> {
+    let normalized = if supplied == "gcc-toolchain" {
+        "gcc-compiler"
+    } else if supplied == "kernel" {
+        "linux"
+    } else {
+        supplied
+    };
+    specs
+        .iter()
+        .find(|spec| spec.id == normalized)
+        .ok_or_else(|| anyhow!("unknown cache stage {supplied}"))
 }
 
 fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
@@ -2349,18 +2939,14 @@ fn run_gcc_bootstrap_command(
     args: &[&str],
     env: &[(&str, String)],
 ) -> Result<()> {
-    println!("> {} {}", program.display(), args.join(" "));
     let mut command = Command::new(program);
     command.current_dir(cwd).args(args);
+    apply_reproducible_process_environment(&mut command);
     for (key, value) in env {
         command.env(key, value);
     }
-    let status = command.status().with_context(|| {
-        format!(
-            "failed to spawn GCC bootstrap command {}",
-            program.display()
-        )
-    })?;
+    let display = format!("{} {}", program.display(), args.join(" "));
+    let status = performance::run_logged_command(&mut command, &display)?;
     if !status.success() {
         bail!(
             "GCC bootstrap command failed with {status}: {} {}",
@@ -6778,16 +7364,69 @@ fn build_dbus_broker(repo_root: &Path) -> Result<()> {
 }
 
 fn build_rootfs(repo_root: &Path) -> Result<()> {
-    let skeleton = repo_root.join("src/rootfs/skeleton");
-    let out = repo_root.join("out/build/rootfs");
+    // Package/repository manifests are resolved before the rootfs key so a
+    // package change cannot be hidden behind an old rootfs manifest.
+    packaging::build_all_packages(repo_root)?;
+    packaging::generate_repository(repo_root)?;
+    let spec = build_stage_spec(BuildStage::Rootfs);
+    performance::execute_cached_stage(
+        repo_root,
+        &spec,
+        || validate_cached_rootfs(repo_root),
+        || build_rootfs_atomic(repo_root),
+    )
+}
 
-    if out.exists() {
-        fs::remove_dir_all(&out).with_context(|| format!("failed to clean {}", out.display()))?;
+fn build_rootfs_atomic(repo_root: &Path) -> Result<()> {
+    let destination = repo_root.join("out/build/rootfs");
+    let temp = performance::temporary_sibling(&destination, "building")?;
+    let result = build_rootfs_into(repo_root, &temp);
+    if let Err(error) = result {
+        let _ = remove_path_if_exists(&temp);
+        return Err(error);
     }
-    fs::create_dir_all(&out).with_context(|| format!("failed to create {}", out.display()))?;
-    packaging::install_prototype_packages(repo_root, &out)?;
-    let package_owned = packaging::package_owned_paths(&out)?;
-    let package_snapshot = packaging::snapshot_package_files(&out, &package_owned)?;
+    validate_rootfs_mutable_state(&temp)?;
+    performance::atomic_replace_path(&temp, &destination)
+}
+
+fn validate_cached_rootfs(repo_root: &Path) -> Result<()> {
+    let rootfs = repo_root.join("out/build/rootfs");
+    validate_rootfs_mutable_state(&rootfs)?;
+    for rel in [
+        "var/lib/dpkg/status",
+        "usr/share/mattos/repository/dists/trixie/Release",
+        "usr/bin/sh",
+        "usr/bin/bash",
+        "usr/lib/systemd/systemd",
+    ] {
+        if !rootfs.join(rel).symlink_metadata().is_ok() {
+            bail!("cached rootfs required path is missing: /{rel}");
+        }
+    }
+    Ok(())
+}
+
+fn validate_rootfs_mutable_state(rootfs: &Path) -> Result<()> {
+    for rel in [
+        "run/dbus/system_bus_socket",
+        "var/lib/dpkg/lock",
+        "var/lib/dpkg/lock-frontend",
+        "var/lib/apt/lists/lock",
+        "var/cache/apt/archives/lock",
+    ] {
+        if rootfs.join(rel).symlink_metadata().is_ok() {
+            bail!("mutable lock/socket state is present in cached rootfs: /{rel}");
+        }
+    }
+    Ok(())
+}
+
+fn build_rootfs_into(repo_root: &Path, out: &Path) -> Result<()> {
+    let skeleton = repo_root.join("src/rootfs/skeleton");
+    fs::create_dir_all(out).with_context(|| format!("failed to create {}", out.display()))?;
+    packaging::install_prototype_packages(repo_root, out)?;
+    let package_owned = packaging::package_owned_paths(out)?;
+    let package_snapshot = packaging::snapshot_package_files(out, &package_owned)?;
     for rel in [
         "README.md",
         "etc/group",
@@ -7083,8 +7722,20 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
     write_userland_inventory(&out, &inventory)?;
     packaging::embed_repository(repo_root, &out)?;
     packaging::validate_dpkg_database(&out)?;
-    packaging::validate_package_snapshot(&out, &package_snapshot)?;
-    validate_glibc_rootfs(repo_root, &out)?;
+    performance::timed(
+        "rootfs-package-audit",
+        "n/a",
+        "validate package-owned files after rootfs overlays",
+        "rootfs-package-snapshot",
+        || packaging::validate_package_snapshot(&out, &package_snapshot),
+    )?;
+    performance::timed(
+        "rootfs-elf-audit",
+        "n/a",
+        "validate complete MattOS glibc and ELF runtime closure",
+        "rootfs-elf-inventory",
+        || validate_glibc_rootfs(repo_root, &out),
+    )?;
 
     Ok(())
 }
@@ -7141,9 +7792,15 @@ fn validate_glibc_rootfs(repo_root: &Path, rootfs: &Path) -> Result<()> {
     let mut provided = BTreeSet::new();
     let mut soname_providers: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for path in files {
-        let header = Command::new("readelf").args(["-h"]).arg(&path).output()?;
-        if !header.status.success() {
+        let Some(facts) = elf_cache::inspect(repo_root, &path)? else {
             continue;
+        };
+        if !facts.architecture.contains("X86-64") {
+            bail!(
+                "ELF object /{} has unexpected architecture {}",
+                path.strip_prefix(rootfs)?.display(),
+                facts.architecture
+            );
         }
         let bytes = fs::read(&path)?;
         let build_root = repo_root.to_string_lossy();
@@ -7160,24 +7817,14 @@ fn validate_glibc_rootfs(repo_root: &Path, rootfs: &Path) -> Result<()> {
         if let Some(name) = path.file_name().and_then(|name| name.to_str()) {
             provided.insert(name.to_string());
         }
-        let dynamic = Command::new("readelf").args(["-d"]).arg(&path).output()?;
-        if dynamic.status.success() {
-            let text = String::from_utf8_lossy(&dynamic.stdout);
-            for line in text.lines().filter(|line| line.contains("(SONAME)")) {
-                if let Some(value) = line
-                    .split('[')
-                    .nth(1)
-                    .and_then(|part| part.split(']').next())
-                {
-                    provided.insert(value.to_string());
-                    soname_providers
-                        .entry(value.to_string())
-                        .or_default()
-                        .push(format!("/{}", path.strip_prefix(rootfs)?.display()));
-                }
-            }
+        if let Some(value) = &facts.soname {
+            provided.insert(value.clone());
+            soname_providers
+                .entry(value.clone())
+                .or_default()
+                .push(format!("/{}", path.strip_prefix(rootfs)?.display()));
         }
-        elf_files.push(path);
+        elf_files.push((path, facts));
     }
     provided.insert("linux-vdso.so.1".to_string());
     provided.insert("ld-linux-x86-64.so.2".to_string());
@@ -7214,14 +7861,9 @@ fn validate_glibc_rootfs(repo_root: &Path, rootfs: &Path) -> Result<()> {
     let mut rows = Vec::new();
     let mut gcc_runtime_consumers = Vec::new();
     let mut executable_count = 0usize;
-    for path in &elf_files {
+    for (path, facts) in &elf_files {
         let relative = format!("/{}", path.strip_prefix(rootfs)?.display());
-        let program_headers = Command::new("readelf").args(["-l"]).arg(path).output()?;
-        let program_text = String::from_utf8_lossy(&program_headers.stdout);
-        let interpreter = program_text.lines().find_map(|line| {
-            line.split_once("Requesting program interpreter:")
-                .map(|(_, value)| value.trim().trim_end_matches(']').to_string())
-        });
+        let interpreter = facts.interpreter.clone();
         if let Some(actual) = &interpreter {
             executable_count += 1;
             if actual != expected_loader {
@@ -7256,18 +7898,8 @@ fn validate_glibc_rootfs(repo_root: &Path, rootfs: &Path) -> Result<()> {
             }
         }
 
-        let dynamic = Command::new("readelf").args(["-d"]).arg(path).output()?;
-        let dynamic_text = String::from_utf8_lossy(&dynamic.stdout);
         let mut runtime_needs = Vec::new();
-        for line in dynamic_text
-            .lines()
-            .filter(|line| line.contains("(NEEDED)"))
-        {
-            let needed = line
-                .split('[')
-                .nth(1)
-                .and_then(|part| part.split(']').next())
-                .unwrap_or_default();
+        for needed in &facts.needed {
             if !provided.contains(needed) {
                 bail!(
                     "ELF object {relative} needs {needed}, which is absent from the MattOS rootfs"
@@ -7277,25 +7909,30 @@ fn validate_glibc_rootfs(repo_root: &Path, rootfs: &Path) -> Result<()> {
                 runtime_needs.push(needed.to_string());
             }
         }
-        for line in dynamic_text
-            .lines()
-            .filter(|line| line.contains("(RPATH)") || line.contains("(RUNPATH)"))
-        {
-            if line.contains("/home/")
-                || line.contains("/tmp/")
-                || line.contains("/usr/local/")
-                || line.contains("/opt/")
+        for value in facts.rpath.iter().chain(&facts.runpath) {
+            if value.contains("/home/")
+                || value.contains("/tmp/")
+                || value.contains("/usr/local/")
+                || value.contains("/opt/")
             {
                 bail!(
-                    "ELF object {relative} embeds a host-style absolute library search path: {line}"
+                    "ELF object {relative} embeds a host-style absolute library search path: {value}"
                 )
             }
         }
 
-        let glibc_versions = elf_version_names(path, &["GLIBC_"])?;
-        let glibcxx_versions = elf_version_names(path, &["GLIBCXX_"])?;
-        let cxxabi_versions = elf_version_names(path, &["CXXABI_"])?;
-        let gcc_versions = elf_version_names(path, &["GCC_"])?;
+        let versions = |prefix: &str| {
+            facts
+                .symbol_versions
+                .iter()
+                .filter(|version| version.starts_with(prefix))
+                .cloned()
+                .collect::<BTreeSet<_>>()
+        };
+        let glibc_versions = versions("GLIBC_");
+        let glibcxx_versions = versions("GLIBCXX_");
+        let cxxabi_versions = versions("CXXABI_");
+        let gcc_versions = versions("GCC_");
         let owner = package_owners
             .get(&relative)
             .cloned()
@@ -8714,6 +9351,24 @@ fn write_userland_inventory(rootfs: &Path, inventory: &UserlandInventory) -> Res
 }
 
 fn build_initramfs(repo_root: &Path) -> Result<()> {
+    let spec = build_stage_spec(BuildStage::Initramfs);
+    performance::execute_cached_stage(
+        repo_root,
+        &spec,
+        || validate_cached_initramfs(repo_root),
+        || build_initramfs_atomic(repo_root),
+    )
+}
+
+fn validate_cached_initramfs(repo_root: &Path) -> Result<()> {
+    let body = fs::read(repo_root.join("out/build/initramfs.cpio.gz"))?;
+    if body.len() < 2 || body[..2] != [0x1f, 0x8b] {
+        bail!("cached initramfs is not a gzip stream");
+    }
+    Ok(())
+}
+
+fn build_initramfs_atomic(repo_root: &Path) -> Result<()> {
     let rootfs = repo_root.join("out/build/rootfs");
     if !rootfs.exists() {
         bail!("rootfs not found; run build rootfs first");
@@ -8721,12 +9376,24 @@ fn build_initramfs(repo_root: &Path) -> Result<()> {
 
     let out_build = repo_root.join("out/build");
     fs::create_dir_all(&out_build).context("failed to create out/build directory")?;
+    let destination = out_build.join("initramfs.cpio.gz");
+    let temp = performance::temporary_sibling(&destination, "building")?;
     validate_initramfs_archive_owner(INITRAMFS_ARCHIVE_OWNER)?;
     let archive_command = format!(
-        "find . -exec touch -h -d @{MATTOS_SOURCE_DATE_EPOCH} {{}} + && find . -print0 | sort -z | cpio --null -o --quiet --reproducible --owner={INITRAMFS_ARCHIVE_OWNER} --format=newc | gzip -9n > ../initramfs.cpio.gz"
+        "find . -exec touch -h -d @{MATTOS_SOURCE_DATE_EPOCH} {{}} + && find . -print0 | sort -z | cpio --null -o --quiet --reproducible --owner={INITRAMFS_ARCHIVE_OWNER} --format=newc | gzip -9n > {}",
+        shell_escape(path_str(&temp)?)
     );
 
-    run_cmd(&rootfs, "bash", &["-lc", &archive_command])
+    if let Err(error) = run_cmd(&rootfs, "bash", &["-lc", &archive_command]) {
+        let _ = remove_path_if_exists(&temp);
+        return Err(error);
+    }
+    let body = fs::read(&temp)?;
+    if body.len() < 2 || body[..2] != [0x1f, 0x8b] {
+        let _ = remove_path_if_exists(&temp);
+        bail!("generated initramfs is not a gzip stream");
+    }
+    performance::atomic_replace_path(&temp, &destination)
 }
 
 fn validate_initramfs_archive_owner(owner: &str) -> Result<()> {
@@ -8737,6 +9404,24 @@ fn validate_initramfs_archive_owner(owner: &str) -> Result<()> {
 }
 
 fn build_iso(repo_root: &Path) -> Result<()> {
+    let spec = build_stage_spec(BuildStage::Iso);
+    performance::execute_cached_stage(
+        repo_root,
+        &spec,
+        || validate_cached_iso(repo_root),
+        || build_iso_atomic(repo_root),
+    )
+}
+
+fn validate_cached_iso(repo_root: &Path) -> Result<()> {
+    let iso = repo_root.join("out/images/mattos-x86_64.iso");
+    if fs::metadata(&iso)?.len() < 1024 * 1024 {
+        bail!("cached ISO is unexpectedly small");
+    }
+    validate_staged_grub_config(&repo_root.join("out/build/iso/boot/grub/grub.cfg"))
+}
+
+fn build_iso_atomic(repo_root: &Path) -> Result<()> {
     let grub_src = validate_grub_config_source(repo_root)?;
 
     let kernel = repo_root.join("src/kernel/linux/arch/x86/boot/bzImage");
@@ -8755,11 +9440,8 @@ fn build_iso(repo_root: &Path) -> Result<()> {
         );
     }
 
-    let iso_root = repo_root.join("out/build/iso");
-    if iso_root.exists() {
-        fs::remove_dir_all(&iso_root)
-            .with_context(|| format!("failed to clean {}", iso_root.display()))?;
-    }
+    let iso_destination = repo_root.join("out/build/iso");
+    let iso_root = performance::temporary_sibling(&iso_destination, "building")?;
     let grub_dir = iso_root.join("boot/grub");
     fs::create_dir_all(&grub_dir).context("failed to create ISO directory layout")?;
 
@@ -8785,20 +9467,32 @@ fn build_iso(repo_root: &Path) -> Result<()> {
 
     let out_images = repo_root.join("out/images");
     fs::create_dir_all(&out_images).context("failed to create out/images")?;
-    run_cmd_with_env_overrides(
+    let image_destination = out_images.join("mattos-x86_64.iso");
+    let image_temp = performance::temporary_sibling(&image_destination, "building")?;
+    let result = run_cmd_with_env_overrides(
         repo_root,
         "grub-mkrescue",
         &[
             "-o",
-            "out/images/mattos-x86_64.iso",
+            path_str(&image_temp)?,
             "--directory=/usr/lib/grub/i386-pc",
-            "out/build/iso",
+            path_str(&iso_root)?,
             "--modification-date=2026010100000000",
             "--set_all_file_dates",
             "2026010100000000",
         ],
         &[("SOURCE_DATE_EPOCH", MATTOS_SOURCE_DATE_EPOCH.to_string())],
-    )
+    );
+    if let Err(error) = result {
+        let _ = remove_path_if_exists(&iso_root);
+        let _ = remove_path_if_exists(&image_temp);
+        return Err(error);
+    }
+    if fs::metadata(&image_temp)?.len() < 1024 * 1024 {
+        bail!("generated ISO is unexpectedly small");
+    }
+    performance::atomic_replace_path(&iso_root, &iso_destination)?;
+    performance::atomic_replace_path(&image_temp, &image_destination)
 }
 
 fn validate_grub_config_source(repo_root: &Path) -> Result<PathBuf> {
@@ -8935,7 +9629,6 @@ fn copy_runtime_dependencies(binary: &Path, rootfs: &Path) -> Result<()> {
 }
 
 fn run_cmd(cwd: &Path, program: &str, args: &[&str]) -> Result<()> {
-    println!("> {} {}", program, args.join(" "));
     let status = run_cmd_status(cwd, program, args)?;
     if status.success() {
         Ok(())
@@ -8951,10 +9644,10 @@ fn run_cmd(cwd: &Path, program: &str, args: &[&str]) -> Result<()> {
 fn run_cmd_status(cwd: &Path, program: &str, args: &[&str]) -> Result<std::process::ExitStatus> {
     let mut command = Command::new(program);
     command.args(args).current_dir(cwd);
+    apply_reproducible_process_environment(&mut command);
     apply_mattos_sysroot_environment(&mut command, cwd, program, &[])?;
-    command
-        .status()
-        .with_context(|| format!("failed to spawn command: {program}"))
+    let display = format!("{} {}", program, args.join(" "));
+    performance::run_logged_command(&mut command, &display)
 }
 
 fn run_cmd_with_env(
@@ -8963,9 +9656,9 @@ fn run_cmd_with_env(
     args: &[&str],
     tool_env: Option<&LocalToolEnv>,
 ) -> Result<()> {
-    println!("> {} {}", program, args.join(" "));
     let mut cmd = Command::new(program);
     cmd.args(args).current_dir(cwd);
+    apply_reproducible_process_environment(&mut cmd);
 
     if let Some(env) = tool_env {
         let current_path = std::env::var("PATH").unwrap_or_default();
@@ -8993,9 +9686,8 @@ fn run_cmd_with_env(
     }
     apply_mattos_sysroot_environment(&mut cmd, cwd, program, &[])?;
 
-    let status = cmd
-        .status()
-        .with_context(|| format!("failed to spawn command: {program}"))?;
+    let display = format!("{} {}", program, args.join(" "));
+    let status = performance::run_logged_command(&mut cmd, &display)?;
     if status.success() {
         Ok(())
     } else {
@@ -9013,17 +9705,16 @@ fn run_cmd_with_env_overrides(
     args: &[&str],
     env_overrides: &[(&str, String)],
 ) -> Result<()> {
-    println!("> {} {}", program, args.join(" "));
     let mut cmd = Command::new(program);
     cmd.args(args).current_dir(cwd);
+    apply_reproducible_process_environment(&mut cmd);
     for (key, value) in env_overrides {
         cmd.env(key, value);
     }
     apply_mattos_sysroot_environment(&mut cmd, cwd, program, env_overrides)?;
 
-    let status = cmd
-        .status()
-        .with_context(|| format!("failed to spawn command: {program}"))?;
+    let display = format!("{} {}", program, args.join(" "));
+    let status = performance::run_logged_command(&mut cmd, &display)?;
     if status.success() {
         Ok(())
     } else {
@@ -9033,6 +9724,14 @@ fn run_cmd_with_env_overrides(
             args.join(" ")
         )
     }
+}
+
+fn apply_reproducible_process_environment(command: &mut Command) {
+    command
+        .env("LC_ALL", "C")
+        .env("LANG", "C")
+        .env("TZ", "UTC")
+        .env("SOURCE_DATE_EPOCH", MATTOS_SOURCE_DATE_EPOCH);
 }
 
 fn apply_mattos_sysroot_environment(
@@ -9103,9 +9802,10 @@ fn apply_mattos_sysroot_environment(
 }
 
 fn run_cmd_output(cwd: &Path, program: &str, args: &[&str]) -> Result<Output> {
-    Command::new(program)
-        .args(args)
-        .current_dir(cwd)
+    let mut command = Command::new(program);
+    command.args(args).current_dir(cwd);
+    apply_reproducible_process_environment(&mut command);
+    command
         .output()
         .with_context(|| format!("failed to spawn command: {program}"))
 }
@@ -9127,6 +9827,32 @@ fn run_cmd_capture(cwd: &Path, program: &str, args: &[&str]) -> Result<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn stage_keys_exclude_logging_and_documentation_implementation() {
+        for stage in [
+            BuildStage::Kernel,
+            BuildStage::Glibc,
+            BuildStage::GccRuntime,
+            BuildStage::Binutils,
+            BuildStage::GccToolchain,
+            BuildStage::Make,
+        ] {
+            let spec = build_stage_spec(stage);
+            assert!(
+                !spec
+                    .configuration_inputs
+                    .iter()
+                    .any(|path| path == Path::new("src/tools/mattos-build/src/performance.rs"))
+            );
+            assert!(
+                !spec
+                    .configuration_inputs
+                    .iter()
+                    .any(|path| path.starts_with("docs"))
+            );
+        }
+    }
 
     fn run_ok(cwd: &Path, program: &str, args: &[&str]) {
         let status = Command::new(program)

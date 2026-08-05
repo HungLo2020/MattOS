@@ -26,6 +26,8 @@ cargo run -p mattos-build -- doctor
 Required tools are reported separately from optional tools. Missing-tool package hints are printed for common Linux distributions.
 `DevUtils/run_qemu.py` also runs `doctor` first and will direct you to `python3 DevUtils/setup.py` if required prerequisites are missing.
 
+The launcher does not rewrite the build environment. `--build-only` runs `doctor` and the same `cargo run -p mattos-build -- build all` command used directly, in separate child processes. Stage keys normalize the build locale/time policy and identify selected tools rather than hashing the caller's raw `PATH`, so unchanged direct and launcher builds share the same cache identity.
+
 This milestone also requires the systemd, dbus-broker, Autotools, networking, packaging, glibc/GCC-runtime-bootstrap, and ELF-inspection tools declared by `DevUtils/setup.py`, including GCC/G++, GNU assembler and linker tools, Make, Bison, Meson/Ninja, CMake, Autoconf/Automake/libtool, `gnulib-tool`, GNU awk (`gawk`), `rsync`, `bindgen`, `dpkg-deb`, `dpkg-scanpackages`, `apt-ftparchive`, `fakeroot`, `zstd`, `xz`, `file`, `ldd`, and `readelf`. Host GMP, MPFR, and MPC development files are GCC-internal build prerequisites only. Target runtime development files come from imported source builds and `out/sysroot`, not host distribution `-dev` packages.
 
 ## Upstream source status
@@ -79,6 +81,15 @@ cargo run -p mattos-build -- upstream import linuxscripts
 cargo run -p mattos-build -- build
 ```
 
+Inspect a stage without building it:
+
+```text
+cargo run -p mattos-build -- cache explain linux --details
+cargo run -p mattos-build -- cache explain glibc --details
+```
+
+The detailed form compares schema, source/configuration/environment/tool/dependency/full digests and their exact stored/current fields. Schema 3 is a one-time migration from older manifests; after one successful establishing build, identical fresh direct and launcher processes must report foundation hits.
+
 The pipeline stages are:
 
 1. `kernel`: Linux kernel build using `src/kernel/config/x86_64_mattos.config`
@@ -110,6 +121,8 @@ The pipeline stages are:
 Systemd configuration remains intentionally minimal. It enables networkd, resolved, timesyncd, timedated, logind, PAM integration, and `busctl` while continuing to disable homed, nspawn, bootloader tools, the remote journal stack, docs, tests, translations, TPM/FIDO, and BPF extras. The separate dbus-broker stage supplies both the system-scope binary and the binary used by MattOS-owned user units; systemd's Meson `dbus` option remains disabled because it controls the optional reference `libdbus` dependency, not sd-bus support.
 
 ## Incremental builds
+
+Warm builds are guarded by content-addressed stage manifests rather than timestamps. Repository, live-rootfs, initramfs, and ISO layers now participate in the same dependency model and retain full inventory/corruption validation. See `docs/BUILD_PERFORMANCE.md` for keys, atomic replacement, package/ELF fact reuse, timing reports, quiet native logs, and scoped cache commands.
 
 ```
 cargo run -p mattos-build -- build kernel
@@ -151,7 +164,28 @@ cargo run -p mattos-build -- build init
 cargo run -p mattos-build -- image
 ```
 
-`image` reassembles rootfs, initramfs, and ISO without forcing unrelated recompilation.
+`image` validates and reuses unchanged rootfs, initramfs, and ISO layers without forcing unrelated recompilation. A changed package cascades through repository and image layers; a GRUB-only change affects only ISO.
+
+The complete `build all` command already ends with a current ISO. The Python QEMU launcher therefore invokes `build all` once and does not call `image` afterward. For build-only automation:
+
+```text
+python3 DevUtils/run_qemu.py --build-only
+```
+
+Recent timing reports can be read without rebuilding:
+
+```text
+cargo run -p mattos-build -- timings
+cargo run -p mattos-build -- cache status
+cargo run -p mattos-build -- cache explain glibc
+cargo run -p mattos-build -- cache explain repository
+cargo run -p mattos-build -- cache explain rootfs-live
+cargo run -p mattos-build -- cache explain elf-facts
+```
+
+Native-stage subprocess output is stored in `out/logs/<stage>.log`; failures show a useful tail. Set `MATTOS_VERBOSE_BUILD_OUTPUT=1` to stream full output for diagnosis.
+
+For the first cache milestone, an unchanged complete `build all` measured 4:04.45 with 112 hits, zero misses, and seven intentionally non-cacheable stages, compared with the 53:00.44 audit baseline. The second layer/fact-cache milestone reduced the required second unchanged run to 3:50.94 with 116 hits, zero misses, and no non-cacheable timing entries. A scoped independent repository/rootfs/initramfs/ISO rebuild reproduced every recorded package, repository, rootfs inventory, ELF inventory, initramfs, and ISO digest exactly. These are warm-development measurements; release validation still uses independent rebuilds and byte comparisons as documented in `BUILD_PERFORMANCE.md`.
 
 Package and repository commands:
 
