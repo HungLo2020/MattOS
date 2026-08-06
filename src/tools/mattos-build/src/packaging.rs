@@ -7,6 +7,45 @@ use std::io::Read;
 const ARCH: &str = "amd64";
 const REVISION: &str = "1mattos1";
 const SOURCE_DATE_EPOCH: i64 = 1_767_225_600; // 2026-01-01T00:00:00Z
+const DPKG_UPSTREAM_COMMIT: &str = "ff7e9d8bf01379e8b022028a65afaa262e2c25cd";
+const DPKG_UPSTREAM_REPOSITORY: &str = "https://git.dpkg.org/git/dpkg/dpkg.git";
+
+struct DpkgMissingSourceInput {
+    path: &'static str,
+    sha256: &'static str,
+}
+
+const DPKG_MISSING_SOURCE_INPUTS: &[DpkgMissingSourceInput] = &[
+    DpkgMissingSourceInput {
+        path: "dselect/completion/bash/dselect",
+        sha256: "c5c26193b15bff4ce6ee3174641d21d39f6e6841396312cb12341b0c2eee638f",
+    },
+    DpkgMissingSourceInput {
+        path: "scripts/completion/bash/dpkg-source",
+        sha256: "e76a4b7bfa74cc6cce48dce8345ed132fe0425182507ebc4c80ac1b3c3ffa00d",
+    },
+    DpkgMissingSourceInput {
+        path: "src/completion/bash/dpkg",
+        sha256: "2e7512d98773e7f94977a77e2b23bfa15b4a32afacddf62cf4e9c25c88ee6cbc",
+    },
+    DpkgMissingSourceInput {
+        path: "src/completion/bash/dpkg-deb",
+        sha256: "d45a9508926145befcafe789c5d2b4977bbaba33502e025a18f30a05e990423b",
+    },
+    DpkgMissingSourceInput {
+        path: "src/completion/bash/dpkg-query",
+        sha256: "c31450e165abe23c54ff8a97c39f844d193ffb722e78657a42ffce8dbf65604d",
+    },
+    DpkgMissingSourceInput {
+        path: "utils/completion/bash/start-stop-daemon",
+        sha256: "aafbbf3024eec97187898791c408fcbbf5ffad629cd81566b606347ef1270f87",
+    },
+    DpkgMissingSourceInput {
+        path: "utils/completion/bash/update-alternatives",
+        sha256: "322de52d50d91ef0cf447e74c2e6cd0719ce645a22980d0fa07666acc6a874e1",
+    },
+];
+
 const DPKG_RUNTIME_PATHS: &[&str] = &[
     "usr/bin/dpkg",
     "usr/bin/dpkg-deb",
@@ -101,6 +140,13 @@ const IPROUTE2_RUNTIME_PATHS: &[&str] = &[
     "usr/sbin/tc",
 ];
 const IPUTILS_RUNTIME_PATHS: &[&str] = &["usr/bin/ping", "usr/bin/tracepath"];
+const UDEV_HWDB_SOURCE_REL: &str = "usr/lib/udev/hwdb.d";
+const UDEV_HWDB_BINARY_REL: &str = "usr/lib/udev/hwdb.bin";
+const UDEV_HWDB_UNIT_REL: &str = "usr/lib/systemd/system/systemd-hwdb-update.service";
+const UDEV_HWDB_WANTS_REL: &str =
+    "usr/lib/systemd/system/sysinit.target.wants/systemd-hwdb-update.service";
+const UDEV_HWDB_TEST_MODALIAS: &str =
+    "pci:v00008086d0000100Esv00001AF4sd00001100bc02sc00i00";
 #[cfg(test)]
 const MIGRATED_BOOTSTRAP_SONAME_PREFIXES: &[&str] = &[
     "libc.so",
@@ -173,6 +219,7 @@ const PACKAGE_NAMES: &[&str] = &[
     "procps",
     "libsystemd0",
     "libudev1",
+    "udev",
     "libexpat1",
     "libcap2",
     "libacl1",
@@ -255,6 +302,8 @@ struct PackageCacheManifest {
     cache_key: String,
     definition_digest: String,
     payload_source_digest: String,
+    #[serde(default)]
+    payload_configuration_digest: String,
     dependency_digest: String,
     payload_inventory_digest: String,
     artifact_sha256: String,
@@ -267,6 +316,7 @@ struct PackageCacheInput {
     cache_key: String,
     definition_digest: String,
     payload_source_digest: String,
+    payload_configuration_digest: String,
     dependency_digest: String,
 }
 
@@ -971,6 +1021,17 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
+            name: "udev",
+            description: "udev hardware database sources and prebuilt database for MattOS",
+            source_component: "systemd",
+            depends: &["libudev1"],
+            provides: &["udev"],
+            conflicts: &["udev"],
+            replaces: &["udev"],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
             name: "libexpat1",
             description: "Expat XML parser runtime library built for MattOS",
             source_component: "expat",
@@ -1322,6 +1383,7 @@ fn validate_debian_compatibility(repo_root: &Path) -> Result<()> {
         "systemd",
         "libsystemd0",
         "libudev1",
+        "udev",
         "dpkg",
         "apt",
         "coreutils",
@@ -1712,6 +1774,7 @@ fn build_packages(repo_root: &Path, names: &[String]) -> Result<()> {
                 cache_key: package.input.cache_key,
                 definition_digest: package.input.definition_digest,
                 payload_source_digest: package.input.payload_source_digest,
+                payload_configuration_digest: package.input.payload_configuration_digest,
                 dependency_digest: package.input.dependency_digest,
                 payload_inventory_digest: performance::output_path_digest(
                     repo_root,
@@ -1881,18 +1944,8 @@ fn package_cache_input(
     source_digests: &mut BTreeMap<String, String>,
 ) -> Result<PackageCacheInput> {
     let definition_digest = package_definition_digest(spec)?;
-    let source_key = spec.source_component.to_string();
-    let payload_source_digest = if let Some(digest) = source_digests.get(&source_key) {
-        digest.clone()
-    } else {
-        let roots = package_source_roots(spec.source_component)
-            .iter()
-            .map(PathBuf::from)
-            .collect::<Vec<_>>();
-        let digest = performance::tracked_source_digest(repo_root, &roots, false)?;
-        source_digests.insert(source_key, digest.clone());
-        digest
-    };
+    let (payload_source_digest, payload_configuration_digest) =
+        package_payload_source_digests(repo_root, spec, source_digests)?;
     let stage_dependencies = package_stage_dependencies(spec.source_component);
     let mut dependency_values = BTreeMap::new();
     for dependency in stage_dependencies {
@@ -1923,8 +1976,43 @@ fn package_cache_input(
         cache_key,
         definition_digest,
         payload_source_digest,
+        payload_configuration_digest,
         dependency_digest,
     })
+}
+
+fn package_payload_source_digests(
+    repo_root: &Path,
+    spec: &PackageSpec,
+    source_digests: &mut BTreeMap<String, String>,
+) -> Result<(String, String)> {
+    let source_key = spec.source_component.to_string();
+    let upstream_source_digest = if let Some(digest) = source_digests.get(&source_key) {
+        digest.clone()
+    } else {
+        let roots = package_source_roots(spec.source_component)
+            .iter()
+            .map(PathBuf::from)
+            .collect::<Vec<_>>();
+        let digest = performance::tracked_source_digest(repo_root, &roots, false)?;
+        source_digests.insert(source_key, digest.clone());
+        digest
+    };
+    let configuration_roots = package_configuration_roots(spec.name)
+        .iter()
+        .map(PathBuf::from)
+        .collect::<Vec<_>>();
+    let payload_configuration_digest = if configuration_roots.is_empty() {
+        String::new()
+    } else {
+        performance::tracked_source_digest(repo_root, &configuration_roots, false)?
+    };
+    let payload_source_digest = if payload_configuration_digest.is_empty() {
+        upstream_source_digest
+    } else {
+        performance::digest_value(&(&upstream_source_digest, &payload_configuration_digest))?
+    };
+    Ok((payload_source_digest, payload_configuration_digest))
 }
 
 fn validate_package_cache(
@@ -1949,6 +2037,7 @@ fn validate_package_cache(
     }
     if manifest.definition_digest != input.definition_digest
         || manifest.payload_source_digest != input.payload_source_digest
+        || manifest.payload_configuration_digest != input.payload_configuration_digest
         || manifest.dependency_digest != input.dependency_digest
     {
         bail!("package cache component digest changed")
@@ -2064,6 +2153,28 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "sudo-rs" => &["src/system/auth/sudo-rs"],
         "iproute2" => &["src/userland/iproute2"],
         "iputils" => &["src/userland/iputils"],
+        _ => &[],
+    }
+}
+
+fn package_configuration_roots(package: &str) -> &'static [&'static str] {
+    match package {
+        "dbus-broker" => &[
+            "src/system/dbus/config/system.conf",
+            "src/system/dbus/config/dbus.conf",
+            "src/system/dbus/units",
+            "src/system/session/dbus/session.conf",
+            "src/system/session/user-units",
+        ],
+        "libpam-runtime" => &["src/system/auth/config/pam.d"],
+        "passwd" => &[
+            "src/system/auth/config/login.defs",
+            "src/system/auth/config/default/useradd",
+        ],
+        "mattos-sudo-rs" => &[
+            "src/system/auth/config/sudoers",
+            "src/system/auth/config/sudoers.d/README",
+        ],
         _ => &[],
     }
 }
@@ -2210,6 +2321,7 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
             "systemd",
             &["libudev.so.1.7.14", "libudev.so.1"],
         )?,
+        "udev" => stage_udev_hwdb(repo_root, &staging)?,
         "libexpat1" => stage_imported_soname_library(
             repo_root,
             &staging,
@@ -2582,7 +2694,7 @@ fn stage_glibc_utilities(repo_root: &Path, staging: &Path) -> Result<()> {
 fn stage_brush(repo_root: &Path, staging: &Path) -> Result<()> {
     let bin_dir = staging.join("usr/bin");
     stage_executable(
-        &repo_root.join("src/userland/brush/target/release/brush"),
+        &repo_root.join("out/build/brush/cargo-target/release/brush"),
         &bin_dir.join("brush"),
         0o755,
     )?;
@@ -2782,6 +2894,103 @@ fn stage_apt(repo_root: &Path, staging: &Path) -> Result<()> {
 
 fn component_install(repo_root: &Path, component: &str) -> PathBuf {
     repo_root.join("out/build").join(component).join("install")
+}
+
+fn stage_udev_hwdb(repo_root: &Path, staging: &Path) -> Result<()> {
+    let systemd_install = component_install(repo_root, "systemd");
+
+    // Meson converts the authoritative imported systemd hwdb inputs into the
+    // exact vendor-source closure selected by this pinned systemd revision.
+    // Stage that closure into the package-owned output tree, then compile the
+    // binary database there. The imported systemd tree is never writable.
+    copy_tree_preserving(
+        &systemd_install.join(UDEV_HWDB_SOURCE_REL),
+        &staging.join(UDEV_HWDB_SOURCE_REL),
+    )?;
+    for rel in [UDEV_HWDB_UNIT_REL, UDEV_HWDB_WANTS_REL] {
+        copy_path_preserving(&systemd_install.join(rel), &staging.join(rel))?;
+    }
+    generate_udev_hwdb(repo_root, staging)?;
+    copy_preserving(
+        &repo_root.join("src/system/systemd/LICENSE.LGPL2.1"),
+        &staging.join("usr/share/doc/udev/copyright"),
+    )?;
+    validate_udev_hwdb_payload(repo_root, staging)
+}
+
+fn generate_udev_hwdb(repo_root: &Path, root: &Path) -> Result<()> {
+    let glibc_install = component_install(repo_root, "glibc");
+    let systemd_install = component_install(repo_root, "systemd");
+    let loader = glibc_install.join("lib64/ld-linux-x86-64.so.2");
+    let generator = systemd_install.join("usr/bin/systemd-hwdb");
+    let library_path = std::env::join_paths([
+        glibc_install.join("usr/lib/x86_64-linux-gnu"),
+        systemd_install.join("usr/lib/x86_64-linux-gnu"),
+        systemd_install.join("usr/lib/x86_64-linux-gnu/systemd"),
+    ])?;
+    let root_arg = format!("--root={}", root.display());
+    let loader_text = path_str(&loader)?;
+    let generator_text = path_str(&generator)?;
+    let library_path_text = library_path
+        .to_str()
+        .ok_or_else(|| anyhow!("systemd-hwdb library path is not valid UTF-8"))?;
+    run_cmd(
+        repo_root,
+        loader_text,
+        &[
+            "--library-path",
+            library_path_text,
+            generator_text,
+            &root_arg,
+            "--usr",
+            "--strict",
+            "update",
+        ],
+    )
+}
+
+pub(crate) fn validate_udev_hwdb_payload(repo_root: &Path, root: &Path) -> Result<()> {
+    let database = root.join(UDEV_HWDB_BINARY_REL);
+    let bytes = fs::read(&database)
+        .with_context(|| format!("prebuilt udev hwdb is missing at {}", database.display()))?;
+    if bytes.len() < 1_000_000 || !bytes.starts_with(b"KSLPHHRH") {
+        bail!("prebuilt udev hwdb has an invalid header or implausible size")
+    }
+    if path_entry_exists(&root.join("etc/udev/hwdb.bin")) {
+        bail!("mutable /etc/udev/hwdb.bin must not be baked into the udev package")
+    }
+
+    let systemd_install = component_install(repo_root, "systemd");
+    let glibc_install = component_install(repo_root, "glibc");
+    let loader = glibc_install.join("lib64/ld-linux-x86-64.so.2");
+    let generator = systemd_install.join("usr/bin/systemd-hwdb");
+    let library_path = std::env::join_paths([
+        glibc_install.join("usr/lib/x86_64-linux-gnu"),
+        systemd_install.join("usr/lib/x86_64-linux-gnu"),
+        systemd_install.join("usr/lib/x86_64-linux-gnu/systemd"),
+    ])?;
+    let output = Command::new(loader)
+        .args(["--library-path"])
+        .arg(library_path)
+        .arg(generator)
+        .arg(format!("--root={}", root.display()))
+        .args(["query", UDEV_HWDB_TEST_MODALIAS])
+        .env("LC_ALL", "C")
+        .env("LANG", "C")
+        .env("TZ", "UTC")
+        .env("SOURCE_DATE_EPOCH", SOURCE_DATE_EPOCH.to_string())
+        .output()
+        .context("failed to query the prebuilt udev hwdb")?;
+    if !output.status.success() {
+        bail!("source-built systemd-hwdb rejected the prebuilt database")
+    }
+    let stdout = String::from_utf8(output.stdout)?;
+    for required in ["Intel Corporation", "82540EM Gigabit Ethernet Controller"] {
+        if !stdout.contains(required) {
+            bail!("prebuilt udev hwdb query is missing {required}")
+        }
+    }
+    Ok(())
 }
 
 fn stage_runtime_paths(
@@ -3640,7 +3849,9 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         }
         "libkmod2" | "kmod" => component_snapshot_version(repo_root, "kmod")?,
         "mattos-libproc2" | "procps" => component_snapshot_version(repo_root, "procps-ng")?,
-        "libsystemd0" | "libudev1" => component_snapshot_version(repo_root, "systemd")?,
+        "libsystemd0" | "libudev1" | "udev" => {
+            component_snapshot_version(repo_root, "systemd")?
+        }
         "libexpat1" => component_snapshot_version(repo_root, "expat")?,
         "libcap2" => component_snapshot_version(repo_root, "libcap")?,
         "libacl1" => component_snapshot_version(repo_root, "acl")?,
@@ -4017,7 +4228,7 @@ fn component_provenance(
 fn runtime_libraries_for_spec(repo_root: &Path, spec: &PackageSpec) -> Result<Vec<String>> {
     match spec.name {
         "mattos-brush" => ldd_sonames(
-            &repo_root.join("src/userland/brush/target/release/brush"),
+            &repo_root.join("out/build/brush/cargo-target/release/brush"),
             None,
         ),
         "coreutils" => ldd_sonames(&resolve_coreutils_multicall(repo_root)?, None),
@@ -5179,6 +5390,11 @@ pub(crate) fn validate_dpkg_database(rootfs: &Path) -> Result<()> {
         ("/usr/lib/x86_64-linux-gnu/libncursesw.so.6", "libncursesw6"),
         ("/usr/lib/x86_64-linux-gnu/libkmod.so.2", "libkmod2"),
         ("/usr/lib/x86_64-linux-gnu/libproc2.so.1", "mattos-libproc2"),
+        ("/usr/lib/udev/hwdb.bin", "udev"),
+        (
+            "/usr/lib/systemd/system/systemd-hwdb-update.service",
+            "udev",
+        ),
         ("/usr/lib/x86_64-linux-gnu/libexpat.so.1", "libexpat1"),
         ("/usr/lib/x86_64-linux-gnu/libcap.so.2", "libcap2"),
         ("/usr/lib/x86_64-linux-gnu/libpcre2-8.so.0", "libpcre2-8-0"),
@@ -5395,6 +5611,7 @@ pub(crate) fn build_dpkg(repo_root: &Path) -> Result<()> {
     remove_path_if_exists(&install)?;
     fs::create_dir_all(&out)?;
     sync_build_source(&source, &source_copy)?;
+    stage_missing_dpkg_source_inputs(repo_root, &source_copy)?;
     let state = read_sync_state(repo_root, "dpkg")?
         .ok_or_else(|| anyhow!("upstream state missing for dpkg"))?;
     let changelog = fs::read_to_string(source_copy.join("debian/changelog"))?;
@@ -5504,6 +5721,98 @@ pub(crate) fn build_dpkg(repo_root: &Path) -> Result<()> {
         pcre2_lib.display()
     );
     println!("built imported dpkg into {}", install.display());
+    Ok(())
+}
+
+fn stage_missing_dpkg_source_inputs(repo_root: &Path, source_copy: &Path) -> Result<()> {
+    let cache = repo_root.join("out/cache/dpkg").join(DPKG_UPSTREAM_COMMIT);
+    fs::create_dir_all(&cache).with_context(|| format!("failed to create {}", cache.display()))?;
+
+    let mut fetch_required = false;
+    for input in DPKG_MISSING_SOURCE_INPUTS {
+        let cached = cache.join(input.path);
+        if cached.is_file() {
+            let actual = sha256_file(&cached)?;
+            if actual != input.sha256 {
+                bail!(
+                    "cached dpkg source input checksum mismatch for {}: expected {}, got {}",
+                    input.path,
+                    input.sha256,
+                    actual
+                );
+            }
+        } else {
+            fetch_required = true;
+        }
+    }
+
+    let git_dir = repo_root.join("out/cache/dpkg/upstream.git");
+    let git_dir_arg = format!("--git-dir={}", git_dir.display());
+    if fetch_required {
+        if !git_dir.is_dir() {
+            run_cmd(repo_root, "git", &["init", "--bare", path_str(&git_dir)?])?;
+        }
+        run_cmd(
+            repo_root,
+            "git",
+            &[
+                git_dir_arg.as_str(),
+                "fetch",
+                "--depth=1",
+                DPKG_UPSTREAM_REPOSITORY,
+                DPKG_UPSTREAM_COMMIT,
+            ],
+        )?;
+    }
+
+    for input in DPKG_MISSING_SOURCE_INPUTS {
+        let cached = cache.join(input.path);
+        if !cached.is_file() {
+            let object = format!("{DPKG_UPSTREAM_COMMIT}:{}", input.path);
+            let output = Command::new("git")
+                .args([git_dir_arg.as_str(), "show", object.as_str()])
+                .output()
+                .with_context(|| {
+                    format!("failed to read {} from pinned dpkg commit", input.path)
+                })?;
+            if !output.status.success() {
+                bail!(
+                    "pinned dpkg commit did not provide {}: {}",
+                    input.path,
+                    String::from_utf8_lossy(&output.stderr)
+                );
+            }
+            if let Some(parent) = cached.parent() {
+                fs::create_dir_all(parent)?;
+            }
+            let temp = cached.with_extension("tmp");
+            fs::write(&temp, &output.stdout)
+                .with_context(|| format!("failed to write {}", temp.display()))?;
+            let actual = sha256_file(&temp)?;
+            if actual != input.sha256 {
+                let _ = fs::remove_file(&temp);
+                bail!(
+                    "downloaded dpkg source input checksum mismatch for {}: expected {}, got {}",
+                    input.path,
+                    input.sha256,
+                    actual
+                );
+            }
+            fs::rename(&temp, &cached)
+                .with_context(|| format!("failed to publish {}", cached.display()))?;
+        }
+
+        let destination = source_copy.join(input.path);
+        if let Some(parent) = destination.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        fs::copy(&cached, &destination).with_context(|| {
+            format!(
+                "failed to stage pinned dpkg source input {} into output-owned source mirror",
+                input.path
+            )
+        })?;
+    }
     Ok(())
 }
 
@@ -5675,6 +5984,11 @@ pub(crate) fn build_apt(repo_root: &Path) -> Result<()> {
             "-G",
             "Ninja",
             "-DCMAKE_BUILD_TYPE=Release",
+            // CMake otherwise reserves a checkout-path-sized build RPATH and
+            // replaces it with NUL padding during install.  The installed code
+            // is the same, but section offsets and GNU build IDs then vary with
+            // the length of the checkout path.
+            "-DCMAKE_SKIP_RPATH=ON",
             "-DCMAKE_INSTALL_PREFIX=/usr",
             "-DCMAKE_INSTALL_SYSCONFDIR=/etc",
             "-DCURRENT_VENDOR=mattos",
@@ -5705,6 +6019,12 @@ pub(crate) fn build_apt(repo_root: &Path) -> Result<()> {
         &dependency_env,
     )?;
     let cache = fs::read_to_string(build.join("CMakeCache.txt"))?;
+    if !cache
+        .lines()
+        .any(|line| line == "CMAKE_SKIP_RPATH:BOOL=ON")
+    {
+        bail!("APT build did not disable checkout-dependent CMake RPATH padding")
+    }
     for expected in [
         format!("ZLIB_INCLUDE_DIR:PATH={}", zlib.join("include").display()),
         format!(
@@ -5877,6 +6197,61 @@ mod tests {
     }
 
     #[test]
+    fn dpkg_git_build_pins_all_ignored_completion_inputs() {
+        assert_eq!(DPKG_UPSTREAM_COMMIT.len(), 40);
+        assert_eq!(
+            DPKG_UPSTREAM_REPOSITORY,
+            "https://git.dpkg.org/git/dpkg/dpkg.git"
+        );
+        let paths = DPKG_MISSING_SOURCE_INPUTS
+            .iter()
+            .map(|input| input.path)
+            .collect::<BTreeSet<_>>();
+        assert_eq!(paths.len(), 7);
+        for expected in [
+            "dselect/completion/bash/dselect",
+            "scripts/completion/bash/dpkg-source",
+            "src/completion/bash/dpkg",
+            "src/completion/bash/dpkg-deb",
+            "src/completion/bash/dpkg-query",
+            "utils/completion/bash/start-stop-daemon",
+            "utils/completion/bash/update-alternatives",
+        ] {
+            assert!(
+                paths.contains(expected),
+                "missing pinned dpkg input {expected}"
+            );
+        }
+        assert!(
+            DPKG_MISSING_SOURCE_INPUTS
+                .iter()
+                .all(|input| input.sha256.len() == 64)
+        );
+        let source = include_str!("packaging.rs");
+        let start = source.find("pub(crate) fn build_dpkg").unwrap();
+        let end = source[start..]
+            .find("fn stage_missing_dpkg_source_inputs")
+            .unwrap()
+            + start;
+        let build = &source[start..end];
+        assert!(
+            build.find("sync_build_source").unwrap()
+                < build.find("stage_missing_dpkg_source_inputs").unwrap()
+        );
+    }
+
+    #[test]
+    fn apt_disables_checkout_dependent_build_rpath_padding() {
+        let source = include_str!("packaging.rs");
+        let start = source.find("pub(crate) fn build_apt").unwrap();
+        let end = source[start..].find("fn relative_display").unwrap() + start;
+        let build = &source[start..end];
+        assert!(build.contains("-DCMAKE_SKIP_RPATH=ON"));
+        assert!(build.contains("CMAKE_SKIP_RPATH:BOOL=ON"));
+        assert!(build.contains("checkout-dependent CMake RPATH padding"));
+    }
+
+    #[test]
     fn validates_package_names_versions_and_architecture() {
         assert!(validate_package_name("coreutils").is_ok());
         assert!(validate_package_name("MattOS").is_err());
@@ -5960,6 +6335,7 @@ mod tests {
             "procps",
             "libsystemd0",
             "libudev1",
+            "udev",
             "dbus-broker",
             "libpam0g",
             "mattos-libpam-misc0",
@@ -5977,7 +6353,42 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 65);
+        assert_eq!(PACKAGE_NAMES.len(), 66);
+    }
+
+    #[test]
+    fn udev_hwdb_is_prebuilt_from_vendor_sources_without_mutable_state() {
+        let specs = package_specs();
+        let udev = specs.iter().find(|spec| spec.name == "udev").unwrap();
+        assert_eq!(udev.source_component, "systemd");
+        assert!(udev.depends.contains(&"libudev1"));
+        assert_eq!(UDEV_HWDB_SOURCE_REL, "usr/lib/udev/hwdb.d");
+        assert_eq!(UDEV_HWDB_BINARY_REL, "usr/lib/udev/hwdb.bin");
+
+        let imported_unit = include_str!(
+            "../../../system/systemd/units/systemd-hwdb-update.service.in"
+        );
+        for required in [
+            "ConditionPathExists=|!{{UDEVLIBEXECDIR}}/hwdb.bin",
+            "ConditionPathExists=|/etc/udev/hwdb.bin",
+            "ConditionDirectoryNotEmpty=|/etc/udev/hwdb.d/",
+        ] {
+            assert!(imported_unit.contains(required));
+        }
+        let source = include_str!("packaging.rs");
+        let start = source.find("fn stage_udev_hwdb").unwrap();
+        let end = source[start..].find("fn stage_runtime_paths").unwrap() + start;
+        let body = &source[start..end];
+        for required in [
+            "systemd_install.join(UDEV_HWDB_SOURCE_REL)",
+            "generate_udev_hwdb(repo_root, staging)",
+            "--usr",
+            "--strict",
+            "KSLPHHRH",
+            "etc/udev/hwdb.bin",
+        ] {
+            assert!(body.contains(required), "missing hwdb policy {required}");
+        }
     }
 
     #[test]
@@ -6135,7 +6546,7 @@ mod tests {
             package_install_order_for(&specs, PACKAGE_NAMES)
                 .unwrap()
                 .len(),
-            65
+            66
         );
     }
 
@@ -6250,7 +6661,7 @@ mod tests {
         assert!(position("mattos-filesystem") < position("libc6"));
         assert!(position("libc6") < position("libgcc-s1"));
         assert!(position("libgcc-s1") < position("libstdc++6"));
-        assert_eq!(order.len(), 65);
+        assert_eq!(order.len(), 66);
     }
 
     #[test]
@@ -6341,7 +6752,7 @@ mod tests {
     fn brush_package_owns_sh_and_bash_entry_points() {
         let temp = tempfile::tempdir().unwrap();
         let repo = temp.path();
-        let source = repo.join("src/userland/brush/target/release/brush");
+        let source = repo.join("out/build/brush/cargo-target/release/brush");
         fs::create_dir_all(source.parent().unwrap()).unwrap();
         fs::write(&source, "source-built brush\n").unwrap();
         let staging = repo.join("staging");
@@ -7101,6 +7512,101 @@ mod tests {
     }
 
     #[test]
+    fn configuration_payloads_invalidate_only_their_owning_packages() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        run_ok(root, "git", &["init", "-b", "main"]);
+        let write = |relative: &str, body: &str| {
+            let path = root.join(relative);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(path, body).unwrap();
+        };
+        for source in [
+            "src/system/dbus/dbus-broker/source.c",
+            "src/system/auth/linux-pam/source.c",
+            "src/system/auth/shadow/source.c",
+            "src/system/auth/sudo-rs/source.rs",
+        ] {
+            write(source, "upstream source\n");
+        }
+        for configuration in [
+            "src/system/dbus/config/system.conf",
+            "src/system/dbus/config/dbus.conf",
+            "src/system/dbus/units/dbus.socket",
+            "src/system/dbus/units/dbus-broker.service",
+            "src/system/session/dbus/session.conf",
+            "src/system/session/user-units/dbus.socket",
+            "src/system/session/user-units/dbus-broker.service",
+            "src/system/auth/config/pam.d/login",
+            "src/system/auth/config/login.defs",
+            "src/system/auth/config/default/useradd",
+            "src/system/auth/config/sudoers",
+            "src/system/auth/config/sudoers.d/README",
+        ] {
+            write(configuration, "configuration v1\n");
+        }
+        write("src/system/dbus/README.md", "unrelated documentation v1\n");
+        run_ok(root, "git", &["add", "."]);
+
+        let selected = package_specs()
+            .into_iter()
+            .filter(|spec| {
+                matches!(
+                    spec.name,
+                    "dbus-broker" | "libpam0g" | "libpam-runtime" | "passwd" | "mattos-sudo-rs"
+                )
+            })
+            .collect::<Vec<_>>();
+        let snapshot = |repo: &Path| {
+            let mut shared_sources = BTreeMap::new();
+            selected
+                .iter()
+                .map(|spec| {
+                    (
+                        spec.name,
+                        package_payload_source_digests(repo, spec, &mut shared_sources).unwrap(),
+                    )
+                })
+                .collect::<BTreeMap<_, _>>()
+        };
+        let assert_only = |before: &BTreeMap<&str, (String, String)>,
+                           after: &BTreeMap<&str, (String, String)>,
+                           owner: &str| {
+            for name in before.keys() {
+                if *name == owner {
+                    assert_ne!(before[name], after[name], "{owner} must invalidate");
+                } else {
+                    assert_eq!(before[name], after[name], "{name} invalidated unexpectedly");
+                }
+            }
+        };
+
+        let before_dbus = snapshot(root);
+        write("src/system/dbus/config/system.conf", "configuration v2\n");
+        let after_dbus = snapshot(root);
+        assert_only(&before_dbus, &after_dbus, "dbus-broker");
+
+        let before_pam = snapshot(root);
+        write("src/system/auth/config/pam.d/login", "configuration v2\n");
+        let after_pam = snapshot(root);
+        assert_only(&before_pam, &after_pam, "libpam-runtime");
+
+        let before_shadow = snapshot(root);
+        write("src/system/auth/config/login.defs", "configuration v2\n");
+        let after_shadow = snapshot(root);
+        assert_only(&before_shadow, &after_shadow, "passwd");
+
+        let before_sudo = snapshot(root);
+        write("src/system/auth/config/sudoers", "configuration v2\n");
+        let after_sudo = snapshot(root);
+        assert_only(&before_sudo, &after_sudo, "mattos-sudo-rs");
+
+        let before_docs = snapshot(root);
+        write("src/system/dbus/README.md", "unrelated documentation v2\n");
+        assert_eq!(before_docs, snapshot(root));
+    }
+
+    #[test]
     fn package_checksum_mismatch_forces_cache_rejection() {
         use std::io::Write as _;
         let temp = tempfile::tempdir().unwrap();
@@ -7142,6 +7648,7 @@ mod tests {
             cache_key: "key".to_string(),
             definition_digest: "definition".to_string(),
             payload_source_digest: "payload-source".to_string(),
+            payload_configuration_digest: String::new(),
             dependency_digest: "dependencies".to_string(),
         };
         let entry = PackageInventoryEntry {
@@ -7161,6 +7668,7 @@ mod tests {
             cache_key: input.cache_key.clone(),
             definition_digest: input.definition_digest.clone(),
             payload_source_digest: input.payload_source_digest.clone(),
+            payload_configuration_digest: input.payload_configuration_digest.clone(),
             dependency_digest: input.dependency_digest.clone(),
             payload_inventory_digest: performance::output_path_digest(root, &staging).unwrap(),
             artifact_sha256: sha,

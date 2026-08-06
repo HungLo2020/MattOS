@@ -16,6 +16,7 @@ const AUTHORITATIVE_GRUB_CFG: &str = "src/boot/grub/grub.cfg";
 const OBSOLETE_GRUB_CFG_PATHS: &[&str] = &["boot/grub/grub.cfg"];
 const GRUB_SYSTEMD_ENTRY: &str = "menuentry \"MattOS (systemd)\"";
 const GRUB_RESCUE_ENTRY: &str = "menuentry \"MattOS (rescue init)\"";
+const INITRAMFS_ROOTFS_SIZE_POLICY: &str = "initramfs_options=size=75%";
 const GRUB_SYSTEMD_RDINIT: &str = "rdinit=/usr/lib/systemd/systemd";
 const GRUB_RESCUE_RDINIT: &str = "rdinit=/usr/libexec/mattos/rescue-init";
 const SAFE_IMPORT_PLACEHOLDER_FILES: &[&str] = &[".gitkeep", "README.md"];
@@ -30,6 +31,23 @@ const DIFFUTILS_PROVIDER: &str = "uutils/diffutils";
 const UTIL_LINUX_PROVIDER: &str = "util-linux";
 const LINUX_PAM_PROVIDER: &str = "linux-pam";
 const SHADOW_PROVIDER: &str = "shadow";
+const SHADOW_UPSTREAM_COMMIT: &str = "855d15a04625818fa28a94e693dd4dc7acfb5af3";
+const SHADOW_UPSTREAM_REPOSITORY: &str = "https://github.com/shadow-maint/shadow.git";
+const SHADOW_MAN_PO_MAKEFILE_SHA256: &str =
+    "344cedf9e4556d00918a70b37d109b572186bbd8ba85271122cf150976572037";
+// The imported Attr checkout is the peeled v2.6.0 tag, which deliberately
+// omits Autotools-generated distribution inputs.  Savannah's signed release
+// archive is the authoritative source for those inputs at this exact commit.
+// Keep both the retrieval and extraction strictly inside the output tree.
+const ATTR_UPSTREAM_COMMIT: &str = "c440855d6b33446edf4b5eb1a2d892281f15a99b";
+const ATTR_RELEASE_DIRECTORY: &str = "attr-2.6.0";
+const ATTR_RELEASE_ARCHIVE_URL: &str =
+    "https://download.savannah.gnu.org/releases/attr/attr-2.6.0.tar.xz";
+const ATTR_RELEASE_ARCHIVE_SHA256: &str =
+    "6c8a2148a7b85043b68492bce43316b0e2e214fc4e628c7ede078e76e216330b";
+const ACL_RELEASE_DIRECTORY: &str = "acl-2.3.2";
+const ACL_RELEASE_ARCHIVE_URL: &str = "https://download.savannah.gnu.org/releases/acl/acl-2.3.2.tar.xz";
+const ACL_RELEASE_ARCHIVE_SHA256: &str = "97203a72cae99ab89a067fe2210c1cbf052bc492b479eca7d226d9830883b0bd";
 const SUDO_RS_PROVIDER: &str = "sudo-rs";
 const KMOD_PROVIDER: &str = "kmod";
 const PROCPS_PROVIDER: &str = "procps-ng";
@@ -330,43 +348,43 @@ const TERMINFO_ENTRIES: &[&str] = &[
 const USERLAND_BINARY_INSTALLS: &[BinaryInstallSpec] = &[
     BinaryInstallSpec {
         provider: GREP_PROVIDER,
-        source_rel: "src/userland/grep/target/release/grep",
+        source_rel: "out/build/grep/cargo-target/release/grep",
         install_name: "grep",
         command_name: "grep",
     },
     BinaryInstallSpec {
         provider: SED_PROVIDER,
-        source_rel: "src/userland/sed/target/release/sed",
+        source_rel: "out/build/sed/cargo-target/release/sed",
         install_name: "sed",
         command_name: "sed",
     },
     BinaryInstallSpec {
         provider: FINDUTILS_PROVIDER,
-        source_rel: "src/userland/findutils/target/release/find",
+        source_rel: "out/build/findutils/cargo-target/release/find",
         install_name: "find",
         command_name: "find",
     },
     BinaryInstallSpec {
         provider: FINDUTILS_PROVIDER,
-        source_rel: "src/userland/findutils/target/release/xargs",
+        source_rel: "out/build/findutils/cargo-target/release/xargs",
         install_name: "xargs",
         command_name: "xargs",
     },
     BinaryInstallSpec {
         provider: FINDUTILS_PROVIDER,
-        source_rel: "src/userland/findutils/target/release/locate",
+        source_rel: "out/build/findutils/cargo-target/release/locate",
         install_name: "locate",
         command_name: "locate",
     },
     BinaryInstallSpec {
         provider: FINDUTILS_PROVIDER,
-        source_rel: "src/userland/findutils/target/release/updatedb",
+        source_rel: "out/build/findutils/cargo-target/release/updatedb",
         install_name: "updatedb",
         command_name: "updatedb",
     },
     BinaryInstallSpec {
         provider: DIFFUTILS_PROVIDER,
-        source_rel: "src/userland/diffutils/target/release/diffutils",
+        source_rel: "out/build/diffutils/cargo-target/release/diffutils",
         install_name: "diffutils",
         command_name: "diffutils",
     },
@@ -908,24 +926,26 @@ fn clean(repo_root: &Path, target: CleanTarget) -> Result<()> {
         }
         CleanTarget::Cargo => {
             remove_path_if_exists(&repo_root.join("target"))?;
-            remove_path_if_exists(&repo_root.join("src/userland/brush/target"))?;
-            remove_path_if_exists(&repo_root.join("src/userland/coreutils/target"))?;
-            remove_path_if_exists(&repo_root.join("src/userland/grep/target"))?;
-            remove_path_if_exists(&repo_root.join("src/userland/sed/target"))?;
-            remove_path_if_exists(&repo_root.join("src/userland/findutils/target"))?;
-            remove_path_if_exists(&repo_root.join("src/userland/diffutils/target"))?;
-            remove_path_if_exists(&repo_root.join("src/system/auth/sudo-rs/target"))?;
+            for component in [
+                "brush",
+                "coreutils",
+                "grep",
+                "sed",
+                "findutils",
+                "diffutils",
+                "sudo-rs",
+            ] {
+                remove_path_if_exists(
+                    &repo_root
+                        .join("out/build")
+                        .join(component)
+                        .join("cargo-target"),
+                )?;
+            }
         }
         CleanTarget::All => {
             remove_path_if_exists(&repo_root.join("out"))?;
             remove_path_if_exists(&repo_root.join("target"))?;
-            remove_path_if_exists(&repo_root.join("src/userland/brush/target"))?;
-            remove_path_if_exists(&repo_root.join("src/userland/coreutils/target"))?;
-            remove_path_if_exists(&repo_root.join("src/userland/grep/target"))?;
-            remove_path_if_exists(&repo_root.join("src/userland/sed/target"))?;
-            remove_path_if_exists(&repo_root.join("src/userland/findutils/target"))?;
-            remove_path_if_exists(&repo_root.join("src/userland/diffutils/target"))?;
-            remove_path_if_exists(&repo_root.join("src/system/auth/sudo-rs/target"))?;
             remove_path_if_exists(&repo_root.join("upstream/.tmp"))?;
         }
     }
@@ -1920,6 +1940,90 @@ fn copy_tree_excluding_dotgit(src: &Path, dst: &Path) -> Result<()> {
     Ok(())
 }
 
+/// Copies the authoritative working-tree inputs for an imported component into
+/// an output-owned source mirror. Tracked modifications and non-ignored
+/// untracked inputs are preserved; ignored build residue is deliberately not.
+fn copy_imported_working_tree(
+    repo_root: &Path,
+    source_relative: &Path,
+    destination: &Path,
+) -> Result<()> {
+    if source_relative.is_absolute()
+        || source_relative
+            .components()
+            .any(|component| matches!(component, std::path::Component::ParentDir))
+    {
+        bail!(
+            "imported source path must be repository-relative: {}",
+            source_relative.display()
+        );
+    }
+    let source = repo_root.join(source_relative);
+    if !source.is_dir() {
+        bail!("imported source directory missing: {}", source.display());
+    }
+
+    let output = Command::new("git")
+        .args([
+            "ls-files",
+            "-z",
+            "--cached",
+            "--others",
+            "--exclude-standard",
+            "--",
+        ])
+        .arg(source_relative)
+        .current_dir(repo_root)
+        .output()
+        .context("failed to enumerate authoritative imported-source inputs")?;
+    if !output.status.success() {
+        bail!(
+            "git could not enumerate imported source {}: {}",
+            source_relative.display(),
+            output.status
+        );
+    }
+
+    remove_path_if_exists(destination)?;
+    fs::create_dir_all(destination)
+        .with_context(|| format!("failed to create {}", destination.display()))?;
+    for raw in output
+        .stdout
+        .split(|byte| *byte == 0)
+        .filter(|raw| !raw.is_empty())
+    {
+        let repository_path = PathBuf::from(String::from_utf8_lossy(raw).into_owned());
+        let relative = repository_path
+            .strip_prefix(source_relative)
+            .with_context(|| {
+                format!(
+                    "git returned {} outside imported source {}",
+                    repository_path.display(),
+                    source_relative.display()
+                )
+            })?;
+        let from = repo_root.join(&repository_path);
+        let Ok(metadata) = fs::symlink_metadata(&from) else {
+            // A deleted tracked file is an authoritative working-tree deletion.
+            continue;
+        };
+        let to = destination.join(relative);
+        if let Some(parent) = to.parent() {
+            fs::create_dir_all(parent)
+                .with_context(|| format!("failed to create {}", parent.display()))?;
+        }
+        if metadata.file_type().is_symlink() {
+            copy_symlink(&from, &to)?;
+        } else if metadata.is_file() {
+            fs::copy(&from, &to).with_context(|| {
+                format!("failed to copy {} to {}", from.display(), to.display())
+            })?;
+            preserve_permissions(&metadata, &to)?;
+        }
+    }
+    Ok(())
+}
+
 fn copy_tree_excluding_package_owned(
     src: &Path,
     rootfs: &Path,
@@ -2166,13 +2270,13 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::Dpkg => &["src/system/packages/dpkg"],
         BuildStage::Apt => &["src/system/packages/apt"],
         BuildStage::Init => &["src/userland/init"],
-        BuildStage::Rootfs => &["src/rootfs", "config"],
+        BuildStage::Rootfs => &[],
         BuildStage::Initramfs => &[],
         BuildStage::Iso => &[AUTHORITATIVE_GRUB_CFG],
         BuildStage::All => &[],
     };
     let outputs: Vec<PathBuf> = match stage {
-        BuildStage::Kernel => vec!["src/kernel/linux/arch/x86/boot/bzImage".into()],
+        BuildStage::Kernel => vec!["out/build/linux/build/arch/x86/boot/bzImage".into()],
         BuildStage::Glibc => vec![
             "out/build/glibc/install".into(),
             "out/build/glibc/linux-headers".into(),
@@ -2198,13 +2302,17 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
             "out/build/gcc-toolchain/configure-invocation.txt".into(),
         ],
         BuildStage::Make => vec!["out/build/make/install".into()],
-        BuildStage::Brush => vec!["src/userland/brush/target/release/brush".into()],
-        BuildStage::Coreutils => vec!["src/userland/coreutils/target/release/coreutils".into()],
-        BuildStage::Grep => vec!["src/userland/grep/target/release/grep".into()],
-        BuildStage::Sed => vec!["src/userland/sed/target/release/sed".into()],
-        BuildStage::Findutils => vec!["src/userland/findutils/target/release/find".into()],
-        BuildStage::Diffutils => vec!["src/userland/diffutils/target/release/diffutils".into()],
-        BuildStage::SudoRs => vec!["src/system/auth/sudo-rs/target/release/sudo".into()],
+        BuildStage::Brush => vec!["out/build/brush/cargo-target/release/brush".into()],
+        BuildStage::Coreutils => {
+            vec!["out/build/coreutils/cargo-target/release/coreutils".into()]
+        }
+        BuildStage::Grep => vec!["out/build/grep/cargo-target/release/grep".into()],
+        BuildStage::Sed => vec!["out/build/sed/cargo-target/release/sed".into()],
+        BuildStage::Findutils => vec!["out/build/findutils/cargo-target/release/find".into()],
+        BuildStage::Diffutils => {
+            vec!["out/build/diffutils/cargo-target/release/diffutils".into()]
+        }
+        BuildStage::SudoRs => vec!["out/build/sudo-rs/cargo-target/release/sudo".into()],
         BuildStage::Init => vec!["target/release/mattos-init".into()],
         BuildStage::Initramfs => vec!["out/build/initramfs.cpio.gz".into()],
         BuildStage::Iso => vec![
@@ -2251,6 +2359,7 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
             ];
             match stage {
                 BuildStage::Rootfs => {
+                    inputs.extend(rootfs_configuration_inputs());
                     inputs.push("out/packages/inventory.toml".into());
                     inputs.push("out/repository".into());
                 }
@@ -2271,6 +2380,26 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
             performance::STAGE_MANIFEST_SCHEMA_VERSION
         ),
     }
+}
+
+fn rootfs_configuration_inputs() -> Vec<PathBuf> {
+    [
+        "src/rootfs/skeleton",
+        "src/system/profiles/live",
+        "src/system/units",
+        "src/system/network/network",
+        "src/system/network/resolved.conf",
+        "src/system/network/timesyncd.conf",
+        "src/system/network/nsswitch.conf",
+        "src/system/network/hosts",
+        "src/system/network/networks",
+        "src/system/network/99-mattos-network.conf",
+        "src/system/session/dbus/session.conf",
+        "src/system/session/user-units",
+    ]
+    .into_iter()
+    .map(PathBuf::from)
+    .collect()
 }
 
 fn stage_output_directory(stage: BuildStage) -> &'static str {
@@ -2353,6 +2482,10 @@ fn build_stage_dependencies(stage: BuildStage) -> &'static [&'static str] {
             "dpkg",
             "systemd",
             "dbus-broker",
+            "grep",
+            "sed",
+            "findutils",
+            "diffutils",
             "init",
             "repository",
         ],
@@ -2405,7 +2538,7 @@ fn validate_cached_build_stage(repo_root: &Path, stage: BuildStage) -> Result<()
     match stage {
         BuildStage::Kernel => {
             if !repo_root
-                .join("src/kernel/linux/arch/x86/boot/bzImage")
+                .join("out/build/linux/build/arch/x86/boot/bzImage")
                 .is_file()
             {
                 bail!("cached Linux image is missing")
@@ -2734,9 +2867,16 @@ fn build_kernel(repo_root: &Path) -> Result<()> {
         );
     }
 
+    let out_root = repo_root.join("out/build/linux");
+    let source = out_root.join("source");
+    let build = out_root.join("build");
+    remove_path_if_exists(&out_root)?;
+    copy_imported_working_tree(repo_root, Path::new("src/kernel/linux"), &source)?;
+    fs::create_dir_all(&build).with_context(|| format!("failed to create {}", build.display()))?;
+
     let config_text = fs::read_to_string(&config)
         .with_context(|| format!("failed to read {}", config.display()))?;
-    fs::write(linux.join(".config"), config_text)
+    fs::write(build.join(".config"), config_text)
         .with_context(|| format!("failed to stage kernel config from {}", config.display()))?;
 
     let env = local_tool_env(repo_root);
@@ -2746,10 +2886,37 @@ fn build_kernel(repo_root: &Path) -> Result<()> {
             env.tool_root.display()
         );
     }
-    run_cmd_with_env(&linux, "make", &["olddefconfig"], env.as_ref())?;
-    run_cmd_with_env(&linux, "make", &["-j", "4"], env.as_ref()).context("kernel build failed")?;
+    let output_arg = format!("O={}", build.display());
+    // The kernel does not consume SOURCE_DATE_EPOCH directly for all of its
+    // generated metadata.  Pin the release banner and built-in initramfs cpio
+    // mtimes explicitly; otherwise two healthy builds differ only by their
+    // wall-clock build time and the GNU build ID derived from it.
+    let kernel_reproducible_args = [
+        "KBUILD_BUILD_TIMESTAMP=2026-01-01 00:00:00 UTC",
+        "KBUILD_BUILD_USER=mattos",
+        "KBUILD_BUILD_HOST=mattos-build",
+        "KBUILD_BUILD_VERSION=1",
+        "KCONFIG_NOTIMESTAMP=1",
+    ];
+    let mut olddefconfig_args = vec![output_arg.as_str(), "olddefconfig"];
+    olddefconfig_args.extend(kernel_reproducible_args);
+    run_cmd_with_env(
+        &source,
+        "make",
+        &olddefconfig_args,
+        env.as_ref(),
+    )?;
+    let mut build_args = vec![output_arg.as_str(), "-j", "4"];
+    build_args.extend(kernel_reproducible_args);
+    run_cmd_with_env(
+        &source,
+        "make",
+        &build_args,
+        env.as_ref(),
+    )
+    .context("kernel build failed")?;
 
-    let bz = linux.join("arch/x86/boot/bzImage");
+    let bz = build.join("arch/x86/boot/bzImage");
     if !bz.exists() {
         bail!("kernel build finished without bzImage at {}", bz.display())
     }
@@ -2786,11 +2953,21 @@ fn build_glibc(repo_root: &Path) -> Result<()> {
     fs::create_dir_all(&install)?;
     fs::create_dir_all(&headers_root)?;
 
+    let linux_source = output.join("linux-source");
+    let linux_build = output.join("linux-build");
+    copy_imported_working_tree(repo_root, Path::new("src/kernel/linux"), &linux_source)?;
+    fs::create_dir_all(&linux_build)?;
+    let output_arg = format!("O={}", linux_build.display());
     let headers_arg = format!("INSTALL_HDR_PATH={}", headers_root.display());
     run_cmd(
-        &linux,
+        &linux_source,
         "make",
-        &["ARCH=x86", "headers_install", headers_arg.as_str()],
+        &[
+            output_arg.as_str(),
+            "ARCH=x86",
+            "headers_install",
+            headers_arg.as_str(),
+        ],
     )
     .context("Linux UAPI header generation failed")?;
     if !sysroot.join("usr/include/linux/version.h").is_file()
@@ -3328,6 +3505,10 @@ fn build_gcc_runtime(repo_root: &Path) -> Result<()> {
 const TOOLCHAIN_BUILD: &str = "x86_64-build-linux-gnu";
 const TOOLCHAIN_TARGET: &str = "x86_64-pc-linux-gnu";
 const GCC_TOOLCHAIN_VERSION: &str = "15.3.0";
+const BINUTILS_UPSTREAM_COMMIT: &str = "5e56594815854de5eca35c7c04b11705d0f19c02";
+const BINUTILS_UPSTREAM_MIRROR: &str = "https://git.sr.ht/~sourceware/binutils-gdb";
+const BINUTILS_SYSROFF_SHA256: &str =
+    "cfb4453d4514513d18f1cc2f98fcb97fcce2273b39a31df9507c20dbc5abc3d8";
 
 fn write_executable_script(path: &Path, body: &str) -> Result<()> {
     if let Some(parent) = path.parent() {
@@ -3416,20 +3597,32 @@ fn toolchain_environment(
 }
 
 fn build_binutils(repo_root: &Path) -> Result<()> {
-    let source = repo_root.join("src/toolchain/binutils");
+    let imported_source = repo_root.join("src/toolchain/binutils");
     let output = repo_root.join("out/build/binutils");
+    let source = output.join("source");
     let cross_build = output.join("cross-build");
     let cross_install = output.join("cross-install");
     let native_build = output.join("native-build");
     let native_install = output.join("install");
     let wrapper_dir = output.join("bootstrap-bin");
-    if !source.join("configure").is_file() {
-        bail!("Binutils source is missing at {}", source.display())
+    if !imported_source.join("configure").is_file() {
+        bail!(
+            "Binutils source is missing at {}",
+            imported_source.display()
+        )
     }
     if !repo_root.join("out/sysroot/usr/include/stdio.h").is_file() {
         bail!("Binutils requires the completed MattOS development sysroot")
     }
+    let sysroff_info = ensure_binutils_sysroff_info(repo_root)?;
     remove_path_if_exists(&output)?;
+    copy_imported_working_tree(repo_root, Path::new("src/toolchain/binutils"), &source)?;
+    fs::copy(&sysroff_info, source.join("binutils/sysroff.info")).with_context(|| {
+        format!(
+            "failed to stage {} into output-owned Binutils source mirror",
+            sysroff_info.display()
+        )
+    })?;
     for directory in [&cross_build, &cross_install, &native_build, &native_install] {
         fs::create_dir_all(directory)?;
     }
@@ -3554,6 +3747,68 @@ fn build_binutils(repo_root: &Path) -> Result<()> {
     )?;
     println!("built source-native Binutils for {TOOLCHAIN_TARGET}");
     Ok(())
+}
+
+fn ensure_binutils_sysroff_info(repo_root: &Path) -> Result<PathBuf> {
+    let cache = repo_root
+        .join("out/cache/binutils")
+        .join(BINUTILS_UPSTREAM_COMMIT);
+    let file = cache.join("sysroff.info");
+    if file.is_file() {
+        let actual = performance::sha256_file(&file)?;
+        if actual != BINUTILS_SYSROFF_SHA256 {
+            bail!(
+                "cached Binutils sysroff.info checksum mismatch: expected {}, got {} at {}",
+                BINUTILS_SYSROFF_SHA256,
+                actual,
+                file.display()
+            );
+        }
+        return Ok(file);
+    }
+
+    fs::create_dir_all(&cache).with_context(|| format!("failed to create {}", cache.display()))?;
+    let git_dir = repo_root.join("out/cache/binutils/upstream.git");
+    if !git_dir.is_dir() {
+        run_cmd(repo_root, "git", &["init", "--bare", path_str(&git_dir)?])?;
+    }
+    let git_dir_arg = format!("--git-dir={}", git_dir.display());
+    run_cmd(
+        repo_root,
+        "git",
+        &[
+            git_dir_arg.as_str(),
+            "fetch",
+            "--depth=1",
+            BINUTILS_UPSTREAM_MIRROR,
+            BINUTILS_UPSTREAM_COMMIT,
+        ],
+    )?;
+    let object = format!("{BINUTILS_UPSTREAM_COMMIT}:binutils/sysroff.info");
+    let output = Command::new("git")
+        .args([git_dir_arg.as_str(), "show", object.as_str()])
+        .output()
+        .context("failed to read sysroff.info from pinned Binutils commit")?;
+    if !output.status.success() {
+        bail!(
+            "pinned Binutils commit did not provide binutils/sysroff.info: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+    let temp = file.with_extension("info.tmp");
+    fs::write(&temp, &output.stdout)
+        .with_context(|| format!("failed to write {}", temp.display()))?;
+    let actual = performance::sha256_file(&temp)?;
+    if actual != BINUTILS_SYSROFF_SHA256 {
+        let _ = fs::remove_file(&temp);
+        bail!(
+            "downloaded Binutils sysroff.info checksum mismatch: expected {}, got {}",
+            BINUTILS_SYSROFF_SHA256,
+            actual
+        );
+    }
+    fs::rename(&temp, &file).with_context(|| format!("failed to publish {}", file.display()))?;
+    Ok(file)
 }
 
 fn prepare_gcc_prerequisite_sources(repo_root: &Path, output: &Path) -> Result<PathBuf> {
@@ -3717,7 +3972,25 @@ fn build_gcc_toolchain(repo_root: &Path) -> Result<()> {
         "--disable-libstdcxx-pch",
     ];
     let mut gcc_env = env.clone();
+    // GCC feeds the selected linker command into `checksum-options`, which is
+    // then hashed into cc1/cc1plus for PCH compatibility.  An absolute wrapper
+    // path therefore makes otherwise identical compilers checkout-dependent.
+    // The wrapper directory is already first in PATH, so use stable basenames
+    // for the compiler proper while retaining absolute paths for prerequisite
+    // builds that execute from several different working directories.
+    let cc_name = cc
+        .file_name()
+        .and_then(OsStr::to_str)
+        .context("GCC bootstrap C wrapper has no UTF-8 basename")?
+        .to_string();
+    let cxx_name = cxx
+        .file_name()
+        .and_then(OsStr::to_str)
+        .context("GCC bootstrap C++ wrapper has no UTF-8 basename")?
+        .to_string();
     gcc_env.extend([
+        ("CC", cc_name.clone()),
+        ("CXX", cxx_name.clone()),
         ("CFLAGS", "-O2 -g0".to_string()),
         ("CXXFLAGS", "-O2 -g0".to_string()),
         ("LDFLAGS", "-Wl,-z,relro -Wl,-z,now".to_string()),
@@ -3796,8 +4069,8 @@ fn build_gcc_toolchain(repo_root: &Path) -> Result<()> {
         output.join("configure-invocation.txt"),
         format!(
             "CC={} CXX={} CC_FOR_BUILD=/usr/bin/gcc CXX_FOR_BUILD=/usr/bin/g++ {} {}\nmake -j4 all-gcc\nmake DESTDIR={} install-gcc\n",
-            cc.display(),
-            cxx.display(),
+            cc_name,
+            cxx_name,
             configure.display(),
             configure_args.join(" "),
             install.display()
@@ -4002,7 +4275,13 @@ fn build_brush(repo_root: &Path) -> Result<()> {
             brush.display()
         );
     }
-    run_cmd(&brush, "cargo", &["build", "--release", "-p", "brush"])
+    let target = repo_root.join("out/build/brush/cargo-target");
+    run_cmd_with_env_overrides(
+        &brush,
+        "cargo",
+        &["build", "--locked", "--release", "-p", "brush"],
+        &[("CARGO_TARGET_DIR", target.display().to_string())],
+    )
 }
 
 fn build_coreutils(repo_root: &Path) -> Result<()> {
@@ -4013,11 +4292,13 @@ fn build_coreutils(repo_root: &Path) -> Result<()> {
             coreutils.display()
         );
     }
-    run_cmd(
+    let target = repo_root.join("out/build/coreutils/cargo-target");
+    run_cmd_with_env_overrides(
         &coreutils,
         "cargo",
         &[
             "build",
+            "--locked",
             "--release",
             "-p",
             "coreutils",
@@ -4025,6 +4306,7 @@ fn build_coreutils(repo_root: &Path) -> Result<()> {
             "--features",
             "unix",
         ],
+        &[("CARGO_TARGET_DIR", target.display().to_string())],
     )
 }
 
@@ -4036,17 +4318,20 @@ fn build_grep(repo_root: &Path) -> Result<()> {
             grep.display()
         );
     }
-    run_cmd(
+    let target = repo_root.join("out/build/grep/cargo-target");
+    run_cmd_with_env_overrides(
         repo_root,
         "cargo",
         &[
             "build",
+            "--locked",
             "--release",
             "--manifest-path",
             "src/userland/grep/Cargo.toml",
             "--bin",
             "grep",
         ],
+        &[("CARGO_TARGET_DIR", target.display().to_string())],
     )
 }
 
@@ -4058,17 +4343,20 @@ fn build_sed(repo_root: &Path) -> Result<()> {
             sed.display()
         );
     }
-    run_cmd(
+    let target = repo_root.join("out/build/sed/cargo-target");
+    run_cmd_with_env_overrides(
         repo_root,
         "cargo",
         &[
             "build",
+            "--locked",
             "--release",
             "--manifest-path",
             "src/userland/sed/Cargo.toml",
             "--bin",
             "sed",
         ],
+        &[("CARGO_TARGET_DIR", target.display().to_string())],
     )
 }
 
@@ -4080,16 +4368,19 @@ fn build_findutils(repo_root: &Path) -> Result<()> {
             findutils.display()
         );
     }
-    run_cmd(
+    let target = repo_root.join("out/build/findutils/cargo-target");
+    run_cmd_with_env_overrides(
         repo_root,
         "cargo",
         &[
             "build",
+            "--locked",
             "--release",
             "--manifest-path",
             "src/userland/findutils/Cargo.toml",
             "--bins",
         ],
+        &[("CARGO_TARGET_DIR", target.display().to_string())],
     )
 }
 
@@ -4101,17 +4392,20 @@ fn build_diffutils(repo_root: &Path) -> Result<()> {
             diffutils.display()
         );
     }
-    run_cmd(
+    let target = repo_root.join("out/build/diffutils/cargo-target");
+    run_cmd_with_env_overrides(
         repo_root,
         "cargo",
         &[
             "build",
+            "--locked",
             "--release",
             "--manifest-path",
             "src/userland/diffutils/Cargo.toml",
             "--bin",
             "diffutils",
         ],
+        &[("CARGO_TARGET_DIR", target.display().to_string())],
     )
 }
 
@@ -4290,14 +4584,23 @@ fn build_shadow(repo_root: &Path) -> Result<()> {
         );
     }
 
-    if !shadow_src.join("configure").exists() {
-        run_cmd(&shadow_src, "autoreconf", &["-v", "-f", "-i"])?;
-    }
-
     let out_root = repo_root.join("out/build/shadow");
+    let source = out_root.join("source");
     let build_dir = out_root.join("build");
     let install_dir = out_root.join("install");
     let stamp = build_dir.join("config.stamp");
+    let man_po_makefile = ensure_shadow_man_po_makefile(repo_root)?;
+    remove_path_if_exists(&out_root)?;
+    copy_imported_working_tree(repo_root, Path::new("src/system/auth/shadow"), &source)?;
+    fs::copy(&man_po_makefile, source.join("man/po/Makefile.in")).with_context(|| {
+        format!(
+            "failed to stage {} into output-owned Shadow source mirror",
+            man_po_makefile.display()
+        )
+    })?;
+    if !source.join("configure").exists() {
+        run_cmd(&source, "autoreconf", &["-v", "-f", "-i"])?;
+    }
     let configure_args = [
         "--prefix=/usr",
         "--sysconfdir=/etc",
@@ -4403,7 +4706,7 @@ fn build_shadow(repo_root: &Path) -> Result<()> {
     if !stamp.exists() {
         run_cmd_with_env_overrides(
             &build_dir,
-            shadow_src
+            source
                 .join("configure")
                 .to_str()
                 .ok_or_else(|| anyhow!("invalid shadow configure path"))?,
@@ -4480,6 +4783,68 @@ fn build_shadow(repo_root: &Path) -> Result<()> {
     Ok(())
 }
 
+fn ensure_shadow_man_po_makefile(repo_root: &Path) -> Result<PathBuf> {
+    let cache = repo_root
+        .join("out/cache/shadow")
+        .join(SHADOW_UPSTREAM_COMMIT);
+    let file = cache.join("man-po-Makefile.in");
+    if file.is_file() {
+        let actual = performance::sha256_file(&file)?;
+        if actual != SHADOW_MAN_PO_MAKEFILE_SHA256 {
+            bail!(
+                "cached Shadow man/po/Makefile.in checksum mismatch: expected {}, got {} at {}",
+                SHADOW_MAN_PO_MAKEFILE_SHA256,
+                actual,
+                file.display()
+            );
+        }
+        return Ok(file);
+    }
+
+    fs::create_dir_all(&cache).with_context(|| format!("failed to create {}", cache.display()))?;
+    let git_dir = repo_root.join("out/cache/shadow/upstream.git");
+    if !git_dir.is_dir() {
+        run_cmd(repo_root, "git", &["init", "--bare", path_str(&git_dir)?])?;
+    }
+    let git_dir_arg = format!("--git-dir={}", git_dir.display());
+    run_cmd(
+        repo_root,
+        "git",
+        &[
+            git_dir_arg.as_str(),
+            "fetch",
+            "--depth=1",
+            SHADOW_UPSTREAM_REPOSITORY,
+            SHADOW_UPSTREAM_COMMIT,
+        ],
+    )?;
+    let object = format!("{SHADOW_UPSTREAM_COMMIT}:man/po/Makefile.in");
+    let output = Command::new("git")
+        .args([git_dir_arg.as_str(), "show", object.as_str()])
+        .output()
+        .context("failed to read man/po/Makefile.in from pinned Shadow commit")?;
+    if !output.status.success() {
+        bail!(
+            "pinned Shadow commit did not provide man/po/Makefile.in: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+    let temp = file.with_extension("tmp");
+    fs::write(&temp, &output.stdout)
+        .with_context(|| format!("failed to write {}", temp.display()))?;
+    let actual = performance::sha256_file(&temp)?;
+    if actual != SHADOW_MAN_PO_MAKEFILE_SHA256 {
+        let _ = fs::remove_file(&temp);
+        bail!(
+            "downloaded Shadow man/po/Makefile.in checksum mismatch: expected {}, got {}",
+            SHADOW_MAN_PO_MAKEFILE_SHA256,
+            actual
+        );
+    }
+    fs::rename(&temp, &file).with_context(|| format!("failed to publish {}", file.display()))?;
+    Ok(file)
+}
+
 fn build_sudo_rs(repo_root: &Path) -> Result<()> {
     let sudo_src = repo_root.join("src/system/auth/sudo-rs");
     if !sudo_src.join("Cargo.toml").exists() {
@@ -4509,13 +4874,19 @@ fn build_sudo_rs(repo_root: &Path) -> Result<()> {
     } else {
         format!("{}:{current_library_path}", pam_lib.display())
     };
-    let env_overrides = vec![("RUSTFLAGS", rustflags), ("LIBRARY_PATH", library_path)];
+    let target = repo_root.join("out/build/sudo-rs/cargo-target");
+    let env_overrides = vec![
+        ("RUSTFLAGS", rustflags),
+        ("LIBRARY_PATH", library_path),
+        ("CARGO_TARGET_DIR", target.display().to_string()),
+    ];
 
     run_cmd_with_env_overrides(
         repo_root,
         "cargo",
         &[
             "build",
+            "--locked",
             "--release",
             "--manifest-path",
             "src/system/auth/sudo-rs/Cargo.toml",
@@ -4537,7 +4908,7 @@ fn build_sudo_rs(repo_root: &Path) -> Result<()> {
         .with_context(|| format!("failed to create {}", install_dir.join("usr/bin").display()))?;
 
     for bin in ["sudo", "visudo"] {
-        let src = repo_root.join(format!("src/system/auth/sudo-rs/target/release/{bin}"));
+        let src = target.join("release").join(bin);
         if !src.exists() {
             bail!("sudo-rs build did not produce {}", src.display());
         }
@@ -4933,13 +5304,17 @@ fn ncurses_configure_options() -> Vec<&'static str> {
 }
 
 fn build_procps(repo_root: &Path) -> Result<()> {
-    let source = repo_root.join("src/userland/procps-ng");
-    if !source.join("configure.ac").exists() {
+    let imported_source = repo_root.join("src/userland/procps-ng");
+    if !imported_source.join("configure.ac").exists() {
         bail!(
             "procps-ng source not found in {}; run upstream import procps-ng first",
-            source.display()
+            imported_source.display()
         );
     }
+    let out_root = repo_root.join("out/build/procps-ng");
+    let source = out_root.join("source");
+    remove_path_if_exists(&out_root)?;
+    copy_imported_working_tree(repo_root, Path::new("src/userland/procps-ng"), &source)?;
     if !source.join("configure").exists() {
         run_cmd(&source, "./autogen.sh", &[])?;
     }
@@ -4953,7 +5328,6 @@ fn build_procps(repo_root: &Path) -> Result<()> {
             ncurses_install.display()
         );
     }
-    let out_root = repo_root.join("out/build/procps-ng");
     let build_dir = out_root.join("build");
     let install_dir = out_root.join("install");
     let stamp = out_root.join("configure-options.txt");
@@ -5201,7 +5575,12 @@ fn build_attr(repo_root: &Path) -> Result<()> {
         "--disable-static",
         "--disable-nls",
     ];
-    let stamp = format!("{state}\n{}\n", options.join("\n"));
+    let stamp = format!(
+        "{state}\n{}\nattr-bootstrap={ATTR_UPSTREAM_COMMIT} {} {}\n",
+        options.join("\n"),
+        ATTR_RELEASE_ARCHIVE_URL,
+        ATTR_RELEASE_ARCHIVE_SHA256,
+    );
     if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
         remove_path_if_exists(&source_copy)?;
         remove_path_if_exists(&build_dir)?;
@@ -5209,23 +5588,34 @@ fn build_attr(repo_root: &Path) -> Result<()> {
     fs::create_dir_all(&out_root)
         .with_context(|| format!("failed to create {}", out_root.display()))?;
     sync_build_source(&source, &source_copy)?;
-    if !source_copy.join("configure").is_file() {
-        run_cmd(&source_copy, "./autogen.sh", &[])?;
-    }
+    let archive = ensure_attr_release_archive(&out_root)?;
+    stage_attr_bootstrap_inputs(&source, &source_copy, &archive)?;
+    // The imported Git files and generated release files have unrelated
+    // timestamps.  Normalize the output mirror after staging so Automake does
+    // not attempt a host-versioned regeneration merely because a macro was
+    // copied a few milliseconds after aclocal.m4.
+    run_cmd(&source_copy, "find", &[".", "-type", "f", "-exec", "touch", "-c", "{}", "+"])?;
     fs::create_dir_all(&build_dir)
         .with_context(|| format!("failed to create {}", build_dir.display()))?;
     if !build_dir.join("Makefile").is_file() {
         let configure = source_copy.join("configure");
         run_cmd(&build_dir, path_str(&configure)?, &options)?;
     }
-    run_cmd(&build_dir, "make", &["-j", "4"])?;
+    // The official distribution archive already supplies the generated
+    // Autotools files.  Do not let timestamp differences from the imported
+    // Git checkout trigger a host-versioned aclocal rebuild.
+    run_cmd(&build_dir, "make", &["-j", "4", "MAKE_MAINTAINER_MODE="])?;
     remove_path_if_exists(&install_dir)?;
     fs::create_dir_all(&install_dir)
         .with_context(|| format!("failed to create {}", install_dir.display()))?;
     run_cmd(
         &build_dir,
         "make",
-        &["install", &format!("DESTDIR={}", install_dir.display())],
+        &[
+            "MAKE_MAINTAINER_MODE=",
+            "install",
+            &format!("DESTDIR={}", install_dir.display()),
+        ],
     )?;
     let soname = install_dir.join("usr/lib/x86_64-linux-gnu/libattr.so.1");
     let headers = install_dir.join("usr/include/attr");
@@ -5245,6 +5635,150 @@ fn build_attr(repo_root: &Path) -> Result<()> {
     )?;
     fs::write(&stamp_path, stamp)
         .with_context(|| format!("failed to write {}", stamp_path.display()))?;
+    Ok(())
+}
+
+/// Obtains the official Attr v2.6.0 distribution archive in the Attr output
+/// directory.  The archive is accepted only when its published SHA-256
+/// matches, so an interrupted or substituted download cannot supply build
+/// inputs.  `out/cache` is intentionally not used because this workspace
+/// points it at the preserved reproduction baseline.
+fn ensure_attr_release_archive(out_root: &Path) -> Result<PathBuf> {
+    let bootstrap = out_root.join("bootstrap");
+    let archive = bootstrap.join(format!("{ATTR_RELEASE_DIRECTORY}.tar.xz"));
+    if archive.is_file() {
+        verify_attr_release_archive(&archive)?;
+        return Ok(archive);
+    }
+
+    fs::create_dir_all(&bootstrap)
+        .with_context(|| format!("failed to create {}", bootstrap.display()))?;
+    let temporary = bootstrap.join("attr-2.6.0.tar.xz.tmp");
+    let temporary_arg = path_str(&temporary)?;
+    run_cmd(
+        out_root,
+        "curl",
+        &[
+            "-fL",
+            "--retry",
+            "3",
+            "--output",
+            temporary_arg,
+            ATTR_RELEASE_ARCHIVE_URL,
+        ],
+    )
+    .context("failed to download the pinned official Attr v2.6.0 release archive")?;
+    verify_attr_release_archive(&temporary)?;
+    fs::rename(&temporary, &archive)
+        .with_context(|| format!("failed to publish {}", archive.display()))?;
+    Ok(archive)
+}
+
+fn verify_attr_release_archive(archive: &Path) -> Result<()> {
+    let actual = performance::sha256_file(archive)?;
+    if actual != ATTR_RELEASE_ARCHIVE_SHA256 {
+        bail!(
+            "Attr release archive checksum mismatch: expected {}, got {} at {}",
+            ATTR_RELEASE_ARCHIVE_SHA256,
+            actual,
+            archive.display()
+        );
+    }
+    Ok(())
+}
+
+/// Adds every distribution-only input from the verified release archive to an
+/// output-owned Attr mirror.  Files present in the authoritative imported
+/// checkout always win, including any intentional local source edits.  This
+/// gives configure the complete generated release closure without modifying
+/// the imported checkout or relying on host Autoconf macro packages.
+fn stage_attr_bootstrap_inputs(
+    authoritative_source: &Path,
+    source_copy: &Path,
+    archive: &Path,
+) -> Result<()> {
+    let release = archive
+        .parent()
+        .ok_or_else(|| anyhow!("Attr release archive has no parent directory"))?
+        .join("release");
+    remove_path_if_exists(&release)?;
+    fs::create_dir_all(&release)
+        .with_context(|| format!("failed to create {}", release.display()))?;
+    let archive_arg = path_str(archive)?;
+    let release_arg = path_str(&release)?;
+    run_cmd(
+        source_copy,
+        "tar",
+        &[
+            "-xJf",
+            archive_arg,
+            "--strip-components=1",
+            "-C",
+            release_arg,
+        ],
+    )
+        .context("failed to stage pinned Attr release bootstrap inputs")?;
+    copy_attr_release_only_entries(&release, authoritative_source, source_copy)?;
+
+    let visibility = source_copy.join("m4/visibility_hidden.m4");
+    let contents = fs::read_to_string(&visibility)
+        .with_context(|| format!("pinned Attr release omitted {}", visibility.display()))?;
+    if !contents.contains("AC_DEFUN([AC_FUNC_GCC_VISIBILITY]") {
+        bail!(
+            "pinned Attr release bootstrap input {} does not define AC_FUNC_GCC_VISIBILITY",
+            visibility.display()
+        );
+    }
+    for required in [
+        "configure",
+        "aclocal.m4",
+        "Makefile.in",
+        "build-aux/config.rpath",
+    ] {
+        if !source_copy.join(required).is_file() {
+            bail!("pinned Attr release bootstrap input is missing {required}");
+        }
+    }
+    Ok(())
+}
+
+fn copy_attr_release_only_entries(
+    release: &Path,
+    authoritative: &Path,
+    destination: &Path,
+) -> Result<()> {
+    let mut entries = fs::read_dir(release)?.collect::<std::io::Result<Vec<_>>>()?;
+    entries.sort_by_key(|entry| entry.file_name());
+    for entry in entries {
+        let source = entry.path();
+        let original = authoritative.join(entry.file_name());
+        let target = destination.join(entry.file_name());
+        let metadata = fs::symlink_metadata(&source)?;
+        if metadata.is_dir() && !metadata.file_type().is_symlink() {
+            copy_attr_release_only_entries(&source, &original, &target)?;
+            continue;
+        }
+        if fs::symlink_metadata(&original)
+            .is_ok_and(|_| true)
+        {
+            continue;
+        }
+        if let Some(parent) = target.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        remove_path_if_exists(&target)?;
+        if metadata.file_type().is_symlink() {
+            #[cfg(unix)]
+            std::os::unix::fs::symlink(fs::read_link(&source)?, &target)?;
+            #[cfg(not(unix))]
+            fs::copy(&source, &target)?;
+        } else {
+            fs::copy(&source, &target).with_context(|| {
+                format!("failed to stage {} to {}", source.display(), target.display())
+            })?;
+            preserve_permissions(&metadata, &target)?;
+        }
+    }
     Ok(())
 }
 
@@ -5277,14 +5811,23 @@ fn build_acl(repo_root: &Path) -> Result<()> {
     fs::create_dir_all(&out_root)
         .with_context(|| format!("failed to create {}", out_root.display()))?;
     sync_build_source(&source, &source_copy)?;
-    if !source_copy.join("configure").is_file() {
-        run_cmd(&source_copy, "./autogen.sh", &[])?;
-    }
+    let archive = ensure_acl_release_archive(&out_root)?;
+    stage_acl_bootstrap_inputs(&source, &source_copy, &archive)?;
+    run_cmd(&source_copy, "find", &[".", "-type", "f", "-exec", "touch", "-c", "{}", "+"])?;
     fs::create_dir_all(&build_dir)
         .with_context(|| format!("failed to create {}", build_dir.display()))?;
     if !build_dir.join("Makefile").is_file() {
         let configure = source_copy.join("configure");
-        run_cmd(&build_dir, path_str(&configure)?, &options)?;
+        let attr = repo_root.join("out/build/attr/install/usr");
+        run_cmd_with_env_overrides(
+            &build_dir,
+            path_str(&configure)?,
+            &options,
+            &[
+                ("CPPFLAGS", format!("-I{}", attr.join("include").display())),
+                ("LDFLAGS", format!("-L{}", attr.join("lib/x86_64-linux-gnu").display())),
+            ],
+        )?;
     }
     run_cmd(&build_dir, "make", &["-j", "4"])?;
     remove_path_if_exists(&install_dir)?;
@@ -5301,6 +5844,34 @@ fn build_acl(repo_root: &Path) -> Result<()> {
     }
     fs::write(&stamp_path, stamp)
         .with_context(|| format!("failed to write {}", stamp_path.display()))?;
+    Ok(())
+}
+
+fn ensure_acl_release_archive(out_root: &Path) -> Result<PathBuf> {
+    let bootstrap = out_root.join("bootstrap");
+    let archive = bootstrap.join(format!("{ACL_RELEASE_DIRECTORY}.tar.xz"));
+    fs::create_dir_all(&bootstrap)?;
+    if !archive.is_file() {
+        let temp = bootstrap.join("acl.tar.xz.tmp");
+        run_cmd(out_root, "curl", &["-fL", "--retry", "3", "--output", path_str(&temp)?, ACL_RELEASE_ARCHIVE_URL])?;
+        let actual = performance::sha256_file(&temp)?;
+        if actual != ACL_RELEASE_ARCHIVE_SHA256 { bail!("ACL release archive checksum mismatch: expected {ACL_RELEASE_ARCHIVE_SHA256}, got {actual}"); }
+        fs::rename(temp, &archive)?;
+    }
+    let actual = performance::sha256_file(&archive)?;
+    if actual != ACL_RELEASE_ARCHIVE_SHA256 { bail!("ACL release archive checksum mismatch: expected {ACL_RELEASE_ARCHIVE_SHA256}, got {actual}"); }
+    Ok(archive)
+}
+
+fn stage_acl_bootstrap_inputs(authoritative: &Path, destination: &Path, archive: &Path) -> Result<()> {
+    let release = archive.parent().unwrap().join("release");
+    remove_path_if_exists(&release)?;
+    fs::create_dir_all(&release)?;
+    run_cmd(destination, "tar", &["-xJf", path_str(archive)?, "--strip-components=1", "-C", path_str(&release)?])?;
+    copy_attr_release_only_entries(&release, authoritative, destination)?;
+    for required in ["configure", "aclocal.m4", "m4/visibility_hidden.m4", "m4/package_attrdev.m4"] {
+        if !destination.join(required).is_file() { bail!("pinned ACL release bootstrap input is missing {required}"); }
+    }
     Ok(())
 }
 
@@ -5367,10 +5938,19 @@ fn build_bzip2(repo_root: &Path) -> Result<()> {
     fs::create_dir_all(&out_root)
         .with_context(|| format!("failed to create {}", out_root.display()))?;
     sync_build_source(&source, &source_copy)?;
-    run_cmd(
+    let cflags = format!(
+        "-O2 -g0 -fPIC -ffile-prefix-map={}=/usr/src/mattos/bzip2 -fdebug-prefix-map={}=/usr/src/mattos/bzip2 -fmacro-prefix-map={}=/usr/src/mattos/bzip2",
+        repo_root.display(), repo_root.display(), repo_root.display()
+    );
+    // Makefile-libbz2_so assigns CFLAGS with `=`, so an environment variable
+    // alone is deliberately insufficient.  A make command-line assignment has
+    // precedence and keeps the imported Makefile untouched.
+    let cflags_override = format!("CFLAGS={cflags}");
+    run_cmd_with_env_overrides(
         &source_copy,
         "make",
-        &["-f", "Makefile-libbz2_so", "-j", "4"],
+        &["-B", "-f", "Makefile-libbz2_so", "-j", "4", &cflags_override],
+        &[("SOURCE_DATE_EPOCH", MATTOS_SOURCE_DATE_EPOCH.to_string())],
     )?;
     remove_path_if_exists(&install_dir)?;
     let libdir = install_dir.join("usr/lib/x86_64-linux-gnu");
@@ -7386,12 +7966,14 @@ fn build_rootfs_atomic(repo_root: &Path) -> Result<()> {
         return Err(error);
     }
     validate_rootfs_mutable_state(&temp)?;
+    packaging::validate_udev_hwdb_payload(repo_root, &temp)?;
     performance::atomic_replace_path(&temp, &destination)
 }
 
 fn validate_cached_rootfs(repo_root: &Path) -> Result<()> {
     let rootfs = repo_root.join("out/build/rootfs");
     validate_rootfs_mutable_state(&rootfs)?;
+    packaging::validate_udev_hwdb_payload(repo_root, &rootfs)?;
     for rel in [
         "var/lib/dpkg/status",
         "usr/share/mattos/repository/dists/trixie/Release",
@@ -7413,6 +7995,7 @@ fn validate_rootfs_mutable_state(rootfs: &Path) -> Result<()> {
         "var/lib/dpkg/lock-frontend",
         "var/lib/apt/lists/lock",
         "var/cache/apt/archives/lock",
+        "etc/udev/hwdb.bin",
     ] {
         if rootfs.join(rel).symlink_metadata().is_ok() {
             bail!("mutable lock/socket state is present in cached rootfs: /{rel}");
@@ -9195,8 +9778,8 @@ fn copy_systemd_runtime_dependencies(rootfs: &Path) -> Result<()> {
 
 fn resolve_coreutils_multicall(repo_root: &Path) -> Result<PathBuf> {
     let candidates = [
-        repo_root.join("src/userland/coreutils/target/release/coreutils"),
-        repo_root.join("src/userland/coreutils/target/release/uutils"),
+        repo_root.join("out/build/coreutils/cargo-target/release/coreutils"),
+        repo_root.join("out/build/coreutils/cargo-target/release/uutils"),
     ];
     candidates
         .iter()
@@ -9424,7 +10007,7 @@ fn validate_cached_iso(repo_root: &Path) -> Result<()> {
 fn build_iso_atomic(repo_root: &Path) -> Result<()> {
     let grub_src = validate_grub_config_source(repo_root)?;
 
-    let kernel = repo_root.join("src/kernel/linux/arch/x86/boot/bzImage");
+    let kernel = repo_root.join("out/build/linux/build/arch/x86/boot/bzImage");
     if !kernel.exists() {
         bail!(
             "kernel image missing at {}; build kernel first",
@@ -9536,6 +10119,23 @@ fn validate_staged_grub_config(path: &Path) -> Result<()> {
                 needle
             );
         }
+    }
+
+    let linux_lines = content
+        .lines()
+        .map(str::trim)
+        .filter(|line| line.starts_with("linux "))
+        .collect::<Vec<_>>();
+    if linux_lines.len() != 2
+        || linux_lines
+            .iter()
+            .any(|line| !line.contains(INITRAMFS_ROOTFS_SIZE_POLICY))
+    {
+        bail!(
+            "staged GRUB config {} must apply {} to both normal and rescue boots",
+            path.display(),
+            INITRAMFS_ROOTFS_SIZE_POLICY
+        );
     }
 
     Ok(())
@@ -9731,6 +10331,7 @@ fn apply_reproducible_process_environment(command: &mut Command) {
         .env("LC_ALL", "C")
         .env("LANG", "C")
         .env("TZ", "UTC")
+        .env("PYTHONDONTWRITEBYTECODE", "1")
         .env("SOURCE_DATE_EPOCH", MATTOS_SOURCE_DATE_EPOCH);
 }
 
@@ -9750,6 +10351,7 @@ fn apply_mattos_sysroot_environment(
     let sysroot = repo_root.join("out/sysroot");
     if !sysroot.join("usr/include/stdio.h").is_file()
         || cwd.starts_with(repo_root.join("src/kernel/linux"))
+        || cwd.starts_with(repo_root.join("out/build/linux"))
         || cwd.starts_with(repo_root.join("out/build/glibc"))
         || cwd.starts_with(repo_root.join("src/system/libc/glibc"))
     {
@@ -9787,13 +10389,39 @@ fn apply_mattos_sysroot_environment(
     }
     if program == "cargo" {
         let current = value_for("RUSTFLAGS");
-        let rust_sysroot = format!("-C link-arg={sysroot_flag}");
+        // Cargo fingerprints RUSTFLAGS verbatim and rustc incorporates codegen
+        // options into crate identity.  Keep the linker argument independent of
+        // the absolute checkout location while still resolving to this tree's
+        // output-owned sysroot from Cargo's working directory.
+        let relative = cwd
+            .strip_prefix(repo_root)
+            .context("Cargo working directory is outside the MattOS repository")?;
+        let mut relative_sysroot = PathBuf::new();
+        for component in relative.components() {
+            if matches!(component, std::path::Component::Normal(_)) {
+                relative_sysroot.push("..");
+            }
+        }
+        relative_sysroot.push("out/sysroot");
+        let rust_sysroot = format!(
+            "-C link-arg=--sysroot={}",
+            relative_sysroot.to_string_lossy()
+        );
+        let remap = format!(
+            "--remap-path-prefix={}=/usr/src/mattos",
+            repo_root.display()
+        );
         let value = if current.contains(&rust_sysroot) {
             current
         } else if current.is_empty() {
             rust_sysroot
         } else {
             format!("{current} {rust_sysroot}")
+        };
+        let value = if value.contains(&remap) {
+            value
+        } else {
+            format!("{value} {remap}")
         };
         command.env("RUSTFLAGS", value);
     }
@@ -10464,10 +11092,26 @@ mod tests {
         let path = tmp.path().join("grub.cfg");
         write(
             &path,
-            "menuentry \"MattOS (systemd)\" { linux /boot/vmlinuz rdinit=/usr/lib/systemd/systemd }\nmenuentry \"MattOS (rescue init)\" { linux /boot/vmlinuz rdinit=/usr/libexec/mattos/rescue-init }\n",
+            "menuentry \"MattOS (systemd)\" {\n linux /boot/vmlinuz rdinit=/usr/lib/systemd/systemd initramfs_options=size=75%\n}\nmenuentry \"MattOS (rescue init)\" {\n linux /boot/vmlinuz rdinit=/usr/libexec/mattos/rescue-init initramfs_options=size=75%\n}\n",
         );
 
         validate_staged_grub_config(&path).expect("valid staged config should pass");
+    }
+
+    #[test]
+    fn authoritative_grub_applies_deterministic_live_rootfs_capacity() {
+        let grub = include_str!("../../../boot/grub/grub.cfg");
+        let linux_lines = grub
+            .lines()
+            .map(str::trim)
+            .filter(|line| line.starts_with("linux "))
+            .collect::<Vec<_>>();
+        assert_eq!(linux_lines.len(), 2);
+        assert!(
+            linux_lines
+                .iter()
+                .all(|line| line.contains(INITRAMFS_ROOTFS_SIZE_POLICY))
+        );
     }
 
     #[test]
@@ -10604,6 +11248,146 @@ mod tests {
         let tmp = tempfile::tempdir().expect("tempdir");
         let result = assert_kernel_build_path_safe(tmp.path());
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn kernel_build_metadata_and_builtin_initramfs_time_are_pinned() {
+        let source = include_str!("main.rs");
+        let start = source.find("fn build_kernel").unwrap();
+        let end = source[start..].find("const GLIBC_MINIMUM_KERNEL").unwrap() + start;
+        let build = &source[start..end];
+        for required in [
+            "KBUILD_BUILD_TIMESTAMP=2026-01-01 00:00:00 UTC",
+            "KBUILD_BUILD_USER=mattos",
+            "KBUILD_BUILD_HOST=mattos-build",
+            "KBUILD_BUILD_VERSION=1",
+            "KCONFIG_NOTIMESTAMP=1",
+        ] {
+            assert!(build.contains(required), "missing kernel reproducibility setting {required}");
+        }
+        assert!(build.contains("olddefconfig_args.extend(kernel_reproducible_args)"));
+        assert!(build.contains("build_args.extend(kernel_reproducible_args)"));
+    }
+
+    #[test]
+    fn imported_build_outputs_are_all_under_out() {
+        for stage in [
+            BuildStage::Kernel,
+            BuildStage::Brush,
+            BuildStage::Coreutils,
+            BuildStage::Grep,
+            BuildStage::Sed,
+            BuildStage::Findutils,
+            BuildStage::Diffutils,
+            BuildStage::Procps,
+            BuildStage::Shadow,
+            BuildStage::SudoRs,
+        ] {
+            let spec = build_stage_spec(stage);
+            assert!(
+                spec.outputs.iter().all(|path| path.starts_with("out/")),
+                "{} has a source-tree output: {:?}",
+                build_stage_id(stage),
+                spec.outputs
+            );
+        }
+        for binary in USERLAND_BINARY_INSTALLS {
+            assert!(Path::new(binary.source_rel).starts_with("out/build"));
+        }
+    }
+
+    #[test]
+    fn imported_source_mirror_excludes_ignored_residue_and_preserves_source() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let root = tmp.path();
+        init_git_repo(root);
+        let source = root.join("src/imported/example");
+        write(&source.join(".gitignore"), "target/\n");
+        write(&source.join("tracked.txt"), "tracked\n");
+        write(&source.join("untracked.txt"), "untracked\n");
+        write(&source.join("target/generated.o"), "old generated output\n");
+        run_ok(root, "git", &["add", "src/imported/example/.gitignore"]);
+        run_ok(root, "git", &["add", "src/imported/example/tracked.txt"]);
+        let before = performance::output_path_digest(root, &source).expect("source snapshot");
+
+        let mirror = root.join("out/build/example/source");
+        copy_imported_working_tree(root, Path::new("src/imported/example"), &mirror)
+            .expect("create source mirror");
+        assert_eq!(
+            fs::read_to_string(mirror.join("tracked.txt")).unwrap(),
+            "tracked\n"
+        );
+        assert_eq!(
+            fs::read_to_string(mirror.join("untracked.txt")).unwrap(),
+            "untracked\n"
+        );
+        assert!(!mirror.join("target/generated.o").exists());
+        write(&mirror.join("generated/config.h"), "generated in output\n");
+
+        let after = performance::output_path_digest(root, &source).expect("source snapshot");
+        assert_eq!(before, after);
+    }
+
+    #[test]
+    fn rootfs_configuration_digest_is_exact_and_documentation_stable() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let root = tmp.path();
+        for path in rootfs_configuration_inputs() {
+            let absolute = root.join(path);
+            if absolute.extension().is_some()
+                || absolute.file_name() == Some(OsStr::new("hosts"))
+                || absolute.file_name() == Some(OsStr::new("networks"))
+            {
+                write(&absolute, "configuration\n");
+            } else {
+                write(&absolute.join("payload"), "configuration\n");
+            }
+        }
+        write(
+            &root.join("src/tools/mattos-build/src/main.rs"),
+            "builder\n",
+        );
+        write(
+            &root.join("src/tools/mattos-build/Cargo.toml"),
+            "workspace\n",
+        );
+        write(&root.join("Cargo.lock"), "lock\n");
+        write(&root.join("out/packages/inventory.toml"), "packages\n");
+        write(&root.join("out/repository/Packages"), "repository\n");
+
+        let spec = build_stage_spec(BuildStage::Rootfs);
+        let first = performance::compute_stage_inputs(root, &spec).expect("first rootfs key");
+        write(
+            &root.join("src/system/units/payload"),
+            "changed configuration\n",
+        );
+        let changed = performance::compute_stage_inputs(root, &spec).expect("changed rootfs key");
+        assert_ne!(first.configuration_digest, changed.configuration_digest);
+
+        write(
+            &root.join("src/system/network/README.md"),
+            "unrelated documentation\n",
+        );
+        let documented =
+            performance::compute_stage_inputs(root, &spec).expect("documentation rootfs key");
+        assert_eq!(
+            changed.configuration_digest,
+            documented.configuration_digest
+        );
+
+        for direct_dependency in ["grep", "sed", "findutils", "diffutils"] {
+            assert!(
+                spec.dependencies
+                    .iter()
+                    .any(|value| value == direct_dependency)
+            );
+        }
+        assert_eq!(build_stage_dependencies(BuildStage::Initramfs), &["rootfs"]);
+        assert!(
+            build_stage_dependencies(BuildStage::Iso)
+                .iter()
+                .any(|dependency| *dependency == "initramfs")
+        );
     }
 
     #[test]
@@ -11096,6 +11880,32 @@ mod tests {
     }
 
     #[test]
+    fn binutils_git_build_pins_missing_distribution_input() {
+        assert_eq!(BINUTILS_UPSTREAM_COMMIT.len(), 40);
+        assert_eq!(BINUTILS_SYSROFF_SHA256.len(), 64);
+        assert!(BINUTILS_UPSTREAM_MIRROR.starts_with("https://git.sr.ht/~sourceware/"));
+    }
+
+    #[test]
+    fn shadow_git_build_pins_ignored_upstream_input() {
+        assert_eq!(SHADOW_UPSTREAM_COMMIT.len(), 40);
+        assert_eq!(SHADOW_MAN_PO_MAKEFILE_SHA256.len(), 64);
+        assert_eq!(
+            SHADOW_UPSTREAM_REPOSITORY,
+            "https://github.com/shadow-maint/shadow.git"
+        );
+        let source = include_str!("main.rs");
+        let start = source.find("fn build_shadow").unwrap();
+        let end = source[start..]
+            .find("fn ensure_shadow_man_po_makefile")
+            .unwrap()
+            + start;
+        let build = &source[start..end];
+        assert!(build.contains("copy_imported_working_tree"));
+        assert!(build.contains("source.join(\"man/po/Makefile.in\")"));
+    }
+
+    #[test]
     fn native_compiler_configuration_is_guest_default_and_minimal() {
         let source = include_str!("main.rs");
         let start = source.find("fn build_gcc_toolchain").unwrap();
@@ -11117,12 +11927,16 @@ mod tests {
             "--disable-lto",
             "all-gcc",
             "install-gcc",
+            "cc_name.clone()",
+            "cxx_name.clone()",
         ] {
             assert!(
                 build.contains(required),
                 "missing native GCC setting {required}"
             );
         }
+        assert!(build.contains("wrapper directory is already first in PATH"));
+        assert!(build.contains("checksum-options"));
         for forbidden in [
             "enable-languages=all",
             "install-target-libgfortran",
@@ -11133,6 +11947,20 @@ mod tests {
                 "unexpected compiler content {forbidden}"
             );
         }
+    }
+
+    #[test]
+    fn cargo_sysroot_link_argument_is_checkout_independent() {
+        let source = include_str!("main.rs");
+        let start = source
+            .find("fn apply_mattos_sysroot_environment")
+            .unwrap();
+        let end = source[start..].find("fn run_cmd_output").unwrap() + start;
+        let body = &source[start..end];
+        assert!(body.contains("relative_sysroot.push(\"..\")"));
+        assert!(body.contains("relative_sysroot.push(\"out/sysroot\")"));
+        assert!(body.contains("--remap-path-prefix={}=/usr/src/mattos"));
+        assert!(!body.contains("format!(\"-C link-arg={sysroot_flag}\")"));
     }
 
     #[test]
@@ -11248,8 +12076,115 @@ mod tests {
         assert_eq!(attr.branch, "v2.6.0");
         assert_eq!(
             attr.revision.as_deref(),
-            Some("c440855d6b33446edf4b5eb1a2d892281f15a99b")
+            Some(ATTR_UPSTREAM_COMMIT)
         );
+        assert_eq!(ATTR_RELEASE_DIRECTORY, "attr-2.6.0");
+        assert!(ATTR_RELEASE_ARCHIVE_URL.ends_with("/attr-2.6.0.tar.xz"));
+        assert_eq!(ATTR_RELEASE_ARCHIVE_SHA256.len(), 64);
+    }
+
+    #[test]
+    fn attr_release_checksum_rejects_unverified_inputs() {
+        let temporary = tempfile::tempdir().unwrap();
+        let archive = temporary.path().join("attr-2.6.0.tar.xz");
+        fs::write(&archive, b"not the official Attr release archive").unwrap();
+        let error = verify_attr_release_archive(&archive).unwrap_err().to_string();
+        assert!(error.contains("checksum mismatch"));
+    }
+
+    #[test]
+    fn staged_attr_bootstrap_inputs_supply_configure_and_visibility_macro() {
+        let temporary = tempfile::tempdir().unwrap();
+        let release = temporary.path().join(ATTR_RELEASE_DIRECTORY);
+        fs::create_dir_all(release.join("m4")).unwrap();
+        fs::create_dir_all(release.join("build-aux")).unwrap();
+        fs::write(release.join("configure"), "#!/bin/sh\n").unwrap();
+        fs::write(release.join("aclocal.m4"), "dnl generated\n").unwrap();
+        fs::write(release.join("Makefile.in"), "all:\n\t@true\n").unwrap();
+        fs::write(
+            release.join("m4/visibility_hidden.m4"),
+            "AC_DEFUN([AC_FUNC_GCC_VISIBILITY], [:])\n",
+        )
+        .unwrap();
+        fs::write(release.join("build-aux/config.rpath"), "# generated\n").unwrap();
+        let archive = temporary.path().join("attr-2.6.0.tar.xz");
+        let parent = temporary.path();
+        run_cmd(
+            parent,
+            "tar",
+            &[
+                "-cJf",
+                path_str(&archive).unwrap(),
+                "-C",
+                path_str(parent).unwrap(),
+                ATTR_RELEASE_DIRECTORY,
+            ],
+        )
+        .unwrap();
+        let mirror = temporary.path().join("mirror");
+        fs::create_dir_all(&mirror).unwrap();
+        stage_attr_bootstrap_inputs(&temporary.path().join("authoritative"), &mirror, &archive)
+            .unwrap();
+        assert!(mirror.join("configure").is_file());
+        assert!(mirror.join("aclocal.m4").is_file());
+        assert!(mirror.join("Makefile.in").is_file());
+        assert!(fs::read_to_string(mirror.join("m4/visibility_hidden.m4"))
+            .unwrap()
+            .contains("AC_FUNC_GCC_VISIBILITY"));
+    }
+
+    #[test]
+    fn attr_uses_release_generated_files_without_host_versioned_aclocal() {
+        let builder = include_str!("main.rs");
+        let start = builder.find("fn build_attr").unwrap();
+        let end = builder[start..]
+            .find("fn ensure_attr_release_archive")
+            .unwrap()
+            + start;
+        let attr_build = &builder[start..end];
+        assert!(attr_build.contains("stage_attr_bootstrap_inputs"));
+        assert!(attr_build.contains("MAKE_MAINTAINER_MODE="));
+        assert!(attr_build.contains("touch",));
+        assert!(!attr_build.contains("./autogen.sh"));
+    }
+
+    #[test]
+    fn acl_release_bootstrap_is_pinned_and_output_owned() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        let sources = read_sources(&root).unwrap();
+        let acl = sources.component.iter().find(|item| item.name == "acl").unwrap();
+        assert_eq!(acl.branch, "v2.3.2");
+        assert_eq!(
+            fs::read_to_string(root.join("upstream/state/acl.toml")).unwrap(),
+            "component = \"acl\"\nrepo = \"https://git.savannah.nongnu.org/git/acl.git\"\nbranch = \"v2.3.2\"\nimported_commit = \"214c7d146945c31a9dc04cb7094b85053f52a21e\"\nimported_at_utc = \"2026-08-02T18:24:42.054461104+00:00\"\nsync_method = \"copy\"\ndestination_path = \"src/system/libraries/acl\"\n"
+        );
+        assert!(ACL_RELEASE_ARCHIVE_URL.ends_with("/acl-2.3.2.tar.xz"));
+        assert_eq!(ACL_RELEASE_ARCHIVE_SHA256.len(), 64);
+        let builder = include_str!("main.rs");
+        let start = builder.find("fn build_acl").unwrap();
+        let end = builder[start..].find("fn ensure_acl_release_archive").unwrap() + start;
+        let acl_build = &builder[start..end];
+        assert!(acl_build.contains("stage_acl_bootstrap_inputs"));
+        assert!(!acl_build.contains("./autogen.sh"));
+    }
+
+    #[test]
+    fn bzip2_shared_library_build_is_path_independent_and_debug_free() {
+        let builder = include_str!("main.rs");
+        let start = builder.find("fn build_bzip2").unwrap();
+        let end = builder[start..].find("fn build_lz4").unwrap() + start;
+        let bzip2_build = &builder[start..end];
+
+        // bzip2's Makefile otherwise inherits the host CFLAGS, including a
+        // possible -g.  Rebuilding forces stale objects out while the maps
+        // make every output-owned source mirror look identical to the linker.
+        assert!(bzip2_build.contains("\"-B\", \"-f\", \"Makefile-libbz2_so\""));
+        assert!(bzip2_build.contains("let cflags_override = format!(\"CFLAGS={cflags}\")"));
+        assert!(bzip2_build.contains("-O2 -g0 -fPIC"));
+        assert!(bzip2_build.contains("-ffile-prefix-map={}=/usr/src/mattos/bzip2"));
+        assert!(bzip2_build.contains("-fdebug-prefix-map={}=/usr/src/mattos/bzip2"));
+        assert!(bzip2_build.contains("-fmacro-prefix-map={}=/usr/src/mattos/bzip2"));
+        assert!(bzip2_build.contains("SOURCE_DATE_EPOCH"));
     }
 
     #[test]
@@ -11662,11 +12597,11 @@ mod tests {
         let tmp = tempfile::tempdir().expect("tempdir");
         let root = tmp.path();
         let rootfs = root.join("rootfs");
-        fs::create_dir_all(root.join("src/userland/grep/target/release")).expect("mkdir");
+        fs::create_dir_all(root.join("out/build/grep/cargo-target/release")).expect("mkdir");
 
         let spec = BinaryInstallSpec {
             provider: GREP_PROVIDER,
-            source_rel: "src/userland/grep/target/release/grep",
+            source_rel: "out/build/grep/cargo-target/release/grep",
             install_name: "grep",
             command_name: "grep",
         };

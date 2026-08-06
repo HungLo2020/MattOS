@@ -2,7 +2,7 @@
 
 MattOS uses Debian binary packages, `dpkg`, and APT. Its embedded repository supplies the complete protected base; signed Debian 13 repositories are configured as disabled supplemental scaffolding for controlled compatibility work. Editable source and package policy live in this monorepo. Generated `.deb` files and repository indexes live under `out/` and are ignored build artifacts.
 
-This is a hybrid build-tool bootstrap, not a self-hosted distribution. Sixty-five packages own the initial base, package-manager runtime, MattOS-built glibc and GCC runtime libraries, native C/C++ development toolchain, selected source-built libraries and GNU tar, administration/networking tools, D-Bus broker, and authentication stack. The final ISO has no host-derived executable or runtime-library payloads; host compilers and packaging tools remain build inputs.
+This is a hybrid build-tool bootstrap, not a self-hosted distribution. Sixty-six packages own the initial base, package-manager runtime, MattOS-built glibc and GCC runtime libraries, native C/C++ development toolchain, selected source-built libraries and GNU tar, udev hardware database, administration/networking tools, D-Bus broker, and authentication stack. The final ISO has no host-derived executable or runtime-library payloads; host compilers and packaging tools remain build inputs.
 
 ## Imported package-manager sources
 
@@ -65,6 +65,7 @@ Versions use `<upstream-version>-1mattos1`; unreleased snapshots use `0~git.<com
 | `libkmod2`, `kmod` | important | source-built libkmod and selected module administration commands |
 | `mattos-libproc2`, `procps` | important | source-built libproc2, selected procps commands, and `/etc/sysctl.conf` |
 | `libsystemd0`, `libudev1` | important | narrow source-built public systemd libraries; not a full systemd package migration |
+| `udev` | important | imported systemd vendor hwdb sources, stock update unit, and reproducibly prebuilt `/usr/lib/udev/hwdb.bin` |
 | `libexpat1`, `libcap2` | important | source-built Expat and libcap ABI libraries and SONAME links |
 | `libacl1`, `zlib1g`, `libbz2-1.0` | important | source-built ACL, zlib, and bzip2 ABI libraries and SONAME links |
 | `liblz4-1`, `liblzma5`, `libxxhash0` | important | source-built APT/dpkg compression ABI libraries and SONAME links |
@@ -249,4 +250,4 @@ Rootfs assembly builds all packages and the repository, initializes an empty dpk
 
 Host `dpkg-deb` and `dpkg` still build and install archives. Host `dpkg-scanpackages`, `apt-ftparchive`, and deterministic `gzip` still create indexes. Host `file`, `readelf`, and `ldd` support closure inspection. This is a bootstrap boundary, not self-hosting.
 
-Target runtime closure and the first native C/C++ development-tool milestone are complete. The graph has 65 packages and keeps that count after correcting true Debian-equivalent names. These are installed through the same dpkg graph and embedded repository as runtime packages; no direct toolchain-copy path exists. See `NATIVE_TOOLCHAIN.md` for the exact boundaries, `DEBIAN_COMPATIBILITY.md` for the full package map and known gaps, and `REMOTE_REPOSITORY.md` for the non-publishing handoff. A standalone libcurl package, later build systems and languages, remaining dpkg helpers, and full systemd packaging can follow independently. Repository signing, online publication, persistence, installation, and automatic upgrades are separate future milestones.
+Target runtime closure and the first native C/C++ development-tool milestone are complete. The graph has 66 packages. `udev` owns the selected imported-systemd hwdb source closure, the stock update unit, and the reproducibly generated vendor database; the wider udev executable tree remains part of the legacy systemd integration layer. These packages are installed through the same dpkg graph and embedded repository as runtime packages; no direct toolchain-copy path exists. See `NATIVE_TOOLCHAIN.md` for the exact boundaries, `DEBIAN_COMPATIBILITY.md` for the full package map and known gaps, and `REMOTE_REPOSITORY.md` for the non-publishing handoff. A standalone libcurl package, later build systems and languages, remaining dpkg helpers, and full systemd packaging can follow independently. Repository signing, online publication, persistence, installation, and automatic upgrades are separate future milestones.

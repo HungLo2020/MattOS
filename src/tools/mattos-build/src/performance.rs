@@ -224,6 +224,7 @@ fn run_logged_command_mode(
         .env("LC_ALL", "C")
         .env("LANG", "C")
         .env("TZ", "UTC")
+        .env("PYTHONDONTWRITEBYTECODE", "1")
         .env("SOURCE_DATE_EPOCH", NORMALIZED_SOURCE_DATE_EPOCH);
     let active = ACTIVE_BUILD_LOG.with(|slot| slot.borrow().clone());
     let Some(log_path) = active else {
@@ -1254,6 +1255,7 @@ fn normalized_build_environment_from(
     // presentation therefore cannot perturb a cache key.
     values.insert("LC_ALL".to_string(), "C".to_string());
     values.insert("TZ".to_string(), "UTC".to_string());
+    values.insert("PYTHONDONTWRITEBYTECODE".to_string(), "1".to_string());
     values.insert(
         "SOURCE_DATE_EPOCH".to_string(),
         NORMALIZED_SOURCE_DATE_EPOCH.to_string(),
@@ -1270,7 +1272,7 @@ fn digest_serializable<T: Serialize + ?Sized>(value: &T) -> Result<String> {
     Ok(format!("{:x}", Sha256::digest(body)))
 }
 
-fn sha256_file(path: &Path) -> Result<String> {
+pub(crate) fn sha256_file(path: &Path) -> Result<String> {
     let mut file = fs::File::open(path)?;
     let mut digest = Sha256::new();
     let mut buffer = [0u8; 1024 * 1024];

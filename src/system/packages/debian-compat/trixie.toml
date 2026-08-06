@@ -557,6 +557,18 @@ classification = "debian-compatible"
 known_gaps = ["Snapshot version relies on repository policy"]
 
 [[package]]
+debian_name = "udev"
+mattos_name = "udev"
+source_component = "systemd"
+owned_paths = ["/usr/lib/udev/hwdb.bin", "/usr/lib/udev/hwdb.d", "/usr/lib/systemd/system/systemd-hwdb-update.service"]
+provided_abi_or_commands = ["prebuilt udev hardware database and vendor hwdb sources"]
+protected = true
+current_mattos_version = "0~git.91d2131e20ca-1mattos1"
+expected_debian_role = "udev hardware database"
+classification = "debian-compatible"
+known_gaps = ["Only the hardware-database portion of Debian's wider udev payload is package-owned"]
+
+[[package]]
 debian_name = "libexpat1"
 mattos_name = "libexpat1"
 source_component = "expat"

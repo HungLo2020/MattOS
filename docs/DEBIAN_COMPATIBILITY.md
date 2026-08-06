@@ -7,7 +7,7 @@ source for optional software and may not replace protected infrastructure.
 This is a compatibility target, not a promise that every Debian package works.
 
 The machine-readable contract is
-`src/system/packages/debian-compat/trixie.toml`. It maps all 65 installed
+`src/system/packages/debian-compat/trixie.toml`. It maps all 66 installed
 packages to source, representative owned paths, ABI or command surface,
 protection, deterministic version, Debian dependency role, classification, and
 known gaps. `protected.toml` is the authoritative protected-name inventory.
@@ -48,7 +48,7 @@ names. These include `libc6`, `libc-bin`, `libc6-dev`, `linux-libc-dev`,
 `libssl3t64`, `libelf1t64`, `libpcre2-8-0`, `libselinux1`, `libcrypt1`,
 `libblkid1`, `libmount1`, `libsmartcols1`, `mount`, `dpkg`,
 `libapt-pkg7.0`, `apt`, `libncursesw6`, `ncurses-base`, `ncurses-bin`,
-`libkmod2`, `kmod`, `procps`, `libsystemd0`, `libudev1`, `libexpat1`,
+`libkmod2`, `kmod`, `procps`, `libsystemd0`, `libudev1`, `udev`, `libexpat1`,
 `libcap2`, `libacl1`, `zlib1g`, `libbz2-1.0`, `liblz4-1`, `liblzma5`,
 `libxxhash0`, `tar`, `dbus-broker`, `libpam0g`, `libpam-modules`,
 `libpam-runtime`, `passwd`, `login`, `iproute2`, and `iputils-ping`.
