@@ -20,6 +20,9 @@ Synchronization state uses schema version 2 in
 - exact upstream Git tree object
 - canonical imported-tree SHA-256 (paths, blob identities, modes, and symlinks;
   documented gitlinks are excluded from this physical-tree digest)
+- an optional source-selection policy path and SHA-256. Selected components use
+  a selected-tree digest over the declared projection rather than the complete
+  upstream tree.
 - intentional omission and gitlink/submodule policy
 - an output-mirror-only MattOS patch manifest and its SHA-256, or the explicit
   value `none` for both fields
@@ -28,6 +31,14 @@ Gitlink replacements and exclusions are recorded in
 `upstream/policies/gitlinks.toml`. Official release archives used only to supply
 generated bootstrap inputs are pinned in
 `upstream/policies/release-archives.toml`.
+
+Source-selection policies under `upstream/policies/` declare reproducible
+component projections. The Linux policy is limited to `arch/`: it retains
+shared `arch/` root files and the declared architecture directories, with an
+explicit inventory of safely omitted x86 32-bit implementation units. No other
+Linux subsystem is pruned. Exact `crypto/Kconfig` leaves from otherwise excluded
+architecture trees remain when global Linux Kconfig parsing requires them; no
+implementation source from those architectures is retained by that exception.
 
 MattOS-specific changes do not live in authoritative imported source trees.
 Checksummed patch files and manifests live under `upstream/patches/` and the
@@ -69,10 +80,16 @@ For Linux kernel fidelity, run synchronization in a Linux filesystem path (for e
 	- latest upstream branch head.
 - Conflict behavior: if both MattOS and upstream changed the same content, conflict markers are written and sync exits non-zero.
 - Metadata behavior: sync state is only advanced to the new upstream commit when merge finishes without conflicts.
+- Projection behavior: synchronization reconstructs retained files from the
+  pinned commit and reapplies source selection even when the commit is
+  unchanged. Missing retained paths are restored, while stale paths excluded by
+  policy are removed.
 - Import fidelity: the importer force-records only the selected source path and
   state record so upstream-tracked files remain present even when the component's
   own `.gitignore` matches them. This intentionally updates the outer index when
   an import/sync command succeeds; ordinary builds never update the index.
+  Repository maintenance that must leave the index untouched can set
+  `MATTOS_IMPORT_NO_INDEX=1`; the reconstructed source and state remain unstaged.
 - File-type fidelity: regular executable modes and symlink objects are copied as
   upstream records them. Upstream gitlinks are never initialized as nested Git
   repositories; explicit policy selects separately pinned ordinary-file
@@ -94,7 +111,8 @@ mirrors only if an authoritative server cannot serve the object) and compares al
 paths, blob contents, executable modes, symlink targets, and gitlinks. It also
 validates tree digests, patch checksums/applicability, release-archive pins, nested
 Git directories, Git LFS pointers, escaping symlinks, and the protected
-LinuxScripts publisher checksum.
+LinuxScripts publisher checksum. For selected components, declared omissions are
+accepted, but missing retained paths and stale excluded paths both fail the audit.
 
 ## Recovery notes
 

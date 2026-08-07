@@ -15,6 +15,7 @@ MattOS is a Linux-compatible OS project with upstream source imported directly a
 - tentatively planning on using COSMIC desktop stack, login etc
 - compilers and toolchains to build MattOS must also be included in source set
 - MattOS targets binary package compatibility with Debian 13 (Trixie) while retaining a MattOS-built and MattOS-controlled critical base. MattOS packages take precedence over Debian packages, and Debian repositories are used only to supplement optional software without replacing protected system infrastructure.
+- arm64, x86_64, risc-v, and UML are our intended architectures this project supports. 
 
 ## Repository model
 

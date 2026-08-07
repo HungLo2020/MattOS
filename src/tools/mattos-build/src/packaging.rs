@@ -1946,19 +1946,7 @@ fn package_cache_input(
     let definition_digest = package_definition_digest(spec)?;
     let (payload_source_digest, payload_configuration_digest) =
         package_payload_source_digests(repo_root, spec, source_digests)?;
-    let stage_dependencies = package_stage_dependencies(spec.source_component);
-    let mut dependency_values = BTreeMap::new();
-    for dependency in stage_dependencies {
-        let value = match performance::read_stage_manifest(repo_root, dependency) {
-            Ok(manifest) => format!(
-                "{}:{}",
-                manifest.inputs.full_digest, manifest.output_content_digest
-            ),
-            Err(_) => "<missing>".to_string(),
-        };
-        dependency_values.insert(dependency.to_string(), value);
-    }
-    let dependency_digest = performance::digest_value(&dependency_values)?;
+    let dependency_digest = package_stage_dependency_digest(repo_root, spec.source_component)?;
     let resolved_dependencies = package_dependencies(repo_root, spec)?;
     let cache_key = performance::digest_value(&(
         PACKAGE_CACHE_SCHEMA_VERSION,
@@ -1979,6 +1967,19 @@ fn package_cache_input(
         payload_configuration_digest,
         dependency_digest,
     })
+}
+
+fn package_stage_dependency_digest(repo_root: &Path, source_component: &str) -> Result<String> {
+    let stage_dependencies = package_stage_dependencies(source_component);
+    let mut dependency_values = BTreeMap::new();
+    for dependency in stage_dependencies {
+        let value = match performance::read_stage_manifest(repo_root, dependency) {
+            Ok(manifest) => manifest.output_content_digest,
+            Err(_) => "<missing>".to_string(),
+        };
+        dependency_values.insert(dependency.to_string(), value);
+    }
+    performance::digest_value(&dependency_values)
 }
 
 fn package_payload_source_digests(
@@ -6164,6 +6165,53 @@ fn relative_display(root: &Path, path: &Path) -> Result<String> {
 mod tests {
     use super::*;
     use std::os::unix::fs::{PermissionsExt, symlink};
+
+    #[test]
+    fn package_dependencies_propagate_only_stage_output_changes() {
+        let root = tempfile::tempdir().unwrap();
+        let manifest_path = root.path().join("out/state/stages/make.json");
+        fs::create_dir_all(manifest_path.parent().unwrap()).unwrap();
+        let write_manifest = |input_digest: &str, output_digest: &str| {
+            fs::write(
+                &manifest_path,
+                serde_json::to_vec(&serde_json::json!({
+                    "schema_version": performance::STAGE_MANIFEST_SCHEMA_VERSION,
+                    "stage": "make",
+                    "inputs": {
+                        "source_digest": "source",
+                        "configuration_digest": "configuration",
+                        "tool_digest": "tool",
+                        "environment_digest": "environment",
+                        "dependency_digests": {},
+                        "full_digest": input_digest
+                    },
+                    "input_details": {
+                        "schema_version": performance::STAGE_MANIFEST_SCHEMA_VERSION,
+                        "recipe": "test",
+                        "source": {},
+                        "configuration": {},
+                        "environment": {},
+                        "tools": {},
+                        "dependencies": {}
+                    },
+                    "expected_outputs": [],
+                    "output_content_digest": output_digest
+                }))
+                .unwrap(),
+            )
+            .unwrap();
+        };
+
+        write_manifest("input-one", "output-one");
+        let first = package_stage_dependency_digest(root.path(), "make").unwrap();
+        write_manifest("input-two", "output-one");
+        let input_only_change = package_stage_dependency_digest(root.path(), "make").unwrap();
+        assert_eq!(first, input_only_change);
+
+        write_manifest("input-two", "output-two");
+        let output_change = package_stage_dependency_digest(root.path(), "make").unwrap();
+        assert_ne!(first, output_change);
+    }
 
     fn run_ok(cwd: &Path, program: &str, args: &[&str]) {
         let status = Command::new(program)

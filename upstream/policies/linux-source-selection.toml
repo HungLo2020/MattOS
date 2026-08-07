@@ -1,0 +1,62 @@
+schema_version = 1
+component = "linux"
+upstream_commit = "8ba098e6b6ff0db8edf28528d1552be261af30d4"
+scope = "arch"
+retain_arch_root_files = true
+retained_architectures = ["x86", "arm64", "riscv", "um"]
+
+# Global crypto/Kconfig parses these metadata leaves even when their
+# architecture symbols are disabled. No implementation source is retained.
+retained_arch_paths = [
+	"arm/crypto/Kconfig",
+	"powerpc/crypto/Kconfig",
+	"s390/crypto/Kconfig",
+	"sparc/crypto/Kconfig",
+]
+
+# Architecture selection is intentionally limited to arch/. Other Linux
+# subsystems remain complete in this milestone.
+# MattOS builds x86_64 only. These implementation units are selected only by
+# CONFIG_X86_32. Shared headers, IA32 emulation, host tools, UML inputs, boot
+# structure, and Kconfig structure remain intact.
+x86_excluded_paths = [
+	"boot/compressed/head_32.S",
+	"crypto/serpent-sse2-i586-asm_32.S",
+	"crypto/twofish-i586-asm_32.S",
+	"entry/entry_32.S",
+	"kernel/acpi/wakeup_32.S",
+	"kernel/apic/probe_32.c",
+	"kernel/apm_32.c",
+	"kernel/asm-offsets_32.c",
+	"kernel/crash_dump_32.c",
+	"kernel/doublefault_32.c",
+	"kernel/dumpstack_32.c",
+	"kernel/ftrace_32.S",
+	"kernel/head_32.S",
+	"kernel/irq_32.c",
+	"kernel/machine_kexec_32.c",
+	"kernel/process_32.c",
+	"kernel/reboot_fixups_32.c",
+	"kernel/relocate_kernel_32.S",
+	"kernel/vm86_32.c",
+	"kernel/vmcore_info_32.c",
+	"lib/atomic64_32.c",
+	"lib/atomic64_386_32.S",
+	"lib/atomic64_cx8_32.S",
+	"lib/checksum_32.S",
+	"lib/memcpy_32.c",
+	"lib/memmove_32.S",
+	"lib/string_32.c",
+	"lib/strstr_32.c",
+	"lib/usercopy_32.c",
+	"mm/init_32.c",
+	"mm/iomap_32.c",
+	"mm/pgtable_32.c",
+	"pci/mmconfig_32.c",
+	"platform/efi/efi_32.c",
+	"platform/efi/efi_stub_32.S",
+	"platform/scx200/scx200_32.c",
+	"power/hibernate_32.c",
+	"power/hibernate_asm_32.S",
+	"realmode/rm/trampoline_32.S",
+]

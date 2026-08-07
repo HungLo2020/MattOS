@@ -38,6 +38,7 @@ CACHE_ROOT = Path(os.environ.get("MATTOS_PROVENANCE_CACHE", "/tmp/mattos-vendore
 REVISION_RE = re.compile(r"^[0-9a-f]{40}$")
 EXPECTED_LINUX_COMMIT = "8ba098e6b6ff0db8edf28528d1552be261af30d4"
 IMPORTED_DIGEST_ALGORITHM = "sha256-git-ls-tree-no-gitlinks-v1"
+SELECTED_IMPORTED_DIGEST_ALGORITHM = "sha256-selected-git-ls-tree-no-gitlinks-v1"
 
 
 class AuditFailure(RuntimeError):
@@ -132,6 +133,67 @@ def imported_digest(entries: list[tuple[str, str, str, str]]) -> str:
     return digest.hexdigest()
 
 
+def source_selection_retains(policy: dict | None, path: str) -> bool:
+    if policy is None or not path.startswith("arch/"):
+        return True
+    parts = path.split("/")
+    if len(parts) < 3:
+        return policy.get("retain_arch_root_files") is True
+    arch_relative = "/".join(parts[1:])
+    if arch_relative in policy.get("retained_arch_paths", []):
+        return True
+    if parts[1] not in policy["retained_architectures"]:
+        return False
+    if parts[1] != "x86":
+        return True
+    return "/".join(parts[2:]) not in policy.get("x86_excluded_paths", [])
+
+
+def load_source_selection_policy(component: dict, state: dict) -> tuple[dict | None, list[str]]:
+    name = component["name"]
+    policy_name = component.get("source_selection_policy", "none")
+    expected_sha256 = component.get("source_selection_policy_sha256", "none")
+    failures: list[str] = []
+    if state.get("source_selection_policy", "none") != policy_name:
+        failures.append(f"{name}: state source_selection_policy does not match sources.toml")
+    if state.get("source_selection_policy_sha256", "none") != expected_sha256:
+        failures.append(f"{name}: state source_selection_policy_sha256 does not match sources.toml")
+    if policy_name == "none":
+        if expected_sha256 != "none":
+            failures.append(f"{name}: source-selection digest exists without a policy")
+        return None, failures
+
+    policy_path = ROOT / policy_name
+    if not policy_path.is_file():
+        failures.append(f"{name}: source-selection policy is missing: {policy_name}")
+        return None, failures
+    payload = policy_path.read_bytes()
+    actual_sha256 = hashlib.sha256(payload).hexdigest()
+    if actual_sha256 != expected_sha256:
+        failures.append(f"{name}: source-selection policy checksum mismatch")
+    policy = tomllib.loads(payload.decode())
+    if policy.get("schema_version") != 1:
+        failures.append(f"{name}: unsupported source-selection policy schema")
+    if policy.get("component") != name:
+        failures.append(f"{name}: source-selection policy component mismatch")
+    if policy.get("upstream_commit") != component.get("revision"):
+        failures.append(f"{name}: source-selection policy commit mismatch")
+    if policy.get("scope") != "arch":
+        failures.append(f"{name}: source-selection policy exceeds architecture scope")
+    if policy.get("retain_arch_root_files") is not True:
+        failures.append(f"{name}: shared arch root files are not retained")
+    if policy.get("retained_architectures") != ["x86", "arm64", "riscv", "um"]:
+        failures.append(f"{name}: source-selection retained architecture set is unsupported")
+    if policy.get("retained_arch_paths", []) != [
+        "arm/crypto/Kconfig",
+        "powerpc/crypto/Kconfig",
+        "s390/crypto/Kconfig",
+        "sparc/crypto/Kconfig",
+    ]:
+        failures.append(f"{name}: source-selection retained architecture paths are unsupported")
+    return policy, failures
+
+
 def collect_local_leaf_paths(root: Path) -> set[str]:
     leaves: set[str] = set()
     for current, directories, files in os.walk(root, followlinks=False):
@@ -202,6 +264,7 @@ def verify_component_tree(
     tree: str,
     entries: list[tuple[str, str, str, str]],
     gitlink_policies: dict[tuple[str, str], dict],
+    source_selection: dict | None,
 ) -> tuple[int, list[str]]:
     name = component["name"]
     source_root = ROOT / component["path"]
@@ -261,6 +324,12 @@ def verify_component_tree(
     local_paths = collect_local_leaf_paths(source_root)
     nested_git = sorted(path for path in local_paths if path.endswith(".git/"))
     failures.extend(f"nested Git directory {path}" for path in nested_git)
+    stale_excluded = sorted(
+        path
+        for path in local_paths
+        if not path.endswith(".git/") and not source_selection_retains(source_selection, path)
+    )
+    failures.extend(f"stale source-selection-excluded path {path}" for path in stale_excluded)
     extra_paths = sorted(local_paths - expected_non_gitlinks - set(nested_git))
     repository_extras = [Path(component["path"]) / path for path in extra_paths]
     ignored = ignored_repository_paths(repository_extras)
@@ -278,7 +347,10 @@ def verify_component_tree(
         failures.append(
             f"state imported_tree_digest is {state.get('imported_tree_digest')!r}, expected {digest}"
         )
-    if state.get("imported_tree_digest_algorithm") != IMPORTED_DIGEST_ALGORITHM:
+    expected_algorithm = (
+        SELECTED_IMPORTED_DIGEST_ALGORITHM if source_selection is not None else IMPORTED_DIGEST_ALGORITHM
+    )
+    if state.get("imported_tree_digest_algorithm") != expected_algorithm:
         failures.append("state imported-tree digest algorithm is missing or unsupported")
 
     return len(ignored), failures
@@ -491,6 +563,14 @@ def main() -> int:
     if args.emit_state_values:
         for name in sorted(fetched):
             tree, entries = fetched[name]
+            component = components[name]
+            state_path = STATE_DIR / f"{name}.toml"
+            state = load_toml(state_path) if state_path.is_file() else {}
+            source_selection, selection_failures = load_source_selection_policy(component, state)
+            failures.extend(selection_failures)
+            entries = [
+                entry for entry in entries if source_selection_retains(source_selection, entry[3])
+            ]
             print(f"{name}\t{tree}\t{imported_digest(entries)}")
         if failures:
             print("\n".join(f"ERROR: {failure}" for failure in failures), file=sys.stderr)
@@ -510,6 +590,8 @@ def main() -> int:
             failures.append(f"{name}: state record is missing")
             continue
         state = load_toml(state_path)
+        source_selection, selection_failures = load_source_selection_policy(component, state)
+        failures.extend(selection_failures)
         for field, source_field in (("component", "name"), ("repo", "repo"), ("branch", "branch")):
             if state.get(field) != component.get(source_field):
                 failures.append(f"{name}: state {field} does not match sources.toml")
@@ -520,18 +602,23 @@ def main() -> int:
         if state.get("sync_method") != component.get("sync"):
             failures.append(f"{name}: state sync method does not match sources.toml")
         for field in (
+            "source_selection_policy",
+            "source_selection_policy_sha256",
             "intentional_omission_policy",
             "gitlink_policy",
             "patch_manifest",
             "patch_manifest_sha256",
         ):
-            if state.get(field) != component.get(field, "none"):
+            if state.get(field, "none") != component.get(field, "none"):
                 failures.append(f"{name}: state {field} does not match sources.toml")
         if state.get("schema_version") != 2:
             failures.append(f"{name}: state schema_version is not 2")
         tree, entries = fetched[name]
+        entries = [
+            entry for entry in entries if source_selection_retains(source_selection, entry[3])
+        ]
         ignored_count, tree_failures = verify_component_tree(
-            component, state, tree, entries, gitlink_by_path
+            component, state, tree, entries, gitlink_by_path, source_selection
         )
         ignored_total += ignored_count
         failures.extend(f"{name}: {failure}" for failure in tree_failures)

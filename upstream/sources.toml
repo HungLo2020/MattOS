@@ -9,6 +9,8 @@ branch = "master"
 revision = "8ba098e6b6ff0db8edf28528d1552be261af30d4"
 path = "src/kernel/linux"
 sync = "copy"
+source_selection_policy = "upstream/policies/linux-source-selection.toml"
+source_selection_policy_sha256 = "9dd4e6baf71250d492c77664daefb06870061e509c90d61ddd6c683f4f87400a"
 
 [[component]]
 name = "brush"

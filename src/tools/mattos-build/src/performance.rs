@@ -458,13 +458,24 @@ where
     let started_at = Utc::now();
     let timer = Instant::now();
     let evaluation = compute_stage_evaluation(repo_root, spec)?;
-    let inputs = evaluation.inputs;
+    let inputs = evaluation.inputs.clone();
     let manifest_path = stage_manifest_path(repo_root, &spec.id);
     let mut reason;
     let mut reused_digest = None;
 
-    if let Ok(manifest) = read_stage_manifest(repo_root, &spec.id) {
+    if let Ok(mut manifest) = read_stage_manifest(repo_root, &spec.id) {
+        if can_migrate_narrowed_manifest(repo_root, &evaluation, &manifest)? {
+            manifest.inputs = inputs.clone();
+            manifest.input_details = evaluation.details.clone();
+            write_stage_manifest(repo_root, &manifest)?;
+        }
         reason = cache_miss_reason(repo_root, spec, &inputs, &manifest)?;
+        if !reason.is_empty() {
+            let details = changed_input_summary(&manifest.input_details, &evaluation.details);
+            if !details.is_empty() {
+                reason.push_str(&format!("; changed inputs: {details}"));
+            }
+        }
         if reason.is_empty() {
             match validate_reuse() {
                 Ok(()) => {
@@ -598,6 +609,112 @@ fn cache_miss_reason(
         return Ok("output content digest mismatch".to_string());
     }
     Ok(String::new())
+}
+
+fn can_migrate_narrowed_manifest(
+    repo_root: &Path,
+    current: &StageEvaluation,
+    manifest: &StageManifest,
+) -> Result<bool> {
+    if manifest.schema_version != STAGE_MANIFEST_SCHEMA_VERSION
+        || manifest.input_details.schema_version == 0
+        || manifest.inputs.tool_digest != current.inputs.tool_digest
+        || manifest.inputs.environment_digest != current.inputs.environment_digest
+        || !current.inputs.dependency_digests.iter().all(|(stage, digest)| {
+            manifest.inputs.dependency_digests.get(stage) == Some(digest)
+        })
+    {
+        return Ok(false);
+    }
+    let legacy_recipe = format!(
+        "mattos-build-stage:{}:schema={}",
+        manifest.stage, STAGE_MANIFEST_SCHEMA_VERSION
+    );
+    if manifest.input_details.recipe != current.details.recipe
+        && manifest.input_details.recipe != legacy_recipe
+    {
+        return Ok(false);
+    }
+    if !shared_values_match(
+        &manifest.input_details.source,
+        &current.details.source,
+    ) || !shared_values_match(
+        &manifest.input_details.configuration,
+        &current.details.configuration,
+    ) {
+        return Ok(false);
+    }
+    let removed_sources = manifest
+        .input_details
+        .source
+        .keys()
+        .filter(|path| !current.details.source.contains_key(*path))
+        .collect::<Vec<_>>();
+    for added in current
+        .details
+        .source
+        .keys()
+        .filter(|path| !manifest.input_details.source.contains_key(*path))
+    {
+        if !removed_sources
+            .iter()
+            .any(|root| Path::new(added).starts_with(root))
+        {
+            return Ok(false);
+        }
+    }
+    for path in removed_sources {
+        let current_digest = digest_source_inputs(repo_root, &[PathBuf::from(path)])?;
+        if manifest.input_details.source.get(path) != Some(&current_digest) {
+            return Ok(false);
+        }
+    }
+    Ok(true)
+}
+
+fn shared_values_match<T: PartialEq>(
+    stored: &BTreeMap<String, T>,
+    current: &BTreeMap<String, T>,
+) -> bool {
+    stored
+        .iter()
+        .all(|(key, value)| current.get(key).is_none_or(|current| current == value))
+}
+
+fn changed_input_summary(stored: &StageInputDetails, current: &StageInputDetails) -> String {
+    let mut changes = Vec::new();
+    if stored.recipe != current.recipe {
+        changes.push("recipe".to_string());
+    }
+    collect_changed_keys("source", &stored.source, &current.source, &mut changes);
+    collect_changed_keys(
+        "configuration",
+        &stored.configuration,
+        &current.configuration,
+        &mut changes,
+    );
+    collect_changed_keys("environment", &stored.environment, &current.environment, &mut changes);
+    collect_changed_keys("tool", &stored.tools, &current.tools, &mut changes);
+    collect_changed_keys(
+        "dependency",
+        &stored.dependencies,
+        &current.dependencies,
+        &mut changes,
+    );
+    changes.join(", ")
+}
+
+fn collect_changed_keys<T: PartialEq>(
+    group: &str,
+    stored: &BTreeMap<String, T>,
+    current: &BTreeMap<String, T>,
+    changes: &mut Vec<String>,
+) {
+    for key in stored.keys().chain(current.keys()).collect::<BTreeSet<_>>() {
+        if stored.get(key) != current.get(key) {
+            changes.push(format!("{group}:{key}"));
+        }
+    }
 }
 
 struct StageEvaluation {
@@ -1517,6 +1634,69 @@ mod tests {
             6,
             "configure input changes invalidate the stage"
         );
+    }
+
+    #[test]
+    fn changed_input_summary_names_concrete_inputs() {
+        let mut stored = StageInputDetails {
+            recipe: "recipe-1".to_string(),
+            ..StageInputDetails::default()
+        };
+        stored
+            .source
+            .insert("src/component".to_string(), "old".to_string());
+        let mut current = stored.clone();
+        current.recipe = "recipe-2".to_string();
+        current
+            .source
+            .insert("src/component".to_string(), "new".to_string());
+        current.configuration.insert(
+            "component/config.toml".to_string(),
+            "digest".to_string(),
+        );
+
+        assert_eq!(
+            changed_input_summary(&stored, &current),
+            "recipe, source:src/component, configuration:component/config.toml"
+        );
+    }
+
+    #[test]
+    fn narrowed_manifest_migration_rejects_changed_removed_source_root() {
+        let root = tempdir().unwrap();
+        fs::create_dir_all(root.path().join("tree/subdir")).unwrap();
+        fs::write(root.path().join("tree/subdir/input"), "old").unwrap();
+        let old_spec = StageSpec {
+            id: "migration".to_string(),
+            source_inputs: vec!["tree".into()],
+            configuration_inputs: Vec::new(),
+            tools: Vec::new(),
+            dependencies: Vec::new(),
+            outputs: Vec::new(),
+            recipe: format!(
+                "mattos-build-stage:migration:schema={STAGE_MANIFEST_SCHEMA_VERSION}"
+            ),
+        };
+        let old = compute_stage_evaluation(root.path(), &old_spec).unwrap();
+        let manifest = StageManifest {
+            schema_version: STAGE_MANIFEST_SCHEMA_VERSION,
+            stage: "migration".to_string(),
+            inputs: old.inputs,
+            input_details: old.details,
+            expected_outputs: Vec::new(),
+            output_content_digest: String::new(),
+        };
+        fs::write(root.path().join("tree/subdir/input"), "new").unwrap();
+        let new_spec = StageSpec {
+            source_inputs: vec!["tree/subdir".into()],
+            recipe: format!(
+                "mattos-build-stage:migration:recipe=1:schema={STAGE_MANIFEST_SCHEMA_VERSION}"
+            ),
+            ..old_spec
+        };
+        let current = compute_stage_evaluation(root.path(), &new_spec).unwrap();
+
+        assert!(!can_migrate_narrowed_manifest(root.path(), &current, &manifest).unwrap());
     }
 
     #[test]

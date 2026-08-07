@@ -22,6 +22,8 @@ const GRUB_SYSTEMD_RDINIT: &str = "rdinit=/usr/lib/systemd/systemd";
 const GRUB_RESCUE_RDINIT: &str = "rdinit=/usr/libexec/mattos/rescue-init";
 const SAFE_IMPORT_PLACEHOLDER_FILES: &[&str] = &[".gitkeep", "README.md"];
 const IMPORTED_TREE_DIGEST_ALGORITHM: &str = "sha256-git-ls-tree-no-gitlinks-v1";
+const SELECTED_IMPORTED_TREE_DIGEST_ALGORITHM: &str =
+    "sha256-selected-git-ls-tree-no-gitlinks-v1";
 const USERLAND_INVENTORY_PATH: &str = "usr/share/mattos/userland-commands.txt";
 const INITRAMFS_ARCHIVE_OWNER: &str = "0:0";
 
@@ -616,6 +618,51 @@ struct ComponentDef {
     sync: String,
 }
 
+fn none_policy() -> String {
+    "none".to_string()
+}
+
+#[derive(Debug, Deserialize, Clone)]
+struct SourceSelectionPolicy {
+    schema_version: u32,
+    component: String,
+    upstream_commit: String,
+    scope: String,
+    retain_arch_root_files: bool,
+    retained_architectures: BTreeSet<String>,
+    #[serde(default)]
+    retained_arch_paths: BTreeSet<String>,
+    #[serde(default)]
+    x86_excluded_paths: BTreeSet<String>,
+}
+
+impl SourceSelectionPolicy {
+    fn retains(&self, path: &str) -> bool {
+        let mut parts = path.split('/');
+        if parts.next() != Some("arch") {
+            return true;
+        }
+        let Some(architecture) = parts.next() else {
+            return true;
+        };
+        if parts.next().is_none() {
+            return self.retain_arch_root_files;
+        }
+        let arch_relative = path.strip_prefix("arch/").unwrap_or(path);
+        if self.retained_arch_paths.contains(arch_relative) {
+            return true;
+        }
+        if !self.retained_architectures.contains(architecture) {
+            return false;
+        }
+        if architecture != "x86" {
+            return true;
+        }
+        let x86_relative = path.strip_prefix("arch/x86/").unwrap_or(path);
+        !self.x86_excluded_paths.contains(x86_relative)
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct SyncState {
     schema_version: u32,
@@ -629,6 +676,10 @@ struct SyncState {
     upstream_tree: String,
     imported_tree_digest_algorithm: String,
     imported_tree_digest: String,
+    #[serde(default = "none_policy")]
+    source_selection_policy: String,
+    #[serde(default = "none_policy")]
+    source_selection_policy_sha256: String,
     intentional_omission_policy: String,
     gitlink_policy: String,
     patch_manifest: String,
@@ -1666,12 +1717,16 @@ fn initial_import_component(
 
     let tmp = prepare_tmp_clone(repo_root, comp)?;
     let commit = run_cmd_capture(&tmp, "git", &["rev-parse", "HEAD"])?;
-    let (upstream_tree, imported_tree_digest) = imported_tree_identity(&tmp)?;
+    let (source_selection, source_selection_policy, source_selection_policy_sha256) =
+        load_source_selection_policy(repo_root, comp)?;
+    let (upstream_tree, imported_tree_digest) =
+        imported_tree_identity(&tmp, source_selection.as_ref())?;
     let (intentional_omission_policy, gitlink_policy, patch_manifest, patch_manifest_sha256) =
         component_provenance_policy(repo_root, &comp.name)?;
 
     clear_directory_contents(destination)?;
     copy_tree_excluding_dotgit(&tmp, destination)?;
+    apply_source_selection(destination, source_selection.as_ref())?;
 
     let state = SyncState {
         schema_version: 2,
@@ -1683,15 +1738,22 @@ fn initial_import_component(
         sync_method: comp.sync.clone(),
         destination_path: comp.path.clone(),
         upstream_tree,
-        imported_tree_digest_algorithm: IMPORTED_TREE_DIGEST_ALGORITHM.to_string(),
+        imported_tree_digest_algorithm: if source_selection.is_some() {
+            SELECTED_IMPORTED_TREE_DIGEST_ALGORITHM
+        } else {
+            IMPORTED_TREE_DIGEST_ALGORITHM
+        }
+        .to_string(),
         imported_tree_digest,
+        source_selection_policy,
+        source_selection_policy_sha256,
         intentional_omission_policy,
         gitlink_policy,
         patch_manifest,
         patch_manifest_sha256,
     };
     write_sync_state(repo_root, &comp.name, &state)?;
-    force_record_imported_component(repo_root, comp)?;
+    record_imported_component_if_enabled(repo_root, comp)?;
 
     fs::remove_dir_all(&tmp)
         .with_context(|| format!("failed to remove temporary directory: {}", tmp.display()))?;
@@ -1736,11 +1798,48 @@ fn update_component(
 ) -> Result<()> {
     let tmp_upstream = prepare_tmp_clone(repo_root, comp)?;
     let new_commit = run_cmd_capture(&tmp_upstream, "git", &["rev-parse", "HEAD"])?;
-    let (upstream_tree, imported_tree_digest) = imported_tree_identity(&tmp_upstream)?;
+    let (source_selection, source_selection_policy, source_selection_policy_sha256) =
+        load_source_selection_policy(repo_root, comp)?;
+    let (upstream_tree, imported_tree_digest) =
+        imported_tree_identity(&tmp_upstream, source_selection.as_ref())?;
     let (intentional_omission_policy, gitlink_policy, patch_manifest, patch_manifest_sha256) =
         component_provenance_policy(repo_root, &comp.name)?;
 
     let old_commit = prior_state.imported_commit.trim();
+    if new_commit.trim() == old_commit {
+        copy_tree_excluding_dotgit(&tmp_upstream, destination)?;
+        apply_source_selection(destination, source_selection.as_ref())?;
+        let state = SyncState {
+            schema_version: 2,
+            component: comp.name.clone(),
+            repo: comp.repo.clone(),
+            branch: comp.branch.clone(),
+            imported_commit: new_commit.trim().to_owned(),
+            imported_at_utc: Utc::now().to_rfc3339(),
+            sync_method: comp.sync.clone(),
+            destination_path: comp.path.clone(),
+            upstream_tree,
+            imported_tree_digest_algorithm: if source_selection.is_some() {
+                SELECTED_IMPORTED_TREE_DIGEST_ALGORITHM
+            } else {
+                IMPORTED_TREE_DIGEST_ALGORITHM
+            }
+            .to_string(),
+            imported_tree_digest,
+            source_selection_policy,
+            source_selection_policy_sha256,
+            intentional_omission_policy,
+            gitlink_policy,
+            patch_manifest,
+            patch_manifest_sha256,
+        };
+        write_sync_state(repo_root, &comp.name, &state)?;
+        record_imported_component_if_enabled(repo_root, comp)?;
+        fs::remove_dir_all(&tmp_upstream)
+            .with_context(|| format!("failed to remove {}", tmp_upstream.display()))?;
+        println!("Synchronized {} at unchanged commit {}", comp.name, state.imported_commit);
+        return Ok(());
+    }
     run_cmd(
         &tmp_upstream,
         "git",
@@ -1780,19 +1879,22 @@ fn update_component(
     clear_directory_contents(&tmp_merge)?;
     copy_tree_excluding_dotgit(destination, &tmp_merge)?;
     run_cmd(&tmp_merge, "git", &["add", "-A"])?;
-    run_cmd(
-        &tmp_merge,
-        "git",
-        &[
-            "-c",
-            "user.name=MattOS Sync Bot",
-            "-c",
-            "user.email=syncbot@example.invalid",
-            "commit",
-            "-m",
-            "MattOS local snapshot before upstream sync",
-        ],
-    )?;
+    let local_status = run_cmd_capture(&tmp_merge, "git", &["status", "--porcelain"])?;
+    if !local_status.is_empty() {
+        run_cmd(
+            &tmp_merge,
+            "git",
+            &[
+                "-c",
+                "user.name=MattOS Sync Bot",
+                "-c",
+                "user.email=syncbot@example.invalid",
+                "commit",
+                "-m",
+                "MattOS local snapshot before upstream sync",
+            ],
+        )?;
+    }
 
     let merge_status = run_cmd_status(
         &tmp_merge,
@@ -1812,6 +1914,7 @@ fn update_component(
 
     clear_directory_contents(destination)?;
     copy_tree_excluding_dotgit(&tmp_merge, destination)?;
+    apply_source_selection(destination, source_selection.as_ref())?;
 
     fs::remove_dir_all(&tmp_upstream)
         .with_context(|| format!("failed to remove {}", tmp_upstream.display()))?;
@@ -1836,15 +1939,22 @@ fn update_component(
         sync_method: comp.sync.clone(),
         destination_path: comp.path.clone(),
         upstream_tree,
-        imported_tree_digest_algorithm: IMPORTED_TREE_DIGEST_ALGORITHM.to_string(),
+        imported_tree_digest_algorithm: if source_selection.is_some() {
+            SELECTED_IMPORTED_TREE_DIGEST_ALGORITHM
+        } else {
+            IMPORTED_TREE_DIGEST_ALGORITHM
+        }
+        .to_string(),
         imported_tree_digest,
+        source_selection_policy,
+        source_selection_policy_sha256,
         intentional_omission_policy,
         gitlink_policy,
         patch_manifest,
         patch_manifest_sha256,
     };
     write_sync_state(repo_root, &comp.name, &state)?;
-    force_record_imported_component(repo_root, comp)?;
+    record_imported_component_if_enabled(repo_root, comp)?;
 
     println!("Updated {} to commit {}", comp.name, state.imported_commit);
     Ok(())
@@ -1854,7 +1964,10 @@ fn update_component(
 /// canonical recursive `git ls-tree` records that have physical vendored-tree
 /// representations. Gitlinks are excluded from the imported-tree digest and
 /// are instead required to have an explicit replacement/exclusion policy.
-fn imported_tree_identity(source_git: &Path) -> Result<(String, String)> {
+fn imported_tree_identity(
+    source_git: &Path,
+    source_selection: Option<&SourceSelectionPolicy>,
+) -> Result<(String, String)> {
     let upstream_tree = run_cmd_capture(source_git, "git", &["rev-parse", "HEAD^{tree}"])?
         .trim()
         .to_string();
@@ -1867,10 +1980,130 @@ fn imported_tree_identity(source_git: &Path) -> Result<(String, String)> {
         if record.starts_with(b"160000 ") {
             continue;
         }
+        let Some(tab) = record.iter().position(|byte| *byte == b'\t') else {
+            bail!("malformed git ls-tree record in {}", source_git.display());
+        };
+        let path = String::from_utf8_lossy(&record[tab + 1..]);
+        if source_selection.is_some_and(|policy| !policy.retains(&path)) {
+            continue;
+        }
         digest.update(record);
         digest.update([0]);
     }
     Ok((upstream_tree, format!("{:x}", digest.finalize())))
+}
+
+fn load_source_selection_policy(
+    repo_root: &Path,
+    comp: &ComponentDef,
+) -> Result<(Option<SourceSelectionPolicy>, String, String)> {
+    let (policy_name, expected_sha256) =
+        component_source_selection_metadata(repo_root, &comp.name)?;
+    if policy_name == "none" {
+        if expected_sha256 != "none" {
+            bail!("{} records a source-selection digest without a policy", comp.name);
+        }
+        return Ok((None, policy_name, expected_sha256));
+    }
+    let policy_path = resolve_component_destination(repo_root, &policy_name)?;
+    let payload = fs::read(&policy_path)
+        .with_context(|| format!("failed to read source-selection policy: {}", policy_path.display()))?;
+    let actual_sha256 = format!("{:x}", Sha256Hasher::digest(&payload));
+    if actual_sha256 != expected_sha256 {
+        bail!(
+            "{} source-selection policy checksum mismatch: expected {}, got {}",
+            comp.name,
+            expected_sha256,
+            actual_sha256
+        );
+    }
+    let policy: SourceSelectionPolicy = toml::from_str(
+        std::str::from_utf8(&payload).context("source-selection policy is not UTF-8")?,
+    )
+    .with_context(|| format!("failed to parse {}", policy_path.display()))?;
+    if policy.schema_version != 1
+        || policy.component != comp.name
+        || policy.scope != "arch"
+        || comp.revision.as_deref() != Some(policy.upstream_commit.as_str())
+    {
+        bail!("{} source-selection policy metadata does not match sources.toml", comp.name);
+    }
+    Ok((Some(policy), policy_name, expected_sha256))
+}
+
+fn component_source_selection_metadata(
+    repo_root: &Path,
+    component_name: &str,
+) -> Result<(String, String)> {
+    let source_path = repo_root.join("upstream/sources.toml");
+    if !source_path.is_file() {
+        return Ok(("none".to_string(), "none".to_string()));
+    }
+    let source_text = fs::read_to_string(&source_path)
+        .with_context(|| format!("failed to read {}", source_path.display()))?;
+    let document: toml::Value = toml::from_str(&source_text)
+        .with_context(|| format!("failed to parse {}", source_path.display()))?;
+    let component = document
+        .get("component")
+        .and_then(toml::Value::as_array)
+        .and_then(|components| {
+            components.iter().find(|value| {
+                value.get("name").and_then(toml::Value::as_str) == Some(component_name)
+            })
+        });
+    let field = |name: &str| {
+        component
+            .and_then(|value| value.get(name))
+            .and_then(toml::Value::as_str)
+            .unwrap_or("none")
+            .to_string()
+    };
+    Ok((
+        field("source_selection_policy"),
+        field("source_selection_policy_sha256"),
+    ))
+}
+
+fn apply_source_selection(
+    destination: &Path,
+    source_selection: Option<&SourceSelectionPolicy>,
+) -> Result<()> {
+    let Some(policy) = source_selection else {
+        return Ok(());
+    };
+    let arch_root = destination.join("arch");
+    if !arch_root.is_dir() {
+        bail!("source-selection policy requires {}", arch_root.display());
+    }
+    prune_source_selection_tree(destination, &arch_root, policy)?;
+    Ok(())
+}
+
+fn prune_source_selection_tree(
+    destination: &Path,
+    directory: &Path,
+    policy: &SourceSelectionPolicy,
+) -> Result<()> {
+    for entry in fs::read_dir(directory)? {
+        let entry = entry?;
+        let path = entry.path();
+        let metadata = fs::symlink_metadata(&path)?;
+        if metadata.is_dir() && !metadata.file_type().is_symlink() {
+            prune_source_selection_tree(destination, &path, policy)?;
+            if fs::read_dir(&path)?.next().is_none() {
+                fs::remove_dir(&path)?;
+            }
+            continue;
+        }
+        let relative = path
+            .strip_prefix(destination)
+            .expect("source-selection path is inside destination")
+            .to_string_lossy();
+        if !policy.retains(&relative) {
+            fs::remove_file(path)?;
+        }
+    }
+    Ok(())
 }
 
 fn component_provenance_policy(
@@ -1927,6 +2160,14 @@ fn component_provenance_policy(
 fn force_record_imported_component(repo_root: &Path, comp: &ComponentDef) -> Result<()> {
     let state_path = format!("upstream/state/{}.toml", comp.name);
     run_cmd(repo_root, "git", &["add", "-f", "--", &comp.path, &state_path])
+}
+
+fn record_imported_component_if_enabled(repo_root: &Path, comp: &ComponentDef) -> Result<()> {
+    if std::env::var_os("MATTOS_IMPORT_NO_INDEX").is_some() {
+        println!("Leaving {} and its state unstaged by request", comp.name);
+        return Ok(());
+    }
+    force_record_imported_component(repo_root, comp)
 }
 
 fn validate_component_name(name: &str) -> Result<()> {
@@ -2059,10 +2300,17 @@ fn copy_tree_excluding_dotgit(src: &Path, dst: &Path) -> Result<()> {
 
         let to = dst.join(&name);
         if metadata.file_type().is_symlink() {
+            remove_path_if_exists(&to)?;
             copy_symlink(&from, &to)?;
         } else if metadata.is_dir() {
+            if to.symlink_metadata().is_ok() && !to.is_dir() {
+                remove_path_if_exists(&to)?;
+            }
             copy_tree_excluding_dotgit(&from, &to)?;
         } else {
+            if to.symlink_metadata().is_ok() && !to.is_file() {
+                remove_path_if_exists(&to)?;
+            }
             fs::copy(&from, &to).with_context(|| {
                 format!("failed to copy {} to {}", from.display(), to.display())
             })?;
@@ -2298,9 +2546,6 @@ fn copy_tree_excluding_package_owned(
 fn copy_symlink(from: &Path, to: &Path) -> Result<()> {
     use std::os::unix::fs::symlink;
 
-    if to.exists() {
-        fs::remove_file(to).with_context(|| format!("failed to remove {}", to.display()))?;
-    }
     let target = fs::read_link(from)
         .with_context(|| format!("failed to read symlink {}", from.display()))?;
     symlink(&target, to).with_context(|| format!("failed to create symlink {}", to.display()))?;
@@ -2457,9 +2702,9 @@ fn build_stage_id(stage: BuildStage) -> &'static str {
 
 fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
     let id = build_stage_id(stage);
-    let sources: &[&str] = match stage {
+    let base_sources: &[&str] = match stage {
         BuildStage::Kernel => &["src/kernel/linux", "src/kernel/config/x86_64_mattos.config"],
-        BuildStage::Glibc => &["src/system/libc/glibc", "src/kernel/linux"],
+        BuildStage::Glibc => &["src/system/libc/glibc"],
         BuildStage::GccRuntime | BuildStage::GccToolchain => &["src/toolchain/gcc"],
         BuildStage::Binutils => &["src/toolchain/binutils"],
         BuildStage::Make => &["src/build-tools/make", "src/build-support/gnulib"],
@@ -2482,7 +2727,6 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
             "src/userland/tar",
             "src/build-support/paxutils",
             "src/build-support/gnulib",
-            "upstream/policies/gitlinks.toml",
         ],
         BuildStage::Acl => &["src/system/libraries/acl"],
         BuildStage::Zlib => &["src/system/libraries/zlib"],
@@ -2491,15 +2735,11 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::Xz => &["src/system/libraries/xz"],
         BuildStage::Xxhash => &["src/system/libraries/xxhash"],
         BuildStage::Zstd => &["src/system/libraries/zstd"],
-        BuildStage::Openssl => &[
-            "src/system/libraries/openssl",
-            "upstream/policies/gitlinks.toml",
-        ],
+        BuildStage::Openssl => &["src/system/libraries/openssl"],
         BuildStage::Elfutils => &["src/system/libraries/elfutils"],
         BuildStage::Pcre2 => &[
             "src/system/libraries/pcre2",
             "src/build-support/sljit",
-            "upstream/policies/gitlinks.toml",
         ],
         BuildStage::Selinux => &["src/system/security/selinux"],
         BuildStage::Libxcrypt => &["src/system/libraries/libxcrypt"],
@@ -2522,6 +2762,10 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::Iso => &[AUTHORITATIVE_GRUB_CFG],
         BuildStage::All => &[],
     };
+    let mut sources = base_sources.to_vec();
+    if stage == BuildStage::Glibc {
+        sources.extend(linux_x86_uapi_inputs());
+    }
     let outputs: Vec<PathBuf> = match stage {
         BuildStage::Kernel => vec!["out/build/linux/build/arch/x86/boot/bzImage".into()],
         BuildStage::Glibc => vec![
@@ -2599,11 +2843,11 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         id: id.to_string(),
         source_inputs: sources.iter().map(PathBuf::from).collect(),
         configuration_inputs: {
-            let mut inputs = vec![
-                "src/tools/mattos-build/src/main.rs".into(),
-                "src/tools/mattos-build/Cargo.toml".into(),
-                "Cargo.lock".into(),
-            ];
+            let mut inputs = Vec::new();
+            if is_rust_build_stage(stage) {
+                inputs.push("Cargo.toml".into());
+                inputs.push("Cargo.lock".into());
+            }
             match stage {
                 BuildStage::Rootfs => {
                     inputs.extend(rootfs_configuration_inputs());
@@ -2623,10 +2867,45 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
             .collect(),
         outputs,
         recipe: format!(
-            "mattos-build-stage:{id}:schema={}",
+            "mattos-build-stage:{id}:recipe={}:schema={}",
+            stage_recipe_revision(stage),
             performance::STAGE_MANIFEST_SCHEMA_VERSION
         ),
     }
+}
+
+fn is_rust_build_stage(stage: BuildStage) -> bool {
+    matches!(
+        stage,
+        BuildStage::Brush
+            | BuildStage::Coreutils
+            | BuildStage::Grep
+            | BuildStage::Sed
+            | BuildStage::Findutils
+            | BuildStage::Diffutils
+            | BuildStage::SudoRs
+            | BuildStage::Init
+    )
+}
+
+fn stage_recipe_revision(stage: BuildStage) -> u32 {
+    match stage {
+        BuildStage::All => 0,
+        _ => 1,
+    }
+}
+
+fn linux_x86_uapi_inputs() -> Vec<&'static str> {
+    vec![
+        "src/kernel/linux/Makefile",
+        "src/kernel/linux/Kbuild",
+        "src/kernel/linux/scripts",
+        "src/kernel/linux/include/uapi",
+        "src/kernel/linux/include/asm-generic",
+        "src/kernel/linux/arch/x86/Makefile",
+        "src/kernel/linux/arch/x86/include/uapi",
+        "src/kernel/linux/arch/x86/entry/syscalls",
+    ]
 }
 
 fn rootfs_configuration_inputs() -> Vec<PathBuf> {
@@ -2662,7 +2941,7 @@ fn stage_output_directory(stage: BuildStage) -> &'static str {
 fn build_stage_dependencies(stage: BuildStage) -> &'static [&'static str] {
     match stage {
         BuildStage::Kernel => &[],
-        BuildStage::Glibc => &["linux"],
+        BuildStage::Glibc => &[],
         BuildStage::GccRuntime => &["glibc", "linux-headers"],
         BuildStage::Binutils => &["gcc-runtime"],
         BuildStage::GccToolchain => &["binutils", "gcc-runtime"],
@@ -2746,10 +3025,10 @@ fn build_stage_dependencies(stage: BuildStage) -> &'static [&'static str] {
 fn linux_headers_stage_spec() -> performance::StageSpec {
     performance::StageSpec {
         id: "linux-headers".to_string(),
-        source_inputs: vec!["src/kernel/linux".into()],
-        configuration_inputs: vec!["src/tools/mattos-build/src/main.rs".into()],
+        source_inputs: linux_x86_uapi_inputs().into_iter().map(PathBuf::from).collect(),
+        configuration_inputs: Vec::new(),
         tools: vec!["make".to_string(), "gcc".to_string()],
-        dependencies: vec!["linux".to_string(), "glibc".to_string()],
+        dependencies: vec!["glibc".to_string()],
         outputs: vec![
             "out/build/glibc/linux-headers".into(),
             "out/build/glibc/linux-headers-inventory.txt".into(),
@@ -2762,7 +3041,7 @@ fn formal_sysroot_stage_spec() -> performance::StageSpec {
     performance::StageSpec {
         id: "formal-sysroot".to_string(),
         source_inputs: Vec::new(),
-        configuration_inputs: vec!["src/tools/mattos-build/src/main.rs".into()],
+        configuration_inputs: Vec::new(),
         tools: vec!["gcc".to_string(), "ld".to_string()],
         dependencies: vec![
             "linux-headers".to_string(),
@@ -10768,6 +11047,81 @@ mod tests {
         }
     }
 
+    #[test]
+    fn linux_projection_metadata_does_not_invalidate_unrelated_builds() {
+        for stage in [
+            BuildStage::Glibc,
+            BuildStage::GccRuntime,
+            BuildStage::Binutils,
+            BuildStage::GccToolchain,
+            BuildStage::Make,
+            BuildStage::Coreutils,
+        ] {
+            let spec = build_stage_spec(stage);
+            assert!(!spec.source_inputs.iter().any(|path| {
+                path == Path::new("upstream/policies/linux-source-selection.toml")
+                    || path == Path::new("upstream/state/linux.toml")
+            }));
+            assert!(!spec.configuration_inputs.iter().any(|path| {
+                path == Path::new("upstream/policies/linux-source-selection.toml")
+                    || path == Path::new("upstream/state/linux.toml")
+            }));
+        }
+    }
+
+    #[test]
+    fn provenance_policies_are_not_component_build_inputs() {
+        for stage in [BuildStage::Tar, BuildStage::Openssl, BuildStage::Pcre2] {
+            let spec = build_stage_spec(stage);
+            assert!(!spec
+                .source_inputs
+                .contains(&PathBuf::from("upstream/policies/gitlinks.toml")));
+            assert!(!spec
+                .configuration_inputs
+                .contains(&PathBuf::from("upstream/policies/gitlinks.toml")));
+        }
+    }
+
+    #[test]
+    fn native_and_rust_stages_use_only_relevant_workspace_metadata() {
+        for stage in [
+            BuildStage::Kernel,
+            BuildStage::Glibc,
+            BuildStage::GccRuntime,
+            BuildStage::Binutils,
+            BuildStage::GccToolchain,
+            BuildStage::Make,
+        ] {
+            let spec = build_stage_spec(stage);
+            assert!(!spec.configuration_inputs.contains(&PathBuf::from("Cargo.toml")));
+            assert!(!spec.configuration_inputs.contains(&PathBuf::from("Cargo.lock")));
+        }
+        for stage in [BuildStage::Brush, BuildStage::Coreutils, BuildStage::Grep] {
+            let spec = build_stage_spec(stage);
+            assert!(spec.configuration_inputs.contains(&PathBuf::from("Cargo.toml")));
+            assert!(spec.configuration_inputs.contains(&PathBuf::from("Cargo.lock")));
+        }
+    }
+
+    #[test]
+    fn linux_consumers_track_uapi_inputs_without_kernel_image_dependency() {
+        let glibc = build_stage_spec(BuildStage::Glibc);
+        assert!(!glibc.dependencies.contains(&"linux".to_string()));
+        for input in linux_x86_uapi_inputs() {
+            assert!(glibc.source_inputs.contains(&PathBuf::from(input)));
+        }
+
+        let headers = linux_headers_stage_spec();
+        assert_eq!(headers.dependencies, vec!["glibc"]);
+        assert_eq!(
+            headers.source_inputs,
+            linux_x86_uapi_inputs()
+                .into_iter()
+                .map(PathBuf::from)
+                .collect::<Vec<_>>()
+        );
+    }
+
     fn run_ok(cwd: &Path, program: &str, args: &[&str]) {
         let status = Command::new(program)
             .args(args)
@@ -10852,6 +11206,8 @@ mod tests {
             upstream_tree: "0123456789012345678901234567890123456789".to_string(),
             imported_tree_digest_algorithm: IMPORTED_TREE_DIGEST_ALGORITHM.to_string(),
             imported_tree_digest: "0".repeat(64),
+            source_selection_policy: "none".to_string(),
+            source_selection_policy_sha256: "none".to_string(),
             intentional_omission_policy: "none".to_string(),
             gitlink_policy: "none".to_string(),
             patch_manifest: "none".to_string(),
@@ -11190,6 +11546,139 @@ mod tests {
 
     #[cfg(unix)]
     #[test]
+    fn linux_source_selection_removes_stale_architectures_and_preserves_retained_files() {
+        use std::os::unix::fs::{PermissionsExt, symlink};
+
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let root = tmp.path().join("linux");
+        write(&root.join("drivers/example.c"), "outside arch\n");
+        write(&root.join("arch/Kconfig"), "shared architecture config\n");
+        write(&root.join("arch/x86/kernel/shared.c"), "shared x86\n");
+        write(&root.join("arch/x86/kernel/entry_32.S"), "32-bit only\n");
+        write(&root.join("arch/arm64/kernel/head.S"), "arm64\n");
+        write(&root.join("arch/riscv/kernel/head.S"), "riscv\n");
+        write(&root.join("arch/um/kernel/main.c"), "um\n");
+        write(&root.join("arch/arm/crypto/Kconfig"), "shared crypto config\n");
+        write(&root.join("arch/arm/kernel/head.S"), "excluded architecture\n");
+        fs::set_permissions(
+            root.join("arch/x86/kernel/shared.c"),
+            fs::Permissions::from_mode(0o755),
+        )
+        .expect("set executable mode");
+        symlink("shared.c", root.join("arch/x86/kernel/shared-link"))
+            .expect("create retained symlink");
+
+        let policy = SourceSelectionPolicy {
+            schema_version: 1,
+            component: "linux".to_string(),
+            upstream_commit: "0".repeat(40),
+            scope: "arch".to_string(),
+            retain_arch_root_files: true,
+            retained_architectures: ["x86", "arm64", "riscv", "um"]
+                .into_iter()
+                .map(str::to_string)
+                .collect(),
+            retained_arch_paths: ["arm/crypto/Kconfig"]
+                .into_iter()
+                .map(str::to_string)
+                .collect(),
+            x86_excluded_paths: ["kernel/entry_32.S"]
+                .into_iter()
+                .map(str::to_string)
+                .collect(),
+        };
+
+        apply_source_selection(&root, Some(&policy)).expect("apply projection");
+
+        assert!(root.join("drivers/example.c").is_file());
+        assert!(root.join("arch/Kconfig").is_file());
+        assert!(root.join("arch/x86/kernel/shared.c").is_file());
+        assert!(root.join("arch/arm64/kernel/head.S").is_file());
+        assert!(root.join("arch/riscv/kernel/head.S").is_file());
+        assert!(root.join("arch/um/kernel/main.c").is_file());
+        assert!(root.join("arch/arm/crypto/Kconfig").is_file());
+        assert!(!root.join("arch/arm/kernel").exists());
+        assert!(!root.join("arch/x86/kernel/entry_32.S").exists());
+        assert_eq!(
+            fs::metadata(root.join("arch/x86/kernel/shared.c"))
+                .expect("retained metadata")
+                .permissions()
+                .mode()
+                & 0o111,
+            0o111
+        );
+        assert_eq!(
+            fs::read_link(root.join("arch/x86/kernel/shared-link"))
+                .expect("retained symlink"),
+            Path::new("shared.c")
+        );
+    }
+
+    #[test]
+    fn importer_reapplies_linux_source_selection_at_unchanged_pin() {
+        let upstream = tempfile::tempdir().expect("upstream tempdir");
+        let upstream_root = upstream.path();
+        init_git_repo(upstream_root);
+        write(&upstream_root.join("drivers/example.c"), "outside arch\n");
+        write(&upstream_root.join("arch/x86/Kconfig"), "retained x86\n");
+        write(&upstream_root.join("arch/arm/Kconfig"), "excluded arm\n");
+        run_ok(upstream_root, "git", &["add", "."]);
+        run_ok(upstream_root, "git", &["commit", "-m", "pinned linux"]);
+        let revision = run_cmd_capture(upstream_root, "git", &["rev-parse", "HEAD"])
+            .expect("upstream revision")
+            .trim()
+            .to_string();
+
+        let workspace = tempfile::tempdir().expect("workspace tempdir");
+        let root = workspace.path();
+        init_git_repo(root);
+        write(&root.join("README.md"), "workspace\n");
+        run_ok(root, "git", &["add", "README.md"]);
+        run_ok(root, "git", &["commit", "-m", "workspace"]);
+        let policy = format!(
+            "schema_version = 1\ncomponent = \"linux\"\nupstream_commit = \"{revision}\"\nscope = \"arch\"\nretain_arch_root_files = true\nretained_architectures = [\"x86\", \"arm64\", \"riscv\", \"um\"]\nx86_excluded_paths = [\"kernel/entry_32.S\"]\n"
+        );
+        let policy_path = root.join("upstream/policies/linux-source-selection.toml");
+        write(&policy_path, &policy);
+        let policy_sha256 = format!("{:x}", Sha256Hasher::digest(policy.as_bytes()));
+        write(
+            &root.join("upstream/sources.toml"),
+            &format!(
+                "[[component]]\nname = \"linux\"\nrepo = \"{}\"\nbranch = \"main\"\nrevision = \"{revision}\"\npath = \"src/kernel/linux\"\nsync = \"copy\"\nsource_selection_policy = \"upstream/policies/linux-source-selection.toml\"\nsource_selection_policy_sha256 = \"{policy_sha256}\"\n",
+                upstream_root.display()
+            ),
+        );
+        let comp = ComponentDef {
+            name: "linux".to_string(),
+            repo: upstream_root.to_string_lossy().to_string(),
+            branch: "main".to_string(),
+            revision: Some(revision),
+            path: "src/kernel/linux".to_string(),
+            sync: "copy".to_string(),
+        };
+
+        import_component(root, &comp, false).expect("initial projected import");
+        let imported = root.join("src/kernel/linux");
+        assert!(imported.join("arch/x86/Kconfig").is_file());
+        assert!(imported.join("drivers/example.c").is_file());
+        assert!(!imported.join("arch/arm").exists());
+
+        write(&imported.join("arch/arm/stale.c"), "stale excluded path\n");
+        import_component(root, &comp, true).expect("unchanged-pin projected sync");
+        assert!(!imported.join("arch/arm").exists());
+        assert!(imported.join("arch/x86/Kconfig").is_file());
+        let state = read_sync_state(root, "linux")
+            .expect("read state")
+            .expect("state exists");
+        assert_eq!(
+            state.imported_tree_digest_algorithm,
+            SELECTED_IMPORTED_TREE_DIGEST_ALGORITHM
+        );
+        assert_eq!(state.source_selection_policy_sha256, policy_sha256);
+    }
+
+    #[cfg(unix)]
+    #[test]
     fn importer_preserves_ignored_tracked_files_modes_and_symlinks() {
         use std::os::unix::fs::{PermissionsExt, symlink};
 
@@ -11502,6 +11991,8 @@ mod tests {
             upstream_tree: "0123456789012345678901234567890123456789".to_string(),
             imported_tree_digest_algorithm: IMPORTED_TREE_DIGEST_ALGORITHM.to_string(),
             imported_tree_digest: "0".repeat(64),
+            source_selection_policy: "none".to_string(),
+            source_selection_policy_sha256: "none".to_string(),
             intentional_omission_policy: "none".to_string(),
             gitlink_policy: "none".to_string(),
             patch_manifest: "none".to_string(),
