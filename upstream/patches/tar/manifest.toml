@@ -1,0 +1,11 @@
+schema_version = 1
+component = "tar"
+upstream_commit = "e545d446dfe6564265cdf4186641ee76f4acc7fa"
+upstream_tree = "ebf72a162689af8ff91729edb1c72c13f06ff0bb"
+application = "output-mirror-only"
+
+[[patch]]
+path = "upstream/patches/tar/0001-add-flexnsizeof-compatibility.patch"
+sha256 = "fbfc5916f082b2bad8e4523c3b1c2034639bc0c8771d7a7e469419e63e2480d1"
+purpose = "Backport the tar gitlink-era FLEXNSIZEOF macro to MattOS's explicit stable-202301 Gnulib replacement mirror."
+documentation = "docs/BUILD.md"

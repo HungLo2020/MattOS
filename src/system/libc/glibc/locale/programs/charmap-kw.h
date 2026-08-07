@@ -1,4 +1,4 @@
-/* ANSI-C code produced by gperf version 3.2.1 */
+/* ANSI-C code produced by gperf version 3.3 */
 /* Command-line: gperf -acCgopt -k'1,2,5,9,$' -L ANSI-C -N charmap_hash charmap-kw.gperf  */
 
 #if !((' ' == 32) && ('!' == 33) && ('"' == 34) && ('#' == 35) \

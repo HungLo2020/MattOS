@@ -13,7 +13,7 @@ replacement_component = "gnulib"
 replacement_path = "src/build-support/gnulib"
 replacement_commit = "20932856a6a07f056918d58acd09cea4ba150a52"
 exact_gitlink_match = false
-reason = "MattOS deliberately uses its single immutable stable-202301 Gnulib import for output-owned Tar bootstrap generation; the version override is explicit and never changes Tar's authoritative vendored tree."
+reason = "MattOS deliberately uses its single immutable stable-202301 Gnulib import for output-owned Tar bootstrap generation; Tar's formal output-only patch manifest backports the gitlink-era FLEXNSIZEOF compatibility macro, and neither authoritative vendored tree is changed."
 
 [[component.gitlink]]
 path = "paxutils"

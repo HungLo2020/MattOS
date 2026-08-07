@@ -2171,6 +2171,13 @@ fn apply_component_patches(
             source_mirror.display()
         );
     }
+    let mirror_relative = source_mirror.strip_prefix(repo_root).with_context(|| {
+        format!(
+            "output mirror is outside repository: {}",
+            source_mirror.display()
+        )
+    })?;
+    let directory_arg = format!("--directory={}", mirror_relative.display());
     let state = read_sync_state(repo_root, component_name)?
         .ok_or_else(|| anyhow!("missing provenance state for {component_name}"))?;
     if state.patch_manifest == "none" {
@@ -2213,14 +2220,25 @@ fn apply_component_patches(
             .to_str()
             .ok_or_else(|| anyhow!("patch path is not valid UTF-8: {}", patch_path.display()))?;
         run_cmd(
-            source_mirror,
+            repo_root,
             "git",
-            &["apply", "--check", "--whitespace=error-all", patch_text],
+            &[
+                "apply",
+                "--check",
+                "--whitespace=error-all",
+                directory_arg.as_str(),
+                patch_text,
+            ],
         )?;
         run_cmd(
-            source_mirror,
+            repo_root,
             "git",
-            &["apply", "--whitespace=error-all", patch_text],
+            &[
+                "apply",
+                "--whitespace=error-all",
+                directory_arg.as_str(),
+                patch_text,
+            ],
         )?;
     }
     Ok(())
@@ -6957,6 +6975,7 @@ fn build_libxcrypt(repo_root: &Path) -> Result<()> {
     }
     fs::create_dir_all(&out_root)?;
     sync_build_source(&source, &source_copy)?;
+    apply_component_patches(repo_root, "libxcrypt", &source_copy)?;
     if !source_copy.join("configure").is_file() {
         run_cmd(&source_copy, "./autogen.sh", &[])?;
     }
@@ -7219,8 +7238,14 @@ fn build_tar(repo_root: &Path) -> Result<()> {
         Path::new("src/build-support/paxutils"),
         &source_copy.join("paxutils"),
     )?;
+    copy_imported_working_tree(
+        repo_root,
+        Path::new("src/build-support/gnulib"),
+        &source_copy.join("gnulib"),
+    )?;
+    apply_component_patches(repo_root, "tar", &source_copy)?;
     if !source_copy.join("configure").is_file() {
-        let gnulib_arg = format!("--gnulib-srcdir={}", gnulib.display());
+        let gnulib_arg = format!("--gnulib-srcdir={}", source_copy.join("gnulib").display());
         run_cmd(
             &source_copy,
             "./bootstrap",

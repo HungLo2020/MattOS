@@ -209,6 +209,8 @@ path = "src/userland/tar"
 sync = "copy"
 intentional_omission_policy = "upstream/policies/gitlinks.toml#tar"
 gitlink_policy = "upstream/policies/gitlinks.toml#tar"
+patch_manifest = "upstream/patches/tar/manifest.toml"
+patch_manifest_sha256 = "8d6aca67c771ad57cecf671510c0c6103b4a650e91aab32564e28b766f7c2b69"
 
 [[component]]
 name = "paxutils"
@@ -349,6 +351,8 @@ branch = "v4.4.38"
 revision = "55ea777e8d567e5e86ffac917c28815ac54cc341"
 path = "src/system/libraries/libxcrypt"
 sync = "copy"
+patch_manifest = "upstream/patches/libxcrypt/manifest.toml"
+patch_manifest_sha256 = "181d810131ecc03b7925a1a04ffa3b43d1dfe2e05f66084fd04fe1a4901b5a4f"
 
 [[component]]
 name = "glibc"

@@ -1,0 +1,11 @@
+schema_version = 1
+component = "libxcrypt"
+upstream_commit = "55ea777e8d567e5e86ffac917c28815ac54cc341"
+upstream_tree = "57d0673dc1358ce9ede887489c009cebf76a2043"
+application = "output-mirror-only"
+
+[[patch]]
+path = "upstream/patches/libxcrypt/0001-fix-discarded-qualifiers.patch"
+sha256 = "9ff88e1dff1d7d1ae8857dfe57e363054a0ec27a485de83bfe30463f578aef43"
+purpose = "Backport upstream const-correctness fix 174c24d for GCC's discarded-qualifiers diagnostic."
+documentation = "docs/BUILD.md"

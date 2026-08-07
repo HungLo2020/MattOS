@@ -335,7 +335,13 @@ def patch_input_paths(patch: bytes) -> set[str]:
     return paths
 
 
-def verify_patch_manifest(component: dict, state: dict, tree: str) -> list[str]:
+def verify_patch_manifest(
+    component: dict,
+    state: dict,
+    tree: str,
+    policies_by_component: dict[str, list[dict]],
+    components: dict[str, dict],
+) -> list[str]:
     manifest_name = state.get("patch_manifest")
     if not manifest_name or manifest_name == "none":
         return []
@@ -368,6 +374,24 @@ def verify_patch_manifest(component: dict, state: dict, tree: str) -> list[str]:
                 continue
             for relative in patch_input_paths(payload):
                 source = ROOT / component["path"] / relative
+                if not source.exists() and not source.is_symlink():
+                    relative_path = Path(relative)
+                    for policy in policies_by_component.get(component["name"], []):
+                        if policy.get("action") != "replacement":
+                            continue
+                        try:
+                            replacement_relative = relative_path.relative_to(policy["path"])
+                        except ValueError:
+                            continue
+                        replacement = components.get(policy.get("replacement_component"))
+                        if replacement is not None:
+                            source = ROOT / replacement["path"] / replacement_relative
+                        break
+                if not source.exists() and not source.is_symlink():
+                    failures.append(
+                        f"{component['name']}: patch input {relative} is absent from the pinned tree and declared replacements"
+                    )
+                    continue
                 destination = mirror / relative
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 if source.is_symlink():
@@ -511,7 +535,15 @@ def main() -> int:
         )
         ignored_total += ignored_count
         failures.extend(f"{name}: {failure}" for failure in tree_failures)
-        failures.extend(verify_patch_manifest(component, state, tree))
+        failures.extend(
+            verify_patch_manifest(
+                component,
+                state,
+                tree,
+                gitlinks_by_component,
+                components,
+            )
+        )
         verified += 1
 
     failures.extend(verify_linuxscripts())

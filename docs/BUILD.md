@@ -118,6 +118,8 @@ The pipeline stages are:
 24. `init`: MattOS rescue init build
 25. `rootfs`, `initramfs`, `iso`: hybrid package/legacy image assembly
 
+Tar's explicit Gnulib replacement is copied into Tar's output-owned source mirror before bootstrap. A checksummed Tar patch adds the gitlink-era `FLEXNSIZEOF` compatibility macro to that mirror because the pinned stable-202301 replacement predates the macro used by Tar 1.35; the authoritative Tar and Gnulib imports remain unchanged.
+
 Systemd configuration remains intentionally minimal. It enables networkd, resolved, timesyncd, timedated, logind, PAM integration, and `busctl` while continuing to disable homed, nspawn, bootloader tools, the remote journal stack, docs, tests, translations, TPM/FIDO, and BPF extras. The separate dbus-broker stage supplies both the system-scope binary and the binary used by MattOS-owned user units; systemd's Meson `dbus` option remains disabled because it controls the optional reference `libdbus` dependency, not sd-bus support.
 
 ## Incremental builds

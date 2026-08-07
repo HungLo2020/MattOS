@@ -1,0 +1,35 @@
+From 46f9c21a08245fe224fd975de8632b04a0256387 Mon Sep 17 00:00:00 2001
+From: MattOS Build System <build@mattos.local>
+Date: Fri, 7 Aug 2026 09:40:00 -0700
+Subject: [PATCH] gnulib: add FLEXNSIZEOF compatibility macro
+
+Tar commit e545d446 uses FLEXNSIZEOF from its pinned Gnulib gitlink,
+but MattOS deliberately bootstraps with the older stable-202301 Gnulib
+replacement. Backport the macro to the output-owned replacement mirror.
+
+Upstream-Gnulib-Commit: 46f9c21a08245fe224fd975de8632b04a0256387
+---
+ gnulib/lib/flexmember.h | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/gnulib/lib/flexmember.h b/gnulib/lib/flexmember.h
+index 420d003..5b84a9c 100644
+--- a/gnulib/lib/flexmember.h
++++ b/gnulib/lib/flexmember.h
+@@ -59,3 +59,14 @@
+ #define FLEXSIZEOF(type, member, n) \
+    ((offsetof (type, member) + FLEXALIGNOF (type) - 1 + (n)) \
+     & ~ (FLEXALIGNOF (type) - 1))
++
++/* Yield a properly aligned upper bound on the size of a struct of
++   type TYPE with a flexible array member named MEMBER that has N
++   elements.  The result is suitable as an argument to malloc.
++   For example:
++
++     struct s { int a; double d[FLEXIBLE_ARRAY_MEMBER]; };
++     struct s *p = malloc (FLEXNSIZEOF (struct s, d, n));
++ */
++#define FLEXNSIZEOF(type, member, n) \
++  FLEXSIZEOF (type, member, (n) * sizeof (((type *) 0)->member[0]))
+-- 
+2.51.0
