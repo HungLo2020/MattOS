@@ -1,0 +1,18 @@
+schema_version = 1
+policy = "Verification mirrors are used only when an authoritative server cannot serve an already pinned immutable commit. Object identity must remain exact."
+
+[[mirror]]
+component = "dpkg"
+url = "https://salsa.debian.org/dpkg-team/dpkg.git"
+
+[[mirror]]
+component = "binutils"
+url = "https://gnu.googlesource.com/binutils-gdb"
+
+[[mirror]]
+component = "glibc"
+url = "https://github.com/bminor/glibc.git"
+
+[[mirror]]
+component = "gcc"
+url = "https://gnu.googlesource.com/gcc"

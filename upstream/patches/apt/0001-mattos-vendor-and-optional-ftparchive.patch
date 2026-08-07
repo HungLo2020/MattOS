@@ -1,0 +1,55 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 3c9e811..95b4494 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -18,6 +18,7 @@ cmake_dependent_option(WITH_DOC_GUIDES "Force building guides." OFF "NOT WITH_DO
+ cmake_dependent_option(WITH_DOC_DOXYGEN "Force building doxygen documentation." OFF "NOT WITH_DOC" OFF)
+ cmake_dependent_option(WITH_DOC_EXAMPLES "Force building example configurations." OFF "NOT WITH_DOC" OFF)
+ option(WITH_TESTS "Build tests" ON)
++option(WITH_FTPARCHIVE "Build apt-ftparchive" ON)
+ option(USE_NLS "Localisation support." ON)
+ 
+ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMake")
+@@ -88,9 +89,11 @@ add_optional_compile_options(Werror=suggest-override)
+ add_optional_compile_options(Werror=return-type)
+ add_optional_compile_options(Wp,-D_GLIBCXX_ASSERTIONS)
+ # apt-ftparchive dependencies
+-find_package(Berkeley REQUIRED)
+-if (BERKELEY_FOUND)
+-  set(HAVE_BDB 1)
++if (WITH_FTPARCHIVE)
++  find_package(Berkeley REQUIRED)
++  if (BERKELEY_FOUND)
++    set(HAVE_BDB 1)
++  endif()
+ endif()
+ 
+ find_package(OpenSSL REQUIRED)
+@@ -253,7 +256,9 @@ add_subdirectory(cmdline)
+ add_subdirectory(completions)
+ add_subdirectory(doc)
+ add_subdirectory(dselect)
++if (WITH_FTPARCHIVE)
+ add_subdirectory(ftparchive)
++endif()
+ add_subdirectory(methods)
+ add_subdirectory(test)
+ 
+diff --git a/vendor/mattos/apt-vendor.ent b/vendor/mattos/apt-vendor.ent
+new file mode 100644
+index 0000000..2ea323f
+--- /dev/null
++++ b/vendor/mattos/apt-vendor.ent
+@@ -0,0 +1,12 @@
++<!-- MattOS uses only its embedded/local package repository. -->
++<!ENTITY keyring-distro "MattOS">
++<!ENTITY keyring-package "MattOS local repository metadata">
++<!ENTITY current-codename "mattos">
++
++<!ENTITY sourceslist-list-format "deb [trusted=yes] file:/usr/share/mattos/repository mattos main">
++<!ENTITY sourceslist-sources-format "Types: deb
++URIs: file:/usr/share/mattos/repository
++Suites: mattos
++Components: main
++Architectures: amd64
++Trusted: yes">

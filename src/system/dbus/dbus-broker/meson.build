@@ -124,12 +124,9 @@ if use_launcher
         dep_systemd = dependency('systemd', version: '>=230')
 
         add_project_arguments('-DSYSTEMUIDMAX=' + dep_systemd.get_variable('systemuidmax'), language: 'c')
-        # MattOS uses a pkg-config sysroot to keep dependency discovery inside the
-        # controlled development sysroot.  Unit and catalog directories are
-        # target install paths, however, so do not inherit the sysroot prefix.
-        conf.set('systemunitdir', get_option('prefix') / 'lib/systemd/system')
-        conf.set('userunitdir', get_option('prefix') / 'lib/systemd/user')
-        conf.set('catalogdir', get_option('prefix') / 'lib/systemd/catalog')
+        conf.set('systemunitdir', dep_systemd.get_variable('systemdsystemunitdir'))
+        conf.set('userunitdir', dep_systemd.get_variable('systemduserunitdir'))
+        conf.set('catalogdir', dep_systemd.get_variable('catalogdir'))
 endif
 
 #

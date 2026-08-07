@@ -5873,7 +5873,8 @@ pub(crate) fn build_apt(repo_root: &Path) -> Result<()> {
     remove_path_if_exists(&build)?;
     remove_path_if_exists(&install)?;
     fs::create_dir_all(&out)?;
-    sync_build_source(&source, &source_copy)?;
+    copy_imported_working_tree(repo_root, Path::new("src/system/packages/apt"), &source_copy)?;
+    apply_component_patches(repo_root, "apt", &source_copy)?;
     let zlib_root = format!("-DZLIB_ROOT={}", zlib.display());
     let bzip2_include = format!("-DBZIP2_INCLUDE_DIR={}", bzip2.join("include").display());
     let bzip2_library = format!(

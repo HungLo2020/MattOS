@@ -29,3 +29,6 @@
 # Python helper cache artifacts
 __pycache__/
 *.pyc
+
+# Ignore any LICENSE file in the tree
+**/LICENSE

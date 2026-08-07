@@ -1,0 +1,110 @@
+schema_version = 1
+policy = "Vendored source trees contain no nested Git repositories. Every upstream gitlink is either replaced from a separately pinned ordinary-file import in output-owned build mirrors or explicitly excluded as unnecessary for the MattOS source/runtime closure."
+
+[[component]]
+name = "tar"
+upstream_commit = "e545d446dfe6564265cdf4186641ee76f4acc7fa"
+
+[[component.gitlink]]
+path = "gnulib"
+upstream_commit = "46f9c21a08245fe224fd975de8632b04a0256387"
+action = "replacement"
+replacement_component = "gnulib"
+replacement_path = "src/build-support/gnulib"
+replacement_commit = "20932856a6a07f056918d58acd09cea4ba150a52"
+exact_gitlink_match = false
+reason = "MattOS deliberately uses its single immutable stable-202301 Gnulib import for output-owned Tar bootstrap generation; the version override is explicit and never changes Tar's authoritative vendored tree."
+
+[[component.gitlink]]
+path = "paxutils"
+upstream_commit = "481bae11050fcbdca67a66eb57390267b280a312"
+action = "replacement"
+replacement_component = "paxutils"
+replacement_path = "src/build-support/paxutils"
+replacement_commit = "481bae11050fcbdca67a66eb57390267b280a312"
+exact_gitlink_match = true
+reason = "Tar bootstrap receives the exact gitlink revision from the separately pinned ordinary-file paxutils import."
+
+[[component]]
+name = "pcre2"
+upstream_commit = "f454e231fe5006dd7ff8f4693fd2b8eb94333429"
+
+[[component.gitlink]]
+path = "deps/sljit"
+upstream_commit = "45f910b78c6605ebf5b53d3ec7cb00f2312fe417"
+action = "replacement"
+replacement_component = "sljit"
+replacement_path = "src/build-support/sljit"
+replacement_commit = "45f910b78c6605ebf5b53d3ec7cb00f2312fe417"
+exact_gitlink_match = true
+reason = "PCRE2 JIT receives the exact gitlink revision from the separately pinned ordinary-file SLJIT import."
+
+[[component]]
+name = "openssl"
+upstream_commit = "8cf17aaeb4599f8af87fefd810b5b5fee90fe69e"
+
+[[component.gitlink]]
+path = "cloudflare-quiche"
+upstream_commit = "7ab6a55cfe471267d61e4d28ba43d41defcd87e0"
+action = "exclude"
+reason = "Optional QUIC integration is outside the MattOS OpenSSL runtime build."
+
+[[component.gitlink]]
+path = "fuzz/corpora"
+upstream_commit = "ce771805c094d098c25a218bc8e9f7344eccbc5a"
+action = "exclude"
+reason = "Fuzzing corpora are not runtime or build inputs for the configured MattOS OpenSSL build."
+
+[[component.gitlink]]
+path = "gost-engine"
+upstream_commit = "74b1f4fddbc2d6de969815b1992ddc1ae7c643fe"
+action = "exclude"
+reason = "The optional GOST engine is not enabled in MattOS."
+
+[[component.gitlink]]
+path = "krb5"
+upstream_commit = "784c38f50e70a739400cdd3f2620bac2e2788e6c"
+action = "exclude"
+reason = "Kerberos interoperability tests are outside the MattOS OpenSSL runtime closure."
+
+[[component.gitlink]]
+path = "oqs-provider"
+upstream_commit = "7bc597c04b534ddea9b6654481deb31ded8e1bbc"
+action = "exclude"
+reason = "The optional OQS provider is not enabled in MattOS."
+
+[[component.gitlink]]
+path = "pkcs11-provider"
+upstream_commit = "663dea335c80bec7fd96d544ff875af08d6461a9"
+action = "exclude"
+reason = "The optional PKCS#11 provider is not enabled in MattOS."
+
+[[component.gitlink]]
+path = "pyca-cryptography"
+upstream_commit = "7e33b0e7739d633c77b8c478620167f693ed13f4"
+action = "exclude"
+reason = "External Python binding tests are outside the MattOS OpenSSL source and runtime closure."
+
+[[component.gitlink]]
+path = "python-ecdsa"
+upstream_commit = "4096fa01715929e08b97e73f3173aee9d57f2a3f"
+action = "exclude"
+reason = "External ECDSA test dependency is outside the MattOS OpenSSL source and runtime closure."
+
+[[component.gitlink]]
+path = "tlsfuzzer"
+upstream_commit = "61f45d9701294fd87ef92d2a7e3dfb076653a562"
+action = "exclude"
+reason = "External protocol fuzzing is not part of the configured MattOS OpenSSL build."
+
+[[component.gitlink]]
+path = "tlslite-ng"
+upstream_commit = "77ef321dde1a9e6bcf94d73c80f8789a770d8031"
+action = "exclude"
+reason = "External TLS test dependency is outside the configured MattOS OpenSSL build."
+
+[[component.gitlink]]
+path = "wycheproof"
+upstream_commit = "2196000605e45d91097147c9c71f26b72af58003"
+action = "exclude"
+reason = "External cryptographic test vectors are not runtime or build inputs for MattOS."

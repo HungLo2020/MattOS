@@ -1,0 +1,11 @@
+schema_version = 1
+component = "brush"
+upstream_commit = "71afef7ce79ad2fd94833fa4f93fa5486c86c56b"
+upstream_tree = "c90a1ebd478bc95dc54095e3fa9e7be030041165"
+application = "output-mirror-only"
+
+[[patch]]
+path = "upstream/patches/brush/0001-use-basic-input-on-pc-serial-terminals.patch"
+sha256 = "f2b8e98c8322215fcc0595bbf4b57424063f29f4aeb6335c5b96fbf674f34580"
+purpose = "Select Brush's basic input backend on PC serial terminals while retaining Reedline elsewhere."
+documentation = "docs/AUTHENTICATION.md"

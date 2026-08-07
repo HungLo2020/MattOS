@@ -2,6 +2,7 @@ use anyhow::{Context, Result, anyhow, bail};
 use chrono::Utc;
 use clap::{Parser, Subcommand, ValueEnum};
 use serde::{Deserialize, Serialize};
+use sha2::{Digest as ShaDigest, Sha256 as Sha256Hasher};
 use std::collections::{BTreeMap, BTreeSet};
 use std::ffi::OsStr;
 use std::fs;
@@ -20,6 +21,7 @@ const INITRAMFS_ROOTFS_SIZE_POLICY: &str = "initramfs_options=size=75%";
 const GRUB_SYSTEMD_RDINIT: &str = "rdinit=/usr/lib/systemd/systemd";
 const GRUB_RESCUE_RDINIT: &str = "rdinit=/usr/libexec/mattos/rescue-init";
 const SAFE_IMPORT_PLACEHOLDER_FILES: &[&str] = &[".gitkeep", "README.md"];
+const IMPORTED_TREE_DIGEST_ALGORITHM: &str = "sha256-git-ls-tree-no-gitlinks-v1";
 const USERLAND_INVENTORY_PATH: &str = "usr/share/mattos/userland-commands.txt";
 const INITRAMFS_ARCHIVE_OWNER: &str = "0:0";
 
@@ -616,6 +618,7 @@ struct ComponentDef {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct SyncState {
+    schema_version: u32,
     component: String,
     repo: String,
     branch: String,
@@ -623,6 +626,26 @@ struct SyncState {
     imported_at_utc: String,
     sync_method: String,
     destination_path: String,
+    upstream_tree: String,
+    imported_tree_digest_algorithm: String,
+    imported_tree_digest: String,
+    intentional_omission_policy: String,
+    gitlink_policy: String,
+    patch_manifest: String,
+    patch_manifest_sha256: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct ComponentPatchManifest {
+    component: String,
+    application: String,
+    patch: Vec<ComponentPatchRecord>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ComponentPatchRecord {
+    path: String,
+    sha256: String,
 }
 
 #[derive(Debug)]
@@ -1643,11 +1666,15 @@ fn initial_import_component(
 
     let tmp = prepare_tmp_clone(repo_root, comp)?;
     let commit = run_cmd_capture(&tmp, "git", &["rev-parse", "HEAD"])?;
+    let (upstream_tree, imported_tree_digest) = imported_tree_identity(&tmp)?;
+    let (intentional_omission_policy, gitlink_policy, patch_manifest, patch_manifest_sha256) =
+        component_provenance_policy(repo_root, &comp.name)?;
 
     clear_directory_contents(destination)?;
     copy_tree_excluding_dotgit(&tmp, destination)?;
 
     let state = SyncState {
+        schema_version: 2,
         component: comp.name.clone(),
         repo: comp.repo.clone(),
         branch: comp.branch.clone(),
@@ -1655,8 +1682,16 @@ fn initial_import_component(
         imported_at_utc: Utc::now().to_rfc3339(),
         sync_method: comp.sync.clone(),
         destination_path: comp.path.clone(),
+        upstream_tree,
+        imported_tree_digest_algorithm: IMPORTED_TREE_DIGEST_ALGORITHM.to_string(),
+        imported_tree_digest,
+        intentional_omission_policy,
+        gitlink_policy,
+        patch_manifest,
+        patch_manifest_sha256,
     };
     write_sync_state(repo_root, &comp.name, &state)?;
+    force_record_imported_component(repo_root, comp)?;
 
     fs::remove_dir_all(&tmp)
         .with_context(|| format!("failed to remove temporary directory: {}", tmp.display()))?;
@@ -1701,6 +1736,9 @@ fn update_component(
 ) -> Result<()> {
     let tmp_upstream = prepare_tmp_clone(repo_root, comp)?;
     let new_commit = run_cmd_capture(&tmp_upstream, "git", &["rev-parse", "HEAD"])?;
+    let (upstream_tree, imported_tree_digest) = imported_tree_identity(&tmp_upstream)?;
+    let (intentional_omission_policy, gitlink_policy, patch_manifest, patch_manifest_sha256) =
+        component_provenance_policy(repo_root, &comp.name)?;
 
     let old_commit = prior_state.imported_commit.trim();
     run_cmd(
@@ -1789,6 +1827,7 @@ fn update_component(
     }
 
     let state = SyncState {
+        schema_version: 2,
         component: comp.name.clone(),
         repo: comp.repo.clone(),
         branch: comp.branch.clone(),
@@ -1796,11 +1835,98 @@ fn update_component(
         imported_at_utc: Utc::now().to_rfc3339(),
         sync_method: comp.sync.clone(),
         destination_path: comp.path.clone(),
+        upstream_tree,
+        imported_tree_digest_algorithm: IMPORTED_TREE_DIGEST_ALGORITHM.to_string(),
+        imported_tree_digest,
+        intentional_omission_policy,
+        gitlink_policy,
+        patch_manifest,
+        patch_manifest_sha256,
     };
     write_sync_state(repo_root, &comp.name, &state)?;
+    force_record_imported_component(repo_root, comp)?;
 
     println!("Updated {} to commit {}", comp.name, state.imported_commit);
     Ok(())
+}
+
+/// Returns the immutable upstream Git tree object and a SHA-256 over the
+/// canonical recursive `git ls-tree` records that have physical vendored-tree
+/// representations. Gitlinks are excluded from the imported-tree digest and
+/// are instead required to have an explicit replacement/exclusion policy.
+fn imported_tree_identity(source_git: &Path) -> Result<(String, String)> {
+    let upstream_tree = run_cmd_capture(source_git, "git", &["rev-parse", "HEAD^{tree}"])?
+        .trim()
+        .to_string();
+    let output = run_cmd_output(source_git, "git", &["ls-tree", "-rz", "HEAD"])?;
+    if !output.status.success() {
+        bail!("failed to enumerate imported upstream tree in {}", source_git.display());
+    }
+    let mut digest = Sha256Hasher::new();
+    for record in output.stdout.split(|byte| *byte == 0).filter(|record| !record.is_empty()) {
+        if record.starts_with(b"160000 ") {
+            continue;
+        }
+        digest.update(record);
+        digest.update([0]);
+    }
+    Ok((upstream_tree, format!("{:x}", digest.finalize())))
+}
+
+fn component_provenance_policy(
+    repo_root: &Path,
+    component_name: &str,
+) -> Result<(String, String, String, String)> {
+    let source_path = repo_root.join("upstream/sources.toml");
+    if !source_path.is_file() {
+        return Ok((
+            "none".to_string(),
+            "none".to_string(),
+            "none".to_string(),
+            "none".to_string(),
+        ));
+    }
+    let source_text = fs::read_to_string(&source_path)
+        .with_context(|| format!("failed to read {}", source_path.display()))?;
+    let document: toml::Value = toml::from_str(&source_text)
+        .with_context(|| format!("failed to parse {}", source_path.display()))?;
+    let components = document
+        .get("component")
+        .and_then(toml::Value::as_array)
+        .ok_or_else(|| anyhow!("sources metadata has no component array"))?;
+    let Some(component) = components
+        .iter()
+        .find(|value| value.get("name").and_then(toml::Value::as_str) == Some(component_name))
+    else {
+        return Ok((
+            "none".to_string(),
+            "none".to_string(),
+            "none".to_string(),
+            "none".to_string(),
+        ));
+    };
+    let field = |name: &str| {
+        component
+            .get(name)
+            .and_then(toml::Value::as_str)
+            .unwrap_or("none")
+            .to_string()
+    };
+    Ok((
+        field("intentional_omission_policy"),
+        field("gitlink_policy"),
+        field("patch_manifest"),
+        field("patch_manifest_sha256"),
+    ))
+}
+
+/// Force-records the exact imported closure in the outer MattOS index. This is
+/// required because upstream projects commonly track release inputs that their
+/// own `.gitignore` files match; a normal `git add` would silently lose them.
+/// Scope is restricted to the selected component and its state record.
+fn force_record_imported_component(repo_root: &Path, comp: &ComponentDef) -> Result<()> {
+    let state_path = format!("upstream/state/{}.toml", comp.name);
+    run_cmd(repo_root, "git", &["add", "-f", "--", &comp.path, &state_path])
 }
 
 fn validate_component_name(name: &str) -> Result<()> {
@@ -1870,6 +1996,9 @@ fn prepare_tmp_clone(repo_root: &Path, comp: &ComponentDef) -> Result<PathBuf> {
         "git",
         &[
             "clone",
+            "-c",
+            "core.autocrlf=false",
+            "--no-checkout",
             "--depth",
             "1",
             "--branch",
@@ -1881,6 +2010,9 @@ fn prepare_tmp_clone(repo_root: &Path, comp: &ComponentDef) -> Result<PathBuf> {
     if let Some(revision) = comp.revision.as_deref() {
         run_cmd(&tmp, "git", &["fetch", "--depth", "1", "origin", revision])?;
         run_cmd(&tmp, "git", &["checkout", "--detach", revision])?;
+    } else {
+        let remote_branch = format!("origin/{}", comp.branch);
+        run_cmd(&tmp, "git", &["checkout", "--detach", &remote_branch])?;
     }
 
     Ok(tmp)
@@ -2022,6 +2154,88 @@ fn copy_imported_working_tree(
         }
     }
     Ok(())
+}
+
+/// Applies checksummed MattOS patches only after authoritative source has been
+/// copied to an output-owned mirror. Vendored source trees remain byte-for-byte
+/// equal to their pinned upstream trees.
+fn apply_component_patches(
+    repo_root: &Path,
+    component_name: &str,
+    source_mirror: &Path,
+) -> Result<()> {
+    let output_root = repo_root.join("out");
+    if !source_mirror.starts_with(&output_root) {
+        bail!(
+            "refusing to patch non-output source tree {}",
+            source_mirror.display()
+        );
+    }
+    let state = read_sync_state(repo_root, component_name)?
+        .ok_or_else(|| anyhow!("missing provenance state for {component_name}"))?;
+    if state.patch_manifest == "none" {
+        return Ok(());
+    }
+    let manifest_relative = validated_repo_relative_path(&state.patch_manifest)?;
+    let manifest_path = repo_root.join(manifest_relative);
+    let manifest_sha256 = performance::sha256_file(&manifest_path)?;
+    if manifest_sha256 != state.patch_manifest_sha256 {
+        bail!(
+            "patch manifest checksum mismatch for {}: expected {}, got {}",
+            manifest_path.display(),
+            state.patch_manifest_sha256,
+            manifest_sha256
+        );
+    }
+    let body = fs::read_to_string(&manifest_path)
+        .with_context(|| format!("failed to read patch manifest {}", manifest_path.display()))?;
+    let manifest: ComponentPatchManifest = toml::from_str(&body)
+        .with_context(|| format!("failed to parse patch manifest {}", manifest_path.display()))?;
+    if manifest.component != component_name {
+        bail!("patch manifest component does not match {component_name}");
+    }
+    if manifest.application != "output-mirror-only" {
+        bail!("patch manifest for {component_name} is not output-mirror-only");
+    }
+    for record in manifest.patch {
+        let patch_relative = validated_repo_relative_path(&record.path)?;
+        let patch_path = repo_root.join(patch_relative);
+        let actual = performance::sha256_file(&patch_path)?;
+        if actual != record.sha256 {
+            bail!(
+                "patch checksum mismatch for {}: expected {}, got {}",
+                patch_path.display(),
+                record.sha256,
+                actual
+            );
+        }
+        let patch_text = patch_path
+            .to_str()
+            .ok_or_else(|| anyhow!("patch path is not valid UTF-8: {}", patch_path.display()))?;
+        run_cmd(
+            source_mirror,
+            "git",
+            &["apply", "--check", "--whitespace=error-all", patch_text],
+        )?;
+        run_cmd(
+            source_mirror,
+            "git",
+            &["apply", "--whitespace=error-all", patch_text],
+        )?;
+    }
+    Ok(())
+}
+
+fn validated_repo_relative_path(value: &str) -> Result<&Path> {
+    let path = Path::new(value);
+    if path.is_absolute()
+        || path
+            .components()
+            .any(|component| !matches!(component, Component::Normal(_)))
+    {
+        bail!("provenance path is not a safe repository-relative path: {value}");
+    }
+    Ok(path)
 }
 
 fn copy_tree_excluding_package_owned(
@@ -2231,7 +2445,7 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::GccRuntime | BuildStage::GccToolchain => &["src/toolchain/gcc"],
         BuildStage::Binutils => &["src/toolchain/binutils"],
         BuildStage::Make => &["src/build-tools/make", "src/build-support/gnulib"],
-        BuildStage::Brush => &["src/userland/brush"],
+        BuildStage::Brush => &["src/userland/brush", "upstream/patches/brush"],
         BuildStage::Coreutils => &["src/userland/coreutils"],
         BuildStage::Grep => &["src/userland/grep"],
         BuildStage::Sed => &["src/userland/sed"],
@@ -2246,7 +2460,12 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::Expat => &["src/system/libraries/expat/expat"],
         BuildStage::Libcap => &["src/system/libraries/libcap"],
         BuildStage::Attr => &["src/system/libraries/attr"],
-        BuildStage::Tar => &["src/userland/tar"],
+        BuildStage::Tar => &[
+            "src/userland/tar",
+            "src/build-support/paxutils",
+            "src/build-support/gnulib",
+            "upstream/policies/gitlinks.toml",
+        ],
         BuildStage::Acl => &["src/system/libraries/acl"],
         BuildStage::Zlib => &["src/system/libraries/zlib"],
         BuildStage::Bzip2 => &["src/system/libraries/bzip2"],
@@ -2254,9 +2473,16 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::Xz => &["src/system/libraries/xz"],
         BuildStage::Xxhash => &["src/system/libraries/xxhash"],
         BuildStage::Zstd => &["src/system/libraries/zstd"],
-        BuildStage::Openssl => &["src/system/libraries/openssl"],
+        BuildStage::Openssl => &[
+            "src/system/libraries/openssl",
+            "upstream/policies/gitlinks.toml",
+        ],
         BuildStage::Elfutils => &["src/system/libraries/elfutils"],
-        BuildStage::Pcre2 => &["src/system/libraries/pcre2"],
+        BuildStage::Pcre2 => &[
+            "src/system/libraries/pcre2",
+            "src/build-support/sljit",
+            "upstream/policies/gitlinks.toml",
+        ],
         BuildStage::Selinux => &["src/system/security/selinux"],
         BuildStage::Libxcrypt => &["src/system/libraries/libxcrypt"],
         BuildStage::Libmd => &["src/system/libraries/libmd"],
@@ -2266,9 +2492,12 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::SudoRs => &["src/system/auth/sudo-rs"],
         BuildStage::UtilLinux => &["src/userland/util-linux"],
         BuildStage::Systemd => &["src/system/systemd"],
-        BuildStage::DbusBroker => &["src/system/dbus/dbus-broker"],
+        BuildStage::DbusBroker => &[
+            "src/system/dbus/dbus-broker",
+            "upstream/patches/dbus-broker",
+        ],
         BuildStage::Dpkg => &["src/system/packages/dpkg"],
-        BuildStage::Apt => &["src/system/packages/apt"],
+        BuildStage::Apt => &["src/system/packages/apt", "upstream/patches/apt"],
         BuildStage::Init => &["src/userland/init"],
         BuildStage::Rootfs => &[],
         BuildStage::Initramfs => &[],
@@ -4268,16 +4497,21 @@ fn assert_kernel_build_path_safe(repo_root: &Path) -> Result<()> {
 }
 
 fn build_brush(repo_root: &Path) -> Result<()> {
-    let brush = repo_root.join("src/userland/brush");
+    let source_relative = Path::new("src/userland/brush");
+    let brush = repo_root.join(source_relative);
     if !brush.join("Cargo.toml").exists() {
         bail!(
             "brush source not found in {}; run import first",
             brush.display()
         );
     }
-    let target = repo_root.join("out/build/brush/cargo-target");
+    let out_root = repo_root.join("out/build/brush");
+    let source_copy = out_root.join("source");
+    let target = out_root.join("cargo-target");
+    copy_imported_working_tree(repo_root, source_relative, &source_copy)?;
+    apply_component_patches(repo_root, "brush", &source_copy)?;
     run_cmd_with_env_overrides(
-        &brush,
+        &source_copy,
         "cargo",
         &["build", "--locked", "--release", "-p", "brush"],
         &[("CARGO_TARGET_DIR", target.display().to_string())],
@@ -6510,8 +6744,16 @@ fn build_pcre2(repo_root: &Path) -> Result<()> {
         remove_path_if_exists(&build_dir)?;
     }
     fs::create_dir_all(&out_root)?;
-    sync_build_source(&source, &source_copy)?;
-    sync_build_source(&sljit, &source_copy.join("deps/sljit"))?;
+    copy_imported_working_tree(
+        repo_root,
+        Path::new("src/system/libraries/pcre2"),
+        &source_copy,
+    )?;
+    copy_imported_working_tree(
+        repo_root,
+        Path::new("src/build-support/sljit"),
+        &source_copy.join("deps/sljit"),
+    )?;
     if !build_dir.join("build.ninja").is_file() {
         let mut args = vec!["-S", path_str(&source_copy)?, "-B", path_str(&build_dir)?];
         args.extend(options);
@@ -6913,6 +7155,7 @@ fn build_libbsd(repo_root: &Path) -> Result<()> {
 fn build_tar(repo_root: &Path) -> Result<()> {
     let source = repo_root.join("src/userland/tar");
     let paxutils = repo_root.join("src/build-support/paxutils");
+    let gnulib = repo_root.join("src/build-support/gnulib");
     if !source.join("bootstrap").is_file() {
         bail!(
             "GNU tar source not found in {}; run upstream import tar first",
@@ -6923,6 +7166,12 @@ fn build_tar(repo_root: &Path) -> Result<()> {
         bail!(
             "GNU paxutils build support not found in {}; run upstream import paxutils first",
             paxutils.display()
+        );
+    }
+    if !gnulib.join("gnulib-tool").is_file() {
+        bail!(
+            "pinned Gnulib build support not found in {}; run upstream import gnulib first",
+            gnulib.display()
         );
     }
     let acl_install = repo_root.join("out/build/acl/install");
@@ -6944,6 +7193,8 @@ fn build_tar(repo_root: &Path) -> Result<()> {
         .context("failed to read GNU tar upstream state")?;
     let paxutils_state = fs::read_to_string(repo_root.join("upstream/state/paxutils.toml"))
         .context("failed to read paxutils upstream state")?;
+    let gnulib_state = fs::read_to_string(repo_root.join("upstream/state/gnulib.toml"))
+        .context("failed to read Gnulib upstream state")?;
     let acl_state = fs::read_to_string(repo_root.join("upstream/state/acl.toml"))
         .context("failed to read ACL upstream state")?;
     let options = [
@@ -6953,7 +7204,7 @@ fn build_tar(repo_root: &Path) -> Result<()> {
         "--with-posix-acls",
     ];
     let stamp = format!(
-        "{state}\n{paxutils_state}\n{acl_state}\n{}\n",
+        "{state}\n{paxutils_state}\n{gnulib_state}\n{acl_state}\n{}\n",
         options.join("\n")
     );
     if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
@@ -6962,9 +7213,14 @@ fn build_tar(repo_root: &Path) -> Result<()> {
     }
     fs::create_dir_all(&out_root)
         .with_context(|| format!("failed to create {}", out_root.display()))?;
-    sync_build_source(&source, &source_copy)?;
-    sync_build_source(&paxutils, &source_copy.join("paxutils"))?;
+    copy_imported_working_tree(repo_root, Path::new("src/userland/tar"), &source_copy)?;
+    copy_imported_working_tree(
+        repo_root,
+        Path::new("src/build-support/paxutils"),
+        &source_copy.join("paxutils"),
+    )?;
     if !source_copy.join("configure").is_file() {
+        let gnulib_arg = format!("--gnulib-srcdir={}", gnulib.display());
         run_cmd(
             &source_copy,
             "./bootstrap",
@@ -6975,7 +7231,7 @@ fn build_tar(repo_root: &Path) -> Result<()> {
                 "--skip-po",
                 "--copy",
                 "--no-bootstrap-sync",
-                "--gnulib-srcdir=/usr/share/gnulib",
+                &gnulib_arg,
             ],
         )?;
     }
@@ -7888,7 +8144,12 @@ fn build_dbus_broker(repo_root: &Path) -> Result<()> {
 
     fs::create_dir_all(&out_root)
         .with_context(|| format!("failed to create {}", out_root.display()))?;
-    sync_build_source(&source, &source_copy)?;
+    copy_imported_working_tree(
+        repo_root,
+        Path::new("src/system/dbus/dbus-broker"),
+        &source_copy,
+    )?;
+    apply_component_patches(repo_root, "dbus-broker", &source_copy)?;
     if !build_dir.join("build.ninja").exists() {
         let mut setup_args = vec![
             "setup".to_string(),
@@ -10555,6 +10816,7 @@ mod tests {
         let tmp = tempfile::tempdir().expect("tempdir");
         let root = tmp.path();
         let state = SyncState {
+            schema_version: 2,
             component: "linux".to_string(),
             repo: "https://github.com/torvalds/linux.git".to_string(),
             branch: "master".to_string(),
@@ -10562,6 +10824,13 @@ mod tests {
             imported_at_utc: "2026-01-01T00:00:00Z".to_string(),
             sync_method: "copy".to_string(),
             destination_path: "src/kernel/linux".to_string(),
+            upstream_tree: "0123456789012345678901234567890123456789".to_string(),
+            imported_tree_digest_algorithm: IMPORTED_TREE_DIGEST_ALGORITHM.to_string(),
+            imported_tree_digest: "0".repeat(64),
+            intentional_omission_policy: "none".to_string(),
+            gitlink_policy: "none".to_string(),
+            patch_manifest: "none".to_string(),
+            patch_manifest_sha256: "none".to_string(),
         };
 
         write_sync_state(root, "linux", &state).expect("write state");
@@ -10894,6 +11163,84 @@ mod tests {
         assert!(!dst.join(".git").exists());
     }
 
+    #[cfg(unix)]
+    #[test]
+    fn importer_preserves_ignored_tracked_files_modes_and_symlinks() {
+        use std::os::unix::fs::{PermissionsExt, symlink};
+
+        let upstream = tempfile::tempdir().expect("upstream tempdir");
+        let upstream_root = upstream.path();
+        init_git_repo(upstream_root);
+        write(&upstream_root.join(".gitignore"), "release-input\n");
+        write(&upstream_root.join(".gitattributes"), "*.bat text eol=crlf\n");
+        write(&upstream_root.join("release-input"), "tracked despite upstream ignore\n");
+        write(&upstream_root.join("windows.bat"), "first\nsecond\n");
+        write(&upstream_root.join("tool.sh"), "#!/bin/sh\nexit 0\n");
+        fs::set_permissions(
+            upstream_root.join("tool.sh"),
+            fs::Permissions::from_mode(0o755),
+        )
+        .expect("set executable mode");
+        symlink("tool.sh", upstream_root.join("tool-link")).expect("create upstream symlink");
+        run_ok(
+            upstream_root,
+            "git",
+            &["add", ".gitignore", ".gitattributes", "windows.bat", "tool.sh", "tool-link"],
+        );
+        run_ok(upstream_root, "git", &["add", "-f", "release-input"]);
+        run_ok(upstream_root, "git", &["commit", "-m", "pinned source"]);
+        let revision = run_cmd_capture(upstream_root, "git", &["rev-parse", "HEAD"])
+            .expect("upstream revision")
+            .trim()
+            .to_string();
+
+        let workspace = tempfile::tempdir().expect("workspace tempdir");
+        let root = workspace.path();
+        init_git_repo(root);
+        write(&root.join("README.md"), "workspace\n");
+        run_ok(root, "git", &["add", "README.md"]);
+        run_ok(root, "git", &["commit", "-m", "workspace"]);
+        let comp = ComponentDef {
+            name: "example".to_string(),
+            repo: upstream_root.to_string_lossy().to_string(),
+            branch: "main".to_string(),
+            revision: Some(revision),
+            path: "src/imported/example".to_string(),
+            sync: "copy".to_string(),
+        };
+
+        import_component(root, &comp, false).expect("import pinned source");
+        run_ok(
+            root,
+            "git",
+            &["ls-files", "--error-unmatch", "src/imported/example/release-input"],
+        );
+        let imported = root.join("src/imported/example");
+        assert_eq!(
+            fs::metadata(imported.join("tool.sh"))
+                .expect("tool metadata")
+                .permissions()
+                .mode()
+                & 0o111,
+            0o111
+        );
+        assert_eq!(
+            fs::read_link(imported.join("tool-link")).expect("imported symlink"),
+            Path::new("tool.sh")
+        );
+        assert_eq!(
+            fs::read(imported.join("windows.bat")).expect("attributed source"),
+            b"first\r\nsecond\r\n"
+        );
+        let state = read_sync_state(root, "example")
+            .expect("read state")
+            .expect("state exists");
+        assert_eq!(state.schema_version, 2);
+        assert_eq!(state.imported_tree_digest_algorithm, IMPORTED_TREE_DIGEST_ALGORITHM);
+        assert_eq!(state.upstream_tree.len(), 40);
+        assert_eq!(state.imported_tree_digest.len(), 64);
+    }
+
     #[test]
     fn sync_state_absent_returns_none() {
         let tmp = tempfile::tempdir().expect("tempdir");
@@ -11119,6 +11466,7 @@ mod tests {
         let tmp = tempfile::tempdir().expect("tempdir");
         let root = tmp.path();
         let state = SyncState {
+            schema_version: 2,
             component: "brush".to_string(),
             repo: "https://example.invalid/brush.git".to_string(),
             branch: "main".to_string(),
@@ -11126,6 +11474,13 @@ mod tests {
             imported_at_utc: "2026-01-01T00:00:00Z".to_string(),
             sync_method: "copy".to_string(),
             destination_path: "src/userland/brush".to_string(),
+            upstream_tree: "0123456789012345678901234567890123456789".to_string(),
+            imported_tree_digest_algorithm: IMPORTED_TREE_DIGEST_ALGORITHM.to_string(),
+            imported_tree_digest: "0".repeat(64),
+            intentional_omission_policy: "none".to_string(),
+            gitlink_policy: "none".to_string(),
+            patch_manifest: "none".to_string(),
+            patch_manifest_sha256: "none".to_string(),
         };
         write_sync_state(root, "brush", &state).expect("write state");
         assert!(root.join("upstream/state/brush.toml").exists());
@@ -11302,12 +11657,18 @@ mod tests {
         let root = tmp.path();
         init_git_repo(root);
         let source = root.join("src/imported/example");
-        write(&source.join(".gitignore"), "target/\n");
+        write(&source.join(".gitignore"), "target/\nignored-source.txt\n");
         write(&source.join("tracked.txt"), "tracked\n");
+        write(&source.join("ignored-source.txt"), "upstream tracks this release input\n");
         write(&source.join("untracked.txt"), "untracked\n");
         write(&source.join("target/generated.o"), "old generated output\n");
         run_ok(root, "git", &["add", "src/imported/example/.gitignore"]);
         run_ok(root, "git", &["add", "src/imported/example/tracked.txt"]);
+        run_ok(
+            root,
+            "git",
+            &["add", "-f", "src/imported/example/ignored-source.txt"],
+        );
         let before = performance::output_path_digest(root, &source).expect("source snapshot");
 
         let mirror = root.join("out/build/example/source");
@@ -11320,6 +11681,10 @@ mod tests {
         assert_eq!(
             fs::read_to_string(mirror.join("untracked.txt")).unwrap(),
             "untracked\n"
+        );
+        assert_eq!(
+            fs::read_to_string(mirror.join("ignored-source.txt")).unwrap(),
+            "upstream tracks this release input\n"
         );
         assert!(!mirror.join("target/generated.o").exists());
         write(&mirror.join("generated/config.h"), "generated in output\n");
@@ -12154,10 +12519,12 @@ mod tests {
         let sources = read_sources(&root).unwrap();
         let acl = sources.component.iter().find(|item| item.name == "acl").unwrap();
         assert_eq!(acl.branch, "v2.3.2");
-        assert_eq!(
-            fs::read_to_string(root.join("upstream/state/acl.toml")).unwrap(),
-            "component = \"acl\"\nrepo = \"https://git.savannah.nongnu.org/git/acl.git\"\nbranch = \"v2.3.2\"\nimported_commit = \"214c7d146945c31a9dc04cb7094b85053f52a21e\"\nimported_at_utc = \"2026-08-02T18:24:42.054461104+00:00\"\nsync_method = \"copy\"\ndestination_path = \"src/system/libraries/acl\"\n"
-        );
+        let state = read_sync_state(&root, "acl").unwrap().unwrap();
+        assert_eq!(state.schema_version, 2);
+        assert_eq!(state.imported_commit, "214c7d146945c31a9dc04cb7094b85053f52a21e");
+        assert_eq!(state.upstream_tree, "0fc760b8b9935266e0e496b17effa771e9c57b42");
+        assert_eq!(state.imported_tree_digest.len(), 64);
+        assert_eq!(state.patch_manifest, "none");
         assert!(ACL_RELEASE_ARCHIVE_URL.ends_with("/acl-2.3.2.tar.xz"));
         assert_eq!(ACL_RELEASE_ARCHIVE_SHA256.len(), 64);
         let builder = include_str!("main.rs");

@@ -1,0 +1,11 @@
+schema_version = 1
+component = "dbus-broker"
+upstream_commit = "2956b5d381deeea709c53d02f10e799e50e44f4b"
+upstream_tree = "8d613c232f1b4b3f542c1db21203b25f654c4531"
+application = "output-mirror-only"
+
+[[patch]]
+path = "upstream/patches/dbus-broker/0001-use-target-systemd-install-paths.patch"
+sha256 = "5e1f183ca40508687c985f9dcdce79fa5d4cadaef86af7910a798d45ac85b8d8"
+purpose = "Keep systemd unit and catalog destinations as target paths when pkg-config uses a sysroot."
+documentation = "docs/DBUS.md"

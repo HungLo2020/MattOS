@@ -1,0 +1,11 @@
+schema_version = 1
+component = "apt"
+upstream_commit = "5e6dcc8d0c8bdce61e9cc7f497abadb5349d509a"
+upstream_tree = "17a0f75942965e23f2e92b8901086041aff2ba88"
+application = "output-mirror-only"
+
+[[patch]]
+path = "upstream/patches/apt/0001-mattos-vendor-and-optional-ftparchive.patch"
+sha256 = "ed4508f8bf3851b91e34ff2d543b9a374c8e53d529fc0fb1aa7dd5538de7f6a7"
+purpose = "Provide the MattOS APT vendor definition and allow runtime-only APT builds without apt-ftparchive/Berkeley DB."
+documentation = "docs/PACKAGING.md"

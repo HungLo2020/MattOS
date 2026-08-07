@@ -1,0 +1,20 @@
+schema_version = 1
+policy = "Official release archives are verified bootstrap closures staged only into output-owned mirrors; authoritative vendored trees remain exact Git imports."
+
+[[archive]]
+component = "attr"
+version = "2.6.0"
+source_tag = "v2.6.0"
+source_commit = "c440855d6b33446edf4b5eb1a2d892281f15a99b"
+url = "https://download.savannah.gnu.org/releases/attr/attr-2.6.0.tar.xz"
+sha256 = "6c8a2148a7b85043b68492bce43316b0e2e214fc4e628c7ede078e76e216330b"
+staging_policy = "output-mirror-only"
+
+[[archive]]
+component = "acl"
+version = "2.3.2"
+source_tag = "v2.3.2"
+source_commit = "214c7d146945c31a9dc04cb7094b85053f52a21e"
+url = "https://download.savannah.gnu.org/releases/acl/acl-2.3.2.tar.xz"
+sha256 = "97203a72cae99ab89a067fe2210c1cbf052bc492b479eca7d226d9830883b0bd"
+staging_policy = "output-mirror-only"

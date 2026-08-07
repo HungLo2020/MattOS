@@ -629,14 +629,6 @@ fn get_default_input_backend_type(args: &CommandLineArgs) -> InputBackendType {
         // (reference: https://github.com/nushell/reedline/issues/509). Switch to
         // the minimal input backend instead for that scenario.
         if std::io::stdin().is_terminal() && will_run_interactively(args) {
-            #[cfg(unix)]
-            if brush_core::sys::terminal::try_get_terminal_device_path()
-                .as_deref()
-                .is_some_and(is_pc_serial_terminal)
-            {
-                return InputBackendType::Basic;
-            }
-
             InputBackendType::Reedline
         } else {
             InputBackendType::Minimal
@@ -647,13 +639,6 @@ fn get_default_input_backend_type(args: &CommandLineArgs) -> InputBackendType {
         let _args = args;
         InputBackendType::Minimal
     }
-}
-
-#[cfg(unix)]
-fn is_pc_serial_terminal(path: &Path) -> bool {
-    path.file_name()
-        .and_then(|name| name.to_str())
-        .is_some_and(|name| name.starts_with("ttyS"))
 }
 
 pub(crate) fn get_event_config() -> Arc<tokio::sync::Mutex<Option<events::TraceEventConfig>>> {
@@ -693,15 +678,6 @@ mod tests {
 
     fn args(strs: &[&str]) -> Vec<String> {
         strs.iter().map(|s| s.to_string()).collect()
-    }
-
-    #[cfg(unix)]
-    #[test]
-    fn identifies_pc_serial_terminals() {
-        assert!(is_pc_serial_terminal(Path::new("/dev/ttyS0")));
-        assert!(is_pc_serial_terminal(Path::new("/dev/ttyS12")));
-        assert!(!is_pc_serial_terminal(Path::new("/dev/tty1")));
-        assert!(!is_pc_serial_terminal(Path::new("/dev/pts/1")));
     }
 
     #[test]
