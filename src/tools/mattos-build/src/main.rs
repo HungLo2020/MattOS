@@ -6,6 +6,7 @@ use sha2::{Digest as ShaDigest, Sha256 as Sha256Hasher};
 use std::collections::{BTreeMap, BTreeSet};
 use std::ffi::OsStr;
 use std::fs;
+use std::io::Read;
 use std::path::{Component, Path, PathBuf};
 use std::process::{Command, Output};
 
@@ -10509,11 +10510,16 @@ fn build_initramfs(repo_root: &Path) -> Result<()> {
 }
 
 fn validate_cached_initramfs(repo_root: &Path) -> Result<()> {
-    let body = fs::read(repo_root.join("out/build/initramfs.cpio.gz"))?;
-    if body.len() < 2 || body[..2] != [0x1f, 0x8b] {
+    if !has_gzip_header(&repo_root.join("out/build/initramfs.cpio.gz"))? {
         bail!("cached initramfs is not a gzip stream");
     }
     Ok(())
+}
+
+fn has_gzip_header(path: &Path) -> Result<bool> {
+    let mut file = fs::File::open(path)?;
+    let mut header = [0u8; 2];
+    Ok(file.read_exact(&mut header).is_ok() && header == [0x1f, 0x8b])
 }
 
 fn build_initramfs_atomic(repo_root: &Path) -> Result<()> {
@@ -10536,8 +10542,7 @@ fn build_initramfs_atomic(repo_root: &Path) -> Result<()> {
         let _ = remove_path_if_exists(&temp);
         return Err(error);
     }
-    let body = fs::read(&temp)?;
-    if body.len() < 2 || body[..2] != [0x1f, 0x8b] {
+    if !has_gzip_header(&temp)? {
         let _ = remove_path_if_exists(&temp);
         bail!("generated initramfs is not a gzip stream");
     }
@@ -13456,6 +13461,18 @@ mod tests {
     fn initramfs_owner_validation_rejects_non_root_ownership() {
         validate_initramfs_archive_owner("0:0").expect("root ownership should pass");
         assert!(validate_initramfs_archive_owner("1000:1000").is_err());
+    }
+
+    #[test]
+    fn gzip_header_validation_reads_only_required_prefix() {
+        let root = tempfile::tempdir().unwrap();
+        let archive = root.path().join("archive.gz");
+        fs::write(&archive, [0x1f, 0x8b, 0xaa, 0xbb]).unwrap();
+        assert!(has_gzip_header(&archive).unwrap());
+        fs::write(&archive, [0x1f]).unwrap();
+        assert!(!has_gzip_header(&archive).unwrap());
+        fs::write(&archive, [0x00, 0x00]).unwrap();
+        assert!(!has_gzip_header(&archive).unwrap());
     }
 
     #[test]

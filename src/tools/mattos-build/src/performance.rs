@@ -10,10 +10,10 @@ use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitStatus, Stdio};
 use std::thread;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 pub(crate) const STAGE_MANIFEST_SCHEMA_VERSION: u32 = 3;
-const TIMING_SCHEMA_VERSION: u32 = 1;
+const TIMING_SCHEMA_VERSION: u32 = 2;
 const NORMALIZED_SOURCE_DATE_EPOCH: &str = "1767225600";
 
 #[derive(Clone, Debug)]
@@ -105,11 +105,50 @@ struct TimingReport {
     ended_at_utc: Option<String>,
     result: String,
     stages: Vec<TimingRecord>,
+    categories: BTreeMap<String, TimingCategory>,
+    integrity_cache: BTreeMap<String, IntegrityCacheStats>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+struct TimingCategory {
+    wall_seconds: f64,
+    operations: u64,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+struct IntegrityCacheStats {
+    hits: u64,
+    misses: u64,
+}
+
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+struct SourceDigestKey {
+    repo_root: PathBuf,
+    roots: Vec<PathBuf>,
+    exclude_documentation: bool,
+}
+
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+struct InventoryKey {
+    repo_root: PathBuf,
+    path: PathBuf,
+    filter_docs: bool,
+}
+
+#[derive(Default)]
+struct InvocationIntegrityCache {
+    file_digests: BTreeMap<PathBuf, String>,
+    inventories: BTreeMap<InventoryKey, Vec<InventoryEntry>>,
+    source_digests: BTreeMap<SourceDigestKey, String>,
+    tool_identities: BTreeMap<String, ToolIdentity>,
+    stats: BTreeMap<String, IntegrityCacheStats>,
 }
 
 thread_local! {
     static TIMINGS: RefCell<Option<(PathBuf, TimingReport)>> = const { RefCell::new(None) };
     static ACTIVE_BUILD_LOG: RefCell<Option<PathBuf>> = const { RefCell::new(None) };
+    static INTEGRITY_CACHE: RefCell<Option<InvocationIntegrityCache>> = const { RefCell::new(None) };
+    static TIMING_STARTED: RefCell<Option<Instant>> = const { RefCell::new(None) };
 }
 
 pub(crate) fn start_timing_run(repo_root: &Path, command: &str) -> Result<()> {
@@ -124,23 +163,72 @@ pub(crate) fn start_timing_run(repo_root: &Path, command: &str) -> Result<()> {
                 ended_at_utc: None,
                 result: "running".to_string(),
                 stages: Vec::new(),
+                categories: BTreeMap::new(),
+                integrity_cache: BTreeMap::new(),
             },
         ));
     });
+    INTEGRITY_CACHE.with(|slot| *slot.borrow_mut() = Some(InvocationIntegrityCache::default()));
+    TIMING_STARTED.with(|slot| *slot.borrow_mut() = Some(Instant::now()));
     persist_timing_report()
 }
 
 pub(crate) fn finish_timing_run(result: &Result<()>) -> Result<()> {
+    let elapsed = TIMING_STARTED.with(|slot| slot.borrow().as_ref().map(Instant::elapsed));
+    let integrity_cache = INTEGRITY_CACHE.with(|slot| {
+        slot.borrow()
+            .as_ref()
+            .map(|cache| cache.stats.clone())
+            .unwrap_or_default()
+    });
     TIMINGS.with(|slot| {
         if let Some((_, report)) = slot.borrow_mut().as_mut() {
             report.ended_at_utc = Some(Utc::now().to_rfc3339());
             report.result = if result.is_ok() { "success" } else { "failed" }.to_string();
+            report.integrity_cache = integrity_cache;
+            if let Some(elapsed) = elapsed {
+                let attributed = report
+                    .categories
+                    .values()
+                    .map(|category| category.wall_seconds)
+                    .sum::<f64>();
+                report.categories.insert(
+                    "orchestration_unattributed".to_string(),
+                    TimingCategory {
+                        wall_seconds: (elapsed.as_secs_f64() - attributed).max(0.0),
+                        operations: 1,
+                    },
+                );
+            }
         }
     });
     persist_timing_report()?;
     print_timing_summary()?;
     TIMINGS.with(|slot| *slot.borrow_mut() = None);
+    INTEGRITY_CACHE.with(|slot| *slot.borrow_mut() = None);
+    TIMING_STARTED.with(|slot| *slot.borrow_mut() = None);
     Ok(())
+}
+
+fn record_category(name: &str, elapsed: Duration) {
+    TIMINGS.with(|slot| {
+        if let Some((_, report)) = slot.borrow_mut().as_mut() {
+            let category = report.categories.entry(name.to_string()).or_default();
+            category.wall_seconds += elapsed.as_secs_f64();
+            category.operations += 1;
+        }
+    });
+}
+
+fn measured<T>(category: &str, action: impl FnOnce() -> Result<T>) -> Result<T> {
+    let timer = Instant::now();
+    let result = action();
+    record_category(category, timer.elapsed());
+    result
+}
+
+pub(crate) fn measure_package_validation<T>(action: impl FnOnce() -> Result<T>) -> Result<T> {
+    measured("package_validation", action)
 }
 
 pub(crate) fn record_timing(record: TimingRecord) -> Result<()> {
@@ -164,7 +252,11 @@ where
 {
     let started_at: DateTime<Utc> = Utc::now();
     let timer = Instant::now();
-    let result = action();
+    let result = if cache_status == "miss" || cache_status == "n/a" {
+        measured("stage_actions", action)
+    } else {
+        action()
+    };
     let ended_at = Utc::now();
     record_timing(TimingRecord {
         stage: stage.to_string(),
@@ -410,6 +502,20 @@ fn persist_timing_report() -> Result<()> {
                 record.reason.replace('\n', " ")
             ));
         }
+        text.push_str("\nTiming categories\nseconds  operations  category\n");
+        for (name, category) in &report.categories {
+            text.push_str(&format!(
+                "{:>7.3}  {:>10}  {}\n",
+                category.wall_seconds, category.operations, name
+            ));
+        }
+        text.push_str("\nInvocation integrity cache\nhits  misses  cache\n");
+        for (name, stats) in &report.integrity_cache {
+            text.push_str(&format!(
+                "{:>4}  {:>6}  {}\n",
+                stats.hits, stats.misses, name
+            ));
+        }
         atomic_write(&reports.join("build-timings.txt"), text.as_bytes())
     })
 }
@@ -441,6 +547,20 @@ fn print_timing_summary() -> Result<()> {
                 record.wall_seconds, record.cache_status, record.result, record.stage
             );
         }
+        println!("\nMattOS timing categories:");
+        for (name, category) in &report.categories {
+            println!(
+                "  {:>8.3}s  {:>5} operation(s)  {}",
+                category.wall_seconds, category.operations, name
+            );
+        }
+        println!("\nMattOS invocation integrity cache:");
+        for (name, stats) in &report.integrity_cache {
+            println!(
+                "  {:>5} hit(s)  {:>5} miss(es)  {}",
+                stats.hits, stats.misses, name
+            );
+        }
         Ok(())
     })
 }
@@ -457,7 +577,9 @@ where
 {
     let started_at = Utc::now();
     let timer = Instant::now();
-    let evaluation = compute_stage_evaluation(repo_root, spec)?;
+    let evaluation = measured("input_hashing", || {
+        compute_stage_evaluation(repo_root, spec)
+    })?;
     let inputs = evaluation.inputs.clone();
     let manifest_path = stage_manifest_path(repo_root, &spec.id);
     let mut reason;
@@ -469,7 +591,9 @@ where
             manifest.input_details = evaluation.details.clone();
             write_stage_manifest(repo_root, &manifest)?;
         }
-        reason = cache_miss_reason(repo_root, spec, &inputs, &manifest)?;
+        reason = measured("output_inventory_hashing", || {
+            cache_miss_reason(repo_root, spec, &inputs, &manifest)
+        })?;
         if !reason.is_empty() {
             let details = changed_input_summary(&manifest.input_details, &evaluation.details);
             if !details.is_empty() {
@@ -477,7 +601,7 @@ where
             }
         }
         if reason.is_empty() {
-            match validate_reuse() {
+            match measured("semantic_validation", validate_reuse) {
                 Ok(()) => {
                     reason = "full input digest matched; output inventory and lightweight validation passed"
                         .to_string();
@@ -507,10 +631,15 @@ where
     }
 
     println!("cache miss: {} ({reason})", spec.id);
-    let result = with_stage_log(repo_root, &spec.id, action);
+    invalidate_integrity_paths(repo_root, &spec.outputs);
+    let result = measured("stage_actions", || {
+        with_stage_log(repo_root, &spec.id, action)
+    });
     let mut output_digest = None;
     if result.is_ok() {
-        let inventory = output_inventory(repo_root, &spec.outputs)?;
+        let inventory = measured("output_inventory_hashing", || {
+            output_inventory(repo_root, &spec.outputs)
+        })?;
         if inventory.is_empty() {
             bail!("stage {} succeeded without expected outputs", spec.id);
         }
@@ -807,6 +936,58 @@ fn diagnostic_path(repo_root: &Path, path: &Path) -> String {
     normalize_path(path.strip_prefix(repo_root).unwrap_or(path))
 }
 
+fn absolute_cache_path(repo_root: &Path, path: &Path) -> PathBuf {
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        repo_root.join(path)
+    }
+}
+
+fn paths_overlap(left: &Path, right: &Path) -> bool {
+    left.starts_with(right) || right.starts_with(left)
+}
+
+pub(crate) fn invalidate_integrity_paths(repo_root: &Path, paths: &[PathBuf]) {
+    let paths = paths
+        .iter()
+        .map(|path| absolute_cache_path(repo_root, path))
+        .collect::<Vec<_>>();
+    INTEGRITY_CACHE.with(|slot| {
+        let mut borrowed = slot.borrow_mut();
+        let Some(cache) = borrowed.as_mut() else {
+            return;
+        };
+        cache
+            .file_digests
+            .retain(|path, _| !paths.iter().any(|changed| paths_overlap(path, changed)));
+        cache.inventories.retain(|key, _| {
+            !paths
+                .iter()
+                .any(|changed| paths_overlap(&key.path, changed))
+        });
+        cache.source_digests.retain(|key, _| {
+            !key.roots
+                .iter()
+                .any(|root| paths.iter().any(|changed| paths_overlap(root, changed)))
+        });
+        cache.tool_identities.retain(|_, identity| {
+            !paths
+                .iter()
+                .any(|changed| paths_overlap(Path::new(&identity.resolved_path), changed))
+        });
+    });
+}
+
+fn record_integrity_cache_access(cache: &mut InvocationIntegrityCache, name: &str, hit: bool) {
+    let stats = cache.stats.entry(name.to_string()).or_default();
+    if hit {
+        stats.hits += 1;
+    } else {
+        stats.misses += 1;
+    }
+}
+
 pub(crate) fn stage_manifest_path(repo_root: &Path, stage: &str) -> PathBuf {
     repo_root
         .join("out/state/stages")
@@ -1049,6 +1230,37 @@ pub(crate) fn tracked_source_digest(
     roots: &[PathBuf],
     exclude_documentation: bool,
 ) -> Result<String> {
+    let key = SourceDigestKey {
+        repo_root: repo_root.to_path_buf(),
+        roots: roots
+            .iter()
+            .map(|path| absolute_cache_path(repo_root, path))
+            .collect(),
+        exclude_documentation,
+    };
+    if let Some(digest) = INTEGRITY_CACHE.with(|slot| {
+        let mut borrowed = slot.borrow_mut();
+        let cache = borrowed.as_mut()?;
+        let digest = cache.source_digests.get(&key).cloned();
+        record_integrity_cache_access(cache, "source_digest", digest.is_some());
+        digest
+    }) {
+        return Ok(digest);
+    }
+    let digest = tracked_source_digest_uncached(repo_root, roots, exclude_documentation)?;
+    INTEGRITY_CACHE.with(|slot| {
+        if let Some(cache) = slot.borrow_mut().as_mut() {
+            cache.source_digests.insert(key, digest.clone());
+        }
+    });
+    Ok(digest)
+}
+
+fn tracked_source_digest_uncached(
+    repo_root: &Path,
+    roots: &[PathBuf],
+    exclude_documentation: bool,
+) -> Result<String> {
     if roots.is_empty() {
         return digest_serializable(&Vec::<String>::new());
     }
@@ -1145,7 +1357,7 @@ fn digest_paths(
         } else {
             repo_root.join(path)
         };
-        collect_inventory(repo_root, &absolute, filter_docs, &mut entries)?;
+        entries.extend(inventory_for_path(repo_root, &absolute, filter_docs)?);
     }
     entries.sort_by(|a, b| a.path.cmp(&b.path));
     digest_serializable(&(seed, entries))
@@ -1162,12 +1374,41 @@ fn output_inventory(repo_root: &Path, paths: &[PathBuf]) -> Result<Vec<Inventory
         if !absolute.symlink_metadata().is_ok() {
             bail!("missing expected output {}", absolute.display());
         }
-        collect_inventory(repo_root, &absolute, false, &mut entries)?;
+        entries.extend(inventory_for_path(repo_root, &absolute, false)?);
     }
     entries.sort_by(|a, b| a.path.cmp(&b.path));
     let mut seen = BTreeSet::new();
     entries.retain(|entry| seen.insert(entry.path.clone()));
     Ok(entries)
+}
+
+fn inventory_for_path(
+    repo_root: &Path,
+    path: &Path,
+    filter_docs: bool,
+) -> Result<Vec<InventoryEntry>> {
+    let key = InventoryKey {
+        repo_root: repo_root.to_path_buf(),
+        path: absolute_cache_path(repo_root, path),
+        filter_docs,
+    };
+    if let Some(inventory) = INTEGRITY_CACHE.with(|slot| {
+        let mut borrowed = slot.borrow_mut();
+        let cache = borrowed.as_mut()?;
+        let inventory = cache.inventories.get(&key).cloned();
+        record_integrity_cache_access(cache, "path_inventory", inventory.is_some());
+        inventory
+    }) {
+        return Ok(inventory);
+    }
+    let mut inventory = Vec::new();
+    collect_inventory(repo_root, path, filter_docs, &mut inventory)?;
+    INTEGRITY_CACHE.with(|slot| {
+        if let Some(cache) = slot.borrow_mut().as_mut() {
+            cache.inventories.insert(key, inventory.clone());
+        }
+    });
+    Ok(inventory)
 }
 
 fn collect_inventory(
@@ -1261,6 +1502,16 @@ fn is_irrelevant_documentation(path: &Path) -> bool {
 fn tool_identities(tools: &[String]) -> Result<BTreeMap<String, ToolIdentity>> {
     let mut values = BTreeMap::new();
     for tool in tools {
+        if let Some(identity) = INTEGRITY_CACHE.with(|slot| {
+            let mut borrowed = slot.borrow_mut();
+            let cache = borrowed.as_mut()?;
+            let identity = cache.tool_identities.get(tool).cloned();
+            record_integrity_cache_access(cache, "tool_identity", identity.is_some());
+            identity
+        }) {
+            values.insert(tool.clone(), identity);
+            continue;
+        }
         let path = resolve_executable(tool)?;
         let version_output = stable_tool_output(&path, &["--version"])?;
         let target = if matches!(tool.as_str(), "gcc" | "g++" | "cc" | "c++") {
@@ -1280,6 +1531,11 @@ fn tool_identities(tools: &[String]) -> Result<BTreeMap<String, ToolIdentity>> {
             version: version_output.lines().next().unwrap_or("").to_string(),
             target,
         };
+        INTEGRITY_CACHE.with(|slot| {
+            if let Some(cache) = slot.borrow_mut().as_mut() {
+                cache.tool_identities.insert(tool.clone(), identity.clone());
+            }
+        });
         values.insert(tool.clone(), identity);
     }
     Ok(values)
@@ -1390,6 +1646,20 @@ fn digest_serializable<T: Serialize + ?Sized>(value: &T) -> Result<String> {
 }
 
 pub(crate) fn sha256_file(path: &Path) -> Result<String> {
+    let cache_path = if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        std::env::current_dir()?.join(path)
+    };
+    if let Some(digest) = INTEGRITY_CACHE.with(|slot| {
+        let mut borrowed = slot.borrow_mut();
+        let cache = borrowed.as_mut()?;
+        let digest = cache.file_digests.get(&cache_path).cloned();
+        record_integrity_cache_access(cache, "file_digest", digest.is_some());
+        digest
+    }) {
+        return Ok(digest);
+    }
     let mut file = fs::File::open(path)?;
     let mut digest = Sha256::new();
     let mut buffer = [0u8; 1024 * 1024];
@@ -1400,7 +1670,13 @@ pub(crate) fn sha256_file(path: &Path) -> Result<String> {
         }
         digest.update(&buffer[..count]);
     }
-    Ok(format!("{:x}", digest.finalize()))
+    let digest = format!("{:x}", digest.finalize());
+    INTEGRITY_CACHE.with(|slot| {
+        if let Some(cache) = slot.borrow_mut().as_mut() {
+            cache.file_digests.insert(cache_path, digest.clone());
+        }
+    });
+    Ok(digest)
 }
 
 fn normalize_path(path: &Path) -> String {
@@ -1427,6 +1703,171 @@ fn sanitize_identifier(value: &str) -> String {
 mod tests {
     use super::*;
     use tempfile::tempdir;
+
+    fn begin_test_integrity_cache() {
+        INTEGRITY_CACHE.with(|slot| {
+            *slot.borrow_mut() = Some(InvocationIntegrityCache::default());
+        });
+    }
+
+    fn end_test_integrity_cache() {
+        INTEGRITY_CACHE.with(|slot| *slot.borrow_mut() = None);
+    }
+
+    fn integrity_cache_stats(name: &str) -> IntegrityCacheStats {
+        INTEGRITY_CACHE.with(|slot| {
+            slot.borrow()
+                .as_ref()
+                .and_then(|cache| cache.stats.get(name))
+                .cloned()
+                .unwrap_or_default()
+        })
+    }
+
+    #[test]
+    fn invocation_inventory_reuses_verified_results() {
+        let root = tempdir().unwrap();
+        let output = root.path().join("output");
+        fs::create_dir(&output).unwrap();
+        fs::write(output.join("file"), "stable").unwrap();
+        begin_test_integrity_cache();
+        let first = output_inventory(root.path(), &[output.clone()]).unwrap();
+        let second = output_inventory(root.path(), &[output]).unwrap();
+        assert_eq!(first, second);
+        assert_eq!(
+            sha256_file(&root.path().join("output/file")).unwrap(),
+            first
+                .iter()
+                .find(|entry| entry.path.ends_with("output/file"))
+                .unwrap()
+                .content
+        );
+        assert_eq!(integrity_cache_stats("path_inventory").hits, 1);
+        assert_eq!(integrity_cache_stats("path_inventory").misses, 1);
+        assert_eq!(integrity_cache_stats("file_digest").hits, 1);
+        end_test_integrity_cache();
+    }
+
+    #[test]
+    fn invocation_source_and_tool_identity_are_memoized() {
+        use std::os::unix::fs::PermissionsExt;
+        let root = tempdir().unwrap();
+        let source = root.path().join("source");
+        let tool = root.path().join("tool");
+        fs::write(&source, "stable").unwrap();
+        fs::write(&tool, "#!/bin/sh\necho fixture-tool 1.0\n").unwrap();
+        fs::set_permissions(&tool, fs::Permissions::from_mode(0o755)).unwrap();
+        begin_test_integrity_cache();
+        let roots = vec![source];
+        assert_eq!(
+            tracked_source_digest(root.path(), &roots, false).unwrap(),
+            tracked_source_digest(root.path(), &roots, false).unwrap()
+        );
+        let tools = vec![tool.to_string_lossy().into_owned()];
+        assert_eq!(
+            tool_identities(&tools).unwrap(),
+            tool_identities(&tools).unwrap()
+        );
+        assert_eq!(integrity_cache_stats("source_digest").hits, 1);
+        assert_eq!(integrity_cache_stats("source_digest").misses, 1);
+        assert_eq!(integrity_cache_stats("tool_identity").hits, 1);
+        assert_eq!(integrity_cache_stats("tool_identity").misses, 1);
+        end_test_integrity_cache();
+    }
+
+    #[test]
+    fn invalidated_changed_file_is_rehashed() {
+        let root = tempdir().unwrap();
+        let input = root.path().join("input");
+        fs::write(&input, "one").unwrap();
+        begin_test_integrity_cache();
+        let first = digest_paths(root.path(), std::slice::from_ref(&input), false, "test").unwrap();
+        fs::write(&input, "two").unwrap();
+        invalidate_integrity_paths(root.path(), std::slice::from_ref(&input));
+        let second =
+            digest_paths(root.path(), std::slice::from_ref(&input), false, "test").unwrap();
+        assert_ne!(first, second);
+        assert_eq!(integrity_cache_stats("path_inventory").misses, 2);
+        end_test_integrity_cache();
+    }
+
+    #[test]
+    fn fresh_invocation_detects_corrupted_cached_output() {
+        let root = tempdir().unwrap();
+        let spec = StageSpec {
+            id: "corruption".to_string(),
+            source_inputs: Vec::new(),
+            configuration_inputs: Vec::new(),
+            tools: Vec::new(),
+            dependencies: Vec::new(),
+            outputs: vec![PathBuf::from("out/result")],
+            recipe: "test".to_string(),
+        };
+        begin_test_integrity_cache();
+        execute_cached_stage(
+            root.path(),
+            &spec,
+            || Ok(()),
+            || {
+                fs::create_dir_all(root.path().join("out"))?;
+                fs::write(root.path().join("out/result"), "good")?;
+                Ok(())
+            },
+        )
+        .unwrap();
+        end_test_integrity_cache();
+        fs::write(root.path().join("out/result"), "evil").unwrap();
+        begin_test_integrity_cache();
+        let result = execute_cached_stage(
+            root.path(),
+            &spec,
+            || Ok(()),
+            || bail!("corrupted output forced a cache miss"),
+        );
+        assert!(result.is_err());
+        end_test_integrity_cache();
+    }
+
+    #[test]
+    fn semantic_validation_runs_when_inventory_is_reused() {
+        use std::cell::Cell;
+        let root = tempdir().unwrap();
+        let spec = StageSpec {
+            id: "semantic".to_string(),
+            source_inputs: Vec::new(),
+            configuration_inputs: Vec::new(),
+            tools: Vec::new(),
+            dependencies: Vec::new(),
+            outputs: vec![PathBuf::from("out/result")],
+            recipe: "test".to_string(),
+        };
+        begin_test_integrity_cache();
+        execute_cached_stage(
+            root.path(),
+            &spec,
+            || Ok(()),
+            || {
+                fs::create_dir_all(root.path().join("out"))?;
+                fs::write(root.path().join("out/result"), "good")?;
+                Ok(())
+            },
+        )
+        .unwrap();
+        let semantic_runs = Cell::new(0);
+        execute_cached_stage(
+            root.path(),
+            &spec,
+            || {
+                semantic_runs.set(semantic_runs.get() + 1);
+                Ok(())
+            },
+            || bail!("unchanged output must hit"),
+        )
+        .unwrap();
+        assert_eq!(semantic_runs.get(), 1);
+        assert!(integrity_cache_stats("path_inventory").hits >= 1);
+        end_test_integrity_cache();
+    }
 
     #[test]
     fn stable_digest_ignores_timestamps_but_detects_content_and_modes() {

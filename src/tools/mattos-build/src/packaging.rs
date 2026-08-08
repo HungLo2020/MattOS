@@ -1,8 +1,6 @@
 use super::*;
 use clap::Subcommand;
 use filetime::{FileTime, set_file_times, set_symlink_file_times};
-use sha2::{Digest, Sha256};
-use std::io::Read;
 
 const ARCH: &str = "amd64";
 const REVISION: &str = "1mattos1";
@@ -1631,8 +1629,10 @@ fn build_packages(repo_root: &Path, names: &[String]) -> Result<()> {
         let staging = staging_root.join(spec.name);
         let artifact = artifact_root.join(format!("{}_{}_{}.deb", spec.name, version, ARCH));
         let input = package_cache_input(repo_root, spec, &version, &mut source_digests)?;
-        let reused =
-            validate_package_cache(repo_root, spec, &version, &staging, &artifact, &input).ok();
+        let reused = performance::measure_package_validation(|| {
+            validate_package_cache(repo_root, spec, &version, &staging, &artifact, &input)
+        })
+        .ok();
         if reused.is_some() {
             performance::timed(
                 &format!("package:{}", spec.name),
@@ -1643,6 +1643,10 @@ fn build_packages(repo_root: &Path, names: &[String]) -> Result<()> {
             )?;
             println!("package cache hit: {}", spec.name);
         } else {
+            performance::invalidate_integrity_paths(
+                repo_root,
+                &[staging.clone(), artifact.clone()],
+            );
             performance::timed(
                 &format!("package-staging:{}", spec.name),
                 "miss",
@@ -4693,17 +4697,7 @@ fn normalize_package_modes(root: &Path) -> Result<()> {
 }
 
 fn sha256_file(path: &Path) -> Result<String> {
-    let mut file = fs::File::open(path)?;
-    let mut digest = Sha256::new();
-    let mut buffer = [0u8; 64 * 1024];
-    loop {
-        let read = file.read(&mut buffer)?;
-        if read == 0 {
-            break;
-        }
-        digest.update(&buffer[..read]);
-    }
-    Ok(format!("{:x}", digest.finalize()))
+    performance::sha256_file(path)
 }
 
 fn verify_deb(path: &Path, expected_name: &str, expected_version: &str) -> Result<()> {
