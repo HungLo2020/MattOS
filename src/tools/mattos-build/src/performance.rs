@@ -14,6 +14,7 @@ use std::time::{Duration, Instant};
 
 pub(crate) const STAGE_MANIFEST_SCHEMA_VERSION: u32 = 3;
 const TIMING_SCHEMA_VERSION: u32 = 2;
+const INTEGRITY_INDEX_SCHEMA_VERSION: u32 = 1;
 const NORMALIZED_SOURCE_DATE_EPOCH: &str = "1767225600";
 
 #[derive(Clone, Debug)]
@@ -121,6 +122,39 @@ struct IntegrityCacheStats {
     misses: u64,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
+struct FileFingerprint {
+    // This tuple is a kernel-maintained change token, not a content identity:
+    // every mismatch falls back to hashing, and size/mtime are never trusted alone.
+    device: u64,
+    inode: u64,
+    file_type: u32,
+    size: u64,
+    mtime_seconds: i64,
+    mtime_nanoseconds: i64,
+    ctime_seconds: i64,
+    ctime_nanoseconds: i64,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
+struct PersistentFileDigest {
+    fingerprint: FileFingerprint,
+    sha256: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct PersistentIntegrityIndexFile {
+    schema_version: u32,
+    entries_sha256: String,
+    entries: BTreeMap<String, PersistentFileDigest>,
+}
+
+struct PersistentIntegrityIndex {
+    repo_root: PathBuf,
+    entries: BTreeMap<String, PersistentFileDigest>,
+    dirty: bool,
+}
+
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 struct SourceDigestKey {
     repo_root: PathBuf,
@@ -148,6 +182,7 @@ thread_local! {
     static TIMINGS: RefCell<Option<(PathBuf, TimingReport)>> = const { RefCell::new(None) };
     static ACTIVE_BUILD_LOG: RefCell<Option<PathBuf>> = const { RefCell::new(None) };
     static INTEGRITY_CACHE: RefCell<Option<InvocationIntegrityCache>> = const { RefCell::new(None) };
+    static PERSISTENT_INTEGRITY_INDEX: RefCell<Option<PersistentIntegrityIndex>> = const { RefCell::new(None) };
     static TIMING_STARTED: RefCell<Option<Instant>> = const { RefCell::new(None) };
 }
 
@@ -170,10 +205,19 @@ pub(crate) fn start_timing_run(repo_root: &Path, command: &str) -> Result<()> {
     });
     INTEGRITY_CACHE.with(|slot| *slot.borrow_mut() = Some(InvocationIntegrityCache::default()));
     TIMING_STARTED.with(|slot| *slot.borrow_mut() = Some(Instant::now()));
+    let index_timer = Instant::now();
+    let index = load_persistent_integrity_index(repo_root);
+    PERSISTENT_INTEGRITY_INDEX.with(|slot| *slot.borrow_mut() = Some(index));
+    record_category("integrity_index_load", index_timer.elapsed());
     persist_timing_report()
 }
 
 pub(crate) fn finish_timing_run(result: &Result<()>) -> Result<()> {
+    let index_timer = Instant::now();
+    if result.is_ok() {
+        persist_persistent_integrity_index()?;
+    }
+    record_category("integrity_index_store", index_timer.elapsed());
     let elapsed = TIMING_STARTED.with(|slot| slot.borrow().as_ref().map(Instant::elapsed));
     let integrity_cache = INTEGRITY_CACHE.with(|slot| {
         slot.borrow()
@@ -189,8 +233,14 @@ pub(crate) fn finish_timing_run(result: &Result<()>) -> Result<()> {
             if let Some(elapsed) = elapsed {
                 let attributed = report
                     .categories
-                    .values()
-                    .map(|category| category.wall_seconds)
+                    .iter()
+                    .filter(|(name, _)| {
+                        !matches!(
+                            name.as_str(),
+                            "integrity_index_lookup" | "integrity_fallback_hashing"
+                        )
+                    })
+                    .map(|(_, category)| category.wall_seconds)
                     .sum::<f64>();
                 report.categories.insert(
                     "orchestration_unattributed".to_string(),
@@ -206,8 +256,70 @@ pub(crate) fn finish_timing_run(result: &Result<()>) -> Result<()> {
     print_timing_summary()?;
     TIMINGS.with(|slot| *slot.borrow_mut() = None);
     INTEGRITY_CACHE.with(|slot| *slot.borrow_mut() = None);
+    PERSISTENT_INTEGRITY_INDEX.with(|slot| *slot.borrow_mut() = None);
     TIMING_STARTED.with(|slot| *slot.borrow_mut() = None);
     Ok(())
+}
+
+fn persistent_integrity_index_path(repo_root: &Path) -> PathBuf {
+    repo_root.join("out/state/integrity-index.json")
+}
+
+fn load_persistent_integrity_index(repo_root: &Path) -> PersistentIntegrityIndex {
+    let path = persistent_integrity_index_path(repo_root);
+    let entries = fs::read(&path)
+        .ok()
+        .and_then(|body| serde_json::from_slice::<PersistentIntegrityIndexFile>(&body).ok())
+        .filter(|index| index.schema_version == INTEGRITY_INDEX_SCHEMA_VERSION)
+        .filter(|index| {
+            digest_serializable(&(index.schema_version, &index.entries))
+                .is_ok_and(|digest| digest == index.entries_sha256)
+        })
+        .filter(|index| persistent_integrity_entries_valid(&index.entries))
+        .map(|index| index.entries)
+        .unwrap_or_default();
+    PersistentIntegrityIndex {
+        repo_root: repo_root.to_path_buf(),
+        entries,
+        dirty: false,
+    }
+}
+
+fn persistent_integrity_entries_valid(
+    entries: &BTreeMap<String, PersistentFileDigest>,
+) -> bool {
+    entries.iter().all(|(path, entry)| {
+        let path = Path::new(path);
+        !path.is_absolute()
+            && !path
+                .components()
+                .any(|component| matches!(component, std::path::Component::ParentDir))
+            && path.starts_with("out")
+            && entry.fingerprint.file_type == 0o100000
+            && entry.sha256.len() == 64
+            && entry.sha256.bytes().all(|byte| byte.is_ascii_hexdigit())
+    })
+}
+
+fn persist_persistent_integrity_index() -> Result<()> {
+    PERSISTENT_INTEGRITY_INDEX.with(|slot| -> Result<()> {
+        let borrowed = slot.borrow();
+        let Some(index) = borrowed.as_ref() else {
+            return Ok(());
+        };
+        if !index.dirty {
+            return Ok(());
+        }
+        let file = PersistentIntegrityIndexFile {
+            schema_version: INTEGRITY_INDEX_SCHEMA_VERSION,
+            entries_sha256: digest_serializable(&(
+                INTEGRITY_INDEX_SCHEMA_VERSION,
+                &index.entries,
+            ))?,
+            entries: index.entries.clone(),
+        };
+        atomic_write_json(&persistent_integrity_index_path(&index.repo_root), &file)
+    })
 }
 
 fn record_category(name: &str, elapsed: Duration) {
@@ -977,6 +1089,20 @@ pub(crate) fn invalidate_integrity_paths(repo_root: &Path, paths: &[PathBuf]) {
                 .any(|changed| paths_overlap(Path::new(&identity.resolved_path), changed))
         });
     });
+    PERSISTENT_INTEGRITY_INDEX.with(|slot| {
+        let mut borrowed = slot.borrow_mut();
+        let Some(index) = borrowed.as_mut() else {
+            return;
+        };
+        let original_len = index.entries.len();
+        index.entries.retain(|path, _| {
+            let absolute = index.repo_root.join(path);
+            !paths
+                .iter()
+                .any(|changed| paths_overlap(&absolute, changed))
+        });
+        index.dirty |= index.entries.len() != original_len;
+    });
 }
 
 fn record_integrity_cache_access(cache: &mut InvocationIntegrityCache, name: &str, hit: bool) {
@@ -1453,6 +1579,7 @@ fn collect_inventory(
             content: normalize_path(&fs::read_link(path)?),
         });
     } else if metadata.is_file() {
+        let fingerprint = file_fingerprint(&metadata);
         entries.push(InventoryEntry {
             path: normalized,
             kind: "file".to_string(),
@@ -1460,7 +1587,7 @@ fn collect_inventory(
             uid,
             gid,
             size: metadata.len(),
-            content: sha256_file(path)?,
+            content: sha256_file_with_fingerprint(path, fingerprint.as_ref())?,
         });
     } else if metadata.is_dir() {
         entries.push(InventoryEntry {
@@ -1646,6 +1773,13 @@ fn digest_serializable<T: Serialize + ?Sized>(value: &T) -> Result<String> {
 }
 
 pub(crate) fn sha256_file(path: &Path) -> Result<String> {
+    sha256_file_with_fingerprint(path, None)
+}
+
+fn sha256_file_with_fingerprint(
+    path: &Path,
+    expected_fingerprint: Option<&FileFingerprint>,
+) -> Result<String> {
     let cache_path = if path.is_absolute() {
         path.to_path_buf()
     } else {
@@ -1660,7 +1794,35 @@ pub(crate) fn sha256_file(path: &Path) -> Result<String> {
     }) {
         return Ok(digest);
     }
+
+    let path_metadata = fs::symlink_metadata(path)?;
+    let path_fingerprint = if path_metadata.is_file() {
+        file_fingerprint(&path_metadata)
+    } else {
+        None
+    };
     let mut file = fs::File::open(path)?;
+    let opened_fingerprint = file_fingerprint(&file.metadata()?);
+    if expected_fingerprint.is_some() && opened_fingerprint.as_ref() != expected_fingerprint {
+        bail!("{} changed while its inventory was collected", path.display())
+    }
+    let stable_regular_path = path_fingerprint.is_some() && path_fingerprint == opened_fingerprint;
+    let persistent_eligible = stable_regular_path && persistent_index_eligible(path);
+    if persistent_eligible {
+        if let Some(fingerprint) = opened_fingerprint.as_ref() {
+            if let Some(digest) = persistent_file_digest(path, fingerprint) {
+            verify_unchanged_open_file(path, &file, fingerprint)?;
+            INTEGRITY_CACHE.with(|slot| {
+                if let Some(cache) = slot.borrow_mut().as_mut() {
+                    cache.file_digests.insert(cache_path, digest.clone());
+                }
+            });
+            return Ok(digest);
+            }
+        }
+    }
+
+    let timer = Instant::now();
     let mut digest = Sha256::new();
     let mut buffer = [0u8; 1024 * 1024];
     loop {
@@ -1671,12 +1833,128 @@ pub(crate) fn sha256_file(path: &Path) -> Result<String> {
         digest.update(&buffer[..count]);
     }
     let digest = format!("{:x}", digest.finalize());
+    if let Some(fingerprint) = opened_fingerprint.as_ref() {
+        verify_unchanged_open_file(path, &file, fingerprint)?;
+    }
+    if persistent_eligible {
+        record_category("integrity_fallback_hashing", timer.elapsed());
+        if let Some(fingerprint) = opened_fingerprint {
+            store_persistent_file_digest(path, fingerprint, digest.clone());
+        }
+    }
     INTEGRITY_CACHE.with(|slot| {
         if let Some(cache) = slot.borrow_mut().as_mut() {
             cache.file_digests.insert(cache_path, digest.clone());
         }
     });
     Ok(digest)
+}
+
+#[cfg(unix)]
+fn file_fingerprint(metadata: &fs::Metadata) -> Option<FileFingerprint> {
+    use std::os::unix::fs::MetadataExt;
+
+    Some(FileFingerprint {
+        device: metadata.dev(),
+        inode: metadata.ino(),
+        file_type: metadata.mode() & 0o170000,
+        size: metadata.size(),
+        mtime_seconds: metadata.mtime(),
+        mtime_nanoseconds: metadata.mtime_nsec(),
+        ctime_seconds: metadata.ctime(),
+        ctime_nanoseconds: metadata.ctime_nsec(),
+    })
+}
+
+#[cfg(not(unix))]
+fn file_fingerprint(_metadata: &fs::Metadata) -> Option<FileFingerprint> {
+    None
+}
+
+fn persistent_index_key(index: &PersistentIntegrityIndex, path: &Path) -> Option<String> {
+    let absolute = if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        std::env::current_dir().ok()?.join(path)
+    };
+    if !absolute.starts_with(index.repo_root.join("out")) {
+        return None;
+    }
+    Some(normalize_path(absolute.strip_prefix(&index.repo_root).ok()?))
+}
+
+fn persistent_index_eligible(path: &Path) -> bool {
+    PERSISTENT_INTEGRITY_INDEX.with(|slot| {
+        slot.borrow()
+            .as_ref()
+            .is_some_and(|index| persistent_index_key(index, path).is_some())
+    })
+}
+
+fn persistent_file_digest(path: &Path, fingerprint: &FileFingerprint) -> Option<String> {
+    let timer = Instant::now();
+    let lookup = PERSISTENT_INTEGRITY_INDEX.with(|slot| {
+        let mut borrowed = slot.borrow_mut();
+        let index = borrowed.as_mut()?;
+        let key = persistent_index_key(index, path)?;
+        let digest = index
+            .entries
+            .get(&key)
+            .filter(|entry| entry.fingerprint == *fingerprint)
+            .map(|entry| entry.sha256.clone());
+        if digest.is_none() && index.entries.remove(&key).is_some() {
+            index.dirty = true;
+        }
+        Some(digest)
+    });
+    let Some(digest) = lookup else {
+        return None;
+    };
+    record_category("integrity_index_lookup", timer.elapsed());
+    INTEGRITY_CACHE.with(|slot| {
+        if let Some(cache) = slot.borrow_mut().as_mut() {
+            record_integrity_cache_access(cache, "persistent_file_digest", digest.is_some());
+        }
+    });
+    digest
+}
+
+fn store_persistent_file_digest(path: &Path, fingerprint: FileFingerprint, sha256: String) {
+    PERSISTENT_INTEGRITY_INDEX.with(|slot| {
+        let mut borrowed = slot.borrow_mut();
+        let Some(index) = borrowed.as_mut() else {
+            return;
+        };
+        let Some(key) = persistent_index_key(index, path) else {
+            return;
+        };
+        index.entries.insert(
+            key,
+            PersistentFileDigest {
+                fingerprint,
+                sha256,
+            },
+        );
+        index.dirty = true;
+    });
+}
+
+fn verify_unchanged_open_file(
+    path: &Path,
+    file: &fs::File,
+    expected: &FileFingerprint,
+) -> Result<()> {
+    let opened = file_fingerprint(&file.metadata()?);
+    let current_path = fs::symlink_metadata(path)?;
+    let current_path = if current_path.is_file() {
+        file_fingerprint(&current_path)
+    } else {
+        None
+    };
+    if opened.as_ref() != Some(expected) || current_path.as_ref() != Some(expected) {
+        bail!("{} changed while its digest was validated", path.display())
+    }
+    Ok(())
 }
 
 fn normalize_path(path: &Path) -> String {
@@ -1712,6 +1990,30 @@ mod tests {
 
     fn end_test_integrity_cache() {
         INTEGRITY_CACHE.with(|slot| *slot.borrow_mut() = None);
+    }
+
+    fn begin_test_integrity_session(repo_root: &Path) {
+        begin_test_integrity_cache();
+        PERSISTENT_INTEGRITY_INDEX.with(|slot| {
+            *slot.borrow_mut() = Some(load_persistent_integrity_index(repo_root));
+        });
+    }
+
+    fn end_test_integrity_session(persist: bool) {
+        if persist {
+            persist_persistent_integrity_index().unwrap();
+        }
+        PERSISTENT_INTEGRITY_INDEX.with(|slot| *slot.borrow_mut() = None);
+        end_test_integrity_cache();
+    }
+
+    fn inventory_file_digest(inventory: &[InventoryEntry], suffix: &str) -> String {
+        inventory
+            .iter()
+            .find(|entry| entry.path.ends_with(suffix))
+            .unwrap()
+            .content
+            .clone()
     }
 
     fn integrity_cache_stats(name: &str) -> IntegrityCacheStats {
@@ -1773,6 +2075,174 @@ mod tests {
         assert_eq!(integrity_cache_stats("tool_identity").hits, 1);
         assert_eq!(integrity_cache_stats("tool_identity").misses, 1);
         end_test_integrity_cache();
+    }
+
+    #[test]
+    fn persistent_index_reuses_unchanged_output_bytes() {
+        let root = tempdir().unwrap();
+        let output = root.path().join("out/result");
+        fs::create_dir_all(&output).unwrap();
+        fs::write(output.join("file"), "stable").unwrap();
+
+        begin_test_integrity_session(root.path());
+        let first = output_inventory(root.path(), &[output.clone()]).unwrap();
+        assert_eq!(integrity_cache_stats("persistent_file_digest").misses, 1);
+        end_test_integrity_session(true);
+
+        begin_test_integrity_session(root.path());
+        let second = output_inventory(root.path(), &[output]).unwrap();
+        assert_eq!(first, second);
+        assert_eq!(integrity_cache_stats("persistent_file_digest").hits, 1);
+        assert_eq!(integrity_cache_stats("persistent_file_digest").misses, 0);
+        end_test_integrity_session(false);
+    }
+
+    #[test]
+    fn persistent_index_rehashes_same_size_change_with_restored_mtime() {
+        let root = tempdir().unwrap();
+        let output = root.path().join("out/result");
+        let file = output.join("file");
+        fs::create_dir_all(&output).unwrap();
+        fs::write(&file, "good").unwrap();
+        let original_mtime = filetime::FileTime::from_last_modification_time(&fs::metadata(&file).unwrap());
+
+        begin_test_integrity_session(root.path());
+        let first = output_inventory(root.path(), &[output.clone()]).unwrap();
+        end_test_integrity_session(true);
+
+        fs::write(&file, "evil").unwrap();
+        filetime::set_file_mtime(&file, original_mtime).unwrap();
+        begin_test_integrity_session(root.path());
+        let second = output_inventory(root.path(), &[output]).unwrap();
+        assert_ne!(inventory_file_digest(&first, "result/file"), inventory_file_digest(&second, "result/file"));
+        assert_eq!(integrity_cache_stats("persistent_file_digest").hits, 0);
+        assert_eq!(integrity_cache_stats("persistent_file_digest").misses, 1);
+        end_test_integrity_session(false);
+    }
+
+    #[test]
+    fn persistent_index_rehashes_rename_replacement() {
+        let root = tempdir().unwrap();
+        let output = root.path().join("out/result");
+        let file = output.join("file");
+        fs::create_dir_all(&output).unwrap();
+        fs::write(&file, "good").unwrap();
+        let original_mtime = filetime::FileTime::from_last_modification_time(&fs::metadata(&file).unwrap());
+
+        begin_test_integrity_session(root.path());
+        let first = output_inventory(root.path(), &[output.clone()]).unwrap();
+        end_test_integrity_session(true);
+
+        let replacement = output.join("replacement");
+        fs::write(&replacement, "evil").unwrap();
+        filetime::set_file_mtime(&replacement, original_mtime).unwrap();
+        fs::rename(&replacement, &file).unwrap();
+        begin_test_integrity_session(root.path());
+        let second = output_inventory(root.path(), &[output]).unwrap();
+        assert_ne!(inventory_file_digest(&first, "result/file"), inventory_file_digest(&second, "result/file"));
+        assert_eq!(integrity_cache_stats("persistent_file_digest").misses, 1);
+        end_test_integrity_session(false);
+    }
+
+    #[test]
+    fn persistent_index_still_validates_symlinks_and_directory_entries() {
+        use std::os::unix::fs::symlink;
+
+        let root = tempdir().unwrap();
+        let output = root.path().join("out/result");
+        fs::create_dir_all(&output).unwrap();
+        fs::write(output.join("file"), "stable").unwrap();
+        symlink("file", output.join("link")).unwrap();
+        begin_test_integrity_session(root.path());
+        let first = output_inventory(root.path(), &[output.clone()]).unwrap();
+        end_test_integrity_session(true);
+
+        fs::remove_file(output.join("link")).unwrap();
+        symlink("other", output.join("link")).unwrap();
+        fs::write(output.join("added"), "new").unwrap();
+        begin_test_integrity_session(root.path());
+        let second = output_inventory(root.path(), &[output]).unwrap();
+        assert_ne!(first, second);
+        assert_eq!(integrity_cache_stats("persistent_file_digest").hits, 1);
+        assert_eq!(integrity_cache_stats("persistent_file_digest").misses, 1);
+        end_test_integrity_session(false);
+    }
+
+    #[test]
+    fn malformed_persistent_index_falls_back_to_hashing() {
+        let root = tempdir().unwrap();
+        let output = root.path().join("out/result");
+        fs::create_dir_all(root.path().join("out/state")).unwrap();
+        fs::create_dir_all(&output).unwrap();
+        fs::write(output.join("file"), "stable").unwrap();
+        fs::write(persistent_integrity_index_path(root.path()), b"not valid json").unwrap();
+
+        begin_test_integrity_session(root.path());
+        output_inventory(root.path(), &[output]).unwrap();
+        assert_eq!(integrity_cache_stats("persistent_file_digest").misses, 1);
+        end_test_integrity_session(false);
+    }
+
+    #[test]
+    fn checksum_corrupted_persistent_index_falls_back_to_hashing() {
+        let root = tempdir().unwrap();
+        let output = root.path().join("out/result");
+        fs::create_dir_all(&output).unwrap();
+        fs::write(output.join("file"), "stable").unwrap();
+        begin_test_integrity_session(root.path());
+        output_inventory(root.path(), &[output.clone()]).unwrap();
+        end_test_integrity_session(true);
+
+        let index_path = persistent_integrity_index_path(root.path());
+        let mut index: PersistentIntegrityIndexFile =
+            serde_json::from_slice(&fs::read(&index_path).unwrap()).unwrap();
+        index.entries.values_mut().next().unwrap().sha256 = "0".repeat(64);
+        fs::write(&index_path, serde_json::to_vec_pretty(&index).unwrap()).unwrap();
+
+        begin_test_integrity_session(root.path());
+        output_inventory(root.path(), &[output]).unwrap();
+        assert_eq!(integrity_cache_stats("persistent_file_digest").misses, 1);
+        end_test_integrity_session(false);
+    }
+
+    #[test]
+    fn persistent_index_fresh_process_rejects_same_size_corruption() {
+        const ROOT_ENV: &str = "MATTOS_TEST_INTEGRITY_INDEX_ROOT";
+        const EXPECTED_ENV: &str = "MATTOS_TEST_INTEGRITY_INDEX_EXPECTED";
+        if let (Ok(root), Ok(expected)) = (std::env::var(ROOT_ENV), std::env::var(EXPECTED_ENV)) {
+            let root = PathBuf::from(root);
+            begin_test_integrity_session(&root);
+            let inventory = output_inventory(&root, &[root.join("out/result")]).unwrap();
+            assert_ne!(inventory_file_digest(&inventory, "result/file"), expected);
+            assert_eq!(integrity_cache_stats("persistent_file_digest").misses, 1);
+            end_test_integrity_session(false);
+            return;
+        }
+
+        let root = tempdir().unwrap();
+        let output = root.path().join("out/result");
+        let file = output.join("file");
+        fs::create_dir_all(&output).unwrap();
+        fs::write(&file, "good").unwrap();
+        let original_mtime = filetime::FileTime::from_last_modification_time(&fs::metadata(&file).unwrap());
+        begin_test_integrity_session(root.path());
+        let inventory = output_inventory(root.path(), &[output]).unwrap();
+        let expected = inventory_file_digest(&inventory, "result/file");
+        end_test_integrity_session(true);
+        fs::write(&file, "evil").unwrap();
+        filetime::set_file_mtime(&file, original_mtime).unwrap();
+
+        let status = Command::new(std::env::current_exe().unwrap())
+            .args([
+                "--exact",
+                "performance::tests::persistent_index_fresh_process_rejects_same_size_corruption",
+                "--nocapture",
+            ])
+            .env(ROOT_ENV, root.path())
+            .env(EXPECTED_ENV, expected)
+            .status()
+            .unwrap();
+        assert!(status.success());
     }
 
     #[test]
