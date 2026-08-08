@@ -143,8 +143,7 @@ const UDEV_HWDB_BINARY_REL: &str = "usr/lib/udev/hwdb.bin";
 const UDEV_HWDB_UNIT_REL: &str = "usr/lib/systemd/system/systemd-hwdb-update.service";
 const UDEV_HWDB_WANTS_REL: &str =
     "usr/lib/systemd/system/sysinit.target.wants/systemd-hwdb-update.service";
-const UDEV_HWDB_TEST_MODALIAS: &str =
-    "pci:v00008086d0000100Esv00001AF4sd00001100bc02sc00i00";
+const UDEV_HWDB_TEST_MODALIAS: &str = "pci:v00008086d0000100Esv00001AF4sd00001100bc02sc00i00";
 #[cfg(test)]
 const MIGRATED_BOOTSTRAP_SONAME_PREFIXES: &[&str] = &[
     "libc.so",
@@ -2050,14 +2049,20 @@ fn validate_package_cache(
     if !staging.is_dir() || !artifact.is_file() {
         bail!("cached package staging tree or artifact is missing")
     }
-    if performance::output_path_digest(repo_root, staging)? != manifest.payload_inventory_digest {
+    let payload_digest = performance::measure_package_validation_step("payload_inventory", || {
+        performance::output_path_digest(repo_root, staging)
+    })?;
+    if payload_digest != manifest.payload_inventory_digest {
         bail!("cached package payload inventory/content/modes changed")
     }
-    let artifact_sha = sha256_file(artifact)?;
+    let artifact_sha =
+        performance::measure_package_validation_step("artifact_sha256", || sha256_file(artifact))?;
     if artifact_sha != manifest.artifact_sha256 {
         bail!("cached package artifact checksum changed")
     }
-    verify_deb(artifact, spec.name, version)?;
+    performance::measure_package_validation_step("dpkg_deb", || {
+        verify_deb(artifact, spec.name, version)
+    })?;
     if manifest.inventory_entry.name != spec.name
         || manifest.inventory_entry.version != version
         || manifest.inventory_entry.architecture != ARCH
@@ -3854,9 +3859,7 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         }
         "libkmod2" | "kmod" => component_snapshot_version(repo_root, "kmod")?,
         "mattos-libproc2" | "procps" => component_snapshot_version(repo_root, "procps-ng")?,
-        "libsystemd0" | "libudev1" | "udev" => {
-            component_snapshot_version(repo_root, "systemd")?
-        }
+        "libsystemd0" | "libudev1" | "udev" => component_snapshot_version(repo_root, "systemd")?,
         "libexpat1" => component_snapshot_version(repo_root, "expat")?,
         "libcap2" => component_snapshot_version(repo_root, "libcap")?,
         "libacl1" => component_snapshot_version(repo_root, "acl")?,
@@ -4701,19 +4704,24 @@ fn sha256_file(path: &Path) -> Result<String> {
 }
 
 fn verify_deb(path: &Path, expected_name: &str, expected_version: &str) -> Result<()> {
+    let info = Command::new("dpkg-deb")
+        .args(["--field", path_str(path)?])
+        .output()
+        .context("failed to inspect package metadata")?;
+    if !info.status.success() {
+        bail!("dpkg-deb --field failed for {}", path.display());
+    }
+    let fields = String::from_utf8(info.stdout)?;
+    let paragraphs = parse_control_paragraphs(&fields)?;
+    let paragraph = paragraphs
+        .first()
+        .ok_or_else(|| anyhow!("package {} has no control fields", path.display()))?;
     for (field, expected) in [
         ("Package", expected_name),
         ("Version", expected_version),
         ("Architecture", ARCH),
     ] {
-        let info = Command::new("dpkg-deb")
-            .args(["--field", path_str(path)?, field])
-            .output()
-            .context("failed to inspect package metadata")?;
-        if !info.status.success() {
-            bail!("dpkg-deb --field failed for {}", path.display());
-        }
-        if String::from_utf8(info.stdout)?.trim() != expected {
+        if control_field(paragraph, field)? != expected {
             bail!(
                 "package {} has invalid {field}; expected {expected}",
                 path.display()
@@ -4745,7 +4753,10 @@ fn write_inventory(repo_root: &Path, inventory: &PackageInventory) -> Result<()>
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent)?;
     }
-    fs::write(path, toml::to_string_pretty(inventory)?)?;
+    let body = toml::to_string_pretty(inventory)?;
+    if !fs::read_to_string(&path).is_ok_and(|existing| existing == body) {
+        fs::write(path, body)?;
+    }
     Ok(())
 }
 
@@ -5868,7 +5879,11 @@ pub(crate) fn build_apt(repo_root: &Path) -> Result<()> {
     remove_path_if_exists(&build)?;
     remove_path_if_exists(&install)?;
     fs::create_dir_all(&out)?;
-    copy_imported_working_tree(repo_root, Path::new("src/system/packages/apt"), &source_copy)?;
+    copy_imported_working_tree(
+        repo_root,
+        Path::new("src/system/packages/apt"),
+        &source_copy,
+    )?;
     apply_component_patches(repo_root, "apt", &source_copy)?;
     let zlib_root = format!("-DZLIB_ROOT={}", zlib.display());
     let bzip2_include = format!("-DBZIP2_INCLUDE_DIR={}", bzip2.join("include").display());
@@ -6015,10 +6030,7 @@ pub(crate) fn build_apt(repo_root: &Path) -> Result<()> {
         &dependency_env,
     )?;
     let cache = fs::read_to_string(build.join("CMakeCache.txt"))?;
-    if !cache
-        .lines()
-        .any(|line| line == "CMAKE_SKIP_RPATH:BOOL=ON")
-    {
+    if !cache.lines().any(|line| line == "CMAKE_SKIP_RPATH:BOOL=ON") {
         bail!("APT build did not disable checkout-dependent CMake RPATH padding")
     }
     for expected in [
@@ -6408,9 +6420,8 @@ mod tests {
         assert_eq!(UDEV_HWDB_SOURCE_REL, "usr/lib/udev/hwdb.d");
         assert_eq!(UDEV_HWDB_BINARY_REL, "usr/lib/udev/hwdb.bin");
 
-        let imported_unit = include_str!(
-            "../../../system/systemd/units/systemd-hwdb-update.service.in"
-        );
+        let imported_unit =
+            include_str!("../../../system/systemd/units/systemd-hwdb-update.service.in");
         for required in [
             "ConditionPathExists=|!{{UDEVLIBEXECDIR}}/hwdb.bin",
             "ConditionPathExists=|/etc/udev/hwdb.bin",

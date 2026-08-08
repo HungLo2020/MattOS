@@ -1,6 +1,6 @@
 use anyhow::{Context, Result, anyhow, bail};
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use sha2::{Digest, Sha256};
 use std::cell::RefCell;
 use std::collections::{BTreeMap, BTreeSet};
@@ -9,157 +9,34 @@ use std::fs::{self, OpenOptions};
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitStatus, Stdio};
+use std::rc::Rc;
 use std::thread;
 use std::time::{Duration, Instant};
 
-pub(crate) const STAGE_MANIFEST_SCHEMA_VERSION: u32 = 3;
+use crate::cache_manifest::{InventoryEntry, ToolIdentity};
+pub(crate) use crate::cache_manifest::{STAGE_MANIFEST_SCHEMA_VERSION, StageSpec};
+#[cfg(test)]
+use crate::cache_manifest::{StageInputDetails, StageManifest};
+use crate::integrity_index::{self, FileFingerprint};
+use crate::source_identity::{GitSourceSnapshot, SourceQuery};
+#[cfg(test)]
+pub(crate) use crate::stage_cache::{
+    can_migrate_narrowed_manifest, changed_input_summary, compute_stage_evaluation,
+    write_stage_manifest,
+};
+pub(crate) use crate::stage_cache::{
+    compute_stage_inputs, execute_cached_stage, explain_stage, explain_stage_details,
+    read_stage_manifest, record_virtual_stage, stage_manifest_path,
+};
+use crate::timing::{IntegrityCacheStats, TimingCategory, TimingRecord, TimingReport};
+
 const TIMING_SCHEMA_VERSION: u32 = 2;
-const INTEGRITY_INDEX_SCHEMA_VERSION: u32 = 1;
 const NORMALIZED_SOURCE_DATE_EPOCH: &str = "1767225600";
-
-#[derive(Clone, Debug)]
-pub(crate) struct StageSpec {
-    pub(crate) id: String,
-    pub(crate) source_inputs: Vec<PathBuf>,
-    pub(crate) configuration_inputs: Vec<PathBuf>,
-    pub(crate) tools: Vec<String>,
-    pub(crate) dependencies: Vec<String>,
-    pub(crate) outputs: Vec<PathBuf>,
-    pub(crate) recipe: String,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
-pub(crate) struct InventoryEntry {
-    pub(crate) path: String,
-    pub(crate) kind: String,
-    pub(crate) mode: u32,
-    pub(crate) uid: u32,
-    pub(crate) gid: u32,
-    pub(crate) size: u64,
-    pub(crate) content: String,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
-pub(crate) struct StageInputs {
-    pub(crate) source_digest: String,
-    pub(crate) configuration_digest: String,
-    pub(crate) tool_digest: String,
-    pub(crate) environment_digest: String,
-    pub(crate) dependency_digests: BTreeMap<String, String>,
-    pub(crate) full_digest: String,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
-pub(crate) struct ToolIdentity {
-    pub(crate) resolved_path: String,
-    pub(crate) executable_sha256: String,
-    pub(crate) version: String,
-    pub(crate) target: String,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
-pub(crate) struct DependencyIdentity {
-    pub(crate) input_digest: String,
-    pub(crate) output_digest: String,
-}
-
-#[derive(Clone, Debug, Default, Serialize, Deserialize, Eq, PartialEq)]
-pub(crate) struct StageInputDetails {
-    pub(crate) schema_version: u32,
-    pub(crate) recipe: String,
-    pub(crate) source: BTreeMap<String, String>,
-    pub(crate) configuration: BTreeMap<String, String>,
-    pub(crate) environment: BTreeMap<String, String>,
-    pub(crate) tools: BTreeMap<String, ToolIdentity>,
-    pub(crate) dependencies: BTreeMap<String, DependencyIdentity>,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub(crate) struct StageManifest {
-    pub(crate) schema_version: u32,
-    pub(crate) stage: String,
-    pub(crate) inputs: StageInputs,
-    #[serde(default)]
-    pub(crate) input_details: StageInputDetails,
-    pub(crate) expected_outputs: Vec<InventoryEntry>,
-    pub(crate) output_content_digest: String,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub(crate) struct TimingRecord {
-    pub(crate) stage: String,
-    pub(crate) started_at_utc: String,
-    pub(crate) ended_at_utc: String,
-    pub(crate) wall_seconds: f64,
-    pub(crate) result: String,
-    pub(crate) cache_status: String,
-    pub(crate) reason: String,
-    pub(crate) input_digest: String,
-    pub(crate) output_digest: Option<String>,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-struct TimingReport {
-    schema_version: u32,
-    command: String,
-    started_at_utc: String,
-    ended_at_utc: Option<String>,
-    result: String,
-    stages: Vec<TimingRecord>,
-    categories: BTreeMap<String, TimingCategory>,
-    integrity_cache: BTreeMap<String, IntegrityCacheStats>,
-}
-
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
-struct TimingCategory {
-    wall_seconds: f64,
-    operations: u64,
-}
-
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
-struct IntegrityCacheStats {
-    hits: u64,
-    misses: u64,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
-struct FileFingerprint {
-    // This tuple is a kernel-maintained change token, not a content identity:
-    // every mismatch falls back to hashing, and size/mtime are never trusted alone.
-    device: u64,
-    inode: u64,
-    file_type: u32,
-    size: u64,
-    mtime_seconds: i64,
-    mtime_nanoseconds: i64,
-    ctime_seconds: i64,
-    ctime_nanoseconds: i64,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
-struct PersistentFileDigest {
-    fingerprint: FileFingerprint,
-    sha256: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct PersistentIntegrityIndexFile {
-    schema_version: u32,
-    entries_sha256: String,
-    entries: BTreeMap<String, PersistentFileDigest>,
-}
-
-struct PersistentIntegrityIndex {
-    repo_root: PathBuf,
-    entries: BTreeMap<String, PersistentFileDigest>,
-    dirty: bool,
-}
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 struct SourceDigestKey {
     repo_root: PathBuf,
-    roots: Vec<PathBuf>,
-    exclude_documentation: bool,
+    query: SourceQuery,
 }
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -174,15 +51,16 @@ struct InvocationIntegrityCache {
     file_digests: BTreeMap<PathBuf, String>,
     inventories: BTreeMap<InventoryKey, Vec<InventoryEntry>>,
     source_digests: BTreeMap<SourceDigestKey, String>,
+    source_digest_queries: BTreeMap<String, SourceQuery>,
     tool_identities: BTreeMap<String, ToolIdentity>,
     stats: BTreeMap<String, IntegrityCacheStats>,
+    git_source_snapshot: Option<Rc<GitSourceSnapshot>>,
 }
 
 thread_local! {
     static TIMINGS: RefCell<Option<(PathBuf, TimingReport)>> = const { RefCell::new(None) };
     static ACTIVE_BUILD_LOG: RefCell<Option<PathBuf>> = const { RefCell::new(None) };
     static INTEGRITY_CACHE: RefCell<Option<InvocationIntegrityCache>> = const { RefCell::new(None) };
-    static PERSISTENT_INTEGRITY_INDEX: RefCell<Option<PersistentIntegrityIndex>> = const { RefCell::new(None) };
     static TIMING_STARTED: RefCell<Option<Instant>> = const { RefCell::new(None) };
 }
 
@@ -206,8 +84,7 @@ pub(crate) fn start_timing_run(repo_root: &Path, command: &str) -> Result<()> {
     INTEGRITY_CACHE.with(|slot| *slot.borrow_mut() = Some(InvocationIntegrityCache::default()));
     TIMING_STARTED.with(|slot| *slot.borrow_mut() = Some(Instant::now()));
     let index_timer = Instant::now();
-    let index = load_persistent_integrity_index(repo_root);
-    PERSISTENT_INTEGRITY_INDEX.with(|slot| *slot.borrow_mut() = Some(index));
+    integrity_index::start(repo_root);
     record_category("integrity_index_load", index_timer.elapsed());
     persist_timing_report()
 }
@@ -256,73 +133,20 @@ pub(crate) fn finish_timing_run(result: &Result<()>) -> Result<()> {
     print_timing_summary()?;
     TIMINGS.with(|slot| *slot.borrow_mut() = None);
     INTEGRITY_CACHE.with(|slot| *slot.borrow_mut() = None);
-    PERSISTENT_INTEGRITY_INDEX.with(|slot| *slot.borrow_mut() = None);
+    integrity_index::clear();
     TIMING_STARTED.with(|slot| *slot.borrow_mut() = None);
     Ok(())
 }
 
-fn persistent_integrity_index_path(repo_root: &Path) -> PathBuf {
-    repo_root.join("out/state/integrity-index.json")
-}
-
-fn load_persistent_integrity_index(repo_root: &Path) -> PersistentIntegrityIndex {
-    let path = persistent_integrity_index_path(repo_root);
-    let entries = fs::read(&path)
-        .ok()
-        .and_then(|body| serde_json::from_slice::<PersistentIntegrityIndexFile>(&body).ok())
-        .filter(|index| index.schema_version == INTEGRITY_INDEX_SCHEMA_VERSION)
-        .filter(|index| {
-            digest_serializable(&(index.schema_version, &index.entries))
-                .is_ok_and(|digest| digest == index.entries_sha256)
-        })
-        .filter(|index| persistent_integrity_entries_valid(&index.entries))
-        .map(|index| index.entries)
-        .unwrap_or_default();
-    PersistentIntegrityIndex {
-        repo_root: repo_root.to_path_buf(),
-        entries,
-        dirty: false,
-    }
-}
-
-fn persistent_integrity_entries_valid(
-    entries: &BTreeMap<String, PersistentFileDigest>,
-) -> bool {
-    entries.iter().all(|(path, entry)| {
-        let path = Path::new(path);
-        !path.is_absolute()
-            && !path
-                .components()
-                .any(|component| matches!(component, std::path::Component::ParentDir))
-            && path.starts_with("out")
-            && entry.fingerprint.file_type == 0o100000
-            && entry.sha256.len() == 64
-            && entry.sha256.bytes().all(|byte| byte.is_ascii_hexdigit())
-    })
-}
-
 fn persist_persistent_integrity_index() -> Result<()> {
-    PERSISTENT_INTEGRITY_INDEX.with(|slot| -> Result<()> {
-        let borrowed = slot.borrow();
-        let Some(index) = borrowed.as_ref() else {
-            return Ok(());
-        };
-        if !index.dirty {
-            return Ok(());
-        }
-        let file = PersistentIntegrityIndexFile {
-            schema_version: INTEGRITY_INDEX_SCHEMA_VERSION,
-            entries_sha256: digest_serializable(&(
-                INTEGRITY_INDEX_SCHEMA_VERSION,
-                &index.entries,
-            ))?,
-            entries: index.entries.clone(),
-        };
-        atomic_write_json(&persistent_integrity_index_path(&index.repo_root), &file)
-    })
+    let Some((path, mut body)) = integrity_index::serialized_if_dirty()? else {
+        return Ok(());
+    };
+    body.push(b'\n');
+    atomic_write(&path, &body)
 }
 
-fn record_category(name: &str, elapsed: Duration) {
+pub(crate) fn record_category(name: &str, elapsed: Duration) {
     TIMINGS.with(|slot| {
         if let Some((_, report)) = slot.borrow_mut().as_mut() {
             let category = report.categories.entry(name.to_string()).or_default();
@@ -332,7 +156,7 @@ fn record_category(name: &str, elapsed: Duration) {
     });
 }
 
-fn measured<T>(category: &str, action: impl FnOnce() -> Result<T>) -> Result<T> {
+pub(crate) fn measured<T>(category: &str, action: impl FnOnce() -> Result<T>) -> Result<T> {
     let timer = Instant::now();
     let result = action();
     record_category(category, timer.elapsed());
@@ -343,13 +167,20 @@ pub(crate) fn measure_package_validation<T>(action: impl FnOnce() -> Result<T>) 
     measured("package_validation", action)
 }
 
+pub(crate) fn measure_package_validation_step<T>(
+    step: &str,
+    action: impl FnOnce() -> Result<T>,
+) -> Result<T> {
+    measured(&format!("package_validation:{step}"), action)
+}
+
 pub(crate) fn record_timing(record: TimingRecord) -> Result<()> {
     TIMINGS.with(|slot| {
         if let Some((_, report)) = slot.borrow_mut().as_mut() {
             report.stages.push(record);
         }
     });
-    persist_timing_report()
+    Ok(())
 }
 
 pub(crate) fn timed<T, F>(
@@ -384,7 +215,7 @@ where
     result
 }
 
-fn with_stage_log<T, F>(repo_root: &Path, stage: &str, action: F) -> Result<T>
+pub(crate) fn with_stage_log<T, F>(repo_root: &Path, stage: &str, action: F) -> Result<T>
 where
     F: FnOnce() -> Result<T>,
 {
@@ -402,7 +233,7 @@ where
     if let Err(error) = &result {
         eprintln!("[build] {stage}: failed; full log: {}", log.display());
         if let Ok(tail) = log_tail(&log, 40) {
-            eprintln!("--- last build output ---\n{tail}--- end build output ---");
+            eprintln!("--- last build output ---\n{tail}--- end build output ---\n");
         }
         eprintln!("{error:#}");
     }
@@ -419,11 +250,6 @@ fn run_logged_command_mode(
     display: &str,
     verbose: bool,
 ) -> Result<ExitStatus> {
-    // Build presentation may inherit from any launcher, but output-producing
-    // subprocesses always execute under the same reproducible locale/time
-    // policy. Apply this here, immediately before every logged spawn, so a
-    // caller cannot accidentally diverge from the environment represented in
-    // the stage cache key.
     command
         .env("LC_ALL", "C")
         .env("LANG", "C")
@@ -512,8 +338,6 @@ fn log_tail(path: &Path, lines: usize) -> Result<String> {
     Ok(values[start..].join("\n") + "\n")
 }
 
-/// Atomically publishes a completely-built path while retaining and restoring
-/// the previous known-good output if publication itself fails.
 pub(crate) fn atomic_replace_path(temp: &Path, destination: &Path) -> Result<()> {
     if !temp.symlink_metadata().is_ok() {
         bail!("temporary output is missing: {}", temp.display());
@@ -677,374 +501,7 @@ fn print_timing_summary() -> Result<()> {
     })
 }
 
-pub(crate) fn execute_cached_stage<F, V>(
-    repo_root: &Path,
-    spec: &StageSpec,
-    validate_reuse: V,
-    action: F,
-) -> Result<()>
-where
-    F: FnOnce() -> Result<()>,
-    V: Fn() -> Result<()>,
-{
-    let started_at = Utc::now();
-    let timer = Instant::now();
-    let evaluation = measured("input_hashing", || {
-        compute_stage_evaluation(repo_root, spec)
-    })?;
-    let inputs = evaluation.inputs.clone();
-    let manifest_path = stage_manifest_path(repo_root, &spec.id);
-    let mut reason;
-    let mut reused_digest = None;
-
-    if let Ok(mut manifest) = read_stage_manifest(repo_root, &spec.id) {
-        if can_migrate_narrowed_manifest(repo_root, &evaluation, &manifest)? {
-            manifest.inputs = inputs.clone();
-            manifest.input_details = evaluation.details.clone();
-            write_stage_manifest(repo_root, &manifest)?;
-        }
-        reason = measured("output_inventory_hashing", || {
-            cache_miss_reason(repo_root, spec, &inputs, &manifest)
-        })?;
-        if !reason.is_empty() {
-            let details = changed_input_summary(&manifest.input_details, &evaluation.details);
-            if !details.is_empty() {
-                reason.push_str(&format!("; changed inputs: {details}"));
-            }
-        }
-        if reason.is_empty() {
-            match measured("semantic_validation", validate_reuse) {
-                Ok(()) => {
-                    reason = "full input digest matched; output inventory and lightweight validation passed"
-                        .to_string();
-                    reused_digest = Some(manifest.output_content_digest);
-                }
-                Err(error) => reason = format!("lightweight reuse validation failed: {error:#}"),
-            }
-        }
-    } else {
-        reason = format!("no valid stage manifest at {}", manifest_path.display());
-    }
-
-    if let Some(output_digest) = reused_digest {
-        record_timing(TimingRecord {
-            stage: spec.id.clone(),
-            started_at_utc: started_at.to_rfc3339(),
-            ended_at_utc: Utc::now().to_rfc3339(),
-            wall_seconds: timer.elapsed().as_secs_f64(),
-            result: "success".to_string(),
-            cache_status: "hit".to_string(),
-            reason: reason.clone(),
-            input_digest: inputs.full_digest,
-            output_digest: Some(output_digest),
-        })?;
-        println!("cache hit: {} ({reason})", spec.id);
-        return Ok(());
-    }
-
-    println!("cache miss: {} ({reason})", spec.id);
-    invalidate_integrity_paths(repo_root, &spec.outputs);
-    let result = measured("stage_actions", || {
-        with_stage_log(repo_root, &spec.id, action)
-    });
-    let mut output_digest = None;
-    if result.is_ok() {
-        let inventory = measured("output_inventory_hashing", || {
-            output_inventory(repo_root, &spec.outputs)
-        })?;
-        if inventory.is_empty() {
-            bail!("stage {} succeeded without expected outputs", spec.id);
-        }
-        let digest = inventory_digest(&inventory)?;
-        let manifest = StageManifest {
-            schema_version: STAGE_MANIFEST_SCHEMA_VERSION,
-            stage: spec.id.clone(),
-            inputs: inputs.clone(),
-            input_details: evaluation.details,
-            expected_outputs: inventory,
-            output_content_digest: digest.clone(),
-        };
-        write_stage_manifest(repo_root, &manifest)?;
-        output_digest = Some(digest);
-    }
-    record_timing(TimingRecord {
-        stage: spec.id.clone(),
-        started_at_utc: started_at.to_rfc3339(),
-        ended_at_utc: Utc::now().to_rfc3339(),
-        wall_seconds: timer.elapsed().as_secs_f64(),
-        result: if result.is_ok() { "success" } else { "failed" }.to_string(),
-        cache_status: "miss".to_string(),
-        reason,
-        input_digest: inputs.full_digest,
-        output_digest,
-    })?;
-    if result.is_ok() {
-        println!(
-            "[build] {}: complete in {:.3}s (full log: {})",
-            spec.id,
-            timer.elapsed().as_secs_f64(),
-            repo_root
-                .join("out/logs")
-                .join(format!("{}.log", sanitize_identifier(&spec.id)))
-                .display()
-        );
-    }
-    result
-}
-
-pub(crate) fn record_virtual_stage(repo_root: &Path, spec: &StageSpec) -> Result<()> {
-    execute_cached_stage(repo_root, spec, || Ok(()), || Ok(()))
-}
-
-fn cache_miss_reason(
-    repo_root: &Path,
-    spec: &StageSpec,
-    current: &StageInputs,
-    manifest: &StageManifest,
-) -> Result<String> {
-    if manifest.schema_version != STAGE_MANIFEST_SCHEMA_VERSION {
-        return Ok(format!(
-            "manifest schema changed from {} to {}",
-            manifest.schema_version, STAGE_MANIFEST_SCHEMA_VERSION
-        ));
-    }
-    if manifest.stage != spec.id {
-        return Ok(format!(
-            "manifest stage is {}, expected {}",
-            manifest.stage, spec.id
-        ));
-    }
-    if manifest.inputs.full_digest != current.full_digest {
-        let mut changed = Vec::new();
-        if manifest.inputs.source_digest != current.source_digest {
-            changed.push("source");
-        }
-        if manifest.inputs.configuration_digest != current.configuration_digest {
-            changed.push("configuration");
-        }
-        if manifest.inputs.tool_digest != current.tool_digest {
-            changed.push("tool/version");
-        }
-        if manifest.inputs.environment_digest != current.environment_digest {
-            changed.push("environment");
-        }
-        if manifest.inputs.dependency_digests != current.dependency_digests {
-            changed.push("dependency output");
-        }
-        return Ok(format!("input digest changed ({})", changed.join(", ")));
-    }
-    let current_inventory = match output_inventory(repo_root, &spec.outputs) {
-        Ok(inventory) if !inventory.is_empty() => inventory,
-        Ok(_) => return Ok("expected output inventory is empty".to_string()),
-        Err(error) => {
-            return Ok(format!(
-                "expected output is missing or unreadable: {error:#}"
-            ));
-        }
-    };
-    if current_inventory != manifest.expected_outputs {
-        return Ok("output inventory/content/mode/symlink target changed".to_string());
-    }
-    let digest = inventory_digest(&current_inventory)?;
-    if digest != manifest.output_content_digest {
-        return Ok("output content digest mismatch".to_string());
-    }
-    Ok(String::new())
-}
-
-fn can_migrate_narrowed_manifest(
-    repo_root: &Path,
-    current: &StageEvaluation,
-    manifest: &StageManifest,
-) -> Result<bool> {
-    if manifest.schema_version != STAGE_MANIFEST_SCHEMA_VERSION
-        || manifest.input_details.schema_version == 0
-        || manifest.inputs.tool_digest != current.inputs.tool_digest
-        || manifest.inputs.environment_digest != current.inputs.environment_digest
-        || !current.inputs.dependency_digests.iter().all(|(stage, digest)| {
-            manifest.inputs.dependency_digests.get(stage) == Some(digest)
-        })
-    {
-        return Ok(false);
-    }
-    let legacy_recipe = format!(
-        "mattos-build-stage:{}:schema={}",
-        manifest.stage, STAGE_MANIFEST_SCHEMA_VERSION
-    );
-    if manifest.input_details.recipe != current.details.recipe
-        && manifest.input_details.recipe != legacy_recipe
-    {
-        return Ok(false);
-    }
-    if !shared_values_match(
-        &manifest.input_details.source,
-        &current.details.source,
-    ) || !shared_values_match(
-        &manifest.input_details.configuration,
-        &current.details.configuration,
-    ) {
-        return Ok(false);
-    }
-    let removed_sources = manifest
-        .input_details
-        .source
-        .keys()
-        .filter(|path| !current.details.source.contains_key(*path))
-        .collect::<Vec<_>>();
-    for added in current
-        .details
-        .source
-        .keys()
-        .filter(|path| !manifest.input_details.source.contains_key(*path))
-    {
-        if !removed_sources
-            .iter()
-            .any(|root| Path::new(added).starts_with(root))
-        {
-            return Ok(false);
-        }
-    }
-    for path in removed_sources {
-        let current_digest = digest_source_inputs(repo_root, &[PathBuf::from(path)])?;
-        if manifest.input_details.source.get(path) != Some(&current_digest) {
-            return Ok(false);
-        }
-    }
-    Ok(true)
-}
-
-fn shared_values_match<T: PartialEq>(
-    stored: &BTreeMap<String, T>,
-    current: &BTreeMap<String, T>,
-) -> bool {
-    stored
-        .iter()
-        .all(|(key, value)| current.get(key).is_none_or(|current| current == value))
-}
-
-fn changed_input_summary(stored: &StageInputDetails, current: &StageInputDetails) -> String {
-    let mut changes = Vec::new();
-    if stored.recipe != current.recipe {
-        changes.push("recipe".to_string());
-    }
-    collect_changed_keys("source", &stored.source, &current.source, &mut changes);
-    collect_changed_keys(
-        "configuration",
-        &stored.configuration,
-        &current.configuration,
-        &mut changes,
-    );
-    collect_changed_keys("environment", &stored.environment, &current.environment, &mut changes);
-    collect_changed_keys("tool", &stored.tools, &current.tools, &mut changes);
-    collect_changed_keys(
-        "dependency",
-        &stored.dependencies,
-        &current.dependencies,
-        &mut changes,
-    );
-    changes.join(", ")
-}
-
-fn collect_changed_keys<T: PartialEq>(
-    group: &str,
-    stored: &BTreeMap<String, T>,
-    current: &BTreeMap<String, T>,
-    changes: &mut Vec<String>,
-) {
-    for key in stored.keys().chain(current.keys()).collect::<BTreeSet<_>>() {
-        if stored.get(key) != current.get(key) {
-            changes.push(format!("{group}:{key}"));
-        }
-    }
-}
-
-struct StageEvaluation {
-    inputs: StageInputs,
-    details: StageInputDetails,
-}
-
-pub(crate) fn compute_stage_inputs(repo_root: &Path, spec: &StageSpec) -> Result<StageInputs> {
-    Ok(compute_stage_evaluation(repo_root, spec)?.inputs)
-}
-
-fn compute_stage_evaluation(repo_root: &Path, spec: &StageSpec) -> Result<StageEvaluation> {
-    let source_digest = digest_source_inputs(repo_root, &spec.source_inputs)?;
-    let mut source = BTreeMap::new();
-    for path in &spec.source_inputs {
-        source.insert(
-            diagnostic_path(repo_root, path),
-            digest_source_inputs(repo_root, std::slice::from_ref(path))?,
-        );
-    }
-    let mut configuration = spec.configuration_inputs.clone();
-    configuration.sort();
-    let configuration_digest = digest_paths(repo_root, &configuration, false, &spec.recipe)?;
-    let mut configuration_details = BTreeMap::new();
-    for path in &configuration {
-        configuration_details.insert(
-            diagnostic_path(repo_root, path),
-            digest_paths(
-                repo_root,
-                std::slice::from_ref(path),
-                false,
-                "configuration-input",
-            )?,
-        );
-    }
-    let tools = tool_identities(&spec.tools)?;
-    let tool_digest = digest_serializable(&tools)?;
-    let environment = normalized_build_environment();
-    let environment_digest = digest_serializable(&environment)?;
-    let mut dependency_digests = BTreeMap::new();
-    let mut dependencies = BTreeMap::new();
-    for dependency in &spec.dependencies {
-        let identity = match read_stage_manifest(repo_root, dependency) {
-            Ok(manifest) => DependencyIdentity {
-                input_digest: manifest.inputs.full_digest,
-                output_digest: manifest.output_content_digest,
-            },
-            Err(_) => DependencyIdentity {
-                input_digest: "<missing>".to_string(),
-                output_digest: "<missing>".to_string(),
-            },
-        };
-        // Consumers depend on the bytes exposed by the dependency. A rebuild
-        // that republishes byte-identical output must not create a false
-        // cascade merely because the dependency's own input identity changed.
-        dependency_digests.insert(dependency.clone(), identity.output_digest.clone());
-        dependencies.insert(dependency.clone(), identity);
-    }
-    let full_digest = digest_serializable(&(
-        STAGE_MANIFEST_SCHEMA_VERSION,
-        &spec.id,
-        &source_digest,
-        &configuration_digest,
-        &tool_digest,
-        &environment_digest,
-        &dependency_digests,
-    ))?;
-    Ok(StageEvaluation {
-        inputs: StageInputs {
-            source_digest,
-            configuration_digest,
-            tool_digest,
-            environment_digest,
-            dependency_digests,
-            full_digest,
-        },
-        details: StageInputDetails {
-            schema_version: STAGE_MANIFEST_SCHEMA_VERSION,
-            recipe: spec.recipe.clone(),
-            source,
-            configuration: configuration_details,
-            environment,
-            tools,
-            dependencies,
-        },
-    })
-}
-
-fn diagnostic_path(repo_root: &Path, path: &Path) -> String {
+pub(crate) fn diagnostic_path(repo_root: &Path, path: &Path) -> String {
     normalize_path(path.strip_prefix(repo_root).unwrap_or(path))
 }
 
@@ -1079,7 +536,7 @@ pub(crate) fn invalidate_integrity_paths(repo_root: &Path, paths: &[PathBuf]) {
                 .any(|changed| paths_overlap(&key.path, changed))
         });
         cache.source_digests.retain(|key, _| {
-            !key.roots
+            !key.query.roots
                 .iter()
                 .any(|root| paths.iter().any(|changed| paths_overlap(root, changed)))
         });
@@ -1088,21 +545,14 @@ pub(crate) fn invalidate_integrity_paths(repo_root: &Path, paths: &[PathBuf]) {
                 .iter()
                 .any(|changed| paths_overlap(Path::new(&identity.resolved_path), changed))
         });
+        if paths
+            .iter()
+            .any(|path| path.starts_with(repo_root) && !path.starts_with(repo_root.join("out")))
+        {
+            cache.git_source_snapshot = None;
+        }
     });
-    PERSISTENT_INTEGRITY_INDEX.with(|slot| {
-        let mut borrowed = slot.borrow_mut();
-        let Some(index) = borrowed.as_mut() else {
-            return;
-        };
-        let original_len = index.entries.len();
-        index.entries.retain(|path, _| {
-            let absolute = index.repo_root.join(path);
-            !paths
-                .iter()
-                .any(|changed| paths_overlap(&absolute, changed))
-        });
-        index.dirty |= index.entries.len() != original_len;
-    });
+    integrity_index::invalidate(&paths);
 }
 
 fn record_integrity_cache_access(cache: &mut InvocationIntegrityCache, name: &str, hit: bool) {
@@ -1112,23 +562,6 @@ fn record_integrity_cache_access(cache: &mut InvocationIntegrityCache, name: &st
     } else {
         stats.misses += 1;
     }
-}
-
-pub(crate) fn stage_manifest_path(repo_root: &Path, stage: &str) -> PathBuf {
-    repo_root
-        .join("out/state/stages")
-        .join(format!("{}.json", sanitize_identifier(stage)))
-}
-
-pub(crate) fn read_stage_manifest(repo_root: &Path, stage: &str) -> Result<StageManifest> {
-    let path = stage_manifest_path(repo_root, stage);
-    let body = fs::read(&path).with_context(|| format!("unable to read {}", path.display()))?;
-    serde_json::from_slice(&body).with_context(|| format!("invalid manifest {}", path.display()))
-}
-
-pub(crate) fn write_stage_manifest(repo_root: &Path, manifest: &StageManifest) -> Result<()> {
-    let path = stage_manifest_path(repo_root, &manifest.stage);
-    atomic_write_json(&path, manifest)
 }
 
 pub(crate) fn output_path_digest(repo_root: &Path, path: &Path) -> Result<String> {
@@ -1172,182 +605,7 @@ pub(crate) fn invalidate_manifest(repo_root: &Path, stage: &str) -> Result<bool>
     Ok(false)
 }
 
-pub(crate) fn explain_stage(repo_root: &Path, spec: &StageSpec) -> Result<String> {
-    let inputs = compute_stage_inputs(repo_root, spec)?;
-    let manifest = match read_stage_manifest(repo_root, &spec.id) {
-        Ok(manifest) => manifest,
-        Err(error) => return Ok(format!("{}: rebuild: {error:#}", spec.id)),
-    };
-    let reason = cache_miss_reason(repo_root, spec, &inputs, &manifest)?;
-    if reason.is_empty() {
-        Ok(format!(
-            "{}: reusable; input={} output={}",
-            spec.id, inputs.full_digest, manifest.output_content_digest
-        ))
-    } else {
-        Ok(format!("{}: rebuild: {reason}", spec.id))
-    }
-}
-
-pub(crate) fn explain_stage_details(repo_root: &Path, spec: &StageSpec) -> Result<String> {
-    let evaluation = compute_stage_evaluation(repo_root, spec)?;
-    let manifest = match read_stage_manifest(repo_root, &spec.id) {
-        Ok(manifest) => manifest,
-        Err(error) => return Ok(format!("{}: rebuild: {error:#}", spec.id)),
-    };
-    let reason = cache_miss_reason(repo_root, spec, &evaluation.inputs, &manifest)?;
-    let mut output = if reason.is_empty() {
-        format!("{}: reusable\n", spec.id)
-    } else {
-        format!("{}: rebuild: {reason}\n", spec.id)
-    };
-    push_value_diff(
-        &mut output,
-        "schema",
-        &manifest.schema_version.to_string(),
-        &STAGE_MANIFEST_SCHEMA_VERSION.to_string(),
-    );
-    let stored_dependency_digest = digest_serializable(&manifest.inputs.dependency_digests)?;
-    let current_dependency_digest = digest_serializable(&evaluation.inputs.dependency_digests)?;
-    for (name, stored, current) in [
-        (
-            "source.digest",
-            &manifest.inputs.source_digest,
-            &evaluation.inputs.source_digest,
-        ),
-        (
-            "configuration.digest",
-            &manifest.inputs.configuration_digest,
-            &evaluation.inputs.configuration_digest,
-        ),
-        (
-            "environment.digest",
-            &manifest.inputs.environment_digest,
-            &evaluation.inputs.environment_digest,
-        ),
-        (
-            "tools.digest",
-            &manifest.inputs.tool_digest,
-            &evaluation.inputs.tool_digest,
-        ),
-        (
-            "dependencies.digest",
-            &stored_dependency_digest,
-            &current_dependency_digest,
-        ),
-        (
-            "full.digest",
-            &manifest.inputs.full_digest,
-            &evaluation.inputs.full_digest,
-        ),
-    ] {
-        push_value_diff(&mut output, name, stored, current);
-    }
-    if manifest.input_details.schema_version == 0 {
-        output.push_str(
-            "stored field details: unavailable in the pre-schema-3 manifest; one-time migration required\n",
-        );
-        return Ok(output);
-    }
-    push_value_diff(
-        &mut output,
-        "configuration.recipe",
-        &manifest.input_details.recipe,
-        &evaluation.details.recipe,
-    );
-    push_map_diff(
-        &mut output,
-        "source",
-        &manifest.input_details.source,
-        &evaluation.details.source,
-    )?;
-    push_map_diff(
-        &mut output,
-        "configuration",
-        &manifest.input_details.configuration,
-        &evaluation.details.configuration,
-    )?;
-    push_map_diff(
-        &mut output,
-        "environment",
-        &manifest.input_details.environment,
-        &evaluation.details.environment,
-    )?;
-    push_map_diff(
-        &mut output,
-        "tools",
-        &manifest.input_details.tools,
-        &evaluation.details.tools,
-    )?;
-    push_map_diff(
-        &mut output,
-        "dependencies",
-        &manifest.input_details.dependencies,
-        &evaluation.details.dependencies,
-    )?;
-    output.push_str("ordering-only differences: none (maps use canonical key ordering)\n");
-    Ok(output)
-}
-
-fn push_value_diff(output: &mut String, field: &str, stored: &str, current: &str) {
-    if stored == current {
-        output.push_str(&format!("{field}: unchanged ({current})\n"));
-    } else {
-        output.push_str(&format!(
-            "{field}:\n  stored: {stored}\n  current: {current}\n"
-        ));
-    }
-}
-
-fn push_map_diff<T>(
-    output: &mut String,
-    group: &str,
-    stored: &BTreeMap<String, T>,
-    current: &BTreeMap<String, T>,
-) -> Result<()>
-where
-    T: Serialize + PartialEq,
-{
-    let added = current
-        .keys()
-        .filter(|key| !stored.contains_key(*key))
-        .cloned()
-        .collect::<Vec<_>>();
-    let removed = stored
-        .keys()
-        .filter(|key| !current.contains_key(*key))
-        .cloned()
-        .collect::<Vec<_>>();
-    if !added.is_empty() {
-        output.push_str(&format!("{group}.added keys: {}\n", added.join(", ")));
-    }
-    if !removed.is_empty() {
-        output.push_str(&format!("{group}.removed keys: {}\n", removed.join(", ")));
-    }
-    for (key, stored_value) in stored {
-        let Some(current_value) = current.get(key) else {
-            continue;
-        };
-        if stored_value != current_value {
-            output.push_str(&format!(
-                "{group}.{key}:\n  stored: {}\n  current: {}\n",
-                serde_json::to_string(stored_value)?,
-                serde_json::to_string(current_value)?
-            ));
-        }
-    }
-    if added.is_empty()
-        && removed.is_empty()
-        && stored
-            .iter()
-            .all(|(key, value)| current.get(key) == Some(value))
-    {
-        output.push_str(&format!("{group}: unchanged\n"));
-    }
-    Ok(())
-}
-
-fn digest_source_inputs(repo_root: &Path, roots: &[PathBuf]) -> Result<String> {
+pub(crate) fn digest_source_inputs(repo_root: &Path, roots: &[PathBuf]) -> Result<String> {
     tracked_source_digest(repo_root, roots, true)
 }
 
@@ -1358,11 +616,13 @@ pub(crate) fn tracked_source_digest(
 ) -> Result<String> {
     let key = SourceDigestKey {
         repo_root: repo_root.to_path_buf(),
-        roots: roots
-            .iter()
-            .map(|path| absolute_cache_path(repo_root, path))
-            .collect(),
-        exclude_documentation,
+        query: SourceQuery::new(
+            &roots
+                .iter()
+                .map(|path| absolute_cache_path(repo_root, path))
+                .collect::<Vec<_>>(),
+            exclude_documentation,
+        ),
     };
     if let Some(digest) = INTEGRITY_CACHE.with(|slot| {
         let mut borrowed = slot.borrow_mut();
@@ -1373,9 +633,37 @@ pub(crate) fn tracked_source_digest(
     }) {
         return Ok(digest);
     }
+    let timer = Instant::now();
+    record_category(
+        if exclude_documentation {
+            "input_source_query:miss:exclude_docs"
+        } else {
+            "input_source_query:miss:include_docs"
+        },
+        Duration::ZERO,
+    );
     let digest = tracked_source_digest_uncached(repo_root, roots, exclude_documentation)?;
+    let label = roots
+        .iter()
+        .map(|path| diagnostic_path(repo_root, path))
+        .collect::<Vec<_>>()
+        .join("+");
+    record_category(&format!("input_source_root:{label}"), timer.elapsed());
     INTEGRITY_CACHE.with(|slot| {
         if let Some(cache) = slot.borrow_mut().as_mut() {
+            let reuse = if cache.source_digest_queries.contains_key(&digest) {
+                "equivalent"
+            } else {
+                "unique"
+            };
+            record_category(
+                &format!("input_source_query:canonical_digest:{reuse}"),
+                Duration::ZERO,
+            );
+            cache
+                .source_digest_queries
+                .entry(digest.clone())
+                .or_insert_with(|| key.query.clone());
             cache.source_digests.insert(key, digest.clone());
         }
     });
@@ -1394,42 +682,56 @@ fn tracked_source_digest_uncached(
         .iter()
         .map(|path| path.strip_prefix(repo_root).unwrap_or(path).to_path_buf())
         .collect::<Vec<_>>();
-    let git_output = |arguments: &[&str]| -> Result<Vec<u8>> {
-        let output = Command::new("git")
-            .args(arguments)
-            .args(&relative_roots)
-            .current_dir(repo_root)
-            .output()?;
-        if !output.status.success() {
-            bail!("git input inventory failed with {}", output.status)
-        }
-        Ok(output.stdout)
-    };
-    if let (Ok(index), Ok(modified), Ok(untracked)) = (
-        git_output(&["ls-files", "--stage", "-z", "--"]),
-        git_output(&["diff", "--name-only", "-z", "--"]),
-        git_output(&["ls-files", "--others", "--exclude-standard", "-z", "--"]),
-    ) {
-        let modified = modified
-            .split(|byte| *byte == 0)
-            .filter(|bytes| !bytes.is_empty())
-            .map(|bytes| String::from_utf8_lossy(bytes).into_owned())
-            .collect::<BTreeSet<_>>();
-        let mut values = BTreeMap::new();
-        for entry in index
-            .split(|byte| *byte == 0)
-            .filter(|bytes| !bytes.is_empty())
-        {
-            let Some(tab) = entry.iter().position(|byte| *byte == b'\t') else {
-                continue;
-            };
-            let header = String::from_utf8_lossy(&entry[..tab]);
-            let path = String::from_utf8_lossy(&entry[tab + 1..]).into_owned();
-            let path_buf = PathBuf::from(&path);
+    if let Some(snapshot) = invocation_git_source_snapshot(repo_root)? {
+        let query = SourceQuery::new(&relative_roots, exclude_documentation);
+        let label = query
+            .roots
+            .iter()
+            .map(|path| path.to_string_lossy())
+            .collect::<Vec<_>>()
+            .join("+");
+        return snapshot.digest_query(
+            repo_root,
+            &query,
+            |absolute| {
+                if !absolute.symlink_metadata().is_ok() {
+                    return Ok(None);
+                }
+                let mut inventory = Vec::new();
+                collect_inventory(repo_root, absolute, false, &mut inventory)?;
+                Ok(Some(digest_serializable(&inventory)?))
+            },
+            |phase, elapsed| {
+                record_category(
+                    &format!("input_source_profile:{label}:{phase}"),
+                    elapsed,
+                );
+            },
+        );
+    }
+    digest_paths(
+        repo_root,
+        roots,
+        exclude_documentation,
+        "filesystem-source-inputs",
+    )
+}
+
+#[cfg(test)]
+fn populate_git_source_values<'a>(
+    repo_root: &Path,
+    relative_roots: &[PathBuf],
+    exclude_documentation: bool,
+    snapshot: &'a GitSourceSnapshot,
+    index_entries: BTreeMap<&'a str, &'a str>,
+    values: &mut BTreeMap<&'a str, String>,
+) -> Result<()> {
+    for (path, header) in index_entries {
+            let path_buf = PathBuf::from(path);
             if exclude_documentation && is_irrelevant_documentation(&path_buf) {
                 continue;
             }
-            if modified.contains(&path) {
+            if snapshot.is_modified(path) {
                 let absolute = repo_root.join(&path_buf);
                 if absolute.symlink_metadata().is_ok() {
                     let mut inventory = Vec::new();
@@ -1445,21 +747,42 @@ fn tracked_source_digest_uncached(
                 values.insert(path, format!("index:{header}"));
             }
         }
-        for bytes in untracked
-            .split(|byte| *byte == 0)
-            .filter(|bytes| !bytes.is_empty())
-        {
-            let path = PathBuf::from(String::from_utf8_lossy(bytes).into_owned());
-            if exclude_documentation && is_irrelevant_documentation(&path) {
+        for path in snapshot.untracked_paths(&relative_roots) {
+            let path_buf = PathBuf::from(path);
+            if exclude_documentation && is_irrelevant_documentation(&path_buf) {
                 continue;
             }
             let mut inventory = Vec::new();
-            collect_inventory(repo_root, &repo_root.join(&path), false, &mut inventory)?;
+            collect_inventory(repo_root, &repo_root.join(&path_buf), false, &mut inventory)?;
             values.insert(
-                normalize_path(&path),
+                path,
                 format!("untracked:{}", digest_serializable(&inventory)?),
             );
         }
+    Ok(())
+}
+
+#[cfg(test)]
+fn tracked_source_digest_full_scan_reference(
+    repo_root: &Path,
+    roots: &[PathBuf],
+    exclude_documentation: bool,
+) -> Result<String> {
+    let relative_roots = roots
+        .iter()
+        .map(|path| path.strip_prefix(repo_root).unwrap_or(path).to_path_buf())
+        .collect::<Vec<_>>();
+    if let Ok(snapshot) = GitSourceSnapshot::capture(repo_root, |_, _| {}) {
+        let mut values = BTreeMap::new();
+        let index_entries = snapshot.index_entries_full_scan(&relative_roots);
+        populate_git_source_values(
+            repo_root,
+            &relative_roots,
+            exclude_documentation,
+            &snapshot,
+            index_entries,
+            &mut values,
+        )?;
         return digest_serializable(&("git-index-and-working-tree", values));
     }
     digest_paths(
@@ -1470,7 +793,67 @@ fn tracked_source_digest_uncached(
     )
 }
 
-fn digest_paths(
+#[cfg(test)]
+fn tracked_source_canonical_bytes(
+    repo_root: &Path,
+    roots: &[PathBuf],
+    exclude_documentation: bool,
+) -> Result<(Vec<u8>, Vec<u8>)> {
+    let relative_roots = roots
+        .iter()
+        .map(|path| path.strip_prefix(repo_root).unwrap_or(path).to_path_buf())
+        .collect::<Vec<_>>();
+    let snapshot = GitSourceSnapshot::capture(repo_root, |_, _| {})?;
+    let query = SourceQuery::new(&relative_roots, exclude_documentation);
+    let mut digest_working = |absolute: &Path| -> Result<Option<String>> {
+        if !absolute.symlink_metadata().is_ok() {
+            return Ok(None);
+        }
+        let mut inventory = Vec::new();
+        collect_inventory(repo_root, absolute, false, &mut inventory)?;
+        Ok(Some(digest_serializable(&inventory)?))
+    };
+    let streamed = snapshot.canonical_query_bytes(repo_root, &query, &mut digest_working)?;
+    let mut values = BTreeMap::new();
+    populate_git_source_values(
+        repo_root,
+        &relative_roots,
+        exclude_documentation,
+        &snapshot,
+        snapshot.index_entries_full_scan(&relative_roots),
+        &mut values,
+    )?;
+    let legacy = serde_json::to_vec(&("git-index-and-working-tree", values))?;
+    Ok((streamed, legacy))
+}
+
+fn invocation_git_source_snapshot(repo_root: &Path) -> Result<Option<Rc<GitSourceSnapshot>>> {
+    if let Some(snapshot) = INTEGRITY_CACHE.with(|slot| {
+        slot.borrow()
+            .as_ref()
+            .and_then(|cache| cache.git_source_snapshot.clone())
+    }) {
+        return Ok(Some(snapshot));
+    }
+    if let Ok(snapshot) = GitSourceSnapshot::capture(repo_root, |command, elapsed| {
+        if command == "snapshot-map-construction" {
+            record_category("input_source_profile:snapshot_map_construction", elapsed);
+        } else {
+            record_category(&format!("input_git:{command}"), elapsed);
+        }
+    }) {
+        let snapshot = Rc::new(snapshot);
+        INTEGRITY_CACHE.with(|slot| {
+            if let Some(cache) = slot.borrow_mut().as_mut() {
+                cache.git_source_snapshot = Some(snapshot.clone());
+            }
+        });
+        return Ok(Some(snapshot));
+    }
+    Ok(None)
+}
+
+pub(crate) fn digest_paths(
     repo_root: &Path,
     paths: &[PathBuf],
     filter_docs: bool,
@@ -1489,7 +872,7 @@ fn digest_paths(
     digest_serializable(&(seed, entries))
 }
 
-fn output_inventory(repo_root: &Path, paths: &[PathBuf]) -> Result<Vec<InventoryEntry>> {
+pub(crate) fn output_inventory(repo_root: &Path, paths: &[PathBuf]) -> Result<Vec<InventoryEntry>> {
     let mut entries = Vec::new();
     for path in paths {
         let absolute = if path.is_absolute() {
@@ -1579,7 +962,7 @@ fn collect_inventory(
             content: normalize_path(&fs::read_link(path)?),
         });
     } else if metadata.is_file() {
-        let fingerprint = file_fingerprint(&metadata);
+        let fingerprint = integrity_index::fingerprint(&metadata);
         entries.push(InventoryEntry {
             path: normalized,
             kind: "file".to_string(),
@@ -1626,7 +1009,7 @@ fn is_irrelevant_documentation(path: &Path) -> bool {
         || name.starts_with("copying")
 }
 
-fn tool_identities(tools: &[String]) -> Result<BTreeMap<String, ToolIdentity>> {
+pub(crate) fn tool_identities(tools: &[String]) -> Result<BTreeMap<String, ToolIdentity>> {
     let mut values = BTreeMap::new();
     for tool in tools {
         if let Some(identity) = INTEGRITY_CACHE.with(|slot| {
@@ -1639,25 +1022,7 @@ fn tool_identities(tools: &[String]) -> Result<BTreeMap<String, ToolIdentity>> {
             values.insert(tool.clone(), identity);
             continue;
         }
-        let path = resolve_executable(tool)?;
-        let version_output = stable_tool_output(&path, &["--version"])?;
-        let target = if matches!(tool.as_str(), "gcc" | "g++" | "cc" | "c++") {
-            stable_tool_output(&path, &["-dumpmachine"])?
-        } else if tool == "rustc" {
-            stable_tool_output(&path, &["-vV"])?
-                .lines()
-                .find_map(|line| line.strip_prefix("host: "))
-                .unwrap_or("")
-                .to_string()
-        } else {
-            String::new()
-        };
-        let identity = ToolIdentity {
-            resolved_path: normalize_path(&path),
-            executable_sha256: sha256_file(&path)?,
-            version: version_output.lines().next().unwrap_or("").to_string(),
-            target,
-        };
+        let identity = crate::tool_identity::inspect(tool, sha256_file)?;
         INTEGRITY_CACHE.with(|slot| {
             if let Some(cache) = slot.borrow_mut().as_mut() {
                 cache.tool_identities.insert(tool.clone(), identity.clone());
@@ -1668,56 +1033,7 @@ fn tool_identities(tools: &[String]) -> Result<BTreeMap<String, ToolIdentity>> {
     Ok(values)
 }
 
-fn resolve_executable(tool: &str) -> Result<PathBuf> {
-    let path = std::env::var_os("PATH");
-    resolve_executable_from(tool, path.as_deref())
-}
-
-fn resolve_executable_from(tool: &str, path: Option<&OsStr>) -> Result<PathBuf> {
-    let supplied = Path::new(tool);
-    if supplied.components().count() > 1 {
-        return supplied
-            .canonicalize()
-            .with_context(|| format!("unable to resolve tool {tool}"));
-    }
-    for directory in std::env::split_paths(path.unwrap_or_default()) {
-        let candidate = directory.join(tool);
-        if candidate.is_file() {
-            return candidate
-                .canonicalize()
-                .with_context(|| format!("unable to resolve tool {tool}"));
-        }
-    }
-    bail!("tool {tool} was not found on PATH")
-}
-
-fn stable_tool_output(tool: &Path, arguments: &[&str]) -> Result<String> {
-    let output = Command::new(tool)
-        .args(arguments)
-        .env("LC_ALL", "C")
-        .env("LANG", "C")
-        .env("TZ", "UTC")
-        .output()
-        .with_context(|| format!("failed to inspect tool {}", tool.display()))?;
-    if !output.status.success() {
-        bail!(
-            "tool identity probe failed with {}: {} {}",
-            output.status,
-            tool.display(),
-            arguments.join(" ")
-        );
-    }
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    let selected = if stdout.trim().is_empty() {
-        stderr.trim()
-    } else {
-        stdout.trim()
-    };
-    Ok(selected.replace('\r', ""))
-}
-
-fn normalized_build_environment() -> BTreeMap<String, String> {
+pub(crate) fn normalized_build_environment() -> BTreeMap<String, String> {
     normalized_build_environment_from(|name| std::env::var(name).ok())
 }
 
@@ -1763,11 +1079,11 @@ fn normalized_build_environment_from(
     values
 }
 
-fn inventory_digest(inventory: &[InventoryEntry]) -> Result<String> {
+pub(crate) fn inventory_digest(inventory: &[InventoryEntry]) -> Result<String> {
     digest_serializable(inventory)
 }
 
-fn digest_serializable<T: Serialize + ?Sized>(value: &T) -> Result<String> {
+pub(crate) fn digest_serializable<T: Serialize + ?Sized>(value: &T) -> Result<String> {
     let body = serde_json::to_vec(value)?;
     Ok(format!("{:x}", Sha256::digest(body)))
 }
@@ -1797,27 +1113,42 @@ fn sha256_file_with_fingerprint(
 
     let path_metadata = fs::symlink_metadata(path)?;
     let path_fingerprint = if path_metadata.is_file() {
-        file_fingerprint(&path_metadata)
+        integrity_index::fingerprint(&path_metadata)
     } else {
         None
     };
     let mut file = fs::File::open(path)?;
-    let opened_fingerprint = file_fingerprint(&file.metadata()?);
+    let opened_fingerprint = integrity_index::fingerprint(&file.metadata()?);
     if expected_fingerprint.is_some() && opened_fingerprint.as_ref() != expected_fingerprint {
-        bail!("{} changed while its inventory was collected", path.display())
+        bail!(
+            "{} changed while its inventory was collected",
+            path.display()
+        )
     }
     let stable_regular_path = path_fingerprint.is_some() && path_fingerprint == opened_fingerprint;
-    let persistent_eligible = stable_regular_path && persistent_index_eligible(path);
+    let persistent_eligible = stable_regular_path && integrity_index::eligible(path);
     if persistent_eligible {
         if let Some(fingerprint) = opened_fingerprint.as_ref() {
-            if let Some(digest) = persistent_file_digest(path, fingerprint) {
-            verify_unchanged_open_file(path, &file, fingerprint)?;
+            let lookup_timer = Instant::now();
+            let digest = integrity_index::lookup(path, fingerprint);
+            record_category("integrity_index_lookup", lookup_timer.elapsed());
             INTEGRITY_CACHE.with(|slot| {
                 if let Some(cache) = slot.borrow_mut().as_mut() {
-                    cache.file_digests.insert(cache_path, digest.clone());
+                    record_integrity_cache_access(
+                        cache,
+                        "persistent_file_digest",
+                        digest.is_some(),
+                    );
                 }
             });
-            return Ok(digest);
+            if let Some(digest) = digest {
+                verify_unchanged_open_file(path, &file, fingerprint)?;
+                INTEGRITY_CACHE.with(|slot| {
+                    if let Some(cache) = slot.borrow_mut().as_mut() {
+                        cache.file_digests.insert(cache_path, digest.clone());
+                    }
+                });
+                return Ok(digest);
             }
         }
     }
@@ -1839,7 +1170,7 @@ fn sha256_file_with_fingerprint(
     if persistent_eligible {
         record_category("integrity_fallback_hashing", timer.elapsed());
         if let Some(fingerprint) = opened_fingerprint {
-            store_persistent_file_digest(path, fingerprint, digest.clone());
+            integrity_index::store(path, fingerprint, digest.clone());
         }
     }
     INTEGRITY_CACHE.with(|slot| {
@@ -1850,104 +1181,15 @@ fn sha256_file_with_fingerprint(
     Ok(digest)
 }
 
-#[cfg(unix)]
-fn file_fingerprint(metadata: &fs::Metadata) -> Option<FileFingerprint> {
-    use std::os::unix::fs::MetadataExt;
-
-    Some(FileFingerprint {
-        device: metadata.dev(),
-        inode: metadata.ino(),
-        file_type: metadata.mode() & 0o170000,
-        size: metadata.size(),
-        mtime_seconds: metadata.mtime(),
-        mtime_nanoseconds: metadata.mtime_nsec(),
-        ctime_seconds: metadata.ctime(),
-        ctime_nanoseconds: metadata.ctime_nsec(),
-    })
-}
-
-#[cfg(not(unix))]
-fn file_fingerprint(_metadata: &fs::Metadata) -> Option<FileFingerprint> {
-    None
-}
-
-fn persistent_index_key(index: &PersistentIntegrityIndex, path: &Path) -> Option<String> {
-    let absolute = if path.is_absolute() {
-        path.to_path_buf()
-    } else {
-        std::env::current_dir().ok()?.join(path)
-    };
-    if !absolute.starts_with(index.repo_root.join("out")) {
-        return None;
-    }
-    Some(normalize_path(absolute.strip_prefix(&index.repo_root).ok()?))
-}
-
-fn persistent_index_eligible(path: &Path) -> bool {
-    PERSISTENT_INTEGRITY_INDEX.with(|slot| {
-        slot.borrow()
-            .as_ref()
-            .is_some_and(|index| persistent_index_key(index, path).is_some())
-    })
-}
-
-fn persistent_file_digest(path: &Path, fingerprint: &FileFingerprint) -> Option<String> {
-    let timer = Instant::now();
-    let lookup = PERSISTENT_INTEGRITY_INDEX.with(|slot| {
-        let mut borrowed = slot.borrow_mut();
-        let index = borrowed.as_mut()?;
-        let key = persistent_index_key(index, path)?;
-        let digest = index
-            .entries
-            .get(&key)
-            .filter(|entry| entry.fingerprint == *fingerprint)
-            .map(|entry| entry.sha256.clone());
-        if digest.is_none() && index.entries.remove(&key).is_some() {
-            index.dirty = true;
-        }
-        Some(digest)
-    });
-    let Some(digest) = lookup else {
-        return None;
-    };
-    record_category("integrity_index_lookup", timer.elapsed());
-    INTEGRITY_CACHE.with(|slot| {
-        if let Some(cache) = slot.borrow_mut().as_mut() {
-            record_integrity_cache_access(cache, "persistent_file_digest", digest.is_some());
-        }
-    });
-    digest
-}
-
-fn store_persistent_file_digest(path: &Path, fingerprint: FileFingerprint, sha256: String) {
-    PERSISTENT_INTEGRITY_INDEX.with(|slot| {
-        let mut borrowed = slot.borrow_mut();
-        let Some(index) = borrowed.as_mut() else {
-            return;
-        };
-        let Some(key) = persistent_index_key(index, path) else {
-            return;
-        };
-        index.entries.insert(
-            key,
-            PersistentFileDigest {
-                fingerprint,
-                sha256,
-            },
-        );
-        index.dirty = true;
-    });
-}
-
 fn verify_unchanged_open_file(
     path: &Path,
     file: &fs::File,
     expected: &FileFingerprint,
 ) -> Result<()> {
-    let opened = file_fingerprint(&file.metadata()?);
+    let opened = integrity_index::fingerprint(&file.metadata()?);
     let current_path = fs::symlink_metadata(path)?;
     let current_path = if current_path.is_file() {
-        file_fingerprint(&current_path)
+        integrity_index::fingerprint(&current_path)
     } else {
         None
     };
@@ -1964,7 +1206,7 @@ fn normalize_path(path: &Path) -> String {
         .join("/")
 }
 
-fn sanitize_identifier(value: &str) -> String {
+pub(crate) fn sanitize_identifier(value: &str) -> String {
     value
         .chars()
         .map(|character| {
@@ -1994,16 +1236,14 @@ mod tests {
 
     fn begin_test_integrity_session(repo_root: &Path) {
         begin_test_integrity_cache();
-        PERSISTENT_INTEGRITY_INDEX.with(|slot| {
-            *slot.borrow_mut() = Some(load_persistent_integrity_index(repo_root));
-        });
+        integrity_index::start(repo_root);
     }
 
     fn end_test_integrity_session(persist: bool) {
         if persist {
             persist_persistent_integrity_index().unwrap();
         }
-        PERSISTENT_INTEGRITY_INDEX.with(|slot| *slot.borrow_mut() = None);
+        integrity_index::clear();
         end_test_integrity_cache();
     }
 
@@ -2024,6 +1264,42 @@ mod tests {
                 .cloned()
                 .unwrap_or_default()
         })
+    }
+
+    fn initialize_git_fixture(root: &Path) {
+        for arguments in [
+            vec!["init", "-q"],
+            vec!["config", "user.email", "tests@mattos.invalid"],
+            vec!["config", "user.name", "MattOS Tests"],
+        ] {
+            assert!(
+                Command::new("git")
+                    .args(arguments)
+                    .current_dir(root)
+                    .status()
+                    .unwrap()
+                    .success()
+            );
+        }
+    }
+
+    fn assert_source_digest_matches_full_scan(
+        repo_root: &Path,
+        roots: &[PathBuf],
+        exclude_documentation: bool,
+    ) {
+        begin_test_integrity_cache();
+        let optimized = tracked_source_digest(repo_root, roots, exclude_documentation).unwrap();
+        end_test_integrity_cache();
+        let reference =
+            tracked_source_digest_full_scan_reference(repo_root, roots, exclude_documentation)
+                .unwrap();
+        assert_eq!(optimized, reference);
+        if let Ok((streamed, legacy)) =
+            tracked_source_canonical_bytes(repo_root, roots, exclude_documentation)
+        {
+            assert_eq!(streamed, legacy, "streamed canonical JSON changed");
+        }
     }
 
     #[test]
@@ -2078,6 +1354,380 @@ mod tests {
     }
 
     #[test]
+    fn invocation_source_snapshot_detects_same_size_replacement_and_symlink_edits() {
+        use std::os::unix::fs::symlink;
+
+        let root = tempdir().unwrap();
+        initialize_git_fixture(root.path());
+        fs::create_dir(root.path().join("source")).unwrap();
+        let file = root.path().join("source/file");
+        let link = root.path().join("source/link");
+        fs::write(&file, "good").unwrap();
+        symlink("file", &link).unwrap();
+        assert!(
+            Command::new("git")
+                .args(["add", "source"])
+                .current_dir(root.path())
+                .status()
+                .unwrap()
+                .success()
+        );
+        assert!(
+            Command::new("git")
+                .args(["commit", "-qm", "fixture"])
+                .current_dir(root.path())
+                .status()
+                .unwrap()
+                .success()
+        );
+        let roots = vec![PathBuf::from("source")];
+
+        begin_test_integrity_cache();
+        let original = tracked_source_digest(root.path(), &roots, true).unwrap();
+        fs::write(&file, "evil").unwrap();
+        invalidate_integrity_paths(root.path(), std::slice::from_ref(&file));
+        let same_size = tracked_source_digest(root.path(), &roots, true).unwrap();
+        assert_ne!(original, same_size);
+
+        let replacement = root.path().join("source/replacement");
+        fs::write(&replacement, "next").unwrap();
+        fs::rename(&replacement, &file).unwrap();
+        invalidate_integrity_paths(root.path(), std::slice::from_ref(&file));
+        let replaced = tracked_source_digest(root.path(), &roots, true).unwrap();
+        assert_ne!(same_size, replaced);
+
+        fs::remove_file(&link).unwrap();
+        symlink("missing", &link).unwrap();
+        invalidate_integrity_paths(root.path(), std::slice::from_ref(&link));
+        let relinked = tracked_source_digest(root.path(), &roots, true).unwrap();
+        assert_ne!(replaced, relinked);
+        end_test_integrity_cache();
+    }
+
+    #[test]
+    fn git_assisted_source_identity_detects_all_worktree_and_index_changes() {
+        use std::os::unix::fs::{PermissionsExt, symlink};
+
+        let root = tempdir().unwrap();
+        initialize_git_fixture(root.path());
+        fs::create_dir(root.path().join("source")).unwrap();
+        let file = root.path().join("source/file");
+        fs::write(&file, "base").unwrap();
+        assert!(
+            Command::new("git")
+                .args(["add", "source/file"])
+                .current_dir(root.path())
+                .status()
+                .unwrap()
+                .success()
+        );
+        assert!(
+            Command::new("git")
+                .args(["commit", "-qm", "fixture"])
+                .current_dir(root.path())
+                .status()
+                .unwrap()
+                .success()
+        );
+        let roots = vec![PathBuf::from("source")];
+        let digest = || tracked_source_digest(root.path(), &roots, true).unwrap();
+        let refresh = || invalidate_integrity_paths(root.path(), std::slice::from_ref(&file));
+
+        begin_test_integrity_cache();
+        let clean = digest();
+        let original_mtime =
+            filetime::FileTime::from_last_modification_time(&fs::metadata(&file).unwrap());
+
+        fs::write(&file, "ordinary edit").unwrap();
+        refresh();
+        let ordinary = digest();
+        assert_ne!(clean, ordinary, "ordinary unstaged edit must invalidate");
+
+        fs::write(&file, "same").unwrap();
+        filetime::set_file_mtime(&file, original_mtime).unwrap();
+        refresh();
+        let same_size_restored_time = digest();
+        assert_ne!(clean, same_size_restored_time);
+        assert_ne!(ordinary, same_size_restored_time);
+
+        fs::set_permissions(&file, fs::Permissions::from_mode(0o755)).unwrap();
+        refresh();
+        let chmod = digest();
+        assert_ne!(same_size_restored_time, chmod, "chmod must invalidate");
+
+        fs::write(&file, "staged").unwrap();
+        assert!(
+            Command::new("git")
+                .args(["add", "source/file"])
+                .current_dir(root.path())
+                .status()
+                .unwrap()
+                .success()
+        );
+        refresh();
+        let staged = digest();
+        assert_ne!(clean, staged, "staged blob/mode identity must invalidate");
+
+        fs::write(&file, "unstaged after index").unwrap();
+        refresh();
+        let unstaged = digest();
+        assert_ne!(
+            staged, unstaged,
+            "unstaged bytes must override index identity"
+        );
+
+        let replacement = root.path().join("source/replacement");
+        fs::write(&replacement, "rename replacement").unwrap();
+        fs::rename(&replacement, &file).unwrap();
+        refresh();
+        let renamed = digest();
+        assert_ne!(unstaged, renamed, "rename replacement must invalidate");
+
+        fs::remove_file(&file).unwrap();
+        symlink("replacement-target", &file).unwrap();
+        refresh();
+        let symlinked = digest();
+        assert_ne!(renamed, symlinked, "symlink replacement must invalidate");
+        end_test_integrity_cache();
+    }
+
+    #[test]
+    fn optimized_source_identity_matches_full_scan_across_adversarial_states() {
+        use std::os::unix::fs::{PermissionsExt, symlink};
+
+        let root = tempdir().unwrap();
+        initialize_git_fixture(root.path());
+        fs::create_dir_all(root.path().join("source/nested/docs")).unwrap();
+        fs::create_dir_all(root.path().join("sourced")).unwrap();
+        let file = root.path().join("source/file");
+        fs::write(&file, "base").unwrap();
+        fs::write(root.path().join("source/nested/value"), "nested").unwrap();
+        fs::write(root.path().join("source/nested/docs/readme"), "docs").unwrap();
+        fs::write(root.path().join("sourced/file"), "boundary").unwrap();
+        assert!(
+            Command::new("git")
+                .args(["add", "."])
+                .current_dir(root.path())
+                .status()
+                .unwrap()
+                .success()
+        );
+        assert!(
+            Command::new("git")
+                .args(["commit", "-qm", "fixture"])
+                .current_dir(root.path())
+                .status()
+                .unwrap()
+                .success()
+        );
+        let roots = [PathBuf::from("source"), PathBuf::from("source/nested")];
+        let assert_matches = || {
+            assert_source_digest_matches_full_scan(root.path(), &roots, false);
+            assert_source_digest_matches_full_scan(root.path(), &roots, true);
+        };
+
+        assert_matches();
+        let original_mtime =
+            filetime::FileTime::from_last_modification_time(&fs::metadata(&file).unwrap());
+        fs::write(&file, "edit").unwrap();
+        assert_matches();
+        fs::write(&file, "same").unwrap();
+        filetime::set_file_mtime(&file, original_mtime).unwrap();
+        assert_matches();
+        fs::set_permissions(&file, fs::Permissions::from_mode(0o755)).unwrap();
+        assert_matches();
+        assert!(
+            Command::new("git")
+                .args(["add", "source/file"])
+                .current_dir(root.path())
+                .status()
+                .unwrap()
+                .success()
+        );
+        assert_matches();
+        fs::write(&file, "unstaged").unwrap();
+        assert_matches();
+        let replacement = root.path().join("source/replacement");
+        fs::write(&replacement, "renamed").unwrap();
+        fs::rename(&replacement, &file).unwrap();
+        assert_matches();
+        fs::remove_file(&file).unwrap();
+        symlink("missing-target", &file).unwrap();
+        assert_matches();
+        fs::remove_file(&file).unwrap();
+        assert_matches();
+        fs::write(root.path().join("source/untracked"), "new").unwrap();
+        assert_matches();
+
+        let conflict = tempdir().unwrap();
+        initialize_git_fixture(conflict.path());
+        fs::write(conflict.path().join("file"), "base").unwrap();
+        for arguments in [
+            ["add", "file"].as_slice(),
+            ["commit", "-qm", "base"].as_slice(),
+            ["checkout", "-qb", "side"].as_slice(),
+        ] {
+            assert!(
+                Command::new("git")
+                    .args(arguments)
+                    .current_dir(conflict.path())
+                    .status()
+                    .unwrap()
+                    .success()
+            );
+        }
+        fs::write(conflict.path().join("file"), "side").unwrap();
+        assert!(
+            Command::new("git")
+                .args(["commit", "-qam", "side"])
+                .current_dir(conflict.path())
+                .status()
+                .unwrap()
+                .success()
+        );
+        assert!(
+            Command::new("git")
+                .args(["checkout", "-q", "master"])
+                .current_dir(conflict.path())
+                .status()
+                .unwrap()
+                .success()
+        );
+        fs::write(conflict.path().join("file"), "main").unwrap();
+        assert!(
+            Command::new("git")
+                .args(["commit", "-qam", "main"])
+                .current_dir(conflict.path())
+                .status()
+                .unwrap()
+                .success()
+        );
+        assert!(
+            !Command::new("git")
+                .args(["merge", "side"])
+                .current_dir(conflict.path())
+                .status()
+                .unwrap()
+                .success()
+        );
+        assert_source_digest_matches_full_scan(
+            conflict.path(),
+            &[PathBuf::from("file")],
+            false,
+        );
+    }
+
+    #[test]
+    fn invocation_configuration_cache_detects_edits_replacements_and_symlinks() {
+        use std::os::unix::fs::symlink;
+
+        let root = tempdir().unwrap();
+        let config = root.path().join("config");
+        let link = root.path().join("config-link");
+        fs::write(&config, "good").unwrap();
+        symlink("config", &link).unwrap();
+        let paths = vec![config.clone(), link.clone()];
+        begin_test_integrity_cache();
+        let original = digest_paths(root.path(), &paths, false, "config").unwrap();
+
+        fs::write(&config, "evil").unwrap();
+        invalidate_integrity_paths(root.path(), std::slice::from_ref(&config));
+        let edited = digest_paths(root.path(), &paths, false, "config").unwrap();
+        assert_ne!(original, edited);
+
+        let replacement = root.path().join("replacement");
+        fs::write(&replacement, "next").unwrap();
+        fs::rename(&replacement, &config).unwrap();
+        invalidate_integrity_paths(root.path(), std::slice::from_ref(&config));
+        let replaced = digest_paths(root.path(), &paths, false, "config").unwrap();
+        assert_ne!(edited, replaced);
+
+        fs::remove_file(&link).unwrap();
+        symlink("missing", &link).unwrap();
+        invalidate_integrity_paths(root.path(), std::slice::from_ref(&link));
+        let relinked = digest_paths(root.path(), &paths, false, "config").unwrap();
+        assert_ne!(replaced, relinked);
+        end_test_integrity_cache();
+    }
+
+    #[test]
+    fn fresh_process_source_and_configuration_inputs_detect_changes() {
+        const ROOT_ENV: &str = "MATTOS_TEST_INPUT_CACHE_ROOT";
+        const SOURCE_ENV: &str = "MATTOS_TEST_INPUT_CACHE_SOURCE";
+        const CONFIG_ENV: &str = "MATTOS_TEST_INPUT_CACHE_CONFIG";
+        if let (Ok(root), Ok(source), Ok(config)) = (
+            std::env::var(ROOT_ENV),
+            std::env::var(SOURCE_ENV),
+            std::env::var(CONFIG_ENV),
+        ) {
+            let root = PathBuf::from(root);
+            begin_test_integrity_cache();
+            let current = tracked_source_digest(&root, &[PathBuf::from("source")], true).unwrap();
+            assert_ne!(current, source);
+            assert_eq!(
+                current,
+                tracked_source_digest_full_scan_reference(
+                    &root,
+                    &[PathBuf::from("source")],
+                    true
+                )
+                .unwrap()
+            );
+            let (streamed, legacy) =
+                tracked_source_canonical_bytes(&root, &[PathBuf::from("source")], true).unwrap();
+            assert_eq!(streamed, legacy);
+            assert_ne!(
+                digest_paths(&root, &[PathBuf::from("config")], false, "config").unwrap(),
+                config
+            );
+            end_test_integrity_cache();
+            return;
+        }
+
+        let root = tempdir().unwrap();
+        initialize_git_fixture(root.path());
+        fs::create_dir(root.path().join("source")).unwrap();
+        fs::write(root.path().join("source/file"), "good").unwrap();
+        fs::write(root.path().join("config"), "good").unwrap();
+        assert!(
+            Command::new("git")
+                .args(["add", "source", "config"])
+                .current_dir(root.path())
+                .status()
+                .unwrap()
+                .success()
+        );
+        assert!(
+            Command::new("git")
+                .args(["commit", "-qm", "fixture"])
+                .current_dir(root.path())
+                .status()
+                .unwrap()
+                .success()
+        );
+        begin_test_integrity_cache();
+        let source = tracked_source_digest(root.path(), &[PathBuf::from("source")], true).unwrap();
+        let config =
+            digest_paths(root.path(), &[PathBuf::from("config")], false, "config").unwrap();
+        end_test_integrity_cache();
+        fs::write(root.path().join("source/file"), "evil").unwrap();
+        fs::write(root.path().join("config"), "evil").unwrap();
+
+        let status = Command::new(std::env::current_exe().unwrap())
+            .args([
+                "--exact",
+                "performance::tests::fresh_process_source_and_configuration_inputs_detect_changes",
+                "--nocapture",
+            ])
+            .env(ROOT_ENV, root.path())
+            .env(SOURCE_ENV, source)
+            .env(CONFIG_ENV, config)
+            .status()
+            .unwrap();
+        assert!(status.success());
+    }
+
+    #[test]
     fn persistent_index_reuses_unchanged_output_bytes() {
         let root = tempdir().unwrap();
         let output = root.path().join("out/result");
@@ -2104,7 +1754,8 @@ mod tests {
         let file = output.join("file");
         fs::create_dir_all(&output).unwrap();
         fs::write(&file, "good").unwrap();
-        let original_mtime = filetime::FileTime::from_last_modification_time(&fs::metadata(&file).unwrap());
+        let original_mtime =
+            filetime::FileTime::from_last_modification_time(&fs::metadata(&file).unwrap());
 
         begin_test_integrity_session(root.path());
         let first = output_inventory(root.path(), &[output.clone()]).unwrap();
@@ -2114,7 +1765,10 @@ mod tests {
         filetime::set_file_mtime(&file, original_mtime).unwrap();
         begin_test_integrity_session(root.path());
         let second = output_inventory(root.path(), &[output]).unwrap();
-        assert_ne!(inventory_file_digest(&first, "result/file"), inventory_file_digest(&second, "result/file"));
+        assert_ne!(
+            inventory_file_digest(&first, "result/file"),
+            inventory_file_digest(&second, "result/file")
+        );
         assert_eq!(integrity_cache_stats("persistent_file_digest").hits, 0);
         assert_eq!(integrity_cache_stats("persistent_file_digest").misses, 1);
         end_test_integrity_session(false);
@@ -2127,7 +1781,8 @@ mod tests {
         let file = output.join("file");
         fs::create_dir_all(&output).unwrap();
         fs::write(&file, "good").unwrap();
-        let original_mtime = filetime::FileTime::from_last_modification_time(&fs::metadata(&file).unwrap());
+        let original_mtime =
+            filetime::FileTime::from_last_modification_time(&fs::metadata(&file).unwrap());
 
         begin_test_integrity_session(root.path());
         let first = output_inventory(root.path(), &[output.clone()]).unwrap();
@@ -2139,7 +1794,10 @@ mod tests {
         fs::rename(&replacement, &file).unwrap();
         begin_test_integrity_session(root.path());
         let second = output_inventory(root.path(), &[output]).unwrap();
-        assert_ne!(inventory_file_digest(&first, "result/file"), inventory_file_digest(&second, "result/file"));
+        assert_ne!(
+            inventory_file_digest(&first, "result/file"),
+            inventory_file_digest(&second, "result/file")
+        );
         assert_eq!(integrity_cache_stats("persistent_file_digest").misses, 1);
         end_test_integrity_session(false);
     }
@@ -2175,7 +1833,7 @@ mod tests {
         fs::create_dir_all(root.path().join("out/state")).unwrap();
         fs::create_dir_all(&output).unwrap();
         fs::write(output.join("file"), "stable").unwrap();
-        fs::write(persistent_integrity_index_path(root.path()), b"not valid json").unwrap();
+        fs::write(integrity_index::path(root.path()), b"not valid json").unwrap();
 
         begin_test_integrity_session(root.path());
         output_inventory(root.path(), &[output]).unwrap();
@@ -2193,10 +1851,16 @@ mod tests {
         output_inventory(root.path(), &[output.clone()]).unwrap();
         end_test_integrity_session(true);
 
-        let index_path = persistent_integrity_index_path(root.path());
-        let mut index: PersistentIntegrityIndexFile =
+        let index_path = integrity_index::path(root.path());
+        let mut index: serde_json::Value =
             serde_json::from_slice(&fs::read(&index_path).unwrap()).unwrap();
-        index.entries.values_mut().next().unwrap().sha256 = "0".repeat(64);
+        let entry = index["entries"]
+            .as_object_mut()
+            .unwrap()
+            .values_mut()
+            .next()
+            .unwrap();
+        entry["sha256"] = serde_json::Value::String("0".repeat(64));
         fs::write(&index_path, serde_json::to_vec_pretty(&index).unwrap()).unwrap();
 
         begin_test_integrity_session(root.path());
@@ -2224,7 +1888,8 @@ mod tests {
         let file = output.join("file");
         fs::create_dir_all(&output).unwrap();
         fs::write(&file, "good").unwrap();
-        let original_mtime = filetime::FileTime::from_last_modification_time(&fs::metadata(&file).unwrap());
+        let original_mtime =
+            filetime::FileTime::from_last_modification_time(&fs::metadata(&file).unwrap());
         begin_test_integrity_session(root.path());
         let inventory = output_inventory(root.path(), &[output]).unwrap();
         let expected = inventory_file_digest(&inventory, "result/file");
@@ -2548,6 +2213,88 @@ mod tests {
     }
 
     #[test]
+    fn cache_decision_matrix_uses_real_manifests_and_outputs() {
+        use std::cell::Cell;
+
+        let root = tempdir().unwrap();
+        for stage in ["owner", "unrelated"] {
+            fs::create_dir_all(root.path().join(format!("src/{stage}/docs"))).unwrap();
+            fs::write(root.path().join(format!("src/{stage}/code")), "one").unwrap();
+            fs::write(
+                root.path().join(format!("src/{stage}/docs/README.md")),
+                "one",
+            )
+            .unwrap();
+            fs::write(root.path().join(format!("{stage}.config")), "one").unwrap();
+        }
+        let spec = |stage: &str, recipe: &str| StageSpec {
+            id: stage.to_string(),
+            source_inputs: vec![format!("src/{stage}").into()],
+            configuration_inputs: vec![format!("{stage}.config").into()],
+            tools: Vec::new(),
+            dependencies: Vec::new(),
+            outputs: vec![format!("out/{stage}").into()],
+            recipe: recipe.to_string(),
+        };
+        let owner_runs = Cell::new(0usize);
+        let unrelated_runs = Cell::new(0usize);
+        let run = |spec: &StageSpec, runs: &Cell<usize>| {
+            execute_cached_stage(
+                root.path(),
+                spec,
+                || Ok(()),
+                || {
+                    runs.set(runs.get() + 1);
+                    fs::create_dir_all(root.path().join("out"))?;
+                    fs::write(
+                        root.path().join(&spec.outputs[0]),
+                        format!("{}:{}", spec.id, runs.get()),
+                    )?;
+                    Ok(())
+                },
+            )
+        };
+        let mut owner = spec("owner", "recipe-1");
+        let unrelated = spec("unrelated", "recipe-1");
+
+        run(&owner, &owner_runs).unwrap();
+        run(&unrelated, &unrelated_runs).unwrap();
+        run(&owner, &owner_runs).unwrap();
+        run(&unrelated, &unrelated_runs).unwrap();
+        assert_eq!((owner_runs.get(), unrelated_runs.get()), (1, 1));
+
+        fs::write(root.path().join("src/owner/docs/README.md"), "two").unwrap();
+        run(&owner, &owner_runs).unwrap();
+        run(&unrelated, &unrelated_runs).unwrap();
+        assert_eq!((owner_runs.get(), unrelated_runs.get()), (1, 1));
+
+        fs::write(root.path().join("src/owner/code"), "two").unwrap();
+        run(&owner, &owner_runs).unwrap();
+        run(&unrelated, &unrelated_runs).unwrap();
+        assert_eq!((owner_runs.get(), unrelated_runs.get()), (2, 1));
+
+        fs::write(root.path().join("owner.config"), "two").unwrap();
+        run(&owner, &owner_runs).unwrap();
+        run(&unrelated, &unrelated_runs).unwrap();
+        assert_eq!((owner_runs.get(), unrelated_runs.get()), (3, 1));
+
+        owner.recipe = "recipe-2".to_string();
+        run(&owner, &owner_runs).unwrap();
+        run(&unrelated, &unrelated_runs).unwrap();
+        assert_eq!((owner_runs.get(), unrelated_runs.get()), (4, 1));
+
+        fs::remove_file(root.path().join("out/owner")).unwrap();
+        run(&owner, &owner_runs).unwrap();
+        run(&unrelated, &unrelated_runs).unwrap();
+        assert_eq!((owner_runs.get(), unrelated_runs.get()), (5, 1));
+
+        fs::write(root.path().join("out/owner"), "corrupt").unwrap();
+        run(&owner, &owner_runs).unwrap();
+        run(&unrelated, &unrelated_runs).unwrap();
+        assert_eq!((owner_runs.get(), unrelated_runs.get()), (6, 1));
+    }
+
+    #[test]
     fn changed_input_summary_names_concrete_inputs() {
         let mut stored = StageInputDetails {
             recipe: "recipe-1".to_string(),
@@ -2561,10 +2308,9 @@ mod tests {
         current
             .source
             .insert("src/component".to_string(), "new".to_string());
-        current.configuration.insert(
-            "component/config.toml".to_string(),
-            "digest".to_string(),
-        );
+        current
+            .configuration
+            .insert("component/config.toml".to_string(), "digest".to_string());
 
         assert_eq!(
             changed_input_summary(&stored, &current),
@@ -2584,9 +2330,7 @@ mod tests {
             tools: Vec::new(),
             dependencies: Vec::new(),
             outputs: Vec::new(),
-            recipe: format!(
-                "mattos-build-stage:migration:schema={STAGE_MANIFEST_SCHEMA_VERSION}"
-            ),
+            recipe: format!("mattos-build-stage:migration:schema={STAGE_MANIFEST_SCHEMA_VERSION}"),
         };
         let old = compute_stage_evaluation(root.path(), &old_spec).unwrap();
         let manifest = StageManifest {
@@ -2648,8 +2392,8 @@ mod tests {
         let first_path = std::env::join_paths([root.path().join("missing"), bin]).unwrap();
         let second_path = std::env::join_paths([alias, root.path().join("other")]).unwrap();
         assert_eq!(
-            resolve_executable_from("fixture-cc", Some(&first_path)).unwrap(),
-            resolve_executable_from("fixture-cc", Some(&second_path)).unwrap()
+            crate::tool_identity::resolve_executable_from("fixture-cc", Some(&first_path)).unwrap(),
+            crate::tool_identity::resolve_executable_from("fixture-cc", Some(&second_path)).unwrap()
         );
     }
 

@@ -10,11 +10,22 @@ use std::io::Read;
 use std::path::{Component, Path, PathBuf};
 use std::process::{Command, Output};
 
+mod cache_manifest;
+#[cfg(test)]
+mod build_system_tests;
 mod elf_cache;
+mod integrity_index;
 mod packaging;
 mod performance;
+mod source_identity;
+mod stage_cache;
+mod stage_graph;
+mod stage_inputs;
+mod timing; mod tool_identity;
 
-const AUTHORITATIVE_GRUB_CFG: &str = "src/boot/grub/grub.cfg";
+use stage_graph::BuildStage;
+
+const AUTHORITATIVE_GRUB_CFG: &str = stage_inputs::AUTHORITATIVE_GRUB_CFG;
 const OBSOLETE_GRUB_CFG_PATHS: &[&str] = &["boot/grub/grub.cfg"];
 const GRUB_SYSTEMD_ENTRY: &str = "menuentry \"MattOS (systemd)\"";
 const GRUB_RESCUE_ENTRY: &str = "menuentry \"MattOS (rescue init)\"";
@@ -540,59 +551,6 @@ enum CacheCommands {
         dependents: bool,
         stage: String,
     },
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
-enum BuildStage {
-    Kernel,
-    Glibc,
-    GccRuntime,
-    Binutils,
-    GccToolchain,
-    Make,
-    Brush,
-    Coreutils,
-    Grep,
-    Sed,
-    Findutils,
-    Diffutils,
-    Kmod,
-    Procps,
-    Ncurses,
-    Iproute2,
-    Iputils,
-    Curl,
-    Expat,
-    Libcap,
-    Attr,
-    Tar,
-    Acl,
-    Zlib,
-    Bzip2,
-    Lz4,
-    Xz,
-    Xxhash,
-    Zstd,
-    Openssl,
-    Elfutils,
-    Pcre2,
-    Selinux,
-    Libxcrypt,
-    Libmd,
-    Libbsd,
-    Pam,
-    Shadow,
-    SudoRs,
-    UtilLinux,
-    Systemd,
-    DbusBroker,
-    Dpkg,
-    Apt,
-    Init,
-    Rootfs,
-    Initramfs,
-    Iso,
-    All,
 }
 
 #[derive(Clone, Debug, ValueEnum)]
@@ -2648,125 +2606,12 @@ fn is_cacheable_stage(stage: BuildStage) -> bool {
 }
 
 fn build_stage_id(stage: BuildStage) -> &'static str {
-    match stage {
-        BuildStage::Kernel => "linux",
-        BuildStage::Glibc => "glibc",
-        BuildStage::GccRuntime => "gcc-runtime",
-        BuildStage::Binutils => "binutils",
-        BuildStage::GccToolchain => "gcc-compiler",
-        BuildStage::Make => "make",
-        BuildStage::Brush => "brush",
-        BuildStage::Coreutils => "coreutils",
-        BuildStage::Grep => "grep",
-        BuildStage::Sed => "sed",
-        BuildStage::Findutils => "findutils",
-        BuildStage::Diffutils => "diffutils",
-        BuildStage::Kmod => "kmod",
-        BuildStage::Procps => "procps-ng",
-        BuildStage::Ncurses => "ncurses",
-        BuildStage::Iproute2 => "iproute2",
-        BuildStage::Iputils => "iputils",
-        BuildStage::Curl => "curl",
-        BuildStage::Expat => "expat",
-        BuildStage::Libcap => "libcap",
-        BuildStage::Attr => "attr",
-        BuildStage::Tar => "tar",
-        BuildStage::Acl => "acl",
-        BuildStage::Zlib => "zlib",
-        BuildStage::Bzip2 => "bzip2",
-        BuildStage::Lz4 => "lz4",
-        BuildStage::Xz => "xz",
-        BuildStage::Xxhash => "xxhash",
-        BuildStage::Zstd => "zstd",
-        BuildStage::Openssl => "openssl",
-        BuildStage::Elfutils => "elfutils",
-        BuildStage::Pcre2 => "pcre2",
-        BuildStage::Selinux => "selinux",
-        BuildStage::Libxcrypt => "libxcrypt",
-        BuildStage::Libmd => "libmd",
-        BuildStage::Libbsd => "libbsd",
-        BuildStage::Pam => "linux-pam",
-        BuildStage::Shadow => "shadow",
-        BuildStage::SudoRs => "sudo-rs",
-        BuildStage::UtilLinux => "util-linux",
-        BuildStage::Systemd => "systemd",
-        BuildStage::DbusBroker => "dbus-broker",
-        BuildStage::Dpkg => "dpkg",
-        BuildStage::Apt => "apt",
-        BuildStage::Init => "init",
-        BuildStage::Rootfs => "rootfs",
-        BuildStage::Initramfs => "initramfs",
-        BuildStage::Iso => "iso",
-        BuildStage::All => "all",
-    }
+    stage_graph::stage_id(stage)
 }
 
 fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
     let id = build_stage_id(stage);
-    let base_sources: &[&str] = match stage {
-        BuildStage::Kernel => &["src/kernel/linux", "src/kernel/config/x86_64_mattos.config"],
-        BuildStage::Glibc => &["src/system/libc/glibc"],
-        BuildStage::GccRuntime | BuildStage::GccToolchain => &["src/toolchain/gcc"],
-        BuildStage::Binutils => &["src/toolchain/binutils"],
-        BuildStage::Make => &["src/build-tools/make", "src/build-support/gnulib"],
-        BuildStage::Brush => &["src/userland/brush", "upstream/patches/brush"],
-        BuildStage::Coreutils => &["src/userland/coreutils"],
-        BuildStage::Grep => &["src/userland/grep"],
-        BuildStage::Sed => &["src/userland/sed"],
-        BuildStage::Findutils => &["src/userland/findutils"],
-        BuildStage::Diffutils => &["src/userland/diffutils"],
-        BuildStage::Kmod => &["src/system/kmod"],
-        BuildStage::Procps => &["src/userland/procps-ng"],
-        BuildStage::Ncurses => &["src/system/terminal/ncurses"],
-        BuildStage::Iproute2 => &["src/userland/iproute2"],
-        BuildStage::Iputils => &["src/userland/iputils"],
-        BuildStage::Curl => &["src/userland/curl"],
-        BuildStage::Expat => &["src/system/libraries/expat/expat"],
-        BuildStage::Libcap => &["src/system/libraries/libcap"],
-        BuildStage::Attr => &["src/system/libraries/attr"],
-        BuildStage::Tar => &[
-            "src/userland/tar",
-            "src/build-support/paxutils",
-            "src/build-support/gnulib",
-        ],
-        BuildStage::Acl => &["src/system/libraries/acl"],
-        BuildStage::Zlib => &["src/system/libraries/zlib"],
-        BuildStage::Bzip2 => &["src/system/libraries/bzip2"],
-        BuildStage::Lz4 => &["src/system/libraries/lz4"],
-        BuildStage::Xz => &["src/system/libraries/xz"],
-        BuildStage::Xxhash => &["src/system/libraries/xxhash"],
-        BuildStage::Zstd => &["src/system/libraries/zstd"],
-        BuildStage::Openssl => &["src/system/libraries/openssl"],
-        BuildStage::Elfutils => &["src/system/libraries/elfutils"],
-        BuildStage::Pcre2 => &[
-            "src/system/libraries/pcre2",
-            "src/build-support/sljit",
-        ],
-        BuildStage::Selinux => &["src/system/security/selinux"],
-        BuildStage::Libxcrypt => &["src/system/libraries/libxcrypt"],
-        BuildStage::Libmd => &["src/system/libraries/libmd"],
-        BuildStage::Libbsd => &["src/system/libraries/libbsd"],
-        BuildStage::Pam => &["src/system/auth/linux-pam"],
-        BuildStage::Shadow => &["src/system/auth/shadow"],
-        BuildStage::SudoRs => &["src/system/auth/sudo-rs"],
-        BuildStage::UtilLinux => &["src/userland/util-linux"],
-        BuildStage::Systemd => &["src/system/systemd"],
-        BuildStage::DbusBroker => &[
-            "src/system/dbus/dbus-broker",
-            "upstream/patches/dbus-broker",
-        ],
-        BuildStage::Dpkg => &["src/system/packages/dpkg"],
-        BuildStage::Apt => &["src/system/packages/apt", "upstream/patches/apt"],
-        BuildStage::Init => &["src/userland/init"],
-        BuildStage::Rootfs => &[],
-        BuildStage::Initramfs => &[],
-        BuildStage::Iso => &[AUTHORITATIVE_GRUB_CFG],
-        BuildStage::All => &[],
-    };
-    let mut sources = base_sources.to_vec();
-    if stage == BuildStage::Glibc {
-        sources.extend(linux_x86_uapi_inputs());
-    }
+    let sources = stage_inputs::source_inputs(stage);
     let outputs: Vec<PathBuf> = match stage {
         BuildStage::Kernel => vec!["out/build/linux/build/arch/x86/boot/bzImage".into()],
         BuildStage::Glibc => vec![
@@ -2814,54 +2659,11 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::Rootfs => vec!["out/build/rootfs".into()],
         _ => vec![format!("out/build/{}/install", stage_output_directory(stage)).into()],
     };
-    let tools = if matches!(
-        stage,
-        BuildStage::Brush
-            | BuildStage::Coreutils
-            | BuildStage::Grep
-            | BuildStage::Sed
-            | BuildStage::Findutils
-            | BuildStage::Diffutils
-            | BuildStage::SudoRs
-            | BuildStage::Init
-    ) {
-        vec![
-            "cargo".to_string(),
-            "rustc".to_string(),
-            "gcc".to_string(),
-            "ld".to_string(),
-        ]
-    } else {
-        vec![
-            "gcc".to_string(),
-            "g++".to_string(),
-            "as".to_string(),
-            "ld".to_string(),
-            "make".to_string(),
-        ]
-    };
     performance::StageSpec {
         id: id.to_string(),
-        source_inputs: sources.iter().map(PathBuf::from).collect(),
-        configuration_inputs: {
-            let mut inputs = Vec::new();
-            if is_rust_build_stage(stage) {
-                inputs.push("Cargo.toml".into());
-                inputs.push("Cargo.lock".into());
-            }
-            match stage {
-                BuildStage::Rootfs => {
-                    inputs.extend(rootfs_configuration_inputs());
-                    inputs.push("out/packages/inventory.toml".into());
-                    inputs.push("out/repository".into());
-                }
-                BuildStage::Initramfs => inputs.push("out/build/rootfs".into()),
-                BuildStage::Iso => inputs.push("out/build/initramfs.cpio.gz".into()),
-                _ => {}
-            }
-            inputs
-        },
-        tools,
+        source_inputs: sources,
+        configuration_inputs: stage_inputs::configuration_inputs(stage),
+        tools: stage_inputs::tool_names(stage),
         dependencies: build_stage_dependencies(stage)
             .iter()
             .map(|value| value.to_string())
@@ -2869,64 +2671,14 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         outputs,
         recipe: format!(
             "mattos-build-stage:{id}:recipe={}:schema={}",
-            stage_recipe_revision(stage),
+            stage_inputs::recipe_revision(stage),
             performance::STAGE_MANIFEST_SCHEMA_VERSION
         ),
     }
 }
 
-fn is_rust_build_stage(stage: BuildStage) -> bool {
-    matches!(
-        stage,
-        BuildStage::Brush
-            | BuildStage::Coreutils
-            | BuildStage::Grep
-            | BuildStage::Sed
-            | BuildStage::Findutils
-            | BuildStage::Diffutils
-            | BuildStage::SudoRs
-            | BuildStage::Init
-    )
-}
-
-fn stage_recipe_revision(stage: BuildStage) -> u32 {
-    match stage {
-        BuildStage::All => 0,
-        _ => 1,
-    }
-}
-
 fn linux_x86_uapi_inputs() -> Vec<&'static str> {
-    vec![
-        "src/kernel/linux/Makefile",
-        "src/kernel/linux/Kbuild",
-        "src/kernel/linux/scripts",
-        "src/kernel/linux/include/uapi",
-        "src/kernel/linux/include/asm-generic",
-        "src/kernel/linux/arch/x86/Makefile",
-        "src/kernel/linux/arch/x86/include/uapi",
-        "src/kernel/linux/arch/x86/entry/syscalls",
-    ]
-}
-
-fn rootfs_configuration_inputs() -> Vec<PathBuf> {
-    [
-        "src/rootfs/skeleton",
-        "src/system/profiles/live",
-        "src/system/units",
-        "src/system/network/network",
-        "src/system/network/resolved.conf",
-        "src/system/network/timesyncd.conf",
-        "src/system/network/nsswitch.conf",
-        "src/system/network/hosts",
-        "src/system/network/networks",
-        "src/system/network/99-mattos-network.conf",
-        "src/system/session/dbus/session.conf",
-        "src/system/session/user-units",
-    ]
-    .into_iter()
-    .map(PathBuf::from)
-    .collect()
+    stage_inputs::linux_x86_uapi_inputs()
 }
 
 fn stage_output_directory(stage: BuildStage) -> &'static str {
@@ -2940,87 +2692,7 @@ fn stage_output_directory(stage: BuildStage) -> &'static str {
 }
 
 fn build_stage_dependencies(stage: BuildStage) -> &'static [&'static str] {
-    match stage {
-        BuildStage::Kernel => &[],
-        BuildStage::Glibc => &[],
-        BuildStage::GccRuntime => &["glibc", "linux-headers"],
-        BuildStage::Binutils => &["gcc-runtime"],
-        BuildStage::GccToolchain => &["binutils", "gcc-runtime"],
-        BuildStage::Make => &["gcc-compiler", "binutils", "gcc-runtime"],
-        BuildStage::Acl => &["formal-sysroot", "attr"],
-        BuildStage::Openssl => &["formal-sysroot", "zlib", "zstd"],
-        BuildStage::Elfutils => &["formal-sysroot", "zlib", "zstd"],
-        BuildStage::Selinux => &["formal-sysroot", "pcre2"],
-        BuildStage::Libbsd => &["formal-sysroot", "libmd"],
-        BuildStage::Tar => &["formal-sysroot", "acl", "attr"],
-        BuildStage::Procps => &["formal-sysroot", "ncurses"],
-        BuildStage::Iproute2 => &[
-            "formal-sysroot",
-            "libcap",
-            "zlib",
-            "zstd",
-            "elfutils",
-            "pcre2",
-            "selinux",
-        ],
-        BuildStage::Curl => &["formal-sysroot", "openssl", "zlib", "zstd"],
-        BuildStage::Pam => &["formal-sysroot", "libxcrypt"],
-        BuildStage::UtilLinux => &["formal-sysroot", "linux-pam", "selinux", "pcre2"],
-        BuildStage::Shadow => &[
-            "formal-sysroot",
-            "linux-pam",
-            "libbsd",
-            "libmd",
-            "libxcrypt",
-        ],
-        BuildStage::SudoRs => &["formal-sysroot", "linux-pam"],
-        BuildStage::Systemd => &[
-            "formal-sysroot",
-            "kmod",
-            "util-linux",
-            "linux-pam",
-            "libcap",
-            "openssl",
-            "pcre2",
-        ],
-        BuildStage::DbusBroker => &["formal-sysroot", "systemd", "expat"],
-        BuildStage::Dpkg => &[
-            "formal-sysroot",
-            "zlib",
-            "bzip2",
-            "xz",
-            "zstd",
-            "libmd",
-            "selinux",
-            "pcre2",
-        ],
-        BuildStage::Apt => &[
-            "formal-sysroot",
-            "dpkg",
-            "openssl",
-            "zlib",
-            "bzip2",
-            "xz",
-            "zstd",
-            "systemd",
-        ],
-        BuildStage::Rootfs => &[
-            "apt",
-            "dpkg",
-            "systemd",
-            "dbus-broker",
-            "grep",
-            "sed",
-            "findutils",
-            "diffutils",
-            "init",
-            "repository",
-        ],
-        BuildStage::Initramfs => &["rootfs"],
-        BuildStage::Iso => &["linux", "initramfs"],
-        BuildStage::All => &[],
-        _ => &["formal-sysroot"],
-    }
+    stage_graph::direct_dependencies(stage)
 }
 
 fn linux_headers_stage_spec() -> performance::StageSpec {
@@ -3126,60 +2798,7 @@ fn validate_cached_build_stage(repo_root: &Path, stage: BuildStage) -> Result<()
 }
 
 fn build_plan(stage: BuildStage) -> Vec<BuildStage> {
-    if stage == BuildStage::All {
-        return vec![
-            BuildStage::Kernel,
-            BuildStage::Glibc,
-            BuildStage::GccRuntime,
-            BuildStage::Binutils,
-            BuildStage::GccToolchain,
-            BuildStage::Make,
-            BuildStage::Brush,
-            BuildStage::Coreutils,
-            BuildStage::Grep,
-            BuildStage::Sed,
-            BuildStage::Findutils,
-            BuildStage::Diffutils,
-            BuildStage::Expat,
-            BuildStage::Libcap,
-            BuildStage::Attr,
-            BuildStage::Acl,
-            BuildStage::Zlib,
-            BuildStage::Bzip2,
-            BuildStage::Lz4,
-            BuildStage::Xz,
-            BuildStage::Xxhash,
-            BuildStage::Zstd,
-            BuildStage::Openssl,
-            BuildStage::Elfutils,
-            BuildStage::Pcre2,
-            BuildStage::Selinux,
-            BuildStage::Libxcrypt,
-            BuildStage::Libmd,
-            BuildStage::Libbsd,
-            BuildStage::Tar,
-            BuildStage::Ncurses,
-            BuildStage::Procps,
-            BuildStage::Iproute2,
-            BuildStage::Iputils,
-            BuildStage::Curl,
-            BuildStage::Pam,
-            BuildStage::UtilLinux,
-            BuildStage::Kmod,
-            BuildStage::Shadow,
-            BuildStage::SudoRs,
-            BuildStage::Systemd,
-            BuildStage::DbusBroker,
-            BuildStage::Dpkg,
-            BuildStage::Apt,
-            BuildStage::Init,
-            BuildStage::Rootfs,
-            BuildStage::Initramfs,
-            BuildStage::Iso,
-        ];
-    }
-
-    vec![stage]
+    stage_graph::build_plan(stage)
 }
 
 fn cacheable_stage_specs(repo_root: &Path) -> Result<Vec<performance::StageSpec>> {
@@ -11053,6 +10672,21 @@ mod tests {
     }
 
     #[test]
+    fn dependency_outputs_are_not_duplicated_as_configuration_inputs() {
+        let rootfs = build_stage_spec(BuildStage::Rootfs);
+        assert!(!rootfs.configuration_inputs.iter().any(|path| path == Path::new("out/repository")));
+        assert!(rootfs.dependencies.iter().any(|dependency| dependency == "repository"));
+
+        let initramfs = build_stage_spec(BuildStage::Initramfs);
+        assert!(initramfs.configuration_inputs.is_empty());
+        assert_eq!(initramfs.dependencies, ["rootfs"]);
+
+        let iso = build_stage_spec(BuildStage::Iso);
+        assert!(iso.configuration_inputs.is_empty());
+        assert!(iso.dependencies.iter().any(|dependency| dependency == "initramfs"));
+    }
+
+    #[test]
     fn linux_projection_metadata_does_not_invalidate_unrelated_builds() {
         for stage in [
             BuildStage::Glibc,
@@ -12218,7 +11852,7 @@ mod tests {
     fn rootfs_configuration_digest_is_exact_and_documentation_stable() {
         let tmp = tempfile::tempdir().expect("tempdir");
         let root = tmp.path();
-        for path in rootfs_configuration_inputs() {
+        for path in stage_inputs::rootfs_configuration_inputs() {
             let absolute = root.join(path);
             if absolute.extension().is_some()
                 || absolute.file_name() == Some(OsStr::new("hosts"))

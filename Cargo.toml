@@ -17,3 +17,9 @@ edition = "2024"
 license = "MIT"
 authors = ["MattOS Contributors"]
 repository = "https://example.invalid/mattos"
+
+[profile.dev.package.serde_json]
+opt-level = 3
+
+[profile.dev.package.sha2]
+opt-level = 3
