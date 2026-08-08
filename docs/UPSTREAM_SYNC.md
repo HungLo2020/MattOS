@@ -44,6 +44,19 @@ MattOS-specific changes do not live in authoritative imported source trees.
 Checksummed patch files and manifests live under `upstream/patches/` and the
 builder applies them only after copying source into `out/build/*/source`.
 
+Run commands that may invoke component build systems through the imported-source
+hygiene guard:
+
+```
+python3 DevUtils/test_imported_source_immutability.py -- <command> [arguments...]
+```
+
+The guard snapshots every configured component and separately inventories
+ignored, untracked paths. It rejects source changes and newly generated ignored
+artifacts in any authoritative vendored tree. Existing ignored paths form the
+comparison baseline, while upstream files tracked by MattOS are never classified
+as generated residue.
+
 ## Commands
 
 Show configured and imported state:

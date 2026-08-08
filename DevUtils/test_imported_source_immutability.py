@@ -25,6 +25,38 @@ def imported_paths(repository: Path) -> list[Path]:
     return sorted(paths)
 
 
+def ignored_untracked_paths(repository: Path) -> set[str]:
+    pathspecs = [path.relative_to(repository).as_posix() for path in imported_paths(repository)]
+    completed = subprocess.run(
+        [
+            "git",
+            "ls-files",
+            "-z",
+            "--others",
+            "--ignored",
+            "--exclude-standard",
+            "--",
+            *pathspecs,
+        ],
+        cwd=repository,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if completed.returncode != 0:
+        detail = completed.stderr.decode("utf-8", "replace").strip()
+        raise RuntimeError(f"failed to inventory ignored imported-source paths: {detail}")
+    return {
+        path.decode("utf-8", "surrogateescape")
+        for path in completed.stdout.split(b"\0")
+        if path
+    }
+
+
+def newly_ignored_paths(before: set[str], after: set[str]) -> list[str]:
+    return sorted(after - before)
+
+
 def file_digest(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as stream:
@@ -90,17 +122,36 @@ def main() -> int:
     repository = Path(__file__).resolve().parents[1]
     print("snapshotting imported source trees before command...", flush=True)
     before = snapshot(repository)
+    ignored_before = ignored_untracked_paths(repository)
     environment = os.environ.copy()
     environment["PYTHONDONTWRITEBYTECODE"] = "1"
     completed = subprocess.run(command, cwd=repository, env=environment, check=False)
     print("snapshotting imported source trees after command...", flush=True)
     after = snapshot(repository)
-    if before != after:
+    ignored_after = ignored_untracked_paths(repository)
+    new_ignored = newly_ignored_paths(ignored_before, ignored_after)
+    if new_ignored:
+        for path in new_ignored[:200]:
+            print(f"created ignored/generated residue: {path}", file=sys.stderr)
+        if len(new_ignored) > 200:
+            print(
+                f"... and {len(new_ignored) - 200} more ignored/generated path(s)",
+                file=sys.stderr,
+            )
+    changed = before != after
+    if changed:
         report_changes(before, after)
+    if new_ignored:
+        print("imported source hygiene check failed", file=sys.stderr)
+    if changed:
         print("imported source immutability check failed", file=sys.stderr)
+    if new_ignored:
+        return 121 if completed.returncode == 0 else completed.returncode
+    if changed:
         return 120 if completed.returncode == 0 else completed.returncode
     print(
-        f"imported source immutability check passed: {len(after)} paths unchanged",
+        f"imported source immutability and hygiene checks passed: "
+        f"{len(after)} paths unchanged; no new ignored/generated residue",
         flush=True,
     )
     return completed.returncode
