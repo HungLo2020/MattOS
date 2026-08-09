@@ -28,6 +28,21 @@ where
     F: FnOnce() -> Result<()>,
     V: Fn() -> Result<()>,
 {
+    execute_cached_stage_with_resources(repo_root, spec, validate_reuse, || Ok(()), action)
+}
+
+pub(crate) fn execute_cached_stage_with_resources<F, V, R>(
+    repo_root: &Path,
+    spec: &StageSpec,
+    validate_reuse: V,
+    acquire_resources: R,
+    action: F,
+) -> Result<()>
+where
+    F: FnOnce() -> Result<()>,
+    V: Fn() -> Result<()>,
+    R: FnOnce() -> Result<()>,
+{
     let started_at = Utc::now();
     let timer = Instant::now();
     let input_timer = Instant::now();
@@ -86,6 +101,7 @@ where
     }
 
     println!("cache miss: {} ({reason})", spec.id);
+    acquire_resources()?;
     invalidate_integrity_paths(repo_root, &spec.outputs);
     let result = measured("stage_actions", || {
         with_stage_log(repo_root, &spec.id, action)

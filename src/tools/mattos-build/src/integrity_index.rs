@@ -1,10 +1,13 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+#[cfg(test)]
 use std::cell::RefCell;
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Component, Path, PathBuf};
+#[cfg(not(test))]
+use std::sync::Mutex;
 
 const SCHEMA_VERSION: u32 = 1;
 
@@ -39,8 +42,22 @@ struct PersistentIntegrityIndex {
     dirty: bool,
 }
 
+#[cfg(not(test))]
+static INDEX: Mutex<Option<PersistentIntegrityIndex>> = Mutex::new(None);
+#[cfg(test)]
 thread_local! {
     static INDEX: RefCell<Option<PersistentIntegrityIndex>> = const { RefCell::new(None) };
+}
+
+#[cfg(not(test))]
+fn with_index<R>(action: impl FnOnce(&mut Option<PersistentIntegrityIndex>) -> R) -> R {
+    let mut index = INDEX.lock().expect("integrity index mutex poisoned");
+    action(&mut index)
+}
+
+#[cfg(test)]
+fn with_index<R>(action: impl FnOnce(&mut Option<PersistentIntegrityIndex>) -> R) -> R {
+    INDEX.with(|slot| action(&mut slot.borrow_mut()))
 }
 
 pub(crate) fn start(repo_root: &Path) {
@@ -56,22 +73,19 @@ pub(crate) fn start(repo_root: &Path) {
         .filter(|index| entries_valid(&index.entries))
         .map(|index| index.entries)
         .unwrap_or_default();
-    INDEX.with(|slot| {
-        *slot.borrow_mut() = Some(PersistentIntegrityIndex {
-            repo_root: repo_root.to_path_buf(),
-            entries,
-            dirty: false,
-        });
-    });
+    with_index(|index| *index = Some(PersistentIntegrityIndex {
+        repo_root: repo_root.to_path_buf(),
+        entries,
+        dirty: false,
+    }));
 }
 
 pub(crate) fn clear() {
-    INDEX.with(|slot| *slot.borrow_mut() = None);
+    with_index(|index| *index = None);
 }
 
 pub(crate) fn serialized_if_dirty() -> Result<Option<(PathBuf, Vec<u8>)>> {
-    INDEX.with(|slot| -> Result<_> {
-        let borrowed = slot.borrow();
+    with_index(|borrowed| {
         let Some(index) = borrowed.as_ref().filter(|index| index.dirty) else {
             return Ok(None);
         };
@@ -92,16 +106,11 @@ pub(crate) fn path(repo_root: &Path) -> PathBuf {
 }
 
 pub(crate) fn eligible(path: &Path) -> bool {
-    INDEX.with(|slot| {
-        slot.borrow()
-            .as_ref()
-            .is_some_and(|index| key(index, path).is_some())
-    })
+    with_index(|index| index.as_ref().is_some_and(|index| key(index, path).is_some()))
 }
 
 pub(crate) fn lookup(path: &Path, fingerprint: &FileFingerprint) -> Option<String> {
-    INDEX.with(|slot| {
-        let mut borrowed = slot.borrow_mut();
+    with_index(|borrowed| {
         let index = borrowed.as_mut()?;
         let key = key(index, path)?;
         let digest = index
@@ -117,8 +126,7 @@ pub(crate) fn lookup(path: &Path, fingerprint: &FileFingerprint) -> Option<Strin
 }
 
 pub(crate) fn store(path: &Path, fingerprint: FileFingerprint, sha256: String) {
-    INDEX.with(|slot| {
-        let mut borrowed = slot.borrow_mut();
+    with_index(|borrowed| {
         let Some(index) = borrowed.as_mut() else {
             return;
         };
@@ -137,8 +145,7 @@ pub(crate) fn store(path: &Path, fingerprint: FileFingerprint, sha256: String) {
 }
 
 pub(crate) fn invalidate(paths: &[PathBuf]) {
-    INDEX.with(|slot| {
-        let mut borrowed = slot.borrow_mut();
+    with_index(|borrowed| {
         let Some(index) = borrowed.as_mut() else {
             return;
         };

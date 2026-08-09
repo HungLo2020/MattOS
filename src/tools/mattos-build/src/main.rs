@@ -3,6 +3,7 @@ use chrono::Utc;
 use clap::{Parser, Subcommand, ValueEnum};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest as ShaDigest, Sha256 as Sha256Hasher};
+use std::cell::Cell;
 use std::collections::{BTreeMap, BTreeSet};
 use std::ffi::OsStr;
 use std::fs;
@@ -17,6 +18,7 @@ mod elf_cache;
 mod integrity_index;
 mod packaging;
 mod performance;
+mod scheduler;
 mod source_identity;
 mod stage_cache;
 mod stage_graph;
@@ -24,6 +26,10 @@ mod stage_inputs;
 mod timing; mod tool_identity;
 
 use stage_graph::BuildStage;
+
+thread_local! {
+    static EXPERIMENTAL_CHILD_JOBS: Cell<Option<usize>> = const { Cell::new(None) };
+}
 
 const AUTHORITATIVE_GRUB_CFG: &str = stage_inputs::AUTHORITATIVE_GRUB_CFG;
 const OBSOLETE_GRUB_CFG_PATHS: &[&str] = &["boot/grub/grub.cfg"];
@@ -467,6 +473,8 @@ enum Commands {
     Build {
         #[arg(value_enum)]
         stage: Option<BuildStage>,
+        #[arg(long, value_name = "JOBS", hide = true)]
+        experimental_child_jobs: Option<usize>,
     },
     Image,
     Run,
@@ -667,11 +675,27 @@ struct WslStatus {
 fn main() -> Result<()> {
     let cli = Cli::parse();
     let repo_root = std::env::current_dir().context("unable to determine current directory")?;
+    if let Commands::Build {
+        stage,
+        experimental_child_jobs,
+    } = &cli.command
+    {
+        validate_experimental_child_jobs(
+            stage.unwrap_or(BuildStage::All),
+            *experimental_child_jobs,
+        )?;
+    }
     let timing_command = match &cli.command {
-        Commands::Build { stage } => Some(format!(
-            "build {}",
-            stage.map(build_stage_id).unwrap_or("all")
-        )),
+        Commands::Build {
+            stage,
+            experimental_child_jobs,
+        } => Some(match experimental_child_jobs {
+            Some(jobs) => format!(
+                "build {} --experimental-child-jobs {jobs}",
+                stage.map(build_stage_id).unwrap_or("all")
+            ),
+            None => format!("build {}", stage.map(build_stage_id).unwrap_or("all")),
+        }),
         Commands::Image => Some("image".to_string()),
         Commands::Package { command } => Some(format!("package {command:?}")),
         _ => None,
@@ -686,7 +710,14 @@ fn main() -> Result<()> {
         Commands::Cache { command } => cache_command(&repo_root, command),
         Commands::Upstream { command } => upstream_command(&repo_root, command),
         Commands::Package { command } => packaging::run_package_command(&repo_root, command),
-        Commands::Build { stage } => build(&repo_root, stage.unwrap_or(BuildStage::All)),
+        Commands::Build {
+            stage,
+            experimental_child_jobs,
+        } => build(
+            &repo_root,
+            stage.unwrap_or(BuildStage::All),
+            experimental_child_jobs,
+        ),
         Commands::Image => build_image(&repo_root),
         Commands::Run => run_qemu(&repo_root),
         Commands::Clean { target } => clean(&repo_root, target.unwrap_or(CleanTarget::Artifacts)),
@@ -2561,41 +2592,180 @@ fn write_sync_state(repo_root: &Path, name: &str, state: &SyncState) -> Result<(
     Ok(())
 }
 
-fn build(repo_root: &Path, stage: BuildStage) -> Result<()> {
-    for next in build_plan(stage) {
-        if matches!(
-            next,
-            BuildStage::Rootfs | BuildStage::Initramfs | BuildStage::Iso
-        ) {
-            build_stage(repo_root, next)?;
-            continue;
-        }
-        let spec = build_stage_spec(next);
-        if is_cacheable_stage(next) {
-            performance::execute_cached_stage(
-                repo_root,
-                &spec,
-                || validate_cached_build_stage(repo_root, next),
-                || build_stage(repo_root, next),
-            )?;
-        } else {
-            let inputs = performance::compute_stage_inputs(repo_root, &spec)?;
-            performance::timed(
-                build_stage_id(next),
-                "n/a",
-                "stage is intentionally non-cacheable in this milestone",
-                &inputs.full_digest,
-                || build_stage(repo_root, next),
-            )?;
-        }
-        if next == BuildStage::Glibc {
-            performance::record_virtual_stage(repo_root, &linux_headers_stage_spec())?;
-        }
-        if next == BuildStage::Make {
-            performance::record_virtual_stage(repo_root, &formal_sysroot_stage_spec())?;
-        }
+fn build(repo_root: &Path, stage: BuildStage, experimental_child_jobs: Option<usize>) -> Result<()> {
+    if stage == BuildStage::All {
+        return build_all_scheduled(repo_root);
+    }
+    build_one_stage(repo_root, stage, None, experimental_child_jobs)
+}
+
+fn validate_experimental_child_jobs(stage: BuildStage, jobs: Option<usize>) -> Result<()> {
+    let Some(jobs) = jobs else {
+        return Ok(());
+    };
+    if !matches!(
+        stage,
+        BuildStage::Glibc
+            | BuildStage::GccRuntime
+            | BuildStage::Binutils
+            | BuildStage::GccToolchain
+            | BuildStage::Make
+            | BuildStage::Apt
+    ) {
+        bail!(
+            "--experimental-child-jobs is restricted to isolated glibc, gcc-runtime, binutils, gcc-toolchain, make, or apt builds"
+        );
+    }
+    let (normal_jobs, _) = scheduler_resource_profile(stage);
+    if jobs <= normal_jobs || jobs > 12 {
+        bail!(
+            "experimental child jobs for {} must be above its normal limit {} and at most 12",
+            build_stage_id(stage),
+            normal_jobs
+        );
     }
     Ok(())
+}
+
+fn build_all_scheduled(repo_root: &Path) -> Result<()> {
+    let stages = build_plan(BuildStage::All);
+    let nodes = scheduled_build_nodes(&stages);
+    scheduler::execute(nodes, 12, |id, context| {
+        let stage = stages
+            .iter()
+            .copied()
+            .find(|stage| build_stage_id(*stage) == id)
+            .ok_or_else(|| anyhow!("scheduler selected unknown build stage {id}"))?;
+        build_one_stage(repo_root, stage, Some(context), None)
+    })
+}
+
+fn scheduled_build_nodes(stages: &[BuildStage]) -> Vec<scheduler::SchedulerNode> {
+    let package_producers = stages
+        .iter()
+        .copied()
+        .filter(|stage| {
+            !matches!(
+                stage,
+                BuildStage::Kernel | BuildStage::Rootfs | BuildStage::Initramfs | BuildStage::Iso
+            )
+        })
+        .map(build_stage_id)
+        .map(str::to_string)
+        .collect::<Vec<_>>();
+    stages
+        .iter()
+        .copied()
+        .map(|stage| {
+            let spec = build_stage_spec(stage);
+            let dependencies = if stage == BuildStage::Rootfs {
+                package_producers.clone()
+            } else {
+                spec.dependencies
+                    .iter()
+                    .map(|dependency| match dependency.as_str() {
+                        "linux-headers" => "glibc",
+                        "formal-sysroot" => "make",
+                        other => other,
+                    })
+                    .map(str::to_string)
+                    .collect::<BTreeSet<_>>()
+                    .into_iter()
+                    .collect()
+            };
+            let (weight, memory_heavy) = scheduler_resource_profile(stage);
+            scheduler::SchedulerNode {
+                id: build_stage_id(stage).to_string(),
+                dependencies,
+                outputs: spec.outputs,
+                weight,
+                memory_heavy,
+                child_jobs: scheduler_child_job_policy(stage),
+            }
+        })
+        .collect()
+}
+
+fn build_one_stage(
+    repo_root: &Path,
+    stage: BuildStage,
+    context: Option<&scheduler::JobContext>,
+    experimental_child_jobs: Option<usize>,
+) -> Result<()> {
+    let (weight, _) = scheduler_resource_profile(stage);
+    scheduler::configure_child_jobs(
+        experimental_child_jobs.unwrap_or(weight),
+        scheduler_child_job_policy(stage),
+    );
+    EXPERIMENTAL_CHILD_JOBS.with(|current| current.set(experimental_child_jobs));
+    if matches!(stage, BuildStage::Rootfs | BuildStage::Initramfs | BuildStage::Iso) {
+        if let Some(context) = context {
+            context.acquire_build_resources()?;
+        }
+        return build_stage(repo_root, stage);
+    }
+    let spec = build_stage_spec(stage);
+    if is_cacheable_stage(stage) {
+        performance::execute_cached_stage_with_resources(
+            repo_root,
+            &spec,
+            || validate_cached_build_stage(repo_root, stage),
+            || context.map_or(Ok(()), scheduler::JobContext::acquire_build_resources),
+            || build_stage(repo_root, stage),
+        )?;
+    } else {
+        if let Some(context) = context {
+            context.acquire_build_resources()?;
+        }
+        let inputs = performance::compute_stage_inputs(repo_root, &spec)?;
+        performance::timed(
+            build_stage_id(stage),
+            "n/a",
+            "stage is intentionally non-cacheable in this milestone",
+            &inputs.full_digest,
+            || build_stage(repo_root, stage),
+        )?;
+    }
+    if stage == BuildStage::Glibc {
+        performance::record_virtual_stage(repo_root, &linux_headers_stage_spec())?;
+    }
+    if stage == BuildStage::Make {
+        performance::record_virtual_stage(repo_root, &formal_sysroot_stage_spec())?;
+    }
+    Ok(())
+}
+
+fn scheduler_resource_profile(stage: BuildStage) -> (usize, bool) {
+    match stage {
+        BuildStage::Kernel
+        | BuildStage::Glibc
+        | BuildStage::GccRuntime
+        | BuildStage::Binutils
+        | BuildStage::GccToolchain
+        | BuildStage::Brush
+        | BuildStage::Coreutils
+        | BuildStage::Grep
+        | BuildStage::Sed
+        | BuildStage::Findutils
+        | BuildStage::Diffutils
+        | BuildStage::SudoRs
+        | BuildStage::Init => (4, true),
+        BuildStage::Make
+        | BuildStage::Systemd
+        | BuildStage::DbusBroker
+        | BuildStage::UtilLinux
+        | BuildStage::Rootfs
+        | BuildStage::Initramfs
+        | BuildStage::Iso => (4, false),
+        _ => (2, false),
+    }
+}
+
+fn scheduler_child_job_policy(stage: BuildStage) -> scheduler::ChildJobPolicy {
+    match stage {
+        BuildStage::Libcap => scheduler::ChildJobPolicy::Serial,
+        _ => scheduler::ChildJobPolicy::SchedulerGrant,
+    }
 }
 
 fn is_cacheable_stage(stage: BuildStage) -> bool {
@@ -3263,12 +3433,14 @@ fn run_gcc_bootstrap_command(
     env: &[(&str, String)],
 ) -> Result<()> {
     let mut command = Command::new(program);
-    command.current_dir(cwd).args(args);
+    let scheduler_args = scheduler_command_args(args);
+    command.current_dir(cwd).args(&scheduler_args);
     apply_reproducible_process_environment(&mut command);
     for (key, value) in env {
         command.env(key, value);
     }
-    let display = format!("{} {}", program.display(), args.join(" "));
+    apply_scheduler_parallelism(&mut command);
+    let display = effective_command_display(&program.display().to_string(), &scheduler_args);
     let status = performance::run_logged_command(&mut command, &display)?;
     if !status.success() {
         bail!(
@@ -10432,10 +10604,12 @@ fn run_cmd(cwd: &Path, program: &str, args: &[&str]) -> Result<()> {
 
 fn run_cmd_status(cwd: &Path, program: &str, args: &[&str]) -> Result<std::process::ExitStatus> {
     let mut command = Command::new(program);
-    command.args(args).current_dir(cwd);
+    let scheduler_args = scheduler_command_args(args);
+    command.args(&scheduler_args).current_dir(cwd);
     apply_reproducible_process_environment(&mut command);
+    apply_scheduler_parallelism(&mut command);
     apply_mattos_sysroot_environment(&mut command, cwd, program, &[])?;
-    let display = format!("{} {}", program, args.join(" "));
+    let display = effective_command_display(program, &scheduler_args);
     performance::run_logged_command(&mut command, &display)
 }
 
@@ -10446,8 +10620,10 @@ fn run_cmd_with_env(
     tool_env: Option<&LocalToolEnv>,
 ) -> Result<()> {
     let mut cmd = Command::new(program);
-    cmd.args(args).current_dir(cwd);
+    let scheduler_args = scheduler_command_args(args);
+    cmd.args(&scheduler_args).current_dir(cwd);
     apply_reproducible_process_environment(&mut cmd);
+    apply_scheduler_parallelism(&mut cmd);
 
     if let Some(env) = tool_env {
         let current_path = std::env::var("PATH").unwrap_or_default();
@@ -10475,7 +10651,7 @@ fn run_cmd_with_env(
     }
     apply_mattos_sysroot_environment(&mut cmd, cwd, program, &[])?;
 
-    let display = format!("{} {}", program, args.join(" "));
+    let display = effective_command_display(program, &scheduler_args);
     let status = performance::run_logged_command(&mut cmd, &display)?;
     if status.success() {
         Ok(())
@@ -10495,14 +10671,16 @@ fn run_cmd_with_env_overrides(
     env_overrides: &[(&str, String)],
 ) -> Result<()> {
     let mut cmd = Command::new(program);
-    cmd.args(args).current_dir(cwd);
+    let scheduler_args = scheduler_command_args(args);
+    cmd.args(&scheduler_args).current_dir(cwd);
     apply_reproducible_process_environment(&mut cmd);
     for (key, value) in env_overrides {
         cmd.env(key, value);
     }
+    apply_scheduler_parallelism(&mut cmd);
     apply_mattos_sysroot_environment(&mut cmd, cwd, program, env_overrides)?;
 
-    let display = format!("{} {}", program, args.join(" "));
+    let display = effective_command_display(program, &scheduler_args);
     let status = performance::run_logged_command(&mut cmd, &display)?;
     if status.success() {
         Ok(())
@@ -10522,6 +10700,56 @@ fn apply_reproducible_process_environment(command: &mut Command) {
         .env("TZ", "UTC")
         .env("PYTHONDONTWRITEBYTECODE", "1")
         .env("SOURCE_DATE_EPOCH", MATTOS_SOURCE_DATE_EPOCH);
+}
+
+fn effective_command_display(program: &str, args: &[String]) -> String {
+    let argv = std::iter::once(program.to_string())
+        .chain(args.iter().cloned())
+        .collect::<Vec<_>>();
+    format!(
+        "{}\n[mattos-command] child_jobs={} argv={argv:?}",
+        argv.join(" "),
+        scheduler::child_job_limit()
+    )
+}
+
+fn scheduler_command_args(args: &[&str]) -> Vec<String> {
+    let limit = scheduler::child_job_limit();
+    let experimental_limit = EXPERIMENTAL_CHILD_JOBS.with(Cell::get);
+    let mut previous_sets_jobs = false;
+    args.iter()
+        .map(|argument| {
+            let normalized = if previous_sets_jobs && argument.bytes().all(|byte| byte.is_ascii_digit()) {
+                experimental_limit.unwrap_or_else(|| argument.parse::<usize>().unwrap().min(limit)).to_string()
+            } else if argument.starts_with("-j")
+                && argument.len() > 2
+                && argument[2..].bytes().all(|byte| byte.is_ascii_digit())
+            {
+                format!("-j{}", experimental_limit.unwrap_or_else(|| argument[2..].parse::<usize>().unwrap().min(limit)))
+            } else if let Some(value) = argument
+                .strip_prefix("--jobs=")
+                .or_else(|| argument.strip_prefix("--parallel="))
+                .filter(|value| value.bytes().all(|byte| byte.is_ascii_digit()))
+            {
+                let option = argument.split_once('=').unwrap().0;
+                format!("{option}={}", experimental_limit.unwrap_or_else(|| value.parse::<usize>().unwrap().min(limit)))
+            } else {
+                (*argument).to_string()
+            };
+            previous_sets_jobs = matches!(*argument, "-j" | "--jobs" | "--parallel");
+            normalized
+        })
+        .collect()
+}
+
+fn apply_scheduler_parallelism(command: &mut Command) {
+    let tokens = scheduler::child_job_limit().to_string();
+    command
+        .env("MAKEFLAGS", format!("-j{tokens}"))
+        .env("CARGO_BUILD_JOBS", &tokens)
+        .env("CMAKE_BUILD_PARALLEL_LEVEL", &tokens)
+        .env("MESON_NUM_PROCESSES", &tokens)
+        .env("NINJAFLAGS", format!("-j{tokens}"));
 }
 
 fn apply_mattos_sysroot_environment(
@@ -10644,6 +10872,165 @@ fn run_cmd_capture(cwd: &Path, program: &str, args: &[&str]) -> Result<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn child_parallelism_is_capped_to_scheduler_grant() {
+        scheduler::set_child_jobs_for_test(4, scheduler::ChildJobPolicy::SchedulerGrant);
+        assert_eq!(
+            scheduler_command_args(&["-C", "src", "-j", "4", "all"]),
+            ["-C", "src", "-j", "4", "all"]
+        );
+        assert_eq!(scheduler_command_args(&["-j", "2"]), ["-j", "2"]);
+        assert_eq!(
+            scheduler_command_args(&["--build", "build", "--parallel", "8"]),
+            ["--build", "build", "--parallel", "4"]
+        );
+        assert_eq!(scheduler_command_args(&["--jobs=8"]), ["--jobs=4"]);
+
+        scheduler::set_child_jobs_for_test(4, scheduler::ChildJobPolicy::Capped(2));
+        assert_eq!(scheduler::child_job_limit(), 2);
+        assert_eq!(
+            scheduler_command_args(&["--build", "build", "--parallel", "4"]),
+            ["--build", "build", "--parallel", "2"]
+        );
+        assert_eq!(scheduler_command_args(&["-j4"]), ["-j2"]);
+
+        scheduler::set_child_jobs_for_test(4, scheduler::ChildJobPolicy::SchedulerGrant);
+    }
+
+    #[test]
+    fn effective_command_telemetry_reports_normalized_argv_and_child_limit() {
+        scheduler::set_child_jobs_for_test(4, scheduler::ChildJobPolicy::Capped(2));
+        let args = scheduler_command_args(&["-C", "src", "-j4", "all"]);
+        assert_eq!(
+            effective_command_display("make", &args),
+            "make -C src -j2 all\n[mattos-command] child_jobs=2 argv=[\"make\", \"-C\", \"src\", \"-j2\", \"all\"]"
+        );
+        scheduler::set_child_jobs_for_test(4, scheduler::ChildJobPolicy::SchedulerGrant);
+    }
+
+    #[test]
+    fn experimental_child_jobs_are_restricted_to_direct_candidate_builds() {
+        assert!(validate_experimental_child_jobs(BuildStage::All, Some(8)).is_err());
+        assert!(validate_experimental_child_jobs(BuildStage::Libcap, Some(8)).is_err());
+        assert!(validate_experimental_child_jobs(BuildStage::Apt, Some(2)).is_err());
+        assert!(validate_experimental_child_jobs(BuildStage::Glibc, Some(13)).is_err());
+        assert!(validate_experimental_child_jobs(BuildStage::Glibc, Some(8)).is_ok());
+    }
+
+    #[test]
+    fn experimental_child_jobs_raise_explicit_recipe_limits_only_when_enabled() {
+        scheduler::set_child_jobs_for_test(8, scheduler::ChildJobPolicy::SchedulerGrant);
+        EXPERIMENTAL_CHILD_JOBS.with(|current| current.set(Some(8)));
+        assert_eq!(scheduler_command_args(&["-j", "4"]), ["-j", "8"]);
+        assert_eq!(scheduler_command_args(&["-j4"]), ["-j8"]);
+        assert_eq!(scheduler_command_args(&["--parallel=4"]), ["--parallel=8"]);
+
+        EXPERIMENTAL_CHILD_JOBS.with(|current| current.set(None));
+        scheduler::set_child_jobs_for_test(4, scheduler::ChildJobPolicy::SchedulerGrant);
+        assert_eq!(scheduler_command_args(&["-j", "2"]), ["-j", "2"]);
+    }
+
+    #[test]
+    fn serial_child_policy_prevents_missing_dependency_race() {
+        let temp = tempfile::tempdir().unwrap();
+        fs::write(
+            temp.path().join("Makefile"),
+            "all: generated consumer\n\ngenerated:\n\t@sleep 0.2\n\t@printf '#define READY 1\\n' > generated.h\n\nconsumer:\n\t@test -f generated.h\n",
+        )
+        .unwrap();
+        let parallel = Command::new("make")
+            .args(["-j", "2"])
+            .env_remove("MAKEFLAGS")
+            .current_dir(temp.path())
+            .status()
+            .unwrap();
+        assert!(!parallel.success(), "fixture must reproduce the dependency race");
+
+        scheduler::set_child_jobs_for_test(4, scheduler::ChildJobPolicy::Serial);
+        run_cmd(temp.path(), "make", &["all"]).unwrap();
+        assert!(temp.path().join("generated.h").is_file());
+        scheduler::set_child_jobs_for_test(4, scheduler::ChildJobPolicy::SchedulerGrant);
+    }
+
+    #[test]
+    fn child_job_policy_controls_all_build_system_environments() {
+        scheduler::set_child_jobs_for_test(4, scheduler::ChildJobPolicy::Capped(2));
+        let mut command = Command::new("sh");
+        command.args([
+            "-c",
+            "printf '%s\n' \"$MAKEFLAGS\" \"$CARGO_BUILD_JOBS\" \"$CMAKE_BUILD_PARALLEL_LEVEL\" \"$MESON_NUM_PROCESSES\" \"$NINJAFLAGS\"",
+        ]);
+        apply_scheduler_parallelism(&mut command);
+        let output = command.output().unwrap();
+        assert!(output.status.success());
+        assert_eq!(
+            String::from_utf8(output.stdout).unwrap(),
+            "-j2\n2\n2\n2\n-j2\n"
+        );
+        scheduler::set_child_jobs_for_test(4, scheduler::ChildJobPolicy::SchedulerGrant);
+    }
+
+    #[test]
+    fn only_libcap_requires_serial_child_jobs() {
+        for stage in build_plan(BuildStage::All) {
+            let expected = if stage == BuildStage::Libcap {
+                scheduler::ChildJobPolicy::Serial
+            } else {
+                scheduler::ChildJobPolicy::SchedulerGrant
+            };
+            assert_eq!(scheduler_child_job_policy(stage), expected);
+        }
+    }
+
+    #[test]
+    fn production_scheduler_plan_is_valid_and_simulates_successful_cold_run() {
+        let stages = build_plan(BuildStage::All);
+        let nodes = scheduled_build_nodes(&stages);
+        scheduler::validate(&nodes, 12).unwrap();
+        let by_id = nodes
+            .iter()
+            .map(|node| (node.id.as_str(), node))
+            .collect::<BTreeMap<_, _>>();
+        assert!(by_id["linux"].dependencies.is_empty());
+        assert!(by_id["glibc"].dependencies.is_empty());
+        assert_eq!(by_id["gcc-runtime"].dependencies, ["glibc"]);
+        assert!(by_id["brush"].dependencies.contains(&"make".to_string()));
+        assert!(by_id["rootfs"].dependencies.contains(&"apt".to_string()));
+        assert!(by_id["rootfs"].dependencies.contains(&"init".to_string()));
+        assert!(!by_id["rootfs"].dependencies.contains(&"linux".to_string()));
+        assert_eq!(by_id["initramfs"].dependencies, ["rootfs"]);
+        assert_eq!(by_id["iso"].dependencies, ["initramfs", "linux"]);
+
+        let durations = BTreeMap::from([
+            ("acl", 16.862), ("apt", 168.123), ("attr", 12.009),
+            ("binutils", 144.898), ("brush", 262.577), ("bzip2", 3.025),
+            ("coreutils", 283.164), ("curl", 100.519), ("dbus-broker", 24.564),
+            ("diffutils", 22.260), ("dpkg", 85.190), ("elfutils", 39.547),
+            ("expat", 6.265), ("findutils", 57.703), ("gcc-compiler", 647.434),
+            ("gcc-runtime", 773.452), ("glibc", 453.080), ("grep", 24.148),
+            ("init", 2.104), ("initramfs", 57.528), ("iproute2", 44.138),
+            ("iputils", 2.816), ("iso", 1.912), ("kmod", 4.024),
+            ("libbsd", 24.058), ("libcap", 1.061), ("libmd", 15.339),
+            ("libxcrypt", 182.310), ("linux", 442.489), ("linux-pam", 11.197),
+            ("lz4", 19.220), ("make", 17.947), ("ncurses", 39.520),
+            ("openssl", 197.919), ("pcre2", 27.509), ("procps-ng", 29.727),
+            ("rootfs", 107.053), ("sed", 53.006), ("selinux", 10.330),
+            ("shadow", 57.264), ("sudo-rs", 18.338), ("systemd", 51.721),
+            ("tar", 238.505), ("util-linux", 15.213), ("xxhash", 0.539),
+            ("xz", 37.482), ("zlib", 3.408), ("zstd", 45.216),
+        ])
+        .into_iter()
+        .map(|(stage, duration)| (stage.to_string(), duration))
+        .collect();
+        let report = scheduler::simulate(&nodes, &durations, 12).unwrap();
+        println!(
+            "successful cold simulation: serial={:.3}s scheduled={:.3}s critical={:.3}s",
+            report.serial_seconds, report.scheduled_seconds, report.critical_path_seconds
+        );
+        assert!(report.scheduled_seconds < report.serial_seconds);
+        assert!(report.scheduled_seconds >= report.critical_path_seconds);
+    }
 
     #[test]
     fn stage_keys_exclude_logging_and_documentation_implementation() {

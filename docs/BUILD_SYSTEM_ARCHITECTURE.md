@@ -212,41 +212,65 @@ conservative boundaries remain explicit:
   rebuild unrelated packages merely because `packages` appears in the graph
   closure.
 
-The retained serialized cold run measured 51 stage actions totaling 3,634.2
-seconds. Its wall span was approximately 3,915 seconds; the difference includes
-package generation, input evaluation, and orchestration. The measured critical
-chain, excluding the separately untimed package phase, is:
-
-`glibc -> linux-headers -> gcc-runtime -> binutils -> gcc-compiler -> make ->
-repository -> rootfs -> initramfs -> iso`
-
-That chain is 2,576.8 seconds. Linux is independent and can run beside glibc.
+The authoritative cold DAG baseline is the successful isolated build captured
+at `cold-dag-20260808T174207Z`. It completed in 2,912.818 scheduler seconds
+(48:32.98 wall), produced ISO SHA-256
+`f43630631d8daca8e74d474235b8664e682075a7bb412633e4ff0acfa7b1aa84`, and
+booted to an interactive MattOS shell in QEMU. This is 25.59% faster than the
+65.25-minute serialized baseline. Linux is independent and can run beside glibc.
 After GCC runtime publishes the formal sysroot, Binutils/GCC compiler can run
 beside the broad fan-out of Rust userland and libraries. Shared sysroot writers
 must remain ordered (`glibc -> gcc-runtime`), and package inventory publication,
 repository, rootfs, initramfs, and ISO remain barriers.
 
-The recommended scheduler is a deterministic bounded DAG executor, not an
-unbounded thread pool:
+`build all` now uses a deterministic bounded DAG executor rather than the old
+serial stage loop:
 
-1. Construct nodes from stage specs plus virtual `linux-headers`,
-	`formal-sysroot`, package-inventory, and repository barriers.
+1. Construct nodes from stage specs. Map virtual `linux-headers` and
+	`formal-sysroot` dependencies to their atomic glibc and Make publishers.
+	Keep package publication and repository generation inside the existing
+	Rootfs transaction, after every package-producing stage.
 2. Validate acyclicity, known dependencies, and overlapping output ownership
 	before executing anything.
-3. Maintain a stable ready queue ordered by canonical build order, but dispatch
+3. Maintain a stable ready queue ordered by stage identifier, but dispatch
 	any ready node whose CPU and memory weights fit the global budget.
-4. Give `make -j4`, Linux, glibc, GCC, and Binutils four CPU tokens; cap Cargo,
-	Ninja, and Make with the tokens granted by the scheduler instead of allowing
-	nested oversubscription. Reserve memory weights for GCC and linking.
+4. Use a 12-token budget. Linux, glibc, GCC runtime/compiler, Binutils, and the
+	Rust/Cargo stages receive four tokens and a memory-heavy slot. Make, systemd,
+	dbus-broker, util-linux, and the image tail receive four tokens. Other
+	libraries receive two. At most two memory-heavy jobs run concurrently.
+	Child-process parallelism is a separate per-stage contract: `SchedulerGrant`
+	uses the granted token count, `Capped(n)` uses the lower of the grant and the
+	explicit cap, and `Serial` uses one job. Explicit lower `-j`/`--parallel`
+	limits are preserved, while higher limits and the Make, Cargo, CMake, Meson,
+	and Ninja environment limits are reduced to the policy limit. Libcap is
+	explicitly `Serial` because its upstream Makefile omits the generated
+	`cap_names.h` dependency needed by `cap_magic.o`; all other audited stages use
+	`SchedulerGrant`.
 5. Publish each stage atomically as today, compute its output digest, and wake
 	consumers only after successful validation. Cache hits consume a small
 	evaluation token and do not block unrelated actions.
 6. On failure, stop dispatching new nodes, wait for active jobs, preserve their
 	logs, and publish no partial output or manifest.
 
-On the audited 12-thread, 16-GB machine, unlimited ideal scheduling cannot beat
-approximately 42.95 minutes plus the package phase. A weighted 12-token
-scheduler with at most two memory-heavy compiler jobs is expected to complete
-in roughly 49-52 minutes, versus the retained 65.25-minute serialized span: a
-realistic saving of 13-16 minutes (20-25%). These are scheduling estimates, not
-a new cold benchmark.
+The scheduler starts ready nodes with one evaluation token. A cache miss
+releases that token while waiting in the stable resource queue, then acquires
+its full stage weight immediately before its action. Cache hits never acquire
+the larger allocation.
+
+The checked simulation uses the successful baseline's `build-start` to
+`stage-end` action spans for all 48 real build nodes. Their serial total is
+4,883.713 seconds (81.395 minutes), the dependency-only critical path is
+2,666.283 seconds (44.438 minutes), and the implemented graph and weights
+produce a 2,987.354-second (49.789-minute) simulated schedule. Cache evaluation,
+resource-request arrival timing, and orchestration are intentionally outside
+this action-only model, so the successful trace remains the performance
+baseline rather than treating the simulation as an exact replay.
+
+Set `MATTOS_SCHEDULER_TRACE` to retain scheduler telemetry. Each completed node
+emits `stage-metrics` with whether a build action executed, its resource weight,
+effective child-job limit, resource-wait and action wall seconds, and the
+average and minimum globally unused tokens during its action. Process CPU time
+is explicitly reported as unavailable because overlapping child trees cannot
+be attributed from process-wide counters. Stage command logs include a
+`mattos-command` record containing the effective child-job limit and normalized
+argv actually executed after scheduler capping.

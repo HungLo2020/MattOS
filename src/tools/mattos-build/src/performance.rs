@@ -9,7 +9,9 @@ use std::fs::{self, OpenOptions};
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitStatus, Stdio};
-use std::rc::Rc;
+use std::sync::Arc;
+#[cfg(not(test))]
+use std::sync::Mutex;
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -25,8 +27,8 @@ pub(crate) use crate::stage_cache::{
     write_stage_manifest,
 };
 pub(crate) use crate::stage_cache::{
-    compute_stage_inputs, execute_cached_stage, explain_stage, explain_stage_details,
-    read_stage_manifest, record_virtual_stage, stage_manifest_path,
+    compute_stage_inputs, execute_cached_stage, execute_cached_stage_with_resources, explain_stage,
+    explain_stage_details, read_stage_manifest, record_virtual_stage, stage_manifest_path,
 };
 use crate::timing::{IntegrityCacheStats, TimingCategory, TimingRecord, TimingReport};
 
@@ -54,15 +56,39 @@ struct InvocationIntegrityCache {
     source_digest_queries: BTreeMap<String, SourceQuery>,
     tool_identities: BTreeMap<String, ToolIdentity>,
     stats: BTreeMap<String, IntegrityCacheStats>,
-    git_source_snapshot: Option<Rc<GitSourceSnapshot>>,
+    git_source_snapshot: Option<Arc<GitSourceSnapshot>>,
+}
+
+#[cfg(not(test))]
+struct Shared<T>(Mutex<RefCell<T>>);
+
+#[cfg(not(test))]
+impl<T> Shared<T> {
+    const fn new(value: T) -> Self {
+        Self(Mutex::new(RefCell::new(value)))
+    }
+
+    fn with<R>(&self, action: impl FnOnce(&RefCell<T>) -> R) -> R {
+        let guard = self.0.lock().expect("shared invocation state mutex poisoned");
+        action(&guard)
+    }
 }
 
 thread_local! {
-    static TIMINGS: RefCell<Option<(PathBuf, TimingReport)>> = const { RefCell::new(None) };
     static ACTIVE_BUILD_LOG: RefCell<Option<PathBuf>> = const { RefCell::new(None) };
+    #[cfg(test)]
+    static TIMINGS: RefCell<Option<(PathBuf, TimingReport)>> = const { RefCell::new(None) };
+    #[cfg(test)]
     static INTEGRITY_CACHE: RefCell<Option<InvocationIntegrityCache>> = const { RefCell::new(None) };
+    #[cfg(test)]
     static TIMING_STARTED: RefCell<Option<Instant>> = const { RefCell::new(None) };
 }
+#[cfg(not(test))]
+static TIMINGS: Shared<Option<(PathBuf, TimingReport)>> = Shared::new(None);
+#[cfg(not(test))]
+static INTEGRITY_CACHE: Shared<Option<InvocationIntegrityCache>> = Shared::new(None);
+#[cfg(not(test))]
+static TIMING_STARTED: Shared<Option<Instant>> = Shared::new(None);
 
 pub(crate) fn start_timing_run(repo_root: &Path, command: &str) -> Result<()> {
     fs::create_dir_all(repo_root.join("out/reports"))?;
@@ -827,7 +853,7 @@ fn tracked_source_canonical_bytes(
     Ok((streamed, legacy))
 }
 
-fn invocation_git_source_snapshot(repo_root: &Path) -> Result<Option<Rc<GitSourceSnapshot>>> {
+fn invocation_git_source_snapshot(repo_root: &Path) -> Result<Option<Arc<GitSourceSnapshot>>> {
     if let Some(snapshot) = INTEGRITY_CACHE.with(|slot| {
         slot.borrow()
             .as_ref()
@@ -842,7 +868,7 @@ fn invocation_git_source_snapshot(repo_root: &Path) -> Result<Option<Rc<GitSourc
             record_category(&format!("input_git:{command}"), elapsed);
         }
     }) {
-        let snapshot = Rc::new(snapshot);
+        let snapshot = Arc::new(snapshot);
         INTEGRITY_CACHE.with(|slot| {
             if let Some(cache) = slot.borrow_mut().as_mut() {
                 cache.git_source_snapshot = Some(snapshot.clone());

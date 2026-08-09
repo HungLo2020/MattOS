@@ -185,6 +185,68 @@ A controlled `cache invalidate repository --dependents` removed only the reposit
 
 The final rootfs contains 555 ELF objects represented by 552 content-addressed ELF fact files, demonstrating same-content reuse across paths. There are 65 package fact files. A clean native refresh retained 51,986 lines / 27,181,420 bytes in the Linux, glibc, GCC runtime, Binutils, GCC compiler, systemd, dpkg, and APT logs while the console showed only stage boundaries. The largest single example was glibc at 24,787 lines / 20,473,752 bytes. Normal and `--no-network` boots reached the live Brush prompt, the rescue entry reached the exact rescue-init handoff, and an offline guest passed native C, C++ exception, `.deb` construction, and Brush `sh`/`bash` checks.
 
+## Child-job borrowing experiments
+
+The successful isolated cold DAG run at `cold-dag-20260808T174207Z` is the
+authoritative performance baseline. Its scheduler action spans show that the
+candidate stages had the following otherwise-unused global capacity while
+running with their current child limits:
+
+| Stage | Current jobs | Action wall | Average unused tokens | Minimum unused tokens |
+| --- | ---: | ---: | ---: | ---: |
+| glibc | 4 | 453.080 s | 4.09 | 4 |
+| GCC runtime | 4 | 773.452 s | 8.00 | 8 |
+| Binutils | 4 | 144.898 s | 8.00 | 8 |
+| GCC compiler | 4 | 647.434 s | 8.00 | 8 |
+| Make | 4 | 17.947 s | 8.00 | 8 |
+| APT | 2 | 168.123 s | 9.42 | 6 |
+
+This establishes opportunity, not speedup. The next measurements are focused
+single-stage A/B runs; another full cold build is not justified until one of
+them demonstrates a concrete improvement. Each variant must use a frozen
+`mattos-build` binary and a separate private `out` and Cargo `target` bind mount
+under the benchmark directory. Seed every variant from one byte-identical
+prerequisite snapshot, remove only the candidate's output and manifest, run as
+effective UID/GID 1000, and retain the effective argv/child-limit command log,
+scheduler trace, `/usr/bin/time -v`, `mpstat`, `vmstat`, and `pidstat` output.
+Never reuse or modify the successful cold baseline directory.
+
+The experimental control must be a guarded single-stage child-job override. It
+must reject `build all`, image/package commands, zero, and values above the
+12-token host budget. Unlike normal scheduler normalization, it must replace
+the recipes' explicit lower `-j 4` or `--parallel 4` only for that selected
+experiment. Default production execution must continue to preserve explicit
+lower recipe limits. The override and effective value must be present in the
+timing metadata and command log.
+
+Run each accepted pair in alternating order with at least three measured
+repetitions after one discarded setup run:
+
+| Stage | Variants | Advancement rule |
+| --- | --- | --- |
+| glibc | 4, 6, 8 jobs | Test 12 only if 8 has clear headroom and no swap |
+| GCC runtime | 4, 6, 8 jobs | Test 12 only if 8 has clear headroom and no swap |
+| Binutils | 4, 6, 8, 12 jobs | Retain the lowest count within 2% of the fastest |
+| GCC compiler | 4, 6, 8 jobs | Test 12 only if 8 has clear headroom and no swap |
+| Make | 4, 6, 8 jobs | Require five repetitions because the action is short |
+| APT | 2, 4, 6, 8 jobs | Test 12 only if 8 remains CPU-bound with headroom |
+
+A variant advances only when median action wall improves by at least 5%, every
+run succeeds, output inventory and content digests match the control, swap-in
+and swap-out remain zero, no sustained CPU I/O wait regression appears, and
+peak memory leaves at least 2 GiB available. Record user/system CPU, maximum
+RSS, major faults, filesystem I/O, context switches, and host-wide CPU/memory
+samples. A full cold confirmation may follow only after choosing a specific
+stage and borrowing limit from this evidence.
+
+Production elastic borrowing must retain the 12-token budget and two-heavy-job
+limit. A stage may borrow only tokens that are currently idle; queued runnable
+work has priority, and borrowed capacity must be reduced deterministically when
+that work can run. Make jobserver integration or another cooperative mechanism
+is required for mid-build revocation. Merely launching a fixed larger `-j`
+cannot satisfy that contract and must remain an isolated experiment rather
+than a production scheduler change.
+
 ## Remaining work
 
 Validation-only checks remain deliberately executable rather than becoming mutable artifact stages. Debian compatibility validation is always read and checked; rootfs package/ELF validation runs on a rootfs miss and its proven output inventory is revalidated on hits; loader execution remains path-sensitive; QEMU boot validation always boots the selected image. These checks consume cached package/ELF facts where their inputs are path-independent. Remaining conservative false-positive risks are the monolithic output-producing `main.rs` configuration input and canonical tool path identity when identical executable bytes move to a different absolute path. Complete fail-closed inventory hashing also remains the dominant warm cost. The next optimization milestone should reduce repeated full-tree hashing through an integrity-index/change-detection design that remains fail closed, then consider an immutable package-installed base rootfs plus explicit live/installed overlays. Broad scheduling, compiler caches, remote caches, QEMU snapshots, lower compression, and reduced release tests remain out of scope.
