@@ -15,6 +15,7 @@ The canonical orchestrator is `src/tools/mattos-build`.
 | `elf_cache.rs` | Content-addressed ELF inspection facts. |
 | `source_identity.rs` | Invocation-scoped Git index and working-tree source selection, canonical serialization, and digest generation. |
 | `tool_identity.rs` | Canonical executable resolution and stable version/target probing. |
+| `resources.rs` | Startup host/cgroup resource discovery and deterministic CPU/RAM build budgets. |
 
 The next safe decomposition steps are mechanical extractions behind existing APIs:
 
@@ -26,6 +27,54 @@ The next safe decomposition steps are mechanical extractions behind existing API
 6. `packages`: package policy/cache, payload staging, repository, and installation submodules.
 
 These boundaries must be introduced incrementally. Moving a function is not sufficient: its inputs and outputs must become explicit, and stage IDs, recipe strings, normalized environment, and manifest schemas must remain stable unless a deliberate migration is supplied.
+
+## Resource-aware scheduler foundation
+
+`build all` snapshots host capacity once before it evaluates the DAG. The
+snapshot records logical CPUs, cpuset and CPU-quota restrictions, physical and
+currently available RAM, cgroup memory limits/current use, swap use, and the
+cumulative kernel swap counters. Linux cgroup v2 is preferred, with cgroup v1
+controller-file fallbacks. `MATTOS_RESERVED_MEMORY_MIB` optionally sets the
+RAM headroom; otherwise the scheduler reserves the larger of 1 GiB and 12.5%
+of the effective memory limit (never more than half the limit).
+
+The scheduler derives CPU tokens from the minimum of logical CPUs, cpuset, and
+quota, and derives build memory from current effective availability minus the
+reserve. A stage has a generic resource profile: minimum safe CPU grant,
+optional useful ceiling, estimated memory, memory-heavy status, idle-CPU
+borrowing permission, and child-job policy. Profiles are resource *classes*,
+not machine-specific `-j` assignments: standard and memory-heavy work can use
+additional capacity on a large, healthy host; the libcap serial profile remains
+one job.
+
+Admission is deterministic for a fixed snapshot and ready-set order. It always
+requires a profile's minimum CPU and memory estimate, reserves minimum CPU for
+already-ready peers before lending idle capacity, and prevents a new action
+from crossing the memory budget. Existing swap use reduces memory-heavy
+concurrency to one and disables borrowed CPU grants. This milestone chooses a
+grant only at launch; it never attempts unsafe mid-command resizing of Make,
+Cargo, Ninja, Meson, or CMake.
+
+The scheduler also samples the resource envelope before each launch decision.
+It refreshes effective available/cgroup memory, `pswpin`/`pswpout`, and Linux
+memory PSI `some avg10` when available. Existing swap occupancy is telemetry,
+not pressure: only counter deltas/rates, PSI, or low headroom can raise the
+pressure level. Levels are `healthy`, `constrained`, and `critical`. Worsening
+is immediate; recovery requires two lower-pressure samples. Healthy stages may
+borrow idle CPU, constrained stages use only their safe grants and allow one
+memory-heavy action, and critical pressure admits no new memory-heavy action.
+Running child processes are never killed or resized.
+
+Each stage trace record includes its profile estimate, start/end available RAM,
+cgroup memory current where known, and start/end pressure. This is intentionally
+observation-only groundwork for later empirical memory estimates; one run never
+changes production profiles automatically.
+
+The Make/glibc/GCC runtime/Binutils/GCC compiler j4/j8/j6/j6/j6 results remain
+benchmark calibration metadata in `BUILD_PERFORMANCE.md`; they are not read by
+the production admission algorithm. Future stacks such as COSMIC should select
+one of the generic classes (or a measured exceptional override) rather than
+adding machine-specific job values for every new DAG node.
 
 ## Cache Contract
 

@@ -103,6 +103,7 @@ where
     println!("cache miss: {} ({reason})", spec.id);
     acquire_resources()?;
     invalidate_integrity_paths(repo_root, &spec.outputs);
+    crate::performance::trace_log_context("cached-stage-before-with-stage-log");
     let result = measured("stage_actions", || {
         with_stage_log(repo_root, &spec.id, action)
     });
@@ -618,7 +619,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::cell::Cell;
+    use std::cell::{Cell, RefCell};
 
     #[test]
     fn changed_dependency_output_bytes_rebuild_the_real_manifest_consumer() {
@@ -671,5 +672,45 @@ mod tests {
         publish(&upstream, "changed bytes").unwrap();
         run_consumer().unwrap();
         assert_eq!(consumer_runs.get(), 2);
+    }
+
+    #[test]
+    fn cached_stage_action_inherits_and_releases_its_active_log_context() {
+        let root = tempfile::tempdir().unwrap();
+        fs::write(root.path().join("input"), "input").unwrap();
+        let spec = StageSpec {
+            id: "log-context".to_string(),
+            source_inputs: vec!["input".into()],
+            configuration_inputs: Vec::new(),
+            tools: Vec::new(),
+            dependencies: Vec::new(),
+            outputs: vec!["out/result".into()],
+            recipe: "log-context".to_string(),
+        };
+        let observed = RefCell::new(None);
+        execute_cached_stage_with_resources(
+            root.path(),
+            &spec,
+            || Ok(()),
+            || Ok(()),
+            || {
+                *observed.borrow_mut() = crate::performance::active_stage_log_path_for_test();
+                crate::performance::append_active_stage_log("cached-stage-action").unwrap();
+                fs::create_dir_all(root.path().join("out")).unwrap();
+                fs::write(root.path().join("out/result"), "result").unwrap();
+                Ok(())
+            },
+        )
+        .unwrap();
+        assert_eq!(
+            observed.borrow().as_deref(),
+            Some(root.path().join("out/logs/log-context.log").as_path())
+        );
+        assert!(crate::performance::active_stage_log_path_for_test().is_none());
+        assert!(
+            fs::read_to_string(root.path().join("out/logs/log-context.log"))
+                .unwrap()
+                .contains("cached-stage-action")
+        );
     }
 }

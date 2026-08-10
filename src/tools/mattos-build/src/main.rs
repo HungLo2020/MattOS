@@ -11,19 +11,21 @@ use std::io::Read;
 use std::path::{Component, Path, PathBuf};
 use std::process::{Command, Output};
 
-mod cache_manifest;
 #[cfg(test)]
 mod build_system_tests;
+mod cache_manifest;
 mod elf_cache;
 mod integrity_index;
 mod packaging;
 mod performance;
+mod resources;
 mod scheduler;
 mod source_identity;
 mod stage_cache;
 mod stage_graph;
 mod stage_inputs;
-mod timing; mod tool_identity;
+mod timing;
+mod tool_identity;
 
 use stage_graph::BuildStage;
 
@@ -33,6 +35,7 @@ thread_local! {
 
 const AUTHORITATIVE_GRUB_CFG: &str = stage_inputs::AUTHORITATIVE_GRUB_CFG;
 const OBSOLETE_GRUB_CFG_PATHS: &[&str] = &["boot/grub/grub.cfg"];
+const EXECUTABLE_PROBE_ID: &str = "mattos-build-probe-20260809T180000Z-info-normalization";
 const GRUB_SYSTEMD_ENTRY: &str = "menuentry \"MattOS (systemd)\"";
 const GRUB_RESCUE_ENTRY: &str = "menuentry \"MattOS (rescue init)\"";
 const INITRAMFS_ROOTFS_SIZE_POLICY: &str = "initramfs_options=size=75%";
@@ -40,8 +43,7 @@ const GRUB_SYSTEMD_RDINIT: &str = "rdinit=/usr/lib/systemd/systemd";
 const GRUB_RESCUE_RDINIT: &str = "rdinit=/usr/libexec/mattos/rescue-init";
 const SAFE_IMPORT_PLACEHOLDER_FILES: &[&str] = &[".gitkeep", "README.md"];
 const IMPORTED_TREE_DIGEST_ALGORITHM: &str = "sha256-git-ls-tree-no-gitlinks-v1";
-const SELECTED_IMPORTED_TREE_DIGEST_ALGORITHM: &str =
-    "sha256-selected-git-ls-tree-no-gitlinks-v1";
+const SELECTED_IMPORTED_TREE_DIGEST_ALGORITHM: &str = "sha256-selected-git-ls-tree-no-gitlinks-v1";
 const USERLAND_INVENTORY_PATH: &str = "usr/share/mattos/userland-commands.txt";
 const INITRAMFS_ARCHIVE_OWNER: &str = "0:0";
 
@@ -68,8 +70,10 @@ const ATTR_RELEASE_ARCHIVE_URL: &str =
 const ATTR_RELEASE_ARCHIVE_SHA256: &str =
     "6c8a2148a7b85043b68492bce43316b0e2e214fc4e628c7ede078e76e216330b";
 const ACL_RELEASE_DIRECTORY: &str = "acl-2.3.2";
-const ACL_RELEASE_ARCHIVE_URL: &str = "https://download.savannah.gnu.org/releases/acl/acl-2.3.2.tar.xz";
-const ACL_RELEASE_ARCHIVE_SHA256: &str = "97203a72cae99ab89a067fe2210c1cbf052bc492b479eca7d226d9830883b0bd";
+const ACL_RELEASE_ARCHIVE_URL: &str =
+    "https://download.savannah.gnu.org/releases/acl/acl-2.3.2.tar.xz";
+const ACL_RELEASE_ARCHIVE_SHA256: &str =
+    "97203a72cae99ab89a067fe2210c1cbf052bc492b479eca7d226d9830883b0bd";
 const SUDO_RS_PROVIDER: &str = "sudo-rs";
 const KMOD_PROVIDER: &str = "kmod";
 const PROCPS_PROVIDER: &str = "procps-ng";
@@ -529,6 +533,11 @@ enum Commands {
     },
     #[command(hide = true)]
     RunQemu,
+    #[command(hide = true)]
+    ProbeExecutable {
+        #[arg(long)]
+        log_root: PathBuf,
+    },
 }
 
 #[derive(Subcommand, Debug)]
@@ -705,6 +714,16 @@ fn main() -> Result<()> {
     }
 
     let result = match cli.command {
+        Commands::ProbeExecutable { log_root } => {
+            performance::with_stage_log(&log_root, "executable-probe", || {
+                performance::append_active_stage_log(&format!(
+                    "executable-probe id={EXECUTABLE_PROBE_ID}"
+                ))?;
+                Ok(())
+            })?;
+            println!("MATTOS_BUILD_PROBE_ID={EXECUTABLE_PROBE_ID}");
+            Ok(())
+        }
         Commands::Doctor => doctor(),
         Commands::Timings => performance::show_latest_timings(&repo_root),
         Commands::Cache { command } => cache_command(&repo_root, command),
@@ -1827,7 +1846,10 @@ fn update_component(
         record_imported_component_if_enabled(repo_root, comp)?;
         fs::remove_dir_all(&tmp_upstream)
             .with_context(|| format!("failed to remove {}", tmp_upstream.display()))?;
-        println!("Synchronized {} at unchanged commit {}", comp.name, state.imported_commit);
+        println!(
+            "Synchronized {} at unchanged commit {}",
+            comp.name, state.imported_commit
+        );
         return Ok(());
     }
     run_cmd(
@@ -1963,10 +1985,17 @@ fn imported_tree_identity(
         .to_string();
     let output = run_cmd_output(source_git, "git", &["ls-tree", "-rz", "HEAD"])?;
     if !output.status.success() {
-        bail!("failed to enumerate imported upstream tree in {}", source_git.display());
+        bail!(
+            "failed to enumerate imported upstream tree in {}",
+            source_git.display()
+        );
     }
     let mut digest = Sha256Hasher::new();
-    for record in output.stdout.split(|byte| *byte == 0).filter(|record| !record.is_empty()) {
+    for record in output
+        .stdout
+        .split(|byte| *byte == 0)
+        .filter(|record| !record.is_empty())
+    {
         if record.starts_with(b"160000 ") {
             continue;
         }
@@ -1991,13 +2020,20 @@ fn load_source_selection_policy(
         component_source_selection_metadata(repo_root, &comp.name)?;
     if policy_name == "none" {
         if expected_sha256 != "none" {
-            bail!("{} records a source-selection digest without a policy", comp.name);
+            bail!(
+                "{} records a source-selection digest without a policy",
+                comp.name
+            );
         }
         return Ok((None, policy_name, expected_sha256));
     }
     let policy_path = resolve_component_destination(repo_root, &policy_name)?;
-    let payload = fs::read(&policy_path)
-        .with_context(|| format!("failed to read source-selection policy: {}", policy_path.display()))?;
+    let payload = fs::read(&policy_path).with_context(|| {
+        format!(
+            "failed to read source-selection policy: {}",
+            policy_path.display()
+        )
+    })?;
     let actual_sha256 = format!("{:x}", Sha256Hasher::digest(&payload));
     if actual_sha256 != expected_sha256 {
         bail!(
@@ -2016,7 +2052,10 @@ fn load_source_selection_policy(
         || policy.scope != "arch"
         || comp.revision.as_deref() != Some(policy.upstream_commit.as_str())
     {
-        bail!("{} source-selection policy metadata does not match sources.toml", comp.name);
+        bail!(
+            "{} source-selection policy metadata does not match sources.toml",
+            comp.name
+        );
     }
     Ok((Some(policy), policy_name, expected_sha256))
 }
@@ -2149,7 +2188,11 @@ fn component_provenance_policy(
 /// Scope is restricted to the selected component and its state record.
 fn force_record_imported_component(repo_root: &Path, comp: &ComponentDef) -> Result<()> {
     let state_path = format!("upstream/state/{}.toml", comp.name);
-    run_cmd(repo_root, "git", &["add", "-f", "--", &comp.path, &state_path])
+    run_cmd(
+        repo_root,
+        "git",
+        &["add", "-f", "--", &comp.path, &state_path],
+    )
 }
 
 fn record_imported_component_if_enabled(repo_root: &Path, comp: &ComponentDef) -> Result<()> {
@@ -2592,7 +2635,11 @@ fn write_sync_state(repo_root: &Path, name: &str, state: &SyncState) -> Result<(
     Ok(())
 }
 
-fn build(repo_root: &Path, stage: BuildStage, experimental_child_jobs: Option<usize>) -> Result<()> {
+fn build(
+    repo_root: &Path,
+    stage: BuildStage,
+    experimental_child_jobs: Option<usize>,
+) -> Result<()> {
     if stage == BuildStage::All {
         return build_all_scheduled(repo_root);
     }
@@ -2600,6 +2647,14 @@ fn build(repo_root: &Path, stage: BuildStage, experimental_child_jobs: Option<us
 }
 
 fn validate_experimental_child_jobs(stage: BuildStage, jobs: Option<usize>) -> Result<()> {
+    validate_experimental_child_jobs_with_budget(stage, jobs, resources::discover().budget())
+}
+
+fn validate_experimental_child_jobs_with_budget(
+    stage: BuildStage,
+    jobs: Option<usize>,
+    budget: resources::ResourceBudget,
+) -> Result<()> {
     let Some(jobs) = jobs else {
         return Ok(());
     };
@@ -2616,12 +2671,13 @@ fn validate_experimental_child_jobs(stage: BuildStage, jobs: Option<usize>) -> R
             "--experimental-child-jobs is restricted to isolated glibc, gcc-runtime, binutils, gcc-toolchain, make, or apt builds"
         );
     }
-    let (normal_jobs, _) = scheduler_resource_profile(stage);
-    if jobs <= normal_jobs || jobs > 12 {
+    let normal_jobs = stage_resource_profile(stage).minimum_cpu_grant;
+    if jobs <= normal_jobs || jobs > budget.cpu_tokens {
         bail!(
-            "experimental child jobs for {} must be above its normal limit {} and at most 12",
+            "experimental child jobs for {} must be above its safe baseline {} and at most the effective CPU budget {}",
             build_stage_id(stage),
-            normal_jobs
+            normal_jobs,
+            budget.cpu_tokens,
         );
     }
     Ok(())
@@ -2630,7 +2686,9 @@ fn validate_experimental_child_jobs(stage: BuildStage, jobs: Option<usize>) -> R
 fn build_all_scheduled(repo_root: &Path) -> Result<()> {
     let stages = build_plan(BuildStage::All);
     let nodes = scheduled_build_nodes(&stages);
-    scheduler::execute(nodes, 12, |id, context| {
+    let snapshot = resources::discover();
+    let budget = snapshot.budget();
+    scheduler::execute(nodes, budget, |id, context| {
         let stage = stages
             .iter()
             .copied()
@@ -2673,14 +2731,11 @@ fn scheduled_build_nodes(stages: &[BuildStage]) -> Vec<scheduler::SchedulerNode>
                     .into_iter()
                     .collect()
             };
-            let (weight, memory_heavy) = scheduler_resource_profile(stage);
             scheduler::SchedulerNode {
                 id: build_stage_id(stage).to_string(),
                 dependencies,
                 outputs: spec.outputs,
-                weight,
-                memory_heavy,
-                child_jobs: scheduler_child_job_policy(stage),
+                profile: stage_resource_profile(stage),
             }
         })
         .collect()
@@ -2692,13 +2747,18 @@ fn build_one_stage(
     context: Option<&scheduler::JobContext>,
     experimental_child_jobs: Option<usize>,
 ) -> Result<()> {
-    let (weight, _) = scheduler_resource_profile(stage);
+    let profile = stage_resource_profile(stage);
+    let standalone_envelope = resources::sample_now();
+    let standalone_grant = scheduler::standalone_grant(profile, &standalone_envelope);
     scheduler::configure_child_jobs(
-        experimental_child_jobs.unwrap_or(weight),
-        scheduler_child_job_policy(stage),
+        experimental_child_jobs.unwrap_or(standalone_grant),
+        profile.child_jobs,
     );
     EXPERIMENTAL_CHILD_JOBS.with(|current| current.set(experimental_child_jobs));
-    if matches!(stage, BuildStage::Rootfs | BuildStage::Initramfs | BuildStage::Iso) {
+    if matches!(
+        stage,
+        BuildStage::Rootfs | BuildStage::Initramfs | BuildStage::Iso
+    ) {
         if let Some(context) = context {
             context.acquire_build_resources()?;
         }
@@ -2735,7 +2795,10 @@ fn build_one_stage(
     Ok(())
 }
 
-fn scheduler_resource_profile(stage: BuildStage) -> (usize, bool) {
+fn stage_resource_profile(stage: BuildStage) -> scheduler::StageResourceProfile {
+    if stage == BuildStage::Libcap {
+        return scheduler::StageResourceProfile::serial();
+    }
     match stage {
         BuildStage::Kernel
         | BuildStage::Glibc
@@ -2749,23 +2812,14 @@ fn scheduler_resource_profile(stage: BuildStage) -> (usize, bool) {
         | BuildStage::Findutils
         | BuildStage::Diffutils
         | BuildStage::SudoRs
-        | BuildStage::Init => (4, true),
-        BuildStage::Make
-        | BuildStage::Systemd
-        | BuildStage::DbusBroker
-        | BuildStage::UtilLinux
-        | BuildStage::Rootfs
-        | BuildStage::Initramfs
-        | BuildStage::Iso => (4, false),
-        _ => (2, false),
+        | BuildStage::Init => scheduler::StageResourceProfile::memory_heavy(),
+        _ => scheduler::StageResourceProfile::standard(),
     }
 }
 
+#[cfg(test)]
 fn scheduler_child_job_policy(stage: BuildStage) -> scheduler::ChildJobPolicy {
-    match stage {
-        BuildStage::Libcap => scheduler::ChildJobPolicy::Serial,
-        _ => scheduler::ChildJobPolicy::SchedulerGrant,
-    }
+    stage_resource_profile(stage).child_jobs
 }
 
 fn is_cacheable_stage(stage: BuildStage) -> bool {
@@ -2868,7 +2922,10 @@ fn build_stage_dependencies(stage: BuildStage) -> &'static [&'static str] {
 fn linux_headers_stage_spec() -> performance::StageSpec {
     performance::StageSpec {
         id: "linux-headers".to_string(),
-        source_inputs: linux_x86_uapi_inputs().into_iter().map(PathBuf::from).collect(),
+        source_inputs: linux_x86_uapi_inputs()
+            .into_iter()
+            .map(PathBuf::from)
+            .collect(),
         configuration_inputs: Vec::new(),
         tools: vec!["make".to_string(), "gcc".to_string()],
         dependencies: vec!["glibc".to_string()],
@@ -3111,12 +3168,16 @@ fn resolve_cache_stage<'a>(
 }
 
 fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
+    performance::trace_log_context("build_stage-entry");
     match stage {
         BuildStage::Kernel => build_kernel(repo_root),
         BuildStage::Glibc => build_glibc(repo_root),
         BuildStage::GccRuntime => build_gcc_runtime(repo_root),
         BuildStage::Binutils => build_binutils(repo_root),
-        BuildStage::GccToolchain => build_gcc_toolchain(repo_root),
+        BuildStage::GccToolchain => {
+            performance::trace_log_context("build_stage-before-gcc-toolchain-dispatch");
+            build_gcc_toolchain(repo_root)
+        }
         BuildStage::Make => build_make(repo_root),
         BuildStage::Brush => build_brush(repo_root),
         BuildStage::Coreutils => build_coreutils(repo_root),
@@ -3216,21 +3277,10 @@ fn build_kernel(repo_root: &Path) -> Result<()> {
     ];
     let mut olddefconfig_args = vec![output_arg.as_str(), "olddefconfig"];
     olddefconfig_args.extend(kernel_reproducible_args);
-    run_cmd_with_env(
-        &source,
-        "make",
-        &olddefconfig_args,
-        env.as_ref(),
-    )?;
+    run_cmd_with_env(&source, "make", &olddefconfig_args, env.as_ref())?;
     let mut build_args = vec![output_arg.as_str(), "-j", "4"];
     build_args.extend(kernel_reproducible_args);
-    run_cmd_with_env(
-        &source,
-        "make",
-        &build_args,
-        env.as_ref(),
-    )
-    .context("kernel build failed")?;
+    run_cmd_with_env(&source, "make", &build_args, env.as_ref()).context("kernel build failed")?;
 
     let bz = build.join("arch/x86/boot/bzImage");
     if !bz.exists() {
@@ -4185,11 +4235,31 @@ fn build_static_prerequisite(
     Ok(())
 }
 
+fn log_gcc_info_index_boundary(label: &str, install: &Path) -> Result<()> {
+    let index = install.join("usr/share/info/dir");
+    let state = match fs::symlink_metadata(&index) {
+        Ok(metadata) => format!(
+            "exists type={:?} size={}",
+            metadata.file_type(),
+            metadata.len()
+        ),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => "absent".to_string(),
+        Err(error) => format!("metadata-error={error}"),
+    };
+    performance::append_active_stage_log(&format!(
+        "gcc-info-normalization boundary={label} install={} index={} {state}",
+        install.display(),
+        index.display()
+    ))
+}
+
 fn build_gcc_toolchain(repo_root: &Path) -> Result<()> {
     let output = repo_root.join("out/build/gcc-toolchain");
     let build = output.join("build");
     let install = output.join("install");
     let prereq_install = output.join("prerequisite-install");
+    performance::trace_log_context("build_gcc_toolchain-entry");
+    log_gcc_info_index_boundary("build_gcc_toolchain-entry", &install)?;
     let binutils = repo_root.join("out/build/binutils/cross-install/usr/bin");
     if !repo_root.join("src/toolchain/gcc/configure").is_file() {
         bail!("GCC source is missing; import the pinned GCC component first")
@@ -4318,12 +4388,24 @@ fn build_gcc_toolchain(repo_root: &Path) -> Result<()> {
     run_gcc_bootstrap_command(&build, Path::new("make"), &["-j", "4", "all-gcc"], &gcc_env)
         .context("MattOS-native GCC compiler build failed")?;
     let destdir = format!("DESTDIR={}", install.display());
+    log_gcc_info_index_boundary("before-install-gcc", &install)?;
     run_gcc_bootstrap_command(
         &build,
         Path::new("make"),
         &[destdir.as_str(), "install-gcc"],
         &gcc_env,
     )?;
+    log_gcc_info_index_boundary("after-install-gcc", &install)?;
+    // `install-gcc` invokes install-info for several manuals.  That shared
+    // index is updated by parallel install rules and can omit/reorder entries
+    // between otherwise identical builds.  The individual .info manuals are
+    // authoritative; Debian-compatible package installation regenerates the
+    // directory index through install-info, so do not publish this transient
+    // build-time index.
+    let info_dir_index = install.join("usr/share/info/dir");
+    log_gcc_info_index_boundary("before-normalization", &install)?;
+    remove_path_if_exists(&info_dir_index)?;
+    log_gcc_info_index_boundary("after-normalization", &install)?;
     for relative in [
         "usr/bin/gcc",
         "usr/bin/g++",
@@ -5917,7 +5999,11 @@ fn build_attr(repo_root: &Path) -> Result<()> {
     // timestamps.  Normalize the output mirror after staging so Automake does
     // not attempt a host-versioned regeneration merely because a macro was
     // copied a few milliseconds after aclocal.m4.
-    run_cmd(&source_copy, "find", &[".", "-type", "f", "-exec", "touch", "-c", "{}", "+"])?;
+    run_cmd(
+        &source_copy,
+        "find",
+        &[".", "-type", "f", "-exec", "touch", "-c", "{}", "+"],
+    )?;
     fs::create_dir_all(&build_dir)
         .with_context(|| format!("failed to create {}", build_dir.display()))?;
     if !build_dir.join("Makefile").is_file() {
@@ -6040,7 +6126,7 @@ fn stage_attr_bootstrap_inputs(
             release_arg,
         ],
     )
-        .context("failed to stage pinned Attr release bootstrap inputs")?;
+    .context("failed to stage pinned Attr release bootstrap inputs")?;
     copy_attr_release_only_entries(&release, authoritative_source, source_copy)?;
 
     let visibility = source_copy.join("m4/visibility_hidden.m4");
@@ -6081,9 +6167,7 @@ fn copy_attr_release_only_entries(
             copy_attr_release_only_entries(&source, &original, &target)?;
             continue;
         }
-        if fs::symlink_metadata(&original)
-            .is_ok_and(|_| true)
-        {
+        if fs::symlink_metadata(&original).is_ok_and(|_| true) {
             continue;
         }
         if let Some(parent) = target.parent() {
@@ -6097,7 +6181,11 @@ fn copy_attr_release_only_entries(
             fs::copy(&source, &target)?;
         } else {
             fs::copy(&source, &target).with_context(|| {
-                format!("failed to stage {} to {}", source.display(), target.display())
+                format!(
+                    "failed to stage {} to {}",
+                    source.display(),
+                    target.display()
+                )
             })?;
             preserve_permissions(&metadata, &target)?;
         }
@@ -6136,7 +6224,11 @@ fn build_acl(repo_root: &Path) -> Result<()> {
     sync_build_source(&source, &source_copy)?;
     let archive = ensure_acl_release_archive(&out_root)?;
     stage_acl_bootstrap_inputs(&source, &source_copy, &archive)?;
-    run_cmd(&source_copy, "find", &[".", "-type", "f", "-exec", "touch", "-c", "{}", "+"])?;
+    run_cmd(
+        &source_copy,
+        "find",
+        &[".", "-type", "f", "-exec", "touch", "-c", "{}", "+"],
+    )?;
     fs::create_dir_all(&build_dir)
         .with_context(|| format!("failed to create {}", build_dir.display()))?;
     if !build_dir.join("Makefile").is_file() {
@@ -6148,7 +6240,10 @@ fn build_acl(repo_root: &Path) -> Result<()> {
             &options,
             &[
                 ("CPPFLAGS", format!("-I{}", attr.join("include").display())),
-                ("LDFLAGS", format!("-L{}", attr.join("lib/x86_64-linux-gnu").display())),
+                (
+                    "LDFLAGS",
+                    format!("-L{}", attr.join("lib/x86_64-linux-gnu").display()),
+                ),
             ],
         )?;
     }
@@ -6176,24 +6271,64 @@ fn ensure_acl_release_archive(out_root: &Path) -> Result<PathBuf> {
     fs::create_dir_all(&bootstrap)?;
     if !archive.is_file() {
         let temp = bootstrap.join("acl.tar.xz.tmp");
-        run_cmd(out_root, "curl", &["-fL", "--retry", "3", "--output", path_str(&temp)?, ACL_RELEASE_ARCHIVE_URL])?;
+        run_cmd(
+            out_root,
+            "curl",
+            &[
+                "-fL",
+                "--retry",
+                "3",
+                "--output",
+                path_str(&temp)?,
+                ACL_RELEASE_ARCHIVE_URL,
+            ],
+        )?;
         let actual = performance::sha256_file(&temp)?;
-        if actual != ACL_RELEASE_ARCHIVE_SHA256 { bail!("ACL release archive checksum mismatch: expected {ACL_RELEASE_ARCHIVE_SHA256}, got {actual}"); }
+        if actual != ACL_RELEASE_ARCHIVE_SHA256 {
+            bail!(
+                "ACL release archive checksum mismatch: expected {ACL_RELEASE_ARCHIVE_SHA256}, got {actual}"
+            );
+        }
         fs::rename(temp, &archive)?;
     }
     let actual = performance::sha256_file(&archive)?;
-    if actual != ACL_RELEASE_ARCHIVE_SHA256 { bail!("ACL release archive checksum mismatch: expected {ACL_RELEASE_ARCHIVE_SHA256}, got {actual}"); }
+    if actual != ACL_RELEASE_ARCHIVE_SHA256 {
+        bail!(
+            "ACL release archive checksum mismatch: expected {ACL_RELEASE_ARCHIVE_SHA256}, got {actual}"
+        );
+    }
     Ok(archive)
 }
 
-fn stage_acl_bootstrap_inputs(authoritative: &Path, destination: &Path, archive: &Path) -> Result<()> {
+fn stage_acl_bootstrap_inputs(
+    authoritative: &Path,
+    destination: &Path,
+    archive: &Path,
+) -> Result<()> {
     let release = archive.parent().unwrap().join("release");
     remove_path_if_exists(&release)?;
     fs::create_dir_all(&release)?;
-    run_cmd(destination, "tar", &["-xJf", path_str(archive)?, "--strip-components=1", "-C", path_str(&release)?])?;
+    run_cmd(
+        destination,
+        "tar",
+        &[
+            "-xJf",
+            path_str(archive)?,
+            "--strip-components=1",
+            "-C",
+            path_str(&release)?,
+        ],
+    )?;
     copy_attr_release_only_entries(&release, authoritative, destination)?;
-    for required in ["configure", "aclocal.m4", "m4/visibility_hidden.m4", "m4/package_attrdev.m4"] {
-        if !destination.join(required).is_file() { bail!("pinned ACL release bootstrap input is missing {required}"); }
+    for required in [
+        "configure",
+        "aclocal.m4",
+        "m4/visibility_hidden.m4",
+        "m4/package_attrdev.m4",
+    ] {
+        if !destination.join(required).is_file() {
+            bail!("pinned ACL release bootstrap input is missing {required}");
+        }
     }
     Ok(())
 }
@@ -6263,7 +6398,9 @@ fn build_bzip2(repo_root: &Path) -> Result<()> {
     sync_build_source(&source, &source_copy)?;
     let cflags = format!(
         "-O2 -g0 -fPIC -ffile-prefix-map={}=/usr/src/mattos/bzip2 -fdebug-prefix-map={}=/usr/src/mattos/bzip2 -fmacro-prefix-map={}=/usr/src/mattos/bzip2",
-        repo_root.display(), repo_root.display(), repo_root.display()
+        repo_root.display(),
+        repo_root.display(),
+        repo_root.display()
     );
     // Makefile-libbz2_so assigns CFLAGS with `=`, so an environment variable
     // alone is deliberately insufficient.  A make command-line assignment has
@@ -6272,7 +6409,14 @@ fn build_bzip2(repo_root: &Path) -> Result<()> {
     run_cmd_with_env_overrides(
         &source_copy,
         "make",
-        &["-B", "-f", "Makefile-libbz2_so", "-j", "4", &cflags_override],
+        &[
+            "-B",
+            "-f",
+            "Makefile-libbz2_so",
+            "-j",
+            "4",
+            &cflags_override,
+        ],
         &[("SOURCE_DATE_EPOCH", MATTOS_SOURCE_DATE_EPOCH.to_string())],
     )?;
     remove_path_if_exists(&install_dir)?;
@@ -10719,23 +10863,34 @@ fn scheduler_command_args(args: &[&str]) -> Vec<String> {
     let mut previous_sets_jobs = false;
     args.iter()
         .map(|argument| {
-            let normalized = if previous_sets_jobs && argument.bytes().all(|byte| byte.is_ascii_digit()) {
-                experimental_limit.unwrap_or_else(|| argument.parse::<usize>().unwrap().min(limit)).to_string()
-            } else if argument.starts_with("-j")
-                && argument.len() > 2
-                && argument[2..].bytes().all(|byte| byte.is_ascii_digit())
-            {
-                format!("-j{}", experimental_limit.unwrap_or_else(|| argument[2..].parse::<usize>().unwrap().min(limit)))
-            } else if let Some(value) = argument
-                .strip_prefix("--jobs=")
-                .or_else(|| argument.strip_prefix("--parallel="))
-                .filter(|value| value.bytes().all(|byte| byte.is_ascii_digit()))
-            {
-                let option = argument.split_once('=').unwrap().0;
-                format!("{option}={}", experimental_limit.unwrap_or_else(|| value.parse::<usize>().unwrap().min(limit)))
-            } else {
-                (*argument).to_string()
-            };
+            let normalized =
+                if previous_sets_jobs && argument.bytes().all(|byte| byte.is_ascii_digit()) {
+                    experimental_limit
+                        .unwrap_or_else(|| argument.parse::<usize>().unwrap().min(limit))
+                        .to_string()
+                } else if argument.starts_with("-j")
+                    && argument.len() > 2
+                    && argument[2..].bytes().all(|byte| byte.is_ascii_digit())
+                {
+                    format!(
+                        "-j{}",
+                        experimental_limit
+                            .unwrap_or_else(|| argument[2..].parse::<usize>().unwrap().min(limit))
+                    )
+                } else if let Some(value) = argument
+                    .strip_prefix("--jobs=")
+                    .or_else(|| argument.strip_prefix("--parallel="))
+                    .filter(|value| value.bytes().all(|byte| byte.is_ascii_digit()))
+                {
+                    let option = argument.split_once('=').unwrap().0;
+                    format!(
+                        "{option}={}",
+                        experimental_limit
+                            .unwrap_or_else(|| value.parse::<usize>().unwrap().min(limit))
+                    )
+                } else {
+                    (*argument).to_string()
+                };
             previous_sets_jobs = matches!(*argument, "-j" | "--jobs" | "--parallel");
             normalized
         })
@@ -10911,11 +11066,30 @@ mod tests {
 
     #[test]
     fn experimental_child_jobs_are_restricted_to_direct_candidate_builds() {
-        assert!(validate_experimental_child_jobs(BuildStage::All, Some(8)).is_err());
-        assert!(validate_experimental_child_jobs(BuildStage::Libcap, Some(8)).is_err());
-        assert!(validate_experimental_child_jobs(BuildStage::Apt, Some(2)).is_err());
-        assert!(validate_experimental_child_jobs(BuildStage::Glibc, Some(13)).is_err());
-        assert!(validate_experimental_child_jobs(BuildStage::Glibc, Some(8)).is_ok());
+        let budget = resources::ResourceBudget {
+            cpu_tokens: 12,
+            build_memory_bytes: 12 * 1024 * 1024 * 1024,
+            reserved_memory_bytes: 2 * 1024 * 1024 * 1024,
+            available_memory_bytes: 66 * 1024 * 1024 * 1024,
+        };
+        assert!(
+            validate_experimental_child_jobs_with_budget(BuildStage::All, Some(8), budget).is_err()
+        );
+        assert!(
+            validate_experimental_child_jobs_with_budget(BuildStage::Libcap, Some(8), budget)
+                .is_err()
+        );
+        assert!(
+            validate_experimental_child_jobs_with_budget(BuildStage::Apt, Some(1), budget).is_err()
+        );
+        assert!(
+            validate_experimental_child_jobs_with_budget(BuildStage::Glibc, Some(13), budget)
+                .is_err()
+        );
+        assert!(
+            validate_experimental_child_jobs_with_budget(BuildStage::Glibc, Some(8), budget)
+                .is_ok()
+        );
     }
 
     #[test]
@@ -10945,7 +11119,10 @@ mod tests {
             .current_dir(temp.path())
             .status()
             .unwrap();
-        assert!(!parallel.success(), "fixture must reproduce the dependency race");
+        assert!(
+            !parallel.success(),
+            "fixture must reproduce the dependency race"
+        );
 
         scheduler::set_child_jobs_for_test(4, scheduler::ChildJobPolicy::Serial);
         run_cmd(temp.path(), "make", &["all"]).unwrap();
@@ -10987,7 +11164,13 @@ mod tests {
     fn production_scheduler_plan_is_valid_and_simulates_successful_cold_run() {
         let stages = build_plan(BuildStage::All);
         let nodes = scheduled_build_nodes(&stages);
-        scheduler::validate(&nodes, 12).unwrap();
+        let budget = resources::ResourceBudget {
+            cpu_tokens: 12,
+            build_memory_bytes: 64 * 1024 * 1024 * 1024,
+            reserved_memory_bytes: 2 * 1024 * 1024 * 1024,
+            available_memory_bytes: 14 * 1024 * 1024 * 1024,
+        };
+        scheduler::validate(&nodes, budget).unwrap();
         let by_id = nodes
             .iter()
             .map(|node| (node.id.as_str(), node))
@@ -11003,27 +11186,59 @@ mod tests {
         assert_eq!(by_id["iso"].dependencies, ["initramfs", "linux"]);
 
         let durations = BTreeMap::from([
-            ("acl", 16.862), ("apt", 168.123), ("attr", 12.009),
-            ("binutils", 144.898), ("brush", 262.577), ("bzip2", 3.025),
-            ("coreutils", 283.164), ("curl", 100.519), ("dbus-broker", 24.564),
-            ("diffutils", 22.260), ("dpkg", 85.190), ("elfutils", 39.547),
-            ("expat", 6.265), ("findutils", 57.703), ("gcc-compiler", 647.434),
-            ("gcc-runtime", 773.452), ("glibc", 453.080), ("grep", 24.148),
-            ("init", 2.104), ("initramfs", 57.528), ("iproute2", 44.138),
-            ("iputils", 2.816), ("iso", 1.912), ("kmod", 4.024),
-            ("libbsd", 24.058), ("libcap", 1.061), ("libmd", 15.339),
-            ("libxcrypt", 182.310), ("linux", 442.489), ("linux-pam", 11.197),
-            ("lz4", 19.220), ("make", 17.947), ("ncurses", 39.520),
-            ("openssl", 197.919), ("pcre2", 27.509), ("procps-ng", 29.727),
-            ("rootfs", 107.053), ("sed", 53.006), ("selinux", 10.330),
-            ("shadow", 57.264), ("sudo-rs", 18.338), ("systemd", 51.721),
-            ("tar", 238.505), ("util-linux", 15.213), ("xxhash", 0.539),
-            ("xz", 37.482), ("zlib", 3.408), ("zstd", 45.216),
+            ("acl", 16.862),
+            ("apt", 168.123),
+            ("attr", 12.009),
+            ("binutils", 144.898),
+            ("brush", 262.577),
+            ("bzip2", 3.025),
+            ("coreutils", 283.164),
+            ("curl", 100.519),
+            ("dbus-broker", 24.564),
+            ("diffutils", 22.260),
+            ("dpkg", 85.190),
+            ("elfutils", 39.547),
+            ("expat", 6.265),
+            ("findutils", 57.703),
+            ("gcc-compiler", 647.434),
+            ("gcc-runtime", 773.452),
+            ("glibc", 453.080),
+            ("grep", 24.148),
+            ("init", 2.104),
+            ("initramfs", 57.528),
+            ("iproute2", 44.138),
+            ("iputils", 2.816),
+            ("iso", 1.912),
+            ("kmod", 4.024),
+            ("libbsd", 24.058),
+            ("libcap", 1.061),
+            ("libmd", 15.339),
+            ("libxcrypt", 182.310),
+            ("linux", 442.489),
+            ("linux-pam", 11.197),
+            ("lz4", 19.220),
+            ("make", 17.947),
+            ("ncurses", 39.520),
+            ("openssl", 197.919),
+            ("pcre2", 27.509),
+            ("procps-ng", 29.727),
+            ("rootfs", 107.053),
+            ("sed", 53.006),
+            ("selinux", 10.330),
+            ("shadow", 57.264),
+            ("sudo-rs", 18.338),
+            ("systemd", 51.721),
+            ("tar", 238.505),
+            ("util-linux", 15.213),
+            ("xxhash", 0.539),
+            ("xz", 37.482),
+            ("zlib", 3.408),
+            ("zstd", 45.216),
         ])
         .into_iter()
         .map(|(stage, duration)| (stage.to_string(), duration))
         .collect();
-        let report = scheduler::simulate(&nodes, &durations, 12).unwrap();
+        let report = scheduler::simulate(&nodes, &durations, budget).unwrap();
         println!(
             "successful cold simulation: serial={:.3}s scheduled={:.3}s critical={:.3}s",
             report.serial_seconds, report.scheduled_seconds, report.critical_path_seconds
@@ -11061,8 +11276,18 @@ mod tests {
     #[test]
     fn dependency_outputs_are_not_duplicated_as_configuration_inputs() {
         let rootfs = build_stage_spec(BuildStage::Rootfs);
-        assert!(!rootfs.configuration_inputs.iter().any(|path| path == Path::new("out/repository")));
-        assert!(rootfs.dependencies.iter().any(|dependency| dependency == "repository"));
+        assert!(
+            !rootfs
+                .configuration_inputs
+                .iter()
+                .any(|path| path == Path::new("out/repository"))
+        );
+        assert!(
+            rootfs
+                .dependencies
+                .iter()
+                .any(|dependency| dependency == "repository")
+        );
 
         let initramfs = build_stage_spec(BuildStage::Initramfs);
         assert!(initramfs.configuration_inputs.is_empty());
@@ -11070,7 +11295,11 @@ mod tests {
 
         let iso = build_stage_spec(BuildStage::Iso);
         assert!(iso.configuration_inputs.is_empty());
-        assert!(iso.dependencies.iter().any(|dependency| dependency == "initramfs"));
+        assert!(
+            iso.dependencies
+                .iter()
+                .any(|dependency| dependency == "initramfs")
+        );
     }
 
     #[test]
@@ -11099,12 +11328,16 @@ mod tests {
     fn provenance_policies_are_not_component_build_inputs() {
         for stage in [BuildStage::Tar, BuildStage::Openssl, BuildStage::Pcre2] {
             let spec = build_stage_spec(stage);
-            assert!(!spec
-                .source_inputs
-                .contains(&PathBuf::from("upstream/policies/gitlinks.toml")));
-            assert!(!spec
-                .configuration_inputs
-                .contains(&PathBuf::from("upstream/policies/gitlinks.toml")));
+            assert!(
+                !spec
+                    .source_inputs
+                    .contains(&PathBuf::from("upstream/policies/gitlinks.toml"))
+            );
+            assert!(
+                !spec
+                    .configuration_inputs
+                    .contains(&PathBuf::from("upstream/policies/gitlinks.toml"))
+            );
         }
     }
 
@@ -11119,13 +11352,27 @@ mod tests {
             BuildStage::Make,
         ] {
             let spec = build_stage_spec(stage);
-            assert!(!spec.configuration_inputs.contains(&PathBuf::from("Cargo.toml")));
-            assert!(!spec.configuration_inputs.contains(&PathBuf::from("Cargo.lock")));
+            assert!(
+                !spec
+                    .configuration_inputs
+                    .contains(&PathBuf::from("Cargo.toml"))
+            );
+            assert!(
+                !spec
+                    .configuration_inputs
+                    .contains(&PathBuf::from("Cargo.lock"))
+            );
         }
         for stage in [BuildStage::Brush, BuildStage::Coreutils, BuildStage::Grep] {
             let spec = build_stage_spec(stage);
-            assert!(spec.configuration_inputs.contains(&PathBuf::from("Cargo.toml")));
-            assert!(spec.configuration_inputs.contains(&PathBuf::from("Cargo.lock")));
+            assert!(
+                spec.configuration_inputs
+                    .contains(&PathBuf::from("Cargo.toml"))
+            );
+            assert!(
+                spec.configuration_inputs
+                    .contains(&PathBuf::from("Cargo.lock"))
+            );
         }
     }
 
@@ -11584,8 +11831,14 @@ mod tests {
         write(&root.join("arch/arm64/kernel/head.S"), "arm64\n");
         write(&root.join("arch/riscv/kernel/head.S"), "riscv\n");
         write(&root.join("arch/um/kernel/main.c"), "um\n");
-        write(&root.join("arch/arm/crypto/Kconfig"), "shared crypto config\n");
-        write(&root.join("arch/arm/kernel/head.S"), "excluded architecture\n");
+        write(
+            &root.join("arch/arm/crypto/Kconfig"),
+            "shared crypto config\n",
+        );
+        write(
+            &root.join("arch/arm/kernel/head.S"),
+            "excluded architecture\n",
+        );
         fs::set_permissions(
             root.join("arch/x86/kernel/shared.c"),
             fs::Permissions::from_mode(0o755),
@@ -11634,8 +11887,7 @@ mod tests {
             0o111
         );
         assert_eq!(
-            fs::read_link(root.join("arch/x86/kernel/shared-link"))
-                .expect("retained symlink"),
+            fs::read_link(root.join("arch/x86/kernel/shared-link")).expect("retained symlink"),
             Path::new("shared.c")
         );
     }
@@ -11712,8 +11964,14 @@ mod tests {
         let upstream_root = upstream.path();
         init_git_repo(upstream_root);
         write(&upstream_root.join(".gitignore"), "release-input\n");
-        write(&upstream_root.join(".gitattributes"), "*.bat text eol=crlf\n");
-        write(&upstream_root.join("release-input"), "tracked despite upstream ignore\n");
+        write(
+            &upstream_root.join(".gitattributes"),
+            "*.bat text eol=crlf\n",
+        );
+        write(
+            &upstream_root.join("release-input"),
+            "tracked despite upstream ignore\n",
+        );
         write(&upstream_root.join("windows.bat"), "first\nsecond\n");
         write(&upstream_root.join("tool.sh"), "#!/bin/sh\nexit 0\n");
         fs::set_permissions(
@@ -11725,7 +11983,14 @@ mod tests {
         run_ok(
             upstream_root,
             "git",
-            &["add", ".gitignore", ".gitattributes", "windows.bat", "tool.sh", "tool-link"],
+            &[
+                "add",
+                ".gitignore",
+                ".gitattributes",
+                "windows.bat",
+                "tool.sh",
+                "tool-link",
+            ],
         );
         run_ok(upstream_root, "git", &["add", "-f", "release-input"]);
         run_ok(upstream_root, "git", &["commit", "-m", "pinned source"]);
@@ -11753,7 +12018,11 @@ mod tests {
         run_ok(
             root,
             "git",
-            &["ls-files", "--error-unmatch", "src/imported/example/release-input"],
+            &[
+                "ls-files",
+                "--error-unmatch",
+                "src/imported/example/release-input",
+            ],
         );
         let imported = root.join("src/imported/example");
         assert_eq!(
@@ -11776,7 +12045,10 @@ mod tests {
             .expect("read state")
             .expect("state exists");
         assert_eq!(state.schema_version, 2);
-        assert_eq!(state.imported_tree_digest_algorithm, IMPORTED_TREE_DIGEST_ALGORITHM);
+        assert_eq!(
+            state.imported_tree_digest_algorithm,
+            IMPORTED_TREE_DIGEST_ALGORITHM
+        );
         assert_eq!(state.upstream_tree.len(), 40);
         assert_eq!(state.imported_tree_digest.len(), 64);
     }
@@ -12160,7 +12432,10 @@ mod tests {
             "KBUILD_BUILD_VERSION=1",
             "KCONFIG_NOTIMESTAMP=1",
         ] {
-            assert!(build.contains(required), "missing kernel reproducibility setting {required}");
+            assert!(
+                build.contains(required),
+                "missing kernel reproducibility setting {required}"
+            );
         }
         assert!(build.contains("olddefconfig_args.extend(kernel_reproducible_args)"));
         assert!(build.contains("build_args.extend(kernel_reproducible_args)"));
@@ -12201,7 +12476,10 @@ mod tests {
         let source = root.join("src/imported/example");
         write(&source.join(".gitignore"), "target/\nignored-source.txt\n");
         write(&source.join("tracked.txt"), "tracked\n");
-        write(&source.join("ignored-source.txt"), "upstream tracks this release input\n");
+        write(
+            &source.join("ignored-source.txt"),
+            "upstream tracks this release input\n",
+        );
         write(&source.join("untracked.txt"), "untracked\n");
         write(&source.join("target/generated.o"), "old generated output\n");
         run_ok(root, "git", &["add", "src/imported/example/.gitignore"]);
@@ -12859,9 +13137,7 @@ mod tests {
     #[test]
     fn cargo_sysroot_link_argument_is_checkout_independent() {
         let source = include_str!("main.rs");
-        let start = source
-            .find("fn apply_mattos_sysroot_environment")
-            .unwrap();
+        let start = source.find("fn apply_mattos_sysroot_environment").unwrap();
         let end = source[start..].find("fn run_cmd_output").unwrap() + start;
         let body = &source[start..end];
         assert!(body.contains("relative_sysroot.push(\"..\")"));
@@ -12981,10 +13257,7 @@ mod tests {
             .expect("attr source metadata");
         assert_eq!(attr.repo, "https://git.savannah.nongnu.org/git/attr.git");
         assert_eq!(attr.branch, "v2.6.0");
-        assert_eq!(
-            attr.revision.as_deref(),
-            Some(ATTR_UPSTREAM_COMMIT)
-        );
+        assert_eq!(attr.revision.as_deref(), Some(ATTR_UPSTREAM_COMMIT));
         assert_eq!(ATTR_RELEASE_DIRECTORY, "attr-2.6.0");
         assert!(ATTR_RELEASE_ARCHIVE_URL.ends_with("/attr-2.6.0.tar.xz"));
         assert_eq!(ATTR_RELEASE_ARCHIVE_SHA256.len(), 64);
@@ -12995,7 +13268,9 @@ mod tests {
         let temporary = tempfile::tempdir().unwrap();
         let archive = temporary.path().join("attr-2.6.0.tar.xz");
         fs::write(&archive, b"not the official Attr release archive").unwrap();
-        let error = verify_attr_release_archive(&archive).unwrap_err().to_string();
+        let error = verify_attr_release_archive(&archive)
+            .unwrap_err()
+            .to_string();
         assert!(error.contains("checksum mismatch"));
     }
 
@@ -13035,9 +13310,11 @@ mod tests {
         assert!(mirror.join("configure").is_file());
         assert!(mirror.join("aclocal.m4").is_file());
         assert!(mirror.join("Makefile.in").is_file());
-        assert!(fs::read_to_string(mirror.join("m4/visibility_hidden.m4"))
-            .unwrap()
-            .contains("AC_FUNC_GCC_VISIBILITY"));
+        assert!(
+            fs::read_to_string(mirror.join("m4/visibility_hidden.m4"))
+                .unwrap()
+                .contains("AC_FUNC_GCC_VISIBILITY")
+        );
     }
 
     #[test]
@@ -13059,19 +13336,32 @@ mod tests {
     fn acl_release_bootstrap_is_pinned_and_output_owned() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
         let sources = read_sources(&root).unwrap();
-        let acl = sources.component.iter().find(|item| item.name == "acl").unwrap();
+        let acl = sources
+            .component
+            .iter()
+            .find(|item| item.name == "acl")
+            .unwrap();
         assert_eq!(acl.branch, "v2.3.2");
         let state = read_sync_state(&root, "acl").unwrap().unwrap();
         assert_eq!(state.schema_version, 2);
-        assert_eq!(state.imported_commit, "214c7d146945c31a9dc04cb7094b85053f52a21e");
-        assert_eq!(state.upstream_tree, "0fc760b8b9935266e0e496b17effa771e9c57b42");
+        assert_eq!(
+            state.imported_commit,
+            "214c7d146945c31a9dc04cb7094b85053f52a21e"
+        );
+        assert_eq!(
+            state.upstream_tree,
+            "0fc760b8b9935266e0e496b17effa771e9c57b42"
+        );
         assert_eq!(state.imported_tree_digest.len(), 64);
         assert_eq!(state.patch_manifest, "none");
         assert!(ACL_RELEASE_ARCHIVE_URL.ends_with("/acl-2.3.2.tar.xz"));
         assert_eq!(ACL_RELEASE_ARCHIVE_SHA256.len(), 64);
         let builder = include_str!("main.rs");
         let start = builder.find("fn build_acl").unwrap();
-        let end = builder[start..].find("fn ensure_acl_release_archive").unwrap() + start;
+        let end = builder[start..]
+            .find("fn ensure_acl_release_archive")
+            .unwrap()
+            + start;
         let acl_build = &builder[start..end];
         assert!(acl_build.contains("stage_acl_bootstrap_inputs"));
         assert!(!acl_build.contains("./autogen.sh"));
@@ -13087,7 +13377,10 @@ mod tests {
         // bzip2's Makefile otherwise inherits the host CFLAGS, including a
         // possible -g.  Rebuilding forces stale objects out while the maps
         // make every output-owned source mirror look identical to the linker.
-        assert!(bzip2_build.contains("\"-B\", \"-f\", \"Makefile-libbz2_so\""));
+        assert!(
+            bzip2_build
+                .contains("\"-B\",\n            \"-f\",\n            \"Makefile-libbz2_so\"")
+        );
         assert!(bzip2_build.contains("let cflags_override = format!(\"CFLAGS={cflags}\")"));
         assert!(bzip2_build.contains("-O2 -g0 -fPIC"));
         assert!(bzip2_build.contains("-ffile-prefix-map={}=/usr/src/mattos/bzip2"));

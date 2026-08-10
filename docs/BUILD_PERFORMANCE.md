@@ -187,6 +187,13 @@ The final rootfs contains 555 ELF objects represented by 552 content-addressed E
 
 ## Child-job borrowing experiments
 
+The completed isolated calibration measurements are retained as empirical
+scaling data, not production scheduler limits: Make j4, glibc j8, GCC runtime
+j6, Binutils j6, and GCC compiler j6. The resource-aware scheduler consumes no
+per-stage count from this table; it uses generic launch-time resource profiles
+and host/cgroup CPU/RAM budgets. Future measurements may become an exceptional
+profile override only when they demonstrate a stable, reproducible benefit.
+
 The successful isolated cold DAG run at `cold-dag-20260808T174207Z` is the
 authoritative performance baseline. Its scheduler action spans show that the
 candidate stages had the following otherwise-unused global capacity while

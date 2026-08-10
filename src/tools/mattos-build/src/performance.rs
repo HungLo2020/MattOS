@@ -69,7 +69,10 @@ impl<T> Shared<T> {
     }
 
     fn with<R>(&self, action: impl FnOnce(&RefCell<T>) -> R) -> R {
-        let guard = self.0.lock().expect("shared invocation state mutex poisoned");
+        let guard = self
+            .0
+            .lock()
+            .expect("shared invocation state mutex poisoned");
         action(&guard)
     }
 }
@@ -245,6 +248,7 @@ pub(crate) fn with_stage_log<T, F>(repo_root: &Path, stage: &str, action: F) -> 
 where
     F: FnOnce() -> Result<T>,
 {
+    trace_log_context("with_stage_log-before");
     let log = repo_root
         .join("out/logs")
         .join(format!("{}.log", sanitize_identifier(stage)));
@@ -253,9 +257,13 @@ where
     }
     fs::write(&log, format!("MattOS build log: {stage}\n"))?;
     ACTIVE_BUILD_LOG.with(|slot| *slot.borrow_mut() = Some(log.clone()));
+    trace_log_context("with_stage_log-after-set");
     println!("[build] {stage}: running (full log: {})", log.display());
+    trace_log_context("with_stage_log-action-entry");
     let result = action();
+    trace_log_context("with_stage_log-action-return");
     ACTIVE_BUILD_LOG.with(|slot| *slot.borrow_mut() = None);
+    trace_log_context("with_stage_log-after-clear");
     if let Err(error) = &result {
         eprintln!("[build] {stage}: failed; full log: {}", log.display());
         if let Ok(tail) = log_tail(&log, 40) {
@@ -264,6 +272,40 @@ where
         eprintln!("{error:#}");
     }
     result
+}
+
+pub(crate) fn trace_log_context(boundary: &str) {
+    let Some(path) = std::env::var_os("MATTOS_LOG_CONTEXT_TRACE") else {
+        return;
+    };
+    let active = ACTIVE_BUILD_LOG.with(|slot| slot.borrow().clone());
+    let line = format!(
+        "boundary={boundary} thread={:?} active={}\n",
+        std::thread::current().id(),
+        active
+            .as_ref()
+            .map_or_else(|| "None".to_string(), |path| path.display().to_string())
+    );
+    if let Ok(mut file) = OpenOptions::new().create(true).append(true).open(path) {
+        let _ = file.write_all(line.as_bytes());
+    }
+}
+
+/// Appends an internal diagnostic to the log of the currently executing stage.
+/// It deliberately does nothing outside `with_stage_log`, so normal callers
+/// do not create logs or change build output.
+pub(crate) fn append_active_stage_log(line: &str) -> Result<()> {
+    let active = ACTIVE_BUILD_LOG.with(|slot| slot.borrow().clone());
+    if let Some(path) = active {
+        let mut log = OpenOptions::new().append(true).open(&path)?;
+        writeln!(log, "[mattos] {line}")?;
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+pub(crate) fn active_stage_log_path_for_test() -> Option<PathBuf> {
+    ACTIVE_BUILD_LOG.with(|slot| slot.borrow().clone())
 }
 
 pub(crate) fn run_logged_command(command: &mut Command, display: &str) -> Result<ExitStatus> {
@@ -562,7 +604,8 @@ pub(crate) fn invalidate_integrity_paths(repo_root: &Path, paths: &[PathBuf]) {
                 .any(|changed| paths_overlap(&key.path, changed))
         });
         cache.source_digests.retain(|key, _| {
-            !key.query.roots
+            !key.query
+                .roots
                 .iter()
                 .any(|root| paths.iter().any(|changed| paths_overlap(root, changed)))
         });
@@ -728,10 +771,7 @@ fn tracked_source_digest_uncached(
                 Ok(Some(digest_serializable(&inventory)?))
             },
             |phase, elapsed| {
-                record_category(
-                    &format!("input_source_profile:{label}:{phase}"),
-                    elapsed,
-                );
+                record_category(&format!("input_source_profile:{label}:{phase}"), elapsed);
             },
         );
     }
@@ -753,38 +793,38 @@ fn populate_git_source_values<'a>(
     values: &mut BTreeMap<&'a str, String>,
 ) -> Result<()> {
     for (path, header) in index_entries {
-            let path_buf = PathBuf::from(path);
-            if exclude_documentation && is_irrelevant_documentation(&path_buf) {
-                continue;
-            }
-            if snapshot.is_modified(path) {
-                let absolute = repo_root.join(&path_buf);
-                if absolute.symlink_metadata().is_ok() {
-                    let mut inventory = Vec::new();
-                    collect_inventory(repo_root, &absolute, false, &mut inventory)?;
-                    values.insert(
-                        path,
-                        format!("working:{}", digest_serializable(&inventory)?),
-                    );
-                } else {
-                    values.insert(path, "working:<deleted>".to_string());
-                }
+        let path_buf = PathBuf::from(path);
+        if exclude_documentation && is_irrelevant_documentation(&path_buf) {
+            continue;
+        }
+        if snapshot.is_modified(path) {
+            let absolute = repo_root.join(&path_buf);
+            if absolute.symlink_metadata().is_ok() {
+                let mut inventory = Vec::new();
+                collect_inventory(repo_root, &absolute, false, &mut inventory)?;
+                values.insert(
+                    path,
+                    format!("working:{}", digest_serializable(&inventory)?),
+                );
             } else {
-                values.insert(path, format!("index:{header}"));
+                values.insert(path, "working:<deleted>".to_string());
             }
+        } else {
+            values.insert(path, format!("index:{header}"));
         }
-        for path in snapshot.untracked_paths(&relative_roots) {
-            let path_buf = PathBuf::from(path);
-            if exclude_documentation && is_irrelevant_documentation(&path_buf) {
-                continue;
-            }
-            let mut inventory = Vec::new();
-            collect_inventory(repo_root, &repo_root.join(&path_buf), false, &mut inventory)?;
-            values.insert(
-                path,
-                format!("untracked:{}", digest_serializable(&inventory)?),
-            );
+    }
+    for path in snapshot.untracked_paths(&relative_roots) {
+        let path_buf = PathBuf::from(path);
+        if exclude_documentation && is_irrelevant_documentation(&path_buf) {
+            continue;
         }
+        let mut inventory = Vec::new();
+        collect_inventory(repo_root, &repo_root.join(&path_buf), false, &mut inventory)?;
+        values.insert(
+            path,
+            format!("untracked:{}", digest_serializable(&inventory)?),
+        );
+    }
     Ok(())
 }
 
@@ -1256,6 +1296,21 @@ mod tests {
         });
     }
 
+    #[test]
+    fn append_active_stage_log_writes_only_to_the_active_stage_log() {
+        let root = tempdir().unwrap();
+        with_stage_log(root.path(), "diagnostic", || {
+            append_active_stage_log("normalization boundary").unwrap();
+            Ok(())
+        })
+        .unwrap();
+        assert!(
+            fs::read_to_string(root.path().join("out/logs/diagnostic.log"))
+                .unwrap()
+                .contains("[mattos] normalization boundary")
+        );
+    }
+
     fn end_test_integrity_cache() {
         INTEGRITY_CACHE.with(|slot| *slot.borrow_mut() = None);
     }
@@ -1636,11 +1691,7 @@ mod tests {
                 .unwrap()
                 .success()
         );
-        assert_source_digest_matches_full_scan(
-            conflict.path(),
-            &[PathBuf::from("file")],
-            false,
-        );
+        assert_source_digest_matches_full_scan(conflict.path(), &[PathBuf::from("file")], false);
     }
 
     #[test]
@@ -1692,12 +1743,8 @@ mod tests {
             assert_ne!(current, source);
             assert_eq!(
                 current,
-                tracked_source_digest_full_scan_reference(
-                    &root,
-                    &[PathBuf::from("source")],
-                    true
-                )
-                .unwrap()
+                tracked_source_digest_full_scan_reference(&root, &[PathBuf::from("source")], true)
+                    .unwrap()
             );
             let (streamed, legacy) =
                 tracked_source_canonical_bytes(&root, &[PathBuf::from("source")], true).unwrap();
@@ -2419,7 +2466,8 @@ mod tests {
         let second_path = std::env::join_paths([alias, root.path().join("other")]).unwrap();
         assert_eq!(
             crate::tool_identity::resolve_executable_from("fixture-cc", Some(&first_path)).unwrap(),
-            crate::tool_identity::resolve_executable_from("fixture-cc", Some(&second_path)).unwrap()
+            crate::tool_identity::resolve_executable_from("fixture-cc", Some(&second_path))
+                .unwrap()
         );
     }
 
