@@ -1,0 +1,39 @@
+diff --git a/meson.build b/meson.build
+--- a/meson.build
++++ b/meson.build
+@@ -1692,7 +1692,7 @@ if opt and not is_disabler(exe)
+ endif
+ 
+ opt = get_option('build-dmesg') \
+-     .require(conf.get('HAVE_SYS_KLOG_H').to_string() == '1') \
++     .require(conf.get('HAVE_SYS_KLOG_H') == 1) \
+      .allowed()
+ exe = executable(
+   'dmesg',
+@@ -2556,7 +2556,7 @@ exe = executable(
+                lib_fdisk,
+                lib_smartcols,
+                lib_tcolors],
+-  dependencies : [lib_readline],
++  dependencies : lib_readline.found() ? [lib_readline] : [],
+   install_dir : sbindir,
+   install : opt,
+   build_by_default : opt)
+@@ -2591,7 +2591,7 @@ exe = executable(
+                lib_fdisk,
+                lib_smartcols,
+                lib_tcolors],
+-  dependencies : [lib_readline],
++  dependencies : lib_readline.found() ? [lib_readline] : [],
+   install_dir : sbindir,
+   install : opt,
+   build_by_default : opt)
+@@ -3065,7 +3065,7 @@ exe = executable(
+   link_with : [lib_common,
+                lib_tcolors,
+                lib_smartcols],
+-  dependencies : [blkid_dep, lib_udev, mount_dep],
++  dependencies : [blkid_dep, mount_dep],
+   install : opt,
+   build_by_default : opt)
+ if opt and not is_disabler(exe)

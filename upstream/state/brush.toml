@@ -12,4 +12,4 @@ imported_tree_digest = "767e1a55a66107c060002b0b273348735e67ca0074dab4fddd501d8f
 intentional_omission_policy = "none"
 gitlink_policy = "none"
 patch_manifest = "upstream/patches/brush/manifest.toml"
-patch_manifest_sha256 = "a8533d0a09677d112ee1c217f9a986eb089926380da41a5549db00e1c3550010"
+patch_manifest_sha256 = "4ac8fb49466401acaac6b6bb9c16bc49c24e951ed5c597d5efa80fbc07f02883"

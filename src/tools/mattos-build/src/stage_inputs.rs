@@ -16,6 +16,12 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::Sed => &["src/userland/sed"],
         BuildStage::Findutils => &["src/userland/findutils"],
         BuildStage::Diffutils => &["src/userland/diffutils"],
+        BuildStage::Gzip => &["src/userland/gzip", "upstream/policies/release-archives.toml"],
+        BuildStage::Patch => &["src/userland/patch", "upstream/policies/release-archives.toml"],
+        BuildStage::File => &["src/userland/file"],
+        BuildStage::Less => &["src/userland/less", "upstream/policies/release-archives.toml"],
+        BuildStage::Git => &["src/userland/git"],
+        BuildStage::Openssh => &["src/system/network/openssh-portable"],
         BuildStage::Kmod => &["src/system/kmod"],
         BuildStage::Procps => &["src/userland/procps-ng"],
         BuildStage::Ncurses => &["src/system/terminal/ncurses"],
@@ -47,7 +53,7 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::Pam => &["src/system/auth/linux-pam"],
         BuildStage::Shadow => &["src/system/auth/shadow"],
         BuildStage::SudoRs => &["src/system/auth/sudo-rs"],
-        BuildStage::UtilLinux => &["src/userland/util-linux"],
+        BuildStage::UtilLinux => &["src/userland/util-linux", "upstream/patches/util-linux"],
         BuildStage::Systemd => &["src/system/systemd"],
         BuildStage::DbusBroker => &[
             "src/system/dbus/dbus-broker",
@@ -89,7 +95,12 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
 }
 
 pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
-    if stage == BuildStage::All { 0 } else { 1 }
+    match stage {
+        BuildStage::All => 0,
+        BuildStage::Bzip2 | BuildStage::Xz | BuildStage::Zstd => 2,
+        BuildStage::UtilLinux => 5,
+        _ => 1,
+    }
 }
 
 pub(crate) fn is_rust_stage(stage: BuildStage) -> bool {
@@ -158,5 +169,17 @@ mod tests {
             Vec::<PathBuf>::new()
         );
         assert_eq!(configuration_inputs(BuildStage::Iso), Vec::<PathBuf>::new());
+    }
+
+    #[test]
+    fn release_archive_consumers_include_the_verified_policy() {
+        for stage in [BuildStage::Gzip, BuildStage::Patch, BuildStage::Less] {
+            assert!(
+                source_inputs(stage)
+                    .contains(&PathBuf::from("upstream/policies/release-archives.toml")),
+                "{} must invalidate when its pinned release archive policy changes",
+                crate::stage_graph::stage_id(stage)
+            );
+        }
     }
 }

@@ -2,6 +2,36 @@ schema_version = 1
 policy = "Vendored source trees contain no nested Git repositories. Every upstream gitlink is either replaced from a separately pinned ordinary-file import in output-owned build mirrors or explicitly excluded as unnecessary for the MattOS source/runtime closure."
 
 [[component]]
+name = "gzip"
+upstream_commit = "fbc4883eb9c304a04623ac506dd5cf5450d055f1"
+
+[[component.gitlink]]
+path = "gnulib"
+upstream_commit = "553ab924d2b68d930fae5d3c6396502a57852d23"
+action = "exclude"
+reason = "MattOS stages the checksum-verified official gzip-1.14 release archive in an output-owned mirror; that release contains the generated Gnulib closure required to build gzip, so the development-only Git submodule is neither an authoritative vendored-tree member nor a runtime input."
+
+[[component]]
+name = "patch"
+upstream_commit = "48ceda8200aaf30c3ce42c31cd70ff6087db2425"
+
+[[component.gitlink]]
+path = "gnulib"
+upstream_commit = "9829f0a93c40492875f67ee738e000611bdcf0e7"
+action = "exclude"
+reason = "MattOS stages the checksum-verified official patch-2.8 release archive in an output-owned mirror; that release contains the generated Gnulib closure required to build patch, so the development-only Git submodule is neither an authoritative vendored-tree member nor a runtime input."
+
+[[component]]
+name = "git"
+upstream_commit = "e9019fcafe0040228b8631c30f97ae1adb61bcdc"
+
+[[component.gitlink]]
+path = "sha1collisiondetection"
+upstream_commit = "855827c583bc30645ba427885caa40c5b81764d2"
+action = "exclude"
+reason = "Git's DC_SHA1_SUBMODULE path is experimental and is not enabled by MattOS; the pinned Git tree's ordinary sha1dc sources provide the default collision-detecting SHA-1 implementation used by this build."
+
+[[component]]
 name = "tar"
 upstream_commit = "e545d446dfe6564265cdf4186641ee76f4acc7fa"
 

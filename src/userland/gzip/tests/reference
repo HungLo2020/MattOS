@@ -1,0 +1,57 @@
+#!/bin/sh
+# Ensure that reference compressed files are still decompressible, and
+# that their corresponding inputs still compress to precisely the same bytes.
+# For a "normal" compression program, one must not require that the encoded
+# bytes remain the same. The compression algorithm may change. What normally
+# matters is solely that the decompressed result is the same as the input
+# to the compressor. However, here, with gzip's current moribund state,
+# it is fine to require that. In particular, this test ensures that
+# a CRC-perf change doesn't accidentally cause trouble. It's not enough
+# that gzip decompress files the compressor has just created: it must
+# continue to decompress old compressed outputs, too.
+
+# Copyright 2024-2025 Free Software Foundation, Inc.
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# limit so don't run it by default.
+
+. "${srcdir=.}/init.sh"; path_prepend_ ..
+
+fail=0
+
+cat <<EOF > exp || framework_failure_
+: 1f 8b 08 00 00 00 00 00 00 03 03 00 00 00 00 00 00 00 00 00
+a: 1f 8b 08 00 00 00 00 00 00 03 4b 04 00 43 be b7 e8 01 00 00 00
+b: 1f 8b 08 00 00 00 00 00 00 03 4b 02 00 f9 ef be 71 01 00 00 00
+c: 1f 8b 08 00 00 00 00 00 00 03 4b 06 00 6f df b9 06 01 00 00 00
+yyy: 1f 8b 08 00 00 00 00 00 00 03 ab ac ac 04 00 ea 81 45 73 03 00 00 00
+zzzzzzzzzzz: 1f 8b 08 00 00 00 00 00 00 03 ab aa 82 03 00 55 97 5b a7 0b 00 00 00
+EOF
+
+# Ensure that compressing these simple strings always produces the same bytes.
+# If using "od" is not portable enough, consider using this:
+# perl -ne 'printf "%02x ", ord($_) for split //'
+for i in '' a b c yyy zzzzzzzzzzz; do
+  echo $i: $(printf %s "$i" | gzip | od -An -tx1 | tr -d '\n')
+done > out || framework_failure_
+
+compare exp out || fail=1
+
+# Each output stream must inflate the original input.
+for i in '' a b c yyy zzzzzzzzzzz; do
+  in=$(printf %s "$i" | gzip | gzip -d)
+  test "$i" = "$in" || fail=1
+done
+
+Exit $fail

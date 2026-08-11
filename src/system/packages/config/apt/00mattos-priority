@@ -14,6 +14,6 @@ Pin: release o=Debian,n=trixie
 Pin-Priority: 500
 
 Explanation: Debian must never replace MattOS-controlled base infrastructure.
-Package: libc6 libc-bin libc6-dev linux-libc-dev libgcc-s1 libstdc++6 libgcc-14-dev libstdc++-14-dev mattos-libgcc-dev mattos-libstdc++-dev binutils cpp gcc g++ make systemd libsystemd0 libudev1 udev dpkg apt libapt-pkg7.0 coreutils util-linux mount login passwd libpam0g libpam-modules libpam-runtime libssl3t64 mattos-libcrypto3 linux-image-amd64 linux-headers-amd64 mattos-filesystem mattos-base-files mattos-brush mattos-sudo-rs
+Package: libc6 libc-bin libc6-dev linux-libc-dev libgcc-s1 libstdc++6 libgcc-14-dev libstdc++-14-dev mattos-libgcc-dev mattos-libstdc++-dev binutils cpp gcc g++ make systemd libsystemd0 libudev1 udev dpkg apt libapt-pkg7.0 coreutils util-linux mount login passwd libpam0g libpam-modules libpam-runtime libssl3t64 mattos-libcrypto3 linux-image-amd64 linux-headers-amd64 mattos-filesystem mattos-base-files mattos-brush mattos-sudo-rs gzip bzip2 xz-utils zstd patch file libmagic1 less git openssh-client openssh-server libuuid1 libfdisk1
 Pin: release o=Debian
 Pin-Priority: -1

@@ -1,0 +1,11 @@
+schema_version = 1
+component = "util-linux"
+upstream_commit = "fd82c4043fab942b889f478800118c66edfbc39f"
+upstream_tree = "d22c22956a98f6946c75f2cade6f466ccc0bc6dc"
+application = "output-mirror-only"
+
+[[patch]]
+path = "upstream/patches/util-linux/0001-keep-base-tools-without-optional-host-dependencies.patch"
+sha256 = "6fbfaf1988d8028fefcb7f8f20aa651bd490575953ba7ae7ca05b98444ed2d0d"
+purpose = "Build noninteractive fdisk tools without optional readline, lsblk without the cyclic libudev dependency, and correct dmesg's configured-header predicate."
+documentation = "docs/USERLAND_COMMANDS.md"

@@ -16,6 +16,12 @@ pub(crate) enum BuildStage {
     Sed,
     Findutils,
     Diffutils,
+    Gzip,
+    Patch,
+    File,
+    Less,
+    Git,
+    Openssh,
     Kmod,
     Procps,
     Ncurses,
@@ -69,6 +75,12 @@ pub(crate) fn stage_id(stage: BuildStage) -> &'static str {
         BuildStage::Sed => "sed",
         BuildStage::Findutils => "findutils",
         BuildStage::Diffutils => "diffutils",
+        BuildStage::Gzip => "gzip",
+        BuildStage::Patch => "patch",
+        BuildStage::File => "file",
+        BuildStage::Less => "less",
+        BuildStage::Git => "git",
+        BuildStage::Openssh => "openssh",
         BuildStage::Kmod => "kmod",
         BuildStage::Procps => "procps-ng",
         BuildStage::Ncurses => "ncurses",
@@ -121,6 +133,25 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         BuildStage::Selinux => &["formal-sysroot", "pcre2"],
         BuildStage::Libbsd => &["formal-sysroot", "libmd"],
         BuildStage::Tar => &["formal-sysroot", "acl", "attr"],
+        BuildStage::File => &["formal-sysroot", "zlib"],
+        BuildStage::Less => &["formal-sysroot", "ncurses", "pcre2"],
+        BuildStage::Git => &[
+            "formal-sysroot",
+            "curl",
+            "expat",
+            "openssl",
+            "zlib",
+            "zstd",
+            "pcre2",
+        ],
+        BuildStage::Openssh => &[
+            "formal-sysroot",
+            "openssl",
+            "zlib",
+            "zstd",
+            "linux-pam",
+            "libxcrypt",
+        ],
         BuildStage::Procps => &["formal-sysroot", "ncurses"],
         BuildStage::Iproute2 => &[
             "formal-sysroot",
@@ -133,7 +164,13 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         ],
         BuildStage::Curl => &["formal-sysroot", "openssl", "zlib", "zstd"],
         BuildStage::Pam => &["formal-sysroot", "libxcrypt"],
-        BuildStage::UtilLinux => &["formal-sysroot", "linux-pam", "selinux", "pcre2"],
+        BuildStage::UtilLinux => &[
+            "formal-sysroot",
+            "linux-pam",
+            "selinux",
+            "pcre2",
+            "ncurses",
+        ],
         BuildStage::Shadow => &[
             "formal-sysroot",
             "linux-pam",
@@ -204,6 +241,12 @@ pub(crate) fn all_build_stages() -> &'static [BuildStage] {
         BuildStage::Sed,
         BuildStage::Findutils,
         BuildStage::Diffutils,
+        BuildStage::Gzip,
+        BuildStage::Patch,
+        BuildStage::File,
+        BuildStage::Less,
+        BuildStage::Git,
+        BuildStage::Openssh,
         BuildStage::Expat,
         BuildStage::Libcap,
         BuildStage::Attr,
@@ -378,6 +421,27 @@ mod tests {
             downstream_invalidation(&["initramfs"]),
             ["initramfs", "iso"].into_iter().collect()
         );
+        assert_eq!(
+            downstream_invalidation(&["git"]),
+            ["git", "packages", "repository", "rootfs", "initramfs", "iso"]
+                .into_iter()
+                .collect()
+        );
+        for unrelated in [
+            "linux",
+            "glibc",
+            "gcc-runtime",
+            "gcc-compiler",
+            "binutils",
+            "curl",
+            "openssl",
+            "zlib",
+        ] {
+            assert!(
+                !downstream_invalidation(&["git"]).contains(unrelated),
+                "Git invalidation escaped into unrelated stage {unrelated}"
+            );
+        }
     }
 
     #[derive(Clone, Copy)]
@@ -496,21 +560,21 @@ mod tests {
     fn representative_cascade_report() {
         let scenarios: &[(&str, &[&str], usize, &[&str])] = &[
             ("Brush source", &["brush"], 6, &["zlib", "linux"]),
-            ("glibc source", &["glibc"], 51, &["linux"]),
+            ("glibc source", &["glibc"], 57, &["linux"]),
             ("Linux x86_64 config", &["linux"], 2, &["glibc", "brush"]),
             (
                 "Linux x86_64 UAPI source",
                 &["linux", "glibc", "linux-headers"],
-                52,
+                58,
                 &[],
             ),
             (
                 "GCC source",
                 &["gcc-runtime", "gcc-compiler"],
-                49,
+                55,
                 &["linux", "glibc", "linux-headers"],
             ),
-            ("zlib shared library", &["zlib"], 14, &["brush", "linux"]),
+            ("zlib shared library", &["zlib"], 17, &["brush", "linux"]),
             ("package metadata", &["packages"], 5, &["brush", "zlib"]),
             ("repository policy", &["repository"], 4, &["packages", "brush"]),
             ("rootfs configuration", &["rootfs"], 3, &["repository", "packages"]),

@@ -23,6 +23,12 @@ This document tracks command provenance for the MattOS base userland.
 - `iputils`: `75cd9d544baad45f81ed5c72bca332f577c3d81e`
 - `curl`: `527573490eb2564b3d7c9dd51d8bff963b5d6303`
 - `dbus-broker`: `2956b5d381deeea709c53d02f10e799e50e44f4b`
+- `gzip`: `fbc4883eb9c304a04623ac506dd5cf5450d055f1` (`v1.14`)
+- `patch`: `48ceda8200aaf30c3ce42c31cd70ff6087db2425` (`v2.8`)
+- `file`: `eb754ace19fed5481d8142426543100a2d6bae4e` (`FILE5_48`)
+- `less`: `7ea9586a9a1273eb9658d76af8986fdcf6738096` (`v704`)
+- `Git`: `e9019fcafe0040228b8631c30f97ae1adb61bcdc` (`v2.55.0`)
+- `OpenSSH portable`: `e8dd756725e8800fcd0b3fd71ee6b4382d1e8fab` (`V_10_4_P1`)
 
 ## Inventory Source
 
@@ -90,10 +96,52 @@ Measured counts from this build:
 
 ### util-linux (traditional C implementation)
 
-- Binary retained for tty login: `agetty`
-- Installed path: `/usr/sbin/agetty`
+- Authentication commands remain split into the existing `login` and `mount`
+  package families: `agetty`, `login`, `su`, `mount`, and `umount`.
+- The base `util-linux` package adds the deliberately selected administration
+  set: `lsblk`, `dmesg`, `fdisk`, `cfdisk`, `sfdisk`, `wipefs`, `blkid`,
+  `findmnt`, `losetup`, `mountpoint`, `blockdev`, `flock`, `lscpu`, `lslocks`,
+  `lsns`, `nsenter`, `unshare`, `taskset`, `chrt`, `ionice`, `prlimit`, and
+  `uuidgen`.
 - Provider label: `util-linux`
-- This remains intentionally separate from Rust/uutils command expansion.
+- This remains intentionally separate from Rust/uutils command expansion and
+  avoids installing every upstream helper into the live base image.
+
+### Base compression and maintenance tools
+
+- `gzip`: `gzip`, `gunzip`, `zcat`
+- `bzip2`: `bzip2`, `bunzip2`, `bzcat`, `bzip2recover`
+- `xz-utils`: `xz`, `unxz`, `xzcat`, `lzma`, `unlzma`, `lzcat`
+- `zstd`: `zstd`, `unzstd`, `zstdcat`
+- GNU Patch: `patch`
+- libmagic: `file`, with the package-owned `/usr/share/misc/magic.mgc`
+- less: `less`, `lesskey`, and `/usr/libexec/lessecho`, backed by MattOS
+  ncurses/terminfo and PCRE2.
+
+GNU gzip, GNU Patch, and less use checksum-verified official release archives
+to supply generated release inputs missing from their exact Git revisions. The
+archives are extracted only into `out/build/<component>/source`; authoritative
+vendored source is never regenerated or modified.
+
+### Git
+
+- Git and Scalar are installed from the pinned Git source and use MattOS-built
+  curl, OpenSSL, zlib, zstd, expat, and PCRE2.
+- Normal local repository operations and the `git-remote-http(s)` helpers are
+  included.
+- Perl, Python, Tcl/Tk, gettext, and Rust-dependent optional Git features are
+  deliberately omitted from this base milestone. Upstream's explicit
+  unsupported-command stubs may remain in Git's private exec path; they do not
+  imply those optional runtimes are available.
+
+### OpenSSH
+
+- Client commands: `ssh`, `scp`, `sftp`, `ssh-add`, `ssh-agent`, `ssh-keygen`,
+  and `ssh-keyscan`.
+- Server: `/usr/sbin/sshd`, package-owned secure configuration, PAM policy,
+  sysusers entry, and `ssh.service` integration.
+- Host keys are generated on the installed/runtime system; no mutable host key
+  material is baked into the image.
 
 ### kmod
 
@@ -129,6 +177,8 @@ Measured counts from this build:
 
 - Shell binary: `brush` at `/usr/bin/brush`
 - Package-owned compatibility entry points: `/usr/bin/sh -> brush` and `/usr/bin/bash -> brush`; the merged `/bin` layout therefore also provides `/bin/sh` and `/bin/bash`.
+- MattOS applies a checksummed output-mirror patch so Brush selects POSIX mode
+  when invoked as `sh`; `bash` and `brush` retain Bash-compatible behavior.
 - Provider label in inventory for shell binary: `brush`
 - Built-ins are internal to Brush and are not listed as standalone ELF binaries.
 
@@ -145,6 +195,14 @@ Measured counts from this build:
 - `failed_compatibility` reasons in inventory:
 	- `uutils/diffutils:diff3 (not implemented upstream)`
 	- `uutils/diffutils:sdiff (not implemented upstream)`
+- util-linux programs outside the selected base set remain available for later
+  package expansion; hardware/destructive and specialized helpers are not
+  installed merely because upstream built them.
+- Git's Perl/Python/Tcl/Tk/gettext optional tooling is deferred until those
+  language/runtime stacks are themselves MattOS-owned.
+- OpenSSH security-key middleware and optional platform integrations require
+  their respective future MattOS packages; core client/server and PAM paths do
+  not depend on them.
 
 ## Duplicate Ownership Check
 

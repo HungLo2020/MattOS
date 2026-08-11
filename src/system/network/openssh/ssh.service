@@ -1,0 +1,16 @@
+[Unit]
+Description=OpenSSH server daemon
+After=network.target
+ConditionPathExists=!/etc/ssh/sshd_not_to_be_run
+
+[Service]
+Type=notify
+ExecStartPre=/usr/bin/ssh-keygen -A
+ExecStartPre=/usr/sbin/sshd -t
+ExecStart=/usr/sbin/sshd -D
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

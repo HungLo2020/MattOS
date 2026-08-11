@@ -74,6 +74,16 @@ const ACL_RELEASE_ARCHIVE_URL: &str =
     "https://download.savannah.gnu.org/releases/acl/acl-2.3.2.tar.xz";
 const ACL_RELEASE_ARCHIVE_SHA256: &str =
     "97203a72cae99ab89a067fe2210c1cbf052bc492b479eca7d226d9830883b0bd";
+const GZIP_RELEASE_ARCHIVE_URL: &str = "https://ftp.gnu.org/gnu/gzip/gzip-1.14.tar.xz";
+const GZIP_RELEASE_ARCHIVE_SHA256: &str =
+    "01a7b881bd220bfdf615f97b8718f80bdfd3f6add385b993dcf6efd14e8c0ac6";
+const PATCH_RELEASE_ARCHIVE_URL: &str = "https://ftp.gnu.org/gnu/patch/patch-2.8.tar.xz";
+const PATCH_RELEASE_ARCHIVE_SHA256: &str =
+    "f87cee69eec2b4fcbf60a396b030ad6aa3415f192aa5f7ee84cad5e11f7f5ae3";
+const LESS_RELEASE_ARCHIVE_URL: &str =
+    "https://www.greenwoodsoftware.com/less/less-704.tar.gz";
+const LESS_RELEASE_ARCHIVE_SHA256: &str =
+    "20a0b0a2bb2525fa53c7eee9beb854b4c9cf172eabb209af7020743547bfe9fb";
 const SUDO_RS_PROVIDER: &str = "sudo-rs";
 const KMOD_PROVIDER: &str = "kmod";
 const PROCPS_PROVIDER: &str = "procps-ng";
@@ -81,6 +91,15 @@ const NCURSES_PROVIDER: &str = "ncurses";
 const IPROUTE2_PROVIDER: &str = "iproute2";
 const IPUTILS_PROVIDER: &str = "iputils";
 const CURL_PROVIDER: &str = "curl";
+const GZIP_PROVIDER: &str = "gzip";
+const BZIP2_PROVIDER: &str = "bzip2";
+const XZ_PROVIDER: &str = "xz";
+const ZSTD_PROVIDER: &str = "zstd";
+const PATCH_PROVIDER: &str = "patch";
+const FILE_PROVIDER: &str = "file";
+const LESS_PROVIDER: &str = "less";
+const GIT_PROVIDER: &str = "git";
+const OPENSSH_PROVIDER: &str = "openssh";
 const DBUS_BROKER_PROVIDER: &str = "dbus-broker";
 const SYSTEMD_PROVIDER: &str = "systemd";
 const SYSTEMD_PAM_MODULE_REL: &str = "usr/lib/x86_64-linux-gnu/security/pam_systemd.so";
@@ -324,6 +343,93 @@ const DBUS_BROKER_BINARIES: &[ComponentBinarySpec] = &[
     },
 ];
 
+const UTIL_LINUX_BASE_BINARIES: &[ComponentBinarySpec] = &[
+    component_binary("usr/bin/lsblk", "lsblk"),
+    component_binary("usr/bin/dmesg", "dmesg"),
+    component_binary("usr/sbin/fdisk", "fdisk"),
+    component_binary("usr/sbin/cfdisk", "cfdisk"),
+    component_binary("usr/sbin/sfdisk", "sfdisk"),
+    component_binary("usr/sbin/wipefs", "wipefs"),
+    component_binary("usr/sbin/blkid", "blkid"),
+    component_binary("usr/bin/findmnt", "findmnt"),
+    component_binary("usr/sbin/losetup", "losetup"),
+    component_binary("usr/bin/mountpoint", "mountpoint"),
+    component_binary("usr/sbin/blockdev", "blockdev"),
+    component_binary("usr/bin/flock", "flock"),
+    component_binary("usr/bin/lscpu", "lscpu"),
+    component_binary("usr/bin/lslocks", "lslocks"),
+    component_binary("usr/bin/lsns", "lsns"),
+    component_binary("usr/bin/nsenter", "nsenter"),
+    component_binary("usr/bin/unshare", "unshare"),
+    component_binary("usr/bin/taskset", "taskset"),
+    component_binary("usr/bin/chrt", "chrt"),
+    component_binary("usr/bin/ionice", "ionice"),
+    component_binary("usr/bin/prlimit", "prlimit"),
+    component_binary("usr/bin/uuidgen", "uuidgen"),
+];
+
+const GZIP_BINARIES: &[ComponentBinarySpec] = &[
+    component_binary("usr/bin/gzip", "gzip"),
+    component_binary("usr/bin/gunzip", "gunzip"),
+    component_binary("usr/bin/zcat", "zcat"),
+];
+const BZIP2_BINARIES: &[ComponentBinarySpec] = &[
+    component_binary("usr/bin/bzip2", "bzip2"),
+    component_binary("usr/bin/bunzip2", "bunzip2"),
+    component_binary("usr/bin/bzcat", "bzcat"),
+    component_binary("usr/bin/bzip2recover", "bzip2recover"),
+];
+const XZ_BINARIES: &[ComponentBinarySpec] = &[
+    component_binary("usr/bin/xz", "xz"),
+    component_binary("usr/bin/unxz", "unxz"),
+    component_binary("usr/bin/xzcat", "xzcat"),
+    component_binary("usr/bin/lzma", "lzma"),
+    component_binary("usr/bin/unlzma", "unlzma"),
+    component_binary("usr/bin/lzcat", "lzcat"),
+];
+const ZSTD_BINARIES: &[ComponentBinarySpec] = &[
+    component_binary("usr/bin/zstd", "zstd"),
+    component_binary("usr/bin/unzstd", "unzstd"),
+    component_binary("usr/bin/zstdcat", "zstdcat"),
+];
+const PATCH_BINARIES: &[ComponentBinarySpec] = &[component_binary("usr/bin/patch", "patch")];
+const FILE_BINARIES: &[ComponentBinarySpec] = &[component_binary("usr/bin/file", "file")];
+const LESS_BINARIES: &[ComponentBinarySpec] = &[
+    component_binary("usr/bin/less", "less"),
+    component_binary("usr/bin/lesskey", "lesskey"),
+    component_binary_at("usr/libexec/lessecho", "usr/libexec/lessecho", "lessecho"),
+];
+const GIT_BINARIES: &[ComponentBinarySpec] = &[
+    component_binary("usr/bin/git", "git"),
+    component_binary("usr/bin/scalar", "scalar"),
+];
+const OPENSSH_BINARIES: &[ComponentBinarySpec] = &[
+    component_binary("usr/bin/ssh", "ssh"),
+    component_binary("usr/bin/scp", "scp"),
+    component_binary("usr/bin/sftp", "sftp"),
+    component_binary("usr/bin/ssh-add", "ssh-add"),
+    component_binary("usr/bin/ssh-agent", "ssh-agent"),
+    component_binary("usr/bin/ssh-keygen", "ssh-keygen"),
+    component_binary("usr/bin/ssh-keyscan", "ssh-keyscan"),
+    component_binary_at("usr/sbin/sshd", "usr/sbin/sshd", "sshd"),
+];
+
+const fn component_binary(path: &'static str, command_name: &'static str) -> ComponentBinarySpec {
+    ComponentBinarySpec {
+        source_rel: path,
+        destination_rel: path,
+        command_name,
+    }
+}
+
+const fn component_binary_at(
+    source_rel: &'static str,
+    destination_rel: &'static str,
+    command_name: &'static str,
+) -> ComponentBinarySpec {
+    ComponentBinarySpec { source_rel, destination_rel, command_name }
+}
+
 const COMPONENT_INSTALL_MANIFESTS: &[ComponentInstallManifest] = &[
     ComponentInstallManifest {
         provider: KMOD_PROVIDER,
@@ -354,6 +460,56 @@ const COMPONENT_INSTALL_MANIFESTS: &[ComponentInstallManifest] = &[
         provider: CURL_PROVIDER,
         install_root_rel: "out/build/curl/install",
         binaries: CURL_BINARIES,
+    },
+    ComponentInstallManifest {
+        provider: UTIL_LINUX_PROVIDER,
+        install_root_rel: "out/build/util-linux/install",
+        binaries: UTIL_LINUX_BASE_BINARIES,
+    },
+    ComponentInstallManifest {
+        provider: GZIP_PROVIDER,
+        install_root_rel: "out/build/gzip/install",
+        binaries: GZIP_BINARIES,
+    },
+    ComponentInstallManifest {
+        provider: BZIP2_PROVIDER,
+        install_root_rel: "out/build/bzip2/install",
+        binaries: BZIP2_BINARIES,
+    },
+    ComponentInstallManifest {
+        provider: XZ_PROVIDER,
+        install_root_rel: "out/build/xz/install",
+        binaries: XZ_BINARIES,
+    },
+    ComponentInstallManifest {
+        provider: ZSTD_PROVIDER,
+        install_root_rel: "out/build/zstd/install",
+        binaries: ZSTD_BINARIES,
+    },
+    ComponentInstallManifest {
+        provider: PATCH_PROVIDER,
+        install_root_rel: "out/build/patch/install",
+        binaries: PATCH_BINARIES,
+    },
+    ComponentInstallManifest {
+        provider: FILE_PROVIDER,
+        install_root_rel: "out/build/file/install",
+        binaries: FILE_BINARIES,
+    },
+    ComponentInstallManifest {
+        provider: LESS_PROVIDER,
+        install_root_rel: "out/build/less/install",
+        binaries: LESS_BINARIES,
+    },
+    ComponentInstallManifest {
+        provider: GIT_PROVIDER,
+        install_root_rel: "out/build/git/install",
+        binaries: GIT_BINARIES,
+    },
+    ComponentInstallManifest {
+        provider: OPENSSH_PROVIDER,
+        install_root_rel: "out/build/openssh/install",
+        binaries: OPENSSH_BINARIES,
     },
     ComponentInstallManifest {
         provider: DBUS_BROKER_PROVIDER,
@@ -2811,6 +2967,7 @@ fn stage_resource_profile(stage: BuildStage) -> scheduler::StageResourceProfile 
         | BuildStage::Sed
         | BuildStage::Findutils
         | BuildStage::Diffutils
+        | BuildStage::Git
         | BuildStage::SudoRs
         | BuildStage::Init => scheduler::StageResourceProfile::memory_heavy(),
         _ => scheduler::StageResourceProfile::standard(),
@@ -2873,6 +3030,12 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::Diffutils => {
             vec!["out/build/diffutils/cargo-target/release/diffutils".into()]
         }
+        BuildStage::Gzip => vec!["out/build/gzip/install".into()],
+        BuildStage::Patch => vec!["out/build/patch/install".into()],
+        BuildStage::File => vec!["out/build/file/install".into()],
+        BuildStage::Less => vec!["out/build/less/install".into()],
+        BuildStage::Git => vec!["out/build/git/install".into()],
+        BuildStage::Openssh => vec!["out/build/openssh/install".into()],
         BuildStage::SudoRs => vec!["out/build/sudo-rs/cargo-target/release/sudo".into()],
         BuildStage::Init => vec!["target/release/mattos-init".into()],
         BuildStage::Initramfs => vec!["out/build/initramfs.cpio.gz".into()],
@@ -3185,6 +3348,12 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::Sed => build_sed(repo_root),
         BuildStage::Findutils => build_findutils(repo_root),
         BuildStage::Diffutils => build_diffutils(repo_root),
+        BuildStage::Gzip => build_gzip(repo_root),
+        BuildStage::Patch => build_patch(repo_root),
+        BuildStage::File => build_file(repo_root),
+        BuildStage::Less => build_less(repo_root),
+        BuildStage::Git => build_git(repo_root),
+        BuildStage::Openssh => build_openssh(repo_root),
         BuildStage::Kmod => build_kmod(repo_root),
         BuildStage::Procps => build_procps(repo_root),
         BuildStage::Ncurses => build_ncurses(repo_root),
@@ -5328,15 +5497,16 @@ fn build_sudo_rs(repo_root: &Path) -> Result<()> {
 }
 
 fn build_util_linux(repo_root: &Path) -> Result<()> {
-    let util_linux_src = repo_root.join("src/userland/util-linux");
-    if !util_linux_src.join("meson.build").exists() {
+    let authoritative_source = repo_root.join("src/userland/util-linux");
+    if !authoritative_source.join("meson.build").exists() {
         bail!(
             "util-linux source not found in {}; run upstream import util-linux first",
-            util_linux_src.display()
+            authoritative_source.display()
         );
     }
 
     let out_root = repo_root.join("out/build/util-linux");
+    let util_linux_src = out_root.join("source");
     let build_dir = out_root.join("build");
     let install_dir = out_root.join("install");
     let options_path = out_root.join("meson-options.txt");
@@ -5353,6 +5523,10 @@ fn build_util_linux(repo_root: &Path) -> Result<()> {
     let pcre2_pkgconfig = pcre2_install.join("lib/x86_64-linux-gnu/pkgconfig");
     let pcre2_include = pcre2_install.join("include");
     let pcre2_lib = pcre2_install.join("lib/x86_64-linux-gnu");
+    let ncurses_install = repo_root.join("out/build/ncurses/install/usr");
+    let ncurses_pkgconfig = ncurses_install.join("lib/x86_64-linux-gnu/pkgconfig");
+    let ncurses_include = ncurses_install.join("include");
+    let ncurses_lib = ncurses_install.join("lib/x86_64-linux-gnu");
     if !pam_pkgconfig.exists() {
         bail!(
             "linux-pam pkg-config directory missing at {}; run build pam first",
@@ -5365,8 +5539,12 @@ fn build_util_linux(repo_root: &Path) -> Result<()> {
     }
 
     let current_pkg_config = std::env::var("PKG_CONFIG_PATH").unwrap_or_default();
-    let staged_pkg_config =
-        std::env::join_paths([&pam_pkgconfig, &selinux_pkgconfig, &pcre2_pkgconfig])?
+    let staged_pkg_config = std::env::join_paths([
+        &pam_pkgconfig,
+        &selinux_pkgconfig,
+        &pcre2_pkgconfig,
+        &ncurses_pkgconfig,
+    ])?
             .to_string_lossy()
             .to_string();
     let pkg_config_path = if current_pkg_config.is_empty() {
@@ -5376,10 +5554,11 @@ fn build_util_linux(repo_root: &Path) -> Result<()> {
     };
     let current_cflags = std::env::var("CFLAGS").unwrap_or_default();
     let staged_cflags = format!(
-        "-I{} -I{} -I{}",
+        "-I{} -I{} -I{} -I{}",
         pam_include.display(),
         selinux_include.display(),
-        pcre2_include.display()
+        pcre2_include.display(),
+        ncurses_include.display()
     );
     let cflags = if current_cflags.is_empty() {
         staged_cflags
@@ -5388,17 +5567,18 @@ fn build_util_linux(repo_root: &Path) -> Result<()> {
     };
     let current_ldflags = std::env::var("LDFLAGS").unwrap_or_default();
     let staged_ldflags = format!(
-        "-L{} -L{} -L{}",
+        "-L{} -L{} -L{} -L{}",
         pam_lib.display(),
         selinux_lib.display(),
-        pcre2_lib.display()
+        pcre2_lib.display(),
+        ncurses_lib.display()
     );
     let ldflags = if current_ldflags.is_empty() {
         staged_ldflags
     } else {
         format!("{staged_ldflags} {current_ldflags}")
     };
-    let library_path = std::env::join_paths([&pam_lib, &selinux_lib, &pcre2_lib])?
+    let library_path = std::env::join_paths([&pam_lib, &selinux_lib, &pcre2_lib, &ncurses_lib])?
         .to_string_lossy()
         .to_string();
     let env_overrides = vec![
@@ -5419,15 +5599,17 @@ fn build_util_linux(repo_root: &Path) -> Result<()> {
     let existing_env = fs::read_to_string(&env_path).ok();
     fs::create_dir_all(&out_root)
         .with_context(|| format!("failed to create {}", out_root.display()))?;
+    sync_build_source(&authoritative_source, &util_linux_src)?;
+    apply_component_patches(repo_root, "util-linux", &util_linux_src)?;
 
     let options = util_linux_meson_options();
-    let options_text = format!("{}\n", options.join("\n"));
+    let options_text = format!("policy=base-userland-output-mirror-v2\n{}\n", options.join("\n"));
     let existing_options = fs::read_to_string(&options_path).ok();
     let needs_reconfigure = existing_options.as_deref() != Some(options_text.as_str());
     let env_changed = existing_env.as_deref() != Some(env_text.as_str());
     let mut configured = build_dir.join("build.ninja").exists();
 
-    if configured && env_changed {
+    if configured && (env_changed || needs_reconfigure) {
         fs::remove_dir_all(&build_dir)
             .with_context(|| format!("failed to reset {}", build_dir.display()))?;
         configured = false;
@@ -5436,20 +5618,6 @@ fn build_util_linux(repo_root: &Path) -> Result<()> {
     if !configured {
         let mut setup_args = vec![
             "setup".to_string(),
-            build_dir.display().to_string(),
-            util_linux_src.display().to_string(),
-        ];
-        setup_args.extend(options.clone());
-        let setup_refs: Vec<&str> = setup_args.iter().map(String::as_str).collect();
-        run_cmd_with_env_overrides(repo_root, "meson", &setup_refs, &env_overrides)?;
-        fs::write(&options_path, &options_text)
-            .with_context(|| format!("failed to write {}", options_path.display()))?;
-        fs::write(&env_path, &env_text)
-            .with_context(|| format!("failed to write {}", env_path.display()))?;
-    } else if needs_reconfigure {
-        let mut setup_args = vec![
-            "setup".to_string(),
-            "--reconfigure".to_string(),
             build_dir.display().to_string(),
             util_linux_src.display().to_string(),
         ];
@@ -5508,6 +5676,14 @@ fn build_util_linux(repo_root: &Path) -> Result<()> {
         install_dir.join("usr/lib/x86_64-linux-gnu/libblkid.so.1"),
         install_dir.join("usr/lib/x86_64-linux-gnu/libmount.so.1"),
         install_dir.join("usr/lib/x86_64-linux-gnu/libsmartcols.so.1"),
+        install_dir.join("usr/lib/x86_64-linux-gnu/libuuid.so.1"),
+        install_dir.join("usr/lib/x86_64-linux-gnu/libfdisk.so.1"),
+        install_dir.join("usr/bin/lsblk"),
+        install_dir.join("usr/bin/dmesg"),
+        install_dir.join("usr/sbin/fdisk"),
+        install_dir.join("usr/sbin/sfdisk"),
+        install_dir.join("usr/sbin/cfdisk"),
+        install_dir.join("usr/sbin/wipefs"),
     ] {
         if !path.exists() {
             bail!("util-linux install did not produce {}", path.display());
@@ -5551,7 +5727,26 @@ fn util_linux_meson_options() -> Vec<String> {
         "-Dbuild-libblkid=enabled".to_string(),
         "-Dbuild-libmount=enabled".to_string(),
         "-Dbuild-libsmartcols=enabled".to_string(),
+        "-Dbuild-libuuid=enabled".to_string(),
+        "-Dbuild-libfdisk=enabled".to_string(),
         "-Dbuild-mount=enabled".to_string(),
+        "-Dbuild-fdisks=enabled".to_string(),
+        "-Dbuild-losetup=enabled".to_string(),
+        "-Dbuild-lsns=enabled".to_string(),
+        "-Dbuild-wipefs=enabled".to_string(),
+        "-Dbuild-mountpoint=enabled".to_string(),
+        "-Dbuild-unshare=enabled".to_string(),
+        "-Dbuild-nsenter=enabled".to_string(),
+        "-Dbuild-blockdev=enabled".to_string(),
+        "-Dbuild-lsblk=enabled".to_string(),
+        "-Dbuild-lslocks=enabled".to_string(),
+        "-Dbuild-findmnt=enabled".to_string(),
+        "-Dbuild-flock=enabled".to_string(),
+        "-Dbuild-dmesg=enabled".to_string(),
+        "-Dbuild-schedutils=enabled".to_string(),
+        "-Dbuild-prlimit=enabled".to_string(),
+        "-Dbuild-lscpu=enabled".to_string(),
+        "-Dncursesw=enabled".to_string(),
         "-Dselinux=enabled".to_string(),
         "-Dsystemd=disabled".to_string(),
         "-Dnls=disabled".to_string(),
@@ -6378,6 +6573,267 @@ fn build_zlib(repo_root: &Path) -> Result<()> {
     Ok(())
 }
 
+fn ensure_verified_release_archive(
+    out_root: &Path,
+    filename: &str,
+    url: &str,
+    expected_sha256: &str,
+) -> Result<PathBuf> {
+    let bootstrap = out_root.join("bootstrap");
+    fs::create_dir_all(&bootstrap)?;
+    let archive = bootstrap.join(filename);
+    if archive.is_file() && performance::sha256_file(&archive)? == expected_sha256 {
+        return Ok(archive);
+    }
+    let temporary = bootstrap.join(format!("{filename}.tmp"));
+    remove_path_if_exists(&temporary)?;
+    run_cmd(
+        out_root,
+        "curl",
+        &["-fL", "--retry", "3", "--output", path_str(&temporary)?, url],
+    )?;
+    let actual = performance::sha256_file(&temporary)?;
+    if actual != expected_sha256 {
+        bail!("release archive checksum mismatch for {url}: expected {expected_sha256}, got {actual}");
+    }
+    fs::rename(&temporary, &archive)?;
+    Ok(archive)
+}
+
+fn stage_release_source(archive: &Path, source_copy: &Path) -> Result<()> {
+    remove_path_if_exists(source_copy)?;
+    fs::create_dir_all(source_copy)?;
+    let extract_flag = if archive.extension().and_then(OsStr::to_str) == Some("gz") {
+        "-xzf"
+    } else {
+        "-xJf"
+    };
+    run_cmd(
+        source_copy,
+        "tar",
+        &[extract_flag, path_str(archive)?, "--strip-components=1"],
+    )
+}
+
+fn build_release_autotools_program(
+    repo_root: &Path,
+    component: &str,
+    archive_filename: &str,
+    archive_url: &str,
+    archive_sha256: &str,
+    dependencies: &[&str],
+    options: &[&str],
+    required_outputs: &[&str],
+) -> Result<()> {
+    let out_root = repo_root.join("out/build").join(component);
+    let source_copy = out_root.join("source");
+    let build_dir = out_root.join("build");
+    let install_dir = out_root.join("install");
+    let stamp_path = out_root.join("build-stamp.txt");
+    let state = fs::read_to_string(repo_root.join("upstream/state").join(format!("{component}.toml")))?;
+    let stamp = format!("{state}\n{archive_url}\n{archive_sha256}\n{}\n{}\n", dependencies.join("\n"), options.join("\n"));
+    if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+        remove_path_if_exists(&source_copy)?;
+        remove_path_if_exists(&build_dir)?;
+    }
+    fs::create_dir_all(&out_root)?;
+    let archive = ensure_verified_release_archive(
+        &out_root,
+        archive_filename,
+        archive_url,
+        archive_sha256,
+    )?;
+    if !source_copy.join("configure").is_file() {
+        stage_release_source(&archive, &source_copy)?;
+    }
+    fs::create_dir_all(&build_dir)?;
+    let env = staged_library_environment(repo_root, dependencies)?;
+    if !build_dir.join("Makefile").is_file() {
+        run_cmd_with_env_overrides(&build_dir, path_str(&source_copy.join("configure"))?, options, &env)?;
+    }
+    run_cmd_with_env_overrides(&build_dir, "make", &["-j", "4"], &env)?;
+    remove_path_if_exists(&install_dir)?;
+    run_cmd_with_env_overrides(
+        &build_dir,
+        "make",
+        &["install", &format!("DESTDIR={}", install_dir.display())],
+        &env,
+    )?;
+    for relative in required_outputs {
+        if !install_dir.join(relative).is_file() {
+            bail!("{component} install did not produce {relative}");
+        }
+    }
+    fs::write(stamp_path, stamp)?;
+    Ok(())
+}
+
+fn build_gzip(repo_root: &Path) -> Result<()> {
+    build_release_autotools_program(
+        repo_root,
+        "gzip",
+        "gzip-1.14.tar.xz",
+        GZIP_RELEASE_ARCHIVE_URL,
+        GZIP_RELEASE_ARCHIVE_SHA256,
+        &[],
+        &["--prefix=/usr", "--disable-nls"],
+        &["usr/bin/gzip"],
+    )
+}
+
+fn build_patch(repo_root: &Path) -> Result<()> {
+    build_release_autotools_program(
+        repo_root,
+        "patch",
+        "patch-2.8.tar.xz",
+        PATCH_RELEASE_ARCHIVE_URL,
+        PATCH_RELEASE_ARCHIVE_SHA256,
+        &[],
+        &["--prefix=/usr", "--disable-nls"],
+        &["usr/bin/patch"],
+    )
+}
+
+fn staged_library_environment(repo_root: &Path, components: &[&str]) -> Result<Vec<(&'static str, String)>> {
+    let mut include_dirs = Vec::new();
+    let mut library_dirs = Vec::new();
+    let mut pkgconfig_dirs = Vec::new();
+    for component in components {
+        let usr = repo_root.join("out/build").join(component).join("install/usr");
+        let include = usr.join("include");
+        let library = usr.join("lib/x86_64-linux-gnu");
+        if include.is_dir() { include_dirs.push(include); }
+        if library.is_dir() {
+            pkgconfig_dirs.push(library.join("pkgconfig"));
+            library_dirs.push(library);
+        }
+    }
+    let cppflags = include_dirs.iter().map(|p| format!("-I{}", p.display())).collect::<Vec<_>>().join(" ");
+    let ldflags = library_dirs.iter().map(|p| format!("-L{} -Wl,-rpath-link,{}", p.display(), p.display())).collect::<Vec<_>>().join(" ");
+    Ok(vec![
+        ("CPPFLAGS", cppflags),
+        ("LDFLAGS", ldflags),
+        ("LIBRARY_PATH", std::env::join_paths(&library_dirs)?.to_string_lossy().to_string()),
+        ("LD_LIBRARY_PATH", std::env::join_paths(&library_dirs)?.to_string_lossy().to_string()),
+        ("PKG_CONFIG_PATH", std::env::join_paths(&pkgconfig_dirs)?.to_string_lossy().to_string()),
+    ])
+}
+
+fn build_autotools_import(
+    repo_root: &Path,
+    component: &str,
+    source_relative: &str,
+    dependencies: &[&str],
+    options: &[&str],
+    required_outputs: &[&str],
+) -> Result<()> {
+    let source = repo_root.join(source_relative);
+    let out_root = repo_root.join("out/build").join(component);
+    let source_copy = out_root.join("source");
+    let build_dir = out_root.join("build");
+    let install_dir = out_root.join("install");
+    let stamp_path = out_root.join("build-stamp.txt");
+    let state = fs::read_to_string(repo_root.join("upstream/state").join(format!("{component}.toml")))?;
+    let stamp = format!("{state}\n{}\n", options.join("\n"));
+    if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+        remove_path_if_exists(&source_copy)?;
+        remove_path_if_exists(&build_dir)?;
+    }
+    fs::create_dir_all(&out_root)?;
+    sync_build_source(&source, &source_copy)?;
+    if !source_copy.join("configure").is_file() {
+        run_cmd(&source_copy, "autoreconf", &["-fiv"])?;
+    }
+    let env = staged_library_environment(repo_root, dependencies)?;
+    fs::create_dir_all(&build_dir)?;
+    if !build_dir.join("Makefile").is_file() {
+        run_cmd_with_env_overrides(&build_dir, path_str(&source_copy.join("configure"))?, options, &env)?;
+    }
+    run_cmd_with_env_overrides(&build_dir, "make", &["-j", "4"], &env)?;
+    remove_path_if_exists(&install_dir)?;
+    run_cmd_with_env_overrides(
+        &build_dir,
+        "make",
+        &["install", &format!("DESTDIR={}", install_dir.display())],
+        &env,
+    )?;
+    for relative in required_outputs {
+        if !install_dir.join(relative).is_file() { bail!("{component} install did not produce {relative}"); }
+    }
+    fs::write(stamp_path, stamp)?;
+    Ok(())
+}
+
+fn build_file(repo_root: &Path) -> Result<()> {
+    build_autotools_import(
+        repo_root, "file", "src/userland/file", &["zlib"],
+        &["--prefix=/usr", "--libdir=/usr/lib/x86_64-linux-gnu", "--disable-static"],
+        &["usr/bin/file", "usr/lib/x86_64-linux-gnu/libmagic.so.1", "usr/share/misc/magic.mgc"],
+    )
+}
+
+fn build_less(repo_root: &Path) -> Result<()> {
+    build_release_autotools_program(
+        repo_root, "less", "less-704.tar.gz", LESS_RELEASE_ARCHIVE_URL,
+        LESS_RELEASE_ARCHIVE_SHA256, &["ncurses", "pcre2"],
+        &["--prefix=/usr", "--sysconfdir=/etc", "--with-regex=pcre2"],
+        &["usr/bin/less", "usr/bin/lesskey", "usr/libexec/lessecho"],
+    )
+}
+
+fn build_git(repo_root: &Path) -> Result<()> {
+    let source = repo_root.join("src/userland/git");
+    let out_root = repo_root.join("out/build/git");
+    let source_copy = out_root.join("source");
+    let install_dir = out_root.join("install");
+    fs::create_dir_all(&out_root)?;
+    sync_build_source(&source, &source_copy)?;
+    let env = staged_library_environment(
+        repo_root,
+        &["curl", "expat", "openssl", "zlib", "zstd", "pcre2"],
+    )?;
+    let curl_config = repo_root.join("out/build/curl/install/usr/bin/curl-config");
+    if !curl_config.is_file() {
+        bail!("Git requires MattOS curl-config at {}", curl_config.display());
+    }
+    let common = vec![
+        "prefix=/usr".to_string(),
+        "NO_GETTEXT=YesPlease".to_string(),
+        "NO_TCLTK=YesPlease".to_string(),
+        "NO_PERL=YesPlease".to_string(),
+        "NO_PYTHON=YesPlease".to_string(),
+        "NO_RUST=YesPlease".to_string(),
+        "USE_LIBPCRE2=YesPlease".to_string(),
+        format!("CURL_CONFIG={}", curl_config.display()),
+        "CURL_LDFLAGS=-lcurl".to_string(),
+    ];
+    let mut build_args = vec!["-j", "4"];
+    build_args.extend(common.iter().map(String::as_str));
+    run_cmd_with_env_overrides(&source_copy, "make", &build_args, &env)?;
+    remove_path_if_exists(&install_dir)?;
+    let destdir = format!("DESTDIR={}", install_dir.display());
+    let mut install_args = vec!["install", destdir.as_str()];
+    install_args.extend(common.iter().map(String::as_str));
+    run_cmd_with_env_overrides(&source_copy, "make", &install_args, &env)?;
+    for rel in ["usr/bin/git", "usr/libexec/git-core/git-remote-https"] {
+        if !install_dir.join(rel).is_file() { bail!("Git install did not produce {rel}"); }
+    }
+    Ok(())
+}
+
+fn build_openssh(repo_root: &Path) -> Result<()> {
+    build_autotools_import(
+        repo_root, "openssh", "src/system/network/openssh-portable",
+        &["openssl", "zlib", "zstd", "linux-pam", "libxcrypt"],
+        &[
+            "--prefix=/usr", "--sysconfdir=/etc/ssh", "--sbindir=/usr/sbin",
+            "--libexecdir=/usr/lib/openssh", "--with-pam", "--with-privsep-path=/run/sshd",
+            "--with-privsep-user=sshd", "--with-default-path=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        ],
+        &["usr/bin/ssh", "usr/sbin/sshd", "usr/bin/ssh-keygen"],
+    )
+}
+
 fn build_bzip2(repo_root: &Path) -> Result<()> {
     let source = repo_root.join("src/system/libraries/bzip2");
     if !source.join("Makefile-libbz2_so").is_file() {
@@ -6422,6 +6878,12 @@ fn build_bzip2(repo_root: &Path) -> Result<()> {
         ],
         &[("SOURCE_DATE_EPOCH", MATTOS_SOURCE_DATE_EPOCH.to_string())],
     )?;
+    run_cmd_with_env_overrides(
+        &source_copy,
+        "make",
+        &["-B", "-j", "4", &cflags_override],
+        &[("SOURCE_DATE_EPOCH", MATTOS_SOURCE_DATE_EPOCH.to_string())],
+    )?;
     remove_path_if_exists(&install_dir)?;
     let libdir = install_dir.join("usr/lib/x86_64-linux-gnu");
     let includedir = install_dir.join("usr/include");
@@ -6434,6 +6896,14 @@ fn build_bzip2(repo_root: &Path) -> Result<()> {
     std::os::unix::fs::symlink("libbz2.so.1.0.8", libdir.join("libbz2.so.1.0"))?;
     std::os::unix::fs::symlink("libbz2.so.1.0", libdir.join("libbz2.so"))?;
     fs::copy(source_copy.join("bzlib.h"), includedir.join("bzlib.h"))?;
+    let bindir = install_dir.join("usr/bin");
+    fs::create_dir_all(&bindir)?;
+    for binary in ["bzip2", "bzip2recover"] {
+        fs::copy(source_copy.join(binary), bindir.join(binary))?;
+        set_mode(bindir.join(binary), 0o755)?;
+    }
+    std::os::unix::fs::symlink("bzip2", bindir.join("bunzip2"))?;
+    std::os::unix::fs::symlink("bzip2", bindir.join("bzcat"))?;
     fs::write(&stamp_path, stamp)
         .with_context(|| format!("failed to write {}", stamp_path.display()))?;
     Ok(())
@@ -6531,6 +7001,11 @@ fn build_xz(repo_root: &Path) -> Result<()> {
     if !soname.exists() {
         bail!("XZ Utils install did not produce {}", soname.display());
     }
+    for binary in ["xz", "unxz", "xzcat"] {
+        if !install_dir.join("usr/bin").join(binary).exists() {
+            bail!("XZ Utils install did not produce usr/bin/{binary}");
+        }
+    }
     fs::write(&stamp_path, stamp)?;
     Ok(())
 }
@@ -6599,9 +7074,11 @@ fn build_zstd(repo_root: &Path) -> Result<()> {
         "-DCMAKE_BUILD_TYPE=Release",
         "-DCMAKE_INSTALL_PREFIX=/usr",
         "-DCMAKE_INSTALL_LIBDIR=lib/x86_64-linux-gnu",
-        "-DZSTD_BUILD_PROGRAMS=OFF",
+        "-DZSTD_BUILD_PROGRAMS=ON",
         "-DZSTD_BUILD_TESTS=OFF",
-        "-DZSTD_BUILD_STATIC=OFF",
+        // Upstream's CLI links its static library by design; the MattOS
+        // runtime package still publishes only the shared SONAME.
+        "-DZSTD_BUILD_STATIC=ON",
         "-DZSTD_BUILD_SHARED=ON",
     ];
     let stamp = format!("{state}\n{}\n", options.join("\n"));
@@ -6630,6 +7107,9 @@ fn build_zstd(repo_root: &Path) -> Result<()> {
     let soname = install_dir.join("usr/lib/x86_64-linux-gnu/libzstd.so.1");
     if !soname.exists() {
         bail!("Zstandard install did not produce {}", soname.display());
+    }
+    if !install_dir.join("usr/bin/zstd").is_file() {
+        bail!("Zstandard install did not produce usr/bin/zstd");
     }
     fs::write(&stamp_path, stamp)?;
     Ok(())
@@ -9485,7 +9965,7 @@ fn validate_user_session_configuration(rootfs: &Path) -> Result<()> {
     }
 
     let expected_hook = "session    optional     pam_systemd.so";
-    for stack in ["login", "su-l", "systemd-user"] {
+    for stack in ["login", "su-l", "systemd-user", "sshd"] {
         let body = fs::read_to_string(rootfs.join("etc/pam.d").join(stack))
             .with_context(|| format!("failed to read effective PAM stack {stack}"))?;
         if body.matches(expected_hook).count() != 1 {
@@ -9498,7 +9978,7 @@ fn validate_user_session_configuration(rootfs: &Path) -> Result<()> {
             continue;
         }
         let name = path.file_name().and_then(OsStr::to_str).unwrap_or_default();
-        if matches!(name, "login" | "su-l" | "systemd-user") {
+        if matches!(name, "login" | "su-l" | "systemd-user" | "sshd") {
             continue;
         }
         if fs::read_to_string(&path)?.contains("pam_systemd.so") {
@@ -11229,11 +11709,14 @@ mod tests {
             ("dpkg", 85.190),
             ("elfutils", 39.547),
             ("expat", 6.265),
+            ("file", 8.000),
             ("findutils", 57.703),
             ("gcc-compiler", 647.434),
             ("gcc-runtime", 773.452),
             ("glibc", 453.080),
             ("grep", 24.148),
+            ("git", 90.000),
+            ("gzip", 8.000),
             ("init", 2.104),
             ("initramfs", 57.528),
             ("iproute2", 44.138),
@@ -11246,11 +11729,14 @@ mod tests {
             ("libxcrypt", 182.310),
             ("linux", 442.489),
             ("linux-pam", 11.197),
+            ("less", 8.000),
             ("lz4", 19.220),
             ("make", 17.947),
             ("ncurses", 39.520),
             ("openssl", 197.919),
+            ("openssh", 35.000),
             ("pcre2", 27.509),
+            ("patch", 8.000),
             ("procps-ng", 29.727),
             ("rootfs", 107.053),
             ("sed", 53.006),
@@ -13294,6 +13780,89 @@ mod tests {
     }
 
     #[test]
+    fn base_userland_release_archives_are_exact_and_output_owned() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        let policy = fs::read_to_string(root.join("upstream/policies/release-archives.toml"))
+            .expect("release archive policy");
+        for (component, version, commit, url, sha256) in [
+            (
+                "gzip",
+                "1.14",
+                "fbc4883eb9c304a04623ac506dd5cf5450d055f1",
+                GZIP_RELEASE_ARCHIVE_URL,
+                GZIP_RELEASE_ARCHIVE_SHA256,
+            ),
+            (
+                "patch",
+                "2.8",
+                "48ceda8200aaf30c3ce42c31cd70ff6087db2425",
+                PATCH_RELEASE_ARCHIVE_URL,
+                PATCH_RELEASE_ARCHIVE_SHA256,
+            ),
+            (
+                "less",
+                "704",
+                "7ea9586a9a1273eb9658d76af8986fdcf6738096",
+                LESS_RELEASE_ARCHIVE_URL,
+                LESS_RELEASE_ARCHIVE_SHA256,
+            ),
+        ] {
+            let state = read_sync_state(&root, component).unwrap().unwrap();
+            assert_eq!(state.imported_commit, commit);
+            assert!(policy.contains(&format!("component = \"{component}\"")));
+            assert!(policy.contains(&format!("version = \"{version}\"")));
+            assert!(policy.contains(&format!("source_commit = \"{commit}\"")));
+            assert!(policy.contains(&format!("url = \"{url}\"")));
+            assert!(policy.contains(&format!("sha256 = \"{sha256}\"")));
+        }
+        assert_eq!(policy.matches("staging_policy = \"output-mirror-only\"").count(), 5);
+        let source = include_str!("main.rs");
+        let start = source.find("fn build_release_autotools_program").unwrap();
+        let end = source[start..].find("fn build_gzip").unwrap() + start;
+        let helper = &source[start..end];
+        assert!(helper.contains("out/build"));
+        assert!(helper.contains("ensure_verified_release_archive"));
+        assert!(helper.contains("stage_release_source"));
+        assert!(!helper.contains("src/userland"));
+    }
+
+    #[test]
+    fn base_userland_stage_names_dispatch() {
+        for (name, expected) in [
+            ("gzip", BuildStage::Gzip),
+            ("patch", BuildStage::Patch),
+            ("file", BuildStage::File),
+            ("less", BuildStage::Less),
+            ("git", BuildStage::Git),
+            ("openssh", BuildStage::Openssh),
+        ] {
+            assert_eq!(BuildStage::from_str(name, true).unwrap(), expected);
+        }
+    }
+
+    #[test]
+    fn brush_compatibility_modes_are_formal_output_only_policy() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        let manifest = fs::read_to_string(root.join("upstream/patches/brush/manifest.toml"))
+            .expect("Brush patch manifest");
+        let patch_path = root.join(
+            "upstream/patches/brush/0002-select-sh-mode-from-invocation-name.patch",
+        );
+        assert!(manifest.contains("application = \"output-mirror-only\""));
+        assert!(manifest.contains(
+            "sha256 = \"a5049e836e578d76d424b075246aafb18a3d4f2f2f08f3447d7ccb8484811a59\"",
+        ));
+        assert_eq!(
+            performance::sha256_file(&patch_path).unwrap(),
+            "a5049e836e578d76d424b075246aafb18a3d4f2f2f08f3447d7ccb8484811a59"
+        );
+        let patch = fs::read_to_string(patch_path).unwrap();
+        assert!(patch.contains("invoked_as_sh"));
+        assert!(patch.contains("name == \"sh\""));
+        assert!(patch.contains("args.insert(1, \"--sh\".to_string())"));
+    }
+
+    #[test]
     fn attr_release_checksum_rejects_unverified_inputs() {
         let temporary = tempfile::tempdir().unwrap();
         let archive = temporary.path().join("attr-2.6.0.tar.xz");
@@ -13595,6 +14164,10 @@ mod tests {
             (
                 "systemd-user",
                 "account    required     pam_unix.so\nsession    required     pam_unix.so\nsession    optional     pam_systemd.so\n",
+            ),
+            (
+                "sshd",
+                "auth       required     pam_unix.so\nsession    required     pam_unix.so\nsession    optional     pam_systemd.so\n",
             ),
         ] {
             write(&rootfs.join("etc/pam.d").join(stack), body);
@@ -14185,6 +14758,8 @@ mod tests {
                 assert!(
                     binary.destination_rel.starts_with("usr/bin/")
                         || binary.destination_rel.starts_with("usr/sbin/")
+                        || (binary.command_name == "lessecho"
+                            && binary.destination_rel == "usr/libexec/lessecho")
                 );
             }
         }

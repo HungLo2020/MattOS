@@ -12,5 +12,7 @@ packages = [
   "libudev1", "linux-headers-amd64", "linux-image-amd64", "linux-libc-dev",
   "login", "make", "mattos-base-files", "mattos-brush", "mattos-libgcc-dev",
   "mattos-filesystem", "mattos-libcrypto3", "mattos-libstdc++-dev", "mattos-sudo-rs", "mount",
-  "passwd", "systemd", "udev", "util-linux",
+  "passwd", "systemd", "udev", "util-linux", "gzip", "bzip2", "xz-utils", "zstd",
+  "patch", "file", "libmagic1", "less", "git", "openssh-client", "openssh-server",
+  "libuuid1", "libfdisk1",
 ]

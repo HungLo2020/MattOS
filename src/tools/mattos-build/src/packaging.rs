@@ -131,6 +131,14 @@ const SHADOW_RUNTIME_PATHS: &[&str] = &[
     "usr/bin/newgrp",
 ];
 const UTIL_LINUX_AUTH_PATHS: &[&str] = &["usr/sbin/agetty", "usr/bin/login", "usr/bin/su"];
+const UTIL_LINUX_BASE_PATHS: &[&str] = &[
+    "usr/bin/lsblk", "usr/bin/dmesg", "usr/sbin/fdisk", "usr/sbin/cfdisk", "usr/sbin/sfdisk",
+    "usr/sbin/wipefs", "usr/sbin/blkid", "usr/bin/findmnt",
+    "usr/sbin/losetup", "usr/bin/mountpoint", "usr/sbin/blockdev", "usr/bin/flock",
+    "usr/bin/lscpu", "usr/bin/lslocks", "usr/bin/lsns", "usr/bin/nsenter",
+    "usr/bin/unshare", "usr/bin/taskset", "usr/bin/chrt", "usr/bin/ionice",
+    "usr/bin/prlimit", "usr/bin/uuidgen",
+];
 const IPROUTE2_RUNTIME_PATHS: &[&str] = &[
     "usr/sbin/ip",
     "usr/sbin/ss",
@@ -138,6 +146,13 @@ const IPROUTE2_RUNTIME_PATHS: &[&str] = &[
     "usr/sbin/tc",
 ];
 const IPUTILS_RUNTIME_PATHS: &[&str] = &["usr/bin/ping", "usr/bin/tracepath"];
+const OPENSSH_SERVER_RUNTIME_PATHS: &[&str] = &[
+    "usr/sbin/sshd",
+    "usr/lib/openssh/sshd-session",
+    "usr/lib/openssh/sshd-auth",
+    "usr/lib/openssh/sftp-server",
+    "usr/lib/openssh/ssh-keysign",
+];
 const UDEV_HWDB_SOURCE_REL: &str = "usr/lib/udev/hwdb.d";
 const UDEV_HWDB_BINARY_REL: &str = "usr/lib/udev/hwdb.bin";
 const UDEV_HWDB_UNIT_REL: &str = "usr/lib/systemd/system/systemd-hwdb-update.service";
@@ -151,6 +166,7 @@ const MIGRATED_BOOTSTRAP_SONAME_PREFIXES: &[&str] = &[
     "ld-linux-",
     "libexpat.so",
     "libcap.so",
+    "libattr.so",
     "libacl.so",
     "libz.so",
     "libbz2.so",
@@ -202,7 +218,10 @@ const PACKAGE_NAMES: &[&str] = &[
     "libblkid1",
     "libmount1",
     "libsmartcols1",
+    "libuuid1",
+    "libfdisk1",
     "mount",
+    "util-linux",
     "dpkg",
     "libapt-pkg7.0",
     "apt",
@@ -219,13 +238,25 @@ const PACKAGE_NAMES: &[&str] = &[
     "udev",
     "libexpat1",
     "libcap2",
+    "libattr1",
     "libacl1",
     "zlib1g",
     "libbz2-1.0",
+    "gzip",
+    "bzip2",
     "liblz4-1",
     "liblzma5",
+    "xz-utils",
     "libxxhash0",
     "tar",
+    "zstd",
+    "patch",
+    "libmagic1",
+    "file",
+    "less",
+    "git",
+    "openssh-client",
+    "openssh-server",
     "dbus-broker",
     "libpam0g",
     "mattos-libpam-misc0",
@@ -1051,6 +1082,17 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
+            name: "libattr1",
+            description: "Extended attribute runtime library built for MattOS",
+            source_component: "attr",
+            depends: &[],
+            provides: &["libattr1"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
             name: "libacl1",
             description: "POSIX access control list runtime library built for MattOS",
             source_component: "acl",
@@ -1250,6 +1292,82 @@ fn package_specs() -> Vec<PackageSpec> {
             replaces: &["iputils-ping"],
             essential: false,
             priority: "important",
+        },
+        PackageSpec {
+            name: "libuuid1", description: "util-linux UUID runtime library built for MattOS",
+            source_component: "util-linux", depends: &[], provides: &["libuuid1"], conflicts: &[], replaces: &[], essential: false, priority: "important",
+        },
+        PackageSpec {
+            name: "libfdisk1", description: "util-linux partitioning runtime library built for MattOS",
+            source_component: "util-linux", depends: &["libblkid1", "libuuid1", "libsmartcols1"], provides: &["libfdisk1"], conflicts: &[], replaces: &[], essential: false, priority: "important",
+        },
+        PackageSpec {
+            name: "util-linux", description: "Essential Linux system administration utilities built for MattOS",
+            source_component: "util-linux", depends: &[
+                "libblkid1",
+                "libmount1",
+                "libsmartcols1",
+                "libuuid1",
+                "libfdisk1",
+                "libselinux1",
+                "libncursesw6",
+                "mattos-libtinfow6",
+            ],
+            provides: &["util-linux"], conflicts: &["util-linux"], replaces: &["util-linux"], essential: false, priority: "required",
+        },
+        PackageSpec {
+            name: "gzip", description: "GNU gzip compression tools built for MattOS",
+            source_component: "gzip", depends: &[], provides: &["gzip"], conflicts: &["gzip"], replaces: &["gzip"], essential: false, priority: "required",
+        },
+        PackageSpec {
+            name: "bzip2", description: "bzip2 compression tools built for MattOS",
+            source_component: "bzip2", depends: &["libbz2-1.0"], provides: &["bzip2"], conflicts: &["bzip2"], replaces: &["bzip2"], essential: false, priority: "required",
+        },
+        PackageSpec {
+            name: "xz-utils", description: "XZ compression tools built for MattOS",
+            source_component: "xz", depends: &["liblzma5"], provides: &["xz-utils"], conflicts: &["xz-utils"], replaces: &["xz-utils"], essential: false, priority: "required",
+        },
+        PackageSpec {
+            name: "zstd", description: "Zstandard compression tools built for MattOS",
+            source_component: "zstd", depends: &["libzstd1"], provides: &["zstd"], conflicts: &["zstd"], replaces: &["zstd"], essential: false, priority: "required",
+        },
+        PackageSpec {
+            name: "patch", description: "GNU patch utility built for MattOS",
+            source_component: "patch", depends: &["libattr1"], provides: &["patch"], conflicts: &["patch"], replaces: &["patch"], essential: false, priority: "important",
+        },
+        PackageSpec {
+            name: "libmagic1", description: "libmagic runtime and compiled magic database built for MattOS",
+            source_component: "file", depends: &["zlib1g"], provides: &["libmagic1"], conflicts: &[], replaces: &[], essential: false, priority: "important",
+        },
+        PackageSpec {
+            name: "file", description: "File type identification utility built for MattOS",
+            source_component: "file", depends: &["libmagic1", "zlib1g"], provides: &["file"], conflicts: &["file"], replaces: &["file"], essential: false, priority: "important",
+        },
+        PackageSpec {
+            name: "less", description: "Interactive terminal pager built for MattOS",
+            source_component: "less", depends: &["mattos-libtinfow6", "libpcre2-8-0"], provides: &["less"], conflicts: &["less"], replaces: &["less"], essential: false, priority: "important",
+        },
+        PackageSpec {
+            name: "git", description: "Git distributed version control with HTTPS support built for MattOS",
+            source_component: "git", depends: &["curl", "ca-certificates", "zlib1g", "libzstd1", "libexpat1", "libpcre2-8-0", "mattos-libcrypto3", "libssl3t64"],
+            provides: &["git"], conflicts: &["git"], replaces: &["git"], essential: false, priority: "important",
+        },
+        PackageSpec {
+            name: "openssh-client", description: "OpenSSH client tools built for MattOS",
+            source_component: "openssh", depends: &["zlib1g", "libzstd1", "mattos-libcrypto3", "libssl3t64"], provides: &["ssh-client"], conflicts: &["openssh-client"], replaces: &["openssh-client"], essential: false, priority: "important",
+        },
+        PackageSpec {
+            name: "openssh-server", description: "OpenSSH secure shell server and MattOS service configuration",
+            source_component: "openssh", depends: &[
+                "openssh-client",
+                "libpam0g",
+                "libpam-runtime",
+                "libcrypt1",
+                "zlib1g",
+                "libzstd1",
+                "mattos-libcrypto3",
+                "libssl3t64",
+            ], provides: &["ssh-server"], conflicts: &["openssh-server"], replaces: &["openssh-server"], essential: false, priority: "optional",
         },
     ]
 }
@@ -1930,14 +2048,48 @@ fn package_cache_manifest_path(repo_root: &Path, package: &str) -> PathBuf {
 }
 
 fn package_definition_digest(spec: &PackageSpec) -> Result<String> {
-    performance::digest_value(&(
-        PACKAGE_CACHE_SCHEMA_VERSION,
-        spec,
-        ARCH,
-        REVISION,
-        SOURCE_DATE_EPOCH,
-        "dpkg-deb --root-owner-group -Zzstd -z19",
-    ))
+    let revision = package_recipe_revision(spec.name);
+    if revision == 1 {
+        // Preserve the established revision-1 key exactly. Adding a recipe
+        // discriminator for one package must not create a one-time rebuild of
+        // every unrelated package.
+        performance::digest_value(&(
+            PACKAGE_CACHE_SCHEMA_VERSION,
+            spec,
+            ARCH,
+            REVISION,
+            SOURCE_DATE_EPOCH,
+            "dpkg-deb --root-owner-group -Zzstd -z19",
+        ))
+    } else {
+        performance::digest_value(&(
+            PACKAGE_CACHE_SCHEMA_VERSION,
+            revision,
+            spec,
+            ARCH,
+            REVISION,
+            SOURCE_DATE_EPOCH,
+            "dpkg-deb --root-owner-group -Zzstd -z19",
+        ))
+    }
+}
+
+fn package_recipe_revision(package: &str) -> u32 {
+    match package {
+        // Revision 2 adds cfdisk to the deliberately selected base payload.
+        // Keep this per-package so an unrelated staging-recipe edit does not
+        // invalidate every package.
+        "util-linux" => 2,
+        // Revision 2 preserves Git's upstream hardlink topology through
+        // package staging. Without this targeted invalidation, a cached
+        // revision-1 package expands the built-in aliases into hundreds of
+        // independent executable copies and can exhaust the live rootfs.
+        "git" => 2,
+        // Revision 2 owns the split sshd-session/sshd-auth executables that
+        // OpenSSH 10.4 requires after the monitor process starts.
+        "openssh-server" => 2,
+        _ => 1,
+    }
 }
 
 fn package_cache_input(
@@ -2095,6 +2247,12 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "util-linux" => &["util-linux"],
             "iproute2" => &["iproute2"],
             "iputils" => &["iputils"],
+            "gzip" => &["gzip"],
+            "patch" => &["patch"],
+            "file" => &["file"],
+            "less" => &["less"],
+            "git" => &["git"],
+            "openssh" => &["openssh"],
             "ncurses" => &["ncurses"],
             "kmod" => &["kmod"],
             "shadow" => &["shadow"],
@@ -2102,6 +2260,7 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "tar" => &["tar"],
             "expat" => &["expat"],
             "libcap" => &["libcap"],
+            "attr" => &["attr"],
             "acl" => &["acl"],
             "zlib" => &["zlib"],
             "bzip2" => &["bzip2"],
@@ -2150,6 +2309,7 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "systemd" => &["src/system/systemd"],
         "expat" => &["src/system/libraries/expat/expat"],
         "libcap" => &["src/system/libraries/libcap"],
+        "attr" => &["src/system/libraries/attr"],
         "acl" => &["src/system/libraries/acl"],
         "zlib" => &["src/system/libraries/zlib"],
         "bzip2" => &["src/system/libraries/bzip2"],
@@ -2163,6 +2323,12 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "sudo-rs" => &["src/system/auth/sudo-rs"],
         "iproute2" => &["src/userland/iproute2"],
         "iputils" => &["src/userland/iputils"],
+        "gzip" => &["src/userland/gzip"],
+        "patch" => &["src/userland/patch"],
+        "file" => &["src/userland/file"],
+        "less" => &["src/userland/less"],
+        "git" => &["src/userland/git"],
+        "openssh" => &["src/system/network/openssh-portable"],
         _ => &[],
     }
 }
@@ -2185,6 +2351,7 @@ fn package_configuration_roots(package: &str) -> &'static [&'static str] {
             "src/system/auth/config/sudoers",
             "src/system/auth/config/sudoers.d/README",
         ],
+        "openssh-client" | "openssh-server" => &["src/system/network/openssh"],
         _ => &[],
     }
 }
@@ -2347,6 +2514,14 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
             "libcap.so.2",
             "src/system/libraries/libcap/License",
             "libcap2",
+        )?,
+        "libattr1" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "attr",
+            "libattr.so.1",
+            "src/system/libraries/attr/doc/COPYING.LGPL",
+            "libattr1",
         )?,
         "libacl1" => stage_imported_soname_library(
             repo_root,
@@ -2513,6 +2688,55 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
                 set_mode(staging.join(rel), 0o4755)?;
             }
         }
+        "libuuid1" => stage_imported_soname_library(
+            repo_root, &staging, "util-linux", "libuuid.so.1",
+            "src/userland/util-linux/COPYING", "libuuid1",
+        )?,
+        "libfdisk1" => stage_imported_soname_library(
+            repo_root, &staging, "util-linux", "libfdisk.so.1",
+            "src/userland/util-linux/COPYING", "libfdisk1",
+        )?,
+        "util-linux" => {
+            stage_runtime_paths(repo_root, &staging, "util-linux", UTIL_LINUX_BASE_PATHS)?;
+            copy_preserving(
+                &repo_root.join("src/userland/util-linux/COPYING"),
+                &staging.join("usr/share/doc/util-linux/copyright"),
+            )?;
+        }
+        "gzip" => stage_runtime_paths(repo_root, &staging, "gzip", &["usr/bin/gzip", "usr/bin/gunzip", "usr/bin/zcat"] )?,
+        "bzip2" => stage_runtime_paths(repo_root, &staging, "bzip2", &["usr/bin/bzip2", "usr/bin/bunzip2", "usr/bin/bzcat", "usr/bin/bzip2recover"] )?,
+        "xz-utils" => stage_runtime_paths(repo_root, &staging, "xz", &["usr/bin/xz", "usr/bin/unxz", "usr/bin/xzcat", "usr/bin/lzma", "usr/bin/unlzma", "usr/bin/lzcat"] )?,
+        "zstd" => stage_runtime_paths(repo_root, &staging, "zstd", &["usr/bin/zstd", "usr/bin/unzstd", "usr/bin/zstdcat"] )?,
+        "patch" => stage_runtime_paths(repo_root, &staging, "patch", &["usr/bin/patch"] )?,
+        "libmagic1" => {
+            stage_imported_soname_library(repo_root, &staging, "file", "libmagic.so.1", "src/userland/file/COPYING", "libmagic1")?;
+            copy_preserving(
+                &repo_root.join("out/build/file/install/usr/share/misc/magic.mgc"),
+                &staging.join("usr/share/misc/magic.mgc"),
+            )?;
+        }
+        "file" => stage_runtime_paths(repo_root, &staging, "file", &["usr/bin/file"] )?,
+        "less" => stage_runtime_paths(
+            repo_root,
+            &staging,
+            "less",
+            &["usr/bin/less", "usr/bin/lesskey", "usr/libexec/lessecho"],
+        )?,
+        "git" => copy_tree_preserving(
+            &repo_root.join("out/build/git/install/usr"), &staging.join("usr"),
+        )?,
+        "openssh-client" => {
+            stage_runtime_paths(
+                repo_root, &staging, "openssh",
+                &["usr/bin/ssh", "usr/bin/scp", "usr/bin/sftp", "usr/bin/ssh-add", "usr/bin/ssh-agent", "usr/bin/ssh-keygen", "usr/bin/ssh-keyscan"],
+            )?;
+            copy_preserving(
+                &repo_root.join("src/system/network/openssh/ssh_config"),
+                &staging.join("etc/ssh/ssh_config"),
+            )?;
+            fs::write(staging.join("DEBIAN/conffiles"), "/etc/ssh/ssh_config\n")?;
+        }
+        "openssh-server" => stage_openssh_server(repo_root, &staging)?,
         "tar" => {
             stage_executable(
                 &repo_root.join("out/build/tar/install/usr/bin/tar"),
@@ -3228,6 +3452,29 @@ fn stage_util_linux_auth(repo_root: &Path, staging: &Path) -> Result<()> {
     Ok(())
 }
 
+fn stage_openssh_server(repo_root: &Path, staging: &Path) -> Result<()> {
+    stage_runtime_paths(
+        repo_root,
+        staging,
+        "openssh",
+        OPENSSH_SERVER_RUNTIME_PATHS,
+    )?;
+    let config = repo_root.join("src/system/network/openssh");
+    copy_preserving(&config.join("sshd_config"), &staging.join("etc/ssh/sshd_config"))?;
+    copy_preserving(&config.join("ssh-pam"), &staging.join("etc/pam.d/sshd"))?;
+    copy_preserving(&config.join("ssh.service"), &staging.join("usr/lib/systemd/system/ssh.service"))?;
+    copy_preserving(
+        &config.join("openssh-sysusers.conf"),
+        &staging.join("usr/lib/sysusers.d/openssh.conf"),
+    )?;
+    fs::create_dir_all(staging.join("etc/ssh/sshd_config.d"))?;
+    fs::write(
+        staging.join("DEBIAN/conffiles"),
+        "/etc/ssh/sshd_config\n/etc/pam.d/sshd\n",
+    )?;
+    Ok(())
+}
+
 fn stage_iproute2(repo_root: &Path, staging: &Path) -> Result<()> {
     stage_runtime_paths(repo_root, staging, "iproute2", IPROUTE2_RUNTIME_PATHS)?;
     copy_tree_preserving(
@@ -3469,10 +3716,19 @@ fn strip_staged_debug(repo_root: &Path, staging: &Path) -> Result<()> {
         )
     }
     let mut objects = Vec::new();
+    #[cfg(unix)]
+    let mut object_inodes = BTreeSet::new();
     walk_tree(staging, &mut |path, metadata| {
         if metadata.is_file() && !path.starts_with(staging.join("DEBIAN")) {
             let header = Command::new("readelf").args(["-h"]).arg(path).output()?;
             if header.status.success() {
+                #[cfg(unix)]
+                {
+                    use std::os::unix::fs::MetadataExt;
+                    if !object_inodes.insert((metadata.dev(), metadata.ino())) {
+                        return Ok(());
+                    }
+                }
                 objects.push(path.to_path_buf());
             }
         }
@@ -3491,6 +3747,22 @@ fn strip_staged_debug(repo_root: &Path, staging: &Path) -> Result<()> {
 }
 
 fn copy_tree_preserving(source: &Path, destination: &Path) -> Result<()> {
+    #[cfg(unix)]
+    let mut hardlinks = BTreeMap::new();
+    copy_tree_preserving_inner(source, destination, &mut hardlinks)
+}
+
+#[cfg(unix)]
+type HardlinkMap = BTreeMap<(u64, u64), PathBuf>;
+
+#[cfg(not(unix))]
+type HardlinkMap = ();
+
+fn copy_tree_preserving_inner(
+    source: &Path,
+    destination: &Path,
+    hardlinks: &mut HardlinkMap,
+) -> Result<()> {
     if !source.is_dir() {
         bail!(
             "required package input directory missing at {}",
@@ -3503,13 +3775,46 @@ fn copy_tree_preserving(source: &Path, destination: &Path) -> Result<()> {
     for entry in entries {
         let from = entry.path();
         let to = destination.join(entry.file_name());
-        if fs::symlink_metadata(&from)?.is_dir() {
-            copy_tree_preserving(&from, &to)?;
+        let metadata = fs::symlink_metadata(&from)?;
+        if metadata.is_dir() {
+            copy_tree_preserving_inner(&from, &to, hardlinks)?;
         } else {
-            copy_path_preserving(&from, &to)?;
+            copy_path_preserving_with_hardlinks(&from, &to, &metadata, hardlinks)?;
         }
     }
     Ok(())
+}
+
+fn copy_path_preserving_with_hardlinks(
+    source: &Path,
+    destination: &Path,
+    metadata: &fs::Metadata,
+    hardlinks: &mut HardlinkMap,
+) -> Result<()> {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::MetadataExt;
+        if metadata.is_file() && metadata.nlink() > 1 {
+            let identity = (metadata.dev(), metadata.ino());
+            if let Some(first_destination) = hardlinks.get(&identity) {
+                if let Some(parent) = destination.parent() {
+                    fs::create_dir_all(parent)?;
+                }
+                fs::hard_link(first_destination, destination).with_context(|| {
+                    format!(
+                        "failed to preserve hardlink {} -> {}",
+                        destination.display(),
+                        first_destination.display()
+                    )
+                })?;
+                return Ok(());
+            }
+            copy_path_preserving(source, destination)?;
+            hardlinks.insert(identity, destination.to_path_buf());
+            return Ok(());
+        }
+    }
+    copy_path_preserving(source, destination)
 }
 
 fn copy_path_preserving(source: &Path, destination: &Path) -> Result<()> {
@@ -3610,6 +3915,7 @@ fn bootstrap_source_attribution(
 ) {
     match name {
         "tar" => (Some("GNU tar"), "A", "tar", "medium", "high"),
+        "libattr.so.1" => (Some("Linux extended attributes"), "A", "libattr1", "low", "high"),
         "libacl.so.1" => (Some("Linux ACL utilities"), "A", "libacl1", "low", "high"),
         "libbsd.so.0" => (Some("libbsd"), "A", "libbsd0", "low", "high"),
         "libbz2.so.1.0" => (Some("bzip2"), "A", "libbz2-1.0", "low", "high"),
@@ -3862,15 +4168,16 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "libsystemd0" | "libudev1" | "udev" => component_snapshot_version(repo_root, "systemd")?,
         "libexpat1" => component_snapshot_version(repo_root, "expat")?,
         "libcap2" => component_snapshot_version(repo_root, "libcap")?,
+        "libattr1" => component_snapshot_version(repo_root, "attr")?,
         "libacl1" => component_snapshot_version(repo_root, "acl")?,
         "zlib1g" => component_snapshot_version(repo_root, "zlib")?,
-        "libbz2-1.0" => component_snapshot_version(repo_root, "bzip2")?,
+        "libbz2-1.0" | "bzip2" => component_snapshot_version(repo_root, "bzip2")?,
         "liblz4-1" => component_snapshot_version(repo_root, "lz4")?,
-        "liblzma5" => component_snapshot_version(repo_root, "xz")?,
+        "liblzma5" | "xz-utils" => component_snapshot_version(repo_root, "xz")?,
         "libxxhash0" => component_snapshot_version(repo_root, "xxhash")?,
         "libmd0" => component_snapshot_version(repo_root, "libmd")?,
         "libbsd0" => component_snapshot_version(repo_root, "libbsd")?,
-        "libzstd1" => component_snapshot_version(repo_root, "zstd")?,
+        "libzstd1" | "zstd" => component_snapshot_version(repo_root, "zstd")?,
         "mattos-libcrypto3" | "libssl3t64" => component_snapshot_version(repo_root, "openssl")?,
         "libelf1t64" => component_snapshot_version(repo_root, "elfutils")?,
         "libpcre2-8-0" => component_snapshot_version(repo_root, "pcre2")?,
@@ -3885,9 +4192,15 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "mattos-sudo-rs" => {
             cargo_package_version(&repo_root.join("src/system/auth/sudo-rs/Cargo.toml"))?
         }
-        "libblkid1" | "libmount1" | "libsmartcols1" | "mount" | "login" => {
+        "libblkid1" | "libmount1" | "libsmartcols1" | "libuuid1" | "libfdisk1" | "mount" | "util-linux" | "login" => {
             component_snapshot_version(repo_root, "util-linux")?
         }
+        "gzip" => component_snapshot_version(repo_root, "gzip")?,
+        "patch" => component_snapshot_version(repo_root, "patch")?,
+        "libmagic1" | "file" => component_snapshot_version(repo_root, "file")?,
+        "less" => component_snapshot_version(repo_root, "less")?,
+        "git" => component_snapshot_version(repo_root, "git")?,
+        "openssh-client" | "openssh-server" => component_snapshot_version(repo_root, "openssh")?,
         "iproute2" => component_snapshot_version(repo_root, "iproute2")?,
         "iputils-ping" => component_snapshot_version(repo_root, "iputils")?,
         _ => bail!("unknown package {}", spec.name),
@@ -4178,7 +4491,8 @@ fn write_provenance(
         | "linux-pam" | "shadow" | "sudo-rs" | "util-linux" | "iproute2"
         | "iputils" | "expat" | "libcap" | "acl" | "zlib" | "bzip2" | "lz4" | "xz"
         | "xxhash" | "zstd" | "openssl" | "elfutils" | "pcre2" | "selinux"
-        | "libxcrypt" | "libmd" | "libbsd" | "tar") => {
+        | "libxcrypt" | "libmd" | "libbsd" | "tar" | "gzip" | "patch" | "file"
+        | "less" | "git" | "openssh") => {
             let state = read_sync_state(repo_root, component)?
                 .ok_or_else(|| anyhow!("upstream state missing for {component}"))?;
             (
@@ -4373,6 +4687,7 @@ fn runtime_libraries_for_spec(repo_root: &Path, spec: &PackageSpec) -> Result<Ve
                 | "libudev1"
                 | "libexpat1"
                 | "libcap2"
+                | "libattr1"
                 | "libacl1"
                 | "zlib1g"
                 | "libbz2-1.0"
@@ -4391,7 +4706,21 @@ fn runtime_libraries_for_spec(repo_root: &Path, spec: &PackageSpec) -> Result<Ve
                 | "libblkid1"
                 | "libmount1"
                 | "libsmartcols1"
+                | "libuuid1"
+                | "libfdisk1"
                 | "mount"
+                | "util-linux"
+                | "gzip"
+                | "bzip2"
+                | "xz-utils"
+                | "zstd"
+                | "patch"
+                | "libmagic1"
+                | "file"
+                | "less"
+                | "git"
+                | "openssh-client"
+                | "openssh-server"
                 | "tar"
                 | "dbus-broker"
                 | "libpam0g"
@@ -4451,6 +4780,11 @@ fn runtime_libraries_in_staging(repo_root: &Path, package: &str) -> Result<Vec<S
         component_install(repo_root, "selinux").join("usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "libxcrypt").join("usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "util-linux").join("usr/lib/x86_64-linux-gnu"),
+        component_install(repo_root, "zlib").join("usr/lib/x86_64-linux-gnu"),
+        component_install(repo_root, "bzip2").join("usr/lib/x86_64-linux-gnu"),
+        component_install(repo_root, "file").join("usr/lib/x86_64-linux-gnu"),
+        component_install(repo_root, "git").join("usr/lib/x86_64-linux-gnu"),
+        component_install(repo_root, "openssh").join("usr/lib/x86_64-linux-gnu"),
     ];
     ldd_sonames_many(&binaries, &library_dirs)
 }
@@ -4515,8 +4849,17 @@ fn ldd_sonames(binary: &Path, library_path: Option<&Path>) -> Result<Vec<String>
 
 fn installed_size_kib(root: &Path) -> Result<u64> {
     let mut bytes = 0u64;
+    #[cfg(unix)]
+    let mut seen_inodes = BTreeSet::new();
     walk_tree(root, &mut |path, meta| {
         if meta.is_file() && !path.starts_with(root.join("DEBIAN")) {
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::MetadataExt;
+                if !seen_inodes.insert((meta.dev(), meta.ino())) {
+                    return Ok(());
+                }
+            }
             bytes += meta.len();
         }
         Ok(())
@@ -5403,6 +5746,7 @@ pub(crate) fn validate_dpkg_database(rootfs: &Path) -> Result<()> {
         ),
         ("/usr/lib/x86_64-linux-gnu/libexpat.so.1", "libexpat1"),
         ("/usr/lib/x86_64-linux-gnu/libcap.so.2", "libcap2"),
+        ("/usr/lib/x86_64-linux-gnu/libattr.so.1", "libattr1"),
         ("/usr/lib/x86_64-linux-gnu/libpcre2-8.so.0", "libpcre2-8-0"),
         ("/usr/lib/x86_64-linux-gnu/libselinux.so.1", "libselinux1"),
         ("/usr/lib/x86_64-linux-gnu/libcrypt.so.1", "libcrypt1"),
@@ -6408,7 +6752,85 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 66);
+        assert_eq!(PACKAGE_NAMES.len(), 81);
+    }
+
+    #[test]
+    fn base_userland_package_families_and_command_set_are_complete() {
+        let specs = package_specs();
+        for name in [
+            "libuuid1",
+            "libfdisk1",
+            "libattr1",
+            "util-linux",
+            "gzip",
+            "bzip2",
+            "xz-utils",
+            "zstd",
+            "patch",
+            "libmagic1",
+            "file",
+            "less",
+            "git",
+            "openssh-client",
+            "openssh-server",
+        ] {
+            assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
+        }
+        assert_eq!(PACKAGE_NAMES.len(), 81);
+        assert_eq!(
+            UTIL_LINUX_BASE_PATHS,
+            &[
+                "usr/bin/lsblk",
+                "usr/bin/dmesg",
+                "usr/sbin/fdisk",
+                "usr/sbin/cfdisk",
+                "usr/sbin/sfdisk",
+                "usr/sbin/wipefs",
+                "usr/sbin/blkid",
+                "usr/bin/findmnt",
+                "usr/sbin/losetup",
+                "usr/bin/mountpoint",
+                "usr/sbin/blockdev",
+                "usr/bin/flock",
+                "usr/bin/lscpu",
+                "usr/bin/lslocks",
+                "usr/bin/lsns",
+                "usr/bin/nsenter",
+                "usr/bin/unshare",
+                "usr/bin/taskset",
+                "usr/bin/chrt",
+                "usr/bin/ionice",
+                "usr/bin/prlimit",
+                "usr/bin/uuidgen",
+            ]
+        );
+        let util = specs.iter().find(|spec| spec.name == "util-linux").unwrap();
+        for dependency in [
+            "libblkid1",
+            "libmount1",
+            "libsmartcols1",
+            "libuuid1",
+            "libfdisk1",
+            "libselinux1",
+            "libncursesw6",
+            "mattos-libtinfow6",
+        ] {
+            assert!(util.depends.contains(&dependency));
+        }
+        let patch = specs.iter().find(|spec| spec.name == "patch").unwrap();
+        assert_eq!(patch.depends, &["libattr1"]);
+        assert_eq!(package_recipe_revision("util-linux"), 2);
+        assert_eq!(package_recipe_revision("git"), 2);
+        assert_eq!(package_recipe_revision("openssh-server"), 2);
+        let ssh_service = include_str!("../../../system/network/openssh/ssh.service");
+        assert!(ssh_service.contains("\nType=notify\n"));
+        assert!(ssh_service.contains("ExecStart=/usr/sbin/sshd -D"));
+        assert!(OPENSSH_SERVER_RUNTIME_PATHS.contains(&"usr/lib/openssh/sshd-session"));
+        assert!(OPENSSH_SERVER_RUNTIME_PATHS.contains(&"usr/lib/openssh/sshd-auth"));
+        let util_digest = package_definition_digest(util).unwrap();
+        let gzip = specs.iter().find(|spec| spec.name == "gzip").unwrap();
+        assert_ne!(util_digest, package_definition_digest(gzip).unwrap());
     }
 
     #[test]
@@ -6450,6 +6872,7 @@ mod tests {
         let specs = package_specs();
         let expat = specs.iter().find(|spec| spec.name == "libexpat1").unwrap();
         let libcap = specs.iter().find(|spec| spec.name == "libcap2").unwrap();
+        let attr = specs.iter().find(|spec| spec.name == "libattr1").unwrap();
         let broker = specs
             .iter()
             .find(|spec| spec.name == "dbus-broker")
@@ -6477,6 +6900,7 @@ mod tests {
             .iter()
             .find(|spec| spec.name == "libapt-pkg7.0")
             .unwrap();
+        assert_eq!(attr.source_component, "attr");
         assert_eq!(expat.source_component, "expat");
         assert_eq!(libcap.source_component, "libcap");
         assert!(broker.depends.contains(&"libexpat1"));
@@ -6539,6 +6963,7 @@ mod tests {
                 "ld-linux-",
                 "libexpat.so",
                 "libcap.so",
+                "libattr.so",
                 "libacl.so",
                 "libz.so",
                 "libbz2.so",
@@ -6600,7 +7025,7 @@ mod tests {
             package_install_order_for(&specs, PACKAGE_NAMES)
                 .unwrap()
                 .len(),
-            66
+            81
         );
     }
 
@@ -6715,7 +7140,7 @@ mod tests {
         assert!(position("mattos-filesystem") < position("libc6"));
         assert!(position("libc6") < position("libgcc-s1"));
         assert!(position("libgcc-s1") < position("libstdc++6"));
-        assert_eq!(order.len(), 66);
+        assert_eq!(order.len(), 81);
     }
 
     #[test]
@@ -7221,6 +7646,33 @@ mod tests {
             sha256_file(&destination).unwrap(),
             sha256_file(&destination).unwrap()
         );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn package_tree_staging_preserves_hardlink_identity_and_installed_size() {
+        use std::os::unix::fs::MetadataExt;
+
+        let temp = tempfile::tempdir().unwrap();
+        let source = temp.path().join("source");
+        let staging = temp.path().join("staging");
+        fs::create_dir_all(source.join("usr/bin")).unwrap();
+        fs::create_dir_all(source.join("usr/libexec/tool-core")).unwrap();
+        let primary = source.join("usr/bin/tool");
+        fs::write(&primary, vec![b'x'; 4096]).unwrap();
+        fs::hard_link(&primary, source.join("usr/libexec/tool-core/tool-add")).unwrap();
+        fs::hard_link(&primary, source.join("usr/libexec/tool-core/tool-status")).unwrap();
+
+        copy_tree_preserving(&source, &staging).unwrap();
+
+        let copied_primary = fs::metadata(staging.join("usr/bin/tool")).unwrap();
+        let copied_add = fs::metadata(staging.join("usr/libexec/tool-core/tool-add")).unwrap();
+        let copied_status =
+            fs::metadata(staging.join("usr/libexec/tool-core/tool-status")).unwrap();
+        assert_eq!(copied_primary.ino(), copied_add.ino());
+        assert_eq!(copied_primary.ino(), copied_status.ino());
+        assert_eq!(copied_primary.nlink(), 3);
+        assert_eq!(installed_size_kib(&staging).unwrap(), 4);
     }
 
     #[test]

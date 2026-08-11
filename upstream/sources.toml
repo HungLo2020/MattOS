@@ -20,7 +20,7 @@ revision = "71afef7ce79ad2fd94833fa4f93fa5486c86c56b"
 path = "src/userland/brush"
 sync = "copy"
 patch_manifest = "upstream/patches/brush/manifest.toml"
-patch_manifest_sha256 = "a8533d0a09677d112ee1c217f9a986eb089926380da41a5549db00e1c3550010"
+patch_manifest_sha256 = "4ac8fb49466401acaac6b6bb9c16bc49c24e951ed5c597d5efa80fbc07f02883"
 
 [[component]]
 name = "coreutils"
@@ -68,6 +68,62 @@ repo = "https://github.com/util-linux/util-linux.git"
 branch = "master"
 revision = "fd82c4043fab942b889f478800118c66edfbc39f"
 path = "src/userland/util-linux"
+sync = "copy"
+patch_manifest = "upstream/patches/util-linux/manifest.toml"
+patch_manifest_sha256 = "6c7bf1cdb14c05b5f07e91692e55e957aa5b0ffcee325ffe90b90eff7f1f8259"
+
+[[component]]
+name = "gzip"
+repo = "https://git.savannah.gnu.org/git/gzip.git"
+branch = "v1.14"
+revision = "fbc4883eb9c304a04623ac506dd5cf5450d055f1"
+path = "src/userland/gzip"
+sync = "copy"
+intentional_omission_policy = "upstream/policies/gitlinks.toml#gzip"
+gitlink_policy = "upstream/policies/gitlinks.toml#gzip"
+
+[[component]]
+name = "patch"
+repo = "https://git.savannah.gnu.org/git/patch.git"
+branch = "v2.8"
+revision = "48ceda8200aaf30c3ce42c31cd70ff6087db2425"
+path = "src/userland/patch"
+sync = "copy"
+intentional_omission_policy = "upstream/policies/gitlinks.toml#patch"
+gitlink_policy = "upstream/policies/gitlinks.toml#patch"
+
+[[component]]
+name = "file"
+repo = "https://github.com/file/file.git"
+branch = "FILE5_48"
+revision = "eb754ace19fed5481d8142426543100a2d6bae4e"
+path = "src/userland/file"
+sync = "copy"
+
+[[component]]
+name = "less"
+repo = "https://github.com/gwsw/less.git"
+branch = "v704"
+revision = "7ea9586a9a1273eb9658d76af8986fdcf6738096"
+path = "src/userland/less"
+sync = "copy"
+
+[[component]]
+name = "git"
+repo = "https://github.com/git/git.git"
+branch = "v2.55.0"
+revision = "e9019fcafe0040228b8631c30f97ae1adb61bcdc"
+path = "src/userland/git"
+sync = "copy"
+intentional_omission_policy = "upstream/policies/gitlinks.toml#git"
+gitlink_policy = "upstream/policies/gitlinks.toml#git"
+
+[[component]]
+name = "openssh"
+repo = "https://github.com/openssh/openssh-portable.git"
+branch = "V_10_4_P1"
+revision = "e8dd756725e8800fcd0b3fd71ee6b4382d1e8fab"
+path = "src/system/network/openssh-portable"
 sync = "copy"
 
 [[component]]

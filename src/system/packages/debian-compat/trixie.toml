@@ -593,6 +593,18 @@ classification = "debian-compatible"
 known_gaps = ["Snapshot version relies on repository policy"]
 
 [[package]]
+debian_name = "libattr1"
+mattos_name = "libattr1"
+source_component = "attr"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libattr.so.1"]
+provided_abi_or_commands = ["ATTR_1.0"]
+protected = false
+current_mattos_version = "2.6.0-1mattos1"
+expected_debian_role = "extended attribute runtime"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
 debian_name = "libacl1"
 mattos_name = "libacl1"
 source_component = "acl"
@@ -795,3 +807,171 @@ current_mattos_version = "0~git.75cd9d544baa-1mattos1"
 expected_debian_role = "network diagnostics"
 classification = "debian-compatible"
 known_gaps = ["Debian splits tracepath separately"]
+
+[[package]]
+debian_name = "libuuid1"
+mattos_name = "libuuid1"
+source_component = "util-linux"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libuuid.so.1"]
+provided_abi_or_commands = ["libuuid.so.1"]
+protected = true
+current_mattos_version = "0~git.fd82c4043fab-1mattos1"
+expected_debian_role = "UUID runtime library"
+classification = "debian-compatible"
+known_gaps = ["Development files are not yet split into uuid-dev"]
+
+[[package]]
+debian_name = "libfdisk1"
+mattos_name = "libfdisk1"
+source_component = "util-linux"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libfdisk.so.1"]
+provided_abi_or_commands = ["libfdisk.so.1"]
+protected = true
+current_mattos_version = "0~git.fd82c4043fab-1mattos1"
+expected_debian_role = "partitioning runtime library"
+classification = "debian-compatible"
+known_gaps = ["Development files are not yet packaged"]
+
+[[package]]
+debian_name = "util-linux"
+mattos_name = "util-linux"
+source_component = "util-linux"
+owned_paths = ["/usr/bin/lsblk", "/usr/sbin/fdisk", "/usr/sbin/wipefs"]
+provided_abi_or_commands = ["base administration command subset"]
+protected = true
+current_mattos_version = "0~git.fd82c4043fab-1mattos1"
+expected_debian_role = "essential system utilities"
+classification = "debian-compatible"
+known_gaps = ["Nonessential and legacy util-linux commands are deliberately omitted"]
+
+[[package]]
+debian_name = "gzip"
+mattos_name = "gzip"
+source_component = "gzip"
+owned_paths = ["/usr/bin/gzip"]
+provided_abi_or_commands = ["gzip gunzip zcat"]
+protected = true
+current_mattos_version = "1.14-1mattos1"
+expected_debian_role = "gzip compression tools"
+classification = "debian-compatible"
+known_gaps = ["Localized manuals are omitted"]
+
+[[package]]
+debian_name = "bzip2"
+mattos_name = "bzip2"
+source_component = "bzip2"
+owned_paths = ["/usr/bin/bzip2"]
+provided_abi_or_commands = ["bzip2 bunzip2 bzcat"]
+protected = true
+current_mattos_version = "1.0.8-1mattos1"
+expected_debian_role = "bzip2 compression tools"
+classification = "debian-compatible"
+known_gaps = ["Documentation payload is smaller than Debian"]
+
+[[package]]
+debian_name = "xz-utils"
+mattos_name = "xz-utils"
+source_component = "xz"
+owned_paths = ["/usr/bin/xz"]
+provided_abi_or_commands = ["xz unxz xzcat lzma"]
+protected = true
+current_mattos_version = "5.8.1-1mattos1"
+expected_debian_role = "XZ compression tools"
+classification = "debian-compatible"
+known_gaps = ["Documentation and localization are omitted"]
+
+[[package]]
+debian_name = "zstd"
+mattos_name = "zstd"
+source_component = "zstd"
+owned_paths = ["/usr/bin/zstd"]
+provided_abi_or_commands = ["zstd unzstd zstdcat"]
+protected = true
+current_mattos_version = "1.5.7-1mattos1"
+expected_debian_role = "Zstandard compression tools"
+classification = "debian-compatible"
+known_gaps = ["Optional dictionary tools are not in the base package"]
+
+[[package]]
+debian_name = "patch"
+mattos_name = "patch"
+source_component = "patch"
+owned_paths = ["/usr/bin/patch"]
+provided_abi_or_commands = ["patch"]
+protected = true
+current_mattos_version = "2.8-1mattos1"
+expected_debian_role = "patch application utility"
+classification = "debian-compatible"
+known_gaps = ["Localized manuals are omitted"]
+
+[[package]]
+debian_name = "libmagic1"
+mattos_name = "libmagic1"
+source_component = "file"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libmagic.so.1", "/usr/share/misc/magic.mgc"]
+provided_abi_or_commands = ["libmagic.so.1 and magic database"]
+protected = true
+current_mattos_version = "5.48-1mattos1"
+expected_debian_role = "file-type detection runtime"
+classification = "debian-compatible"
+known_gaps = ["Development headers are not packaged"]
+
+[[package]]
+debian_name = "file"
+mattos_name = "file"
+source_component = "file"
+owned_paths = ["/usr/bin/file"]
+provided_abi_or_commands = ["file"]
+protected = true
+current_mattos_version = "5.48-1mattos1"
+expected_debian_role = "file-type identification command"
+classification = "debian-compatible"
+known_gaps = ["Localized manuals are omitted"]
+
+[[package]]
+debian_name = "less"
+mattos_name = "less"
+source_component = "less"
+owned_paths = ["/usr/bin/less"]
+provided_abi_or_commands = ["less lesskey lessecho"]
+protected = true
+current_mattos_version = "708-1mattos1"
+expected_debian_role = "terminal pager"
+classification = "debian-compatible"
+known_gaps = ["lesspipe helper is not shipped"]
+
+[[package]]
+debian_name = "git"
+mattos_name = "git"
+source_component = "git"
+owned_paths = ["/usr/bin/git", "/usr/libexec/git-core"]
+provided_abi_or_commands = ["Git local repositories and HTTPS transport"]
+protected = true
+current_mattos_version = "2.55.0-1mattos1"
+expected_debian_role = "distributed version control"
+classification = "debian-compatible"
+known_gaps = ["Perl-based ancillary tools and GUI are deliberately disabled"]
+
+[[package]]
+debian_name = "openssh-client"
+mattos_name = "openssh-client"
+source_component = "openssh"
+owned_paths = ["/usr/bin/ssh", "/etc/ssh/ssh_config"]
+provided_abi_or_commands = ["ssh scp sftp ssh-keygen"]
+protected = true
+current_mattos_version = "10.4.P1-1mattos1"
+expected_debian_role = "secure shell client"
+classification = "debian-compatible"
+known_gaps = ["Documentation and optional helpers are reduced"]
+
+[[package]]
+debian_name = "openssh-server"
+mattos_name = "openssh-server"
+source_component = "openssh"
+owned_paths = ["/usr/sbin/sshd", "/etc/ssh/sshd_config", "/usr/lib/systemd/system/ssh.service"]
+provided_abi_or_commands = ["sshd and systemd service"]
+protected = true
+current_mattos_version = "10.4.P1-1mattos1"
+expected_debian_role = "secure shell server"
+classification = "debian-compatible"
+known_gaps = ["Socket activation is not enabled by default"]

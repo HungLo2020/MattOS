@@ -18,3 +18,30 @@ source_commit = "214c7d146945c31a9dc04cb7094b85053f52a21e"
 url = "https://download.savannah.gnu.org/releases/acl/acl-2.3.2.tar.xz"
 sha256 = "97203a72cae99ab89a067fe2210c1cbf052bc492b479eca7d226d9830883b0bd"
 staging_policy = "output-mirror-only"
+
+[[archive]]
+component = "gzip"
+version = "1.14"
+source_tag = "v1.14"
+source_commit = "fbc4883eb9c304a04623ac506dd5cf5450d055f1"
+url = "https://ftp.gnu.org/gnu/gzip/gzip-1.14.tar.xz"
+sha256 = "01a7b881bd220bfdf615f97b8718f80bdfd3f6add385b993dcf6efd14e8c0ac6"
+staging_policy = "output-mirror-only"
+
+[[archive]]
+component = "patch"
+version = "2.8"
+source_tag = "v2.8"
+source_commit = "48ceda8200aaf30c3ce42c31cd70ff6087db2425"
+url = "https://ftp.gnu.org/gnu/patch/patch-2.8.tar.xz"
+sha256 = "f87cee69eec2b4fcbf60a396b030ad6aa3415f192aa5f7ee84cad5e11f7f5ae3"
+staging_policy = "output-mirror-only"
+
+[[archive]]
+component = "less"
+version = "704"
+source_tag = "v704"
+source_commit = "7ea9586a9a1273eb9658d76af8986fdcf6738096"
+url = "https://www.greenwoodsoftware.com/less/less-704.tar.gz"
+sha256 = "20a0b0a2bb2525fa53c7eee9beb854b4c9cf172eabb209af7020743547bfe9fb"
+staging_policy = "output-mirror-only"

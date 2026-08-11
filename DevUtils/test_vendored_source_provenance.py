@@ -532,8 +532,8 @@ def main() -> int:
     component_list = source_document.get("component", [])
     components = {component["name"]: component for component in component_list}
     failures: list[str] = []
-    if len(components) != 47 or len(component_list) != 47:
-        failures.append(f"sources.toml declares {len(component_list)} components, expected 47 unique components")
+    if len(components) != 53 or len(component_list) != 53:
+        failures.append(f"sources.toml declares {len(component_list)} components, expected 53 unique components")
     for component in component_list:
         revision = component.get("revision", "")
         if not REVISION_RE.fullmatch(revision):

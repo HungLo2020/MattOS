@@ -1,0 +1,21 @@
+diff --git a/brush-shell/src/entry.rs b/brush-shell/src/entry.rs
+index 15340ad..9f54b51 100644
+--- a/brush-shell/src/entry.rs
++++ b/brush-shell/src/entry.rs
+@@ -129,6 +129,16 @@ pub fn run() {
+     //
+     let mut args: Vec<_> = std::env::args().collect();
+ 
++    // POSIX specifies that the `sh` entry point selects the shell's POSIX
++    // compatibility behavior. MattOS deliberately installs Brush as both
++    // `/bin/sh` and `/bin/bash`; only the former should imply `--sh`.
++    let invoked_as_sh = args.first().is_some_and(|argv0| {
++        Path::new(argv0).file_name().is_some_and(|name| name == "sh")
++    });
++    if invoked_as_sh && !args.iter().any(|arg| arg == "--sh") {
++        args.insert(1, "--sh".to_string());
++    }
++
+     // Work around clap's limitations handling +O options.
+     for arg in &mut args {
+         if arg.starts_with("+O") {
