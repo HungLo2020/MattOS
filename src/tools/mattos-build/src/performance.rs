@@ -1,4 +1,4 @@
-use anyhow::{Context, Result, anyhow, bail};
+use anyhow::{anyhow, bail, Context, Result};
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 use sha2::{Digest, Sha256};
@@ -16,9 +16,9 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use crate::cache_manifest::{InventoryEntry, ToolIdentity};
-pub(crate) use crate::cache_manifest::{STAGE_MANIFEST_SCHEMA_VERSION, StageSpec};
 #[cfg(test)]
 use crate::cache_manifest::{StageInputDetails, StageManifest};
+pub(crate) use crate::cache_manifest::{StageSpec, STAGE_MANIFEST_SCHEMA_VERSION};
 use crate::integrity_index::{self, FileFingerprint};
 use crate::source_identity::{GitSourceSnapshot, SourceQuery};
 #[cfg(test)]
@@ -79,12 +79,99 @@ impl<T> Shared<T> {
 
 thread_local! {
     static ACTIVE_BUILD_LOG: RefCell<Option<PathBuf>> = const { RefCell::new(None) };
+    static ACTIVE_STAGE_CPU: RefCell<Option<StageCpuUsage>> = const { RefCell::new(None) };
     #[cfg(test)]
     static TIMINGS: RefCell<Option<(PathBuf, TimingReport)>> = const { RefCell::new(None) };
     #[cfg(test)]
     static INTEGRITY_CACHE: RefCell<Option<InvocationIntegrityCache>> = const { RefCell::new(None) };
     #[cfg(test)]
     static TIMING_STARTED: RefCell<Option<Instant>> = const { RefCell::new(None) };
+}
+
+#[derive(Clone, Copy, Default)]
+struct StageCpuUsage {
+    user: Duration,
+    system: Duration,
+    commands: usize,
+    complete: bool,
+}
+
+pub(crate) fn stage_cpu_usage_from_log(repo_root: &Path, stage: &str) -> Option<(f64, f64)> {
+    let log = fs::read_to_string(repo_root.join("out/logs").join(format!("{stage}.log"))).ok()?;
+    let line = log
+        .lines()
+        .rev()
+        .find(|line| line.contains("stage-cpu-accounting") && line.contains("available=true"))?;
+    let value = |key: &str| {
+        line.split_whitespace()
+            .find_map(|part| part.strip_prefix(key))?
+            .parse::<f64>()
+            .ok()
+    };
+    Some((value("user_seconds=")?, value("system_seconds=")?))
+}
+
+fn wait_with_tree_cpu(
+    child: &mut std::process::Child,
+) -> Result<(ExitStatus, Option<StageCpuUsage>)> {
+    use std::os::unix::process::ExitStatusExt;
+
+    let mut raw_status = 0;
+    let mut usage = std::mem::MaybeUninit::<libc::rusage>::zeroed();
+    // wait4() reaps exactly this command child and atomically returns its CPU
+    // usage, including CPU charged to descendants which it waited for.  This is
+    // more reliable than sampling a zombie's /proc stat file and cannot cross
+    // attribute a concurrently running stage's process tree.
+    loop {
+        let result = unsafe {
+            libc::wait4(
+                child.id() as libc::pid_t,
+                &mut raw_status,
+                0,
+                usage.as_mut_ptr(),
+            )
+        };
+        if result >= 0 {
+            let usage = unsafe { usage.assume_init() };
+            let to_duration = |time: libc::timeval| {
+                Duration::from_secs(time.tv_sec as u64)
+                    + Duration::from_micros(time.tv_usec as u64)
+            };
+            return Ok((
+                ExitStatus::from_raw(raw_status),
+                Some(StageCpuUsage {
+                    user: to_duration(usage.ru_utime),
+                    system: to_duration(usage.ru_stime),
+                    commands: 0,
+                    complete: true,
+                }),
+            ));
+        }
+        let error = std::io::Error::last_os_error();
+        if error.raw_os_error() == Some(libc::EINTR) {
+            continue;
+        }
+        // An unavailable kernel interface must not silently produce partial
+        // stage totals.  Reap through std so normal child cleanup still occurs.
+        return Ok((child.wait()?, None));
+    }
+}
+
+fn record_active_tree_cpu(usage: Option<StageCpuUsage>) {
+    ACTIVE_STAGE_CPU.with(|slot| {
+        let mut slot = slot.borrow_mut();
+        let total = slot.get_or_insert_default();
+        total.complete = if total.commands == 0 {
+            usage.is_some()
+        } else {
+            total.complete && usage.is_some()
+        };
+        total.commands += 1;
+        if let Some(usage) = usage {
+            total.user += usage.user;
+            total.system += usage.system;
+        }
+    });
 }
 #[cfg(not(test))]
 static TIMINGS: Shared<Option<(PathBuf, TimingReport)>> = Shared::new(None);
@@ -257,10 +344,21 @@ where
     }
     fs::write(&log, format!("MattOS build log: {stage}\n"))?;
     ACTIVE_BUILD_LOG.with(|slot| *slot.borrow_mut() = Some(log.clone()));
+    ACTIVE_STAGE_CPU.with(|slot| *slot.borrow_mut() = Some(StageCpuUsage::default()));
     trace_log_context("with_stage_log-after-set");
     println!("[build] {stage}: running (full log: {})", log.display());
     trace_log_context("with_stage_log-action-entry");
     let result = action();
+    let cpu = ACTIVE_STAGE_CPU.with(|slot| slot.borrow_mut().take());
+    if let Some(cpu) = cpu {
+        let wall = 0.0; // Scheduler records action wall time at its ownership boundary.
+        let _ = append_active_stage_log(&format!(
+            "stage-cpu-accounting available={} user_seconds={:.6} system_seconds={:.6} total_seconds={:.6} average_cores={}",
+            cpu.complete && cpu.commands > 0, cpu.user.as_secs_f64(), cpu.system.as_secs_f64(),
+            (cpu.user + cpu.system).as_secs_f64(),
+            if wall == 0.0 { "recorded-by-scheduler".to_string() } else { "unavailable".to_string() }
+        ));
+    }
     trace_log_context("with_stage_log-action-return");
     ACTIVE_BUILD_LOG.with(|slot| *slot.borrow_mut() = None);
     trace_log_context("with_stage_log-after-clear");
@@ -378,9 +476,9 @@ fn run_logged_command_mode(
             }
             Ok(())
         });
-        let status = child
-            .wait()
+        let (status, usage) = wait_with_tree_cpu(&mut child)
             .with_context(|| format!("failed to wait for {display}"))?;
+        record_active_tree_cpu(usage);
         stdout_thread
             .join()
             .map_err(|_| anyhow!("stdout forwarding thread panicked for {display}"))??;
@@ -394,9 +492,13 @@ fn run_logged_command_mode(
     command
         .stdout(Stdio::from(stdout))
         .stderr(Stdio::from(stderr));
-    command
-        .status()
-        .with_context(|| format!("failed to spawn {display}"))
+    let mut child = command
+        .spawn()
+        .with_context(|| format!("failed to spawn {display}"))?;
+    let (status, usage) =
+        wait_with_tree_cpu(&mut child).with_context(|| format!("failed to wait for {display}"))?;
+    record_active_tree_cpu(usage);
+    Ok(status)
 }
 
 fn log_tail(path: &Path, lines: usize) -> Result<String> {
@@ -1353,14 +1455,12 @@ mod tests {
             vec!["config", "user.email", "tests@mattos.invalid"],
             vec!["config", "user.name", "MattOS Tests"],
         ] {
-            assert!(
-                Command::new("git")
-                    .args(arguments)
-                    .current_dir(root)
-                    .status()
-                    .unwrap()
-                    .success()
-            );
+            assert!(Command::new("git")
+                .args(arguments)
+                .current_dir(root)
+                .status()
+                .unwrap()
+                .success());
         }
     }
 
@@ -1445,22 +1545,18 @@ mod tests {
         let link = root.path().join("source/link");
         fs::write(&file, "good").unwrap();
         symlink("file", &link).unwrap();
-        assert!(
-            Command::new("git")
-                .args(["add", "source"])
-                .current_dir(root.path())
-                .status()
-                .unwrap()
-                .success()
-        );
-        assert!(
-            Command::new("git")
-                .args(["commit", "-qm", "fixture"])
-                .current_dir(root.path())
-                .status()
-                .unwrap()
-                .success()
-        );
+        assert!(Command::new("git")
+            .args(["add", "source"])
+            .current_dir(root.path())
+            .status()
+            .unwrap()
+            .success());
+        assert!(Command::new("git")
+            .args(["commit", "-qm", "fixture"])
+            .current_dir(root.path())
+            .status()
+            .unwrap()
+            .success());
         let roots = vec![PathBuf::from("source")];
 
         begin_test_integrity_cache();
@@ -1487,29 +1583,25 @@ mod tests {
 
     #[test]
     fn git_assisted_source_identity_detects_all_worktree_and_index_changes() {
-        use std::os::unix::fs::{PermissionsExt, symlink};
+        use std::os::unix::fs::{symlink, PermissionsExt};
 
         let root = tempdir().unwrap();
         initialize_git_fixture(root.path());
         fs::create_dir(root.path().join("source")).unwrap();
         let file = root.path().join("source/file");
         fs::write(&file, "base").unwrap();
-        assert!(
-            Command::new("git")
-                .args(["add", "source/file"])
-                .current_dir(root.path())
-                .status()
-                .unwrap()
-                .success()
-        );
-        assert!(
-            Command::new("git")
-                .args(["commit", "-qm", "fixture"])
-                .current_dir(root.path())
-                .status()
-                .unwrap()
-                .success()
-        );
+        assert!(Command::new("git")
+            .args(["add", "source/file"])
+            .current_dir(root.path())
+            .status()
+            .unwrap()
+            .success());
+        assert!(Command::new("git")
+            .args(["commit", "-qm", "fixture"])
+            .current_dir(root.path())
+            .status()
+            .unwrap()
+            .success());
         let roots = vec![PathBuf::from("source")];
         let digest = || tracked_source_digest(root.path(), &roots, true).unwrap();
         let refresh = || invalidate_integrity_paths(root.path(), std::slice::from_ref(&file));
@@ -1537,14 +1629,12 @@ mod tests {
         assert_ne!(same_size_restored_time, chmod, "chmod must invalidate");
 
         fs::write(&file, "staged").unwrap();
-        assert!(
-            Command::new("git")
-                .args(["add", "source/file"])
-                .current_dir(root.path())
-                .status()
-                .unwrap()
-                .success()
-        );
+        assert!(Command::new("git")
+            .args(["add", "source/file"])
+            .current_dir(root.path())
+            .status()
+            .unwrap()
+            .success());
         refresh();
         let staged = digest();
         assert_ne!(clean, staged, "staged blob/mode identity must invalidate");
@@ -1574,7 +1664,7 @@ mod tests {
 
     #[test]
     fn optimized_source_identity_matches_full_scan_across_adversarial_states() {
-        use std::os::unix::fs::{PermissionsExt, symlink};
+        use std::os::unix::fs::{symlink, PermissionsExt};
 
         let root = tempdir().unwrap();
         initialize_git_fixture(root.path());
@@ -1585,22 +1675,18 @@ mod tests {
         fs::write(root.path().join("source/nested/value"), "nested").unwrap();
         fs::write(root.path().join("source/nested/docs/readme"), "docs").unwrap();
         fs::write(root.path().join("sourced/file"), "boundary").unwrap();
-        assert!(
-            Command::new("git")
-                .args(["add", "."])
-                .current_dir(root.path())
-                .status()
-                .unwrap()
-                .success()
-        );
-        assert!(
-            Command::new("git")
-                .args(["commit", "-qm", "fixture"])
-                .current_dir(root.path())
-                .status()
-                .unwrap()
-                .success()
-        );
+        assert!(Command::new("git")
+            .args(["add", "."])
+            .current_dir(root.path())
+            .status()
+            .unwrap()
+            .success());
+        assert!(Command::new("git")
+            .args(["commit", "-qm", "fixture"])
+            .current_dir(root.path())
+            .status()
+            .unwrap()
+            .success());
         let roots = [PathBuf::from("source"), PathBuf::from("source/nested")];
         let assert_matches = || {
             assert_source_digest_matches_full_scan(root.path(), &roots, false);
@@ -1617,14 +1703,12 @@ mod tests {
         assert_matches();
         fs::set_permissions(&file, fs::Permissions::from_mode(0o755)).unwrap();
         assert_matches();
-        assert!(
-            Command::new("git")
-                .args(["add", "source/file"])
-                .current_dir(root.path())
-                .status()
-                .unwrap()
-                .success()
-        );
+        assert!(Command::new("git")
+            .args(["add", "source/file"])
+            .current_dir(root.path())
+            .status()
+            .unwrap()
+            .success());
         assert_matches();
         fs::write(&file, "unstaged").unwrap();
         assert_matches();
@@ -1648,49 +1732,39 @@ mod tests {
             ["commit", "-qm", "base"].as_slice(),
             ["checkout", "-qb", "side"].as_slice(),
         ] {
-            assert!(
-                Command::new("git")
-                    .args(arguments)
-                    .current_dir(conflict.path())
-                    .status()
-                    .unwrap()
-                    .success()
-            );
+            assert!(Command::new("git")
+                .args(arguments)
+                .current_dir(conflict.path())
+                .status()
+                .unwrap()
+                .success());
         }
         fs::write(conflict.path().join("file"), "side").unwrap();
-        assert!(
-            Command::new("git")
-                .args(["commit", "-qam", "side"])
-                .current_dir(conflict.path())
-                .status()
-                .unwrap()
-                .success()
-        );
-        assert!(
-            Command::new("git")
-                .args(["checkout", "-q", "master"])
-                .current_dir(conflict.path())
-                .status()
-                .unwrap()
-                .success()
-        );
+        assert!(Command::new("git")
+            .args(["commit", "-qam", "side"])
+            .current_dir(conflict.path())
+            .status()
+            .unwrap()
+            .success());
+        assert!(Command::new("git")
+            .args(["checkout", "-q", "master"])
+            .current_dir(conflict.path())
+            .status()
+            .unwrap()
+            .success());
         fs::write(conflict.path().join("file"), "main").unwrap();
-        assert!(
-            Command::new("git")
-                .args(["commit", "-qam", "main"])
-                .current_dir(conflict.path())
-                .status()
-                .unwrap()
-                .success()
-        );
-        assert!(
-            !Command::new("git")
-                .args(["merge", "side"])
-                .current_dir(conflict.path())
-                .status()
-                .unwrap()
-                .success()
-        );
+        assert!(Command::new("git")
+            .args(["commit", "-qam", "main"])
+            .current_dir(conflict.path())
+            .status()
+            .unwrap()
+            .success());
+        assert!(!Command::new("git")
+            .args(["merge", "side"])
+            .current_dir(conflict.path())
+            .status()
+            .unwrap()
+            .success());
         assert_source_digest_matches_full_scan(conflict.path(), &[PathBuf::from("file")], false);
     }
 
@@ -1762,22 +1836,18 @@ mod tests {
         fs::create_dir(root.path().join("source")).unwrap();
         fs::write(root.path().join("source/file"), "good").unwrap();
         fs::write(root.path().join("config"), "good").unwrap();
-        assert!(
-            Command::new("git")
-                .args(["add", "source", "config"])
-                .current_dir(root.path())
-                .status()
-                .unwrap()
-                .success()
-        );
-        assert!(
-            Command::new("git")
-                .args(["commit", "-qm", "fixture"])
-                .current_dir(root.path())
-                .status()
-                .unwrap()
-                .success()
-        );
+        assert!(Command::new("git")
+            .args(["add", "source", "config"])
+            .current_dir(root.path())
+            .status()
+            .unwrap()
+            .success());
+        assert!(Command::new("git")
+            .args(["commit", "-qm", "fixture"])
+            .current_dir(root.path())
+            .status()
+            .unwrap()
+            .success());
         begin_test_integrity_cache();
         let source = tracked_source_digest(root.path(), &[PathBuf::from("source")], true).unwrap();
         let config =
@@ -2108,7 +2178,7 @@ mod tests {
 
     #[test]
     fn inventory_detects_missing_corrupt_mode_and_symlink_outputs() {
-        use std::os::unix::fs::{PermissionsExt, symlink};
+        use std::os::unix::fs::{symlink, PermissionsExt};
         let root = tempdir().unwrap();
         let output = root.path().join("output");
         fs::create_dir(&output).unwrap();
@@ -2452,7 +2522,7 @@ mod tests {
 
     #[test]
     fn path_noise_does_not_change_resolved_tool_identity() {
-        use std::os::unix::fs::{PermissionsExt, symlink};
+        use std::os::unix::fs::{symlink, PermissionsExt};
         let root = tempdir().unwrap();
         let bin = root.path().join("bin");
         let alias = root.path().join("alias");
@@ -2591,5 +2661,77 @@ mod tests {
         let body = fs::read_to_string(root.path().join("out/reports/build-timings.json")).unwrap();
         assert!(body.contains("\"cache_status\": \"miss\""));
         assert!(body.contains("\"cache_status\": \"hit\""));
+    }
+
+    #[cfg(target_os = "linux")]
+    fn accounting_fixture() -> &'static Path {
+        use std::sync::OnceLock;
+
+        static FIXTURE: OnceLock<PathBuf> = OnceLock::new();
+        FIXTURE.get_or_init(|| {
+            let destination = std::env::temp_dir().join(format!(
+                "mattos-cpu-accounting-fixture-{}",
+                std::process::id()
+            ));
+            let source = Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("tests/fixtures/cpu_accounting_fixture.c");
+            let status = Command::new("cc")
+                .args(["-O2", "-std=c11"])
+                .arg(&source)
+                .args(["-o"])
+                .arg(&destination)
+                .status()
+                .expect("C compiler is required for Linux CPU-accounting tests");
+            assert!(status.success(), "failed to compile CPU accounting fixture");
+            destination
+        })
+    }
+
+    #[cfg(target_os = "linux")]
+    fn accounted_fixture(mode: &str, milliseconds: u32) -> (ExitStatus, StageCpuUsage) {
+        let mut child = Command::new(accounting_fixture())
+            .args([mode, &milliseconds.to_string()])
+            .spawn()
+            .unwrap();
+        let (status, usage) = wait_with_tree_cpu(&mut child).unwrap();
+        (
+            status,
+            usage.expect("/proc zombie accounting must be available on Linux"),
+        )
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn wait4_accounts_direct_sequential_and_parallel_waited_children() {
+        let (_, direct) = accounted_fixture("direct", 150);
+        let (_, one) = accounted_fixture("one", 150);
+        let (_, sequential) = accounted_fixture("sequential", 150);
+        let (_, parallel) = accounted_fixture("parallel", 150);
+        let cpu = |usage: StageCpuUsage| (usage.user + usage.system).as_secs_f64();
+        assert!(cpu(direct) >= 0.12, "direct CPU was not measured: {}", cpu(direct));
+        assert!(cpu(one) >= 0.12, "one waited child was not measured: {}", cpu(one));
+        assert!(
+            cpu(sequential) >= 0.24 && cpu(parallel) >= 0.24,
+            "two waited children were not cumulatively measured: sequential={} parallel={}",
+            cpu(sequential), cpu(parallel)
+        );
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn wait4_accounts_nested_short_lived_and_failed_commands_before_reap() {
+        let (_, nested) = accounted_fixture("nested", 150);
+        let (status, failed) = accounted_fixture("fail", 150);
+        assert_eq!(status.code(), Some(7));
+        assert!((nested.user + nested.system) >= Duration::from_millis(240));
+        assert!((failed.user + failed.system) >= Duration::from_millis(120));
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn wait4_idle_command_is_near_zero_and_reaped() {
+        let (status, usage) = accounted_fixture("idle", 100);
+        assert!(status.success());
+        assert!((usage.user + usage.system) < Duration::from_millis(100));
     }
 }

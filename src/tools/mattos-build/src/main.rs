@@ -3718,7 +3718,7 @@ fn build_gcc_runtime(repo_root: &Path) -> Result<()> {
     fs::write(
         output.join("configure-invocation.txt"),
         format!(
-            "SOURCE_DATE_EPOCH={} LC_ALL=C TZ=UTC CFLAGS_FOR_TARGET='{}' CXXFLAGS_FOR_TARGET='{}' LDFLAGS_FOR_TARGET='-Wl,-z,relro -Wl,-z,now' {} {}\nmake -j4 all-target-libgcc all-target-libstdc++-v3\nmake DESTDIR={} install-target-libgcc install-target-libstdc++-v3\n",
+            "SOURCE_DATE_EPOCH={} LC_ALL=C TZ=UTC CFLAGS_FOR_TARGET='{}' CXXFLAGS_FOR_TARGET='{}' LDFLAGS_FOR_TARGET='-Wl,-z,relro -Wl,-z,now' {} {}\nmake all-target-libgcc all-target-libstdc++-v3\nmake DESTDIR={} install-target-libgcc install-target-libstdc++-v3\n",
             MATTOS_SOURCE_DATE_EPOCH,
             env[3].1,
             env[4].1,
@@ -3732,7 +3732,7 @@ fn build_gcc_runtime(repo_root: &Path) -> Result<()> {
     run_gcc_bootstrap_command(
         &build,
         Path::new("make"),
-        &["-j", "4", "all-target-libgcc", "all-target-libstdc++-v3"],
+        &["all-target-libgcc", "all-target-libstdc++-v3"],
         &env,
     )
     .context("GCC runtime build failed")?;
@@ -4230,7 +4230,10 @@ fn build_static_prerequisite(
     owned_args.extend_from_slice(configure_extra);
     let args = owned_args.iter().map(String::as_str).collect::<Vec<_>>();
     run_gcc_bootstrap_command(build, &source.join("configure"), &args, env)?;
-    run_gcc_bootstrap_command(build, Path::new("make"), &["-j", "4"], env)?;
+    // MAKEFLAGS is installed from the scheduler's launch-time child-job grant.
+    // Do not retain a recipe-local cap here: these prerequisite builds are part
+    // of the GCC compiler stage and must use the same authoritative grant.
+    run_gcc_bootstrap_command(build, Path::new("make"), &[], env)?;
     run_gcc_bootstrap_command(build, Path::new("make"), &["install"], env)?;
     Ok(())
 }
@@ -4385,7 +4388,7 @@ fn build_gcc_toolchain(repo_root: &Path) -> Result<()> {
     ]);
     run_gcc_bootstrap_command(&build, &configure, &configure_args, &gcc_env)
         .context("MattOS-native GCC configure failed")?;
-    run_gcc_bootstrap_command(&build, Path::new("make"), &["-j", "4", "all-gcc"], &gcc_env)
+    run_gcc_bootstrap_command(&build, Path::new("make"), &["all-gcc"], &gcc_env)
         .context("MattOS-native GCC compiler build failed")?;
     let destdir = format!("DESTDIR={}", install.display());
     log_gcc_info_index_boundary("before-install-gcc", &install)?;
@@ -4468,7 +4471,7 @@ fn build_gcc_toolchain(repo_root: &Path) -> Result<()> {
     fs::write(
         output.join("configure-invocation.txt"),
         format!(
-            "CC={} CXX={} CC_FOR_BUILD=/usr/bin/gcc CXX_FOR_BUILD=/usr/bin/g++ {} {}\nmake -j4 all-gcc\nmake DESTDIR={} install-gcc\n",
+            "CC={} CXX={} CC_FOR_BUILD=/usr/bin/gcc CXX_FOR_BUILD=/usr/bin/g++ {} {}\nmake all-gcc\nmake DESTDIR={} install-gcc\n",
             cc_name,
             cxx_name,
             configure.display(),
@@ -11144,6 +11147,33 @@ mod tests {
         assert_eq!(
             String::from_utf8(output.stdout).unwrap(),
             "-j2\n2\n2\n2\n-j2\n"
+        );
+        scheduler::set_child_jobs_for_test(4, scheduler::ChildJobPolicy::SchedulerGrant);
+    }
+
+    #[test]
+    fn gcc_make_uses_the_authoritative_scheduler_parallelism() {
+        for jobs in [4, 6] {
+            scheduler::set_child_jobs_for_test(jobs, scheduler::ChildJobPolicy::SchedulerGrant);
+            let mut command = Command::new("sh");
+            command.args(["-c", "printf '%s' \"$MAKEFLAGS\""]);
+            apply_scheduler_parallelism(&mut command);
+            let output = command.output().unwrap();
+            assert_eq!(String::from_utf8(output.stdout).unwrap(), format!("-j{jobs}"));
+            assert_eq!(scheduler_command_args(&["all-gcc"]), ["all-gcc"]);
+            assert_eq!(scheduler_command_args(&["all-target-libgcc"]), ["all-target-libgcc"]);
+        }
+        let source = include_str!("main.rs");
+        let prerequisite = source
+            .split_once("fn build_static_prerequisite(")
+            .unwrap()
+            .1
+            .split_once("fn log_gcc_info_index_boundary(")
+            .unwrap()
+            .0;
+        assert!(
+            !prerequisite.contains("\"-j\""),
+            "GCC prerequisite builds must not reintroduce recipe-local job flags"
         );
         scheduler::set_child_jobs_for_test(4, scheduler::ChildJobPolicy::SchedulerGrant);
     }

@@ -1,7 +1,8 @@
+use crate::performance;
 use crate::resources::{
     HostResourceSampler, PressureLevel, ResourceBudget, ResourceEnvelope, RuntimeResourceSampler,
 };
-use anyhow::{Result, anyhow, bail};
+use anyhow::{anyhow, bail, Result};
 use std::cell::Cell;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs::{File, OpenOptions};
@@ -10,6 +11,10 @@ use std::path::{Path, PathBuf};
 use std::sync::mpsc::{self, Receiver, RecvTimeoutError, Sender};
 use std::thread;
 use std::time::{Duration, Instant};
+
+// Resource release and ready-set events wake admission immediately.  This is
+// only a recovery/safety poll: it must never be the normal scheduling clock.
+const PRESSURE_RECOVERY_POLL: Duration = Duration::from_secs(1);
 
 thread_local! {
     static GRANTED_TOKENS: Cell<usize> = const { Cell::new(4) };
@@ -29,9 +34,22 @@ pub(crate) enum ChildJobPolicy {
 /// exactly the same profile.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) struct StageResourceProfile {
+    /// Capacity charged to global admission. This is deliberately distinct
+    /// from the process-level parallelism passed to Make/Cargo/Ninja.
     pub(crate) minimum_cpu_grant: usize,
     pub(crate) useful_cpu_ceiling: Option<usize>,
+    /// Preferred launch baseline when the host envelope permits it.  This is
+    /// distinct from the absolute safe minimum below so constrained hosts can
+    /// still make forward progress without abandoning their RAM reserve.
+    pub(crate) preferred_child_jobs: usize,
+    pub(crate) minimum_child_jobs: usize,
+    pub(crate) useful_child_job_ceiling: Option<usize>,
     pub(crate) estimated_memory_bytes: u64,
+    /// Incremental reservation for each granted child job.  Admission searches
+    /// the useful range downward, so an otherwise-safe stage is never made
+    /// permanently impossible merely because its maximum configuration will
+    /// not fit this host's current safe envelope.
+    pub(crate) memory_per_child_job_bytes: u64,
     pub(crate) memory_heavy: bool,
     pub(crate) may_borrow_idle_cpu: bool,
     pub(crate) child_jobs: ChildJobPolicy,
@@ -44,7 +62,11 @@ impl StageResourceProfile {
         Self {
             minimum_cpu_grant: 1,
             useful_cpu_ceiling: None,
+            preferred_child_jobs: 1,
+            minimum_child_jobs: 1,
+            useful_child_job_ceiling: None,
             estimated_memory_bytes: 768 * Self::MIB,
+            memory_per_child_job_bytes: 0,
             memory_heavy: false,
             may_borrow_idle_cpu: true,
             child_jobs: ChildJobPolicy::SchedulerGrant,
@@ -54,8 +76,14 @@ impl StageResourceProfile {
     pub(crate) fn memory_heavy() -> Self {
         Self {
             minimum_cpu_grant: 1,
-            useful_cpu_ceiling: None,
-            estimated_memory_bytes: 3 * 1024 * Self::MIB,
+            useful_cpu_ceiling: Some(6),
+            preferred_child_jobs: 4,
+            minimum_child_jobs: 1,
+            useful_child_job_ceiling: Some(6),
+            // Four safe jobs reserve 2 GiB; six useful jobs reserve 2.75 GiB.
+            // This is a scalable launch model, not a host-specific stage cap.
+            estimated_memory_bytes: 512 * Self::MIB,
+            memory_per_child_job_bytes: 384 * Self::MIB,
             memory_heavy: true,
             may_borrow_idle_cpu: true,
             child_jobs: ChildJobPolicy::SchedulerGrant,
@@ -66,7 +94,11 @@ impl StageResourceProfile {
         Self {
             minimum_cpu_grant: 1,
             useful_cpu_ceiling: Some(1),
+            preferred_child_jobs: 1,
+            minimum_child_jobs: 1,
+            useful_child_job_ceiling: Some(1),
             estimated_memory_bytes: 256 * Self::MIB,
+            memory_per_child_job_bytes: 0,
             memory_heavy: false,
             may_borrow_idle_cpu: false,
             child_jobs: ChildJobPolicy::Serial,
@@ -123,6 +155,7 @@ pub(crate) struct JobContext {
 #[derive(Clone, Copy)]
 struct Allocation {
     cpu_tokens: usize,
+    child_jobs: usize,
 }
 
 impl JobContext {
@@ -139,7 +172,7 @@ impl JobContext {
             })?;
         match self.permit.recv() {
             Ok(Some(allocation)) => {
-                configure_child_jobs(allocation.cpu_tokens, self.profile.child_jobs);
+                configure_child_jobs(allocation.child_jobs, self.profile.child_jobs);
                 Ok(())
             }
             Ok(None) | Err(_) => bail!("scheduler cancelled {} before its build action", self.id),
@@ -185,9 +218,19 @@ fn account_running_builds(
     }
 }
 
+fn remaining_cpu_tokens(cpu_budget: usize, used_tokens: usize) -> usize {
+    cpu_budget.checked_sub(used_tokens).unwrap_or_else(|| {
+        panic!(
+            "scheduler CPU reservation invariant violated: used {used_tokens} tokens with a {cpu_budget}-token budget"
+        )
+    })
+}
+
 struct SchedulerTrace {
     started: Instant,
     file: Option<File>,
+    writes: usize,
+    write_time: Duration,
 }
 
 impl SchedulerTrace {
@@ -208,10 +251,13 @@ impl SchedulerTrace {
         Ok(Self {
             started: Instant::now(),
             file,
+            writes: 0,
+            write_time: Duration::ZERO,
         })
     }
 
     fn event(&mut self, event: &str) {
+        let write_started = Instant::now();
         let line = format!(
             "[scheduler] elapsed={:.3}s {event}",
             self.started.elapsed().as_secs_f64()
@@ -221,6 +267,43 @@ impl SchedulerTrace {
             let _ = writeln!(file, "{line}");
             let _ = file.flush();
         }
+        self.writes += 1;
+        self.write_time += write_started.elapsed();
+    }
+}
+
+#[derive(Clone)]
+struct DeferredStage {
+    reason: String,
+    pressure: PressureLevel,
+    started: Instant,
+}
+
+fn record_defer(
+    trace: &mut SchedulerTrace,
+    deferred: &mut BTreeMap<String, DeferredStage>,
+    id: &str,
+    reason: &str,
+    pressure: PressureLevel,
+    used_tokens: usize,
+    used_memory: u64,
+) {
+    let changed = deferred
+        .get(id)
+        .is_none_or(|state| state.reason != reason || state.pressure != pressure);
+    if changed {
+        trace.event(&format!(
+            "event=build-deferred stage={id} reason={reason} pressure={} used_tokens={used_tokens} used_memory_bytes={used_memory}",
+            pressure.as_str()
+        ));
+        deferred.insert(
+            id.to_string(),
+            DeferredStage {
+                reason: reason.to_string(),
+                pressure,
+                started: Instant::now(),
+            },
+        );
     }
 }
 
@@ -448,18 +531,30 @@ pub(crate) fn standalone_grant(
     envelope: &ResourceEnvelope,
 ) -> usize {
     let budget = envelope.budget;
-    let maximum = profile.useful_cpu_ceiling.unwrap_or(budget.cpu_tokens);
-    if profile.may_borrow_idle_cpu
+    let maximum = profile.useful_cpu_ceiling.unwrap_or(budget.cpu_tokens).min(
+        profile
+            .useful_child_job_ceiling
+            .unwrap_or(budget.cpu_tokens),
+    );
+    let minimum = profile
+        .minimum_cpu_grant
+        .max(profile.minimum_child_jobs)
+        .min(budget.cpu_tokens);
+    let preferred = if profile.may_borrow_idle_cpu
         && envelope.pressure == PressureLevel::Healthy
-        && budget.build_memory_bytes >= profile.estimated_memory_bytes
     {
-        budget
-            .cpu_tokens
-            .min(maximum)
-            .max(profile.minimum_cpu_grant)
+        budget.cpu_tokens.min(maximum)
     } else {
-        profile.minimum_cpu_grant
-    }
+        profile
+            .minimum_cpu_grant
+            .max(profile.preferred_child_jobs)
+            .min(maximum)
+            .min(budget.cpu_tokens)
+    };
+    (minimum..=preferred)
+        .rev()
+        .find(|jobs| memory_reservation(profile, *jobs) <= budget.build_memory_bytes)
+        .unwrap_or(0)
 }
 
 fn heavy_limit(pressure: PressureLevel) -> usize {
@@ -468,6 +563,14 @@ fn heavy_limit(pressure: PressureLevel) -> usize {
         PressureLevel::Constrained => 1,
         PressureLevel::Critical => 0,
     }
+}
+
+fn memory_reservation(profile: StageResourceProfile, child_jobs: usize) -> u64 {
+    profile.estimated_memory_bytes.saturating_add(
+        profile
+            .memory_per_child_job_bytes
+            .saturating_mul(child_jobs as u64),
+    )
 }
 
 fn admission_grant(
@@ -489,28 +592,41 @@ fn admission_grant(
         .build_memory_bytes
         .checked_sub(used_memory)
         .ok_or("memory-budget")?;
-    if available_cpu < profile.minimum_cpu_grant
-        || available_memory < profile.estimated_memory_bytes
-    {
-        return Err("insufficient-cpu-or-memory-budget");
-    }
+    let minimum = profile.minimum_cpu_grant.max(profile.minimum_child_jobs);
+    if available_cpu < minimum { return Err("insufficient-cpu-or-memory-budget"); }
     let reserved_for_peers = waiting_profiles
         .filter(|peer| {
-            peer.minimum_cpu_grant <= available_cpu
-                && peer.estimated_memory_bytes <= available_memory
+            peer.minimum_cpu_grant.max(peer.minimum_child_jobs) <= available_cpu
+                && memory_reservation(*peer, peer.minimum_child_jobs) <= available_memory
         })
-        .map(|peer| peer.minimum_cpu_grant)
+        .map(|peer| peer.minimum_cpu_grant.max(peer.minimum_child_jobs))
         .sum::<usize>();
-    let maximum = profile.useful_cpu_ceiling.unwrap_or(budget.cpu_tokens);
+    let maximum = profile.useful_cpu_ceiling.unwrap_or(budget.cpu_tokens).min(
+        profile
+            .useful_child_job_ceiling
+            .unwrap_or(budget.cpu_tokens),
+    );
+    let preferred_baseline = profile
+        .minimum_cpu_grant
+        .max(profile.preferred_child_jobs)
+        .min(maximum);
     let borrowable = available_cpu
-        .saturating_sub(profile.minimum_cpu_grant)
+        .saturating_sub(preferred_baseline)
         .saturating_sub(reserved_for_peers);
-    let cpu_tokens = if profile.may_borrow_idle_cpu && pressure == PressureLevel::Healthy {
-        (profile.minimum_cpu_grant + borrowable).min(maximum)
+    let preferred = if profile.may_borrow_idle_cpu && pressure == PressureLevel::Healthy {
+        (preferred_baseline + borrowable).min(maximum)
     } else {
-        profile.minimum_cpu_grant
-    };
-    Ok(Allocation { cpu_tokens })
+        preferred_baseline
+    }
+    .min(available_cpu);
+    let cpu_tokens = (minimum..=preferred)
+        .rev()
+        .find(|jobs| memory_reservation(profile, *jobs) <= available_memory)
+        .ok_or("insufficient-cpu-or-memory-budget")?;
+    Ok(Allocation {
+        cpu_tokens,
+        child_jobs: cpu_tokens,
+    })
 }
 
 pub(crate) fn execute<F>(nodes: Vec<SchedulerNode>, budget: ResourceBudget, action: F) -> Result<()>
@@ -553,12 +669,18 @@ where
     let mut used_memory = 0u64;
     let mut heavy_jobs = 0usize;
     let mut first_error = None;
+    let mut deferred = BTreeMap::<String, DeferredStage>::new();
+    let mut admission_passes = 0usize;
+    let mut sampler_calls = 0usize;
+    let mut sampler_time = Duration::ZERO;
+    let mut admission_time = Duration::ZERO;
+    let mut next_pressure_poll = Instant::now();
 
     thread::scope(|scope| {
         loop {
             if first_error.is_none() {
                 for (id, node) in &nodes {
-                    if used_tokens == budget.cpu_tokens {
+                    if used_tokens >= budget.cpu_tokens {
                         break;
                     }
                     if launched.contains(id)
@@ -593,7 +715,7 @@ where
                     account_running_builds(
                         &mut running,
                         Instant::now(),
-                        budget.cpu_tokens - used_tokens,
+                        remaining_cpu_tokens(budget.cpu_tokens, used_tokens),
                     );
                     used_tokens += 1;
                     trace.event(&format!(
@@ -617,7 +739,12 @@ where
             }
 
             let waiting_ids = waiting.iter().cloned().collect::<Vec<_>>();
+            let sample_started = Instant::now();
             let sampled = sampler.sample();
+            sampler_time += sample_started.elapsed();
+            sampler_calls += 1;
+            admission_passes += 1;
+            let admission_started = Instant::now();
             // CPU capacity is fixed for this invocation; current memory and
             // pressure are refreshed for every launch decision.
             let admission_budget = ResourceBudget {
@@ -641,10 +768,15 @@ where
                         "event=build-cancel stage={id} used_tokens={used_tokens} heavy_jobs={heavy_jobs}"
                     ));
                 } else if node.profile.memory_heavy && heavy_jobs >= heavy_limit(sampled.pressure) {
-                    trace.event(&format!(
-                        "event=build-deferred stage={id} reason=memory-heavy-limit pressure={} used_tokens={used_tokens} used_memory_bytes={used_memory}",
-                        sampled.pressure.as_str()
-                    ));
+                    record_defer(
+                        &mut trace,
+                        &mut deferred,
+                        &id,
+                        "memory-heavy-limit",
+                        sampled.pressure,
+                        used_tokens,
+                        used_memory,
+                    );
                 } else {
                     let peers = waiting
                         .iter()
@@ -660,17 +792,29 @@ where
                     ) {
                         Ok(allocation) => allocation,
                         Err(reason) => {
-                            trace.event(&format!("event=build-deferred stage={id} reason={reason} pressure={} used_tokens={used_tokens} used_memory_bytes={used_memory}", sampled.pressure.as_str()));
+                            record_defer(
+                                &mut trace,
+                                &mut deferred,
+                                &id,
+                                reason,
+                                sampled.pressure,
+                                used_tokens,
+                                used_memory,
+                            );
                             continue;
                         }
                     };
                     let now = Instant::now();
-                    account_running_builds(&mut running, now, budget.cpu_tokens - used_tokens);
+                    account_running_builds(
+                        &mut running,
+                        now,
+                        remaining_cpu_tokens(budget.cpu_tokens, used_tokens),
+                    );
                     let job = running.get_mut(&id).expect("waiting job is running");
                     job.tokens = allocation.cpu_tokens;
-                    job.memory_bytes = node.profile.estimated_memory_bytes;
+                    job.memory_bytes = memory_reservation(node.profile, allocation.child_jobs);
                     job.memory_heavy = node.profile.memory_heavy;
-                    job.estimated_memory_bytes = node.profile.estimated_memory_bytes;
+                    job.estimated_memory_bytes = memory_reservation(node.profile, allocation.child_jobs);
                     job.observed_available_memory_start =
                         Some(admission_budget.available_memory_bytes);
                     job.observed_cgroup_memory_current_start = sampled.cgroup_memory_current_bytes;
@@ -683,24 +827,38 @@ where
                     job.build_started = Some(now);
                     job.last_accounted = Some(now);
                     used_tokens += allocation.cpu_tokens;
-                    used_memory += node.profile.estimated_memory_bytes;
+                    used_memory += memory_reservation(node.profile, allocation.child_jobs);
                     heavy_jobs += usize::from(node.profile.memory_heavy);
-                    job.minimum_unused_tokens = budget.cpu_tokens - used_tokens;
+                    job.minimum_unused_tokens =
+                        remaining_cpu_tokens(budget.cpu_tokens, used_tokens);
                     let _ = job.permit.send(Some(allocation));
                     waiting.remove(&id);
+                    if let Some(state) = deferred.remove(&id) {
+                        trace.event(&format!(
+                            "event=build-unblocked stage={id} prior_reason={} prior_pressure={} deferred_seconds={:.3}",
+                            state.reason, state.pressure.as_str(), state.started.elapsed().as_secs_f64()
+                        ));
+                    }
                     trace.event(&format!(
                         "event=build-start stage={id} grant={} memory_bytes={} memory_heavy={} pressure={} available_memory_bytes={} used_tokens={used_tokens} used_memory_bytes={used_memory} heavy_jobs={heavy_jobs}",
-                        allocation.cpu_tokens, node.profile.estimated_memory_bytes, node.profile.memory_heavy, sampled.pressure.as_str(), admission_budget.available_memory_bytes
+                        allocation.cpu_tokens, memory_reservation(node.profile, allocation.child_jobs), node.profile.memory_heavy, sampled.pressure.as_str(), admission_budget.available_memory_bytes
                     ));
                 }
             }
+            admission_time += admission_started.elapsed();
 
             if running.is_empty() {
                 break;
             }
 
-            match events_rx.recv_timeout(Duration::from_millis(200)) {
-                Err(RecvTimeoutError::Timeout) => continue,
+            let now = Instant::now();
+            let timeout = next_pressure_poll.saturating_duration_since(now);
+            next_pressure_poll = now + PRESSURE_RECOVERY_POLL;
+            match events_rx.recv_timeout(timeout) {
+                Err(RecvTimeoutError::Timeout) => {
+                    trace.event("event=admission-wake reason=pressure-recovery-poll");
+                    continue;
+                }
                 Err(RecvTimeoutError::Disconnected) => {
                     first_error = Some(anyhow!(
                         "scheduler workers disconnected before all stages completed"
@@ -709,8 +867,13 @@ where
                 }
                 Ok(event) => match event {
                     Event::RequestBuildResources { id } => {
+                        trace.event("event=admission-wake reason=resource-request");
                         let now = Instant::now();
-                        account_running_builds(&mut running, now, budget.cpu_tokens - used_tokens);
+                        account_running_builds(
+                            &mut running,
+                            now,
+                            remaining_cpu_tokens(budget.cpu_tokens, used_tokens),
+                        );
                         let job = running.get_mut(&id).expect("resource requester is running");
                         used_tokens -= job.tokens;
                         job.tokens = 0;
@@ -722,9 +885,14 @@ where
                         waiting.insert(id);
                     }
                     Event::Finished { id, result } => {
+                        trace.event("event=admission-wake reason=stage-finished");
                         let ending_sample = sampler.sample();
                         let now = Instant::now();
-                        account_running_builds(&mut running, now, budget.cpu_tokens - used_tokens);
+                        account_running_builds(
+                            &mut running,
+                            now,
+                            remaining_cpu_tokens(budget.cpu_tokens, used_tokens),
+                        );
                         waiting.remove(&id);
                         let job = running.remove(&id).expect("finished job is running");
                         let node = &nodes[&id];
@@ -745,8 +913,27 @@ where
                         used_tokens -= job.tokens;
                         used_memory -= job.memory_bytes;
                         heavy_jobs -= usize::from(job.memory_heavy);
+                        let cpu = performance::stage_cpu_usage_from_log(Path::new("."), &id);
+                        let (cpu_user, cpu_system, cpu_total, cpu_cores) = cpu
+                            .map(|(user, system)| {
+                                let total = user + system;
+                                (
+                                    format!("{user:.6}"),
+                                    format!("{system:.6}"),
+                                    format!("{total:.6}"),
+                                    format!("{:.3}", total / action_seconds.max(f64::MIN_POSITIVE)),
+                                )
+                            })
+                            .unwrap_or_else(|| {
+                                (
+                                    "unavailable".into(),
+                                    "unavailable".into(),
+                                    "unavailable".into(),
+                                    "unavailable".into(),
+                                )
+                            });
                         trace.event(&format!(
-                        "event=stage-metrics stage={id} build_executed={} grant={} child_jobs={} estimated_memory_bytes={} observed_available_memory_start={} observed_available_memory_end={} observed_cgroup_memory_current_start={} observed_cgroup_memory_current_end={} observed_pressure_start={} observed_pressure_end={} resource_wait_seconds={:.3} action_seconds={action_seconds:.3} unused_tokens_avg={average_unused_tokens:.3} unused_tokens_min={minimum_unused_tokens} cpu_seconds=unavailable",
+                        "event=stage-metrics stage={id} build_executed={} grant={} child_jobs={} estimated_memory_bytes={} observed_available_memory_start={} observed_available_memory_end={} observed_cgroup_memory_current_start={} observed_cgroup_memory_current_end={} observed_pressure_start={} observed_pressure_end={} resource_wait_seconds={:.3} action_seconds={action_seconds:.3} unused_tokens_avg={average_unused_tokens:.3} unused_tokens_min={minimum_unused_tokens} cpu_user_seconds={cpu_user} cpu_system_seconds={cpu_system} cpu_seconds={cpu_total} cpu_cores_avg={cpu_cores}",
                         job.build_started.is_some(),
                         job.tokens,
                         child_job_limit_for(job.tokens, node.profile.child_jobs),
@@ -784,6 +971,10 @@ where
         trace.event("event=scheduler-end result=incomplete");
         bail!("scheduler stopped before all stages completed")
     } else {
+        trace.event(&format!(
+            "event=scheduler-metrics admission_passes={admission_passes} sampler_calls={sampler_calls} sampler_seconds={:.6} admission_seconds={:.6} trace_writes={} trace_seconds={:.6}",
+            sampler_time.as_secs_f64(), admission_time.as_secs_f64(), trace.writes, trace.write_time.as_secs_f64()
+        ));
         trace.event("event=scheduler-end result=success");
         Ok(())
     }
@@ -833,7 +1024,11 @@ mod tests {
             profile: StageResourceProfile {
                 minimum_cpu_grant,
                 useful_cpu_ceiling: Some(minimum_cpu_grant),
+                preferred_child_jobs: minimum_cpu_grant,
+                minimum_child_jobs: minimum_cpu_grant,
+                useful_child_job_ceiling: Some(minimum_cpu_grant),
                 estimated_memory_bytes: 256 * 1024 * 1024,
+                memory_per_child_job_bytes: 0,
                 memory_heavy: false,
                 may_borrow_idle_cpu: true,
                 child_jobs: ChildJobPolicy::SchedulerGrant,
@@ -875,13 +1070,11 @@ mod tests {
     #[test]
     fn rejects_unknown_dependencies_cycles_invalid_weights_and_overlaps() {
         assert!(validate(&[node("a", &["missing"], 1)], budget(12, 8 * GIB, false)).is_err());
-        assert!(
-            validate(
-                &[node("a", &["b"], 1), node("b", &["a"], 1)],
-                budget(12, 8 * GIB, false)
-            )
-            .is_err()
-        );
+        assert!(validate(
+            &[node("a", &["b"], 1), node("b", &["a"], 1)],
+            budget(12, 8 * GIB, false)
+        )
+        .is_err());
         assert!(validate(&[node("a", &[], 13)], budget(12, 8 * GIB, false)).is_err());
         let mut left = node("a", &[], 1);
         let mut right = node("b", &[], 1);
@@ -981,7 +1174,7 @@ mod tests {
     #[test]
     fn memory_pressure_reduces_admission_while_cpu_capacity_remains() {
         let heavy = StageResourceProfile::memory_heavy();
-        let constrained = budget(12, 4 * GIB, false);
+        let constrained = budget(12, 2 * GIB + 768 * 1024 * 1024, false);
         let first = admission_grant(
             heavy,
             constrained,
@@ -994,17 +1187,15 @@ mod tests {
         assert!(first.cpu_tokens > 0);
         // Twelve CPUs remain available, but a second 3-GiB action would cross
         // the startup headroom budget and is not admitted.
-        assert!(
-            admission_grant(
-                heavy,
-                constrained,
-                PressureLevel::Constrained,
-                first.cpu_tokens,
-                heavy.estimated_memory_bytes,
-                std::iter::empty()
-            )
-            .is_err()
-        );
+        assert!(admission_grant(
+            heavy,
+            constrained,
+            PressureLevel::Constrained,
+            first.cpu_tokens,
+            memory_reservation(heavy, first.child_jobs),
+            std::iter::empty()
+        )
+        .is_err());
     }
 
     #[test]
@@ -1052,36 +1243,100 @@ mod tests {
         )
         .unwrap();
         assert_eq!(
-            allocation.cpu_tokens, 10,
-            "two ready standard peers retain their safe grants"
+            allocation.cpu_tokens, 6,
+            "the generic measured heavy-work ceiling leaves capacity for peers"
         );
+    }
+
+    #[test]
+    fn healthy_borrowing_never_exceeds_remaining_cpu_capacity() {
+        let allocation = admission_grant(
+            StageResourceProfile::memory_heavy(),
+            budget(12, 12 * GIB, false),
+            PressureLevel::Healthy,
+            8,
+            0,
+            std::iter::empty(),
+        )
+        .expect("the four remaining CPU tokens can admit the heavy stage baseline");
+        assert_eq!(allocation.cpu_tokens, 4);
+        assert_eq!(allocation.child_jobs, 4);
+    }
+
+    #[test]
+    #[should_panic(expected = "scheduler CPU reservation invariant violated")]
+    fn remaining_cpu_token_accounting_fails_closed_on_overcommit() {
+        let _ = remaining_cpu_tokens(12, 13);
+    }
+
+    #[test]
+    fn constrained_heavy_stage_keeps_its_safe_parallel_baseline() {
+        let allocation = admission_grant(
+            StageResourceProfile::memory_heavy(),
+            budget(12, 8 * GIB, false),
+            PressureLevel::Constrained,
+            0,
+            0,
+            std::iter::empty(),
+        )
+        .unwrap();
+        assert_eq!(allocation.cpu_tokens, 4);
+        assert_eq!(allocation.child_jobs, 4);
+    }
+
+    #[test]
+    fn heavy_stage_progresses_in_the_failed_two_gib_envelope() {
+        let allocation = admission_grant(
+            StageResourceProfile::memory_heavy(),
+            budget(12, 2_130 * 1024 * 1024, false),
+            PressureLevel::Healthy,
+            0,
+            0,
+            [StageResourceProfile::memory_heavy()].into_iter(),
+        )
+        .expect("one individually fitting heavy stage must make deterministic progress");
+        assert_eq!(allocation.child_jobs, 4);
+        assert_eq!(allocation.cpu_tokens, 4);
+    }
+
+    #[test]
+    fn constrained_heavy_stage_scales_below_preferred_baseline_to_make_progress() {
+        let allocation = admission_grant(
+            StageResourceProfile::memory_heavy(),
+            budget(12, 1_650 * 1024 * 1024, false),
+            PressureLevel::Constrained,
+            0,
+            0,
+            [StageResourceProfile::memory_heavy()].into_iter(),
+        )
+        .expect("a constrained host must use the highest safe sub-baseline grant");
+        assert_eq!(allocation.cpu_tokens, 2);
+        assert_eq!(allocation.child_jobs, 2);
+        assert!(memory_reservation(StageResourceProfile::memory_heavy(), 2)
+            <= 1_650 * 1024 * 1024);
     }
 
     #[test]
     fn critical_pressure_blocks_new_heavy_work_but_not_safe_standard_work() {
         let critical = PressureLevel::Critical;
-        assert!(
-            admission_grant(
-                StageResourceProfile::memory_heavy(),
-                budget(32, 32 * GIB, false),
-                critical,
-                0,
-                0,
-                std::iter::empty()
-            )
-            .is_err()
-        );
-        assert!(
-            admission_grant(
-                StageResourceProfile::standard(),
-                budget(32, 32 * GIB, false),
-                critical,
-                0,
-                0,
-                std::iter::empty()
-            )
-            .is_ok()
-        );
+        assert!(admission_grant(
+            StageResourceProfile::memory_heavy(),
+            budget(32, 32 * GIB, false),
+            critical,
+            0,
+            0,
+            std::iter::empty()
+        )
+        .is_err());
+        assert!(admission_grant(
+            StageResourceProfile::standard(),
+            budget(32, 32 * GIB, false),
+            critical,
+            0,
+            0,
+            std::iter::empty()
+        )
+        .is_ok());
     }
 
     #[test]
@@ -1103,17 +1358,15 @@ mod tests {
     fn overlarge_memory_estimate_cannot_cross_the_reserved_budget() {
         let mut profile = StageResourceProfile::memory_heavy();
         profile.estimated_memory_bytes = 8 * GIB;
-        assert!(
-            admission_grant(
-                profile,
-                budget(32, 4 * GIB, false),
-                PressureLevel::Healthy,
-                0,
-                0,
-                std::iter::empty()
-            )
-            .is_err()
-        );
+        assert!(admission_grant(
+            profile,
+            budget(32, 4 * GIB, false),
+            PressureLevel::Healthy,
+            0,
+            0,
+            std::iter::empty()
+        )
+        .is_err());
     }
 
     #[test]
@@ -1138,5 +1391,43 @@ mod tests {
         let ran = ran.lock().unwrap();
         assert!(ran.contains(&"b-running".to_string()));
         assert!(!ran.contains(&"z-blocked".to_string()));
+    }
+
+    #[test]
+    fn identical_deferrals_are_coalesced_until_the_reason_or_pressure_changes() {
+        let mut trace = SchedulerTrace::start().unwrap();
+        let mut deferred = BTreeMap::new();
+        record_defer(
+            &mut trace,
+            &mut deferred,
+            "ready",
+            "memory-budget",
+            PressureLevel::Healthy,
+            4,
+            GIB,
+        );
+        let writes_after_first = trace.writes;
+        for _ in 0..100 {
+            record_defer(
+                &mut trace,
+                &mut deferred,
+                "ready",
+                "memory-budget",
+                PressureLevel::Healthy,
+                4,
+                GIB,
+            );
+        }
+        assert_eq!(trace.writes, writes_after_first);
+        record_defer(
+            &mut trace,
+            &mut deferred,
+            "ready",
+            "memory-heavy-limit",
+            PressureLevel::Constrained,
+            4,
+            GIB,
+        );
+        assert_eq!(trace.writes, writes_after_first + 1);
     }
 }
