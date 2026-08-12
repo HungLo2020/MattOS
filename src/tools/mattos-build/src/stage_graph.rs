@@ -22,6 +22,10 @@ pub(crate) enum BuildStage {
     Less,
     Git,
     Openssh,
+    Libffi,
+    Python,
+    Llvm,
+    Rust,
     Kmod,
     Procps,
     Ncurses,
@@ -56,6 +60,7 @@ pub(crate) enum BuildStage {
     Apt,
     Init,
     Rootfs,
+    LiveRoot,
     Initramfs,
     Iso,
     All,
@@ -81,6 +86,10 @@ pub(crate) fn stage_id(stage: BuildStage) -> &'static str {
         BuildStage::Less => "less",
         BuildStage::Git => "git",
         BuildStage::Openssh => "openssh",
+        BuildStage::Libffi => "libffi",
+        BuildStage::Python => "cpython",
+        BuildStage::Llvm => "llvm",
+        BuildStage::Rust => "rust",
         BuildStage::Kmod => "kmod",
         BuildStage::Procps => "procps-ng",
         BuildStage::Ncurses => "ncurses",
@@ -115,6 +124,7 @@ pub(crate) fn stage_id(stage: BuildStage) -> &'static str {
         BuildStage::Apt => "apt",
         BuildStage::Init => "init",
         BuildStage::Rootfs => "rootfs",
+        BuildStage::LiveRoot => "live-root",
         BuildStage::Initramfs => "initramfs",
         BuildStage::Iso => "iso",
         BuildStage::All => "all",
@@ -152,6 +162,19 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "linux-pam",
             "libxcrypt",
         ],
+        BuildStage::Libffi => &["formal-sysroot"],
+        BuildStage::Python => &[
+            "formal-sysroot",
+            "libffi",
+            "openssl",
+            "zlib",
+            "bzip2",
+            "xz",
+            "expat",
+            "ncurses",
+        ],
+        BuildStage::Llvm => &["formal-sysroot", "zlib", "zstd"],
+        BuildStage::Rust => &["formal-sysroot", "llvm", "openssl", "zlib"],
         BuildStage::Procps => &["formal-sysroot", "ncurses"],
         BuildStage::Iproute2 => &[
             "formal-sysroot",
@@ -221,8 +244,9 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "init",
             "repository",
         ],
-        BuildStage::Initramfs => &["rootfs"],
-        BuildStage::Iso => &["linux", "initramfs"],
+        BuildStage::LiveRoot => &["rootfs"],
+        BuildStage::Initramfs => &["formal-sysroot"],
+        BuildStage::Iso => &["linux", "live-root", "initramfs"],
         _ => &["formal-sysroot"],
     }
 }
@@ -247,6 +271,10 @@ pub(crate) fn all_build_stages() -> &'static [BuildStage] {
         BuildStage::Less,
         BuildStage::Git,
         BuildStage::Openssh,
+        BuildStage::Libffi,
+        BuildStage::Python,
+        BuildStage::Llvm,
+        BuildStage::Rust,
         BuildStage::Expat,
         BuildStage::Libcap,
         BuildStage::Attr,
@@ -281,6 +309,7 @@ pub(crate) fn all_build_stages() -> &'static [BuildStage] {
         BuildStage::Apt,
         BuildStage::Init,
         BuildStage::Rootfs,
+        BuildStage::LiveRoot,
         BuildStage::Initramfs,
         BuildStage::Iso,
     ]
@@ -318,7 +347,11 @@ pub(crate) fn dependency_map() -> BTreeMap<&'static str, BTreeSet<&'static str>>
         .filter(|stage| {
             !matches!(
                 stage,
-                BuildStage::Kernel | BuildStage::Rootfs | BuildStage::Initramfs | BuildStage::Iso
+                BuildStage::Kernel
+                    | BuildStage::Rootfs
+                    | BuildStage::LiveRoot
+                    | BuildStage::Initramfs
+                    | BuildStage::Iso
             )
         })
         .map(stage_id)
@@ -397,7 +430,7 @@ mod tests {
                 "packages",
                 "repository",
                 "rootfs",
-                "initramfs",
+                "live-root",
                 "iso"
             ]
             .into_iter()
@@ -409,13 +442,13 @@ mod tests {
         );
         assert_eq!(
             downstream_invalidation(&["repository"]),
-            ["repository", "rootfs", "initramfs", "iso"]
+            ["repository", "rootfs", "live-root", "iso"]
                 .into_iter()
                 .collect()
         );
         assert_eq!(
             downstream_invalidation(&["rootfs"]),
-            ["rootfs", "initramfs", "iso"].into_iter().collect()
+            ["rootfs", "live-root", "iso"].into_iter().collect()
         );
         assert_eq!(
             downstream_invalidation(&["initramfs"]),
@@ -423,7 +456,19 @@ mod tests {
         );
         assert_eq!(
             downstream_invalidation(&["git"]),
-            ["git", "packages", "repository", "rootfs", "initramfs", "iso"]
+            ["git", "packages", "repository", "rootfs", "live-root", "iso"]
+                .into_iter()
+                .collect()
+        );
+        assert_eq!(
+            downstream_invalidation(&["cpython"]),
+            ["cpython", "packages", "repository", "rootfs", "live-root", "iso"]
+                .into_iter()
+                .collect()
+        );
+        assert_eq!(
+            downstream_invalidation(&["llvm"]),
+            ["llvm", "rust", "packages", "repository", "rootfs", "live-root", "iso"]
                 .into_iter()
                 .collect()
         );
@@ -560,25 +605,26 @@ mod tests {
     fn representative_cascade_report() {
         let scenarios: &[(&str, &[&str], usize, &[&str])] = &[
             ("Brush source", &["brush"], 6, &["zlib", "linux"]),
-            ("glibc source", &["glibc"], 57, &["linux"]),
+            ("glibc source", &["glibc"], 62, &["linux"]),
             ("Linux x86_64 config", &["linux"], 2, &["glibc", "brush"]),
             (
                 "Linux x86_64 UAPI source",
                 &["linux", "glibc", "linux-headers"],
-                58,
+                63,
                 &[],
             ),
             (
                 "GCC source",
                 &["gcc-runtime", "gcc-compiler"],
-                55,
+                60,
                 &["linux", "glibc", "linux-headers"],
             ),
-            ("zlib shared library", &["zlib"], 17, &["brush", "linux"]),
+            ("zlib shared library", &["zlib"], 20, &["brush", "linux"]),
             ("package metadata", &["packages"], 5, &["brush", "zlib"]),
             ("repository policy", &["repository"], 4, &["packages", "brush"]),
             ("rootfs configuration", &["rootfs"], 3, &["repository", "packages"]),
             ("initramfs configuration", &["initramfs"], 2, &["rootfs", "packages"]),
+            ("live-root recipe", &["live-root"], 2, &["rootfs", "packages"]),
         ];
         for (name, changed, expected_count, unrelated_hits) in scenarios {
             let invalidated = downstream_invalidation(changed);

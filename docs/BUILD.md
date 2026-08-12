@@ -115,8 +115,12 @@ The pipeline stages are:
 21. `dbus-broker`: upstream Meson/Ninja system-bus broker and launcher
 22. `dpkg`: imported dpkg Autotools build against MattOS compression, libmd, SELinux, and PCRE2 libraries
 23. `apt`: imported APT CMake/Ninja build against MattOS compression and libcrypto libraries
-24. `init`: MattOS rescue init build
-25. `rootfs`, `initramfs`, `iso`: hybrid package/legacy image assembly
+24. `libffi`, `cpython`: CPython runtime, standard library, venv/ensurepip, and development surface against MattOS-owned native libraries
+25. `llvm`: LLVM shared runtime, selected tools, Clang, and LLD with X86, AArch64, and RISC-V backends
+26. `rust`: Rust compiler, native standard library, rustdoc, and Cargo from the checksummed official source release and its explicit stage-0 bootstrap metadata
+27. `init`: MattOS rescue init build
+28. `rootfs`, `live-root`, `initramfs`, `iso`: package root assembly,
+    deterministic SquashFS, minimal early userspace, and bootable ISO
 
 Tar's explicit Gnulib replacement is copied into Tar's output-owned source mirror before bootstrap. A checksummed Tar patch adds the gitlink-era `FLEXNSIZEOF` compatibility macro to that mirror because the pinned stable-202301 replacement predates the macro used by Tar 1.35; the authoritative Tar and Gnulib imports remain unchanged.
 
@@ -222,7 +226,12 @@ python3 DevUtils/run_qemu.py --no-network
 The default GRUB entry boots `rdinit=/usr/lib/systemd/systemd systemd.unit=mattos.target`.
 A rescue GRUB entry is also provided and boots MattOS Rust rescue init from `/usr/libexec/mattos/rescue-init`.
 
-Both entries set the Linux-supported `initramfs_options=size=75%` policy. The previous implicit tmpfs limit was 50% of memory available while the kernel mounted rootfs: at the 1 GiB QEMU boot it provided 426,729,472 bytes, while the staged rootfs occupied 415,666,176 allocated bytes and left 11,063,296 bytes. Compiling systemd's 40 installed vendor hwdb sources required 13,742,080 additional allocated bytes (13,735,759 logical bytes in the generated database), so runtime generation failed with `ENOSPC`. MattOS now generates the vendor database reproducibly in package staging, retains its source closure, and uses 75% as deterministic live-rootfs capacity for both boot modes. The stock `systemd-hwdb-update.service` remains enabled and unmodified; with the vendor database present and no `/etc/udev` overrides, its standard conditions skip redundant runtime regeneration.
+Live media no longer unpacks the complete system into initramfs memory. GRUB
+loads a small early archive whose static `/init` mounts the ISO SquashFS and a
+tmpfs writable overlay before switching to systemd. The vendor hwdb remains
+generated reproducibly in package staging, and the live overlay provides
+ordinary writable runtime state without modifying the compressed lower root.
+See `docs/LIVE_ROOT_ARCHITECTURE.md`.
 
 ## Cleanup
 

@@ -257,6 +257,19 @@ const PACKAGE_NAMES: &[&str] = &[
     "git",
     "openssh-client",
     "openssh-server",
+    "libffi8",
+    "libffi-dev",
+    "libpython3.14",
+    "python3",
+    "python3-venv",
+    "python3-dev",
+    "libllvm22",
+    "llvm",
+    "llvm-dev",
+    "clang",
+    "lld",
+    "rustc",
+    "cargo",
     "dbus-broker",
     "libpam0g",
     "mattos-libpam-misc0",
@@ -1369,6 +1382,58 @@ fn package_specs() -> Vec<PackageSpec> {
                 "libssl3t64",
             ], provides: &["ssh-server"], conflicts: &["openssh-server"], replaces: &["openssh-server"], essential: false, priority: "optional",
         },
+        PackageSpec {
+            name: "libffi8", description: "Foreign-function interface runtime library built for MattOS",
+            source_component: "libffi", depends: &["libc6"], provides: &["libffi8"], conflicts: &[], replaces: &[], essential: false, priority: "important",
+        },
+        PackageSpec {
+            name: "libffi-dev", description: "Foreign-function interface development files built for MattOS",
+            source_component: "libffi", depends: &["libffi8", "libc6-dev"], provides: &["libffi-dev"], conflicts: &[], replaces: &[], essential: false, priority: "optional",
+        },
+        PackageSpec {
+            name: "libpython3.14", description: "CPython 3.14 shared runtime library built for MattOS",
+            source_component: "cpython", depends: &["libc6"], provides: &["libpython3.14"], conflicts: &[], replaces: &[], essential: false, priority: "important",
+        },
+        PackageSpec {
+            name: "python3", description: "CPython interpreter and standard library built for MattOS",
+            source_component: "cpython", depends: &["libpython3.14", "libffi8", "mattos-libcrypto3", "libssl3t64", "zlib1g", "libbz2-1.0", "liblzma5", "libexpat1", "libzstd1", "libncursesw6", "mattos-libtinfow6", "libuuid1"], provides: &["python3"], conflicts: &["python3"], replaces: &["python3"], essential: false, priority: "important",
+        },
+        PackageSpec {
+            name: "python3-venv", description: "CPython virtual-environment and ensurepip support built for MattOS",
+            source_component: "cpython", depends: &["python3"], provides: &["python3-venv"], conflicts: &["python3-venv"], replaces: &["python3-venv"], essential: false, priority: "optional",
+        },
+        PackageSpec {
+            name: "python3-dev", description: "CPython headers and native extension development files built for MattOS",
+            source_component: "cpython", depends: &["python3", "libpython3.14", "libffi-dev", "libc6-dev"], provides: &["python3-dev"], conflicts: &["python3-dev"], replaces: &["python3-dev"], essential: false, priority: "optional",
+        },
+        PackageSpec {
+            name: "libllvm22", description: "LLVM 22 shared runtime library built for MattOS",
+            source_component: "llvm", depends: &["libc6", "libgcc-s1", "libstdc++6", "zlib1g", "libzstd1"], provides: &["libllvm22"], conflicts: &[], replaces: &[], essential: false, priority: "important",
+        },
+        PackageSpec {
+            name: "llvm", description: "LLVM development command-line tools built for MattOS",
+            source_component: "llvm", depends: &["libllvm22", "libc6", "libgcc-s1", "libstdc++6", "zlib1g", "libzstd1"], provides: &["llvm"], conflicts: &["llvm"], replaces: &["llvm"], essential: false, priority: "optional",
+        },
+        PackageSpec {
+            name: "llvm-dev", description: "LLVM headers and CMake development metadata built for MattOS",
+            source_component: "llvm", depends: &["llvm", "libllvm22", "libc6-dev", "mattos-libstdc++-dev"], provides: &["llvm-dev"], conflicts: &["llvm-dev"], replaces: &["llvm-dev"], essential: false, priority: "optional",
+        },
+        PackageSpec {
+            name: "clang", description: "Clang C and C++ compiler built for MattOS",
+            source_component: "llvm", depends: &["libllvm22", "libc6", "libgcc-s1", "libstdc++6", "zlib1g", "libzstd1", "libc6-dev", "mattos-libgcc-dev", "mattos-libstdc++-dev", "binutils"], provides: &["clang"], conflicts: &["clang"], replaces: &["clang"], essential: false, priority: "optional",
+        },
+        PackageSpec {
+            name: "lld", description: "LLVM linker built for MattOS",
+            source_component: "llvm", depends: &["libllvm22", "libc6", "libgcc-s1", "libstdc++6", "zlib1g", "libzstd1"], provides: &["lld"], conflicts: &["lld"], replaces: &["lld"], essential: false, priority: "optional",
+        },
+        PackageSpec {
+            name: "rustc", description: "Rust compiler, standard library, and rustdoc built for MattOS",
+            source_component: "rust", depends: &["libc6", "libgcc-s1", "libstdc++6", "libllvm22", "zlib1g", "libzstd1", "gcc", "binutils", "libc6-dev"], provides: &["rustc", "rustdoc"], conflicts: &["rustc"], replaces: &["rustc"], essential: false, priority: "optional",
+        },
+        PackageSpec {
+            name: "cargo", description: "Cargo Rust package manager built for MattOS",
+            source_component: "rust", depends: &["rustc", "libgcc-s1", "git", "ca-certificates", "mattos-libcrypto3", "libssl3t64", "zlib1g", "libzstd1"], provides: &["cargo"], conflicts: &["cargo"], replaces: &["cargo"], essential: false, priority: "optional",
+        },
     ]
 }
 
@@ -2088,6 +2153,12 @@ fn package_recipe_revision(package: &str) -> u32 {
         // Revision 2 owns the split sshd-session/sshd-auth executables that
         // OpenSSH 10.4 requires after the monitor process starts.
         "openssh-server" => 2,
+        // Revision 2 owns libpanelw, which CPython's source-built
+        // _curses_panel extension requires at runtime.
+        "libncursesw6" => 2,
+        // Revision 2 exposes the pinned bundle at OpenSSL's compiled default
+        // CA file as well as Debian's canonical ca-certificates path.
+        "ca-certificates" => 2,
         _ => 1,
     }
 }
@@ -2253,6 +2324,10 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "less" => &["less"],
             "git" => &["git"],
             "openssh" => &["openssh"],
+            "libffi" => &["libffi"],
+            "cpython" => &["cpython"],
+            "llvm" => &["llvm"],
+            "rust" => &["rust"],
             "ncurses" => &["ncurses"],
             "kmod" => &["kmod"],
             "shadow" => &["shadow"],
@@ -2329,6 +2404,10 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "less" => &["src/userland/less"],
         "git" => &["src/userland/git"],
         "openssh" => &["src/system/network/openssh-portable"],
+        "libffi" => &["src/system/libraries/libffi/libffi"],
+        "cpython" => &["src/development/python/cpython"],
+        "llvm" => &["src/toolchain/llvm-project"],
+        "rust" => &["src/toolchain/rust", "upstream/policies/release-archives.toml"],
         _ => &[],
     }
 }
@@ -2466,7 +2545,12 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
             repo_root,
             &staging,
             "ncurses",
-            &["libncursesw.so.6.6", "libncursesw.so.6"],
+            &[
+                "libncursesw.so.6.6",
+                "libncursesw.so.6",
+                "libpanelw.so.6.6",
+                "libpanelw.so.6",
+            ],
         )?,
         "ncurses-base" => stage_terminfo(repo_root, &staging)?,
         "ncurses-bin" => {
@@ -2725,6 +2809,37 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
         "git" => copy_tree_preserving(
             &repo_root.join("out/build/git/install/usr"), &staging.join("usr"),
         )?,
+        "libffi8" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "libffi",
+            "libffi.so.8",
+            "src/system/libraries/libffi/libffi/LICENSE",
+            "libffi8",
+        )?,
+        "libffi-dev" => stage_libffi_dev(repo_root, &staging)?,
+        "libpython3.14" => {
+            stage_library_family(
+                repo_root,
+                &staging,
+                "cpython",
+                &["libpython3.14.so.1.0"],
+            )?;
+            copy_preserving(
+                &repo_root.join("src/development/python/cpython/LICENSE"),
+                &staging.join("usr/share/doc/libpython3.14/copyright"),
+            )?;
+        }
+        "python3" => stage_cpython_runtime(repo_root, &staging)?,
+        "python3-venv" => stage_cpython_venv(repo_root, &staging)?,
+        "python3-dev" => stage_cpython_dev(repo_root, &staging)?,
+        "libllvm22" => stage_llvm_runtime(repo_root, &staging)?,
+        "llvm" => stage_llvm_tools(repo_root, &staging)?,
+        "llvm-dev" => stage_llvm_development(repo_root, &staging)?,
+        "clang" => stage_clang(repo_root, &staging)?,
+        "lld" => stage_lld(repo_root, &staging)?,
+        "rustc" => stage_rustc(repo_root, &staging)?,
+        "cargo" => stage_cargo(repo_root, &staging)?,
         "openssh-client" => {
             stage_runtime_paths(
                 repo_root, &staging, "openssh",
@@ -2807,6 +2922,271 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
     )?;
     fs::write(staging.join("DEBIAN/control"), control)?;
     normalize_package_modes(&staging)?;
+    Ok(())
+}
+
+fn stage_libffi_dev(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = component_install(repo_root, "libffi").join("usr");
+    copy_tree_preserving(&install.join("include"), &staging.join("usr/include"))?;
+    for relative in [
+        "lib/x86_64-linux-gnu/libffi.so",
+        "lib/x86_64-linux-gnu/pkgconfig/libffi.pc",
+    ] {
+        copy_path_preserving(&install.join(relative), &staging.join("usr").join(relative))?;
+    }
+    copy_tree_preserving(
+        &install.join("share/man/man3"),
+        &staging.join("usr/share/man/man3"),
+    )?;
+    copy_preserving(
+        &repo_root.join("src/system/libraries/libffi/libffi/LICENSE"),
+        &staging.join("usr/share/doc/libffi-dev/copyright"),
+    )
+}
+
+fn stage_cpython_runtime(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = component_install(repo_root, "cpython").join("usr");
+    for relative in ["bin/python3", "bin/python3.14", "bin/pydoc3", "bin/pydoc3.14"] {
+        copy_path_preserving(&install.join(relative), &staging.join("usr").join(relative))?;
+    }
+    let stdlib = install.join("lib/python3.14");
+    copy_tree_filtered(
+        &stdlib,
+        &staging.join("usr/lib/python3.14"),
+        &|relative, _| {
+            let first = relative.components().next().map(|part| part.as_os_str());
+            !matches!(
+                first.and_then(|part| part.to_str()),
+                Some("ensurepip" | "venv" | "site-packages")
+            ) && !relative
+                .components()
+                .next()
+                .and_then(|part| part.as_os_str().to_str())
+                .is_some_and(|name| name.starts_with("config-"))
+        },
+    )?;
+    copy_preserving(
+        &repo_root.join("src/development/python/cpython/LICENSE"),
+        &staging.join("usr/share/doc/python3/copyright"),
+    )
+}
+
+fn stage_cpython_venv(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = component_install(repo_root, "cpython").join("usr");
+    for relative in ["bin/pip3", "bin/pip3.14"] {
+        copy_path_preserving(&install.join(relative), &staging.join("usr").join(relative))?;
+    }
+    for relative in [
+        "lib/python3.14/ensurepip",
+        "lib/python3.14/venv",
+        "lib/python3.14/site-packages",
+    ] {
+        copy_tree_preserving(&install.join(relative), &staging.join("usr").join(relative))?;
+    }
+    copy_preserving(
+        &repo_root.join("src/development/python/cpython/LICENSE"),
+        &staging.join("usr/share/doc/python3-venv/copyright"),
+    )
+}
+
+fn stage_cpython_dev(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = component_install(repo_root, "cpython").join("usr");
+    for relative in ["bin/python3-config", "bin/python3.14-config"] {
+        copy_path_preserving(&install.join(relative), &staging.join("usr").join(relative))?;
+    }
+    copy_tree_preserving(&install.join("include"), &staging.join("usr/include"))?;
+    for relative in [
+        "lib/x86_64-linux-gnu/libpython3.14.so",
+        "lib/x86_64-linux-gnu/libpython3.so",
+    ] {
+        copy_path_preserving(&install.join(relative), &staging.join("usr").join(relative))?;
+    }
+    copy_tree_preserving(
+        &install.join("lib/x86_64-linux-gnu/pkgconfig"),
+        &staging.join("usr/lib/x86_64-linux-gnu/pkgconfig"),
+    )?;
+    let stdlib = install.join("lib/python3.14");
+    copy_tree_filtered(
+        &stdlib,
+        &staging.join("usr/lib/python3.14"),
+        &|relative, _| relative
+            .components()
+            .next()
+            .and_then(|part| part.as_os_str().to_str())
+            .is_some_and(|name| name.starts_with("config-")),
+    )?;
+    copy_preserving(
+        &repo_root.join("src/development/python/cpython/LICENSE"),
+        &staging.join("usr/share/doc/python3-dev/copyright"),
+    )
+}
+
+fn llvm_install(repo_root: &Path) -> PathBuf {
+    component_install(repo_root, "llvm").join("usr")
+}
+
+fn stage_llvm_runtime(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = llvm_install(repo_root);
+    for name in [
+        "libLLVM.so.22.1",
+        "libLLVM-22.so",
+        "libclang-cpp.so.22.1",
+        "libclang.so.22.1.8",
+        "libclang.so.22.1",
+        "libLTO.so.22.1",
+        "libRemarks.so.22.1",
+    ] {
+        let relative = Path::new("lib/x86_64-linux-gnu").join(name);
+        copy_path_preserving(&install.join(&relative), &staging.join("usr").join(relative))?;
+    }
+    copy_preserving(
+        &repo_root.join("src/toolchain/llvm-project/llvm/LICENSE.TXT"),
+        &staging.join("usr/share/doc/libllvm22/copyright"),
+    )
+}
+
+fn stage_llvm_tools(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = llvm_install(repo_root);
+    copy_tree_filtered(&install.join("bin"), &staging.join("usr/bin"), &|relative, metadata| {
+        if metadata.is_dir() {
+            return true;
+        }
+        let name = relative.file_name().and_then(OsStr::to_str).unwrap_or_default();
+        name.starts_with("llvm-")
+            || matches!(name, "FileCheck" | "llc" | "lli" | "opt" | "bugpoint")
+    })?;
+    copy_tree_preserving(&install.join("share/opt-viewer"), &staging.join("usr/share/opt-viewer"))?;
+    copy_preserving(
+        &repo_root.join("src/toolchain/llvm-project/llvm/LICENSE.TXT"),
+        &staging.join("usr/share/doc/llvm/copyright"),
+    )
+}
+
+fn stage_llvm_development(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = llvm_install(repo_root);
+    copy_tree_preserving(&install.join("include"), &staging.join("usr/include"))?;
+    copy_tree_preserving(
+        &install.join("lib/x86_64-linux-gnu/cmake"),
+        &staging.join("usr/lib/x86_64-linux-gnu/cmake"),
+    )?;
+    copy_tree_filtered(
+        &install.join("lib/x86_64-linux-gnu"),
+        &staging.join("usr/lib/x86_64-linux-gnu"),
+        &|relative, metadata| {
+            if metadata.is_dir() {
+                return true;
+            }
+            relative
+                .file_name()
+                .and_then(OsStr::to_str)
+                .is_some_and(|name| {
+                    name.ends_with(".a")
+                        || (name.ends_with(".so") && name != "libLLVM-22.so")
+                })
+                && !relative.starts_with("cmake")
+        },
+    )?;
+    copy_preserving(
+        &repo_root.join("src/toolchain/llvm-project/llvm/LICENSE.TXT"),
+        &staging.join("usr/share/doc/llvm-dev/copyright"),
+    )
+}
+
+fn stage_clang(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = llvm_install(repo_root);
+    copy_tree_filtered(&install.join("bin"), &staging.join("usr/bin"), &|relative, metadata| {
+        if metadata.is_dir() {
+            return true;
+        }
+        let name = relative.file_name().and_then(OsStr::to_str).unwrap_or_default();
+        name.starts_with("clang")
+            || matches!(
+                name,
+                "analyze-build" | "diagtool" | "git-clang-format" | "hmaptool"
+                    | "intercept-build" | "reduce-chunk-list" | "sancov" | "sanstats"
+                    | "scan-build" | "scan-build-py" | "scan-view" | "verify-uselistorder"
+            )
+    })?;
+    copy_tree_preserving(
+        &install.join("lib/x86_64-linux-gnu/clang"),
+        &staging.join("usr/lib/x86_64-linux-gnu/clang"),
+    )?;
+    for relative in ["share/clang", "share/scan-build", "share/scan-view"] {
+        copy_tree_preserving(&install.join(relative), &staging.join("usr").join(relative))?;
+    }
+    copy_tree_preserving(
+        &component_install(repo_root, "llvm").join("etc/clang"),
+        &staging.join("etc/clang"),
+    )?;
+    copy_preserving(
+        &repo_root.join("src/toolchain/llvm-project/clang/LICENSE.TXT"),
+        &staging.join("usr/share/doc/clang/copyright"),
+    )
+}
+
+fn stage_lld(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = llvm_install(repo_root);
+    for name in ["lld", "ld.lld", "ld64.lld", "lld-link", "wasm-ld"] {
+        copy_path_preserving(
+            &install.join("bin").join(name),
+            &staging.join("usr/bin").join(name),
+        )?;
+    }
+    copy_preserving(
+        &repo_root.join("src/toolchain/llvm-project/lld/LICENSE.TXT"),
+        &staging.join("usr/share/doc/lld/copyright"),
+    )
+}
+
+fn rust_install(repo_root: &Path) -> PathBuf {
+    component_install(repo_root, "rust").join("usr")
+}
+
+fn stage_rustc(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = rust_install(repo_root);
+    copy_tree_filtered(&install.join("bin"), &staging.join("usr/bin"), &|relative, metadata| {
+        metadata.is_dir()
+            || relative
+                .file_name()
+                .and_then(OsStr::to_str)
+                .is_some_and(|name| name != "cargo")
+    })?;
+    copy_tree_preserving(&install.join("lib"), &staging.join("usr/lib"))?;
+    copy_tree_preserving(
+        &install.join("share/doc/rustc"),
+        &staging.join("usr/share/doc/rustc"),
+    )?;
+    for name in ["rustc.1", "rustdoc.1"] {
+        copy_preserving(
+            &install.join("share/man/man1").join(name),
+            &staging.join("usr/share/man/man1").join(name),
+        )?;
+    }
+    Ok(())
+}
+
+fn stage_cargo(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = rust_install(repo_root);
+    copy_preserving(&install.join("bin/cargo"), &staging.join("usr/bin/cargo"))?;
+    copy_tree_preserving(
+        &install.join("share/doc/cargo"),
+        &staging.join("usr/share/doc/cargo"),
+    )?;
+    copy_tree_filtered(
+        &install.join("share/man/man1"),
+        &staging.join("usr/share/man/man1"),
+        &|relative, metadata| {
+            metadata.is_dir()
+                || relative
+                    .file_name()
+                    .and_then(OsStr::to_str)
+                    .is_some_and(|name| name == "cargo.1" || name.starts_with("cargo-"))
+        },
+    )?;
+    copy_preserving(
+        &install.join("share/zsh/site-functions/_cargo"),
+        &staging.join("usr/share/zsh/site-functions/_cargo"),
+    )?;
     Ok(())
 }
 
@@ -3035,6 +3415,11 @@ fn stage_ca_certificates(repo_root: &Path, staging: &Path) -> Result<()> {
         bail!("pinned CA bundle contains {actual_count} certificates; expected {expected_count}")
     }
     copy_preserving(&bundle, &staging.join("etc/ssl/certs/ca-certificates.crt"))?;
+    let openssl_default = staging.join("etc/ssl/cert.pem");
+    if let Some(parent) = openssl_default.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    std::os::unix::fs::symlink("certs/ca-certificates.crt", &openssl_default)?;
     copy_preserving(
         &metadata,
         &staging.join("usr/share/doc/ca-certificates/ca-bundle.toml"),
@@ -4201,6 +4586,14 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "less" => component_snapshot_version(repo_root, "less")?,
         "git" => component_snapshot_version(repo_root, "git")?,
         "openssh-client" | "openssh-server" => component_snapshot_version(repo_root, "openssh")?,
+        "libffi8" | "libffi-dev" => component_snapshot_version(repo_root, "libffi")?,
+        "libpython3.14" | "python3" | "python3-venv" | "python3-dev" => {
+            component_snapshot_version(repo_root, "cpython")?
+        }
+        "libllvm22" | "llvm" | "llvm-dev" | "clang" | "lld" => {
+            component_snapshot_version(repo_root, "llvm")?
+        }
+        "rustc" | "cargo" => component_snapshot_version(repo_root, "rust")?,
         "iproute2" => component_snapshot_version(repo_root, "iproute2")?,
         "iputils-ping" => component_snapshot_version(repo_root, "iputils")?,
         _ => bail!("unknown package {}", spec.name),
@@ -4492,7 +4885,7 @@ fn write_provenance(
         | "iputils" | "expat" | "libcap" | "acl" | "zlib" | "bzip2" | "lz4" | "xz"
         | "xxhash" | "zstd" | "openssl" | "elfutils" | "pcre2" | "selinux"
         | "libxcrypt" | "libmd" | "libbsd" | "tar" | "gzip" | "patch" | "file"
-        | "less" | "git" | "openssh") => {
+        | "less" | "git" | "openssh" | "libffi" | "cpython" | "llvm" | "rust") => {
             let state = read_sync_state(repo_root, component)?
                 .ok_or_else(|| anyhow!("upstream state missing for {component}"))?;
             (
@@ -4721,6 +5114,19 @@ fn runtime_libraries_for_spec(repo_root: &Path, spec: &PackageSpec) -> Result<Ve
                 | "git"
                 | "openssh-client"
                 | "openssh-server"
+                | "libffi8"
+                | "libffi-dev"
+                | "libpython3.14"
+                | "python3"
+                | "python3-venv"
+                | "python3-dev"
+                | "libllvm22"
+                | "llvm"
+                | "llvm-dev"
+                | "clang"
+                | "lld"
+                | "rustc"
+                | "cargo"
                 | "tar"
                 | "dbus-broker"
                 | "libpam0g"
@@ -4763,6 +5169,9 @@ fn runtime_libraries_in_staging(repo_root: &Path, package: &str) -> Result<Vec<S
         repo_root.join("out/sysroot/usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "apt").join("usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "curl").join("usr/lib/x86_64-linux-gnu"),
+        component_install(repo_root, "libffi").join("usr/lib/x86_64-linux-gnu"),
+        component_install(repo_root, "cpython").join("usr/lib/x86_64-linux-gnu"),
+        component_install(repo_root, "llvm").join("usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "ncurses").join("usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "kmod").join("usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "procps-ng").join("usr/lib/x86_64-linux-gnu"),
@@ -5735,8 +6144,10 @@ pub(crate) fn validate_dpkg_database(rootfs: &Path) -> Result<()> {
         ("/usr/lib/x86_64-linux-gnu/libgcc_s.so", "mattos-libgcc-dev"),
         ("/usr/lib/x86_64-linux-gnu/libstdc++.so.6", "libstdc++6"),
         ("/etc/ssl/certs/ca-certificates.crt", "ca-certificates"),
+        ("/etc/ssl/cert.pem", "ca-certificates"),
         ("/usr/lib/x86_64-linux-gnu/libpam.so.0", "libpam0g"),
         ("/usr/lib/x86_64-linux-gnu/libncursesw.so.6", "libncursesw6"),
+        ("/usr/lib/x86_64-linux-gnu/libpanelw.so.6", "libncursesw6"),
         ("/usr/lib/x86_64-linux-gnu/libkmod.so.2", "libkmod2"),
         ("/usr/lib/x86_64-linux-gnu/libproc2.so.1", "mattos-libproc2"),
         ("/usr/lib/udev/hwdb.bin", "udev"),
@@ -6752,7 +7163,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 81);
+        assert_eq!(PACKAGE_NAMES.len(), 94);
     }
 
     #[test]
@@ -6777,7 +7188,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 81);
+        assert_eq!(PACKAGE_NAMES.len(), 94);
         assert_eq!(
             UTIL_LINUX_BASE_PATHS,
             &[
@@ -6831,6 +7242,118 @@ mod tests {
         let util_digest = package_definition_digest(util).unwrap();
         let gzip = specs.iter().find(|spec| spec.name == "gzip").unwrap();
         assert_ne!(util_digest, package_definition_digest(gzip).unwrap());
+    }
+
+    #[test]
+    fn self_hosting_development_package_families_are_split_and_complete() {
+        let specs = package_specs();
+        for name in [
+            "libffi8",
+            "libffi-dev",
+            "libpython3.14",
+            "python3",
+            "python3-venv",
+            "python3-dev",
+            "libllvm22",
+            "llvm",
+            "llvm-dev",
+            "clang",
+            "lld",
+            "rustc",
+            "cargo",
+        ] {
+            assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
+        }
+        assert_eq!(PACKAGE_NAMES.len(), 94);
+        let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
+        for dependency in [
+            "libffi8",
+            "libpython3.14",
+            "libncursesw6",
+            "mattos-libtinfow6",
+        ] {
+            assert!(python.depends.contains(&dependency));
+        }
+        let ncurses = specs
+            .iter()
+            .find(|spec| spec.name == "libncursesw6")
+            .unwrap();
+        assert_eq!(ncurses.source_component, "ncurses");
+        assert_eq!(package_recipe_revision("libncursesw6"), 2);
+        for package in ["libllvm22", "llvm", "clang", "lld", "rustc"] {
+            let spec = specs.iter().find(|spec| spec.name == package).unwrap();
+            assert!(spec.depends.contains(&"zlib1g"), "{package} lacks zlib1g");
+            assert!(spec.depends.contains(&"libzstd1"), "{package} lacks libzstd1");
+        }
+        let cargo = specs.iter().find(|spec| spec.name == "cargo").unwrap();
+        for dependency in ["rustc", "libgcc-s1", "zlib1g", "libzstd1"] {
+            assert!(cargo.depends.contains(&dependency));
+        }
+        assert!(!specs.iter().any(|spec| matches!(spec.name, "perl" | "tcl" | "bash")));
+    }
+
+    #[test]
+    fn rustc_and_cargo_stage_disjoint_complete_payloads() {
+        fn write(root: &Path, relative: &str) {
+            let path = root.join(relative);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(path, relative).unwrap();
+        }
+
+        fn files(root: &Path) -> BTreeSet<PathBuf> {
+            fn visit(root: &Path, directory: &Path, paths: &mut BTreeSet<PathBuf>) {
+                for entry in fs::read_dir(directory).unwrap() {
+                    let entry = entry.unwrap();
+                    let path = entry.path();
+                    if entry.file_type().unwrap().is_dir() {
+                        visit(root, &path, paths);
+                    } else {
+                        paths.insert(path.strip_prefix(root).unwrap().to_path_buf());
+                    }
+                }
+            }
+
+            let mut paths = BTreeSet::new();
+            visit(root, root, &mut paths);
+            paths
+        }
+
+        let temporary = tempfile::tempdir().unwrap();
+        let repo = temporary.path();
+        let install = repo.join("out/build/rust/install/usr");
+        for relative in [
+            "bin/rustc",
+            "bin/rustdoc",
+            "bin/cargo",
+            "lib/rustlib/x86_64-unknown-linux-gnu/lib/libstd-test.rlib",
+            "share/doc/rustc/LICENSE-APACHE",
+            "share/doc/cargo/LICENSE-APACHE",
+            "share/man/man1/rustc.1",
+            "share/man/man1/rustdoc.1",
+            "share/man/man1/cargo.1",
+            "share/man/man1/cargo-build.1",
+            "share/zsh/site-functions/_cargo",
+        ] {
+            write(&install, relative);
+        }
+
+        let rustc_stage = repo.join("rustc-stage");
+        let cargo_stage = repo.join("cargo-stage");
+        stage_rustc(repo, &rustc_stage).unwrap();
+        stage_cargo(repo, &cargo_stage).unwrap();
+
+        let rustc_files = files(&rustc_stage);
+        let cargo_files = files(&cargo_stage);
+        assert!(rustc_files.is_disjoint(&cargo_files));
+        assert!(rustc_files.contains(Path::new("usr/bin/rustc")));
+        assert!(rustc_files.contains(Path::new("usr/bin/rustdoc")));
+        assert!(rustc_files.contains(Path::new(
+            "usr/lib/rustlib/x86_64-unknown-linux-gnu/lib/libstd-test.rlib",
+        )));
+        assert!(!rustc_files.contains(Path::new("usr/bin/cargo")));
+        assert!(cargo_files.contains(Path::new("usr/bin/cargo")));
+        assert!(cargo_files.contains(Path::new("usr/share/man/man1/cargo-build.1")));
+        assert!(!cargo_files.contains(Path::new("usr/share/man/man1/rustc.1")));
     }
 
     #[test]
@@ -7025,7 +7548,7 @@ mod tests {
             package_install_order_for(&specs, PACKAGE_NAMES)
                 .unwrap()
                 .len(),
-            81
+            PACKAGE_NAMES.len()
         );
     }
 
@@ -7140,7 +7663,7 @@ mod tests {
         assert!(position("mattos-filesystem") < position("libc6"));
         assert!(position("libc6") < position("libgcc-s1"));
         assert!(position("libgcc-s1") < position("libstdc++6"));
-        assert_eq!(order.len(), 81);
+        assert_eq!(order.len(), PACKAGE_NAMES.len());
     }
 
     #[test]
@@ -7507,6 +8030,14 @@ mod tests {
         assert!(metadata.contains("cacert-2026-07-16.pem"));
         assert!(metadata.contains("certificate_count = 119"));
         assert!(metadata.contains("destination = \"/etc/ssl/certs/ca-certificates.crt\""));
+        assert_eq!(package_recipe_revision("ca-certificates"), 2);
+        let temporary = tempfile::tempdir().unwrap();
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        stage_ca_certificates(&root, temporary.path()).unwrap();
+        assert_eq!(
+            fs::read_link(temporary.path().join("etc/ssl/cert.pem")).unwrap(),
+            Path::new("certs/ca-certificates.crt"),
+        );
     }
 
     #[test]

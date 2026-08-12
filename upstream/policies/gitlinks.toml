@@ -56,6 +56,82 @@ exact_gitlink_match = true
 reason = "Tar bootstrap receives the exact gitlink revision from the separately pinned ordinary-file paxutils import."
 
 [[component]]
+name = "rust"
+upstream_commit = "8bab26f4f68e0e26f0bb7960be334d5b520ea452"
+
+[[component.gitlink]]
+path = "library/backtrace"
+upstream_commit = "28ec93b503bf0410745bc3d571bf3dc1caac3019"
+action = "exclude"
+reason = "The checksum-verified official rustc-1.97.1 source archive supplies Rust's complete release build closure in an output-owned mirror."
+
+[[component.gitlink]]
+path = "src/doc/book"
+upstream_commit = "05d114287b7d6f6c9253d5242540f00fbd6172ab"
+action = "exclude"
+reason = "Optional book sources are not required for the installed compiler, Cargo, standard library, or rustdoc closure."
+
+[[component.gitlink]]
+path = "src/doc/edition-guide"
+upstream_commit = "c3c0f0b3da26610138b7ba7663f60cd2c68cf184"
+action = "exclude"
+reason = "Optional edition-guide sources are outside the installed development-toolchain closure."
+
+[[component.gitlink]]
+path = "src/doc/embedded-book"
+upstream_commit = "0789b0f29e73ecb91213cac10ad0eec1b9333770"
+action = "exclude"
+reason = "Optional embedded-book sources are outside the x86_64 compiler/runtime closure."
+
+[[component.gitlink]]
+path = "src/doc/nomicon"
+upstream_commit = "cc6a6bae8c3bfa389974e533c54694662c1a9de6"
+action = "exclude"
+reason = "Optional Nomicon sources are not required to build or run rustc, Cargo, or rustdoc."
+
+[[component.gitlink]]
+path = "src/doc/reference"
+upstream_commit = "ad35aca481751a06afeb23820a672b0f3b11a476"
+action = "exclude"
+reason = "Optional language-reference sources are not required for the installed toolchain."
+
+[[component.gitlink]]
+path = "src/doc/rust-by-example"
+upstream_commit = "898f0ac1479223d332309e0fce88d44b39927d28"
+action = "exclude"
+reason = "Optional example-book sources are outside the installed toolchain closure."
+
+[[component.gitlink]]
+path = "src/gcc"
+upstream_commit = "6f155cc3f5a2dff33afe6cc3ed6c2e0e605ae6a3"
+action = "exclude"
+reason = "The optional GCC code-generation backend is disabled; MattOS Rust uses LLVM."
+
+[[component.gitlink]]
+path = "src/llvm-project"
+upstream_commit = "dcc3606807c989700e0ac1cac18c31741bcd40d9"
+action = "exclude"
+reason = "The release archive supplies Rust's pinned bootstrap closure; the production architecture targets the separately pinned MattOS LLVM stage."
+
+[[component.gitlink]]
+path = "src/tools/cargo"
+upstream_commit = "c980f4866141969fab6254a680546a277789d6f0"
+action = "exclude"
+reason = "The checksum-verified official Rust source archive supplies the exact Cargo revision in the output-owned build mirror."
+
+[[component.gitlink]]
+path = "src/tools/enzyme"
+upstream_commit = "324402444ac48874d8ebd3ac767330bdc7cb1c06"
+action = "exclude"
+reason = "The optional Enzyme autodiff tool is not part of MattOS's Rust compiler/runtime closure."
+
+[[component.gitlink]]
+path = "src/tools/rustc-perf"
+upstream_commit = "c0301bc44d175b9b2c5442b25049475c39d7700c"
+action = "exclude"
+reason = "The compiler performance benchmark suite is not an installed toolchain component."
+
+[[component]]
 name = "pcre2"
 upstream_commit = "f454e231fe5006dd7ff8f4693fd2b8eb94333429"
 

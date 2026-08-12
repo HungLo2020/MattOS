@@ -77,6 +77,31 @@ class LinuxSourceSelectionTests(unittest.TestCase):
             self.assertIn("missing upstream path arch/x86/Kconfig", failures)
             self.assertIn("stale source-selection-excluded path arch/arm/Kconfig", failures)
 
+    def test_provenance_hashes_raw_bytes_without_attribute_filters(self) -> None:
+        with tempfile.TemporaryDirectory() as raw_root:
+            root = Path(raw_root)
+            subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+            (root / ".gitattributes").write_text("*.txt text eol=lf\n")
+            source_root = root / "src/imported/example"
+            source_root.mkdir(parents=True)
+            payload = b"first\r\nsecond\r\n"
+            (source_root / "intentional-crlf.txt").write_bytes(payload)
+
+            original_root = provenance.ROOT
+            provenance.ROOT = root
+            try:
+                object_ids = provenance.raw_worktree_blob_oids(
+                    {"name": "example", "path": "src/imported/example"},
+                    ["intentional-crlf.txt"],
+                )
+            finally:
+                provenance.ROOT = original_root
+
+            self.assertEqual(
+                object_ids["intentional-crlf.txt"],
+                provenance.git_blob_oid(payload),
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

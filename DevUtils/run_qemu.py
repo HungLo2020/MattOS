@@ -66,6 +66,28 @@ def ensure_iso_exists(repo_root: Path) -> Path:
     iso_path = repo_root / "out" / "images" / "mattos-x86_64.iso"
     if not iso_path.exists():
         raise RepoError(f"ISO not found at {iso_path}; build step did not produce expected artifact")
+    if not shutil.which("xorriso"):
+        raise RepoError("xorriso is required to validate the MattOS live-root ISO layout")
+    inspection = subprocess.run(
+        [
+            "xorriso",
+            "-indev",
+            str(iso_path),
+            "-ls",
+            "/live/rootfs.squashfs",
+        ],
+        cwd=str(repo_root),
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    inspection_output = inspection.stdout + inspection.stderr
+    if inspection.returncode != 0 or "/live/rootfs.squashfs" not in inspection_output:
+        raise RepoError(
+            f"ISO at {iso_path} does not contain the MattOS compressed live root; "
+            "rebuild it without --no-build"
+        )
     return iso_path
 
 

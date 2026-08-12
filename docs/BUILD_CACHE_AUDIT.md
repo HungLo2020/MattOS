@@ -59,7 +59,8 @@ Notes:
 | Mechanism | Path | Component | Persistent | Invalidated by | Assessment |
 |---|---|---|---|---|---|
 | Rootfs staging | `out/build/rootfs` | initramfs assembly | Recreated | every `build rootfs` / `image` | Deterministic but always rebuilt |
-| Initramfs archive | `out/build/initramfs.cpio.gz` | boot artifact | Recreated | every `build initramfs` / `image` | Deterministic but always rebuilt |
+| Live root | `out/build/live-root.squashfs` | complete read-only system | Content-addressed | rootfs output changes | Deterministic single-threaded XZ SquashFS |
+| Early initramfs | `out/build/early-initramfs.cpio.xz` | early boot only | Content-addressed | live-init/formal-sysroot changes | Static `/init`; no general root payload |
 | ISO staging | `out/build/iso` | ISO assembly | Recreated | every `build iso` / `image` | Deterministic but always rebuilt |
 | ISO artifact | `out/images/mattos-x86_64.iso` | boot artifact | Rewritten | every `build iso` / `image` | Correct output location |
 

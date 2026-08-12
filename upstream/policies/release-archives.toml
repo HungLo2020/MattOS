@@ -45,3 +45,12 @@ source_commit = "7ea9586a9a1273eb9658d76af8986fdcf6738096"
 url = "https://www.greenwoodsoftware.com/less/less-704.tar.gz"
 sha256 = "20a0b0a2bb2525fa53c7eee9beb854b4c9cf172eabb209af7020743547bfe9fb"
 staging_policy = "output-mirror-only"
+
+[[archive]]
+component = "rust"
+version = "1.97.1"
+source_tag = "1.97.1"
+source_commit = "8bab26f4f68e0e26f0bb7960be334d5b520ea452"
+url = "https://static.rust-lang.org/dist/rustc-1.97.1-src.tar.xz"
+sha256 = "0ed06fdaffd4722a7702e0b4eebfafc897ab8f513e8e1b247cdd7e5c6df6ded2"
+staging_policy = "output-mirror-only"

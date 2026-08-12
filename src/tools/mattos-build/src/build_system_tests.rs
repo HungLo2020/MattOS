@@ -80,6 +80,7 @@ fn real_stage_specs_invalidate_only_representative_input_owners() {
         ("gcc-toolchain", isolated(BuildStage::GccToolchain)),
         ("zlib", isolated(BuildStage::Zlib)),
         ("rootfs", isolated(BuildStage::Rootfs)),
+        ("live-root", isolated(BuildStage::LiveRoot)),
         ("initramfs", isolated(BuildStage::Initramfs)),
         ("iso", isolated(BuildStage::Iso)),
     ];
@@ -156,22 +157,24 @@ fn real_stage_specs_track_tool_recipe_and_dependency_output_identity() {
 
     let mut initramfs = build_stage_spec(BuildStage::Initramfs);
     initramfs.dependencies.clear();
+    write_file(&root.join("src/boot/live-init.c"), "int main(void) { return 0; }\n");
     let initramfs_before = performance::compute_stage_inputs(root, &initramfs).unwrap();
     initramfs.recipe.push_str(":revision-two");
     let initramfs_after = performance::compute_stage_inputs(root, &initramfs).unwrap();
     assert_ne!(initramfs_before.full_digest, initramfs_after.full_digest);
 
-    publish_dependency(root, "rootfs", "input-one", "same-rootfs-bytes");
+    publish_dependency(root, "formal-sysroot", "input-one", "same-sysroot-bytes");
     let initramfs = build_stage_spec(BuildStage::Initramfs);
     let before = performance::compute_stage_inputs(root, &initramfs).unwrap();
-    publish_dependency(root, "rootfs", "input-two", "same-rootfs-bytes");
+    publish_dependency(root, "formal-sysroot", "input-two", "same-sysroot-bytes");
     let identical = performance::compute_stage_inputs(root, &initramfs).unwrap();
     assert_eq!(before.full_digest, identical.full_digest);
-    publish_dependency(root, "rootfs", "input-three", "changed-rootfs-bytes");
+    publish_dependency(root, "formal-sysroot", "input-three", "changed-sysroot-bytes");
     let changed = performance::compute_stage_inputs(root, &initramfs).unwrap();
     assert_ne!(identical.full_digest, changed.full_digest);
 
     publish_dependency(root, "linux", "linux-input", "kernel-bytes");
+    publish_dependency(root, "live-root", "root-input", "live-root-bytes");
     publish_dependency(root, "initramfs", "input-one", "same-initramfs-bytes");
     write_file(&root.join(AUTHORITATIVE_GRUB_CFG), "grub\n");
     let iso = build_stage_spec(BuildStage::Iso);
@@ -192,12 +195,20 @@ fn package_rootfs_initramfs_and_iso_contracts_follow_consumed_artifacts() {
 
     let initramfs = build_stage_spec(BuildStage::Initramfs);
     assert!(initramfs.configuration_inputs.is_empty());
-    assert_eq!(initramfs.dependencies, ["rootfs"]);
-    assert_eq!(initramfs.outputs, [PathBuf::from("out/build/initramfs.cpio.gz")]);
+    assert_eq!(initramfs.dependencies, ["formal-sysroot"]);
+    assert_eq!(initramfs.source_inputs, [PathBuf::from("src/boot/live-init.c")]);
+    assert_eq!(initramfs.outputs, [PathBuf::from("out/build/early-initramfs.cpio.xz")]);
+    assert_eq!(initramfs.tools, ["gcc", "cpio", "xz"]);
+
+    let live_root = build_stage_spec(BuildStage::LiveRoot);
+    assert_eq!(live_root.dependencies, ["rootfs"]);
+    assert!(live_root.outputs.contains(&PathBuf::from("out/build/live-root.squashfs")));
+    assert_eq!(live_root.tools, ["mksquashfs", "unsquashfs"]);
 
     let iso = build_stage_spec(BuildStage::Iso);
     assert_eq!(iso.source_inputs, [PathBuf::from(AUTHORITATIVE_GRUB_CFG)]);
     assert!(iso.dependencies.contains(&"linux".to_string()));
+    assert!(iso.dependencies.contains(&"live-root".to_string()));
     assert!(iso.dependencies.contains(&"initramfs".to_string()));
 }
 
@@ -218,8 +229,9 @@ fn cold_build_concurrency_groups_preserve_barriers_and_output_ownership() {
     );
     assert_eq!(graph["repository"], ["packages"].into_iter().collect());
     assert!(graph["rootfs"].contains("repository"));
-    assert_eq!(graph["initramfs"], ["rootfs"].into_iter().collect());
-    assert_eq!(graph["iso"], ["initramfs", "linux"].into_iter().collect());
+    assert_eq!(graph["live-root"], ["rootfs"].into_iter().collect());
+    assert_eq!(graph["initramfs"], ["formal-sysroot"].into_iter().collect());
+    assert_eq!(graph["iso"], ["initramfs", "linux", "live-root"].into_iter().collect());
 
     let independent_after_sysroot = [
         BuildStage::Brush,

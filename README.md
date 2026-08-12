@@ -109,7 +109,7 @@ See `docs/SESSIONS.md` for pam_systemd, logind sessions, runtime directories, pe
 
 See `docs/PACKAGING.md` for `.deb` construction, the local MattOS APT repository, imported dpkg/APT builds, and hybrid rootfs assembly.
 
-See `docs/DEBIAN_COMPATIBILITY.md` for the Debian 13 `amd64` contract, package-name mapping, protected-package policy, validation results, and known gaps. See `docs/REMOTE_REPOSITORY.md` for the read-only LinuxScripts publisher integration; nothing is published by the build.
+See `docs/DEBIAN_COMPATIBILITY.md` for the Debian 13 `amd64` contract, package-name mapping, protected-package policy, validation results, and known gaps. See `docs/SELF_HOSTING_DEVELOPMENT.md` for the pinned CPython, LLVM/Clang/LLD, and Rust/Cargo development foundation. See `docs/REMOTE_REPOSITORY.md` for the read-only LinuxScripts publisher integration; nothing is published by the build.
 
 ## Build stages
 

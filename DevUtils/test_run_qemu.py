@@ -4,12 +4,32 @@ import subprocess
 import sys
 import unittest
 from pathlib import Path
+from tempfile import TemporaryDirectory
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from run_qemu import image_build_commands, network_arguments
+from run_qemu import ensure_iso_exists, image_build_commands, network_arguments
 
 
 class QemuNetworkArgumentsTests(unittest.TestCase):
+    def test_iso_guard_accepts_xorriso_listing_written_to_stderr(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            iso = root / "out/images/mattos-x86_64.iso"
+            iso.parent.mkdir(parents=True)
+            iso.touch()
+            completed = subprocess.CompletedProcess(
+                args=[],
+                returncode=0,
+                stdout="",
+                stderr="'/live/rootfs.squashfs'\n",
+            )
+            with mock.patch("run_qemu.shutil.which", return_value="/usr/bin/xorriso"), mock.patch(
+                "run_qemu.subprocess.run", return_value=completed
+            ) as invoked:
+                self.assertEqual(ensure_iso_exists(root), iso)
+                self.assertIn("-ls", invoked.call_args.args[0])
+
     def test_default_network_is_unprivileged_virtio(self) -> None:
         self.assertEqual(
             network_arguments(False),

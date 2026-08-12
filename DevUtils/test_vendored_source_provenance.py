@@ -242,14 +242,15 @@ def symlink_escapes(component_root: Path, path: str, target: str) -> bool:
     return joined == ".." or joined.startswith("../")
 
 
-def filtered_worktree_blob_oids(component: dict, paths: list[str]) -> dict[str, str]:
+def raw_worktree_blob_oids(component: dict, paths: list[str]) -> dict[str, str]:
     if not paths:
         return {}
     repository_paths = [f"{component['path']}/{path}" for path in paths]
     if any("\n" in path for path in repository_paths):
         raise AuditFailure(f"{component['name']}: newline in source path is unsupported")
     output = run(
-        ["git", "hash-object", "--stdin-paths"],
+        ["git", "hash-object", "--no-filters", "--stdin-paths"],
+        cwd=ROOT,
         input_bytes=("\n".join(repository_paths) + "\n").encode("utf-8", "surrogateescape"),
     )
     object_ids = output.decode("ascii").splitlines()
@@ -275,7 +276,10 @@ def verify_component_tree(
         for mode, _, _, path in entries
         if mode in ("100644", "100755") and (source_root / path).is_file()
     ]
-    regular_oids = filtered_worktree_blob_oids(component, regular_paths)
+    # Provenance compares authoritative bytes, not a hypothetical checkout
+    # transformed by this repository's .gitattributes. This matters for
+    # intentionally CRLF upstream blobs such as a small set in Rust.
+    regular_oids = raw_worktree_blob_oids(component, regular_paths)
 
     for mode, object_type, oid, path in entries:
         if mode == "160000":
@@ -532,8 +536,8 @@ def main() -> int:
     component_list = source_document.get("component", [])
     components = {component["name"]: component for component in component_list}
     failures: list[str] = []
-    if len(components) != 53 or len(component_list) != 53:
-        failures.append(f"sources.toml declares {len(component_list)} components, expected 53 unique components")
+    if len(components) != 57 or len(component_list) != 57:
+        failures.append(f"sources.toml declares {len(component_list)} components, expected 57 unique components")
     for component in component_list:
         revision = component.get("revision", "")
         if not REVISION_RE.fullmatch(revision):

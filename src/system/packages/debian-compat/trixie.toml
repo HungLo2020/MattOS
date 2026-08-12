@@ -200,7 +200,7 @@ known_gaps = ["Conflicts with Debian base-files by design"]
 debian_name = "ca-certificates"
 mattos_name = "ca-certificates"
 source_component = "ca-certificates"
-owned_paths = ["/etc/ssl/certs/ca-certificates.crt"]
+owned_paths = ["/etc/ssl/certs/ca-certificates.crt", "/etc/ssl/cert.pem"]
 provided_abi_or_commands = ["Mozilla CA bundle"]
 protected = false
 current_mattos_version = "2026.07.16-1mattos1"
@@ -975,3 +975,159 @@ current_mattos_version = "10.4.P1-1mattos1"
 expected_debian_role = "secure shell server"
 classification = "debian-compatible"
 known_gaps = ["Socket activation is not enabled by default"]
+
+[[package]]
+debian_name = "libffi8"
+mattos_name = "libffi8"
+source_component = "libffi"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libffi.so.8"]
+provided_abi_or_commands = ["libffi.so.8"]
+protected = true
+current_mattos_version = "3.5.2-1mattos1"
+expected_debian_role = "foreign-function interface runtime"
+classification = "debian-compatible"
+known_gaps = ["No known runtime compatibility gaps"]
+
+[[package]]
+debian_name = "libffi-dev"
+mattos_name = "libffi-dev"
+source_component = "libffi"
+owned_paths = ["/usr/include/ffi.h", "/usr/lib/x86_64-linux-gnu/libffi.so"]
+provided_abi_or_commands = ["libffi headers and pkg-config metadata"]
+protected = true
+current_mattos_version = "3.5.2-1mattos1"
+expected_debian_role = "foreign-function interface development files"
+classification = "debian-compatible"
+known_gaps = ["Static libffi archive is intentionally omitted"]
+
+[[package]]
+debian_name = "libpython3.14"
+mattos_name = "libpython3.14"
+source_component = "cpython"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libpython3.14.so.1.0"]
+provided_abi_or_commands = ["libpython3.14.so.1.0"]
+protected = true
+current_mattos_version = "3.14.7-1mattos1"
+expected_debian_role = "CPython shared runtime library"
+classification = "debian-compatible"
+known_gaps = ["Debian 13 defaults to an older CPython ABI"]
+
+[[package]]
+debian_name = "python3"
+mattos_name = "python3"
+source_component = "cpython"
+owned_paths = ["/usr/bin/python3", "/usr/lib/python3.14"]
+provided_abi_or_commands = ["python3 and CPython standard library"]
+protected = true
+current_mattos_version = "3.14.7-1mattos1"
+expected_debian_role = "default Python 3 interpreter"
+classification = "debian-compatible"
+known_gaps = ["Readline, dbm, gdbm, and Tk integrations are not yet shipped"]
+
+[[package]]
+debian_name = "python3-venv"
+mattos_name = "python3-venv"
+source_component = "cpython"
+owned_paths = ["/usr/lib/python3.14/venv", "/usr/lib/python3.14/ensurepip"]
+provided_abi_or_commands = ["venv, ensurepip, and bundled pip"]
+protected = true
+current_mattos_version = "3.14.7-1mattos1"
+expected_debian_role = "Python virtual-environment support"
+classification = "debian-compatible"
+known_gaps = ["No known virtual-environment compatibility gaps"]
+
+[[package]]
+debian_name = "python3-dev"
+mattos_name = "python3-dev"
+source_component = "cpython"
+owned_paths = ["/usr/include/python3.14", "/usr/bin/python3-config"]
+provided_abi_or_commands = ["Python.h, python3-config, and pkg-config metadata"]
+protected = true
+current_mattos_version = "3.14.7-1mattos1"
+expected_debian_role = "Python native-extension development files"
+classification = "debian-compatible"
+known_gaps = ["Static libpython archive is intentionally omitted"]
+
+[[package]]
+debian_name = "libllvm22"
+mattos_name = "libllvm22"
+source_component = "llvm"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libLLVM.so.22.1"]
+provided_abi_or_commands = ["LLVM 22 shared C++ runtime"]
+protected = true
+current_mattos_version = "0~git.ca7933e47d3a-1mattos1"
+expected_debian_role = "LLVM shared runtime"
+classification = "debian-compatible"
+known_gaps = ["Debian 13 defaults to an older LLVM ABI"]
+
+[[package]]
+debian_name = "llvm"
+mattos_name = "llvm"
+source_component = "llvm"
+owned_paths = ["/usr/bin/llvm-config"]
+provided_abi_or_commands = ["selected LLVM command-line tools"]
+protected = true
+current_mattos_version = "0~git.ca7933e47d3a-1mattos1"
+expected_debian_role = "LLVM tools"
+classification = "debian-compatible"
+known_gaps = ["Only the X86, AArch64, and RISC-V backends are built"]
+
+[[package]]
+debian_name = "llvm-dev"
+mattos_name = "llvm-dev"
+source_component = "llvm"
+owned_paths = ["/usr/include/llvm", "/usr/lib/x86_64-linux-gnu/cmake/llvm"]
+provided_abi_or_commands = ["LLVM headers and CMake package metadata"]
+protected = true
+current_mattos_version = "0~git.ca7933e47d3a-1mattos1"
+expected_debian_role = "LLVM development files"
+classification = "debian-compatible"
+known_gaps = ["Debian 13 defaults to an older LLVM development ABI"]
+
+[[package]]
+debian_name = "clang"
+mattos_name = "clang"
+source_component = "llvm"
+owned_paths = ["/usr/bin/clang", "/usr/bin/clang++"]
+provided_abi_or_commands = ["Clang C/C++ compiler with X86, AArch64, and RISC-V targets"]
+protected = true
+current_mattos_version = "0~git.ca7933e47d3a-1mattos1"
+expected_debian_role = "Clang compiler"
+classification = "debian-compatible"
+known_gaps = ["Only selected LLVM projects and targets are built"]
+
+[[package]]
+debian_name = "lld"
+mattos_name = "lld"
+source_component = "llvm"
+owned_paths = ["/usr/bin/ld.lld"]
+provided_abi_or_commands = ["lld and ld.lld"]
+protected = true
+current_mattos_version = "0~git.ca7933e47d3a-1mattos1"
+expected_debian_role = "LLVM linker"
+classification = "debian-compatible"
+known_gaps = ["No known native-linker compatibility gaps"]
+
+[[package]]
+debian_name = "rustc"
+mattos_name = "rustc"
+source_component = "rust"
+owned_paths = ["/usr/bin/rustc", "/usr/bin/rustdoc", "/usr/lib/rustlib"]
+provided_abi_or_commands = ["rustc, rustdoc, and x86_64-unknown-linux-gnu standard library"]
+protected = true
+current_mattos_version = "1.97.1-1mattos1"
+expected_debian_role = "Rust compiler"
+classification = "debian-compatible"
+known_gaps = ["Only the native X86_64 standard library is installed"]
+
+[[package]]
+debian_name = "cargo"
+mattos_name = "cargo"
+source_component = "rust"
+owned_paths = ["/usr/bin/cargo"]
+provided_abi_or_commands = ["Cargo package manager"]
+protected = true
+current_mattos_version = "1.97.1-1mattos1"
+expected_debian_role = "Rust package manager"
+classification = "debian-compatible"
+known_gaps = ["Networked dependency resolution requires configured external sources"]

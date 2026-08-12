@@ -145,7 +145,13 @@ curl is rebuilt against those exact staged libraries. Its compiled CA file is `/
 
 ### CA certificates
 
-`ca-certificates` owns `/etc/ssl/certs/ca-certificates.crt`. `src/system/network/ca-bundle.toml` records the pinned curl CA Extract URL/date, SHA-256, destination, MPL-2.0 license, and validated count of 119 certificates. Ordinary builds never download a mutable `latest` bundle. The installed `UPDATE.md` describes the explicit checksum-and-count update process.
+`ca-certificates` owns `/etc/ssl/certs/ca-certificates.crt` and the relative
+`/etc/ssl/cert.pem -> certs/ca-certificates.crt` compatibility link used by
+OpenSSL's compiled default lookup. `src/system/network/ca-bundle.toml` records
+the pinned curl CA Extract URL/date, SHA-256, destination, MPL-2.0 license, and
+validated count of 119 certificates. Ordinary builds never download a mutable
+`latest` bundle. The installed `UPDATE.md` describes the explicit
+checksum-and-count update process.
 
 ## Dependency and Essential policy
 

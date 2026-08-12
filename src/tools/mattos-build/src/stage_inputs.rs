@@ -22,6 +22,13 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::Less => &["src/userland/less", "upstream/policies/release-archives.toml"],
         BuildStage::Git => &["src/userland/git"],
         BuildStage::Openssh => &["src/system/network/openssh-portable"],
+        BuildStage::Libffi => &["src/system/libraries/libffi/libffi"],
+        BuildStage::Python => &["src/development/python/cpython"],
+        BuildStage::Llvm => &["src/toolchain/llvm-project"],
+        BuildStage::Rust => &[
+            "src/toolchain/rust",
+            "upstream/policies/release-archives.toml",
+        ],
         BuildStage::Kmod => &["src/system/kmod"],
         BuildStage::Procps => &["src/userland/procps-ng"],
         BuildStage::Ncurses => &["src/system/terminal/ncurses"],
@@ -62,7 +69,8 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::Dpkg => &["src/system/packages/dpkg"],
         BuildStage::Apt => &["src/system/packages/apt", "upstream/patches/apt"],
         BuildStage::Init => &["src/userland/init"],
-        BuildStage::Rootfs | BuildStage::Initramfs | BuildStage::All => &[],
+        BuildStage::Rootfs | BuildStage::LiveRoot | BuildStage::All => &[],
+        BuildStage::Initramfs => &["src/boot/live-init.c"],
         BuildStage::Iso => &[AUTHORITATIVE_GRUB_CFG],
     };
     let mut inputs = roots.iter().map(PathBuf::from).collect::<Vec<_>>();
@@ -86,10 +94,12 @@ pub(crate) fn configuration_inputs(stage: BuildStage) -> Vec<PathBuf> {
 }
 
 pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
-    let tools: &[&str] = if is_rust_stage(stage) {
-        &["cargo", "rustc", "gcc", "ld"]
-    } else {
-        &["gcc", "g++", "as", "ld", "make"]
+    let tools: &[&str] = match stage {
+        BuildStage::LiveRoot => &["mksquashfs", "unsquashfs"],
+        BuildStage::Initramfs => &["gcc", "cpio", "xz"],
+        BuildStage::Iso => &["grub-mkrescue", "xorriso"],
+        stage if is_rust_stage(stage) => &["cargo", "rustc", "gcc", "ld"],
+        _ => &["gcc", "g++", "as", "ld", "make"],
     };
     tools.iter().map(|tool| (*tool).to_string()).collect()
 }
@@ -98,6 +108,11 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
     match stage {
         BuildStage::All => 0,
         BuildStage::Bzip2 | BuildStage::Xz | BuildStage::Zstd => 2,
+        BuildStage::Python => 4,
+        BuildStage::Llvm => 5,
+        BuildStage::LiveRoot => 1,
+        BuildStage::Initramfs => 5,
+        BuildStage::Iso => 2,
         BuildStage::UtilLinux => 5,
         _ => 1,
     }
@@ -173,7 +188,12 @@ mod tests {
 
     #[test]
     fn release_archive_consumers_include_the_verified_policy() {
-        for stage in [BuildStage::Gzip, BuildStage::Patch, BuildStage::Less] {
+        for stage in [
+            BuildStage::Gzip,
+            BuildStage::Patch,
+            BuildStage::Less,
+            BuildStage::Rust,
+        ] {
             assert!(
                 source_inputs(stage)
                     .contains(&PathBuf::from("upstream/policies/release-archives.toml")),

@@ -10,7 +10,16 @@ pub(crate) fn inspect(
     executable_digest: impl FnOnce(&Path) -> Result<String>,
 ) -> Result<ToolIdentity> {
     let path = resolve_executable(tool)?;
-    let version_output = stable_tool_output(&path, &["--version"])?;
+    let version_output = if Path::new(tool).file_name().and_then(OsStr::to_str)
+        == Some("unsquashfs")
+    {
+        // squashfs-tools 4.6.1 prints a valid version and exits 1 for this
+        // informational mode. Accept only that documented program-specific
+        // behavior; all normal probes remain fail-closed.
+        stable_tool_output_inner(&path, version_arguments(tool), true)?
+    } else {
+        stable_tool_output(&path, version_arguments(tool))?
+    };
     let target = if matches!(tool, "gcc" | "g++" | "cc" | "c++") {
         stable_tool_output(&path, &["-dumpmachine"])?
     } else if tool == "rustc" {
@@ -28,6 +37,14 @@ pub(crate) fn inspect(
         version: version_output.lines().next().unwrap_or("").to_string(),
         target,
     })
+}
+
+fn version_arguments(tool: &str) -> &'static [&'static str] {
+    match Path::new(tool).file_name().and_then(OsStr::to_str) {
+        // squashfs-tools intentionally uses the historical single-dash form.
+        Some("mksquashfs" | "unsquashfs") => &["-version"],
+        _ => &["--version"],
+    }
 }
 
 fn resolve_executable(tool: &str) -> Result<PathBuf> {
@@ -54,6 +71,14 @@ pub(crate) fn resolve_executable_from(tool: &str, path: Option<&OsStr>) -> Resul
 }
 
 fn stable_tool_output(tool: &Path, arguments: &[&str]) -> Result<String> {
+    stable_tool_output_inner(tool, arguments, false)
+}
+
+fn stable_tool_output_inner(
+    tool: &Path,
+    arguments: &[&str],
+    allow_exit_one: bool,
+) -> Result<String> {
     let output = Command::new(tool)
         .args(arguments)
         .env("LC_ALL", "C")
@@ -61,7 +86,7 @@ fn stable_tool_output(tool: &Path, arguments: &[&str]) -> Result<String> {
         .env("TZ", "UTC")
         .output()
         .with_context(|| format!("failed to inspect tool {}", tool.display()))?;
-    if !output.status.success() {
+    if !output.status.success() && !(allow_exit_one && output.status.code() == Some(1)) {
         bail!(
             "tool identity probe failed with {}: {} {}",
             output.status,
@@ -84,4 +109,16 @@ fn normalize_path(path: &Path) -> String {
         .map(|component| component.as_os_str().to_string_lossy())
         .collect::<Vec<_>>()
         .join("/")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::version_arguments;
+
+    #[test]
+    fn squashfs_tools_use_their_supported_version_switch() {
+        assert_eq!(version_arguments("mksquashfs"), ["-version"]);
+        assert_eq!(version_arguments("/usr/bin/unsquashfs"), ["-version"]);
+        assert_eq!(version_arguments("gcc"), ["--version"]);
+    }
 }

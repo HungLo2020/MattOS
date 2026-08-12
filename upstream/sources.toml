@@ -429,6 +429,40 @@ path = "src/toolchain/gcc"
 sync = "copy"
 
 [[component]]
+name = "cpython"
+repo = "https://github.com/python/cpython.git"
+branch = "v3.14.7"
+revision = "823f0323ee6ec1402088b73bce1a38473cac36dc"
+path = "src/development/python/cpython"
+sync = "copy"
+
+[[component]]
+name = "llvm"
+repo = "https://github.com/llvm/llvm-project.git"
+branch = "llvmorg-22.1.8"
+revision = "ca7933e47d3a3451d81e72ac174dcb5aa28b59d1"
+path = "src/toolchain/llvm-project"
+sync = "copy"
+
+[[component]]
+name = "libffi"
+repo = "https://github.com/libffi/libffi.git"
+branch = "v3.5.2"
+revision = "e2eda0cf72a0598b44278cc91860ea402273fa29"
+path = "src/system/libraries/libffi/libffi"
+sync = "copy"
+
+[[component]]
+name = "rust"
+repo = "https://github.com/rust-lang/rust.git"
+branch = "1.97.1"
+revision = "8bab26f4f68e0e26f0bb7960be334d5b520ea452"
+path = "src/toolchain/rust"
+sync = "copy"
+intentional_omission_policy = "upstream/policies/gitlinks.toml#rust"
+gitlink_policy = "upstream/policies/gitlinks.toml#rust"
+
+[[component]]
 name = "binutils"
 repo = "https://sourceware.org/git/binutils-gdb.git"
 branch = "binutils-2_46_1"

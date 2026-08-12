@@ -1,5 +1,10 @@
 # MattOS Project Audit
 
+> Current image architecture: MattOS now carries the complete system in a
+> deterministic SquashFS live root and boots it through a minimal static early
+> initramfs plus tmpfs overlay. Historical measurements below describe older
+> full-root initramfs milestones. See `docs/LIVE_ROOT_ARCHITECTURE.md`.
+
 Date: 2026-08-04
 
 ## 1. Executive Summary
@@ -302,7 +307,7 @@ Current caching behavior:
 - `out/build/systemd/build/` and `out/build/util-linux/build/` cache Meson/Ninja state.
 - `out/build/kmod/build/`, `out/build/ncurses/build/`, and `out/build/procps-ng/build/` keep their native build-system caches outside imported source.
 - `src/kernel/linux/` keeps in-tree kernel build outputs.
-- `out/build/rootfs/`, `out/build/initramfs.cpio.gz`, and `out/images/mattos-x86_64.iso` are regenerated from upstream build artifacts.
+- `out/build/rootfs/`, `out/build/initramfs.cpio.xz`, and `out/images/mattos-x86_64.iso` are regenerated from upstream build artifacts.
 - `upstream/.tmp/` style clones are ephemeral and intentionally not preserved.
 
 This is correct for a bootstrap system, but it is not especially efficient. The highest cache risk is the split between host-level Rust targets and imported-tree Rust targets.
