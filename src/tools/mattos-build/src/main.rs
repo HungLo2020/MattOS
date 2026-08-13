@@ -38,10 +38,20 @@ thread_local! {
 const AUTHORITATIVE_GRUB_CFG: &str = stage_inputs::AUTHORITATIVE_GRUB_CFG;
 const OBSOLETE_GRUB_CFG_PATHS: &[&str] = &["boot/grub/grub.cfg"];
 const EXECUTABLE_PROBE_ID: &str = "mattos-build-probe-20260809T180000Z-info-normalization";
-const GRUB_SYSTEMD_ENTRY: &str = "menuentry \"MattOS (systemd)\"";
-const GRUB_RESCUE_ENTRY: &str = "menuentry \"MattOS (rescue init)\"";
+const GRUB_SYSTEMD_ENTRY: &str = "menuentry \"Start MattOS Live\"";
+const GRUB_RESCUE_ENTRY: &str = "menuentry \"MattOS Rescue\"";
 const INITRAMFS_ARCHIVE_PATH: &str = "out/build/early-initramfs.cpio.xz";
 const LIVE_ROOT_IMAGE_PATH: &str = "out/build/live-root.squashfs";
+const INSTALLED_INITRAMFS_PATH: &str = "out/build/installed-initramfs.cpio.xz";
+const FINAL_ISO_PATH: &str = "out/images/mattos-x86_64.iso";
+const ARTIFACT_REPORT_PATH: &str = "out/reports/artifacts.tsv";
+const OBSOLETE_FULL_ROOT_INITRAMFS_PATHS: &[&str] = &[
+    "out/build/initramfs.cpio.xz",
+    "out/build/initramfs.cpio.gz",
+    "out/build/initramfs.cpio.zst",
+    "out/build/initramfs-compression-probe.cpio.zst",
+    "out/build/initramfs-compression-probe-level10.cpio.zst",
+];
 const EARLY_INITRAMFS_SIZE_LIMIT: u64 = 32 * 1024 * 1024;
 const GRUB_EARLY_RDINIT: &str = "rdinit=/init";
 const GRUB_RESCUE_MARKER: &str = "mattos.rescue=1";
@@ -628,6 +638,8 @@ struct Cli {
 enum Commands {
     Doctor,
     Timings,
+    /// Validate and report the authoritative boot/image artifacts.
+    Artifacts,
     Cache {
         #[command(subcommand)]
         command: CacheCommands,
@@ -778,6 +790,22 @@ struct SourceSelectionPolicy {
     x86_excluded_paths: BTreeSet<String>,
 }
 
+#[derive(Debug, Deserialize, Clone)]
+struct LfsHydrationPolicy {
+    schema_version: u32,
+    component: String,
+    upstream_commit: String,
+    source: String,
+    object: Vec<LfsHydrationObject>,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+struct LfsHydrationObject {
+    path: String,
+    sha256: String,
+    size: u64,
+}
+
 impl SourceSelectionPolicy {
     fn retains(&self, path: &str) -> bool {
         let mut parts = path.split('/');
@@ -826,6 +854,10 @@ struct SyncState {
     gitlink_policy: String,
     patch_manifest: String,
     patch_manifest_sha256: String,
+    #[serde(default = "none_policy")]
+    lfs_policy: String,
+    #[serde(default = "none_policy")]
+    lfs_policy_sha256: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -892,6 +924,7 @@ fn main() -> Result<()> {
         }
         Commands::Doctor => doctor(),
         Commands::Timings => performance::show_latest_timings(&repo_root),
+        Commands::Artifacts => report_artifacts(&repo_root),
         Commands::Cache { command } => cache_command(&repo_root, command),
         Commands::Upstream { command } => upstream_command(&repo_root, command),
         Commands::Package { command } => packaging::run_package_command(&repo_root, command),
@@ -1156,6 +1189,170 @@ fn build_image(repo_root: &Path) -> Result<()> {
     build_live_root(repo_root)?;
     build_initramfs(repo_root)?;
     build_iso(repo_root)
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct ArtifactRecord {
+    role: &'static str,
+    path: String,
+    bytes: u64,
+    sha256: String,
+    detail: &'static str,
+}
+
+fn reject_obsolete_full_root_initramfs(repo_root: &Path) -> Result<()> {
+    let stale = OBSOLETE_FULL_ROOT_INITRAMFS_PATHS
+        .iter()
+        .filter(|path| repo_root.join(path).exists())
+        .copied()
+        .collect::<Vec<_>>();
+    if !stale.is_empty() {
+        bail!(
+            "obsolete full-root initramfs artifact(s) coexist with the live-root architecture: {}; remove these generated outputs and use {} plus {}",
+            stale.join(", "),
+            INITRAMFS_ARCHIVE_PATH,
+            LIVE_ROOT_IMAGE_PATH,
+        );
+    }
+    Ok(())
+}
+
+fn artifact_record(
+    repo_root: &Path,
+    role: &'static str,
+    relative: &str,
+    detail: &'static str,
+) -> Result<ArtifactRecord> {
+    let path = repo_root.join(relative);
+    let metadata = fs::metadata(&path)
+        .with_context(|| format!("{role} is missing at {}", path.display()))?;
+    if !metadata.is_file() {
+        bail!("{role} is not a regular file: {}", path.display());
+    }
+    Ok(ArtifactRecord {
+        role,
+        path: relative.to_string(),
+        bytes: metadata.len(),
+        sha256: performance::sha256_file(&path)?,
+        detail,
+    })
+}
+
+fn extract_efi_image_record(repo_root: &Path) -> Result<ArtifactRecord> {
+    let iso = repo_root.join(FINAL_ISO_PATH);
+    let temporary = repo_root
+        .join("out/tmp")
+        .join(format!("artifact-report-efi-{}.img", std::process::id()));
+    if let Some(parent) = temporary.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    remove_path_if_exists(&temporary)?;
+    let result = run_cmd(
+        repo_root,
+        "xorriso",
+        &[
+            "-osirrox",
+            "on",
+            "-indev",
+            path_str(&iso)?,
+            "-extract",
+            "/efi.img",
+            path_str(&temporary)?,
+        ],
+    );
+    if let Err(error) = result {
+        let _ = remove_path_if_exists(&temporary);
+        return Err(error).context("failed to extract the UEFI image from the final ISO");
+    }
+    let record = ArtifactRecord {
+        role: "UEFI ISO boot image",
+        path: format!("{FINAL_ISO_PATH}:/efi.img"),
+        bytes: fs::metadata(&temporary)?.len(),
+        sha256: performance::sha256_file(&temporary)?,
+        detail: "FAT image inside ISO",
+    };
+    remove_path_if_exists(&temporary)?;
+    Ok(record)
+}
+
+fn collect_artifact_records(repo_root: &Path) -> Result<Vec<ArtifactRecord>> {
+    reject_obsolete_full_root_initramfs(repo_root)?;
+    validate_early_initramfs(&repo_root.join(INITRAMFS_ARCHIVE_PATH))?;
+    validate_squashfs_image(&repo_root.join(LIVE_ROOT_IMAGE_PATH))?;
+    validate_staged_grub_config(&repo_root.join("out/build/iso/boot/grub/grub.cfg"))?;
+
+    let expanded = Command::new("xz")
+        .args(["-dc"])
+        .arg(repo_root.join(INITRAMFS_ARCHIVE_PATH))
+        .output()
+        .context("failed to expand the live early initramfs for reporting")?;
+    if !expanded.status.success() {
+        bail!("xz rejected the live early initramfs");
+    }
+
+    let mut records = vec![
+        artifact_record(
+            repo_root,
+            "Kernel",
+            "out/build/linux/build/arch/x86/boot/bzImage",
+            "Linux bzImage",
+        )?,
+        artifact_record(
+            repo_root,
+            "Live early initramfs",
+            INITRAMFS_ARCHIVE_PATH,
+            "XZ newc; minimal /init only",
+        )?,
+        ArtifactRecord {
+            role: "Live early initramfs (uncompressed)",
+            path: INITRAMFS_ARCHIVE_PATH.to_string(),
+            bytes: expanded.stdout.len() as u64,
+            sha256: format!("{:x}", Sha256Hasher::digest(&expanded.stdout)),
+            detail: "uncompressed newc stream",
+        },
+        artifact_record(
+            repo_root,
+            "Live root SquashFS",
+            LIVE_ROOT_IMAGE_PATH,
+            "read-only live root",
+        )?,
+        artifact_record(
+            repo_root,
+            "Installed initramfs",
+            INSTALLED_INITRAMFS_PATH,
+            "XZ newc for installed Btrfs root",
+        )?,
+    ];
+    records.push(extract_efi_image_record(repo_root)?);
+    records.push(artifact_record(
+        repo_root,
+        "Final ISO",
+        FINAL_ISO_PATH,
+        "hybrid BIOS/UEFI ISO",
+    )?);
+    Ok(records)
+}
+
+fn report_artifacts(repo_root: &Path) -> Result<()> {
+    let records = collect_artifact_records(repo_root)?;
+    let mut report = String::from("role\tpath\tbytes\tsha256\tdetail\n");
+    for record in &records {
+        report.push_str(&format!(
+            "{}\t{}\t{}\t{}\t{}\n",
+            record.role, record.path, record.bytes, record.sha256, record.detail
+        ));
+        println!(
+            "{:<38} {:>12} bytes  {}  {}",
+            format!("{}:", record.role), record.bytes, record.sha256, record.path
+        );
+    }
+    let destination = repo_root.join(ARTIFACT_REPORT_PATH);
+    if let Some(parent) = destination.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    fs::write(&destination, report)?;
+    println!("Artifact report: {ARTIFACT_REPORT_PATH}");
+    Ok(())
 }
 
 fn clean(repo_root: &Path, target: CleanTarget) -> Result<()> {
@@ -1910,12 +2107,25 @@ fn initial_import_component(
         load_source_selection_policy(repo_root, comp)?;
     let (upstream_tree, imported_tree_digest) =
         imported_tree_identity(&tmp, source_selection.as_ref())?;
-    let (intentional_omission_policy, gitlink_policy, patch_manifest, patch_manifest_sha256) =
-        component_provenance_policy(repo_root, &comp.name)?;
+    let (
+        intentional_omission_policy,
+        gitlink_policy,
+        patch_manifest,
+        patch_manifest_sha256,
+        lfs_policy_name,
+        lfs_policy_sha256,
+    ) = component_provenance_policy(repo_root, &comp.name)?;
+    let lfs_policy = load_lfs_hydration_policy(
+        repo_root,
+        comp,
+        &lfs_policy_name,
+        &lfs_policy_sha256,
+    )?;
 
     clear_directory_contents(destination)?;
     materialize_git_tree_exact(&tmp, "HEAD", destination, source_selection.as_ref())?;
     apply_source_selection(destination, source_selection.as_ref())?;
+    hydrate_lfs_objects(repo_root, comp, destination, lfs_policy.as_ref())?;
 
     let state = SyncState {
         schema_version: 2,
@@ -1940,6 +2150,8 @@ fn initial_import_component(
         gitlink_policy,
         patch_manifest,
         patch_manifest_sha256,
+        lfs_policy: lfs_policy_name,
+        lfs_policy_sha256,
     };
     write_sync_state(repo_root, &comp.name, &state)?;
 
@@ -1990,8 +2202,20 @@ fn update_component(
         load_source_selection_policy(repo_root, comp)?;
     let (upstream_tree, imported_tree_digest) =
         imported_tree_identity(&tmp_upstream, source_selection.as_ref())?;
-    let (intentional_omission_policy, gitlink_policy, patch_manifest, patch_manifest_sha256) =
-        component_provenance_policy(repo_root, &comp.name)?;
+    let (
+        intentional_omission_policy,
+        gitlink_policy,
+        patch_manifest,
+        patch_manifest_sha256,
+        lfs_policy_name,
+        lfs_policy_sha256,
+    ) = component_provenance_policy(repo_root, &comp.name)?;
+    let lfs_policy = load_lfs_hydration_policy(
+        repo_root,
+        comp,
+        &lfs_policy_name,
+        &lfs_policy_sha256,
+    )?;
 
     let old_commit = prior_state.imported_commit.trim();
     if new_commit.trim() == old_commit {
@@ -2003,6 +2227,7 @@ fn update_component(
             source_selection.as_ref(),
         )?;
         apply_source_selection(destination, source_selection.as_ref())?;
+        hydrate_lfs_objects(repo_root, comp, destination, lfs_policy.as_ref())?;
         let state = SyncState {
             schema_version: 2,
             component: comp.name.clone(),
@@ -2026,6 +2251,8 @@ fn update_component(
             gitlink_policy,
             patch_manifest,
             patch_manifest_sha256,
+            lfs_policy: lfs_policy_name,
+            lfs_policy_sha256,
         };
         write_sync_state(repo_root, &comp.name, &state)?;
         fs::remove_dir_all(&tmp_upstream)
@@ -2074,6 +2301,7 @@ fn update_component(
 
     clear_directory_contents(&tmp_merge)?;
     copy_tree_excluding_dotgit(destination, &tmp_merge)?;
+    restore_lfs_pointers_for_merge(&tmp_merge, lfs_policy.as_ref())?;
     run_cmd(&tmp_merge, "git", &["add", "-A"])?;
     let local_status = run_cmd_capture(&tmp_merge, "git", &["status", "--porcelain"])?;
     if !local_status.is_empty() {
@@ -2121,6 +2349,9 @@ fn update_component(
         )?;
     }
     apply_source_selection(destination, source_selection.as_ref())?;
+    if !has_conflicts {
+        hydrate_lfs_objects(repo_root, comp, destination, lfs_policy.as_ref())?;
+    }
 
     fs::remove_dir_all(&tmp_upstream)
         .with_context(|| format!("failed to remove {}", tmp_upstream.display()))?;
@@ -2158,6 +2389,8 @@ fn update_component(
         gitlink_policy,
         patch_manifest,
         patch_manifest_sha256,
+        lfs_policy: lfs_policy_name,
+        lfs_policy_sha256,
     };
     write_sync_state(repo_root, &comp.name, &state)?;
 
@@ -2331,10 +2564,12 @@ fn prune_source_selection_tree(
 fn component_provenance_policy(
     repo_root: &Path,
     component_name: &str,
-) -> Result<(String, String, String, String)> {
+) -> Result<(String, String, String, String, String, String)> {
     let source_path = repo_root.join("upstream/sources.toml");
     if !source_path.is_file() {
         return Ok((
+            "none".to_string(),
+            "none".to_string(),
             "none".to_string(),
             "none".to_string(),
             "none".to_string(),
@@ -2358,6 +2593,8 @@ fn component_provenance_policy(
             "none".to_string(),
             "none".to_string(),
             "none".to_string(),
+            "none".to_string(),
+            "none".to_string(),
         ));
     };
     let field = |name: &str| {
@@ -2372,7 +2609,131 @@ fn component_provenance_policy(
         field("gitlink_policy"),
         field("patch_manifest"),
         field("patch_manifest_sha256"),
+        field("lfs_policy"),
+        field("lfs_policy_sha256"),
     ))
+}
+
+fn load_lfs_hydration_policy(
+    repo_root: &Path,
+    comp: &ComponentDef,
+    policy_name: &str,
+    expected_policy_sha256: &str,
+) -> Result<Option<LfsHydrationPolicy>> {
+    if policy_name == "none" {
+        if expected_policy_sha256 != "none" {
+            bail!("{} has an LFS policy checksum but no policy", comp.name);
+        }
+        return Ok(None);
+    }
+    if expected_policy_sha256 == "none" {
+        bail!("{} LFS policy has no pinned SHA-256", comp.name);
+    }
+    let path = resolve_component_destination(repo_root, policy_name)?;
+    let actual_policy_sha256 = performance::sha256_file(&path)?;
+    if actual_policy_sha256 != expected_policy_sha256 {
+        bail!(
+            "{} LFS policy checksum mismatch: expected {}, got {}",
+            comp.name,
+            expected_policy_sha256,
+            actual_policy_sha256
+        );
+    }
+    let policy: LfsHydrationPolicy = toml::from_str(
+        &fs::read_to_string(&path)
+            .with_context(|| format!("failed to read LFS policy {}", path.display()))?,
+    )
+    .with_context(|| format!("failed to parse LFS policy {}", path.display()))?;
+    let revision = comp
+        .revision
+        .as_deref()
+        .ok_or_else(|| anyhow!("{} LFS hydration requires an exact revision", comp.name))?;
+    if policy.schema_version != 1
+        || policy.component != comp.name
+        || policy.upstream_commit != revision
+        || !policy.source.contains("{path}")
+    {
+        bail!("{} LFS policy identity is inconsistent with sources.toml", comp.name);
+    }
+    let mut paths = BTreeSet::new();
+    for object in &policy.object {
+        resolve_component_destination(Path::new("/"), &object.path)
+            .with_context(|| format!("invalid LFS object path: {}", object.path))?;
+        if !paths.insert(&object.path) {
+            bail!("duplicate LFS object path: {}", object.path);
+        }
+        if object.sha256.len() != 64 || !object.sha256.bytes().all(|b| b.is_ascii_hexdigit()) {
+            bail!("invalid LFS SHA-256 for {}", object.path);
+        }
+    }
+    Ok(Some(policy))
+}
+
+fn lfs_pointer(object: &LfsHydrationObject) -> String {
+    format!(
+        "version https://git-lfs.github.com/spec/v1\noid sha256:{}\nsize {}\n",
+        object.sha256, object.size
+    )
+}
+
+fn restore_lfs_pointers_for_merge(
+    merge_tree: &Path,
+    policy: Option<&LfsHydrationPolicy>,
+) -> Result<()> {
+    let Some(policy) = policy else { return Ok(()); };
+    for object in &policy.object {
+        let object_name = format!("HEAD:{}", object.path);
+        if run_cmd_status(merge_tree, "git", &["cat-file", "-e", &object_name])?.success() {
+            run_cmd(merge_tree, "git", &["checkout", "HEAD", "--", &object.path])?;
+        } else {
+            remove_path_if_exists(&merge_tree.join(&object.path))?;
+        }
+    }
+    Ok(())
+}
+
+fn hydrate_lfs_objects(
+    repo_root: &Path,
+    comp: &ComponentDef,
+    destination: &Path,
+    policy: Option<&LfsHydrationPolicy>,
+) -> Result<()> {
+    let Some(policy) = policy else { return Ok(()); };
+    let cache = repo_root.join("upstream/.tmp").join(format!("{}-lfs", comp.name));
+    fs::create_dir_all(&cache)?;
+    for object in &policy.object {
+        let target = destination.join(&object.path);
+        let pointer = fs::read_to_string(&target)
+            .with_context(|| format!("missing upstream LFS pointer {}", target.display()))?;
+        if pointer != lfs_pointer(object) {
+            bail!("upstream LFS pointer metadata mismatch for {}", object.path);
+        }
+        let payload = cache.join(&object.sha256);
+        let valid_cached = payload.is_file()
+            && payload.metadata()?.len() == object.size
+            && performance::sha256_file(&payload)? == object.sha256;
+        if !valid_cached {
+            let temporary = cache.join(format!("{}.partial", object.sha256));
+            remove_path_if_exists(&temporary)?;
+            let url = policy.source.replace("{path}", &object.path);
+            run_cmd(
+                repo_root,
+                "curl",
+                &["--fail", "--location", "--silent", "--show-error", "--output",
+                    temporary.to_str().ok_or_else(|| anyhow!("invalid LFS cache path"))?, &url],
+            )?;
+            if temporary.metadata()?.len() != object.size
+                || performance::sha256_file(&temporary)? != object.sha256
+            {
+                bail!("downloaded LFS payload failed verification for {}", object.path);
+            }
+            fs::rename(&temporary, &payload)?;
+        }
+        fs::copy(&payload, &target)?;
+        set_mode(target, 0o644)?;
+    }
+    fs::remove_dir_all(&cache)?;
+    Ok(())
 }
 
 fn validate_component_name(name: &str) -> Result<()> {
@@ -3172,6 +3533,14 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::Rust => vec!["out/build/rust/install".into()],
         BuildStage::SudoRs => vec!["out/build/sudo-rs/cargo-target/release/sudo".into()],
         BuildStage::Init => vec!["target/release/mattos-init".into()],
+        BuildStage::Installer => vec![
+            "out/build/installer/cargo-target/release/mattos-install".into(),
+            "out/build/installer/cosmic-target/release/mattos-install-cosmic".into(),
+            "out/build/btrfs-progs/install/usr/bin/btrfs".into(),
+            "out/build/dosfstools/install/usr/sbin/mkfs.fat".into(),
+            "out/build/installed-initramfs.cpio.xz".into(),
+            "out/build/installer/BOOTX64.EFI".into(),
+        ],
         BuildStage::LiveRoot => vec![
             LIVE_ROOT_IMAGE_PATH.into(),
             "out/reports/live-root-inventory.tsv".into(),
@@ -3533,6 +3902,7 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::Dpkg => packaging::build_dpkg(repo_root),
         BuildStage::Apt => packaging::build_apt(repo_root),
         BuildStage::Init => build_init(repo_root),
+        BuildStage::Installer => build_installer(repo_root),
         BuildStage::Rootfs => build_rootfs(repo_root),
         BuildStage::LiveRoot => build_live_root(repo_root),
         BuildStage::Initramfs => build_initramfs(repo_root),
@@ -9510,6 +9880,281 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
     )
 }
 
+fn build_installer(repo_root: &Path) -> Result<()> {
+    let btrfs_root = repo_root.join("out/build/btrfs-progs");
+    let btrfs_source = btrfs_root.join("source");
+    let btrfs_install = btrfs_root.join("install");
+    sync_build_source(
+        &repo_root.join("src/system/storage/btrfs-progs"),
+        &btrfs_source,
+    )?;
+    if !btrfs_source.join("configure").is_file() {
+        run_cmd(&btrfs_source, "autoreconf", &["-fiv"])?;
+    }
+    let btrfs_env = staged_library_environment(repo_root, &["util-linux", "zlib", "zstd"])?;
+    if !btrfs_source.join("config.status").is_file() {
+        run_cmd_with_env_overrides(
+            &btrfs_source,
+            "./configure",
+            &[
+                "--prefix=/usr",
+                "--bindir=/usr/bin",
+                "--libdir=/usr/lib/x86_64-linux-gnu",
+                "--disable-documentation",
+                "--disable-python",
+                "--disable-convert",
+                "--disable-zoned",
+                "--disable-lzo",
+                "--disable-libudev",
+                "--disable-backtrace",
+            ],
+            &btrfs_env,
+        )?;
+    }
+    run_cmd_with_env_overrides(&btrfs_source, "make", &[], &btrfs_env)?;
+    remove_path_if_exists(&btrfs_install)?;
+    run_cmd_with_env_overrides(
+        &btrfs_source,
+        "make",
+        &["install", &format!("DESTDIR={}", btrfs_install.display())],
+        &btrfs_env,
+    )?;
+    for required in ["usr/bin/btrfs", "usr/bin/mkfs.btrfs"] {
+        if !btrfs_install.join(required).is_file() {
+            bail!("Btrfs installer build did not produce {required}");
+        }
+    }
+    let dosfs_root = repo_root.join("out/build/dosfstools");
+    let dosfs_source = dosfs_root.join("source");
+    let dosfs_build = dosfs_root.join("build");
+    let dosfs_install = dosfs_root.join("install");
+    sync_build_source(
+        &repo_root.join("src/system/storage/dosfstools"),
+        &dosfs_source,
+    )?;
+    if !dosfs_source.join("configure").is_file() || !dosfs_source.join("config.rpath").is_file() {
+        run_cmd(&dosfs_source, "./autogen.sh", &[])?;
+        remove_path_if_exists(&dosfs_build)?;
+    }
+    fs::create_dir_all(&dosfs_build)?;
+    if !dosfs_build.join("Makefile").is_file() {
+        run_cmd(
+            &dosfs_build,
+            path_str(&dosfs_source.join("configure"))?,
+            &["--prefix=/usr", "--sbindir=/usr/sbin"],
+        )?;
+    }
+    run_cmd(&dosfs_build, "make", &[])?;
+    remove_path_if_exists(&dosfs_install)?;
+    run_cmd(
+        &dosfs_build,
+        "make",
+        &["install", &format!("DESTDIR={}", dosfs_install.display())],
+    )?;
+    if !dosfs_install.join("usr/sbin/mkfs.fat").is_file() {
+        bail!("dosfstools installer build did not produce usr/sbin/mkfs.fat");
+    }
+
+    let installer_out = repo_root.join("out/build/installer");
+    let cargo_target = installer_out.join("cargo-target");
+    fs::create_dir_all(&installer_out)?;
+    run_cmd_with_env_overrides(
+        repo_root,
+        "cargo",
+        &[
+            "build",
+            "--locked",
+            "--release",
+            "--manifest-path",
+            "src/system/installer/Cargo.toml",
+        ],
+        &[("CARGO_TARGET_DIR", cargo_target.display().to_string())],
+    )?;
+
+    build_cosmic_installer_frontend(repo_root, &installer_out)?;
+
+    let source = repo_root.join("src/system/installer/engine/installed-init.c");
+    let compiler = repo_root.join("out/build/gcc-toolchain/install/usr/bin/gcc");
+    let sysroot = repo_root.join("out/sysroot");
+    let init_tree = performance::temporary_sibling(
+        &repo_root.join("out/build/installed-initramfs-root"),
+        "building",
+    )?;
+    fs::create_dir_all(&init_tree)?;
+    let init = init_tree.join("init");
+    let sysroot_arg = format!("--sysroot={}", sysroot.display());
+    let libc_search = format!("-B{}/usr/lib/x86_64-linux-gnu/", sysroot.display());
+    let gcc_search = format!(
+        "-B{}/usr/lib/x86_64-linux-gnu/gcc/x86_64-pc-linux-gnu/15.3.0/",
+        sysroot.display()
+    );
+    let libc_link = format!("-L{}/usr/lib/x86_64-linux-gnu", sysroot.display());
+    let gcc_link = format!(
+        "-L{}/usr/lib/x86_64-linux-gnu/gcc/x86_64-pc-linux-gnu/15.3.0",
+        sysroot.display()
+    );
+    run_cmd(
+        repo_root,
+        path_str(&compiler)?,
+        &[
+            &sysroot_arg,
+            &libc_search,
+            &gcc_search,
+            &libc_link,
+            &gcc_link,
+            "-std=c11",
+            "-Os",
+            "-static",
+            "-s",
+            "-fno-ident",
+            "-Wl,--build-id=none",
+            "-Wall",
+            "-Wextra",
+            "-Werror",
+            path_str(&source)?,
+            "-o",
+            path_str(&init)?,
+        ],
+    )?;
+    set_mode(init, 0o755)?;
+    let installed_initramfs = repo_root.join("out/build/installed-initramfs.cpio.xz");
+    let archive_command = format!(
+        "find . -exec touch -h -d @{MATTOS_SOURCE_DATE_EPOCH} {{}} + && find . -print0 | sort -z | cpio --null -o --quiet --reproducible --owner=0:0 --format=newc | xz -1 -T1 --check=crc32 --stdout > {}",
+        shell_escape(path_str(&installed_initramfs)?)
+    );
+    run_cmd(&init_tree, "bash", &["-lc", &archive_command])?;
+    remove_path_if_exists(&init_tree)?;
+
+    let efi = installer_out.join("BOOTX64.EFI");
+    run_cmd(
+        repo_root,
+        "grub-mkimage",
+        &[
+            "-O", "x86_64-efi", "-d", "/usr/lib/grub/x86_64-efi", "-p", "/EFI/BOOT",
+            "-o", path_str(&efi)?, "part_gpt", "fat", "btrfs", "normal", "configfile",
+            "search", "search_fs_uuid", "linux", "serial", "terminal",
+        ],
+    )?;
+    if fs::metadata(&efi)?.len() < 128 * 1024 {
+        bail!("generated installed-system EFI GRUB image is unexpectedly small");
+    }
+    Ok(())
+}
+
+fn build_cosmic_installer_frontend(repo_root: &Path, installer_out: &Path) -> Result<()> {
+    let source_root = installer_out.join("cosmic-source");
+    // This is an output-owned assembly mirror, not a cache. Recreate it so a
+    // dependency demoted from first-class source cannot survive as stale
+    // apparent vendored input. The separate cosmic-target retains Cargo's
+    // incremental build products.
+    remove_path_if_exists(&source_root)?;
+    fs::create_dir_all(&source_root)?;
+    let libcosmic = source_root.join("libcosmic");
+    let iced = libcosmic.join("iced");
+    let protocols = source_root.join("cosmic-protocols");
+    let application = source_root.join("mattos-installer-cosmic");
+
+    sync_build_source(&repo_root.join("src/desktop/cosmic/libcosmic"), &libcosmic)?;
+    sync_build_source(&repo_root.join("src/desktop/cosmic/iced"), &iced)?;
+    sync_build_source(
+        &repo_root.join("src/desktop/cosmic/cosmic-protocols"),
+        &protocols,
+    )?;
+    remove_path_if_exists(&application)?;
+    fs::create_dir_all(application.join("src"))?;
+    fs::copy(
+        repo_root.join("src/system/installer/gui/cosmic/main.rs"),
+        application.join("src/main.rs"),
+    )?;
+    let lock = repo_root.join("src/system/installer/gui/cosmic/Cargo.lock");
+    validate_cosmic_installer_lock(&lock)?;
+    fs::copy(&lock, application.join("Cargo.lock"))?;
+
+    let template = fs::read_to_string(
+        repo_root.join("src/system/installer/gui/cosmic/Cargo.toml.in"),
+    )?;
+    let installer_manifest = repo_root.join("src/system/installer").canonicalize()?;
+    let mut manifest = template
+        .replace("@MATTOS_INSTALLER_PATH@", path_str(&installer_manifest)?)
+        .replace("@LIBCOSMIC_PATH@", path_str(&libcosmic.canonicalize()?)?);
+    manifest.push_str(&format!(
+        "\n[patch.\"https://github.com/pop-os/cosmic-protocols\"]\ncosmic-client-toolkit = {{ path = {:?} }}\ncosmic-protocols = {{ path = {:?} }}\n",
+        protocols.join("client-toolkit"), protocols
+    ));
+    fs::write(application.join("Cargo.toml"), manifest)?;
+
+    let target = installer_out.join("cosmic-target");
+    run_cmd_with_env_overrides(
+        &application,
+        "cargo",
+        &["build", "--locked", "--release", "--manifest-path", "Cargo.toml"],
+        &[("CARGO_TARGET_DIR", target.display().to_string())],
+    )?;
+    let binary = target.join("release/mattos-install-cosmic");
+    if !binary.is_file() {
+        bail!("native COSMIC installer build did not produce {}", binary.display());
+    }
+    Ok(())
+}
+
+const COSMIC_INSTALLER_LOCKED_GIT_SOURCES: &[&str] = &[
+    "git+https://github.com/iced-rs/cryoglyph.git?rev=e429a025df36ab8145708acb309080ae3deec17a#e429a025df36ab8145708acb309080ae3deec17a",
+    "git+https://github.com/jackpot51/rust-atomicwrites#043ab4859d53ffd3d55334685303d8df39c9f768",
+    "git+https://github.com/pop-os/dbus-settings-bindings#eed01dd3609e90e3c8cd043656734c500956c793",
+    "git+https://github.com/pop-os/freedesktop-icons#ab4c57b8e416c6af9297cb04d101889896fd9a92",
+    "git+https://github.com/pop-os/smithay-clipboard?tag=sctk-0.20#859b02c88f45c554049a67c6ddeec1692ce0e20b",
+    "git+https://github.com/pop-os/softbuffer?tag=cosmic-4.0#c2b2c19ddb38ff17495643699f97cb1f2064a1be",
+    "git+https://github.com/pop-os/window_clipboard.git?tag=sctk-0.20#f68595ee0e62fbd6589f4709b5aaa5c3c7ea5f6c",
+    "git+https://github.com/pop-os/winit.git?tag=cosmic-0.14#71ce08c043814514a8fd92d9d0599f115ae854e8",
+    "git+https://github.com/wash2/accesskit?tag=cosmic-0.14#f0599eed5f18111228266fe3f28991cc48b5964f",
+];
+
+fn validate_cosmic_installer_lock(path: &Path) -> Result<()> {
+    let contents = fs::read_to_string(path)
+        .with_context(|| format!("failed to read native COSMIC lock {}", path.display()))?;
+    let document: toml::Value = toml::from_str(&contents)
+        .with_context(|| format!("failed to parse native COSMIC lock {}", path.display()))?;
+    let packages = document
+        .get("package")
+        .and_then(toml::Value::as_array)
+        .ok_or_else(|| anyhow!("native COSMIC lock has no package records"))?;
+    let mut git_sources = BTreeSet::new();
+    for package in packages {
+        let name = package
+            .get("name")
+            .and_then(toml::Value::as_str)
+            .unwrap_or("<unnamed>");
+        let Some(source) = package.get("source").and_then(toml::Value::as_str) else {
+            continue;
+        };
+        if source.starts_with("registry+") {
+            let checksum = package
+                .get("checksum")
+                .and_then(toml::Value::as_str)
+                .unwrap_or("");
+            if checksum.len() != 64 || !checksum.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+                bail!("native COSMIC registry package {name} lacks a SHA-256 checksum");
+            }
+        } else if source.starts_with("git+") {
+            let revision = source.rsplit_once('#').map(|(_, revision)| revision).unwrap_or("");
+            if revision.len() != 40 || !revision.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+                bail!("native COSMIC Git package {name} is not pinned to an exact commit: {source}");
+            }
+            git_sources.insert(source.to_string());
+        }
+    }
+    let expected = COSMIC_INSTALLER_LOCKED_GIT_SOURCES
+        .iter()
+        .map(|source| (*source).to_string())
+        .collect::<BTreeSet<_>>();
+    if git_sources != expected {
+        bail!(
+            "native COSMIC Git source set differs from the reviewed lock policy\nexpected: {expected:#?}\nactual: {git_sources:#?}"
+        );
+    }
+    Ok(())
+}
+
 fn build_rootfs_atomic(repo_root: &Path) -> Result<()> {
     let destination = repo_root.join("out/build/rootfs");
     let temp = performance::temporary_sibling(&destination, "building")?;
@@ -11920,19 +12565,23 @@ fn build_iso_atomic(repo_root: &Path) -> Result<()> {
     fs::create_dir_all(&out_images).context("failed to create out/images")?;
     let image_destination = out_images.join("mattos-x86_64.iso");
     let image_temp = performance::temporary_sibling(&image_destination, "building")?;
+    let build_tmp = repo_root.join("out/tmp");
+    fs::create_dir_all(&build_tmp)?;
     let result = run_cmd_with_env_overrides(
         repo_root,
         "grub-mkrescue",
         &[
             "-o",
             path_str(&image_temp)?,
-            "--directory=/usr/lib/grub/i386-pc",
             path_str(&iso_root)?,
             "--modification-date=2026010100000000",
             "--set_all_file_dates",
             "2026010100000000",
         ],
-        &[("SOURCE_DATE_EPOCH", MATTOS_SOURCE_DATE_EPOCH.to_string())],
+        &[
+            ("SOURCE_DATE_EPOCH", MATTOS_SOURCE_DATE_EPOCH.to_string()),
+            ("TMPDIR", build_tmp.display().to_string()),
+        ],
     );
     if let Err(error) = result {
         let _ = remove_path_if_exists(&iso_root);
@@ -11942,6 +12591,7 @@ fn build_iso_atomic(repo_root: &Path) -> Result<()> {
     if fs::metadata(&image_temp)?.len() < 1024 * 1024 {
         bail!("generated ISO is unexpectedly small");
     }
+    validate_dual_firmware_iso(repo_root, &image_temp)?;
     let reports = repo_root.join("out/reports");
     fs::create_dir_all(&reports)?;
     let report_destination = reports.join("live-image-inventory.tsv");
@@ -11950,6 +12600,21 @@ fn build_iso_atomic(repo_root: &Path) -> Result<()> {
     performance::atomic_replace_path(&iso_root, &iso_destination)?;
     performance::atomic_replace_path(&image_temp, &image_destination)?;
     performance::atomic_replace_path(&report_temp, &report_destination)
+}
+
+fn validate_dual_firmware_iso(repo_root: &Path, image: &Path) -> Result<()> {
+    let report = run_cmd_capture(
+        repo_root,
+        "xorriso",
+        &["-indev", path_str(image)?, "-report_el_torito", "as_mkisofs"],
+    )?;
+    if !report.contains("-b '") && !report.contains("-b ") {
+        bail!("ISO has no El Torito legacy BIOS boot image");
+    }
+    if !report.contains("-e '") && !report.contains("-e ") {
+        bail!("ISO has no El Torito UEFI boot image");
+    }
+    Ok(())
 }
 
 fn validate_grub_config_source(repo_root: &Path) -> Result<PathBuf> {
@@ -11982,6 +12647,9 @@ fn validate_staged_grub_config(path: &Path) -> Result<()> {
 
     for needle in [
         GRUB_SYSTEMD_ENTRY,
+        "menuentry \"Start MattOS Live (CLI)\"",
+        "menuentry \"Install MattOS\"",
+        "menuentry \"Install MattOS (CLI)\"",
         GRUB_RESCUE_ENTRY,
         GRUB_EARLY_RDINIT,
         GRUB_RESCUE_MARKER,
@@ -11995,8 +12663,8 @@ fn validate_staged_grub_config(path: &Path) -> Result<()> {
         }
     }
 
-    if content.matches("initrd /boot/early-initramfs.cpio.xz").count() != 2 {
-        bail!("staged GRUB config must load the early initramfs for both entries");
+    if content.matches("initrd /boot/early-initramfs.cpio.xz").count() != 5 {
+        bail!("staged GRUB config must load the early initramfs for all five entries");
     }
 
     Ok(())
@@ -12595,6 +13263,7 @@ mod tests {
             ("gzip", 8.000),
             ("init", 2.104),
             ("initramfs", 57.528),
+            ("installer", 28.769),
             ("live-root", 651.930),
             ("iproute2", 44.138),
             ("iputils", 2.816),
@@ -12910,6 +13579,8 @@ mod tests {
             gitlink_policy: "none".to_string(),
             patch_manifest: "none".to_string(),
             patch_manifest_sha256: "none".to_string(),
+            lfs_policy: "none".to_string(),
+            lfs_policy_sha256: "none".to_string(),
         };
 
         write_sync_state(root, "linux", &state).expect("write state");
@@ -13757,7 +14428,7 @@ mod tests {
         let root = tmp.path();
         write(
             &root.join(AUTHORITATIVE_GRUB_CFG),
-            "menuentry \"MattOS (systemd)\" {}\nmenuentry \"MattOS (rescue init)\" {}\n",
+            "menuentry \"Start MattOS Live\" {}\nmenuentry \"MattOS Rescue\" {}\n",
         );
         write(&root.join(OBSOLETE_GRUB_CFG_PATHS[0]), "legacy duplicate\n");
 
@@ -13773,7 +14444,7 @@ mod tests {
         let root = tmp.path();
         write(
             &root.join(AUTHORITATIVE_GRUB_CFG),
-            "menuentry \"MattOS (systemd)\" {}\nmenuentry \"MattOS (rescue init)\" {}\n",
+            "menuentry \"Start MattOS Live\" {}\nmenuentry \"MattOS Rescue\" {}\n",
         );
 
         let source = validate_grub_config_source(root).expect("authoritative source should pass");
@@ -13786,7 +14457,7 @@ mod tests {
         let path = tmp.path().join("grub.cfg");
         write(
             &path,
-            "set default=0\nmenuentry \"MattOS (systemd)\" { linux /boot/vmlinuz rdinit=/usr/lib/systemd/systemd }\n",
+            "set default=0\nmenuentry \"Start MattOS Live\" { linux /boot/vmlinuz rdinit=/init }\nmenuentry \"Start MattOS Live (CLI)\" { linux /boot/vmlinuz rdinit=/init }\nmenuentry \"Install MattOS\" { linux /boot/vmlinuz rdinit=/init }\nmenuentry \"Install MattOS (CLI)\" { linux /boot/vmlinuz rdinit=/init }\n",
         );
 
         let result = validate_staged_grub_config(&path);
@@ -13801,24 +14472,135 @@ mod tests {
         let path = tmp.path().join("grub.cfg");
         write(
             &path,
-            "menuentry \"MattOS (systemd)\" {\n linux /boot/vmlinuz rdinit=/init\n initrd /boot/early-initramfs.cpio.xz\n}\nmenuentry \"MattOS (rescue init)\" {\n linux /boot/vmlinuz rdinit=/init mattos.rescue=1\n initrd /boot/early-initramfs.cpio.xz\n}\n",
+            "menuentry \"Start MattOS Live\" { linux /boot/vmlinuz rdinit=/init initrd /boot/early-initramfs.cpio.xz }\nmenuentry \"Start MattOS Live (CLI)\" { linux /boot/vmlinuz rdinit=/init initrd /boot/early-initramfs.cpio.xz }\nmenuentry \"Install MattOS\" { linux /boot/vmlinuz rdinit=/init initrd /boot/early-initramfs.cpio.xz }\nmenuentry \"Install MattOS (CLI)\" { linux /boot/vmlinuz rdinit=/init initrd /boot/early-initramfs.cpio.xz }\nmenuentry \"MattOS Rescue\" { linux /boot/vmlinuz rdinit=/init mattos.rescue=1 initrd /boot/early-initramfs.cpio.xz }\n",
         );
 
         validate_staged_grub_config(&path).expect("valid staged config should pass");
     }
 
     #[test]
-    fn authoritative_grub_uses_minimal_early_init_for_both_boot_modes() {
+    fn authoritative_grub_uses_one_live_payload_for_all_boot_modes() {
         let grub = include_str!("../../../boot/grub/grub.cfg");
         let linux_lines = grub
             .lines()
             .map(str::trim)
             .filter(|line| line.starts_with("linux "))
             .collect::<Vec<_>>();
-        assert_eq!(linux_lines.len(), 2);
+        assert_eq!(linux_lines.len(), 5);
         assert!(linux_lines.iter().all(|line| line.contains(GRUB_EARLY_RDINIT)));
-        assert_eq!(grub.matches("initrd /boot/early-initramfs.cpio.xz").count(), 2);
+        assert_eq!(grub.matches("initrd /boot/early-initramfs.cpio.xz").count(), 5);
+        for required in ["insmod all_video", "set gfxmode=auto", "set gfxpayload=keep"] {
+            assert!(grub.lines().any(|line| line == required), "missing {required}");
+        }
         assert!(!grub.contains("initramfs_options=size="));
+    }
+
+    #[test]
+    fn obsolete_full_root_initramfs_names_are_rejected() {
+        let temporary = tempfile::tempdir().unwrap();
+        let root = temporary.path();
+        assert!(reject_obsolete_full_root_initramfs(root).is_ok());
+        let obsolete = root.join(OBSOLETE_FULL_ROOT_INITRAMFS_PATHS[0]);
+        fs::create_dir_all(obsolete.parent().unwrap()).unwrap();
+        fs::write(&obsolete, b"obsolete full root").unwrap();
+        let error = reject_obsolete_full_root_initramfs(root).unwrap_err().to_string();
+        assert!(error.contains("obsolete full-root initramfs"));
+        assert!(error.contains(INITRAMFS_ARCHIVE_PATH));
+        assert!(error.contains(LIVE_ROOT_IMAGE_PATH));
+    }
+
+    #[test]
+    fn artifact_report_has_unambiguous_live_and_installed_roles() {
+        let source = include_str!("main.rs");
+        for role in [
+            "Kernel",
+            "Live early initramfs",
+            "Live early initramfs (uncompressed)",
+            "Live root SquashFS",
+            "Installed initramfs",
+            "UEFI ISO boot image",
+            "Final ISO",
+        ] {
+            assert!(source.contains(role), "artifact report is missing {role}");
+        }
+        assert_ne!(INITRAMFS_ARCHIVE_PATH, LIVE_ROOT_IMAGE_PATH);
+        assert_ne!(INITRAMFS_ARCHIVE_PATH, INSTALLED_INITRAMFS_PATH);
+    }
+
+    #[test]
+    fn cosmic_installer_lock_pins_normal_dependencies() {
+        let lock_path = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../system/installer/gui/cosmic/Cargo.lock");
+        validate_cosmic_installer_lock(&lock_path).unwrap();
+        let lock = fs::read_to_string(lock_path).unwrap();
+        for package in [
+            "libcosmic",
+            "cosmic-protocols",
+            "cosmic-freedesktop-icons",
+            "cosmic-settings-daemon",
+            "winit",
+            "accesskit_winit",
+        ] {
+            assert!(
+                lock.contains(&format!("name = {package:?}")),
+                "native COSMIC lock is missing {package}"
+            );
+        }
+    }
+
+    #[test]
+    fn cosmic_installer_lock_rejects_unpinned_git_and_registry_sources() {
+        let temporary = tempfile::tempdir().unwrap();
+        let authoritative = fs::read_to_string(
+            Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../../system/installer/gui/cosmic/Cargo.lock"),
+        )
+        .unwrap();
+        let unpinned = authoritative.replacen(
+            "#e429a025df36ab8145708acb309080ae3deec17a\"",
+            "\"",
+            1,
+        );
+        let unpinned_path = temporary.path().join("unpinned.lock");
+        fs::write(&unpinned_path, unpinned).unwrap();
+        assert!(validate_cosmic_installer_lock(&unpinned_path).is_err());
+
+        let unchecked = authoritative.replacen(
+            "checksum = \"",
+            "unchecked = \"",
+            1,
+        );
+        let unchecked_path = temporary.path().join("unchecked.lock");
+        fs::write(&unchecked_path, unchecked).unwrap();
+        assert!(validate_cosmic_installer_lock(&unchecked_path).is_err());
+    }
+
+    #[test]
+    fn cosmic_installer_recreates_its_output_owned_source_mirror() {
+        let source = include_str!("main.rs");
+        let function = source
+            .split_once("fn build_cosmic_installer_frontend")
+            .unwrap()
+            .1
+            .split_once("fn validate_cosmic_installer_lock")
+            .unwrap()
+            .0;
+        let cleanup = function.find("remove_path_if_exists(&source_root)").unwrap();
+        let first_sync = function.find("sync_build_source").unwrap();
+        assert!(cleanup < first_sync);
+        for demoted in [
+            "dbus-settings-bindings",
+            "freedesktop-icons",
+            "winit",
+            "window-clipboard",
+            "softbuffer",
+            "smithay-clipboard",
+            "accesskit",
+            "cryoglyph",
+            "rust-atomicwrites",
+        ] {
+            assert!(!function.contains(&format!("source_root.join({demoted:?})")));
+        }
     }
 
     #[test]
@@ -13843,6 +14625,8 @@ mod tests {
             gitlink_policy: "none".to_string(),
             patch_manifest: "none".to_string(),
             patch_manifest_sha256: "none".to_string(),
+            lfs_policy: "none".to_string(),
+            lfs_policy_sha256: "none".to_string(),
         };
         write_sync_state(root, "brush", &state).expect("write state");
         assert!(root.join("upstream/state/brush.toml").exists());
@@ -14013,12 +14797,20 @@ mod tests {
             "CONFIG_SMP=y",
             "CONFIG_NR_CPUS=64",
             "CONFIG_ATA_PIIX=y",
+            "CONFIG_BLK_DEV_SD=y",
             "CONFIG_BLK_DEV_SR=y",
             "CONFIG_BLK_DEV_LOOP=y",
             "CONFIG_ISO9660_FS=y",
             "CONFIG_SQUASHFS=y",
             "CONFIG_SQUASHFS_XZ=y",
             "CONFIG_OVERLAY_FS=y",
+            "CONFIG_FB_SIMPLE=y",
+            "CONFIG_FB_VESA=y",
+            "CONFIG_EFI=y",
+            "CONFIG_FB_EFI=y",
+            "CONFIG_SYSFB=y",
+            "CONFIG_SYSFB_SIMPLEFB=y",
+            "CONFIG_FRAMEBUFFER_CONSOLE=y",
         ] {
             assert!(config.lines().any(|line| line == required), "missing {required}");
         }

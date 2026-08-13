@@ -2,6 +2,26 @@ schema_version = 1
 policy = "Vendored source trees contain no nested Git repositories. Every upstream gitlink is either replaced from a separately pinned ordinary-file import in output-owned build mirrors or explicitly excluded as unnecessary for the MattOS source/runtime closure."
 
 [[component]]
+name = "libcosmic"
+upstream_commit = "1f8d8786940cc6db59d412153c5a03f69a20375c"
+
+[[component.gitlink]]
+path = "iced"
+upstream_commit = "7918b2826ec8ad4f9e0032f6a21286bac431e482"
+action = "replacement"
+replacement_component = "cosmic-iced"
+replacement_path = "src/desktop/cosmic/iced"
+replacement_commit = "7918b2826ec8ad4f9e0032f6a21286bac431e482"
+exact_gitlink_match = true
+reason = "COSMIC maintains iced as a coordinated platform fork consumed through libcosmic path dependencies; MattOS retains the exact gitlink revision as an independently updateable first-class platform source."
+
+[[component.gitlink]]
+path = "cosmic-icons"
+upstream_commit = "5252095787cc96e2aed64604158f94e450703455"
+action = "exclude"
+reason = "Upstream libcosmic consumes bundled cosmic-icons only on non-Unix or macOS targets; MattOS is Linux and uses the freedesktop icon lookup path, so this gitlink is outside the native installer build closure."
+
+[[component]]
 name = "gzip"
 upstream_commit = "fbc4883eb9c304a04623ac506dd5cf5450d055f1"
 

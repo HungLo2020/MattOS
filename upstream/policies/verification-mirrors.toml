@@ -16,3 +16,11 @@ url = "https://github.com/bminor/glibc.git"
 [[mirror]]
 component = "gcc"
 url = "https://gnu.googlesource.com/gcc"
+
+[[mirror]]
+component = "bzip2"
+url = "https://gitlab.com/bzip2/bzip2.git"
+
+[[mirror]]
+component = "elfutils"
+url = "https://git.launchpad.net/elfutils"

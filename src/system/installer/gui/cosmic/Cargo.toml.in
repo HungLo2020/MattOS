@@ -1,0 +1,16 @@
+[package]
+name = "mattos-install-cosmic"
+version = "0.1.0"
+edition = "2024"
+license = "GPL-3.0-or-later"
+
+[dependencies]
+anyhow = "1.0"
+mattos-installer = { path = "@MATTOS_INSTALLER_PATH@" }
+
+[dependencies.libcosmic]
+path = "@LIBCOSMIC_PATH@"
+default-features = false
+features = ["tokio", "winit", "wgpu", "wayland"]
+
+[workspace]

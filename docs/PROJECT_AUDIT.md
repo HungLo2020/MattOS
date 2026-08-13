@@ -307,7 +307,10 @@ Current caching behavior:
 - `out/build/systemd/build/` and `out/build/util-linux/build/` cache Meson/Ninja state.
 - `out/build/kmod/build/`, `out/build/ncurses/build/`, and `out/build/procps-ng/build/` keep their native build-system caches outside imported source.
 - `src/kernel/linux/` keeps in-tree kernel build outputs.
-- `out/build/rootfs/`, `out/build/initramfs.cpio.xz`, and `out/images/mattos-x86_64.iso` are regenerated from upstream build artifacts.
+- `out/build/rootfs/`, `out/build/early-initramfs.cpio.xz`,
+  `out/build/live-root.squashfs`, and `out/images/mattos-x86_64.iso` are
+  regenerated from upstream build artifacts. The retired
+  `out/build/initramfs.cpio.*` full-root names are invalid build outputs.
 - `upstream/.tmp/` style clones are ephemeral and intentionally not preserved.
 
 This is correct for a bootstrap system, but it is not especially efficient. The highest cache risk is the split between host-level Rust targets and imported-tree Rust targets.

@@ -194,6 +194,38 @@ def load_source_selection_policy(component: dict, state: dict) -> tuple[dict | N
     return policy, failures
 
 
+def load_lfs_policy(component: dict, state: dict) -> tuple[dict[str, dict], list[str]]:
+    name = component["name"]
+    policy_name = component.get("lfs_policy", "none")
+    expected_sha256 = component.get("lfs_policy_sha256", "none")
+    failures: list[str] = []
+    if state.get("lfs_policy", "none") != policy_name:
+        failures.append(f"{name}: state lfs_policy does not match sources.toml")
+    if state.get("lfs_policy_sha256", "none") != expected_sha256:
+        failures.append(f"{name}: state lfs_policy_sha256 does not match sources.toml")
+    if policy_name == "none":
+        if expected_sha256 != "none":
+            failures.append(f"{name}: LFS policy digest exists without a policy")
+        return {}, failures
+    policy_path = ROOT / policy_name
+    if not policy_path.is_file():
+        return {}, [*failures, f"{name}: LFS policy is missing: {policy_name}"]
+    payload = policy_path.read_bytes()
+    if hashlib.sha256(payload).hexdigest() != expected_sha256:
+        failures.append(f"{name}: LFS policy checksum mismatch")
+    policy = tomllib.loads(payload.decode())
+    if policy.get("schema_version") != 1:
+        failures.append(f"{name}: unsupported LFS policy schema")
+    if policy.get("component") != name:
+        failures.append(f"{name}: LFS policy component mismatch")
+    if policy.get("upstream_commit") != component.get("revision"):
+        failures.append(f"{name}: LFS policy commit mismatch")
+    objects = {item["path"]: item for item in policy.get("object", [])}
+    if len(objects) != len(policy.get("object", [])):
+        failures.append(f"{name}: duplicate LFS policy path")
+    return objects, failures
+
+
 def collect_local_leaf_paths(root: Path) -> set[str]:
     leaves: set[str] = set()
     for current, directories, files in os.walk(root, followlinks=False):
@@ -266,6 +298,7 @@ def verify_component_tree(
     entries: list[tuple[str, str, str, str]],
     gitlink_policies: dict[tuple[str, str], dict],
     source_selection: dict | None,
+    lfs_objects: dict[str, dict],
 ) -> tuple[int, list[str]]:
     name = component["name"]
     source_root = ROOT / component["path"]
@@ -320,6 +353,23 @@ def verify_component_tree(
                 failures.append(f"Git LFS pointer present: {path}")
             actual_oid = regular_oids[path]
 
+            lfs = lfs_objects.get(path)
+            if lfs is not None:
+                pointer = run([
+                    "git", "--git-dir", str(CACHE_ROOT / f"{name}.git"),
+                    "cat-file", "blob", oid,
+                ]).decode("utf-8", "strict")
+                expected_pointer = (
+                    "version https://git-lfs.github.com/spec/v1\n"
+                    f"oid sha256:{lfs['sha256']}\nsize {lfs['size']}\n"
+                )
+                if pointer != expected_pointer:
+                    failures.append(f"LFS policy does not match upstream pointer: {path}")
+                payload_sha256 = hashlib.sha256(local.read_bytes()).hexdigest()
+                if payload_sha256 != lfs["sha256"] or metadata.st_size != lfs["size"]:
+                    failures.append(f"hydrated LFS payload checksum/size mismatch: {path}")
+                actual_oid = oid
+
         if mode == "120000":
             actual_oid = git_blob_oid(payload)
         if actual_oid != oid:
@@ -356,6 +406,10 @@ def verify_component_tree(
     )
     if state.get("imported_tree_digest_algorithm") != expected_algorithm:
         failures.append("state imported-tree digest algorithm is missing or unsupported")
+
+    upstream_paths = {path for mode, _, _, path in entries if mode != "160000"}
+    for path in sorted(set(lfs_objects) - upstream_paths):
+        failures.append(f"LFS policy maps nonexistent upstream path: {path}")
 
     return len(ignored), failures
 
@@ -536,8 +590,32 @@ def main() -> int:
     component_list = source_document.get("component", [])
     components = {component["name"]: component for component in component_list}
     failures: list[str] = []
-    if len(components) != 57 or len(component_list) != 57:
-        failures.append(f"sources.toml declares {len(component_list)} components, expected 57 unique components")
+    expected_component_count = 63
+    if len(components) != expected_component_count or len(component_list) != expected_component_count:
+        failures.append(
+            f"sources.toml declares {len(component_list)} components, "
+            f"expected {expected_component_count} unique components"
+        )
+    required_cosmic_closure = {
+        "cosmic-initial-setup", "libcosmic", "cosmic-iced", "cosmic-protocols",
+    }
+    missing_cosmic = required_cosmic_closure.difference(components)
+    if missing_cosmic:
+        failures.append(
+            "sources.toml is missing the native installer COSMIC closure: "
+            + ", ".join(sorted(missing_cosmic))
+        )
+    demoted_cosmic_dependencies = {
+        "cosmic-dbus-settings-bindings", "cosmic-freedesktop-icons", "cosmic-winit",
+        "cosmic-window-clipboard", "cosmic-softbuffer", "cosmic-smithay-clipboard",
+        "cosmic-accesskit", "cosmic-cryoglyph", "cosmic-rust-atomicwrites",
+    }
+    unexpectedly_promoted = demoted_cosmic_dependencies.intersection(components)
+    if unexpectedly_promoted:
+        failures.append(
+            "ordinary Cargo dependencies were promoted into authoritative COSMIC source: "
+            + ", ".join(sorted(unexpectedly_promoted))
+        )
     for component in component_list:
         revision = component.get("revision", "")
         if not REVISION_RE.fullmatch(revision):
@@ -596,6 +674,8 @@ def main() -> int:
         state = load_toml(state_path)
         source_selection, selection_failures = load_source_selection_policy(component, state)
         failures.extend(selection_failures)
+        lfs_objects, lfs_failures = load_lfs_policy(component, state)
+        failures.extend(lfs_failures)
         for field, source_field in (("component", "name"), ("repo", "repo"), ("branch", "branch")):
             if state.get(field) != component.get(source_field):
                 failures.append(f"{name}: state {field} does not match sources.toml")
@@ -612,6 +692,8 @@ def main() -> int:
             "gitlink_policy",
             "patch_manifest",
             "patch_manifest_sha256",
+            "lfs_policy",
+            "lfs_policy_sha256",
         ):
             if state.get(field, "none") != component.get(field, "none"):
                 failures.append(f"{name}: state {field} does not match sources.toml")
@@ -622,7 +704,7 @@ def main() -> int:
             entry for entry in entries if source_selection_retains(source_selection, entry[3])
         ]
         ignored_count, tree_failures = verify_component_tree(
-            component, state, tree, entries, gitlink_by_path, source_selection
+            component, state, tree, entries, gitlink_by_path, source_selection, lfs_objects
         )
         ignored_total += ignored_count
         failures.extend(f"{name}: {failure}" for failure in tree_failures)

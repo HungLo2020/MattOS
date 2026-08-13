@@ -1,0 +1,16 @@
+[Unit]
+Description=MattOS CLI Installer
+After=getty@tty1.service
+Conflicts=getty@tty1.service
+
+[Service]
+Type=idle
+ExecStart=/usr/bin/mattos-install guided
+StandardInput=tty-force
+StandardOutput=tty
+StandardError=tty
+TTYPath=/dev/tty1
+TTYReset=yes
+TTYVHangup=yes
+Restart=on-failure
+RestartSec=2

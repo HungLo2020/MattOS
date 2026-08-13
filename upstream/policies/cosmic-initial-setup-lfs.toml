@@ -1,0 +1,49 @@
+schema_version = 1
+component = "cosmic-initial-setup"
+upstream_commit = "b5ac4182bb00bc774ca86febadf0369e362bc031"
+source = "https://media.githubusercontent.com/media/pop-os/cosmic-initial-setup/b5ac4182bb00bc774ca86febadf0369e362bc031/{path}"
+
+[[object]]
+path = "res/cities.bitcode-v0-6"
+sha256 = "ae15dde8fe7213dd8f3cd2ca2fd4e226d8342bd06a6501613ecf111280fd4f7b"
+size = 9402799
+
+[[object]]
+path = "res/cosmic-dark.png"
+sha256 = "6313fa0a8f06f3a62ea8ccba4eae40a7104d494c090fe8c41c9efeecd77ce0e9"
+size = 9032
+
+[[object]]
+path = "res/cosmic-light.png"
+sha256 = "892b2d45a283c489af523560d013c8d9934f37c294a413a0506b8ff7d2dec908"
+size = 8752
+
+[[object]]
+path = "res/layouts/bottom-panel/icon.png"
+sha256 = "10967b37fe0b785b4abf9772806fea331b7c7120dfe38411c7ed139debcf6168"
+size = 5927
+
+[[object]]
+path = "res/layouts/top-panel-and-bottom-dock/icon.png"
+sha256 = "80f753efbed5796fec6f3e5f49464304f7de5c2e4ac8cef85f88b0316af988e4"
+size = 6885
+
+[[object]]
+path = "res/themes/comet-light.png"
+sha256 = "00a675189b0e1bc012f6958a751fd438bf08c926bf2e74dfee6262cf4aa3b83b"
+size = 9198
+
+[[object]]
+path = "res/themes/cream-light.png"
+sha256 = "360b5bce3df4f103346b4b8d7a2ed7197b95375daa844086934333982216052f"
+size = 9191
+
+[[object]]
+path = "res/themes/mocha-dark.png"
+sha256 = "4642683fad524bbfd11cf5dcecd8fb03f6bc3ff93f18e60da08e398857ae15db"
+size = 9170
+
+[[object]]
+path = "res/themes/nebula-dark.png"
+sha256 = "b3fe8023d3ca7074bea4550c32e1befcba5c31193627a28fb1bddd3acea40060"
+size = 9420

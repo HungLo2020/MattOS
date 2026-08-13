@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "src/tools/mattos-build",
+    "src/system/installer",
     "src/userland/init"
 ]
 exclude = [

@@ -1,0 +1,5 @@
+[Unit]
+Description=MattOS Graphical Installation Target
+Requires=mattos.target mattos-install-graphical.service
+After=mattos.target
+AllowIsolate=yes

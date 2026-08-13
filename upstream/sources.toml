@@ -143,6 +143,58 @@ path = "src/infrastructure/LinuxScripts"
 sync = "copy"
 
 [[component]]
+name = "cosmic-initial-setup"
+repo = "https://github.com/pop-os/cosmic-initial-setup.git"
+branch = "master"
+revision = "b5ac4182bb00bc774ca86febadf0369e362bc031"
+path = "src/desktop/cosmic/cosmic-initial-setup"
+sync = "copy"
+lfs_policy = "upstream/policies/cosmic-initial-setup-lfs.toml"
+lfs_policy_sha256 = "c3bd66a6537ce37e87bfa766a4abbbd7327f1fb6029a9b17bd05d4f10f04eacf"
+
+[[component]]
+name = "libcosmic"
+repo = "https://github.com/pop-os/libcosmic.git"
+branch = "master"
+revision = "1f8d8786940cc6db59d412153c5a03f69a20375c"
+path = "src/desktop/cosmic/libcosmic"
+sync = "copy"
+intentional_omission_policy = "upstream/policies/gitlinks.toml#libcosmic"
+gitlink_policy = "upstream/policies/gitlinks.toml#libcosmic"
+
+[[component]]
+name = "cosmic-iced"
+repo = "https://github.com/pop-os/iced.git"
+branch = "master"
+revision = "7918b2826ec8ad4f9e0032f6a21286bac431e482"
+path = "src/desktop/cosmic/iced"
+sync = "copy"
+
+[[component]]
+name = "cosmic-protocols"
+repo = "https://github.com/pop-os/cosmic-protocols.git"
+branch = "main"
+revision = "32283d76a8d0342da74c4cc022a533c52dcf378f"
+path = "src/desktop/cosmic/cosmic-protocols"
+sync = "copy"
+
+[[component]]
+name = "btrfs-progs"
+repo = "https://github.com/kdave/btrfs-progs.git"
+branch = "v6.17"
+revision = "c03e29f083678f47a7d7d810db4d21d905979b77"
+path = "src/system/storage/btrfs-progs"
+sync = "copy"
+
+[[component]]
+name = "dosfstools"
+repo = "https://github.com/dosfstools/dosfstools.git"
+branch = "v4.2"
+revision = "697f7692c951173c1b732901e13f72bd3182d575"
+path = "src/system/storage/dosfstools"
+sync = "copy"
+
+[[component]]
 name = "dbus-broker"
 repo = "https://github.com/bus1/dbus-broker.git"
 branch = "main"

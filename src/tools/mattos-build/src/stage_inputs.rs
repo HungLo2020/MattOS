@@ -69,6 +69,15 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::Dpkg => &["src/system/packages/dpkg"],
         BuildStage::Apt => &["src/system/packages/apt", "upstream/patches/apt"],
         BuildStage::Init => &["src/userland/init"],
+        BuildStage::Installer => &[
+            "src/system/installer",
+            "src/system/storage/btrfs-progs",
+            "src/system/storage/dosfstools",
+            "src/desktop/cosmic/libcosmic",
+            "src/desktop/cosmic/iced",
+            "src/desktop/cosmic/cosmic-protocols",
+            "upstream/policies/gitlinks.toml",
+        ],
         BuildStage::Rootfs | BuildStage::LiveRoot | BuildStage::All => &[],
         BuildStage::Initramfs => &["src/boot/live-init.c"],
         BuildStage::Iso => &[AUTHORITATIVE_GRUB_CFG],
@@ -97,6 +106,7 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
     let tools: &[&str] = match stage {
         BuildStage::LiveRoot => &["mksquashfs", "unsquashfs"],
         BuildStage::Initramfs => &["gcc", "cpio", "xz"],
+        BuildStage::Installer => &["cargo", "rustc", "gcc", "ld", "autoreconf", "make", "grub-mkimage", "cpio", "xz"],
         BuildStage::Iso => &["grub-mkrescue", "xorriso"],
         stage if is_rust_stage(stage) => &["cargo", "rustc", "gcc", "ld"],
         _ => &["gcc", "g++", "as", "ld", "make"],
@@ -112,6 +122,7 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
         BuildStage::Llvm => 5,
         BuildStage::LiveRoot => 1,
         BuildStage::Initramfs => 5,
+        BuildStage::Installer => 3,
         BuildStage::Iso => 2,
         BuildStage::UtilLinux => 5,
         _ => 1,
@@ -129,6 +140,7 @@ pub(crate) fn is_rust_stage(stage: BuildStage) -> bool {
             | BuildStage::Diffutils
             | BuildStage::SudoRs
             | BuildStage::Init
+            | BuildStage::Installer
     )
 }
 
@@ -199,6 +211,35 @@ mod tests {
                     .contains(&PathBuf::from("upstream/policies/release-archives.toml")),
                 "{} must invalidate when its pinned release archive policy changes",
                 crate::stage_graph::stage_id(stage)
+            );
+        }
+    }
+
+    #[test]
+    fn installer_inputs_keep_only_first_class_cosmic_sources() {
+        let inputs = source_inputs(BuildStage::Installer);
+        for retained in ["libcosmic", "iced", "cosmic-protocols"] {
+            assert!(
+                inputs.contains(&PathBuf::from(format!("src/desktop/cosmic/{retained}"))),
+                "installer inputs omit first-class COSMIC source {retained}"
+            );
+        }
+        for cargo_dependency in [
+            "dbus-settings-bindings",
+            "freedesktop-icons",
+            "winit",
+            "window-clipboard",
+            "softbuffer",
+            "smithay-clipboard",
+            "accesskit",
+            "cryoglyph",
+            "rust-atomicwrites",
+        ] {
+            assert!(
+                !inputs.contains(&PathBuf::from(format!(
+                    "src/desktop/cosmic/{cargo_dependency}"
+                ))),
+                "normal Cargo dependency {cargo_dependency} was promoted into stage source ownership"
             );
         }
     }

@@ -1131,3 +1131,39 @@ current_mattos_version = "1.97.1-1mattos1"
 expected_debian_role = "Rust package manager"
 classification = "debian-compatible"
 known_gaps = ["Networked dependency resolution requires configured external sources"]
+
+[[package]]
+debian_name = "mattos-installer"
+mattos_name = "mattos-installer"
+source_component = "MattOS installer policy plus pinned System76 references"
+owned_paths = ["/usr/bin/mattos-install", "/usr/lib/mattos/installer"]
+provided_abi_or_commands = ["permanent MattOS CLI installer and shared installation policy"]
+protected = false
+current_mattos_version = "0.1-1mattos1"
+expected_debian_role = "live-media installer"
+classification = "mattos-specific"
+known_gaps = ["The graphical adapter cannot run until the GTK/COSMIC live-session closure is integrated"]
+
+[[package]]
+debian_name = "btrfs-progs"
+mattos_name = "btrfs-progs"
+source_component = "btrfs-progs"
+owned_paths = ["/usr/bin/btrfs", "/usr/bin/mkfs.btrfs"]
+provided_abi_or_commands = ["Btrfs creation, checking, subvolume, and administration tools"]
+protected = false
+current_mattos_version = "6.17-1mattos1"
+expected_debian_role = "Btrfs filesystem utilities"
+classification = "debian-compatible"
+known_gaps = ["Development files are not yet split from the command package"]
+
+[[package]]
+debian_name = "dosfstools"
+mattos_name = "dosfstools"
+source_component = "dosfstools"
+owned_paths = ["/usr/sbin/mkfs.fat", "/usr/sbin/fsck.fat", "/usr/sbin/fatlabel"]
+provided_abi_or_commands = ["FAT filesystem creation, checking, and labeling tools"]
+protected = false
+current_mattos_version = "4.2-1mattos1"
+expected_debian_role = "FAT filesystem utilities"
+classification = "debian-compatible"
+known_gaps = ["No known command-level compatibility gaps for the initial FAT utility set"]

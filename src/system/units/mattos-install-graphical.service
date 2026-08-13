@@ -1,0 +1,16 @@
+[Unit]
+Description=MattOS Graphical Installer
+After=mattos.target
+Conflicts=getty@tty1.service
+
+[Service]
+Type=idle
+ExecStart=/usr/bin/mattos-install-graphical
+StandardInput=tty-force
+StandardOutput=tty
+StandardError=tty
+TTYPath=/dev/tty1
+TTYReset=yes
+TTYVHangup=yes
+TTYVTDisallocate=yes
+Restart=no

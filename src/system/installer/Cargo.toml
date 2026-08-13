@@ -1,0 +1,27 @@
+[package]
+name = "mattos-installer"
+version = "0.1.0"
+edition = "2024"
+license = "GPL-3.0-or-later"
+
+[dependencies]
+anyhow = "1.0"
+clap = { version = "4.5", features = ["derive"] }
+libc = "0.2"
+font8x8 = "0.3.1"
+serde = { version = "1.0", features = ["derive"] }
+toml = "0.8"
+
+[dev-dependencies]
+tempfile = "3.12"
+
+[lib]
+path = "lib.rs"
+
+[[bin]]
+name = "mattos-install"
+path = "cli/main.rs"
+
+[[bin]]
+name = "mattos-install-graphical"
+path = "gui/framebuffer/main.rs"

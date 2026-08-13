@@ -1,0 +1,5 @@
+[Unit]
+Description=MattOS CLI Installation Target
+Requires=mattos.target mattos-install-cli.service
+After=mattos.target
+AllowIsolate=yes

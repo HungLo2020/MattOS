@@ -280,6 +280,9 @@ const PACKAGE_NAMES: &[&str] = &[
     "login",
     "iproute2",
     "iputils-ping",
+    "btrfs-progs",
+    "dosfstools",
+    "mattos-installer",
 ];
 
 #[derive(Subcommand, Debug)]
@@ -1307,6 +1310,43 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
+            name: "btrfs-progs",
+            description: "Btrfs filesystem administration tools built for MattOS",
+            source_component: "btrfs-progs",
+            depends: &["libc6", "libblkid1", "libuuid1", "zlib1g", "libzstd1"],
+            provides: &["btrfs-progs"],
+            conflicts: &["btrfs-progs"],
+            replaces: &["btrfs-progs"],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "dosfstools",
+            description: "FAT filesystem administration tools built for MattOS",
+            source_component: "dosfstools",
+            depends: &["libc6"],
+            provides: &["dosfstools"],
+            conflicts: &["dosfstools"],
+            replaces: &["dosfstools"],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "mattos-installer",
+            description: "MattOS shared installation backend and permanent CLI frontend",
+            source_component: "installer",
+            depends: &[
+                "libc6", "libgcc-s1", "util-linux", "libblkid1", "libuuid1",
+                "zlib1g", "libzstd1", "passwd", "coreutils", "xz-utils",
+                "btrfs-progs", "dosfstools", "libcrypt1",
+            ],
+            provides: &["mattos-installer", "mattos-installer-cli"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
             name: "libuuid1", description: "util-linux UUID runtime library built for MattOS",
             source_component: "util-linux", depends: &[], provides: &["libuuid1"], conflicts: &[], replaces: &[], essential: false, priority: "important",
         },
@@ -2304,6 +2344,11 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
         "gcc" => &["gcc-runtime", "gcc-compiler"],
         "glibc" => &["glibc", "formal-sysroot"],
         "make" => &["make"],
+        // The installer package embeds both installer-stage assets and the
+        // Linux bzImage used by installed systems. Keep the filesystem-tool
+        // packages tied only to their shared build stage.
+        "installer" => &["installer", "linux"],
+        "btrfs-progs" | "dosfstools" => &["installer"],
         "procps-ng" => &["procps-ng"],
         "linux-pam" => &["linux-pam"],
         "sudo-rs" => &["sudo-rs"],
@@ -2364,6 +2409,13 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "gcc" => &["src/toolchain/gcc"],
         "binutils" => &["src/toolchain/binutils"],
         "make" => &["src/build-tools/make"],
+        "installer" => &[
+            "src/system/installer",
+            "src/system/storage/btrfs-progs",
+            "src/system/storage/dosfstools",
+        ],
+        "btrfs-progs" => &["src/system/storage/btrfs-progs"],
+        "dosfstools" => &["src/system/storage/dosfstools"],
         "brush" => &["src/userland/brush"],
         "coreutils" => &["src/userland/coreutils"],
         "curl" => &["src/userland/curl"],
@@ -2431,6 +2483,14 @@ fn package_configuration_roots(package: &str) -> &'static [&'static str] {
             "src/system/auth/config/sudoers.d/README",
         ],
         "openssh-client" | "openssh-server" => &["src/system/network/openssh"],
+        "mattos-installer" => &[
+            "src/system/installer/policy/example-plan.toml",
+            "src/system/installer/PROVENANCE.md",
+            "src/system/units/mattos-install-cli.service",
+            "src/system/units/mattos-install-cli.target",
+            "src/system/units/mattos-install-graphical.service",
+            "src/system/units/mattos-install-graphical.target",
+        ],
         _ => &[],
     }
 }
@@ -2885,6 +2945,15 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
         "iputils-ping" => {
             stage_runtime_paths(repo_root, &staging, "iputils", IPUTILS_RUNTIME_PATHS)?
         }
+        "mattos-installer" => stage_mattos_installer(repo_root, &staging)?,
+        "btrfs-progs" => copy_tree_preserving(
+            &repo_root.join("out/build/btrfs-progs/install/usr"),
+            &staging.join("usr"),
+        )?,
+        "dosfstools" => copy_tree_preserving(
+            &repo_root.join("out/build/dosfstools/install/usr"),
+            &staging.join("usr"),
+        )?,
         _ => bail!("no staging implementation for {}", spec.name),
     }
 
@@ -2942,6 +3011,46 @@ fn stage_libffi_dev(repo_root: &Path, staging: &Path) -> Result<()> {
         &repo_root.join("src/system/libraries/libffi/libffi/LICENSE"),
         &staging.join("usr/share/doc/libffi-dev/copyright"),
     )
+}
+
+fn stage_mattos_installer(repo_root: &Path, staging: &Path) -> Result<()> {
+    let installer = repo_root.join("out/build/installer");
+    for name in ["mattos-install", "mattos-install-graphical"] {
+        stage_executable(
+            &installer.join("cargo-target/release").join(name),
+            &staging.join("usr/bin").join(name),
+            0o755,
+        )?;
+    }
+    let assets = staging.join("usr/lib/mattos/installer");
+    fs::create_dir_all(&assets)?;
+    for (source, name) in [
+        (repo_root.join("out/build/linux/build/arch/x86/boot/bzImage"), "vmlinuz"),
+        (repo_root.join("out/build/installed-initramfs.cpio.xz"), "installed-initramfs.cpio.xz"),
+        (installer.join("BOOTX64.EFI"), "BOOTX64.EFI"),
+    ] {
+        copy_preserving(&source, &assets.join(name))?;
+    }
+    copy_preserving(
+        &repo_root.join("src/system/installer/policy/example-plan.toml"),
+        &staging.join("usr/share/doc/mattos-installer/example-plan.toml"),
+    )?;
+    copy_preserving(
+        &repo_root.join("src/system/installer/PROVENANCE.md"),
+        &staging.join("usr/share/doc/mattos-installer/PROVENANCE.md"),
+    )?;
+    for name in [
+        "mattos-install-cli.service",
+        "mattos-install-cli.target",
+        "mattos-install-graphical.service",
+        "mattos-install-graphical.target",
+    ] {
+        copy_preserving(
+            &repo_root.join("src/system/units").join(name),
+            &staging.join("usr/lib/systemd/system").join(name),
+        )?;
+    }
+    Ok(())
 }
 
 fn stage_cpython_runtime(repo_root: &Path, staging: &Path) -> Result<()> {
@@ -4596,6 +4705,9 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "rustc" | "cargo" => component_snapshot_version(repo_root, "rust")?,
         "iproute2" => component_snapshot_version(repo_root, "iproute2")?,
         "iputils-ping" => component_snapshot_version(repo_root, "iputils")?,
+        "btrfs-progs" => "6.17".to_string(),
+        "dosfstools" => "4.2".to_string(),
+        "mattos-installer" => "0.1".to_string(),
         _ => bail!("unknown package {}", spec.name),
     };
     Ok(format!("{upstream}-{REVISION}"))
@@ -5138,6 +5250,9 @@ fn runtime_libraries_for_spec(repo_root: &Path, spec: &PackageSpec) -> Result<Ve
                 | "login"
                 | "iproute2"
                 | "iputils-ping"
+                | "btrfs-progs"
+                | "dosfstools"
+                | "mattos-installer"
         ) =>
         {
             runtime_libraries_in_staging(repo_root, name)
@@ -6928,6 +7043,13 @@ mod tests {
     use std::os::unix::fs::{PermissionsExt, symlink};
 
     #[test]
+    fn installer_package_cache_tracks_its_embedded_linux_kernel() {
+        assert_eq!(package_stage_dependencies("installer"), ["installer", "linux"]);
+        assert_eq!(package_stage_dependencies("btrfs-progs"), ["installer"]);
+        assert_eq!(package_stage_dependencies("dosfstools"), ["installer"]);
+    }
+
+    #[test]
     fn package_dependencies_propagate_only_stage_output_changes() {
         let root = tempfile::tempdir().unwrap();
         let manifest_path = root.path().join("out/state/stages/make.json");
@@ -7163,7 +7285,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 94);
+        assert_eq!(PACKAGE_NAMES.len(), 97);
     }
 
     #[test]
@@ -7188,7 +7310,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 94);
+        assert_eq!(PACKAGE_NAMES.len(), 97);
         assert_eq!(
             UTIL_LINUX_BASE_PATHS,
             &[
@@ -7264,7 +7386,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 94);
+        assert_eq!(PACKAGE_NAMES.len(), 97);
         let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
         for dependency in [
             "libffi8",

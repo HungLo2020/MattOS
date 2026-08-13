@@ -1,0 +1,223 @@
+use proc_macro::TokenStream;
+use quote::quote;
+use syn;
+
+#[proc_macro_derive(CosmicConfigEntry, attributes(version, id, cosmic_config_entry))]
+pub fn cosmic_config_entry_derive(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+    impl_cosmic_config_entry_macro(&ast)
+}
+
+fn get_cosmic_config_attrs(field: &syn::Field) -> Result<Option<syn::Type>, syn::Error> {
+    let mut with = None;
+
+    for attr in &field.attrs {
+        if !attr.path().is_ident("cosmic_config_entry") {
+            continue;
+        }
+        attr.parse_nested_meta(|meta| {
+            if meta.path.is_ident("with") {
+                let value = meta.value()?;
+                with = Some(value.parse()?);
+            }
+            Ok(())
+        })?;
+    }
+
+    Ok(with)
+}
+
+fn impl_cosmic_config_entry_macro(ast: &syn::DeriveInput) -> TokenStream {
+    let attributes = &ast.attrs;
+    let version = attributes
+        .iter()
+        .find_map(|attr| {
+            if attr.path().is_ident("version") {
+                match attr.meta {
+                    syn::Meta::NameValue(syn::MetaNameValue {
+                        value:
+                            syn::Expr::Lit(syn::ExprLit {
+                                lit: syn::Lit::Int(ref lit_int),
+                                ..
+                            }),
+                        ..
+                    }) => Some(lit_int.base10_parse::<u64>().unwrap()),
+                    _ => None,
+                }
+            } else {
+                None
+            }
+        })
+        .unwrap_or(0);
+
+    let name = &ast.ident;
+
+    // Get the fields of the struct
+    let fields = match ast.data {
+        syn::Data::Struct(ref data_struct) => match data_struct.fields {
+            syn::Fields::Named(ref fields) => &fields.named,
+            _ => unimplemented!("Only named fields are supported"),
+        },
+        _ => unimplemented!("Only structs are supported"),
+    };
+
+    let write_each_config_field = fields.iter().map(|field| {
+        let field_name = &field.ident;
+        let with = match get_cosmic_config_attrs(field) {
+            Ok(attrs) => attrs,
+            Err(e) => {
+                return e.to_compile_error();
+            }
+        };
+
+        if let Some(with) = with {
+            quote! {
+                {
+                    let conv = self.#field_name.clone().into();
+                    cosmic_config::ConfigSet::set::<#with>(&tx, stringify!(#field_name), conv)?;
+                }
+            }
+        } else {
+            quote! {
+                cosmic_config::ConfigSet::set(&tx, stringify!(#field_name), &self.#field_name)?;
+            }
+        }
+    });
+
+    let get_each_config_field = fields.iter().map(|field| {
+        let field_name = &field.ident;
+        let field_type = &field.ty;
+        let with = match get_cosmic_config_attrs(field) {
+            Ok(attrs) => attrs,
+            Err(e) => {
+                return e.to_compile_error();
+            }
+        };
+
+        if let Some(with) = with {
+            quote! {
+                match cosmic_config::ConfigGet::get::<#with>(config, stringify!(#field_name)) {
+                    Ok(value) => {
+                        default.#field_name = value.into();
+                    }
+                    Err(why) if matches!(why, cosmic_config::Error::NoConfigDirectory) => (),
+                    Err(e) => errors.push(e),
+                }
+            }
+        } else {
+            quote! {
+                match cosmic_config::ConfigGet::get::<#field_type>(config, stringify!(#field_name)) {
+                    Ok(#field_name) => default.#field_name = #field_name,
+                    Err(why) if matches!(why, cosmic_config::Error::NoConfigDirectory) => (),
+                    Err(e) => errors.push(e),
+                }
+            }
+        }
+    });
+
+    let update_each_config_field = fields.iter().map(|field| {
+        let field_name = &field.ident;
+        let field_type = &field.ty;
+        let with = match get_cosmic_config_attrs(field) {
+            Ok(attrs) => attrs,
+            Err(e) => {
+                return e.to_compile_error();
+            }
+        };
+
+        if let Some(with) = with {
+            quote! {
+                stringify!(#field_name) => {
+                    match cosmic_config::ConfigGet::get::<#with>(config, stringify!(#field_name)) {
+                        Ok(value) => {
+                            let value = value.into();
+                            if self.#field_name != value {
+                                keys.push(stringify!(#field_name));
+                            }
+                            self.#field_name = value;
+                        },
+                        Err(e) => errors.push(e),
+                    }
+                }
+            }
+        } else {
+            quote! {
+                stringify!(#field_name) => {
+                    match cosmic_config::ConfigGet::get::<#field_type>(config, stringify!(#field_name)) {
+                        Ok(value) => {
+                            if self.#field_name != value {
+                                keys.push(stringify!(#field_name));
+                            }
+                            self.#field_name = value;
+                        },
+                        Err(e) => errors.push(e),
+                    }
+                }
+            }
+        }
+    });
+
+    let setters = fields.iter().filter_map(|field| {
+        let field_name = &field.ident.as_ref()?;
+        let field_type = &field.ty;
+        let setter_name = quote::format_ident!("set_{}", field_name);
+        let doc = format!("Sets [`{name}::{field_name}`] and writes to [`cosmic_config::Config`] if changed");
+        Some(quote! {
+            #[doc = #doc]
+            ///
+            /// Returns `Ok(true)` when the field's value has changed and was written to disk
+            pub fn #setter_name(&mut self, config: &cosmic_config::Config, value: #field_type) -> Result<bool, cosmic_config::Error> {
+                if self.#field_name != value {
+                    self.#field_name = value;
+                    cosmic_config::ConfigSet::set(config, stringify!(#field_name), &self.#field_name)?;
+                    Ok(true)
+                } else {
+                    Ok(false)
+                }
+            }
+        })
+    });
+
+    let generate = quote! {
+        impl CosmicConfigEntry for #name {
+            const VERSION: u64 = #version;
+
+            fn write_entry(&self, config: &cosmic_config::Config) -> Result<(), cosmic_config::Error> {
+                let tx = config.transaction();
+                #(#write_each_config_field)*
+                tx.commit()
+            }
+
+            fn get_entry(config: &cosmic_config::Config) -> Result<Self, (Vec<cosmic_config::Error>, Self)> {
+                let mut default = Self::default();
+                let mut errors = Vec::new();
+
+                #(#get_each_config_field)*
+
+                if errors.is_empty() {
+                    Ok(default)
+                } else {
+                    Err((errors, default))
+                }
+            }
+
+            fn update_keys<T: AsRef<str>>(&mut self, config: &cosmic_config::Config, changed_keys: &[T]) -> (Vec<cosmic_config::Error>, Vec<&'static str>){
+                let mut keys = Vec::with_capacity(changed_keys.len());
+                let mut errors = Vec::new();
+                for key in changed_keys.iter() {
+                    match key.as_ref() {
+                        #(#update_each_config_field)*
+                        _ => (),
+                    }
+                }
+                (errors, keys)
+            }
+        }
+
+        impl #name {
+            #(#setters)*
+        }
+    };
+
+    generate.into()
+}

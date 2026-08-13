@@ -59,6 +59,7 @@ pub(crate) enum BuildStage {
     Dpkg,
     Apt,
     Init,
+    Installer,
     Rootfs,
     LiveRoot,
     Initramfs,
@@ -123,6 +124,7 @@ pub(crate) fn stage_id(stage: BuildStage) -> &'static str {
         BuildStage::Dpkg => "dpkg",
         BuildStage::Apt => "apt",
         BuildStage::Init => "init",
+        BuildStage::Installer => "installer",
         BuildStage::Rootfs => "rootfs",
         BuildStage::LiveRoot => "live-root",
         BuildStage::Initramfs => "initramfs",
@@ -232,6 +234,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "zstd",
             "systemd",
         ],
+        BuildStage::Installer => &["formal-sysroot", "util-linux", "zlib", "zstd", "linux"],
         BuildStage::Rootfs => &[
             "apt",
             "dpkg",
@@ -242,6 +245,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "findutils",
             "diffutils",
             "init",
+            "installer",
             "repository",
         ],
         BuildStage::LiveRoot => &["rootfs"],
@@ -308,6 +312,7 @@ pub(crate) fn all_build_stages() -> &'static [BuildStage] {
         BuildStage::Dpkg,
         BuildStage::Apt,
         BuildStage::Init,
+        BuildStage::Installer,
         BuildStage::Rootfs,
         BuildStage::LiveRoot,
         BuildStage::Initramfs,
@@ -438,7 +443,9 @@ mod tests {
         );
         assert_eq!(
             downstream_invalidation(&["linux"]),
-            ["linux", "iso"].into_iter().collect()
+            ["linux", "installer", "packages", "repository", "rootfs", "live-root", "iso"]
+                .into_iter()
+                .collect()
         );
         assert_eq!(
             downstream_invalidation(&["repository"]),
@@ -605,21 +612,21 @@ mod tests {
     fn representative_cascade_report() {
         let scenarios: &[(&str, &[&str], usize, &[&str])] = &[
             ("Brush source", &["brush"], 6, &["zlib", "linux"]),
-            ("glibc source", &["glibc"], 62, &["linux"]),
-            ("Linux x86_64 config", &["linux"], 2, &["glibc", "brush"]),
+            ("glibc source", &["glibc"], 63, &["linux"]),
+            ("Linux x86_64 config", &["linux"], 7, &["glibc", "brush"]),
             (
                 "Linux x86_64 UAPI source",
                 &["linux", "glibc", "linux-headers"],
-                63,
+                64,
                 &[],
             ),
             (
                 "GCC source",
                 &["gcc-runtime", "gcc-compiler"],
-                60,
+                61,
                 &["linux", "glibc", "linux-headers"],
             ),
-            ("zlib shared library", &["zlib"], 20, &["brush", "linux"]),
+            ("zlib shared library", &["zlib"], 21, &["brush", "linux"]),
             ("package metadata", &["packages"], 5, &["brush", "zlib"]),
             ("repository policy", &["repository"], 4, &["packages", "brush"]),
             ("rootfs configuration", &["rootfs"], 3, &["repository", "packages"]),
@@ -675,13 +682,13 @@ mod tests {
                 name: "Linux source, changed kernel",
                 owners: &["linux"],
                 all_rebuilt_outputs_change: true,
-                unrelated_hits: &["glibc", "linux-headers", "brush", "rootfs"],
+                unrelated_hits: &["glibc", "linux-headers", "brush"],
             },
             Scenario {
                 name: "Linux config, changed kernel",
                 owners: &["linux"],
                 all_rebuilt_outputs_change: true,
-                unrelated_hits: &["glibc", "linux-headers", "brush", "rootfs"],
+                unrelated_hits: &["glibc", "linux-headers", "brush"],
             },
             Scenario {
                 name: "Linux UAPI, changed kernel and headers",

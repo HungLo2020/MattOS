@@ -1,0 +1,6 @@
+version = 1
+target_disk = "/dev/vdb"
+installed_profile = "cli"
+hostname = "mattos"
+username = "matt"
+test_autologin = false

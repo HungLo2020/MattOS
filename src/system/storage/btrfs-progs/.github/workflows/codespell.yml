@@ -1,0 +1,32 @@
+# Check for typos on release and on-demand branches
+#
+# NOTE: this is not run on devel or pull requests
+#
+# - codespell configuration is within .codespellrc
+# - the workflow can be run separately from other workflows that trigger on
+#   ci/* branches, use codespell/* as the prefix
+
+name: Codespell
+run-name: Codespell
+
+on:
+  push:
+    branches:
+      - release-test
+      - 'codespell/**'
+
+permissions:
+  contents: read
+
+jobs:
+  codespell:
+    name: Check for spelling errors
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Annotate locations with typos
+        uses: codespell-project/codespell-problem-matcher@v1
+      - name: Codespell
+        uses: codespell-project/actions-codespell@v2
