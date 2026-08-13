@@ -137,7 +137,7 @@ impl PressureTracker {
 
 fn pressure_candidate(
     budget: &ResourceBudget,
-    swap_in_rate: f64,
+    _swap_in_rate: f64,
     swap_out_rate: f64,
     psi_some_avg10: Option<f64>,
 ) -> PressureLevel {
