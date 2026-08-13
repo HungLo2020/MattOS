@@ -26,7 +26,10 @@ cargo run -p mattos-build -- doctor
 Required tools are reported separately from optional tools. Missing-tool package hints are printed for common Linux distributions.
 `DevUtils/run_qemu.py` also runs `doctor` first and will direct you to `python3 DevUtils/setup.py` if required prerequisites are missing.
 
-The launcher does not rewrite the build environment. `--build-only` runs `doctor` and the same `cargo run -p mattos-build -- build all` command used directly, in separate child processes. Stage keys normalize the build locale/time policy and identify selected tools rather than hashing the caller's raw `PATH`, so unchanged direct and launcher builds share the same cache identity.
+The launcher and `mattos-build` use the repository-owned `out/tmp/` directory
+for build temporary files. It is created and write-tested automatically, and
+takes precedence over an inherited `TMPDIR` so a full host `/tmp` cannot break
+the build. `--build-only` runs `doctor` and the same `cargo run -p mattos-build -- build all` command used directly, in separate child processes. Stage keys normalize the build locale/time policy and identify selected tools rather than hashing the caller's raw `PATH`, so unchanged direct and launcher builds share the same cache identity.
 
 This milestone also requires the systemd, dbus-broker, Autotools, networking, packaging, glibc/GCC-runtime-bootstrap, and ELF-inspection tools declared by `DevUtils/setup.py`, including GCC/G++, GNU assembler and linker tools, Make, Bison, Meson/Ninja, CMake, Autoconf/Automake/libtool, `gnulib-tool`, GNU awk (`gawk`), `rsync`, `bindgen`, `dpkg-deb`, `dpkg-scanpackages`, `apt-ftparchive`, `fakeroot`, `zstd`, `xz`, `file`, `ldd`, and `readelf`. Host GMP, MPFR, and MPC development files are GCC-internal build prerequisites only. Target runtime development files come from imported source builds and `out/sysroot`, not host distribution `-dev` packages.
 

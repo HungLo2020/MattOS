@@ -7,7 +7,17 @@ import sys
 from pathlib import Path
 from typing import List
 
-from common import RepoError, ensure_tools, find_repo_root, run_command, run_command_capture
+from common import (
+    RepoError,
+    ensure_tools,
+    find_repo_root,
+    mattos_build_environment,
+    run_command,
+    run_command_capture,
+)
+
+DEFAULT_INSTALL_DISK_RELATIVE = Path("out/qemu/mattos-dev.qcow2")
+DEFAULT_INSTALL_DISK_SIZE = "16G"
 
 
 def parse_args() -> argparse.Namespace:
@@ -37,6 +47,18 @@ def parse_args() -> argparse.Namespace:
         "--build-only",
         action="store_true",
         help="build the dependency-correct ISO once and exit without launching QEMU",
+    )
+    disk = parser.add_mutually_exclusive_group()
+    disk.add_argument(
+        "--no-install-disk",
+        action="store_true",
+        help="launch without the persistent development install disk",
+    )
+    disk.add_argument(
+        "--install-disk",
+        type=Path,
+        metavar="PATH",
+        help="use or create this persistent qcow2 install disk instead of the default",
     )
     return parser.parse_args()
 
@@ -101,9 +123,37 @@ def image_build_commands(clean: bool) -> List[List[str]]:
     return commands
 
 
+def prepare_install_disk(repo_root: Path, args: argparse.Namespace) -> Path | None:
+    """Return a persistent qcow2 target disk, creating it only when absent."""
+    if args.no_install_disk:
+        return None
+
+    disk = args.install_disk or (repo_root / DEFAULT_INSTALL_DISK_RELATIVE)
+    disk = disk if disk.is_absolute() else repo_root / disk
+    disk = disk.resolve()
+    disk.parent.mkdir(parents=True, exist_ok=True)
+    if not disk.exists():
+        if not shutil.which("qemu-img"):
+            raise RepoError("qemu-img is required to create the development install disk")
+        print(f"+ qemu-img create -f qcow2 {disk} {DEFAULT_INSTALL_DISK_SIZE}")
+        completed = subprocess.run(
+            ["qemu-img", "create", "-f", "qcow2", str(disk), DEFAULT_INSTALL_DISK_SIZE],
+            cwd=str(repo_root),
+            check=False,
+            text=True,
+        )
+        if completed.returncode != 0:
+            raise RepoError(f"failed to create QEMU install disk: {disk}")
+    if not disk.is_file():
+        raise RepoError(f"QEMU install disk is not a regular file: {disk}")
+    return disk
+
+
 def build_if_needed(repo_root: Path, args: argparse.Namespace) -> None:
     if args.no_build:
         return
+
+    build_environment = mattos_build_environment(repo_root)
 
     # Fail fast on missing or broken toolchain prerequisites before expensive builds.
     try:
@@ -111,6 +161,7 @@ def build_if_needed(repo_root: Path, args: argparse.Namespace) -> None:
             ["cargo", "run", "-p", "mattos-build", "--", "doctor"],
             cwd=repo_root,
             dry_run=args.dry_run,
+            env=build_environment,
         )
     except RepoError as exc:
         raise RepoError(
@@ -119,7 +170,7 @@ def build_if_needed(repo_root: Path, args: argparse.Namespace) -> None:
         ) from exc
 
     for command in image_build_commands(args.clean):
-        run_command(command, cwd=repo_root, dry_run=args.dry_run)
+        run_command(command, cwd=repo_root, dry_run=args.dry_run, env=build_environment)
 
 
 def launch_qemu(repo_root: Path, iso_path: Path, args: argparse.Namespace) -> int:
@@ -137,7 +188,12 @@ def launch_qemu(repo_root: Path, iso_path: Path, args: argparse.Namespace) -> in
         str(iso_path),
         "-boot",
         "d",
+        "-vga",
+        "std",
     ]
+    install_disk = prepare_install_disk(repo_root, args)
+    if install_disk is not None:
+        qemu_cmd.extend(["-drive", f"file={install_disk},if=virtio,format=qcow2"])
     qemu_cmd.extend(network_arguments(args.no_network))
 
     if args.serial_console:
@@ -157,7 +213,7 @@ def launch_qemu(repo_root: Path, iso_path: Path, args: argparse.Namespace) -> in
     if args.dry_run:
         return 0
 
-    proc = subprocess.Popen(qemu_cmd, cwd=str(repo_root))
+    proc = subprocess.Popen(qemu_cmd, cwd=str(repo_root), env=mattos_build_environment(repo_root))
     try:
         return proc.wait()
     except KeyboardInterrupt:

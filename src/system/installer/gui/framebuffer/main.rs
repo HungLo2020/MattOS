@@ -206,8 +206,40 @@ fn choose(screen: &mut Screen, title: &str, explanation: &str, values: &[String]
     }
 }
 
-fn interactive() -> Result<()> {
-    let mut screen = Screen::open()?;
+fn error_screen(screen: &mut Screen, error: &anyhow::Error) -> Result<()> {
+    let detail = format!("{error:#}");
+    eprintln!("mattos-install-graphical: {detail}");
+    loop {
+        screen.page(
+            "Installer could not continue",
+            &format!(
+                "No installation was performed.\n\n{detail}\n\nThe ISO is never a valid installation target.",
+            ),
+            "R: reboot  |  S: power off  |  Q: return to console",
+        );
+        match screen.read_key()? {
+            Key::Char('r' | 'R') => {
+                Command::new("systemctl").arg("reboot").status()?;
+                return Ok(());
+            }
+            Key::Char('s' | 'S') => {
+                Command::new("systemctl").arg("poweroff").status()?;
+                return Ok(());
+            }
+            Key::Char('q' | 'Q') => {
+                // The graphical service owns tty1. Hand it back to getty so
+                // returning from an error cannot leave a blank virtual tty.
+                let _ = Command::new("systemctl")
+                    .args(["start", "getty@tty1.service"])
+                    .status();
+                return Ok(());
+            }
+            _ => {}
+        }
+    }
+}
+
+fn interactive_session(mut screen: &mut Screen) -> Result<()> {
     screen.page("Welcome", "Install MattOS using the shared, validated GPT/Btrfs installation engine.\n\nNo disk is selected automatically.", "Enter: begin");
     while !matches!(screen.read_key()?, Key::Enter) {}
     choose(&mut screen, "Language", "Currently supported installer language:", &["English (United States)".into()])?;
@@ -251,6 +283,23 @@ fn interactive() -> Result<()> {
     }
 }
 
+fn interactive() -> Result<()> {
+    let mut screen = match Screen::open() {
+        Ok(screen) => screen,
+        Err(error) => {
+            eprintln!("mattos-install-graphical: failed before framebuffer UI: {error:#}");
+            let _ = Command::new("systemctl")
+                .args(["start", "getty@tty1.service"])
+                .status();
+            return Err(error);
+        }
+    };
+    match interactive_session(&mut screen) {
+        Ok(()) => Ok(()),
+        Err(error) => error_screen(&mut screen, &error),
+    }
+}
+
 fn main() -> Result<()> {
     let args = Args::parse();
     if let Some(path) = args.plan {
@@ -278,5 +327,14 @@ mod tests {
         let persistent_write = ["fs::", "write("].concat();
         assert!(!source.contains(&password_argument));
         assert!(!source.contains(&persistent_write));
+    }
+
+    #[test]
+    fn gui_errors_are_rendered_and_offer_a_safe_console_return() {
+        let source = include_str!("main.rs");
+        assert!(source.contains("Installer could not continue"));
+        assert!(source.contains("No installation was performed."));
+        assert!(source.contains("The ISO is never a valid installation target."));
+        assert!(source.contains("getty@tty1.service"));
     }
 }

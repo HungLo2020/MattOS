@@ -28,13 +28,22 @@ import tomllib
 
 
 ROOT = Path(__file__).resolve().parents[1]
+PROJECT_TMP_ROOT = ROOT / "out" / "tmp"
+PROJECT_TMP_ROOT.mkdir(parents=True, exist_ok=True)
+if shutil.disk_usage(PROJECT_TMP_ROOT).free < 8 * 1024**3:
+    raise SystemExit(
+        f"MattOS provenance audit requires at least 8 GiB free under {PROJECT_TMP_ROOT}"
+    )
+# This audit can materialize large patch/source mirrors. Keep all of that work
+# on the repository filesystem instead of the host's usually-small /tmp tmpfs.
+os.environ["TMPDIR"] = str(PROJECT_TMP_ROOT)
 SOURCES_PATH = ROOT / "upstream/sources.toml"
 STATE_DIR = ROOT / "upstream/state"
 GITLINK_POLICY_PATH = ROOT / "upstream/policies/gitlinks.toml"
 MIRROR_POLICY_PATH = ROOT / "upstream/policies/verification-mirrors.toml"
 LINUXSCRIPTS_POLICY_PATH = ROOT / "upstream/policies/linuxscripts.toml"
 RELEASE_ARCHIVE_POLICY_PATH = ROOT / "upstream/policies/release-archives.toml"
-CACHE_ROOT = Path(os.environ.get("MATTOS_PROVENANCE_CACHE", "/tmp/mattos-vendored-source-audit-cache"))
+CACHE_ROOT = Path(os.environ.get("MATTOS_PROVENANCE_CACHE", str(PROJECT_TMP_ROOT / "provenance-cache")))
 REVISION_RE = re.compile(r"^[0-9a-f]{40}$")
 EXPECTED_LINUX_COMMIT = "8ba098e6b6ff0db8edf28528d1552be261af30d4"
 IMPORTED_DIGEST_ALGORITHM = "sha256-git-ls-tree-no-gitlinks-v1"

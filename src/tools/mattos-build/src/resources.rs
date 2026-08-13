@@ -147,7 +147,6 @@ fn pressure_candidate(
     {
         PressureLevel::Critical
     } else if budget.available_memory_bytes <= budget.reserved_memory_bytes.saturating_mul(2)
-        || swap_in_rate > 0.0
         || swap_out_rate > 0.0
         || psi_some_avg10.is_some_and(|value| value >= 0.05)
     {

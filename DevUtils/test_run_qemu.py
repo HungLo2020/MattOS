@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import shutil
 import subprocess
 import sys
 import unittest
@@ -8,7 +9,14 @@ from tempfile import TemporaryDirectory
 from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from run_qemu import ensure_iso_exists, image_build_commands, network_arguments
+from common import ensure_project_temp_root, mattos_build_environment
+from run_qemu import (
+    ensure_iso_exists,
+    image_build_commands,
+    launch_qemu,
+    network_arguments,
+    prepare_install_disk,
+)
 
 
 class QemuNetworkArgumentsTests(unittest.TestCase):
@@ -51,6 +59,69 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
         commands = image_build_commands(True)
         self.assertEqual(len(commands), 2)
         self.assertEqual(commands[-1][-2:], ["build", "all"])
+
+    def test_launcher_environment_uses_repository_owned_tmpdir(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "src/tools/mattos-build").mkdir(parents=True)
+            (root / "src/tools/mattos-build/Cargo.toml").touch()
+            with mock.patch.dict(os.environ, {"TMPDIR": "/full/host/tmp"}, clear=False), mock.patch(
+                "common.helpers.shutil.disk_usage",
+                return_value=shutil.disk_usage(Path.cwd()),
+            ):
+                environment = mattos_build_environment(root)
+            self.assertEqual(environment["TMPDIR"], str(root / "out/tmp"))
+            self.assertTrue((root / "out/tmp").is_dir())
+
+    def test_project_temp_preflight_rejects_insufficient_space(self) -> None:
+        with TemporaryDirectory() as temporary:
+            with self.assertRaises(Exception):
+                ensure_project_temp_root(Path(temporary), minimum_free_bytes=10**18)
+
+    def test_default_install_disk_is_created_once_and_persistent(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            args = type("Args", (), {"no_install_disk": False, "install_disk": None})()
+            disk = prepare_install_disk(root, args)
+            self.assertEqual(disk, (root / "out/qemu/mattos-dev.qcow2").resolve())
+            self.assertTrue(disk.is_file())
+            first_bytes = disk.read_bytes()
+            self.assertGreater(len(first_bytes), 0)
+            self.assertEqual(prepare_install_disk(root, args), disk)
+            self.assertEqual(disk.read_bytes(), first_bytes)
+
+    def test_no_install_disk_option_disables_target_disk(self) -> None:
+        with TemporaryDirectory() as temporary:
+            args = type("Args", (), {"no_install_disk": True, "install_disk": None})()
+            self.assertIsNone(prepare_install_disk(Path(temporary), args))
+
+    def test_qemu_command_attaches_install_disk_as_virtio(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            disk = root / "custom.qcow2"
+            disk.write_bytes(b"existing qcow2 placeholder")
+            args = type(
+                "Args",
+                (),
+                {
+                    "no_install_disk": False,
+                    "install_disk": disk,
+                    "no_network": True,
+                    "serial_console": True,
+                    "dry_run": False,
+                    "qemu_arg": [],
+                    "memory": 1024,
+                    "cpus": 1,
+                },
+            )()
+            process = mock.Mock()
+            process.wait.return_value = 0
+            with mock.patch("run_qemu.subprocess.Popen", return_value=process) as launched, mock.patch(
+                "run_qemu.mattos_build_environment", return_value={}
+            ):
+                self.assertEqual(launch_qemu(root, root / "mattos.iso", args), 0)
+            command = launched.call_args.args[0]
+            self.assertIn(f"file={disk.resolve()},if=virtio,format=qcow2", command)
 
 
 @unittest.skipUnless(

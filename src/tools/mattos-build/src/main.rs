@@ -60,6 +60,8 @@ const IMPORTED_TREE_DIGEST_ALGORITHM: &str = "sha256-git-ls-tree-no-gitlinks-v1"
 const SELECTED_IMPORTED_TREE_DIGEST_ALGORITHM: &str = "sha256-selected-git-ls-tree-no-gitlinks-v1";
 const USERLAND_INVENTORY_PATH: &str = "usr/share/mattos/userland-commands.txt";
 const INITRAMFS_ARCHIVE_OWNER: &str = "0:0";
+const MATTOS_BUILD_TMP_RELATIVE: &str = "out/tmp";
+const MIN_MATTOS_TMP_FREE_BYTES: u64 = 4 * 1024 * 1024 * 1024;
 
 const COREUTILS_PROVIDER: &str = "uutils/coreutils";
 const GREP_PROVIDER: &str = "uutils/grep";
@@ -882,6 +884,7 @@ struct WslStatus {
 fn main() -> Result<()> {
     let cli = Cli::parse();
     let repo_root = std::env::current_dir().context("unable to determine current directory")?;
+    ensure_mattos_build_tmp(&repo_root)?;
     if let Commands::Build {
         stage,
         experimental_child_jobs,
@@ -12775,6 +12778,7 @@ fn run_cmd_status(cwd: &Path, program: &str, args: &[&str]) -> Result<std::proce
     let scheduler_args = scheduler_command_args(args);
     command.args(&scheduler_args).current_dir(cwd);
     apply_reproducible_process_environment(&mut command);
+    apply_mattos_tmp_environment(&mut command, cwd)?;
     apply_scheduler_parallelism(&mut command);
     apply_mattos_sysroot_environment(&mut command, cwd, program, &[])?;
     let display = effective_command_display(program, &scheduler_args);
@@ -12791,6 +12795,7 @@ fn run_cmd_with_env(
     let scheduler_args = scheduler_command_args(args);
     cmd.args(&scheduler_args).current_dir(cwd);
     apply_reproducible_process_environment(&mut cmd);
+    apply_mattos_tmp_environment(&mut cmd, cwd)?;
     apply_scheduler_parallelism(&mut cmd);
 
     if let Some(env) = tool_env {
@@ -12845,6 +12850,7 @@ fn run_cmd_with_env_overrides(
     for (key, value) in env_overrides {
         cmd.env(key, value);
     }
+    apply_mattos_tmp_environment(&mut cmd, cwd)?;
     apply_scheduler_parallelism(&mut cmd);
     apply_mattos_sysroot_environment(&mut cmd, cwd, program, env_overrides)?;
 
@@ -12868,6 +12874,60 @@ fn apply_reproducible_process_environment(command: &mut Command) {
         .env("TZ", "UTC")
         .env("PYTHONDONTWRITEBYTECODE", "1")
         .env("SOURCE_DATE_EPOCH", MATTOS_SOURCE_DATE_EPOCH);
+}
+
+fn mattos_build_tmp(repo_root: &Path) -> PathBuf {
+    repo_root.join(MATTOS_BUILD_TMP_RELATIVE)
+}
+
+fn ensure_mattos_build_tmp(repo_root: &Path) -> Result<PathBuf> {
+    let directory = mattos_build_tmp(repo_root);
+    fs::create_dir_all(&directory)
+        .with_context(|| format!("failed to create MattOS build temp directory {}", directory.display()))?;
+    let free_bytes = free_bytes_at(&directory)?;
+    if free_bytes < MIN_MATTOS_TMP_FREE_BYTES {
+        bail!(
+            "MattOS build temp directory {} has only {} free bytes; at least {} are required",
+            directory.display(),
+            free_bytes,
+            MIN_MATTOS_TMP_FREE_BYTES
+        );
+    }
+
+    let probe = directory.join(format!(".write-probe-{}", std::process::id()));
+    fs::write(&probe, b"mattos-build temp directory probe\n")
+        .with_context(|| format!("MattOS build temp directory is not writable: {}", directory.display()))?;
+    fs::remove_file(&probe).with_context(|| {
+        format!("failed to remove MattOS build temp probe {}", probe.display())
+    })?;
+    Ok(directory)
+}
+
+fn free_bytes_at(path: &Path) -> Result<u64> {
+    let path = std::ffi::CString::new(path.to_string_lossy().as_bytes())
+        .context("invalid MattOS temp path")?;
+    let mut stats = std::mem::MaybeUninit::<libc::statvfs>::uninit();
+    let result = unsafe { libc::statvfs(path.as_ptr(), stats.as_mut_ptr()) };
+    if result != 0 {
+        return Err(anyhow!("failed to inspect free space for MattOS temp directory"));
+    }
+    let stats = unsafe { stats.assume_init() };
+    Ok((stats.f_bavail as u64).saturating_mul(stats.f_frsize as u64))
+}
+
+fn apply_mattos_tmp_environment(command: &mut Command, cwd: &Path) -> Result<()> {
+    let Some(repo_root) = cwd.ancestors().find(|candidate| {
+        candidate
+            .join("src/tools/mattos-build/Cargo.toml")
+            .is_file()
+    }) else {
+        return Ok(());
+    };
+    let directory = ensure_mattos_build_tmp(repo_root)?;
+    // The repository-owned directory deliberately takes precedence over a
+    // caller's TMPDIR: build correctness must not depend on a full host /tmp.
+    command.env("TMPDIR", directory);
+    Ok(())
 }
 
 fn effective_command_display(program: &str, args: &[String]) -> String {
@@ -13029,6 +13089,7 @@ fn run_cmd_output(cwd: &Path, program: &str, args: &[&str]) -> Result<Output> {
     let mut command = Command::new(program);
     command.args(args).current_dir(cwd);
     apply_reproducible_process_environment(&mut command);
+    apply_mattos_tmp_environment(&mut command, cwd)?;
     command
         .output()
         .with_context(|| format!("failed to spawn command: {program}"))
@@ -14340,6 +14401,48 @@ mod tests {
             run_cmd_capture(root, "sh", &["-c", "echo hello"]).expect("capture")
         };
         assert!(text.to_ascii_lowercase().contains("hello"));
+    }
+
+    #[test]
+    fn mattos_build_temp_directory_is_output_owned_and_writable() {
+        let temporary = tempfile::tempdir().unwrap();
+        let repository = temporary.path();
+        fs::create_dir_all(repository.join("src/tools/mattos-build")).unwrap();
+        fs::write(
+            repository.join("src/tools/mattos-build/Cargo.toml"),
+            "[package]\nname = \"test\"\n",
+        )
+        .unwrap();
+        let selected = ensure_mattos_build_tmp(repository).unwrap();
+        assert_eq!(selected, repository.join("out/tmp"));
+        assert!(selected.is_dir());
+        assert!(!selected.join(format!(".write-probe-{}", std::process::id())).exists());
+    }
+
+    #[test]
+    fn mattos_temp_environment_overrides_host_tmpdir_for_repo_commands() {
+        let temporary = tempfile::tempdir().unwrap();
+        let repository = temporary.path();
+        fs::create_dir_all(repository.join("src/tools/mattos-build")).unwrap();
+        fs::write(
+            repository.join("src/tools/mattos-build/Cargo.toml"),
+            "[package]\nname = \"test\"\n",
+        )
+        .unwrap();
+        let mut command = Command::new("sh");
+        command.env("TMPDIR", "/host/tmp");
+        apply_mattos_tmp_environment(&mut command, repository).unwrap();
+        let debug = format!("{command:?}");
+        assert!(debug.contains("out/tmp"));
+        assert!(!debug.contains("/host/tmp"));
+
+        let observed = run_cmd_capture(
+            repository,
+            "sh",
+            &["-c", "printf '%s' \"$TMPDIR\""],
+        )
+        .expect("child should inherit MattOS TMPDIR");
+        assert_eq!(observed, repository.join("out/tmp").display().to_string());
     }
 
     #[test]

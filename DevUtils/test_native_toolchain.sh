@@ -1,7 +1,8 @@
 #!/bin/sh
 set -eu
 
-work=/tmp/mattos-native-toolchain-test
+repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+work=${MATTOS_TMP_ROOT:-"$repo_root/out/tmp"}/native-toolchain-test
 rm -rf "$work"
 mkdir -p "$work"
 cd "$work"
