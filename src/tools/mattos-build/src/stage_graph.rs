@@ -191,10 +191,23 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         BuildStage::LibdisplayInfo => &["formal-sysroot"],
         BuildStage::Libinput => &["formal-sysroot", "libevdev", "systemd"],
         BuildStage::Libdrm => &["formal-sysroot"],
-        BuildStage::Mesa => &["formal-sysroot", "libdrm", "libdisplay-info", "llvm", "zlib"],
+        BuildStage::Mesa => &[
+            "formal-sysroot",
+            "libdrm",
+            "libdisplay-info",
+            "llvm",
+            "zlib",
+        ],
         BuildStage::CosmicComp => &[
-            "formal-sysroot", "seatd", "libdisplay-info", "libinput", "pixman", "mesa",
-            "wayland", "xkbcommon", "systemd",
+            "formal-sysroot",
+            "seatd",
+            "libdisplay-info",
+            "libinput",
+            "pixman",
+            "mesa",
+            "wayland",
+            "xkbcommon",
+            "systemd",
         ],
         BuildStage::Python => &[
             "formal-sysroot",
@@ -220,13 +233,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         ],
         BuildStage::Curl => &["formal-sysroot", "openssl", "zlib", "zstd"],
         BuildStage::Pam => &["formal-sysroot", "libxcrypt"],
-        BuildStage::UtilLinux => &[
-            "formal-sysroot",
-            "linux-pam",
-            "selinux",
-            "pcre2",
-            "ncurses",
-        ],
+        BuildStage::UtilLinux => &["formal-sysroot", "linux-pam", "selinux", "pcre2", "ncurses"],
         BuildStage::Shadow => &[
             "formal-sysroot",
             "linux-pam",
@@ -265,7 +272,16 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "zstd",
             "systemd",
         ],
-        BuildStage::Installer => &["formal-sysroot", "util-linux", "zlib", "zstd", "linux", "wayland", "xkbcommon", "cosmic-comp"],
+        BuildStage::Installer => &[
+            "formal-sysroot",
+            "util-linux",
+            "zlib",
+            "zstd",
+            "linux",
+            "wayland",
+            "xkbcommon",
+            "cosmic-comp",
+        ],
         BuildStage::Rootfs => &[
             "apt",
             "dpkg",
@@ -484,9 +500,17 @@ mod tests {
         );
         assert_eq!(
             downstream_invalidation(&["linux"]),
-            ["linux", "installer", "packages", "repository", "rootfs", "live-root", "iso"]
-                .into_iter()
-                .collect()
+            [
+                "linux",
+                "installer",
+                "packages",
+                "repository",
+                "rootfs",
+                "live-root",
+                "iso"
+            ]
+            .into_iter()
+            .collect()
         );
         assert_eq!(
             downstream_invalidation(&["repository"]),
@@ -504,21 +528,43 @@ mod tests {
         );
         assert_eq!(
             downstream_invalidation(&["git"]),
-            ["git", "packages", "repository", "rootfs", "live-root", "iso"]
-                .into_iter()
-                .collect()
+            [
+                "git",
+                "packages",
+                "repository",
+                "rootfs",
+                "live-root",
+                "iso"
+            ]
+            .into_iter()
+            .collect()
         );
         assert_eq!(
             downstream_invalidation(&["cpython"]),
-            ["cpython", "packages", "repository", "rootfs", "live-root", "iso"]
-                .into_iter()
-                .collect()
+            [
+                "cpython",
+                "packages",
+                "repository",
+                "rootfs",
+                "live-root",
+                "iso"
+            ]
+            .into_iter()
+            .collect()
         );
         assert_eq!(
             downstream_invalidation(&["llvm"]),
-            ["llvm", "rust", "packages", "repository", "rootfs", "live-root", "iso"]
-                .into_iter()
-                .collect()
+            [
+                "llvm",
+                "rust",
+                "packages",
+                "repository",
+                "rootfs",
+                "live-root",
+                "iso"
+            ]
+            .into_iter()
+            .collect()
         );
         for unrelated in [
             "linux",
@@ -669,18 +715,44 @@ mod tests {
             ),
             ("zlib shared library", &["zlib"], 21, &["brush", "linux"]),
             ("package metadata", &["packages"], 5, &["brush", "zlib"]),
-            ("repository policy", &["repository"], 4, &["packages", "brush"]),
-            ("rootfs configuration", &["rootfs"], 3, &["repository", "packages"]),
-            ("initramfs configuration", &["initramfs"], 2, &["rootfs", "packages"]),
-            ("live-root recipe", &["live-root"], 2, &["rootfs", "packages"]),
+            (
+                "repository policy",
+                &["repository"],
+                4,
+                &["packages", "brush"],
+            ),
+            (
+                "rootfs configuration",
+                &["rootfs"],
+                3,
+                &["repository", "packages"],
+            ),
+            (
+                "initramfs configuration",
+                &["initramfs"],
+                2,
+                &["rootfs", "packages"],
+            ),
+            (
+                "live-root recipe",
+                &["live-root"],
+                2,
+                &["rootfs", "packages"],
+            ),
         ];
         for (name, changed, expected_count, unrelated_hits) in scenarios {
             let invalidated = downstream_invalidation(changed);
             println!("{name}: {} stage(s): {invalidated:?}", invalidated.len());
             assert!(changed.iter().all(|stage| invalidated.contains(stage)));
-            assert_eq!(invalidated.len(), *expected_count, "closure changed for {name}");
+            assert_eq!(
+                invalidated.len(),
+                *expected_count,
+                "closure changed for {name}"
+            );
             assert!(
-                unrelated_hits.iter().all(|stage| !invalidated.contains(stage)),
+                unrelated_hits
+                    .iter()
+                    .all(|stage| !invalidated.contains(stage)),
                 "unrelated stage invalidated for {name}"
             );
         }
@@ -798,11 +870,22 @@ mod tests {
             } else {
                 scenario.owners.iter().copied().collect()
             };
-            assert_eq!(required, expected_required, "wrong rebuilds for {}", scenario.name);
-            assert!(required.is_subset(&candidates), "rebuild escaped candidate closure for {}", scenario.name);
+            assert_eq!(
+                required, expected_required,
+                "wrong rebuilds for {}",
+                scenario.name
+            );
+            assert!(
+                required.is_subset(&candidates),
+                "rebuild escaped candidate closure for {}",
+                scenario.name
+            );
             let hits = all.difference(&required).copied().collect::<BTreeSet<_>>();
             assert!(
-                scenario.unrelated_hits.iter().all(|stage| hits.contains(stage)),
+                scenario
+                    .unrelated_hits
+                    .iter()
+                    .all(|stage| hits.contains(stage)),
                 "unrelated stage rebuilt for {}",
                 scenario.name
             );

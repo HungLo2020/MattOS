@@ -1,6 +1,15 @@
-version = 1
+version = 5
 target_disk = "/dev/vdb"
+storage = { mode = "guided_whole_disk", filesystem = "btrfs", efi = { policy = "create" } }
 installed_profile = "cli"
 hostname = "mattos"
+full_name = "MattOS User"
 username = "matt"
+administrator = true
+automatic_login = false
+root_credential = { mode = "same_as_user" }
+locale = "en_US.UTF-8"
+keyboard_layout = "us"
+keyboard_variant = ""
+timezone = "Etc/UTC"
 test_autologin = false

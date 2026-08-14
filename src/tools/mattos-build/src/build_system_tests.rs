@@ -1,5 +1,7 @@
 use super::*;
-use crate::cache_manifest::{StageInputDetails, StageInputs, StageManifest, STAGE_MANIFEST_SCHEMA_VERSION};
+use crate::cache_manifest::{
+    STAGE_MANIFEST_SCHEMA_VERSION, StageInputDetails, StageInputs, StageManifest,
+};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::os::unix::fs::PermissionsExt;
@@ -91,7 +93,9 @@ fn real_stage_specs_invalidate_only_representative_input_owners() {
             .map(|(name, spec)| {
                 (
                     *name,
-                    performance::compute_stage_inputs(root, spec).unwrap().full_digest,
+                    performance::compute_stage_inputs(root, spec)
+                        .unwrap()
+                        .full_digest,
                 )
             })
             .collect::<BTreeMap<_, _>>()
@@ -118,7 +122,10 @@ fn real_stage_specs_invalidate_only_representative_input_owners() {
         "CONFIG_TEST=n\n",
     );
     let before = assert_change(&before, &["linux"]);
-    write_file(&root.join("src/kernel/linux/include/uapi/linux/test.h"), "uapi two\n");
+    write_file(
+        &root.join("src/kernel/linux/include/uapi/linux/test.h"),
+        "uapi two\n",
+    );
     let before = assert_change(&before, &["glibc", "linux", "linux-headers"]);
     write_file(&root.join("src/toolchain/gcc/gcc/test.c"), "gcc two\n");
     let before = assert_change(&before, &["gcc-runtime", "gcc-toolchain"]);
@@ -157,7 +164,10 @@ fn real_stage_specs_track_tool_recipe_and_dependency_output_identity() {
 
     let mut initramfs = build_stage_spec(BuildStage::Initramfs);
     initramfs.dependencies.clear();
-    write_file(&root.join("src/boot/live-init.c"), "int main(void) { return 0; }\n");
+    write_file(
+        &root.join("src/boot/live-init.c"),
+        "int main(void) { return 0; }\n",
+    );
     let initramfs_before = performance::compute_stage_inputs(root, &initramfs).unwrap();
     initramfs.recipe.push_str(":revision-two");
     let initramfs_after = performance::compute_stage_inputs(root, &initramfs).unwrap();
@@ -169,7 +179,12 @@ fn real_stage_specs_track_tool_recipe_and_dependency_output_identity() {
     publish_dependency(root, "formal-sysroot", "input-two", "same-sysroot-bytes");
     let identical = performance::compute_stage_inputs(root, &initramfs).unwrap();
     assert_eq!(before.full_digest, identical.full_digest);
-    publish_dependency(root, "formal-sysroot", "input-three", "changed-sysroot-bytes");
+    publish_dependency(
+        root,
+        "formal-sysroot",
+        "input-three",
+        "changed-sysroot-bytes",
+    );
     let changed = performance::compute_stage_inputs(root, &initramfs).unwrap();
     assert_ne!(identical.full_digest, changed.full_digest);
 
@@ -190,19 +205,33 @@ fn real_stage_specs_track_tool_recipe_and_dependency_output_identity() {
 #[test]
 fn package_rootfs_initramfs_and_iso_contracts_follow_consumed_artifacts() {
     let rootfs = build_stage_spec(BuildStage::Rootfs);
-    assert!(rootfs.configuration_inputs.contains(&PathBuf::from("out/packages/inventory.toml")));
+    assert!(
+        rootfs
+            .configuration_inputs
+            .contains(&PathBuf::from("out/packages/inventory.toml"))
+    );
     assert!(rootfs.dependencies.contains(&"repository".to_string()));
 
     let initramfs = build_stage_spec(BuildStage::Initramfs);
     assert!(initramfs.configuration_inputs.is_empty());
     assert_eq!(initramfs.dependencies, ["formal-sysroot"]);
-    assert_eq!(initramfs.source_inputs, [PathBuf::from("src/boot/live-init.c")]);
-    assert_eq!(initramfs.outputs, [PathBuf::from("out/build/early-initramfs.cpio.xz")]);
+    assert_eq!(
+        initramfs.source_inputs,
+        [PathBuf::from("src/boot/live-init.c")]
+    );
+    assert_eq!(
+        initramfs.outputs,
+        [PathBuf::from("out/build/early-initramfs.cpio.xz")]
+    );
     assert_eq!(initramfs.tools, ["gcc", "cpio", "xz"]);
 
     let live_root = build_stage_spec(BuildStage::LiveRoot);
     assert_eq!(live_root.dependencies, ["rootfs"]);
-    assert!(live_root.outputs.contains(&PathBuf::from("out/build/live-root.squashfs")));
+    assert!(
+        live_root
+            .outputs
+            .contains(&PathBuf::from("out/build/live-root.squashfs"))
+    );
     assert_eq!(live_root.tools, ["mksquashfs", "unsquashfs"]);
 
     let iso = build_stage_spec(BuildStage::Iso);
@@ -217,7 +246,10 @@ fn cold_build_concurrency_groups_preserve_barriers_and_output_ownership() {
     let graph = crate::stage_graph::dependency_map();
     assert!(graph["linux"].is_empty());
     assert!(graph["glibc"].is_empty());
-    assert_eq!(graph["gcc-runtime"], ["glibc", "linux-headers"].into_iter().collect());
+    assert_eq!(
+        graph["gcc-runtime"],
+        ["glibc", "linux-headers"].into_iter().collect()
+    );
     assert_eq!(graph["binutils"], ["gcc-runtime"].into_iter().collect());
     assert_eq!(
         graph["gcc-compiler"],
@@ -225,13 +257,18 @@ fn cold_build_concurrency_groups_preserve_barriers_and_output_ownership() {
     );
     assert_eq!(
         graph["formal-sysroot"],
-        ["gcc-runtime", "glibc", "linux-headers"].into_iter().collect()
+        ["gcc-runtime", "glibc", "linux-headers"]
+            .into_iter()
+            .collect()
     );
     assert_eq!(graph["repository"], ["packages"].into_iter().collect());
     assert!(graph["rootfs"].contains("repository"));
     assert_eq!(graph["live-root"], ["rootfs"].into_iter().collect());
     assert_eq!(graph["initramfs"], ["formal-sysroot"].into_iter().collect());
-    assert_eq!(graph["iso"], ["initramfs", "linux", "live-root"].into_iter().collect());
+    assert_eq!(
+        graph["iso"],
+        ["initramfs", "linux", "live-root"].into_iter().collect()
+    );
 
     let independent_after_sysroot = [
         BuildStage::Brush,

@@ -16,10 +16,19 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::Sed => &["src/userland/sed"],
         BuildStage::Findutils => &["src/userland/findutils"],
         BuildStage::Diffutils => &["src/userland/diffutils"],
-        BuildStage::Gzip => &["src/userland/gzip", "upstream/policies/release-archives.toml"],
-        BuildStage::Patch => &["src/userland/patch", "upstream/policies/release-archives.toml"],
+        BuildStage::Gzip => &[
+            "src/userland/gzip",
+            "upstream/policies/release-archives.toml",
+        ],
+        BuildStage::Patch => &[
+            "src/userland/patch",
+            "upstream/policies/release-archives.toml",
+        ],
         BuildStage::File => &["src/userland/file"],
-        BuildStage::Less => &["src/userland/less", "upstream/policies/release-archives.toml"],
+        BuildStage::Less => &[
+            "src/userland/less",
+            "upstream/policies/release-archives.toml",
+        ],
         BuildStage::Git => &["src/userland/git"],
         BuildStage::Openssh => &["src/system/network/openssh-portable"],
         BuildStage::Libffi => &["src/system/libraries/libffi/libffi"],
@@ -89,6 +98,7 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "src/system/installer",
             "src/system/storage/btrfs-progs",
             "src/system/storage/dosfstools",
+            "src/system/storage/e2fsprogs",
             "src/desktop/cosmic/libcosmic",
             "src/desktop/cosmic/iced",
             "src/desktop/cosmic/cosmic-protocols",
@@ -124,12 +134,25 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
         BuildStage::LiveRoot => &["mksquashfs", "unsquashfs"],
         BuildStage::Initramfs => &["gcc", "cpio", "xz"],
         BuildStage::Xkbcommon => &["gcc", "ld", "meson", "ninja"],
-        BuildStage::Libseat | BuildStage::LibdisplayInfo | BuildStage::Libevdev
-        | BuildStage::Libinput | BuildStage::Pixman | BuildStage::Libdrm | BuildStage::Mesa => {
-            &["gcc", "ld", "meson", "ninja", "pkg-config"]
-        }
+        BuildStage::Libseat
+        | BuildStage::LibdisplayInfo
+        | BuildStage::Libevdev
+        | BuildStage::Libinput
+        | BuildStage::Pixman
+        | BuildStage::Libdrm
+        | BuildStage::Mesa => &["gcc", "ld", "meson", "ninja", "pkg-config"],
         BuildStage::CosmicComp => &["cargo", "rustc", "gcc", "ld", "pkg-config"],
-        BuildStage::Installer => &["cargo", "rustc", "gcc", "ld", "autoreconf", "make", "grub-mkimage", "cpio", "xz"],
+        BuildStage::Installer => &[
+            "cargo",
+            "rustc",
+            "gcc",
+            "ld",
+            "autoreconf",
+            "make",
+            "grub-mkimage",
+            "cpio",
+            "xz",
+        ],
         BuildStage::Iso => &["grub-mkrescue", "xorriso"],
         stage if is_rust_stage(stage) => &["cargo", "rustc", "gcc", "ld"],
         _ => &["gcc", "g++", "as", "ld", "make"],
@@ -147,8 +170,12 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
         BuildStage::Initramfs => 5,
         BuildStage::Installer => 5,
         BuildStage::Xkbcommon => 4,
-        BuildStage::Libseat | BuildStage::LibdisplayInfo | BuildStage::Libevdev
-        | BuildStage::Libinput | BuildStage::Pixman | BuildStage::Libdrm
+        BuildStage::Libseat
+        | BuildStage::LibdisplayInfo
+        | BuildStage::Libevdev
+        | BuildStage::Libinput
+        | BuildStage::Pixman
+        | BuildStage::Libdrm
         | BuildStage::CosmicComp => 1,
         // Revision 2 enables Mesa's source-built VirGL Gallium renderer for
         // the QEMU virtio-gpu/kmsro compositor path.

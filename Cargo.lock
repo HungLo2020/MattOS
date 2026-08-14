@@ -403,6 +403,7 @@ dependencies = [
  "clap",
  "libc",
  "serde",
+ "serde_json",
  "tempfile",
  "toml",
 ]

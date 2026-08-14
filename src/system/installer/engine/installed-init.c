@@ -54,8 +54,9 @@ static int storage_identity_matches(const char *expected_uuid) {
         if (strcmp(line, expected) == 0) return 1;
     return 0;
 }
-static int try_installed_root(const char *device, const char *expected_uuid) {
-    if (mount(device, "/newroot", "btrfs", MS_NOATIME, "subvol=@,compress=zstd:3") < 0) return 0;
+static int try_installed_root(const char *device, const char *expected_uuid, const char *filesystem) {
+    const char *options = strcmp(filesystem, "btrfs") == 0 ? "subvol=@,compress=zstd:3" : NULL;
+    if (mount(device, "/newroot", filesystem, MS_NOATIME, options) < 0) return 0;
     int valid = access("/newroot/usr/lib/systemd/systemd", X_OK) == 0
         && access("/newroot/etc/mattos-installed-profile", R_OK) == 0
         && storage_identity_matches(expected_uuid);
@@ -63,7 +64,7 @@ static int try_installed_root(const char *device, const char *expected_uuid) {
     if (umount("/newroot") < 0) fatal("unmount non-MattOS candidate");
     return 0;
 }
-static int find_installed_root(char *selected, size_t size, const char *expected_uuid) {
+static int find_installed_root(char *selected, size_t size, const char *expected_uuid, const char *filesystem) {
     DIR *directory = opendir("/sys/class/block");
     if (!directory) return 0;
     struct dirent *entry;
@@ -71,7 +72,7 @@ static int find_installed_root(char *selected, size_t size, const char *expected
         if (entry->d_name[0] == '.' || !is_partition(entry->d_name)) continue;
         char device[PATH_MAX];
         snprintf(device, sizeof(device), "/dev/%s", entry->d_name);
-        if (try_installed_root(device, expected_uuid)) {
+        if (try_installed_root(device, expected_uuid, filesystem)) {
             snprintf(selected, size, "%s", device);
             closedir(directory);
             return 1;
@@ -79,58 +80,6 @@ static int find_installed_root(char *selected, size_t size, const char *expected
     }
     closedir(directory);
     return 0;
-}
-static int parent_disk(const char *partition, char *parent, size_t size) {
-    char link[PATH_MAX], resolved[PATH_MAX];
-    snprintf(link, sizeof(link), "/sys/class/block/%s", partition);
-    if (!realpath(link, resolved)) return 0;
-    char *slash = strrchr(resolved, '/');
-    if (!slash) return 0;
-    *slash = 0;
-    slash = strrchr(resolved, '/');
-    if (!slash || !slash[1]) return 0;
-    snprintf(parent, size, "%s", slash + 1);
-    return 1;
-}
-static int partition_number(const char *name) {
-    char path[PATH_MAX], value[32];
-    snprintf(path, sizeof(path), "/sys/class/block/%s/partition", name);
-    if (!read_small_file(path, value, sizeof(value))) return -1;
-    return atoi(value);
-}
-static int find_sibling_partition(const char *root_device, int number, char *device, size_t size) {
-    const char *root_name = strrchr(root_device, '/');
-    root_name = root_name ? root_name + 1 : root_device;
-    char wanted_parent[256];
-    if (!parent_disk(root_name, wanted_parent, sizeof(wanted_parent))) return 0;
-    DIR *directory = opendir("/sys/class/block");
-    if (!directory) return 0;
-    struct dirent *entry;
-    while ((entry = readdir(directory))) {
-        char candidate_parent[256];
-        if (entry->d_name[0] == '.' || partition_number(entry->d_name) != number
-            || !parent_disk(entry->d_name, candidate_parent, sizeof(candidate_parent))
-            || strcmp(candidate_parent, wanted_parent) != 0) continue;
-        snprintf(device, size, "/dev/%s", entry->d_name);
-        closedir(directory);
-        return 1;
-    }
-    closedir(directory);
-    return 0;
-}
-static void mount_installed_filesystems(const char *root) {
-    if (mount(root, "/newroot/home", "btrfs", MS_NOATIME, "subvol=@home,compress=zstd:3") < 0)
-        fatal("mount @home");
-    if (mount(root, "/newroot/.snapshots", "btrfs", MS_NOATIME, "subvol=@snapshots,compress=zstd:3") < 0)
-        fatal("mount @snapshots");
-    char efi[PATH_MAX];
-    if (!find_sibling_partition(root, 1, efi, sizeof(efi))) {
-        errno = ENODEV;
-        fatal("find EFI sibling partition");
-    }
-    if (mount(efi, "/newroot/boot/efi", "vfat", MS_NOSUID | MS_NODEV | MS_NOEXEC, "umask=0077") < 0)
-        fatal("mount EFI system partition");
-    dprintf(2, "mattos-installed-init: persistent mounts use %s and %s\n", root, efi);
 }
 int main(void) {
     mkdir_ok("/dev"); mkdir_ok("/proc"); mkdir_ok("/sys"); mkdir_ok("/newroot");
@@ -142,14 +91,19 @@ int main(void) {
         errno = EINVAL;
         fatal("missing stable mattos.root_uuid boot identity");
     }
+    char filesystem[32] = {0};
+    if (!command_line_value("mattos.root_fstype", filesystem, sizeof(filesystem))
+        || (strcmp(filesystem, "btrfs") != 0 && strcmp(filesystem, "ext4") != 0)) {
+        errno = EINVAL;
+        fatal("missing or unsupported mattos.root_fstype");
+    }
     char root[PATH_MAX] = {0};
     for (int i = 0; i < 100; i++) {
-        if (find_installed_root(root, sizeof(root), expected_uuid)) break;
-        if (i == 99) { errno = ENODEV; fatal("find and mount installed MattOS Btrfs root"); }
+        if (find_installed_root(root, sizeof(root), expected_uuid, filesystem)) break;
+        if (i == 99) { errno = ENODEV; fatal("find and mount installed MattOS root"); }
         usleep(100000);
     }
     dprintf(2, "mattos-installed-init: mounted stable UUID %s from %s\n", expected_uuid, root);
-    mount_installed_filesystems(root);
     if (mount(NULL, "/", NULL, MS_REC | MS_PRIVATE, NULL) < 0) fatal("private mounts");
     mkdir_ok("/newroot/dev"); mkdir_ok("/newroot/proc"); mkdir_ok("/newroot/sys");
     if (mount("/dev", "/newroot/dev", NULL, MS_MOVE, NULL) < 0) fatal("move /dev");

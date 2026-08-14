@@ -10,16 +10,15 @@ pub(crate) fn inspect(
     executable_digest: impl FnOnce(&Path) -> Result<String>,
 ) -> Result<ToolIdentity> {
     let path = resolve_executable(tool)?;
-    let version_output = if Path::new(tool).file_name().and_then(OsStr::to_str)
-        == Some("unsquashfs")
-    {
-        // squashfs-tools 4.6.1 prints a valid version and exits 1 for this
-        // informational mode. Accept only that documented program-specific
-        // behavior; all normal probes remain fail-closed.
-        stable_tool_output_inner(&path, version_arguments(tool), true)?
-    } else {
-        stable_tool_output(&path, version_arguments(tool))?
-    };
+    let version_output =
+        if Path::new(tool).file_name().and_then(OsStr::to_str) == Some("unsquashfs") {
+            // squashfs-tools 4.6.1 prints a valid version and exits 1 for this
+            // informational mode. Accept only that documented program-specific
+            // behavior; all normal probes remain fail-closed.
+            stable_tool_output_inner(&path, version_arguments(tool), true)?
+        } else {
+            stable_tool_output(&path, version_arguments(tool))?
+        };
     let target = if matches!(tool, "gcc" | "g++" | "cc" | "c++") {
         stable_tool_output(&path, &["-dumpmachine"])?
     } else if tool == "rustc" {

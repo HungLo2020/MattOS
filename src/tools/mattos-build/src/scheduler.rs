@@ -2,7 +2,7 @@ use crate::performance;
 use crate::resources::{
     HostResourceSampler, PressureLevel, ResourceBudget, ResourceEnvelope, RuntimeResourceSampler,
 };
-use anyhow::{anyhow, bail, Result};
+use anyhow::{Result, anyhow, bail};
 use std::cell::Cell;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs::{File, OpenOptions};
@@ -540,9 +540,7 @@ pub(crate) fn standalone_grant(
         .minimum_cpu_grant
         .max(profile.minimum_child_jobs)
         .min(budget.cpu_tokens);
-    let preferred = if profile.may_borrow_idle_cpu
-        && envelope.pressure == PressureLevel::Healthy
-    {
+    let preferred = if profile.may_borrow_idle_cpu && envelope.pressure == PressureLevel::Healthy {
         budget.cpu_tokens.min(maximum)
     } else {
         profile
@@ -593,7 +591,9 @@ fn admission_grant(
         .checked_sub(used_memory)
         .ok_or("memory-budget")?;
     let minimum = profile.minimum_cpu_grant.max(profile.minimum_child_jobs);
-    if available_cpu < minimum { return Err("insufficient-cpu-or-memory-budget"); }
+    if available_cpu < minimum {
+        return Err("insufficient-cpu-or-memory-budget");
+    }
     let reserved_for_peers = waiting_profiles
         .filter(|peer| {
             peer.minimum_cpu_grant.max(peer.minimum_child_jobs) <= available_cpu
@@ -814,7 +814,8 @@ where
                     job.tokens = allocation.cpu_tokens;
                     job.memory_bytes = memory_reservation(node.profile, allocation.child_jobs);
                     job.memory_heavy = node.profile.memory_heavy;
-                    job.estimated_memory_bytes = memory_reservation(node.profile, allocation.child_jobs);
+                    job.estimated_memory_bytes =
+                        memory_reservation(node.profile, allocation.child_jobs);
                     job.observed_available_memory_start =
                         Some(admission_budget.available_memory_bytes);
                     job.observed_cgroup_memory_current_start = sampled.cgroup_memory_current_bytes;
@@ -1070,11 +1071,13 @@ mod tests {
     #[test]
     fn rejects_unknown_dependencies_cycles_invalid_weights_and_overlaps() {
         assert!(validate(&[node("a", &["missing"], 1)], budget(12, 8 * GIB, false)).is_err());
-        assert!(validate(
-            &[node("a", &["b"], 1), node("b", &["a"], 1)],
-            budget(12, 8 * GIB, false)
-        )
-        .is_err());
+        assert!(
+            validate(
+                &[node("a", &["b"], 1), node("b", &["a"], 1)],
+                budget(12, 8 * GIB, false)
+            )
+            .is_err()
+        );
         assert!(validate(&[node("a", &[], 13)], budget(12, 8 * GIB, false)).is_err());
         let mut left = node("a", &[], 1);
         let mut right = node("b", &[], 1);
@@ -1187,15 +1190,17 @@ mod tests {
         assert!(first.cpu_tokens > 0);
         // Twelve CPUs remain available, but a second 3-GiB action would cross
         // the startup headroom budget and is not admitted.
-        assert!(admission_grant(
-            heavy,
-            constrained,
-            PressureLevel::Constrained,
-            first.cpu_tokens,
-            memory_reservation(heavy, first.child_jobs),
-            std::iter::empty()
-        )
-        .is_err());
+        assert!(
+            admission_grant(
+                heavy,
+                constrained,
+                PressureLevel::Constrained,
+                first.cpu_tokens,
+                memory_reservation(heavy, first.child_jobs),
+                std::iter::empty()
+            )
+            .is_err()
+        );
     }
 
     #[test]
@@ -1312,31 +1317,34 @@ mod tests {
         .expect("a constrained host must use the highest safe sub-baseline grant");
         assert_eq!(allocation.cpu_tokens, 2);
         assert_eq!(allocation.child_jobs, 2);
-        assert!(memory_reservation(StageResourceProfile::memory_heavy(), 2)
-            <= 1_650 * 1024 * 1024);
+        assert!(memory_reservation(StageResourceProfile::memory_heavy(), 2) <= 1_650 * 1024 * 1024);
     }
 
     #[test]
     fn critical_pressure_blocks_new_heavy_work_but_not_safe_standard_work() {
         let critical = PressureLevel::Critical;
-        assert!(admission_grant(
-            StageResourceProfile::memory_heavy(),
-            budget(32, 32 * GIB, false),
-            critical,
-            0,
-            0,
-            std::iter::empty()
-        )
-        .is_err());
-        assert!(admission_grant(
-            StageResourceProfile::standard(),
-            budget(32, 32 * GIB, false),
-            critical,
-            0,
-            0,
-            std::iter::empty()
-        )
-        .is_ok());
+        assert!(
+            admission_grant(
+                StageResourceProfile::memory_heavy(),
+                budget(32, 32 * GIB, false),
+                critical,
+                0,
+                0,
+                std::iter::empty()
+            )
+            .is_err()
+        );
+        assert!(
+            admission_grant(
+                StageResourceProfile::standard(),
+                budget(32, 32 * GIB, false),
+                critical,
+                0,
+                0,
+                std::iter::empty()
+            )
+            .is_ok()
+        );
     }
 
     #[test]
@@ -1358,15 +1366,17 @@ mod tests {
     fn overlarge_memory_estimate_cannot_cross_the_reserved_budget() {
         let mut profile = StageResourceProfile::memory_heavy();
         profile.estimated_memory_bytes = 8 * GIB;
-        assert!(admission_grant(
-            profile,
-            budget(32, 4 * GIB, false),
-            PressureLevel::Healthy,
-            0,
-            0,
-            std::iter::empty()
-        )
-        .is_err());
+        assert!(
+            admission_grant(
+                profile,
+                budget(32, 4 * GIB, false),
+                PressureLevel::Healthy,
+                0,
+                0,
+                std::iter::empty()
+            )
+            .is_err()
+        );
     }
 
     #[test]

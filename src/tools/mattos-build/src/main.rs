@@ -96,14 +96,11 @@ const GZIP_RELEASE_ARCHIVE_SHA256: &str =
 const PATCH_RELEASE_ARCHIVE_URL: &str = "https://ftp.gnu.org/gnu/patch/patch-2.8.tar.xz";
 const PATCH_RELEASE_ARCHIVE_SHA256: &str =
     "f87cee69eec2b4fcbf60a396b030ad6aa3415f192aa5f7ee84cad5e11f7f5ae3";
-const RUST_RELEASE_ARCHIVE_URL: &str =
-    "https://static.rust-lang.org/dist/rustc-1.97.1-src.tar.xz";
+const RUST_RELEASE_ARCHIVE_URL: &str = "https://static.rust-lang.org/dist/rustc-1.97.1-src.tar.xz";
 const RUST_RELEASE_ARCHIVE_SHA256: &str =
     "0ed06fdaffd4722a7702e0b4eebfafc897ab8f513e8e1b247cdd7e5c6df6ded2";
-const MATTOS_GCC_INSTALL_DIR: &str =
-    "/usr/lib/x86_64-linux-gnu/gcc/x86_64-pc-linux-gnu/15.3.0";
-const LESS_RELEASE_ARCHIVE_URL: &str =
-    "https://www.greenwoodsoftware.com/less/less-704.tar.gz";
+const MATTOS_GCC_INSTALL_DIR: &str = "/usr/lib/x86_64-linux-gnu/gcc/x86_64-pc-linux-gnu/15.3.0";
+const LESS_RELEASE_ARCHIVE_URL: &str = "https://www.greenwoodsoftware.com/less/less-704.tar.gz";
 const LESS_RELEASE_ARCHIVE_SHA256: &str =
     "20a0b0a2bb2525fa53c7eee9beb854b4c9cf172eabb209af7020743547bfe9fb";
 const SUDO_RS_PROVIDER: &str = "sudo-rs";
@@ -449,7 +446,11 @@ const fn component_binary_at(
     destination_rel: &'static str,
     command_name: &'static str,
 ) -> ComponentBinarySpec {
-    ComponentBinarySpec { source_rel, destination_rel, command_name }
+    ComponentBinarySpec {
+        source_rel,
+        destination_rel,
+        command_name,
+    }
 }
 
 const COMPONENT_INSTALL_MANIFESTS: &[ComponentInstallManifest] = &[
@@ -1227,8 +1228,8 @@ fn artifact_record(
     detail: &'static str,
 ) -> Result<ArtifactRecord> {
     let path = repo_root.join(relative);
-    let metadata = fs::metadata(&path)
-        .with_context(|| format!("{role} is missing at {}", path.display()))?;
+    let metadata =
+        fs::metadata(&path).with_context(|| format!("{role} is missing at {}", path.display()))?;
     if !metadata.is_file() {
         bail!("{role} is not a regular file: {}", path.display());
     }
@@ -1346,7 +1347,10 @@ fn report_artifacts(repo_root: &Path) -> Result<()> {
         ));
         println!(
             "{:<38} {:>12} bytes  {}  {}",
-            format!("{}:", record.role), record.bytes, record.sha256, record.path
+            format!("{}:", record.role),
+            record.bytes,
+            record.sha256,
+            record.path
         );
     }
     let destination = repo_root.join(ARTIFACT_REPORT_PATH);
@@ -2118,12 +2122,8 @@ fn initial_import_component(
         lfs_policy_name,
         lfs_policy_sha256,
     ) = component_provenance_policy(repo_root, &comp.name)?;
-    let lfs_policy = load_lfs_hydration_policy(
-        repo_root,
-        comp,
-        &lfs_policy_name,
-        &lfs_policy_sha256,
-    )?;
+    let lfs_policy =
+        load_lfs_hydration_policy(repo_root, comp, &lfs_policy_name, &lfs_policy_sha256)?;
 
     clear_directory_contents(destination)?;
     materialize_git_tree_exact(&tmp, "HEAD", destination, source_selection.as_ref())?;
@@ -2213,12 +2213,8 @@ fn update_component(
         lfs_policy_name,
         lfs_policy_sha256,
     ) = component_provenance_policy(repo_root, &comp.name)?;
-    let lfs_policy = load_lfs_hydration_policy(
-        repo_root,
-        comp,
-        &lfs_policy_name,
-        &lfs_policy_sha256,
-    )?;
+    let lfs_policy =
+        load_lfs_hydration_policy(repo_root, comp, &lfs_policy_name, &lfs_policy_sha256)?;
 
     let old_commit = prior_state.imported_commit.trim();
     if new_commit.trim() == old_commit {
@@ -2656,7 +2652,10 @@ fn load_lfs_hydration_policy(
         || policy.upstream_commit != revision
         || !policy.source.contains("{path}")
     {
-        bail!("{} LFS policy identity is inconsistent with sources.toml", comp.name);
+        bail!(
+            "{} LFS policy identity is inconsistent with sources.toml",
+            comp.name
+        );
     }
     let mut paths = BTreeSet::new();
     for object in &policy.object {
@@ -2683,7 +2682,9 @@ fn restore_lfs_pointers_for_merge(
     merge_tree: &Path,
     policy: Option<&LfsHydrationPolicy>,
 ) -> Result<()> {
-    let Some(policy) = policy else { return Ok(()); };
+    let Some(policy) = policy else {
+        return Ok(());
+    };
     for object in &policy.object {
         let object_name = format!("HEAD:{}", object.path);
         if run_cmd_status(merge_tree, "git", &["cat-file", "-e", &object_name])?.success() {
@@ -2701,8 +2702,12 @@ fn hydrate_lfs_objects(
     destination: &Path,
     policy: Option<&LfsHydrationPolicy>,
 ) -> Result<()> {
-    let Some(policy) = policy else { return Ok(()); };
-    let cache = repo_root.join("upstream/.tmp").join(format!("{}-lfs", comp.name));
+    let Some(policy) = policy else {
+        return Ok(());
+    };
+    let cache = repo_root
+        .join("upstream/.tmp")
+        .join(format!("{}-lfs", comp.name));
     fs::create_dir_all(&cache)?;
     for object in &policy.object {
         let target = destination.join(&object.path);
@@ -2722,13 +2727,25 @@ fn hydrate_lfs_objects(
             run_cmd(
                 repo_root,
                 "curl",
-                &["--fail", "--location", "--silent", "--show-error", "--output",
-                    temporary.to_str().ok_or_else(|| anyhow!("invalid LFS cache path"))?, &url],
+                &[
+                    "--fail",
+                    "--location",
+                    "--silent",
+                    "--show-error",
+                    "--output",
+                    temporary
+                        .to_str()
+                        .ok_or_else(|| anyhow!("invalid LFS cache path"))?,
+                    &url,
+                ],
             )?;
             if temporary.metadata()?.len() != object.size
                 || performance::sha256_file(&temporary)? != object.sha256
             {
-                bail!("downloaded LFS payload failed verification for {}", object.path);
+                bail!(
+                    "downloaded LFS payload failed verification for {}",
+                    object.path
+                );
             }
             fs::rename(&temporary, &payload)?;
         }
@@ -2864,11 +2881,18 @@ fn materialize_git_tree_exact(
     fs::create_dir_all(destination)?;
     let tree = run_cmd_output(source_git, "git", &["ls-tree", "-rz", treeish])?;
     if !tree.status.success() {
-        bail!("failed to enumerate Git tree {treeish} in {}", source_git.display());
+        bail!(
+            "failed to enumerate Git tree {treeish} in {}",
+            source_git.display()
+        );
     }
 
     let mut objects = Vec::new();
-    for record in tree.stdout.split(|byte| *byte == 0).filter(|r| !r.is_empty()) {
+    for record in tree
+        .stdout
+        .split(|byte| *byte == 0)
+        .filter(|r| !r.is_empty())
+    {
         let tab = record
             .iter()
             .position(|byte| *byte == b'\t')
@@ -2876,10 +2900,12 @@ fn materialize_git_tree_exact(
         let header = std::str::from_utf8(&record[..tab]).context("non-UTF-8 tree header")?;
         let mut fields = header.split_whitespace();
         let mode = fields.next().ok_or_else(|| anyhow!("missing tree mode"))?;
-        let kind = fields.next().ok_or_else(|| anyhow!("missing object kind"))?;
+        let kind = fields
+            .next()
+            .ok_or_else(|| anyhow!("missing object kind"))?;
         let object = fields.next().ok_or_else(|| anyhow!("missing object id"))?;
-        let path = std::str::from_utf8(&record[tab + 1..])
-            .context("imported source path is not UTF-8")?;
+        let path =
+            std::str::from_utf8(&record[tab + 1..]).context("imported source path is not UTF-8")?;
         if mode == "160000" || kind == "commit" {
             continue;
         }
@@ -2920,7 +2946,10 @@ fn materialize_git_tree_exact(
             .parse::<usize>()
             .with_context(|| format!("invalid cat-file size for {relative}"))?;
         if actual_object != object || kind != "blob" {
-            bail!("unexpected cat-file response for {relative}: {}", header.trim());
+            bail!(
+                "unexpected cat-file response for {relative}: {}",
+                header.trim()
+            );
         }
         let mut payload = vec![0; size];
         output.read_exact(&mut payload)?;
@@ -3551,6 +3580,7 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
             "out/build/installer/cosmic-target/release/mattos-install-cosmic".into(),
             "out/build/btrfs-progs/install/usr/bin/btrfs".into(),
             "out/build/dosfstools/install/usr/sbin/mkfs.fat".into(),
+            "out/build/e2fsprogs/install/usr/sbin/mkfs.ext4".into(),
             "out/build/installed-initramfs.cpio.xz".into(),
             "out/build/installer/BOOTX64.EFI".into(),
         ],
@@ -6085,8 +6115,8 @@ fn build_util_linux(repo_root: &Path) -> Result<()> {
         &pcre2_pkgconfig,
         &ncurses_pkgconfig,
     ])?
-            .to_string_lossy()
-            .to_string();
+    .to_string_lossy()
+    .to_string();
     let pkg_config_path = if current_pkg_config.is_empty() {
         staged_pkg_config
     } else {
@@ -6143,7 +6173,10 @@ fn build_util_linux(repo_root: &Path) -> Result<()> {
     apply_component_patches(repo_root, "util-linux", &util_linux_src)?;
 
     let options = util_linux_meson_options();
-    let options_text = format!("policy=base-userland-output-mirror-v2\n{}\n", options.join("\n"));
+    let options_text = format!(
+        "policy=base-userland-output-mirror-v2\n{}\n",
+        options.join("\n")
+    );
     let existing_options = fs::read_to_string(&options_path).ok();
     let needs_reconfigure = existing_options.as_deref() != Some(options_text.as_str());
     let env_changed = existing_env.as_deref() != Some(env_text.as_str());
@@ -7130,11 +7163,20 @@ fn ensure_verified_release_archive(
     run_cmd(
         out_root,
         "curl",
-        &["-fL", "--retry", "3", "--output", path_str(&temporary)?, url],
+        &[
+            "-fL",
+            "--retry",
+            "3",
+            "--output",
+            path_str(&temporary)?,
+            url,
+        ],
     )?;
     let actual = performance::sha256_file(&temporary)?;
     if actual != expected_sha256 {
-        bail!("release archive checksum mismatch for {url}: expected {expected_sha256}, got {actual}");
+        bail!(
+            "release archive checksum mismatch for {url}: expected {expected_sha256}, got {actual}"
+        );
     }
     fs::rename(&temporary, &archive)?;
     Ok(archive)
@@ -7185,26 +7227,35 @@ fn build_release_autotools_program(
     let build_dir = out_root.join("build");
     let install_dir = out_root.join("install");
     let stamp_path = out_root.join("build-stamp.txt");
-    let state = fs::read_to_string(repo_root.join("upstream/state").join(format!("{component}.toml")))?;
-    let stamp = format!("{state}\n{archive_url}\n{archive_sha256}\n{}\n{}\n", dependencies.join("\n"), options.join("\n"));
+    let state = fs::read_to_string(
+        repo_root
+            .join("upstream/state")
+            .join(format!("{component}.toml")),
+    )?;
+    let stamp = format!(
+        "{state}\n{archive_url}\n{archive_sha256}\n{}\n{}\n",
+        dependencies.join("\n"),
+        options.join("\n")
+    );
     if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
         remove_path_if_exists(&source_copy)?;
         remove_path_if_exists(&build_dir)?;
     }
     fs::create_dir_all(&out_root)?;
-    let archive = ensure_verified_release_archive(
-        &out_root,
-        archive_filename,
-        archive_url,
-        archive_sha256,
-    )?;
+    let archive =
+        ensure_verified_release_archive(&out_root, archive_filename, archive_url, archive_sha256)?;
     if !source_copy.join("configure").is_file() {
         stage_release_source(&archive, &source_copy)?;
     }
     fs::create_dir_all(&build_dir)?;
     let env = staged_library_environment(repo_root, dependencies)?;
     if !build_dir.join("Makefile").is_file() {
-        run_cmd_with_env_overrides(&build_dir, path_str(&source_copy.join("configure"))?, options, &env)?;
+        run_cmd_with_env_overrides(
+            &build_dir,
+            path_str(&source_copy.join("configure"))?,
+            options,
+            &env,
+        )?;
     }
     run_cmd_with_env_overrides(&build_dir, "make", &["-j", "4"], &env)?;
     remove_path_if_exists(&install_dir)?;
@@ -7249,13 +7300,19 @@ fn build_patch(repo_root: &Path) -> Result<()> {
     )
 }
 
-fn staged_library_environment(repo_root: &Path, components: &[&str]) -> Result<Vec<(&'static str, String)>> {
+fn staged_library_environment(
+    repo_root: &Path,
+    components: &[&str],
+) -> Result<Vec<(&'static str, String)>> {
     let mut include_dirs = Vec::new();
     let mut library_dirs = Vec::new();
     let mut pkgconfig_dirs = Vec::new();
     let mut program_dirs = Vec::new();
     for component in components {
-        let usr = repo_root.join("out/build").join(component).join("install/usr");
+        let usr = repo_root
+            .join("out/build")
+            .join(component)
+            .join("install/usr");
         let include = usr.join("include");
         let bin = usr.join("bin");
         let library = usr.join("lib/x86_64-linux-gnu");
@@ -7267,27 +7324,72 @@ fn staged_library_environment(repo_root: &Path, components: &[&str]) -> Result<V
             // include from the host merely because a .pc prefix is /usr.
             for entry in fs::read_dir(&include)? {
                 let entry = entry?;
-                if entry.file_type()?.is_dir() { include_dirs.push(entry.path()); }
+                if entry.file_type()?.is_dir() {
+                    include_dirs.push(entry.path());
+                }
             }
         }
         if library.is_dir() {
             pkgconfig_dirs.push(library.join("pkgconfig"));
             library_dirs.push(library);
         }
-        if bin.is_dir() { program_dirs.push(bin); }
+        if bin.is_dir() {
+            program_dirs.push(bin);
+        }
     }
-    let cppflags = include_dirs.iter().map(|p| format!("-I{}", p.display())).collect::<Vec<_>>().join(" ");
-    let ldflags = library_dirs.iter().map(|p| format!("-L{} -Wl,-rpath-link,{}", p.display(), p.display())).collect::<Vec<_>>().join(" ");
+    let cppflags = include_dirs
+        .iter()
+        .map(|p| format!("-I{}", p.display()))
+        .collect::<Vec<_>>()
+        .join(" ");
+    let ldflags = library_dirs
+        .iter()
+        .map(|p| format!("-L{} -Wl,-rpath-link,{}", p.display(), p.display()))
+        .collect::<Vec<_>>()
+        .join(" ");
     Ok(vec![
         ("CPPFLAGS", cppflags),
         ("LDFLAGS", ldflags),
-        ("LIBRARY_PATH", std::env::join_paths(&library_dirs)?.to_string_lossy().to_string()),
-        ("LD_LIBRARY_PATH", std::env::join_paths(&library_dirs)?.to_string_lossy().to_string()),
-        ("PKG_CONFIG_PATH", std::env::join_paths(&pkgconfig_dirs)?.to_string_lossy().to_string()),
+        (
+            "LIBRARY_PATH",
+            std::env::join_paths(&library_dirs)?
+                .to_string_lossy()
+                .to_string(),
+        ),
+        (
+            "LD_LIBRARY_PATH",
+            std::env::join_paths(&library_dirs)?
+                .to_string_lossy()
+                .to_string(),
+        ),
+        (
+            "PKG_CONFIG_PATH",
+            std::env::join_paths(&pkgconfig_dirs)?
+                .to_string_lossy()
+                .to_string(),
+        ),
         // Do not fall back to host .pc files. Native runtime stages are built
         // only against previously produced MattOS development metadata.
-        ("PKG_CONFIG_LIBDIR", std::env::join_paths(&pkgconfig_dirs)?.to_string_lossy().to_string()),
-        ("PATH", std::env::join_paths(&program_dirs.iter().cloned().chain(std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default())).collect::<Vec<_>>())?.to_string_lossy().to_string()),
+        (
+            "PKG_CONFIG_LIBDIR",
+            std::env::join_paths(&pkgconfig_dirs)?
+                .to_string_lossy()
+                .to_string(),
+        ),
+        (
+            "PATH",
+            std::env::join_paths(
+                &program_dirs
+                    .iter()
+                    .cloned()
+                    .chain(std::env::split_paths(
+                        &std::env::var_os("PATH").unwrap_or_default(),
+                    ))
+                    .collect::<Vec<_>>(),
+            )?
+            .to_string_lossy()
+            .to_string(),
+        ),
     ])
 }
 
@@ -7305,8 +7407,16 @@ fn build_autotools_import(
     let build_dir = out_root.join("build");
     let install_dir = out_root.join("install");
     let stamp_path = out_root.join("build-stamp.txt");
-    let state = fs::read_to_string(repo_root.join("upstream/state").join(format!("{component}.toml")))?;
-    let stamp = format!("{state}\n{}\ndependencies={}\n", options.join("\n"), dependencies.join(","));
+    let state = fs::read_to_string(
+        repo_root
+            .join("upstream/state")
+            .join(format!("{component}.toml")),
+    )?;
+    let stamp = format!(
+        "{state}\n{}\ndependencies={}\n",
+        options.join("\n"),
+        dependencies.join(",")
+    );
     if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
         remove_path_if_exists(&source_copy)?;
         remove_path_if_exists(&build_dir)?;
@@ -7319,7 +7429,12 @@ fn build_autotools_import(
     let env = staged_library_environment(repo_root, dependencies)?;
     fs::create_dir_all(&build_dir)?;
     if !build_dir.join("Makefile").is_file() {
-        run_cmd_with_env_overrides(&build_dir, path_str(&source_copy.join("configure"))?, options, &env)?;
+        run_cmd_with_env_overrides(
+            &build_dir,
+            path_str(&source_copy.join("configure"))?,
+            options,
+            &env,
+        )?;
     }
     run_cmd_with_env_overrides(&build_dir, "make", &["-j", "4"], &env)?;
     remove_path_if_exists(&install_dir)?;
@@ -7330,7 +7445,9 @@ fn build_autotools_import(
         &env,
     )?;
     for relative in required_outputs {
-        if !install_dir.join(relative).is_file() { bail!("{component} install did not produce {relative}"); }
+        if !install_dir.join(relative).is_file() {
+            bail!("{component} install did not produce {relative}");
+        }
     }
     fs::write(stamp_path, stamp)?;
     Ok(())
@@ -7338,16 +7455,31 @@ fn build_autotools_import(
 
 fn build_file(repo_root: &Path) -> Result<()> {
     build_autotools_import(
-        repo_root, "file", "src/userland/file", &["zlib"],
-        &["--prefix=/usr", "--libdir=/usr/lib/x86_64-linux-gnu", "--disable-static"],
-        &["usr/bin/file", "usr/lib/x86_64-linux-gnu/libmagic.so.1", "usr/share/misc/magic.mgc"],
+        repo_root,
+        "file",
+        "src/userland/file",
+        &["zlib"],
+        &[
+            "--prefix=/usr",
+            "--libdir=/usr/lib/x86_64-linux-gnu",
+            "--disable-static",
+        ],
+        &[
+            "usr/bin/file",
+            "usr/lib/x86_64-linux-gnu/libmagic.so.1",
+            "usr/share/misc/magic.mgc",
+        ],
     )
 }
 
 fn build_less(repo_root: &Path) -> Result<()> {
     build_release_autotools_program(
-        repo_root, "less", "less-704.tar.gz", LESS_RELEASE_ARCHIVE_URL,
-        LESS_RELEASE_ARCHIVE_SHA256, &["ncurses", "pcre2"],
+        repo_root,
+        "less",
+        "less-704.tar.gz",
+        LESS_RELEASE_ARCHIVE_URL,
+        LESS_RELEASE_ARCHIVE_SHA256,
+        &["ncurses", "pcre2"],
         &["--prefix=/usr", "--sysconfdir=/etc", "--with-regex=pcre2"],
         &["usr/bin/less", "usr/bin/lesskey", "usr/libexec/lessecho"],
     )
@@ -7366,7 +7498,10 @@ fn build_git(repo_root: &Path) -> Result<()> {
     )?;
     let curl_config = repo_root.join("out/build/curl/install/usr/bin/curl-config");
     if !curl_config.is_file() {
-        bail!("Git requires MattOS curl-config at {}", curl_config.display());
+        bail!(
+            "Git requires MattOS curl-config at {}",
+            curl_config.display()
+        );
     }
     let common = vec![
         "prefix=/usr".to_string(),
@@ -7388,19 +7523,28 @@ fn build_git(repo_root: &Path) -> Result<()> {
     install_args.extend(common.iter().map(String::as_str));
     run_cmd_with_env_overrides(&source_copy, "make", &install_args, &env)?;
     for rel in ["usr/bin/git", "usr/libexec/git-core/git-remote-https"] {
-        if !install_dir.join(rel).is_file() { bail!("Git install did not produce {rel}"); }
+        if !install_dir.join(rel).is_file() {
+            bail!("Git install did not produce {rel}");
+        }
     }
     Ok(())
 }
 
 fn build_openssh(repo_root: &Path) -> Result<()> {
     build_autotools_import(
-        repo_root, "openssh", "src/system/network/openssh-portable",
+        repo_root,
+        "openssh",
+        "src/system/network/openssh-portable",
         &["openssl", "zlib", "zstd", "linux-pam", "libxcrypt"],
         &[
-            "--prefix=/usr", "--sysconfdir=/etc/ssh", "--sbindir=/usr/sbin",
-            "--libexecdir=/usr/lib/openssh", "--with-pam", "--with-privsep-path=/run/sshd",
-            "--with-privsep-user=sshd", "--with-default-path=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+            "--prefix=/usr",
+            "--sysconfdir=/etc/ssh",
+            "--sbindir=/usr/sbin",
+            "--libexecdir=/usr/lib/openssh",
+            "--with-pam",
+            "--with-privsep-path=/run/sshd",
+            "--with-privsep-user=sshd",
+            "--with-default-path=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
         ],
         &["usr/bin/ssh", "usr/sbin/sshd", "usr/bin/ssh-keygen"],
     )
@@ -7461,7 +7605,10 @@ fn build_wayland(repo_root: &Path) -> Result<()> {
 fn build_xkbcommon(repo_root: &Path) -> Result<()> {
     let source = repo_root.join("src/system/libraries/xkbcommon");
     if !source.join("meson.build").is_file() {
-        bail!("xkbcommon source not found in {}; run upstream import xkbcommon first", source.display());
+        bail!(
+            "xkbcommon source not found in {}; run upstream import xkbcommon first",
+            source.display()
+        );
     }
     let out_root = repo_root.join("out/build/xkbcommon");
     let source_copy = out_root.join("source");
@@ -7491,13 +7638,32 @@ fn build_xkbcommon(repo_root: &Path) -> Result<()> {
         args.extend(options);
         run_cmd(repo_root, "meson", &args)?;
     }
-    run_cmd(repo_root, "meson", &["compile", "-C", path_str(&build_dir)?])?;
+    run_cmd(
+        repo_root,
+        "meson",
+        &["compile", "-C", path_str(&build_dir)?],
+    )?;
     remove_path_if_exists(&install_dir)?;
-    run_cmd(repo_root, "meson", &["install", "-C", path_str(&build_dir)?, "--destdir", path_str(&install_dir)?])?;
+    run_cmd(
+        repo_root,
+        "meson",
+        &[
+            "install",
+            "-C",
+            path_str(&build_dir)?,
+            "--destdir",
+            path_str(&install_dir)?,
+        ],
+    )?;
     let soname = install_dir.join("usr/lib/x86_64-linux-gnu/libxkbcommon.so.0");
-    if !soname.is_file() { bail!("xkbcommon install did not produce {}", soname.display()); }
+    if !soname.is_file() {
+        bail!("xkbcommon install did not produce {}", soname.display());
+    }
     fs::write(&stamp_path, stamp)?;
-    println!("xkbcommon origin: {}; features=x11,wayland,tools,registry,docs disabled", install_dir.display());
+    println!(
+        "xkbcommon origin: {}; features=x11,wayland,tools,registry,docs disabled",
+        install_dir.display()
+    );
     Ok(())
 }
 
@@ -7507,7 +7673,10 @@ fn build_xkbcommon(repo_root: &Path) -> Result<()> {
 fn build_xkeyboard_config(repo_root: &Path) -> Result<()> {
     let source = repo_root.join("src/system/data/xkeyboard-config");
     if !source.join("meson.build").is_file() {
-        bail!("xkeyboard-config source not found in {}; run upstream import xkeyboard-config first", source.display());
+        bail!(
+            "xkeyboard-config source not found in {}; run upstream import xkeyboard-config first",
+            source.display()
+        );
     }
     let out_root = repo_root.join("out/build/xkeyboard-config");
     let source_copy = out_root.join("source");
@@ -7528,16 +7697,33 @@ fn build_xkeyboard_config(repo_root: &Path) -> Result<()> {
         args.extend(options);
         run_cmd(repo_root, "meson", &args)?;
     }
-    run_cmd(repo_root, "meson", &["compile", "-C", path_str(&build_dir)?])?;
+    run_cmd(
+        repo_root,
+        "meson",
+        &["compile", "-C", path_str(&build_dir)?],
+    )?;
     remove_path_if_exists(&install_dir)?;
-    run_cmd(repo_root, "meson", &["install", "-C", path_str(&build_dir)?, "--destdir", path_str(&install_dir)?])?;
+    run_cmd(
+        repo_root,
+        "meson",
+        &[
+            "install",
+            "-C",
+            path_str(&build_dir)?,
+            "--destdir",
+            path_str(&install_dir)?,
+        ],
+    )?;
     let rules = install_dir.join("usr/share/xkeyboard-config-2/rules/evdev");
     let legacy_root = install_dir.join("usr/share/X11/xkb");
     if !rules.is_file() || !legacy_root.is_symlink() {
         bail!("xkeyboard-config install did not produce generated rules or the legacy XKB symlink");
     }
     fs::write(&stamp_path, stamp)?;
-    println!("xkeyboard-config origin: {}; generated XKB rules in output-owned mirror", install_dir.display());
+    println!(
+        "xkeyboard-config origin: {}; generated XKB rules in output-owned mirror",
+        install_dir.display()
+    );
     Ok(())
 }
 
@@ -7556,14 +7742,25 @@ fn build_meson_runtime(
 ) -> Result<()> {
     let source = repo_root.join(source_relative);
     if !source.join("meson.build").is_file() {
-        bail!("{component} source not found in {}; run its upstream import first", source.display());
+        bail!(
+            "{component} source not found in {}; run its upstream import first",
+            source.display()
+        );
     }
     let out_root = repo_root.join("out/build").join(component);
     let source_copy = out_root.join("source");
     let build_dir = out_root.join("build");
     let install_dir = out_root.join("install");
-    let state = fs::read_to_string(repo_root.join("upstream/state").join(format!("{component}.toml")))?;
-    let stamp = format!("{state}\n{}\ndependencies={}\n", options.join("\n"), dependencies.join(","));
+    let state = fs::read_to_string(
+        repo_root
+            .join("upstream/state")
+            .join(format!("{component}.toml")),
+    )?;
+    let stamp = format!(
+        "{state}\n{}\ndependencies={}\n",
+        options.join("\n"),
+        dependencies.join(",")
+    );
     let stamp_path = out_root.join("build-stamp.txt");
     if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
         remove_path_if_exists(&source_copy)?;
@@ -7578,21 +7775,52 @@ fn build_meson_runtime(
         args.extend(options.iter().copied());
         run_cmd_with_env_overrides(repo_root, "meson", &args, &env)?;
     }
-    run_cmd_with_env_overrides(repo_root, "meson", &["compile", "-C", path_str(&build_dir)?], &env)?;
+    run_cmd_with_env_overrides(
+        repo_root,
+        "meson",
+        &["compile", "-C", path_str(&build_dir)?],
+        &env,
+    )?;
     remove_path_if_exists(&install_dir)?;
-    run_cmd_with_env_overrides(repo_root, "meson", &["install", "-C", path_str(&build_dir)?, "--destdir", path_str(&install_dir)?], &env)?;
+    run_cmd_with_env_overrides(
+        repo_root,
+        "meson",
+        &[
+            "install",
+            "-C",
+            path_str(&build_dir)?,
+            "--destdir",
+            path_str(&install_dir)?,
+        ],
+        &env,
+    )?;
     let required = install_dir.join(required_output);
-    if !required.is_file() { bail!("{component} install did not produce {}", required.display()); }
+    if !required.is_file() {
+        bail!("{component} install did not produce {}", required.display());
+    }
     fs::write(&stamp_path, stamp)?;
     Ok(())
 }
 
 fn build_libseat(repo_root: &Path) -> Result<()> {
-    build_meson_runtime(repo_root, "seatd", "src/system/libraries/seatd", &[], &[
-        "--prefix=/usr", "--libdir=lib/x86_64-linux-gnu", "-Dserver=disabled",
-        "-Dlibseat-seatd=disabled", "-Dlibseat-logind=disabled", "-Dlibseat-builtin=enabled",
-        "-Dexamples=disabled", "-Dman-pages=disabled",
-    ], "usr/lib/x86_64-linux-gnu/libseat.so.1", &[])
+    build_meson_runtime(
+        repo_root,
+        "seatd",
+        "src/system/libraries/seatd",
+        &[],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Dserver=disabled",
+            "-Dlibseat-seatd=disabled",
+            "-Dlibseat-logind=disabled",
+            "-Dlibseat-builtin=enabled",
+            "-Dexamples=disabled",
+            "-Dman-pages=disabled",
+        ],
+        "usr/lib/x86_64-linux-gnu/libseat.so.1",
+        &[],
+    )
 }
 
 fn build_libdisplay_info(repo_root: &Path) -> Result<()> {
@@ -7601,45 +7829,118 @@ fn build_libdisplay_info(repo_root: &Path) -> Result<()> {
     // imported, pinned hwdata data instead of ever consulting the host.
     let hwdata_root = repo_root.join("out/build/libdisplay-info/hwdata");
     fs::create_dir_all(hwdata_root.join("pkgconfig"))?;
-    fs::copy(repo_root.join("src/system/data/hwdata/pnp.ids"), hwdata_root.join("pnp.ids"))?;
-    fs::write(hwdata_root.join("pkgconfig/hwdata.pc"), format!(
-        "prefix={}\npkgdatadir=${{prefix}}\nName: hwdata\nDescription: pinned MattOS hardware data\nVersion: 0.410\n",
-        hwdata_root.display()
-    ))?;
-    build_meson_runtime(repo_root, "libdisplay-info", "src/system/libraries/libdisplay-info", &[], &[
-        "--prefix=/usr", "--libdir=lib/x86_64-linux-gnu",
-    ], "usr/lib/x86_64-linux-gnu/libdisplay-info.so.3", &[
-        ("PKG_CONFIG_PATH", hwdata_root.join("pkgconfig").display().to_string()),
-        ("PKG_CONFIG_LIBDIR", hwdata_root.join("pkgconfig").display().to_string()),
-    ])
+    fs::copy(
+        repo_root.join("src/system/data/hwdata/pnp.ids"),
+        hwdata_root.join("pnp.ids"),
+    )?;
+    fs::write(
+        hwdata_root.join("pkgconfig/hwdata.pc"),
+        format!(
+            "prefix={}\npkgdatadir=${{prefix}}\nName: hwdata\nDescription: pinned MattOS hardware data\nVersion: 0.410\n",
+            hwdata_root.display()
+        ),
+    )?;
+    build_meson_runtime(
+        repo_root,
+        "libdisplay-info",
+        "src/system/libraries/libdisplay-info",
+        &[],
+        &["--prefix=/usr", "--libdir=lib/x86_64-linux-gnu"],
+        "usr/lib/x86_64-linux-gnu/libdisplay-info.so.3",
+        &[
+            (
+                "PKG_CONFIG_PATH",
+                hwdata_root.join("pkgconfig").display().to_string(),
+            ),
+            (
+                "PKG_CONFIG_LIBDIR",
+                hwdata_root.join("pkgconfig").display().to_string(),
+            ),
+        ],
+    )
 }
 
 fn build_libevdev(repo_root: &Path) -> Result<()> {
-    build_meson_runtime(repo_root, "libevdev", "src/system/libraries/libevdev", &[], &[
-        "--prefix=/usr", "--libdir=lib/x86_64-linux-gnu", "-Dtests=disabled", "-Dtools=disabled", "-Ddocumentation=disabled",
-    ], "usr/lib/x86_64-linux-gnu/libevdev.so.2", &[])
+    build_meson_runtime(
+        repo_root,
+        "libevdev",
+        "src/system/libraries/libevdev",
+        &[],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Dtests=disabled",
+            "-Dtools=disabled",
+            "-Ddocumentation=disabled",
+        ],
+        "usr/lib/x86_64-linux-gnu/libevdev.so.2",
+        &[],
+    )
 }
 
 fn build_libinput(repo_root: &Path) -> Result<()> {
-    build_meson_runtime(repo_root, "libinput", "src/system/libraries/libinput", &["libevdev", "systemd"], &[
-        "--prefix=/usr", "--libdir=lib/x86_64-linux-gnu", "-Dtests=false", "-Ddocumentation=false",
-        "-Ddebug-gui=false", "-Dlibwacom=false", "-Dmtdev=false", "-Dlua-plugins=disabled",
-    ], "usr/lib/x86_64-linux-gnu/libinput.so.10", &[])
+    build_meson_runtime(
+        repo_root,
+        "libinput",
+        "src/system/libraries/libinput",
+        &["libevdev", "systemd"],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Dtests=false",
+            "-Ddocumentation=false",
+            "-Ddebug-gui=false",
+            "-Dlibwacom=false",
+            "-Dmtdev=false",
+            "-Dlua-plugins=disabled",
+        ],
+        "usr/lib/x86_64-linux-gnu/libinput.so.10",
+        &[],
+    )
 }
 
 fn build_pixman(repo_root: &Path) -> Result<()> {
-    build_meson_runtime(repo_root, "pixman", "src/system/libraries/pixman", &[], &[
-        "--prefix=/usr", "--libdir=lib/x86_64-linux-gnu", "-Dtests=disabled", "-Ddemos=disabled",
-    ], "usr/lib/x86_64-linux-gnu/libpixman-1.so.0", &[])
+    build_meson_runtime(
+        repo_root,
+        "pixman",
+        "src/system/libraries/pixman",
+        &[],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Dtests=disabled",
+            "-Ddemos=disabled",
+        ],
+        "usr/lib/x86_64-linux-gnu/libpixman-1.so.0",
+        &[],
+    )
 }
 
 fn build_libdrm(repo_root: &Path) -> Result<()> {
-    build_meson_runtime(repo_root, "libdrm", "src/system/libraries/libdrm", &[], &[
-        "--prefix=/usr", "--libdir=lib/x86_64-linux-gnu", "-Dtests=false", "-Dcairo-tests=disabled",
-        "-Dman-pages=disabled", "-Dintel=disabled", "-Dradeon=disabled", "-Damdgpu=disabled",
-        "-Dnouveau=disabled", "-Dvmwgfx=disabled", "-Dfreedreno=disabled", "-Dvc4=disabled",
-        "-Detnaviv=disabled", "-Dudev=false",
-    ], "usr/lib/x86_64-linux-gnu/libdrm.so.2", &[])
+    build_meson_runtime(
+        repo_root,
+        "libdrm",
+        "src/system/libraries/libdrm",
+        &[],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Dtests=false",
+            "-Dcairo-tests=disabled",
+            "-Dman-pages=disabled",
+            "-Dintel=disabled",
+            "-Dradeon=disabled",
+            "-Damdgpu=disabled",
+            "-Dnouveau=disabled",
+            "-Dvmwgfx=disabled",
+            "-Dfreedreno=disabled",
+            "-Dvc4=disabled",
+            "-Detnaviv=disabled",
+            "-Dudev=false",
+        ],
+        "usr/lib/x86_64-linux-gnu/libdrm.so.2",
+        &[],
+    )
 }
 
 fn build_mesa(repo_root: &Path) -> Result<()> {
@@ -7649,21 +7950,51 @@ fn build_mesa(repo_root: &Path) -> Result<()> {
     let python_deps = repo_root.join("out/build/mesa/python-deps");
     if !python_deps.join("mako").is_dir() {
         fs::create_dir_all(&python_deps)?;
-        run_cmd(repo_root, "python3", &[
-            "-m", "pip", "install", "--disable-pip-version-check", "--no-deps",
-            "--target", path_str(&python_deps)?, "Mako==1.3.10",
-        ])?;
+        run_cmd(
+            repo_root,
+            "python3",
+            &[
+                "-m",
+                "pip",
+                "install",
+                "--disable-pip-version-check",
+                "--no-deps",
+                "--target",
+                path_str(&python_deps)?,
+                "Mako==1.3.10",
+            ],
+        )?;
     }
-    build_meson_runtime(repo_root, "mesa", "src/system/graphics/mesa", &["libdrm", "libdisplay-info", "llvm", "zlib", "systemd"], &[
-        "--prefix=/usr", "--libdir=lib/x86_64-linux-gnu", "-Dplatforms=[]", "-Dglx=disabled",
-        // QEMU's virtio-gpu KMS device is paired by Mesa's kmsro path with
-        // the VirGL Gallium renderer.  llvmpipe remains useful for headless
-        // software fallback, but cannot export the hardware-selected KMS
-        // buffers that COSMIC needs for scanout.
-        "-Degl=enabled", "-Dgbm=enabled", "-Dgallium-drivers=llvmpipe,virgl", "-Dvulkan-drivers=[]",
-        "-Dllvm=enabled", "-Dshared-llvm=enabled", "-Dcpp_rtti=false", "-Dbuild-tests=false",
-        "-Denable-glcpp-tests=false", "-Dtools=[]", "-Dhtml-docs=disabled", "-Dzstd=disabled",
-    ], "usr/lib/x86_64-linux-gnu/libgbm.so.1", &[("PYTHONPATH", python_deps.display().to_string())])
+    build_meson_runtime(
+        repo_root,
+        "mesa",
+        "src/system/graphics/mesa",
+        &["libdrm", "libdisplay-info", "llvm", "zlib", "systemd"],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Dplatforms=[]",
+            "-Dglx=disabled",
+            // QEMU's virtio-gpu KMS device is paired by Mesa's kmsro path with
+            // the VirGL Gallium renderer.  llvmpipe remains useful for headless
+            // software fallback, but cannot export the hardware-selected KMS
+            // buffers that COSMIC needs for scanout.
+            "-Degl=enabled",
+            "-Dgbm=enabled",
+            "-Dgallium-drivers=llvmpipe,virgl",
+            "-Dvulkan-drivers=[]",
+            "-Dllvm=enabled",
+            "-Dshared-llvm=enabled",
+            "-Dcpp_rtti=false",
+            "-Dbuild-tests=false",
+            "-Denable-glcpp-tests=false",
+            "-Dtools=[]",
+            "-Dhtml-docs=disabled",
+            "-Dzstd=disabled",
+        ],
+        "usr/lib/x86_64-linux-gnu/libgbm.so.1",
+        &[("PYTHONPATH", python_deps.display().to_string())],
+    )
 }
 
 fn build_cosmic_comp(repo_root: &Path) -> Result<()> {
@@ -7675,35 +8006,94 @@ fn build_cosmic_comp(repo_root: &Path) -> Result<()> {
     remove_path_if_exists(&source_copy)?;
     sync_build_source(&source, &source_copy)?;
     apply_component_patches(repo_root, "cosmic-comp", &source_copy)?;
-    let components = ["seatd", "libdisplay-info", "libinput", "pixman", "mesa", "libdrm", "xkbcommon", "systemd"];
+    let components = [
+        "seatd",
+        "libdisplay-info",
+        "libinput",
+        "pixman",
+        "mesa",
+        "libdrm",
+        "xkbcommon",
+        "systemd",
+    ];
     let env = staged_library_environment(repo_root, &components)?;
-    let library_dirs = components.iter().map(|component| {
-        repo_root.join("out/build").join(component).join("install/usr/lib/x86_64-linux-gnu")
-    }).collect::<Vec<_>>();
-    let library_dir_refs = library_dirs.iter().map(PathBuf::as_path).collect::<Vec<_>>();
+    let library_dirs = components
+        .iter()
+        .map(|component| {
+            repo_root
+                .join("out/build")
+                .join(component)
+                .join("install/usr/lib/x86_64-linux-gnu")
+        })
+        .collect::<Vec<_>>();
+    let library_dir_refs = library_dirs
+        .iter()
+        .map(PathBuf::as_path)
+        .collect::<Vec<_>>();
     // Keep the compositor's systemd feature: it sends READY=1 only after its
     // Wayland/KMS session is initialized, which gives the installer a real
     // readiness dependency instead of a time-based socket race.
-    run_cmd_with_env_overrides(&source_copy, "cargo", &["build", "--locked", "--release"], &[
-        ("CARGO_TARGET_DIR", target.display().to_string()),
-        ("PKG_CONFIG_PATH", env.iter().find(|(key, _)| *key == "PKG_CONFIG_PATH").map(|(_, value)| value.clone()).unwrap_or_default()),
-        ("PKG_CONFIG_LIBDIR", env.iter().find(|(key, _)| *key == "PKG_CONFIG_LIBDIR").map(|(_, value)| value.clone()).unwrap_or_default()),
-        ("LIBRARY_PATH", env.iter().find(|(key, _)| *key == "LIBRARY_PATH").map(|(_, value)| value.clone()).unwrap_or_default()),
-        ("LD_LIBRARY_PATH", env.iter().find(|(key, _)| *key == "LD_LIBRARY_PATH").map(|(_, value)| value.clone()).unwrap_or_default()),
-    ])?;
+    run_cmd_with_env_overrides(
+        &source_copy,
+        "cargo",
+        &["build", "--locked", "--release"],
+        &[
+            ("CARGO_TARGET_DIR", target.display().to_string()),
+            (
+                "PKG_CONFIG_PATH",
+                env.iter()
+                    .find(|(key, _)| *key == "PKG_CONFIG_PATH")
+                    .map(|(_, value)| value.clone())
+                    .unwrap_or_default(),
+            ),
+            (
+                "PKG_CONFIG_LIBDIR",
+                env.iter()
+                    .find(|(key, _)| *key == "PKG_CONFIG_LIBDIR")
+                    .map(|(_, value)| value.clone())
+                    .unwrap_or_default(),
+            ),
+            (
+                "LIBRARY_PATH",
+                env.iter()
+                    .find(|(key, _)| *key == "LIBRARY_PATH")
+                    .map(|(_, value)| value.clone())
+                    .unwrap_or_default(),
+            ),
+            (
+                "LD_LIBRARY_PATH",
+                env.iter()
+                    .find(|(key, _)| *key == "LD_LIBRARY_PATH")
+                    .map(|(_, value)| value.clone())
+                    .unwrap_or_default(),
+            ),
+        ],
+    )?;
     remove_path_if_exists(&install)?;
     let binary = target.join("release/cosmic-comp");
-    if !binary.is_file() { bail!("cosmic-comp build did not produce {}", binary.display()); }
+    if !binary.is_file() {
+        bail!("cosmic-comp build did not produce {}", binary.display());
+    }
     let installed_binary = install.join("usr/bin/cosmic-comp");
-    fs::create_dir_all(installed_binary.parent().expect("cosmic-comp install parent"))?;
+    fs::create_dir_all(
+        installed_binary
+            .parent()
+            .expect("cosmic-comp install parent"),
+    )?;
     fs::copy(&binary, &installed_binary)?;
     fs::set_permissions(&installed_binary, fs::metadata(&binary)?.permissions())?;
     for (soname, component) in [
-        ("libseat.so.1", "seatd"), ("libdisplay-info.so.3", "libdisplay-info"),
-        ("libinput.so.10", "libinput"), ("libpixman-1.so.0", "pixman"),
-        ("libgbm.so.1", "mesa"), ("libxkbcommon.so.0", "xkbcommon"),
+        ("libseat.so.1", "seatd"),
+        ("libdisplay-info.so.3", "libdisplay-info"),
+        ("libinput.so.10", "libinput"),
+        ("libpixman-1.so.0", "pixman"),
+        ("libgbm.so.1", "mesa"),
+        ("libxkbcommon.so.0", "xkbcommon"),
     ] {
-        let library = repo_root.join("out/build").join(component).join("install/usr/lib/x86_64-linux-gnu");
+        let library = repo_root
+            .join("out/build")
+            .join(component)
+            .join("install/usr/lib/x86_64-linux-gnu");
         // Resolve the entire source-closed runtime closure while checking one
         // SONAME.  Checking against only that one directory made ldd reject
         // legitimate transitive MattOS dependencies as "not found".
@@ -7744,7 +8134,9 @@ fn build_cpython(repo_root: &Path) -> Result<()> {
     fs::create_dir_all(&build_dir)?;
     let mut env = staged_library_environment(
         repo_root,
-        &["openssl", "zlib", "bzip2", "xz", "expat", "ncurses", "libffi"],
+        &[
+            "openssl", "zlib", "bzip2", "xz", "expat", "ncurses", "libffi",
+        ],
     )?;
     env.push(("PYTHON_FOR_BUILD", "python3".to_string()));
     if !build_dir.join("Makefile").is_file() {
@@ -7805,8 +8197,7 @@ fn build_cpython(repo_root: &Path) -> Result<()> {
     // installed path configuration searches for extension modules below the
     // platform-independent standard-library root. Keep libpython in Debian's
     // multiarch directory while publishing lib-dynload where python3 searches.
-    let multiarch_dynload =
-        install_dir.join("usr/lib/x86_64-linux-gnu/python3.14/lib-dynload");
+    let multiarch_dynload = install_dir.join("usr/lib/x86_64-linux-gnu/python3.14/lib-dynload");
     let runtime_dynload = install_dir.join("usr/lib/python3.14/lib-dynload");
     if multiarch_dynload.is_dir() {
         remove_path_if_exists(&runtime_dynload)?;
@@ -7982,8 +8373,14 @@ fn normalize_llvm_config_build_roots(repo_root: &Path, build_dir: &Path) -> Resu
     );
     let object_line = format!("#define LLVM_OBJ_ROOT \"{}\"", build_dir.display());
     for (actual, normalized) in [
-        (&source_line, "#define LLVM_SRC_ROOT \"/usr/src/mattos/llvm\""),
-        (&object_line, "#define LLVM_OBJ_ROOT \"/usr/lib/llvm-22/build\""),
+        (
+            &source_line,
+            "#define LLVM_SRC_ROOT \"/usr/src/mattos/llvm\"",
+        ),
+        (
+            &object_line,
+            "#define LLVM_OBJ_ROOT \"/usr/lib/llvm-22/build\"",
+        ),
     ] {
         if contents.contains(actual) {
             contents = contents.replacen(actual, normalized, 1);
@@ -8017,9 +8414,7 @@ fn build_rust(repo_root: &Path) -> Result<()> {
     isolate_standalone_cargo_manifest(
         &source_copy.join("compiler/rustc_codegen_cranelift/Cargo.toml"),
     )?;
-    isolate_standalone_cargo_manifest(
-        &source_copy.join("compiler/rustc_codegen_gcc/Cargo.toml"),
-    )?;
+    isolate_standalone_cargo_manifest(&source_copy.join("compiler/rustc_codegen_gcc/Cargo.toml"))?;
     let llvm_config = repo_root.join("out/build/llvm/install/usr/bin/llvm-config");
     let llvm_filecheck = repo_root.join("out/build/llvm/install/usr/bin/FileCheck");
     let gcc = repo_root.join("out/build/gcc-toolchain/install/usr/bin/gcc");
@@ -10280,6 +10675,59 @@ fn build_installer(repo_root: &Path) -> Result<()> {
         bail!("dosfstools installer build did not produce usr/sbin/mkfs.fat");
     }
 
+    let e2fs_root = repo_root.join("out/build/e2fsprogs");
+    let e2fs_source = e2fs_root.join("source");
+    let e2fs_build = e2fs_root.join("build");
+    let e2fs_install = e2fs_root.join("install");
+    sync_build_source(
+        &repo_root.join("src/system/storage/e2fsprogs"),
+        &e2fs_source,
+    )?;
+    remove_path_if_exists(&e2fs_build)?;
+    fs::create_dir_all(&e2fs_build)?;
+    let e2fs_env = staged_library_environment(repo_root, &["util-linux"])?;
+    if !e2fs_build.join("Makefile").is_file() {
+        run_cmd_with_env_overrides(
+            &e2fs_build,
+            path_str(&e2fs_source.join("configure"))?,
+            &[
+                "--prefix=/usr",
+                "--sbindir=/usr/sbin",
+                "--libdir=/usr/lib/x86_64-linux-gnu",
+                "--sysconfdir=/etc",
+                "--disable-nls",
+                "--disable-uuidd",
+                "--disable-fuse2fs",
+                "--disable-fsck",
+            ],
+            &e2fs_env,
+        )?;
+    }
+    run_cmd_with_env_overrides(&e2fs_build, "make", &[], &e2fs_env)?;
+    remove_path_if_exists(&e2fs_install)?;
+    run_cmd_with_env_overrides(
+        &e2fs_build,
+        "make",
+        &["install", &format!("DESTDIR={}", e2fs_install.display())],
+        &e2fs_env,
+    )?;
+    if !e2fs_install.join("usr/sbin/mkfs.ext4").is_file() {
+        bail!("e2fsprogs installer build did not produce usr/sbin/mkfs.ext4");
+    }
+    let util_linux_lib = repo_root.join("out/build/util-linux/install/usr/lib/x86_64-linux-gnu");
+    validate_dependency_resolves_from(
+        &e2fs_install.join("usr/sbin/mkfs.ext4"),
+        "libblkid.so.1",
+        &util_linux_lib,
+        &[&util_linux_lib],
+    )?;
+    validate_dependency_resolves_from(
+        &e2fs_install.join("usr/sbin/mkfs.ext4"),
+        "libuuid.so.1",
+        &util_linux_lib,
+        &[&util_linux_lib],
+    )?;
+
     let installer_out = repo_root.join("out/build/installer");
     let cargo_target = installer_out.join("cargo-target");
     fs::create_dir_all(&installer_out)?;
@@ -10355,9 +10803,24 @@ fn build_installer(repo_root: &Path) -> Result<()> {
         repo_root,
         "grub-mkimage",
         &[
-            "-O", "x86_64-efi", "-d", "/usr/lib/grub/x86_64-efi", "-p", "/EFI/BOOT",
-            "-o", path_str(&efi)?, "part_gpt", "fat", "btrfs", "normal", "configfile",
-            "search", "search_fs_uuid", "linux", "serial", "terminal",
+            "-O",
+            "x86_64-efi",
+            "-d",
+            "/usr/lib/grub/x86_64-efi",
+            "-p",
+            "/EFI/BOOT",
+            "-o",
+            path_str(&efi)?,
+            "part_gpt",
+            "fat",
+            "btrfs",
+            "normal",
+            "configfile",
+            "search",
+            "search_fs_uuid",
+            "linux",
+            "serial",
+            "terminal",
         ],
     )?;
     if fs::metadata(&efi)?.len() < 128 * 1024 {
@@ -10395,9 +10858,8 @@ fn build_cosmic_installer_frontend(repo_root: &Path, installer_out: &Path) -> Re
     validate_cosmic_installer_lock(&lock)?;
     fs::copy(&lock, application.join("Cargo.lock"))?;
 
-    let template = fs::read_to_string(
-        repo_root.join("src/system/installer/gui/cosmic/Cargo.toml.in"),
-    )?;
+    let template =
+        fs::read_to_string(repo_root.join("src/system/installer/gui/cosmic/Cargo.toml.in"))?;
     let installer_manifest = repo_root.join("src/system/installer").canonicalize()?;
     let mut manifest = template
         .replace("@MATTOS_INSTALLER_PATH@", path_str(&installer_manifest)?)
@@ -10412,13 +10874,23 @@ fn build_cosmic_installer_frontend(repo_root: &Path, installer_out: &Path) -> Re
     let xkbcommon = repo_root.join("out/build/xkbcommon/install/usr");
     let xkbcommon_lib = xkbcommon.join("lib/x86_64-linux-gnu");
     let xkbcommon_pc = xkbcommon_lib.join("pkgconfig");
-    if !xkbcommon_lib.join("libxkbcommon.so.0").is_file() || !xkbcommon_pc.join("xkbcommon.pc").is_file() {
-        bail!("MattOS-built xkbcommon runtime/development metadata is missing; run build xkbcommon first");
+    if !xkbcommon_lib.join("libxkbcommon.so.0").is_file()
+        || !xkbcommon_pc.join("xkbcommon.pc").is_file()
+    {
+        bail!(
+            "MattOS-built xkbcommon runtime/development metadata is missing; run build xkbcommon first"
+        );
     }
     run_cmd_with_env_overrides(
         &application,
         "cargo",
-        &["build", "--locked", "--release", "--manifest-path", "Cargo.toml"],
+        &[
+            "build",
+            "--locked",
+            "--release",
+            "--manifest-path",
+            "Cargo.toml",
+        ],
         &[
             ("CARGO_TARGET_DIR", target.display().to_string()),
             ("PKG_CONFIG_PATH", xkbcommon_pc.display().to_string()),
@@ -10426,16 +10898,31 @@ fn build_cosmic_installer_frontend(repo_root: &Path, installer_out: &Path) -> Re
             // The .pc file has prefix=/usr.  Its sysroot is the DESTDIR root,
             // not `/usr`, otherwise pkg-config invents `/usr/usr/lib` and
             // Cargo silently falls back to a host xkbcommon.
-            ("PKG_CONFIG_SYSROOT_DIR", xkbcommon.parent().expect("xkbcommon install root").display().to_string()),
+            (
+                "PKG_CONFIG_SYSROOT_DIR",
+                xkbcommon
+                    .parent()
+                    .expect("xkbcommon install root")
+                    .display()
+                    .to_string(),
+            ),
             ("LIBRARY_PATH", xkbcommon_lib.display().to_string()),
             ("LD_LIBRARY_PATH", xkbcommon_lib.display().to_string()),
         ],
     )?;
     let binary = target.join("release/mattos-install-cosmic");
     if !binary.is_file() {
-        bail!("native COSMIC installer build did not produce {}", binary.display());
+        bail!(
+            "native COSMIC installer build did not produce {}",
+            binary.display()
+        );
     }
-    validate_dependency_resolves_from(&binary, "libxkbcommon.so.0", &xkbcommon_lib, &[&xkbcommon_lib])?;
+    validate_dependency_resolves_from(
+        &binary,
+        "libxkbcommon.so.0",
+        &xkbcommon_lib,
+        &[&xkbcommon_lib],
+    )?;
     Ok(())
 }
 
@@ -10478,9 +10965,14 @@ fn validate_cosmic_installer_lock(path: &Path) -> Result<()> {
                 bail!("native COSMIC registry package {name} lacks a SHA-256 checksum");
             }
         } else if source.starts_with("git+") {
-            let revision = source.rsplit_once('#').map(|(_, revision)| revision).unwrap_or("");
+            let revision = source
+                .rsplit_once('#')
+                .map(|(_, revision)| revision)
+                .unwrap_or("");
             if revision.len() != 40 || !revision.bytes().all(|byte| byte.is_ascii_hexdigit()) {
-                bail!("native COSMIC Git package {name} is not pinned to an exact commit: {source}");
+                bail!(
+                    "native COSMIC Git package {name} is not pinned to an exact commit: {source}"
+                );
             }
             git_sources.insert(source.to_string());
         }
@@ -12503,7 +12995,10 @@ fn validate_squashfs_image(path: &Path) -> Result<()> {
         bail!("live root is not a SquashFS image: {}", path.display());
     }
     if fs::metadata(path)?.len() < 1024 * 1024 {
-        bail!("live-root SquashFS is unexpectedly small: {}", path.display());
+        bail!(
+            "live-root SquashFS is unexpectedly small: {}",
+            path.display()
+        );
     }
     let output = Command::new("unsquashfs")
         .args(["-stat"])
@@ -12550,7 +13045,9 @@ fn largest_regular_files(root: &Path, limit: usize) -> Result<Vec<(u64, String)>
             } else if metadata.is_file() {
                 files.push((
                     metadata.len(),
-                    path.strip_prefix(root)?.to_string_lossy().replace('\\', "/"),
+                    path.strip_prefix(root)?
+                        .to_string_lossy()
+                        .replace('\\', "/"),
                 ));
             }
         }
@@ -12658,11 +13155,16 @@ fn validate_early_initramfs(path: &Path) -> Result<()> {
         bail!("failed to list early initramfs {}", path.display());
     }
     let paths = String::from_utf8(listing.stdout).context("initramfs listing was not UTF-8")?;
-    let normalized = paths.lines().map(|line| line.trim_start_matches("./")).collect::<Vec<_>>();
+    let normalized = paths
+        .lines()
+        .map(|line| line.trim_start_matches("./"))
+        .collect::<Vec<_>>();
     if !normalized.contains(&"init") {
         bail!("early initramfs does not contain /init");
     }
-    for forbidden in ["python", "clang", "llvm", "rustc", "cargo", "git", "systemd", "brush"] {
+    for forbidden in [
+        "python", "clang", "llvm", "rustc", "cargo", "git", "systemd", "brush",
+    ] {
         if normalized.iter().any(|path| path.contains(forbidden)) {
             bail!("general userland token {forbidden} leaked into early initramfs");
         }
@@ -12948,7 +13450,12 @@ fn validate_dual_firmware_iso(repo_root: &Path, image: &Path) -> Result<()> {
     let report = run_cmd_capture(
         repo_root,
         "xorriso",
-        &["-indev", path_str(image)?, "-report_el_torito", "as_mkisofs"],
+        &[
+            "-indev",
+            path_str(image)?,
+            "-report_el_torito",
+            "as_mkisofs",
+        ],
     )?;
     if !report.contains("-b '") && !report.contains("-b ") {
         bail!("ISO has no El Torito legacy BIOS boot image");
@@ -13005,7 +13512,11 @@ fn validate_staged_grub_config(path: &Path) -> Result<()> {
         }
     }
 
-    if content.matches("initrd /boot/early-initramfs.cpio.xz").count() != 5 {
+    if content
+        .matches("initrd /boot/early-initramfs.cpio.xz")
+        .count()
+        != 5
+    {
         bail!("staged GRUB config must load the early initramfs for all five entries");
     }
 
@@ -13221,8 +13732,12 @@ fn mattos_build_tmp(repo_root: &Path) -> PathBuf {
 
 fn ensure_mattos_build_tmp(repo_root: &Path) -> Result<PathBuf> {
     let directory = mattos_build_tmp(repo_root);
-    fs::create_dir_all(&directory)
-        .with_context(|| format!("failed to create MattOS build temp directory {}", directory.display()))?;
+    fs::create_dir_all(&directory).with_context(|| {
+        format!(
+            "failed to create MattOS build temp directory {}",
+            directory.display()
+        )
+    })?;
     let free_bytes = free_bytes_at(&directory)?;
     if free_bytes < MIN_MATTOS_TMP_FREE_BYTES {
         bail!(
@@ -13234,10 +13749,17 @@ fn ensure_mattos_build_tmp(repo_root: &Path) -> Result<PathBuf> {
     }
 
     let probe = directory.join(format!(".write-probe-{}", std::process::id()));
-    fs::write(&probe, b"mattos-build temp directory probe\n")
-        .with_context(|| format!("MattOS build temp directory is not writable: {}", directory.display()))?;
+    fs::write(&probe, b"mattos-build temp directory probe\n").with_context(|| {
+        format!(
+            "MattOS build temp directory is not writable: {}",
+            directory.display()
+        )
+    })?;
     fs::remove_file(&probe).with_context(|| {
-        format!("failed to remove MattOS build temp probe {}", probe.display())
+        format!(
+            "failed to remove MattOS build temp probe {}",
+            probe.display()
+        )
     })?;
     Ok(directory)
 }
@@ -13248,7 +13770,9 @@ fn free_bytes_at(path: &Path) -> Result<u64> {
     let mut stats = std::mem::MaybeUninit::<libc::statvfs>::uninit();
     let result = unsafe { libc::statvfs(path.as_ptr(), stats.as_mut_ptr()) };
     if result != 0 {
-        return Err(anyhow!("failed to inspect free space for MattOS temp directory"));
+        return Err(anyhow!(
+            "failed to inspect free space for MattOS temp directory"
+        ));
     }
     let stats = unsafe { stats.assume_init() };
     Ok((stats.f_bavail as u64).saturating_mul(stats.f_frsize as u64))
@@ -13580,9 +14104,15 @@ mod tests {
             command.args(["-c", "printf '%s' \"$MAKEFLAGS\""]);
             apply_scheduler_parallelism(&mut command);
             let output = command.output().unwrap();
-            assert_eq!(String::from_utf8(output.stdout).unwrap(), format!("-j{jobs}"));
+            assert_eq!(
+                String::from_utf8(output.stdout).unwrap(),
+                format!("-j{jobs}")
+            );
             assert_eq!(scheduler_command_args(&["all-gcc"]), ["all-gcc"]);
-            assert_eq!(scheduler_command_args(&["all-target-libgcc"]), ["all-target-libgcc"]);
+            assert_eq!(
+                scheduler_command_args(&["all-target-libgcc"]),
+                ["all-target-libgcc"]
+            );
         }
         let source = include_str!("main.rs");
         let prerequisite = source
@@ -13637,7 +14167,10 @@ mod tests {
         // The production scheduler represents the already-materialized
         // formal-sysroot barrier by its final producer, Make.
         assert_eq!(by_id["initramfs"].dependencies, ["make"]);
-        assert_eq!(by_id["iso"].dependencies, ["initramfs", "linux", "live-root"]);
+        assert_eq!(
+            by_id["iso"].dependencies,
+            ["initramfs", "linux", "live-root"]
+        );
 
         let durations = BTreeMap::from([
             ("acl", 16.862),
@@ -14090,7 +14623,10 @@ mod tests {
         let upstream = tempfile::tempdir().expect("upstream tempdir");
         let upstream_root = upstream.path();
         init_git_repo(upstream_root);
-        write(&upstream_root.join(".gitattributes"), "*.bat text eol=crlf\n");
+        write(
+            &upstream_root.join(".gitattributes"),
+            "*.bat text eol=crlf\n",
+        );
         write(&upstream_root.join("line-endings.bat"), "one\ntwo\n");
         write(&upstream_root.join("normal file.txt"), "space-safe\n");
         write(&upstream_root.join("tool.sh"), "#!/bin/sh\nexit 0\n");
@@ -14175,13 +14711,19 @@ mod tests {
             sync: "copy".to_string(),
         };
         import_component(root, &comp, false).expect("initial import");
-        run_ok(root, "git", &["add", "src/userland/fixture", "upstream/state/fixture.toml"]);
+        run_ok(
+            root,
+            "git",
+            &["add", "src/userland/fixture", "upstream/state/fixture.toml"],
+        );
         run_ok(root, "git", &["commit", "-m", "record fixture"]);
 
-        write(&upstream.path().join("tool.sh"), "#!/bin/sh\nprintf updated\\n\n");
+        write(
+            &upstream.path().join("tool.sh"),
+            "#!/bin/sh\nprintf updated\\n\n",
+        );
         write(&upstream.path().join("new file.txt"), "new\n");
-        symlink("new file.txt", upstream.path().join("new-link"))
-            .expect("new upstream symlink");
+        symlink("new file.txt", upstream.path().join("new-link")).expect("new upstream symlink");
         run_ok(upstream.path(), "git", &["add", "."]);
         run_ok(upstream.path(), "git", &["commit", "-m", "update fixture"]);
         let before = git_index_snapshot(root);
@@ -14198,8 +14740,7 @@ mod tests {
             0o111
         );
         assert_eq!(
-            fs::read_link(root.join("src/userland/fixture/new-link"))
-                .expect("updated symlink"),
+            fs::read_link(root.join("src/userland/fixture/new-link")).expect("updated symlink"),
             Path::new("new file.txt")
         );
         let status = run_cmd_capture(root, "git", &["status", "--porcelain", "-uall"])
@@ -14639,12 +15180,15 @@ mod tests {
             sync: "copy".to_string(),
         };
 
-        let index_before = run_cmd_capture(root, "git", &["write-tree"])
-            .expect("snapshot index before import");
+        let index_before =
+            run_cmd_capture(root, "git", &["write-tree"]).expect("snapshot index before import");
         import_component(root, &comp, false).expect("import pinned source");
-        let index_after = run_cmd_capture(root, "git", &["write-tree"])
-            .expect("snapshot index after import");
-        assert_eq!(index_after, index_before, "import must not mutate the index");
+        let index_after =
+            run_cmd_capture(root, "git", &["write-tree"]).expect("snapshot index after import");
+        assert_eq!(
+            index_after, index_before,
+            "import must not mutate the index"
+        );
         let imported = root.join("src/imported/example");
         assert_eq!(
             fs::metadata(imported.join("tool.sh"))
@@ -14755,7 +15299,11 @@ mod tests {
         let selected = ensure_mattos_build_tmp(repository).unwrap();
         assert_eq!(selected, repository.join("out/tmp"));
         assert!(selected.is_dir());
-        assert!(!selected.join(format!(".write-probe-{}", std::process::id())).exists());
+        assert!(
+            !selected
+                .join(format!(".write-probe-{}", std::process::id()))
+                .exists()
+        );
     }
 
     #[test]
@@ -14775,12 +15323,8 @@ mod tests {
         assert!(debug.contains("out/tmp"));
         assert!(!debug.contains("/host/tmp"));
 
-        let observed = run_cmd_capture(
-            repository,
-            "sh",
-            &["-c", "printf '%s' \"$TMPDIR\""],
-        )
-        .expect("child should inherit MattOS TMPDIR");
+        let observed = run_cmd_capture(repository, "sh", &["-c", "printf '%s' \"$TMPDIR\""])
+            .expect("child should inherit MattOS TMPDIR");
         assert_eq!(observed, repository.join("out/tmp").display().to_string());
     }
 
@@ -14929,10 +15473,24 @@ mod tests {
             .filter(|line| line.starts_with("linux "))
             .collect::<Vec<_>>();
         assert_eq!(linux_lines.len(), 5);
-        assert!(linux_lines.iter().all(|line| line.contains(GRUB_EARLY_RDINIT)));
-        assert_eq!(grub.matches("initrd /boot/early-initramfs.cpio.xz").count(), 5);
-        for required in ["insmod all_video", "set gfxmode=auto", "set gfxpayload=keep"] {
-            assert!(grub.lines().any(|line| line == required), "missing {required}");
+        assert!(
+            linux_lines
+                .iter()
+                .all(|line| line.contains(GRUB_EARLY_RDINIT))
+        );
+        assert_eq!(
+            grub.matches("initrd /boot/early-initramfs.cpio.xz").count(),
+            5
+        );
+        for required in [
+            "insmod all_video",
+            "set gfxmode=auto",
+            "set gfxpayload=keep",
+        ] {
+            assert!(
+                grub.lines().any(|line| line == required),
+                "missing {required}"
+            );
         }
         assert!(!grub.contains("initramfs_options=size="));
     }
@@ -14956,7 +15514,10 @@ mod tests {
             "mattos-install-graphical.target",
             "mattos-install-cli.target",
         ] {
-            assert!(dispatcher.contains(target), "early dispatcher omits {target}");
+            assert!(
+                dispatcher.contains(target),
+                "early dispatcher omits {target}"
+            );
         }
         assert!(dispatcher.contains("/proc/cmdline"));
         assert!(dispatcher.contains("--unit=%s"));
@@ -14997,7 +15558,9 @@ mod tests {
         let obsolete = root.join(OBSOLETE_FULL_ROOT_INITRAMFS_PATHS[0]);
         fs::create_dir_all(obsolete.parent().unwrap()).unwrap();
         fs::write(&obsolete, b"obsolete full root").unwrap();
-        let error = reject_obsolete_full_root_initramfs(root).unwrap_err().to_string();
+        let error = reject_obsolete_full_root_initramfs(root)
+            .unwrap_err()
+            .to_string();
         assert!(error.contains("obsolete full-root initramfs"));
         assert!(error.contains(INITRAMFS_ARCHIVE_PATH));
         assert!(error.contains(LIVE_ROOT_IMAGE_PATH));
@@ -15050,20 +15613,13 @@ mod tests {
                 .join("../../system/installer/gui/cosmic/Cargo.lock"),
         )
         .unwrap();
-        let unpinned = authoritative.replacen(
-            "#e429a025df36ab8145708acb309080ae3deec17a\"",
-            "\"",
-            1,
-        );
+        let unpinned =
+            authoritative.replacen("#e429a025df36ab8145708acb309080ae3deec17a\"", "\"", 1);
         let unpinned_path = temporary.path().join("unpinned.lock");
         fs::write(&unpinned_path, unpinned).unwrap();
         assert!(validate_cosmic_installer_lock(&unpinned_path).is_err());
 
-        let unchecked = authoritative.replacen(
-            "checksum = \"",
-            "unchecked = \"",
-            1,
-        );
+        let unchecked = authoritative.replacen("checksum = \"", "unchecked = \"", 1);
         let unchecked_path = temporary.path().join("unchecked.lock");
         fs::write(&unchecked_path, unchecked).unwrap();
         assert!(validate_cosmic_installer_lock(&unchecked_path).is_err());
@@ -15079,7 +15635,9 @@ mod tests {
             .split_once("fn validate_cosmic_installer_lock")
             .unwrap()
             .0;
-        let cleanup = function.find("remove_path_if_exists(&source_root)").unwrap();
+        let cleanup = function
+            .find("remove_path_if_exists(&source_root)")
+            .unwrap();
         let first_sync = function.find("sync_build_source").unwrap();
         assert!(cleanup < first_sync);
         for demoted in [
@@ -15144,8 +15702,7 @@ mod tests {
         assert!(command_exists_in_path("mattos-tool", &path));
         assert!(!command_exists_in_path("which", &path));
         assert!(!command_exists_in_path("missing-tool", &path));
-        assert!(include_str!("main.rs")
-            .contains("if !missing_required.contains(&\"pkg-config\")"));
+        assert!(include_str!("main.rs").contains("if !missing_required.contains(&\"pkg-config\")"));
     }
 
     #[test]
@@ -15306,7 +15863,10 @@ mod tests {
             "CONFIG_SYSFB_SIMPLEFB=y",
             "CONFIG_FRAMEBUFFER_CONSOLE=y",
         ] {
-            assert!(config.lines().any(|line| line == required), "missing {required}");
+            assert!(
+                config.lines().any(|line| line == required),
+                "missing {required}"
+            );
         }
     }
 
@@ -15330,7 +15890,10 @@ mod tests {
             "chroot",
             "SYSTEMD_PATH",
         ] {
-            assert!(init.contains(required), "missing early-init policy {required}");
+            assert!(
+                init.contains(required),
+                "missing early-init policy {required}"
+            );
         }
         assert!(
             init.find("mount_required(loop_path").unwrap()
@@ -15339,7 +15902,12 @@ mod tests {
         );
         let spec = build_stage_spec(BuildStage::Initramfs);
         assert_eq!(spec.source_inputs, [PathBuf::from("src/boot/live-init.c")]);
-        assert!(!spec.dependencies.iter().any(|dependency| dependency == "rootfs"));
+        assert!(
+            !spec
+                .dependencies
+                .iter()
+                .any(|dependency| dependency == "rootfs")
+        );
         assert_eq!(spec.dependencies, ["formal-sysroot"]);
     }
 
@@ -16232,7 +16800,12 @@ mod tests {
             assert!(policy.contains(&format!("url = \"{url}\"")));
             assert!(policy.contains(&format!("sha256 = \"{sha256}\"")));
         }
-        assert_eq!(policy.matches("staging_policy = \"output-mirror-only\"").count(), 6);
+        assert_eq!(
+            policy
+                .matches("staging_policy = \"output-mirror-only\"")
+                .count(),
+            6
+        );
         let source = include_str!("main.rs");
         let start = source.find("fn build_release_autotools_program").unwrap();
         let end = source[start..].find("fn build_gzip").unwrap() + start;
@@ -16286,7 +16859,10 @@ mod tests {
             "tool-wrappers",
             "MATTOS_GCC_INSTALL_DIR",
         ] {
-            assert!(rust.contains(required), "missing Rust bootstrap policy {required}");
+            assert!(
+                rust.contains(required),
+                "missing Rust bootstrap policy {required}"
+            );
         }
         assert!(rust.contains("out/build/rust"));
         assert!(!rust.contains("src/toolchain/rust/x.py"));
@@ -16349,7 +16925,9 @@ mod tests {
         let python_start = source.find("fn build_cpython").unwrap();
         let llvm_start = source.find("fn build_llvm").unwrap();
         let python = &source[python_start..llvm_start];
-        let first_make = python.find("run_cmd_with_env_overrides(&build_dir, \"make\"").unwrap();
+        let first_make = python
+            .find("run_cmd_with_env_overrides(&build_dir, \"make\"")
+            .unwrap();
         let normalize = python.find("normalize_cpython_getpath_vpath").unwrap();
         let remove = python[normalize..].find("Modules/getpath.o").unwrap() + normalize;
         let second_make = python[remove..]
@@ -16391,8 +16969,11 @@ mod tests {
     fn rust_bootstrap_output_mirror_has_an_explicit_workspace_boundary() {
         let temp = tempfile::tempdir().unwrap();
         let manifest = temp.path().join("Cargo.toml");
-        fs::write(&manifest, "[package]\nname = \"bootstrap\"\nversion = \"0.0.0\"\n")
-            .unwrap();
+        fs::write(
+            &manifest,
+            "[package]\nname = \"bootstrap\"\nversion = \"0.0.0\"\n",
+        )
+        .unwrap();
         isolate_standalone_cargo_manifest(&manifest).unwrap();
         isolate_standalone_cargo_manifest(&manifest).unwrap();
         let contents = fs::read_to_string(manifest).unwrap();
@@ -16419,9 +17000,8 @@ mod tests {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
         let manifest = fs::read_to_string(root.join("upstream/patches/brush/manifest.toml"))
             .expect("Brush patch manifest");
-        let patch_path = root.join(
-            "upstream/patches/brush/0002-select-sh-mode-from-invocation-name.patch",
-        );
+        let patch_path =
+            root.join("upstream/patches/brush/0002-select-sh-mode-from-invocation-name.patch");
         assert!(manifest.contains("application = \"output-mirror-only\""));
         assert!(manifest.contains(
             "sha256 = \"a5049e836e578d76d424b075246aafb18a3d4f2f2f08f3447d7ccb8484811a59\"",

@@ -9,6 +9,7 @@ pub mod gui_model;
 pub mod policy;
 
 pub use policy::{
-    InstallPlan, InstallProgress, InstallStage, InstalledProfile, RootCredentialPolicy, PLAN_VERSION, execute,
-    execute_with_progress, render_plan,
+    EncryptionPolicy, Filesystem, GuidedEfi, InstallPlan, InstallProgress, InstallStage,
+    InstalledProfile, PLAN_VERSION, PartitionAction, PartitionOperation, RootCredentialPolicy,
+    RootFilesystem, StoragePlan, execute, execute_with_progress, render_plan, render_storage_plan,
 };

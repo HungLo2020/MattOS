@@ -1229,6 +1229,18 @@ classification = "debian-compatible"
 known_gaps = ["No known command-level compatibility gaps for the initial FAT utility set"]
 
 [[package]]
+debian_name = "e2fsprogs"
+mattos_name = "e2fsprogs"
+source_component = "e2fsprogs"
+owned_paths = ["/usr/sbin/mke2fs", "/usr/sbin/mkfs.ext4"]
+provided_abi_or_commands = ["ext2/ext3/ext4 filesystem creation and administration tools"]
+protected = false
+current_mattos_version = "1.47.2-1mattos1"
+expected_debian_role = "ext2/ext3/ext4 filesystem utilities"
+classification = "debian-compatible"
+known_gaps = ["Development files are not yet split from the command package"]
+
+[[package]]
 debian_name = "libseat1"
 mattos_name = "libseat1"
 source_component = "seatd 0.9.3"

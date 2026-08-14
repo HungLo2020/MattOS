@@ -1,4 +1,4 @@
-use anyhow::{anyhow, bail, Context, Result};
+use anyhow::{Context, Result, anyhow, bail};
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 use sha2::{Digest, Sha256};
@@ -16,9 +16,9 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use crate::cache_manifest::{InventoryEntry, ToolIdentity};
+pub(crate) use crate::cache_manifest::{STAGE_MANIFEST_SCHEMA_VERSION, StageSpec};
 #[cfg(test)]
 use crate::cache_manifest::{StageInputDetails, StageManifest};
-pub(crate) use crate::cache_manifest::{StageSpec, STAGE_MANIFEST_SCHEMA_VERSION};
 use crate::integrity_index::{self, FileFingerprint};
 use crate::source_identity::{GitSourceSnapshot, SourceQuery};
 #[cfg(test)]
@@ -134,8 +134,7 @@ fn wait_with_tree_cpu(
         if result >= 0 {
             let usage = unsafe { usage.assume_init() };
             let to_duration = |time: libc::timeval| {
-                Duration::from_secs(time.tv_sec as u64)
-                    + Duration::from_micros(time.tv_usec as u64)
+                Duration::from_secs(time.tv_sec as u64) + Duration::from_micros(time.tv_usec as u64)
             };
             return Ok((
                 ExitStatus::from_raw(raw_status),
@@ -354,9 +353,15 @@ where
         let wall = 0.0; // Scheduler records action wall time at its ownership boundary.
         let _ = append_active_stage_log(&format!(
             "stage-cpu-accounting available={} user_seconds={:.6} system_seconds={:.6} total_seconds={:.6} average_cores={}",
-            cpu.complete && cpu.commands > 0, cpu.user.as_secs_f64(), cpu.system.as_secs_f64(),
+            cpu.complete && cpu.commands > 0,
+            cpu.user.as_secs_f64(),
+            cpu.system.as_secs_f64(),
             (cpu.user + cpu.system).as_secs_f64(),
-            if wall == 0.0 { "recorded-by-scheduler".to_string() } else { "unavailable".to_string() }
+            if wall == 0.0 {
+                "recorded-by-scheduler".to_string()
+            } else {
+                "unavailable".to_string()
+            }
         ));
     }
     trace_log_context("with_stage_log-action-return");
@@ -1455,12 +1460,14 @@ mod tests {
             vec!["config", "user.email", "tests@mattos.invalid"],
             vec!["config", "user.name", "MattOS Tests"],
         ] {
-            assert!(Command::new("git")
-                .args(arguments)
-                .current_dir(root)
-                .status()
-                .unwrap()
-                .success());
+            assert!(
+                Command::new("git")
+                    .args(arguments)
+                    .current_dir(root)
+                    .status()
+                    .unwrap()
+                    .success()
+            );
         }
     }
 
@@ -1545,18 +1552,22 @@ mod tests {
         let link = root.path().join("source/link");
         fs::write(&file, "good").unwrap();
         symlink("file", &link).unwrap();
-        assert!(Command::new("git")
-            .args(["add", "source"])
-            .current_dir(root.path())
-            .status()
-            .unwrap()
-            .success());
-        assert!(Command::new("git")
-            .args(["commit", "-qm", "fixture"])
-            .current_dir(root.path())
-            .status()
-            .unwrap()
-            .success());
+        assert!(
+            Command::new("git")
+                .args(["add", "source"])
+                .current_dir(root.path())
+                .status()
+                .unwrap()
+                .success()
+        );
+        assert!(
+            Command::new("git")
+                .args(["commit", "-qm", "fixture"])
+                .current_dir(root.path())
+                .status()
+                .unwrap()
+                .success()
+        );
         let roots = vec![PathBuf::from("source")];
 
         begin_test_integrity_cache();
@@ -1583,25 +1594,29 @@ mod tests {
 
     #[test]
     fn git_assisted_source_identity_detects_all_worktree_and_index_changes() {
-        use std::os::unix::fs::{symlink, PermissionsExt};
+        use std::os::unix::fs::{PermissionsExt, symlink};
 
         let root = tempdir().unwrap();
         initialize_git_fixture(root.path());
         fs::create_dir(root.path().join("source")).unwrap();
         let file = root.path().join("source/file");
         fs::write(&file, "base").unwrap();
-        assert!(Command::new("git")
-            .args(["add", "source/file"])
-            .current_dir(root.path())
-            .status()
-            .unwrap()
-            .success());
-        assert!(Command::new("git")
-            .args(["commit", "-qm", "fixture"])
-            .current_dir(root.path())
-            .status()
-            .unwrap()
-            .success());
+        assert!(
+            Command::new("git")
+                .args(["add", "source/file"])
+                .current_dir(root.path())
+                .status()
+                .unwrap()
+                .success()
+        );
+        assert!(
+            Command::new("git")
+                .args(["commit", "-qm", "fixture"])
+                .current_dir(root.path())
+                .status()
+                .unwrap()
+                .success()
+        );
         let roots = vec![PathBuf::from("source")];
         let digest = || tracked_source_digest(root.path(), &roots, true).unwrap();
         let refresh = || invalidate_integrity_paths(root.path(), std::slice::from_ref(&file));
@@ -1629,12 +1644,14 @@ mod tests {
         assert_ne!(same_size_restored_time, chmod, "chmod must invalidate");
 
         fs::write(&file, "staged").unwrap();
-        assert!(Command::new("git")
-            .args(["add", "source/file"])
-            .current_dir(root.path())
-            .status()
-            .unwrap()
-            .success());
+        assert!(
+            Command::new("git")
+                .args(["add", "source/file"])
+                .current_dir(root.path())
+                .status()
+                .unwrap()
+                .success()
+        );
         refresh();
         let staged = digest();
         assert_ne!(clean, staged, "staged blob/mode identity must invalidate");
@@ -1664,7 +1681,7 @@ mod tests {
 
     #[test]
     fn optimized_source_identity_matches_full_scan_across_adversarial_states() {
-        use std::os::unix::fs::{symlink, PermissionsExt};
+        use std::os::unix::fs::{PermissionsExt, symlink};
 
         let root = tempdir().unwrap();
         initialize_git_fixture(root.path());
@@ -1675,18 +1692,22 @@ mod tests {
         fs::write(root.path().join("source/nested/value"), "nested").unwrap();
         fs::write(root.path().join("source/nested/docs/readme"), "docs").unwrap();
         fs::write(root.path().join("sourced/file"), "boundary").unwrap();
-        assert!(Command::new("git")
-            .args(["add", "."])
-            .current_dir(root.path())
-            .status()
-            .unwrap()
-            .success());
-        assert!(Command::new("git")
-            .args(["commit", "-qm", "fixture"])
-            .current_dir(root.path())
-            .status()
-            .unwrap()
-            .success());
+        assert!(
+            Command::new("git")
+                .args(["add", "."])
+                .current_dir(root.path())
+                .status()
+                .unwrap()
+                .success()
+        );
+        assert!(
+            Command::new("git")
+                .args(["commit", "-qm", "fixture"])
+                .current_dir(root.path())
+                .status()
+                .unwrap()
+                .success()
+        );
         let roots = [PathBuf::from("source"), PathBuf::from("source/nested")];
         let assert_matches = || {
             assert_source_digest_matches_full_scan(root.path(), &roots, false);
@@ -1703,12 +1724,14 @@ mod tests {
         assert_matches();
         fs::set_permissions(&file, fs::Permissions::from_mode(0o755)).unwrap();
         assert_matches();
-        assert!(Command::new("git")
-            .args(["add", "source/file"])
-            .current_dir(root.path())
-            .status()
-            .unwrap()
-            .success());
+        assert!(
+            Command::new("git")
+                .args(["add", "source/file"])
+                .current_dir(root.path())
+                .status()
+                .unwrap()
+                .success()
+        );
         assert_matches();
         fs::write(&file, "unstaged").unwrap();
         assert_matches();
@@ -1732,39 +1755,49 @@ mod tests {
             ["commit", "-qm", "base"].as_slice(),
             ["checkout", "-qb", "side"].as_slice(),
         ] {
-            assert!(Command::new("git")
-                .args(arguments)
+            assert!(
+                Command::new("git")
+                    .args(arguments)
+                    .current_dir(conflict.path())
+                    .status()
+                    .unwrap()
+                    .success()
+            );
+        }
+        fs::write(conflict.path().join("file"), "side").unwrap();
+        assert!(
+            Command::new("git")
+                .args(["commit", "-qam", "side"])
                 .current_dir(conflict.path())
                 .status()
                 .unwrap()
-                .success());
-        }
-        fs::write(conflict.path().join("file"), "side").unwrap();
-        assert!(Command::new("git")
-            .args(["commit", "-qam", "side"])
-            .current_dir(conflict.path())
-            .status()
-            .unwrap()
-            .success());
-        assert!(Command::new("git")
-            .args(["checkout", "-q", "master"])
-            .current_dir(conflict.path())
-            .status()
-            .unwrap()
-            .success());
+                .success()
+        );
+        assert!(
+            Command::new("git")
+                .args(["checkout", "-q", "master"])
+                .current_dir(conflict.path())
+                .status()
+                .unwrap()
+                .success()
+        );
         fs::write(conflict.path().join("file"), "main").unwrap();
-        assert!(Command::new("git")
-            .args(["commit", "-qam", "main"])
-            .current_dir(conflict.path())
-            .status()
-            .unwrap()
-            .success());
-        assert!(!Command::new("git")
-            .args(["merge", "side"])
-            .current_dir(conflict.path())
-            .status()
-            .unwrap()
-            .success());
+        assert!(
+            Command::new("git")
+                .args(["commit", "-qam", "main"])
+                .current_dir(conflict.path())
+                .status()
+                .unwrap()
+                .success()
+        );
+        assert!(
+            !Command::new("git")
+                .args(["merge", "side"])
+                .current_dir(conflict.path())
+                .status()
+                .unwrap()
+                .success()
+        );
         assert_source_digest_matches_full_scan(conflict.path(), &[PathBuf::from("file")], false);
     }
 
@@ -1836,18 +1869,22 @@ mod tests {
         fs::create_dir(root.path().join("source")).unwrap();
         fs::write(root.path().join("source/file"), "good").unwrap();
         fs::write(root.path().join("config"), "good").unwrap();
-        assert!(Command::new("git")
-            .args(["add", "source", "config"])
-            .current_dir(root.path())
-            .status()
-            .unwrap()
-            .success());
-        assert!(Command::new("git")
-            .args(["commit", "-qm", "fixture"])
-            .current_dir(root.path())
-            .status()
-            .unwrap()
-            .success());
+        assert!(
+            Command::new("git")
+                .args(["add", "source", "config"])
+                .current_dir(root.path())
+                .status()
+                .unwrap()
+                .success()
+        );
+        assert!(
+            Command::new("git")
+                .args(["commit", "-qm", "fixture"])
+                .current_dir(root.path())
+                .status()
+                .unwrap()
+                .success()
+        );
         begin_test_integrity_cache();
         let source = tracked_source_digest(root.path(), &[PathBuf::from("source")], true).unwrap();
         let config =
@@ -2178,7 +2215,7 @@ mod tests {
 
     #[test]
     fn inventory_detects_missing_corrupt_mode_and_symlink_outputs() {
-        use std::os::unix::fs::{symlink, PermissionsExt};
+        use std::os::unix::fs::{PermissionsExt, symlink};
         let root = tempdir().unwrap();
         let output = root.path().join("output");
         fs::create_dir(&output).unwrap();
@@ -2522,7 +2559,7 @@ mod tests {
 
     #[test]
     fn path_noise_does_not_change_resolved_tool_identity() {
-        use std::os::unix::fs::{symlink, PermissionsExt};
+        use std::os::unix::fs::{PermissionsExt, symlink};
         let root = tempdir().unwrap();
         let bin = root.path().join("bin");
         let alias = root.path().join("alias");
@@ -2708,12 +2745,21 @@ mod tests {
         let (_, sequential) = accounted_fixture("sequential", 150);
         let (_, parallel) = accounted_fixture("parallel", 150);
         let cpu = |usage: StageCpuUsage| (usage.user + usage.system).as_secs_f64();
-        assert!(cpu(direct) >= 0.12, "direct CPU was not measured: {}", cpu(direct));
-        assert!(cpu(one) >= 0.12, "one waited child was not measured: {}", cpu(one));
+        assert!(
+            cpu(direct) >= 0.12,
+            "direct CPU was not measured: {}",
+            cpu(direct)
+        );
+        assert!(
+            cpu(one) >= 0.12,
+            "one waited child was not measured: {}",
+            cpu(one)
+        );
         assert!(
             cpu(sequential) >= 0.24 && cpu(parallel) >= 0.24,
             "two waited children were not cumulatively measured: sequential={} parallel={}",
-            cpu(sequential), cpu(parallel)
+            cpu(sequential),
+            cpu(parallel)
         );
     }
 

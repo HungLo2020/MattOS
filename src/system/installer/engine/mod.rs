@@ -14,16 +14,116 @@ unsafe extern "C" {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct PartitionPaths {
-    pub efi: PathBuf,
-    pub system: PathBuf,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct InstallDisk {
     pub device: PathBuf,
     pub size_bytes: u64,
     pub model: String,
+}
+
+pub const EFI_SYSTEM_PARTITION_GUID: &str = "c12a7328-f81f-11d2-ba4b-00a0c93ec93b";
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct InstallPartition {
+    pub device: PathBuf,
+    pub parent_disk: PathBuf,
+    pub number: u32,
+    pub start_bytes: u64,
+    pub size_bytes: u64,
+    pub filesystem: Option<String>,
+    pub partition_type: Option<String>,
+    pub is_esp: bool,
+    pub mount_points: Vec<PathBuf>,
+}
+
+/// Discover the current partition table through lsblk's machine-readable
+/// interface. This is read-only and shared by policy, CLI, and graphical UI.
+pub fn discover_partitions(disk: &Path) -> Result<Vec<InstallPartition>> {
+    let output = Command::new("lsblk")
+        .args([
+            "--json",
+            "--bytes",
+            "--paths",
+            "-o",
+            "PATH,PKNAME,TYPE,SIZE,FSTYPE,PARTTYPE,MOUNTPOINTS,START,PARTN",
+        ])
+        .arg(disk)
+        .output()
+        .context("launch lsblk partition discovery")?;
+    if !output.status.success() {
+        bail!("lsblk failed while discovering {}", disk.display());
+    }
+    let value: serde_json::Value =
+        serde_json::from_slice(&output.stdout).context("parse lsblk JSON")?;
+    let mut result = Vec::new();
+    let devices = value
+        .get("blockdevices")
+        .and_then(|value| value.as_array())
+        .ok_or_else(|| anyhow!("lsblk JSON has no blockdevices"))?;
+    for device in devices {
+        collect_partitions(device, disk, &mut result)?;
+    }
+    result.sort_by_key(|partition| partition.number);
+    Ok(result)
+}
+
+fn json_u64(value: Option<&serde_json::Value>) -> Option<u64> {
+    value.and_then(|value| value.as_u64().or_else(|| value.as_str()?.parse().ok()))
+}
+
+fn collect_partitions(
+    value: &serde_json::Value,
+    requested_disk: &Path,
+    output: &mut Vec<InstallPartition>,
+) -> Result<()> {
+    if value.get("type").and_then(|value| value.as_str()) == Some("part") {
+        let path = PathBuf::from(
+            value
+                .get("path")
+                .and_then(|value| value.as_str())
+                .ok_or_else(|| anyhow!("partition has no path"))?,
+        );
+        let parent = value
+            .get("pkname")
+            .and_then(|value| value.as_str())
+            .map(PathBuf::from)
+            .unwrap_or_else(|| requested_disk.to_path_buf());
+        let partition_type = value
+            .get("parttype")
+            .and_then(|value| value.as_str())
+            .map(|value| value.to_ascii_lowercase());
+        let filesystem = value
+            .get("fstype")
+            .and_then(|value| value.as_str())
+            .map(str::to_owned);
+        let mount_points = value
+            .get("mountpoints")
+            .and_then(|value| value.as_array())
+            .into_iter()
+            .flatten()
+            .filter_map(|value| value.as_str())
+            .filter(|value| !value.is_empty())
+            .map(PathBuf::from)
+            .collect();
+        output.push(InstallPartition {
+            device: path,
+            parent_disk: parent,
+            number: json_u64(value.get("partn")).unwrap_or(0) as u32,
+            start_bytes: json_u64(value.get("start"))
+                .unwrap_or(0)
+                .saturating_mul(512),
+            size_bytes: json_u64(value.get("size")).unwrap_or(0),
+            is_esp: partition_type.as_deref() == Some(EFI_SYSTEM_PARTITION_GUID),
+            filesystem,
+            partition_type,
+            mount_points,
+        });
+    }
+    if let Some(children) = value.get("children").and_then(|value| value.as_array()) {
+        for child in children {
+            collect_partitions(child, requested_disk, output)?;
+        }
+    }
+    Ok(())
 }
 
 pub fn discover_install_disks() -> Result<Vec<InstallDisk>> {
@@ -43,10 +143,9 @@ fn discover_install_disks_in(sys_block: &Path, dev_root: &Path) -> Result<Vec<In
         // whole-disk installation targets. In particular, this prevents the
         // live ISO's /dev/sr0 from appearing before the actual target disk in
         // the graphical and guided CLI frontends.
-        let read_only = fs::read_to_string(path.join("ro"))
-            .is_ok_and(|value| value.trim() == "1");
-        let optical = fs::read_to_string(path.join("device/type"))
-            .is_ok_and(|value| value.trim() == "5");
+        let read_only = fs::read_to_string(path.join("ro")).is_ok_and(|value| value.trim() == "1");
+        let optical =
+            fs::read_to_string(path.join("device/type")).is_ok_and(|value| value.trim() == "5");
         if read_only || optical {
             continue;
         }
@@ -107,7 +206,10 @@ pub fn hash_password_secure(password: &mut Vec<u8>) -> Result<String> {
     result
 }
 
-pub fn partition_paths(disk: &Path) -> Result<PartitionPaths> {
+pub fn partition_path(disk: &Path, number: u32) -> Result<PathBuf> {
+    if number == 0 {
+        bail!("partition number must be positive");
+    }
     let text = disk
         .to_str()
         .ok_or_else(|| anyhow!("target disk path is not UTF-8"))?;
@@ -116,14 +218,19 @@ pub fn partition_paths(disk: &Path) -> Result<PartitionPaths> {
     } else {
         ""
     };
-    Ok(PartitionPaths {
-        efi: PathBuf::from(format!("{text}{separator}1")),
-        system: PathBuf::from(format!("{text}{separator}2")),
-    })
+    Ok(PathBuf::from(format!("{text}{separator}{number}")))
 }
 
 /// Validate mechanics common to any supported whole-disk installation.
 pub fn validate_whole_disk(target: &Path, minimum_bytes: u64) -> Result<()> {
+    validate_install_disk(target, minimum_bytes, true)
+}
+
+pub fn validate_install_disk(
+    target: &Path,
+    minimum_bytes: u64,
+    reject_mounted: bool,
+) -> Result<()> {
     if unsafe { libc::geteuid() } != 0 {
         bail!("installation requires root privileges");
     }
@@ -145,7 +252,15 @@ pub fn validate_whole_disk(target: &Path, minimum_bytes: u64) -> Result<()> {
     }
 
     // Compare block-device ancestry, not string prefixes such as vda/vdaa.
-    let root = capture("findmnt", &["-rn".as_ref(), "-o".as_ref(), "SOURCE".as_ref(), "/".as_ref()])?;
+    let root = capture(
+        "findmnt",
+        &[
+            "-rn".as_ref(),
+            "-o".as_ref(),
+            "SOURCE".as_ref(),
+            "/".as_ref(),
+        ],
+    )?;
     if let Some(root_device) = root.strip_prefix("/dev/") {
         let root_name = Path::new(root_device)
             .file_name()
@@ -155,7 +270,9 @@ pub fn validate_whole_disk(target: &Path, minimum_bytes: u64) -> Result<()> {
             if current.file_name() == Some(name) {
                 bail!("refusing to erase the disk containing the running root");
             }
-            let Some(parent) = current.parent() else { break };
+            let Some(parent) = current.parent() else {
+                break;
+            };
             if parent == current || parent.ends_with("block") {
                 break;
             }
@@ -170,9 +287,10 @@ pub fn validate_whole_disk(target: &Path, minimum_bytes: u64) -> Result<()> {
     if !mounted.status.success() {
         bail!("lsblk failed while validating {}", canonical.display());
     }
-    if String::from_utf8_lossy(&mounted.stdout)
-        .lines()
-        .any(|line| !line.trim().is_empty())
+    if reject_mounted
+        && String::from_utf8_lossy(&mounted.stdout)
+            .lines()
+            .any(|line| !line.trim().is_empty())
     {
         bail!("refusing to erase a target with mounted filesystems");
     }
@@ -268,9 +386,38 @@ mod tests {
 
     #[test]
     fn partition_names_cover_virtio_nvme_and_loop() {
-        assert_eq!(partition_paths(Path::new("/dev/vda")).unwrap().system, Path::new("/dev/vda2"));
-        assert_eq!(partition_paths(Path::new("/dev/nvme0n1")).unwrap().efi, Path::new("/dev/nvme0n1p1"));
-        assert_eq!(partition_paths(Path::new("/dev/loop7")).unwrap().system, Path::new("/dev/loop7p2"));
+        assert_eq!(
+            partition_path(Path::new("/dev/vda"), 2).unwrap(),
+            Path::new("/dev/vda2")
+        );
+        assert_eq!(
+            partition_path(Path::new("/dev/nvme0n1"), 1).unwrap(),
+            Path::new("/dev/nvme0n1p1")
+        );
+        assert_eq!(
+            partition_path(Path::new("/dev/loop7"), 2).unwrap(),
+            Path::new("/dev/loop7p2")
+        );
+    }
+
+    #[test]
+    fn lsblk_json_discovery_preserves_storage_safety_fields() {
+        let value: serde_json::Value = serde_json::from_str(
+            r#"{"path":"/dev/nvme0n1p1","pkname":"/dev/nvme0n1","type":"part","size":536870912,"fstype":"vfat","parttype":"C12A7328-F81F-11D2-BA4B-00A0C93EC93B","mountpoints":["/boot/efi",null],"start":2048,"partn":1}"#,
+        )
+        .unwrap();
+        let mut partitions = Vec::new();
+        collect_partitions(&value, Path::new("/dev/nvme0n1"), &mut partitions).unwrap();
+        assert_eq!(partitions.len(), 1);
+        let partition = &partitions[0];
+        assert_eq!(partition.device, Path::new("/dev/nvme0n1p1"));
+        assert_eq!(partition.parent_disk, Path::new("/dev/nvme0n1"));
+        assert_eq!(partition.number, 1);
+        assert_eq!(partition.start_bytes, 2048 * 512);
+        assert_eq!(partition.size_bytes, 512 * 1024 * 1024);
+        assert_eq!(partition.filesystem.as_deref(), Some("vfat"));
+        assert!(partition.is_esp);
+        assert_eq!(partition.mount_points, [PathBuf::from("/boot/efi")]);
     }
 
     #[test]
@@ -284,8 +431,14 @@ mod tests {
 
     #[test]
     fn disk_discovery_excludes_live_optical_and_read_only_devices() {
-        let nonce = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
-        let root = std::env::temp_dir().join(format!("mattos-installer-disks-{}-{nonce}", std::process::id()));
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let root = std::env::temp_dir().join(format!(
+            "mattos-installer-disks-{}-{nonce}",
+            std::process::id()
+        ));
         let sys = root.join("sys");
         let dev = root.join("dev");
         for (name, sectors, read_only, device_type) in [

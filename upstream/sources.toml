@@ -277,6 +277,14 @@ path = "src/system/storage/dosfstools"
 sync = "copy"
 
 [[component]]
+name = "e2fsprogs"
+repo = "https://github.com/tytso/e2fsprogs.git"
+branch = "v1.47.2"
+revision = "c3cce4a07efefc62bc7fc57a678cb870af27d0f2"
+path = "src/system/storage/e2fsprogs"
+sync = "copy"
+
+[[component]]
 name = "dbus-broker"
 repo = "https://github.com/bus1/dbus-broker.git"
 branch = "main"

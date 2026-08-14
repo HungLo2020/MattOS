@@ -132,12 +132,28 @@ const SHADOW_RUNTIME_PATHS: &[&str] = &[
 ];
 const UTIL_LINUX_AUTH_PATHS: &[&str] = &["usr/sbin/agetty", "usr/bin/login", "usr/bin/su"];
 const UTIL_LINUX_BASE_PATHS: &[&str] = &[
-    "usr/bin/lsblk", "usr/bin/dmesg", "usr/sbin/fdisk", "usr/sbin/cfdisk", "usr/sbin/sfdisk",
-    "usr/sbin/wipefs", "usr/sbin/blkid", "usr/bin/findmnt",
-    "usr/sbin/losetup", "usr/bin/mountpoint", "usr/sbin/blockdev", "usr/bin/flock",
-    "usr/bin/lscpu", "usr/bin/lslocks", "usr/bin/lsns", "usr/bin/nsenter",
-    "usr/bin/unshare", "usr/bin/taskset", "usr/bin/chrt", "usr/bin/ionice",
-    "usr/bin/prlimit", "usr/bin/uuidgen",
+    "usr/bin/lsblk",
+    "usr/bin/dmesg",
+    "usr/sbin/fdisk",
+    "usr/sbin/cfdisk",
+    "usr/sbin/sfdisk",
+    "usr/sbin/wipefs",
+    "usr/sbin/blkid",
+    "usr/bin/findmnt",
+    "usr/sbin/losetup",
+    "usr/bin/mountpoint",
+    "usr/sbin/blockdev",
+    "usr/bin/flock",
+    "usr/bin/lscpu",
+    "usr/bin/lslocks",
+    "usr/bin/lsns",
+    "usr/bin/nsenter",
+    "usr/bin/unshare",
+    "usr/bin/taskset",
+    "usr/bin/chrt",
+    "usr/bin/ionice",
+    "usr/bin/prlimit",
+    "usr/bin/uuidgen",
 ];
 const IPROUTE2_RUNTIME_PATHS: &[&str] = &[
     "usr/sbin/ip",
@@ -298,6 +314,7 @@ const PACKAGE_NAMES: &[&str] = &[
     "iputils-ping",
     "btrfs-progs",
     "dosfstools",
+    "e2fsprogs",
     "mattos-installer",
 ];
 
@@ -696,12 +713,26 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "required",
         },
         PackageSpec {
-            name: "locales", description: "glibc locale source data and localedef utility for offline MattOS locale generation",
-            source_component: "glibc", depends: &["libc6", "libc-bin"], provides: &["locales"], conflicts: &[], replaces: &[], essential: false, priority: "important",
+            name: "locales",
+            description: "glibc locale source data and localedef utility for offline MattOS locale generation",
+            source_component: "glibc",
+            depends: &["libc6", "libc-bin"],
+            provides: &["locales"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
         },
         PackageSpec {
-            name: "tzdata", description: "IANA timezone database built from pinned tzdata source",
-            source_component: "tzdata", depends: &["libc6"], provides: &["tzdata"], conflicts: &[], replaces: &[], essential: false, priority: "important",
+            name: "tzdata",
+            description: "IANA timezone database built from pinned tzdata source",
+            source_component: "tzdata",
+            depends: &["libc6"],
+            provides: &["tzdata"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
         },
         PackageSpec {
             name: "mattos-base-files",
@@ -1356,31 +1387,76 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
+            name: "e2fsprogs",
+            description: "ext2/ext3/ext4 filesystem utilities built for MattOS",
+            source_component: "e2fsprogs",
+            depends: &["libc6", "libblkid1", "libuuid1"],
+            provides: &["e2fsprogs"],
+            conflicts: &["e2fsprogs"],
+            replaces: &["e2fsprogs"],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
             name: "mattos-installer",
             description: "MattOS shared installation backend with CLI and native COSMIC frontends",
             source_component: "installer",
             depends: &[
-                "libc6", "libgcc-s1", "util-linux", "libblkid1", "libuuid1",
-                "zlib1g", "libzstd1", "passwd", "coreutils", "xz-utils",
-                "btrfs-progs", "dosfstools", "libcrypt1", "libwayland-client0", "libxkbcommon0", "cosmic-comp",
+                "libc6",
+                "libgcc-s1",
+                "util-linux",
+                "libblkid1",
+                "libuuid1",
+                "zlib1g",
+                "libzstd1",
+                "passwd",
+                "coreutils",
+                "xz-utils",
+                "btrfs-progs",
+                "dosfstools",
+                "e2fsprogs",
+                "libcrypt1",
+                "libwayland-client0",
+                "libxkbcommon0",
+                "cosmic-comp",
             ],
-            provides: &["mattos-installer", "mattos-installer-cli", "mattos-installer-cosmic"],
+            provides: &[
+                "mattos-installer",
+                "mattos-installer-cli",
+                "mattos-installer-cosmic",
+            ],
             conflicts: &[],
             replaces: &[],
             essential: false,
             priority: "optional",
         },
         PackageSpec {
-            name: "libuuid1", description: "util-linux UUID runtime library built for MattOS",
-            source_component: "util-linux", depends: &[], provides: &["libuuid1"], conflicts: &[], replaces: &[], essential: false, priority: "important",
+            name: "libuuid1",
+            description: "util-linux UUID runtime library built for MattOS",
+            source_component: "util-linux",
+            depends: &[],
+            provides: &["libuuid1"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
         },
         PackageSpec {
-            name: "libfdisk1", description: "util-linux partitioning runtime library built for MattOS",
-            source_component: "util-linux", depends: &["libblkid1", "libuuid1", "libsmartcols1"], provides: &["libfdisk1"], conflicts: &[], replaces: &[], essential: false, priority: "important",
+            name: "libfdisk1",
+            description: "util-linux partitioning runtime library built for MattOS",
+            source_component: "util-linux",
+            depends: &["libblkid1", "libuuid1", "libsmartcols1"],
+            provides: &["libfdisk1"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
         },
         PackageSpec {
-            name: "util-linux", description: "Essential Linux system administration utilities built for MattOS",
-            source_component: "util-linux", depends: &[
+            name: "util-linux",
+            description: "Essential Linux system administration utilities built for MattOS",
+            source_component: "util-linux",
+            depends: &[
                 "libblkid1",
                 "libmount1",
                 "libsmartcols1",
@@ -1390,52 +1466,136 @@ fn package_specs() -> Vec<PackageSpec> {
                 "libncursesw6",
                 "mattos-libtinfow6",
             ],
-            provides: &["util-linux"], conflicts: &["util-linux"], replaces: &["util-linux"], essential: false, priority: "required",
+            provides: &["util-linux"],
+            conflicts: &["util-linux"],
+            replaces: &["util-linux"],
+            essential: false,
+            priority: "required",
         },
         PackageSpec {
-            name: "gzip", description: "GNU gzip compression tools built for MattOS",
-            source_component: "gzip", depends: &[], provides: &["gzip"], conflicts: &["gzip"], replaces: &["gzip"], essential: false, priority: "required",
+            name: "gzip",
+            description: "GNU gzip compression tools built for MattOS",
+            source_component: "gzip",
+            depends: &[],
+            provides: &["gzip"],
+            conflicts: &["gzip"],
+            replaces: &["gzip"],
+            essential: false,
+            priority: "required",
         },
         PackageSpec {
-            name: "bzip2", description: "bzip2 compression tools built for MattOS",
-            source_component: "bzip2", depends: &["libbz2-1.0"], provides: &["bzip2"], conflicts: &["bzip2"], replaces: &["bzip2"], essential: false, priority: "required",
+            name: "bzip2",
+            description: "bzip2 compression tools built for MattOS",
+            source_component: "bzip2",
+            depends: &["libbz2-1.0"],
+            provides: &["bzip2"],
+            conflicts: &["bzip2"],
+            replaces: &["bzip2"],
+            essential: false,
+            priority: "required",
         },
         PackageSpec {
-            name: "xz-utils", description: "XZ compression tools built for MattOS",
-            source_component: "xz", depends: &["liblzma5"], provides: &["xz-utils"], conflicts: &["xz-utils"], replaces: &["xz-utils"], essential: false, priority: "required",
+            name: "xz-utils",
+            description: "XZ compression tools built for MattOS",
+            source_component: "xz",
+            depends: &["liblzma5"],
+            provides: &["xz-utils"],
+            conflicts: &["xz-utils"],
+            replaces: &["xz-utils"],
+            essential: false,
+            priority: "required",
         },
         PackageSpec {
-            name: "zstd", description: "Zstandard compression tools built for MattOS",
-            source_component: "zstd", depends: &["libzstd1"], provides: &["zstd"], conflicts: &["zstd"], replaces: &["zstd"], essential: false, priority: "required",
+            name: "zstd",
+            description: "Zstandard compression tools built for MattOS",
+            source_component: "zstd",
+            depends: &["libzstd1"],
+            provides: &["zstd"],
+            conflicts: &["zstd"],
+            replaces: &["zstd"],
+            essential: false,
+            priority: "required",
         },
         PackageSpec {
-            name: "patch", description: "GNU patch utility built for MattOS",
-            source_component: "patch", depends: &["libattr1"], provides: &["patch"], conflicts: &["patch"], replaces: &["patch"], essential: false, priority: "important",
+            name: "patch",
+            description: "GNU patch utility built for MattOS",
+            source_component: "patch",
+            depends: &["libattr1"],
+            provides: &["patch"],
+            conflicts: &["patch"],
+            replaces: &["patch"],
+            essential: false,
+            priority: "important",
         },
         PackageSpec {
-            name: "libmagic1", description: "libmagic runtime and compiled magic database built for MattOS",
-            source_component: "file", depends: &["zlib1g"], provides: &["libmagic1"], conflicts: &[], replaces: &[], essential: false, priority: "important",
+            name: "libmagic1",
+            description: "libmagic runtime and compiled magic database built for MattOS",
+            source_component: "file",
+            depends: &["zlib1g"],
+            provides: &["libmagic1"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
         },
         PackageSpec {
-            name: "file", description: "File type identification utility built for MattOS",
-            source_component: "file", depends: &["libmagic1", "zlib1g"], provides: &["file"], conflicts: &["file"], replaces: &["file"], essential: false, priority: "important",
+            name: "file",
+            description: "File type identification utility built for MattOS",
+            source_component: "file",
+            depends: &["libmagic1", "zlib1g"],
+            provides: &["file"],
+            conflicts: &["file"],
+            replaces: &["file"],
+            essential: false,
+            priority: "important",
         },
         PackageSpec {
-            name: "less", description: "Interactive terminal pager built for MattOS",
-            source_component: "less", depends: &["mattos-libtinfow6", "libpcre2-8-0"], provides: &["less"], conflicts: &["less"], replaces: &["less"], essential: false, priority: "important",
+            name: "less",
+            description: "Interactive terminal pager built for MattOS",
+            source_component: "less",
+            depends: &["mattos-libtinfow6", "libpcre2-8-0"],
+            provides: &["less"],
+            conflicts: &["less"],
+            replaces: &["less"],
+            essential: false,
+            priority: "important",
         },
         PackageSpec {
-            name: "git", description: "Git distributed version control with HTTPS support built for MattOS",
-            source_component: "git", depends: &["curl", "ca-certificates", "zlib1g", "libzstd1", "libexpat1", "libpcre2-8-0", "mattos-libcrypto3", "libssl3t64"],
-            provides: &["git"], conflicts: &["git"], replaces: &["git"], essential: false, priority: "important",
+            name: "git",
+            description: "Git distributed version control with HTTPS support built for MattOS",
+            source_component: "git",
+            depends: &[
+                "curl",
+                "ca-certificates",
+                "zlib1g",
+                "libzstd1",
+                "libexpat1",
+                "libpcre2-8-0",
+                "mattos-libcrypto3",
+                "libssl3t64",
+            ],
+            provides: &["git"],
+            conflicts: &["git"],
+            replaces: &["git"],
+            essential: false,
+            priority: "important",
         },
         PackageSpec {
-            name: "openssh-client", description: "OpenSSH client tools built for MattOS",
-            source_component: "openssh", depends: &["zlib1g", "libzstd1", "mattos-libcrypto3", "libssl3t64"], provides: &["ssh-client"], conflicts: &["openssh-client"], replaces: &["openssh-client"], essential: false, priority: "important",
+            name: "openssh-client",
+            description: "OpenSSH client tools built for MattOS",
+            source_component: "openssh",
+            depends: &["zlib1g", "libzstd1", "mattos-libcrypto3", "libssl3t64"],
+            provides: &["ssh-client"],
+            conflicts: &["openssh-client"],
+            replaces: &["openssh-client"],
+            essential: false,
+            priority: "important",
         },
         PackageSpec {
-            name: "openssh-server", description: "OpenSSH secure shell server and MattOS service configuration",
-            source_component: "openssh", depends: &[
+            name: "openssh-server",
+            description: "OpenSSH secure shell server and MattOS service configuration",
+            source_component: "openssh",
+            depends: &[
                 "openssh-client",
                 "libpam0g",
                 "libpam-runtime",
@@ -1444,85 +1604,390 @@ fn package_specs() -> Vec<PackageSpec> {
                 "libzstd1",
                 "mattos-libcrypto3",
                 "libssl3t64",
-            ], provides: &["ssh-server"], conflicts: &["openssh-server"], replaces: &["openssh-server"], essential: false, priority: "optional",
+            ],
+            provides: &["ssh-server"],
+            conflicts: &["openssh-server"],
+            replaces: &["openssh-server"],
+            essential: false,
+            priority: "optional",
         },
         PackageSpec {
-            name: "libffi8", description: "Foreign-function interface runtime library built for MattOS",
-            source_component: "libffi", depends: &["libc6"], provides: &["libffi8"], conflicts: &[], replaces: &[], essential: false, priority: "important",
+            name: "libffi8",
+            description: "Foreign-function interface runtime library built for MattOS",
+            source_component: "libffi",
+            depends: &["libc6"],
+            provides: &["libffi8"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
         },
         PackageSpec {
-            name: "libffi-dev", description: "Foreign-function interface development files built for MattOS",
-            source_component: "libffi", depends: &["libffi8", "libc6-dev"], provides: &["libffi-dev"], conflicts: &[], replaces: &[], essential: false, priority: "optional",
+            name: "libffi-dev",
+            description: "Foreign-function interface development files built for MattOS",
+            source_component: "libffi",
+            depends: &["libffi8", "libc6-dev"],
+            provides: &["libffi-dev"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
         },
         PackageSpec {
-            name: "libwayland-client0", description: "Wayland client runtime library built for MattOS",
-            source_component: "wayland", depends: &["libc6", "libffi8"], provides: &["libwayland-client0"], conflicts: &[], replaces: &[], essential: false, priority: "important",
+            name: "libwayland-client0",
+            description: "Wayland client runtime library built for MattOS",
+            source_component: "wayland",
+            depends: &["libc6", "libffi8"],
+            provides: &["libwayland-client0"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
         },
         PackageSpec {
-            name: "libxkbcommon0", description: "XKB keyboard description runtime library built for MattOS",
-            source_component: "xkbcommon", depends: &["libc6", "xkb-data"], provides: &["libxkbcommon0"], conflicts: &[], replaces: &[], essential: false, priority: "important",
+            name: "libxkbcommon0",
+            description: "XKB keyboard description runtime library built for MattOS",
+            source_component: "xkbcommon",
+            depends: &["libc6", "xkb-data"],
+            provides: &["libxkbcommon0"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
         },
         PackageSpec {
-            name: "xkb-data", description: "X Keyboard Extension data files built from pinned xkeyboard-config source",
-            source_component: "xkeyboard-config", depends: &[], provides: &["xkb-data"], conflicts: &[], replaces: &[], essential: false, priority: "important",
+            name: "xkb-data",
+            description: "X Keyboard Extension data files built from pinned xkeyboard-config source",
+            source_component: "xkeyboard-config",
+            depends: &[],
+            provides: &["xkb-data"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
         },
-        PackageSpec { name: "libseat1", description: "Seat management runtime library built for MattOS", source_component: "seatd", depends: &["libc6"], provides: &["libseat1"], conflicts: &[], replaces: &[], essential: false, priority: "important" },
-        PackageSpec { name: "libdisplay-info3", description: "Display information parsing runtime library built for MattOS", source_component: "libdisplay-info", depends: &["libc6"], provides: &["libdisplay-info3"], conflicts: &[], replaces: &[], essential: false, priority: "important" },
-        PackageSpec { name: "libevdev2", description: "Linux input event runtime library built for MattOS", source_component: "libevdev", depends: &["libc6"], provides: &["libevdev2"], conflicts: &[], replaces: &[], essential: false, priority: "important" },
-        PackageSpec { name: "libinput10", description: "Input device handling runtime library built for MattOS", source_component: "libinput", depends: &["libc6", "libevdev2", "libudev1"], provides: &["libinput10"], conflicts: &[], replaces: &[], essential: false, priority: "important" },
-        PackageSpec { name: "libpixman-1-0", description: "Pixel manipulation runtime library built for MattOS", source_component: "pixman", depends: &["libc6"], provides: &["libpixman-1-0"], conflicts: &[], replaces: &[], essential: false, priority: "important" },
-        PackageSpec { name: "libdrm2", description: "Direct Rendering Manager userspace runtime library built for MattOS", source_component: "libdrm", depends: &["libc6"], provides: &["libdrm2"], conflicts: &[], replaces: &[], essential: false, priority: "important" },
-        PackageSpec { name: "libgbm1", description: "Mesa GBM runtime library built for MattOS", source_component: "mesa", depends: &["libc6", "libdrm2"], provides: &["libgbm1"], conflicts: &[], replaces: &[], essential: false, priority: "important" },
-        PackageSpec { name: "libegl1", description: "Mesa EGL runtime library built for MattOS", source_component: "mesa", depends: &["libc6", "libgbm1", "libdrm2", "libexpat1", "mattos-mesa-llvmpipe"], provides: &["libegl1"], conflicts: &[], replaces: &[], essential: false, priority: "important" },
-        PackageSpec { name: "libgles2", description: "Mesa OpenGL ES runtime library built for MattOS", source_component: "mesa", depends: &["libc6", "libegl1", "libgbm1", "libdrm2"], provides: &["libgles2"], conflicts: &[], replaces: &[], essential: false, priority: "important" },
+        PackageSpec {
+            name: "libseat1",
+            description: "Seat management runtime library built for MattOS",
+            source_component: "seatd",
+            depends: &["libc6"],
+            provides: &["libseat1"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libdisplay-info3",
+            description: "Display information parsing runtime library built for MattOS",
+            source_component: "libdisplay-info",
+            depends: &["libc6"],
+            provides: &["libdisplay-info3"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libevdev2",
+            description: "Linux input event runtime library built for MattOS",
+            source_component: "libevdev",
+            depends: &["libc6"],
+            provides: &["libevdev2"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libinput10",
+            description: "Input device handling runtime library built for MattOS",
+            source_component: "libinput",
+            depends: &["libc6", "libevdev2", "libudev1"],
+            provides: &["libinput10"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libpixman-1-0",
+            description: "Pixel manipulation runtime library built for MattOS",
+            source_component: "pixman",
+            depends: &["libc6"],
+            provides: &["libpixman-1-0"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libdrm2",
+            description: "Direct Rendering Manager userspace runtime library built for MattOS",
+            source_component: "libdrm",
+            depends: &["libc6"],
+            provides: &["libdrm2"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libgbm1",
+            description: "Mesa GBM runtime library built for MattOS",
+            source_component: "mesa",
+            depends: &["libc6", "libdrm2"],
+            provides: &["libgbm1"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libegl1",
+            description: "Mesa EGL runtime library built for MattOS",
+            source_component: "mesa",
+            depends: &[
+                "libc6",
+                "libgbm1",
+                "libdrm2",
+                "libexpat1",
+                "mattos-mesa-llvmpipe",
+            ],
+            provides: &["libegl1"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libgles2",
+            description: "Mesa OpenGL ES runtime library built for MattOS",
+            source_component: "mesa",
+            depends: &["libc6", "libegl1", "libgbm1", "libdrm2"],
+            provides: &["libgles2"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
         // Mesa builds llvmpipe and VirGL into one Gallium runtime library.
         // Retain the package name for compatibility, while advertising both
         // supported renderer paths explicitly.
-        PackageSpec { name: "mattos-mesa-llvmpipe", description: "MattOS Mesa Gallium runtime with llvmpipe and QEMU VirGL", source_component: "mesa", depends: &["libc6", "libllvm22", "libdrm2", "libgbm1", "libexpat1"], provides: &["mattos-mesa-llvmpipe", "mattos-mesa-virgl"], conflicts: &[], replaces: &[], essential: false, priority: "important" },
-        PackageSpec { name: "cosmic-comp", description: "COSMIC Wayland compositor for the MattOS installer", source_component: "cosmic-comp", depends: &["libc6", "libgcc-s1", "libstdc++6", "libseat1", "libdisplay-info3", "libinput10", "libpixman-1-0", "libgbm1", "libegl1", "libgles2", "mattos-mesa-llvmpipe", "libwayland-client0", "libxkbcommon0", "libudev1"], provides: &["cosmic-comp"], conflicts: &[], replaces: &[], essential: false, priority: "optional" },
         PackageSpec {
-            name: "libpython3.14", description: "CPython 3.14 shared runtime library built for MattOS",
-            source_component: "cpython", depends: &["libc6"], provides: &["libpython3.14"], conflicts: &[], replaces: &[], essential: false, priority: "important",
+            name: "mattos-mesa-llvmpipe",
+            description: "MattOS Mesa Gallium runtime with llvmpipe and QEMU VirGL",
+            source_component: "mesa",
+            depends: &["libc6", "libllvm22", "libdrm2", "libgbm1", "libexpat1"],
+            provides: &["mattos-mesa-llvmpipe", "mattos-mesa-virgl"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
         },
         PackageSpec {
-            name: "python3", description: "CPython interpreter and standard library built for MattOS",
-            source_component: "cpython", depends: &["libpython3.14", "libffi8", "mattos-libcrypto3", "libssl3t64", "zlib1g", "libbz2-1.0", "liblzma5", "libexpat1", "libzstd1", "libncursesw6", "mattos-libtinfow6", "libuuid1"], provides: &["python3"], conflicts: &["python3"], replaces: &["python3"], essential: false, priority: "important",
+            name: "cosmic-comp",
+            description: "COSMIC Wayland compositor for the MattOS installer",
+            source_component: "cosmic-comp",
+            depends: &[
+                "libc6",
+                "libgcc-s1",
+                "libstdc++6",
+                "libseat1",
+                "libdisplay-info3",
+                "libinput10",
+                "libpixman-1-0",
+                "libgbm1",
+                "libegl1",
+                "libgles2",
+                "mattos-mesa-llvmpipe",
+                "libwayland-client0",
+                "libxkbcommon0",
+                "libudev1",
+            ],
+            provides: &["cosmic-comp"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
         },
         PackageSpec {
-            name: "python3-venv", description: "CPython virtual-environment and ensurepip support built for MattOS",
-            source_component: "cpython", depends: &["python3"], provides: &["python3-venv"], conflicts: &["python3-venv"], replaces: &["python3-venv"], essential: false, priority: "optional",
+            name: "libpython3.14",
+            description: "CPython 3.14 shared runtime library built for MattOS",
+            source_component: "cpython",
+            depends: &["libc6"],
+            provides: &["libpython3.14"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
         },
         PackageSpec {
-            name: "python3-dev", description: "CPython headers and native extension development files built for MattOS",
-            source_component: "cpython", depends: &["python3", "libpython3.14", "libffi-dev", "libc6-dev"], provides: &["python3-dev"], conflicts: &["python3-dev"], replaces: &["python3-dev"], essential: false, priority: "optional",
+            name: "python3",
+            description: "CPython interpreter and standard library built for MattOS",
+            source_component: "cpython",
+            depends: &[
+                "libpython3.14",
+                "libffi8",
+                "mattos-libcrypto3",
+                "libssl3t64",
+                "zlib1g",
+                "libbz2-1.0",
+                "liblzma5",
+                "libexpat1",
+                "libzstd1",
+                "libncursesw6",
+                "mattos-libtinfow6",
+                "libuuid1",
+            ],
+            provides: &["python3"],
+            conflicts: &["python3"],
+            replaces: &["python3"],
+            essential: false,
+            priority: "important",
         },
         PackageSpec {
-            name: "libllvm22", description: "LLVM 22 shared runtime library built for MattOS",
-            source_component: "llvm", depends: &["libc6", "libgcc-s1", "libstdc++6", "zlib1g", "libzstd1"], provides: &["libllvm22"], conflicts: &[], replaces: &[], essential: false, priority: "important",
+            name: "python3-venv",
+            description: "CPython virtual-environment and ensurepip support built for MattOS",
+            source_component: "cpython",
+            depends: &["python3"],
+            provides: &["python3-venv"],
+            conflicts: &["python3-venv"],
+            replaces: &["python3-venv"],
+            essential: false,
+            priority: "optional",
         },
         PackageSpec {
-            name: "llvm", description: "LLVM development command-line tools built for MattOS",
-            source_component: "llvm", depends: &["libllvm22", "libc6", "libgcc-s1", "libstdc++6", "zlib1g", "libzstd1"], provides: &["llvm"], conflicts: &["llvm"], replaces: &["llvm"], essential: false, priority: "optional",
+            name: "python3-dev",
+            description: "CPython headers and native extension development files built for MattOS",
+            source_component: "cpython",
+            depends: &["python3", "libpython3.14", "libffi-dev", "libc6-dev"],
+            provides: &["python3-dev"],
+            conflicts: &["python3-dev"],
+            replaces: &["python3-dev"],
+            essential: false,
+            priority: "optional",
         },
         PackageSpec {
-            name: "llvm-dev", description: "LLVM headers and CMake development metadata built for MattOS",
-            source_component: "llvm", depends: &["llvm", "libllvm22", "libc6-dev", "mattos-libstdc++-dev"], provides: &["llvm-dev"], conflicts: &["llvm-dev"], replaces: &["llvm-dev"], essential: false, priority: "optional",
+            name: "libllvm22",
+            description: "LLVM 22 shared runtime library built for MattOS",
+            source_component: "llvm",
+            depends: &["libc6", "libgcc-s1", "libstdc++6", "zlib1g", "libzstd1"],
+            provides: &["libllvm22"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
         },
         PackageSpec {
-            name: "clang", description: "Clang C and C++ compiler built for MattOS",
-            source_component: "llvm", depends: &["libllvm22", "libc6", "libgcc-s1", "libstdc++6", "zlib1g", "libzstd1", "libc6-dev", "mattos-libgcc-dev", "mattos-libstdc++-dev", "binutils"], provides: &["clang"], conflicts: &["clang"], replaces: &["clang"], essential: false, priority: "optional",
+            name: "llvm",
+            description: "LLVM development command-line tools built for MattOS",
+            source_component: "llvm",
+            depends: &[
+                "libllvm22",
+                "libc6",
+                "libgcc-s1",
+                "libstdc++6",
+                "zlib1g",
+                "libzstd1",
+            ],
+            provides: &["llvm"],
+            conflicts: &["llvm"],
+            replaces: &["llvm"],
+            essential: false,
+            priority: "optional",
         },
         PackageSpec {
-            name: "lld", description: "LLVM linker built for MattOS",
-            source_component: "llvm", depends: &["libllvm22", "libc6", "libgcc-s1", "libstdc++6", "zlib1g", "libzstd1"], provides: &["lld"], conflicts: &["lld"], replaces: &["lld"], essential: false, priority: "optional",
+            name: "llvm-dev",
+            description: "LLVM headers and CMake development metadata built for MattOS",
+            source_component: "llvm",
+            depends: &["llvm", "libllvm22", "libc6-dev", "mattos-libstdc++-dev"],
+            provides: &["llvm-dev"],
+            conflicts: &["llvm-dev"],
+            replaces: &["llvm-dev"],
+            essential: false,
+            priority: "optional",
         },
         PackageSpec {
-            name: "rustc", description: "Rust compiler, standard library, and rustdoc built for MattOS",
-            source_component: "rust", depends: &["libc6", "libgcc-s1", "libstdc++6", "libllvm22", "zlib1g", "libzstd1", "gcc", "binutils", "libc6-dev"], provides: &["rustc", "rustdoc"], conflicts: &["rustc"], replaces: &["rustc"], essential: false, priority: "optional",
+            name: "clang",
+            description: "Clang C and C++ compiler built for MattOS",
+            source_component: "llvm",
+            depends: &[
+                "libllvm22",
+                "libc6",
+                "libgcc-s1",
+                "libstdc++6",
+                "zlib1g",
+                "libzstd1",
+                "libc6-dev",
+                "mattos-libgcc-dev",
+                "mattos-libstdc++-dev",
+                "binutils",
+            ],
+            provides: &["clang"],
+            conflicts: &["clang"],
+            replaces: &["clang"],
+            essential: false,
+            priority: "optional",
         },
         PackageSpec {
-            name: "cargo", description: "Cargo Rust package manager built for MattOS",
-            source_component: "rust", depends: &["rustc", "libgcc-s1", "git", "ca-certificates", "mattos-libcrypto3", "libssl3t64", "zlib1g", "libzstd1"], provides: &["cargo"], conflicts: &["cargo"], replaces: &["cargo"], essential: false, priority: "optional",
+            name: "lld",
+            description: "LLVM linker built for MattOS",
+            source_component: "llvm",
+            depends: &[
+                "libllvm22",
+                "libc6",
+                "libgcc-s1",
+                "libstdc++6",
+                "zlib1g",
+                "libzstd1",
+            ],
+            provides: &["lld"],
+            conflicts: &["lld"],
+            replaces: &["lld"],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "rustc",
+            description: "Rust compiler, standard library, and rustdoc built for MattOS",
+            source_component: "rust",
+            depends: &[
+                "libc6",
+                "libgcc-s1",
+                "libstdc++6",
+                "libllvm22",
+                "zlib1g",
+                "libzstd1",
+                "gcc",
+                "binutils",
+                "libc6-dev",
+            ],
+            provides: &["rustc", "rustdoc"],
+            conflicts: &["rustc"],
+            replaces: &["rustc"],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "cargo",
+            description: "Cargo Rust package manager built for MattOS",
+            source_component: "rust",
+            depends: &[
+                "rustc",
+                "libgcc-s1",
+                "git",
+                "ca-certificates",
+                "mattos-libcrypto3",
+                "libssl3t64",
+                "zlib1g",
+                "libzstd1",
+            ],
+            provides: &["cargo"],
+            conflicts: &["cargo"],
+            replaces: &["cargo"],
+            essential: false,
+            priority: "optional",
         },
     ]
 }
@@ -2406,7 +2871,7 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
         // Linux bzImage used by installed systems. Keep the filesystem-tool
         // packages tied only to their shared build stage.
         "installer" => &["installer", "linux"],
-        "btrfs-progs" | "dosfstools" => &["installer"],
+        "btrfs-progs" | "dosfstools" | "e2fsprogs" => &["installer"],
         "procps-ng" => &["procps-ng"],
         "linux-pam" => &["linux-pam"],
         "sudo-rs" => &["sudo-rs"],
@@ -2482,9 +2947,11 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
             "src/system/installer",
             "src/system/storage/btrfs-progs",
             "src/system/storage/dosfstools",
+            "src/system/storage/e2fsprogs",
         ],
         "btrfs-progs" => &["src/system/storage/btrfs-progs"],
         "dosfstools" => &["src/system/storage/dosfstools"],
+        "e2fsprogs" => &["src/system/storage/e2fsprogs"],
         "brush" => &["src/userland/brush"],
         "coreutils" => &["src/userland/coreutils"],
         "curl" => &["src/userland/curl"],
@@ -2531,7 +2998,10 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "xkeyboard-config" => &["src/system/data/xkeyboard-config"],
         "tzdata" => &["src/system/data/tzdata"],
         "seatd" => &["src/system/libraries/seatd"],
-        "libdisplay-info" => &["src/system/libraries/libdisplay-info", "src/system/data/hwdata"],
+        "libdisplay-info" => &[
+            "src/system/libraries/libdisplay-info",
+            "src/system/data/hwdata",
+        ],
         "libevdev" => &["src/system/libraries/libevdev"],
         "libinput" => &["src/system/libraries/libinput"],
         "pixman" => &["src/system/libraries/pixman"],
@@ -2540,7 +3010,10 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "cosmic-comp" => &["src/desktop/cosmic/cosmic-comp"],
         "cpython" => &["src/development/python/cpython"],
         "llvm" => &["src/toolchain/llvm-project"],
-        "rust" => &["src/toolchain/rust", "upstream/policies/release-archives.toml"],
+        "rust" => &[
+            "src/toolchain/rust",
+            "upstream/policies/release-archives.toml",
+        ],
         _ => &[],
     }
 }
@@ -2917,12 +3390,20 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
             }
         }
         "libuuid1" => stage_imported_soname_library(
-            repo_root, &staging, "util-linux", "libuuid.so.1",
-            "src/userland/util-linux/COPYING", "libuuid1",
+            repo_root,
+            &staging,
+            "util-linux",
+            "libuuid.so.1",
+            "src/userland/util-linux/COPYING",
+            "libuuid1",
         )?,
         "libfdisk1" => stage_imported_soname_library(
-            repo_root, &staging, "util-linux", "libfdisk.so.1",
-            "src/userland/util-linux/COPYING", "libfdisk1",
+            repo_root,
+            &staging,
+            "util-linux",
+            "libfdisk.so.1",
+            "src/userland/util-linux/COPYING",
+            "libfdisk1",
         )?,
         "util-linux" => {
             stage_runtime_paths(repo_root, &staging, "util-linux", UTIL_LINUX_BASE_PATHS)?;
@@ -2931,19 +3412,58 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
                 &staging.join("usr/share/doc/util-linux/copyright"),
             )?;
         }
-        "gzip" => stage_runtime_paths(repo_root, &staging, "gzip", &["usr/bin/gzip", "usr/bin/gunzip", "usr/bin/zcat"] )?,
-        "bzip2" => stage_runtime_paths(repo_root, &staging, "bzip2", &["usr/bin/bzip2", "usr/bin/bunzip2", "usr/bin/bzcat", "usr/bin/bzip2recover"] )?,
-        "xz-utils" => stage_runtime_paths(repo_root, &staging, "xz", &["usr/bin/xz", "usr/bin/unxz", "usr/bin/xzcat", "usr/bin/lzma", "usr/bin/unlzma", "usr/bin/lzcat"] )?,
-        "zstd" => stage_runtime_paths(repo_root, &staging, "zstd", &["usr/bin/zstd", "usr/bin/unzstd", "usr/bin/zstdcat"] )?,
-        "patch" => stage_runtime_paths(repo_root, &staging, "patch", &["usr/bin/patch"] )?,
+        "gzip" => stage_runtime_paths(
+            repo_root,
+            &staging,
+            "gzip",
+            &["usr/bin/gzip", "usr/bin/gunzip", "usr/bin/zcat"],
+        )?,
+        "bzip2" => stage_runtime_paths(
+            repo_root,
+            &staging,
+            "bzip2",
+            &[
+                "usr/bin/bzip2",
+                "usr/bin/bunzip2",
+                "usr/bin/bzcat",
+                "usr/bin/bzip2recover",
+            ],
+        )?,
+        "xz-utils" => stage_runtime_paths(
+            repo_root,
+            &staging,
+            "xz",
+            &[
+                "usr/bin/xz",
+                "usr/bin/unxz",
+                "usr/bin/xzcat",
+                "usr/bin/lzma",
+                "usr/bin/unlzma",
+                "usr/bin/lzcat",
+            ],
+        )?,
+        "zstd" => stage_runtime_paths(
+            repo_root,
+            &staging,
+            "zstd",
+            &["usr/bin/zstd", "usr/bin/unzstd", "usr/bin/zstdcat"],
+        )?,
+        "patch" => stage_runtime_paths(repo_root, &staging, "patch", &["usr/bin/patch"])?,
         "libmagic1" => {
-            stage_imported_soname_library(repo_root, &staging, "file", "libmagic.so.1", "src/userland/file/COPYING", "libmagic1")?;
+            stage_imported_soname_library(
+                repo_root,
+                &staging,
+                "file",
+                "libmagic.so.1",
+                "src/userland/file/COPYING",
+                "libmagic1",
+            )?;
             copy_preserving(
                 &repo_root.join("out/build/file/install/usr/share/misc/magic.mgc"),
                 &staging.join("usr/share/misc/magic.mgc"),
             )?;
         }
-        "file" => stage_runtime_paths(repo_root, &staging, "file", &["usr/bin/file"] )?,
+        "file" => stage_runtime_paths(repo_root, &staging, "file", &["usr/bin/file"])?,
         "less" => stage_runtime_paths(
             repo_root,
             &staging,
@@ -2951,7 +3471,8 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
             &["usr/bin/less", "usr/bin/lesskey", "usr/libexec/lessecho"],
         )?,
         "git" => copy_tree_preserving(
-            &repo_root.join("out/build/git/install/usr"), &staging.join("usr"),
+            &repo_root.join("out/build/git/install/usr"),
+            &staging.join("usr"),
         )?,
         "libffi8" => stage_imported_soname_library(
             repo_root,
@@ -2963,44 +3484,117 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
         )?,
         "libffi-dev" => stage_libffi_dev(repo_root, &staging)?,
         "libxkbcommon0" => stage_imported_soname_library(
-            repo_root, &staging, "xkbcommon", "libxkbcommon.so.0",
-            "src/system/libraries/xkbcommon/LICENSE", "libxkbcommon0",
+            repo_root,
+            &staging,
+            "xkbcommon",
+            "libxkbcommon.so.0",
+            "src/system/libraries/xkbcommon/LICENSE",
+            "libxkbcommon0",
         )?,
         "libwayland-client0" => stage_imported_soname_library(
-            repo_root, &staging, "wayland", "libwayland-client.so.0",
-            "src/system/libraries/wayland/COPYING", "libwayland-client0",
+            repo_root,
+            &staging,
+            "wayland",
+            "libwayland-client.so.0",
+            "src/system/libraries/wayland/COPYING",
+            "libwayland-client0",
         )?,
         "xkb-data" => stage_xkeyboard_config_data(repo_root, &staging)?,
-        "libseat1" => stage_imported_soname_library(repo_root, &staging, "seatd", "libseat.so.1", "src/system/libraries/seatd/LICENSE", "libseat1")?,
-        "libdisplay-info3" => stage_imported_soname_library(repo_root, &staging, "libdisplay-info", "libdisplay-info.so.3", "src/system/libraries/libdisplay-info/LICENSE", "libdisplay-info3")?,
-        "libevdev2" => stage_imported_soname_library(repo_root, &staging, "libevdev", "libevdev.so.2", "src/system/libraries/libevdev/COPYING", "libevdev2")?,
+        "libseat1" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "seatd",
+            "libseat.so.1",
+            "src/system/libraries/seatd/LICENSE",
+            "libseat1",
+        )?,
+        "libdisplay-info3" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "libdisplay-info",
+            "libdisplay-info.so.3",
+            "src/system/libraries/libdisplay-info/LICENSE",
+            "libdisplay-info3",
+        )?,
+        "libevdev2" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "libevdev",
+            "libevdev.so.2",
+            "src/system/libraries/libevdev/COPYING",
+            "libevdev2",
+        )?,
         "libinput10" => {
-            stage_imported_soname_library(repo_root, &staging, "libinput", "libinput.so.10", "src/system/libraries/libinput/COPYING", "libinput10")?;
+            stage_imported_soname_library(
+                repo_root,
+                &staging,
+                "libinput",
+                "libinput.so.10",
+                "src/system/libraries/libinput/COPYING",
+                "libinput10",
+            )?;
             copy_tree_preserving(
                 &repo_root.join("out/build/libinput/install/usr/share/libinput"),
                 &staging.join("usr/share/libinput"),
             )?;
         }
-        "libpixman-1-0" => stage_imported_soname_library(repo_root, &staging, "pixman", "libpixman-1.so.0", "src/system/libraries/pixman/COPYING", "libpixman-1-0")?,
-        "libdrm2" => stage_imported_soname_library(repo_root, &staging, "libdrm", "libdrm.so.2", "src/system/libraries/libdrm/README.rst", "libdrm2")?,
-        "libgbm1" => stage_imported_soname_library(repo_root, &staging, "mesa", "libgbm.so.1", "src/system/graphics/mesa/docs/license.rst", "libgbm1")?,
-        "libegl1" => stage_imported_soname_library(repo_root, &staging, "mesa", "libEGL.so.1", "src/system/graphics/mesa/docs/license.rst", "libegl1")?,
-        "libgles2" => stage_imported_soname_library(repo_root, &staging, "mesa", "libGLESv2.so.2", "src/system/graphics/mesa/docs/license.rst", "libgles2")?,
+        "libpixman-1-0" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "pixman",
+            "libpixman-1.so.0",
+            "src/system/libraries/pixman/COPYING",
+            "libpixman-1-0",
+        )?,
+        "libdrm2" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "libdrm",
+            "libdrm.so.2",
+            "src/system/libraries/libdrm/README.rst",
+            "libdrm2",
+        )?,
+        "libgbm1" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "mesa",
+            "libgbm.so.1",
+            "src/system/graphics/mesa/docs/license.rst",
+            "libgbm1",
+        )?,
+        "libegl1" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "mesa",
+            "libEGL.so.1",
+            "src/system/graphics/mesa/docs/license.rst",
+            "libegl1",
+        )?,
+        "libgles2" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "mesa",
+            "libGLESv2.so.2",
+            "src/system/graphics/mesa/docs/license.rst",
+            "libgles2",
+        )?,
         // This package owns Mesa's monolithic Gallium runtime, including the
         // llvmpipe fallback and the VirGL renderer selected for QEMU
         // virtio-gpu through Mesa's kmsro integration.
-        "mattos-mesa-llvmpipe" => stage_runtime_paths(repo_root, &staging, "mesa", &[
-            "usr/lib/x86_64-linux-gnu/libgallium-26.1.7.so",
-            "usr/lib/x86_64-linux-gnu/gbm/dri_gbm.so",
-        ] )?,
-        "cosmic-comp" => stage_runtime_paths(repo_root, &staging, "cosmic-comp", &["usr/bin/cosmic-comp"] )?,
+        "mattos-mesa-llvmpipe" => stage_runtime_paths(
+            repo_root,
+            &staging,
+            "mesa",
+            &[
+                "usr/lib/x86_64-linux-gnu/libgallium-26.1.7.so",
+                "usr/lib/x86_64-linux-gnu/gbm/dri_gbm.so",
+            ],
+        )?,
+        "cosmic-comp" => {
+            stage_runtime_paths(repo_root, &staging, "cosmic-comp", &["usr/bin/cosmic-comp"])?
+        }
         "libpython3.14" => {
-            stage_library_family(
-                repo_root,
-                &staging,
-                "cpython",
-                &["libpython3.14.so.1.0"],
-            )?;
+            stage_library_family(repo_root, &staging, "cpython", &["libpython3.14.so.1.0"])?;
             copy_preserving(
                 &repo_root.join("src/development/python/cpython/LICENSE"),
                 &staging.join("usr/share/doc/libpython3.14/copyright"),
@@ -3018,8 +3612,18 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
         "cargo" => stage_cargo(repo_root, &staging)?,
         "openssh-client" => {
             stage_runtime_paths(
-                repo_root, &staging, "openssh",
-                &["usr/bin/ssh", "usr/bin/scp", "usr/bin/sftp", "usr/bin/ssh-add", "usr/bin/ssh-agent", "usr/bin/ssh-keygen", "usr/bin/ssh-keyscan"],
+                repo_root,
+                &staging,
+                "openssh",
+                &[
+                    "usr/bin/ssh",
+                    "usr/bin/scp",
+                    "usr/bin/sftp",
+                    "usr/bin/ssh-add",
+                    "usr/bin/ssh-agent",
+                    "usr/bin/ssh-keygen",
+                    "usr/bin/ssh-keyscan",
+                ],
             )?;
             copy_preserving(
                 &repo_root.join("src/system/network/openssh/ssh_config"),
@@ -3070,6 +3674,12 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
             &repo_root.join("out/build/dosfstools/install/usr"),
             &staging.join("usr"),
         )?,
+        "e2fsprogs" => {
+            let install = repo_root.join("out/build/e2fsprogs/install");
+            for relative in ["usr/bin", "usr/sbin", "usr/libexec", "usr/share/man", "etc"] {
+                copy_tree_preserving(&install.join(relative), &staging.join(relative))?;
+            }
+        }
         _ => bail!("no staging implementation for {}", spec.name),
     }
 
@@ -3144,8 +3754,14 @@ fn stage_mattos_installer(repo_root: &Path, staging: &Path) -> Result<()> {
     let assets = staging.join("usr/lib/mattos/installer");
     fs::create_dir_all(&assets)?;
     for (source, name) in [
-        (repo_root.join("out/build/linux/build/arch/x86/boot/bzImage"), "vmlinuz"),
-        (repo_root.join("out/build/installed-initramfs.cpio.xz"), "installed-initramfs.cpio.xz"),
+        (
+            repo_root.join("out/build/linux/build/arch/x86/boot/bzImage"),
+            "vmlinuz",
+        ),
+        (
+            repo_root.join("out/build/installed-initramfs.cpio.xz"),
+            "installed-initramfs.cpio.xz",
+        ),
         (installer.join("BOOTX64.EFI"), "BOOTX64.EFI"),
     ] {
         copy_preserving(&source, &assets.join(name))?;
@@ -3175,7 +3791,12 @@ fn stage_mattos_installer(repo_root: &Path, staging: &Path) -> Result<()> {
 
 fn stage_cpython_runtime(repo_root: &Path, staging: &Path) -> Result<()> {
     let install = component_install(repo_root, "cpython").join("usr");
-    for relative in ["bin/python3", "bin/python3.14", "bin/pydoc3", "bin/pydoc3.14"] {
+    for relative in [
+        "bin/python3",
+        "bin/python3.14",
+        "bin/pydoc3",
+        "bin/pydoc3.14",
+    ] {
         copy_path_preserving(&install.join(relative), &staging.join("usr").join(relative))?;
     }
     let stdlib = install.join("lib/python3.14");
@@ -3238,11 +3859,13 @@ fn stage_cpython_dev(repo_root: &Path, staging: &Path) -> Result<()> {
     copy_tree_filtered(
         &stdlib,
         &staging.join("usr/lib/python3.14"),
-        &|relative, _| relative
-            .components()
-            .next()
-            .and_then(|part| part.as_os_str().to_str())
-            .is_some_and(|name| name.starts_with("config-")),
+        &|relative, _| {
+            relative
+                .components()
+                .next()
+                .and_then(|part| part.as_os_str().to_str())
+                .is_some_and(|name| name.starts_with("config-"))
+        },
     )?;
     copy_preserving(
         &repo_root.join("src/development/python/cpython/LICENSE"),
@@ -3266,7 +3889,10 @@ fn stage_llvm_runtime(repo_root: &Path, staging: &Path) -> Result<()> {
         "libRemarks.so.22.1",
     ] {
         let relative = Path::new("lib/x86_64-linux-gnu").join(name);
-        copy_path_preserving(&install.join(&relative), &staging.join("usr").join(relative))?;
+        copy_path_preserving(
+            &install.join(&relative),
+            &staging.join("usr").join(relative),
+        )?;
     }
     copy_preserving(
         &repo_root.join("src/toolchain/llvm-project/llvm/LICENSE.TXT"),
@@ -3276,15 +3902,25 @@ fn stage_llvm_runtime(repo_root: &Path, staging: &Path) -> Result<()> {
 
 fn stage_llvm_tools(repo_root: &Path, staging: &Path) -> Result<()> {
     let install = llvm_install(repo_root);
-    copy_tree_filtered(&install.join("bin"), &staging.join("usr/bin"), &|relative, metadata| {
-        if metadata.is_dir() {
-            return true;
-        }
-        let name = relative.file_name().and_then(OsStr::to_str).unwrap_or_default();
-        name.starts_with("llvm-")
-            || matches!(name, "FileCheck" | "llc" | "lli" | "opt" | "bugpoint")
-    })?;
-    copy_tree_preserving(&install.join("share/opt-viewer"), &staging.join("usr/share/opt-viewer"))?;
+    copy_tree_filtered(
+        &install.join("bin"),
+        &staging.join("usr/bin"),
+        &|relative, metadata| {
+            if metadata.is_dir() {
+                return true;
+            }
+            let name = relative
+                .file_name()
+                .and_then(OsStr::to_str)
+                .unwrap_or_default();
+            name.starts_with("llvm-")
+                || matches!(name, "FileCheck" | "llc" | "lli" | "opt" | "bugpoint")
+        },
+    )?;
+    copy_tree_preserving(
+        &install.join("share/opt-viewer"),
+        &staging.join("usr/share/opt-viewer"),
+    )?;
     copy_preserving(
         &repo_root.join("src/toolchain/llvm-project/llvm/LICENSE.TXT"),
         &staging.join("usr/share/doc/llvm/copyright"),
@@ -3309,8 +3945,7 @@ fn stage_llvm_development(repo_root: &Path, staging: &Path) -> Result<()> {
                 .file_name()
                 .and_then(OsStr::to_str)
                 .is_some_and(|name| {
-                    name.ends_with(".a")
-                        || (name.ends_with(".so") && name != "libLLVM-22.so")
+                    name.ends_with(".a") || (name.ends_with(".so") && name != "libLLVM-22.so")
                 })
                 && !relative.starts_with("cmake")
         },
@@ -3323,19 +3958,35 @@ fn stage_llvm_development(repo_root: &Path, staging: &Path) -> Result<()> {
 
 fn stage_clang(repo_root: &Path, staging: &Path) -> Result<()> {
     let install = llvm_install(repo_root);
-    copy_tree_filtered(&install.join("bin"), &staging.join("usr/bin"), &|relative, metadata| {
-        if metadata.is_dir() {
-            return true;
-        }
-        let name = relative.file_name().and_then(OsStr::to_str).unwrap_or_default();
-        name.starts_with("clang")
-            || matches!(
-                name,
-                "analyze-build" | "diagtool" | "git-clang-format" | "hmaptool"
-                    | "intercept-build" | "reduce-chunk-list" | "sancov" | "sanstats"
-                    | "scan-build" | "scan-build-py" | "scan-view" | "verify-uselistorder"
-            )
-    })?;
+    copy_tree_filtered(
+        &install.join("bin"),
+        &staging.join("usr/bin"),
+        &|relative, metadata| {
+            if metadata.is_dir() {
+                return true;
+            }
+            let name = relative
+                .file_name()
+                .and_then(OsStr::to_str)
+                .unwrap_or_default();
+            name.starts_with("clang")
+                || matches!(
+                    name,
+                    "analyze-build"
+                        | "diagtool"
+                        | "git-clang-format"
+                        | "hmaptool"
+                        | "intercept-build"
+                        | "reduce-chunk-list"
+                        | "sancov"
+                        | "sanstats"
+                        | "scan-build"
+                        | "scan-build-py"
+                        | "scan-view"
+                        | "verify-uselistorder"
+                )
+        },
+    )?;
     copy_tree_preserving(
         &install.join("lib/x86_64-linux-gnu/clang"),
         &staging.join("usr/lib/x86_64-linux-gnu/clang"),
@@ -3373,13 +4024,17 @@ fn rust_install(repo_root: &Path) -> PathBuf {
 
 fn stage_rustc(repo_root: &Path, staging: &Path) -> Result<()> {
     let install = rust_install(repo_root);
-    copy_tree_filtered(&install.join("bin"), &staging.join("usr/bin"), &|relative, metadata| {
-        metadata.is_dir()
-            || relative
-                .file_name()
-                .and_then(OsStr::to_str)
-                .is_some_and(|name| name != "cargo")
-    })?;
+    copy_tree_filtered(
+        &install.join("bin"),
+        &staging.join("usr/bin"),
+        &|relative, metadata| {
+            metadata.is_dir()
+                || relative
+                    .file_name()
+                    .and_then(OsStr::to_str)
+                    .is_some_and(|name| name != "cargo")
+        },
+    )?;
     copy_tree_preserving(&install.join("lib"), &staging.join("usr/lib"))?;
     copy_tree_preserving(
         &install.join("share/doc/rustc"),
@@ -3539,14 +4194,21 @@ fn stage_glibc_utilities(repo_root: &Path, staging: &Path) -> Result<()> {
 /// target instead of claiming host-generated locales are available.
 fn stage_glibc_locales(repo_root: &Path, staging: &Path) -> Result<()> {
     let install = repo_root.join("out/build/glibc/install/usr");
-    stage_executable(&install.join("bin/localedef"), &staging.join("usr/bin/localedef"), 0o755)?;
+    stage_executable(
+        &install.join("bin/localedef"),
+        &staging.join("usr/bin/localedef"),
+        0o755,
+    )?;
     copy_tree_preserving(&install.join("share/i18n"), &staging.join("usr/share/i18n"))?;
     if !staging.join("usr/share/i18n/locales/en_US").is_file()
         || !staging.join("usr/share/i18n/charmaps/UTF-8.gz").is_file()
     {
         bail!("glibc locale package is missing en_US or UTF-8 source data")
     }
-    copy_preserving(&repo_root.join("src/system/libc/glibc/COPYING.LIB"), &staging.join("usr/share/doc/locales/copyright"))?;
+    copy_preserving(
+        &repo_root.join("src/system/libc/glibc/COPYING.LIB"),
+        &staging.join("usr/share/doc/locales/copyright"),
+    )?;
     Ok(())
 }
 
@@ -3563,7 +4225,22 @@ fn stage_tzdata(repo_root: &Path, staging: &Path) -> Result<()> {
     run_cmd(&build_source, "make", &["zic"])?;
     let zic = build_source.join("zic");
     let destination = format!("-d{}", zoneinfo.display());
-    run_cmd(&build_source, path_str(&zic)?, &[destination.as_str(), "africa", "antarctica", "asia", "australasia", "backward", "etcetera", "europe", "northamerica", "southamerica"])?;
+    run_cmd(
+        &build_source,
+        path_str(&zic)?,
+        &[
+            destination.as_str(),
+            "africa",
+            "antarctica",
+            "asia",
+            "australasia",
+            "backward",
+            "etcetera",
+            "europe",
+            "northamerica",
+            "southamerica",
+        ],
+    )?;
     for file in ["zone.tab", "zone1970.tab", "iso3166.tab"] {
         copy_preserving(&source.join(file), &zoneinfo.join(file))?;
     }
@@ -3571,7 +4248,10 @@ fn stage_tzdata(repo_root: &Path, staging: &Path) -> Result<()> {
         bail!("pinned tzdata build did not produce canonical zoneinfo files")
     }
     copy_tree_preserving(&zoneinfo, &staging.join("usr/share/zoneinfo"))?;
-    copy_preserving(&source.join("LICENSE"), &staging.join("usr/share/doc/tzdata/copyright"))?;
+    copy_preserving(
+        &source.join("LICENSE"),
+        &staging.join("usr/share/doc/tzdata/copyright"),
+    )?;
     Ok(())
 }
 
@@ -3914,7 +4594,10 @@ fn stage_library_family(
 fn stage_xkeyboard_config_data(repo_root: &Path, staging: &Path) -> Result<()> {
     build_xkeyboard_config(repo_root)?;
     let source = repo_root.join("out/build/xkeyboard-config/install/usr/share");
-    copy_tree_preserving(&source.join("xkeyboard-config-2"), &staging.join("usr/share/xkeyboard-config-2"))?;
+    copy_tree_preserving(
+        &source.join("xkeyboard-config-2"),
+        &staging.join("usr/share/xkeyboard-config-2"),
+    )?;
     // Meson's installed legacy link is absolute (`/usr/share/...`).  Preserve
     // its in-image meaning rather than copying an absolute host-root link
     // into package staging.
@@ -3928,7 +4611,10 @@ fn stage_xkeyboard_config_data(repo_root: &Path, staging: &Path) -> Result<()> {
     bail!("xkeyboard-config package staging requires Unix symlinks");
     let rules = staging.join("usr/share/xkeyboard-config-2/rules/evdev");
     if !rules.is_file() {
-        bail!("xkeyboard-config staging did not contain generated {}", rules.display());
+        bail!(
+            "xkeyboard-config staging did not contain generated {}",
+            rules.display()
+        );
     }
     copy_preserving(
         &repo_root.join("src/system/data/xkeyboard-config/COPYING"),
@@ -4136,16 +4822,17 @@ fn stage_util_linux_auth(repo_root: &Path, staging: &Path) -> Result<()> {
 }
 
 fn stage_openssh_server(repo_root: &Path, staging: &Path) -> Result<()> {
-    stage_runtime_paths(
-        repo_root,
-        staging,
-        "openssh",
-        OPENSSH_SERVER_RUNTIME_PATHS,
-    )?;
+    stage_runtime_paths(repo_root, staging, "openssh", OPENSSH_SERVER_RUNTIME_PATHS)?;
     let config = repo_root.join("src/system/network/openssh");
-    copy_preserving(&config.join("sshd_config"), &staging.join("etc/ssh/sshd_config"))?;
+    copy_preserving(
+        &config.join("sshd_config"),
+        &staging.join("etc/ssh/sshd_config"),
+    )?;
     copy_preserving(&config.join("ssh-pam"), &staging.join("etc/pam.d/sshd"))?;
-    copy_preserving(&config.join("ssh.service"), &staging.join("usr/lib/systemd/system/ssh.service"))?;
+    copy_preserving(
+        &config.join("ssh.service"),
+        &staging.join("usr/lib/systemd/system/ssh.service"),
+    )?;
     copy_preserving(
         &config.join("openssh-sysusers.conf"),
         &staging.join("usr/lib/sysusers.d/openssh.conf"),
@@ -4598,7 +5285,13 @@ fn bootstrap_source_attribution(
 ) {
     match name {
         "tar" => (Some("GNU tar"), "A", "tar", "medium", "high"),
-        "libattr.so.1" => (Some("Linux extended attributes"), "A", "libattr1", "low", "high"),
+        "libattr.so.1" => (
+            Some("Linux extended attributes"),
+            "A",
+            "libattr1",
+            "low",
+            "high",
+        ),
         "libacl.so.1" => (Some("Linux ACL utilities"), "A", "libacl1", "low", "high"),
         "libbsd.so.0" => (Some("libbsd"), "A", "libbsd0", "low", "high"),
         "libbz2.so.1.0" => (Some("bzip2"), "A", "libbz2-1.0", "low", "high"),
@@ -4819,7 +5512,9 @@ fn copy_preserving(source: &Path, destination: &Path) -> Result<()> {
 fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
     let upstream = match spec.name {
         "mattos-filesystem" | "mattos-base-files" => "0.1".to_string(),
-        "libc6" | "libc6-dev" | "libc-bin" | "locales" => component_snapshot_version(repo_root, "glibc")?,
+        "libc6" | "libc6-dev" | "libc-bin" | "locales" => {
+            component_snapshot_version(repo_root, "glibc")?
+        }
         "linux-libc-dev" => component_snapshot_version(repo_root, "linux")?,
         "libgcc-s1"
         | "libstdc++6"
@@ -4875,9 +5570,8 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "mattos-sudo-rs" => {
             cargo_package_version(&repo_root.join("src/system/auth/sudo-rs/Cargo.toml"))?
         }
-        "libblkid1" | "libmount1" | "libsmartcols1" | "libuuid1" | "libfdisk1" | "mount" | "util-linux" | "login" => {
-            component_snapshot_version(repo_root, "util-linux")?
-        }
+        "libblkid1" | "libmount1" | "libsmartcols1" | "libuuid1" | "libfdisk1" | "mount"
+        | "util-linux" | "login" => component_snapshot_version(repo_root, "util-linux")?,
         "gzip" => component_snapshot_version(repo_root, "gzip")?,
         "patch" => component_snapshot_version(repo_root, "patch")?,
         "libmagic1" | "file" => component_snapshot_version(repo_root, "file")?,
@@ -4895,7 +5589,9 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "libinput10" => component_snapshot_version(repo_root, "libinput")?,
         "libpixman-1-0" => component_snapshot_version(repo_root, "pixman")?,
         "libdrm2" => component_snapshot_version(repo_root, "libdrm")?,
-        "libgbm1" | "libegl1" | "libgles2" | "mattos-mesa-llvmpipe" => component_snapshot_version(repo_root, "mesa")?,
+        "libgbm1" | "libegl1" | "libgles2" | "mattos-mesa-llvmpipe" => {
+            component_snapshot_version(repo_root, "mesa")?
+        }
         "cosmic-comp" => component_snapshot_version(repo_root, "cosmic-comp")?,
         "libpython3.14" | "python3" | "python3-venv" | "python3-dev" => {
             component_snapshot_version(repo_root, "cpython")?
@@ -4908,6 +5604,7 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "iputils-ping" => component_snapshot_version(repo_root, "iputils")?,
         "btrfs-progs" => "6.17".to_string(),
         "dosfstools" => "4.2".to_string(),
+        "e2fsprogs" => "1.47.2".to_string(),
         "mattos-installer" => "0.1".to_string(),
         _ => bail!("unknown package {}", spec.name),
     };
@@ -5198,7 +5895,8 @@ fn write_provenance(
         | "iputils" | "expat" | "libcap" | "acl" | "zlib" | "bzip2" | "lz4" | "xz"
         | "xxhash" | "zstd" | "openssl" | "elfutils" | "pcre2" | "selinux"
         | "libxcrypt" | "libmd" | "libbsd" | "tar" | "gzip" | "patch" | "file"
-        | "less" | "git" | "openssh" | "libffi" | "wayland" | "xkbcommon" | "xkeyboard-config" | "cpython" | "llvm" | "rust") => {
+        | "less" | "git" | "openssh" | "libffi" | "wayland" | "xkbcommon"
+        | "xkeyboard-config" | "cpython" | "llvm" | "rust") => {
             let state = read_sync_state(repo_root, component)?
                 .ok_or_else(|| anyhow!("upstream state missing for {component}"))?;
             (
@@ -5459,6 +6157,7 @@ fn runtime_libraries_for_spec(repo_root: &Path, spec: &PackageSpec) -> Result<Ve
                 | "iputils-ping"
                 | "btrfs-progs"
                 | "dosfstools"
+                | "e2fsprogs"
                 | "mattos-installer"
         ) =>
         {
@@ -7253,9 +7952,13 @@ mod tests {
 
     #[test]
     fn installer_package_cache_tracks_its_embedded_linux_kernel() {
-        assert_eq!(package_stage_dependencies("installer"), ["installer", "linux"]);
+        assert_eq!(
+            package_stage_dependencies("installer"),
+            ["installer", "linux"]
+        );
         assert_eq!(package_stage_dependencies("btrfs-progs"), ["installer"]);
         assert_eq!(package_stage_dependencies("dosfstools"), ["installer"]);
+        assert_eq!(package_stage_dependencies("e2fsprogs"), ["installer"]);
     }
 
     #[test]
@@ -7484,6 +8187,7 @@ mod tests {
             .find(|spec| spec.name == "mattos-installer")
             .expect("installer package must exist");
         assert!(installer.depends.contains(&"libxkbcommon0"));
+        assert!(installer.depends.contains(&"e2fsprogs"));
         assert!(installer.provides.contains(&"mattos-installer-cosmic"));
     }
 
@@ -7639,13 +8343,20 @@ mod tests {
         for package in ["libllvm22", "llvm", "clang", "lld", "rustc"] {
             let spec = specs.iter().find(|spec| spec.name == package).unwrap();
             assert!(spec.depends.contains(&"zlib1g"), "{package} lacks zlib1g");
-            assert!(spec.depends.contains(&"libzstd1"), "{package} lacks libzstd1");
+            assert!(
+                spec.depends.contains(&"libzstd1"),
+                "{package} lacks libzstd1"
+            );
         }
         let cargo = specs.iter().find(|spec| spec.name == "cargo").unwrap();
         for dependency in ["rustc", "libgcc-s1", "zlib1g", "libzstd1"] {
             assert!(cargo.depends.contains(&dependency));
         }
-        assert!(!specs.iter().any(|spec| matches!(spec.name, "perl" | "tcl" | "bash")));
+        assert!(
+            !specs
+                .iter()
+                .any(|spec| matches!(spec.name, "perl" | "tcl" | "bash"))
+        );
     }
 
     #[test]

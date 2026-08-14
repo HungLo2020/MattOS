@@ -73,11 +73,13 @@ pub(crate) fn start(repo_root: &Path) {
         .filter(|index| entries_valid(&index.entries))
         .map(|index| index.entries)
         .unwrap_or_default();
-    with_index(|index| *index = Some(PersistentIntegrityIndex {
-        repo_root: repo_root.to_path_buf(),
-        entries,
-        dirty: false,
-    }));
+    with_index(|index| {
+        *index = Some(PersistentIntegrityIndex {
+            repo_root: repo_root.to_path_buf(),
+            entries,
+            dirty: false,
+        })
+    });
 }
 
 pub(crate) fn clear() {
@@ -106,7 +108,11 @@ pub(crate) fn path(repo_root: &Path) -> PathBuf {
 }
 
 pub(crate) fn eligible(path: &Path) -> bool {
-    with_index(|index| index.as_ref().is_some_and(|index| key(index, path).is_some()))
+    with_index(|index| {
+        index
+            .as_ref()
+            .is_some_and(|index| key(index, path).is_some())
+    })
 }
 
 pub(crate) fn lookup(path: &Path, fingerprint: &FileFingerprint) -> Option<String> {
