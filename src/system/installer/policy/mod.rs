@@ -501,32 +501,15 @@ pub fn timezone_supported(timezone: &str) -> bool {
 }
 
 pub fn xkb_layout_supported(layout: &str, variant: &str) -> bool {
-    let Ok(data) = fs::read_to_string(runtime_path("usr/share/X11/xkb/rules/evdev.lst")) else {
-        return false;
-    };
-    let mut in_variants = false;
-    let mut layout_found = false;
-    for line in data.lines() {
-        if line == "! variant" {
-            in_variants = true;
-            continue;
-        }
-        if line.starts_with('!') {
-            in_variants = false;
-        }
-        let fields = line.split_whitespace().collect::<Vec<_>>();
-        if !in_variants && fields.first() == Some(&layout) {
-            layout_found = true;
-        }
-        if in_variants
-            && !variant.is_empty()
-            && fields.first() == Some(&variant)
-            && fields.get(1) == Some(&layout)
-        {
-            return true;
-        }
-    }
-    variant.is_empty() && layout_found
+    crate::discover_keyboard_layouts().is_ok_and(|layouts| {
+        layouts.iter().any(|candidate| {
+            candidate.id == layout
+                && candidate
+                    .variants
+                    .iter()
+                    .any(|candidate| candidate.id == variant)
+        })
+    })
 }
 
 fn validate_identifier(value: &str, label: &str) -> Result<()> {

@@ -8,13 +8,15 @@
 use cosmic::app::{Core, Settings, Task};
 use cosmic::iced::core::text::Wrapping;
 use cosmic::iced::futures::{StreamExt, channel::mpsc};
+use cosmic::iced::widget::combo_box;
 use cosmic::iced::{Length, Limits};
 use cosmic::{Application, Element, executor, widget};
 use mattos_installer::gui_model::{FrontendState, InstallerFrontendModel};
 use mattos_installer::{
-    EncryptionPolicy, Filesystem, GuidedEfi, InstallProgress, InstallStage, InstalledProfile,
-    PartitionAction, PartitionOperation, RootCredentialPolicy, RootFilesystem, StoragePlan, engine,
-    execute_with_progress, render_storage_plan,
+    Choice, EncryptionPolicy, Filesystem, GuidedEfi, InstallProgress, InstallStage,
+    InstalledProfile, KeyboardLayout, PartitionAction, PartitionOperation, RootCredentialPolicy,
+    RootFilesystem, StoragePlan, discover_keyboard_layouts, discover_locales, discover_timezones,
+    engine, execute_with_progress, render_storage_plan,
 };
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -40,10 +42,10 @@ enum Message {
     FullName(String),
     Hostname(String),
     Username(String),
-    Locale(String),
-    KeyboardLayout(String),
-    KeyboardVariant(String),
-    Timezone(String),
+    Locale(Choice),
+    KeyboardLayout(KeyboardLayout),
+    KeyboardVariant(Choice),
+    Timezone(Choice),
     KeyboardTest(String),
     Password(String),
     PasswordConfirm(String),
@@ -99,6 +101,17 @@ struct InstallerApp {
     new_filesystem: Filesystem,
     new_mount: Option<String>,
     destructive_confirmed: bool,
+    locales: combo_box::State<Choice>,
+    keyboard_layouts: combo_box::State<KeyboardLayout>,
+    keyboard_variants: combo_box::State<Choice>,
+    timezones: combo_box::State<Choice>,
+}
+
+struct InstallerFlags {
+    model: InstallerFrontendModel,
+    locales: Vec<Choice>,
+    keyboard_layouts: Vec<KeyboardLayout>,
+    timezones: Vec<Choice>,
 }
 
 impl InstallerApp {
@@ -431,14 +444,15 @@ impl InstallerApp {
                 .push(widget::text::title2("Welcome to the MattOS installer"))
                 .push(wrapped_body("This wizard installs MattOS using a guided whole-disk layout or an explicit manual partition plan."))
                 .push(wrapped_body("You can return at any point before the final confirmation.")).into(),
-            Page::Locale => widget::column::with_capacity(11).spacing(12).width(Length::Fill)
+            Page::Locale => widget::column::with_capacity(12).spacing(12).width(Length::Fill)
                 .push(widget::text::title2("Language and keyboard"))
-                .push(wrapped_body("Use canonical identifiers from the offline MattOS locale, XKB, and zoneinfo databases. Invalid selections are rejected before disk changes."))
-                .push(widget::text::body("Locale")).push(widget::text_input::text_input("en_US.UTF-8", &self.model.locale).width(Length::Fill).on_input(Message::Locale))
-                .push(widget::text::body("Keyboard layout")).push(widget::text_input::text_input("us", &self.model.keyboard_layout).width(Length::Fill).on_input(Message::KeyboardLayout))
-                .push(widget::text::body("Keyboard variant (optional)")).push(widget::text_input::text_input("Default", &self.model.keyboard_variant).width(Length::Fill).on_input(Message::KeyboardVariant))
+                .push(wrapped_body("Choose from the locale, XKB, and zoneinfo data included in the offline MattOS image. Locale and timezone lists can be searched by typing a friendly name."))
+                .push(widget::text::body("Locale")).push(combo_box(&self.locales, "Search languages or countries…", self.locales.options().iter().find(|choice| choice.id == self.model.locale), Message::Locale).width(Length::Fill))
+                .push(widget::text::body("Keyboard layout")).push(combo_box(&self.keyboard_layouts, "Choose a keyboard layout…", self.keyboard_layouts.options().iter().find(|layout| layout.id == self.model.keyboard_layout), Message::KeyboardLayout).width(Length::Fill))
+                .push(widget::text::body("Keyboard variant")).push(combo_box(&self.keyboard_variants, "Choose a variant…", self.keyboard_variants.options().iter().find(|choice| choice.id == self.model.keyboard_variant), Message::KeyboardVariant).width(Length::Fill))
                 .push(widget::text::body("Test your keyboard")).push(widget::text_input::text_input("Type here to verify the selected layout", &self.keyboard_test).width(Length::Fill).on_input(Message::KeyboardTest))
-                .push(widget::text::body("Timezone")).push(widget::text_input::text_input("Etc/UTC", &self.model.timezone).width(Length::Fill).on_input(Message::Timezone)).into(),
+                .push(wrapped_body("The test field records keystrokes using the compositor's current layout; this installer does not claim to switch the live compositor layout."))
+                .push(widget::text::body("Timezone")).push(combo_box(&self.timezones, "Search cities or timezone regions…", self.timezones.options().iter().find(|choice| choice.id == self.model.timezone), Message::Timezone).width(Length::Fill)).into(),
             Page::Profile => widget::column::with_capacity(4).spacing(12).width(Length::Fill)
                 .push(widget::text::title2("Choose the installed MattOS profile"))
                 .push(profile_card("MattOS Desktop", "Graphical MattOS environment using COSMIC.", self.model.installed_profile == InstalledProfile::Desktop, InstalledProfile::Desktop))
@@ -622,7 +636,7 @@ fn clear_secret(value: &mut String) {
 
 impl Application for InstallerApp {
     type Executor = executor::Default;
-    type Flags = InstallerFrontendModel;
+    type Flags = InstallerFlags;
     type Message = Message;
     const APP_ID: &'static str = "com.mattsherfey.MattOS.Installer";
     fn core(&self) -> &Core {
@@ -631,11 +645,22 @@ impl Application for InstallerApp {
     fn core_mut(&mut self) -> &mut Core {
         &mut self.core
     }
-    fn init(core: Core, model: Self::Flags) -> (Self, Task<Message>) {
+    fn init(core: Core, flags: Self::Flags) -> (Self, Task<Message>) {
+        let variants = flags
+            .keyboard_layouts
+            .iter()
+            .find(|layout| layout.id == flags.model.keyboard_layout)
+            .map(|layout| layout.variants.clone())
+            .unwrap_or_else(|| {
+                vec![Choice {
+                    id: String::new(),
+                    label: "Default".into(),
+                }]
+            });
         (
             Self {
                 core,
-                model,
+                model: flags.model,
                 page: Page::Welcome,
                 password: String::new(),
                 password_confirm: String::new(),
@@ -652,6 +677,10 @@ impl Application for InstallerApp {
                 new_filesystem: Filesystem::Btrfs,
                 new_mount: Some("/".into()),
                 destructive_confirmed: false,
+                locales: combo_box::State::new(flags.locales),
+                keyboard_layouts: combo_box::State::new(flags.keyboard_layouts),
+                keyboard_variants: combo_box::State::new(variants),
+                timezones: combo_box::State::new(flags.timezones),
             },
             Task::none(),
         )
@@ -669,10 +698,14 @@ impl Application for InstallerApp {
             Message::FullName(value) => self.model.full_name = value,
             Message::Hostname(value) => self.model.hostname = value,
             Message::Username(value) => self.model.username = value,
-            Message::Locale(value) => self.model.locale = value,
-            Message::KeyboardLayout(value) => self.model.keyboard_layout = value,
-            Message::KeyboardVariant(value) => self.model.keyboard_variant = value,
-            Message::Timezone(value) => self.model.timezone = value,
+            Message::Locale(choice) => self.model.locale = choice.id,
+            Message::KeyboardLayout(layout) => {
+                self.model.keyboard_layout = layout.id;
+                self.model.keyboard_variant.clear();
+                self.keyboard_variants = combo_box::State::new(layout.variants);
+            }
+            Message::KeyboardVariant(choice) => self.model.keyboard_variant = choice.id,
+            Message::Timezone(choice) => self.model.timezone = choice.id,
             Message::KeyboardTest(value) => self.keyboard_test = value,
             Message::Password(value) => self.password = value,
             Message::PasswordConfirm(value) => self.password_confirm = value,
@@ -878,6 +911,9 @@ impl Application for InstallerApp {
 
 fn contract_proof() -> anyhow::Result<()> {
     let model = InstallerFrontendModel::discover()?;
+    let locales = discover_locales()?;
+    let layouts = discover_keyboard_layouts()?;
+    let timezones = discover_timezones()?;
     println!(
         "frontend=cosmic pages=welcome,locale,profile,disk,storage,account,review,installing,complete,error"
     );
@@ -888,6 +924,12 @@ fn contract_proof() -> anyhow::Result<()> {
     println!(
         "shared_plan_policy_engine=true structured_progress={:?}",
         InstallStage::Preparing
+    );
+    println!(
+        "offline_choices locales={} layouts={} timezones={}",
+        locales.len(),
+        layouts.len(),
+        timezones.len()
     );
     Ok(())
 }
@@ -901,7 +943,12 @@ fn main() -> anyhow::Result<()> {
     // usable on firmware/KMS fallback modes; content scrolls below it.
     cosmic::app::run::<InstallerApp>(
         Settings::default().size_limits(Limits::NONE.min_width(480.0).min_height(400.0)),
-        InstallerFrontendModel::discover()?,
+        InstallerFlags {
+            model: InstallerFrontendModel::discover()?,
+            locales: discover_locales()?,
+            keyboard_layouts: discover_keyboard_layouts()?,
+            timezones: discover_timezones()?,
+        },
     )?;
     Ok(())
 }

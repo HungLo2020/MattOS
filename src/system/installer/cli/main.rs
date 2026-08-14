@@ -1,11 +1,11 @@
 //! Permanent first-class MattOS CLI installer.
 
-use anyhow::{Result, bail};
+use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
 use mattos_installer::{
-    EncryptionPolicy, Filesystem, GuidedEfi, InstallPlan, InstalledProfile, PLAN_VERSION,
-    PartitionAction, PartitionOperation, RootCredentialPolicy, RootFilesystem, StoragePlan, engine,
-    execute, render_plan,
+    Choice, EncryptionPolicy, Filesystem, GuidedEfi, InstallPlan, InstalledProfile, PLAN_VERSION,
+    PartitionAction, PartitionOperation, RootCredentialPolicy, RootFilesystem, StoragePlan,
+    discover_keyboard_layouts, discover_locales, discover_timezones, engine, execute, render_plan,
 };
 use std::io::{self, Write};
 use std::path::PathBuf;
@@ -115,6 +115,25 @@ fn guided_install() -> Result<()> {
         }
     }
     let storage = prompt_storage(&target_disk)?;
+    let locales = discover_locales()?;
+    let keyboard_layouts = discover_keyboard_layouts()?;
+    let timezones = discover_timezones()?;
+    let locale = prompt_choice("Locale", &locales, "en_US.UTF-8")?;
+    let layout_choices = keyboard_layouts
+        .iter()
+        .map(|layout| Choice {
+            id: layout.id.clone(),
+            label: layout.label.clone(),
+        })
+        .collect::<Vec<_>>();
+    let keyboard_layout = prompt_choice("Keyboard layout", &layout_choices, "us")?;
+    let variants = &keyboard_layouts
+        .iter()
+        .find(|layout| layout.id == keyboard_layout)
+        .expect("selected layout came from keyboard_layouts")
+        .variants;
+    let keyboard_variant = prompt_choice("Keyboard variant", variants, "")?;
+    let timezone = prompt_choice("Timezone", &timezones, "Etc/UTC")?;
     let plan = InstallPlan {
         version: PLAN_VERSION,
         target_disk,
@@ -127,27 +146,10 @@ fn guided_install() -> Result<()> {
         administrator: prompt_yes_no("Administrator", true)?,
         automatic_login: prompt_yes_no("Log in automatically", false)?,
         root_credential,
-        locale: {
-            let value = prompt("Locale [en_US.UTF-8]")?;
-            if value.is_empty() {
-                "en_US.UTF-8".into()
-            } else {
-                value
-            }
-        },
-        keyboard_layout: {
-            let value = prompt("Keyboard layout [us]")?;
-            if value.is_empty() { "us".into() } else { value }
-        },
-        keyboard_variant: prompt("Keyboard variant [default]")?,
-        timezone: {
-            let value = prompt("Timezone [Etc/UTC]")?;
-            if value.is_empty() {
-                "Etc/UTC".into()
-            } else {
-                value
-            }
-        },
+        locale,
+        keyboard_layout,
+        keyboard_variant,
+        timezone,
         test_autologin: false,
     };
     print!("{}", render_plan(&plan)?);
@@ -233,6 +235,63 @@ fn prompt_storage(target_disk: &PathBuf) -> Result<StoragePlan> {
     }
 }
 
+fn matching_choices<'a>(choices: &'a [Choice], query: &str) -> Vec<&'a Choice> {
+    let query = query.trim().to_lowercase();
+    choices
+        .iter()
+        .filter(|choice| {
+            query.is_empty()
+                || choice.id.to_lowercase().contains(&query)
+                || choice.label.to_lowercase().contains(&query)
+        })
+        .collect()
+}
+
+fn selected_choice_id(choices: &[&Choice], number: usize) -> Option<String> {
+    number
+        .checked_sub(1)
+        .and_then(|index| choices.get(index))
+        .map(|choice| choice.id.clone())
+}
+
+fn prompt_choice(label: &str, choices: &[Choice], default_id: &str) -> Result<String> {
+    let default = choices
+        .iter()
+        .find(|choice| choice.id == default_id)
+        .with_context(|| format!("MattOS data does not provide default {label} {default_id}"))?;
+    loop {
+        let query = prompt(&format!(
+            "Search {label} by name (Enter keeps {})",
+            default.label
+        ))?;
+        if query.is_empty() {
+            return Ok(default.id.clone());
+        }
+        let matches = matching_choices(choices, &query);
+        if matches.is_empty() {
+            println!("No {label} choices match {query:?}; try another search.");
+            continue;
+        }
+        if matches.len() > 40 {
+            println!(
+                "{} {label} choices match; enter a more specific search.",
+                matches.len()
+            );
+            continue;
+        }
+        for (index, choice) in matches.iter().enumerate() {
+            println!("  {}) {}", index + 1, choice.label);
+        }
+        let number = prompt(&format!("{label} selection number"))?;
+        if let Ok(number) = number.parse::<usize>()
+            && let Some(id) = selected_choice_id(&matches, number)
+        {
+            return Ok(id);
+        }
+        println!("Choose one of the displayed numbers.");
+    }
+}
+
 fn prompt_yes_no(label: &str, default: bool) -> Result<bool> {
     let value = prompt(&format!(
         "{label} [{}]",
@@ -295,5 +354,37 @@ mod tests {
         let source = include_str!("main.rs");
         assert!(source.contains("engine::discover_install_disks()"));
         assert!(!source.contains("read_dir(\"/sys/class/block\")"));
+    }
+
+    #[test]
+    fn cli_searches_friendly_labels_and_maps_numbers_to_canonical_ids() {
+        let choices = vec![
+            Choice {
+                id: "Etc/UTC".into(),
+                label: "UTC — Etc/UTC".into(),
+            },
+            Choice {
+                id: "America/Los_Angeles".into(),
+                label: "Los Angeles — America/Los_Angeles".into(),
+            },
+        ];
+        let matches = matching_choices(&choices, "los angeles");
+        assert_eq!(matches.len(), 1);
+        assert_eq!(
+            selected_choice_id(&matches, 1).as_deref(),
+            Some("America/Los_Angeles")
+        );
+        assert_eq!(selected_choice_id(&matches, 0), None);
+        assert_eq!(selected_choice_id(&matches, 2), None);
+    }
+
+    #[test]
+    fn cli_choice_search_can_use_canonical_fragments_without_storing_labels() {
+        let choices = vec![Choice {
+            id: "en_US.UTF-8".into(),
+            label: "English (United States)".into(),
+        }];
+        assert_eq!(matching_choices(&choices, "united")[0].id, "en_US.UTF-8");
+        assert_eq!(matching_choices(&choices, "utf-8")[0].id, "en_US.UTF-8");
     }
 }
