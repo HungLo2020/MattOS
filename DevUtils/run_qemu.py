@@ -22,7 +22,11 @@ DEFAULT_INSTALL_DISK_SIZE = "16G"
 # requirements: its VGA compatibility gives firmware/GRUB a scanout before
 # Linux starts, and its VirtIO GL backend exposes the VirGL capset used later
 # by Mesa and the native COSMIC compositor.
-VIRTIO_GPU_GL_DEVICE = "virtio-vga-gl,blob=true,hostmem=256M,xres=1280,yres=800"
+# QEMU's virtio-vga-gl defaults to a 1280×800 firmware scanout. Do not pass
+# xres/yres explicitly: they are only firmware hints, not a Wayland policy,
+# and leaving the device defaults intact lets KMS/cosmic-comp select the
+# preferred DRM mode exposed by the virtual output.
+VIRTIO_GPU_GL_DEVICE = "virtio-vga-gl,blob=true,hostmem=256M"
 QEMU_TABLET_CONTROLLER = "qemu-xhci,id=mattos-xhci"
 QEMU_TABLET_DEVICE = "usb-tablet,bus=mattos-xhci.0"
 

@@ -57,7 +57,7 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
         with mock.patch("run_qemu.run_command_capture", return_value='name "virtio-vga-gl", bus PCI'):
             self.assertEqual(
                 graphical_gpu_device(Path("/repo")),
-                "virtio-vga-gl,blob=true,hostmem=256M,xres=1280,yres=800",
+                "virtio-vga-gl,blob=true,hostmem=256M",
             )
 
     def test_graphical_gpu_fails_closed_without_virgl(self) -> None:
@@ -138,12 +138,12 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
                 "run_qemu.mattos_build_environment", return_value={}
             ), mock.patch(
                 "run_qemu.graphical_gpu_device",
-                return_value="virtio-vga-gl,blob=true,hostmem=256M,xres=1280,yres=800",
+                return_value="virtio-vga-gl,blob=true,hostmem=256M",
             ):
                 self.assertEqual(launch_qemu(root, root / "mattos.iso", args), 0)
             command = launched.call_args.args[0]
             self.assertIn(f"file={disk.resolve()},if=virtio,format=qcow2", command)
-            self.assertIn("virtio-vga-gl,blob=true,hostmem=256M,xres=1280,yres=800", command)
+            self.assertIn("virtio-vga-gl,blob=true,hostmem=256M", command)
             self.assertNotIn("-vga", command)
             self.assertIn("qemu-xhci,id=mattos-xhci", command)
             self.assertIn("usb-tablet,bus=mattos-xhci.0", command)

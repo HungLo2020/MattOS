@@ -6,7 +6,8 @@
 //! disk discovery, partitioning, account creation, or installation itself.
 
 use cosmic::app::{Core, Settings, Task};
-use cosmic::iced::{Length, Size};
+use cosmic::iced::{Length, Limits};
+use cosmic::iced::core::text::Wrapping;
 use cosmic::{Application, Element, executor, widget};
 use mattos_installer::{InstallProgress, InstallStage, InstalledProfile, engine, execute_with_progress};
 use mattos_installer::gui_model::{FrontendState, InstallerFrontendModel};
@@ -31,6 +32,8 @@ struct InstallerApp {
 }
 
 impl InstallerApp {
+    const CONTENT_MAX_WIDTH: f32 = 760.0;
+
     fn next(&mut self) {
         self.error = None;
         self.page = match self.page {
@@ -85,72 +88,117 @@ impl InstallerApp {
             row = row.push(widget::button::suggested("Continue").on_press(Message::Next));
         }
         if self.page == Page::Review { row = row.push(widget::button::destructive("Erase disk and install").on_press(Message::Install)); }
-        // The live ISO must remain usable on QEMU's 640×480 fallback mode.
-        // Keep the navigation controls in the initial viewport rather than
-        // depending on an output-mode change that firmware/KMS may not have
-        // completed yet.  The window remains resizable on larger displays.
-        widget::container(widget::column::with_capacity(2).spacing(12).push(content).push(row))
-            .padding(16).width(Length::Fill).height(Length::Fill).into()
+        // A page may be taller than a low-resolution output. Keep the action
+        // row outside its scroll region so Back/Continue/Install are always
+        // reachable; libcosmic lays this out in logical Wayland pixels and
+        // applies the compositor's output scale for us.
+        let page = widget::container(content)
+            .width(Length::Fill)
+            .max_width(Self::CONTENT_MAX_WIDTH)
+            .padding([16, 20])
+            .center_x(Length::Fill);
+        let footer = widget::container(row)
+            .width(Length::Fill)
+            .padding([12, 20]);
+        widget::column::with_capacity(2)
+            .push(widget::scrollable(page).width(Length::Fill).height(Length::Fill))
+            .push(footer)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .into()
     }
 
     fn page_content(&self) -> Element<'_, Message> {
         match self.page {
-            Page::Welcome => widget::column::with_capacity(3).spacing(16)
+            Page::Welcome => widget::column::with_capacity(3).spacing(16).width(Length::Fill)
                 .push(widget::text::title2("Welcome to the MattOS installer"))
-                .push(widget::text::body("This wizard installs MattOS to one disk you explicitly choose. That disk will be erased."))
-                .push(widget::text::body("You can return at any point before the final confirmation.")).into(),
-            Page::Locale => widget::column::with_capacity(3).spacing(16)
+                .push(wrapped_body("This wizard installs MattOS to one disk you explicitly choose. That disk will be erased."))
+                .push(wrapped_body("You can return at any point before the final confirmation.")).into(),
+            Page::Locale => widget::column::with_capacity(3).spacing(16).width(Length::Fill)
                 .push(widget::text::title2("Language and keyboard"))
-                .push(widget::text::body("This MattOS image currently provides English (US) with the US keyboard layout."))
-                .push(widget::text::body("Locale and keyboard selection is intentionally not presented as configurable until the installed image can apply those choices.")).into(),
-            Page::Profile => widget::column::with_capacity(4).spacing(16)
+                .push(wrapped_body("This MattOS image currently provides English (US) with the US keyboard layout."))
+                .push(wrapped_body("Locale and keyboard selection is intentionally not presented as configurable until the installed image can apply those choices.")).into(),
+            Page::Profile => widget::column::with_capacity(4).spacing(12).width(Length::Fill)
                 .push(widget::text::title2("Choose the installed MattOS profile"))
-                .push(widget::button::standard("MattOS Desktop — graphical MattOS/COSMIC environment").on_press(Message::SelectProfile(InstalledProfile::Desktop)))
-                .push(widget::button::standard("MattOS CLI — non-graphical MattOS base").on_press(Message::SelectProfile(InstalledProfile::Cli)))
-                .push(widget::text::body(format!("Selected: {:?}", self.model.installed_profile))).into(),
+                .push(profile_card("MattOS Desktop", "Graphical MattOS environment using COSMIC.", self.model.installed_profile == InstalledProfile::Desktop, InstalledProfile::Desktop))
+                .push(profile_card("MattOS CLI", "Non-graphical MattOS base.", self.model.installed_profile == InstalledProfile::Cli, InstalledProfile::Cli)).into(),
             Page::Disk => {
-                let mut content = widget::column::with_capacity(self.model.disks.len() + 3).spacing(12)
+                let mut content = widget::column::with_capacity(self.model.disks.len() + 3).spacing(12).width(Length::Fill)
                     .push(widget::text::title2("Select a target disk"))
-                    .push(widget::text::body("The selected writable disk will be completely erased. Optical and read-only devices are never eligible."));
-                if self.model.disks.is_empty() { content = content.push(widget::text::body("No eligible writable installation disks were found.")); }
+                    .push(wrapped_body("The selected writable disk will be completely erased. Optical and read-only devices are never eligible."));
+                if self.model.disks.is_empty() { content = content.push(wrapped_body("No eligible writable installation disks were found.")); }
                 for (index, disk) in self.model.disks.iter().enumerate() {
                     let selected = self.model.selected_disk.as_ref() == Some(&disk.device);
-                    content = content.push(widget::button::standard(format!("{}{} — {} — {:.1} GiB", if selected { "Selected: " } else { "" }, disk.device.display(), disk.model, disk.size_bytes as f64 / 1_073_741_824.0)).on_press(Message::SelectDisk(index)));
+                    content = content.push(disk_card(index, disk, selected));
                 }
                 content.into()
             }
-            Page::Storage => widget::column::with_capacity(8).spacing(12)
+            Page::Storage => widget::column::with_capacity(8).spacing(12).width(Length::Fill)
                 .push(widget::text::title2("Automatic storage layout"))
-                .push(widget::text::body("GPT"))
-                .push(widget::text::body("├── EFI System Partition — 512 MiB — FAT32"))
-                .push(widget::text::body("└── MattOS — Btrfs"))
-                .push(widget::text::body("    ├── @          /"))
-                .push(widget::text::body("    ├── @home      /home"))
-                .push(widget::text::body("    └── @snapshots /.snapshots"))
-                .push(widget::text::body("Manual partitioning is not part of this installer. The selected disk will be erased.")).into(),
-            Page::Account => widget::column::with_capacity(6).spacing(12)
+                .push(wrapped_body("The installer erases the whole selected disk and creates a GPT partition table."))
+                .push(wrapped_body("512 MiB FAT32 EFI System Partition"))
+                .push(wrapped_body("Btrfs system partition with subvolumes: @ → /, @home → /home, and @snapshots → /.snapshots."))
+                .push(wrapped_body("Manual partitioning is not part of this installer. The selected disk will be erased.")).into(),
+            Page::Account => widget::column::with_capacity(6).spacing(12).width(Length::Fill)
                 .push(widget::text::title2("Set up the installed system"))
-                .push(widget::text_input::text_input("Hostname", &self.model.hostname).on_input(Message::Hostname))
-                .push(widget::text_input::text_input("Username", &self.model.username).on_input(Message::Username))
-                .push(widget::text_input::secure_input("Password", &self.password, None, true).on_input(Message::Password))
-                .push(widget::text_input::secure_input("Confirm password", &self.password_confirm, None, true).on_input(Message::PasswordConfirm))
-                .push(widget::text::body("The password is hashed in memory immediately before installation. Plaintext is never written to a plan, log, or command line.")).into(),
+                .push(widget::text_input::text_input("Hostname", &self.model.hostname).width(Length::Fill).on_input(Message::Hostname))
+                .push(widget::text_input::text_input("Username", &self.model.username).width(Length::Fill).on_input(Message::Username))
+                .push(widget::text_input::secure_input("Password", &self.password, None, true).width(Length::Fill).on_input(Message::Password))
+                .push(widget::text_input::secure_input("Confirm password", &self.password_confirm, None, true).width(Length::Fill).on_input(Message::PasswordConfirm))
+                .push(wrapped_body("The password is hashed in memory immediately before installation. Plaintext is never written to a plan, log, or command line.")).into(),
             Page::Review => {
-                let summary = self.model.summary().unwrap_or_else(|error| format!("Plan validation error: {error}"));
-                widget::column::with_capacity(4).spacing(16)
+                let disk = self.model.selected_disk.as_ref().and_then(|selected| self.model.disks.iter().find(|disk| &disk.device == selected));
+                let disk_description = disk.map(|disk| format!("{} — {} — {:.1} GiB", disk.device.display(), disk.model, gibibytes(disk.size_bytes))).unwrap_or_else(|| "No target disk selected.".into());
+                widget::column::with_capacity(8).spacing(12).width(Length::Fill)
                     .push(widget::text::title2("Review and confirm installation"))
-                    .push(widget::text::body("WARNING: the selected disk will be erased."))
-                    .push(widget::text::body(summary))
-                    .push(widget::text::body("Boot mode: UEFI. Storage: GPT, EFI FAT32, Btrfs @ / @home / @snapshots.")).into()
+                    .push(wrapped_body("WARNING: the selected target disk will be completely erased."))
+                    .push(widget::text::heading("Target disk"))
+                    .push(wrapped_body(disk_description))
+                    .push(widget::text::heading("Installation"))
+                    .push(wrapped_body(format!("Profile: {}. Hostname: {}. User: {}.", profile_name(self.model.installed_profile), self.model.hostname, self.model.username)))
+                    .push(widget::text::heading("Boot and filesystem"))
+                    .push(wrapped_body("UEFI boot; GPT; 512 MiB FAT32 EFI System Partition; Btrfs subvolumes @ → /, @home → /home, and @snapshots → /.snapshots.")).into()
             }
             Page::Installing => {
-                let detail = match &self.model.state { FrontendState::Installing(event) => event.detail.as_str(), _ => "Starting shared MattOS installer engine…" };
-                widget::column::with_capacity(3).spacing(16).push(widget::text::title2("Installing MattOS")).push(widget::text::body(detail)).push(widget::text::body("Please do not power off the computer.")).into()
+                let (stage, detail) = match &self.model.state {
+                    FrontendState::Installing(event) => (format!("Stage {} of {}: {:?}", event.completed_stages, event.total_stages, event.stage), event.detail.as_str()),
+                    _ => ("Preparing installation".into(), "Starting shared MattOS installer engine…"),
+                };
+                widget::column::with_capacity(4).spacing(16).width(Length::Fill).push(widget::text::title2("Installing MattOS")).push(wrapped_body(stage)).push(wrapped_body(detail)).push(wrapped_body("Please do not power off the computer.")).into()
             }
-            Page::Complete => widget::column::with_capacity(2).spacing(16).push(widget::text::title2("MattOS installation complete")).push(widget::text::body("Remove the installation media and reboot into the installed system.")).into(),
-            Page::Error => widget::column::with_capacity(3).spacing(16).push(widget::text::title2("Installation needs attention")).push(widget::text::body(self.error.as_deref().unwrap_or("Unknown installer error"))).push(widget::text::body("No error is hidden: return to an earlier page, correct the problem, and try again.")).into(),
+            Page::Complete => widget::column::with_capacity(2).spacing(16).width(Length::Fill).push(widget::text::title2("MattOS installation complete")).push(wrapped_body("Remove the installation media and reboot into the installed system.")).into(),
+            Page::Error => widget::column::with_capacity(3).spacing(16).width(Length::Fill).push(widget::text::title2("Installation needs attention")).push(wrapped_body(self.error.as_deref().unwrap_or("Unknown installer error"))).push(wrapped_body("No error is hidden: return to an earlier page, correct the problem, and try again.")).into(),
         }
     }
+}
+
+fn wrapped_body<'a>(text: impl Into<String>) -> Element<'a, Message> {
+    widget::text::body(text.into()).width(Length::Fill).wrapping(Wrapping::Word).into()
+}
+
+fn profile_name(profile: InstalledProfile) -> &'static str {
+    match profile { InstalledProfile::Desktop => "MattOS Desktop", InstalledProfile::Cli => "MattOS CLI" }
+}
+
+fn gibibytes(bytes: u64) -> f64 { bytes as f64 / 1_073_741_824.0 }
+
+fn profile_card(profile: &'static str, description: &'static str, selected: bool, value: InstalledProfile) -> Element<'static, Message> {
+    let label = if selected { format!("{profile} — selected") } else { profile.into() };
+    widget::button::custom(
+        widget::column::with_capacity(2).spacing(4).width(Length::Fill)
+            .push(widget::text::heading(label).wrapping(Wrapping::Word))
+            .push(widget::text::caption(description).width(Length::Fill).wrapping(Wrapping::Word)),
+    ).width(Length::Fill).padding(14).on_press(Message::SelectProfile(value)).into()
+}
+
+fn disk_card(index: usize, disk: &mattos_installer::engine::InstallDisk, selected: bool) -> Element<'static, Message> {
+    let selected = if selected { "Selected target" } else { "Select this disk" };
+    widget::button::custom(
+        widget::column::with_capacity(3).spacing(4).width(Length::Fill)
+            .push(widget::text::heading(disk.device.display().to_string()).wrapping(Wrapping::Word))
+            .push(widget::text::body(disk.model.clone()).width(Length::Fill).wrapping(Wrapping::Word))
+            .push(widget::text::caption(format!("{:.1} GiB — {selected}", gibibytes(disk.size_bytes))).width(Length::Fill).wrapping(Wrapping::Word)),
+    ).width(Length::Fill).padding(14).on_press(Message::SelectDisk(index)).into()
 }
 
 fn clear_secret(value: &mut String) {
@@ -193,9 +241,12 @@ fn contract_proof() -> anyhow::Result<()> {
 
 fn main() -> anyhow::Result<()> {
     if std::env::args().any(|argument| argument == "--contract-proof") { return contract_proof(); }
-    // Start within the universally visible QEMU fallback mode.  This is only
-    // the initial size: libcosmic keeps the toplevel resizable for real
-    // displays and higher KMS modes.
-    cosmic::app::run::<InstallerApp>(Settings::default().size(Size::new(640.0, 480.0)), InstallerFrontendModel::discover()?)?;
+    // libcosmic defaults to a normal 1024×768 logical-pixel window and
+    // applies the Wayland output scale. The minimum merely keeps the wizard
+    // usable on firmware/KMS fallback modes; content scrolls below it.
+    cosmic::app::run::<InstallerApp>(
+        Settings::default().size_limits(Limits::NONE.min_width(480.0).min_height(400.0)),
+        InstallerFrontendModel::discover()?,
+    )?;
     Ok(())
 }
