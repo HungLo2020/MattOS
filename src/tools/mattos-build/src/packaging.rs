@@ -201,6 +201,8 @@ const PACKAGE_NAMES: &[&str] = &[
     "g++",
     "make",
     "libc-bin",
+    "locales",
+    "tzdata",
     "mattos-base-files",
     "ca-certificates",
     "mattos-brush",
@@ -692,6 +694,14 @@ fn package_specs() -> Vec<PackageSpec> {
             replaces: &[],
             essential: false,
             priority: "required",
+        },
+        PackageSpec {
+            name: "locales", description: "glibc locale source data and localedef utility for offline MattOS locale generation",
+            source_component: "glibc", depends: &["libc6", "libc-bin"], provides: &["locales"], conflicts: &[], replaces: &[], essential: false, priority: "important",
+        },
+        PackageSpec {
+            name: "tzdata", description: "IANA timezone database built from pinned tzdata source",
+            source_component: "tzdata", depends: &["libc6"], provides: &["tzdata"], conflicts: &[], replaces: &[], essential: false, priority: "important",
         },
         PackageSpec {
             name: "mattos-base-files",
@@ -2519,6 +2529,7 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "wayland" => &["src/system/libraries/wayland"],
         "xkbcommon" => &["src/system/libraries/xkbcommon"],
         "xkeyboard-config" => &["src/system/data/xkeyboard-config"],
+        "tzdata" => &["src/system/data/tzdata"],
         "seatd" => &["src/system/libraries/seatd"],
         "libdisplay-info" => &["src/system/libraries/libdisplay-info", "src/system/data/hwdata"],
         "libevdev" => &["src/system/libraries/libevdev"],
@@ -2643,6 +2654,8 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
         "g++" => stage_native_compiler_driver(repo_root, &staging, "g++")?,
         "make" => stage_native_make(repo_root, &staging)?,
         "libc-bin" => stage_glibc_utilities(repo_root, &staging)?,
+        "locales" => stage_glibc_locales(repo_root, &staging)?,
+        "tzdata" => stage_tzdata(repo_root, &staging)?,
         "mattos-base-files" => stage_base_files(repo_root, &staging)?,
         "ca-certificates" => stage_ca_certificates(repo_root, &staging)?,
         "mattos-brush" => stage_brush(repo_root, &staging)?,
@@ -3518,6 +3531,47 @@ fn stage_glibc_utilities(repo_root: &Path, staging: &Path) -> Result<()> {
         &repo_root.join("src/system/libc/glibc/LICENSES"),
         &staging.join("usr/share/doc/libc-bin/LICENSES"),
     )?;
+    Ok(())
+}
+
+/// Ship glibc's own locale definitions and compiler.  The installer uses
+/// these source-owned inputs to generate exactly the selected locale in the
+/// target instead of claiming host-generated locales are available.
+fn stage_glibc_locales(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = repo_root.join("out/build/glibc/install/usr");
+    stage_executable(&install.join("bin/localedef"), &staging.join("usr/bin/localedef"), 0o755)?;
+    copy_tree_preserving(&install.join("share/i18n"), &staging.join("usr/share/i18n"))?;
+    if !staging.join("usr/share/i18n/locales/en_US").is_file()
+        || !staging.join("usr/share/i18n/charmaps/UTF-8.gz").is_file()
+    {
+        bail!("glibc locale package is missing en_US or UTF-8 source data")
+    }
+    copy_preserving(&repo_root.join("src/system/libc/glibc/COPYING.LIB"), &staging.join("usr/share/doc/locales/copyright"))?;
+    Ok(())
+}
+
+/// Compile the pinned IANA database in an output-owned mirror and package
+/// only the runtime zoneinfo tree; no host timezone files are consulted.
+fn stage_tzdata(repo_root: &Path, staging: &Path) -> Result<()> {
+    let source = repo_root.join("src/system/data/tzdata");
+    let output = repo_root.join("out/build/tzdata");
+    let build_source = output.join("source");
+    let zoneinfo = output.join("zoneinfo");
+    remove_path_if_exists(&output)?;
+    sync_build_source(&source, &build_source)?;
+    fs::create_dir_all(&zoneinfo)?;
+    run_cmd(&build_source, "make", &["zic"])?;
+    let zic = build_source.join("zic");
+    let destination = format!("-d{}", zoneinfo.display());
+    run_cmd(&build_source, path_str(&zic)?, &[destination.as_str(), "africa", "antarctica", "asia", "australasia", "backward", "etcetera", "europe", "northamerica", "southamerica"])?;
+    for file in ["zone.tab", "zone1970.tab", "iso3166.tab"] {
+        copy_preserving(&source.join(file), &zoneinfo.join(file))?;
+    }
+    if !zoneinfo.join("Etc/UTC").is_file() || !zoneinfo.join("America/Los_Angeles").is_file() {
+        bail!("pinned tzdata build did not produce canonical zoneinfo files")
+    }
+    copy_tree_preserving(&zoneinfo, &staging.join("usr/share/zoneinfo"))?;
+    copy_preserving(&source.join("LICENSE"), &staging.join("usr/share/doc/tzdata/copyright"))?;
     Ok(())
 }
 
@@ -4765,7 +4819,7 @@ fn copy_preserving(source: &Path, destination: &Path) -> Result<()> {
 fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
     let upstream = match spec.name {
         "mattos-filesystem" | "mattos-base-files" => "0.1".to_string(),
-        "libc6" | "libc6-dev" | "libc-bin" => component_snapshot_version(repo_root, "glibc")?,
+        "libc6" | "libc6-dev" | "libc-bin" | "locales" => component_snapshot_version(repo_root, "glibc")?,
         "linux-libc-dev" => component_snapshot_version(repo_root, "linux")?,
         "libgcc-s1"
         | "libstdc++6"
@@ -4834,6 +4888,7 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "libwayland-client0" => component_snapshot_version(repo_root, "wayland")?,
         "libxkbcommon0" => component_snapshot_version(repo_root, "xkbcommon")?,
         "xkb-data" => component_snapshot_version(repo_root, "xkeyboard-config")?,
+        "tzdata" => component_snapshot_version(repo_root, "tzdata")?,
         "libseat1" => component_snapshot_version(repo_root, "seatd")?,
         "libdisplay-info3" => component_snapshot_version(repo_root, "libdisplay-info")?,
         "libevdev2" => component_snapshot_version(repo_root, "libevdev")?,

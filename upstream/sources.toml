@@ -563,6 +563,14 @@ path = "src/system/data/xkeyboard-config"
 sync = "copy"
 
 [[component]]
+name = "tzdata"
+repo = "https://github.com/eggert/tz.git"
+branch = "2026a"
+revision = "dd6be6d1558163517ec55c652efac70842c3b4cc"
+path = "src/system/data/tzdata"
+sync = "copy"
+
+[[component]]
 name = "glibc"
 repo = "git://sourceware.org/git/glibc.git"
 branch = "glibc-2.43"

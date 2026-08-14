@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
 
-pub const PLAN_VERSION: u32 = 1;
+pub const PLAN_VERSION: u32 = 3;
 pub const MINIMUM_DISK_BYTES: u64 = 8 * 1024 * 1024 * 1024;
 pub const EFI_MIB: u64 = 512;
 pub const LIVE_SOURCE: &str = "/run/mattos/lower";
@@ -35,6 +35,27 @@ pub enum InstallStage {
     Complete,
 }
 
+impl InstallStage {
+    /// The complete, ordered set of stages emitted by the installer policy.
+    /// Presentation layers use this rather than carrying their own stage list.
+    pub const ALL: [Self; INSTALL_STAGE_COUNT] = [
+        Self::Preparing, Self::Partitioning, Self::Formatting,
+        Self::CreatingSubvolumes, Self::DeployingSystem, Self::ConfiguringSystem,
+        Self::CreatingUser, Self::InstallingGrub, Self::Finalizing, Self::Complete,
+    ];
+
+    /// Stable user-facing name shared by installer frontends.
+    pub const fn display_name(self) -> &'static str {
+        match self {
+            Self::Preparing => "Preparing", Self::Partitioning => "Partitioning",
+            Self::Formatting => "Formatting", Self::CreatingSubvolumes => "Creating Btrfs subvolumes",
+            Self::DeployingSystem => "Deploying system", Self::ConfiguringSystem => "Configuring system",
+            Self::CreatingUser => "Creating user", Self::InstallingGrub => "Installing GRUB",
+            Self::Finalizing => "Finalizing", Self::Complete => "Complete",
+        }
+    }
+}
+
 pub const INSTALL_STAGE_COUNT: usize = 10;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -48,6 +69,12 @@ pub struct InstallProgress {
 impl InstallProgress {
     fn new(stage: InstallStage, completed_stages: usize, detail: impl Into<String>) -> Self {
         Self { stage, completed_stages, total_stages: INSTALL_STAGE_COUNT, detail: detail.into() }
+    }
+
+    /// Overall determinate progress, safely bounded for presentation.
+    pub fn fraction(&self) -> f32 {
+        if self.total_stages == 0 { return 0.0; }
+        (self.completed_stages.min(self.total_stages) as f32) / self.total_stages as f32
     }
 }
 
@@ -66,17 +93,28 @@ pub enum InstalledProfile {
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case", tag = "mode", content = "password_hash")]
+pub enum RootCredentialPolicy { SameAsUser, SeparatePasswordHash(String) }
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct InstallPlan {
     pub version: u32,
     pub target_disk: PathBuf,
     pub installed_profile: InstalledProfile,
     pub hostname: String,
+    pub full_name: String,
     pub username: String,
     #[serde(default)]
     pub password_hash: Option<String>,
-    #[serde(default)]
-    pub test_autologin: bool,
+    pub administrator: bool,
+    pub automatic_login: bool,
+    pub root_credential: RootCredentialPolicy,
+    pub locale: String,
+    pub keyboard_layout: String,
+    #[serde(default)] pub keyboard_variant: String,
+    pub timezone: String,
+    #[serde(default)] pub test_autologin: bool,
 }
 
 impl InstallPlan {
@@ -102,13 +140,48 @@ impl InstallPlan {
         if self.username == "root" {
             bail!("the installed user may not be root");
         }
+        if self.full_name.trim().is_empty() || self.full_name.contains(['\n', ':']) { bail!("full_name must be a non-empty single-line GECOS value"); }
         if let Some(hash) = &self.password_hash
             && (!hash.starts_with('$') || hash.contains(['\n', ':']))
         {
             bail!("password_hash must be a crypt-style hash without separators");
         }
+        if let RootCredentialPolicy::SeparatePasswordHash(hash) = &self.root_credential
+            && (!hash.starts_with('$') || hash.contains(['\n', ':'])) { bail!("root password hash must be a crypt-style hash without separators"); }
+        if !locale_supported(&self.locale) { bail!("unsupported locale {}; install image locale data does not provide it", self.locale); }
+        if !xkb_layout_supported(&self.keyboard_layout, &self.keyboard_variant) { bail!("unsupported keyboard layout/variant {}({})", self.keyboard_layout, self.keyboard_variant); }
+        if !timezone_supported(&self.timezone) { bail!("unsupported timezone {}", self.timezone); }
         Ok(())
     }
+}
+
+fn runtime_path(relative: &str) -> PathBuf {
+    let live = Path::new(LIVE_SOURCE).join(relative);
+    if live.exists() { live } else { Path::new("/").join(relative) }
+}
+
+pub fn locale_supported(locale: &str) -> bool {
+    let Some((name, encoding)) = locale.split_once('.') else { return false; };
+    encoding.eq_ignore_ascii_case("UTF-8") && runtime_path(&format!("usr/share/i18n/locales/{name}")).is_file()
+}
+
+pub fn timezone_supported(timezone: &str) -> bool {
+    !timezone.is_empty() && !timezone.starts_with('/') && !timezone.contains("..")
+        && runtime_path(&format!("usr/share/zoneinfo/{timezone}")).is_file()
+}
+
+pub fn xkb_layout_supported(layout: &str, variant: &str) -> bool {
+    let Ok(data) = fs::read_to_string(runtime_path("usr/share/X11/xkb/rules/evdev.lst")) else { return false; };
+    let mut in_variants = false;
+    let mut layout_found = false;
+    for line in data.lines() {
+        if line == "! variant" { in_variants = true; continue; }
+        if line.starts_with('!') { in_variants = false; }
+        let fields = line.split_whitespace().collect::<Vec<_>>();
+        if !in_variants && fields.first() == Some(&layout) { layout_found = true; }
+        if in_variants && !variant.is_empty() && fields.first() == Some(&variant) && fields.get(1) == Some(&layout) { return true; }
+    }
+    variant.is_empty() && layout_found
 }
 
 fn validate_identifier(value: &str, label: &str) -> Result<()> {
@@ -129,13 +202,14 @@ pub fn render_plan(plan: &InstallPlan) -> Result<String> {
     plan.validate_policy()?;
     let parts = engine::partition_paths(&plan.target_disk)?;
     Ok(format!(
-        "MattOS install plan\n  target: {} (ERASED)\n  firmware: UEFI\n  partition table: GPT\n  EFI: {} (FAT32, {EFI_MIB} MiB)\n  system: {} (Btrfs)\n  subvolumes: @, @home, @snapshots\n  mount options: {BTRFS_MOUNT_OPTIONS}\n  profile: {:?}\n  hostname: {}\n  user: {}\n",
+        "MattOS install plan\n  target: {} (ERASED)\n  firmware: UEFI\n  partition table: GPT\n  EFI: {} (FAT32, {EFI_MIB} MiB)\n  system: {} (Btrfs)\n  subvolumes: @, @home, @snapshots\n  mount options: {BTRFS_MOUNT_OPTIONS}\n  profile: {:?}\n  locale: {}\n  keyboard: {} ({})\n  timezone: {}\n  hostname: {}\n  full name: {}\n  user: {}\n  account type: {}\n  automatic login: {}\n  root credential: {}\n",
         plan.target_disk.display(),
         parts.efi.display(),
         parts.system.display(),
-        plan.installed_profile,
-        plan.hostname,
-        plan.username
+        plan.installed_profile, plan.locale, plan.keyboard_layout, if plan.keyboard_variant.is_empty() { "default" } else { &plan.keyboard_variant }, plan.timezone, plan.hostname, plan.full_name, plan.username,
+        if plan.administrator { "Administrator" } else { "Standard user" },
+        if plan.automatic_login { "enabled" } else { "disabled" },
+        match plan.root_credential { RootCredentialPolicy::SameAsUser => "same as user", RootCredentialPolicy::SeparatePasswordHash(_) => "separate password" }
     ))
 }
 
@@ -265,6 +339,7 @@ where
     progress(InstallProgress::new(InstallStage::ConfiguringSystem, 5, "Configuring the installed system"));
     remove_live_only_state(target)?;
     write_identity(plan, target)?;
+    write_regional_identity(plan, target)?;
     let identity = storage_identity(parts)?;
     write_storage_identity(&identity, target)?;
     write_fstab(&identity, target)?;
@@ -361,6 +436,25 @@ fn write_identity(plan: &InstallPlan, target: &Path) -> Result<()> {
     Ok(())
 }
 
+fn write_regional_identity(plan: &InstallPlan, target: &Path) -> Result<()> {
+    let locale_dir = target.join("usr/lib/x86_64-linux-gnu/locale");
+    fs::create_dir_all(&locale_dir)?;
+    let prefix = format!("--prefix={}", target.display());
+    let (locale_name, _) = plan.locale.split_once('.').expect("validated locale");
+    engine::run("localedef", &[prefix.as_ref(), "-i".as_ref(), locale_name.as_ref(), "-f".as_ref(), "UTF-8".as_ref(), plan.locale.as_ref()])
+        .context("generate selected locale in installed target")?;
+    fs::write(target.join("etc/locale.conf"), format!("LANG={}\n", plan.locale))?;
+    fs::write(target.join("etc/vconsole.conf"), format!("KEYMAP={}\n", plan.keyboard_layout))?;
+    let x11 = target.join("etc/X11/xorg.conf.d");
+    fs::create_dir_all(&x11)?;
+    fs::write(x11.join("00-keyboard.conf"), format!("Section \"InputClass\"\n Identifier \"mattos-keyboard\"\n MatchIsKeyboard \"on\"\n Option \"XkbLayout\" \"{}\"\n Option \"XkbVariant\" \"{}\"\nEndSection\n", plan.keyboard_layout, plan.keyboard_variant))?;
+    let localtime = target.join("etc/localtime");
+    let zone = format!("/usr/share/zoneinfo/{}", plan.timezone);
+    #[cfg(unix)] std::os::unix::fs::symlink(zone, localtime)?;
+    fs::write(target.join("etc/timezone"), format!("{}\n", plan.timezone))?;
+    Ok(())
+}
+
 fn write_fstab(identity: &StorageIdentity, target: &Path) -> Result<()> {
     fs::write(
         target.join("etc/fstab"),
@@ -440,22 +534,21 @@ fn render_installed_grub_config(root_uuid: &str) -> String {
 }
 
 fn create_user(plan: &InstallPlan, target: &Path) -> Result<()> {
-    engine::run(
-        "useradd",
-        &[
-            "--root".as_ref(), target.as_os_str(), "--create-home".as_ref(),
-            "--user-group".as_ref(),
-            "--shell".as_ref(), "/bin/brush".as_ref(), "--groups".as_ref(),
-            "sudo".as_ref(), plan.username.as_ref(),
-        ],
-    )?;
+    let base = ["--root".as_ref(), target.as_os_str(), "--create-home".as_ref(), "--user-group".as_ref(), "--shell".as_ref(), "/bin/brush".as_ref(), "--comment".as_ref(), plan.full_name.as_ref()];
+    if plan.administrator {
+        engine::run("useradd", &[base.as_slice(), &["--groups".as_ref(), "wheel".as_ref(), plan.username.as_ref()]].concat())?;
+    } else {
+        engine::run("useradd", &[base.as_slice(), &[plan.username.as_ref()]].concat())?;
+    }
     if let Some(hash) = &plan.password_hash {
         engine::run(
             "usermod",
             &["--root".as_ref(), target.as_os_str(), "--password".as_ref(), hash.as_ref(), plan.username.as_ref()],
         )?;
     }
-    if plan.test_autologin {
+    let root_hash = match &plan.root_credential { RootCredentialPolicy::SameAsUser => plan.password_hash.as_ref(), RootCredentialPolicy::SeparatePasswordHash(hash) => Some(hash) };
+    if let Some(hash) = root_hash { engine::run("usermod", &["--root".as_ref(), target.as_os_str(), "--password".as_ref(), hash.as_ref(), "root".as_ref()])?; }
+    if plan.automatic_login || plan.test_autologin {
         for (unit, arguments) in [
             ("getty@tty1.service.d", format!("--autologin {} --noclear %I $TERM", plan.username)),
             ("serial-getty@ttyS0.service.d", format!("--autologin {} --keep-baud 115200,57600,38400,9600 %I $TERM", plan.username)),
@@ -481,8 +574,13 @@ mod tests {
             target_disk: disk.into(),
             installed_profile: profile,
             hostname: "mattos-test".into(),
+            full_name: "MattOS Test User".into(),
             username: "mattos-user".into(),
             password_hash: None,
+            administrator: true,
+            automatic_login: false,
+            root_credential: RootCredentialPolicy::SameAsUser,
+            locale: "en_US.UTF-8".into(), keyboard_layout: "us".into(), keyboard_variant: String::new(), timezone: "Etc/UTC".into(),
             test_autologin: true,
         }
     }
@@ -526,6 +624,26 @@ mod tests {
         assert_eq!(event.completed_stages, event.total_stages);
         assert_eq!(event.stage, InstallStage::Complete);
         assert_eq!(event.detail, "done");
+    }
+
+    #[test]
+    fn stage_display_names_cover_the_authoritative_stage_set() {
+        assert_eq!(InstallStage::ALL.len(), INSTALL_STAGE_COUNT);
+        assert!(InstallStage::ALL.iter().all(|stage| !stage.display_name().is_empty()));
+    }
+
+    #[test]
+    fn progress_fraction_is_safe_for_initial_and_invalid_totals() {
+        let initial = InstallProgress::new(InstallStage::Preparing, 0, "starting");
+        assert_eq!(initial.fraction(), 0.0);
+        let invalid = InstallProgress {
+            stage: InstallStage::Preparing, completed_stages: 4, total_stages: 0, detail: String::new(),
+        };
+        assert_eq!(invalid.fraction(), 0.0);
+        let overcomplete = InstallProgress {
+            stage: InstallStage::Complete, completed_stages: 99, total_stages: 10, detail: String::new(),
+        };
+        assert_eq!(overcomplete.fraction(), 1.0);
     }
 
     #[test]

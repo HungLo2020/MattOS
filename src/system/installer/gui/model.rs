@@ -1,6 +1,6 @@
 //! Toolkit-neutral state shared by graphical installer frontends.
 
-use crate::{InstallPlan, InstallProgress, InstalledProfile, engine, render_plan};
+use crate::{InstallPlan, InstallProgress, InstalledProfile, RootCredentialPolicy, engine, render_plan};
 use anyhow::{Result, bail};
 use std::path::PathBuf;
 
@@ -19,7 +19,14 @@ pub struct InstallerFrontendModel {
     pub selected_disk: Option<PathBuf>,
     pub installed_profile: InstalledProfile,
     pub hostname: String,
+    pub full_name: String,
     pub username: String,
+    pub administrator: bool,
+    pub automatic_login: bool,
+    pub locale: String,
+    pub keyboard_layout: String,
+    pub keyboard_variant: String,
+    pub timezone: String,
     pub state: FrontendState,
 }
 
@@ -30,7 +37,10 @@ impl InstallerFrontendModel {
             selected_disk: None,
             installed_profile: InstalledProfile::Desktop,
             hostname: "mattos".into(),
+            full_name: "MattOS User".into(),
             username: "mattos".into(),
+            administrator: true, automatic_login: false,
+            locale: "en_US.UTF-8".into(), keyboard_layout: "us".into(), keyboard_variant: String::new(), timezone: "Etc/UTC".into(),
             state: FrontendState::Planning,
         })
     }
@@ -45,7 +55,7 @@ impl InstallerFrontendModel {
         Ok(())
     }
 
-    pub fn plan(&self, password_hash: Option<String>) -> Result<InstallPlan> {
+    pub fn plan(&self, password_hash: Option<String>, root_credential: RootCredentialPolicy) -> Result<InstallPlan> {
         let Some(target_disk) = self.selected_disk.clone() else {
             bail!("select an explicit target disk before validating the installation plan");
         };
@@ -54,8 +64,13 @@ impl InstallerFrontendModel {
             target_disk,
             installed_profile: self.installed_profile,
             hostname: self.hostname.clone(),
+            full_name: self.full_name.clone(),
             username: self.username.clone(),
             password_hash,
+            administrator: self.administrator,
+            automatic_login: self.automatic_login,
+            root_credential,
+            locale: self.locale.clone(), keyboard_layout: self.keyboard_layout.clone(), keyboard_variant: self.keyboard_variant.clone(), timezone: self.timezone.clone(),
             test_autologin: false,
         };
         plan.validate_policy()?;
@@ -63,7 +78,7 @@ impl InstallerFrontendModel {
     }
 
     pub fn summary(&self) -> Result<String> {
-        render_plan(&self.plan(None)?)
+        render_plan(&self.plan(None, RootCredentialPolicy::SameAsUser)?)
     }
 
     pub fn mark_validated(&mut self) {
@@ -94,10 +109,12 @@ mod tests {
             selected_disk: None,
             installed_profile: InstalledProfile::Cli,
             hostname: "mattos".into(),
+            full_name: "Test User".into(), administrator: true, automatic_login: false,
             username: "tester".into(),
+            locale: "en_US.UTF-8".into(), keyboard_layout: "us".into(), keyboard_variant: String::new(), timezone: "Etc/UTC".into(),
             state: FrontendState::Planning,
         };
-        assert!(model.plan(None).unwrap_err().to_string().contains("explicit target disk"));
+        assert!(model.plan(None, RootCredentialPolicy::SameAsUser).unwrap_err().to_string().contains("explicit target disk"));
     }
 
     #[test]
@@ -107,7 +124,9 @@ mod tests {
             selected_disk: None,
             installed_profile: InstalledProfile::Desktop,
             hostname: "mattos".into(),
+            full_name: "Test User".into(), administrator: true, automatic_login: false,
             username: "tester".into(),
+            locale: "en_US.UTF-8".into(), keyboard_layout: "us".into(), keyboard_variant: String::new(), timezone: "Etc/UTC".into(),
             state: FrontendState::Planning,
         };
         model.mark_validated();
@@ -124,16 +143,38 @@ mod tests {
     }
 
     #[test]
+    fn shared_graphical_model_applies_each_intermediate_progress_event() {
+        let mut model = InstallerFrontendModel {
+            disks: Vec::new(), selected_disk: None, installed_profile: InstalledProfile::Desktop,
+            hostname: "mattos".into(), full_name: "Test User".into(), username: "tester".into(),
+            administrator: true, automatic_login: false, state: FrontendState::Validated,
+            locale: "en_US.UTF-8".into(), keyboard_layout: "us".into(), keyboard_variant: String::new(), timezone: "Etc/UTC".into(),
+        };
+        for (stage, completed, detail) in [
+            (crate::InstallStage::Preparing, 0, "validating"),
+            (crate::InstallStage::Partitioning, 1, "partitioning"),
+            (crate::InstallStage::Formatting, 2, "formatting"),
+        ] {
+            model.progress(InstallProgress { stage, completed_stages: completed, total_stages: 10, detail: detail.into() });
+            assert!(matches!(&model.state, FrontendState::Installing(event) if event.detail == detail));
+        }
+        model.complete();
+        assert_eq!(model.state, FrontendState::Complete);
+    }
+
+    #[test]
     fn graphical_model_keeps_credentials_out_of_rendered_plan() {
         let model = InstallerFrontendModel {
             disks: Vec::new(),
             selected_disk: Some("/dev/vda".into()),
             installed_profile: InstalledProfile::Desktop,
             hostname: "mattos".into(),
+            full_name: "Test User".into(), administrator: false, automatic_login: false,
             username: "tester".into(),
+            locale: "en_US.UTF-8".into(), keyboard_layout: "us".into(), keyboard_variant: String::new(), timezone: "Etc/UTC".into(),
             state: FrontendState::Planning,
         };
-        let plan = model.plan(Some("$6$only-a-hash".into())).unwrap();
+        let plan = model.plan(Some("$6$only-a-hash".into()), RootCredentialPolicy::SameAsUser).unwrap();
         let rendered = render_plan(&plan).unwrap();
         assert!(!rendered.contains("only-a-hash"));
         assert!(!rendered.contains("password"));
