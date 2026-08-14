@@ -18,6 +18,39 @@ pub const BTRFS_SUBVOLUMES: &[(&str, &str)] = &[
     ("@snapshots", "/.snapshots"),
 ];
 
+/// Stable, presentation-neutral installation phases.  Frontends must not
+/// infer progress from command output: both the CLI and COSMIC installer
+/// consume these events from the one policy implementation.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum InstallStage {
+    Preparing,
+    Partitioning,
+    Formatting,
+    CreatingSubvolumes,
+    DeployingSystem,
+    ConfiguringSystem,
+    CreatingUser,
+    InstallingGrub,
+    Finalizing,
+    Complete,
+}
+
+pub const INSTALL_STAGE_COUNT: usize = 10;
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct InstallProgress {
+    pub stage: InstallStage,
+    pub completed_stages: usize,
+    pub total_stages: usize,
+    pub detail: String,
+}
+
+impl InstallProgress {
+    fn new(stage: InstallStage, completed_stages: usize, detail: impl Into<String>) -> Self {
+        Self { stage, completed_stages, total_stages: INSTALL_STAGE_COUNT, detail: detail.into() }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct StorageIdentity {
     root_uuid: String,
@@ -113,14 +146,14 @@ pub fn validate_target(plan: &InstallPlan) -> Result<()> {
 }
 
 pub fn execute(plan: &InstallPlan) -> Result<()> {
-    execute_with_progress(plan, |message| eprintln!("mattos-install: {message}"))
+    execute_with_progress(plan, |event| eprintln!("mattos-install: {:?}: {}", event.stage, event.detail))
 }
 
 pub fn execute_with_progress<F>(plan: &InstallPlan, mut progress: F) -> Result<()>
 where
-    F: FnMut(&str),
+    F: FnMut(InstallProgress),
 {
-    progress("validating target disk");
+    progress(InstallProgress::new(InstallStage::Preparing, 0, "Validating the selected target disk"));
     validate_target(plan)?;
     engine::require_tools(&[
         "sfdisk",
@@ -137,10 +170,11 @@ where
         "dpkg",
     ])?;
     let parts = engine::partition_paths(&plan.target_disk)?;
-    progress("creating GPT, EFI, and Btrfs filesystems");
+    progress(InstallProgress::new(InstallStage::Partitioning, 1, "Creating the GPT partition table"));
     let layout = format!("label: gpt\n,{}M,U\n,,L\n", EFI_MIB);
     engine::command_with_input("sfdisk", &[plan.target_disk.as_os_str()], layout.as_bytes())?;
     engine::run("udevadm", &["settle".as_ref()])?;
+    progress(InstallProgress::new(InstallStage::Formatting, 2, "Formatting EFI and Btrfs filesystems"));
     engine::run(
         "mkfs.fat",
         &[
@@ -162,7 +196,7 @@ where
     )?;
 
     let target = Path::new(TARGET_ROOT);
-    progress("creating MattOS Btrfs subvolumes");
+    progress(InstallProgress::new(InstallStage::CreatingSubvolumes, 3, "Creating MattOS Btrfs subvolumes"));
     fs::create_dir_all(target)?;
     let mut mounts = MountStack::new();
     mounts.mount(&[parts.system.as_os_str(), target.as_os_str()], target)?;
@@ -197,12 +231,13 @@ where
     let efi_path = target.join("boot/efi");
     mounts.mount(&[parts.efi.as_os_str(), efi_path.as_os_str()], &efi_path)?;
 
-    progress("populating the persistent MattOS root");
+    progress(InstallProgress::new(InstallStage::DeployingSystem, 4, "Copying the immutable live system to the target"));
     let install_result = populate_target(plan, &parts, target, &mut progress);
     let sync_result = engine::run("sync", &[]);
     let unmount_result = mounts.unmount_all();
     install_result.and(sync_result).and(unmount_result)?;
-    progress("installation complete and target filesystems unmounted");
+    progress(InstallProgress::new(InstallStage::Finalizing, 8, "Synchronizing and unmounting target filesystems"));
+    progress(InstallProgress::new(InstallStage::Complete, INSTALL_STAGE_COUNT, "Installation complete"));
     Ok(())
 }
 
@@ -213,7 +248,7 @@ fn populate_target<F>(
     progress: &mut F,
 ) -> Result<()>
 where
-    F: FnMut(&str),
+    F: FnMut(InstallProgress),
 {
     if !Path::new(LIVE_SOURCE).join("usr/lib/systemd/systemd").is_file() {
         bail!("MattOS immutable live source is unavailable at {LIVE_SOURCE}");
@@ -227,16 +262,17 @@ where
             target.as_os_str(),
         ],
     )?;
-    progress("removing live-only account and runtime state");
+    progress(InstallProgress::new(InstallStage::ConfiguringSystem, 5, "Configuring the installed system"));
     remove_live_only_state(target)?;
     write_identity(plan, target)?;
     let identity = storage_identity(parts)?;
     write_storage_identity(&identity, target)?;
     write_fstab(&identity, target)?;
+    progress(InstallProgress::new(InstallStage::InstallingGrub, 6, "Installing boot files and GRUB configuration"));
     install_boot_files(&identity, target)?;
-    progress("removing the live-only installer package");
+    progress(InstallProgress::new(InstallStage::ConfiguringSystem, 6, "Removing live-only installer state"));
     purge_live_installer(target)?;
-    progress("creating the installed user account");
+    progress(InstallProgress::new(InstallStage::CreatingUser, 7, "Creating the installed user account"));
     create_user(plan, target)?;
     fs::write(
         target.join("etc/mattos-installed-profile"),
@@ -481,6 +517,15 @@ mod tests {
         assert!(output.contains("ERASED"));
         assert!(output.contains("@home"));
         assert!(output.contains("Btrfs"));
+    }
+
+    #[test]
+    fn structured_progress_has_a_stable_complete_terminal_event() {
+        let event = InstallProgress::new(InstallStage::Complete, INSTALL_STAGE_COUNT, "done");
+        assert_eq!(event.total_stages, INSTALL_STAGE_COUNT);
+        assert_eq!(event.completed_stages, event.total_stages);
+        assert_eq!(event.stage, InstallStage::Complete);
+        assert_eq!(event.detail, "done");
     }
 
     #[test]

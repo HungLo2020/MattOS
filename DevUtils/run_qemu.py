@@ -18,6 +18,13 @@ from common import (
 
 DEFAULT_INSTALL_DISK_RELATIVE = Path("out/qemu/mattos-dev.qcow2")
 DEFAULT_INSTALL_DISK_SIZE = "16G"
+# `virtio-vga-gl` is the one GPU that satisfies both development-launcher
+# requirements: its VGA compatibility gives firmware/GRUB a scanout before
+# Linux starts, and its VirtIO GL backend exposes the VirGL capset used later
+# by Mesa and the native COSMIC compositor.
+VIRTIO_GPU_GL_DEVICE = "virtio-vga-gl,blob=true,hostmem=256M,xres=1280,yres=800"
+QEMU_TABLET_CONTROLLER = "qemu-xhci,id=mattos-xhci"
+QEMU_TABLET_DEVICE = "usb-tablet,bus=mattos-xhci.0"
 
 
 def parse_args() -> argparse.Namespace:
@@ -70,18 +77,44 @@ def network_arguments(disabled: bool) -> List[str]:
 
 
 def choose_graphical_display(repo_root: Path) -> str:
-    # Prefer GTK; fall back to SDL if GTK is not built in the local QEMU binary.
+    # VirGL scanout requires a GL-capable host display.  Plain GTK/SDL would
+    # leave the guest's virtio GPU without the 3D capset that Mesa's source-
+    # built virgl driver needs for the COSMIC KMS path.
     try:
         output = run_command_capture(["qemu-system-x86_64", "-display", "help"], cwd=repo_root)
     except RepoError:
-        return "gtk"
+        return "gtk,gl=on"
 
     displays = {line.strip() for line in output.splitlines() if line.strip()}
     if "gtk" in displays:
-        return "gtk"
+        return "gtk,gl=on"
     if "sdl" in displays:
-        return "sdl"
+        return "sdl,gl=on"
     return "default"
+
+
+def graphical_gpu_device(repo_root: Path) -> str:
+    """Return the VirtIO GPU that exposes the VirGL capset to the guest.
+
+    `virtio-gpu-pci` is only a 2D VirtIO GPU.  The installer intentionally
+    uses QEMU's GL variant so the ISO exercises the same DRM/GBM/EGL/dmabuf
+    path that the native COSMIC compositor requires.  Fail closed instead of
+    silently booting a graphical installer configuration that cannot render.
+    """
+    try:
+        output = run_command_capture(["qemu-system-x86_64", "-device", "help"], cwd=repo_root)
+    except RepoError as exc:
+        raise RepoError("could not inspect QEMU VirtIO GPU support") from exc
+    if "virtio-vga-gl" not in output:
+        raise RepoError(
+            "this QEMU lacks virtio-vga-gl; the native COSMIC installer "
+            "requires a VGA-compatible QEMU VirtIO GPU with GL/VirGL support"
+        )
+    # VirGL alone provides an EGL context, but COSMIC's KMS renderer also
+    # exports its scanout buffers as dmabufs.  Enable QEMU's VirtIO resource
+    # blob backing and its bounded host-memory aperture so the guest advertises
+    # resource_blob/host_visible instead of an unusable context-only device.
+    return VIRTIO_GPU_GL_DEVICE
 
 
 def ensure_iso_exists(repo_root: Path) -> Path:
@@ -188,8 +221,21 @@ def launch_qemu(repo_root: Path, iso_path: Path, args: argparse.Namespace) -> in
         str(iso_path),
         "-boot",
         "d",
-        "-vga",
-        "std",
+        # The native COSMIC installer is a DRM/KMS Wayland client session.
+        # `virtio-vga-gl` is deliberately the only display device: unlike
+        # `virtio-gpu-gl-pci` it remains visible to firmware and GRUB, while
+        # also publishing the VirGL capset required by Mesa's source-built
+        # virgl Gallium renderer for GBM/EGL dmabuf scanout.
+        "-device",
+        graphical_gpu_device(repo_root),
+        # A graphical desktop guest needs an absolute pointer.  The default
+        # PS/2 mouse is relative-only and did not produce usable pointer
+        # motion in the COSMIC KMS session.  One USB tablet is sufficient;
+        # do not add a second, competing pointer device.
+        "-device",
+        QEMU_TABLET_CONTROLLER,
+        "-device",
+        QEMU_TABLET_DEVICE,
     ]
     install_disk = prepare_install_disk(repo_root, args)
     if install_disk is not None:

@@ -9,9 +9,11 @@ from tempfile import TemporaryDirectory
 from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import ensure_project_temp_root, mattos_build_environment
+import run_qemu
+from common import RepoError, ensure_project_temp_root, mattos_build_environment
 from run_qemu import (
     ensure_iso_exists,
+    graphical_gpu_device,
     image_build_commands,
     launch_qemu,
     network_arguments,
@@ -46,6 +48,22 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
 
     def test_no_network_omits_all_network_arguments(self) -> None:
         self.assertEqual(network_arguments(True), [])
+
+    def test_graphical_display_enables_host_gl_for_virgl_scanout(self) -> None:
+        with mock.patch("run_qemu.run_command_capture", return_value="gtk\nsdl\n"):
+            self.assertEqual(run_qemu.choose_graphical_display(Path("/repo")), "gtk,gl=on")
+
+    def test_graphical_gpu_requires_the_qemu_vga_virgl_variant(self) -> None:
+        with mock.patch("run_qemu.run_command_capture", return_value='name "virtio-vga-gl", bus PCI'):
+            self.assertEqual(
+                graphical_gpu_device(Path("/repo")),
+                "virtio-vga-gl,blob=true,hostmem=256M,xres=1280,yres=800",
+            )
+
+    def test_graphical_gpu_fails_closed_without_virgl(self) -> None:
+        with mock.patch("run_qemu.run_command_capture", return_value='name "virtio-gpu-pci", bus PCI'):
+            with self.assertRaises(RepoError):
+                graphical_gpu_device(Path("/repo"))
 
     def test_launcher_invokes_one_image_producing_build(self) -> None:
         commands = image_build_commands(False)
@@ -118,10 +136,17 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
             process.wait.return_value = 0
             with mock.patch("run_qemu.subprocess.Popen", return_value=process) as launched, mock.patch(
                 "run_qemu.mattos_build_environment", return_value={}
+            ), mock.patch(
+                "run_qemu.graphical_gpu_device",
+                return_value="virtio-vga-gl,blob=true,hostmem=256M,xres=1280,yres=800",
             ):
                 self.assertEqual(launch_qemu(root, root / "mattos.iso", args), 0)
             command = launched.call_args.args[0]
             self.assertIn(f"file={disk.resolve()},if=virtio,format=qcow2", command)
+            self.assertIn("virtio-vga-gl,blob=true,hostmem=256M,xres=1280,yres=800", command)
+            self.assertNotIn("-vga", command)
+            self.assertIn("qemu-xhci,id=mattos-xhci", command)
+            self.assertIn("usb-tablet,bus=mattos-xhci.0", command)
 
 
 @unittest.skipUnless(

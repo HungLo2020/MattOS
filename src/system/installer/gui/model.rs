@@ -1,6 +1,6 @@
 //! Toolkit-neutral state shared by graphical installer frontends.
 
-use crate::{InstallPlan, InstalledProfile, engine, render_plan};
+use crate::{InstallPlan, InstallProgress, InstalledProfile, engine, render_plan};
 use anyhow::{Result, bail};
 use std::path::PathBuf;
 
@@ -8,7 +8,7 @@ use std::path::PathBuf;
 pub enum FrontendState {
     Planning,
     Validated,
-    Installing(String),
+    Installing(InstallProgress),
     Complete,
     Failed(String),
 }
@@ -70,8 +70,8 @@ impl InstallerFrontendModel {
         self.state = FrontendState::Validated;
     }
 
-    pub fn progress(&mut self, message: impl Into<String>) {
-        self.state = FrontendState::Installing(message.into());
+    pub fn progress(&mut self, event: InstallProgress) {
+        self.state = FrontendState::Installing(event);
     }
 
     pub fn complete(&mut self) {
@@ -112,9 +112,30 @@ mod tests {
         };
         model.mark_validated();
         assert_eq!(model.state, FrontendState::Validated);
-        model.progress("partitioning");
-        assert_eq!(model.state, FrontendState::Installing("partitioning".into()));
+        model.progress(InstallProgress {
+            stage: crate::InstallStage::Partitioning,
+            completed_stages: 1,
+            total_stages: 10,
+            detail: "partitioning".into(),
+        });
+        assert!(matches!(model.state, FrontendState::Installing(InstallProgress { ref detail, .. }) if detail == "partitioning"));
         model.fail("disk failed");
         assert_eq!(model.state, FrontendState::Failed("disk failed".into()));
+    }
+
+    #[test]
+    fn graphical_model_keeps_credentials_out_of_rendered_plan() {
+        let model = InstallerFrontendModel {
+            disks: Vec::new(),
+            selected_disk: Some("/dev/vda".into()),
+            installed_profile: InstalledProfile::Desktop,
+            hostname: "mattos".into(),
+            username: "tester".into(),
+            state: FrontendState::Planning,
+        };
+        let plan = model.plan(Some("$6$only-a-hash".into())).unwrap();
+        let rendered = render_plan(&plan).unwrap();
+        assert!(!rendered.contains("only-a-hash"));
+        assert!(!rendered.contains("password"));
     }
 }

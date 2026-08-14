@@ -1,5 +1,5 @@
 [Unit]
 Description=MattOS Graphical Installation Target
-Requires=mattos.target mattos-install-graphical.service
-After=mattos.target
+Requires=multi-user.target mattos-cosmic-installer-session.service mattos-install-graphical.service
+After=multi-user.target
 AllowIsolate=yes

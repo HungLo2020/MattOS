@@ -1,0 +1,460 @@
+# vim: set expandtab shiftwidth=2 tabstop=8 textwidth=0:
+
+# CI templates: https://gitlab.freedesktop.org/freedesktop/ci-templates
+# See: https://docs.gitlab.com/ee/ci/yaml/#includefile
+.templates_sha: &template_sha 32afe5644697e503af18a736587c8619fa036a72
+
+
+include:
+  # Arch container builder template
+  - project: 'freedesktop/ci-templates'
+    ref: *template_sha
+    file: '/templates/arch.yml'
+  # Debian container builder template
+  - project: 'freedesktop/ci-templates'
+    ref: *template_sha
+    file: '/templates/debian.yml'
+  # CI Fairy
+  - project: 'freedesktop/ci-templates'
+    ref: *template_sha
+    file: '/templates/ci-fairy.yml'
+
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+
+
+.all_but_schedule:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - when: always
+
+
+.only_on_schedule:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+    - when: never
+
+
+# global variables to be used by most/all jobs.
+variables:
+  FDO_UPSTREAM_REPO: 'xkeyboard-config/xkeyboard-config'
+  # Changing the tag will rebuild the container images. The value is just a
+  # string, but we use the date for human benefits.
+  FDO_DISTRIBUTION_TAG: '2025-06-10.1'
+
+  BUILDDIR: '_build'
+  # installation directory must be inside $CI_PROJECT_DIR to allow for artifact caching
+  INSTDIR: '$CI_PROJECT_DIR/_inst'
+  # Installed XKB root directory
+  XKEYBOARD_CONFIG_MAJOR_VERSION: 2
+  XKB_CONFIG_ROOT: '$INSTDIR/share/xkeyboard-config-$XKEYBOARD_CONFIG_MAJOR_VERSION'
+  # Override these in the jobs to pass commands to configure/make
+  CONFIGURE_ARGS: ''
+  MAKE_EXTRA_ARG: ''
+
+  # xkbcommon: needed to share artifacts between jobs
+  XKBCOMMON_DIR: 'libxkbcommon'
+  XKBCOMMON_INST_DIR: $CI_PROJECT_DIR/$XKBCOMMON_DIR/_inst
+
+
+stages:
+  - sanity
+  - prep
+  - build
+  - dist
+  - test
+  - gitlab
+
+
+################################################################################
+## Default setup: push and merge requests
+################################################################################
+
+container-prep:
+  extends:
+    - .all_but_schedule
+    - .fdo.container-build@arch
+  stage: prep
+  variables:
+    GIT_STRATEGY: none
+    # minimal set of packages required to build xkeyboard-config.
+    BASE_PACKAGES: 'xorg-util-macros gettext pkg-config gcc grep m4 python meson ninja git diffutils'
+    # extra packages we need for various tests
+    EXTRA_PACKAGES: 'tree libxml2 bison xorg-xkbcomp python-pytest python-libevdev python-yaml python-pycountry python-jinja yq libxkbcommon libxslt pre-commit'
+    FDO_DISTRIBUTION_PACKAGES: $BASE_PACKAGES $EXTRA_PACKAGES
+
+
+.default_setup:
+  extends:
+    - .all_but_schedule
+    - .fdo.distribution-image@arch
+
+
+.meson_build:
+  extends: .default_setup
+  script:
+    - if [ x"$TARBALL" != "x" ]; then
+        mkdir tarball;
+        tar xf "$BUILDDIR/$TARBALL" -C tarball/ --strip-components=1;
+        pushd tarball > /dev/null;
+      fi
+    - meson setup "$BUILDDIR" -Dprefix="$INSTDIR" -Dnon-latin-layouts-list=true
+    - meson configure "$BUILDDIR"
+    - ninja -C "$BUILDDIR"
+    - if test x"$NINJA_EXTRA_COMMAND" != "x"; then ninja -C "$BUILDDIR" $NINJA_EXTRA_COMMAND; fi
+
+#
+# Verify that the merge request has the allow-collaboration checkbox ticked
+#
+
+check-merge-request:
+  extends:
+    - .all_but_schedule
+    - .fdo.ci-fairy
+  stage: gitlab
+  script:
+    - ci-fairy check-merge-request --require-allow-collaboration --junit-xml=results.xml
+  artifacts:
+    when: on_failure
+    reports:
+      junit: results.xml
+  allow_failure: true
+  dependencies: []
+
+#
+# Verify that commit messages are as expected
+#
+
+check-commit:
+  extends:
+    - .fdo.ci-fairy
+  stage: sanity
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $CI_PROJECT_PATH == $FDO_UPSTREAM_REPO && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: never
+    - when: always
+  script:
+    - ci-fairy -vv check-commits --junit-xml=results.xml
+  variables:
+    GIT_DEPTH: 100
+  artifacts:
+    reports:
+      junit: results.xml
+
+#
+# Run pre-commit hook to format Python code
+#
+pre-commit:
+  extends:
+    - .default_setup
+  stage: test
+  script:
+    - pre-commit install
+    - pre-commit run --all
+  needs: ['container-prep']
+
+meson_install:
+  extends: .meson_build
+  stage: build
+  variables:
+      NINJA_EXTRA_COMMAND: "install"
+  after_script:
+    - tree $INSTDIR
+  artifacts:
+    name: installed files
+    expire_in: 2 weeks
+    paths:
+      - $INSTDIR/
+
+meson_test:
+  extends: .meson_build
+  stage: build
+  needs:
+    - job: xkbcommon build
+      artifacts: true
+  variables:
+      NINJA_EXTRA_COMMAND: "test"
+      XKBCOMMON_LIB_PATH: "$XKBCOMMON_INST_DIR/lib/libxkbcommon.so"
+
+meson_dist:
+  extends: .meson_build
+  stage: build
+  needs:
+    - job: xkbcommon build
+      artifacts: true
+  variables:
+      NINJA_EXTRA_COMMAND: "dist"
+      XKBCOMMON_LIB_PATH: "$XKBCOMMON_INST_DIR/lib/libxkbcommon.so"
+  artifacts:
+    name: tarball
+    expire_in: 2 weeks
+    paths:
+      - $BUILDDIR/meson-dist/xkeyboard-config-*.tar.xz
+
+
+# Download and build xkbcommon
+xkbcommon build:
+  extends: .default_setup
+  stage: build
+  script:
+    # Ensure there are no leftovers
+    - rm -rf xorgproto libxkbcommon
+    # Get latest xorgproto so we definitely have all keysyms
+    - git clone --depth=1 https://gitlab.freedesktop.org/xorg/proto/xorgproto
+    - export X11_HEADERS_PREFIX="$PWD/xorgproto/"
+    # Get latest xkbcommon
+    - git clone --depth=1 https://github.com/xkbcommon/libxkbcommon "$XKBCOMMON_DIR"
+    - pushd "$XKBCOMMON_DIR" > /dev/null
+    - ./scripts/update-keysyms
+    # Setup meson for minimal xkbcommon build with explicit paths.
+    # NOTE: we set the library directory as it may depend on the host architecture.
+    - >
+      meson setup "$BUILDDIR" \
+        -Denable-wayland=false \
+        -Denable-x11=false \
+        -Denable-docs=false \
+        -Dxkb-config-root="$XKB_CONFIG_ROOT" \
+        -Dxkb-config-extra-path="$XKB_CONFIG_ROOT" \
+        -Dprefix="$XKBCOMMON_INST_DIR" \
+        -Dlibdir="lib" \
+        --buildtype=release
+    - meson compile -C "$BUILDDIR"
+    - meson install -C "$BUILDDIR"
+    # We want also the test script. It requires "xkbcli-compile-keymap".
+    - cp "$BUILDDIR/xkeyboard-config-test" "$XKBCOMMON_INST_DIR/bin"
+  artifacts:
+    when: on_success
+    name: xkbcommon build
+    expire_in: 3 hours
+    paths:
+      # Keep artifact as small as possible.
+      # At the moment only "layout_tests" and "keymap_tests" require our build.
+      # The other jobs use the distro xkbcommon.
+      - $XKBCOMMON_INST_DIR/bin
+      - $XKBCOMMON_INST_DIR/lib/libxkbcommon.so*
+      - $XKBCOMMON_INST_DIR/libexec/xkbcommon/xkbcli-compile-keymap
+
+
+# Checks for new evdev keycodes to be added to keycodes/evdev
+evdev keycode check:
+  extends:
+    - .default_setup
+  stage: test
+  script:
+    - .gitlab-ci/generate-evdev-keycodes.py --verbose || (echo "keycodes/evdev file needs to be updated" && false)
+  allow_failure: true
+  artifacts:
+    when: on_failure
+    name: Updated evdev keycodes
+    expire_in: 2 weeks
+    paths:
+      - keycodes/evdev
+  needs: ['container-prep']
+
+
+# Checks for new keysyms to be added to symbols/inet (using xorgproto master)
+evdev keysym check (xorgproto master):
+  extends:
+    - .default_setup
+  stage: test
+  script:
+    # Check out the latest xorgproto tag
+    - git clone https://gitlab.freedesktop.org/xorg/proto/xorgproto
+    - .gitlab-ci/generate-evdev-keysyms.py --header xorgproto/include/X11/XF86keysym.h
+    - git diff --exit-code || (echo "New keysyms available, please update symbols/inet" && false)
+  allow_failure: true
+  artifacts:
+    when: on_failure
+    name: Updated inet keysyms
+    expire_in: 2 weeks
+    paths:
+      - symbols/inet
+  needs: ['container-prep']
+
+
+xmllint:
+  extends:
+    - .default_setup
+  dependencies: ['meson_install']
+  needs: ['meson_install']
+  stage: test
+  script:
+    - xmllint --dtdvalid "$XKB_CONFIG_ROOT/rules/xkb.dtd" $XKB_CONFIG_ROOT/rules/*.xml > /dev/null
+
+
+match group names to registry:
+  extends:
+    - .default_setup
+  needs: ['container-prep']
+  stage: test
+  script:
+    - "./tests/verify-group-names.sh"
+
+
+# libxkbcommon's xkbcli list prints out YAML-like format, if yq cannot parse it, our
+# evdev.xml file is off
+xkbcli list check:
+  extends:
+    - .default_setup
+  dependencies: ['meson_install']
+  needs: ['meson_install']
+  stage: test
+  script:
+    - xkbcli list --skip-default-paths --load-exotic "$XKB_CONFIG_ROOT" > rmlvo.yaml
+    - head -n20 rmlvo.yaml
+    - yq . rmlvo.yaml > /dev/null
+  artifacts:
+    when: on_failure
+    name: xbkcli list output
+    expire_in: 2 weeks
+    paths:
+      - rmlvo.yaml
+
+
+# Run the libxkbcommon layout test program. This will
+# run a basic keymap compile test against every combination of
+# layout/variant/option. Syntax errors will fail the test, check the
+# archived file for details.
+layout_tests:
+  extends: .default_setup
+  stage: test
+  needs:
+    - job: meson_install
+      artifacts: true
+    - job: xkbcommon build
+      artifacts: true
+  script:
+    # make sure the custom layout resolves to something
+    - ln -s "$XKB_CONFIG_ROOT/symbols/us" "$XKB_CONFIG_ROOT/symbols/custom"
+    # make sure the custom types resolves to something
+    - ln -s "$XKB_CONFIG_ROOT/types/basic" "$XKB_CONFIG_ROOT/types/custom"
+    # run xkbcommon test
+    - echo Running test script - this will take several minutes
+    # Ensure we use our local version of xkbcommon
+    - export LD_LIBRARY_PATH="$XKBCOMMON_INST_DIR/lib:$LD_LIBRARY_PATH"
+    # Ensure xkeyboard-config-test and xkbcli-compile-keymap are in the PATH
+    - export PATH="$XKBCOMMON_INST_DIR/bin:$XKBCOMMON_INST_DIR/libexec/xkbcommon:$PATH"
+    # For debugging: check if executable is working and output its XKB_CONFIG_ROOT
+    - xkbcli-compile-keymap --layout empty --verbose --test
+    - >
+      xkeyboard-config-test --verbose --short \
+          "$XKB_CONFIG_ROOT/rules/evdev.xml" \
+          >  $INSTDIR/keymaps-success.yaml \
+          2> $INSTDIR/keymaps-failed.yaml
+    - >
+      xkeyboard-config-test --verbose --short \
+          "$XKB_CONFIG_ROOT/rules/evdev.extras.xml" \
+          >>  $INSTDIR/keymaps-success.yaml \
+          2>> $INSTDIR/keymaps-failed.yaml
+    # Test a few models with vendor-specific layouts
+    - >
+      xkeyboard-config-test --model=applealu_iso --layout=gb --option="" --verbose --short \
+          "$XKB_CONFIG_ROOT/rules/evdev.xml" \
+          "$XKB_CONFIG_ROOT/rules/evdev.extras.xml" \
+          >>  $INSTDIR/keymaps-success.yaml \
+          2>> $INSTDIR/keymaps-failed.yaml
+    - >
+      xkeyboard-config-test --model=applealu_jis --layout=jp --option="" --verbose --short \
+          "$XKB_CONFIG_ROOT/rules/evdev.xml" \
+          "$XKB_CONFIG_ROOT/rules/evdev.extras.xml" \
+          >>  $INSTDIR/keymaps-success.yaml \
+          2>> $INSTDIR/keymaps-failed.yaml
+    - >
+      xkeyboard-config-test --model=olpc --layout=gb --option="" --verbose --short \
+          "$XKB_CONFIG_ROOT/rules/evdev.xml" \
+          "$XKB_CONFIG_ROOT/rules/evdev.extras.xml" \
+          >>  $INSTDIR/keymaps-success.yaml \
+          2>> $INSTDIR/keymaps-failed.yaml
+  after_script:
+    - echo "Failed keymap compilations:"
+    - >
+      yq -c ".[] | select(.status != 0) | .rules, .model, .layout, .variant, .option, .error" \
+        $INSTDIR/keymaps-failed.yaml
+    - successful_tests=$(yq ". | length" "$INSTDIR/keymaps-success.yaml")
+    - >
+      .gitlab-ci/yaml-to-junit-xml.py \
+        --additional-successful-tests $successful_tests \
+        "$INSTDIR/keymaps-failed.yaml" \
+        > junit-results.xml
+    - xz -z "$INSTDIR/keymaps-success.yaml"
+    - xz -z "$INSTDIR/keymaps-failed.yaml"
+  variables:
+    GIT_DEPTH: 1
+  artifacts:
+    when: on_failure
+    name: xkeyboard-config test output
+    expire_in: 2 weeks
+    paths:
+    - $INSTDIR/keymaps-success.yaml.xz
+    - $INSTDIR/keymaps-failed.yaml.xz
+    reports:
+      junit: junit-results.xml
+
+keymap_tests:
+  extends: .default_setup
+  stage: test
+  needs:
+    # use the installed tree from the meson_install job
+    - job: meson_install
+      artifacts: true
+    - job: xkbcommon build
+      artifacts: true
+  script:
+    # Configure the environment for our local xkbcommon build & Python bindings.
+    - export XKBCOMMON_LIB_PATH="$XKBCOMMON_INST_DIR/lib/libxkbcommon.so"
+    - export PYTHONPATH="$PWD/tests:$PYTHONPATH"
+    # Run the tests
+    - pytest --junitxml=results.xml
+             tests
+             --layout-compat-config rules/compat/layoutsMapping.lst
+             --layout-compat-config rules/compat/variantsMapping.lst
+  artifacts:
+    reports:
+      junit: results.xml
+
+################################################################################
+# Triage
+################################################################################
+
+# NOTE: We use Debian instead of Arch because Ruby gems installation
+# (gitlab-triage here) is much easier on Debian.
+
+.triage_config:
+  extends:
+    - .only_on_schedule
+  variables:
+    FDO_DISTRIBUTION_VERSION: 'bookworm'
+
+
+triage-container-prep:
+  extends:
+    - .triage_config
+    - .fdo.container-build@debian
+  stage: prep
+  variables:
+    GIT_STRATEGY: none
+    FDO_DISTRIBUTION_PACKAGES: 'ruby ruby-dev build-essential'
+    FDO_DISTRIBUTION_EXEC: 'gem install --no-document --version 1.44.1 gitlab-triage'
+
+
+triage:
+  extends:
+    - .triage_config
+    - .fdo.distribution-image@debian
+  stage: test
+  script:
+    - >
+      gitlab-triage --host-url https://gitlab.freedesktop.org \
+        --token "$(cat "$GITLAB_API_TOKEN")" \
+        --policies-file .gitlab-ci/triage-policies-stale.yml \
+        --source-id "$FDO_UPSTREAM_REPO"

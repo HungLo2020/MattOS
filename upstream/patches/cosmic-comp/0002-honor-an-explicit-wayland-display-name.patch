@@ -1,0 +1,37 @@
+From: MattOS <noreply@mattsherfey.com>
+Subject: [PATCH] honor an explicit Wayland display name
+
+MattOS launches the installer compositor and client as separate system
+services. The service contract supplies WAYLAND_DISPLAY=wayland-0, but
+cosmic-comp used ListeningSocketSource::new_auto(), which could select a
+different wayland-N name. The client then waited for a socket the compositor
+did not own. Honor a supplied display name while retaining upstream automatic
+selection when none is specified.
+
+---
+ src/lib.rs | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/src/lib.rs b/src/lib.rs
+index 4f4e5f8300..eb74f66354 100644
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -270,7 +270,17 @@ fn init_wayland_display(
+     let display = Display::new().unwrap();
+     let handle = display.handle();
+ 
+-    let source = ListeningSocketSource::new_auto().unwrap();
++    let source = match env::var("WAYLAND_DISPLAY").ok() {
++        Some(name) if !name.is_empty() => ListeningSocketSource::with_name(&name)
++            .with_context(|| {
++                format!(
++                    "Failed to bind explicitly requested Wayland socket {:?}",
++                    name
++                )
++            })?,
++        _ => ListeningSocketSource::new_auto()
++            .context("Failed to select an automatic Wayland socket name")?,
++    };
+     let socket_name = source.socket_name().to_os_string();
+     info!("Listening on {:?}", socket_name);
+ 

@@ -1,0 +1,29 @@
+[Unit]
+Description=MattOS COSMIC compositor session for the graphical installer
+After=systemd-udevd.service
+Wants=systemd-udevd.service
+Before=mattos-install-graphical.service
+ConditionKernelCommandLine=mattos.mode=install-gui
+
+[Service]
+Type=notify
+NotifyAccess=main
+RuntimeDirectory=mattos-installer
+RuntimeDirectoryMode=0700
+Environment=XDG_RUNTIME_DIR=/run/mattos-installer
+Environment=WAYLAND_DISPLAY=wayland-0
+# The compositor inherits WAYLAND_DISPLAY so the installer can connect to its
+# socket.  Without this explicit selection cosmic-comp's auto-detection treats
+# that variable as evidence of an existing compositor and attempts its X11/
+# winit backend instead of becoming the DRM/KMS compositor itself.
+Environment=COSMIC_BACKEND=kms
+# MattOS ships Mesa's GBM backend as part of the source-built runtime closure.
+Environment=GBM_BACKENDS_PATH=/usr/lib/x86_64-linux-gnu/gbm
+Environment=LIBGL_DRIVERS_PATH=/usr/lib/x86_64-linux-gnu/dri
+# Mesa's source-built VirGL Gallium path is selected by kmsro for the QEMU
+# virtio-gpu DRM device.  Do not force llvmpipe here: COSMIC explicitly owns
+# the KMS device and requires exportable scanout buffers.
+ExecStart=/usr/bin/cosmic-comp --no-xwayland
+StandardOutput=journal+console
+StandardError=journal+console
+Restart=no

@@ -1,0 +1,16 @@
+schema_version = 1
+component = "cosmic-comp"
+upstream_commit = "693d1ad775193deb95a33810b5eac59684ca2ac0"
+application = "output-mirror-only"
+
+[[patch]]
+path = "upstream/patches/cosmic-comp/0001-do-not-treat-compositor-flags-as-kiosk-commands.patch"
+sha256 = "0fa8253529892b88f8aea7a1ae834218f82edf1ec364a73621f14a7a3770f1e8"
+purpose = "Prevent recognised cosmic-comp flags from being treated as a kiosk executable."
+documentation = "docs/INSTALLER.md"
+
+[[patch]]
+path = "upstream/patches/cosmic-comp/0002-honor-an-explicit-wayland-display-name.patch"
+sha256 = "e7f94f312b5402e4f19cde6f3942934b09eb7fb8f30da306c96b7de2e3d14a2f"
+purpose = "Make the compositor and native installer share the explicitly declared Wayland socket."
+documentation = "docs/INSTALLER.md"

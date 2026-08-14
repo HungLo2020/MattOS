@@ -1,0 +1,30 @@
+From: MattOS <noreply@mattsherfey.com>
+Subject: [PATCH] do not treat compositor flags as kiosk commands
+
+`run()` consumes --no-xwayland while configuring the compositor, but
+`notify_ready()` rereads the raw process arguments to discover an optional
+kiosk command.  It consequently tries to execute --no-xwayland as a program
+after KMS becomes ready.  The installer session needs that flag but does not
+use kiosk mode, so exclude the recognised compositor flag before selecting a
+positional child command.
+
+---
+ src/lib.rs | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/lib.rs b/src/lib.rs
+index 0000000..0000000 100644
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -81,8 +81,10 @@ impl State {
+                 warn!(?err, "Failed to setup cosmic-session communication");
+             }
+ 
+-            let mut args = env::args().skip(1);
++            let mut args = env::args()
++                .skip(1)
++                .filter(|arg| arg != "--no-xwayland");
+             self.common.kiosk_child = if let Some(exec) = args.next() {
+                 // Run command in kiosk mode
+                 let mut command = process::Command::new(&exec);
+                 command.args(args);

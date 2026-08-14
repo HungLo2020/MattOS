@@ -1001,6 +1001,42 @@ classification = "debian-compatible"
 known_gaps = ["Static libffi archive is intentionally omitted"]
 
 [[package]]
+debian_name = "libwayland-client0"
+mattos_name = "libwayland-client0"
+source_component = "wayland"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libwayland-client.so.0 -> libwayland-client.so.0.26.0", "/usr/lib/x86_64-linux-gnu/libwayland-client.so.0.26.0"]
+provided_abi_or_commands = ["libwayland-client.so.0 Wayland client runtime ABI"]
+protected = false
+current_mattos_version = "1.26.0-1mattos1"
+expected_debian_role = "Wayland client runtime library"
+classification = "debian-compatible"
+known_gaps = ["Development headers, wayland-scanner, tests, and documentation are intentionally not shipped"]
+
+[[package]]
+debian_name = "libxkbcommon0"
+mattos_name = "libxkbcommon0"
+source_component = "xkbcommon"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libxkbcommon.so.0 -> libxkbcommon.so.0.9.2", "/usr/lib/x86_64-linux-gnu/libxkbcommon.so.0.9.2"]
+provided_abi_or_commands = ["libxkbcommon.so.0 keyboard-description runtime ABI"]
+protected = false
+current_mattos_version = "0~git.dd642359f8d4-1mattos1"
+expected_debian_role = "XKB keyboard-description runtime library"
+classification = "debian-compatible"
+known_gaps = ["Development headers and pkg-config metadata are build-only and are not shipped as a separate development package", "Requires the source-built xkb-data package for default XKB rules"]
+
+[[package]]
+debian_name = "xkb-data"
+mattos_name = "xkb-data"
+source_component = "xkeyboard-config"
+owned_paths = ["/usr/share/xkeyboard-config-2", "/usr/share/X11/xkb"]
+provided_abi_or_commands = ["default evdev XKB rules and keyboard descriptions"]
+protected = false
+current_mattos_version = "0~git.4225e14a2d0f-1mattos1"
+expected_debian_role = "X Keyboard Extension runtime data"
+classification = "debian-compatible"
+known_gaps = ["Translations, man pages, tests, and build metadata are intentionally not shipped"]
+
+[[package]]
 debian_name = "libpython3.14"
 mattos_name = "libpython3.14"
 source_component = "cpython"
@@ -1142,7 +1178,7 @@ protected = false
 current_mattos_version = "0.1-1mattos1"
 expected_debian_role = "live-media installer"
 classification = "mattos-specific"
-known_gaps = ["The graphical adapter cannot run until the GTK/COSMIC live-session closure is integrated"]
+known_gaps = ["The graphical frontend requires the minimal COSMIC compositor runtime on graphical live media"]
 
 [[package]]
 debian_name = "btrfs-progs"
@@ -1167,3 +1203,135 @@ current_mattos_version = "4.2-1mattos1"
 expected_debian_role = "FAT filesystem utilities"
 classification = "debian-compatible"
 known_gaps = ["No known command-level compatibility gaps for the initial FAT utility set"]
+
+[[package]]
+debian_name = "libseat1"
+mattos_name = "libseat1"
+source_component = "seatd 0.9.3"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libseat.so.1"]
+provided_abi_or_commands = ["libseat.so.1"]
+protected = false
+current_mattos_version = "0~git.daa8196e10b1-1mattos1"
+expected_debian_role = "seat management runtime"
+classification = "debian-compatible"
+known_gaps = ["Only the builtin libseat backend is enabled for the live installer"]
+
+[[package]]
+debian_name = "libdisplay-info3"
+mattos_name = "libdisplay-info3"
+source_component = "libdisplay-info 0.3.0"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libdisplay-info.so.3"]
+provided_abi_or_commands = ["libdisplay-info.so.3"]
+protected = false
+current_mattos_version = "0~git.47a5590e9c4e-1mattos1"
+expected_debian_role = "display information parsing runtime"
+classification = "debian-compatible"
+known_gaps = ["PNP database is used only at build time"]
+
+[[package]]
+debian_name = "libevdev2"
+mattos_name = "libevdev2"
+source_component = "libevdev 1.13.4"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libevdev.so.2"]
+provided_abi_or_commands = ["libevdev.so.2"]
+protected = false
+current_mattos_version = "0~git.ac0056961c33-1mattos1"
+expected_debian_role = "Linux input-event runtime"
+classification = "debian-compatible"
+known_gaps = ["No development package is shipped"]
+
+[[package]]
+debian_name = "libinput10"
+mattos_name = "libinput10"
+source_component = "libinput 1.31.3"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libinput.so.10", "/usr/share/libinput"]
+provided_abi_or_commands = ["libinput.so.10"]
+protected = false
+current_mattos_version = "0~git.26191d396d74-1mattos1"
+expected_debian_role = "input device handling runtime"
+classification = "debian-compatible"
+known_gaps = ["Optional tablet and mtdev integrations are disabled"]
+
+[[package]]
+debian_name = "libpixman-1-0"
+mattos_name = "libpixman-1-0"
+source_component = "pixman 0.46.4"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libpixman-1.so.0"]
+provided_abi_or_commands = ["libpixman-1.so.0"]
+protected = false
+current_mattos_version = "0~git.9cc163c9da0f-1mattos1"
+expected_debian_role = "pixel manipulation runtime"
+classification = "debian-compatible"
+known_gaps = ["No development package is shipped"]
+
+[[package]]
+debian_name = "libdrm2"
+mattos_name = "libdrm2"
+source_component = "libdrm 2.4.130"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libdrm.so.2"]
+provided_abi_or_commands = ["libdrm.so.2"]
+protected = false
+current_mattos_version = "0~git.523534ee018b-1mattos1"
+expected_debian_role = "DRM userspace runtime"
+classification = "debian-compatible"
+known_gaps = ["Only core DRM support is built"]
+
+[[package]]
+debian_name = "libgbm1"
+mattos_name = "libgbm1"
+source_component = "Mesa 26.1.7"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libgbm.so.1"]
+provided_abi_or_commands = ["libgbm.so.1"]
+protected = false
+current_mattos_version = "0~git.e8617e4ca95f-1mattos1"
+expected_debian_role = "GBM runtime"
+classification = "debian-compatible"
+known_gaps = ["Only software-renderer GBM support is built"]
+
+[[package]]
+debian_name = "libegl1"
+mattos_name = "libegl1"
+source_component = "Mesa 26.1.7"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libEGL.so.1"]
+provided_abi_or_commands = ["libEGL.so.1"]
+protected = false
+current_mattos_version = "0~git.e8617e4ca95f-1mattos1"
+expected_debian_role = "EGL runtime"
+classification = "debian-compatible"
+known_gaps = ["No GLX or X11 platform is enabled"]
+
+[[package]]
+debian_name = "libgles2"
+mattos_name = "libgles2"
+source_component = "Mesa 26.1.7"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libGLESv2.so.2"]
+provided_abi_or_commands = ["libGLESv2.so.2"]
+protected = false
+current_mattos_version = "0~git.e8617e4ca95f-1mattos1"
+expected_debian_role = "OpenGL ES runtime"
+classification = "debian-compatible"
+known_gaps = ["No desktop OpenGL or GLX runtime is enabled"]
+
+[[package]]
+debian_name = "mattos-mesa-llvmpipe"
+mattos_name = "mattos-mesa-llvmpipe"
+source_component = "Mesa 26.1.7"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libgallium-26.1.7.so", "/usr/lib/x86_64-linux-gnu/gbm/dri_gbm.so"]
+provided_abi_or_commands = ["Mesa Gallium runtime with llvmpipe fallback, QEMU VirGL renderer, and GBM DRI backend"]
+protected = false
+current_mattos_version = "0~git.e8617e4ca95f-1mattos1"
+expected_debian_role = "MattOS-specific minimal Gallium rendering payload for software fallback and QEMU VirtIO/VirGL KMS"
+classification = "mattos-specific"
+known_gaps = ["Only llvmpipe and the QEMU VirtIO/VirGL Gallium path are enabled; broader desktop hardware drivers remain intentionally excluded"]
+
+[[package]]
+debian_name = "cosmic-comp"
+mattos_name = "cosmic-comp"
+source_component = "COSMIC compositor pinned source"
+owned_paths = ["/usr/bin/cosmic-comp"]
+provided_abi_or_commands = ["COSMIC Wayland compositor"]
+protected = false
+current_mattos_version = "0~git.693d1ad77519-1mattos1"
+expected_debian_role = "Wayland compositor for the MattOS installer session"
+classification = "debian-compatible"
+known_gaps = ["Only the installer compositor session is shipped, not the COSMIC desktop"]

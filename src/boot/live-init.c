@@ -27,6 +27,9 @@
 #define LIVE_ROOT_PATH "/run/mattos/medium/live/rootfs.squashfs"
 #define SYSTEMD_PATH "/usr/lib/systemd/systemd"
 #define RESCUE_INIT_PATH "/usr/libexec/mattos/rescue-init"
+#define LIVE_TARGET "mattos.target"
+#define INSTALL_GUI_TARGET "mattos-install-graphical.target"
+#define INSTALL_CLI_TARGET "mattos-install-cli.target"
 
 static void message(const char *format, ...)
 {
@@ -158,7 +161,8 @@ static void move_kernel_mount(const char *old_path, const char *new_root)
         fatal(destination);
 }
 
-static void switch_to_live_root(const char *new_root, const char *real_init)
+static void switch_to_live_root(const char *new_root, const char *real_init,
+                                const char *systemd_target)
 {
     if (mount(NULL, "/", NULL, MS_REC | MS_PRIVATE, NULL) < 0)
         fatal("make early mount tree private");
@@ -185,8 +189,19 @@ static void switch_to_live_root(const char *new_root, const char *real_init)
     }
 
     message("switch_root complete; executing %s", real_init);
-    char *const arguments[] = {(char *)real_init, NULL};
-    execv(real_init, arguments);
+    if (systemd_target != NULL) {
+        char unit_argument[128];
+        if (snprintf(unit_argument, sizeof(unit_argument), "--unit=%s",
+                     systemd_target) >= (int)sizeof(unit_argument)) {
+            errno = ENAMETOOLONG;
+            fatal("format systemd target");
+        }
+        char *const arguments[] = {(char *)real_init, unit_argument, NULL};
+        execv(real_init, arguments);
+    } else {
+        char *const arguments[] = {(char *)real_init, NULL};
+        execv(real_init, arguments);
+    }
     fatal("execute real init");
 }
 
@@ -234,9 +249,18 @@ int main(void)
         errno = ENOENT;
         fatal("validate live root systemd");
     }
-    const char *real_init = command_line_contains("mattos.rescue=1")
-                                ? RESCUE_INIT_PATH
-                                : SYSTEMD_PATH;
+    bool rescue_mode = command_line_contains("mattos.rescue=1");
+    const char *real_init = rescue_mode ? RESCUE_INIT_PATH : SYSTEMD_PATH;
+    const char *systemd_target = NULL;
+    if (!rescue_mode) {
+        if (command_line_contains("mattos.mode=install-gui"))
+            systemd_target = INSTALL_GUI_TARGET;
+        else if (command_line_contains("mattos.mode=install-cli"))
+            systemd_target = INSTALL_CLI_TARGET;
+        else
+            systemd_target = LIVE_TARGET;
+        message("boot mode selects systemd target %s", systemd_target);
+    }
     message("live root mounted read-only with writable tmpfs overlay");
-    switch_to_live_root("/newroot", real_init);
+    switch_to_live_root("/newroot", real_init, systemd_target);
 }

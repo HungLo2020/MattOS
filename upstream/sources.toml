@@ -13,6 +13,14 @@ source_selection_policy = "upstream/policies/linux-source-selection.toml"
 source_selection_policy_sha256 = "9dd4e6baf71250d492c77664daefb06870061e509c90d61ddd6c683f4f87400a"
 
 [[component]]
+name = "wayland"
+repo = "https://gitlab.freedesktop.org/wayland/wayland.git"
+branch = "1.26.0"
+revision = "87cc8a8728a923fc57938faa81ba0e74f34ecdc7"
+path = "src/system/libraries/wayland"
+sync = "copy"
+
+[[component]]
 name = "brush"
 repo = "https://github.com/reubeno/brush.git"
 branch = "main"
@@ -176,6 +184,80 @@ repo = "https://github.com/pop-os/cosmic-protocols.git"
 branch = "main"
 revision = "32283d76a8d0342da74c4cc022a533c52dcf378f"
 path = "src/desktop/cosmic/cosmic-protocols"
+sync = "copy"
+
+[[component]]
+name = "cosmic-comp"
+repo = "https://github.com/pop-os/cosmic-comp.git"
+branch = "master"
+revision = "693d1ad775193deb95a33810b5eac59684ca2ac0"
+path = "src/desktop/cosmic/cosmic-comp"
+sync = "copy"
+patch_manifest = "upstream/patches/cosmic-comp/manifest.toml"
+patch_manifest_sha256 = "811babaaf8a6532d83484b7c8c73e34b23d6b7103843a4c90ae65426ac2b308b"
+
+[[component]]
+name = "seatd"
+repo = "https://github.com/kennylevinsen/seatd.git"
+branch = "master"
+revision = "daa8196e10b180b8b0caeafa8e5f860eb1bd6706"
+path = "src/system/libraries/seatd"
+sync = "copy"
+
+[[component]]
+name = "libdisplay-info"
+repo = "https://gitlab.freedesktop.org/emersion/libdisplay-info.git"
+branch = "main"
+revision = "47a5590e9c4eb35d67651b8c05a55f1a48259329"
+path = "src/system/libraries/libdisplay-info"
+sync = "copy"
+
+[[component]]
+name = "hwdata"
+repo = "https://github.com/vcrhonek/hwdata.git"
+branch = "master"
+revision = "8bb6c48dc2e683777e625d1c9ef02c1b25b741cd"
+path = "src/system/data/hwdata"
+sync = "copy"
+
+[[component]]
+name = "libevdev"
+repo = "https://gitlab.freedesktop.org/libevdev/libevdev.git"
+branch = "master"
+revision = "ac0056961c3332a260db063ab4fccc7747638a1d"
+path = "src/system/libraries/libevdev"
+sync = "copy"
+
+[[component]]
+name = "libinput"
+repo = "https://gitlab.freedesktop.org/libinput/libinput.git"
+branch = "main"
+revision = "26191d396d74d505541d6311f0b4ae68d791b890"
+path = "src/system/libraries/libinput"
+sync = "copy"
+
+[[component]]
+name = "pixman"
+repo = "https://gitlab.freedesktop.org/pixman/pixman.git"
+branch = "master"
+revision = "9cc163c9da0fb4da430641715313d95a6ec466d9"
+path = "src/system/libraries/pixman"
+sync = "copy"
+
+[[component]]
+name = "libdrm"
+repo = "https://gitlab.freedesktop.org/mesa/drm.git"
+branch = "main"
+revision = "523534ee018b01fb93a62d88afca1a41a732c929"
+path = "src/system/libraries/libdrm"
+sync = "copy"
+
+[[component]]
+name = "mesa"
+repo = "https://gitlab.freedesktop.org/mesa/mesa.git"
+branch = "main"
+revision = "e8617e4ca95fc655b0f13fd115c224d27eba2441"
+path = "src/system/graphics/mesa"
 sync = "copy"
 
 [[component]]
@@ -463,6 +545,22 @@ path = "src/system/libraries/libxcrypt"
 sync = "copy"
 patch_manifest = "upstream/patches/libxcrypt/manifest.toml"
 patch_manifest_sha256 = "181d810131ecc03b7925a1a04ffa3b43d1dfe2e05f66084fd04fe1a4901b5a4f"
+
+[[component]]
+name = "xkbcommon"
+repo = "https://github.com/xkbcommon/libxkbcommon.git"
+branch = "xkbcommon-1.9.2"
+revision = "dd642359f8d43c09968e34ca7f1eb1121b2dfd70"
+path = "src/system/libraries/xkbcommon"
+sync = "copy"
+
+[[component]]
+name = "xkeyboard-config"
+repo = "https://gitlab.freedesktop.org/xkeyboard-config/xkeyboard-config.git"
+branch = "xkeyboard-config-2.46"
+revision = "4225e14a2d0fca5a4f9cb8517cf12d96ea290d84"
+path = "src/system/data/xkeyboard-config"
+sync = "copy"
 
 [[component]]
 name = "glibc"

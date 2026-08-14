@@ -1,0 +1,51 @@
+xkb_keymap {
+xkb_keycodes "La_paix_est_la_seule_bataille_qui_vaille_la_peine_d�__�_tre_men�_e__" {
+	minimum = 1;
+	maximum = 255;
+	<>                   = 1;
+	indicator 1 = "\n⌨️";
+	indicator 2 = "surrogates: � �";
+	indicator 3 = "noncharacters: ﷐ ﷯ ￾ ￿";
+	indicator 4 = "noncharacters: 🿾 🿿 􏿾 􏿿";
+	indicator 5 = "out of range:  a  ";
+	indicator 6 = "invalid:  a A b  c  e ";
+	indicator 7 = "invalid: x\0042 y ";
+	indicator 8 = "invalid:  x  y";
+	indicator 9 = "     ";
+};
+
+xkb_types "1__7___" {
+	type "%1🎺✨🕊️\0014" {
+		modifiers= Shift;
+		map[Shift]= 2;
+		level_name[1]= "Où ils ont fait un \0042désert\0042, \0033ils disent qu’ils \nont fait la \0042paix\0042.\0010\n";
+		level_name[2]= "Science sans conscience n’est que rui\\ne\n de l’âme.\0015";
+	};
+};
+
+xkb_compatibility "Le_c�_ur_a___ses_raisons_que_la_raison_ne_con_na�_t_point" {
+	interpret.useModMapMods= AnyLevel;
+	interpret.repeat= False;
+	interpret VoidSymbol+AnyOfOrNone(none) {
+		repeat= True;
+	};
+	indicator "\n⌨️" {
+		modifiers= Shift;
+	};
+};
+
+xkb_symbols "La_libert�__commence_o�__l�__ignorance_finit_" {
+	name[Group1]="\n�";
+	name[Group2]="\00427";
+
+	key <>                   {
+		type= "%1🎺✨🕊️\0014",
+		repeat= Yes,
+		symbols[Group1]= [                              a,                              A ],
+		actions[Group1]= [                     NoAction(),                     NoAction() ],
+		symbols[Group2]= [                       NoSymbol,                       NoSymbol ],
+		actions[Group2]= [ Private(type=0x7b,data[0]=0x00,data[1]=0x00,data[2]=0x00,data[3]=0x00,data[4]=0x00,data[5]=0x00,data[6]=0x00),                     NoAction() ]
+	};
+};
+
+};

@@ -14,3 +14,4 @@ default-features = false
 features = ["tokio", "winit", "wgpu", "wayland"]
 
 [workspace]
+exclude = ["libcosmic", "libcosmic/iced"]

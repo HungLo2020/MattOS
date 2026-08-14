@@ -16,13 +16,12 @@ Exact historical revisions, licenses, and attribution are recorded in
   account policy, profile markers, fstab, installed initramfs, and GRUB.
 - `cli/` is the permanent `mattos-install` frontend. It supports guided,
   non-destructive plan display, and acknowledged noninteractive execution.
-- `gui/framebuffer/` is the retained Rust bootstrap/fallback frontend and
-  installer-engine integration harness. It uses the kernel framebuffer and
-  console input directly and invokes the same engine and policy as the CLI. It
-  is intentionally not a general widget toolkit.
-- `gui/cosmic/` is the permanent Rust + libcosmic frontend boundary. It
-  consumes the same shared model/controller while COSMIC remains pinned
-  upstream source under `src/desktop/cosmic/`.
+- `gui/model.rs` is the toolkit-neutral graphical wizard model. It creates the
+  same versioned `InstallPlan` and consumes the same structured policy progress
+  events as every other installer interface.
+- `gui/cosmic/` is the one permanent graphical frontend: Rust + libcosmic. It
+  is a presentation/controller over the shared model, policy, and engine while
+  COSMIC remains pinned upstream source under `src/desktop/cosmic/`.
 
 The MattOS graphical installer does not use GTK, Qt, Vala, or a Vala
 toolchain. Those ecosystems may have unrelated future package uses, but they
@@ -38,11 +37,9 @@ distribution extension points are deliberately not retained.
 `src/desktop/cosmic/cosmic-initial-setup`. It belongs to the
 future first-login Desktop flow and is not part of disk installation.
 
-The native COSMIC proof is built as a separate output-owned artifact while the
-COSMIC compositor/session and its runtime libraries are not yet in the MattOS
-package closure. It is therefore not installed into the live image yet; the
-validated framebuffer fallback remains the graphical boot entry for this
-milestone.
+The native COSMIC installer is built as an output-owned artifact and packaged
+as `/usr/bin/mattos-install-cosmic`. The graphical boot entry starts this
+native frontend; the CLI entry remains independently usable without COSMIC.
 
 The first-class native frontend source closure pinned in `upstream/sources.toml`
 contains libcosmic, its coordinated exact iced gitlink revision, and COSMIC
@@ -63,12 +60,12 @@ An online build may populate Cargo's normal cache; after population, the same
 locked build works with `cargo build --locked --offline`. Cargo cache content
 is generated/fetched state and never belongs under authoritative `src/`.
 
-The proof artifact is
+The installer artifact is
 `out/build/installer/cosmic-target/release/mattos-install-cosmic`. Its
-`--contract-proof` mode exercises shared discovery/model state without a
-display server. Opening the real window additionally requires the next
-milestone's COSMIC compositor/session and packaged graphics/input runtime; a
-headless contract run is not represented as a compositor/window proof.
+`--contract-proof` mode exercises its shared discovery/model contract without a
+display server. The real window is the authoritative GUI and requires the
+normal COSMIC graphical runtime, while the separate CLI boot entry is the
+supported no-graphics installation path.
 
 ## Plan and safety contract
 
@@ -136,11 +133,16 @@ integrated.
 
 ## Graphical frontend and credential handling
 
-The retained fallback graphical frontend deliberately uses a small Rust
-framebuffer layer. It provides the
-guided language/keyboard choices currently supported, explicit disk/profile
-selection, identity and hidden password entry, summary/confirmation, progress,
-and reboot/shutdown actions. Password plaintext is piped to the source-built
-MattOS libxcrypt SHA-512 crypt implementation, cleared from memory promptly, and
-is never placed in argv or an ordinary persistent plan. Unattended plans accept
-an explicit crypt hash.
+The native Rust/libcosmic installer is a multi-page wizard: welcome;
+currently-supported English (US)/US keyboard disclosure; installed profile;
+explicit target disk; the real GPT/EFI/Btrfs layout; account setup; review; and
+shared-engine execution. It never selects a disk automatically. Optical and
+read-only media are not candidates. The review page makes the destructive
+target, installed profile, hostname/user, UEFI boot mode, partition layout, and
+Btrfs subvolumes explicit before the user can request installation.
+
+Password plaintext stays only in the GUI input buffer. Immediately before the
+shared `InstallPlan → policy validation → engine` execution path begins, it is
+hashed with MattOS libxcrypt SHA-512, the plaintext buffers are cleared, and
+only the crypt hash reaches the in-memory plan. Plaintext is never put in argv,
+logs, or a persistent plan. Unattended CLI plans accept an explicit crypt hash.

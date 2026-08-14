@@ -2,6 +2,7 @@
 Description=MattOS CLI Installer
 After=getty@tty1.service
 Conflicts=getty@tty1.service
+ConditionKernelCommandLine=mattos.mode=install-cli
 
 [Service]
 Type=idle

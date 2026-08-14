@@ -1,16 +1,22 @@
 [Unit]
-Description=MattOS Graphical Installer
-After=mattos.target
+Description=MattOS Native COSMIC Installer
+Requires=mattos-cosmic-installer-session.service
+After=mattos-cosmic-installer-session.service
 Conflicts=getty@tty1.service
+Before=getty@tty1.service
+ConditionKernelCommandLine=mattos.mode=install-gui
 
 [Service]
-Type=idle
-ExecStart=/usr/bin/mattos-install-graphical
-StandardInput=tty-force
+Type=simple
+Environment=XDG_RUNTIME_DIR=/run/mattos-installer
+Environment=WAYLAND_DISPLAY=wayland-0
+# cosmic-comp reports systemd readiness before its DRM backend has necessarily
+# published the Wayland socket.  Do not start the native client into that
+# window: wait for the concrete connection endpoint, while retaining a finite
+# timeout and journald-visible failure if the compositor never becomes usable.
+TimeoutStartSec=120
+ExecStartPre=/usr/bin/sh -ec 'for attempt in $$(seq 1 120); do test -S "$${XDG_RUNTIME_DIR}/$${WAYLAND_DISPLAY}" && exit 0; sleep 1; done; echo "mattos installer: compositor did not publish $${XDG_RUNTIME_DIR}/$${WAYLAND_DISPLAY}" >&2; exit 1'
+ExecStart=/usr/bin/mattos-install-cosmic
 StandardOutput=journal+console
 StandardError=journal+console
-TTYPath=/dev/tty1
-TTYReset=yes
-TTYVHangup=yes
-TTYVTDisallocate=yes
 Restart=no

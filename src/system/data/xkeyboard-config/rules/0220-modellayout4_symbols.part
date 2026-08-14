@@ -1,0 +1,5 @@
+! model		layout[4]	=	symbols
+  applealu_iso	us			=	+macintosh_vndr/us(applealu_iso):4
+ $applealu	$macvendorlayouts	=	+macintosh_vndr/%l[4]:4
+ $sun		$sun_custom	=	+sun_vndr/%l[4]:4
+  *		*		=	+%l[4]%(v[4]):4

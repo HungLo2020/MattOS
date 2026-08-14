@@ -9,5 +9,6 @@ pub mod gui_model;
 pub mod policy;
 
 pub use policy::{
-    InstallPlan, InstalledProfile, PLAN_VERSION, execute, execute_with_progress, render_plan,
+    InstallPlan, InstallProgress, InstallStage, InstalledProfile, PLAN_VERSION, execute,
+    execute_with_progress, render_plan,
 };

@@ -259,6 +259,20 @@ const PACKAGE_NAMES: &[&str] = &[
     "openssh-server",
     "libffi8",
     "libffi-dev",
+    "libwayland-client0",
+    "libxkbcommon0",
+    "xkb-data",
+    "libseat1",
+    "libdisplay-info3",
+    "libevdev2",
+    "libinput10",
+    "libpixman-1-0",
+    "libdrm2",
+    "libgbm1",
+    "libegl1",
+    "libgles2",
+    "mattos-mesa-llvmpipe",
+    "cosmic-comp",
     "libpython3.14",
     "python3",
     "python3-venv",
@@ -1333,14 +1347,14 @@ fn package_specs() -> Vec<PackageSpec> {
         },
         PackageSpec {
             name: "mattos-installer",
-            description: "MattOS shared installation backend and permanent CLI frontend",
+            description: "MattOS shared installation backend with CLI and native COSMIC frontends",
             source_component: "installer",
             depends: &[
                 "libc6", "libgcc-s1", "util-linux", "libblkid1", "libuuid1",
                 "zlib1g", "libzstd1", "passwd", "coreutils", "xz-utils",
-                "btrfs-progs", "dosfstools", "libcrypt1",
+                "btrfs-progs", "dosfstools", "libcrypt1", "libwayland-client0", "libxkbcommon0", "cosmic-comp",
             ],
-            provides: &["mattos-installer", "mattos-installer-cli"],
+            provides: &["mattos-installer", "mattos-installer-cli", "mattos-installer-cosmic"],
             conflicts: &[],
             replaces: &[],
             essential: false,
@@ -1430,6 +1444,32 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "libffi-dev", description: "Foreign-function interface development files built for MattOS",
             source_component: "libffi", depends: &["libffi8", "libc6-dev"], provides: &["libffi-dev"], conflicts: &[], replaces: &[], essential: false, priority: "optional",
         },
+        PackageSpec {
+            name: "libwayland-client0", description: "Wayland client runtime library built for MattOS",
+            source_component: "wayland", depends: &["libc6", "libffi8"], provides: &["libwayland-client0"], conflicts: &[], replaces: &[], essential: false, priority: "important",
+        },
+        PackageSpec {
+            name: "libxkbcommon0", description: "XKB keyboard description runtime library built for MattOS",
+            source_component: "xkbcommon", depends: &["libc6", "xkb-data"], provides: &["libxkbcommon0"], conflicts: &[], replaces: &[], essential: false, priority: "important",
+        },
+        PackageSpec {
+            name: "xkb-data", description: "X Keyboard Extension data files built from pinned xkeyboard-config source",
+            source_component: "xkeyboard-config", depends: &[], provides: &["xkb-data"], conflicts: &[], replaces: &[], essential: false, priority: "important",
+        },
+        PackageSpec { name: "libseat1", description: "Seat management runtime library built for MattOS", source_component: "seatd", depends: &["libc6"], provides: &["libseat1"], conflicts: &[], replaces: &[], essential: false, priority: "important" },
+        PackageSpec { name: "libdisplay-info3", description: "Display information parsing runtime library built for MattOS", source_component: "libdisplay-info", depends: &["libc6"], provides: &["libdisplay-info3"], conflicts: &[], replaces: &[], essential: false, priority: "important" },
+        PackageSpec { name: "libevdev2", description: "Linux input event runtime library built for MattOS", source_component: "libevdev", depends: &["libc6"], provides: &["libevdev2"], conflicts: &[], replaces: &[], essential: false, priority: "important" },
+        PackageSpec { name: "libinput10", description: "Input device handling runtime library built for MattOS", source_component: "libinput", depends: &["libc6", "libevdev2", "libudev1"], provides: &["libinput10"], conflicts: &[], replaces: &[], essential: false, priority: "important" },
+        PackageSpec { name: "libpixman-1-0", description: "Pixel manipulation runtime library built for MattOS", source_component: "pixman", depends: &["libc6"], provides: &["libpixman-1-0"], conflicts: &[], replaces: &[], essential: false, priority: "important" },
+        PackageSpec { name: "libdrm2", description: "Direct Rendering Manager userspace runtime library built for MattOS", source_component: "libdrm", depends: &["libc6"], provides: &["libdrm2"], conflicts: &[], replaces: &[], essential: false, priority: "important" },
+        PackageSpec { name: "libgbm1", description: "Mesa GBM runtime library built for MattOS", source_component: "mesa", depends: &["libc6", "libdrm2"], provides: &["libgbm1"], conflicts: &[], replaces: &[], essential: false, priority: "important" },
+        PackageSpec { name: "libegl1", description: "Mesa EGL runtime library built for MattOS", source_component: "mesa", depends: &["libc6", "libgbm1", "libdrm2", "libexpat1", "mattos-mesa-llvmpipe"], provides: &["libegl1"], conflicts: &[], replaces: &[], essential: false, priority: "important" },
+        PackageSpec { name: "libgles2", description: "Mesa OpenGL ES runtime library built for MattOS", source_component: "mesa", depends: &["libc6", "libegl1", "libgbm1", "libdrm2"], provides: &["libgles2"], conflicts: &[], replaces: &[], essential: false, priority: "important" },
+        // Mesa builds llvmpipe and VirGL into one Gallium runtime library.
+        // Retain the package name for compatibility, while advertising both
+        // supported renderer paths explicitly.
+        PackageSpec { name: "mattos-mesa-llvmpipe", description: "MattOS Mesa Gallium runtime with llvmpipe and QEMU VirGL", source_component: "mesa", depends: &["libc6", "libllvm22", "libdrm2", "libgbm1", "libexpat1"], provides: &["mattos-mesa-llvmpipe", "mattos-mesa-virgl"], conflicts: &[], replaces: &[], essential: false, priority: "important" },
+        PackageSpec { name: "cosmic-comp", description: "COSMIC Wayland compositor for the MattOS installer", source_component: "cosmic-comp", depends: &["libc6", "libgcc-s1", "libstdc++6", "libseat1", "libdisplay-info3", "libinput10", "libpixman-1-0", "libgbm1", "libegl1", "libgles2", "mattos-mesa-llvmpipe", "libwayland-client0", "libxkbcommon0", "libudev1"], provides: &["cosmic-comp"], conflicts: &[], replaces: &[], essential: false, priority: "optional" },
         PackageSpec {
             name: "libpython3.14", description: "CPython 3.14 shared runtime library built for MattOS",
             source_component: "cpython", depends: &["libc6"], provides: &["libpython3.14"], conflicts: &[], replaces: &[], essential: false, priority: "important",
@@ -2199,6 +2239,14 @@ fn package_recipe_revision(package: &str) -> u32 {
         // Revision 2 exposes the pinned bundle at OpenSSL's compiled default
         // CA file as well as Debian's canonical ca-certificates path.
         "ca-certificates" => 2,
+        // Revision 2 ships the source-built quirk database required by
+        // libinput at runtime.  A cache hit from the library-only recipe
+        // would otherwise leave the live compositor without /usr/share/libinput.
+        "libinput10" => 2,
+        // Revision 2 stages Meson-generated xkeyboard-config rules from an
+        // output-owned mirror.  Revision 1 copied only upstream fragments,
+        // leaving the required rules/evdev runtime database absent.
+        "xkb-data" => 2,
         _ => 1,
     }
 }
@@ -2370,6 +2418,17 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "git" => &["git"],
             "openssh" => &["openssh"],
             "libffi" => &["libffi"],
+            "wayland" => &["wayland"],
+            "xkbcommon" => &["xkbcommon"],
+            "xkeyboard-config" => &[],
+            "seatd" => &["seatd"],
+            "libdisplay-info" => &["libdisplay-info"],
+            "libevdev" => &["libevdev"],
+            "libinput" => &["libinput"],
+            "pixman" => &["pixman"],
+            "libdrm" => &["libdrm"],
+            "mesa" => &["mesa"],
+            "cosmic-comp" => &["cosmic-comp"],
             "cpython" => &["cpython"],
             "llvm" => &["llvm"],
             "rust" => &["rust"],
@@ -2457,6 +2516,17 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "git" => &["src/userland/git"],
         "openssh" => &["src/system/network/openssh-portable"],
         "libffi" => &["src/system/libraries/libffi/libffi"],
+        "wayland" => &["src/system/libraries/wayland"],
+        "xkbcommon" => &["src/system/libraries/xkbcommon"],
+        "xkeyboard-config" => &["src/system/data/xkeyboard-config"],
+        "seatd" => &["src/system/libraries/seatd"],
+        "libdisplay-info" => &["src/system/libraries/libdisplay-info", "src/system/data/hwdata"],
+        "libevdev" => &["src/system/libraries/libevdev"],
+        "libinput" => &["src/system/libraries/libinput"],
+        "pixman" => &["src/system/libraries/pixman"],
+        "libdrm" => &["src/system/libraries/libdrm"],
+        "mesa" => &["src/system/graphics/mesa"],
+        "cosmic-comp" => &["src/desktop/cosmic/cosmic-comp"],
         "cpython" => &["src/development/python/cpython"],
         "llvm" => &["src/toolchain/llvm-project"],
         "rust" => &["src/toolchain/rust", "upstream/policies/release-archives.toml"],
@@ -2490,6 +2560,7 @@ fn package_configuration_roots(package: &str) -> &'static [&'static str] {
             "src/system/units/mattos-install-cli.target",
             "src/system/units/mattos-install-graphical.service",
             "src/system/units/mattos-install-graphical.target",
+            "src/system/units/mattos-cosmic-installer-session.service",
         ],
         _ => &[],
     }
@@ -2878,6 +2949,38 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
             "libffi8",
         )?,
         "libffi-dev" => stage_libffi_dev(repo_root, &staging)?,
+        "libxkbcommon0" => stage_imported_soname_library(
+            repo_root, &staging, "xkbcommon", "libxkbcommon.so.0",
+            "src/system/libraries/xkbcommon/LICENSE", "libxkbcommon0",
+        )?,
+        "libwayland-client0" => stage_imported_soname_library(
+            repo_root, &staging, "wayland", "libwayland-client.so.0",
+            "src/system/libraries/wayland/COPYING", "libwayland-client0",
+        )?,
+        "xkb-data" => stage_xkeyboard_config_data(repo_root, &staging)?,
+        "libseat1" => stage_imported_soname_library(repo_root, &staging, "seatd", "libseat.so.1", "src/system/libraries/seatd/LICENSE", "libseat1")?,
+        "libdisplay-info3" => stage_imported_soname_library(repo_root, &staging, "libdisplay-info", "libdisplay-info.so.3", "src/system/libraries/libdisplay-info/LICENSE", "libdisplay-info3")?,
+        "libevdev2" => stage_imported_soname_library(repo_root, &staging, "libevdev", "libevdev.so.2", "src/system/libraries/libevdev/COPYING", "libevdev2")?,
+        "libinput10" => {
+            stage_imported_soname_library(repo_root, &staging, "libinput", "libinput.so.10", "src/system/libraries/libinput/COPYING", "libinput10")?;
+            copy_tree_preserving(
+                &repo_root.join("out/build/libinput/install/usr/share/libinput"),
+                &staging.join("usr/share/libinput"),
+            )?;
+        }
+        "libpixman-1-0" => stage_imported_soname_library(repo_root, &staging, "pixman", "libpixman-1.so.0", "src/system/libraries/pixman/COPYING", "libpixman-1-0")?,
+        "libdrm2" => stage_imported_soname_library(repo_root, &staging, "libdrm", "libdrm.so.2", "src/system/libraries/libdrm/README.rst", "libdrm2")?,
+        "libgbm1" => stage_imported_soname_library(repo_root, &staging, "mesa", "libgbm.so.1", "src/system/graphics/mesa/docs/license.rst", "libgbm1")?,
+        "libegl1" => stage_imported_soname_library(repo_root, &staging, "mesa", "libEGL.so.1", "src/system/graphics/mesa/docs/license.rst", "libegl1")?,
+        "libgles2" => stage_imported_soname_library(repo_root, &staging, "mesa", "libGLESv2.so.2", "src/system/graphics/mesa/docs/license.rst", "libgles2")?,
+        // This package owns Mesa's monolithic Gallium runtime, including the
+        // llvmpipe fallback and the VirGL renderer selected for QEMU
+        // virtio-gpu through Mesa's kmsro integration.
+        "mattos-mesa-llvmpipe" => stage_runtime_paths(repo_root, &staging, "mesa", &[
+            "usr/lib/x86_64-linux-gnu/libgallium-26.1.7.so",
+            "usr/lib/x86_64-linux-gnu/gbm/dri_gbm.so",
+        ] )?,
+        "cosmic-comp" => stage_runtime_paths(repo_root, &staging, "cosmic-comp", &["usr/bin/cosmic-comp"] )?,
         "libpython3.14" => {
             stage_library_family(
                 repo_root,
@@ -3015,13 +3118,16 @@ fn stage_libffi_dev(repo_root: &Path, staging: &Path) -> Result<()> {
 
 fn stage_mattos_installer(repo_root: &Path, staging: &Path) -> Result<()> {
     let installer = repo_root.join("out/build/installer");
-    for name in ["mattos-install", "mattos-install-graphical"] {
-        stage_executable(
-            &installer.join("cargo-target/release").join(name),
-            &staging.join("usr/bin").join(name),
-            0o755,
-        )?;
-    }
+    stage_executable(
+        &installer.join("cargo-target/release/mattos-install"),
+        &staging.join("usr/bin/mattos-install"),
+        0o755,
+    )?;
+    stage_executable(
+        &installer.join("cosmic-target/release/mattos-install-cosmic"),
+        &staging.join("usr/bin/mattos-install-cosmic"),
+        0o755,
+    )?;
     let assets = staging.join("usr/lib/mattos/installer");
     fs::create_dir_all(&assets)?;
     for (source, name) in [
@@ -3044,6 +3150,7 @@ fn stage_mattos_installer(repo_root: &Path, staging: &Path) -> Result<()> {
         "mattos-install-cli.target",
         "mattos-install-graphical.service",
         "mattos-install-graphical.target",
+        "mattos-cosmic-installer-session.service",
     ] {
         copy_preserving(
             &repo_root.join("src/system/units").join(name),
@@ -3745,6 +3852,34 @@ fn stage_library_family(
     for name in names {
         copy_path_preserving(&source.join(name), &destination.join(name))?;
     }
+    Ok(())
+}
+
+/// Install generated XKB rules from the output-owned xkeyboard-config mirror.
+/// The Git import contains rules fragments; Meson produces `rules/evdev`.
+fn stage_xkeyboard_config_data(repo_root: &Path, staging: &Path) -> Result<()> {
+    build_xkeyboard_config(repo_root)?;
+    let source = repo_root.join("out/build/xkeyboard-config/install/usr/share");
+    copy_tree_preserving(&source.join("xkeyboard-config-2"), &staging.join("usr/share/xkeyboard-config-2"))?;
+    // Meson's installed legacy link is absolute (`/usr/share/...`).  Preserve
+    // its in-image meaning rather than copying an absolute host-root link
+    // into package staging.
+    let legacy_root = staging.join("usr/share/X11/xkb");
+    if let Some(parent) = legacy_root.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    #[cfg(unix)]
+    std::os::unix::fs::symlink("../xkeyboard-config-2", &legacy_root)?;
+    #[cfg(not(unix))]
+    bail!("xkeyboard-config package staging requires Unix symlinks");
+    let rules = staging.join("usr/share/xkeyboard-config-2/rules/evdev");
+    if !rules.is_file() {
+        bail!("xkeyboard-config staging did not contain generated {}", rules.display());
+    }
+    copy_preserving(
+        &repo_root.join("src/system/data/xkeyboard-config/COPYING"),
+        &staging.join("usr/share/doc/xkb-data/copyright"),
+    )?;
     Ok(())
 }
 
@@ -4696,6 +4831,17 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "git" => component_snapshot_version(repo_root, "git")?,
         "openssh-client" | "openssh-server" => component_snapshot_version(repo_root, "openssh")?,
         "libffi8" | "libffi-dev" => component_snapshot_version(repo_root, "libffi")?,
+        "libwayland-client0" => component_snapshot_version(repo_root, "wayland")?,
+        "libxkbcommon0" => component_snapshot_version(repo_root, "xkbcommon")?,
+        "xkb-data" => component_snapshot_version(repo_root, "xkeyboard-config")?,
+        "libseat1" => component_snapshot_version(repo_root, "seatd")?,
+        "libdisplay-info3" => component_snapshot_version(repo_root, "libdisplay-info")?,
+        "libevdev2" => component_snapshot_version(repo_root, "libevdev")?,
+        "libinput10" => component_snapshot_version(repo_root, "libinput")?,
+        "libpixman-1-0" => component_snapshot_version(repo_root, "pixman")?,
+        "libdrm2" => component_snapshot_version(repo_root, "libdrm")?,
+        "libgbm1" | "libegl1" | "libgles2" | "mattos-mesa-llvmpipe" => component_snapshot_version(repo_root, "mesa")?,
+        "cosmic-comp" => component_snapshot_version(repo_root, "cosmic-comp")?,
         "libpython3.14" | "python3" | "python3-venv" | "python3-dev" => {
             component_snapshot_version(repo_root, "cpython")?
         }
@@ -4997,14 +5143,18 @@ fn write_provenance(
         | "iputils" | "expat" | "libcap" | "acl" | "zlib" | "bzip2" | "lz4" | "xz"
         | "xxhash" | "zstd" | "openssl" | "elfutils" | "pcre2" | "selinux"
         | "libxcrypt" | "libmd" | "libbsd" | "tar" | "gzip" | "patch" | "file"
-        | "less" | "git" | "openssh" | "libffi" | "cpython" | "llvm" | "rust") => {
+        | "less" | "git" | "openssh" | "libffi" | "wayland" | "xkbcommon" | "xkeyboard-config" | "cpython" | "llvm" | "rust") => {
             let state = read_sync_state(repo_root, component)?
                 .ok_or_else(|| anyhow!("upstream state missing for {component}"))?;
             (
                 state.destination_path,
                 state.repo,
                 state.imported_commit,
-                format!("MattOS source build output in out/build/{component}/install"),
+                if component == "xkeyboard-config" {
+                    "pinned XKB runtime-data subset staged under /usr/share/X11/xkb".to_string()
+                } else {
+                    format!("MattOS source build output in out/build/{component}/install")
+                },
             )
         }
         _ => (
@@ -5228,6 +5378,8 @@ fn runtime_libraries_for_spec(repo_root: &Path, spec: &PackageSpec) -> Result<Ve
                 | "openssh-server"
                 | "libffi8"
                 | "libffi-dev"
+                | "libwayland-client0"
+                | "libxkbcommon0"
                 | "libpython3.14"
                 | "python3"
                 | "python3-venv"
@@ -5285,6 +5437,8 @@ fn runtime_libraries_in_staging(repo_root: &Path, package: &str) -> Result<Vec<S
         component_install(repo_root, "apt").join("usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "curl").join("usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "libffi").join("usr/lib/x86_64-linux-gnu"),
+        component_install(repo_root, "wayland").join("usr/lib/x86_64-linux-gnu"),
+        component_install(repo_root, "xkbcommon").join("usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "cpython").join("usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "llvm").join("usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "ncurses").join("usr/lib/x86_64-linux-gnu"),
@@ -7254,6 +7408,31 @@ mod tests {
     }
 
     #[test]
+    fn native_cosmic_installer_has_an_owned_xkbcommon_runtime() {
+        let specs = package_specs();
+        let xkbcommon = specs
+            .iter()
+            .find(|spec| spec.name == "libxkbcommon0")
+            .expect("xkbcommon runtime package must exist");
+        assert_eq!(xkbcommon.source_component, "xkbcommon");
+        assert_eq!(xkbcommon.depends, &["libc6", "xkb-data"]);
+
+        let xkb_data = specs
+            .iter()
+            .find(|spec| spec.name == "xkb-data")
+            .expect("default XKB runtime data package must exist");
+        assert_eq!(xkb_data.source_component, "xkeyboard-config");
+        assert!(xkb_data.depends.is_empty());
+
+        let installer = specs
+            .iter()
+            .find(|spec| spec.name == "mattos-installer")
+            .expect("installer package must exist");
+        assert!(installer.depends.contains(&"libxkbcommon0"));
+        assert!(installer.provides.contains(&"mattos-installer-cosmic"));
+    }
+
+    #[test]
     fn third_milestone_package_families_are_complete() {
         let specs = package_specs();
         for name in [
@@ -7285,7 +7464,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 97);
+        assert_eq!(PACKAGE_NAMES.len(), 110);
     }
 
     #[test]
@@ -7310,7 +7489,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 97);
+        assert_eq!(PACKAGE_NAMES.len(), 110);
         assert_eq!(
             UTIL_LINUX_BASE_PATHS,
             &[
@@ -7386,7 +7565,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 97);
+        assert_eq!(PACKAGE_NAMES.len(), 110);
         let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
         for dependency in [
             "libffi8",

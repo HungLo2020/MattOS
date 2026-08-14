@@ -3531,6 +3531,16 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::Git => vec!["out/build/git/install".into()],
         BuildStage::Openssh => vec!["out/build/openssh/install".into()],
         BuildStage::Libffi => vec!["out/build/libffi/install".into()],
+        BuildStage::Wayland => vec!["out/build/wayland/install".into()],
+        BuildStage::Xkbcommon => vec!["out/build/xkbcommon/install".into()],
+        BuildStage::Libseat => vec!["out/build/seatd/install".into()],
+        BuildStage::LibdisplayInfo => vec!["out/build/libdisplay-info/install".into()],
+        BuildStage::Libevdev => vec!["out/build/libevdev/install".into()],
+        BuildStage::Libinput => vec!["out/build/libinput/install".into()],
+        BuildStage::Pixman => vec!["out/build/pixman/install".into()],
+        BuildStage::Libdrm => vec!["out/build/libdrm/install".into()],
+        BuildStage::Mesa => vec!["out/build/mesa/install".into()],
+        BuildStage::CosmicComp => vec!["out/build/cosmic-comp/install/usr/bin/cosmic-comp".into()],
         BuildStage::Python => vec!["out/build/cpython/install".into()],
         BuildStage::Llvm => vec!["out/build/llvm/install".into()],
         BuildStage::Rust => vec!["out/build/rust/install".into()],
@@ -3869,6 +3879,16 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::Git => build_git(repo_root),
         BuildStage::Openssh => build_openssh(repo_root),
         BuildStage::Libffi => build_libffi(repo_root),
+        BuildStage::Wayland => build_wayland(repo_root),
+        BuildStage::Xkbcommon => build_xkbcommon(repo_root),
+        BuildStage::Libseat => build_libseat(repo_root),
+        BuildStage::LibdisplayInfo => build_libdisplay_info(repo_root),
+        BuildStage::Libevdev => build_libevdev(repo_root),
+        BuildStage::Libinput => build_libinput(repo_root),
+        BuildStage::Pixman => build_pixman(repo_root),
+        BuildStage::Libdrm => build_libdrm(repo_root),
+        BuildStage::Mesa => build_mesa(repo_root),
+        BuildStage::CosmicComp => build_cosmic_comp(repo_root),
         BuildStage::Python => build_cpython(repo_root),
         BuildStage::Llvm => build_llvm(repo_root),
         BuildStage::Rust => build_rust(repo_root),
@@ -7233,15 +7253,28 @@ fn staged_library_environment(repo_root: &Path, components: &[&str]) -> Result<V
     let mut include_dirs = Vec::new();
     let mut library_dirs = Vec::new();
     let mut pkgconfig_dirs = Vec::new();
+    let mut program_dirs = Vec::new();
     for component in components {
         let usr = repo_root.join("out/build").join(component).join("install/usr");
         let include = usr.join("include");
+        let bin = usr.join("bin");
         let library = usr.join("lib/x86_64-linux-gnu");
-        if include.is_dir() { include_dirs.push(include); }
+        if include.is_dir() {
+            include_dirs.push(include.clone());
+            // A number of native libraries (notably libevdev) install their
+            // public headers beneath a versioned include directory.  Keep
+            // those MattOS-owned paths explicit so Meson cannot satisfy the
+            // include from the host merely because a .pc prefix is /usr.
+            for entry in fs::read_dir(&include)? {
+                let entry = entry?;
+                if entry.file_type()?.is_dir() { include_dirs.push(entry.path()); }
+            }
+        }
         if library.is_dir() {
             pkgconfig_dirs.push(library.join("pkgconfig"));
             library_dirs.push(library);
         }
+        if bin.is_dir() { program_dirs.push(bin); }
     }
     let cppflags = include_dirs.iter().map(|p| format!("-I{}", p.display())).collect::<Vec<_>>().join(" ");
     let ldflags = library_dirs.iter().map(|p| format!("-L{} -Wl,-rpath-link,{}", p.display(), p.display())).collect::<Vec<_>>().join(" ");
@@ -7251,6 +7284,10 @@ fn staged_library_environment(repo_root: &Path, components: &[&str]) -> Result<V
         ("LIBRARY_PATH", std::env::join_paths(&library_dirs)?.to_string_lossy().to_string()),
         ("LD_LIBRARY_PATH", std::env::join_paths(&library_dirs)?.to_string_lossy().to_string()),
         ("PKG_CONFIG_PATH", std::env::join_paths(&pkgconfig_dirs)?.to_string_lossy().to_string()),
+        // Do not fall back to host .pc files. Native runtime stages are built
+        // only against previously produced MattOS development metadata.
+        ("PKG_CONFIG_LIBDIR", std::env::join_paths(&pkgconfig_dirs)?.to_string_lossy().to_string()),
+        ("PATH", std::env::join_paths(&program_dirs.iter().cloned().chain(std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default())).collect::<Vec<_>>())?.to_string_lossy().to_string()),
     ])
 }
 
@@ -7269,7 +7306,7 @@ fn build_autotools_import(
     let install_dir = out_root.join("install");
     let stamp_path = out_root.join("build-stamp.txt");
     let state = fs::read_to_string(repo_root.join("upstream/state").join(format!("{component}.toml")))?;
-    let stamp = format!("{state}\n{}\n", options.join("\n"));
+    let stamp = format!("{state}\n{}\ndependencies={}\n", options.join("\n"), dependencies.join(","));
     if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
         remove_path_if_exists(&source_copy)?;
         remove_path_if_exists(&build_dir)?;
@@ -7388,6 +7425,291 @@ fn build_libffi(repo_root: &Path) -> Result<()> {
             "usr/include/ffitarget.h",
         ],
     )
+}
+
+/// Build the Wayland client runtime needed by the native COSMIC installer.
+/// Winit loads libwayland-client with dlopen, so it is not visible to the ELF
+/// NEEDED audit and must be represented as an explicit source-built runtime
+/// dependency rather than falling back to a host library.
+fn build_wayland(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(
+        repo_root,
+        "wayland",
+        "src/system/libraries/wayland",
+        &["libffi"],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Dlibraries=true",
+            // The source tree uses its own scanner to generate the protocol
+            // glue for the libraries.  Build it in the output mirror; it is
+            // deliberately not shipped by the runtime package.
+            "-Dscanner=true",
+            "-Dtests=false",
+            "-Ddocumentation=false",
+            "-Ddtd_validation=false",
+        ],
+        "usr/lib/x86_64-linux-gnu/libwayland-client.so.0",
+        &[],
+    )
+}
+
+/// Build only libxkbcommon itself.  The native COSMIC installer dynamically
+/// needs `libxkbcommon.so.0`; X11 helpers, Wayland helper tools, registry,
+/// documentation, and shell completion are deliberately not source-closure
+/// requirements for this runtime library.
+fn build_xkbcommon(repo_root: &Path) -> Result<()> {
+    let source = repo_root.join("src/system/libraries/xkbcommon");
+    if !source.join("meson.build").is_file() {
+        bail!("xkbcommon source not found in {}; run upstream import xkbcommon first", source.display());
+    }
+    let out_root = repo_root.join("out/build/xkbcommon");
+    let source_copy = out_root.join("source");
+    let build_dir = out_root.join("build");
+    let install_dir = out_root.join("install");
+    let state = fs::read_to_string(repo_root.join("upstream/state/xkbcommon.toml"))?;
+    let options = [
+        "--prefix=/usr",
+        "--libdir=lib/x86_64-linux-gnu",
+        "-Denable-tools=false",
+        "-Denable-x11=false",
+        "-Denable-wayland=false",
+        "-Denable-xkbregistry=false",
+        "-Denable-docs=false",
+        "-Denable-bash-completion=false",
+    ];
+    let stamp = format!("{state}\n{}\n", options.join("\n"));
+    let stamp_path = out_root.join("build-stamp.txt");
+    if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+        remove_path_if_exists(&source_copy)?;
+        remove_path_if_exists(&build_dir)?;
+    }
+    fs::create_dir_all(&out_root)?;
+    sync_build_source(&source, &source_copy)?;
+    if !build_dir.join("build.ninja").is_file() {
+        let mut args = vec!["setup", path_str(&build_dir)?, path_str(&source_copy)?];
+        args.extend(options);
+        run_cmd(repo_root, "meson", &args)?;
+    }
+    run_cmd(repo_root, "meson", &["compile", "-C", path_str(&build_dir)?])?;
+    remove_path_if_exists(&install_dir)?;
+    run_cmd(repo_root, "meson", &["install", "-C", path_str(&build_dir)?, "--destdir", path_str(&install_dir)?])?;
+    let soname = install_dir.join("usr/lib/x86_64-linux-gnu/libxkbcommon.so.0");
+    if !soname.is_file() { bail!("xkbcommon install did not produce {}", soname.display()); }
+    fs::write(&stamp_path, stamp)?;
+    println!("xkbcommon origin: {}; features=x11,wayland,tools,registry,docs disabled", install_dir.display());
+    Ok(())
+}
+
+/// Build generated XKB rules in an output-owned mirror.  The pinned upstream
+/// Git tree contains source fragments; `rules/evdev` is a Meson output and
+/// must never be generated inside the authoritative import.
+fn build_xkeyboard_config(repo_root: &Path) -> Result<()> {
+    let source = repo_root.join("src/system/data/xkeyboard-config");
+    if !source.join("meson.build").is_file() {
+        bail!("xkeyboard-config source not found in {}; run upstream import xkeyboard-config first", source.display());
+    }
+    let out_root = repo_root.join("out/build/xkeyboard-config");
+    let source_copy = out_root.join("source");
+    let build_dir = out_root.join("build");
+    let install_dir = out_root.join("install");
+    let state = fs::read_to_string(repo_root.join("upstream/state/xkeyboard-config.toml"))?;
+    let options = ["--prefix=/usr", "--datadir=share", "-Dnls=false"];
+    let stamp = format!("{state}\n{}\n", options.join("\n"));
+    let stamp_path = out_root.join("build-stamp.txt");
+    if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+        remove_path_if_exists(&source_copy)?;
+        remove_path_if_exists(&build_dir)?;
+    }
+    fs::create_dir_all(&out_root)?;
+    sync_build_source(&source, &source_copy)?;
+    if !build_dir.join("build.ninja").is_file() {
+        let mut args = vec!["setup", path_str(&build_dir)?, path_str(&source_copy)?];
+        args.extend(options);
+        run_cmd(repo_root, "meson", &args)?;
+    }
+    run_cmd(repo_root, "meson", &["compile", "-C", path_str(&build_dir)?])?;
+    remove_path_if_exists(&install_dir)?;
+    run_cmd(repo_root, "meson", &["install", "-C", path_str(&build_dir)?, "--destdir", path_str(&install_dir)?])?;
+    let rules = install_dir.join("usr/share/xkeyboard-config-2/rules/evdev");
+    let legacy_root = install_dir.join("usr/share/X11/xkb");
+    if !rules.is_file() || !legacy_root.is_symlink() {
+        bail!("xkeyboard-config install did not produce generated rules or the legacy XKB symlink");
+    }
+    fs::write(&stamp_path, stamp)?;
+    println!("xkeyboard-config origin: {}; generated XKB rules in output-owned mirror", install_dir.display());
+    Ok(())
+}
+
+/// Build a Meson-based native runtime in an output-owned mirror.  Native
+/// installer libraries must never be configured against host headers or .pc
+/// files: every dependency is an earlier MattOS stage and pkg-config's default
+/// search path is deliberately disabled.
+fn build_meson_runtime(
+    repo_root: &Path,
+    component: &str,
+    source_relative: &str,
+    dependencies: &[&str],
+    options: &[&str],
+    required_output: &str,
+    extra_env: &[(&str, String)],
+) -> Result<()> {
+    let source = repo_root.join(source_relative);
+    if !source.join("meson.build").is_file() {
+        bail!("{component} source not found in {}; run its upstream import first", source.display());
+    }
+    let out_root = repo_root.join("out/build").join(component);
+    let source_copy = out_root.join("source");
+    let build_dir = out_root.join("build");
+    let install_dir = out_root.join("install");
+    let state = fs::read_to_string(repo_root.join("upstream/state").join(format!("{component}.toml")))?;
+    let stamp = format!("{state}\n{}\ndependencies={}\n", options.join("\n"), dependencies.join(","));
+    let stamp_path = out_root.join("build-stamp.txt");
+    if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+        remove_path_if_exists(&source_copy)?;
+        remove_path_if_exists(&build_dir)?;
+    }
+    fs::create_dir_all(&out_root)?;
+    sync_build_source(&source, &source_copy)?;
+    let mut env = staged_library_environment(repo_root, dependencies)?;
+    env.extend(extra_env.iter().map(|(key, value)| (*key, value.clone())));
+    if !build_dir.join("build.ninja").is_file() {
+        let mut args = vec!["setup", path_str(&build_dir)?, path_str(&source_copy)?];
+        args.extend(options.iter().copied());
+        run_cmd_with_env_overrides(repo_root, "meson", &args, &env)?;
+    }
+    run_cmd_with_env_overrides(repo_root, "meson", &["compile", "-C", path_str(&build_dir)?], &env)?;
+    remove_path_if_exists(&install_dir)?;
+    run_cmd_with_env_overrides(repo_root, "meson", &["install", "-C", path_str(&build_dir)?, "--destdir", path_str(&install_dir)?], &env)?;
+    let required = install_dir.join(required_output);
+    if !required.is_file() { bail!("{component} install did not produce {}", required.display()); }
+    fs::write(&stamp_path, stamp)?;
+    Ok(())
+}
+
+fn build_libseat(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(repo_root, "seatd", "src/system/libraries/seatd", &[], &[
+        "--prefix=/usr", "--libdir=lib/x86_64-linux-gnu", "-Dserver=disabled",
+        "-Dlibseat-seatd=disabled", "-Dlibseat-logind=disabled", "-Dlibseat-builtin=enabled",
+        "-Dexamples=disabled", "-Dman-pages=disabled",
+    ], "usr/lib/x86_64-linux-gnu/libseat.so.1", &[])
+}
+
+fn build_libdisplay_info(repo_root: &Path) -> Result<()> {
+    // libdisplay-info otherwise reads /usr/share/hwdata/pnp.ids at configure
+    // time. Supply a tiny output-owned pkg-config descriptor pointing at the
+    // imported, pinned hwdata data instead of ever consulting the host.
+    let hwdata_root = repo_root.join("out/build/libdisplay-info/hwdata");
+    fs::create_dir_all(hwdata_root.join("pkgconfig"))?;
+    fs::copy(repo_root.join("src/system/data/hwdata/pnp.ids"), hwdata_root.join("pnp.ids"))?;
+    fs::write(hwdata_root.join("pkgconfig/hwdata.pc"), format!(
+        "prefix={}\npkgdatadir=${{prefix}}\nName: hwdata\nDescription: pinned MattOS hardware data\nVersion: 0.410\n",
+        hwdata_root.display()
+    ))?;
+    build_meson_runtime(repo_root, "libdisplay-info", "src/system/libraries/libdisplay-info", &[], &[
+        "--prefix=/usr", "--libdir=lib/x86_64-linux-gnu",
+    ], "usr/lib/x86_64-linux-gnu/libdisplay-info.so.3", &[
+        ("PKG_CONFIG_PATH", hwdata_root.join("pkgconfig").display().to_string()),
+        ("PKG_CONFIG_LIBDIR", hwdata_root.join("pkgconfig").display().to_string()),
+    ])
+}
+
+fn build_libevdev(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(repo_root, "libevdev", "src/system/libraries/libevdev", &[], &[
+        "--prefix=/usr", "--libdir=lib/x86_64-linux-gnu", "-Dtests=disabled", "-Dtools=disabled", "-Ddocumentation=disabled",
+    ], "usr/lib/x86_64-linux-gnu/libevdev.so.2", &[])
+}
+
+fn build_libinput(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(repo_root, "libinput", "src/system/libraries/libinput", &["libevdev", "systemd"], &[
+        "--prefix=/usr", "--libdir=lib/x86_64-linux-gnu", "-Dtests=false", "-Ddocumentation=false",
+        "-Ddebug-gui=false", "-Dlibwacom=false", "-Dmtdev=false", "-Dlua-plugins=disabled",
+    ], "usr/lib/x86_64-linux-gnu/libinput.so.10", &[])
+}
+
+fn build_pixman(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(repo_root, "pixman", "src/system/libraries/pixman", &[], &[
+        "--prefix=/usr", "--libdir=lib/x86_64-linux-gnu", "-Dtests=disabled", "-Ddemos=disabled",
+    ], "usr/lib/x86_64-linux-gnu/libpixman-1.so.0", &[])
+}
+
+fn build_libdrm(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(repo_root, "libdrm", "src/system/libraries/libdrm", &[], &[
+        "--prefix=/usr", "--libdir=lib/x86_64-linux-gnu", "-Dtests=false", "-Dcairo-tests=disabled",
+        "-Dman-pages=disabled", "-Dintel=disabled", "-Dradeon=disabled", "-Damdgpu=disabled",
+        "-Dnouveau=disabled", "-Dvmwgfx=disabled", "-Dfreedreno=disabled", "-Dvc4=disabled",
+        "-Detnaviv=disabled", "-Dudev=false",
+    ], "usr/lib/x86_64-linux-gnu/libdrm.so.2", &[])
+}
+
+fn build_mesa(repo_root: &Path) -> Result<()> {
+    // Mesa's generator uses Mako. It is a build-only Python module, not a
+    // shipped runtime dependency; keep the pinned wheel installation entirely
+    // under the stage output so the host Python environment is never mutated.
+    let python_deps = repo_root.join("out/build/mesa/python-deps");
+    if !python_deps.join("mako").is_dir() {
+        fs::create_dir_all(&python_deps)?;
+        run_cmd(repo_root, "python3", &[
+            "-m", "pip", "install", "--disable-pip-version-check", "--no-deps",
+            "--target", path_str(&python_deps)?, "Mako==1.3.10",
+        ])?;
+    }
+    build_meson_runtime(repo_root, "mesa", "src/system/graphics/mesa", &["libdrm", "libdisplay-info", "llvm", "zlib", "systemd"], &[
+        "--prefix=/usr", "--libdir=lib/x86_64-linux-gnu", "-Dplatforms=[]", "-Dglx=disabled",
+        // QEMU's virtio-gpu KMS device is paired by Mesa's kmsro path with
+        // the VirGL Gallium renderer.  llvmpipe remains useful for headless
+        // software fallback, but cannot export the hardware-selected KMS
+        // buffers that COSMIC needs for scanout.
+        "-Degl=enabled", "-Dgbm=enabled", "-Dgallium-drivers=llvmpipe,virgl", "-Dvulkan-drivers=[]",
+        "-Dllvm=enabled", "-Dshared-llvm=enabled", "-Dcpp_rtti=false", "-Dbuild-tests=false",
+        "-Denable-glcpp-tests=false", "-Dtools=[]", "-Dhtml-docs=disabled", "-Dzstd=disabled",
+    ], "usr/lib/x86_64-linux-gnu/libgbm.so.1", &[("PYTHONPATH", python_deps.display().to_string())])
+}
+
+fn build_cosmic_comp(repo_root: &Path) -> Result<()> {
+    let source = repo_root.join("src/desktop/cosmic/cosmic-comp");
+    let out_root = repo_root.join("out/build/cosmic-comp");
+    let source_copy = out_root.join("source");
+    let target = out_root.join("cargo-target");
+    let install = out_root.join("install");
+    remove_path_if_exists(&source_copy)?;
+    sync_build_source(&source, &source_copy)?;
+    apply_component_patches(repo_root, "cosmic-comp", &source_copy)?;
+    let components = ["seatd", "libdisplay-info", "libinput", "pixman", "mesa", "libdrm", "xkbcommon", "systemd"];
+    let env = staged_library_environment(repo_root, &components)?;
+    let library_dirs = components.iter().map(|component| {
+        repo_root.join("out/build").join(component).join("install/usr/lib/x86_64-linux-gnu")
+    }).collect::<Vec<_>>();
+    let library_dir_refs = library_dirs.iter().map(PathBuf::as_path).collect::<Vec<_>>();
+    // Keep the compositor's systemd feature: it sends READY=1 only after its
+    // Wayland/KMS session is initialized, which gives the installer a real
+    // readiness dependency instead of a time-based socket race.
+    run_cmd_with_env_overrides(&source_copy, "cargo", &["build", "--locked", "--release"], &[
+        ("CARGO_TARGET_DIR", target.display().to_string()),
+        ("PKG_CONFIG_PATH", env.iter().find(|(key, _)| *key == "PKG_CONFIG_PATH").map(|(_, value)| value.clone()).unwrap_or_default()),
+        ("PKG_CONFIG_LIBDIR", env.iter().find(|(key, _)| *key == "PKG_CONFIG_LIBDIR").map(|(_, value)| value.clone()).unwrap_or_default()),
+        ("LIBRARY_PATH", env.iter().find(|(key, _)| *key == "LIBRARY_PATH").map(|(_, value)| value.clone()).unwrap_or_default()),
+        ("LD_LIBRARY_PATH", env.iter().find(|(key, _)| *key == "LD_LIBRARY_PATH").map(|(_, value)| value.clone()).unwrap_or_default()),
+    ])?;
+    remove_path_if_exists(&install)?;
+    let binary = target.join("release/cosmic-comp");
+    if !binary.is_file() { bail!("cosmic-comp build did not produce {}", binary.display()); }
+    let installed_binary = install.join("usr/bin/cosmic-comp");
+    fs::create_dir_all(installed_binary.parent().expect("cosmic-comp install parent"))?;
+    fs::copy(&binary, &installed_binary)?;
+    fs::set_permissions(&installed_binary, fs::metadata(&binary)?.permissions())?;
+    for (soname, component) in [
+        ("libseat.so.1", "seatd"), ("libdisplay-info.so.3", "libdisplay-info"),
+        ("libinput.so.10", "libinput"), ("libpixman-1.so.0", "pixman"),
+        ("libgbm.so.1", "mesa"), ("libxkbcommon.so.0", "xkbcommon"),
+    ] {
+        let library = repo_root.join("out/build").join(component).join("install/usr/lib/x86_64-linux-gnu");
+        // Resolve the entire source-closed runtime closure while checking one
+        // SONAME.  Checking against only that one directory made ldd reject
+        // legitimate transitive MattOS dependencies as "not found".
+        validate_dependency_resolves_from(&binary, soname, &library, &library_dir_refs)?;
+    }
+    Ok(())
 }
 
 fn build_cpython(repo_root: &Path) -> Result<()> {
@@ -10087,16 +10409,33 @@ fn build_cosmic_installer_frontend(repo_root: &Path, installer_out: &Path) -> Re
     fs::write(application.join("Cargo.toml"), manifest)?;
 
     let target = installer_out.join("cosmic-target");
+    let xkbcommon = repo_root.join("out/build/xkbcommon/install/usr");
+    let xkbcommon_lib = xkbcommon.join("lib/x86_64-linux-gnu");
+    let xkbcommon_pc = xkbcommon_lib.join("pkgconfig");
+    if !xkbcommon_lib.join("libxkbcommon.so.0").is_file() || !xkbcommon_pc.join("xkbcommon.pc").is_file() {
+        bail!("MattOS-built xkbcommon runtime/development metadata is missing; run build xkbcommon first");
+    }
     run_cmd_with_env_overrides(
         &application,
         "cargo",
         &["build", "--locked", "--release", "--manifest-path", "Cargo.toml"],
-        &[("CARGO_TARGET_DIR", target.display().to_string())],
+        &[
+            ("CARGO_TARGET_DIR", target.display().to_string()),
+            ("PKG_CONFIG_PATH", xkbcommon_pc.display().to_string()),
+            ("PKG_CONFIG_LIBDIR", xkbcommon_pc.display().to_string()),
+            // The .pc file has prefix=/usr.  Its sysroot is the DESTDIR root,
+            // not `/usr`, otherwise pkg-config invents `/usr/usr/lib` and
+            // Cargo silently falls back to a host xkbcommon.
+            ("PKG_CONFIG_SYSROOT_DIR", xkbcommon.parent().expect("xkbcommon install root").display().to_string()),
+            ("LIBRARY_PATH", xkbcommon_lib.display().to_string()),
+            ("LD_LIBRARY_PATH", xkbcommon_lib.display().to_string()),
+        ],
     )?;
     let binary = target.join("release/mattos-install-cosmic");
     if !binary.is_file() {
         bail!("native COSMIC installer build did not produce {}", binary.display());
     }
+    validate_dependency_resolves_from(&binary, "libxkbcommon.so.0", &xkbcommon_lib, &[&xkbcommon_lib])?;
     Ok(())
 }
 
@@ -14596,6 +14935,58 @@ mod tests {
             assert!(grub.lines().any(|line| line == required), "missing {required}");
         }
         assert!(!grub.contains("initramfs_options=size="));
+    }
+
+    #[test]
+    fn live_media_boot_modes_are_explicit_and_early_dispatcher_owned() {
+        let grub = include_str!("../../../boot/grub/grub.cfg");
+        for mode in [
+            "mattos.mode=live",
+            "mattos.mode=live-cli",
+            "mattos.mode=install-gui",
+            "mattos.mode=install-cli",
+        ] {
+            assert!(grub.contains(mode), "GRUB omits explicit {mode} contract");
+        }
+        assert!(!grub.contains("systemd.unit="));
+
+        let dispatcher = include_str!("../../../boot/live-init.c");
+        for target in [
+            "mattos.target",
+            "mattos-install-graphical.target",
+            "mattos-install-cli.target",
+        ] {
+            assert!(dispatcher.contains(target), "early dispatcher omits {target}");
+        }
+        assert!(dispatcher.contains("/proc/cmdline"));
+        assert!(dispatcher.contains("--unit=%s"));
+    }
+
+    #[test]
+    fn graphical_installer_waits_for_the_actual_wayland_socket() {
+        let unit = include_str!("../../../system/units/mattos-install-graphical.service");
+        assert!(unit.contains("TimeoutStartSec=120"));
+        assert!(unit.contains("ExecStartPre=/usr/bin/sh -ec"));
+        assert!(unit.contains("test -S \"$${XDG_RUNTIME_DIR}/$${WAYLAND_DISPLAY}\""));
+        assert!(unit.contains("compositor did not publish"));
+        assert!(unit.contains("ExecStart=/usr/bin/mattos-install-cosmic"));
+    }
+
+    #[test]
+    fn graphical_installer_session_leaves_virtio_kms_renderer_selection_to_mesa() {
+        let unit = include_str!("../../../system/units/mattos-cosmic-installer-session.service");
+        assert!(unit.contains("VirGL Gallium path"));
+        assert!(!unit.contains("LIBGL_ALWAYS_SOFTWARE"));
+        assert!(!unit.contains("MESA_LOADER_DRIVER_OVERRIDE"));
+        assert!(!unit.contains("GALLIUM_DRIVER"));
+    }
+
+    #[test]
+    fn mesa_stage_enables_the_qemu_virtio_gallium_renderer() {
+        let source = include_str!("main.rs");
+        let start = source.find("fn build_mesa").unwrap();
+        let end = source[start..].find("fn build_cosmic_comp").unwrap() + start;
+        assert!(source[start..end].contains("-Dgallium-drivers=llvmpipe,virgl"));
     }
 
     #[test]
