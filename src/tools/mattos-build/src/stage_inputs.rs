@@ -47,6 +47,9 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::Libinput => &["src/system/libraries/libinput"],
         BuildStage::Pixman => &["src/system/libraries/pixman"],
         BuildStage::Libdrm => &["src/system/libraries/libdrm"],
+        BuildStage::VulkanHeaders => &["src/system/graphics/vulkan-headers"],
+        BuildStage::VulkanLoader => &["src/system/graphics/vulkan-loader"],
+        BuildStage::VulkanTools => &["src/system/graphics/vulkan-tools"],
         BuildStage::Mesa => &["src/system/graphics/mesa"],
         BuildStage::CosmicComp => &[
             "src/desktop/cosmic/cosmic-comp",
@@ -149,8 +152,21 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
         | BuildStage::Libevdev
         | BuildStage::Libinput
         | BuildStage::Pixman
-        | BuildStage::Libdrm
-        | BuildStage::Mesa => &["gcc", "ld", "meson", "ninja", "pkg-config"],
+        | BuildStage::Libdrm => &["gcc", "ld", "meson", "ninja", "pkg-config"],
+        BuildStage::Mesa => &[
+            "gcc",
+            "ld",
+            "meson",
+            "ninja",
+            "pkg-config",
+            "cmake",
+            "git",
+            "cargo",
+            "rustc",
+        ],
+        BuildStage::VulkanHeaders | BuildStage::VulkanLoader | BuildStage::VulkanTools => {
+            &["gcc", "g++", "ld", "cmake", "ninja", "pkg-config"]
+        }
         BuildStage::CosmicComp => &["cargo", "rustc", "gcc", "ld", "pkg-config"],
         BuildStage::Installer => &[
             "cargo",
@@ -176,7 +192,7 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
         BuildStage::All => 0,
         BuildStage::Bzip2 | BuildStage::Xz | BuildStage::Zstd => 2,
         BuildStage::Python => 4,
-        BuildStage::Llvm => 5,
+        BuildStage::Llvm => 6,
         BuildStage::LiveRoot => 1,
         BuildStage::Initramfs => 7,
         BuildStage::Installer => 7,
@@ -186,11 +202,11 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
         | BuildStage::Libevdev
         | BuildStage::Libinput
         | BuildStage::Pixman
-        | BuildStage::Libdrm
         | BuildStage::CosmicComp => 1,
-        // Revision 2 enables Mesa's source-built VirGL Gallium renderer for
-        // the QEMU virtio-gpu/kmsro compositor path.
-        BuildStage::Mesa => 2,
+        BuildStage::Libdrm => 2,
+        // Revision 3 expands Mesa to the generic driver set and pins the
+        // SPIR-V/Rust generators needed to reproduce it with LLVM 22.
+        BuildStage::Mesa => 3,
         BuildStage::Iso => 2,
         BuildStage::UtilLinux => 5,
         _ => 1,

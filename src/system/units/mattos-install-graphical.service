@@ -10,6 +10,11 @@ ConditionKernelCommandLine=mattos.mode=install-gui
 Type=simple
 Environment=XDG_RUNTIME_DIR=/run/mattos-installer
 Environment=WAYLAND_DISPLAY=wayland-0
+# Once Vulkan ICDs are present, wgpu may choose a headless/non-presentable
+# Vulkan adapter before the VirGL-backed Wayland surface.  The installer is an
+# EGL/Wayland client, so select wgpu's GL API while leaving Mesa's DRM/Gallium
+# driver selection automatic.
+Environment=WGPU_BACKEND=gl
 # cosmic-comp reports systemd readiness before its DRM backend has necessarily
 # published the Wayland socket.  Do not start the native client into that
 # window: wait for the concrete connection endpoint, while retaining a finite

@@ -104,6 +104,26 @@ impl StageResourceProfile {
             child_jobs: ChildJobPolicy::Serial,
         }
     }
+
+    /// Large C++/Rust link steps need an explicit reservation and a modest
+    /// compiler cap. Four children keep incremental builds useful while a
+    /// conservative 6 GiB reservation prevents admission beside competing
+    /// heavy work while still leaving headroom when the invocation itself is
+    /// enclosed by the documented 10 GiB systemd memory ceiling.
+    pub(crate) fn high_memory_parallel() -> Self {
+        Self {
+            minimum_cpu_grant: 1,
+            useful_cpu_ceiling: Some(4),
+            preferred_child_jobs: 4,
+            minimum_child_jobs: 1,
+            useful_child_job_ceiling: Some(4),
+            estimated_memory_bytes: 6 * 1024 * Self::MIB,
+            memory_per_child_job_bytes: 0,
+            memory_heavy: true,
+            may_borrow_idle_cpu: false,
+            child_jobs: ChildJobPolicy::Capped(4),
+        }
+    }
 }
 
 pub(crate) fn configure_child_jobs(granted_tokens: usize, policy: ChildJobPolicy) {

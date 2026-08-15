@@ -281,6 +281,7 @@ const PACKAGE_NAMES: &[&str] = &[
     "libffi8",
     "libffi-dev",
     "libwayland-client0",
+    "libwayland-egl1",
     "libxkbcommon0",
     "xkb-data",
     "libseat1",
@@ -289,10 +290,17 @@ const PACKAGE_NAMES: &[&str] = &[
     "libinput10",
     "libpixman-1-0",
     "libdrm2",
+    "libdrm-amdgpu1",
+    "libdrm-nouveau2",
     "libgbm1",
     "libegl1",
+    "libgles1",
     "libgles2",
-    "mattos-mesa-llvmpipe",
+    "libgl1-mesa-dri",
+    "libvulkan1",
+    "libvulkan-dev",
+    "mesa-vulkan-drivers",
+    "vulkan-tools",
     "cosmic-comp",
     "libpython3.14",
     "python3",
@@ -1684,6 +1692,17 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
+            name: "libwayland-egl1",
+            description: "Wayland EGL window runtime library built for MattOS",
+            source_component: "wayland",
+            depends: &["libc6", "libwayland-client0"],
+            provides: &["libwayland-egl1"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
             name: "libxkbcommon0",
             description: "XKB keyboard description runtime library built for MattOS",
             source_component: "xkbcommon",
@@ -1772,6 +1791,28 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
+            name: "libdrm-amdgpu1",
+            description: "AMDGPU DRM userspace runtime library built for MattOS",
+            source_component: "libdrm",
+            depends: &["libc6", "libdrm2"],
+            provides: &["libdrm-amdgpu1"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libdrm-nouveau2",
+            description: "Nouveau DRM userspace runtime library built for MattOS",
+            source_component: "libdrm",
+            depends: &["libc6", "libdrm2"],
+            provides: &["libdrm-nouveau2"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
             name: "libgbm1",
             description: "Mesa GBM runtime library built for MattOS",
             source_component: "mesa",
@@ -1791,9 +1832,21 @@ fn package_specs() -> Vec<PackageSpec> {
                 "libgbm1",
                 "libdrm2",
                 "libexpat1",
-                "mattos-mesa-llvmpipe",
+                "libgl1-mesa-dri",
+                "libwayland-egl1",
             ],
             provides: &["libegl1"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libgles1",
+            description: "Mesa OpenGL ES 1 runtime library built for MattOS",
+            source_component: "mesa",
+            depends: &["libc6", "libegl1", "libgbm1", "libdrm2"],
+            provides: &["libgles1"],
             conflicts: &[],
             replaces: &[],
             essential: false,
@@ -1810,19 +1863,101 @@ fn package_specs() -> Vec<PackageSpec> {
             essential: false,
             priority: "important",
         },
-        // Mesa builds llvmpipe and VirGL into one Gallium runtime library.
-        // Retain the package name for compatibility, while advertising both
-        // supported renderer paths explicitly.
         PackageSpec {
-            name: "mattos-mesa-llvmpipe",
-            description: "MattOS Mesa Gallium runtime with llvmpipe and QEMU VirGL",
+            name: "libgl1-mesa-dri",
+            description: "Mesa DRI drivers for modern hardware, virtual GPUs, and software fallback",
             source_component: "mesa",
-            depends: &["libc6", "libllvm22", "libdrm2", "libgbm1", "libexpat1"],
-            provides: &["mattos-mesa-llvmpipe", "mattos-mesa-virgl"],
+            depends: &[
+                "libc6",
+                "libgcc-s1",
+                "libstdc++6",
+                "libllvm22",
+                "libdrm2",
+                "libdrm-amdgpu1",
+                "libdrm-nouveau2",
+                "libgbm1",
+                "libexpat1",
+                "libelf1t64",
+                "zlib1g",
+                "libzstd1",
+            ],
+            provides: &[
+                "libgl1-mesa-dri",
+                "mattos-mesa-llvmpipe",
+                "mattos-mesa-virgl",
+            ],
+            conflicts: &[],
+            replaces: &["mattos-mesa-llvmpipe"],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libvulkan1",
+            description: "Khronos Vulkan loader runtime built for MattOS",
+            source_component: "vulkan-loader",
+            depends: &["libc6"],
+            provides: &["libvulkan1"],
             conflicts: &[],
             replaces: &[],
             essential: false,
             priority: "important",
+        },
+        PackageSpec {
+            name: "libvulkan-dev",
+            description: "Khronos Vulkan headers and loader development metadata for MattOS",
+            source_component: "vulkan-loader",
+            depends: &["libc6-dev", "libvulkan1"],
+            provides: &["libvulkan-dev"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "mesa-vulkan-drivers",
+            description: "Mesa Vulkan ICDs for AMD, Intel, Nouveau, VirtIO, and software rendering",
+            source_component: "mesa",
+            depends: &[
+                "libc6",
+                "libvulkan1",
+                "libgcc-s1",
+                "libstdc++6",
+                "libllvm22",
+                "libdrm2",
+                "libdrm-amdgpu1",
+                "libdrm-nouveau2",
+                "libgbm1",
+                "libexpat1",
+                "libelf1t64",
+                "libwayland-client0",
+                "libdisplay-info3",
+                "libudev1",
+                "zlib1g",
+                "libzstd1",
+            ],
+            provides: &["mesa-vulkan-drivers"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "vulkan-tools",
+            description: "Wayland and direct-display Vulkan diagnostics built for MattOS",
+            source_component: "vulkan-tools",
+            depends: &[
+                "libc6",
+                "libffi8",
+                "libgcc-s1",
+                "libstdc++6",
+                "libvulkan1",
+                "libwayland-client0",
+            ],
+            provides: &["vulkan-tools"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
         },
         PackageSpec {
             name: "cosmic-comp",
@@ -1838,8 +1973,9 @@ fn package_specs() -> Vec<PackageSpec> {
                 "libpixman-1-0",
                 "libgbm1",
                 "libegl1",
+                "libgles1",
                 "libgles2",
-                "mattos-mesa-llvmpipe",
+                "libgl1-mesa-dri",
                 "libwayland-client0",
                 "libxkbcommon0",
                 "libudev1",
@@ -2945,6 +3081,8 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "libinput" => &["libinput"],
             "pixman" => &["pixman"],
             "libdrm" => &["libdrm"],
+            "vulkan-loader" => &["vulkan-headers", "vulkan-loader"],
+            "vulkan-tools" => &["vulkan-tools"],
             "mesa" => &["mesa"],
             "cosmic-comp" => &["cosmic-comp"],
             "cpython" => &["cpython"],
@@ -3052,6 +3190,11 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "libinput" => &["src/system/libraries/libinput"],
         "pixman" => &["src/system/libraries/pixman"],
         "libdrm" => &["src/system/libraries/libdrm"],
+        "vulkan-loader" => &[
+            "src/system/graphics/vulkan-headers",
+            "src/system/graphics/vulkan-loader",
+        ],
+        "vulkan-tools" => &["src/system/graphics/vulkan-tools"],
         "mesa" => &["src/system/graphics/mesa"],
         "cosmic-comp" => &["src/desktop/cosmic/cosmic-comp"],
         "cpython" => &["src/development/python/cpython"],
@@ -3548,6 +3691,14 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
             "src/system/libraries/wayland/COPYING",
             "libwayland-client0",
         )?,
+        "libwayland-egl1" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "wayland",
+            "libwayland-egl.so.1",
+            "src/system/libraries/wayland/COPYING",
+            "libwayland-egl1",
+        )?,
         "xkb-data" => stage_xkeyboard_config_data(repo_root, &staging)?,
         "libseat1" => stage_imported_soname_library(
             repo_root,
@@ -3603,6 +3754,22 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
             "src/system/libraries/libdrm/README.rst",
             "libdrm2",
         )?,
+        "libdrm-amdgpu1" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "libdrm",
+            "libdrm_amdgpu.so.1",
+            "src/system/libraries/libdrm/README.rst",
+            "libdrm-amdgpu1",
+        )?,
+        "libdrm-nouveau2" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "libdrm",
+            "libdrm_nouveau.so.2",
+            "src/system/libraries/libdrm/README.rst",
+            "libdrm-nouveau2",
+        )?,
         "libgbm1" => stage_imported_soname_library(
             repo_root,
             &staging,
@@ -3619,6 +3786,14 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
             "src/system/graphics/mesa/docs/license.rst",
             "libegl1",
         )?,
+        "libgles1" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "mesa",
+            "libGLESv1_CM.so.1",
+            "src/system/graphics/mesa/docs/license.rst",
+            "libgles1",
+        )?,
         "libgles2" => stage_imported_soname_library(
             repo_root,
             &staging,
@@ -3627,18 +3802,18 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
             "src/system/graphics/mesa/docs/license.rst",
             "libgles2",
         )?,
-        // This package owns Mesa's monolithic Gallium runtime, including the
-        // llvmpipe fallback and the VirGL renderer selected for QEMU
-        // virtio-gpu through Mesa's kmsro integration.
-        "mattos-mesa-llvmpipe" => stage_runtime_paths(
+        "libgl1-mesa-dri" => stage_mesa_dri_runtime(repo_root, &staging)?,
+        "libvulkan1" => stage_imported_soname_library(
             repo_root,
             &staging,
-            "mesa",
-            &[
-                "usr/lib/x86_64-linux-gnu/libgallium-26.1.7.so",
-                "usr/lib/x86_64-linux-gnu/gbm/dri_gbm.so",
-            ],
+            "vulkan-loader",
+            "libvulkan.so.1",
+            "src/system/graphics/vulkan-loader/LICENSE.txt",
+            "libvulkan1",
         )?,
+        "libvulkan-dev" => stage_vulkan_development(repo_root, &staging)?,
+        "mesa-vulkan-drivers" => stage_mesa_vulkan_runtime(repo_root, &staging)?,
+        "vulkan-tools" => stage_vulkan_tools(repo_root, &staging)?,
         "cosmic-comp" => {
             stage_runtime_paths(repo_root, &staging, "cosmic-comp", &["usr/bin/cosmic-comp"])?
         }
@@ -4706,6 +4881,135 @@ fn stage_runtime_paths(
     Ok(())
 }
 
+fn stage_mesa_dri_runtime(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = component_install(repo_root, "mesa");
+    let library_dir = install.join("usr/lib/x86_64-linux-gnu");
+    let gallium = fs::read_dir(&library_dir)?
+        .filter_map(Result::ok)
+        .map(|entry| entry.file_name())
+        .find(|name| {
+            let name = name.to_string_lossy();
+            name.starts_with("libgallium-") && name.ends_with(".so")
+        })
+        .ok_or_else(|| anyhow!("Mesa did not install its versioned Gallium DRI runtime"))?;
+    let gallium_rel = format!("usr/lib/x86_64-linux-gnu/{}", gallium.to_string_lossy());
+    stage_runtime_paths(
+        repo_root,
+        staging,
+        "mesa",
+        &[&gallium_rel, "usr/lib/x86_64-linux-gnu/gbm/dri_gbm.so"],
+    )?;
+    copy_tree_preserving(
+        &install.join("usr/share/drirc.d"),
+        &staging.join("usr/share/drirc.d"),
+    )?;
+    copy_preserving(
+        &repo_root.join("src/system/graphics/mesa/docs/license.rst"),
+        &staging.join("usr/share/doc/libgl1-mesa-dri/copyright"),
+    )?;
+    Ok(())
+}
+
+fn stage_mesa_vulkan_runtime(repo_root: &Path, staging: &Path) -> Result<()> {
+    stage_runtime_paths(
+        repo_root,
+        staging,
+        "mesa",
+        &[
+            "usr/lib/x86_64-linux-gnu/libVkLayer_MESA_device_select.so",
+            "usr/lib/x86_64-linux-gnu/libvulkan_radeon.so",
+            "usr/lib/x86_64-linux-gnu/libvulkan_intel.so",
+            "usr/lib/x86_64-linux-gnu/libvulkan_nouveau.so",
+            "usr/lib/x86_64-linux-gnu/libvulkan_virtio.so",
+            "usr/lib/x86_64-linux-gnu/libvulkan_lvp.so",
+            "usr/share/vulkan/icd.d/radeon_icd.x86_64.json",
+            "usr/share/vulkan/icd.d/intel_icd.x86_64.json",
+            "usr/share/vulkan/icd.d/nouveau_icd.x86_64.json",
+            "usr/share/vulkan/icd.d/virtio_icd.x86_64.json",
+            "usr/share/vulkan/icd.d/lvp_icd.x86_64.json",
+            "usr/share/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json",
+        ],
+    )?;
+    copy_preserving(
+        &repo_root.join("src/system/graphics/mesa/docs/license.rst"),
+        &staging.join("usr/share/doc/mesa-vulkan-drivers/copyright"),
+    )?;
+    validate_vulkan_icd_manifests(staging)?;
+    Ok(())
+}
+
+fn validate_vulkan_icd_manifests(root: &Path) -> Result<()> {
+    let manifests = [
+        ("radeon_icd.x86_64.json", "libvulkan_radeon.so"),
+        ("intel_icd.x86_64.json", "libvulkan_intel.so"),
+        ("nouveau_icd.x86_64.json", "libvulkan_nouveau.so"),
+        ("virtio_icd.x86_64.json", "libvulkan_virtio.so"),
+        ("lvp_icd.x86_64.json", "libvulkan_lvp.so"),
+    ];
+    for (manifest, library) in manifests {
+        let path = root.join("usr/share/vulkan/icd.d").join(manifest);
+        let value: serde_json::Value = serde_json::from_slice(&fs::read(&path)?)
+            .with_context(|| format!("invalid Vulkan ICD manifest {}", path.display()))?;
+        let expected = format!("/usr/lib/x86_64-linux-gnu/{library}");
+        if value.pointer("/ICD/library_path").and_then(|v| v.as_str()) != Some(&expected)
+            || value
+                .pointer("/ICD/api_version")
+                .and_then(|v| v.as_str())
+                .is_none()
+            || value
+                .get("file_format_version")
+                .and_then(|v| v.as_str())
+                .is_none()
+        {
+            bail!("Vulkan ICD manifest {} is not canonical", path.display())
+        }
+        if !root.join(expected.trim_start_matches('/')).is_file() {
+            bail!("Vulkan ICD {manifest} references missing {expected}")
+        }
+    }
+    Ok(())
+}
+
+fn stage_vulkan_development(repo_root: &Path, staging: &Path) -> Result<()> {
+    let headers = component_install(repo_root, "vulkan-headers");
+    for relative in [
+        "usr/include/vulkan",
+        "usr/include/vk_video",
+        "usr/share/vulkan/registry",
+        "usr/share/cmake/VulkanHeaders",
+    ] {
+        copy_tree_preserving(&headers.join(relative), &staging.join(relative))?;
+    }
+    let loader = component_install(repo_root, "vulkan-loader");
+    for relative in [
+        "usr/lib/x86_64-linux-gnu/libvulkan.so",
+        "usr/lib/x86_64-linux-gnu/pkgconfig/vulkan.pc",
+    ] {
+        copy_path_preserving(&loader.join(relative), &staging.join(relative))?;
+    }
+    let cmake = "usr/lib/x86_64-linux-gnu/cmake/VulkanLoader";
+    copy_tree_preserving(&loader.join(cmake), &staging.join(cmake))?;
+    copy_preserving(
+        &repo_root.join("src/system/graphics/vulkan-loader/LICENSE.txt"),
+        &staging.join("usr/share/doc/libvulkan-dev/copyright"),
+    )?;
+    Ok(())
+}
+
+fn stage_vulkan_tools(repo_root: &Path, staging: &Path) -> Result<()> {
+    stage_runtime_paths(
+        repo_root,
+        staging,
+        "vulkan-tools",
+        &["usr/bin/vulkaninfo", "usr/bin/vkcube"],
+    )?;
+    copy_preserving(
+        &repo_root.join("src/system/graphics/vulkan-tools/LICENSE.txt"),
+        &staging.join("usr/share/doc/vulkan-tools/copyright"),
+    )?;
+    Ok(())
+}
+
 fn stage_library_family(
     repo_root: &Path,
     staging: &Path,
@@ -5728,7 +6032,9 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "git" => component_snapshot_version(repo_root, "git")?,
         "openssh-client" | "openssh-server" => component_snapshot_version(repo_root, "openssh")?,
         "libffi8" | "libffi-dev" => component_snapshot_version(repo_root, "libffi")?,
-        "libwayland-client0" => component_snapshot_version(repo_root, "wayland")?,
+        "libwayland-client0" | "libwayland-egl1" => {
+            component_snapshot_version(repo_root, "wayland")?
+        }
         "libxkbcommon0" => component_snapshot_version(repo_root, "xkbcommon")?,
         "xkb-data" => component_snapshot_version(repo_root, "xkeyboard-config")?,
         "tzdata" => component_snapshot_version(repo_root, "tzdata")?,
@@ -5739,10 +6045,16 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "libevdev2" => component_snapshot_version(repo_root, "libevdev")?,
         "libinput10" => component_snapshot_version(repo_root, "libinput")?,
         "libpixman-1-0" => component_snapshot_version(repo_root, "pixman")?,
-        "libdrm2" => component_snapshot_version(repo_root, "libdrm")?,
-        "libgbm1" | "libegl1" | "libgles2" | "mattos-mesa-llvmpipe" => {
-            component_snapshot_version(repo_root, "mesa")?
+        "libdrm2" | "libdrm-amdgpu1" | "libdrm-nouveau2" => {
+            component_snapshot_version(repo_root, "libdrm")?
         }
+        "libgbm1"
+        | "libegl1"
+        | "libgles1"
+        | "libgles2"
+        | "libgl1-mesa-dri"
+        | "mesa-vulkan-drivers" => component_snapshot_version(repo_root, "mesa")?,
+        "libvulkan1" | "libvulkan-dev" | "vulkan-tools" => "1.4.357".to_string(),
         "cosmic-comp" => component_snapshot_version(repo_root, "cosmic-comp")?,
         "libpython3.14" | "python3" | "python3-venv" | "python3-dev" => {
             component_snapshot_version(repo_root, "cpython")?
@@ -6283,7 +6595,11 @@ fn runtime_libraries_for_spec(repo_root: &Path, spec: &PackageSpec) -> Result<Ve
                 | "libffi8"
                 | "libffi-dev"
                 | "libwayland-client0"
+                | "libwayland-egl1"
                 | "libxkbcommon0"
+                | "libvulkan1"
+                | "libvulkan-dev"
+                | "vulkan-tools"
                 | "libpython3.14"
                 | "python3"
                 | "python3-venv"
@@ -6343,6 +6659,7 @@ fn runtime_libraries_in_staging(repo_root: &Path, package: &str) -> Result<Vec<S
         component_install(repo_root, "curl").join("usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "libffi").join("usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "wayland").join("usr/lib/x86_64-linux-gnu"),
+        component_install(repo_root, "vulkan-loader").join("usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "xkbcommon").join("usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "cpython").join("usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "llvm").join("usr/lib/x86_64-linux-gnu"),
@@ -8390,6 +8707,68 @@ mod tests {
     }
 
     #[test]
+    fn generic_mesa_runtime_is_split_into_debian_compatible_driver_packages() {
+        let specs = package_specs();
+        for name in [
+            "libdrm-amdgpu1",
+            "libdrm-nouveau2",
+            "libgles1",
+            "libgl1-mesa-dri",
+            "mesa-vulkan-drivers",
+        ] {
+            assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
+        }
+        let dri = specs
+            .iter()
+            .find(|spec| spec.name == "libgl1-mesa-dri")
+            .unwrap();
+        for dependency in ["libllvm22", "libdrm-amdgpu1", "libdrm-nouveau2", "libzstd1"] {
+            assert!(dri.depends.contains(&dependency));
+        }
+        assert!(dri.provides.contains(&"mattos-mesa-llvmpipe"));
+        let vulkan = specs
+            .iter()
+            .find(|spec| spec.name == "mesa-vulkan-drivers")
+            .unwrap();
+        assert_eq!(vulkan.source_component, "mesa");
+        assert!(vulkan.depends.contains(&"libvulkan1"));
+        for name in ["libvulkan1", "libvulkan-dev", "vulkan-tools"] {
+            assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
+        }
+    }
+
+    #[test]
+    fn canonical_mesa_icd_manifests_cover_hardware_virtio_and_software() {
+        let root = tempfile::tempdir().unwrap();
+        let manifest_dir = root.path().join("usr/share/vulkan/icd.d");
+        let library_dir = root.path().join("usr/lib/x86_64-linux-gnu");
+        fs::create_dir_all(&manifest_dir).unwrap();
+        fs::create_dir_all(&library_dir).unwrap();
+        for (manifest, library) in [
+            ("radeon_icd.x86_64.json", "libvulkan_radeon.so"),
+            ("intel_icd.x86_64.json", "libvulkan_intel.so"),
+            ("nouveau_icd.x86_64.json", "libvulkan_nouveau.so"),
+            ("virtio_icd.x86_64.json", "libvulkan_virtio.so"),
+            ("lvp_icd.x86_64.json", "libvulkan_lvp.so"),
+        ] {
+            fs::write(library_dir.join(library), b"ICD").unwrap();
+            fs::write(
+                manifest_dir.join(manifest),
+                serde_json::to_vec(&serde_json::json!({
+                    "file_format_version": "1.0.1",
+                    "ICD": {
+                        "api_version": "1.4.354",
+                        "library_path": format!("/usr/lib/x86_64-linux-gnu/{library}")
+                    }
+                }))
+                .unwrap(),
+            )
+            .unwrap();
+        }
+        validate_vulkan_icd_manifests(root.path()).unwrap();
+    }
+
+    #[test]
     fn third_milestone_package_families_are_complete() {
         let specs = package_specs();
         for name in [
@@ -8421,7 +8800,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 117);
+        assert_eq!(PACKAGE_NAMES.len(), 125);
     }
 
     #[test]
@@ -8446,7 +8825,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 117);
+        assert_eq!(PACKAGE_NAMES.len(), 125);
         assert_eq!(
             UTIL_LINUX_BASE_PATHS,
             &[
@@ -8522,7 +8901,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 117);
+        assert_eq!(PACKAGE_NAMES.len(), 125);
         let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
         for dependency in [
             "libffi8",

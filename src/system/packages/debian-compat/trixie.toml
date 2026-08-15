@@ -1049,6 +1049,18 @@ classification = "debian-compatible"
 known_gaps = ["Development headers, wayland-scanner, tests, and documentation are intentionally not shipped"]
 
 [[package]]
+debian_name = "libwayland-egl1"
+mattos_name = "libwayland-egl1"
+source_component = "wayland"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libwayland-egl.so.1 -> libwayland-egl.so.1.26.0", "/usr/lib/x86_64-linux-gnu/libwayland-egl.so.1.26.0"]
+provided_abi_or_commands = ["libwayland-egl.so.1 Wayland EGL window runtime ABI"]
+protected = false
+current_mattos_version = "1.26.0-1mattos1"
+expected_debian_role = "Wayland EGL window runtime library"
+classification = "debian-compatible"
+known_gaps = ["Development symlinks, headers, tests, and documentation are intentionally not shipped"]
+
+[[package]]
 debian_name = "libxkbcommon0"
 mattos_name = "libxkbcommon0"
 source_component = "xkbcommon"
@@ -1318,11 +1330,35 @@ mattos_name = "libdrm2"
 source_component = "libdrm 2.4.130"
 owned_paths = ["/usr/lib/x86_64-linux-gnu/libdrm.so.2"]
 provided_abi_or_commands = ["libdrm.so.2"]
-protected = false
+protected = true
 current_mattos_version = "0~git.523534ee018b-1mattos1"
 expected_debian_role = "DRM userspace runtime"
 classification = "debian-compatible"
 known_gaps = ["Only core DRM support is built"]
+
+[[package]]
+debian_name = "libdrm-amdgpu1"
+mattos_name = "libdrm-amdgpu1"
+source_component = "libdrm 2.4.130"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libdrm_amdgpu.so.1"]
+provided_abi_or_commands = ["libdrm_amdgpu.so.1"]
+protected = true
+current_mattos_version = "0~git.523534ee018b-1mattos1"
+expected_debian_role = "AMDGPU DRM userspace runtime"
+classification = "debian-compatible"
+known_gaps = ["Development files are not yet split into a MattOS package"]
+
+[[package]]
+debian_name = "libdrm-nouveau2"
+mattos_name = "libdrm-nouveau2"
+source_component = "libdrm 2.4.130"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libdrm_nouveau.so.2"]
+provided_abi_or_commands = ["libdrm_nouveau.so.2"]
+protected = true
+current_mattos_version = "0~git.523534ee018b-1mattos1"
+expected_debian_role = "Nouveau DRM userspace runtime"
+classification = "debian-compatible"
+known_gaps = ["Development files are not yet split into a MattOS package"]
 
 [[package]]
 debian_name = "libgbm1"
@@ -1330,11 +1366,11 @@ mattos_name = "libgbm1"
 source_component = "Mesa 26.1.7"
 owned_paths = ["/usr/lib/x86_64-linux-gnu/libgbm.so.1"]
 provided_abi_or_commands = ["libgbm.so.1"]
-protected = false
+protected = true
 current_mattos_version = "0~git.e8617e4ca95f-1mattos1"
 expected_debian_role = "GBM runtime"
 classification = "debian-compatible"
-known_gaps = ["Only software-renderer GBM support is built"]
+known_gaps = ["Development headers are not yet split into a MattOS package"]
 
 [[package]]
 debian_name = "libegl1"
@@ -1342,11 +1378,23 @@ mattos_name = "libegl1"
 source_component = "Mesa 26.1.7"
 owned_paths = ["/usr/lib/x86_64-linux-gnu/libEGL.so.1"]
 provided_abi_or_commands = ["libEGL.so.1"]
-protected = false
+protected = true
 current_mattos_version = "0~git.e8617e4ca95f-1mattos1"
 expected_debian_role = "EGL runtime"
 classification = "debian-compatible"
 known_gaps = ["No GLX or X11 platform is enabled"]
+
+[[package]]
+debian_name = "libgles1"
+mattos_name = "libgles1"
+source_component = "Mesa 26.1.7"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libGLESv1_CM.so.1"]
+provided_abi_or_commands = ["libGLESv1_CM.so.1"]
+protected = true
+current_mattos_version = "0~git.e8617e4ca95f-1mattos1"
+expected_debian_role = "OpenGL ES 1 runtime"
+classification = "debian-compatible"
+known_gaps = ["Development headers are not yet split into a MattOS package"]
 
 [[package]]
 debian_name = "libgles2"
@@ -1354,23 +1402,71 @@ mattos_name = "libgles2"
 source_component = "Mesa 26.1.7"
 owned_paths = ["/usr/lib/x86_64-linux-gnu/libGLESv2.so.2"]
 provided_abi_or_commands = ["libGLESv2.so.2"]
-protected = false
+protected = true
 current_mattos_version = "0~git.e8617e4ca95f-1mattos1"
 expected_debian_role = "OpenGL ES runtime"
 classification = "debian-compatible"
-known_gaps = ["No desktop OpenGL or GLX runtime is enabled"]
+known_gaps = ["GLX is not enabled because the current MattOS desktop is Wayland-native"]
 
 [[package]]
-debian_name = "mattos-mesa-llvmpipe"
-mattos_name = "mattos-mesa-llvmpipe"
+debian_name = "libgl1-mesa-dri"
+mattos_name = "libgl1-mesa-dri"
 source_component = "Mesa 26.1.7"
-owned_paths = ["/usr/lib/x86_64-linux-gnu/libgallium-26.1.7.so", "/usr/lib/x86_64-linux-gnu/gbm/dri_gbm.so"]
-provided_abi_or_commands = ["Mesa Gallium runtime with llvmpipe fallback, QEMU VirGL renderer, and GBM DRI backend"]
-protected = false
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libgallium-26.1.7.so", "/usr/lib/x86_64-linux-gnu/gbm/dri_gbm.so", "/usr/share/drirc.d"]
+provided_abi_or_commands = ["radeonsi", "iris", "nouveau", "virgl", "svga", "llvmpipe"]
+protected = true
 current_mattos_version = "0~git.e8617e4ca95f-1mattos1"
-expected_debian_role = "MattOS-specific minimal Gallium rendering payload for software fallback and QEMU VirtIO/VirGL KMS"
-classification = "mattos-specific"
-known_gaps = ["Only llvmpipe and the QEMU VirtIO/VirGL Gallium path are enabled; broader desktop hardware drivers remain intentionally excluded"]
+expected_debian_role = "Mesa DRI hardware, virtual GPU, and software rendering drivers"
+classification = "debian-compatible"
+known_gaps = ["GLX/X11 loader support is not shipped"]
+
+[[package]]
+debian_name = "mesa-vulkan-drivers"
+mattos_name = "mesa-vulkan-drivers"
+source_component = "Mesa 26.1.7"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libvulkan_radeon.so", "/usr/lib/x86_64-linux-gnu/libvulkan_intel.so", "/usr/lib/x86_64-linux-gnu/libvulkan_nouveau.so", "/usr/lib/x86_64-linux-gnu/libvulkan_virtio.so", "/usr/lib/x86_64-linux-gnu/libvulkan_lvp.so", "/usr/share/vulkan"]
+provided_abi_or_commands = ["RADV", "ANV", "NVK", "Venus", "lavapipe"]
+protected = true
+current_mattos_version = "0~git.e8617e4ca95f-1mattos1"
+expected_debian_role = "Mesa Vulkan ICD collection"
+classification = "debian-compatible"
+known_gaps = ["No known runtime compatibility gaps"]
+
+[[package]]
+debian_name = "libvulkan1"
+mattos_name = "libvulkan1"
+source_component = "Khronos Vulkan-Loader 1.4.357"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libvulkan.so.1"]
+provided_abi_or_commands = ["Vulkan loader ABI 1"]
+protected = true
+current_mattos_version = "1.4.357-1mattos1"
+expected_debian_role = "generic Vulkan loader runtime"
+classification = "debian-compatible"
+known_gaps = ["X11 WSI is intentionally absent; Wayland and direct-display WSI are enabled"]
+
+[[package]]
+debian_name = "libvulkan-dev"
+mattos_name = "libvulkan-dev"
+source_component = "Khronos Vulkan-Headers and Vulkan-Loader 1.4.357"
+owned_paths = ["/usr/include/vulkan", "/usr/include/vk_video", "/usr/lib/x86_64-linux-gnu/libvulkan.so", "/usr/lib/x86_64-linux-gnu/pkgconfig/vulkan.pc", "/usr/share/vulkan/registry"]
+provided_abi_or_commands = ["Vulkan headers, registry, linker interface, pkg-config and CMake metadata"]
+protected = true
+current_mattos_version = "1.4.357-1mattos1"
+expected_debian_role = "Vulkan loader development files"
+classification = "debian-compatible"
+known_gaps = ["No known development-file compatibility gaps"]
+
+[[package]]
+debian_name = "vulkan-tools"
+mattos_name = "vulkan-tools"
+source_component = "Khronos Vulkan-Tools 1.4.357"
+owned_paths = ["/usr/bin/vulkaninfo", "/usr/bin/vkcube"]
+provided_abi_or_commands = ["vulkaninfo", "vkcube"]
+protected = true
+current_mattos_version = "1.4.357-1mattos1"
+expected_debian_role = "Vulkan diagnostic utilities"
+classification = "debian-compatible"
+known_gaps = ["X11 cube targets are intentionally absent"]
 
 [[package]]
 debian_name = "cosmic-comp"

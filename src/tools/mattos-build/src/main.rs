@@ -3470,6 +3470,12 @@ fn stage_resource_profile(stage: BuildStage) -> scheduler::StageResourceProfile 
     if stage == BuildStage::Libcap {
         return scheduler::StageResourceProfile::serial();
     }
+    if matches!(
+        stage,
+        BuildStage::Llvm | BuildStage::Mesa | BuildStage::CosmicComp
+    ) {
+        return scheduler::StageResourceProfile::high_memory_parallel();
+    }
     match stage {
         BuildStage::Kernel
         | BuildStage::Glibc
@@ -3485,7 +3491,6 @@ fn stage_resource_profile(stage: BuildStage) -> scheduler::StageResourceProfile 
         | BuildStage::Git
         | BuildStage::Libffi
         | BuildStage::Python
-        | BuildStage::Llvm
         | BuildStage::Rust
         | BuildStage::SudoRs
         | BuildStage::Init => scheduler::StageResourceProfile::memory_heavy(),
@@ -3572,6 +3577,9 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::Libinput => vec!["out/build/libinput/install".into()],
         BuildStage::Pixman => vec!["out/build/pixman/install".into()],
         BuildStage::Libdrm => vec!["out/build/libdrm/install".into()],
+        BuildStage::VulkanHeaders => vec!["out/build/vulkan-headers/install".into()],
+        BuildStage::VulkanLoader => vec!["out/build/vulkan-loader/install".into()],
+        BuildStage::VulkanTools => vec!["out/build/vulkan-tools/install".into()],
         BuildStage::Mesa => vec!["out/build/mesa/install".into()],
         BuildStage::CosmicComp => vec!["out/build/cosmic-comp/install/usr/bin/cosmic-comp".into()],
         BuildStage::Python => vec!["out/build/cpython/install".into()],
@@ -3921,6 +3929,9 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::Libinput => build_libinput(repo_root),
         BuildStage::Pixman => build_pixman(repo_root),
         BuildStage::Libdrm => build_libdrm(repo_root),
+        BuildStage::VulkanHeaders => build_vulkan_headers(repo_root),
+        BuildStage::VulkanLoader => build_vulkan_loader(repo_root),
+        BuildStage::VulkanTools => build_vulkan_tools(repo_root),
         BuildStage::Mesa => build_mesa(repo_root),
         BuildStage::CosmicComp => build_cosmic_comp(repo_root),
         BuildStage::Python => build_cpython(repo_root),
@@ -8105,11 +8116,13 @@ fn build_libdrm(repo_root: &Path) -> Result<()> {
             "-Dtests=false",
             "-Dcairo-tests=disabled",
             "-Dman-pages=disabled",
+            // Iris and ANV use the DRM uAPI directly; libdrm_intel is the
+            // pre-GEM compatibility helper and would pull in libpciaccess.
             "-Dintel=disabled",
             "-Dradeon=disabled",
-            "-Damdgpu=disabled",
-            "-Dnouveau=disabled",
-            "-Dvmwgfx=disabled",
+            "-Damdgpu=enabled",
+            "-Dnouveau=enabled",
+            "-Dvmwgfx=enabled",
             "-Dfreedreno=disabled",
             "-Dvc4=disabled",
             "-Detnaviv=disabled",
@@ -8117,6 +8130,363 @@ fn build_libdrm(repo_root: &Path) -> Result<()> {
         ],
         "usr/lib/x86_64-linux-gnu/libdrm.so.2",
         &[],
+    )
+}
+
+fn ensure_pinned_transitive_checkout(root: &Path, repo: &str, commit: &str) -> Result<()> {
+    if !root.join(".git").is_dir() {
+        remove_path_if_exists(root)?;
+        fs::create_dir_all(root.parent().expect("transitive checkout parent"))?;
+        run_cmd(
+            root.parent().expect("transitive checkout parent"),
+            "git",
+            &[
+                "clone",
+                "--filter=blob:none",
+                "--no-checkout",
+                repo,
+                path_str(root)?,
+            ],
+        )?;
+        run_cmd(root, "git", &["checkout", "--detach", commit])?;
+    }
+    let checked_out = run_cmd_capture(root, "git", &["rev-parse", "HEAD"])?;
+    if checked_out.trim() != commit {
+        bail!(
+            "transitive build input {} is at {}, expected {commit}",
+            root.display(),
+            checked_out.trim()
+        )
+    }
+    Ok(())
+}
+
+fn prepare_mesa_spirv_dependencies(repo_root: &Path) -> Result<PathBuf> {
+    const TOOLS_COMMIT: &str = "0539c81f69a3daeb706fd3477dca61435b475156";
+    const TOOLS_HEADERS_COMMIT: &str = "ad9184e76a66b1001c29db9b0a3e87f646c64de0";
+    const TRANSLATOR_COMMIT: &str = "c88a2e4a1ec77f7adc8916940afd9754c3a30fab";
+    const TRANSLATOR_HEADERS_COMMIT: &str = "948a3b0997e2dffea5484b3df7bd5590c5b844cc";
+
+    let root = repo_root.join("out/build/mesa/spirv-deps");
+    let tools = root.join("tools");
+    let tools_headers = root.join("headers");
+    let translator = root.join("translator");
+    let translator_headers = root.join("translator-headers");
+    ensure_pinned_transitive_checkout(
+        &tools,
+        "https://github.com/KhronosGroup/SPIRV-Tools.git",
+        TOOLS_COMMIT,
+    )?;
+    ensure_pinned_transitive_checkout(
+        &tools_headers,
+        "https://github.com/KhronosGroup/SPIRV-Headers.git",
+        TOOLS_HEADERS_COMMIT,
+    )?;
+    ensure_pinned_transitive_checkout(
+        &translator,
+        "https://github.com/KhronosGroup/SPIRV-LLVM-Translator.git",
+        TRANSLATOR_COMMIT,
+    )?;
+    ensure_pinned_transitive_checkout(
+        &translator_headers,
+        "https://github.com/KhronosGroup/SPIRV-Headers.git",
+        TRANSLATOR_HEADERS_COMMIT,
+    )?;
+
+    let install = root.join("install");
+    let libdir = install.join("usr/lib/x86_64-linux-gnu");
+    let pkgconfig = libdir.join("pkgconfig");
+    let tools_build = root.join("tools-build");
+    if !pkgconfig.join("SPIRV-Tools.pc").is_file() {
+        run_cmd(
+            repo_root,
+            "cmake",
+            &[
+                "-S",
+                path_str(&tools)?,
+                "-B",
+                path_str(&tools_build)?,
+                "-G",
+                "Ninja",
+                "-DCMAKE_BUILD_TYPE=Release",
+                "-DCMAKE_INSTALL_PREFIX=/usr",
+                "-DCMAKE_INSTALL_LIBDIR=lib/x86_64-linux-gnu",
+                &format!("-DSPIRV-Headers_SOURCE_DIR={}", tools_headers.display()),
+                "-DSPIRV_SKIP_TESTS=ON",
+                "-DSPIRV_SKIP_EXECUTABLES=ON",
+                "-DSPIRV_WERROR=OFF",
+            ],
+        )?;
+        run_cmd(
+            repo_root,
+            "cmake",
+            &["--build", path_str(&tools_build)?, "--parallel"],
+        )?;
+        run_cmd_with_env_overrides(
+            repo_root,
+            "cmake",
+            &["--install", path_str(&tools_build)?],
+            &[("DESTDIR", install.display().to_string())],
+        )?;
+    }
+
+    let translator_build = root.join("translator-build");
+    if !pkgconfig.join("LLVMSPIRVLib.pc").is_file() {
+        let pkg_path = pkgconfig.display().to_string();
+        run_cmd_with_env_overrides(
+            repo_root,
+            "cmake",
+            &[
+                "-S",
+                path_str(&translator)?,
+                "-B",
+                path_str(&translator_build)?,
+                "-G",
+                "Ninja",
+                "-DCMAKE_BUILD_TYPE=Release",
+                "-DCMAKE_INSTALL_PREFIX=/usr",
+                "-DCMAKE_INSTALL_LIBDIR=lib/x86_64-linux-gnu",
+                &format!(
+                    "-DLLVM_DIR={}",
+                    repo_root
+                        .join("out/build/llvm/install/usr/lib/x86_64-linux-gnu/cmake/llvm")
+                        .display()
+                ),
+                &format!(
+                    "-DLLVM_EXTERNAL_SPIRV_HEADERS_SOURCE_DIR={}",
+                    translator_headers.display()
+                ),
+                "-DLLVM_SPIRV_BUILD_EXTERNAL=YES",
+                "-DLLVM_SPIRV_INCLUDE_TESTS=OFF",
+                "-DLLVM_SPIRV_ENABLE_LIBSPIRV_DIS=OFF",
+                "-DBUILD_SHARED_LIBS=OFF",
+            ],
+            &[("PKG_CONFIG_PATH", pkg_path.clone())],
+        )?;
+        run_cmd_with_env_overrides(
+            repo_root,
+            "cmake",
+            &["--build", path_str(&translator_build)?, "--parallel"],
+            &[("PKG_CONFIG_PATH", pkg_path.clone())],
+        )?;
+        run_cmd_with_env_overrides(
+            repo_root,
+            "cmake",
+            &["--install", path_str(&translator_build)?],
+            &[
+                ("DESTDIR", install.display().to_string()),
+                ("PKG_CONFIG_PATH", pkg_path),
+            ],
+        )?;
+    }
+    // These packages are staged beneath DESTDIR but advertise /usr in their
+    // generated .pc files. Point build-only consumers at the output-owned
+    // prefix so pkg-config can never resolve matching host headers/libraries.
+    for name in ["SPIRV-Tools.pc", "SPIRV-Tools-shared.pc", "LLVMSPIRVLib.pc"] {
+        let descriptor = pkgconfig.join(name);
+        if descriptor.is_file() {
+            let contents = fs::read_to_string(&descriptor)?;
+            let output_prefix = format!("prefix={}", install.join("usr").display());
+            let normalized = contents.replacen("prefix=/usr", &output_prefix, 1);
+            fs::write(&descriptor, normalized)?;
+        }
+    }
+    Ok(pkgconfig)
+}
+
+fn rewrite_pkgconfig_prefix(source: &Path, destination: &Path, prefix: &Path) -> Result<()> {
+    let contents = fs::read_to_string(source)
+        .with_context(|| format!("failed to read {}", source.display()))?;
+    let rewritten = contents.replacen("prefix=/usr", &format!("prefix={}", prefix.display()), 1);
+    fs::write(destination, rewritten)
+        .with_context(|| format!("failed to write {}", destination.display()))
+}
+
+/// Vulkan-Tools needs both Wayland's scanner XML and wayland-protocols at
+/// configure/build time. Their installed pkg-config files deliberately use
+/// the final `/usr` prefix, so make output-owned build descriptors that point
+/// at the staged MattOS trees rather than accidentally consulting the host.
+fn vulkan_wayland_pkgconfig(repo_root: &Path) -> Result<PathBuf> {
+    let output = repo_root.join("out/build/vulkan-tools/build-pkgconfig");
+    remove_path_if_exists(&output)?;
+    fs::create_dir_all(&output)?;
+    let wayland_usr = repo_root.join("out/build/wayland/install/usr");
+    let wayland_pc = wayland_usr.join("lib/x86_64-linux-gnu/pkgconfig");
+    for name in ["wayland-client.pc", "wayland-scanner.pc"] {
+        rewrite_pkgconfig_prefix(&wayland_pc.join(name), &output.join(name), &wayland_usr)?;
+    }
+    let protocols_usr = repo_root.join("out/build/mesa/install/usr");
+    rewrite_pkgconfig_prefix(
+        &protocols_usr.join("share/pkgconfig/wayland-protocols.pc"),
+        &output.join("wayland-protocols.pc"),
+        &protocols_usr,
+    )?;
+    Ok(output)
+}
+
+fn build_vulkan_cmake(
+    repo_root: &Path,
+    component: &str,
+    source_relative: &str,
+    dependencies: &[&str],
+    options: &[String],
+    required_outputs: &[&str],
+    pkgconfig_override: Option<&Path>,
+) -> Result<()> {
+    let source = repo_root.join(source_relative);
+    let out_root = repo_root.join("out/build").join(component);
+    let source_copy = out_root.join("source");
+    let build_dir = out_root.join("build");
+    let install_dir = out_root.join("install");
+    let stamp_path = out_root.join("recipe.stamp");
+    let state = fs::read_to_string(
+        repo_root
+            .join("upstream/state")
+            .join(format!("{component}.toml")),
+    )?;
+    let stamp = format!("{state}\n{}\n", options.join("\n"));
+    if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+        remove_path_if_exists(&source_copy)?;
+        remove_path_if_exists(&build_dir)?;
+        remove_path_if_exists(&install_dir)?;
+    }
+    fs::create_dir_all(&out_root)?;
+    if !source_copy.join("CMakeLists.txt").is_file() {
+        sync_build_source(&source, &source_copy)?;
+    }
+    fs::create_dir_all(&build_dir)?;
+    let mut env = staged_library_environment(repo_root, dependencies)?;
+    if let Some(override_dir) = pkgconfig_override {
+        let existing = env
+            .iter()
+            .find(|(key, _)| *key == "PKG_CONFIG_LIBDIR")
+            .map(|(_, value)| value.as_str())
+            .unwrap_or_default();
+        let value = if existing.is_empty() {
+            override_dir.display().to_string()
+        } else {
+            format!("{}:{existing}", override_dir.display())
+        };
+        for (key, current) in &mut env {
+            if *key == "PKG_CONFIG_PATH" || *key == "PKG_CONFIG_LIBDIR" {
+                *current = value.clone();
+            }
+        }
+    }
+    if !build_dir.join("build.ninja").is_file() {
+        let mut args = vec![
+            "-S".to_string(),
+            source_copy.display().to_string(),
+            "-B".to_string(),
+            build_dir.display().to_string(),
+            "-G".to_string(),
+            "Ninja".to_string(),
+            "-DCMAKE_BUILD_TYPE=Release".to_string(),
+            "-DCMAKE_INSTALL_PREFIX=/usr".to_string(),
+            "-DCMAKE_INSTALL_LIBDIR=lib/x86_64-linux-gnu".to_string(),
+            "-DCMAKE_FIND_PACKAGE_NO_PACKAGE_REGISTRY=ON".to_string(),
+        ];
+        args.extend(options.iter().cloned());
+        let refs = args.iter().map(String::as_str).collect::<Vec<_>>();
+        run_cmd_with_env_overrides(repo_root, "cmake", &refs, &env)?;
+    }
+    let jobs = scheduler::child_job_limit().max(1).to_string();
+    run_cmd_with_env_overrides(
+        repo_root,
+        "cmake",
+        &["--build", path_str(&build_dir)?, "--parallel", &jobs],
+        &env,
+    )?;
+    remove_path_if_exists(&install_dir)?;
+    run_cmd_with_env_overrides(
+        repo_root,
+        "cmake",
+        &["--install", path_str(&build_dir)?, "--prefix", "/usr"],
+        &[
+            env.as_slice(),
+            &[("DESTDIR", install_dir.display().to_string())],
+        ]
+        .concat(),
+    )?;
+    for relative in required_outputs {
+        if !install_dir.join(relative).is_file() {
+            bail!("{component} install did not produce {relative}")
+        }
+    }
+    fs::write(stamp_path, stamp)?;
+    Ok(())
+}
+
+fn build_vulkan_headers(repo_root: &Path) -> Result<()> {
+    build_vulkan_cmake(
+        repo_root,
+        "vulkan-headers",
+        "src/system/graphics/vulkan-headers",
+        &[],
+        &[
+            "-DVULKAN_HEADERS_ENABLE_TESTS=OFF".to_string(),
+            "-DVULKAN_HEADERS_ENABLE_MODULE=OFF".to_string(),
+        ],
+        &[
+            "usr/include/vulkan/vulkan.h",
+            "usr/share/vulkan/registry/vk.xml",
+        ],
+        None,
+    )
+}
+
+fn build_vulkan_loader(repo_root: &Path) -> Result<()> {
+    let headers = repo_root.join("out/build/vulkan-headers/install/usr/share/cmake/VulkanHeaders");
+    build_vulkan_cmake(
+        repo_root,
+        "vulkan-loader",
+        "src/system/graphics/vulkan-loader",
+        &["vulkan-headers", "wayland", "cpython"],
+        &[
+            format!("-DVulkanHeaders_DIR={}", headers.display()),
+            "-DBUILD_TESTS=OFF".to_string(),
+            "-DBUILD_WERROR=OFF".to_string(),
+            "-DLOADER_CODEGEN=ON".to_string(),
+            "-DBUILD_WSI_XCB_SUPPORT=OFF".to_string(),
+            "-DBUILD_WSI_XLIB_SUPPORT=OFF".to_string(),
+            "-DBUILD_WSI_XLIB_XRANDR_SUPPORT=OFF".to_string(),
+            "-DBUILD_WSI_WAYLAND_SUPPORT=ON".to_string(),
+        ],
+        &["usr/lib/x86_64-linux-gnu/libvulkan.so.1"],
+        None,
+    )
+}
+
+fn build_vulkan_tools(repo_root: &Path) -> Result<()> {
+    let pkgconfig = vulkan_wayland_pkgconfig(repo_root)?;
+    let headers = repo_root.join("out/build/vulkan-headers/install/usr/share/cmake/VulkanHeaders");
+    build_vulkan_cmake(
+        repo_root,
+        "vulkan-tools",
+        "src/system/graphics/vulkan-tools",
+        &[
+            "vulkan-headers",
+            "vulkan-loader",
+            "wayland",
+            "libffi",
+            "mesa",
+            "cpython",
+        ],
+        &[
+            format!("-DVulkanHeaders_DIR={}", headers.display()),
+            "-DBUILD_CUBE=ON".to_string(),
+            "-DBUILD_VULKANINFO=ON".to_string(),
+            "-DBUILD_ICD=OFF".to_string(),
+            "-DBUILD_TESTS=OFF".to_string(),
+            "-DBUILD_WERROR=OFF".to_string(),
+            "-DTOOLS_CODEGEN=OFF".to_string(),
+            "-DBUILD_WSI_XCB_SUPPORT=OFF".to_string(),
+            "-DBUILD_WSI_XLIB_SUPPORT=OFF".to_string(),
+            "-DBUILD_WSI_WAYLAND_SUPPORT=ON".to_string(),
+            "-DBUILD_WSI_DISPLAY_SUPPORT=ON".to_string(),
+        ],
+        &["usr/bin/vulkaninfo", "usr/bin/vkcube"],
+        Some(&pkgconfig),
     )
 }
 
@@ -8142,24 +8512,159 @@ fn build_mesa(repo_root: &Path) -> Result<()> {
             ],
         )?;
     }
+    // Mesa uses glslangValidator at build time to compile the internal BVH
+    // shaders shared by RADV, ANV and lavapipe. Keep that transitive build
+    // tool pinned and output-owned; none of it is copied into the runtime.
+    const GLSLANG_COMMIT: &str = "8a85691a0740d390761a1008b4696f57facd02c4";
+    let glslang_root = repo_root.join("out/build/mesa/glslang");
+    let glslang_source = glslang_root.join("source");
+    let glslang_build = glslang_root.join("build");
+    let glslang_validator = glslang_build.join("StandAlone/glslangValidator");
+    if !glslang_validator.is_file() {
+        remove_path_if_exists(&glslang_root)?;
+        fs::create_dir_all(&glslang_root)?;
+        ensure_pinned_transitive_checkout(
+            &glslang_source,
+            "https://github.com/KhronosGroup/glslang.git",
+            GLSLANG_COMMIT,
+        )?;
+        run_cmd(
+            repo_root,
+            "cmake",
+            &[
+                "-S",
+                path_str(&glslang_source)?,
+                "-B",
+                path_str(&glslang_build)?,
+                "-DCMAKE_BUILD_TYPE=Release",
+                "-DENABLE_OPT=OFF",
+                "-DENABLE_HLSL=OFF",
+                "-DENABLE_GLSLANG_BINARIES=ON",
+            ],
+        )?;
+        run_cmd(
+            repo_root,
+            "cmake",
+            &[
+                "--build",
+                path_str(&glslang_build)?,
+                "--target",
+                "glslang-standalone",
+                "--parallel",
+            ],
+        )?;
+    }
+    let checked_out = run_cmd_capture(&glslang_source, "git", &["rev-parse", "HEAD"])?;
+    if checked_out.trim() != GLSLANG_COMMIT {
+        bail!(
+            "Mesa glslang build tool is at {}, expected {GLSLANG_COMMIT}",
+            checked_out.trim()
+        )
+    }
+    let spirv_pkgconfig = prepare_mesa_spirv_dependencies(repo_root)?;
+    let rust_tools = repo_root.join("out/build/rust/install/usr/bin");
+    let cbindgen_root = repo_root.join("out/build/mesa/cbindgen");
+    let cbindgen = cbindgen_root.join("bin/cbindgen");
+    if !cbindgen.is_file() {
+        let cargo = rust_tools.join("cargo");
+        let rustc = rust_tools.join("rustc");
+        run_cmd_with_env_overrides(
+            repo_root,
+            path_str(&cargo)?,
+            &[
+                "install",
+                "cbindgen",
+                "--version",
+                "0.29.4",
+                "--locked",
+                "--root",
+                path_str(&cbindgen_root)?,
+            ],
+            &[
+                (
+                    "CARGO_HOME",
+                    repo_root
+                        .join("out/build/mesa/cargo-home")
+                        .display()
+                        .to_string(),
+                ),
+                ("RUSTC", rustc.display().to_string()),
+            ],
+        )?;
+    }
+    // Debian's bindgen 0.71.1 predates the Clang 22 AST behavior used by the
+    // source-built MattOS LLVM and emits opaque one-byte Mesa structs with
+    // contradictory layout assertions. Pin a current, known-good generator
+    // beside cbindgen so Mesa's Rust/NVK bindings stay output-owned too.
+    let bindgen_root = repo_root.join("out/build/mesa/bindgen");
+    let bindgen = bindgen_root.join("bin/bindgen");
+    if !bindgen.is_file() {
+        let cargo = rust_tools.join("cargo");
+        let rustc = rust_tools.join("rustc");
+        run_cmd_with_env_overrides(
+            repo_root,
+            path_str(&cargo)?,
+            &[
+                "install",
+                "bindgen-cli",
+                "--version",
+                "0.72.1",
+                "--locked",
+                "--root",
+                path_str(&bindgen_root)?,
+            ],
+            &[
+                (
+                    "CARGO_HOME",
+                    repo_root
+                        .join("out/build/mesa/cargo-home")
+                        .display()
+                        .to_string(),
+                ),
+                ("RUSTC", rustc.display().to_string()),
+            ],
+        )?;
+    }
+    let glslang_path = glslang_validator
+        .parent()
+        .expect("glslang validator parent")
+        .display()
+        .to_string();
+    let llvm_tools = repo_root.join("out/build/llvm/install/usr/bin");
+    let wayland_tools = repo_root.join("out/build/wayland/install/usr/bin");
     build_meson_runtime(
         repo_root,
         "mesa",
         "src/system/graphics/mesa",
-        &["libdrm", "libdisplay-info", "llvm", "zlib", "systemd"],
+        &[
+            "libdrm",
+            "libdisplay-info",
+            "libffi",
+            "llvm",
+            "zlib",
+            "zstd",
+            "systemd",
+            "wayland",
+        ],
         &[
             "--prefix=/usr",
             "--libdir=lib/x86_64-linux-gnu",
-            "-Dplatforms=[]",
+            "-Dplatforms=wayland",
+            "-Degl-native-platform=wayland",
             "-Dglx=disabled",
-            // QEMU's virtio-gpu KMS device is paired by Mesa's kmsro path with
-            // the VirGL Gallium renderer.  llvmpipe remains useful for headless
-            // software fallback, but cannot export the hardware-selected KMS
-            // buffers that COSMIC needs for scanout.
+            "-Dopengl=true",
+            "-Dgles1=enabled",
+            "-Dgles2=enabled",
+            // Keep software and QEMU renderers while covering the production
+            // DRM drivers enabled by MattOS' generic modular kernel. SVGA is
+            // the corresponding VMware guest renderer.
             "-Degl=enabled",
             "-Dgbm=enabled",
-            "-Dgallium-drivers=llvmpipe,virgl",
-            "-Dvulkan-drivers=[]",
+            "-Dgallium-drivers=radeonsi,iris,nouveau,virgl,llvmpipe,svga",
+            // RADV, ANV and NVK are the hardware Vulkan implementations;
+            // lavapipe and Venus provide software and virtio-gpu fallbacks.
+            "-Dvulkan-drivers=amd,intel,nouveau,swrast,virtio",
+            "-Dvulkan-layers=device-select",
             "-Dllvm=enabled",
             "-Dshared-llvm=enabled",
             "-Dcpp_rtti=false",
@@ -8167,10 +8672,23 @@ fn build_mesa(repo_root: &Path) -> Result<()> {
             "-Denable-glcpp-tests=false",
             "-Dtools=[]",
             "-Dhtml-docs=disabled",
-            "-Dzstd=disabled",
+            "-Dzstd=enabled",
         ],
         "usr/lib/x86_64-linux-gnu/libgbm.so.1",
-        &[("PYTHONPATH", python_deps.display().to_string())],
+        &[
+            ("PYTHONPATH", python_deps.display().to_string()),
+            ("PKG_CONFIG_PATH", spirv_pkgconfig.display().to_string()),
+            (
+                "PATH",
+                format!(
+                    "{}:{}:{glslang_path}:{}:{}:/usr/bin:/bin",
+                    bindgen_root.join("bin").display(),
+                    cbindgen_root.join("bin").display(),
+                    llvm_tools.display(),
+                    wayland_tools.display()
+                ),
+            ),
+        ],
     )
 }
 
@@ -8466,7 +8984,9 @@ fn build_llvm(repo_root: &Path) -> Result<()> {
         "-DLLVM_FORCE_VC_REPOSITORY=https://github.com/llvm/llvm-project.git".to_string(),
         "-DLLVM_FORCE_VC_REVISION=ca7933e47d3a3451d81e72ac174dcb5aa28b59d1".to_string(),
         "-DLLVM_ENABLE_PROJECTS=clang;lld".to_string(),
-        "-DLLVM_TARGETS_TO_BUILD=X86;AArch64;RISCV".to_string(),
+        // AMDGPU is a userspace compiler backend required by radeonsi/RADV;
+        // it does not add a MattOS CPU architecture target.
+        "-DLLVM_TARGETS_TO_BUILD=X86;AArch64;RISCV;AMDGPU".to_string(),
         "-DLLVM_ENABLE_ASSERTIONS=OFF".to_string(),
         "-DLLVM_INCLUDE_TESTS=OFF".to_string(),
         "-DLLVM_INCLUDE_EXAMPLES=OFF".to_string(),
@@ -13399,6 +13919,7 @@ fn build_live_root_atomic(repo_root: &Path) -> Result<()> {
     }
     let destination = repo_root.join(LIVE_ROOT_IMAGE_PATH);
     let temp = performance::temporary_sibling(&destination, "building")?;
+    let processors = scheduler::child_job_limit().clamp(1, 4).to_string();
     let result = run_cmd(
         repo_root,
         "mksquashfs",
@@ -13411,7 +13932,7 @@ fn build_live_root_atomic(repo_root: &Path) -> Result<()> {
             "-b",
             "1M",
             "-processors",
-            "1",
+            &processors,
             "-all-root",
             "-no-progress",
             "-no-recovery",
@@ -14470,10 +14991,15 @@ mod tests {
     }
 
     #[test]
-    fn only_libcap_requires_serial_child_jobs() {
+    fn memory_intensive_toolchain_and_graphics_stages_are_capped() {
         for stage in build_plan(BuildStage::All) {
             let expected = if stage == BuildStage::Libcap {
                 scheduler::ChildJobPolicy::Serial
+            } else if matches!(
+                stage,
+                BuildStage::Llvm | BuildStage::Mesa | BuildStage::CosmicComp
+            ) {
+                scheduler::ChildJobPolicy::Capped(4)
             } else {
                 scheduler::ChildJobPolicy::SchedulerGrant
             };
@@ -14559,6 +15085,9 @@ mod tests {
             ("lz4", 19.220),
             ("make", 17.947),
             ("mesa", 300.000),
+            ("vulkan-headers", 7.000),
+            ("vulkan-loader", 14.000),
+            ("vulkan-tools", 43.000),
             ("ncurses", 39.520),
             ("openssl", 197.919),
             ("openssh", 35.000),
@@ -15881,6 +16410,9 @@ mod tests {
         assert!(unit.contains("ExecStartPre=/usr/bin/sh -ec"));
         assert!(unit.contains("test -S \"$${XDG_RUNTIME_DIR}/$${WAYLAND_DISPLAY}\""));
         assert!(unit.contains("compositor did not publish"));
+        assert!(unit.contains("Environment=WGPU_BACKEND=gl"));
+        assert!(!unit.contains("LIBGL_ALWAYS_SOFTWARE"));
+        assert!(!unit.contains("MESA_LOADER_DRIVER_OVERRIDE"));
         assert!(unit.contains("ExecStart=/usr/bin/mattos-install-cosmic"));
     }
 
@@ -15894,11 +16426,26 @@ mod tests {
     }
 
     #[test]
-    fn mesa_stage_enables_the_qemu_virtio_gallium_renderer() {
+    fn mesa_stage_covers_generic_hardware_virtual_and_software_renderers() {
         let source = include_str!("main.rs");
         let start = source.find("fn build_mesa").unwrap();
         let end = source[start..].find("fn build_cosmic_comp").unwrap() + start;
-        assert!(source[start..end].contains("-Dgallium-drivers=llvmpipe,virgl"));
+        let recipe = &source[start..end];
+        assert!(recipe.contains("-Dgallium-drivers=radeonsi,iris,nouveau,virgl,llvmpipe,svga"));
+        assert!(recipe.contains("-Dvulkan-drivers=amd,intel,nouveau,swrast,virtio"));
+        for option in [
+            "-Dplatforms=wayland",
+            "-Degl=enabled",
+            "-Dgbm=enabled",
+            "-Dopengl=true",
+            "-Dgles1=enabled",
+            "-Dgles2=enabled",
+            "-Dvulkan-layers=device-select",
+        ] {
+            assert!(recipe.contains(option), "Mesa recipe omits {option}");
+        }
+        assert!(!recipe.contains("LIBGL_ALWAYS_SOFTWARE"));
+        assert!(!recipe.contains("MESA_LOADER_DRIVER_OVERRIDE"));
     }
 
     #[test]
