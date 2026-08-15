@@ -10,6 +10,8 @@ packages = [
   "libgcc-s1", "libpam-modules", "libpam-runtime", "libpam0g",
   "libssl3t64", "libstdc++-14-dev", "libstdc++6", "libsystemd0",
   "libudev1", "linux-headers-amd64", "linux-image-amd64", "linux-libc-dev",
+  "linux-modules-7.2.0-rc5-mattos",
+  "linux-firmware", "wireless-regdb",
   "login", "make", "mattos-base-files", "mattos-brush", "mattos-libgcc-dev",
   "mattos-filesystem", "mattos-libcrypto3", "mattos-libstdc++-dev", "mattos-sudo-rs", "mount",
   "passwd", "systemd", "udev", "util-linux", "gzip", "bzip2", "xz-utils", "zstd",

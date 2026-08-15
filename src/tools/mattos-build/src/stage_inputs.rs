@@ -5,7 +5,11 @@ pub(crate) const AUTHORITATIVE_GRUB_CFG: &str = "src/boot/grub/grub.cfg";
 
 pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
     let roots: &[&str] = match stage {
-        BuildStage::Kernel => &["src/kernel/linux", "src/kernel/config/x86_64_mattos.config"],
+        BuildStage::Kernel => &[
+            "src/kernel/linux",
+            "src/kernel/config/x86_64_mattos.config",
+            "src/kernel/config/x86_64_mattos.policy.toml",
+        ],
         BuildStage::Glibc => &["src/system/libc/glibc"],
         BuildStage::GccRuntime | BuildStage::GccToolchain => &["src/toolchain/gcc"],
         BuildStage::Binutils => &["src/toolchain/binutils"],
@@ -96,6 +100,7 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::Init => &["src/userland/init"],
         BuildStage::Installer => &[
             "src/system/installer",
+            "src/boot/module-loader.h",
             "src/system/storage/btrfs-progs",
             "src/system/storage/dosfstools",
             "src/system/storage/e2fsprogs",
@@ -103,10 +108,15 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "src/desktop/cosmic/iced",
             "src/desktop/cosmic/cosmic-protocols",
             "src/system/libraries/xkbcommon",
+            "src/system/data/linux-firmware",
             "upstream/policies/gitlinks.toml",
         ],
         BuildStage::Rootfs | BuildStage::LiveRoot | BuildStage::All => &[],
-        BuildStage::Initramfs => &["src/boot/live-init.c"],
+        BuildStage::Initramfs => &[
+            "src/boot/live-init.c",
+            "src/boot/module-loader.h",
+            "src/system/data/linux-firmware",
+        ],
         BuildStage::Iso => &[AUTHORITATIVE_GRUB_CFG],
     };
     let mut inputs = roots.iter().map(PathBuf::from).collect::<Vec<_>>();
@@ -132,7 +142,7 @@ pub(crate) fn configuration_inputs(stage: BuildStage) -> Vec<PathBuf> {
 pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
     let tools: &[&str] = match stage {
         BuildStage::LiveRoot => &["mksquashfs", "unsquashfs"],
-        BuildStage::Initramfs => &["gcc", "cpio", "xz"],
+        BuildStage::Initramfs => &["gcc", "cpio", "xz", "modinfo"],
         BuildStage::Xkbcommon => &["gcc", "ld", "meson", "ninja"],
         BuildStage::Libseat
         | BuildStage::LibdisplayInfo
@@ -152,6 +162,7 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
             "grub-mkimage",
             "cpio",
             "xz",
+            "modinfo",
         ],
         BuildStage::Iso => &["grub-mkrescue", "xorriso"],
         stage if is_rust_stage(stage) => &["cargo", "rustc", "gcc", "ld"],
@@ -167,8 +178,8 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
         BuildStage::Python => 4,
         BuildStage::Llvm => 5,
         BuildStage::LiveRoot => 1,
-        BuildStage::Initramfs => 5,
-        BuildStage::Installer => 5,
+        BuildStage::Initramfs => 7,
+        BuildStage::Installer => 7,
         BuildStage::Xkbcommon => 4,
         BuildStage::Libseat
         | BuildStage::LibdisplayInfo

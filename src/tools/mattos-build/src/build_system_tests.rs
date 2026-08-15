@@ -168,12 +168,18 @@ fn real_stage_specs_track_tool_recipe_and_dependency_output_identity() {
         &root.join("src/boot/live-init.c"),
         "int main(void) { return 0; }\n",
     );
+    write_file(&root.join("src/boot/module-loader.h"), "/* loader */\n");
+    write_file(
+        &root.join("src/system/data/linux-firmware/WHENCE"),
+        "fixture firmware provenance\n",
+    );
     let initramfs_before = performance::compute_stage_inputs(root, &initramfs).unwrap();
     initramfs.recipe.push_str(":revision-two");
     let initramfs_after = performance::compute_stage_inputs(root, &initramfs).unwrap();
     assert_ne!(initramfs_before.full_digest, initramfs_after.full_digest);
 
     publish_dependency(root, "formal-sysroot", "input-one", "same-sysroot-bytes");
+    publish_dependency(root, "linux", "input-one", "same-linux-bytes");
     let initramfs = build_stage_spec(BuildStage::Initramfs);
     let before = performance::compute_stage_inputs(root, &initramfs).unwrap();
     publish_dependency(root, "formal-sysroot", "input-two", "same-sysroot-bytes");
@@ -214,16 +220,20 @@ fn package_rootfs_initramfs_and_iso_contracts_follow_consumed_artifacts() {
 
     let initramfs = build_stage_spec(BuildStage::Initramfs);
     assert!(initramfs.configuration_inputs.is_empty());
-    assert_eq!(initramfs.dependencies, ["formal-sysroot"]);
+    assert_eq!(initramfs.dependencies, ["formal-sysroot", "linux"]);
     assert_eq!(
         initramfs.source_inputs,
-        [PathBuf::from("src/boot/live-init.c")]
+        [
+            PathBuf::from("src/boot/live-init.c"),
+            PathBuf::from("src/boot/module-loader.h"),
+            PathBuf::from("src/system/data/linux-firmware")
+        ]
     );
     assert_eq!(
         initramfs.outputs,
         [PathBuf::from("out/build/early-initramfs.cpio.xz")]
     );
-    assert_eq!(initramfs.tools, ["gcc", "cpio", "xz"]);
+    assert_eq!(initramfs.tools, ["gcc", "cpio", "xz", "modinfo"]);
 
     let live_root = build_stage_spec(BuildStage::LiveRoot);
     assert_eq!(live_root.dependencies, ["rootfs"]);
@@ -264,7 +274,10 @@ fn cold_build_concurrency_groups_preserve_barriers_and_output_ownership() {
     assert_eq!(graph["repository"], ["packages"].into_iter().collect());
     assert!(graph["rootfs"].contains("repository"));
     assert_eq!(graph["live-root"], ["rootfs"].into_iter().collect());
-    assert_eq!(graph["initramfs"], ["formal-sysroot"].into_iter().collect());
+    assert_eq!(
+        graph["initramfs"],
+        ["formal-sysroot", "linux"].into_iter().collect()
+    );
     assert_eq!(
         graph["iso"],
         ["initramfs", "linux", "live-root"].into_iter().collect()

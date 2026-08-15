@@ -11,6 +11,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "../../../boot/module-loader.h"
+
 static void fatal(const char *message) {
     dprintf(2, "mattos-installed-init: %s: %s\n", message, strerror(errno));
     for (;;) pause();
@@ -86,6 +88,7 @@ int main(void) {
     if (mount("devtmpfs", "/dev", "devtmpfs", MS_NOSUID, "mode=0755") < 0 && errno != EBUSY) fatal("mount /dev");
     if (mount("proc", "/proc", "proc", MS_NOSUID | MS_NODEV | MS_NOEXEC, NULL) < 0) fatal("mount /proc");
     if (mount("sysfs", "/sys", "sysfs", MS_NOSUID | MS_NODEV | MS_NOEXEC, NULL) < 0) fatal("mount /sys");
+    if (mattos_load_boot_modules() < 0) fatal("load boot-critical kernel modules");
     char expected_uuid[256] = {0};
     if (!command_line_value("mattos.root_uuid", expected_uuid, sizeof(expected_uuid))) {
         errno = EINVAL;

@@ -1,7 +1,7 @@
 [Unit]
 Description=MattOS COSMIC compositor session for the graphical installer
-After=systemd-udevd.service
-Wants=systemd-udevd.service
+After=systemd-udev-trigger.service systemd-udev-settle.service
+Wants=systemd-udev-trigger.service systemd-udev-settle.service
 Before=mattos-install-graphical.service
 ConditionKernelCommandLine=mattos.mode=install-gui
 
@@ -20,6 +20,12 @@ Environment=COSMIC_BACKEND=kms
 # MattOS ships Mesa's GBM backend as part of the source-built runtime closure.
 Environment=GBM_BACKENDS_PATH=/usr/lib/x86_64-linux-gnu/gbm
 Environment=LIBGL_DRIVERS_PATH=/usr/lib/x86_64-linux-gnu/dri
+# A modular DRM driver can finish probing after udevd itself has started.
+# Require both coldplug completion and a usable KMS/input device before the
+# compositor takes its one-shot backend snapshot.
+ExecStartPre=/usr/bin/udevadm settle --timeout=180
+ExecStartPre=/bin/sh -c 'for path in /dev/dri/card[0-9]*; do test -c "$path" && exit 0; done; exit 1'
+ExecStartPre=/bin/sh -c 'for path in /dev/input/event[0-9]*; do test -c "$path" && exit 0; done; exit 1'
 # Mesa's source-built VirGL Gallium path is selected by kmsro for the QEMU
 # virtio-gpu DRM device.  Do not force llvmpipe here: COSMIC explicitly owns
 # the KMS device and requires exportable scanout buffers.

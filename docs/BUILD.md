@@ -234,6 +234,10 @@ loads a small early archive whose static `/init` mounts the ISO SquashFS and a
 tmpfs writable overlay before switching to systemd. The vendor hwdb remains
 generated reproducibly in package staging, and the live overlay provides
 ordinary writable runtime state without modifying the compressed lower root.
+The archive also carries a dependency-ordered, zstd-compressed generic boot
+module closure sourced from the matching MattOS kernel build. The installed
+initramfs uses the same closure; the remaining modules are supplied by the
+versioned `linux-modules-<release>` package under `/usr/lib/modules`.
 See `docs/LIVE_ROOT_ARCHITECTURE.md`.
 
 ## Cleanup

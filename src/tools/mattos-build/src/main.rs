@@ -1694,7 +1694,7 @@ fn build_wsl_iso(
     if !skip_boot_test {
         let repo_expr = shell_escape(&linux_repo);
         let boot_test = format!(
-            "set -euo pipefail; cd {0}; if ! command -v qemu-system-x86_64 >/dev/null 2>&1; then echo 'qemu-system-x86_64 missing in WSL'; exit 22; fi; mkdir -p out/logs; rm -f out/logs/qemu-boot-test.log; (sleep 8; printf 'echo __MATTOS_START__\npwd\nls /\necho MARK_MATTOS\nuname -s\ncat /proc/version\nmkdir -p /tmp/test\ntouch /tmp/test/file\nls /tmp/test\necho __MATTOS_BOOT_OK__\n'; sleep 2) | timeout 180s qemu-system-x86_64 -m 1024 -cdrom out/images/mattos-x86_64.iso -nographic -serial stdio -monitor none -no-reboot -no-shutdown >out/logs/qemu-boot-test.log 2>&1 || true; grep -q '^__MATTOS_START__$' out/logs/qemu-boot-test.log; grep -q '^MARK_MATTOS$' out/logs/qemu-boot-test.log; grep -q '^Linux$' out/logs/qemu-boot-test.log; grep -q '^file$' out/logs/qemu-boot-test.log; grep -q '^__MATTOS_BOOT_OK__$' out/logs/qemu-boot-test.log",
+            "set -euo pipefail; cd {0}; if ! command -v qemu-system-x86_64 >/dev/null 2>&1; then echo 'qemu-system-x86_64 missing in WSL'; exit 22; fi; mkdir -p out/logs; rm -f out/logs/qemu-boot-test.log; (sleep 8; printf 'echo __MATTOS_START__\npwd\nls /\necho MARK_MATTOS\nuname -s\ncat /proc/version\nmkdir -p /tmp/test\ntouch /tmp/test/file\nls /tmp/test\necho __MATTOS_BOOT_OK__\n'; sleep 2) | timeout 180s qemu-system-x86_64 -m 1024 -drive file=out/images/mattos-x86_64.iso,if=none,id=mattos-cd,media=cdrom,readonly=on -device virtio-scsi-pci,id=mattos-scsi -device scsi-cd,drive=mattos-cd,bus=mattos-scsi.0,bootindex=1 -nographic -serial stdio -monitor none -no-reboot -no-shutdown >out/logs/qemu-boot-test.log 2>&1 || true; grep -q '^__MATTOS_START__$' out/logs/qemu-boot-test.log; grep -q '^MARK_MATTOS$' out/logs/qemu-boot-test.log; grep -q '^Linux$' out/logs/qemu-boot-test.log; grep -q '^file$' out/logs/qemu-boot-test.log; grep -q '^__MATTOS_BOOT_OK__$' out/logs/qemu-boot-test.log",
             repo_expr
         );
         run_wsl_bash(&distro, None, &boot_test)?;
@@ -3517,7 +3517,11 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
     let id = build_stage_id(stage);
     let sources = stage_inputs::source_inputs(stage);
     let outputs: Vec<PathBuf> = match stage {
-        BuildStage::Kernel => vec!["out/build/linux/build/arch/x86/boot/bzImage".into()],
+        BuildStage::Kernel => vec![
+            "out/build/linux/build/arch/x86/boot/bzImage".into(),
+            "out/build/linux/modules/usr/lib/modules".into(),
+            "out/build/linux/kernel-release".into(),
+        ],
         BuildStage::Glibc => vec![
             "out/build/glibc/install".into(),
             "out/build/glibc/linux-headers".into(),
@@ -3966,6 +3970,120 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
     }
 }
 
+#[derive(Debug, Deserialize)]
+struct KernelConfigPolicy {
+    minimum_module_symbols: usize,
+    builtin: Vec<String>,
+    module: Vec<String>,
+    unsupported: Vec<String>,
+    unsupported_prefixes: Vec<String>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum KernelConfigState {
+    Builtin,
+    Module,
+    Unsupported,
+}
+
+fn kernel_config_state(config: &str, symbol: &str) -> Option<KernelConfigState> {
+    if config.lines().any(|line| line == format!("{symbol}=y")) {
+        Some(KernelConfigState::Builtin)
+    } else if config.lines().any(|line| line == format!("{symbol}=m")) {
+        Some(KernelConfigState::Module)
+    } else if config
+        .lines()
+        .any(|line| line == format!("# {symbol} is not set"))
+    {
+        Some(KernelConfigState::Unsupported)
+    } else {
+        None
+    }
+}
+
+fn validate_kernel_config_policy(config: &str, policy: &KernelConfigPolicy) -> Result<()> {
+    for (symbols, expected) in [
+        (&policy.builtin, KernelConfigState::Builtin),
+        (&policy.module, KernelConfigState::Module),
+    ] {
+        for symbol in symbols {
+            let actual = kernel_config_state(config, symbol)
+                .with_context(|| format!("kernel policy symbol {symbol} is absent"))?;
+            if actual != expected {
+                bail!("kernel policy requires {symbol}={expected:?}, found {actual:?}");
+            }
+        }
+    }
+    for symbol in &policy.unsupported {
+        if let Some(actual @ (KernelConfigState::Builtin | KernelConfigState::Module)) =
+            kernel_config_state(config, symbol)
+        {
+            bail!("kernel policy requires {symbol}=Unsupported, found {actual:?}");
+        }
+    }
+    for prefix in &policy.unsupported_prefixes {
+        if let Some(line) = config.lines().find(|line| {
+            line.starts_with(prefix)
+                && !line.starts_with("CONFIG_PATA_TIMINGS=")
+                && (line.ends_with("=y") || line.ends_with("=m"))
+        }) {
+            bail!("kernel legacy-family policy rejects {line}");
+        }
+    }
+    let modules = config.lines().filter(|line| line.ends_with("=m")).count();
+    if modules < policy.minimum_module_symbols {
+        bail!(
+            "kernel generic coverage regressed to {modules} module symbols; policy requires at least {}",
+            policy.minimum_module_symbols
+        );
+    }
+    Ok(())
+}
+
+fn read_kernel_config_policy(repo_root: &Path) -> Result<KernelConfigPolicy> {
+    let path = repo_root.join("src/kernel/config/x86_64_mattos.policy.toml");
+    toml::from_str(&fs::read_to_string(&path)?)
+        .with_context(|| format!("parse kernel configuration policy {}", path.display()))
+}
+
+fn kernel_source_worktree_identity(repo_root: &Path) -> Result<String> {
+    let relative = "src/kernel/linux";
+    let diff = Command::new("git")
+        .args(["diff", "--binary", "HEAD", "--", relative])
+        .current_dir(repo_root)
+        .output()?;
+    if !diff.status.success() {
+        bail!("git could not inspect the Linux working tree");
+    }
+    let untracked = Command::new("git")
+        .args([
+            "ls-files",
+            "-z",
+            "--others",
+            "--exclude-standard",
+            "--",
+            relative,
+        ])
+        .current_dir(repo_root)
+        .output()?;
+    if !untracked.status.success() {
+        bail!("git could not inspect untracked Linux inputs");
+    }
+    let mut hasher = Sha256Hasher::new();
+    hasher.update(fs::read(repo_root.join("upstream/state/linux.toml"))?);
+    hasher.update(&diff.stdout);
+    for raw in untracked
+        .stdout
+        .split(|byte| *byte == 0)
+        .filter(|raw| !raw.is_empty())
+    {
+        let path = PathBuf::from(String::from_utf8_lossy(raw).into_owned());
+        hasher.update(path.to_string_lossy().as_bytes());
+        hasher.update(fs::read(repo_root.join(path))?);
+    }
+    Ok(format!("{:x}", hasher.finalize()))
+}
+
 fn build_kernel(repo_root: &Path) -> Result<()> {
     assert_kernel_build_path_safe(repo_root)?;
     let linux = repo_root.join("src/kernel/linux");
@@ -3986,12 +4104,26 @@ fn build_kernel(repo_root: &Path) -> Result<()> {
     let out_root = repo_root.join("out/build/linux");
     let source = out_root.join("source");
     let build = out_root.join("build");
-    remove_path_if_exists(&out_root)?;
-    copy_imported_working_tree(repo_root, Path::new("src/kernel/linux"), &source)?;
+    let source_identity = kernel_source_worktree_identity(repo_root)?;
+    let source_identity_path = out_root.join("source-identity");
+    let source_changed =
+        fs::read_to_string(&source_identity_path).ok().as_deref() != Some(source_identity.as_str());
+    fs::create_dir_all(&out_root)?;
+    if source_changed {
+        remove_path_if_exists(&source)?;
+        remove_path_if_exists(&build)?;
+    }
+    remove_path_if_exists(&out_root.join("modules"))?;
+    if !source.is_dir() {
+        copy_imported_working_tree(repo_root, Path::new("src/kernel/linux"), &source)?;
+        fs::write(&source_identity_path, &source_identity)?;
+    }
     fs::create_dir_all(&build).with_context(|| format!("failed to create {}", build.display()))?;
 
     let config_text = fs::read_to_string(&config)
         .with_context(|| format!("failed to read {}", config.display()))?;
+    let policy = read_kernel_config_policy(repo_root)?;
+    validate_kernel_config_policy(&config_text, &policy)?;
     fs::write(build.join(".config"), config_text)
         .with_context(|| format!("failed to stage kernel config from {}", config.display()))?;
 
@@ -4017,6 +4149,7 @@ fn build_kernel(repo_root: &Path) -> Result<()> {
     let mut olddefconfig_args = vec![output_arg.as_str(), "olddefconfig"];
     olddefconfig_args.extend(kernel_reproducible_args);
     run_cmd_with_env(&source, "make", &olddefconfig_args, env.as_ref())?;
+    validate_kernel_config_policy(&fs::read_to_string(build.join(".config"))?, &policy)?;
     let mut build_args = vec![output_arg.as_str(), "-j", "4"];
     build_args.extend(kernel_reproducible_args);
     run_cmd_with_env(&source, "make", &build_args, env.as_ref()).context("kernel build failed")?;
@@ -4025,6 +4158,50 @@ fn build_kernel(repo_root: &Path) -> Result<()> {
     if !bz.exists() {
         bail!("kernel build finished without bzImage at {}", bz.display())
     }
+    let modules = out_root.join("modules");
+    fs::create_dir_all(&modules)?;
+    let release = fs::read_to_string(build.join("include/config/kernel.release"))?
+        .trim()
+        .to_owned();
+    let module_dir = modules.join("usr/lib/modules").join(&release);
+    let modlib = format!("MODLIB={}", module_dir.display());
+    let mut modules_install_args = vec![
+        output_arg.as_str(),
+        "modules_install",
+        modlib.as_str(),
+        "DEPMOD=true",
+    ];
+    modules_install_args.extend(kernel_reproducible_args);
+    run_cmd_with_env(&source, "make", &modules_install_args, env.as_ref())?;
+    for link in ["build", "source"] {
+        remove_path_if_exists(&module_dir.join(link))?;
+    }
+    run_cmd(
+        repo_root,
+        "depmod",
+        &[
+            "-b",
+            path_str(&modules)?,
+            "-m",
+            "/usr/lib/modules",
+            &release,
+        ],
+    )?;
+    for metadata in ["modules.dep", "modules.alias", "modules.builtin"] {
+        if !module_dir.join(metadata).is_file() {
+            bail!("kernel modules_install/depmod did not produce {metadata}");
+        }
+    }
+    let mut module_files = Vec::new();
+    collect_regular_files(&module_dir, &mut module_files)?;
+    let module_count = module_files
+        .iter()
+        .filter(|path| path.to_string_lossy().ends_with(".ko.zst"))
+        .count();
+    if module_count < 500 {
+        bail!("generic kernel produced only {module_count} compressed modules");
+    }
+    fs::write(out_root.join("kernel-release"), format!("{release}\n"))?;
     Ok(())
 }
 
@@ -10600,6 +10777,155 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
     )
 }
 
+const BOOT_CRITICAL_MODULES: &[&str] = &[
+    "nvme",
+    "ahci",
+    "sd_mod",
+    "sr_mod",
+    // VirtIO device modules do not declare their PCI transport in modules.dep;
+    // load the transport explicitly before probing block and SCSI devices.
+    "virtio_pci",
+    "virtio_blk",
+    "virtio_scsi",
+    "usb_storage",
+    "uas",
+    "xhci_pci",
+    "btrfs",
+    "ext4",
+];
+
+fn module_basename(path: &str) -> Option<String> {
+    let name = Path::new(path).file_name()?.to_str()?;
+    for suffix in [".ko.zst", ".ko.xz", ".ko.gz", ".ko"] {
+        if let Some(stem) = name.strip_suffix(suffix) {
+            return Some(stem.replace('-', "_"));
+        }
+    }
+    None
+}
+
+fn add_module_with_dependencies(
+    path: &str,
+    dependencies: &BTreeMap<String, Vec<String>>,
+    visiting: &mut BTreeSet<String>,
+    ordered: &mut Vec<String>,
+) -> Result<()> {
+    if ordered.iter().any(|existing| existing == path) {
+        return Ok(());
+    }
+    if !visiting.insert(path.to_owned()) {
+        bail!("cycle in kernel modules.dep at {path}");
+    }
+    for dependency in dependencies
+        .get(path)
+        .with_context(|| format!("module {path} absent from modules.dep"))?
+    {
+        add_module_with_dependencies(dependency, dependencies, visiting, ordered)?;
+    }
+    visiting.remove(path);
+    ordered.push(path.to_owned());
+    Ok(())
+}
+
+fn module_firmware_requirements(
+    module_root: &Path,
+    modules: &[String],
+) -> Result<BTreeSet<String>> {
+    let mut firmware = BTreeSet::new();
+    for relative in modules {
+        let module = module_root.join(relative);
+        let output = Command::new("modinfo")
+            .args(["-F", "firmware"])
+            .arg(&module)
+            .output()
+            .with_context(|| {
+                format!(
+                    "failed to inspect firmware metadata for {}",
+                    module.display()
+                )
+            })?;
+        if !output.status.success() {
+            bail!(
+                "modinfo failed for boot-critical module {}: {}",
+                module.display(),
+                String::from_utf8_lossy(&output.stderr).trim()
+            )
+        }
+        for requirement in String::from_utf8(output.stdout)
+            .context("module firmware metadata was not UTF-8")?
+            .lines()
+            .map(str::trim)
+            .filter(|line| !line.is_empty())
+        {
+            firmware.insert(requirement.to_owned());
+        }
+    }
+    Ok(firmware)
+}
+
+fn stage_boot_module_closure(repo_root: &Path, tree: &Path) -> Result<(String, usize, usize)> {
+    let release = fs::read_to_string(repo_root.join("out/build/linux/kernel-release"))?
+        .trim()
+        .to_owned();
+    let module_root = repo_root
+        .join("out/build/linux/modules/usr/lib/modules")
+        .join(&release);
+    let mut dependencies = BTreeMap::<String, Vec<String>>::new();
+    for line in fs::read_to_string(module_root.join("modules.dep"))?.lines() {
+        let (module, dependency_list) = line
+            .split_once(':')
+            .with_context(|| format!("invalid modules.dep line {line:?}"))?;
+        dependencies.insert(
+            module.to_owned(),
+            dependency_list
+                .split_whitespace()
+                .map(str::to_owned)
+                .collect(),
+        );
+    }
+    let by_name = dependencies
+        .keys()
+        .filter_map(|path| module_basename(path).map(|name| (name, path.clone())))
+        .collect::<BTreeMap<_, _>>();
+    let mut ordered = Vec::new();
+    let mut visiting = BTreeSet::new();
+    for required in BOOT_CRITICAL_MODULES {
+        let path = by_name
+            .get(*required)
+            .with_context(|| format!("boot-critical kernel module {required} was not built"))?;
+        add_module_with_dependencies(path, &dependencies, &mut visiting, &mut ordered)?;
+    }
+    let destination_root = tree.join("usr/lib/modules").join(&release);
+    for relative in &ordered {
+        let destination = destination_root.join(relative);
+        fs::create_dir_all(destination.parent().expect("module has parent"))?;
+        fs::copy(module_root.join(relative), &destination)?;
+    }
+    let firmware_requirements = module_firmware_requirements(&module_root, &ordered)?;
+    let firmware_source = repo_root.join("src/system/data/linux-firmware");
+    for requirement in &firmware_requirements {
+        if requirement
+            .chars()
+            .any(|character| matches!(character, '*' | '?' | '['))
+        {
+            bail!("boot-critical module uses unsupported firmware glob {requirement}")
+        }
+        let source = firmware_source.join(requirement);
+        if !source.is_file() {
+            bail!("boot-critical firmware {requirement} is absent from pinned linux-firmware")
+        }
+        let destination = tree.join("usr/lib/firmware").join(requirement);
+        fs::create_dir_all(destination.parent().expect("firmware has parent"))?;
+        fs::copy(&source, &destination)?;
+    }
+    let list = ordered
+        .iter()
+        .map(|path| format!("/usr/lib/modules/{release}/{path}\n"))
+        .collect::<String>();
+    fs::write(tree.join("modules.load"), list)?;
+    Ok((release, ordered.len(), firmware_requirements.len()))
+}
+
 fn build_installer(repo_root: &Path) -> Result<()> {
     let btrfs_root = repo_root.join("out/build/btrfs-progs");
     let btrfs_source = btrfs_root.join("source");
@@ -10790,12 +11116,17 @@ fn build_installer(repo_root: &Path) -> Result<()> {
         ],
     )?;
     set_mode(init, 0o755)?;
+    let (installed_module_release, installed_module_count, installed_firmware_count) =
+        stage_boot_module_closure(repo_root, &init_tree)?;
     let installed_initramfs = repo_root.join("out/build/installed-initramfs.cpio.xz");
     let archive_command = format!(
         "find . -exec touch -h -d @{MATTOS_SOURCE_DATE_EPOCH} {{}} + && find . -print0 | sort -z | cpio --null -o --quiet --reproducible --owner=0:0 --format=newc | xz -1 -T1 --check=crc32 --stdout > {}",
         shell_escape(path_str(&installed_initramfs)?)
     );
     run_cmd(&init_tree, "bash", &["-lc", &archive_command])?;
+    println!(
+        "installed initramfs: {installed_module_count} boot-critical modules and {installed_firmware_count} required firmware files for {installed_module_release}"
+    );
     remove_path_if_exists(&init_tree)?;
 
     let efi = installer_out.join("BOOTX64.EFI");
@@ -13225,6 +13556,8 @@ fn build_initramfs_atomic(repo_root: &Path) -> Result<()> {
         return Err(error);
     }
     set_mode(init.clone(), 0o755)?;
+    let (module_release, module_count, firmware_count) =
+        stage_boot_module_closure(repo_root, &tree)?;
     validate_initramfs_archive_owner(INITRAMFS_ARCHIVE_OWNER)?;
     let archive_command = format!(
         "find . -exec touch -h -d @{MATTOS_SOURCE_DATE_EPOCH} {{}} + && find . -print0 | sort -z | cpio --null -o --quiet --reproducible --owner={INITRAMFS_ARCHIVE_OWNER} --format=newc | xz -1 -T1 --check=crc32 --stdout > {}",
@@ -13246,7 +13579,7 @@ fn build_initramfs_atomic(repo_root: &Path) -> Result<()> {
     fs::write(
         reports.join("early-initramfs-inventory.tsv"),
         format!(
-            "path\trole\tuncompressed_bytes\n/init\tstatic-live-bootstrap\t{}\narchive\txz-newc\t{}\n",
+            "path\trole\tuncompressed_bytes\n/init\tstatic-live-bootstrap\t{}\n/usr/lib/modules/{module_release}\tboot-critical-module-closure({module_count})\t0\n/usr/lib/firmware\tboot-critical-firmware-only({firmware_count})\t0\narchive\txz-newc\t{}\n",
             fs::metadata(&init)?.len(),
             fs::metadata(&temp)?.len()
         ),
@@ -13545,8 +13878,15 @@ fn run_qemu(repo_root: &Path) -> Result<()> {
         &[
             "-m",
             "1024",
-            "-cdrom",
-            iso.to_str().ok_or_else(|| anyhow!("invalid ISO path"))?,
+            "-drive",
+            &format!(
+                "file={},if=none,id=mattos-cd,media=cdrom,readonly=on",
+                iso.to_str().ok_or_else(|| anyhow!("invalid ISO path"))?
+            ),
+            "-device",
+            "virtio-scsi-pci,id=mattos-scsi",
+            "-device",
+            "scsi-cd,drive=mattos-cd,bus=mattos-scsi.0,bootindex=1",
             "-boot",
             "d",
             "-serial",
@@ -14166,7 +14506,7 @@ mod tests {
         assert_eq!(by_id["live-root"].dependencies, ["rootfs"]);
         // The production scheduler represents the already-materialized
         // formal-sysroot barrier by its final producer, Make.
-        assert_eq!(by_id["initramfs"].dependencies, ["make"]);
+        assert_eq!(by_id["initramfs"].dependencies, ["linux", "make"]);
         assert_eq!(
             by_id["iso"].dependencies,
             ["initramfs", "linux", "live-root"]
@@ -14180,6 +14520,7 @@ mod tests {
             ("brush", 262.577),
             ("bzip2", 3.025),
             ("coreutils", 283.164),
+            ("cosmic-comp", 120.000),
             ("curl", 100.519),
             ("dbus-broker", 24.564),
             ("diffutils", 22.260),
@@ -14204,7 +14545,11 @@ mod tests {
             ("kmod", 4.024),
             ("libbsd", 24.058),
             ("libcap", 1.061),
+            ("libdisplay-info", 20.000),
+            ("libdrm", 20.000),
+            ("libevdev", 20.000),
             ("libffi", 20.000),
+            ("libinput", 20.000),
             ("libmd", 15.339),
             ("libxcrypt", 182.310),
             ("linux", 442.489),
@@ -14213,15 +14558,18 @@ mod tests {
             ("llvm", 900.000),
             ("lz4", 19.220),
             ("make", 17.947),
+            ("mesa", 300.000),
             ("ncurses", 39.520),
             ("openssl", 197.919),
             ("openssh", 35.000),
             ("pcre2", 27.509),
             ("patch", 8.000),
+            ("pixman", 20.000),
             ("procps-ng", 29.727),
             ("cpython", 180.000),
             ("rootfs", 107.053),
             ("rust", 1_800.000),
+            ("seatd", 20.000),
             ("sed", 53.006),
             ("selinux", 10.330),
             ("shadow", 57.264),
@@ -14229,6 +14577,8 @@ mod tests {
             ("systemd", 51.721),
             ("tar", 238.505),
             ("util-linux", 15.213),
+            ("wayland", 20.000),
+            ("xkbcommon", 20.000),
             ("xxhash", 0.539),
             ("xz", 37.482),
             ("zlib", 3.408),
@@ -14290,7 +14640,7 @@ mod tests {
 
         let initramfs = build_stage_spec(BuildStage::Initramfs);
         assert!(initramfs.configuration_inputs.is_empty());
-        assert_eq!(initramfs.dependencies, ["formal-sysroot"]);
+        assert_eq!(initramfs.dependencies, ["formal-sysroot", "linux"]);
 
         let live_root = build_stage_spec(BuildStage::LiveRoot);
         assert_eq!(live_root.dependencies, ["rootfs"]);
@@ -15482,16 +15832,17 @@ mod tests {
             grub.matches("initrd /boot/early-initramfs.cpio.xz").count(),
             5
         );
-        for required in [
-            "insmod all_video",
-            "set gfxmode=auto",
-            "set gfxpayload=keep",
-        ] {
+        for required in ["insmod all_video", "set gfxpayload=keep"] {
             assert!(
                 grub.lines().any(|line| line == required),
                 "missing {required}"
             );
         }
+        assert!(
+            grub.lines()
+                .any(|line| line.starts_with("set gfxmode=") && line.contains("auto")),
+            "missing an automatic fallback in gfxmode"
+        );
         assert!(!grub.contains("initramfs_options=size="));
     }
 
@@ -15842,32 +16193,56 @@ mod tests {
     }
 
     #[test]
-    fn live_boot_kernel_features_and_smp_are_builtin() {
+    fn generic_kernel_policy_classifies_builtin_module_and_unsupported_symbols() {
         let config = include_str!("../../../kernel/config/x86_64_mattos.config");
-        for required in [
-            "CONFIG_SMP=y",
-            "CONFIG_NR_CPUS=64",
-            "CONFIG_ATA_PIIX=y",
-            "CONFIG_BLK_DEV_SD=y",
-            "CONFIG_BLK_DEV_SR=y",
-            "CONFIG_BLK_DEV_LOOP=y",
-            "CONFIG_ISO9660_FS=y",
-            "CONFIG_SQUASHFS=y",
-            "CONFIG_SQUASHFS_XZ=y",
-            "CONFIG_OVERLAY_FS=y",
-            "CONFIG_FB_SIMPLE=y",
-            "CONFIG_FB_VESA=y",
-            "CONFIG_EFI=y",
-            "CONFIG_FB_EFI=y",
-            "CONFIG_SYSFB=y",
-            "CONFIG_SYSFB_SIMPLEFB=y",
-            "CONFIG_FRAMEBUFFER_CONSOLE=y",
-        ] {
-            assert!(
-                config.lines().any(|line| line == required),
-                "missing {required}"
-            );
-        }
+        let policy: KernelConfigPolicy = toml::from_str(include_str!(
+            "../../../kernel/config/x86_64_mattos.policy.toml"
+        ))
+        .unwrap();
+        validate_kernel_config_policy(config, &policy).unwrap();
+        assert_eq!(
+            kernel_config_state(config, "CONFIG_ISO9660_FS"),
+            Some(KernelConfigState::Builtin)
+        );
+        assert_eq!(
+            kernel_config_state(config, "CONFIG_SCSI_VIRTIO"),
+            Some(KernelConfigState::Module)
+        );
+        assert_eq!(
+            kernel_config_state(config, "CONFIG_PCCARD"),
+            Some(KernelConfigState::Unsupported)
+        );
+    }
+
+    #[test]
+    fn initramfs_module_closure_orders_dependencies_before_boot_drivers() {
+        let dependencies = BTreeMap::from([
+            ("kernel/drivers/virtio/virtio.ko.zst".into(), vec![]),
+            (
+                "kernel/drivers/scsi/virtio_scsi.ko.zst".into(),
+                vec!["kernel/drivers/virtio/virtio.ko.zst".into()],
+            ),
+        ]);
+        let mut visiting = BTreeSet::new();
+        let mut ordered = Vec::new();
+        add_module_with_dependencies(
+            "kernel/drivers/scsi/virtio_scsi.ko.zst",
+            &dependencies,
+            &mut visiting,
+            &mut ordered,
+        )
+        .unwrap();
+        assert_eq!(
+            ordered,
+            [
+                "kernel/drivers/virtio/virtio.ko.zst",
+                "kernel/drivers/scsi/virtio_scsi.ko.zst"
+            ]
+        );
+        assert_eq!(
+            module_basename("kernel/fs/btrfs/btrfs.ko.zst").as_deref(),
+            Some("btrfs")
+        );
     }
 
     #[test]
@@ -15901,14 +16276,21 @@ mod tests {
             "the autoclear loop descriptor must remain open until SquashFS is mounted"
         );
         let spec = build_stage_spec(BuildStage::Initramfs);
-        assert_eq!(spec.source_inputs, [PathBuf::from("src/boot/live-init.c")]);
+        assert_eq!(
+            spec.source_inputs,
+            [
+                PathBuf::from("src/boot/live-init.c"),
+                PathBuf::from("src/boot/module-loader.h"),
+                PathBuf::from("src/system/data/linux-firmware")
+            ]
+        );
         assert!(
             !spec
                 .dependencies
                 .iter()
                 .any(|dependency| dependency == "rootfs")
         );
-        assert_eq!(spec.dependencies, ["formal-sysroot"]);
+        assert_eq!(spec.dependencies, ["formal-sysroot", "linux"]);
     }
 
     #[test]
@@ -16063,7 +16445,7 @@ mod tests {
         assert_eq!(build_stage_dependencies(BuildStage::LiveRoot), &["rootfs"]);
         assert_eq!(
             build_stage_dependencies(BuildStage::Initramfs),
-            &["formal-sysroot"]
+            &["formal-sysroot", "linux"]
         );
         assert!(
             build_stage_dependencies(BuildStage::Iso)

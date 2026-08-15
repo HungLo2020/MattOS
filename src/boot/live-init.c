@@ -24,6 +24,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "module-loader.h"
+
 #define LIVE_ROOT_PATH "/run/mattos/medium/live/rootfs.squashfs"
 #define SYSTEMD_PATH "/usr/lib/systemd/systemd"
 #define RESCUE_INIT_PATH "/usr/libexec/mattos/rescue-init"
@@ -217,6 +219,8 @@ int main(void)
     ensure_devtmpfs();
     mount_required("proc", "/proc", "proc", MS_NOSUID | MS_NODEV | MS_NOEXEC, NULL);
     mount_required("sysfs", "/sys", "sysfs", MS_NOSUID | MS_NODEV | MS_NOEXEC, NULL);
+    if (mattos_load_boot_modules() < 0)
+        fatal("load boot-critical kernel modules");
     mount_required("tmpfs", "/run", "tmpfs", MS_NOSUID | MS_NODEV, "mode=0755,size=90%");
 
     make_directory("/run/mattos", 0755);

@@ -60,9 +60,9 @@ The live login environment defaults to `TERM=linux`. `clear` and `tput` use this
 
 ## Kernel module status
 
-The MattOS kernel configuration currently contains `# CONFIG_MODULES is not set`. It is intentionally monolithic: there is no `/lib/modules/<release>` tree, no `modules.dep`, and no fabricated module metadata. The real `lsmod` therefore reports that `/proc/modules` does not exist, and module insertion is unavailable until `CONFIG_MODULES` is enabled and matching modules are built.
+MattOS uses a generic modular x86_64 kernel. Fundamental CPU, platform, ACPI, EFI, PCI, VFS, console, devtmpfs, initramfs, and current live-root ISO9660/SquashFS/OverlayFS support remain built in. Hardware, storage, filesystems, graphics, networking, input, audio, cameras, laptop support, and hypervisor guest drivers are modules. The versioned `linux-modules-<release>` package owns `/usr/lib/modules/<release>`, including zstd-compressed modules and depmod indexes.
 
-The userspace tooling and libkmod are present for future hardware work. systemd's module helpers can now execute the real `modprobe` command; the prior executable-not-found warning is not suppressed or masked. The remaining early-boot `Failed to find module 'autofs4'` message is the expected consequence of systemd probing for a module while MattOS has both `CONFIG_MODULES` and `CONFIG_AUTOFS_FS` disabled. The generated module services for `configfs` and `fuse` execute and finish successfully; there are no `modprobe` executable failures.
+The early live and installed initramfs archives include the dependency-ordered generic boot closure for NVMe, AHCI/SATA, SCSI, VirtIO, USB storage, Btrfs, and ext4. Their static loader inserts compressed modules before root discovery. After `switch_root`, udev and kmod use the standard `modules.alias` and `modules.dep` lifecycle from the installed module package.
 
 ## In-guest validation
 
@@ -71,7 +71,7 @@ The current ISO was launched with the graphical QEMU path and validated directly
 - the live session logged in as `mattos`, `/proc/1/comm` returned `systemd`, and `sudo id` returned UID/GID 0;
 - all kmod, procps-ng, and ncurses commands listed above resolved through the live user's merged-`/usr` PATH;
 - `ps`, `ps aux`, and `free` reported live process and memory state, `uptime` reported the running system, `pgrep systemd` found PID 1 and systemd helpers, and `sysctl kernel.hostname` returned `MattOS`;
-- `modprobe --version` reported kmod 34 and `lsmod` produced the documented monolithic-kernel result;
+- `modprobe --version` reported kmod 34; current modular-media validation additionally checks loaded boot modules in `/proc/modules`;
 - `tput colors` returned `8`, `infocmp linux` read the compiled database, and `clear` visibly cleared tty1;
 - `top` rendered its full-screen process display and exited normally with `q`;
 - Brush completion expanded `tpu` to `tput`, autosuggestions remained visible, cursor editing produced the intended command text, and exiting Brush caused getty to create a fresh live session;

@@ -296,7 +296,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "repository",
         ],
         BuildStage::LiveRoot => &["rootfs"],
-        BuildStage::Initramfs => &["formal-sysroot"],
+        BuildStage::Initramfs => &["formal-sysroot", "linux"],
         BuildStage::Iso => &["linux", "live-root", "initramfs"],
         _ => &["formal-sysroot"],
     }
@@ -502,6 +502,7 @@ mod tests {
             downstream_invalidation(&["linux"]),
             [
                 "linux",
+                "initramfs",
                 "installer",
                 "packages",
                 "repository",
@@ -557,6 +558,9 @@ mod tests {
             [
                 "llvm",
                 "rust",
+                "mesa",
+                "cosmic-comp",
+                "installer",
                 "packages",
                 "repository",
                 "rootfs",
@@ -699,21 +703,21 @@ mod tests {
     fn representative_cascade_report() {
         let scenarios: &[(&str, &[&str], usize, &[&str])] = &[
             ("Brush source", &["brush"], 6, &["zlib", "linux"]),
-            ("glibc source", &["glibc"], 63, &["linux"]),
-            ("Linux x86_64 config", &["linux"], 7, &["glibc", "brush"]),
+            ("glibc source", &["glibc"], 73, &["linux"]),
+            ("Linux x86_64 config", &["linux"], 8, &["glibc", "brush"]),
             (
                 "Linux x86_64 UAPI source",
                 &["linux", "glibc", "linux-headers"],
-                64,
+                74,
                 &[],
             ),
             (
                 "GCC source",
                 &["gcc-runtime", "gcc-compiler"],
-                61,
+                71,
                 &["linux", "glibc", "linux-headers"],
             ),
-            ("zlib shared library", &["zlib"], 21, &["brush", "linux"]),
+            ("zlib shared library", &["zlib"], 24, &["brush", "linux"]),
             ("package metadata", &["packages"], 5, &["brush", "zlib"]),
             (
                 "repository policy",

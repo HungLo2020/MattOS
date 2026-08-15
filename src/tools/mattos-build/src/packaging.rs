@@ -207,6 +207,7 @@ const PACKAGE_NAMES: &[&str] = &[
     "libgcc-s1",
     "libstdc++6",
     "linux-libc-dev",
+    "linux-modules-7.2.0-rc5-mattos",
     "libc6-dev",
     "mattos-libgcc-dev",
     "mattos-libstdc++-dev",
@@ -219,6 +220,8 @@ const PACKAGE_NAMES: &[&str] = &[
     "libc-bin",
     "locales",
     "tzdata",
+    "linux-firmware",
+    "wireless-regdb",
     "mattos-base-files",
     "ca-certificates",
     "mattos-brush",
@@ -603,6 +606,17 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "optional",
         },
         PackageSpec {
+            name: "linux-modules-7.2.0-rc5-mattos",
+            description: "MattOS generic x86_64 kernel modules and depmod metadata",
+            source_component: "kernel-modules",
+            depends: &["kmod"],
+            provides: &["linux-modules-amd64", "linux-modules-generic"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
             name: "libc6-dev",
             description: "GNU C Library headers and link-time files for MattOS",
             source_component: "glibc",
@@ -729,6 +743,28 @@ fn package_specs() -> Vec<PackageSpec> {
             source_component: "tzdata",
             depends: &["libc6"],
             provides: &["tzdata"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "linux-firmware",
+            description: "Broad upstream Linux firmware collection for supported modern hardware",
+            source_component: "linux-firmware",
+            depends: &["mattos-filesystem"],
+            provides: &["linux-firmware", "firmware-linux"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "wireless-regdb",
+            description: "Signed wireless regulatory database built from pinned upstream data",
+            source_component: "wireless-regdb",
+            depends: &["mattos-filesystem"],
+            provides: &["wireless-regdb"],
             conflicts: &[],
             replaces: &[],
             essential: false,
@@ -1419,6 +1455,9 @@ fn package_specs() -> Vec<PackageSpec> {
                 "libwayland-client0",
                 "libxkbcommon0",
                 "cosmic-comp",
+                "linux-modules-7.2.0-rc5-mattos",
+                "linux-firmware",
+                "wireless-regdb",
             ],
             provides: &[
                 "mattos-installer",
@@ -2722,6 +2761,9 @@ fn package_recipe_revision(package: &str) -> u32 {
         // output-owned mirror.  Revision 1 copied only upstream fragments,
         // leaving the required rules/evdev runtime database absent.
         "xkb-data" => 2,
+        // Revision 2 retains the complete upstream LICENSES directory and
+        // top-level license notice alongside WHENCE in the binary package.
+        "linux-firmware" => 2,
         _ => 1,
     }
 }
@@ -2864,6 +2906,7 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
     match source_component {
         "MattOS" | "ca-certificates" | "test" => &[],
         "linux" => &["linux-headers"],
+        "kernel-modules" => &["linux"],
         "gcc" => &["gcc-runtime", "gcc-compiler"],
         "glibc" => &["glibc", "formal-sysroot"],
         "make" => &["make"],
@@ -2939,6 +2982,7 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "MattOS" => &["src/rootfs/skeleton", "src/system/packages/config"],
         "ca-certificates" => &["src/system/network"],
         "linux" => &["src/kernel/linux"],
+        "kernel-modules" => &["src/kernel/linux", "src/kernel/config"],
         "glibc" => &["src/system/libc/glibc"],
         "gcc" => &["src/toolchain/gcc"],
         "binutils" => &["src/toolchain/binutils"],
@@ -2997,6 +3041,8 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "xkbcommon" => &["src/system/libraries/xkbcommon"],
         "xkeyboard-config" => &["src/system/data/xkeyboard-config"],
         "tzdata" => &["src/system/data/tzdata"],
+        "linux-firmware" => &["src/system/data/linux-firmware"],
+        "wireless-regdb" => &["src/system/data/wireless-regdb"],
         "seatd" => &["src/system/libraries/seatd"],
         "libdisplay-info" => &[
             "src/system/libraries/libdisplay-info",
@@ -3117,6 +3163,7 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
             stage_gcc_runtime_library(repo_root, &staging, "libstdc++.so.6", "libstdc++6")?
         }
         "linux-libc-dev" => stage_linux_libc_dev(repo_root, &staging)?,
+        "linux-modules-7.2.0-rc5-mattos" => stage_linux_modules(repo_root, &staging)?,
         "libc6-dev" => stage_glibc_development(repo_root, &staging)?,
         "mattos-libgcc-dev" => stage_gcc_development(repo_root, &staging, false)?,
         "mattos-libstdc++-dev" => stage_gcc_development(repo_root, &staging, true)?,
@@ -3129,6 +3176,8 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
         "libc-bin" => stage_glibc_utilities(repo_root, &staging)?,
         "locales" => stage_glibc_locales(repo_root, &staging)?,
         "tzdata" => stage_tzdata(repo_root, &staging)?,
+        "linux-firmware" => stage_linux_firmware(repo_root, &staging)?,
+        "wireless-regdb" => stage_wireless_regdb(repo_root, &staging)?,
         "mattos-base-files" => stage_base_files(repo_root, &staging)?,
         "ca-certificates" => stage_ca_certificates(repo_root, &staging)?,
         "mattos-brush" => stage_brush(repo_root, &staging)?,
@@ -4255,6 +4304,88 @@ fn stage_tzdata(repo_root: &Path, staging: &Path) -> Result<()> {
     Ok(())
 }
 
+/// Stage the complete WHENCE-described firmware closure. Firmware is the
+/// documented source-closure exception: the authoritative, pinned upstream
+/// tree and its redistribution metadata are retained even though most payload
+/// files are device bytecode rather than preferred-form source.
+fn stage_linux_firmware(repo_root: &Path, staging: &Path) -> Result<()> {
+    let source = repo_root.join("src/system/data/linux-firmware");
+    let firmware = staging.join("usr/lib/firmware");
+    if !source.join("WHENCE").is_file() || !source.join("copy-firmware.sh").is_file() {
+        bail!("pinned linux-firmware source is missing WHENCE or its installer")
+    }
+    fs::create_dir_all(&firmware)?;
+    run_cmd(
+        &source,
+        "sh",
+        &["./copy-firmware.sh", "--zstd", path_str(&firmware)?],
+    )?;
+    if !firmware.join("intel").is_dir()
+        || !firmware.join("amdgpu").is_dir()
+        || !firmware
+            .join("intel/iwlwifi/iwlwifi-so-a0-gf-a0-83.ucode.zst")
+            .is_file()
+    {
+        bail!("linux-firmware staging lacks broad Intel/AMD firmware coverage")
+    }
+    let documentation = staging.join("usr/share/doc/linux-firmware");
+    for name in ["WHENCE", "README.md", "LICENSE"] {
+        copy_preserving(&source.join(name), &documentation.join(name))?;
+    }
+    copy_tree_preserving(&source.join("LICENSES"), &documentation.join("LICENSES"))?;
+    for entry in fs::read_dir(&source)? {
+        let entry = entry?;
+        let name = entry.file_name();
+        let name = name.to_string_lossy();
+        if entry.path().is_file() && (name.starts_with("LICENCE.") || name.starts_with("LICENSE."))
+        {
+            copy_preserving(&entry.path(), &documentation.join(name.as_ref()))?;
+        }
+    }
+    Ok(())
+}
+
+/// Regenerate the canonical database in an output-owned directory and require
+/// it to match the signed upstream artifact before pairing it with that
+/// artifact's detached signature and public redistribution metadata.
+fn stage_wireless_regdb(repo_root: &Path, staging: &Path) -> Result<()> {
+    let source = repo_root.join("src/system/data/wireless-regdb");
+    let output = repo_root.join("out/build/wireless-regdb");
+    remove_path_if_exists(&output)?;
+    fs::create_dir_all(&output)?;
+    run_cmd(
+        &source,
+        "python3",
+        &[
+            "db2fw.py",
+            path_str(&output.join("regulatory.db"))?,
+            "db.txt",
+        ],
+    )?;
+    let generated = fs::read(output.join("regulatory.db"))?;
+    let signed_payload = fs::read(source.join("regulatory.db"))?;
+    if generated != signed_payload {
+        bail!("generated wireless regulatory database does not match the pinned signed artifact")
+    }
+    let firmware = staging.join("usr/lib/firmware");
+    copy_preserving(
+        &output.join("regulatory.db"),
+        &firmware.join("regulatory.db"),
+    )?;
+    copy_preserving(
+        &source.join("regulatory.db.p7s"),
+        &firmware.join("regulatory.db.p7s"),
+    )?;
+    let documentation = staging.join("usr/share/doc/wireless-regdb");
+    copy_preserving(&source.join("LICENSE"), &documentation.join("copyright"))?;
+    copy_preserving(&source.join("db.txt"), &documentation.join("db.txt"))?;
+    copy_preserving(
+        &source.join("wens.key.pub.pem"),
+        &documentation.join("wens.key.pub.pem"),
+    )?;
+    Ok(())
+}
+
 fn stage_brush(repo_root: &Path, staging: &Path) -> Result<()> {
     let bin_dir = staging.join("usr/bin");
     stage_executable(
@@ -4867,6 +4998,22 @@ fn stage_linux_libc_dev(repo_root: &Path, staging: &Path) -> Result<()> {
     copy_preserving(
         &repo_root.join("out/build/glibc/linux-headers-inventory.txt"),
         &staging.join("usr/share/doc/linux-libc-dev/generated-files.txt"),
+    )
+}
+
+fn stage_linux_modules(repo_root: &Path, staging: &Path) -> Result<()> {
+    let release = fs::read_to_string(repo_root.join("out/build/linux/kernel-release"))?;
+    let release = release.trim();
+    if release != "7.2.0-rc5-mattos" {
+        bail!("kernel module package name does not match built release {release}");
+    }
+    let source = repo_root
+        .join("out/build/linux/modules/usr/lib/modules")
+        .join(release);
+    copy_tree_preserving(&source, &staging.join("usr/lib/modules").join(release))?;
+    copy_preserving(
+        &repo_root.join("src/kernel/linux/COPYING"),
+        &staging.join(format!("usr/share/doc/linux-modules-{release}/copyright")),
     )
 }
 
@@ -5515,7 +5662,9 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "libc6" | "libc6-dev" | "libc-bin" | "locales" => {
             component_snapshot_version(repo_root, "glibc")?
         }
-        "linux-libc-dev" => component_snapshot_version(repo_root, "linux")?,
+        "linux-libc-dev" | "linux-modules-7.2.0-rc5-mattos" => {
+            component_snapshot_version(repo_root, "linux")?
+        }
         "libgcc-s1"
         | "libstdc++6"
         | "mattos-libgcc-dev"
@@ -5583,6 +5732,8 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "libxkbcommon0" => component_snapshot_version(repo_root, "xkbcommon")?,
         "xkb-data" => component_snapshot_version(repo_root, "xkeyboard-config")?,
         "tzdata" => component_snapshot_version(repo_root, "tzdata")?,
+        "linux-firmware" => component_snapshot_version(repo_root, "linux-firmware")?,
+        "wireless-regdb" => component_snapshot_version(repo_root, "wireless-regdb")?,
         "libseat1" => component_snapshot_version(repo_root, "seatd")?,
         "libdisplay-info3" => component_snapshot_version(repo_root, "libdisplay-info")?,
         "libevdev2" => component_snapshot_version(repo_root, "libevdev")?,
@@ -7962,6 +8113,53 @@ mod tests {
     }
 
     #[test]
+    fn broad_firmware_and_regulatory_data_are_source_owned_and_installer_required() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        let firmware = root.join("src/system/data/linux-firmware");
+        assert!(firmware.join("WHENCE").is_file());
+        assert!(firmware.join("amdgpu").is_dir());
+        assert!(firmware.join("intel").is_dir());
+        assert!(
+            firmware
+                .join("intel/iwlwifi/iwlwifi-so-a0-gf-a0-83.ucode")
+                .is_file()
+        );
+        assert!(!firmware.join(".git").exists());
+        assert!(root.join("upstream/state/linux-firmware.toml").is_file());
+        assert!(root.join("upstream/state/wireless-regdb.toml").is_file());
+
+        let specs = package_specs();
+        let installer = specs
+            .iter()
+            .find(|spec| spec.name == "mattos-installer")
+            .unwrap();
+        assert!(installer.depends.contains(&"linux-firmware"));
+        assert!(installer.depends.contains(&"wireless-regdb"));
+
+        let staged = tempfile::tempdir().unwrap();
+        stage_wireless_regdb(&root, staged.path()).unwrap();
+        assert_eq!(
+            fs::read(staged.path().join("usr/lib/firmware/regulatory.db")).unwrap(),
+            fs::read(root.join("src/system/data/wireless-regdb/regulatory.db")).unwrap()
+        );
+        assert!(
+            staged
+                .path()
+                .join("usr/lib/firmware/regulatory.db.p7s")
+                .is_file()
+        );
+    }
+
+    #[test]
+    fn graphical_installer_waits_for_modular_drm_and_input_coldplug() {
+        let unit = include_str!("../../../system/units/mattos-cosmic-installer-session.service");
+        assert!(unit.contains("After=systemd-udev-trigger.service systemd-udev-settle.service"));
+        assert!(unit.contains("/dev/dri/card[0-9]*"));
+        assert!(unit.contains("/dev/input/event[0-9]*"));
+        assert!(!unit.contains("modprobe virtio_gpu"));
+    }
+
+    #[test]
     fn package_dependencies_propagate_only_stage_output_changes() {
         let root = tempfile::tempdir().unwrap();
         let manifest_path = root.path().join("out/state/stages/make.json");
@@ -8223,7 +8421,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 110);
+        assert_eq!(PACKAGE_NAMES.len(), 117);
     }
 
     #[test]
@@ -8248,7 +8446,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 110);
+        assert_eq!(PACKAGE_NAMES.len(), 117);
         assert_eq!(
             UTIL_LINUX_BASE_PATHS,
             &[
@@ -8324,7 +8522,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 110);
+        assert_eq!(PACKAGE_NAMES.len(), 117);
         let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
         for dependency in [
             "libffi8",

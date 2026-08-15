@@ -65,6 +65,18 @@ classification = "debian-compatible"
 known_gaps = ["Snapshot version sorts below released Debian and relies on protection"]
 
 [[package]]
+debian_name = "linux-modules-7.2.0-rc5-mattos"
+mattos_name = "linux-modules-7.2.0-rc5-mattos"
+source_component = "kernel-modules"
+owned_paths = ["/usr/lib/modules/7.2.0-rc5-mattos"]
+provided_abi_or_commands = ["compressed generic x86_64 kernel modules", "depmod metadata"]
+protected = true
+current_mattos_version = "0~git.f17f39c917cd-1mattos1"
+expected_debian_role = "versioned generic kernel module runtime"
+classification = "debian-compatible"
+known_gaps = ["Kernel image remains embedded in the MattOS installer package"]
+
+[[package]]
 debian_name = "libc6-dev"
 mattos_name = "libc6-dev"
 source_component = "glibc"
@@ -1371,3 +1383,27 @@ current_mattos_version = "0~git.693d1ad77519-1mattos1"
 expected_debian_role = "Wayland compositor for the MattOS installer session"
 classification = "debian-compatible"
 known_gaps = ["Only the installer compositor session is shipped, not the COSMIC desktop"]
+
+[[package]]
+debian_name = "linux-firmware"
+mattos_name = "linux-firmware"
+source_component = "linux-firmware 20260622"
+owned_paths = ["/usr/lib/firmware", "/usr/share/doc/linux-firmware"]
+provided_abi_or_commands = ["Broad WHENCE-described firmware for MattOS-supported modern hardware"]
+protected = true
+current_mattos_version = "0~git.b2722d241309-1mattos1"
+expected_debian_role = "Offline firmware payload for kernel hardware drivers"
+classification = "debian-compatible"
+known_gaps = ["Debian splits comparable firmware across firmware-linux and vendor packages; MattOS deliberately exposes Ubuntu's broad linux-firmware package identity"]
+
+[[package]]
+debian_name = "wireless-regdb"
+mattos_name = "wireless-regdb"
+source_component = "wireless-regdb master-2026-05-30"
+owned_paths = ["/usr/lib/firmware/regulatory.db", "/usr/lib/firmware/regulatory.db.p7s", "/usr/share/doc/wireless-regdb"]
+provided_abi_or_commands = ["Signed cfg80211 regulatory.db database"]
+protected = true
+current_mattos_version = "0~git.b488e68eb1ca-1mattos1"
+expected_debian_role = "Wireless regulatory rules database"
+classification = "debian-compatible"
+known_gaps = ["No legacy CRDA regulatory.bin interface is shipped"]

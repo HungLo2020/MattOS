@@ -579,6 +579,22 @@ path = "src/system/data/tzdata"
 sync = "copy"
 
 [[component]]
+name = "linux-firmware"
+repo = "https://gitlab.com/kernel-firmware/linux-firmware.git"
+branch = "20260622"
+revision = "b2722d241309a1872446c1d00c2e812bad055f89"
+path = "src/system/data/linux-firmware"
+sync = "copy"
+
+[[component]]
+name = "wireless-regdb"
+repo = "https://git.kernel.org/pub/scm/linux/kernel/git/wens/wireless-regdb.git"
+branch = "master-2026-05-30"
+revision = "b488e68eb1ca0a0dcdf742c7f4195c7678eafdc5"
+path = "src/system/data/wireless-regdb"
+sync = "copy"
+
+[[component]]
 name = "glibc"
 repo = "git://sourceware.org/git/glibc.git"
 branch = "glibc-2.43"

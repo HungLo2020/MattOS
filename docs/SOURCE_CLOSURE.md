@@ -43,7 +43,10 @@ kept separate from authoritative imported source.
 ### Firmware or microcode blob
 
 Binary firmware and microcode use MattOS's existing explicit, checksummed
-binary exception. They are not represented as source-built programs.
+binary exception. They are not represented as source-built programs. The
+pinned `linux-firmware` source tree remains authoritative for the binary
+payload, `WHENCE`, and redistribution licenses; packages must be derived from
+that tree without substituting firmware from the build host.
 
 ### User-installed Debian or Flatpak package
 
