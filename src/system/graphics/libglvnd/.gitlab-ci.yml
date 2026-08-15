@@ -1,0 +1,135 @@
+# vim: set expandtab shiftwidth=2 tabstop=2 textwidth=0:
+
+variables:
+  UBUNTU_TAG: "2019-12-05-01"
+  UBUNTU_VERSION: "18.04"
+  UBUNTU_CONTAINER_IMAGE: "$CI_REGISTRY_IMAGE/ubuntu/$UBUNTU_VERSION:$UBUNTU_TAG"
+  UBUNTU_EXEC: "bash .gitlab-ci/ubuntu_install.sh"
+
+# Include the templates to create an image to run the tests.
+include:
+  - project: 'wayland/ci-templates'
+    ref: b4b098a707c8f39d18f1a98d4bcbe65372ff9e17
+    file: '/templates/ubuntu.yml'
+
+stages:
+  - containers-build
+  - build
+
+# CONTAINERS creation stage
+container_build:
+  extends: .ubuntu@container-ifnot-exists
+  stage: containers-build
+  variables:
+    GIT_STRATEGY: none # no need to pull the whole tree for rebuilding the image
+
+build-distcheck:
+  stage: build
+  image: $UBUNTU_CONTAINER_IMAGE
+  script:
+    - bash .gitlab-ci/run_distcheck.sh
+  artifacts:
+    paths:
+      - build/libglvnd-*.tar.gz
+
+# This is a common definition for testing the other types of dispatch stubs.
+# We only need to do these for changes that might affect something specific to
+# those stub types.
+.build-check:
+  stage: build
+  image: $UBUNTU_CONTAINER_IMAGE
+  only:
+    changes:
+      - src/GLdispatch/vnd-glapi/**
+      - src/util/glvnd_genentry.*
+      - tests/**
+      - .gitlab-ci.yml
+      - .gitlab-ci/**
+
+.build-check-at:
+  extends:
+    - .build-check
+  script:
+    - bash .gitlab-ci/run_build.sh
+
+.build-check-meson:
+  extends:
+    - .build-check
+  script:
+    - bash .gitlab-ci/run_meson.sh
+  artifacts:
+    when: always
+    paths:
+      - build/meson-logs/*.txt
+
+build-i386:
+  extends:
+    - .build-check-at
+  variables:
+    CONFIGURE_OPTIONS: --build=i686-pc-linux-gnu CFLAGS=-m32
+
+build-i386-meson:
+  extends:
+    - .build-check-meson
+  variables:
+    CONFIGURE_OPTIONS: --cross-file .gitlab-ci/i686-linux-gnu
+
+build-x86-64-tsd:
+  extends:
+    - .build-check-at
+  variables:
+    CONFIGURE_OPTIONS: --disable-tls
+
+build-x86_64-tsd-meson:
+  extends:
+    - .build-check-meson
+  variables:
+    CONFIGURE_OPTIONS: -Dtls=false
+
+build-x86_64-tsd-tls-meson:
+  extends:
+    - .build-check-meson
+  variables:
+    CONFIGURE_OPTIONS: -Ddispatch-tls=false
+
+build-i386-tsd:
+  extends:
+    - .build-check-at
+  variables:
+    CONFIGURE_OPTIONS: --build=i686-pc-linux-gnu CFLAGS=-m32 --disable-tls
+
+build-i386-tsd-meson:
+  extends:
+    - .build-check-meson
+  variables:
+    CONFIGURE_OPTIONS: -Dtls=false --cross-file .gitlab-ci/i686-linux-gnu
+
+build-i386-tsd-tls-meson:
+  extends:
+    - .build-check-meson
+  variables:
+    CONFIGURE_OPTIONS: -Ddispatch-tls=false --cross-file .gitlab-ci/i686-linux-gnu
+
+build-pure-c-tls:
+  extends:
+    - .build-check-at
+  variables:
+    CONFIGURE_OPTIONS: --disable-asm
+
+build-pure-c-tls-meson:
+  extends:
+    - .build-check-meson
+  variables:
+    CONFIGURE_OPTIONS: -Dasm=disabled
+
+build-pure-c-tsd:
+  extends:
+    - .build-check-at
+  variables:
+    CONFIGURE_OPTIONS: --disable-asm --disable-tls
+
+build-pure-c-tld-meson:
+  extends:
+    - .build-check-meson
+  variables:
+    CONFIGURE_OPTIONS: -Dasm=disabled -Dtls=false

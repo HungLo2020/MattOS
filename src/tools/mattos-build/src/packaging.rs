@@ -281,6 +281,7 @@ const PACKAGE_NAMES: &[&str] = &[
     "libffi8",
     "libffi-dev",
     "libwayland-client0",
+    "libwayland-server0",
     "libwayland-egl1",
     "libxkbcommon0",
     "xkb-data",
@@ -292,15 +293,31 @@ const PACKAGE_NAMES: &[&str] = &[
     "libdrm2",
     "libdrm-amdgpu1",
     "libdrm-nouveau2",
+    "libxau6",
+    "libxdmcp6",
+    "libxcb1",
+    "libx11-6",
+    "libxext6",
+    "libglvnd0",
+    "libopengl0",
     "libgbm1",
     "libegl1",
     "libgles1",
     "libgles2",
+    "libegl-mesa0",
     "libgl1-mesa-dri",
     "libvulkan1",
     "libvulkan-dev",
     "mesa-vulkan-drivers",
     "vulkan-tools",
+    "linux-modules-nvidia-595-open-7.2.0-rc5-mattos",
+    "nvidia-firmware-595",
+    "libnvidia-gl-595",
+    "libnvidia-compute-595",
+    "libnvidia-encode-595",
+    "libnvidia-decode-595",
+    "nvidia-utils-595",
+    "nvidia-driver-595-open",
     "cosmic-comp",
     "libpython3.14",
     "python3",
@@ -1703,6 +1720,17 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
+            name: "libwayland-server0",
+            description: "Wayland compositor protocol runtime library built for MattOS",
+            source_component: "wayland",
+            depends: &["libc6", "libffi8"],
+            provides: &["libwayland-server0"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
             name: "libxkbcommon0",
             description: "XKB keyboard description runtime library built for MattOS",
             source_component: "xkbcommon",
@@ -1813,6 +1841,83 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
+            name: "libxau6",
+            description: "Minimal X authority ABI required by the NVIDIA Vulkan vendor library",
+            source_component: "x11-compat",
+            depends: &["libc6"],
+            provides: &["libxau6"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libxdmcp6",
+            description: "Minimal XDMCP ABI required by the NVIDIA Vulkan vendor library",
+            source_component: "x11-compat",
+            depends: &["libc6"],
+            provides: &["libxdmcp6"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libxcb1",
+            description: "X protocol transport ABI required by the NVIDIA Vulkan vendor library",
+            source_component: "x11-compat",
+            depends: &["libc6", "libxau6", "libxdmcp6"],
+            provides: &["libxcb1"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libx11-6",
+            description: "X11 client ABI retained privately for NVIDIA Vulkan loader compatibility",
+            source_component: "x11-compat",
+            depends: &["libc6", "libxau6", "libxdmcp6", "libxcb1"],
+            provides: &["libx11-6"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libxext6",
+            description: "X11 extension ABI retained privately for NVIDIA Vulkan loader compatibility",
+            source_component: "x11-compat",
+            depends: &["libc6", "libxau6", "libxdmcp6", "libxcb1", "libx11-6"],
+            provides: &["libxext6"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libglvnd0",
+            description: "GLVND neutral OpenGL dispatch runtime built for MattOS",
+            source_component: "libglvnd",
+            depends: &["libc6"],
+            provides: &["libglvnd0"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libopengl0",
+            description: "GLVND neutral OpenGL API runtime built for MattOS",
+            source_component: "libglvnd",
+            depends: &["libc6", "libglvnd0"],
+            provides: &["libopengl0"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
             name: "libgbm1",
             description: "Mesa GBM runtime library built for MattOS",
             source_component: "mesa",
@@ -1825,16 +1930,9 @@ fn package_specs() -> Vec<PackageSpec> {
         },
         PackageSpec {
             name: "libegl1",
-            description: "Mesa EGL runtime library built for MattOS",
-            source_component: "mesa",
-            depends: &[
-                "libc6",
-                "libgbm1",
-                "libdrm2",
-                "libexpat1",
-                "libgl1-mesa-dri",
-                "libwayland-egl1",
-            ],
+            description: "GLVND neutral EGL dispatch runtime built for MattOS",
+            source_component: "libglvnd",
+            depends: &["libc6", "libglvnd0"],
             provides: &["libegl1"],
             conflicts: &[],
             replaces: &[],
@@ -1843,9 +1941,9 @@ fn package_specs() -> Vec<PackageSpec> {
         },
         PackageSpec {
             name: "libgles1",
-            description: "Mesa OpenGL ES 1 runtime library built for MattOS",
-            source_component: "mesa",
-            depends: &["libc6", "libegl1", "libgbm1", "libdrm2"],
+            description: "GLVND neutral OpenGL ES 1 dispatch runtime built for MattOS",
+            source_component: "libglvnd",
+            depends: &["libc6", "libglvnd0"],
             provides: &["libgles1"],
             conflicts: &[],
             replaces: &[],
@@ -1854,10 +1952,39 @@ fn package_specs() -> Vec<PackageSpec> {
         },
         PackageSpec {
             name: "libgles2",
-            description: "Mesa OpenGL ES runtime library built for MattOS",
-            source_component: "mesa",
-            depends: &["libc6", "libegl1", "libgbm1", "libdrm2"],
+            description: "GLVND neutral OpenGL ES 2 dispatch runtime built for MattOS",
+            source_component: "libglvnd",
+            depends: &["libc6", "libglvnd0"],
             provides: &["libgles2"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libegl-mesa0",
+            description: "Mesa EGL vendor implementation and GLVND registration",
+            source_component: "mesa",
+            depends: &[
+                "libc6",
+                "libegl1",
+                "libgbm1",
+                "libdrm2",
+                "libdrm-amdgpu1",
+                "libdrm-nouveau2",
+                "libelf1t64",
+                "libexpat1",
+                "libffi8",
+                "libgcc-s1",
+                "libgl1-mesa-dri",
+                "libllvm22",
+                "libstdc++6",
+                "libwayland-client0",
+                "libwayland-egl1",
+                "libzstd1",
+                "zlib1g",
+            ],
+            provides: &["libegl-mesa0"],
             conflicts: &[],
             replaces: &[],
             essential: false,
@@ -1954,6 +2081,129 @@ fn package_specs() -> Vec<PackageSpec> {
                 "libwayland-client0",
             ],
             provides: &["vulkan-tools"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "linux-modules-nvidia-595-open-7.2.0-rc5-mattos",
+            description: "NVIDIA 595.84 open GPU kernel modules for the exact MattOS kernel",
+            source_component: "nvidia-driver",
+            depends: &[
+                "linux-modules-7.2.0-rc5-mattos",
+                "nvidia-firmware-595",
+                "kmod",
+            ],
+            provides: &["nvidia-open-kernel-modules", "nvidia-kernel-support-any"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "nvidia-firmware-595",
+            description: "Matching NVIDIA 595.84 GSP firmware for Turing and newer GPUs",
+            source_component: "nvidia-driver",
+            depends: &["mattos-filesystem"],
+            provides: &["firmware-nvidia-gsp", "nvidia-kernel-common-595"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "libnvidia-gl-595",
+            description: "NVIDIA 595.84 EGL, OpenGL ES, Vulkan, GBM, and Wayland vendor stack",
+            source_component: "nvidia-driver",
+            depends: &[
+                "libc6",
+                "libexpat1",
+                "libffi8",
+                "libgcc-s1",
+                "libglvnd0",
+                "libegl1",
+                "libgles1",
+                "libgles2",
+                "libopengl0",
+                "libdrm2",
+                "libgbm1",
+                "libwayland-client0",
+                "libwayland-server0",
+                "libxau6",
+                "libxdmcp6",
+                "libxcb1",
+                "libx11-6",
+                "libxext6",
+                "libnvidia-compute-595",
+            ],
+            provides: &["nvidia-vulkan-icd", "nvidia-egl-icd", "nvidia-driver-libs"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "libnvidia-compute-595",
+            description: "NVIDIA 595.84 CUDA driver, NVML, and shader compiler runtime",
+            source_component: "nvidia-driver",
+            depends: &["libc6"],
+            provides: &["libcuda1", "libnvidia-ml1"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "libnvidia-encode-595",
+            description: "NVIDIA 595.84 NVENC video encoding runtime",
+            source_component: "nvidia-driver",
+            depends: &["libc6", "libnvidia-compute-595", "libnvidia-decode-595"],
+            provides: &["libnvidia-encode1"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "libnvidia-decode-595",
+            description: "NVIDIA 595.84 NVDEC video decoding runtime",
+            source_component: "nvidia-driver",
+            depends: &["libc6", "libnvidia-compute-595"],
+            provides: &["libnvcuvid1"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "nvidia-utils-595",
+            description: "NVIDIA 595.84 nvidia-smi, module helper, and persistence utilities",
+            source_component: "nvidia-driver",
+            depends: &[
+                "libc6",
+                "libnvidia-compute-595",
+                "linux-modules-nvidia-595-open-7.2.0-rc5-mattos",
+            ],
+            provides: &["nvidia-smi"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "nvidia-driver-595-open",
+            description: "Complete official NVIDIA 595.84 open-kernel Wayland graphics stack",
+            source_component: "nvidia-driver",
+            depends: &[
+                "linux-modules-nvidia-595-open-7.2.0-rc5-mattos",
+                "libnvidia-gl-595",
+                "libnvidia-compute-595",
+                "libnvidia-encode-595",
+                "libnvidia-decode-595",
+                "nvidia-utils-595",
+            ],
+            provides: &["nvidia-driver", "nvidia-driver-any"],
             conflicts: &[],
             replaces: &[],
             essential: false,
@@ -2269,6 +2519,8 @@ fn validate_debian_compatibility(repo_root: &Path) -> Result<()> {
         match package.classification.as_str() {
             "mattos-specific" if package.mattos_name.starts_with("mattos-") => {}
             "debian-compatible" if package.debian_name == package.mattos_name => {}
+            "mattos-extension" if package.debian_name == package.mattos_name => {}
+            "mattos-alternative" => {}
             _ => bail!("invalid package classification for {}", package.mattos_name),
         }
     }
@@ -3081,9 +3333,12 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "libinput" => &["libinput"],
             "pixman" => &["pixman"],
             "libdrm" => &["libdrm"],
+            "x11-compat" => &["x11-compat"],
+            "libglvnd" => &["libglvnd"],
             "vulkan-loader" => &["vulkan-headers", "vulkan-loader"],
             "vulkan-tools" => &["vulkan-tools"],
             "mesa" => &["mesa"],
+            "nvidia-driver" => &["nvidia-driver"],
             "cosmic-comp" => &["cosmic-comp"],
             "cpython" => &["cpython"],
             "llvm" => &["llvm"],
@@ -3190,12 +3445,29 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "libinput" => &["src/system/libraries/libinput"],
         "pixman" => &["src/system/libraries/pixman"],
         "libdrm" => &["src/system/libraries/libdrm"],
+        "x11-compat" => &[
+            "src/system/graphics/xorgproto",
+            "src/system/graphics/xorg-util-macros",
+            "src/system/graphics/xtrans",
+            "src/system/graphics/libxau",
+            "src/system/graphics/libxdmcp",
+            "src/system/graphics/xcb-proto",
+            "src/system/graphics/libxcb",
+            "src/system/graphics/libx11",
+            "src/system/graphics/libxext",
+        ],
+        "libglvnd" => &["src/system/graphics/libglvnd"],
         "vulkan-loader" => &[
             "src/system/graphics/vulkan-headers",
             "src/system/graphics/vulkan-loader",
         ],
         "vulkan-tools" => &["src/system/graphics/vulkan-tools"],
         "mesa" => &["src/system/graphics/mesa"],
+        "nvidia-driver" => &[
+            "src/system/graphics/nvidia-driver",
+            "src/system/graphics/nvidia-open-gpu-kernel-modules",
+            "upstream/patches/nvidia-open-gpu-kernel-modules",
+        ],
         "cosmic-comp" => &["src/desktop/cosmic/cosmic-comp"],
         "cpython" => &["src/development/python/cpython"],
         "llvm" => &["src/toolchain/llvm-project"],
@@ -3691,6 +3963,14 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
             "src/system/libraries/wayland/COPYING",
             "libwayland-client0",
         )?,
+        "libwayland-server0" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "wayland",
+            "libwayland-server.so.0",
+            "src/system/libraries/wayland/COPYING",
+            "libwayland-server0",
+        )?,
         "libwayland-egl1" => stage_imported_soname_library(
             repo_root,
             &staging,
@@ -3770,6 +4050,62 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
             "src/system/libraries/libdrm/README.rst",
             "libdrm-nouveau2",
         )?,
+        "libxau6" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "x11-compat",
+            "libXau.so.6",
+            "src/system/graphics/libxau/COPYING",
+            "libxau6",
+        )?,
+        "libxdmcp6" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "x11-compat",
+            "libXdmcp.so.6",
+            "src/system/graphics/libxdmcp/COPYING",
+            "libxdmcp6",
+        )?,
+        "libxcb1" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "x11-compat",
+            "libxcb.so.1",
+            "src/system/graphics/libxcb/COPYING",
+            "libxcb1",
+        )?,
+        "libx11-6" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "x11-compat",
+            "libX11.so.6",
+            "src/system/graphics/libx11/COPYING",
+            "libx11-6",
+        )?,
+        "libxext6" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "x11-compat",
+            "libXext.so.6",
+            "src/system/graphics/libxext/COPYING",
+            "libxext6",
+        )?,
+        "libglvnd0" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "libglvnd",
+            "libGLdispatch.so.0",
+            "src/system/graphics/libglvnd/README.md",
+            "libglvnd0",
+        )?,
+        "libopengl0" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "libglvnd",
+            "libOpenGL.so.0",
+            "src/system/graphics/libglvnd/README.md",
+            "libopengl0",
+        )?,
         "libgbm1" => stage_imported_soname_library(
             repo_root,
             &staging,
@@ -3781,27 +4117,28 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
         "libegl1" => stage_imported_soname_library(
             repo_root,
             &staging,
-            "mesa",
+            "libglvnd",
             "libEGL.so.1",
-            "src/system/graphics/mesa/docs/license.rst",
+            "src/system/graphics/libglvnd/README.md",
             "libegl1",
         )?,
         "libgles1" => stage_imported_soname_library(
             repo_root,
             &staging,
-            "mesa",
+            "libglvnd",
             "libGLESv1_CM.so.1",
-            "src/system/graphics/mesa/docs/license.rst",
+            "src/system/graphics/libglvnd/README.md",
             "libgles1",
         )?,
         "libgles2" => stage_imported_soname_library(
             repo_root,
             &staging,
-            "mesa",
+            "libglvnd",
             "libGLESv2.so.2",
-            "src/system/graphics/mesa/docs/license.rst",
+            "src/system/graphics/libglvnd/README.md",
             "libgles2",
         )?,
+        "libegl-mesa0" => stage_mesa_egl_vendor(repo_root, &staging)?,
         "libgl1-mesa-dri" => stage_mesa_dri_runtime(repo_root, &staging)?,
         "libvulkan1" => stage_imported_soname_library(
             repo_root,
@@ -3814,6 +4151,14 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
         "libvulkan-dev" => stage_vulkan_development(repo_root, &staging)?,
         "mesa-vulkan-drivers" => stage_mesa_vulkan_runtime(repo_root, &staging)?,
         "vulkan-tools" => stage_vulkan_tools(repo_root, &staging)?,
+        "linux-modules-nvidia-595-open-7.2.0-rc5-mattos"
+        | "nvidia-firmware-595"
+        | "libnvidia-gl-595"
+        | "libnvidia-compute-595"
+        | "libnvidia-encode-595"
+        | "libnvidia-decode-595"
+        | "nvidia-utils-595"
+        | "nvidia-driver-595-open" => stage_nvidia_package(repo_root, &staging, spec.name)?,
         "cosmic-comp" => {
             stage_runtime_paths(repo_root, &staging, "cosmic-comp", &["usr/bin/cosmic-comp"])?
         }
@@ -3907,7 +4252,23 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
         _ => bail!("no staging implementation for {}", spec.name),
     }
 
-    if !matches!(spec.name, "libc6" | "libgcc-s1" | "libstdc++6") {
+    // NVIDIA's redistribution grant requires its userspace binaries to remain
+    // unmodified. Open modules are already compressed; preserve every file in
+    // this separately versioned stack byte-for-byte after extraction.
+    if !matches!(
+        spec.name,
+        "libc6"
+            | "libgcc-s1"
+            | "libstdc++6"
+            | "linux-modules-nvidia-595-open-7.2.0-rc5-mattos"
+            | "nvidia-firmware-595"
+            | "libnvidia-gl-595"
+            | "libnvidia-compute-595"
+            | "libnvidia-encode-595"
+            | "libnvidia-decode-595"
+            | "nvidia-utils-595"
+            | "nvidia-driver-595-open"
+    ) {
         strip_staged_debug(repo_root, &staging)?;
     }
 
@@ -4907,6 +5268,192 @@ fn stage_mesa_dri_runtime(repo_root: &Path, staging: &Path) -> Result<()> {
         &repo_root.join("src/system/graphics/mesa/docs/license.rst"),
         &staging.join("usr/share/doc/libgl1-mesa-dri/copyright"),
     )?;
+    Ok(())
+}
+
+fn stage_mesa_egl_vendor(repo_root: &Path, staging: &Path) -> Result<()> {
+    stage_runtime_paths(
+        repo_root,
+        staging,
+        "mesa",
+        &[
+            "usr/lib/x86_64-linux-gnu/libEGL_mesa.so.0.0.0",
+            "usr/lib/x86_64-linux-gnu/libEGL_mesa.so.0",
+            "usr/share/glvnd/egl_vendor.d/50_mesa.json",
+        ],
+    )?;
+    copy_preserving(
+        &repo_root.join("src/system/graphics/mesa/docs/license.rst"),
+        &staging.join("usr/share/doc/libegl-mesa0/copyright"),
+    )
+}
+
+fn stage_nvidia_package(repo_root: &Path, staging: &Path, package: &str) -> Result<()> {
+    let install = component_install(repo_root, "nvidia-driver");
+    let lib = "usr/lib/x86_64-linux-gnu";
+    let copy_libraries = |names: &[&str]| -> Result<()> {
+        for name in names {
+            copy_path_preserving(&install.join(lib).join(name), &staging.join(lib).join(name))?;
+        }
+        Ok(())
+    };
+    match package {
+        "linux-modules-nvidia-595-open-7.2.0-rc5-mattos" => {
+            copy_tree_preserving(
+                &install.join("usr/lib/modules/7.2.0-rc5-mattos/updates/nvidia"),
+                &staging.join("usr/lib/modules/7.2.0-rc5-mattos/updates/nvidia"),
+            )?;
+            copy_preserving(
+                &repo_root.join("src/system/graphics/nvidia-driver/nvidia-modprobe.conf"),
+                &staging.join("etc/modprobe.d/nvidia.conf"),
+            )?;
+            copy_preserving(
+                &install.join("usr/lib/modprobe.d/nvidia-supported-gpus.conf"),
+                &staging.join("usr/lib/modprobe.d/nvidia-supported-gpus.conf"),
+            )?;
+            copy_preserving(
+                &install.join("usr/libexec/mattos-nvidia-select"),
+                &staging.join("usr/libexec/mattos-nvidia-select"),
+            )?;
+            fs::write(
+                staging.join("DEBIAN/conffiles"),
+                "/etc/modprobe.d/nvidia.conf\n",
+            )?;
+            fs::write(
+                staging.join("DEBIAN/postinst"),
+                "#!/bin/sh\nset -e\n# Offline image assembly runs depmod after all module packages are unpacked.\n[ -n \"${DPKG_ROOT:-}\" ] && exit 0\nif command -v depmod >/dev/null 2>&1; then depmod 7.2.0-rc5-mattos; fi\n",
+            )?;
+            set_mode(staging.join("DEBIAN/postinst"), 0o755)?;
+            fs::write(
+                staging.join("DEBIAN/postrm"),
+                "#!/bin/sh\nset -e\n# Do not modify the build host while assembling an offline root.\n[ -n \"${DPKG_ROOT:-}\" ] && exit 0\nif command -v depmod >/dev/null 2>&1; then depmod 7.2.0-rc5-mattos; fi\n",
+            )?;
+            set_mode(staging.join("DEBIAN/postrm"), 0o755)?;
+        }
+        "nvidia-firmware-595" => copy_tree_preserving(
+            &install.join("usr/lib/firmware/nvidia/595.84"),
+            &staging.join("usr/lib/firmware/nvidia/595.84"),
+        )?,
+        "libnvidia-gl-595" => {
+            copy_libraries(&[
+                "libEGL_nvidia.so.595.84",
+                "libEGL_nvidia.so.0",
+                "libGLESv1_CM_nvidia.so.595.84",
+                "libGLESv1_CM_nvidia.so.1",
+                "libGLESv2_nvidia.so.595.84",
+                "libGLESv2_nvidia.so.2",
+                "libGLX_nvidia.so.595.84",
+                "libGLX_nvidia.so.0",
+                "libnvidia-allocator.so.595.84",
+                "libnvidia-allocator.so.1",
+                "libnvidia-egl-gbm.so.1.1.3",
+                "libnvidia-egl-gbm.so.1",
+                "libnvidia-egl-wayland.so.1.1.20",
+                "libnvidia-egl-wayland.so.1",
+                "libnvidia-egl-wayland2.so.1.0.1",
+                "libnvidia-egl-wayland2.so.1",
+                "libnvidia-eglcore.so.595.84",
+                "libnvidia-glcore.so.595.84",
+                "libnvidia-glsi.so.595.84",
+                "libnvidia-glvkspirv.so.595.84",
+                "libnvidia-gpucomp.so.595.84",
+                "libnvidia-present.so.595.84",
+                "libnvidia-tls.so.595.84",
+            ])?;
+            for relative in [
+                "usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+                "usr/share/vulkan/icd.d/nvidia_icd.json",
+                "usr/share/vulkan/implicit_layer.d/nvidia_layers.json",
+                "usr/share/egl/egl_external_platform.d/09_nvidia_wayland2.json",
+                "usr/share/egl/egl_external_platform.d/10_nvidia_wayland.json",
+                "usr/share/egl/egl_external_platform.d/15_nvidia_gbm.json",
+            ] {
+                copy_path_preserving(&install.join(relative), &staging.join(relative))?;
+            }
+            let backend = staging.join("usr/lib/x86_64-linux-gnu/gbm/nvidia-drm_gbm.so");
+            fs::create_dir_all(backend.parent().expect("NVIDIA GBM backend parent"))?;
+            std::os::unix::fs::symlink("../libnvidia-allocator.so.1", backend)?;
+            validate_nvidia_graphics_metadata(staging)?;
+        }
+        "libnvidia-compute-595" => copy_libraries(&[
+            "libcuda.so.595.84",
+            "libcuda.so.1",
+            "libnvidia-ml.so.595.84",
+            "libnvidia-ml.so.1",
+            "libnvidia-ptxjitcompiler.so.595.84",
+            "libnvidia-ptxjitcompiler.so.1",
+        ])?,
+        "libnvidia-encode-595" => {
+            copy_libraries(&["libnvidia-encode.so.595.84", "libnvidia-encode.so.1"])?
+        }
+        "libnvidia-decode-595" => copy_libraries(&["libnvcuvid.so.595.84", "libnvcuvid.so.1"])?,
+        "nvidia-utils-595" => {
+            for name in ["nvidia-smi", "nvidia-modprobe", "nvidia-persistenced"] {
+                copy_path_preserving(
+                    &install.join("usr/bin").join(name),
+                    &staging.join("usr/bin").join(name),
+                )?;
+            }
+        }
+        "nvidia-driver-595-open" => {}
+        _ => bail!("unknown NVIDIA package {package}"),
+    }
+    copy_preserving(
+        &install.join("usr/share/doc/nvidia-driver-595/LICENSE"),
+        &staging
+            .join("usr/share/doc")
+            .join(package)
+            .join("copyright"),
+    )?;
+    copy_preserving(
+        &install.join("usr/share/doc/nvidia-driver-595/manifest.toml"),
+        &staging
+            .join("usr/share/doc")
+            .join(package)
+            .join("manifest.toml"),
+    )?;
+    for name in [
+        "README.md",
+        "runfile.sha256",
+        "supported-gpus.json",
+        "supported-gpus.LICENSE",
+    ] {
+        copy_preserving(
+            &install.join("usr/share/doc/nvidia-driver-595").join(name),
+            &staging.join("usr/share/doc").join(package).join(name),
+        )?;
+    }
+    Ok(())
+}
+
+fn validate_nvidia_graphics_metadata(root: &Path) -> Result<()> {
+    let icd_path = root.join("usr/share/vulkan/icd.d/nvidia_icd.json");
+    let icd: serde_json::Value = serde_json::from_slice(&fs::read(&icd_path)?)?;
+    let library = icd
+        .pointer("/ICD/library_path")
+        .and_then(|value| value.as_str());
+    if library != Some("libGLX_nvidia.so.0")
+        || !root
+            .join("usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.0")
+            .is_symlink()
+    {
+        bail!("NVIDIA Vulkan ICD does not resolve through its canonical system SONAME");
+    }
+    for relative in [
+        "usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+        "usr/share/egl/egl_external_platform.d/09_nvidia_wayland2.json",
+        "usr/share/egl/egl_external_platform.d/10_nvidia_wayland.json",
+        "usr/share/egl/egl_external_platform.d/15_nvidia_gbm.json",
+    ] {
+        let value: serde_json::Value = serde_json::from_slice(&fs::read(root.join(relative))?)?;
+        if value
+            .get("file_format_version")
+            .and_then(|version| version.as_str())
+            .is_none()
+        {
+            bail!("NVIDIA metadata /{relative} is not a valid vendor manifest");
+        }
+    }
     Ok(())
 }
 
@@ -6032,7 +6579,7 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "git" => component_snapshot_version(repo_root, "git")?,
         "openssh-client" | "openssh-server" => component_snapshot_version(repo_root, "openssh")?,
         "libffi8" | "libffi-dev" => component_snapshot_version(repo_root, "libffi")?,
-        "libwayland-client0" | "libwayland-egl1" => {
+        "libwayland-client0" | "libwayland-server0" | "libwayland-egl1" => {
             component_snapshot_version(repo_root, "wayland")?
         }
         "libxkbcommon0" => component_snapshot_version(repo_root, "xkbcommon")?,
@@ -6048,13 +6595,26 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "libdrm2" | "libdrm-amdgpu1" | "libdrm-nouveau2" => {
             component_snapshot_version(repo_root, "libdrm")?
         }
-        "libgbm1"
-        | "libegl1"
-        | "libgles1"
-        | "libgles2"
-        | "libgl1-mesa-dri"
-        | "mesa-vulkan-drivers" => component_snapshot_version(repo_root, "mesa")?,
+        "libxau6" => component_snapshot_version(repo_root, "libxau")?,
+        "libxdmcp6" => component_snapshot_version(repo_root, "libxdmcp")?,
+        "libxcb1" => component_snapshot_version(repo_root, "libxcb")?,
+        "libx11-6" => component_snapshot_version(repo_root, "libx11")?,
+        "libxext6" => component_snapshot_version(repo_root, "libxext")?,
+        "libglvnd0" | "libopengl0" | "libegl1" | "libgles1" | "libgles2" => {
+            component_snapshot_version(repo_root, "libglvnd")?
+        }
+        "libgbm1" | "libegl-mesa0" | "libgl1-mesa-dri" | "mesa-vulkan-drivers" => {
+            component_snapshot_version(repo_root, "mesa")?
+        }
         "libvulkan1" | "libvulkan-dev" | "vulkan-tools" => "1.4.357".to_string(),
+        "linux-modules-nvidia-595-open-7.2.0-rc5-mattos"
+        | "nvidia-firmware-595"
+        | "libnvidia-gl-595"
+        | "libnvidia-compute-595"
+        | "libnvidia-encode-595"
+        | "libnvidia-decode-595"
+        | "nvidia-utils-595"
+        | "nvidia-driver-595-open" => "595.84".to_string(),
         "cosmic-comp" => component_snapshot_version(repo_root, "cosmic-comp")?,
         "libpython3.14" | "python3" | "python3-venv" | "python3-dev" => {
             component_snapshot_version(repo_root, "cpython")?
@@ -6353,13 +6913,33 @@ fn write_provenance(
                 configuration,
             )
         }
+        "x11-compat" => {
+            let state = read_sync_state(repo_root, "libx11")?
+                .ok_or_else(|| anyhow!("upstream state missing for libx11"))?;
+            (
+                "src/system/graphics/{libxau,libxdmcp,libxcb,libx11,libxext}".to_string(),
+                "https://gitlab.freedesktop.org/xorg".to_string(),
+                format!("libx11:{} (see upstream/state for complete closure)", state.imported_commit),
+                "source-built minimal client ABI for immutable NVIDIA Vulkan dependencies; no X server, GLX dispatcher, or X11 platform metadata".to_string(),
+            )
+        }
+        "nvidia-driver" => {
+            let open = read_sync_state(repo_root, "nvidia-open-gpu-kernel-modules")?
+                .ok_or_else(|| anyhow!("upstream state missing for NVIDIA open modules"))?;
+            (
+                "src/system/graphics/nvidia-driver/manifest.toml + src/system/graphics/nvidia-open-gpu-kernel-modules".to_string(),
+                "https://download.nvidia.com/XFree86/Linux-x86_64/595.84/ + https://github.com/NVIDIA/open-gpu-kernel-modules".to_string(),
+                format!("runfile-sha256:9e4f5d56e74e1ec12a05b2b0afda893c3187da71cbd8fb14c1a394bbeeeb4148; open:{}", open.imported_commit),
+                "NVIDIA 595.84 production stack; proprietary files extracted verbatim without stripping; open modules built for 7.2.0-rc5-mattos".to_string(),
+            )
+        }
         component @ ("glibc" | "ncurses" | "kmod" | "procps-ng" | "systemd" | "dbus-broker"
         | "linux-pam" | "shadow" | "sudo-rs" | "util-linux" | "iproute2"
         | "iputils" | "expat" | "libcap" | "acl" | "zlib" | "bzip2" | "lz4" | "xz"
         | "xxhash" | "zstd" | "openssl" | "elfutils" | "pcre2" | "selinux"
         | "libxcrypt" | "libmd" | "libbsd" | "tar" | "gzip" | "patch" | "file"
         | "less" | "git" | "openssh" | "libffi" | "wayland" | "xkbcommon"
-        | "xkeyboard-config" | "cpython" | "llvm" | "rust") => {
+        | "libglvnd" | "xkeyboard-config" | "cpython" | "llvm" | "rust") => {
             let state = read_sync_state(repo_root, component)?
                 .ok_or_else(|| anyhow!("upstream state missing for {component}"))?;
             (
@@ -6595,11 +7175,28 @@ fn runtime_libraries_for_spec(repo_root: &Path, spec: &PackageSpec) -> Result<Ve
                 | "libffi8"
                 | "libffi-dev"
                 | "libwayland-client0"
+                | "libwayland-server0"
                 | "libwayland-egl1"
                 | "libxkbcommon0"
                 | "libvulkan1"
                 | "libvulkan-dev"
                 | "vulkan-tools"
+                | "libxau6"
+                | "libxdmcp6"
+                | "libxcb1"
+                | "libx11-6"
+                | "libxext6"
+                | "libglvnd0"
+                | "libopengl0"
+                | "libegl1"
+                | "libgles1"
+                | "libgles2"
+                | "libegl-mesa0"
+                | "libnvidia-gl-595"
+                | "libnvidia-compute-595"
+                | "libnvidia-encode-595"
+                | "libnvidia-decode-595"
+                | "nvidia-utils-595"
                 | "libpython3.14"
                 | "python3"
                 | "python3-venv"
@@ -6659,6 +7256,7 @@ fn runtime_libraries_in_staging(repo_root: &Path, package: &str) -> Result<Vec<S
         component_install(repo_root, "curl").join("usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "libffi").join("usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "wayland").join("usr/lib/x86_64-linux-gnu"),
+        component_install(repo_root, "mesa").join("usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "vulkan-loader").join("usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "xkbcommon").join("usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "cpython").join("usr/lib/x86_64-linux-gnu"),
@@ -7571,7 +8169,7 @@ pub(crate) fn install_prototype_packages(repo_root: &Path, rootfs: &Path) -> Res
             "--log={}",
             rootfs.join("var/log/dpkg.log").display()
         ))
-        .args(["--force-bad-path", "--install"]);
+        .args(["--force-bad-path", "--force-script-chrootless", "--install"]);
     for name in package_install_order()? {
         let entry = inventory
             .package
@@ -8769,6 +9367,78 @@ mod tests {
     }
 
     #[test]
+    fn nvidia_stack_is_version_locked_and_coinstallable_with_mesa() {
+        let specs = package_specs();
+        let spec = |name| specs.iter().find(|spec| spec.name == name).unwrap();
+        for name in [
+            "linux-modules-nvidia-595-open-7.2.0-rc5-mattos",
+            "nvidia-firmware-595",
+            "libnvidia-gl-595",
+            "libnvidia-compute-595",
+            "libnvidia-encode-595",
+            "libnvidia-decode-595",
+            "nvidia-utils-595",
+            "nvidia-driver-595-open",
+        ] {
+            assert_eq!(spec(name).source_component, "nvidia-driver");
+            assert!(spec(name).conflicts.is_empty());
+            assert!(spec(name).replaces.is_empty());
+        }
+        let driver = spec("nvidia-driver-595-open");
+        assert!(driver.depends.contains(&"libnvidia-gl-595"));
+        assert!(
+            driver
+                .depends
+                .contains(&"linux-modules-nvidia-595-open-7.2.0-rc5-mattos")
+        );
+        assert!(spec("libnvidia-gl-595").depends.contains(&"libegl1"));
+        assert_eq!(spec("libegl1").source_component, "libglvnd");
+        assert_eq!(spec("libegl-mesa0").source_component, "mesa");
+        assert!(specs.iter().any(|spec| spec.name == "mesa-vulkan-drivers"));
+    }
+
+    #[test]
+    fn nvidia_manifest_pins_one_production_release_and_turing_floor() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        let manifest: toml::Value = toml::from_str(
+            &fs::read_to_string(root.join("src/system/graphics/nvidia-driver/manifest.toml"))
+                .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(manifest["version"].as_str(), Some("595.84"));
+        assert_eq!(manifest["release_branch"].as_str(), Some("production"));
+        assert_eq!(
+            manifest["binary_policy"].as_str(),
+            Some("verbatim-extraction-no-strip-no-patch")
+        );
+        assert_eq!(manifest["include_in_iso"].as_bool(), Some(true));
+        let supported = manifest["supported_gpu_generations"].as_array().unwrap();
+        assert!(
+            supported
+                .iter()
+                .any(|value| value.as_str() == Some("Turing"))
+        );
+        assert!(
+            manifest["excluded_gpu_generations"].as_array().unwrap()[0]
+                .as_str()
+                .unwrap()
+                .contains("Pascal")
+        );
+        assert!(root.join("src/system/graphics/nvidia-open-gpu-kernel-modules/kernel-open/nvidia/nvidia.Kbuild").is_file());
+        assert!(
+            !root
+                .join("src/system/graphics/nvidia-open-gpu-kernel-modules/.git")
+                .exists()
+        );
+        let modprobe =
+            fs::read_to_string(root.join("src/system/graphics/nvidia-driver/nvidia-modprobe.conf"))
+                .unwrap();
+        assert!(modprobe.contains("options nvidia-drm modeset=1 fbdev=1"));
+        assert!(!modprobe.contains("softdep nouveau"));
+        assert!(!modprobe.contains("blacklist nouveau"));
+    }
+
+    #[test]
     fn third_milestone_package_families_are_complete() {
         let specs = package_specs();
         for name in [
@@ -8800,7 +9470,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 125);
+        assert_eq!(PACKAGE_NAMES.len(), 142);
     }
 
     #[test]
@@ -8825,7 +9495,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 125);
+        assert_eq!(PACKAGE_NAMES.len(), 142);
         assert_eq!(
             UTIL_LINUX_BASE_PATHS,
             &[
@@ -8901,7 +9571,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 125);
+        assert_eq!(PACKAGE_NAMES.len(), 142);
         let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
         for dependency in [
             "libffi8",

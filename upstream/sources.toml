@@ -285,6 +285,96 @@ path = "src/system/graphics/vulkan-tools"
 sync = "copy"
 
 [[component]]
+name = "nvidia-open-gpu-kernel-modules"
+repo = "https://github.com/NVIDIA/open-gpu-kernel-modules.git"
+branch = "595.84"
+revision = "722ae84526a09ed672fbe75448e2909834ba4cce"
+path = "src/system/graphics/nvidia-open-gpu-kernel-modules"
+sync = "copy"
+patch_manifest = "upstream/patches/nvidia-open-gpu-kernel-modules/manifest.toml"
+patch_manifest_sha256 = "5c892478b8a40dcd7949052a0e3966ff9cf1e053fb09dc8d38804b05583f9970"
+
+[[component]]
+name = "libglvnd"
+repo = "https://github.com/NVIDIA/libglvnd.git"
+branch = "v1.7.0"
+revision = "faa23f21fc677af5792825dc30cb1ccef4bf33a6"
+path = "src/system/graphics/libglvnd"
+sync = "copy"
+
+[[component]]
+name = "xorgproto"
+repo = "https://gitlab.freedesktop.org/xorg/proto/xorgproto.git"
+branch = "xorgproto-2024.1"
+revision = "67469711055522b8adb2d795b01e7ba98cb8816c"
+path = "src/system/graphics/xorgproto"
+sync = "copy"
+
+[[component]]
+name = "xorg-util-macros"
+repo = "https://gitlab.freedesktop.org/xorg/util/macros.git"
+branch = "util-macros-1.20.2"
+revision = "a9d71e3fd8e6758b70be31c586921bbbcd2a8449"
+path = "src/system/graphics/xorg-util-macros"
+sync = "copy"
+
+[[component]]
+name = "xtrans"
+repo = "https://gitlab.freedesktop.org/xorg/lib/libxtrans.git"
+branch = "xtrans-1.5.2"
+revision = "0dc46e7ed5bdd876467f9dbb314ba6b8094e541b"
+path = "src/system/graphics/xtrans"
+sync = "copy"
+
+[[component]]
+name = "libxau"
+repo = "https://gitlab.freedesktop.org/xorg/lib/libxau.git"
+branch = "libXau-1.0.12"
+revision = "a9c65683e68b3a4349afee5d7673b393fb924d2e"
+path = "src/system/graphics/libxau"
+sync = "copy"
+
+[[component]]
+name = "libxdmcp"
+repo = "https://gitlab.freedesktop.org/xorg/lib/libxdmcp.git"
+branch = "libXdmcp-1.1.5"
+revision = "1192d3bc407348ff316bd3bffc791b3ac73f591b"
+path = "src/system/graphics/libxdmcp"
+sync = "copy"
+
+[[component]]
+name = "xcb-proto"
+repo = "https://gitlab.freedesktop.org/xorg/proto/xcbproto.git"
+branch = "xcb-proto-1.17.0"
+revision = "77d7fc04da729ddc5ed4aacf30253726fac24dca"
+path = "src/system/graphics/xcb-proto"
+sync = "copy"
+
+[[component]]
+name = "libxcb"
+repo = "https://gitlab.freedesktop.org/xorg/lib/libxcb.git"
+branch = "libxcb-1.17.0"
+revision = "622152ee42a310876f10602601206954b8d0613e"
+path = "src/system/graphics/libxcb"
+sync = "copy"
+
+[[component]]
+name = "libx11"
+repo = "https://gitlab.freedesktop.org/xorg/lib/libx11.git"
+branch = "libX11-1.8.12"
+revision = "59917d28a3c41ad22d6fc52e323cafe2cdd596d5"
+path = "src/system/graphics/libx11"
+sync = "copy"
+
+[[component]]
+name = "libxext"
+repo = "https://gitlab.freedesktop.org/xorg/lib/libxext.git"
+branch = "libXext-1.3.6"
+revision = "3826a58d190c2d8093d3586cb33867668cbb4553"
+path = "src/system/graphics/libxext"
+sync = "copy"
+
+[[component]]
 name = "btrfs-progs"
 repo = "https://github.com/kdave/btrfs-progs.git"
 branch = "v6.17"

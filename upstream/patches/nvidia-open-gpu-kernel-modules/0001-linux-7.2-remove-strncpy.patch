@@ -1,0 +1,61 @@
+From: MattOS <mattos@example.invalid>
+Subject: [PATCH] Linux 7.2 compatibility fixes
+
+Linux 7.2 removes the deprecated strncpy declaration from the kernel string
+API. Preserve each call site's padding/termination contract using strscpy or
+an explicit bounded memset/memcpy implementation. This compatibility patch is
+applied only to MattOS's output-owned source mirror.
+
+--- a/kernel-open/nvidia/os-interface.c
++++ b/kernel-open/nvidia/os-interface.c
+@@ -761,6 +761,5 @@ void NV_API_CALL os_get_current_process_name(char *buf, NvU32 len)
+ {
+     task_lock(current);
+-    strncpy(buf, current->comm, len - 1);
+-    buf[len - 1] = '\0';
++    strscpy(buf, current->comm, len);
+     task_unlock(current);
+ }
+--- a/kernel-open/nvidia-modeset/nvidia-modeset-linux.c
++++ b/kernel-open/nvidia-modeset/nvidia-modeset-linux.c
+@@ -639,5 +639,8 @@ int nvkms_strcmp(const char *s1, const char *s2)
+ 
+ char* nvkms_strncpy(char *dest, const char *src, size_t n)
+ {
+-    return strncpy(dest, src, n);
++    const size_t length = strnlen(src, n);
++    memset(dest, 0, n);
++    memcpy(dest, src, length);
++    return dest;
+ }
+--- a/kernel-open/nvidia/linux_nvswitch.c
++++ b/kernel-open/nvidia/linux_nvswitch.c
+@@ -2059,5 +2059,5 @@ static int nvswitch_os_parse_regkey(const char *regkey, NvU32 *data)
+         return -NVL_ERR_GENERIC;
+     }
+ 
+-    strncpy(regkey_val, regkey_val_start, regkey_val_len);
++    memcpy(regkey_val, regkey_val_start, regkey_val_len);
+     regkey_val[regkey_val_len] = '\0';
+@@ -2414,5 +2414,8 @@ nvswitch_os_strncpy
+     NvLength length
+ )
+ {
+-    return strncpy(dest, src, length);
++    const size_t copied = strnlen(src, length);
++    memset(dest, 0, length);
++    memcpy(dest, src, copied);
++    return dest;
+ }
+--- a/kernel-open/nvidia-uvm/uvm_pmm_gpu.c
++++ b/kernel-open/nvidia-uvm/uvm_pmm_gpu.c
+@@ -2806,7 +2806,8 @@ static NV_STATUS init_chunk_split_cache_level(uvm_pmm_gpu_t *pmm, size_t level)
+         if (!chunk_split_cache[level].cache) {
+             size_t size;
+             size_t align;
+             if (level == 0) {
+-                strncpy(chunk_split_cache[level].name, "uvm_gpu_chunk_t", sizeof(chunk_split_cache[level].name) - 1);
++                strscpy(chunk_split_cache[level].name, "uvm_gpu_chunk_t",
++                        sizeof(chunk_split_cache[level].name));
+                 size = sizeof(uvm_gpu_chunk_t);
+                 align = __alignof__(uvm_gpu_chunk_t);

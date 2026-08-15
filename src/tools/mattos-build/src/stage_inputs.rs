@@ -50,7 +50,24 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::VulkanHeaders => &["src/system/graphics/vulkan-headers"],
         BuildStage::VulkanLoader => &["src/system/graphics/vulkan-loader"],
         BuildStage::VulkanTools => &["src/system/graphics/vulkan-tools"],
+        BuildStage::X11Compat => &[
+            "src/system/graphics/xorgproto",
+            "src/system/graphics/xorg-util-macros",
+            "src/system/graphics/xtrans",
+            "src/system/graphics/libxau",
+            "src/system/graphics/libxdmcp",
+            "src/system/graphics/xcb-proto",
+            "src/system/graphics/libxcb",
+            "src/system/graphics/libx11",
+            "src/system/graphics/libxext",
+        ],
+        BuildStage::Libglvnd => &["src/system/graphics/libglvnd"],
         BuildStage::Mesa => &["src/system/graphics/mesa"],
+        BuildStage::NvidiaDriver => &[
+            "src/system/graphics/nvidia-open-gpu-kernel-modules",
+            "src/system/graphics/nvidia-driver",
+            "upstream/patches/nvidia-open-gpu-kernel-modules",
+        ],
         BuildStage::CosmicComp => &[
             "src/desktop/cosmic/cosmic-comp",
             "upstream/patches/cosmic-comp",
@@ -153,7 +170,7 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
         | BuildStage::Libinput
         | BuildStage::Pixman
         | BuildStage::Libdrm => &["gcc", "ld", "meson", "ninja", "pkg-config"],
-        BuildStage::Mesa => &[
+        BuildStage::Mesa | BuildStage::X11Compat | BuildStage::Libglvnd => &[
             "gcc",
             "ld",
             "meson",
@@ -167,6 +184,7 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
         BuildStage::VulkanHeaders | BuildStage::VulkanLoader | BuildStage::VulkanTools => {
             &["gcc", "g++", "ld", "cmake", "ninja", "pkg-config"]
         }
+        BuildStage::NvidiaDriver => &["gcc", "ld", "make", "depmod", "zstd", "curl"],
         BuildStage::CosmicComp => &["cargo", "rustc", "gcc", "ld", "pkg-config"],
         BuildStage::Installer => &[
             "cargo",
@@ -204,9 +222,9 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
         | BuildStage::Pixman
         | BuildStage::CosmicComp => 1,
         BuildStage::Libdrm => 2,
-        // Revision 3 expands Mesa to the generic driver set and pins the
-        // SPIR-V/Rust generators needed to reproduce it with LLVM 22.
-        BuildStage::Mesa => 3,
+        // Revision 4 moves EGL/GLES dispatch to source-built GLVND while Mesa
+        // remains a coinstallable vendor implementation.
+        BuildStage::Mesa => 4,
         BuildStage::Iso => 2,
         BuildStage::UtilLinux => 5,
         _ => 1,

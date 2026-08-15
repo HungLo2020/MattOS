@@ -1503,3 +1503,207 @@ current_mattos_version = "0~git.b488e68eb1ca-1mattos1"
 expected_debian_role = "Wireless regulatory rules database"
 classification = "debian-compatible"
 known_gaps = ["No legacy CRDA regulatory.bin interface is shipped"]
+
+[[package]]
+debian_name = "libxau6"
+mattos_name = "libxau6"
+source_component = "X.Org libXau pinned source"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libXau.so.6"]
+provided_abi_or_commands = ["libXau ABI 6"]
+protected = true
+current_mattos_version = "0~git.a9c65683e68b-1mattos1"
+expected_debian_role = "X authority client ABI"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
+debian_name = "libwayland-server0"
+mattos_name = "libwayland-server0"
+source_component = "Wayland pinned source"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libwayland-server.so.0"]
+provided_abi_or_commands = ["Wayland server ABI 0"]
+protected = true
+current_mattos_version = "1.26.0-1mattos1"
+expected_debian_role = "Wayland compositor protocol runtime"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
+debian_name = "libxdmcp6"
+mattos_name = "libxdmcp6"
+source_component = "X.Org libXdmcp pinned source"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libXdmcp.so.6"]
+provided_abi_or_commands = ["libXdmcp ABI 6"]
+protected = true
+current_mattos_version = "0~git.1192d3bc4073-1mattos1"
+expected_debian_role = "XDMCP client ABI"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
+debian_name = "libxcb1"
+mattos_name = "libxcb1"
+source_component = "X.Org libxcb pinned source"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libxcb.so.1"]
+provided_abi_or_commands = ["libxcb ABI 1"]
+protected = true
+current_mattos_version = "0~git.622152ee42a3-1mattos1"
+expected_debian_role = "X protocol transport ABI"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
+debian_name = "libx11-6"
+mattos_name = "libx11-6"
+source_component = "X.Org libX11 1.8.12"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libX11.so.6"]
+provided_abi_or_commands = ["libX11 ABI 6"]
+protected = true
+current_mattos_version = "0~git.59917d28a3c4-1mattos1"
+expected_debian_role = "X11 client ABI"
+classification = "debian-compatible"
+known_gaps = ["No X server is included; this ABI exists only for immutable NVIDIA Vulkan dependencies"]
+
+[[package]]
+debian_name = "libxext6"
+mattos_name = "libxext6"
+source_component = "X.Org libXext pinned source"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libXext.so.6"]
+provided_abi_or_commands = ["libXext ABI 6"]
+protected = true
+current_mattos_version = "0~git.3826a58d190c-1mattos1"
+expected_debian_role = "X11 extension client ABI"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
+debian_name = "libglvnd0"
+mattos_name = "libglvnd0"
+source_component = "libglvnd 1.7.0"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libGLdispatch.so.0"]
+provided_abi_or_commands = ["GLVND dispatch ABI"]
+protected = true
+current_mattos_version = "1.7.0-1mattos1"
+expected_debian_role = "vendor-neutral GL dispatch"
+classification = "debian-compatible"
+known_gaps = ["X11/GLX dispatch is intentionally absent"]
+
+[[package]]
+debian_name = "libopengl0"
+mattos_name = "libopengl0"
+source_component = "libglvnd 1.7.0"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libOpenGL.so.0"]
+provided_abi_or_commands = ["GLVND OpenGL ABI"]
+protected = true
+current_mattos_version = "1.7.0-1mattos1"
+expected_debian_role = "vendor-neutral OpenGL ABI"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
+debian_name = "libegl-mesa0"
+mattos_name = "libegl-mesa0"
+source_component = "Mesa 26.1.7"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libEGL_mesa.so.0", "/usr/share/glvnd/egl_vendor.d/50_mesa.json"]
+provided_abi_or_commands = ["Mesa EGL vendor ABI"]
+protected = true
+current_mattos_version = "0~git.e8617e4ca95f-1mattos1"
+expected_debian_role = "Mesa EGL GLVND vendor"
+classification = "debian-compatible"
+known_gaps = ["Wayland-only platform policy"]
+
+[[package]]
+debian_name = "linux-modules-nvidia-595-open-7.2.0-rc5-mattos"
+mattos_name = "linux-modules-nvidia-595-open-7.2.0-rc5-mattos"
+source_component = "NVIDIA open-gpu-kernel-modules 595.84"
+owned_paths = ["/usr/lib/modules/7.2.0-rc5-mattos/updates/nvidia", "/etc/modprobe.d/nvidia.conf", "/usr/lib/modprobe.d/nvidia-supported-gpus.conf"]
+provided_abi_or_commands = ["nvidia", "nvidia-drm", "nvidia-modeset", "nvidia-uvm", "nvidia-peermem"]
+protected = true
+current_mattos_version = "595.84-1mattos1"
+expected_debian_role = "version-locked NVIDIA open kernel modules"
+classification = "mattos-extension"
+known_gaps = ["Turing and newer only; Pascal is a separate legacy follow-up"]
+
+[[package]]
+debian_name = "firmware-nvidia-gsp"
+mattos_name = "nvidia-firmware-595"
+source_component = "NVIDIA 595.84 runfile"
+owned_paths = ["/usr/lib/firmware/nvidia/595.84"]
+provided_abi_or_commands = ["matching Turing/Ampere+ GSP firmware"]
+protected = true
+current_mattos_version = "595.84-1mattos1"
+expected_debian_role = "NVIDIA GSP firmware"
+classification = "mattos-alternative"
+known_gaps = ["None"]
+
+[[package]]
+debian_name = "libnvidia-gl-595"
+mattos_name = "libnvidia-gl-595"
+source_component = "NVIDIA 595.84 production userspace"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libEGL_nvidia.so.0", "/usr/lib/x86_64-linux-gnu/libGLX_nvidia.so.0", "/usr/share/vulkan/icd.d/nvidia_icd.json", "/usr/share/glvnd/egl_vendor.d/10_nvidia.json"]
+provided_abi_or_commands = ["NVIDIA EGL", "OpenGL ES", "Vulkan ICD", "Wayland external platform", "GBM backend"]
+protected = true
+current_mattos_version = "595.84-1mattos1"
+expected_debian_role = "NVIDIA graphics vendor libraries"
+classification = "debian-compatible"
+known_gaps = ["No X11 EGL platform or global GLX dispatcher is shipped"]
+
+[[package]]
+debian_name = "libnvidia-compute-595"
+mattos_name = "libnvidia-compute-595"
+source_component = "NVIDIA 595.84 production userspace"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libcuda.so.1", "/usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1"]
+provided_abi_or_commands = ["CUDA driver ABI", "NVML ABI"]
+protected = true
+current_mattos_version = "595.84-1mattos1"
+expected_debian_role = "NVIDIA compute runtime"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
+debian_name = "libnvidia-encode-595"
+mattos_name = "libnvidia-encode-595"
+source_component = "NVIDIA 595.84 production userspace"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libnvidia-encode.so.1"]
+provided_abi_or_commands = ["NVENC ABI"]
+protected = true
+current_mattos_version = "595.84-1mattos1"
+expected_debian_role = "NVIDIA video encoder runtime"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
+debian_name = "libnvidia-decode-595"
+mattos_name = "libnvidia-decode-595"
+source_component = "NVIDIA 595.84 production userspace"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libnvcuvid.so.1"]
+provided_abi_or_commands = ["NVDEC ABI"]
+protected = true
+current_mattos_version = "595.84-1mattos1"
+expected_debian_role = "NVIDIA video decoder runtime"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
+debian_name = "nvidia-utils-595"
+mattos_name = "nvidia-utils-595"
+source_component = "NVIDIA 595.84 production userspace"
+owned_paths = ["/usr/bin/nvidia-smi", "/usr/bin/nvidia-modprobe", "/usr/bin/nvidia-persistenced"]
+provided_abi_or_commands = ["nvidia-smi", "nvidia-modprobe", "nvidia-persistenced"]
+protected = true
+current_mattos_version = "595.84-1mattos1"
+expected_debian_role = "NVIDIA administration utilities"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
+debian_name = "nvidia-driver"
+mattos_name = "nvidia-driver-595-open"
+source_component = "NVIDIA 595.84 complete production stack"
+owned_paths = ["/usr/share/doc/nvidia-driver-595-open"]
+provided_abi_or_commands = ["NVIDIA open-kernel driver dependency contract"]
+protected = true
+current_mattos_version = "595.84-1mattos1"
+expected_debian_role = "NVIDIA driver metapackage"
+classification = "mattos-alternative"
+known_gaps = ["Turing and newer only"]

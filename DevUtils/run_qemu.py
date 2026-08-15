@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import os
 import shutil
 import signal
 import subprocess
@@ -37,6 +38,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--clean", action="store_true", help="clean build artifacts before rebuilding")
     parser.add_argument("--memory", type=int, default=1024, help="VM memory in MiB (default: 1024)")
     parser.add_argument("--cpus", type=int, default=1, help="virtual CPU count (default: 1)")
+    parser.add_argument(
+        "--no-kvm",
+        action="store_true",
+        help="force software emulation even when /dev/kvm is accessible",
+    )
     parser.add_argument(
         "--no-network",
         action="store_true",
@@ -78,6 +84,19 @@ def network_arguments(disabled: bool) -> List[str]:
     if disabled:
         return []
     return ["-netdev", "user,id=net0", "-device", "virtio-net-pci,netdev=net0"]
+
+
+def acceleration_arguments(disabled: bool = False) -> List[str]:
+    """Use native acceleration when this user can actually open /dev/kvm.
+
+    Falling back to QEMU's default TCG keeps the launcher usable in containers
+    and on hosts without KVM.  Avoiding an unconditional `-enable-kvm` also
+    preserves a useful error-free diagnostic path on those systems.
+    """
+    kvm = Path("/dev/kvm")
+    if disabled or not kvm.exists() or not os.access(kvm, os.R_OK | os.W_OK):
+        return []
+    return ["-enable-kvm", "-cpu", "host"]
 
 
 def choose_graphical_display(repo_root: Path) -> str:
@@ -217,6 +236,7 @@ def launch_qemu(repo_root: Path, iso_path: Path, args: argparse.Namespace) -> in
 
     qemu_cmd: List[str] = [
         "qemu-system-x86_64",
+        *acceleration_arguments(getattr(args, "no_kvm", False)),
         "-m",
         str(args.memory),
         "-smp",

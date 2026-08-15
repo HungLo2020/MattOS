@@ -1,0 +1,17 @@
+schema_version = 1
+version = "595.84"
+release_branch = "production"
+architecture = "x86_64"
+runfile = "NVIDIA-Linux-x86_64-595.84-no-compat32.run"
+url = "https://download.nvidia.com/XFree86/Linux-x86_64/595.84/NVIDIA-Linux-x86_64-595.84-no-compat32.run"
+sha256 = "9e4f5d56e74e1ec12a05b2b0afda893c3187da71cbd8fb14c1a394bbeeeb4148"
+license_url = "https://download.nvidia.com/XFree86/Linux-x86_64/595.84/license.txt"
+license_sha256 = "c692fb14ad4f499c6aee1b9e144e6905148c420e6225b17cb2937366c1e507ad"
+kernel_source_component = "nvidia-open-gpu-kernel-modules"
+kernel_source_commit = "722ae84526a09ed672fbe75448e2909834ba4cce"
+binary_policy = "verbatim-extraction-no-strip-no-patch"
+redistribution = "permitted-with-osi-kernel-and-unmodified-binaries-license-must-accompany"
+include_in_iso = true
+supported_gpu_generations = ["Turing", "Ampere", "Ada", "Hopper", "Blackwell"]
+excluded_gpu_generations = ["Pascal and older"]
+

@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import run_qemu
 from common import RepoError, ensure_project_temp_root, mattos_build_environment
 from run_qemu import (
+    acceleration_arguments,
     ensure_iso_exists,
     graphical_gpu_device,
     image_build_commands,
@@ -22,6 +23,19 @@ from run_qemu import (
 
 
 class QemuNetworkArgumentsTests(unittest.TestCase):
+    def test_kvm_is_used_when_accessible(self) -> None:
+        with mock.patch("run_qemu.Path.exists", return_value=True), mock.patch(
+            "run_qemu.os.access", return_value=True
+        ):
+            self.assertEqual(acceleration_arguments(), ["-enable-kvm", "-cpu", "host"])
+
+    def test_kvm_falls_back_to_tcg_when_inaccessible_or_disabled(self) -> None:
+        with mock.patch("run_qemu.Path.exists", return_value=True), mock.patch(
+            "run_qemu.os.access", return_value=False
+        ):
+            self.assertEqual(acceleration_arguments(), [])
+        self.assertEqual(acceleration_arguments(disabled=True), [])
+
     def test_iso_guard_accepts_xorriso_listing_written_to_stderr(self) -> None:
         with TemporaryDirectory() as temporary:
             root = Path(temporary)

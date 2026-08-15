@@ -63,6 +63,21 @@ const INITRAMFS_ARCHIVE_OWNER: &str = "0:0";
 const MATTOS_BUILD_TMP_RELATIVE: &str = "out/tmp";
 const MIN_MATTOS_TMP_FREE_BYTES: u64 = 4 * 1024 * 1024 * 1024;
 
+#[derive(Debug, Deserialize)]
+struct NvidiaDriverManifest {
+    schema_version: u32,
+    version: String,
+    release_branch: String,
+    architecture: String,
+    runfile: String,
+    url: String,
+    sha256: String,
+    license_sha256: String,
+    kernel_source_commit: String,
+    binary_policy: String,
+    include_in_iso: bool,
+}
+
 const COREUTILS_PROVIDER: &str = "uutils/coreutils";
 const GREP_PROVIDER: &str = "uutils/grep";
 const SED_PROVIDER: &str = "uutils/sed";
@@ -3490,6 +3505,7 @@ fn stage_resource_profile(stage: BuildStage) -> scheduler::StageResourceProfile 
         | BuildStage::Diffutils
         | BuildStage::Git
         | BuildStage::Libffi
+        | BuildStage::NvidiaDriver
         | BuildStage::Python
         | BuildStage::Rust
         | BuildStage::SudoRs
@@ -3580,7 +3596,14 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::VulkanHeaders => vec!["out/build/vulkan-headers/install".into()],
         BuildStage::VulkanLoader => vec!["out/build/vulkan-loader/install".into()],
         BuildStage::VulkanTools => vec!["out/build/vulkan-tools/install".into()],
+        BuildStage::X11Compat => vec!["out/build/x11-compat/install".into()],
+        BuildStage::Libglvnd => vec!["out/build/libglvnd/install".into()],
         BuildStage::Mesa => vec!["out/build/mesa/install".into()],
+        BuildStage::NvidiaDriver => vec![
+            "out/build/nvidia-driver/install".into(),
+            "out/build/nvidia-driver/source/LICENSE".into(),
+            "out/build/nvidia-driver/runfile.sha256".into(),
+        ],
         BuildStage::CosmicComp => vec!["out/build/cosmic-comp/install/usr/bin/cosmic-comp".into()],
         BuildStage::Python => vec!["out/build/cpython/install".into()],
         BuildStage::Llvm => vec!["out/build/llvm/install".into()],
@@ -3932,7 +3955,10 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::VulkanHeaders => build_vulkan_headers(repo_root),
         BuildStage::VulkanLoader => build_vulkan_loader(repo_root),
         BuildStage::VulkanTools => build_vulkan_tools(repo_root),
+        BuildStage::X11Compat => build_x11_compat(repo_root),
+        BuildStage::Libglvnd => build_libglvnd(repo_root),
         BuildStage::Mesa => build_mesa(repo_root),
+        BuildStage::NvidiaDriver => build_nvidia_driver(repo_root),
         BuildStage::CosmicComp => build_cosmic_comp(repo_root),
         BuildStage::Python => build_cpython(repo_root),
         BuildStage::Llvm => build_llvm(repo_root),
@@ -7521,6 +7547,10 @@ fn staged_library_environment(
             pkgconfig_dirs.push(library.join("pkgconfig"));
             library_dirs.push(library);
         }
+        let shared_pkgconfig = usr.join("share/pkgconfig");
+        if shared_pkgconfig.is_dir() {
+            pkgconfig_dirs.push(shared_pkgconfig);
+        }
         if bin.is_dir() {
             program_dirs.push(bin);
         }
@@ -8009,6 +8039,632 @@ fn build_libseat(repo_root: &Path) -> Result<()> {
         "usr/lib/x86_64-linux-gnu/libseat.so.1",
         &[],
     )
+}
+
+fn rewrite_staged_pkgconfig_files(install_dir: &Path) -> Result<()> {
+    fn visit(path: &Path, prefix: &Path) -> Result<()> {
+        if !path.is_dir() {
+            return Ok(());
+        }
+        let mut entries = fs::read_dir(path)?.collect::<std::io::Result<Vec<_>>>()?;
+        entries.sort_by_key(|entry| entry.file_name());
+        for entry in entries {
+            let path = entry.path();
+            let metadata = fs::symlink_metadata(&path)?;
+            if metadata.is_dir() {
+                visit(&path, prefix)?;
+            } else if metadata.is_file() && path.extension().and_then(OsStr::to_str) == Some("pc") {
+                let contents = fs::read_to_string(&path)?;
+                let rewritten =
+                    contents.replacen("prefix=/usr", &format!("prefix={}", prefix.display()), 1);
+                fs::write(&path, rewritten)?;
+            }
+        }
+        Ok(())
+    }
+    visit(install_dir, &install_dir.join("usr"))
+}
+
+fn remove_staged_libtool_archives(path: &Path) -> Result<()> {
+    if !path.is_dir() {
+        return Ok(());
+    }
+    let mut entries = fs::read_dir(path)?.collect::<std::io::Result<Vec<_>>>()?;
+    entries.sort_by_key(|entry| entry.file_name());
+    for entry in entries {
+        let path = entry.path();
+        let metadata = fs::symlink_metadata(&path)?;
+        if metadata.is_dir() {
+            remove_staged_libtool_archives(&path)?;
+        } else if metadata.is_file() && path.extension().and_then(OsStr::to_str) == Some("la") {
+            fs::remove_file(path)?;
+        }
+    }
+    Ok(())
+}
+
+fn build_xorg_autotools_component(
+    repo_root: &Path,
+    component: &str,
+    dependencies: &[&str],
+    options: &[&str],
+    required_outputs: &[&str],
+) -> Result<()> {
+    let source = repo_root.join("src/system/graphics").join(component);
+    let out_root = repo_root.join("out/build").join(component);
+    let source_copy = out_root.join("source");
+    let build_dir = out_root.join("build");
+    let install_dir = out_root.join("install");
+    let stamp_path = out_root.join("build-stamp.txt");
+    let state = fs::read_to_string(
+        repo_root
+            .join("upstream/state")
+            .join(format!("{component}.toml")),
+    )?;
+    let stamp = format!(
+        "{state}\n{}\ndependencies={}\nxorg-compat-recipe=2\n",
+        options.join("\n"),
+        dependencies.join(",")
+    );
+    if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+        remove_path_if_exists(&source_copy)?;
+        remove_path_if_exists(&build_dir)?;
+        remove_path_if_exists(&install_dir)?;
+    }
+    fs::create_dir_all(&out_root)?;
+    sync_build_source(&source, &source_copy)?;
+    let mut env = staged_library_environment(repo_root, dependencies)?;
+    let aclocal = repo_root.join("out/build/xorg-util-macros/install/usr/share/aclocal");
+    if aclocal.is_dir() {
+        env.push(("ACLOCAL_PATH", aclocal.display().to_string()));
+    }
+    if !source_copy.join("configure").is_file() {
+        run_cmd_with_env_overrides(&source_copy, "autoreconf", &["-fiv"], &env)?;
+    }
+    fs::create_dir_all(&build_dir)?;
+    if !build_dir.join("Makefile").is_file() {
+        run_cmd_with_env_overrides(
+            &build_dir,
+            path_str(&source_copy.join("configure"))?,
+            options,
+            &env,
+        )?;
+    }
+    let jobs = scheduler::child_job_limit().max(1).to_string();
+    run_cmd_with_env_overrides(&build_dir, "make", &["-j", &jobs], &env)?;
+    remove_path_if_exists(&install_dir)?;
+    run_cmd_with_env_overrides(
+        &build_dir,
+        "make",
+        &["install", &format!("DESTDIR={}", install_dir.display())],
+        &env,
+    )?;
+    rewrite_staged_pkgconfig_files(&install_dir)?;
+    // Libtool archives encode build-time absolute paths and make later Xorg
+    // components chase target /usr paths on the host. Shared-library and
+    // pkg-config metadata are the canonical output of this runtime closure.
+    remove_staged_libtool_archives(&install_dir)?;
+    for relative in required_outputs {
+        if !install_dir.join(relative).is_file() {
+            bail!("{component} install did not produce {relative}");
+        }
+    }
+    fs::write(stamp_path, stamp)?;
+    Ok(())
+}
+
+fn build_x11_compat(repo_root: &Path) -> Result<()> {
+    let common = [
+        "--prefix=/usr",
+        "--libdir=/usr/lib/x86_64-linux-gnu",
+        "--disable-static",
+    ];
+    build_xorg_autotools_component(repo_root, "xorg-util-macros", &[], &["--prefix=/usr"], &[])?;
+    build_meson_runtime(
+        repo_root,
+        "xorgproto",
+        "src/system/graphics/xorgproto",
+        &[],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Dlegacy=true",
+        ],
+        "usr/include/X11/X.h",
+        &[],
+    )?;
+    rewrite_staged_pkgconfig_files(&repo_root.join("out/build/xorgproto/install"))?;
+    build_xorg_autotools_component(
+        repo_root,
+        "xtrans",
+        &["xorg-util-macros", "xorgproto"],
+        &common,
+        &[],
+    )?;
+    build_xorg_autotools_component(
+        repo_root,
+        "libxau",
+        &["xorg-util-macros", "xorgproto"],
+        &common,
+        &["usr/lib/x86_64-linux-gnu/libXau.so.6"],
+    )?;
+    build_xorg_autotools_component(
+        repo_root,
+        "libxdmcp",
+        &["xorg-util-macros", "xorgproto"],
+        &common,
+        &["usr/lib/x86_64-linux-gnu/libXdmcp.so.6"],
+    )?;
+    build_xorg_autotools_component(
+        repo_root,
+        "xcb-proto",
+        &["xorg-util-macros", "cpython"],
+        &["--prefix=/usr"],
+        &["usr/share/xcb/xproto.xml"],
+    )?;
+    build_xorg_autotools_component(
+        repo_root,
+        "libxcb",
+        &[
+            "xorg-util-macros",
+            "xorgproto",
+            "libxau",
+            "libxdmcp",
+            "xcb-proto",
+            "cpython",
+            "expat",
+        ],
+        &common,
+        &["usr/lib/x86_64-linux-gnu/libxcb.so.1"],
+    )?;
+    build_xorg_autotools_component(
+        repo_root,
+        "libx11",
+        &[
+            "xorg-util-macros",
+            "xorgproto",
+            "xtrans",
+            "libxau",
+            "libxdmcp",
+            "libxcb",
+        ],
+        &common,
+        &["usr/lib/x86_64-linux-gnu/libX11.so.6"],
+    )?;
+    build_xorg_autotools_component(
+        repo_root,
+        "libxext",
+        &[
+            "xorg-util-macros",
+            "xorgproto",
+            "libxau",
+            "libxdmcp",
+            "libxcb",
+            "libx11",
+        ],
+        &common,
+        &["usr/lib/x86_64-linux-gnu/libXext.so.6"],
+    )?;
+
+    let aggregate = repo_root.join("out/build/x11-compat/install");
+    remove_path_if_exists(&aggregate)?;
+    for component in ["libxau", "libxdmcp", "libxcb", "libx11", "libxext"] {
+        copy_tree_contents(
+            &repo_root.join("out/build").join(component).join("install"),
+            &aggregate,
+        )?;
+    }
+    for relative in [
+        "usr/lib/x86_64-linux-gnu/libX11.so.6",
+        "usr/lib/x86_64-linux-gnu/libXext.so.6",
+        "usr/lib/x86_64-linux-gnu/libxcb.so.1",
+    ] {
+        if !aggregate.join(relative).exists() {
+            bail!("X11 compatibility runtime did not produce {relative}");
+        }
+    }
+    Ok(())
+}
+
+fn build_libglvnd(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(
+        repo_root,
+        "libglvnd",
+        "src/system/graphics/libglvnd",
+        &[],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Dx11=disabled",
+            "-Dglx=disabled",
+            "-Degl=true",
+            "-Dgles1=true",
+            "-Dgles2=true",
+            "-Dhgl=false",
+        ],
+        "usr/lib/x86_64-linux-gnu/libEGL.so.1",
+        &[],
+    )?;
+    rewrite_staged_pkgconfig_files(&repo_root.join("out/build/libglvnd/install"))
+}
+
+fn nvidia_library_soname(path: &Path) -> Result<String> {
+    let output = run_cmd_capture(
+        path.parent().context("NVIDIA library has no parent")?,
+        "readelf",
+        &["-d", path_str(path)?],
+    )?;
+    output
+        .lines()
+        .find(|line| line.contains("(SONAME)"))
+        .and_then(|line| line.split_once('['))
+        .and_then(|(_, rest)| rest.split_once(']'))
+        .map(|(soname, _)| soname.to_owned())
+        .with_context(|| format!("NVIDIA library {} has no ELF SONAME", path.display()))
+}
+
+fn stage_nvidia_library(source: &Path, destination: &Path) -> Result<()> {
+    let filename = source
+        .file_name()
+        .context("NVIDIA library has no filename")?;
+    fs::create_dir_all(destination)?;
+    let target = destination.join(filename);
+    fs::copy(source, &target)?;
+    let soname = nvidia_library_soname(source)?;
+    let soname_path = destination.join(&soname);
+    if soname_path != target {
+        remove_path_if_exists(&soname_path)?;
+        std::os::unix::fs::symlink(filename, soname_path)?;
+    }
+    Ok(())
+}
+
+fn render_nvidia_driver_selection(open_device_ids: &BTreeSet<u16>) -> (String, String) {
+    let config = "# Generated from NVIDIA 595.84 supported-gpus.json.\n\
+# Route both competing drivers through the release-matched hardware gate.\n\
+install nvidia /usr/libexec/mattos-nvidia-select nvidia $CMDLINE_OPTS\n\
+install nvidia_drm /usr/libexec/mattos-nvidia-select nvidia_drm $CMDLINE_OPTS\n\
+install nvidia_modeset /usr/libexec/mattos-nvidia-select nvidia_modeset $CMDLINE_OPTS\n\
+install nvidia_uvm /usr/libexec/mattos-nvidia-select nvidia_uvm $CMDLINE_OPTS\n\
+install nvidia_peermem /usr/libexec/mattos-nvidia-select nvidia_peermem $CMDLINE_OPTS\n\
+install nouveau /usr/libexec/mattos-nvidia-select nouveau $CMDLINE_OPTS\n"
+        .to_string();
+    let patterns = open_device_ids
+        .iter()
+        .map(|device| format!("0x{device:04x}"))
+        .collect::<Vec<_>>()
+        .join("|");
+    let selector = format!(
+        "#!/bin/sh\n\
+set -eu\n\
+module=$1\n\
+shift\n\
+supported=0\n\
+devices=${{MATTOS_NVIDIA_SYSFS_ROOT:-/sys/bus/pci/devices}}\n\
+for path in \"$devices\"/*; do\n\
+    [ -d \"$path\" ] || continue\n\
+    [ \"$(cat \"$path/vendor\" 2>/dev/null || true)\" = 0x10de ] || continue\n\
+    device=$(tr 'A-F' 'a-f' < \"$path/device\" 2>/dev/null || true)\n\
+    case \"$device\" in\n\
+        {patterns}) supported=1; break ;;\n\
+    esac\n\
+done\n\
+case \"$module\" in\n\
+    nouveau) [ \"$supported\" -eq 0 ] || exit 1 ;;\n\
+    nvidia*) [ \"$supported\" -eq 1 ] || exit 1 ;;\n\
+    *) exit 2 ;;\n\
+esac\n\
+exec \"${{MATTOS_MODPROBE:-/usr/sbin/modprobe}}\" --ignore-install \"$module\" \"$@\"\n"
+    );
+    (config, selector)
+}
+
+fn build_nvidia_driver(repo_root: &Path) -> Result<()> {
+    let manifest_path = repo_root.join("src/system/graphics/nvidia-driver/manifest.toml");
+    let manifest_body = fs::read_to_string(&manifest_path)?;
+    let manifest: NvidiaDriverManifest = toml::from_str(&manifest_body)?;
+    if manifest.schema_version != 1
+        || manifest.version != "595.84"
+        || manifest.release_branch != "production"
+        || manifest.architecture != "x86_64"
+        || manifest.kernel_source_commit != "722ae84526a09ed672fbe75448e2909834ba4cce"
+        || manifest.binary_policy != "verbatim-extraction-no-strip-no-patch"
+        || !manifest.include_in_iso
+    {
+        bail!("NVIDIA driver manifest does not match MattOS's pinned production policy");
+    }
+    let out_root = repo_root.join("out/build/nvidia-driver");
+    fs::create_dir_all(&out_root)?;
+    let runfile = ensure_verified_release_archive(
+        &out_root,
+        &manifest.runfile,
+        &manifest.url,
+        &manifest.sha256,
+    )?;
+    let extracted = out_root.join("source");
+    let extraction_stamp = out_root.join("extraction.stamp");
+    if fs::read_to_string(&extraction_stamp).ok().as_deref() != Some(manifest.sha256.as_str())
+        || !extracted.join("LICENSE").is_file()
+    {
+        remove_path_if_exists(&extracted)?;
+        run_cmd(
+            &out_root,
+            "sh",
+            &[
+                path_str(&runfile)?,
+                "--extract-only",
+                "--target",
+                path_str(&extracted)?,
+            ],
+        )?;
+        fs::write(&extraction_stamp, &manifest.sha256)?;
+    }
+    let license_hash = performance::sha256_file(&extracted.join("LICENSE"))?;
+    if license_hash != manifest.license_sha256 {
+        bail!(
+            "NVIDIA license checksum mismatch: expected {}, got {license_hash}",
+            manifest.license_sha256
+        );
+    }
+
+    let release = fs::read_to_string(repo_root.join("out/build/linux/kernel-release"))?
+        .trim()
+        .to_owned();
+    let kernel_source = repo_root.join("out/build/linux/source");
+    let kernel_output = repo_root.join("out/build/linux/build");
+    if !kernel_output
+        .join("include/config/kernel.release")
+        .is_file()
+    {
+        bail!("NVIDIA modules require the prepared MattOS kernel output");
+    }
+    let open_source = repo_root.join("out/build/nvidia-driver/kernel-source");
+    let open_stamp_path = out_root.join("kernel-source.stamp");
+    let open_state =
+        fs::read_to_string(repo_root.join("upstream/state/nvidia-open-gpu-kernel-modules.toml"))?;
+    let open_stamp = format!("{open_state}\nkernel-release={release}\nrecipe=2\n");
+    if fs::read_to_string(&open_stamp_path).ok().as_deref() != Some(open_stamp.as_str()) {
+        remove_path_if_exists(&open_source)?;
+        sync_build_source(
+            &repo_root.join("src/system/graphics/nvidia-open-gpu-kernel-modules"),
+            &open_source,
+        )?;
+        apply_component_patches(repo_root, "nvidia-open-gpu-kernel-modules", &open_source)?;
+        fs::write(&open_stamp_path, &open_stamp)?;
+    }
+    let jobs = scheduler::child_job_limit().max(1).to_string();
+    let sys_source = format!("SYSSRC={}", kernel_source.display());
+    let sys_output = format!("SYSOUT={}", kernel_output.display());
+    run_cmd(
+        &open_source,
+        "make",
+        &[
+            "modules",
+            "-j",
+            &jobs,
+            &sys_source,
+            &sys_output,
+            // Linux 7.2's delayed final-link objtool pass cannot rewrite the
+            // immutable precompiled NVIDIA core. Per-object objtool checking
+            // remains enabled for every source-built open-module object.
+            "delay-objtool=",
+        ],
+    )?;
+    let raw_install = out_root.join("modules-install");
+    remove_path_if_exists(&raw_install)?;
+    let install_mod_path = format!("INSTALL_MOD_PATH={}", raw_install.display());
+    run_cmd(
+        &open_source,
+        "make",
+        &[
+            "modules_install",
+            &sys_source,
+            &sys_output,
+            &install_mod_path,
+            "INSTALL_MOD_DIR=updates/nvidia",
+            "DEPMOD=true",
+            "delay-objtool=",
+        ],
+    )?;
+
+    let install = out_root.join("install");
+    remove_path_if_exists(&install)?;
+    let raw_module_root = raw_install.join("lib/modules").join(&release);
+    let module_root = install.join("usr/lib/modules").join(&release);
+    copy_tree_contents(&raw_module_root, &module_root)?;
+    for link in ["build", "source"] {
+        remove_path_if_exists(&module_root.join(link))?;
+    }
+    let mut module_files = Vec::new();
+    collect_regular_files(&module_root, &mut module_files)?;
+    let mut module_count = 0usize;
+    for module in module_files.into_iter().filter(|path| {
+        path.extension().and_then(OsStr::to_str) == Some("ko")
+            || path
+                .file_name()
+                .and_then(OsStr::to_str)
+                .is_some_and(|name| name.ends_with(".ko.zst"))
+    }) {
+        let vermagic = run_cmd_capture(
+            repo_root,
+            "modinfo",
+            &["-F", "vermagic", path_str(&module)?],
+        )?;
+        if !vermagic.starts_with(&release) {
+            bail!(
+                "{} has mismatched vermagic {}",
+                module.display(),
+                vermagic.trim()
+            );
+        }
+        if module.extension().and_then(OsStr::to_str) == Some("ko") {
+            let compressed = PathBuf::from(format!("{}.zst", module.display()));
+            run_cmd(
+                repo_root,
+                "zstd",
+                &[
+                    "-q",
+                    "-19",
+                    "-T1",
+                    "-f",
+                    path_str(&module)?,
+                    "-o",
+                    path_str(&compressed)?,
+                ],
+            )?;
+            remove_path_if_exists(&module)?;
+        }
+        module_count += 1;
+    }
+    if module_count != 5 {
+        bail!("NVIDIA open module install produced {module_count} modules, expected 5");
+    }
+    run_cmd(
+        repo_root,
+        "depmod",
+        &[
+            "-b",
+            path_str(&install)?,
+            "-m",
+            "/usr/lib/modules",
+            &release,
+        ],
+    )?;
+
+    let libdir = install.join("usr/lib/x86_64-linux-gnu");
+    for filename in [
+        "libEGL_nvidia.so.595.84",
+        "libGLESv1_CM_nvidia.so.595.84",
+        "libGLESv2_nvidia.so.595.84",
+        "libGLX_nvidia.so.595.84",
+        "libcuda.so.595.84",
+        "libnvcuvid.so.595.84",
+        "libnvidia-allocator.so.595.84",
+        "libnvidia-egl-gbm.so.1.1.3",
+        "libnvidia-egl-wayland.so.1.1.20",
+        "libnvidia-egl-wayland2.so.1.0.1",
+        "libnvidia-eglcore.so.595.84",
+        "libnvidia-encode.so.595.84",
+        "libnvidia-glcore.so.595.84",
+        "libnvidia-glsi.so.595.84",
+        "libnvidia-glvkspirv.so.595.84",
+        "libnvidia-gpucomp.so.595.84",
+        "libnvidia-ml.so.595.84",
+        "libnvidia-present.so.595.84",
+        "libnvidia-ptxjitcompiler.so.595.84",
+        "libnvidia-tls.so.595.84",
+    ] {
+        stage_nvidia_library(&extracted.join(filename), &libdir)?;
+    }
+    for filename in ["nvidia-smi", "nvidia-modprobe", "nvidia-persistenced"] {
+        let destination = install.join("usr/bin").join(filename);
+        fs::create_dir_all(destination.parent().expect("NVIDIA binary parent"))?;
+        fs::copy(extracted.join(filename), &destination)?;
+        set_mode(
+            destination,
+            if filename == "nvidia-modprobe" {
+                0o4755
+            } else {
+                0o755
+            },
+        )?;
+    }
+    for (source_name, destination_relative) in [
+        (
+            "10_nvidia.json",
+            "usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+        ),
+        ("nvidia_icd.json", "usr/share/vulkan/icd.d/nvidia_icd.json"),
+        (
+            "nvidia_layers.json",
+            "usr/share/vulkan/implicit_layer.d/nvidia_layers.json",
+        ),
+        (
+            "09_nvidia_wayland2.json",
+            "usr/share/egl/egl_external_platform.d/09_nvidia_wayland2.json",
+        ),
+        (
+            "10_nvidia_wayland.json",
+            "usr/share/egl/egl_external_platform.d/10_nvidia_wayland.json",
+        ),
+        (
+            "15_nvidia_gbm.json",
+            "usr/share/egl/egl_external_platform.d/15_nvidia_gbm.json",
+        ),
+    ] {
+        let destination = install.join(destination_relative);
+        fs::create_dir_all(destination.parent().expect("NVIDIA metadata parent"))?;
+        fs::copy(extracted.join(source_name), destination)?;
+    }
+    let firmware_dir = install.join("usr/lib/firmware/nvidia/595.84");
+    fs::create_dir_all(&firmware_dir)?;
+    for firmware in ["gsp_tu10x.bin", "gsp_ga10x.bin"] {
+        fs::copy(
+            extracted.join("firmware").join(firmware),
+            firmware_dir.join(firmware),
+        )?;
+    }
+    let supported_gpu_source = extracted.join("supported-gpus/supported-gpus.json");
+    let supported_gpu_data: serde_json::Value =
+        serde_json::from_slice(&fs::read(&supported_gpu_source)?)?;
+    let mut open_device_ids = BTreeSet::new();
+    for chip in supported_gpu_data["chips"]
+        .as_array()
+        .context("NVIDIA supported GPU manifest has no chips array")?
+    {
+        let is_open = chip.get("legacybranch").is_none()
+            && chip["features"]
+                .as_array()
+                .is_some_and(|features| features.iter().any(|feature| feature == "kernelopen"));
+        if !is_open {
+            continue;
+        }
+        let raw = chip["devid"]
+            .as_str()
+            .context("NVIDIA supported GPU entry has no devid")?;
+        let device = u16::from_str_radix(raw.trim_start_matches("0x"), 16)
+            .with_context(|| format!("invalid NVIDIA device ID {raw}"))?;
+        open_device_ids.insert(device);
+    }
+    if open_device_ids.len() < 100
+        || !open_device_ids.contains(&0x1e04)
+        || open_device_ids.contains(&0x1b80)
+    {
+        bail!("NVIDIA kernelopen GPU selection is missing Turing or includes Pascal");
+    }
+    let (selection_config, selector) = render_nvidia_driver_selection(&open_device_ids);
+    let modprobe_dir = install.join("usr/lib/modprobe.d");
+    fs::create_dir_all(&modprobe_dir)?;
+    fs::write(
+        modprobe_dir.join("nvidia-supported-gpus.conf"),
+        selection_config,
+    )?;
+    let selector_path = install.join("usr/libexec/mattos-nvidia-select");
+    fs::create_dir_all(selector_path.parent().expect("NVIDIA selector parent"))?;
+    fs::write(&selector_path, selector)?;
+    set_mode(selector_path, 0o755)?;
+    let doc = install.join("usr/share/doc/nvidia-driver-595");
+    fs::create_dir_all(&doc)?;
+    fs::copy(extracted.join("LICENSE"), doc.join("LICENSE"))?;
+    fs::copy(&manifest_path, doc.join("manifest.toml"))?;
+    fs::copy(
+        repo_root.join("src/system/graphics/nvidia-driver/README.md"),
+        doc.join("README.md"),
+    )?;
+    fs::copy(&supported_gpu_source, doc.join("supported-gpus.json"))?;
+    fs::copy(
+        extracted.join("supported-gpus/LICENSE"),
+        doc.join("supported-gpus.LICENSE"),
+    )?;
+    fs::write(
+        out_root.join("runfile.sha256"),
+        format!("{}  {}\n", manifest.sha256, manifest.runfile),
+    )?;
+    fs::write(
+        doc.join("runfile.sha256"),
+        fs::read(out_root.join("runfile.sha256"))?,
+    )?;
+    Ok(())
 }
 
 fn build_libdisplay_info(repo_root: &Path) -> Result<()> {
@@ -8645,6 +9301,7 @@ fn build_mesa(repo_root: &Path) -> Result<()> {
             "zstd",
             "systemd",
             "wayland",
+            "libglvnd",
         ],
         &[
             "--prefix=/usr",
@@ -8652,6 +9309,7 @@ fn build_mesa(repo_root: &Path) -> Result<()> {
             "-Dplatforms=wayland",
             "-Degl-native-platform=wayland",
             "-Dglx=disabled",
+            "-Dglvnd=enabled",
             "-Dopengl=true",
             "-Dgles1=enabled",
             "-Dgles2=enabled",
@@ -11891,6 +12549,22 @@ fn build_rootfs_into(repo_root: &Path, out: &Path) -> Result<()> {
     let skeleton = repo_root.join("src/rootfs/skeleton");
     fs::create_dir_all(out).with_context(|| format!("failed to create {}", out.display()))?;
     packaging::install_prototype_packages(repo_root, out)?;
+    let release = fs::read_to_string(repo_root.join("out/build/linux/kernel-release"))?
+        .trim()
+        .to_owned();
+    run_cmd(
+        repo_root,
+        "depmod",
+        &["-b", path_str(out)?, "-m", "/usr/lib/modules", &release],
+    )?;
+    let aliases = fs::read_to_string(
+        out.join("usr/lib/modules")
+            .join(&release)
+            .join("modules.alias"),
+    )?;
+    if !aliases.contains(" nvidia") || !aliases.contains(" nouveau") {
+        bail!("rootfs depmod metadata does not preserve both NVIDIA and Nouveau aliases");
+    }
     let package_owned = packaging::package_owned_paths(out)?;
     let package_snapshot = packaging::snapshot_package_files(out, &package_owned)?;
     for rel in [
@@ -12258,13 +12932,21 @@ fn validate_glibc_rootfs(repo_root: &Path, rootfs: &Path) -> Result<()> {
     let mut provided = BTreeSet::new();
     let mut soname_providers: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for path in files {
+        let relative = path.strip_prefix(rootfs)?;
+        // Firmware may itself use ELF as a container for code executed by an
+        // embedded GPU or device processor (for example NVIDIA GSP RISC-V).
+        // It is data from the host CPU's perspective, not part of its dynamic
+        // executable/library closure.
+        if relative.starts_with("usr/lib/firmware") {
+            continue;
+        }
         let Some(facts) = elf_cache::inspect(repo_root, &path)? else {
             continue;
         };
         if !facts.architecture.contains("X86-64") {
             bail!(
                 "ELF object /{} has unexpected architecture {}",
-                path.strip_prefix(rootfs)?.display(),
+                relative.display(),
                 facts.architecture
             );
         }
@@ -14666,7 +15348,10 @@ fn effective_command_display(program: &str, args: &[String]) -> String {
 }
 
 fn scheduler_command_args(args: &[&str]) -> Vec<String> {
-    let limit = scheduler::child_job_limit();
+    // A very small cgroup memory ceiling can yield no parallel CPU grant.
+    // External build tools require a positive jobs value; retain serial
+    // progress while the cgroup remains the hard memory safety boundary.
+    let limit = scheduler::child_job_limit().max(1);
     let experimental_limit = EXPERIMENTAL_CHILD_JOBS.with(Cell::get);
     let mut previous_sets_jobs = false;
     args.iter()
@@ -14836,6 +15521,19 @@ fn run_cmd_capture(cwd: &Path, program: &str, args: &[&str]) -> Result<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn nvidia_selector_routes_turing_to_official_and_pascal_to_nouveau() {
+        let ids = BTreeSet::from([0x1e04, 0x2684]);
+        let (config, selector) = render_nvidia_driver_selection(&ids);
+        assert!(config.contains("install nvidia "));
+        assert!(config.contains("install nouveau "));
+        assert!(!config.contains("blacklist"));
+        assert!(selector.contains("0x1e04|0x2684"));
+        assert!(!selector.contains("0x1b80"));
+        assert!(selector.contains("nouveau) [ \"$supported\" -eq 0 ]"));
+        assert!(selector.contains("nvidia*) [ \"$supported\" -eq 1 ]"));
+    }
 
     #[test]
     fn child_parallelism_is_capped_to_scheduler_grant() {
@@ -15088,6 +15786,9 @@ mod tests {
             ("vulkan-headers", 7.000),
             ("vulkan-loader", 14.000),
             ("vulkan-tools", 43.000),
+            ("x11-compat", 30.000),
+            ("libglvnd", 20.000),
+            ("nvidia-driver", 180.000),
             ("ncurses", 39.520),
             ("openssl", 197.919),
             ("openssh", 35.000),

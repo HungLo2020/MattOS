@@ -1,0 +1,10 @@
+schema_version = 1
+component = "nvidia-open-gpu-kernel-modules"
+upstream_commit = "722ae84526a09ed672fbe75448e2909834ba4cce"
+upstream_tree = "26d5e25dfecb1fbb17f529c14b6d9786cc9767e2"
+application = "output-mirror-only"
+
+[[patch]]
+path = "upstream/patches/nvidia-open-gpu-kernel-modules/0001-linux-7.2-remove-strncpy.patch"
+sha256 = "17b3eff46b7569849619858dec654e196607caa10ecd5051ed6b39169f0b81a3"
+purpose = "Adapt removed in-kernel strncpy APIs to Linux 7.2 without modifying vendored source"
