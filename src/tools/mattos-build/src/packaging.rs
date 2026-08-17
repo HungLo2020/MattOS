@@ -319,6 +319,7 @@ const PACKAGE_NAMES: &[&str] = &[
     "nvidia-utils-595",
     "nvidia-driver-595-open",
     "cosmic-comp",
+    "cosmic-desktop",
     "libpython3.14",
     "python3",
     "python3-venv",
@@ -330,6 +331,10 @@ const PACKAGE_NAMES: &[&str] = &[
     "lld",
     "rustc",
     "cargo",
+    "libdbus-1-3",
+    "libdav1d7",
+    "libglib2.0-0t64",
+    "pipewire",
     "dbus-broker",
     "libpam0g",
     "mattos-libpam-misc0",
@@ -1184,7 +1189,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "udev",
             description: "udev hardware database sources and prebuilt database for MattOS",
             source_component: "systemd",
-            depends: &["libudev1"],
+            depends: &["libudev1", "libblkid1"],
             provides: &["udev"],
             conflicts: &["udev"],
             replaces: &["udev"],
@@ -1302,12 +1307,64 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "required",
         },
         PackageSpec {
+            name: "libdbus-1-3",
+            description: "Reference D-Bus client library and private-session tools built for MattOS",
+            source_component: "dbus",
+            depends: &["libexpat1"],
+            provides: &["libdbus-1-3"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libdav1d7",
+            description: "AV1 decoder runtime used by COSMIC image handling",
+            source_component: "dav1d",
+            depends: &["libc6"],
+            provides: &["libdav1d7"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "libglib2.0-0t64",
+            description: "GLib, GObject, and GIO runtime for the COSMIC desktop",
+            source_component: "glib",
+            depends: &["libc6", "libffi8", "libpcre2-8-0", "zlib1g"],
+            provides: &["libglib2.0-0", "libglib2.0-0t64"],
+            conflicts: &[],
+            replaces: &["libglib2.0-0"],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "pipewire",
+            description: "PipeWire audio service, PulseAudio compatibility, and SPA runtime",
+            source_component: "pipewire",
+            depends: &["libc6", "libdbus-1-3", "libsystemd0"],
+            provides: &[
+                "pipewire",
+                "pipewire-pulse",
+                "libpipewire-0.3-0",
+                "libspa-0.2-modules",
+            ],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
             name: "dbus-broker",
             description: "D-Bus message broker and MattOS bus policy",
             source_component: "dbus-broker",
             depends: &["libexpat1", "libsystemd0"],
             provides: &["dbus-system-bus"],
-            conflicts: &["dbus-daemon"],
+            // MattOS keeps the reference daemon only for dbus-run-session and
+            // private buses.  The broker owns the system/user systemd units;
+            // the two package payloads do not overlap.
+            conflicts: &[],
             replaces: &[],
             essential: false,
             priority: "important",
@@ -1756,7 +1813,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "libseat1",
             description: "Seat management runtime library built for MattOS",
             source_component: "seatd",
-            depends: &["libc6"],
+            depends: &["libc6", "libsystemd0"],
             provides: &["libseat1"],
             conflicts: &[],
             replaces: &[],
@@ -2211,7 +2268,7 @@ fn package_specs() -> Vec<PackageSpec> {
         },
         PackageSpec {
             name: "cosmic-comp",
-            description: "COSMIC Wayland compositor for the MattOS installer",
+            description: "COSMIC Wayland compositor for MattOS graphical sessions",
             source_component: "cosmic-comp",
             depends: &[
                 "libc6",
@@ -2231,6 +2288,50 @@ fn package_specs() -> Vec<PackageSpec> {
                 "libudev1",
             ],
             provides: &["cosmic-comp"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "cosmic-desktop",
+            description: "Complete source-built COSMIC desktop and graphical login for MattOS",
+            source_component: "cosmic-desktop",
+            depends: &[
+                "cosmic-comp",
+                "dbus-broker",
+                "libdbus-1-3",
+                "libdav1d7",
+                "libglib2.0-0t64",
+                "pipewire",
+                "libpam0g",
+                "libpam-modules",
+                "libpam-runtime",
+                "libsystemd0",
+                "udev",
+                "libwayland-client0",
+                "libxkbcommon0",
+                "xkb-data",
+                "libgbm1",
+                "libegl1",
+                "libgl1-mesa-dri",
+                "mesa-vulkan-drivers",
+            ],
+            provides: &[
+                "cosmic-session",
+                "cosmic-greeter",
+                "cosmic-panel",
+                "cosmic-launcher",
+                "cosmic-settings",
+                "cosmic-settings-daemon",
+                "cosmic-notifications",
+                "cosmic-osd",
+                "cosmic-bg",
+                "cosmic-workspaces",
+                "cosmic-files",
+                "cosmic-term",
+                "greetd",
+            ],
             conflicts: &[],
             replaces: &[],
             essential: false,
@@ -3152,6 +3253,12 @@ fn package_recipe_revision(package: &str) -> u32 {
         // Revision 2 retains the complete upstream LICENSES directory and
         // top-level license notice alongside WHENCE in the binary package.
         "linux-firmware" => 2,
+        // Revision 2 includes Linux-PAM's source-built vendor pam_env.conf;
+        // the revision-1 cache key tracked only MattOS /etc/pam.d policy.
+        "libpam-runtime" => 2,
+        // Revision 2 supplies the freedesktop hicolor fallback index required
+        // to discover application-owned COSMIC icons in standard directories.
+        "cosmic-desktop" => 2,
         _ => 1,
     }
 }
@@ -3314,6 +3421,10 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "dpkg" => &["dpkg"],
             "systemd" => &["systemd"],
             "dbus-broker" => &["dbus-broker"],
+            "dbus" => &["dbus"],
+            "dav1d" => &["dav1d"],
+            "glib" => &["glib"],
+            "pipewire" => &["pipewire"],
             "util-linux" => &["util-linux"],
             "iproute2" => &["iproute2"],
             "iputils" => &["iputils"],
@@ -3340,6 +3451,7 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "mesa" => &["mesa"],
             "nvidia-driver" => &["nvidia-driver"],
             "cosmic-comp" => &["cosmic-comp"],
+            "cosmic-desktop" => &["cosmic-desktop"],
             "cpython" => &["cpython"],
             "llvm" => &["llvm"],
             "rust" => &["rust"],
@@ -3418,6 +3530,10 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "xxhash" => &["src/system/libraries/xxhash"],
         "tar" => &["src/userland/tar"],
         "dbus-broker" => &["src/system/dbus/dbus-broker"],
+        "dbus" => &["src/system/dbus/dbus"],
+        "dav1d" => &["src/system/multimedia/dav1d"],
+        "glib" => &["src/system/libraries/glib"],
+        "pipewire" => &["src/system/multimedia/pipewire"],
         "linux-pam" => &["src/system/auth/linux-pam"],
         "shadow" => &["src/system/auth/shadow"],
         "sudo-rs" => &["src/system/auth/sudo-rs"],
@@ -3469,6 +3585,12 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
             "upstream/patches/nvidia-open-gpu-kernel-modules",
         ],
         "cosmic-comp" => &["src/desktop/cosmic/cosmic-comp"],
+        "cosmic-desktop" => &[
+            "src/desktop/cosmic",
+            "src/desktop/themes/pop-icon-theme",
+            "src/system/session/greetd",
+            "src/system/session/cosmic",
+        ],
         "cpython" => &["src/development/python/cpython"],
         "llvm" => &["src/toolchain/llvm-project"],
         "rust" => &[
@@ -4074,14 +4196,20 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
             "src/system/graphics/libxcb/COPYING",
             "libxcb1",
         )?,
-        "libx11-6" => stage_imported_soname_library(
-            repo_root,
-            &staging,
-            "x11-compat",
-            "libX11.so.6",
-            "src/system/graphics/libx11/COPYING",
-            "libx11-6",
-        )?,
+        "libx11-6" => {
+            stage_imported_soname_library(
+                repo_root,
+                &staging,
+                "x11-compat",
+                "libX11.so.6",
+                "src/system/graphics/libx11/COPYING",
+                "libx11-6",
+            )?;
+            copy_tree_preserving(
+                &component_install(repo_root, "x11-compat").join("usr/share/X11/locale"),
+                &staging.join("usr/share/X11/locale"),
+            )?;
+        }
         "libxext6" => stage_imported_soname_library(
             repo_root,
             &staging,
@@ -4160,8 +4288,102 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
         | "nvidia-utils-595"
         | "nvidia-driver-595-open" => stage_nvidia_package(repo_root, &staging, spec.name)?,
         "cosmic-comp" => {
-            stage_runtime_paths(repo_root, &staging, "cosmic-comp", &["usr/bin/cosmic-comp"])?
+            stage_runtime_paths(repo_root, &staging, "cosmic-comp", &["usr/bin/cosmic-comp"])?;
+            for (source, destination) in [
+                (
+                    "src/desktop/cosmic/cosmic-comp/data/keybindings.ron",
+                    "usr/share/cosmic/com.system76.CosmicSettings.Shortcuts/v1/defaults",
+                ),
+                (
+                    "src/desktop/cosmic/cosmic-comp/data/tiling-exceptions.ron",
+                    "usr/share/cosmic/com.system76.CosmicSettings.WindowRules/v1/tiling_exception_defaults",
+                ),
+            ] {
+                copy_preserving(&repo_root.join(source), &staging.join(destination))?;
+            }
         }
+        "cosmic-desktop" => stage_cosmic_desktop(repo_root, &staging)?,
+        "libdbus-1-3" => {
+            stage_imported_soname_library(
+                repo_root,
+                &staging,
+                "dbus",
+                "libdbus-1.so.3",
+                "src/system/dbus/dbus/COPYING",
+                "libdbus-1-3",
+            )?;
+            // COSMIC's upstream session launcher uses a private reference bus
+            // when a login manager has not supplied a user bus (including the
+            // live installer compositor). dbus-broker remains the sole
+            // systemd-managed system/user daemon.
+            stage_runtime_paths(
+                repo_root,
+                &staging,
+                "dbus",
+                &[
+                    "usr/bin/dbus-daemon",
+                    "usr/bin/dbus-run-session",
+                    "usr/bin/dbus-update-activation-environment",
+                ],
+            )?;
+            let reference_config =
+                component_install(repo_root, "dbus").join("usr/share/dbus-1/session.conf");
+            let private_config = fs::read_to_string(&reference_config)?
+                .lines()
+                .map(|line| {
+                    if line.contains("<listen>") {
+                        "  <listen>unix:tmpdir=/tmp</listen>"
+                    } else {
+                        line
+                    }
+                })
+                .collect::<Vec<_>>()
+                .join("\n")
+                + "\n";
+            if !private_config.contains("<listen>unix:tmpdir=/tmp</listen>") {
+                bail!("private D-Bus session config is missing its runtime listen address");
+            }
+            let private_config_path = staging.join("usr/share/dbus-1/mattos-private-session.conf");
+            fs::create_dir_all(
+                private_config_path
+                    .parent()
+                    .expect("private D-Bus config parent"),
+            )?;
+            fs::write(private_config_path, private_config)?;
+        }
+        "libdav1d7" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "dav1d",
+            "libdav1d.so.7",
+            "src/system/multimedia/dav1d/COPYING",
+            "libdav1d7",
+        )?,
+        "libglib2.0-0t64" => {
+            stage_library_family(
+                repo_root,
+                &staging,
+                "glib",
+                &[
+                    "libglib-2.0.so.0",
+                    "libgobject-2.0.so.0",
+                    "libgio-2.0.so.0",
+                    "libgmodule-2.0.so.0",
+                    "libgthread-2.0.so.0",
+                ],
+            )?;
+            stage_runtime_paths(
+                repo_root,
+                &staging,
+                "glib",
+                &["usr/bin/glib-compile-schemas", "usr/bin/gio-querymodules"],
+            )?;
+            copy_preserving(
+                &repo_root.join("src/system/libraries/glib/COPYING"),
+                &staging.join("usr/share/doc/libglib2.0-0t64/copyright"),
+            )?;
+        }
+        "pipewire" => stage_pipewire(repo_root, &staging)?,
         "libpython3.14" => {
             stage_library_family(repo_root, &staging, "cpython", &["libpython3.14.so.1.0"])?;
             copy_preserving(
@@ -5242,6 +5464,161 @@ fn stage_runtime_paths(
     Ok(())
 }
 
+fn stage_cosmic_desktop(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = component_install(repo_root, "cosmic-desktop");
+    copy_tree_preserving(&install.join("usr"), &staging.join("usr"))?;
+    // The pinned settings schema carries the complete v1 component styling,
+    // while the matching libcosmic v2 model still requires list_button. Keep
+    // this MattOS integration in package staging so an integration-only change
+    // does not invalidate and rebuild every upstream COSMIC workspace.
+    for theme in ["Dark", "Light"] {
+        let theme_root = staging.join(format!("usr/share/cosmic/com.system76.CosmicTheme.{theme}"));
+        let source = theme_root.join("v1/list_button");
+        let destination = theme_root.join("v2/list_button");
+        if !source.is_file() || !destination.parent().is_some_and(Path::is_dir) {
+            bail!("COSMIC {theme} theme lacks the expected v1/v2 schemas");
+        }
+        fs::copy(source, destination)?;
+    }
+    fs::write(
+        staging.join("usr/share/cosmic/com.system76.CosmicSettings.Shortcuts/v1/custom"),
+        "{}\n",
+    )?;
+    let start_cosmic = staging.join("usr/bin/start-cosmic");
+    let wayland_session = fs::read_to_string(&start_cosmic)?
+        .replace("GDK_BACKEND=wayland,x11", "GDK_BACKEND=wayland")
+        .replace("QT_QPA_PLATFORM=\"wayland;xcb\"", "QT_QPA_PLATFORM=wayland")
+        .replace(
+            "exec /usr/bin/dbus-run-session -- /usr/bin/cosmic-session",
+            "exec /usr/bin/dbus-run-session --config-file=/usr/share/dbus-1/mattos-private-session.conf -- /usr/bin/cosmic-session",
+        );
+    fs::write(&start_cosmic, wayland_session)?;
+
+    let integration = repo_root.join("src/system/session/cosmic");
+    copy_preserving(
+        &integration.join("cosmic-greeter.toml"),
+        &staging.join("etc/greetd/cosmic-greeter.toml"),
+    )?;
+    copy_preserving(
+        &integration.join("cosmic-greeter.pam"),
+        &staging.join("etc/pam.d/cosmic-greeter"),
+    )?;
+    copy_preserving(
+        &integration.join("cosmic-greeter-start"),
+        &staging.join("usr/bin/cosmic-greeter-start"),
+    )?;
+    set_mode(staging.join("usr/bin/cosmic-greeter-start"), 0o755)?;
+    for unit in ["cosmic-greeter.service", "cosmic-greeter-daemon.service"] {
+        copy_preserving(
+            &integration.join(unit),
+            &staging.join("usr/lib/systemd/system").join(unit),
+        )?;
+    }
+    copy_preserving(
+        &integration.join("cosmic-desktop.conf"),
+        &staging.join("usr/lib/environment.d/90-cosmic-desktop.conf"),
+    )?;
+    copy_preserving(
+        &integration.join("README.md"),
+        &staging.join("usr/share/doc/cosmic-desktop/README.md"),
+    )?;
+    copy_preserving(
+        &integration.join("hicolor-index.theme"),
+        &staging.join("usr/share/icons/hicolor/index.theme"),
+    )?;
+
+    let display_manager = staging.join("etc/systemd/system/display-manager.service");
+    fs::create_dir_all(display_manager.parent().expect("display-manager parent"))?;
+    #[cfg(unix)]
+    std::os::unix::fs::symlink(
+        "/usr/lib/systemd/system/cosmic-greeter.service",
+        &display_manager,
+    )?;
+    let wants = staging.join("etc/systemd/system/multi-user.target.wants");
+    fs::create_dir_all(&wants)?;
+    #[cfg(unix)]
+    std::os::unix::fs::symlink(
+        "/usr/lib/systemd/system/cosmic-greeter-daemon.service",
+        wants.join("cosmic-greeter-daemon.service"),
+    )?;
+
+    for required in [
+        "usr/bin/cosmic-session",
+        "usr/bin/cosmic-panel",
+        "usr/bin/cosmic-launcher",
+        "usr/bin/cosmic-term",
+        "usr/bin/greetd",
+        "usr/bin/cosmic-greeter-start",
+        "usr/share/wayland-sessions/cosmic.desktop",
+        "usr/share/icons/Pop/cursors/default",
+        "usr/share/icons/hicolor/index.theme",
+        "usr/share/fonts/truetype/open-sans/OpenSans-Regular.ttf",
+        "usr/share/fonts/truetype/noto/NotoSansMono[wdth,wght].ttf",
+        "etc/pam.d/cosmic-greeter",
+        "etc/systemd/system/display-manager.service",
+    ] {
+        if fs::symlink_metadata(staging.join(required)).is_err() {
+            bail!("cosmic-desktop package is missing /{required}");
+        }
+    }
+    let launcher = fs::read_to_string(staging.join("usr/bin/cosmic-greeter-start"))?;
+    for contract in [
+        "LIBSEAT_BACKEND=logind",
+        "XDG_SESSION_TYPE=wayland",
+        "cosmic-comp --no-xwayland /usr/bin/cosmic-greeter",
+    ] {
+        if !launcher.contains(contract) {
+            bail!("COSMIC greeter launcher is missing runtime contract: {contract}");
+        }
+    }
+    let greeter_unit =
+        fs::read_to_string(staging.join("usr/lib/systemd/system/cosmic-greeter.service"))?;
+    if !greeter_unit.contains("Restart=always")
+        || !greeter_unit.contains("After=systemd-user-sessions.service systemd-logind.service")
+        || !greeter_unit.contains("TimeoutStopSec=10s")
+    {
+        bail!(
+            "COSMIC display manager lacks logind ordering, bounded shutdown, or restart recovery"
+        );
+    }
+    Ok(())
+}
+
+fn stage_pipewire(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = component_install(repo_root, "pipewire");
+    for relative in [
+        "usr/bin",
+        "usr/lib/x86_64-linux-gnu",
+        "usr/lib/systemd/user",
+        "usr/share/pipewire",
+    ] {
+        copy_tree_preserving(&install.join(relative), &staging.join(relative))?;
+    }
+    copy_preserving(
+        &repo_root.join("src/system/multimedia/pipewire/COPYING"),
+        &staging.join("usr/share/doc/pipewire/copyright"),
+    )?;
+    let socket_wants = staging.join("usr/lib/systemd/user/sockets.target.wants");
+    fs::create_dir_all(&socket_wants)?;
+    #[cfg(unix)]
+    for unit in ["pipewire.socket", "pipewire-pulse.socket"] {
+        std::os::unix::fs::symlink(format!("../{unit}"), socket_wants.join(unit))?;
+    }
+    for required in [
+        "usr/bin/pipewire",
+        "usr/bin/pipewire-pulse",
+        "usr/lib/x86_64-linux-gnu/libpipewire-0.3.so.0",
+        "usr/lib/systemd/user/pipewire.service",
+        "usr/lib/systemd/user/pipewire.socket",
+        "usr/lib/systemd/user/sockets.target.wants/pipewire.socket",
+    ] {
+        if fs::symlink_metadata(staging.join(required)).is_err() {
+            bail!("pipewire package is missing /{required}");
+        }
+    }
+    Ok(())
+}
+
 fn stage_mesa_dri_runtime(repo_root: &Path, staging: &Path) -> Result<()> {
     let install = component_install(repo_root, "mesa");
     let library_dir = install.join("usr/lib/x86_64-linux-gnu");
@@ -5566,7 +5943,23 @@ fn stage_library_family(
     let source = component_install(repo_root, component).join("usr/lib/x86_64-linux-gnu");
     let destination = staging.join("usr/lib/x86_64-linux-gnu");
     for name in names {
-        copy_path_preserving(&source.join(name), &destination.join(name))?;
+        let source_soname = source.join(name);
+        let metadata = fs::symlink_metadata(&source_soname)
+            .with_context(|| format!("{component} did not install {name}"))?;
+        if metadata.file_type().is_symlink() {
+            let target = fs::read_link(&source_soname)?;
+            if target.is_absolute() || target.components().count() != 1 {
+                bail!(
+                    "{component} installed unsafe SONAME target {} -> {}",
+                    source_soname.display(),
+                    target.display()
+                );
+            }
+            copy_preserving(&source.join(&target), &destination.join(&target))?;
+            copy_path_preserving(&source_soname, &destination.join(name))?;
+        } else {
+            copy_preserving(&source_soname, &destination.join(name))?;
+        }
     }
     Ok(())
 }
@@ -5737,6 +6130,14 @@ fn stage_pam_runtime(repo_root: &Path, staging: &Path) -> Result<()> {
     )?;
     let pam_policy = repo_root.join("src/system/auth/config/pam.d");
     copy_tree_preserving(&pam_policy, &staging.join("etc/pam.d"))?;
+    // Linux-PAM is built with its upstream vendor configuration directory at
+    // /usr/share/pam.  Ship the source-built pam_env defaults there so PAM
+    // does not warn on every login while still allowing /etc/security to
+    // override them locally.
+    copy_preserving(
+        &component_install(repo_root, "linux-pam").join("usr/share/pam/security/pam_env.conf"),
+        &staging.join("usr/share/pam/security/pam_env.conf"),
+    )?;
     let mut conffiles = fs::read_dir(&pam_policy)?
         .map(|entry| {
             Ok(format!(
@@ -6616,6 +7017,11 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         | "nvidia-utils-595"
         | "nvidia-driver-595-open" => "595.84".to_string(),
         "cosmic-comp" => component_snapshot_version(repo_root, "cosmic-comp")?,
+        "cosmic-desktop" => component_snapshot_version(repo_root, "cosmic-session")?,
+        "libdbus-1-3" => component_snapshot_version(repo_root, "dbus")?,
+        "libdav1d7" => component_snapshot_version(repo_root, "dav1d")?,
+        "libglib2.0-0t64" => component_snapshot_version(repo_root, "glib")?,
+        "pipewire" => component_snapshot_version(repo_root, "pipewire")?,
         "libpython3.14" | "python3" | "python3-venv" | "python3-dev" => {
             component_snapshot_version(repo_root, "cpython")?
         }
@@ -9071,7 +9477,50 @@ mod tests {
         assert!(unit.contains("After=systemd-udev-trigger.service systemd-udev-settle.service"));
         assert!(unit.contains("/dev/dri/card[0-9]*"));
         assert!(unit.contains("/dev/input/event[0-9]*"));
+        assert!(unit.contains(
+            "dbus-run-session --config-file=/usr/share/dbus-1/mattos-private-session.conf"
+        ));
+        assert!(unit.contains("XCURSOR_THEME=Pop"));
         assert!(!unit.contains("modprobe virtio_gpu"));
+    }
+
+    #[test]
+    fn cosmic_runtime_packaging_owns_session_bus_tools_and_desktop_defaults() {
+        let source = include_str!("packaging.rs");
+        for required in [
+            "usr/bin/dbus-daemon",
+            "usr/bin/dbus-run-session",
+            "usr/bin/dbus-update-activation-environment",
+            "usr/share/dbus-1/mattos-private-session.conf",
+            "usr/share/icons/hicolor/index.theme",
+            "com.system76.CosmicSettings.Shortcuts/v1/defaults",
+            "com.system76.CosmicSettings.WindowRules/v1/tiling_exception_defaults",
+        ] {
+            assert!(
+                source.contains(required),
+                "runtime packaging omits {required}"
+            );
+        }
+
+        let launcher = include_str!("../../../system/session/cosmic/cosmic-greeter-start");
+        assert!(launcher.contains("LIBSEAT_BACKEND=logind"));
+        assert!(launcher.contains("XDG_SESSION_TYPE=wayland"));
+        assert!(launcher.contains("cosmic-comp --no-xwayland"));
+        let unit = include_str!("../../../system/session/cosmic/cosmic-greeter.service");
+        assert!(unit.contains("Restart=always"));
+        assert!(unit.contains("TimeoutStopSec=10s"));
+        assert!(unit.contains("After=systemd-user-sessions.service systemd-logind.service"));
+
+        let specs = package_specs();
+        let libseat = specs
+            .iter()
+            .find(|spec| spec.name == "libseat1")
+            .expect("libseat package");
+        assert!(libseat.depends.contains(&"libsystemd0"));
+
+        let package_roots = package_source_roots("cosmic-desktop");
+        assert!(package_roots.contains(&"src/system/session/cosmic"));
+        assert!(package_roots.contains(&"src/desktop/cosmic"));
     }
 
     #[test]
@@ -9470,7 +9919,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 142);
+        assert_eq!(PACKAGE_NAMES.len(), 147);
     }
 
     #[test]
@@ -9495,7 +9944,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 142);
+        assert_eq!(PACKAGE_NAMES.len(), 147);
         assert_eq!(
             UTIL_LINUX_BASE_PATHS,
             &[
@@ -9541,6 +9990,7 @@ mod tests {
         assert_eq!(package_recipe_revision("util-linux"), 2);
         assert_eq!(package_recipe_revision("git"), 2);
         assert_eq!(package_recipe_revision("openssh-server"), 2);
+        assert_eq!(package_recipe_revision("libpam-runtime"), 2);
         let ssh_service = include_str!("../../../system/network/openssh/ssh.service");
         assert!(ssh_service.contains("\nType=notify\n"));
         assert!(ssh_service.contains("ExecStart=/usr/sbin/sshd -D"));
@@ -9571,7 +10021,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 142);
+        assert_eq!(PACKAGE_NAMES.len(), 147);
         let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
         for dependency in [
             "libffi8",

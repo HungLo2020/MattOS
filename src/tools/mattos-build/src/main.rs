@@ -3487,7 +3487,26 @@ fn stage_resource_profile(stage: BuildStage) -> scheduler::StageResourceProfile 
     }
     if matches!(
         stage,
-        BuildStage::Llvm | BuildStage::Mesa | BuildStage::CosmicComp
+        BuildStage::Llvm
+            | BuildStage::Mesa
+            | BuildStage::CosmicComp
+            | BuildStage::CosmicSession
+            | BuildStage::CosmicGreeter
+            | BuildStage::CosmicPanel
+            | BuildStage::CosmicApplets
+            | BuildStage::CosmicAppLibrary
+            | BuildStage::CosmicLauncher
+            | BuildStage::CosmicSettings
+            | BuildStage::CosmicSettingsDaemon
+            | BuildStage::CosmicNotifications
+            | BuildStage::CosmicOsd
+            | BuildStage::CosmicBg
+            | BuildStage::CosmicWorkspaces
+            | BuildStage::CosmicFiles
+            | BuildStage::CosmicTerm
+            | BuildStage::CosmicUtilities
+            | BuildStage::CosmicPortal
+            | BuildStage::Greetd
     ) {
         return scheduler::StageResourceProfile::high_memory_parallel();
     }
@@ -3509,7 +3528,10 @@ fn stage_resource_profile(stage: BuildStage) -> scheduler::StageResourceProfile 
         | BuildStage::Python
         | BuildStage::Rust
         | BuildStage::SudoRs
-        | BuildStage::Init => scheduler::StageResourceProfile::memory_heavy(),
+        | BuildStage::Init
+        // XZ-backed squashfs compression scales cleanly to four workers but
+        // needs the same bounded per-worker memory admission as compilers.
+        | BuildStage::LiveRoot => scheduler::StageResourceProfile::memory_heavy(),
         _ => scheduler::StageResourceProfile::standard(),
     }
 }
@@ -3605,6 +3627,62 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
             "out/build/nvidia-driver/runfile.sha256".into(),
         ],
         BuildStage::CosmicComp => vec!["out/build/cosmic-comp/install/usr/bin/cosmic-comp".into()],
+        BuildStage::CosmicSession => {
+            vec!["out/build/cosmic-session/install/usr/bin/cosmic-session".into()]
+        }
+        BuildStage::CosmicGreeter => {
+            vec!["out/build/cosmic-greeter/install/usr/bin/cosmic-greeter".into()]
+        }
+        BuildStage::CosmicPanel => {
+            vec!["out/build/cosmic-panel/install/usr/bin/cosmic-panel".into()]
+        }
+        BuildStage::CosmicApplets => {
+            vec!["out/build/cosmic-applets/install/usr/bin/cosmic-applets".into()]
+        }
+        BuildStage::CosmicAppLibrary => {
+            vec!["out/build/cosmic-applibrary/install/usr/bin/cosmic-app-library".into()]
+        }
+        BuildStage::CosmicLauncher => {
+            vec!["out/build/cosmic-launcher/install/usr/bin/cosmic-launcher".into()]
+        }
+        BuildStage::CosmicSettings => {
+            vec!["out/build/cosmic-settings/install/usr/bin/cosmic-settings".into()]
+        }
+        BuildStage::CosmicSettingsDaemon => {
+            vec!["out/build/cosmic-settings-daemon/install/usr/bin/cosmic-settings-daemon".into()]
+        }
+        BuildStage::CosmicNotifications => {
+            vec!["out/build/cosmic-notifications/install/usr/bin/cosmic-notifications".into()]
+        }
+        BuildStage::CosmicOsd => {
+            vec!["out/build/cosmic-osd/install/usr/bin/cosmic-osd".into()]
+        }
+        BuildStage::CosmicBg => {
+            vec!["out/build/cosmic-bg/install/usr/bin/cosmic-bg".into()]
+        }
+        BuildStage::CosmicWorkspaces => {
+            vec!["out/build/cosmic-workspaces/install/usr/bin/cosmic-workspaces".into()]
+        }
+        BuildStage::CosmicFiles => {
+            vec!["out/build/cosmic-files/install/usr/bin/cosmic-files".into()]
+        }
+        BuildStage::CosmicTerm => {
+            vec!["out/build/cosmic-term/install/usr/bin/cosmic-term".into()]
+        }
+        BuildStage::CosmicUtilities => vec!["out/build/cosmic-utilities/install".into()],
+        BuildStage::CosmicPortal => {
+            vec!["out/build/cosmic-portal/install/usr/libexec/xdg-desktop-portal-cosmic".into()]
+        }
+        BuildStage::CosmicAssets => {
+            vec!["out/build/cosmic-assets/install/usr/share/icons/Cosmic/index.theme".into()]
+        }
+        BuildStage::Greetd => vec!["out/build/greetd/install/usr/bin/greetd".into()],
+        BuildStage::CosmicDesktop => vec![
+            "out/build/cosmic-desktop/install/usr/bin/cosmic-session".into(),
+            "out/build/cosmic-desktop/install/usr/bin/cosmic-panel".into(),
+            "out/build/cosmic-desktop/install/usr/bin/cosmic-term".into(),
+            "out/build/cosmic-desktop/install/usr/bin/greetd".into(),
+        ],
         BuildStage::Python => vec!["out/build/cpython/install".into()],
         BuildStage::Llvm => vec!["out/build/llvm/install".into()],
         BuildStage::Rust => vec!["out/build/rust/install".into()],
@@ -3960,6 +4038,25 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::Mesa => build_mesa(repo_root),
         BuildStage::NvidiaDriver => build_nvidia_driver(repo_root),
         BuildStage::CosmicComp => build_cosmic_comp(repo_root),
+        BuildStage::CosmicSession
+        | BuildStage::CosmicGreeter
+        | BuildStage::CosmicPanel
+        | BuildStage::CosmicApplets
+        | BuildStage::CosmicAppLibrary
+        | BuildStage::CosmicLauncher
+        | BuildStage::CosmicSettings
+        | BuildStage::CosmicSettingsDaemon
+        | BuildStage::CosmicNotifications
+        | BuildStage::CosmicOsd
+        | BuildStage::CosmicBg
+        | BuildStage::CosmicWorkspaces
+        | BuildStage::CosmicFiles
+        | BuildStage::CosmicTerm
+        | BuildStage::CosmicUtilities
+        | BuildStage::CosmicPortal
+        | BuildStage::CosmicAssets
+        | BuildStage::Greetd => build_cosmic_desktop_component(repo_root, stage),
+        BuildStage::CosmicDesktop => build_cosmic_desktop(repo_root),
         BuildStage::Python => build_cpython(repo_root),
         BuildStage::Llvm => build_llvm(repo_root),
         BuildStage::Rust => build_rust(repo_root),
@@ -3980,6 +4077,9 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::Xz => build_xz(repo_root),
         BuildStage::Xxhash => build_xxhash(repo_root),
         BuildStage::Zstd => build_zstd(repo_root),
+        BuildStage::Dav1d => build_dav1d(repo_root),
+        BuildStage::Glib => build_glib(repo_root),
+        BuildStage::Pipewire => build_pipewire(repo_root),
         BuildStage::Openssl => build_openssl(repo_root),
         BuildStage::Elfutils => build_elfutils(repo_root),
         BuildStage::Pcre2 => build_pcre2(repo_root),
@@ -3992,6 +4092,7 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::SudoRs => build_sudo_rs(repo_root),
         BuildStage::UtilLinux => build_util_linux(repo_root),
         BuildStage::Systemd => build_systemd(repo_root),
+        BuildStage::Dbus => build_dbus(repo_root),
         BuildStage::DbusBroker => build_dbus_broker(repo_root),
         BuildStage::Dpkg => packaging::build_dpkg(repo_root),
         BuildStage::Apt => packaging::build_apt(repo_root),
@@ -8025,13 +8126,13 @@ fn build_libseat(repo_root: &Path) -> Result<()> {
         repo_root,
         "seatd",
         "src/system/libraries/seatd",
-        &[],
+        &["systemd"],
         &[
             "--prefix=/usr",
             "--libdir=lib/x86_64-linux-gnu",
             "-Dserver=disabled",
             "-Dlibseat-seatd=disabled",
-            "-Dlibseat-logind=disabled",
+            "-Dlibseat-logind=systemd",
             "-Dlibseat-builtin=enabled",
             "-Dexamples=disabled",
             "-Dman-pages=disabled",
@@ -9451,6 +9552,693 @@ fn build_cosmic_comp(repo_root: &Path) -> Result<()> {
         // SONAME.  Checking against only that one directory made ldd reject
         // legitimate transitive MattOS dependencies as "not found".
         validate_dependency_resolves_from(&binary, soname, &library, &library_dir_refs)?;
+    }
+    Ok(())
+}
+
+fn cosmic_just(repo_root: &Path) -> Result<PathBuf> {
+    let just_root = repo_root.join("out/tools/cosmic-just");
+    let just = just_root.join("bin/just");
+    if !just.is_file() {
+        fs::create_dir_all(&just_root)?;
+        let root_arg = format!("--root={}", just_root.display());
+        run_cmd_with_env_overrides(
+            repo_root,
+            "cargo",
+            &[
+                "install",
+                "just",
+                "--version",
+                "1.40.0",
+                "--locked",
+                root_arg.as_str(),
+            ],
+            &[("CARGO_BUILD_JOBS", "4".to_string())],
+        )?;
+    }
+    Ok(just)
+}
+
+fn cosmic_component_environment(
+    repo_root: &Path,
+    install: &Path,
+) -> Result<Vec<(&'static str, String)>> {
+    let native_components = [
+        "glibc",
+        "gcc-runtime",
+        "openssl",
+        "zlib",
+        "zstd",
+        "wayland",
+        "xkbcommon",
+        "mesa",
+        "libdrm",
+        "libinput",
+        "systemd",
+        "dbus",
+        "dbus-broker",
+        "dav1d",
+        "glib",
+        "pipewire",
+    ];
+    let mut env = staged_library_environment(repo_root, &native_components)?;
+    let just = cosmic_just(repo_root)?;
+    let inherited_path = env
+        .iter()
+        .find_map(|(key, value)| (*key == "PATH").then_some(value.as_str()))
+        .unwrap_or_default();
+    let tool_path = std::env::join_paths(
+        std::iter::once(just.parent().expect("just bin parent").to_path_buf())
+            .chain(std::env::split_paths(inherited_path)),
+    )?
+    .to_string_lossy()
+    .to_string();
+    if let Some((_, value)) = env.iter_mut().find(|(key, _)| *key == "PATH") {
+        *value = tool_path;
+    }
+    let shared_target = cosmic_shared_target(repo_root);
+    fs::create_dir_all(&shared_target)?;
+    env.push(("CARGO_BUILD_JOBS", "4".to_string()));
+    env.push(("CARGO_INCREMENTAL", "0".to_string()));
+    env.push(("CARGO_TARGET_DIR", shared_target.display().to_string()));
+    env.push((
+        "RUSTFLAGS",
+        format!(
+            "--remap-path-prefix={}=/usr/src/mattos",
+            repo_root.display()
+        ),
+    ));
+    env.push(("CARGO_PROFILE_RELEASE_LTO", "false".to_string()));
+    env.push(("CARGO_PROFILE_RELEASE_CODEGEN_UNITS", "4".to_string()));
+    env.push(("DESTDIR", install.display().to_string()));
+    Ok(env)
+}
+
+fn cosmic_shared_target(repo_root: &Path) -> PathBuf {
+    repo_root.join("out/build/cosmic-desktop/cargo-target")
+}
+
+fn cosmic_shared_target_lock(repo_root: &Path) -> PathBuf {
+    repo_root.join("out/cache/cosmic-cargo-target.lock")
+}
+
+fn patch_cosmic_profile_helper(mirror: &Path) -> Result<()> {
+    let config = mirror.join("src/config.rs");
+    let original = fs::read_to_string(&config)?;
+    let profile_helper = r#"pub fn profile() -> &'static str {
+    std::env!("OUT_DIR")
+        .split(std::path::MAIN_SEPARATOR)
+        .nth_back(3)
+        .unwrap_or("unknown")
+}"#;
+    if !original.contains(profile_helper) {
+        bail!(
+            "{} no longer contains the expected OUT_DIR profile helper",
+            config.display()
+        );
+    }
+    fs::write(
+        &config,
+        original.replace(
+            profile_helper,
+            "pub fn profile() -> &'static str {\n    \"release\"\n}",
+        ),
+    )?;
+    Ok(())
+}
+
+fn run_locked_cosmic_command(
+    repo_root: &Path,
+    cwd: &Path,
+    program: &str,
+    args: &[&str],
+    env: &[(&str, String)],
+) -> Result<()> {
+    let lock = cosmic_shared_target_lock(repo_root);
+    if let Some(parent) = lock.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    let mut locked_args = vec!["-x", path_str(&lock)?, program];
+    locked_args.extend_from_slice(args);
+    run_cmd_with_env_overrides(cwd, "flock", &locked_args, env)
+}
+
+fn build_cosmic_just_component(
+    repo_root: &Path,
+    install: &Path,
+    component: &str,
+    env: &[(&str, String)],
+) -> Result<()> {
+    // Keep the mirror path stable across the old aggregate builder and the
+    // granular stage graph. Cargo fingerprints include workspace paths, so
+    // moving otherwise-identical sources would throw away valid artifacts.
+    let mirror = repo_root
+        .join("out/build/cosmic-desktop/sources")
+        .join(component);
+    sync_build_source(
+        &repo_root.join("src/desktop/cosmic").join(component),
+        &mirror,
+    )?;
+    isolate_cargo_build_mirror(&mirror)?;
+    if matches!(component, "cosmic-launcher" | "cosmic-notifications") {
+        patch_cosmic_profile_helper(&mirror)?;
+    }
+    let just = cosmic_just(repo_root)?;
+    run_locked_cosmic_command(
+        repo_root,
+        &mirror,
+        path_str(&just)?,
+        &["build-release", "--locked"],
+        env,
+    )?;
+    let rootdir = format!("rootdir={}", install.display());
+    let install_args = if component == "pop-launcher" {
+        vec![rootdir.as_str(), "install"]
+    } else {
+        vec![rootdir.as_str(), "prefix=/usr", "install"]
+    };
+    run_cmd_with_env_overrides(&mirror, path_str(&just)?, &install_args, env)
+}
+
+fn build_cosmic_desktop_component(repo_root: &Path, stage: BuildStage) -> Result<()> {
+    let id = build_stage_id(stage);
+    let out_root = repo_root.join("out/build").join(id);
+    let install = out_root.join("install");
+    remove_path_if_exists(&install)?;
+    fs::create_dir_all(&install)?;
+    let env = cosmic_component_environment(repo_root, &install)?;
+
+    let just_component = match stage {
+        BuildStage::CosmicSession => Some("cosmic-session"),
+        BuildStage::CosmicGreeter => Some("cosmic-greeter"),
+        BuildStage::CosmicPanel => Some("cosmic-panel"),
+        BuildStage::CosmicApplets => Some("cosmic-applets"),
+        BuildStage::CosmicAppLibrary => Some("cosmic-applibrary"),
+        BuildStage::CosmicLauncher => Some("cosmic-launcher"),
+        BuildStage::CosmicSettings => Some("cosmic-settings"),
+        BuildStage::CosmicNotifications => Some("cosmic-notifications"),
+        BuildStage::CosmicOsd => Some("cosmic-osd"),
+        BuildStage::CosmicBg => Some("cosmic-bg"),
+        BuildStage::CosmicFiles => Some("cosmic-files"),
+        BuildStage::CosmicTerm => Some("cosmic-term"),
+        _ => None,
+    };
+    if let Some(component) = just_component {
+        return build_cosmic_just_component(repo_root, &install, component, &env);
+    }
+
+    match stage {
+        BuildStage::CosmicSettingsDaemon | BuildStage::CosmicWorkspaces => {
+            let component = if stage == BuildStage::CosmicSettingsDaemon {
+                "cosmic-settings-daemon"
+            } else {
+                "cosmic-workspaces"
+            };
+            let mirror = repo_root
+                .join("out/build/cosmic-desktop/sources")
+                .join(component);
+            sync_build_source(
+                &repo_root.join("src/desktop/cosmic").join(component),
+                &mirror,
+            )?;
+            isolate_cargo_build_mirror(&mirror)?;
+            run_locked_cosmic_command(repo_root, &mirror, "make", &["-j4"], &env)?;
+            let destdir = format!("DESTDIR={}", install.display());
+            run_cmd_with_env_overrides(
+                &mirror,
+                "make",
+                &[destdir.as_str(), "prefix=/usr", "install"],
+                &env,
+            )?;
+        }
+        BuildStage::CosmicUtilities => {
+            for component in ["cosmic-randr", "cosmic-screenshot", "pop-launcher"] {
+                build_cosmic_just_component(repo_root, &install, component, &env)?;
+            }
+        }
+        BuildStage::CosmicPortal => {
+            let component = "xdg-desktop-portal-cosmic";
+            let mirror = repo_root
+                .join("out/build/cosmic-desktop/sources")
+                .join(component);
+            sync_build_source(
+                &repo_root.join("src/desktop/cosmic").join(component),
+                &mirror,
+            )?;
+            isolate_cargo_build_mirror(&mirror)?;
+            run_locked_cosmic_command(
+                repo_root,
+                &mirror,
+                "cargo",
+                &["build", "--release", "--locked", "--bin", component],
+                &env,
+            )?;
+            let rootdir = format!("rootdir={}", install.display());
+            let just = cosmic_just(repo_root)?;
+            run_cmd_with_env_overrides(
+                &mirror,
+                path_str(&just)?,
+                &[rootdir.as_str(), "prefix=/usr", "install"],
+                &env,
+            )?;
+        }
+        BuildStage::CosmicAssets => {
+            let icons = out_root.join("cosmic-icons");
+            sync_build_source(&repo_root.join("src/desktop/cosmic/cosmic-icons"), &icons)?;
+            let rootdir = format!("rootdir={}", install.display());
+            let just = cosmic_just(repo_root)?;
+            run_cmd_with_env_overrides(
+                &icons,
+                path_str(&just)?,
+                &[rootdir.as_str(), "prefix=/usr", "install"],
+                &env,
+            )?;
+            copy_tree_contents(
+                &repo_root.join("src/desktop/themes/pop-icon-theme/Pop/cursors"),
+                &install.join("usr/share/icons/Pop/cursors"),
+            )?;
+            for metadata in ["index.theme", "cursor.theme"] {
+                let source = repo_root
+                    .join("src/desktop/themes/pop-icon-theme/Pop")
+                    .join(metadata);
+                if source.is_file() {
+                    let destination = install.join("usr/share/icons/Pop").join(metadata);
+                    fs::create_dir_all(destination.parent().expect("Pop theme parent"))?;
+                    fs::copy(source, destination)?;
+                }
+            }
+            copy_tree_contents(
+                &repo_root.join("src/desktop/fonts/open-sans/fonts/ttf"),
+                &install.join("usr/share/fonts/truetype/open-sans"),
+            )?;
+            copy_tree_contents(
+                &repo_root.join("src/desktop/fonts/noto-sans-mono"),
+                &install.join("usr/share/fonts/truetype/noto"),
+            )?;
+            copy_tree_contents(
+                &repo_root.join("src/desktop/fonts/pop-fonts/fira"),
+                &install.join("usr/share/fonts/opentype/fira"),
+            )?;
+        }
+        BuildStage::Greetd => {
+            let mirror = repo_root.join("out/build/cosmic-desktop/sources/greetd");
+            sync_build_source(&repo_root.join("src/system/session/greetd"), &mirror)?;
+            isolate_cargo_build_mirror(&mirror)?;
+            run_locked_cosmic_command(
+                repo_root,
+                &mirror,
+                "cargo",
+                &[
+                    "build",
+                    "--locked",
+                    "--release",
+                    "-p",
+                    "greetd",
+                    "-p",
+                    "agreety",
+                ],
+                &env,
+            )?;
+            let target = cosmic_shared_target(repo_root).join("release");
+            for binary in ["greetd", "agreety"] {
+                let destination = install.join("usr/bin").join(binary);
+                fs::create_dir_all(destination.parent().expect("greetd bin parent"))?;
+                fs::copy(target.join(binary), &destination)?;
+                set_mode(destination, 0o755)?;
+            }
+        }
+        _ => bail!("{id} is not a granular COSMIC component stage"),
+    }
+    Ok(())
+}
+
+fn build_cosmic_desktop(repo_root: &Path) -> Result<()> {
+    let out_root = repo_root.join("out/build/cosmic-desktop");
+    let install = out_root.join("install");
+    remove_path_if_exists(&install)?;
+    fs::create_dir_all(&install)?;
+    for component in [
+        "cosmic-session",
+        "cosmic-greeter",
+        "cosmic-panel",
+        "cosmic-applets",
+        "cosmic-applibrary",
+        "cosmic-launcher",
+        "cosmic-settings",
+        "cosmic-settings-daemon",
+        "cosmic-notifications",
+        "cosmic-osd",
+        "cosmic-bg",
+        "cosmic-workspaces",
+        "cosmic-files",
+        "cosmic-term",
+        "cosmic-utilities",
+        "cosmic-portal",
+        "cosmic-assets",
+        "greetd",
+    ] {
+        let component_install = repo_root.join("out/build").join(component).join("install");
+        if !component_install.is_dir() {
+            bail!(
+                "COSMIC aggregate input missing: {}",
+                component_install.display()
+            );
+        }
+        copy_tree_contents(&component_install, &install)?;
+    }
+    for required in [
+        "usr/bin/cosmic-session",
+        "usr/bin/cosmic-panel",
+        "usr/bin/cosmic-launcher",
+        "usr/bin/cosmic-settings-daemon",
+        "usr/bin/cosmic-notifications",
+        "usr/bin/cosmic-osd",
+        "usr/bin/cosmic-bg",
+        "usr/bin/cosmic-workspaces",
+        "usr/bin/cosmic-files",
+        "usr/bin/cosmic-term",
+        "usr/bin/greetd",
+        "usr/share/wayland-sessions/cosmic.desktop",
+        "usr/share/icons/Cosmic/index.theme",
+        "usr/share/fonts/truetype/open-sans/OpenSans-Regular.ttf",
+        "usr/share/fonts/truetype/noto/NotoSansMono[wdth,wght].ttf",
+    ] {
+        if !install.join(required).is_file() {
+            bail!("COSMIC desktop aggregate did not install /{required}");
+        }
+    }
+    Ok(())
+}
+
+#[allow(dead_code)]
+fn build_cosmic_desktop_legacy(repo_root: &Path) -> Result<()> {
+    const JUST_COMPONENTS: &[&str] = &[
+        "cosmic-session",
+        "cosmic-greeter",
+        "cosmic-panel",
+        "cosmic-applets",
+        "cosmic-applibrary",
+        "cosmic-launcher",
+        "cosmic-settings",
+        "cosmic-notifications",
+        "cosmic-osd",
+        "cosmic-bg",
+        "cosmic-files",
+        "cosmic-term",
+        "cosmic-randr",
+        "cosmic-screenshot",
+        "pop-launcher",
+    ];
+    const MAKE_COMPONENTS: &[&str] = &["cosmic-settings-daemon", "cosmic-workspaces"];
+
+    let out_root = repo_root.join("out/build/cosmic-desktop");
+    let sources = out_root.join("sources");
+    let install = out_root.join("install");
+    remove_path_if_exists(&install)?;
+    fs::create_dir_all(&sources)?;
+    fs::create_dir_all(&install)?;
+
+    // Upstream COSMIC uses `just` as its install/build recipe runner.  Keep
+    // this build-only Rust dependency output-owned instead of requiring an
+    // untracked host executable.
+    let just_root = repo_root.join("out/tools/cosmic-just");
+    let just = just_root.join("bin/just");
+    if !just.is_file() {
+        fs::create_dir_all(&just_root)?;
+        let root_arg = format!("--root={}", just_root.display());
+        run_cmd_with_env_overrides(
+            repo_root,
+            "cargo",
+            &[
+                "install",
+                "just",
+                "--version",
+                "1.40.0",
+                "--locked",
+                root_arg.as_str(),
+            ],
+            &[("CARGO_BUILD_JOBS", "4".to_string())],
+        )?;
+    }
+    let just_program = just
+        .to_str()
+        .ok_or_else(|| anyhow!("non-UTF-8 output-owned just path"))?;
+
+    let native_components = [
+        "glibc",
+        "gcc-runtime",
+        "openssl",
+        "zlib",
+        "zstd",
+        "wayland",
+        "xkbcommon",
+        "mesa",
+        "libdrm",
+        "libinput",
+        "systemd",
+        "dbus",
+        "dbus-broker",
+        "dav1d",
+        "glib",
+        "pipewire",
+    ];
+    let native = staged_library_environment(repo_root, &native_components)?;
+    let mut common_env = native;
+    let inherited_path = common_env
+        .iter()
+        .find_map(|(key, value)| (*key == "PATH").then_some(value.as_str()))
+        .unwrap_or_default();
+    let tool_path = std::env::join_paths(
+        std::iter::once(just_root.join("bin")).chain(std::env::split_paths(inherited_path)),
+    )?
+    .to_string_lossy()
+    .to_string();
+    if let Some((_, value)) = common_env.iter_mut().find(|(key, _)| *key == "PATH") {
+        *value = tool_path;
+    }
+    common_env.push(("CARGO_BUILD_JOBS", "4".to_string()));
+    common_env.push(("CARGO_INCREMENTAL", "0".to_string()));
+    // All COSMIC applications use the same pinned libcosmic stack. Sharing
+    // Cargo's output-owned target cache avoids rebuilding that dependency
+    // graph independently for every upstream workspace; builds remain
+    // sequential here, so Cargo never has concurrent writers to the cache.
+    common_env.push((
+        "CARGO_TARGET_DIR",
+        out_root.join("cargo-target").display().to_string(),
+    ));
+    common_env.push((
+        "RUSTFLAGS",
+        format!(
+            "--remap-path-prefix={}=/usr/src/mattos",
+            repo_root.display()
+        ),
+    ));
+    // Distribution binaries do not need every COSMIC application to perform
+    // a separate whole-program ThinLTO pass. This materially reduces peak
+    // link memory and wall time without changing enabled functionality.
+    common_env.push(("CARGO_PROFILE_RELEASE_LTO", "false".to_string()));
+    common_env.push(("CARGO_PROFILE_RELEASE_CODEGEN_UNITS", "4".to_string()));
+    common_env.push(("DESTDIR", install.display().to_string()));
+
+    for component in JUST_COMPONENTS {
+        let source = repo_root.join("src/desktop/cosmic").join(component);
+        let mirror = sources.join(component);
+        sync_build_source(&source, &mirror)?;
+        isolate_cargo_build_mirror(&mirror)?;
+        // cosmic-launcher and cosmic-notifications derive their profile name
+        // from env!("OUT_DIR").  Besides being unnecessary for a fixed
+        // distribution release build, that embeds Cargo's absolute output
+        // directory in the ELF payload.  Patch only the output-owned mirror;
+        // the authoritative pinned upstream sources remain untouched.
+        if matches!(*component, "cosmic-launcher" | "cosmic-notifications") {
+            let config = mirror.join("src/config.rs");
+            let original = fs::read_to_string(&config)?;
+            let profile_helper = r#"pub fn profile() -> &'static str {
+    std::env!("OUT_DIR")
+        .split(std::path::MAIN_SEPARATOR)
+        .nth_back(3)
+        .unwrap_or("unknown")
+}"#;
+            if !original.contains(profile_helper) {
+                bail!(
+                    "{} no longer contains the expected OUT_DIR profile helper",
+                    config.display()
+                );
+            }
+            fs::write(
+                &config,
+                original.replace(
+                    profile_helper,
+                    "pub fn profile() -> &'static str {\n    \"release\"\n}",
+                ),
+            )?;
+        }
+        run_cmd_with_env_overrides(
+            &mirror,
+            just_program,
+            &["build-release", "--locked"],
+            &common_env,
+        )?;
+        let rootdir = format!("rootdir={}", install.display());
+        let install_args = if *component == "pop-launcher" {
+            vec![rootdir.as_str(), "install"]
+        } else {
+            vec![rootdir.as_str(), "prefix=/usr", "install"]
+        };
+        run_cmd_with_env_overrides(&mirror, just_program, &install_args, &common_env)?;
+    }
+
+    for component in MAKE_COMPONENTS {
+        let source = repo_root.join("src/desktop/cosmic").join(component);
+        let mirror = sources.join(component);
+        sync_build_source(&source, &mirror)?;
+        isolate_cargo_build_mirror(&mirror)?;
+        let target = out_root.join("cargo-target");
+        let mut env = common_env.clone();
+        env.push(("CARGO_TARGET_DIR", target.display().to_string()));
+        run_cmd_with_env_overrides(&mirror, "make", &["-j4"], &env)?;
+        let destdir = format!("DESTDIR={}", install.display());
+        run_cmd_with_env_overrides(
+            &mirror,
+            "make",
+            &[destdir.as_str(), "prefix=/usr", "install"],
+            &env,
+        )?;
+    }
+
+    // The portal uses just for installation but names its build recipe
+    // `build`, not the `build-release` convention used by the applications.
+    // Invoke Cargo explicitly so the checked-in lockfile remains mandatory.
+    let portal_component = "xdg-desktop-portal-cosmic";
+    let portal = sources.join(portal_component);
+    sync_build_source(
+        &repo_root.join("src/desktop/cosmic").join(portal_component),
+        &portal,
+    )?;
+    isolate_cargo_build_mirror(&portal)?;
+    let portal_target = out_root.join("cargo-target");
+    let mut portal_env = common_env.clone();
+    portal_env.push(("CARGO_TARGET_DIR", portal_target.display().to_string()));
+    run_cmd_with_env_overrides(
+        &portal,
+        "cargo",
+        &[
+            "build",
+            "--release",
+            "--locked",
+            "--bin",
+            "xdg-desktop-portal-cosmic",
+        ],
+        &portal_env,
+    )?;
+    let portal_rootdir = format!("rootdir={}", install.display());
+    run_cmd_with_env_overrides(
+        &portal,
+        just_program,
+        &[portal_rootdir.as_str(), "prefix=/usr", "install"],
+        &portal_env,
+    )?;
+
+    let icons = sources.join("cosmic-icons");
+    sync_build_source(&repo_root.join("src/desktop/cosmic/cosmic-icons"), &icons)?;
+    let icons_rootdir = format!("rootdir={}", install.display());
+    run_cmd_with_env_overrides(
+        &icons,
+        just_program,
+        &[icons_rootdir.as_str(), "prefix=/usr", "install"],
+        &common_env,
+    )?;
+    // COSMIC does not ship a cursor set of its own.  Use the source-owned Pop
+    // cursor theme that upstream COSMIC distributions pair with the desktop.
+    copy_tree_contents(
+        &repo_root.join("src/desktop/themes/pop-icon-theme/Pop/cursors"),
+        &install.join("usr/share/icons/Pop/cursors"),
+    )?;
+    for metadata in ["index.theme", "cursor.theme"] {
+        let source = repo_root
+            .join("src/desktop/themes/pop-icon-theme/Pop")
+            .join(metadata);
+        if source.is_file() {
+            let destination = install.join("usr/share/icons/Pop").join(metadata);
+            fs::create_dir_all(destination.parent().expect("Pop theme parent"))?;
+            fs::copy(&source, destination)?;
+        }
+    }
+    // Match libcosmic's source defaults instead of relying on host font
+    // discovery. Open Sans is the interface family and Noto Sans Mono is
+    // required by cosmic-term; Pop's Fira families provide a broad fallback.
+    copy_tree_contents(
+        &repo_root.join("src/desktop/fonts/open-sans/fonts/ttf"),
+        &install.join("usr/share/fonts/truetype/open-sans"),
+    )?;
+    copy_tree_contents(
+        &repo_root.join("src/desktop/fonts/noto-sans-mono"),
+        &install.join("usr/share/fonts/truetype/noto"),
+    )?;
+    copy_tree_contents(
+        &repo_root.join("src/desktop/fonts/pop-fonts/fira"),
+        &install.join("usr/share/fonts/opentype/fira"),
+    )?;
+
+    let greetd = sources.join("greetd");
+    sync_build_source(&repo_root.join("src/system/session/greetd"), &greetd)?;
+    isolate_cargo_build_mirror(&greetd)?;
+    let greetd_target = greetd.join("target");
+    let mut greetd_env = common_env.clone();
+    greetd_env.push(("CARGO_TARGET_DIR", greetd_target.display().to_string()));
+    run_cmd_with_env_overrides(
+        &greetd,
+        "cargo",
+        &[
+            "build",
+            "--locked",
+            "--release",
+            "-p",
+            "greetd",
+            "-p",
+            "agreety",
+        ],
+        &greetd_env,
+    )?;
+    for binary in ["greetd", "agreety"] {
+        let destination = install.join("usr/bin").join(binary);
+        fs::create_dir_all(destination.parent().expect("greetd bin parent"))?;
+        fs::copy(greetd_target.join("release").join(binary), &destination)?;
+        set_mode(destination, 0o755)?;
+    }
+
+    for required in [
+        "usr/bin/cosmic-session",
+        "usr/bin/cosmic-panel",
+        "usr/bin/cosmic-launcher",
+        "usr/bin/cosmic-settings-daemon",
+        "usr/bin/cosmic-notifications",
+        "usr/bin/cosmic-osd",
+        "usr/bin/cosmic-bg",
+        "usr/bin/cosmic-workspaces",
+        "usr/bin/cosmic-files",
+        "usr/bin/cosmic-term",
+        "usr/bin/greetd",
+        "usr/share/wayland-sessions/cosmic.desktop",
+        "usr/share/fonts/truetype/open-sans/OpenSans-Regular.ttf",
+        "usr/share/fonts/truetype/noto/NotoSansMono[wdth,wght].ttf",
+    ] {
+        if !install.join(required).is_file() {
+            bail!("COSMIC desktop build did not install /{required}");
+        }
+    }
+    Ok(())
+}
+
+fn isolate_cargo_build_mirror(source: &Path) -> Result<()> {
+    let manifest = source.join("Cargo.toml");
+    if !manifest.is_file() {
+        return Ok(());
+    }
+    let body = fs::read_to_string(&manifest)?;
+    if !body.lines().any(|line| line.trim() == "[workspace]") {
+        let mut file = fs::OpenOptions::new().append(true).open(&manifest)?;
+        file.write_all(b"\n# MattOS output-owned build-mirror isolation.\n[workspace]\n")?;
     }
     Ok(())
 }
@@ -11688,12 +12476,30 @@ fn build_systemd(repo_root: &Path) -> Result<()> {
     ];
     run_cmd_with_env_overrides(repo_root, "meson", &install_args, &env_overrides)?;
 
+    patch_systemd_osc_profile_for_posix_login_shell(&install_dir)?;
+
     let pid1 = install_dir.join("usr/lib/systemd/systemd");
     if !pid1.exists() {
         bail!("systemd install did not produce {}", pid1.display());
     }
 
     Ok(())
+}
+
+fn patch_systemd_osc_profile_for_posix_login_shell(install_dir: &Path) -> Result<()> {
+    let path = install_dir.join("etc/profile.d/80-systemd-osc-context.sh");
+    let body =
+        fs::read_to_string(&path).with_context(|| format!("failed to read {}", path.display()))?;
+    let bash_guard = "# Not bash?\n[ -n \"${BASH_VERSION:-}\" ] || return 0";
+    let guarded = "# MattOS can inherit BASH_VERSION into a POSIX login shell. Verify the\n# required Bash builtin itself before parsing the interactive prompt setup.\ncommand -v shopt >/dev/null 2>&1 || return 0";
+    let upstream = "    [ -n \"$(declare -p PROMPT_COMMAND 2>/dev/null)\" ] || PROMPT_COMMAND+=('')\n\n    # Whenever a new prompt is shown, close the previous command, and prepare new command\n    PROMPT_COMMAND+=(__systemd_osc_context_precmdline)";
+    let replacement = "    # MattOS login commands are launched by a POSIX shell. Array assignment\n    # syntax is rejected while parsing even when this Bash-only branch is not\n    # executed, so preserve the hook with a scalar PROMPT_COMMAND instead.\n    if [ -n \"${PROMPT_COMMAND:-}\" ]; then\n        PROMPT_COMMAND=\"__systemd_osc_context_precmdline;${PROMPT_COMMAND}\"\n    else\n        PROMPT_COMMAND=__systemd_osc_context_precmdline\n    fi";
+    if !body.contains(bash_guard) || !body.contains(upstream) {
+        bail!("systemd OSC profile no longer matches the reviewed POSIX-shell compatibility patch");
+    }
+    let body = body.replacen(bash_guard, guarded, 1);
+    fs::write(&path, body.replacen(upstream, replacement, 1))
+        .with_context(|| format!("failed to patch {}", path.display()))
 }
 
 fn systemd_meson_options() -> Vec<String> {
@@ -11741,7 +12547,10 @@ fn systemd_meson_options() -> Vec<String> {
         "-Dselinux=enabled".to_string(),
         "-Dacl=disabled".to_string(),
         "-Daudit=disabled".to_string(),
-        "-Dblkid=disabled".to_string(),
+        // udev must probe filesystem and GPT metadata so the stable
+        // /dev/disk/by-{uuid,partuuid} names used by installed fstab entries
+        // exist during coldplug.
+        "-Dblkid=enabled".to_string(),
         "-Dkmod=enabled".to_string(),
         "-Dlibmount=enabled".to_string(),
         "-Dpam=enabled".to_string(),
@@ -11769,6 +12578,239 @@ fn systemd_meson_options() -> Vec<String> {
         "-Dcreate-log-dirs=false".to_string(),
         "-Djournal-storage-default=volatile".to_string(),
     ]
+}
+
+fn build_dbus(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(
+        repo_root,
+        "dbus",
+        "src/system/dbus/dbus",
+        &["expat"],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "--buildtype=release",
+            "-Dmessage_bus=true",
+            "-Dtools=true",
+            "-Dinstalled_tests=false",
+            "-Dintrusive_tests=false",
+            "-Dmodular_tests=disabled",
+            "-Ddoxygen_docs=disabled",
+            "-Dducktype_docs=disabled",
+            "-Dqt_help=disabled",
+            "-Dapparmor=disabled",
+            "-Dselinux=disabled",
+            "-Dlibaudit=disabled",
+            "-Dsystemd=disabled",
+        ],
+        "usr/bin/dbus-run-session",
+        &[],
+    )?;
+    let dbus_usr = repo_root.join("out/build/dbus/install/usr");
+    rewrite_pkgconfig_prefixes(&dbus_usr.join("lib/x86_64-linux-gnu/pkgconfig"), &dbus_usr)?;
+    for required in [
+        "usr/lib/x86_64-linux-gnu/libdbus-1.so.3",
+        "usr/bin/dbus-daemon",
+        "usr/bin/dbus-run-session",
+    ] {
+        if !repo_root
+            .join("out/build/dbus/install")
+            .join(required)
+            .is_file()
+        {
+            bail!("D-Bus build did not install /{required}");
+        }
+    }
+    Ok(())
+}
+
+fn build_dav1d(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(
+        repo_root,
+        "dav1d",
+        "src/system/multimedia/dav1d",
+        &[],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "--buildtype=release",
+            "-Denable_asm=false",
+            "-Denable_tools=false",
+            "-Denable_examples=false",
+            "-Denable_tests=false",
+            "-Denable_docs=false",
+        ],
+        "usr/lib/x86_64-linux-gnu/libdav1d.so.7",
+        &[],
+    )
+}
+
+fn build_glib(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(
+        repo_root,
+        "glib",
+        "src/system/libraries/glib",
+        &["libffi", "pcre2", "zlib"],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "--buildtype=release",
+            "-Dtests=false",
+            "-Dinstalled_tests=false",
+            "-Dnls=disabled",
+            "-Dselinux=disabled",
+            "-Dlibmount=disabled",
+            "-Dlibelf=disabled",
+            "-Dintrospection=disabled",
+            "-Dman-pages=disabled",
+            "-Ddtrace=disabled",
+            "-Dsystemtap=disabled",
+            "-Dsysprof=disabled",
+            "-Dglib_debug=disabled",
+        ],
+        "usr/lib/x86_64-linux-gnu/libglib-2.0.so.0",
+        &[],
+    )?;
+    let glib_usr = repo_root.join("out/build/glib/install/usr");
+    let glib_pc = glib_usr.join("lib/x86_64-linux-gnu/pkgconfig");
+    rewrite_pkgconfig_prefixes(&glib_pc, &glib_usr)?;
+    // GLib's public .pc files expose these private requirements even for a
+    // dynamic consumer. Keep their development metadata in the same
+    // output-owned SDK directory so pkg-config cannot fall back to the host.
+    for (component, names) in [
+        ("pcre2", &["libpcre2-8.pc"][..]),
+        ("libffi", &["libffi.pc"][..]),
+    ] {
+        let dependency_usr = repo_root
+            .join("out/build")
+            .join(component)
+            .join("install/usr");
+        let dependency_pc = dependency_usr.join("lib/x86_64-linux-gnu/pkgconfig");
+        for name in names {
+            fs::copy(dependency_pc.join(name), glib_pc.join(name))?;
+        }
+        rewrite_selected_pkgconfig_prefixes(&glib_pc, names, &dependency_usr)?;
+    }
+    for required in [
+        "usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0",
+        "usr/lib/x86_64-linux-gnu/libgio-2.0.so.0",
+        "usr/bin/glib-compile-schemas",
+    ] {
+        if !repo_root
+            .join("out/build/glib/install")
+            .join(required)
+            .is_file()
+        {
+            bail!("GLib build did not install /{required}");
+        }
+    }
+    Ok(())
+}
+
+fn rewrite_pkgconfig_prefixes(directory: &Path, physical_usr: &Path) -> Result<()> {
+    let names = fs::read_dir(directory)?
+        .filter_map(|entry| entry.ok())
+        .filter(|entry| entry.path().extension() == Some(OsStr::new("pc")))
+        .map(|entry| entry.file_name().to_string_lossy().to_string())
+        .collect::<Vec<_>>();
+    let name_refs = names.iter().map(String::as_str).collect::<Vec<_>>();
+    rewrite_selected_pkgconfig_prefixes(directory, &name_refs, physical_usr)
+}
+
+fn rewrite_selected_pkgconfig_prefixes(
+    directory: &Path,
+    names: &[&str],
+    physical_usr: &Path,
+) -> Result<()> {
+    for name in names {
+        let path = directory.join(name);
+        let body = fs::read_to_string(&path)?;
+        let rewritten = body.replacen(
+            "prefix=/usr",
+            &format!("prefix={}", physical_usr.display()),
+            1,
+        );
+        if rewritten == body {
+            bail!(
+                "pkg-config metadata {} has no relocatable /usr prefix",
+                path.display()
+            );
+        }
+        fs::write(path, rewritten)?;
+    }
+    Ok(())
+}
+
+fn build_pipewire(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(
+        repo_root,
+        "pipewire",
+        "src/system/multimedia/pipewire",
+        &["systemd", "dbus"],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "--buildtype=release",
+            "-Ddocs=disabled",
+            "-Dman=disabled",
+            "-Dexamples=disabled",
+            "-Dtests=disabled",
+            "-Dinstalled_tests=disabled",
+            "-Dgstreamer=disabled",
+            "-Dsystemd=enabled",
+            "-Dlogind=enabled",
+            "-Dsystemd-system-service=disabled",
+            "-Dsystemd-user-service=enabled",
+            "-Dselinux=disabled",
+            "-Dpipewire-alsa=disabled",
+            "-Dpipewire-jack=disabled",
+            "-Dpipewire-v4l2=disabled",
+            "-Dalsa=disabled",
+            "-Dbluez5=disabled",
+            "-Dffmpeg=disabled",
+            "-Djack=disabled",
+            "-Dv4l2=disabled",
+            "-Dlibcamera=disabled",
+            "-Dvulkan=disabled",
+            "-Dsdl2=disabled",
+            "-Dsndfile=disabled",
+            "-Dlibmysofa=disabled",
+            "-Dlibpulse=disabled",
+            "-Davahi=disabled",
+            "-Dlibusb=disabled",
+            "-Dsession-managers=[]",
+            "-Dx11=disabled",
+            "-Dx11-xfixes=disabled",
+            "-Dlibcanberra=disabled",
+            "-Dlegacy-rtkit=false",
+            "-Dflatpak=disabled",
+            "-Dreadline=disabled",
+            "-Dgsettings=disabled",
+            "-Dgsettings-pulse-schema=disabled",
+        ],
+        "usr/lib/x86_64-linux-gnu/libpipewire-0.3.so.0",
+        &[],
+    )?;
+    let pipewire_usr = repo_root.join("out/build/pipewire/install/usr");
+    rewrite_pkgconfig_prefixes(
+        &pipewire_usr.join("lib/x86_64-linux-gnu/pkgconfig"),
+        &pipewire_usr,
+    )?;
+    for required in [
+        "usr/bin/pipewire",
+        "usr/bin/pipewire-pulse",
+        "usr/lib/systemd/user/pipewire.service",
+        "usr/lib/systemd/user/pipewire.socket",
+    ] {
+        if !repo_root
+            .join("out/build/pipewire/install")
+            .join(required)
+            .exists()
+        {
+            bail!("PipeWire build did not install /{required}");
+        }
+    }
+    Ok(())
 }
 
 fn build_dbus_broker(repo_root: &Path) -> Result<()> {
@@ -12507,6 +13549,7 @@ fn build_rootfs_atomic(repo_root: &Path) -> Result<()> {
         return Err(error);
     }
     validate_rootfs_mutable_state(&temp)?;
+    validate_udev_storage_identity_support(&temp)?;
     packaging::validate_udev_hwdb_payload(repo_root, &temp)?;
     performance::atomic_replace_path(&temp, &destination)
 }
@@ -12514,6 +13557,7 @@ fn build_rootfs_atomic(repo_root: &Path) -> Result<()> {
 fn validate_cached_rootfs(repo_root: &Path) -> Result<()> {
     let rootfs = repo_root.join("out/build/rootfs");
     validate_rootfs_mutable_state(&rootfs)?;
+    validate_udev_storage_identity_support(&rootfs)?;
     packaging::validate_udev_hwdb_payload(repo_root, &rootfs)?;
     for rel in [
         "var/lib/dpkg/status",
@@ -12525,6 +13569,33 @@ fn validate_cached_rootfs(repo_root: &Path) -> Result<()> {
         if !rootfs.join(rel).symlink_metadata().is_ok() {
             bail!("cached rootfs required path is missing: /{rel}");
         }
+    }
+    Ok(())
+}
+
+fn validate_udev_storage_identity_support(rootfs: &Path) -> Result<()> {
+    let rules_path = rootfs.join("usr/lib/udev/rules.d/60-persistent-storage.rules");
+    let rules = fs::read_to_string(&rules_path)
+        .with_context(|| format!("failed to read {}", rules_path.display()))?;
+    for required in [
+        "IMPORT{builtin}=\"blkid\"",
+        "disk/by-uuid/$env{ID_FS_UUID_ENC}",
+        "disk/by-partuuid/$env{ID_PART_ENTRY_UUID}",
+    ] {
+        if !rules.contains(required) {
+            bail!(
+                "udev persistent-storage rules cannot materialize installed fstab identities: missing {required}"
+            );
+        }
+    }
+    let osc_profile = fs::read_to_string(rootfs.join("etc/profile.d/80-systemd-osc-context.sh"))?;
+    if osc_profile.contains("PROMPT_COMMAND+=(") {
+        bail!("systemd OSC profile contains Bash array syntax rejected by the MattOS login shell");
+    }
+    if !osc_profile.contains("command -v shopt >/dev/null 2>&1 || return 0") {
+        bail!(
+            "systemd OSC profile does not guard its Bash-only prompt setup by builtin availability"
+        );
     }
     Ok(())
 }
@@ -13553,13 +14624,31 @@ fn validate_user_session_configuration(rootfs: &Path) -> Result<()> {
             bail!("PAM stack {stack} must contain exactly one optional pam_systemd session hook");
         }
     }
+    let greeter_stack = rootfs.join("etc/pam.d/cosmic-greeter");
+    if greeter_stack.is_file() {
+        let body = fs::read_to_string(&greeter_stack)?;
+        if body.matches(expected_hook).count() != 1 {
+            bail!(
+                "PAM stack cosmic-greeter must contain exactly one optional pam_systemd session hook"
+            );
+        }
+    }
+    if fs::read_to_string(rootfs.join("usr/share/pam/security/pam_env.conf"))?
+        .trim()
+        .is_empty()
+    {
+        bail!("source-built PAM environment defaults must not be empty");
+    }
     for entry in fs::read_dir(rootfs.join("etc/pam.d"))? {
         let path = entry?.path();
         if !path.is_file() {
             continue;
         }
         let name = path.file_name().and_then(OsStr::to_str).unwrap_or_default();
-        if matches!(name, "login" | "su-l" | "systemd-user" | "sshd") {
+        if matches!(
+            name,
+            "login" | "su-l" | "systemd-user" | "sshd" | "cosmic-greeter"
+        ) {
             continue;
         }
         if fs::read_to_string(&path)?.contains("pam_systemd.so") {
@@ -13797,11 +14886,24 @@ fn validate_dbus_configuration(rootfs: &Path) -> Result<()> {
     if path_entry_exists(&rootfs.join("run/dbus/system_bus_socket")) {
         bail!("stale system-bus socket must not be present in rootfs staging");
     }
-    if rootfs.join("usr/bin/dbus-daemon").exists() || rootfs.join("usr/sbin/dbus-daemon").exists() {
-        bail!("competing dbus-daemon binary found in rootfs");
+    // The reference daemon may be installed solely for dbus-run-session's
+    // private, process-scoped buses. It must never own the system/user bus or
+    // appear under the legacy sbin path; dbus-broker remains the only
+    // systemd-managed implementation.
+    if rootfs.join("usr/sbin/dbus-daemon").exists() {
+        bail!("legacy dbus-daemon system path found in rootfs");
     }
     for binary in ["usr/bin/dbus-broker", "usr/bin/dbus-broker-launch"] {
         validate_executable_runtime_closure(&rootfs.join(binary), rootfs)?;
+    }
+    if rootfs.join("usr/bin/dbus-daemon").is_file() {
+        for binary in [
+            "usr/bin/dbus-daemon",
+            "usr/bin/dbus-run-session",
+            "usr/bin/dbus-update-activation-environment",
+        ] {
+            validate_executable_runtime_closure(&rootfs.join(binary), rootfs)?;
+        }
     }
 
     let broker_unit = fs::read_to_string(rootfs.join("usr/lib/systemd/system/dbus-broker.service"))
@@ -15391,7 +16493,10 @@ fn scheduler_command_args(args: &[&str]) -> Vec<String> {
 }
 
 fn apply_scheduler_parallelism(command: &mut Command) {
-    let tokens = scheduler::child_job_limit().to_string();
+    // External build tools uniformly reject a zero job count.  A tight
+    // memory admission budget may intentionally grant no parallel token, but
+    // it must still permit one serial child inside the cgroup ceiling.
+    let tokens = scheduler::child_job_limit().max(1).to_string();
     command
         .env("MAKEFLAGS", format!("-j{tokens}"))
         .env("CARGO_BUILD_JOBS", &tokens)
@@ -15695,7 +16800,26 @@ mod tests {
                 scheduler::ChildJobPolicy::Serial
             } else if matches!(
                 stage,
-                BuildStage::Llvm | BuildStage::Mesa | BuildStage::CosmicComp
+                BuildStage::Llvm
+                    | BuildStage::Mesa
+                    | BuildStage::CosmicComp
+                    | BuildStage::CosmicSession
+                    | BuildStage::CosmicGreeter
+                    | BuildStage::CosmicPanel
+                    | BuildStage::CosmicApplets
+                    | BuildStage::CosmicAppLibrary
+                    | BuildStage::CosmicLauncher
+                    | BuildStage::CosmicSettings
+                    | BuildStage::CosmicSettingsDaemon
+                    | BuildStage::CosmicNotifications
+                    | BuildStage::CosmicOsd
+                    | BuildStage::CosmicBg
+                    | BuildStage::CosmicWorkspaces
+                    | BuildStage::CosmicFiles
+                    | BuildStage::CosmicTerm
+                    | BuildStage::CosmicUtilities
+                    | BuildStage::CosmicPortal
+                    | BuildStage::Greetd
             ) {
                 scheduler::ChildJobPolicy::Capped(4)
             } else {
@@ -15745,7 +16869,28 @@ mod tests {
             ("bzip2", 3.025),
             ("coreutils", 283.164),
             ("cosmic-comp", 120.000),
+            ("cosmic-session", 45.000),
+            ("cosmic-greeter", 75.000),
+            ("cosmic-panel", 60.000),
+            ("cosmic-applets", 180.000),
+            ("cosmic-applibrary", 90.000),
+            ("cosmic-launcher", 90.000),
+            ("cosmic-settings", 180.000),
+            ("cosmic-settings-daemon", 90.000),
+            ("cosmic-notifications", 60.000),
+            ("cosmic-osd", 45.000),
+            ("cosmic-bg", 45.000),
+            ("cosmic-workspaces", 60.000),
+            ("cosmic-files", 120.000),
+            ("cosmic-term", 90.000),
+            ("cosmic-utilities", 120.000),
+            ("cosmic-portal", 60.000),
+            ("cosmic-assets", 5.000),
+            ("greetd", 30.000),
+            ("cosmic-desktop", 2.000),
             ("curl", 100.519),
+            ("dav1d", 15.000),
+            ("dbus", 80.000),
             ("dbus-broker", 24.564),
             ("diffutils", 22.260),
             ("dpkg", 85.190),
@@ -15758,6 +16903,7 @@ mod tests {
             ("glibc", 453.080),
             ("grep", 24.148),
             ("git", 90.000),
+            ("glib", 180.000),
             ("gzip", 8.000),
             ("init", 2.104),
             ("initramfs", 57.528),
@@ -15795,6 +16941,7 @@ mod tests {
             ("pcre2", 27.509),
             ("patch", 8.000),
             ("pixman", 20.000),
+            ("pipewire", 180.000),
             ("procps-ng", 29.727),
             ("cpython", 180.000),
             ("rootfs", 107.053),
@@ -15874,6 +17021,9 @@ mod tests {
 
         let live_root = build_stage_spec(BuildStage::LiveRoot);
         assert_eq!(live_root.dependencies, ["rootfs"]);
+        let live_root_resources = stage_resource_profile(BuildStage::LiveRoot);
+        assert_eq!(live_root_resources.preferred_child_jobs, 4);
+        assert!(live_root_resources.memory_heavy);
 
         let iso = build_stage_spec(BuildStage::Iso);
         assert!(iso.configuration_inputs.is_empty());
@@ -15882,6 +17032,32 @@ mod tests {
                 .iter()
                 .any(|dependency| dependency == "initramfs")
         );
+    }
+
+    #[test]
+    fn cosmic_components_share_one_persistent_serialized_cargo_target() {
+        let root = Path::new("/workspace");
+        assert_eq!(
+            cosmic_shared_target(root),
+            PathBuf::from("/workspace/out/build/cosmic-desktop/cargo-target")
+        );
+        assert_eq!(
+            cosmic_shared_target_lock(root),
+            PathBuf::from("/workspace/out/cache/cosmic-cargo-target.lock")
+        );
+
+        for stage in [
+            BuildStage::CosmicSession,
+            BuildStage::CosmicGreeter,
+            BuildStage::CosmicPanel,
+            BuildStage::CosmicApplets,
+            BuildStage::CosmicLauncher,
+            BuildStage::CosmicSettings,
+        ] {
+            let output = &build_stage_spec(stage).outputs[0];
+            assert!(output.starts_with(Path::new("out/build")));
+            assert!(!output.starts_with(Path::new("out/build/cosmic-desktop/install")));
+        }
     }
 
     #[test]
@@ -17121,6 +18297,13 @@ mod tests {
     fn graphical_installer_session_leaves_virtio_kms_renderer_selection_to_mesa() {
         let unit = include_str!("../../../system/units/mattos-cosmic-installer-session.service");
         assert!(unit.contains("VirGL Gallium path"));
+        assert!(unit.contains("Type=notify"));
+        assert!(unit.contains("NotifyAccess=all"));
+        assert!(unit.contains("Environment=LANG=en_US.UTF-8"));
+        assert!(unit.contains("Environment=XCURSOR_THEME=Pop"));
+        assert!(unit.contains(
+            "dbus-run-session --config-file=/usr/share/dbus-1/mattos-private-session.conf"
+        ));
         assert!(!unit.contains("LIBGL_ALWAYS_SOFTWARE"));
         assert!(!unit.contains("MESA_LOADER_DRIVER_OVERRIDE"));
         assert!(!unit.contains("GALLIUM_DRIVER"));
@@ -18898,10 +20081,59 @@ mod tests {
         let options = systemd_meson_options();
         assert!(options.iter().any(|option| option == "-Dpam=enabled"));
         assert!(options.iter().any(|option| option == "-Dselinux=enabled"));
+        assert!(options.iter().any(|option| option == "-Dblkid=enabled"));
         assert!(!options.iter().any(|option| option == "-Dpam=disabled"));
+        assert!(!options.iter().any(|option| option == "-Dblkid=disabled"));
         assert_eq!(
             SYSTEMD_PAM_MODULE_REL,
             "usr/lib/x86_64-linux-gnu/security/pam_systemd.so"
+        );
+    }
+
+    #[test]
+    fn installed_udev_rules_require_blkid_backed_stable_disk_identities() {
+        let rootfs = tempfile::tempdir().expect("rootfs");
+        let rules = rootfs
+            .path()
+            .join("usr/lib/udev/rules.d/60-persistent-storage.rules");
+        write(
+            &rules,
+            "IMPORT{builtin}=\"blkid\"\nSYMLINK+=\"disk/by-uuid/$env{ID_FS_UUID_ENC}\"\nSYMLINK+=\"disk/by-partuuid/$env{ID_PART_ENTRY_UUID}\"\n",
+        );
+        write(
+            &rootfs
+                .path()
+                .join("etc/profile.d/80-systemd-osc-context.sh"),
+            "command -v shopt >/dev/null 2>&1 || return 0\nPROMPT_COMMAND=__systemd_osc_context_precmdline\n",
+        );
+        validate_udev_storage_identity_support(rootfs.path()).expect("complete storage rules");
+
+        write(
+            &rules,
+            "SYMLINK+=\"disk/by-partuuid/$env{ID_PART_ENTRY_UUID}\"\n",
+        );
+        let error = validate_udev_storage_identity_support(rootfs.path())
+            .expect_err("rules without blkid probing must fail")
+            .to_string();
+        assert!(error.contains("IMPORT{builtin}=\"blkid\""));
+    }
+
+    #[test]
+    fn systemd_osc_profile_patch_is_parseable_by_posix_login_shells() {
+        let install = tempfile::tempdir().expect("install");
+        let profile = install
+            .path()
+            .join("etc/profile.d/80-systemd-osc-context.sh");
+        write(
+            &profile,
+            "# Not bash?\n[ -n \"${BASH_VERSION:-}\" ] || return 0\nif [ -n \"${BASH_VERSION:-}\" ]; then\n    [ -n \"$(declare -p PROMPT_COMMAND 2>/dev/null)\" ] || PROMPT_COMMAND+=('')\n\n    # Whenever a new prompt is shown, close the previous command, and prepare new command\n    PROMPT_COMMAND+=(__systemd_osc_context_precmdline)\nfi\n",
+        );
+        patch_systemd_osc_profile_for_posix_login_shell(install.path()).expect("patch profile");
+        let body = fs::read_to_string(profile).expect("profile");
+        assert!(!body.contains("PROMPT_COMMAND+=("));
+        assert!(body.contains("command -v shopt >/dev/null 2>&1 || return 0"));
+        assert!(
+            body.contains("PROMPT_COMMAND=\"__systemd_osc_context_precmdline;${PROMPT_COMMAND}\"")
         );
     }
 
@@ -18956,6 +20188,10 @@ mod tests {
         ] {
             write(&rootfs.join("etc/pam.d").join(stack), body);
         }
+        write(
+            &rootfs.join("usr/share/pam/security/pam_env.conf"),
+            "# MattOS source-built PAM environment defaults.\n",
+        );
         for rel in [
             "usr/lib/systemd/system/systemd-logind.service",
             "usr/lib/systemd/system/user@.service",
@@ -19340,11 +20576,16 @@ mod tests {
             BuildStage::from_str("dbus-broker", true).unwrap(),
             BuildStage::DbusBroker
         );
-        assert!(
-            build_plan(BuildStage::All)
-                .windows(2)
-                .any(|pair| pair == [BuildStage::Systemd, BuildStage::DbusBroker])
-        );
+        let plan = build_plan(BuildStage::All);
+        let systemd = plan
+            .iter()
+            .position(|stage| *stage == BuildStage::Systemd)
+            .unwrap();
+        let broker = plan
+            .iter()
+            .position(|stage| *stage == BuildStage::DbusBroker)
+            .unwrap();
+        assert!(systemd < broker);
     }
 
     #[test]
@@ -19498,17 +20739,22 @@ mod tests {
 
     #[cfg(unix)]
     #[test]
-    fn dbus_validation_rejects_competing_owner_and_stale_socket() {
+    fn dbus_validation_rejects_competing_service_owner_and_stale_socket() {
         let (_tmp, repo, rootfs) = make_dbus_test_trees();
         install_dbus_configuration(&repo, &rootfs).expect("install D-Bus integration");
-        write(&rootfs.join("usr/bin/dbus-daemon"), "competing daemon\n");
+        let broker_unit = rootfs.join("usr/lib/systemd/system/dbus-broker.service");
+        let original_broker_unit = fs::read_to_string(&broker_unit).unwrap();
+        write(
+            &broker_unit,
+            "[Service]\nExecStart=/usr/bin/dbus-daemon --system\n",
+        );
         assert!(
             validate_dbus_configuration(&rootfs)
                 .expect_err("competing owner must fail")
                 .to_string()
-                .contains("competing dbus-daemon")
+                .contains("exactly one system-bus implementation")
         );
-        fs::remove_file(rootfs.join("usr/bin/dbus-daemon")).unwrap();
+        write(&broker_unit, &original_broker_unit);
         write(&rootfs.join("run/dbus/system_bus_socket"), "stale\n");
         assert!(
             validate_dbus_configuration(&rootfs)

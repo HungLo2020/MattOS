@@ -1,0 +1,20 @@
+Source: pop-icon-theme
+Section: gnome
+Priority: optional
+Maintainer: Jeremy Soller <jeremy@system76.com>
+Uploaders: Ian Santopietro <ian@system76.com>
+Build-Depends: debhelper (>= 9), meson
+Standards-Version: 3.9.8
+Homepage: https://github.com/pop-os/icon-theme
+
+Package: pop-icon-theme
+Architecture: all
+Depends: ${misc:Depends}, adwaita-icon-theme-full, hicolor-icon-theme
+Suggests: pop-icon-theme-extra
+Conflicts: system76-pop-icon-theme
+Description: Pop Icons
+
+Package: gnome-shell-extension-pop-battery-icon-fix
+Architecture: all
+Depends: pop-icon-theme
+Description: Transitional package

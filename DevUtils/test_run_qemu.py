@@ -19,6 +19,7 @@ from run_qemu import (
     launch_qemu,
     network_arguments,
     prepare_install_disk,
+    uefi_firmware_arguments,
 )
 
 
@@ -62,6 +63,17 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
 
     def test_no_network_omits_all_network_arguments(self) -> None:
         self.assertEqual(network_arguments(True), [])
+
+    def test_qemu_uses_ovmf_for_the_installed_efi_boot_path(self) -> None:
+        with TemporaryDirectory() as temporary:
+            firmware = Path(temporary) / "OVMF.fd"
+            firmware.write_bytes(b"OVMF")
+            self.assertEqual(
+                uefi_firmware_arguments((firmware,)),
+                ["-bios", str(firmware)],
+            )
+            with self.assertRaises(RepoError):
+                uefi_firmware_arguments((firmware.with_name("missing.fd"),))
 
     def test_graphical_display_enables_host_gl_for_virgl_scanout(self) -> None:
         with mock.patch("run_qemu.run_command_capture", return_value="gtk\nsdl\n"):
@@ -157,6 +169,7 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
                 self.assertEqual(launch_qemu(root, root / "mattos.iso", args), 0)
             command = launched.call_args.args[0]
             self.assertIn(f"file={disk.resolve()},if=virtio,format=qcow2", command)
+            self.assertIn("/usr/share/ovmf/OVMF.fd", command)
             self.assertIn("virtio-vga-gl,blob=true,hostmem=256M", command)
             self.assertNotIn("-vga", command)
             self.assertIn("qemu-xhci,id=mattos-xhci", command)

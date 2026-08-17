@@ -1,0 +1,5 @@
+schema_version = 1
+component = "noto-sans-mono"
+upstream_commit = "352f6b7d9d6cc4fa9e242b931291d31b21a6dc84"
+upstream_subtree = "ofl/notosansmono"
+reason = "Retain the complete Noto Sans Mono runtime-font subtree and OFL metadata from the much larger Google Fonts repository."

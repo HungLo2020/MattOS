@@ -1,0 +1,24 @@
+[Unit]
+Description=COSMIC graphical login
+After=systemd-user-sessions.service systemd-logind.service systemd-udev-trigger.service
+Wants=systemd-logind.service systemd-udev-trigger.service cosmic-greeter-daemon.service
+Conflicts=getty@tty1.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/greetd --config /etc/greetd/cosmic-greeter.toml
+# greetd exits successfully when its initial greeter command exits before
+# creating a login session.  Keep the display manager available in that case
+# while retaining the serial/TTY rescue path.
+Restart=always
+RestartSec=2
+# greetd deliberately retains the authenticated compositor session. During
+# shutdown that session is terminated by logind; do not let a slow child hold
+# the entire machine at the generic 90-second systemd stop timeout.
+TimeoutStopSec=10s
+KeyringMode=shared
+StandardOutput=journal+console
+StandardError=journal+console
+
+[Install]
+Alias=display-manager.service

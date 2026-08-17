@@ -1,0 +1,15 @@
+#!/bin/sh
+# greetd establishes the PAM/logind session and owns VT1.  libseat then asks
+# logind for the DRM/input descriptors; the privileged builtin backend is not
+# appropriate for this deliberately unprivileged greeter.
+export LIBSEAT_BACKEND=logind
+export XDG_CURRENT_DESKTOP=COSMIC
+export XDG_SESSION_DESKTOP=COSMIC
+export XDG_SESSION_TYPE=wayland
+export XCURSOR_THEME=Pop
+export XCURSOR_SIZE=24
+export GDK_BACKEND=wayland
+export QT_QPA_PLATFORM=wayland
+
+rm -rf /run/cosmic-greeter/cosmic/com.system76.CosmicSettingsDaemon/v1/* >/dev/null 2>&1
+exec /usr/bin/cosmic-comp --no-xwayland /usr/bin/cosmic-greeter

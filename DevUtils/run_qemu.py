@@ -30,6 +30,10 @@ DEFAULT_INSTALL_DISK_SIZE = "16G"
 VIRTIO_GPU_GL_DEVICE = "virtio-vga-gl,blob=true,hostmem=256M"
 QEMU_TABLET_CONTROLLER = "qemu-xhci,id=mattos-xhci"
 QEMU_TABLET_DEVICE = "usb-tablet,bus=mattos-xhci.0"
+UEFI_FIRMWARE_CANDIDATES = (
+    Path("/usr/share/ovmf/OVMF.fd"),
+    Path("/usr/share/qemu/OVMF.fd"),
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -97,6 +101,20 @@ def acceleration_arguments(disabled: bool = False) -> List[str]:
     if disabled or not kvm.exists() or not os.access(kvm, os.R_OK | os.W_OK):
         return []
     return ["-enable-kvm", "-cpu", "host"]
+
+
+def uefi_firmware_arguments(
+    candidates: tuple[Path, ...] = UEFI_FIRMWARE_CANDIDATES,
+) -> List[str]:
+    """Select combined OVMF firmware for the EFI-only installed boot path."""
+    for firmware in candidates:
+        if firmware.is_file():
+            return ["-bios", str(firmware)]
+    searched = ", ".join(str(path) for path in candidates)
+    raise RepoError(
+        "MattOS installs x86_64-EFI GRUB and requires OVMF in QEMU; "
+        f"no combined OVMF image was found ({searched})"
+    )
 
 
 def choose_graphical_display(repo_root: Path) -> str:
@@ -237,6 +255,7 @@ def launch_qemu(repo_root: Path, iso_path: Path, args: argparse.Namespace) -> in
     qemu_cmd: List[str] = [
         "qemu-system-x86_64",
         *acceleration_arguments(getattr(args, "no_kvm", False)),
+        *uefi_firmware_arguments(),
         "-m",
         str(args.memory),
         "-smp",

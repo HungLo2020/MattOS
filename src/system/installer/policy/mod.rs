@@ -4,7 +4,7 @@ use crate::engine::{self, InstallPartition, MountStack};
 use anyhow::{Context, Result, bail};
 use serde::{Deserialize, Serialize};
 use std::fs;
-use std::os::unix::fs::FileTypeExt;
+use std::os::unix::fs::{FileTypeExt, PermissionsExt};
 use std::path::{Path, PathBuf};
 
 pub const PLAN_VERSION: u32 = 5;
@@ -1010,8 +1010,8 @@ where
     let storage = resolve_storage(plan)
         .context("validate complete storage plan before destructive operations")?;
     engine::require_tools(&[
-        "sfdisk", "mkfs.fat", "mount", "umount", "cp", "blkid", "udevadm", "useradd", "usermod",
-        "dpkg",
+        "sfdisk", "mkfs.fat", "mount", "umount", "cp", "blkid", "udevadm", "groupadd", "useradd",
+        "usermod", "dpkg",
     ])?;
     let uses_btrfs = storage.root_filesystem == Filesystem::Btrfs
         || storage
@@ -1351,6 +1351,7 @@ where
             target.as_os_str(),
         ],
     )?;
+    normalize_systemd_unit_permissions(target)?;
     progress(InstallProgress::new(
         InstallStage::ConfiguringSystem,
         5,
@@ -1387,12 +1388,68 @@ where
             InstalledProfile::Desktop => "desktop\n",
         },
     )?;
-    if plan.installed_profile == InstalledProfile::Desktop {
-        fs::write(
-            target.join("etc/mattos-desktop-pending"),
-            "COSMIC packages and cosmic-initial-setup are not yet in the base source closure.\n",
-        )?;
+    configure_installed_profile(plan, target)?;
+    Ok(())
+}
+
+fn normalize_systemd_unit_permissions(target: &Path) -> Result<()> {
+    fn visit(directory: &Path) -> Result<()> {
+        if !directory.is_dir() {
+            return Ok(());
+        }
+        for entry in fs::read_dir(directory)? {
+            let entry = entry?;
+            let path = entry.path();
+            let metadata = fs::symlink_metadata(&path)?;
+            if metadata.file_type().is_symlink() {
+                continue;
+            }
+            if metadata.is_dir() {
+                visit(&path)?;
+            } else if metadata.is_file() {
+                let mode = metadata.permissions().mode();
+                if mode & 0o111 != 0 {
+                    fs::set_permissions(&path, fs::Permissions::from_mode(mode & !0o111))
+                        .with_context(|| {
+                            format!(
+                                "remove executable bits from systemd unit {}",
+                                path.display()
+                            )
+                        })?;
+                }
+            }
+        }
+        Ok(())
     }
+
+    visit(&target.join("usr/lib/systemd/system"))?;
+    visit(&target.join("usr/lib/systemd/user"))?;
+    Ok(())
+}
+
+fn configure_installed_profile(plan: &InstallPlan, target: &Path) -> Result<()> {
+    let default_target = target.join("etc/systemd/system/default.target");
+    remove_optional_file(&default_target)?;
+    let unit = match plan.installed_profile {
+        InstalledProfile::Cli => "/usr/lib/systemd/system/multi-user.target",
+        InstalledProfile::Desktop => "/usr/lib/systemd/system/graphical.target",
+    };
+    #[cfg(unix)]
+    std::os::unix::fs::symlink(unit, &default_target)?;
+
+    let greetd_config = target.join("etc/greetd/cosmic-greeter.toml");
+    if plan.installed_profile == InstalledProfile::Desktop && !greetd_config.is_file() {
+        bail!("desktop profile is missing COSMIC greetd configuration")
+    }
+    if plan.installed_profile == InstalledProfile::Desktop && plan.automatic_login {
+        let mut config = fs::read_to_string(&greetd_config)?;
+        config.push_str(&format!(
+            "\n[initial_session]\ncommand = \"/usr/bin/start-cosmic\"\nuser = \"{}\"\n",
+            plan.username
+        ));
+        fs::write(greetd_config, config)?;
+    }
+    remove_optional_file(&target.join("etc/mattos-desktop-pending"))?;
     Ok(())
 }
 
@@ -1679,11 +1736,28 @@ fn render_installed_grub_config(identity: &StorageIdentity) -> String {
 }
 
 fn create_user(plan: &InstallPlan, target: &Path) -> Result<()> {
+    // Removing the live account also removes its private GID 1000.  Do not let
+    // useradd consult the now-stale GROUP=1000 default before recreating it;
+    // materialize the installed user's private group first and select both IDs
+    // explicitly.  This also keeps the first installed account deterministic.
+    engine::run(
+        "groupadd",
+        &[
+            "--root".as_ref(),
+            target.as_os_str(),
+            "--gid".as_ref(),
+            "1000".as_ref(),
+            plan.username.as_ref(),
+        ],
+    )?;
     let base = [
         "--root".as_ref(),
         target.as_os_str(),
+        "--uid".as_ref(),
+        "1000".as_ref(),
+        "--gid".as_ref(),
+        plan.username.as_ref(),
         "--create-home".as_ref(),
-        "--user-group".as_ref(),
         "--shell".as_ref(),
         "/bin/brush".as_ref(),
         "--comment".as_ref(),
@@ -1694,11 +1768,7 @@ fn create_user(plan: &InstallPlan, target: &Path) -> Result<()> {
             "useradd",
             &[
                 base.as_slice(),
-                &[
-                    "--groups".as_ref(),
-                    "wheel".as_ref(),
-                    plan.username.as_ref(),
-                ],
+                &["--groups".as_ref(), "sudo".as_ref(), plan.username.as_ref()],
             ]
             .concat(),
         )?;
@@ -2164,10 +2234,91 @@ mod tests {
     }
 
     #[test]
+    fn installed_systemd_units_are_never_executable() {
+        let target = tempfile::tempdir().unwrap();
+        let system = target.path().join("usr/lib/systemd/system");
+        let user = target.path().join("usr/lib/systemd/user");
+        fs::create_dir_all(&system).unwrap();
+        fs::create_dir_all(&user).unwrap();
+        let system_unit = system.join("graphical.target");
+        let user_unit = user.join("cosmic-session.target");
+        fs::write(&system_unit, "[Unit]\n").unwrap();
+        fs::write(&user_unit, "[Unit]\n").unwrap();
+        fs::set_permissions(&system_unit, fs::Permissions::from_mode(0o755)).unwrap();
+        fs::set_permissions(&user_unit, fs::Permissions::from_mode(0o775)).unwrap();
+
+        normalize_systemd_unit_permissions(target.path()).unwrap();
+
+        assert_eq!(
+            fs::metadata(system_unit).unwrap().permissions().mode() & 0o777,
+            0o644
+        );
+        assert_eq!(
+            fs::metadata(user_unit).unwrap().permissions().mode() & 0o777,
+            0o664
+        );
+    }
+
+    #[test]
     fn installed_user_policy_does_not_depend_on_a_numeric_default_primary_group() {
         let source = include_str!("mod.rs");
-        assert!(source.contains("\"--user-group\".as_ref()"));
+        assert!(source.contains("engine::run(\n        \"groupadd\""));
+        assert!(source.contains("\"--uid\".as_ref()"));
+        assert!(source.contains("\"--gid\".as_ref()"));
+        assert!(source.contains("\"sudo\".as_ref()"));
+        assert!(!source.contains("\"--user-group\".as_ref()"));
+        assert!(!source.contains("\"wheel\".as_ref()"));
         assert!(source.contains("\"--shell\".as_ref()"));
         assert!(source.contains("\"/bin/brush\".as_ref()"));
+    }
+
+    #[test]
+    fn installed_profiles_select_recoverable_systemd_targets() {
+        for (profile, expected) in [
+            (
+                InstalledProfile::Desktop,
+                "/usr/lib/systemd/system/graphical.target",
+            ),
+            (
+                InstalledProfile::Cli,
+                "/usr/lib/systemd/system/multi-user.target",
+            ),
+        ] {
+            let directory = tempfile::tempdir().unwrap();
+            fs::create_dir_all(directory.path().join("etc/systemd/system")).unwrap();
+            fs::create_dir_all(directory.path().join("etc/greetd")).unwrap();
+            fs::write(
+                directory.path().join("etc/greetd/cosmic-greeter.toml"),
+                "[default_session]\ncommand = \"/usr/bin/cosmic-greeter-start\"\nuser = \"cosmic-greeter\"\n",
+            )
+            .unwrap();
+            let mut candidate = plan("/dev/vda", profile);
+            candidate.automatic_login = false;
+            configure_installed_profile(&candidate, directory.path()).unwrap();
+            assert_eq!(
+                fs::read_link(directory.path().join("etc/systemd/system/default.target")).unwrap(),
+                PathBuf::from(expected)
+            );
+        }
+    }
+
+    #[test]
+    fn desktop_autologin_uses_greetd_initial_session() {
+        let directory = tempfile::tempdir().unwrap();
+        fs::create_dir_all(directory.path().join("etc/systemd/system")).unwrap();
+        fs::create_dir_all(directory.path().join("etc/greetd")).unwrap();
+        fs::write(
+            directory.path().join("etc/greetd/cosmic-greeter.toml"),
+            "[default_session]\ncommand = \"/usr/bin/cosmic-greeter-start\"\nuser = \"cosmic-greeter\"\n",
+        )
+        .unwrap();
+        let mut candidate = plan("/dev/vda", InstalledProfile::Desktop);
+        candidate.automatic_login = true;
+        configure_installed_profile(&candidate, directory.path()).unwrap();
+        let config =
+            fs::read_to_string(directory.path().join("etc/greetd/cosmic-greeter.toml")).unwrap();
+        assert!(config.contains("[initial_session]"));
+        assert!(config.contains("command = \"/usr/bin/start-cosmic\""));
+        assert!(config.contains(&format!("user = \"{}\"", candidate.username)));
     }
 }

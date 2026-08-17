@@ -1,0 +1,12 @@
+[Unit]
+Description=COSMIC greeter account service
+After=dbus.service
+
+[Service]
+Type=dbus
+BusName=com.system76.CosmicGreeter
+ExecStart=/usr/bin/cosmic-greeter-daemon
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

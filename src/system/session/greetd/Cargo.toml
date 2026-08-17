@@ -1,0 +1,12 @@
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+lto = "fat"
+panic = "abort"
+opt-level = 'z'
+incremental = false
+codegen-units = 1
+
+[workspace]
+members = ["inish", "greetd_ipc", "greetd", "agreety", "fakegreet"]

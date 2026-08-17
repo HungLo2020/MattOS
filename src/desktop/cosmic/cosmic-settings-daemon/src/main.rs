@@ -1,0 +1,898 @@
+// Copyright 2023 System76 <info@system76.com>
+// SPDX-License-Identifier: GPL-3.0-only
+
+use brightness_device::BrightnessDevice;
+use cosmic_config::ConfigGet;
+use futures::lock::Mutex;
+use logind_session::LogindSessionProxy;
+use notify::event::ModifyKind;
+use notify::{EventKind, Watcher};
+use std::collections::{HashMap, HashSet};
+use std::io;
+use std::os::unix::process::CommandExt;
+use std::path::PathBuf;
+use std::process::ExitCode;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::time::Duration;
+use theme::watch_theme;
+use tokio::io::Interest;
+use tokio::io::unix::AsyncFd;
+use tokio::signal::unix::SignalKind;
+use tokio::sync::RwLock;
+use tokio::task;
+use tokio_stream::StreamExt;
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::util::SubscriberInitExt;
+use zbus::names::{MemberName, UniqueName, WellKnownName};
+use zbus::object_server::SignalEmitter;
+use zbus::zvariant::ObjectPath;
+use zbus::{Connection, MatchRule, MessageStream};
+mod battery;
+mod brightness_device;
+mod greeter;
+mod locale;
+mod location;
+mod logind_session;
+mod pipewire;
+mod theme;
+mod time;
+mod wayland;
+
+// Use seperate HasDisplayBrightness, or -1?
+// Is it fair to assume a display device will notify on change?
+// TODO: notifications; statusnotifierwatcher, media keybindings
+// Scale brightness to 0 to 100? Or something else? Float?
+
+pub static ID_COUNTER: AtomicU64 = AtomicU64::new(0);
+
+static DBUS_NAME: &str = "com.system76.CosmicSettingsDaemon";
+static DBUS_PATH: &str = "/com/system76/CosmicSettingsDaemon";
+
+struct SettingsDaemon {
+    /// Directly access varlink daemon methods within the DBus daemon.
+    varlink_daemon: Arc<tokio::sync::Mutex<cosmic_settings_varlink_server::DaemonInner>>,
+    logind_session: Option<LogindSessionProxy<'static>>,
+    a11y_session: Option<Mutex<cosmic_dbus_a11y::StatusProxy<'static>>>,
+    display_brightness_device: BrightnessDevice,
+    watched_configs: Arc<
+        RwLock<HashMap<(String, u64), (Connection, ObjectPath<'static>, WellKnownName<'static>)>>,
+    >,
+    watched_states: Arc<
+        RwLock<HashMap<(String, u64), (Connection, ObjectPath<'static>, WellKnownName<'static>)>>,
+    >,
+    wayland_sender: calloop::channel::Sender<wayland::Cmd>,
+}
+
+#[derive(Debug)]
+enum Config {
+    Config,
+    State,
+}
+
+impl Config {
+    fn new_config() -> Self {
+        Self::Config
+    }
+
+    fn new_state() -> Self {
+        Self::State
+    }
+}
+
+#[zbus::interface(name = "com.system76.CosmicSettingsDaemon.Config")]
+impl Config {
+    #[zbus(signal)]
+    async fn changed(emitter: &SignalEmitter<'_>, id: String, key: String) -> zbus::Result<()>;
+}
+
+impl Config {
+    fn path(&self, id: &str, version: u64) -> ObjectPath<'static> {
+        let cfg_type = if matches!(self, Config::State) {
+            "State"
+        } else {
+            "Config"
+        };
+        // convert id to path
+        let id = id.replace('.', "/");
+
+        ObjectPath::try_from(format!(
+            "/com/system76/CosmicSettingsDaemon/{cfg_type}/{id}/V{version}",
+        ))
+        .unwrap_or_else(|_| {
+            let next_id = ID_COUNTER.fetch_add(1, Ordering::SeqCst);
+
+            ObjectPath::try_from(format!(
+                "/com/system76/CosmicSettingsDaemon/{cfg_type}/C{next_id}/V{version}",
+            ))
+            .unwrap()
+        })
+    }
+
+    fn name(&self, id: &str, version: u64) -> WellKnownName<'static> {
+        let cfg_type = if matches!(self, Config::State) {
+            "State"
+        } else {
+            "Config"
+        };
+        if let Ok(name) = WellKnownName::try_from(format!(
+            "com.system76.CosmicSettingsDaemon.{cfg_type}.{id}.V{version}",
+        )) {
+            name
+        } else {
+            let next_id = ID_COUNTER.fetch_add(1, Ordering::SeqCst);
+            WellKnownName::try_from(format!(
+                "com.system76.CosmicSettingsDaemon.{cfg_type}.C{next_id}.V{version}",
+            ))
+            .unwrap()
+        }
+    }
+}
+
+// Map a 5%-step index (0..20) to a raw brightness value with integer half-up rounding.
+#[inline]
+fn raw_from_step_index(step_index: i32, max_raw: i32) -> i32 {
+    let idx = step_index.clamp(0, 20) as i64;
+    let max = max_raw.max(0) as i64;
+    // round(max * idx / 20)
+    (((idx * max) + 10) / 20) as i32
+}
+
+// Return the next *distinct* raw target strictly above/below `raw` following 5% setpoints.
+// dir: +1 for increase, -1 for decrease.
+// Min=0 or 1 is enforced in brightness_device.rs; we just choose the target here.
+#[inline]
+fn next_target_raw(raw: i32, max_raw: i32, dir: i8) -> i32 {
+    if max_raw <= 0 {
+        return raw;
+    }
+
+    if dir > 0 {
+        // Increase: smallest setpoint strictly > raw
+        for k in 0..=20 {
+            let sp = raw_from_step_index(k, max_raw);
+            if sp > raw {
+                return sp;
+            }
+        }
+        max_raw
+    } else {
+        // Decrease: largest setpoint strictly < raw
+        for k in (0..=20).rev() {
+            let sp = raw_from_step_index(k, max_raw);
+            if sp < raw {
+                return sp;
+            }
+        }
+        0
+    }
+}
+
+#[zbus::interface(name = "com.system76.CosmicSettingsDaemon")]
+impl SettingsDaemon {
+    #[zbus(property)]
+    async fn display_brightness(&self) -> i32 {
+        // XXX error
+        self.display_brightness_device
+            .brightness()
+            .await
+            .ok()
+            .map(|x| x as i32)
+            .unwrap_or(-1)
+    }
+
+    /// Take the current xkb config and switch the active input source.
+    async fn input_source_switch(&self) {
+        let _ = self.wayland_sender.send(wayland::Cmd::InputSourceSwitch);
+    }
+
+    #[zbus(property)]
+    async fn max_display_brightness(&self) -> i32 {
+        self.display_brightness_device.max_brightness()
+    }
+
+    #[zbus(property)]
+    async fn set_display_brightness(&self, value: i32) {
+        if let Some(logind_session) = self.logind_session.as_ref() {
+            // Align with slider behavior and device clamp: floor at 1 for backlight
+            let max = self.display_brightness_device.max_brightness();
+            let min = self.display_brightness_device.min_brightness() as i32;
+
+            let clamped = value.clamp(min, max);
+            _ = self
+                .display_brightness_device
+                .set_brightness(logind_session, clamped as u32)
+                .await;
+        }
+    }
+
+    #[zbus(property)]
+    async fn keyboard_brightness(&self) -> i32 {
+        -1
+    }
+
+    #[zbus(property)]
+    async fn set_keyboard_brightness(&self, _value: i32) {}
+
+    async fn increase_display_brightness(
+        &self,
+        #[zbus(signal_emitter)] emitter: SignalEmitter<'_>,
+    ) {
+        let value = self.display_brightness().await;
+        let max_raw = self.max_display_brightness().await;
+        let target = next_target_raw(value, max_raw, 1);
+        self.set_display_brightness(target).await;
+        _ = self.display_brightness_changed(&emitter).await;
+    }
+
+    async fn decrease_display_brightness(
+        &self,
+        #[zbus(signal_emitter)] emitter: SignalEmitter<'_>,
+    ) {
+        let value = self.display_brightness().await;
+        let max_raw = self.max_display_brightness().await;
+        let target = next_target_raw(value, max_raw, -1);
+        self.set_display_brightness(target).await;
+        _ = self.display_brightness_changed(&emitter).await;
+    }
+
+    async fn increase_keyboard_brightness(&self) {}
+
+    async fn decrease_keyboard_brightness(&self) {}
+
+    async fn screen_reader(&mut self) {
+        if let Some(a11y) = self.a11y_session.as_ref() {
+            let guard = a11y.lock().await;
+            let Ok(current_state) = guard.is_enabled().await else {
+                log::error!("Failed to toggle screen reader. Could not read current state.");
+                return;
+            };
+            let new_state = !current_state;
+            if let Err(err) = guard.set_is_enabled(new_state).await {
+                log::error!(
+                    "Failed to toggle screen reader. Could not apply current state. {err:?}"
+                );
+                return;
+            }
+            if let Err(err) = guard.set_screen_reader_enabled(new_state).await {
+                log::error!(
+                    "Failed to toggle screen reader. Could not apply current state. {err:?}"
+                );
+            }
+        } else {
+            log::error!("Failed to toggle screen reader.")
+        }
+    }
+
+    async fn volume_up(&self) {
+        if let Err(why) = self
+            .varlink_daemon
+            .lock()
+            .await
+            .audio_server
+            .sink_volume_raise()
+            .await
+        {
+            log::error!("Failed to raise volume: {}", why);
+        }
+    }
+
+    async fn volume_down(&self) {
+        if let Err(why) = self
+            .varlink_daemon
+            .lock()
+            .await
+            .audio_server
+            .sink_volume_lower()
+            .await
+        {
+            log::error!("Failed to lower volume: {}", why);
+        }
+    }
+
+    async fn watch_config(
+        &mut self,
+        id: &str,
+        version: u64,
+    ) -> zbus::fdo::Result<(ObjectPath<'static>, WellKnownName<'static>)> {
+        // create a new config, return the path and add it to our hashmap
+        Self::watch_config_inner(self, Config::new_config(), id, version).await
+    }
+
+    async fn watch_state(
+        &mut self,
+        id: &str,
+        version: u64,
+    ) -> zbus::fdo::Result<(ObjectPath<'static>, WellKnownName<'static>)> {
+        Self::watch_config_inner(self, Config::new_state(), id, version).await
+    }
+}
+
+impl SettingsDaemon {
+    async fn watch_config_inner(
+        &mut self,
+        config: Config,
+        id: &str,
+        version: u64,
+    ) -> zbus::fdo::Result<(ObjectPath<'static>, WellKnownName<'static>)> {
+        let configs = match config {
+            Config::Config => &self.watched_configs,
+            Config::State => &self.watched_states,
+        };
+        if let Some((_, path, name)) = configs.read().await.get(&(id.to_string(), version)) {
+            return Ok((path.to_owned(), name.to_owned()));
+        }
+        let path = config.path(id, version);
+        let name = config.name(id, version);
+        let conn = zbus::connection::Builder::session()?
+            .name(name.as_str())?
+            .serve_at(path.to_owned(), config)?
+            .build()
+            .await?;
+
+        configs.write().await.insert(
+            (id.to_owned(), version),
+            (conn, path.to_owned(), name.to_owned()),
+        );
+        Ok((path.to_owned(), name.to_owned()))
+    }
+}
+
+fn backlight_enumerate() -> io::Result<Vec<udev::Device>> {
+    let mut enumerator = udev::Enumerator::new()?;
+    enumerator.match_subsystem("backlight")?;
+    Ok(enumerator.scan_devices()?.collect())
+}
+
+fn backlight_monitor() -> io::Result<AsyncFd<udev::MonitorSocket>> {
+    let socket = udev::MonitorBuilder::new()?
+        .match_subsystem("backlight")?
+        .listen()?;
+    AsyncFd::with_interest(socket, Interest::READABLE | Interest::WRITABLE)
+}
+
+// Choose backlight with most "precision". This is what `light` does.
+async fn choose_best_backlight(udev_devices: &HashMap<PathBuf, udev::Device>) -> BrightnessDevice {
+    let mut best_backlight = None;
+    let mut best_max_brightness = 0;
+    for device in udev_devices.values() {
+        if let Some(sysname) = device.sysname().to_str() {
+            match BrightnessDevice::new("backlight", sysname.to_owned()).await {
+                Ok(brightness_device) => {
+                    if brightness_device.max_brightness() > best_max_brightness {
+                        best_max_brightness = brightness_device.max_brightness();
+                        best_backlight = Some(brightness_device);
+                    }
+                }
+                Err(err) => log::error!("Failed to read max brightness: {}", err),
+            }
+        }
+    }
+
+    best_backlight.unwrap_or_else(BrightnessDevice::external)
+}
+
+async fn backlight_monitor_task(
+    mut backlights: HashMap<PathBuf, udev::Device>,
+    connection: zbus::Connection,
+) {
+    let interface = connection
+        .object_server()
+        .interface::<_, SettingsDaemon>(DBUS_PATH)
+        .await
+        .unwrap();
+
+    let emitter = SignalEmitter::new(&connection, DBUS_PATH).unwrap();
+
+    match backlight_monitor() {
+        Ok(mut socket) => {
+            loop {
+                let mut socket = socket.writable_mut().await.unwrap(); // XXX
+                for evt in socket.get_inner().iter() {
+                    log::info!(
+                        "Backlight '{:?}' event on {}",
+                        evt.event_type(),
+                        evt.device().syspath().display()
+                    );
+                    match evt.event_type() {
+                        udev::EventType::Add => {
+                            backlights.insert(evt.syspath().to_owned(), evt.device());
+                            let device = choose_best_backlight(&backlights).await;
+                            interface.get_mut().await.display_brightness_device = device;
+                            _ = interface
+                                .get()
+                                .await
+                                .display_brightness_changed(&emitter)
+                                .await;
+                        }
+                        udev::EventType::Remove => {
+                            backlights.remove(evt.syspath());
+                            let device = choose_best_backlight(&backlights).await;
+                            interface.get_mut().await.display_brightness_device = device;
+                            _ = interface
+                                .get()
+                                .await
+                                .display_brightness_changed(&emitter)
+                                .await;
+                        }
+                        udev::EventType::Change => {
+                            _ = interface
+                                .get()
+                                .await
+                                .display_brightness_changed(&emitter)
+                                .await;
+                        }
+                        _ => {}
+                    }
+                }
+                socket.clear_ready();
+            }
+        }
+        Err(err) => log::error!("Error creating udev backlight monitor: {}", err),
+    };
+}
+
+#[derive(Debug)]
+pub enum Change {
+    Config(String, String, u64),
+    State(String, String, u64),
+    Ping(String, u64),
+}
+
+#[tokio::main(flavor = "current_thread")]
+async fn main() -> ExitCode {
+    let restart_signal = Arc::new(AtomicBool::new(false));
+    let current_exe = std::env::current_exe()
+        .ok()
+        .and_then(|p| p.canonicalize().ok());
+
+    let signal_term_fut = std::pin::pin!({
+        let restart_signal = Arc::clone(&restart_signal);
+        let sigint = tokio::signal::unix::signal(SignalKind::interrupt()).ok();
+        let sigterm = tokio::signal::unix::signal(SignalKind::terminate()).ok();
+        let sighup = tokio::signal::unix::signal(SignalKind::hangup()).ok();
+        async move {
+            let Some(((mut sigint, mut sigterm), mut sighup)) = sigint.zip(sigterm).zip(sighup)
+            else {
+                return futures::future::pending().await;
+            };
+
+            tokio::select! {
+                _ = sigint.recv() => {}
+                _ = sigterm.recv() => {}
+                _ = sighup.recv() => {
+                    restart_signal.store(true, Ordering::Relaxed);
+                }
+            }
+        }
+    });
+
+    let log_format = tracing_subscriber::fmt::format()
+        .pretty()
+        .without_time()
+        .with_line_number(true)
+        .with_file(true)
+        .with_target(false)
+        .with_thread_names(true);
+
+    let log_layer = tracing_subscriber::fmt::Layer::default()
+        .with_writer(std::io::stderr)
+        .event_format(log_format);
+
+    tracing_subscriber::registry()
+        .with(tracing_subscriber::EnvFilter::from_env("RUST_LOG"))
+        .with(log_layer)
+        .init();
+
+    if let Err(err) = greeter::sync_with_greeter() {
+        log::error!("Failed to sync with greeter. {err:?}");
+    }
+
+    let result: zbus::Result<()> = task::LocalSet::new()
+        .run_until(async move {
+            let (varlink_daemon, varlink_backend) = cosmic_settings_varlink_server::init().await;
+            let varlink_daemon_context = varlink_daemon.0.clone();
+
+            task::spawn_local(async move {
+                futures::future::select(Box::pin(varlink_daemon.run()), Box::pin(varlink_backend))
+                    .await;
+            });
+
+            let backlights = match backlight_enumerate() {
+                Ok(backlights) => backlights,
+                Err(err) => {
+                    log::error!("Failed to enumerate backlights: {}", err);
+                    Vec::new()
+                }
+            };
+            let backlights: HashMap<_, _> = backlights
+                .into_iter()
+                .map(|i| (i.syspath().to_owned(), i))
+                .collect();
+            let display_brightness_device = choose_best_backlight(&backlights).await;
+
+            let logind_session = async {
+                let connection = zbus::Connection::system().await?;
+                LogindSessionProxy::builder(&connection).build().await
+            }
+            .await;
+
+            let a11y_session = async {
+                let connection = zbus::Connection::session().await?;
+                cosmic_dbus_a11y::StatusProxy::builder(&connection)
+                    .build()
+                    .await
+            }
+            .await;
+            let xdg_config = dirs::config_dir()
+                .map(|x| x.join("cosmic"))
+                .or_else(|| dirs::home_dir().map(|p| p.join(".config/cosmic")));
+            let xdg_state = dirs::state_dir()
+                .map(|x| x.join("cosmic"))
+                .or_else(|| dirs::home_dir().map(|p| p.join(".local/state/cosmic")));
+            let xdg_config_clone = xdg_config.clone();
+            let xdg_state_clone = xdg_state.clone();
+            let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel();
+            let mut watcher =
+                notify::recommended_watcher(move |res: Result<notify::Event, notify::Error>| {
+                    if let Ok(event) = res {
+                        match &event.kind {
+                            EventKind::Access(_) | EventKind::Modify(ModifyKind::Metadata(_)) => {
+                                // Data not mutated
+                                return;
+                            }
+                            _ => {}
+                        }
+                        let msgs: Vec<_> = event
+                            .paths
+                            .into_iter()
+                            .filter_map(|path| {
+                                if !path.is_file() {
+                                    return None;
+                                }
+                                let (path, is_state) = if let Some(path) = xdg_config_clone
+                                    .as_ref()
+                                    .and_then(|prefix| path.strip_prefix(prefix).ok())
+                                {
+                                    (path, false)
+                                } else {
+                                    let path = xdg_state_clone
+                                        .as_ref()
+                                        .and_then(|prefix| path.strip_prefix(prefix).ok())?;
+                                    (path, true)
+                                };
+                                // really only care about keys
+                                if path.starts_with(".atomicwrite") {
+                                    return None;
+                                }
+
+                                let key = path.file_name().map(|f| f.to_string_lossy())?;
+                                let version = path.parent().and_then(|parent_dir| {
+                                    parent_dir
+                                        .file_name()
+                                        .and_then(|f| f.to_str())
+                                        .and_then(|f| {
+                                            f.strip_prefix('v').and_then(|f| f.parse::<u64>().ok())
+                                        })
+                                })?;
+
+                                let id = path.parent().and_then(|parent_dir| {
+                                    parent_dir.parent().map(|f| f.to_string_lossy())
+                                })?;
+
+                                if is_state {
+                                    Some(Change::State(id.into_owned(), key.into_owned(), version))
+                                } else {
+                                    Some(Change::Config(id.into_owned(), key.into_owned(), version))
+                                }
+                            })
+                            .collect();
+                        if let Err(err) = tx.send(msgs) {
+                            log::error!("Failed to send config change: {}", err);
+                        }
+                    }
+                })
+                .expect("Failed to create notify watcher");
+
+            if let Some(xdg_config) = xdg_config
+                && let Err(err) = watcher.watch(&xdg_config, notify::RecursiveMode::Recursive)
+            {
+                log::error!("Failed to watch xdg config dir: {}", err);
+            }
+            if let Some(xdg_state) = xdg_state
+                && let Err(err) = watcher.watch(&xdg_state, notify::RecursiveMode::Recursive)
+            {
+                log::error!("Failed to watch xdg state dir: {}", err);
+            }
+            let watched_configs = Arc::new(RwLock::new(HashMap::new()));
+            let watched_states = Arc::new(RwLock::new(HashMap::new()));
+            let settings_daemon = SettingsDaemon {
+                varlink_daemon: varlink_daemon_context.clone(),
+                logind_session: logind_session.ok(),
+                a11y_session: a11y_session.ok().map(Mutex::new),
+                display_brightness_device,
+                watched_configs: watched_configs.clone(),
+                watched_states: watched_states.clone(),
+                wayland_sender: wayland::run(),
+            };
+
+            let connection = zbus::connection::Builder::session()?
+                .name(DBUS_NAME)?
+                .serve_at(DBUS_PATH, settings_daemon)?
+                .build()
+                .await?;
+
+            let conn_clone = connection.clone();
+            task::spawn_local(async move {
+                backlight_monitor_task(backlights, conn_clone).await;
+            });
+
+            tokio::task::spawn_local(battery::monitor());
+
+            let conn_clone = connection.clone();
+            task::spawn_local(async move {
+                if let Err(err) =
+                    watch_config_message_stream(conn_clone, watched_configs, watched_states).await
+                {
+                    log::error!("Failed to watch config message stream: {}", err);
+                }
+            });
+
+            let (theme_tx, mut theme_rx) = tokio::sync::mpsc::channel(10);
+            let (theme_cancel_tx, mut theme_cancel_rx) = tokio::sync::mpsc::channel::<()>(1);
+            let theme_watcher_fut = std::pin::pin!(async move {
+                let mut sleep = Duration::from_millis(100);
+
+                loop {
+                    if let Err(err) = watch_theme(&mut theme_rx, &mut theme_cancel_rx).await {
+                        log::error!(
+                            "Failed to watch theme {err:?}. Will try again in {}s",
+                            sleep.as_secs()
+                        );
+                    } else {
+                        break;
+                    }
+                    tokio::time::sleep(sleep).await;
+                    sleep = sleep.saturating_mul(2);
+                }
+            });
+
+            let (xkb_tx, xkb_rx) = tokio::sync::mpsc::channel(10);
+            task::spawn_local(async move {
+                if let Err(err) = locale::sync_locale1(xkb_rx).await {
+                    log::error!("Failed to watch for systemd-localed changes: {}", err);
+                }
+            });
+
+            let conn_clone = connection.clone();
+            let main_fut = std::pin::pin!(async move {
+                while let Some(changes) = rx.recv().await {
+                    let Ok(settings_daemon) = conn_clone
+                        .object_server()
+                        .interface::<_, SettingsDaemon>(DBUS_PATH)
+                        .await
+                    else {
+                        continue;
+                    };
+                    let settings_daemon = settings_daemon.get().await;
+                    for c in changes {
+                        if let Change::Config(id, key, version) = c {
+                            if id.as_str() == cosmic_theme::THEME_MODE_ID {
+                                if let Err(err) =
+                                    theme_tx.send(theme::ThemeMsg::ThemeMode(key.clone())).await
+                                {
+                                    log::error!("Failed to send theme mode update {err:?}");
+                                }
+                            } else if id.as_str() == cosmic::config::ID {
+                                if let Err(err) =
+                                    theme_tx.send(theme::ThemeMsg::Tk(key.clone())).await
+                                {
+                                    log::error!("Failed to send theme toolkit update {err:?}");
+                                }
+                            } else if id.as_str() == cosmic_theme::DARK_THEME_ID {
+                                if let Err(err) = theme_tx.send(theme::ThemeMsg::Theme(true)).await
+                                {
+                                    log::error!("Failed to send dark theme update {err:?}");
+                                }
+                            } else if id.as_str() == cosmic_theme::LIGHT_THEME_ID {
+                                if let Err(err) = theme_tx.send(theme::ThemeMsg::Theme(false)).await
+                                {
+                                    log::error!("Failed to send dark theme update {err:?}");
+                                }
+                            } else if id.as_str() == locale::COSMIC_COMP_ID
+                                && key.as_str() == locale::COSMIC_COMP_XDG_KEY
+                            {
+                                if let Err(err) = xkb_tx.send(()).await {
+                                    log::error!("Failed to send xkb layout update: {err:?}");
+                                }
+                            } else if id.as_str() == cosmic_settings_daemon_config::NAME {
+                                let mut daemon = varlink_daemon_context.lock().await;
+
+                                let mono_sound = daemon
+                                    .audio_server
+                                    .backend
+                                    .model
+                                    .lock()
+                                    .await
+                                    .daemon_config_context
+                                    .get::<bool>("mono_sound");
+
+                                match mono_sound {
+                                    Ok(enabled) => {
+                                        _ = daemon.audio_server.set_mono(enabled).await;
+                                    }
+                                    Err(_) => {
+                                        tracing::warn!("failed to update settings daemon config");
+                                    }
+                                }
+                            }
+                            let read_guard = settings_daemon.watched_configs.read().await;
+                            let Some((conn, path, _)) = read_guard.get(&(id.to_string(), version))
+                            else {
+                                continue;
+                            };
+                            let Ok(config) =
+                                conn.object_server().interface::<_, Config>(path).await
+                            else {
+                                continue;
+                            };
+
+                            if let Err(err) = Config::changed(
+                                config.signal_emitter(),
+                                id.to_string(),
+                                key.to_string(),
+                            )
+                            .await
+                            {
+                                log::error!("Failed to send config changed signal: {}", err);
+                            }
+                        } else if let Change::State(id, key, version) = c {
+                            let read_guard = settings_daemon.watched_states.read().await;
+                            let Some((conn, path, _)) = read_guard.get(&(id.to_string(), version))
+                            else {
+                                continue;
+                            };
+
+                            let Ok(state) = conn.object_server().interface::<_, Config>(path).await
+                            else {
+                                continue;
+                            };
+
+                            if let Err(err) = Config::changed(
+                                state.signal_emitter(),
+                                id.to_string(),
+                                key.to_string(),
+                            )
+                            .await
+                            {
+                                log::error!("Failed to send state changed signal: {}", err);
+                            }
+                        }
+                    }
+                }
+            });
+
+            futures::future::join(theme_watcher_fut, async move {
+                futures::future::select(signal_term_fut, main_fut).await;
+                _ = theme_cancel_tx.send(()).await;
+            })
+            .await;
+            _ = cosmic_theme::Theme::reset_exports();
+            Ok(())
+        })
+        .await;
+
+    ExitCode::from(if restart_signal.load(Ordering::Relaxed) {
+        if let Some(current_exe) = current_exe {
+            _ = std::process::Command::new(current_exe).exec();
+        }
+        1
+    } else if let Err(why) = result {
+        eprintln!("cosmic-settings-daemon failed: {why}");
+        1
+    } else {
+        0
+    })
+}
+
+async fn watch_config_message_stream(
+    conn: Connection,
+    watched_configs: Arc<
+        RwLock<HashMap<(String, u64), (Connection, ObjectPath<'static>, WellKnownName<'static>)>>,
+    >,
+    watched_states: Arc<
+        RwLock<HashMap<(String, u64), (Connection, ObjectPath<'static>, WellKnownName<'static>)>>,
+    >,
+) -> zbus::Result<()> {
+    let config_rule = MatchRule::builder()
+        .msg_type(zbus::message::Type::MethodCall)
+        .member("WatchConfig")?
+        .interface("com.system76.CosmicSettingsDaemon")?
+        .build();
+    let config_stream = MessageStream::for_match_rule(config_rule, &conn, Some(100)).await?;
+
+    let mut watched_config_names: HashMap<(String, u64), HashSet<UniqueName<'static>>> =
+        HashMap::new();
+
+    let state_rule = MatchRule::builder()
+        .msg_type(zbus::message::Type::MethodCall)
+        .member("WatchState")?
+        .interface("com.system76.CosmicSettingsDaemon")?
+        .build();
+    let state_stream = MessageStream::for_match_rule(state_rule, &conn, Some(100)).await?;
+
+    let mut watched_state_names: HashMap<(String, u64), HashSet<UniqueName<'static>>> =
+        HashMap::new();
+
+    let name_changed_rule = MatchRule::builder()
+        .msg_type(zbus::message::Type::Signal)
+        .sender("org.freedesktop.DBus")?
+        .member("NameOwnerChanged")?
+        .interface("org.freedesktop.DBus")?
+        .arg(2, "")? // new owner is empty
+        .build();
+
+    let name_changed_stream =
+        MessageStream::for_match_rule(name_changed_rule, &conn, Some(100)).await?;
+
+    let mut rx = name_changed_stream.merge(config_stream).merge(state_stream);
+
+    while let Some(msg) = rx.try_next().await? {
+        let header = msg.header();
+        if header.member() == Some(&MemberName::from_static_str_unchecked("NameOwnerChanged")) {
+            let Ok((name, old_owner, _)) = msg.body().deserialize::<(String, String, String)>()
+            else {
+                continue;
+            };
+            if name != old_owner {
+                continue;
+            }
+            let unique_name = UniqueName::from_str_unchecked(&old_owner).to_owned();
+            for ((k, v), is_config) in watched_config_names
+                .iter_mut()
+                .map(|a| (a, true))
+                .chain(watched_state_names.iter_mut().map(|a| (a, false)))
+                .filter(|((_, v), _)| v.contains(&unique_name))
+            {
+                v.remove(&unique_name);
+                if v.is_empty() {
+                    let mut write_guard = if is_config {
+                        watched_configs.write().await
+                    } else {
+                        watched_states.write().await
+                    };
+                    write_guard.retain(|(id, version), (_, _, _)| &k.0 != id || &k.1 != version);
+                }
+            }
+            watched_config_names.retain(|_, v| !v.is_empty());
+            watched_state_names.retain(|_, v| !v.is_empty());
+        } else if header.member() == Some(&MemberName::from_static_str_unchecked("WatchConfig")) {
+            let Some(sender) = header.sender() else {
+                continue;
+            };
+
+            let Ok((id, version)) = msg.body().deserialize::<(String, u64)>() else {
+                continue;
+            };
+
+            let name_set = watched_config_names
+                .entry((id.clone(), version))
+                .or_default();
+            name_set.insert(sender.to_owned());
+        } else if header.member() == Some(&MemberName::from_static_str_unchecked("WatchState")) {
+            let Some(sender) = header.sender().map(|s| s.to_owned()) else {
+                continue;
+            };
+            let Ok((id, version)) = msg.body().deserialize::<(String, u64)>() else {
+                continue;
+            };
+
+            let name_set = watched_state_names
+                .entry((id.clone(), version))
+                .or_default();
+            name_set.insert(sender.to_owned());
+        }
+    }
+
+    Ok(())
+}

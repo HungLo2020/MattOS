@@ -776,7 +776,7 @@ known_gaps = ["Module selection is deliberately smaller than Debian"]
 debian_name = "libpam-runtime"
 mattos_name = "libpam-runtime"
 source_component = "linux-pam"
-owned_paths = ["/etc/pam.d"]
+owned_paths = ["/etc/pam.d", "/usr/share/pam/security/pam_env.conf"]
 provided_abi_or_commands = ["PAM policy"]
 protected = true
 current_mattos_version = "0~git.dd74fc113a9b-1mattos1"
@@ -1478,7 +1478,67 @@ protected = false
 current_mattos_version = "0~git.693d1ad77519-1mattos1"
 expected_debian_role = "Wayland compositor for the MattOS installer session"
 classification = "debian-compatible"
-known_gaps = ["Only the installer compositor session is shipped, not the COSMIC desktop"]
+known_gaps = ["Xwayland is intentionally disabled; MattOS is Wayland-native"]
+
+[[package]]
+debian_name = "cosmic-session"
+mattos_name = "cosmic-desktop"
+source_component = "COSMIC Epoch 1.5 coherent source closure"
+owned_paths = ["/usr/bin/cosmic-session", "/usr/bin/start-cosmic", "/usr/bin/cosmic-panel", "/usr/bin/cosmic-launcher", "/usr/bin/cosmic-settings", "/usr/bin/cosmic-settings-daemon", "/usr/bin/cosmic-notifications", "/usr/bin/cosmic-osd", "/usr/bin/cosmic-bg", "/usr/bin/cosmic-workspaces", "/usr/bin/cosmic-files", "/usr/bin/cosmic-term", "/usr/bin/greetd", "/usr/bin/cosmic-greeter", "/usr/bin/cosmic-greeter-start", "/usr/share/wayland-sessions/cosmic.desktop", "/usr/share/icons/hicolor/index.theme", "/etc/greetd/cosmic-greeter.toml", "/etc/pam.d/cosmic-greeter"]
+provided_abi_or_commands = ["COSMIC desktop session, shell, core applications, and graphical login"]
+protected = true
+current_mattos_version = "0~git.b5ef6c0c0d68-1mattos1"
+expected_debian_role = "Complete COSMIC desktop session"
+classification = "mattos-alternative"
+known_gaps = ["MattOS intentionally omits Xwayland and GNOME compatibility services"]
+
+[[package]]
+debian_name = "libdbus-1-3"
+mattos_name = "libdbus-1-3"
+source_component = "D-Bus 1.16.2"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libdbus-1.so.3"]
+provided_abi_or_commands = ["libdbus-1.so.3 client ABI"]
+protected = true
+current_mattos_version = "1.16.2-1mattos1"
+expected_debian_role = "D-Bus client library"
+classification = "debian-compatible"
+known_gaps = ["The daemon executable is retained for private buses while dbus-broker owns the system and user bus units"]
+
+[[package]]
+debian_name = "libdav1d7"
+mattos_name = "libdav1d7"
+source_component = "dav1d 1.5.4"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libdav1d.so.7"]
+provided_abi_or_commands = ["libdav1d ABI 7"]
+protected = true
+current_mattos_version = "1.5.4-1mattos1"
+expected_debian_role = "AV1 decoder runtime"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
+debian_name = "libglib2.0-0t64"
+mattos_name = "libglib2.0-0t64"
+source_component = "GLib 2.84.4"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libglib-2.0.so.0", "/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0", "/usr/lib/x86_64-linux-gnu/libgio-2.0.so.0", "/usr/bin/glib-compile-schemas"]
+provided_abi_or_commands = ["GLib/GObject/GIO ABI 2.0", "glib-compile-schemas"]
+protected = true
+current_mattos_version = "2.84.4-1mattos1"
+expected_debian_role = "GLib core runtime"
+classification = "debian-compatible"
+known_gaps = ["GObject introspection development metadata is not part of the runtime package"]
+
+[[package]]
+debian_name = "pipewire"
+mattos_name = "pipewire"
+source_component = "PipeWire 1.4.11"
+owned_paths = ["/usr/bin/pipewire", "/usr/bin/pipewire-pulse", "/usr/lib/x86_64-linux-gnu/libpipewire-0.3.so.0", "/usr/lib/x86_64-linux-gnu/spa-0.2", "/usr/share/pipewire", "/usr/lib/systemd/user/pipewire.service", "/usr/lib/systemd/user/pipewire.socket"]
+provided_abi_or_commands = ["PipeWire 0.3 ABI", "PipeWire and PulseAudio-compatible user services"]
+protected = true
+current_mattos_version = "1.4.11-1mattos1"
+expected_debian_role = "Desktop audio graph and compatibility service"
+classification = "debian-compatible"
+known_gaps = ["Hardware ALSA and Bluetooth policy awaits the source-built WirePlumber/alsa-lib follow-up; core and virtual audio services are functional"]
 
 [[package]]
 debian_name = "linux-firmware"
@@ -1556,8 +1616,8 @@ known_gaps = ["None"]
 debian_name = "libx11-6"
 mattos_name = "libx11-6"
 source_component = "X.Org libX11 1.8.12"
-owned_paths = ["/usr/lib/x86_64-linux-gnu/libX11.so.6"]
-provided_abi_or_commands = ["libX11 ABI 6"]
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libX11.so.6", "/usr/share/X11/locale"]
+provided_abi_or_commands = ["libX11 ABI 6", "X11 locale and Compose data used by Wayland-native toolkits"]
 protected = true
 current_mattos_version = "0~git.59917d28a3c4-1mattos1"
 expected_debian_role = "X11 client ABI"

@@ -1,0 +1,13 @@
+image: archlinux
+packages:
+  - rust
+sources:
+  - https://git.sr.ht/~kennylevinsen/greetd
+tasks:
+  - rustfmt-check: |
+      cd greetd
+      cargo fmt -- --check
+  - test: |
+      cd greetd
+      cargo check --locked --all-targets --all-features
+      cargo test --locked --all-targets --all-features

@@ -72,6 +72,35 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "src/desktop/cosmic/cosmic-comp",
             "upstream/patches/cosmic-comp",
         ],
+        BuildStage::CosmicSession => &["src/desktop/cosmic/cosmic-session"],
+        BuildStage::CosmicGreeter => &["src/desktop/cosmic/cosmic-greeter"],
+        BuildStage::CosmicPanel => &["src/desktop/cosmic/cosmic-panel"],
+        BuildStage::CosmicApplets => &["src/desktop/cosmic/cosmic-applets"],
+        BuildStage::CosmicAppLibrary => &["src/desktop/cosmic/cosmic-applibrary"],
+        BuildStage::CosmicLauncher => &["src/desktop/cosmic/cosmic-launcher"],
+        BuildStage::CosmicSettings => &["src/desktop/cosmic/cosmic-settings"],
+        BuildStage::CosmicSettingsDaemon => &["src/desktop/cosmic/cosmic-settings-daemon"],
+        BuildStage::CosmicNotifications => &["src/desktop/cosmic/cosmic-notifications"],
+        BuildStage::CosmicOsd => &["src/desktop/cosmic/cosmic-osd"],
+        BuildStage::CosmicBg => &["src/desktop/cosmic/cosmic-bg"],
+        BuildStage::CosmicWorkspaces => &["src/desktop/cosmic/cosmic-workspaces"],
+        BuildStage::CosmicFiles => &["src/desktop/cosmic/cosmic-files"],
+        BuildStage::CosmicTerm => &["src/desktop/cosmic/cosmic-term"],
+        BuildStage::CosmicUtilities => &[
+            "src/desktop/cosmic/cosmic-randr",
+            "src/desktop/cosmic/cosmic-screenshot",
+            "src/desktop/cosmic/pop-launcher",
+        ],
+        BuildStage::CosmicPortal => &["src/desktop/cosmic/xdg-desktop-portal-cosmic"],
+        BuildStage::CosmicAssets => &[
+            "src/desktop/cosmic/cosmic-icons",
+            "src/desktop/themes/pop-icon-theme",
+            "src/desktop/fonts/open-sans",
+            "src/desktop/fonts/noto-sans-mono",
+            "src/desktop/fonts/pop-fonts",
+        ],
+        BuildStage::Greetd => &["src/system/session/greetd"],
+        BuildStage::CosmicDesktop => &[],
         BuildStage::Python => &["src/development/python/cpython"],
         BuildStage::Llvm => &["src/toolchain/llvm-project"],
         BuildStage::Rust => &[
@@ -99,6 +128,9 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::Xz => &["src/system/libraries/xz"],
         BuildStage::Xxhash => &["src/system/libraries/xxhash"],
         BuildStage::Zstd => &["src/system/libraries/zstd"],
+        BuildStage::Dav1d => &["src/system/multimedia/dav1d"],
+        BuildStage::Glib => &["src/system/libraries/glib"],
+        BuildStage::Pipewire => &["src/system/multimedia/pipewire"],
         BuildStage::Openssl => &["src/system/libraries/openssl"],
         BuildStage::Elfutils => &["src/system/libraries/elfutils"],
         BuildStage::Pcre2 => &["src/system/libraries/pcre2", "src/build-support/sljit"],
@@ -111,6 +143,7 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::SudoRs => &["src/system/auth/sudo-rs"],
         BuildStage::UtilLinux => &["src/userland/util-linux", "upstream/patches/util-linux"],
         BuildStage::Systemd => &["src/system/systemd"],
+        BuildStage::Dbus => &["src/system/dbus/dbus"],
         BuildStage::DbusBroker => &[
             "src/system/dbus/dbus-broker",
             "upstream/patches/dbus-broker",
@@ -164,7 +197,11 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
         BuildStage::LiveRoot => &["mksquashfs", "unsquashfs"],
         BuildStage::Initramfs => &["gcc", "cpio", "xz", "modinfo"],
         BuildStage::Xkbcommon => &["gcc", "ld", "meson", "ninja"],
-        BuildStage::Libseat
+        BuildStage::Dav1d
+        | BuildStage::Glib
+        | BuildStage::Pipewire
+        | BuildStage::Dbus
+        | BuildStage::Libseat
         | BuildStage::LibdisplayInfo
         | BuildStage::Libevdev
         | BuildStage::Libinput
@@ -185,7 +222,25 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
             &["gcc", "g++", "ld", "cmake", "ninja", "pkg-config"]
         }
         BuildStage::NvidiaDriver => &["gcc", "ld", "make", "depmod", "zstd", "curl"],
-        BuildStage::CosmicComp => &["cargo", "rustc", "gcc", "ld", "pkg-config"],
+        BuildStage::CosmicComp
+        | BuildStage::CosmicSession
+        | BuildStage::CosmicGreeter
+        | BuildStage::CosmicPanel
+        | BuildStage::CosmicApplets
+        | BuildStage::CosmicAppLibrary
+        | BuildStage::CosmicLauncher
+        | BuildStage::CosmicSettings
+        | BuildStage::CosmicSettingsDaemon
+        | BuildStage::CosmicNotifications
+        | BuildStage::CosmicOsd
+        | BuildStage::CosmicBg
+        | BuildStage::CosmicWorkspaces
+        | BuildStage::CosmicFiles
+        | BuildStage::CosmicTerm
+        | BuildStage::CosmicUtilities
+        | BuildStage::CosmicPortal
+        | BuildStage::Greetd => &["cargo", "rustc", "gcc", "ld", "pkg-config"],
+        BuildStage::CosmicAssets | BuildStage::CosmicDesktop => &[],
         BuildStage::Installer => &[
             "cargo",
             "rustc",
@@ -215,12 +270,19 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
         BuildStage::Initramfs => 7,
         BuildStage::Installer => 7,
         BuildStage::Xkbcommon => 4,
-        BuildStage::Libseat
-        | BuildStage::LibdisplayInfo
+        BuildStage::LibdisplayInfo
         | BuildStage::Libevdev
         | BuildStage::Libinput
         | BuildStage::Pixman
         | BuildStage::CosmicComp => 1,
+        BuildStage::Libseat => 2,
+        BuildStage::CosmicDesktop => 1,
+        BuildStage::Dbus => 3,
+        // Revision 4 enables libblkid-backed udev identities and makes the
+        // complete upstream OSC login profile safe under MattOS's POSIX shell.
+        BuildStage::Systemd => 4,
+        BuildStage::Pipewire => 2,
+        BuildStage::Glib => 2,
         BuildStage::Libdrm => 2,
         // Revision 4 moves EGL/GLES dispatch to source-built GLVND while Mesa
         // remains a coinstallable vendor implementation.
@@ -298,6 +360,35 @@ mod tests {
             Vec::<PathBuf>::new()
         );
         assert_eq!(configuration_inputs(BuildStage::Iso), Vec::<PathBuf>::new());
+    }
+
+    #[test]
+    fn cosmic_component_inputs_are_leaf_precise() {
+        assert_eq!(
+            source_inputs(BuildStage::CosmicPanel),
+            vec![PathBuf::from("src/desktop/cosmic/cosmic-panel")]
+        );
+        assert_eq!(
+            source_inputs(BuildStage::CosmicSession),
+            vec![PathBuf::from("src/desktop/cosmic/cosmic-session")]
+        );
+        assert!(source_inputs(BuildStage::CosmicDesktop).is_empty());
+        for stage in [
+            BuildStage::CosmicSession,
+            BuildStage::CosmicGreeter,
+            BuildStage::CosmicPanel,
+            BuildStage::CosmicApplets,
+            BuildStage::CosmicLauncher,
+            BuildStage::CosmicSettings,
+        ] {
+            assert!(
+                !source_inputs(stage)
+                    .iter()
+                    .any(|path| path.starts_with("src/system/session/cosmic")),
+                "package-only session metadata leaked into native stage {}",
+                crate::stage_graph::stage_id(stage)
+            );
+        }
     }
 
     #[test]

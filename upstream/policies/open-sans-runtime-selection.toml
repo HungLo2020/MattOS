@@ -1,0 +1,5 @@
+schema_version = 1
+component = "open-sans"
+upstream_commit = "bd7e37632246368c60fdcbd374dbf9bad11969b6"
+retained_paths = ["fonts/ttf", "OFL.txt", "README.md", "FONTLOG.txt"]
+reason = "Retain redistributable desktop runtime fonts and their licensing; omit upstream design history, generated comparison documents, and development tooling."

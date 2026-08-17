@@ -1,0 +1,25 @@
+[package]
+name = "greetd_ipc"
+version = "0.10.3"
+authors = ["Kenny Levinsen"]
+edition = "2018"
+license = "GPL-3.0-only"
+homepage = "https://kl.wtf/projects/greetd"
+repository = "https://git.sr.ht/~kennylevinsen/greetd/"
+description = "An implementation of the greetd IPC protocol"
+keywords = ["greetd"]
+
+[package.metadata.docs.rs]
+all-features = true
+
+[features]
+codec = ["thiserror"]
+sync-codec = ["codec"]
+tokio-codec = ["codec", "tokio", "async-trait"]
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1", features = ["io-util"], optional = true }
+async-trait = { version = "0.1", optional = true }
+thiserror = { version = "1.0", optional = true }

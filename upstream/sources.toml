@@ -196,6 +196,185 @@ sync = "copy"
 patch_manifest = "upstream/patches/cosmic-comp/manifest.toml"
 patch_manifest_sha256 = "811babaaf8a6532d83484b7c8c73e34b23d6b7103843a4c90ae65426ac2b308b"
 
+# COSMIC Epoch desktop closure.  These revisions are the gitlinks from
+# pop-os/cosmic-epoch 0ce7ec30ac05416e9a85465404be548ced89cba6 so the
+# session, shell, settings, applications and portal are updated coherently.
+[[component]]
+name = "cosmic-session"
+repo = "https://github.com/pop-os/cosmic-session.git"
+branch = "master"
+revision = "b5ef6c0c0d68762b2991e4f5906cc70599e2f1fc"
+path = "src/desktop/cosmic/cosmic-session"
+sync = "copy"
+
+[[component]]
+name = "cosmic-greeter"
+repo = "https://github.com/pop-os/cosmic-greeter.git"
+branch = "master"
+revision = "d39915ae2381424d406cd511a2310ef928144f4c"
+path = "src/desktop/cosmic/cosmic-greeter"
+sync = "copy"
+
+[[component]]
+name = "cosmic-panel"
+repo = "https://github.com/pop-os/cosmic-panel.git"
+branch = "master"
+revision = "d6699ffc423a3830bf4cab7e2c7f08a173e998f0"
+path = "src/desktop/cosmic/cosmic-panel"
+sync = "copy"
+
+[[component]]
+name = "cosmic-applets"
+repo = "https://github.com/pop-os/cosmic-applets.git"
+branch = "master"
+revision = "ec8ffdc85d1f316b387cf89672609933064e6e88"
+path = "src/desktop/cosmic/cosmic-applets"
+sync = "copy"
+
+[[component]]
+name = "cosmic-applibrary"
+repo = "https://github.com/pop-os/cosmic-applibrary.git"
+branch = "master"
+revision = "172acdae07aeb78a554813a566c0f8b942dcc831"
+path = "src/desktop/cosmic/cosmic-applibrary"
+sync = "copy"
+
+[[component]]
+name = "cosmic-launcher"
+repo = "https://github.com/pop-os/cosmic-launcher.git"
+branch = "master"
+revision = "8799503120d28383b3548f19a50880cbe83701c5"
+path = "src/desktop/cosmic/cosmic-launcher"
+sync = "copy"
+
+[[component]]
+name = "cosmic-settings"
+repo = "https://github.com/pop-os/cosmic-settings.git"
+branch = "master"
+revision = "7287257ec9f2ca301642bd4800f391ad9079d3e9"
+path = "src/desktop/cosmic/cosmic-settings"
+sync = "copy"
+
+[[component]]
+name = "cosmic-settings-daemon"
+repo = "https://github.com/pop-os/cosmic-settings-daemon.git"
+branch = "master"
+revision = "21a9692b53fcbffa0f18f7d0a12bf0f9d5bd0590"
+path = "src/desktop/cosmic/cosmic-settings-daemon"
+sync = "copy"
+
+[[component]]
+name = "cosmic-notifications"
+repo = "https://github.com/pop-os/cosmic-notifications.git"
+branch = "master"
+revision = "7c723b7705ec77b1ad5396a1baa9ae1c0cb5a0da"
+path = "src/desktop/cosmic/cosmic-notifications"
+sync = "copy"
+
+[[component]]
+name = "cosmic-osd"
+repo = "https://github.com/pop-os/cosmic-osd.git"
+branch = "master"
+revision = "20a2055dfc0eed78b417f0ecd38cc15807df3285"
+path = "src/desktop/cosmic/cosmic-osd"
+sync = "copy"
+
+[[component]]
+name = "cosmic-bg"
+repo = "https://github.com/pop-os/cosmic-bg.git"
+branch = "master"
+revision = "76e89e6aff4224e3a820cbe71c74ee91adb60d03"
+path = "src/desktop/cosmic/cosmic-bg"
+sync = "copy"
+
+[[component]]
+name = "cosmic-workspaces"
+repo = "https://github.com/pop-os/cosmic-workspaces-epoch.git"
+branch = "master"
+revision = "8faab4c2a92f438a704d072e3c5aa9526d2acc88"
+path = "src/desktop/cosmic/cosmic-workspaces"
+sync = "copy"
+
+[[component]]
+name = "cosmic-files"
+repo = "https://github.com/pop-os/cosmic-files.git"
+branch = "master"
+revision = "24e34eaa0f0acf4e24ea1338ad4bbde3a138e1f3"
+path = "src/desktop/cosmic/cosmic-files"
+sync = "copy"
+
+[[component]]
+name = "cosmic-term"
+repo = "https://github.com/pop-os/cosmic-term.git"
+branch = "master"
+revision = "543cbb0cb818e1ef724d7f917ca562af44340e47"
+path = "src/desktop/cosmic/cosmic-term"
+sync = "copy"
+
+[[component]]
+name = "cosmic-icons"
+repo = "https://github.com/pop-os/cosmic-icons.git"
+branch = "master"
+revision = "b78b059636ed967ad7c6f120709c7d29b2bafac1"
+path = "src/desktop/cosmic/cosmic-icons"
+sync = "copy"
+
+[[component]]
+name = "cosmic-randr"
+repo = "https://github.com/pop-os/cosmic-randr.git"
+branch = "master"
+revision = "6e8e795970fa06d434af22775e415b517f7552d3"
+path = "src/desktop/cosmic/cosmic-randr"
+sync = "copy"
+
+[[component]]
+name = "cosmic-screenshot"
+repo = "https://github.com/pop-os/cosmic-screenshot.git"
+branch = "master"
+revision = "fc778df20fd9b3f2b266b090da89c09ce625e0a4"
+path = "src/desktop/cosmic/cosmic-screenshot"
+sync = "copy"
+
+[[component]]
+name = "pop-launcher"
+repo = "https://github.com/pop-os/launcher.git"
+branch = "master"
+revision = "a332a3a73316a3595816dd02fe426a1d3543167a"
+path = "src/desktop/cosmic/pop-launcher"
+sync = "copy"
+
+[[component]]
+name = "xdg-desktop-portal-cosmic"
+repo = "https://github.com/pop-os/xdg-desktop-portal-cosmic.git"
+branch = "master"
+revision = "f211aa37d45e443c9060b08c725d6fa73431565f"
+path = "src/desktop/cosmic/xdg-desktop-portal-cosmic"
+sync = "copy"
+
+[[component]]
+name = "greetd"
+repo = "https://git.sr.ht/~kennylevinsen/greetd"
+branch = "master"
+revision = "d6733e983ff7821c3044007d5555345c7553188f"
+path = "src/system/session/greetd"
+sync = "copy"
+
+[[component]]
+name = "dbus"
+repo = "https://gitlab.freedesktop.org/dbus/dbus.git"
+branch = "dbus-1.16.2"
+revision = "958bf9db2100553bcd2fe2a854e1ebb42e886054"
+path = "src/system/dbus/dbus"
+sync = "copy"
+
+[[component]]
+name = "pop-icon-theme"
+repo = "https://github.com/pop-os/icon-theme.git"
+branch = "master"
+revision = "1a575a8e99b4ae629b9b16543a3a04d148632ba9"
+path = "src/desktop/themes/pop-icon-theme"
+sync = "copy"
+
 [[component]]
 name = "seatd"
 repo = "https://github.com/kennylevinsen/seatd.git"
@@ -757,6 +936,66 @@ path = "src/toolchain/rust"
 sync = "copy"
 intentional_omission_policy = "upstream/policies/gitlinks.toml#rust"
 gitlink_policy = "upstream/policies/gitlinks.toml#rust"
+
+[[component]]
+name = "pop-fonts"
+repo = "https://github.com/pop-os/fonts.git"
+branch = "master"
+revision = "2da23d5e76bf724c49875e8fd328e1fd5a6de80e"
+path = "src/desktop/fonts/pop-fonts"
+sync = "copy"
+
+[[component]]
+name = "dav1d"
+repo = "https://code.videolan.org/videolan/dav1d.git"
+branch = "1.5.4"
+revision = "54706fc6bc0cdecab7e9593974a4039cc038fca7"
+path = "src/system/multimedia/dav1d"
+sync = "copy"
+
+[[component]]
+name = "glib"
+repo = "https://gitlab.gnome.org/GNOME/glib.git"
+branch = "2.84.4"
+revision = "41eca60845d3fc309af361f5e7f801ba339099aa"
+path = "src/system/libraries/glib"
+sync = "copy"
+intentional_omission_policy = "upstream/policies/gitlinks.toml#glib"
+gitlink_policy = "upstream/policies/gitlinks.toml#glib"
+
+[[component]]
+name = "glib-gvdb"
+repo = "https://gitlab.gnome.org/GNOME/gvdb.git"
+branch = "main"
+revision = "2b42fc75f09dbe1cd1057580b5782b08f2dcb400"
+path = "src/system/libraries/glib/subprojects/gvdb"
+sync = "copy"
+
+[[component]]
+name = "pipewire"
+repo = "https://gitlab.freedesktop.org/pipewire/pipewire.git"
+branch = "1.4.11"
+revision = "255541eac34370e312f0c5c8c18e46dc1911352f"
+path = "src/system/multimedia/pipewire"
+sync = "copy"
+
+[[component]]
+name = "open-sans"
+repo = "https://github.com/googlefonts/opensans.git"
+branch = "main"
+revision = "bd7e37632246368c60fdcbd374dbf9bad11969b6"
+path = "src/desktop/fonts/open-sans"
+sync = "copy"
+intentional_omission_policy = "upstream/policies/open-sans-runtime-selection.toml"
+
+[[component]]
+name = "noto-sans-mono"
+repo = "https://github.com/google/fonts.git"
+branch = "main"
+revision = "352f6b7d9d6cc4fa9e242b931291d31b21a6dc84"
+path = "src/desktop/fonts/noto-sans-mono"
+sync = "copy"
+intentional_omission_policy = "upstream/policies/noto-sans-mono-runtime-selection.toml"
 
 [[component]]
 name = "binutils"

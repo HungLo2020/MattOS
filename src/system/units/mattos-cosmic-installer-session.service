@@ -7,7 +7,10 @@ ConditionKernelCommandLine=mattos.mode=install-gui
 
 [Service]
 Type=notify
-NotifyAccess=main
+# dbus-run-session remains the service's main process while cosmic-comp is its
+# child. Permit the compositor's READY notification so systemd can release the
+# installer only after KMS and the Wayland socket are ready.
+NotifyAccess=all
 RuntimeDirectory=mattos-installer
 RuntimeDirectoryMode=0700
 Environment=XDG_RUNTIME_DIR=/run/mattos-installer
@@ -17,6 +20,10 @@ Environment=WAYLAND_DISPLAY=wayland-0
 # that variable as evidence of an existing compositor and attempts its X11/
 # winit backend instead of becoming the DRM/KMS compositor itself.
 Environment=COSMIC_BACKEND=kms
+Environment=LANG=en_US.UTF-8
+Environment=LC_ALL=en_US.UTF-8
+Environment=XCURSOR_THEME=Pop
+Environment=XCURSOR_SIZE=24
 # MattOS ships Mesa's GBM backend as part of the source-built runtime closure.
 Environment=GBM_BACKENDS_PATH=/usr/lib/x86_64-linux-gnu/gbm
 Environment=LIBGL_DRIVERS_PATH=/usr/lib/x86_64-linux-gnu/dri
@@ -29,7 +36,7 @@ ExecStartPre=/bin/sh -c 'for path in /dev/input/event[0-9]*; do test -c "$path" 
 # Mesa's source-built VirGL Gallium path is selected by kmsro for the QEMU
 # virtio-gpu DRM device.  Do not force llvmpipe here: COSMIC explicitly owns
 # the KMS device and requires exportable scanout buffers.
-ExecStart=/usr/bin/cosmic-comp --no-xwayland
+ExecStart=/usr/bin/dbus-run-session --config-file=/usr/share/dbus-1/mattos-private-session.conf -- /usr/bin/cosmic-comp --no-xwayland
 StandardOutput=journal+console
 StandardError=journal+console
 Restart=no
