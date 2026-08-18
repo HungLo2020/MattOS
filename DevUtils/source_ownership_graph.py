@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import os
@@ -8,7 +9,7 @@ import re
 import shutil
 import subprocess
 import tomllib
-from typing import Any
+from typing import Any, Iterator
 
 BARE_KEY = re.compile(r'^[A-Za-z0-9_-]+$')
 GIT_KEYS = {'git', 'rev', 'branch', 'tag'}
@@ -233,20 +234,13 @@ def rewrite_dependency_table(
         git = spec.get('git') if isinstance(spec.get('git'), str) else None
 
         if git is not None:
-            # Git ownership is source-qualified. Never fall back to a same-name
-            # first-class root from another repository.
             target = choose_owned_git_target(index, package, git)
         elif isinstance(spec.get('path'), str):
-            # Existing path edges are preserved unless the path explicitly
-            # crosses a declared replaced gitlink or already names a canonical
-            # ownership mirror.
             resolved = (current_manifest.parent / pathlib.Path(spec['path'])).resolve()
             target = target_for_declared_gitlink(package, resolved, index, mirrors, current_component)
             if target is None:
                 target = target_for_existing_mirror_path(package, resolved, index, mirrors)
         else:
-            # Bare/version/registry dependencies have no repository identity.
-            # First-class root ownership is authoritative for that package.
             target = choose_owned_registry_target(index, package)
 
         if target is None:
@@ -259,7 +253,8 @@ def rewrite_dependency_table(
         if did_change:
             table[key] = replacement
             changed = True
-        needed.add(component)
+        if component != current_component:
+            needed.add(component)
 
     return changed, needed
 
@@ -335,6 +330,14 @@ def copy_tracked_component(root: pathlib.Path, source_rel: str, destination: pat
 
 
 def apply_component_patches(root: pathlib.Path, metadata: dict[str, Any], destination: pathlib.Path) -> None:
+    """Apply validated Git-format MattOS patches to an output mirror.
+
+    Patch manifests contain `diff --git` patches. Use the same `git apply`
+    semantics as MattOS's existing output-patch regression tests instead of GNU
+    `patch`: GNU patch interprets an all-zero Git index as file creation and
+    rejects cosmic-comp's existing-file modification even though `git apply`
+    correctly validates and applies it.
+    """
     manifest_rel = metadata.get('patch_manifest')
     if not manifest_rel:
         return
@@ -348,22 +351,29 @@ def apply_component_patches(root: pathlib.Path, metadata: dict[str, Any], destin
         raise OwnershipError(f'invalid output-mirror patch manifest: {manifest_rel}')
     if manifest.get('upstream_commit') != metadata.get('revision'):
         raise OwnershipError(f'patch manifest revision mismatch: {manifest_rel}')
+
     for patch in manifest.get('patch', []):
         patch_path = root / patch['path']
         payload = patch_path.read_bytes()
         if hashlib.sha256(payload).hexdigest() != patch['sha256']:
             raise OwnershipError(f'patch checksum mismatch: {patch["path"]}')
-        completed = subprocess.run(
-            ['patch', '-p1', '--batch', '--forward', '-i', str(patch_path)],
-            cwd=destination,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
-        if completed.returncode != 0:
-            raise OwnershipError(
-                f'failed to apply {patch["path"]}: {completed.stderr.strip() or completed.stdout.strip()}'
+
+        for check_only in (True, False):
+            command = ['git', 'apply', '--whitespace=error-all']
+            if check_only:
+                command.append('--check')
+            command.append(str(patch_path))
+            completed = subprocess.run(
+                command,
+                cwd=destination,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
             )
+            if completed.returncode != 0:
+                phase = 'validate' if check_only else 'apply'
+                detail = completed.stderr.strip() or completed.stdout.strip()
+                raise OwnershipError(f'failed to {phase} {patch["path"]}: {detail}')
 
 
 def mirror_fingerprint(root: pathlib.Path, index: dict[str, Any], component: str) -> str:
@@ -377,6 +387,58 @@ def mirror_fingerprint(root: pathlib.Path, index: dict[str, Any], component: str
     return digest.hexdigest()
 
 
+@contextlib.contextmanager
+def component_mirror_lock(root: pathlib.Path, component: str) -> Iterator[None]:
+    """Serialize mutation of one shared ownership mirror across build processes."""
+    locks = root / 'out' / 'source-ownership' / 'locks'
+    locks.mkdir(parents=True, exist_ok=True)
+    lock_path = locks / f'{component}.lock'
+    stream = lock_path.open('a+b')
+    try:
+        if os.name == 'nt':
+            import msvcrt
+            stream.seek(0, os.SEEK_END)
+            if stream.tell() == 0:
+                stream.write(b'\0')
+                stream.flush()
+            stream.seek(0)
+            msvcrt.locking(stream.fileno(), msvcrt.LK_LOCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(stream.fileno(), fcntl.LOCK_EX)
+        yield
+    finally:
+        try:
+            if os.name == 'nt':
+                import msvcrt
+                stream.seek(0)
+                msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                import fcntl
+                fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
+        finally:
+            stream.close()
+
+
+def component_mirrors(
+    canonical: dict[str, pathlib.Path],
+    consumer_component: str,
+    consumer_mirror: pathlib.Path,
+    current_component: str,
+) -> dict[str, pathlib.Path]:
+    """Return paths appropriate while rewriting one component.
+
+    Shared mirrors must never capture a consumer stage's private build path.
+    Only manifests physically belonging to the consumer use its build mirror for
+    self-edges; all shared components always resolve every owned component,
+    including the consumer, through the canonical source-ownership mirror.
+    """
+    mirrors = dict(canonical)
+    if current_component == consumer_component:
+        mirrors[consumer_component] = consumer_mirror.resolve()
+    return mirrors
+
+
 def prepare_graph(
     root: pathlib.Path,
     index: dict[str, Any],
@@ -384,59 +446,59 @@ def prepare_graph(
     consumer_mirror: pathlib.Path,
 ) -> dict[str, pathlib.Path]:
     mirror_root = root / 'out' / 'source-ownership' / 'sources'
-    mirrors = {name: mirror_root / name for name in index.get('components', {})}
-    mirrors[consumer_component] = consumer_mirror.resolve()
+    canonical = {name: mirror_root / name for name in index.get('components', {})}
     visiting: set[str] = set()
-    prepared: set[str] = {consumer_component}
+    prepared: set[str] = set()
 
     def ensure_component(component: str) -> None:
-        if component == consumer_component or component in prepared:
-            return
-        if component in visiting:
+        if component in prepared or component in visiting:
             return
         visiting.add(component)
         meta = index['components'][component]
-        dest = mirrors[component]
+        dest = canonical[component]
         marker = dest / '.mattos-source-ownership.json'
         fingerprint = mirror_fingerprint(root, index, component)
-
-        valid = False
-        if marker.is_file():
-            try:
-                valid = json.loads(marker.read_text()).get('fingerprint') == fingerprint
-            except Exception:
-                valid = False
-
-        if not valid:
-            copy_tracked_component(root, meta['source_path'], dest)
-            apply_component_patches(root, meta, dest)
-
         needed: set[str] = set()
-        for manifest in sorted(dest.rglob('Cargo.toml')):
-            needed |= rewrite_manifest(manifest, index, mirrors, component)
 
-        marker.write_text(json.dumps({'fingerprint': fingerprint}, sort_keys=True) + '\n')
+        with component_mirror_lock(root, component):
+            valid = False
+            if marker.is_file():
+                try:
+                    valid = json.loads(marker.read_text()).get('fingerprint') == fingerprint
+                except Exception:
+                    valid = False
+
+            if not valid:
+                copy_tracked_component(root, meta['source_path'], dest)
+                apply_component_patches(root, meta, dest)
+
+            mirrors = component_mirrors(canonical, consumer_component, consumer_mirror, component)
+            for manifest in sorted(dest.rglob('Cargo.toml')):
+                needed |= rewrite_manifest(manifest, index, mirrors, component)
+
+            marker.write_text(json.dumps({'fingerprint': fingerprint}, sort_keys=True) + '\n')
+
         prepared.add(component)
         visiting.remove(component)
-
         for dep in sorted(needed):
             ensure_component(dep)
 
+    consumer_paths = component_mirrors(canonical, consumer_component, consumer_mirror, consumer_component)
     needed: set[str] = set()
     for manifest in sorted(consumer_mirror.rglob('Cargo.toml')):
-        needed |= rewrite_manifest(manifest, index, mirrors, consumer_component)
-
+        needed |= rewrite_manifest(manifest, index, consumer_paths, consumer_component)
     for dep in sorted(needed):
         ensure_component(dep)
 
-    # A second pass is required because mirrors discovered while preparing one
-    # component may make previously unresolved canonical path edges visible.
-    for component in sorted(prepared):
-        base = consumer_mirror if component == consumer_component else mirrors[component]
-        for manifest in sorted(base.rglob('Cargo.toml')):
-            rewrite_manifest(manifest, index, mirrors, component)
+    # Re-run the consumer rewrite after the canonical closure exists. This is
+    # idempotent and resolves any path edge that became recognizable only after
+    # a canonical mirror was materialized.
+    for manifest in sorted(consumer_mirror.rglob('Cargo.toml')):
+        rewrite_manifest(manifest, index, consumer_paths, consumer_component)
 
-    return mirrors
+    verification_mirrors = dict(canonical)
+    verification_mirrors[consumer_component] = consumer_mirror.resolve()
+    return verification_mirrors
 
 
 def external_git_package_is_owned(index: dict[str, Any], package: str, source: str) -> bool:
@@ -455,7 +517,7 @@ def verify_metadata(
     index: dict[str, Any],
     mirrors: dict[str, pathlib.Path],
 ) -> list[str]:
-    del root  # kept in the public helper signature for callers/tests
+    del root
     data = json.loads(metadata_json)
     failures: list[str] = []
     root_packages = index.get('root_packages', {})
@@ -465,9 +527,6 @@ def verify_metadata(
         source = pkg.get('source')
         manifest = pathlib.Path(pkg.get('manifest_path', '')).resolve() if pkg.get('manifest_path') else None
 
-        # Path/registry resolution of a first-class root package is package-identity
-        # based. Git packages are source-qualified below so an unrelated repository
-        # with a colliding package name is not falsely claimed by MattOS.
         if isinstance(name, str) and name in root_packages and (
             source is None or (isinstance(source, str) and source.startswith('registry+'))
         ):
