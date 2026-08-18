@@ -36,7 +36,7 @@ Cargo `[patch]` is intentionally not the ownership enforcement mechanism. `[patc
 
 The consumer being built remains in its normal `out/build/...` source mirror. Additional owned dependencies are materialized under canonical, reusable `out/source-ownership/sources/<component>` mirrors. Shared mirrors never record a path into another stage's private `out/build/...` tree; only the top-level consumer's own manifests may use its private consumer path. Per-component filesystem locks serialize shared-mirror mutation so multiple build processes cannot copy, patch, or rewrite the same canonical mirror concurrently.
 
-MattOS output-only patches are validated and applied to dependency mirrors before manifest rewriting. Patch manifests contain Git-format diffs, so source ownership uses `git apply --check` followed by `git apply --whitespace=error-all`, matching MattOS's existing output-patch regression semantics. It does not use GNU `patch`, whose interpretation of Git metadata can differ for valid Git-format patches.
+MattOS output-only patches are part of output-mirror creation, not an incidental side effect of a later build frontend. A stage that copies an authoritative first-class source into an `out/build/...` mirror must apply that component's validated registered patch chain immediately after the pristine copy and before Cargo isolation, configuration, or compilation. Canonical dependency mirrors use the same rule while they are materialized. `DevUtils/cargo_source_owned.py` then independently validates the top-level consumer patch state before ownership graph preparation; repeated Cargo invocations detect an already-applied chain with `git apply --reverse --check`. This dispatcher check is an idempotent fail-closed enforcement layer, not the primary mechanism that makes a stage mirror buildable. Patch manifests contain Git-format diffs, so source ownership uses `git apply --check` followed by `git apply --whitespace=error-all`, matching MattOS's existing output-patch regression semantics. It does not use GNU `patch`, whose interpretation of Git metadata can differ for valid Git-format patches.
 
 Ownership decisions are source-qualified:
 
@@ -53,10 +53,11 @@ For COSMIC this means, for example, a Git edge requesting `libcosmic` from the l
 `DevUtils/cargo_source_owned.py` is the Cargo dispatcher used by the MattOS launcher. For Cargo commands operating on an `out/build/...` mirror it:
 
 1. identifies the first-class component represented by the build mirror;
-2. prepares the transitive MattOS-owned canonical source mirrors and rewrites dependency edges;
-3. runs `cargo metadata` against the rewritten graph;
-4. verifies that an owned Git package did not remain external and that canonical first-class path/registry packages resolve from their expected MattOS mirror; and
-5. only after verification runs the original Cargo command, including its original `--locked` policy.
+2. validates that consumer's registered output-only patch chain and applies it only if the mirror has not already been prepared;
+3. prepares the transitive MattOS-owned canonical source mirrors and rewrites dependency edges;
+4. runs `cargo metadata` against the rewritten graph;
+5. verifies that an owned Git package did not remain external and that canonical first-class path/registry packages resolve from their expected MattOS mirror; and
+6. only after verification runs the original Cargo command, including its original `--locked` policy.
 
 A requested package that is not actually present in an owned repository or its declared replacement closure is not invented. It may remain external until MattOS imports/owns that source. Once the matching source is owned, external fallback is forbidden.
 
@@ -64,7 +65,7 @@ The dispatcher never rewrites authoritative imported source under `src/`. Source
 
 ## Diagnostics
 
-Ownership-enabled Cargo invocations write detailed traces under `out/source-ownership/logs/<component>.log`. These logs include graph preparation, metadata verification and final Cargo diagnostics.
+Ownership-enabled Cargo invocations write detailed traces under `out/source-ownership/logs/<component>.log`. These logs include consumer patch state, graph preparation, metadata verification and final Cargo diagnostics.
 
 `DevUtils/run_qemu.py` automatically prints source-ownership failure logs generated during the current failed build command. Runtime diagnostics remain under `out/`; builds do not dirty the Git-tracked tree merely to expose an error.
 
@@ -87,4 +88,4 @@ python3 DevUtils/generate_source_overrides.py
 python3 DevUtils/test_source_ownership_overrides.py
 ```
 
-The first command validates source/patch provenance and regenerates the derived ownership catalog. The second exercises source-qualified resolution, canonical/private mirror separation, Git-format output-patch application, gitlink replacement behavior, metadata fail-closed checks, provenance agreement, and preservation of pristine imported manifests.
+The first command validates source/patch provenance and regenerates the derived ownership catalog. The second exercises source-qualified resolution, canonical/private mirror separation, Git-format output-patch application, idempotent consumer patching, build-mirror patch ordering, gitlink replacement behavior, metadata fail-closed checks, provenance agreement, and preservation of pristine imported manifests.

@@ -62,6 +62,8 @@ const USERLAND_INVENTORY_PATH: &str = "usr/share/mattos/userland-commands.txt";
 const INITRAMFS_ARCHIVE_OWNER: &str = "0:0";
 const MATTOS_BUILD_TMP_RELATIVE: &str = "out/tmp";
 const MIN_MATTOS_TMP_FREE_BYTES: u64 = 4 * 1024 * 1024 * 1024;
+static MATTOS_TMP_PROBE_SEQUENCE: std::sync::atomic::AtomicU64 =
+    std::sync::atomic::AtomicU64::new(0);
 
 #[derive(Debug, Deserialize)]
 struct NvidiaDriverManifest {
@@ -9699,6 +9701,7 @@ fn build_cosmic_just_component(
         &repo_root.join("src/desktop/cosmic").join(component),
         &mirror,
     )?;
+    apply_component_patches(repo_root, component, &mirror)?;
     isolate_cargo_build_mirror(&mirror)?;
     if matches!(component, "cosmic-launcher" | "cosmic-notifications") {
         patch_cosmic_profile_helper(&mirror)?;
@@ -9761,6 +9764,7 @@ fn build_cosmic_desktop_component(repo_root: &Path, stage: BuildStage) -> Result
                 &repo_root.join("src/desktop/cosmic").join(component),
                 &mirror,
             )?;
+            apply_component_patches(repo_root, component, &mirror)?;
             isolate_cargo_build_mirror(&mirror)?;
             run_locked_cosmic_command(repo_root, &mirror, "make", &["-j4"], &env)?;
             let destdir = format!("DESTDIR={}", install.display());
@@ -9785,6 +9789,7 @@ fn build_cosmic_desktop_component(repo_root: &Path, stage: BuildStage) -> Result
                 &repo_root.join("src/desktop/cosmic").join(component),
                 &mirror,
             )?;
+            apply_component_patches(repo_root, component, &mirror)?;
             isolate_cargo_build_mirror(&mirror)?;
             run_locked_cosmic_command(
                 repo_root,
@@ -16462,6 +16467,17 @@ fn mattos_build_tmp(repo_root: &Path) -> PathBuf {
     repo_root.join(MATTOS_BUILD_TMP_RELATIVE)
 }
 
+fn mattos_tmp_min_free_bytes() -> u64 {
+    // Unit tests exercise routing, writability, and concurrency inside
+    // tempfile-backed filesystems. Their result must not depend on how full
+    // the host's /tmp happens to be. Production builds retain the 4 GiB guard.
+    if cfg!(test) {
+        0
+    } else {
+        MIN_MATTOS_TMP_FREE_BYTES
+    }
+}
+
 fn ensure_mattos_build_tmp(repo_root: &Path) -> Result<PathBuf> {
     let directory = mattos_build_tmp(repo_root);
     fs::create_dir_all(&directory).with_context(|| {
@@ -16471,16 +16487,22 @@ fn ensure_mattos_build_tmp(repo_root: &Path) -> Result<PathBuf> {
         )
     })?;
     let free_bytes = free_bytes_at(&directory)?;
-    if free_bytes < MIN_MATTOS_TMP_FREE_BYTES {
+    let required_free_bytes = mattos_tmp_min_free_bytes();
+    if free_bytes < required_free_bytes {
         bail!(
             "MattOS build temp directory {} has only {} free bytes; at least {} are required",
             directory.display(),
             free_bytes,
-            MIN_MATTOS_TMP_FREE_BYTES
+            required_free_bytes
         );
     }
 
-    let probe = directory.join(format!(".write-probe-{}", std::process::id()));
+    // `build all` prepares commands from multiple scheduler threads inside one
+    // mattos-build process. A PID-only probe name lets those threads delete one
+    // another's probe. Give every invocation a process-local unique sequence so
+    // strict cleanup remains meaningful without serializing command setup.
+    let sequence = MATTOS_TMP_PROBE_SEQUENCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    let probe = directory.join(format!(".write-probe-{}-{sequence}", std::process::id()));
     fs::write(&probe, b"mattos-build temp directory probe\n").with_context(|| {
         format!(
             "MattOS build temp directory is not writable: {}",
@@ -18142,11 +18164,52 @@ mod tests {
         let selected = ensure_mattos_build_tmp(repository).unwrap();
         assert_eq!(selected, repository.join("out/tmp"));
         assert!(selected.is_dir());
-        assert!(
-            !selected
-                .join(format!(".write-probe-{}", std::process::id()))
-                .exists()
-        );
+        assert!(fs::read_dir(&selected).unwrap().all(|entry| {
+            !entry
+                .unwrap()
+                .file_name()
+                .to_string_lossy()
+                .starts_with(".write-probe-")
+        }));
+    }
+
+    #[test]
+    fn mattos_build_temp_probe_is_concurrency_safe() {
+        let temporary = tempfile::tempdir().unwrap();
+        let repository = std::sync::Arc::new(temporary.path().to_path_buf());
+        fs::create_dir_all(repository.join("src/tools/mattos-build")).unwrap();
+        fs::write(
+            repository.join("src/tools/mattos-build/Cargo.toml"),
+            "[package]\nname = \"test\"\n",
+        )
+        .unwrap();
+
+        let barrier = std::sync::Arc::new(std::sync::Barrier::new(16));
+        let workers = (0..16)
+            .map(|_| {
+                let repository = repository.clone();
+                let barrier = barrier.clone();
+                std::thread::spawn(move || {
+                    barrier.wait();
+                    ensure_mattos_build_tmp(repository.as_ref())
+                })
+            })
+            .collect::<Vec<_>>();
+
+        for worker in workers {
+            assert_eq!(
+                worker.join().expect("temp probe worker panicked").unwrap(),
+                repository.join("out/tmp")
+            );
+        }
+
+        let leftovers = fs::read_dir(repository.join("out/tmp"))
+            .unwrap()
+            .filter_map(|entry| entry.ok())
+            .map(|entry| entry.file_name().to_string_lossy().into_owned())
+            .filter(|name| name.starts_with(".write-probe-"))
+            .collect::<Vec<_>>();
+        assert!(leftovers.is_empty(), "temp probes leaked: {leftovers:?}");
     }
 
     #[test]

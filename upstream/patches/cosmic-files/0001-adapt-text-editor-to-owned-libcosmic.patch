@@ -1,0 +1,43 @@
+From: MattOS <noreply@mattsherfey.com>
+Subject: [PATCH] adapt cosmic-files text editor calls to owned libcosmic
+
+MattOS owns libcosmic at 1f8d8786940cc6db59d412153c5a03f69a20375c.
+Upstream cosmic-files adopted that exact libcosmic revision in
+6e210a3753c814118b9f8daf5a83cd53136f28d9 and updated these call sites.
+Backport only the API compatibility hunks into the output mirror.
+
+---
+ src/tab.rs | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/src/tab.rs b/src/tab.rs
+--- a/src/tab.rs
++++ b/src/tab.rs
+@@ -2386,10 +2386,8 @@ impl Item {
+                 widget::image(handle.clone()).into()
+             }
+             ItemThumbnail::Svg(handle) => widget::svg(handle.clone()).into(),
+-            ItemThumbnail::Text(content) => widget::text_editor(content)
+-                .class(cosmic::theme::iced::TextEditor::Custom(Box::new(
+-                    text_editor_class,
+-                )))
++            ItemThumbnail::Text(content) => widget::text_editor::text_editor(content)
++                .style(text_editor_class)
+                 .width(THUMBNAIL_SIZE as f32)
+                 .height(Length::Fixed(THUMBNAIL_SIZE as f32))
+                 .padding(spacing.space_xxs)
+@@ -5178,9 +5176,11 @@ impl Tab {
+                 }
+                 ItemThumbnail::Text(text) => {
+                     element_opt = Some(
+-                        widget::container(widget::text_editor(text).padding(space_xxs).class(
+-                            cosmic::theme::iced::TextEditor::Custom(Box::new(text_editor_class)),
+-                        ))
++                        widget::container(
++                            widget::text_editor::text_editor(text)
++                                .padding(space_xxs)
++                                .style(text_editor_class),
++                        )
+                         .center(Length::Fill)
+                         .into(),
+                     );

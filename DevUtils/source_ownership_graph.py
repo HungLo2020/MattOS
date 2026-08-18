@@ -352,6 +352,14 @@ def apply_component_patches(root: pathlib.Path, metadata: dict[str, Any], destin
     if manifest.get('upstream_commit') != metadata.get('revision'):
         raise OwnershipError(f'patch manifest revision mismatch: {manifest_rel}')
 
+    try:
+        mirror_rel = destination.resolve().relative_to(root.resolve())
+    except ValueError as exc:
+        raise OwnershipError(
+            f'output patch destination is outside the MattOS repository: {destination}'
+        ) from exc
+    directory_arg = f'--directory={mirror_rel.as_posix()}'
+
     for patch in manifest.get('patch', []):
         patch_path = root / patch['path']
         payload = patch_path.read_bytes()
@@ -359,13 +367,13 @@ def apply_component_patches(root: pathlib.Path, metadata: dict[str, Any], destin
             raise OwnershipError(f'patch checksum mismatch: {patch["path"]}')
 
         for check_only in (True, False):
-            command = ['git', 'apply', '--whitespace=error-all']
+            command = ['git', 'apply', '--whitespace=error-all', directory_arg]
             if check_only:
                 command.append('--check')
             command.append(str(patch_path))
             completed = subprocess.run(
                 command,
-                cwd=destination,
+                cwd=root,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,

@@ -15,6 +15,7 @@ INDEX = ROOT / "out" / "source-ownership" / "cargo" / "index.json"
 
 import sys
 sys.path.insert(0, str(ROOT / "DevUtils"))
+import cargo_source_owned as dispatcher  # noqa: E402
 import source_ownership_graph as graph  # noqa: E402
 
 
@@ -136,6 +137,62 @@ class SourceOwnershipGraphTest(unittest.TestCase):
             self.assertIn('.filter(|arg| arg != "--no-xwayland")', text)
             self.assertIn('ListeningSocketSource::with_name(&name)', text)
             self.assertEqual(source.read_bytes(), pristine)
+
+    def test_cosmic_files_provenance_matches_registered_patch(self) -> None:
+        metadata = self.index["components"]["cosmic-files"]
+        state = tomllib.loads((ROOT / "upstream/state/cosmic-files.toml").read_text())
+        sources = tomllib.loads((ROOT / "upstream/sources.toml").read_text())
+        source_entry = next(item for item in sources["component"] if item["name"] == "cosmic-files")
+        self.assertEqual(
+            metadata["revision"],
+            "24e34eaa0f0acf4e24ea1338ad4bbde3a138e1f3",
+        )
+        self.assertEqual(state["imported_commit"], metadata["revision"])
+        self.assertEqual(source_entry["revision"], metadata["revision"])
+        self.assertEqual(
+            metadata["patch_manifest"],
+            "upstream/patches/cosmic-files/manifest.toml",
+        )
+        self.assertEqual(state["patch_manifest"], metadata["patch_manifest"])
+        self.assertEqual(source_entry["patch_manifest"], metadata["patch_manifest"])
+
+    def test_cosmic_files_consumer_patch_is_idempotent_and_matches_owned_libcosmic_api(self) -> None:
+        metadata = self.index["components"]["cosmic-files"]
+        source = ROOT / metadata["source_path"] / "src" / "tab.rs"
+        output_root = ROOT / "out" / "tmp"
+        output_root.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix="cosmic-files-owned-patch-", dir=output_root) as raw:
+            mirror = pathlib.Path(raw)
+            mirrored = mirror / "src" / "tab.rs"
+            mirrored.parent.mkdir(parents=True)
+            shutil.copy2(source, mirrored)
+            pristine = source.read_bytes()
+            self.assertEqual(
+                dispatcher.apply_consumer_patches(ROOT, metadata, mirror, graph),
+                "applied",
+            )
+            self.assertEqual(
+                dispatcher.apply_consumer_patches(ROOT, metadata, mirror, graph),
+                "applied",
+            )
+            text = mirrored.read_text()
+            self.assertIn("widget::text_editor::text_editor(content)", text)
+            self.assertIn("widget::text_editor::text_editor(text)", text)
+            self.assertIn(".style(text_editor_class)", text)
+            self.assertNotIn("widget::text_editor(content)", text)
+            self.assertNotIn("widget::text_editor(text)", text)
+            self.assertEqual(source.read_bytes(), pristine)
+
+    def test_cosmic_build_mirror_applies_registered_patch_before_cargo_isolation(self) -> None:
+        source = (ROOT / "src/tools/mattos-build/src/main.rs").read_text()
+        body = source.split("fn build_cosmic_just_component(", 1)[1].split(
+            "fn build_cosmic_desktop_component(", 1
+        )[0]
+        sync = body.index("sync_build_source(")
+        patch = body.index("apply_component_patches(repo_root, component, &mirror)?;")
+        isolate = body.index("isolate_cargo_build_mirror(&mirror)?;")
+        self.assertLess(sync, patch)
+        self.assertLess(patch, isolate)
 
     def test_metadata_verifier_does_not_claim_unrelated_git_collision(self) -> None:
         mirrors = {

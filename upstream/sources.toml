@@ -299,9 +299,11 @@ sync = "copy"
 name = "cosmic-files"
 repo = "https://github.com/pop-os/cosmic-files.git"
 branch = "master"
-revision = "6e210a3753c814118b9f8daf5a83cd53136f28d9"
+revision = "24e34eaa0f0acf4e24ea1338ad4bbde3a138e1f3"
 path = "src/desktop/cosmic/cosmic-files"
 sync = "copy"
+patch_manifest = "upstream/patches/cosmic-files/manifest.toml"
+patch_manifest_sha256 = "f64cab9e771de868b01fcd12883694182140b0eb84ae1d9dea80b27438ff2d6e"
 
 [[component]]
 name = "cosmic-term"
