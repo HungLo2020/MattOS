@@ -4,7 +4,7 @@ MattOS treats every first-class source tree listed in `upstream/sources.toml` as
 
 ## Invariant
 
-If a MattOS subproject depends on a project MattOS already owns, the build must consume the MattOS-owned source or the output built from that source. It must not silently download another Git revision, crates.io copy, system `-dev` package, Meson wrap, CMake `FetchContent` checkout, or equivalent duplicate of the owned project.
+If a MattOS subproject depends on a project MattOS already owns, the build must consume the MattOS-owned source or the output built from that source. It must not silently download another Git revision, crates.io copy, system `-dev` package, Meson wrap, CMake `FetchContent` checkout, or equivalent duplicate of an owned package that is present locally.
 
 The vendored source manifest is authoritative for the dependency version. Consumers do not duplicate or pin a second MattOS-local version number. Updating an owned source tree therefore moves all in-tree consumers to that source together; an incompatible consumer must be patched or fail explicitly instead of falling back to another copy.
 
@@ -12,13 +12,13 @@ The vendored source manifest is authoritative for the dependency version. Consum
 
 `DevUtils/generate_source_overrides.py` reads `upstream/sources.toml`, enumerates tracked `Cargo.toml` files through Git, discovers Cargo packages under each first-class source root, and writes an ignored repo-local `.cargo/config.toml` containing Cargo `[patch]` entries.
 
-The generator normalizes Git URL spelling and chooses one canonical package owner. When the same Cargo package appears in multiple imported trees, the package closest to a first-class component root wins. This is important for COSMIC: `src/desktop/cosmic/iced` is the authoritative iced tree rather than the duplicate iced checkout embedded beneath libcosmic.
+A package becomes a project-wide canonical Cargo owner only when it is the root package of a first-class component. Nested crates inside large imported projects remain private implementation details unless another manifest explicitly depends on that component's Git repository and requests that nested package by name. This prevents Rust compiler shims, fixtures, tests, and deliberately duplicated package names from becoming accidental global owners.
 
-`src/tools/mattos-build/build.rs` regenerates the override configuration before MattOS child Cargo builds and tracks `upstream/sources.toml`, the generator, and every tracked Cargo manifest as build-script inputs. The generated config is ignored because it is derived state.
+This distinction also gives COSMIC the intended behavior: the first-class `src/desktop/cosmic/iced` component owns the `iced` root package, so libcosmic cannot keep using its embedded iced copy. Git dependencies on an owned component repository are rebound to packages that actually exist in the corresponding local source tree.
 
-Generation is fail-closed for an owned Git repository: if a dependency names an owned repository but no unique local Cargo package can satisfy that package name, MattOS stops instead of allowing Cargo to fetch the external source.
+`src/tools/mattos-build/build.rs` regenerates the override configuration before MattOS child Cargo builds and tracks `upstream/sources.toml`, the generator, and tracked Cargo manifests as build-script inputs. The generated config is ignored because it is derived state.
 
-Path dependencies are also checked against canonical ownership. An in-tree manifest cannot point at a private duplicate of a package when a different first-class source component owns that package.
+If an owned package exists locally but an in-tree path dependency resolves to another copy, generation fails. If a Git dependency points at an owned repository but requests a package that is not present in MattOS's imported copy of that repository, the generator leaves that edge external because there is no local source to substitute; importing that package into MattOS is the prerequisite to claiming ownership of it.
 
 ## Native build systems
 
