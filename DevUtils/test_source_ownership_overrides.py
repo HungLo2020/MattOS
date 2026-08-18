@@ -39,7 +39,9 @@ class SourceOwnershipOverridesTest(unittest.TestCase):
         patches = self.patches_for(repository)
         self.assertIn(package, patches, f"missing {package} override for {repository}")
         path = patches[package]["path"]
-        resolved = (ROOT / ".cargo" / path).resolve()
+        # Cargo resolves these generated patch paths from the MattOS workspace
+        # root, not from the .cargo directory containing config.toml.
+        resolved = (ROOT / path).resolve()
         self.assertEqual(resolved, (ROOT / expected).resolve())
 
     def test_libcosmic_consumers_use_mattos_sources(self) -> None:
@@ -85,19 +87,12 @@ class SourceOwnershipOverridesTest(unittest.TestCase):
             self.assertTrue(path.startswith("../iced"), f"{name} still uses private path {path}")
         self.assertEqual(manifest["build-dependencies"]["build_helpers"]["path"], "../iced/build_helpers")
 
-    def test_libcosmic_subcrates_use_first_class_iced(self) -> None:
+    def test_libcosmic_cosmic_config_uses_first_class_iced(self) -> None:
         manifest = tomllib.loads(
             (ROOT / "src/desktop/cosmic/libcosmic/cosmic-config/Cargo.toml").read_text()
         )
-        for name, expected in [
-            ("iced", "src/desktop/cosmic/iced"),
-            ("iced_futures", "src/desktop/cosmic/iced/futures"),
-        ]:
-            path = manifest["dependencies"][name]["path"]
-            resolved = (
-                ROOT / "src/desktop/cosmic/libcosmic/cosmic-config" / path
-            ).resolve()
-            self.assertEqual(resolved, (ROOT / expected).resolve())
+        self.assertEqual(manifest["dependencies"]["iced"]["path"], "../../iced/")
+        self.assertEqual(manifest["dependencies"]["iced_futures"]["path"], "../../iced/futures/")
 
 
 if __name__ == "__main__":
