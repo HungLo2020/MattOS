@@ -2,6 +2,7 @@
 name = "cosmic-applets-config"
 version = "1.0.15"
 edition = "2024"
+workspace = ".."
 
 [dependencies]
 cosmic-config.workspace = true
