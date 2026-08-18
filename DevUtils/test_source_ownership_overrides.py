@@ -9,6 +9,7 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 GENERATOR = ROOT / "DevUtils" / "generate_source_overrides.py"
 CONFIG = ROOT / ".cargo" / "config.toml"
+DEPENDENCY_TABLES = ("dependencies", "dev-dependencies", "build-dependencies")
 
 
 def normalize_repo(value: str) -> str:
@@ -16,6 +17,28 @@ def normalize_repo(value: str) -> str:
     if value.endswith(".git"):
         value = value[:-4]
     return value.lower()
+
+
+def dependency_uses_workspace(table: object) -> bool:
+    if not isinstance(table, dict):
+        return False
+    return any(
+        isinstance(value, dict) and value.get("workspace") is True
+        for value in table.values()
+    )
+
+
+def manifest_uses_workspace_dependencies(manifest: dict) -> bool:
+    if any(dependency_uses_workspace(manifest.get(name)) for name in DEPENDENCY_TABLES):
+        return True
+    target = manifest.get("target")
+    if isinstance(target, dict):
+        for cfg in target.values():
+            if isinstance(cfg, dict) and any(
+                dependency_uses_workspace(cfg.get(name)) for name in DEPENDENCY_TABLES
+            ):
+                return True
+    return False
 
 
 class SourceOwnershipOverridesTest(unittest.TestCase):
@@ -100,10 +123,39 @@ class SourceOwnershipOverridesTest(unittest.TestCase):
         self.assert_patch_path(repo, "cosmic-app-list-config", expected)
         manifest = tomllib.loads((ROOT / expected / "Cargo.toml").read_text())
         self.assertEqual(manifest["package"]["workspace"], "../..")
-        workspace = tomllib.loads(
-            (ROOT / "src/desktop/cosmic/cosmic-applets/Cargo.toml").read_text()
+
+    def test_every_patched_workspace_inheriting_crate_names_its_workspace(self) -> None:
+        failures = []
+        for source, packages in self.config.get("patch", {}).items():
+            if source == "crates-io":
+                continue
+            for package, spec in packages.items():
+                crate = (ROOT / spec["path"]).resolve()
+                manifest_path = crate / "Cargo.toml"
+                manifest = tomllib.loads(manifest_path.read_text())
+                if not manifest_uses_workspace_dependencies(manifest):
+                    continue
+                # A package may inherit directly from a workspace defined in its
+                # own manifest. Nested patch targets need an explicit package.workspace
+                # pointer so Cargo can load them outside the original workspace root.
+                if "workspace" in manifest:
+                    continue
+                package_table = manifest.get("package", {})
+                if not isinstance(package_table.get("workspace"), str):
+                    failures.append(f"{package}: {manifest_path.relative_to(ROOT)}")
+        self.assertEqual(
+            failures,
+            [],
+            "patched crates use workspace-inherited dependencies without an explicit owning workspace: "
+            + ", ".join(failures),
         )
-        self.assertIn("libcosmic", workspace["workspace"]["dependencies"])
+
+    def test_cosmic_bg_config_preserves_owner_workspace(self) -> None:
+        repo = "https://github.com/pop-os/cosmic-bg"
+        expected = "src/desktop/cosmic/cosmic-bg/config"
+        self.assert_patch_path(repo, "cosmic-bg-config", expected)
+        manifest = tomllib.loads((ROOT / expected / "Cargo.toml").read_text())
+        self.assertEqual(manifest["package"]["workspace"], "..")
 
 
 if __name__ == "__main__":
