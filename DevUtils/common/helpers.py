@@ -59,8 +59,40 @@ def ensure_tools(tools: Iterable[str]) -> None:
         raise RepoError(f"missing required tools: {', '.join(missing)}")
 
 
+def ensure_source_ownership_overrides(repo_root: Path) -> None:
+    """Regenerate Cargo source ownership before a launcher starts Cargo.
+
+    Cargo reads `.cargo/config.toml` before compiling mattos-build's build.rs,
+    so build.rs alone cannot repair a stale or malformed override file for the
+    invocation that is already starting. DevUtils launchers call this helper
+    before Cargo, making generated source ownership a true bootstrap input.
+    """
+    generator = repo_root / "DevUtils" / "generate_source_overrides.py"
+    if not generator.is_file():
+        return
+    try:
+        completed = subprocess.run(
+            ["python3", str(generator)],
+            cwd=str(repo_root),
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+    except FileNotFoundError as exc:
+        raise RepoError("python3 is required to generate MattOS source ownership overrides") from exc
+    if completed.returncode != 0:
+        detail = completed.stderr.strip() or completed.stdout.strip()
+        suffix = f": {detail}" if detail else ""
+        raise RepoError(f"failed to generate MattOS source ownership overrides{suffix}")
+
+
 def mattos_build_environment(repo_root: Path) -> Dict[str, str]:
-    """Return the launcher environment with MattOS-owned temporary storage."""
+    """Return the launcher environment with MattOS-owned build prerequisites."""
+    # This must happen before any launcher starts Cargo. A mattos-build build.rs
+    # runs too late to affect Cargo's configuration for its own invocation.
+    ensure_source_ownership_overrides(repo_root)
+
     build_tmp = ensure_project_temp_root(repo_root)
     try:
         build_tmp.mkdir(parents=True, exist_ok=True)
