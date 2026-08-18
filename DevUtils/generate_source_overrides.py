@@ -191,7 +191,7 @@ def generate_files() -> dict[str, str]:
             unresolved.append(f"first-class package {package!r} has multiple component roots: {', '.join(unique)}")
 
     configs: dict[str, str] = {}
-    index = {"version": 1, "components": {}}
+    index = {"version": 2, "components": {}}
     OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
 
     for consumer in components:
@@ -270,6 +270,7 @@ def generate_files() -> dict[str, str]:
                 )
 
         config_path = OUTPUT_ROOT / name / "config.toml"
+        owned_packages = sorted(emitted)
         if git_patches or registry_patches:
             text = render_config(git_patches, registry_patches)
             config_path.parent.mkdir(parents=True, exist_ok=True)
@@ -278,11 +279,16 @@ def generate_files() -> dict[str, str]:
             index["components"][name] = {
                 "source_path": consumer["path"],
                 "config": str(config_path.relative_to(ROOT)),
+                "owned_packages": owned_packages,
             }
         else:
             if config_path.exists():
                 config_path.unlink()
-            index["components"][name] = {"source_path": consumer["path"], "config": None}
+            index["components"][name] = {
+                "source_path": consumer["path"],
+                "config": None,
+                "owned_packages": [],
+            }
 
     if unresolved:
         raise SystemExit(
@@ -291,8 +297,6 @@ def generate_files() -> dict[str, str]:
         )
 
     INDEX.write_text(json.dumps(index, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    # Remove the obsolete global override immediately so unrelated workspaces
-    # such as Brush/Coreutils never inherit stale COSMIC patches.
     if LEGACY_ROOT_CONFIG.exists():
         LEGACY_ROOT_CONFIG.unlink()
     return configs
