@@ -14,7 +14,6 @@ MIN_PROJECT_TMP_FREE_BYTES = 8 * 1024**3
 
 
 def project_temp_root(repo_root: Path) -> Path:
-    """Return the disk-backed temporary root owned by this MattOS checkout."""
     return repo_root / PROJECT_TMP_RELATIVE
 
 
@@ -37,11 +36,9 @@ def find_repo_root(start: Path) -> Path:
     current = start.resolve()
     if current.is_file():
         current = current.parent
-
     for candidate in [current, *current.parents]:
         if _looks_like_repo_root(candidate):
             return candidate
-
     raise RepoError(f"unable to find MattOS repository root from {start}")
 
 
@@ -60,13 +57,7 @@ def ensure_tools(tools: Iterable[str]) -> None:
 
 
 def ensure_source_ownership_overrides(repo_root: Path) -> None:
-    """Regenerate Cargo source ownership before a launcher starts Cargo.
-
-    Cargo reads `.cargo/config.toml` before compiling mattos-build's build.rs,
-    so build.rs alone cannot repair a stale or malformed override file for the
-    invocation that is already starting. DevUtils launchers call this helper
-    before Cargo, making generated source ownership a true bootstrap input.
-    """
+    """Generate workspace-scoped Cargo source ownership before Cargo starts."""
     generator = repo_root / "DevUtils" / "generate_source_overrides.py"
     if not generator.is_file():
         return
@@ -87,27 +78,41 @@ def ensure_source_ownership_overrides(repo_root: Path) -> None:
         raise RepoError(f"failed to generate MattOS source ownership overrides{suffix}")
 
 
+def prepare_cargo_dispatcher(repo_root: Path) -> tuple[Path, Path]:
+    """Return (dispatcher_dir, real_cargo) without shadowing unrelated Cargo workspaces."""
+    real_cargo = shutil.which("cargo")
+    if not real_cargo:
+        raise RepoError("cargo is required to prepare MattOS source ownership")
+    real_cargo_path = Path(real_cargo).resolve()
+    dispatcher_source = repo_root / "DevUtils" / "cargo_source_owned.py"
+    if not dispatcher_source.is_file():
+        raise RepoError(f"missing MattOS Cargo dispatcher: {dispatcher_source}")
+    dispatcher_dir = repo_root / "out" / "source-ownership" / "bin"
+    dispatcher_dir.mkdir(parents=True, exist_ok=True)
+    dispatcher = dispatcher_dir / "cargo"
+    shutil.copy2(dispatcher_source, dispatcher)
+    dispatcher.chmod(0o755)
+    return dispatcher_dir, real_cargo_path
+
+
 def mattos_build_environment(repo_root: Path) -> Dict[str, str]:
-    """Return the launcher environment with MattOS-owned build prerequisites."""
-    # This must happen before any launcher starts Cargo. A mattos-build build.rs
-    # runs too late to affect Cargo's configuration for its own invocation.
+    """Return the launcher environment with scoped source ownership and disk-backed temp."""
     ensure_source_ownership_overrides(repo_root)
+    dispatcher_dir, real_cargo = prepare_cargo_dispatcher(repo_root)
 
     build_tmp = ensure_project_temp_root(repo_root)
     try:
-        build_tmp.mkdir(parents=True, exist_ok=True)
         probe = build_tmp / f".launcher-write-probe-{os.getpid()}"
         probe.write_text("mattos launcher temp probe\n", encoding="utf-8")
         probe.unlink()
     except OSError as exc:
-        raise RepoError(
-            f"MattOS build temp directory is not writable: {build_tmp}: {exc}"
-        ) from exc
+        raise RepoError(f"MattOS build temp directory is not writable: {build_tmp}: {exc}") from exc
 
     environment = os.environ.copy()
-    # Always prefer repository-owned storage so a full host /tmp cannot break
-    # an otherwise healthy build. This policy matches mattos-build itself.
     environment["TMPDIR"] = str(build_tmp)
+    environment["MATTOS_REPO_ROOT"] = str(repo_root.resolve())
+    environment["MATTOS_REAL_CARGO"] = str(real_cargo)
+    environment["PATH"] = str(dispatcher_dir) + os.pathsep + environment.get("PATH", "")
     return environment
 
 
@@ -120,7 +125,6 @@ def read_os_release(path: Path = Path("/etc/os-release")) -> Dict[str, str]:
         raw = path.read_text(encoding="utf-8")
     except OSError as exc:
         raise RepoError(f"failed to read {path}: {exc}") from exc
-
     data: Dict[str, str] = {}
     for line in raw.splitlines():
         line = line.strip()
@@ -131,10 +135,8 @@ def read_os_release(path: Path = Path("/etc/os-release")) -> Dict[str, str]:
         if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
             value = value[1:-1]
         data[key] = value
-
     if "ID" not in data:
         raise RepoError(f"invalid {path}: missing ID field")
-
     return data
 
 
@@ -148,17 +150,12 @@ def run_command(
     print("+", " ".join(args))
     if dry_run:
         return 0
-
     try:
         completed = subprocess.run(args, cwd=str(cwd), check=False, env=env)
     except FileNotFoundError as exc:
         raise RepoError(f"failed to execute {args[0]}: {exc}") from exc
-
     if check and completed.returncode != 0:
-        raise RepoError(
-            f"command failed with exit code {completed.returncode}: {' '.join(args)}"
-        )
-
+        raise RepoError(f"command failed with exit code {completed.returncode}: {' '.join(args)}")
     return completed.returncode
 
 
@@ -180,5 +177,4 @@ def run_command_capture(args: Sequence[str], cwd: Path) -> str:
         raise RepoError(
             f"command failed with exit code {exc.returncode}: {' '.join(args)}{detail}"
         ) from exc
-
     return completed.stdout
