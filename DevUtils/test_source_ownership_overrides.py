@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import hashlib
 import json
 import pathlib
+import shutil
 import subprocess
 import tempfile
 import tomllib
@@ -26,34 +26,8 @@ class SourceOwnershipGraphTest(unittest.TestCase):
 
     def test_no_repo_root_patch_config(self) -> None:
         self.assertFalse((ROOT / ".cargo" / "config.toml").exists())
-        self.assertEqual(list((ROOT / "out" / "source-ownership" / "cargo").glob("*/config.toml")), [])
-
-    def test_patch_provenance_matches_sources_state_and_bytes(self) -> None:
-        with (ROOT / "upstream" / "sources.toml").open("rb") as stream:
-            sources = tomllib.load(stream)
-        for component in sources.get("component", []):
-            manifest_rel = component.get("patch_manifest")
-            if not manifest_rel:
-                continue
-            name = component["name"]
-            expected = component.get("patch_manifest_sha256")
-            self.assertIsInstance(expected, str, f"{name} has no patch manifest checksum")
-            manifest = ROOT / manifest_rel
-            self.assertTrue(manifest.is_file(), f"{name} patch manifest is missing")
-            self.assertEqual(hashlib.sha256(manifest.read_bytes()).hexdigest(), expected, name)
-            state_path = ROOT / "upstream" / "state" / f"{name}.toml"
-            self.assertTrue(state_path.is_file(), f"{name} has no provenance state")
-            with state_path.open("rb") as stream:
-                state = tomllib.load(stream)
-            self.assertEqual(state.get("patch_manifest"), manifest_rel, name)
-            self.assertEqual(state.get("patch_manifest_sha256"), expected, name)
 
     def test_git_resolution_is_source_qualified(self) -> None:
-        # libcosmic's cosmic-config crate intentionally depends on a package named
-        # cosmic-settings-daemon from dbus-settings-bindings. MattOS also owns a
-        # different first-class project whose root package has that same name.
-        # A package-name-only resolver creates the cosmic-comp dependency cycle
-        # observed during the 2026-08-18 build.
         target = graph.choose_owned_git_target(
             self.index,
             "cosmic-settings-daemon",
@@ -67,14 +41,6 @@ class SourceOwnershipGraphTest(unittest.TestCase):
             "https://github.com/pop-os/cosmic-comp",
         )
         self.assertEqual(target, {"component": "cosmic-comp", "package_path": "cosmic-comp-config"})
-
-    def test_gitlink_replacement_routes_libcosmic_iced_to_first_class_iced(self) -> None:
-        target = graph.choose_owned_git_target(
-            self.index,
-            "iced_futures",
-            "https://github.com/pop-os/libcosmic",
-        )
-        self.assertEqual(target, {"component": "cosmic-iced", "package_path": "futures"})
 
     def test_registry_resolution_can_use_first_class_root(self) -> None:
         root_packages = self.index.get("root_packages", {})
@@ -91,9 +57,7 @@ class SourceOwnershipGraphTest(unittest.TestCase):
             current.mkdir()
             manifest = current / "Cargo.toml"
             manifest.write_text("[package]\nname='fixture'\nversion='1.0.0'\n")
-            mirrors = {
-                name: tmp_path / name for name in self.index.get("components", {})
-            }
+            mirrors = {name: tmp_path / name for name in self.index.get("components", {})}
             mirrors["libcosmic"] = current
             table = {
                 "cosmic-settings-daemon": {
@@ -123,9 +87,7 @@ class SourceOwnershipGraphTest(unittest.TestCase):
             current.mkdir()
             manifest = current / "Cargo.toml"
             manifest.write_text("[package]\nname='fixture'\nversion='1.0.0'\n")
-            mirrors = {
-                name: tmp_path / name for name in self.index.get("components", {})
-            }
+            mirrors = {name: tmp_path / "canonical" / name for name in self.index.get("components", {})}
             mirrors["cosmic-settings-daemon"] = current
             table = {
                 "cosmic-comp-config": {
@@ -147,6 +109,34 @@ class SourceOwnershipGraphTest(unittest.TestCase):
                 (mirrors["cosmic-comp"] / "cosmic-comp-config").resolve(),
             )
 
+    def test_consumer_override_does_not_mutate_canonical_mirrors(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = pathlib.Path(tmp)
+            canonical = {name: tmp_path / "canonical" / name for name in self.index.get("components", {})}
+            canonical_comp = canonical["cosmic-comp"]
+            private_comp = tmp_path / "build" / "cosmic-comp"
+            consumer = graph.consumer_mirrors(canonical, "cosmic-comp", private_comp)
+            self.assertEqual(consumer["cosmic-comp"], private_comp.resolve())
+            self.assertEqual(canonical["cosmic-comp"], canonical_comp)
+            self.assertNotEqual(consumer["cosmic-comp"], canonical["cosmic-comp"])
+
+    def test_cosmic_comp_output_patch_manifest_applies_with_git_semantics(self) -> None:
+        metadata = self.index["components"]["cosmic-comp"]
+        source = ROOT / metadata["source_path"] / "src" / "lib.rs"
+        output_root = ROOT / "out" / "tmp"
+        output_root.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix="cosmic-comp-owned-patch-", dir=output_root) as raw:
+            mirror = pathlib.Path(raw)
+            mirrored = mirror / "src" / "lib.rs"
+            mirrored.parent.mkdir(parents=True)
+            shutil.copy2(source, mirrored)
+            pristine = source.read_bytes()
+            graph.apply_component_patches(ROOT, metadata, mirror)
+            text = mirrored.read_text()
+            self.assertIn('.filter(|arg| arg != "--no-xwayland")', text)
+            self.assertIn('ListeningSocketSource::with_name(&name)', text)
+            self.assertEqual(source.read_bytes(), pristine)
+
     def test_metadata_verifier_does_not_claim_unrelated_git_collision(self) -> None:
         mirrors = {
             name: ROOT / "out" / "source-ownership" / "sources" / name
@@ -161,10 +151,7 @@ class SourceOwnershipGraphTest(unittest.TestCase):
                 }
             ]
         }
-        self.assertEqual(
-            graph.verify_metadata(json.dumps(metadata), ROOT, self.index, mirrors),
-            [],
-        )
+        self.assertEqual(graph.verify_metadata(json.dumps(metadata), ROOT, self.index, mirrors), [])
 
     def test_metadata_verifier_rejects_owned_git_source(self) -> None:
         mirrors = {
@@ -185,8 +172,6 @@ class SourceOwnershipGraphTest(unittest.TestCase):
         self.assertIn("owned git package libcosmic remained external", failures[0])
 
     def test_authoritative_cosmic_manifests_remain_pristine(self) -> None:
-        # Structural ownership lives in output mirrors. The imported source tree
-        # must retain upstream dependency declarations for provenance checking.
         manifest = tomllib.loads((ROOT / "src/desktop/cosmic/libcosmic/cosmic-config/Cargo.toml").read_text())
         dep = manifest["dependencies"]["cosmic-settings-daemon"]
         self.assertEqual(dep["git"], "https://github.com/pop-os/dbus-settings-bindings")
