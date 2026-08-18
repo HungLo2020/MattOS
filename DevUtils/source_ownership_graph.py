@@ -87,19 +87,45 @@ def load_toml(path: pathlib.Path) -> dict[str, Any]:
         return tomllib.load(stream)
 
 
+def repo_component_closure(index: dict[str, Any], git: str) -> list[str]:
+    """Return owned components represented by a Git repository and replacements.
+
+    Some upstream repositories expose packages through gitlinks/submodules. MattOS
+    keeps those gitlinks as separately pinned first-class components, so a Git
+    dependency on the parent repository may legitimately name a package owned by
+    one of the declared replacement components (notably libcosmic -> cosmic-iced).
+    """
+    pending = list(index.get('repos', {}).get(norm_repo(git), []))
+    seen: set[str] = set()
+    while pending:
+        component = pending.pop(0)
+        if component in seen:
+            continue
+        seen.add(component)
+        for replacement in index.get('gitlink_replacements', {}).get(component, []):
+            child = replacement.get('component')
+            if isinstance(child, str) and child not in seen:
+                pending.append(child)
+    return sorted(seen)
+
+
 def choose_owned_target(index: dict[str, Any], package: str, git: str | None) -> dict[str, str] | None:
     root_target = index.get('root_packages', {}).get(package)
     if root_target:
         return dict(root_target)
     if git is None:
         return None
-    matches = index.get('repos', {}).get(norm_repo(git), [])
     candidates: list[dict[str, str]] = []
-    for component in matches:
+    for component in repo_component_closure(index, git):
         rel = index['components'][component].get('packages', {}).get(package)
         if rel is not None:
             candidates.append({'component': component, 'package_path': rel})
     unique = {(c['component'], c['package_path']) for c in candidates}
+    if len(unique) > 1:
+        rendered = ', '.join(f'{component}:{path or "."}' for component, path in sorted(unique))
+        raise OwnershipError(
+            f'owned Git dependency {package!r} from {git!r} is ambiguous across canonical sources: {rendered}'
+        )
     if len(unique) == 1:
         component, package_path = next(iter(unique))
         return {'component': component, 'package_path': package_path}
@@ -130,6 +156,29 @@ def rewrite_spec(spec: Any, target_path: pathlib.Path) -> tuple[Any, bool]:
         updated['path'] = new_path
         changed = True
     return updated, changed
+
+
+def target_for_existing_mirror_path(
+    package: str,
+    resolved: pathlib.Path,
+    index: dict[str, Any],
+    mirrors: dict[str, pathlib.Path],
+) -> dict[str, str] | None:
+    matches: list[tuple[str, str]] = []
+    for component, base in mirrors.items():
+        package_rel = index['components'][component].get('packages', {}).get(package)
+        if package_rel is None:
+            continue
+        if (base / package_rel).resolve() == resolved:
+            matches.append((component, package_rel))
+    unique = set(matches)
+    if len(unique) > 1:
+        rendered = ', '.join(f'{component}:{path or "."}' for component, path in sorted(unique))
+        raise OwnershipError(f'path dependency {package!r} is ambiguous across owned mirrors: {rendered}')
+    if len(unique) == 1:
+        component, package_path = next(iter(unique))
+        return {'component': component, 'package_path': package_path}
+    return None
 
 
 def rewrite_dependency_table(table: Any, index: dict[str, Any], mirrors: dict[str, pathlib.Path], current_manifest: pathlib.Path, current_component: str) -> tuple[bool, set[str]]:
@@ -166,7 +215,10 @@ def rewrite_dependency_table(table: Any, index: dict[str, Any], mirrors: dict[st
                             target = {'component': replacement_component, 'package_path': package_rel}
                             break
             if target is None:
-                target = index.get('root_packages', {}).get(package)
+                target = target_for_existing_mirror_path(package, resolved, index, mirrors)
+            if target is None:
+                root_target = index.get('root_packages', {}).get(package)
+                target = dict(root_target) if root_target else None
         if target is None:
             continue
         component = target['component']
@@ -317,11 +369,20 @@ def prepare_graph(root: pathlib.Path, index: dict[str, Any], consumer_component:
     return mirrors
 
 
+def external_git_package_is_owned(index: dict[str, Any], package: str, source: str) -> bool:
+    if not source.startswith('git+'):
+        return False
+    raw = source[4:].split('#', 1)[0].split('?', 1)[0]
+    for component in repo_component_closure(index, raw):
+        if package in index['components'][component].get('packages', {}):
+            return True
+    return False
+
+
 def verify_metadata(metadata_json: str, root: pathlib.Path, index: dict[str, Any], mirrors: dict[str, pathlib.Path]) -> list[str]:
     data = json.loads(metadata_json)
     failures: list[str] = []
     root_packages = index.get('root_packages', {})
-    repo_map = index.get('repos', {})
     for pkg in data.get('packages', []):
         name = pkg.get('name')
         source = pkg.get('source')
@@ -331,12 +392,6 @@ def verify_metadata(metadata_json: str, root: pathlib.Path, index: dict[str, Any
             expected_manifest = mirrors[expected['component']] / expected['package_path'] / 'Cargo.toml'
             if manifest != expected_manifest.resolve():
                 failures.append(f'owned root package {name} resolved from {source or manifest}, expected {expected_manifest}')
-        if isinstance(source, str) and source.startswith('git+'):
-            raw = source[4:].split('#', 1)[0].split('?', 1)[0]
-            normalized = norm_repo(raw)
-            if normalized in repo_map:
-                component_names = repo_map[normalized]
-                package_exists = any(name in index['components'][c].get('packages', {}) for c in component_names)
-                if package_exists:
-                    failures.append(f'owned git package {name} remained external: {source}')
+        if isinstance(name, str) and isinstance(source, str) and external_git_package_is_owned(index, name, source):
+            failures.append(f'owned git package {name} remained external: {source}')
     return sorted(set(failures))
