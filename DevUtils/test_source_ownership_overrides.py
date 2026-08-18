@@ -4,141 +4,163 @@ from __future__ import annotations
 import json
 import pathlib
 import subprocess
+import tempfile
 import tomllib
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 GENERATOR = ROOT / "DevUtils" / "generate_source_overrides.py"
-OUTPUT = ROOT / "out" / "source-ownership" / "cargo"
-INDEX = OUTPUT / "index.json"
+INDEX = ROOT / "out" / "source-ownership" / "cargo" / "index.json"
+
+import sys
+sys.path.insert(0, str(ROOT / "DevUtils"))
+import source_ownership_graph as graph  # noqa: E402
 
 
-def normalize_repo(value: str) -> str:
-    value = value.rstrip("/")
-    if value.endswith(".git"):
-        value = value[:-4]
-    return value.lower()
-
-
-def uses_workspace(value) -> bool:
-    if isinstance(value, dict):
-        return value.get("workspace") is True or any(uses_workspace(v) for v in value.values())
-    if isinstance(value, list):
-        return any(uses_workspace(v) for v in value)
-    return False
-
-
-class SourceOwnershipOverridesTest(unittest.TestCase):
+class SourceOwnershipGraphTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         subprocess.run(["python3", str(GENERATOR)], cwd=ROOT, check=True)
         cls.index = json.loads(INDEX.read_text())
 
-    def component_config(self, component: str) -> dict:
-        metadata = self.index["components"][component]
-        config = metadata.get("config")
-        if config is None:
-            return {}
-        with (ROOT / config).open("rb") as stream:
-            return tomllib.load(stream)
-
-    def patches_for(self, component: str, repository: str) -> dict:
-        config = self.component_config(component)
-        expected = normalize_repo(repository)
-        merged = {}
-        for source, packages in config.get("patch", {}).items():
-            if source != "crates-io" and normalize_repo(source) == expected:
-                merged.update(packages)
-        return merged
-
-    def assert_patch_path(self, component: str, repository: str, package: str, expected: str) -> None:
-        patches = self.patches_for(component, repository)
-        self.assertIn(package, patches, f"missing {package} override for {component}")
-        self.assertEqual(pathlib.Path(patches[package]["path"]).resolve(), (ROOT / expected).resolve())
-
     def test_no_repo_root_patch_config(self) -> None:
         self.assertFalse((ROOT / ".cargo" / "config.toml").exists())
 
-    def test_unrelated_workspaces_receive_no_cosmic_patches(self) -> None:
-        self.assertIsNone(self.index["components"]["brush"].get("config"))
-        self.assertIsNone(self.index["components"]["coreutils"].get("config"))
-        self.assertEqual(self.index["components"]["brush"].get("owned_packages"), [])
-        self.assertEqual(self.index["components"]["coreutils"].get("owned_packages"), [])
+    def test_git_resolution_is_source_qualified(self) -> None:
+        # libcosmic's cosmic-config crate intentionally depends on a package named
+        # cosmic-settings-daemon from dbus-settings-bindings. MattOS also owns a
+        # different first-class project whose root package has that same name.
+        # A package-name-only resolver creates the cosmic-comp dependency cycle
+        # observed during the 2026-08-18 build.
+        target = graph.choose_owned_git_target(
+            self.index,
+            "cosmic-settings-daemon",
+            "https://github.com/pop-os/dbus-settings-bindings",
+        )
+        self.assertIsNone(target)
 
-    def test_cosmic_applibrary_uses_owned_dependencies(self) -> None:
-        self.assert_patch_path(
-            "cosmic-applibrary",
-            "https://github.com/pop-os/libcosmic",
-            "libcosmic",
-            "src/desktop/cosmic/libcosmic",
+        target = graph.choose_owned_git_target(
+            self.index,
+            "cosmic-comp-config",
+            "https://github.com/pop-os/cosmic-comp",
         )
-        self.assert_patch_path(
-            "cosmic-applibrary",
-            "https://github.com/pop-os/cosmic-applets",
-            "cosmic-app-list-config",
-            "src/desktop/cosmic/cosmic-applets/cosmic-app-list/cosmic-app-list-config",
+        self.assertEqual(target, {"component": "cosmic-comp", "package_path": "cosmic-comp-config"})
+
+    def test_registry_resolution_can_use_first_class_root(self) -> None:
+        root_packages = self.index.get("root_packages", {})
+        if "libcosmic" in root_packages:
+            self.assertEqual(
+                graph.choose_owned_registry_target(self.index, "libcosmic"),
+                root_packages["libcosmic"],
+            )
+
+    def test_rewrite_does_not_conflate_same_name_git_package(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = pathlib.Path(tmp)
+            current = tmp_path / "libcosmic"
+            current.mkdir()
+            manifest = current / "Cargo.toml"
+            manifest.write_text("[package]\nname='fixture'\nversion='1.0.0'\n")
+            mirrors = {
+                name: tmp_path / name for name in self.index.get("components", {})
+            }
+            mirrors["libcosmic"] = current
+            table = {
+                "cosmic-settings-daemon": {
+                    "git": "https://github.com/pop-os/dbus-settings-bindings",
+                    "optional": True,
+                }
+            }
+            changed, needed = graph.rewrite_dependency_table(
+                table,
+                self.index,
+                mirrors,
+                manifest,
+                "libcosmic",
+            )
+            self.assertFalse(changed)
+            self.assertEqual(needed, set())
+            self.assertEqual(
+                table["cosmic-settings-daemon"]["git"],
+                "https://github.com/pop-os/dbus-settings-bindings",
+            )
+            self.assertNotIn("path", table["cosmic-settings-daemon"])
+
+    def test_rewrite_owned_git_edge_to_canonical_path(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = pathlib.Path(tmp)
+            current = tmp_path / "settings-daemon"
+            current.mkdir()
+            manifest = current / "Cargo.toml"
+            manifest.write_text("[package]\nname='fixture'\nversion='1.0.0'\n")
+            mirrors = {
+                name: tmp_path / name for name in self.index.get("components", {})
+            }
+            mirrors["cosmic-settings-daemon"] = current
+            table = {
+                "cosmic-comp-config": {
+                    "git": "https://github.com/pop-os/cosmic-comp",
+                }
+            }
+            changed, needed = graph.rewrite_dependency_table(
+                table,
+                self.index,
+                mirrors,
+                manifest,
+                "cosmic-settings-daemon",
+            )
+            self.assertTrue(changed)
+            self.assertEqual(needed, {"cosmic-comp"})
+            self.assertNotIn("git", table["cosmic-comp-config"])
+            self.assertEqual(
+                pathlib.Path(table["cosmic-comp-config"]["path"]),
+                (mirrors["cosmic-comp"] / "cosmic-comp-config").resolve(),
+            )
+
+    def test_metadata_verifier_does_not_claim_unrelated_git_collision(self) -> None:
+        mirrors = {
+            name: ROOT / "out" / "source-ownership" / "sources" / name
+            for name in self.index.get("components", {})
+        }
+        metadata = {
+            "packages": [
+                {
+                    "name": "cosmic-settings-daemon",
+                    "source": "git+https://github.com/pop-os/dbus-settings-bindings#deadbeef",
+                    "manifest_path": "/tmp/dbus-settings-bindings/Cargo.toml",
+                }
+            ]
+        }
+        self.assertEqual(
+            graph.verify_metadata(json.dumps(metadata), ROOT, self.index, mirrors),
+            [],
         )
 
-    def test_cosmic_panel_uses_owned_libcosmic_and_protocols(self) -> None:
-        self.assert_patch_path(
-            "cosmic-panel", "https://github.com/pop-os/libcosmic", "libcosmic", "src/desktop/cosmic/libcosmic"
-        )
-        self.assert_patch_path(
-            "cosmic-panel",
-            "https://github.com/pop-os/cosmic-protocols",
-            "cosmic-protocols",
-            "src/desktop/cosmic/cosmic-protocols",
-        )
+    def test_metadata_verifier_rejects_owned_git_source(self) -> None:
+        mirrors = {
+            name: ROOT / "out" / "source-ownership" / "sources" / name
+            for name in self.index.get("components", {})
+        }
+        metadata = {
+            "packages": [
+                {
+                    "name": "libcosmic",
+                    "source": "git+https://github.com/pop-os/libcosmic#deadbeef",
+                    "manifest_path": "/tmp/libcosmic/Cargo.toml",
+                }
+            ]
+        }
+        failures = graph.verify_metadata(json.dumps(metadata), ROOT, self.index, mirrors)
+        self.assertEqual(len(failures), 1)
+        self.assertIn("owned git package libcosmic remained external", failures[0])
 
-    def test_cosmic_comp_records_complete_owned_lock_set(self) -> None:
-        owned = set(self.index["components"]["cosmic-comp"].get("owned_packages", []))
-        for package in [
-            "libcosmic",
-            "cosmic-config",
-            "cosmic-protocols",
-            "cosmic-settings-config",
-            "cosmic-settings-daemon-config",
-            "iced_futures",
-            "iced_core",
-        ]:
-            self.assertIn(package, owned, f"cosmic-comp ownership index lost {package}")
-        self.assert_patch_path(
-            "cosmic-comp", "https://github.com/pop-os/libcosmic", "libcosmic", "src/desktop/cosmic/libcosmic"
-        )
-        self.assert_patch_path(
-            "cosmic-comp",
-            "https://github.com/pop-os/libcosmic",
-            "cosmic-config",
-            "src/desktop/cosmic/libcosmic/cosmic-config",
-        )
-
-    def test_libcosmic_has_no_private_iced_path_edges(self) -> None:
-        manifest = tomllib.loads((ROOT / "src/desktop/cosmic/libcosmic/Cargo.toml").read_text())
-        for name in [
-            "iced", "iced_runtime", "iced_renderer", "iced_core", "iced_widget",
-            "iced_futures", "iced_accessibility", "iced_tiny_skia", "iced_winit", "iced_wgpu",
-        ]:
-            self.assertTrue(manifest["dependencies"][name]["path"].startswith("../iced"))
-        self.assertEqual(manifest["build-dependencies"]["build_helpers"]["path"], "../iced/build_helpers")
-
-    def test_every_emitted_nested_patch_preserves_workspace(self) -> None:
-        failures = []
-        for component, metadata in self.index["components"].items():
-            config_path = metadata.get("config")
-            if not config_path:
-                continue
-            config = tomllib.loads((ROOT / config_path).read_text())
-            for packages in config.get("patch", {}).values():
-                for package, spec in packages.items():
-                    crate = pathlib.Path(spec["path"]).resolve()
-                    manifest_path = crate / "Cargo.toml"
-                    manifest = tomllib.loads(manifest_path.read_text())
-                    if not uses_workspace(manifest) or "workspace" in manifest:
-                        continue
-                    package_table = manifest.get("package", {})
-                    if not isinstance(package_table.get("workspace"), str):
-                        failures.append(f"{component}:{package}:{manifest_path.relative_to(ROOT)}")
-        self.assertEqual(failures, [])
+    def test_authoritative_cosmic_manifests_remain_pristine(self) -> None:
+        # Structural ownership lives in output mirrors. The imported source tree
+        # must retain upstream dependency declarations for provenance checking.
+        manifest = tomllib.loads((ROOT / "src/desktop/cosmic/libcosmic/cosmic-config/Cargo.toml").read_text())
+        dep = manifest["dependencies"]["cosmic-settings-daemon"]
+        self.assertEqual(dep["git"], "https://github.com/pop-os/dbus-settings-bindings")
+        self.assertNotIn("path", dep)
 
 
 if __name__ == "__main__":
