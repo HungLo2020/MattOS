@@ -2,11 +2,13 @@
 """Dispatch Cargo with the MattOS source-ownership config for the current component."""
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import pathlib
 import subprocess
 import sys
+from datetime import datetime, timezone
 
 
 def repo_root() -> pathlib.Path:
@@ -48,7 +50,7 @@ def component_for_cwd(root: pathlib.Path, cwd: pathlib.Path, index: dict) -> str
 def metadata_resolution_args(original: list[str]) -> list[str]:
     """Return Cargo metadata flags that can affect dependency/lock resolution."""
     selected: list[str] = []
-    value_flags = {"--manifest-path", "--features", "-F", "--package", "-p"}
+    value_flags = {"--manifest-path", "--features", "-F"}
     switch_flags = {"--all-features", "--no-default-features"}
     i = 0
     while i < len(original):
@@ -57,7 +59,7 @@ def metadata_resolution_args(original: list[str]) -> list[str]:
             selected.extend([arg, original[i + 1]])
             i += 2
             continue
-        if any(arg.startswith(prefix + "=") for prefix in ("--manifest-path", "--features", "--package")):
+        if any(arg.startswith(prefix + "=") for prefix in ("--manifest-path", "--features")):
             selected.append(arg)
             i += 1
             continue
@@ -83,25 +85,44 @@ def effective_manifest(cwd: pathlib.Path, original: list[str]) -> pathlib.Path |
     return candidate.resolve() if candidate.is_file() else None
 
 
-def reconcile_lockfile(real_cargo: str, config: pathlib.Path, original: list[str]) -> None:
-    """Reconcile the derived build-mirror lockfile under scoped ownership.
+def digest_file(path: pathlib.Path | None) -> str:
+    if path is None or not path.is_file():
+        return "missing"
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
-    Imported source/lockfiles under src/ remain pristine. Cargo commands may be
-    launched either from a workspace root or from a stage directory with an
-    explicit --manifest-path, so resolve the actual manifest instead of assuming
-    cwd itself is the workspace.
-    """
+
+def append_trace(trace: pathlib.Path, message: str) -> None:
+    trace.parent.mkdir(parents=True, exist_ok=True)
+    with trace.open("a", encoding="utf-8") as stream:
+        stream.write(message.rstrip("\n") + "\n")
+
+
+def reconcile_lockfile(
+    real_cargo: str,
+    config: pathlib.Path,
+    original: list[str],
+    trace: pathlib.Path,
+) -> pathlib.Path | None:
+    """Reconcile the derived build-mirror lockfile under scoped ownership."""
     if "--locked" not in original:
-        return
+        append_trace(trace, "reconcile=skipped reason=no---locked")
+        return None
 
     cwd = pathlib.Path.cwd()
     manifest = effective_manifest(cwd, original)
     if manifest is None or not manifest.is_file():
-        return
+        append_trace(trace, f"reconcile=skipped reason=manifest-missing manifest={manifest}")
+        return None
     lockfile = manifest.parent / "Cargo.lock"
     if not lockfile.is_file():
-        return
+        append_trace(trace, f"reconcile=skipped reason=lockfile-missing manifest={manifest}")
+        return None
 
+    before = digest_file(lockfile)
     command = [
         real_cargo,
         "--config",
@@ -111,14 +132,51 @@ def reconcile_lockfile(real_cargo: str, config: pathlib.Path, original: list[str
         "1",
         *metadata_resolution_args(original),
     ]
+    append_trace(trace, f"manifest={manifest}")
+    append_trace(trace, f"lockfile={lockfile}")
+    append_trace(trace, f"lock_sha256_before={before}")
+    append_trace(trace, "reconcile_argv=" + json.dumps(command))
     completed = subprocess.run(
         command,
         cwd=str(cwd),
         stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+        text=True,
         check=False,
     )
+    append_trace(trace, f"reconcile_status={completed.returncode}")
+    if completed.stderr:
+        append_trace(trace, "reconcile_stderr_begin")
+        append_trace(trace, completed.stderr)
+        append_trace(trace, "reconcile_stderr_end")
+    after = digest_file(lockfile)
+    append_trace(trace, f"lock_sha256_after={after}")
+    append_trace(trace, f"lock_changed={str(before != after).lower()}")
     if completed.returncode != 0:
+        if completed.stderr:
+            sys.stderr.write(completed.stderr)
         raise SystemExit(completed.returncode)
+    return lockfile
+
+
+def run_scoped_cargo(args: list[str], trace: pathlib.Path) -> int:
+    """Run scoped Cargo while preserving stderr in a deterministic failure log."""
+    append_trace(trace, "final_argv=" + json.dumps(args))
+    completed = subprocess.run(
+        args,
+        cwd=os.getcwd(),
+        stdout=None,
+        stderr=subprocess.PIPE,
+        text=True,
+        check=False,
+    )
+    append_trace(trace, f"final_status={completed.returncode}")
+    if completed.stderr:
+        sys.stderr.write(completed.stderr)
+        append_trace(trace, "final_stderr_begin")
+        append_trace(trace, completed.stderr)
+        append_trace(trace, "final_stderr_end")
+    return completed.returncode
 
 
 def main() -> int:
@@ -130,6 +188,7 @@ def main() -> int:
     index_path = root / "out" / "source-ownership" / "cargo" / "index.json"
     args = [real_cargo]
     scoped_config: pathlib.Path | None = None
+    component: str | None = None
     if index_path.is_file():
         index = json.loads(index_path.read_text(encoding="utf-8"))
         component = component_for_cwd(root, pathlib.Path.cwd(), index)
@@ -139,12 +198,23 @@ def main() -> int:
                 scoped_config = (root / config).resolve()
                 args += ["--config", str(scoped_config)]
 
-    if scoped_config is not None:
-        reconcile_lockfile(real_cargo, scoped_config, sys.argv[1:])
-
     args += sys.argv[1:]
-    os.execv(real_cargo, args)
-    return 127
+    if scoped_config is None or component is None:
+        os.execv(real_cargo, args)
+        return 127
+
+    trace = root / "out" / "source-ownership" / "logs" / f"{component}.log"
+    trace.parent.mkdir(parents=True, exist_ok=True)
+    trace.write_text(
+        f"timestamp={datetime.now(timezone.utc).isoformat()}\n"
+        f"component={component}\n"
+        f"cwd={pathlib.Path.cwd()}\n"
+        f"config={scoped_config}\n"
+        f"real_cargo={real_cargo}\n",
+        encoding="utf-8",
+    )
+    reconcile_lockfile(real_cargo, scoped_config, sys.argv[1:], trace)
+    return run_scoped_cargo(args, trace)
 
 
 if __name__ == "__main__":
