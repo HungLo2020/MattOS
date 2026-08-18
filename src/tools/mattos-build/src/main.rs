@@ -13557,6 +13557,7 @@ fn build_rootfs_atomic(repo_root: &Path) -> Result<()> {
 fn validate_cached_rootfs(repo_root: &Path) -> Result<()> {
     let rootfs = repo_root.join("out/build/rootfs");
     validate_rootfs_mutable_state(&rootfs)?;
+    validate_live_desktop_boot_contract(&rootfs)?;
     validate_udev_storage_identity_support(&rootfs)?;
     packaging::validate_udev_hwdb_payload(repo_root, &rootfs)?;
     for rel in [
@@ -13611,6 +13612,91 @@ fn validate_rootfs_mutable_state(rootfs: &Path) -> Result<()> {
     ] {
         if rootfs.join(rel).symlink_metadata().is_ok() {
             bail!("mutable lock/socket state is present in cached rootfs: /{rel}");
+        }
+    }
+    Ok(())
+}
+
+fn validate_live_desktop_boot_contract(rootfs: &Path) -> Result<()> {
+    for rel in [
+        "usr/lib/systemd/system/mattos-live-graphical.target",
+        "usr/lib/systemd/system/mattos.target",
+        "usr/lib/systemd/system/graphical.target",
+        "usr/lib/systemd/system/cosmic-greeter.service",
+        "etc/systemd/system/display-manager.service",
+        "etc/systemd/system/cosmic-greeter.service.d/live.conf",
+        "etc/greetd/cosmic-live.toml",
+        "etc/pam.d/cosmic-greeter",
+        "usr/bin/greetd",
+        "usr/bin/start-cosmic",
+        "usr/bin/cosmic-session",
+        "usr/bin/cosmic-panel",
+        "usr/bin/cosmic-launcher",
+        "usr/bin/cosmic-term",
+        "home/mattos",
+    ] {
+        if !path_entry_exists(&rootfs.join(rel)) {
+            bail!("graphical live boot contract is missing /{rel}")
+        }
+    }
+
+    let graphical =
+        fs::read_to_string(rootfs.join("usr/lib/systemd/system/mattos-live-graphical.target"))?;
+    if !graphical.contains("Requires=graphical.target")
+        || !graphical.contains("After=graphical.target")
+    {
+        bail!("graphical live target does not enter the production graphical target")
+    }
+    let cli = fs::read_to_string(rootfs.join("usr/lib/systemd/system/mattos.target"))?;
+    if !cli.contains("Requires=multi-user.target") || cli.contains("graphical.target") {
+        bail!("CLI live target must require only the non-graphical system target")
+    }
+    let live_config = fs::read_to_string(rootfs.join("etc/greetd/cosmic-live.toml"))?;
+    for contract in [
+        "[initial_session]",
+        "command = \"/usr/bin/start-cosmic\"",
+        "user = \"mattos\"",
+        "[default_session]",
+        "command = \"/usr/bin/cosmic-greeter-start\"",
+    ] {
+        if !live_config.contains(contract) {
+            bail!("live greetd configuration is missing contract: {contract}")
+        }
+    }
+    let override_unit =
+        fs::read_to_string(rootfs.join("etc/systemd/system/cosmic-greeter.service.d/live.conf"))?;
+    if !override_unit.contains("ExecStart=/usr/bin/greetd --config /etc/greetd/cosmic-live.toml") {
+        bail!("live display-manager override does not select the live greetd configuration")
+    }
+    let pam = fs::read_to_string(rootfs.join("etc/pam.d/cosmic-greeter"))?;
+    if pam
+        .matches("session    optional     pam_systemd.so")
+        .count()
+        != 1
+    {
+        bail!("live COSMIC session lacks exactly one PAM/logind session hook")
+    }
+    let display_manager =
+        fs::read_to_string(rootfs.join("usr/lib/systemd/system/cosmic-greeter.service"))?;
+    if !display_manager.contains(
+        "Wants=systemd-logind.service systemd-udev-trigger.service cosmic-greeter-daemon.service",
+    ) {
+        bail!("display manager does not pull in its greeter account service")
+    }
+    if path_entry_exists(
+        &rootfs.join("etc/systemd/system/multi-user.target.wants/cosmic-greeter-daemon.service"),
+    ) {
+        bail!("CLI boot must not start the COSMIC greeter daemon through multi-user.target")
+    }
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mode = fs::metadata(rootfs.join("home/mattos"))?
+            .permissions()
+            .mode()
+            & 0o7777;
+        if mode != 0o750 {
+            bail!("live home has mode {mode:04o}; expected 0750")
         }
     }
     Ok(())
@@ -13931,6 +14017,7 @@ fn build_rootfs_into(repo_root: &Path, out: &Path) -> Result<()> {
     inventory.add_excluded(DIFFUTILS_PROVIDER, "diff3");
     inventory.add_excluded(DIFFUTILS_PROVIDER, "sdiff");
     write_userland_inventory(&out, &inventory)?;
+    validate_live_desktop_boot_contract(&out)?;
     packaging::embed_repository(repo_root, &out)?;
     packaging::validate_dpkg_database(&out)?;
     performance::timed(
@@ -18267,6 +18354,7 @@ mod tests {
 
         let dispatcher = include_str!("../../../boot/live-init.c");
         for target in [
+            "mattos-live-graphical.target",
             "mattos.target",
             "mattos-install-graphical.target",
             "mattos-install-cli.target",
@@ -18278,6 +18366,28 @@ mod tests {
         }
         assert!(dispatcher.contains("/proc/cmdline"));
         assert!(dispatcher.contains("--unit=%s"));
+        assert!(dispatcher.contains("command_line_has_token(\"mattos.mode=live\")"));
+        assert!(dispatcher.contains("systemd_target = LIVE_GUI_TARGET"));
+        assert!(dispatcher.contains("systemd_target = LIVE_CLI_TARGET"));
+
+        let graphical = include_str!("../../../system/units/mattos-live-graphical.target");
+        assert!(graphical.contains("Requires=graphical.target"));
+        assert!(graphical.contains("After=graphical.target"));
+        let cli = include_str!("../../../system/units/mattos.target");
+        assert!(cli.contains("Requires=multi-user.target"));
+        assert!(!cli.contains("graphical.target"));
+
+        let live_greetd = include_str!("../../../system/profiles/live/etc/greetd/cosmic-live.toml");
+        assert!(live_greetd.contains("[initial_session]"));
+        assert!(live_greetd.contains("command = \"/usr/bin/start-cosmic\""));
+        assert!(live_greetd.contains("user = \"mattos\""));
+        let live_override = include_str!(
+            "../../../system/profiles/live/etc/systemd/system/cosmic-greeter.service.d/live.conf"
+        );
+        assert!(
+            live_override
+                .contains("ExecStart=/usr/bin/greetd --config /etc/greetd/cosmic-live.toml")
+        );
     }
 
     #[test]

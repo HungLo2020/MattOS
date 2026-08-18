@@ -3256,9 +3256,10 @@ fn package_recipe_revision(package: &str) -> u32 {
         // Revision 2 includes Linux-PAM's source-built vendor pam_env.conf;
         // the revision-1 cache key tracked only MattOS /etc/pam.d policy.
         "libpam-runtime" => 2,
-        // Revision 2 supplies the freedesktop hicolor fallback index required
-        // to discover application-owned COSMIC icons in standard directories.
-        "cosmic-desktop" => 2,
+        // Revision 3 keeps the greeter daemon display-manager-scoped instead
+        // of enabling it in every multi-user/CLI boot. Revision 2 supplied the
+        // freedesktop hicolor fallback index.
+        "cosmic-desktop" => 3,
         _ => 1,
     }
 }
@@ -5534,14 +5535,6 @@ fn stage_cosmic_desktop(repo_root: &Path, staging: &Path) -> Result<()> {
         "/usr/lib/systemd/system/cosmic-greeter.service",
         &display_manager,
     )?;
-    let wants = staging.join("etc/systemd/system/multi-user.target.wants");
-    fs::create_dir_all(&wants)?;
-    #[cfg(unix)]
-    std::os::unix::fs::symlink(
-        "/usr/lib/systemd/system/cosmic-greeter-daemon.service",
-        wants.join("cosmic-greeter-daemon.service"),
-    )?;
-
     for required in [
         "usr/bin/cosmic-session",
         "usr/bin/cosmic-panel",
@@ -9510,6 +9503,8 @@ mod tests {
         assert!(unit.contains("Restart=always"));
         assert!(unit.contains("TimeoutStopSec=10s"));
         assert!(unit.contains("After=systemd-user-sessions.service systemd-logind.service"));
+        assert!(unit.contains("cosmic-greeter-daemon.service"));
+        assert!(!source.contains("wants.join(\"cosmic-greeter-daemon.service\")"));
 
         let specs = package_specs();
         let libseat = specs

@@ -9,9 +9,7 @@ use std::fs::{self, OpenOptions};
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitStatus, Stdio};
-use std::sync::Arc;
-#[cfg(not(test))]
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -178,6 +176,8 @@ static TIMINGS: Shared<Option<(PathBuf, TimingReport)>> = Shared::new(None);
 static INTEGRITY_CACHE: Shared<Option<InvocationIntegrityCache>> = Shared::new(None);
 #[cfg(not(test))]
 static TIMING_STARTED: Shared<Option<Instant>> = Shared::new(None);
+
+static GIT_SOURCE_SNAPSHOT_CAPTURE_LOCK: Mutex<()> = Mutex::new(());
 
 pub(crate) fn start_timing_run(repo_root: &Path, command: &str) -> Result<()> {
     fs::create_dir_all(repo_root.join("out/reports"))?;
@@ -873,8 +873,7 @@ fn tracked_source_digest_uncached(
                 if !absolute.symlink_metadata().is_ok() {
                     return Ok(None);
                 }
-                let mut inventory = Vec::new();
-                collect_inventory(repo_root, absolute, false, &mut inventory)?;
+                let inventory = inventory_for_path(repo_root, absolute, false)?;
                 Ok(Some(digest_serializable(&inventory)?))
             },
             |phase, elapsed| {
@@ -1001,13 +1000,29 @@ fn tracked_source_canonical_bytes(
 }
 
 fn invocation_git_source_snapshot(repo_root: &Path) -> Result<Option<Arc<GitSourceSnapshot>>> {
-    if let Some(snapshot) = INTEGRITY_CACHE.with(|slot| {
-        slot.borrow()
-            .as_ref()
-            .and_then(|cache| cache.git_source_snapshot.clone())
-    }) {
+    let cached_snapshot = || {
+        INTEGRITY_CACHE.with(|slot| {
+            slot.borrow()
+                .as_ref()
+                .and_then(|cache| cache.git_source_snapshot.clone())
+        })
+    };
+
+    if let Some(snapshot) = cached_snapshot() {
         return Ok(Some(snapshot));
     }
+
+    // Several stage-evaluation workers may arrive here concurrently during
+    // build startup. Only one may construct the repository-wide Git snapshot.
+    let _capture_guard = GIT_SOURCE_SNAPSHOT_CAPTURE_LOCK
+        .lock()
+        .expect("Git source snapshot capture lock poisoned");
+
+    // Another worker may have populated the cache while we waited.
+    if let Some(snapshot) = cached_snapshot() {
+        return Ok(Some(snapshot));
+    }
+
     if let Ok(snapshot) = GitSourceSnapshot::capture(repo_root, |command, elapsed| {
         if command == "snapshot-map-construction" {
             record_category("input_source_profile:snapshot_map_construction", elapsed);
@@ -1023,6 +1038,7 @@ fn invocation_git_source_snapshot(repo_root: &Path) -> Result<Option<Arc<GitSour
         });
         return Ok(Some(snapshot));
     }
+
     Ok(None)
 }
 

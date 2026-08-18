@@ -29,7 +29,8 @@
 #define LIVE_ROOT_PATH "/run/mattos/medium/live/rootfs.squashfs"
 #define SYSTEMD_PATH "/usr/lib/systemd/systemd"
 #define RESCUE_INIT_PATH "/usr/libexec/mattos/rescue-init"
-#define LIVE_TARGET "mattos.target"
+#define LIVE_GUI_TARGET "mattos-live-graphical.target"
+#define LIVE_CLI_TARGET "mattos.target"
 #define INSTALL_GUI_TARGET "mattos-install-graphical.target"
 #define INSTALL_CLI_TARGET "mattos-install-cli.target"
 
@@ -77,7 +78,7 @@ static bool file_exists(const char *path)
     return stat(path, &status) == 0;
 }
 
-static bool command_line_contains(const char *needle)
+static bool command_line_has_token(const char *needle)
 {
     char command_line[4096];
     int descriptor = open("/proc/cmdline", O_RDONLY | O_CLOEXEC);
@@ -88,7 +89,19 @@ static bool command_line_contains(const char *needle)
     if (length < 0)
         return false;
     command_line[length] = '\0';
-    return strstr(command_line, needle) != NULL;
+    size_t needle_length = strlen(needle);
+    const char *candidate = command_line;
+    while ((candidate = strstr(candidate, needle)) != NULL) {
+        bool starts_token = candidate == command_line || candidate[-1] == ' ';
+        char terminator = candidate[needle_length];
+        bool ends_token = terminator == '\0' || terminator == ' ' ||
+                          terminator == '\n' || terminator == '\r' ||
+                          terminator == '\t';
+        if (starts_token && ends_token)
+            return true;
+        candidate += needle_length;
+    }
+    return false;
 }
 
 static void mount_live_medium(void)
@@ -253,16 +266,18 @@ int main(void)
         errno = ENOENT;
         fatal("validate live root systemd");
     }
-    bool rescue_mode = command_line_contains("mattos.rescue=1");
+    bool rescue_mode = command_line_has_token("mattos.rescue=1");
     const char *real_init = rescue_mode ? RESCUE_INIT_PATH : SYSTEMD_PATH;
     const char *systemd_target = NULL;
     if (!rescue_mode) {
-        if (command_line_contains("mattos.mode=install-gui"))
+        if (command_line_has_token("mattos.mode=install-gui"))
             systemd_target = INSTALL_GUI_TARGET;
-        else if (command_line_contains("mattos.mode=install-cli"))
+        else if (command_line_has_token("mattos.mode=install-cli"))
             systemd_target = INSTALL_CLI_TARGET;
+        else if (command_line_has_token("mattos.mode=live"))
+            systemd_target = LIVE_GUI_TARGET;
         else
-            systemd_target = LIVE_TARGET;
+            systemd_target = LIVE_CLI_TARGET;
         message("boot mode selects systemd target %s", systemd_target);
     }
     message("live root mounted read-only with writable tmpfs overlay");

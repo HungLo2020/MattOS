@@ -117,15 +117,25 @@ impl StageResourceProfile {
             preferred_child_jobs: 4,
             minimum_child_jobs: 1,
             useful_child_job_ceiling: Some(4),
-            estimated_memory_bytes: 6 * 1024 * Self::MIB,
-            memory_per_child_job_bytes: 0,
+
+        // These stages are expensive, but the reservation must scale down
+        // with the granted compiler parallelism. A fixed 6 GiB reservation
+        // made them impossible to admit whenever the scheduler's safe build
+        // budget was below 6 GiB, causing permanent starvation.
+        //
+        // 1 child: 1.75 GiB
+        // 2 children: 2.50 GiB
+        // 3 children: 3.25 GiB
+        // 4 children: 4.00 GiB
+            estimated_memory_bytes: 1024 * Self::MIB,
+            memory_per_child_job_bytes: 768 * Self::MIB,
+
             memory_heavy: true,
             may_borrow_idle_cpu: false,
             child_jobs: ChildJobPolicy::Capped(4),
         }
     }
 }
-
 pub(crate) fn configure_child_jobs(granted_tokens: usize, policy: ChildJobPolicy) {
     GRANTED_TOKENS.with(|granted| granted.set(granted_tokens));
     CHILD_JOB_POLICY.with(|current| current.set(policy));

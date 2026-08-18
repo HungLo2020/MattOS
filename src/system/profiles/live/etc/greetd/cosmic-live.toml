@@ -1,0 +1,17 @@
+[terminal]
+vt = 1
+
+[general]
+service = "cosmic-greeter"
+
+[default_session]
+command = "/usr/bin/cosmic-greeter-start"
+user = "cosmic-greeter"
+
+# The immutable live account has no reusable password. greetd still opens the
+# normal PAM/logind session, while this one-shot session avoids inventing a
+# public live-media password. If the session exits, greetd falls back to the
+# production COSMIC greeter above.
+[initial_session]
+command = "/usr/bin/start-cosmic"
+user = "mattos"

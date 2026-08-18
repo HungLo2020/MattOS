@@ -1457,6 +1457,8 @@ fn remove_live_only_state(target: &Path) -> Result<()> {
     for relative in [
         "etc/systemd/system/getty@tty1.service.d/autologin.conf",
         "etc/systemd/system/serial-getty@ttyS0.service.d/autologin.conf",
+        "etc/systemd/system/cosmic-greeter.service.d/live.conf",
+        "etc/greetd/cosmic-live.toml",
         "etc/sudoers.d/00-mattos-live",
         "etc/tmpfiles.d/mattos-live.conf",
         "etc/motd",
@@ -2231,6 +2233,57 @@ mod tests {
         fs::write(&group, "sudo:x:27:alice,mattos,bob\nmattos:x:1000:\n").unwrap();
         remove_account_from_database(&group, "mattos").unwrap();
         assert_eq!(fs::read_to_string(group).unwrap(), "sudo:x:27:alice,bob\n");
+    }
+
+    #[test]
+    fn installed_target_removes_graphical_live_autologin_state() {
+        let directory = tempfile::tempdir().unwrap();
+        for relative in [
+            "etc/systemd/system/getty@tty1.service.d/autologin.conf",
+            "etc/systemd/system/serial-getty@ttyS0.service.d/autologin.conf",
+            "etc/systemd/system/cosmic-greeter.service.d/live.conf",
+            "etc/greetd/cosmic-live.toml",
+            "etc/sudoers.d/00-mattos-live",
+            "etc/tmpfiles.d/mattos-live.conf",
+            "etc/motd",
+        ] {
+            let path = directory.path().join(relative);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(path, "live only\n").unwrap();
+        }
+        fs::create_dir_all(directory.path().join("home/mattos")).unwrap();
+        for (relative, contents) in [
+            (
+                "etc/passwd",
+                "root:x:0:0:root:/root:/bin/brush\nmattos:x:1000:1000:MattOS Live User:/home/mattos:/bin/brush\n",
+            ),
+            ("etc/shadow", "root:!:::::::\nmattos:!:::::::\n"),
+            ("etc/group", "root:x:0:\nsudo:x:27:mattos\nmattos:x:1000:\n"),
+            ("etc/gshadow", "root:!::\nsudo:!::mattos\nmattos:!::\n"),
+        ] {
+            fs::write(directory.path().join(relative), contents).unwrap();
+        }
+
+        remove_live_only_state(directory.path()).unwrap();
+
+        assert!(
+            !directory
+                .path()
+                .join("etc/systemd/system/cosmic-greeter.service.d/live.conf")
+                .exists()
+        );
+        assert!(
+            !directory
+                .path()
+                .join("etc/greetd/cosmic-live.toml")
+                .exists()
+        );
+        assert!(!directory.path().join("home/mattos").exists());
+        assert!(
+            !fs::read_to_string(directory.path().join("etc/passwd"))
+                .unwrap()
+                .contains("mattos:")
+        );
     }
 
     #[test]
