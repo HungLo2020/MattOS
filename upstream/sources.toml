@@ -194,7 +194,7 @@ revision = "693d1ad775193deb95a33810b5eac59684ca2ac0"
 path = "src/desktop/cosmic/cosmic-comp"
 sync = "copy"
 patch_manifest = "upstream/patches/cosmic-comp/manifest.toml"
-patch_manifest_sha256 = "811babaaf8a6532d83484b7c8c73e34b23d6b7103843a4c90ae65426ac2b308b"
+patch_manifest_sha256 = "7b9c6ae9c405f5902700b93e4285c429dee23d802bf4dd3b6b5eb9ff8d422317"
 
 # COSMIC Epoch desktop closure.  These revisions are the gitlinks from
 # pop-os/cosmic-epoch 0ce7ec30ac05416e9a85465404be548ced89cba6 so the
