@@ -6,7 +6,11 @@ MattOS treats every first-class source tree listed in `upstream/sources.toml` as
 
 If a MattOS subproject depends on a project MattOS already owns, the build must consume the MattOS-owned source or the output built from that source. It must not silently download another Git revision, crates.io copy, system `-dev` package, Meson wrap, CMake `FetchContent` checkout, or equivalent duplicate of an owned package that is present locally.
 
-The vendored source manifest is authoritative for dependency identity and version. Consumers do not duplicate or pin a second MattOS-local version number. Updating an owned source tree therefore moves in-tree consumers to that source together; an incompatible consumer must be patched or fail explicitly instead of falling back to another copy.
+The vendored source manifest is authoritative for dependency identity and version. Consumers do not duplicate or pin a second MattOS-local version number. Updating an owned source tree therefore moves in-tree consumers to that source together; an incompatible consumer must fail explicitly instead of falling back to another copy.
+
+When a consumer is incompatible with an owned lower-level project, MattOS prefers moving the consumer forward over patching an older snapshot. The maintenance order is: keep the MattOS-owned dependency authoritative; inspect the current upstream consumer; if upstream already supports the owned dependency revision, advance the vendored consumer to that compatible upstream revision; only carry an output-mirror compatibility patch when no suitable upstream consumer revision exists. A consumer's historical Cargo.lock or Git pin never authorizes a second copy of a project MattOS already owns.
+
+This policy also expresses the general freshness preference: use current upstream revisions where practical, while keeping one canonical MattOS-owned revision for each first-class project. Freshness is subordinate to source coherence, not an excuse to introduce duplicate versions.
 
 ## Cargo ownership catalog
 
