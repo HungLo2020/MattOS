@@ -30,7 +30,6 @@ def component_for_cwd(root: pathlib.Path, cwd: pathlib.Path, index: dict) -> str
         return min(matches)[1]
 
     parts = cwd.resolve().parts
-    # Stable COSMIC mirrors: out/build/cosmic-desktop/sources/<component>/...
     marker = ("out", "build", "cosmic-desktop", "sources")
     for i in range(len(parts) - len(marker)):
         if tuple(parts[i : i + len(marker)]) == marker and i + len(marker) < len(parts):
@@ -38,7 +37,6 @@ def component_for_cwd(root: pathlib.Path, cwd: pathlib.Path, index: dict) -> str
             if candidate in index.get("components", {}):
                 return candidate
 
-    # Generic component builds normally live under out/build/<component>/...
     for i in range(len(parts) - 2):
         if parts[i : i + 2] == ("out", "build"):
             candidate = parts[i + 2]
@@ -69,20 +67,39 @@ def metadata_resolution_args(original: list[str]) -> list[str]:
     return selected
 
 
-def reconcile_lockfile(real_cargo: str, config: pathlib.Path, original: list[str]) -> None:
-    """Reconcile a build-mirror lockfile under the scoped ownership config.
+def effective_manifest(cwd: pathlib.Path, original: list[str]) -> pathlib.Path | None:
+    """Resolve the manifest Cargo will use for this invocation."""
+    i = 0
+    while i < len(original):
+        arg = original[i]
+        if arg == "--manifest-path" and i + 1 < len(original):
+            path = pathlib.Path(original[i + 1])
+            return (path if path.is_absolute() else cwd / path).resolve()
+        if arg.startswith("--manifest-path="):
+            path = pathlib.Path(arg.split("=", 1)[1])
+            return (path if path.is_absolute() else cwd / path).resolve()
+        i += 1
+    candidate = cwd / "Cargo.toml"
+    return candidate.resolve() if candidate.is_file() else None
 
-    MattOS keeps imported upstream Cargo.lock files pristine in src/. Build
-    mirrors copy those lockfiles, then source ownership changes Git package
-    identities to MattOS-owned paths. Cargo must update the mirror lockfile once
-    before the real --locked command can verify and use it.
+
+def reconcile_lockfile(real_cargo: str, config: pathlib.Path, original: list[str]) -> None:
+    """Reconcile the derived build-mirror lockfile under scoped ownership.
+
+    Imported source/lockfiles under src/ remain pristine. Cargo commands may be
+    launched either from a workspace root or from a stage directory with an
+    explicit --manifest-path, so resolve the actual manifest instead of assuming
+    cwd itself is the workspace.
     """
     if "--locked" not in original:
         return
+
     cwd = pathlib.Path.cwd()
-    manifest = cwd / "Cargo.toml"
-    lockfile = cwd / "Cargo.lock"
-    if not manifest.is_file() or not lockfile.is_file():
+    manifest = effective_manifest(cwd, original)
+    if manifest is None or not manifest.is_file():
+        return
+    lockfile = manifest.parent / "Cargo.lock"
+    if not lockfile.is_file():
         return
 
     command = [
