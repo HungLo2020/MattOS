@@ -85,6 +85,20 @@ class SourceOwnershipOverridesTest(unittest.TestCase):
             self.assertTrue(path.startswith("../iced"), f"{name} still uses private path {path}")
         self.assertEqual(manifest["build-dependencies"]["build_helpers"]["path"], "../iced/build_helpers")
 
+    def test_libcosmic_subcrates_use_first_class_iced(self) -> None:
+        manifest = tomllib.loads(
+            (ROOT / "src/desktop/cosmic/libcosmic/cosmic-config/Cargo.toml").read_text()
+        )
+        for name, expected in [
+            ("iced", "src/desktop/cosmic/iced"),
+            ("iced_futures", "src/desktop/cosmic/iced/futures"),
+        ]:
+            path = manifest["dependencies"][name]["path"]
+            resolved = (
+                ROOT / "src/desktop/cosmic/libcosmic/cosmic-config" / path
+            ).resolve()
+            self.assertEqual(resolved, (ROOT / expected).resolve())
+
 
 if __name__ == "__main__":
     unittest.main()
