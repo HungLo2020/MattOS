@@ -13,9 +13,11 @@ must not become global MattOS dependency owners. It also gives the desired
 COSMIC behavior: the first-class cosmic-iced component owns `iced`, while
 libcosmic's embedded iced copy may not override it.
 
-The generated .cargo/config.toml contains paths only. Package versions continue
-to come from authoritative vendored Cargo.toml files, so source updates propagate
-without duplicating version numbers here.
+The generated .cargo/config.toml contains paths only. Cargo resolves `[patch]`
+paths relative to the workspace/root invocation context, so generated paths are
+repository-root-relative (for example `src/desktop/cosmic/libcosmic`). Package
+versions continue to come from authoritative vendored Cargo.toml files, so
+source updates propagate without duplicating version numbers here.
 """
 
 from __future__ import annotations
@@ -115,7 +117,10 @@ def collect_dependencies(data):
 
 
 def rel_from_config(path: pathlib.Path) -> str:
-    return pathlib.Path(os.path.relpath(path, ROOT / ".cargo")).as_posix()
+    # Cargo interprets patch paths from the workspace/root invocation context,
+    # not from the `.cargo` directory containing config.toml. Keep generated
+    # paths repository-root-relative so `src/...` remains inside MattOS.
+    return pathlib.Path(os.path.relpath(path, ROOT)).as_posix()
 
 
 def quote(value: str) -> str:
@@ -254,6 +259,7 @@ def generate() -> str:
         "# listed in upstream/sources.toml own their root Cargo package.",
         "# Git dependencies on owned component repositories are rebound to",
         "# packages actually present in those local source trees.",
+        "# Paths below are relative to the MattOS repository root.",
         "# Package versions are read from the local source manifests.",
         "",
     ]
