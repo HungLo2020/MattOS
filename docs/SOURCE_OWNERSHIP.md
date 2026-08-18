@@ -6,29 +6,71 @@ MattOS treats every first-class source tree listed in `upstream/sources.toml` as
 
 If a MattOS subproject depends on a project MattOS already owns, the build must consume the MattOS-owned source or the output built from that source. It must not silently download another Git revision, crates.io copy, system `-dev` package, Meson wrap, CMake `FetchContent` checkout, or equivalent duplicate of an owned package that is present locally.
 
-The vendored source manifest is authoritative for the dependency version. Consumers do not duplicate or pin a second MattOS-local version number. Updating an owned source tree therefore moves all in-tree consumers to that source together; an incompatible consumer must be patched or fail explicitly instead of falling back to another copy.
+The vendored source manifest is authoritative for dependency identity and version. Consumers do not duplicate or pin a second MattOS-local version number. Updating an owned source tree therefore moves in-tree consumers to that source together; an incompatible consumer must be patched or fail explicitly instead of falling back to another copy.
 
-## Cargo
+## Cargo ownership catalog
 
-`DevUtils/generate_source_overrides.py` reads `upstream/sources.toml`, enumerates tracked `Cargo.toml` files through Git, discovers Cargo packages under each first-class source root, and writes an ignored repo-local `.cargo/config.toml` containing Cargo `[patch]` entries.
+`DevUtils/generate_source_overrides.py` reads `upstream/sources.toml`, enumerates tracked Cargo manifests through Git, and writes the derived ownership catalog at `out/source-ownership/cargo/index.json`.
 
-A package becomes a project-wide canonical Cargo owner only when it is the root package of a first-class component. Nested crates inside large imported projects remain private implementation details unless another manifest explicitly depends on that component's Git repository and requests that nested package by name. This prevents Rust compiler shims, fixtures, tests, and deliberately duplicated package names from becoming accidental global owners.
+The catalog records:
 
-This distinction also gives COSMIC the intended behavior: the first-class `src/desktop/cosmic/iced` component owns the `iced` root package, so libcosmic cannot keep using its embedded iced copy. Git dependencies on an owned component repository are rebound to packages that actually exist in the corresponding local source tree.
+- first-class component repository identities and pinned revisions;
+- Cargo packages physically owned by each first-class component;
+- canonical root-package ownership;
+- declared gitlink replacements from `upstream/policies/gitlinks.toml` such as libcosmic's upstream `iced` gitlink being replaced by the first-class `cosmic-iced` component; and
+- output-mirror patch metadata for components that carry MattOS patches.
 
-`src/tools/mattos-build/build.rs` regenerates the override configuration before MattOS child Cargo builds and tracks `upstream/sources.toml`, the generator, and tracked Cargo manifests as build-script inputs. The generated config is ignored because it is derived state.
+Catalog generation validates every declared patch chain before any Cargo build starts: `sources.toml` must agree with the component provenance state, the patch-manifest bytes must match their SHA-256, the manifest must name the pinned component/revision and `output-mirror-only` application policy, and every patch payload must match its declared SHA-256.
 
-If an owned package exists locally but an in-tree path dependency resolves to another copy, generation fails. If a Git dependency points at an owned repository but requests a package that is not present in MattOS's imported copy of that repository, the generator leaves that edge external because there is no local source to substitute; importing that package into MattOS is the prerequisite to claiming ownership of it.
+The catalog is derived output. MattOS does not generate a repository-wide Cargo `[patch]` configuration.
+
+## Structural Cargo rebinding
+
+Cargo `[patch]` is intentionally not the ownership enforcement mechanism. `[patch]` participates in normal Cargo resolution and therefore cannot express MattOS's stronger rule that an owned dependency must use one exact local source and may not fall back to another source identity.
+
+`DevUtils/source_ownership_graph.py` instead rewrites dependency declarations in derived build mirrors before Cargo resolves them. The authoritative imported trees under `src/` remain pristine.
+
+The consumer being built remains in its normal `out/build/...` source mirror. Additional owned dependencies are materialized under `out/source-ownership/sources/<component>`. MattOS output-only patches are applied to those dependency mirrors before their manifests are rewritten.
+
+Ownership decisions are source-qualified:
+
+- **Git dependency:** repository identity is matched first, then package identity. A same-name crate from a different Git repository is not captured. If the repository is owned and the requested package exists in that component or its declared gitlink-replacement closure, the Git/revision/branch/tag fields are removed and replaced with an explicit canonical `path` dependency.
+- **Registry/version dependency:** package identity may resolve to a unique first-class root package owned by MattOS.
+- **Existing path dependency:** it is preserved unless it crosses a declared replaced gitlink or already identifies a canonical ownership mirror.
+
+Nested crates are not globally claimed merely because a `Cargo.toml` exists somewhere inside a large imported tree. This prevents compiler fixtures, tests, shims, and unrelated same-name packages from becoming accidental project-wide owners.
+
+For COSMIC this means, for example, a Git edge requesting `libcosmic` from the libcosmic repository is rebound to MattOS's libcosmic mirror, while iced-family packages exposed through libcosmic's upstream gitlink are routed through the declared first-class `cosmic-iced` replacement. Conversely, a crate named `cosmic-settings-daemon` coming from `dbus-settings-bindings` remains that external crate; it is not confused with MattOS's separately owned `pop-os/cosmic-settings-daemon` project.
+
+## Fail-closed verification
+
+`DevUtils/cargo_source_owned.py` is the Cargo dispatcher used by the MattOS launcher. For Cargo commands operating on an `out/build/...` mirror it:
+
+1. identifies the first-class component represented by the build mirror;
+2. prepares the transitive MattOS-owned source mirrors and rewrites their dependency edges;
+3. runs `cargo metadata` against the rewritten graph;
+4. verifies that an owned Git package did not remain external and that canonical first-class path/registry packages resolve from their expected MattOS mirror; and
+5. only after verification runs the original Cargo command, including its original `--locked` policy.
+
+A requested package that is not actually present in an owned repository or its declared replacement closure is not invented. It may remain external until MattOS imports/owns that source. Once the matching source is owned, external fallback is forbidden.
+
+The dispatcher never rewrites authoritative imported source under `src/`. Source-ownership transformations and any lockfile reconciliation happen only in derived output mirrors.
+
+## Diagnostics
+
+Ownership-enabled Cargo invocations write detailed traces under `out/source-ownership/logs/<component>.log`. These logs include graph preparation, metadata verification and final Cargo diagnostics.
+
+`DevUtils/run_qemu.py` automatically prints source-ownership failure logs generated during the current failed build command. Runtime diagnostics remain under `out/`; builds do not dirty the Git-tracked tree merely to expose an error.
 
 ## Native build systems
 
-Native libraries remain source-owned through the MattOS build graph and staged sysroot. Meson, CMake, Autotools, Make, and Rust build scripts that consume native libraries must resolve headers, pkg-config metadata, link libraries, and runtime closure from MattOS-built component outputs rather than matching host development packages.
+Native libraries remain source-owned through the MattOS build graph and staged sysroot. Meson, CMake, Autotools, Make, and Rust build scripts that consume native libraries must resolve headers, pkg-config metadata, link libraries, and runtime closure from MattOS-built component outputs rather than matching host development packages or downloading duplicate owned projects.
 
 A runtime relationship is not automatically a rebuild relationship. For example, PipeWire being part of the complete COSMIC desktop runtime does not by itself make PipeWire source or package output a compile-time input to `cosmic-panel`. Stage dependency/cache graphs must model actual build and ABI inputs separately from runtime/image composition dependencies.
 
 ## Cache identity
 
-Source ownership changes dependency identity. Stage cache inputs must ultimately describe the canonical MattOS source/output that was used to produce an artifact, not the external Git or registry reference that was overridden. This keeps source closure and incremental correctness aligned: changing an owned library invalidates real consumers, while changing an unrelated runtime component does not fan out into needless recompilation.
+Source ownership changes dependency identity. Stage cache inputs must ultimately describe the canonical MattOS source/output that was used to produce an artifact, not an external reference that existed in the imported upstream manifest before mirror rewriting. This keeps source closure and incremental correctness aligned: changing an owned library invalidates real consumers, while changing an unrelated runtime component does not fan out into needless recompilation.
 
 ## Maintenance
 
@@ -39,4 +81,4 @@ python3 DevUtils/generate_source_overrides.py
 python3 DevUtils/test_source_ownership_overrides.py
 ```
 
-The first command regenerates the ignored Cargo override file. The second exercises the source-ownership invariants, including the libcosmic/iced collapse that motivated this mechanism.
+The first command validates source/patch provenance and regenerates the derived ownership catalog. The second exercises source-qualified resolution, canonical mirror rewriting, gitlink replacement behavior, metadata fail-closed checks, provenance agreement, and preservation of pristine imported manifests.
