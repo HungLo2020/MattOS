@@ -3,11 +3,15 @@
 
 First-class source roots come from upstream/sources.toml. For every tracked
 Cargo manifest below src/, external git dependencies that point at an owned
-upstream repository are rebound to the package with the same Cargo package name
-inside that owned source root. Registry dependencies are rebound only when the
-component's *root* Cargo package has that name; this deliberately avoids
-mistaking toolchain/vendor internals (for example a vendored `serde` or `libc`)
-for first-class MattOS ownership.
+upstream repository are rebound to the canonical MattOS package with the same
+Cargo package name. When the same package exists in more than one imported tree,
+the package closest to a first-class component root wins; ties are ambiguous and
+fail closed. This makes a standalone component such as src/desktop/cosmic/iced
+authoritative over a duplicate copy embedded beneath libcosmic.
+
+Registry dependencies are rebound only when the component's *root* Cargo package
+has that name; this deliberately avoids mistaking toolchain/vendor internals
+(for example a vendored `serde` or `libc`) for first-class MattOS ownership.
 
 The generated .cargo/config.toml contains paths only. Package versions continue
 to come from the authoritative vendored Cargo.toml files themselves, so source
@@ -122,17 +126,19 @@ def generate() -> str:
     components = load_components()
     manifests = tracked_manifests()
     by_repo = {norm_repo(c["repo"]): c for c in components}
+    component_roots = {c["name"]: (ROOT / c["path"]).resolve() for c in components}
     owned_by_component: dict[str, dict[str, pathlib.Path]] = {}
+    global_candidates: dict[str, list[tuple[int, str, pathlib.Path]]] = defaultdict(list)
     root_owned_packages: dict[str, pathlib.Path] = {}
     root_owner_conflicts: set[str] = set()
 
     for component in components:
         packages: dict[str, pathlib.Path] = {}
         duplicate_names: set[str] = set()
-        root = (ROOT / component["path"]).resolve()
+        root = component_roots[component["name"]]
         for manifest in manifests:
             try:
-                manifest.resolve().relative_to(root)
+                relative_manifest = manifest.resolve().relative_to(root)
             except ValueError:
                 continue
             identity = package_identity(manifest)
@@ -147,6 +153,8 @@ def generate() -> str:
                 duplicate_names.add(name)
                 continue
             packages[name] = package_path
+            depth = max(0, len(relative_manifest.parent.parts))
+            global_candidates[name].append((depth, component["name"], package_path))
         owned_by_component[component["name"]] = packages
 
         root_identity = package_identity(root / "Cargo.toml")
@@ -161,6 +169,27 @@ def generate() -> str:
             else:
                 root_owned_packages[root_name] = root_path
 
+    canonical_owner: dict[str, pathlib.Path] = {}
+    ambiguous_owners: dict[str, list[tuple[int, str, pathlib.Path]]] = {}
+    for package, candidates in global_candidates.items():
+        # Collapse duplicate observations of the exact same package path before
+        # comparing first-class ownership depth.
+        unique = {}
+        for depth, component_name, path in candidates:
+            key = path.resolve()
+            prior = unique.get(key)
+            if prior is None or depth < prior[0]:
+                unique[key] = (depth, component_name, path)
+        ordered = sorted(unique.values(), key=lambda item: (item[0], item[1], str(item[2])))
+        if not ordered:
+            continue
+        best_depth = ordered[0][0]
+        best = [item for item in ordered if item[0] == best_depth]
+        if len(best) == 1:
+            canonical_owner[package] = best[0][2]
+        else:
+            ambiguous_owners[package] = best
+
     git_patches: dict[str, dict[str, pathlib.Path]] = defaultdict(dict)
     registry_patches: dict[str, pathlib.Path] = {}
     unresolved: list[str] = []
@@ -173,22 +202,53 @@ def generate() -> str:
             package = spec.get("package", key)
             if not isinstance(package, str):
                 continue
+
+            if package in ambiguous_owners:
+                candidates = ", ".join(
+                    f"{component}:{path.relative_to(ROOT)}"
+                    for _, component, path in ambiguous_owners[package]
+                )
+                unresolved.append(
+                    f"{manifest.relative_to(ROOT)}: package {package!r} has ambiguous first-class owners: {candidates}"
+                )
+                continue
+
             git = spec.get("git")
             if isinstance(git, str):
                 component = by_repo.get(norm_repo(git))
                 if component is None:
                     continue
-                candidate = owned_by_component.get(component["name"], {}).get(package)
+                candidate = canonical_owner.get(package)
+                if candidate is None:
+                    candidate = owned_by_component.get(component["name"], {}).get(package)
                 if candidate is None:
                     unresolved.append(
                         f"{manifest.relative_to(ROOT)}: {package} points at owned repo {git} "
-                        f"but no unique package {package!r} exists under {component['path']}"
+                        f"but no unique MattOS package {package!r} is available"
                     )
                     continue
                 git_patches[git][package] = candidate
                 continue
 
-            if "path" in spec or "workspace" in spec:
+            path_value = spec.get("path")
+            if isinstance(path_value, str):
+                candidate = canonical_owner.get(package)
+                if candidate is None:
+                    continue
+                resolved = (manifest.parent / path_value).resolve()
+                if resolved != candidate.resolve():
+                    # Only police path dependencies when the requested package
+                    # name itself is source-owned. This catches embedded copies
+                    # such as libcosmic/iced without interfering with private
+                    # helper crates that have no first-class owner.
+                    unresolved.append(
+                        f"{manifest.relative_to(ROOT)}: path dependency {package!r} resolves to "
+                        f"{resolved.relative_to(ROOT) if resolved.is_relative_to(ROOT) else resolved}, "
+                        f"but MattOS owns it at {candidate.relative_to(ROOT)}"
+                    )
+                continue
+
+            if "workspace" in spec:
                 continue
             candidate = root_owned_packages.get(package)
             if candidate is not None:
@@ -197,7 +257,7 @@ def generate() -> str:
     if unresolved:
         formatted = "\n  ".join(sorted(set(unresolved)))
         raise SystemExit(
-            "source ownership generation failed: owned git dependencies could not be rebound:\n  "
+            "source ownership generation failed; MattOS-owned dependencies must resolve to one canonical source:\n  "
             + formatted
         )
 
