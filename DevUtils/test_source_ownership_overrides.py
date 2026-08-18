@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import json
 import pathlib
 import subprocess
 import tomllib
@@ -8,8 +9,8 @@ import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 GENERATOR = ROOT / "DevUtils" / "generate_source_overrides.py"
-CONFIG = ROOT / ".cargo" / "config.toml"
-DEPENDENCY_TABLES = ("dependencies", "dev-dependencies", "build-dependencies")
+OUTPUT = ROOT / "out" / "source-ownership" / "cargo"
+INDEX = OUTPUT / "index.json"
 
 
 def normalize_repo(value: str) -> str:
@@ -19,25 +20,11 @@ def normalize_repo(value: str) -> str:
     return value.lower()
 
 
-def dependency_uses_workspace(table: object) -> bool:
-    if not isinstance(table, dict):
-        return False
-    return any(
-        isinstance(value, dict) and value.get("workspace") is True
-        for value in table.values()
-    )
-
-
-def manifest_uses_workspace_dependencies(manifest: dict) -> bool:
-    if any(dependency_uses_workspace(manifest.get(name)) for name in DEPENDENCY_TABLES):
-        return True
-    target = manifest.get("target")
-    if isinstance(target, dict):
-        for cfg in target.values():
-            if isinstance(cfg, dict) and any(
-                dependency_uses_workspace(cfg.get(name)) for name in DEPENDENCY_TABLES
-            ):
-                return True
+def uses_workspace(value) -> bool:
+    if isinstance(value, dict):
+        return value.get("workspace") is True or any(uses_workspace(v) for v in value.values())
+    if isinstance(value, list):
+        return any(uses_workspace(v) for v in value)
     return False
 
 
@@ -45,117 +32,89 @@ class SourceOwnershipOverridesTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         subprocess.run(["python3", str(GENERATOR)], cwd=ROOT, check=True)
-        with CONFIG.open("rb") as stream:
-            cls.config = tomllib.load(stream)
+        cls.index = json.loads(INDEX.read_text())
 
-    def patches_for(self, repository: str) -> dict:
+    def component_config(self, component: str) -> dict:
+        metadata = self.index["components"][component]
+        config = metadata.get("config")
+        if config is None:
+            return {}
+        with (ROOT / config).open("rb") as stream:
+            return tomllib.load(stream)
+
+    def patches_for(self, component: str, repository: str) -> dict:
+        config = self.component_config(component)
         expected = normalize_repo(repository)
         merged = {}
-        for source, packages in self.config.get("patch", {}).items():
-            if source == "crates-io":
-                continue
-            if normalize_repo(source) == expected:
+        for source, packages in config.get("patch", {}).items():
+            if source != "crates-io" and normalize_repo(source) == expected:
                 merged.update(packages)
         return merged
 
-    def assert_patch_path(self, repository: str, package: str, expected: str) -> None:
-        patches = self.patches_for(repository)
-        self.assertIn(package, patches, f"missing {package} override for {repository}")
-        path = patches[package]["path"]
-        # Cargo resolves these generated patch paths from the MattOS workspace
-        # root, not from the .cargo directory containing config.toml.
-        resolved = (ROOT / path).resolve()
-        self.assertEqual(resolved, (ROOT / expected).resolve())
+    def assert_patch_path(self, component: str, repository: str, package: str, expected: str) -> None:
+        patches = self.patches_for(component, repository)
+        self.assertIn(package, patches, f"missing {package} override for {component}")
+        self.assertEqual(pathlib.Path(patches[package]["path"]).resolve(), (ROOT / expected).resolve())
 
-    def test_libcosmic_consumers_use_mattos_sources(self) -> None:
-        repo = "https://github.com/pop-os/libcosmic"
-        self.assert_patch_path(repo, "libcosmic", "src/desktop/cosmic/libcosmic")
-        self.assert_patch_path(repo, "cosmic-config", "src/desktop/cosmic/libcosmic/cosmic-config")
-        self.assert_patch_path(repo, "cosmic-theme", "src/desktop/cosmic/libcosmic/cosmic-theme")
+    def test_no_repo_root_patch_config(self) -> None:
+        self.assertFalse((ROOT / ".cargo" / "config.toml").exists())
 
-    def test_iced_duplicates_collapse_to_first_class_component(self) -> None:
-        repo = "https://github.com/pop-os/libcosmic"
-        self.assert_patch_path(repo, "iced", "src/desktop/cosmic/iced")
-        self.assert_patch_path(repo, "iced_core", "src/desktop/cosmic/iced/core")
-        self.assert_patch_path(repo, "iced_tiny_skia", "src/desktop/cosmic/iced/tiny_skia")
-        self.assert_patch_path(repo, "iced_wgpu", "src/desktop/cosmic/iced/wgpu")
-        self.assert_patch_path(repo, "iced_winit", "src/desktop/cosmic/iced/winit")
+    def test_unrelated_workspaces_receive_no_cosmic_patches(self) -> None:
+        self.assertIsNone(self.index["components"]["brush"].get("config"))
+        self.assertIsNone(self.index["components"]["coreutils"].get("config"))
 
-    def test_cosmic_protocols_uses_first_class_component(self) -> None:
-        repo = "https://github.com/pop-os/cosmic-protocols"
-        self.assert_patch_path(repo, "cosmic-protocols", "src/desktop/cosmic/cosmic-protocols")
+    def test_cosmic_applibrary_uses_owned_dependencies(self) -> None:
         self.assert_patch_path(
-            repo,
-            "cosmic-client-toolkit",
-            "src/desktop/cosmic/cosmic-protocols/client-toolkit",
+            "cosmic-applibrary",
+            "https://github.com/pop-os/libcosmic",
+            "libcosmic",
+            "src/desktop/cosmic/libcosmic",
+        )
+        self.assert_patch_path(
+            "cosmic-applibrary",
+            "https://github.com/pop-os/cosmic-applets",
+            "cosmic-app-list-config",
+            "src/desktop/cosmic/cosmic-applets/cosmic-app-list/cosmic-app-list-config",
+        )
+
+    def test_cosmic_panel_uses_owned_libcosmic_and_protocols(self) -> None:
+        self.assert_patch_path(
+            "cosmic-panel", "https://github.com/pop-os/libcosmic", "libcosmic", "src/desktop/cosmic/libcosmic"
+        )
+        self.assert_patch_path(
+            "cosmic-panel",
+            "https://github.com/pop-os/cosmic-protocols",
+            "cosmic-protocols",
+            "src/desktop/cosmic/cosmic-protocols",
         )
 
     def test_libcosmic_has_no_private_iced_path_edges(self) -> None:
-        manifest = tomllib.loads(
-            (ROOT / "src/desktop/cosmic/libcosmic/Cargo.toml").read_text()
-        )
+        manifest = tomllib.loads((ROOT / "src/desktop/cosmic/libcosmic/Cargo.toml").read_text())
         for name in [
-            "iced",
-            "iced_runtime",
-            "iced_renderer",
-            "iced_core",
-            "iced_widget",
-            "iced_futures",
-            "iced_accessibility",
-            "iced_tiny_skia",
-            "iced_winit",
-            "iced_wgpu",
+            "iced", "iced_runtime", "iced_renderer", "iced_core", "iced_widget",
+            "iced_futures", "iced_accessibility", "iced_tiny_skia", "iced_winit", "iced_wgpu",
         ]:
-            path = manifest["dependencies"][name]["path"]
-            self.assertTrue(path.startswith("../iced"), f"{name} still uses private path {path}")
+            self.assertTrue(manifest["dependencies"][name]["path"].startswith("../iced"))
         self.assertEqual(manifest["build-dependencies"]["build_helpers"]["path"], "../iced/build_helpers")
 
-    def test_libcosmic_cosmic_config_uses_first_class_iced(self) -> None:
-        manifest = tomllib.loads(
-            (ROOT / "src/desktop/cosmic/libcosmic/cosmic-config/Cargo.toml").read_text()
-        )
-        self.assertEqual(manifest["dependencies"]["iced"]["path"], "../../iced/")
-        self.assertEqual(manifest["dependencies"]["iced_futures"]["path"], "../../iced/futures/")
-
-    def test_nested_workspace_patch_preserves_owner_workspace(self) -> None:
-        repo = "https://github.com/pop-os/cosmic-applets"
-        expected = "src/desktop/cosmic/cosmic-applets/cosmic-app-list/cosmic-app-list-config"
-        self.assert_patch_path(repo, "cosmic-app-list-config", expected)
-        manifest = tomllib.loads((ROOT / expected / "Cargo.toml").read_text())
-        self.assertEqual(manifest["package"]["workspace"], "../..")
-
-    def test_every_patched_workspace_inheriting_crate_names_its_workspace(self) -> None:
+    def test_every_emitted_nested_patch_preserves_workspace(self) -> None:
         failures = []
-        for source, packages in self.config.get("patch", {}).items():
-            if source == "crates-io":
+        for component, metadata in self.index["components"].items():
+            config_path = metadata.get("config")
+            if not config_path:
                 continue
-            for package, spec in packages.items():
-                crate = (ROOT / spec["path"]).resolve()
-                manifest_path = crate / "Cargo.toml"
-                manifest = tomllib.loads(manifest_path.read_text())
-                if not manifest_uses_workspace_dependencies(manifest):
-                    continue
-                # A package may inherit directly from a workspace defined in its
-                # own manifest. Nested patch targets need an explicit package.workspace
-                # pointer so Cargo can load them outside the original workspace root.
-                if "workspace" in manifest:
-                    continue
-                package_table = manifest.get("package", {})
-                if not isinstance(package_table.get("workspace"), str):
-                    failures.append(f"{package}: {manifest_path.relative_to(ROOT)}")
-        self.assertEqual(
-            failures,
-            [],
-            "patched crates use workspace-inherited dependencies without an explicit owning workspace: "
-            + ", ".join(failures),
-        )
-
-    def test_cosmic_bg_config_preserves_owner_workspace(self) -> None:
-        repo = "https://github.com/pop-os/cosmic-bg"
-        expected = "src/desktop/cosmic/cosmic-bg/config"
-        self.assert_patch_path(repo, "cosmic-bg-config", expected)
-        manifest = tomllib.loads((ROOT / expected / "Cargo.toml").read_text())
-        self.assertEqual(manifest["package"]["workspace"], "..")
+            config = tomllib.loads((ROOT / config_path).read_text())
+            for packages in config.get("patch", {}).values():
+                for package, spec in packages.items():
+                    crate = pathlib.Path(spec["path"]).resolve()
+                    manifest_path = crate / "Cargo.toml"
+                    manifest = tomllib.loads(manifest_path.read_text())
+                    if not uses_workspace(manifest) or "workspace" in manifest:
+                        continue
+                    package_table = manifest.get("package", {})
+                    if not isinstance(package_table.get("workspace"), str):
+                        failures.append(f"{component}:{package}:{manifest_path.relative_to(ROOT)}")
+        self.assertEqual(failures, [])
 
 
 if __name__ == "__main__":
