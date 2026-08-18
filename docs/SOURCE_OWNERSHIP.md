@@ -30,7 +30,9 @@ Cargo `[patch]` is intentionally not the ownership enforcement mechanism. `[patc
 
 `DevUtils/source_ownership_graph.py` instead rewrites dependency declarations in derived build mirrors before Cargo resolves them. The authoritative imported trees under `src/` remain pristine.
 
-The consumer being built remains in its normal `out/build/...` source mirror. Additional owned dependencies are materialized under `out/source-ownership/sources/<component>`. MattOS output-only patches are applied to those dependency mirrors before their manifests are rewritten.
+The consumer being built remains in its normal `out/build/...` source mirror. Additional owned dependencies are materialized under canonical, reusable `out/source-ownership/sources/<component>` mirrors. Shared mirrors never record a path into another stage's private `out/build/...` tree; only the top-level consumer's own manifests may use its private consumer path. Per-component filesystem locks serialize shared-mirror mutation so multiple build processes cannot copy, patch, or rewrite the same canonical mirror concurrently.
+
+MattOS output-only patches are validated and applied to dependency mirrors before manifest rewriting. Patch manifests contain Git-format diffs, so source ownership uses `git apply --check` followed by `git apply --whitespace=error-all`, matching MattOS's existing output-patch regression semantics. It does not use GNU `patch`, whose interpretation of Git metadata can differ for valid Git-format patches.
 
 Ownership decisions are source-qualified:
 
@@ -47,14 +49,14 @@ For COSMIC this means, for example, a Git edge requesting `libcosmic` from the l
 `DevUtils/cargo_source_owned.py` is the Cargo dispatcher used by the MattOS launcher. For Cargo commands operating on an `out/build/...` mirror it:
 
 1. identifies the first-class component represented by the build mirror;
-2. prepares the transitive MattOS-owned source mirrors and rewrites their dependency edges;
+2. prepares the transitive MattOS-owned canonical source mirrors and rewrites dependency edges;
 3. runs `cargo metadata` against the rewritten graph;
 4. verifies that an owned Git package did not remain external and that canonical first-class path/registry packages resolve from their expected MattOS mirror; and
 5. only after verification runs the original Cargo command, including its original `--locked` policy.
 
 A requested package that is not actually present in an owned repository or its declared replacement closure is not invented. It may remain external until MattOS imports/owns that source. Once the matching source is owned, external fallback is forbidden.
 
-The dispatcher never rewrites authoritative imported source under `src/`. Source-ownership transformations and any lockfile reconciliation happen only in derived output mirrors.
+The dispatcher never rewrites authoritative imported source under `src/`. Source-ownership transformations happen only in derived output mirrors.
 
 ## Diagnostics
 
@@ -70,7 +72,7 @@ A runtime relationship is not automatically a rebuild relationship. For example,
 
 ## Cache identity
 
-Source ownership changes dependency identity. Stage cache inputs must ultimately describe the canonical MattOS source/output that was used to produce an artifact, not an external reference that existed in the imported upstream manifest before mirror rewriting. This keeps source closure and incremental correctness aligned: changing an owned library invalidates real consumers, while changing an unrelated runtime component does not fan out into needless recompilation.
+Source ownership changes dependency identity. Stage cache inputs must ultimately describe the canonical MattOS source/output that was used to produce an artifact, not an external reference that existed in the imported upstream manifest before mirror rewriting. Shared mirror content is consumer-independent, so one canonical mirror fingerprint represents one deterministic rewritten source graph. Changing an owned library invalidates real consumers, while changing an unrelated runtime component does not fan out into needless recompilation.
 
 ## Maintenance
 
@@ -81,4 +83,4 @@ python3 DevUtils/generate_source_overrides.py
 python3 DevUtils/test_source_ownership_overrides.py
 ```
 
-The first command validates source/patch provenance and regenerates the derived ownership catalog. The second exercises source-qualified resolution, canonical mirror rewriting, gitlink replacement behavior, metadata fail-closed checks, provenance agreement, and preservation of pristine imported manifests.
+The first command validates source/patch provenance and regenerates the derived ownership catalog. The second exercises source-qualified resolution, canonical/private mirror separation, Git-format output-patch application, gitlink replacement behavior, metadata fail-closed checks, provenance agreement, and preservation of pristine imported manifests.
