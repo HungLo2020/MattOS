@@ -94,6 +94,17 @@ class SourceOwnershipOverridesTest(unittest.TestCase):
         self.assertEqual(manifest["dependencies"]["iced"]["path"], "../../iced/")
         self.assertEqual(manifest["dependencies"]["iced_futures"]["path"], "../../iced/futures/")
 
+    def test_nested_workspace_patch_preserves_owner_workspace(self) -> None:
+        repo = "https://github.com/pop-os/cosmic-applets"
+        expected = "src/desktop/cosmic/cosmic-applets/cosmic-app-list/cosmic-app-list-config"
+        self.assert_patch_path(repo, "cosmic-app-list-config", expected)
+        manifest = tomllib.loads((ROOT / expected / "Cargo.toml").read_text())
+        self.assertEqual(manifest["package"]["workspace"], "../..")
+        workspace = tomllib.loads(
+            (ROOT / "src/desktop/cosmic/cosmic-applets/Cargo.toml").read_text()
+        )
+        self.assertIn("libcosmic", workspace["workspace"]["dependencies"])
+
 
 if __name__ == "__main__":
     unittest.main()
