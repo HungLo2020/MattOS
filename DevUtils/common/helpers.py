@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -60,7 +61,7 @@ def ensure_tools(tools: Iterable[str]) -> None:
 
 
 def ensure_source_ownership_overrides(repo_root: Path) -> None:
-    """Generate workspace-scoped Cargo source ownership before Cargo starts."""
+    """Generate the Cargo source-ownership catalog before Cargo starts."""
     generator = repo_root / "DevUtils" / "generate_source_overrides.py"
     if not generator.is_file():
         return
@@ -74,11 +75,11 @@ def ensure_source_ownership_overrides(repo_root: Path) -> None:
             text=True,
         )
     except FileNotFoundError as exc:
-        raise RepoError("python3 is required to generate MattOS source ownership overrides") from exc
+        raise RepoError("python3 is required to generate MattOS source ownership metadata") from exc
     if completed.returncode != 0:
         detail = completed.stderr.strip() or completed.stdout.strip()
         suffix = f": {detail}" if detail else ""
-        raise RepoError(f"failed to generate MattOS source ownership overrides{suffix}")
+        raise RepoError(f"failed to generate MattOS source ownership metadata{suffix}")
 
 
 def prepare_cargo_dispatcher(repo_root: Path) -> tuple[Path, Path]:
@@ -107,7 +108,7 @@ def prepare_cargo_dispatcher(repo_root: Path) -> tuple[Path, Path]:
 
 
 def mattos_build_environment(repo_root: Path) -> Dict[str, str]:
-    """Return the launcher environment with scoped source ownership and disk-backed temp."""
+    """Return the launcher environment with source ownership and disk-backed temp."""
     ensure_source_ownership_overrides(repo_root)
     dispatcher_dir, real_cargo = prepare_cargo_dispatcher(repo_root)
 
@@ -154,6 +155,46 @@ def read_os_release(path: Path = Path("/etc/os-release")) -> Dict[str, str]:
     return data
 
 
+def _ownership_log_failed(text: str) -> bool:
+    if "prepare_error=" in text or "ownership_error=" in text:
+        return True
+    if re.search(r"(?m)^(?:metadata|final)_status=(?!0$)\d+$", text):
+        return True
+    match = re.search(r"(?m)^ownership_failures=(.+)$", text)
+    return bool(match and match.group(1).strip() not in {"[]", "null", ""})
+
+
+def _dump_source_ownership_failure_logs(cwd: Path) -> None:
+    """Surface dispatcher diagnostics when a launcher command fails.
+
+    mattos-build may aggregate parallel stage output, so the child Cargo stderr
+    is not guaranteed to remain visible in the outer command's terminal stream.
+    The dispatcher already persists exact diagnostics under out/. Print failed
+    ownership logs here so a normal run_qemu.py transcript is self-contained.
+    """
+    try:
+        repo_root = find_repo_root(cwd)
+    except RepoError:
+        return
+    logs_dir = repo_root / "out" / "source-ownership" / "logs"
+    if not logs_dir.is_dir():
+        return
+
+    failed: list[tuple[float, Path, str]] = []
+    for path in logs_dir.glob("*.log"):
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+            if _ownership_log_failed(text):
+                failed.append((path.stat().st_mtime, path, text))
+        except OSError:
+            continue
+
+    for _, path, text in sorted(failed, reverse=True)[:4]:
+        print(f"\n===== MattOS source ownership failure: {path.relative_to(repo_root)} =====", file=os.sys.stderr)
+        print(text.rstrip(), file=os.sys.stderr)
+        print("===== end source ownership failure =====\n", file=os.sys.stderr)
+
+
 def run_command(
     args: Sequence[str],
     cwd: Path,
@@ -171,6 +212,7 @@ def run_command(
         raise RepoError(f"failed to execute {args[0]}: {exc}") from exc
 
     if check and completed.returncode != 0:
+        _dump_source_ownership_failure_logs(cwd)
         raise RepoError(
             f"command failed with exit code {completed.returncode}: {' '.join(args)}"
         )
