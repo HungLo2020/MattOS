@@ -1,6 +1,8 @@
 import os
+import re
 import shutil
 import subprocess
+import time
 from pathlib import Path
 from typing import Dict, Iterable, Sequence
 
@@ -59,23 +61,71 @@ def ensure_tools(tools: Iterable[str]) -> None:
         raise RepoError(f"missing required tools: {', '.join(missing)}")
 
 
+def ensure_source_ownership_overrides(repo_root: Path) -> None:
+    """Generate the Cargo source-ownership catalog before Cargo starts."""
+    generator = repo_root / "DevUtils" / "generate_source_overrides.py"
+    if not generator.is_file():
+        return
+    try:
+        completed = subprocess.run(
+            ["python3", str(generator)],
+            cwd=str(repo_root),
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+    except FileNotFoundError as exc:
+        raise RepoError("python3 is required to generate MattOS source ownership metadata") from exc
+    if completed.returncode != 0:
+        detail = completed.stderr.strip() or completed.stdout.strip()
+        suffix = f": {detail}" if detail else ""
+        raise RepoError(f"failed to generate MattOS source ownership metadata{suffix}")
+
+
+def prepare_cargo_dispatcher(repo_root: Path) -> tuple[Path, Path]:
+    """Return (dispatcher_dir, real cargo proxy) without shadowing unrelated workspaces.
+
+    Do not resolve the cargo path through symlinks. rustup deliberately installs
+    ~/.cargo/bin/cargo as a proxy symlink to the rustup binary and selects Cargo
+    from argv[0]. Dereferencing that symlink would execute `rustup` as rustup and
+    make normal Cargo flags such as `-p` get parsed as rustup arguments.
+    """
+    real_cargo = shutil.which("cargo")
+    if not real_cargo:
+        raise RepoError("cargo is required to prepare MattOS source ownership")
+    real_cargo_path = Path(real_cargo).absolute()
+    if real_cargo_path.name != "cargo":
+        raise RepoError(f"resolved Cargo command does not preserve cargo proxy identity: {real_cargo_path}")
+    dispatcher_source = repo_root / "DevUtils" / "cargo_source_owned.py"
+    if not dispatcher_source.is_file():
+        raise RepoError(f"missing MattOS Cargo dispatcher: {dispatcher_source}")
+    dispatcher_dir = repo_root / "out" / "source-ownership" / "bin"
+    dispatcher_dir.mkdir(parents=True, exist_ok=True)
+    dispatcher = dispatcher_dir / "cargo"
+    shutil.copy2(dispatcher_source, dispatcher)
+    dispatcher.chmod(0o755)
+    return dispatcher_dir, real_cargo_path
+
+
 def mattos_build_environment(repo_root: Path) -> Dict[str, str]:
-    """Return the launcher environment with MattOS-owned temporary storage."""
+    """Return the launcher environment with source ownership and disk-backed temp."""
+    ensure_source_ownership_overrides(repo_root)
+    dispatcher_dir, real_cargo = prepare_cargo_dispatcher(repo_root)
+
     build_tmp = ensure_project_temp_root(repo_root)
     try:
-        build_tmp.mkdir(parents=True, exist_ok=True)
         probe = build_tmp / f".launcher-write-probe-{os.getpid()}"
         probe.write_text("mattos launcher temp probe\n", encoding="utf-8")
         probe.unlink()
     except OSError as exc:
-        raise RepoError(
-            f"MattOS build temp directory is not writable: {build_tmp}: {exc}"
-        ) from exc
+        raise RepoError(f"MattOS build temp directory is not writable: {build_tmp}: {exc}") from exc
 
     environment = os.environ.copy()
-    # Always prefer repository-owned storage so a full host /tmp cannot break
-    # an otherwise healthy build. This policy matches mattos-build itself.
     environment["TMPDIR"] = str(build_tmp)
+    environment["MATTOS_REPO_ROOT"] = str(repo_root.resolve())
+    environment["MATTOS_REAL_CARGO"] = str(real_cargo)
+    environment["PATH"] = str(dispatcher_dir) + os.pathsep + environment.get("PATH", "")
     return environment
 
 
@@ -96,7 +146,7 @@ def read_os_release(path: Path = Path("/etc/os-release")) -> Dict[str, str]:
             continue
         key, value = line.split("=", 1)
         value = value.strip()
-        if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in {'\"', "'"}:
             value = value[1:-1]
         data[key] = value
 
@@ -104,6 +154,44 @@ def read_os_release(path: Path = Path("/etc/os-release")) -> Dict[str, str]:
         raise RepoError(f"invalid {path}: missing ID field")
 
     return data
+
+
+def _ownership_log_failed(text: str) -> bool:
+    if "prepare_error=" in text or "ownership_error=" in text:
+        return True
+    if re.search(r"(?m)^(?:metadata|final)_status=(?!0$)\d+$", text):
+        return True
+    match = re.search(r"(?m)^ownership_failures=(.+)$", text)
+    return bool(match and match.group(1).strip() not in {"[]", "null", ""})
+
+
+def _dump_source_ownership_failure_logs(cwd: Path, started_at: float) -> None:
+    """Surface dispatcher diagnostics produced by the command that just failed."""
+    try:
+        repo_root = find_repo_root(cwd)
+    except RepoError:
+        return
+    logs_dir = repo_root / "out" / "source-ownership" / "logs"
+    if not logs_dir.is_dir():
+        return
+
+    failed: list[tuple[float, Path, str]] = []
+    for path in logs_dir.glob("*.log"):
+        try:
+            mtime = path.stat().st_mtime
+            # Filesystems with coarse timestamps can round backward slightly.
+            if mtime < started_at - 2.0:
+                continue
+            text = path.read_text(encoding="utf-8", errors="replace")
+            if _ownership_log_failed(text):
+                failed.append((mtime, path, text))
+        except OSError:
+            continue
+
+    for _, path, text in sorted(failed, reverse=True)[:4]:
+        print(f"\n===== MattOS source ownership failure: {path.relative_to(repo_root)} =====", file=os.sys.stderr)
+        print(text.rstrip(), file=os.sys.stderr)
+        print("===== end source ownership failure =====\n", file=os.sys.stderr)
 
 
 def run_command(
@@ -117,12 +205,14 @@ def run_command(
     if dry_run:
         return 0
 
+    started_at = time.time()
     try:
         completed = subprocess.run(args, cwd=str(cwd), check=False, env=env)
     except FileNotFoundError as exc:
         raise RepoError(f"failed to execute {args[0]}: {exc}") from exc
 
     if check and completed.returncode != 0:
+        _dump_source_ownership_failure_logs(cwd, started_at)
         raise RepoError(
             f"command failed with exit code {completed.returncode}: {' '.join(args)}"
         )
