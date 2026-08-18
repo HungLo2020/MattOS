@@ -1,35 +1,31 @@
 #!/usr/bin/env python3
-"""Generate repo-wide Cargo source overrides from MattOS-owned source trees.
+"""Generate workspace-scoped Cargo overrides for MattOS-owned source trees.
 
-First-class source roots come from upstream/sources.toml. A Cargo package is a
-project-wide canonical owner only when it is the root package of one of those
-first-class components. Nested packages remain private to their owning upstream
-component unless another manifest explicitly depends on that component's Git
-repository and requests that nested package by name.
+A repo-root Cargo [patch] table is deliberately forbidden: Cargo applies it to
+unrelated nested workspaces and makes otherwise unchanged --locked lockfiles
+stale.  Instead this generator writes one config per first-class component under
+out/source-ownership/cargo/<component>/config.toml.  The MattOS Cargo wrapper
+selects only the config belonging to the component currently being built.
 
-Nested patched crates that inherit workspace dependencies or package metadata
-must explicitly identify their authoritative workspace. The generator validates
-all emitted patch targets up front so Cargo does not fail one crate at a time.
-
-The generated .cargo/config.toml contains paths only. Cargo resolves `[patch]`
-paths relative to the workspace/root invocation context, so generated paths are
-repository-root-relative. Package versions continue to come from authoritative
-vendored Cargo.toml files.
+First-class source roots come from upstream/sources.toml.  Root Cargo packages
+are globally canonical; nested packages may satisfy Git dependencies on their
+own component repository.  Versions always come from the vendored manifests.
 """
-
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import pathlib
 import subprocess
-import sys
 import tomllib
 from collections import defaultdict
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SOURCES = ROOT / "upstream" / "sources.toml"
-OUTPUT = ROOT / ".cargo" / "config.toml"
+OUTPUT_ROOT = ROOT / "out" / "source-ownership" / "cargo"
+INDEX = OUTPUT_ROOT / "index.json"
+LEGACY_ROOT_CONFIG = ROOT / ".cargo" / "config.toml"
 DEPENDENCY_TABLES = {"dependencies", "dev-dependencies", "build-dependencies"}
 
 
@@ -41,50 +37,39 @@ def norm_repo(url: str) -> str:
 
 
 def load_components() -> list[dict[str, str]]:
-    with SOURCES.open("rb") as fh:
-        data = tomllib.load(fh)
-    components = []
+    with SOURCES.open("rb") as stream:
+        data = tomllib.load(stream)
+    out = []
     for raw in data.get("component", []):
-        path = raw.get("path")
-        repo = raw.get("repo")
-        name = raw.get("name")
-        if not (path and repo and name):
-            continue
-        absolute = ROOT / path
-        if absolute.exists():
-            components.append({"name": name, "repo": repo, "path": path})
-    return components
+        name, repo, path = raw.get("name"), raw.get("repo"), raw.get("path")
+        if all(isinstance(v, str) and v for v in (name, repo, path)) and (ROOT / path).exists():
+            out.append({"name": name, "repo": repo, "path": path})
+    return out
 
 
 def tracked_manifests() -> list[pathlib.Path]:
-    proc = subprocess.run(
+    result = subprocess.run(
         ["git", "ls-files", "-z", "--", ":(glob)src/**/Cargo.toml"],
         cwd=ROOT,
         check=True,
         stdout=subprocess.PIPE,
     )
-    return [ROOT / pathlib.Path(p.decode()) for p in proc.stdout.split(b"\0") if p]
+    return [ROOT / pathlib.Path(raw.decode()) for raw in result.stdout.split(b"\0") if raw]
 
 
-def read_manifest(manifest: pathlib.Path):
+def read_manifest(path: pathlib.Path):
     try:
-        with manifest.open("rb") as fh:
-            return tomllib.load(fh)
+        with path.open("rb") as stream:
+            return tomllib.load(stream)
     except (OSError, tomllib.TOMLDecodeError):
         return None
 
 
 def package_identity(manifest: pathlib.Path):
     data = read_manifest(manifest)
-    if data is None:
-        return None
-    package = data.get("package")
-    if not isinstance(package, dict):
-        return None
-    name = package.get("name")
-    if not isinstance(name, str):
-        return None
-    return name, manifest.parent, data
+    package = data.get("package") if isinstance(data, dict) else None
+    name = package.get("name") if isinstance(package, dict) else None
+    return (name, manifest.parent, data) if isinstance(name, str) else None
 
 
 def dependency_specs(table, out):
@@ -115,234 +100,215 @@ def collect_dependencies(data):
 
 def uses_workspace_inheritance(value) -> bool:
     if isinstance(value, dict):
-        if value.get("workspace") is True:
-            return True
-        return any(uses_workspace_inheritance(item) for item in value.values())
+        return value.get("workspace") is True or any(uses_workspace_inheritance(v) for v in value.values())
     if isinstance(value, list):
-        return any(uses_workspace_inheritance(item) for item in value)
+        return any(uses_workspace_inheritance(v) for v in value)
     return False
 
 
-def explicit_workspace_path(data) -> str | None:
-    package = data.get("package")
-    if isinstance(package, dict):
-        value = package.get("workspace")
-        if isinstance(value, str):
-            return value
-    return None
-
-
-def component_for_path(path: pathlib.Path, components, component_roots):
+def component_for_path(path: pathlib.Path, components, roots):
     matches = []
     resolved = path.resolve()
     for component in components:
-        root = component_roots[component["name"]]
+        root = roots[component["name"]]
         try:
             relative = resolved.relative_to(root)
         except ValueError:
             continue
-        matches.append((len(relative.parts), component, root))
-    if not matches:
-        return None
-    # Prefer the nearest first-class root when components are nested.
-    return sorted(matches, key=lambda item: item[0])[0][1:]
-
-
-def validate_patched_nested_workspace(path, package, components, component_roots, unresolved):
-    owner = component_for_path(path, components, component_roots)
-    if owner is None:
-        return
-    component, root = owner
-    if path.resolve() == root.resolve():
-        return
-    manifest = path / "Cargo.toml"
-    data = read_manifest(manifest)
-    if data is None or not uses_workspace_inheritance(data):
-        return
-    declared = explicit_workspace_path(data)
-    expected = pathlib.Path(os.path.relpath(root, path)).as_posix()
-    if declared is None:
-        unresolved.append(
-            f"{manifest.relative_to(ROOT)}: patched nested package {package!r} inherits workspace values "
-            f"but has no package.workspace; authoritative component {component['name']} requires workspace = {expected!r}"
-        )
-        return
-    resolved = (path / declared).resolve()
-    if resolved != root.resolve():
-        unresolved.append(
-            f"{manifest.relative_to(ROOT)}: package.workspace resolves to {resolved}, but authoritative "
-            f"component {component['name']} workspace is {root.relative_to(ROOT)}"
-        )
-
-
-def rel_from_config(path: pathlib.Path) -> str:
-    return pathlib.Path(os.path.relpath(path, ROOT)).as_posix()
+        matches.append((len(relative.parts), component))
+    return min(matches, default=None, key=lambda item: item[0])[1] if matches else None
 
 
 def quote(value: str) -> str:
-    return '"' + value.replace('\\', '\\\\').replace('"', '\\"') + '"'
+    return '"' + value.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
 
-def generate() -> str:
-    components = load_components()
-    manifests = tracked_manifests()
-    components_by_repo: dict[str, list[dict[str, str]]] = defaultdict(list)
-    for component in components:
-        components_by_repo[norm_repo(component["repo"])].append(component)
-
-    component_roots = {c["name"]: (ROOT / c["path"]).resolve() for c in components}
-    owned_by_component: dict[str, dict[str, pathlib.Path]] = {}
-    root_owned_packages: dict[str, pathlib.Path] = {}
-    root_owner_conflicts: dict[str, list[pathlib.Path]] = defaultdict(list)
-
-    for component in components:
-        packages: dict[str, pathlib.Path] = {}
-        duplicate_names: set[str] = set()
-        root = component_roots[component["name"]]
-        for manifest in manifests:
-            try:
-                manifest.resolve().relative_to(root)
-            except ValueError:
-                continue
-            identity = package_identity(manifest)
-            if identity is None:
-                continue
-            name, package_path, _ = identity
-            if name in duplicate_names:
-                continue
-            old = packages.get(name)
-            if old is not None and old != package_path:
-                packages.pop(name, None)
-                duplicate_names.add(name)
-                continue
-            packages[name] = package_path
-        owned_by_component[component["name"]] = packages
-
-        root_identity = package_identity(root / "Cargo.toml")
-        if root_identity is not None:
-            root_name, root_path, _ = root_identity
-            previous = root_owned_packages.get(root_name)
-            if previous is None:
-                root_owned_packages[root_name] = root_path
-            elif previous.resolve() != root_path.resolve():
-                root_owner_conflicts[root_name].extend([previous, root_path])
-                root_owned_packages.pop(root_name, None)
-
-    git_patches: dict[str, dict[str, pathlib.Path]] = defaultdict(dict)
-    registry_patches: dict[str, pathlib.Path] = {}
-    unresolved: list[str] = []
-
-    for manifest in manifests:
-        data = read_manifest(manifest)
-        if data is None:
-            continue
-        for key, spec in collect_dependencies(data):
-            package = spec.get("package", key)
-            if not isinstance(package, str):
-                continue
-
-            git = spec.get("git")
-            if isinstance(git, str):
-                matching_components = components_by_repo.get(norm_repo(git), [])
-                if not matching_components:
-                    continue
-                candidate = root_owned_packages.get(package)
-                if candidate is None:
-                    local_candidates = {
-                        owned_by_component.get(component["name"], {}).get(package)
-                        for component in matching_components
-                    }
-                    local_candidates.discard(None)
-                    if len(local_candidates) == 1:
-                        candidate = next(iter(local_candidates))
-                if candidate is not None:
-                    git_patches[git][package] = candidate
-                continue
-
-            path_value = spec.get("path")
-            if isinstance(path_value, str):
-                candidate = root_owned_packages.get(package)
-                if candidate is None:
-                    continue
-                resolved = (manifest.parent / path_value).resolve()
-                if resolved != candidate.resolve():
-                    display_resolved = resolved.relative_to(ROOT) if resolved.is_relative_to(ROOT) else resolved
-                    unresolved.append(
-                        f"{manifest.relative_to(ROOT)}: path dependency {package!r} resolves to "
-                        f"{display_resolved}, but first-class MattOS ownership requires "
-                        f"{candidate.relative_to(ROOT)}"
-                    )
-                continue
-
-            if "workspace" in spec:
-                continue
-            candidate = root_owned_packages.get(package)
-            if candidate is not None:
-                registry_patches[package] = candidate
-
-    if root_owner_conflicts:
-        for package, paths in sorted(root_owner_conflicts.items()):
-            unique = sorted({str(path.relative_to(ROOT)) for path in paths})
-            unresolved.append(
-                f"first-class package {package!r} has multiple component roots: {', '.join(unique)}"
-            )
-
-    # Validate every path Cargo is about to expose through [patch] in one pass.
-    # This catches workspace-inheriting nested crates before Cargo stops at the
-    # first malformed standalone interpretation.
-    emitted = {}
-    for packages in git_patches.values():
-        emitted.update(packages)
-    emitted.update(registry_patches)
-    for package, path in sorted(emitted.items()):
-        validate_patched_nested_workspace(path, package, components, component_roots, unresolved)
-
-    if unresolved:
-        formatted = "\n  ".join(sorted(set(unresolved)))
-        raise SystemExit(
-            "source ownership generation failed; MattOS-owned dependencies must resolve to one canonical source:\n  "
-            + formatted
-        )
-
+def render_config(git_patches, registry_patches) -> str:
     lines = [
         "# GENERATED by DevUtils/generate_source_overrides.py; DO NOT EDIT.",
-        "# MattOS source-ownership invariant: first-class source components",
-        "# listed in upstream/sources.toml own their root Cargo package.",
-        "# Git dependencies on owned component repositories are rebound to",
-        "# packages actually present in those local source trees.",
-        "# Paths below are relative to the MattOS repository root.",
-        "# Package versions are read from the local source manifests.",
+        "# Scoped to one MattOS first-class Cargo component.",
         "",
     ]
     for source in sorted(git_patches, key=norm_repo):
         lines.append(f"[patch.{quote(source)}]")
         for package, path in sorted(git_patches[source].items()):
-            lines.append(f"{package} = {{ path = {quote(rel_from_config(path))} }}")
+            lines.append(f"{package} = {{ path = {quote(str(path.resolve()))} }}")
         lines.append("")
-
     if registry_patches:
         lines.append("[patch.crates-io]")
         for package, path in sorted(registry_patches.items()):
-            lines.append(f"{package} = {{ path = {quote(rel_from_config(path))} }}")
+            lines.append(f"{package} = {{ path = {quote(str(path.resolve()))} }}")
         lines.append("")
-
     return "\n".join(lines)
+
+
+def generate_files() -> dict[str, str]:
+    components = load_components()
+    manifests = tracked_manifests()
+    roots = {c["name"]: (ROOT / c["path"]).resolve() for c in components}
+    by_repo = defaultdict(list)
+    for component in components:
+        by_repo[norm_repo(component["repo"])].append(component)
+
+    manifests_by_component = defaultdict(list)
+    packages_by_component: dict[str, dict[str, pathlib.Path]] = defaultdict(dict)
+    duplicate_packages: dict[str, set[str]] = defaultdict(set)
+    root_packages: dict[str, pathlib.Path] = {}
+    root_conflicts: dict[str, list[pathlib.Path]] = defaultdict(list)
+
+    for manifest in manifests:
+        owner = component_for_path(manifest.parent, components, roots)
+        if owner is None:
+            continue
+        manifests_by_component[owner["name"]].append(manifest)
+        identity = package_identity(manifest)
+        if identity is None:
+            continue
+        package, path, _ = identity
+        current = packages_by_component[owner["name"]].get(package)
+        if current is not None and current.resolve() != path.resolve():
+            duplicate_packages[owner["name"]].add(package)
+            packages_by_component[owner["name"]].pop(package, None)
+        elif package not in duplicate_packages[owner["name"]]:
+            packages_by_component[owner["name"]][package] = path
+
+    for component in components:
+        identity = package_identity(roots[component["name"]] / "Cargo.toml")
+        if identity is None:
+            continue
+        package, path, _ = identity
+        previous = root_packages.get(package)
+        if previous is None:
+            root_packages[package] = path
+        elif previous.resolve() != path.resolve():
+            root_conflicts[package].extend([previous, path])
+            root_packages.pop(package, None)
+
+    unresolved = []
+    if root_conflicts:
+        for package, paths in root_conflicts.items():
+            unique = sorted({str(p.relative_to(ROOT)) for p in paths})
+            unresolved.append(f"first-class package {package!r} has multiple component roots: {', '.join(unique)}")
+
+    configs: dict[str, str] = {}
+    index = {"version": 1, "components": {}}
+    OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
+
+    for consumer in components:
+        name = consumer["name"]
+        git_patches = defaultdict(dict)
+        registry_patches = {}
+        emitted = {}
+
+        for manifest in manifests_by_component.get(name, []):
+            data = read_manifest(manifest)
+            if data is None:
+                continue
+            for key, spec in collect_dependencies(data):
+                package = spec.get("package", key)
+                if not isinstance(package, str):
+                    continue
+                git = spec.get("git")
+                if isinstance(git, str):
+                    matches = by_repo.get(norm_repo(git), [])
+                    if not matches:
+                        continue
+                    candidate = root_packages.get(package)
+                    if candidate is None:
+                        local = {
+                            packages_by_component.get(component["name"], {}).get(package)
+                            for component in matches
+                        }
+                        local.discard(None)
+                        if len(local) == 1:
+                            candidate = next(iter(local))
+                    if candidate is not None:
+                        git_patches[git][package] = candidate
+                        emitted[package] = candidate
+                    continue
+
+                path_value = spec.get("path")
+                if isinstance(path_value, str):
+                    canonical = root_packages.get(package)
+                    if canonical is not None:
+                        resolved = (manifest.parent / path_value).resolve()
+                        if resolved != canonical.resolve():
+                            display = resolved.relative_to(ROOT) if resolved.is_relative_to(ROOT) else resolved
+                            unresolved.append(
+                                f"{manifest.relative_to(ROOT)}: path dependency {package!r} resolves to {display}, "
+                                f"but first-class MattOS ownership requires {canonical.relative_to(ROOT)}"
+                            )
+                    continue
+
+                if "workspace" in spec:
+                    continue
+                canonical = root_packages.get(package)
+                if canonical is not None:
+                    registry_patches[package] = canonical
+                    emitted[package] = canonical
+
+        for package, path in emitted.items():
+            owner = component_for_path(path, components, roots)
+            if owner is None or path.resolve() == roots[owner["name"]]:
+                continue
+            data = read_manifest(path / "Cargo.toml")
+            if data is None or not uses_workspace_inheritance(data):
+                continue
+            package_table = data.get("package")
+            declared = package_table.get("workspace") if isinstance(package_table, dict) else None
+            expected = pathlib.Path(os.path.relpath(roots[owner["name"]], path)).as_posix()
+            if not isinstance(declared, str):
+                unresolved.append(
+                    f"{(path / 'Cargo.toml').relative_to(ROOT)}: patched nested package {package!r} inherits "
+                    f"workspace values but has no package.workspace; authoritative component {owner['name']} "
+                    f"requires workspace = {expected!r}"
+                )
+            elif (path / declared).resolve() != roots[owner["name"]]:
+                unresolved.append(
+                    f"{(path / 'Cargo.toml').relative_to(ROOT)}: package.workspace does not resolve to "
+                    f"authoritative component {owner['name']}"
+                )
+
+        config_path = OUTPUT_ROOT / name / "config.toml"
+        if git_patches or registry_patches:
+            text = render_config(git_patches, registry_patches)
+            config_path.parent.mkdir(parents=True, exist_ok=True)
+            config_path.write_text(text, encoding="utf-8")
+            configs[name] = text
+            index["components"][name] = {
+                "source_path": consumer["path"],
+                "config": str(config_path.relative_to(ROOT)),
+            }
+        else:
+            if config_path.exists():
+                config_path.unlink()
+            index["components"][name] = {"source_path": consumer["path"], "config": None}
+
+    if unresolved:
+        raise SystemExit(
+            "source ownership generation failed; MattOS-owned dependencies must resolve to one canonical source:\n  "
+            + "\n  ".join(sorted(set(unresolved)))
+        )
+
+    INDEX.write_text(json.dumps(index, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    # Remove the obsolete global override immediately so unrelated workspaces
+    # such as Brush/Coreutils never inherit stale COSMIC patches.
+    if LEGACY_ROOT_CONFIG.exists():
+        LEGACY_ROOT_CONFIG.unlink()
+    return configs
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--check", action="store_true", help="fail if .cargo/config.toml is stale")
+    parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
-    generated = generate()
-    if args.check:
-        current = OUTPUT.read_text() if OUTPUT.exists() else ""
-        if current != generated:
-            print("MattOS Cargo source overrides are stale; run DevUtils/generate_source_overrides.py", file=sys.stderr)
-            return 1
-        return 0
-    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT.write_text(generated)
-    print(f"wrote {OUTPUT.relative_to(ROOT)}")
+    before = {}
+    if args.check and INDEX.exists():
+        before["index"] = INDEX.read_text(encoding="utf-8")
+    generate_files()
+    if args.check and before.get("index") != INDEX.read_text(encoding="utf-8"):
+        raise SystemExit("MattOS source ownership index was stale")
+    print(f"wrote workspace-scoped Cargo source ownership under {OUTPUT_ROOT.relative_to(ROOT)}")
     return 0
 
 
