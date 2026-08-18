@@ -62,6 +62,8 @@ class SourceOwnershipOverridesTest(unittest.TestCase):
     def test_unrelated_workspaces_receive_no_cosmic_patches(self) -> None:
         self.assertIsNone(self.index["components"]["brush"].get("config"))
         self.assertIsNone(self.index["components"]["coreutils"].get("config"))
+        self.assertEqual(self.index["components"]["brush"].get("owned_packages"), [])
+        self.assertEqual(self.index["components"]["coreutils"].get("owned_packages"), [])
 
     def test_cosmic_applibrary_uses_owned_dependencies(self) -> None:
         self.assert_patch_path(
@@ -86,6 +88,28 @@ class SourceOwnershipOverridesTest(unittest.TestCase):
             "https://github.com/pop-os/cosmic-protocols",
             "cosmic-protocols",
             "src/desktop/cosmic/cosmic-protocols",
+        )
+
+    def test_cosmic_comp_records_complete_owned_lock_set(self) -> None:
+        owned = set(self.index["components"]["cosmic-comp"].get("owned_packages", []))
+        for package in [
+            "libcosmic",
+            "cosmic-config",
+            "cosmic-protocols",
+            "cosmic-settings-config",
+            "cosmic-settings-daemon-config",
+            "iced_futures",
+            "iced_core",
+        ]:
+            self.assertIn(package, owned, f"cosmic-comp ownership index lost {package}")
+        self.assert_patch_path(
+            "cosmic-comp", "https://github.com/pop-os/libcosmic", "libcosmic", "src/desktop/cosmic/libcosmic"
+        )
+        self.assert_patch_path(
+            "cosmic-comp",
+            "https://github.com/pop-os/libcosmic",
+            "cosmic-config",
+            "src/desktop/cosmic/libcosmic/cosmic-config",
         )
 
     def test_libcosmic_has_no_private_iced_path_edges(self) -> None:
