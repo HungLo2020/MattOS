@@ -299,7 +299,7 @@ sync = "copy"
 name = "cosmic-files"
 repo = "https://github.com/pop-os/cosmic-files.git"
 branch = "master"
-revision = "24e34eaa0f0acf4e24ea1338ad4bbde3a138e1f3"
+revision = "6e210a3753c814118b9f8daf5a83cd53136f28d9"
 path = "src/desktop/cosmic/cosmic-files"
 sync = "copy"
 
