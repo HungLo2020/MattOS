@@ -8,6 +8,7 @@ import os
 import pathlib
 import subprocess
 import sys
+import tomllib
 from datetime import datetime, timezone
 
 
@@ -48,7 +49,6 @@ def component_for_cwd(root: pathlib.Path, cwd: pathlib.Path, index: dict) -> str
 
 
 def metadata_resolution_args(original: list[str]) -> list[str]:
-    """Return Cargo metadata flags that can affect dependency/lock resolution."""
     selected: list[str] = []
     value_flags = {"--manifest-path", "--features", "-F"}
     switch_flags = {"--all-features", "--no-default-features"}
@@ -70,7 +70,6 @@ def metadata_resolution_args(original: list[str]) -> list[str]:
 
 
 def effective_manifest(cwd: pathlib.Path, original: list[str]) -> pathlib.Path | None:
-    """Resolve the manifest Cargo will use for this invocation."""
     i = 0
     while i < len(original):
         arg = original[i]
@@ -101,13 +100,54 @@ def append_trace(trace: pathlib.Path, message: str) -> None:
         stream.write(message.rstrip("\n") + "\n")
 
 
+def external_owned_entries(lockfile: pathlib.Path, owned_packages: set[str]) -> list[tuple[str, str, str]]:
+    """Return owned lock entries that still resolve through Git/registry sources."""
+    try:
+        with lockfile.open("rb") as stream:
+            data = tomllib.load(stream)
+    except (OSError, tomllib.TOMLDecodeError) as exc:
+        raise SystemExit(f"cannot inspect derived Cargo.lock {lockfile}: {exc}") from exc
+    out = []
+    for package in data.get("package", []):
+        if not isinstance(package, dict):
+            continue
+        name = package.get("name")
+        version = package.get("version")
+        source = package.get("source")
+        if name in owned_packages and isinstance(version, str) and isinstance(source, str):
+            out.append((name, version, source))
+    return out
+
+
+def run_reconcile_command(command: list[str], cwd: pathlib.Path, trace: pathlib.Path, label: str) -> None:
+    append_trace(trace, f"{label}_argv=" + json.dumps(command))
+    completed = subprocess.run(
+        command,
+        cwd=str(cwd),
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+        text=True,
+        check=False,
+    )
+    append_trace(trace, f"{label}_status={completed.returncode}")
+    if completed.stderr:
+        append_trace(trace, f"{label}_stderr_begin")
+        append_trace(trace, completed.stderr)
+        append_trace(trace, f"{label}_stderr_end")
+    if completed.returncode != 0:
+        if completed.stderr:
+            sys.stderr.write(completed.stderr)
+        raise SystemExit(completed.returncode)
+
+
 def reconcile_lockfile(
     real_cargo: str,
     config: pathlib.Path,
     original: list[str],
     trace: pathlib.Path,
+    owned_packages: list[str],
 ) -> pathlib.Path | None:
-    """Reconcile the derived build-mirror lockfile under scoped ownership."""
+    """Reconcile and verify the derived build-mirror lockfile under scoped ownership."""
     if "--locked" not in original:
         append_trace(trace, "reconcile=skipped reason=no---locked")
         return None
@@ -123,7 +163,7 @@ def reconcile_lockfile(
         return None
 
     before = digest_file(lockfile)
-    command = [
+    metadata_command = [
         real_cargo,
         "--config",
         str(config),
@@ -134,33 +174,41 @@ def reconcile_lockfile(
     ]
     append_trace(trace, f"manifest={manifest}")
     append_trace(trace, f"lockfile={lockfile}")
+    append_trace(trace, f"owned_packages={json.dumps(owned_packages)}")
     append_trace(trace, f"lock_sha256_before={before}")
-    append_trace(trace, "reconcile_argv=" + json.dumps(command))
-    completed = subprocess.run(
-        command,
-        cwd=str(cwd),
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.PIPE,
-        text=True,
-        check=False,
-    )
-    append_trace(trace, f"reconcile_status={completed.returncode}")
-    if completed.stderr:
-        append_trace(trace, "reconcile_stderr_begin")
-        append_trace(trace, completed.stderr)
-        append_trace(trace, "reconcile_stderr_end")
+    run_reconcile_command(metadata_command, cwd, trace, "reconcile")
+
+    owned = set(owned_packages)
+    remaining = external_owned_entries(lockfile, owned)
+    append_trace(trace, "external_owned_after_metadata=" + json.dumps(remaining))
+
+    # Cargo metadata can retain an already-locked Git package when the local
+    # patch has the same name/version. Force only those still-external owned
+    # packages to be reconsidered; unrelated lock entries stay pinned.
+    for name, version, source in remaining:
+        package_spec = f"{name}@{version}"
+        update_command = [real_cargo, "--config", str(config), "update", "-p", package_spec]
+        run_reconcile_command(update_command, cwd, trace, f"force_update_{name}")
+
+    # Re-run metadata after targeted updates so transitive path-owned edges are
+    # materialized before the actual --locked build.
+    if remaining:
+        run_reconcile_command(metadata_command, cwd, trace, "post_update_metadata")
+
+    unresolved = external_owned_entries(lockfile, owned)
+    append_trace(trace, "external_owned_final=" + json.dumps(unresolved))
     after = digest_file(lockfile)
     append_trace(trace, f"lock_sha256_after={after}")
     append_trace(trace, f"lock_changed={str(before != after).lower()}")
-    if completed.returncode != 0:
-        if completed.stderr:
-            sys.stderr.write(completed.stderr)
-        raise SystemExit(completed.returncode)
+    if unresolved:
+        detail = ", ".join(f"{name}@{version} ({source})" for name, version, source in unresolved)
+        message = f"MattOS source ownership invariant failed; owned Cargo packages remain external: {detail}"
+        append_trace(trace, "ownership_error=" + message)
+        raise SystemExit(message)
     return lockfile
 
 
 def run_scoped_cargo(args: list[str], trace: pathlib.Path) -> int:
-    """Run scoped Cargo while preserving stderr in a deterministic failure log."""
     append_trace(trace, "final_argv=" + json.dumps(args))
     completed = subprocess.run(
         args,
@@ -189,11 +237,14 @@ def main() -> int:
     args = [real_cargo]
     scoped_config: pathlib.Path | None = None
     component: str | None = None
+    owned_packages: list[str] = []
     if index_path.is_file():
         index = json.loads(index_path.read_text(encoding="utf-8"))
         component = component_for_cwd(root, pathlib.Path.cwd(), index)
         if component is not None:
-            config = index["components"][component].get("config")
+            metadata = index["components"][component]
+            config = metadata.get("config")
+            owned_packages = [item for item in metadata.get("owned_packages", []) if isinstance(item, str)]
             if config:
                 scoped_config = (root / config).resolve()
                 args += ["--config", str(scoped_config)]
@@ -213,7 +264,7 @@ def main() -> int:
         f"real_cargo={real_cargo}\n",
         encoding="utf-8",
     )
-    reconcile_lockfile(real_cargo, scoped_config, sys.argv[1:], trace)
+    reconcile_lockfile(real_cargo, scoped_config, sys.argv[1:], trace, owned_packages)
     return run_scoped_cargo(args, trace)
 
 
