@@ -420,22 +420,14 @@ def component_mirror_lock(root: pathlib.Path, component: str) -> Iterator[None]:
             stream.close()
 
 
-def component_mirrors(
+def consumer_mirrors(
     canonical: dict[str, pathlib.Path],
     consumer_component: str,
     consumer_mirror: pathlib.Path,
-    current_component: str,
 ) -> dict[str, pathlib.Path]:
-    """Return paths appropriate while rewriting one component.
-
-    Shared mirrors must never capture a consumer stage's private build path.
-    Only manifests physically belonging to the consumer use its build mirror for
-    self-edges; all shared components always resolve every owned component,
-    including the consumer, through the canonical source-ownership mirror.
-    """
+    """Return the one mapping allowed to reference a private stage mirror."""
     mirrors = dict(canonical)
-    if current_component == consumer_component:
-        mirrors[consumer_component] = consumer_mirror.resolve()
+    mirrors[consumer_component] = consumer_mirror.resolve()
     return mirrors
 
 
@@ -472,9 +464,12 @@ def prepare_graph(
                 copy_tracked_component(root, meta['source_path'], dest)
                 apply_component_patches(root, meta, dest)
 
-            mirrors = component_mirrors(canonical, consumer_component, consumer_mirror, component)
+            # Shared mirrors are consumer-independent by construction. Even if
+            # this canonical component happens to be the current top-level
+            # consumer, it must point at canonical peers while it is acting as
+            # a dependency of another shared component.
             for manifest in sorted(dest.rglob('Cargo.toml')):
-                needed |= rewrite_manifest(manifest, index, mirrors, component)
+                needed |= rewrite_manifest(manifest, index, canonical, component)
 
             marker.write_text(json.dumps({'fingerprint': fingerprint}, sort_keys=True) + '\n')
 
@@ -483,18 +478,15 @@ def prepare_graph(
         for dep in sorted(needed):
             ensure_component(dep)
 
-    consumer_paths = component_mirrors(canonical, consumer_component, consumer_mirror, consumer_component)
+    private = consumer_mirrors(canonical, consumer_component, consumer_mirror)
     needed: set[str] = set()
     for manifest in sorted(consumer_mirror.rglob('Cargo.toml')):
-        needed |= rewrite_manifest(manifest, index, consumer_paths, consumer_component)
+        needed |= rewrite_manifest(manifest, index, private, consumer_component)
     for dep in sorted(needed):
         ensure_component(dep)
 
-    # Re-run the consumer rewrite after the canonical closure exists. This is
-    # idempotent and resolves any path edge that became recognizable only after
-    # a canonical mirror was materialized.
     for manifest in sorted(consumer_mirror.rglob('Cargo.toml')):
-        rewrite_manifest(manifest, index, consumer_paths, consumer_component)
+        rewrite_manifest(manifest, index, private, consumer_component)
 
     verification_mirrors = dict(canonical)
     verification_mirrors[consumer_component] = consumer_mirror.resolve()
