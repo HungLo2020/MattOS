@@ -10,6 +10,7 @@ DevUtils/source_ownership_graph.py before Cargo resolves them.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import pathlib
 import subprocess
@@ -18,6 +19,7 @@ from collections import defaultdict
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SOURCES = ROOT / 'upstream' / 'sources.toml'
+STATE_DIR = ROOT / 'upstream' / 'state'
 GITLINK_POLICY = ROOT / 'upstream' / 'policies' / 'gitlinks.toml'
 OUTPUT_ROOT = ROOT / 'out' / 'source-ownership' / 'cargo'
 INDEX = OUTPUT_ROOT / 'index.json'
@@ -31,6 +33,90 @@ def norm_repo(url: str) -> str:
     return value.lower()
 
 
+def fail(message: str) -> None:
+    raise SystemExit(f'source ownership generation failed: {message}')
+
+
+def validate_patch_provenance(component: dict) -> None:
+    name = component['name']
+    revision = component['revision']
+    manifest_rel = component.get('patch_manifest')
+    expected_manifest_sha = component.get('patch_manifest_sha256')
+    if not manifest_rel and not expected_manifest_sha:
+        return
+    if not isinstance(manifest_rel, str) or not manifest_rel:
+        fail(f'{name}: patch_manifest_sha256 exists without patch_manifest')
+    if not isinstance(expected_manifest_sha, str) or not expected_manifest_sha:
+        fail(f'{name}: patch_manifest exists without patch_manifest_sha256')
+
+    manifest_path = ROOT / manifest_rel
+    if not manifest_path.is_file():
+        fail(f'{name}: patch manifest is missing: {manifest_rel}')
+    payload = manifest_path.read_bytes()
+    actual_manifest_sha = hashlib.sha256(payload).hexdigest()
+    if actual_manifest_sha != expected_manifest_sha:
+        fail(
+            f'{name}: patch manifest checksum mismatch for {manifest_rel}: '
+            f'sources.toml={expected_manifest_sha}, actual={actual_manifest_sha}'
+        )
+
+    state_path = STATE_DIR / f'{name}.toml'
+    if state_path.is_file():
+        with state_path.open('rb') as stream:
+            state = tomllib.load(stream)
+        if state.get('patch_manifest') != manifest_rel:
+            fail(
+                f'{name}: provenance state patch_manifest {state.get("patch_manifest")!r} '
+                f'does not match sources.toml {manifest_rel!r}'
+            )
+        if state.get('patch_manifest_sha256') != expected_manifest_sha:
+            fail(
+                f'{name}: provenance state patch_manifest_sha256 '
+                f'{state.get("patch_manifest_sha256")!r} does not match sources.toml '
+                f'{expected_manifest_sha!r}'
+            )
+
+    try:
+        manifest = tomllib.loads(payload.decode('utf-8'))
+    except (UnicodeDecodeError, tomllib.TOMLDecodeError) as exc:
+        fail(f'{name}: invalid patch manifest {manifest_rel}: {exc}')
+    if manifest.get('component') != name:
+        fail(f'{name}: patch manifest component is {manifest.get("component")!r}')
+    if manifest.get('upstream_commit') != revision:
+        fail(
+            f'{name}: patch manifest upstream_commit {manifest.get("upstream_commit")!r} '
+            f'does not match pinned revision {revision!r}'
+        )
+    if manifest.get('application') != 'output-mirror-only':
+        fail(
+            f'{name}: patch manifest application must be output-mirror-only, '
+            f'got {manifest.get("application")!r}'
+        )
+
+    seen_paths: set[str] = set()
+    for item in manifest.get('patch', []):
+        if not isinstance(item, dict):
+            fail(f'{name}: malformed patch entry in {manifest_rel}')
+        patch_rel = item.get('path')
+        expected_patch_sha = item.get('sha256')
+        if not isinstance(patch_rel, str) or not patch_rel:
+            fail(f'{name}: patch entry has no path in {manifest_rel}')
+        if patch_rel in seen_paths:
+            fail(f'{name}: duplicate patch path in {manifest_rel}: {patch_rel}')
+        seen_paths.add(patch_rel)
+        if not isinstance(expected_patch_sha, str) or not expected_patch_sha:
+            fail(f'{name}: patch entry has no sha256: {patch_rel}')
+        patch_path = ROOT / patch_rel
+        if not patch_path.is_file():
+            fail(f'{name}: patch payload is missing: {patch_rel}')
+        actual_patch_sha = hashlib.sha256(patch_path.read_bytes()).hexdigest()
+        if actual_patch_sha != expected_patch_sha:
+            fail(
+                f'{name}: patch payload checksum mismatch for {patch_rel}: '
+                f'manifest={expected_patch_sha}, actual={actual_patch_sha}'
+            )
+
+
 def load_sources() -> list[dict]:
     with SOURCES.open('rb') as stream:
         data = tomllib.load(stream)
@@ -42,14 +128,16 @@ def load_sources() -> list[dict]:
             continue
         if not (ROOT / path).exists():
             continue
-        components.append({
+        component = {
             'name': name,
             'repo': repo,
             'revision': revision,
             'source_path': path,
             'patch_manifest': raw.get('patch_manifest'),
             'patch_manifest_sha256': raw.get('patch_manifest_sha256'),
-        })
+        }
+        validate_patch_provenance(component)
+        components.append(component)
     return components
 
 
