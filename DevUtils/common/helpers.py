@@ -2,6 +2,7 @@ import os
 import re
 import shutil
 import subprocess
+import time
 from pathlib import Path
 from typing import Dict, Iterable, Sequence
 
@@ -164,14 +165,8 @@ def _ownership_log_failed(text: str) -> bool:
     return bool(match and match.group(1).strip() not in {"[]", "null", ""})
 
 
-def _dump_source_ownership_failure_logs(cwd: Path) -> None:
-    """Surface dispatcher diagnostics when a launcher command fails.
-
-    mattos-build may aggregate parallel stage output, so the child Cargo stderr
-    is not guaranteed to remain visible in the outer command's terminal stream.
-    The dispatcher already persists exact diagnostics under out/. Print failed
-    ownership logs here so a normal run_qemu.py transcript is self-contained.
-    """
+def _dump_source_ownership_failure_logs(cwd: Path, started_at: float) -> None:
+    """Surface dispatcher diagnostics produced by the command that just failed."""
     try:
         repo_root = find_repo_root(cwd)
     except RepoError:
@@ -183,9 +178,13 @@ def _dump_source_ownership_failure_logs(cwd: Path) -> None:
     failed: list[tuple[float, Path, str]] = []
     for path in logs_dir.glob("*.log"):
         try:
+            mtime = path.stat().st_mtime
+            # Filesystems with coarse timestamps can round backward slightly.
+            if mtime < started_at - 2.0:
+                continue
             text = path.read_text(encoding="utf-8", errors="replace")
             if _ownership_log_failed(text):
-                failed.append((path.stat().st_mtime, path, text))
+                failed.append((mtime, path, text))
         except OSError:
             continue
 
@@ -206,13 +205,14 @@ def run_command(
     if dry_run:
         return 0
 
+    started_at = time.time()
     try:
         completed = subprocess.run(args, cwd=str(cwd), check=False, env=env)
     except FileNotFoundError as exc:
         raise RepoError(f"failed to execute {args[0]}: {exc}") from exc
 
     if check and completed.returncode != 0:
-        _dump_source_ownership_failure_logs(cwd)
+        _dump_source_ownership_failure_logs(cwd, started_at)
         raise RepoError(
             f"command failed with exit code {completed.returncode}: {' '.join(args)}"
         )
