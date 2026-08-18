@@ -2,6 +2,7 @@
 name = "cosmic-settings-daemon-config"
 version = "0.1.0"
 edition = "2024"
+workspace = ".."
 
 [dependencies]
 cosmic-config.workspace = true
