@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Generate repo-wide Cargo source overrides from MattOS-owned source trees.
 
-First-class source roots come from upstream/sources.toml. For every Cargo
-manifest below src/, external git dependencies that point at an owned upstream
-repository are rebound to the package with the same Cargo package name inside
-that owned source root. Registry dependencies are rebound only when the
+First-class source roots come from upstream/sources.toml. For every tracked
+Cargo manifest below src/, external git dependencies that point at an owned
+upstream repository are rebound to the package with the same Cargo package name
+inside that owned source root. Registry dependencies are rebound only when the
 component's *root* Cargo package has that name; this deliberately avoids
 mistaking toolchain/vendor internals (for example a vendored `serde` or `libc`)
 for first-class MattOS ownership.
@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import os
 import pathlib
+import subprocess
 import sys
 import tomllib
 from collections import defaultdict
@@ -26,7 +27,6 @@ from collections import defaultdict
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SOURCES = ROOT / "upstream" / "sources.toml"
 OUTPUT = ROOT / ".cargo" / "config.toml"
-SKIP_DIRS = {".git", "target", "vendor", "third_party", "node_modules", "out"}
 DEPENDENCY_TABLES = {"dependencies", "dev-dependencies", "build-dependencies"}
 
 
@@ -53,11 +53,14 @@ def load_components() -> list[dict[str, str]]:
     return components
 
 
-def walk_manifests(root: pathlib.Path):
-    for current, dirs, files in os.walk(root):
-        dirs[:] = [d for d in dirs if d not in SKIP_DIRS and not d.startswith(".")]
-        if "Cargo.toml" in files:
-            yield pathlib.Path(current) / "Cargo.toml"
+def tracked_manifests() -> list[pathlib.Path]:
+    proc = subprocess.run(
+        ["git", "ls-files", "-z", "--", ":(glob)src/**/Cargo.toml"],
+        cwd=ROOT,
+        check=True,
+        stdout=subprocess.PIPE,
+    )
+    return [ROOT / pathlib.Path(p.decode()) for p in proc.stdout.split(b"\0") if p]
 
 
 def read_manifest(manifest: pathlib.Path):
@@ -117,6 +120,7 @@ def quote(value: str) -> str:
 
 def generate() -> str:
     components = load_components()
+    manifests = tracked_manifests()
     by_repo = {norm_repo(c["repo"]): c for c in components}
     owned_by_component: dict[str, dict[str, pathlib.Path]] = {}
     root_owned_packages: dict[str, pathlib.Path] = {}
@@ -125,8 +129,12 @@ def generate() -> str:
     for component in components:
         packages: dict[str, pathlib.Path] = {}
         duplicate_names: set[str] = set()
-        root = ROOT / component["path"]
-        for manifest in walk_manifests(root):
+        root = (ROOT / component["path"]).resolve()
+        for manifest in manifests:
+            try:
+                manifest.resolve().relative_to(root)
+            except ValueError:
+                continue
             identity = package_identity(manifest)
             if identity is None:
                 continue
@@ -157,7 +165,7 @@ def generate() -> str:
     registry_patches: dict[str, pathlib.Path] = {}
     unresolved: list[str] = []
 
-    for manifest in walk_manifests(ROOT / "src"):
+    for manifest in manifests:
         data = read_manifest(manifest)
         if data is None:
             continue
