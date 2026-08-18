@@ -14,6 +14,7 @@ MIN_PROJECT_TMP_FREE_BYTES = 8 * 1024**3
 
 
 def project_temp_root(repo_root: Path) -> Path:
+    """Return the disk-backed temporary root owned by this MattOS checkout."""
     return repo_root / PROJECT_TMP_RELATIVE
 
 
@@ -36,9 +37,11 @@ def find_repo_root(start: Path) -> Path:
     current = start.resolve()
     if current.is_file():
         current = current.parent
+
     for candidate in [current, *current.parents]:
         if _looks_like_repo_root(candidate):
             return candidate
+
     raise RepoError(f"unable to find MattOS repository root from {start}")
 
 
@@ -79,11 +82,19 @@ def ensure_source_ownership_overrides(repo_root: Path) -> None:
 
 
 def prepare_cargo_dispatcher(repo_root: Path) -> tuple[Path, Path]:
-    """Return (dispatcher_dir, real_cargo) without shadowing unrelated Cargo workspaces."""
+    """Return (dispatcher_dir, real cargo proxy) without shadowing unrelated workspaces.
+
+    Do not resolve the cargo path through symlinks. rustup deliberately installs
+    ~/.cargo/bin/cargo as a proxy symlink to the rustup binary and selects Cargo
+    from argv[0]. Dereferencing that symlink would execute `rustup` as rustup and
+    make normal Cargo flags such as `-p` get parsed as rustup arguments.
+    """
     real_cargo = shutil.which("cargo")
     if not real_cargo:
         raise RepoError("cargo is required to prepare MattOS source ownership")
-    real_cargo_path = Path(real_cargo).resolve()
+    real_cargo_path = Path(real_cargo).absolute()
+    if real_cargo_path.name != "cargo":
+        raise RepoError(f"resolved Cargo command does not preserve cargo proxy identity: {real_cargo_path}")
     dispatcher_source = repo_root / "DevUtils" / "cargo_source_owned.py"
     if not dispatcher_source.is_file():
         raise RepoError(f"missing MattOS Cargo dispatcher: {dispatcher_source}")
@@ -125,6 +136,7 @@ def read_os_release(path: Path = Path("/etc/os-release")) -> Dict[str, str]:
         raw = path.read_text(encoding="utf-8")
     except OSError as exc:
         raise RepoError(f"failed to read {path}: {exc}") from exc
+
     data: Dict[str, str] = {}
     for line in raw.splitlines():
         line = line.strip()
@@ -132,11 +144,13 @@ def read_os_release(path: Path = Path("/etc/os-release")) -> Dict[str, str]:
             continue
         key, value = line.split("=", 1)
         value = value.strip()
-        if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in {'\"', "'"}:
             value = value[1:-1]
         data[key] = value
+
     if "ID" not in data:
         raise RepoError(f"invalid {path}: missing ID field")
+
     return data
 
 
@@ -150,12 +164,17 @@ def run_command(
     print("+", " ".join(args))
     if dry_run:
         return 0
+
     try:
         completed = subprocess.run(args, cwd=str(cwd), check=False, env=env)
     except FileNotFoundError as exc:
         raise RepoError(f"failed to execute {args[0]}: {exc}") from exc
+
     if check and completed.returncode != 0:
-        raise RepoError(f"command failed with exit code {completed.returncode}: {' '.join(args)}")
+        raise RepoError(
+            f"command failed with exit code {completed.returncode}: {' '.join(args)}"
+        )
+
     return completed.returncode
 
 
@@ -177,4 +196,5 @@ def run_command_capture(args: Sequence[str], cwd: Path) -> str:
         raise RepoError(
             f"command failed with exit code {exc.returncode}: {' '.join(args)}{detail}"
         ) from exc
+
     return completed.stdout
