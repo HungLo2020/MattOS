@@ -18,8 +18,8 @@ notify = "8.2.0"
 ron.workspace = true
 serde.workspace = true
 cosmic-config-derive = { path = "../cosmic-config-derive/", optional = true }
-iced = { path = "../iced/", default-features = false, optional = true }
-iced_futures = { path = "../iced/futures/", default-features = false, optional = true }
+iced = { path = "../../iced/", default-features = false, optional = true }
+iced_futures = { path = "../../iced/futures/", default-features = false, optional = true }
 futures-util = { version = "0.3", optional = true }
 dirs.workspace = true
 tokio = { workspace = true, optional = true, features = ["time"] }
