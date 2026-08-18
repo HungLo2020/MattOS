@@ -5,6 +5,7 @@ edition = "2024"
 license = "MPL-2.0"
 rust-version.workspace = true
 publish = true
+workspace = "../.."
 
 [dependencies]
 cosmic-dbus-a11y = { git = "https://github.com/pop-os/dbus-settings-bindings" }
