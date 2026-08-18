@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 """Generate repo-wide Cargo source overrides from MattOS-owned source trees.
 
-First-class source roots come from upstream/sources.toml.  For every Cargo
+First-class source roots come from upstream/sources.toml. For every Cargo
 manifest below src/, external git dependencies that point at an owned upstream
 repository are rebound to the package with the same Cargo package name inside
-that owned source root.  Registry dependencies are rebound only when their
-package name has one unique first-class owner.  The generated .cargo/config.toml
-contains paths only; package versions continue to come from the authoritative
-vendored Cargo.toml files themselves.
+that owned source root. Registry dependencies are rebound only when the
+component's *root* Cargo package has that name; this deliberately avoids
+mistaking toolchain/vendor internals (for example a vendored `serde` or `libc`)
+for first-class MattOS ownership.
+
+The generated .cargo/config.toml contains paths only. Package versions continue
+to come from the authoritative vendored Cargo.toml files themselves, so source
+updates automatically propagate without duplicating version numbers here.
 """
 
 from __future__ import annotations
@@ -44,9 +48,8 @@ def load_components() -> list[dict[str, str]]:
         if not (path and repo and name):
             continue
         absolute = ROOT / path
-        if not absolute.exists():
-            continue
-        components.append({"name": name, "repo": repo, "path": path})
+        if absolute.exists():
+            components.append({"name": name, "repo": repo, "path": path})
     return components
 
 
@@ -57,11 +60,17 @@ def walk_manifests(root: pathlib.Path):
             yield pathlib.Path(current) / "Cargo.toml"
 
 
-def package_identity(manifest: pathlib.Path):
+def read_manifest(manifest: pathlib.Path):
     try:
         with manifest.open("rb") as fh:
-            data = tomllib.load(fh)
+            return tomllib.load(fh)
     except (OSError, tomllib.TOMLDecodeError):
+        return None
+
+
+def package_identity(manifest: pathlib.Path):
+    data = read_manifest(manifest)
+    if data is None:
         return None
     package = data.get("package")
     if not isinstance(package, dict):
@@ -110,41 +119,48 @@ def generate() -> str:
     components = load_components()
     by_repo = {norm_repo(c["repo"]): c for c in components}
     owned_by_component: dict[str, dict[str, pathlib.Path]] = {}
-    owners: dict[str, list[tuple[str, pathlib.Path]]] = defaultdict(list)
+    root_owned_packages: dict[str, pathlib.Path] = {}
+    root_owner_conflicts: set[str] = set()
 
     for component in components:
         packages: dict[str, pathlib.Path] = {}
+        duplicate_names: set[str] = set()
         root = ROOT / component["path"]
         for manifest in walk_manifests(root):
             identity = package_identity(manifest)
             if identity is None:
                 continue
             name, package_path, _ = identity
+            if name in duplicate_names:
+                continue
             old = packages.get(name)
             if old is not None and old != package_path:
-                # Internal duplicate names are not safe to auto-own.
                 packages.pop(name, None)
+                duplicate_names.add(name)
                 continue
             packages[name] = package_path
         owned_by_component[component["name"]] = packages
-        for name, path in packages.items():
-            owners[name].append((component["name"], path))
+
+        root_identity = package_identity(root / "Cargo.toml")
+        if root_identity is not None:
+            root_name, root_path, _ = root_identity
+            if root_name in root_owner_conflicts:
+                continue
+            old = root_owned_packages.get(root_name)
+            if old is not None and old != root_path:
+                root_owned_packages.pop(root_name, None)
+                root_owner_conflicts.add(root_name)
+            else:
+                root_owned_packages[root_name] = root_path
 
     git_patches: dict[str, dict[str, pathlib.Path]] = defaultdict(dict)
     registry_patches: dict[str, pathlib.Path] = {}
-    ambiguities: list[str] = []
+    unresolved: list[str] = []
 
     for manifest in walk_manifests(ROOT / "src"):
-        identity = package_identity(manifest)
-        if identity is None:
-            try:
-                with manifest.open("rb") as fh:
-                    data = tomllib.load(fh)
-            except (OSError, tomllib.TOMLDecodeError):
-                continue
-        else:
-            _, _, data = identity
-
+        data = read_manifest(manifest)
+        if data is None:
+            continue
         for key, spec in collect_dependencies(data):
             package = spec.get("package", key)
             if not isinstance(package, str):
@@ -156,7 +172,7 @@ def generate() -> str:
                     continue
                 candidate = owned_by_component.get(component["name"], {}).get(package)
                 if candidate is None:
-                    ambiguities.append(
+                    unresolved.append(
                         f"{manifest.relative_to(ROOT)}: {package} points at owned repo {git} "
                         f"but no unique package {package!r} exists under {component['path']}"
                     )
@@ -166,19 +182,23 @@ def generate() -> str:
 
             if "path" in spec or "workspace" in spec:
                 continue
-            candidates = owners.get(package, [])
-            if len(candidates) == 1:
-                registry_patches[package] = candidates[0][1]
-            elif len(candidates) > 1:
-                # Ambiguous registry names must remain external until ownership
-                # is made explicit instead of silently choosing a source tree.
-                continue
+            candidate = root_owned_packages.get(package)
+            if candidate is not None:
+                registry_patches[package] = candidate
+
+    if unresolved:
+        formatted = "\n  ".join(sorted(set(unresolved)))
+        raise SystemExit(
+            "source ownership generation failed: owned git dependencies could not be rebound:\n  "
+            + formatted
+        )
 
     lines = [
         "# GENERATED by DevUtils/generate_source_overrides.py; DO NOT EDIT.",
         "# MattOS source-ownership invariant: when a dependency resolves to a",
         "# first-class source tree listed in upstream/sources.toml, Cargo must",
         "# consume that tree instead of downloading another copy.",
+        "# Package versions are read from the local source manifests.",
         "",
     ]
     for source in sorted(git_patches, key=norm_repo):
@@ -193,12 +213,6 @@ def generate() -> str:
             lines.append(f"{package} = {{ path = {quote(rel_from_config(path))} }}")
         lines.append("")
 
-    if ambiguities:
-        lines.append("# Unresolved owned-repository references (generation is fail-closed):")
-        for item in sorted(set(ambiguities)):
-            lines.append("# " + item)
-        lines.append("")
-
     return "\n".join(lines)
 
 
@@ -210,7 +224,10 @@ def main() -> int:
     if args.check:
         current = OUTPUT.read_text() if OUTPUT.exists() else ""
         if current != generated:
-            print("MattOS Cargo source overrides are stale; run DevUtils/generate_source_overrides.py", file=sys.stderr)
+            print(
+                "MattOS Cargo source overrides are stale; run DevUtils/generate_source_overrides.py",
+                file=sys.stderr,
+            )
             return 1
         return 0
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
