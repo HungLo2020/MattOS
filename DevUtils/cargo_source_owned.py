@@ -266,11 +266,34 @@ def inject_locked_transitive_owned_patches(
         if not isinstance(table, dict):
             raise RuntimeError(f'Cargo patch source is not a table: {source_key}')
 
+        # Cargo patch keys may be aliases. The effective package identity is
+        # ``spec.package`` when present, otherwise the table key. Replacing by
+        # the literal package name would create a second entry for manifests
+        # such as ``cctk = { package = "cosmic-client-toolkit", ... }``.
+        matching_package_keys: list[str] = []
+        for entry_key, entry_spec in table.items():
+            effective_package = entry_key
+            if isinstance(entry_spec, dict):
+                declared_package = entry_spec.get('package')
+                if isinstance(declared_package, str):
+                    effective_package = declared_package
+            if effective_package == package:
+                matching_package_keys.append(entry_key)
+
+        if len(matching_package_keys) > 1:
+            raise RuntimeError(
+                f'multiple Cargo patch entries resolve to owned package {package!r} '
+                f'for source {source_key}: {matching_package_keys}'
+            )
+
+        entry_key = matching_package_keys[0] if matching_package_keys else package
         replacement = {'path': str(target_path)}
-        if table.get(package) != replacement:
-            table[package] = replacement
+        if entry_key != package:
+            replacement['package'] = package
+        if table.get(entry_key) != replacement:
+            table[entry_key] = replacement
             changed = True
-        applied.append(f'{source_key}:{package}->{target_path}')
+        applied.append(f'{source_key}:{entry_key}({package})->{target_path}')
 
     if changed:
         manifest.write_text(graph.dump_toml(data), encoding='utf-8')

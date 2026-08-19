@@ -355,6 +355,56 @@ class SourceOwnershipGraphTest(unittest.TestCase):
             ]
             self.assertEqual(offenders, [])
 
+    def test_lock_derived_patch_reuses_existing_package_alias(self) -> None:
+        output_root = ROOT / "out" / "tmp"
+        output_root.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix="source-patch-alias-", dir=output_root) as raw:
+            fixture = pathlib.Path(raw)
+            mirror = fixture / "owned-mirror"
+            mirror.mkdir()
+            (mirror / "Cargo.toml").write_text(
+                "[package]\nname='owned-fixture'\nversion='0.1.0'\nedition='2024'\n"
+            )
+
+            repo = "https://github.com/example/owned"
+            manifest = fixture / "Cargo.toml"
+            manifest.write_text(
+                "[package]\nname='consumer'\nversion='0.1.0'\nedition='2024'\n\n"
+                f"[patch.\"{repo}\"]\n"
+                f"alias = {{ git = '{repo}//', package = 'owned-fixture', rev = 'deadbeef' }}\n"
+            )
+            lockfile = fixture / "Cargo.lock"
+            lockfile.write_text(
+                "version = 3\n\n"
+                "[[package]]\n"
+                "name = 'owned-fixture'\n"
+                "version = '0.1.0'\n"
+                f"source = 'git+{repo}#0123456789abcdef'\n"
+            )
+            index = {
+                "components": {
+                    "owned": {
+                        "name": "owned",
+                        "repo": repo,
+                        "packages": {"owned-fixture": ""},
+                    }
+                },
+                "repos": {graph.norm_repo(repo): ["owned"]},
+                "gitlink_replacements": {},
+            }
+
+            applied = dispatcher.inject_locked_transitive_owned_patches(
+                manifest, lockfile, index, {"owned": mirror}, graph
+            )
+            self.assertEqual(len(applied), 1)
+            patched = tomllib.loads(manifest.read_text())
+            table = patched["patch"][repo]
+            self.assertEqual(set(table), {"alias"})
+            self.assertEqual(
+                table["alias"],
+                {"path": str(mirror.resolve()), "package": "owned-fixture"},
+            )
+
     def test_rewrite_does_not_conflate_same_name_git_package(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = pathlib.Path(tmp)
