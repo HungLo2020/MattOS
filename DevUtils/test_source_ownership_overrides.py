@@ -52,25 +52,138 @@ class SourceOwnershipGraphTest(unittest.TestCase):
             )
 
     def test_metadata_probe_preserves_caller_resolution_policy(self) -> None:
+        original = [
+            "build",
+            "--release",
+            "--locked",
+            "--offline",
+            "--features",
+            "wayland,systemd",
+        ]
         self.assertEqual(
-            dispatcher.metadata_resolution_args(
-                [
-                    "build",
-                    "--release",
-                    "--locked",
-                    "--offline",
-                    "--features",
-                    "wayland,systemd",
-                ]
-            ),
+            dispatcher.metadata_resolution_args(original),
             ["--locked", "--offline", "--features", "wayland,systemd"],
         )
         self.assertEqual(
-            dispatcher.metadata_resolution_args(
-                ["check", "--frozen", "--all-features", "--manifest-path=Cargo.toml"]
-            ),
+            dispatcher.lock_reconciliation_args(original),
+            ["--offline", "--features", "wayland,systemd"],
+        )
+        frozen = ["check", "--frozen", "--all-features", "--manifest-path=Cargo.toml"]
+        self.assertEqual(
+            dispatcher.metadata_resolution_args(frozen),
             ["--frozen", "--all-features", "--manifest-path=Cargo.toml"],
         )
+        self.assertEqual(
+            dispatcher.lock_reconciliation_args(frozen),
+            ["--offline", "--all-features", "--manifest-path=Cargo.toml"],
+        )
+        self.assertTrue(dispatcher.requires_lock_reconciliation(original))
+        self.assertTrue(dispatcher.requires_lock_reconciliation(frozen))
+        self.assertFalse(dispatcher.requires_lock_reconciliation(["build", "--release"]))
+
+    def test_locked_output_lock_reconciles_after_git_to_path_rewrite(self) -> None:
+        output_root = ROOT / "out" / "tmp"
+        output_root.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix="source-lock-reconcile-", dir=output_root) as raw:
+            fixture = pathlib.Path(raw)
+            owned = fixture / "owned"
+            (owned / "src").mkdir(parents=True)
+            (owned / "Cargo.toml").write_text(
+                "[package]\nname='owned-fixture'\nversion='0.1.0'\nedition='2024'\n"
+            )
+            (owned / "src/lib.rs").write_text("pub fn value() -> u8 { 1 }\n")
+            subprocess.run(["git", "init", "-q"], cwd=owned, check=True)
+            subprocess.run(["git", "add", "."], cwd=owned, check=True)
+            subprocess.run(
+                [
+                    "git",
+                    "-c",
+                    "user.name=MattOS Test",
+                    "-c",
+                    "user.email=mattos-test@example.invalid",
+                    "commit",
+                    "-qm",
+                    "fixture",
+                ],
+                cwd=owned,
+                check=True,
+            )
+
+            consumer = fixture / "consumer"
+            (consumer / "src").mkdir(parents=True)
+            (consumer / "src/main.rs").write_text("fn main() {}\n")
+            manifest = consumer / "Cargo.toml"
+            manifest.write_text(
+                "[package]\n"
+                "name='consumer-fixture'\n"
+                "version='0.1.0'\n"
+                "edition='2024'\n\n"
+                "[dependencies]\n"
+                f"owned-fixture = {{ git = '{owned.resolve().as_uri()}' }}\n\n"
+                "[workspace]\n"
+            )
+            subprocess.run(
+                ["cargo", "generate-lockfile"],
+                cwd=consumer,
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            lockfile = consumer / "Cargo.lock"
+            original_lock = lockfile.read_bytes()
+            strict_original = subprocess.run(
+                ["cargo", "metadata", "--format-version", "1", "--locked"],
+                cwd=consumer,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(strict_original.returncode, 0, strict_original.stderr)
+
+            manifest.write_text(
+                "[package]\n"
+                "name='consumer-fixture'\n"
+                "version='0.1.0'\n"
+                "edition='2024'\n\n"
+                "[dependencies]\n"
+                "owned-fixture = { path = '../owned' }\n\n"
+                "[workspace]\n"
+            )
+            stale = subprocess.run(
+                ["cargo", "metadata", "--format-version", "1", "--locked"],
+                cwd=consumer,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=False,
+            )
+            self.assertNotEqual(stale.returncode, 0)
+            self.assertIn("lock file", stale.stderr.lower())
+
+            trace = fixture / "lock-reconcile.log"
+            reconciled = dispatcher.reconcile_output_lock(
+                "cargo",
+                consumer,
+                ["build", "--locked"],
+                trace,
+            )
+            self.assertIsNotNone(reconciled)
+            assert reconciled is not None
+            self.assertEqual(reconciled.returncode, 0, reconciled.stderr)
+            self.assertNotEqual(lockfile.read_bytes(), original_lock)
+
+            strict_rewritten = subprocess.run(
+                ["cargo", "metadata", "--format-version", "1", "--locked"],
+                cwd=consumer,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(strict_rewritten.returncode, 0, strict_rewritten.stderr)
+            self.assertIn('lock_reconcile_argv=', trace.read_text())
 
     def test_rewrite_does_not_conflate_same_name_git_package(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
