@@ -28,22 +28,60 @@ def ensure_once(path: Path, old: str, new: str, label: str) -> None:
     )
 
 
+def ensure_block_entry(
+    path: Path,
+    start_marker: str,
+    end_marker: str,
+    anchor: str,
+    entry: str,
+    label: str,
+) -> None:
+    """Ensure one entry inside one semantically delimited block.
+
+    This intentionally ignores identical text elsewhere in the file. Recovery
+    helpers must not infer semantic multiplicity from shared list fragments.
+    """
+    text = path.read_text(encoding="utf-8")
+    start = text.find(start_marker)
+    if start < 0:
+        raise SystemExit(f"{path.relative_to(ROOT)}: missing {label} start marker")
+    end = text.find(end_marker, start + len(start_marker))
+    if end < 0:
+        raise SystemExit(f"{path.relative_to(ROOT)}: missing {label} end marker")
+
+    block = text[start:end]
+    if entry in block:
+        return
+    if block.count(anchor) != 1:
+        raise SystemExit(
+            f"{path.relative_to(ROOT)}: unexpected {label} anchor multiplicity: "
+            f"{block.count(anchor)}"
+        )
+
+    block = block.replace(anchor, anchor + entry, 1)
+    path.write_text(text[:start] + block + text[end:], encoding="utf-8")
+
+
 def patch_stage_graph_expectations() -> None:
     path = ROOT / "src/tools/mattos-build/src/stage_graph.rs"
 
-    # These are two different semantic test locations, not duplicate text.
-    # Keep them separate so this helper cannot accidentally modify a production
-    # dependency list merely because it shares the same three component names.
-    ensure_once(
+    # Address the two tests by semantic block, not by global text counts. The
+    # previous recovery pass successfully edited the LLVM block before its next
+    # global-count check tripped over the now-identical fragments.
+    ensure_block_entry(
         path,
-        '                "cosmic-workspaces",\n                "cosmic-files",\n                "cosmic-term",\n                "cosmic-utilities",\n                "cosmic-portal",\n                "greetd",\n                "cosmic-desktop",',
-        '                "cosmic-workspaces",\n                "cosmic-files",\n                "cosmic-term",\n                "cosmic-tweaks",\n                "cosmic-utilities",\n                "cosmic-portal",\n                "greetd",\n                "cosmic-desktop",',
+        '            downstream_invalidation(&["llvm"]),',
+        "        for component in [",
+        '                "cosmic-term",\n',
+        '                "cosmic-tweaks",\n',
         "LLVM exact downstream closure",
     )
-    ensure_once(
+    ensure_block_entry(
         path,
-        '            "cosmic-workspaces",\n            "cosmic-files",\n            "cosmic-term",\n            "cosmic-utilities",\n            "cosmic-portal",\n            "cosmic-assets",\n            "greetd",',
-        '            "cosmic-workspaces",\n            "cosmic-files",\n            "cosmic-term",\n            "cosmic-tweaks",\n            "cosmic-utilities",\n            "cosmic-portal",\n            "cosmic-assets",\n            "greetd",',
+        "        for component in [",
+        "        ] {",
+        '            "cosmic-term",\n',
+        '            "cosmic-tweaks",\n',
         "per-COSMIC-leaf isolation coverage",
     )
 
@@ -58,13 +96,13 @@ def patch_stage_graph_expectations() -> None:
             "glibc cascade count",
         ),
         (
-            '                102,\n                &[],\n            ),',
-            '                103,\n                &[],\n            ),',
+            '                "Linux x86_64 UAPI source",\n                &["linux", "glibc", "linux-headers"],\n                102,\n                &[],',
+            '                "Linux x86_64 UAPI source",\n                &["linux", "glibc", "linux-headers"],\n                103,\n                &[],',
             "Linux UAPI cascade count",
         ),
         (
-            '                99,\n                &["linux", "glibc", "linux-headers"],\n            ),',
-            '                100,\n                &["linux", "glibc", "linux-headers"],\n            ),',
+            '                "GCC source",\n                &["gcc-runtime", "gcc-compiler"],\n                99,\n                &["linux", "glibc", "linux-headers"],',
+            '                "GCC source",\n                &["gcc-runtime", "gcc-compiler"],\n                100,\n                &["linux", "glibc", "linux-headers"],',
             "GCC cascade count",
         ),
         (
