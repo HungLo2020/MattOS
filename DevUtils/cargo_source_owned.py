@@ -65,6 +65,7 @@ def effective_manifest(cwd: pathlib.Path, original: list[str]) -> pathlib.Path |
 
 
 def metadata_resolution_args(original: list[str]) -> list[str]:
+    """Return selection plus the caller's strict Cargo resolution policy."""
     selected: list[str] = []
     value_flags = {'--manifest-path', '--features', '-F'}
     switches = {
@@ -87,6 +88,35 @@ def metadata_resolution_args(original: list[str]) -> list[str]:
             selected.append(arg)
         i += 1
     return selected
+
+
+def lock_reconciliation_args(original: list[str]) -> list[str]:
+    """Allow only the derived lock to change while retaining offline policy.
+
+    Source ownership deliberately changes dependency source identity in the
+    output mirror, so a copied upstream Cargo.lock can no longer satisfy
+    ``--locked`` until Cargo reconciles those path substitutions.  Remove only
+    the lock prohibition for this derived-output step.  ``--frozen`` becomes
+    ``--offline`` so a frozen caller still cannot access the network.
+    """
+    reconciled: list[str] = []
+    for arg in metadata_resolution_args(original):
+        if arg == '--locked':
+            continue
+        if arg == '--frozen':
+            if '--offline' not in reconciled:
+                reconciled.append('--offline')
+            continue
+        if arg == '--offline':
+            if '--offline' not in reconciled:
+                reconciled.append(arg)
+            continue
+        reconciled.append(arg)
+    return reconciled
+
+
+def requires_lock_reconciliation(original: list[str]) -> bool:
+    return any(arg in {'--locked', '--frozen'} for arg in original)
 
 
 def digest_file(path: pathlib.Path | None) -> str:
@@ -119,6 +149,25 @@ def run_capture(command: list[str], cwd: pathlib.Path, trace: pathlib.Path, labe
         append_trace(trace, completed.stderr)
         append_trace(trace, f'{label}_stderr_end')
     return completed
+
+
+def reconcile_output_lock(
+    real_cargo: str,
+    cwd: pathlib.Path,
+    original: list[str],
+    trace: pathlib.Path,
+) -> subprocess.CompletedProcess[str] | None:
+    """Reconcile a copied output lock after MattOS rewrites source identities."""
+    if not requires_lock_reconciliation(original):
+        return None
+    command = [
+        real_cargo,
+        'metadata',
+        '--format-version',
+        '1',
+        *lock_reconciliation_args(original),
+    ]
+    return run_capture(command, cwd, trace, 'lock_reconcile', capture_stdout=True)
 
 
 def validated_consumer_patch_manifest(root: pathlib.Path, metadata: dict) -> tuple[str, list[pathlib.Path]] | None:
@@ -283,6 +332,20 @@ def main() -> int:
 
     lockfile = manifest.parent / 'Cargo.lock'
     append_trace(trace, f'lock_sha256_before={digest_file(lockfile)}')
+    if requires_lock_reconciliation(sys.argv[1:]) and not lockfile.is_file():
+        message = f'locked Cargo command has no copied output lockfile: {lockfile}'
+        append_trace(trace, f'lock_reconcile_error={message}')
+        sys.stderr.write(message + '\n')
+        return 101
+
+    reconciliation = reconcile_output_lock(real_cargo, cwd, sys.argv[1:], trace)
+    if reconciliation is not None:
+        if reconciliation.returncode != 0:
+            if reconciliation.stderr:
+                sys.stderr.write(reconciliation.stderr)
+            return reconciliation.returncode
+        append_trace(trace, f'lock_sha256_after_reconcile={digest_file(lockfile)}')
+
     metadata_command = [real_cargo, 'metadata', '--format-version', '1', *metadata_resolution_args(sys.argv[1:])]
     metadata = run_capture(metadata_command, cwd, trace, 'metadata', capture_stdout=True)
     if metadata.returncode != 0:
