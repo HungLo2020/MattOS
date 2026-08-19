@@ -28,33 +28,23 @@ def ensure_once(path: Path, old: str, new: str, label: str) -> None:
     )
 
 
-def ensure_all(path: Path, old: str, new: str, label: str, expected: int) -> None:
-    text = path.read_text(encoding="utf-8")
-    old_count = text.count(old)
-    new_count = text.count(new)
-    if old_count == 0 and new_count == expected:
-        return
-    if old_count + new_count == expected:
-        path.write_text(text.replace(old, new), encoding="utf-8")
-        return
-    raise SystemExit(
-        f"{path.relative_to(ROOT)}: unexpected {label} multiplicity: "
-        f"pending={old_count}, applied={new_count}, expected={expected}"
-    )
-
-
 def patch_stage_graph_expectations() -> None:
     path = ROOT / "src/tools/mattos-build/src/stage_graph.rs"
 
-    # The new leaf belongs in the exact LLVM downstream closure and in the
-    # per-COSMIC-leaf isolation coverage. These are the two remaining test-only
-    # occurrences of this sequence after the production graph was integrated.
-    ensure_all(
+    # These are two different semantic test locations, not duplicate text.
+    # Keep them separate so this helper cannot accidentally modify a production
+    # dependency list merely because it shares the same three component names.
+    ensure_once(
         path,
-        '                "cosmic-files",\n                "cosmic-term",\n                "cosmic-utilities",',
-        '                "cosmic-files",\n                "cosmic-term",\n                "cosmic-tweaks",\n                "cosmic-utilities",',
-        "COSMIC Tweaks exact downstream/test coverage",
-        2,
+        '                "cosmic-workspaces",\n                "cosmic-files",\n                "cosmic-term",\n                "cosmic-utilities",\n                "cosmic-portal",\n                "greetd",\n                "cosmic-desktop",',
+        '                "cosmic-workspaces",\n                "cosmic-files",\n                "cosmic-term",\n                "cosmic-tweaks",\n                "cosmic-utilities",\n                "cosmic-portal",\n                "greetd",\n                "cosmic-desktop",',
+        "LLVM exact downstream closure",
+    )
+    ensure_once(
+        path,
+        '            "cosmic-workspaces",\n            "cosmic-files",\n            "cosmic-term",\n            "cosmic-utilities",\n            "cosmic-portal",\n            "cosmic-assets",\n            "greetd",',
+        '            "cosmic-workspaces",\n            "cosmic-files",\n            "cosmic-term",\n            "cosmic-tweaks",\n            "cosmic-utilities",\n            "cosmic-portal",\n            "cosmic-assets",\n            "greetd",',
+        "per-COSMIC-leaf isolation coverage",
     )
 
     # Broad upstream changes that already reached the full COSMIC leaf family
