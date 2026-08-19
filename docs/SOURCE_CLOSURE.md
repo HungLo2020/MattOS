@@ -61,6 +61,13 @@ populated cache can then support `--locked --offline` builds, but downloaded
 cache trees remain ignored cache/output state and must never be copied into
 authoritative `src/`.
 
+Source-ownership verification must preserve the Cargo resolution policy of the
+command it verifies. In particular, a locked build is verified with
+`cargo metadata --locked`; an offline/frozen build remains offline/frozen during
+metadata verification. The verifier does not force ordinary online locked
+builds offline, because first-time cache population for normal registry build
+dependencies is an allowed part of this policy.
+
 The COSMIC desktop hierarchy therefore contains recognizable platform and
 desktop projects, not every crate in their recursive dependency graph. Future
 COSMIC imports must apply the two-question test before creating a source tree
