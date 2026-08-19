@@ -48,6 +48,16 @@ Nested crates are not globally claimed merely because a `Cargo.toml` exists some
 
 For COSMIC this means, for example, a Git edge requesting `libcosmic` from the libcosmic repository is rebound to MattOS's libcosmic mirror, while iced-family packages exposed through libcosmic's upstream gitlink are routed through the declared first-class `cosmic-iced` replacement. Conversely, a crate named `cosmic-settings-daemon` coming from `dbus-settings-bindings` remains that external crate; it is not confused with MattOS's separately owned `pop-os/cosmic-settings-daemon` project.
 
+## Derived Cargo locks
+
+Structural rebinding changes Cargo package source identity: an upstream lock entry that names a Git source may become a path dependency in the MattOS output graph. The copied upstream `Cargo.lock` is therefore an input to derived lock reconciliation, not an immutable lock for a graph that no longer has the same source identities.
+
+For a caller that requests `--locked` or `--frozen`, the dispatcher first reconciles only the `out/build/...` lockfile after patching and ownership rewriting. It temporarily removes the lock prohibition for that derived-output step while retaining offline policy: `--offline` stays offline and `--frozen` is reconciled as offline. Cargo begins from the copied upstream lock and keeps already locked dependency versions whenever they still satisfy the rewritten graph. The authoritative lockfile under `src/` is never edited.
+
+Immediately after reconciliation, MattOS reruns `cargo metadata` with the caller's original strict policy (`--locked`, `--offline`, and/or `--frozen`). Only a lockfile that is stable under that strict command is accepted for ownership verification and the final build. A locked caller with no copied lockfile still fails closed; reconciliation does not turn a missing upstream lock into permission to invent one.
+
+This boundary preserves both invariants: MattOS may change owned source identity in derived output, and the actual build still runs against a lockfile that Cargo accepts under the caller's strict policy.
+
 ## Fail-closed verification
 
 `DevUtils/cargo_source_owned.py` is the Cargo dispatcher used by the MattOS launcher. For Cargo commands operating on an `out/build/...` mirror it:
@@ -55,11 +65,12 @@ For COSMIC this means, for example, a Git edge requesting `libcosmic` from the l
 1. identifies the first-class component represented by the build mirror;
 2. validates that consumer's registered output-only patch chain and applies it only if the mirror has not already been prepared;
 3. prepares the transitive MattOS-owned canonical source mirrors and rewrites dependency edges;
-4. runs `cargo metadata` against the rewritten graph using the same dependency-resolution policy flags supplied by the caller (`--locked`, `--offline`, and/or `--frozen`, plus relevant feature/manifest selection);
-5. verifies that an owned Git package did not remain external and that canonical first-class path/registry packages resolve from their expected MattOS mirror; and
-6. only after verification runs the original Cargo command.
+4. when the caller is locked/frozen, reconciles the copied output-mirror `Cargo.lock` for the rewritten source identities while preserving offline policy;
+5. runs `cargo metadata` against the rewritten graph using the caller's original dependency-resolution policy flags (`--locked`, `--offline`, and/or `--frozen`, plus relevant feature/manifest selection);
+6. verifies that an owned Git package did not remain external and that canonical first-class path/registry packages resolve from their expected MattOS mirror; and
+7. only after verification runs the original Cargo command.
 
-The metadata verifier must not silently relax the caller's lock or network policy. `--locked` constrains dependency resolution but does not itself forbid network access; offline behavior is requested only when the caller uses Cargo's offline/frozen policy. This allows normal registry build dependencies to populate Cargo's cache while keeping the ownership verification graph semantically aligned with the command it approves.
+The strict metadata verifier must not silently relax the caller's lock or network policy. `--locked` constrains dependency resolution but does not itself forbid network access; offline behavior is requested only when the caller uses Cargo's offline/frozen policy. This allows normal registry build dependencies to populate Cargo's cache while keeping the ownership verification graph semantically aligned with the command it approves.
 
 A requested package that is not actually present in an owned repository or its declared replacement closure is not invented. It may remain external until MattOS imports/owns that source. Once the matching source is owned, external fallback is forbidden.
 
@@ -67,7 +78,7 @@ The dispatcher never rewrites authoritative imported source under `src/`. Source
 
 ## Diagnostics
 
-Ownership-enabled Cargo invocations write detailed traces under `out/source-ownership/logs/<component>.log`. These logs include consumer patch state, graph preparation, metadata verification and final Cargo diagnostics.
+Ownership-enabled Cargo invocations write detailed traces under `out/source-ownership/logs/<component>.log`. These logs include consumer patch state, derived-lock reconciliation, graph preparation, metadata verification and final Cargo diagnostics.
 
 `DevUtils/run_qemu.py` automatically prints source-ownership failure logs generated during the current failed build command. Runtime diagnostics remain under `out/`; builds do not dirty the Git-tracked tree merely to expose an error.
 
@@ -90,4 +101,4 @@ python3 DevUtils/generate_source_overrides.py
 python3 DevUtils/test_source_ownership_overrides.py
 ```
 
-The first command validates source/patch provenance and regenerates the derived ownership catalog. The second exercises source-qualified resolution, canonical/private mirror separation, Git-format output-patch application, idempotent consumer patching, build-mirror patch ordering, Cargo metadata resolution-policy propagation, gitlink replacement behavior, metadata fail-closed checks, provenance agreement, and preservation of pristine imported manifests.
+The first command validates source/patch provenance and regenerates the derived ownership catalog. The second exercises source-qualified resolution, canonical/private mirror separation, Git-format output-patch application, idempotent consumer patching, build-mirror patch ordering, derived-lock reconciliation, Cargo metadata resolution-policy propagation, gitlink replacement behavior, metadata fail-closed checks, provenance agreement, and preservation of pristine imported manifests.
