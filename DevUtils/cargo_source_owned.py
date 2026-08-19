@@ -67,7 +67,13 @@ def effective_manifest(cwd: pathlib.Path, original: list[str]) -> pathlib.Path |
 def metadata_resolution_args(original: list[str]) -> list[str]:
     selected: list[str] = []
     value_flags = {'--manifest-path', '--features', '-F'}
-    switches = {'--all-features', '--no-default-features'}
+    switches = {
+        '--all-features',
+        '--no-default-features',
+        '--locked',
+        '--offline',
+        '--frozen',
+    }
     i = 0
     while i < len(original):
         arg = original[i]
