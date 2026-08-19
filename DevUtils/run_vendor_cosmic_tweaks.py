@@ -1,67 +1,118 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import importlib.util
 import subprocess
 from pathlib import Path
 
+BRANCH = "agent/vendor-cosmic-tweaks"
 ROOT = Path(__file__).resolve().parents[1]
-SELF = Path(__file__).resolve()
-APPLICATOR = ROOT / "DevUtils/apply_vendor_cosmic_tweaks.py"
+RESUME = ROOT / "DevUtils/resume_vendor_cosmic_tweaks.py"
 
 
-def load_applicator():
-    spec = importlib.util.spec_from_file_location("apply_vendor_cosmic_tweaks", APPLICATOR)
-    if spec is None or spec.loader is None:
-        raise SystemExit(f"unable to load {APPLICATOR}")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+def output(*args: str) -> str:
+    return subprocess.check_output(args, cwd=ROOT, text=True).strip()
+
+
+def ensure_once(path: Path, old: str, new: str, label: str) -> None:
+    text = path.read_text(encoding="utf-8")
+    old_count = text.count(old)
+    new_count = text.count(new)
+    if old_count == 0 and new_count == 1:
+        return
+    if old_count == 1 and new_count == 0:
+        path.write_text(text.replace(old, new, 1), encoding="utf-8")
+        return
+    raise SystemExit(
+        f"{path.relative_to(ROOT)}: unexpected {label} state: "
+        f"pending={old_count}, applied={new_count}"
+    )
+
+
+def ensure_all(path: Path, old: str, new: str, label: str, expected: int) -> None:
+    text = path.read_text(encoding="utf-8")
+    old_count = text.count(old)
+    new_count = text.count(new)
+    if old_count == 0 and new_count == expected:
+        return
+    if old_count + new_count == expected:
+        path.write_text(text.replace(old, new), encoding="utf-8")
+        return
+    raise SystemExit(
+        f"{path.relative_to(ROOT)}: unexpected {label} multiplicity: "
+        f"pending={old_count}, applied={new_count}, expected={expected}"
+    )
+
+
+def patch_stage_graph_expectations() -> None:
+    path = ROOT / "src/tools/mattos-build/src/stage_graph.rs"
+
+    # The new leaf belongs in the exact LLVM downstream closure and in the
+    # per-COSMIC-leaf isolation coverage. These are the two remaining test-only
+    # occurrences of this sequence after the production graph was integrated.
+    ensure_all(
+        path,
+        '                "cosmic-files",\n                "cosmic-term",\n                "cosmic-utilities",',
+        '                "cosmic-files",\n                "cosmic-term",\n                "cosmic-tweaks",\n                "cosmic-utilities",',
+        "COSMIC Tweaks exact downstream/test coverage",
+        2,
+    )
+
+    # Broad upstream changes that already reached the full COSMIC leaf family
+    # now invalidate exactly one additional stage: cosmic-tweaks. Narrow Linux,
+    # package, repository, rootfs and initramfs scenarios are intentionally
+    # unchanged.
+    for old, new, label in [
+        (
+            '("glibc source", &["glibc"], 101, &["linux"]),',
+            '("glibc source", &["glibc"], 102, &["linux"]),',
+            "glibc cascade count",
+        ),
+        (
+            '                102,\n                &[],\n            ),',
+            '                103,\n                &[],\n            ),',
+            "Linux UAPI cascade count",
+        ),
+        (
+            '                99,\n                &["linux", "glibc", "linux-headers"],\n            ),',
+            '                100,\n                &["linux", "glibc", "linux-headers"],\n            ),',
+            "GCC cascade count",
+        ),
+        (
+            '("zlib shared library", &["zlib"], 49, &["brush", "linux"]),',
+            '("zlib shared library", &["zlib"], 50, &["brush", "linux"]),',
+            "zlib cascade count",
+        ),
+    ]:
+        ensure_once(path, old, new, label)
+
+
+def patch_main_expectations() -> None:
+    path = ROOT / "src/tools/mattos-build/src/main.rs"
+    ensure_once(
+        path,
+        "                    | BuildStage::CosmicFiles\n                    | BuildStage::CosmicTerm\n                    | BuildStage::CosmicUtilities\n                    | BuildStage::CosmicPortal",
+        "                    | BuildStage::CosmicFiles\n                    | BuildStage::CosmicTerm\n                    | BuildStage::CosmicTweaks\n                    | BuildStage::CosmicUtilities\n                    | BuildStage::CosmicPortal",
+        "high-memory scheduler regression expectation",
+    )
 
 
 def main() -> None:
-    app = load_applicator()
-    app.require_clean_branch()
-    app.register_source()
-    app.import_source()
-    app.patch_stage_graph()
-    app.patch_stage_inputs()
-    app.patch_main()
-    app.patch_packaging()
-    app.patch_provenance_audit()
-    app.patch_ownership_tests()
+    if output("git", "branch", "--show-current") != BRANCH:
+        raise SystemExit(f"expected branch {BRANCH!r}")
+    if not RESUME.is_file():
+        raise SystemExit(f"missing recovery helper {RESUME}")
 
-    # The ownership catalog intentionally enumerates Git-tracked Cargo
-    # manifests. Stage only the newly imported source transaction before the
-    # checks so cosmic-ext-tweaks is visible to catalog generation. Nothing is
-    # committed until the full static test suite succeeds.
+    patch_stage_graph_expectations()
+    patch_main_expectations()
+
+    # Continue through the existing idempotent integration helper. On success
+    # that helper deletes this bootstrap script, the applicator, and itself from
+    # the real integration commit, so no recovery machinery survives in the PR.
     subprocess.run(
-        [
-            "git",
-            "add",
-            "-A",
-            "--",
-            "upstream/sources.toml",
-            "upstream/state/cosmic-tweaks.toml",
-            "src/desktop/cosmic/cosmic-tweaks",
-        ],
+        ["python3", str(RESUME.relative_to(ROOT))],
         cwd=ROOT,
         check=True,
     )
-
-    app.static_validation()
-
-    # Both temporary applicators disappear in the real integration commit.
-    SELF.unlink()
-    subprocess.run(
-        ["git", "add", "-A", "--", str(SELF.relative_to(ROOT))],
-        cwd=ROOT,
-        check=True,
-    )
-    app.commit_and_push()
-    print("COSMIC Tweaks source/integration committed and pushed; running targeted build validation.")
-    app.targeted_validation()
-    print("COSMIC Tweaks is vendored, source-owned, built, aggregated, and package-validated on PR branch.")
 
 
 if __name__ == "__main__":
