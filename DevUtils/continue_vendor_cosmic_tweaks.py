@@ -21,25 +21,19 @@ def output(*args: str) -> str:
 
 
 def remove_brittle_component_count() -> None:
-    """Keep uniqueness as the invariant; never hard-code inventory size.
-
-    MattOS grows over time. A fixed expected component count turns every valid
-    source addition into an unrelated provenance failure and does not add any
-    safety beyond the existing unique-name check. Replace the historical count
-    assertion with a direct entry-vs-unique-name invariant.
-    """
+    """Keep uniqueness as the invariant; never hard-code inventory size."""
     text = AUDIT.read_text(encoding="utf-8")
     replacement = '''    if len(components) != len(component_list):\n        failures.append(\n            f"sources.toml declares {len(component_list)} component entries but only "\n            f"{len(components)} unique component names"\n        )\n'''
     if replacement in text:
         return
 
     pattern = re.compile(
-        r"    expected_component_count = \\d+\\n"
-        r"    if len\\(components\\) != expected_component_count or len\\(component_list\\) != expected_component_count:\\n"
-        r"        failures\\.append\\(\\n"
-        r"            f\\\"sources\\.toml declares \\{len\\(component_list\\)\\} components, \\\"\\n"
-        r"            f\\\"expected \\{expected_component_count\\} unique components\\\"\\n"
-        r"        \\)\\n"
+        r'''    expected_component_count = \d+\n'''
+        r'''    if len\(components\) != expected_component_count or len\(component_list\) != expected_component_count:\n'''
+        r'''        failures\.append\(\n'''
+        r'''            f"sources\.toml declares \{len\(component_list\)\} components, "\n'''
+        r'''            f"expected \{expected_component_count\} unique components"\n'''
+        r'''        \)\n'''
     )
     text, count = pattern.subn(replacement, text, count=1)
     if count != 1:
@@ -64,39 +58,25 @@ def remove_resume_count_rewrite() -> None:
 def patch_resume_bootstrap_contract() -> None:
     text = RESUME.read_text(encoding="utf-8")
 
-    # The runtime-font repair edits this temporary resume helper itself. Permit
-    # that bootstrap-only dirty path without broadening the real integration
-    # file allowlist.
     allowed_anchor = '        "DevUtils/test_source_ownership_overrides.py",\n'
-    allowed_entries = (
-        '        "DevUtils/resume_vendor_cosmic_tweaks.py",\n'
-    )
-    if '        "DevUtils/resume_vendor_cosmic_tweaks.py",\n' not in text:
+    allowed_entries = '        "DevUtils/resume_vendor_cosmic_tweaks.py",\n'
+    if allowed_entries not in text:
         if text.count(allowed_anchor) != 1:
             raise SystemExit("resume helper allowlist anchor is not unique")
         text = text.replace(allowed_anchor, allowed_anchor + allowed_entries, 1)
 
-    # All temporary bootstrap helpers must disappear from the real integration
-    # commit. Add this continuation helper to the deletion set.
     helper_anchor = '    ROOT / "DevUtils/repair_runtime_font_provenance.py",\n'
-    if '    ROOT / "DevUtils/continue_vendor_cosmic_tweaks.py",\n' not in text:
+    continuation_helper = '    ROOT / "DevUtils/continue_vendor_cosmic_tweaks.py",\n'
+    if continuation_helper not in text:
         if text.count(helper_anchor) != 1:
             raise SystemExit("resume helper repair-helper anchor is not unique")
-        text = text.replace(
-            helper_anchor,
-            helper_anchor + '    ROOT / "DevUtils/continue_vendor_cosmic_tweaks.py",\n',
-            1,
-        )
+        text = text.replace(helper_anchor, helper_anchor + continuation_helper, 1)
 
-    # Deleting a tracked helper is not enough; explicitly stage both new helper
-    # deletions alongside the three older bootstrap files.
     stage_anchor = '        "DevUtils/resume_vendor_cosmic_tweaks.py",\n'
     stage_entries = (
         '        "DevUtils/repair_runtime_font_provenance.py",\n'
         '        "DevUtils/continue_vendor_cosmic_tweaks.py",\n'
     )
-    # The resume path occurs in HELPERS and in the final git-add argv. Target
-    # the final occurrence only.
     if '        "DevUtils/repair_runtime_font_provenance.py",\n        "DevUtils/continue_vendor_cosmic_tweaks.py",\n' not in text:
         index = text.rfind(stage_anchor)
         if index < 0:
@@ -119,9 +99,6 @@ def main() -> None:
 
     subprocess.run(["python3", str(REPAIR.relative_to(ROOT))], cwd=ROOT, check=True)
     patch_resume_bootstrap_contract()
-
-    # The existing runner retains the proven cargo-fmt cleanup and semantic
-    # stage-graph regression repair, then invokes the now-updated resume helper.
     subprocess.run(["python3", str(RUNNER.relative_to(ROOT))], cwd=ROOT, check=True)
 
 
