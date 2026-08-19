@@ -65,7 +65,7 @@ def require_expected_recovery_state() -> None:
         ("dispatcher", "def inject_locked_transitive_owned_patches(", dispatcher),
         ("dispatcher call", "transitive_owned_patches=", dispatcher),
         ("regression", "test_lock_derived_patch_closes_external_transitive_owned_git_edge", tests),
-        ("documentation", "transitive callers outside MattOS-owned mirrors", docs),
+        ("documentation", "lock-derived transitive owned-source closure", docs),
     ]
     missing = [label for label, marker, text in required if marker not in text]
     if missing:
