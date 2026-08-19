@@ -30,13 +30,13 @@ The catalog is derived output. MattOS does not generate a repository-wide Cargo 
 
 ## Structural Cargo rebinding
 
-Cargo `[patch]` is intentionally not the ownership enforcement mechanism. `[patch]` participates in normal Cargo resolution and therefore cannot express MattOS's stronger rule that an owned dependency must use one exact local source and may not fall back to another source identity.
+Cargo `[patch]` is intentionally not the primary ownership enforcement mechanism. `[patch]` participates in normal Cargo resolution and by itself cannot express MattOS's stronger rule that an owned dependency must use one exact local source and may not fall back to another source identity.
 
-`DevUtils/source_ownership_graph.py` instead rewrites dependency declarations in derived build mirrors before Cargo resolves them. The authoritative imported trees under `src/` remain pristine.
+`DevUtils/source_ownership_graph.py` therefore rewrites dependency declarations in derived build mirrors before Cargo resolves them. The authoritative imported trees under `src/` remain pristine. A downloaded ordinary Git build dependency is different: MattOS does not own or rewrite that external manifest, so it can still contain a transitive edge back to a Git repository that MattOS owns. For those edges, `DevUtils/cargo_source_owned.py` reads the copied upstream lock before reconciliation and adds a minimal source-qualified `[patch]` table to the **derived consumer mirror only**, covering exactly the locked package names whose Git source is owned. Each entry points at an already-prepared MattOS mirror; a missing mirror fails closed. Structural path rewriting remains primary and the metadata verifier remains the hard guarantee that no owned Git source survived.
 
 The consumer being built remains in its normal `out/build/...` source mirror. Additional owned dependencies are materialized under canonical, reusable `out/source-ownership/sources/<component>` mirrors. Shared mirrors never record a path into another stage's private `out/build/...` tree; only the top-level consumer's own manifests may use its private consumer path. Per-component filesystem locks serialize shared-mirror mutation so multiple build processes cannot copy, patch, or rewrite the same canonical mirror concurrently.
 
-MattOS output-only patches are validated and applied to dependency mirrors before manifest rewriting. Patch manifests contain Git-format diffs, so source ownership uses `git apply --check` followed by `git apply --whitespace=error-all`, matching MattOS's existing output-patch regression semantics. It does not use GNU `patch`, whose interpretation of Git metadata can differ for valid Git-format patches.
+MattOS output-only patches are part of output-mirror creation, not an incidental side effect of a later build frontend. A stage that copies an authoritative first-class source into an `out/build/...` mirror must apply that component's validated registered patch chain immediately after the pristine copy and before Cargo isolation, configuration, or compilation. Canonical dependency mirrors use the same rule while they are materialized. `DevUtils/cargo_source_owned.py` then independently validates the top-level consumer patch state before ownership graph preparation; repeated Cargo invocations detect an already-applied chain with `git apply --reverse --check`. This dispatcher check is an idempotent fail-closed enforcement layer, not the primary mechanism that makes a stage mirror buildable. Patch manifests contain Git-format diffs, so source ownership uses `git apply --check` followed by `git apply --whitespace=error-all`, matching MattOS's existing output-patch regression semantics. It does not use GNU `patch`, whose interpretation of Git metadata can differ for valid Git-format patches.
 
 Ownership decisions are source-qualified:
 
@@ -48,15 +48,30 @@ Nested crates are not globally claimed merely because a `Cargo.toml` exists some
 
 For COSMIC this means, for example, a Git edge requesting `libcosmic` from the libcosmic repository is rebound to MattOS's libcosmic mirror, while iced-family packages exposed through libcosmic's upstream gitlink are routed through the declared first-class `cosmic-iced` replacement. Conversely, a crate named `cosmic-settings-daemon` coming from `dbus-settings-bindings` remains that external crate; it is not confused with MattOS's separately owned `pop-os/cosmic-settings-daemon` project.
 
+## Derived Cargo locks
+
+Structural rebinding changes Cargo package source identity: an upstream lock entry that names a Git source may become a path dependency in the MattOS output graph. The copied upstream `Cargo.lock` is therefore an input to derived lock reconciliation, not an immutable lock for a graph that no longer has the same source identities.
+
+For a caller that requests `--locked` or `--frozen`, the dispatcher first closes any locked external-transitive references to owned Git sources with the derived source-qualified patch table, then reconciles only the `out/build/...` lockfile after patching and ownership rewriting. It temporarily removes the lock prohibition for that derived-output step while retaining offline policy: `--offline` stays offline and `--frozen` is reconciled as offline. Cargo begins from the copied upstream lock and keeps already locked dependency versions whenever they still satisfy the rewritten graph. The authoritative lockfile under `src/` is never edited.
+
+Immediately after reconciliation, MattOS reruns `cargo metadata` with the caller's original strict policy (`--locked`, `--offline`, and/or `--frozen`). Only a lockfile that is stable under that strict command is accepted for ownership verification and the final build. A locked caller with no copied lockfile still fails closed; reconciliation does not turn a missing upstream lock into permission to invent one.
+
+This boundary preserves both invariants: MattOS may change owned source identity in derived output, and the actual build still runs against a lockfile that Cargo accepts under the caller's strict policy.
+
 ## Fail-closed verification
 
 `DevUtils/cargo_source_owned.py` is the Cargo dispatcher used by the MattOS launcher. For Cargo commands operating on an `out/build/...` mirror it:
 
 1. identifies the first-class component represented by the build mirror;
-2. prepares the transitive MattOS-owned canonical source mirrors and rewrites dependency edges;
-3. runs `cargo metadata` against the rewritten graph;
-4. verifies that an owned Git package did not remain external and that canonical first-class path/registry packages resolve from their expected MattOS mirror; and
-5. only after verification runs the original Cargo command, including its original `--locked` policy.
+2. validates that consumer's registered output-only patch chain and applies it only if the mirror has not already been prepared;
+3. prepares the transitive MattOS-owned canonical source mirrors and rewrites dependency edges;
+4. derives a minimal source-qualified Cargo patch closure from owned Git packages still named by the copied upstream lock, covering transitive callers whose external manifests MattOS cannot rewrite;
+5. when the caller is locked/frozen, reconciles the copied output-mirror `Cargo.lock` for the rewritten source identities while preserving offline policy;
+6. runs `cargo metadata` against the rewritten graph using the caller's original dependency-resolution policy flags (`--locked`, `--offline`, and/or `--frozen`, plus relevant feature/manifest selection);
+7. verifies that an owned Git package did not remain external and that canonical first-class path/registry packages resolve from their expected MattOS mirror; and
+8. only after verification runs the original Cargo command.
+
+The strict metadata verifier must not silently relax the caller's lock or network policy. `--locked` constrains dependency resolution but does not itself forbid network access; offline behavior is requested only when the caller uses Cargo's offline/frozen policy. This allows normal registry build dependencies to populate Cargo's cache while keeping the ownership verification graph semantically aligned with the command it approves.
 
 A requested package that is not actually present in an owned repository or its declared replacement closure is not invented. It may remain external until MattOS imports/owns that source. Once the matching source is owned, external fallback is forbidden.
 
@@ -64,7 +79,7 @@ The dispatcher never rewrites authoritative imported source under `src/`. Source
 
 ## Diagnostics
 
-Ownership-enabled Cargo invocations write detailed traces under `out/source-ownership/logs/<component>.log`. These logs include graph preparation, metadata verification and final Cargo diagnostics.
+Ownership-enabled Cargo invocations write detailed traces under `out/source-ownership/logs/<component>.log`. These logs include consumer patch state, lock-derived transitive ownership patches, derived-lock reconciliation, graph preparation, metadata verification and final Cargo diagnostics.
 
 `DevUtils/run_qemu.py` automatically prints source-ownership failure logs generated during the current failed build command. Runtime diagnostics remain under `out/`; builds do not dirty the Git-tracked tree merely to expose an error.
 
@@ -87,4 +102,4 @@ python3 DevUtils/generate_source_overrides.py
 python3 DevUtils/test_source_ownership_overrides.py
 ```
 
-The first command validates source/patch provenance and regenerates the derived ownership catalog. The second exercises source-qualified resolution, canonical/private mirror separation, Git-format output-patch application, gitlink replacement behavior, metadata fail-closed checks, provenance agreement, and preservation of pristine imported manifests.
+The first command validates source/patch provenance and regenerates the derived ownership catalog. The second exercises source-qualified resolution, canonical/private mirror separation, Git-format output-patch application, idempotent consumer patching, build-mirror patch ordering, lock-derived transitive owned-source closure, derived-lock reconciliation, Cargo metadata resolution-policy propagation, gitlink replacement behavior, metadata fail-closed checks, provenance agreement, and preservation of pristine imported manifests.

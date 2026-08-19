@@ -84,7 +84,10 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::CosmicOsd => &["src/desktop/cosmic/cosmic-osd"],
         BuildStage::CosmicBg => &["src/desktop/cosmic/cosmic-bg"],
         BuildStage::CosmicWorkspaces => &["src/desktop/cosmic/cosmic-workspaces"],
-        BuildStage::CosmicFiles => &["src/desktop/cosmic/cosmic-files"],
+        BuildStage::CosmicFiles => &[
+            "src/desktop/cosmic/cosmic-files",
+            "upstream/patches/cosmic-files",
+        ],
         BuildStage::CosmicTerm => &["src/desktop/cosmic/cosmic-term"],
         BuildStage::CosmicUtilities => &[
             "src/desktop/cosmic/cosmic-randr",
@@ -275,6 +278,7 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
         | BuildStage::Libinput
         | BuildStage::Pixman
         | BuildStage::CosmicComp => 1,
+        BuildStage::CosmicFiles => 2,
         BuildStage::Libseat => 2,
         BuildStage::CosmicDesktop => 1,
         BuildStage::Dbus => 3,
@@ -371,6 +375,13 @@ mod tests {
         assert_eq!(
             source_inputs(BuildStage::CosmicSession),
             vec![PathBuf::from("src/desktop/cosmic/cosmic-session")]
+        );
+        assert_eq!(
+            source_inputs(BuildStage::CosmicFiles),
+            vec![
+                PathBuf::from("src/desktop/cosmic/cosmic-files"),
+                PathBuf::from("upstream/patches/cosmic-files"),
+            ]
         );
         assert!(source_inputs(BuildStage::CosmicDesktop).is_empty());
         for stage in [
