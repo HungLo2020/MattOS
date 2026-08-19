@@ -55,9 +55,11 @@ For COSMIC this means, for example, a Git edge requesting `libcosmic` from the l
 1. identifies the first-class component represented by the build mirror;
 2. validates that consumer's registered output-only patch chain and applies it only if the mirror has not already been prepared;
 3. prepares the transitive MattOS-owned canonical source mirrors and rewrites dependency edges;
-4. runs `cargo metadata` against the rewritten graph;
+4. runs `cargo metadata` against the rewritten graph using the same dependency-resolution policy flags supplied by the caller (`--locked`, `--offline`, and/or `--frozen`, plus relevant feature/manifest selection);
 5. verifies that an owned Git package did not remain external and that canonical first-class path/registry packages resolve from their expected MattOS mirror; and
-6. only after verification runs the original Cargo command, including its original `--locked` policy.
+6. only after verification runs the original Cargo command.
+
+The metadata verifier must not silently relax the caller's lock or network policy. `--locked` constrains dependency resolution but does not itself forbid network access; offline behavior is requested only when the caller uses Cargo's offline/frozen policy. This allows normal registry build dependencies to populate Cargo's cache while keeping the ownership verification graph semantically aligned with the command it approves.
 
 A requested package that is not actually present in an owned repository or its declared replacement closure is not invented. It may remain external until MattOS imports/owns that source. Once the matching source is owned, external fallback is forbidden.
 
@@ -88,4 +90,4 @@ python3 DevUtils/generate_source_overrides.py
 python3 DevUtils/test_source_ownership_overrides.py
 ```
 
-The first command validates source/patch provenance and regenerates the derived ownership catalog. The second exercises source-qualified resolution, canonical/private mirror separation, Git-format output-patch application, idempotent consumer patching, build-mirror patch ordering, gitlink replacement behavior, metadata fail-closed checks, provenance agreement, and preservation of pristine imported manifests.
+The first command validates source/patch provenance and regenerates the derived ownership catalog. The second exercises source-qualified resolution, canonical/private mirror separation, Git-format output-patch application, idempotent consumer patching, build-mirror patch ordering, Cargo metadata resolution-policy propagation, gitlink replacement behavior, metadata fail-closed checks, provenance agreement, and preservation of pristine imported manifests.
