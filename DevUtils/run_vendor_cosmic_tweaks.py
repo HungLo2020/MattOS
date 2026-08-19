@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import subprocess
-import tempfile
 from pathlib import Path
 
 BRANCH = "agent/vendor-cosmic-tweaks"
@@ -84,13 +83,32 @@ def tracked_status() -> dict[str, str]:
     return result
 
 
+def restore_worktree_from_head(paths: list[str]) -> None:
+    if not paths:
+        return
+    subprocess.run(
+        ["git", "restore", "--source=HEAD", "--worktree", "--", *paths],
+        cwd=ROOT,
+        check=True,
+    )
+
+
 def cleanup_proven_formatter_collateral() -> None:
-    """Remove only formatter output that can be reproduced from clean HEAD.
+    """Remove only unrelated bytes exactly reproduced by the real formatter.
 
     Earlier recovery runs used `cargo fmt -p mattos-build`, which formats every
     Rust file in that package and dirtied two files unrelated to COSMIC Tweaks.
-    Never whitelist or blindly restore them: reproduce formatting in a detached
-    HEAD worktree and require byte-for-byte equality first.
+    Prove those bytes in-place using the exact local formatter/toolchain:
+
+    1. save the suspect dirty bytes;
+    2. restore only those paths to clean HEAD;
+    3. run the same `cargo fmt -p mattos-build` command;
+    4. require byte-for-byte reproduction of every saved suspect file;
+    5. restore the proven collateral to HEAD.
+
+    Any other path that was clean immediately before this proof but becomes
+    dirty solely because of the formatter is also restored. Pre-existing dirty
+    integration files are never restored by this helper.
     """
     status = tracked_status()
     dirty = [path for path in FORMATTER_COLLATERAL if path in status]
@@ -104,42 +122,60 @@ def cleanup_proven_formatter_collateral() -> None:
                 f"modification, got status {status[path]!r}"
             )
 
-    worktree_path: Path | None = None
-    with tempfile.TemporaryDirectory(prefix="mattos-tweaks-fmt-proof-") as temp:
-        worktree_path = Path(temp) / "head"
+    saved = {path: (ROOT / path).read_bytes() for path in dirty}
+    preexisting_dirty = set(status) - set(dirty)
+
+    restore_worktree_from_head(dirty)
+    try:
         subprocess.run(
-            ["git", "worktree", "add", "--detach", str(worktree_path), "HEAD"],
+            ["cargo", "fmt", "-p", "mattos-build"],
             cwd=ROOT,
             check=True,
-            stdout=subprocess.DEVNULL,
         )
-        try:
-            subprocess.run(
-                ["cargo", "fmt", "-p", "mattos-build"],
-                cwd=worktree_path,
-                check=True,
+
+        mismatched = [
+            path for path, expected in saved.items() if (ROOT / path).read_bytes() != expected
+        ]
+        if mismatched:
+            # Preserve the user's exact pre-proof bytes before failing closed.
+            for path, body in saved.items():
+                (ROOT / path).write_bytes(body)
+
+            now_dirty = set(tracked_status())
+            formatter_only_new = sorted(
+                path
+                for path in now_dirty - preexisting_dirty - set(dirty)
+                if (ROOT / path).exists()
             )
-            for path in dirty:
-                local_bytes = (ROOT / path).read_bytes()
-                proof_bytes = (worktree_path / path).read_bytes()
-                if local_bytes != proof_bytes:
-                    raise SystemExit(
-                        f"refusing to restore {path}: local bytes are not exactly "
-                        "the formatter output reproduced from clean HEAD"
-                    )
-        finally:
-            subprocess.run(
-                ["git", "worktree", "remove", "--force", str(worktree_path)],
-                cwd=ROOT,
-                check=True,
-                stdout=subprocess.DEVNULL,
+            restore_worktree_from_head(formatter_only_new)
+            raise SystemExit(
+                "refusing to restore suspected formatter collateral because the "
+                "real formatter did not reproduce it exactly: " + ", ".join(mismatched)
             )
 
-    subprocess.run(
-        ["git", "restore", "--source=HEAD", "--worktree", "--", *dirty],
-        cwd=ROOT,
-        check=True,
-    )
+        # These files are now proven to be exactly the formatter output of HEAD.
+        restore_worktree_from_head(dirty)
+
+        # cargo fmt may expose additional pre-existing formatting drift in files
+        # that were clean before the proof. Those changes are necessarily from
+        # this proof invocation, so remove them rather than expanding this PR.
+        now_dirty = set(tracked_status())
+        formatter_only_new = sorted(
+            path
+            for path in now_dirty - preexisting_dirty
+            if path not in dirty and (ROOT / path).exists()
+        )
+        restore_worktree_from_head(formatter_only_new)
+    except BaseException:
+        # If anything unexpected happens after the temporary restore, put the
+        # original suspect bytes back unless they were already safely proven and
+        # cleaned. This preserves local state on failure.
+        current = tracked_status()
+        for path, body in saved.items():
+            if path not in current:
+                (ROOT / path).write_bytes(body)
+        raise
+
     print(
         "Removed proven cargo-fmt collateral: " + ", ".join(dirty),
         flush=True,
