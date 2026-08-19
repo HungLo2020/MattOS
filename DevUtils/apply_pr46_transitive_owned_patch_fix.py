@@ -2,9 +2,9 @@
 """Recover the PR #46 transitive-owned-source applicator after its fixture failed.
 
 The first applicator correctly left its production/doc edits uncommitted when the
-new regression failed.  That regression accidentally used the same directory as
+new regression failed. That regression accidentally used the same directory as
 both the original Git source and the Cargo [patch] replacement, which Cargo
-rightly rejects.  This recovery script accepts only that exact dirty state,
+rightly rejects. This recovery script accepts only that exact dirty state,
 changes the fixture to use a distinct MattOS-style output mirror, reruns the
 suite, removes itself, and commits/pushes only after validation passes.
 """
@@ -34,9 +34,17 @@ def require_expected_recovery_state() -> None:
     if branch != BRANCH:
         raise SystemExit(f"expected branch {BRANCH!r}, got {branch!r}")
 
+    # Do not pass porcelain output through output(): its .strip() would remove
+    # the leading status-space from only the first line (for example
+    # " M DevUtils/..." -> "M DevUtils/..."), corrupting line[3:].
+    status = subprocess.check_output(
+        ["git", "status", "--porcelain=v1", "--untracked-files=no"],
+        cwd=ROOT,
+        text=True,
+    )
     dirty_paths = {
         line[3:]
-        for line in output("git", "status", "--porcelain", "--untracked-files=no").splitlines()
+        for line in status.splitlines()
         if len(line) >= 4
     }
     expected = {
