@@ -51,6 +51,27 @@ class SourceOwnershipGraphTest(unittest.TestCase):
                 root_packages["libcosmic"],
             )
 
+    def test_metadata_probe_preserves_caller_resolution_policy(self) -> None:
+        self.assertEqual(
+            dispatcher.metadata_resolution_args(
+                [
+                    "build",
+                    "--release",
+                    "--locked",
+                    "--offline",
+                    "--features",
+                    "wayland,systemd",
+                ]
+            ),
+            ["--locked", "--offline", "--features", "wayland,systemd"],
+        )
+        self.assertEqual(
+            dispatcher.metadata_resolution_args(
+                ["check", "--frozen", "--all-features", "--manifest-path=Cargo.toml"]
+            ),
+            ["--frozen", "--all-features", "--manifest-path=Cargo.toml"],
+        )
+
     def test_rewrite_does_not_conflate_same_name_git_package(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = pathlib.Path(tmp)
