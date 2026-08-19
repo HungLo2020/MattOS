@@ -170,6 +170,113 @@ def reconcile_output_lock(
     return run_capture(command, cwd, trace, 'lock_reconcile', capture_stdout=True)
 
 
+def cargo_git_source_repo(source: str) -> str | None:
+    """Return the repository identity from a Cargo ``git+`` source string."""
+    if not source.startswith('git+'):
+        return None
+    return source[4:].split('#', 1)[0].split('?', 1)[0]
+
+
+def locked_owned_git_targets(lockfile: pathlib.Path, index: dict, graph) -> list[dict[str, str]]:
+    """Find owned Git packages still named by the copied upstream lock.
+
+    Structural rewriting changes manifests that MattOS owns, but an ordinary
+    external Git dependency can itself name one of MattOS's owned repositories.
+    The copied lock is the deterministic inventory of those source identities
+    before derived-lock reconciliation.
+    """
+    if not lockfile.is_file():
+        return []
+    data = tomllib.loads(lockfile.read_text(encoding='utf-8'))
+    targets: dict[tuple[str, str], dict[str, str]] = {}
+    for package in data.get('package', []):
+        if not isinstance(package, dict):
+            continue
+        name = package.get('name')
+        source = package.get('source')
+        if not isinstance(name, str) or not isinstance(source, str):
+            continue
+        repo = cargo_git_source_repo(source)
+        if repo is None:
+            continue
+        target = graph.choose_owned_git_target(index, name, repo)
+        if target is None:
+            continue
+        item = {'repo': repo, 'package': name, **target}
+        key = (graph.norm_repo(repo), name)
+        previous = targets.get(key)
+        if previous is not None and previous != item:
+            raise RuntimeError(
+                f'locked owned Git package {name!r} from {repo!r} has ambiguous targets: '
+                f'{previous} vs {item}'
+            )
+        targets[key] = item
+    return [targets[key] for key in sorted(targets)]
+
+
+def inject_locked_transitive_owned_patches(
+    manifest: pathlib.Path,
+    lockfile: pathlib.Path,
+    index: dict,
+    mirrors: dict[str, pathlib.Path],
+    graph,
+) -> list[str]:
+    """Close owned Git sources used by external transitive manifests.
+
+    Only the derived consumer manifest is changed. Structural path rewriting
+    remains the primary ownership mechanism; this minimal source-qualified
+    ``[patch]`` table covers callers whose downloaded manifests MattOS cannot
+    rewrite. The strict metadata verifier remains the final authority.
+    """
+    targets = locked_owned_git_targets(lockfile, index, graph)
+    if not targets:
+        return []
+
+    data = tomllib.loads(manifest.read_text(encoding='utf-8'))
+    patch_root = data.setdefault('patch', {})
+    if not isinstance(patch_root, dict):
+        raise RuntimeError(f'Cargo patch table is not a table: {manifest}')
+
+    changed = False
+    applied: list[str] = []
+    for target in targets:
+        component = target['component']
+        package = target['package']
+        package_path = target['package_path']
+        mirror = mirrors.get(component)
+        if mirror is None:
+            raise RuntimeError(f'owned transitive target {component}:{package} has no mirror mapping')
+        target_path = (mirror / package_path).resolve()
+        if not (target_path / 'Cargo.toml').is_file():
+            raise RuntimeError(
+                f'owned transitive target mirror was not prepared for {package}: {target_path}'
+            )
+
+        repo = target['repo']
+        normalized = graph.norm_repo(repo)
+        matching_keys = [
+            key
+            for key in patch_root
+            if isinstance(key, str) and graph.norm_repo(key) == normalized
+        ]
+        if len(matching_keys) > 1:
+            raise RuntimeError(f'multiple Cargo patch tables normalize to owned source {repo}: {matching_keys}')
+        source_key = matching_keys[0] if matching_keys else repo
+        table = patch_root.setdefault(source_key, {})
+        if not isinstance(table, dict):
+            raise RuntimeError(f'Cargo patch source is not a table: {source_key}')
+
+        replacement = {'path': str(target_path)}
+        if table.get(package) != replacement:
+            table[package] = replacement
+            changed = True
+        applied.append(f'{source_key}:{package}->{target_path}')
+
+    if changed:
+        manifest.write_text(graph.dump_toml(data), encoding='utf-8')
+    return sorted(applied)
+
+
 def validated_consumer_patch_manifest(root: pathlib.Path, metadata: dict) -> tuple[str, list[pathlib.Path]] | None:
     manifest_rel = metadata.get('patch_manifest')
     if not manifest_rel:
@@ -321,6 +428,15 @@ def main() -> int:
         )
         append_trace(trace, f'consumer_patches={patch_status}')
         mirrors = graph.prepare_graph(root, index, component, consumer_mirror)
+        lockfile = manifest.parent / 'Cargo.lock'
+        transitive_patches = inject_locked_transitive_owned_patches(
+            manifest,
+            lockfile,
+            index,
+            mirrors,
+            graph,
+        )
+        append_trace(trace, 'transitive_owned_patches=' + json.dumps(transitive_patches))
     except Exception as exc:
         append_trace(trace, f'prepare_error={exc}')
         raise SystemExit(f'MattOS source ownership preparation failed for {component}: {exc}') from exc
@@ -330,7 +446,6 @@ def main() -> int:
         'mirrors=' + json.dumps({k: str(v) for k, v in sorted(mirrors.items()) if v.exists()}, sort_keys=True),
     )
 
-    lockfile = manifest.parent / 'Cargo.lock'
     append_trace(trace, f'lock_sha256_before={digest_file(lockfile)}')
     if requires_lock_reconciliation(sys.argv[1:]) and not lockfile.is_file():
         message = f'locked Cargo command has no copied output lockfile: {lockfile}'
