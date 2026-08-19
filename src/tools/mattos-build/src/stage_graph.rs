@@ -53,6 +53,7 @@ pub(crate) enum BuildStage {
     CosmicWorkspaces,
     CosmicFiles,
     CosmicTerm,
+    CosmicTweaks,
     CosmicUtilities,
     CosmicPortal,
     CosmicAssets,
@@ -157,6 +158,7 @@ pub(crate) fn stage_id(stage: BuildStage) -> &'static str {
         BuildStage::CosmicWorkspaces => "cosmic-workspaces",
         BuildStage::CosmicFiles => "cosmic-files",
         BuildStage::CosmicTerm => "cosmic-term",
+        BuildStage::CosmicTweaks => "cosmic-tweaks",
         BuildStage::CosmicUtilities => "cosmic-utilities",
         BuildStage::CosmicPortal => "cosmic-portal",
         BuildStage::CosmicAssets => "cosmic-assets",
@@ -306,6 +308,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         | BuildStage::CosmicWorkspaces
         | BuildStage::CosmicFiles
         | BuildStage::CosmicTerm
+        | BuildStage::CosmicTweaks
         | BuildStage::CosmicUtilities
         | BuildStage::CosmicPortal
         | BuildStage::Greetd => &[
@@ -337,6 +340,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "cosmic-workspaces",
             "cosmic-files",
             "cosmic-term",
+            "cosmic-tweaks",
             "cosmic-utilities",
             "cosmic-portal",
             "cosmic-assets",
@@ -490,6 +494,7 @@ pub(crate) fn all_build_stages() -> &'static [BuildStage] {
         BuildStage::CosmicWorkspaces,
         BuildStage::CosmicFiles,
         BuildStage::CosmicTerm,
+        BuildStage::CosmicTweaks,
         BuildStage::CosmicUtilities,
         BuildStage::CosmicPortal,
         BuildStage::CosmicAssets,
@@ -746,6 +751,7 @@ mod tests {
                 "cosmic-workspaces",
                 "cosmic-files",
                 "cosmic-term",
+                "cosmic-tweaks",
                 "cosmic-utilities",
                 "cosmic-portal",
                 "greetd",
@@ -775,6 +781,7 @@ mod tests {
             "cosmic-workspaces",
             "cosmic-files",
             "cosmic-term",
+            "cosmic-tweaks",
             "cosmic-utilities",
             "cosmic-portal",
             "cosmic-assets",
@@ -929,21 +936,21 @@ mod tests {
     fn representative_cascade_report() {
         let scenarios: &[(&str, &[&str], usize, &[&str])] = &[
             ("Brush source", &["brush"], 6, &["zlib", "linux"]),
-            ("glibc source", &["glibc"], 101, &["linux"]),
+            ("glibc source", &["glibc"], 102, &["linux"]),
             ("Linux x86_64 config", &["linux"], 9, &["glibc", "brush"]),
             (
                 "Linux x86_64 UAPI source",
                 &["linux", "glibc", "linux-headers"],
-                102,
+                103,
                 &[],
             ),
             (
                 "GCC source",
                 &["gcc-runtime", "gcc-compiler"],
-                99,
+                100,
                 &["linux", "glibc", "linux-headers"],
             ),
-            ("zlib shared library", &["zlib"], 49, &["brush", "linux"]),
+            ("zlib shared library", &["zlib"], 50, &["brush", "linux"]),
             ("package metadata", &["packages"], 5, &["brush", "zlib"]),
             (
                 "repository policy",

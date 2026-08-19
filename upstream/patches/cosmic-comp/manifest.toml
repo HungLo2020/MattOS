@@ -1,6 +1,7 @@
 schema_version = 1
 component = "cosmic-comp"
 upstream_commit = "693d1ad775193deb95a33810b5eac59684ca2ac0"
+upstream_tree = "0017bc3f47da8be017d4d332ab76c99049486a9f"
 application = "output-mirror-only"
 
 [[patch]]
