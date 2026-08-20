@@ -141,10 +141,17 @@ fn pressure_candidate(
     swap_out_rate: f64,
     psi_some_avg10: Option<f64>,
 ) -> PressureLevel {
-    if budget.build_memory_bytes == 0
-        || swap_out_rate >= 8.0
-        || psi_some_avg10.is_some_and(|value| value >= 0.20)
-    {
+    // Linux PSI `some` is the percentage of time in which at least one task is
+    // stalled on memory while other work may still be making progress.  It is
+    // therefore a throttling signal, not by itself a reason to stop every
+    // memory-heavy stage.  Treating low-single-digit `some` PSI as Critical
+    // caused permanent admission starvation: Critical permits zero heavy jobs,
+    // so no new work could run to change the condition.
+    //
+    // Keep Critical for conditions that mean the scheduler has no safe memory
+    // budget left, or the host is actively writing pages to swap at a sustained
+    // rate.  `some` PSI still constrains parallelism to one heavy job.
+    if budget.build_memory_bytes == 0 || swap_out_rate >= 8.0 {
         PressureLevel::Critical
     } else if budget.available_memory_bytes <= budget.reserved_memory_bytes.saturating_mul(2)
         || swap_out_rate > 0.0
@@ -595,5 +602,65 @@ mod tests {
         assert_eq!(first_recovery.pressure, PressureLevel::Critical);
         let recovered = tracker.observe(pressure_snapshot(12 * GIB, 0, 32), Duration::from_secs(1));
         assert_eq!(recovered.pressure, PressureLevel::Healthy);
+    }
+}
+
+#[cfg(test)]
+mod pressure_starvation_regression_tests {
+    use super::*;
+
+    fn roomy_budget() -> ResourceBudget {
+        ResourceBudget {
+            cpu_tokens: 12,
+            build_memory_bytes: 6 * GIB,
+            reserved_memory_bytes: 2 * GIB,
+            available_memory_bytes: 8 * GIB,
+        }
+    }
+
+    #[test]
+    fn low_single_digit_some_psi_is_constrained_not_critical() {
+        let budget = ResourceBudget {
+            cpu_tokens: 12,
+            // Mirrors the stalled laptop trace closely: about 1.4 GiB remains
+            // available to builds after MattOS keeps its reserve.
+            build_memory_bytes: 1400 * MIB,
+            reserved_memory_bytes: 2 * GIB,
+            available_memory_bytes: 3500 * MIB,
+        };
+        assert_eq!(
+            pressure_candidate(&budget, 0.0, 0.0, Some(1.40)),
+            PressureLevel::Constrained
+        );
+    }
+
+    #[test]
+    fn some_psi_alone_never_escalates_to_critical() {
+        assert_eq!(
+            pressure_candidate(&roomy_budget(), 0.0, 0.0, Some(100.0)),
+            PressureLevel::Constrained
+        );
+    }
+
+    #[test]
+    fn sustained_swap_out_remains_critical() {
+        assert_eq!(
+            pressure_candidate(&roomy_budget(), 0.0, 8.0, Some(0.0)),
+            PressureLevel::Critical
+        );
+    }
+
+    #[test]
+    fn exhausted_safe_build_memory_remains_critical() {
+        let budget = ResourceBudget {
+            cpu_tokens: 12,
+            build_memory_bytes: 0,
+            reserved_memory_bytes: 2 * GIB,
+            available_memory_bytes: 2 * GIB,
+        };
+        assert_eq!(
+            pressure_candidate(&budget, 0.0, 0.0, Some(0.0)),
+            PressureLevel::Critical
+        );
     }
 }
