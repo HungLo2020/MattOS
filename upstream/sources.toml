@@ -194,7 +194,7 @@ revision = "693d1ad775193deb95a33810b5eac59684ca2ac0"
 path = "src/desktop/cosmic/cosmic-comp"
 sync = "copy"
 patch_manifest = "upstream/patches/cosmic-comp/manifest.toml"
-patch_manifest_sha256 = "7b9c6ae9c405f5902700b93e4285c429dee23d802bf4dd3b6b5eb9ff8d422317"
+patch_manifest_sha256 = "831cf64ff55315b36a52512e331b86327fe7710f39409e68b100522ad2320716"
 
 # COSMIC Epoch desktop closure.  These revisions are the gitlinks from
 # pop-os/cosmic-epoch 0ce7ec30ac05416e9a85465404be548ced89cba6 so the
@@ -214,6 +214,8 @@ branch = "master"
 revision = "d39915ae2381424d406cd511a2310ef928144f4c"
 path = "src/desktop/cosmic/cosmic-greeter"
 sync = "copy"
+lfs_policy = "upstream/policies/cosmic-greeter-lfs.toml"
+lfs_policy_sha256 = "e7b10150ff1bbdec3a6518580589b96d3e406908b66939530fb9aa293a0c1b4a"
 
 [[component]]
 name = "cosmic-panel"
@@ -1022,3 +1024,13 @@ branch = "stable-202301"
 revision = "20932856a6a07f056918d58acd09cea4ba150a52"
 path = "src/build-support/gnulib"
 sync = "copy"
+
+[[component]]
+name = "cosmic-tweaks"
+repo = "https://github.com/cosmic-utils/tweaks.git"
+branch = "main"
+revision = "069c31b7b1beffddf744b28f8f056ace972830bc"
+path = "src/desktop/cosmic/cosmic-tweaks"
+sync = "copy"
+patch_manifest = "upstream/patches/cosmic-tweaks/manifest.toml"
+patch_manifest_sha256 = "aad3b0f4f0a9fe35aab78e4abbf420a3d67322c2010bcaf05929fae9a035915d"

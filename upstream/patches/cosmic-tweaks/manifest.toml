@@ -1,0 +1,10 @@
+schema_version = 1
+component = "cosmic-tweaks"
+upstream_commit = "069c31b7b1beffddf744b28f8f056ace972830bc"
+upstream_tree = "e9ea514ee5ec0056f9c2516d35e28e9eddf9f124"
+application = "output-mirror-only"
+
+[[patch]]
+path = "upstream/patches/cosmic-tweaks/0001-honor-cargo-target-dir.patch"
+sha256 = "497d7d367f42676063f16d0427a811642fe061cc9fcaec05d1863776d965f8e6"
+purpose = "Honor MattOS's output-owned shared Cargo target directory during upstream just install."

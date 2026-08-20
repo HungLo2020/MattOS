@@ -3256,10 +3256,11 @@ fn package_recipe_revision(package: &str) -> u32 {
         // Revision 2 includes Linux-PAM's source-built vendor pam_env.conf;
         // the revision-1 cache key tracked only MattOS /etc/pam.d policy.
         "libpam-runtime" => 2,
+        // Revision 4 requires COSMIC Tweaks in the aggregate desktop payload.
         // Revision 3 keeps the greeter daemon display-manager-scoped instead
         // of enabling it in every multi-user/CLI boot. Revision 2 supplied the
         // freedesktop hicolor fallback index.
-        "cosmic-desktop" => 3,
+        "cosmic-desktop" => 4,
         _ => 1,
     }
 }
@@ -5540,6 +5541,7 @@ fn stage_cosmic_desktop(repo_root: &Path, staging: &Path) -> Result<()> {
         "usr/bin/cosmic-panel",
         "usr/bin/cosmic-launcher",
         "usr/bin/cosmic-term",
+        "usr/bin/cosmic-ext-tweaks",
         "usr/bin/greetd",
         "usr/bin/cosmic-greeter-start",
         "usr/share/wayland-sessions/cosmic.desktop",

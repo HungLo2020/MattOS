@@ -43,6 +43,28 @@ class SourceOwnershipGraphTest(unittest.TestCase):
         )
         self.assertEqual(target, {"component": "cosmic-comp", "package_path": "cosmic-comp-config"})
 
+    def test_cosmic_tweaks_is_first_class_source_owned(self) -> None:
+        component = self.index["components"].get("cosmic-tweaks")
+        self.assertIsNotNone(component)
+        assert component is not None
+        self.assertEqual(component["repo"], "https://github.com/cosmic-utils/tweaks.git")
+        self.assertEqual(component["revision"], "069c31b7b1beffddf744b28f8f056ace972830bc")
+        self.assertEqual(component["packages"].get("cosmic-ext-tweaks"), "")
+
+        for package, repo, expected in [
+            ("libcosmic", "https://github.com/pop-os/libcosmic.git", "libcosmic"),
+            ("cosmic-panel-config", "https://github.com/pop-os/cosmic-panel", "cosmic-panel"),
+            (
+                "cosmic-settings-config",
+                "https://github.com/pop-os/cosmic-settings-daemon",
+                "cosmic-settings-daemon",
+            ),
+        ]:
+            target = graph.choose_owned_git_target(self.index, package, repo)
+            self.assertIsNotNone(target)
+            assert target is not None
+            self.assertEqual(target["component"], expected)
+
     def test_registry_resolution_can_use_first_class_root(self) -> None:
         root_packages = self.index.get("root_packages", {})
         if "libcosmic" in root_packages:

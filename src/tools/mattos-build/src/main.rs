@@ -3506,6 +3506,7 @@ fn stage_resource_profile(stage: BuildStage) -> scheduler::StageResourceProfile 
             | BuildStage::CosmicWorkspaces
             | BuildStage::CosmicFiles
             | BuildStage::CosmicTerm
+            | BuildStage::CosmicTweaks
             | BuildStage::CosmicUtilities
             | BuildStage::CosmicPortal
             | BuildStage::Greetd
@@ -3670,6 +3671,9 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         }
         BuildStage::CosmicTerm => {
             vec!["out/build/cosmic-term/install/usr/bin/cosmic-term".into()]
+        }
+        BuildStage::CosmicTweaks => {
+            vec!["out/build/cosmic-tweaks/install/usr/bin/cosmic-ext-tweaks".into()]
         }
         BuildStage::CosmicUtilities => vec!["out/build/cosmic-utilities/install".into()],
         BuildStage::CosmicPortal => {
@@ -4054,6 +4058,7 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
         | BuildStage::CosmicWorkspaces
         | BuildStage::CosmicFiles
         | BuildStage::CosmicTerm
+        | BuildStage::CosmicTweaks
         | BuildStage::CosmicUtilities
         | BuildStage::CosmicPortal
         | BuildStage::CosmicAssets
@@ -9744,6 +9749,7 @@ fn build_cosmic_desktop_component(repo_root: &Path, stage: BuildStage) -> Result
         BuildStage::CosmicBg => Some("cosmic-bg"),
         BuildStage::CosmicFiles => Some("cosmic-files"),
         BuildStage::CosmicTerm => Some("cosmic-term"),
+        BuildStage::CosmicTweaks => Some("cosmic-tweaks"),
         _ => None,
     };
     if let Some(component) = just_component {
@@ -9897,6 +9903,7 @@ fn build_cosmic_desktop(repo_root: &Path) -> Result<()> {
         "cosmic-workspaces",
         "cosmic-files",
         "cosmic-term",
+        "cosmic-tweaks",
         "cosmic-utilities",
         "cosmic-portal",
         "cosmic-assets",
@@ -9922,6 +9929,7 @@ fn build_cosmic_desktop(repo_root: &Path) -> Result<()> {
         "usr/bin/cosmic-workspaces",
         "usr/bin/cosmic-files",
         "usr/bin/cosmic-term",
+        "usr/bin/cosmic-ext-tweaks",
         "usr/bin/greetd",
         "usr/share/wayland-sessions/cosmic.desktop",
         "usr/share/icons/Cosmic/index.theme",
@@ -10223,6 +10231,7 @@ fn build_cosmic_desktop_legacy(repo_root: &Path) -> Result<()> {
         "usr/bin/cosmic-workspaces",
         "usr/bin/cosmic-files",
         "usr/bin/cosmic-term",
+        "usr/bin/cosmic-ext-tweaks",
         "usr/bin/greetd",
         "usr/share/wayland-sessions/cosmic.desktop",
         "usr/share/fonts/truetype/open-sans/OpenSans-Regular.ttf",
@@ -16926,6 +16935,7 @@ mod tests {
                     | BuildStage::CosmicWorkspaces
                     | BuildStage::CosmicFiles
                     | BuildStage::CosmicTerm
+                    | BuildStage::CosmicTweaks
                     | BuildStage::CosmicUtilities
                     | BuildStage::CosmicPortal
                     | BuildStage::Greetd
@@ -16992,6 +17002,7 @@ mod tests {
             ("cosmic-workspaces", 60.000),
             ("cosmic-files", 120.000),
             ("cosmic-term", 90.000),
+            ("cosmic-tweaks", 90.000),
             ("cosmic-utilities", 120.000),
             ("cosmic-portal", 60.000),
             ("cosmic-assets", 5.000),

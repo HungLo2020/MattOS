@@ -1,0 +1,13 @@
+diff --git a/justfile b/justfile
+--- a/justfile
++++ b/justfile
+@@ -3,7 +3,8 @@ appid := 'dev.edfloreshz.CosmicTweaks'
+ rootdir := ''
+ prefix := '/usr'
+ base-dir := absolute_path(clean(rootdir / prefix))
+-bin-src := 'target' / 'release' / name
++cargo-target-dir := env_var_or_default('CARGO_TARGET_DIR', 'target')
++bin-src := cargo-target-dir / 'release' / name
+ bin-dst := base-dir / 'bin' / name
+ desktop := appid + '.desktop'
+ desktop-src := 'res' / desktop
