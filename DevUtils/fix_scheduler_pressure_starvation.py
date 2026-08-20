@@ -8,6 +8,7 @@ BRANCH = "agent/vendor-cosmic-tweaks"
 ROOT = Path(__file__).resolve().parents[1]
 RESOURCES = ROOT / "src/tools/mattos-build/src/resources.rs"
 SELF = ROOT / "DevUtils/fix_scheduler_pressure_starvation.py"
+RESOURCES_REL = "src/tools/mattos-build/src/resources.rs"
 
 OLD_POLICY = '''fn pressure_candidate(
     budget: &ResourceBudget,
@@ -134,16 +135,37 @@ def output(*args: str) -> str:
     return subprocess.check_output(args, cwd=ROOT, text=True).strip()
 
 
-def main() -> None:
-    if output("git", "branch", "--show-current") != BRANCH:
-        raise SystemExit(f"expected branch {BRANCH!r}")
+def tracked_changes() -> list[str]:
+    raw = subprocess.check_output(
+        ["git", "status", "--porcelain=v1", "--untracked-files=no"],
+        cwd=ROOT,
+        text=True,
+    )
+    return [line for line in raw.splitlines() if line]
 
-    status = output("git", "status", "--porcelain=v1", "--untracked-files=no")
-    if status:
+
+def verify_recovery_state() -> None:
+    unexpected: list[str] = []
+    for line in tracked_changes():
+        if len(line) < 4:
+            unexpected.append(line)
+            continue
+        path = line[3:]
+        if " -> " in path:
+            path = path.split(" -> ", 1)[1]
+        # The previous helper attempt intentionally modified only resources.rs
+        # before failing on the invalid `--lib` test selector. Preserve and
+        # resume that exact change; anything else still fails closed.
+        if path != RESOURCES_REL:
+            unexpected.append(line)
+    if unexpected:
         raise SystemExit(
-            "refusing to patch with tracked local changes present:\n" + status
+            "refusing to resume scheduler repair with unrelated tracked changes:\n"
+            + "\n".join(unexpected)
         )
 
+
+def apply_or_verify_fix() -> None:
     text = RESOURCES.read_text(encoding="utf-8")
     if NEW_POLICY not in text:
         if text.count(OLD_POLICY) != 1:
@@ -155,9 +177,17 @@ def main() -> None:
 
     RESOURCES.write_text(text, encoding="utf-8")
 
+
+def main() -> None:
+    if output("git", "branch", "--show-current") != BRANCH:
+        raise SystemExit(f"expected branch {BRANCH!r}")
+
+    verify_recovery_state()
+    apply_or_verify_fix()
+
     # Format only the file we intentionally changed. `cargo fmt -p mattos-build`
     # formats unrelated existing drift elsewhere in the package.
-    run("rustfmt", "--edition", "2024", str(RESOURCES.relative_to(ROOT)))
+    run("rustfmt", "--edition", "2024", RESOURCES_REL)
     run(
         "cargo",
         "test",
@@ -167,7 +197,9 @@ def main() -> None:
         "--",
         "--nocapture",
     )
-    run("cargo", "test", "-p", "mattos-build", "--lib")
+    # mattos-build is a binary crate (src/main.rs), not a library crate. Running
+    # the package test command executes its complete unit-test suite.
+    run("cargo", "test", "-p", "mattos-build")
     run("git", "diff", "--check")
 
     SELF.unlink()
@@ -176,7 +208,7 @@ def main() -> None:
         "add",
         "-A",
         "--",
-        str(RESOURCES.relative_to(ROOT)),
+        RESOURCES_REL,
         str(SELF.relative_to(ROOT)),
     )
     run("git", "diff", "--cached", "--check")
