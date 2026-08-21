@@ -1,9 +1,9 @@
 # MattOS remote repository integration
 
-MattOS builds and validates `.deb` files; the imported LinuxScripts publisher
-will eventually sign and publish explicitly approved artifacts to Cloudflare
-R2 for `https://packages.mattsherfey.com` (`trixie`, `main`, `amd64`/`all`).
-Publication is intentionally outside this milestone.
+MattOS builds and validates `.deb` files. The imported LinuxScripts publisher
+uploads explicitly approved artifacts to the home repository service, which
+publishes them to Cloudflare R2 for `https://packages.mattsherfey.com`
+(`trixie`, `main`, `amd64`/`all`).
 
 The authoritative upstream is imported as ordinary source, without a nested
 Git repository:
@@ -30,7 +30,21 @@ change must be reproduced and fixed in LinuxScripts upstream, then imported by
 the normal sync workflow. `package compatibility-audit` verifies the state,
 checksum, policy, and absence of `.git` anywhere in the imported tree.
 
-## Non-publishing handoff
+## Publishing generated packages
+
+After a successful build, upload every generated `amd64` binary package with:
+
+```text
+python3 DevUtils/PublishPackages.py
+```
+
+The script reuses `run_qemu.py`'s doctor and `build all` path, recursively
+discovers every `.deb` below `out/packages/amd64`, and passes the complete set
+to the vendored `ManageMattOSRepository.py upload` command. Package names are
+not maintained in the script. `--no-build` uses existing artifacts and
+`--dry-run` validates and prints the manager invocation without uploading.
+
+## Manual validation handoff
 
 To validate approved build outputs and print—without executing—the future
 publisher command:
@@ -46,15 +60,14 @@ Every selected file must exist, end in `.deb`, resolve beneath the canonical
 non-package files, and unrecorded or changed artifacts are rejected. Duplicates
 are removed deterministically. A successful command only prints the exact
 `python3 .../ManageMattOSRepository.py upload ...` invocation; it does not run
-the script, publish, sign, access Bitwarden, access R2 credentials, or mutate
-the imported source.
+the script, access credentials, or mutate the imported source. Use
+`DevUtils/PublishPackages.py` for the actual build-and-upload workflow.
 
-No LinuxScripts command was invoked during this milestone. In particular,
-`init`, `add`, `remove`, `publish`, and `upload` were never run. The publisher's
-credential and R2 behavior therefore remains wholly unexercised.
+`PublishPackages.py` invokes only the publisher's `upload` command. Repository
+administration commands such as `init`, `remove`, and `publish` remain manual
+operations.
 
 The hosted deb822 APT source is an intentionally disabled, signed scaffold at
-`https://packages.mattsherfey.com`. When signing and publication are later
-implemented, its Release metadata must use `Origin: MattOS`, `Label: MattOS`,
-`Suite: trixie`, and `Codename: trixie`; local media retains the distinct
-`Label: MattOS Local` identity and higher pin.
+`https://packages.mattsherfey.com`. Its published Release metadata must use
+`Origin: MattOS`, `Label: MattOS`, `Suite: trixie`, and `Codename: trixie`;
+local media retains the distinct `Label: MattOS Local` identity and higher pin.

@@ -12,6 +12,7 @@ pub const MINIMUM_DISK_BYTES: u64 = 8 * 1024 * 1024 * 1024;
 pub const EFI_MIB: u64 = 512;
 pub const LIVE_SOURCE: &str = "/run/mattos/lower";
 pub const TARGET_ROOT: &str = "/run/mattos-installer/target";
+const INSTALLED_APT_POLICY: &str = "/usr/share/mattos/apt/installed";
 pub const BTRFS_MOUNT_OPTIONS: &str = "compress=zstd:3,noatime";
 pub const BTRFS_SUBVOLUMES: &[(&str, &str)] = &[
     ("@", "/"),
@@ -1358,6 +1359,7 @@ where
         "Configuring the installed system",
     ));
     remove_live_only_state(target)?;
+    configure_installed_apt(target)?;
     write_identity(plan, target)?;
     write_regional_identity(plan, target)?;
     let identity = storage_identity(storage)?;
@@ -1472,6 +1474,76 @@ fn remove_live_only_state(target: &Path) -> Result<()> {
     }
     for relative in ["etc/passwd", "etc/shadow", "etc/group", "etc/gshadow"] {
         remove_account_from_database(&target.join(relative), "mattos")?;
+    }
+    Ok(())
+}
+
+/// Replace the live ISO's offline APT policy with the installed-system policy.
+/// The templates are shipped by the MattOS apt package, so installation never
+/// depends on reading the source repository or reaching the network.
+fn configure_installed_apt(target: &Path) -> Result<()> {
+    let template_root = target.join(INSTALLED_APT_POLICY.trim_start_matches('/'));
+    let etc = target.join("etc/apt");
+    for (name, destination) in [
+        ("01mattos", etc.join("apt.conf.d/01mattos")),
+        (
+            "00mattos-priority",
+            etc.join("preferences.d/00mattos-priority"),
+        ),
+        ("mattos.sources", etc.join("sources.list.d/mattos.sources")),
+        (
+            "mattos-hosted.sources",
+            etc.join("sources.list.d/mattos-hosted.sources"),
+        ),
+        (
+            "debian-trixie.sources",
+            etc.join("sources.list.d/debian-trixie.sources"),
+        ),
+    ] {
+        let source = template_root.join(name);
+        if !source.is_file() {
+            bail!(
+                "installed APT policy template is missing: {}",
+                source.display()
+            );
+        }
+        if let Some(parent) = destination.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        fs::copy(&source, &destination).with_context(|| {
+            format!(
+                "install APT policy template {} as {}",
+                source.display(),
+                destination.display()
+            )
+        })?;
+    }
+
+    let local = fs::read_to_string(etc.join("sources.list.d/mattos.sources"))?;
+    let hosted = fs::read_to_string(etc.join("sources.list.d/mattos-hosted.sources"))?;
+    let debian = fs::read_to_string(etc.join("sources.list.d/debian-trixie.sources"))?;
+    let preferences = fs::read_to_string(etc.join("preferences.d/00mattos-priority"))?;
+    if !local.contains("Enabled: no")
+        || !local.contains("file:/usr/share/mattos/repository")
+        || !hosted.contains("Enabled: yes")
+        || !hosted.contains("https://packages.mattsherfey.com")
+        || !debian.contains("Enabled: yes")
+        || !debian.contains("Suites: trixie trixie-updates")
+        || !debian.contains("Suites: trixie-security")
+        || !preferences.contains("Pin-Priority: 990")
+        || !preferences.contains("Pin-Priority: 500")
+        || preferences.contains("Pin-Priority: 1001")
+        || !preferences.contains("Pin-Priority: -1")
+    {
+        bail!("installed APT policy failed its fail-closed repository checks");
+    }
+    for keyring in [
+        "usr/share/keyrings/mattos-archive-keyring.asc",
+        "usr/share/keyrings/debian-archive-keyring.asc",
+    ] {
+        if !target.join(keyring).is_file() {
+            bail!("installed APT keyring is missing: /{keyring}");
+        }
     }
     Ok(())
 }
@@ -1886,6 +1958,51 @@ mod tests {
         let body = toml::to_string(&original).unwrap();
         let decoded: InstallPlan = toml::from_str(&body).unwrap();
         assert_eq!(decoded, original);
+    }
+
+    #[test]
+    fn installed_apt_transition_disables_local_and_enables_signed_remotes() {
+        let target = tempfile::tempdir().unwrap();
+        let target = target.path();
+        let template_root = target.join("usr/share/mattos/apt/installed");
+        fs::create_dir_all(&template_root).unwrap();
+        let repo_root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        let source_root = repo_root.join("src/system/packages/config/apt/installed");
+        for name in [
+            "01mattos",
+            "00mattos-priority",
+            "mattos.sources",
+            "mattos-hosted.sources",
+            "debian-trixie.sources",
+        ] {
+            fs::copy(source_root.join(name), template_root.join(name)).unwrap();
+        }
+        for name in [
+            "mattos-archive-keyring.asc",
+            "debian-archive-keyring.asc",
+        ] {
+            let destination = target.join("usr/share/keyrings").join(name);
+            fs::create_dir_all(destination.parent().unwrap()).unwrap();
+            fs::copy(
+                repo_root.join("src/system/packages/config/apt/keys").join(name),
+                destination,
+            )
+            .unwrap();
+        }
+
+        configure_installed_apt(target).unwrap();
+        let local = fs::read_to_string(target.join("etc/apt/sources.list.d/mattos.sources"))
+            .unwrap();
+        let hosted =
+            fs::read_to_string(target.join("etc/apt/sources.list.d/mattos-hosted.sources"))
+                .unwrap();
+        assert!(local.contains("Enabled: no"));
+        assert!(hosted.contains("Enabled: yes"));
+        assert!(
+            fs::read_to_string(target.join("etc/apt/apt.conf.d/01mattos"))
+                .unwrap()
+                .contains("Verify-Peer \"true\"")
+        );
     }
 
     #[test]

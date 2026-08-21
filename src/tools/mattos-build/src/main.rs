@@ -13727,6 +13727,7 @@ fn build_rootfs_into(repo_root: &Path, out: &Path) -> Result<()> {
     let skeleton = repo_root.join("src/rootfs/skeleton");
     fs::create_dir_all(out).with_context(|| format!("failed to create {}", out.display()))?;
     packaging::install_prototype_packages(repo_root, out)?;
+    packaging::apply_live_apt_policy(repo_root, out)?;
     let release = fs::read_to_string(repo_root.join("out/build/linux/kernel-release"))?
         .trim()
         .to_owned();

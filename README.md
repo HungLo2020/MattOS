@@ -109,7 +109,7 @@ See `docs/SESSIONS.md` for pam_systemd, logind sessions, runtime directories, pe
 
 See `docs/PACKAGING.md` for `.deb` construction, the local MattOS APT repository, imported dpkg/APT builds, and hybrid rootfs assembly.
 
-See `docs/DEBIAN_COMPATIBILITY.md` for the Debian 13 `amd64` contract, package-name mapping, protected-package policy, validation results, and known gaps. See `docs/SELF_HOSTING_DEVELOPMENT.md` for the pinned CPython, LLVM/Clang/LLD, and Rust/Cargo development foundation. See `docs/REMOTE_REPOSITORY.md` for the read-only LinuxScripts publisher integration; nothing is published by the build.
+See `docs/DEBIAN_COMPATIBILITY.md` for the Debian 13 `amd64` contract, package-name mapping, protected-package policy, validation results, and known gaps. See `docs/SELF_HOSTING_DEVELOPMENT.md` for the pinned CPython, LLVM/Clang/LLD, and Rust/Cargo development foundation. See `docs/REMOTE_REPOSITORY.md` for the read-only LinuxScripts publisher integration; the build itself never publishes, while `DevUtils/PublishPackages.py` performs explicit uploads.
 
 ## Build stages
 
@@ -145,6 +145,15 @@ cargo run -p mattos-build -- package status
 cargo run -p mattos-build -- package compatibility-audit
 cargo run -p mattos-build -- package publish-plan out/packages/amd64/<package>.deb
 ```
+
+Build and upload every generated package through the vendored repository manager:
+
+```
+python3 DevUtils/PublishPackages.py
+```
+
+Use `--dry-run` to validate the discovered packages and print the upload command
+without changing the remote repository.
 
 The development launcher gives the guest a QEMU user-mode virtio-net interface by default. Use `python3 DevUtils/run_qemu.py --no-network` for an isolated boot.
 

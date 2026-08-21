@@ -121,7 +121,7 @@ The package never ships `/var/lib/dpkg/status`, `available`, generated `info/`, 
 
 `apt` owns `apt`, `apt-get`, `apt-cache`, `apt-config`, and `apt-mark`; `/usr/lib/apt/apt-helper`; the `copy`, `file`, and `store` methods; planners and solvers; `libapt-private.so.0.0`; `/etc/apt`; and empty writable state directory scaffolding.
 
-HTTP/HTTPS methods, `gpgv`, `apt-ftparchive`, and apt-utils are intentionally excluded from the guest runtime. The immediate APT contract is the embedded `file:` repository; disabled remote source scaffolds become usable only after those methods and signed keyrings are packaged. Repository generation continues to use host `apt-ftparchive`.
+The live image carries APT's `file`, HTTP, HTTPS, and `gpgv` methods, but only the embedded `file:/usr/share/mattos/repository` source is enabled there. The installer replaces that policy in the target: the frozen local source is disabled, the signed hosted MattOS source is enabled at priority 990, and signed Debian Trixie, updates, and security sources are enabled at priority 500. Repository generation continues to use host `apt-ftparchive`; target-side remote use also requires the packaged `gpgv` executable and keyrings, so missing verification runtime is a build-time defect rather than an insecure fallback.
 
 Mutable lists, archives, logs, partial files, and locks are never package payload files. The package creates only directories such as `/var/lib/apt/lists/partial`, `/var/cache/apt/archives/partial`, and `/var/log/apt`; live commands create their ephemeral contents.
 

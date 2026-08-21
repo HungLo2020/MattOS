@@ -1,0 +1,15 @@
+// Installed MattOS APT policy. Every remote source must use normal TLS and
+// signed Release metadata; no insecure fallback is permitted.
+APT::Architecture "amd64";
+APT::Get::List-Cleanup "true";
+APT::Sandbox::User "root";
+Acquire::Retries "0";
+Acquire::http::Timeout "15";
+Acquire::https::Timeout "15";
+Acquire::https::Verify-Peer "true";
+Acquire::https::Verify-Host "true";
+Acquire::AllowInsecureRepositories "false";
+Acquire::AllowDowngradeToInsecureRepositories "false";
+Acquire::Languages "none";
+Pager "false";
+

@@ -1,0 +1,7 @@
+Enabled: no
+Types: deb
+URIs: file:/usr/share/mattos/repository
+Suites: trixie
+Components: main
+Architectures: amd64
+

@@ -65,6 +65,9 @@ const APT_RUNTIME_PATHS: &[&str] = &[
     "usr/lib/apt/apt-helper",
     "usr/lib/apt/methods/copy",
     "usr/lib/apt/methods/file",
+    "usr/lib/apt/methods/gpgv",
+    "usr/lib/apt/methods/http",
+    "usr/lib/apt/methods/https",
     "usr/lib/apt/methods/store",
 ];
 const APT_CONFFILES: &[&str] = &[
@@ -2736,6 +2739,36 @@ fn validate_apt_compatibility_policy(repo_root: &Path, protected: &[String]) -> 
     {
         bail!("Debian Trixie source scaffold is invalid")
     }
+    let installed = config.join("installed");
+    let installed_local = fs::read_to_string(installed.join("mattos.sources"))?;
+    let installed_hosted = fs::read_to_string(installed.join("mattos-hosted.sources"))?;
+    let installed_debian = fs::read_to_string(installed.join("debian-trixie.sources"))?;
+    let installed_preferences = fs::read_to_string(installed.join("00mattos-priority"))?;
+    let installed_conf = fs::read_to_string(installed.join("01mattos"))?;
+    if !installed_local.contains("Enabled: no")
+        || !installed_local.contains("URIs: file:/usr/share/mattos/repository")
+        || !installed_hosted.contains("Enabled: yes")
+        || !installed_hosted.contains("URIs: https://packages.mattsherfey.com")
+        || !installed_hosted.contains("Signed-By: /usr/share/keyrings/mattos-archive-keyring.asc")
+        || !installed_debian.contains("Enabled: yes")
+        || !installed_debian.contains("Suites: trixie trixie-updates")
+        || !installed_debian.contains("Suites: trixie-security")
+        || !installed_debian.contains("Signed-By: /usr/share/keyrings/debian-archive-keyring.asc")
+        || !installed_conf.contains("Acquire::https::Verify-Peer \"true\";")
+        || !installed_conf.contains("Acquire::https::Verify-Host \"true\";")
+        || !installed_conf.contains("Acquire::AllowInsecureRepositories \"false\";")
+        || !installed_preferences.contains("Pin-Priority: 990")
+        || !installed_preferences.contains("Pin-Priority: 500")
+        || installed_preferences.contains("Pin-Priority: 1001")
+        || !installed_preferences.contains("Pin-Priority: -1")
+    {
+        bail!("installed APT policy is invalid")
+    }
+    for keyring in ["mattos-archive-keyring.asc", "debian-archive-keyring.asc"] {
+        if !config.join("keys").join(keyring).is_file() {
+            bail!("APT keyring source is missing: {keyring}")
+        }
+    }
     Ok(())
 }
 
@@ -5335,6 +5368,25 @@ fn stage_apt(repo_root: &Path, staging: &Path) -> Result<()> {
         &config.join("00mattos-priority"),
         &staging.join("etc/apt/preferences.d/00mattos-priority"),
     )?;
+    let installed_config = config.join("installed");
+    for name in [
+        "01mattos",
+        "00mattos-priority",
+        "mattos.sources",
+        "mattos-hosted.sources",
+        "debian-trixie.sources",
+    ] {
+        copy_preserving(
+            &installed_config.join(name),
+            &staging.join("usr/share/mattos/apt/installed").join(name),
+        )?;
+    }
+    for name in ["mattos-archive-keyring.asc", "debian-archive-keyring.asc"] {
+        copy_preserving(
+            &config.join("keys").join(name),
+            &staging.join("usr/share/keyrings").join(name),
+        )?;
+    }
     for rel in [
         "etc/apt/auth.conf.d",
         "etc/apt/preferences.d",
@@ -5350,6 +5402,49 @@ fn stage_apt(repo_root: &Path, staging: &Path) -> Result<()> {
         format!("{}\n", APT_CONFFILES.join("\n")),
     )?;
     validate_no_mutable_package_state(staging)
+}
+
+/// Apply the deliberately offline/live APT policy after package installation.
+/// The apt package itself carries the installed policy templates; this overlay
+/// makes the ISO root deterministic without relying on network availability.
+pub(crate) fn apply_live_apt_policy(repo_root: &Path, rootfs: &Path) -> Result<()> {
+    let config = repo_root.join("src/system/packages/config/apt");
+    copy_preserving(
+        &config.join("01mattos"),
+        &rootfs.join("etc/apt/apt.conf.d/01mattos"),
+    )?;
+    copy_preserving(
+        &config.join("mattos.sources"),
+        &rootfs.join("etc/apt/sources.list.d/mattos.sources"),
+    )?;
+    for name in ["mattos-hosted.sources", "debian-trixie.sources"] {
+        copy_preserving(
+            &config.join(name),
+            &rootfs.join("etc/apt/sources.list.d").join(name),
+        )?;
+    }
+    copy_preserving(
+        &config.join("00mattos-priority"),
+        &rootfs.join("etc/apt/preferences.d/00mattos-priority"),
+    )?;
+    validate_live_apt_policy(rootfs)
+}
+
+pub(crate) fn validate_live_apt_policy(rootfs: &Path) -> Result<()> {
+    let local = fs::read_to_string(rootfs.join("etc/apt/sources.list.d/mattos.sources"))?;
+    let hosted = fs::read_to_string(rootfs.join("etc/apt/sources.list.d/mattos-hosted.sources"))?;
+    let debian = fs::read_to_string(rootfs.join("etc/apt/sources.list.d/debian-trixie.sources"))?;
+    let preferences = fs::read_to_string(rootfs.join("etc/apt/preferences.d/00mattos-priority"))?;
+    if !local.contains("URIs: file:/usr/share/mattos/repository")
+        || local.contains("Enabled: no")
+        || !local.contains("Trusted: yes")
+        || !hosted.contains("Enabled: no")
+        || !debian.contains("Enabled: no")
+        || !preferences.contains("Pin-Priority: 1001")
+    {
+        bail!("live APT policy is not embedded-repository-only")
+    }
+    Ok(())
 }
 
 fn component_install(repo_root: &Path, component: &str) -> PathBuf {
@@ -9717,11 +9812,30 @@ mod tests {
         assert!(DPKG_RUNTIME_PATHS.contains(&"usr/bin/update-alternatives"));
         assert!(DPKG_RUNTIME_PATHS.contains(&"usr/sbin/start-stop-daemon"));
         assert!(APT_RUNTIME_PATHS.contains(&"usr/lib/apt/methods/file"));
+        assert!(APT_RUNTIME_PATHS.contains(&"usr/lib/apt/methods/gpgv"));
+        assert!(APT_RUNTIME_PATHS.contains(&"usr/lib/apt/methods/http"));
+        assert!(APT_RUNTIME_PATHS.contains(&"usr/lib/apt/methods/https"));
         assert!(
             !specs
                 .iter()
                 .any(|spec| spec.name == "mattos-bootstrap-runtime")
         );
+    }
+
+    #[test]
+    fn apt_live_and_installed_policies_have_opposite_source_authority() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        let config = root.join("src/system/packages/config/apt");
+        let live = fs::read_to_string(config.join("mattos.sources")).unwrap();
+        let installed = fs::read_to_string(config.join("installed/mattos.sources")).unwrap();
+        assert!(live.contains("Trusted: yes"));
+        assert!(!live.contains("Enabled: no"));
+        assert!(installed.contains("Enabled: no"));
+        assert!(!installed.contains("Trusted: yes"));
+        let hosted = fs::read_to_string(config.join("installed/mattos-hosted.sources")).unwrap();
+        let debian = fs::read_to_string(config.join("installed/debian-trixie.sources")).unwrap();
+        assert!(hosted.contains("Enabled: yes"));
+        assert!(debian.contains("Suites: trixie-security"));
     }
 
     #[test]
