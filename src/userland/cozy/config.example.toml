@@ -1,0 +1,55 @@
+# config.example.toml
+
+# ページサイズ（PageUp/PageDown の移動行数）
+page_size = 20
+
+# テーマ設定（例: "light", "dark"）
+theme = "dark"
+
+# 行番号を表示するかどうか
+show_line_numbers = true
+
+# ステータスメッセージの表示時間（秒）
+status_duration = 3
+
+# 行番号パネルの背景色（例: "darkgray", "blue", "black"）
+line_number_bg = "darkgray"
+line_number_fg = "white"
+
+# フッター（ショートカット表示）の色
+# 色名: "black", "darkgray", "gray", "white", "cyan" など
+# True color: "#222226" のような #RRGGBB も指定できます
+footer_bg = "#222226"
+footer_key_fg = "cyan"
+footer_fg = "gray"
+
+# ステータスバーの色
+status_bar_bg = "darkgray"
+status_bar_fg = "white"
+
+# カーソルの点滅（true: 点滅する, false: 点滅しない）
+cursor_blink = true
+
+# 定常モード（戻り先の「家」）。"edit" = nano のように打つ。"glide" = vim のように動く。
+# 起動時だけでなく、保存・検索・ジャンプ等あらゆる操作の戻り先がこのモードになる。
+# 初期値 "edit"（隠れ状態ゼロ）。vim 派は "glide" に。Glide からは i/a/o で Edit に入る。
+default_mode = "edit"
+# default_mode = "glide"
+
+# ショートカットキー上書き
+# デフォルトから変更したいアクションだけ記述する。
+# キー形式: "ctrl+s" / "alt+enter" / "pageup" / "f1" 等
+# 利用可能なアクション名（src/shortcuts.rs の action_from_name が正）:
+#   enter_save, enter_save_as, enter_open, enter_exit, force_quit
+#   enter_search, enter_replace, replace_all
+#   undo, redo, paste, delete_line
+#   page_up, page_down, page_top, page_bottom, home, end
+#   toggle_line_numbers, toggle_wrap, toggle_footer, toggle_markdown, reload_config
+#   enter_help, enter_goto, enter_glide, cancel
+#
+# [keys]
+# enter_exit  = "ctrl+x"
+# delete_line = "ctrl+k"
+# paste       = "ctrl+v"
+# toggle_markdown = "f2"
+# toggle_footer = "ctrl+u"

@@ -1,0 +1,25 @@
+[workspace]
+members = ["cargo:."]
+
+# Config for 'dist'
+[dist]
+# The preferred dist version to use in CI (Cargo.toml SemVer syntax)
+cargo-dist-version = "0.32.0"
+# CI backends to support
+ci = "github"
+# The installers to generate for each app
+installers = ["shell", "homebrew"]
+# The archive format to use for non-windows builds
+unix-archive = ".tar.gz"
+# A GitHub repo to push Homebrew formulas to
+tap = "takakix2/homebrew-tap"
+# Publish jobs to run in CI
+publish-jobs = ["homebrew"]
+# Target platforms to build apps for (Rust target-triple syntax)
+targets = ["aarch64-apple-darwin", "x86_64-apple-darwin", "aarch64-unknown-linux-gnu", "x86_64-unknown-linux-gnu"]
+# Extra files to ship in the archive. Someone installing a prebuilt binary never
+# sees the crate tarball, so the sample config has to travel with it.
+include = ["README.ja.md", "config.example.toml"]
+# Where the shell installer puts the binary. Not CARGO_HOME: the audience for a
+# prebuilt binary is the one without a Rust toolchain.
+install-path = "~/.local/bin"

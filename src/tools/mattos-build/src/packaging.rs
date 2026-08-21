@@ -322,7 +322,9 @@ const PACKAGE_NAMES: &[&str] = &[
     "nvidia-utils-595",
     "nvidia-driver-595-open",
     "cosmic-comp",
+    "cosmic-edit",
     "cosmic-desktop",
+    "mattos-cozy",
     "libpython3.14",
     "python3",
     "python3-venv",
@@ -2341,6 +2343,30 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "optional",
         },
         PackageSpec {
+            name: "cosmic-edit",
+            description: "COSMIC Text Editor built from the pinned upstream source",
+            source_component: "cosmic-edit",
+            depends: &[
+                "libc6", "libgcc-s1", "libstdc++6", "cosmic-desktop",
+            ],
+            provides: &[],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "mattos-cozy",
+            description: "Cozy terminal text editor built from the pinned upstream source",
+            source_component: "cozy",
+            depends: &["libc6", "libgcc-s1"],
+            provides: &[],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
             name: "libpython3.14",
             description: "CPython 3.14 shared runtime library built for MattOS",
             source_component: "cpython",
@@ -3294,6 +3320,7 @@ fn package_recipe_revision(package: &str) -> u32 {
         // of enabling it in every multi-user/CLI boot. Revision 2 supplied the
         // freedesktop hicolor fallback index.
         "cosmic-desktop" => 4,
+        "cosmic-edit" | "mattos-cozy" => 1,
         _ => 1,
     }
 }
@@ -3487,6 +3514,8 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "nvidia-driver" => &["nvidia-driver"],
             "cosmic-comp" => &["cosmic-comp"],
             "cosmic-desktop" => &["cosmic-desktop"],
+            "cosmic-edit" => &["cosmic-edit"],
+            "cozy" => &["cozy"],
             "cpython" => &["cpython"],
             "llvm" => &["llvm"],
             "rust" => &["rust"],
@@ -3626,6 +3655,8 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
             "src/system/session/greetd",
             "src/system/session/cosmic",
         ],
+        "cosmic-edit" => &["src/desktop/cosmic/cosmic-edit"],
+        "cozy" => &["src/userland/cozy"],
         "cpython" => &["src/development/python/cpython"],
         "llvm" => &["src/toolchain/llvm-project"],
         "rust" => &[
@@ -4338,6 +4369,8 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
             }
         }
         "cosmic-desktop" => stage_cosmic_desktop(repo_root, &staging)?,
+        "cosmic-edit" => stage_cosmic_edit(repo_root, &staging)?,
+        "mattos-cozy" => stage_cozy(repo_root, &staging)?,
         "libdbus-1-3" => {
             stage_imported_soname_library(
                 repo_root,
@@ -5256,9 +5289,15 @@ fn stage_base_files(repo_root: &Path, staging: &Path) -> Result<()> {
     for name in ["os-release", "hostname", "profile", "shells"] {
         copy_preserving(&skeleton.join(name), &staging.join("etc").join(name))?;
     }
+    copy_preserving(
+        &repo_root.join("src/system/packages/config/base-files/environment"),
+        &staging.join("etc/environment"),
+    )?;
     let config = repo_root.join("src/system/packages/config/base-files");
     copy_preserving(&config.join("issue"), &staging.join("etc/issue"))?;
-    let conffiles = ["/etc/hostname", "/etc/profile", "/etc/shells", "/etc/issue"];
+    let conffiles = [
+        "/etc/hostname", "/etc/profile", "/etc/shells", "/etc/issue", "/etc/environment",
+    ];
     fs::write(
         staging.join("DEBIAN/conffiles"),
         format!("{}\n", conffiles.join("\n")),
@@ -5670,6 +5709,46 @@ fn stage_cosmic_desktop(repo_root: &Path, staging: &Path) -> Result<()> {
         bail!(
             "COSMIC display manager lacks logind ordering, bounded shutdown, or restart recovery"
         );
+    }
+    Ok(())
+}
+
+fn stage_cosmic_edit(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = component_install(repo_root, "cosmic-edit");
+    copy_tree_preserving(&install.join("usr"), &staging.join("usr"))?;
+    copy_preserving(
+        &repo_root.join("src/desktop/cosmic/cosmic-edit/LICENSE"),
+        &staging.join("usr/share/doc/cosmic-edit/copyright"),
+    )?;
+    for required in [
+        "usr/bin/cosmic-edit",
+        "usr/share/applications/com.system76.CosmicEdit.desktop",
+        "usr/share/metainfo/com.system76.CosmicEdit.metainfo.xml",
+    ] {
+        if !staging.join(required).is_file() {
+            bail!("cosmic-edit package is missing /{required}");
+        }
+    }
+    let desktop = fs::read_to_string(staging.join(
+        "usr/share/applications/com.system76.CosmicEdit.desktop",
+    ))?;
+    if !desktop.contains("Exec=cosmic-edit %F") || !desktop.contains("MimeType=text/plain;") {
+        bail!("cosmic-edit desktop entry does not advertise the expected editor contract");
+    }
+    Ok(())
+}
+
+fn stage_cozy(repo_root: &Path, staging: &Path) -> Result<()> {
+    stage_executable(
+        &component_install(repo_root, "cozy").join("usr/bin/cozy"),
+        &staging.join("usr/bin/cozy"),
+        0o755,
+    )?;
+    for license in ["LICENSE-MIT", "LICENSE-APACHE"] {
+        copy_preserving(
+            &repo_root.join("src/userland/cozy").join(license),
+            &staging.join("usr/share/doc/mattos-cozy").join(license),
+        )?;
     }
     Ok(())
 }
@@ -7107,6 +7186,10 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         | "nvidia-utils-595"
         | "nvidia-driver-595-open" => "595.84".to_string(),
         "cosmic-comp" => component_snapshot_version(repo_root, "cosmic-comp")?,
+        "cosmic-edit" => cargo_package_version(
+            &repo_root.join("src/desktop/cosmic/cosmic-edit/Cargo.toml"),
+        )?,
+        "mattos-cozy" => cargo_package_version(&repo_root.join("src/userland/cozy/Cargo.toml"))?,
         "cosmic-desktop" => component_snapshot_version(repo_root, "cosmic-session")?,
         "libdbus-1-3" => component_snapshot_version(repo_root, "dbus")?,
         "libdav1d7" => component_snapshot_version(repo_root, "dav1d")?,
@@ -10030,7 +10113,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 147);
+        assert_eq!(PACKAGE_NAMES.len(), 149);
     }
 
     #[test]
@@ -10055,7 +10138,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 147);
+        assert_eq!(PACKAGE_NAMES.len(), 149);
         assert_eq!(
             UTIL_LINUX_BASE_PATHS,
             &[
@@ -10132,7 +10215,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 147);
+        assert_eq!(PACKAGE_NAMES.len(), 149);
         let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
         for dependency in [
             "libffi8",

@@ -1,0 +1,73 @@
+[package]
+name = "cozy"
+version = "0.2.19"
+edition = "2024"
+rust-version = "1.85"
+description = "A Comfort First terminal text editor: type like nano, navigate like vim"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/takakix2/cozy"
+homepage = "https://labs.navii.online/"
+readme = "README.md"
+keywords = ["editor", "tui", "terminal", "text-editor", "vim"]
+categories = ["command-line-utilities", "text-editors"]
+# Ship only the crate itself; dev docs/logs/plans live on the repo, not the tarball.
+include = [
+    "src/**/*.rs",
+    "/Cargo.toml",
+    "/README.md",
+    "/README.ja.md",
+    "/CHANGELOG.md",
+    "/LICENSE-MIT",
+    "/LICENSE-APACHE",
+    "/config.example.toml",
+]
+
+[dependencies]
+ratatui = "0.29"
+crossterm = "0.27"
+serde = { version = "1.0", features = ["derive"] }
+toml = "0.8"
+dirs = "5.0"
+regex = "1.12.2"
+unicode-width = "0.1"
+ignore = "0.4"
+arboard = { version = "3.2", optional = true }
+ratatui-markdown = { version = "0.3.6", default-features = false, features = ["markdown", "mermaid"] }
+tree-sitter = { version = "0.26", optional = true }
+tree-sitter-rust = { version = "0.24", optional = true }
+tree-sitter-python = { version = "0.23", optional = true }
+tree-sitter-javascript = { version = "0.23", optional = true }
+tree-sitter-json = { version = "0.24", optional = true }
+tree-sitter-toml-ng = { version = "0.7", optional = true }
+tree-sitter-typescript = { version = "0.23", optional = true }
+tree-sitter-go = { version = "0.23", optional = true }
+tree-sitter-md = { version = "0.5", features = ["parser"], optional = true }
+atomicwrites = "0.4.4"
+
+[features]
+default = ["clipboard", "crossterm-events", "treesitter"]
+clipboard = ["dep:arboard"]
+# Disable when embedding in a host that provides its own event source (e.g. hsh-ios)
+crossterm-events = []
+# tree-sitter syntax highlighting. Disable for a lighter embed; falls back to the
+# regex highlighter in src/utils/syntax.rs.
+treesitter = [
+    "dep:tree-sitter",
+    "dep:tree-sitter-rust",
+    "dep:tree-sitter-python",
+    "dep:tree-sitter-javascript",
+    "dep:tree-sitter-json",
+    "dep:tree-sitter-toml-ng",
+    "dep:tree-sitter-typescript",
+    "dep:tree-sitter-go",
+    "dep:tree-sitter-md",
+]
+
+[lib]
+name = "cozy"
+path = "src/lib.rs"
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"

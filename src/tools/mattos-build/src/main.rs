@@ -3516,6 +3516,7 @@ fn stage_resource_profile(stage: BuildStage) -> scheduler::StageResourceProfile 
             | BuildStage::CosmicTweaks
             | BuildStage::CosmicUtilities
             | BuildStage::CosmicPortal
+            | BuildStage::CosmicEdit
             | BuildStage::Greetd
     ) {
         return scheduler::StageResourceProfile::high_memory_parallel();
@@ -3676,6 +3677,10 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::CosmicFiles => {
             vec!["out/build/cosmic-files/install/usr/bin/cosmic-files".into()]
         }
+        BuildStage::CosmicEdit => vec![
+            "out/build/cosmic-edit/install/usr/bin/cosmic-edit".into(),
+            "out/build/cosmic-edit/install/usr/share/applications/com.system76.CosmicEdit.desktop".into(),
+        ],
         BuildStage::CosmicTerm => {
             vec!["out/build/cosmic-term/install/usr/bin/cosmic-term".into()]
         }
@@ -3696,6 +3701,7 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
             "out/build/cosmic-desktop/install/usr/bin/cosmic-term".into(),
             "out/build/cosmic-desktop/install/usr/bin/greetd".into(),
         ],
+        BuildStage::Cozy => vec!["out/build/cozy/install/usr/bin/cozy".into()],
         BuildStage::Python => vec!["out/build/cpython/install".into()],
         BuildStage::Llvm => vec!["out/build/llvm/install".into()],
         BuildStage::Rust => vec!["out/build/rust/install".into()],
@@ -4070,7 +4076,9 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
         | BuildStage::CosmicPortal
         | BuildStage::CosmicAssets
         | BuildStage::Greetd => build_cosmic_desktop_component(repo_root, stage),
+        BuildStage::CosmicEdit => build_cosmic_edit(repo_root),
         BuildStage::CosmicDesktop => build_cosmic_desktop(repo_root),
+        BuildStage::Cozy => build_cozy(repo_root),
         BuildStage::Python => build_cpython(repo_root),
         BuildStage::Llvm => build_llvm(repo_root),
         BuildStage::Rust => build_rust(repo_root),
@@ -9947,6 +9955,84 @@ fn build_cosmic_desktop(repo_root: &Path) -> Result<()> {
             bail!("COSMIC desktop aggregate did not install /{required}");
         }
     }
+    Ok(())
+}
+
+fn build_cosmic_edit(repo_root: &Path) -> Result<()> {
+    let out_root = repo_root.join("out/build/cosmic-edit");
+    let install = out_root.join("install");
+    let mirror = out_root.join("source");
+    remove_path_if_exists(&install)?;
+    sync_build_source(&repo_root.join("src/desktop/cosmic/cosmic-edit"), &mirror)?;
+    isolate_cargo_build_mirror(&mirror)?;
+    let env = cosmic_component_environment(repo_root, &install)?;
+    run_locked_cosmic_command(
+        repo_root,
+        &mirror,
+        "cargo",
+        &["build", "--locked", "--release", "--bin", "cosmic-edit"],
+        &env,
+    )?;
+    let binary = cosmic_shared_target(repo_root).join("release/cosmic-edit");
+    stage_output_file(&binary, &install.join("usr/bin/cosmic-edit"), 0o755)?;
+    let res = mirror.join("res");
+    copy_file_preserving(&res.join("com.system76.CosmicEdit.desktop"), &install.join("usr/share/applications/com.system76.CosmicEdit.desktop"))?;
+    copy_file_preserving(&res.join("com.system76.CosmicEdit.metainfo.xml"), &install.join("usr/share/metainfo/com.system76.CosmicEdit.metainfo.xml"))?;
+    copy_tree_contents(
+        &res.join("icons/hicolor"),
+        &install.join("usr/share/icons/hicolor"),
+    )?;
+    for entry in fs::read_dir(res.join("icons"))? {
+        let entry = entry?;
+        if entry.file_type()?.is_file() && entry.file_name().to_string_lossy().ends_with("-symbolic.svg") {
+            copy_file_preserving(
+                &entry.path(),
+                &install
+                    .join("usr/share/icons/hicolor/symbolic/actions")
+                    .join(entry.file_name()),
+            )?;
+        }
+    }
+    Ok(())
+}
+
+fn build_cozy(repo_root: &Path) -> Result<()> {
+    let out_root = repo_root.join("out/build/cozy");
+    let install = out_root.join("install");
+    let mirror = out_root.join("source");
+    remove_path_if_exists(&install)?;
+    sync_build_source(&repo_root.join("src/userland/cozy"), &mirror)?;
+    isolate_cargo_build_mirror(&mirror)?;
+    let target = out_root.join("cargo-target");
+    run_cmd_with_env_overrides(
+        &mirror,
+        "cargo",
+        &["build", "--locked", "--release", "--bin", "cozy"],
+        &[
+            ("CARGO_TARGET_DIR", target.display().to_string()),
+            ("CARGO_BUILD_JOBS", "4".to_string()),
+            ("CARGO_INCREMENTAL", "0".to_string()),
+            ("RUSTFLAGS", format!("--remap-path-prefix={}=/usr/src/mattos", repo_root.display())),
+        ],
+    )?;
+    stage_output_file(&target.join("release/cozy"), &install.join("usr/bin/cozy"), 0o755)
+}
+
+fn stage_output_file(source: &Path, destination: &Path, mode: u32) -> Result<()> {
+    if let Some(parent) = destination.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    fs::copy(source, destination).with_context(|| format!("failed to stage {}", source.display()))?;
+    set_mode(destination.to_path_buf(), mode)
+}
+
+fn copy_file_preserving(source: &Path, destination: &Path) -> Result<()> {
+    if let Some(parent) = destination.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    fs::copy(source, destination)?;
+    let permissions = fs::metadata(source)?.permissions();
+    fs::set_permissions(destination, permissions)?;
     Ok(())
 }
 

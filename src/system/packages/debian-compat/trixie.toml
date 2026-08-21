@@ -1767,3 +1767,31 @@ current_mattos_version = "595.84-1mattos1"
 expected_debian_role = "NVIDIA driver metapackage"
 classification = "mattos-alternative"
 known_gaps = ["Turing and newer only"]
+
+[[package]]
+debian_name = "cosmic-edit"
+mattos_name = "cosmic-edit"
+source_component = "cosmic-edit"
+owned_paths = [
+    "/usr/bin/cosmic-edit",
+    "/usr/share/applications/com.system76.CosmicEdit.desktop",
+    "/usr/share/metainfo/com.system76.CosmicEdit.metainfo.xml",
+]
+provided_abi_or_commands = ["COSMIC Text Editor desktop application"]
+protected = false
+current_mattos_version = "1.5.0-1mattos1"
+expected_debian_role = "MattOS COSMIC graphical text editor"
+classification = "mattos-alternative"
+known_gaps = ["Does not claim a Debian editor package identity"]
+
+[[package]]
+debian_name = "mattos-cozy"
+mattos_name = "mattos-cozy"
+source_component = "cozy"
+owned_paths = ["/usr/bin/cozy"]
+provided_abi_or_commands = ["Cozy terminal text editor"]
+protected = false
+current_mattos_version = "0.2.19-1mattos1"
+expected_debian_role = "MattOS terminal text editor"
+classification = "mattos-specific"
+known_gaps = ["Does not provide or claim the unrelated Debian package name cozy"]

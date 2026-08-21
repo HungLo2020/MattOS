@@ -89,6 +89,8 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "upstream/patches/cosmic-files",
         ],
         BuildStage::CosmicTerm => &["src/desktop/cosmic/cosmic-term"],
+        BuildStage::CosmicEdit => &["src/desktop/cosmic/cosmic-edit"],
+        BuildStage::Cozy => &["src/userland/cozy"],
         BuildStage::CosmicTweaks => &["src/desktop/cosmic/cosmic-tweaks"],
         BuildStage::CosmicUtilities => &[
             "src/desktop/cosmic/cosmic-randr",
@@ -193,6 +195,17 @@ pub(crate) fn configuration_inputs(stage: BuildStage) -> Vec<PathBuf> {
         inputs.extend(rootfs_configuration_inputs());
         inputs.push("out/packages/inventory.toml".into());
     }
+    match stage {
+        BuildStage::CosmicEdit => {
+            inputs.push("src/desktop/cosmic/cosmic-edit/Cargo.toml".into());
+            inputs.push("src/desktop/cosmic/cosmic-edit/Cargo.lock".into());
+        }
+        BuildStage::Cozy => {
+            inputs.push("src/userland/cozy/Cargo.toml".into());
+            inputs.push("src/userland/cozy/Cargo.lock".into());
+        }
+        _ => {}
+    }
     inputs
 }
 
@@ -241,11 +254,13 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
         | BuildStage::CosmicWorkspaces
         | BuildStage::CosmicFiles
         | BuildStage::CosmicTerm
+        | BuildStage::CosmicEdit
         | BuildStage::CosmicTweaks
         | BuildStage::CosmicUtilities
         | BuildStage::CosmicPortal
         | BuildStage::Greetd => &["cargo", "rustc", "gcc", "ld", "pkg-config"],
         BuildStage::CosmicAssets | BuildStage::CosmicDesktop => &[],
+        BuildStage::Cozy => &["cargo", "rustc", "gcc", "ld"],
         BuildStage::Installer => &[
             "cargo",
             "rustc",
@@ -281,6 +296,10 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
         | BuildStage::Pixman
         | BuildStage::CosmicComp => 1,
         BuildStage::CosmicFiles => 2,
+        // Revision 2 places COSMIC Edit's hicolor-sized application icons at
+        // /usr/share/icons/hicolor rather than nesting a second hicolor tree.
+        BuildStage::CosmicEdit => 3,
+        BuildStage::Cozy => 1,
         BuildStage::Libseat => 2,
         BuildStage::CosmicDesktop => 1,
         BuildStage::Dbus => 3,

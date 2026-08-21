@@ -1,6 +1,8 @@
 #!/bin/sh
 export PATH=/bin:/usr/bin:/sbin:/usr/sbin
 export TERM=${TERM:-linux}
+export EDITOR=/usr/bin/cozy
+export VISUAL=/usr/bin/cozy
 if [ "$(id -u 2>/dev/null)" = "0" ]; then
     export PS1='\u@\h:\w# '
 else

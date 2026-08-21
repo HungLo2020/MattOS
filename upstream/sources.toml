@@ -31,6 +31,14 @@ patch_manifest = "upstream/patches/brush/manifest.toml"
 patch_manifest_sha256 = "4ac8fb49466401acaac6b6bb9c16bc49c24e951ed5c597d5efa80fbc07f02883"
 
 [[component]]
+name = "cozy"
+repo = "https://github.com/takakix2/cozy.git"
+branch = "main"
+revision = "c43a1d0f118f73d09e4a7414a3412479903e6bfe"
+path = "src/userland/cozy"
+sync = "copy"
+
+[[component]]
 name = "coreutils"
 repo = "https://github.com/uutils/coreutils.git"
 branch = "main"
@@ -306,6 +314,14 @@ path = "src/desktop/cosmic/cosmic-files"
 sync = "copy"
 patch_manifest = "upstream/patches/cosmic-files/manifest.toml"
 patch_manifest_sha256 = "f64cab9e771de868b01fcd12883694182140b0eb84ae1d9dea80b27438ff2d6e"
+
+[[component]]
+name = "cosmic-edit"
+repo = "https://github.com/pop-os/cosmic-edit.git"
+branch = "master"
+revision = "4ac0da3af97207fb3807375928812f23ec04161f"
+path = "src/desktop/cosmic/cosmic-edit"
+sync = "copy"
 
 [[component]]
 name = "cosmic-term"
