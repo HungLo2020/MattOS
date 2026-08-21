@@ -1,0 +1,7 @@
+[package]
+name = "kmines"
+description = "KDE minesweeper game"
+depends_on = []
+
+[targets.linux.apt]
+id = "kmines"

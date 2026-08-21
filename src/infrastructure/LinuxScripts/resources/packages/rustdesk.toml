@@ -1,0 +1,11 @@
+[package]
+name = "rustdesk"
+description = "RustDesk remote desktop client with unattended access"
+depends_on = []
+
+[script_dependencies]
+before = ["download_rustdesk.py"]
+after = ["configure_rustdesk.py"]
+
+[targets.linux.apt_deb]
+id = "/tmp/linuxscripts-rustdesk-amd64.deb"

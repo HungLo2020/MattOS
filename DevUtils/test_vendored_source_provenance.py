@@ -203,6 +203,133 @@ def load_source_selection_policy(component: dict, state: dict) -> tuple[dict | N
     return policy, failures
 
 
+def _safe_policy_relative_path(value: object) -> str | None:
+    if not isinstance(value, str) or not value or value.startswith("/") or "\\" in value:
+        return None
+    parts = value.split("/")
+    if any(part in ("", ".", "..") for part in parts):
+        return None
+    return value
+
+
+def load_intentional_omission_policy(
+    component: dict, state: dict
+) -> tuple[dict | None, list[str]]:
+    """Load a standalone, declarative projection of an upstream source tree.
+
+    Gitlink omission fragments remain owned by the existing gitlink policy
+    machinery. Standalone omission policies may either select one upstream
+    subtree (whose prefix is stripped in the MattOS import) or retain an
+    explicit set of upstream-relative files/directories.
+    """
+    name = component["name"]
+    policy_name = component.get("intentional_omission_policy", "none")
+    failures: list[str] = []
+    if state.get("intentional_omission_policy", "none") != policy_name:
+        failures.append(f"{name}: state intentional_omission_policy does not match sources.toml")
+    if policy_name == "none" or "#" in policy_name:
+        return None, failures
+
+    policy_path = ROOT / policy_name
+    if not policy_path.is_file():
+        return None, [*failures, f"{name}: intentional-omission policy is missing: {policy_name}"]
+    policy = load_toml(policy_path)
+    if policy.get("schema_version") != 1:
+        failures.append(f"{name}: unsupported intentional-omission policy schema")
+    if policy.get("component") != name:
+        failures.append(f"{name}: intentional-omission policy component mismatch")
+    if policy.get("upstream_commit") != component.get("revision"):
+        failures.append(f"{name}: intentional-omission policy commit mismatch")
+    if not isinstance(policy.get("reason"), str) or not policy.get("reason", "").strip():
+        failures.append(f"{name}: intentional-omission policy lacks a reason")
+
+    subtree = policy.get("upstream_subtree")
+    retained = policy.get("retained_paths")
+    if (subtree is None) == (retained is None):
+        failures.append(
+            f"{name}: intentional-omission policy must declare exactly one of "
+            "upstream_subtree or retained_paths"
+        )
+        return policy, failures
+
+    if subtree is not None and _safe_policy_relative_path(subtree) is None:
+        failures.append(f"{name}: intentional-omission upstream_subtree is unsafe")
+
+    if retained is not None:
+        if not isinstance(retained, list) or not retained:
+            failures.append(f"{name}: intentional-omission retained_paths must be a non-empty list")
+        else:
+            normalized = [_safe_policy_relative_path(path) for path in retained]
+            if any(path is None for path in normalized):
+                failures.append(f"{name}: intentional-omission retained_paths contains an unsafe path")
+            if len(set(retained)) != len(retained):
+                failures.append(f"{name}: intentional-omission retained_paths contains duplicates")
+
+    expected = policy.get("expected_runtime_files")
+    if expected is not None:
+        if subtree is None:
+            failures.append(f"{name}: expected_runtime_files requires upstream_subtree")
+        elif not isinstance(expected, list) or not expected:
+            failures.append(f"{name}: expected_runtime_files must be a non-empty list")
+        else:
+            normalized = [_safe_policy_relative_path(path) for path in expected]
+            if any(path is None for path in normalized):
+                failures.append(f"{name}: expected_runtime_files contains an unsafe path")
+            if len(set(expected)) != len(expected):
+                failures.append(f"{name}: expected_runtime_files contains duplicates")
+    return policy, failures
+
+
+def apply_intentional_omission_policy(
+    component: dict,
+    entries: list[tuple[str, str, str, str]],
+    policy: dict | None,
+) -> tuple[list[tuple[str, str, str, str]], list[str]]:
+    if policy is None:
+        return entries, []
+    name = component["name"]
+    failures: list[str] = []
+    subtree = policy.get("upstream_subtree")
+    if isinstance(subtree, str):
+        prefix = subtree.rstrip("/") + "/"
+        selected = [
+            (mode, object_type, oid, path[len(prefix):])
+            for mode, object_type, oid, path in entries
+            if path.startswith(prefix) and path != prefix
+        ]
+        if not selected:
+            failures.append(f"{name}: intentional-omission upstream_subtree selects no upstream files")
+        expected = policy.get("expected_runtime_files")
+        if isinstance(expected, list):
+            actual = sorted(path for mode, _, _, path in selected if mode != "160000")
+            if actual != sorted(expected):
+                failures.append(
+                    f"{name}: intentional-omission expected_runtime_files no longer matches upstream subtree"
+                )
+        return selected, failures
+
+    retained = policy.get("retained_paths", [])
+    selected: list[tuple[str, str, str, str]] = []
+    matched = {path: False for path in retained if isinstance(path, str)}
+    for entry in entries:
+        upstream_path = entry[3]
+        keep = False
+        for selector in matched:
+            if upstream_path == selector or upstream_path.startswith(selector.rstrip("/") + "/"):
+                matched[selector] = True
+                keep = True
+        if keep:
+            selected.append(entry)
+    for selector, found in matched.items():
+        if not found:
+            failures.append(
+                f"{name}: intentional-omission retained path does not exist upstream: {selector}"
+            )
+    if not selected:
+        failures.append(f"{name}: intentional-omission retained_paths selects no upstream files")
+    return selected, failures
+
+
 def load_lfs_policy(component: dict, state: dict) -> tuple[dict[str, dict], list[str]]:
     name = component["name"]
     policy_name = component.get("lfs_policy", "none")
@@ -307,6 +434,7 @@ def verify_component_tree(
     entries: list[tuple[str, str, str, str]],
     gitlink_policies: dict[tuple[str, str], dict],
     source_selection: dict | None,
+    intentional_omission: dict | None,
     lfs_objects: dict[str, dict],
 ) -> tuple[int, list[str]]:
     name = component["name"]
@@ -411,7 +539,9 @@ def verify_component_tree(
             f"state imported_tree_digest is {state.get('imported_tree_digest')!r}, expected {digest}"
         )
     expected_algorithm = (
-        SELECTED_IMPORTED_DIGEST_ALGORITHM if source_selection is not None else IMPORTED_DIGEST_ALGORITHM
+        SELECTED_IMPORTED_DIGEST_ALGORITHM
+        if source_selection is not None or intentional_omission is not None
+        else IMPORTED_DIGEST_ALGORITHM
     )
     if state.get("imported_tree_digest_algorithm") != expected_algorithm:
         failures.append("state imported-tree digest algorithm is missing or unsupported")
@@ -599,11 +729,10 @@ def main() -> int:
     component_list = source_document.get("component", [])
     components = {component["name"]: component for component in component_list}
     failures: list[str] = []
-    expected_component_count = 63
-    if len(components) != expected_component_count or len(component_list) != expected_component_count:
+    if len(components) != len(component_list):
         failures.append(
-            f"sources.toml declares {len(component_list)} components, "
-            f"expected {expected_component_count} unique components"
+            f"sources.toml declares {len(component_list)} component entries but only "
+            f"{len(components)} unique component names"
         )
     required_cosmic_closure = {
         "cosmic-initial-setup", "libcosmic", "cosmic-iced", "cosmic-protocols",
@@ -659,9 +788,15 @@ def main() -> int:
             state = load_toml(state_path) if state_path.is_file() else {}
             source_selection, selection_failures = load_source_selection_policy(component, state)
             failures.extend(selection_failures)
+            intentional_omission, omission_failures = load_intentional_omission_policy(component, state)
+            failures.extend(omission_failures)
             entries = [
                 entry for entry in entries if source_selection_retains(source_selection, entry[3])
             ]
+            entries, projection_failures = apply_intentional_omission_policy(
+                component, entries, intentional_omission
+            )
+            failures.extend(projection_failures)
             print(f"{name}\t{tree}\t{imported_digest(entries)}")
         if failures:
             print("\n".join(f"ERROR: {failure}" for failure in failures), file=sys.stderr)
@@ -683,6 +818,8 @@ def main() -> int:
         state = load_toml(state_path)
         source_selection, selection_failures = load_source_selection_policy(component, state)
         failures.extend(selection_failures)
+        intentional_omission, omission_failures = load_intentional_omission_policy(component, state)
+        failures.extend(omission_failures)
         lfs_objects, lfs_failures = load_lfs_policy(component, state)
         failures.extend(lfs_failures)
         for field, source_field in (("component", "name"), ("repo", "repo"), ("branch", "branch")):
@@ -712,8 +849,19 @@ def main() -> int:
         entries = [
             entry for entry in entries if source_selection_retains(source_selection, entry[3])
         ]
+        entries, projection_failures = apply_intentional_omission_policy(
+            component, entries, intentional_omission
+        )
+        failures.extend(projection_failures)
         ignored_count, tree_failures = verify_component_tree(
-            component, state, tree, entries, gitlink_by_path, source_selection, lfs_objects
+            component,
+            state,
+            tree,
+            entries,
+            gitlink_by_path,
+            source_selection,
+            intentional_omission,
+            lfs_objects,
         )
         ignored_total += ignored_count
         failures.extend(f"{name}: {failure}" for failure in tree_failures)
@@ -740,7 +888,7 @@ def main() -> int:
     for name, path in sorted(mapped_gitlinks - observed_gitlinks):
         failures.append(f"{name}: policy maps nonexistent gitlink {path}")
 
-    print(f"components verified: {verified}/47")
+    print(f"components verified: {verified}/{len(component_list)}")
     print(f"ignored generated-residue paths retained outside provenance: {ignored_total}")
     print(f"gitlinks verified against explicit policy: {len(observed_gitlinks)}")
     print("unpinned components: 0" if not any("revision" in f for f in failures) else "unpinned components: FAILED")

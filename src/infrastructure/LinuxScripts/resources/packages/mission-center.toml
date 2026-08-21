@@ -1,0 +1,9 @@
+[package]
+name = "mission-center"
+description = "System monitor"
+depends_on = []
+
+[targets.linux.flatpak]
+id = "io.missioncenter.MissionCenter"
+remote = "flathub"
+depends_on = ["flatpak"]

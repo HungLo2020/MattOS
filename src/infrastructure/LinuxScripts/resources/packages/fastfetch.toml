@@ -1,0 +1,7 @@
+[package]
+name = "fastfetch"
+description = "System information fetcher"
+depends_on = []
+
+[targets.linux.apt]
+id = "fastfetch"

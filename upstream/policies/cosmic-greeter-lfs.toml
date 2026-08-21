@@ -1,0 +1,9 @@
+schema_version = 1
+component = "cosmic-greeter"
+upstream_commit = "d39915ae2381424d406cd511a2310ef928144f4c"
+source = "https://media.githubusercontent.com/media/pop-os/cosmic-greeter/d39915ae2381424d406cd511a2310ef928144f4c/{path}"
+
+[[object]]
+path = "res/background.jpg"
+sha256 = "7500f702f0488d4a8df2c5abeb7ca9107a7ca7998e0441727cbaf79465b02388"
+size = 3839900

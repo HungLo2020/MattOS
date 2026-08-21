@@ -1,0 +1,10 @@
+[package]
+name = "steam"
+description = "Steam gaming client"
+depends_on = []
+
+[targets.linux.apt]
+id = "steam"
+
+[targets.linux.pacman]
+id = "steam"

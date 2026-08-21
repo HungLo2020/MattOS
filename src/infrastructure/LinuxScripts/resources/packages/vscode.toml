@@ -1,0 +1,9 @@
+[package]
+name = "vscode"
+description = "Visual Studio Code editor"
+depends_on = []
+
+[targets.linux.flatpak]
+id = "com.visualstudio.code"
+remote = "flathub"
+depends_on = ["flatpak"]

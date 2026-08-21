@@ -1,0 +1,10 @@
+[profile]
+name = "office"
+description = "Productivity applications"
+includes = []
+required_packages = []
+optional_packages = []
+
+[platforms.linux]
+required_packages = ["libreoffice"]
+optional_packages = []

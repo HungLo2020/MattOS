@@ -1,0 +1,10 @@
+[profile]
+name = "utilities"
+description = "Shared command-line system utilities"
+includes = []
+required_packages = []
+optional_packages = []
+
+[platforms.linux]
+required_packages = ["fastfetch", "tailscale"]
+optional_packages = []

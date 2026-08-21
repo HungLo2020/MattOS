@@ -19,6 +19,8 @@ from common import (
 
 DEFAULT_INSTALL_DISK_RELATIVE = Path("out/qemu/mattos-dev.qcow2")
 DEFAULT_INSTALL_DISK_SIZE = "16G"
+DEFAULT_VM_MEMORY_MIB = 6144
+DEFAULT_VM_CPUS = 4
 # `virtio-vga-gl` is the one GPU that satisfies both development-launcher
 # requirements: its VGA compatibility gives firmware/GRUB a scanout before
 # Linux starts, and its VirtIO GL backend exposes the VirGL capset used later
@@ -40,8 +42,18 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Build and run MattOS in QEMU")
     parser.add_argument("--no-build", action="store_true", help="skip build/image steps")
     parser.add_argument("--clean", action="store_true", help="clean build artifacts before rebuilding")
-    parser.add_argument("--memory", type=int, default=1024, help="VM memory in MiB (default: 1024)")
-    parser.add_argument("--cpus", type=int, default=1, help="virtual CPU count (default: 1)")
+    parser.add_argument(
+        "--memory",
+        type=int,
+        default=DEFAULT_VM_MEMORY_MIB,
+        help=f"VM memory in MiB (default: {DEFAULT_VM_MEMORY_MIB})",
+    )
+    parser.add_argument(
+        "--cpus",
+        type=int,
+        default=DEFAULT_VM_CPUS,
+        help=f"virtual CPU count (default: {DEFAULT_VM_CPUS})",
+    )
     parser.add_argument(
         "--no-kvm",
         action="store_true",
@@ -90,6 +102,18 @@ def network_arguments(disabled: bool) -> List[str]:
     return ["-netdev", "user,id=net0", "-device", "virtio-net-pci,netdev=net0"]
 
 
+def acceleration_selection(disabled: bool = False) -> tuple[List[str], str]:
+    """Return QEMU acceleration arguments plus a user-visible status reason."""
+    kvm = Path("/dev/kvm")
+    if disabled:
+        return [], "TCG software emulation (--no-kvm requested)"
+    if not kvm.exists():
+        return [], "TCG software emulation (/dev/kvm is missing)"
+    if not os.access(kvm, os.R_OK | os.W_OK):
+        return [], "TCG software emulation (/dev/kvm is not readable/writable by this user)"
+    return ["-enable-kvm", "-cpu", "host"], "KVM hardware acceleration"
+
+
 def acceleration_arguments(disabled: bool = False) -> List[str]:
     """Use native acceleration when this user can actually open /dev/kvm.
 
@@ -97,10 +121,16 @@ def acceleration_arguments(disabled: bool = False) -> List[str]:
     and on hosts without KVM.  Avoiding an unconditional `-enable-kvm` also
     preserves a useful error-free diagnostic path on those systems.
     """
-    kvm = Path("/dev/kvm")
-    if disabled or not kvm.exists() or not os.access(kvm, os.R_OK | os.W_OK):
-        return []
-    return ["-enable-kvm", "-cpu", "host"]
+    return acceleration_selection(disabled)[0]
+
+
+def report_launch_configuration(args: argparse.Namespace, acceleration_status: str) -> None:
+    print(f"[qemu] resources: {args.cpus} vCPU(s), {args.memory} MiB RAM")
+    if acceleration_status == "KVM hardware acceleration":
+        print("[qemu] acceleration: KVM hardware acceleration (-enable-kvm -cpu host)")
+    else:
+        print(f"[qemu] WARNING: acceleration: {acceleration_status}")
+        print("[qemu] WARNING: MattOS will be very slow under TCG; configure /dev/kvm for usable desktop performance.")
 
 
 def uefi_firmware_arguments(
@@ -252,9 +282,12 @@ def launch_qemu(repo_root: Path, iso_path: Path, args: argparse.Namespace) -> in
     if not args.dry_run:
         logs_dir.mkdir(parents=True, exist_ok=True)
 
+    acceleration_args, acceleration_status = acceleration_selection(getattr(args, "no_kvm", False))
+    report_launch_configuration(args, acceleration_status)
+
     qemu_cmd: List[str] = [
         "qemu-system-x86_64",
-        *acceleration_arguments(getattr(args, "no_kvm", False)),
+        *acceleration_args,
         *uefi_firmware_arguments(),
         "-m",
         str(args.memory),
@@ -297,6 +330,7 @@ def launch_qemu(repo_root: Path, iso_path: Path, args: argparse.Namespace) -> in
             qemu_cmd.extend(["-display", "default"])
         else:
             qemu_cmd.extend(["-display", display])
+        print(f"[qemu] graphics: {VIRTIO_GPU_GL_DEVICE} with display={display} (VirGL requested)")
         qemu_cmd.extend(["-serial", f"file:{logs_dir / 'qemu-serial.log'}"])
 
     for extra in args.qemu_arg:

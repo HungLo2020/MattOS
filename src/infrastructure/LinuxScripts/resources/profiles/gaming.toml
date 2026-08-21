@@ -1,0 +1,14 @@
+[profile]
+name = "gaming"
+description = "Gaming software where supported"
+includes = ["desktop"]
+required_packages = []
+optional_packages = []
+
+[platforms.linux]
+required_packages = ["kmines"]
+optional_packages = ["steam"]
+
+[platforms.mattos]
+required_packages = ["basalt"]
+optional_packages = []

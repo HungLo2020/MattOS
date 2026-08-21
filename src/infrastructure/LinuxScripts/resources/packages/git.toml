@@ -1,0 +1,28 @@
+[package]
+name = "git"
+description = "Git version control"
+depends_on = []
+
+[targets.linux.apt]
+id = "git"
+
+[targets.mattos.apt]
+id = "git"
+
+[targets.linux.dnf]
+id = "git"
+
+[targets.linux.pacman]
+id = "git"
+
+[targets.linux.zypper]
+id = "git"
+
+[targets.linux.apk]
+id = "git"
+
+[targets.windows.winget]
+id = "Git.Git"
+
+[targets.macos.homebrew]
+id = "git"

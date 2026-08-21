@@ -1,0 +1,7 @@
+[package]
+name = "basalt"
+description = "MattOS gaming software"
+depends_on = []
+
+[targets.mattos.apt]
+id = "basalt"

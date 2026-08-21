@@ -525,7 +525,7 @@ The remaining module-related boot message is precisely scoped: systemd's real li
 - the embedded repository identifies as `Origin: MattOS`, `Label: MattOS Local`, `Suite: trixie`, `Codename: trixie`; remote deb822 files are signed, disabled scaffolds so disconnected boot remains local-only
 - isolated APT resolution selected Debian `hello`, `vtable-dumper`, and `anacron` while retaining MattOS protected dependencies; metadata, ELF dependencies, units, and maintainer scripts were inspected without modifying the host root
 - an ephemeral MattOS guest installed, executed, and removed Debian `hello` 2.10-5 through MattOS `dpkg`; normal and disconnected guests completed safe local upgrade simulations, and the disconnected guest reinstalled `iputils-ping` from embedded media
-- LinuxScripts is pinned at commit `91fefdbcc878e3e66c19cb9858e1acaae5aebba2`; its publisher checksum is enforced as `90d516f75d9dd38b2cfa1693cdc2833d71ef003ca9248e4a0d1ab0f8e58ec477`
+- LinuxScripts is pinned at commit `bccc8041ce8e37ab993a418504ddde95cdfccc8c`; its publisher checksum is enforced as `ff56c6cb56951543dfb8eb0298f424d34517a1d87175a44060ef6f97d6a51cd4`
 - the publication integration validates selected inventory artifacts and prints an exact future command only; it never invokes LinuxScripts, accesses credentials, signs, or publishes
 - incomplete `systemd` and `util-linux` package ownership, libcurl/PAM/OpenSSL split differences, terminfo/proc SONAME differences, Trixie's GCC 14 development names, and full maintainer-helper support remain documented gaps
 

@@ -1,0 +1,28 @@
+[package]
+name = "curl"
+description = "Command-line transfer client"
+depends_on = []
+
+[targets.linux.apt]
+id = "curl"
+
+[targets.mattos.apt]
+id = "curl"
+
+[targets.linux.dnf]
+id = "curl"
+
+[targets.linux.pacman]
+id = "curl"
+
+[targets.linux.zypper]
+id = "curl"
+
+[targets.linux.apk]
+id = "curl"
+
+[targets.windows.winget]
+id = "curl.curl"
+
+[targets.macos.homebrew]
+id = "curl"

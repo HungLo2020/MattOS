@@ -109,6 +109,9 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
             root = Path(temporary)
             (root / "src/tools/mattos-build").mkdir(parents=True)
             (root / "src/tools/mattos-build/Cargo.toml").touch()
+            dispatcher = root / "DevUtils/cargo_source_owned.py"
+            dispatcher.parent.mkdir(parents=True)
+            dispatcher.write_text("#!/usr/bin/env python3\n", encoding="utf-8")
             with mock.patch.dict(os.environ, {"TMPDIR": "/full/host/tmp"}, clear=False), mock.patch(
                 "common.helpers.shutil.disk_usage",
                 return_value=shutil.disk_usage(Path.cwd()),

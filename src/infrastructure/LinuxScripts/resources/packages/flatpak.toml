@@ -1,0 +1,19 @@
+[package]
+name = "flatpak"
+description = "Flatpak application runtime"
+depends_on = []
+
+[targets.linux.apt]
+id = "flatpak"
+
+[targets.mattos.apt]
+id = "flatpak"
+
+[targets.linux.dnf]
+id = "flatpak"
+
+[targets.linux.pacman]
+id = "flatpak"
+
+[targets.linux.zypper]
+id = "flatpak"

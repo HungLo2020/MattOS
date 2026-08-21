@@ -1,0 +1,11 @@
+[package]
+name = "tailscale"
+description = "Tailscale mesh VPN client and daemon"
+depends_on = []
+
+[script_dependencies]
+before = ["setup_tailscale_repository.py"]
+after = ["configure_tailscale.py"]
+
+[targets.linux.apt]
+id = "tailscale"

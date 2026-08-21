@@ -1,0 +1,10 @@
+[profile]
+name = "complete-desktop"
+description = "Desktop, coding, gaming, and office capabilities"
+includes = ["desktop", "coding", "gaming", "office", "utilities", "gui-utilities", "auth"]
+required_packages = []
+optional_packages = []
+
+[platforms.linux]
+required_packages = ["flatpak", "konsave"]
+optional_packages = []

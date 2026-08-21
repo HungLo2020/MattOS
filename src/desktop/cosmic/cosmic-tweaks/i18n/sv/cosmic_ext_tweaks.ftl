@@ -1,0 +1,97 @@
+app-title = Tweaks för COSMIC™
+app-description = Ett verktyg för att anpassa din COSMIC™ skrivbordsupplevelse.
+
+# Sidor
+home = Hem
+dock = Docka
+panel = Panel
+color-schemes = Färgscheman
+layouts = Layouter
+shortcuts = Genvägar
+snapshots = Ögonblicksavbilder
+
+color-schemes-error = Ett fel uppstod när färgscheman skulle läsas in
+import-color-scheme = Importera färgschema
+delete-color-scheme = Ta bort färgschema
+available-color-schemes-body = Find and install color schemes
+install-color-scheme = Installera färgschema
+find-color-schemes = Hitta färgschema
+open-containing-folder = Öppna innehållande mapp
+open-link = Öppna länk
+installed = Installerat
+available = Tillgängligt
+loading = Laddar...
+refresh = Uppdatera
+show-more = Visa mer
+no-color-schemes-installed = Inga färgscheman installerade
+no-color-schemes-found = Inga färgscheman hittades
+by = Av {$author}
+revert-old-color-scheme = Återställ gammalt färgschema
+
+a-z = A-Z
+most-downloaded = Mest nedladdade
+last-modified = Senast modifierade
+author = Upphovsman
+search = Sök
+
+show-panel = Visa panel
+force-icon-buttons-in-panel = Forcera ikonknappar i panelen
+size = Storlek
+size-description = Höjden av Panelens och appletarna
+
+padding = Utfyllnad
+padding-description = Utfyllnad är utrymmet mellan innehållet och kanterna på dockan eller panelen.
+margin = Marginal
+margin-description = Marginal är utrymmet mellan panelen och skärmens kanter.
+spacing = Utfyllnad
+spacing-description = Avståndet är utrymmet mellan ikonerna i dockan eller panelen.
+
+save = Spara
+cancel = Avbryt
+close = Stäng
+create = Skapa
+
+navigation = Navigering
+
+save-current-color-scheme = Spara nuvarande färgschema
+color-scheme-name = Färgschema namn
+create-snapshot = Skapa ögonblicksavbild
+create-snapshot-description = Du är på väg att skapa en ögonblicksavbild, detta kommer att spara det aktuella tillståndet av ditt skrivbord och göra det möjligt att återställa det senare.
+restore-snapshot = Återställ ögonblicksavbild
+delete-snapshot = Ta bort ögonblicksavbild
+no-snapshots = Inga ögonblicksavbilder tillgängliga
+snapshot-name = Namn på ögonblicksavbild
+name = Namn
+type = Typ
+created = Skapad
+actions = Åtgärder
+system = System
+user = Användare
+
+## Ögonblicksavbilder
+application-opened = Program öppnat
+restore-info = Varje gång du öppnar Tweaks sparar vi skrivbordets aktuella tillstånd. Om det någonsin går sönder kan du väldigt enkelt återställa det.
+
+## Om
+about = Om
+repository = Förråd
+support = Support
+website = Hemsida
+
+## Inställningar
+settings = Inställningar
+
+### Utseende
+appearance = Utseende
+theme = Tema
+match-desktop = Matcha skrivbord
+dark = Mörkt
+light = Ljust
+
+# Meny
+view = Visa
+
+## Genvägar
+
+warning = Varning: detta kommer att ta bort dina existerande anpassade genvägar
+windows-desc = Super+Piltangenterna för att flytta fönster. Ctrl+Alt+Piltangenterna för att navigera bland dina arbetsytor.

@@ -1,0 +1,11 @@
+[profile]
+name = "base"
+description = "Cross-platform command-line essentials"
+includes = []
+required_packages = ["git", "curl", "ripgrep"]
+optional_packages = []
+
+[platforms.linux]
+required_packages = ["openssh-server"]
+optional_packages = []
+delete_packages = ["kmahjongg", "kpat", "ksudoku", "katawa-shoujo"]

@@ -1,0 +1,6 @@
+[profile]
+name = "server"
+description = "Base server runtime and authentication capabilities"
+includes = ["base", "utilities", "auth"]
+required_packages = ["docker"]
+optional_packages = []

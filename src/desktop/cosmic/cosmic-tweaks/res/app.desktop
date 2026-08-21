@@ -1,0 +1,34 @@
+[Desktop Entry]
+Name=Tweaks for COSMIC
+Name[cs]=Vyladění pro COSMIC
+Name[fr]=Tweaks pour COSMIC
+Name[pl]=Podkręcenie dla COSMIC
+Name[pt]=Ajustes do COSMIC
+Name[uk]=Докрутки COSMIC
+Name[zh_CN]=COSMIC 调整工具
+GenericName=COSMIC Tweaks
+GenericName[cs]=Vyladění COSMIC
+GenericName[uk]=Докрутки COSMIC
+GenericName[zh_CN]=COSMIC 微调
+Comment=Tweaks your COSMIC desktop environment
+Comment[cs]=Vyladí vaše prostředí COSMIC
+Comment[fr]=Améliorez votre environnement de bureau COSMIC
+Comment[pl]=Narzędzie do dopasowania pod siebie środowiska COSMIC™.
+Comment[pt]=Ajustes adicionais para seu ambiente de trabalho COSMIC
+Comment[uk]=Розширені налаштування стільниці COSMIC
+Comment[zh_CN]=微调 COSMIC 桌面环境
+Keywords=Folder;Manager;Layout;Configuration;Modification;
+Keywords[cs]=Rozložení;Konfigurace;Modifikace;
+Keywords[fr]=ajustement
+Keywords[pl]=layout;tweaks;podkęcenie;modyfikacja;kompozycja
+Keywords[pt]=layout;tweaks;melhorias;configurações
+Keywords[uk]=макет;розміщення;налаштування;tweaks;ецуфлі;докрутки;ljrhenrb;
+Keywords[zh_CN]=文件夹;管理;布局;配置;修改;
+
+Exec=cosmic-ext-tweaks
+Terminal=false
+Type=Application
+StartupNotify=true
+Icon=dev.edfloreshz.CosmicTweaks
+Categories=Utility;Settings;DesktopSettings
+OnlyShowIn=COSMIC

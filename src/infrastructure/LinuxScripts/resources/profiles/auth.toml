@@ -1,0 +1,6 @@
+[profile]
+name = "auth"
+description = "Password manager applications and command-line tools"
+includes = []
+required_packages = ["bitwarden", "bw"]
+optional_packages = []

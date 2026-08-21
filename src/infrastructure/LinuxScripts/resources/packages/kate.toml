@@ -1,0 +1,7 @@
+[package]
+name = "kate"
+description = "KDE text editor"
+depends_on = []
+
+[targets.linux.apt]
+id = "kate"

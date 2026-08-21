@@ -1,0 +1,19 @@
+[package]
+name = "snapd"
+description = "Snap package runtime"
+depends_on = []
+
+[targets.linux.apt]
+id = "snapd"
+
+[targets.linux.dnf]
+id = "snapd"
+
+[targets.linux.pacman]
+id = "snapd"
+
+[targets.linux.zypper]
+id = "snapd"
+
+[targets.mattos.apt]
+id = "snapd"

@@ -1,0 +1,7 @@
+[package]
+name = "papirus-icon-theme"
+description = "Papirus icon theme"
+depends_on = []
+
+[targets.linux.apt]
+id = "papirus-icon-theme"

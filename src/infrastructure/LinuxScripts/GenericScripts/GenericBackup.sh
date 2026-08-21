@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
+# Create a timestamped ZIP archive of one configured directory. Set the two
+# paths below before use; the archive is created in /tmp before being moved.
 set -euo pipefail
 
+# Keep this template unconfigured so it cannot back up an unintended path.
 DIR_TO_BACKUP=""
 DIR_TO_BACKUP_TO=""
 EXCLUDES=("node_modules" "*.tmp" ".git")

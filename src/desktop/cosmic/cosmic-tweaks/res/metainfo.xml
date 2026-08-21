@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>dev.edfloreshz.CosmicTweaks</id>
+  <name>Tweaks</name>
+  <name xml:lang="cs">Vyladění</name>
+  <name xml:lang="zh-CN">微调</name>
+  <name xml:lang="uk">Докрутки</name>
+  <summary>Beyond the limits of your desktop</summary>
+  <summary xml:lang="cs">Za hranicemi limitu vaší plochy</summary>
+  <summary xml:lang="zh-CN">超越桌面的限制</summary>
+  <summary xml:lang="uk">Космічні тонкощі розширеного налаштування стільниці</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+  <project_group>COSMIC</project_group>
+  <developer id="dev.edfloreshz">
+    <name>edfloreshz</name>
+  </developer>
+  <update_contact>edfloreshz@gmail.com</update_contact>
+  <url type="homepage">https://github.com/cosmic-utils/tweaks</url>
+  <url type="bugtracker">https://github.com/cosmic-utils/tweaks/issues</url>
+  <url type="vcs-browser">https://github.com/cosmic-utils/tweaks</url>
+  <url type="donation">https://ko-fi.com/edfloreshz</url>
+  <url type="contact">https://edfloreshz.dev</url>
+  <url type="contribute">https://github.com/cosmic-utils/tweaks</url>
+  <url type="translate">https://github.com/cosmic-utils/tweaks/tree/main/i18n</url>
+  <content_rating type="oars-1.1" />
+  <description>
+    <p>Personalize your COSMIC desktop beyond infinity</p>
+    <p xml:lang="cs">Přizpůsobte si své prostředí COSMIC až za hranice nekonečna</p>
+    <p xml:lang="uk">Персоналізуйте свою стільницю COSMIC без обмежень</p>
+    <ul>
+      <li>Save, import and download color schemes</li>
+      <li xml:lang="cs">Ukládejte, importujte a stahujte barevná schémata</li>
+      <li xml:lang="uk">Зберігайте, імпортуйте та завантажуйте кольорові схеми</li>
+      <li xml:lang="zh-CN">保存、导入和下载颜色方案</li>
+      <li>Customize the panel and dock</li>
+      <li xml:lang="cs">Přizpůsobte si panel a dok</li>
+      <li xml:lang="uk">Налаштовуйте панель і область завдань</li>
+      <li xml:lang="zh-CN">自定义面板和程序坞</li>
+      <li>Replicate other desktop's layouts</li>
+      <li xml:lang="cs">Kopírujte rozložení jiných ploch</li>
+      <li xml:lang="uk">Відтворюйте макети інших стільниць</li>
+      <li xml:lang="zh-CN">复制其他桌面的布局</li>
+      <li>Fearless tweaking with snapshots</li>
+      <li xml:lang="cs">Bezpečné úpravy díky snímkům</li>
+      <li xml:lang="uk">Безпечні зміни за допомогою знятків</li>
+      <li xml:lang="zh-CN">使用快照进行无风险微调</li>
+    </ul>
+  </description>
+  <branding>
+    <color type="primary" scheme_preference="light">#8affe1</color>
+    <color type="primary" scheme_preference="dark">#007d5c</color>
+  </branding>
+  <launchable type="desktop-id">dev.edfloreshz.CosmicTweaks.desktop</launchable>
+  <icon type="remote" height="256" width="256">https://raw.githubusercontent.com/cosmic-utils/tweaks/master/res/icons/hicolor/scalable/apps/icon.svg</icon>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/cosmic-utils/tweaks/main/res/screenshots/color-schemes-light.png</image>
+      <caption>Color schemes page with light mode</caption>
+      <caption xml:lang="cs">Stránka barevných schémat ve světlém režimu</caption>
+      <caption xml:lang="uk">Сторінка кольорових схем у світлому режимі</caption>
+      <caption xml:lang="zh-CN">亮模式颜色方案页面</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/cosmic-utils/tweaks/main/res/screenshots/color-schemes-dark.png</image>
+      <caption>Color schemes page with dark mode</caption>
+      <caption xml:lang="cs">Stránka barevných schémat v tmavém režimu</caption>
+      <caption xml:lang="uk">Сторінка кольорових схем у темному режимі</caption>
+      <caption xml:lang="zh-CN">暗模式颜色方案页面</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/cosmic-utils/tweaks/main/res/screenshots/dock-light.png</image>
+      <caption>Dock page with light mode</caption>
+      <caption xml:lang="cs">Stránka doku ve světlém režimu</caption>
+      <caption xml:lang="uk">Сторінка області завдань у світлому режимі</caption>
+      <caption xml:lang="zh-CN">亮模式程序坞页面</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/cosmic-utils/tweaks/main/res/screenshots/dock-dark.png</image>
+      <caption>Dock page with dark mode</caption>
+      <caption xml:lang="cs">Stránka doku v tmavém režimu</caption>
+      <caption xml:lang="uk">Сторінка області завдань у темному режимі</caption>
+      <caption xml:lang="zh-CN">暗模式程序坞页面</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/cosmic-utils/tweaks/main/res/screenshots/panel-light.png</image>
+      <caption>Panel page with light mode</caption>
+      <caption xml:lang="cs">Stránka panelu ve světlém režimu</caption>
+      <caption xml:lang="uk">Сторінка панелі у світлому режимі</caption>
+      <caption xml:lang="zh-CN">亮模式面板页面</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/cosmic-utils/tweaks/main/res/screenshots/panel-dark.png</image>
+      <caption>Panel page with dark mode</caption>
+      <caption xml:lang="cs">Stránka panelu v tmavém režimu</caption>
+      <caption xml:lang="uk">Сторінка панелі у темному режимі</caption>
+      <caption xml:lang="zh-CN">暗模式面板页面</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/cosmic-utils/tweaks/main/res/screenshots/layouts-light.png</image>
+      <caption>Layouts page with light mode</caption>
+      <caption xml:lang="cs">Stránka rozložení ve světlém režimu</caption>
+      <caption xml:lang="uk">Сторінка макетів в світлому режимі</caption>
+      <caption xml:lang="zh-CN">亮模式布局页面</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/cosmic-utils/tweaks/main/res/screenshots/layouts-dark.png</image>
+      <caption>Layouts page with dark mode</caption>
+      <caption xml:lang="cs">Stránka rozložení v tmavém režimu</caption>
+      <caption xml:lang="uk">Сторінка макетів в темному режимі</caption>
+      <caption xml:lang="zh-CN">暗模式布局页面</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/cosmic-utils/tweaks/main/res/screenshots/snapshots-light.png</image>
+      <caption>Snapshots page with light mode</caption>
+      <caption xml:lang="cs">Stránka snímků ve světlém režimu</caption>
+      <caption xml:lang="uk">Сторінка знятків в світлому режимі</caption>
+      <caption xml:lang="zh-CN">亮模式快照页面</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/cosmic-utils/tweaks/main/res/screenshots/snapshots-dark.png</image>
+      <caption>Snapshots page with dark mode</caption>
+      <caption xml:lang="cs">Stránka snímků v tmavém režimu</caption>
+      <caption xml:lang="uk">Сторінка знятків в темному режимі</caption>
+      <caption xml:lang="zh-CN">暗模式快照页面</caption>
+    </screenshot>
+  </screenshots>
+  <requires>
+    <display_length compare="ge">360</display_length>
+  </requires>
+  <recommends>
+    <internet>always</internet>
+  </recommends>
+  <supports>
+    <control>keyboard</control>
+    <control>pointing</control>
+  </supports>
+  <categories>
+    <category>Utility</category>
+  </categories>
+  <provides>
+    <id>com.system76.CosmicApplication</id>
+  </provides>
+  <releases>
+    <release version="0.2.5" date="2026-07-16">
+        <description>
+            <p>Flatpak fix 📦</p>
+            <ul>
+                <li>Fixed theme detection on Flatpak.</li>
+            </ul>
+        </description>
+    </release>
+    <release version="0.2.4" date="2026-07-13">
+        <description>
+            <p>Frosted Glass! 🧊</p>
+            <ul>
+                <li>Added support for Frosted Glass effects.</li>
+                <li>Revamped shortcuts page.</li>
+            </ul>
+        </description>
+    </release>
+    <release version="0.2.3" date="2026-05-06">
+        <description>
+            <p>Reset to defaults</p>
+            <ul>
+                <li>Added a footer button to reset a page to defaults.</li>
+            </ul>
+        </description>
+    </release>
+    <release version="0.2.2" date="2026-05-03">
+        <description>
+            <p>Internationalization improvements:</p>
+            <ul>
+                <li>Added Simplified Chinese translation.</li>
+                <li>Added Ukrainian translation.</li>
+                <li>Updated Czech translation and removed duplicated keys.</li>
+                <li>Updated Swedish translation.</li>
+                <li>Improved the .desktop file and its translations.</li>
+            </ul>
+        </description>
+    </release>
+    <release version="0.2.1" date="2025-10-26">
+      <description>
+        <p>Improved theme discovery! 🎨</p>
+        <ul>
+          <li>Discovering themes has never been easier, we added sort and a search bar.</li>
+          <li>Easily switch between light and dark modes with a new toggle</li>
+        </ul>
+      </description>
+    </release>
+    <release version="0.2.0" date="2025-09-24">
+      <description>
+        <p>New tweaks available! 🛠️</p>
+        <ul>
+          <li>Installed and available color schemes are now placed in separate tabs, making discovery easier</li>
+          <li>Adjust the margin of the panel and dock</li>
+          <li>Adjust the panel and dock animation speeds</li>
+          <li>Set custom panel sizes</li>
+          <li>Added translations for Dutch, Brazilian Portuguese, and Romanian</li>
+        </ul>
+      </description>
+    </release>
+    <release version="0.1.3" date="2024-11-06">
+      <description>
+        <p>Snapshots and toolkit improvements 🚀</p>
+        <p>Tweak without worries with snapshots, a simple way to save the state of your desktop and restore it later on, everytime the app opens a snapshot is created in case you need to go back to a previous state.</p>
+        <ul>
+          <li>Create snapshots of your own</li>
+          <li>Includes a revamped about page</li>
+          <li>Borders have been added to the window</li>
+        </ul>
+      </description>
+    </release>
+    <release version="0.1.2" date="2024-11-04">
+      <description>
+        <p>Layouts are here!</p>
+        <ul>
+          <li>Apply pre-installed layouts to your desktop</li>
+          <li>Save your own desktop layouts</li>
+          <li>Available themes are now displayed in a grid</li>
+        </ul>
+      </description>
+    </release>
+    <release version="0.1.1" date="2024-10-03">
+      <description>
+        <p>Improved user experience</p>
+        <ul>
+          <li>Available themes are now shown on the side</li>
+          <li>Added settings and about page</li>
+        </ul>
+      </description>
+    </release>
+    <release version="0.1.0" date="2024-09-30">
+      <description>
+        <p>Initial release! &#x1f389;</p>
+        <ul>
+          <li>Save current color scheme</li>
+          <li>Import existing color schemes</li>
+          <li>Download color schemes from cosmic-themes.org</li>
+          <li>Customize the panel and dock</li>
+        </ul>
+      </description>
+    </release>
+  </releases>
+</component>

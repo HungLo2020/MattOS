@@ -89,6 +89,7 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "upstream/patches/cosmic-files",
         ],
         BuildStage::CosmicTerm => &["src/desktop/cosmic/cosmic-term"],
+        BuildStage::CosmicTweaks => &["src/desktop/cosmic/cosmic-tweaks"],
         BuildStage::CosmicUtilities => &[
             "src/desktop/cosmic/cosmic-randr",
             "src/desktop/cosmic/cosmic-screenshot",
@@ -240,6 +241,7 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
         | BuildStage::CosmicWorkspaces
         | BuildStage::CosmicFiles
         | BuildStage::CosmicTerm
+        | BuildStage::CosmicTweaks
         | BuildStage::CosmicUtilities
         | BuildStage::CosmicPortal
         | BuildStage::Greetd => &["cargo", "rustc", "gcc", "ld", "pkg-config"],
@@ -391,6 +393,7 @@ mod tests {
             BuildStage::CosmicApplets,
             BuildStage::CosmicLauncher,
             BuildStage::CosmicSettings,
+            BuildStage::CosmicTweaks,
         ] {
             assert!(
                 !source_inputs(stage)
