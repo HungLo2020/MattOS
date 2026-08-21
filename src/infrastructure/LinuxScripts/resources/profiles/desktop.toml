@@ -1,0 +1,10 @@
+[profile]
+name = "desktop"
+description = "General desktop applications and authentication tools"
+includes = ["base", "utilities", "gui-utilities", "auth"]
+required_packages = ["discord"]
+optional_packages = []
+
+[platforms.linux]
+required_packages = ["variety", "papirus-icon-theme"]
+optional_packages = []

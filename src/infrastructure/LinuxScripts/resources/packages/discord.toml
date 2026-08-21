@@ -1,0 +1,21 @@
+[package]
+name = "discord"
+description = "Discord desktop client"
+depends_on = []
+
+[targets.linux.flatpak]
+id = "com.discordapp.Discord"
+remote = "flathub"
+depends_on = ["flatpak"]
+
+[targets.mattos.flatpak]
+id = "com.discordapp.Discord"
+remote = "flathub"
+depends_on = ["flatpak"]
+
+[targets.windows.winget]
+id = "Discord.Discord"
+
+[targets.macos.homebrew]
+id = "discord"
+kind = "cask"

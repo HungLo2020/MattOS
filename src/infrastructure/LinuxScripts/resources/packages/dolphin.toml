@@ -1,0 +1,7 @@
+[package]
+name = "dolphin"
+description = "KDE file manager"
+depends_on = []
+
+[targets.linux.apt]
+id = "dolphin"

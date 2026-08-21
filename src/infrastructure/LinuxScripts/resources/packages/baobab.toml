@@ -1,0 +1,7 @@
+[package]
+name = "baobab"
+description = "GNOME disk usage analyzer"
+depends_on = []
+
+[targets.linux.apt]
+id = "baobab"

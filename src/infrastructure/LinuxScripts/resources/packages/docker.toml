@@ -1,0 +1,23 @@
+[package]
+name = "docker"
+description = "Container runtime"
+depends_on = []
+
+[targets.linux.apt]
+id = "docker.io"
+
+[targets.mattos.apt]
+id = "docker.io"
+
+[targets.linux.dnf]
+id = "moby-engine"
+
+[targets.linux.pacman]
+id = "docker"
+
+[targets.windows.winget]
+id = "Docker.DockerDesktop"
+
+[targets.macos.homebrew]
+id = "docker"
+kind = "cask"

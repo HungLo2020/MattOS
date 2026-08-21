@@ -1,0 +1,23 @@
+[package]
+name = "libreoffice"
+description = "LibreOffice productivity suite"
+depends_on = []
+
+[targets.linux.apt]
+id = "libreoffice"
+
+[targets.linux.dnf]
+id = "libreoffice"
+
+[targets.linux.pacman]
+id = "libreoffice-fresh"
+
+[targets.linux.zypper]
+id = "libreoffice"
+
+[targets.windows.winget]
+id = "TheDocumentFoundation.LibreOffice"
+
+[targets.macos.homebrew]
+id = "libreoffice"
+kind = "cask"

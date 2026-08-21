@@ -11,7 +11,7 @@ Git repository:
 ```text
 repository: https://github.com/HungLo2020/LinuxScripts.git
 branch: master
-commit: 91fefdbcc878e3e66c19cb9858e1acaae5aebba2
+commit: bccc8041ce8e37ab993a418504ddde95cdfccc8c
 destination: src/infrastructure/LinuxScripts
 sync method: copy
 ```
@@ -21,7 +21,7 @@ sync method: copy
 
 ```text
 src/infrastructure/LinuxScripts/GenericScripts/ManageMattOSRepository.py
-SHA-256: 90d516f75d9dd38b2cfa1693cdc2833d71ef003ca9248e4a0d1ab0f8e58ec477
+SHA-256: ff56c6cb56951543dfb8eb0298f424d34517a1d87175a44060ef6f97d6a51cd4
 ```
 
 The imported component is externally maintained and read-only in MattOS.

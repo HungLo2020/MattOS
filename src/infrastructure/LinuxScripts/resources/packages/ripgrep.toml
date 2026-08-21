@@ -1,0 +1,28 @@
+[package]
+name = "ripgrep"
+description = "Fast recursive text search"
+depends_on = []
+
+[targets.linux.apt]
+id = "ripgrep"
+
+[targets.mattos.apt]
+id = "ripgrep"
+
+[targets.linux.dnf]
+id = "ripgrep"
+
+[targets.linux.pacman]
+id = "ripgrep"
+
+[targets.linux.zypper]
+id = "ripgrep"
+
+[targets.linux.apk]
+id = "ripgrep"
+
+[targets.windows.winget]
+id = "BurntSushi.ripgrep.MSVC"
+
+[targets.macos.homebrew]
+id = "ripgrep"

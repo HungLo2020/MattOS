@@ -1,0 +1,16 @@
+[package]
+name = "pipx"
+description = "Isolated Python application installer"
+depends_on = []
+
+[targets.linux.apt]
+id = "pipx"
+
+[targets.linux.dnf]
+id = "pipx"
+
+[targets.linux.pacman]
+id = "python-pipx"
+
+[targets.macos.homebrew]
+id = "pipx"

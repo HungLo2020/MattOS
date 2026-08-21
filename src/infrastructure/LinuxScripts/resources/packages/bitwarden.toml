@@ -1,0 +1,19 @@
+[package]
+name = "bitwarden"
+description = "Bitwarden password manager"
+depends_on = []
+
+[targets.linux.snap]
+id = "bitwarden"
+depends_on = ["snapd"]
+
+[targets.mattos.snap]
+id = "bitwarden"
+depends_on = ["snapd"]
+
+[targets.windows.winget]
+id = "Bitwarden.Bitwarden"
+
+[targets.macos.homebrew]
+id = "bitwarden"
+kind = "cask"

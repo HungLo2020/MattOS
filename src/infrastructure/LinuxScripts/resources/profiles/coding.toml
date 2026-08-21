@@ -1,0 +1,11 @@
+[profile]
+name = "coding"
+description = "Development command-line tools"
+includes = ["desktop", "auth"]
+required_packages = ["github-cli", "codex-cli"]
+optional_packages = []
+script_dependencies = ["hello_world.py"]
+
+[platforms.linux]
+required_packages = ["vscode"]
+optional_packages = []

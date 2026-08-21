@@ -1,0 +1,21 @@
+[package]
+name = "codex-cli"
+description = "OpenAI Codex command-line interface"
+depends_on = []
+
+[script_dependencies]
+before = ["hello_world.py"]
+after = []
+
+[targets.linux.shell_installer]
+id = "https://chatgpt.com/codex/install.sh"
+
+[targets.mattos.shell_installer]
+id = "https://chatgpt.com/codex/install.sh"
+
+[targets.windows.npm]
+id = "@openai/codex"
+depends_on = ["npm"]
+
+[targets.macos.shell_installer]
+id = "https://chatgpt.com/codex/install.sh"

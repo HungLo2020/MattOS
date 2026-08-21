@@ -2217,6 +2217,13 @@ fn update_component(
     prior_state: &SyncState,
 ) -> Result<()> {
     let tmp_upstream = prepare_tmp_clone(repo_root, comp)?;
+    // The three-way sync below needs the prior imported commit as well as the
+    // new branch head.  A depth-one clone cannot fetch either commit into the
+    // temporary merge repository when they are shallow roots, which can make
+    // Git report a false "Already up to date" result.  Hydrate the clone
+    // before constructing the merge so the state record and materialized tree
+    // advance together.
+    run_cmd(&tmp_upstream, "git", &["fetch", "--unshallow", "origin"])?;
     let new_commit = run_cmd_capture(&tmp_upstream, "git", &["rev-parse", "HEAD"])?;
     let (source_selection, source_selection_policy, source_selection_policy_sha256) =
         load_source_selection_policy(repo_root, comp)?;

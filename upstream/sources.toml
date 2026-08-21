@@ -146,7 +146,7 @@ sync = "copy"
 name = "linuxscripts"
 repo = "https://github.com/HungLo2020/LinuxScripts.git"
 branch = "master"
-revision = "91fefdbcc878e3e66c19cb9858e1acaae5aebba2"
+revision = "bccc8041ce8e37ab993a418504ddde95cdfccc8c"
 path = "src/infrastructure/LinuxScripts"
 sync = "copy"
 

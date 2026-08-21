@@ -1,7 +1,6 @@
 schema_version = 1
 component = "linuxscripts"
 authoritative_path = "src/infrastructure/LinuxScripts/GenericScripts/ManageMattOSRepository.py"
-sha256 = "90d516f75d9dd38b2cfa1693cdc2833d71ef003ca9248e4a0d1ab0f8e58ec477"
+sha256 = "ff56c6cb56951543dfb8eb0298f424d34517a1d87175a44060ef6f97d6a51cd4"
 policy = "read-only; changes must be made in the upstream LinuxScripts repository and imported by sync"
 forbidden_nested_entry = ".git"
-

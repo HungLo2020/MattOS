@@ -1,0 +1,7 @@
+[package]
+name = "konsole"
+description = "KDE terminal emulator"
+depends_on = []
+
+[targets.linux.apt]
+id = "konsole"

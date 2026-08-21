@@ -1,0 +1,22 @@
+[package]
+name = "github-cli"
+description = "GitHub command-line client"
+depends_on = ["git"]
+
+[targets.linux.apt]
+id = "gh"
+
+[targets.mattos.apt]
+id = "gh"
+
+[targets.linux.dnf]
+id = "gh"
+
+[targets.linux.pacman]
+id = "github-cli"
+
+[targets.windows.winget]
+id = "GitHub.cli"
+
+[targets.macos.homebrew]
+id = "gh"

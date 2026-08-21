@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# Archive this repository to the configured personal OneDrive destination.
+# Change DEST_DIR before using this script on another machine or account.
 set -euo pipefail
 
 DEST_DIR="/mnt/storage/OneDrive/Apps/Programming/LinuxScripts/"

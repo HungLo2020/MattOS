@@ -1,0 +1,22 @@
+[package]
+name = "openssh-server"
+description = "OpenSSH server for remote administration"
+depends_on = []
+
+[script_dependencies]
+after = ["configure_openssh_server.py"]
+
+[targets.linux.apt]
+id = "openssh-server"
+
+[targets.linux.dnf]
+id = "openssh-server"
+
+[targets.linux.pacman]
+id = "openssh"
+
+[targets.linux.zypper]
+id = "openssh"
+
+[targets.linux.apk]
+id = "openssh"

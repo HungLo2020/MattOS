@@ -1,0 +1,16 @@
+[package]
+name = "npm"
+description = "Node.js package manager"
+depends_on = []
+
+[targets.linux.nodejs]
+id = "npm"
+
+[targets.mattos.apt]
+id = "npm"
+
+[targets.windows.winget]
+id = "OpenJS.NodeJS.LTS"
+
+[targets.macos.homebrew]
+id = "node"
