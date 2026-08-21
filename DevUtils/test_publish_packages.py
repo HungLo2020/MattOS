@@ -11,16 +11,20 @@ from common import RepoError
 
 
 class PublishPackagesTests(unittest.TestCase):
-    def test_discovery_is_recursive_and_sorted_without_package_names(self) -> None:
+    def test_discovery_uses_inventory_and_ignores_stale_debs(self) -> None:
         with TemporaryDirectory() as temporary:
             root = Path(temporary)
             package_root = root / "out/packages/amd64"
-            (package_root / "nested").mkdir(parents=True)
+            package_root.mkdir(parents=True)
             (package_root / "z.deb").touch()
-            (package_root / "nested/a.deb").touch()
+            (package_root / "stale.deb").touch()
+            (root / "out/packages/inventory.toml").write_text(
+                '[[package]]\nartifact_path = "out/packages/amd64/z.deb"\n',
+                encoding="utf-8",
+            )
             self.assertEqual(
                 [path.relative_to(root).as_posix() for path in PublishPackages.discover_packages(root)],
-                ["out/packages/amd64/nested/a.deb", "out/packages/amd64/z.deb"],
+                ["out/packages/amd64/z.deb"],
             )
 
     def test_discovery_rejects_symlinked_packages(self) -> None:
@@ -31,6 +35,10 @@ class PublishPackagesTests(unittest.TestCase):
             outside = root / "outside.deb"
             outside.touch()
             (package_root / "escape.deb").symlink_to(outside)
+            (root / "out/packages/inventory.toml").write_text(
+                '[[package]]\nartifact_path = "out/packages/amd64/escape.deb"\n',
+                encoding="utf-8",
+            )
             with self.assertRaises(RepoError):
                 PublishPackages.discover_packages(root)
 

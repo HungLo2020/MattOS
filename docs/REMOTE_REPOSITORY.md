@@ -39,10 +39,11 @@ python3 DevUtils/PublishPackages.py
 ```
 
 The script reuses `run_qemu.py`'s doctor and `build all` path, recursively
-discovers every `.deb` below `out/packages/amd64`, and passes the complete set
-to the vendored `ManageMattOSRepository.py upload` command. Package names are
-not maintained in the script. `--no-build` uses existing artifacts and
-`--dry-run` validates and prints the manager invocation without uploading.
+reads the authoritative artifact list from `out/packages/inventory.toml`, and
+passes exactly that set to the vendored `ManageMattOSRepository.py upload`
+command. Stale `.deb` files left in `out/packages/amd64` are ignored. Package
+names are not maintained in the script. `--no-build` uses existing artifacts
+and `--dry-run` validates and prints the manager invocation without uploading.
 
 ## Manual validation handoff
 
