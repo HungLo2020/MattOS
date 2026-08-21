@@ -155,6 +155,12 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "upstream/patches/dbus-broker",
         ],
         BuildStage::Dpkg => &["src/system/packages/dpkg"],
+        BuildStage::LibgpgError => &["src/system/security/libgpg-error"],
+        BuildStage::Libgcrypt => &["src/system/security/libgcrypt"],
+        BuildStage::Libassuan => &["src/system/security/libassuan"],
+        BuildStage::Libksba => &["src/system/security/libksba"],
+        BuildStage::Npth => &["src/system/security/npth"],
+        BuildStage::Gpgv => &["src/system/security/gnupg"],
         BuildStage::Apt => &["src/system/packages/apt", "upstream/patches/apt"],
         BuildStage::Init => &["src/userland/init"],
         BuildStage::Installer => &[
@@ -239,6 +245,12 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
             &["gcc", "g++", "ld", "cmake", "ninja", "pkg-config"]
         }
         BuildStage::NvidiaDriver => &["gcc", "ld", "make", "depmod", "zstd", "curl"],
+        BuildStage::LibgpgError
+        | BuildStage::Libgcrypt
+        | BuildStage::Libassuan
+        | BuildStage::Libksba
+        | BuildStage::Npth
+        | BuildStage::Gpgv => &["autoreconf", "gcc", "ld", "make", "pkg-config"],
         BuildStage::CosmicComp
         | BuildStage::CosmicSession
         | BuildStage::CosmicGreeter

@@ -247,6 +247,12 @@ const PACKAGE_NAMES: &[&str] = &[
     "mount",
     "util-linux",
     "dpkg",
+    "libgpg-error0",
+    "libgcrypt20",
+    "libassuan9",
+    "libksba8",
+    "libnpth0",
+    "gpgv",
     "libapt-pkg7.0",
     "apt",
     "mattos-libtinfow6",
@@ -1032,6 +1038,80 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "required",
         },
         PackageSpec {
+            name: "libgpg-error0",
+            description: "GnuPG error and runtime support library built for MattOS",
+            source_component: "libgpg-error",
+            depends: &[],
+            provides: &["libgpg-error0"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libgcrypt20",
+            description: "GnuPG cryptographic runtime library built for MattOS",
+            source_component: "libgcrypt",
+            depends: &["libgpg-error0"],
+            provides: &["libgcrypt20"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libassuan9",
+            description: "GnuPG IPC runtime library built for MattOS",
+            source_component: "libassuan",
+            depends: &["libgpg-error0"],
+            provides: &["libassuan9"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libksba8",
+            description: "GnuPG X.509 and CMS runtime library built for MattOS",
+            source_component: "libksba",
+            depends: &["libgpg-error0"],
+            provides: &["libksba8"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libnpth0",
+            description: "GnuPG non-preemptive threading runtime library built for MattOS",
+            source_component: "npth",
+            depends: &[],
+            provides: &["libnpth0"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "gpgv",
+            description: "Source-built OpenPGP signature verifier used by APT",
+            source_component: "gnupg",
+            depends: &[
+                "libc6",
+                "zlib1g",
+                "libgpg-error0",
+                "libgcrypt20",
+                "libassuan9",
+                "libksba8",
+                "libnpth0",
+            ],
+            provides: &["gpgv"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "required",
+        },
+        PackageSpec {
             name: "libapt-pkg7.0",
             description: "APT public runtime library built for MattOS",
             source_component: "apt",
@@ -1047,6 +1127,8 @@ fn package_specs() -> Vec<PackageSpec> {
                 "libxxhash0",
                 "libzstd1",
                 "mattos-libcrypto3",
+                "libssl3t64",
+                "gpgv",
             ],
             provides: &["libapt-pkg7.0"],
             conflicts: &[],
@@ -1073,6 +1155,8 @@ fn package_specs() -> Vec<PackageSpec> {
                 "libxxhash0",
                 "libzstd1",
                 "mattos-libcrypto3",
+                "libssl3t64",
+                "gpgv",
             ],
             provides: &["apt"],
             conflicts: &["apt"],
@@ -2728,16 +2812,21 @@ fn validate_apt_compatibility_policy(repo_root: &Path, protected: &[String]) -> 
             bail!("APT preferences lack required policy stanza: {required}")
         }
     }
-    let protected_stanza = preferences
+    let protected_stanzas = preferences
         .split("Explanation:")
-        .find(|stanza| stanza.contains("must never replace"))
-        .ok_or_else(|| anyhow!("APT preferences lack protected-package stanza"))?;
+        .filter(|stanza| stanza.contains("must never replace"))
+        .collect::<Vec<_>>();
+    if protected_stanzas.is_empty() {
+        bail!("APT preferences lack protected-package stanza");
+    }
     for name in protected {
-        if !protected_stanza
-            .lines()
-            .find_map(|line| line.strip_prefix("Package: "))
-            .is_some_and(|line| line.split_whitespace().any(|candidate| candidate == name))
-        {
+        let mut pinned = protected_stanzas.iter().flat_map(|stanza| {
+            stanza
+                .lines()
+                .filter_map(|line| line.strip_prefix("Package: "))
+                .flat_map(str::split_whitespace)
+        });
+        if !pinned.any(|candidate| candidate == name) {
             bail!("APT protected-package pin is missing {name}")
         }
     }
@@ -2759,7 +2848,7 @@ fn validate_apt_compatibility_policy(repo_root: &Path, protected: &[String]) -> 
     let debian = fs::read_to_string(config.join("debian-trixie.sources"))?;
     if !debian.contains("URIs: https://deb.debian.org/debian")
         || !debian.contains("URIs: https://security.debian.org/debian-security")
-        || !debian.contains("Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg")
+        || !debian.contains("Signed-By: /usr/share/keyrings/debian-archive-keyring.asc")
         || !debian.contains("Enabled: no")
         || debian.contains("Trusted: yes")
     {
@@ -3321,6 +3410,7 @@ fn package_recipe_revision(package: &str) -> u32 {
         // freedesktop hicolor fallback index.
         "cosmic-desktop" => 4,
         "cosmic-edit" | "mattos-cozy" => 1,
+        "libgpg-error0" | "libgcrypt20" | "libassuan9" | "libksba8" | "libnpth0" | "gpgv" => 2,
         _ => 1,
     }
 }
@@ -3481,6 +3571,12 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "binutils" => &["binutils"],
             "apt" => &["apt"],
             "dpkg" => &["dpkg"],
+            "libgpg-error" => &["libgpg-error"],
+            "libgcrypt" => &["libgcrypt"],
+            "libassuan" => &["libassuan"],
+            "libksba" => &["libksba"],
+            "npth" => &["npth"],
+            "gnupg" => &["gpgv"],
             "systemd" => &["systemd"],
             "dbus-broker" => &["dbus-broker"],
             "dbus" => &["dbus"],
@@ -3579,6 +3675,12 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "util-linux" => &["src/userland/util-linux"],
         "dpkg" => &["src/system/packages/dpkg"],
         "apt" => &["src/system/packages/apt"],
+        "libgpg-error" => &["src/system/security/libgpg-error"],
+        "libgcrypt" => &["src/system/security/libgcrypt"],
+        "libassuan" => &["src/system/security/libassuan"],
+        "libksba" => &["src/system/security/libksba"],
+        "npth" => &["src/system/security/npth"],
+        "gnupg" => &["src/system/security/gnupg"],
         "ncurses" => &["src/system/terminal/ncurses"],
         "kmod" => &["src/system/kmod"],
         "procps-ng" => &["src/userland/procps-ng"],
@@ -3802,6 +3904,53 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
             )?;
         }
         "dpkg" => stage_dpkg(repo_root, &staging)?,
+        "libgpg-error0" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "libgpg-error",
+            "libgpg-error.so.0",
+            "src/system/security/libgpg-error/COPYING.LIB",
+            "libgpg-error0",
+        )?,
+        "libgcrypt20" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "libgcrypt",
+            "libgcrypt.so.20",
+            "src/system/security/libgcrypt/COPYING.LIB",
+            "libgcrypt20",
+        )?,
+        "libassuan9" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "libassuan",
+            "libassuan.so.9",
+            "src/system/security/libassuan/COPYING.LIB",
+            "libassuan9",
+        )?,
+        "libksba8" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "libksba",
+            "libksba.so.8",
+            "src/system/security/libksba/COPYING.LGPLv3",
+            "libksba8",
+        )?,
+        "libnpth0" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "npth",
+            "libnpth.so.0",
+            "src/system/security/npth/COPYING.LIB",
+            "libnpth0",
+        )?,
+        "gpgv" => {
+            stage_runtime_paths(repo_root, &staging, "gpgv", &["usr/bin/gpgv"])?;
+            copy_preserving(
+                &repo_root.join("src/system/security/gnupg/COPYING"),
+                &staging.join("usr/share/doc/gpgv/copyright"),
+            )?;
+        }
         "libapt-pkg7.0" => stage_libapt_pkg(repo_root, &staging)?,
         "apt" => stage_apt(repo_root, &staging)?,
         "mattos-libtinfow6" => stage_library_family(
@@ -5474,11 +5623,17 @@ pub(crate) fn validate_live_apt_policy(rootfs: &Path) -> Result<()> {
     let hosted = fs::read_to_string(rootfs.join("etc/apt/sources.list.d/mattos-hosted.sources"))?;
     let debian = fs::read_to_string(rootfs.join("etc/apt/sources.list.d/debian-trixie.sources"))?;
     let preferences = fs::read_to_string(rootfs.join("etc/apt/preferences.d/00mattos-priority"))?;
+    let keyrings = rootfs.join("usr/share/keyrings");
     if !local.contains("URIs: file:/usr/share/mattos/repository")
         || local.contains("Enabled: no")
         || !local.contains("Trusted: yes")
         || !hosted.contains("Enabled: no")
         || !debian.contains("Enabled: no")
+        || !hosted.contains("Signed-By: /usr/share/keyrings/mattos-archive-keyring.asc")
+        || !debian.contains("Signed-By: /usr/share/keyrings/debian-archive-keyring.asc")
+        || !keyrings.join("mattos-archive-keyring.asc").is_file()
+        || !keyrings.join("debian-archive-keyring.asc").is_file()
+        || !rootfs.join("usr/bin/gpgv").is_file()
         || !preferences.contains("Pin-Priority: 1001")
     {
         bail!("live APT policy is not embedded-repository-only")
@@ -7107,6 +7262,12 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "dpkg" => fs::read_to_string(repo_root.join("out/build/dpkg/source/.dist-version"))?
             .trim()
             .to_string(),
+        "libgpg-error0" => component_snapshot_version(repo_root, "libgpg-error")?,
+        "libgcrypt20" => component_snapshot_version(repo_root, "libgcrypt")?,
+        "libassuan9" => component_snapshot_version(repo_root, "libassuan")?,
+        "libksba8" => component_snapshot_version(repo_root, "libksba")?,
+        "libnpth0" => component_snapshot_version(repo_root, "npth")?,
+        "gpgv" => component_snapshot_version(repo_root, "gnupg")?,
         "libapt-pkg7.0" | "apt" => apt_version(repo_root)?,
         "mattos-libtinfow6" | "libncursesw6" | "ncurses-base" | "ncurses-bin" => {
             component_snapshot_version(repo_root, "ncurses")?
@@ -7517,6 +7678,7 @@ fn write_provenance(
         | "iputils" | "expat" | "libcap" | "acl" | "zlib" | "bzip2" | "lz4" | "xz"
         | "xxhash" | "zstd" | "openssl" | "elfutils" | "pcre2" | "selinux"
         | "libxcrypt" | "libmd" | "libbsd" | "tar" | "gzip" | "patch" | "file"
+        | "libgpg-error" | "libgcrypt" | "libassuan" | "libksba" | "npth" | "gnupg"
         | "less" | "git" | "openssh" | "libffi" | "wayland" | "xkbcommon"
         | "libglvnd" | "xkeyboard-config" | "cpython" | "llvm" | "rust") => {
             let state = read_sync_state(repo_root, component)?
@@ -7688,6 +7850,8 @@ fn runtime_libraries_for_spec(repo_root: &Path, spec: &PackageSpec) -> Result<Ve
                     install.join("usr/lib/apt/apt-helper"),
                     install.join("usr/lib/apt/methods/copy"),
                     install.join("usr/lib/apt/methods/file"),
+                    install.join("usr/lib/apt/methods/http"),
+                    install.join("usr/lib/apt/methods/https"),
                     install.join("usr/lib/apt/methods/store"),
                     install.join("usr/lib/x86_64-linux-gnu/libapt-private.so.0.0.0"),
                 ],
@@ -7703,6 +7867,56 @@ fn runtime_libraries_for_spec(repo_root: &Path, spec: &PackageSpec) -> Result<Ve
                     openssl,
                 ],
             )
+        }
+        "libgpg-error0" | "libgcrypt20" | "libassuan9" | "libksba8" | "libnpth0" => {
+            let component = match spec.name {
+                "libgpg-error0" => "libgpg-error",
+                "libgcrypt20" => "libgcrypt",
+                "libassuan9" => "libassuan",
+                "libksba8" => "libksba",
+                "libnpth0" => "npth",
+                _ => unreachable!(),
+            };
+            let install = repo_root
+                .join("out/build")
+                .join(component)
+                .join("install");
+            let libdir = install.join("usr/lib/x86_64-linux-gnu");
+            let mut search = vec![libdir.clone()];
+            if component != "libgpg-error" && component != "npth" {
+                search.push(
+                    repo_root
+                        .join("out/build/libgpg-error/install/usr/lib/x86_64-linux-gnu"),
+                );
+            }
+            ldd_sonames_many(&[libdir.join(match spec.name {
+                "libgpg-error0" => "libgpg-error.so.0",
+                "libgcrypt20" => "libgcrypt.so.20",
+                "libassuan9" => "libassuan.so.9",
+                "libksba8" => "libksba.so.8",
+                "libnpth0" => "libnpth.so.0",
+                _ => unreachable!(),
+            })], &search)
+        }
+        "gpgv" => {
+            let install = repo_root.join("out/build/gpgv/install");
+            let mut search = vec![install.join("usr/lib/x86_64-linux-gnu")];
+            for component in [
+                "libgpg-error",
+                "libgcrypt",
+                "libassuan",
+                "libksba",
+                "npth",
+                "zlib",
+            ] {
+                search.push(
+                    repo_root
+                        .join("out/build")
+                        .join(component)
+                        .join("install/usr/lib/x86_64-linux-gnu"),
+                );
+            }
+            ldd_sonames_many(&[install.join("usr/bin/gpgv")], &search)
         }
         name if matches!(
             name,

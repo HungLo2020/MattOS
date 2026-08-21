@@ -1795,3 +1795,75 @@ current_mattos_version = "0.2.19-1mattos1"
 expected_debian_role = "MattOS terminal text editor"
 classification = "mattos-specific"
 known_gaps = ["Does not provide or claim the unrelated Debian package name cozy"]
+
+[[package]]
+debian_name = "libgpg-error0"
+mattos_name = "libgpg-error0"
+source_component = "libgpg-error"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libgpg-error.so.0"]
+provided_abi_or_commands = ["libgpg-error ABI"]
+protected = true
+current_mattos_version = "1.61-1mattos1"
+expected_debian_role = "GnuPG error runtime library"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
+debian_name = "libgcrypt20"
+mattos_name = "libgcrypt20"
+source_component = "libgcrypt"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libgcrypt.so.20"]
+provided_abi_or_commands = ["libgcrypt ABI"]
+protected = true
+current_mattos_version = "1.11.0-1mattos1"
+expected_debian_role = "GnuPG cryptographic runtime library"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
+debian_name = "libassuan9"
+mattos_name = "libassuan9"
+source_component = "libassuan"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libassuan.so.9"]
+provided_abi_or_commands = ["libassuan ABI"]
+protected = true
+current_mattos_version = "3.0.2-1mattos1"
+expected_debian_role = "GnuPG IPC runtime library"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
+debian_name = "libksba8"
+mattos_name = "libksba8"
+source_component = "libksba"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libksba.so.8"]
+provided_abi_or_commands = ["libksba ABI"]
+protected = true
+current_mattos_version = "1.6.7-1mattos1"
+expected_debian_role = "GnuPG X.509 and CMS runtime library"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
+debian_name = "libnpth0"
+mattos_name = "libnpth0"
+source_component = "npth"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libnpth.so.0"]
+provided_abi_or_commands = ["libnpth ABI"]
+protected = true
+current_mattos_version = "1.8-1mattos1"
+expected_debian_role = "GnuPG threading runtime library"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
+debian_name = "gpgv"
+mattos_name = "gpgv"
+source_component = "gnupg"
+owned_paths = ["/usr/bin/gpgv"]
+provided_abi_or_commands = ["OpenPGP detached-signature verification"]
+protected = true
+current_mattos_version = "2.4.9-1mattos1"
+expected_debian_role = "APT OpenPGP verifier"
+classification = "debian-compatible"
+known_gaps = ["None"]

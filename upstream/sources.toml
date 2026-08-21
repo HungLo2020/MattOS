@@ -698,6 +698,54 @@ patch_manifest = "upstream/patches/apt/manifest.toml"
 patch_manifest_sha256 = "326214de72d7add30beba1f730df8e9d460ce9be2551601f03263f0e3bc15a28"
 
 [[component]]
+name = "gnupg"
+repo = "https://github.com/gpg/gnupg.git"
+branch = "gnupg-2.4.9"
+revision = "21c7d29d6ed2eb891f7f66f83bcf764fcaaa6752"
+path = "src/system/security/gnupg"
+sync = "copy"
+
+[[component]]
+name = "libgpg-error"
+repo = "https://github.com/gpg/libgpg-error.git"
+branch = "master"
+revision = "687c9da501c21a64f7dcedfa73146a4670009cea"
+path = "src/system/security/libgpg-error"
+sync = "copy"
+
+[[component]]
+name = "libgcrypt"
+repo = "https://github.com/gpg/libgcrypt.git"
+branch = "master"
+revision = "7199d14b0211f23b69012a7412160ee2a1fcb44f"
+path = "src/system/security/libgcrypt"
+sync = "copy"
+
+[[component]]
+name = "libassuan"
+repo = "https://github.com/gpg/libassuan.git"
+branch = "master"
+revision = "92587b7bf5ffbdd34e2139f3563211cd2d04f652"
+path = "src/system/security/libassuan"
+sync = "copy"
+
+[[component]]
+name = "libksba"
+repo = "https://github.com/gpg/libksba.git"
+branch = "master"
+revision = "06720f9b16a172404f49089cbb6eb95e4344f562"
+path = "src/system/security/libksba"
+sync = "copy"
+
+[[component]]
+name = "npth"
+repo = "https://github.com/gpg/npth.git"
+branch = "master"
+revision = "d4e067d96c5e868e5208613f37dfacaab4298d7c"
+path = "src/system/security/npth"
+sync = "copy"
+
+[[component]]
 name = "expat"
 repo = "https://github.com/libexpat/libexpat.git"
 branch = "master"

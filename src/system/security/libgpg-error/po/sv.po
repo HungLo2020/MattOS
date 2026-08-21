@@ -1,0 +1,1555 @@
+# Swedish translation for libgpg-error.
+# Copyright (C) 2006, 2007, 2009 Free Software Foundation, Inc.
+# This file is distributed under the same license as the libgpg-error package.
+# Daniel Nylander <po@danielnylander.se>, 2006, 2007, 2009, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libgpg-error 1.7\n"
+"Report-Msgid-Bugs-To: translations@gnupg.org\n"
+"PO-Revision-Date: 2026-01-10 20:52+0100\n"
+"Last-Translator: Daniel Nylander <github@danielnylander.se>\n"
+"Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.8\n"
+
+msgid "Unspecified source"
+msgstr "Ospecificerad källa"
+
+msgid "gcrypt"
+msgstr "gcrypt"
+
+msgid "GnuPG"
+msgstr "GnuPG"
+
+msgid "GpgSM"
+msgstr "GpgSM"
+
+msgid "GPG Agent"
+msgstr "GPG Agent"
+
+msgid "Pinentry"
+msgstr "PIN-inmatning"
+
+msgid "SCD"
+msgstr "SCD"
+
+msgid "GPGME"
+msgstr "GPGME"
+
+msgid "Keybox"
+msgstr "Nyckellåda"
+
+msgid "KSBA"
+msgstr "KSBA"
+
+msgid "Dirmngr"
+msgstr "Dirmngr"
+
+msgid "GSTI"
+msgstr "GSTI"
+
+msgid "GPA"
+msgstr "GPA"
+
+msgid "Kleopatra"
+msgstr "Kleopatra"
+
+msgid "G13"
+msgstr "G13"
+
+msgid "Assuan"
+msgstr "Assuan"
+
+msgid "TPM2d"
+msgstr "TPM2d"
+
+msgid "TLS"
+msgstr "TLS"
+
+msgid "TKD"
+msgstr "TKD"
+
+msgid "Any source"
+msgstr "Alla källor"
+
+msgid "User defined source 1"
+msgstr "Användardefinierad källa 1"
+
+msgid "User defined source 2"
+msgstr "Användardefinierad källa 2"
+
+msgid "User defined source 3"
+msgstr "Användardefinierad källa 3"
+
+msgid "User defined source 4"
+msgstr "Användardefinierad källa 4"
+
+msgid "Unknown source"
+msgstr "Okänd källa"
+
+msgid "Success"
+msgstr "Lyckades"
+
+msgid "General error"
+msgstr "Allmänt fel"
+
+msgid "Unknown packet"
+msgstr "Okänt paket"
+
+msgid "Unknown version in packet"
+msgstr "Okänd version i paket"
+
+msgid "Invalid public key algorithm"
+msgstr "Ogiltig publik nyckel-algoritm"
+
+msgid "Invalid digest algorithm"
+msgstr "Ogiltig sammandragsalgoritm"
+
+msgid "Bad public key"
+msgstr "Felaktig publik nyckel"
+
+msgid "Bad secret key"
+msgstr "Felaktig hemlig nyckel"
+
+msgid "Bad signature"
+msgstr "Felaktig signatur"
+
+msgid "No public key"
+msgstr "Ingen publik nyckel"
+
+msgid "Checksum error"
+msgstr "Kontrollsummefel"
+
+msgid "Bad passphrase"
+msgstr "Felaktig lösenfras"
+
+msgid "Invalid cipher algorithm"
+msgstr "Ogiltig chifferalgoritm"
+
+msgid "Cannot open keyring"
+msgstr "Kan inte öppna nyckelring"
+
+msgid "Invalid packet"
+msgstr "Ogiltigt paket"
+
+msgid "Invalid armor"
+msgstr "Ogiltigt ASCII-skal"
+
+msgid "No user ID"
+msgstr "Inget användar-id"
+
+msgid "No secret key"
+msgstr "Ingen hemlig nyckel"
+
+msgid "Wrong secret key used"
+msgstr "Fel hemlig nyckel använd"
+
+msgid "Bad session key"
+msgstr "Felaktig sessionsnyckel"
+
+msgid "Unknown compression algorithm"
+msgstr "Okänd komprimeringsalgoritm"
+
+msgid "Number is not prime"
+msgstr "Tal är inte ett primtal"
+
+msgid "Invalid encoding method"
+msgstr "Ogiltig kodningsmetod"
+
+msgid "Invalid encryption scheme"
+msgstr "Ogiltigt krypteringsschema"
+
+msgid "Invalid signature scheme"
+msgstr "Ogiltigt signaturschema"
+
+msgid "Invalid attribute"
+msgstr "Ogiltigt attribut"
+
+msgid "No value"
+msgstr "Inget värde"
+
+msgid "Not found"
+msgstr "Hittades inte"
+
+msgid "Value not found"
+msgstr "Värdet hittades inte"
+
+msgid "Syntax error"
+msgstr "Syntaxfel"
+
+msgid "Bad MPI value"
+msgstr "Felaktigt MPI-värde"
+
+msgid "Invalid passphrase"
+msgstr "Ogiltig lösenfras"
+
+msgid "Invalid signature class"
+msgstr "Ogiltig signaturklass"
+
+msgid "Resources exhausted"
+msgstr "Resurser uttömda"
+
+msgid "Invalid keyring"
+msgstr "Ogiltig nyckelring"
+
+msgid "Trust DB error"
+msgstr "Fel i tillitsdatabas"
+
+msgid "Bad certificate"
+msgstr "Felaktigt certifikat"
+
+msgid "Invalid user ID"
+msgstr "Ogiltig användaridentitet"
+
+msgid "Unexpected error"
+msgstr "Oväntat fel"
+
+msgid "Time conflict"
+msgstr "Tidskonflikt"
+
+msgid "Keyserver error"
+msgstr "Fel i nyckelserver"
+
+msgid "Wrong public key algorithm"
+msgstr "Fel algoritm för publik nyckel"
+
+msgid "Tribute to D. A."
+msgstr "Hyllning till D. A."
+
+msgid "Weak encryption key"
+msgstr "Svag krypteringsnyckel"
+
+msgid "Invalid key length"
+msgstr "Ogiltig nyckellängd"
+
+msgid "Invalid argument"
+msgstr "Ogiltigt argument"
+
+msgid "Syntax error in URI"
+msgstr "Syntaxfel i uri"
+
+msgid "Invalid URI"
+msgstr "Ogiltig uri"
+
+msgid "Network error"
+msgstr "Nätverksfel"
+
+msgid "Unknown host"
+msgstr "Okänd värd"
+
+msgid "Selftest failed"
+msgstr "Självtestning misslyckades"
+
+msgid "Data not encrypted"
+msgstr "Data är inte krypterat"
+
+msgid "Data not processed"
+msgstr "Data inte behandlat"
+
+msgid "Unusable public key"
+msgstr "Oanvändbar publik nyckel"
+
+msgid "Unusable secret key"
+msgstr "Oanvändbar hemlig nyckel"
+
+msgid "Invalid value"
+msgstr "Ogiltigt värde"
+
+msgid "Bad certificate chain"
+msgstr "Felaktig certifikatkedja"
+
+msgid "Missing certificate"
+msgstr "Saknar certifikat"
+
+msgid "No data"
+msgstr "Inget data"
+
+msgid "Bug"
+msgstr "Fel"
+
+msgid "Not supported"
+msgstr "Stöds inte"
+
+msgid "Invalid operation code"
+msgstr "Ogiltig åtgärdskod"
+
+msgid "Timeout"
+msgstr "Tidsgräns"
+
+msgid "Internal error"
+msgstr "Internt fel"
+
+msgid "EOF (gcrypt)"
+msgstr "Slut på filen (gcrypt)"
+
+msgid "Invalid object"
+msgstr "Ogiltigt objekt"
+
+msgid "Provided object is too short"
+msgstr "Tillhandahållet objekt är för kort"
+
+msgid "Provided object is too large"
+msgstr "Tillhandahållet objekt är för stort"
+
+msgid "Missing item in object"
+msgstr "Saknar post i objekt"
+
+msgid "Not implemented"
+msgstr "Inte implementerad"
+
+msgid "Conflicting use"
+msgstr "Konflikt i användningen"
+
+msgid "Invalid cipher mode"
+msgstr "Ogiltigt chifferläge"
+
+msgid "Invalid flag"
+msgstr "Ogiltig flagga"
+
+msgid "Invalid handle"
+msgstr "Ogiltig hanterare"
+
+msgid "Result truncated"
+msgstr "Resultat nerskalat"
+
+msgid "Incomplete line"
+msgstr "Ofullständig rad"
+
+msgid "Invalid response"
+msgstr "Ogiltigt svar"
+
+msgid "No agent running"
+msgstr "Ingen agent kör"
+
+msgid "Agent error"
+msgstr "Agentfel"
+
+msgid "Invalid data"
+msgstr "Ogiltig data"
+
+msgid "Unspecific Assuan server fault"
+msgstr "Ospecificerat Assuan-serverfel"
+
+msgid "General Assuan error"
+msgstr "Allmänt Assuan-fel"
+
+msgid "Invalid session key"
+msgstr "Ogiltig sessionsnyckel"
+
+msgid "Invalid S-expression"
+msgstr "Ogiltigt S-uttryck"
+
+msgid "Unsupported algorithm"
+msgstr "Algoritmen stöds inte"
+
+msgid "No pinentry"
+msgstr "Ingen PIN-inmatning"
+
+msgid "pinentry error"
+msgstr "PIN-inmatningsfel"
+
+msgid "Bad PIN"
+msgstr "Felaktig PIN-kod"
+
+msgid "Invalid name"
+msgstr "Ogiltigt namn"
+
+msgid "Bad data"
+msgstr "Felaktigt data"
+
+msgid "Invalid parameter"
+msgstr "Ogiltig parameter"
+
+msgid "Wrong card"
+msgstr "Fel kort"
+
+msgid "No dirmngr"
+msgstr "Ingen dirmngr"
+
+msgid "dirmngr error"
+msgstr "dirmngr-fel"
+
+msgid "Certificate revoked"
+msgstr "Certifikatet är spärrat"
+
+msgid "No CRL known"
+msgstr "Ingen känd CRL"
+
+msgid "CRL too old"
+msgstr "CRL för gammal"
+
+msgid "Line too long"
+msgstr "Raden är för lång"
+
+msgid "Not trusted"
+msgstr "Inte betrodd"
+
+msgid "Operation cancelled"
+msgstr "Åtgärden avbröts"
+
+msgid "Bad CA certificate"
+msgstr "Felaktigt CA-certifikat"
+
+msgid "Certificate expired"
+msgstr "Certifikatet har gått ut"
+
+msgid "Certificate too young"
+msgstr "Certifikatet är för ungt"
+
+msgid "Unsupported certificate"
+msgstr "Certifikatet stöds inte"
+
+msgid "Unknown S-expression"
+msgstr "Okänt S-uttryck"
+
+msgid "Unsupported protection"
+msgstr "Skyddet stöds inte"
+
+msgid "Corrupted protection"
+msgstr "Skadat skydd"
+
+msgid "Ambiguous name"
+msgstr "Tvetydigt namn"
+
+msgid "Card error"
+msgstr "Kortfel"
+
+msgid "Card reset required"
+msgstr "Nollställning av kort krävs"
+
+msgid "Card removed"
+msgstr "Kort borttaget"
+
+msgid "Invalid card"
+msgstr "Ogiltigt kort"
+
+msgid "Card not present"
+msgstr "Kortet inte inmatat"
+
+msgid "No PKCS15 application"
+msgstr "Inget PKCS15-program"
+
+msgid "Not confirmed"
+msgstr "Inte bekräftad"
+
+msgid "Configuration error"
+msgstr "Konfigurationsfel"
+
+msgid "No policy match"
+msgstr "Ingen policyträff"
+
+msgid "Invalid index"
+msgstr "Ogiltigt index"
+
+msgid "Invalid ID"
+msgstr "Ogiltigt id"
+
+msgid "No SmartCard daemon"
+msgstr "Ingen SmartCard-demon"
+
+msgid "SmartCard daemon error"
+msgstr "Fel i SmartCard-demon"
+
+msgid "Unsupported protocol"
+msgstr "Protokollet stöds inte"
+
+msgid "Bad PIN method"
+msgstr "Felaktig PIN-metod"
+
+msgid "Card not initialized"
+msgstr "Kortet är inte initierat"
+
+msgid "Unsupported operation"
+msgstr "Åtgärden stöds inte"
+
+msgid "Wrong key usage"
+msgstr "Fel nyckelanvändning"
+
+msgid "Nothing found"
+msgstr "Ingenting hittades"
+
+msgid "Wrong blob type"
+msgstr "Felaktig blob-typ"
+
+msgid "Missing value"
+msgstr "Saknar värde"
+
+msgid "Hardware problem"
+msgstr "Hårdvaruproblem"
+
+msgid "PIN blocked"
+msgstr "PIN-kod blockerad"
+
+msgid "Conditions of use not satisfied"
+msgstr "Användningsvillkoren uppfylls inte"
+
+msgid "PINs are not synced"
+msgstr "PIN-koderna är inte synkroniserade"
+
+msgid "Invalid CRL"
+msgstr "Ogiltig CRL"
+
+msgid "BER error"
+msgstr "BER-fel"
+
+msgid "Invalid BER"
+msgstr "Ogiltg BER"
+
+msgid "Element not found"
+msgstr "Elementet hittades inte"
+
+msgid "Identifier not found"
+msgstr "Identifieraren hittades inte"
+
+msgid "Invalid tag"
+msgstr "Ogiltig tagg"
+
+msgid "Invalid length"
+msgstr "Ogiltig längd"
+
+msgid "Invalid key info"
+msgstr "Ogiltig nyckelinformation"
+
+msgid "Unexpected tag"
+msgstr "Oväntad tagg"
+
+msgid "Not DER encoded"
+msgstr "Inte DER-kodat"
+
+msgid "No CMS object"
+msgstr "Inget CMS-objekt"
+
+msgid "Invalid CMS object"
+msgstr "Ogiltigt CMS-objekt"
+
+msgid "Unknown CMS object"
+msgstr "Okänt CMS-objekt"
+
+msgid "Unsupported CMS object"
+msgstr "CMS-objektet stöds inte"
+
+msgid "Unsupported encoding"
+msgstr "Kodningen stöds inte"
+
+msgid "Unsupported CMS version"
+msgstr "CMS-versionen stöds inte"
+
+msgid "Unknown algorithm"
+msgstr "Okänd algoritm"
+
+msgid "Invalid crypto engine"
+msgstr "Ogiltig krypteringsmotor"
+
+msgid "Public key not trusted"
+msgstr "Publika nyckeln inte betrodd"
+
+msgid "Decryption failed"
+msgstr "Dekryptering misslyckades"
+
+msgid "Key expired"
+msgstr "Nyckeln har gått ut"
+
+msgid "Signature expired"
+msgstr "Signaturen har gått ut"
+
+msgid "Encoding problem"
+msgstr "Kodningsproblem"
+
+msgid "Invalid state"
+msgstr "Ogiltigt tillstånd"
+
+msgid "Duplicated value"
+msgstr "Dubblettvärde"
+
+msgid "Missing action"
+msgstr "Saknar åtgärd"
+
+msgid "ASN.1 module not found"
+msgstr "ASN.1-modulen hittades inte"
+
+msgid "Invalid OID string"
+msgstr "Ogiltig OID-sträng"
+
+msgid "Invalid time"
+msgstr "Ogiltig tid"
+
+msgid "Invalid CRL object"
+msgstr "Ogiltigt CRL-objekt"
+
+msgid "Unsupported CRL version"
+msgstr "CRL-versionen stöds inte"
+
+msgid "Invalid certificate object"
+msgstr "Ogiltigt certifikatobjekt"
+
+msgid "Unknown name"
+msgstr "Okänt namn"
+
+msgid "A locale function failed"
+msgstr "En lokalfunktion misslyckades"
+
+msgid "Not locked"
+msgstr "Inte låst"
+
+msgid "Protocol violation"
+msgstr "Protokollöverträdelse"
+
+msgid "Invalid MAC"
+msgstr "Ogiltig MAC"
+
+msgid "Invalid request"
+msgstr "Ogiltig begäran"
+
+msgid "Unknown extension"
+msgstr "Okänd utökning"
+
+msgid "Unknown critical extension"
+msgstr "Okänd kritiskt tillägg"
+
+msgid "Locked"
+msgstr "Låst"
+
+msgid "Unknown option"
+msgstr "Okänd flagga"
+
+msgid "Unknown command"
+msgstr "Okänt kommando"
+
+msgid "Not operational"
+msgstr "Fungerar inte"
+
+msgid "No passphrase given"
+msgstr "Ingen lösenfras angiven"
+
+msgid "No PIN given"
+msgstr "Ingen pinkod angiven"
+
+msgid "Not enabled"
+msgstr "Inte aktiverad"
+
+msgid "No crypto engine"
+msgstr "Ingen kryptomotor"
+
+msgid "Missing key"
+msgstr "Saknad nyckel"
+
+msgid "Too many objects"
+msgstr "För många objekt"
+
+msgid "Limit reached"
+msgstr "Gräns uppnåddes"
+
+msgid "Not initialized"
+msgstr "Inte initialiserad"
+
+msgid "Missing issuer certificate"
+msgstr "Saknat utfärdarcertifikat"
+
+msgid "No keyserver available"
+msgstr "Ingen nyckelserver tillgänglig"
+
+msgid "Invalid elliptic curve"
+msgstr "Ogiltig elliptisk kurva"
+
+msgid "Unknown elliptic curve"
+msgstr "Okänd elliptisk kurva"
+
+msgid "Duplicated key"
+msgstr "Duplicerad nyckel"
+
+msgid "Ambiguous result"
+msgstr "Tvetydigt resultat"
+
+msgid "No crypto context"
+msgstr "Ingen kryptokontext"
+
+msgid "Wrong crypto context"
+msgstr "Fel kryptokontext"
+
+msgid "Bad crypto context"
+msgstr "Fel kryptokontext"
+
+msgid "Conflict in the crypto context"
+msgstr "Konflikt i kryptokontext"
+
+msgid "Broken public key"
+msgstr "Trasig publik nyckel"
+
+msgid "Broken secret key"
+msgstr "Trasig hemlig nyckel"
+
+msgid "Invalid MAC algorithm"
+msgstr "Ogiltig MAC-algoritm"
+
+msgid "Operation fully cancelled"
+msgstr "Operationen fullständigt avbruten"
+
+msgid "Operation not yet finished"
+msgstr "Åtgärden är ännu inte färdig"
+
+msgid "Buffer too short"
+msgstr "Buffert för liten"
+
+msgid "Invalid length specifier in S-expression"
+msgstr "Ogiltig längdangivare i S-uttryck"
+
+msgid "String too long in S-expression"
+msgstr "Sträng för lång i S-uttryck"
+
+msgid "Unmatched parentheses in S-expression"
+msgstr "Omatchad parentes i S-uttryck"
+
+msgid "S-expression not canonical"
+msgstr "S-uttryck inte korrekt"
+
+msgid "Bad character in S-expression"
+msgstr "Felaktigt tecken i S-uttryck"
+
+msgid "Bad quotation in S-expression"
+msgstr "Fel citering i S-uttryck"
+
+msgid "Zero prefix in S-expression"
+msgstr "Nollprefix i S-uttryck"
+
+msgid "Nested display hints in S-expression"
+msgstr "Nästlade visningstips i S-uttryck"
+
+msgid "Unmatched display hints"
+msgstr "Omatchade visningstips"
+
+msgid "Unexpected reserved punctuation in S-expression"
+msgstr "Oväntat reserverat skiljetecken i S-uttryck"
+
+msgid "Bad hexadecimal character in S-expression"
+msgstr "Felaktigt hexadecimalt tecken i S-uttryck"
+
+msgid "Odd hexadecimal numbers in S-expression"
+msgstr "Udda hexadecimala tal i S-uttryck"
+
+msgid "Bad octal character in S-expression"
+msgstr "Felaktigt oktalt tecken i S-uttryck"
+
+#, fuzzy
+#| msgid "Invalid public key algorithm"
+msgid "Non-compliant public key algorithm"
+msgstr "Ogiltig publik nyckel-algoritm"
+
+#, fuzzy
+#| msgid "No cipher algorithm"
+msgid "Non-compliant cipher algorithm"
+msgstr "Ingen chifferalgoritm"
+
+msgid "Unexpected packet"
+msgstr "Oväntat paket"
+
+msgid "All subkeys are expired or revoked"
+msgstr "Alla undernycklar har gått ut eller återkallats"
+
+msgid "Database is corrupted"
+msgstr "Databasen är skadad"
+
+msgid "Server indicated a failure"
+msgstr "Servern indikerade ett fel"
+
+msgid "No name"
+msgstr "Inget namn"
+
+msgid "No key"
+msgstr "Ingen nyckel"
+
+msgid "Legacy key"
+msgstr "Föråldrad nyckel"
+
+msgid "Request too short"
+msgstr "För kort begäran"
+
+msgid "Request too long"
+msgstr "För lång begäran"
+
+msgid "Object is in termination state"
+msgstr "Objektet är i avslutningsläge"
+
+msgid "No certificate chain"
+msgstr "Ingen certifikatkedja"
+
+msgid "Certificate is too large"
+msgstr "Certifikatet är för stort"
+
+msgid "Invalid record"
+msgstr "Ogiltig post"
+
+msgid "The MAC does not verify"
+msgstr "MAC verifierar inte"
+
+msgid "Unexpected message"
+msgstr "Oväntat meddelande"
+
+msgid "Compression or decompression failed"
+msgstr "Komprimering eller dekomprimering misslyckades"
+
+msgid "A counter would wrap"
+msgstr "En räknare skulle börja om"
+
+msgid "Fatal alert message received"
+msgstr "Allvarligt varningsmeddelande mottaget"
+
+msgid "No cipher algorithm"
+msgstr "Ingen chifferalgoritm"
+
+msgid "Missing client certificate"
+msgstr "Saknat klientcertifikat"
+
+msgid "Close notification received"
+msgstr "Stängningsmeddelande mottaget"
+
+msgid "Ticket expired"
+msgstr "Biljetten har gått ut"
+
+msgid "Bad ticket"
+msgstr "Ogiltig biljett"
+
+msgid "Unknown identity"
+msgstr "Okänd identitet"
+
+msgid "Bad certificate message in handshake"
+msgstr "Felaktigt certifikatmeddelande vid handskakning"
+
+msgid "Bad certificate request message in handshake"
+msgstr "Meddelande om felaktig certifikatbegäran i handskakning"
+
+msgid "Bad certificate verify message in handshake"
+msgstr "Meddelande om felaktig certifikatverifiering i handskakning"
+
+msgid "Bad change cipher message in handshake"
+msgstr "Meddelande om felaktig chifferändring i handskakning"
+
+msgid "Bad client hello message in handshake"
+msgstr "Felaktigt hälsningsmeddelande från klient i handskakning"
+
+msgid "Bad server hello message in handshake"
+msgstr "Felaktigt hälsningsmeddelande från server i handskakning"
+
+msgid "Bad server hello done message in handshake"
+msgstr "Meddelande om felaktig serverhälsning i handskakning"
+
+msgid "Bad finished message in handshake"
+msgstr "Felaktigt slutfört meddelande i handskakning"
+
+msgid "Bad server key exchange message in handshake"
+msgstr "Felaktigt meddelande om servernyckelutbyte vid handskakning"
+
+msgid "Bad client key exchange message in handshake"
+msgstr "Felaktigt meddelande om klientnyckelutbyte vid handskakning"
+
+msgid "Bogus string"
+msgstr "Falsk sträng"
+
+msgid "Forbidden"
+msgstr "Förbjuden"
+
+msgid "Key disabled"
+msgstr "Nyckel inaktiverad"
+
+msgid "Not possible with a card based key"
+msgstr "Inte möjligt med kortbaserad nyckel"
+
+msgid "Invalid lock object"
+msgstr "Ogiltigt låsobjekt"
+
+msgid "True"
+msgstr "Sant"
+
+msgid "False"
+msgstr "Falskt"
+
+msgid "General IPC error"
+msgstr "Allmänt IPC-fel"
+
+msgid "IPC accept call failed"
+msgstr "IPC-acceptanrop misslyckades"
+
+msgid "IPC connect call failed"
+msgstr "IPC-anslutningsanrop misslyckades"
+
+msgid "Invalid IPC response"
+msgstr "Ogiltigt IPC-svar"
+
+msgid "Invalid value passed to IPC"
+msgstr "Ogiltigt värde skickat till IPC"
+
+msgid "Incomplete line passed to IPC"
+msgstr "Ofullständig rad skickad till IPC"
+
+msgid "Line passed to IPC too long"
+msgstr "Raden skickad till IPC är för lång"
+
+msgid "Nested IPC commands"
+msgstr "Nästlade IPC-kommandon"
+
+msgid "No data callback in IPC"
+msgstr "Inget datasvarsanrop i IPC"
+
+msgid "No inquire callback in IPC"
+msgstr "Inget datafrågeanrop i IPC"
+
+msgid "Not an IPC server"
+msgstr "Inte en IPC-server"
+
+msgid "Not an IPC client"
+msgstr "Inte en IPC-klient"
+
+msgid "Problem starting IPC server"
+msgstr "Problem med att starta IPC-server"
+
+msgid "IPC read error"
+msgstr "IPC-läsfel"
+
+msgid "IPC write error"
+msgstr "IPC-skrivfel"
+
+msgid "Too much data for IPC layer"
+msgstr "För mycket data för IPC-lager"
+
+msgid "Unexpected IPC command"
+msgstr "Oväntat IPC-kommando"
+
+msgid "Unknown IPC command"
+msgstr "Okänt IPC-kommando"
+
+msgid "IPC syntax error"
+msgstr "IPC-syntaxfel"
+
+msgid "IPC call has been cancelled"
+msgstr "IPC-anropet har avbrutits"
+
+msgid "No input source for IPC"
+msgstr "Ingen inmatningskälla för IPC"
+
+msgid "No output source for IPC"
+msgstr "Ingen utmatningskälla för IPC"
+
+msgid "IPC parameter error"
+msgstr "IPC-parameterfel"
+
+msgid "Unknown IPC inquire"
+msgstr "Okänd IPC-fråga"
+
+msgid "Crypto engine too old"
+msgstr "Kryptomotorn är för gammal"
+
+msgid "Screen or window too small"
+msgstr "Skärmen eller fönstret är för litet"
+
+msgid "Screen or window too large"
+msgstr "Skärmen eller fönstret är för stort"
+
+msgid "Required environment variable not set"
+msgstr "Nödvändig miljövariabel är inte inställd"
+
+msgid "User ID already exists"
+msgstr "Användar-id finns redan"
+
+msgid "Name already exists"
+msgstr "Namnet finns redan"
+
+msgid "Duplicated name"
+msgstr "Duplicerat namn"
+
+msgid "Object is too young"
+msgstr "Objektet är för ungt"
+
+msgid "Object is too old"
+msgstr "Objektet är för gammalt"
+
+msgid "Unknown flag"
+msgstr "Okänd flagga"
+
+msgid "Invalid execution order"
+msgstr "Ogiltig exekveringsordning"
+
+msgid "Already fetched"
+msgstr "Redan hämtad"
+
+msgid "Try again later"
+msgstr "Försök igen senare"
+
+msgid "Wrong name"
+msgstr "Fel namn"
+
+msgid "Not authenticated"
+msgstr "Inte autentiserad"
+
+msgid "Bad authentication"
+msgstr "Felaktig autentisering"
+
+msgid "No Keybox daemon running"
+msgstr "Ingen Keybox-daemon körs"
+
+msgid "Keybox daemon error"
+msgstr "Fel i Keybox-demonen"
+
+msgid "Service is not running"
+msgstr "Tjänsten körs inte"
+
+msgid "Service error"
+msgstr "Tjänstefel"
+
+msgid "Bad PUK"
+msgstr "Felaktig PUK"
+
+msgid "No reset code"
+msgstr "Ingen återställningskod"
+
+msgid "Bad reset code"
+msgstr "Felaktig återställningskod"
+
+#, fuzzy
+#| msgid "Invalid digest algorithm"
+msgid "Non-compliant digest algorithm"
+msgstr "Ogiltig sammandragsalgoritm"
+
+msgid "System bug detected"
+msgstr "Systemfel upptäcktes"
+
+msgid "Unknown DNS error"
+msgstr "Okänt DNS-fel"
+
+msgid "Invalid DNS section"
+msgstr "Ogiltig DNS-sektion"
+
+msgid "Invalid textual address form"
+msgstr "Ogiltig textadressform"
+
+msgid "Missing DNS query packet"
+msgstr "Saknat DNS-frågepaket"
+
+msgid "Missing DNS answer packet"
+msgstr "Saknat DNS-svarspaket"
+
+msgid "Connection closed in DNS"
+msgstr "Anslutningen stängdes i DNS"
+
+msgid "Verification failed in DNS"
+msgstr "Verifieringen misslyckades i DNS"
+
+msgid "DNS Timeout"
+msgstr "DNS-timeout"
+
+msgid "General LDAP error"
+msgstr "Allmänt LDAP-fel"
+
+msgid "General LDAP attribute error"
+msgstr "Allmänt LDAP-attributfel"
+
+msgid "General LDAP name error"
+msgstr "Allmänt LDAP-namnfel"
+
+msgid "General LDAP security error"
+msgstr "Allmänt LDAP-säkerhetsfel"
+
+msgid "General LDAP service error"
+msgstr "Allmänt LDAP-tjänstefel"
+
+msgid "General LDAP update error"
+msgstr "Allmänt LDAP-uppdateringsfel"
+
+msgid "Experimental LDAP error code"
+msgstr "Experimentell LDAP-felkod"
+
+msgid "Private LDAP error code"
+msgstr "Privat LDAP-felkod"
+
+msgid "Other general LDAP error"
+msgstr "Annat allmänt LDAP-fel"
+
+msgid "LDAP connecting failed (X)"
+msgstr "LDAP-anslutningen misslyckades (X)"
+
+msgid "LDAP referral limit exceeded"
+msgstr "LDAP-hänvisningsgränsen överskriden"
+
+msgid "LDAP client loop"
+msgstr "LDAP-klientslinga"
+
+msgid "No LDAP results returned"
+msgstr "Inga LDAP-resultat returnerades"
+
+msgid "LDAP control not found"
+msgstr "LDAP-kontroll hittades inte"
+
+msgid "Not supported by LDAP"
+msgstr "Stöds inte av LDAP"
+
+msgid "LDAP connect error"
+msgstr "LDAP-anslutningsfel"
+
+msgid "Out of memory in LDAP"
+msgstr "Minnet är slut i LDAP"
+
+msgid "Bad parameter to an LDAP routine"
+msgstr "Felaktig parameter till en LDAP-rutin"
+
+msgid "User cancelled LDAP operation"
+msgstr "Användaren avbröt LDAP-åtgärden"
+
+msgid "Bad LDAP search filter"
+msgstr "Felaktigt LDAP-sökfilter"
+
+msgid "Unknown LDAP authentication method"
+msgstr "Okänd LDAP-autentiseringsmetod"
+
+msgid "Timeout in LDAP"
+msgstr "Timeout i LDAP"
+
+msgid "LDAP decoding error"
+msgstr "LDAP-avkodningsfel"
+
+msgid "LDAP encoding error"
+msgstr "LDAP-kodningsfel"
+
+msgid "LDAP local error"
+msgstr "LDAP lokalt fel"
+
+msgid "Cannot contact LDAP server"
+msgstr "Kan inte kontakta LDAP-servern"
+
+msgid "LDAP success"
+msgstr "LDAP lyckades"
+
+msgid "LDAP operations error"
+msgstr "LDAP-operationsfel"
+
+msgid "LDAP protocol error"
+msgstr "LDAP-protokollfel"
+
+msgid "Time limit exceeded in LDAP"
+msgstr "Tidsgränsen överskriden i LDAP"
+
+msgid "Size limit exceeded in LDAP"
+msgstr "Storleksbegränsning överskriden i LDAP"
+
+msgid "LDAP compare false"
+msgstr "LDAP-jämförelse falsk"
+
+msgid "LDAP compare true"
+msgstr "LDAP-jämförelse sann"
+
+msgid "LDAP authentication method not supported"
+msgstr "LDAP-autentiseringsmetod stöds inte"
+
+msgid "Strong(er) LDAP authentication required"
+msgstr "Kräver stark(are) LDAP-autentisering"
+
+msgid "Partial LDAP results+referral received"
+msgstr "Delvisa LDAP-resultat + hänvisning mottagen"
+
+msgid "LDAP referral"
+msgstr "LDAP-hänvisning"
+
+msgid "Administrative LDAP limit exceeded"
+msgstr "Administrativ LDAP-gräns överskriden"
+
+msgid "Critical LDAP extension is unavailable"
+msgstr "Kritisk LDAP-utökning är inte tillgänglig"
+
+msgid "Confidentiality required by LDAP"
+msgstr "Sekretess krävs av LDAP"
+
+msgid "LDAP SASL bind in progress"
+msgstr "LDAP SASL-bindning pågår"
+
+msgid "No such LDAP attribute"
+msgstr "Inget sådant LDAP-attribut"
+
+msgid "Undefined LDAP attribute type"
+msgstr "Odefinierad LDAP-attributtyp"
+
+msgid "Inappropriate matching in LDAP"
+msgstr "Olämplig matchning i LDAP"
+
+msgid "Constraint violation in LDAP"
+msgstr "Begränsningsöverträdelse i LDAP"
+
+msgid "LDAP type or value exists"
+msgstr "LDAP-typ eller värde finns"
+
+msgid "Invalid syntax in LDAP"
+msgstr "Ogiltig syntax i LDAP"
+
+msgid "No such LDAP object"
+msgstr "Inget sådant LDAP-objekt"
+
+msgid "LDAP alias problem"
+msgstr "Problem med LDAP-alias"
+
+msgid "Invalid DN syntax in LDAP"
+msgstr "Ogiltig DN-syntax i LDAP"
+
+msgid "LDAP entry is a leaf"
+msgstr "LDAP-posten är ett löv"
+
+msgid "LDAP alias dereferencing problem"
+msgstr "Problem med avreferering av LDAP-alias"
+
+msgid "LDAP proxy authorization failure (X)"
+msgstr "Auktoriseringsfel för LDAP-proxy (X)"
+
+msgid "Inappropriate LDAP authentication"
+msgstr "Olämplig LDAP-autentisering"
+
+msgid "Invalid LDAP credentials"
+msgstr "Ogiltiga LDAP-inloggningsuppgifter"
+
+msgid "Insufficient access for LDAP"
+msgstr "Otillräcklig åtkomst för LDAP"
+
+msgid "LDAP server is busy"
+msgstr "LDAP-servern är upptagen"
+
+msgid "LDAP server is unavailable"
+msgstr "LDAP-servern är inte tillgänglig"
+
+msgid "LDAP server is unwilling to perform"
+msgstr "LDAP-servern vill inte utföra"
+
+msgid "Loop detected by LDAP"
+msgstr "Slinga upptäckt av LDAP"
+
+msgid "LDAP naming violation"
+msgstr "LDAP-namngivningsöverträdelse"
+
+msgid "LDAP object class violation"
+msgstr "Överträdelse av LDAP-objektklass"
+
+msgid "LDAP operation not allowed on non-leaf"
+msgstr "LDAP-åtgärd tillåts inte på icke-blad"
+
+msgid "LDAP operation not allowed on RDN"
+msgstr "LDAP-åtgärd tillåts inte på RDN"
+
+msgid "Already exists (LDAP)"
+msgstr "Finns redan (LDAP)"
+
+msgid "Cannot modify LDAP object class"
+msgstr "Kan inte ändra LDAP-objektklass"
+
+msgid "LDAP results too large"
+msgstr "LDAP-resultaten är för stora"
+
+msgid "LDAP operation affects multiple DSAs"
+msgstr "LDAP-åtgärden påverkar flera DSA:er"
+
+msgid "Virtual LDAP list view error"
+msgstr "Fel i virtuell LDAP-listvy"
+
+msgid "Other LDAP error"
+msgstr "Annat LDAP-fel"
+
+msgid "Resources exhausted in LCUP"
+msgstr "Resurser uttömda i LCUP"
+
+msgid "Security violation in LCUP"
+msgstr "Säkerhetsöverträdelse i LCUP"
+
+msgid "Invalid data in LCUP"
+msgstr "Ogiltigt data i LCUP"
+
+msgid "Unsupported scheme in LCUP"
+msgstr "Schema stöds inte i LCUP"
+
+msgid "Reload required in LCUP"
+msgstr "Omstart krävs i LCUP"
+
+msgid "LDAP cancelled"
+msgstr "LDAP avbruten"
+
+msgid "No LDAP operation to cancel"
+msgstr "Ingen LDAP-åtgärd att avbryta"
+
+msgid "Too late to cancel LDAP"
+msgstr "För sent att avbryta LDAP"
+
+msgid "Cannot cancel LDAP"
+msgstr "Kan inte avbryta LDAP"
+
+msgid "LDAP assertion failed"
+msgstr "LDAP-försäkran misslyckades"
+
+msgid "Proxied authorization denied by LDAP"
+msgstr "Auktorisering via proxy nekad av LDAP"
+
+msgid "User defined error code 1"
+msgstr "Användardefinierad felkod 1"
+
+msgid "User defined error code 2"
+msgstr "Användardefinierad felkod 2"
+
+msgid "User defined error code 3"
+msgstr "Användardefinierad felkod 3"
+
+msgid "User defined error code 4"
+msgstr "Användardefinierad felkod 4"
+
+msgid "User defined error code 5"
+msgstr "Användardefinierad felkod 5"
+
+msgid "User defined error code 6"
+msgstr "Användardefinierad felkod 6"
+
+msgid "User defined error code 7"
+msgstr "Användardefinierad felkod 7"
+
+msgid "User defined error code 8"
+msgstr "Användardefinierad felkod 8"
+
+msgid "User defined error code 9"
+msgstr "Användardefinierad felkod 9"
+
+msgid "User defined error code 10"
+msgstr "Användardefinierad felkod 10"
+
+msgid "User defined error code 11"
+msgstr "Användardefinierad felkod 11"
+
+msgid "User defined error code 12"
+msgstr "Användardefinierad felkod 12"
+
+msgid "User defined error code 13"
+msgstr "Användardefinierad felkod 13"
+
+msgid "User defined error code 14"
+msgstr "Användardefinierad felkod 14"
+
+msgid "User defined error code 15"
+msgstr "Användardefinierad felkod 15"
+
+msgid "User defined error code 16"
+msgstr "Användardefinierad felkod 16"
+
+msgid "SQL success"
+msgstr "SQL lyckades"
+
+msgid "SQL error"
+msgstr "SQL-fel"
+
+msgid "Internal logic error in SQL library"
+msgstr "Internt logikfel i SQL-biblioteket"
+
+msgid "Access permission denied (SQL)"
+msgstr "Åtkomstbehörighet nekad (SQL)"
+
+msgid "SQL abort was requested"
+msgstr "SQL-avbrott begärdes"
+
+msgid "SQL database file is locked"
+msgstr "SQL-databasfilen är låst"
+
+msgid "An SQL table in the database is locked"
+msgstr "En SQL-tabell i databasen är låst"
+
+msgid "SQL library ran out of core"
+msgstr "SQL-biblioteket har slut på minne"
+
+msgid "Attempt to write a readonly SQL database"
+msgstr "Försök att skriva en skrivskyddad SQL-databas"
+
+msgid "SQL operation terminated by interrupt"
+msgstr "SQL-operation avbruten av avbrott"
+
+msgid "I/O error during SQL operation"
+msgstr "I/O-fel under SQL-operation"
+
+msgid "SQL database disk image is malformed"
+msgstr "Diskavbildningen för SQL-databas är felaktig"
+
+msgid "Unknown opcode in SQL file control"
+msgstr "Okänd opcode i SQL-filkontroll"
+
+msgid "Insertion failed because SQL database is full"
+msgstr "Infogning misslyckades eftersom SQL-databasen är full"
+
+msgid "Unable to open the SQL database file"
+msgstr "Det går inte att öppna SQL-databasfilen"
+
+msgid "SQL database lock protocol error"
+msgstr "Fel i SQL-databaslåsprotokollet"
+
+msgid "(internal SQL code: empty)"
+msgstr "(intern SQL-kod: tom)"
+
+msgid "SQL database schema changed"
+msgstr "SQL-databasschemat har ändrats"
+
+msgid "String or blob exceeds size limit (SQL)"
+msgstr "Sträng eller blob överskrider storleksgränsen (SQL)"
+
+msgid "SQL abort due to constraint violation"
+msgstr "SQL avbryts på grund av överträdelse av begränsning"
+
+msgid "Data type mismatch (SQL)"
+msgstr "Datatypskonflikt (SQL)"
+
+msgid "SQL library used incorrectly"
+msgstr "SQL-bibliotek används felaktigt"
+
+msgid "SQL library uses unsupported OS features"
+msgstr "SQL-biblioteket använder OS-funktioner som inte stöds"
+
+msgid "Authorization denied (SQL)"
+msgstr "Auktorisering nekad (SQL)"
+
+msgid "(unused SQL code: format)"
+msgstr "(oanvänd SQL-kod: format)"
+
+msgid "SQL bind parameter out of range"
+msgstr "SQL-bindningsparameter utanför intervallet"
+
+msgid "File opened that is not an SQL database file"
+msgstr "Fil öppnad som inte är en SQL-databasfil"
+
+msgid "Notifications from SQL logger"
+msgstr "Meddelanden från SQL-loggaren"
+
+msgid "Warnings from SQL logger"
+msgstr "Varningar från SQL-loggaren"
+
+msgid "SQL has another row ready"
+msgstr "SQL har en annan rad klar"
+
+msgid "SQL has finished executing"
+msgstr "SQL har slutfört exekveringen"
+
+msgid "System error w/o errno"
+msgstr "Systemfel utan felnummer"
+
+msgid "Unknown system error"
+msgstr "Okänt systemfel"
+
+msgid "End of file"
+msgstr "Slut på fil"
+
+msgid "Unknown error code"
+msgstr "Okänd felkod"
+
+msgid "argument not expected"
+msgstr "argument förväntades inte"
+
+msgid "read error"
+msgstr "läsfel"
+
+msgid "keyword too long"
+msgstr "nyckelordet är för långt"
+
+msgid "missing argument"
+msgstr "argument saknas"
+
+msgid "invalid argument"
+msgstr "ogiltigt argument"
+
+msgid "invalid command"
+msgstr "ogiltigt kommando"
+
+msgid "invalid alias definition"
+msgstr "ogiltig aliasdefinition"
+
+msgid "permission error"
+msgstr "behörighetsfel"
+
+msgid "out of core"
+msgstr "slut på minne"
+
+msgid "invalid meta command"
+msgstr "ogiltigt metakommando"
+
+msgid "unknown meta command"
+msgstr "okänt metakommando"
+
+msgid "unexpected meta command"
+msgstr "oväntat metakommando"
+
+msgid "invalid option"
+msgstr "ogiltig flagga"
+
+#, c-format
+msgid "missing argument for option \"%.50s\"\n"
+msgstr "argument för flaggan \"%.50s\" saknas\n"
+
+#, c-format
+msgid "invalid argument for option \"%.50s\"\n"
+msgstr "ogiltigt argument för flaggan \"%.50s\"\n"
+
+#, c-format
+msgid "option \"%.50s\" does not expect an argument\n"
+msgstr "flaggan \"%.50s\" förväntar sig inte ett argument\n"
+
+#, c-format
+msgid "invalid command \"%.50s\"\n"
+msgstr "ogiltigt kommando \"%.50s\"\n"
+
+#, c-format
+msgid "option \"%.50s\" is ambiguous\n"
+msgstr "flagga \"%.50s\" är tvetydig\n"
+
+#, c-format
+msgid "command \"%.50s\" is ambiguous\n"
+msgstr "kommandot \"%.50s\" är tvetydigt\n"
+
+#, c-format
+msgid "invalid option \"%.50s\"\n"
+msgstr "ogiltig flagga \"%.50s\"\n"
+
+#, c-format
+msgid "Note: no default option file '%s'\n"
+msgstr "Observera: ingen standardfil för flaggor '%s'\n"
+
+#, c-format
+msgid "reading options from '%s'\n"
+msgstr "läser flaggor från '%s'\n"
+
+#, c-format
+msgid "option file '%s': %s\n"
+msgstr "flaggfilen '%s': %s\n"
+
+#, c-format
+msgid "Note: ignoring option \"--%s\" due to global config\n"
+msgstr ""
+"Observera: ignorerar flaggan \"--%s\" på grund av global konfiguration\n"
+
+msgid "Please report bugs to <https://bugs.gnupg.org>.\n"
+msgstr ""
+"Rapportera fel till <https://bugs.gnupg.org>.\n"
+"Rapportera översättningsfel till <tp-sv@listor.tp-sv.se>.\n"
+
+#, c-format
+msgid "warning: could not recognize %s\n"
+msgstr "varning: kände inte igen %s\n"
+
+#~ msgid "out of core\n"
+#~ msgstr "slut på minne\n"
+
+#~ msgid "Usage: %s GPG-ERROR [...]\n"
+#~ msgstr "Användning: %s GPG-ERROR [...]\n"
+
+#, fuzzy
+#~| msgid "Resources exhausted"
+#~ msgid "LCUP Resources exhausted"
+#~ msgstr "Resurser överansträngda"
+
+#, fuzzy
+#~| msgid "Invalid data"
+#~ msgid "LCUP Invalid data"
+#~ msgstr "Ogiltig data"
+
+#, fuzzy
+#~| msgid "General error"
+#~ msgid "LDAP Other general error"
+#~ msgstr "Allmänt fel"
+
+#, fuzzy
+#~| msgid "dirmngr error"
+#~ msgid "Encoding error"
+#~ msgstr "dirmngr-fel"

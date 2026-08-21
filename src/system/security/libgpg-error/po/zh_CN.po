@@ -1,0 +1,1542 @@
+# Simplified Chinese translation to libgpg-error.
+# Copyright (C) 2009 Free Software Foundation, Inc.
+# This file is distributed under the same license as the libgpg-error package.
+# Aron Xu <happyaron.xu@gmail.com>, 2009.
+# Chinese (simplified) <translation-team-zh-cn@lists.sourceforge.net>, 2009.
+# bobwxc <bobwxc@yeah.net>, 2020.
+# 请注意secret key在此处请译为私钥，密钥泛指key
+msgid ""
+msgstr ""
+"Project-Id-Version: libgpg-error 1.39\n"
+"Report-Msgid-Bugs-To: translations@gnupg.org\n"
+"PO-Revision-Date: 2021-03-22 10:44+0100\n"
+"Last-Translator: bobwxc <bobwxc@yeah.net>\n"
+"Language-Team: none\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 2.2.1\n"
+
+msgid "Unspecified source"
+msgstr "未指定源"
+
+msgid "gcrypt"
+msgstr "gcrypt"
+
+msgid "GnuPG"
+msgstr "GnuPG"
+
+msgid "GpgSM"
+msgstr "GpgSM"
+
+msgid "GPG Agent"
+msgstr "GPG Agent代理"
+
+msgid "Pinentry"
+msgstr "Pinentry"
+
+msgid "SCD"
+msgstr "SCD"
+
+msgid "GPGME"
+msgstr "GPGME"
+
+msgid "Keybox"
+msgstr "Keybox钥匙盒"
+
+msgid "KSBA"
+msgstr "KSBA"
+
+msgid "Dirmngr"
+msgstr "Dirmngr"
+
+msgid "GSTI"
+msgstr "GSTI"
+
+msgid "GPA"
+msgstr "GPA"
+
+msgid "Kleopatra"
+msgstr "Kleopatra"
+
+msgid "G13"
+msgstr "G13"
+
+msgid "Assuan"
+msgstr "Assuan"
+
+msgid "TPM2d"
+msgstr "TPM2d"
+
+msgid "TLS"
+msgstr "TLS"
+
+msgid "TKD"
+msgstr ""
+
+msgid "Any source"
+msgstr "任何来源"
+
+msgid "User defined source 1"
+msgstr "用户定义的来源 1"
+
+msgid "User defined source 2"
+msgstr "用户定义的来源 2"
+
+msgid "User defined source 3"
+msgstr "用户定义的来源 3"
+
+msgid "User defined source 4"
+msgstr "用户定义的来源 4"
+
+msgid "Unknown source"
+msgstr "未知来源"
+
+msgid "Success"
+msgstr "成功"
+
+msgid "General error"
+msgstr "常规错误"
+
+msgid "Unknown packet"
+msgstr "未知的包"
+
+msgid "Unknown version in packet"
+msgstr "包中未知的版本"
+
+msgid "Invalid public key algorithm"
+msgstr "无效的公钥算法"
+
+msgid "Invalid digest algorithm"
+msgstr "无效的摘要算法"
+
+msgid "Bad public key"
+msgstr "损坏的公钥"
+
+msgid "Bad secret key"
+msgstr "损坏的私钥"
+
+msgid "Bad signature"
+msgstr "损坏的签名"
+
+msgid "No public key"
+msgstr "缺少公钥"
+
+msgid "Checksum error"
+msgstr "校验错误"
+
+msgid "Bad passphrase"
+msgstr "损坏的密码"
+
+msgid "Invalid cipher algorithm"
+msgstr "无效的密码算法"
+
+msgid "Cannot open keyring"
+msgstr "无法打开钥匙环"
+
+msgid "Invalid packet"
+msgstr "无效的数据包"
+
+msgid "Invalid armor"
+msgstr "无效的保护壳"
+
+msgid "No user ID"
+msgstr "缺少用户标识"
+
+msgid "No secret key"
+msgstr "缺少私钥"
+
+msgid "Wrong secret key used"
+msgstr "使用了错误的私钥"
+
+msgid "Bad session key"
+msgstr "损坏的会话密钥"
+
+msgid "Unknown compression algorithm"
+msgstr "未知的压缩算法"
+
+msgid "Number is not prime"
+msgstr "不是素数"
+
+msgid "Invalid encoding method"
+msgstr "无效的编码方法"
+
+msgid "Invalid encryption scheme"
+msgstr "无效的加密方案"
+
+msgid "Invalid signature scheme"
+msgstr "无效的签名方案"
+
+msgid "Invalid attribute"
+msgstr "无效的属性"
+
+msgid "No value"
+msgstr "没有值"
+
+msgid "Not found"
+msgstr "未找到"
+
+msgid "Value not found"
+msgstr "没有发现值"
+
+msgid "Syntax error"
+msgstr "语法错误"
+
+msgid "Bad MPI value"
+msgstr "损坏的 MPI 值"
+
+msgid "Invalid passphrase"
+msgstr "无效的密码"
+
+msgid "Invalid signature class"
+msgstr "无效的签名类"
+
+msgid "Resources exhausted"
+msgstr "内存耗尽"
+
+msgid "Invalid keyring"
+msgstr "无效的密钥环"
+
+msgid "Trust DB error"
+msgstr "信任数据库错误"
+
+msgid "Bad certificate"
+msgstr "损坏的证书"
+
+msgid "Invalid user ID"
+msgstr "无效的用户标识"
+
+msgid "Unexpected error"
+msgstr "意外错误"
+
+msgid "Time conflict"
+msgstr "时间冲突"
+
+msgid "Keyserver error"
+msgstr "密钥服务器错误"
+
+msgid "Wrong public key algorithm"
+msgstr "错误的公开密钥算法"
+
+# 道格拉斯·亚当斯（Douglas Adams 1952年3月11日 -- 2001年5月11日）
+# 生于英国剑桥，英国广播剧作家、音乐家，尤其以《银河系漫游指南》
+# 系列作品出名。这部作品以广播剧起家，后来发展成包括五本书的“三
+# 部曲”，拍成电视连续剧。亚当斯逝世后还拍成电影。亚当斯自称为“极
+# 端无神论者”。在去世以前，他是一位非常受欢迎的演讲者，尤其是在
+# 科技和环保等题材方面。他在49岁时的早逝在科幻和奇幻社群中引起了
+# 极大的哀悼。
+msgid "Tribute to D. A."
+msgstr "向道格拉斯·亚当斯致敬"
+
+msgid "Weak encryption key"
+msgstr "弱加密密钥"
+
+msgid "Invalid key length"
+msgstr "无效的密钥长度"
+
+msgid "Invalid argument"
+msgstr "无效的参数"
+
+msgid "Syntax error in URI"
+msgstr "以下 URI 中语法错误"
+
+msgid "Invalid URI"
+msgstr "无效的 URI"
+
+msgid "Network error"
+msgstr "网络错误"
+
+msgid "Unknown host"
+msgstr "未知的主机"
+
+msgid "Selftest failed"
+msgstr "自测失败"
+
+msgid "Data not encrypted"
+msgstr "数据未加密"
+
+msgid "Data not processed"
+msgstr "数据未处理"
+
+msgid "Unusable public key"
+msgstr "不可用公钥"
+
+msgid "Unusable secret key"
+msgstr "不可用私钥"
+
+msgid "Invalid value"
+msgstr "无效值"
+
+msgid "Bad certificate chain"
+msgstr "损坏的证书链"
+
+msgid "Missing certificate"
+msgstr "缺失证书"
+
+msgid "No data"
+msgstr "无数据"
+
+msgid "Bug"
+msgstr "错误"
+
+msgid "Not supported"
+msgstr "不支持"
+
+msgid "Invalid operation code"
+msgstr "无效的操作码"
+
+msgid "Timeout"
+msgstr "超时"
+
+msgid "Internal error"
+msgstr "内部错误"
+
+msgid "EOF (gcrypt)"
+msgstr "EOF (gcrypt)"
+
+msgid "Invalid object"
+msgstr "无效的对象"
+
+msgid "Provided object is too short"
+msgstr "提供的对象太短"
+
+msgid "Provided object is too large"
+msgstr "提供的对象太大"
+
+msgid "Missing item in object"
+msgstr "对象中缺少项目"
+
+msgid "Not implemented"
+msgstr "未实现"
+
+msgid "Conflicting use"
+msgstr "冲突的用法"
+
+msgid "Invalid cipher mode"
+msgstr "无效的加密模式"
+
+msgid "Invalid flag"
+msgstr "无效标志"
+
+msgid "Invalid handle"
+msgstr "无效句柄"
+
+msgid "Result truncated"
+msgstr "结果已截断"
+
+msgid "Incomplete line"
+msgstr "不完整行"
+
+msgid "Invalid response"
+msgstr "无效的响应"
+
+msgid "No agent running"
+msgstr "未运行代理"
+
+msgid "Agent error"
+msgstr "Agent 代理错误"
+
+msgid "Invalid data"
+msgstr "无效的数据"
+
+msgid "Unspecific Assuan server fault"
+msgstr "不明的 Assuan 服务器错误"
+
+msgid "General Assuan error"
+msgstr "常规 Assuan 错误"
+
+msgid "Invalid session key"
+msgstr "无效的会话密钥"
+
+msgid "Invalid S-expression"
+msgstr "无效的 S-表达式"
+
+msgid "Unsupported algorithm"
+msgstr "不支持的算法"
+
+msgid "No pinentry"
+msgstr "缺少 pinentry"
+
+msgid "pinentry error"
+msgstr "pinentry 错误"
+
+msgid "Bad PIN"
+msgstr "损坏的 PIN"
+
+msgid "Invalid name"
+msgstr "无效的名称"
+
+msgid "Bad data"
+msgstr "不良数据"
+
+msgid "Invalid parameter"
+msgstr "无效的参数"
+
+msgid "Wrong card"
+msgstr "错误的卡"
+
+msgid "No dirmngr"
+msgstr "缺少 dirmngr"
+
+msgid "dirmngr error"
+msgstr "dirmngr 错误"
+
+msgid "Certificate revoked"
+msgstr "证书已吊销"
+
+msgid "No CRL known"
+msgstr "无已知的 CRL"
+
+msgid "CRL too old"
+msgstr "CRL 过于陈旧"
+
+msgid "Line too long"
+msgstr "行太长"
+
+msgid "Not trusted"
+msgstr "不信任"
+
+msgid "Operation cancelled"
+msgstr "操作已取消"
+
+msgid "Bad CA certificate"
+msgstr "损坏的 CA 证书"
+
+msgid "Certificate expired"
+msgstr "证书已过期"
+
+msgid "Certificate too young"
+msgstr "证书太新"
+
+msgid "Unsupported certificate"
+msgstr "不支持的凭证"
+
+msgid "Unknown S-expression"
+msgstr "未知的 S-表达式"
+
+msgid "Unsupported protection"
+msgstr "不受支持的保护"
+
+msgid "Corrupted protection"
+msgstr "损坏的保护"
+
+msgid "Ambiguous name"
+msgstr "名称不明确"
+
+msgid "Card error"
+msgstr "卡错误"
+
+msgid "Card reset required"
+msgstr "要求重置卡"
+
+msgid "Card removed"
+msgstr "卡已删除"
+
+msgid "Invalid card"
+msgstr "无效的卡"
+
+msgid "Card not present"
+msgstr "卡不存在"
+
+msgid "No PKCS15 application"
+msgstr "没有 PKCS15 应用程序"
+
+msgid "Not confirmed"
+msgstr "未确认"
+
+msgid "Configuration error"
+msgstr "配置错误"
+
+msgid "No policy match"
+msgstr "没有匹配的规则"
+
+msgid "Invalid index"
+msgstr "无效的索引"
+
+msgid "Invalid ID"
+msgstr "无效的 ID"
+
+msgid "No SmartCard daemon"
+msgstr "没有智能卡守护进程"
+
+msgid "SmartCard daemon error"
+msgstr "智能卡守护程序错误"
+
+msgid "Unsupported protocol"
+msgstr "不支持的协议"
+
+msgid "Bad PIN method"
+msgstr "无效的 PIN 方法"
+
+msgid "Card not initialized"
+msgstr "卡未初始化"
+
+msgid "Unsupported operation"
+msgstr "不支持的操作"
+
+msgid "Wrong key usage"
+msgstr "错误的密钥用法"
+
+msgid "Nothing found"
+msgstr "未找到"
+
+msgid "Wrong blob type"
+msgstr "错误的 blob 类型"
+
+msgid "Missing value"
+msgstr "缺失值"
+
+msgid "Hardware problem"
+msgstr "硬件问题"
+
+msgid "PIN blocked"
+msgstr "PIN 已屏蔽"
+
+msgid "Conditions of use not satisfied"
+msgstr "使用条件不满足"
+
+msgid "PINs are not synced"
+msgstr "PINs 不同步"
+
+msgid "Invalid CRL"
+msgstr "无效的 CRL"
+
+msgid "BER error"
+msgstr "BER 错误"
+
+msgid "Invalid BER"
+msgstr "无效的 BER"
+
+msgid "Element not found"
+msgstr "未找到元素"
+
+msgid "Identifier not found"
+msgstr "未找到标识符"
+
+msgid "Invalid tag"
+msgstr "无效的标签"
+
+msgid "Invalid length"
+msgstr "无效的长度"
+
+msgid "Invalid key info"
+msgstr "无效的密钥信息"
+
+msgid "Unexpected tag"
+msgstr "意外的标记"
+
+msgid "Not DER encoded"
+msgstr "非 DER 编码"
+
+msgid "No CMS object"
+msgstr "没有 CMS 对象"
+
+msgid "Invalid CMS object"
+msgstr "无效的 CMS 对象"
+
+msgid "Unknown CMS object"
+msgstr "未知的 CMS 对象"
+
+msgid "Unsupported CMS object"
+msgstr "不支持的 CMS 对象"
+
+msgid "Unsupported encoding"
+msgstr "不支持的编码"
+
+msgid "Unsupported CMS version"
+msgstr "不支持的 CMS 版本"
+
+msgid "Unknown algorithm"
+msgstr "未知的算法"
+
+msgid "Invalid crypto engine"
+msgstr "无效的加密引擎"
+
+msgid "Public key not trusted"
+msgstr "公钥不被信任"
+
+msgid "Decryption failed"
+msgstr "解密失败"
+
+msgid "Key expired"
+msgstr "密钥已过期"
+
+msgid "Signature expired"
+msgstr "签名过期"
+
+msgid "Encoding problem"
+msgstr "编码问题"
+
+msgid "Invalid state"
+msgstr "无效状态"
+
+msgid "Duplicated value"
+msgstr "重复值"
+
+msgid "Missing action"
+msgstr "动作缺失"
+
+msgid "ASN.1 module not found"
+msgstr "ASN.1 模块未找到"
+
+msgid "Invalid OID string"
+msgstr "无效的 OID 字符串"
+
+msgid "Invalid time"
+msgstr "无效的时间"
+
+msgid "Invalid CRL object"
+msgstr "无效的 CRL 对象"
+
+msgid "Unsupported CRL version"
+msgstr "不支持的 CRL 版本"
+
+msgid "Invalid certificate object"
+msgstr "无效的证书对象"
+
+msgid "Unknown name"
+msgstr "未知名称"
+
+msgid "A locale function failed"
+msgstr "区域设置功能失败"
+
+msgid "Not locked"
+msgstr "未锁定"
+
+msgid "Protocol violation"
+msgstr "违反协议"
+
+msgid "Invalid MAC"
+msgstr "无效的 MAC"
+
+msgid "Invalid request"
+msgstr "无效的请求"
+
+msgid "Unknown extension"
+msgstr "未知的扩展名"
+
+msgid "Unknown critical extension"
+msgstr "未知的关键扩展"
+
+msgid "Locked"
+msgstr "已锁定"
+
+msgid "Unknown option"
+msgstr "未知的选项"
+
+msgid "Unknown command"
+msgstr "未知命令"
+
+msgid "Not operational"
+msgstr "不可操作"
+
+msgid "No passphrase given"
+msgstr "没有给出密码"
+
+msgid "No PIN given"
+msgstr "没有给出 PIN"
+
+msgid "Not enabled"
+msgstr "不可用"
+
+msgid "No crypto engine"
+msgstr "无效的加密引擎"
+
+msgid "Missing key"
+msgstr "密钥缺失"
+
+msgid "Too many objects"
+msgstr "对象过多"
+
+msgid "Limit reached"
+msgstr "已达极限"
+
+msgid "Not initialized"
+msgstr "未初始化"
+
+msgid "Missing issuer certificate"
+msgstr "缺少颁发者证书"
+
+msgid "No keyserver available"
+msgstr "无可用密钥服务器"
+
+msgid "Invalid elliptic curve"
+msgstr "无效椭圆曲线"
+
+msgid "Unknown elliptic curve"
+msgstr "来源不明的椭圆曲线"
+
+msgid "Duplicated key"
+msgstr "重复的密钥"
+
+msgid "Ambiguous result"
+msgstr "结果不明确"
+
+msgid "No crypto context"
+msgstr "无加密上下文"
+
+msgid "Wrong crypto context"
+msgstr "错误的加密上下文"
+
+msgid "Bad crypto context"
+msgstr "错误的的加密上下文"
+
+msgid "Conflict in the crypto context"
+msgstr "冲突的加密上下文"
+
+msgid "Broken public key"
+msgstr "损坏的公钥"
+
+msgid "Broken secret key"
+msgstr "损坏的私钥"
+
+msgid "Invalid MAC algorithm"
+msgstr "无效的 MAC 算法"
+
+msgid "Operation fully cancelled"
+msgstr "操作已取消"
+
+msgid "Operation not yet finished"
+msgstr "操作尚未完成"
+
+msgid "Buffer too short"
+msgstr "缓冲区太短"
+
+msgid "Invalid length specifier in S-expression"
+msgstr "S-表达式的长度标志符无效"
+
+msgid "String too long in S-expression"
+msgstr "S-表达式的字符串太长"
+
+msgid "Unmatched parentheses in S-expression"
+msgstr "S-表达式中括号不匹配"
+
+msgid "S-expression not canonical"
+msgstr "不规范的 S-表达式"
+
+msgid "Bad character in S-expression"
+msgstr "S-表达式中字符错误"
+
+msgid "Bad quotation in S-expression"
+msgstr "S-表达式中引号错误"
+
+msgid "Zero prefix in S-expression"
+msgstr "S-表达式零前缀"
+
+msgid "Nested display hints in S-expression"
+msgstr "S-表达式嵌套显示提示"
+
+msgid "Unmatched display hints"
+msgstr "不匹配的嵌套显示提示"
+
+msgid "Unexpected reserved punctuation in S-expression"
+msgstr "S-表达式中出现意外的保留标点"
+
+msgid "Bad hexadecimal character in S-expression"
+msgstr "S-表达式中十六进制字符错误"
+
+msgid "Odd hexadecimal numbers in S-expression"
+msgstr "S-表达式中十六进制数异常"
+
+msgid "Bad octal character in S-expression"
+msgstr "S-表达式中八进制字符错误"
+
+#, fuzzy
+#| msgid "Invalid public key algorithm"
+msgid "Non-compliant public key algorithm"
+msgstr "无效的公钥算法"
+
+#, fuzzy
+#| msgid "No cipher algorithm"
+msgid "Non-compliant cipher algorithm"
+msgstr "无密码算法"
+
+#, fuzzy
+#| msgid "Unexpected tag"
+msgid "Unexpected packet"
+msgstr "意外的标记"
+
+msgid "All subkeys are expired or revoked"
+msgstr "所有子密钥均已过期或吊销"
+
+msgid "Database is corrupted"
+msgstr "数据库已损坏"
+
+msgid "Server indicated a failure"
+msgstr "服务器故障"
+
+msgid "No name"
+msgstr "无名称"
+
+msgid "No key"
+msgstr "没有密钥"
+
+msgid "Legacy key"
+msgstr "遗留密钥"
+
+msgid "Request too short"
+msgstr "请求过短"
+
+msgid "Request too long"
+msgstr "请求过长"
+
+msgid "Object is in termination state"
+msgstr "对象处于终止状态"
+
+msgid "No certificate chain"
+msgstr "无证书链"
+
+msgid "Certificate is too large"
+msgstr "证书过大"
+
+msgid "Invalid record"
+msgstr "无效记录"
+
+msgid "The MAC does not verify"
+msgstr "MAC 未经验证"
+
+msgid "Unexpected message"
+msgstr "意外消息"
+
+msgid "Compression or decompression failed"
+msgstr "压缩或解压失败"
+
+msgid "A counter would wrap"
+msgstr "计数器将更新"
+
+msgid "Fatal alert message received"
+msgstr "收到致命错误消息"
+
+msgid "No cipher algorithm"
+msgstr "无密码算法"
+
+msgid "Missing client certificate"
+msgstr "缺少客户端证书"
+
+msgid "Close notification received"
+msgstr "收到关闭通知"
+
+msgid "Ticket expired"
+msgstr "凭证已过期"
+
+msgid "Bad ticket"
+msgstr "损坏的凭证"
+
+msgid "Unknown identity"
+msgstr "未知身份"
+
+msgid "Bad certificate message in handshake"
+msgstr "握手证书消息错误"
+
+msgid "Bad certificate request message in handshake"
+msgstr "握手证书请求消息错误"
+
+msgid "Bad certificate verify message in handshake"
+msgstr "握手证书验证消息错误"
+
+msgid "Bad change cipher message in handshake"
+msgstr "握手更改密码消息错误"
+
+msgid "Bad client hello message in handshake"
+msgstr "握手客户端问候消息错误"
+
+msgid "Bad server hello message in handshake"
+msgstr "握手服务端问候消息错误"
+
+msgid "Bad server hello done message in handshake"
+msgstr "握手服务端问候完成消息错误"
+
+msgid "Bad finished message in handshake"
+msgstr "握手完成消息错误"
+
+msgid "Bad server key exchange message in handshake"
+msgstr "握手服务端密钥交换消息错误"
+
+msgid "Bad client key exchange message in handshake"
+msgstr "握手客户端密钥交换消息错误"
+
+msgid "Bogus string"
+msgstr "伪造的字符串"
+
+msgid "Forbidden"
+msgstr "禁止"
+
+msgid "Key disabled"
+msgstr "密钥不可用"
+
+msgid "Not possible with a card based key"
+msgstr "无法使用基于卡的密钥"
+
+msgid "Invalid lock object"
+msgstr "锁定对象无效"
+
+msgid "True"
+msgstr "正确"
+
+msgid "False"
+msgstr "错误"
+
+msgid "General IPC error"
+msgstr "常规 IPC 错误"
+
+msgid "IPC accept call failed"
+msgstr "IPC 接受调用失败"
+
+msgid "IPC connect call failed"
+msgstr "IPC 连接调用失败"
+
+msgid "Invalid IPC response"
+msgstr "无效 IPC 响应"
+
+msgid "Invalid value passed to IPC"
+msgstr "传递给 IPC 的值无效"
+
+msgid "Incomplete line passed to IPC"
+msgstr "传递给 IPC 的行不完整"
+
+msgid "Line passed to IPC too long"
+msgstr "传递给 IPC 的行过长"
+
+msgid "Nested IPC commands"
+msgstr "嵌套的 IPC 命令"
+
+msgid "No data callback in IPC"
+msgstr "IPC 无数据回调"
+
+msgid "No inquire callback in IPC"
+msgstr "IPC 无查询回调"
+
+msgid "Not an IPC server"
+msgstr "不是 IPC 服务器"
+
+msgid "Not an IPC client"
+msgstr "不是 IPC 客户端"
+
+msgid "Problem starting IPC server"
+msgstr "启动 IPC 服务器时出现问题"
+
+msgid "IPC read error"
+msgstr "IPC 读取错误"
+
+msgid "IPC write error"
+msgstr "IPC 写入错误"
+
+msgid "Too much data for IPC layer"
+msgstr "IPC 层数据过多"
+
+msgid "Unexpected IPC command"
+msgstr "意外的 IPC 命令"
+
+msgid "Unknown IPC command"
+msgstr "未知 IPC 命令"
+
+msgid "IPC syntax error"
+msgstr "IPC 语法错误"
+
+msgid "IPC call has been cancelled"
+msgstr "IPC 调用已取消"
+
+msgid "No input source for IPC"
+msgstr "IPC 无输入源"
+
+msgid "No output source for IPC"
+msgstr "IPC 无输出源"
+
+msgid "IPC parameter error"
+msgstr "IPC 参数错误"
+
+msgid "Unknown IPC inquire"
+msgstr "未知 IPC 查询"
+
+msgid "Crypto engine too old"
+msgstr "加密引擎太旧"
+
+msgid "Screen or window too small"
+msgstr "屏幕或窗口过小"
+
+msgid "Screen or window too large"
+msgstr "屏幕或窗口过大"
+
+msgid "Required environment variable not set"
+msgstr "未设置所需的环境变量"
+
+msgid "User ID already exists"
+msgstr "用户标志已存在"
+
+msgid "Name already exists"
+msgstr "名称已存在"
+
+msgid "Duplicated name"
+msgstr "重复的名称"
+
+msgid "Object is too young"
+msgstr "对象太新"
+
+msgid "Object is too old"
+msgstr "对象太旧"
+
+msgid "Unknown flag"
+msgstr "未知标志"
+
+msgid "Invalid execution order"
+msgstr "无效的执行顺序"
+
+msgid "Already fetched"
+msgstr "已提取"
+
+msgid "Try again later"
+msgstr "稍后再试"
+
+msgid "Wrong name"
+msgstr "错误名称"
+
+msgid "Not authenticated"
+msgstr "未验证"
+
+msgid "Bad authentication"
+msgstr "无效验证"
+
+msgid "No Keybox daemon running"
+msgstr "无运行的 Keybox 守护进程"
+
+msgid "Keybox daemon error"
+msgstr "Keybox 守护进程错误"
+
+msgid "Service is not running"
+msgstr "服务未运行"
+
+msgid "Service error"
+msgstr "服务错误"
+
+#, fuzzy
+#| msgid "Bad PIN"
+msgid "Bad PUK"
+msgstr "损坏的 PIN"
+
+msgid "No reset code"
+msgstr ""
+
+#, fuzzy
+#| msgid "Bad secret key"
+msgid "Bad reset code"
+msgstr "损坏的私钥"
+
+#, fuzzy
+#| msgid "Invalid digest algorithm"
+msgid "Non-compliant digest algorithm"
+msgstr "无效的摘要算法"
+
+msgid "System bug detected"
+msgstr "检测到系统错误"
+
+msgid "Unknown DNS error"
+msgstr "未知的 DNS 错误"
+
+msgid "Invalid DNS section"
+msgstr "无效的 DNS 部分"
+
+msgid "Invalid textual address form"
+msgstr "无效的文本地址形式"
+
+msgid "Missing DNS query packet"
+msgstr "缺少 DNS 查询数据包"
+
+msgid "Missing DNS answer packet"
+msgstr "缺少 DNS 答应数据包"
+
+msgid "Connection closed in DNS"
+msgstr "DNS 连接关闭"
+
+msgid "Verification failed in DNS"
+msgstr "DNS 验证失败"
+
+msgid "DNS Timeout"
+msgstr "DNS 超时"
+
+msgid "General LDAP error"
+msgstr "常规 LDAP 错误"
+
+msgid "General LDAP attribute error"
+msgstr "常规 LDAP 属性错误"
+
+msgid "General LDAP name error"
+msgstr "常规 LDAP 名称错误"
+
+msgid "General LDAP security error"
+msgstr "常规 LDAP 安全错误"
+
+msgid "General LDAP service error"
+msgstr "常规 LDAP 服务错误"
+
+msgid "General LDAP update error"
+msgstr "常规 LDAP 升级错误"
+
+msgid "Experimental LDAP error code"
+msgstr "实验性 LDAP 错误代码"
+
+msgid "Private LDAP error code"
+msgstr "专用 LDAP 错误代码"
+
+msgid "Other general LDAP error"
+msgstr "其他常规 LDAP 错误"
+
+msgid "LDAP connecting failed (X)"
+msgstr "LDAP 连接失败（X）"
+
+msgid "LDAP referral limit exceeded"
+msgstr "超过 LDAP 引用限制"
+
+msgid "LDAP client loop"
+msgstr "LDAP 客户端循环"
+
+msgid "No LDAP results returned"
+msgstr "无 LDAP 结果返回"
+
+msgid "LDAP control not found"
+msgstr "未找到 LDAP 控件"
+
+msgid "Not supported by LDAP"
+msgstr "不受 LDAP 支持"
+
+msgid "LDAP connect error"
+msgstr "LDAP 连接错误"
+
+msgid "Out of memory in LDAP"
+msgstr "LDAP 内存不足"
+
+msgid "Bad parameter to an LDAP routine"
+msgstr "LDAP 事务参数错误"
+
+msgid "User cancelled LDAP operation"
+msgstr "用户取消 LDAP 操作"
+
+msgid "Bad LDAP search filter"
+msgstr "错误的 LDAP 搜索过滤器"
+
+msgid "Unknown LDAP authentication method"
+msgstr "未知的 LDAP 身份验证方法"
+
+msgid "Timeout in LDAP"
+msgstr "LDAP 超时"
+
+msgid "LDAP decoding error"
+msgstr "LDAP 解码错误"
+
+msgid "LDAP encoding error"
+msgstr "LDAP 编码错误"
+
+msgid "LDAP local error"
+msgstr "LDAP 本地错误"
+
+msgid "Cannot contact LDAP server"
+msgstr "无法联络 LDAP 服务器"
+
+msgid "LDAP success"
+msgstr "LDAP 成功"
+
+msgid "LDAP operations error"
+msgstr "LDAP 操作错误"
+
+msgid "LDAP protocol error"
+msgstr "LDAP 协议错误"
+
+msgid "Time limit exceeded in LDAP"
+msgstr "超过 LDAP 时间限制"
+
+msgid "Size limit exceeded in LDAP"
+msgstr "超过 LDAP 大小限制"
+
+msgid "LDAP compare false"
+msgstr "LDAP 比较错误"
+
+msgid "LDAP compare true"
+msgstr "LDAP 比较正确"
+
+msgid "LDAP authentication method not supported"
+msgstr "不支持的 LDAP 身份验证方法"
+
+msgid "Strong(er) LDAP authentication required"
+msgstr "需要增强的 LDAP 身份验证"
+
+msgid "Partial LDAP results+referral received"
+msgstr "收到部分 LDAP 结果与引用"
+
+msgid "LDAP referral"
+msgstr "LDAP 转送"
+
+msgid "Administrative LDAP limit exceeded"
+msgstr "超过管理 LDAP 限制"
+
+msgid "Critical LDAP extension is unavailable"
+msgstr "关键 LDAP 扩展不可用"
+
+msgid "Confidentiality required by LDAP"
+msgstr "LDAP 要求保密"
+
+msgid "LDAP SASL bind in progress"
+msgstr "正在进行 LDAP SASL 绑定"
+
+msgid "No such LDAP attribute"
+msgstr "没有此 LDAP 属性"
+
+msgid "Undefined LDAP attribute type"
+msgstr "未定义的 LDAP 属性类型"
+
+msgid "Inappropriate matching in LDAP"
+msgstr "LDAP 不当匹配"
+
+msgid "Constraint violation in LDAP"
+msgstr "LDAP 约束冲突"
+
+msgid "LDAP type or value exists"
+msgstr "LDAP 类型或值存在"
+
+msgid "Invalid syntax in LDAP"
+msgstr "LDAP 语法无效"
+
+msgid "No such LDAP object"
+msgstr "无此 LDAP 对象"
+
+msgid "LDAP alias problem"
+msgstr "LDAP 别名问题"
+
+msgid "Invalid DN syntax in LDAP"
+msgstr "LDAP 无效的 DN 语法"
+
+msgid "LDAP entry is a leaf"
+msgstr "LDAP 叶状入口"
+
+msgid "LDAP alias dereferencing problem"
+msgstr "LDAP 别名引用取消问题"
+
+msgid "LDAP proxy authorization failure (X)"
+msgstr "LDAP 代理授权失败（X）"
+
+msgid "Inappropriate LDAP authentication"
+msgstr "不当 LDAP 身份验证"
+
+msgid "Invalid LDAP credentials"
+msgstr "无效 LDAP 凭据"
+
+msgid "Insufficient access for LDAP"
+msgstr "无 LDAP 访问权限"
+
+msgid "LDAP server is busy"
+msgstr "LDAP 服务器忙"
+
+msgid "LDAP server is unavailable"
+msgstr "LDAP 服务器不可用"
+
+msgid "LDAP server is unwilling to perform"
+msgstr "LDAP 服务器拒绝执行"
+
+msgid "Loop detected by LDAP"
+msgstr "LDAP 检测到循环"
+
+msgid "LDAP naming violation"
+msgstr "LDAP 命名冲突"
+
+msgid "LDAP object class violation"
+msgstr "LDAP 对象类冲突"
+
+msgid "LDAP operation not allowed on non-leaf"
+msgstr "不允许在非叶上执行 LDAP 操作"
+
+msgid "LDAP operation not allowed on RDN"
+msgstr "RDN 上不允许 LDAP 操作"
+
+msgid "Already exists (LDAP)"
+msgstr "已存在（LDAP）"
+
+msgid "Cannot modify LDAP object class"
+msgstr "无法修改 LDAP 对象类"
+
+msgid "LDAP results too large"
+msgstr "LDAP 结果过大"
+
+msgid "LDAP operation affects multiple DSAs"
+msgstr "LDAP 操作影响多个 DSA"
+
+msgid "Virtual LDAP list view error"
+msgstr "虚拟 LDAP 列表浏览错误"
+
+msgid "Other LDAP error"
+msgstr "其他 LDAP 错误"
+
+msgid "Resources exhausted in LCUP"
+msgstr "LCUP 内存耗尽"
+
+msgid "Security violation in LCUP"
+msgstr "LCUP 安全冲突"
+
+msgid "Invalid data in LCUP"
+msgstr "LCUP 数据无效"
+
+msgid "Unsupported scheme in LCUP"
+msgstr "LCUP 不支持的方案"
+
+msgid "Reload required in LCUP"
+msgstr "LCUP 需要重新加载"
+
+msgid "LDAP cancelled"
+msgstr "LDAP 已取消"
+
+msgid "No LDAP operation to cancel"
+msgstr "没有要取消的 LDAP 操作"
+
+msgid "Too late to cancel LDAP"
+msgstr "LDAP 已不能取消"
+
+msgid "Cannot cancel LDAP"
+msgstr "无法取消 LDAP"
+
+msgid "LDAP assertion failed"
+msgstr "LDAP 断言失败"
+
+msgid "Proxied authorization denied by LDAP"
+msgstr "LDAP 拒绝代理授权"
+
+msgid "User defined error code 1"
+msgstr "用户定义的错误代码 1"
+
+msgid "User defined error code 2"
+msgstr "用户定义的错误代码 2"
+
+msgid "User defined error code 3"
+msgstr "用户定义的错误代码 3"
+
+msgid "User defined error code 4"
+msgstr "用户定义的错误代码 4"
+
+msgid "User defined error code 5"
+msgstr "用户定义的错误代码 5"
+
+msgid "User defined error code 6"
+msgstr "用户定义的错误代码 6"
+
+msgid "User defined error code 7"
+msgstr "用户定义的错误代码 7"
+
+msgid "User defined error code 8"
+msgstr "用户定义的错误代码 8"
+
+msgid "User defined error code 9"
+msgstr "用户定义的错误代码 9"
+
+msgid "User defined error code 10"
+msgstr "用户定义的错误代码 10"
+
+msgid "User defined error code 11"
+msgstr "用户定义的错误代码 11"
+
+msgid "User defined error code 12"
+msgstr "用户定义的错误代码 12"
+
+msgid "User defined error code 13"
+msgstr "用户定义的错误代码 13"
+
+msgid "User defined error code 14"
+msgstr "用户定义的错误代码 14"
+
+msgid "User defined error code 15"
+msgstr "用户定义的错误代码 15"
+
+msgid "User defined error code 16"
+msgstr "用户定义的错误代码 16"
+
+msgid "SQL success"
+msgstr "SQL 成功"
+
+msgid "SQL error"
+msgstr "SQL 错误"
+
+msgid "Internal logic error in SQL library"
+msgstr "SQL 库存在内部逻辑错误"
+
+msgid "Access permission denied (SQL)"
+msgstr "SQL 无访问权限"
+
+msgid "SQL abort was requested"
+msgstr "SQL 请求中止"
+
+msgid "SQL database file is locked"
+msgstr "SQL 数据库文件已锁定"
+
+msgid "An SQL table in the database is locked"
+msgstr "数据库中的表被锁定"
+
+msgid "SQL library ran out of core"
+msgstr "SQL 库耗尽核心资源"
+
+msgid "Attempt to write a readonly SQL database"
+msgstr "尝试写入只读 SQL 数据库"
+
+msgid "SQL operation terminated by interrupt"
+msgstr "SQL 操作被中断终止"
+
+msgid "I/O error during SQL operation"
+msgstr "SQL 操作I/O错误"
+
+msgid "SQL database disk image is malformed"
+msgstr "SQL 数据库磁盘映像格式错误"
+
+msgid "Unknown opcode in SQL file control"
+msgstr "SQL 文件未知操作码"
+
+msgid "Insertion failed because SQL database is full"
+msgstr "插入失败，因为 SQL 数据库已满"
+
+msgid "Unable to open the SQL database file"
+msgstr "无法打开 SQL 数据库文件"
+
+msgid "SQL database lock protocol error"
+msgstr "SQL 数据库锁定协议错误"
+
+msgid "(internal SQL code: empty)"
+msgstr "（内部 SQL 代码：empty 空）"
+
+msgid "SQL database schema changed"
+msgstr "SQL 数据库架构已更改"
+
+msgid "String or blob exceeds size limit (SQL)"
+msgstr "SQL 字符串或blob超出大小限制"
+
+msgid "SQL abort due to constraint violation"
+msgstr "SQL 约束冲突导致中止"
+
+msgid "Data type mismatch (SQL)"
+msgstr "SQL 数据类型不匹配"
+
+msgid "SQL library used incorrectly"
+msgstr "SQL 库使用错误"
+
+msgid "SQL library uses unsupported OS features"
+msgstr "SQL 库使用了不支持的操作系统功能"
+
+msgid "Authorization denied (SQL)"
+msgstr "SQL 授权拒绝"
+
+msgid "(unused SQL code: format)"
+msgstr "（未使用的SQL代码：format 格式）"
+
+msgid "SQL bind parameter out of range"
+msgstr "SQL 绑定参数越界"
+
+msgid "File opened that is not an SQL database file"
+msgstr "打开的文件不是 SQL 数据库文件"
+
+msgid "Notifications from SQL logger"
+msgstr "来自 SQL 日志记录的通知"
+
+msgid "Warnings from SQL logger"
+msgstr "来自 SQL 日志记录的警告"
+
+msgid "SQL has another row ready"
+msgstr "SQL 已准备好另一行"
+
+msgid "SQL has finished executing"
+msgstr "SQL 已执行完成"
+
+msgid "System error w/o errno"
+msgstr "系统错误，无错误号"
+
+msgid "Unknown system error"
+msgstr "未知的系统错误"
+
+msgid "End of file"
+msgstr "文件结尾"
+
+msgid "Unknown error code"
+msgstr "未知的错误代码"
+
+msgid "argument not expected"
+msgstr "非期望参数"
+
+msgid "read error"
+msgstr "读取错误"
+
+msgid "keyword too long"
+msgstr "关键字太长"
+
+msgid "missing argument"
+msgstr "缺少参数"
+
+msgid "invalid argument"
+msgstr "无效参数"
+
+msgid "invalid command"
+msgstr "无效命令"
+
+msgid "invalid alias definition"
+msgstr "无效别名定义"
+
+msgid "permission error"
+msgstr "权限错误"
+
+msgid "out of core"
+msgstr "核心外"
+
+msgid "invalid meta command"
+msgstr "无效元命令"
+
+msgid "unknown meta command"
+msgstr "未知元命令"
+
+msgid "unexpected meta command"
+msgstr "意外元命令"
+
+msgid "invalid option"
+msgstr "无效的列表选项"
+
+#, c-format
+msgid "missing argument for option \"%.50s\"\n"
+msgstr "选项\"%.50s\"缺少参数\n"
+
+#, c-format
+msgid "invalid argument for option \"%.50s\"\n"
+msgstr "选项\"%.50s\"参数无效\n"
+
+#, c-format
+msgid "option \"%.50s\" does not expect an argument\n"
+msgstr "选项\"%.50s\"参数多余\n"
+
+#, c-format
+msgid "invalid command \"%.50s\"\n"
+msgstr "无效指令 \"%.50s\"\n"
+
+#, c-format
+msgid "option \"%.50s\" is ambiguous\n"
+msgstr "选项 \"%.50s\" 不明确\n"
+
+#, c-format
+msgid "command \"%.50s\" is ambiguous\n"
+msgstr "命令 \"%.50s\" 不明确\n"
+
+#, c-format
+msgid "invalid option \"%.50s\"\n"
+msgstr "无效的选项 \"%.50s\"\n"
+
+#, c-format
+msgid "Note: no default option file '%s'\n"
+msgstr "注意：文件 '%s' 中无默认选项\n"
+
+#, c-format
+msgid "reading options from '%s'\n"
+msgstr "从 '%s' 中读取选项\n"
+
+#, c-format
+msgid "option file '%s': %s\n"
+msgstr "选项文件 '%s': %s\n"
+
+#, c-format
+msgid "Note: ignoring option \"--%s\" due to global config\n"
+msgstr "注意： 由于整体配置，选项 \"--%s\" 被忽视\n"
+
+msgid "Please report bugs to <https://bugs.gnupg.org>.\n"
+msgstr "请向 <https://bugs.gnupg.org> 报告软件错误。\n"
+
+#, c-format
+msgid "warning: could not recognize %s\n"
+msgstr "警告：无法识别 %s\n"

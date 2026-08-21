@@ -4,5 +4,4 @@ URIs: https://packages.mattsherfey.com
 Suites: trixie
 Components: main
 Architectures: amd64
-Signed-By: /usr/share/keyrings/mattos-archive-keyring.gpg
-
+Signed-By: /usr/share/keyrings/mattos-archive-keyring.asc

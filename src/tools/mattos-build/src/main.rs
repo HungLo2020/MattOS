@@ -4117,6 +4117,12 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::Dbus => build_dbus(repo_root),
         BuildStage::DbusBroker => build_dbus_broker(repo_root),
         BuildStage::Dpkg => packaging::build_dpkg(repo_root),
+        BuildStage::LibgpgError => build_gpg_autotools_library(repo_root, "libgpg-error", &[], "libgpg-error.so.0"),
+        BuildStage::Libgcrypt => build_gpg_autotools_library(repo_root, "libgcrypt", &["libgpg-error"], "libgcrypt.so.20"),
+        BuildStage::Libassuan => build_gpg_autotools_library(repo_root, "libassuan", &["libgpg-error"], "libassuan.so.9"),
+        BuildStage::Libksba => build_gpg_autotools_library(repo_root, "libksba", &["libgpg-error"], "libksba.so.8"),
+        BuildStage::Npth => build_gpg_autotools_library(repo_root, "npth", &[], "libnpth.so.0"),
+        BuildStage::Gpgv => build_gpgv(repo_root),
         BuildStage::Apt => packaging::build_apt(repo_root),
         BuildStage::Init => build_init(repo_root),
         BuildStage::Installer => build_installer(repo_root),
@@ -11019,6 +11025,277 @@ fn build_zstd(repo_root: &Path) -> Result<()> {
     }
     if !install_dir.join("usr/bin/zstd").is_file() {
         bail!("Zstandard install did not produce usr/bin/zstd");
+    }
+    fs::write(&stamp_path, stamp)?;
+    Ok(())
+}
+
+fn build_gpg_autotools_library(
+    repo_root: &Path,
+    component: &str,
+    dependency_components: &[&str],
+    expected_soname: &str,
+) -> Result<()> {
+    let source = repo_root.join("src/system/security").join(component);
+    let out_root = repo_root.join("out/build").join(component);
+    let source_copy = out_root.join("source");
+    let build_dir = out_root.join("build");
+    let install_dir = out_root.join("install");
+    let stamp_path = out_root.join("build-stamp.txt");
+    let state = fs::read_to_string(
+        repo_root
+            .join("upstream/state")
+            .join(format!("{component}.toml")),
+    )
+    .with_context(|| format!("failed to read {component} upstream state"))?;
+
+    let mut include_dirs = Vec::new();
+    let mut library_dirs = Vec::new();
+    let mut pkgconfig_dirs = Vec::new();
+    for dependency in dependency_components {
+        let usr = repo_root.join("out/build").join(dependency).join("install/usr");
+        include_dirs.push(usr.join("include"));
+        library_dirs.push(usr.join("lib/x86_64-linux-gnu"));
+        pkgconfig_dirs.push(usr.join("lib/x86_64-linux-gnu/pkgconfig"));
+    }
+    let cppflags = include_dirs
+        .iter()
+        .map(|path| format!("-I{}", path.display()))
+        .collect::<Vec<_>>()
+        .join(" ");
+    let ldflags = library_dirs
+        .iter()
+        .map(|path| format!("-L{}", path.display()))
+        .collect::<Vec<_>>()
+        .join(" ");
+    let library_path = std::env::join_paths(&library_dirs)?.to_string_lossy().to_string();
+    let pkgconfig_path = std::env::join_paths(&pkgconfig_dirs)?.to_string_lossy().to_string();
+    let mut tool_path = dependency_components
+        .iter()
+        .map(|dependency| {
+            repo_root
+                .join("out/build")
+                .join(dependency)
+                .join("install/usr/bin")
+        })
+        .collect::<Vec<_>>();
+    tool_path.extend(std::env::split_paths(
+        &std::env::var_os("PATH").unwrap_or_default(),
+    ));
+    let tool_path = std::env::join_paths(tool_path)?.to_string_lossy().to_string();
+    let env_overrides = [
+        ("SOURCE_DATE_EPOCH", MATTOS_SOURCE_DATE_EPOCH.to_string()),
+        ("CPPFLAGS", cppflags),
+        ("LDFLAGS", ldflags),
+        ("LIBRARY_PATH", library_path.clone()),
+        ("LD_LIBRARY_PATH", library_path),
+        ("PKG_CONFIG_PATH", pkgconfig_path),
+        ("PATH", tool_path),
+    ];
+    let options = [
+        "--prefix=/usr",
+        "--libdir=/usr/lib/x86_64-linux-gnu",
+        "--disable-static",
+        "--disable-doc",
+        "--disable-tests",
+        "--disable-nls",
+    ];
+    let stamp = format!(
+        "{state}\n{}\n{}\n",
+        options.join("\n"),
+        env_overrides
+            .iter()
+            .map(|(key, value)| format!("{key}={value}"))
+            .collect::<Vec<_>>()
+            .join("\n")
+    );
+    if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+        remove_path_if_exists(&source_copy)?;
+        remove_path_if_exists(&build_dir)?;
+        remove_path_if_exists(&install_dir)?;
+    }
+    fs::create_dir_all(&out_root)?;
+    sync_build_source(&source, &source_copy)?;
+    if !source_copy.join("configure").is_file() {
+        run_cmd(&source_copy, "autoreconf", &["-fi"])?;
+    }
+    fs::create_dir_all(&build_dir)?;
+    if !build_dir.join("Makefile").is_file() {
+        run_cmd_with_env_overrides(
+            &build_dir,
+            path_str(&source_copy.join("configure"))?,
+            &options,
+            &env_overrides,
+        )?;
+    }
+    run_cmd_with_env_overrides(&build_dir, "make", &["-j", "4"], &env_overrides)?;
+    remove_path_if_exists(&install_dir)?;
+    run_cmd_with_env_overrides(
+        &build_dir,
+        "make",
+        &["install", &format!("DESTDIR={}", install_dir.display())],
+        &env_overrides,
+    )?;
+    let soname = install_dir
+        .join("usr/lib/x86_64-linux-gnu")
+        .join(expected_soname);
+    if !soname.exists() {
+        bail!("{component} install did not produce {}", soname.display());
+    }
+    remove_path_if_exists(&install_dir.join(format!(
+        "usr/lib/x86_64-linux-gnu/{component}.la"
+    )))?;
+    fs::write(&stamp_path, stamp)?;
+    Ok(())
+}
+
+fn build_gpgv(repo_root: &Path) -> Result<()> {
+    let source = repo_root.join("src/system/security/gnupg");
+    let out_root = repo_root.join("out/build/gpgv");
+    let source_copy = out_root.join("source");
+    let build_dir = out_root.join("build");
+    let install_dir = out_root.join("install");
+    let stamp_path = out_root.join("build-stamp.txt");
+    let dependencies = [
+        "libgpg-error",
+        "libgcrypt",
+        "libassuan",
+        "libksba",
+        "npth",
+        "zlib",
+    ];
+    let mut include_dirs = Vec::new();
+    let mut library_dirs = Vec::new();
+    let mut pkgconfig_dirs = Vec::new();
+    for dependency in dependencies {
+        let usr = repo_root.join("out/build").join(dependency).join("install/usr");
+        include_dirs.push(usr.join("include"));
+        library_dirs.push(usr.join("lib/x86_64-linux-gnu"));
+        pkgconfig_dirs.push(usr.join("lib/x86_64-linux-gnu/pkgconfig"));
+    }
+    let library_path = std::env::join_paths(&library_dirs)?.to_string_lossy().to_string();
+    let mut tool_path = dependencies
+        .iter()
+        .map(|dependency| {
+            repo_root
+                .join("out/build")
+                .join(dependency)
+                .join("install/usr/bin")
+        })
+        .collect::<Vec<_>>();
+    tool_path.extend(std::env::split_paths(
+        &std::env::var_os("PATH").unwrap_or_default(),
+    ));
+    let tool_path = std::env::join_paths(tool_path)?.to_string_lossy().to_string();
+    let env_overrides = [
+        (
+            "CPPFLAGS",
+            include_dirs
+                .iter()
+                .map(|path| format!("-I{}", path.display()))
+                .collect::<Vec<_>>()
+                .join(" "),
+        ),
+        (
+            "LDFLAGS",
+            library_dirs
+                .iter()
+                .map(|path| format!("-L{}", path.display()))
+                .collect::<Vec<_>>()
+                .join(" "),
+        ),
+        ("LIBRARY_PATH", library_path.clone()),
+        ("LD_LIBRARY_PATH", library_path),
+        (
+            "PKG_CONFIG_PATH",
+            std::env::join_paths(&pkgconfig_dirs)?.to_string_lossy().to_string(),
+        ),
+        ("SOURCE_DATE_EPOCH", MATTOS_SOURCE_DATE_EPOCH.to_string()),
+        ("PATH", tool_path),
+    ];
+    let options = [
+        "--prefix=/usr",
+        "--libdir=/usr/lib/x86_64-linux-gnu",
+        "--disable-doc",
+        "--disable-tests",
+        "--disable-nls",
+        "--disable-ldap",
+        "--disable-card-support",
+        "--disable-ntbtls",
+        "--disable-gnutls",
+        "--disable-sqlite3",
+        "--disable-bzip2",
+    ];
+    let state = fs::read_to_string(repo_root.join("upstream/state/gnupg.toml"))
+        .context("failed to read GnuPG upstream state")?;
+    let stamp = format!(
+        "{state}\n{}\n{}\n",
+        options.join("\n"),
+        env_overrides
+            .iter()
+            .map(|(key, value)| format!("{key}={value}"))
+            .collect::<Vec<_>>()
+            .join("\n")
+    );
+    if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+        remove_path_if_exists(&source_copy)?;
+        remove_path_if_exists(&build_dir)?;
+        remove_path_if_exists(&install_dir)?;
+    }
+    fs::create_dir_all(&out_root)?;
+    sync_build_source(&source, &source_copy)?;
+    if !source_copy.join("configure").is_file() {
+        run_cmd(&source_copy, "autoreconf", &["-fi"])?;
+    }
+    let common_dir = source_copy.join("common");
+    run_cmd(
+        &common_dir,
+        "sh",
+        &[
+            "-c",
+            "awk -f exaudit.awk audit.h | awk -f mkstrtable.awk -v textidx=3 -v nogettext=1 -v pkg_namespace=eventstr_ > audit-events.h && awk -f exstatus.awk status.h | awk -f mkstrtable.awk -v textidx=3 -v nogettext=1 -v pkg_namespace=statusstr_ > status-codes.h",
+        ],
+    )?;
+    run_cmd(
+        &source_copy.join("regexp"),
+        "sh",
+        &[
+            "-c",
+            "awk -f parse-unidata.awk UnicodeData.txt > _unicode_mapping.c",
+        ],
+    )?;
+    fs::create_dir_all(&build_dir)?;
+    if !build_dir.join("Makefile").is_file() {
+        run_cmd_with_env_overrides(
+            &build_dir,
+            path_str(&source_copy.join("configure"))?,
+            &options,
+            &env_overrides,
+        )?;
+    }
+    let build_common_dir = build_dir.join("common");
+    fs::create_dir_all(&build_common_dir)?;
+    for generated in ["audit-events.h", "status-codes.h"] {
+        fs::copy(
+            source_copy.join("common").join(generated),
+            build_common_dir.join(generated),
+        )?;
+    }
+    fs::create_dir_all(build_dir.join("regexp"))?;
+    fs::copy(
+        source_copy.join("regexp/_unicode_mapping.c"),
+        build_dir.join("regexp/_unicode_mapping.c"),
+    )?;
+    run_cmd_with_env_overrides(&build_dir, "make", &["-j", "4"], &env_overrides)?;
+    remove_path_if_exists(&install_dir)?;
+    run_cmd_with_env_overrides(
+        &build_dir,
+        "make",
+        &["install", &format!("DESTDIR={}", install_dir.display())],
+        &env_overrides,
+    )?;
+    if !install_dir.join("usr/bin/gpgv").is_file() {
+        bail!("GnuPG install did not produce usr/bin/gpgv");
     }
     fs::write(&stamp_path, stamp)?;
     Ok(())
