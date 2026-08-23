@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD polkit Policy Configuration 1.0//EN"
+"http://www.freedesktop.org/software/polkit/policyconfig-1.dtd">
+
+<!-- Policy definitions for core polkit actions. Copyright (c) 2008-2012 Red Hat, Inc. -->
+
+<policyconfig>
+  <vendor>The polkit project</vendor>
+  <vendor_url>http://www.freedesktop.org/wiki/Software/polkit/</vendor_url>
+
+  <action id="org.freedesktop.policykit.exec">
+    <description>Run a program as another user</description>
+    <message>Authentication is required to run a program as another user</message>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin</allow_active>
+    </defaults>
+  </action>
+
+</policyconfig>

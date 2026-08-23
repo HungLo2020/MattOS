@@ -1,0 +1,52 @@
+#!/bin/sh
+
+set -ex
+
+apk update
+
+apk add \
+    'alpine-sdk' \
+    'autoconf' \
+    'bash' \
+    'bpftool' \
+    'clang' \
+    'curl-dev' \
+    'dbus' \
+    'dbus-dev' \
+    'elogind-dev' \
+    'eudev-dev' \
+    'gcc' \
+    'git' \
+    'gnutls-dev' \
+    'gobject-introspection-dev' \
+    'gtk-doc' \
+    'intltool' \
+    'iproute2' \
+    'iptables' \
+    'jansson-dev' \
+    'libbpf-dev' \
+    'libgudev-dev' \
+    'libndp-dev' \
+    'libnvme-dev' \
+    'libnl3-dev' \
+    'libpsl-dev' \
+    'libteam-dev' \
+    'linux-headers' \
+    'meson' \
+    'mobile-broadband-provider-info' \
+    'modemmanager-dev' \
+    'musl-dev' \
+    'newt-dev' \
+    'nss-dev' \
+    'polkit-dev' \
+    'ppp' \
+    'ppp-dev' \
+    'py3-dbus' \
+    'py3-gobject3' \
+    'py3-pexpect' \
+    'python3' \
+    'readline-dev' \
+    'util-linux-dev' \
+    'vala' \
+    'valgrind' \
+    'vim'

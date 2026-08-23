@@ -1,0 +1,23 @@
+*** nm-in-container:
+
+find NetworkManager bind mounted at {{BASEDIR_NM}}
+run `nm-env-prepare.sh setup --idx 1` to setup test interfaces
+
+Coredumps: coredumps are not namespaced, so by default they will
+be sent to coredumpctl of the outer host, which has no idea where
+to get the debugging symbols from. A possible workaround is setting
+
+  $ echo '/tmp/core.%e.%p' | sudo tee /proc/sys/kernel/core_pattern
+
+so that core dumps get written to file. Afterwards, restore with
+
+  $ echo '|/usr/lib/systemd/systemd-coredump %P %u %g %s %t %c %h' | sudo tee /proc/sys/kernel/core_pattern
+
+from /usr/lib/sysctl.d/50-coredump.conf.
+
+Configure NetworkManager with `contrib/fedora/rpm/configure-for-system.sh`,
+subsequent `meson install` will overwrite your system's NetworkManager,
+and you can test it with `systemctl daemon-reload ; systemctl restart NetworkManager`.
+
+Run NM-ci tests after creating eth1 with
+`nm-env-prepare.sh --prefix eth -i 1 && sleep 1 && nmcli device connect eth1`.

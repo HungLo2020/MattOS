@@ -83,13 +83,28 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::CosmicNotifications => &["src/desktop/cosmic/cosmic-notifications"],
         BuildStage::CosmicOsd => &["src/desktop/cosmic/cosmic-osd"],
         BuildStage::CosmicBg => &["src/desktop/cosmic/cosmic-bg"],
-        BuildStage::CosmicWorkspaces => &["src/desktop/cosmic/cosmic-workspaces"],
+        BuildStage::CosmicWorkspaces => &[
+            "src/desktop/cosmic/cosmic-workspaces",
+            "src/tools/mattos-build/src/main.rs",
+        ],
         BuildStage::CosmicFiles => &[
             "src/desktop/cosmic/cosmic-files",
+            "src/desktop/cosmic/libcosmic",
+            "src/desktop/cosmic/iced",
             "upstream/patches/cosmic-files",
         ],
         BuildStage::CosmicTerm => &["src/desktop/cosmic/cosmic-term"],
         BuildStage::CosmicEdit => &["src/desktop/cosmic/cosmic-edit"],
+        BuildStage::CosmicInitialSetup => &["src/desktop/cosmic/cosmic-initial-setup"],
+        BuildStage::Polkit => &[
+            "src/system/security/polkit",
+            "src/tools/mattos-build/src/main.rs",
+        ],
+        BuildStage::Duktape => &[
+            "src/system/security/duktape",
+            "src/tools/mattos-build/src/main.rs",
+        ],
+        BuildStage::NetworkManager => &["src/system/network/NetworkManager"],
         BuildStage::Cozy => &["src/userland/cozy"],
         BuildStage::CosmicTweaks => &["src/desktop/cosmic/cosmic-tweaks"],
         BuildStage::CosmicUtilities => &[
@@ -106,7 +121,10 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "src/desktop/fonts/pop-fonts",
         ],
         BuildStage::Greetd => &["src/system/session/greetd"],
-        BuildStage::CosmicDesktop => &[],
+        // The aggregate copies/stages component outputs according to the
+        // orchestration code, so changes to that output policy must invalidate
+        // the aggregate rather than reusing an old install tree.
+        BuildStage::CosmicDesktop => &["src/tools/mattos-build/src/main.rs"],
         BuildStage::Python => &["src/development/python/cpython"],
         BuildStage::Llvm => &["src/toolchain/llvm-project"],
         BuildStage::Rust => &[
@@ -144,6 +162,8 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::Libxcrypt => &["src/system/libraries/libxcrypt"],
         BuildStage::Libmd => &["src/system/libraries/libmd"],
         BuildStage::Libbsd => &["src/system/libraries/libbsd"],
+        BuildStage::Libndp => &["src/system/network/libndp"],
+        BuildStage::Readline => &["src/system/userland/readline"],
         BuildStage::Pam => &["src/system/auth/linux-pam"],
         BuildStage::Shadow => &["src/system/auth/shadow"],
         BuildStage::SudoRs => &["src/system/auth/sudo-rs"],
@@ -206,6 +226,10 @@ pub(crate) fn configuration_inputs(stage: BuildStage) -> Vec<PathBuf> {
             inputs.push("src/desktop/cosmic/cosmic-edit/Cargo.toml".into());
             inputs.push("src/desktop/cosmic/cosmic-edit/Cargo.lock".into());
         }
+        BuildStage::CosmicInitialSetup => {
+            inputs.push("src/desktop/cosmic/cosmic-initial-setup/Cargo.toml".into());
+            inputs.push("src/desktop/cosmic/cosmic-initial-setup/Cargo.lock".into());
+        }
         BuildStage::Cozy => {
             inputs.push("src/userland/cozy/Cargo.toml".into());
             inputs.push("src/userland/cozy/Cargo.lock".into());
@@ -218,6 +242,7 @@ pub(crate) fn configuration_inputs(stage: BuildStage) -> Vec<PathBuf> {
 pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
     let tools: &[&str] = match stage {
         BuildStage::LiveRoot => &["mksquashfs", "unsquashfs"],
+        BuildStage::Duktape => &["gcc", "python3"],
         BuildStage::Initramfs => &["gcc", "cpio", "xz", "modinfo"],
         BuildStage::Xkbcommon => &["gcc", "ld", "meson", "ninja"],
         BuildStage::Dav1d
@@ -267,6 +292,7 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
         | BuildStage::CosmicFiles
         | BuildStage::CosmicTerm
         | BuildStage::CosmicEdit
+        | BuildStage::CosmicInitialSetup
         | BuildStage::CosmicTweaks
         | BuildStage::CosmicUtilities
         | BuildStage::CosmicPortal
@@ -311,6 +337,7 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
         // Revision 2 places COSMIC Edit's hicolor-sized application icons at
         // /usr/share/icons/hicolor rather than nesting a second hicolor tree.
         BuildStage::CosmicEdit => 3,
+        BuildStage::CosmicInitialSetup => 1,
         BuildStage::Cozy => 1,
         BuildStage::Libseat => 2,
         BuildStage::CosmicDesktop => 1,
@@ -413,10 +440,15 @@ mod tests {
             source_inputs(BuildStage::CosmicFiles),
             vec![
                 PathBuf::from("src/desktop/cosmic/cosmic-files"),
+                PathBuf::from("src/desktop/cosmic/libcosmic"),
+                PathBuf::from("src/desktop/cosmic/iced"),
                 PathBuf::from("upstream/patches/cosmic-files"),
             ]
         );
-        assert!(source_inputs(BuildStage::CosmicDesktop).is_empty());
+        assert_eq!(
+            source_inputs(BuildStage::CosmicDesktop),
+            vec![PathBuf::from("src/tools/mattos-build/src/main.rs")]
+        );
         for stage in [
             BuildStage::CosmicSession,
             BuildStage::CosmicGreeter,
@@ -434,6 +466,50 @@ mod tests {
                 crate::stage_graph::stage_id(stage)
             );
         }
+    }
+
+    #[test]
+    fn cosmic_files_text_editor_compatibility_is_pinned_to_output_patch() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        let authoritative = std::fs::read_to_string(
+            root.join("src/desktop/cosmic/cosmic-files/src/tab.rs"),
+        )
+        .expect("authoritative cosmic-files source");
+        let owned_libcosmic = std::fs::read_to_string(
+            root.join("src/desktop/cosmic/libcosmic/src/widget/text_editor.rs"),
+        )
+        .expect("authoritative libcosmic text editor module");
+        let manifest = std::fs::read_to_string(
+            root.join("upstream/patches/cosmic-files/manifest.toml"),
+        )
+        .expect("cosmic-files patch manifest");
+        let patch = std::fs::read_to_string(
+            root.join("upstream/patches/cosmic-files/0001-adapt-text-editor-to-owned-libcosmic.patch"),
+        )
+        .expect("cosmic-files compatibility patch");
+
+        // The pinned upstream tree intentionally remains unmodified and still
+        // uses the pre-migration API. The owned libcosmic tree exposes the
+        // migrated constructor, so the checked patch must remain an input to
+        // the output mirror rather than being removed as obsolete.
+        assert_eq!(authoritative.matches("widget::text_editor(content)").count(), 1);
+        assert_eq!(authoritative.matches("widget::text_editor(text)").count(), 1);
+        assert!(owned_libcosmic.contains("pub fn text_editor"));
+        assert!(manifest.contains("application = \"output-mirror-only\""));
+        assert!(manifest.contains("upstream_commit = \"24e34eaa0f0acf4e24ea1338ad4bbde3a138e1f3\""));
+        assert!(manifest.contains("sha256 = \"e35c8bce1c0787a54b227da4731447a362563d883208bf3ca30dccc0d10c51f4\""));
+        assert!(patch.contains("widget::text_editor::text_editor(content)"));
+        assert!(patch.contains("widget::text_editor::text_editor(text)"));
+        assert!(patch.contains(".style(text_editor_class)"));
+        assert_eq!(
+            source_inputs(BuildStage::CosmicFiles),
+            vec![
+                PathBuf::from("src/desktop/cosmic/cosmic-files"),
+                PathBuf::from("src/desktop/cosmic/libcosmic"),
+                PathBuf::from("src/desktop/cosmic/iced"),
+                PathBuf::from("upstream/patches/cosmic-files"),
+            ]
+        );
     }
 
     #[test]

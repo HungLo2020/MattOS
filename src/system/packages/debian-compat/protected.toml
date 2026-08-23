@@ -26,7 +26,7 @@ packages = [
   "mesa-vulkan-drivers", "vulkan-tools", "libegl-mesa0",
   "libxau6", "libxdmcp6", "libxcb1", "libx11-6", "libxext6",
   "libglvnd0", "libopengl0",
-  "cosmic-comp", "cosmic-desktop",
+  "cosmic-comp", "cosmic-desktop", "libduktape207", "polkit", "network-manager",
   "linux-modules-nvidia-595-open-7.2.0-rc5-mattos", "nvidia-firmware-595",
   "libnvidia-gl-595", "libnvidia-compute-595", "libnvidia-encode-595",
   "libnvidia-decode-595", "nvidia-utils-595", "nvidia-driver-595-open",

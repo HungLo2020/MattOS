@@ -169,6 +169,30 @@ lfs_policy = "upstream/policies/cosmic-initial-setup-lfs.toml"
 lfs_policy_sha256 = "c3bd66a6537ce37e87bfa766a4abbbd7327f1fb6029a9b17bd05d4f10f04eacf"
 
 [[component]]
+name = "networkmanager"
+repo = "https://github.com/NetworkManager/NetworkManager.git"
+branch = "main"
+revision = "355bc902994f8f616bc80dcb451455f7aeb6b809"
+path = "src/system/network/NetworkManager"
+sync = "copy"
+
+[[component]]
+name = "polkit"
+repo = "https://github.com/polkit-org/polkit.git"
+branch = "main"
+revision = "6f3cec7f1cfd2b0a686ce53e97e5351c80fe4f32"
+path = "src/system/security/polkit"
+sync = "copy"
+
+[[component]]
+name = "duktape"
+repo = "https://github.com/svaarala/duktape.git"
+branch = "v2.7.0"
+revision = "03d4d728f8365021de6955c649e6dcd05dcca99f"
+path = "src/system/security/duktape"
+sync = "copy"
+
+[[component]]
 name = "libcosmic"
 repo = "https://github.com/pop-os/libcosmic.git"
 branch = "master"
@@ -859,6 +883,22 @@ repo = "https://gitlab.freedesktop.org/libbsd/libbsd.git"
 branch = "0.12.2"
 revision = "04a24db27ad1572f766bad772cdd9c146e6d9cf0"
 path = "src/system/libraries/libbsd"
+sync = "copy"
+
+[[component]]
+name = "readline"
+repo = "https://git.savannah.gnu.org/git/readline.git"
+branch = "readline-8.2"
+revision = "f7a382fd09319b20ef4435b9b554183b605468c1"
+path = "src/system/userland/readline"
+sync = "copy"
+
+[[component]]
+name = "libndp"
+repo = "https://github.com/jpirko/libndp.git"
+branch = "master"
+revision = "2730638bf88984b09531813974f9bd14e1a50165"
+path = "src/system/network/libndp"
 sync = "copy"
 
 [[component]]

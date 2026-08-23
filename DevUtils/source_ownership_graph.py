@@ -305,8 +305,6 @@ def rewrite_manifest(
 
 
 def copy_tracked_component(root: pathlib.Path, source_rel: str, destination: pathlib.Path) -> None:
-    if destination.exists():
-        shutil.rmtree(destination)
     destination.mkdir(parents=True, exist_ok=True)
     result = subprocess.run(
         ['git', 'ls-files', '-z', '--', source_rel],
@@ -384,15 +382,189 @@ def apply_component_patches(root: pathlib.Path, metadata: dict[str, Any], destin
                 raise OwnershipError(f'failed to {phase} {patch["path"]}: {detail}')
 
 
+def verify_component_patches(root: pathlib.Path, metadata: dict[str, Any], destination: pathlib.Path) -> None:
+    """Verify that every registered output patch is present in a mirror."""
+    manifest_rel = metadata.get('patch_manifest')
+    if not manifest_rel:
+        return
+    manifest_path = root / manifest_rel
+    manifest_bytes = manifest_path.read_bytes()
+    expected_manifest = metadata.get('patch_manifest_sha256')
+    if expected_manifest and hashlib.sha256(manifest_bytes).hexdigest() != expected_manifest:
+        raise OwnershipError(f'patch manifest checksum mismatch: {manifest_rel}')
+    manifest = tomllib.loads(manifest_bytes.decode())
+    try:
+        mirror_rel = destination.resolve().relative_to(root.resolve())
+    except ValueError as exc:
+        raise OwnershipError(f'patch verification destination is outside the repository: {destination}') from exc
+    for patch in manifest.get('patch', []):
+        payload = (root / patch['path']).read_bytes()
+        if hashlib.sha256(payload).hexdigest() != patch['sha256']:
+            raise OwnershipError(f'patch checksum mismatch: {patch["path"]}')
+        completed = subprocess.run(
+            [
+                'git', 'apply', '--reverse', '--check', '--whitespace=error-all',
+                f'--directory={mirror_rel.as_posix()}', str(root / patch['path']),
+            ], cwd=root, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+        )
+        if completed.returncode != 0:
+            detail = completed.stderr.strip() or completed.stdout.strip()
+            raise OwnershipError(f'output mirror is missing patch {patch["path"]}: {detail}')
+
+
+def has_transient_ownership_paths(destination: pathlib.Path) -> bool:
+    """Reject manifests that still point at an unpublished candidate mirror."""
+    return any(
+        '.building-' in manifest.read_text(encoding='utf-8')
+        or '.previous-' in manifest.read_text(encoding='utf-8')
+        for manifest in destination.rglob('Cargo.toml')
+    )
+
+
+def tracked_source_fingerprint(root: pathlib.Path, source_rel: str) -> str:
+    """Hash the exact tracked source content copied into an ownership mirror."""
+    result = subprocess.run(
+        ['git', 'ls-files', '-z', '--', source_rel], cwd=root,
+        stdout=subprocess.PIPE, check=True,
+    )
+    digest = hashlib.sha256()
+    prefix = pathlib.PurePosixPath(source_rel)
+    for raw in sorted(item for item in result.stdout.split(b'\0') if item):
+        rel_repo = pathlib.PurePosixPath(raw.decode())
+        rel = rel_repo.relative_to(prefix).as_posix()
+        path = root / pathlib.Path(rel_repo.as_posix())
+        digest.update(rel.encode())
+        if path.is_symlink():
+            digest.update(b'link\0' + os.readlink(path).encode())
+        else:
+            digest.update(b'file\0' + path.read_bytes())
+    return digest.hexdigest()
+
+
 def mirror_fingerprint(root: pathlib.Path, index: dict[str, Any], component: str) -> str:
     meta = index['components'][component]
     digest = hashlib.sha256()
-    digest.update(json.dumps({'version': index.get('version'), 'component': meta}, sort_keys=True).encode())
-    for helper in ['DevUtils/source_ownership_graph.py', 'DevUtils/generate_source_overrides.py']:
+    digest.update(b'mattos-source-ownership-mirror-v2\0')
+    digest.update(json.dumps(ownership_rewrite_contract(root, index, component), sort_keys=True).encode())
+    digest.update(tracked_source_fingerprint(root, meta['source_path']).encode())
+    for rel in ['upstream/sources.toml', f'upstream/state/{component}.toml']:
+        path = root / rel
+        if path.is_file():
+            digest.update(rel.encode() + path.read_bytes())
+    manifest_rel = meta.get('patch_manifest')
+    if manifest_rel:
+        manifest_path = root / manifest_rel
+        manifest_bytes = manifest_path.read_bytes()
+        digest.update(manifest_rel.encode() + manifest_bytes)
+        manifest = tomllib.loads(manifest_bytes.decode())
+        for patch in manifest.get('patch', []):
+            patch_path = root / patch['path']
+            digest.update(patch['path'].encode() + patch_path.read_bytes())
+    # The graph implementation is part of the mirror semantics. The catalog
+    # generator and Cargo dispatcher are deliberately excluded: their bytes
+    # do not change an already-materialized canonical mirror, and are tracked
+    # separately by stage tool identity and the generated ownership contract.
+    for helper in ['DevUtils/source_ownership_graph.py']:
         path = root / helper
         if path.is_file():
             digest.update(path.read_bytes())
     return digest.hexdigest()
+
+
+def _dependency_tables(data: dict[str, Any]) -> Iterator[dict[str, Any]]:
+    for name in DEP_TABLE_NAMES:
+        table = data.get(name)
+        if isinstance(table, dict):
+            yield table
+    workspace = data.get('workspace')
+    if isinstance(workspace, dict) and isinstance(workspace.get('dependencies'), dict):
+        yield workspace['dependencies']
+    target = data.get('target')
+    if isinstance(target, dict):
+        for cfg in target.values():
+            if isinstance(cfg, dict):
+                for name in DEP_TABLE_NAMES:
+                    table = cfg.get(name)
+                    if isinstance(table, dict):
+                        yield table
+
+
+def ownership_rewrite_contract(root: pathlib.Path, index: dict[str, Any], component: str) -> dict[str, Any]:
+    """Return only ownership data that can affect this component's rewrites."""
+    meta = index['components'][component]
+    relevant_components: set[str] = {component}
+    relevant_packages: set[str] = set()
+    source_root = root / meta['source_path']
+    for manifest in source_root.rglob('Cargo.toml'):
+        try:
+            data = load_toml(manifest)
+        except (OSError, tomllib.TOMLDecodeError):
+            continue
+        for table in _dependency_tables(data):
+            for key, raw in table.items():
+                spec = {'version': raw} if isinstance(raw, str) else raw
+                if not isinstance(spec, dict) or spec.get('workspace') is True:
+                    continue
+                package = spec.get('package', key)
+                if isinstance(package, str):
+                    relevant_packages.add(package)
+                git = spec.get('git') if isinstance(spec.get('git'), str) else None
+                if git:
+                    relevant_components.update(repo_component_closure(index, git))
+    # Path rewrites can resolve through the component's declared gitlinks even
+    # when the dependency itself is written as a path in the upstream source.
+    for replacement in index.get('gitlink_replacements', {}).get(component, []):
+        child = replacement.get('component')
+        if isinstance(child, str):
+            relevant_components.add(child)
+    components: dict[str, Any] = {}
+    for name in sorted(relevant_components):
+        if name in index.get('components', {}):
+            components[name] = index['components'][name]
+    root_packages = {
+        package: index.get('root_packages', {})[package]
+        for package in sorted(relevant_packages)
+        if package in index.get('root_packages', {})
+    }
+    gitlinks = {
+        name: index.get('gitlink_replacements', {}).get(name, [])
+        for name in sorted(relevant_components)
+        if name in index.get('gitlink_replacements', {})
+    }
+    return {'component': meta, 'components': components, 'root_packages': root_packages, 'gitlinks': gitlinks}
+
+
+def _pid_is_alive(pid: int) -> bool:
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    except OSError:
+        return False
+    return True
+
+
+def cleanup_abandoned_component_transactions(root: pathlib.Path, component: str) -> list[pathlib.Path]:
+    """Remove only candidate/backup directories whose owning PID is dead.
+
+    The component lock is held by the caller, so a live publisher cannot be
+    using these transaction names while this scan runs. Unknown names are
+    retained fail-closed.
+    """
+    mirror_root = root / 'out' / 'source-ownership' / 'sources'
+    removed: list[pathlib.Path] = []
+    pattern = re.compile(rf'^\.{re.escape(component)}\.(?:building|previous)-(\d+)$')
+    for path in mirror_root.iterdir() if mirror_root.is_dir() else ():
+        match = pattern.fullmatch(path.name)
+        if not match or not path.is_dir():
+            continue
+        if _pid_is_alive(int(match.group(1))):
+            continue
+        shutil.rmtree(path)
+        removed.append(path)
+    return removed
 
 
 @contextlib.contextmanager
@@ -402,6 +574,39 @@ def component_mirror_lock(root: pathlib.Path, component: str) -> Iterator[None]:
     locks.mkdir(parents=True, exist_ok=True)
     lock_path = locks / f'{component}.lock'
     stream = lock_path.open('a+b')
+    try:
+        if os.name == 'nt':
+            import msvcrt
+            stream.seek(0, os.SEEK_END)
+            if stream.tell() == 0:
+                stream.write(b'\0')
+                stream.flush()
+            stream.seek(0)
+            msvcrt.locking(stream.fileno(), msvcrt.LK_LOCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(stream.fileno(), fcntl.LOCK_EX)
+        yield
+    finally:
+        try:
+            if os.name == 'nt':
+                import msvcrt
+                stream.seek(0)
+                msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                import fcntl
+                fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
+        finally:
+            stream.close()
+
+
+@contextlib.contextmanager
+def consumer_mirror_lock(root: pathlib.Path, mirror: pathlib.Path) -> Iterator[None]:
+    """Serialize all Cargo preparation and consumption of one consumer mirror."""
+    locks = root / 'out' / 'source-ownership' / 'locks'
+    locks.mkdir(parents=True, exist_ok=True)
+    digest = hashlib.sha256(str(mirror.resolve()).encode()).hexdigest()[:24]
+    stream = (locks / f'consumer-{digest}.lock').open('a+b')
     try:
         if os.name == 'nt':
             import msvcrt
@@ -461,6 +666,7 @@ def prepare_graph(
         needed: set[str] = set()
 
         with component_mirror_lock(root, component):
+            cleanup_abandoned_component_transactions(root, component)
             valid = False
             if marker.is_file():
                 try:
@@ -468,18 +674,56 @@ def prepare_graph(
                 except Exception:
                     valid = False
 
+            if valid:
+                try:
+                    verify_component_patches(root, meta, dest)
+                    valid = not has_transient_ownership_paths(dest)
+                except (OSError, OwnershipError, subprocess.SubprocessError, json.JSONDecodeError):
+                    valid = False
+
+            working = dest
             if not valid:
-                copy_tracked_component(root, meta['source_path'], dest)
-                apply_component_patches(root, meta, dest)
+                working = mirror_root / f'.{component}.building-{os.getpid()}'
+                if working.exists():
+                    shutil.rmtree(working)
+                copy_tracked_component(root, meta['source_path'], working)
+                apply_component_patches(root, meta, working)
 
             # Shared mirrors are consumer-independent by construction. Even if
             # this canonical component happens to be the current top-level
             # consumer, it must point at canonical peers while it is acting as
             # a dependency of another shared component.
-            for manifest in sorted(dest.rglob('Cargo.toml')):
-                needed |= rewrite_manifest(manifest, index, canonical, component)
+            working_mirrors = dict(canonical)
+            working_mirrors[component] = working
+            for manifest in sorted(working.rglob('Cargo.toml')):
+                needed |= rewrite_manifest(manifest, index, working_mirrors, component)
 
-            marker.write_text(json.dumps({'fingerprint': fingerprint}, sort_keys=True) + '\n')
+            if not valid:
+                verify_component_patches(root, meta, working)
+                backup = mirror_root / f'.{component}.previous-{os.getpid()}'
+                if backup.exists():
+                    shutil.rmtree(backup)
+                if dest.exists():
+                    os.replace(dest, backup)
+                try:
+                    os.replace(working, dest)
+                except Exception:
+                    if backup.exists() and not dest.exists():
+                        os.replace(backup, dest)
+                    raise
+                # Candidate-relative paths are only valid while it is being
+                # assembled. Rewrite once more after publication so Cargo can
+                # never retain a path into the temporary build directory.
+                for manifest in sorted(dest.rglob('Cargo.toml')):
+                    payload = manifest.read_text(encoding='utf-8')
+                    payload = payload.replace(str(working.resolve()), str(dest.resolve()))
+                    manifest.write_text(payload, encoding='utf-8')
+                    rewrite_manifest(manifest, index, canonical, component)
+                (dest / '.mattos-source-ownership.json').write_text(
+                    json.dumps({'fingerprint': fingerprint}, sort_keys=True) + '\n', encoding='utf-8'
+                )
+                if backup.exists():
+                    shutil.rmtree(backup)
 
         prepared.add(component)
         visiting.remove(component)

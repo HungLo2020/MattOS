@@ -153,7 +153,12 @@ fn real_stage_specs_track_tool_recipe_and_dependency_output_identity() {
     brush.dependencies.clear();
     brush.tools = vec![tool.to_string_lossy().into_owned()];
     let first = performance::compute_stage_inputs(root, &brush).unwrap();
-    write_file(&tool, "#!/bin/sh\necho version-two\n");
+    // Replacing an executable by rename avoids ETXTBSY when the identity
+    // probe's interpreter still has the old script open.
+    let replacement = root.join("fixture-tool.next");
+    write_file(&replacement, "#!/bin/sh\necho version-two\n");
+    fs::set_permissions(&replacement, fs::Permissions::from_mode(0o755)).unwrap();
+    fs::rename(replacement, &tool).unwrap();
     let second = performance::compute_stage_inputs(root, &brush).unwrap();
     assert_ne!(first.tool_digest, second.tool_digest);
 

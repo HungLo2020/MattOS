@@ -1517,6 +1517,30 @@ classification = "debian-compatible"
 known_gaps = ["None"]
 
 [[package]]
+debian_name = "libreadline8"
+mattos_name = "libreadline8"
+source_component = "readline"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libreadline.so.8"]
+provided_abi_or_commands = ["libreadline.so.8"]
+protected = false
+current_mattos_version = "8.2-1mattos1"
+expected_debian_role = "GNU Readline runtime library"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
+debian_name = "libndp0"
+mattos_name = "libndp0"
+source_component = "libndp"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libndp.so.0"]
+provided_abi_or_commands = ["libndp.so.0"]
+protected = false
+current_mattos_version = "0~git.2730638bf889-1mattos1"
+expected_debian_role = "IPv6 Neighbor Discovery Protocol runtime library"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
 debian_name = "libglib2.0-0t64"
 mattos_name = "libglib2.0-0t64"
 source_component = "GLib 2.84.4"
@@ -1865,5 +1889,53 @@ provided_abi_or_commands = ["OpenPGP detached-signature verification"]
 protected = true
 current_mattos_version = "2.4.9-1mattos1"
 expected_debian_role = "APT OpenPGP verifier"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
+debian_name = "cosmic-initial-setup"
+mattos_name = "cosmic-initial-setup"
+source_component = "cosmic-initial-setup"
+owned_paths = ["/usr/bin/cosmic-initial-setup", "/etc/xdg/autostart/com.system76.CosmicInitialSetup.Autostart.desktop"]
+provided_abi_or_commands = ["COSMIC first-login setup wizard"]
+protected = false
+current_mattos_version = "1.0.0-1mattos1"
+expected_debian_role = "COSMIC initial setup"
+classification = "mattos-alternative"
+known_gaps = ["No Debian package is claimed"]
+
+[[package]]
+debian_name = "libduktape207"
+mattos_name = "libduktape207"
+source_component = "duktape"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libduktape.so", "/usr/lib/x86_64-linux-gnu/libduktape.so.207", "/usr/lib/x86_64-linux-gnu/libduktape.so.207.2.7.0"]
+provided_abi_or_commands = ["Duktape JavaScript engine ABI"]
+protected = true
+current_mattos_version = "0~git.03d4d728f836-1mattos1"
+expected_debian_role = "Duktape JavaScript engine runtime"
+classification = "mattos-alternative"
+known_gaps = ["No Debian package is claimed"]
+
+[[package]]
+debian_name = "polkit"
+mattos_name = "polkit"
+source_component = "polkit"
+owned_paths = ["/usr/lib/polkit-1/polkitd", "/usr/bin/pkcheck", "/usr/lib/polkit-1/polkit-agent-helper-1", "/usr/lib/x86_64-linux-gnu/libpolkit-agent-1.so", "/usr/lib/x86_64-linux-gnu/libpolkit-agent-1.so.0", "/usr/lib/x86_64-linux-gnu/libpolkit-agent-1.so.0.0.0", "/usr/lib/x86_64-linux-gnu/libpolkit-gobject-1.so", "/usr/lib/x86_64-linux-gnu/libpolkit-gobject-1.so.0", "/usr/lib/x86_64-linux-gnu/libpolkit-gobject-1.so.0.0.0"]
+provided_abi_or_commands = ["PolicyKit authorization service"]
+protected = true
+current_mattos_version = "127-1mattos1"
+expected_debian_role = "authorization policy service"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
+debian_name = "network-manager"
+mattos_name = "network-manager"
+source_component = "networkmanager"
+owned_paths = ["/usr/sbin/NetworkManager", "/usr/bin/nmcli"]
+provided_abi_or_commands = ["NetworkManager D-Bus API and nmcli"]
+protected = true
+current_mattos_version = "1.54.0-1mattos1"
+expected_debian_role = "network interface manager"
 classification = "debian-compatible"
 known_gaps = ["None"]

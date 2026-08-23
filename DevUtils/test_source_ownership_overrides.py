@@ -2,10 +2,12 @@
 from __future__ import annotations
 
 import json
+import os
 import pathlib
 import shutil
 import subprocess
 import tempfile
+import time
 import tomllib
 import unittest
 
@@ -27,6 +29,55 @@ class SourceOwnershipGraphTest(unittest.TestCase):
 
     def test_no_repo_root_patch_config(self) -> None:
         self.assertFalse((ROOT / ".cargo" / "config.toml").exists())
+
+    def test_ownership_fingerprint_contract_excludes_unrelated_components(self) -> None:
+        contract = graph.ownership_rewrite_contract(ROOT, self.index, "cosmic-files")
+        self.assertIn("cosmic-files", contract["components"])
+        self.assertNotIn("duktape", contract["components"])
+        self.assertNotIn("polkit", contract["components"])
+
+    def test_dead_source_ownership_transactions_are_reclaimed_but_live_are_preserved(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            root = pathlib.Path(raw)
+            mirror_root = root / "out/source-ownership/sources"
+            mirror_root.mkdir(parents=True)
+            dead = mirror_root / ".cosmic-files.building-999999999"
+            dead.mkdir()
+            live = mirror_root / f".cosmic-files.previous-{os.getpid()}"
+            live.mkdir()
+            removed = graph.cleanup_abandoned_component_transactions(root, "cosmic-files")
+            self.assertEqual(removed, [dead])
+            self.assertFalse(dead.exists())
+            self.assertTrue(live.exists())
+
+    def test_consumer_lock_serializes_same_mirror(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            root = pathlib.Path(raw)
+            mirror = root / "out/build/cosmic-desktop/sources/cosmic-files"
+            ready = root / "ready"
+            script = f"""
+import pathlib, sys, time
+sys.path.insert(0, {str(ROOT / 'DevUtils')!r})
+import source_ownership_graph as g
+root = pathlib.Path({str(root)!r})
+mirror = pathlib.Path({str(mirror)!r})
+with g.consumer_mirror_lock(root, mirror):
+    pathlib.Path({str(ready)!r}).write_text('ready')
+    time.sleep(0.7)
+"""
+            child = subprocess.Popen([sys.executable, "-c", script])
+            try:
+                for _ in range(50):
+                    if ready.exists():
+                        break
+                    time.sleep(0.02)
+                self.assertTrue(ready.exists())
+                started = time.monotonic()
+                with graph.consumer_mirror_lock(root, mirror):
+                    pass
+                self.assertGreaterEqual(time.monotonic() - started, 0.5)
+            finally:
+                child.wait(timeout=5)
 
     def test_git_resolution_is_source_qualified(self) -> None:
         target = graph.choose_owned_git_target(
@@ -558,6 +609,35 @@ class SourceOwnershipGraphTest(unittest.TestCase):
             self.assertNotIn("widget::text_editor(content)", text)
             self.assertNotIn("widget::text_editor(text)", text)
             self.assertEqual(source.read_bytes(), pristine)
+
+    def test_production_canonical_mirror_rebuilds_stale_patched_source(self) -> None:
+        """Exercise prepare_graph's shared-mirror path, not only patch helpers."""
+        canonical = ROOT / "out/source-ownership/sources/cosmic-files"
+        if not canonical.is_dir():
+            self.skipTest("canonical ownership mirror has not been materialized")
+        output_root = ROOT / "out" / "tmp"
+        output_root.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix="canonical-mirror-regression-", dir=output_root) as raw:
+            backup = pathlib.Path(raw) / "backup"
+            shutil.copytree(canonical, backup, symlinks=True)
+            try:
+                tab = canonical / "src/tab.rs"
+                text = tab.read_text()
+                tab.write_text(text.replace("widget::text_editor::text_editor", "widget::text_editor"))
+                marker = canonical / ".mattos-source-ownership.json"
+                marker.write_text(marker.read_text())
+                with tempfile.TemporaryDirectory(prefix="canonical-consumer-", dir=output_root) as consumer_raw:
+                    consumer = pathlib.Path(consumer_raw)
+                    shutil.copy2(ROOT / "src/desktop/cosmic/cosmic-edit/Cargo.toml", consumer / "Cargo.toml")
+                    graph.prepare_graph(ROOT, self.index, "cosmic-edit", consumer)
+                    rebuilt = tab.read_text()
+                    self.assertIn("widget::text_editor::text_editor(content)", rebuilt)
+                    self.assertIn("widget::text_editor::text_editor(text)", rebuilt)
+                    graph.prepare_graph(ROOT, self.index, "cosmic-edit", consumer)
+                    self.assertIn("widget::text_editor::text_editor(content)", tab.read_text())
+            finally:
+                shutil.rmtree(canonical)
+                shutil.copytree(backup, canonical, symlinks=True)
 
     def test_cosmic_build_mirror_applies_registered_patch_before_cargo_isolation(self) -> None:
         source = (ROOT / "src/tools/mattos-build/src/main.rs").read_text()

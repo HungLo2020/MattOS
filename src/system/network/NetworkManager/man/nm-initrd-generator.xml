@@ -1,0 +1,498 @@
+<?xml version='1.0'?>
+<?xml-stylesheet type="text/xsl" href="http://docbook.sourceforge.net/release/xsl/current/xhtml/docbook.xsl"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY % entities SYSTEM "common.ent" >
+%entities;
+]>
+
+<!--
+  SPDX-License-Identifier: GFDL-1.1-no-invariants-or-later
+
+  nm-initrd-generator(8) manual page
+
+  Copyright 2018 Red Hat, Inc.
+-->
+
+<refentry id='nm-initrd-generator'>
+
+  <refentryinfo>
+    <title>nm-initrd-generator</title>
+    <author>NetworkManager developers</author>
+  </refentryinfo>
+
+  <refmeta>
+    <refentrytitle>nm-initrd-generator</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="source">NetworkManager</refmiscinfo>
+    <refmiscinfo class="manual">System Administration</refmiscinfo>
+    <refmiscinfo class="version">&NM_VERSION;</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>nm-initrd-generator</refname>
+    <refpurpose>early boot NetworkManager configuration generator</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv id='synopsis'>
+    <cmdsynopsis>
+      <command>nm-initrd-generator</command>
+      <arg choice="opt" rep="repeat"><replaceable>OPTIONS</replaceable></arg>
+      <arg choice="plain">--</arg>
+      <arg choice="opt" rep="repeat"><replaceable>CMDLINE</replaceable></arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id='description'><title>Description</title>
+    <para><command>nm-initrd-generator</command> scans the command line for options
+    relevant to network configuration and creates configuration files for an early
+    instance of NetworkManager run from the initial ramdisk during early boot.</para>
+  </refsect1>
+
+  <refsect1 id='options'><title>Options</title>
+    <variablelist>
+      <varlistentry>
+        <term>
+          <group choice='plain'>
+            <arg choice='plain'><option>-c</option></arg>
+            <arg choice='plain'><option>--connections-dir</option></arg>
+          </group>
+          <arg choice='plain'><replaceable>path</replaceable></arg>
+        </term>
+
+        <listitem>
+          <para>Output connection directory.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <group choice='plain'>
+            <arg choice='plain'><option>-p</option></arg>
+            <arg choice='plain'><option>--persistent-connections-dir</option></arg>
+          </group>
+          <arg choice='plain'><replaceable>path</replaceable></arg>
+        </term>
+
+        <listitem>
+          <para>Persistent connection directory. If it exists, rd.neednet will not
+          cause a default connection to be generated in absence of other options.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <group choice='plain'>
+            <arg choice='plain'><option>-i</option></arg>
+            <arg choice='plain'><option>--initrd-data-dir</option></arg>
+          </group>
+          <arg choice='plain'><replaceable>path</replaceable></arg>
+        </term>
+
+        <listitem>
+          <para>Output directory for initrd data (e.g. hostname).</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <group choice='plain'>
+            <arg choice='plain'><option>-d</option></arg>
+            <arg choice='plain'><option>--sysfs-dir</option></arg>
+          </group>
+          <arg choice='plain'><replaceable>path</replaceable></arg>
+        </term>
+
+        <listitem>
+          <para>The sysfs mount point.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <group choice='plain'>
+            <arg choice='plain'><option>-r</option></arg>
+            <arg choice='plain'><option>--run-config-dir</option></arg>
+          </group>
+          <arg choice='plain'><replaceable>path</replaceable></arg>
+        </term>
+
+        <listitem>
+          <para>Output directory for config files.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>
+          <group choice='plain'>
+            <arg choice='plain'><option>-s</option></arg>
+            <arg choice='plain'><option>--stdout</option></arg>
+          </group>
+        </term>
+
+        <listitem>
+          <para>Dump connections to standard output. Useful for debugging.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><replaceable>CMDLINE</replaceable></term>
+
+        <listitem>
+          <para>The options that appear on the kernel command line. The following options are recognized:</para>
+
+          <simplelist>
+            <member><option>ip</option></member>
+            <member><option>rd.route</option></member>
+            <member><option>bridge</option></member>
+            <member><option>bond</option></member>
+            <member><option>team</option></member>
+            <member><option>vlan</option></member>
+            <member><option>ib.pkey</option></member>
+            <member><option>bootdev</option></member>
+            <member><option>nameserver</option></member>
+            <member><option>net.ifnames</option></member>
+            <member><option>rd.peerdns</option></member>
+            <member><option>rd.iscsi.ibft</option></member>
+            <member><option>rd.nvmf.nonbft</option></member>
+            <member><option>rd.bootif</option></member>
+            <member><option>rd.neednet</option></member>
+            <member><option>rd.ethtool</option></member>
+            <member><option>rd.net.dns</option></member>
+            <member><option>rd.net.dns-backend</option></member>
+            <member><option>rd.net.dns-resolve-mode</option></member>
+            <member><option>rd.net.timeout.dhcp</option></member>
+            <member><option>rd.net.dhcp.client-id</option></member>
+            <member><option>rd.net.dhcp.retry</option></member>
+            <member><option>rd.net.dhcp.vendor-class</option></member>
+            <member><option>rd.net.dhcp.dscp</option></member>
+            <member><option>rd.net.timeout.carrier</option></member>
+            <member><option>rd.net.timeout.ip-required</option></member>
+            <member><option>rd.znet</option></member>
+            <member><option>rd.znet_ifname</option></member>
+            <member><option>BOOTIF</option></member>
+          </simplelist>
+
+          <para>Please consult the <citerefentry><refentrytitle>dracut.cmdline</refentrytitle><manvolnum>7</manvolnum></citerefentry>
+          manual for the documentation of the precise format of the values supported.
+          Note that the values accepted for the configuration method of
+          <option>ip</option> differ from dracut's, see the section below.</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='running_in_the_initrd'><title>Running NetworkManager in the initrd</title>
+
+    <para><command>nm-initrd-generator</command> only writes configuration; it
+    is a separate NetworkManager instance that applies it. NetworkManager ships
+    the systemd units for that instance, so any systemd-based initramfs can use
+    them, not only <citerefentry><refentrytitle>dracut</refentrytitle><manvolnum>8</manvolnum></citerefentry>.
+    They are:</para>
+
+    <variablelist>
+      <varlistentry>
+        <term><filename>NetworkManager-config-initrd.service</filename></term>
+        <listitem>
+          <para>Runs very early, before
+          <filename>systemd-udevd.service</filename>. It clears any stale
+          profiles from <filename>/run/NetworkManager/system-connections</filename>,
+          runs <command>nm-initrd-generator</command> on the contents of
+          <filename>/proc/cmdline</filename>, creates the flag file
+          <filename>/run/NetworkManager/initrd/neednet</filename> if at least
+          one connection profile exists, and then applies the hostname if one
+          was given.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><filename>NetworkManager-initrd.service</filename></term>
+        <listitem>
+          <para>Runs the NetworkManager daemon with the
+          <literal>initrd</literal> configuration tag enabled. It is a
+          <literal>Type=dbus</literal> unit and requires a running message bus.
+          It is skipped unless the <filename>neednet</filename> flag file exists
+          and at least one profile is present under
+          <filename>/usr/lib</filename>, <filename>/run</filename> or
+          <filename>/etc/NetworkManager/system-connections</filename>.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><filename>NetworkManager-wait-online-initrd.service</filename></term>
+        <listitem>
+          <para>Blocks until startup is complete, using
+          <command>nm-online -s</command>.</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+
+    <para>The units carry no <literal>[Install]</literal> section and cannot be
+    enabled with <command>systemctl enable</command>. NetworkManager instead
+    installs a systemd system generator,
+    <filename>nm-initrd-generator.sh</filename>, which wires them into
+    <literal>initrd.target.wants</literal> when
+    <envar>SYSTEMD_IN_INITRD</envar> is <literal>1</literal>, additionally
+    linking <filename>NetworkManager-wait-online-initrd.service</filename> into
+    <literal>network-online.target.wants</literal>, and masks them on the real
+    root. It masks the host units inside the initrd for the same
+    reason: <filename>NetworkManager.service</filename> and
+    <filename>NetworkManager-initrd.service</filename> both claim the
+    <literal>org.freedesktop.NetworkManager</literal> bus name, so only one of
+    them may be active at a time. An initramfs that includes the generator
+    script therefore does not need to create any <literal>.wants</literal>
+    symlinks itself. The script is a bash script and uses arrays, so an image
+    that provides only a minimal <command>sh</command> must include
+    <command>bash</command> as well; systemd skips a generator it cannot
+    execute without reporting an error, and the units then never run. Note that
+    some distributions do not ship the generator or the initrd units, and rely
+    on their own equivalents instead.</para>
+
+    <para>The generated profiles live in
+    <filename>/run/NetworkManager/system-connections</filename>, which systemd
+    carries over into the real root at switch-root. The NetworkManager instance
+    on the real root reads the same directory through its keyfile plugin, so a
+    connection configured in the initrd keeps its UUID and stays active. A
+    profile named <literal>Wired Connection</literal> on a running system
+    normally originates this way.</para>
+
+    <para>An initramfs other than dracut's has to supply the environment these
+    units expect. All three assert
+    <filename>/etc/initrd-release</filename>, so that file has to exist in the
+    image. <filename>NetworkManager-initrd.service</filename> is
+    <literal>Type=dbus</literal> and binds to
+    <filename>dbus.service</filename>: a bus implementation, its configuration
+    and NetworkManager's D-Bus policy file
+    (<filename>org.freedesktop.NetworkManager.conf</filename>) must be present,
+    and the bus must be reachable at the point the unit runs, and not only once
+    a late target such as <literal>sockets.target</literal> has been reached.
+    The image also needs the kernel module for the network interface, and, if
+    an <option>ip</option> argument names an interface, whatever udev link
+    configuration the running system uses to arrive at that name. An initramfs
+    that omits it will present the kernel name instead, which such an
+    <option>ip</option> argument then fails to match.</para>
+
+    <para>None of these units is ordered against the encryption stage. Where
+    the root device is encrypted and the network exists in order to deliver its
+    passphrase, that ordering has to be added, and an ordering dependency alone
+    is not enough:
+    <filename>systemd-cryptsetup@.service</filename> is generated with
+    <literal>After=cryptsetup-pre.target</literal> and nothing pulls that
+    target into the transaction, so a unit that is merely
+    <literal>Before=cryptsetup-pre.target</literal> is ordered against a target
+    that never runs and has no effect. Declare both
+    <literal>Wants=cryptsetup-pre.target</literal> and
+    <literal>Before=cryptsetup-pre.target</literal>, and make sure the target
+    itself is present in the image; a dependency naming a unit the image does
+    not contain is dropped without a diagnostic. Note also that
+    <filename>NetworkManager-wait-online-initrd.service</filename> runs with
+    <envar>NM_ONLINE_TIMEOUT</envar> set to 3600. Once it precedes the
+    encryption stage, an interface that never comes up delays the passphrase
+    prompt for that long, so a shorter timeout is usually wanted.</para>
+  </refsect1>
+
+  <refsect1 id='differences_from_network_legacy'><title>Differences from the network-legacy dracut module</title>
+
+    <para><command>nm-initrd-generator</command> generates a set of
+    connections that are then configured by the NetworkManager
+    instance running in the initrd. There are some differences in
+    behavior compared to the network-legacy dracut module:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>The configuration method of the <option>ip</option> option is
+        interpreted differently. network-legacy treats an empty or missing
+        method as <literal>dhcp</literal>; NetworkManager treats it as
+        <literal>auto</literal>, because the result also depends on whether
+        addresses were given. The methods understood are
+        <literal>none</literal>, <literal>dhcp</literal>,
+        <literal>dhcp6</literal>, <literal>link6</literal>,
+        <literal>auto</literal> and <literal>ibft</literal>, with
+        <literal>off</literal>, <literal>fw</literal>,
+        <literal>single-dhcp</literal>, <literal>auto6</literal>,
+        <literal>on</literal> and <literal>any</literal> accepted as aliases.
+        network-legacy accepts arbitrary comma-separated combinations of
+        methods; of these NetworkManager gives only
+        <literal>dhcp,dhcp6</literal> a distinct meaning, mapping it to DHCPv4
+        with automatic IPv6. A method it does not recognize is not reported as
+        an error: in the bare
+        <option>ip</option>=<replaceable>METHOD</replaceable> form it silently
+        becomes <literal>auto</literal>, and in the longer forms the field is
+        parsed as part of the address specification instead, which usually
+        yields no connection at all.</para>
+      </listitem>
+
+      <listitem>
+        <para>When an interface is configured with a static address
+        and a gateway, the network-legacy module waits that the
+        gateway responds to arping requests before proceeding, while
+        NetworkManager doesn't.</para>
+      </listitem>
+
+      <listitem>
+        <para>network-legacy configures interfaces one by one in the
+        order in which they are announced by udev. If multiple
+        interfaces specify a hostname (from command line or from
+        DHCP), the one from the last interface activated wins. With
+        NetworkManager, hostnames from command line have higher
+        precedence over ones from DHCP, and the last that appears in
+        the command line wins.</para>
+      </listitem>
+
+      <listitem>
+        <para>NetworkManager supports the
+        <option>ib.pkey</option>=<replaceable>PARENT</replaceable>.<replaceable>PKEY</replaceable>
+        argument to set up an Infiniband partition on IPoIB parent
+        device <replaceable>PARENT</replaceable> using the specified
+        partition key <replaceable>PKEY</replaceable>. The partition
+        key must be in hexadecimal notation without leading "0x", for
+        example "ib.pkey=ib0.8004".
+        </para>
+      </listitem>
+
+      <listitem>
+        <para>NetworkManager supports the 
+        <option>rd.ethtool</option>=<replaceable>INTERFACE</replaceable>:<replaceable>AUTONEG</replaceable>:<replaceable>SPEED</replaceable> 
+        kernel command line option to set up ethtool NIC configuration parameters 
+        <replaceable>AUTONEG</replaceable> and <replaceable>SPEED</replaceable>. 
+        The <replaceable>INTERFACE</replaceable> being configured must be 
+        specified, and the other parameters are optional and can be left blank. 
+        When <replaceable>SPEED</replaceable> is set, duplex mode is 
+        automatically set to 'full'. <replaceable>INTERFACE</replaceable> 
+        accepts string values, <replaceable>AUTONEG</replaceable> accepts 
+        boolean values (true and false / on or off / 0 or 1), and 
+        <replaceable>SPEED</replaceable> accepts positive integer values.
+        </para>
+      </listitem>
+
+      <listitem>
+        <para>NetworkManager supports the
+        <option>rd.net.dns-backend</option>=<replaceable>VALUE</replaceable>
+        kernel command line option to configure the DNS processing
+        mode. See the description of the <literal>"dns"</literal> key in
+        the <literal>"main section"</literal> paragraph of <link
+        linkend='NetworkManager.conf'><citerefentry><refentrytitle>NetworkManager.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry></link>. For
+        example: <literal>rd.net.dns-backend=systemd-resolved</literal>,
+        <literal>rd.net.dns-backend=dnsconfd</literal>
+        </para>
+      </listitem>
+
+      <listitem>
+        <para>NetworkManager supports the
+        <option>rd.net.dns</option>=<replaceable>SERVER</replaceable>
+        kernel command line option to configure a global (non
+        interface-specific) DNS server. The option can be specified
+        multiple time to add more than one server. Each server can be
+        specified as a plain IP or as an URI according to the
+        description in the "global-dns-domains sections" paragraph of
+        <link
+        linkend='NetworkManager.conf'><citerefentry><refentrytitle>NetworkManager.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry></link>. For
+        example: <literal>rd.net.dns=2001:db8::1</literal>,
+        <literal>rd.net.dns=dns+tls://192.0.2.0</literal>,
+        <literal>rd.net.dns=dns+tls://[2001:db8::2]:5353#example.org</literal>.
+        In addition, it supports configuring the <literal>"resolve-mode"</literal>
+        key in the global DNS configuration via the
+        <option>rd.net.dns-resolve-mode</option> command line option.
+        </para>
+      </listitem>
+
+      <listitem>
+        <para>NetworkManager supports the
+        <option>rd.net.dhcp.dscp</option>={<replaceable>CS0</replaceable>|<replaceable>CS4</replaceable>|<replaceable>CS6</replaceable>}
+        kernel command line option to set a specific DSCP (TOS) value
+        in the IP header of DHCP messages.
+        </para>
+      </listitem>
+
+      <listitem>
+        <para>NetworkManager supports the
+        <option>rd.net.dhcp.client-id</option>=<replaceable>interface</replaceable>:<replaceable>client-id</replaceable>
+        kernel command line option to set a specific DHCPv4 client identifier
+        for the given interface. The client-id can be specified either as a
+        sequence of bytes in hexadecimal format separated by dashes, or as the
+        character '@' followed by a non-empty string. When using the second
+        format, NetworkManager prepends a zero byte to the given string,
+        according to section 9.14 of RFC 2132. See the "ipv4.dhcp-client-id"
+        section of <link
+        linkend='nm-settings-nmcli'><citerefentry><refentrytitle>nm-settings-nmcli</refentrytitle><manvolnum>5</manvolnum></citerefentry></link>
+        for more details. Examples:
+        <literal>rd.net.dhcp.client-id=eth0:01-52-54-00-45-87-42</literal>,
+        <literal>rd.net.dhcp.client-id=enp1s0:@example.com</literal>.
+        </para>
+      </listitem>
+
+      <listitem>
+        <para>NetworkManager supports the
+        <option>rd.net.timeout.ip-required</option>=<replaceable>SECONDS</replaceable>
+        kernel command line option to configure, in seconds, the minimum
+        amount of time that NetworkManager waits for both the IPv4 and IPv6
+        configuration attempts to complete when using
+        <literal>ip=dhcp,dhcp6</literal>. This corresponds to the
+        <literal>ipv4.required-timeout</literal> and
+        <literal>ipv6.required-timeout</literal> connection properties. It
+        defaults to 20 seconds; a value of <literal>0</literal> disables the
+        required wait, and the special value <literal>infinity</literal>
+        makes NetworkManager wait indefinitely. For example:
+        <literal>rd.net.timeout.ip-required=5</literal>.
+        </para>
+      </listitem>
+
+    </itemizedlist>
+  </refsect1>
+
+  <refsect1 id='real_root'><title>Propagation to the real root</title>
+
+    <para>The profiles are written to
+    <filename>&nmrundir;/system-connections</filename> and are tagged
+    with the <literal>org.freedesktop.NetworkManager.origin</literal> user
+    setting, whose value is <literal>nm-initrd-generator</literal>.</para>
+
+    <para><filename>/run</filename> is carried over when the initrd switches to
+    the real root, so those profiles are still there when the second
+    NetworkManager instance starts. It reads them and keeps the interfaces
+    configured as the initrd left them. This is deliberate: it is what allows a
+    system whose root filesystem is on the network to switch root without
+    interrupting connectivity.</para>
+
+    <para>On a system that boots from local storage the propagation is usually
+    not wanted, because the persistent profiles in
+    <filename>&sysconfdir;/NetworkManager/system-connections</filename> are meant to take over.
+    To suppress it, drop a file in
+    <filename>&sysconfdir;/NetworkManager/conf.d</filename> containing:</para>
+
+<programlisting>
+[device]
+keep-configuration=no
+allowed-connections=except:origin:nm-initrd-generator
+</programlisting>
+
+    <para><literal>keep-configuration=no</literal> stops NetworkManager from
+    adopting the existing interface configuration, so it activates the most
+    suitable persistent profile instead;
+    <literal>allowed-connections</literal> then prevents the initrd profiles
+    from being activated at all. Both keys are described in <link
+    linkend='NetworkManager.conf'><citerefentry><refentrytitle>NetworkManager.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry></link>.
+    A <literal>[device]</literal> section without a
+    <literal>match-device</literal> key applies to every device; add one only
+    to restrict the setting to particular interfaces.</para>
+
+    <para>This stops the initrd profiles from being used, but does not remove
+    them. They stay visible as inactive profiles in
+    <command>nmcli connection show</command> until the next boot, since
+    <filename>/run</filename> does not survive a reboot. To remove them
+    earlier, delete them with <command>nmcli connection delete</command>.</para>
+
+  </refsect1>
+
+  <refsect1 id='exit_status'><title>Exit Status</title>
+    <para><command>nm-initrd-generator</command> exits with status 0. It ignores unrecognized
+    options and prints an error message if it encounters a malformed option.</para>
+  </refsect1>
+
+  <refsect1 id='see_also'><title>See Also</title>
+    <para><link linkend='dracut.cmdline'><citerefentry><refentrytitle>dracut.cmdline</refentrytitle><manvolnum>7</manvolnum></citerefentry></link>,
+    <link linkend='NetworkManager'><citerefentry><refentrytitle>NetworkManager</refentrytitle><manvolnum>8</manvolnum></citerefentry></link>,
+    <link linkend='NetworkManager.conf'><citerefentry><refentrytitle>NetworkManager.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry></link>,
+    <link linkend='nm-settings-nmcli'><citerefentry><refentrytitle>nm-settings-nmcli</refentrytitle><manvolnum>5</manvolnum></citerefentry></link>.</para>
+  </refsect1>
+</refentry>

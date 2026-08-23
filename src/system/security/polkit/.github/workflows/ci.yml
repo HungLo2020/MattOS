@@ -1,0 +1,114 @@
+---
+# vi: ts=2 sw=2 et:
+
+name: Build & test
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  # glibc + systemd-logind
+  fedora:
+    runs-on: ubuntu-latest
+    container:
+      image: registry.fedoraproject.org/fedora:latest
+      options: "--privileged"
+    concurrency:
+      group: fedora-${{ github.workflow }}-${{ github.ref }}-${{ matrix.phase }}
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        phase: [BUILD_GCC, GCC, GCC_ASAN_UBSAN, BUILD_CLANG, CLANG]
+    steps:
+      - name: Repository checkout
+        uses: actions/checkout@v7
+
+      - name: Install build & test dependencies
+        run: |
+          dnf install -y dnf-plugins-core python3-dbusmock clang compiler-rt libasan libubsan
+          dnf builddep -y polkit
+
+      - name: Build & test
+        run: .github/workflows/ci.sh ${{ matrix.phase }} logind
+
+  # musl + elogind
+  alpine:
+    runs-on: ubuntu-latest
+    container:
+      image: alpine:latest
+      options: "--privileged"
+    concurrency:
+      group: alpine-${{ github.workflow }}-${{ github.ref }}-${{ matrix.phase }}
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        # There's no libasan/libubsan on Alpine, hence the missing GCC_ASAN_UBSAN phase
+        # See: https://gitlab.alpinelinux.org/alpine/aports/-/issues/10304
+        # Future FIXME: add clang + sanitizers to both jobs
+        phase: [BUILD_GCC, GCC, BUILD_CLANG, CLANG]
+    steps:
+      - name: Repository checkout
+        uses: actions/checkout@v7
+
+      - name: Install build & test dependencies
+        run: |
+          apk update
+          apk add bash gcc g++ clang meson ninja-build pkgconf glib-dev duktape-dev elogind-dev dbus-dev \
+                  expat-dev linux-pam-dev gobject-introspection-dev perl py3-dbusmock gtk-doc
+          # Alpine's elogind package creates compatibility symlinks to act as a drop-in replacement for
+          # systemd/systemd-logind. Remove them to test build with _pure_ elogind installation
+          rm -f /usr/include/systemd /usr/lib/pkgconfig/libsystemd{,-logind}.pc
+
+      - name: Build & test
+        run: .github/workflows/ci.sh ${{ matrix.phase }} elogind
+
+  freebsd:
+    runs-on: ubuntu-24.04
+    concurrency:
+      group: freebsd-${{ github.workflow }}-${{ github.ref }}-${{ matrix.phase }}
+      cancel-in-progress: true
+    defaults:
+      run:
+        shell: cpa.sh {0}
+
+    steps:
+      - name: Repository checkout
+        uses: actions/checkout@v7
+
+      - name: Build & test
+        uses: cross-platform-actions/action@5ea7e8e4677bd726033a10b094ba1c5762b15dee # v.1.3.0
+        with:
+          operating_system: 'freebsd'
+          version: '15.1'
+          architecture: 'x86_64'
+          run: |
+            # Use latest package set
+            sudo mkdir -p /usr/local/etc/pkg/repos/
+            sudo cp /etc/pkg/FreeBSD.conf /usr/local/etc/pkg/repos/FreeBSD.conf
+            sudo sed -i.bak -e 's|/quarterly|/latest|' /usr/local/etc/pkg/repos/FreeBSD.conf
+
+            echo "::group::Dependencies installation"
+            sudo -E pkg install -y \
+                meson gettext-tools gobject-introspection glib dbus pkgconf \
+                expat duktape-lib consolekit2 py312-dbus py312-python-dbusmock \
+                gtk-doc python3 perl5
+            echo "::endgroup::"
+
+            echo "::group::Build and test"
+            sudo service dbus onestart
+            sudo .github/workflows/ci.sh CLANG ConsoleKit
+            echo "::endgroup::"
+
+            # We carried the build as root, so some policy files are now
+            # unreadable by the regular user. The action tries to rsync build
+            # artifacts out of VM, which fails unless we change files owner.
+            sudo chown -R $USER .

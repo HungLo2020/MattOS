@@ -2567,7 +2567,13 @@ mod tests {
             recipe: "tool-test".to_string(),
         };
         let first = compute_stage_inputs(root.path(), &spec).unwrap();
-        fs::write(&tool, "#!/bin/sh\necho version-two\n").unwrap();
+        // Replace the inode atomically: rewriting an executable in place can
+        // legitimately return ETXTBSY when another parallel test has the
+        // interpreter or probe open on Linux.
+        let replacement = root.path().join("tool.replacement");
+        fs::write(&replacement, "#!/bin/sh\necho version-two\n").unwrap();
+        fs::set_permissions(&replacement, fs::Permissions::from_mode(0o755)).unwrap();
+        fs::rename(replacement, &tool).unwrap();
         let second = compute_stage_inputs(root.path(), &spec).unwrap();
         assert_ne!(first.tool_digest, second.tool_digest);
         assert_ne!(first.full_digest, second.full_digest);

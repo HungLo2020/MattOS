@@ -70,6 +70,11 @@ def parse_args() -> argparse.Namespace:
         help="run terminal-oriented diagnostic mode (-nographic, serial stdio)",
     )
     parser.add_argument(
+        "--headless",
+        action="store_true",
+        help="omit the graphical GPU and run with serial output (for CI/headless hosts)",
+    )
+    parser.add_argument(
         "--qemu-arg",
         action="append",
         default=[],
@@ -301,28 +306,24 @@ def launch_qemu(repo_root: Path, iso_path: Path, args: argparse.Namespace) -> in
         "scsi-cd,drive=mattos-cd,bus=mattos-scsi.0,bootindex=1",
         "-boot",
         "d",
+    ]
+    if not args.headless:
         # The native COSMIC installer is a DRM/KMS Wayland client session.
         # `virtio-vga-gl` is deliberately the only display device: unlike
         # `virtio-gpu-gl-pci` it remains visible to firmware and GRUB, while
         # also publishing the VirGL capset required by Mesa's source-built
         # virgl Gallium renderer for GBM/EGL dmabuf scanout.
-        "-device",
-        graphical_gpu_device(repo_root),
-        # A graphical desktop guest needs an absolute pointer.  The default
+        qemu_cmd.extend(["-device", graphical_gpu_device(repo_root)])
+        # A graphical desktop guest needs an absolute pointer. The default
         # PS/2 mouse is relative-only and did not produce usable pointer
-        # motion in the COSMIC KMS session.  One USB tablet is sufficient;
-        # do not add a second, competing pointer device.
-        "-device",
-        QEMU_TABLET_CONTROLLER,
-        "-device",
-        QEMU_TABLET_DEVICE,
-    ]
+        # motion in the COSMIC KMS session. One USB tablet is sufficient.
+        qemu_cmd.extend(["-device", QEMU_TABLET_CONTROLLER, "-device", QEMU_TABLET_DEVICE])
     install_disk = prepare_install_disk(repo_root, args)
     if install_disk is not None:
         qemu_cmd.extend(["-drive", f"file={install_disk},if=virtio,format=qcow2"])
     qemu_cmd.extend(network_arguments(args.no_network))
 
-    if args.serial_console:
+    if args.serial_console or args.headless:
         qemu_cmd.extend(["-nographic", "-serial", "stdio", "-monitor", "none", "-no-reboot", "-no-shutdown"])
     else:
         display = choose_graphical_display(repo_root)

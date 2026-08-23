@@ -1,0 +1,11 @@
+*** nm-in-vm:
+
+find NetworkManager bind mounted at {{BASEDIR_NM}}
+run `nm-env-prepare.sh setup --idx 1` to setup test interfaces
+
+Configure NetworkManager with `contrib/fedora/rpm/configure-for-system.sh`,
+subsequent `meson install` will overwrite your system's NetworkManager,
+and you can test it with `systemctl daemon-reload ; systemctl restart NetworkManager`.
+
+Run NM-ci tests after creating eth1 with
+`nm-env-prepare.sh --prefix eth -i 1 && sleep 1 && nmcli device connect eth1`.

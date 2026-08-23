@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -ex
+
+cd /NetworkManager
+
+meson install -C build
+systemctl daemon-reload
+systemctl restart NetworkManager.service

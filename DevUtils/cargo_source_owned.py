@@ -9,6 +9,7 @@ import pathlib
 import subprocess
 import sys
 import tomllib
+import atexit
 from datetime import datetime, timezone
 
 
@@ -259,9 +260,30 @@ def inject_locked_transitive_owned_patches(
             for key in patch_root
             if isinstance(key, str) and graph.norm_repo(key) == normalized
         ]
-        if len(matching_keys) > 1:
-            raise RuntimeError(f'multiple Cargo patch tables normalize to owned source {repo}: {matching_keys}')
         source_key = matching_keys[0] if matching_keys else repo
+        if len(matching_keys) > 1:
+            # Cargo treats URL spellings with and without ``.git`` as the
+            # same source. Upstream manifests can contain both spellings,
+            # especially after an output-only patch has been appended. Merge
+            # equivalent tables instead of making an otherwise deterministic
+            # ownership rewrite fail; conflicting package entries are still
+            # rejected below.
+            source_key = repo
+            merged: dict = {}
+            for key in matching_keys:
+                table_value = patch_root[key]
+                if not isinstance(table_value, dict):
+                    raise RuntimeError(f'Cargo patch source is not a table: {key}')
+                for entry_key, entry_value in table_value.items():
+                    if entry_key in merged and merged[entry_key] != entry_value:
+                        raise RuntimeError(
+                            f'conflicting Cargo patch entries for normalized source {repo}: {entry_key}'
+                        )
+                    merged[entry_key] = entry_value
+            for key in matching_keys:
+                if key != source_key:
+                    del patch_root[key]
+            patch_root[source_key] = merged
         table = patch_root.setdefault(source_key, {})
         if not isinstance(table, dict):
             raise RuntimeError(f'Cargo patch source is not a table: {source_key}')
@@ -442,6 +464,13 @@ def main() -> int:
 
     graph = load_graph_module(root)
     consumer_mirror = manifest.parent
+    # Hold the consumer transaction lock until this Cargo process exits. The
+    # mirror is prepared, metadata-validated, and consumed by the final Cargo
+    # command as one critical section; another build must not rewrite it in
+    # between those phases.
+    consumer_lock = graph.consumer_mirror_lock(root, consumer_mirror)
+    consumer_lock.__enter__()
+    atexit.register(consumer_lock.__exit__, None, None, None)
     try:
         patch_status = apply_consumer_patches(
             root,

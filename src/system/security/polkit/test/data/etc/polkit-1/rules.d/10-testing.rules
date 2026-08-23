@@ -1,0 +1,208 @@
+/* -*- mode: js; js-indent-level: 4; indent-tabs-mode: nil -*- */
+
+/* see test/polkitbackend/test-polkitbackendjsauthority.c */
+
+/* NOTE: this is the /etc/polkit-1/rules.d version of 10-testing.rules */
+
+// ---------------------------------------------------------------------
+// admin rules
+
+polkit.addAdminRule(function(action, subject) {
+    if (action.id == "net.company.action1") {
+        return ["unix-group:admin"];
+    }
+});
+
+polkit.addAdminRule(function(action, subject) {
+    if (action.id == "net.company.action2") {
+        return ["unix-group:users"];
+    }
+});
+
+polkit.addAdminRule(function(action, subject) {
+    if (action.id == "net.company.action3") {
+        return ["unix-netgroup:foo"];
+    }
+});
+
+// Fallback
+polkit.addAdminRule(function(action, subject) {
+    return ["unix-group:admin", "unix-user:root"];
+});
+
+// -----
+
+// ---------------------------------------------------------------------
+// basics
+
+polkit.addRule(function(action, subject) {
+    if (action.id == "net.company.productA.action0") {
+        return polkit.Result.AUTH_ADMIN;
+    }
+});
+
+polkit.addRule(function(action, subject) {
+    if (action.id == "net.company.productA.action1") {
+        return polkit.Result.AUTH_SELF;
+    }
+});
+
+polkit.addRule(function(action, subject) {
+    if (action.id == "net.company.order0") {
+        return polkit.Result.YES;
+    }
+});
+
+polkit.addRule(function(action, subject) {
+    if (action.id == "net.company.john_action") {
+        if (subject.user == "john") {
+            return polkit.Result.YES;
+        } else {
+            return polkit.Result.NO;
+        }
+    }
+});
+
+polkit.addRule(function(action, subject) {
+    if (action.id == "net.company.john_uid_action") {
+        if (subject.uid == 500) {
+            return polkit.Result.YES;
+        } else {
+            return polkit.Result.NO;
+        }
+    }
+});
+
+polkit.addRule(function(action, subject) {
+    if (action.id == "net.company.highuid2_action") {
+        if (subject.user == "highuid2") {
+            return polkit.Result.YES;
+        } else {
+            return polkit.Result.NO;
+        }
+    }
+});
+
+
+// ---------------------------------------------------------------------
+// variables
+
+polkit.addRule(function(action, subject) {
+    if (action.id == "net.company.group.variables") {
+        if (action.lookup("foo") == "1")
+            return polkit.Result.YES;
+        else if (action.lookup("foo") == "2")
+            return polkit.Result.AUTH_SELF;
+        else
+            return polkit.Result.AUTH_ADMIN;
+    }
+});
+
+
+// ---------------------------------------------------------------------
+// group membership
+
+polkit.addRule(function(action, subject) {
+    if (action.id == "net.company.group.only_group_users") {
+        if (subject.isInGroup("users"))
+            return polkit.Result.YES;
+        else
+            return polkit.Result.NO;
+    }
+});
+
+// ---------------------------------------------------------------------
+// netgroup membership
+
+polkit.addRule(function(action, subject) {
+    if (action.id == "net.company.group.only_netgroup_users") {
+        if (subject.isInNetGroup("foo"))
+            return polkit.Result.YES;
+        else
+            return polkit.Result.NO;
+    }
+});
+
+// ---------------------------------------------------------------------
+// spawning
+
+polkit.addRule(function(action, subject) {
+    if (action.id == "net.company.spawning.non_existing_helper") {
+        try {
+            polkit.spawn(["/path/to/non/existing/helper"]);
+            return polkit.Result.NO;
+        } catch (error) {
+            return polkit.Result.YES;
+        }
+    }
+});
+
+polkit.addRule(function(action, subject) {
+    if (action.id == "net.company.spawning.successful_helper") {
+        try {
+            polkit.spawn(["true"]);
+            return polkit.Result.YES;
+        } catch (error) {
+            return polkit.Result.NO;
+        }
+    }
+});
+
+polkit.addRule(function(action, subject) {
+    if (action.id == "net.company.spawning.failing_helper") {
+        try {
+            polkit.spawn(["false"]);
+            return polkit.Result.NO;
+        } catch (error) {
+            return polkit.Result.YES;
+        }
+    }
+});
+
+polkit.addRule(function(action, subject) {
+    if (action.id == "net.company.spawning.helper_with_output") {
+        try {
+            var out = polkit.spawn(["printf", "Hello\nWorld"]);
+            if (out == "Hello\nWorld")
+                return polkit.Result.YES;
+            else
+                return polkit.Result.NO;
+        } catch (error) {
+            return polkit.Result.NO;
+        }
+    }
+});
+
+polkit.addRule(function(action, subject) {
+    if (action.id == "net.company.spawning.helper_timeout") {
+        try {
+            polkit.spawn(["sleep", "20"]);
+            return polkit.Result.NO;
+        } catch (error) {
+            if (error == "Error: Error spawning helper: Timed out after 10 seconds (g-io-error-quark, 24)")
+                return polkit.Result.YES;
+            return polkit.Result.NO;
+        }
+    }
+});
+
+// ---------------------------------------------------------------------
+// runaway scripts
+
+polkit.addRule(function(action, subject) {
+    if (action.id == "net.company.run_away_script") {
+        try {
+            // The following code will never terminate so the runaway
+            // script killer will step in after 15 seconds and throw
+            // an exception...
+            while (true)
+                ;
+        } catch (error) {
+            if (error == "Terminating runaway script")
+                // Inverted logic to accomodate Duktape's model as well, which
+                // will always fail with negation, on timeouts
+                return polkit.Result.NO;
+            return polkit.Result.YES;
+        }
+    }
+});

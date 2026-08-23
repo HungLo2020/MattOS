@@ -257,6 +257,8 @@ const PACKAGE_NAMES: &[&str] = &[
     "apt",
     "mattos-libtinfow6",
     "libncursesw6",
+    "libreadline8",
+    "libndp0",
     "ncurses-base",
     "ncurses-bin",
     "libkmod2",
@@ -329,7 +331,11 @@ const PACKAGE_NAMES: &[&str] = &[
     "nvidia-driver-595-open",
     "cosmic-comp",
     "cosmic-edit",
+    "cosmic-initial-setup",
     "cosmic-desktop",
+    "libduktape207",
+    "polkit",
+    "network-manager",
     "mattos-cozy",
     "libpython3.14",
     "python3",
@@ -1207,6 +1213,22 @@ fn package_specs() -> Vec<PackageSpec> {
             replaces: &["ncurses-bin"],
             essential: false,
             priority: "important",
+        },
+        PackageSpec {
+            name: "libreadline8",
+            description: "GNU Readline runtime library built for MattOS",
+            source_component: "readline",
+            depends: &["libc6"],
+            provides: &["libreadline8"],
+            conflicts: &[], replaces: &[], essential: false, priority: "important",
+        },
+        PackageSpec {
+            name: "libndp0",
+            description: "IPv6 Neighbor Discovery Protocol runtime library built for MattOS",
+            source_component: "libndp",
+            depends: &["libc6"],
+            provides: &["libndp0"],
+            conflicts: &[], replaces: &[], essential: false, priority: "important",
         },
         PackageSpec {
             name: "libkmod2",
@@ -2440,6 +2462,34 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "optional",
         },
         PackageSpec {
+            name: "cosmic-initial-setup",
+            description: "COSMIC first-login setup wizard built from the pinned upstream source",
+            source_component: "cosmic-initial-setup",
+            depends: &["libc6", "libgcc-s1", "libstdc++6", "cosmic-desktop", "network-manager"],
+            provides: &["cosmic-initial-setup"], conflicts: &[], replaces: &[], essential: false, priority: "optional",
+        },
+        PackageSpec {
+            name: "libduktape207",
+            description: "Duktape JavaScript engine runtime built from the pinned upstream source",
+            source_component: "duktape",
+            depends: &["libc6"],
+            provides: &["libduktape.so.207"], conflicts: &[], replaces: &[], essential: false, priority: "optional",
+        },
+        PackageSpec {
+            name: "polkit",
+            description: "Source-built PolicyKit authorization service and agent helper",
+            source_component: "polkit",
+            depends: &["libc6", "libglib2.0-0t64", "libpam0g", "libdbus-1-3", "libsystemd0", "libduktape207"],
+            provides: &["polkit-1"], conflicts: &[], replaces: &[], essential: false, priority: "important",
+        },
+        PackageSpec {
+            name: "network-manager",
+            description: "Source-built NetworkManager daemon, D-Bus API, and nmcli",
+            source_component: "networkmanager",
+            depends: &["libc6", "libglib2.0-0t64", "libsystemd0", "libdbus-1-3", "polkit", "iproute2", "libndp0", "libreadline8", "libncursesw6", "mattos-libtinfow6"],
+            provides: &["network-manager", "networkmanager"], conflicts: &[], replaces: &[], essential: false, priority: "important",
+        },
+        PackageSpec {
             name: "mattos-cozy",
             description: "Cozy terminal text editor built from the pinned upstream source",
             source_component: "cozy",
@@ -3611,6 +3661,9 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "cosmic-comp" => &["cosmic-comp"],
             "cosmic-desktop" => &["cosmic-desktop"],
             "cosmic-edit" => &["cosmic-edit"],
+            "cosmic-initial-setup" => &["cosmic-initial-setup"],
+            "polkit" => &["polkit"],
+            "networkmanager" => &["networkmanager"],
             "cozy" => &["cozy"],
             "cpython" => &["cpython"],
             "llvm" => &["llvm"],
@@ -3756,8 +3809,17 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
             "src/desktop/themes/pop-icon-theme",
             "src/system/session/greetd",
             "src/system/session/cosmic",
+            "src/tools/mattos-build/src/main.rs",
         ],
-        "cosmic-edit" => &["src/desktop/cosmic/cosmic-edit"],
+            "cosmic-edit" => &["src/desktop/cosmic/cosmic-edit"],
+            "cosmic-initial-setup" => &["src/desktop/cosmic/cosmic-initial-setup"],
+        "duktape" => &["src/system/security/duktape", "src/tools/mattos-build/src/main.rs", "src/tools/mattos-build/src/packaging.rs"],
+        "polkit" => &[
+                "src/system/security/polkit",
+                "src/tools/mattos-build/src/main.rs",
+                "src/tools/mattos-build/src/packaging.rs",
+            ],
+            "networkmanager" => &["src/system/network/NetworkManager"],
         "cozy" => &["src/userland/cozy"],
         "cpython" => &["src/development/python/cpython"],
         "llvm" => &["src/toolchain/llvm-project"],
@@ -3969,6 +4031,18 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
                 "libpanelw.so.6.6",
                 "libpanelw.so.6",
             ],
+        )?,
+        "libreadline8" => stage_library_family(
+            repo_root,
+            &staging,
+            "readline",
+            &["libreadline.so.8.2", "libreadline.so.8"],
+        )?,
+        "libndp0" => stage_library_family(
+            repo_root,
+            &staging,
+            "libndp",
+            &["libndp.so.0", "libndp.so.0.3.0"],
         )?,
         "ncurses-base" => stage_terminfo(repo_root, &staging)?,
         "ncurses-bin" => {
@@ -4519,6 +4593,24 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
         }
         "cosmic-desktop" => stage_cosmic_desktop(repo_root, &staging)?,
         "cosmic-edit" => stage_cosmic_edit(repo_root, &staging)?,
+        "cosmic-initial-setup" => stage_cosmic_initial_setup(repo_root, &staging)?,
+        "libduktape207" => stage_runtime_paths(repo_root, &staging, "duktape", &[
+            "usr/lib/x86_64-linux-gnu/libduktape.so.207.2.7.0",
+            "usr/lib/x86_64-linux-gnu/libduktape.so.207",
+            "usr/lib/x86_64-linux-gnu/libduktape.so",
+        ])?,
+        "polkit" => stage_runtime_paths(repo_root, &staging, "polkit", &[
+            "usr/bin/pkcheck",
+            "usr/lib/polkit-1/polkitd",
+            "usr/lib/polkit-1/polkit-agent-helper-1",
+            "usr/lib/x86_64-linux-gnu/libpolkit-agent-1.so",
+            "usr/lib/x86_64-linux-gnu/libpolkit-agent-1.so.0",
+            "usr/lib/x86_64-linux-gnu/libpolkit-agent-1.so.0.0.0",
+            "usr/lib/x86_64-linux-gnu/libpolkit-gobject-1.so",
+            "usr/lib/x86_64-linux-gnu/libpolkit-gobject-1.so.0",
+            "usr/lib/x86_64-linux-gnu/libpolkit-gobject-1.so.0.0.0",
+        ])?,
+        "network-manager" => stage_network_manager(repo_root, &staging)?,
         "mattos-cozy" => stage_cozy(repo_root, &staging)?,
         "libdbus-1-3" => {
             stage_imported_soname_library(
@@ -5889,6 +5981,34 @@ fn stage_cosmic_edit(repo_root: &Path, staging: &Path) -> Result<()> {
     ))?;
     if !desktop.contains("Exec=cosmic-edit %F") || !desktop.contains("MimeType=text/plain;") {
         bail!("cosmic-edit desktop entry does not advertise the expected editor contract");
+    }
+    Ok(())
+}
+
+fn stage_cosmic_initial_setup(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = component_install(repo_root, "cosmic-initial-setup");
+    copy_tree_preserving(&install.join("usr"), &staging.join("usr"))?;
+    copy_tree_preserving(&install.join("etc"), &staging.join("etc"))?;
+    let launcher = staging.join("usr/libexec/mattos/cosmic-initial-setup-autostart");
+    if let Some(parent) = launcher.parent() { fs::create_dir_all(parent)?; }
+    fs::write(&launcher, "#!/bin/sh\n# Live media starts COSMIC without running the installed-user wizard.\n[ ! -e /run/mattos-live ] || exit 0\nexec /usr/bin/cosmic-initial-setup\n")?;
+    set_mode(launcher, 0o755)?;
+    let desktop = staging.join("etc/xdg/autostart/com.system76.CosmicInitialSetup.Autostart.desktop");
+    let body = fs::read_to_string(&desktop)?.replace("Exec=cosmic-initial-setup", "Exec=/usr/libexec/mattos/cosmic-initial-setup-autostart");
+    fs::write(desktop, body)?;
+    copy_preserving(&repo_root.join("src/desktop/cosmic/cosmic-initial-setup/LICENSE"), &staging.join("usr/share/doc/cosmic-initial-setup/copyright"))?;
+    for rel in ["usr/bin/cosmic-initial-setup", "usr/share/applications/com.system76.CosmicInitialSetup.desktop", "etc/xdg/autostart/com.system76.CosmicInitialSetup.Autostart.desktop"] {
+        if !staging.join(rel).is_file() { bail!("cosmic-initial-setup package is missing /{rel}"); }
+    }
+    Ok(())
+}
+
+fn stage_network_manager(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = component_install(repo_root, "networkmanager");
+    copy_tree_preserving(&install.join("usr"), &staging.join("usr"))?;
+    copy_tree_preserving(&install.join("etc"), &staging.join("etc"))?;
+    for rel in ["usr/sbin/NetworkManager", "usr/bin/nmcli", "usr/lib/systemd/system/NetworkManager.service", "usr/lib/systemd/system/NetworkManager-wait-online.service"] {
+        if !staging.join(rel).exists() { bail!("network-manager package is missing /{rel}"); }
     }
     Ok(())
 }
@@ -7272,6 +7392,8 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "mattos-libtinfow6" | "libncursesw6" | "ncurses-base" | "ncurses-bin" => {
             component_snapshot_version(repo_root, "ncurses")?
         }
+        "libreadline8" => component_snapshot_version(repo_root, "readline")?,
+        "libndp0" => component_snapshot_version(repo_root, "libndp")?,
         "libkmod2" | "kmod" => component_snapshot_version(repo_root, "kmod")?,
         "mattos-libproc2" | "procps" => component_snapshot_version(repo_root, "procps-ng")?,
         "libsystemd0" | "libudev1" | "udev" => component_snapshot_version(repo_root, "systemd")?,
@@ -7350,6 +7472,12 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "cosmic-edit" => cargo_package_version(
             &repo_root.join("src/desktop/cosmic/cosmic-edit/Cargo.toml"),
         )?,
+        "cosmic-initial-setup" => cargo_package_version(
+            &repo_root.join("src/desktop/cosmic/cosmic-initial-setup/Cargo.toml"),
+        )?,
+        "libduktape207" => component_snapshot_version(repo_root, "duktape")?,
+        "polkit" => component_snapshot_version(repo_root, "polkit")?,
+        "network-manager" => component_snapshot_version(repo_root, "networkmanager")?,
         "mattos-cozy" => cargo_package_version(&repo_root.join("src/userland/cozy/Cargo.toml"))?,
         "cosmic-desktop" => component_snapshot_version(repo_root, "cosmic-session")?,
         "libdbus-1-3" => component_snapshot_version(repo_root, "dbus")?,
@@ -10327,7 +10455,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 149);
+        assert_eq!(PACKAGE_NAMES.len(), 161);
     }
 
     #[test]
@@ -10352,7 +10480,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 149);
+        assert_eq!(PACKAGE_NAMES.len(), 161);
         assert_eq!(
             UTIL_LINUX_BASE_PATHS,
             &[
@@ -10429,7 +10557,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 149);
+        assert_eq!(PACKAGE_NAMES.len(), 161);
         let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
         for dependency in [
             "libffi8",

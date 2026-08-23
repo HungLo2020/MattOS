@@ -899,9 +899,80 @@ struct WslStatus {
     distros: Vec<String>,
 }
 
+fn ensure_private_cache_root(repo_root: &Path) -> Result<()> {
+    let cache = repo_root.join("out/cache");
+    if let Ok(metadata) = fs::symlink_metadata(&cache) {
+        if metadata.file_type().is_symlink() {
+            let actual = cache
+                .canonicalize()
+                .with_context(|| format!("unable to resolve cache symlink {}", cache.display()))?;
+            let explicitly_shared = std::env::var_os("MATTOS_SHARED_CACHE_ROOT")
+                .map(PathBuf::from)
+                .map(|path| path.canonicalize().ok() == Some(actual.clone()))
+                .unwrap_or(false);
+            if !explicitly_shared {
+                bail!(
+                    "refusing external out/cache symlink {}; remove it for checkout-local cache use or set MATTOS_SHARED_CACHE_ROOT to the exact resolved target",
+                    cache.display()
+                );
+            }
+        }
+    } else if !cache.exists() {
+        fs::create_dir_all(&cache)
+            .with_context(|| format!("failed to create private cache root {}", cache.display()))?;
+    }
+    Ok(())
+}
+
+fn prepare_source_ownership_tool_environment(repo_root: &Path) -> Result<()> {
+    let dispatcher = repo_root.join("out/source-ownership/bin/cargo");
+    let source = repo_root.join("DevUtils/cargo_source_owned.py");
+    if !source.is_file() {
+        return Ok(());
+    }
+    if !dispatcher.is_file() || fs::read(&dispatcher)? != fs::read(&source)? {
+        if let Some(parent) = dispatcher.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        fs::copy(&source, &dispatcher)?;
+        let mut permissions = fs::metadata(&dispatcher)?.permissions();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            permissions.set_mode(0o755);
+        }
+        fs::set_permissions(&dispatcher, permissions)?;
+    }
+    let current_path = std::env::var_os("PATH").unwrap_or_default();
+    let dispatcher_dir = dispatcher
+        .parent()
+        .expect("Cargo dispatcher has a parent")
+        .to_path_buf();
+    let real_cargo = std::env::split_paths(&current_path)
+        .map(|directory| directory.join("cargo"))
+        .find(|candidate| candidate.is_file() && candidate != &dispatcher);
+    let Some(real_cargo) = real_cargo else {
+        return Ok(());
+    };
+    let mut paths = vec![dispatcher_dir];
+    paths.extend(std::env::split_paths(&current_path));
+    // This runs during single-threaded process startup, before the scheduler
+    // or any build worker exists. Rust 2024 marks process-environment mutation
+    // unsafe because concurrent readers could observe a torn environment.
+    unsafe {
+        if std::env::var_os("MATTOS_REAL_CARGO").is_none() {
+            std::env::set_var("MATTOS_REAL_CARGO", &real_cargo);
+        }
+        std::env::set_var("PATH", std::env::join_paths(paths)?);
+    }
+    Ok(())
+}
+
 fn main() -> Result<()> {
     let cli = Cli::parse();
     let repo_root = std::env::current_dir().context("unable to determine current directory")?;
+    ensure_private_cache_root(&repo_root)?;
+    prepare_source_ownership_tool_environment(&repo_root)?;
     ensure_mattos_build_tmp(&repo_root)?;
     if let Commands::Build {
         stage,
@@ -2218,12 +2289,17 @@ fn update_component(
 ) -> Result<()> {
     let tmp_upstream = prepare_tmp_clone(repo_root, comp)?;
     // The three-way sync below needs the prior imported commit as well as the
-    // new branch head.  A depth-one clone cannot fetch either commit into the
-    // temporary merge repository when they are shallow roots, which can make
-    // Git report a false "Already up to date" result.  Hydrate the clone
-    // before constructing the merge so the state record and materialized tree
-    // advance together.
-    run_cmd(&tmp_upstream, "git", &["fetch", "--unshallow", "origin"])?;
+    // new branch head. Hydrate a genuinely shallow clone before constructing
+    // the merge. Local fixture repositories ignore --depth during clone, so
+    // asking Git to unshallow them is an error rather than a harmless no-op.
+    let shallow = run_cmd_capture(
+        &tmp_upstream,
+        "git",
+        &["rev-parse", "--is-shallow-repository"],
+    )?;
+    if shallow.trim() == "true" {
+        run_cmd(&tmp_upstream, "git", &["fetch", "--unshallow", "origin"])?;
+    }
     let new_commit = run_cmd_capture(&tmp_upstream, "git", &["rev-parse", "HEAD"])?;
     let (source_selection, source_selection_policy, source_selection_policy_sha256) =
         load_source_selection_policy(repo_root, comp)?;
@@ -3143,6 +3219,7 @@ fn apply_component_patches(
             source_mirror.display()
         );
     }
+    let _lock = ConsumerMirrorLock::acquire(repo_root, source_mirror)?;
     let mirror_relative = source_mirror.strip_prefix(repo_root).with_context(|| {
         format!(
             "output mirror is outside repository: {}",
@@ -3375,6 +3452,7 @@ fn validate_experimental_child_jobs_with_budget(
 }
 
 fn build_all_scheduled(repo_root: &Path) -> Result<()> {
+    prune_derived_source_mirror_artifacts(repo_root)?;
     let stages = build_plan(BuildStage::All);
     let nodes = scheduled_build_nodes(&stages);
     let snapshot = resources::discover();
@@ -3517,6 +3595,7 @@ fn stage_resource_profile(stage: BuildStage) -> scheduler::StageResourceProfile 
             | BuildStage::CosmicUtilities
             | BuildStage::CosmicPortal
             | BuildStage::CosmicEdit
+            | BuildStage::CosmicInitialSetup
             | BuildStage::Greetd
     ) {
         return scheduler::StageResourceProfile::high_memory_parallel();
@@ -3681,6 +3760,11 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
             "out/build/cosmic-edit/install/usr/bin/cosmic-edit".into(),
             "out/build/cosmic-edit/install/usr/share/applications/com.system76.CosmicEdit.desktop".into(),
         ],
+        BuildStage::CosmicInitialSetup => vec![
+            "out/build/cosmic-initial-setup/install/usr/bin/cosmic-initial-setup".into(),
+            "out/build/cosmic-initial-setup/install/usr/share/applications/com.system76.CosmicInitialSetup.desktop".into(),
+        ],
+        BuildStage::Duktape => vec!["out/build/duktape/install/usr/lib/x86_64-linux-gnu/libduktape.so.207".into()],
         BuildStage::CosmicTerm => {
             vec!["out/build/cosmic-term/install/usr/bin/cosmic-term".into()]
         }
@@ -4077,6 +4161,7 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
         | BuildStage::CosmicAssets
         | BuildStage::Greetd => build_cosmic_desktop_component(repo_root, stage),
         BuildStage::CosmicEdit => build_cosmic_edit(repo_root),
+        BuildStage::CosmicInitialSetup => build_cosmic_initial_setup(repo_root),
         BuildStage::CosmicDesktop => build_cosmic_desktop(repo_root),
         BuildStage::Cozy => build_cozy(repo_root),
         BuildStage::Python => build_cpython(repo_root),
@@ -4109,6 +4194,8 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::Libxcrypt => build_libxcrypt(repo_root),
         BuildStage::Libmd => build_libmd(repo_root),
         BuildStage::Libbsd => build_libbsd(repo_root),
+        BuildStage::Libndp => build_libndp(repo_root),
+        BuildStage::Readline => build_readline(repo_root),
         BuildStage::Pam => build_linux_pam(repo_root),
         BuildStage::Shadow => build_shadow(repo_root),
         BuildStage::SudoRs => build_sudo_rs(repo_root),
@@ -4123,6 +4210,9 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::Libksba => build_gpg_autotools_library(repo_root, "libksba", &["libgpg-error"], "libksba.so.8"),
         BuildStage::Npth => build_gpg_autotools_library(repo_root, "npth", &[], "libnpth.so.0"),
         BuildStage::Gpgv => build_gpgv(repo_root),
+        BuildStage::Polkit => build_polkit(repo_root),
+        BuildStage::Duktape => build_duktape(repo_root),
+        BuildStage::NetworkManager => build_networkmanager(repo_root),
         BuildStage::Apt => packaging::build_apt(repo_root),
         BuildStage::Init => build_init(repo_root),
         BuildStage::Installer => build_installer(repo_root),
@@ -6582,6 +6672,7 @@ fn build_util_linux(repo_root: &Path) -> Result<()> {
         ],
         &env_overrides,
     )?;
+    rewrite_staged_pkgconfig_files(&install_dir)?;
 
     for path in [
         install_dir.join("usr/sbin/agetty"),
@@ -6942,16 +7033,129 @@ fn procps_configure_options() -> Vec<&'static str> {
     ]
 }
 
+const SOURCE_MIRROR_RSYNC_FLAGS: &[&str] = &[
+    "-a",
+    "--delete",
+    "--delete-excluded",
+    "--exclude=.git/",
+    "--exclude=target/",
+    "--exclude=__pycache__/",
+    "--exclude=*.pyc",
+];
+
 fn sync_build_source(source: &Path, destination: &Path) -> Result<()> {
     fs::create_dir_all(destination)
         .with_context(|| format!("failed to create {}", destination.display()))?;
+    let _lock = ConsumerMirrorLock::acquire(&source_lock_repo_root(source)?, destination)?;
     let source_arg = format!("{}/", source.display());
     let destination_arg = format!("{}/", destination.display());
+    let mut args = SOURCE_MIRROR_RSYNC_FLAGS.to_vec();
+    args.extend([source_arg.as_str(), destination_arg.as_str()]);
     run_cmd(
         Path::new("/"),
         "rsync",
-        &["-a", "--exclude=.git/", &source_arg, &destination_arg],
+        &args,
     )
+}
+
+fn source_lock_repo_root(source: &Path) -> Result<PathBuf> {
+    source
+        .ancestors()
+        .find(|candidate| {
+            candidate.join("Cargo.toml").is_file()
+                && candidate.join("src/tools/mattos-build/Cargo.toml").is_file()
+        })
+        .map(Path::to_path_buf)
+        .or_else(|| {
+            std::env::current_dir().ok().and_then(|cwd| {
+                cwd.ancestors()
+                    .find(|candidate| {
+                        candidate.join("Cargo.toml").is_file()
+                            && candidate.join("src/tools/mattos-build/Cargo.toml").is_file()
+                    })
+                    .map(Path::to_path_buf)
+            })
+        })
+        .ok_or_else(|| anyhow!("unable to locate MattOS root for source mirror {}", source.display()))
+}
+
+fn prune_derived_source_mirror_artifacts(repo_root: &Path) -> Result<()> {
+    let root = repo_root.join("out/build/cosmic-desktop/sources");
+    if !root.is_dir() {
+        return Ok(());
+    }
+    fn visit(path: &Path) -> Result<()> {
+        for entry in fs::read_dir(path)? {
+            let entry = entry?;
+            let child = entry.path();
+            let file_type = entry.file_type()?;
+            if file_type.is_dir() {
+                if entry.file_name() == "target" || entry.file_name() == "__pycache__" {
+                    fs::remove_dir_all(&child).with_context(|| {
+                        format!("failed to prune derived source mirror directory {}", child.display())
+                    })?;
+                } else {
+                    visit(&child)?;
+                }
+            } else if file_type.is_file()
+                && child.extension().is_some_and(|extension| extension == "pyc")
+            {
+                fs::remove_file(&child).with_context(|| {
+                    format!("failed to prune derived source mirror file {}", child.display())
+                })?;
+            }
+        }
+        Ok(())
+    }
+    visit(&root)
+}
+
+struct ConsumerMirrorLock {
+    #[cfg(unix)]
+    file: fs::File,
+}
+
+impl ConsumerMirrorLock {
+    fn acquire(repo_root: &Path, mirror: &Path) -> Result<Self> {
+        let locks = repo_root.join("out/source-ownership/locks");
+        fs::create_dir_all(&locks)?;
+        let resolved = mirror
+            .canonicalize()
+            .with_context(|| format!("unable to resolve consumer mirror {}", mirror.display()))?;
+        let digest = Sha256Hasher::digest(resolved.to_string_lossy().as_bytes());
+        let lock_id = digest[..12]
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect::<String>();
+        let path = locks.join(format!("consumer-{lock_id}.lock"));
+        #[cfg(unix)]
+        {
+            use std::os::fd::AsRawFd;
+            let file = fs::OpenOptions::new().create(true).append(true).open(path)?;
+            let result = unsafe { libc::flock(file.as_raw_fd(), libc::LOCK_EX) };
+            if result != 0 {
+                return Err(std::io::Error::last_os_error().into());
+            }
+            Ok(Self { file })
+        }
+        #[cfg(not(unix))]
+        {
+            let _ = path;
+            Ok(Self {})
+        }
+    }
+}
+
+impl Drop for ConsumerMirrorLock {
+    fn drop(&mut self) {
+        #[cfg(unix)]
+        {
+            use std::os::fd::AsRawFd;
+            unsafe {
+                libc::flock(self.file.as_raw_fd(), libc::LOCK_UN);
+            }
+        }
+    }
 }
 
 fn build_expat(repo_root: &Path) -> Result<()> {
@@ -7759,8 +7963,13 @@ fn build_autotools_import(
             .join("upstream/state")
             .join(format!("{component}.toml")),
     )?;
+    let adaptation_stamp = match component {
+        "networkmanager" => "output-policy-install-adaptation-v4",
+        "readline" => "output-pkgconfig-adaptation-v1",
+        _ => "",
+    };
     let stamp = format!(
-        "{state}\n{}\ndependencies={}\n",
+        "{state}\n{}\ndependencies={}\n{adaptation_stamp}\n",
         options.join("\n"),
         dependencies.join(",")
     );
@@ -8103,8 +8312,13 @@ fn build_meson_runtime(
             .join("upstream/state")
             .join(format!("{component}.toml")),
     )?;
+    let adaptation_stamp = match component {
+        "networkmanager" => "output-policy-install-adaptation-v4",
+        "polkit" => "output-duktape-link-adaptation-v2",
+        _ => "",
+    };
     let stamp = format!(
-        "{state}\n{}\ndependencies={}\n",
+        "{state}\n{}\ndependencies={}\n{adaptation_stamp}\n",
         options.join("\n"),
         dependencies.join(",")
     );
@@ -8115,6 +8329,42 @@ fn build_meson_runtime(
     }
     fs::create_dir_all(&out_root)?;
     sync_build_source(&source, &source_copy)?;
+    if component == "networkmanager" {
+        let data_meson = source_copy.join("data/meson.build");
+        let body = fs::read_to_string(&data_meson)?.replace(
+            r#"  i18n.merge_file(
+    input: 'org.freedesktop.NetworkManager.policy.in',
+    output: '@BASENAME@',
+    po_dir: po_dir,
+    install: true,
+    install_dir: polkit_policydir,
+  )"#,
+            r#"  install_data(
+    'org.freedesktop.NetworkManager.policy.in',
+    rename: 'org.freedesktop.NetworkManager.policy',
+    install_dir: polkit_policydir,
+  )"#,
+        );
+        fs::write(data_meson, body)?;
+        let root_meson = source_copy.join("meson.build");
+        let body = fs::read_to_string(&root_meson)?.replace(
+            "readline_dep = declare_dependency(link_args: '-lreadline')",
+            "readline_dep = declare_dependency(link_args: ['-lreadline', '-lncursesw', '-ltinfow'])",
+        );
+        fs::write(root_meson, body)?;
+    }
+    if component == "polkit" {
+        let meson = source_copy.join("meson.build");
+        let body = fs::read_to_string(&meson)?;
+        let old = "  js_dep = dependency('duktape', version: duktape_req_version, required: false)\n  if not js_dep.found()\n    message('Falling back to looking for library and header...')\n    js_dep = cc.find_library('duktape', has_headers: ['duktape.h'], required: true)\n  endif";
+        let replacement = format!(
+            "  js_dep = declare_dependency(compile_args: ['-I{}'], link_args: ['-lduktape'])",
+            repo_root.join("out/build/duktape/install/usr/include").display()
+        );
+        if !body.contains(old) { bail!("polkit Duktape dependency block changed unexpectedly"); }
+        let body = body.replace(old, &replacement);
+        fs::write(meson, body)?;
+    }
     let mut env = staged_library_environment(repo_root, dependencies)?;
     env.extend(extra_env.iter().map(|(key, value)| (*key, value.clone())));
     if !build_dir.join("build.ninja").is_file() {
@@ -9652,8 +9902,9 @@ fn cosmic_component_environment(
     env.push((
         "RUSTFLAGS",
         format!(
-            "--remap-path-prefix={}=/usr/src/mattos",
-            repo_root.display()
+            "--remap-path-prefix={}/out/build/cosmic-desktop/sources=/usr/src/mattos/cosmic-sources --remap-path-prefix={}=/usr/src/mattos",
+            repo_root.display(),
+            repo_root.display(),
         ),
     ));
     env.push(("CARGO_PROFILE_RELEASE_LTO", "false".to_string()));
@@ -9663,7 +9914,10 @@ fn cosmic_component_environment(
 }
 
 fn cosmic_shared_target(repo_root: &Path) -> PathBuf {
-    repo_root.join("out/build/cosmic-desktop/cargo-target")
+    // crabtime derives Cargo's target root from OUT_DIR and requires the
+    // conventional directory name `target`; keep all COSMIC components on
+    // this shared output-owned target while satisfying that contract.
+    repo_root.join("out/build/cosmic-desktop/target")
 }
 
 fn cosmic_shared_target_lock(repo_root: &Path) -> PathBuf {
@@ -9729,6 +9983,7 @@ fn build_cosmic_just_component(
     )?;
     apply_component_patches(repo_root, component, &mirror)?;
     isolate_cargo_build_mirror(&mirror)?;
+    ensure_owned_libcosmic_mirror(repo_root, &mirror)?;
     if matches!(component, "cosmic-launcher" | "cosmic-notifications") {
         patch_cosmic_profile_helper(&mirror)?;
     }
@@ -9741,12 +9996,78 @@ fn build_cosmic_just_component(
         env,
     )?;
     let rootdir = format!("rootdir={}", install.display());
+    let pop_launcher_target_dir = env
+        .iter()
+        .find(|(key, _)| *key == "CARGO_TARGET_DIR")
+        .map(|(_, value)| format!("target-dir={}/release", value));
     let install_args = if component == "pop-launcher" {
-        vec![rootdir.as_str(), "install"]
+        let mut args = vec![rootdir.as_str(), "install"];
+        if let Some(target_dir) = pop_launcher_target_dir.as_deref() {
+            args.insert(0, target_dir);
+        }
+        args
     } else {
         vec![rootdir.as_str(), "prefix=/usr", "install"]
     };
     run_cmd_with_env_overrides(&mirror, path_str(&just)?, &install_args, env)
+}
+
+/// Upstream COSMIC applications declare libcosmic as a Git dependency. Keep
+/// that declaration intact in authoritative source, but make every output
+/// mirror resolve it to MattOS's pinned, output-owned libcosmic tree. Without
+/// this patch Cargo silently follows the upstream lockfile's older Git
+/// revision, making the COSMIC Files compatibility adaptation target the wrong
+/// API.
+fn ensure_owned_libcosmic_mirror(repo_root: &Path, component_mirror: &Path) -> Result<()> {
+    let sources = component_mirror
+        .parent()
+        .ok_or_else(|| anyhow!("COSMIC component mirror has no source parent"))?;
+    let libcosmic = sources.join("libcosmic");
+    sync_build_source(&repo_root.join("src/desktop/cosmic/libcosmic"), &libcosmic)?;
+    // libcosmic retains iced as an upstream gitlink. Reconstruct that
+    // declared dependency beside the owned libcosmic mirror as well; otherwise
+    // the path override is incomplete and Cargo cannot resolve the workspace.
+    sync_build_source(
+        &repo_root.join("src/desktop/cosmic/iced"),
+        &libcosmic.join("iced"),
+    )?;
+
+    let manifest = component_mirror.join("Cargo.toml");
+    if !manifest.is_file() {
+        return Ok(());
+    }
+    let body = fs::read_to_string(&manifest)?;
+    const MARKER: &str = "# MattOS output-owned libcosmic dependency override.";
+    let declarations = body.split(MARKER).next().unwrap_or(&body);
+    if !declarations.lines().any(|line| {
+        let line = line.trim_start();
+        !line.starts_with('#')
+            && (line.starts_with("libcosmic")
+                || line.starts_with("[dependencies.libcosmic]")
+                || line.starts_with("[workspace.dependencies.libcosmic]"))
+    }) {
+        return Ok(());
+    }
+    if !body.contains(MARKER) {
+        let mut updated = body;
+        updated.push_str(&format!(
+            "\n{MARKER}\n[patch.\"https://github.com/pop-os/libcosmic.git\"]\nlibcosmic = {{ path = \"../libcosmic\" }}\ncosmic-config = {{ path = \"../libcosmic/cosmic-config\" }}\ncosmic-config-derive = {{ path = \"../libcosmic/cosmic-config-derive\" }}\ncosmic-theme = {{ path = \"../libcosmic/cosmic-theme\" }}\niced_core = {{ path = \"../libcosmic/iced/core\" }}\niced_futures = {{ path = \"../libcosmic/iced/futures\" }}\niced_graphics = {{ path = \"../libcosmic/iced/graphics\" }}\niced_renderer = {{ path = \"../libcosmic/iced/renderer\" }}\niced_runtime = {{ path = \"../libcosmic/iced/runtime\" }}\niced_widget = {{ path = \"../libcosmic/iced/widget\" }}\niced_winit = {{ path = \"../libcosmic/iced/winit\" }}\niced_tiny_skia = {{ path = \"../libcosmic/iced/tiny_skia\" }}\niced_wgpu = {{ path = \"../libcosmic/iced/wgpu\" }}\n"
+        ));
+        fs::write(&manifest, updated)?;
+    } else if !body.contains("cosmic-config = { path = \"../libcosmic/cosmic-config\" }") {
+        let additions = "cosmic-config = { path = \"../libcosmic/cosmic-config\" }\ncosmic-config-derive = { path = \"../libcosmic/cosmic-config-derive\" }\ncosmic-theme = { path = \"../libcosmic/cosmic-theme\" }\niced_core = { path = \"../libcosmic/iced/core\" }\niced_futures = { path = \"../libcosmic/iced/futures\" }\niced_graphics = { path = \"../libcosmic/iced/graphics\" }\niced_renderer = { path = \"../libcosmic/iced/renderer\" }\niced_runtime = { path = \"../libcosmic/iced/runtime\" }\niced_widget = { path = \"../libcosmic/iced/widget\" }\niced_winit = { path = \"../libcosmic/iced/winit\" }\niced_tiny_skia = { path = \"../libcosmic/iced/tiny_skia\" }\niced_wgpu = { path = \"../libcosmic/iced/wgpu\" }";
+        let updated = body.replacen(
+            "libcosmic = { path = \"../libcosmic\" }",
+            &format!("libcosmic = {{ path = \"../libcosmic\" }}\n{additions}"),
+            1,
+        );
+        fs::write(&manifest, updated)?;
+    }
+    // The upstream lockfile records the Git package IDs. Re-resolve only the
+    // libcosmic package graph so the output mirror's lockfile records the
+    // pinned local sources while preserving all unrelated upstream locks.
+    run_cmd(component_mirror, "cargo", &["update", "-p", "libcosmic"])?;
+    Ok(())
 }
 
 fn build_cosmic_desktop_component(repo_root: &Path, stage: BuildStage) -> Result<()> {
@@ -9756,7 +10077,6 @@ fn build_cosmic_desktop_component(repo_root: &Path, stage: BuildStage) -> Result
     remove_path_if_exists(&install)?;
     fs::create_dir_all(&install)?;
     let env = cosmic_component_environment(repo_root, &install)?;
-
     let just_component = match stage {
         BuildStage::CosmicSession => Some("cosmic-session"),
         BuildStage::CosmicGreeter => Some("cosmic-greeter"),
@@ -9801,6 +10121,17 @@ fn build_cosmic_desktop_component(repo_root: &Path, stage: BuildStage) -> Result
                 &[destdir.as_str(), "prefix=/usr", "install"],
                 &env,
             )?;
+            if component == "cosmic-workspaces" {
+                // rust-embed materializes CARGO_MANIFEST_DIR in the generated
+                // asset metadata. It is output data, not authoritative source,
+                // but the absolute mirror path would leak the build host into
+                // the shipped ELF. Keep the generated asset layout unchanged
+                // while replacing only that deterministic path prefix.
+                sanitize_embedded_output_path(
+                    &install.join("usr/bin/cosmic-workspaces"),
+                    &mirror,
+                )?;
+            }
         }
         BuildStage::CosmicUtilities => {
             for component in ["cosmic-randr", "cosmic-screenshot", "pop-launcher"] {
@@ -10002,6 +10333,322 @@ fn build_cosmic_edit(repo_root: &Path) -> Result<()> {
     Ok(())
 }
 
+fn build_cosmic_initial_setup(repo_root: &Path) -> Result<()> {
+    let out_root = repo_root.join("out/build/cosmic-initial-setup");
+    let install = out_root.join("install");
+    let mirror = out_root.join("source");
+    remove_path_if_exists(&install)?;
+    sync_build_source(&repo_root.join("src/desktop/cosmic/cosmic-initial-setup"), &mirror)?;
+    isolate_cargo_build_mirror(&mirror)?;
+    let env = cosmic_component_environment(repo_root, &install)?;
+    run_locked_cosmic_command(repo_root, &mirror, "cargo", &["build", "--locked", "--release", "--bin", "cosmic-initial-setup"], &env)?;
+    stage_output_file(&cosmic_shared_target(repo_root).join("release/cosmic-initial-setup"), &install.join("usr/bin/cosmic-initial-setup"), 0o755)?;
+    let res = mirror.join("res");
+    for (source, destination) in [
+        ("com.system76.CosmicInitialSetup.desktop", "usr/share/applications/com.system76.CosmicInitialSetup.desktop"),
+        ("com.system76.CosmicInitialSetup.Autostart.desktop", "etc/xdg/autostart/com.system76.CosmicInitialSetup.Autostart.desktop"),
+    ] { copy_file_preserving(&res.join(source), &install.join(destination))?; }
+    copy_tree_contents(&res, &install.join("usr/share/cosmic-initial-setup"))?;
+    Ok(())
+}
+
+fn build_polkit(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(repo_root, "polkit", "src/system/security/polkit", &["glib", "zlib", "systemd", "dbus", "duktape", "linux-pam", "libffi"], &[
+        "--prefix=/usr", "--libdir=lib/x86_64-linux-gnu", "-Dtests=false", "-Dman=false", "-Dgtk_doc=false", "-Dexamples=false", "-Dintrospection=false", "-Dgettext=false", "-Dsession_tracking=logind", "-Dauthfw=pam", "-Dos_type=debian", "-Dpolkitd_uid=197",
+    ], "usr/lib/x86_64-linux-gnu/libpolkit-agent-1.so.0", &[])
+}
+
+fn build_duktape(repo_root: &Path) -> Result<()> {
+    let out_root = repo_root.join("out/build/duktape");
+    let source = out_root.join("source");
+    let install = out_root.join("install/usr");
+    sync_build_source(&repo_root.join("src/system/security/duktape"), &source)?;
+    remove_path_if_exists(&install)?;
+    let configure = source.join("tools/configure.py");
+    let configure_body = fs::read_to_string(&configure)?
+        .replace("open(apiheader_filename, 'rb')", "open(apiheader_filename, 'r')")
+        .replace("open(src, 'rb')", "open(src, 'r', encoding='utf-8')")
+        .replace("open(dst, 'wb')", "open(dst, 'w', encoding='utf-8')")
+        .replace("open(value, 'rb')", "open(value, 'r', encoding='utf-8')")
+        .replace("open(license_file, 'rb')", "open(license_file, 'r', encoding='utf-8')")
+        .replace("open(authors_file, 'rb')", "open(authors_file, 'r', encoding='utf-8')")
+        .replace("open(tmpfn, 'wb')", "open(tmpfn, 'w', encoding='utf-8')")
+        .replace("open(tmpfn, 'rb')", "open(tmpfn, 'r', encoding='utf-8')")
+        .replace("open(os.path.join(tempdir, suffix + '.txt'), 'wb')", "open(os.path.join(tempdir, suffix + '.txt'), 'w', encoding='utf-8')")
+        .replace("open(os.path.join(tempdir, 'caseconv.txt'), 'wb')", "open(os.path.join(tempdir, 'caseconv.txt'), 'w', encoding='utf-8')")
+        .replace("open(os.path.join(tempdir, 'caseconv_re_canon_lookup.txt'), 'wb')", "open(os.path.join(tempdir, 'caseconv_re_canon_lookup.txt'), 'w', encoding='utf-8')")
+        .replace("open(os.path.join(tempdir, 'caseconv_re_canon_bitmap.txt'), 'wb')", "open(os.path.join(tempdir, 'caseconv_re_canon_bitmap.txt'), 'w', encoding='utf-8')")
+        .replace("open(os.path.join(tempdir, 'duk_used_stridx_bidx_defs.json.tmp'), 'wb')", "open(os.path.join(tempdir, 'duk_used_stridx_bidx_defs.json.tmp'), 'w', encoding='utf-8')")
+        .replace("'rb')", "'r', encoding='utf-8')")
+        .replace("'wb')", "'w', encoding='utf-8')")
+        .replace("line = line.decode('utf-8')", "line = line")
+        .replace("f.write(i)", "f.write(i.decode('utf-8') if isinstance(i, bytes) else i)")
+        .replace("ret = proc.communicate(input=input)", "ret = proc.communicate(input=input)\n        ret = (ret[0].decode('utf-8'), ret[1].decode('utf-8'))")
+        .replace("f.write(res.decode('utf-8'))", "f.write(res)")
+        .replace("f.write(i)", "f.write(i)")
+        .replace("f_out.write(f_in.read())", "f_out.write(f_in.read())")
+        .replace("f_out.write(c.encode('ascii'))", "f_out.write(c)")
+        .replace("f.write(json.dumps(doc, indent=4))", "f.write(json.dumps(doc, indent=4))")
+        .replace("duk_version / 10000", "duk_version // 10000")
+        .replace("duk_version % 10000 / 100", "duk_version % 10000 // 100");
+    fs::write(&configure, configure_body)?;
+    let scanner = source.join("tools/scan_used_stridx_bidx.py");
+    let scanner_body = fs::read_to_string(&scanner)?.replace("open(fn, 'rb')", "open(fn, 'r', encoding='utf-8')");
+    fs::write(scanner, scanner_body)?;
+    let genconfig = source.join("tools/genconfig.py");
+    let mut genconfig_body = fs::read_to_string(&genconfig)?
+        .replace("import logging", "unicode = str\nlong = int\nxrange = range\nimport logging")
+        .replace("'rb')", "'r', encoding='utf-8')")
+        .replace("'wb')", "'w', encoding='utf-8')")
+        .replace("yaml.load(", "yaml.safe_load(")
+        .replace("import logging", "from functools import cmp_to_key\nimport logging")
+        .replace("strs.sort(cmp=sortCmp)", "strs.sort(key=cmp_to_key(sortCmp))");
+    for (old, new) in [
+        ("self.provides.has_key(m)", "m in self.provides"),
+        ("assumed_provides.has_key(k)", "k in assumed_provides"),
+        ("sn2.provides.has_key(k)", "k in sn2.provides"),
+        ("not graph.has_key(sn)", "sn not in graph"),
+        ("handled.has_key(sn)", "sn in handled"),
+        ("not handled.has_key(sn)", "sn not in handled"),
+        ("handled.has_key(dep)", "dep in handled"),
+        ("not emitted_provides.has_key(k)", "k not in emitted_provides"),
+        ("handled.has_key(dname)", "dname in handled"),
+        ("not handled.has_key(dname)", "dname not in handled"),
+        ("use_defs.has_key(k)", "k in use_defs"),
+        ("defval.has_key('verbatim')", "'verbatim' in defval"),
+        ("defval.has_key('string')", "'string' in defval"),
+        ("not forced_opts.has_key(doc['define'])", "doc['define'] not in forced_opts"),
+        ("forced_opts.has_key('DUK_USE_CPP_EXCEPTIONS')", "'DUK_USE_CPP_EXCEPTIONS' in forced_opts"),
+        ("not forced_opts.has_key(defname)", "defname not in forced_opts"),
+        ("not doc.has_key('default')", "'default' not in doc"),
+        ("tmp.provides.has_key(defname)", "defname in tmp.provides"),
+        ("need.has_key(k)", "k in need"),
+        ("not defs_used.has_key(meta['define'])", "meta['define'] not in defs_used"),
+        ("not meta.has_key('removed')", "'removed' not in meta"),
+        ("keys = use_defs.keys()", "keys = list(use_defs.keys())"),
+        ("keys = opt_defs.keys()", "keys = list(opt_defs.keys())"),
+        ("use_tags_list = use_tags.keys()", "use_tags_list = list(use_tags.keys())"),
+    ] {
+        genconfig_body = genconfig_body.replace(old, new);
+    }
+    genconfig_body = rewrite_python2_has_key(genconfig_body);
+    fs::write(genconfig, genconfig_body)?;
+    let genbuiltins = source.join("tools/genbuiltins.py");
+    let mut genbuiltins_body = fs::read_to_string(&genbuiltins)?
+        .replace("#!/usr/bin/env python2", "#!/usr/bin/env python3")
+        .replace("import logging", "import base64\nunicode = str\nunichr = chr\nlong = int\nxrange = range\ncmp = lambda a, b: (a > b) - (a < b)\nimport logging")
+        .replace("except Exception, e:", "except Exception as e:")
+        .replace("'rb')", "'r', encoding='utf-8')")
+        .replace("'wb')", "'w', encoding='utf-8')")
+        .replace("yaml.load(", "yaml.safe_load(")
+        .replace("strs.sort(cmp=sortCmp)", "strs.sort(key=cmp_to_key(sortCmp))")
+        .replace("val['bytes'].decode('hex')", "bytes.fromhex(val['bytes'])")
+        .replace("val.decode('hex')", "bytes.fromhex(val)")
+        .replace("data = ''.join([ val[indexlist[idx]] for idx in xrange(8) ])", "data = bytes([val[indexlist[idx]] for idx in xrange(8)])")
+        .replace("val.encode('hex')", "val.hex()")
+        .replace("data.encode('hex')", "data.hex()")
+        .replace("struct.pack('>d', float(v)).encode('hex')", "struct.pack('>d', float(v)).hex()")
+        .replace("ord(c2)", "(c2 if isinstance(c2, int) else ord(c2))")
+        .replace("ord(c)", "(c if isinstance(c, int) else ord(c))")
+        .replace("ord(val[i])", "(val[i] if isinstance(val[i], int) else ord(val[i]))")
+        .replace("ord(v[0])", "(v[0] if isinstance(v[0], int) else ord(v[0]))")
+        .replace("for idx, c in enumerate(s):", "for idx, c in enumerate(s):\n        c = chr(c) if isinstance(c, int) else c")
+        .replace("c2 = s[idx+1]", "c2 = s[idx+1]\n            c2 = chr(c2) if isinstance(c2, int) else c2")
+        .replace("unicode_to_bytes(s['str']).encode('base64').strip()", "base64.b64encode(unicode_to_bytes(s['str']).encode('utf-8')).decode('ascii').strip()")
+        .replace("import logging", "from functools import cmp_to_key\nimport logging");
+    for (old, new) in [
+        ("user_meta.has_key('add_objects')", "'add_objects' in user_meta"),
+        ("user_meta.has_key('replace_objects')", "'replace_objects' in user_meta"),
+        ("user_meta.has_key('modify_objects')", "'modify_objects' in user_meta"),
+        ("if o.has_key('nargs')", "if 'nargs' in o"),
+        ("assert(o.has_key('nargs'))", "assert('nargs' in o)"),
+        ("not pval.has_key('length')", "'length' not in pval"),
+        ("not pval.has_key('nargs')", "'nargs' not in pval"),
+        ("not val.has_key('getter')", "'getter' not in val"),
+        ("not val.has_key('setter')", "'setter' not in val"),
+        ("prop.has_key(k)", "k in prop"),
+        ("val['value'].has_key('getter')", "'getter' in val['value']"),
+        ("val['value'].has_key('setter')", "'setter' in val['value']"),
+        ("if o.has_key('native')", "if 'native' in o"),
+        ("and not o.has_key('bidx')", "and 'bidx' not in o"),
+        ("prop.has_key('value')", "'value' in prop"),
+        ("targ.has_key('magic')", "'magic' in targ"),
+        ("not reachable.has_key(o['id'])", "o['id'] not in reachable"),
+        ("special_defs.has_key(v)", "v in special_defs"),
+        ("s.has_key('define')", "'define' in s"),
+        ("defs_needed.has_key(s['define'])", "s['define'] in defs_needed"),
+        ("not defs_found.has_key(k)", "k not in defs_found"),
+        ("prev.has_key(k)", "k in prev"),
+        ("kw_index.has_key(s['str'])", "s['str'] in kw_index"),
+        ("meta.has_key('objects_ram_toplevel')", "'objects_ram_toplevel' in meta"),
+        ("elem.has_key('type')", "'type' in elem"),
+        ("bi.has_key('nargs')", "'nargs' in bi"),
+        ("bi.has_key('callable')", "'callable' in bi"),
+        ("bi.has_key('internal_prototype')", "'internal_prototype' in bi"),
+        ("not emitted.has_key(fname)", "fname not in emitted"),
+        ("v.has_key('getter_id')", "'getter_id' in v"),
+        ("v.has_key('length')", "'length' in v"),
+        ("v.has_key('magic')", "'magic' in v"),
+        ("not chain_lens.has_key(chainlen)", "chainlen not in chain_lens"),
+        ("reserved_words.has_key(v)", "v in reserved_words"),
+        ("strict_reserved_words.has_key(v)", "v in strict_reserved_words"),
+        ("romstr_next.has_key(v)", "v in romstr_next"),
+        ("if obj.has_key('internal_prototype')", "if 'internal_prototype' in obj"),
+        ("elif obj.has_key('nargs')", "elif 'nargs' in obj"),
+        ("not emitted.has_key(fname)", "fname not in emitted"),
+        ("assert(v.has_key('native'))", "assert('native' in v)"),
+        ("target.has_key('native')", "'native' in target"),
+        ("not reachable.has_key(o['id'])", "o['id'] not in reachable"),
+        ("string_to_stridx.has_key(val)", "val in string_to_stridx"),
+        ("val.has_key('getter_id')", "'getter_id' in val"),
+        ("val.has_key('setter_id')", "'setter_id' in val"),
+        ("funobj.has_key('nargs')", "'nargs' in funobj"),
+        ("not defs_found.has_key(k)", "k not in defs_found"),
+        ("metadata_lookup_object(meta, prop['value']['id']).has_key('native')", "'native' in metadata_lookup_object(meta, prop['value']['id'])"),
+        ("not metadata_lookup_object(meta, prop['value']['id']).has_key('bidx')", "'bidx' not in metadata_lookup_object(meta, prop['value']['id'])"),
+    ] {
+        genbuiltins_body = genbuiltins_body.replace(old, new);
+    }
+    fs::write(genbuiltins, genbuiltins_body)?;
+    let dukutil = source.join("tools/dukutil.py");
+    let dukutil_body = fs::read_to_string(&dukutil)?
+        .replace("xrange", "range")
+        .replace("unicode", "str")
+        .replace("return nbits / 8", "return nbits // 8")
+        .replace("(skip * (res % 256)) / 256", "(skip * (res % 256)) // 256")
+        .replace("ord(x[i])", "(x[i] if isinstance(x[i], int) else ord(x[i]))");
+    fs::write(dukutil, dukutil_body)?;
+    let unicode_prepare = source.join("tools/prepare_unicode_data.py");
+    let unicode_prepare_body = fs::read_to_string(&unicode_prepare)?
+        .replace("#!/usr/bin/env python2", "#!/usr/bin/env python3")
+        .replace("import os", "from functools import cmp_to_key\nlong = int\nxrange = range\ncmp = lambda a, b: (a > b) - (a < b)\nimport os")
+        .replace("open(opts.unicode_data, 'rb')", "open(opts.unicode_data, 'r', encoding='utf-8')")
+        .replace("open(opts.output, 'wb')", "open(opts.output, 'w', encoding='utf-8')");
+    fs::write(unicode_prepare, unicode_prepare_body)?;
+    let extract_chars = source.join("tools/extract_chars.py");
+    let mut extract_chars_body = fs::read_to_string(&extract_chars)?
+        .replace("#!/usr/bin/env python2", "#!/usr/bin/env python3")
+        .replace("import os", "from functools import cmp_to_key\nlong = int\nxrange = range\ncmp = lambda a, b: (a > b) - (a < b)\nimport os")
+        .replace("open(unidata, 'rb')", "open(unidata, 'r', encoding='utf-8')")
+        .replace("open(opts.out_source, 'wb')", "open(opts.out_source, 'w', encoding='utf-8')")
+        .replace("open(opts.out_header, 'wb')", "open(opts.out_header, 'w', encoding='utf-8')");
+    for (old, new) in [
+        ("exclude_cat_exact.has_key(category)", "category in exclude_cat_exact"),
+        ("include_cat_exact.has_key(category)", "category in include_cat_exact"),
+        ("m.has_key(long(cp))", "long(cp) in m"),
+        ("print 'CATSEXC: %s' % repr(catsexc)", "print('CATSEXC: %s' % repr(catsexc))"),
+        ("print 'CATSINC: %s' % repr(catsinc)", "print('CATSINC: %s' % repr(catsinc))"),
+        ("print 'match table length: %d bytes' % len(matchtable3)", "print('match table length: %d bytes' % len(matchtable3))"),
+        ("print 'encoding freq:'", "print('encoding freq:')"),
+        ("print '  %6d: %d' % (i, freq[i])", "print('  %6d: %d' % (i, freq[i]))"),
+    ] {
+        extract_chars_body = extract_chars_body.replace(old, new);
+    }
+    extract_chars_body = extract_chars_body.replace("res.sort(cmp=mycmp)", "res.sort(key=cmp_to_key(mycmp))");
+    fs::write(extract_chars, extract_chars_body)?;
+    let extract_caseconv = source.join("tools/extract_caseconv.py");
+    let mut extract_caseconv_body = fs::read_to_string(&extract_caseconv)?
+        .replace("#!/usr/bin/env python2", "#!/usr/bin/env python3")
+        .replace("import os", "from functools import cmp_to_key\nlong = int\nxrange = range\nunichr = chr\ncmp = lambda a, b: (a > b) - (a < b)\nimport os")
+        .replace("open(filename, 'rb')", "open(filename, 'r', encoding='utf-8')")
+        .replace("open(opts.out_source, 'wb')", "open(opts.out_source, 'w', encoding='utf-8')")
+        .replace("open(opts.out_header, 'wb')", "open(opts.out_header, 'w', encoding='utf-8')")
+        .replace("res.sort(cmp=mycmp)", "res.sort(key=cmp_to_key(mycmp))");
+    for (old, new) in [
+        ("convmap.has_key(i)", "i in convmap"),
+        ("not convmap.has_key(conv_i)", "conv_i not in convmap"),
+        ("not convmap.has_key(new_i)", "new_i not in convmap"),
+        ("convmap.has_key(cp)", "cp in convmap"),
+    ] {
+        extract_caseconv_body = extract_caseconv_body.replace(old, new);
+    }
+    for (old, new) in [
+        ("print '- singles: ' + repr(t)", "print('- singles: ' + repr(t))"),
+        ("print '- multis: ' + repr(t)", "print('- multis: ' + repr(t))"),
+        ("print '- range mappings: %d' % len(ranges)", "print('- range mappings: %d' % len(ranges))"),
+        ("print '- single character mappings: %d' % len(singles)", "print('- single character mappings: %d' % len(singles))"),
+        ("print '- complex mappings (1:n): %d' % len(multis)", "print('- complex mappings (1:n): %d' % len(multis))"),
+        ("print '- remaining (should be zero): %d' % len(convmap.keys())", "print('- remaining (should be zero): %d' % len(convmap.keys()))"),
+        ("print '- %d %d' % (t[0] - prev[0], t[1] - prev[1])", "print('- %d %d' % (t[0] - prev[0], t[1] - prev[1]))"),
+        ("print '- start: %d %d' % (t[0], t[1])", "print('- start: %d %d' % (t[0], t[1]))"),
+    ] {
+        extract_caseconv_body = extract_caseconv_body.replace(old, new);
+    }
+    extract_caseconv_body = extract_caseconv_body.replace("k = convmap.keys()", "k = list(convmap.keys())");
+    extract_caseconv_body = extract_caseconv_body
+        .replace("(conv_i - start_i) / skip + 1", "(conv_i - start_i) // skip + 1")
+        .replace("65536 / block_size", "65536 // block_size");
+    fs::write(extract_caseconv, extract_caseconv_body)?;
+    let combine_src = source.join("tools/combine_src.py");
+    let mut combine_src_body = fs::read_to_string(&combine_src)?
+        .replace("#!/usr/bin/env python2", "#!/usr/bin/env python3")
+        .replace("import logging", "unicode = str\nimport logging")
+        .replace("open(filename, 'rb')", "open(filename, 'r', encoding='utf-8')")
+        .replace("open(prologue_filename, 'rb')", "open(prologue_filename, 'r', encoding='utf-8')")
+        .replace("open(opts.output_source, 'wb')", "open(opts.output_source, 'w', encoding='utf-8')")
+        .replace("open(opts.output_metadata, 'wb')", "open(opts.output_metadata, 'w', encoding='utf-8')")
+        .replace("apply(os.path.join, [ path ] + inccomp)", "os.path.join(path, *inccomp)");
+    for (old, new) in [
+        ("defined.has_key(m.group(1))", "m.group(1) in defined"),
+        ("included.has_key(incpath)", "incpath in included"),
+    ] {
+        combine_src_body = combine_src_body.replace(old, new);
+    }
+    fs::write(combine_src, combine_src_body)?;
+    let prep = source.join("prep/nondebug");
+    fs::create_dir_all(source.join("prep"))?;
+    run_cmd(&source, "python3", &["tools/configure.py", "--output-directory", "prep/nondebug", "--source-directory", "src-input", "--config-metadata", "config", "--option-file", "util/makeduk_base.yaml", "--line-directives"])?;
+    fs::create_dir_all(install.join("lib/x86_64-linux-gnu/pkgconfig"))?;
+    let lib = install.join("lib/x86_64-linux-gnu/libduktape.so.207.2.7.0");
+    run_cmd_with_env_overrides(&source, "cc", &["-shared", "-fPIC", "-O2", "-Iprep/nondebug", "-Wl,-soname,libduktape.so.207", "-o", path_str(&lib)?, "prep/nondebug/duktape.c", "-lm"], &[])?;
+    std::os::unix::fs::symlink("libduktape.so.207.2.7.0", install.join("lib/x86_64-linux-gnu/libduktape.so.207"))?;
+    std::os::unix::fs::symlink("libduktape.so.207", install.join("lib/x86_64-linux-gnu/libduktape.so"))?;
+    fs::create_dir_all(install.join("include"))?;
+    for name in ["duktape.h", "duk_config.h"] { fs::copy(prep.join(name), install.join("include").join(name))?; }
+    fs::write(install.join("lib/x86_64-linux-gnu/pkgconfig/duktape.pc"), "prefix=/usr\nlibdir=${prefix}/lib/x86_64-linux-gnu\nincludedir=${prefix}/include\nName: duktape\nDescription: Duktape JavaScript engine\nVersion: 2.7.0\nLibs: -L${libdir} -lduktape\nCflags: -I${includedir}\n")?;
+    Ok(())
+}
+
+fn rewrite_python2_has_key(mut body: String) -> String {
+    while let Some(marker) = body.find(".has_key(") {
+        let lhs_end = marker;
+        let mut lhs_start = lhs_end;
+        while lhs_start > 0 {
+            let byte = body.as_bytes()[lhs_start - 1];
+            if byte.is_ascii_alphanumeric() || byte == b'_' || byte == b'.' {
+                lhs_start -= 1;
+            } else {
+                break;
+            }
+        }
+        let arg_start = marker + ".has_key(".len();
+        let Some(arg_end_rel) = body[arg_start..].find(')') else { break };
+        let arg_end = arg_start + arg_end_rel;
+        let lhs = body[lhs_start..lhs_end].to_string();
+        let arg = body[arg_start..arg_end].trim().to_string();
+        let before = &body[..lhs_start];
+        let negated = before.trim_end().ends_with("not");
+        let replacement = if negated {
+            format!("{} not in {}", arg, lhs)
+        } else {
+            format!("{} in {}", arg, lhs)
+        };
+        let replace_start = if negated {
+            before.trim_end().len() - 3
+        } else {
+            lhs_start
+        };
+        body.replace_range(replace_start..=arg_end, &replacement);
+    }
+    body
+}
+
+fn build_networkmanager(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(repo_root, "networkmanager", "src/system/network/NetworkManager", &["glib", "systemd", "dbus", "polkit", "iproute2", "util-linux", "libndp", "zlib", "readline", "ncurses", "libffi"], &[
+        "--prefix=/usr", "--libdir=lib/x86_64-linux-gnu", "-Dtests=no", "-Ddocs=false", "-Dman=false", "-Dpolkit=true", "-Dnmcli=true", "-Dnmtui=false", "-Dwifi=true", "-Dmodem_manager=false", "-Dovs=false", "-Dclat=false", "-Dconcheck=false", "-Dppp=false", "-Dlibpsl=false", "-Dcrypto=null", "-Dsession_tracking=systemd", "-Dconfig_dns_rc_manager_default=symlink", "-Dconfig_auth_polkit_default=true", "-Dintrospection=false", "-Dselinux=false", "-Dlibaudit=no", "-Dnm_cloud_setup=false", "-Dnbft=false", "-Dsystemdsystemunitdir=/usr/lib/systemd/system", "-Ddbus_conf_dir=/usr/share/dbus-1/system.d",
+    ], "usr/sbin/NetworkManager", &[])
+}
+
 fn build_cozy(repo_root: &Path) -> Result<()> {
     let out_root = repo_root.join("out/build/cozy");
     let install = out_root.join("install");
@@ -10030,6 +10677,33 @@ fn stage_output_file(source: &Path, destination: &Path, mode: u32) -> Result<()>
     }
     fs::copy(source, destination).with_context(|| format!("failed to stage {}", source.display()))?;
     set_mode(destination.to_path_buf(), mode)
+}
+
+fn sanitize_embedded_output_path(binary: &Path, mirror: &Path) -> Result<()> {
+    let old = mirror.to_string_lossy().into_owned();
+    let replacement = "/usr/src/mattos/cosmic-sources/cosmic-workspaces";
+    if replacement.len() > old.len() {
+        bail!("sanitized output path is longer than the embedded host path");
+    }
+    let mut bytes = fs::read(binary)?;
+    let old_bytes = old.as_bytes();
+    let mut replacements = 0;
+    let mut offset = 0;
+    while let Some(relative) = bytes[offset..]
+        .windows(old_bytes.len())
+        .position(|window| window == old_bytes)
+    {
+        let start = offset + relative;
+        bytes[start..start + old_bytes.len()].fill(0);
+        bytes[start..start + replacement.len()].copy_from_slice(replacement.as_bytes());
+        replacements += 1;
+        offset = start + replacement.len();
+    }
+    if replacements == 0 {
+        bail!("{} did not contain the expected embedded mirror path", binary.display());
+    }
+    fs::write(binary, bytes)?;
+    Ok(())
 }
 
 fn copy_file_preserving(source: &Path, destination: &Path) -> Result<()> {
@@ -10192,8 +10866,16 @@ fn build_cosmic_desktop_legacy(repo_root: &Path) -> Result<()> {
             &common_env,
         )?;
         let rootdir = format!("rootdir={}", install.display());
+        let pop_launcher_target_dir = common_env
+            .iter()
+            .find(|(key, _)| *key == "CARGO_TARGET_DIR")
+            .map(|(_, value)| format!("target-dir={}/release", value));
         let install_args = if *component == "pop-launcher" {
-            vec![rootdir.as_str(), "install"]
+            let mut args = vec![rootdir.as_str(), "install"];
+            if let Some(target_dir) = pop_launcher_target_dir.as_deref() {
+                args.insert(0, target_dir);
+            }
+            args
         } else {
             vec![rootdir.as_str(), "prefix=/usr", "install"]
         };
@@ -10344,6 +11026,7 @@ fn build_cosmic_desktop_legacy(repo_root: &Path) -> Result<()> {
 }
 
 fn isolate_cargo_build_mirror(source: &Path) -> Result<()> {
+    let _lock = ConsumerMirrorLock::acquire(&source_lock_repo_root(source)?, source)?;
     let manifest = source.join("Cargo.toml");
     if !manifest.is_file() {
         return Ok(());
@@ -12055,6 +12738,69 @@ fn build_libbsd(repo_root: &Path) -> Result<()> {
     Ok(())
 }
 
+fn build_libndp(repo_root: &Path) -> Result<()> {
+    let source = repo_root.join("src/system/network/libndp");
+    let out_root = repo_root.join("out/build/libndp");
+    let source_copy = out_root.join("source");
+    let build_dir = out_root.join("build");
+    let install_dir = out_root.join("install");
+    let state = fs::read_to_string(repo_root.join("upstream/state/libndp.toml"))?;
+    let options = ["--prefix=/usr", "--libdir=/usr/lib/x86_64-linux-gnu", "--disable-static", "--disable-nls"];
+    let stamp = format!("{state}\n{}\n", options.join("\n"));
+    let stamp_path = out_root.join("build-stamp.txt");
+    if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+        remove_path_if_exists(&source_copy)?;
+        remove_path_if_exists(&build_dir)?;
+        remove_path_if_exists(&install_dir)?;
+    }
+    fs::create_dir_all(&out_root)?;
+    sync_build_source(&source, &source_copy)?;
+    if !source_copy.join("configure").is_file() {
+        run_cmd(&source_copy, "autoreconf", &["-fi"])?;
+    }
+    fs::create_dir_all(&build_dir)?;
+    if !build_dir.join("Makefile").is_file() {
+        run_cmd(&build_dir, path_str(&source_copy.join("configure"))?, &options)?;
+    }
+    run_cmd(&build_dir, "make", &["-j", "4"])?;
+    remove_path_if_exists(&install_dir)?;
+    run_cmd(&build_dir, "make", &["install", &format!("DESTDIR={}", install_dir.display())])?;
+    if !install_dir.join("usr/lib/x86_64-linux-gnu/libndp.so.0").exists()
+        || !install_dir.join("usr/lib/x86_64-linux-gnu/pkgconfig/libndp.pc").exists()
+    {
+        bail!("libndp install did not produce its runtime library and pkg-config metadata");
+    }
+    remove_path_if_exists(&install_dir.join("usr/lib/x86_64-linux-gnu/libndp.la"))?;
+    fs::write(stamp_path, stamp)?;
+    Ok(())
+}
+
+fn build_readline(repo_root: &Path) -> Result<()> {
+    build_autotools_import(
+        repo_root,
+        "readline",
+        "src/system/userland/readline",
+        &["ncurses"],
+        &["--prefix=/usr", "--libdir=/usr/lib/x86_64-linux-gnu", "--disable-static", "--with-curses"],
+        &["usr/lib/x86_64-linux-gnu/libreadline.so.8", "usr/lib/x86_64-linux-gnu/pkgconfig/readline.pc"],
+    )?;
+    let pc = repo_root.join("out/build/readline/install/usr/lib/x86_64-linux-gnu/pkgconfig/readline.pc");
+    let body = fs::read_to_string(&pc)?
+        .lines()
+        .map(|line| {
+            if line.starts_with("Libs:") && !line.contains("-lncursesw") {
+                format!("{line} -lncursesw")
+            } else {
+                line.to_string()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+        + "\n";
+    fs::write(pc, body)?;
+    Ok(())
+}
+
 fn build_tar(repo_root: &Path) -> Result<()> {
     let source = repo_root.join("src/userland/tar");
     let paxutils = repo_root.join("src/build-support/paxutils");
@@ -12859,6 +13605,7 @@ fn build_systemd(repo_root: &Path) -> Result<()> {
             .ok_or_else(|| anyhow!("invalid install dir"))?,
     ];
     run_cmd_with_env_overrides(repo_root, "meson", &install_args, &env_overrides)?;
+    rewrite_staged_pkgconfig_files(&install_dir)?;
 
     patch_systemd_osc_profile_for_posix_login_shell(&install_dir)?;
 
@@ -14937,7 +15684,9 @@ fn install_network_configuration(repo_root: &Path, rootfs: &Path) -> Result<()> 
             source.display()
         );
     }
-    copy_tree_excluding_dotgit(&source.join("network"), &rootfs.join("etc/systemd/network"))?;
+    // NetworkManager owns interface configuration. Keep the legacy networkd
+    // source and unit available for recovery, but do not install an active
+    // .network policy that can race NetworkManager.
     for (source_name, destination) in [
         ("resolved.conf", "etc/systemd/resolved.conf"),
         ("timesyncd.conf", "etc/systemd/timesyncd.conf"),
@@ -14971,7 +15720,7 @@ fn install_network_configuration(repo_root: &Path, rootfs: &Path) -> Result<()> 
     let wants = rootfs.join("etc/systemd/system/multi-user.target.wants");
     fs::create_dir_all(&wants).with_context(|| format!("failed to create {}", wants.display()))?;
     for service in [
-        "systemd-networkd.service",
+        "NetworkManager.service",
         "systemd-resolved.service",
         "systemd-timesyncd.service",
     ] {
@@ -14987,6 +15736,12 @@ fn install_network_configuration(repo_root: &Path, rootfs: &Path) -> Result<()> 
         std::os::unix::fs::symlink(format!("/usr/lib/systemd/system/{service}"), &link)
             .with_context(|| format!("failed to enable {service}"))?;
     }
+
+    let networkd_mask = rootfs.join("etc/systemd/system/systemd-networkd.service");
+    if path_entry_exists(&networkd_mask) { remove_path_if_exists(&networkd_mask)?; }
+    #[cfg(unix)]
+    std::os::unix::fs::symlink("/dev/null", &networkd_mask)
+        .context("failed to mask systemd-networkd")?;
 
     validate_network_configuration(rootfs)
 }
@@ -15536,17 +16291,19 @@ fn validate_executable_runtime_closure(binary: &Path, rootfs: &Path) -> Result<(
 
 fn validate_network_configuration(rootfs: &Path) -> Result<()> {
     for rel in [
-        "etc/systemd/network/20-mattos-wired.network",
         "etc/systemd/resolved.conf",
         "etc/systemd/timesyncd.conf",
         "etc/nsswitch.conf",
         "etc/ssl/certs/ca-certificates.crt",
         "run/systemd/resolve",
-        "usr/lib/systemd/systemd-networkd",
+        "usr/sbin/NetworkManager",
+        "usr/bin/nmcli",
+        "usr/lib/systemd/system/NetworkManager.service",
+        "usr/lib/systemd/system/NetworkManager-wait-online.service",
         "usr/lib/systemd/systemd-resolved",
         "usr/lib/systemd/systemd-timesyncd",
         "usr/lib/x86_64-linux-gnu/libnss_resolve.so.2",
-        "etc/systemd/system/multi-user.target.wants/systemd-networkd.service",
+        "etc/systemd/system/multi-user.target.wants/NetworkManager.service",
         "etc/systemd/system/multi-user.target.wants/systemd-resolved.service",
         "etc/systemd/system/multi-user.target.wants/systemd-timesyncd.service",
     ] {
@@ -15554,9 +16311,9 @@ fn validate_network_configuration(rootfs: &Path) -> Result<()> {
             bail!("required network runtime path missing: /{rel}");
         }
     }
-    let network = fs::read_to_string(rootfs.join("etc/systemd/network/20-mattos-wired.network"))?;
-    if !network.contains("Type=ether") || !network.contains("DHCP=ipv4") {
-        bail!("wired network configuration must match Ethernet by type and enable IPv4 DHCP");
+    if !path_entry_exists(&rootfs.join("etc/systemd/system/systemd-networkd.service"))
+        || fs::read_link(rootfs.join("etc/systemd/system/systemd-networkd.service"))? != Path::new("/dev/null") {
+        bail!("systemd-networkd must be masked when NetworkManager is active");
     }
     let nsswitch = fs::read_to_string(rootfs.join("etc/nsswitch.conf"))?;
     for database in ["passwd:", "group:", "shadow:", "hosts:", "networks:"] {
@@ -17117,6 +17874,15 @@ mod tests {
     use super::*;
 
     #[test]
+    fn source_mirror_sync_excludes_and_deletes_derived_cargo_outputs() {
+        assert!(SOURCE_MIRROR_RSYNC_FLAGS.contains(&"--delete"));
+        assert!(SOURCE_MIRROR_RSYNC_FLAGS.contains(&"--delete-excluded"));
+        assert!(SOURCE_MIRROR_RSYNC_FLAGS.contains(&"--exclude=target/"));
+        assert!(SOURCE_MIRROR_RSYNC_FLAGS.contains(&"--exclude=__pycache__/"));
+        assert!(SOURCE_MIRROR_RSYNC_FLAGS.contains(&"--exclude=*.pyc"));
+    }
+
+    #[test]
     fn nvidia_selector_routes_turing_to_official_and_pascal_to_nouveau() {
         let ids = BTreeSet::from([0x1e04, 0x2684]);
         let (config, selector) = render_nvidia_driver_selection(&ids);
@@ -17309,7 +18075,9 @@ mod tests {
                     | BuildStage::CosmicTweaks
                     | BuildStage::CosmicUtilities
                     | BuildStage::CosmicPortal
-                    | BuildStage::Greetd
+            | BuildStage::CosmicInitialSetup
+            | BuildStage::CosmicEdit
+            | BuildStage::Greetd
             ) {
                 scheduler::ChildJobPolicy::Capped(4)
             } else {
@@ -17359,6 +18127,9 @@ mod tests {
             ("bzip2", 3.025),
             ("coreutils", 283.164),
             ("cosmic-comp", 120.000),
+            ("cosmic-initial-setup", 120.000),
+            ("cosmic-edit", 90.000),
+            ("cozy", 30.000),
             ("cosmic-session", 45.000),
             ("cosmic-greeter", 75.000),
             ("cosmic-panel", 60.000),
@@ -17385,6 +18156,7 @@ mod tests {
             ("dbus-broker", 24.564),
             ("diffutils", 22.260),
             ("dpkg", 85.190),
+            ("duktape", 30.000),
             ("elfutils", 39.547),
             ("expat", 6.265),
             ("file", 8.000),
@@ -17395,6 +18167,7 @@ mod tests {
             ("grep", 24.148),
             ("git", 90.000),
             ("glib", 180.000),
+            ("gpgv", 20.000),
             ("gzip", 8.000),
             ("init", 2.104),
             ("initramfs", 57.528),
@@ -17412,6 +18185,12 @@ mod tests {
             ("libffi", 20.000),
             ("libinput", 20.000),
             ("libmd", 15.339),
+            ("libgpg-error", 10.000),
+            ("libgcrypt", 20.000),
+            ("libassuan", 10.000),
+            ("libksba", 10.000),
+            ("npth", 5.000),
+            ("libndp", 10.000),
             ("libxcrypt", 182.310),
             ("linux", 442.489),
             ("linux-pam", 11.197),
@@ -17433,6 +18212,9 @@ mod tests {
             ("patch", 8.000),
             ("pixman", 20.000),
             ("pipewire", 180.000),
+            ("polkit", 45.000),
+            ("networkmanager", 90.000),
+            ("readline", 20.000),
             ("procps-ng", 29.727),
             ("cpython", 180.000),
             ("rootfs", 107.053),
@@ -17530,7 +18312,7 @@ mod tests {
         let root = Path::new("/workspace");
         assert_eq!(
             cosmic_shared_target(root),
-            PathBuf::from("/workspace/out/build/cosmic-desktop/cargo-target")
+            PathBuf::from("/workspace/out/build/cosmic-desktop/target")
         );
         assert_eq!(
             cosmic_shared_target_lock(root),
@@ -21398,10 +22180,8 @@ mod tests {
 
         let tmp = tempfile::tempdir().expect("tempdir");
         let rootfs = tmp.path();
-        write(
-            &rootfs.join("etc/systemd/network/20-mattos-wired.network"),
-            "[Match]\nType=ether\n[Network]\nDHCP=ipv4\n",
-        );
+        fs::create_dir_all(rootfs.join("etc/systemd/system")).expect("systemd unit dir");
+        symlink("/dev/null", rootfs.join("etc/systemd/system/systemd-networkd.service")).expect("networkd mask");
         write(
             &rootfs.join("etc/systemd/resolved.conf"),
             "[Resolve]\nDNSStubListener=yes\n",
@@ -21419,11 +22199,14 @@ mod tests {
             &"-----BEGIN CERTIFICATE-----\ncertificate\n-----END CERTIFICATE-----\n".repeat(2_000),
         );
         for rel in [
-            "usr/lib/systemd/systemd-networkd",
+            "usr/sbin/NetworkManager",
+            "usr/bin/nmcli",
+            "usr/lib/systemd/system/NetworkManager.service",
+            "usr/lib/systemd/system/NetworkManager-wait-online.service",
             "usr/lib/systemd/systemd-resolved",
             "usr/lib/systemd/systemd-timesyncd",
             "usr/lib/x86_64-linux-gnu/libnss_resolve.so.2",
-            "etc/systemd/system/multi-user.target.wants/systemd-networkd.service",
+            "etc/systemd/system/multi-user.target.wants/NetworkManager.service",
             "etc/systemd/system/multi-user.target.wants/systemd-resolved.service",
             "etc/systemd/system/multi-user.target.wants/systemd-timesyncd.service",
         ] {
