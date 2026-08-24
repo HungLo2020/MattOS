@@ -10056,13 +10056,7 @@ fn cosmic_component_environment(
     install: &Path,
     stage: BuildStage,
 ) -> Result<Vec<(&'static str, String)>> {
-    let mut native_components = vec!["glibc", "gcc-runtime"];
-    native_components.extend(
-        stage_graph::direct_dependencies(stage)
-            .iter()
-            .copied()
-            .filter(|component| *component != "formal-sysroot"),
-    );
+    let native_components = cosmic_native_components(stage);
     let mut env = staged_library_environment(repo_root, &native_components)?;
     let just = cosmic_just(repo_root)?;
     let inherited_path = env
@@ -10088,6 +10082,17 @@ fn cosmic_component_environment(
     env.push(("CARGO_PROFILE_RELEASE_CODEGEN_UNITS", "4".to_string()));
     env.push(("DESTDIR", install.display().to_string()));
     Ok(env)
+}
+
+fn cosmic_native_components(stage: BuildStage) -> Vec<&'static str> {
+    let mut components = vec!["glibc", "gcc-runtime"];
+    components.extend(
+        stage_graph::direct_dependencies(stage)
+            .iter()
+            .copied()
+            .filter(|component| *component != "formal-sysroot"),
+    );
+    components
 }
 
 fn cosmic_source_remap_flags(repo_root: &Path) -> String {

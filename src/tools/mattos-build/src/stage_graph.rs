@@ -329,7 +329,18 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "xkbcommon",
             "systemd",
         ],
-        BuildStage::CosmicGreeter => &["formal-sysroot", "xkbcommon", "linux-pam"],
+        // cosmic-greeter's locked winit graph enables udev, whose
+        // libudev-sys build requires systemd's target-owned libudev.pc,
+        // header, and library.  Keep this narrow build edge explicit; the
+        // runtime desktop graph remains separate. Greeter's Debian metadata
+        // also requires libinput-dev for its target-owned -linput link.
+        BuildStage::CosmicGreeter => &[
+            "formal-sysroot",
+            "xkbcommon",
+            "linux-pam",
+            "systemd",
+            "libinput",
+        ],
         BuildStage::CosmicPanel => &["formal-sysroot", "xkbcommon"],
         BuildStage::CosmicApplets => &["formal-sysroot", "dbus", "systemd", "xkbcommon"],
         BuildStage::CosmicAppLibrary => &["formal-sysroot", "xkbcommon"],
@@ -339,7 +350,15 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         BuildStage::CosmicNotifications => &["formal-sysroot", "xkbcommon"],
         BuildStage::CosmicOsd => &["formal-sysroot", "xkbcommon"],
         BuildStage::CosmicBg => &["formal-sysroot", "dav1d"],
-        BuildStage::CosmicWorkspaces => &["formal-sysroot", "mesa", "xkbcommon"],
+        // cosmic-workspaces declares libudev-dev and libinput-dev.  These
+        // are build-time native inputs, not runtime desktop membership.
+        BuildStage::CosmicWorkspaces => &[
+            "formal-sysroot",
+            "mesa",
+            "xkbcommon",
+            "systemd",
+            "libinput",
+        ],
         BuildStage::CosmicFiles => &["formal-sysroot", "glib", "xkbcommon"],
         BuildStage::CosmicTerm => &["formal-sysroot", "xkbcommon"],
         BuildStage::CosmicTweaks => &["formal-sysroot", "xkbcommon"],
@@ -1052,7 +1071,9 @@ mod tests {
                 114,
                 &["linux", "glibc", "linux-headers"],
             ),
-            ("zlib shared library", &["zlib"], 41, &["brush", "linux"]),
+            // Greeter now has its real libinput build edge, so it is part of
+            // the legitimate native-library cascade.
+            ("zlib shared library", &["zlib"], 42, &["brush", "linux"]),
             ("package metadata", &["packages"], 5, &["brush", "zlib"]),
             (
                 "repository policy",
