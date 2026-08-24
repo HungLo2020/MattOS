@@ -36,6 +36,82 @@ class SourceOwnershipGraphTest(unittest.TestCase):
         self.assertNotIn("duktape", contract["components"])
         self.assertNotIn("polkit", contract["components"])
 
+    def test_generated_consumer_contract_is_component_scoped(self) -> None:
+        contract_path = ROOT / "out/source-ownership/cargo/contracts/cosmic-files.json"
+        self.assertTrue(contract_path.is_file())
+        contract = json.loads(contract_path.read_text())
+        self.assertEqual(contract["schema_version"], 1)
+        self.assertEqual(contract["component"], "cosmic-files")
+        self.assertNotIn("duktape", contract["rewrite_contract"]["components"])
+
+    def test_unrelated_source_record_does_not_change_mirror_fingerprint(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            root = pathlib.Path(raw)
+            source = root / "src/owned"
+            source.mkdir(parents=True)
+            (source / "Cargo.toml").write_text(
+                "[package]\nname='owned'\nversion='0.1.0'\nedition='2024'\n"
+            )
+            (source / "src").mkdir()
+            (source / "src/lib.rs").write_text("pub fn value() -> u8 { 1 }\n")
+            (root / "upstream/state").mkdir(parents=True)
+            sources = root / "upstream/sources.toml"
+            sources.write_text(
+                '[[component]]\nname="owned"\nrepo="https://example.invalid/owned"\n'
+                'revision="1"\npath="src/owned"\nsync="copy"\n'
+            )
+            subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+            subprocess.run(["git", "add", "."], cwd=root, check=True)
+            index = {
+                "components": {
+                    "owned": {
+                        "name": "owned",
+                        "repo": "https://example.invalid/owned",
+                        "revision": "1",
+                        "source_path": "src/owned",
+                        "packages": {"owned": ""},
+                    }
+                },
+                "root_packages": {"owned": {"component": "owned", "package_path": ""}},
+                "gitlink_replacements": {},
+            }
+            first = graph.mirror_fingerprint(root, index, "owned")
+            with sources.open("a") as stream:
+                stream.write(
+                    '\n[[component]]\nname="unrelated"\nrepo="https://example.invalid/unrelated"\n'
+                    'revision="1"\npath="src/unrelated"\nsync="copy"\n'
+                )
+            self.assertEqual(first, graph.mirror_fingerprint(root, index, "owned"))
+
+    def test_canonical_mirror_prunes_derived_cargo_and_python_outputs(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            mirror = pathlib.Path(raw) / "mirror"
+            (mirror / "target/debug/deps").mkdir(parents=True)
+            (mirror / "target/debug/deps/example.rmeta").write_text("derived")
+            (mirror / "tools/__pycache__").mkdir(parents=True)
+            (mirror / "tools/__pycache__/helper.pyc").write_bytes(b"derived")
+            (mirror / "src/lib.rs").parent.mkdir(parents=True)
+            (mirror / "src/lib.rs").write_text("pub fn value() -> u8 { 1 }\n")
+
+            removed = graph.prune_derived_source_mirror_artifacts(mirror)
+
+            self.assertIn(mirror / "target", removed)
+            self.assertIn(mirror / "tools/__pycache__", removed)
+            self.assertFalse((mirror / "target").exists())
+            self.assertFalse((mirror / "tools/__pycache__").exists())
+            self.assertTrue((mirror / "src/lib.rs").is_file())
+
+    def test_equivalent_owned_dependencies_keep_one_canonical_source_identity(self) -> None:
+        canonical = {"libcosmic": pathlib.Path("/out/source-ownership/sources/libcosmic")}
+        first = graph.consumer_mirrors(
+            canonical, "cosmic-files", pathlib.Path("/out/build/files/sources")
+        )
+        second = graph.consumer_mirrors(
+            canonical, "cosmic-settings", pathlib.Path("/out/build/settings/sources")
+        )
+        self.assertEqual(first["libcosmic"], second["libcosmic"])
+        self.assertNotEqual(first["cosmic-files"], second["cosmic-settings"])
+
     def test_dead_source_ownership_transactions_are_reclaimed_but_live_are_preserved(self) -> None:
         with tempfile.TemporaryDirectory() as raw:
             root = pathlib.Path(raw)

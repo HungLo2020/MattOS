@@ -761,6 +761,14 @@ enum CacheCommands {
         details: bool,
         stage: String,
     },
+    /// Explain the predicted cache blast radius without executing a build.
+    Impact {
+        /// Emit one JSON record per selected stage instead of readable lines.
+        #[arg(long)]
+        json: bool,
+        #[arg(default_value = "all")]
+        stage: String,
+    },
     Invalidate {
         #[arg(long)]
         dependents: bool,
@@ -3982,6 +3990,141 @@ fn cacheable_stage_specs(repo_root: &Path) -> Result<Vec<performance::StageSpec>
     Ok(specs)
 }
 
+fn cache_impact(
+    repo_root: &Path,
+    specs: &[performance::StageSpec],
+    requested: &str,
+    json: bool,
+) -> Result<()> {
+    let selected = if requested == "all" {
+        specs.iter().map(|spec| spec.id.clone()).collect::<BTreeSet<_>>()
+    } else {
+        if !specs.iter().any(|spec| spec.id == requested) {
+            bail!("unknown cache stage {requested}")
+        }
+        let mut selected = BTreeSet::from([requested.to_string()]);
+        let mut changed = true;
+        while changed {
+            changed = false;
+            for spec in specs {
+                if spec.dependencies.iter().any(|dependency| selected.contains(dependency))
+                    && selected.insert(spec.id.clone())
+                {
+                    changed = true;
+                }
+            }
+        }
+        selected
+    };
+    let historical_seconds = fs::read_to_string(repo_root.join("out/reports/build-timings.json"))
+        .ok()
+        .and_then(|body| serde_json::from_str::<serde_json::Value>(&body).ok())
+        .and_then(|value| value.get("stages").cloned())
+        .and_then(|value| value.as_array().cloned())
+        .unwrap_or_default()
+        .into_iter()
+        .filter_map(|record| {
+            Some((record.get("stage")?.as_str()?.to_string(), record.get("wall_seconds")?.as_f64()?))
+        })
+        .collect::<BTreeMap<_, _>>();
+    let mut estimated = 0.0;
+    let mut required = 0usize;
+    let mut suspicious = 0usize;
+    let mut migrations = 0usize;
+    performance::begin_read_only_integrity_cache();
+    let result = (|| -> Result<()> {
+        let impacts = specs
+            .iter()
+            .filter(|spec| selected.contains(&spec.id))
+            .map(|spec| performance::explain_stage_impact(repo_root, spec))
+            .collect::<Result<Vec<_>>>()?;
+        let impact_by_stage = impacts
+            .iter()
+            .map(|impact| (impact.stage.as_str(), impact))
+            .collect::<BTreeMap<_, _>>();
+        if !json {
+            println!("cache impact: {requested} (read-only; no build actions will run)");
+        }
+        for (spec, impact) in specs
+            .iter()
+            .filter(|spec| selected.contains(&spec.id))
+            .zip(impacts.iter())
+        {
+            let previous = historical_seconds.get(&spec.id).copied().unwrap_or(0.0);
+            if impact.status == "MIGRATE" {
+                migrations += 1;
+            } else if impact.status == "MISS" {
+                estimated += previous;
+                if impact.classification == "unexplained/unrelated invalidation" {
+                    suspicious += 1;
+                } else {
+                    required += 1;
+                }
+            }
+            let chain = spec
+                .dependencies
+                .iter()
+                .filter(|dependency| {
+                    impact.changes.iter().any(|change| {
+                        change.category == "dependency-output"
+                            && change.key == dependency.as_str()
+                    })
+                })
+                .filter_map(|dependency| impact_by_stage.get(dependency.as_str()).map(|_| dependency.clone()))
+                .collect::<Vec<_>>();
+            if json {
+                let mut record = serde_json::to_value(impact)?;
+                if let Some(object) = record.as_object_mut() {
+                    object.insert("historical_seconds".to_string(), serde_json::json!(previous));
+                    object.insert("causal_chain".to_string(), serde_json::json!(chain));
+                    object.insert(
+                        "work_class".to_string(),
+                        serde_json::json!(if impact.status == "MISS" && impact.classification == "unexplained/unrelated invalidation" { "suspicious" } else if impact.status == "MISS" { "required" } else if impact.status == "MIGRATE" { "migration" } else { "none" }),
+                    );
+                }
+                println!("{}", serde_json::to_string(&record)?);
+            } else if impact.status != "HIT" {
+                println!(
+                    "{:<7} {:<24} class={:<32} historical={previous:.1}s reason={} changes={} chain={}",
+                    impact.status,
+                    spec.id,
+                    impact.classification,
+                    impact.reason,
+                    serde_json::to_string(&impact.changes)?,
+                    serde_json::to_string(&chain)?,
+                );
+            }
+        }
+        if !json {
+            println!(
+                "totals: selected={} misses={} required={} suspicious={} migrations={} historical_estimate={estimated:.1}s",
+                selected.len(), required + suspicious, required, suspicious, migrations
+            );
+        } else {
+            println!(
+                "{}",
+                serde_json::json!({
+                    "type": "summary",
+                    "selected": selected.len(),
+                    "misses": required + suspicious,
+                    "required": required,
+                    "suspicious": suspicious,
+                    "migrations": migrations,
+                    "historical_seconds": estimated,
+                })
+            );
+        }
+        Ok(())
+    })();
+    performance::end_read_only_integrity_cache();
+    result?;
+    println!(
+        "downstream propagation: {} stage(s); historical estimated work: {:.1}s",
+        selected.len(), estimated
+    );
+    Ok(())
+}
+
 fn cache_command(repo_root: &Path, command: CacheCommands) -> Result<()> {
     let specs = cacheable_stage_specs(repo_root)?;
     match command {
@@ -4026,6 +4169,7 @@ fn cache_command(repo_root: &Path, command: CacheCommands) -> Result<()> {
             }
             Ok(())
         }
+        CacheCommands::Impact { json, stage } => cache_impact(repo_root, &specs, &stage, json),
         CacheCommands::Invalidate { dependents, stage } => {
             if let Some(package) = stage.strip_prefix("package:") {
                 return packaging::invalidate_package_cache(repo_root, package);
@@ -9899,18 +10043,22 @@ fn cosmic_component_environment(
     env.push(("CARGO_BUILD_JOBS", "4".to_string()));
     env.push(("CARGO_INCREMENTAL", "0".to_string()));
     env.push(("CARGO_TARGET_DIR", shared_target.display().to_string()));
-    env.push((
-        "RUSTFLAGS",
-        format!(
-            "--remap-path-prefix={}/out/build/cosmic-desktop/sources=/usr/src/mattos/cosmic-sources --remap-path-prefix={}=/usr/src/mattos",
-            repo_root.display(),
-            repo_root.display(),
-        ),
-    ));
+    env.push(("RUSTFLAGS", cosmic_source_remap_flags(repo_root)));
     env.push(("CARGO_PROFILE_RELEASE_LTO", "false".to_string()));
     env.push(("CARGO_PROFILE_RELEASE_CODEGEN_UNITS", "4".to_string()));
     env.push(("DESTDIR", install.display().to_string()));
     Ok(env)
+}
+
+fn cosmic_source_remap_flags(repo_root: &Path) -> String {
+    let output_sources = repo_root.join("out/build/cosmic-desktop/sources");
+    let canonical_sources = repo_root.join("out/source-ownership/sources");
+    format!(
+        "--remap-path-prefix={}=/usr/src/mattos/cosmic-sources --remap-path-prefix={}=/usr/src/mattos/cosmic-sources --remap-path-prefix={}=/usr/src/mattos",
+        output_sources.display(),
+        canonical_sources.display(),
+        repo_root.display(),
+    )
 }
 
 fn cosmic_shared_target(repo_root: &Path) -> PathBuf {
@@ -10812,13 +10960,7 @@ fn build_cosmic_desktop_legacy(repo_root: &Path) -> Result<()> {
         "CARGO_TARGET_DIR",
         out_root.join("cargo-target").display().to_string(),
     ));
-    common_env.push((
-        "RUSTFLAGS",
-        format!(
-            "--remap-path-prefix={}=/usr/src/mattos",
-            repo_root.display()
-        ),
-    ));
+    common_env.push(("RUSTFLAGS", cosmic_source_remap_flags(repo_root)));
     // Distribution binaries do not need every COSMIC application to perform
     // a separate whole-program ThinLTO pass. This materially reduces peak
     // link memory and wall time without changing enabled functionality.
@@ -18334,6 +18476,19 @@ mod tests {
     }
 
     #[test]
+    fn cosmic_cargo_remaps_canonical_and_consumer_sources_to_one_identity() {
+        let flags = cosmic_source_remap_flags(Path::new("/workspace"));
+        assert!(flags.contains(
+            "--remap-path-prefix=/workspace/out/build/cosmic-desktop/sources=/usr/src/mattos/cosmic-sources"
+        ));
+        assert!(flags.contains(
+            "--remap-path-prefix=/workspace/out/source-ownership/sources=/usr/src/mattos/cosmic-sources"
+        ));
+        assert!(flags.contains("--remap-path-prefix=/workspace=/usr/src/mattos"));
+        assert_eq!(flags.matches("/usr/src/mattos/cosmic-sources").count(), 2);
+    }
+
+    #[test]
     fn linux_projection_metadata_does_not_invalidate_unrelated_builds() {
         for stage in [
             BuildStage::Glibc,
@@ -18396,14 +18551,12 @@ mod tests {
         }
         for stage in [BuildStage::Brush, BuildStage::Coreutils, BuildStage::Grep] {
             let spec = build_stage_spec(stage);
-            assert!(
-                spec.configuration_inputs
-                    .contains(&PathBuf::from("Cargo.toml"))
-            );
-            assert!(
-                spec.configuration_inputs
-                    .contains(&PathBuf::from("Cargo.lock"))
-            );
+            assert!(!spec.configuration_inputs.contains(&PathBuf::from("Cargo.toml")));
+            assert!(!spec.configuration_inputs.contains(&PathBuf::from("Cargo.lock")));
+            let component = stage_graph::stage_id(stage);
+            assert!(spec.configuration_inputs.contains(&PathBuf::from(format!(
+                "out/source-ownership/cargo/contracts/{component}.json"
+            ))));
         }
     }
 

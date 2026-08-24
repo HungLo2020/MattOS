@@ -26,7 +26,8 @@ pub(crate) use crate::stage_cache::{
 };
 pub(crate) use crate::stage_cache::{
     compute_stage_inputs, execute_cached_stage, execute_cached_stage_with_resources, explain_stage,
-    explain_stage_details, read_stage_manifest, record_virtual_stage, stage_manifest_path,
+    explain_stage_details, explain_stage_impact, read_stage_manifest, record_virtual_stage,
+    stage_manifest_path,
 };
 use crate::timing::{IntegrityCacheStats, TimingCategory, TimingRecord, TimingReport};
 
@@ -202,6 +203,18 @@ pub(crate) fn start_timing_run(repo_root: &Path, command: &str) -> Result<()> {
     integrity_index::start(repo_root);
     record_category("integrity_index_load", index_timer.elapsed());
     persist_timing_report()
+}
+
+pub(crate) fn begin_read_only_integrity_cache() {
+    INTEGRITY_CACHE.with(|slot| {
+        *slot.borrow_mut() = Some(InvocationIntegrityCache::default());
+    });
+}
+
+pub(crate) fn end_read_only_integrity_cache() {
+    INTEGRITY_CACHE.with(|slot| {
+        *slot.borrow_mut() = None;
+    });
 }
 
 pub(crate) fn finish_timing_run(result: &Result<()>) -> Result<()> {
@@ -1211,7 +1224,18 @@ pub(crate) fn tool_identities(tools: &[String]) -> Result<BTreeMap<String, ToolI
             values.insert(tool.clone(), identity);
             continue;
         }
-        let identity = crate::tool_identity::inspect(tool, sha256_file)?;
+        // Cargo is dispatched through the MattOS ownership wrapper in
+        // production. Track the real Cargo toolchain here; ownership
+        // semantics are explicit stage inputs instead of wrapper bytes.
+        let identity_tool = if tool == "cargo" {
+            real_cargo_identity_path()
+        } else {
+            PathBuf::from(tool)
+        };
+        let identity = crate::tool_identity::inspect(
+            &identity_tool.to_string_lossy(),
+            sha256_file,
+        )?;
         INTEGRITY_CACHE.with(|slot| {
             if let Some(cache) = slot.borrow_mut().as_mut() {
                 cache.tool_identities.insert(tool.clone(), identity.clone());
@@ -1220,6 +1244,28 @@ pub(crate) fn tool_identities(tools: &[String]) -> Result<BTreeMap<String, ToolI
         values.insert(tool.clone(), identity);
     }
     Ok(values)
+}
+
+fn real_cargo_identity_path() -> PathBuf {
+    let configured = std::env::var_os("MATTOS_REAL_CARGO")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| PathBuf::from("cargo"));
+    let is_rustup_proxy = configured
+        .canonicalize()
+        .ok()
+        .and_then(|path| path.file_name().map(|name| name == "rustup"))
+        .unwrap_or(false);
+    if is_rustup_proxy {
+        if let Ok(output) = Command::new("rustup").args(["which", "cargo"]).output() {
+            if output.status.success() {
+                let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                if !path.is_empty() {
+                    return PathBuf::from(path);
+                }
+            }
+        }
+    }
+    configured
 }
 
 pub(crate) fn normalized_build_environment() -> BTreeMap<String, String> {

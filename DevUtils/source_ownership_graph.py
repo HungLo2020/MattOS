@@ -421,6 +421,28 @@ def has_transient_ownership_paths(destination: pathlib.Path) -> bool:
     )
 
 
+def prune_derived_source_mirror_artifacts(destination: pathlib.Path) -> list[pathlib.Path]:
+    """Keep canonical ownership mirrors limited to source/input files.
+
+    Canonical mirrors are copied from tracked source and are also consumed as
+    Cargo path dependencies.  Cargo and helper tools can nevertheless leave
+    ``target`` or Python bytecode behind in an existing mirror.  Those files
+    are derived state, not source identity, and must never survive mirror
+    publication or participate in a later ownership check.
+    """
+    removed: list[pathlib.Path] = []
+    if not destination.is_dir():
+        return removed
+    for path in sorted(destination.rglob('*'), reverse=True):
+        if path.is_dir() and path.name in {'target', '__pycache__'}:
+            shutil.rmtree(path)
+            removed.append(path)
+        elif path.is_file() and path.suffix == '.pyc':
+            path.unlink()
+            removed.append(path)
+    return removed
+
+
 def tracked_source_fingerprint(root: pathlib.Path, source_rel: str) -> str:
     """Hash the exact tracked source content copied into an ownership mirror."""
     result = subprocess.run(
@@ -444,13 +466,26 @@ def tracked_source_fingerprint(root: pathlib.Path, source_rel: str) -> str:
 def mirror_fingerprint(root: pathlib.Path, index: dict[str, Any], component: str) -> str:
     meta = index['components'][component]
     digest = hashlib.sha256()
-    digest.update(b'mattos-source-ownership-mirror-v2\0')
+    digest.update(b'mattos-source-ownership-mirror-v3\0')
     digest.update(json.dumps(ownership_rewrite_contract(root, index, component), sort_keys=True).encode())
     digest.update(tracked_source_fingerprint(root, meta['source_path']).encode())
-    for rel in ['upstream/sources.toml', f'upstream/state/{component}.toml']:
-        path = root / rel
-        if path.is_file():
-            digest.update(rel.encode() + path.read_bytes())
+    # Hash normalized, component-relevant provenance records rather than the
+    # byte representation of the complete catalog. Adding an unrelated
+    # component must not invalidate this mirror.
+    sources_path = root / 'upstream/sources.toml'
+    relevant = set(ownership_rewrite_contract(root, index, component)['components'])
+    if sources_path.is_file():
+        sources = tomllib.loads(sources_path.read_text(encoding='utf-8'))
+        records = [
+            record for record in sources.get('component', [])
+            if isinstance(record, dict) and record.get('name') in relevant
+        ]
+        digest.update(json.dumps(records, sort_keys=True, separators=(',', ':')).encode())
+    for name in sorted(relevant):
+        state_path = root / 'upstream' / 'state' / f'{name}.toml'
+        if state_path.is_file():
+            state = tomllib.loads(state_path.read_text(encoding='utf-8'))
+            digest.update(name.encode() + json.dumps(state, sort_keys=True, separators=(',', ':')).encode())
     manifest_rel = meta.get('patch_manifest')
     if manifest_rel:
         manifest_path = root / manifest_rel
@@ -460,14 +495,10 @@ def mirror_fingerprint(root: pathlib.Path, index: dict[str, Any], component: str
         for patch in manifest.get('patch', []):
             patch_path = root / patch['path']
             digest.update(patch['path'].encode() + patch_path.read_bytes())
-    # The graph implementation is part of the mirror semantics. The catalog
-    # generator and Cargo dispatcher are deliberately excluded: their bytes
-    # do not change an already-materialized canonical mirror, and are tracked
-    # separately by stage tool identity and the generated ownership contract.
-    for helper in ['DevUtils/source_ownership_graph.py']:
-        path = root / helper
-        if path.is_file():
-            digest.update(path.read_bytes())
+    # Implementation bytes are deliberately not a global cache proxy. A
+    # semantic ownership change must bump the explicit contract schema and
+    # regenerate these records; dispatcher implementation changes alone do
+    # not invalidate every canonical mirror.
     return digest.hexdigest()
 
 
@@ -652,6 +683,15 @@ def prepare_graph(
 ) -> dict[str, pathlib.Path]:
     mirror_root = root / 'out' / 'source-ownership' / 'sources'
     canonical = {name: mirror_root / name for name in index.get('components', {})}
+    # The current consumer may also have a canonical mirror left by an older
+    # graph traversal.  It is not needed as the private consumer root, but if
+    # it exists it must obey the same source-only invariant as dependency
+    # mirrors.  Dependency mirrors are cleaned in ensure_component below.
+    consumer_canonical = canonical.get(consumer_component)
+    if consumer_canonical is not None:
+        with component_mirror_lock(root, consumer_component):
+            cleanup_abandoned_component_transactions(root, consumer_component)
+            prune_derived_source_mirror_artifacts(consumer_canonical)
     visiting: set[str] = set()
     prepared: set[str] = set()
 
@@ -667,6 +707,10 @@ def prepare_graph(
 
         with component_mirror_lock(root, component):
             cleanup_abandoned_component_transactions(root, component)
+            # Repair old mirrors before validating their marker.  A mirror
+            # containing Cargo output is not a valid source mirror, even when
+            # its source fingerprint and patch state still match.
+            prune_derived_source_mirror_artifacts(dest)
             valid = False
             if marker.is_file():
                 try:
@@ -719,6 +763,7 @@ def prepare_graph(
                     payload = payload.replace(str(working.resolve()), str(dest.resolve()))
                     manifest.write_text(payload, encoding='utf-8')
                     rewrite_manifest(manifest, index, canonical, component)
+                prune_derived_source_mirror_artifacts(dest)
                 (dest / '.mattos-source-ownership.json').write_text(
                     json.dumps({'fingerprint': fingerprint}, sort_keys=True) + '\n', encoding='utf-8'
                 )

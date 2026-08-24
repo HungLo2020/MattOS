@@ -219,7 +219,10 @@ pub(crate) fn can_migrate_narrowed_manifest(
 ) -> Result<bool> {
     if manifest.schema_version != STAGE_MANIFEST_SCHEMA_VERSION
         || manifest.input_details.schema_version == 0
-        || manifest.inputs.tool_digest != current.inputs.tool_digest
+        || (!tool_details_compatible(
+            &manifest.input_details.tools,
+            &current.details.tools,
+        ) && manifest.inputs.tool_digest != current.inputs.tool_digest)
         || manifest.inputs.environment_digest != current.inputs.environment_digest
         || !current
             .inputs
@@ -272,6 +275,56 @@ pub(crate) fn can_migrate_narrowed_manifest(
         }
     }
     Ok(true)
+}
+
+fn tool_details_compatible(
+    stored: &BTreeMap<String, crate::cache_manifest::ToolIdentity>,
+    current: &BTreeMap<String, crate::cache_manifest::ToolIdentity>,
+) -> bool {
+    if stored.len() != current.len() {
+        return false;
+    }
+    stored.iter().all(|(name, old)| {
+        let Some(now) = current.get(name) else {
+            return false;
+        };
+        if old == now {
+            return true;
+        }
+        if name != "cargo" {
+            return false;
+        }
+        let old_path = old.resolved_path.as_str();
+        let old_is_known_proxy = old_path.ends_with("/rustup")
+            || old_path.ends_with("/out/source-ownership/bin/cargo");
+        if !old_is_known_proxy || !now.version.starts_with("cargo ") {
+            return false;
+        }
+        if old.version.starts_with("cargo ") {
+            old.version == now.version && old.target == now.target
+        } else {
+            // A rustup proxy's own version does not identify Cargo. It is
+            // equivalent only when the current active rustup toolchain
+            // resolves to the exact Cargo binary now being fingerprinted.
+            std::process::Command::new("rustup")
+                .args(["which", "cargo"])
+                .output()
+                .ok()
+                .filter(|output| output.status.success())
+                .map(|output| {
+                    let resolved = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                    Path::new(&resolved)
+                        .canonicalize()
+                        .ok()
+                        .map(|path| path.to_string_lossy().replace('\\', "/"))
+                        == Path::new(&now.resolved_path)
+                            .canonicalize()
+                            .ok()
+                            .map(|path| path.to_string_lossy().replace('\\', "/"))
+                })
+                .unwrap_or(false)
+        }
+    })
 }
 
 fn shared_values_match<T: PartialEq>(
@@ -330,6 +383,182 @@ fn collect_changed_keys<T: PartialEq>(
 pub(crate) struct StageEvaluation {
     pub(crate) inputs: StageInputs,
     pub(crate) details: StageInputDetails,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub(crate) struct StageInputChange {
+    pub(crate) category: String,
+    pub(crate) key: String,
+    pub(crate) stored: serde_json::Value,
+    pub(crate) current: serde_json::Value,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub(crate) struct StageImpact {
+    pub(crate) stage: String,
+    pub(crate) status: String,
+    pub(crate) classification: String,
+    pub(crate) reason: String,
+    pub(crate) stored_input_digest: Option<String>,
+    pub(crate) current_input_digest: String,
+    pub(crate) stored_output_digest: Option<String>,
+    pub(crate) changes: Vec<StageInputChange>,
+    pub(crate) migration_eligible: bool,
+}
+
+pub(crate) fn explain_stage_impact(repo_root: &Path, spec: &StageSpec) -> Result<StageImpact> {
+    let evaluation = compute_stage_evaluation(repo_root, spec)?;
+    let manifest = match read_stage_manifest(repo_root, &spec.id) {
+        Ok(manifest) => manifest,
+        Err(error) => {
+            return Ok(StageImpact {
+                stage: spec.id.clone(),
+                status: "MISS".to_string(),
+                classification: "expected one-time migration".to_string(),
+                reason: format!("no valid stage manifest: {error:#}"),
+                stored_input_digest: None,
+                current_input_digest: evaluation.inputs.full_digest,
+                stored_output_digest: None,
+                changes: Vec::new(),
+                migration_eligible: false,
+            });
+        }
+    };
+    let reason = cache_miss_reason(repo_root, spec, &evaluation.inputs, &manifest)?;
+    let changes = stage_input_changes(&manifest, &evaluation.details);
+    if reason.is_empty() {
+        return Ok(StageImpact {
+            stage: spec.id.clone(),
+            status: "HIT".to_string(),
+            classification: "reusable".to_string(),
+            reason: "input digest, output inventory, and output digest match".to_string(),
+            stored_input_digest: Some(manifest.inputs.full_digest),
+            current_input_digest: evaluation.inputs.full_digest,
+            stored_output_digest: Some(manifest.output_content_digest),
+            changes,
+            migration_eligible: false,
+        });
+    }
+    let migration_eligible = can_migrate_narrowed_manifest(repo_root, &evaluation, &manifest)?;
+    if migration_eligible {
+        return Ok(StageImpact {
+            stage: spec.id.clone(),
+            status: "MIGRATE".to_string(),
+            classification: "expected one-time migration".to_string(),
+            reason: format!("{reason}; cached output is reusable after atomic manifest rekey"),
+            stored_input_digest: Some(manifest.inputs.full_digest),
+            current_input_digest: evaluation.inputs.full_digest,
+            stored_output_digest: Some(manifest.output_content_digest),
+            changes,
+            migration_eligible: true,
+        });
+    }
+    let classification = if migration_eligible {
+        "expected one-time migration"
+    } else if manifest.schema_version != STAGE_MANIFEST_SCHEMA_VERSION
+        || manifest.input_details.recipe != evaluation.details.recipe
+    {
+        "recipe/schema change"
+    } else if changes.iter().any(|change| change.category == "source") {
+        "source change"
+    } else if changes.iter().any(|change| change.category == "ownership-contract") {
+        "ownership-contract change"
+    } else if changes.iter().any(|change| change.category == "dependency-output") {
+        "dependency-output change"
+    } else if changes.iter().any(|change| change.category == "tool identity") {
+        "tool identity"
+    } else if changes.iter().any(|change| change.category == "configuration") {
+        "configuration change"
+    } else {
+        "unexplained/unrelated invalidation"
+    };
+    Ok(StageImpact {
+        stage: spec.id.clone(),
+        status: "MISS".to_string(),
+        classification: classification.to_string(),
+        reason,
+        stored_input_digest: Some(manifest.inputs.full_digest),
+        current_input_digest: evaluation.inputs.full_digest,
+        stored_output_digest: Some(manifest.output_content_digest),
+        changes,
+        migration_eligible,
+    })
+}
+
+fn stage_input_changes(
+    manifest: &StageManifest,
+    current: &StageInputDetails,
+) -> Vec<StageInputChange> {
+    let mut changes = Vec::new();
+    if manifest.input_details.recipe != current.recipe {
+        changes.push(StageInputChange {
+            category: "recipe/schema".to_string(),
+            key: "recipe".to_string(),
+            stored: serde_json::json!(manifest.input_details.recipe),
+            current: serde_json::json!(current.recipe),
+        });
+    }
+    collect_detail_changes("source", &manifest.input_details.source, &current.source, &mut changes);
+    for (key, stored) in &manifest.input_details.configuration {
+        if current.configuration.get(key) != Some(stored) {
+            let category = if key.contains("out/source-ownership/cargo/contracts/") {
+                "ownership-contract"
+            } else {
+                "configuration"
+            };
+            changes.push(StageInputChange {
+                category: category.to_string(),
+                key: key.clone(),
+                stored: serde_json::json!(stored),
+                current: current
+                    .configuration
+                    .get(key)
+                    .map_or(serde_json::Value::Null, |value| serde_json::json!(value)),
+            });
+        }
+    }
+    for (key, value) in &current.configuration {
+        if !manifest.input_details.configuration.contains_key(key) {
+            let category = if key.contains("out/source-ownership/cargo/contracts/") {
+                "ownership-contract"
+            } else {
+                "configuration"
+            };
+            changes.push(StageInputChange {
+                category: category.to_string(),
+                key: key.clone(),
+                stored: serde_json::Value::Null,
+                current: serde_json::json!(value),
+            });
+        }
+    }
+    collect_detail_changes("configuration", &manifest.input_details.environment, &current.environment, &mut changes);
+    collect_detail_changes("tool identity", &manifest.input_details.tools, &current.tools, &mut changes);
+    collect_detail_changes("dependency-output", &manifest.input_details.dependencies, &current.dependencies, &mut changes);
+    changes
+}
+
+fn collect_detail_changes<T: Serialize + PartialEq>(
+    category: &str,
+    stored: &BTreeMap<String, T>,
+    current: &BTreeMap<String, T>,
+    changes: &mut Vec<StageInputChange>,
+) {
+    let keys = stored.keys().chain(current.keys()).collect::<BTreeSet<_>>();
+    for key in keys {
+        if stored.get(key) != current.get(key) {
+            changes.push(StageInputChange {
+                category: category.to_string(),
+                key: key.clone(),
+                stored: stored
+                    .get(key)
+                    .map_or(serde_json::Value::Null, |value| serde_json::to_value(value).unwrap()),
+                current: current
+                    .get(key)
+                    .map_or(serde_json::Value::Null, |value| serde_json::to_value(value).unwrap()),
+            });
+        }
+    }
 }
 
 pub(crate) fn compute_stage_inputs(repo_root: &Path, spec: &StageSpec) -> Result<StageInputs> {
@@ -619,7 +848,31 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::cache_manifest::ToolIdentity;
     use std::cell::{Cell, RefCell};
+
+    #[test]
+    fn cargo_dispatcher_identity_is_migratable_to_same_compiler() {
+        let old = BTreeMap::from([(
+            "cargo".to_string(),
+            ToolIdentity {
+                resolved_path: "/workspace/out/source-ownership/bin/cargo".to_string(),
+                executable_sha256: "dispatcher-bytes".to_string(),
+                version: "cargo 1.94.0 (85eff7c80 2026-01-15)".to_string(),
+                target: String::new(),
+            },
+        )]);
+        let current = BTreeMap::from([(
+            "cargo".to_string(),
+            ToolIdentity {
+                resolved_path: "/home/matt/.rustup/toolchains/stable/bin/cargo".to_string(),
+                executable_sha256: "compiler-bytes".to_string(),
+                version: "cargo 1.94.0 (85eff7c80 2026-01-15)".to_string(),
+                target: String::new(),
+            },
+        )]);
+        assert!(tool_details_compatible(&old, &current));
+    }
 
     #[test]
     fn changed_dependency_output_bytes_rebuild_the_real_manifest_consumer() {

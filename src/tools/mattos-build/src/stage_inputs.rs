@@ -85,7 +85,6 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::CosmicBg => &["src/desktop/cosmic/cosmic-bg"],
         BuildStage::CosmicWorkspaces => &[
             "src/desktop/cosmic/cosmic-workspaces",
-            "src/tools/mattos-build/src/main.rs",
         ],
         BuildStage::CosmicFiles => &[
             "src/desktop/cosmic/cosmic-files",
@@ -98,11 +97,9 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::CosmicInitialSetup => &["src/desktop/cosmic/cosmic-initial-setup"],
         BuildStage::Polkit => &[
             "src/system/security/polkit",
-            "src/tools/mattos-build/src/main.rs",
         ],
         BuildStage::Duktape => &[
             "src/system/security/duktape",
-            "src/tools/mattos-build/src/main.rs",
         ],
         BuildStage::NetworkManager => &["src/system/network/NetworkManager"],
         BuildStage::Cozy => &["src/userland/cozy"],
@@ -124,7 +121,7 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         // The aggregate copies/stages component outputs according to the
         // orchestration code, so changes to that output policy must invalidate
         // the aggregate rather than reusing an old install tree.
-        BuildStage::CosmicDesktop => &["src/tools/mattos-build/src/main.rs"],
+        BuildStage::CosmicDesktop => &[],
         BuildStage::Python => &["src/development/python/cpython"],
         BuildStage::Llvm => &["src/toolchain/llvm-project"],
         BuildStage::Rust => &[
@@ -214,9 +211,9 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
 pub(crate) fn configuration_inputs(stage: BuildStage) -> Vec<PathBuf> {
     let mut inputs = Vec::new();
     if is_rust_stage(stage) {
-        inputs.push("Cargo.toml".into());
-        inputs.push("Cargo.lock".into());
+        inputs.extend(local_cargo_manifest_inputs(stage));
     }
+    inputs.extend(ownership_contract_inputs(stage));
     if stage == BuildStage::Rootfs {
         inputs.extend(rootfs_configuration_inputs());
         inputs.push("out/packages/inventory.toml".into());
@@ -237,6 +234,66 @@ pub(crate) fn configuration_inputs(stage: BuildStage) -> Vec<PathBuf> {
         _ => {}
     }
     inputs
+}
+
+fn local_cargo_manifest_inputs(stage: BuildStage) -> Vec<PathBuf> {
+    let root = match stage {
+        BuildStage::Brush => "src/userland/brush",
+        BuildStage::Coreutils => "src/userland/coreutils",
+        BuildStage::Grep => "src/userland/grep",
+        BuildStage::Sed => "src/userland/sed",
+        BuildStage::Findutils => "src/userland/findutils",
+        BuildStage::Diffutils => "src/userland/diffutils",
+        BuildStage::SudoRs => "src/system/auth/sudo-rs",
+        BuildStage::Init => return vec!["src/userland/init/Cargo.toml".into()],
+        BuildStage::Installer => {
+            return vec![
+                "src/system/installer/Cargo.toml".into(),
+                "src/system/installer/gui/cosmic/Cargo.lock".into(),
+            ]
+        }
+        _ => return Vec::new(),
+    };
+    vec![format!("{root}/Cargo.toml").into(), format!("{root}/Cargo.lock").into()]
+}
+
+pub(crate) fn ownership_contract_inputs(stage: BuildStage) -> Vec<PathBuf> {
+    let components: &[&str] = match stage {
+        BuildStage::Brush => &["brush"],
+        BuildStage::Coreutils => &["coreutils"],
+        BuildStage::Grep => &["grep"],
+        BuildStage::Sed => &["sed"],
+        BuildStage::Findutils => &["findutils"],
+        BuildStage::Diffutils => &["diffutils"],
+        BuildStage::SudoRs => &["sudo-rs"],
+        BuildStage::Installer => &["btrfs-progs", "dosfstools", "e2fsprogs"],
+        BuildStage::CosmicComp => &["cosmic-comp"],
+        BuildStage::CosmicSession => &["cosmic-session"],
+        BuildStage::CosmicGreeter => &["cosmic-greeter"],
+        BuildStage::CosmicPanel => &["cosmic-panel"],
+        BuildStage::CosmicApplets => &["cosmic-applets"],
+        BuildStage::CosmicAppLibrary => &["cosmic-applibrary"],
+        BuildStage::CosmicLauncher => &["cosmic-launcher"],
+        BuildStage::CosmicSettings => &["cosmic-settings"],
+        BuildStage::CosmicSettingsDaemon => &["cosmic-settings-daemon"],
+        BuildStage::CosmicNotifications => &["cosmic-notifications"],
+        BuildStage::CosmicOsd => &["cosmic-osd"],
+        BuildStage::CosmicBg => &["cosmic-bg"],
+        BuildStage::CosmicWorkspaces => &["cosmic-workspaces"],
+        BuildStage::CosmicFiles => &["cosmic-files"],
+        BuildStage::CosmicEdit => &["cosmic-edit"],
+        BuildStage::CosmicInitialSetup => &["cosmic-initial-setup"],
+        BuildStage::CosmicTerm => &["cosmic-term"],
+        BuildStage::CosmicTweaks => &["cosmic-tweaks"],
+        BuildStage::CosmicUtilities => &["cosmic-randr", "cosmic-screenshot", "pop-launcher"],
+        BuildStage::CosmicPortal => &["xdg-desktop-portal-cosmic"],
+        BuildStage::Cozy => &["cozy"],
+        _ => &[],
+    };
+    components
+        .iter()
+        .map(|component| PathBuf::from(format!("out/source-ownership/cargo/contracts/{component}.json")))
+        .collect()
 }
 
 pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
@@ -328,6 +385,9 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
         BuildStage::Initramfs => 7,
         BuildStage::Installer => 7,
         BuildStage::Xkbcommon => 4,
+        BuildStage::CosmicWorkspaces => 2,
+        BuildStage::CosmicDesktop => 2,
+        BuildStage::Duktape | BuildStage::Polkit => 2,
         BuildStage::LibdisplayInfo
         | BuildStage::Libevdev
         | BuildStage::Libinput
@@ -340,7 +400,6 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
         BuildStage::CosmicInitialSetup => 1,
         BuildStage::Cozy => 1,
         BuildStage::Libseat => 2,
-        BuildStage::CosmicDesktop => 1,
         BuildStage::Dbus => 3,
         // Revision 4 enables libblkid-backed udev identities and makes the
         // complete upstream OSC login profile safe under MattOS's POSIX shell.
@@ -447,7 +506,7 @@ mod tests {
         );
         assert_eq!(
             source_inputs(BuildStage::CosmicDesktop),
-            vec![PathBuf::from("src/tools/mattos-build/src/main.rs")]
+            Vec::<PathBuf>::new()
         );
         for stage in [
             BuildStage::CosmicSession,
@@ -466,6 +525,18 @@ mod tests {
                 crate::stage_graph::stage_id(stage)
             );
         }
+    }
+
+    #[test]
+    fn independent_cargo_stages_use_local_manifests_and_scoped_contracts() {
+        let brush = configuration_inputs(BuildStage::Brush);
+        assert!(!brush.iter().any(|path| path == "Cargo.toml" || path == "Cargo.lock"));
+        assert!(brush
+            .iter()
+            .any(|path| path == "out/source-ownership/cargo/contracts/brush.json"));
+        assert_eq!(recipe_revision(BuildStage::Duktape), 2);
+        assert_eq!(recipe_revision(BuildStage::Polkit), 2);
+        assert_eq!(recipe_revision(BuildStage::CosmicWorkspaces), 2);
     }
 
     #[test]

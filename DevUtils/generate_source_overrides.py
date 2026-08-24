@@ -23,6 +23,8 @@ STATE_DIR = ROOT / 'upstream' / 'state'
 GITLINK_POLICY = ROOT / 'upstream' / 'policies' / 'gitlinks.toml'
 OUTPUT_ROOT = ROOT / 'out' / 'source-ownership' / 'cargo'
 INDEX = OUTPUT_ROOT / 'index.json'
+CONTRACT_ROOT = OUTPUT_ROOT / 'contracts'
+OWNERSHIP_CONTRACT_SCHEMA_VERSION = 1
 LEGACY_ROOT_CONFIG = ROOT / '.cargo' / 'config.toml'
 
 
@@ -256,6 +258,62 @@ def generate_index() -> dict:
     }
 
 
+def write_ownership_contracts(index: dict) -> None:
+    """Publish deterministic per-component ownership contracts for caches."""
+    import sys
+    sys.path.insert(0, str(ROOT / 'DevUtils'))
+    import source_ownership_graph as graph  # type: ignore
+
+    CONTRACT_ROOT.mkdir(parents=True, exist_ok=True)
+    expected: set[str] = set()
+    for component in sorted(index.get('components', {})):
+        rewrite_contract = graph.ownership_rewrite_contract(ROOT, index, component)
+        patch_records = []
+        state_records = []
+        for name, metadata in sorted(rewrite_contract.get('components', {}).items()):
+            manifest_rel = metadata.get('patch_manifest')
+            if isinstance(manifest_rel, str) and manifest_rel:
+                manifest_path = ROOT / manifest_rel
+                manifest_payload = manifest_path.read_bytes()
+                manifest = tomllib.loads(manifest_payload.decode())
+                patch_records.append({
+                    'component': name,
+                    'manifest': manifest_rel,
+                    'manifest_sha256': hashlib.sha256(manifest_payload).hexdigest(),
+                    'patches': [
+                        {
+                            'path': item['path'],
+                            'sha256': hashlib.sha256((ROOT / item['path']).read_bytes()).hexdigest(),
+                        }
+                        for item in manifest.get('patch', [])
+                    ],
+                })
+            state_path = ROOT / 'upstream/state' / f'{name}.toml'
+            if state_path.is_file():
+                state_records.append({
+                    'component': name,
+                    'sha256': hashlib.sha256(state_path.read_bytes()).hexdigest(),
+                })
+        contract = {
+            'schema_version': OWNERSHIP_CONTRACT_SCHEMA_VERSION,
+            'component': component,
+            'rewrite_contract': rewrite_contract,
+            'patches': patch_records,
+            'state': state_records,
+        }
+        body = json.dumps(contract, indent=2, sort_keys=True) + '\n'
+        digest = hashlib.sha256(body.encode()).hexdigest()
+        destination = CONTRACT_ROOT / f'{component}.json'
+        destination.write_text(
+            json.dumps({**contract, 'digest': digest}, indent=2, sort_keys=True) + '\n',
+            encoding='utf-8',
+        )
+        expected.add(destination.name)
+    for stale in CONTRACT_ROOT.glob('*.json'):
+        if stale.name not in expected:
+            stale.unlink()
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('--check', action='store_true')
@@ -265,9 +323,30 @@ def main() -> int:
     if args.check:
         if current != generated:
             raise SystemExit('MattOS Cargo source ownership catalog is stale')
+        if not CONTRACT_ROOT.is_dir():
+            raise SystemExit('MattOS Cargo ownership contracts are missing')
+        import sys
+        sys.path.insert(0, str(ROOT / 'DevUtils'))
+        import source_ownership_graph as graph  # type: ignore
+        expected_names = {f'{name}.json' for name in json.loads(generated).get('components', {})}
+        actual_names = {path.name for path in CONTRACT_ROOT.glob('*.json')}
+        if actual_names != expected_names:
+            raise SystemExit('MattOS Cargo ownership contracts are stale')
+        for name in sorted(json.loads(generated).get('components', {})):
+            path = CONTRACT_ROOT / f'{name}.json'
+            payload = json.loads(path.read_text(encoding='utf-8'))
+            digest = payload.pop('digest', None)
+            body = json.dumps(payload, indent=2, sort_keys=True) + '\n'
+            if digest != hashlib.sha256(body.encode()).hexdigest():
+                raise SystemExit(f'MattOS Cargo ownership contract checksum is stale: {name}')
+            if payload.get('rewrite_contract') != graph.ownership_rewrite_contract(
+                ROOT, json.loads(generated), name
+            ):
+                raise SystemExit(f'MattOS Cargo ownership contract is stale: {name}')
         return 0
     OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
     INDEX.write_text(generated, encoding='utf-8')
+    write_ownership_contracts(json.loads(generated))
     if LEGACY_ROOT_CONFIG.exists():
         LEGACY_ROOT_CONFIG.unlink()
     for path in OUTPUT_ROOT.glob('*/config.toml'):

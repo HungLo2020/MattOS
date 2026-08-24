@@ -140,6 +140,50 @@ fn real_stage_specs_invalidate_only_representative_input_owners() {
 }
 
 #[test]
+fn synthetic_unrelated_first_class_source_does_not_change_compile_stage_keys() {
+    let tmp = tempfile::tempdir().unwrap();
+    let mut specs = cacheable_stage_specs(tmp.path()).unwrap();
+    for spec in &mut specs {
+        spec.tools.clear();
+        spec.dependencies.clear();
+    }
+    for spec in &specs {
+        for path in spec.source_inputs.iter().chain(&spec.configuration_inputs) {
+            fs::create_dir_all(tmp.path().join(path)).unwrap();
+        }
+    }
+    let before = specs
+        .iter()
+        .map(|spec| {
+            (
+                spec.id.clone(),
+                performance::compute_stage_inputs(tmp.path(), spec)
+                    .unwrap()
+                    .full_digest,
+            )
+        })
+        .collect::<BTreeMap<_, _>>();
+    write_file(
+        &tmp
+            .path()
+            .join("src/desktop/cosmic/synthetic-unrelated/Cargo.toml"),
+        "[package]\nname = \"synthetic-unrelated\"\nversion = \"0.1.0\"\n",
+    );
+    let after = specs
+        .iter()
+        .map(|spec| {
+            (
+                spec.id.clone(),
+                performance::compute_stage_inputs(tmp.path(), spec)
+                    .unwrap()
+                    .full_digest,
+            )
+        })
+        .collect::<BTreeMap<_, _>>();
+    assert_eq!(before, after);
+}
+
+#[test]
 fn real_stage_specs_track_tool_recipe_and_dependency_output_identity() {
     let tmp = tempfile::tempdir().unwrap();
     let root = tmp.path();
