@@ -222,6 +222,7 @@ const PACKAGE_NAMES: &[&str] = &[
     "make",
     "libc-bin",
     "locales",
+    "iso-codes",
     "tzdata",
     "linux-firmware",
     "wireless-regdb",
@@ -779,6 +780,17 @@ fn package_specs() -> Vec<PackageSpec> {
             source_component: "glibc",
             depends: &["libc6", "libc-bin"],
             provides: &["locales"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "iso-codes",
+            description: "Pinned ISO language and territory metadata for offline COSMIC locale selection",
+            source_component: "iso-codes",
+            depends: &["libc6"],
+            provides: &["iso-codes"],
             conflicts: &[],
             replaces: &[],
             essential: false,
@@ -2465,7 +2477,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "cosmic-initial-setup",
             description: "COSMIC first-login setup wizard built from the pinned upstream source",
             source_component: "cosmic-initial-setup",
-            depends: &["libc6", "libgcc-s1", "libstdc++6", "cosmic-desktop", "network-manager"],
+            depends: &["libc6", "libgcc-s1", "libstdc++6", "cosmic-desktop", "network-manager", "iso-codes"],
             provides: &["cosmic-initial-setup"], conflicts: &[], replaces: &[], essential: false, priority: "optional",
         },
         PackageSpec {
@@ -3646,6 +3658,7 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "wayland" => &["wayland"],
             "xkbcommon" => &["xkbcommon"],
             "xkeyboard-config" => &[],
+            "iso-codes" => &[],
             "seatd" => &["seatd"],
             "libdisplay-info" => &["libdisplay-info"],
             "libevdev" => &["libevdev"],
@@ -3738,6 +3751,7 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "kmod" => &["src/system/kmod"],
         "procps-ng" => &["src/userland/procps-ng"],
         "systemd" => &["src/system/systemd"],
+        "iso-codes" => &["src/system/data/iso-codes"],
         "expat" => &["src/system/libraries/expat/expat"],
         "libcap" => &["src/system/libraries/libcap"],
         "attr" => &["src/system/libraries/attr"],
@@ -3942,6 +3956,7 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
         "make" => stage_native_make(repo_root, &staging)?,
         "libc-bin" => stage_glibc_utilities(repo_root, &staging)?,
         "locales" => stage_glibc_locales(repo_root, &staging)?,
+        "iso-codes" => stage_iso_codes(repo_root, &staging)?,
         "tzdata" => stage_tzdata(repo_root, &staging)?,
         "linux-firmware" => stage_linux_firmware(repo_root, &staging)?,
         "wireless-regdb" => stage_wireless_regdb(repo_root, &staging)?,
@@ -5324,6 +5339,27 @@ fn stage_glibc_locales(repo_root: &Path, staging: &Path) -> Result<()> {
     copy_preserving(
         &repo_root.join("src/system/libc/glibc/COPYING.LIB"),
         &staging.join("usr/share/doc/locales/copyright"),
+    )?;
+    Ok(())
+}
+
+/// Ship the pinned ISO-codes JSON contract required by locales-rs.  This is
+/// source data, not a host locale database and is intentionally limited to
+/// the three registries consumed by COSMIC Initial Setup.
+fn stage_iso_codes(repo_root: &Path, staging: &Path) -> Result<()> {
+    let source = repo_root.join("src/system/data/iso-codes");
+    let destination = staging.join("usr/share/iso-codes/json");
+    fs::create_dir_all(&destination)?;
+    for name in ["iso_3166-1.json", "iso_639-2.json", "iso_639-3.json"] {
+        let path = source.join(name);
+        if !path.is_file() {
+            bail!("ISO-codes source is missing {name}");
+        }
+        copy_preserving(&path, &destination.join(name))?;
+    }
+    copy_preserving(
+        &source.join("PROVENANCE.md"),
+        &staging.join("usr/share/doc/iso-codes/PROVENANCE.md"),
     )?;
     Ok(())
 }
@@ -7372,6 +7408,7 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "binutils" => component_snapshot_version(repo_root, "binutils")?,
         "make" => component_snapshot_version(repo_root, "make")?,
         "ca-certificates" => "2026.07.16".to_string(),
+        "iso-codes" => "4.20.1".to_string(),
         "mattos-brush" => {
             cargo_package_version(&repo_root.join("src/userland/brush/brush/Cargo.toml"))?
         }
@@ -10455,7 +10492,31 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 161);
+        assert_eq!(PACKAGE_NAMES.len(), 162);
+    }
+
+    #[test]
+    fn iso_codes_package_contains_the_pinned_locales_rs_contract() {
+        let specs = package_specs();
+        let spec = specs.iter().find(|spec| spec.name == "iso-codes").unwrap();
+        assert_eq!(spec.source_component, "iso-codes");
+        assert!(package_source_roots("iso-codes").contains(&"src/system/data/iso-codes"));
+
+        let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        let staging = tempfile::tempdir().unwrap();
+        stage_iso_codes(&repo, staging.path()).unwrap();
+        for name in ["iso_3166-1.json", "iso_639-2.json", "iso_639-3.json"] {
+            let path = staging
+                .path()
+                .join("usr/share/iso-codes/json")
+                .join(name);
+            assert!(path.is_file(), "missing {name}");
+            assert!(!fs::read_to_string(path).unwrap().is_empty());
+        }
+        assert!(staging
+            .path()
+            .join("usr/share/doc/iso-codes/PROVENANCE.md")
+            .is_file());
     }
 
     #[test]
@@ -10480,7 +10541,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 161);
+        assert_eq!(PACKAGE_NAMES.len(), 162);
         assert_eq!(
             UTIL_LINUX_BASE_PATHS,
             &[
@@ -10557,7 +10618,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 161);
+        assert_eq!(PACKAGE_NAMES.len(), 162);
         let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
         for dependency in [
             "libffi8",

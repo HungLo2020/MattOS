@@ -65,6 +65,27 @@ def effective_manifest(cwd: pathlib.Path, original: list[str]) -> pathlib.Path |
     return candidate.resolve() if candidate.is_file() else None
 
 
+def component_mirror(root: pathlib.Path, component: str, index: dict) -> pathlib.Path:
+    """Return the enclosing output mirror for a component's Cargo invocation.
+
+    A native build may invoke Cargo from a nested subproject (for example
+    dbus-broker's libc-rs Meson subproject).  The nested manifest is still
+    owned by the enclosing component; treating its parent as the consumer
+    mirror would apply the component patch and ownership rewrites relative to
+    the subdirectory instead of the component root.
+    """
+    metadata = index.get('components', {}).get(component, {})
+    source_path = metadata.get('source_path', '')
+    # These two COSMIC components have dedicated native builders and their
+    # Cargo root lives in out/build/<component>/source.  The other COSMIC
+    # applications use the shared cosmic-desktop source mirror.
+    if component in {'cosmic-comp', 'cosmic-edit'}:
+        return root / 'out' / 'build' / component / 'source'
+    if source_path.startswith('src/desktop/cosmic/'):
+        return root / 'out' / 'build' / 'cosmic-desktop' / 'sources' / component
+    return root / 'out' / 'build' / component / 'source'
+
+
 def metadata_resolution_args(original: list[str]) -> list[str]:
     """Return selection plus the caller's strict Cargo resolution policy."""
     selected: list[str] = []
@@ -463,7 +484,10 @@ def main() -> int:
     )
 
     graph = load_graph_module(root)
-    consumer_mirror = manifest.parent
+    # Cargo can be launched from a nested manifest by a native build system.
+    # Ownership, patching, and locking belong to the enclosing component
+    # mirror, not to that nested subdirectory.
+    consumer_mirror = component_mirror(root, component, index)
     # Hold the consumer transaction lock until this Cargo process exits. The
     # mirror is prepared, metadata-validated, and consumed by the final Cargo
     # command as one critical section; another build must not rewrite it in
@@ -480,7 +504,7 @@ def main() -> int:
         )
         append_trace(trace, f'consumer_patches={patch_status}')
         mirrors = graph.prepare_graph(root, index, component, consumer_mirror)
-        lockfile = manifest.parent / 'Cargo.lock'
+        lockfile = consumer_mirror / 'Cargo.lock'
         transitive_patches = inject_locked_transitive_owned_patches(
             manifest,
             lockfile,

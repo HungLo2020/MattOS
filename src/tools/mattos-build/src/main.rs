@@ -8511,10 +8511,25 @@ fn build_meson_runtime(
         "polkit" => "output-duktape-link-adaptation-v2",
         _ => "",
     };
+    // Meson stores compiler/build-tool state in build.dat.  A cache miss can
+    // be caused by a changed dependency output while the component's own
+    // recipe stamp remains unchanged; reusing that old Meson directory can
+    // then fail (or, worse, consume stale dependency metadata).  Bind the
+    // output-owned build directory to the actual producer output digests so
+    // dependency changes force a fresh configure before compilation.
+    let dependency_outputs = dependencies
+        .iter()
+        .map(|dependency| {
+            let manifest = stage_cache::read_stage_manifest(repo_root, dependency)
+                .with_context(|| format!("failed to read {dependency} dependency manifest"))?;
+            Ok::<_, anyhow::Error>(format!("{dependency}={}", manifest.output_content_digest))
+        })
+        .collect::<Result<Vec<_>>>()?;
     let stamp = format!(
-        "{state}\n{}\ndependencies={}\n{adaptation_stamp}\n",
+        "{state}\n{}\ndependencies={}\ndependency-outputs={}\n{adaptation_stamp}\n",
         options.join("\n"),
-        dependencies.join(",")
+        dependencies.join(","),
+        dependency_outputs.join(",")
     );
     let stamp_path = out_root.join("build-stamp.txt");
     if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
@@ -13628,6 +13643,7 @@ fn build_systemd(repo_root: &Path) -> Result<()> {
         );
     }
     let dependency_installs = [
+        repo_root.join("out/build/dbus/install/usr"),
         repo_root.join("out/build/zlib/install/usr"),
         repo_root.join("out/build/bzip2/install/usr"),
         repo_root.join("out/build/lz4/install/usr"),
@@ -13855,11 +13871,21 @@ fn systemd_meson_options() -> Vec<String> {
         "-Dpstore=false".to_string(),
         "-Dmachined=false".to_string(),
         "-Dhostnamed=false".to_string(),
-        "-Dlocaled=false".to_string(),
+        // COSMIC Initial Setup uses the standard org.freedesktop.locale1 API
+        // to read and apply the selected system locale.
+        "-Dlocaled=true".to_string(),
         "-Dtimedated=true".to_string(),
         "-Dnsresourced=false".to_string(),
         "-Ddefault-network=false".to_string(),
-        "-Ddbus=disabled".to_string(),
+        "-Ddbus=enabled".to_string(),
+        // The target dbus-1.pc is queried under PKG_CONFIG_SYSROOT_DIR while
+        // configuring systemd.  Do not let its absolute host/sysroot paths
+        // become Meson install destinations; these are target filesystem
+        // paths in the finished systemd package.
+        "-Ddbussessionservicedir=/usr/share/dbus-1/services".to_string(),
+        "-Ddbussystemservicedir=/usr/share/dbus-1/system-services".to_string(),
+        "-Ddbus-interfaces-dir=/usr/share/dbus-1/interfaces".to_string(),
+        "-Ddbuspolicydir=/usr/share/dbus-1/system.d".to_string(),
         "-Dglib=disabled".to_string(),
         "-Dseccomp=disabled".to_string(),
         "-Dselinux=enabled".to_string(),
@@ -14225,14 +14251,23 @@ fn build_dbus_broker(repo_root: &Path) -> Result<()> {
         .context("failed to read dbus-broker upstream state")?;
     let expat_state = fs::read_to_string(repo_root.join("upstream/state/expat.toml"))
         .context("failed to read Expat upstream state")?;
+    let dependency_outputs = ["expat", "systemd"]
+        .iter()
+        .map(|dependency| {
+            let manifest = stage_cache::read_stage_manifest(repo_root, dependency)
+                .with_context(|| format!("failed to read {dependency} dependency manifest"))?;
+            Ok::<_, anyhow::Error>(format!("{dependency}={}", manifest.output_content_digest))
+        })
+        .collect::<Result<Vec<_>>>()?;
     let stamp = format!(
-        "{state}\n{expat_state}\n{}\n{}\n",
+        "{state}\n{expat_state}\n{}\n{}\ndependency-outputs={}\n",
         options.join("\n"),
         env_overrides
             .iter()
             .map(|(key, value)| format!("{key}={value}"))
             .collect::<Vec<_>>()
-            .join("\n")
+            .join("\n"),
+        dependency_outputs.join(",")
     );
     if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
         remove_path_if_exists(&source_copy)?;
@@ -15088,6 +15123,7 @@ fn build_rootfs_into(repo_root: &Path, out: &Path) -> Result<()> {
     }
     copy_tree_excluding_package_owned(&systemd_install, &out, &package_owned)?;
     copy_systemd_runtime_dependencies(&out)?;
+    generate_baseline_locale(repo_root, out)?;
     let pam_systemd = out.join(SYSTEMD_PAM_MODULE_REL);
     if !pam_systemd.is_file() {
         bail!(
@@ -16207,6 +16243,10 @@ fn install_dbus_configuration(repo_root: &Path, rootfs: &Path) -> Result<()> {
             "systemd-timedated.service",
         ),
         (
+            "dbus-org.freedesktop.locale1.service",
+            "systemd-localed.service",
+        ),
+        (
             "dbus-org.freedesktop.login1.service",
             "systemd-logind.service",
         ),
@@ -16214,6 +16254,8 @@ fn install_dbus_configuration(repo_root: &Path, rootfs: &Path) -> Result<()> {
     for (alias, target) in aliases {
         install_systemd_service_alias(rootfs, alias, target)?;
     }
+
+    validate_locale_service(rootfs)?;
 
     let sockets_wants = rootfs.join("etc/systemd/system/sockets.target.wants");
     fs::create_dir_all(&sockets_wants)
@@ -16837,6 +16879,7 @@ fn copy_systemd_runtime_dependencies(rootfs: &Path) -> Result<()> {
         "usr/lib/systemd/systemd-resolved",
         "usr/lib/systemd/systemd-timesyncd",
         "usr/lib/systemd/systemd-timedated",
+        "usr/lib/systemd/systemd-localed",
         "usr/lib/systemd/systemd-logind",
         "usr/lib/systemd/systemd-user-runtime-dir",
         "usr/bin/systemctl",
@@ -16846,6 +16889,7 @@ fn copy_systemd_runtime_dependencies(rootfs: &Path) -> Result<()> {
         "usr/bin/networkctl",
         "usr/bin/resolvectl",
         "usr/bin/timedatectl",
+        "usr/bin/localectl",
     ] {
         let p = rootfs.join(rel);
         if p.exists() {
@@ -16856,6 +16900,67 @@ fn copy_systemd_runtime_dependencies(rootfs: &Path) -> Result<()> {
     for bin in binaries {
         copy_runtime_dependencies(&bin, rootfs)?;
     }
+    Ok(())
+}
+
+fn validate_locale_service(rootfs: &Path) -> Result<()> {
+    for rel in [
+        "usr/lib/systemd/systemd-localed",
+        "usr/lib/systemd/system/systemd-localed.service",
+        "usr/lib/systemd/system/dbus-org.freedesktop.locale1.service",
+        "usr/share/dbus-1/system-services/org.freedesktop.locale1.service",
+        "usr/share/dbus-1/system.d/org.freedesktop.locale1.conf",
+        "usr/bin/localectl",
+    ] {
+        if !rootfs.join(rel).exists() {
+            bail!("systemd-localed runtime contract is missing /{rel}");
+        }
+    }
+    Ok(())
+}
+
+fn generate_baseline_locale(repo_root: &Path, rootfs: &Path) -> Result<()> {
+    let glibc_install = repo_root.join("out/build/glibc/install");
+    let loader = glibc_install.join("lib64/ld-linux-x86-64.so.2");
+    let localedef = glibc_install.join("usr/bin/localedef");
+    if !loader.is_file() || !localedef.is_file() {
+        bail!("glibc localedef runtime is missing; cannot generate baseline locale");
+    }
+    fs::create_dir_all(rootfs.join("usr/lib/x86_64-linux-gnu/locale"))?;
+    let library_path = std::env::join_paths([
+        glibc_install.join("usr/lib/x86_64-linux-gnu"),
+        glibc_install.join("lib64"),
+    ])?;
+    let prefix = format!("--prefix={}", rootfs.display());
+    let library_path = library_path
+        .to_str()
+        .ok_or_else(|| anyhow!("glibc locale library path is not valid UTF-8"))?;
+    let i18n_path = glibc_install.join("usr/share/i18n");
+    let i18n_path = i18n_path
+        .to_str()
+        .ok_or_else(|| anyhow!("glibc i18n source path is not valid UTF-8"))?;
+    run_cmd_with_env_overrides(
+        repo_root,
+        path_str(&loader)?,
+        &[
+            "--library-path",
+            library_path,
+            path_str(&localedef)?,
+            &prefix,
+            "-i",
+            "en_US",
+            "-f",
+            "UTF-8",
+            "--no-archive",
+            "en_US.UTF-8",
+        ],
+        &[("I18NPATH", i18n_path.to_string())],
+    )?;
+    let locale_dir = rootfs.join("usr/lib/x86_64-linux-gnu/locale");
+    if !locale_dir.join("en_US.utf8").exists() {
+        bail!("baseline en_US.UTF-8 generation produced no compiled en_US.utf8 locale");
+    }
+    fs::write(rootfs.join("etc/locale.conf"), "LANG=en_US.UTF-8\n")?;
     Ok(())
 }
 
@@ -22184,6 +22289,7 @@ mod tests {
             "systemd-resolved.service",
             "systemd-timesyncd.service",
             "systemd-timedated.service",
+            "systemd-localed.service",
             "systemd-logind.service",
         ] {
             write(
@@ -22198,6 +22304,7 @@ mod tests {
             "timesync1",
             "timedate1",
             "login1",
+            "locale1",
         ] {
             write(
                 &rootfs.join(format!(
@@ -22228,7 +22335,16 @@ mod tests {
             )
             .expect("stage test ELF and dependency closure");
         }
+        inspect_and_stage_executable(
+            Path::new("/bin/true"),
+            &rootfs.join("usr/lib/systemd/systemd-localed"),
+            &rootfs,
+            &roots,
+            &libraries,
+        )
+        .expect("stage test localed ELF and dependency closure");
         write(&rootfs.join("usr/bin/busctl"), "present\n");
+        write(&rootfs.join("usr/bin/localectl"), "present\n");
         (tmp, repo, rootfs)
     }
 

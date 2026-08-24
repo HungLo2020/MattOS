@@ -112,6 +112,35 @@ class SourceOwnershipGraphTest(unittest.TestCase):
         self.assertEqual(first["libcosmic"], second["libcosmic"])
         self.assertNotEqual(first["cosmic-files"], second["cosmic-settings"])
 
+    def test_nested_cargo_invocation_uses_enclosing_component_mirror(self) -> None:
+        index = {
+            "components": {
+                "dbus-broker": {"source_path": "src/system/dbus/dbus-broker"},
+                "cosmic-comp": {"source_path": "src/desktop/cosmic/cosmic-comp"},
+                "cosmic-files": {"source_path": "src/desktop/cosmic/cosmic-files"},
+            }
+        }
+        self.assertEqual(
+            dispatcher.component_mirror(
+                pathlib.Path("/workspace"), "dbus-broker", index
+            ),
+            pathlib.Path("/workspace/out/build/dbus-broker/source"),
+        )
+        self.assertEqual(
+            dispatcher.component_mirror(
+                pathlib.Path("/workspace"), "cosmic-files", index
+            ),
+            pathlib.Path(
+                "/workspace/out/build/cosmic-desktop/sources/cosmic-files"
+            ),
+        )
+        self.assertEqual(
+            dispatcher.component_mirror(
+                pathlib.Path("/workspace"), "cosmic-comp", index
+            ),
+            pathlib.Path("/workspace/out/build/cosmic-comp/source"),
+        )
+
     def test_dead_source_ownership_transactions_are_reclaimed_but_live_are_preserved(self) -> None:
         with tempfile.TemporaryDirectory() as raw:
             root = pathlib.Path(raw)

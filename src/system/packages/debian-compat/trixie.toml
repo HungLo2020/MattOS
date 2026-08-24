@@ -209,6 +209,18 @@ classification = "debian-compatible"
 known_gaps = ["Locales are generated on demand by the installer"]
 
 [[package]]
+debian_name = "iso-codes"
+mattos_name = "iso-codes"
+source_component = "iso-codes"
+owned_paths = ["/usr/share/iso-codes/json/iso_3166-1.json", "/usr/share/iso-codes/json/iso_639-2.json", "/usr/share/iso-codes/json/iso_639-3.json"]
+provided_abi_or_commands = ["offline ISO language and territory metadata"]
+protected = false
+current_mattos_version = "4.20.1-1mattos1"
+expected_debian_role = "ISO language and territory metadata"
+classification = "debian-compatible"
+known_gaps = ["Only the JSON registries consumed by COSMIC Initial Setup are shipped"]
+
+[[package]]
 debian_name = "tzdata"
 mattos_name = "tzdata"
 source_component = "tzdata"

@@ -342,11 +342,27 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "libinput",
         ],
         BuildStage::CosmicPanel => &["formal-sysroot", "xkbcommon"],
-        BuildStage::CosmicApplets => &["formal-sysroot", "dbus", "systemd", "xkbcommon"],
+        // The applet aggregate links its input/workspaces code against
+        // libinput in addition to the shared xkbcommon metadata.
+        BuildStage::CosmicApplets => &[
+            "formal-sysroot",
+            "dbus",
+            "systemd",
+            "xkbcommon",
+            "libinput",
+        ],
         BuildStage::CosmicAppLibrary => &["formal-sysroot", "xkbcommon"],
         BuildStage::CosmicLauncher => &["formal-sysroot", "xkbcommon"],
         BuildStage::CosmicSettings => &["formal-sysroot", "dav1d", "xkbcommon"],
-        BuildStage::CosmicSettingsDaemon => &["formal-sysroot", "pipewire", "systemd"],
+        // smithay-client-toolkit's build script probes xkbcommon.pc directly.
+        BuildStage::CosmicSettingsDaemon => &[
+            "formal-sysroot",
+            "pipewire",
+            "systemd",
+            "xkbcommon",
+            "openssl",
+            "libinput",
+        ],
         BuildStage::CosmicNotifications => &["formal-sysroot", "xkbcommon"],
         BuildStage::CosmicOsd => &["formal-sysroot", "xkbcommon"],
         BuildStage::CosmicBg => &["formal-sysroot", "dav1d"],
@@ -369,6 +385,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "glib",
             "pipewire",
             "xkbcommon",
+            "zlib",
         ],
         BuildStage::CosmicAssets => &[],
         BuildStage::CosmicDesktop => &[
@@ -441,6 +458,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         BuildStage::SudoRs => &["formal-sysroot", "linux-pam"],
         BuildStage::Systemd => &[
             "formal-sysroot",
+            "dbus",
             "kmod",
             "util-linux",
             "linux-pam",
@@ -772,7 +790,7 @@ mod tests {
         );
         assert_eq!(
             direct_dependencies(BuildStage::CosmicPortal),
-            &["formal-sysroot", "mesa", "glib", "pipewire", "xkbcommon"]
+            &["formal-sysroot", "mesa", "glib", "pipewire", "xkbcommon", "zlib"]
         );
         assert_eq!(
             direct_dependencies(BuildStage::CosmicInitialSetup),

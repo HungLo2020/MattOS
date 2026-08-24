@@ -382,6 +382,9 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
         BuildStage::Python => 4,
         BuildStage::Llvm => 6,
         BuildStage::LiveRoot => 1,
+        // Revision 3 generates an individual en_US.utf8 locale beside the
+        // package-provided C/POSIX archive, avoiding archive merge ambiguity.
+        BuildStage::Rootfs => 3,
         BuildStage::Initramfs => 7,
         BuildStage::Installer => 7,
         BuildStage::Xkbcommon => 4,
@@ -401,9 +404,10 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
         BuildStage::Cozy => 1,
         BuildStage::Libseat => 2,
         BuildStage::Dbus => 3,
-        // Revision 4 enables libblkid-backed udev identities and makes the
-        // complete upstream OSC login profile safe under MattOS's POSIX shell.
-        BuildStage::Systemd => 4,
+        // Revision 6 pins D-Bus service/interface/policy install directories to the
+        // target filesystem instead of inheriting sysroot-prefixed pkg-config
+        // paths while enabling localed.
+        BuildStage::Systemd => 6,
         BuildStage::Pipewire => 2,
         BuildStage::Glib => 2,
         BuildStage::Libdrm => 2,
