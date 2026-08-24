@@ -31,6 +31,10 @@ pub(crate) struct StageInputs {
     pub(crate) source_digest: String,
     pub(crate) configuration_digest: String,
     pub(crate) tool_digest: String,
+    /// Exact tool identities are retained separately from the development
+    /// reuse key. This is provenance, not an eager rebuild trigger.
+    #[serde(default)]
+    pub(crate) build_provenance_digest: String,
     pub(crate) environment_digest: String,
     pub(crate) dependency_digests: BTreeMap<String, String>,
     pub(crate) full_digest: String,

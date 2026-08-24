@@ -40,6 +40,7 @@ fn publish_dependency(root: &Path, stage: &str, input: &str, output: &str) {
                 source_digest: input.to_string(),
                 configuration_digest: String::new(),
                 tool_digest: String::new(),
+                build_provenance_digest: String::new(),
                 environment_digest: String::new(),
                 dependency_digests: BTreeMap::new(),
                 full_digest: input.to_string(),
@@ -196,6 +197,7 @@ fn real_stage_specs_track_tool_recipe_and_dependency_output_identity() {
     brush.configuration_inputs.clear();
     brush.dependencies.clear();
     brush.tools = vec![tool.to_string_lossy().into_owned()];
+    brush.outputs = vec!["out/build/brush/install/usr/bin/brush".into()];
     let first = performance::compute_stage_inputs(root, &brush).unwrap();
     // Replacing an executable by rename avoids ETXTBSY when the identity
     // probe's interpreter still has the old script open.
@@ -204,7 +206,8 @@ fn real_stage_specs_track_tool_recipe_and_dependency_output_identity() {
     fs::set_permissions(&replacement, fs::Permissions::from_mode(0o755)).unwrap();
     fs::rename(replacement, &tool).unwrap();
     let second = performance::compute_stage_inputs(root, &brush).unwrap();
-    assert_ne!(first.tool_digest, second.tool_digest);
+    assert_eq!(first.tool_digest, second.tool_digest);
+    assert_ne!(first.build_provenance_digest, second.build_provenance_digest);
 
     let mut revised = brush.clone();
     revised.recipe.push_str(":revision-two");

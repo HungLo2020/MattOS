@@ -3927,6 +3927,7 @@ fn validate_cached_build_stage(repo_root: &Path, stage: BuildStage) -> Result<()
                 bail!("cached GCC runtime is missing")
             }
         }
+        BuildStage::Rust => validate_cached_rust_install(repo_root)?,
         BuildStage::Binutils => {
             for tool in ["as", "ld", "readelf", "strip"] {
                 if !repo_root
@@ -3958,6 +3959,47 @@ fn validate_cached_build_stage(repo_root: &Path, stage: BuildStage) -> Result<()
             }
         }
         _ => {}
+    }
+    Ok(())
+}
+
+fn validate_cached_rust_install(repo_root: &Path) -> Result<()> {
+    let install = repo_root.join("out/build/rust/install/usr");
+    let rustc = install.join("bin/rustc");
+    let cargo = install.join("bin/cargo");
+    if !rustc.is_file() || !cargo.is_file() {
+        bail!("cached Rust installation is missing rustc or Cargo")
+    }
+    let rustc_path = path_str(&rustc)?;
+    let sysroot = run_cmd_capture(&install, rustc_path, &["--print", "sysroot"])?;
+    let reported_sysroot = PathBuf::from(sysroot.trim());
+    let expected_sysroot = install.clone();
+    let canonical_reported = reported_sysroot
+        .canonicalize()
+        .with_context(|| format!("published rustc reported missing sysroot {}", reported_sysroot.display()))?;
+    let canonical_expected = expected_sysroot.canonicalize()?;
+    if canonical_reported != canonical_expected {
+        bail!(
+            "published rustc/sysroot mismatch: rustc reports {}, expected {}",
+            canonical_reported.display(),
+            canonical_expected.display()
+        )
+    }
+    let target_libdir = run_cmd_capture(&install, rustc_path, &["--print", "target-libdir"])?;
+    let target_libdir = PathBuf::from(target_libdir.trim());
+    if !target_libdir.is_dir() || !target_libdir.starts_with(&install) {
+        bail!(
+            "published rustc target library directory is outside its install: {}",
+            target_libdir.display()
+        )
+    }
+    if fs::read_dir(&target_libdir)?.filter_map(Result::ok).all(|entry| {
+        !entry
+            .path()
+            .extension()
+            .is_some_and(|extension| extension == "rlib" || extension == "rmeta")
+    }) {
+        bail!("published Rust target library directory has no compiler sysroot artifacts")
     }
     Ok(())
 }
@@ -4044,6 +4086,14 @@ fn cache_impact(
             .collect::<BTreeMap<_, _>>();
         if !json {
             println!("cache impact: {requested} (read-only; no build actions will run)");
+            println!(
+                "tool validity mode: {} (exact tool identities remain recorded as build provenance)",
+                if stage_cache::strict_tool_identity_mode() {
+                    "strict reproducible"
+                } else {
+                    "development artifact reuse"
+                }
+            );
         }
         for (spec, impact) in specs
             .iter()
@@ -10004,25 +10054,15 @@ fn cosmic_just(repo_root: &Path) -> Result<PathBuf> {
 fn cosmic_component_environment(
     repo_root: &Path,
     install: &Path,
+    stage: BuildStage,
 ) -> Result<Vec<(&'static str, String)>> {
-    let native_components = [
-        "glibc",
-        "gcc-runtime",
-        "openssl",
-        "zlib",
-        "zstd",
-        "wayland",
-        "xkbcommon",
-        "mesa",
-        "libdrm",
-        "libinput",
-        "systemd",
-        "dbus",
-        "dbus-broker",
-        "dav1d",
-        "glib",
-        "pipewire",
-    ];
+    let mut native_components = vec!["glibc", "gcc-runtime"];
+    native_components.extend(
+        stage_graph::direct_dependencies(stage)
+            .iter()
+            .copied()
+            .filter(|component| *component != "formal-sysroot"),
+    );
     let mut env = staged_library_environment(repo_root, &native_components)?;
     let just = cosmic_just(repo_root)?;
     let inherited_path = env
@@ -10224,7 +10264,7 @@ fn build_cosmic_desktop_component(repo_root: &Path, stage: BuildStage) -> Result
     let install = out_root.join("install");
     remove_path_if_exists(&install)?;
     fs::create_dir_all(&install)?;
-    let env = cosmic_component_environment(repo_root, &install)?;
+    let env = cosmic_component_environment(repo_root, &install, stage)?;
     let just_component = match stage {
         BuildStage::CosmicSession => Some("cosmic-session"),
         BuildStage::CosmicGreeter => Some("cosmic-greeter"),
@@ -10450,7 +10490,7 @@ fn build_cosmic_edit(repo_root: &Path) -> Result<()> {
     remove_path_if_exists(&install)?;
     sync_build_source(&repo_root.join("src/desktop/cosmic/cosmic-edit"), &mirror)?;
     isolate_cargo_build_mirror(&mirror)?;
-    let env = cosmic_component_environment(repo_root, &install)?;
+    let env = cosmic_component_environment(repo_root, &install, BuildStage::CosmicEdit)?;
     run_locked_cosmic_command(
         repo_root,
         &mirror,
@@ -10488,7 +10528,7 @@ fn build_cosmic_initial_setup(repo_root: &Path) -> Result<()> {
     remove_path_if_exists(&install)?;
     sync_build_source(&repo_root.join("src/desktop/cosmic/cosmic-initial-setup"), &mirror)?;
     isolate_cargo_build_mirror(&mirror)?;
-    let env = cosmic_component_environment(repo_root, &install)?;
+    let env = cosmic_component_environment(repo_root, &install, BuildStage::CosmicInitialSetup)?;
     run_locked_cosmic_command(repo_root, &mirror, "cargo", &["build", "--locked", "--release", "--bin", "cosmic-initial-setup"], &env)?;
     stage_output_file(&cosmic_shared_target(repo_root).join("release/cosmic-initial-setup"), &install.join("usr/bin/cosmic-initial-setup"), 0o755)?;
     let res = mirror.join("res");

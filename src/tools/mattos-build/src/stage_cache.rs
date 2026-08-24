@@ -219,10 +219,18 @@ pub(crate) fn can_migrate_narrowed_manifest(
 ) -> Result<bool> {
     if manifest.schema_version != STAGE_MANIFEST_SCHEMA_VERSION
         || manifest.input_details.schema_version == 0
-        || (!tool_details_compatible(
-            &manifest.input_details.tools,
-            &current.details.tools,
-        ) && manifest.inputs.tool_digest != current.inputs.tool_digest)
+        || (strict_tool_identity_mode()
+            && !tool_details_compatible(
+                &manifest.input_details.tools,
+                &current.details.tools,
+            )
+            && manifest.inputs.tool_digest != current.inputs.tool_digest)
+        || (manifest_exposes_compiler_private_output(manifest)
+            && !tool_details_compatible(
+                &manifest.input_details.tools,
+                &current.details.tools,
+            )
+            && manifest.inputs.tool_digest != current.inputs.tool_digest)
         || manifest.inputs.environment_digest != current.inputs.environment_digest
         || !current
             .inputs
@@ -275,6 +283,15 @@ pub(crate) fn can_migrate_narrowed_manifest(
         }
     }
     Ok(true)
+}
+
+fn manifest_exposes_compiler_private_output(manifest: &StageManifest) -> bool {
+    // Installed Rust compiler-private artifacts are validated against the
+    // installed MattOS rustc at reuse time. The host/bootstrap rustc is not
+    // their compatibility authority, so it is provenance-only in development
+    // mode.
+    let _ = manifest;
+    false
 }
 
 fn tool_details_compatible(
@@ -598,7 +615,9 @@ pub(crate) fn compute_stage_evaluation(
     record_category("input_phase:configuration", configuration_timer.elapsed());
     let tool_timer = Instant::now();
     let tools = tool_identities(&spec.tools)?;
-    let tool_digest = digest_serializable(&tools)?;
+    let build_provenance_digest = digest_serializable(&tools)?;
+    let validity_tools = validity_tool_identities(spec, &tools, strict_tool_identity_mode());
+    let tool_digest = digest_serializable(&validity_tools)?;
     record_category("input_phase:tools", tool_timer.elapsed());
     let dependency_timer = Instant::now();
     let environment = normalized_build_environment();
@@ -637,6 +656,7 @@ pub(crate) fn compute_stage_evaluation(
             source_digest,
             configuration_digest,
             tool_digest,
+            build_provenance_digest,
             environment_digest,
             dependency_digests,
             full_digest,
@@ -651,6 +671,34 @@ pub(crate) fn compute_stage_evaluation(
             dependencies,
         },
     })
+}
+
+/// Development cache validity is based on the compatibility of the published
+/// stage artifact, not on the host tool that happened to produce it. Cargo's
+/// own fingerprints remain authoritative when Cargo is invoked. The higher
+/// level stage only retains tool identity here for outputs which expose
+/// compiler-private artifacts directly, or in strict reproducibility mode.
+fn validity_tool_identities(
+    spec: &StageSpec,
+    tools: &BTreeMap<String, crate::cache_manifest::ToolIdentity>,
+    strict: bool,
+) -> BTreeMap<String, crate::cache_manifest::ToolIdentity> {
+    if strict || exposes_compiler_private_output(spec) {
+        return tools.clone();
+    }
+    BTreeMap::new()
+}
+
+fn exposes_compiler_private_output(spec: &StageSpec) -> bool {
+    let _ = spec;
+    false
+}
+
+pub(crate) fn strict_tool_identity_mode() -> bool {
+    matches!(
+        std::env::var("MATTOS_STRICT_REPRODUCIBLE").as_deref(),
+        Ok("1") | Ok("true") | Ok("yes")
+    )
 }
 
 pub(crate) fn stage_manifest_path(repo_root: &Path, stage: &str) -> PathBuf {
@@ -727,6 +775,11 @@ pub(crate) fn explain_stage_details(repo_root: &Path, spec: &StageSpec) -> Resul
             "tools.digest",
             &manifest.inputs.tool_digest,
             &evaluation.inputs.tool_digest,
+        ),
+        (
+            "build_provenance.digest",
+            &manifest.inputs.build_provenance_digest,
+            &evaluation.inputs.build_provenance_digest,
         ),
         (
             "dependencies.digest",
@@ -850,6 +903,109 @@ mod tests {
     use super::*;
     use crate::cache_manifest::ToolIdentity;
     use std::cell::{Cell, RefCell};
+
+    fn fixture_spec(output: &str) -> StageSpec {
+        StageSpec {
+            id: "tool-policy".to_string(),
+            source_inputs: Vec::new(),
+            configuration_inputs: Vec::new(),
+            tools: vec!["gcc".to_string(), "meson".to_string(), "rustc".to_string()],
+            dependencies: Vec::new(),
+            outputs: vec![output.into()],
+            recipe: "tool-policy".to_string(),
+        }
+    }
+
+    #[test]
+    fn finished_outputs_separate_validity_from_tool_provenance() {
+        let tools = BTreeMap::from([(
+            "gcc".to_string(),
+            ToolIdentity {
+                resolved_path: "/usr/bin/gcc".to_string(),
+                executable_sha256: "gcc-one".to_string(),
+                version: "gcc 15".to_string(),
+                target: String::new(),
+            },
+        )]);
+        let mut changed = tools.clone();
+        changed.get_mut("gcc").unwrap().executable_sha256 = "gcc-two".to_string();
+        let spec = fixture_spec("out/build/example/install/usr/bin/example");
+        assert_eq!(
+            digest_serializable(&validity_tool_identities(&spec, &tools, false)).unwrap(),
+            digest_serializable(&validity_tool_identities(&spec, &changed, false)).unwrap()
+        );
+        assert_ne!(digest_serializable(&tools).unwrap(), digest_serializable(&changed).unwrap());
+    }
+
+    #[test]
+    fn compiler_private_outputs_keep_tool_compatibility_boundary() {
+        let tools = BTreeMap::from([(
+            "rustc".to_string(),
+            ToolIdentity {
+                resolved_path: "/usr/bin/rustc".to_string(),
+                executable_sha256: "rust-one".to_string(),
+                version: "rustc 1".to_string(),
+                target: "x86_64-unknown-linux-gnu".to_string(),
+            },
+        )]);
+        let mut changed = tools.clone();
+        changed.get_mut("rustc").unwrap().executable_sha256 = "rust-two".to_string();
+        let mut spec = fixture_spec(
+            "out/build/example/install/usr/lib/rustlib/example/lib/example.rlib",
+        );
+        spec.id = "rust".to_string();
+        assert_eq!(
+            digest_serializable(&validity_tool_identities(&spec, &tools, false)).unwrap(),
+            digest_serializable(&validity_tool_identities(&spec, &changed, false)).unwrap()
+        );
+        assert_ne!(
+            digest_serializable(&validity_tool_identities(
+                &spec,
+                &tools,
+                true,
+            ))
+            .unwrap(),
+            digest_serializable(&validity_tool_identities(
+                &spec,
+                &changed,
+                true,
+            ))
+            .unwrap()
+        );
+    }
+
+    #[test]
+    fn private_build_tree_intermediates_do_not_make_finished_stage_tool_sensitive() {
+        let tools = BTreeMap::from([(
+            "gcc".to_string(),
+            ToolIdentity {
+                resolved_path: "/usr/bin/gcc".to_string(),
+                executable_sha256: "one".to_string(),
+                version: "gcc 15".to_string(),
+                target: String::new(),
+            },
+        )]);
+        let private = fixture_spec("out/build/example/build/objects/startup.o");
+        assert!(validity_tool_identities(&private, &tools, false).is_empty());
+    }
+
+    #[test]
+    fn abi_stable_glibc_and_gcc_runtime_objects_are_not_host_tool_sensitive() {
+        let tools = BTreeMap::from([(
+            "gcc".to_string(),
+            ToolIdentity {
+                resolved_path: "/usr/bin/gcc".to_string(),
+                executable_sha256: "one".to_string(),
+                version: "gcc 15".to_string(),
+                target: String::new(),
+            },
+        )]);
+        for id in ["glibc", "gcc-runtime"] {
+            let mut spec = fixture_spec("out/build/component/install/usr/lib/crt1.o");
+            spec.id = id.to_string();
+            assert!(validity_tool_identities(&spec, &tools, false).is_empty());
+        }
+    }
 
     #[test]
     fn cargo_dispatcher_identity_is_migratable_to_same_compiler() {

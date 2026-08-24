@@ -2604,12 +2604,12 @@ mod tests {
         fs::write(&tool, "#!/bin/sh\necho version-one\n").unwrap();
         fs::set_permissions(&tool, fs::Permissions::from_mode(0o755)).unwrap();
         let spec = StageSpec {
-            id: "tool-test".to_string(),
+            id: "rust".to_string(),
             source_inputs: Vec::new(),
             configuration_inputs: Vec::new(),
             tools: vec![tool.to_string_lossy().into_owned()],
             dependencies: Vec::new(),
-            outputs: vec!["out/tool".into()],
+            outputs: vec!["out/build/tool/install/usr/lib/tool.rlib".into()],
             recipe: "tool-test".to_string(),
         };
         let first = compute_stage_inputs(root.path(), &spec).unwrap();
@@ -2621,8 +2621,12 @@ mod tests {
         fs::set_permissions(&replacement, fs::Permissions::from_mode(0o755)).unwrap();
         fs::rename(replacement, &tool).unwrap();
         let second = compute_stage_inputs(root.path(), &spec).unwrap();
-        assert_ne!(first.tool_digest, second.tool_digest);
-        assert_ne!(first.full_digest, second.full_digest);
+        assert_eq!(first.tool_digest, second.tool_digest);
+        assert_eq!(first.full_digest, second.full_digest);
+        assert_ne!(
+            first.build_provenance_digest,
+            second.build_provenance_digest
+        );
     }
 
     #[test]

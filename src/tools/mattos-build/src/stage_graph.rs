@@ -313,6 +313,10 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "zstd",
         ],
         BuildStage::NvidiaDriver => &["linux", "libglvnd", "x11-compat", "wayland", "libdrm"],
+        BuildStage::CosmicSession => &["formal-sysroot"],
+        // These are the native outputs consumed by the compositor's
+        // pkg-config probes and link step. Runtime desktop membership is
+        // represented by cosmic-desktop, not by these build edges.
         BuildStage::CosmicComp => &[
             "formal-sysroot",
             "seatd",
@@ -320,39 +324,32 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "libinput",
             "pixman",
             "mesa",
+            "libdrm",
             "wayland",
             "xkbcommon",
             "systemd",
         ],
-        BuildStage::CosmicSession
-        | BuildStage::CosmicGreeter
-        | BuildStage::CosmicPanel
-        | BuildStage::CosmicApplets
-        | BuildStage::CosmicAppLibrary
-        | BuildStage::CosmicLauncher
-        | BuildStage::CosmicSettings
-        | BuildStage::CosmicSettingsDaemon
-        | BuildStage::CosmicNotifications
-        | BuildStage::CosmicOsd
-        | BuildStage::CosmicBg
-        | BuildStage::CosmicWorkspaces
-        | BuildStage::CosmicFiles
-        | BuildStage::CosmicTerm
-        | BuildStage::CosmicTweaks
-        | BuildStage::CosmicUtilities
-        | BuildStage::CosmicPortal
-        | BuildStage::Greetd => &[
+        BuildStage::CosmicGreeter => &["formal-sysroot", "xkbcommon", "linux-pam"],
+        BuildStage::CosmicPanel => &["formal-sysroot", "xkbcommon"],
+        BuildStage::CosmicApplets => &["formal-sysroot", "dbus", "systemd", "xkbcommon"],
+        BuildStage::CosmicAppLibrary => &["formal-sysroot", "xkbcommon"],
+        BuildStage::CosmicLauncher => &["formal-sysroot", "xkbcommon"],
+        BuildStage::CosmicSettings => &["formal-sysroot", "dav1d", "xkbcommon"],
+        BuildStage::CosmicSettingsDaemon => &["formal-sysroot", "pipewire", "systemd"],
+        BuildStage::CosmicNotifications => &["formal-sysroot", "xkbcommon"],
+        BuildStage::CosmicOsd => &["formal-sysroot", "xkbcommon"],
+        BuildStage::CosmicBg => &["formal-sysroot", "dav1d"],
+        BuildStage::CosmicWorkspaces => &["formal-sysroot", "mesa", "xkbcommon"],
+        BuildStage::CosmicFiles => &["formal-sysroot", "glib", "xkbcommon"],
+        BuildStage::CosmicTerm => &["formal-sysroot", "xkbcommon"],
+        BuildStage::CosmicTweaks => &["formal-sysroot", "xkbcommon"],
+        BuildStage::CosmicUtilities => &["formal-sysroot"],
+        BuildStage::CosmicPortal => &[
             "formal-sysroot",
-            "cosmic-comp",
-            "dbus",
-            "dbus-broker",
-            "systemd",
-            "wayland",
-            "xkbcommon",
             "mesa",
-            "dav1d",
             "glib",
             "pipewire",
+            "xkbcommon",
         ],
         BuildStage::CosmicAssets => &[],
         BuildStage::CosmicDesktop => &[
@@ -378,19 +375,14 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "cosmic-initial-setup",
             "networkmanager",
         ],
-        BuildStage::CosmicInitialSetup => &[
-            "formal-sysroot", "cosmic-comp", "dbus", "dbus-broker", "systemd",
-            "wayland", "xkbcommon", "mesa", "dav1d", "glib", "pipewire",
-        ],
+        BuildStage::CosmicInitialSetup => &["formal-sysroot", "xkbcommon"],
         BuildStage::Polkit => &["formal-sysroot", "glib", "zlib", "expat", "systemd", "dbus", "duktape", "linux-pam", "libffi"],
         BuildStage::Duktape => &["formal-sysroot"],
         BuildStage::NetworkManager => &[
             "formal-sysroot", "glib", "systemd", "dbus", "polkit", "iproute2", "util-linux", "libndp", "zlib", "readline", "ncurses", "libffi",
         ],
-        BuildStage::CosmicEdit => &[
-            "formal-sysroot", "cosmic-comp", "dbus", "dbus-broker", "systemd",
-            "wayland", "xkbcommon", "mesa", "dav1d", "glib", "pipewire",
-        ],
+        BuildStage::CosmicEdit => &["formal-sysroot", "glib", "xkbcommon"],
+        BuildStage::Greetd => &["formal-sysroot", "linux-pam"],
         BuildStage::Cozy => &["formal-sysroot", "glibc", "gcc-runtime"],
         BuildStage::Dav1d => &["formal-sysroot"],
         BuildStage::Glib => &["formal-sysroot", "libffi", "pcre2", "zlib"],
@@ -722,6 +714,71 @@ mod tests {
     }
 
     #[test]
+    fn cosmic_leaf_edges_are_build_artifacts_not_runtime_membership() {
+        let forbidden_for_leaves = [
+            "cosmic-comp",
+            "dbus-broker",
+            "wayland",
+        ];
+        for stage in [
+            BuildStage::CosmicFiles,
+            BuildStage::CosmicPanel,
+            BuildStage::CosmicSettings,
+            BuildStage::CosmicGreeter,
+            BuildStage::CosmicPortal,
+            BuildStage::CosmicInitialSetup,
+            BuildStage::Greetd,
+        ] {
+            let edges = direct_dependencies(stage);
+            for forbidden in forbidden_for_leaves {
+                assert!(
+                    !edges.contains(&forbidden),
+                    "{} retained runtime-only edge {forbidden}",
+                    stage_id(stage)
+                );
+            }
+        }
+        assert_eq!(direct_dependencies(BuildStage::Greetd), &["formal-sysroot", "linux-pam"]);
+        assert_eq!(
+            direct_dependencies(BuildStage::CosmicFiles),
+            &["formal-sysroot", "glib", "xkbcommon"]
+        );
+        assert_eq!(
+            direct_dependencies(BuildStage::CosmicPanel),
+            &["formal-sysroot", "xkbcommon"]
+        );
+        assert_eq!(
+            direct_dependencies(BuildStage::CosmicSettings),
+            &["formal-sysroot", "dav1d", "xkbcommon"]
+        );
+        assert_eq!(
+            direct_dependencies(BuildStage::CosmicPortal),
+            &["formal-sysroot", "mesa", "glib", "pipewire", "xkbcommon"]
+        );
+        assert_eq!(
+            direct_dependencies(BuildStage::CosmicInitialSetup),
+            &["formal-sysroot", "xkbcommon"]
+        );
+    }
+
+    #[test]
+    fn composition_edges_are_confined_to_the_desktop_aggregate() {
+        let leaves = [
+            "cosmic-session", "cosmic-greeter", "cosmic-panel", "cosmic-files",
+            "cosmic-settings", "cosmic-portal", "greetd",
+        ];
+        for leaf in leaves {
+            let dependencies = dependency_map()[leaf].clone();
+            assert!(!dependencies.contains("cosmic-comp"));
+            assert!(!dependencies.contains("cosmic-desktop"));
+        }
+        let desktop = dependency_map()["cosmic-desktop"].clone();
+        assert!(desktop.contains("cosmic-files"));
+        assert!(desktop.contains("cosmic-settings"));
+        assert!(desktop.contains("greetd"));
+    }
+
+    #[test]
     fn byte_identical_dependency_rebuild_does_not_invalidate_consumers() {
         assert!(downstream_invalidation(&[]).is_empty());
     }
@@ -804,38 +861,9 @@ mod tests {
         assert_eq!(
             downstream_invalidation(&["llvm"]),
             [
-                "llvm",
-                "rust",
-                "mesa",
-                "vulkan-tools",
-                "cosmic-comp",
-                "cosmic-session",
-                "cosmic-greeter",
-                "cosmic-panel",
-                "cosmic-applets",
-                "cosmic-applibrary",
-                "cosmic-launcher",
-                "cosmic-settings",
-                "cosmic-settings-daemon",
-                "cosmic-notifications",
-                "cosmic-osd",
-                "cosmic-bg",
-                "cosmic-workspaces",
-                "cosmic-files",
-                "cosmic-edit",
-                "cosmic-initial-setup",
-                "cosmic-term",
-                "cosmic-tweaks",
-                "cosmic-utilities",
-                "cosmic-portal",
-                "greetd",
-                "cosmic-desktop",
-                "installer",
-                "packages",
-                "repository",
-                "rootfs",
-                "live-root",
-                "iso"
+                "llvm", "rust", "mesa", "vulkan-tools", "cosmic-comp",
+                "cosmic-portal", "cosmic-workspaces", "cosmic-desktop",
+                "installer", "packages", "repository", "rootfs", "live-root", "iso"
             ]
             .into_iter()
             .collect()
@@ -1024,7 +1052,7 @@ mod tests {
                 114,
                 &["linux", "glibc", "linux-headers"],
             ),
-            ("zlib shared library", &["zlib"], 55, &["brush", "linux"]),
+            ("zlib shared library", &["zlib"], 41, &["brush", "linux"]),
             ("package metadata", &["packages"], 5, &["brush", "zlib"]),
             (
                 "repository policy",
