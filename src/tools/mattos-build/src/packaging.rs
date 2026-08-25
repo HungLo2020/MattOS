@@ -3826,7 +3826,12 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
             "src/tools/mattos-build/src/main.rs",
         ],
             "cosmic-edit" => &["src/desktop/cosmic/cosmic-edit"],
-            "cosmic-initial-setup" => &["src/desktop/cosmic/cosmic-initial-setup"],
+            "cosmic-initial-setup" => &[
+                "src/desktop/cosmic/cosmic-initial-setup",
+                "resources/COSMIC/layouts",
+                "resources/COSMIC/themes",
+                "src/tools/mattos-build/src/main.rs",
+            ],
         "duktape" => &["src/system/security/duktape", "src/tools/mattos-build/src/main.rs", "src/tools/mattos-build/src/packaging.rs"],
         "polkit" => &[
                 "src/system/security/polkit",
@@ -6033,7 +6038,16 @@ fn stage_cosmic_initial_setup(repo_root: &Path, staging: &Path) -> Result<()> {
     let body = fs::read_to_string(&desktop)?.replace("Exec=cosmic-initial-setup", "Exec=/usr/libexec/mattos/cosmic-initial-setup-autostart");
     fs::write(desktop, body)?;
     copy_preserving(&repo_root.join("src/desktop/cosmic/cosmic-initial-setup/LICENSE"), &staging.join("usr/share/doc/cosmic-initial-setup/copyright"))?;
-    for rel in ["usr/bin/cosmic-initial-setup", "usr/share/applications/com.system76.CosmicInitialSetup.desktop", "etc/xdg/autostart/com.system76.CosmicInitialSetup.Autostart.desktop"] {
+    for rel in [
+        "usr/bin/cosmic-initial-setup",
+        "usr/share/applications/com.system76.CosmicInitialSetup.desktop",
+        "etc/xdg/autostart/com.system76.CosmicInitialSetup.Autostart.desktop",
+        "usr/share/icons/hicolor/scalable/apps/com.system76.CosmicInitialSetup.svg",
+        "usr/share/polkit-1/rules.d/20-cosmic-initial-setup.rules",
+        "usr/share/cosmic-layouts/top-panel-and-bottom-dock/layout.kdl",
+        "usr/share/cosmic-layouts/top-panel-and-bottom-dock/icon.png",
+        "usr/share/cosmic-themes/nebula-dark.ron",
+    ] {
         if !staging.join(rel).is_file() { bail!("cosmic-initial-setup package is missing /{rel}"); }
     }
     Ok(())
@@ -10075,6 +10089,36 @@ mod tests {
         let package_roots = package_source_roots("cosmic-desktop");
         assert!(package_roots.contains(&"src/system/session/cosmic"));
         assert!(package_roots.contains(&"src/desktop/cosmic"));
+    }
+
+    #[test]
+    fn cosmic_policy_resources_are_first_class_and_user_overridable() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        let resources = root.join("resources/COSMIC");
+        assert!(resources.join("PROVENANCE.md").is_file());
+        assert!(resources
+            .join("defaults/com.system76.CosmicPanel/v1/entries")
+            .is_file());
+        assert!(resources
+            .join("layouts/top-panel-and-bottom-dock/layout.kdl")
+            .is_file());
+        assert!(resources.join("themes/nebula-dark.ron").is_file());
+
+        let source = include_str!("main.rs");
+        for path in [
+            "resources/COSMIC/defaults",
+            "resources/COSMIC/layouts",
+            "resources/COSMIC/themes",
+            "/usr/share/cosmic",
+            "/usr/share/cosmic-layouts",
+            "/usr/share/cosmic-themes",
+        ] {
+            assert!(source.contains(path), "COSMIC resource contract omits {path}");
+        }
+
+        let libcosmic = fs::read_to_string(root.join("src/desktop/cosmic/libcosmic/cosmic-config/src/lib.rs")).unwrap();
+        assert!(libcosmic.contains("~/.config/cosmic") || libcosmic.contains("config_dir"));
+        assert!(libcosmic.contains("find_data_file"));
     }
 
     #[test]

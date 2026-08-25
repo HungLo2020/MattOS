@@ -3771,6 +3771,8 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::CosmicInitialSetup => vec![
             "out/build/cosmic-initial-setup/install/usr/bin/cosmic-initial-setup".into(),
             "out/build/cosmic-initial-setup/install/usr/share/applications/com.system76.CosmicInitialSetup.desktop".into(),
+            "out/build/cosmic-initial-setup/install/usr/share/cosmic-layouts/top-panel-and-bottom-dock/layout.kdl".into(),
+            "out/build/cosmic-initial-setup/install/usr/share/cosmic-themes/nebula-dark.ron".into(),
         ],
         BuildStage::Duktape => vec!["out/build/duktape/install/usr/lib/x86_64-linux-gnu/libduktape.so.207".into()],
         BuildStage::CosmicTerm => {
@@ -3784,7 +3786,10 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
             vec!["out/build/cosmic-portal/install/usr/libexec/xdg-desktop-portal-cosmic".into()]
         }
         BuildStage::CosmicAssets => {
-            vec!["out/build/cosmic-assets/install/usr/share/icons/Cosmic/index.theme".into()]
+            vec![
+                "out/build/cosmic-assets/install/usr/share/icons/Cosmic/index.theme".into(),
+                "out/build/cosmic-assets/install/usr/share/cosmic/com.system76.CosmicPanel/v1/entries".into(),
+            ]
         }
         BuildStage::Greetd => vec!["out/build/greetd/install/usr/bin/greetd".into()],
         BuildStage::CosmicDesktop => vec![
@@ -10410,6 +10415,14 @@ fn build_cosmic_desktop_component(repo_root: &Path, stage: BuildStage) -> Result
                 &repo_root.join("src/desktop/fonts/pop-fonts/fira"),
                 &install.join("usr/share/fonts/opentype/fira"),
             )?;
+            // COSMIC reads system defaults from /usr/share/cosmic while
+            // Initial Setup reads its selectable resources from these two
+            // dedicated directories. Keep this policy layer separate from
+            // all imported upstream source trees.
+            copy_tree_contents(
+                &repo_root.join("resources/COSMIC/defaults"),
+                &install.join("usr/share/cosmic"),
+            )?;
         }
         BuildStage::Greetd => {
             let mirror = repo_root.join("out/build/cosmic-desktop/sources/greetd");
@@ -10544,7 +10557,12 @@ fn build_cosmic_edit(repo_root: &Path) -> Result<()> {
 fn build_cosmic_initial_setup(repo_root: &Path) -> Result<()> {
     let out_root = repo_root.join("out/build/cosmic-initial-setup");
     let install = out_root.join("install");
-    let mirror = out_root.join("source");
+    // Keep this first-class COSMIC consumer in the same output-owned source
+    // mirror namespace used by cargo_source_owned.py.  Using a separate
+    // component/source mirror makes the dispatcher prepare one path while
+    // Cargo runs from another, so locked builds cannot reconcile its copied
+    // output Cargo.lock.
+    let mirror = repo_root.join("out/build/cosmic-desktop/sources/cosmic-initial-setup");
     remove_path_if_exists(&install)?;
     sync_build_source(&repo_root.join("src/desktop/cosmic/cosmic-initial-setup"), &mirror)?;
     isolate_cargo_build_mirror(&mirror)?;
@@ -10556,7 +10574,22 @@ fn build_cosmic_initial_setup(repo_root: &Path) -> Result<()> {
         ("com.system76.CosmicInitialSetup.desktop", "usr/share/applications/com.system76.CosmicInitialSetup.desktop"),
         ("com.system76.CosmicInitialSetup.Autostart.desktop", "etc/xdg/autostart/com.system76.CosmicInitialSetup.Autostart.desktop"),
     ] { copy_file_preserving(&res.join(source), &install.join(destination))?; }
-    copy_tree_contents(&res, &install.join("usr/share/cosmic-initial-setup"))?;
+    copy_file_preserving(
+        &res.join("icon.svg"),
+        &install.join("usr/share/icons/hicolor/scalable/apps/com.system76.CosmicInitialSetup.svg"),
+    )?;
+    copy_file_preserving(
+        &res.join("20-cosmic-initial-setup.rules"),
+        &install.join("usr/share/polkit-1/rules.d/20-cosmic-initial-setup.rules"),
+    )?;
+    copy_tree_contents(
+        &repo_root.join("resources/COSMIC/layouts"),
+        &install.join("usr/share/cosmic-layouts"),
+    )?;
+    copy_tree_contents(
+        &repo_root.join("resources/COSMIC/themes"),
+        &install.join("usr/share/cosmic-themes"),
+    )?;
     Ok(())
 }
 

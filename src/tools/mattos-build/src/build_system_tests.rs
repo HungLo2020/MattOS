@@ -235,6 +235,43 @@ fn cosmic_workspaces_environment_exposes_declared_udev_inputs_without_runtime_on
 }
 
 #[test]
+fn cosmic_initial_setup_environment_exposes_declared_udev_inputs_without_runtime_only_libraries() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    for component in ["glibc", "gcc-runtime", "systemd", "xkbcommon", "libinput"] {
+        let usr = root.join("out/build").join(component).join("install/usr");
+        fs::create_dir_all(usr.join("include")).unwrap();
+        fs::create_dir_all(usr.join("lib/x86_64-linux-gnu/pkgconfig")).unwrap();
+    }
+    let systemd_usr = root.join("out/build/systemd/install/usr");
+    write_file(&systemd_usr.join("include/libudev.h"), "#define UDEV_TEST 1\n");
+    write_file(
+        &systemd_usr.join("lib/x86_64-linux-gnu/pkgconfig/libudev.pc"),
+        "prefix=/usr\nName: libudev\nLibs: -ludev\nCflags: -I${prefix}/include\n",
+    );
+
+    let components = cosmic_native_components(BuildStage::CosmicInitialSetup);
+    assert!(components.contains(&"systemd"));
+    assert!(components.contains(&"libinput"));
+    assert!(!components.contains(&"mesa"));
+    assert!(!components.contains(&"pipewire"));
+
+    let env = staged_library_environment(root, &components).unwrap();
+    let pkgconfig = env
+        .iter()
+        .find(|(key, _)| *key == "PKG_CONFIG_PATH")
+        .map(|(_, value)| value)
+        .unwrap();
+    let pkgconfig_dirs = std::env::split_paths(pkgconfig).collect::<Vec<_>>();
+    assert!(pkgconfig_dirs.iter().any(|path| {
+        path == &systemd_usr.join("lib/x86_64-linux-gnu/pkgconfig")
+    }));
+    assert!(systemd_usr
+        .join("lib/x86_64-linux-gnu/pkgconfig/libudev.pc")
+        .is_file());
+}
+
+#[test]
 fn synthetic_unrelated_first_class_source_does_not_change_compile_stage_keys() {
     let tmp = tempfile::tempdir().unwrap();
     let mut specs = cacheable_stage_specs(tmp.path()).unwrap();

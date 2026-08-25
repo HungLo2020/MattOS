@@ -118,6 +118,9 @@ class SourceOwnershipGraphTest(unittest.TestCase):
                 "dbus-broker": {"source_path": "src/system/dbus/dbus-broker"},
                 "cosmic-comp": {"source_path": "src/desktop/cosmic/cosmic-comp"},
                 "cosmic-files": {"source_path": "src/desktop/cosmic/cosmic-files"},
+                "cosmic-initial-setup": {
+                    "source_path": "src/desktop/cosmic/cosmic-initial-setup"
+                },
             }
         }
         self.assertEqual(
@@ -139,6 +142,14 @@ class SourceOwnershipGraphTest(unittest.TestCase):
                 pathlib.Path("/workspace"), "cosmic-comp", index
             ),
             pathlib.Path("/workspace/out/build/cosmic-comp/source"),
+        )
+        self.assertEqual(
+            dispatcher.component_mirror(
+                pathlib.Path("/workspace"), "cosmic-initial-setup", index
+            ),
+            pathlib.Path(
+                "/workspace/out/build/cosmic-desktop/sources/cosmic-initial-setup"
+            ),
         )
 
     def test_dead_source_ownership_transactions_are_reclaimed_but_live_are_preserved(self) -> None:

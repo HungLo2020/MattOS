@@ -411,7 +411,15 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "cosmic-initial-setup",
             "networkmanager",
         ],
-        BuildStage::CosmicInitialSetup => &["formal-sysroot", "xkbcommon"],
+        // Initial Setup's locked libcosmic graph enables udev and libinput
+        // through winit/libinput.  Those crates need systemd's target-owned
+        // libudev metadata and libinput's target-owned link inputs.
+        BuildStage::CosmicInitialSetup => &[
+            "formal-sysroot",
+            "systemd",
+            "xkbcommon",
+            "libinput",
+        ],
         BuildStage::Polkit => &["formal-sysroot", "glib", "zlib", "expat", "systemd", "dbus", "duktape", "linux-pam", "libffi"],
         BuildStage::Duktape => &["formal-sysroot"],
         BuildStage::NetworkManager => &[
@@ -794,7 +802,7 @@ mod tests {
         );
         assert_eq!(
             direct_dependencies(BuildStage::CosmicInitialSetup),
-            &["formal-sysroot", "xkbcommon"]
+            &["formal-sysroot", "systemd", "xkbcommon", "libinput"]
         );
     }
 
@@ -1089,9 +1097,9 @@ mod tests {
                 114,
                 &["linux", "glibc", "linux-headers"],
             ),
-            // Greeter now has its real libinput build edge, so it is part of
-            // the legitimate native-library cascade.
-            ("zlib shared library", &["zlib"], 42, &["brush", "linux"]),
+            // Initial Setup now has its real systemd/libinput build edges, so
+            // it is part of the legitimate native-library cascade.
+            ("zlib shared library", &["zlib"], 43, &["brush", "linux"]),
             ("package metadata", &["packages"], 5, &["brush", "zlib"]),
             (
                 "repository policy",

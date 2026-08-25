@@ -94,7 +94,11 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         ],
         BuildStage::CosmicTerm => &["src/desktop/cosmic/cosmic-term"],
         BuildStage::CosmicEdit => &["src/desktop/cosmic/cosmic-edit"],
-        BuildStage::CosmicInitialSetup => &["src/desktop/cosmic/cosmic-initial-setup"],
+        BuildStage::CosmicInitialSetup => &[
+            "src/desktop/cosmic/cosmic-initial-setup",
+            "resources/COSMIC/layouts",
+            "resources/COSMIC/themes",
+        ],
         BuildStage::Polkit => &[
             "src/system/security/polkit",
         ],
@@ -116,6 +120,7 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "src/desktop/fonts/open-sans",
             "src/desktop/fonts/noto-sans-mono",
             "src/desktop/fonts/pop-fonts",
+            "resources/COSMIC/defaults",
         ],
         BuildStage::Greetd => &["src/system/session/greetd"],
         // The aggregate copies/stages component outputs according to the
@@ -500,6 +505,14 @@ mod tests {
             vec![PathBuf::from("src/desktop/cosmic/cosmic-session")]
         );
         assert_eq!(
+            source_inputs(BuildStage::CosmicInitialSetup),
+            vec![
+                PathBuf::from("src/desktop/cosmic/cosmic-initial-setup"),
+                PathBuf::from("resources/COSMIC/layouts"),
+                PathBuf::from("resources/COSMIC/themes"),
+            ]
+        );
+        assert_eq!(
             source_inputs(BuildStage::CosmicFiles),
             vec![
                 PathBuf::from("src/desktop/cosmic/cosmic-files"),
@@ -508,6 +521,8 @@ mod tests {
                 PathBuf::from("upstream/patches/cosmic-files"),
             ]
         );
+        assert!(source_inputs(BuildStage::CosmicAssets)
+            .contains(&PathBuf::from("resources/COSMIC/defaults")));
         assert_eq!(
             source_inputs(BuildStage::CosmicDesktop),
             Vec::<PathBuf>::new()
