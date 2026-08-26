@@ -8439,7 +8439,14 @@ fn build_xkeyboard_config(repo_root: &Path) -> Result<()> {
     let install_dir = out_root.join("install");
     let state = fs::read_to_string(repo_root.join("upstream/state/xkeyboard-config.toml"))?;
     let options = ["--prefix=/usr", "--datadir=share", "-Dnls=false"];
-    let stamp = format!("{state}\n{}\n", options.join("\n"));
+    // Meson serializes its own version-sensitive state in build.dat.  Include
+    // the active Meson identity in this output-owned stamp so a host Meson
+    // upgrade cannot leave us reusing an incompatible build directory.
+    let meson_version = run_cmd_capture(repo_root, "meson", &["--version"])?;
+    let stamp = format!(
+        "{state}\n{}\nmeson-version={meson_version}\n",
+        options.join("\n")
+    );
     let stamp_path = out_root.join("build-stamp.txt");
     if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
         remove_path_if_exists(&source_copy)?;

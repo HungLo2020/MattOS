@@ -520,6 +520,8 @@ struct DebianCompatibilityPackage {
     expected_debian_role: String,
     classification: String,
     known_gaps: Vec<String>,
+    #[serde(default)]
+    debian_epoch: Option<u64>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -2784,6 +2786,9 @@ fn validate_debian_compatibility(repo_root: &Path) -> Result<()> {
         validate_package_name(&package.debian_name)?;
         validate_package_name(&package.mattos_name)?;
         validate_debian_version(&package.current_mattos_version)?;
+        if package.debian_epoch == Some(0) {
+            bail!("compatibility entry {} has an invalid zero Debian epoch", package.mattos_name)
+        }
         if package.source_component.trim().is_empty()
             || package.owned_paths.is_empty()
             || package.provided_abi_or_commands.is_empty()
@@ -7550,7 +7555,24 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "mattos-installer" => "0.1".to_string(),
         _ => bail!("unknown package {}", spec.name),
     };
+    let epoch = compatibility_epoch(repo_root, &spec.name)?;
+    let upstream = match epoch {
+        Some(epoch) => format!("{epoch}:{upstream}"),
+        None => upstream,
+    };
     Ok(format!("{upstream}-{REVISION}"))
+}
+
+fn compatibility_epoch(repo_root: &Path, package_name: &str) -> Result<Option<u64>> {
+    let manifest_path = repo_root.join("src/system/packages/debian-compat/trixie.toml");
+    let manifest: DebianCompatibilityManifest =
+        toml::from_str(&fs::read_to_string(&manifest_path)?)
+            .with_context(|| format!("failed to parse {}", manifest_path.display()))?;
+    Ok(manifest
+        .package
+        .into_iter()
+        .find(|package| package.mattos_name == package_name)
+        .and_then(|package| package.debian_epoch))
 }
 
 fn component_snapshot_version(repo_root: &Path, component: &str) -> Result<String> {
@@ -7569,16 +7591,35 @@ fn component_snapshot_version(repo_root: &Path, component: &str) -> Result<Strin
 fn release_version_from_branch(branch: &str) -> Option<String> {
     let normalized = branch.replace('_', ".");
     let mut candidate = normalized.rsplit('/').next()?;
+    let candidate_lower = candidate.to_ascii_lowercase();
     for prefix in [
         "binutils-",
         "bzip2-",
+        "dbus-",
         "elfutils-",
         "gcc-",
         "glibc-",
+        "gnupg-",
+        "libx11-",
+        "libxau-",
+        "libxcb-",
+        "libxdmcp-",
+        "libxext-",
+        "llvmorg-",
         "openssl-",
         "pcre2-",
+        "readline-",
+        "util-macros-",
+        "xcb-proto-",
+        "xkbcommon-",
+        "xkeyboard-config-",
+        "xorgproto-",
+        "xtrans-",
     ] {
-        candidate = candidate.strip_prefix(prefix).unwrap_or(candidate);
+        if candidate_lower.starts_with(prefix) {
+            candidate = &candidate[prefix.len()..];
+            break;
+        }
     }
     candidate = candidate.strip_prefix('v').unwrap_or(candidate);
     let version = candidate
@@ -11815,6 +11856,31 @@ mod tests {
         assert_eq!(
             release_version_from_branch("releases/gcc-15.3.0"),
             Some("15.3.0".into())
+        );
+        for (branch, version) in [
+            ("libxcb-1.17.0", "1.17.0"),
+            ("libX11-1.8.12", "1.8.12"),
+            ("libXext-1.3.6", "1.3.6"),
+            ("xkbcommon-1.9.2", "1.9.2"),
+            ("llvmorg-22.1.8", "22.1.8"),
+        ] {
+            assert_eq!(release_version_from_branch(branch), Some(version.into()));
+        }
+        assert_eq!(
+            compatibility_epoch(
+                &Path::new(env!("CARGO_MANIFEST_DIR")).join("../../.."),
+                "libx11-6"
+            )
+            .unwrap(),
+            Some(2)
+        );
+        assert_eq!(
+            compatibility_epoch(
+                &Path::new(env!("CARGO_MANIFEST_DIR")).join("../../.."),
+                "libxcb1"
+            )
+            .unwrap(),
+            None
         );
         assert_eq!(
             release_version_from_branch("v7.2-rc5"),
