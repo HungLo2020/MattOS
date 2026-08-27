@@ -348,6 +348,30 @@ path = "src/desktop/cosmic/cosmic-edit"
 sync = "copy"
 
 [[component]]
+name = "cosmic-calculator"
+repo = "https://github.com/cosmic-utils/calculator.git"
+branch = "main"
+revision = "1b614b95036e41333219b5c0d91853550b2439af"
+path = "src/desktop/cosmic/cosmic-calculator"
+sync = "copy"
+
+[[component]]
+name = "cosmic-storage"
+repo = "https://github.com/cosmic-utils/cosmic-ext-storage.git"
+branch = "main"
+revision = "0ba27cc2caac19acb7a8d98747f8b65058dab877"
+path = "src/desktop/cosmic/cosmic-storage"
+sync = "copy"
+
+[[component]]
+name = "cosmic-monitor"
+repo = "https://github.com/pop-os/cosmic-monitor.git"
+branch = "master"
+revision = "ee634d59b97022f091cdb64f4519886e2c72bf80"
+path = "src/desktop/cosmic/cosmic-monitor"
+sync = "copy"
+
+[[component]]
 name = "cosmic-term"
 repo = "https://github.com/pop-os/cosmic-term.git"
 branch = "master"

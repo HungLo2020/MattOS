@@ -1,0 +1,81 @@
+name: Main
+
+on:
+  push:
+    tags: ["v*"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: rustup update
+      - run: rustup component add clippy rustfmt
+      - uses: Swatinem/rust-cache@v2
+      - run: sudo apt install -y libxkbcommon-dev libbtrfsutil-dev
+      - run: cargo test --workspace --all-features --locked
+      - run: cargo clippy --workspace --all-features --locked
+      - run: cargo fmt --all -- --check
+
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: rustup update
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: false
+      - run: sudo apt install -y libxkbcommon-dev libbtrfsutil-dev
+      - name: Verify versions and build
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          for manifest in Cargo.toml crates/storage-types/Cargo.toml crates/storage-contracts/Cargo.toml crates/storage-btrfs/Cargo.toml crates/storage-sys/Cargo.toml crates/storage-udisks/Cargo.toml; do
+            test "$(sed -n 's/^version = "\(.*\)"/\1/p' "$manifest" | head -n1)" = "$VERSION"
+          done
+          cargo build --workspace --release --locked
+          cargo package --manifest-path crates/storage-types/Cargo.toml --allow-dirty --no-verify
+          cargo package --manifest-path crates/storage-contracts/Cargo.toml --allow-dirty --no-verify
+          cargo package --manifest-path crates/storage-btrfs/Cargo.toml --allow-dirty --no-verify
+          cargo package --manifest-path crates/storage-sys/Cargo.toml --allow-dirty --no-verify
+          cargo package --manifest-path crates/storage-udisks/Cargo.toml --allow-dirty --no-verify
+          cargo package --manifest-path Cargo.toml --allow-dirty --no-verify
+      - name: Publish dependency layers
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          wait_for() {
+            for attempt in $(seq 1 20); do
+              missing=''
+              for package in "$@"; do
+                cargo info "${package}@${VERSION}" --registry crates-io >/dev/null 2>&1 || missing="${missing} ${package}"
+              done
+              test -z "$missing" && return 0
+              test "$attempt" = 20 && { echo "Unresolved packages:${missing}" >&2; return 1; }
+              sleep 15
+            done
+          }
+          cargo publish --manifest-path crates/storage-types/Cargo.toml --locked
+          wait_for storage-types
+          cargo publish --manifest-path crates/storage-contracts/Cargo.toml --locked
+          wait_for storage-contracts
+          cargo publish --manifest-path crates/storage-btrfs/Cargo.toml --locked &
+          first=$!
+          cargo publish --manifest-path crates/storage-sys/Cargo.toml --locked &
+          second=$!
+          wait "$first" "$second"
+          wait_for storage-btrfs cosmic-ext-storage-storage-sys
+          cargo publish --manifest-path crates/storage-udisks/Cargo.toml --locked
+          wait_for storage-udisks
+          cargo publish --manifest-path Cargo.toml --locked
+      - uses: softprops/action-gh-release@v1
+        with:
+          generate_release_notes: true

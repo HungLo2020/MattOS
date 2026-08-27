@@ -1,0 +1,17 @@
+Source: cosmic-monitor
+Section: admin
+Priority: optional
+Maintainer: Jeremy Soller <jeremy@system76.com>
+Build-Depends:
+    debhelper-compat (=13),
+    just (>= 1.13.0),
+    pkg-config,
+    rust-all,
+    libxkbcommon-dev,
+Standards-Version: 4.6.2
+Homepage: https://github.com/pop-os/cosmic-monitor
+
+Package: cosmic-monitor
+Architecture: amd64 arm64
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Description: COSMIC System Monitor

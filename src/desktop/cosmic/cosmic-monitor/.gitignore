@@ -1,0 +1,11 @@
+/.cargo/
+/debian/*debhelper*
+/debian/cosmic-monitor.substvars
+/debian/cosmic-monitor/
+/debian/files
+/target/
+/vendor.tar
+/vendor/
+/.direnv/
+/.idea/
+nohup.out

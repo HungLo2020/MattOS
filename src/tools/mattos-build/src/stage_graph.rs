@@ -378,7 +378,21 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         BuildStage::CosmicFiles => &["formal-sysroot", "glib", "xkbcommon"],
         BuildStage::CosmicTerm => &["formal-sysroot", "xkbcommon"],
         BuildStage::CosmicTweaks => &["formal-sysroot", "xkbcommon"],
-        BuildStage::CosmicUtilities => &["formal-sysroot"],
+        // Third-party COSMIC applications are built in this aggregate stage,
+        // but still receive the same output-owned Rust/COSMIC and Wayland
+        // inputs as the first-party applications.
+        // cosmic-ext-storage links the target-owned libbtrfsutil development
+        // output produced as part of the installer stage's btrfs-progs build.
+        BuildStage::CosmicUtilities => {
+            &[
+                "formal-sysroot",
+                "rust",
+                "xkbcommon",
+                "installer",
+                "glib",
+                "zlib",
+            ]
+        }
         BuildStage::CosmicPortal => &[
             "formal-sysroot",
             "mesa",
@@ -854,7 +868,9 @@ mod tests {
                 "repository",
                 "rootfs",
                 "live-root",
-                "iso"
+                "iso",
+                "cosmic-utilities",
+                "cosmic-desktop"
             ]
             .into_iter()
             .collect()
@@ -907,7 +923,7 @@ mod tests {
             downstream_invalidation(&["llvm"]),
             [
                 "llvm", "rust", "mesa", "vulkan-tools", "cosmic-comp",
-                "cosmic-portal", "cosmic-workspaces", "cosmic-desktop",
+                "cosmic-portal", "cosmic-workspaces", "cosmic-desktop", "cosmic-utilities",
                 "installer", "packages", "repository", "rootfs", "live-root", "iso"
             ]
             .into_iter()
@@ -1084,7 +1100,7 @@ mod tests {
         let scenarios: &[(&str, &[&str], usize, &[&str])] = &[
             ("Brush source", &["brush"], 6, &["zlib", "linux"]),
             ("glibc source", &["glibc"], 116, &["linux"]),
-            ("Linux x86_64 config", &["linux"], 9, &["glibc", "brush"]),
+            ("Linux x86_64 config", &["linux"], 11, &["glibc", "brush"]),
             (
                 "Linux x86_64 UAPI source",
                 &["linux", "glibc", "linux-headers"],
@@ -1099,7 +1115,7 @@ mod tests {
             ),
             // Initial Setup now has its real systemd/libinput build edges, so
             // it is part of the legitimate native-library cascade.
-            ("zlib shared library", &["zlib"], 43, &["brush", "linux"]),
+            ("zlib shared library", &["zlib"], 44, &["brush", "linux"]),
             ("package metadata", &["packages"], 5, &["brush", "zlib"]),
             (
                 "repository policy",

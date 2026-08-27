@@ -3808,6 +3808,9 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
             "out/build/installer/cargo-target/release/mattos-install".into(),
             "out/build/installer/cosmic-target/release/mattos-install-cosmic".into(),
             "out/build/btrfs-progs/install/usr/bin/btrfs".into(),
+            "out/build/btrfs-progs/install/usr/include/btrfsutil.h".into(),
+            "out/build/btrfs-progs/install/usr/lib/x86_64-linux-gnu/libbtrfsutil.so".into(),
+            "out/build/btrfs-progs/install/usr/lib/x86_64-linux-gnu/pkgconfig/libbtrfsutil.pc".into(),
             "out/build/dosfstools/install/usr/sbin/mkfs.fat".into(),
             "out/build/e2fsprogs/install/usr/sbin/mkfs.ext4".into(),
             "out/build/installed-initramfs.cpio.xz".into(),
@@ -10119,6 +10122,11 @@ fn cosmic_native_components(stage: BuildStage) -> Vec<&'static str> {
             .copied()
             .filter(|component| *component != "formal-sysroot"),
     );
+    if stage == BuildStage::CosmicUtilities {
+        // btrfs-progs is built inside the installer stage and publishes its
+        // development library from this nested install root.
+        components.push("btrfs-progs");
+    }
     components
 }
 
@@ -10169,6 +10177,34 @@ fn patch_cosmic_profile_helper(mirror: &Path) -> Result<()> {
     Ok(())
 }
 
+fn patch_cosmic_just_target_path(mirror: &Path) -> Result<()> {
+    let justfile = mirror.join("justfile");
+    if !justfile.is_file() {
+        return Ok(());
+    }
+    let original = fs::read_to_string(&justfile)?;
+    let mut updated = original.replace(
+        "bin-src := 'target' / 'release' / name",
+        "bin-src := env('CARGO_TARGET_DIR', 'target') / 'release' / name",
+    );
+    updated = updated.replace(" --locked {{args}}", " {{args}}");
+    updated = updated.replace(
+        "desktop-src := 'resources' / appid + '.desktop'",
+        "desktop-src := 'resources' / 'app.desktop'",
+    );
+    updated = updated.replace(
+        "appdata-src := 'resources' / appid + '.metainfo.xml'",
+        "appdata-src := 'resources' / 'app.metainfo.xml'",
+    );
+    if !updated.contains("\nbuild-release") && updated.contains("\nrelease *args:") {
+        updated.push_str("\n# MattOS invokes the common COSMIC release recipe name.\nbuild-release *args: (release args)\n");
+    }
+    if updated != original {
+        fs::write(justfile, updated)?;
+    }
+    Ok(())
+}
+
 fn run_locked_cosmic_command(
     repo_root: &Path,
     cwd: &Path,
@@ -10203,6 +10239,7 @@ fn build_cosmic_just_component(
     )?;
     apply_component_patches(repo_root, component, &mirror)?;
     isolate_cargo_build_mirror(&mirror)?;
+    patch_cosmic_just_target_path(&mirror)?;
     ensure_owned_libcosmic_mirror(repo_root, &mirror)?;
     if matches!(component, "cosmic-launcher" | "cosmic-notifications") {
         patch_cosmic_profile_helper(&mirror)?;
@@ -10354,7 +10391,14 @@ fn build_cosmic_desktop_component(repo_root: &Path, stage: BuildStage) -> Result
             }
         }
         BuildStage::CosmicUtilities => {
-            for component in ["cosmic-randr", "cosmic-screenshot", "pop-launcher"] {
+            for component in [
+                "cosmic-randr",
+                "cosmic-screenshot",
+                "pop-launcher",
+                "cosmic-calculator",
+                "cosmic-storage",
+                "cosmic-monitor",
+            ] {
                 build_cosmic_just_component(repo_root, &install, component, &env)?;
             }
         }
@@ -10510,6 +10554,9 @@ fn build_cosmic_desktop(repo_root: &Path) -> Result<()> {
         "usr/bin/cosmic-files",
         "usr/bin/cosmic-term",
         "usr/bin/cosmic-ext-tweaks",
+        "usr/bin/cosmic-ext-calculator",
+        "usr/bin/cosmic-ext-storage",
+        "usr/bin/cosmic-monitor",
         "usr/bin/greetd",
         "usr/share/wayland-sessions/cosmic.desktop",
         "usr/share/icons/Cosmic/index.theme",
@@ -20268,6 +20315,50 @@ mod tests {
         write(&root.join("upstream/state/linux.toml"), "not=toml=");
         let result = read_sync_state(root, "linux");
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn cosmic_just_mirror_uses_external_cargo_target_for_install() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let justfile = tmp.path().join("justfile");
+        write(&justfile, "bin-src := 'target' / 'release' / name\n");
+
+        patch_cosmic_just_target_path(tmp.path()).expect("patch justfile");
+
+        let body = fs::read_to_string(justfile).expect("read patched justfile");
+        assert!(body.contains(
+            "bin-src := env('CARGO_TARGET_DIR', 'target') / 'release' / name"
+        ));
+    }
+
+    #[test]
+    fn cosmic_just_mirror_preserves_target_override() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let justfile = tmp.path().join("justfile");
+        let original = "bin-src := env('CARGO_TARGET_DIR', 'target') / 'release' / name\n";
+        write(&justfile, original);
+
+        patch_cosmic_just_target_path(tmp.path()).expect("inspect justfile");
+
+        assert_eq!(fs::read_to_string(justfile).expect("read justfile"), original);
+    }
+
+    #[test]
+    fn cosmic_just_mirror_adapts_release_recipe_name() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let justfile = tmp.path().join("justfile");
+        write(
+            &justfile,
+            "bin-src := 'target' / 'release' / name\ndesktop-src := 'resources' / appid + '.desktop'\nappdata-src := 'resources' / appid + '.metainfo.xml'\nrelease *args:\n    cargo build --release {{args}}\n",
+        );
+
+        patch_cosmic_just_target_path(tmp.path()).expect("patch justfile");
+
+        let body = fs::read_to_string(justfile).expect("read patched justfile");
+        assert!(body.contains("build-release *args: (release args)"));
+        assert!(!body.contains("--locked {{args}}"));
+        assert!(body.contains("desktop-src := 'resources' / 'app.desktop'"));
+        assert!(body.contains("appdata-src := 'resources' / 'app.metainfo.xml'"));
     }
 
     #[test]

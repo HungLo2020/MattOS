@@ -1,0 +1,145 @@
+[package]
+name = "cosmic-ext-storage"
+version = "0.1.0"
+edition = "2024"
+license = "GPL-3.0-only"
+description = "A Storage utility for the COSMIC™ desktop"
+repository = "https://github.com/cosmic-utils/cosmic-ext-storage"
+
+[features]
+default = [
+    "btrfs-tools",
+    "lvm-tools",
+    "rclone-tools",
+    "fs-ext4",
+    "fs-xfs",
+    "fs-btrfs",
+    "fs-vfat",
+    "fs-ntfs",
+    "fs-exfat",
+]
+btrfs-tools = []
+lvm-tools = []
+rclone-tools = []
+fs-ext4 = []
+fs-xfs = []
+fs-btrfs = []
+fs-vfat = []
+fs-ntfs = []
+fs-exfat = []
+
+[build-dependencies]
+vergen = { workspace = true }
+
+[dependencies]
+anyhow.workspace = true
+futures-util.workspace = true
+i18n-embed.workspace = true
+i18n-embed-fl.workspace = true
+libc.workspace = true
+libcosmic.workspace = true
+num-format.workspace = true
+open.workspace = true
+rust-embed.workspace = true
+serde.workspace = true
+storage-contracts.workspace = true
+storage-types.workspace = true
+storage-udisks.workspace = true
+storage-btrfs = { path = "crates/storage-btrfs", version = "0.2.0" }
+storage-sys = { path = "crates/storage-sys", package = "cosmic-ext-storage-storage-sys", version = "0.1.0" }
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-appender.workspace = true
+tracing-subscriber.workspace = true
+uuid.workspace = true
+which.workspace = true
+
+[workspace]
+members = [
+    ".",
+    "crates/storage-udisks",
+    "crates/storage-btrfs",
+    "crates/storage-types",
+    "crates/storage-contracts",
+    "crates/storage-sys",
+]
+default-members = ["."]
+resolver = "2"
+
+[workspace.dependencies]
+futures-util = "0.3.31"
+i18n-embed-fl = "0.10.0"
+open = "5.3.2"
+rust-embed = "8.7.2"
+tokio = { version = "1.45.1", features = ["full"] }
+tracing = "0.1.41"
+anyhow = "1.0.102"
+libc = "0.2.180"
+duct = "1.0.0"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+toml = "1.0"
+thiserror = "2.0.18"
+which = "8.0.0"
+udisks2 = "0.3.1"
+zbus = "5.15.0"
+zbus_macros = "5.15.0"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+tracing-appender = "0.2.3"
+num-format = "0.4.4"
+futures = "0.3.32"
+enumflags2 = "0.7.12"
+procfs = "0.18.0"
+nix = { version = "0.31.1", features = ["signal", "fs"] }
+btrfsutil = "0.2.0"
+uuid = { version = "1.21.0", features = ["serde", "v4"] }
+chrono = { version = "0.4.44", features = ["serde"] }
+clap = { version = "4.5.60", features = ["derive"] }
+async-trait = "0.1.89"
+
+# workspace dependencies
+storage-udisks = { package = "storage-udisks", path = "crates/storage-udisks", version = "0.1.0" }
+storage-types = { path = "crates/storage-types", version = "0.1.0" }
+storage-contracts = { path = "crates/storage-contracts", version = "0.1.0" }
+
+# build dependencies
+vergen = { package = "vergen-git2", version = "10", features = ["build", "cargo", "rustc", "si"] }
+
+[workspace.dependencies.i18n-embed]
+version = "0.16"
+features = ["fluent-system", "desktop-requester"]
+
+[workspace.dependencies.libcosmic]
+git = "https://github.com/pop-os/libcosmic.git"
+rev = "ef162b8e16ba4493e05c169cd56c7b9f77f0fda5"
+features = [
+    # Accessibility support
+    "a11y",
+    # Uses cosmic-settings-daemon to watch for config file changes
+    "dbus-config",
+    # Support creating additional application windows.
+    "multi-window",
+    # On app startup, focuses an existing instance if the app is already open
+    "single-instance",
+    # Uses tokio as the executor for the runtime
+    "tokio",
+    # Windowing support for X11, Windows, Mac, & Redox
+    "winit",
+    # Add Wayland support to winit
+    "wayland",
+    # GPU-accelerated rendering
+    "wgpu",
+    # File dialogs via XDG desktop portal
+    "xdg-portal",
+]
+
+
+# See https://github.com/pop-os/libcosmic/blob/master/Cargo.toml for available features.
+
+
+# Uncomment to test a locally-cloned libcosmic
+# [patch.'https://github.com/pop-os/libcosmic']
+# libcosmic = { path = "../libcosmic" }
+# cosmic-config = { path = "../libcosmic/cosmic-config" }
+# cosmic-theme = { path = "../libcosmic/cosmic-theme" }

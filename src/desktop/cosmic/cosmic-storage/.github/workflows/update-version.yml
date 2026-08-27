@@ -1,0 +1,48 @@
+name: Update Version
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: semver
+        uses: paulhatch/semantic-version@v5.4.0
+        with:
+          tag_prefix: "v"
+          version_format: "${major}.${minor}.${patch}"
+          version_from_branch: false
+      - name: Update every published manifest
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.semver.outputs.version }}"
+          test -n "$VERSION" || VERSION=0.0.1
+          for manifest in Cargo.toml crates/storage-types/Cargo.toml crates/storage-contracts/Cargo.toml crates/storage-btrfs/Cargo.toml crates/storage-sys/Cargo.toml crates/storage-udisks/Cargo.toml; do
+            sed -i "0,/^version = \".*\"/s//version = \"${VERSION}\"/" "$manifest"
+          done
+          cargo fmt --all
+          cargo test --workspace --all-features --locked
+      - uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore(release): v${{ steps.semver.outputs.version }}"
+          branch: "chore/release-v${{ steps.semver.outputs.version }}"
+          delete-branch: true
+          title: "chore(release): v${{ steps.semver.outputs.version }}"
+          add-paths: |
+            Cargo.toml
+            crates/storage-types/Cargo.toml
+            crates/storage-contracts/Cargo.toml
+            crates/storage-btrfs/Cargo.toml
+            crates/storage-sys/Cargo.toml
+            crates/storage-udisks/Cargo.toml

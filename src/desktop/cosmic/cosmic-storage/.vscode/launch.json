@@ -1,0 +1,19 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug COSMIC Storage",
+      "cargo": {
+        "args": ["build", "--bin=cosmic-ext-storage", "--package=cosmic-ext-storage"],
+        "filter": {
+          "name": "cosmic-ext-storage",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}
