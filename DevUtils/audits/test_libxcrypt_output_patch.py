@@ -11,7 +11,7 @@ import tomllib
 import unittest
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "src/system/libraries/libxcrypt/lib/crypt-gost-yescrypt.c"
 PATCH = ROOT / "upstream/patches/libxcrypt/0001-fix-discarded-qualifiers.patch"
 MANIFEST = ROOT / "upstream/patches/libxcrypt/manifest.toml"

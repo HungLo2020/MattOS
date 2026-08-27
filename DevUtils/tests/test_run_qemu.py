@@ -8,7 +8,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import mock
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import run_qemu
 from common import RepoError, ensure_project_temp_root, mattos_build_environment
 from run_qemu import (
@@ -156,6 +156,7 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
                     "no_network": True,
                     "serial_console": True,
                     "dry_run": False,
+                    "headless": False,
                     "qemu_arg": [],
                     "memory": 1024,
                     "cpus": 1,
@@ -196,7 +197,7 @@ class FreshProcessCacheIntegrationTests(unittest.TestCase):
     )
 
     def run_fresh(self, command: list[str], **environment: str) -> str:
-        repo_root = Path(__file__).resolve().parents[1]
+        repo_root = Path(__file__).resolve().parents[2]
         child_environment = os.environ.copy()
         child_environment.update(environment)
         completed = subprocess.run(

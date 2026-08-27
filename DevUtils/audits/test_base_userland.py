@@ -14,7 +14,7 @@ import subprocess
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 
 REQUIRED_COMMANDS = (
     "lsblk dmesg fdisk cfdisk sfdisk wipefs blkid findmnt losetup mountpoint "

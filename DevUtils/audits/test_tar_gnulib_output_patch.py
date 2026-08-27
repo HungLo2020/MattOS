@@ -11,7 +11,7 @@ import tomllib
 import unittest
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "src/build-support/gnulib/lib/flexmember.h"
 PATCH = ROOT / "upstream/patches/tar/0001-add-flexnsizeof-compatibility.patch"
 MANIFEST = ROOT / "upstream/patches/tar/manifest.toml"

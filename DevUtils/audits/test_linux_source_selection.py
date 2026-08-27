@@ -70,6 +70,8 @@ class LinuxSourceSelectionTests(unittest.TestCase):
                     entries,
                     {},
                     self.policy,
+                    None,
+                    {},
                 )
             finally:
                 provenance.ROOT = original_root

@@ -11,7 +11,7 @@ import time
 import tomllib
 import unittest
 
-ROOT = pathlib.Path(__file__).resolve().parents[1]
+ROOT = pathlib.Path(__file__).resolve().parents[2]
 GENERATOR = ROOT / "DevUtils" / "generate_source_overrides.py"
 INDEX = ROOT / "out" / "source-ownership" / "cargo" / "index.json"
 

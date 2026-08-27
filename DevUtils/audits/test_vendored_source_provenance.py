@@ -27,7 +27,7 @@ import tempfile
 import tomllib
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 PROJECT_TMP_ROOT = ROOT / "out" / "tmp"
 PROJECT_TMP_ROOT.mkdir(parents=True, exist_ok=True)
 if shutil.disk_usage(PROJECT_TMP_ROOT).free < 8 * 1024**3:

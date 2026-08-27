@@ -119,7 +119,7 @@ def main() -> int:
     if not command:
         parser.error("a command is required after --")
 
-    repository = Path(__file__).resolve().parents[1]
+    repository = Path(__file__).resolve().parents[2]
     print("snapshotting imported source trees before command...", flush=True)
     before = snapshot(repository)
     ignored_before = ignored_untracked_paths(repository)
