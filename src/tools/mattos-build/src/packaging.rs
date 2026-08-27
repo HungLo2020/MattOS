@@ -2953,7 +2953,7 @@ fn validate_apt_compatibility_policy(repo_root: &Path, protected: &[String]) -> 
         || !installed_hosted.contains("Enabled: yes")
         || !installed_hosted.contains("URIs: https://packages.mattsherfey.com")
         || !installed_hosted.contains("Signed-By: /usr/share/keyrings/mattos-archive-keyring.asc")
-        || !installed_debian.contains("Enabled: yes")
+        || !installed_debian.contains("Enabled: no")
         || !installed_debian.contains("Suites: trixie trixie-updates")
         || !installed_debian.contains("Suites: trixie-security")
         || !installed_debian.contains("Signed-By: /usr/share/keyrings/debian-archive-keyring.asc")
@@ -10444,6 +10444,7 @@ mod tests {
         let hosted = fs::read_to_string(config.join("installed/mattos-hosted.sources")).unwrap();
         let debian = fs::read_to_string(config.join("installed/debian-trixie.sources")).unwrap();
         assert!(hosted.contains("Enabled: yes"));
+        assert!(debian.contains("Enabled: no"));
         assert!(debian.contains("Suites: trixie-security"));
     }
 

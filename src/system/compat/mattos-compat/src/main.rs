@@ -3,6 +3,7 @@ use clap::{Parser, Subcommand, ValueEnum};
 use std::env;
 use std::fs::{self, File, OpenOptions};
 use std::io::Write;
+use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -167,7 +168,10 @@ fn dispatch(distro: Distro, command: PackageCommand) -> Result<()> {
             &package_args(distro, "list", false, &[]),
             false,
         ),
-        PackageCommand::Run { command } => run_application(distro, &root, &command),
+        PackageCommand::Run { command } => {
+            ensure_user_runner(distro, &root)?;
+            run_application(distro, &root, &command)
+        }
     }
 }
 
@@ -185,6 +189,7 @@ fn package_command(
     let result = run_in_root(distro, root, &args, false);
     if result.is_ok() {
         generate_launchers(distro, root)?;
+        generate_command_shims(distro, root)?;
     }
     result
 }
@@ -615,6 +620,28 @@ fn run_application(distro: Distro, root: &Path, command: &[String]) -> Result<()
     run_in_root(distro, root, command, true)
 }
 
+fn ensure_user_runner(distro: Distro, root: &Path) -> Result<()> {
+    if root.join("usr/bin/setpriv").is_file() {
+        return Ok(());
+    }
+    let args = match distro {
+        Distro::Fedora => vec![
+            "dnf".to_string(),
+            "--assumeyes".to_string(),
+            "install".to_string(),
+            "util-linux".to_string(),
+        ],
+        Distro::Debian | Distro::Popos => vec![
+            "apt-get".to_string(),
+            "install".to_string(),
+            "--yes".to_string(),
+            "util-linux".to_string(),
+        ],
+    };
+    run_in_root(distro, root, &args, false)
+        .context("install the compatibility user-execution helper")
+}
+
 fn generate_launchers(distro: Distro, root: &Path) -> Result<()> {
     let Some(home) = launcher_home()? else {
         return Ok(());
@@ -641,6 +668,79 @@ fn generate_launchers(distro: Distro, root: &Path) -> Result<()> {
         let launcher = launcher_dir.join(format!("mattos-compat-{id}"));
         fs::write(&launcher, wrapper)?;
         restore_launcher_owner(&launcher)?;
+    }
+    Ok(())
+}
+
+fn generate_command_shims(distro: Distro, root: &Path) -> Result<()> {
+    let Some(home) = launcher_home()? else {
+        return Ok(());
+    };
+    let bin_dir = home.join(".local/bin");
+    fs::create_dir_all(&bin_dir)?;
+    ensure_user_path(&home)?;
+
+    for relative in ["usr/bin", "usr/sbin"] {
+        let directory = root.join(relative);
+        if !directory.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(directory)? {
+            let path = entry?.path();
+            let Some(name) = path.file_name().and_then(|value| value.to_str()) else {
+                continue;
+            };
+            if name.is_empty() || name.contains('/') || host_command_exists(name) {
+                continue;
+            }
+            let shim = bin_dir.join(name);
+            if shim.exists()
+                && !fs::read_to_string(&shim)
+                    .map(|contents| contents.starts_with("#!/bin/sh\nexec mattos-compat "))
+                    .unwrap_or(false)
+            {
+                continue;
+            }
+            fs::write(&shim, command_shim(distro, name))?;
+            fs::set_permissions(&shim, fs::Permissions::from_mode(0o755))?;
+            restore_launcher_owner(&shim)?;
+        }
+    }
+    Ok(())
+}
+
+fn command_shim(distro: Distro, command: &str) -> String {
+    format!(
+        "#!/bin/sh\nexec mattos-compat {} run -- {} \"$@\"\n",
+        distro.command_name(),
+        command
+    )
+}
+
+fn host_command_exists(name: &str) -> bool {
+    env::var_os("PATH")
+        .into_iter()
+        .flat_map(|path| env::split_paths(&path).collect::<Vec<_>>())
+        .any(|directory| directory.join(name).is_file())
+}
+
+fn ensure_user_path(home: &Path) -> Result<()> {
+    const MARKER: &str = "# Added by mattos-compat: expose installed compatibility commands\n";
+    const EXPORT: &str = "export PATH=\"$HOME/.local/bin:$PATH\"\n";
+    for name in [".profile", ".bashrc"] {
+        let path = home.join(name);
+        let existing = fs::read_to_string(&path).unwrap_or_default();
+        if existing.contains("# Added by mattos-compat: expose installed compatibility commands") {
+            continue;
+        }
+        let mut updated = existing;
+        if !updated.is_empty() && !updated.ends_with('\n') {
+            updated.push('\n');
+        }
+        updated.push_str(MARKER);
+        updated.push_str(EXPORT);
+        fs::write(&path, updated)?;
+        restore_launcher_owner(&path)?;
     }
     Ok(())
 }
@@ -780,5 +880,17 @@ mod tests {
     #[test]
     fn desktop_entries_without_exec_are_not_published() {
         assert!(compat_desktop_entry(Distro::Fedora, "[Desktop Entry]\nName=Hidden\n").is_none());
+    }
+
+    #[test]
+    fn command_shims_dispatch_to_the_selected_userland() {
+        assert_eq!(
+            command_shim(Distro::Debian, "fastfetch"),
+            "#!/bin/sh\nexec mattos-compat debian run -- fastfetch \"$@\"\n"
+        );
+        assert_eq!(
+            command_shim(Distro::Fedora, "dnf"),
+            "#!/bin/sh\nexec mattos-compat fedora run -- dnf \"$@\"\n"
+        );
     }
 }
