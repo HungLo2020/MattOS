@@ -2,7 +2,8 @@
 members = [
     "src/tools/mattos-build",
     "src/system/installer",
-    "src/userland/init"
+    "src/userland/init",
+    "src/system/compat/mattos-compat"
 ]
 exclude = [
     "src/userland/grep",

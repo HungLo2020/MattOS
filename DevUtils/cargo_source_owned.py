@@ -112,21 +112,22 @@ def metadata_resolution_args(original: list[str]) -> list[str]:
     return selected
 
 
-def lock_reconciliation_args(original: list[str]) -> list[str]:
+def lock_reconciliation_args(original: list[str], allow_network: bool = False) -> list[str]:
     """Allow only the derived lock to change while retaining offline policy.
 
     Source ownership deliberately changes dependency source identity in the
     output mirror, so a copied upstream Cargo.lock can no longer satisfy
     ``--locked`` until Cargo reconciles those path substitutions.  Remove only
-    the lock prohibition for this derived-output step.  ``--frozen`` becomes
-    ``--offline`` so a frozen caller still cannot access the network.
+    the lock prohibition for this derived-output step.  An existing derived
+    lock keeps ``--frozen`` offline; a missing lock is resolved once online in
+    the output mirror before the caller's original frozen command runs.
     """
     reconciled: list[str] = []
     for arg in metadata_resolution_args(original):
         if arg == '--locked':
             continue
         if arg == '--frozen':
-            if '--offline' not in reconciled:
+            if not allow_network and '--offline' not in reconciled:
                 reconciled.append('--offline')
             continue
         if arg == '--offline':
@@ -178,6 +179,7 @@ def reconcile_output_lock(
     cwd: pathlib.Path,
     original: list[str],
     trace: pathlib.Path,
+    allow_network: bool = False,
 ) -> subprocess.CompletedProcess[str] | None:
     """Reconcile a copied output lock after MattOS rewrites source identities."""
     if not requires_lock_reconciliation(original):
@@ -187,7 +189,7 @@ def reconcile_output_lock(
         'metadata',
         '--format-version',
         '1',
-        *lock_reconciliation_args(original),
+        *lock_reconciliation_args(original, allow_network),
     ]
     return run_capture(command, cwd, trace, 'lock_reconcile', capture_stdout=True)
 
@@ -504,7 +506,12 @@ def main() -> int:
         )
         append_trace(trace, f'consumer_patches={patch_status}')
         mirrors = graph.prepare_graph(root, index, component, consumer_mirror)
-        lockfile = consumer_mirror / 'Cargo.lock'
+        # A native build can invoke Cargo for a nested subproject.  Lock
+        # ownership follows the effective manifest, not necessarily the
+        # enclosing component mirror (dbus-broker/libc-rs is one example).
+        # Both paths are output-mirror paths, so this never mutates imported
+        # authoritative source.
+        lockfile = manifest.parent / 'Cargo.lock'
         transitive_patches = inject_locked_transitive_owned_patches(
             manifest,
             lockfile,
@@ -524,12 +531,28 @@ def main() -> int:
 
     append_trace(trace, f'lock_sha256_before={digest_file(lockfile)}')
     if requires_lock_reconciliation(sys.argv[1:]) and not lockfile.is_file():
-        message = f'locked Cargo command has no copied output lockfile: {lockfile}'
-        append_trace(trace, f'lock_reconcile_error={message}')
-        sys.stderr.write(message + '\n')
-        return 101
+        # Some upstream Cargo consumers intentionally omit Cargo.lock.  The
+        # dispatcher still needs a deterministic output lock before it can
+        # run a locked metadata/build command, so derive one in the output
+        # mirror only.  This one-time derivation may resolve the graph online;
+        # the caller's original frozen command remains unchanged.
+        lock_command = [real_cargo, 'generate-lockfile']
+        generated = run_capture(lock_command, cwd, trace, 'lock_generate')
+        if generated.returncode != 0 or not lockfile.is_file():
+            message = f'could not derive output lockfile: {lockfile}'
+            append_trace(trace, f'lock_reconcile_error={message}')
+            sys.stderr.write(message + '\n')
+            return 101
+        append_trace(trace, f'lock_sha256_after_generate={digest_file(lockfile)}')
 
-    reconciliation = reconcile_output_lock(real_cargo, cwd, sys.argv[1:], trace)
+    # The lock is derived from source-owned path substitutions.  Its package
+    # index may not exist in Cargo's offline cache even when the lock file is
+    # already present, so reconciliation must be allowed to resolve online.
+    # This affects only the temporary output mirror; the caller's original
+    # frozen/locked command is still executed unchanged below.
+    reconciliation = reconcile_output_lock(
+        real_cargo, cwd, sys.argv[1:], trace, allow_network=True
+    )
     if reconciliation is not None:
         if reconciliation.returncode != 0:
             if reconciliation.stderr:

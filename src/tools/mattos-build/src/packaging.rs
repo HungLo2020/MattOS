@@ -206,6 +206,7 @@ const MIGRATED_BOOTSTRAP_SONAME_PREFIXES: &[&str] = &[
 ];
 const PACKAGE_NAMES: &[&str] = &[
     "mattos-filesystem",
+    "mattos-compat",
     "libc6",
     "libgcc-s1",
     "libstdc++6",
@@ -621,6 +622,26 @@ fn package_specs() -> Vec<PackageSpec> {
             replaces: &[],
             essential: true,
             priority: "required",
+        },
+        PackageSpec {
+            name: "mattos-compat",
+            description: "Isolated Debian, Fedora, and Pop!_OS application compatibility manager",
+            source_component: "mattos-compat",
+            depends: &[
+                "mattos-filesystem",
+                "libsystemd0",
+                "libcap2",
+                "libmount1",
+                "libblkid1",
+                "libselinux1",
+                "liblzma5",
+                "libzstd1",
+            ],
+            provides: &["mattos-compat"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
         },
         PackageSpec {
             name: "libgcc-s1",
@@ -3145,11 +3166,17 @@ fn build_packages(repo_root: &Path, names: &[String]) -> Result<()> {
             reused,
         });
     }
-    // Check the complete prototype set whenever it is fully staged, otherwise the
-    // selected subset. Shared directories are intentionally permitted.
-    let collision_specs: Vec<PackageSpec> = if PACKAGE_NAMES
+    // Check the complete prototype set only for a full package build. A
+    // targeted package build must not unexpectedly rescan every existing
+    // staging tree merely because those trees happen to be present; the full
+    // build retains the complete collision/runtime audit.
+    let full_selection = PACKAGE_NAMES
         .iter()
-        .all(|name| staging_root.join(name).is_dir())
+        .all(|name| names.iter().any(|selected| selected == name));
+    let collision_specs: Vec<PackageSpec> = if full_selection
+        && PACKAGE_NAMES
+            .iter()
+            .all(|name| staging_root.join(name).is_dir())
     {
         specs.clone()
     } else {
@@ -3476,6 +3503,7 @@ fn package_recipe_revision(package: &str) -> u32 {
         // of enabling it in every multi-user/CLI boot. Revision 2 supplied the
         // freedesktop hicolor fallback index.
         "cosmic-desktop" => 4,
+        "mattos-compat" => 3,
         "cosmic-edit" | "mattos-cozy" => 1,
         "libgpg-error0" | "libgcrypt20" | "libassuan9" | "libksba8" | "libnpth0" | "gpgv" => 2,
         _ => 1,
@@ -3619,6 +3647,7 @@ fn validate_package_cache(
 fn package_stage_dependencies(source_component: &str) -> &'static [&'static str] {
     match source_component {
         "MattOS" | "ca-certificates" | "test" => &[],
+        "mattos-compat" => &["systemd"],
         "linux" => &["linux-headers"],
         "kernel-modules" => &["linux"],
         "gcc" => &["gcc-runtime", "gcc-compiler"],
@@ -3715,6 +3744,7 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
 
 fn package_source_roots(source_component: &str) -> &'static [&'static str] {
     match source_component {
+        "mattos-compat" => &["src/system/compat/mattos-compat"],
         "MattOS" => &["src/rootfs/skeleton", "src/system/packages/config"],
         "ca-certificates" => &["src/system/network"],
         "linux" => &["src/kernel/linux"],
@@ -3946,6 +3976,7 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
     fs::create_dir_all(staging.join("DEBIAN"))?;
     match spec.name {
         "mattos-filesystem" => stage_filesystem(&staging)?,
+        "mattos-compat" => stage_mattos_compat(repo_root, &staging)?,
         "libc6" => stage_glibc_runtime(repo_root, &staging)?,
         "libgcc-s1" => {
             stage_gcc_runtime_library(repo_root, &staging, "libgcc_s.so.1", "libgcc-s1")?
@@ -4858,6 +4889,31 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
     )?;
     fs::write(staging.join("DEBIAN/control"), control)?;
     normalize_package_modes(&staging)?;
+    Ok(())
+}
+
+fn stage_mattos_compat(repo_root: &Path, staging: &Path) -> Result<()> {
+    let status = Command::new("cargo")
+        .current_dir(repo_root)
+        .args(["build", "--release", "-p", "mattos-compat"])
+        .status()
+        .context("build mattos-compat")?;
+    if !status.success() {
+        bail!("cargo failed while building mattos-compat: {status}");
+    }
+    let binary = repo_root.join("target/release/mattos-compat");
+    if !binary.is_file() {
+        bail!("mattos-compat build did not produce {}", binary.display());
+    }
+    copy_preserving(&binary, &staging.join("usr/bin/mattos-compat"))?;
+    let nspawn = repo_root.join("out/build/systemd/install/usr/bin/systemd-nspawn");
+    if !nspawn.is_file() {
+        bail!(
+            "systemd-nspawn is missing from the systemd stage at {}; enable the nspawn component before building mattos-compat",
+            nspawn.display()
+        );
+    }
+    copy_preserving(&nspawn, &staging.join("usr/bin/systemd-nspawn"))?;
     Ok(())
 }
 
@@ -7410,6 +7466,7 @@ fn copy_preserving(source: &Path, destination: &Path) -> Result<()> {
 fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
     let upstream = match spec.name {
         "mattos-filesystem" | "mattos-base-files" => "0.1".to_string(),
+        "mattos-compat" => "0.1.0".to_string(),
         "libc6" | "libc6-dev" | "libc-bin" | "locales" => {
             component_snapshot_version(repo_root, "glibc")?
         }
@@ -9866,6 +9923,11 @@ pub(crate) fn build_apt(repo_root: &Path) -> Result<()> {
             "-DWITH_TESTS=OFF",
             "-DWITH_FTPARCHIVE=OFF",
             "-DUSE_NLS=OFF",
+            // Do not let CMake discover the host libseccomp while compiling
+            // against the MattOS sysroot.  MattOS does not publish a
+            // target-owned libseccomp development interface yet, and APT's
+            // seccomp sandbox is optional.
+            "-DCMAKE_DISABLE_FIND_PACKAGE_SECCOMP=TRUE",
             &zlib_root,
             &bzip2_include,
             &bzip2_library,
@@ -10577,7 +10639,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 162);
+        assert_eq!(PACKAGE_NAMES.len(), 163);
     }
 
     #[test]
@@ -10626,7 +10688,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 162);
+        assert_eq!(PACKAGE_NAMES.len(), 163);
         assert_eq!(
             UTIL_LINUX_BASE_PATHS,
             &[
@@ -10703,7 +10765,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 162);
+        assert_eq!(PACKAGE_NAMES.len(), 163);
         let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
         for dependency in [
             "libffi8",

@@ -13895,7 +13895,10 @@ fn systemd_meson_options() -> Vec<String> {
         "-Dsystemd-timesync-uid=194".to_string(),
         "-Dhomed=disabled".to_string(),
         "-Dportabled=false".to_string(),
-        "-Dnspawn=disabled".to_string(),
+        // mattos-compat uses the target-owned nspawn binary to run isolated
+        // distro userlands; keep it in the systemd stage and package it from
+        // that output rather than relying on the host implementation.
+        "-Dnspawn=enabled".to_string(),
         "-Dbootloader=disabled".to_string(),
         "-Dfirstboot=false".to_string(),
         "-Drepart=disabled".to_string(),

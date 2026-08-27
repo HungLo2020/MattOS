@@ -10,8 +10,7 @@
 * Prefer deterministic import policies over manually deleting files from vendored trees. Unsupported architectures, platforms, tests, tooling, documentation, or other upstream content may be excluded only through documented source-selection policy.
 * Avoid modifying retained vendored source directly. Prefer small, documented patches applied to output-owned source mirrors.
 * Generated files and build outputs must never be written into authoritative vendored source trees.
-* MattOS targets broad binary compatibility with Debian 13 Trixie. MattOS packages should take precedence over Debian packages for the MattOS base system.
-* The long-term installer should support desktop and terminal/server profiles. COSMIC is the planned desktop environment and COSMIC/Pop!_OS installer technology is the planned installer direction.
+* MattOS targets broad binary compatibility with the broader linux ecosystem with mattos-compat. basically allows for hosting other distros userland in /compat. for ease of maintainance howerver the mattos "distro" itself should still try and follow debian.
 * The Rust MattOS build tooling is the canonical build orchestration layer. Reuse it instead of creating parallel ad-hoc build systems.
 * Never solve target dependencies by copying host binaries or runtime libraries into MattOS.
 * Prefer root-cause fixes, preserve reproducibility and source provenance, and add focused regression tests for defects.

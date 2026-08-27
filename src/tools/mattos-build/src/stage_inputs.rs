@@ -384,6 +384,9 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
     match stage {
         BuildStage::All => 0,
         BuildStage::Bzip2 | BuildStage::Xz | BuildStage::Zstd => 2,
+        // Revision 2 disables host libseccomp discovery for the target APT
+        // build; only target-owned native interfaces may be selected.
+        BuildStage::Apt => 2,
         BuildStage::Python => 4,
         BuildStage::Llvm => 6,
         BuildStage::LiveRoot => 1,
@@ -409,10 +412,9 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
         BuildStage::Cozy => 1,
         BuildStage::Libseat => 2,
         BuildStage::Dbus => 3,
-        // Revision 6 pins D-Bus service/interface/policy install directories to the
-        // target filesystem instead of inheriting sysroot-prefixed pkg-config
-        // paths while enabling localed.
-        BuildStage::Systemd => 6,
+        // Revision 7 enables and publishes systemd-nspawn for mattos-compat;
+        // the prior revision deliberately configured nspawn out.
+        BuildStage::Systemd => 7,
         BuildStage::Pipewire => 2,
         BuildStage::Glib => 2,
         BuildStage::Libdrm => 2,

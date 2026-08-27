@@ -389,6 +389,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "mattos-compat"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "serde_json",
+]
+
+[[package]]
 name = "mattos-init"
 version = "0.1.0"
 dependencies = [

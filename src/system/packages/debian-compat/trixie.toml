@@ -17,6 +17,18 @@ classification = "mattos-specific"
 known_gaps = ["No Debian package identity claimed"]
 
 [[package]]
+debian_name = "mattos-compat"
+mattos_name = "mattos-compat"
+source_component = "mattos-compat"
+owned_paths = ["/usr/bin/mattos-compat"]
+provided_abi_or_commands = ["isolated Debian, Fedora, and Pop!_OS application compatibility manager"]
+protected = false
+current_mattos_version = "0.1.0-1mattos1"
+expected_debian_role = "MattOS compatibility environment manager"
+classification = "mattos-specific"
+known_gaps = ["Compatibility userlands are created on demand"]
+
+[[package]]
 debian_name = "libc6"
 mattos_name = "libc6"
 source_component = "glibc"
