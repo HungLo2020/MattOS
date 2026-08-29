@@ -3682,11 +3682,14 @@ fn package_recipe_revision(package: &str) -> u32 {
         // Revision 2 includes Linux-PAM's source-built vendor pam_env.conf;
         // the revision-1 cache key tracked only MattOS /etc/pam.d policy.
         "libpam-runtime" => 2,
-        // Revision 4 requires COSMIC Tweaks in the aggregate desktop payload.
+        // Revision 5 exposes Flatpak export roots through the COSMIC session
+        // XDG_DATA_DIRS, so application desktop entries and their themed icons
+        // resolve. Revision 4 requires COSMIC Tweaks in the aggregate desktop
+        // payload.
         // Revision 3 keeps the greeter daemon display-manager-scoped instead
         // of enabling it in every multi-user/CLI boot. Revision 2 supplied the
         // freedesktop hicolor fallback index.
-        "cosmic-desktop" => 4,
+        "cosmic-desktop" => 5,
         "mattos-compat" => 3,
         // Revision 2 preserves fuse3's documented setuid fusermount3 helper
         // in the Flatpak payload.  The document portal invokes this helper to
@@ -6371,6 +6374,14 @@ fn stage_cosmic_desktop(repo_root: &Path, staging: &Path) -> Result<()> {
     let wayland_session = fs::read_to_string(&start_cosmic)?
         .replace("GDK_BACKEND=wayland,x11", "GDK_BACKEND=wayland")
         .replace("QT_QPA_PLATFORM=\"wayland;xcb\"", "QT_QPA_PLATFORM=wayland")
+        .replace(
+            "export DCONF_PROFILE=/usr/share/dconf/profile/cosmic",
+            "export DCONF_PROFILE=/usr/share/dconf/profile/cosmic\n\n# Flatpak exports desktop entries and themed icons outside the standard XDG\n# locations. Make them visible to COSMIC, its launcher, and session helpers.\nflatpak_user_exports=\"${XDG_DATA_HOME:-$HOME/.local/share}/flatpak/exports/share\"\nflatpak_system_exports=\"/var/lib/flatpak/exports/share\"\nexport XDG_DATA_DIRS=\"${flatpak_user_exports}:${flatpak_system_exports}:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}\"",
+        )
+        .replace(
+            "XDG_SESSION_TYPE XDG_CURRENT_DESKTOP DCONF_PROFILE SSH_AUTH_SOCK",
+            "XDG_SESSION_TYPE XDG_CURRENT_DESKTOP DCONF_PROFILE XDG_DATA_DIRS SSH_AUTH_SOCK",
+        )
         .replace(
             "exec /usr/bin/dbus-run-session -- /usr/bin/cosmic-session",
             "exec /usr/bin/dbus-run-session --config-file=/usr/share/dbus-1/mattos-private-session.conf -- /usr/bin/cosmic-session",
@@ -10723,6 +10734,17 @@ mod tests {
             assert!(
                 source.contains(required),
                 "runtime packaging omits {required}"
+            );
+        }
+        for required in [
+            "flatpak_user_exports",
+            "flatpak_system_exports",
+            "flatpak/exports/share",
+            "XDG_SESSION_TYPE XDG_CURRENT_DESKTOP DCONF_PROFILE XDG_DATA_DIRS SSH_AUTH_SOCK",
+        ] {
+            assert!(
+                source.contains(required),
+                "COSMIC session packaging must expose Flatpak exports through XDG_DATA_DIRS: {required}"
             );
         }
 
