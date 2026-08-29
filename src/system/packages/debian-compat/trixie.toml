@@ -1541,6 +1541,18 @@ classification = "debian-compatible"
 known_gaps = ["None"]
 
 [[package]]
+debian_name = "flatpak"
+mattos_name = "flatpak"
+source_component = "flatpak"
+owned_paths = ["/usr/bin/flatpak", "/usr/lib/x86_64-linux-gnu/libflatpak.so.0"]
+provided_abi_or_commands = ["Flatpak application runtime and sandbox manager"]
+protected = false
+current_mattos_version = "1.18.0-1mattos1"
+expected_debian_role = "application sandbox and OSTree runtime"
+classification = "mattos-alternative"
+known_gaps = ["No Debian package is claimed"]
+
+[[package]]
 debian_name = "libreadline8"
 mattos_name = "libreadline8"
 source_component = "readline"
@@ -1919,6 +1931,18 @@ current_mattos_version = "2.4.9-1mattos1"
 expected_debian_role = "APT OpenPGP verifier"
 classification = "debian-compatible"
 known_gaps = ["None"]
+
+[[package]]
+debian_name = "gnupg"
+mattos_name = "gnupg"
+source_component = "gnupg"
+owned_paths = ["/usr/bin/gpg", "/usr/bin/gpg-agent", "/usr/libexec/gpg-preset-passphrase"]
+provided_abi_or_commands = ["OpenPGP engine for GPGME-backed signature verification"]
+protected = false
+current_mattos_version = "2.4.9-1mattos1"
+expected_debian_role = "OpenPGP client and engine runtime"
+classification = "debian-compatible"
+known_gaps = ["Smartcard and keyserver services require separately configured external hardware or services"]
 
 [[package]]
 debian_name = "cosmic-initial-setup"

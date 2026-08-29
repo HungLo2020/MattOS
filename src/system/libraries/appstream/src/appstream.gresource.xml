@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+ <gresource prefix="/org/freedesktop/appstream">
+  <file>xdg-category-names.txt</file>
+  <file>iana-filtered-tld-list.txt</file>
+  <file>platform_arch.txt</file>
+  <file>platform_os.txt</file>
+  <file>platform_env.txt</file>
+  <file>reference-registries.txt</file>
+ </gresource>
+</gresources>

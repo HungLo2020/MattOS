@@ -1,0 +1,369 @@
+/* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*-
+ *
+ * Copyright (C) 2015-2026 Matthias Klumpp <matthias@tenstral.net>
+ *
+ * Licensed under the GNU Lesser General Public License Version 2.1
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 2.1 of the license, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "ascli-actions-pkgmgr.h"
+
+#include <config.h>
+#include <glib/gi18n-lib.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
+
+#include "ascli-utils.h"
+
+/* characters which may appear in metadata-supplied values that we pass on to
+ * external tools, in addition to ASCII alphanumerics */
+#define ASCLI_ARG_CHARS_PKGNAME	  "+-._:"
+#define ASCLI_ARG_CHARS_BUNDLE_ID "+-._:/"
+
+/**
+ * ascli_verify_extern_arg:
+ * @str: The metadata-supplied string to test.
+ * @extra_chars: Characters permitted in addition to ASCII alphanumerics.
+ *
+ * Verify that a value which we read from (potentially untrusted) catalog
+ * metadata can safely be passed as a single argument to an external tool.
+ *
+ * Returns: %TRUE if the string is safe to use as a command-line argument.
+ */
+static gboolean
+ascli_verify_extern_arg (const gchar *str, const gchar *extra_chars)
+{
+	if (str == NULL || str[0] == '\0')
+		return FALSE;
+
+	/* Package names and bundle IDs always start with an alphanumeric character */
+	if (!g_ascii_isalnum (str[0]))
+		return FALSE;
+
+	/* never permit relative path components */
+	if (strstr (str, "..") != NULL)
+		return FALSE;
+
+	for (guint i = 0; str[i] != '\0'; i++) {
+		if (g_ascii_isalnum (str[i]))
+			continue;
+		if (strchr (extra_chars, str[i]) != NULL)
+			continue;
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+/**
+ * exec_pm_action:
+ *
+ * Run the native package manager to perform an action (install/remove) on
+ * a set of packages.
+ * The PM will replace the current process tree.
+ */
+static int
+exec_pm_action (const gchar *action, gchar **pkgnames)
+{
+	int ret;
+	guint cmd_len = 0;
+	const gchar *exe = NULL;
+	g_auto(GStrv) cmd = NULL;
+
+	/* the package names originate from catalog metadata that a repository
+	 * supplied, so never hand them to the package manager unchecked */
+	for (guint i = 0; pkgnames[i] != NULL; i++) {
+		if (!ascli_verify_extern_arg (pkgnames[i], ASCLI_ARG_CHARS_PKGNAME)) {
+			ascli_print_stderr (
+			    /* TRANSLATORS: The placeholder is the invalid package name found in metadata. */
+			    _("Refusing to run the package manager: The component metadata contains an invalid package name: %s"),
+			      pkgnames[i]);
+			return ASCLI_EXIT_CODE_BAD_INPUT;
+		}
+	}
+
+#ifdef HAVE_APT_SUPPORT
+	if (g_file_test ("/usr/bin/apt", G_FILE_TEST_EXISTS))
+		exe = "/usr/bin/apt";
+#endif
+	if (exe == NULL) {
+		if (g_file_test ("/usr/bin/pkgcli", G_FILE_TEST_EXISTS)) {
+			exe = "/usr/bin/pkgcli";
+		} else {
+			g_printerr ("%s\n",
+				    _("No suitable package manager tool found. Please make sure that e.g. \"pkgcli\" (part of PackageKit) is available."));
+			return ASCLI_EXIT_CODE_FAILED;
+		}
+	}
+
+	cmd_len = g_strv_length (pkgnames);
+	cmd = g_new0 (gchar *, 3 + cmd_len + 1);
+	cmd[0] = g_strdup (exe);
+	cmd[1] = g_strdup (action);
+	/* end of options: everything after this is a package name */
+	cmd[2] = g_strdup ("--");
+	for (guint i = 0; i < cmd_len; i++) {
+		cmd[3 + i] = g_strdup (pkgnames[i]);
+	}
+
+	ret = execv (exe, cmd);
+	if (ret != 0)
+		ascli_print_stderr (_("Unable to spawn package manager: %s"), g_strerror (errno));
+	return ret;
+}
+
+/**
+ * exec_flatpak_action:
+ *
+ * Run the Flatpak to perform an action (install/remove).
+ */
+static int
+exec_flatpak_action (const gchar *action, const gchar *bundle_id)
+{
+	int ret;
+	const gchar *exe = NULL;
+	g_auto(GStrv) cmd = NULL;
+
+	/* the bundle ID comes straight from repository-supplied metadata */
+	if (!ascli_verify_extern_arg (bundle_id, ASCLI_ARG_CHARS_BUNDLE_ID)) {
+		ascli_print_stderr (
+		    /* TRANSLATORS: The placeholder is the invalid Flatpak bundle ID found in metadata. */
+		    _("Refusing to run Flatpak: The component metadata contains an invalid bundle ID: %s"),
+		      bundle_id);
+		return ASCLI_EXIT_CODE_BAD_INPUT;
+	}
+
+	exe = "/usr/bin/flatpak";
+	if (!g_file_test (exe, G_FILE_TEST_EXISTS)) {
+		g_printerr ("%s\n", _("Flatpak was not found! Please install it to continue."));
+		return ASCLI_EXIT_CODE_FAILED;
+	}
+
+	cmd = g_new0 (gchar *, 5 + 1);
+	cmd[0] = g_strdup (exe);
+	cmd[1] = g_strdup (action);
+	/* end of options: what follows is the bundle ID */
+	cmd[2] = g_strdup ("--");
+	cmd[3] = g_strdup (bundle_id);
+
+	ret = execv (exe, cmd);
+	if (ret != 0)
+		ascli_print_stderr (_("Unable to spawn Flatpak process: %s"), g_strerror (errno));
+	return ret;
+}
+
+static int
+ascli_get_component_instrm_candidate (const gchar *identifier,
+				      AsBundleKind bundle_kind,
+				      gboolean choose_first,
+				      gboolean is_removal,
+				      AsComponent **result_cpt)
+{
+	g_autoptr(GError) error = NULL;
+	g_autoptr(AsPool) pool = NULL;
+	g_autoptr(AsComponentBox) result = NULL;
+	g_autoptr(AsComponentBox) result_filtered = NULL;
+	AsComponent *r_cpt;
+
+	if (identifier == NULL) {
+		ascli_print_stderr (_("You need to specify a component-ID."));
+		return ASCLI_EXIT_CODE_BAD_INPUT;
+	}
+
+	pool = as_pool_new ();
+	as_pool_load (pool, NULL, &error);
+	if (error != NULL) {
+		g_printerr ("%s\n", error->message);
+		return ASCLI_EXIT_CODE_FAILED;
+	}
+
+	result = as_pool_get_components_by_id (pool, identifier);
+	if (as_component_box_is_empty (result)) {
+		ascli_print_stderr (_("Unable to find component with ID '%s'!"), identifier);
+		return ASCLI_EXIT_CODE_NO_RESULT;
+	}
+
+	if (bundle_kind == AS_BUNDLE_KIND_UNKNOWN) {
+		result_filtered = g_object_ref (result);
+	} else {
+		result_filtered = as_component_box_new (AS_COMPONENT_BOX_FLAG_NO_CHECKS);
+		for (guint i = 0; i < as_component_box_len (result); i++) {
+			AsComponent *cpt = as_component_box_index (result, i);
+
+			if (bundle_kind == AS_BUNDLE_KIND_PACKAGE &&
+			    as_component_get_pkgname (cpt) != NULL) {
+				as_component_box_add (result_filtered, cpt, NULL);
+				continue;
+			}
+
+			if (bundle_kind == AS_BUNDLE_KIND_FLATPAK &&
+			    as_component_get_bundle (cpt, AS_BUNDLE_KIND_FLATPAK) != NULL) {
+				as_component_box_add (result_filtered, cpt, NULL);
+				continue;
+			}
+		}
+	}
+
+	if (as_component_box_is_empty (result_filtered)) {
+		ascli_print_stderr (
+		    _("Unable to find component with ID '%s' and the selected filter criteria!"),
+		      identifier);
+		return ASCLI_EXIT_CODE_NO_RESULT;
+	}
+
+	if (choose_first || as_component_box_len (result_filtered) == 1) {
+		r_cpt = as_component_box_index (result_filtered, 0);
+	} else {
+		gint selection;
+		if (is_removal)
+			/* TRANSLATORS: We found multiple components to remove, a list of them is printed below this text. */
+			g_print ("%s\n", _("Multiple candidates were found for removal:"));
+		else
+			/* TRANSLATORS: We found multiple components to install, a list of them is printed below this text. */
+			g_print ("%s\n", _("Multiple candidates were found for installation:"));
+
+		for (guint i = 0; i < as_component_box_len (result_filtered); i++) {
+			AsBundle *bundle = NULL;
+			AsComponent *cpt = as_component_box_index (result_filtered, i);
+
+			bundle = as_component_get_bundle (cpt, AS_BUNDLE_KIND_FLATPAK);
+			if (bundle == NULL)
+				g_print (" [%d] package:%s ",
+					 i + 1,
+					 as_component_get_pkgname (cpt));
+			else
+				g_print (" [%d] bundle:flatpak ", i + 1);
+			g_print ("- %s (%s)\n",
+				 as_component_get_name (cpt),
+				 as_component_get_summary (cpt));
+		}
+
+		if (is_removal)
+			/* TRANSLATORS: A list of components is displayed with number prefixes. This is a prompt for the user to select one. */
+			selection = ascli_prompt_number (
+			    _("Please enter the number of the component to remove:"),
+			      as_component_box_len (result_filtered));
+		else
+			/* TRANSLATORS: A list of components is displayed with number prefixes. This is a prompt for the user to select one. */
+			selection = ascli_prompt_number (
+			    _("Please enter the number of the component to install:"),
+			      as_component_box_len (result_filtered));
+		r_cpt = as_component_box_index (result_filtered, selection - 1);
+	}
+
+	g_assert (result_cpt != NULL);
+	*result_cpt = g_object_ref (r_cpt);
+
+	if (as_component_get_bundle (r_cpt, AS_BUNDLE_KIND_FLATPAK) == NULL &&
+	    as_component_get_pkgname (r_cpt) == NULL) {
+		ascli_print_stderr (_("Component '%s' has no installation candidate."), identifier);
+		return ASCLI_EXIT_CODE_FAILED;
+	}
+
+	return ASCLI_EXIT_CODE_SUCCESS;
+}
+
+/**
+ * ascli_install_component:
+ *
+ * Install a component matching the given ID.
+ */
+int
+ascli_install_component (const gchar *identifier, AsBundleKind bundle_kind, gboolean choose_first)
+{
+	gint exit_code = 0;
+	g_autoptr(AsComponent) cpt = NULL;
+
+	if (bundle_kind != AS_BUNDLE_KIND_UNKNOWN && bundle_kind != AS_BUNDLE_KIND_PACKAGE &&
+	    bundle_kind != AS_BUNDLE_KIND_FLATPAK) {
+		g_warning ("Can not handle bundle kind %s, falling back to none.",
+			   as_bundle_kind_to_string (bundle_kind));
+		bundle_kind = AS_BUNDLE_KIND_UNKNOWN;
+	}
+
+	exit_code = ascli_get_component_instrm_candidate (identifier,
+							  bundle_kind,
+							  choose_first,
+							  FALSE, /* not removal */
+							  &cpt);
+	if (exit_code != 0)
+		return exit_code;
+
+	if (bundle_kind != AS_BUNDLE_KIND_PACKAGE) {
+		AsBundle *bundle = as_component_get_bundle (cpt, AS_BUNDLE_KIND_FLATPAK);
+		if (bundle != NULL) {
+			exit_code = exec_flatpak_action ("install", as_bundle_get_id (bundle));
+			return exit_code;
+		}
+	}
+
+	if (bundle_kind != AS_BUNDLE_KIND_FLATPAK) {
+		if (as_component_get_pkgname (cpt) != NULL) {
+			exit_code = exec_pm_action ("install", as_component_get_pkgnames (cpt));
+			return exit_code;
+		}
+	}
+
+	g_critical (
+	    "Did not install anything even though packages were found. This should not happen.");
+	return ASCLI_EXIT_CODE_FATAL;
+}
+
+/**
+ * ascli_remove_component:
+ *
+ * Remove a component matching the given ID.
+ */
+int
+ascli_remove_component (const gchar *identifier, AsBundleKind bundle_kind, gboolean choose_first)
+{
+	gint exit_code = 0;
+	g_autoptr(AsComponent) cpt = NULL;
+
+	if (bundle_kind != AS_BUNDLE_KIND_UNKNOWN && bundle_kind != AS_BUNDLE_KIND_PACKAGE &&
+	    bundle_kind != AS_BUNDLE_KIND_FLATPAK) {
+		g_warning ("Can not handle bundle kind %s, falling back to none.",
+			   as_bundle_kind_to_string (bundle_kind));
+		bundle_kind = AS_BUNDLE_KIND_UNKNOWN;
+	}
+
+	exit_code = ascli_get_component_instrm_candidate (identifier,
+							  bundle_kind,
+							  choose_first,
+							  TRUE, /* is removal */
+							  &cpt);
+	if (exit_code != 0)
+		return exit_code;
+
+	if (bundle_kind != AS_BUNDLE_KIND_PACKAGE) {
+		AsBundle *bundle = as_component_get_bundle (cpt, AS_BUNDLE_KIND_FLATPAK);
+		if (bundle != NULL) {
+			exit_code = exec_flatpak_action ("remove", as_bundle_get_id (bundle));
+			return exit_code;
+		}
+	}
+
+	if (bundle_kind != AS_BUNDLE_KIND_FLATPAK) {
+		if (as_component_get_pkgname (cpt) != NULL) {
+			exit_code = exec_pm_action ("remove", as_component_get_pkgnames (cpt));
+			return exit_code;
+		}
+	}
+
+	g_critical (
+	    "Did not remove anything even though packages were found. This should not happen.");
+	return ASCLI_EXIT_CODE_FATAL;
+}

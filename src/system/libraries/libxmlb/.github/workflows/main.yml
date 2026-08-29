@@ -1,0 +1,25 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        distro:
+          - fedora
+          - fedora-w64
+          - debian
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - run: docker build -t libxmlb-${{ matrix.distro }} -f contrib/ci/Dockerfile-${{ matrix.distro }} .
+      - run: docker run -t -v `pwd`:/build libxmlb-${{ matrix.distro }} ./contrib/ci/build-${{ matrix.distro }}.sh

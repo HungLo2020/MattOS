@@ -1,0 +1,1548 @@
+/* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*-
+ *
+ * Copyright (C) 2018-2024 Matthias Klumpp <matthias@tenstral.net>
+ * Copyright (C) 2014-2016 Richard Hughes <richard@hughsie.com>
+ *
+ * Licensed under the GNU Lesser General Public License Version 2.1
+ *
+ * This library is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 2.1 of the license, or
+ * (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ * SECTION:as-news-convert
+ * @short_description: Read and write NEWS/Changelog files from metainfo
+ * @include: appstream.h
+ *
+ * Read NEWS and other types of release information files and convert them
+ * to AppStream metainfo data.
+ * Also, write NEWS files from #AsRelease release information.
+ *
+ * These functions are private/internal.
+ */
+
+#include "config.h"
+#include "as-news-convert.h"
+
+#include "as-metadata.h"
+#include "as-xml.h"
+#include "as-yaml.h"
+#include "as-utils-private.h"
+#include "as-release-private.h"
+#include "as-issue.h"
+#include "as-gcve.h"
+
+/**
+ * as_news_format_kind_to_string:
+ * @kind: the #AsNewsFormatKind.
+ *
+ * Converts the enumerated value to an text representation.
+ *
+ * Returns: string version of @kind
+ *
+ * Since: 0.12.9
+ **/
+const gchar *
+as_news_format_kind_to_string (AsNewsFormatKind kind)
+{
+	if (kind == AS_NEWS_FORMAT_KIND_YAML)
+		return "yaml";
+	if (kind == AS_NEWS_FORMAT_KIND_TEXT)
+		return "text";
+	if (kind == AS_NEWS_FORMAT_KIND_MARKDOWN)
+		return "markdown";
+	return "unknown";
+}
+
+/**
+ * as_news_format_kind_from_string:
+ * @kind_str: the string.
+ *
+ * Converts the text representation to an enumerated value.
+ *
+ * Returns: a #AsNewsFormatKind or %AS_NEWS_FORMAT_KIND_UNKNOWN for unknown
+ *
+ * Since: 0.12.9
+ **/
+AsNewsFormatKind
+as_news_format_kind_from_string (const gchar *kind_str)
+{
+	if (kind_str == NULL)
+		return AS_NEWS_FORMAT_KIND_UNKNOWN;
+	if (g_strcmp0 (kind_str, "yaml") == 0)
+		return AS_NEWS_FORMAT_KIND_YAML;
+	if (g_strcmp0 (kind_str, "text") == 0)
+		return AS_NEWS_FORMAT_KIND_TEXT;
+	if (g_strcmp0 (kind_str, "markdown") == 0)
+		return AS_NEWS_FORMAT_KIND_MARKDOWN;
+	return AS_NEWS_FORMAT_KIND_UNKNOWN;
+}
+
+/**
+ * as_releases_to_metainfo_xml_chunk:
+ *
+ * Internal helper method to convert release objects to XML.
+ */
+gchar *
+as_releases_to_metainfo_xml_chunk (GPtrArray *releases, GError **error)
+{
+	g_autoptr(AsContext) ctx = NULL;
+	xmlNode *root;
+	xmlNode *n_releases;
+	g_auto(GStrv) strv = NULL;
+	g_autofree gchar *xml_raw = NULL;
+	guint lines;
+
+	ctx = as_context_new ();
+	as_context_set_locale (ctx, "C");
+	as_context_set_style (ctx, AS_FORMAT_STYLE_METAINFO);
+
+	root = xmlNewNode (NULL, (xmlChar *) "component");
+	n_releases = as_xml_add_node (root, "releases");
+
+	for (guint i = 0; i < releases->len; ++i) {
+		AsRelease *release = AS_RELEASE (g_ptr_array_index (releases, i));
+		as_release_to_xml_node (release, ctx, n_releases);
+	}
+
+	xml_raw = as_xml_node_free_to_str (root, error);
+	if ((error != NULL) && (*error != NULL))
+		return NULL;
+
+	/* this is inefficient, but we don't actually need to be very fast here */
+	strv = g_strsplit (xml_raw, "\n", -1);
+	lines = g_strv_length (strv);
+	if (lines < 4)
+		return NULL; /* something went wrong here */
+	g_free (strv[lines - 1]);
+	g_free (strv[lines - 2]);
+	strv[lines - 2] = NULL;
+
+	return g_strjoinv ("\n", strv + 2);
+}
+
+/**
+ * as_news_yaml_to_release:
+ */
+static GPtrArray *
+as_news_yaml_to_releases (const gchar *yaml_data, gint limit, GError **error)
+{
+	struct fy_parser *parser = NULL;
+	struct fy_document *ydoc = NULL;
+	gboolean ret = TRUE;
+	g_autoptr(GPtrArray) releases = NULL;
+	struct fy_parse_cfg ycfg = { .search_path = "", .flags = FYPCF_DEFAULT_VERSION_1_2 };
+
+	if (yaml_data == NULL) {
+		g_set_error (error,
+			     AS_METADATA_ERROR,
+			     AS_METADATA_ERROR_FAILED,
+			     "YAML news file was empty.");
+		return NULL;
+	}
+
+	releases = g_ptr_array_new_with_free_func (g_object_unref);
+
+	/* initialize YAML parser */
+	ycfg.diag = as_yaml_error_diag_create ();
+	parser = fy_parser_create (&ycfg);
+	if (fy_parser_set_string (parser, yaml_data, -1) != 0) {
+		ret = FALSE;
+		goto out;
+	}
+
+	while ((ydoc = fy_parse_load_document (parser)) != NULL) {
+		struct fy_node *root;
+		g_autoptr(AsRelease) rel = as_release_new ();
+
+		root = fy_document_root (ydoc);
+		if (!fy_node_is_mapping (root)) {
+			g_set_error_literal (error,
+					     AS_METADATA_ERROR,
+					     AS_METADATA_ERROR_FAILED,
+					     "Invalid YAML news file: Root is not a mapping");
+			ret = FALSE;
+			fy_document_destroy (ydoc);
+			break;
+		}
+
+		AS_YAML_MAPPING_FOREACH (npair, root) {
+			const gchar *key = as_yaml_node_get_key0 (npair);
+			struct fy_node *nval = fy_node_pair_value (npair);
+
+			if (key == NULL || nval == NULL) {
+				/* skip an empty node */
+				continue;
+			}
+
+			if (g_strcmp0 (key, "Version") == 0) {
+				as_release_set_version (rel, fy_node_get_scalar0 (nval));
+			} else if (g_strcmp0 (key, "Date") == 0) {
+				as_release_set_date (rel, fy_node_get_scalar0 (nval));
+			} else if (g_strcmp0 (key, "Type") == 0) {
+				AsReleaseKind rkind = as_release_kind_from_string (
+				    fy_node_get_scalar0 (nval));
+				if (rkind != AS_RELEASE_KIND_UNKNOWN)
+					as_release_set_kind (rel, rkind);
+			} else if ((g_strcmp0 (key, "Description") == 0) ||
+				   (g_strcmp0 (key, "Notes") == 0)) {
+				g_autoptr(GString) dsc = g_string_new ("");
+
+				if (fy_node_is_sequence (nval)) {
+					g_string_append (dsc, "<ul>");
+					AS_YAML_SEQUENCE_FOREACH (dn, nval) {
+						g_autofree gchar *escaped = g_markup_escape_text (
+						    fy_node_get_scalar0 (dn),
+						    -1);
+						g_string_append_printf (dsc,
+									"<li>%s</li>",
+									escaped);
+					}
+					g_string_append (dsc, "</ul>");
+
+				} else if (fy_node_is_scalar (nval)) {
+					/* we have a freeform text instead. Convert to paragraphs */
+					g_auto(GStrv)
+						   paras = g_strsplit (fy_node_get_scalar0 (nval),
+								       "\n\n",
+								       -1);
+					for (guint i = 0; paras[i] != NULL; i++) {
+						g_auto(GStrv) lines = NULL;
+						gboolean in_listing = FALSE;
+						gboolean in_paragraph = FALSE;
+						g_autofree gchar *escaped = g_markup_escape_text (
+						    paras[i],
+						    -1);
+
+						lines = g_strsplit (escaped, "\n", -1);
+						for (guint j = 0; lines[j] != NULL; j++) {
+							const gchar *line = lines[j];
+
+							/* empty lines carry no markup of their own */
+							if (line[0] == '\0')
+								continue;
+
+							if (line[0] == ' ' &&
+							    (line[1] == '-' || line[1] == '*')) {
+								/* we have a list */
+								const gchar *item = line + 2;
+
+								/* skip any space between bullet symbol and its text */
+								while (item[0] == ' ')
+									item++;
+
+								if (in_paragraph) {
+									g_string_truncate (
+									    dsc,
+									    dsc->len - 1);
+									g_string_append (dsc,
+											 "</p>\n");
+									in_paragraph = FALSE;
+								}
+								if (in_listing) {
+									g_string_append (
+									    dsc,
+									    "</li>\n<li>");
+								} else {
+									g_string_append (
+									    dsc,
+									    "<ul>\n<li>");
+								}
+								g_string_append (dsc, item);
+								in_listing = TRUE;
+								continue;
+							} else if (in_listing) {
+								if (g_str_has_prefix (line,
+										      "   ")) {
+									g_string_append_printf (
+									    dsc,
+									    " %s",
+									    line + 3);
+								} else {
+									g_string_append (dsc,
+											 "</li>\n</"
+											 "ul>\n");
+									in_listing = FALSE;
+									g_string_append_printf (
+									    dsc,
+									    "<p>%s\n",
+									    line);
+									in_paragraph = TRUE;
+								}
+							} else {
+								g_string_append_printf (dsc,
+											"<p>%s\n",
+											line);
+								in_paragraph = TRUE;
+							}
+						}
+						if (in_listing)
+							g_string_append (dsc, "</li>\n</ul>\n");
+						if (in_paragraph) {
+							g_string_truncate (dsc, dsc->len - 1);
+							g_string_append (dsc, "</p>\n");
+						}
+					}
+				}
+
+				/* FIXME: Silences an invalid null-dereference warning in GCC >= 13
+				 * which happens when GString is used in g_autoptr() */
+				g_assert (dsc != NULL);
+				as_release_set_description (rel, dsc->str, "C");
+			} else if (as_str_equal0 (key, "Resolved") ||
+				   as_str_equal0 (key, "Issues")) {
+				if (!fy_node_is_sequence (nval))
+					continue;
+				AS_YAML_SEQUENCE_FOREACH (in, nval) {
+					g_autoptr(AsIssue) issue = as_issue_new ();
+
+					if (!fy_node_is_mapping (in))
+						continue;
+
+					AS_YAML_MAPPING_FOREACH (ipair, in) {
+						const gchar *ikey = as_yaml_node_get_key0 (ipair);
+						const gchar *ival = as_yaml_node_get_value0 (ipair);
+
+						if (ikey == NULL || ival == NULL)
+							continue;
+
+						if (g_strcmp0 (ikey, "name") == 0 ||
+						    g_strcmp0 (ikey, "id") == 0) {
+							as_issue_set_id (issue, ival);
+						} else if (g_strcmp0 (ikey, "cve") == 0) {
+							as_issue_set_kind (issue,
+									   AS_ISSUE_KIND_CVE);
+							as_issue_set_id (issue, ival);
+						} else if (g_strcmp0 (ikey, "gcve") == 0) {
+							as_issue_set_kind (issue,
+									   AS_ISSUE_KIND_GCVE);
+							as_issue_set_id (issue, ival);
+						} else if (g_strcmp0 (ikey, "type") == 0) {
+							as_issue_set_kind (
+							    issue,
+							    as_issue_kind_from_string (ival));
+						} else if (g_strcmp0 (ikey, "url") == 0) {
+							as_issue_set_url (issue, ival);
+						}
+					}
+
+					if (as_issue_get_id (issue) != NULL)
+						as_release_add_issue (rel, issue);
+				}
+			}
+		}
+
+		if (as_release_get_version (rel) != NULL) {
+			g_ptr_array_add (releases, g_steal_pointer (&rel));
+			if (limit > 0 && releases->len >= (guint) limit) {
+				fy_document_destroy (ydoc);
+				break;
+			}
+		}
+
+		fy_document_destroy (ydoc);
+	}
+
+out:
+	/* check for errors */
+	if (fy_diag_got_error (ycfg.diag) || !ret) {
+		g_autofree gchar *yaml_error = as_yaml_make_error_message (ycfg.diag);
+
+		if (yaml_error == NULL) {
+			g_set_error_literal (error,
+					     AS_METADATA_ERROR,
+					     AS_METADATA_ERROR_PARSE,
+					     "Failed to parse YAML data.");
+		} else {
+			g_set_error (error,
+				     AS_METADATA_ERROR,
+				     AS_METADATA_ERROR_PARSE,
+				     "Failed to parse YAML: %s",
+				     yaml_error);
+		}
+
+		/* ensure we return FALSE, parsing failed */
+		ret = FALSE;
+	}
+
+	fy_parser_destroy (parser);
+	fy_diag_destroy (ycfg.diag);
+
+	/* return NULL on error, otherwise return the list of releases */
+	if (ret)
+		return g_steal_pointer (&releases);
+	else
+		return NULL;
+}
+
+/**
+ * as_news_yaml_write_handler_cb:
+ *
+ * Helper function to store the emitted YAML document.
+ */
+static int
+as_news_yaml_write_handler_cb (struct fy_emitter *emitter,
+			       enum fy_emitter_write_type type,
+			       const char *str,
+			       int len,
+			       void *userdata)
+{
+	GString *result = (GString *) userdata;
+	g_string_append_len (result, str, len);
+
+	return len;
+}
+
+/**
+ * as_news_releases_to_yaml:
+ */
+static gboolean
+as_news_releases_to_yaml (GPtrArray *releases, gchar **yaml_data)
+{
+	struct fy_emitter *emitter;
+	struct fy_emitter_cfg ecfg = { 0 };
+	struct fy_event *event;
+	gboolean res = FALSE;
+	gboolean report_validation_passed = TRUE;
+	GString *yaml_result = g_string_new ("");
+
+	/* configure the emitter */
+	ecfg.flags = FYECF_MODE_BLOCK | FYECF_INDENT_2 | FYECF_WIDTH_132 | FYECF_VERSION_DIR_OFF |
+		     FYECF_TAG_DIR_OFF;
+	ecfg.output = as_news_yaml_write_handler_cb;
+	ecfg.userdata = yaml_result;
+
+	/* create the emitter */
+	emitter = fy_emitter_create (&ecfg);
+	if (emitter == NULL) {
+		g_critical ("Failed to create YAML emitter.");
+		g_string_free (yaml_result, TRUE);
+		return FALSE;
+	}
+
+	/* emit start event */
+	event = fy_emit_event_create (emitter, FYET_STREAM_START);
+	if (event == NULL || fy_emit_event (emitter, event) != 0) {
+		g_critical ("Failed to initialize YAML emitter.");
+		g_string_free (yaml_result, TRUE);
+		fy_emitter_destroy (emitter);
+		return FALSE;
+	}
+
+	for (guint i = 0; i < releases->len; i++) {
+		AsRelease *rel = AS_RELEASE (g_ptr_array_index (releases, i));
+		AsReleaseKind rkind = as_release_get_kind (rel);
+		g_autoptr(AsContext) rel_context = NULL;
+		const gchar *rel_active_locale = NULL;
+		const gchar *desc_markup;
+
+		rel_context = as_release_get_context (rel);
+		if (rel_context == NULL) {
+			rel_context = as_context_new ();
+			as_release_set_context (rel, rel_context);
+		} else {
+			rel_context = g_object_ref (rel_context);
+		}
+
+		rel_active_locale = as_context_get_locale (rel_context);
+
+		/* we only write the untranslated strings */
+		as_context_set_locale (rel_context, "C");
+		desc_markup = as_release_get_description (rel);
+
+		/* new document for this release */
+		event = fy_emit_event_create (emitter, FYET_DOCUMENT_START, FALSE, NULL, NULL);
+		res = fy_emit_event (emitter, event);
+		g_assert (res == 0);
+
+		/* main dict start */
+		as_yaml_mapping_start (emitter);
+
+		as_yaml_emit_entry_str (emitter, "Version", as_release_get_version (rel));
+
+		as_yaml_emit_entry (emitter, "Date", as_release_get_date (rel));
+		if (rkind != AS_RELEASE_KIND_STABLE)
+			as_yaml_emit_entry (emitter, "Type", as_release_kind_to_string (rkind));
+
+		if (desc_markup != NULL) {
+			if (g_strstr_len (desc_markup, -1, "<p>") != NULL) {
+				/* we have paragraphs - just convert the markup to a simple text */
+				g_autofree gchar *md = NULL;
+				md = as_markup_convert (desc_markup, AS_MARKUP_KIND_MARKDOWN, NULL);
+				if (md != NULL)
+					as_yaml_emit_long_entry_literal (emitter,
+									 "Description",
+									 md);
+			} else {
+				xmlDoc *doc = NULL;
+				xmlNode *root;
+				xmlNode *iter;
+				g_autofree gchar *xmldata = NULL;
+
+				/* make XML parser happy by providing a root element */
+				xmldata = g_strdup_printf ("<root>%s</root>", desc_markup);
+
+				doc = xmlParseDoc ((xmlChar *) xmldata);
+				if (doc == NULL)
+					goto xml_end;
+
+				root = xmlDocGetRootElement (doc);
+				if (root == NULL) {
+					/* document was empty */
+					goto xml_end;
+				}
+
+				as_yaml_emit_scalar (emitter, "Description");
+				as_yaml_sequence_start (emitter);
+
+				for (iter = root->children; iter != NULL; iter = iter->next) {
+					xmlNode *iter2;
+					/* discard spaces */
+					if (iter->type != XML_ELEMENT_NODE)
+						continue;
+
+					if ((g_strcmp0 ((gchar *) iter->name, "ul") == 0) ||
+					    (g_strcmp0 ((gchar *) iter->name, "ol") == 0)) {
+						/* iterate over itemize contents */
+						for (iter2 = iter->children; iter2 != NULL;
+						     iter2 = iter2->next) {
+							if (iter2->type != XML_ELEMENT_NODE)
+								continue;
+							if (g_strcmp0 ((gchar *) iter2->name,
+								       "li") == 0) {
+								g_autofree gchar *content =
+								    as_xml_get_node_value_raw (
+									iter2);
+								as_yaml_emit_scalar (
+								    emitter,
+								    as_strstripnl (content));
+							}
+						}
+					}
+				}
+
+				as_yaml_sequence_end (emitter);
+
+			xml_end:
+				if (doc != NULL)
+					xmlFreeDoc (doc);
+			}
+		}
+
+		/* emit resolved issues */
+		{
+			GPtrArray *issues = as_release_get_issues (rel);
+			if (issues != NULL && issues->len > 0) {
+				as_yaml_emit_scalar (emitter, "Resolved");
+				as_yaml_sequence_start (emitter);
+				for (guint j = 0; j < issues->len; j++) {
+					AsIssue *issue = AS_ISSUE (g_ptr_array_index (issues, j));
+					const gchar *id = as_issue_get_id (issue);
+
+					if (id == NULL)
+						continue;
+
+					as_yaml_mapping_start (emitter);
+					if (as_issue_get_kind (issue) == AS_ISSUE_KIND_CVE) {
+						as_yaml_emit_entry (emitter, "cve", id);
+					} else if (as_issue_get_kind (issue) ==
+						   AS_ISSUE_KIND_GCVE) {
+						as_yaml_emit_entry (emitter, "gcve", id);
+					} else {
+						as_yaml_emit_entry (emitter, "name", id);
+						as_yaml_emit_entry (emitter,
+								    "url",
+								    as_issue_get_url (issue));
+					}
+					as_yaml_mapping_end (emitter);
+				}
+				as_yaml_sequence_end (emitter);
+			}
+		}
+
+		as_context_set_locale (rel_context, rel_active_locale);
+
+		/* main dict end */
+		as_yaml_mapping_end (emitter);
+
+		/* finalize the document */
+		event = fy_emit_event_create (emitter, FYET_DOCUMENT_END, 1);
+		res = fy_emit_event (emitter, event);
+		g_assert (res == 0);
+	}
+
+	/* end stream */
+	event = fy_emit_event_create (emitter, FYET_STREAM_END);
+	res = fy_emit_event (emitter, event);
+	g_assert (res == 0);
+
+	fy_emitter_destroy (emitter);
+	*yaml_data = g_string_free (yaml_result, FALSE);
+
+	return report_validation_passed;
+}
+
+typedef enum {
+	AS_NEWS_SECTION_KIND_UNKNOWN,
+	AS_NEWS_SECTION_KIND_HEADER,
+	AS_NEWS_SECTION_KIND_NOTES,
+	AS_NEWS_SECTION_KIND_BUGFIX,
+	AS_NEWS_SECTION_KIND_FEATURES,
+	AS_NEWS_SECTION_KIND_MISC,
+	AS_NEWS_SECTION_KIND_ISSUES,
+	AS_NEWS_SECTION_KIND_TRANSLATION,
+	AS_NEWS_SECTION_KIND_DOCUMENTATION,
+	AS_NEWS_SECTION_KIND_CONTRIBUTORS,
+	AS_NEWS_SECTION_KIND_TRANSLATORS,
+	AS_NEWS_SECTION_KIND_LAST
+} AsNewsSectionKind;
+
+static AsNewsSectionKind
+as_news_text_guess_section (const gchar *lines)
+{
+	if (g_strstr_len (lines, -1, "~~~~") != NULL)
+		return AS_NEWS_SECTION_KIND_HEADER;
+	if (g_strstr_len (lines, -1, "----") != NULL)
+		return AS_NEWS_SECTION_KIND_HEADER;
+	if (g_strstr_len (lines, -1, "====") != NULL)
+		return AS_NEWS_SECTION_KIND_HEADER;
+	if (g_strstr_len (lines, -1, "Bugfix:\n") != NULL)
+		return AS_NEWS_SECTION_KIND_BUGFIX;
+	if (g_strstr_len (lines, -1, "Bugfixes:\n") != NULL)
+		return AS_NEWS_SECTION_KIND_BUGFIX;
+	if (g_strstr_len (lines, -1, "Bug fixes:\n") != NULL)
+		return AS_NEWS_SECTION_KIND_BUGFIX;
+	if (g_strstr_len (lines, -1, "Features:\n") != NULL)
+		return AS_NEWS_SECTION_KIND_FEATURES;
+	if (g_strstr_len (lines, -1, "Removed features:\n") != NULL)
+		return AS_NEWS_SECTION_KIND_FEATURES;
+	if (g_strstr_len (lines, -1, "Specification:\n") != NULL)
+		return AS_NEWS_SECTION_KIND_DOCUMENTATION;
+	if (g_strstr_len (lines, -1, "Documentation:\n") != NULL)
+		return AS_NEWS_SECTION_KIND_DOCUMENTATION;
+	if (g_strstr_len (lines, -1, "Notes:\n") != NULL)
+		return AS_NEWS_SECTION_KIND_NOTES;
+	if (g_strstr_len (lines, -1, "Note:\n") != NULL)
+		return AS_NEWS_SECTION_KIND_NOTES;
+	if (g_strstr_len (lines, -1, "Miscellaneous:\n") != NULL)
+		return AS_NEWS_SECTION_KIND_MISC;
+	if (g_strstr_len (lines, -1, "Misc:\n") != NULL)
+		return AS_NEWS_SECTION_KIND_MISC;
+	if (g_strstr_len (lines, -1, "Resolved Issues:\n") != NULL)
+		return AS_NEWS_SECTION_KIND_ISSUES;
+	if (g_strstr_len (lines, -1, "Resolved:\n") != NULL)
+		return AS_NEWS_SECTION_KIND_ISSUES;
+	if (g_strstr_len (lines, -1, "Translations:\n") != NULL)
+		return AS_NEWS_SECTION_KIND_TRANSLATION;
+	if (g_strstr_len (lines, -1, "Translation:\n") != NULL)
+		return AS_NEWS_SECTION_KIND_TRANSLATION;
+	if (g_strstr_len (lines, -1, "Translations\n") != NULL)
+		return AS_NEWS_SECTION_KIND_TRANSLATION;
+	if (g_strstr_len (lines, -1, "Contributors:\n") != NULL)
+		return AS_NEWS_SECTION_KIND_CONTRIBUTORS;
+	if (g_strstr_len (lines, -1, "With contributions from:\n") != NULL)
+		return AS_NEWS_SECTION_KIND_CONTRIBUTORS;
+	if (g_strstr_len (lines, -1, "Thanks to:\n") != NULL)
+		return AS_NEWS_SECTION_KIND_CONTRIBUTORS;
+	if (g_strstr_len (lines, -1, "Translators:\n") != NULL)
+		return AS_NEWS_SECTION_KIND_TRANSLATORS;
+	return AS_NEWS_SECTION_KIND_UNKNOWN;
+}
+
+static void
+as_news_text_add_markup (GString *desc, const gchar *tag, const gchar *line)
+{
+	/* empty line means do nothing */
+	if (line != NULL && line[0] == '\0')
+		return;
+
+	if (line == NULL) {
+		g_string_append_printf (desc, "<%s>\n", tag);
+	} else {
+		g_autofree gchar *escaped = g_markup_escape_text (line, -1);
+		g_string_append_printf (desc, "<%s>%s</%s>\n", tag, escaped, tag);
+	}
+}
+
+static gboolean
+as_news_text_to_release_hdr (AsRelease *release, GString *desc, const gchar *txt, GError **error)
+{
+	guint i;
+	const gchar *version = NULL;
+	const gchar *release_txt = NULL;
+	g_auto(GStrv) release_split = NULL;
+	g_autoptr(GDateTime) dt = NULL;
+	g_auto(GStrv) lines = NULL;
+	g_autofree gchar *date_str = NULL;
+
+	/* get info */
+	lines = g_strsplit (txt, "\n", -1);
+	for (i = 0; lines[i] != NULL; i++) {
+		if (g_str_has_prefix (lines[i], "Version ")) {
+			version = lines[i] + 8;
+			continue;
+		}
+		if (g_str_has_prefix (lines[i], "Released: ")) {
+			release_txt = lines[i] + 10;
+			continue;
+		}
+	}
+
+	/* check these exist */
+	if (version == NULL) {
+		g_set_error (error,
+			     AS_METADATA_ERROR,
+			     AS_METADATA_ERROR_FAILED,
+			     "Unable to find version in: %s",
+			     txt);
+		return FALSE;
+	}
+	if (release_txt == NULL) {
+		g_set_error (error,
+			     AS_METADATA_ERROR,
+			     AS_METADATA_ERROR_FAILED,
+			     "Unable to find release in: %s",
+			     txt);
+		return FALSE;
+	}
+
+	/* apply version number */
+	as_release_set_version (release, version);
+
+	/* check if the release is unreleased */
+	if ((g_strstr_len (release_txt, -1, "-xx") != NULL) ||
+	    (g_strstr_len (release_txt, -1, "-XX") != NULL) ||
+	    (g_strstr_len (release_txt, -1, "-??") != NULL)) {
+		g_autoptr(GDateTime) dt_now = g_date_time_new_now_local ();
+		date_str = g_date_time_format_iso8601 (dt_now);
+		as_release_set_kind (release, AS_RELEASE_KIND_DEVELOPMENT);
+		as_release_set_date (release, date_str);
+
+		/* no further date parsing is needed at this point */
+		return TRUE;
+	} else {
+		as_release_set_kind (release, AS_RELEASE_KIND_STABLE);
+	}
+
+	/* parse date */
+	release_split = g_strsplit (release_txt, "-", -1);
+	if (g_strv_length (release_split) != 3) {
+		g_set_error (error,
+			     AS_METADATA_ERROR,
+			     AS_METADATA_ERROR_FAILED,
+			     "Unable to parse release: %s",
+			     release_txt);
+		return FALSE;
+	}
+	dt = g_date_time_new_local (atoi (release_split[0]),
+				    atoi (release_split[1]),
+				    atoi (release_split[2]),
+				    0,
+				    0,
+				    0);
+	if (dt == NULL) {
+		g_set_error (error,
+			     AS_METADATA_ERROR,
+			     AS_METADATA_ERROR_FAILED,
+			     "Unable to create release: %s",
+			     release_txt);
+		return FALSE;
+	}
+
+	/* set release properties */
+	date_str = g_strdup_printf ("%s-%s-%s",
+				    release_split[0],
+				    release_split[1],
+				    release_split[2]);
+	as_release_set_date (release, date_str);
+
+	return TRUE;
+}
+
+static const GRegex *
+as_news_cve_id_regex (void)
+{
+	static GRegex *re = NULL;
+	static gsize initialized = 0;
+	if (g_once_init_enter (&initialized)) {
+		re = g_regex_new ("^CVE-[0-9]{4}-[0-9]+$",
+				  G_REGEX_CASELESS | G_REGEX_OPTIMIZE,
+				  0,
+				  NULL);
+		g_once_init_leave (&initialized, 1);
+	}
+	return re;
+}
+
+static const GRegex *
+as_news_cve_word_regex (void)
+{
+	static GRegex *re = NULL;
+	static gsize initialized = 0;
+	if (g_once_init_enter (&initialized)) {
+		re = g_regex_new ("\\bCVE-[0-9]{4}-[0-9]+\\b",
+				  G_REGEX_CASELESS | G_REGEX_OPTIMIZE,
+				  0,
+				  NULL);
+		g_once_init_leave (&initialized, 1);
+	}
+	return re;
+}
+
+static const GRegex *
+as_news_md_link_regex (void)
+{
+	static GRegex *re = NULL;
+	static gsize initialized = 0;
+	if (g_once_init_enter (&initialized)) {
+		re = g_regex_new ("\\[([^]]+)\\]\\(([^)]+)\\)", G_REGEX_OPTIMIZE, 0, NULL);
+		g_once_init_leave (&initialized, 1);
+	}
+	return re;
+}
+
+/**
+ * as_news_text_id_is_cve:
+ *
+ * Check whether an issue identifier looks like a CVE name (e.g. CVE-2024-12345).
+ */
+static gboolean
+as_news_text_id_is_cve (const gchar *id)
+{
+	if (id == NULL)
+		return FALSE;
+	return g_regex_match (as_news_cve_id_regex (), id, 0, NULL);
+}
+
+/**
+ * as_news_canonical_issue_id:
+ *
+ * CVE identifiers may be written in any case in NEWS files, but their
+ * canonical form is uppercase. Any other identifier is used verbatim.
+ *
+ * Returns: (transfer full): the canonical form of @id.
+ */
+static gchar *
+as_news_canonical_issue_id (const gchar *id)
+{
+	if (as_news_text_id_is_cve (id))
+		return g_ascii_strup (id, -1);
+	return g_strdup (id);
+}
+
+/**
+ * as_news_text_id_is_issue_ref:
+ *
+ * Check whether an identifier should be treated as an issue reference.
+ * Issue identifiers start with `#` or `issue#`, or look like a CVE or GCVE name.
+ */
+static gboolean
+as_news_text_id_is_issue_ref (const gchar *id)
+{
+	if (id == NULL)
+		return FALSE;
+	return g_str_has_prefix (id, "#") || g_str_has_prefix (id, "issue#") ||
+	       as_news_text_id_is_cve (id) || as_is_gcve_id (id);
+}
+
+/**
+ * as_news_issue_url_is_derivable:
+ *
+ * Check whether the given URL points at one of the vulnerability databases we
+ * generate links for anyway. Such URLs do not need to be stored explicitly.
+ */
+static gboolean
+as_news_issue_url_is_derivable (const gchar *url)
+{
+	const gchar *db_prefixes[] = { "https://db.gcve.eu/",
+				       "https://www.cve.org/",
+				       "https://cve.org/",
+				       "https://cve.mitre.org/",
+				       NULL };
+	if (url == NULL)
+		return TRUE;
+
+	for (guint i = 0; db_prefixes[i] != NULL; i++) {
+		if (g_str_has_prefix (url, db_prefixes[i]))
+			return TRUE;
+	}
+
+	return FALSE;
+}
+
+static void
+as_news_release_add_issue_dedup (AsRelease *rel, AsIssue *issue)
+{
+	GPtrArray *issues = as_release_get_issues (rel);
+	const gchar *id = as_issue_get_id (issue);
+
+	for (guint i = 0; i < issues->len; i++) {
+		AsIssue *existing = AS_ISSUE (g_ptr_array_index (issues, i));
+		if (as_str_equal0 (as_issue_get_id (existing), id))
+			return;
+	}
+	as_release_add_issue (rel, issue);
+}
+
+/**
+ * as_news_text_extract_issues:
+ * @text: a single bullet/paragraph line of description text.
+ * @rel: the release the detected issues are added to.
+ *
+ * Detects issue references in @text and registers them with @rel:
+ *  - Markdown links of the form `[text](url)` are flattened to just their `text`,
+ *    dropping the URL (Markdown links are not valid in AppStream description markup).
+ *    If `text` looks like an issue reference, the link is additionally registered as an issue.
+ *  - Bare CVE identifiers (e.g. CVE-2024-12345) are turned into issues and *kept*
+ *    in the returned text.
+ *
+ * Duplicate issue references (e.g. a CVE that appears both as a link and bare) are
+ * registered only once.
+ *
+ * Returns: (transfer full): the text with Markdown links flattened to their text.
+ */
+static gchar *
+as_news_text_extract_issues (const gchar *text, AsRelease *rel)
+{
+	g_autoptr(GMatchInfo) link_mi = NULL;
+	g_autoptr(GMatchInfo) cve_mi = NULL;
+	g_autoptr(GMatchInfo) gcve_mi = NULL;
+	g_autoptr(GString) out = NULL;
+	gint pos = 0;
+
+	g_return_val_if_fail (rel != NULL, g_strdup (text));
+	if (text == NULL)
+		return NULL;
+
+	/* flatten Markdown issue links: [id](url) -> id (+ register the issue) */
+	out = g_string_new ("");
+	g_regex_match (as_news_md_link_regex (), text, 0, &link_mi);
+	while (g_match_info_matches (link_mi)) {
+		gint start = 0, end = 0;
+		g_autofree gchar *id = g_match_info_fetch (link_mi, 1);
+		g_autofree gchar *url = g_match_info_fetch (link_mi, 2);
+
+		g_match_info_fetch_pos (link_mi, 0, &start, &end);
+		/* copy the text leading up to the link verbatim */
+		g_string_append_len (out, text + pos, start - pos);
+
+		if (as_news_text_id_is_issue_ref (id)) {
+			g_autoptr(AsIssue) issue = as_issue_new ();
+			g_autofree gchar *canonical_id = as_news_canonical_issue_id (id);
+			as_issue_set_id (issue, canonical_id);
+			if (as_news_text_id_is_cve (id))
+				as_issue_set_kind (issue, AS_ISSUE_KIND_CVE);
+			else if (as_is_gcve_id (id))
+				as_issue_set_kind (issue, AS_ISSUE_KIND_GCVE);
+
+			/* keep the linked URL, unless it points at a vulnerability database
+			 * we can derive the link for from the ID anyway */
+			if (as_issue_get_kind (issue) == AS_ISSUE_KIND_GENERIC ||
+			    !as_news_issue_url_is_derivable (url))
+				as_issue_set_url (issue, url);
+			as_news_release_add_issue_dedup (rel, issue);
+		}
+
+		/* keep only the link text, dropping the URL */
+		g_string_append (out, id);
+
+		pos = end;
+		g_match_info_next (link_mi, NULL);
+	}
+	g_string_append (out, text + pos);
+
+	/* detect bare CVE references, but keep them in the prose */
+	g_regex_match (as_news_cve_word_regex (), out->str, 0, &cve_mi);
+	while (g_match_info_matches (cve_mi)) {
+		g_autofree gchar *cve = g_match_info_fetch (cve_mi, 0);
+		g_autofree gchar *canonical_cve = as_news_canonical_issue_id (cve);
+		g_autoptr(AsIssue) issue = as_issue_new ();
+
+		as_issue_set_kind (issue, AS_ISSUE_KIND_CVE);
+		as_issue_set_id (issue, canonical_cve);
+		as_news_release_add_issue_dedup (rel, issue);
+
+		g_match_info_next (cve_mi, NULL);
+	}
+
+	/* detect bare GCVE references, but keep them in the prose */
+	g_regex_match (as_gcve_id_word_regex (), out->str, 0, &gcve_mi);
+	while (g_match_info_matches (gcve_mi)) {
+		g_autofree gchar *gcve = g_match_info_fetch (gcve_mi, 0);
+		g_autoptr(AsIssue) issue = as_issue_new ();
+
+		as_issue_set_kind (issue, AS_ISSUE_KIND_GCVE);
+		as_issue_set_id (issue, gcve);
+		as_news_release_add_issue_dedup (rel, issue);
+
+		g_match_info_next (gcve_mi, NULL);
+	}
+
+	return g_string_free (g_steal_pointer (&out), FALSE);
+}
+
+/**
+ * as_news_text_parse_issues_section:
+ *
+ * Parse a "Resolved Issues:" block of `* id: url` bullet lines. Recognized issue
+ * references are added as structured release issues. Lines that do not match the expected
+ * style are kept as plain list items in @desc.
+ */
+static void
+as_news_text_parse_issues_section (const gchar *section, GString *desc, AsRelease *rel)
+{
+	g_auto(GStrv) lines = g_strsplit (section, "\n", -1);
+	g_autoptr(GPtrArray) plain_items = g_ptr_array_new_with_free_func (g_free);
+
+	/* the first line is the section header, skip it */
+	for (guint i = 1; lines[i] != NULL; i++) {
+		guint prefix = 0;
+		const gchar *content;
+		const gchar *sep;
+		g_autofree gchar *id = NULL;
+		g_autofree gchar *url = NULL;
+		g_autoptr(AsIssue) issue = NULL;
+
+		g_strstrip (lines[i]);
+		if ((g_str_has_prefix (lines[i], "- ")) || (g_str_has_prefix (lines[i], "* ")))
+			prefix = 2;
+		content = lines[i] + prefix;
+		if (content[0] == '\0')
+			continue;
+
+		sep = g_strstr_len (content, -1, ": ");
+		if (sep != NULL) {
+			id = g_strndup (content, sep - content);
+			url = g_strdup (sep + 2);
+			g_strstrip (url);
+		} else {
+			id = g_strdup (content);
+		}
+		g_strstrip (id);
+
+		if (!as_news_text_id_is_issue_ref (id)) {
+			/* unrecognized line: keep it as a plain list item */
+			g_ptr_array_add (plain_items, g_strdup (content));
+			continue;
+		}
+
+		issue = as_issue_new ();
+		as_issue_set_id (issue, id);
+		if (url != NULL && url[0] != '\0')
+			as_issue_set_url (issue, url);
+		if (as_news_text_id_is_cve (id))
+			as_issue_set_kind (issue, AS_ISSUE_KIND_CVE);
+		as_news_release_add_issue_dedup (rel, issue);
+	}
+
+	/* render any unrecognized lines so their content is not lost */
+	if (plain_items->len > 0) {
+		as_news_text_add_markup (desc, "ul", NULL);
+		for (guint i = 0; i < plain_items->len; i++)
+			as_news_text_add_markup (desc, "li", g_ptr_array_index (plain_items, i));
+		as_news_text_add_markup (desc, "/ul", NULL);
+	}
+}
+
+static gboolean
+as_news_text_to_list_markup (GString *desc, gchar **lines, AsRelease *rel, GError **error)
+{
+	as_news_text_add_markup (desc, "ul", NULL);
+	for (guint i = 0; lines[i] != NULL; i++) {
+		guint prefix = 0;
+		g_autofree gchar *item = NULL;
+		g_strstrip (lines[i]);
+		if ((g_str_has_prefix (lines[i], "- ")) || (g_str_has_prefix (lines[i], "* ")))
+			prefix = 2;
+		item = as_news_text_extract_issues (lines[i] + prefix, rel);
+		as_news_text_add_markup (desc, "li", item);
+	}
+	as_news_text_add_markup (desc, "/ul", NULL);
+	return TRUE;
+}
+
+static gboolean
+as_news_text_to_para_markup (GString *desc, const gchar *txt, AsRelease *rel, GError **error)
+{
+	g_auto(GStrv) lines = NULL;
+	gboolean para_generated = FALSE;
+
+	if (g_strstr_len (txt, -1, "* ") != NULL || g_strstr_len (txt, -1, "- ") != NULL) {
+		/* enumerations to paragraphs */
+		lines = g_strsplit (txt, "\n", -1);
+		for (guint i = 1; lines[i] != NULL; i++) {
+			guint prefix = 0;
+			g_autofree gchar *para = NULL;
+			g_strstrip (lines[i]);
+			if ((g_str_has_prefix (lines[i], "- ")) ||
+			    (g_str_has_prefix (lines[i], "* ")))
+				prefix = 2;
+
+			para = as_news_text_extract_issues (lines[i] + prefix, rel);
+			as_news_text_add_markup (desc, "p", para);
+			para_generated = TRUE;
+		}
+	} else {
+		/* freeform text to paragraphs */
+		const gchar *txt_content = g_strstr_len (txt, -1, "\n");
+		if (txt_content == NULL) {
+			g_set_error (
+			    error,
+			    AS_METADATA_ERROR,
+			    AS_METADATA_ERROR_FAILED,
+			    "Unable to write sensible paragraph markup (missing header) for: %s.",
+			    txt);
+			return FALSE;
+		}
+		lines = g_strsplit (txt_content, "\n\n", -1);
+		for (guint i = 0; lines[i] != NULL; i++) {
+			g_autofree gchar *para = NULL;
+			g_strstrip (lines[i]);
+
+			para = as_news_text_extract_issues (lines[i], rel);
+			as_news_text_add_markup (desc, "p", para);
+			para_generated = TRUE;
+		}
+	}
+
+	if (!para_generated) {
+		g_set_error (error,
+			     AS_METADATA_ERROR,
+			     AS_METADATA_ERROR_FAILED,
+			     "Unable to write sensible paragraph markup (source data may be "
+			     "malformed) for: %s.",
+			     txt);
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+/**
+ * as_news_text_to_releases:
+ */
+static GPtrArray *
+as_news_text_to_releases (const gchar *data, gint limit, GError **error)
+{
+	g_autoptr(GString) data_str = NULL;
+	g_autoptr(GString) desc = NULL;
+	g_auto(GStrv) split = NULL;
+	g_autoptr(GPtrArray) sections = NULL;
+	g_autoptr(GPtrArray) releases = NULL;
+	g_autoptr(AsRelease) rel = NULL;
+	AsNewsSectionKind prev_kind;
+	gboolean limit_reached = FALSE;
+
+	if (data == NULL) {
+		g_set_error (error,
+			     AS_METADATA_ERROR,
+			     AS_METADATA_ERROR_FAILED,
+			     "YAML news file was empty.");
+		return NULL;
+	}
+
+	releases = g_ptr_array_new_with_free_func (g_object_unref);
+
+	/* try to unsplit lines */
+	data_str = g_string_new (data);
+	as_gstring_replace (data_str, "\n   ", " ", 0);
+
+	/* Break up into sections. A block separated by a blank line that does not start
+	 * a new section is either a continuation of the preceding section (e.g. a list or
+	 * note resuming after an empty line) or, when it follows the version header,
+	 * freeform release prose. The former is merged back into its section (keeping the
+	 * blank line as a paragraph break), the latter is turned into a notes section, so
+	 * that no content is lost. */
+	desc = g_string_new ("");
+	split = g_strsplit (data_str->str, "\n\n", -1);
+	sections = g_ptr_array_new_with_free_func (g_free);
+	prev_kind = AS_NEWS_SECTION_KIND_UNKNOWN;
+	for (guint i = 0; split[i] != NULL; i++) {
+		AsNewsSectionKind kind;
+
+		/* ignore empty sections */
+		if (split[i][0] == '\0')
+			continue;
+
+		kind = as_news_text_guess_section (split[i]);
+		if (kind == AS_NEWS_SECTION_KIND_UNKNOWN && sections->len > 0 &&
+		    prev_kind != AS_NEWS_SECTION_KIND_HEADER) {
+			/* continuation of the preceding section */
+			guint last = sections->len - 1;
+			gchar *prev = g_ptr_array_index (sections, last);
+			sections->pdata[last] = g_strconcat (prev, "\n\n", split[i], NULL);
+			g_free (prev);
+		} else if (kind == AS_NEWS_SECTION_KIND_UNKNOWN) {
+			/* freeform prose with no section of its own: treat it as notes */
+			g_ptr_array_add (sections, g_strconcat ("Notes:\n", split[i], NULL));
+			prev_kind = AS_NEWS_SECTION_KIND_NOTES;
+		} else {
+			g_ptr_array_add (sections, g_strdup (split[i]));
+			prev_kind = kind;
+		}
+	}
+
+	for (guint i = 0; i < sections->len; i++) {
+		const gchar *section = g_ptr_array_index (sections, i);
+		AsNewsSectionKind section_kind = as_news_text_guess_section (section);
+		g_auto(GStrv) lines = NULL;
+
+		/* content sections are attached to the current release, so anything
+		 * appearing before the first version header has nowhere to go: skip it.
+		 * This also guarantees that @rel is non-NULL for all content below. */
+		if (section_kind != AS_NEWS_SECTION_KIND_HEADER && rel == NULL)
+			continue;
+
+		switch (section_kind) {
+		case AS_NEWS_SECTION_KIND_HEADER: {
+			/* flush old release content and create new release */
+			if (desc->len > 0) {
+				as_release_set_description (rel, desc->str, "C");
+				g_string_truncate (desc, 0);
+			}
+			if (rel != NULL) {
+				g_ptr_array_add (releases, g_steal_pointer (&rel));
+				if (limit > 0 && releases->len >= (guint) limit)
+					limit_reached = TRUE;
+			}
+			rel = as_release_new ();
+
+			/* parse header */
+			if (!as_news_text_to_release_hdr (rel, desc, section, error)) {
+				g_prefix_error (error,
+						"Unable to parse NEWS header '%s': ",
+						section);
+				return NULL;
+			}
+			break;
+		}
+		case AS_NEWS_SECTION_KIND_BUGFIX:
+			lines = g_strsplit (section, "\n", -1);
+			if (g_strv_length (lines) == 2) {
+				as_news_text_add_markup (desc,
+							 "p",
+							 "This release fixes the following bug:");
+			} else {
+				as_news_text_add_markup (desc,
+							 "p",
+							 "This release fixes the following bugs:");
+			}
+			if (!as_news_text_to_list_markup (desc, lines + 1, rel, error))
+				return FALSE;
+			break;
+		case AS_NEWS_SECTION_KIND_NOTES:
+			if (!as_news_text_to_para_markup (desc, section, rel, error))
+				return FALSE;
+			break;
+		case AS_NEWS_SECTION_KIND_FEATURES:
+			lines = g_strsplit (section, "\n", -1);
+			if (g_strv_length (lines) == 2) {
+				as_news_text_add_markup (
+				    desc,
+				    "p",
+				    "This release adds the following feature:");
+			} else {
+				as_news_text_add_markup (
+				    desc,
+				    "p",
+				    "This release adds the following features:");
+			}
+			if (!as_news_text_to_list_markup (desc, lines + 1, rel, error))
+				return FALSE;
+			break;
+		case AS_NEWS_SECTION_KIND_MISC:
+			lines = g_strsplit (section, "\n", -1);
+			if (g_strv_length (lines) == 2) {
+				as_news_text_add_markup (
+				    desc,
+				    "p",
+				    "This release includes the following change:");
+			} else {
+				as_news_text_add_markup (
+				    desc,
+				    "p",
+				    "This release includes the following changes:");
+			}
+			if (!as_news_text_to_list_markup (desc, lines + 1, rel, error))
+				return FALSE;
+			break;
+		case AS_NEWS_SECTION_KIND_ISSUES:
+			as_news_text_parse_issues_section (section, desc, rel);
+			break;
+		case AS_NEWS_SECTION_KIND_DOCUMENTATION:
+			lines = g_strsplit (section, "\n", -1);
+			as_news_text_add_markup (desc, "p", "This release updates documentation:");
+			if (!as_news_text_to_list_markup (desc, lines + 1, rel, error))
+				return FALSE;
+			break;
+		case AS_NEWS_SECTION_KIND_TRANSLATION:
+			as_news_text_add_markup (desc, "p", "This release updates translations.");
+			break;
+		case AS_NEWS_SECTION_KIND_CONTRIBUTORS:
+			as_news_text_add_markup (desc, "p", "With contributions from:");
+
+			if (g_strstr_len (section, -1, "* ") != NULL ||
+			    g_strstr_len (section, -1, "- ") != NULL) {
+				lines = g_strsplit (section, "\n", -1);
+				if (!as_news_text_to_list_markup (desc, lines + 1, rel, error))
+					return FALSE;
+			} else {
+				if (!as_news_text_to_para_markup (desc, section, rel, error))
+					return FALSE;
+			}
+			break;
+		case AS_NEWS_SECTION_KIND_TRANSLATORS:
+			as_news_text_add_markup (desc, "p", "Updated localization by:");
+
+			if (g_strstr_len (section, -1, "* ") != NULL ||
+			    g_strstr_len (section, -1, "- ") != NULL) {
+				lines = g_strsplit (section, "\n", -1);
+				if (!as_news_text_to_list_markup (desc, lines + 1, rel, error))
+					return FALSE;
+			} else {
+				if (!as_news_text_to_para_markup (desc, section, rel, error))
+					return FALSE;
+			}
+			break;
+		default:
+			g_set_error (error,
+				     AS_METADATA_ERROR,
+				     AS_METADATA_ERROR_FAILED,
+				     "Failed to detect section '%s'",
+				     section);
+			return FALSE;
+		}
+
+		if (limit_reached)
+			break;
+	}
+
+	/* flush old release content */
+	if (desc->len > 0 && !limit_reached) {
+		as_release_set_description (rel, desc->str, "C");
+		g_ptr_array_add (releases, g_steal_pointer (&rel));
+	}
+
+	return g_steal_pointer (&releases);
+}
+
+/**
+ * as_news_releases_to_text:
+ */
+static gboolean
+as_news_releases_to_text (GPtrArray *releases, gchar **md_data, AsNewsFormatKind kind)
+{
+	const gchar *header_line_char;
+	g_autoptr(GString) str = NULL;
+
+	if (kind == AS_NEWS_FORMAT_KIND_MARKDOWN)
+		header_line_char = "-";
+	else
+		header_line_char = "~";
+
+	str = g_string_new ("");
+	for (guint i = 0; i < releases->len; i++) {
+		const gchar *tmp;
+		g_autofree gchar *version = NULL;
+		g_autofree gchar *date = NULL;
+		g_autoptr(GDateTime) dt = NULL;
+		GPtrArray *issues;
+		AsRelease *rel = AS_RELEASE (g_ptr_array_index (releases, i));
+
+		/* write version with underline */
+		version = g_strdup_printf ("Version %s", as_release_get_version (rel));
+		g_string_append_printf (str, "%s\n", version);
+		for (guint j = 0; version[j] != '\0'; j++)
+			g_string_append (str, header_line_char);
+		g_string_append (str, "\n");
+
+		/* write release */
+		if (as_release_get_timestamp (rel) > 0) {
+			dt = g_date_time_new_from_unix_utc (
+			    (gint64) as_release_get_timestamp (rel));
+			date = g_date_time_format (dt, "%F");
+			g_string_append_printf (str, "Released: %s\n\n", date);
+		}
+
+		/* transform description */
+		tmp = as_release_get_description (rel);
+		if (tmp != NULL) {
+			g_autofree gchar *md = NULL;
+			md = as_markup_convert (tmp, AS_MARKUP_KIND_MARKDOWN, NULL);
+			if (md == NULL)
+				return FALSE;
+			g_string_append_printf (str, "%s\n", md);
+		}
+
+		/* write resolved issues */
+		issues = as_release_get_issues (rel);
+		if (issues != NULL && issues->len > 0) {
+			g_string_append (str, "\nResolved Issues:\n");
+			for (guint j = 0; j < issues->len; j++) {
+				AsIssue *issue = AS_ISSUE (g_ptr_array_index (issues, j));
+				const gchar *id = as_issue_get_id (issue);
+				const gchar *url = as_issue_get_url (issue);
+
+				if (id == NULL)
+					continue;
+				if (url != NULL)
+					g_string_append_printf (str, " * %s: %s\n", id, url);
+				else
+					g_string_append_printf (str, " * %s\n", id);
+			}
+		}
+		g_string_append (str, "\n");
+	}
+	if (str->len > 1)
+		g_string_truncate (str, str->len - 1);
+
+	*md_data = g_string_free (str, FALSE);
+	str = NULL;
+	return TRUE;
+}
+
+/**
+ * as_news_to_releases_from_data:
+ *
+ * Convert NEWS data to a list of AsRelease elements.
+ */
+GPtrArray *
+as_news_to_releases_from_data (const gchar *data,
+			       AsNewsFormatKind kind,
+			       gint entry_limit,
+			       gint translatable_limit,
+			       GError **error)
+{
+	GPtrArray *releases = NULL;
+
+	if (kind == AS_NEWS_FORMAT_KIND_YAML)
+		releases = as_news_yaml_to_releases (data, entry_limit, error);
+	if (kind == AS_NEWS_FORMAT_KIND_TEXT || kind == AS_NEWS_FORMAT_KIND_MARKDOWN)
+		releases = as_news_text_to_releases (data, entry_limit, error);
+
+	if (releases == NULL) {
+		/* if no error was set, we simply had no idea about the format.
+		 * Otherwise, parsing must have failed. */
+		if (error == NULL)
+			g_set_error (error,
+				     AS_METADATA_ERROR,
+				     AS_METADATA_ERROR_FAILED,
+				     "Unable to detect input data format.");
+		return NULL;
+	}
+
+	/* trim release entries to the desired size */
+	if (entry_limit > 0 && (guint) entry_limit < releases->len)
+		g_ptr_array_remove_range (releases, entry_limit, releases->len - entry_limit);
+
+	/* mark only the desired amount of stuff as translatable */
+	if (translatable_limit >= 0) {
+		for (guint i = 0; i < releases->len; i++) {
+			AsRelease *release = AS_RELEASE (g_ptr_array_index (releases, i));
+			if (i >= (guint) translatable_limit)
+				as_release_set_description_translatable (release, FALSE);
+		}
+	}
+
+	return releases;
+}
+
+/**
+ * as_news_to_releases_from_filename:
+ *
+ * Convert NEWS file to a list of AsRelease elements.
+ */
+GPtrArray *
+as_news_to_releases_from_filename (const gchar *fname,
+				   AsNewsFormatKind kind,
+				   gint entry_limit,
+				   gint translatable_limit,
+				   GError **error)
+{
+	g_autofree gchar *data = NULL;
+
+	/* try to guess what kind of file we are dealing with, assume YAML if detection fails */
+	if (kind == AS_NEWS_FORMAT_KIND_UNKNOWN) {
+		if (g_str_has_suffix (fname, ".yml") || g_str_has_suffix (fname, ".yaml"))
+			kind = AS_NEWS_FORMAT_KIND_YAML;
+		else if (g_str_has_suffix (fname, ".md"))
+			kind = AS_NEWS_FORMAT_KIND_MARKDOWN;
+		else if (g_str_has_suffix (fname, "NEWS") || g_str_has_suffix (fname, "news") ||
+			 g_str_has_suffix (fname, ".txt"))
+			kind = AS_NEWS_FORMAT_KIND_TEXT;
+		else
+			kind = AS_NEWS_FORMAT_KIND_YAML;
+	}
+
+	/* load data from file */
+	if (!g_file_get_contents (fname, &data, NULL, error))
+		return NULL;
+
+	return as_news_to_releases_from_data (data, kind, entry_limit, translatable_limit, error);
+}
+
+/**
+ * as_releases_to_news_data:
+ *
+ * Convert a list of releases to a text representation.
+ */
+gboolean
+as_releases_to_news_data (GPtrArray *releases,
+			  AsNewsFormatKind kind,
+			  gchar **news_data,
+			  GError **error)
+{
+	if (kind == AS_NEWS_FORMAT_KIND_YAML)
+		return as_news_releases_to_yaml (releases, news_data);
+
+	if (kind == AS_NEWS_FORMAT_KIND_TEXT || kind == AS_NEWS_FORMAT_KIND_MARKDOWN)
+		return as_news_releases_to_text (releases, news_data, kind);
+
+	g_set_error (error,
+		     AS_METADATA_ERROR,
+		     AS_METADATA_ERROR_FAILED,
+		     "Unable to detect input data format.");
+	return FALSE;
+}
+
+/**
+ * as_releases_to_news_file:
+ *
+ * Convert a list of releases to a text representation and save it to a file.
+ */
+gboolean
+as_releases_to_news_file (GPtrArray *releases,
+			  const gchar *fname,
+			  AsNewsFormatKind kind,
+			  GError **error)
+{
+	g_autofree gchar *data = NULL;
+
+	/* try to guess what kind of file we are supposed to be writing */
+	if (kind == AS_NEWS_FORMAT_KIND_UNKNOWN) {
+		if (g_str_has_suffix (fname, ".yml") || g_str_has_suffix (fname, ".yaml"))
+			kind = AS_NEWS_FORMAT_KIND_YAML;
+		else if (g_str_has_suffix (fname, ".md"))
+			kind = AS_NEWS_FORMAT_KIND_MARKDOWN;
+		else if (g_str_has_suffix (fname, "NEWS") || g_str_has_suffix (fname, "news") ||
+			 g_str_has_suffix (fname, ".txt"))
+			kind = AS_NEWS_FORMAT_KIND_TEXT;
+		else
+			kind = AS_NEWS_FORMAT_KIND_YAML;
+	}
+
+	if (!as_releases_to_news_data (releases, kind, &data, error))
+		return FALSE;
+
+	return g_file_set_contents (fname, data, -1, error);
+}

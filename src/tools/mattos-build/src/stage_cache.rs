@@ -220,16 +220,10 @@ pub(crate) fn can_migrate_narrowed_manifest(
     if manifest.schema_version != STAGE_MANIFEST_SCHEMA_VERSION
         || manifest.input_details.schema_version == 0
         || (strict_tool_identity_mode()
-            && !tool_details_compatible(
-                &manifest.input_details.tools,
-                &current.details.tools,
-            )
+            && !tool_details_compatible(&manifest.input_details.tools, &current.details.tools)
             && manifest.inputs.tool_digest != current.inputs.tool_digest)
         || (manifest_exposes_compiler_private_output(manifest)
-            && !tool_details_compatible(
-                &manifest.input_details.tools,
-                &current.details.tools,
-            )
+            && !tool_details_compatible(&manifest.input_details.tools, &current.details.tools)
             && manifest.inputs.tool_digest != current.inputs.tool_digest)
         || manifest.inputs.environment_digest != current.inputs.environment_digest
         || !current
@@ -312,8 +306,8 @@ fn tool_details_compatible(
             return false;
         }
         let old_path = old.resolved_path.as_str();
-        let old_is_known_proxy = old_path.ends_with("/rustup")
-            || old_path.ends_with("/out/source-ownership/bin/cargo");
+        let old_is_known_proxy =
+            old_path.ends_with("/rustup") || old_path.ends_with("/out/source-ownership/bin/cargo");
         if !old_is_known_proxy || !now.version.starts_with("cargo ") {
             return false;
         }
@@ -478,13 +472,25 @@ pub(crate) fn explain_stage_impact(repo_root: &Path, spec: &StageSpec) -> Result
         "recipe/schema change"
     } else if changes.iter().any(|change| change.category == "source") {
         "source change"
-    } else if changes.iter().any(|change| change.category == "ownership-contract") {
+    } else if changes
+        .iter()
+        .any(|change| change.category == "ownership-contract")
+    {
         "ownership-contract change"
-    } else if changes.iter().any(|change| change.category == "dependency-output") {
+    } else if changes
+        .iter()
+        .any(|change| change.category == "dependency-output")
+    {
         "dependency-output change"
-    } else if changes.iter().any(|change| change.category == "tool identity") {
+    } else if changes
+        .iter()
+        .any(|change| change.category == "tool identity")
+    {
         "tool identity"
-    } else if changes.iter().any(|change| change.category == "configuration") {
+    } else if changes
+        .iter()
+        .any(|change| change.category == "configuration")
+    {
         "configuration change"
     } else {
         "unexplained/unrelated invalidation"
@@ -515,7 +521,12 @@ fn stage_input_changes(
             current: serde_json::json!(current.recipe),
         });
     }
-    collect_detail_changes("source", &manifest.input_details.source, &current.source, &mut changes);
+    collect_detail_changes(
+        "source",
+        &manifest.input_details.source,
+        &current.source,
+        &mut changes,
+    );
     for (key, stored) in &manifest.input_details.configuration {
         if current.configuration.get(key) != Some(stored) {
             let category = if key.contains("out/source-ownership/cargo/contracts/") {
@@ -549,9 +560,24 @@ fn stage_input_changes(
             });
         }
     }
-    collect_detail_changes("configuration", &manifest.input_details.environment, &current.environment, &mut changes);
-    collect_detail_changes("tool identity", &manifest.input_details.tools, &current.tools, &mut changes);
-    collect_detail_changes("dependency-output", &manifest.input_details.dependencies, &current.dependencies, &mut changes);
+    collect_detail_changes(
+        "configuration",
+        &manifest.input_details.environment,
+        &current.environment,
+        &mut changes,
+    );
+    collect_detail_changes(
+        "tool identity",
+        &manifest.input_details.tools,
+        &current.tools,
+        &mut changes,
+    );
+    collect_detail_changes(
+        "dependency-output",
+        &manifest.input_details.dependencies,
+        &current.dependencies,
+        &mut changes,
+    );
     changes
 }
 
@@ -567,12 +593,12 @@ fn collect_detail_changes<T: Serialize + PartialEq>(
             changes.push(StageInputChange {
                 category: category.to_string(),
                 key: key.clone(),
-                stored: stored
-                    .get(key)
-                    .map_or(serde_json::Value::Null, |value| serde_json::to_value(value).unwrap()),
-                current: current
-                    .get(key)
-                    .map_or(serde_json::Value::Null, |value| serde_json::to_value(value).unwrap()),
+                stored: stored.get(key).map_or(serde_json::Value::Null, |value| {
+                    serde_json::to_value(value).unwrap()
+                }),
+                current: current.get(key).map_or(serde_json::Value::Null, |value| {
+                    serde_json::to_value(value).unwrap()
+                }),
             });
         }
     }
@@ -934,7 +960,10 @@ mod tests {
             digest_serializable(&validity_tool_identities(&spec, &tools, false)).unwrap(),
             digest_serializable(&validity_tool_identities(&spec, &changed, false)).unwrap()
         );
-        assert_ne!(digest_serializable(&tools).unwrap(), digest_serializable(&changed).unwrap());
+        assert_ne!(
+            digest_serializable(&tools).unwrap(),
+            digest_serializable(&changed).unwrap()
+        );
     }
 
     #[test]
@@ -950,27 +979,16 @@ mod tests {
         )]);
         let mut changed = tools.clone();
         changed.get_mut("rustc").unwrap().executable_sha256 = "rust-two".to_string();
-        let mut spec = fixture_spec(
-            "out/build/example/install/usr/lib/rustlib/example/lib/example.rlib",
-        );
+        let mut spec =
+            fixture_spec("out/build/example/install/usr/lib/rustlib/example/lib/example.rlib");
         spec.id = "rust".to_string();
         assert_eq!(
             digest_serializable(&validity_tool_identities(&spec, &tools, false)).unwrap(),
             digest_serializable(&validity_tool_identities(&spec, &changed, false)).unwrap()
         );
         assert_ne!(
-            digest_serializable(&validity_tool_identities(
-                &spec,
-                &tools,
-                true,
-            ))
-            .unwrap(),
-            digest_serializable(&validity_tool_identities(
-                &spec,
-                &changed,
-                true,
-            ))
-            .unwrap()
+            digest_serializable(&validity_tool_identities(&spec, &tools, true,)).unwrap(),
+            digest_serializable(&validity_tool_identities(&spec, &changed, true,)).unwrap()
         );
     }
 

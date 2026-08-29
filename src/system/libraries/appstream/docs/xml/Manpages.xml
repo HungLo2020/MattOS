@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<chapter xmlns="http://docbook.org/ns/docbook" xmlns:xi="http://www.w3.org/2001/XInclude" version="5.2" xml:id="chap-AppStream-ManualPages">
+	<title>Manual pages</title>
+
+	<para>
+		This chapter lists the man pages for the command-line interface tools that
+		AppStream provides.
+	</para>
+
+	<xi:include href="man/appstreamcli.1.xml"/>
+	<xi:include href="man/appstreamcli-compose.1.xml"/>
+
+</chapter>

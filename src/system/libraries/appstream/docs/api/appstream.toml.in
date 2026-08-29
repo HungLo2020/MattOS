@@ -1,0 +1,46 @@
+[library]
+version = "@version@"
+browse_url = "https://github.com/ximion/appstream"
+repository_url = "https://github.com/ximion/appstream.git"
+website_url = "https://www.freedesktop.org/software/appstream/docs/"
+authors = "AppStream Developers"
+logo_url = "appstream-logo.svg"
+license = "LGPL-2.1-or-later"
+description = "Library to work with AppStream metadata "
+devhelp = true
+search_index = true
+
+dependencies = [
+  "GObject-2.0",
+  "Gio-2.0"
+]
+
+  [dependencies."GObject-2.0"]
+  name = "GObject"
+  description = "The base type system library"
+  docs_url = "https://docs.gtk.org/gobject/"
+
+  [dependencies."Gio-2.0"]
+  name = "Gio"
+  description = "A modern, easy-to-use VFS API"
+  docs_url = "https://docs.gtk.org/gio/"
+
+related = ["AppStreamCompose-1.0"]
+
+  [related."AppStreamCompose-1.0"]
+  name = "AppStreamCompose"
+  description = "Library to compose AppStream catalog metadata"
+  docs_url = "https://www.freedesktop.org/software/appstream/docs/compose-api/"
+
+[theme]
+name = "basic"
+show_index_summary = true
+show_class_hierarchy = true
+
+[source-location]
+base_url = "https://github.com/ximion/appstream/blob/v@version@/"
+
+[extra]
+content_images = [
+  "../images/src/svg/appstream-logo.svg",
+]

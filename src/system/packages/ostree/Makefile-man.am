@@ -1,0 +1,109 @@
+# Makefile for man/
+#
+# Copyright (C) 2016 Colin Walters <walters@verbum.org>
+#
+# SPDX-License-Identifier: LGPL-2.0+
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library. If not, see <https://www.gnu.org/licenses/>.
+
+# This needs to be outside the conditional to avoid a warning
+.PHONY: manhtml
+
+if ENABLE_MAN
+
+# If you add a new man page here, add a reference to it in index.xml and
+# ostree.xml.
+man1_files = ostree.1 ostree-admin-cleanup.1				\
+ostree-admin-config-diff.1 ostree-admin-deploy.1			\
+ostree-admin-init-fs.1 ostree-admin-instutil.1 ostree-admin-stateroot-init.1 ostree-admin-os-init.1	\
+ostree-admin-status.1 ostree-admin-set-origin.1 ostree-admin-switch.1	\
+ostree-admin-undeploy.1 ostree-admin-upgrade.1 ostree-admin-unlock.1	\
+ostree-admin-pin.1 ostree-admin-post-copy.1 ostree-admin-set-default.1 \
+ostree-admin-prepare-soft-reboot.1 \
+ostree-admin-lock-finalization.1 \
+ostree-admin.1 ostree-cat.1 ostree-checkout.1 ostree-checksum.1		\
+ostree-commit.1 ostree-create-usb.1 ostree-export.1 \
+ostree-config.1 ostree-diff.1 ostree-find-remotes.1 ostree-fsck.1 \
+ostree-init.1 ostree-log.1 ostree-ls.1 ostree-prune.1 ostree-pull-local.1 \
+ostree-pull.1 ostree-refs.1 ostree-remote.1 ostree-reset.1 \
+ostree-rev-parse.1 ostree-show.1 ostree-sign.1 ostree-summary.1 \
+ostree-static-delta.1 ostree-prepare-root.1
+
+if BUILDOPT_FUSE
+man1_files += rofiles-fuse.1
+endif
+
+if USE_GPGME
+man1_files += ostree-gpg-sign.1
+endif
+
+man5_files = ostree.repo.5 ostree.repo-config.5
+
+man8_files = ostree-state-overlay@.service.8
+
+man1_MANS = $(addprefix man/,$(man1_files))
+man5_MANS = $(addprefix man/,$(man5_files))
+man8_MANS = $(addprefix man/,$(man8_files))
+
+manhtml_files = \
+	man/html/index.html \
+	$(addprefix man/html/,$(man1_files:.1=.html)) \
+	$(addprefix man/html/,$(man5_files:.5=.html)) \
+	$(addprefix man/html/,$(man8_files:.8=.html)) \
+	$(NULL)
+
+if ENABLE_MAN_HTML
+noinst_DATA += $(manhtml_files)
+
+# Convenience target for building the just the HTML man pages
+manhtml: $(manhtml_files)
+endif
+
+EXTRA_DIST += man/index.xml $(man1_MANS:.1=.xml) $(man5_MANS:.5=.xml) $(man8_MANS:.8=.xml)
+
+XSLT_MAN_STYLESHEET = http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl
+XSLT_HTML_STYLESHEET = man/html.xsl
+EXTRA_DIST += $(XSLT_HTML_STYLESHEET)
+
+XSLTPROC_FLAGS = \
+        --nonet \
+        --stringparam man.output.quietly 1 \
+        --stringparam funcsynopsis.style ansi \
+        --stringparam man.th.extra1.suppress 1 \
+        --stringparam man.authors.section.enabled 0 \
+        --stringparam man.copyright.section.enabled 0
+
+XSLTPROC_MAN = $(XSLTPROC) $(XSLTPROC_FLAGS)
+
+%.1: %.xml
+	$(AM_V_GEN) $(XSLTPROC_MAN) --output $@ $(XSLT_MAN_STYLESHEET) $<
+
+%.5: %.xml
+	$(AM_V_GEN) $(XSLTPROC_MAN) --output $@ $(XSLT_MAN_STYLESHEET) $<
+
+%.8: %.xml
+	$(AM_V_GEN) $(XSLTPROC_MAN) --output $@ $(XSLT_MAN_STYLESHEET) $<
+
+man/html/%.html: man/%.xml
+	@mkdir -p man/html
+	$(AM_V_GEN) $(XSLTPROC_MAN) --output $@ $(XSLT_HTML_STYLESHEET) $<
+
+CLEANFILES += \
+	$(man1_MANS) \
+	$(man5_MANS) \
+	$(man8_MANS) \
+	$(manhtml_files) \
+	$(NULL)
+
+endif

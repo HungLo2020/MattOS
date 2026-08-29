@@ -1,0 +1,59 @@
+AppStream Release Notes
+
+1. Set variables
+
+OLD_VERSION="1.1.5"
+NEW_VERSION="1.1.6"
+
+2. Ensure translations are synced from Weblate
+
+3. Write NEWS entries for AppStream in the same format as usual.
+
+git shortlog v$OLD_VERSION.. | grep -i -v -E '^\s*(trivial:|l10n:)' | grep -v Merge > NEWS.new
+
+--------------------------------------------------------------------------------
+Version 1.1.6
+~~~~~~~~~~~~~
+Released: 2026-xx-xx
+
+Notes:
+
+Features:
+
+Specification:
+
+Bugfixes:
+
+Miscellaneous:
+
+Contributors:
+--------------------------------------------------------------------------------
+
+4. Commit changes in AppStream git:
+
+git commit -a -m "Release version $NEW_VERSION"
+git tag -s -f -m "Release $NEW_VERSION" v$NEW_VERSION <gpg password>
+git push && git push --tags
+
+5. run './release.sh --version=$NEW_VERSION --git-tag=v$NEW_VERSION --sign'
+
+6. Upload tarball: scp -r *.tar.xz* mak@annarchy.freedesktop.org:/srv/www.freedesktop.org/www/software/appstream/releases/
+
+7. Upload documentation:
+   scp -r build/release_install/usr/local/share/doc/appstream/html/* mak@annarchy.freedesktop.org:/srv/www.freedesktop.org/www/software/appstream/docs/
+
+8. Do post release version bump in meson.build, RELEASE
+
+9. Commit trivial changes:
+
+git commit -a -m "trivial: post release version bump"
+git push
+
+10. Send an email to appstream@lists.freedesktop.org
+
+=================================================
+AppStream 1.1.6 released!
+
+Tarballs available here: https://www.freedesktop.org/software/appstream/releases/
+
+=================================================

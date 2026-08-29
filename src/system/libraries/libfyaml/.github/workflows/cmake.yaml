@@ -1,0 +1,240 @@
+name: CMake CI
+
+run-name: >-
+  ${{ github.event_name == 'schedule'          && 'CMake CI · daily' ||
+      github.event_name == 'pull_request'       && format('CMake CI · PR #{0}', github.event.pull_request.number) ||
+      github.event_name == 'workflow_dispatch'  && format('CMake CI · manual · job={0} os={1}', inputs.job || 'all', inputs.os || 'all') ||
+      format('CMake CI · {0} · {1}', github.ref_name, github.event.head_commit.message) }}
+
+env:
+  CMAKE_BUILD_PARALLEL_LEVEL: ${{ vars.NUMBER_OF_PROCESSORS || 2 }}
+  CTEST_PARALLEL_LEVEL: ${{ vars.NUMBER_OF_PROCESSORS || 2 }}
+  CTEST_OUTPUT_ON_FAILURE: 1      # show output only on failure (replaces --output-on-failure)
+
+on:
+  push:
+    branches: [ master, reflection-new5 ]
+  pull_request:
+    branches: [ master, reflection-new5 ]
+  schedule:
+    - cron: '0 2 * * *'   # daily complete run at 02:00 UTC
+  workflow_dispatch:
+    inputs: &inputs
+      os:
+        description: "OS to run (e.g. ubuntu-latest, macos-latest, windows-latest)"
+        required: false
+        default: ""
+        type: string
+      compiler:
+        description: "Compiler (e.g. gcc, clang, msvc)"
+        required: false
+        default: ""
+        type: string
+      build_type:
+        description: "Build type (Debug or Release)"
+        required: false
+        default: ""
+        type: string
+      job:
+        description: "Job to run (build, asan, smoke, or empty for all)"
+        required: false
+        default: ""
+        type: string
+      asan:
+        description: "Enable ASAN (ON or OFF)"
+        required: false
+        default: ""
+        type: string
+      testing:
+        description: "Enable testing (ON or OFF)"
+        required: false
+        default: ""
+        type: string
+      ctest_args:
+        description: "Extra ctest arguments (e.g. -R foo, -E bar, -V)"
+        required: false
+        default: ""
+        type: string
+  workflow_call:
+    inputs: *inputs
+
+jobs:
+  # ===========================================
+  # Generate filtered matrix for all builds
+  # ===========================================
+  generate-matrix:
+    name: Generate matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.gen.outputs.matrix }}
+      has_jobs: ${{ steps.gen.outputs.has_jobs }}
+    steps:
+    - id: gen
+      shell: python3 {0}
+      run: |
+        import json, os
+
+        # Inputs
+        f = {
+            "os": "${{ inputs.os }}",
+            "compiler": "${{ inputs.compiler }}",
+            "build_type": "${{ inputs.build_type }}",
+            "asan": "${{ inputs.asan }}",
+            "testing": "${{ inputs.testing }}"
+        }
+        f = {k: v for k, v in f.items() if v}
+        job_filter = "${{ inputs.job }}"
+        event = "${{ github.event_name }}"
+        manual = bool(f) or bool(job_filter) or event == 'workflow_dispatch'
+
+        # Configurations
+        compilers = {
+            "ubuntu-latest":  [("gcc", "gcc", "g++"), ("clang", "clang-18", "clang++-18")],
+            "macos-latest":   [("gcc", "gcc", "g++"), ("clang", "clang", "clang++")],
+            "windows-latest": [("msvc", "cl", "cl"), ("clang", "clang", "clang++")],
+        }
+
+        smoke_configs = [
+            ("ubuntu-24.04", "gcc", "gcc", "g++"),
+            ("ubuntu-22.04", "gcc", "gcc", "g++"),
+            ("macos-14", "clang", "clang", "clang++"),
+            ("windows-2022", "msvc", "cl", "cl"),
+            ("ubuntu-24.04-arm", "gcc", "gcc", "g++"),
+        ]
+
+        rows = []
+
+        def add_row(os_name, compiler, cc, cxx, build_type, testing, asan, job_name):
+            # Pruning rules
+            if asan == "ON":
+                if os_name.startswith('windows'): return
+                if compiler == "msvc": return
+                if build_type != "Debug": return
+                # Non-manual macos ASAN only on clang
+                if not manual and os_name == "macos-latest" and compiler == "gcc": return
+
+            row = {
+                "os": os_name, "compiler": compiler, "cc": cc, "cxx": cxx,
+                "build_type": build_type, "testing": testing, "asan": asan,
+                "job": job_name, "python-version": "3.11"
+            }
+
+            # Generator selection
+            if compiler == "msvc":
+                row["generator"] = '-G "Visual Studio 17 2022" -A x64'
+                row["cmake_args"] = f"-DENABLE_ASAN={asan} -DBUILD_TESTING={testing}"
+            else:
+                row["generator"] = "-G Ninja"
+                row["cmake_args"] = f"-DCMAKE_C_COMPILER={cc} -DENABLE_ASAN={asan} -DBUILD_TESTING={testing}"
+
+            # Apply filters
+            if job_filter and job_filter != job_name: return
+            if any(row.get(k) != v for k, v in f.items()): return
+
+            rows.append(row)
+
+        # 1. Standard Builds & ASAN Builds
+        for os_name, comps in compilers.items():
+            for c, cc, cxx in comps:
+                for bt in ["Debug", "Release"]:
+                    add_row(os_name, c, cc, cxx, bt, "ON", "OFF", "build")
+                # Add ASAN (Debug only)
+                add_row(os_name, c, cc, cxx, "Debug", "ON", "ON", "asan")
+
+        # 2. Smoke Builds (Specific OS versions, no testing)
+        for os_name, c, cc, cxx in smoke_configs:
+            add_row(os_name, c, cc, cxx, "Release", "OFF", "OFF", "smoke")
+
+        # Fast mode: push/PR with no manual overrides - Linux build only
+        if not manual and event:
+            job_name = event
+        else:
+            job_name = "${{ inputs.job }}"
+
+        if job_name in ('push', 'pull_request'):
+            rows = [r for r in rows if r["os"] == "ubuntu-latest" and r["job"] == "build"]
+
+        # Final output
+        with open(os.environ["GITHUB_OUTPUT"], "a") as out:
+            out.write(f"matrix={json.dumps({'include': rows})}\n")
+            out.write(f"has_jobs={'true' if rows else 'false'}\n")
+
+  # ===========================================
+  # Unified Build & Test Job
+  # ===========================================
+  build:
+    name: >-
+      ${{ matrix.os }} - ${{ matrix.compiler }} - ${{ matrix.build_type }}
+      ${{ matrix.asan == 'ON' && ' (ASAN)' || '' }}
+      ${{ matrix.testing == 'OFF' && ' (Smoke)' || '' }}
+    needs: generate-matrix
+    if: needs.generate-matrix.outputs.has_jobs == 'true'
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
+
+    steps:
+    - name: "Git Sane LF"
+      run: |
+        git config --global core.autocrlf false
+        git config --global core.eol lf
+
+    - name: "Checkout"
+      uses: actions/checkout@v4
+
+    - name: "Setup python"
+      uses: actions/setup-python@v5
+      with:
+        python-version: "${{ matrix.python-version }}"
+
+    - name: "Install CMake/Ninja"
+      uses: lukka/get-cmake@latest
+
+    - name: Setup Windows
+      if: runner.os == 'Windows'
+      uses: microsoft/setup-msbuild@v2
+
+    - name: "Install dependencies (Ubuntu)"
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install --no-install-recommends -y pkg-config check libyaml-dev libltdl-dev libblocksruntime-dev libclang-dev llvm-dev libubsan1 ${{ matrix.cc }} ${{ matrix.cxx }}
+
+    - name: "Install dependencies (macOS)"
+      if: runner.os == 'macOS'
+      run: |
+        brew update
+        brew install pkg-config check libyaml gcc@13 llvm
+
+    - name: "Install dependencies (Windows)"
+      if: runner.os == 'Windows'
+      run: |
+        choco install pkgconfiglite llvm
+
+    - name: "Install python"
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest
+
+    - name: "Configure"
+      run: |
+        cmake -B build ${{ matrix.generator }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ${{ matrix.cmake_args }}
+
+    - name: "Build"
+      run: |
+        cmake --build build --config ${{ matrix.build_type }}
+
+    - name: "Test"
+      if: matrix.testing == 'ON'
+      working-directory: build
+      run: |
+        ctest -C ${{ matrix.build_type }} ${{ inputs.ctest_args }}
+
+    - name: "Upload test logs on failure"
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: "test-logs-${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.build_type }}-${{ matrix.job }}-${{ github.run_id }}"
+        path: "**/Testing/Temporary/\nbuild/**/*.log"

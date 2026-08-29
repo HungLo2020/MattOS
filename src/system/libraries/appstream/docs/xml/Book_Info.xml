@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<info xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xi="http://www.w3.org/2001/XInclude" version="5.2" xml:id="book-AppStream-AppStream">
+	<title>AppStream</title>
+	<subtitle>Infrastructure for distro-agnostic software-centers and universal software component metadata</subtitle>
+	<productname>AppStream</productname>
+	<productnumber>1.0</productnumber>
+	<edition>1</edition>
+	<abstract>
+		<para>
+			AppStream is a collaborative effort for enhancing the way we interact with the software
+			repositories provided by the distribution by standardizing sets of additional metadata.
+		</para>
+		<para>
+			AppStream provides the foundation to build software-center applications.
+			It additionally provides specifications for things like a unified software metadata database,
+			screenshot services and various other things needed to create user-friendly application-centers
+			for software distributions.
+		</para>
+		<para>
+			You can find a C/GLib based reference implementation of the full specification at
+			<link xlink:href="https://github.com/ximion/appstream">github.com/ximion/appstream</link> and report bugs about the implementation
+			as well as the specification itself at the <link xlink:href="https://github.com/ximion/appstream/issues">issue tracker</link>.
+			The project also provides a web form for the simple creation of metainfo XML files for upstream maintainers at
+			<link xlink:href="https://www.freedesktop.org/software/appstream/metainfocreator/#/">freedesktop.org/software/appstream/metainfocreator</link>.
+		</para>
+	</abstract>
+	<mediaobject>
+		<imageobject>
+			<imagedata fileref="appstream-logo.svg" width="64px" />
+		</imageobject>
+	</mediaobject>
+	<xi:include href="Legal_Notice.xml" />
+	<xi:include href="Author_Group.xml" />
+</info>

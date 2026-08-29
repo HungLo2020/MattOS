@@ -1,0 +1,305 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<section xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" version="5.2" xml:id="sect-Metadata-Releases">
+	<title>Release Information</title>
+
+	<section xml:id="spec-releases-introduction">
+		<title>Introduction</title>
+		<para>
+			This section documents the <xref linkend="tag-releases"/> tag that can be part of a <literal>component</literal> to provide
+			information about releases made for the respective component.
+		</para>
+		<para>
+			Alternatively to being embedded in a component metainfo file, the data may also be split into a dedicated XML file to be updated separately.
+		</para>
+	</section>
+
+	<section xml:id="spec-releases-location">
+		<title>Locations</title>
+
+		<para>
+			Release data may be present directly in a component metainfo file, but also optionally be split out into an external metadata file.
+		</para>
+		<para>
+			If the <literal>releases</literal> XML is part of a metainfo file, it is embedded into it following the semantics described in the document.
+		</para>
+		<para>
+			If the <literal>releases</literal> XML is external, the metainfo file must contain a <xref linkend="tag-releases"/> tag with the <literal>type</literal>
+			property set to <code>external</code> as described for component XML.
+			The data described in this section is placed in a separate XML file with <literal>releases</literal> being its root node.
+			The file must be installed as <filename>/usr/share/metainfo/releases/%{cid}.releases.xml</filename>, where <code>cid</code> is the component ID of the component
+			the release information belongs to.
+		</para>
+	</section>
+
+	<section xml:id="spec-releases-example">
+		<title>Example data</title>
+		<para>
+			Release information may look like this:
+		</para>
+		<programlisting language="XML"><![CDATA[<releases>
+  <release version="1.2" date="2014-04-12" urgency="high">
+    <description>
+      <p>This stable release fixes bugs.</p>
+    </description>
+
+    <url>https://example.org/releases/version-1.2.html</url>
+
+    <issues>
+      <issue url="https://example.com/bugzilla/12345">bz#12345</issue>
+      <issue type="cve">CVE-2019-123456</issue>
+    </issues>
+
+    <artifacts>
+      <artifact type="binary" platform="x86_64-linux-gnu">
+        <location>https://example.com/mytarball.bin.tar.xz</location>
+        <checksum type="sha256">....</checksum>
+        <checksum type="blake2b">....</checksum>
+        <size type="download">12345678</size>
+        <size type="installed">42424242</size>
+      </artifact>
+      <artifact type="binary" platform="x86_64-windows-msvc">
+        <location>https://example.com/mytarball.bin.exe</location>
+      </artifact>
+      <artifact type="source">
+        <location>https://example.com/mytarball.tar.xz</location>
+        <checksum type="sha256">....</checksum>
+      </artifact>
+    </artifacts>
+  </release>
+  <release version="1.1" type="development" date="2013-10-20" />
+  <release version="1.0" date="2012-08-26" />
+</releases>]]></programlisting>
+	</section>
+
+	<section xml:id="spec-releases">
+		<title>Releases tag specification</title>
+		<para>
+			The <code><![CDATA[<releases>]]></code> tag contains <code>&lt;release/&gt;</code> children which
+			contain metadata about individual releases of a component.
+			Each release of the software component should ideally have a <code>&lt;release/&gt;</code> tag describing it,
+			but at least one <literal>release</literal> child is recommended to be present for the current release of the software.
+			The <literal>release</literal> children must be sorted in a latest-to-oldest order to simplify reading
+			the metadata file.
+		</para>
+		<para>
+			A <literal>release</literal> tag can have the properties <literal>version</literal>, <literal>date</literal> and <literal>timestamp</literal>.
+			The <literal>date</literal> property can have any time in <link xlink:href="https://en.wikipedia.org/wiki/ISO_8601">ISO 8601</link> format as its value and
+			should be present for every release. At least day-level granularity is required, which means that the ISO 8601 string must contain at least a full date (e.g. 2020-08-12).
+			The <literal>timestamp</literal> tag contains the release time in the form of a UNIX epoch. This tag should not be used in metainfo files in newly
+			written metadata, but will still be parsed in case it is present. The <literal>timestamp</literal> property is mainly used in generated distro-metadata.
+			In case both release-time tags are present, the <literal>timestamp</literal> tag will take precedence over <literal>date</literal>.
+		</para>
+		<para>
+			The algorithm used for comparing release version numbers is described at <xref linkend="sect-AppStream-Misc-VerCmp"/>.
+		</para>
+		<para>
+			A <literal>release</literal> tag may also have a <literal>date_eol</literal> property that denotes the date when the release stops to receive
+			support from the software developers (end-of-life). Its value can be any complete date or time in <link xlink:href="https://en.wikipedia.org/wiki/ISO_8601">ISO 8601</link>.
+		</para>
+		<para>
+			Optionally, the <code>&lt;release/&gt;</code> tag may also have an <literal>urgency</literal> property, having one of the following values:
+		</para>
+		<itemizedlist>
+			<listitem><para><literal>low</literal></para></listitem>
+			<listitem><para><literal>medium</literal></para></listitem>
+			<listitem><para><literal>high</literal></para></listitem>
+			<listitem><para><literal>critical</literal></para></listitem>
+		</itemizedlist>
+		<para>
+			The <literal>urgency</literal> defines how important it is to install the new release as an update. This is especially important for <literal>type=firmware</literal>
+			components.
+			If no urgency is defined, a <code>medium</code> urgency is implicitly assumed.
+			The urgency defines how the update will be presented to the user, and sometimes if it will be installed automatically and immediately, or delayed.
+		</para>
+		<para>
+			A <literal>release</literal> tag may have a <literal>type</literal> property
+			to classify releases with one of the following values:
+		</para>
+		<itemizedlist>
+			<listitem><para><literal>stable</literal></para></listitem>
+			<listitem><para><literal>development</literal></para></listitem>
+			<listitem><para><literal>snapshot</literal></para></listitem>
+		</itemizedlist>
+		<para>
+			By default, if no release type is defined, <code>stable</code> is assumed.
+			A software displaying a listing of releases should only show stable releases and
+			discard any development release if the current version is itself stable. It can
+			show both <code>stable</code> and <code>development</code> versions when
+			development versions of the software are also distributed.
+			Instead, a <code>snapshot</code> release identifies an automated snapshot of
+			the current development status. It should not be shown unless instructed to.
+		</para>
+
+		<para>
+			The <literal>release</literal> itself may have the following children:
+		</para>
+		<variablelist>
+			<varlistentry xml:id="tag-release-description">
+			<term>&lt;description/&gt;</term>
+			<listitem>
+				<para>
+					A <literal>description</literal> tag contains a brief description of what is new in the release.
+					The intended audience of the description are the users of the component (who are typically not developers), and so the description should mention only the user visible changes in the release.
+					The <literal>description</literal> tag supports child tags as described in <xref linkend="tag-description"/>.
+				</para>
+				<para>
+					Descriptions must not contain embedded web links to issue trackers or bug reports, as these typically make no sense to users.
+					If particular issues need to be highlighted (for example, CVEs fixed in this release), they should be listed in the <literal>issues</literal> tag.
+				</para>
+			</listitem>
+			</varlistentry>
+
+			<varlistentry xml:id="tag-release-url">
+			<term>&lt;url/&gt;</term>
+			<listitem>
+				<para>
+					The <literal>url</literal> tag must point to a web location containing additional information (usually
+					detailed release notes) about this particular release.
+					The <literal>url</literal> tag may have a <literal>type</literal> property with <code>details</code> as the only currently
+					allowed value. If the <literal>type</literal> is missing, a URL type of <code>details</code> is implicitly assumed.
+				</para>
+			</listitem>
+			</varlistentry>
+
+			<varlistentry xml:id="tag-release-issues">
+			<term>&lt;issues/&gt;</term>
+			<listitem>
+				<para>
+					The <literal>issues</literal> tag contains <literal>issue</literal> children defining issues resolved by this release.
+					It is used most commonly to mention <link xlink:href="https://en.wikipedia.org/wiki/Common_Vulnerabilities_and_Exposures">CVE</link> IDs.
+					Software which is interpreting the release notes for the component should present the list of issues separately from the release description. They should not be thought of as a bullet-point list of issues which follow straight on in prose from the <literal>description</literal> element’s value.
+				</para>
+				<para>
+					The value of an <literal>issue</literal> tag must be the bug number, ticket name, or CVE ID and is typically displayed to the user, but may also in case of CVE IDs be read by
+					machines. The content of an <literal>issue</literal> element is not translatable, but can be a string appropriate for the project's bug tracker.
+				</para>
+				<para>
+					The <literal>issue</literal> tag may have a <literal>type</literal> property, which should have a value of <literal>generic</literal>, <literal>cve</literal> or <literal>gcve</literal>.
+					If the <literal>type</literal> property is missing, a type of <literal>generic</literal> is assumed.
+				</para>
+				<para>
+					It may also have a <literal>url</literal> property, which should be a URL for a details page on the respective issue.
+				</para>
+				<para>
+					If <literal>type</literal> is <literal>cve</literal>, the element’s value must be a CVE ID in the <link xlink:href="https://www.cve.org/About/Process#cve-id">format defined by MITRE</link>.
+					For example, <literal>CVE-2023-12345</literal>. Software consuming the release data of a component should be able to append the element’s value to <literal>https://www.cve.org/CVERecord?id=</literal>
+					to get a page of information about the CVE.
+					If a <literal>url</literal> property is given, its value overrides any URL constructed from the CVE identifier.
+					The <literal>url</literal> property is optional if <literal>type</literal> is <literal>cve</literal>.
+				</para>
+				<para>
+					If <literal>type</literal> is <literal>gcve</literal>, the element’s value must be a Global CVE identifier following the <literal>GCVE-&lt;GNA-ID&gt;-&lt;YEAR&gt;-&lt;UNIQUE-ID&gt;</literal> scheme
+					<link xlink:href="https://gcve.eu/about/">defined by the Global CVE Allocation System</link>, for example <literal>GCVE-1-2025-0001</literal>.
+					Software consuming the release data of a component should be able to append the element’s value to <literal>https://db.gcve.eu/vuln/</literal> to get a page of information about the vulnerability.
+					Identifiers from the reserved GCVE Numbering Authority ID <literal>0</literal> namespace for existing CVEs should preferably be represented using the <literal>cve</literal> issue type instead.
+					Like with CVE entries, an explicitly provided <literal>url</literal> property overrides any URL constructed from the GCVE identifier and is optional for this type.
+				</para>
+				<para>
+					For example:
+				</para>
+				<programlisting language="XML"><![CDATA[<issue url="https://example.com/bugzilla/12345">bz#12345</issue>]]></programlisting>
+				<para>
+					If <literal>type</literal> is <literal>generic</literal> or unspecified, the element’s value is a free-form issue identifier, and the <literal>url</literal> property must be specified.
+					The issue identifier should be shorthand for an issue in the project’s bug tracker, and it does not have to be globally unique. It should be human readable, but does not have to be appropriate for non-technical audiences.
+				</para>
+				<para>
+					For example:
+				</para>
+				<programlisting language="XML"><![CDATA[<issues>
+  <issue type="cve">CVE-2021-28153</issue>
+  <issue type="gcve">GCVE-1-2025-0001</issue>
+  <issue url="https://www.cve.org/CVERecord?id=CVE-2021-27218">CVE-2021-27218</issue>
+</issues>]]></programlisting>
+			</listitem>
+			</varlistentry>
+
+			<varlistentry xml:id="tag-release-artifacts">
+			<term>&lt;artifacts/&gt;</term>
+			<listitem>
+				<para>
+					The <literal>artifacts</literal> child tag contains information about downloadable release artifacts.
+					It itself contains the artifacts as <literal>artifact</literal> children.
+					Each artifact tag must have a <literal>type</literal> property with the value of either <code>binary</code> or <code>source</code> to indicate whether the
+					artifact is the releases' source-code or a binary distribution.
+				</para>
+				<para>
+					In case of a <code>binary</code> type, an optional <literal>platform</literal> property may
+					also be set, containing a platform triplet (also known as normalized GNU triplet), such as <code>x86_64-linux-gnu</code>. Refer to
+					<link xlink:href="https://wiki.debian.org/Multiarch/Tuples#Used_solution">Debian multiarch tuples</link> for more information on normalized GNU triplets, and
+					<link xlink:href="https://github.com/ximion/appstream/blob/master/data/platforms.yml">AppStream's platforms.yml</link> for the triplet parts AppStream currently recognizes.
+					Note that AppStream only supports strictly three-part triplets in the form of <code>arch-oskernel-osenvironment</code>. Parts of the triplets which do not apply can be
+					replaced with <code>any</code>.
+				</para>
+				<para>
+					Binary artifacts may also have a <literal>bundle</literal> property to indicate the bundling system the binary distribution is made for. Refer to
+					the bundle types in <xref linkend="tag-ct-bundle"/> for a list of possible values.
+					Each <literal>artifact</literal> can have a number of children:
+				</para>
+
+				<variablelist>
+					<varlistentry>
+						<term>location</term>
+						<listitem>
+						<para>
+							Each artifact must have a <literal>location</literal> child, denoting the web location (HTTP or HTTPS) where it can be downloaded from.
+							Multiple location tags are allowed to make it possible to have mirror options to download the same artifact from.
+						</para>
+						</listitem>
+					</varlistentry>
+
+					<varlistentry>
+						<term>checksum</term>
+						<listitem>
+						<para>
+							At least one <literal>checksum</literal> child must be present to contain the checksum of the released artifact.
+							The <code>&lt;checksum/&gt;</code> tag has a <code>type</code> attribute, containing the name of the hash function that was used to create it.
+							Currently aupported values (and hash sums) are: <literal>sha1</literal>, <literal>sha256</literal>, <literal>sha512</literal>,
+							<literal>blake2b</literal> and <literal>blake3</literal>.
+							For most purposes (on 64-bit machines), using <link xlink:href="https://blake2.net">BLAKE2b</link> via <command>cksum -ablake2b [FILE]</command>
+							from GNU Coreutils is a good choice.
+						</para>
+						</listitem>
+					</varlistentry>
+
+					<varlistentry>
+						<term>size</term>
+						<listitem>
+						<para>
+							One or multiple <literal>size</literal> tags may also be present, which define the installed and download size
+							of this component release artifact.
+							The size type is defined via a <literal>type</literal> property on the <literal>size</literal> tag, and may assume the value
+							<code>download</code> or <code>installed</code>.
+							The size itself is set as the value and must be given in bytes.
+						</para>
+						</listitem>
+					</varlistentry>
+
+					<varlistentry>
+						<term>filename</term>
+						<listitem>
+						<para>
+							An artifact may have a <literal>filename</literal> child, containing a non-absolute filename that the artifact may be stored under. The file name is only a naming hint and
+							applications are not required to follow it when downloading the file. If no <literal>filename</literal> tag is present, a file name may be generated from the artifact
+							<literal>location</literal> URL.
+							This tag must only appear once.
+						</para>
+						</listitem>
+					</varlistentry>
+
+				</variablelist>
+			</listitem>
+			</varlistentry>
+
+			<varlistentry xml:id="tag-release-tags">
+			<term>&lt;tags/&gt;</term>
+			<listitem>
+				<para>
+					The <literal>tags</literal> element can be used to tag releases with user-defined tags.
+					It follows the same semantics as the one for components, as described in <xref linkend="tag-tags"/>.
+				</para>
+			</listitem>
+			</varlistentry>
+		</variablelist>
+
+	</section>
+</section>

@@ -83,9 +83,7 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::CosmicNotifications => &["src/desktop/cosmic/cosmic-notifications"],
         BuildStage::CosmicOsd => &["src/desktop/cosmic/cosmic-osd"],
         BuildStage::CosmicBg => &["src/desktop/cosmic/cosmic-bg"],
-        BuildStage::CosmicWorkspaces => &[
-            "src/desktop/cosmic/cosmic-workspaces",
-        ],
+        BuildStage::CosmicWorkspaces => &["src/desktop/cosmic/cosmic-workspaces"],
         BuildStage::CosmicFiles => &[
             "src/desktop/cosmic/cosmic-files",
             "src/desktop/cosmic/libcosmic",
@@ -99,12 +97,8 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "resources/COSMIC/layouts",
             "resources/COSMIC/themes",
         ],
-        BuildStage::Polkit => &[
-            "src/system/security/polkit",
-        ],
-        BuildStage::Duktape => &[
-            "src/system/security/duktape",
-        ],
+        BuildStage::Polkit => &["src/system/security/polkit"],
+        BuildStage::Duktape => &["src/system/security/duktape"],
         BuildStage::NetworkManager => &["src/system/network/NetworkManager"],
         BuildStage::Cozy => &["src/userland/cozy"],
         BuildStage::CosmicTweaks => &["src/desktop/cosmic/cosmic-tweaks"],
@@ -115,6 +109,23 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "src/desktop/cosmic/cosmic-calculator",
             "src/desktop/cosmic/cosmic-storage",
             "src/desktop/cosmic/cosmic-monitor",
+            "src/desktop/cosmic/cosmic-store",
+        ],
+        BuildStage::Flatpak => &["src/system/packages/flatpak"],
+        BuildStage::Libarchive => &["src/system/libraries/libarchive"],
+        BuildStage::Libxml2 => &["src/system/libraries/libxml2"],
+        BuildStage::Libpng => &["src/system/libraries/libpng"],
+        BuildStage::Fuse3 => &["src/system/libraries/fuse3"],
+        BuildStage::Libfyaml => &["src/system/libraries/libfyaml"],
+        BuildStage::Libxmlb => &["src/system/libraries/libxmlb"],
+        BuildStage::JsonGlib => &["src/system/libraries/json-glib"],
+        BuildStage::Appstream => &["src/system/libraries/appstream"],
+        BuildStage::GdkPixbuf => &["src/system/libraries/gdk-pixbuf"],
+        BuildStage::Gpgme => &["src/system/security/gpgme"],
+        BuildStage::Ostree => &[
+            "src/system/packages/ostree",
+            "src/system/packages/ostree/libglnx",
+            "src/system/packages/ostree/bsdiff",
         ],
         BuildStage::CosmicPortal => &["src/desktop/cosmic/xdg-desktop-portal-cosmic"],
         BuildStage::CosmicAssets => &[
@@ -129,7 +140,7 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         // The aggregate copies/stages component outputs according to the
         // orchestration code, so changes to that output policy must invalidate
         // the aggregate rather than reusing an old install tree.
-        BuildStage::CosmicDesktop => &[],
+        BuildStage::CosmicDesktop => &["src/tools/mattos-build/src/main.rs"],
         BuildStage::Python => &["src/development/python/cpython"],
         BuildStage::Llvm => &["src/toolchain/llvm-project"],
         BuildStage::Rust => &[
@@ -258,11 +269,14 @@ fn local_cargo_manifest_inputs(stage: BuildStage) -> Vec<PathBuf> {
             return vec![
                 "src/system/installer/Cargo.toml".into(),
                 "src/system/installer/gui/cosmic/Cargo.lock".into(),
-            ]
+            ];
         }
         _ => return Vec::new(),
     };
-    vec![format!("{root}/Cargo.toml").into(), format!("{root}/Cargo.lock").into()]
+    vec![
+        format!("{root}/Cargo.toml").into(),
+        format!("{root}/Cargo.lock").into(),
+    ]
 }
 
 pub(crate) fn ownership_contract_inputs(stage: BuildStage) -> Vec<PathBuf> {
@@ -307,7 +321,11 @@ pub(crate) fn ownership_contract_inputs(stage: BuildStage) -> Vec<PathBuf> {
     };
     components
         .iter()
-        .map(|component| PathBuf::from(format!("out/source-ownership/cargo/contracts/{component}.json")))
+        .map(|component| {
+            PathBuf::from(format!(
+                "out/source-ownership/cargo/contracts/{component}.json"
+            ))
+        })
         .collect()
 }
 
@@ -367,6 +385,7 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
         | BuildStage::CosmicInitialSetup
         | BuildStage::CosmicTweaks
         | BuildStage::CosmicUtilities
+        | BuildStage::Flatpak
         | BuildStage::CosmicPortal
         | BuildStage::Greetd => &["cargo", "rustc", "gcc", "ld", "pkg-config"],
         BuildStage::CosmicAssets | BuildStage::CosmicDesktop => &[],
@@ -415,6 +434,19 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
         | BuildStage::Pixman
         | BuildStage::CosmicComp => 1,
         BuildStage::CosmicFiles => 2,
+        // Revision 2 excludes Curl's build-private libtool archive from the
+        // published install so target consumers cannot inherit a host path.
+        BuildStage::Curl => 2,
+        // Revision 2 records Flatpak's fusermount helper as the target runtime
+        // path instead of the staged host build-tree path Meson discovers.
+        BuildStage::Flatpak => 2,
+        // Revision 4 enables the target-owned libcurl fetcher as well as
+        // GPGME: Flatpak needs OSTree to verify and download HTTPS remote
+        // metadata and commits without host libraries.
+        BuildStage::Ostree => 4,
+        // Revision 2 removes gpgme's build-private libtool archive so target
+        // consumers cannot record the host staging path as an ELF RUNPATH.
+        BuildStage::Gpgme => 2,
         // Revision 2 places COSMIC Edit's hicolor-sized application icons at
         // /usr/share/icons/hicolor rather than nesting a second hicolor tree.
         BuildStage::CosmicEdit => 3,
@@ -533,11 +565,13 @@ mod tests {
                 PathBuf::from("upstream/patches/cosmic-files"),
             ]
         );
-        assert!(source_inputs(BuildStage::CosmicAssets)
-            .contains(&PathBuf::from("resources/COSMIC/defaults")));
+        assert!(
+            source_inputs(BuildStage::CosmicAssets)
+                .contains(&PathBuf::from("resources/COSMIC/defaults"))
+        );
         assert_eq!(
             source_inputs(BuildStage::CosmicDesktop),
-            Vec::<PathBuf>::new()
+            vec![PathBuf::from("src/tools/mattos-build/src/main.rs")]
         );
         for stage in [
             BuildStage::CosmicSession,
@@ -561,45 +595,65 @@ mod tests {
     #[test]
     fn independent_cargo_stages_use_local_manifests_and_scoped_contracts() {
         let brush = configuration_inputs(BuildStage::Brush);
-        assert!(!brush.iter().any(|path| path == "Cargo.toml" || path == "Cargo.lock"));
-        assert!(brush
-            .iter()
-            .any(|path| path == "out/source-ownership/cargo/contracts/brush.json"));
+        assert!(
+            !brush
+                .iter()
+                .any(|path| path == "Cargo.toml" || path == "Cargo.lock")
+        );
+        assert!(
+            brush
+                .iter()
+                .any(|path| path == "out/source-ownership/cargo/contracts/brush.json")
+        );
         assert_eq!(recipe_revision(BuildStage::Duktape), 2);
         assert_eq!(recipe_revision(BuildStage::Polkit), 2);
         assert_eq!(recipe_revision(BuildStage::CosmicWorkspaces), 2);
+        assert_eq!(recipe_revision(BuildStage::Flatpak), 2);
+        assert_eq!(recipe_revision(BuildStage::Ostree), 4);
+        assert_eq!(recipe_revision(BuildStage::Curl), 2);
     }
 
     #[test]
     fn cosmic_files_text_editor_compatibility_is_pinned_to_output_patch() {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
-        let authoritative = std::fs::read_to_string(
-            root.join("src/desktop/cosmic/cosmic-files/src/tab.rs"),
-        )
-        .expect("authoritative cosmic-files source");
+        let authoritative =
+            std::fs::read_to_string(root.join("src/desktop/cosmic/cosmic-files/src/tab.rs"))
+                .expect("authoritative cosmic-files source");
         let owned_libcosmic = std::fs::read_to_string(
             root.join("src/desktop/cosmic/libcosmic/src/widget/text_editor.rs"),
         )
         .expect("authoritative libcosmic text editor module");
-        let manifest = std::fs::read_to_string(
-            root.join("upstream/patches/cosmic-files/manifest.toml"),
-        )
-        .expect("cosmic-files patch manifest");
-        let patch = std::fs::read_to_string(
-            root.join("upstream/patches/cosmic-files/0001-adapt-text-editor-to-owned-libcosmic.patch"),
-        )
-        .expect("cosmic-files compatibility patch");
+        let manifest =
+            std::fs::read_to_string(root.join("upstream/patches/cosmic-files/manifest.toml"))
+                .expect("cosmic-files patch manifest");
+        let patch =
+            std::fs::read_to_string(root.join(
+                "upstream/patches/cosmic-files/0001-adapt-text-editor-to-owned-libcosmic.patch",
+            ))
+            .expect("cosmic-files compatibility patch");
 
         // The pinned upstream tree intentionally remains unmodified and still
         // uses the pre-migration API. The owned libcosmic tree exposes the
         // migrated constructor, so the checked patch must remain an input to
         // the output mirror rather than being removed as obsolete.
-        assert_eq!(authoritative.matches("widget::text_editor(content)").count(), 1);
-        assert_eq!(authoritative.matches("widget::text_editor(text)").count(), 1);
+        assert_eq!(
+            authoritative
+                .matches("widget::text_editor(content)")
+                .count(),
+            1
+        );
+        assert_eq!(
+            authoritative.matches("widget::text_editor(text)").count(),
+            1
+        );
         assert!(owned_libcosmic.contains("pub fn text_editor"));
         assert!(manifest.contains("application = \"output-mirror-only\""));
-        assert!(manifest.contains("upstream_commit = \"24e34eaa0f0acf4e24ea1338ad4bbde3a138e1f3\""));
-        assert!(manifest.contains("sha256 = \"e35c8bce1c0787a54b227da4731447a362563d883208bf3ca30dccc0d10c51f4\""));
+        assert!(
+            manifest.contains("upstream_commit = \"24e34eaa0f0acf4e24ea1338ad4bbde3a138e1f3\"")
+        );
+        assert!(manifest.contains(
+            "sha256 = \"e35c8bce1c0787a54b227da4731447a362563d883208bf3ca30dccc0d10c51f4\""
+        ));
         assert!(patch.contains("widget::text_editor::text_editor(content)"));
         assert!(patch.contains("widget::text_editor::text_editor(text)"));
         assert!(patch.contains(".style(text_editor_class)"));

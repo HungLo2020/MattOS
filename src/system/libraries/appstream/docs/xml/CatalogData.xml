@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<chapter xmlns="http://docbook.org/ns/docbook" xmlns:xi="http://www.w3.org/2001/XInclude" version="5.2" xml:id="chap-CatalogData">
+	<title>Catalog Metadata</title>
+	<para>
+		Additionally to the metainfo files shipped by upstream projects, AppStream also provides an XML and YAML format
+		to make information about not installed software components known to the system.
+	</para>
+	<para>
+		This chapter documents this catalog metadata format and icon cache used on the client side.
+	</para>
+
+	<xi:include href="catalog-xmldata.xml" />
+	<xi:include href="catalog-yamldata.xml" />
+	<xi:include href="catalog-iconcache.xml" />
+
+</chapter>

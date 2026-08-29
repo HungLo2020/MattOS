@@ -1,0 +1,214 @@
+/*
+ * Copyright (C) 2017 Jan Grulich <jgrulich@redhat.com>
+ * Copyright (C) 2016-2024 Matthias Klumpp <matthias@tenstral.net>
+ *
+ * Licensed under the GNU Lesser General Public License Version 2.1
+ *
+ * This library is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 2.1 of the license, or
+ * (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "appstream.h"
+#include "contentrating.h"
+
+#include <QDebug>
+#include "chelpers.h"
+
+using namespace AppStream;
+
+static_assert(static_cast<int>(ContentRating::RatingValueIntense) + 1
+                  == AS_CONTENT_RATING_VALUE_LAST,
+              "ContentRating::RatingValue is out of sync with AsContentRatingValue");
+static_assert(static_cast<int>(ContentRating::SystemIarc) + 1 == AS_CONTENT_RATING_SYSTEM_LAST,
+              "ContentRating::System is out of sync with AsContentRatingSystem");
+
+class AppStream::ContentRatingData : public QSharedData
+{
+public:
+    ContentRatingData()
+    {
+        m_contentRating = as_content_rating_new();
+    }
+
+    ContentRatingData(AsContentRating *cat)
+        : m_contentRating(cat)
+    {
+        g_object_ref(m_contentRating);
+    }
+
+    ~ContentRatingData()
+    {
+        g_object_unref(m_contentRating);
+    }
+
+    bool operator==(const ContentRatingData &rd) const
+    {
+        return rd.m_contentRating == m_contentRating;
+    }
+
+    AsContentRating *contentRating() const
+    {
+        return m_contentRating;
+    }
+
+    AsContentRating *m_contentRating;
+};
+
+AppStream::ContentRating::RatingValue
+AppStream::ContentRating::stringToRatingValue(const QString &ratingValue)
+{
+    return static_cast<ContentRating::RatingValue>(
+        as_content_rating_value_from_string(qPrintable(ratingValue)));
+}
+
+QString
+AppStream::ContentRating::ratingValueToString(AppStream::ContentRating::RatingValue ratingValue)
+{
+    return QString::fromUtf8(
+        as_content_rating_value_to_string(static_cast<AsContentRatingValue>(ratingValue)));
+}
+
+QString AppStream::ContentRating::systemToString(AppStream::ContentRating::System system)
+{
+    return valueWrap(
+        as_content_rating_system_to_string(static_cast<AsContentRatingSystem>(system)));
+}
+
+AppStream::ContentRating::System AppStream::ContentRating::systemFromLocale(const QString &locale)
+{
+    return static_cast<ContentRating::System>(
+        as_content_rating_system_from_locale(qPrintable(locale)));
+}
+
+QString AppStream::ContentRating::systemFormatAge(AppStream::ContentRating::System system, uint age)
+{
+    g_autofree gchar *str =
+        as_content_rating_system_format_age(static_cast<AsContentRatingSystem>(system), age);
+    return valueWrap(str);
+}
+
+QStringList
+AppStream::ContentRating::systemGetFormattedAges(AppStream::ContentRating::System system)
+{
+    g_auto(GStrv) ages =
+        as_content_rating_system_get_formatted_ages(static_cast<AsContentRatingSystem>(system));
+    return valueWrap(ages);
+}
+
+QStringList AppStream::ContentRating::allRatingIds()
+{
+    g_autofree const gchar **ids = as_content_rating_get_all_rating_ids();
+    return valueWrap(ids);
+}
+
+uint AppStream::ContentRating::attributeToCsmAge(const QString &id,
+                                                 AppStream::ContentRating::RatingValue value)
+{
+    return as_content_rating_attribute_to_csm_age(qPrintable(id),
+                                                  static_cast<AsContentRatingValue>(value));
+}
+
+AppStream::ContentRating::RatingValue
+AppStream::ContentRating::attributeFromCsmAge(const QString &id, uint age)
+{
+    return static_cast<ContentRating::RatingValue>(
+        as_content_rating_attribute_from_csm_age(qPrintable(id), age));
+}
+
+ContentRating::ContentRating()
+    : d(new ContentRatingData)
+{
+}
+
+ContentRating::ContentRating(_AsContentRating *contentRating)
+    : d(new ContentRatingData(contentRating))
+{
+}
+
+ContentRating::ContentRating(const ContentRating &contentRating) = default;
+
+ContentRating::~ContentRating() = default;
+
+ContentRating &ContentRating::operator=(const ContentRating &contentRating) = default;
+
+bool ContentRating::operator==(const ContentRating &other) const
+{
+    if (this->d == other.d) {
+        return true;
+    }
+    if (this->d && other.d) {
+        return *(this->d) == *other.d;
+    }
+    return false;
+}
+
+_AsContentRating *AppStream::ContentRating::cPtr() const
+{
+    return d->contentRating();
+}
+
+QString AppStream::ContentRating::kind() const
+{
+    return valueWrap(as_content_rating_get_kind(d->m_contentRating));
+}
+
+void AppStream::ContentRating::setKind(const QString &kind)
+{
+    as_content_rating_set_kind(d->m_contentRating, qPrintable(kind));
+}
+
+uint AppStream::ContentRating::minimumAge() const
+{
+    return as_content_rating_get_minimum_age(d->m_contentRating);
+}
+
+AppStream::ContentRating::RatingValue AppStream::ContentRating::value(const QString &id) const
+{
+    return static_cast<AppStream::ContentRating::RatingValue>(
+        as_content_rating_get_value(d->m_contentRating, qPrintable(id)));
+}
+
+void AppStream::ContentRating::setValue(const QString &id,
+                                        AppStream::ContentRating::RatingValue ratingValue)
+{
+    as_content_rating_set_value(d->m_contentRating,
+                                qPrintable(id),
+                                (AsContentRatingValue) ratingValue);
+}
+
+QString AppStream::ContentRating::description(const QString &id) const
+{
+    return QString::fromUtf8(as_content_rating_attribute_get_description(
+        qPrintable(id),
+        as_content_rating_get_value(d->m_contentRating, qPrintable(id))));
+}
+
+QStringList AppStream::ContentRating::ratingIds() const
+{
+    return AppStream::valueWrap(as_content_rating_get_rating_ids(d->m_contentRating));
+}
+
+void AppStream::ContentRating::addAttribute(const QString &id,
+                                            AppStream::ContentRating::RatingValue value)
+{
+    as_content_rating_add_attribute(d->m_contentRating,
+                                    qPrintable(id),
+                                    static_cast<AsContentRatingValue>(value));
+}
+
+QDebug operator<<(QDebug s, const AppStream::ContentRating &contentRating)
+{
+    s.nospace() << "AppStream::ContentRating(" << contentRating.kind() << contentRating.minimumAge()
+                << ")";
+    return s.space();
+}

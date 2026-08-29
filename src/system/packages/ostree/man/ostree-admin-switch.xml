@@ -1,0 +1,91 @@
+<?xml version='1.0'?> <!--*-nxml-*-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+    "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
+
+<!--
+Copyright 2014 Anne LoVerso <anne.loverso@students.olin.edu>
+
+SPDX-License-Identifier: LGPL-2.0+
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library. If not, see <https://www.gnu.org/licenses/>.
+-->
+
+<refentry id="ostree">
+
+    <refentryinfo>
+        <title>ostree admin switch</title>
+        <productname>OSTree</productname>
+
+    </refentryinfo>
+
+    <refmeta>
+        <refentrytitle>ostree admin switch</refentrytitle>
+        <manvolnum>1</manvolnum>
+    </refmeta>
+
+    <refnamediv>
+        <refname>ostree-admin-switch</refname>
+        <refpurpose>Construct new tree from current origin and deploy it, if it changed</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+            <cmdsynopsis>
+                <command>ostree admin switch</command> <arg choice="req">REF</arg>
+            </cmdsynopsis>
+    </refsynopsisdiv>
+
+    <refsect1>
+        <title>Description</title>
+
+        <para>
+            Choose a different REF from the current remote to track.  This is the ref that will be "tracked" and upgraded with <command>ostree admin upgrade</command>.  Like an upgrade, the operating system state will be preserved.
+        </para>
+    </refsect1>
+
+    <refsect1>
+        <title>Options</title>
+
+        <variablelist>
+            <varlistentry>
+                <term><option>--reboot</option>,<option>-r</option></term>
+
+                <listitem><para>
+                    Reboot after a successful switch.
+                </para></listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><option>--kexec</option>,<option>-k</option></term>
+
+                <listitem><para>
+                    Load new deployment into kexec after a successful switch.
+                </para></listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><option>--os</option>="STATEROOT"</term>
+
+                <listitem><para>
+                    Use a different operating system root than the current one.
+                </para></listitem>
+            </varlistentry>
+        </variablelist>
+    </refsect1>
+
+    <refsect1>
+        <title>Example</title>
+
+        <para><command>$ ostree admin switch fedostree/20/workstation/gnome/core</command></para>
+    </refsect1>    
+</refentry>

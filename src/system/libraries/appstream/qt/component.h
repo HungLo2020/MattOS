@@ -1,0 +1,329 @@
+/*
+ * Copyright (C) 2016-2024 Matthias Klumpp <matthias@tenstral.net>
+ *
+ * Licensed under the GNU Lesser General Public License Version 2.1
+ *
+ * This library is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 2.1 of the license, or
+ * (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef APPSTREAMQT_COMPONENT_H
+#define APPSTREAMQT_COMPONENT_H
+
+#include <QSharedDataPointer>
+#include <QObject>
+#include <QUrl>
+#include <QStringList>
+#include <QSize>
+#include <QDateTime>
+#include <optional>
+#include "appstreamqt_export.h"
+#include "agreement.h"
+#include "provided.h"
+#include "bundle.h"
+#include "category.h"
+#include "contentrating.h"
+#include "launchable.h"
+#include "reference.h"
+#include "review.h"
+#include "translation.h"
+#include "release-list.h"
+#include "relation.h"
+
+struct _AsComponent;
+namespace AppStream
+{
+
+class Icon;
+class Screenshot;
+class Suggested;
+class Developer;
+class Branding;
+class RelationCheckResult;
+
+class ComponentData;
+
+/**
+ * Describes a software component (application, driver, font, ...)
+ */
+class APPSTREAMQT_EXPORT Component
+{
+    Q_GADGET
+    friend class Pool;
+
+public:
+    enum Kind {
+        KindUnknown,
+        KindGeneric,
+        KindDesktopApp,
+        KindConsoleApp,
+        KindWebApp,
+        KindService,
+        KindAddon,
+        KindRuntime,
+        KindFont,
+        KindCodec,
+        KindInputMethod,
+        KindOperatingSystem,
+        KindFirmware,
+        KindDriver,
+        KindLocalization,
+        KindRepository,
+        KindIconTheme
+    };
+    Q_ENUM(Kind)
+
+    enum MergeKind {
+        MergeKindNone,
+        MergeKindReplace,
+        MergeKindAppend,
+        MergeKindRemoveComponent
+    };
+    Q_ENUM(MergeKind)
+
+    enum UrlKind {
+        UrlKindUnknown,
+        UrlKindHomepage,
+        UrlKindBugtracker,
+        UrlKindFaq,
+        UrlKindHelp,
+        UrlKindDonation,
+        UrlKindTranslate,
+        UrlKindContact,
+        UrlKindVcsBrowser,
+        UrlKindContribute,
+    };
+    Q_ENUM(UrlKind)
+
+    enum Scope {
+        ScopeUnknown,
+        ScopeSystem,
+        ScopeUser
+    };
+    Q_ENUM(Scope)
+
+    static Kind stringToKind(const QString &kindString);
+    static QString kindToString(Kind kind);
+
+    static UrlKind stringToUrlKind(const QString &urlKindString);
+    static QString urlKindToString(AppStream::Component::UrlKind kind);
+
+    static Scope stringToScope(const QString &scopeString);
+    static QString scopeToString(AppStream::Component::Scope scope);
+
+    static MergeKind stringToMergeKind(const QString &mergeKindString);
+    static QString mergeKindToString(AppStream::Component::MergeKind kind);
+
+    Component(_AsComponent *cpt);
+    Component();
+    Component(const Component &other);
+    ~Component();
+
+    Component &operator=(const Component &c);
+    bool operator==(const Component &r) const;
+
+    _AsComponent *cPtr() const;
+
+    Kind kind() const;
+    void setKind(Component::Kind kind);
+
+    QString origin() const;
+    void setOrigin(const QString &origin);
+
+    QString id() const;
+    void setId(const QString &id);
+
+    QString dataId() const;
+    void setDataId(const QString &cdid);
+
+    Scope scope() const;
+    void setScope(Component::Scope scope);
+
+    QStringList packageNames() const;
+    void setPackageNames(const QStringList &list);
+
+    QString sourcePackageName() const;
+    void setSourcePackageName(const QString &sourcePkg);
+
+    QString name() const;
+    void setName(const QString &name, const QString &lang = {});
+
+    QString summary() const;
+    void setSummary(const QString &summary, const QString &lang = {});
+
+    QString description() const;
+    void setDescription(const QString &description, const QString &lang = {});
+
+    QStringList keywords() const;
+    void setKeywords(const QStringList &keywords, const QString &lang = {});
+    void addKeyword(const QString &keyword, const QString &lang = {});
+    void clearKeywords(const QString &lang = {});
+
+    QList<AppStream::Launchable> launchables() const;
+    AppStream::Launchable launchable(AppStream::Launchable::Kind kind) const;
+    void addLaunchable(const AppStream::Launchable &launchable);
+
+    QString metadataLicense() const;
+    void setMetadataLicense(const QString &license);
+
+    QString projectLicense() const;
+    void setProjectLicense(const QString &license);
+
+    QString projectGroup() const;
+    void setProjectGroup(const QString &group);
+
+    Developer developer() const;
+    void setDeveloper(const Developer &developer);
+
+    QStringList compulsoryForDesktops() const;
+    void setCompulsoryForDesktop(const QString &desktop);
+    bool isCompulsoryForDesktop(const QString &desktop) const;
+
+    QStringList categories() const;
+    void addCategory(const QString &category);
+    bool hasCategory(const QString &category) const;
+    bool isMemberOfCategory(const AppStream::Category &category) const;
+
+    QStringList extends() const;
+    void addExtends(const QString &extend);
+
+    QList<AppStream::Component> addons() const;
+    void addAddon(const AppStream::Component &addon);
+
+    QStringList replaces() const;
+    void addReplaces(const QString &cid);
+
+    QList<AppStream::Relation> requirements() const;
+    QList<AppStream::Relation> recommends() const;
+    QList<AppStream::Relation> supports() const;
+    void addRelation(const AppStream::Relation &relation);
+    QList<RelationCheckResult>
+    checkRelations(SystemInfo *sysinfo, Pool *pool, Relation::Kind relKind);
+    int calculateSystemCompatibilityScore(SystemInfo *sysinfo,
+                                          bool isTemplate,
+                                          QList<RelationCheckResult> &results);
+    int calculateSystemCompatibilityScore(SystemInfo *sysinfo, bool isTemplate);
+
+    QStringList languages() const;
+    int language(const QString &locale) const;
+    void addLanguage(const QString &locale, int percentage);
+    void clearLanguages();
+
+    QList<AppStream::Translation> translations() const;
+    void addTranslation(const AppStream::Translation &translation);
+
+    QUrl url(UrlKind kind) const;
+    void addUrl(UrlKind kind, const QString &url);
+
+    QList<AppStream::Icon> icons() const;
+    AppStream::Icon icon(const QSize &size) const;
+    AppStream::Icon iconStock() const;
+    void addIcon(const AppStream::Icon &icon);
+
+    /**
+     * \return the full list of provided entries for all kinds.
+     */
+    QList<AppStream::Provided> provided() const;
+
+    /**
+     * \param kind for provides
+     * \return provided items for this \param kind
+     */
+    AppStream::Provided provided(Provided::Kind kind) const;
+    void addProvided(const AppStream::Provided &provided);
+    void addProvidedItem(Provided::Kind kind, const QString &item);
+
+    void sortScreenshots(const QString &environment, const QString &style, bool prioritizeStyle);
+    QList<AppStream::Screenshot> screenshotsAll() const;
+    void addScreenshot(const AppStream::Screenshot &screenshot);
+
+    ReleaseList releasesPlain() const;
+    std::optional<ReleaseList> loadReleases(bool allowNet);
+    void setReleases(const ReleaseList &releases);
+    void addRelease(const AppStream::Release &release);
+
+    bool hasBundle() const;
+    QList<AppStream::Bundle> bundles() const;
+    AppStream::Bundle bundle(Bundle::Kind kind) const;
+    void addBundle(const AppStream::Bundle &bundle);
+
+    [[deprecated("addBundle() mutates the component; use a non-const Component")]]
+    void addBundle(const Bundle &bundle) const;
+
+    QList<AppStream::Suggested> suggested() const;
+    void addSuggested(const AppStream::Suggested &suggested);
+
+    QStringList searchTokens() const;
+    uint searchMatches(const QString &term) const;
+    uint searchMatchesAll(const QStringList &terms) const;
+
+    uint sortScore() const;
+    void setSortScore(uint score);
+
+    MergeKind mergeKind() const;
+    void setMergeKind(MergeKind kind);
+
+    QHash<QString, QString> custom() const;
+    QString customValue(const QString &key) const;
+    [[deprecated]] QString customValue(const QString &key); //TODO Remove when we break ABI
+    bool insertCustomValue(const QString &key, const QString &value);
+
+    QList<AppStream::ContentRating> contentRatings() const;
+    AppStream::ContentRating contentRating(const QString &kind) const;
+    void addContentRating(const AppStream::ContentRating &contentRating);
+
+    QList<AppStream::Review> reviews() const;
+    void addReview(const AppStream::Review &review);
+
+    QList<AppStream::Reference> references() const;
+    void addReference(const AppStream::Reference &reference);
+
+    QList<AppStream::Agreement> agreements() const;
+    void addAgreement(const AppStream::Agreement &agreement);
+    std::optional<AppStream::Agreement> agreementByKind(Agreement::Kind kind) const;
+
+    QString dateEol() const;
+    void setDateEol(const QString &date);
+    QDateTime timestampEol() const;
+
+    QString branch() const;
+    void setBranch(const QString &branch);
+
+    int priority() const;
+    void setPriority(int priority);
+
+    QString nameVariantSuffix() const;
+    void setNameVariantSuffix(const QString &variantSuffix, const QString &lang = {});
+
+    Branding branding() const;
+    void setBranding(const Branding &branding);
+
+    bool hasTag(const QString &ns, const QString &tagName);
+    bool addTag(const QString &ns, const QString &tagName);
+    bool removeTag(const QString &ns, const QString &tagName);
+    void clearTags();
+
+    bool isFloss() const;
+    bool isIgnored() const;
+    bool isValid() const;
+
+    QString toString() const;
+
+    QString lastError() const;
+
+private:
+    QSharedDataPointer<ComponentData> d;
+};
+}
+
+#endif // APPSTREAMQT_COMPONENT_H

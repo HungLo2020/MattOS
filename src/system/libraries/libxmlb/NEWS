@@ -1,0 +1,550 @@
+Version 0.3.29
+~~~~~~~~~~~~~~
+Released: 2026-07-27
+
+New Features:
+Bugfixes:
+ - Avoid stale query indexes when reloading the silo (Richard Hughes)
+ - Clear the query cache when reloading the silo (Richard Hughes)
+ - Correctly mark the silo as invalid when re-loading malformed data (Richard Hughes)
+ - Fix building the silo when shared-mime-info is installed (Richard Hughes)
+
+Version 0.3.28
+~~~~~~~~~~~~~~
+Released: 2026-06-30
+
+New Features:
+ - Automatically add system locales when using native-langs (Richard Hughes)
+ - Lower the Meson and GLib deps for RHEL-8 (Richard Hughes)
+
+Bugfixes:
+ - Lazy clear opcode tokens for a ~2% speedup (Richard Hughes)
+ - Speed up negative queries by 11% by defer creating the results objects (Richard Hughes)
+ - Speed up predicates with no bindings by 9% (Richard Hughes)
+ - Speed up the no-results query by 2.5% by using a constant error (Richard Hughes)
+
+Version 0.3.27
+~~~~~~~~~~~~~~
+Released: 2026-05-18
+
+New Features:
+ - Bump the required version of GLib to 2.68 (Richard Hughes)
+
+Bugfixes:
+ - Do not construct an invalid silo when processing more than 30 attrs (Richard Hughes)
+ - Fix NULL pointer dereference when searching with NULL needle (Richard Hughes)
+ - Fix potential use-after-free when building the in() haystack (Richard Hughes)
+ - Fix stem() type-checking the wrong stack position (Richard Hughes)
+ - Handle NULL string opcodes in more functions (Richard Hughes)
+ - Limit operator recursion depth in xb_machine_parse_section (Richard Hughes)
+ - Limit the number of predicates and OR branches in each section (Richard Hughes)
+ - Prevent an infinite loop when parsing a corrupt silo (Richard Hughes)
+ - Reject XML with more than 65535 unique element names (Richard Hughes)
+
+Version 0.3.26
+~~~~~~~~~~~~~~
+Released: 2026-04-14
+
+New Features:
+ - Parse CDATA as text (Milan Crha)
+
+Bugfixes:
+ - Add bounds check to prevent OOB read in token index lookup (Richard Hughes)
+ - Do not write an invalid silo when more than 63 attrs on one node (Richard Hughes)
+ - No inotify for illumos and Solaris (Marcel Telka)
+ - Prevent stack overflow from unbounded recursion in export (Richard Hughes)
+
+Version 0.3.25
+~~~~~~~~~~~~~~
+Released: 2026-02-03
+
+Bugfixes:
+ - Correctly decompress heavily compressed zstd streams (Richard Hughes)
+
+Version 0.3.24
+~~~~~~~~~~~~~~
+Released: 2025-09-10
+
+Bugfixes:
+ - Allow calling xb_silo_query_build_index() with no text set (Richard Hughes)
+ - Do not reverse the order of attrs when using xb_node_attr_iter_next() (Richard Hughes)
+
+Version 0.3.23
+~~~~~~~~~~~~~~
+Released: 2025-08-07
+
+Bugfixes:
+ - Do not reallocate the final silo blob when compiling to reduce peak RSS by about ~6%
+
+Version 0.3.22
+~~~~~~~~~~~~~~
+Released: 2025-03-12
+
+New Features:
+ - Add support for COLLAPSE_EMPTY when exporting an XbBuilderNode (Richard Hughes)
+ - Store the expected file size in the header to detect truncation (Richard Hughes)
+
+Bugfixes:
+ - Check the strtab has a trailing NUL byte (Richard Hughes)
+ - Fix an issue when exporting a silo using COLLAPSE_EMPTY (Richard Hughes)
+ - Fix calling text() on an empty element (Richard Hughes)
+
+Version 0.3.21
+~~~~~~~~~~~~~~
+Released: 2024-10-15
+
+Bugfixes:
+ - Check for corrupt XbSiloNode values in a smarter way (Richard Hughes)
+
+Version 0.3.20
+~~~~~~~~~~~~~~
+Released: 2024-10-14
+
+Bugfixes:
+ - Do not always strip literal text (Richard Hughes)
+ - Do not assume .txt files are application/xml (Richard Hughes)
+ - Fix a crash when loading a corrupt XMLb store (Richard Hughes)
+ - Fix writing files on Windows (Richard Hughes)
+
+Version 0.3.19
+~~~~~~~~~~~~~~
+Released: 2024-04-22
+
+New Features:
+ - Add xb_version_string() to get the runtime ABI version (Richard Hughes)
+
+Bugfixes:
+ - Add the runtime version as the default XMLb invalidation GUID (Richard Hughes)
+
+Version 0.3.18
+~~~~~~~~~~~~~~
+Released: 2024-04-09
+
+Bugfixes:
+ - Fix decompressing large zstd files, harder (Richard Hughes)
+ - Include the pkgconfig variables in the subproject declared dependency (Richard Hughes)
+
+Version 0.3.17
+~~~~~~~~~~~~~~
+Released: 2024-04-05
+
+Bugfixes:
+ - Create SECURITY.md for the OpenSSF scorecard (Richard Hughes)
+ - Fix decompressing large zstd files (Richard Hughes)
+ - Use zst as the file extension for zstd (Richard Hughes)
+
+Version 0.3.16
+~~~~~~~~~~~~~~
+Released: 2024-04-03
+
+New Features:
+ - Add the lzma and zstd support to the pkgconfig file (Richard Hughes)
+
+Bugfixes:
+ - Make the LZMA support optional (Richard Hughes)
+
+Version 0.3.15
+~~~~~~~~~~~~~~
+Released: 2024-01-02
+
+New Features:
+ - Sprinkle __attribute__((nonnull)) to give a little more compile-time safety (Richard Hughes)
+
+Bugfixes:
+ - Accept text/xml as an alternative to application/xml (peigongdsd)
+ - Do not inline shared code (Chun-wei Fan)
+ - Fix compiling with Visual Studio (Chun-wei Fan)
+ - Fix the exported api test on Windows (Chun-wei Fan)
+ - Generate and use .def file for clang-cl builds (Chun-wei Fan)
+ - Release source file handles early (Milan Crha)
+
+Version 0.3.14
+~~~~~~~~~~~~~~
+Released: 2023-10-24
+
+Bugfixes:
+ - Fix comparing indexed text with integer values (Richard Hughes)
+
+Version 0.3.13
+~~~~~~~~~~~~~~
+Released: 2023-10-17
+
+Bugfixes:
+ - Correctly tokenize when using a bound text value (Richard Hughes)
+ - Ensure tokens are all NULL when using xb_opcode_init() (Richard Hughes)
+
+Version 0.3.12
+~~~~~~~~~~~~~~
+Released: 2023-10-10
+
+New Features:
+ - Use indexes when binding value (Richard Hughes)
+
+Bugfixes:
+ - Avoid building errors and debug strings when possible to make XbQuery faster (Christian Hergert)
+ - Fix content type detection on macOS (Richard Hughes)
+ - Inline a number of machine internals to make queries faster (Christian Hergert)
+ - Make zstd support optional (sulincix, aliriza)
+ - Setup various release build options (Christian Hergert)
+
+Version 0.3.11
+~~~~~~~~~~~~~~
+Released: 2023-02-20
+
+New Features:
+ - Add limited support for XPath 1.0 'in' (Richard Hughes)
+ - Add support for zstd (Richard Hughes)
+
+Bugfixes:
+ - Do not assert() when decompressing invalid LZMA (Richard Hughes)
+
+Version 0.3.10
+~~~~~~~~~~~~~~
+Released: 2022-09-11
+
+Bugfixes:
+ - Fix dumping and exporting multiple files from the CLI (Richard Hughes)
+ - Watch files before loading them into the builder (Philip Withnall)
+ - Fix potential double free when filtering by language (Sergio Costas Rodriguez)
+
+Version 0.3.9
+~~~~~~~~~~~~~
+Released: 2022-05-24
+
+Bugfixes:
+ - Fix the crash for when the root tree has no children (Richard Hughes)
+ - Fix the crash when getting the element for the [empty] root (Richard Hughes)
+ - Install xb-tool into bindir (Richard Hughes)
+
+Version 0.3.8
+~~~~~~~~~~~~~
+Released: 2022-03-22
+
+Bugfixes:
+ - Fix building on macOS (Bobby Rong)
+
+Version 0.3.7
+~~~~~~~~~~~~~
+Released: 2022-02-16
+
+Bugfixes:
+ - Ensure reproducible results when importing a node (Richard Hughes)
+ - Ignore all hidden files when using _WATCH_DIRECTORY (Richard Hughes)
+ - Show the value bindings when using XB_SILO_PROFILE_FLAG_XPATH (Richard Hughes)
+ - Use the correct lookup method for the python3 script interpreter (Eli Schwartz)
+
+Version 0.3.6
+~~~~~~~~~~~~~
+Released: 2021-12-06
+
+Bugfixes:
+ - Ensure _IS_TOKENIZED is set if tokens are added manually (Richard Hughes)
+ - Ensure we never add too many tokens to the silo (Richard Hughes)
+
+Version 0.3.5
+~~~~~~~~~~~~~
+Released: 2021-12-01
+
+Bugfixes:
+ - Put tail after the node when exporting XbBuilderNode (Matthias Klumpp)
+ - Remove the G_ALIGNOF checks to fix compile with old GLib versions (Richard Hughes)
+
+Version 0.3.4
+~~~~~~~~~~~~~
+Released: 2021-11-29
+
+New Features:
+ - Add a flag to require the XbBuilderSource to have no siblings (Richard Hughes)
+ - Add iterator for XbNode attributes and children (Matthias Klumpp)
+ - Allow removing XbBuilderNode text (Richard Hughes)
+ - Allow stripping builder node inner text (Richard Hughes)
+ - Include records in the symbol export list (Richard Hughes)
+ - Use -Dcli=false to reduce the install size (Richard Hughes)
+
+Version 0.3.3
+~~~~~~~~~~~~~
+Released: 2021-10-06
+
+New Features:
+ - Add support for LZMA decompression (Richard Hughes)
+
+Bugfixes:
+ - Add locking for file monitors (Philip Withnall)
+ - Clarify GMainContext usage and signal emission (Philip Withnall)
+ - Modernise property declaration (Philip Withnall)
+
+Version 0.3.2
+~~~~~~~~~~~~~
+Released: 2021-05-24
+
+Bugfixes:
+ - Respect XB_BUILDER_NODE_FLAG_IGNORE when exporting (Richard Hughes)
+ - Use the chosen chunk size when reading from a stream (Richard Hughes)
+ - Use the correct pkgconfig export package name in the GIR file (Richard Hughes)
+
+Version 0.3.1
+~~~~~~~~~~~~~
+Released: 2021-05-06
+
+New Features:
+ - Use stack-allocated XbStack instances for running a machine (Philip Withnall)
+
+Bugfixes:
+ - Always run xb-tool queries with the optimizer (Richard Hughes)
+ - Do not use g_file_replace_contents for win32 (Richard Hughes)
+ - Ensure tokens handling works when XbOpcode is not zero-inited (Philip Withnall)
+
+Version 0.3.0
+~~~~~~~~~~~~~
+Released: 2021-03-12
+
+New Features:
+ - Add a new object to contain query context data (Philip Withnall)
+ - Allow collapsing empty XML tags if no children or text (Aleksander Morgado)
+ - Allow marking elements as tokenized from xb-tool (Richard Hughes)
+ - Allow optimized searching when comparing tokens (Richard Hughes)
+ - Support mmap()ing the source file to get bytes (Philip Withnall)
+ - Support query caching with xb_silo_lookup_query() (Philip Withnall)
+ - Support UTF-8 for upper-case() and lower-case() (Richard Hughes)
+ - Use g_str_match_string() for non-ASCII search queries (Richard Hughes)
+ - Write search tokens into the built silo (Richard Hughes)
+
+Bugfixes:
+ - Cancel the GFileMonitor before unreffing it (Iain Lane)
+ - Do not allocate a 128Mb buffer for each xb_builder_source_ctx_get_bytes() (Richard Hughes)
+ - Do not error when creating a query if the element doesn’t exist (Philip Withnall)
+ - Fix a parse failure for a double comment (Richard Hughes)
+ - Fix various errors or missing annotations in docs (Philip Withnall)
+ - Make handling of single-result queries more robust (Philip Withnall)
+
+Version 0.2.1
+~~~~~~~~~~~~~
+Released: 2020-09-07
+
+Bugfixes:
+ - Do not assume g_content_type_guess() always returns valid results (Richard Hughes)
+ - Make the build reproducible (Richard Hughes)
+ - Revert "Do not show a critical warning for invalid XML" (Richard Hughes)
+ - Update the header location to reflect the new API (Richard Hughes)
+
+Version 0.2.0
+~~~~~~~~~~~~~
+Released: 2020-08-18
+
+Important:
+ - This release breaks API and ABI and bumps the version of libxmlb.so and so
+   packages that depend on this library (e.g. fwupd or gnome-software) will need
+   to be rebuilt at the same time.
+
+New Features:
+ - Add the missing TEXT:INTE XPath support (Richard Hughes)
+ - Add variant of xb_silo_query_with_root() avoiding XbNode creation (Philip Withnall)
+ - Add XB_BUILDER_SOURCE_FLAG_WATCH_DIRECTORY flag (Philip Withnall)
+ - Allow specifying the node cache behaviour for the query (Richard Hughes)
+
+Bugfixes:
+ - Avoid recursion when setting flags if possible (Philip Withnall)
+ - Avoid using weak pointers when building the silo (Philip Withnall)
+ - Change the default value for the node cache (Richard Hughes)
+ - Do not allocate opcodes individually (Philip Withnall)
+ - Do not show a critical warning for invalid XML (Richard Hughes)
+ - Do not unconditionally create GTimer objects (Philip Withnall)
+ - Do not use the node cache when building indexes (Richard Hughes)
+ - Lazy load more arrays to reduce RSS usage (Philip Withnall)
+ - Report silo versions when versions mismatch (Robert Ancell)
+
+Version 0.1.15
+~~~~~~~~~~~~~~
+Released: 2020-03-04
+
+New Features:
+ - Add xb_builder_source_add_simple_adapter (Daniel Campello)
+ - Allow reversing the query results (Richard Hughes)
+
+Version 0.1.14
+~~~~~~~~~~~~~~
+Released: 2019-12-03
+
+New Features:
+ - Add MinGW Windows 64 builds to CI (Richard Hughes)
+
+Bugfixes:
+ - Allow compiling without gio-unix (Richard Hughes)
+ - Do not use libuuid (Richard Hughes)
+ - Do not unconditionally use -fstack-protector-strong (Richard Hughes)
+ - Ignore adaptors added with xb_builder_source_add_converter() (Richard Hughes)
+
+Version 0.1.13
+~~~~~~~~~~~~~~
+Released: 2019-10-17
+
+New Features:
+ - Export xb_silo_query_full() (Richard Hughes)
+
+Bugfixes:
+ - Show the XPath that was used in the query in the error message (Richard Hughes)
+
+Version 0.1.12
+~~~~~~~~~~~~~~
+Released: 2019-09-27
+
+New Features:
+ - Add helper functions to get the first and last child XbBuilerNode (Richard Hughes)
+ - Add xb_node_transmogrify to allow changing XML format (Richard Hughes)
+ - Support 'tail' XML data in the stored silo (Richard Hughes)
+
+Bugfixes:
+ - Do not escape a single quote with &apos; (Richard Hughes)
+ - Don't invalidate the silo for a GIO temp file (Richard Hughes)
+ - Fix up two memory leaks if using libxmlb from an introspected binding (Richard Hughes)
+
+Version 0.1.11
+~~~~~~~~~~~~~~
+Released: 2019-07-15
+
+New Features:
+ - Add xb_node_query_first_full() convenience helper (Richard Hughes)
+ - Rebuild the XbMachine parser to support 'and' and 'or' predicates (Richard Hughes)
+ - Verify we never break the ABI (Mathieu Bridon)
+
+Bugfixes:
+ - Conditionalize installation of test data (Mathieu Bridon)
+ - Generate a GUID of zero for no silo data (Richard Hughes)
+ - Run CI jobs in parallel (Mathieu Bridon)
+
+Version 0.1.10
+~~~~~~~~~~~~~~
+Released: 2019-05-16
+
+Bugfixes:
+ - Do not mistake gzipped files as being application/x-zerosize content type (Richard Hughes)
+ - Fix running the installed tests with no checkout directory (Richard Hughes)
+
+Version 0.1.9
+~~~~~~~~~~~~~
+Released: 2019-05-07
+
+Bugfixes:
+ - Correctly implement building a silo with _SINGLE_LANG set (Richard Hughes)
+
+Version 0.1.8
+~~~~~~~~~~~~~
+Released: 2019-03-26
+
+New Features:
+ - Add some installed tests (Richard Hughes)
+
+Bugfixes:
+ - Always add all children when importing parent-less XML data (Richard Hughes)
+
+Version 0.1.7
+~~~~~~~~~~~~~
+Released: 2019-03-08
+
+New Features:
+ - Add XB_BUILDER_COMPILE_FLAG_IGNORE_GUID (Richard Hughes)
+ - Allow nesting XbBuilderSource content type handlers (Richard Hughes)
+
+Bugfixes:
+ - Correct return type for xb_builder_compile() (Mario Limonciello)
+ - Increase the amount of time for the inotify event to happen (Richard Hughes)
+ - Only run the speed tests when using '-m perf' (Richard Hughes)
+
+Version 0.1.6
+~~~~~~~~~~~~~
+Released: 2018-12-30
+
+New Features:
+ - Allow controlling how the XbQuery is parsed (Richard Hughes)
+
+Version 0.1.5
+~~~~~~~~~~~~~
+Released: 2018-11-21
+
+New Features:
+ - Add xb_builder_node_export() (Richard Hughes)
+
+Bugfixes:
+ - Do not start a GIO session bus when using xb-tool (Richard Hughes)
+ - Ignore calls to xb_silo_query_build_index() with no results (Richard Hughes)
+ - Lazy load the stemmer when required (Richard Hughes)
+
+Version 0.1.4
+~~~~~~~~~~~~~
+Released: 2018-11-08
+
+New Features:
+ - Add support for bound variables (Richard Hughes)
+ - Add support for indexed strings (Richard Hughes)
+ - Optionally optimize predicates (Richard Hughes)
+ - Split out the XPath query logic into XbQuery (Richard Hughes)
+ - Support XPath method to do a Porter stem operation on text (Richard Hughes)
+
+Bugfixes:
+ - Don't hardcode the path of python3 (Ting-Wei Lan)
+ - Only attempt to pass TEXT opcodes for upper-case() (Richard Hughes)
+ - Revert the optional text space saving feature (Richard Hughes)
+ - Use INTE:INTE for comparison where available (Richard Hughes)
+
+Version 0.1.3
+~~~~~~~~~~~~~
+Released: 2018-10-22
+
+New Features:
+ - Add XbBuilderFixup (Richard Hughes)
+ - Add xb_builder_node_get_attr_as_uint() (Richard Hughes)
+ - Add xb_builder_node_get_text_as_uint() (Richard Hughes)
+ - Add xb_builder_node_sort_children() (Richard Hughes)
+
+Bugfixes:
+ - Allow being used as a meson subproject (Jan Tojnar)
+ - Fix compiling on Ubuntu Xenial (Richard Hughes)
+ - Switch from GPtrArray to XbStack for performance reasons (Richard Hughes)
+ - Update meson relro checks (Jan Tojnar)
+
+Version 0.1.2
+~~~~~~~~~~~~~
+Released: 2018-10-16
+
+New Features:
+ - Add support for XPath string-length() (Richard Hughes)
+ - Add xb_builder_source_load_bytes() (Richard Hughes)
+ - Add xb_silo_export_file() (Richard Hughes)
+ - Add xb_string_append_union() (Richard Hughes)
+ - Add xb_string_escape() (Richard Hughes)
+
+Bugfixes:
+ - Allow the use as meson subproject (Jan Tojnar)
+ - Do not query with the first child (Richard Hughes)
+ - Fix a crash when using xb_builder_node_set_text() in a fixup (Richard Hughes)
+ - Only run the XbBuilderSourceConverterFunc if the silo needs rebuilding (Richard Hughes)
+ - Return an error when the XPath predicate has invalid syntax (Richard Hughes)
+
+Version 0.1.1
+~~~~~~~~~~~~~
+Released: 2018-10-11
+
+New Features:
+ - Add support for XPath starts-with() and ends-with() (Richard Hughes)
+ - Add support for number() and text() type conversion (Richard Hughes)
+ - Add support for predicate not() (Richard Hughes)
+ - Add xb_silo_invalidate() (Richard Hughes)
+ - Export XbMachine and XbOpcode (Richard Hughes)
+
+Bugfixes:
+ - Add the XbBuilderSource info keys to the generated GUID (Richard Hughes)
+ - Add the XbBuilderSourceNodeFunc ID to the generated GUID (Richard Hughes)
+ - Add the source prefix to the generated GUID (Richard Hughes)
+ - Do not use GNode when compiling the blob (Richard Hughes)
+ - Ignore invalid arguments if OR queries have other sections to parse (Richard Hughes)
+ - Load back the saved new silo to get a mmapped version (Richard Hughes)
+ - Support XPath wildcard nodes with predicates (Richard Hughes)
+ - Support some relative parent queries (Richard Hughes)
+ - Use the time::changed-usec if set in the GUID (Richard Hughes)
+
+Version 0.1.0
+~~~~~~~~~~~~~
+Released: 2018-10-05
+
+Notes:
+ - A library for querying compressed XML metadata.

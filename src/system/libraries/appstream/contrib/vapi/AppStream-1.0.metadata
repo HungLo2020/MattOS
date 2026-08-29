@@ -1,0 +1,7 @@
+// Metadata for AppStream GIR
+
+AppStream name="AppStream"
+
+// vapigen doesn't seem to know rename-to in GIR annotations,
+// so we need to do the renaming manually...
+get_default_categories_gi name="get_default_categories"

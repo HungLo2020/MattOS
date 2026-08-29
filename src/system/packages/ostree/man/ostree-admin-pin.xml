@@ -1,0 +1,73 @@
+<?xml version='1.0'?> <!--*-nxml-*-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+    "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
+
+<!--
+Copyright 2018 Red Hat
+
+SPDX-License-Identifier: LGPL-2.0+
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library. If not, see <https://www.gnu.org/licenses/>.
+-->
+
+<refentry id="ostree">
+
+    <refentryinfo>
+        <title>ostree admin pin</title>
+        <productname>OSTree</productname>
+    </refentryinfo>
+
+    <refmeta>
+        <refentrytitle>ostree admin pin</refentrytitle>
+        <manvolnum>1</manvolnum>
+    </refmeta>
+
+    <refnamediv>
+        <refname>ostree-admin-pin</refname>
+        <refpurpose>Explicitly retain deployment at a given index</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+            <cmdsynopsis>
+                <command>ostree admin pin</command> <arg choice="req">INDEX</arg>
+            </cmdsynopsis>
+    </refsynopsisdiv>
+
+    <refsect1>
+        <title>Description</title>
+
+        <para>
+          Ensures the deployment at <literal>INDEX</literal>, will not be garbage
+          collected by default. This is termed "pinning". If the
+          <literal>-u</literal> option is provided, undoes a pinning operation.
+          <literal>INDEX</literal> can be >= 0 or one of booted, pending or
+          rollback strings.
+        </para>
+    </refsect1>
+
+    <refsect1>
+        <title>Options</title>
+
+        <variablelist>
+            <varlistentry>
+                <term><option>--unpin</option>,<option>-u</option></term>
+
+                <listitem><para>
+                    Undoes a pinning operation.
+                </para></listitem>
+            </varlistentry>
+        </variablelist>
+    </refsect1>
+
+</refentry>

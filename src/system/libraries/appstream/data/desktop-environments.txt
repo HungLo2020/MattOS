@@ -1,0 +1,18 @@
+# List of desktop environments
+#
+# ID      Human-readable name
+Cinnamon  Cinnamon
+DDE       Deepin
+EDE       EDE
+Endless   Endless
+GNOME     GNOME
+KDE       KDE Plasma
+LXDE      LXDE
+LXQt      LXQt
+MATE      MATE
+Pantheon  Pantheon
+Plasma    KDE Plasma
+Razor     Razor
+ROX       ROX
+Unity     Unity
+XFCE      Xfce

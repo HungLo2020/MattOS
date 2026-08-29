@@ -255,6 +255,7 @@ const PACKAGE_NAMES: &[&str] = &[
     "libksba8",
     "libnpth0",
     "gpgv",
+    "gnupg",
     "libapt-pkg7.0",
     "apt",
     "mattos-libtinfow6",
@@ -335,6 +336,7 @@ const PACKAGE_NAMES: &[&str] = &[
     "cosmic-edit",
     "cosmic-initial-setup",
     "cosmic-desktop",
+    "flatpak",
     "libduktape207",
     "polkit",
     "network-manager",
@@ -1153,6 +1155,25 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "required",
         },
         PackageSpec {
+            name: "gnupg",
+            description: "Source-built OpenPGP engine required for verified Flatpak remotes",
+            source_component: "gnupg",
+            depends: &[
+                "libc6",
+                "zlib1g",
+                "libgpg-error0",
+                "libgcrypt20",
+                "libassuan9",
+                "libksba8",
+                "libnpth0",
+            ],
+            provides: &["gnupg", "gpg"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
             name: "libapt-pkg7.0",
             description: "APT public runtime library built for MattOS",
             source_component: "apt",
@@ -1255,7 +1276,10 @@ fn package_specs() -> Vec<PackageSpec> {
             source_component: "readline",
             depends: &["libc6"],
             provides: &["libreadline8"],
-            conflicts: &[], replaces: &[], essential: false, priority: "important",
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
         },
         PackageSpec {
             name: "libndp0",
@@ -1263,7 +1287,10 @@ fn package_specs() -> Vec<PackageSpec> {
             source_component: "libndp",
             depends: &["libc6"],
             provides: &["libndp0"],
-            conflicts: &[], replaces: &[], essential: false, priority: "important",
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
         },
         PackageSpec {
             name: "libkmod2",
@@ -2440,6 +2467,26 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "optional",
         },
         PackageSpec {
+            name: "flatpak",
+            description: "Flatpak application runtime and sandbox manager built from pinned upstream source",
+            source_component: "flatpak",
+            depends: &[
+                "libc6",
+                "libglib2.0-0t64",
+                "curl",
+                "libcap2",
+                "libsystemd0",
+                "libdbus-1-3",
+                "libzstd1",
+                "gnupg",
+            ],
+            provides: &["flatpak", "libflatpak0"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
             name: "cosmic-desktop",
             description: "Complete source-built COSMIC desktop and graphical login for MattOS",
             source_component: "cosmic-desktop",
@@ -2454,6 +2501,7 @@ fn package_specs() -> Vec<PackageSpec> {
                 "libpam-modules",
                 "libpam-runtime",
                 "libsystemd0",
+                "flatpak",
                 "udev",
                 "libwayland-client0",
                 "libxkbcommon0",
@@ -2479,6 +2527,7 @@ fn package_specs() -> Vec<PackageSpec> {
                 "cosmic-ext-calculator",
                 "cosmic-ext-storage",
                 "cosmic-monitor",
+                "cosmic-store",
                 "greetd",
             ],
             conflicts: &[],
@@ -2490,9 +2539,7 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "cosmic-edit",
             description: "COSMIC Text Editor built from the pinned upstream source",
             source_component: "cosmic-edit",
-            depends: &[
-                "libc6", "libgcc-s1", "libstdc++6", "cosmic-desktop",
-            ],
+            depends: &["libc6", "libgcc-s1", "libstdc++6", "cosmic-desktop"],
             provides: &[],
             conflicts: &[],
             replaces: &[],
@@ -2503,29 +2550,70 @@ fn package_specs() -> Vec<PackageSpec> {
             name: "cosmic-initial-setup",
             description: "COSMIC first-login setup wizard built from the pinned upstream source",
             source_component: "cosmic-initial-setup",
-            depends: &["libc6", "libgcc-s1", "libstdc++6", "cosmic-desktop", "network-manager", "iso-codes"],
-            provides: &["cosmic-initial-setup"], conflicts: &[], replaces: &[], essential: false, priority: "optional",
+            depends: &[
+                "libc6",
+                "libgcc-s1",
+                "libstdc++6",
+                "cosmic-desktop",
+                "network-manager",
+                "iso-codes",
+            ],
+            provides: &["cosmic-initial-setup"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
         },
         PackageSpec {
             name: "libduktape207",
             description: "Duktape JavaScript engine runtime built from the pinned upstream source",
             source_component: "duktape",
             depends: &["libc6"],
-            provides: &["libduktape.so.207"], conflicts: &[], replaces: &[], essential: false, priority: "optional",
+            provides: &["libduktape.so.207"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
         },
         PackageSpec {
             name: "polkit",
             description: "Source-built PolicyKit authorization service and agent helper",
             source_component: "polkit",
-            depends: &["libc6", "libglib2.0-0t64", "libpam0g", "libdbus-1-3", "libsystemd0", "libduktape207"],
-            provides: &["polkit-1"], conflicts: &[], replaces: &[], essential: false, priority: "important",
+            depends: &[
+                "libc6",
+                "libglib2.0-0t64",
+                "libpam0g",
+                "libdbus-1-3",
+                "libsystemd0",
+                "libduktape207",
+            ],
+            provides: &["polkit-1"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
         },
         PackageSpec {
             name: "network-manager",
             description: "Source-built NetworkManager daemon, D-Bus API, and nmcli",
             source_component: "networkmanager",
-            depends: &["libc6", "libglib2.0-0t64", "libsystemd0", "libdbus-1-3", "polkit", "iproute2", "libndp0", "libreadline8", "libncursesw6", "mattos-libtinfow6"],
-            provides: &["network-manager", "networkmanager"], conflicts: &[], replaces: &[], essential: false, priority: "important",
+            depends: &[
+                "libc6",
+                "libglib2.0-0t64",
+                "libsystemd0",
+                "libdbus-1-3",
+                "polkit",
+                "iproute2",
+                "libndp0",
+                "libreadline8",
+                "libncursesw6",
+                "mattos-libtinfow6",
+            ],
+            provides: &["network-manager", "networkmanager"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
         },
         PackageSpec {
             name: "mattos-cozy",
@@ -2811,7 +2899,10 @@ fn validate_debian_compatibility(repo_root: &Path) -> Result<()> {
         validate_package_name(&package.mattos_name)?;
         validate_debian_version(&package.current_mattos_version)?;
         if package.debian_epoch == Some(0) {
-            bail!("compatibility entry {} has an invalid zero Debian epoch", package.mattos_name)
+            bail!(
+                "compatibility entry {} has an invalid zero Debian epoch",
+                package.mattos_name
+            )
         }
         if package.source_component.trim().is_empty()
             || package.owned_paths.is_empty()
@@ -3709,6 +3800,23 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "mesa" => &["mesa"],
             "nvidia-driver" => &["nvidia-driver"],
             "cosmic-comp" => &["cosmic-comp"],
+            // These stage outputs form Flatpak's runtime closure. They are
+            // intentionally owned by the flatpak package until MattOS splits
+            // them into separately installable library packages.
+            "flatpak" => &[
+                "flatpak",
+                "ostree",
+                "gpgme",
+                "gdk-pixbuf",
+                "appstream",
+                "json-glib",
+                "libxmlb",
+                "libfyaml",
+                "fuse3",
+                "libxml2",
+                "libarchive",
+                "libpng",
+            ],
             "cosmic-desktop" => &["cosmic-desktop"],
             "cosmic-edit" => &["cosmic-edit"],
             "cosmic-initial-setup" => &["cosmic-initial-setup"],
@@ -3855,6 +3963,20 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
             "src/system/graphics/nvidia-open-gpu-kernel-modules",
             "upstream/patches/nvidia-open-gpu-kernel-modules",
         ],
+        "flatpak" => &[
+            "src/system/packages/flatpak",
+            "src/system/packages/ostree",
+            "src/system/security/gpgme",
+            "src/system/libraries/gdk-pixbuf",
+            "src/system/libraries/appstream",
+            "src/system/libraries/json-glib",
+            "src/system/libraries/libxmlb",
+            "src/system/libraries/libfyaml",
+            "src/system/libraries/fuse3",
+            "src/system/libraries/libxml2",
+            "src/system/libraries/libarchive",
+            "src/system/libraries/libpng",
+        ],
         "cosmic-comp" => &["src/desktop/cosmic/cosmic-comp"],
         "cosmic-desktop" => &[
             "src/desktop/cosmic",
@@ -3863,20 +3985,24 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
             "src/system/session/cosmic",
             "src/tools/mattos-build/src/main.rs",
         ],
-            "cosmic-edit" => &["src/desktop/cosmic/cosmic-edit"],
-            "cosmic-initial-setup" => &[
-                "src/desktop/cosmic/cosmic-initial-setup",
-                "resources/COSMIC/layouts",
-                "resources/COSMIC/themes",
-                "src/tools/mattos-build/src/main.rs",
-            ],
-        "duktape" => &["src/system/security/duktape", "src/tools/mattos-build/src/main.rs", "src/tools/mattos-build/src/packaging.rs"],
+        "cosmic-edit" => &["src/desktop/cosmic/cosmic-edit"],
+        "cosmic-initial-setup" => &[
+            "src/desktop/cosmic/cosmic-initial-setup",
+            "resources/COSMIC/layouts",
+            "resources/COSMIC/themes",
+            "src/tools/mattos-build/src/main.rs",
+        ],
+        "duktape" => &[
+            "src/system/security/duktape",
+            "src/tools/mattos-build/src/main.rs",
+            "src/tools/mattos-build/src/packaging.rs",
+        ],
         "polkit" => &[
-                "src/system/security/polkit",
-                "src/tools/mattos-build/src/main.rs",
-                "src/tools/mattos-build/src/packaging.rs",
-            ],
-            "networkmanager" => &["src/system/network/NetworkManager"],
+            "src/system/security/polkit",
+            "src/tools/mattos-build/src/main.rs",
+            "src/tools/mattos-build/src/packaging.rs",
+        ],
+        "networkmanager" => &["src/system/network/NetworkManager"],
         "cozy" => &["src/userland/cozy"],
         "cpython" => &["src/development/python/cpython"],
         "llvm" => &["src/toolchain/llvm-project"],
@@ -4072,6 +4198,7 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
                 &staging.join("usr/share/doc/gpgv/copyright"),
             )?;
         }
+        "gnupg" => stage_gnupg(repo_root, &staging)?,
         "libapt-pkg7.0" => stage_libapt_pkg(repo_root, &staging)?,
         "apt" => stage_apt(repo_root, &staging)?,
         "mattos-libtinfow6" => stage_library_family(
@@ -4650,25 +4777,36 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
                 copy_preserving(&repo_root.join(source), &staging.join(destination))?;
             }
         }
+        "flatpak" => stage_flatpak(repo_root, &staging)?,
         "cosmic-desktop" => stage_cosmic_desktop(repo_root, &staging)?,
         "cosmic-edit" => stage_cosmic_edit(repo_root, &staging)?,
         "cosmic-initial-setup" => stage_cosmic_initial_setup(repo_root, &staging)?,
-        "libduktape207" => stage_runtime_paths(repo_root, &staging, "duktape", &[
-            "usr/lib/x86_64-linux-gnu/libduktape.so.207.2.7.0",
-            "usr/lib/x86_64-linux-gnu/libduktape.so.207",
-            "usr/lib/x86_64-linux-gnu/libduktape.so",
-        ])?,
-        "polkit" => stage_runtime_paths(repo_root, &staging, "polkit", &[
-            "usr/bin/pkcheck",
-            "usr/lib/polkit-1/polkitd",
-            "usr/lib/polkit-1/polkit-agent-helper-1",
-            "usr/lib/x86_64-linux-gnu/libpolkit-agent-1.so",
-            "usr/lib/x86_64-linux-gnu/libpolkit-agent-1.so.0",
-            "usr/lib/x86_64-linux-gnu/libpolkit-agent-1.so.0.0.0",
-            "usr/lib/x86_64-linux-gnu/libpolkit-gobject-1.so",
-            "usr/lib/x86_64-linux-gnu/libpolkit-gobject-1.so.0",
-            "usr/lib/x86_64-linux-gnu/libpolkit-gobject-1.so.0.0.0",
-        ])?,
+        "libduktape207" => stage_runtime_paths(
+            repo_root,
+            &staging,
+            "duktape",
+            &[
+                "usr/lib/x86_64-linux-gnu/libduktape.so.207.2.7.0",
+                "usr/lib/x86_64-linux-gnu/libduktape.so.207",
+                "usr/lib/x86_64-linux-gnu/libduktape.so",
+            ],
+        )?,
+        "polkit" => stage_runtime_paths(
+            repo_root,
+            &staging,
+            "polkit",
+            &[
+                "usr/bin/pkcheck",
+                "usr/lib/polkit-1/polkitd",
+                "usr/lib/polkit-1/polkit-agent-helper-1",
+                "usr/lib/x86_64-linux-gnu/libpolkit-agent-1.so",
+                "usr/lib/x86_64-linux-gnu/libpolkit-agent-1.so.0",
+                "usr/lib/x86_64-linux-gnu/libpolkit-agent-1.so.0.0.0",
+                "usr/lib/x86_64-linux-gnu/libpolkit-gobject-1.so",
+                "usr/lib/x86_64-linux-gnu/libpolkit-gobject-1.so.0",
+                "usr/lib/x86_64-linux-gnu/libpolkit-gobject-1.so.0.0.0",
+            ],
+        )?,
         "network-manager" => stage_network_manager(repo_root, &staging)?,
         "mattos-cozy" => stage_cozy(repo_root, &staging)?,
         "libdbus-1-3" => {
@@ -5642,7 +5780,11 @@ fn stage_base_files(repo_root: &Path, staging: &Path) -> Result<()> {
     let config = repo_root.join("src/system/packages/config/base-files");
     copy_preserving(&config.join("issue"), &staging.join("etc/issue"))?;
     let conffiles = [
-        "/etc/hostname", "/etc/profile", "/etc/shells", "/etc/issue", "/etc/environment",
+        "/etc/hostname",
+        "/etc/profile",
+        "/etc/shells",
+        "/etc/issue",
+        "/etc/environment",
     ];
     fs::write(
         staging.join("DEBIAN/conffiles"),
@@ -5952,6 +6094,65 @@ fn stage_runtime_paths(
     Ok(())
 }
 
+fn stage_gnupg(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = component_install(repo_root, "gpgv");
+    // Keep gpgv's dedicated package ownership intact while publishing the
+    // OpenPGP engine and helpers GPGME needs for verified Flatpak remotes.
+    copy_tree_filtered(
+        &install.join("usr/bin"),
+        &staging.join("usr/bin"),
+        &|relative, metadata| {
+            metadata.is_dir()
+                || relative
+                    .file_name()
+                    .and_then(OsStr::to_str)
+                    .is_some_and(|name| name != "gpgv")
+        },
+    )?;
+    for relative in ["usr/libexec", "usr/sbin", "usr/share/gnupg"] {
+        copy_tree_preserving(&install.join(relative), &staging.join(relative))?;
+    }
+    copy_preserving(
+        &repo_root.join("src/system/security/gnupg/COPYING"),
+        &staging.join("usr/share/doc/gnupg/copyright"),
+    )
+}
+
+fn stage_flatpak(repo_root: &Path, staging: &Path) -> Result<()> {
+    // Flatpak is shipped as one first-class MattOS package. Until the support
+    // libraries below receive their own package boundaries, this package owns
+    // their target-built runtime files as an explicit, closed payload. This
+    // is deliberately not a host fallback: every copied tree comes from a
+    // declared MattOS build stage and is covered by the package cache input.
+    for component in [
+        "ostree",
+        "gpgme",
+        "gdk-pixbuf",
+        "appstream",
+        "json-glib",
+        "libxmlb",
+        "libfyaml",
+        "fuse3",
+        "libxml2",
+        "libarchive",
+        "libpng",
+        "flatpak",
+    ] {
+        let install = component_install(repo_root, component);
+        for top_level in ["usr", "etc"] {
+            let source = install.join(top_level);
+            if source.is_dir() {
+                copy_tree_preserving(&source, &staging.join(top_level))?;
+            }
+        }
+    }
+    copy_preserving(
+        &repo_root.join("src/system/packages/flatpak/COPYING"),
+        &staging.join("usr/share/doc/flatpak/copyright"),
+    )?;
+    Ok(())
+}
+
 fn stage_cosmic_desktop(repo_root: &Path, staging: &Path) -> Result<()> {
     let install = component_install(repo_root, "cosmic-desktop");
     copy_tree_preserving(&install.join("usr"), &staging.join("usr"))?;
@@ -6031,6 +6232,7 @@ fn stage_cosmic_desktop(repo_root: &Path, staging: &Path) -> Result<()> {
         "usr/bin/cosmic-ext-calculator",
         "usr/bin/cosmic-ext-storage",
         "usr/bin/cosmic-monitor",
+        "usr/bin/cosmic-store",
         "usr/bin/greetd",
         "usr/bin/cosmic-greeter-start",
         "usr/share/wayland-sessions/cosmic.desktop",
@@ -6084,9 +6286,8 @@ fn stage_cosmic_edit(repo_root: &Path, staging: &Path) -> Result<()> {
             bail!("cosmic-edit package is missing /{required}");
         }
     }
-    let desktop = fs::read_to_string(staging.join(
-        "usr/share/applications/com.system76.CosmicEdit.desktop",
-    ))?;
+    let desktop =
+        fs::read_to_string(staging.join("usr/share/applications/com.system76.CosmicEdit.desktop"))?;
     if !desktop.contains("Exec=cosmic-edit %F") || !desktop.contains("MimeType=text/plain;") {
         bail!("cosmic-edit desktop entry does not advertise the expected editor contract");
     }
@@ -6098,13 +6299,25 @@ fn stage_cosmic_initial_setup(repo_root: &Path, staging: &Path) -> Result<()> {
     copy_tree_preserving(&install.join("usr"), &staging.join("usr"))?;
     copy_tree_preserving(&install.join("etc"), &staging.join("etc"))?;
     let launcher = staging.join("usr/libexec/mattos/cosmic-initial-setup-autostart");
-    if let Some(parent) = launcher.parent() { fs::create_dir_all(parent)?; }
-    fs::write(&launcher, "#!/bin/sh\n# Live media starts COSMIC without running the installed-user wizard.\n[ ! -e /run/mattos-live ] || exit 0\nexec /usr/bin/cosmic-initial-setup\n")?;
+    if let Some(parent) = launcher.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    fs::write(
+        &launcher,
+        "#!/bin/sh\n# Live media starts COSMIC without running the installed-user wizard.\n[ ! -e /run/mattos-live ] || exit 0\nexec /usr/bin/cosmic-initial-setup\n",
+    )?;
     set_mode(launcher, 0o755)?;
-    let desktop = staging.join("etc/xdg/autostart/com.system76.CosmicInitialSetup.Autostart.desktop");
-    let body = fs::read_to_string(&desktop)?.replace("Exec=cosmic-initial-setup", "Exec=/usr/libexec/mattos/cosmic-initial-setup-autostart");
+    let desktop =
+        staging.join("etc/xdg/autostart/com.system76.CosmicInitialSetup.Autostart.desktop");
+    let body = fs::read_to_string(&desktop)?.replace(
+        "Exec=cosmic-initial-setup",
+        "Exec=/usr/libexec/mattos/cosmic-initial-setup-autostart",
+    );
     fs::write(desktop, body)?;
-    copy_preserving(&repo_root.join("src/desktop/cosmic/cosmic-initial-setup/LICENSE"), &staging.join("usr/share/doc/cosmic-initial-setup/copyright"))?;
+    copy_preserving(
+        &repo_root.join("src/desktop/cosmic/cosmic-initial-setup/LICENSE"),
+        &staging.join("usr/share/doc/cosmic-initial-setup/copyright"),
+    )?;
     for rel in [
         "usr/bin/cosmic-initial-setup",
         "usr/share/applications/com.system76.CosmicInitialSetup.desktop",
@@ -6115,7 +6328,9 @@ fn stage_cosmic_initial_setup(repo_root: &Path, staging: &Path) -> Result<()> {
         "usr/share/cosmic-layouts/top-panel-and-bottom-dock/icon.png",
         "usr/share/cosmic-themes/nebula-dark.ron",
     ] {
-        if !staging.join(rel).is_file() { bail!("cosmic-initial-setup package is missing /{rel}"); }
+        if !staging.join(rel).is_file() {
+            bail!("cosmic-initial-setup package is missing /{rel}");
+        }
     }
     Ok(())
 }
@@ -6124,8 +6339,15 @@ fn stage_network_manager(repo_root: &Path, staging: &Path) -> Result<()> {
     let install = component_install(repo_root, "networkmanager");
     copy_tree_preserving(&install.join("usr"), &staging.join("usr"))?;
     copy_tree_preserving(&install.join("etc"), &staging.join("etc"))?;
-    for rel in ["usr/sbin/NetworkManager", "usr/bin/nmcli", "usr/lib/systemd/system/NetworkManager.service", "usr/lib/systemd/system/NetworkManager-wait-online.service"] {
-        if !staging.join(rel).exists() { bail!("network-manager package is missing /{rel}"); }
+    for rel in [
+        "usr/sbin/NetworkManager",
+        "usr/bin/nmcli",
+        "usr/lib/systemd/system/NetworkManager.service",
+        "usr/lib/systemd/system/NetworkManager-wait-online.service",
+    ] {
+        if !staging.join(rel).exists() {
+            bail!("network-manager package is missing /{rel}");
+        }
     }
     Ok(())
 }
@@ -7506,7 +7728,7 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "libassuan9" => component_snapshot_version(repo_root, "libassuan")?,
         "libksba8" => component_snapshot_version(repo_root, "libksba")?,
         "libnpth0" => component_snapshot_version(repo_root, "npth")?,
-        "gpgv" => component_snapshot_version(repo_root, "gnupg")?,
+        "gpgv" | "gnupg" => component_snapshot_version(repo_root, "gnupg")?,
         "libapt-pkg7.0" | "apt" => apt_version(repo_root)?,
         "mattos-libtinfow6" | "libncursesw6" | "ncurses-base" | "ncurses-bin" => {
             component_snapshot_version(repo_root, "ncurses")?
@@ -7588,9 +7810,10 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         | "nvidia-utils-595"
         | "nvidia-driver-595-open" => "595.84".to_string(),
         "cosmic-comp" => component_snapshot_version(repo_root, "cosmic-comp")?,
-        "cosmic-edit" => cargo_package_version(
-            &repo_root.join("src/desktop/cosmic/cosmic-edit/Cargo.toml"),
-        )?,
+        "flatpak" => component_snapshot_version(repo_root, "flatpak")?,
+        "cosmic-edit" => {
+            cargo_package_version(&repo_root.join("src/desktop/cosmic/cosmic-edit/Cargo.toml"))?
+        }
         "cosmic-initial-setup" => cargo_package_version(
             &repo_root.join("src/desktop/cosmic/cosmic-initial-setup/Cargo.toml"),
         )?,
@@ -7961,9 +8184,10 @@ fn write_provenance(
         | "iputils" | "expat" | "libcap" | "acl" | "zlib" | "bzip2" | "lz4" | "xz"
         | "xxhash" | "zstd" | "openssl" | "elfutils" | "pcre2" | "selinux"
         | "libxcrypt" | "libmd" | "libbsd" | "tar" | "gzip" | "patch" | "file"
-        | "libgpg-error" | "libgcrypt" | "libassuan" | "libksba" | "npth" | "gnupg"
-        | "less" | "git" | "openssh" | "libffi" | "wayland" | "xkbcommon"
-        | "libglvnd" | "xkeyboard-config" | "cpython" | "llvm" | "rust") => {
+        | "libgpg-error" | "libgcrypt" | "libassuan" | "libksba" | "npth"
+        | "gnupg" | "less" | "git" | "openssh" | "libffi" | "wayland"
+        | "xkbcommon" | "libglvnd" | "xkeyboard-config" | "cpython" | "llvm"
+        | "rust") => {
             let state = read_sync_state(repo_root, component)?
                 .ok_or_else(|| anyhow!("upstream state missing for {component}"))?;
             (
@@ -8160,26 +8384,25 @@ fn runtime_libraries_for_spec(repo_root: &Path, spec: &PackageSpec) -> Result<Ve
                 "libnpth0" => "npth",
                 _ => unreachable!(),
             };
-            let install = repo_root
-                .join("out/build")
-                .join(component)
-                .join("install");
+            let install = repo_root.join("out/build").join(component).join("install");
             let libdir = install.join("usr/lib/x86_64-linux-gnu");
             let mut search = vec![libdir.clone()];
             if component != "libgpg-error" && component != "npth" {
                 search.push(
-                    repo_root
-                        .join("out/build/libgpg-error/install/usr/lib/x86_64-linux-gnu"),
+                    repo_root.join("out/build/libgpg-error/install/usr/lib/x86_64-linux-gnu"),
                 );
             }
-            ldd_sonames_many(&[libdir.join(match spec.name {
-                "libgpg-error0" => "libgpg-error.so.0",
-                "libgcrypt20" => "libgcrypt.so.20",
-                "libassuan9" => "libassuan.so.9",
-                "libksba8" => "libksba.so.8",
-                "libnpth0" => "libnpth.so.0",
-                _ => unreachable!(),
-            })], &search)
+            ldd_sonames_many(
+                &[libdir.join(match spec.name {
+                    "libgpg-error0" => "libgpg-error.so.0",
+                    "libgcrypt20" => "libgcrypt.so.20",
+                    "libassuan9" => "libassuan.so.9",
+                    "libksba8" => "libksba.so.8",
+                    "libnpth0" => "libnpth.so.0",
+                    _ => unreachable!(),
+                })],
+                &search,
+            )
         }
         "gpgv" => {
             let install = repo_root.join("out/build/gpgv/install");
@@ -8200,6 +8423,33 @@ fn runtime_libraries_for_spec(repo_root: &Path, spec: &PackageSpec) -> Result<Ve
                 );
             }
             ldd_sonames_many(&[install.join("usr/bin/gpgv")], &search)
+        }
+        "gnupg" => {
+            let install = repo_root.join("out/build/gpgv/install");
+            let mut search = vec![install.join("usr/lib/x86_64-linux-gnu")];
+            for component in [
+                "libgpg-error",
+                "libgcrypt",
+                "libassuan",
+                "libksba",
+                "npth",
+                "zlib",
+            ] {
+                search.push(
+                    repo_root
+                        .join("out/build")
+                        .join(component)
+                        .join("install/usr/lib/x86_64-linux-gnu"),
+                );
+            }
+            ldd_sonames_many(
+                &[
+                    install.join("usr/bin/gpg"),
+                    install.join("usr/bin/gpg-agent"),
+                    install.join("usr/bin/gpgconf"),
+                ],
+                &search,
+            )
         }
         name if matches!(
             name,
@@ -10109,6 +10359,35 @@ mod tests {
     }
 
     #[test]
+    fn flatpak_package_owns_the_complete_target_built_runtime_closure() {
+        let specs = package_specs();
+        let flatpak = specs
+            .iter()
+            .find(|spec| spec.name == "flatpak")
+            .expect("flatpak package spec");
+        assert_eq!(flatpak.source_component, "flatpak");
+        assert_eq!(
+            package_stage_dependencies("flatpak"),
+            [
+                "flatpak",
+                "ostree",
+                "gpgme",
+                "gdk-pixbuf",
+                "appstream",
+                "json-glib",
+                "libxmlb",
+                "libfyaml",
+                "fuse3",
+                "libxml2",
+                "libarchive",
+                "libpng",
+            ]
+        );
+        assert!(package_source_roots("flatpak").contains(&"src/system/packages/flatpak"));
+        assert!(package_source_roots("flatpak").contains(&"src/system/packages/ostree"));
+    }
+
+    #[test]
     fn broad_firmware_and_regulatory_data_are_source_owned_and_installer_required() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
         let firmware = root.join("src/system/data/linux-firmware");
@@ -10205,12 +10484,16 @@ mod tests {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
         let resources = root.join("resources/COSMIC");
         assert!(resources.join("PROVENANCE.md").is_file());
-        assert!(resources
-            .join("defaults/com.system76.CosmicPanel/v1/entries")
-            .is_file());
-        assert!(resources
-            .join("layouts/top-panel-and-bottom-dock/layout.kdl")
-            .is_file());
+        assert!(
+            resources
+                .join("defaults/com.system76.CosmicPanel/v1/entries")
+                .is_file()
+        );
+        assert!(
+            resources
+                .join("layouts/top-panel-and-bottom-dock/layout.kdl")
+                .is_file()
+        );
         assert!(resources.join("themes/nebula-dark.ron").is_file());
 
         let source = include_str!("main.rs");
@@ -10222,10 +10505,15 @@ mod tests {
             "/usr/share/cosmic-layouts",
             "/usr/share/cosmic-themes",
         ] {
-            assert!(source.contains(path), "COSMIC resource contract omits {path}");
+            assert!(
+                source.contains(path),
+                "COSMIC resource contract omits {path}"
+            );
         }
 
-        let libcosmic = fs::read_to_string(root.join("src/desktop/cosmic/libcosmic/cosmic-config/src/lib.rs")).unwrap();
+        let libcosmic =
+            fs::read_to_string(root.join("src/desktop/cosmic/libcosmic/cosmic-config/src/lib.rs"))
+                .unwrap();
         assert!(libcosmic.contains("~/.config/cosmic") || libcosmic.contains("config_dir"));
         assert!(libcosmic.contains("find_data_file"));
     }
@@ -10646,7 +10934,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 163);
+        assert_eq!(PACKAGE_NAMES.len(), 165);
     }
 
     #[test]
@@ -10660,17 +10948,16 @@ mod tests {
         let staging = tempfile::tempdir().unwrap();
         stage_iso_codes(&repo, staging.path()).unwrap();
         for name in ["iso_3166-1.json", "iso_639-2.json", "iso_639-3.json"] {
-            let path = staging
-                .path()
-                .join("usr/share/iso-codes/json")
-                .join(name);
+            let path = staging.path().join("usr/share/iso-codes/json").join(name);
             assert!(path.is_file(), "missing {name}");
             assert!(!fs::read_to_string(path).unwrap().is_empty());
         }
-        assert!(staging
-            .path()
-            .join("usr/share/doc/iso-codes/PROVENANCE.md")
-            .is_file());
+        assert!(
+            staging
+                .path()
+                .join("usr/share/doc/iso-codes/PROVENANCE.md")
+                .is_file()
+        );
     }
 
     #[test]
@@ -10695,7 +10982,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 163);
+        assert_eq!(PACKAGE_NAMES.len(), 165);
         assert_eq!(
             UTIL_LINUX_BASE_PATHS,
             &[
@@ -10772,7 +11059,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 163);
+        assert_eq!(PACKAGE_NAMES.len(), 165);
         let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
         for dependency in [
             "libffi8",

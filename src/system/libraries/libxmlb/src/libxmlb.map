@@ -1,0 +1,284 @@
+# generated automatically, do not edit!
+
+LIBXMLB_0.1.0 {
+  global:
+    xb_builder_add_locale;
+    xb_builder_append_guid;
+    xb_builder_compile;
+    xb_builder_ensure;
+    xb_builder_get_type;
+    xb_builder_import_node;
+    xb_builder_import_source;
+    xb_builder_new;
+    xb_builder_node_add_child;
+    xb_builder_node_add_flag;
+    xb_builder_node_get_attr;
+    xb_builder_node_get_children;
+    xb_builder_node_get_element;
+    xb_builder_node_get_text;
+    xb_builder_node_get_type;
+    xb_builder_node_has_flag;
+    xb_builder_node_insert;
+    xb_builder_node_insert_text;
+    xb_builder_node_new;
+    xb_builder_node_remove_attr;
+    xb_builder_node_set_attr;
+    xb_builder_node_set_element;
+    xb_builder_node_set_text;
+    xb_builder_source_get_type;
+    xb_builder_source_set_info;
+    xb_builder_source_set_prefix;
+    xb_node_export;
+    xb_node_get_attr;
+    xb_node_get_attr_as_uint;
+    xb_node_get_child;
+    xb_node_get_children;
+    xb_node_get_data;
+    xb_node_get_depth;
+    xb_node_get_element;
+    xb_node_get_next;
+    xb_node_get_parent;
+    xb_node_get_root;
+    xb_node_get_text;
+    xb_node_get_text_as_uint;
+    xb_node_get_type;
+    xb_node_query;
+    xb_node_query_attr;
+    xb_node_query_attr_as_uint;
+    xb_node_query_export;
+    xb_node_query_first;
+    xb_node_query_text;
+    xb_node_query_text_as_uint;
+    xb_node_set_data;
+    xb_silo_export;
+    xb_silo_get_bytes;
+    xb_silo_get_guid;
+    xb_silo_get_root;
+    xb_silo_get_size;
+    xb_silo_get_type;
+    xb_silo_is_valid;
+    xb_silo_load_from_bytes;
+    xb_silo_load_from_file;
+    xb_silo_new;
+    xb_silo_new_from_xml;
+    xb_silo_query;
+    xb_silo_query_first;
+    xb_silo_save_to_file;
+    xb_silo_to_string;
+    xb_silo_watch_file;
+  local: *;
+};
+
+LIBXMLB_0.1.1 {
+  global:
+    xb_builder_node_depth;
+    xb_builder_node_get_child;
+    xb_builder_node_get_parent;
+    xb_builder_node_remove_child;
+    xb_builder_node_traverse;
+    xb_builder_node_unlink;
+    xb_builder_set_profile_flags;
+    xb_builder_source_load_file;
+    xb_builder_source_load_xml;
+    xb_builder_source_new;
+    xb_machine_add_method;
+    xb_machine_add_opcode_fixup;
+    xb_machine_add_operator;
+    xb_machine_add_text_handler;
+    xb_machine_get_type;
+    xb_machine_new;
+    xb_machine_parse;
+    xb_machine_run;
+    xb_machine_set_debug_flags;
+    xb_opcode_cmp_str;
+    xb_opcode_cmp_val;
+    xb_opcode_get_kind;
+    xb_opcode_get_str;
+    xb_opcode_get_val;
+    xb_opcode_kind_from_string;
+    xb_opcode_kind_to_string;
+    xb_silo_get_profile_string;
+    xb_silo_invalidate;
+    xb_silo_set_profile_flags;
+  local: *;
+} LIBXMLB_0.1.0;
+
+LIBXMLB_0.1.2 {
+  global:
+    xb_builder_source_load_bytes;
+    xb_silo_export_file;
+    xb_string_append_union;
+    xb_string_escape;
+  local: *;
+} LIBXMLB_0.1.1;
+
+LIBXMLB_0.1.3 {
+  global:
+    xb_builder_add_fixup;
+    xb_builder_fixup_get_max_depth;
+    xb_builder_fixup_get_type;
+    xb_builder_fixup_new;
+    xb_builder_fixup_set_max_depth;
+    xb_builder_node_get_attr_as_uint;
+    xb_builder_node_get_text_as_uint;
+    xb_builder_node_sort_children;
+    xb_builder_source_add_fixup;
+    xb_machine_get_stack_size;
+    xb_machine_set_stack_size;
+  local: *;
+} LIBXMLB_0.1.2;
+
+LIBXMLB_0.1.4 {
+  global:
+    xb_machine_parse_full;
+    xb_node_query_full;
+    xb_opcode_to_string;
+    xb_query_bind_str;
+    xb_query_bind_val;
+    xb_query_get_limit;
+    xb_query_get_type;
+    xb_query_get_xpath;
+    xb_query_new;
+    xb_query_set_limit;
+    xb_silo_query_build_index;
+    xb_stack_get_type;
+    xb_stack_to_string;
+  local: *;
+} LIBXMLB_0.1.3;
+
+LIBXMLB_0.1.5 {
+  global:
+    xb_builder_node_export;
+  local: *;
+} LIBXMLB_0.1.4;
+
+LIBXMLB_0.1.6 {
+  global:
+    xb_query_new_full;
+  local: *;
+} LIBXMLB_0.1.5;
+
+LIBXMLB_0.1.7 {
+  global:
+    xb_builder_source_add_adapter;
+    xb_builder_source_ctx_get_bytes;
+    xb_builder_source_ctx_get_filename;
+    xb_builder_source_ctx_get_stream;
+    xb_builder_source_ctx_get_type;
+  local: *;
+} LIBXMLB_0.1.6;
+
+LIBXMLB_0.1.11 {
+  global:
+    xb_node_query_first_full;
+  local: *;
+} LIBXMLB_0.1.7;
+
+LIBXMLB_0.1.12 {
+  global:
+    xb_builder_node_get_first_child;
+    xb_builder_node_get_last_child;
+    xb_builder_node_get_tail;
+    xb_builder_node_set_tail;
+    xb_node_get_tail;
+    xb_node_transmogrify;
+  local: *;
+} LIBXMLB_0.1.11;
+
+LIBXMLB_0.1.13 {
+  global:
+    xb_silo_query_first_full;
+    xb_silo_query_full;
+  local: *;
+} LIBXMLB_0.1.12;
+
+LIBXMLB_0.1.15 {
+  global:
+    xb_builder_source_add_simple_adapter;
+    xb_query_get_flags;
+    xb_query_set_flags;
+  local: *;
+} LIBXMLB_0.1.13;
+
+LIBXMLB_0.2.0 {
+  global:
+    xb_machine_opcode_func_init;
+    xb_machine_stack_pop;
+    xb_machine_stack_push;
+    xb_machine_stack_push_integer;
+    xb_machine_stack_push_text;
+    xb_machine_stack_push_text_static;
+    xb_machine_stack_push_text_steal;
+    xb_node_get_silo;
+    xb_opcode_func_init;
+    xb_opcode_integer_init;
+    xb_opcode_text_init;
+    xb_opcode_text_init_static;
+    xb_opcode_text_init_steal;
+    xb_silo_get_enable_node_cache;
+    xb_silo_set_enable_node_cache;
+    xb_stack_pop;
+    xb_stack_push;
+  local: *;
+} LIBXMLB_0.1.15;
+
+LIBXMLB_0.3.0 {
+  global:
+    xb_machine_run_with_bindings;
+    xb_node_query_first_with_context;
+    xb_node_query_with_context;
+    xb_query_context_clear;
+    xb_query_context_copy;
+    xb_query_context_free;
+    xb_query_context_get_bindings;
+    xb_query_context_get_flags;
+    xb_query_context_get_limit;
+    xb_query_context_get_type;
+    xb_query_context_init;
+    xb_query_context_set_flags;
+    xb_query_context_set_limit;
+    xb_silo_lookup_query;
+    xb_silo_query_first_with_context;
+    xb_silo_query_with_context;
+    xb_value_bindings_bind_str;
+    xb_value_bindings_bind_val;
+    xb_value_bindings_clear;
+    xb_value_bindings_copy;
+    xb_value_bindings_copy_binding;
+    xb_value_bindings_free;
+    xb_value_bindings_get_type;
+    xb_value_bindings_init;
+    xb_value_bindings_is_bound;
+    xb_value_bindings_lookup_opcode;
+  local: *;
+} LIBXMLB_0.2.0;
+
+LIBXMLB_0.3.1 {
+  global:
+    xb_builder_node_add_token;
+    xb_builder_node_get_tokens;
+    xb_builder_node_tokenize_text;
+  local: *;
+} LIBXMLB_0.3.0;
+
+LIBXMLB_0.3.4 {
+  global:
+    xb_node_attr_iter_init;
+    xb_node_attr_iter_next;
+    xb_node_child_iter_init;
+    xb_node_child_iter_loop;
+    xb_node_child_iter_next;
+  local: *;
+} LIBXMLB_0.3.1;
+
+LIBXMLB_0.3.19 {
+  global:
+    xb_version_string;
+  local: *;
+} LIBXMLB_0.3.4;
+
+LIBXMLB_0.3.27 {
+  global:
+    xb_silo_lookup_query_full;
+  local: *;
+} LIBXMLB_0.3.19;

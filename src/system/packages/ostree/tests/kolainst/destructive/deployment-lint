@@ -1,0 +1,21 @@
+#!/bin/bash
+set -xeuo pipefail
+
+. ${KOLA_EXT_DATA}/libinsttest.sh
+
+require_writable_sysroot
+prepare_tmpdir
+
+mkdir -p rootfs/var/testcontent
+ostree commit -b testlint --no-bindings --selinux-policy-from-base --tree=ref="${host_commit}" --consume --tree=dir=rootfs
+ostree admin deploy testlint 2>err.txt
+assert_not_file_has_content err.txt 'Deploying commit.*which contains content in /var/testcontent'
+test '!' -d /var/testcontent
+echo "ok deploy var"
+
+ostree admin stateroot-init newstatedir
+ostree admin deploy --stateroot=newstatedir testlint
+ls -al /sysroot/ostree/deploy/newstatedir/var
+test -d /sysroot/ostree/deploy/newstatedir/var/testcontent
+
+echo "ok deploy var new stateroot"

@@ -1,0 +1,44 @@
+# Meson definition for appstreamcli
+
+ascli_src = [
+    'appstreamcli.c',
+    'ascli-utils.c',
+    'ascli-actions-pkgmgr.c',
+    'ascli-actions-validate.c',
+    'ascli-actions-mdata.c',
+    'ascli-actions-misc.c',
+]
+
+ascli_exe = executable('appstreamcli',
+    [ascli_src],
+    dependencies: [appstream_dep,
+                   gio_dep],
+    include_directories: [root_inc_dir],
+    # appstreamcli is part of our build/test process, so we always
+    # build it, and just don't install it if tools are disabled
+    install: get_option('tools'),
+)
+
+if not meson.is_cross_build()
+  meson.override_find_program('appstreamcli', ascli_exe)
+endif
+
+if get_option('compose') and get_option('tools')
+    ascompose_src = [
+        'appstream-compose.c',
+        'ascli-utils.c',
+    ]
+
+    ascompose_exe = executable('appstreamcli-compose',
+        [ascompose_src],
+        dependencies: [appstream_dep,
+                       appstream_compose_dep,
+                       gio_dep],
+        include_directories: [root_inc_dir],
+        c_args: ['-DI_KNOW_THE_APPSTREAM_COMPOSE_API_IS_SUBJECT_TO_CHANGE'],
+        install_dir: get_option('libexecdir'),
+        install: true,
+    )
+
+    meson.override_find_program('appstreamcli-compose', ascompose_exe)
+endif

@@ -1,0 +1,104 @@
+option('stemming',
+       type : 'boolean',
+       value : true,
+       description : 'Use stemming while searching. Requires Snowball (libstemmer)'
+)
+option('systemd',
+       type : 'boolean',
+       value : true,
+       description : 'Build with systemd support'
+)
+option('vapi',
+       type : 'boolean',
+       value : false,
+       description : 'Create and install a Vala API file. Requires "gir" to be enabled as well'
+)
+option('qt',
+       type : 'boolean',
+       value : false,
+       description : 'Build libAppStreamQt'
+)
+option('compose',
+       type : 'boolean',
+       value : false,
+       description : 'Build appstream-compose (library, tool if tools are enabled)'
+)
+option('bash-completion',
+       type : 'boolean',
+       value : true,
+       description : 'Bash completion'
+)
+option('apt-support',
+       type : 'boolean',
+       value : false,
+       description : 'Enable integration with APT on Debian'
+)
+option('gir',
+       type : 'boolean',
+       value : true,
+       description : 'Build introspection data'
+)
+option('tools',
+       type : 'boolean',
+       value : true,
+       description : 'Build/install command-line tools (appstreamcli, ascli compose if enabled)'
+)
+option('svg-support',
+       type : 'boolean',
+       value : true,
+       description : 'SVG graphics support for compose (only disable this for bootstrapping purposes)'
+)
+option('zstd-support',
+       type : 'boolean',
+       value : true,
+       description : 'Support Zstd for (de)compressing local / remote metadata'
+)
+option('blake3-support',
+       type : 'boolean',
+       value : true,
+       description : 'Use Blake3 for hashing in appstream-compose'
+)
+option('display-detection',
+       type : 'combo',
+       choices : ['auto', 'none', 'wayland'],
+       value : 'auto',
+       description : 'Display size backend (auto selects one per platform, none disables it)'
+)
+
+#
+# For documentation
+#
+option('docs',
+       type : 'boolean',
+       value : false,
+       description : 'Build documentation for API and specification'
+)
+option('apidocs',
+       type : 'boolean',
+       value : true,
+       description : 'Build API documentation (automatically enabled when "-Ddocs=true" is passed)'
+)
+option('install-docs',
+       type : 'boolean',
+       value : true,
+       description : 'Install documentation for API and specification'
+)
+option('man',
+       type : 'boolean',
+       value : true,
+       description : 'Build manual pages and install them'
+)
+
+#
+# For development
+#
+option('maintainer',
+       type : 'boolean',
+       value : false,
+       description : 'Enable maintainer mode (use strict compiler flags, e.g. -Werror)'
+)
+option('static-analysis',
+       type : 'boolean',
+       value : false,
+       description : 'Enable GCC static analysis support'
+)

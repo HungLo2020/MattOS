@@ -1,0 +1,55 @@
+<?xml version='1.0'?> <!--*-nxml-*-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+    "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
+
+<!--
+Copyright 2014 Anne LoVerso <anne.loverso@students.olin.edu>
+
+SPDX-License-Identifier: LGPL-2.0+
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library. If not, see <https://www.gnu.org/licenses/>.
+-->
+
+<refentry id="ostree">
+
+    <refentryinfo>
+        <title>ostree admin os-init</title>
+        <productname>OSTree</productname>
+
+    </refentryinfo>
+
+    <refmeta>
+        <refentrytitle>ostree admin os-init</refentrytitle>
+        <manvolnum>1</manvolnum>
+    </refmeta>
+
+    <refnamediv>
+        <refname>ostree-admin-os-init</refname>
+        <refpurpose>Soft-deprecated alias for stateroot-init</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+            <cmdsynopsis>
+                <command>ostree admin os-init</command> <arg choice="req">STATEROOT</arg>
+            </cmdsynopsis>
+    </refsynopsisdiv>
+
+    <refsect1>
+        <title>Description</title>
+
+        <para>
+            This is a soft-deprecated alias for stateroot-init.  Please see the documentation for that.
+        </para>
+    </refsect1>
+</refentry>

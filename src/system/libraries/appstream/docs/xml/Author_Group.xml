@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<authorgroup xmlns="http://docbook.org/ns/docbook" version="5.2">
+	<author>
+		<personname><firstname>Matthias</firstname><surname>Klumpp</surname></personname>
+		<affiliation>
+			<orgname>Debian</orgname>
+		</affiliation>
+		<email>mak@debian.org</email>
+	</author>
+	<othercredit class="other" otherclass="contributor">
+		<personname><firstname>Michael</firstname><surname>Vogt</surname></personname>
+		<affiliation>
+			<orgname>Canonical / Ubuntu / Debian</orgname>
+		</affiliation>
+		<email>mvo@ubuntu.com</email>
+	</othercredit>
+	<othercredit class="other" otherclass="contributor">
+		<personname><firstname>Richard</firstname><surname>Hughes</surname></personname>
+		<affiliation>
+			<orgname>Fedora / Red Hat</orgname>
+		</affiliation>
+		<email>richard@hughsie.com</email>
+	</othercredit>
+	<othercredit class="other" otherclass="contributor">
+		<personname><firstname>Vincent</firstname><surname>Untz</surname></personname>
+		<affiliation>
+			<orgname>OpenSUSE</orgname>
+		</affiliation>
+		<email>vuntz@opensuse.org</email>
+	</othercredit>
+</authorgroup>

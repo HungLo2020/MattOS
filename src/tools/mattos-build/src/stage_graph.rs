@@ -57,6 +57,18 @@ pub(crate) enum BuildStage {
     CosmicTerm,
     CosmicTweaks,
     CosmicUtilities,
+    Flatpak,
+    Libarchive,
+    Libxml2,
+    Libpng,
+    Fuse3,
+    Libfyaml,
+    Libxmlb,
+    JsonGlib,
+    Appstream,
+    GdkPixbuf,
+    Gpgme,
+    Ostree,
     CosmicPortal,
     CosmicAssets,
     Greetd,
@@ -176,6 +188,18 @@ pub(crate) fn stage_id(stage: BuildStage) -> &'static str {
         BuildStage::CosmicTerm => "cosmic-term",
         BuildStage::CosmicTweaks => "cosmic-tweaks",
         BuildStage::CosmicUtilities => "cosmic-utilities",
+        BuildStage::Flatpak => "flatpak",
+        BuildStage::Libarchive => "libarchive",
+        BuildStage::Libxml2 => "libxml2",
+        BuildStage::Libpng => "libpng",
+        BuildStage::Fuse3 => "fuse3",
+        BuildStage::Libfyaml => "libfyaml",
+        BuildStage::Libxmlb => "libxmlb",
+        BuildStage::JsonGlib => "json-glib",
+        BuildStage::Appstream => "appstream",
+        BuildStage::GdkPixbuf => "gdk-pixbuf",
+        BuildStage::Gpgme => "gpgme",
+        BuildStage::Ostree => "ostree",
         BuildStage::CosmicPortal => "cosmic-portal",
         BuildStage::CosmicAssets => "cosmic-assets",
         BuildStage::Greetd => "greetd",
@@ -344,16 +368,20 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         BuildStage::CosmicPanel => &["formal-sysroot", "xkbcommon"],
         // The applet aggregate links its input/workspaces code against
         // libinput in addition to the shared xkbcommon metadata.
-        BuildStage::CosmicApplets => &[
-            "formal-sysroot",
-            "dbus",
-            "systemd",
-            "xkbcommon",
-            "libinput",
-        ],
+        BuildStage::CosmicApplets => {
+            &["formal-sysroot", "dbus", "systemd", "xkbcommon", "libinput"]
+        }
         BuildStage::CosmicAppLibrary => &["formal-sysroot", "xkbcommon"],
         BuildStage::CosmicLauncher => &["formal-sysroot", "xkbcommon"],
-        BuildStage::CosmicSettings => &["formal-sysroot", "dav1d", "xkbcommon"],
+        // The display/input pages link libudev and libinput directly, so these
+        // target-owned native providers must be exposed to Cargo's final link.
+        BuildStage::CosmicSettings => &[
+            "formal-sysroot",
+            "dav1d",
+            "xkbcommon",
+            "systemd",
+            "libinput",
+        ],
         // smithay-client-toolkit's build script probes xkbcommon.pc directly.
         BuildStage::CosmicSettingsDaemon => &[
             "formal-sysroot",
@@ -364,18 +392,20 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "libinput",
         ],
         BuildStage::CosmicNotifications => &["formal-sysroot", "xkbcommon"],
-        BuildStage::CosmicOsd => &["formal-sysroot", "xkbcommon"],
+        // cosmic-osd's locked winit graph enables udev; libudev-sys must
+        // resolve systemd's target-owned libudev.pc, and its input graph
+        // links the target-owned libinput development output.
+        BuildStage::CosmicOsd => &["formal-sysroot", "xkbcommon", "systemd", "libinput"],
         BuildStage::CosmicBg => &["formal-sysroot", "dav1d"],
         // cosmic-workspaces declares libudev-dev and libinput-dev.  These
         // are build-time native inputs, not runtime desktop membership.
-        BuildStage::CosmicWorkspaces => &[
-            "formal-sysroot",
-            "mesa",
-            "xkbcommon",
-            "systemd",
-            "libinput",
-        ],
-        BuildStage::CosmicFiles => &["formal-sysroot", "glib", "xkbcommon"],
+        BuildStage::CosmicWorkspaces => {
+            &["formal-sysroot", "mesa", "xkbcommon", "systemd", "libinput"]
+        }
+        // COSMIC Files links through gio.  gio-2.0.pc itself requires zlib.pc,
+        // so zlib is a real native build input rather than a desktop-runtime
+        // co-member.
+        BuildStage::CosmicFiles => &["formal-sysroot", "glib", "xkbcommon", "zlib"],
         BuildStage::CosmicTerm => &["formal-sysroot", "xkbcommon"],
         BuildStage::CosmicTweaks => &["formal-sysroot", "xkbcommon"],
         // Third-party COSMIC applications are built in this aggregate stage,
@@ -383,16 +413,118 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         // inputs as the first-party applications.
         // cosmic-ext-storage links the target-owned libbtrfsutil development
         // output produced as part of the installer stage's btrfs-progs build.
-        BuildStage::CosmicUtilities => {
-            &[
-                "formal-sysroot",
-                "rust",
-                "xkbcommon",
-                "installer",
-                "glib",
-                "zlib",
-            ]
-        }
+        BuildStage::CosmicUtilities => &[
+            "formal-sysroot",
+            "rust",
+            "xkbcommon",
+            "installer",
+            "glib",
+            "zlib",
+            "flatpak",
+            "ostree",
+            "xz",
+            "libarchive",
+            "gpgme",
+            "json-glib",
+            "curl",
+            "systemd",
+            "libxml2",
+            "zstd",
+            "libgpg-error",
+            "libassuan",
+            "openssl",
+        ],
+        BuildStage::Flatpak => &[
+            "formal-sysroot",
+            "glib",
+            "libffi",
+            "zlib",
+            "xz",
+            "curl",
+            "openssl",
+            "libcap",
+            "libarchive",
+            "libxml2",
+            "fuse3",
+            "ostree",
+            "libfyaml",
+            "libxmlb",
+            "systemd",
+            "dbus",
+            "gpgv",
+            "zstd",
+            "wayland",
+            "xkbcommon",
+            "libpng",
+            "libbsd",
+            "libassuan",
+            "libgcrypt",
+            "libgpg-error",
+            "libksba",
+        ],
+        BuildStage::Libarchive => &[
+            "formal-sysroot",
+            "zlib",
+            "zstd",
+            "bzip2",
+            "xz",
+            "lz4",
+            "libcap",
+        ],
+        BuildStage::Libxml2 => &["formal-sysroot", "zlib", "expat"],
+        BuildStage::Fuse3 => &["formal-sysroot"],
+        BuildStage::Libfyaml => &["formal-sysroot"],
+        BuildStage::Libxmlb => &["formal-sysroot", "glib", "libffi", "xz", "zlib"],
+        BuildStage::JsonGlib => &["formal-sysroot", "glib", "libffi", "pcre2", "zlib"],
+        BuildStage::Appstream => &[
+            "formal-sysroot",
+            "glib",
+            "libffi",
+            "libxml2",
+            "zlib",
+            "curl",
+            "openssl",
+            "libfyaml",
+            "libxmlb",
+            "xz",
+            "zstd",
+            "systemd",
+            "wayland",
+        ],
+        BuildStage::GdkPixbuf => &["formal-sysroot", "glib", "libffi", "zlib", "libpng"],
+        BuildStage::Gpgme => &[
+            "formal-sysroot",
+            "libassuan",
+            "libgcrypt",
+            "libgpg-error",
+            "libksba",
+            "zlib",
+        ],
+        BuildStage::Ostree => &[
+            "formal-sysroot",
+            "glib",
+            "libffi",
+            "zlib",
+            "bzip2",
+            "xz",
+            "zstd",
+            "curl",
+            "openssl",
+            "libarchive",
+            "libxml2",
+            "fuse3",
+            // OSTree verifies Flatpak remote metadata through GPGME.  This
+            // is a real native link/runtime requirement, not desktop
+            // composition co-membership.
+            "gpgme",
+            // gpgme.pc has target-owned pkg-config requirements on these
+            // interfaces while OSTree's configure probes GPGME.
+            "libassuan",
+            "libgpg-error",
+            "gpgv",
+            "libbsd",
+            "installer",
+        ],
         BuildStage::CosmicPortal => &[
             "formal-sysroot",
             "mesa",
@@ -419,6 +551,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "cosmic-term",
             "cosmic-tweaks",
             "cosmic-utilities",
+            "flatpak",
             "cosmic-portal",
             "cosmic-assets",
             "greetd",
@@ -428,18 +561,36 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         // Initial Setup's locked libcosmic graph enables udev and libinput
         // through winit/libinput.  Those crates need systemd's target-owned
         // libudev metadata and libinput's target-owned link inputs.
-        BuildStage::CosmicInitialSetup => &[
+        BuildStage::CosmicInitialSetup => &["formal-sysroot", "systemd", "xkbcommon", "libinput"],
+        BuildStage::Polkit => &[
             "formal-sysroot",
+            "glib",
+            "zlib",
+            "expat",
             "systemd",
-            "xkbcommon",
-            "libinput",
+            "dbus",
+            "duktape",
+            "linux-pam",
+            "libffi",
         ],
-        BuildStage::Polkit => &["formal-sysroot", "glib", "zlib", "expat", "systemd", "dbus", "duktape", "linux-pam", "libffi"],
         BuildStage::Duktape => &["formal-sysroot"],
         BuildStage::NetworkManager => &[
-            "formal-sysroot", "glib", "systemd", "dbus", "polkit", "iproute2", "util-linux", "libndp", "zlib", "readline", "ncurses", "libffi",
+            "formal-sysroot",
+            "glib",
+            "systemd",
+            "dbus",
+            "polkit",
+            "iproute2",
+            "util-linux",
+            "libndp",
+            "zlib",
+            "readline",
+            "ncurses",
+            "libffi",
         ],
-        BuildStage::CosmicEdit => &["formal-sysroot", "glib", "xkbcommon"],
+        // gio-2.0.pc exposes GLib's zlib requirement; pkg-config resolves
+        // that transitive metadata while compiling gio-sys.
+        BuildStage::CosmicEdit => &["formal-sysroot", "glib", "zlib", "xkbcommon"],
         BuildStage::Greetd => &["formal-sysroot", "linux-pam"],
         BuildStage::Cozy => &["formal-sysroot", "glibc", "gcc-runtime"],
         BuildStage::Dav1d => &["formal-sysroot"],
@@ -501,8 +652,9 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "pcre2",
         ],
         BuildStage::LibgpgError | BuildStage::Npth => &["formal-sysroot"],
-        BuildStage::Libgcrypt | BuildStage::Libassuan | BuildStage::Libksba =>
-            &["formal-sysroot", "libgpg-error"],
+        BuildStage::Libgcrypt | BuildStage::Libassuan | BuildStage::Libksba => {
+            &["formal-sysroot", "libgpg-error"]
+        }
         BuildStage::Gpgv => &[
             "formal-sysroot",
             "libgpg-error",
@@ -607,6 +759,18 @@ pub(crate) fn all_build_stages() -> &'static [BuildStage] {
         BuildStage::CosmicTerm,
         BuildStage::CosmicTweaks,
         BuildStage::CosmicUtilities,
+        BuildStage::Flatpak,
+        BuildStage::Libarchive,
+        BuildStage::Libxml2,
+        BuildStage::Libpng,
+        BuildStage::Fuse3,
+        BuildStage::Libfyaml,
+        BuildStage::Libxmlb,
+        BuildStage::JsonGlib,
+        BuildStage::Appstream,
+        BuildStage::GdkPixbuf,
+        BuildStage::Gpgme,
+        BuildStage::Ostree,
         BuildStage::CosmicPortal,
         BuildStage::CosmicAssets,
         BuildStage::Greetd,
@@ -774,11 +938,7 @@ mod tests {
 
     #[test]
     fn cosmic_leaf_edges_are_build_artifacts_not_runtime_membership() {
-        let forbidden_for_leaves = [
-            "cosmic-comp",
-            "dbus-broker",
-            "wayland",
-        ];
+        let forbidden_for_leaves = ["cosmic-comp", "dbus-broker", "wayland"];
         for stage in [
             BuildStage::CosmicFiles,
             BuildStage::CosmicPanel,
@@ -797,10 +957,13 @@ mod tests {
                 );
             }
         }
-        assert_eq!(direct_dependencies(BuildStage::Greetd), &["formal-sysroot", "linux-pam"]);
+        assert_eq!(
+            direct_dependencies(BuildStage::Greetd),
+            &["formal-sysroot", "linux-pam"]
+        );
         assert_eq!(
             direct_dependencies(BuildStage::CosmicFiles),
-            &["formal-sysroot", "glib", "xkbcommon"]
+            &["formal-sysroot", "glib", "xkbcommon", "zlib"]
         );
         assert_eq!(
             direct_dependencies(BuildStage::CosmicPanel),
@@ -808,11 +971,24 @@ mod tests {
         );
         assert_eq!(
             direct_dependencies(BuildStage::CosmicSettings),
-            &["formal-sysroot", "dav1d", "xkbcommon"]
+            &[
+                "formal-sysroot",
+                "dav1d",
+                "xkbcommon",
+                "systemd",
+                "libinput",
+            ]
         );
         assert_eq!(
             direct_dependencies(BuildStage::CosmicPortal),
-            &["formal-sysroot", "mesa", "glib", "pipewire", "xkbcommon", "zlib"]
+            &[
+                "formal-sysroot",
+                "mesa",
+                "glib",
+                "pipewire",
+                "xkbcommon",
+                "zlib"
+            ]
         );
         assert_eq!(
             direct_dependencies(BuildStage::CosmicInitialSetup),
@@ -823,8 +999,13 @@ mod tests {
     #[test]
     fn composition_edges_are_confined_to_the_desktop_aggregate() {
         let leaves = [
-            "cosmic-session", "cosmic-greeter", "cosmic-panel", "cosmic-files",
-            "cosmic-settings", "cosmic-portal", "greetd",
+            "cosmic-session",
+            "cosmic-greeter",
+            "cosmic-panel",
+            "cosmic-files",
+            "cosmic-settings",
+            "cosmic-portal",
+            "greetd",
         ];
         for leaf in leaves {
             let dependencies = dependency_map()[leaf].clone();
@@ -870,6 +1051,8 @@ mod tests {
                 "live-root",
                 "iso",
                 "cosmic-utilities",
+                "ostree",
+                "flatpak",
                 "cosmic-desktop"
             ]
             .into_iter()
@@ -922,9 +1105,23 @@ mod tests {
         assert_eq!(
             downstream_invalidation(&["llvm"]),
             [
-                "llvm", "rust", "mesa", "vulkan-tools", "cosmic-comp",
-                "cosmic-portal", "cosmic-workspaces", "cosmic-desktop", "cosmic-utilities",
-                "installer", "packages", "repository", "rootfs", "live-root", "iso"
+                "llvm",
+                "rust",
+                "mesa",
+                "vulkan-tools",
+                "cosmic-comp",
+                "cosmic-portal",
+                "cosmic-workspaces",
+                "cosmic-desktop",
+                "cosmic-utilities",
+                "ostree",
+                "flatpak",
+                "installer",
+                "packages",
+                "repository",
+                "rootfs",
+                "live-root",
+                "iso"
             ]
             .into_iter()
             .collect()
@@ -1099,23 +1296,25 @@ mod tests {
     fn representative_cascade_report() {
         let scenarios: &[(&str, &[&str], usize, &[&str])] = &[
             ("Brush source", &["brush"], 6, &["zlib", "linux"]),
-            ("glibc source", &["glibc"], 116, &["linux"]),
-            ("Linux x86_64 config", &["linux"], 11, &["glibc", "brush"]),
+            // The newly first-class Flatpak dependency stages legitimately
+            // consume glibc outputs, extending this closure from 121 to 128.
+            ("glibc source", &["glibc"], 128, &["linux"]),
+            ("Linux x86_64 config", &["linux"], 13, &["glibc", "brush"]),
             (
                 "Linux x86_64 UAPI source",
                 &["linux", "glibc", "linux-headers"],
-                117,
+                129,
                 &[],
             ),
             (
                 "GCC source",
                 &["gcc-runtime", "gcc-compiler"],
-                114,
+                126,
                 &["linux", "glibc", "linux-headers"],
             ),
             // Initial Setup now has its real systemd/libinput build edges, so
             // it is part of the legitimate native-library cascade.
-            ("zlib shared library", &["zlib"], 44, &["brush", "linux"]),
+            ("zlib shared library", &["zlib"], 55, &["brush", "linux"]),
             ("package metadata", &["packages"], 5, &["brush", "zlib"]),
             (
                 "repository policy",

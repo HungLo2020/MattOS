@@ -3601,6 +3601,7 @@ fn stage_resource_profile(stage: BuildStage) -> scheduler::StageResourceProfile 
             | BuildStage::CosmicTerm
             | BuildStage::CosmicTweaks
             | BuildStage::CosmicUtilities
+            | BuildStage::Flatpak
             | BuildStage::CosmicPortal
             | BuildStage::CosmicEdit
             | BuildStage::CosmicInitialSetup
@@ -3782,6 +3783,21 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
             vec!["out/build/cosmic-tweaks/install/usr/bin/cosmic-ext-tweaks".into()]
         }
         BuildStage::CosmicUtilities => vec!["out/build/cosmic-utilities/install".into()],
+        BuildStage::Flatpak => vec![
+            "out/build/flatpak/install/usr/bin/flatpak".into(),
+            "out/build/flatpak/install/usr/lib/x86_64-linux-gnu/libflatpak.so.0".into(),
+        ],
+        BuildStage::Libarchive => vec!["out/build/libarchive/install/usr/lib/x86_64-linux-gnu/libarchive.so.13".into()],
+        BuildStage::Libxml2 => vec!["out/build/libxml2/install/usr/lib/x86_64-linux-gnu/libxml2.so.16".into()],
+        BuildStage::Libpng => vec!["out/build/libpng/install/usr/lib/x86_64-linux-gnu/libpng16.so.16".into()],
+        BuildStage::Fuse3 => vec!["out/build/fuse3/install/usr/lib/x86_64-linux-gnu/libfuse3.so.4".into()],
+        BuildStage::Libfyaml => vec!["out/build/libfyaml/install/usr/lib/x86_64-linux-gnu/libfyaml.so.0".into()],
+        BuildStage::Libxmlb => vec!["out/build/libxmlb/install/usr/lib/x86_64-linux-gnu/libxmlb.so.2".into()],
+        BuildStage::JsonGlib => vec!["out/build/json-glib/install/usr/lib/x86_64-linux-gnu/libjson-glib-1.0.so.0".into()],
+        BuildStage::Appstream => vec!["out/build/appstream/install/usr/lib/x86_64-linux-gnu/libappstream.so.5".into()],
+        BuildStage::GdkPixbuf => vec!["out/build/gdk-pixbuf/install/usr/lib/x86_64-linux-gnu/libgdk_pixbuf-2.0.so.0".into()],
+        BuildStage::Gpgme => vec!["out/build/gpgme/install/usr/lib/x86_64-linux-gnu/libgpgme.so.45".into()],
+        BuildStage::Ostree => vec!["out/build/ostree/install/usr/lib/x86_64-linux-gnu/libostree-1.so.1".into()],
         BuildStage::CosmicPortal => {
             vec!["out/build/cosmic-portal/install/usr/libexec/xdg-desktop-portal-cosmic".into()]
         }
@@ -3982,9 +3998,12 @@ fn validate_cached_rust_install(repo_root: &Path) -> Result<()> {
     let sysroot = run_cmd_capture(&install, rustc_path, &["--print", "sysroot"])?;
     let reported_sysroot = PathBuf::from(sysroot.trim());
     let expected_sysroot = install.clone();
-    let canonical_reported = reported_sysroot
-        .canonicalize()
-        .with_context(|| format!("published rustc reported missing sysroot {}", reported_sysroot.display()))?;
+    let canonical_reported = reported_sysroot.canonicalize().with_context(|| {
+        format!(
+            "published rustc reported missing sysroot {}",
+            reported_sysroot.display()
+        )
+    })?;
     let canonical_expected = expected_sysroot.canonicalize()?;
     if canonical_reported != canonical_expected {
         bail!(
@@ -4001,12 +4020,15 @@ fn validate_cached_rust_install(repo_root: &Path) -> Result<()> {
             target_libdir.display()
         )
     }
-    if fs::read_dir(&target_libdir)?.filter_map(Result::ok).all(|entry| {
-        !entry
-            .path()
-            .extension()
-            .is_some_and(|extension| extension == "rlib" || extension == "rmeta")
-    }) {
+    if fs::read_dir(&target_libdir)?
+        .filter_map(Result::ok)
+        .all(|entry| {
+            !entry
+                .path()
+                .extension()
+                .is_some_and(|extension| extension == "rlib" || extension == "rmeta")
+        })
+    {
         bail!("published Rust target library directory has no compiler sysroot artifacts")
     }
     Ok(())
@@ -4047,7 +4069,10 @@ fn cache_impact(
     json: bool,
 ) -> Result<()> {
     let selected = if requested == "all" {
-        specs.iter().map(|spec| spec.id.clone()).collect::<BTreeSet<_>>()
+        specs
+            .iter()
+            .map(|spec| spec.id.clone())
+            .collect::<BTreeSet<_>>()
     } else {
         if !specs.iter().any(|spec| spec.id == requested) {
             bail!("unknown cache stage {requested}")
@@ -4057,7 +4082,10 @@ fn cache_impact(
         while changed {
             changed = false;
             for spec in specs {
-                if spec.dependencies.iter().any(|dependency| selected.contains(dependency))
+                if spec
+                    .dependencies
+                    .iter()
+                    .any(|dependency| selected.contains(dependency))
                     && selected.insert(spec.id.clone())
                 {
                     changed = true;
@@ -4074,7 +4102,10 @@ fn cache_impact(
         .unwrap_or_default()
         .into_iter()
         .filter_map(|record| {
-            Some((record.get("stage")?.as_str()?.to_string(), record.get("wall_seconds")?.as_f64()?))
+            Some((
+                record.get("stage")?.as_str()?.to_string(),
+                record.get("wall_seconds")?.as_f64()?,
+            ))
         })
         .collect::<BTreeMap<_, _>>();
     let mut estimated = 0.0;
@@ -4124,20 +4155,36 @@ fn cache_impact(
                 .iter()
                 .filter(|dependency| {
                     impact.changes.iter().any(|change| {
-                        change.category == "dependency-output"
-                            && change.key == dependency.as_str()
+                        change.category == "dependency-output" && change.key == dependency.as_str()
                     })
                 })
-                .filter_map(|dependency| impact_by_stage.get(dependency.as_str()).map(|_| dependency.clone()))
+                .filter_map(|dependency| {
+                    impact_by_stage
+                        .get(dependency.as_str())
+                        .map(|_| dependency.clone())
+                })
                 .collect::<Vec<_>>();
             if json {
                 let mut record = serde_json::to_value(impact)?;
                 if let Some(object) = record.as_object_mut() {
-                    object.insert("historical_seconds".to_string(), serde_json::json!(previous));
+                    object.insert(
+                        "historical_seconds".to_string(),
+                        serde_json::json!(previous),
+                    );
                     object.insert("causal_chain".to_string(), serde_json::json!(chain));
                     object.insert(
                         "work_class".to_string(),
-                        serde_json::json!(if impact.status == "MISS" && impact.classification == "unexplained/unrelated invalidation" { "suspicious" } else if impact.status == "MISS" { "required" } else if impact.status == "MIGRATE" { "migration" } else { "none" }),
+                        serde_json::json!(if impact.status == "MISS"
+                            && impact.classification == "unexplained/unrelated invalidation"
+                        {
+                            "suspicious"
+                        } else if impact.status == "MISS" {
+                            "required"
+                        } else if impact.status == "MIGRATE" {
+                            "migration"
+                        } else {
+                            "none"
+                        }),
                     );
                 }
                 println!("{}", serde_json::to_string(&record)?);
@@ -4156,7 +4203,11 @@ fn cache_impact(
         if !json {
             println!(
                 "totals: selected={} misses={} required={} suspicious={} migrations={} historical_estimate={estimated:.1}s",
-                selected.len(), required + suspicious, required, suspicious, migrations
+                selected.len(),
+                required + suspicious,
+                required,
+                suspicious,
+                migrations
             );
         } else {
             println!(
@@ -4178,7 +4229,8 @@ fn cache_impact(
     result?;
     println!(
         "downstream propagation: {} stage(s); historical estimated work: {:.1}s",
-        selected.len(), estimated
+        selected.len(),
+        estimated
     );
     Ok(())
 }
@@ -4342,6 +4394,18 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::Libglvnd => build_libglvnd(repo_root),
         BuildStage::Mesa => build_mesa(repo_root),
         BuildStage::NvidiaDriver => build_nvidia_driver(repo_root),
+        BuildStage::Flatpak => build_flatpak(repo_root),
+        BuildStage::Libarchive => build_libarchive(repo_root),
+        BuildStage::Libxml2 => build_libxml2(repo_root),
+        BuildStage::Libpng => build_libpng(repo_root),
+        BuildStage::Fuse3 => build_fuse3(repo_root),
+        BuildStage::Libfyaml => build_libfyaml(repo_root),
+        BuildStage::Libxmlb => build_libxmlb(repo_root),
+        BuildStage::JsonGlib => build_json_glib(repo_root),
+        BuildStage::Appstream => build_appstream(repo_root),
+        BuildStage::GdkPixbuf => build_gdk_pixbuf(repo_root),
+        BuildStage::Gpgme => build_gpgme(repo_root),
+        BuildStage::Ostree => build_ostree(repo_root),
         BuildStage::CosmicComp => build_cosmic_comp(repo_root),
         BuildStage::CosmicSession
         | BuildStage::CosmicGreeter
@@ -4406,10 +4470,21 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::Dbus => build_dbus(repo_root),
         BuildStage::DbusBroker => build_dbus_broker(repo_root),
         BuildStage::Dpkg => packaging::build_dpkg(repo_root),
-        BuildStage::LibgpgError => build_gpg_autotools_library(repo_root, "libgpg-error", &[], "libgpg-error.so.0"),
-        BuildStage::Libgcrypt => build_gpg_autotools_library(repo_root, "libgcrypt", &["libgpg-error"], "libgcrypt.so.20"),
-        BuildStage::Libassuan => build_gpg_autotools_library(repo_root, "libassuan", &["libgpg-error"], "libassuan.so.9"),
-        BuildStage::Libksba => build_gpg_autotools_library(repo_root, "libksba", &["libgpg-error"], "libksba.so.8"),
+        BuildStage::LibgpgError => {
+            build_gpg_autotools_library(repo_root, "libgpg-error", &[], "libgpg-error.so.0")
+        }
+        BuildStage::Libgcrypt => build_gpg_autotools_library(
+            repo_root,
+            "libgcrypt",
+            &["libgpg-error"],
+            "libgcrypt.so.20",
+        ),
+        BuildStage::Libassuan => {
+            build_gpg_autotools_library(repo_root, "libassuan", &["libgpg-error"], "libassuan.so.9")
+        }
+        BuildStage::Libksba => {
+            build_gpg_autotools_library(repo_root, "libksba", &["libgpg-error"], "libksba.so.8")
+        }
         BuildStage::Npth => build_gpg_autotools_library(repo_root, "npth", &[], "libnpth.so.0"),
         BuildStage::Gpgv => build_gpgv(repo_root),
         BuildStage::Polkit => build_polkit(repo_root),
@@ -6267,7 +6342,10 @@ fn build_linux_pam(repo_root: &Path) -> Result<()> {
         run_cmd_with_env_overrides(repo_root, "meson", &setup_refs, &env_overrides)?;
         fs::write(&options_path, &options_text)
             .with_context(|| format!("failed to write {}", options_path.display()))?;
-    } else if needs_reconfigure {
+    } else {
+        // Meson build.dat is not portable across Meson versions. Reconfigure
+        // an existing tree on every invocation so a host Meson upgrade cannot
+        // leave this stage with stale serialized build data.
         let mut setup_args = vec![
             "setup".to_string(),
             "--reconfigure".to_string(),
@@ -6277,8 +6355,10 @@ fn build_linux_pam(repo_root: &Path) -> Result<()> {
         setup_args.extend(options.clone());
         let setup_refs: Vec<&str> = setup_args.iter().map(String::as_str).collect();
         run_cmd_with_env_overrides(repo_root, "meson", &setup_refs, &env_overrides)?;
-        fs::write(&options_path, &options_text)
-            .with_context(|| format!("failed to write {}", options_path.display()))?;
+        if needs_reconfigure {
+            fs::write(&options_path, &options_text)
+                .with_context(|| format!("failed to write {}", options_path.display()))?;
+        }
     }
 
     run_cmd_with_env_overrides(
@@ -7253,11 +7333,7 @@ fn sync_build_source(source: &Path, destination: &Path) -> Result<()> {
     let destination_arg = format!("{}/", destination.display());
     let mut args = SOURCE_MIRROR_RSYNC_FLAGS.to_vec();
     args.extend([source_arg.as_str(), destination_arg.as_str()]);
-    run_cmd(
-        Path::new("/"),
-        "rsync",
-        &args,
-    )
+    run_cmd(Path::new("/"), "rsync", &args)
 }
 
 fn source_lock_repo_root(source: &Path) -> Result<PathBuf> {
@@ -7265,7 +7341,9 @@ fn source_lock_repo_root(source: &Path) -> Result<PathBuf> {
         .ancestors()
         .find(|candidate| {
             candidate.join("Cargo.toml").is_file()
-                && candidate.join("src/tools/mattos-build/Cargo.toml").is_file()
+                && candidate
+                    .join("src/tools/mattos-build/Cargo.toml")
+                    .is_file()
         })
         .map(Path::to_path_buf)
         .or_else(|| {
@@ -7273,12 +7351,19 @@ fn source_lock_repo_root(source: &Path) -> Result<PathBuf> {
                 cwd.ancestors()
                     .find(|candidate| {
                         candidate.join("Cargo.toml").is_file()
-                            && candidate.join("src/tools/mattos-build/Cargo.toml").is_file()
+                            && candidate
+                                .join("src/tools/mattos-build/Cargo.toml")
+                                .is_file()
                     })
                     .map(Path::to_path_buf)
             })
         })
-        .ok_or_else(|| anyhow!("unable to locate MattOS root for source mirror {}", source.display()))
+        .ok_or_else(|| {
+            anyhow!(
+                "unable to locate MattOS root for source mirror {}",
+                source.display()
+            )
+        })
 }
 
 fn prune_derived_source_mirror_artifacts(repo_root: &Path) -> Result<()> {
@@ -7294,16 +7379,24 @@ fn prune_derived_source_mirror_artifacts(repo_root: &Path) -> Result<()> {
             if file_type.is_dir() {
                 if entry.file_name() == "target" || entry.file_name() == "__pycache__" {
                     fs::remove_dir_all(&child).with_context(|| {
-                        format!("failed to prune derived source mirror directory {}", child.display())
+                        format!(
+                            "failed to prune derived source mirror directory {}",
+                            child.display()
+                        )
                     })?;
                 } else {
                     visit(&child)?;
                 }
             } else if file_type.is_file()
-                && child.extension().is_some_and(|extension| extension == "pyc")
+                && child
+                    .extension()
+                    .is_some_and(|extension| extension == "pyc")
             {
                 fs::remove_file(&child).with_context(|| {
-                    format!("failed to prune derived source mirror file {}", child.display())
+                    format!(
+                        "failed to prune derived source mirror file {}",
+                        child.display()
+                    )
                 })?;
             }
         }
@@ -7333,7 +7426,10 @@ impl ConsumerMirrorLock {
         #[cfg(unix)]
         {
             use std::os::fd::AsRawFd;
-            let file = fs::OpenOptions::new().create(true).append(true).open(path)?;
+            let file = fs::OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open(path)?;
             let result = unsafe { libc::flock(file.as_raw_fd(), libc::LOCK_EX) };
             if result != 0 {
                 return Err(std::io::Error::last_os_error().into());
@@ -8067,16 +8163,6 @@ fn staged_library_environment(
         let library = usr.join("lib/x86_64-linux-gnu");
         if include.is_dir() {
             include_dirs.push(include.clone());
-            // A number of native libraries (notably libevdev) install their
-            // public headers beneath a versioned include directory.  Keep
-            // those MattOS-owned paths explicit so Meson cannot satisfy the
-            // include from the host merely because a .pc prefix is /usr.
-            for entry in fs::read_dir(&include)? {
-                let entry = entry?;
-                if entry.file_type()?.is_dir() {
-                    include_dirs.push(entry.path());
-                }
-            }
         }
         if library.is_dir() {
             pkgconfig_dirs.push(library.join("pkgconfig"));
@@ -8168,6 +8254,7 @@ fn build_autotools_import(
     let adaptation_stamp = match component {
         "networkmanager" => "output-policy-install-adaptation-v4",
         "readline" => "output-pkgconfig-adaptation-v1",
+        "ostree" => "output-submodule-and-docs-staging-adaptation-v5",
         _ => "",
     };
     let stamp = format!(
@@ -8181,10 +8268,122 @@ fn build_autotools_import(
     }
     fs::create_dir_all(&out_root)?;
     sync_build_source(&source, &source_copy)?;
+    if component == "ostree" {
+        // The release repository keeps this generated include out of the
+        // source tree.  Materialize it in the output mirror before
+        // autoreconf; authoritative imported source remains unchanged.
+        for (directory, template_name, variable) in [
+            ("libglnx", "Makefile-libglnx.am", "$$(libglnx_srcpath)"),
+            ("bsdiff", "Makefile-bsdiff.am", "$$(libbsdiff_srcpath)"),
+        ] {
+            let generated = source_copy
+                .join(directory)
+                .join(format!("{template_name}.inc"));
+            if !generated.is_file() {
+                let template = fs::read_to_string(source_copy.join(directory).join(template_name))?;
+                fs::write(generated, template.replace(variable, directory))?;
+            }
+        }
+        // gtk-doc is disabled for the target package, but automake still
+        // parses the conditional apidoc makefile and requires this generated
+        // include to exist during autoreconf.
+        let gtk_doc_make = source_copy.join("gtk-doc.make");
+        if !gtk_doc_make.is_file() {
+            fs::write(gtk_doc_make, "# gtk-doc disabled in this MattOS build\n")?;
+        }
+        let makefile = source_copy.join("Makefile.am");
+        let make_contents = fs::read_to_string(&makefile)?;
+        let make_without_apidoc = make_contents.replace(
+            "if ENABLE_GTK_DOC\nSUBDIRS += apidoc\nendif\n",
+            "# gtk-doc disabled in this MattOS build\n",
+        );
+        if make_without_apidoc != make_contents {
+            fs::write(makefile, make_without_apidoc)?;
+        }
+        let configure = source_copy.join("configure.ac");
+        let configure_contents = fs::read_to_string(&configure)?;
+        let configure_without_apidoc = configure_contents.replace("apidoc/Makefile\n", "");
+        if configure_without_apidoc != configure_contents {
+            fs::write(configure, configure_without_apidoc)?;
+        }
+        let syscall_header = source_copy.join("libglnx/glnx-missing-syscall.h");
+        let syscall_contents = fs::read_to_string(&syscall_header)?;
+        let syscall_fixed = syscall_contents.replace(
+            "#if !HAVE_DECL_NAME_TO_HANDLE_AT && defined(__NR_name_to_handle_at)",
+            "#if defined(HAVE_DECL_NAME_TO_HANDLE_AT) && !HAVE_DECL_NAME_TO_HANDLE_AT && defined(__NR_name_to_handle_at)",
+        );
+        if syscall_fixed != syscall_contents {
+            fs::write(syscall_header, syscall_fixed)?;
+        }
+        let dump = source_copy.join("src/ostree/ot-dump.c");
+        let dump_contents = fs::read_to_string(&dump)?;
+        let dump_fixed = dump_contents
+            .replace("#include <bsd/err.h>", "#include <err.h>")
+            .replace(
+                "errx (1, \"Failed to read commit: %s\",",
+                "g_error (\"Failed to read commit: %s\",",
+            );
+        if dump_fixed != dump_contents {
+            fs::write(dump, dump_fixed)?;
+        }
+        let err_compat = source_copy.join("mattos-err-compat.h");
+        fs::write(
+            &err_compat,
+            "#ifndef MATTOS_OSTREE_ERR_COMPAT_H\n#define MATTOS_OSTREE_ERR_COMPAT_H\n#include <stdarg.h>\nvoid err(int, const char *, ...);\nvoid errx(int, const char *, ...);\n#endif\n",
+        )?;
+    }
     if !source_copy.join("configure").is_file() {
         run_cmd(&source_copy, "autoreconf", &["-fiv"])?;
     }
-    let env = staged_library_environment(repo_root, dependencies)?;
+    let mut env = staged_library_environment(repo_root, dependencies)?;
+    if component == "ostree" {
+        // libbsd's compatibility headers include the target libc headers by
+        // their normal names.  Its nested `include/bsd` directory must not
+        // be placed on the general include search path: doing so makes
+        // <sys/cdefs.h> resolve to bsd/sys/cdefs.h and recurse into itself
+        // under the MattOS sysroot.  Keep libbsd's public root available and
+        // link it explicitly below, but remove only this accidental nested
+        // include directory from the generated environment.
+        let libbsd_nested = repo_root
+            .join("out/build/libbsd/install/usr/include/bsd")
+            .display()
+            .to_string();
+        for (key, value) in &mut env {
+            if *key == "CPPFLAGS" {
+                *value = value
+                    .split_whitespace()
+                    .filter(|flag| *flag != format!("-I{libbsd_nested}"))
+                    .collect::<Vec<_>>()
+                    .join(" ");
+                value.push_str(&format!(
+                    " -include {}",
+                    source_copy.join("mattos-err-compat.h").display()
+                ));
+            }
+        }
+        // e2p is part of the target-owned e2fsprogs development install,
+        // which is produced as an installer sub-output rather than a
+        // standalone BuildStage.
+        let e2fs_usr = repo_root.join("out/build/e2fsprogs/install/usr");
+        let e2fs_include = e2fs_usr.join("include");
+        let e2fs_lib = e2fs_usr.join("lib/x86_64-linux-gnu");
+        let e2fs_pc = e2fs_lib.join("pkgconfig");
+        for (key, value) in &mut env {
+            if *key == "CPPFLAGS" {
+                value.push_str(&format!(" -I{}", e2fs_include.display()));
+            } else if *key == "LDFLAGS" {
+                value.push_str(&format!(
+                    " -L{} -Wl,-rpath-link,{}",
+                    e2fs_lib.display(),
+                    e2fs_lib.display()
+                ));
+            } else if *key == "LIBRARY_PATH" || *key == "LD_LIBRARY_PATH" {
+                *value = format!("{}:{}", e2fs_lib.display(), value);
+            } else if *key == "PKG_CONFIG_PATH" || *key == "PKG_CONFIG_LIBDIR" {
+                *value = format!("{}:{}", e2fs_pc.display(), value);
+            }
+        }
+    }
     fs::create_dir_all(&build_dir)?;
     if !build_dir.join("Makefile").is_file() {
         run_cmd_with_env_overrides(
@@ -8395,11 +8594,23 @@ fn build_xkbcommon(repo_root: &Path) -> Result<()> {
         let mut args = vec!["setup", path_str(&build_dir)?, path_str(&source_copy)?];
         args.extend(options);
         run_cmd(repo_root, "meson", &args)?;
+    } else {
+        // Meson serializes its internal build model.  A build directory made
+        // by an older Meson can still have build.ninja while meson compile
+        // rejects build.dat; reconfigure the derived directory before use.
+        let mut args = vec![
+            "setup",
+            "--reconfigure",
+            path_str(&build_dir)?,
+            path_str(&source_copy)?,
+        ];
+        args.extend(options);
+        run_cmd(repo_root, "meson", &args)?;
     }
     run_cmd(
         repo_root,
-        "meson",
-        &["compile", "-C", path_str(&build_dir)?],
+        "ninja",
+        &["-C", path_str(&build_dir)?, "libxkbcommon.so.0.9.2"],
     )?;
     remove_path_if_exists(&install_dir)?;
     run_cmd(
@@ -8409,8 +8620,11 @@ fn build_xkbcommon(repo_root: &Path) -> Result<()> {
             "install",
             "-C",
             path_str(&build_dir)?,
+            "--no-rebuild",
             "--destdir",
             path_str(&install_dir)?,
+            "--tags",
+            "runtime,devel",
         ],
     )?;
     let soname = install_dir.join("usr/lib/x86_64-linux-gnu/libxkbcommon.so.0");
@@ -8524,6 +8738,7 @@ fn build_meson_runtime(
     let adaptation_stamp = match component {
         "networkmanager" => "output-policy-install-adaptation-v4",
         "polkit" => "output-duktape-link-adaptation-v2",
+        "appstream" => "output-source-closure-adaptation-v2",
         _ => "",
     };
     // Meson stores compiler/build-tool state in build.dat.  A cache miss can
@@ -8552,7 +8767,31 @@ fn build_meson_runtime(
         remove_path_if_exists(&build_dir)?;
     }
     fs::create_dir_all(&out_root)?;
+    for dependency in dependencies {
+        rewrite_staged_pkgconfig_files(
+            &repo_root.join("out/build").join(dependency).join("install"),
+        )?;
+    }
     sync_build_source(&source, &source_copy)?;
+    if component == "appstream" {
+        // The host does not provide itstool.  AppStream's untranslated
+        // release-note metadata is still a valid source-owned artifact, so
+        // replace only the output mirror's optional localization join with a
+        // deterministic install of that upstream XML.  The authoritative
+        // imported source remains untouched.
+        let data_meson = source_copy.join("data/meson.build");
+        let body = fs::read_to_string(&data_meson)?;
+        let start = body
+            .find("metainfo_i18n = i18n.itstool_join(")
+            .context("AppStream data layout changed: missing itstool join")?;
+        let end = body[start..]
+            .find("\n\n")
+            .map(|offset| start + offset)
+            .context("AppStream data layout changed: unterminated itstool join")?;
+        let replacement = "metainfo_i18n = files('org.freedesktop.appstream.cli.metainfo.xml')\ninstall_data(metainfo_i18n, install_dir: metainfo_dir)";
+        let adapted = format!("{}{}{}", &body[..start], replacement, &body[end..]);
+        fs::write(data_meson, adapted)?;
+    }
     if component == "networkmanager" {
         let data_meson = source_copy.join("data/meson.build");
         let body = fs::read_to_string(&data_meson)?.replace(
@@ -8583,13 +8822,30 @@ fn build_meson_runtime(
         let old = "  js_dep = dependency('duktape', version: duktape_req_version, required: false)\n  if not js_dep.found()\n    message('Falling back to looking for library and header...')\n    js_dep = cc.find_library('duktape', has_headers: ['duktape.h'], required: true)\n  endif";
         let replacement = format!(
             "  js_dep = declare_dependency(compile_args: ['-I{}'], link_args: ['-lduktape'])",
-            repo_root.join("out/build/duktape/install/usr/include").display()
+            repo_root
+                .join("out/build/duktape/install/usr/include")
+                .display()
         );
-        if !body.contains(old) { bail!("polkit Duktape dependency block changed unexpectedly"); }
+        if !body.contains(old) {
+            bail!("polkit Duktape dependency block changed unexpectedly");
+        }
         let body = body.replace(old, &replacement);
         fs::write(meson, body)?;
     }
     let mut env = staged_library_environment(repo_root, dependencies)?;
+    if component == "flatpak" {
+        if let Some((_, flags)) = env.iter_mut().find(|(key, _)| *key == "LDFLAGS") {
+            flags.push_str(&format!(
+                " -Wl,--no-as-needed {} {} -Wl,--as-needed",
+                repo_root
+                    .join("out/build/libxmlb/install/usr/lib/x86_64-linux-gnu/libxmlb.so.2")
+                    .display(),
+                repo_root
+                    .join("out/build/libfyaml/install/usr/lib/x86_64-linux-gnu/libfyaml.so.0")
+                    .display()
+            ));
+        }
+    }
     env.extend(extra_env.iter().map(|(key, value)| (*key, value.clone())));
     if !build_dir.join("build.ninja").is_file() {
         let mut args = vec!["setup", path_str(&build_dir)?, path_str(&source_copy)?];
@@ -8615,6 +8871,7 @@ fn build_meson_runtime(
         ],
         &env,
     )?;
+    rewrite_staged_pkgconfig_files(&install_dir)?;
     let required = install_dir.join(required_output);
     if !required.is_file() {
         bail!("{component} install did not produce {}", required.display());
@@ -8658,8 +8915,22 @@ fn rewrite_staged_pkgconfig_files(install_dir: &Path) -> Result<()> {
                 visit(&path, prefix)?;
             } else if metadata.is_file() && path.extension().and_then(OsStr::to_str) == Some("pc") {
                 let contents = fs::read_to_string(&path)?;
-                let rewritten =
-                    contents.replacen("prefix=/usr", &format!("prefix={}", prefix.display()), 1);
+                let rewritten = contents
+                    .lines()
+                    .map(|line| {
+                        if let Some(value) = line.strip_prefix("prefix=/usr") {
+                            format!("prefix={}{}", prefix.display(), value)
+                        } else if let Some(value) = line.strip_prefix("libdir=/usr") {
+                            format!("libdir=${{prefix}}{}", value)
+                        } else if let Some(value) = line.strip_prefix("includedir=/usr") {
+                            format!("includedir=${{prefix}}{}", value)
+                        } else {
+                            line.to_string()
+                        }
+                    })
+                    .collect::<Vec<_>>()
+                    .join("\n")
+                    + "\n";
                 fs::write(&path, rewritten)?;
             }
         }
@@ -10127,6 +10398,12 @@ fn cosmic_native_components(stage: BuildStage) -> Vec<&'static str> {
         // development library from this nested install root.
         components.push("btrfs-progs");
     }
+    if stage == BuildStage::CosmicEdit && !components.contains(&"zlib") {
+        // gio-2.0.pc declares zlib as a transitive pkg-config requirement.
+        // Keep the provider visible even when the scheduler supplies only the
+        // component's direct native environment.
+        components.push("zlib");
+    }
     components
 }
 
@@ -10293,7 +10570,33 @@ fn ensure_owned_libcosmic_mirror(repo_root: &Path, component_mirror: &Path) -> R
     if !manifest.is_file() {
         return Ok(());
     }
-    let body = fs::read_to_string(&manifest)?;
+    let raw_body = fs::read_to_string(&manifest)?;
+    // Reconstruct the whole output-owned patch table on every materialization.
+    // Older mirrors and some authoritative COSMIC manifests contain a
+    // commented table, while older MattOS mirrors used the `.git` spelling;
+    // retaining either table beside the canonical one creates duplicate TOML
+    // keys or lets Cargo re-resolve the upstream git package.
+    let patch_keys = [
+        "[patch.\"https://github.com/pop-os/libcosmic\"]",
+        "[patch.\"https://github.com/pop-os/libcosmic.git\"]",
+        "[patch.'https://github.com/pop-os/libcosmic']",
+        "[patch.'https://github.com/pop-os/libcosmic.git']",
+    ];
+    let mut body = String::new();
+    let mut skipping_patch_table = false;
+    for line in raw_body.lines() {
+        if patch_keys.contains(&line.trim()) {
+            skipping_patch_table = true;
+            continue;
+        }
+        if skipping_patch_table && line.starts_with('[') && !line.starts_with("[[") {
+            skipping_patch_table = false;
+        }
+        if !skipping_patch_table {
+            body.push_str(line);
+            body.push('\n');
+        }
+    }
     const MARKER: &str = "# MattOS output-owned libcosmic dependency override.";
     let declarations = body.split(MARKER).next().unwrap_or(&body);
     if !declarations.lines().any(|line| {
@@ -10308,7 +10611,7 @@ fn ensure_owned_libcosmic_mirror(repo_root: &Path, component_mirror: &Path) -> R
     if !body.contains(MARKER) {
         let mut updated = body;
         updated.push_str(&format!(
-            "\n{MARKER}\n[patch.\"https://github.com/pop-os/libcosmic.git\"]\nlibcosmic = {{ path = \"../libcosmic\" }}\ncosmic-config = {{ path = \"../libcosmic/cosmic-config\" }}\ncosmic-config-derive = {{ path = \"../libcosmic/cosmic-config-derive\" }}\ncosmic-theme = {{ path = \"../libcosmic/cosmic-theme\" }}\niced_core = {{ path = \"../libcosmic/iced/core\" }}\niced_futures = {{ path = \"../libcosmic/iced/futures\" }}\niced_graphics = {{ path = \"../libcosmic/iced/graphics\" }}\niced_renderer = {{ path = \"../libcosmic/iced/renderer\" }}\niced_runtime = {{ path = \"../libcosmic/iced/runtime\" }}\niced_widget = {{ path = \"../libcosmic/iced/widget\" }}\niced_winit = {{ path = \"../libcosmic/iced/winit\" }}\niced_tiny_skia = {{ path = \"../libcosmic/iced/tiny_skia\" }}\niced_wgpu = {{ path = \"../libcosmic/iced/wgpu\" }}\n"
+            "\n{MARKER}\n[patch.\"https://github.com/pop-os/libcosmic\"]\nlibcosmic = {{ path = \"../libcosmic\" }}\ncosmic-config = {{ path = \"../libcosmic/cosmic-config\" }}\ncosmic-config-derive = {{ path = \"../libcosmic/cosmic-config-derive\" }}\ncosmic-theme = {{ path = \"../libcosmic/cosmic-theme\" }}\niced_core = {{ path = \"../libcosmic/iced/core\" }}\niced_futures = {{ path = \"../libcosmic/iced/futures\" }}\niced_graphics = {{ path = \"../libcosmic/iced/graphics\" }}\niced_renderer = {{ path = \"../libcosmic/iced/renderer\" }}\niced_runtime = {{ path = \"../libcosmic/iced/runtime\" }}\niced_widget = {{ path = \"../libcosmic/iced/widget\" }}\niced_winit = {{ path = \"../libcosmic/iced/winit\" }}\niced_tiny_skia = {{ path = \"../libcosmic/iced/tiny_skia\" }}\niced_wgpu = {{ path = \"../libcosmic/iced/wgpu\" }}\n"
         ));
         fs::write(&manifest, updated)?;
     } else if !body.contains("cosmic-config = { path = \"../libcosmic/cosmic-config\" }") {
@@ -10384,10 +10687,7 @@ fn build_cosmic_desktop_component(repo_root: &Path, stage: BuildStage) -> Result
                 // but the absolute mirror path would leak the build host into
                 // the shipped ELF. Keep the generated asset layout unchanged
                 // while replacing only that deterministic path prefix.
-                sanitize_embedded_output_path(
-                    &install.join("usr/bin/cosmic-workspaces"),
-                    &mirror,
-                )?;
+                sanitize_embedded_output_path(&install.join("usr/bin/cosmic-workspaces"), &mirror)?;
             }
         }
         BuildStage::CosmicUtilities => {
@@ -10398,10 +10698,12 @@ fn build_cosmic_desktop_component(repo_root: &Path, stage: BuildStage) -> Result
                 "cosmic-calculator",
                 "cosmic-storage",
                 "cosmic-monitor",
+                "cosmic-store",
             ] {
                 build_cosmic_just_component(repo_root, &install, component, &env)?;
             }
         }
+        BuildStage::Flatpak => build_flatpak(repo_root)?,
         BuildStage::CosmicPortal => {
             let component = "xdg-desktop-portal-cosmic";
             let mirror = repo_root
@@ -10557,6 +10859,7 @@ fn build_cosmic_desktop(repo_root: &Path) -> Result<()> {
         "usr/bin/cosmic-ext-calculator",
         "usr/bin/cosmic-ext-storage",
         "usr/bin/cosmic-monitor",
+        "usr/bin/cosmic-store",
         "usr/bin/greetd",
         "usr/share/wayland-sessions/cosmic.desktop",
         "usr/share/icons/Cosmic/index.theme",
@@ -10577,7 +10880,21 @@ fn build_cosmic_edit(repo_root: &Path) -> Result<()> {
     remove_path_if_exists(&install)?;
     sync_build_source(&repo_root.join("src/desktop/cosmic/cosmic-edit"), &mirror)?;
     isolate_cargo_build_mirror(&mirror)?;
-    let env = cosmic_component_environment(repo_root, &install, BuildStage::CosmicEdit)?;
+    let mut env = cosmic_component_environment(repo_root, &install, BuildStage::CosmicEdit)?;
+    // Keep this component's transitive GLib provider visible to pkg-config.
+    // gio-2.0.pc requires zlib.pc, and the production scheduler may publish
+    // the zlib stage after the initial native-environment snapshot.
+    let zlib_pkgconfig =
+        repo_root.join("out/build/zlib/install/usr/lib/x86_64-linux-gnu/pkgconfig");
+    for key in ["PKG_CONFIG_PATH", "PKG_CONFIG_LIBDIR"] {
+        if let Some((_, value)) = env.iter_mut().find(|(name, _)| *name == key) {
+            let mut paths = std::env::split_paths(value).collect::<Vec<_>>();
+            if !paths.iter().any(|path| path == &zlib_pkgconfig) {
+                paths.push(zlib_pkgconfig.clone());
+                *value = std::env::join_paths(paths)?.to_string_lossy().to_string();
+            }
+        }
+    }
     run_locked_cosmic_command(
         repo_root,
         &mirror,
@@ -10588,15 +10905,26 @@ fn build_cosmic_edit(repo_root: &Path) -> Result<()> {
     let binary = cosmic_shared_target(repo_root).join("release/cosmic-edit");
     stage_output_file(&binary, &install.join("usr/bin/cosmic-edit"), 0o755)?;
     let res = mirror.join("res");
-    copy_file_preserving(&res.join("com.system76.CosmicEdit.desktop"), &install.join("usr/share/applications/com.system76.CosmicEdit.desktop"))?;
-    copy_file_preserving(&res.join("com.system76.CosmicEdit.metainfo.xml"), &install.join("usr/share/metainfo/com.system76.CosmicEdit.metainfo.xml"))?;
+    copy_file_preserving(
+        &res.join("com.system76.CosmicEdit.desktop"),
+        &install.join("usr/share/applications/com.system76.CosmicEdit.desktop"),
+    )?;
+    copy_file_preserving(
+        &res.join("com.system76.CosmicEdit.metainfo.xml"),
+        &install.join("usr/share/metainfo/com.system76.CosmicEdit.metainfo.xml"),
+    )?;
     copy_tree_contents(
         &res.join("icons/hicolor"),
         &install.join("usr/share/icons/hicolor"),
     )?;
     for entry in fs::read_dir(res.join("icons"))? {
         let entry = entry?;
-        if entry.file_type()?.is_file() && entry.file_name().to_string_lossy().ends_with("-symbolic.svg") {
+        if entry.file_type()?.is_file()
+            && entry
+                .file_name()
+                .to_string_lossy()
+                .ends_with("-symbolic.svg")
+        {
             copy_file_preserving(
                 &entry.path(),
                 &install
@@ -10618,16 +10946,43 @@ fn build_cosmic_initial_setup(repo_root: &Path) -> Result<()> {
     // output Cargo.lock.
     let mirror = repo_root.join("out/build/cosmic-desktop/sources/cosmic-initial-setup");
     remove_path_if_exists(&install)?;
-    sync_build_source(&repo_root.join("src/desktop/cosmic/cosmic-initial-setup"), &mirror)?;
+    sync_build_source(
+        &repo_root.join("src/desktop/cosmic/cosmic-initial-setup"),
+        &mirror,
+    )?;
     isolate_cargo_build_mirror(&mirror)?;
     let env = cosmic_component_environment(repo_root, &install, BuildStage::CosmicInitialSetup)?;
-    run_locked_cosmic_command(repo_root, &mirror, "cargo", &["build", "--locked", "--release", "--bin", "cosmic-initial-setup"], &env)?;
-    stage_output_file(&cosmic_shared_target(repo_root).join("release/cosmic-initial-setup"), &install.join("usr/bin/cosmic-initial-setup"), 0o755)?;
+    run_locked_cosmic_command(
+        repo_root,
+        &mirror,
+        "cargo",
+        &[
+            "build",
+            "--locked",
+            "--release",
+            "--bin",
+            "cosmic-initial-setup",
+        ],
+        &env,
+    )?;
+    stage_output_file(
+        &cosmic_shared_target(repo_root).join("release/cosmic-initial-setup"),
+        &install.join("usr/bin/cosmic-initial-setup"),
+        0o755,
+    )?;
     let res = mirror.join("res");
     for (source, destination) in [
-        ("com.system76.CosmicInitialSetup.desktop", "usr/share/applications/com.system76.CosmicInitialSetup.desktop"),
-        ("com.system76.CosmicInitialSetup.Autostart.desktop", "etc/xdg/autostart/com.system76.CosmicInitialSetup.Autostart.desktop"),
-    ] { copy_file_preserving(&res.join(source), &install.join(destination))?; }
+        (
+            "com.system76.CosmicInitialSetup.desktop",
+            "usr/share/applications/com.system76.CosmicInitialSetup.desktop",
+        ),
+        (
+            "com.system76.CosmicInitialSetup.Autostart.desktop",
+            "etc/xdg/autostart/com.system76.CosmicInitialSetup.Autostart.desktop",
+        ),
+    ] {
+        copy_file_preserving(&res.join(source), &install.join(destination))?;
+    }
     copy_file_preserving(
         &res.join("icon.svg"),
         &install.join("usr/share/icons/hicolor/scalable/apps/com.system76.CosmicInitialSetup.svg"),
@@ -10648,9 +11003,350 @@ fn build_cosmic_initial_setup(repo_root: &Path) -> Result<()> {
 }
 
 fn build_polkit(repo_root: &Path) -> Result<()> {
-    build_meson_runtime(repo_root, "polkit", "src/system/security/polkit", &["glib", "zlib", "systemd", "dbus", "duktape", "linux-pam", "libffi"], &[
-        "--prefix=/usr", "--libdir=lib/x86_64-linux-gnu", "-Dtests=false", "-Dman=false", "-Dgtk_doc=false", "-Dexamples=false", "-Dintrospection=false", "-Dgettext=false", "-Dsession_tracking=logind", "-Dauthfw=pam", "-Dos_type=debian", "-Dpolkitd_uid=197",
-    ], "usr/lib/x86_64-linux-gnu/libpolkit-agent-1.so.0", &[])
+    build_meson_runtime(
+        repo_root,
+        "polkit",
+        "src/system/security/polkit",
+        &[
+            "glib",
+            "zlib",
+            "systemd",
+            "dbus",
+            "duktape",
+            "linux-pam",
+            "libffi",
+        ],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Dtests=false",
+            "-Dman=false",
+            "-Dgtk_doc=false",
+            "-Dexamples=false",
+            "-Dintrospection=false",
+            "-Dgettext=false",
+            "-Dsession_tracking=logind",
+            "-Dauthfw=pam",
+            "-Dos_type=debian",
+            "-Dpolkitd_uid=197",
+        ],
+        "usr/lib/x86_64-linux-gnu/libpolkit-agent-1.so.0",
+        &[],
+    )
+}
+
+fn build_libfyaml(repo_root: &Path) -> Result<()> {
+    build_vulkan_cmake(
+        repo_root,
+        "libfyaml",
+        "src/system/libraries/libfyaml",
+        &[],
+        &["-DFYAML_BUILD_TESTS=OFF".to_string()],
+        &["usr/lib/x86_64-linux-gnu/libfyaml.so.0"],
+        None,
+    )
+}
+
+fn build_libxmlb(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(
+        repo_root,
+        "libxmlb",
+        "src/system/libraries/libxmlb",
+        &["glib", "libffi", "xz", "zlib"],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Dtests=false",
+            "-Dgtkdoc=false",
+            "-Dintrospection=false",
+            "-Dcli=false",
+        ],
+        "usr/lib/x86_64-linux-gnu/libxmlb.so.2",
+        &[],
+    )
+}
+
+fn build_json_glib(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(
+        repo_root,
+        "json-glib",
+        "src/system/libraries/json-glib",
+        &["glib", "libffi", "pcre2", "zlib"],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Dtests=false",
+            "-Dintrospection=disabled",
+            "--wrap-mode=nofallback",
+        ],
+        "usr/lib/x86_64-linux-gnu/libjson-glib-1.0.so.0",
+        &[],
+    )
+}
+
+fn build_appstream(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(
+        repo_root,
+        "appstream",
+        "src/system/libraries/appstream",
+        &[
+            "glib", "libffi", "libxml2", "zlib", "curl", "openssl", "libfyaml", "libxmlb", "xz",
+            "zstd", "systemd", "wayland",
+        ],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Dapidocs=false",
+            "-Dstemming=false",
+            "-Dbash-completion=false",
+            "-Dinstall-docs=false",
+            "-Dman=false",
+            "-Dvapi=false",
+            "-Dgir=false",
+            "--wrap-mode=nofallback",
+        ],
+        "usr/lib/x86_64-linux-gnu/libappstream.so.5",
+        &[],
+    )
+}
+
+fn build_gdk_pixbuf(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(
+        repo_root,
+        "gdk-pixbuf",
+        "src/system/libraries/gdk-pixbuf",
+        &["glib", "libffi", "zlib", "libpng"],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Dtests=false",
+            "-Dinstalled_tests=false",
+            "-Dintrospection=disabled",
+            "-Dman=false",
+            "-Dgio_sniffing=false",
+            "-Djpeg=disabled",
+            "-Dtiff=disabled",
+            "-Dothers=disabled",
+            "--wrap-mode=nofallback",
+        ],
+        "usr/lib/x86_64-linux-gnu/libgdk_pixbuf-2.0.so.0",
+        &[],
+    )
+}
+
+fn build_gpgme(repo_root: &Path) -> Result<()> {
+    build_autotools_import(
+        repo_root,
+        "gpgme",
+        "src/system/security/gpgme",
+        &["libassuan", "libgcrypt", "libgpg-error", "libksba", "zlib"],
+        &[
+            "--prefix=/usr",
+            "--libdir=/usr/lib/x86_64-linux-gnu",
+            "--disable-gpgsm",
+            "--disable-gpgconf",
+            "--disable-gpg-test",
+        ],
+        &["usr/lib/x86_64-linux-gnu/libgpgme.so.45"],
+    )?;
+    // Libtool consumers otherwise resolve this build-tree .la file and embed
+    // its absolute staging directory as a RUNPATH.  The target .so and
+    // pkg-config metadata are the published interface; the .la archive is a
+    // build-private libtool convenience file and is not part of it.
+    remove_path_if_exists(
+        &repo_root.join("out/build/gpgme/install/usr/lib/x86_64-linux-gnu/libgpgme.la"),
+    )?;
+    Ok(())
+}
+
+fn build_flatpak(repo_root: &Path) -> Result<()> {
+    // Flatpak is a native target package-manager runtime.  Keep its build
+    // isolated from the COSMIC aggregate so its pkg-config and ELF closure
+    // can be audited independently.
+    build_meson_runtime(
+        repo_root,
+        "flatpak",
+        "src/system/packages/flatpak",
+        &[
+            "glib",
+            "libffi",
+            "zlib",
+            "xz",
+            "curl",
+            "openssl",
+            "libcap",
+            "libarchive",
+            "libxml2",
+            "fuse3",
+            "ostree",
+            "systemd",
+            "dbus",
+            "gpgv",
+            "zstd",
+            "wayland",
+            "xkbcommon",
+            "libpng",
+            "libbsd",
+            "libassuan",
+            "libgcrypt",
+            "libgpg-error",
+            "libksba",
+            "json-glib",
+            "appstream",
+            "gdk-pixbuf",
+            "gpgme",
+        ],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Dtests=false",
+            "-Dinstalled_tests=false",
+            "-Dman=disabled",
+            "-Ddocbook_docs=disabled",
+            "-Dgtkdoc=disabled",
+            "-Dgir=disabled",
+            "-Ddconf=disabled",
+            "-Dmalcontent=disabled",
+            "-Dselinux_module=disabled",
+            "-Dxauth=disabled",
+            "-Dwayland_security_context=disabled",
+            "-Dsystem_helper=disabled",
+            "-Dsystemd=enabled",
+            "-Dseccomp=disabled",
+            // Never let Meson record the staged build-tree path returned by
+            // find_program("fusermount3") in the shipped binary.  Flatpak
+            // executes fusermount from the target package closure at this
+            // stable runtime location.
+            "-Dsystem_fusermount=/usr/bin/fusermount3",
+        ],
+        "usr/bin/flatpak",
+        &[],
+    )
+}
+
+fn build_libarchive(repo_root: &Path) -> Result<()> {
+    build_vulkan_cmake(
+        repo_root,
+        "libarchive",
+        "src/system/libraries/libarchive",
+        &["zlib", "zstd", "bzip2", "xz", "lz4", "libcap"],
+        &[
+            "-DENABLE_TEST=OFF".to_string(),
+            "-DENABLE_TAR=OFF".to_string(),
+            "-DENABLE_CPIO=OFF".to_string(),
+            "-DENABLE_CAT=OFF".to_string(),
+            "-DENABLE_OPENSSL=OFF".to_string(),
+            "-DENABLE_ACL=OFF".to_string(),
+            "-DENABLE_XATTR=OFF".to_string(),
+            "-DENABLE_ICONV=OFF".to_string(),
+            "-DENABLE_EXPAT=OFF".to_string(),
+        ],
+        &["usr/lib/x86_64-linux-gnu/libarchive.so.13"],
+        None,
+    )
+}
+
+fn build_libxml2(repo_root: &Path) -> Result<()> {
+    build_vulkan_cmake(
+        repo_root,
+        "libxml2",
+        "src/system/libraries/libxml2",
+        &["zlib", "expat"],
+        &[
+            "-DLIBXML2_WITH_TESTS=OFF".to_string(),
+            "-DLIBXML2_WITH_PYTHON=OFF".to_string(),
+            "-DLIBXML2_WITH_LZMA=OFF".to_string(),
+            "-DLIBXML2_WITH_ZSTD=OFF".to_string(),
+            "-DLIBXML2_WITH_ICU=OFF".to_string(),
+        ],
+        &["usr/lib/x86_64-linux-gnu/libxml2.so.16"],
+        None,
+    )
+}
+
+fn build_libpng(repo_root: &Path) -> Result<()> {
+    build_autotools_import(
+        repo_root,
+        "libpng",
+        "src/system/libraries/libpng",
+        &["zlib"],
+        &[
+            "--prefix=/usr",
+            "--libdir=/usr/lib/x86_64-linux-gnu",
+            "--disable-tests",
+        ],
+        &["usr/lib/x86_64-linux-gnu/libpng16.so.16"],
+    )
+}
+
+fn build_fuse3(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(
+        repo_root,
+        "fuse3",
+        "src/system/libraries/fuse3",
+        &[],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Dtests=false",
+            "-Dexamples=false",
+            "-Duseroot=false",
+            "-Denable-io-uring=false",
+            "-Dudevrulesdir=/usr/lib/udev/rules.d",
+            "-Dinitscriptdir=",
+        ],
+        "usr/lib/x86_64-linux-gnu/libfuse3.so.4",
+        &[],
+    )
+}
+
+fn build_ostree(repo_root: &Path) -> Result<()> {
+    build_autotools_import(
+        repo_root,
+        "ostree",
+        "src/system/packages/ostree",
+        &[
+            "glib",
+            "libffi",
+            "zlib",
+            "bzip2",
+            "xz",
+            "zstd",
+            "curl",
+            "openssl",
+            "libarchive",
+            "libxml2",
+            "fuse3",
+            "gpgme",
+            "libassuan",
+            "libgpg-error",
+            "gpgv",
+            "libbsd",
+            "installer",
+        ],
+        &[
+            "--host=x86_64-linux-gnu",
+            "--prefix=/usr",
+            "--libdir=/usr/lib/x86_64-linux-gnu",
+            "--disable-tests",
+            "--disable-man",
+            "--disable-gtk-doc",
+            "--disable-introspection",
+            "--with-gpgme",
+            // Flatpak pulls OSTree commits from HTTPS remotes such as
+            // Flathub.  The target-built curl stage is the selected fetcher
+            // backend; disabling both Soup backends remains intentional.
+            "--with-curl",
+            "--disable-selinux",
+            "--disable-composefs",
+            "--disable-systemd",
+            "--disable-rofiles-fuse",
+            "--with-soup3=no",
+            "--with-soup=no",
+            "LIBS=-lbsd",
+        ],
+        &["usr/lib/x86_64-linux-gnu/libostree-1.so.1"],
+    )
 }
 
 fn build_duktape(repo_root: &Path) -> Result<()> {
@@ -10688,16 +11384,26 @@ fn build_duktape(repo_root: &Path) -> Result<()> {
         .replace("duk_version % 10000 / 100", "duk_version % 10000 // 100");
     fs::write(&configure, configure_body)?;
     let scanner = source.join("tools/scan_used_stridx_bidx.py");
-    let scanner_body = fs::read_to_string(&scanner)?.replace("open(fn, 'rb')", "open(fn, 'r', encoding='utf-8')");
+    let scanner_body =
+        fs::read_to_string(&scanner)?.replace("open(fn, 'rb')", "open(fn, 'r', encoding='utf-8')");
     fs::write(scanner, scanner_body)?;
     let genconfig = source.join("tools/genconfig.py");
     let mut genconfig_body = fs::read_to_string(&genconfig)?
-        .replace("import logging", "unicode = str\nlong = int\nxrange = range\nimport logging")
+        .replace(
+            "import logging",
+            "unicode = str\nlong = int\nxrange = range\nimport logging",
+        )
         .replace("'rb')", "'r', encoding='utf-8')")
         .replace("'wb')", "'w', encoding='utf-8')")
         .replace("yaml.load(", "yaml.safe_load(")
-        .replace("import logging", "from functools import cmp_to_key\nimport logging")
-        .replace("strs.sort(cmp=sortCmp)", "strs.sort(key=cmp_to_key(sortCmp))");
+        .replace(
+            "import logging",
+            "from functools import cmp_to_key\nimport logging",
+        )
+        .replace(
+            "strs.sort(cmp=sortCmp)",
+            "strs.sort(key=cmp_to_key(sortCmp))",
+        );
     for (old, new) in [
         ("self.provides.has_key(m)", "m in self.provides"),
         ("assumed_provides.has_key(k)", "k in assumed_provides"),
@@ -10706,23 +11412,41 @@ fn build_duktape(repo_root: &Path) -> Result<()> {
         ("handled.has_key(sn)", "sn in handled"),
         ("not handled.has_key(sn)", "sn not in handled"),
         ("handled.has_key(dep)", "dep in handled"),
-        ("not emitted_provides.has_key(k)", "k not in emitted_provides"),
+        (
+            "not emitted_provides.has_key(k)",
+            "k not in emitted_provides",
+        ),
         ("handled.has_key(dname)", "dname in handled"),
         ("not handled.has_key(dname)", "dname not in handled"),
         ("use_defs.has_key(k)", "k in use_defs"),
         ("defval.has_key('verbatim')", "'verbatim' in defval"),
         ("defval.has_key('string')", "'string' in defval"),
-        ("not forced_opts.has_key(doc['define'])", "doc['define'] not in forced_opts"),
-        ("forced_opts.has_key('DUK_USE_CPP_EXCEPTIONS')", "'DUK_USE_CPP_EXCEPTIONS' in forced_opts"),
-        ("not forced_opts.has_key(defname)", "defname not in forced_opts"),
+        (
+            "not forced_opts.has_key(doc['define'])",
+            "doc['define'] not in forced_opts",
+        ),
+        (
+            "forced_opts.has_key('DUK_USE_CPP_EXCEPTIONS')",
+            "'DUK_USE_CPP_EXCEPTIONS' in forced_opts",
+        ),
+        (
+            "not forced_opts.has_key(defname)",
+            "defname not in forced_opts",
+        ),
         ("not doc.has_key('default')", "'default' not in doc"),
         ("tmp.provides.has_key(defname)", "defname in tmp.provides"),
         ("need.has_key(k)", "k in need"),
-        ("not defs_used.has_key(meta['define'])", "meta['define'] not in defs_used"),
+        (
+            "not defs_used.has_key(meta['define'])",
+            "meta['define'] not in defs_used",
+        ),
         ("not meta.has_key('removed')", "'removed' not in meta"),
         ("keys = use_defs.keys()", "keys = list(use_defs.keys())"),
         ("keys = opt_defs.keys()", "keys = list(opt_defs.keys())"),
-        ("use_tags_list = use_tags.keys()", "use_tags_list = list(use_tags.keys())"),
+        (
+            "use_tags_list = use_tags.keys()",
+            "use_tags_list = list(use_tags.keys())",
+        ),
     ] {
         genconfig_body = genconfig_body.replace(old, new);
     }
@@ -10752,9 +11476,18 @@ fn build_duktape(repo_root: &Path) -> Result<()> {
         .replace("unicode_to_bytes(s['str']).encode('base64').strip()", "base64.b64encode(unicode_to_bytes(s['str']).encode('utf-8')).decode('ascii').strip()")
         .replace("import logging", "from functools import cmp_to_key\nimport logging");
     for (old, new) in [
-        ("user_meta.has_key('add_objects')", "'add_objects' in user_meta"),
-        ("user_meta.has_key('replace_objects')", "'replace_objects' in user_meta"),
-        ("user_meta.has_key('modify_objects')", "'modify_objects' in user_meta"),
+        (
+            "user_meta.has_key('add_objects')",
+            "'add_objects' in user_meta",
+        ),
+        (
+            "user_meta.has_key('replace_objects')",
+            "'replace_objects' in user_meta",
+        ),
+        (
+            "user_meta.has_key('modify_objects')",
+            "'modify_objects' in user_meta",
+        ),
         ("if o.has_key('nargs')", "if 'nargs' in o"),
         ("assert(o.has_key('nargs'))", "assert('nargs' in o)"),
         ("not pval.has_key('length')", "'length' not in pval"),
@@ -10771,24 +11504,42 @@ fn build_duktape(repo_root: &Path) -> Result<()> {
         ("not reachable.has_key(o['id'])", "o['id'] not in reachable"),
         ("special_defs.has_key(v)", "v in special_defs"),
         ("s.has_key('define')", "'define' in s"),
-        ("defs_needed.has_key(s['define'])", "s['define'] in defs_needed"),
+        (
+            "defs_needed.has_key(s['define'])",
+            "s['define'] in defs_needed",
+        ),
         ("not defs_found.has_key(k)", "k not in defs_found"),
         ("prev.has_key(k)", "k in prev"),
         ("kw_index.has_key(s['str'])", "s['str'] in kw_index"),
-        ("meta.has_key('objects_ram_toplevel')", "'objects_ram_toplevel' in meta"),
+        (
+            "meta.has_key('objects_ram_toplevel')",
+            "'objects_ram_toplevel' in meta",
+        ),
         ("elem.has_key('type')", "'type' in elem"),
         ("bi.has_key('nargs')", "'nargs' in bi"),
         ("bi.has_key('callable')", "'callable' in bi"),
-        ("bi.has_key('internal_prototype')", "'internal_prototype' in bi"),
+        (
+            "bi.has_key('internal_prototype')",
+            "'internal_prototype' in bi",
+        ),
         ("not emitted.has_key(fname)", "fname not in emitted"),
         ("v.has_key('getter_id')", "'getter_id' in v"),
         ("v.has_key('length')", "'length' in v"),
         ("v.has_key('magic')", "'magic' in v"),
-        ("not chain_lens.has_key(chainlen)", "chainlen not in chain_lens"),
+        (
+            "not chain_lens.has_key(chainlen)",
+            "chainlen not in chain_lens",
+        ),
         ("reserved_words.has_key(v)", "v in reserved_words"),
-        ("strict_reserved_words.has_key(v)", "v in strict_reserved_words"),
+        (
+            "strict_reserved_words.has_key(v)",
+            "v in strict_reserved_words",
+        ),
         ("romstr_next.has_key(v)", "v in romstr_next"),
-        ("if obj.has_key('internal_prototype')", "if 'internal_prototype' in obj"),
+        (
+            "if obj.has_key('internal_prototype')",
+            "if 'internal_prototype' in obj",
+        ),
         ("elif obj.has_key('nargs')", "elif 'nargs' in obj"),
         ("not emitted.has_key(fname)", "fname not in emitted"),
         ("assert(v.has_key('native'))", "assert('native' in v)"),
@@ -10799,8 +11550,14 @@ fn build_duktape(repo_root: &Path) -> Result<()> {
         ("val.has_key('setter_id')", "'setter_id' in val"),
         ("funobj.has_key('nargs')", "'nargs' in funobj"),
         ("not defs_found.has_key(k)", "k not in defs_found"),
-        ("metadata_lookup_object(meta, prop['value']['id']).has_key('native')", "'native' in metadata_lookup_object(meta, prop['value']['id'])"),
-        ("not metadata_lookup_object(meta, prop['value']['id']).has_key('bidx')", "'bidx' not in metadata_lookup_object(meta, prop['value']['id'])"),
+        (
+            "metadata_lookup_object(meta, prop['value']['id']).has_key('native')",
+            "'native' in metadata_lookup_object(meta, prop['value']['id'])",
+        ),
+        (
+            "not metadata_lookup_object(meta, prop['value']['id']).has_key('bidx')",
+            "'bidx' not in metadata_lookup_object(meta, prop['value']['id'])",
+        ),
     ] {
         genbuiltins_body = genbuiltins_body.replace(old, new);
     }
@@ -10811,7 +11568,10 @@ fn build_duktape(repo_root: &Path) -> Result<()> {
         .replace("unicode", "str")
         .replace("return nbits / 8", "return nbits // 8")
         .replace("(skip * (res % 256)) / 256", "(skip * (res % 256)) // 256")
-        .replace("ord(x[i])", "(x[i] if isinstance(x[i], int) else ord(x[i]))");
+        .replace(
+            "ord(x[i])",
+            "(x[i] if isinstance(x[i], int) else ord(x[i]))",
+        );
     fs::write(dukutil, dukutil_body)?;
     let unicode_prepare = source.join("tools/prepare_unicode_data.py");
     let unicode_prepare_body = fs::read_to_string(&unicode_prepare)?
@@ -10828,18 +11588,37 @@ fn build_duktape(repo_root: &Path) -> Result<()> {
         .replace("open(opts.out_source, 'wb')", "open(opts.out_source, 'w', encoding='utf-8')")
         .replace("open(opts.out_header, 'wb')", "open(opts.out_header, 'w', encoding='utf-8')");
     for (old, new) in [
-        ("exclude_cat_exact.has_key(category)", "category in exclude_cat_exact"),
-        ("include_cat_exact.has_key(category)", "category in include_cat_exact"),
+        (
+            "exclude_cat_exact.has_key(category)",
+            "category in exclude_cat_exact",
+        ),
+        (
+            "include_cat_exact.has_key(category)",
+            "category in include_cat_exact",
+        ),
         ("m.has_key(long(cp))", "long(cp) in m"),
-        ("print 'CATSEXC: %s' % repr(catsexc)", "print('CATSEXC: %s' % repr(catsexc))"),
-        ("print 'CATSINC: %s' % repr(catsinc)", "print('CATSINC: %s' % repr(catsinc))"),
-        ("print 'match table length: %d bytes' % len(matchtable3)", "print('match table length: %d bytes' % len(matchtable3))"),
+        (
+            "print 'CATSEXC: %s' % repr(catsexc)",
+            "print('CATSEXC: %s' % repr(catsexc))",
+        ),
+        (
+            "print 'CATSINC: %s' % repr(catsinc)",
+            "print('CATSINC: %s' % repr(catsinc))",
+        ),
+        (
+            "print 'match table length: %d bytes' % len(matchtable3)",
+            "print('match table length: %d bytes' % len(matchtable3))",
+        ),
         ("print 'encoding freq:'", "print('encoding freq:')"),
-        ("print '  %6d: %d' % (i, freq[i])", "print('  %6d: %d' % (i, freq[i]))"),
+        (
+            "print '  %6d: %d' % (i, freq[i])",
+            "print('  %6d: %d' % (i, freq[i]))",
+        ),
     ] {
         extract_chars_body = extract_chars_body.replace(old, new);
     }
-    extract_chars_body = extract_chars_body.replace("res.sort(cmp=mycmp)", "res.sort(key=cmp_to_key(mycmp))");
+    extract_chars_body =
+        extract_chars_body.replace("res.sort(cmp=mycmp)", "res.sort(key=cmp_to_key(mycmp))");
     fs::write(extract_chars, extract_chars_body)?;
     let extract_caseconv = source.join("tools/extract_caseconv.py");
     let mut extract_caseconv_body = fs::read_to_string(&extract_caseconv)?
@@ -10858,31 +11637,74 @@ fn build_duktape(repo_root: &Path) -> Result<()> {
         extract_caseconv_body = extract_caseconv_body.replace(old, new);
     }
     for (old, new) in [
-        ("print '- singles: ' + repr(t)", "print('- singles: ' + repr(t))"),
-        ("print '- multis: ' + repr(t)", "print('- multis: ' + repr(t))"),
-        ("print '- range mappings: %d' % len(ranges)", "print('- range mappings: %d' % len(ranges))"),
-        ("print '- single character mappings: %d' % len(singles)", "print('- single character mappings: %d' % len(singles))"),
-        ("print '- complex mappings (1:n): %d' % len(multis)", "print('- complex mappings (1:n): %d' % len(multis))"),
-        ("print '- remaining (should be zero): %d' % len(convmap.keys())", "print('- remaining (should be zero): %d' % len(convmap.keys()))"),
-        ("print '- %d %d' % (t[0] - prev[0], t[1] - prev[1])", "print('- %d %d' % (t[0] - prev[0], t[1] - prev[1]))"),
-        ("print '- start: %d %d' % (t[0], t[1])", "print('- start: %d %d' % (t[0], t[1]))"),
+        (
+            "print '- singles: ' + repr(t)",
+            "print('- singles: ' + repr(t))",
+        ),
+        (
+            "print '- multis: ' + repr(t)",
+            "print('- multis: ' + repr(t))",
+        ),
+        (
+            "print '- range mappings: %d' % len(ranges)",
+            "print('- range mappings: %d' % len(ranges))",
+        ),
+        (
+            "print '- single character mappings: %d' % len(singles)",
+            "print('- single character mappings: %d' % len(singles))",
+        ),
+        (
+            "print '- complex mappings (1:n): %d' % len(multis)",
+            "print('- complex mappings (1:n): %d' % len(multis))",
+        ),
+        (
+            "print '- remaining (should be zero): %d' % len(convmap.keys())",
+            "print('- remaining (should be zero): %d' % len(convmap.keys()))",
+        ),
+        (
+            "print '- %d %d' % (t[0] - prev[0], t[1] - prev[1])",
+            "print('- %d %d' % (t[0] - prev[0], t[1] - prev[1]))",
+        ),
+        (
+            "print '- start: %d %d' % (t[0], t[1])",
+            "print('- start: %d %d' % (t[0], t[1]))",
+        ),
     ] {
         extract_caseconv_body = extract_caseconv_body.replace(old, new);
     }
-    extract_caseconv_body = extract_caseconv_body.replace("k = convmap.keys()", "k = list(convmap.keys())");
+    extract_caseconv_body =
+        extract_caseconv_body.replace("k = convmap.keys()", "k = list(convmap.keys())");
     extract_caseconv_body = extract_caseconv_body
-        .replace("(conv_i - start_i) / skip + 1", "(conv_i - start_i) // skip + 1")
+        .replace(
+            "(conv_i - start_i) / skip + 1",
+            "(conv_i - start_i) // skip + 1",
+        )
         .replace("65536 / block_size", "65536 // block_size");
     fs::write(extract_caseconv, extract_caseconv_body)?;
     let combine_src = source.join("tools/combine_src.py");
     let mut combine_src_body = fs::read_to_string(&combine_src)?
         .replace("#!/usr/bin/env python2", "#!/usr/bin/env python3")
         .replace("import logging", "unicode = str\nimport logging")
-        .replace("open(filename, 'rb')", "open(filename, 'r', encoding='utf-8')")
-        .replace("open(prologue_filename, 'rb')", "open(prologue_filename, 'r', encoding='utf-8')")
-        .replace("open(opts.output_source, 'wb')", "open(opts.output_source, 'w', encoding='utf-8')")
-        .replace("open(opts.output_metadata, 'wb')", "open(opts.output_metadata, 'w', encoding='utf-8')")
-        .replace("apply(os.path.join, [ path ] + inccomp)", "os.path.join(path, *inccomp)");
+        .replace(
+            "open(filename, 'rb')",
+            "open(filename, 'r', encoding='utf-8')",
+        )
+        .replace(
+            "open(prologue_filename, 'rb')",
+            "open(prologue_filename, 'r', encoding='utf-8')",
+        )
+        .replace(
+            "open(opts.output_source, 'wb')",
+            "open(opts.output_source, 'w', encoding='utf-8')",
+        )
+        .replace(
+            "open(opts.output_metadata, 'wb')",
+            "open(opts.output_metadata, 'w', encoding='utf-8')",
+        )
+        .replace(
+            "apply(os.path.join, [ path ] + inccomp)",
+            "os.path.join(path, *inccomp)",
+        );
     for (old, new) in [
         ("defined.has_key(m.group(1))", "m.group(1) in defined"),
         ("included.has_key(incpath)", "incpath in included"),
@@ -10892,15 +11714,56 @@ fn build_duktape(repo_root: &Path) -> Result<()> {
     fs::write(combine_src, combine_src_body)?;
     let prep = source.join("prep/nondebug");
     fs::create_dir_all(source.join("prep"))?;
-    run_cmd(&source, "python3", &["tools/configure.py", "--output-directory", "prep/nondebug", "--source-directory", "src-input", "--config-metadata", "config", "--option-file", "util/makeduk_base.yaml", "--line-directives"])?;
+    run_cmd(
+        &source,
+        "python3",
+        &[
+            "tools/configure.py",
+            "--output-directory",
+            "prep/nondebug",
+            "--source-directory",
+            "src-input",
+            "--config-metadata",
+            "config",
+            "--option-file",
+            "util/makeduk_base.yaml",
+            "--line-directives",
+        ],
+    )?;
     fs::create_dir_all(install.join("lib/x86_64-linux-gnu/pkgconfig"))?;
     let lib = install.join("lib/x86_64-linux-gnu/libduktape.so.207.2.7.0");
-    run_cmd_with_env_overrides(&source, "cc", &["-shared", "-fPIC", "-O2", "-Iprep/nondebug", "-Wl,-soname,libduktape.so.207", "-o", path_str(&lib)?, "prep/nondebug/duktape.c", "-lm"], &[])?;
-    std::os::unix::fs::symlink("libduktape.so.207.2.7.0", install.join("lib/x86_64-linux-gnu/libduktape.so.207"))?;
-    std::os::unix::fs::symlink("libduktape.so.207", install.join("lib/x86_64-linux-gnu/libduktape.so"))?;
+    run_cmd_with_env_overrides(
+        &source,
+        "cc",
+        &[
+            "-shared",
+            "-fPIC",
+            "-O2",
+            "-Iprep/nondebug",
+            "-Wl,-soname,libduktape.so.207",
+            "-o",
+            path_str(&lib)?,
+            "prep/nondebug/duktape.c",
+            "-lm",
+        ],
+        &[],
+    )?;
+    std::os::unix::fs::symlink(
+        "libduktape.so.207.2.7.0",
+        install.join("lib/x86_64-linux-gnu/libduktape.so.207"),
+    )?;
+    std::os::unix::fs::symlink(
+        "libduktape.so.207",
+        install.join("lib/x86_64-linux-gnu/libduktape.so"),
+    )?;
     fs::create_dir_all(install.join("include"))?;
-    for name in ["duktape.h", "duk_config.h"] { fs::copy(prep.join(name), install.join("include").join(name))?; }
-    fs::write(install.join("lib/x86_64-linux-gnu/pkgconfig/duktape.pc"), "prefix=/usr\nlibdir=${prefix}/lib/x86_64-linux-gnu\nincludedir=${prefix}/include\nName: duktape\nDescription: Duktape JavaScript engine\nVersion: 2.7.0\nLibs: -L${libdir} -lduktape\nCflags: -I${includedir}\n")?;
+    for name in ["duktape.h", "duk_config.h"] {
+        fs::copy(prep.join(name), install.join("include").join(name))?;
+    }
+    fs::write(
+        install.join("lib/x86_64-linux-gnu/pkgconfig/duktape.pc"),
+        "prefix=/usr\nlibdir=${prefix}/lib/x86_64-linux-gnu\nincludedir=${prefix}/include\nName: duktape\nDescription: Duktape JavaScript engine\nVersion: 2.7.0\nLibs: -L${libdir} -lduktape\nCflags: -I${includedir}\n",
+    )?;
     Ok(())
 }
 
@@ -10917,7 +11780,9 @@ fn rewrite_python2_has_key(mut body: String) -> String {
             }
         }
         let arg_start = marker + ".has_key(".len();
-        let Some(arg_end_rel) = body[arg_start..].find(')') else { break };
+        let Some(arg_end_rel) = body[arg_start..].find(')') else {
+            break;
+        };
         let arg_end = arg_start + arg_end_rel;
         let lhs = body[lhs_start..lhs_end].to_string();
         let arg = body[arg_start..arg_end].trim().to_string();
@@ -10939,9 +11804,54 @@ fn rewrite_python2_has_key(mut body: String) -> String {
 }
 
 fn build_networkmanager(repo_root: &Path) -> Result<()> {
-    build_meson_runtime(repo_root, "networkmanager", "src/system/network/NetworkManager", &["glib", "systemd", "dbus", "polkit", "iproute2", "util-linux", "libndp", "zlib", "readline", "ncurses", "libffi"], &[
-        "--prefix=/usr", "--libdir=lib/x86_64-linux-gnu", "-Dtests=no", "-Ddocs=false", "-Dman=false", "-Dpolkit=true", "-Dnmcli=true", "-Dnmtui=false", "-Dwifi=true", "-Dmodem_manager=false", "-Dovs=false", "-Dclat=false", "-Dconcheck=false", "-Dppp=false", "-Dlibpsl=false", "-Dcrypto=null", "-Dsession_tracking=systemd", "-Dconfig_dns_rc_manager_default=symlink", "-Dconfig_auth_polkit_default=true", "-Dintrospection=false", "-Dselinux=false", "-Dlibaudit=no", "-Dnm_cloud_setup=false", "-Dnbft=false", "-Dsystemdsystemunitdir=/usr/lib/systemd/system", "-Ddbus_conf_dir=/usr/share/dbus-1/system.d",
-    ], "usr/sbin/NetworkManager", &[])
+    build_meson_runtime(
+        repo_root,
+        "networkmanager",
+        "src/system/network/NetworkManager",
+        &[
+            "glib",
+            "systemd",
+            "dbus",
+            "polkit",
+            "iproute2",
+            "util-linux",
+            "libndp",
+            "zlib",
+            "readline",
+            "ncurses",
+            "libffi",
+        ],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Dtests=no",
+            "-Ddocs=false",
+            "-Dman=false",
+            "-Dpolkit=true",
+            "-Dnmcli=true",
+            "-Dnmtui=false",
+            "-Dwifi=true",
+            "-Dmodem_manager=false",
+            "-Dovs=false",
+            "-Dclat=false",
+            "-Dconcheck=false",
+            "-Dppp=false",
+            "-Dlibpsl=false",
+            "-Dcrypto=null",
+            "-Dsession_tracking=systemd",
+            "-Dconfig_dns_rc_manager_default=symlink",
+            "-Dconfig_auth_polkit_default=true",
+            "-Dintrospection=false",
+            "-Dselinux=false",
+            "-Dlibaudit=no",
+            "-Dnm_cloud_setup=false",
+            "-Dnbft=false",
+            "-Dsystemdsystemunitdir=/usr/lib/systemd/system",
+            "-Ddbus_conf_dir=/usr/share/dbus-1/system.d",
+        ],
+        "usr/sbin/NetworkManager",
+        &[],
+    )
 }
 
 fn build_cozy(repo_root: &Path) -> Result<()> {
@@ -10960,17 +11870,28 @@ fn build_cozy(repo_root: &Path) -> Result<()> {
             ("CARGO_TARGET_DIR", target.display().to_string()),
             ("CARGO_BUILD_JOBS", "4".to_string()),
             ("CARGO_INCREMENTAL", "0".to_string()),
-            ("RUSTFLAGS", format!("--remap-path-prefix={}=/usr/src/mattos", repo_root.display())),
+            (
+                "RUSTFLAGS",
+                format!(
+                    "--remap-path-prefix={}=/usr/src/mattos",
+                    repo_root.display()
+                ),
+            ),
         ],
     )?;
-    stage_output_file(&target.join("release/cozy"), &install.join("usr/bin/cozy"), 0o755)
+    stage_output_file(
+        &target.join("release/cozy"),
+        &install.join("usr/bin/cozy"),
+        0o755,
+    )
 }
 
 fn stage_output_file(source: &Path, destination: &Path, mode: u32) -> Result<()> {
     if let Some(parent) = destination.parent() {
         fs::create_dir_all(parent)?;
     }
-    fs::copy(source, destination).with_context(|| format!("failed to stage {}", source.display()))?;
+    fs::copy(source, destination)
+        .with_context(|| format!("failed to stage {}", source.display()))?;
     set_mode(destination.to_path_buf(), mode)
 }
 
@@ -10995,7 +11916,10 @@ fn sanitize_embedded_output_path(binary: &Path, mirror: &Path) -> Result<()> {
         offset = start + replacement.len();
     }
     if replacements == 0 {
-        bail!("{} did not contain the expected embedded mirror path", binary.display());
+        bail!(
+            "{} did not contain the expected embedded mirror path",
+            binary.display()
+        );
     }
     fs::write(binary, bytes)?;
     Ok(())
@@ -12025,7 +12949,10 @@ fn build_gpg_autotools_library(
     let mut library_dirs = Vec::new();
     let mut pkgconfig_dirs = Vec::new();
     for dependency in dependency_components {
-        let usr = repo_root.join("out/build").join(dependency).join("install/usr");
+        let usr = repo_root
+            .join("out/build")
+            .join(dependency)
+            .join("install/usr");
         include_dirs.push(usr.join("include"));
         library_dirs.push(usr.join("lib/x86_64-linux-gnu"));
         pkgconfig_dirs.push(usr.join("lib/x86_64-linux-gnu/pkgconfig"));
@@ -12040,8 +12967,12 @@ fn build_gpg_autotools_library(
         .map(|path| format!("-L{}", path.display()))
         .collect::<Vec<_>>()
         .join(" ");
-    let library_path = std::env::join_paths(&library_dirs)?.to_string_lossy().to_string();
-    let pkgconfig_path = std::env::join_paths(&pkgconfig_dirs)?.to_string_lossy().to_string();
+    let library_path = std::env::join_paths(&library_dirs)?
+        .to_string_lossy()
+        .to_string();
+    let pkgconfig_path = std::env::join_paths(&pkgconfig_dirs)?
+        .to_string_lossy()
+        .to_string();
     let mut tool_path = dependency_components
         .iter()
         .map(|dependency| {
@@ -12054,7 +12985,9 @@ fn build_gpg_autotools_library(
     tool_path.extend(std::env::split_paths(
         &std::env::var_os("PATH").unwrap_or_default(),
     ));
-    let tool_path = std::env::join_paths(tool_path)?.to_string_lossy().to_string();
+    let tool_path = std::env::join_paths(tool_path)?
+        .to_string_lossy()
+        .to_string();
     let env_overrides = [
         ("SOURCE_DATE_EPOCH", MATTOS_SOURCE_DATE_EPOCH.to_string()),
         ("CPPFLAGS", cppflags),
@@ -12114,9 +13047,7 @@ fn build_gpg_autotools_library(
     if !soname.exists() {
         bail!("{component} install did not produce {}", soname.display());
     }
-    remove_path_if_exists(&install_dir.join(format!(
-        "usr/lib/x86_64-linux-gnu/{component}.la"
-    )))?;
+    remove_path_if_exists(&install_dir.join(format!("usr/lib/x86_64-linux-gnu/{component}.la")))?;
     fs::write(&stamp_path, stamp)?;
     Ok(())
 }
@@ -12140,12 +13071,17 @@ fn build_gpgv(repo_root: &Path) -> Result<()> {
     let mut library_dirs = Vec::new();
     let mut pkgconfig_dirs = Vec::new();
     for dependency in dependencies {
-        let usr = repo_root.join("out/build").join(dependency).join("install/usr");
+        let usr = repo_root
+            .join("out/build")
+            .join(dependency)
+            .join("install/usr");
         include_dirs.push(usr.join("include"));
         library_dirs.push(usr.join("lib/x86_64-linux-gnu"));
         pkgconfig_dirs.push(usr.join("lib/x86_64-linux-gnu/pkgconfig"));
     }
-    let library_path = std::env::join_paths(&library_dirs)?.to_string_lossy().to_string();
+    let library_path = std::env::join_paths(&library_dirs)?
+        .to_string_lossy()
+        .to_string();
     let mut tool_path = dependencies
         .iter()
         .map(|dependency| {
@@ -12158,7 +13094,9 @@ fn build_gpgv(repo_root: &Path) -> Result<()> {
     tool_path.extend(std::env::split_paths(
         &std::env::var_os("PATH").unwrap_or_default(),
     ));
-    let tool_path = std::env::join_paths(tool_path)?.to_string_lossy().to_string();
+    let tool_path = std::env::join_paths(tool_path)?
+        .to_string_lossy()
+        .to_string();
     let env_overrides = [
         (
             "CPPFLAGS",
@@ -12180,7 +13118,9 @@ fn build_gpgv(repo_root: &Path) -> Result<()> {
         ("LD_LIBRARY_PATH", library_path),
         (
             "PKG_CONFIG_PATH",
-            std::env::join_paths(&pkgconfig_dirs)?.to_string_lossy().to_string(),
+            std::env::join_paths(&pkgconfig_dirs)?
+                .to_string_lossy()
+                .to_string(),
         ),
         ("SOURCE_DATE_EPOCH", MATTOS_SOURCE_DATE_EPOCH.to_string()),
         ("PATH", tool_path),
@@ -12195,7 +13135,7 @@ fn build_gpgv(repo_root: &Path) -> Result<()> {
         "--disable-card-support",
         "--disable-ntbtls",
         "--disable-gnutls",
-        "--disable-sqlite3",
+        "--disable-sqlite",
         "--disable-bzip2",
     ];
     let state = fs::read_to_string(repo_root.join("upstream/state/gnupg.toml"))
@@ -13034,7 +13974,12 @@ fn build_libndp(repo_root: &Path) -> Result<()> {
     let build_dir = out_root.join("build");
     let install_dir = out_root.join("install");
     let state = fs::read_to_string(repo_root.join("upstream/state/libndp.toml"))?;
-    let options = ["--prefix=/usr", "--libdir=/usr/lib/x86_64-linux-gnu", "--disable-static", "--disable-nls"];
+    let options = [
+        "--prefix=/usr",
+        "--libdir=/usr/lib/x86_64-linux-gnu",
+        "--disable-static",
+        "--disable-nls",
+    ];
     let stamp = format!("{state}\n{}\n", options.join("\n"));
     let stamp_path = out_root.join("build-stamp.txt");
     if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
@@ -13049,13 +13994,25 @@ fn build_libndp(repo_root: &Path) -> Result<()> {
     }
     fs::create_dir_all(&build_dir)?;
     if !build_dir.join("Makefile").is_file() {
-        run_cmd(&build_dir, path_str(&source_copy.join("configure"))?, &options)?;
+        run_cmd(
+            &build_dir,
+            path_str(&source_copy.join("configure"))?,
+            &options,
+        )?;
     }
     run_cmd(&build_dir, "make", &["-j", "4"])?;
     remove_path_if_exists(&install_dir)?;
-    run_cmd(&build_dir, "make", &["install", &format!("DESTDIR={}", install_dir.display())])?;
-    if !install_dir.join("usr/lib/x86_64-linux-gnu/libndp.so.0").exists()
-        || !install_dir.join("usr/lib/x86_64-linux-gnu/pkgconfig/libndp.pc").exists()
+    run_cmd(
+        &build_dir,
+        "make",
+        &["install", &format!("DESTDIR={}", install_dir.display())],
+    )?;
+    if !install_dir
+        .join("usr/lib/x86_64-linux-gnu/libndp.so.0")
+        .exists()
+        || !install_dir
+            .join("usr/lib/x86_64-linux-gnu/pkgconfig/libndp.pc")
+            .exists()
     {
         bail!("libndp install did not produce its runtime library and pkg-config metadata");
     }
@@ -13070,10 +14027,19 @@ fn build_readline(repo_root: &Path) -> Result<()> {
         "readline",
         "src/system/userland/readline",
         &["ncurses"],
-        &["--prefix=/usr", "--libdir=/usr/lib/x86_64-linux-gnu", "--disable-static", "--with-curses"],
-        &["usr/lib/x86_64-linux-gnu/libreadline.so.8", "usr/lib/x86_64-linux-gnu/pkgconfig/readline.pc"],
+        &[
+            "--prefix=/usr",
+            "--libdir=/usr/lib/x86_64-linux-gnu",
+            "--disable-static",
+            "--with-curses",
+        ],
+        &[
+            "usr/lib/x86_64-linux-gnu/libreadline.so.8",
+            "usr/lib/x86_64-linux-gnu/pkgconfig/readline.pc",
+        ],
     )?;
-    let pc = repo_root.join("out/build/readline/install/usr/lib/x86_64-linux-gnu/pkgconfig/readline.pc");
+    let pc =
+        repo_root.join("out/build/readline/install/usr/lib/x86_64-linux-gnu/pkgconfig/readline.pc");
     let body = fs::read_to_string(&pc)?
         .lines()
         .map(|line| {
@@ -13685,6 +14651,11 @@ fn build_curl(repo_root: &Path) -> Result<()> {
     validate_dependency_resolves_from(&libcurl, "libssl.so.3", &openssl_lib, &runtime_dirs)?;
     validate_dependency_resolves_from(&libcurl, "libcrypto.so.3", &openssl_lib, &runtime_dirs)?;
     validate_dependency_resolves_from(&libcurl, "libzstd.so.1", &zstd_lib, &runtime_dirs)?;
+    // This is a build-private libtool convenience archive. Leaving it in
+    // the staged install lets downstream libtool consumers embed this
+    // checkout's absolute staging path as an ELF RUNPATH. The libcurl .so
+    // and pkg-config metadata are the target-facing interface.
+    remove_path_if_exists(&install_dir.join("usr/lib/x86_64-linux-gnu/libcurl.la"))?;
     fs::write(&stamp_path, stamp)
         .with_context(|| format!("failed to write {}", stamp_path.display()))?;
     Ok(())
@@ -14159,17 +15130,20 @@ fn rewrite_selected_pkgconfig_prefixes(
     for name in names {
         let path = directory.join(name);
         let body = fs::read_to_string(&path)?;
-        let rewritten = body.replacen(
-            "prefix=/usr",
-            &format!("prefix={}", physical_usr.display()),
-            1,
-        );
-        if rewritten == body {
+        let expected_prefix = format!("prefix={}", physical_usr.display());
+        let rewritten = if body.lines().any(|line| line == expected_prefix) {
+            // build_meson_runtime has already made this descriptor point at
+            // its output-owned /usr tree.  Reusing that output is valid and
+            // must not be mistaken for a missing relocatable prefix.
+            body
+        } else if body.lines().any(|line| line == "prefix=/usr") {
+            body.replacen("prefix=/usr", &expected_prefix, 1)
+        } else {
             bail!(
                 "pkg-config metadata {} has no relocatable /usr prefix",
                 path.display()
-            );
-        }
+            )
+        };
         fs::write(path, rewritten)?;
     }
     Ok(())
@@ -16051,7 +17025,9 @@ fn install_network_configuration(repo_root: &Path, rootfs: &Path) -> Result<()> 
     }
 
     let networkd_mask = rootfs.join("etc/systemd/system/systemd-networkd.service");
-    if path_entry_exists(&networkd_mask) { remove_path_if_exists(&networkd_mask)?; }
+    if path_entry_exists(&networkd_mask) {
+        remove_path_if_exists(&networkd_mask)?;
+    }
     #[cfg(unix)]
     std::os::unix::fs::symlink("/dev/null", &networkd_mask)
         .context("failed to mask systemd-networkd")?;
@@ -16631,7 +17607,9 @@ fn validate_network_configuration(rootfs: &Path) -> Result<()> {
         }
     }
     if !path_entry_exists(&rootfs.join("etc/systemd/system/systemd-networkd.service"))
-        || fs::read_link(rootfs.join("etc/systemd/system/systemd-networkd.service"))? != Path::new("/dev/null") {
+        || fs::read_link(rootfs.join("etc/systemd/system/systemd-networkd.service"))?
+            != Path::new("/dev/null")
+    {
         bail!("systemd-networkd must be masked when NetworkManager is active");
     }
     let nsswitch = fs::read_to_string(rootfs.join("etc/nsswitch.conf"))?;
@@ -18456,10 +19434,11 @@ mod tests {
                     | BuildStage::CosmicTerm
                     | BuildStage::CosmicTweaks
                     | BuildStage::CosmicUtilities
+                    | BuildStage::Flatpak
                     | BuildStage::CosmicPortal
-            | BuildStage::CosmicInitialSetup
-            | BuildStage::CosmicEdit
-            | BuildStage::Greetd
+                    | BuildStage::CosmicInitialSetup
+                    | BuildStage::CosmicEdit
+                    | BuildStage::Greetd
             ) {
                 scheduler::ChildJobPolicy::Capped(4)
             } else {
@@ -18542,6 +19521,8 @@ mod tests {
             ("elfutils", 39.547),
             ("expat", 6.265),
             ("file", 8.000),
+            ("flatpak", 180.000),
+            ("fuse3", 20.000),
             ("findutils", 57.703),
             ("gcc-compiler", 647.434),
             ("gcc-runtime", 773.452),
@@ -18565,6 +19546,8 @@ mod tests {
             ("libdrm", 20.000),
             ("libevdev", 20.000),
             ("libffi", 20.000),
+            ("libarchive", 48.000),
+            ("libxml2", 20.000),
             ("libinput", 20.000),
             ("libmd", 15.339),
             ("libgpg-error", 10.000),
@@ -18589,6 +19572,7 @@ mod tests {
             ("nvidia-driver", 180.000),
             ("ncurses", 39.520),
             ("openssl", 197.919),
+            ("ostree", 180.000),
             ("openssh", 35.000),
             ("pcre2", 27.509),
             ("patch", 8.000),
@@ -18791,8 +19775,16 @@ mod tests {
         }
         for stage in [BuildStage::Brush, BuildStage::Coreutils, BuildStage::Grep] {
             let spec = build_stage_spec(stage);
-            assert!(!spec.configuration_inputs.contains(&PathBuf::from("Cargo.toml")));
-            assert!(!spec.configuration_inputs.contains(&PathBuf::from("Cargo.lock")));
+            assert!(
+                !spec
+                    .configuration_inputs
+                    .contains(&PathBuf::from("Cargo.toml"))
+            );
+            assert!(
+                !spec
+                    .configuration_inputs
+                    .contains(&PathBuf::from("Cargo.lock"))
+            );
             let component = stage_graph::stage_id(stage);
             assert!(spec.configuration_inputs.contains(&PathBuf::from(format!(
                 "out/source-ownership/cargo/contracts/{component}.json"
@@ -20326,9 +21318,7 @@ mod tests {
         patch_cosmic_just_target_path(tmp.path()).expect("patch justfile");
 
         let body = fs::read_to_string(justfile).expect("read patched justfile");
-        assert!(body.contains(
-            "bin-src := env('CARGO_TARGET_DIR', 'target') / 'release' / name"
-        ));
+        assert!(body.contains("bin-src := env('CARGO_TARGET_DIR', 'target') / 'release' / name"));
     }
 
     #[test]
@@ -20340,7 +21330,10 @@ mod tests {
 
         patch_cosmic_just_target_path(tmp.path()).expect("inspect justfile");
 
-        assert_eq!(fs::read_to_string(justfile).expect("read justfile"), original);
+        assert_eq!(
+            fs::read_to_string(justfile).expect("read justfile"),
+            original
+        );
     }
 
     #[test]
@@ -22629,7 +23622,11 @@ mod tests {
         let tmp = tempfile::tempdir().expect("tempdir");
         let rootfs = tmp.path();
         fs::create_dir_all(rootfs.join("etc/systemd/system")).expect("systemd unit dir");
-        symlink("/dev/null", rootfs.join("etc/systemd/system/systemd-networkd.service")).expect("networkd mask");
+        symlink(
+            "/dev/null",
+            rootfs.join("etc/systemd/system/systemd-networkd.service"),
+        )
+        .expect("networkd mask");
         write(
             &rootfs.join("etc/systemd/resolved.conf"),
             "[Resolve]\nDNSStubListener=yes\n",

@@ -23,7 +23,7 @@ sync = "copy"
 [[component]]
 name = "brush"
 repo = "https://github.com/reubeno/brush.git"
-branch = "main"
+branch = "master"
 revision = "71afef7ce79ad2fd94833fa4f93fa5486c86c56b"
 path = "src/userland/brush"
 sync = "copy"
@@ -369,6 +369,70 @@ repo = "https://github.com/pop-os/cosmic-monitor.git"
 branch = "master"
 revision = "ee634d59b97022f091cdb64f4519886e2c72bf80"
 path = "src/desktop/cosmic/cosmic-monitor"
+sync = "copy"
+
+[[component]]
+name = "flatpak"
+repo = "https://github.com/flatpak/flatpak.git"
+branch = "main"
+revision = "5de2b58bdafde88515d9d6b9189bd1cfd3b88c46"
+path = "src/system/packages/flatpak"
+sync = "copy"
+
+[[component]]
+name = "libarchive"
+repo = "https://github.com/libarchive/libarchive.git"
+branch = "v3.8.2"
+revision = "7f53fce04e4e672230f4eb80b219af17975e4f83"
+path = "src/system/libraries/libarchive"
+sync = "copy"
+
+[[component]]
+name = "libxml2"
+repo = "https://github.com/GNOME/libxml2.git"
+branch = "v2.14.6"
+revision = "d23960a130c5bb82779c9405fbbf85e65fb3c57c"
+path = "src/system/libraries/libxml2"
+sync = "copy"
+
+[[component]]
+name = "fuse3"
+repo = "https://github.com/libfuse/libfuse.git"
+branch = "fuse-3.18.0"
+revision = "9157d99f17384f362c65b02cec065e0aec5f0b56"
+path = "src/system/libraries/fuse3"
+sync = "copy"
+
+[[component]]
+name = "ostree"
+repo = "https://github.com/ostreedev/ostree.git"
+branch = "v2026.1"
+revision = "84fcfe17adcc69b926e8205782c1f735c09bfdd9"
+path = "src/system/packages/ostree"
+sync = "copy"
+
+[[component]]
+name = "libglnx"
+repo = "https://gitlab.gnome.org/GNOME/libglnx.git"
+branch = "master"
+revision = "b415d046880d585e5161bf230590543adeea4fe6"
+path = "src/system/packages/ostree/libglnx"
+sync = "copy"
+
+[[component]]
+name = "bsdiff"
+repo = "https://github.com/mendsley/bsdiff.git"
+branch = "master"
+revision = "b817e9491cf7b8699c8462ef9e2657ca4ccd7667"
+path = "src/system/packages/ostree/bsdiff"
+sync = "copy"
+
+[[component]]
+name = "cosmic-store"
+repo = "https://github.com/pop-os/cosmic-store.git"
+branch = "master"
+revision = "ca4615b22889bbecb83c614e1b52d8af97ef4aca"
+path = "src/desktop/cosmic/cosmic-store"
 sync = "copy"
 
 [[component]]
@@ -1162,3 +1226,59 @@ path = "src/desktop/cosmic/cosmic-tweaks"
 sync = "copy"
 patch_manifest = "upstream/patches/cosmic-tweaks/manifest.toml"
 patch_manifest_sha256 = "aad3b0f4f0a9fe35aab78e4abbf420a3d67322c2010bcaf05929fae9a035915d"
+
+[[component]]
+name = "json-glib"
+repo = "https://gitlab.gnome.org/GNOME/json-glib.git"
+branch = "1.10.8"
+revision = "8273a7d2539c115c0eb1bcc9e8cd9d26fcde204a"
+path = "src/system/libraries/json-glib"
+sync = "copy"
+
+[[component]]
+name = "appstream"
+repo = "https://github.com/ximion/appstream.git"
+branch = "v1.1.6"
+revision = "c046aa7e28e1950d44874bc5bdfc2268a338255f"
+path = "src/system/libraries/appstream"
+sync = "copy"
+
+[[component]]
+name = "gdk-pixbuf"
+repo = "https://gitlab.gnome.org/GNOME/gdk-pixbuf.git"
+branch = "2.42.12"
+revision = "e4315fb8553776e13d39e3f2e0ea8792db61720c"
+path = "src/system/libraries/gdk-pixbuf"
+sync = "copy"
+
+[[component]]
+name = "gpgme"
+repo = "https://github.com/gpg/gpgme.git"
+branch = "gpgme-2.1.2"
+revision = "34eaa0a69c120cd1d19365c6b24c58e98cd29cdf"
+path = "src/system/security/gpgme"
+sync = "copy"
+
+[[component]]
+name = "libfyaml"
+repo = "https://github.com/pantoniou/libfyaml.git"
+branch = "v0.9.6"
+revision = "1ed9bae3b1e5fc57e31a14a2ea12810fdf423473"
+path = "src/system/libraries/libfyaml"
+sync = "copy"
+
+[[component]]
+name = "libxmlb"
+repo = "https://github.com/hughsie/libxmlb.git"
+branch = "0.3.29"
+revision = "d942cd68a7d78e35b312b9299e69f68f9cd2e503"
+path = "src/system/libraries/libxmlb"
+sync = "copy"
+
+[[component]]
+name = "libpng"
+repo = "https://github.com/pnggroup/libpng.git"
+branch = "v1.6.58"
+revision = "3061454d980de7d53608f594194cfac722721d2a"
+path = "src/system/libraries/libpng"
+sync = "copy"

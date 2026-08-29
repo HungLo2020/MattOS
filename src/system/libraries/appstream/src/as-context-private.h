@@ -1,0 +1,50 @@
+/* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*-
+ *
+ * Copyright (C) 2012-2024 Matthias Klumpp <matthias@tenstral.net>
+ *
+ * Licensed under the GNU Lesser General Public License Version 2.1
+ *
+ * This library is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 2.1 of the license, or
+ * (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef __AS_CONTEXT_PRIVATE_H
+#define __AS_CONTEXT_PRIVATE_H
+
+#include "as-context.h"
+#include "as-curl.h"
+#include "as-macros-private.h"
+
+AS_BEGIN_PRIVATE_DECLS
+
+const gchar *as_context_get_architecture (AsContext *ctx);
+void	     as_context_set_architecture (AsContext *ctx, const gchar *value);
+
+gboolean     as_context_get_internal_mode (AsContext *ctx);
+void	     as_context_set_internal_mode (AsContext *ctx, gboolean enabled);
+
+const gchar *as_context_localized_ht_get (AsContext   *ctx,
+					  GHashTable  *lht,
+					  const gchar *locale_override);
+void	     as_context_localized_ht_set (AsContext   *ctx,
+					  GHashTable  *lht,
+					  const gchar *value,
+					  const gchar *locale);
+
+AsCurl	    *as_context_get_curl (AsContext *ctx, GError **error);
+
+gboolean     as_context_os_origin_is_free (AsContext *ctx, const gchar *origin);
+
+AS_END_PRIVATE_DECLS
+
+#endif /* __AS_CONTEXT_PRIVATE_H */

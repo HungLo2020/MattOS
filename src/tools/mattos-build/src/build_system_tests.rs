@@ -179,15 +179,21 @@ fn cosmic_greeter_environment_exposes_systemd_libudev_metadata_only_through_its_
         .map(|(_, value)| value)
         .unwrap();
     let pkgconfig_dirs = std::env::split_paths(pkgconfig).collect::<Vec<_>>();
-    assert!(pkgconfig_dirs.iter().any(|path| {
-        path == &systemd_usr.join("lib/x86_64-linux-gnu/pkgconfig")
-    }));
-    assert!(systemd_usr
-        .join("lib/x86_64-linux-gnu/pkgconfig/libudev.pc")
-        .is_file());
-    assert!(!pkgconfig_dirs
-        .iter()
-        .any(|path| path.to_string_lossy().contains("mesa")));
+    assert!(
+        pkgconfig_dirs
+            .iter()
+            .any(|path| { path == &systemd_usr.join("lib/x86_64-linux-gnu/pkgconfig") })
+    );
+    assert!(
+        systemd_usr
+            .join("lib/x86_64-linux-gnu/pkgconfig/libudev.pc")
+            .is_file()
+    );
+    assert!(
+        !pkgconfig_dirs
+            .iter()
+            .any(|path| path.to_string_lossy().contains("mesa"))
+    );
 }
 
 #[test]
@@ -207,7 +213,10 @@ fn cosmic_workspaces_environment_exposes_declared_udev_inputs_without_runtime_on
         fs::create_dir_all(usr.join("lib/x86_64-linux-gnu/pkgconfig")).unwrap();
     }
     let systemd_usr = root.join("out/build/systemd/install/usr");
-    write_file(&systemd_usr.join("include/libudev.h"), "#define UDEV_TEST 1\n");
+    write_file(
+        &systemd_usr.join("include/libudev.h"),
+        "#define UDEV_TEST 1\n",
+    );
     write_file(
         &systemd_usr.join("lib/x86_64-linux-gnu/pkgconfig/libudev.pc"),
         "prefix=/usr\nName: libudev\nLibs: -ludev\nCflags: -I${prefix}/include\n",
@@ -226,12 +235,16 @@ fn cosmic_workspaces_environment_exposes_declared_udev_inputs_without_runtime_on
         .map(|(_, value)| value)
         .unwrap();
     let pkgconfig_dirs = std::env::split_paths(pkgconfig).collect::<Vec<_>>();
-    assert!(pkgconfig_dirs.iter().any(|path| {
-        path == &systemd_usr.join("lib/x86_64-linux-gnu/pkgconfig")
-    }));
-    assert!(!pkgconfig_dirs
-        .iter()
-        .any(|path| path.to_string_lossy().contains("pipewire")));
+    assert!(
+        pkgconfig_dirs
+            .iter()
+            .any(|path| { path == &systemd_usr.join("lib/x86_64-linux-gnu/pkgconfig") })
+    );
+    assert!(
+        !pkgconfig_dirs
+            .iter()
+            .any(|path| path.to_string_lossy().contains("pipewire"))
+    );
 }
 
 #[test]
@@ -244,7 +257,10 @@ fn cosmic_initial_setup_environment_exposes_declared_udev_inputs_without_runtime
         fs::create_dir_all(usr.join("lib/x86_64-linux-gnu/pkgconfig")).unwrap();
     }
     let systemd_usr = root.join("out/build/systemd/install/usr");
-    write_file(&systemd_usr.join("include/libudev.h"), "#define UDEV_TEST 1\n");
+    write_file(
+        &systemd_usr.join("include/libudev.h"),
+        "#define UDEV_TEST 1\n",
+    );
     write_file(
         &systemd_usr.join("lib/x86_64-linux-gnu/pkgconfig/libudev.pc"),
         "prefix=/usr\nName: libudev\nLibs: -ludev\nCflags: -I${prefix}/include\n",
@@ -263,12 +279,16 @@ fn cosmic_initial_setup_environment_exposes_declared_udev_inputs_without_runtime
         .map(|(_, value)| value)
         .unwrap();
     let pkgconfig_dirs = std::env::split_paths(pkgconfig).collect::<Vec<_>>();
-    assert!(pkgconfig_dirs.iter().any(|path| {
-        path == &systemd_usr.join("lib/x86_64-linux-gnu/pkgconfig")
-    }));
-    assert!(systemd_usr
-        .join("lib/x86_64-linux-gnu/pkgconfig/libudev.pc")
-        .is_file());
+    assert!(
+        pkgconfig_dirs
+            .iter()
+            .any(|path| { path == &systemd_usr.join("lib/x86_64-linux-gnu/pkgconfig") })
+    );
+    assert!(
+        systemd_usr
+            .join("lib/x86_64-linux-gnu/pkgconfig/libudev.pc")
+            .is_file()
+    );
 }
 
 #[test]
@@ -296,8 +316,7 @@ fn synthetic_unrelated_first_class_source_does_not_change_compile_stage_keys() {
         })
         .collect::<BTreeMap<_, _>>();
     write_file(
-        &tmp
-            .path()
+        &tmp.path()
             .join("src/desktop/cosmic/synthetic-unrelated/Cargo.toml"),
         "[package]\nname = \"synthetic-unrelated\"\nversion = \"0.1.0\"\n",
     );
@@ -338,7 +357,10 @@ fn real_stage_specs_track_tool_recipe_and_dependency_output_identity() {
     fs::rename(replacement, &tool).unwrap();
     let second = performance::compute_stage_inputs(root, &brush).unwrap();
     assert_eq!(first.tool_digest, second.tool_digest);
-    assert_ne!(first.build_provenance_digest, second.build_provenance_digest);
+    assert_ne!(
+        first.build_provenance_digest,
+        second.build_provenance_digest
+    );
 
     let mut revised = brush.clone();
     revised.recipe.push_str(":revision-two");

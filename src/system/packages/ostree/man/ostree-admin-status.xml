@@ -1,0 +1,133 @@
+<?xml version='1.0'?> <!--*-nxml-*-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+    "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
+
+<!--
+Copyright 2014 Anne LoVerso <anne.loverso@students.olin.edu>
+
+SPDX-License-Identifier: LGPL-2.0+
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library. If not, see <https://www.gnu.org/licenses/>.
+-->
+
+<refentry id="ostree">
+
+    <refentryinfo>
+        <title>ostree admin status</title>
+        <productname>OSTree</productname>
+
+    </refentryinfo>
+
+    <refmeta>
+        <refentrytitle>ostree admin status</refentrytitle>
+        <manvolnum>1</manvolnum>
+    </refmeta>
+
+    <refnamediv>
+        <refname>ostree-admin-status</refname>
+        <refpurpose>List deployments</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+            <cmdsynopsis>
+                <command>ostree admin status</command>
+            </cmdsynopsis>
+    </refsynopsisdiv>
+
+    <refsect1>
+        <title>Description</title>
+
+        <para>
+            Lists the deployments available to be booted into.  Includes osname, the checksum followed by the deploy serial, and the refspec.  An asterisk indicates the current booted deployment.
+        </para>
+    </refsect1>
+
+    <refsect1>
+        <title>Options</title>
+
+        <variablelist>
+            <varlistentry>
+                <term><option>--sysroot</option>="PATH"</term>
+
+                <listitem><para>
+                    Create a new OSTree sysroot at PATH
+                </para></listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><option>-V, --verify</option></term>
+
+                <listitem><para>
+                    Print the commit verification status
+                </para></listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><option>--json</option></term>
+
+                <listitem><para>
+                    Output in JSON format.
+                </para></listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><option>-S, --skip-signatures</option></term>
+
+                <listitem><para>
+                    Skip signatures in output
+                </para></listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><option>-D, --is-default</option></term>
+
+                <listitem><para>
+                    Output the string <literal>default</literal> if the default deployment
+                    is the booted one, <literal>not-default</literal> if we are booted in
+                    a non-default deployment (e.g. the user interactively chose a
+                    different entry in the bootloader menu, or the bootloader rolled back
+                    automatically, etc.). If we are not in a booted OSTree system, an
+                    error is returned.
+                </para></listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><option>-v, --verbose</option></term>
+
+                <listitem><para>
+                    Print debug information during command processing
+                </para></listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><option>--version</option></term>
+
+                <listitem><para>
+                    Print version information and exit
+                </para></listitem>
+            </varlistentry>
+        </variablelist>
+    </refsect1>
+
+    <refsect1>
+        <title>Example</title>
+        <para><command>$ ostree admin status</command></para>
+<programlisting>
+        * gnome-ostree 67e382b11d213a402a5313e61cbc69dfd5ab93cb07.0
+            origin refspec: gnome-ostree/buildmain/x86_64-runtime
+          gnome-ostree ce19c41036cc45e49b0cecf6b157523c2105c4de1c.0
+            origin refspec: gnome-ostree/buildmain/x86_64-runtime
+</programlisting>
+    </refsect1>
+</refentry>

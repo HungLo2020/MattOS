@@ -1232,10 +1232,8 @@ pub(crate) fn tool_identities(tools: &[String]) -> Result<BTreeMap<String, ToolI
         } else {
             PathBuf::from(tool)
         };
-        let identity = crate::tool_identity::inspect(
-            &identity_tool.to_string_lossy(),
-            sha256_file,
-        )?;
+        let identity =
+            crate::tool_identity::inspect(&identity_tool.to_string_lossy(), sha256_file)?;
         INTEGRITY_CACHE.with(|slot| {
             if let Some(cache) = slot.borrow_mut().as_mut() {
                 cache.tool_identities.insert(tool.clone(), identity.clone());

@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<chapter xmlns="http://docbook.org/ns/docbook" xmlns:xi="http://www.w3.org/2001/XInclude" version="5.2" xml:id="chap-AppStream-Misc">
+	<title>Miscellaneous</title>
+	<para>
+		This chapter describes additional features AppStream provides that are related to the
+		metadata specification.
+	</para>
+
+	<xi:include href="misc-vercmp.xml" />
+	<xi:include href="misc-urihandler.xml" />
+
+</chapter>

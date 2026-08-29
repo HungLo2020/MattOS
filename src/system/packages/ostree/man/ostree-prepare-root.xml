@@ -1,0 +1,206 @@
+<?xml version='1.0'?> <!--*-nxml-*-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+    "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
+
+<!--
+SPDX-License-Identifier: LGPL-2.0+
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library. If not, see <https://www.gnu.org/licenses/>.
+-->
+
+<refentry id="ostree">
+
+    <refentryinfo>
+        <title>ostree prepare-root</title>
+        <productname>OSTree</productname>
+
+    </refentryinfo>
+
+    <refmeta>
+        <refentrytitle>ostree prepare-root</refentrytitle>
+        <manvolnum>1</manvolnum>
+    </refmeta>
+
+    <refnamediv>
+        <refname>ostree-prepare-root</refname>
+        <refpurpose>Change the view of a mounted root filesystem to an ostree deployment</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+            <cmdsynopsis>
+                <command>ostree prepare-root</command> <arg choice="req">TARGET</arg>
+            </cmdsynopsis>
+    </refsynopsisdiv>
+
+    <refsect1>
+        <title>Description</title>
+
+        <para>
+            At its core, ostree operates on an existing mounted filesystem.  Tooling such
+            as <literal>ostree admin deploy</literal> will create a new directory that can be
+            used as a bootable target.  This tool is designed to run in an initramfs and
+            set up "remapping" mounts as a view into that filesystem.
+        </para>
+
+        <para>
+            As of more recently, this tool also has optional support for composefs, which
+            creates a distinct mount point layered on top of the underlying filesystem.
+        </para>
+
+        <para>
+            The most common pattern today is to use systemd in an initramfs.  The systemd
+            unit shipped upstream is ordered in this way:
+
+            <literal>After=sysroot.mount</literal> and <literal>Before=initrd-root-fs.target</literal>
+        </para>
+
+        <para>
+            When it runs, the mounted filesystem at the provided <literal>TARGET</literal> (usually <literal>/sysroot</literal>)
+            will be changed such that what appears at <literal>/sysroot</literal> is actually the
+            "deployment root" - i.e. a particular versioned subdirectory.  What was formerly the
+            "physical root" i.e. the real root of the filesystem will appear as <literal>/sysroot/sysroot</literal>.
+        </para>
+
+        <para>
+            For <literal>/var</literal>, by default a bind mount is created from the deployment root to <literal>/sysroot/var</literal>.
+        </para>
+
+        <para>
+            A read-only bind mount is created over <literal>/sysroot/usr</literal>.  The immutable bit (see chattr(1)) is set on the deployment
+            root, so this provides basic protection for filesystem mutation.  If the <literal>sysroot.readonly</literal>
+            option is enabled, then <literal>/sysroot/sysroot</literal> is mounted read-only to provide further protection and a writable bind mount for
+            <literal>/sysroot/etc</literal> is created.
+        </para>
+
+        <para>
+            Finally, when higher level tooling such as systemd performs a switch-root operation, what
+            was <literal>/sysroot</literal> becomes <literal>/</literal> and after the transition into
+            the real root, the system will be booted into the "deployment", which is a versioned immutable
+            filesystem tree.  The ostree tooling running in the real root thereafter performs further changes
+            by operating on <literal>/sysroot</literal> which is now the "physical root".
+        </para>
+    </refsect1>
+
+    <refsect1>
+        <title>Configuration</title>
+
+        <para>
+            The <literal>/usr/lib/ostree/prepare-root.conf</literal> (or <literal>/etc/ostree/prepare-root.conf</literal>) config file is parsed by <literal>ostree-prepare-root</literal>.  This file must
+            be present in the initramfs.  The default dracut module will copy it from the real root if present.
+        </para>
+
+        <variablelist>
+            <varlistentry>
+                <term><varname>sysroot.readonly</varname></term>
+                <listitem><para>A boolean value; the default is <literal>false</literal> unless composefs is enabled.  If this is set to <literal>true</literal>, then the <literal>/sysroot</literal> mount point is mounted read-only.</para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><varname>etc.transient</varname></term>
+                <listitem><para>A boolean value; the default is <literal>false</literal>.  If this is set to <literal>true</literal>, then the <literal>/etc</literal> mount point is mounted transiently i.e. a non-persistent location.</para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><varname>root.transient</varname></term>
+                <listitem><para>A boolean value; the default is <literal>false</literal>.
+                   Setting this flag to <literal>true</literal> requires composefs (See <literal>composefs.enabled</literal>).
+                   When enabled, the root mount point <literal>/</literal> will be an overlayfs whose contents will be stored
+                   in a tmpfs, and hence discarded on OS upgrade or reboot.
+                </para>
+                <para>
+                   This option is independent of <literal>etc.transient</literal> and <literal>sysroot.readonly</literal>;
+                   it is supported for example to have <literal>root.transient=true</literal> but <literal>etc.transient=false</literal> in which case changes to <literal>/etc</literal> continue
+                   to persist across updates, with the default OSTree 3-way merge applied.
+                   Also related to persistence it is important to emphasize that <literal>/sysroot</literal> (the physical root filesystem) is still persistent
+                   by default; in-place OS upgrades can be applied. This option has no effect on <literal>/var</literal>.
+                </para>
+                <para>
+                  Enabling this option can make it significantly easier to adopt an image-based model in some circumstances.
+                  For example, if you have a configuration management system that is inspecting machine-specific state and
+                  e.g. dynamically installing packages or applying configuration, it can more easily be adapted to
+                  run on each boot, while still shifting a portion (or ideally most) image configuration to build time
+                  as part of the base image/commit.
+                </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><varname>root.transient-ro</varname></term>
+                <listitem><para>A boolean value; the default is <literal>false</literal>.
+                   This is like <literal>root.transient</literal>, but the overlayfs upper will be mounted
+                   read-only by default. Use this when you want specific privileged components to be able to
+                   write to the upper by temporarily mounting it writable in a new mount namespace.
+                </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><varname>composefs.enabled</varname></term>
+                <listitem><para>This can be <literal>yes</literal>, <literal>no</literal>, <literal>maybe</literal>,
+                <literal>signed</literal>, or <literal>verity</literal>. The default is <literal>no</literal>.
+                If set to <literal>yes</literal>, <literal>signed</literal>, or <literal>verity</literal>,
+                then composefs is always used, and the boot fails if it is not available.
+                If set to <literal>signed</literal> or <literal>verity</literal>,
+                before the content of a file is read,
+                the integrity of its backing OSTree object is validated by the digest stored in the image.
+                Additionally, if set to <literal>signed</literal>, boot will fail if the image cannot be
+                validated by a public key.
+                Setting this to <literal>maybe</literal> will cause composefs to be used at runtime only
+                if the deployment has a composefs generated, which causes unpredicable and confusing semantics
+                and is not recommended. In practice with the <emphasis>current</emphasis> version of ostree,
+                in the case where composefs is enabled at build time for both the version that made the
+                deployment (often an older OS version), this will be equivalent to <literal>yes</literal>.
+                But in general one either wants composefs or not, so choose an explicit value for that.
+                </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><varname>composefs.keypath</varname></term>
+                <listitem><para>Path to a file with Ed25519 public keys in the initramfs, used if
+                <literal>composefs.enabled</literal> is set to <literal>signed</literal>. The default value for this is
+                <literal>/etc/ostree/initramfs-root-binding.key</literal>. For a valid signed boot the target OSTree
+                commit must be signed by at least one public key in this file, and the commitfs digest listed in the
+                commit must match the target composefs image.</para></listitem>
+            </varlistentry>
+        </variablelist>
+
+        <para>
+            The following kernel commandline parameters are also parsed:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><varname>ostree.prepare-root.composefs</varname></term>
+                <listitem><para>This accepts the same values as <literal>composefs.enabled</literal> above, and overrides the config file (if present).
+                    For example, specifying <literal>ostree.prepare-root.composefs=0</literal> will disable composefs, even if it is enabled by default in the initrd config.</para></listitem>
+            </varlistentry>
+        </variablelist>
+
+    </refsect1>
+
+
+    <refsect1>
+        <title>systemd</title>
+
+        <para>
+            As mentioned above, this tool comes with a systemd unit file <literal>ostree-prepare-root.service</literal>
+            and it is primarily expected to be invoked this way.
+        </para>
+    </refsect1>
+
+    <refsect1>
+        <title>Composefs</title>
+
+        <para>
+            The default for ostree is to create a plain hardlinked filesystem tree.
+            composefs support is currently experimental; see the upstream <literal>doc/composefs.md</literal>
+            for more information on using it.
+        </para>
+    </refsect1>
+
+</refentry>

@@ -323,7 +323,19 @@ def launch_qemu(repo_root: Path, iso_path: Path, args: argparse.Namespace) -> in
         qemu_cmd.extend(["-drive", f"file={install_disk},if=virtio,format=qcow2"])
     qemu_cmd.extend(network_arguments(args.no_network))
 
-    if args.serial_console or args.headless:
+    if args.serial_console:
+        # Keep the graphical backend alive for the GL-only virtio-vga device
+        # while routing the guest's serial console to the invoking terminal.
+        # `-nographic` forcibly disables that backend and therefore cannot be
+        # combined with the normal COSMIC GPU configuration.
+        display = choose_graphical_display(repo_root)
+        if display == "default":
+            qemu_cmd.extend(["-display", "default"])
+        else:
+            qemu_cmd.extend(["-display", display])
+        print(f"[qemu] graphics: {VIRTIO_GPU_GL_DEVICE} with display={display} (VirGL requested)")
+        qemu_cmd.extend(["-serial", "stdio", "-monitor", "none", "-no-reboot", "-no-shutdown"])
+    elif args.headless:
         qemu_cmd.extend(["-nographic", "-serial", "stdio", "-monitor", "none", "-no-reboot", "-no-shutdown"])
     else:
         display = choose_graphical_display(repo_root)
