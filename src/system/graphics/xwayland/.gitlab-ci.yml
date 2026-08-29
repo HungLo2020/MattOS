@@ -1,0 +1,163 @@
+# vim: set expandtab shiftwidth=2 tabstop=8 textwidth=0 filetype=yaml:
+#
+# This CI uses the freedesktop.org ci-templates.
+# Please see the ci-templates documentation for details:
+# https://freedesktop.pages.freedesktop.org/ci-templates/
+
+.templates_sha: &template_sha c5626190ec14b475271288dda7a7dae8dbe0cd76 # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+
+# FDO_DISTRIBUTION_TAG is the tag of the docker image used for the build jobs.
+# If the image doesn't exist yet, the docker-image stage generates it.
+#
+# In order to generate a new image, one should generally change the tag.
+# While removing the image from the registry would also work, that's not
+# recommended except for ephemeral images during development: Replacing an
+# image after a significant amount of time might pull in newer versions of
+# gcc/clang or other packages, which might break the build with older commits
+# using the same tag.
+variables:
+    FDO_UPSTREAM_REPO: xorg/xserver
+    FDO_DISTRIBUTION_VERSION: bullseye-slim
+    FDO_DISTRIBUTION_EXEC: 'env FDO_CI_CONCURRENT=${FDO_CI_CONCURRENT} bash .gitlab-ci/debian-install.sh'
+    FDO_DISTRIBUTION_TAG: "2024-09-24-no-xorg"
+    MESON_BUILDDIR: "build"
+
+include:
+  - project: 'freedesktop/ci-templates'
+    ref: *template_sha
+    file: '/templates/debian.yml'
+  - project: 'freedesktop/ci-templates'
+    ref: *template_sha
+    file: '/templates/ci-fairy.yml'
+  - template: Security/SAST.gitlab-ci.yml
+
+stages:
+    - docker-image
+    - build-and-test
+    - test
+
+.ci-run-policy:
+  # Retry jobs after runner system failures
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+  # Cancel CI run if a newer commit is pushed to the same branch
+  interruptible: true
+
+debian-bullseye:
+  extends:
+    - .fdo.container-build@debian
+    - .ci-run-policy
+  stage: docker-image
+  variables:
+    GIT_STRATEGY: none
+
+.common-build-and-test:
+    extends:
+        - .fdo.distribution-image@debian
+        - .ci-run-policy
+    stage: build-and-test
+    artifacts:
+        when: always
+        paths:
+            - $MESON_BUILDDIR/meson-logs/
+            - $MESON_BUILDDIR/test/piglit-results/
+    variables:
+        MESON_ARGS: -Dc_args="-fno-common" -Dprefix=/usr -Dxephyr=true -Dwerror=true
+        CCACHE_COMPILERCHECK: content
+        CCACHE_DIR: /cache/xserver/cache
+        LC_ALL: C.UTF-8
+    before_script:
+        - export CCACHE_BASEDIR="$PWD"
+        - export PATH="/usr/lib/ccache:$PATH"
+        - ccache --show-stats
+    after_script:
+        - ccache --show-stats
+
+meson:
+    extends: .common-build-and-test
+    script:
+        - .gitlab-ci/meson-build.sh --run-test
+        - .gitlab-ci/check-piglit-results.sh
+        - .gitlab-ci/manpages-check
+    variables:
+      XTEST_DIR: /root/xts
+      PIGLIT_DIR: /root/piglit
+      LP_NUM_THREADS: 0
+
+meson-noglamor:
+    extends: meson
+    variables:
+        MESON_EXTRA_ARGS: >
+          -Dglamor=false
+
+meson-nolibdecor:
+    extends: meson
+    variables:
+        MESON_EXTRA_ARGS: >
+          -Dlibdecor=false
+
+meson-dist:
+    extends: .common-build-and-test
+    artifacts:
+        when: always
+        paths:
+            - $MESON_BUILDDIR/meson-logs/
+            - $MESON_BUILDDIR/xwayland-*/$MESON_BUILDDIR/meson-logs/
+    script:
+        - .gitlab-ci/meson-build.sh --run-dist
+        - mkdir xwayland-tarball
+        - tar xf $MESON_BUILDDIR/meson-dist/xwayland-*.tar.xz -C xwayland-tarball --strip-components=1
+        - .gitlab-ci/meson-build.sh -C xwayland-tarball --skip-test --skip-dist --run-install
+    variables:
+      MESON_DIST_ARGS: --no-tests
+      DESTDIR: xwayland-tarball/install/
+
+#
+# Verify that commit messages are as expected
+#
+check-commits:
+  extends:
+    - .fdo.ci-fairy
+  needs: []
+  stage: test
+  script:
+    - ci-fairy check-commits --junit-xml=results.xml
+  except:
+    - master@xorg/xserver
+  variables:
+    GIT_DEPTH: 100
+  artifacts:
+    reports:
+      junit: results.xml
+  allow_failure: true
+
+#
+# Verify that the merge request has the allow-collaboration checkbox ticked
+#
+check-merge-request:
+  extends:
+    - .fdo.ci-fairy
+  needs: []
+  stage: test
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+  script:
+    - ci-fairy check-merge-request --require-allow-collaboration --junit-xml=results.xml
+  artifacts:
+    when: on_failure
+    reports:
+      junit: results.xml
+  allow_failure: true
+
+#
+# Workflow rules needed due to:
+# https://gitlab.freedesktop.org/freedesktop/freedesktop/-/issues/438
+#
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_PIPELINE_SOURCE == 'push'

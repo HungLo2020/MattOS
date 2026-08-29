@@ -1,0 +1,345 @@
+/*
+ * Copyright © 2021 Igalia S.L.
+ *
+ * SPDX-License-Identifier: LGPL-2.1-or-later
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Authors:
+ *       Patrick Griffis <pgriffis@igalia.com>
+ */
+
+#include "config.h"
+
+#include "realtime.h"
+
+#include <string.h>
+
+#include <gio/gio.h>
+
+#include "xdp-app-info.h"
+#include "xdp-context.h"
+#include "xdp-dbus.h"
+#include "xdp-permissions.h"
+#include "xdp-utils.h"
+
+#define RTKIT_DBUS_NAME "org.freedesktop.RealtimeKit1"
+#define RTKIT_DBUS_IFACE "org.freedesktop.RealtimeKit1"
+#define RTKIT_DBUS_PATH "/org/freedesktop/RealtimeKit1"
+
+typedef struct _Realtime Realtime;
+typedef struct _RealtimeClass RealtimeClass;
+
+struct _Realtime
+{
+  XdpDbusRealtimeSkeleton parent_instance;
+  GDBusProxy *rtkit_proxy;
+};
+
+struct _RealtimeClass
+{
+  XdpDbusRealtimeSkeletonClass parent_class;
+};
+
+GType realtime_get_type (void) G_GNUC_CONST;
+static void realtime_iface_init (XdpDbusRealtimeIface *iface);
+
+G_DEFINE_TYPE_WITH_CODE (Realtime, realtime, XDP_DBUS_TYPE_REALTIME_SKELETON,
+                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_REALTIME,
+                                                realtime_iface_init));
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (Realtime, g_object_unref)
+
+static gboolean
+map_pid (XdpAppInfo *app_info, pid_t *pid, pid_t *tid, GError **error)
+{
+  ino_t pidns_id;
+  /*
+   * the unmapped pid is more useful for debugging, and doesn't leak
+   * information into the sandbox - see discussion in
+   * https://github.com/flatpak/xdg-desktop-portal/pull/1655
+   */
+  const pid_t unmapped_pid = *pid;
+
+  if (!xdp_app_info_get_pidns (app_info, &pidns_id, error))
+    {
+      g_prefix_error (error, "Could not get pidns for pid %d: ", unmapped_pid);
+      g_warning ("Realtime error: %s", (*error)->message);
+      return FALSE;
+    }
+
+  if (pidns_id != 0 && !xdp_map_pids (pidns_id, pid, 1, error))
+    {
+      g_prefix_error (error, "Could not map pid %d: ", unmapped_pid);
+      g_warning ("Realtime error: %s", (*error)->message);
+      return FALSE;
+    }
+
+  if (pidns_id != 0 && !xdp_map_tids (pidns_id, *pid, tid, 1, error))
+    {
+      g_prefix_error (error, "Could not map tid %d of pid %d: ", *tid, unmapped_pid);
+      g_warning ("Realtime error: %s", (*error)->message);
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+static void
+on_call_ready (GObject      *source_object,
+               GAsyncResult *result,
+               gpointer      user_data)
+{
+  g_autoptr(GError) error = NULL;
+  g_autoptr(GDBusMethodInvocation) invocation = g_steal_pointer (&user_data);
+  g_autoptr(GVariant) response = NULL;
+
+  response = g_dbus_proxy_call_finish (G_DBUS_PROXY (source_object),
+                                       result,
+                                       &error);
+
+  if (error)
+    g_dbus_method_invocation_return_gerror (invocation, error);
+  else
+    g_dbus_method_invocation_return_value (invocation, g_variant_new ("()"));
+}
+
+static gboolean
+handle_make_thread_realtime_with_pid (XdpDbusRealtime       *object,
+                                      GDBusMethodInvocation *invocation,
+                                      guint64                process,
+                                      guint64                thread,
+                                      guint32                priority)
+{
+  Realtime *realtime = (Realtime *)object;
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
+  pid_t pids[1] = { process };
+  pid_t tids[1] = { thread };
+  XdpPermission permission;
+  g_autoptr (GError) error = NULL;
+
+  if (!realtime->rtkit_proxy)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_FAILED,
+                                             "RealtimeKit was not found");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  permission = xdp_get_permission_sync (app_info,
+                                        REALTIME_PERMISSION_TABLE,
+                                        REALTIME_PERMISSION_ID);
+  if (permission == XDP_PERMISSION_NO)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                             "Permission denied");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  if (!map_pid (app_info, pids, tids, &error))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  g_dbus_proxy_call (G_DBUS_PROXY (realtime->rtkit_proxy),
+                     "MakeThreadRealtimeWithPID",
+                     g_variant_new ("(ttu)", pids[0], tids[0], priority),
+                     G_DBUS_CALL_FLAGS_NONE,
+                     -1,
+                     NULL,
+                     on_call_ready,
+                     g_object_ref (invocation));
+
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
+}
+
+static gboolean
+handle_make_thread_high_priority_with_pid (XdpDbusRealtime       *object,
+                                           GDBusMethodInvocation *invocation,
+                                           guint64                process,
+                                           guint64                thread,
+                                           gint32                 priority)
+{
+  Realtime *realtime = (Realtime *)object;
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
+  pid_t pids[1] = { process };
+  pid_t tids[1] = { thread };
+  XdpPermission permission;
+  g_autoptr (GError) error = NULL;
+
+  if (!realtime->rtkit_proxy)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_FAILED,
+                                             "RealtimeKit was not found");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  permission = xdp_get_permission_sync (app_info,
+                                        REALTIME_PERMISSION_TABLE,
+                                        REALTIME_PERMISSION_ID);
+  if (permission == XDP_PERMISSION_NO)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                             "Permission denied");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  if (!map_pid (app_info, pids, tids, &error))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  g_dbus_proxy_call (G_DBUS_PROXY (realtime->rtkit_proxy),
+                     "MakeThreadHighPriorityWithPID",
+                     g_variant_new ("(tti)", pids[0], tids[0], priority),
+                     G_DBUS_CALL_FLAGS_NONE,
+                     -1,
+                     NULL,
+                     on_call_ready,
+                     g_object_ref (invocation));
+
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
+}
+
+static void
+realtime_iface_init (XdpDbusRealtimeIface *iface)
+{
+  iface->handle_make_thread_realtime_with_pid = handle_make_thread_realtime_with_pid;
+  iface->handle_make_thread_high_priority_with_pid = handle_make_thread_high_priority_with_pid;
+}
+
+static void
+realtime_init (Realtime *realtime)
+{
+}
+
+static void
+realtime_finalize (GObject *object)
+{
+  Realtime *self = (Realtime *) object;
+
+  g_clear_object (&self->rtkit_proxy);
+
+  G_OBJECT_CLASS (realtime_parent_class)->finalize (object);
+}
+
+static void
+realtime_class_init (RealtimeClass *klass)
+{
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->finalize = realtime_finalize;
+}
+
+static void
+load_all_properties (Realtime *realtime)
+{
+  GDBusProxy *proxy = realtime->rtkit_proxy;
+  const char * properties[] = { "MaxRealtimePriority", "MinNiceLevel", "RTTimeUSecMax" };
+  enum prop_type { MAX_REALTIME_PRIORITY, MIN_NICE_LEVEL, RTTIME_USEC_MAX };
+
+  for (guint i = 0; i < G_N_ELEMENTS (properties); ++i)
+    {
+      g_autoptr (GVariant) result = NULL;
+      GVariant *parameters;
+      g_autoptr (GError) error = NULL;
+
+      parameters = g_variant_new ("(ss)", RTKIT_DBUS_IFACE, properties[i]);
+      result = g_dbus_proxy_call_sync (proxy,
+                                       DBUS_DBUS_IFACE ".Properties.Get",
+                                        g_steal_pointer (&parameters),
+                                        G_DBUS_CALL_FLAGS_NONE,
+                                        -1,
+                                        NULL,
+                                        &error);
+
+      if (!result)
+        {
+          g_warning ("Failed to load RealtimeKit property: %s", error->message);
+        }
+      else
+        {
+          g_autoptr (GVariant) value = NULL;
+          g_variant_get (result, "(v)", &value);
+
+          if (i == MAX_REALTIME_PRIORITY)
+            xdp_dbus_realtime_set_max_realtime_priority (XDP_DBUS_REALTIME (realtime),
+                                                         g_variant_get_int32 (value));
+          else if (i == MIN_NICE_LEVEL)
+            xdp_dbus_realtime_set_min_nice_level (XDP_DBUS_REALTIME (realtime),
+                                                  g_variant_get_int32 (value));
+          else if (i == RTTIME_USEC_MAX)
+            xdp_dbus_realtime_set_rttime_usec_max (XDP_DBUS_REALTIME (realtime),
+                                                   g_variant_get_int64 (value));
+          else
+            g_assert_not_reached ();
+
+          g_dbus_proxy_set_cached_property (proxy, properties[i], value);
+        }
+    }
+}
+
+static Realtime *
+realtime_new (void)
+{
+  Realtime *realtime;
+  g_autoptr(GError) error = NULL;
+  g_autoptr(GDBusProxy) rtkit_proxy = NULL;
+
+  rtkit_proxy = g_dbus_proxy_new_for_bus_sync (G_BUS_TYPE_SYSTEM,
+                                               G_DBUS_PROXY_FLAGS_NONE,
+                                               NULL,
+                                               RTKIT_DBUS_NAME,
+                                               RTKIT_DBUS_PATH,
+                                               RTKIT_DBUS_IFACE,
+                                               NULL,
+                                               &error);
+  if (!rtkit_proxy)
+    {
+      /* We continue on so the realtime interface remains exported,
+       * however it will fail to do anything */
+      g_warning ("Failed to create RealtimeKit proxy: %s", error->message);
+    }
+
+  realtime = g_object_new (realtime_get_type (), NULL);
+  realtime->rtkit_proxy = g_steal_pointer (&rtkit_proxy);
+
+  xdp_dbus_realtime_set_version (XDP_DBUS_REALTIME (realtime), 1);
+
+  if (realtime->rtkit_proxy)
+    load_all_properties (realtime);
+
+  return realtime;
+}
+
+void
+init_realtime (XdpContext *context)
+{
+  g_autoptr(Realtime) realtime = NULL;
+
+  realtime = realtime_new ();
+
+  xdp_context_take_and_export_portal (context,
+                                      G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&realtime)),
+                                      XDP_CONTEXT_EXPORT_FLAGS_NONE);
+}

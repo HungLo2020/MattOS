@@ -180,6 +180,16 @@ exact_gitlink_match = true
 reason = "GLib's required GVDB build subproject is materialized at the exact upstream gitlink revision as ordinary source files."
 
 [[component]]
+name = "gstreamer"
+upstream_commit = "e6ee9e63e033b9c8e343ba0bdfa7590ef81449ee"
+
+[[component.gitlink]]
+path = "subprojects/gst-integration-testsuites/medias"
+upstream_commit = "5fc44893e68e26163e310d352a55aa3b2d2efeb1"
+action = "exclude"
+reason = "The GStreamer integration-test media corpus is not a build or runtime input for MattOS's configured core and pbutils runtime closure."
+
+[[component]]
 name = "openssl"
 upstream_commit = "8cf17aaeb4599f8af87fefd810b5b5fee90fe69e"
 

@@ -1,0 +1,335 @@
+# Czech translation for xdg-desktop-portal.
+# Copyright (C) 2016 xdg-desktop-portal's COPYRIGHT HOLDER
+# This file is distributed under the same license as the xdg-desktop-portal package.
+#
+# Marek Černocký <marek@manet.cz>, 2016.
+# Daniel Rusek <mail@asciiwolf.com>, 2018.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xdg-desktop-portal master\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-17 18:19+0200\n"
+"PO-Revision-Date: 2025-11-23 14:26+0100\n"
+"Last-Translator: Daniel Rusek <mail@asciiwolf.com>\n"
+"Language-Team: Czech <gnome-cs-list@gnome.org>\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Generator: Poedit 3.8\n"
+
+#: src/background.c:941
+#, c-format
+msgid "Allow %s to Run in the Background?"
+msgstr "Povolit aplikaci %s běh na pozadí?"
+
+#: src/background.c:945
+#, c-format
+msgid "%s wants to be started automatically and run in the background"
+msgstr "Aplikace %s chce být automaticky spouštěna a běžet na pozadí"
+
+#: src/background.c:947
+#, c-format
+msgid "%s wants to run in the background"
+msgstr "Aplikace %s chce běžet na pozadí"
+
+#: src/background.c:948
+msgid ""
+"The ‘run in background’ permission can be changed at any time from the app "
+"settings"
+msgstr ""
+"Oprávnění pro „běh na pozadí“ můžete kdykoliv změnit v nastavení aplikace"
+
+#: src/background.c:952
+msgid "Don't allow"
+msgstr "Nepovolit"
+
+#: src/background.c:953 src/screenshot.c:275 src/wallpaper.c:192
+msgid "Allow"
+msgstr "Povolit"
+
+#: src/camera.c:105
+#, c-format
+msgid "Allow %s to Use the Camera?"
+msgstr "Povolit aplikaci %s používat kameru?"
+
+#: src/camera.c:106
+#, c-format
+msgid "%s wants to access the camera"
+msgstr "Aplikace %s chce přistupovat ke kameře"
+
+#: src/camera.c:110
+msgid "Allow Apps to Use the Camera?"
+msgstr "Povolit aplikacím používat kameru?"
+
+#: src/camera.c:111
+msgid "An app wants to access the camera"
+msgstr "Nějaká aplikace chce přistupovat ke kameře"
+
+#: src/camera.c:114 src/screenshot.c:327 src/wallpaper.c:208
+msgid "This permission can be changed at any time from the privacy settings"
+msgstr "Toto oprávnění můžete kdykoliv změnit v nastavení soukromí"
+
+#: src/dynamic-launcher.c:127
+#, c-format
+msgid "Desktop file id missing .desktop suffix: %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:138
+#, c-format
+msgid "Desktop file id is not valid"
+msgstr ""
+
+#: src/dynamic-launcher.c:316
+#, c-format
+msgid "Desktop entry given to Install() not a valid key file"
+msgstr ""
+
+#: src/dynamic-launcher.c:329
+#, c-format
+msgid "Desktop entry given to Install() must have exactly one group"
+msgstr ""
+
+#: src/dynamic-launcher.c:368
+#, c-format
+msgid "Token given is invalid: %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:411
+#, c-format
+msgid "Desktop entry given to Install() not valid"
+msgstr ""
+
+#: src/dynamic-launcher.c:420 src/dynamic-launcher.c:896
+#: src/dynamic-launcher.c:945
+#, c-format
+msgid "Desktop file exceeds max size (%d): %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:618
+#, c-format
+msgid "Given URI is invalid: %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:640
+#, c-format
+msgid "Invalid launcher type: %x"
+msgstr ""
+
+#: src/dynamic-launcher.c:647
+#, c-format
+msgid "Unsupported launcher type: %x"
+msgstr ""
+
+#: src/dynamic-launcher.c:713 src/dynamic-launcher.c:788
+msgid "Dynamic launcher icon failed validation"
+msgstr ""
+
+#: src/dynamic-launcher.c:806
+#, c-format
+msgid "RequestInstallToken() not allowed for app id %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:985
+#, c-format
+msgid "Desktop file '%s' icon at unrecognized path"
+msgstr ""
+
+#: src/dynamic-launcher.c:1008
+#, c-format
+msgid "Desktop file '%s' icon failed to serialize"
+msgstr ""
+
+#: src/dynamic-launcher.c:1047
+#, c-format
+msgid "No dynamic launcher exists with id '%s'"
+msgstr ""
+
+#: src/dynamic-launcher.c:1066
+#, c-format
+msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
+msgstr ""
+
+#: src/location.c:555
+msgid "Deny Access"
+msgstr "Zamítnout přístup"
+
+#: src/location.c:557
+msgid "Grant Access"
+msgstr "Schválit přístup"
+
+#: src/location.c:563
+#, c-format
+msgid "Allow %s to Access Your Location?"
+msgstr "Povolit aplikaci %s přístup k vaší poloze?"
+
+#: src/location.c:573
+#, c-format
+msgid "%s wants to use your location"
+msgstr "Aplikace %s chce použít vaši polohu"
+
+#: src/location.c:579
+msgid "Allow Apps to Access Your Location?"
+msgstr "Povolit aplikacím přístup k vaší poloze?"
+
+#: src/location.c:580
+msgid "An app wants to use your location"
+msgstr "Nějaká aplikace chce použít vaši polohu"
+
+#: src/location.c:583
+msgid "Location access can be changed at any time from the privacy settings"
+msgstr ""
+"Přístup ke službám pro určování polohy můžete kdykoliv změnit v nastavení "
+"soukromí"
+
+#: src/screenshot.c:273 src/wallpaper.c:190
+msgid "Deny"
+msgstr "Zamítnout"
+
+#: src/screenshot.c:299
+#, c-format
+msgid "Allow %s to Take Screenshots?"
+msgstr "Povolit aplikaci %s pořizovat snímky obrazovky?"
+
+#: src/screenshot.c:300
+#, c-format
+msgid "%s wants to take screenshots at any time"
+msgstr "Aplikace %s chce kdykoliv pořizovat snímky obrazovky"
+
+#: src/screenshot.c:304
+#, c-format
+msgid "Allow %s to Take a Screenshot?"
+msgstr "Povolit aplikaci %s pořídit snímek obrazovky?"
+
+#: src/screenshot.c:305
+#, c-format
+msgid "%s wants to take a screenshot"
+msgstr "Aplikace %s chce pořídit snímek obrazovky"
+
+#. Note: this will set the screenshot permission for all unsandboxed
+#. * apps for which an app ID can't be determined.
+#.
+#: src/screenshot.c:316
+msgid "Allow Apps to Take Screenshots?"
+msgstr "Povolit aplikacím pořizovat snímky obrazovky?"
+
+#: src/screenshot.c:317
+msgid "An app wants to take screenshots at any time"
+msgstr "Nějaká aplikace chce kdykoliv pořizovat snímky obrazovky"
+
+#: src/screenshot.c:321
+msgid "Allow to Take a Screenshot?"
+msgstr "Povolit aplikaci pořídit snímek obrazovky?"
+
+#: src/screenshot.c:322
+msgid "An app wants to take a screenshot"
+msgstr "Nějaká aplikace chce pořídit snímek obrazovky"
+
+#: src/settings.c:196 src/settings.c:235
+msgid "Requested setting not found"
+msgstr "Požadované nastavení nebylo nalezeno"
+
+#: src/usb.c:1333
+msgid "Device not available"
+msgstr "Zařízení není dostupné"
+
+#: src/usb.c:1347
+msgid "Not allowed"
+msgstr "Není povoleno"
+
+#: src/wallpaper.c:198
+#, c-format
+msgid "Allow %s to Set Backgrounds?"
+msgstr "Povolit aplikaci %s možnost nastavit pozadí?"
+
+#: src/wallpaper.c:199
+#, c-format
+msgid "%s wants to change the background image"
+msgstr "Aplikace %s chce změnit obrázek na pozadí"
+
+#: src/wallpaper.c:204
+msgid "Allow Apps to Set Backgrounds?"
+msgstr "Povolit aplikacím možnost nastavit pozadí?"
+
+#: src/wallpaper.c:205
+msgid "An app wants to change the background image"
+msgstr "Nějaká aplikace chce změnit obrázek na pozadí"
+
+#~ msgid "Grant Access to Your Location?"
+#~ msgstr "Schválit přístup k vaší poloze?"
+
+#~ msgid "Allow Applications to Take Screenshots?"
+#~ msgstr "Povolit aplikacím pořizovat snímky obrazovky?"
+
+#~ msgid "Allow Applications to Set Backgrounds?"
+#~ msgstr "Povolit aplikacím možnost nastavit pozadí?"
+
+#, c-format
+#~ msgid "Allow %s to Use the Microphone?"
+#~ msgstr "Povolit aplikaci %s používat mikrofon?"
+
+#, c-format
+#~ msgid "%s wants to access recording devices."
+#~ msgstr "Aplikace %s chce přistupovat k záznamovým zařízením."
+
+#~ msgid "Allow app to Use the Microphone?"
+#~ msgstr "Povolit aplikaci používat mikrofon?"
+
+#~ msgid "An app wants to access recording devices."
+#~ msgstr "Nějaká aplikace chce přistupovat k záznamovým zařízením."
+
+#, c-format
+#~ msgid "Allow %s to Use the Speakers?"
+#~ msgstr "Povolit aplikaci %s používat reproduktory?"
+
+#, c-format
+#~ msgid "%s wants to access audio devices."
+#~ msgstr "Aplikace %s chce přistupovat ke zvukovým zařízením."
+
+#~ msgid "Allow app to Use the Speakers?"
+#~ msgstr "Povolit aplikaci používat reproduktory?"
+
+#~ msgid "An app wants to access audio devices."
+#~ msgstr "Nějaká aplikace chce přistupovat ke zvukovým zařízením."
+
+#~ msgid "Turn On Microphone?"
+#~ msgstr "Zapnout mikrofon?"
+
+#~ msgid ""
+#~ "Access to your microphone can be changed at any time from the privacy "
+#~ "settings."
+#~ msgstr ""
+#~ "Přístup ke svému mikrofonu můžete kdykoliv změnit v nastavení soukromí."
+
+#~ msgid "An application wants to use your microphone."
+#~ msgstr "Nějaká aplikace chce používat váš mikrofon."
+
+#, c-format
+#~ msgid "%s wants to use your microphone."
+#~ msgstr "Aplikace %s chce používat váš mikrofon."
+
+#~ msgid "Turn On Speakers?"
+#~ msgstr "Zapnout reproduktory?"
+
+#~ msgid ""
+#~ "Access to your speakers can be changed at any time from the privacy "
+#~ "settings."
+#~ msgstr ""
+#~ "Přístup ke svým reproduktorům můžete kdykoliv změnit v nastavení soukromí."
+
+#~ msgid "An application wants to play sound."
+#~ msgstr "Nějaká aplikace chce přehrávat zvuk."
+
+#, c-format
+#~ msgid "%s wants to play sound."
+#~ msgstr "Aplikace %s chce přehrávat zvuk."
+
+#~ msgid "Turn On Camera?"
+#~ msgstr "Zapnout kameru?"
+
+#~ msgid ""
+#~ "Access to your camera can be changed at any time from the privacy "
+#~ "settings."
+#~ msgstr "Přístup ke své kameře můžete kdykoliv změnit v nastavení soukromí."

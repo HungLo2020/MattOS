@@ -35,8 +35,17 @@ pub(crate) enum BuildStage {
     VulkanLoader,
     VulkanTools,
     X11Compat,
+    Libepoxy,
+    Freetype,
+    Libfontenc,
+    Libxfont,
+    Libxcvt,
+    Libxshmfence,
+    Libxkbfile,
+    Xkbcomp,
     Libglvnd,
     Mesa,
+    Xwayland,
     NvidiaDriver,
     CosmicComp,
     CosmicSession,
@@ -58,6 +67,10 @@ pub(crate) enum BuildStage {
     CosmicTweaks,
     CosmicUtilities,
     Flatpak,
+    Bubblewrap,
+    Gstreamer,
+    GstreamerBase,
+    XdgDesktopPortal,
     Libarchive,
     Libxml2,
     Libpng,
@@ -166,8 +179,17 @@ pub(crate) fn stage_id(stage: BuildStage) -> &'static str {
         BuildStage::VulkanLoader => "vulkan-loader",
         BuildStage::VulkanTools => "vulkan-tools",
         BuildStage::X11Compat => "x11-compat",
+        BuildStage::Libepoxy => "libepoxy",
+        BuildStage::Freetype => "freetype",
+        BuildStage::Libfontenc => "libfontenc",
+        BuildStage::Libxfont => "libxfont",
+        BuildStage::Libxcvt => "libxcvt",
+        BuildStage::Libxshmfence => "libxshmfence",
+        BuildStage::Libxkbfile => "libxkbfile",
+        BuildStage::Xkbcomp => "xkbcomp",
         BuildStage::Libglvnd => "libglvnd",
         BuildStage::Mesa => "mesa",
+        BuildStage::Xwayland => "xwayland",
         BuildStage::NvidiaDriver => "nvidia-driver",
         BuildStage::CosmicComp => "cosmic-comp",
         BuildStage::CosmicSession => "cosmic-session",
@@ -189,6 +211,10 @@ pub(crate) fn stage_id(stage: BuildStage) -> &'static str {
         BuildStage::CosmicTweaks => "cosmic-tweaks",
         BuildStage::CosmicUtilities => "cosmic-utilities",
         BuildStage::Flatpak => "flatpak",
+        BuildStage::Bubblewrap => "bubblewrap",
+        BuildStage::Gstreamer => "gstreamer",
+        BuildStage::GstreamerBase => "gstreamer-base",
+        BuildStage::XdgDesktopPortal => "xdg-desktop-portal",
         BuildStage::Libarchive => "libarchive",
         BuildStage::Libxml2 => "libxml2",
         BuildStage::Libpng => "libpng",
@@ -321,7 +347,28 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "wayland",
         ],
         BuildStage::X11Compat => &["formal-sysroot", "cpython", "expat"],
-        BuildStage::Libglvnd => &["formal-sysroot"],
+        // These are the concrete native interfaces required to build the
+        // Xwayland server. They are deliberately separate from COSMIC desktop
+        // composition so unrelated desktop applications never inherit them as
+        // compile-time inputs.
+        BuildStage::Libepoxy => &["formal-sysroot", "x11-compat", "libglvnd"],
+        BuildStage::Freetype => &["formal-sysroot", "zlib"],
+        BuildStage::Libfontenc => &["formal-sysroot", "x11-compat"],
+        BuildStage::Libxfont => &[
+            "formal-sysroot",
+            "x11-compat",
+            "freetype",
+            "libfontenc",
+            "zlib",
+        ],
+        BuildStage::Libxcvt => &["formal-sysroot", "x11-compat"],
+        BuildStage::Libxshmfence => &["formal-sysroot", "x11-compat"],
+        BuildStage::Libxkbfile => &["formal-sysroot", "x11-compat"],
+        // xkbcomp is an Xwayland runtime helper, not a build dependency of
+        // the Xwayland server itself.  Package composition carries it with
+        // the server so a keyboard-map update cannot rebuild Xwayland.
+        BuildStage::Xkbcomp => &["formal-sysroot", "x11-compat", "libxkbfile"],
+        BuildStage::Libglvnd => &["formal-sysroot", "x11-compat"],
         BuildStage::Mesa => &[
             "formal-sysroot",
             "libdrm",
@@ -335,6 +382,25 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "wayland",
             "zlib",
             "zstd",
+        ],
+        BuildStage::Xwayland => &[
+            "formal-sysroot",
+            "x11-compat",
+            "pixman",
+            "wayland",
+            "libffi",
+            "xkbcommon",
+            "libxkbfile",
+            "libxfont",
+            "libfontenc",
+            "freetype",
+            "zlib",
+            "libxcvt",
+            "libxshmfence",
+            "libepoxy",
+            "libdrm",
+            "libglvnd",
+            "mesa",
         ],
         BuildStage::NvidiaDriver => &["linux", "libglvnd", "x11-compat", "wayland", "libdrm"],
         BuildStage::CosmicSession => &["formal-sysroot"],
@@ -461,6 +527,56 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "libgcrypt",
             "libgpg-error",
             "libksba",
+        ],
+        // Bubblewrap consumes Linux's seccomp syscall ABI directly but links
+        // libcap for capability handling. Do not invent a libseccomp edge.
+        BuildStage::Bubblewrap => &["formal-sysroot", "libcap"],
+        BuildStage::Gstreamer => &["formal-sysroot", "glib", "libffi", "zlib"],
+        // gio-2.0's declared pkg-config requirements include zlib, so the
+        // plugins-base stage must receive it as a direct target input rather
+        // than relying on any host pkg-config search path.
+        BuildStage::GstreamerBase => &[
+            "formal-sysroot",
+            "glib",
+            "libffi",
+            "zlib",
+            "gstreamer",
+        ],
+        BuildStage::XdgDesktopPortal => &[
+            "formal-sysroot",
+            "glib",
+            "libffi",
+            "zlib",
+            "json-glib",
+            "fuse3",
+            "gdk-pixbuf",
+            // gdk-pixbuf-2.0 publishes libpng as a pkg-config requirement.
+            "libpng",
+            // gstreamer-pbutils-1.0 resolves its video/audio interfaces
+            // through both the core and plugins-base pkg-config metadata.
+            "gstreamer",
+            "gstreamer-base",
+            "pipewire",
+            "systemd",
+            "dbus",
+            "flatpak",
+            "ostree",
+            "xz",
+            "curl",
+            // flatpak.pc exposes libcurl's TLS backend; OpenSSL's target
+            // pkg-config metadata must therefore be visible to Meson.
+            "openssl",
+            "gpgme",
+            "libgpg-error",
+            // gpgme.pc declares libassuan, which must resolve from MattOS's
+            // staged target prefix rather than the host.
+            "libassuan",
+            // flatpak.pc explicitly publishes these private build
+            // requirements; keep them target-owned and explicit.
+            "libxml2",
+            "zstd",
+            "libarchive",
+            "bubblewrap",
         ],
         BuildStage::Libarchive => &[
             "formal-sysroot",
@@ -736,8 +852,17 @@ pub(crate) fn all_build_stages() -> &'static [BuildStage] {
         BuildStage::VulkanHeaders,
         BuildStage::VulkanLoader,
         BuildStage::X11Compat,
+        BuildStage::Libepoxy,
+        BuildStage::Freetype,
+        BuildStage::Libfontenc,
+        BuildStage::Libxfont,
+        BuildStage::Libxcvt,
+        BuildStage::Libxshmfence,
+        BuildStage::Libxkbfile,
+        BuildStage::Xkbcomp,
         BuildStage::Libglvnd,
         BuildStage::Mesa,
+        BuildStage::Xwayland,
         BuildStage::NvidiaDriver,
         BuildStage::VulkanTools,
         BuildStage::CosmicComp,
@@ -760,6 +885,10 @@ pub(crate) fn all_build_stages() -> &'static [BuildStage] {
         BuildStage::CosmicTweaks,
         BuildStage::CosmicUtilities,
         BuildStage::Flatpak,
+        BuildStage::Bubblewrap,
+        BuildStage::Gstreamer,
+        BuildStage::GstreamerBase,
+        BuildStage::XdgDesktopPortal,
         BuildStage::Libarchive,
         BuildStage::Libxml2,
         BuildStage::Libpng,
@@ -1053,6 +1182,7 @@ mod tests {
                 "cosmic-utilities",
                 "ostree",
                 "flatpak",
+                "xdg-desktop-portal",
                 "cosmic-desktop"
             ]
             .into_iter()
@@ -1092,12 +1222,31 @@ mod tests {
                 "x11-compat",
                 "vulkan-loader",
                 "vulkan-tools",
+                "libepoxy",
+                "libfontenc",
+                "libxfont",
+                "libxcvt",
+                "libxshmfence",
+                "libxkbfile",
+                "xkbcomp",
+                "libglvnd",
+                "mesa",
+                "xwayland",
                 "nvidia-driver",
+                "cosmic-comp",
+                "cosmic-portal",
+                "cosmic-workspaces",
+                "cosmic-utilities",
+                "ostree",
+                "flatpak",
+                "xdg-desktop-portal",
+                "cosmic-desktop",
                 "packages",
                 "repository",
                 "rootfs",
                 "live-root",
-                "iso"
+                "iso",
+                "installer"
             ]
             .into_iter()
             .collect()
@@ -1116,6 +1265,8 @@ mod tests {
                 "cosmic-utilities",
                 "ostree",
                 "flatpak",
+                "xwayland",
+                "xdg-desktop-portal",
                 "installer",
                 "packages",
                 "repository",
@@ -1296,25 +1447,25 @@ mod tests {
     fn representative_cascade_report() {
         let scenarios: &[(&str, &[&str], usize, &[&str])] = &[
             ("Brush source", &["brush"], 6, &["zlib", "linux"]),
-            // The newly first-class Flatpak dependency stages legitimately
-            // consume glibc outputs, extending this closure from 121 to 128.
-            ("glibc source", &["glibc"], 128, &["linux"]),
-            ("Linux x86_64 config", &["linux"], 13, &["glibc", "brush"]),
+            // The first-class Flatpak desktop integration stages legitimately
+            // consume glibc outputs, extending this closure from 128 to 141.
+            ("glibc source", &["glibc"], 141, &["linux"]),
+            ("Linux x86_64 config", &["linux"], 14, &["glibc", "brush"]),
             (
                 "Linux x86_64 UAPI source",
                 &["linux", "glibc", "linux-headers"],
-                129,
+                142,
                 &[],
             ),
             (
                 "GCC source",
                 &["gcc-runtime", "gcc-compiler"],
-                126,
+                139,
                 &["linux", "glibc", "linux-headers"],
             ),
             // Initial Setup now has its real systemd/libinput build edges, so
             // it is part of the legitimate native-library cascade.
-            ("zlib shared library", &["zlib"], 55, &["brush", "linux"]),
+            ("zlib shared library", &["zlib"], 68, &["brush", "linux"]),
             ("package metadata", &["packages"], 5, &["brush", "zlib"]),
             (
                 "repository policy",

@@ -1,0 +1,8 @@
+[wrap-git]
+directory = webrtc-audio-processing
+url = https://gitlab.freedesktop.org/pulseaudio/webrtc-audio-processing.git
+push-url = git@gitlab.freedesktop.org:pulseaudio/webrtc-audio-processing.git
+revision = bc838790eeb6066d30f019c2a3516bd2b824a5c8
+
+[provide]
+dependency_names = webrtc-audio-processing-2

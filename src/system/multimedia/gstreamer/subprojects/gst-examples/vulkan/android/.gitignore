@@ -1,0 +1,12 @@
+.cxx/
+.externalNativeBuild/
+.gradle/
+.idea/
+assets/
+build/
+gst-android-build/
+local.properties
+src/org/freedesktop/gstreamer/Gst*.java
+src/org/freedesktop/gstreamer/GStreamer.java
+!src/org/freedesktop/gstreamer/vulkan
+*.iml

@@ -1,0 +1,4 @@
+__pycache__
+.wraplock
+subprojects/libglnx
+subprojects/gvdb

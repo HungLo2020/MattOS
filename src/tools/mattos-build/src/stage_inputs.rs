@@ -61,8 +61,17 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "src/system/graphics/libx11",
             "src/system/graphics/libxext",
         ],
+        BuildStage::Libepoxy => &["src/system/graphics/libepoxy"],
+        BuildStage::Freetype => &["src/system/libraries/freetype"],
+        BuildStage::Libfontenc => &["src/system/graphics/libfontenc"],
+        BuildStage::Libxfont => &["src/system/graphics/libxfont"],
+        BuildStage::Libxcvt => &["src/system/graphics/libxcvt"],
+        BuildStage::Libxshmfence => &["src/system/graphics/libxshmfence"],
+        BuildStage::Libxkbfile => &["src/system/graphics/libxkbfile"],
+        BuildStage::Xkbcomp => &["src/system/graphics/xkbcomp"],
         BuildStage::Libglvnd => &["src/system/graphics/libglvnd"],
         BuildStage::Mesa => &["src/system/graphics/mesa"],
+        BuildStage::Xwayland => &["src/system/graphics/xwayland"],
         BuildStage::NvidiaDriver => &[
             "src/system/graphics/nvidia-open-gpu-kernel-modules",
             "src/system/graphics/nvidia-driver",
@@ -112,6 +121,18 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "src/desktop/cosmic/cosmic-store",
         ],
         BuildStage::Flatpak => &["src/system/packages/flatpak"],
+        BuildStage::Bubblewrap => &["src/system/security/bubblewrap"],
+        // GStreamer ships core and plugins-base in one immutable upstream
+        // superproject; both stages deliberately fingerprint that one source
+        // identity rather than downloading Meson wrap fallbacks.
+        BuildStage::Gstreamer | BuildStage::GstreamerBase => {
+            &["src/system/multimedia/gstreamer"]
+        }
+        BuildStage::XdgDesktopPortal => &[
+            "src/system/packages/xdg-desktop-portal",
+            "src/system/packages/xdg-desktop-portal-gvdb",
+            "src/system/packages/xdg-desktop-portal-libglnx",
+        ],
         BuildStage::Libarchive => &["src/system/libraries/libarchive"],
         BuildStage::Libxml2 => &["src/system/libraries/libxml2"],
         BuildStage::Libpng => &["src/system/libraries/libpng"],
@@ -344,7 +365,16 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
         | BuildStage::Libevdev
         | BuildStage::Libinput
         | BuildStage::Pixman
-        | BuildStage::Libdrm => &["gcc", "ld", "meson", "ninja", "pkg-config"],
+        | BuildStage::Libdrm
+        | BuildStage::Libepoxy
+        | BuildStage::Freetype
+        | BuildStage::Libxcvt
+        | BuildStage::Libxkbfile
+        | BuildStage::Xwayland
+        | BuildStage::Bubblewrap
+        | BuildStage::Gstreamer
+        | BuildStage::GstreamerBase
+        | BuildStage::XdgDesktopPortal => &["gcc", "ld", "meson", "ninja", "pkg-config"],
         BuildStage::Mesa | BuildStage::X11Compat | BuildStage::Libglvnd => &[
             "gcc",
             "ld",
@@ -365,7 +395,10 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
         | BuildStage::Libassuan
         | BuildStage::Libksba
         | BuildStage::Npth
-        | BuildStage::Gpgv => &["autoreconf", "gcc", "ld", "make", "pkg-config"],
+        | BuildStage::Gpgv
+        | BuildStage::Libfontenc
+        | BuildStage::Libxfont
+        | BuildStage::Libxshmfence => &["autoreconf", "gcc", "ld", "make", "pkg-config"],
         BuildStage::CosmicComp
         | BuildStage::CosmicSession
         | BuildStage::CosmicGreeter
@@ -419,12 +452,20 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
         BuildStage::Python => 4,
         BuildStage::Llvm => 6,
         BuildStage::LiveRoot => 1,
-        // Revision 3 generates an individual en_US.utf8 locale beside the
-        // package-provided C/POSIX archive, avoiding archive merge ambiguity.
-        BuildStage::Rootfs => 3,
+        // Revision 5 establishes the pre-created live user's Flatpak data
+        // hierarchy through tmpfiles, including correct UID/GID ownership.
+        // Revision 4 preserves fuse3's setuid fusermount3 contract after
+        // package extraction so xdg-document-portal can mount per-user
+        // document filesystems. Revision 3 generated an individual
+        // en_US.utf8 locale beside the package-provided C/POSIX archive.
+        BuildStage::Rootfs => 5,
         BuildStage::Initramfs => 7,
         BuildStage::Installer => 7,
         BuildStage::Xkbcommon => 4,
+        // Revision 2 publishes the complete target-owned X.Org development
+        // contract in the aggregate so later Xwayland stages can resolve
+        // X11/X.h, xtrans and pkg-config data without host leakage.
+        BuildStage::X11Compat => 2,
         BuildStage::CosmicWorkspaces => 2,
         BuildStage::CosmicDesktop => 2,
         BuildStage::Duktape | BuildStage::Polkit => 2,
@@ -447,6 +488,12 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
         // Revision 2 removes gpgme's build-private libtool archive so target
         // consumers cannot record the host staging path as an ELF RUNPATH.
         BuildStage::Gpgme => 2,
+        // Revision 2 prevents GStreamer's gio plugin from embedding GLib's
+        // output-staging paths as installed runtime search directories.
+        BuildStage::GstreamerBase => 2,
+        // Revision 2 makes portal icon/sound validators embed the packaged
+        // Bubblewrap runtime path rather than the staged build path.
+        BuildStage::XdgDesktopPortal => 2,
         // Revision 2 places COSMIC Edit's hicolor-sized application icons at
         // /usr/share/icons/hicolor rather than nesting a second hicolor tree.
         BuildStage::CosmicEdit => 3,
@@ -460,6 +507,9 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
         BuildStage::Pipewire => 2,
         BuildStage::Glib => 2,
         BuildStage::Libdrm => 2,
+        // Revision 2 enables target-owned libGL/GLX dispatch for Xwayland;
+        // the earlier EGL-only output cannot satisfy gl.pc consumers.
+        BuildStage::Libglvnd => 2,
         // Revision 4 moves EGL/GLES dispatch to source-built GLVND while Mesa
         // remains a coinstallable vendor implementation.
         BuildStage::Mesa => 4,
@@ -611,6 +661,8 @@ mod tests {
         assert_eq!(recipe_revision(BuildStage::Flatpak), 2);
         assert_eq!(recipe_revision(BuildStage::Ostree), 4);
         assert_eq!(recipe_revision(BuildStage::Curl), 2);
+        assert_eq!(recipe_revision(BuildStage::GstreamerBase), 2);
+        assert_eq!(recipe_revision(BuildStage::Rootfs), 5);
     }
 
     #[test]

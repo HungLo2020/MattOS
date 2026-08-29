@@ -313,6 +313,8 @@ const PACKAGE_NAMES: &[&str] = &[
     "libx11-6",
     "libxext6",
     "libglvnd0",
+    "libglx0",
+    "libgl1",
     "libopengl0",
     "libgbm1",
     "libegl1",
@@ -337,6 +339,8 @@ const PACKAGE_NAMES: &[&str] = &[
     "cosmic-initial-setup",
     "cosmic-desktop",
     "flatpak",
+    "xwayland",
+    "xdg-desktop-portal",
     "libduktape207",
     "polkit",
     "network-manager",
@@ -2137,6 +2141,43 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
+            name: "libglx0",
+            description: "GLVND GLX dispatch runtime built for MattOS",
+            source_component: "libglvnd",
+            depends: &[
+                "libc6",
+                "libglvnd0",
+                "libx11-6",
+                "libxcb1",
+                "libxau6",
+                "libxdmcp6",
+            ],
+            provides: &["libglx0"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libgl1",
+            description: "GLVND legacy OpenGL dispatch runtime built for MattOS",
+            source_component: "libglvnd",
+            depends: &[
+                "libc6",
+                "libglvnd0",
+                "libglx0",
+                "libx11-6",
+                "libxcb1",
+                "libxau6",
+                "libxdmcp6",
+            ],
+            provides: &["libgl1"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
             name: "libopengl0",
             description: "GLVND neutral OpenGL API runtime built for MattOS",
             source_component: "libglvnd",
@@ -2487,6 +2528,53 @@ fn package_specs() -> Vec<PackageSpec> {
             priority: "optional",
         },
         PackageSpec {
+            name: "xwayland",
+            description: "Target-built Xwayland server and its closed X11 rendering runtime",
+            source_component: "xwayland",
+            depends: &[
+                "libc6",
+                "libpixman-1-0",
+                "libx11-6",
+                "libxext6",
+                "libxdmcp6",
+                "libmd0",
+                "libxcb1",
+                "libwayland-client0",
+                "libxkbcommon0",
+                "libdrm2",
+                "libgbm1",
+                "libegl1",
+                "libgl1",
+                "libgl1-mesa-dri",
+                // Xwayland invokes the target-owned xkbcomp helper to load
+                // keyboard maps from xkeyboard-config at startup.
+                "xkb-data",
+            ],
+            provides: &["xwayland"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "xdg-desktop-portal",
+            description: "Freedesktop desktop portal broker for Flatpak and COSMIC applications",
+            source_component: "xdg-desktop-portal",
+            depends: &[
+                "libc6",
+                "libglib2.0-0t64",
+                "libdbus-1-3",
+                "libsystemd0",
+                "pipewire",
+                "flatpak",
+            ],
+            provides: &["xdg-desktop-portal"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
             name: "cosmic-desktop",
             description: "Complete source-built COSMIC desktop and graphical login for MattOS",
             source_component: "cosmic-desktop",
@@ -2502,6 +2590,8 @@ fn package_specs() -> Vec<PackageSpec> {
                 "libpam-runtime",
                 "libsystemd0",
                 "flatpak",
+                "xwayland",
+                "xdg-desktop-portal",
                 "udev",
                 "libwayland-client0",
                 "libxkbcommon0",
@@ -3598,6 +3688,12 @@ fn package_recipe_revision(package: &str) -> u32 {
         // freedesktop hicolor fallback index.
         "cosmic-desktop" => 4,
         "mattos-compat" => 3,
+        // Revision 2 preserves fuse3's documented setuid fusermount3 helper
+        // in the Flatpak payload.  The document portal invokes this helper to
+        // mount each user's document filesystem; a revision-1 package loses
+        // that privileged target contract even though the stage install is
+        // otherwise current.
+        "flatpak" => 2,
         "cosmic-edit" | "mattos-cozy" => 1,
         "libgpg-error0" | "libgcrypt20" | "libassuan9" | "libksba8" | "libnpth0" | "gpgv" => 2,
         _ => 1,
@@ -3817,6 +3913,23 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
                 "libarchive",
                 "libpng",
             ],
+            "xwayland" => &[
+                "xwayland",
+                "libepoxy",
+                "freetype",
+                "libfontenc",
+                "libxfont",
+                "libxcvt",
+                "libxshmfence",
+                "libxkbfile",
+                "xkbcomp",
+            ],
+            "xdg-desktop-portal" => &[
+                "xdg-desktop-portal",
+                "bubblewrap",
+                "gstreamer",
+                "gstreamer-base",
+            ],
             "cosmic-desktop" => &["cosmic-desktop"],
             "cosmic-edit" => &["cosmic-edit"],
             "cosmic-initial-setup" => &["cosmic-initial-setup"],
@@ -3976,6 +4089,24 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
             "src/system/libraries/libxml2",
             "src/system/libraries/libarchive",
             "src/system/libraries/libpng",
+        ],
+        "xwayland" => &[
+            "src/system/graphics/xwayland",
+            "src/system/graphics/libepoxy",
+            "src/system/libraries/freetype",
+            "src/system/graphics/libfontenc",
+            "src/system/graphics/libxfont",
+            "src/system/graphics/libxcvt",
+            "src/system/graphics/libxshmfence",
+            "src/system/graphics/libxkbfile",
+            "src/system/graphics/xkbcomp",
+        ],
+        "xdg-desktop-portal" => &[
+            "src/system/packages/xdg-desktop-portal",
+            "src/system/packages/xdg-desktop-portal-gvdb",
+            "src/system/packages/xdg-desktop-portal-libglnx",
+            "src/system/security/bubblewrap",
+            "src/system/multimedia/gstreamer",
         ],
         "cosmic-comp" => &["src/desktop/cosmic/cosmic-comp"],
         "cosmic-desktop" => &[
@@ -4701,6 +4832,22 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
             "src/system/graphics/libglvnd/README.md",
             "libglvnd0",
         )?,
+        "libglx0" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "libglvnd",
+            "libGLX.so.0",
+            "src/system/graphics/libglvnd/README.md",
+            "libglx0",
+        )?,
+        "libgl1" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "libglvnd",
+            "libGL.so.1",
+            "src/system/graphics/libglvnd/README.md",
+            "libgl1",
+        )?,
         "libopengl0" => stage_imported_soname_library(
             repo_root,
             &staging,
@@ -4778,6 +4925,8 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
             }
         }
         "flatpak" => stage_flatpak(repo_root, &staging)?,
+        "xwayland" => stage_xwayland(repo_root, &staging)?,
+        "xdg-desktop-portal" => stage_xdg_desktop_portal(repo_root, &staging)?,
         "cosmic-desktop" => stage_cosmic_desktop(repo_root, &staging)?,
         "cosmic-edit" => stage_cosmic_edit(repo_root, &staging)?,
         "cosmic-initial-setup" => stage_cosmic_initial_setup(repo_root, &staging)?,
@@ -6150,6 +6299,51 @@ fn stage_flatpak(repo_root: &Path, staging: &Path) -> Result<()> {
         &repo_root.join("src/system/packages/flatpak/COPYING"),
         &staging.join("usr/share/doc/flatpak/copyright"),
     )?;
+    // The document portal mounts its per-user document filesystem through
+    // libfuse's privileged helper. The source build deliberately avoids
+    // setting ownership bits (it runs unprivileged), so establish the target
+    // package's documented root-owned setuid contract at package staging.
+    set_mode(staging.join("usr/bin/fusermount3"), 0o4755)?;
+    Ok(())
+}
+
+fn copy_component_usr_and_etc(repo_root: &Path, staging: &Path, component: &str) -> Result<()> {
+    let install = component_install(repo_root, component);
+    for top_level in ["usr", "etc"] {
+        let source = install.join(top_level);
+        if source.is_dir() {
+            copy_tree_preserving(&source, &staging.join(top_level))?;
+        }
+    }
+    Ok(())
+}
+
+fn stage_xwayland(repo_root: &Path, staging: &Path) -> Result<()> {
+    // The Xwayland package owns every auxiliary library built solely for the
+    // server. Each tree is a declared MattOS stage, never a host fallback.
+    for component in [
+        "libepoxy",
+        "freetype",
+        "libfontenc",
+        "libxfont",
+        "libxcvt",
+        "libxshmfence",
+        "libxkbfile",
+        "xkbcomp",
+        "xwayland",
+    ] {
+        copy_component_usr_and_etc(repo_root, staging, component)?;
+    }
+    Ok(())
+}
+
+fn stage_xdg_desktop_portal(repo_root: &Path, staging: &Path) -> Result<()> {
+    // The generic broker, its content-validation sandbox helper, and the
+    // GStreamer pbutils closure must ship together. The COSMIC backend stays
+    // in cosmic-desktop because it is a separate first-class upstream source.
+    for component in ["bubblewrap", "gstreamer", "gstreamer-base", "xdg-desktop-portal"] {
+        copy_component_usr_and_etc(repo_root, staging, component)?;
+    }
     Ok(())
 }
 
@@ -7794,7 +7988,8 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "libxcb1" => component_snapshot_version(repo_root, "libxcb")?,
         "libx11-6" => component_snapshot_version(repo_root, "libx11")?,
         "libxext6" => component_snapshot_version(repo_root, "libxext")?,
-        "libglvnd0" | "libopengl0" | "libegl1" | "libgles1" | "libgles2" => {
+        "libglvnd0" | "libglx0" | "libgl1" | "libopengl0" | "libegl1" | "libgles1"
+        | "libgles2" => {
             component_snapshot_version(repo_root, "libglvnd")?
         }
         "libgbm1" | "libegl-mesa0" | "libgl1-mesa-dri" | "mesa-vulkan-drivers" => {
@@ -7811,6 +8006,8 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         | "nvidia-driver-595-open" => "595.84".to_string(),
         "cosmic-comp" => component_snapshot_version(repo_root, "cosmic-comp")?,
         "flatpak" => component_snapshot_version(repo_root, "flatpak")?,
+        "xwayland" => component_snapshot_version(repo_root, "xwayland")?,
+        "xdg-desktop-portal" => component_snapshot_version(repo_root, "xdg-desktop-portal")?,
         "cosmic-edit" => {
             cargo_package_version(&repo_root.join("src/desktop/cosmic/cosmic-edit/Cargo.toml"))?
         }
@@ -7898,6 +8095,7 @@ fn release_version_from_branch(branch: &str) -> Option<String> {
         "util-macros-",
         "xcb-proto-",
         "xkbcommon-",
+        "xwayland-",
         "xkeyboard-config-",
         "xorgproto-",
         "xtrans-",
@@ -8513,6 +8711,8 @@ fn runtime_libraries_for_spec(repo_root: &Path, spec: &PackageSpec) -> Result<Ve
                 | "libx11-6"
                 | "libxext6"
                 | "libglvnd0"
+                | "libglx0"
+                | "libgl1"
                 | "libopengl0"
                 | "libegl1"
                 | "libgles1"
@@ -8841,6 +9041,7 @@ fn normalize_package_modes(root: &Path) -> Result<()> {
                     | "usr/bin/sudo"
                     | "usr/bin/login"
                     | "usr/bin/su"
+                    | "usr/bin/fusermount3"
             )
         ) {
             0o4755
@@ -10388,6 +10589,75 @@ mod tests {
     }
 
     #[test]
+    fn flatpak_document_portal_keeps_fusermount_privileged_after_normalization() {
+        let root = tempfile::tempdir().unwrap();
+        let helper = root.path().join("usr/bin/fusermount3");
+        fs::create_dir_all(helper.parent().unwrap()).unwrap();
+        fs::write(&helper, "target-owned fuse helper\n").unwrap();
+        set_mode(helper.clone(), 0o755).unwrap();
+
+        normalize_package_modes(root.path()).unwrap();
+
+        assert_eq!(
+            fs::metadata(helper).unwrap().permissions().mode() & 0o7777,
+            0o4755,
+            "xdg-document-portal requires a setuid fusermount3 to mount /run/user/$UID/doc"
+        );
+    }
+
+    #[test]
+    fn xwayland_package_carries_the_owned_keyboard_compiler_and_layout_data() {
+        let specs = package_specs();
+        let xwayland = specs
+            .iter()
+            .find(|spec| spec.name == "xwayland")
+            .expect("xwayland package spec");
+
+        // xkbcomp is a runtime helper, deliberately kept out of Xwayland's
+        // compile graph; it is composed into the same package instead.
+        assert_eq!(
+            package_stage_dependencies("xwayland"),
+            [
+                "xwayland",
+                "libepoxy",
+                "freetype",
+                "libfontenc",
+                "libxfont",
+                "libxcvt",
+                "libxshmfence",
+                "libxkbfile",
+                "xkbcomp",
+            ]
+        );
+        assert!(
+            package_source_roots("xwayland").contains(&"src/system/graphics/xkbcomp")
+        );
+        assert!(xwayland.depends.contains(&"xkb-data"));
+        assert_eq!(
+            crate::stage_graph::direct_dependencies(crate::stage_graph::BuildStage::Xwayland),
+            [
+                "formal-sysroot",
+                "x11-compat",
+                "pixman",
+                "wayland",
+                "libffi",
+                "xkbcommon",
+                "libxkbfile",
+                "libxfont",
+                "libfontenc",
+                "freetype",
+                "zlib",
+                "libxcvt",
+                "libxshmfence",
+                "libepoxy",
+                "libdrm",
+                "libglvnd",
+                "mesa",
+            ]
+        );
+    }
+
+    #[test]
     fn broad_firmware_and_regulatory_data_are_source_owned_and_installer_required() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
         let firmware = root.join("src/system/data/linux-firmware");
@@ -10931,10 +11201,12 @@ mod tests {
             "mount",
             "iproute2",
             "iputils-ping",
+            "xwayland",
+            "xdg-desktop-portal",
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 165);
+        assert_eq!(PACKAGE_NAMES.len(), 169);
     }
 
     #[test]
@@ -10982,7 +11254,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 165);
+        assert_eq!(PACKAGE_NAMES.len(), 169);
         assert_eq!(
             UTIL_LINUX_BASE_PATHS,
             &[
@@ -11029,6 +11301,7 @@ mod tests {
         assert_eq!(package_recipe_revision("git"), 2);
         assert_eq!(package_recipe_revision("openssh-server"), 2);
         assert_eq!(package_recipe_revision("libpam-runtime"), 2);
+        assert_eq!(package_recipe_revision("flatpak"), 2);
         let ssh_service = include_str!("../../../system/network/openssh/ssh.service");
         assert!(ssh_service.contains("\nType=notify\n"));
         assert!(ssh_service.contains("ExecStart=/usr/sbin/sshd -D"));
@@ -11059,7 +11332,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 165);
+        assert_eq!(PACKAGE_NAMES.len(), 169);
         let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
         for dependency in [
             "libffi8",

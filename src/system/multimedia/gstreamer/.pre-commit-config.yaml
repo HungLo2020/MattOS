@@ -1,0 +1,42 @@
+# Notes:
+# - Python commands must be prefixed with `python` because pre-commit refuses to
+#   special-case shebangs on Windows where `python3` does not commonly exists.
+#   Luckily, the `python` command exists in the virtualenv created by pre-commit
+#   on all platforms. https://github.com/pre-commit/pre-commit/issues/3415,
+#   https://github.com/pre-commit/pre-commit/issues/3468
+
+fail_fast: false
+repos:
+-   repo: https://github.com/jorisroovers/gitlint
+    rev: v0.19.1
+    hooks:
+    -   id: gitlint-ci
+-   repo: local
+    hooks:
+    # Use dotnet format installed on your machine
+    -   id: dotnet-format
+        name: dotnet-format
+        language: system
+        files: ^subprojects/gstreamer-sharp/.*
+        entry: dotnet format subprojects/gstreamer-sharp/gstreamer-sharp.sln -v normal --include
+        types_or: ["c#", "vb"]
+    -   id: gst-indent
+        name: gst-indent
+        language: python
+        entry: python ./scripts/gst-indent-all.py
+        pass_filenames: false
+        types_or: ["c", "c++"]
+        additional_dependencies: ["gst-indent==1.0.0"]
+    # The rust hook uses cargo fmt, which requires a Cargo.toml
+    # We use a local hook to run rustfmt directly
+    -   id: rustfmt
+        name: rustfmt
+        language: system
+        entry: rustfmt --verbose --edition 2021
+        types_or: ["rust"]
+    -   id: doc-checks
+        name: doc-checks
+        language: python
+        entry: python ./scripts/git-hooks/pre-commit-python.hook
+        pass_filenames: false
+        additional_dependencies: ["autopep8==2.3.2", "pycodestyle==2.12.1"]

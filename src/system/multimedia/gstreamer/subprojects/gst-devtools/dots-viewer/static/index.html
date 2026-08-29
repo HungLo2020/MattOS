@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GstDots</title>
+    <link rel="icon" type="image/png" href="/images/favicon-16.png" sizes="16x16">
+    <link rel="icon" type="image/png" href="/images/favicon-32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="/images/favicon-57.png" sizes="57x57">
+    <link rel="icon" type="image/png" href="/images/favicon-64.png" sizes="64x64">
+    <link rel="icon" type="image/png" href="/images/favicon-76.png" sizes="76x76">
+    <link rel="icon" type="image/png" href="/images/favicon-96.png" sizes="96x96">
+    <link rel="icon" type="image/png" href="/images/favicon-128.png" sizes="128x128">
+    <link rel="icon" type="image/png" href="/images/favicon-192.png" sizes="192x192">
+    <link rel="icon" type="image/png" href="/images/favicon-228.png" sizes="228x228">
+  </head>
+
+  <style>
+    body {
+        margin: 0;
+        font-family: 'Lato', sans-serif;
+        text-align: center;
+        background-color: #1a1a1a;
+        color: #e0e0e0;
+    }
+
+    h1 {
+        color: #ffffff;
+    }
+
+    .instructions {
+        color: #e0e0e0;
+        position: absolute;
+        z-index: 100;
+        bottom: 0px;
+        left: 0px;
+    }
+
+    .preview {
+      width: -webkit-fill-available;
+      width: -moz-available;
+      max-height: 40vh;
+    }
+
+    .internalframe {
+      flex-grow: 1;
+      border: none;
+      margin: 0;
+      padding: 0;
+      background-color: #1a1a1a;
+    }
+
+    .overlay {
+        height: 100%;
+        width: 100%;
+        position: fixed;
+        z-index: 1;
+        top: 0;
+        left: 0;
+        background-color: rgba(0,0,0, 0.95);
+        overflow-x: hidden;
+        transition: 0.5s;
+        visibility: "visible";
+        display: block;
+    }
+
+    .overlay-content {
+        display: flex;
+        width: 100%;
+        height: 100%;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .overlay a {
+        padding: 8px;
+        text-decoration: none;
+        font-size: 36px;
+        color: #a0a0a0;
+        display: block;
+        transition: 0.3s;
+    }
+
+    .overlay a:hover, .overlay a:focus {
+        color: #ffffff;
+    }
+
+    .overlay .closebtn {
+        top: 20px;
+        right: 45px;
+        font-size: 30px;
+    }
+
+    input[type="text"] {
+        background-color: #2a2a2a;
+        color: #e0e0e0;
+        border: 1px solid #404040;
+        padding: 8px;
+        border-radius: 4px;
+        margin: 10px 0;
+    }
+
+    input[type="text"]::placeholder {
+        color: #808080;
+    }
+
+    input[type="text"]:focus {
+        outline: none;
+        border-color: #0069ff;
+    }
+
+    button {
+        background-color: #2a2a2a;
+        color: #e0e0e0;
+        border: 1px solid #404040;
+        padding: 8px 16px;
+        border-radius: 4px;
+        margin: 10px 0;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background-color: #3a3a3a;
+        border-color: #505050;
+    }
+
+    button:active {
+        background-color: #404040;
+    }
+
+    @media screen and (max-height: 250000px) {
+      .overlay a {font-size: 20px}
+      .overlay .closebtn {
+        text-align: right;
+        font-size: 20px;
+        top: 15px;
+        right: 35px;
+      }
+    }
+
+    input[type='checkbox'] { display: none; }
+    .wrap-collabsible { margin: 1.2rem 0; }
+    .lbl-toggle {
+        display: block;
+        font-weight: bold;
+        font-family: monospace;
+        font-size: 1.2rem;
+        text-transform: uppercase;
+        text-align: center;
+        padding: 1rem;
+        color: #ffffff;
+        background: #1a4c9e;
+        cursor: pointer;
+        border-radius: 7px;
+        transition: all 0.25s ease-out;
+    }
+    .lbl-toggle:hover { background: #2161c9; }
+    .lbl-toggle::before {
+        content: ' ';
+        display: inline-block;
+        border-top: 5px solid transparent;
+        border-bottom: 5px solid transparent;
+        border-left: 5px solid currentColor;
+        vertical-align: middle;
+        margin-right: .7rem;
+        transform: translateY(-2px);
+        transition: transform .2s ease-out;
+    }
+    .toggle:checked+.lbl-toggle::before { transform: rotate(90deg) translateX(-3px); }
+    .collapsible-content {
+        max-height: 0px;
+        overflow: hidden;
+        transition: max-height .25s ease-in-out;
+    }
+    .toggle:checked + .lbl-toggle + .collapsible-content { max-height: 999999999px; }
+    .toggle:checked+.lbl-toggle { border-bottom-right-radius: 0; border-bottom-left-radius: 0; }
+    .collapsible-content .content-inner {
+        background: rgba(26, 76, 158, 0.2);
+        border-bottom: 1px solid rgba(26, 76, 158, 0.45);
+        border-bottom-left-radius: 7px;
+        border-bottom-right-radius: 7px;
+        padding: .5rem 1rem;
+    }
+    .collapsible-content p { margin-bottom: 0; }
+  </style>
+
+  <script src="/js/gstdots.js" type="module"> </script>
+  <script type="module">
+    import {updateFromUrl, connectWs, connectSearch, removePipelineOverlay,  dumpPipelines } from '/js/gstdots.js';
+
+    window.addEventListener('popstate', function(event) {
+      updateFromUrl(true);
+    });
+
+    document.addEventListener("DOMContentLoaded", function() {
+      connectWs();
+      connectSearch();
+      updateFromUrl(true);
+
+      document.getElementById('dump-button').addEventListener('click', dumpPipelines);
+    });
+
+    document.addEventListener('keyup', function(e) {
+      if (e.key == "Escape") {
+        removePipelineOverlay();
+      }
+
+      if (event.key === '/' && event.target.tagName !== 'INPUT' && event.target.tagName !== 'TEXTAREA') {
+        event.preventDefault(); // Prevent the default action to avoid typing '/' into an input or textarea
+        document.getElementById('search').focus(); // Focus the input element with ID 'search'
+      }
+    });
+
+
+    for (let iframe of document.getElementsByClassName("internalframe")) {
+      iframe.addEventListener('keyup', function(e) {
+        if (e.key == "Escape") {
+          removePipelineOverlay();
+        }
+      });
+    }
+  </script>
+
+  <body>
+    <h1>GStreamer Pipeline graphs</h1>
+
+    <div>
+      <input type="text" id="search" placeholder="Search for pipeline">
+      <button id="dump-button">Dump Pipelines</button>
+    </div>
+
+    <div id="pipelines"></div>
+  </body>
+</html>

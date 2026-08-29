@@ -1,0 +1,262 @@
+# Georgian translation for xdg-desktop-portal.
+# Copyright (C) 2023 xdg-desktop-portal's authors.
+# This file is distributed under the same license as the xdg-desktop-portal package.
+# Temuri Doghonadze <temuri.doghonadze@gmail.com>, 2023.
+# Ekaterine Papava <papava.e@gtu.ge>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xdg-desktop-portal\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-17 18:19+0200\n"
+"PO-Revision-Date: 2026-02-20 06:01+0100\n"
+"Last-Translator: Ekaterine Papava <papava.e@gtu.ge>\n"
+"Language-Team: Georgian <(nothing)>\n"
+"Language: ka\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.8\n"
+
+#: src/background.c:941
+#, c-format
+msgid "Allow %s to Run in the Background?"
+msgstr "დავუშვა %s-ის ფონურ რეჟიმში გაშვება?"
+
+#: src/background.c:945
+#, c-format
+msgid "%s wants to be started automatically and run in the background"
+msgstr "%s ითხოვს ავტომატურად და ფონურ რეჟიმში გაშვებას"
+
+#: src/background.c:947
+#, c-format
+msgid "%s wants to run in the background"
+msgstr "%s ითხოვს ფონურ რეჟიმში გაშვებას"
+
+#: src/background.c:948
+msgid ""
+"The ‘run in background’ permission can be changed at any time from the app "
+"settings"
+msgstr ""
+"ნებართვა „ფონში გაშვება“ ნებისმიერ დროს, აპლიკაციის პარამეტრებიდან შეიძლება "
+"შეიცვალოს"
+
+#: src/background.c:952
+msgid "Don't allow"
+msgstr "არ დაშვება"
+
+#: src/background.c:953 src/screenshot.c:275 src/wallpaper.c:192
+msgid "Allow"
+msgstr "დაშვება"
+
+#: src/camera.c:105
+#, c-format
+msgid "Allow %s to Use the Camera?"
+msgstr "მივცე უფლება %s-ს, გამოიყენოს კამერა?"
+
+#: src/camera.c:106
+#, c-format
+msgid "%s wants to access the camera"
+msgstr "%s-ს სურს წვდომა კამერასთან"
+
+#: src/camera.c:110
+msgid "Allow Apps to Use the Camera?"
+msgstr "მივცე აპებს კამერის გამოყენების უფლება?"
+
+#: src/camera.c:111
+msgid "An app wants to access the camera"
+msgstr "აპლიკაციას სურს წვდომა კამერასთან"
+
+#: src/camera.c:114 src/screenshot.c:327 src/wallpaper.c:208
+msgid "This permission can be changed at any time from the privacy settings"
+msgstr ""
+"წვდომის შეცვლა ნებისმიერ დროსაა შესაძლებელი კონფიდენციალობის პარამეტრებიდან"
+
+#: src/dynamic-launcher.c:127
+#, c-format
+msgid "Desktop file id missing .desktop suffix: %s"
+msgstr "სამუშაო მაგიდის ფაილის id-ის .desktop სუფიქსი აკლია: %s"
+
+#: src/dynamic-launcher.c:138
+#, c-format
+msgid "Desktop file id is not valid"
+msgstr "სამუშაო მაგიდის ფაილის id არასწორია"
+
+#: src/dynamic-launcher.c:316
+#, c-format
+msgid "Desktop entry given to Install() not a valid key file"
+msgstr ""
+"სამუშაო მაგიდის ფაილის ჩანაწერმა ფუნქციას install() არასწორი გასაღების ფაილი "
+"გადასცა"
+
+#: src/dynamic-launcher.c:329
+#, c-format
+msgid "Desktop entry given to Install() must have exactly one group"
+msgstr ""
+"სამუშაო მაგიდის ფაილის ჩანაწერმა ფუნქციას install() ზუსტად ერთი ჯგუფი უნდა "
+"გადასცეს"
+
+#: src/dynamic-launcher.c:368
+#, c-format
+msgid "Token given is invalid: %s"
+msgstr "გადმოცემული ტოკენი არასწორია: %s"
+
+#: src/dynamic-launcher.c:411
+#, c-format
+msgid "Desktop entry given to Install() not valid"
+msgstr "ფუნქციისთვის install() გადაცემული სამუშაო მაგიდის ჩანაწერი არასწორია"
+
+#: src/dynamic-launcher.c:420 src/dynamic-launcher.c:896
+#: src/dynamic-launcher.c:945
+#, c-format
+msgid "Desktop file exceeds max size (%d): %s"
+msgstr "სამუშაო მაგიდის ფაილის ზომა მაქსიმალურზე (%d) მეტია: %s"
+
+#: src/dynamic-launcher.c:618
+#, fuzzy, c-format
+msgid "Given URI is invalid: %s"
+msgstr "გადაცემული URL არასწორია: %s"
+
+#: src/dynamic-launcher.c:640
+#, c-format
+msgid "Invalid launcher type: %x"
+msgstr "არასწორი გამშვების ტიპი: %x"
+
+#: src/dynamic-launcher.c:647
+#, c-format
+msgid "Unsupported launcher type: %x"
+msgstr "მხარდაუჭერელი გამშვების ტიპი: %x"
+
+#: src/dynamic-launcher.c:713 src/dynamic-launcher.c:788
+msgid "Dynamic launcher icon failed validation"
+msgstr "დინამიკური გამშვების ხატულის გადამოწმება ჩავარდა"
+
+#: src/dynamic-launcher.c:806
+#, c-format
+msgid "RequestInstallToken() not allowed for app id %s"
+msgstr "RequestInstallToken() დაუშვებელია აპისთვის id-ით %s"
+
+#: src/dynamic-launcher.c:985
+#, c-format
+msgid "Desktop file '%s' icon at unrecognized path"
+msgstr "სამუშაო მაგიდის ფაილის '%s' ხატულა უცნობ ბილიკზეა"
+
+#: src/dynamic-launcher.c:1008
+#, c-format
+msgid "Desktop file '%s' icon failed to serialize"
+msgstr "სამუშაო ფაილის '%s' სერიალიზაციის შეცდომა"
+
+#: src/dynamic-launcher.c:1047
+#, c-format
+msgid "No dynamic launcher exists with id '%s'"
+msgstr "id-ით '%s' დინამიკური გამშვები არ არსებობს"
+
+#: src/dynamic-launcher.c:1066
+#, c-format
+msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
+msgstr "გამშვებისთვის id-ით '%s' GDesktopAppInfo-ის შექმნა ჩავარდა"
+
+#: src/location.c:555
+msgid "Deny Access"
+msgstr "წვდომის უარყოფა"
+
+#: src/location.c:557
+msgid "Grant Access"
+msgstr "წვდომის მინიჭება"
+
+#: src/location.c:563
+#, c-format
+msgid "Allow %s to Access Your Location?"
+msgstr "მივცეთ უფლება %s-ს, მიიღოს ინფორმაცია თქვენი მდებარეობის შესახებ?"
+
+#: src/location.c:573
+#, c-format
+msgid "%s wants to use your location"
+msgstr "%s სურს, გამოიყენოს თქვენი მდებარეობა"
+
+#: src/location.c:579
+msgid "Allow Apps to Access Your Location?"
+msgstr "მიეცეთ აპებს წვდომა თქვენს მდებარეობასთან?"
+
+#: src/location.c:580
+msgid "An app wants to use your location"
+msgstr "აპს სურს, თქვენი მდებარეობა გამოიყენოს"
+
+#: src/location.c:583
+msgid "Location access can be changed at any time from the privacy settings"
+msgstr ""
+"მდებარეობაზე წვდომა შეიძლება შეიცვალოს ნებისმიერ დროს კონფიდენციალობის "
+"პარამეტრებიდან"
+
+#: src/screenshot.c:273 src/wallpaper.c:190
+msgid "Deny"
+msgstr "უარყოფა"
+
+#: src/screenshot.c:299
+#, c-format
+msgid "Allow %s to Take Screenshots?"
+msgstr "მიეცეს %s-ს ეკრანის ანაბეჭდების გადაღების უფლება?"
+
+#: src/screenshot.c:300
+#, c-format
+msgid "%s wants to take screenshots at any time"
+msgstr "%s სურს, ეკრანის ანაბეჭდი ნებისმიერ დროს გადაიღოს"
+
+#: src/screenshot.c:304
+#, c-format
+msgid "Allow %s to Take a Screenshot?"
+msgstr "მიეცეს %s-ს ეკრანის ანაბეჭდის გადაღების უფლება?"
+
+#: src/screenshot.c:305
+#, c-format
+msgid "%s wants to take a screenshot"
+msgstr "%s სურს, ეკრანის ანაბეჭდი გადაიღოს"
+
+#. Note: this will set the screenshot permission for all unsandboxed
+#. * apps for which an app ID can't be determined.
+#.
+#: src/screenshot.c:316
+msgid "Allow Apps to Take Screenshots?"
+msgstr "მიეცეს აპლიკაციებს ეკრანის ანაბეჭდის გადაღების უფლება?"
+
+#: src/screenshot.c:317
+msgid "An app wants to take screenshots at any time"
+msgstr "აპს სურს, ეკრანის ანაბეჭდი ნებისმიერ დროს გადაიღოს"
+
+#: src/screenshot.c:321
+msgid "Allow to Take a Screenshot?"
+msgstr "მიეცეს ეკრანის ანაბეჭდის გადაღების უფლება?"
+
+#: src/screenshot.c:322
+msgid "An app wants to take a screenshot"
+msgstr "აპს სურს, ეკრანის ანაბეჭდი გადაიღოს"
+
+#: src/settings.c:196 src/settings.c:235
+msgid "Requested setting not found"
+msgstr "მოთხოვნილი პარამეტრი ვერ მოიძებნა"
+
+#: src/usb.c:1333
+msgid "Device not available"
+msgstr "მოწყობილობა ხელმისაწვდომი არაა"
+
+#: src/usb.c:1347
+msgid "Not allowed"
+msgstr "დაუშვებელია"
+
+#: src/wallpaper.c:198
+#, c-format
+msgid "Allow %s to Set Backgrounds?"
+msgstr "მიეცეს %s-ს ფონის სურათის შეცვლის უფლება?"
+
+#: src/wallpaper.c:199
+#, c-format
+msgid "%s wants to change the background image"
+msgstr "%s სურს, ფონის სურათი შეცვალოს"
+
+#: src/wallpaper.c:204
+msgid "Allow Apps to Set Backgrounds?"
+msgstr "მიეცეს აპებს უფლება, ფონის სურათი დააყენონ?"
+
+#: src/wallpaper.c:205
+msgid "An app wants to change the background image"
+msgstr "აპს სურს, ფონის სურათი შეცვალოს"

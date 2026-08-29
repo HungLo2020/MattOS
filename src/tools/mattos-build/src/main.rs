@@ -3718,8 +3718,17 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::VulkanLoader => vec!["out/build/vulkan-loader/install".into()],
         BuildStage::VulkanTools => vec!["out/build/vulkan-tools/install".into()],
         BuildStage::X11Compat => vec!["out/build/x11-compat/install".into()],
+        BuildStage::Libepoxy => vec!["out/build/libepoxy/install/usr/lib/x86_64-linux-gnu/libepoxy.so.0".into()],
+        BuildStage::Freetype => vec!["out/build/freetype/install/usr/lib/x86_64-linux-gnu/libfreetype.so.6".into()],
+        BuildStage::Libfontenc => vec!["out/build/libfontenc/install/usr/lib/x86_64-linux-gnu/libfontenc.so.1".into()],
+        BuildStage::Libxfont => vec!["out/build/libxfont/install/usr/lib/x86_64-linux-gnu/libXfont2.so.2".into()],
+        BuildStage::Libxcvt => vec!["out/build/libxcvt/install/usr/lib/x86_64-linux-gnu/libxcvt.so.0".into()],
+        BuildStage::Libxshmfence => vec!["out/build/libxshmfence/install/usr/lib/x86_64-linux-gnu/libxshmfence.so.1".into()],
+        BuildStage::Libxkbfile => vec!["out/build/libxkbfile/install/usr/lib/x86_64-linux-gnu/libxkbfile.so.1".into()],
+        BuildStage::Xkbcomp => vec!["out/build/xkbcomp/install/usr/bin/xkbcomp".into()],
         BuildStage::Libglvnd => vec!["out/build/libglvnd/install".into()],
         BuildStage::Mesa => vec!["out/build/mesa/install".into()],
+        BuildStage::Xwayland => vec!["out/build/xwayland/install/usr/bin/Xwayland".into()],
         BuildStage::NvidiaDriver => vec![
             "out/build/nvidia-driver/install".into(),
             "out/build/nvidia-driver/source/LICENSE".into(),
@@ -3787,6 +3796,20 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
             "out/build/flatpak/install/usr/bin/flatpak".into(),
             "out/build/flatpak/install/usr/lib/x86_64-linux-gnu/libflatpak.so.0".into(),
         ],
+        BuildStage::Bubblewrap => vec!["out/build/bubblewrap/install/usr/bin/bwrap".into()],
+        // The portal package consumes the complete GStreamer installs,
+        // including plugins such as libgstgio.so.  Publishing only one
+        // library here allowed a changed plugin to leave the stage output
+        // digest unchanged and a stale portal package cache to be reused.
+        BuildStage::Gstreamer => vec!["out/build/gstreamer/install".into()],
+        BuildStage::GstreamerBase => vec!["out/build/gstreamer-base/install".into()],
+        // The portal package publishes the broker, document services,
+        // validators, D-Bus activation files, and GStreamer plugins.  Its
+        // cache contract must therefore cover the complete install tree, not
+        // only the broker binary, or a changed helper can leave a stale .deb.
+        BuildStage::XdgDesktopPortal => {
+            vec!["out/build/xdg-desktop-portal/install".into()]
+        }
         BuildStage::Libarchive => vec!["out/build/libarchive/install/usr/lib/x86_64-linux-gnu/libarchive.so.13".into()],
         BuildStage::Libxml2 => vec!["out/build/libxml2/install/usr/lib/x86_64-linux-gnu/libxml2.so.16".into()],
         BuildStage::Libpng => vec!["out/build/libpng/install/usr/lib/x86_64-linux-gnu/libpng16.so.16".into()],
@@ -4391,10 +4414,23 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::VulkanLoader => build_vulkan_loader(repo_root),
         BuildStage::VulkanTools => build_vulkan_tools(repo_root),
         BuildStage::X11Compat => build_x11_compat(repo_root),
+        BuildStage::Libepoxy => build_libepoxy(repo_root),
+        BuildStage::Freetype => build_freetype(repo_root),
+        BuildStage::Libfontenc => build_libfontenc(repo_root),
+        BuildStage::Libxfont => build_libxfont(repo_root),
+        BuildStage::Libxcvt => build_libxcvt(repo_root),
+        BuildStage::Libxshmfence => build_libxshmfence(repo_root),
+        BuildStage::Libxkbfile => build_libxkbfile(repo_root),
+        BuildStage::Xkbcomp => build_xkbcomp(repo_root),
         BuildStage::Libglvnd => build_libglvnd(repo_root),
         BuildStage::Mesa => build_mesa(repo_root),
+        BuildStage::Xwayland => build_xwayland(repo_root),
         BuildStage::NvidiaDriver => build_nvidia_driver(repo_root),
         BuildStage::Flatpak => build_flatpak(repo_root),
+        BuildStage::Bubblewrap => build_bubblewrap(repo_root),
+        BuildStage::Gstreamer => build_gstreamer(repo_root),
+        BuildStage::GstreamerBase => build_gstreamer_base(repo_root),
+        BuildStage::XdgDesktopPortal => build_xdg_desktop_portal(repo_root),
         BuildStage::Libarchive => build_libarchive(repo_root),
         BuildStage::Libxml2 => build_libxml2(repo_root),
         BuildStage::Libpng => build_libpng(repo_root),
@@ -8730,15 +8766,30 @@ fn build_meson_runtime(
     let source_copy = out_root.join("source");
     let build_dir = out_root.join("build");
     let install_dir = out_root.join("install");
+    // GStreamer core and plugins-base are separate stage outputs from one
+    // immutable source superproject, so both derive their provenance stamp
+    // from the single declared GStreamer import.
+    let provenance_component = if component == "gstreamer-base" {
+        "gstreamer"
+    } else {
+        component
+    };
     let state = fs::read_to_string(
         repo_root
             .join("upstream/state")
-            .join(format!("{component}.toml")),
+            .join(format!("{provenance_component}.toml")),
     )?;
     let adaptation_stamp = match component {
         "networkmanager" => "output-policy-install-adaptation-v4",
         "polkit" => "output-duktape-link-adaptation-v2",
         "appstream" => "output-source-closure-adaptation-v2",
+        "xdg-desktop-portal" => "output-owned-subproject-closure-v2",
+        // gst-plugins-base asks GLib's staged gio-2.0.pc for variables that
+        // describe GIO's *runtime* locations.  The descriptor deliberately
+        // uses output-owned staging paths so native consumers can find the
+        // target headers and libraries, but those paths must not be compiled
+        // into an installed GStreamer plugin.
+        "gstreamer-base" => "output-target-gio-runtime-paths-v1",
         _ => "",
     };
     // Meson stores compiler/build-tool state in build.dat.  A cache miss can
@@ -8773,6 +8824,39 @@ fn build_meson_runtime(
         )?;
     }
     sync_build_source(&source, &source_copy)?;
+    if component == "xdg-desktop-portal" {
+        // The pinned portal release declares exact gvdb and libglnx Meson
+        // wraps. Materialize those independently pinned MattOS imports in the
+        // output-owned mirror so Meson never downloads a wrap or consults a
+        // host copy. The authoritative portal and helper source trees remain
+        // untouched.
+        copy_tree_contents(
+            &repo_root.join("src/system/packages/xdg-desktop-portal-gvdb"),
+            &source_copy.join("subprojects/gvdb"),
+        )?;
+        copy_tree_contents(
+            &repo_root.join("src/system/packages/xdg-desktop-portal-libglnx"),
+            &source_copy.join("subprojects/libglnx"),
+        )?;
+        // Meson's find_program() resolves bwrap through the staged build
+        // environment, which is correct for compiling the validators but
+        // makes bwrap.full_path() an output-staging path.  The validator
+        // embeds that value as its runtime helper.  Publish the target path
+        // instead, in this disposable mirror only, so installed portal
+        // helpers execute the packaged Bubblewrap and cannot contain a host
+        // checkout path.
+        let source_meson = source_copy.join("src/meson.build");
+        let body = fs::read_to_string(&source_meson)?;
+        let old = "'-DHELPER=\"@0@\"'.format(bwrap.full_path())";
+        let replacement = "'-DHELPER=\"/usr/bin/bwrap\"'";
+        let occurrences = body.matches(old).count();
+        if occurrences != 2 {
+            bail!(
+                "xdg-desktop-portal Bubblewrap validator layout changed unexpectedly: expected two staged helper paths, found {occurrences}"
+            );
+        }
+        fs::write(&source_meson, body.replace(old, replacement))?;
+    }
     if component == "appstream" {
         // The host does not provide itstool.  AppStream's untranslated
         // release-note metadata is still a valid source-owned artifact, so
@@ -8815,6 +8899,22 @@ fn build_meson_runtime(
             "readline_dep = declare_dependency(link_args: ['-lreadline', '-lncursesw', '-ltinfow'])",
         );
         fs::write(root_meson, body)?;
+    }
+    if component == "gstreamer-base" {
+        // Keep the output-owned pkg-config view for build-time discovery, but
+        // do not turn its physical staging prefix into installed runtime
+        // configuration.  This is the target layout selected by this stage's
+        // --prefix and --libdir options.  Apply it only in the disposable
+        // source mirror: the authoritative GStreamer import remains exactly
+        // pinned upstream source.
+        let meson = source_copy.join("meson.build");
+        let body = fs::read_to_string(&meson)?;
+        let old = "if gio_dep.type_name() == 'pkgconfig'\n    core_conf.set_quoted('GIO_MODULE_DIR',\n        gio_dep.get_variable('giomoduledir'))\n    core_conf.set_quoted('GIO_LIBDIR',\n        gio_dep.get_variable('libdir'))\n    core_conf.set_quoted('GIO_PREFIX',\n        gio_dep.get_variable('prefix'))\nelse\n    core_conf.set_quoted('GIO_MODULE_DIR', join_paths(get_option('prefix'),\n      get_option('libdir'), 'gio/modules'))\n    core_conf.set_quoted('GIO_LIBDIR', join_paths(get_option('prefix'),\n      get_option('libdir')))\n    core_conf.set_quoted('GIO_PREFIX', join_paths(get_option('prefix')))\nendif";
+        let replacement = "core_conf.set_quoted('GIO_MODULE_DIR', '/usr/lib/x86_64-linux-gnu/gio/modules')\ncore_conf.set_quoted('GIO_LIBDIR', '/usr/lib/x86_64-linux-gnu')\ncore_conf.set_quoted('GIO_PREFIX', '/usr')";
+        if !body.contains(old) {
+            bail!("GStreamer base GIO runtime configuration block changed unexpectedly");
+        }
+        fs::write(&meson, body.replace(old, replacement))?;
     }
     if component == "polkit" {
         let meson = source_copy.join("meson.build");
@@ -9122,7 +9222,22 @@ fn build_x11_compat(repo_root: &Path) -> Result<()> {
 
     let aggregate = repo_root.join("out/build/x11-compat/install");
     remove_path_if_exists(&aggregate)?;
-    for component in ["libxau", "libxdmcp", "libxcb", "libx11", "libxext"] {
+    // Later target-native consumers such as Xwayland need the full public
+    // X.Org development contract (headers, .pc metadata, xtrans, and the
+    // utility macros), not merely the five runtime libraries. Publish the
+    // aggregate from the already-built component outputs so downstream
+    // stages depend on one coherent, cache-tracked X11 compatibility stage.
+    for component in [
+        "xorg-util-macros",
+        "xorgproto",
+        "xtrans",
+        "libxau",
+        "libxdmcp",
+        "xcb-proto",
+        "libxcb",
+        "libx11",
+        "libxext",
+    ] {
         copy_tree_contents(
             &repo_root.join("out/build").join(component).join("install"),
             &aggregate,
@@ -9140,17 +9255,321 @@ fn build_x11_compat(repo_root: &Path) -> Result<()> {
     Ok(())
 }
 
+fn build_libepoxy(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(
+        repo_root,
+        "libepoxy",
+        "src/system/graphics/libepoxy",
+        &["x11-compat", "libglvnd"],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Ddocs=false",
+            "-Dtests=false",
+            "-Dglx=yes",
+            "-Degl=yes",
+        ],
+        "usr/lib/x86_64-linux-gnu/libepoxy.so.0",
+        &[],
+    )
+}
+
+fn build_freetype(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(
+        repo_root,
+        "freetype",
+        "src/system/libraries/freetype",
+        &["zlib"],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Dbzip2=disabled",
+            "-Dpng=disabled",
+            "-Dharfbuzz=disabled",
+            "-Dbrotli=disabled",
+            "-Dtests=disabled",
+        ],
+        "usr/lib/x86_64-linux-gnu/libfreetype.so.6",
+        &[],
+    )
+}
+
+fn build_libfontenc(repo_root: &Path) -> Result<()> {
+    build_xorg_autotools_component(
+        repo_root,
+        "libfontenc",
+        &["xorg-util-macros", "xorgproto"],
+        &[
+            "--prefix=/usr",
+            "--libdir=/usr/lib/x86_64-linux-gnu",
+            "--disable-static",
+        ],
+        &["usr/lib/x86_64-linux-gnu/libfontenc.so.1"],
+    )
+}
+
+fn build_libxfont(repo_root: &Path) -> Result<()> {
+    build_xorg_autotools_component(
+        repo_root,
+        "libxfont",
+        &[
+            "xorg-util-macros",
+            "xorgproto",
+            "xtrans",
+            "freetype",
+            "libfontenc",
+            "zlib",
+        ],
+        &[
+            "--prefix=/usr",
+            "--libdir=/usr/lib/x86_64-linux-gnu",
+            "--disable-static",
+        ],
+        &["usr/lib/x86_64-linux-gnu/libXfont2.so.2"],
+    )
+}
+
+fn build_libxcvt(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(
+        repo_root,
+        "libxcvt",
+        "src/system/graphics/libxcvt",
+        &["x11-compat"],
+        &["--prefix=/usr", "--libdir=lib/x86_64-linux-gnu"],
+        "usr/lib/x86_64-linux-gnu/libxcvt.so.0",
+        &[],
+    )
+}
+
+fn build_libxshmfence(repo_root: &Path) -> Result<()> {
+    build_xorg_autotools_component(
+        repo_root,
+        "libxshmfence",
+        &["x11-compat"],
+        &[
+            "--prefix=/usr",
+            "--libdir=/usr/lib/x86_64-linux-gnu",
+            "--disable-static",
+        ],
+        &["usr/lib/x86_64-linux-gnu/libxshmfence.so.1"],
+    )
+}
+
+fn build_libxkbfile(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(
+        repo_root,
+        "libxkbfile",
+        "src/system/graphics/libxkbfile",
+        &["x11-compat"],
+        &["--prefix=/usr", "--libdir=lib/x86_64-linux-gnu"],
+        "usr/lib/x86_64-linux-gnu/libxkbfile.so.1",
+        &[],
+    )
+}
+
+fn build_xkbcomp(repo_root: &Path) -> Result<()> {
+    // Xwayland invokes this target-owned helper at runtime to compile its
+    // initial keyboard map.  The keyboard layouts themselves remain in the
+    // separately pinned xkeyboard-config/xkb-data package.
+    build_meson_runtime(
+        repo_root,
+        "xkbcomp",
+        "src/system/graphics/xkbcomp",
+        &["x11-compat", "libxkbfile"],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Dxkb-config-root=/usr/share/X11/xkb",
+        ],
+        "usr/bin/xkbcomp",
+        &[],
+    )
+}
+
+fn build_xwayland(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(
+        repo_root,
+        "xwayland",
+        "src/system/graphics/xwayland",
+        &[
+            "x11-compat",
+            "pixman",
+            "wayland",
+            "libffi",
+            "xkbcommon",
+            "libxkbfile",
+            "libxfont",
+            "libfontenc",
+            "freetype",
+            "zlib",
+            "libxcvt",
+            "libxshmfence",
+            "libepoxy",
+            "libdrm",
+            "libglvnd",
+            "mesa",
+        ],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Dxvfb=false",
+            "-Dglamor=true",
+            "-Dglx=true",
+            "-Dlibdecor=false",
+            "-Dxwayland_ei=false",
+            "-Dsystemd_notify=false",
+            // Xwayland does not need legacy Secure RPC; disabling it avoids
+            // introducing a target libtirpc dependency solely for Xorg-era
+            // authentication support.
+            "-Dsecure-rpc=false",
+            "-Ddocs=false",
+            "-Ddevel-docs=false",
+        ],
+        "usr/bin/Xwayland",
+        &[],
+    )
+}
+
+fn build_bubblewrap(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(
+        repo_root,
+        "bubblewrap",
+        "src/system/security/bubblewrap",
+        &["libcap"],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Dtests=false",
+            "-Dman=disabled",
+            "-Dbash_completion=disabled",
+            "-Dzsh_completion=disabled",
+            "-Dselinux=disabled",
+        ],
+        "usr/bin/bwrap",
+        &[],
+    )
+}
+
+fn build_gstreamer(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(
+        repo_root,
+        "gstreamer",
+        "src/system/multimedia/gstreamer/subprojects/gstreamer",
+        &["glib", "libffi", "zlib"],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Dtests=disabled",
+            "-Dexamples=disabled",
+            "-Dbenchmarks=disabled",
+            "-Dtools=enabled",
+            "-Dintrospection=disabled",
+            "-Ddoc=disabled",
+            "-Dnls=disabled",
+            "-Dlibunwind=disabled",
+            "-Dlibdw=disabled",
+            "-Dcheck=disabled",
+            "-Dbash-completion=disabled",
+        ],
+        "usr/lib/x86_64-linux-gnu/libgstreamer-1.0.so.0",
+        &[],
+    )
+}
+
+fn build_gstreamer_base(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(
+        repo_root,
+        "gstreamer-base",
+        "src/system/multimedia/gstreamer/subprojects/gst-plugins-base",
+        &["glib", "libffi", "zlib", "gstreamer"],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Dtests=disabled",
+            "-Dexamples=disabled",
+            "-Dtools=disabled",
+            "-Dintrospection=disabled",
+            "-Ddoc=disabled",
+            "-Dnls=disabled",
+            "-Dorc=disabled",
+            "-Ddrm=disabled",
+            "-Dx11=disabled",
+            "-Dgl=disabled",
+            "-Dalsa=disabled",
+            "-Dogg=disabled",
+            "-Dopus=disabled",
+            "-Dpango=disabled",
+            "-Dtheora=disabled",
+            "-Dvorbis=disabled",
+        ],
+        "usr/lib/x86_64-linux-gnu/libgstpbutils-1.0.so.0",
+        &[],
+    )
+}
+
+fn build_xdg_desktop_portal(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(
+        repo_root,
+        "xdg-desktop-portal",
+        "src/system/packages/xdg-desktop-portal",
+        &[
+            "glib",
+            "libffi",
+            "zlib",
+            "json-glib",
+            "fuse3",
+            "gdk-pixbuf",
+            "libpng",
+            "gstreamer",
+            "gstreamer-base",
+            "pipewire",
+            "systemd",
+            "dbus",
+            "flatpak",
+            "ostree",
+            "xz",
+            "curl",
+            "openssl",
+            "gpgme",
+            "libgpg-error",
+            "libassuan",
+            "libxml2",
+            "zstd",
+            "libarchive",
+            "bubblewrap",
+        ],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "--libexecdir=libexec",
+            "-Dtests=disabled",
+            "-Dinstalled-tests=false",
+            "-Ddocumentation=disabled",
+            "-Dman-pages=disabled",
+            "-Dgeoclue=disabled",
+            "-Dgudev=disabled",
+            "-Dsystemd=enabled",
+            "-Dflatpak-interfaces=enabled",
+            "--wrap-mode=nofallback",
+        ],
+        "usr/libexec/xdg-desktop-portal",
+        &[],
+    )
+}
+
 fn build_libglvnd(repo_root: &Path) -> Result<()> {
     build_meson_runtime(
         repo_root,
         "libglvnd",
         "src/system/graphics/libglvnd",
-        &[],
+        &["x11-compat"],
         &[
             "--prefix=/usr",
             "--libdir=lib/x86_64-linux-gnu",
-            "-Dx11=disabled",
-            "-Dglx=disabled",
+            // Xwayland's GLX server needs the target-owned libGL dispatcher.
+            // Keep this enabled rather than relying on a host libGL.pc.
+            "-Dx11=enabled",
+            "-Dglx=enabled",
             "-Degl=true",
             "-Dgles1=true",
             "-Dgles2=true",
@@ -16147,6 +16566,7 @@ fn build_rootfs_into(repo_root: &Path, out: &Path) -> Result<()> {
         "etc/group",
         "etc/inittab",
         "etc/passwd",
+        "etc/skel/.local/share/flatpak/overrides/global",
         "usr/libexec/mattos/brush-login",
         "usr/libexec/mattos/validate-shell-env",
     ] {
@@ -17681,6 +18101,14 @@ fn apply_live_profile(repo_root: &Path, rootfs: &Path) -> Result<()> {
     }
     copy_tree_excluding_dotgit(&live_src, rootfs)?;
 
+    // The live account is pre-created, so it never passes through useradd's
+    // /etc/skel handling. Give it the same Flatpak display compatibility
+    // default that persistent users receive from the skeleton.
+    copy_file_preserving(
+        &rootfs.join("etc/skel/.local/share/flatpak/overrides/global"),
+        &rootfs.join("home/mattos/.local/share/flatpak/overrides/global"),
+    )?;
+
     let notice_script = rootfs.join("etc/profile.d/10-mattos-live-notice.sh");
     if notice_script.exists() {
         set_mode(notice_script, 0o755)?;
@@ -17724,6 +18152,11 @@ fn enforce_auth_file_modes(rootfs: &Path) -> Result<()> {
         ("usr/bin/su", 0o4755),
         ("usr/bin/passwd", 0o4755),
         ("usr/bin/sudo", 0o4755),
+        // Flatpak's document portal invokes this target-owned helper to
+        // mount /run/user/$UID/doc.  dpkg/fakeroot rootfs assembly can lose
+        // special modes, so the final image establishes the runtime
+        // contract explicitly just like the authentication helpers above.
+        ("usr/bin/fusermount3", 0o4755),
     ] {
         let path = rootfs.join(rel);
         if !path.exists() {
@@ -17775,6 +18208,7 @@ fn validate_auth_file_modes(rootfs: &Path) -> Result<()> {
         ("usr/bin/su", 0o4755),
         ("usr/bin/passwd", 0o4755),
         ("usr/bin/sudo", 0o4755),
+        ("usr/bin/fusermount3", 0o4755),
         ("root", 0o700),
         ("home/mattos", 0o750),
     ] {
@@ -19522,6 +19956,7 @@ mod tests {
             ("expat", 6.265),
             ("file", 8.000),
             ("flatpak", 180.000),
+            ("bubblewrap", 10.000),
             ("fuse3", 20.000),
             ("findutils", 57.703),
             ("gcc-compiler", 647.434),
@@ -19530,7 +19965,16 @@ mod tests {
             ("grep", 24.148),
             ("git", 90.000),
             ("glib", 180.000),
+            ("appstream", 60.000),
+            ("gdk-pixbuf", 30.000),
+            ("json-glib", 20.000),
+            ("libfyaml", 10.000),
+            ("libpng", 20.000),
+            ("libxmlb", 30.000),
+            ("gpgme", 30.000),
             ("gpgv", 20.000),
+            ("gstreamer", 120.000),
+            ("gstreamer-base", 60.000),
             ("gzip", 8.000),
             ("init", 2.104),
             ("initramfs", 57.528),
@@ -19547,6 +19991,14 @@ mod tests {
             ("libevdev", 20.000),
             ("libffi", 20.000),
             ("libarchive", 48.000),
+            ("libepoxy", 20.000),
+            ("freetype", 20.000),
+            ("libfontenc", 10.000),
+            ("libxfont", 10.000),
+            ("libxcvt", 10.000),
+            ("libxshmfence", 5.000),
+            ("libxkbfile", 10.000),
+            ("xkbcomp", 10.000),
             ("libxml2", 20.000),
             ("libinput", 20.000),
             ("libmd", 15.339),
@@ -19569,6 +20021,8 @@ mod tests {
             ("vulkan-tools", 43.000),
             ("x11-compat", 30.000),
             ("libglvnd", 20.000),
+            ("xwayland", 33.772),
+            ("xdg-desktop-portal", 16.284),
             ("nvidia-driver", 180.000),
             ("ncurses", 39.520),
             ("openssl", 197.919),
@@ -19671,6 +20125,21 @@ mod tests {
                 .iter()
                 .any(|dependency| dependency == "initramfs")
         );
+    }
+
+    #[test]
+    fn gstreamer_stage_output_contract_covers_the_complete_packaged_install() {
+        for (stage, install) in [
+            (BuildStage::Gstreamer, "out/build/gstreamer/install"),
+            (BuildStage::GstreamerBase, "out/build/gstreamer-base/install"),
+            (
+                BuildStage::XdgDesktopPortal,
+                "out/build/xdg-desktop-portal/install",
+            ),
+        ] {
+            let spec = build_stage_spec(stage);
+            assert_eq!(spec.outputs, [PathBuf::from(install)]);
+        }
     }
 
     #[test]
@@ -21000,6 +21469,43 @@ mod tests {
             live_override
                 .contains("ExecStart=/usr/bin/greetd --config /etc/greetd/cosmic-live.toml")
         );
+    }
+
+    #[test]
+    fn flatpak_x11_compatibility_default_reaches_live_and_installed_users() {
+        let default = include_str!(
+            "../../../rootfs/skeleton/etc/skel/.local/share/flatpak/overrides/global"
+        );
+        for contract in [
+            "sockets=x11;",
+            "unset-environment=WAYLAND_DISPLAY;",
+            "WAYLAND_DISPLAY=",
+            "XDG_SESSION_TYPE=x11",
+        ] {
+            assert!(
+                default.contains(contract),
+                "Flatpak compatibility default omits {contract}"
+            );
+        }
+
+        // Persistent accounts receive this through useradd's /etc/skel
+        // contract, while the pre-created live account receives the same
+        // file explicitly during live-profile assembly.
+        let builder = include_str!("main.rs");
+        assert!(builder.contains("etc/skel/.local/share/flatpak/overrides/global"));
+        assert!(builder.contains("home/mattos/.local/share/flatpak/overrides/global"));
+        let live_tmpfiles = include_str!("../../../system/profiles/live/etc/tmpfiles.d/mattos-live.conf");
+        for path in [
+            "/home/mattos/.local",
+            "/home/mattos/.local/share",
+            "/home/mattos/.local/share/flatpak",
+            "/home/mattos/.local/share/flatpak/overrides",
+        ] {
+            assert!(
+                live_tmpfiles.contains(&format!("d {path} 0755 1000 1000 -")),
+                "live Flatpak data directory must be owned by the live user: {path}"
+            );
+        }
     }
 
     #[test]
@@ -23107,6 +23613,7 @@ mod tests {
             "usr/bin/su",
             "usr/bin/passwd",
             "usr/bin/sudo",
+            "usr/bin/fusermount3",
         ] {
             write(&root.join(rel), "x\n");
         }
@@ -23121,6 +23628,12 @@ mod tests {
             .mode()
             & 0o7777;
         assert_eq!(sudo_mode, 0o4755);
+        let fusermount_mode = fs::metadata(root.join("usr/bin/fusermount3"))
+            .expect("fusermount3 metadata")
+            .permissions()
+            .mode()
+            & 0o7777;
+        assert_eq!(fusermount_mode, 0o4755);
 
         let shadow_mode = fs::metadata(root.join("etc/shadow"))
             .expect("shadow metadata")
@@ -23149,6 +23662,7 @@ mod tests {
             "usr/bin/su",
             "usr/bin/passwd",
             "usr/bin/sudo",
+            "usr/bin/fusermount3",
         ] {
             write(&root.join(rel), "x\n");
         }

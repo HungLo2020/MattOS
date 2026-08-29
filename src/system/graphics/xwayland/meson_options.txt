@@ -1,0 +1,88 @@
+option('glamor', type: 'boolean', value: true,
+       description: 'Enable glamor (default yes)')
+option('xwayland_ei', type: 'combo', choices: ['socket', 'portal', 'false', 'auto'],
+       value: 'auto', description: 'Enable emulated input support on Xwayland')
+option('xvfb', type: 'boolean', value: true,
+       description: 'Enable Xvfb X server')
+
+option('builder_addr', type: 'string', description: 'Builder address', value: 'xorg@lists.freedesktop.org')
+option('builder_string', type: 'string', description: 'Additional builder string')
+
+option('default_font_path', type: 'string')
+option('fontrootdir', type: 'string',
+        description: 'Root directory for legacy fonts. Default: from font-utils.pc or $datadir/fonts/X11')
+option('serverconfigdir', type: 'string',
+        description: 'Miscellaneous server configuration files path. Default: $libdir/xorg')
+
+option('glx', type: 'boolean', value: true)
+option('xdmcp', type: 'boolean', value: true)
+option('xdm-auth-1', type: 'boolean', value: true)
+option('secure-rpc', type: 'boolean', value: true)
+option('ipv6', type: 'combo', choices: ['true', 'false', 'auto'], value: 'auto')
+option('input_thread', type: 'combo', choices: ['true', 'false', 'auto'], value: 'auto')
+
+option('xkb_dir', type: 'string')
+option('xkb_output_dir', type: 'string')
+option('xkb_bin_dir', type: 'string')
+option('xkb_default_rules', type: 'string', value: 'evdev')
+option('xkb_default_model', type: 'string', value: 'pc105')
+option('xkb_default_layout', type: 'string', value: 'us')
+option('xkb_default_variant', type: 'string')
+option('xkb_default_options', type: 'string')
+
+option('vendor_name', type: 'string', value: 'The X.Org Foundation')
+option('vendor_name_short', type: 'string', value: 'X.Org')
+option('vendor_web', type: 'string', value: 'http://wiki.x.org')
+
+option('dtrace', type: 'boolean', value: false,
+       description: 'Enable dtrace hooks')
+
+option('listen_tcp', type: 'boolean', value: false,
+       description: 'Listen on TCP by default')
+option('listen_unix', type: 'boolean', value: true,
+       description: 'Listen on Unix by default')
+option('listen_local', type: 'boolean', value: true,
+       description: 'Listen on local by default')
+
+option('systemd_notify', type: 'combo', choices: ['true', 'false', 'auto'], value: 'auto',
+       description: 'Enable systemd-notify support')
+option('dpms', type: 'boolean', value: true,
+       description: 'Xorg DPMS extension')
+option('xf86bigfont', type: 'boolean', value: false,
+       description: 'XF86 Big Font extension')
+option('screensaver', type: 'boolean', value: true,
+       description: 'ScreenSaver extension')
+option('xres', type: 'boolean', value: true,
+       description: 'XRes extension')
+option('xace', type: 'boolean', value: true,
+       description: 'X-ACE extension')
+option('xselinux', type: 'combo', choices: ['true', 'false', 'auto'], value: 'auto',
+       description: 'XSELINUX extension')
+option('xinerama', type: 'boolean', value: true,
+       description: 'Xinerama extension')
+option('xcsecurity', type: 'boolean', value: false,
+       description: 'Security extension')
+option('xv', type: 'boolean', value: true,
+       description: 'Xv extension')
+option('mitshm', type: 'combo', choices: ['true', 'false', 'auto'], value: 'auto',
+       description: 'SHM extension')
+option('sha1', type: 'combo', choices: ['libc', 'CommonCrypto', 'CryptoAPI', 'libmd', 'libsha1', 'libnettle', 'libgcrypt', 'libcrypto', 'auto'], value: 'auto',
+       description: 'SHA1 implementation')
+
+option('dri3', type: 'combo', choices: ['true', 'false', 'auto'], value: 'auto', description: 'Build DRI3 extension (default: auto)')
+option('drm', type: 'boolean', value: true,
+        description: 'Build Xorg with libdrm support')
+
+option('libunwind', type: 'boolean', value: false,
+        description: 'Use libunwind for backtrace reporting')
+
+option('xwayland-path', type: 'string', description: 'Directory containing Xwayland executable')
+option('libdecor', type: 'combo', choices: ['true', 'false', 'auto'], value: 'auto',
+        description: 'Whether Xwayland should use libdecor when running rootful.')
+
+option('docs', type: 'combo', choices: ['true', 'false', 'auto'], value: 'auto',
+        description: 'Build documentation')
+option('devel-docs', type: 'combo', choices: ['true', 'false', 'auto'], value: 'auto',
+        description: 'Build development documentation')
+option('docs-pdf', type: 'combo', choices: ['true', 'false', 'auto'], value: 'auto',
+        description: 'Whether to build PDF version of documentation. Setting is ignored if documentation is not built.')
