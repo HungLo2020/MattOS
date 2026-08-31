@@ -111,17 +111,17 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::NetworkManager => &["src/system/network/NetworkManager"],
         BuildStage::Cozy => &["src/userland/cozy"],
         BuildStage::CosmicTweaks => &["src/desktop/cosmic/cosmic-tweaks"],
-        BuildStage::CosmicUtilities => &[
-            "src/desktop/cosmic/cosmic-randr",
-            "src/desktop/cosmic/cosmic-screenshot",
-            "src/desktop/cosmic/pop-launcher",
-            "src/desktop/cosmic/cosmic-calculator",
-            "src/desktop/cosmic/cosmic-storage",
-            "src/desktop/cosmic/cosmic-monitor",
-            "src/desktop/cosmic/cosmic-store",
-        ],
+        BuildStage::CosmicUtilities => &[],
+        BuildStage::CosmicRandr => & ["src/desktop/cosmic/cosmic-randr"],
+        BuildStage::CosmicScreenshot => & ["src/desktop/cosmic/cosmic-screenshot"],
+        BuildStage::PopLauncher => & ["src/desktop/cosmic/pop-launcher"],
+        BuildStage::CosmicCalculator => & ["src/desktop/cosmic/cosmic-calculator"],
+        BuildStage::CosmicStorage => & ["src/desktop/cosmic/cosmic-storage"],
+        BuildStage::CosmicMonitor => & ["src/desktop/cosmic/cosmic-monitor"],
+        BuildStage::CosmicStore => &["src/desktop/cosmic/cosmic-store"],
         BuildStage::Flatpak => &["src/system/packages/flatpak"],
         BuildStage::Bubblewrap => &["src/system/security/bubblewrap"],
+        BuildStage::XdgDbusProxy => &["src/system/packages/xdg-dbus-proxy"],
         // GStreamer ships core and plugins-base in one immutable upstream
         // superproject; both stages deliberately fingerprint that one source
         // identity rather than downloading Meson wrap fallbacks.
@@ -161,7 +161,10 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         // The aggregate copies/stages component outputs according to the
         // orchestration code, so changes to that output policy must invalidate
         // the aggregate rather than reusing an old install tree.
-        BuildStage::CosmicDesktop => &["src/tools/mattos-build/src/main.rs"],
+        BuildStage::CosmicDesktop => &[
+            "src/tools/mattos-build/src/main.rs",
+            "src/tools/mattos-build/src/packaging.rs",
+        ],
         BuildStage::Python => &["src/development/python/cpython"],
         BuildStage::Llvm => &["src/toolchain/llvm-project"],
         BuildStage::Rust => &[
@@ -328,14 +331,14 @@ pub(crate) fn ownership_contract_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::CosmicInitialSetup => &["cosmic-initial-setup"],
         BuildStage::CosmicTerm => &["cosmic-term"],
         BuildStage::CosmicTweaks => &["cosmic-tweaks"],
-        BuildStage::CosmicUtilities => &[
-            "cosmic-randr",
-            "cosmic-screenshot",
-            "pop-launcher",
-            "cosmic-calculator",
-            "cosmic-storage",
-            "cosmic-monitor",
-        ],
+        BuildStage::CosmicUtilities => &[],
+        BuildStage::CosmicRandr => &["cosmic-randr"],
+        BuildStage::CosmicScreenshot => &["cosmic-screenshot"],
+        BuildStage::PopLauncher => &["pop-launcher"],
+        BuildStage::CosmicCalculator => &["cosmic-calculator"],
+        BuildStage::CosmicStorage => &["cosmic-storage"],
+        BuildStage::CosmicMonitor => &["cosmic-monitor"],
+        BuildStage::CosmicStore => &["cosmic-store"],
         BuildStage::CosmicPortal => &["xdg-desktop-portal-cosmic"],
         BuildStage::Cozy => &["cozy"],
         _ => &[],
@@ -372,6 +375,7 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
         | BuildStage::Libxkbfile
         | BuildStage::Xwayland
         | BuildStage::Bubblewrap
+        | BuildStage::XdgDbusProxy
         | BuildStage::Gstreamer
         | BuildStage::GstreamerBase
         | BuildStage::XdgDesktopPortal => &["gcc", "ld", "meson", "ninja", "pkg-config"],
@@ -418,6 +422,13 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
         | BuildStage::CosmicInitialSetup
         | BuildStage::CosmicTweaks
         | BuildStage::CosmicUtilities
+        | BuildStage::CosmicRandr
+        | BuildStage::CosmicScreenshot
+        | BuildStage::PopLauncher
+        | BuildStage::CosmicCalculator
+        | BuildStage::CosmicStorage
+        | BuildStage::CosmicMonitor
+        | BuildStage::CosmicStore
         | BuildStage::Flatpak
         | BuildStage::CosmicPortal
         | BuildStage::Greetd => &["cargo", "rustc", "gcc", "ld", "pkg-config"],
@@ -468,7 +479,11 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
         BuildStage::X11Compat => 2,
         BuildStage::CosmicWorkspaces => 2,
         BuildStage::CosmicDesktop => 2,
-        BuildStage::Duktape | BuildStage::Polkit => 2,
+        // Revision 3 preserves generated Duktape byte tables as Latin-1
+        // bytes under the Python-3 generator adaptation.  This invalidates
+        // previously published tables that were UTF-8 expanded and corrupt.
+        BuildStage::Duktape => 3,
+        BuildStage::Polkit => 2,
         BuildStage::LibdisplayInfo
         | BuildStage::Libevdev
         | BuildStage::Libinput
@@ -478,9 +493,20 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
         // Revision 2 excludes Curl's build-private libtool archive from the
         // published install so target consumers cannot inherit a host path.
         BuildStage::Curl => 2,
-        // Revision 2 records Flatpak's fusermount helper as the target runtime
-        // path instead of the staged host build-tree path Meson discovers.
-        BuildStage::Flatpak => 2,
+        // Revision 3 uses target-owned bwrap and xdg-dbus-proxy and disables
+        // Meson wrap/network fallback for the normal build.
+        // Revision 7 selects MattOS's `sudo` administrative group for
+        // Flatpak system-helper authorization instead of upstream `wheel`.
+        // Revision 6 seeds Flatpak's minimal system OSTree remote metadata
+        // from MattOS's signed descriptor, so a fresh system exposes Flathub
+        // without a first-run configuration command. Revision 5 moves
+        // dependency pkg-config relocation into a private
+        // consumer overlay. Flatpak must never rewrite a cached producer's
+        // published install tree while it prepares its native environment.
+        // Revision 4 packages MattOS's signed Flathub descriptor as Flatpak
+        // policy, so only Flatpak/package/image composition is invalidated
+        // when that policy changes.
+        BuildStage::Flatpak => 7,
         // Revision 4 enables the target-owned libcurl fetcher as well as
         // GPGME: Flatpak needs OSTree to verify and download HTTPS remote
         // metadata and commits without host libraries.
@@ -615,13 +641,24 @@ mod tests {
                 PathBuf::from("upstream/patches/cosmic-files"),
             ]
         );
+        assert_eq!(
+            source_inputs(BuildStage::CosmicStore),
+            vec![PathBuf::from("src/desktop/cosmic/cosmic-store")]
+        );
+        assert_eq!(
+            source_inputs(BuildStage::XdgDbusProxy),
+            vec![PathBuf::from("src/system/packages/xdg-dbus-proxy")]
+        );
         assert!(
             source_inputs(BuildStage::CosmicAssets)
                 .contains(&PathBuf::from("resources/COSMIC/defaults"))
         );
         assert_eq!(
             source_inputs(BuildStage::CosmicDesktop),
-            vec![PathBuf::from("src/tools/mattos-build/src/main.rs")]
+            vec![
+                PathBuf::from("src/tools/mattos-build/src/main.rs"),
+                PathBuf::from("src/tools/mattos-build/src/packaging.rs"),
+            ]
         );
         for stage in [
             BuildStage::CosmicSession,
@@ -655,10 +692,10 @@ mod tests {
                 .iter()
                 .any(|path| path == "out/source-ownership/cargo/contracts/brush.json")
         );
-        assert_eq!(recipe_revision(BuildStage::Duktape), 2);
+        assert_eq!(recipe_revision(BuildStage::Duktape), 3);
         assert_eq!(recipe_revision(BuildStage::Polkit), 2);
         assert_eq!(recipe_revision(BuildStage::CosmicWorkspaces), 2);
-        assert_eq!(recipe_revision(BuildStage::Flatpak), 2);
+        assert_eq!(recipe_revision(BuildStage::Flatpak), 7);
         assert_eq!(recipe_revision(BuildStage::Ostree), 4);
         assert_eq!(recipe_revision(BuildStage::Curl), 2);
         assert_eq!(recipe_revision(BuildStage::GstreamerBase), 2);

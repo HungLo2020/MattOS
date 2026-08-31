@@ -379,6 +379,16 @@ revision = "5de2b58bdafde88515d9d6b9189bd1cfd3b88c46"
 path = "src/system/packages/flatpak"
 sync = "copy"
 
+# Flatpak's normal build otherwise obtains this through a Meson wrap.  It is
+# a runtime sandbox helper, so MattOS imports and builds it explicitly.
+[[component]]
+name = "xdg-dbus-proxy"
+repo = "https://github.com/flatpak/xdg-dbus-proxy.git"
+branch = "0.1.7"
+revision = "6a170fa77e3cbecb48f9dd2478fe5c0a119eb467"
+path = "src/system/packages/xdg-dbus-proxy"
+sync = "copy"
+
 [[component]]
 name = "xdg-desktop-portal"
 repo = "https://github.com/flatpak/xdg-desktop-portal.git"

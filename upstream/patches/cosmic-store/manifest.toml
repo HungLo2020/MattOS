@@ -1,0 +1,10 @@
+schema_version = 1
+component = "cosmic-store"
+upstream_commit = "ca4615b22889bbec83c614e1b52d8af97ef4aca"
+application = "output-mirror-only"
+
+[[patch]]
+path = "upstream/patches/cosmic-store/0001-use-flatpak-remote-id-for-appstream-update.patch"
+sha256 = "0188cfe676a0980ea9b77572c44918ab055fe8687537e307af396e031b8d4c6e"
+purpose = "Use the real Flatpak remote identifier for libflatpak appstream updates while retaining a distinct system-display label."
+documentation = "docs/SOURCE_OWNERSHIP.md"

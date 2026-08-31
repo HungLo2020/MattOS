@@ -56,6 +56,16 @@ const EARLY_INITRAMFS_SIZE_LIMIT: u64 = 32 * 1024 * 1024;
 const GRUB_EARLY_RDINIT: &str = "rdinit=/init";
 const GRUB_RESCUE_MARKER: &str = "mattos.rescue=1";
 const SAFE_IMPORT_PLACEHOLDER_FILES: &[&str] = &[".gitkeep", "README.md"];
+// These legacy skeleton files are installed after package payloads.  Keep the
+// list explicit: package-owned files are protected from accidental overwrite.
+const LEGACY_SKELETON_FILES: &[&str] = &[
+    "README.md",
+    "etc/group",
+    "etc/inittab",
+    "etc/passwd",
+    "usr/libexec/mattos/brush-login",
+    "usr/libexec/mattos/validate-shell-env",
+];
 const IMPORTED_TREE_DIGEST_ALGORITHM: &str = "sha256-git-ls-tree-no-gitlinks-v1";
 const SELECTED_IMPORTED_TREE_DIGEST_ALGORITHM: &str = "sha256-selected-git-ls-tree-no-gitlinks-v1";
 const USERLAND_INVENTORY_PATH: &str = "usr/share/mattos/userland-commands.txt";
@@ -3282,6 +3292,7 @@ fn apply_component_patches(
             &[
                 "apply",
                 "--check",
+                "--unidiff-zero",
                 "--whitespace=error-all",
                 directory_arg.as_str(),
                 patch_text,
@@ -3292,6 +3303,7 @@ fn apply_component_patches(
             "git",
             &[
                 "apply",
+                "--unidiff-zero",
                 "--whitespace=error-all",
                 directory_arg.as_str(),
                 patch_text,
@@ -3601,6 +3613,13 @@ fn stage_resource_profile(stage: BuildStage) -> scheduler::StageResourceProfile 
             | BuildStage::CosmicTerm
             | BuildStage::CosmicTweaks
             | BuildStage::CosmicUtilities
+            | BuildStage::CosmicRandr
+            | BuildStage::CosmicScreenshot
+            | BuildStage::PopLauncher
+            | BuildStage::CosmicCalculator
+            | BuildStage::CosmicStorage
+            | BuildStage::CosmicMonitor
+            | BuildStage::CosmicStore
             | BuildStage::Flatpak
             | BuildStage::CosmicPortal
             | BuildStage::CosmicEdit
@@ -3784,7 +3803,12 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
             "out/build/cosmic-initial-setup/install/usr/share/cosmic-layouts/top-panel-and-bottom-dock/layout.kdl".into(),
             "out/build/cosmic-initial-setup/install/usr/share/cosmic-themes/nebula-dark.ron".into(),
         ],
-        BuildStage::Duktape => vec!["out/build/duktape/install/usr/lib/x86_64-linux-gnu/libduktape.so.207".into()],
+        // Publish the complete target Duktape install, not only its SONAME
+        // symlink.  The generated shared object and headers are the actual
+        // ABI consumed by Polkit; omitting them from the inventory let a
+        // corrupted library retain the old stage output digest and prevented
+        // dependency-output propagation into Polkit.
+        BuildStage::Duktape => vec!["out/build/duktape/install".into()],
         BuildStage::CosmicTerm => {
             vec!["out/build/cosmic-term/install/usr/bin/cosmic-term".into()]
         }
@@ -3792,11 +3816,21 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
             vec!["out/build/cosmic-tweaks/install/usr/bin/cosmic-ext-tweaks".into()]
         }
         BuildStage::CosmicUtilities => vec!["out/build/cosmic-utilities/install".into()],
+        BuildStage::CosmicRandr => vec!["out/build/cosmic-randr/install/usr/bin/cosmic-randr".into()],
+        BuildStage::CosmicScreenshot => vec!["out/build/cosmic-screenshot/install/usr/bin/cosmic-screenshot".into()],
+        BuildStage::PopLauncher => vec!["out/build/pop-launcher/install/usr/bin/pop-launcher".into()],
+        BuildStage::CosmicCalculator => vec!["out/build/cosmic-calculator/install/usr/bin/cosmic-ext-calculator".into()],
+        BuildStage::CosmicStorage => vec!["out/build/cosmic-storage/install/usr/bin/cosmic-ext-storage".into()],
+        BuildStage::CosmicMonitor => vec!["out/build/cosmic-monitor/install/usr/bin/cosmic-monitor".into()],
+        BuildStage::CosmicStore => vec!["out/build/cosmic-store/install/usr/bin/cosmic-store".into()],
         BuildStage::Flatpak => vec![
             "out/build/flatpak/install/usr/bin/flatpak".into(),
             "out/build/flatpak/install/usr/lib/x86_64-linux-gnu/libflatpak.so.0".into(),
         ],
         BuildStage::Bubblewrap => vec!["out/build/bubblewrap/install/usr/bin/bwrap".into()],
+        BuildStage::XdgDbusProxy => {
+            vec!["out/build/xdg-dbus-proxy/install/usr/bin/xdg-dbus-proxy".into()]
+        }
         // The portal package consumes the complete GStreamer installs,
         // including plugins such as libgstgio.so.  Publishing only one
         // library here allowed a changed plugin to leave the stage output
@@ -4428,6 +4462,7 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::NvidiaDriver => build_nvidia_driver(repo_root),
         BuildStage::Flatpak => build_flatpak(repo_root),
         BuildStage::Bubblewrap => build_bubblewrap(repo_root),
+        BuildStage::XdgDbusProxy => build_xdg_dbus_proxy(repo_root),
         BuildStage::Gstreamer => build_gstreamer(repo_root),
         BuildStage::GstreamerBase => build_gstreamer_base(repo_root),
         BuildStage::XdgDesktopPortal => build_xdg_desktop_portal(repo_root),
@@ -4459,6 +4494,13 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
         | BuildStage::CosmicTerm
         | BuildStage::CosmicTweaks
         | BuildStage::CosmicUtilities
+        | BuildStage::CosmicRandr
+        | BuildStage::CosmicScreenshot
+        | BuildStage::PopLauncher
+        | BuildStage::CosmicCalculator
+        | BuildStage::CosmicStorage
+        | BuildStage::CosmicMonitor
+        | BuildStage::CosmicStore
         | BuildStage::CosmicPortal
         | BuildStage::CosmicAssets
         | BuildStage::Greetd => build_cosmic_desktop_component(repo_root, stage),
@@ -8187,7 +8229,7 @@ fn staged_library_environment(
 ) -> Result<Vec<(&'static str, String)>> {
     let mut include_dirs = Vec::new();
     let mut library_dirs = Vec::new();
-    let mut pkgconfig_dirs = Vec::new();
+    let mut pkgconfig_sources = Vec::new();
     let mut program_dirs = Vec::new();
     for component in components {
         let usr = repo_root
@@ -8201,12 +8243,20 @@ fn staged_library_environment(
             include_dirs.push(include.clone());
         }
         if library.is_dir() {
-            pkgconfig_dirs.push(library.join("pkgconfig"));
+            pkgconfig_sources.push((
+                (*component).to_string(),
+                "lib".to_string(),
+                library.join("pkgconfig"),
+            ));
             library_dirs.push(library);
         }
         let shared_pkgconfig = usr.join("share/pkgconfig");
         if shared_pkgconfig.is_dir() {
-            pkgconfig_dirs.push(shared_pkgconfig);
+            pkgconfig_sources.push((
+                (*component).to_string(),
+                "share".to_string(),
+                shared_pkgconfig,
+            ));
         }
         if bin.is_dir() {
             program_dirs.push(bin);
@@ -8222,6 +8272,7 @@ fn staged_library_environment(
         .map(|p| format!("-L{} -Wl,-rpath-link,{}", p.display(), p.display()))
         .collect::<Vec<_>>()
         .join(" ");
+    let pkgconfig_dirs = staged_pkgconfig_overlay(repo_root, &pkgconfig_sources)?;
     Ok(vec![
         ("CPPFLAGS", cppflags),
         ("LDFLAGS", ldflags),
@@ -8266,6 +8317,95 @@ fn staged_library_environment(
             .to_string(),
         ),
     ])
+}
+
+/// Build a disposable, content-addressed pkg-config view for a consumer.
+///
+/// A target package's installed `.pc` files correctly describe `/usr`.
+/// Build consumers need those same descriptors to resolve the producer's
+/// output-owned headers and libraries instead.  Historically Meson consumers
+/// solved that by rewriting their dependencies' published install trees in
+/// place.  That made a later Flatpak build mutate cached xkbcommon/libbsd
+/// outputs after their manifests had been recorded.  The overlay keeps that
+/// build-only relocation private to the consumer environment.
+fn staged_pkgconfig_overlay(
+    repo_root: &Path,
+    sources: &[(String, String, PathBuf)],
+) -> Result<Vec<PathBuf>> {
+    let sources = sources
+        .iter()
+        .filter(|(_, _, directory)| directory.is_dir())
+        .collect::<Vec<_>>();
+    if sources.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    let identity = sources
+        .iter()
+        .map(|(component, kind, directory)| {
+            Ok::<_, anyhow::Error>((
+                component.clone(),
+                kind.clone(),
+                directory.to_string_lossy().to_string(),
+                match stage_cache::read_stage_manifest(repo_root, component) {
+                    Ok(manifest) => manifest.output_content_digest,
+                    // Focused native-environment tests intentionally provide
+                    // just a minimal staged tree.  Real stage execution has
+                    // a producer manifest; fall back to the actual metadata
+                    // bytes only for this pre-manifest fixture/bootstrap case.
+                    Err(_) => performance::digest_paths(
+                        repo_root,
+                        std::slice::from_ref(directory),
+                        false,
+                        "pkgconfig-overlay-pre-manifest-v1",
+                    )?,
+                },
+            ))
+        })
+        .collect::<Result<Vec<_>>>()?;
+    let digest = performance::digest_value(&identity)?;
+    let root = repo_root
+        .join("out/build/.pkgconfig-overlays")
+        .join(&digest);
+
+    if !root.is_dir() {
+        let parent = root.parent().expect("pkg-config overlay parent");
+        fs::create_dir_all(parent)?;
+        let temporary = parent.join(format!(".{digest}.building-{}", std::process::id()));
+        remove_path_if_exists(&temporary)?;
+        fs::create_dir_all(&temporary)?;
+        for (component, kind, source) in &sources {
+            let destination = temporary.join(component).join(kind);
+            fs::create_dir_all(&destination)?;
+            let producer_usr = repo_root
+                .join("out/build")
+                .join(component)
+                .join("install/usr");
+            let mut entries = fs::read_dir(source)?.collect::<std::io::Result<Vec<_>>>()?;
+            entries.sort_by_key(|entry| entry.file_name());
+            for entry in entries {
+                let path = entry.path();
+                if !path.is_file() || path.extension().and_then(OsStr::to_str) != Some("pc") {
+                    continue;
+                }
+                let contents = fs::read_to_string(&path)?;
+                fs::write(
+                    destination.join(entry.file_name()),
+                    rewrite_pkgconfig_for_staged_consumer(&contents, &producer_usr),
+                )?;
+            }
+        }
+        match fs::rename(&temporary, &root) {
+            Ok(()) => {}
+            Err(_error) if root.is_dir() => remove_path_if_exists(&temporary)?,
+            Err(error) => return Err(error).with_context(|| format!("failed to publish {}", root.display())),
+        }
+    }
+
+    Ok(sources
+        .iter()
+        .map(|(component, kind, _)| root.join(component).join(kind))
+        .collect())
 }
 
 fn build_autotools_import(
@@ -8818,11 +8958,6 @@ fn build_meson_runtime(
         remove_path_if_exists(&build_dir)?;
     }
     fs::create_dir_all(&out_root)?;
-    for dependency in dependencies {
-        rewrite_staged_pkgconfig_files(
-            &repo_root.join("out/build").join(dependency).join("install"),
-        )?;
-    }
     sync_build_source(&source, &source_copy)?;
     if component == "xdg-desktop-portal" {
         // The pinned portal release declares exact gvdb and libglnx Meson
@@ -8875,6 +9010,21 @@ fn build_meson_runtime(
         let replacement = "metainfo_i18n = files('org.freedesktop.appstream.cli.metainfo.xml')\ninstall_data(metainfo_i18n, install_dir: metainfo_dir)";
         let adapted = format!("{}{}{}", &body[..start], replacement, &body[end..]);
         fs::write(data_meson, adapted)?;
+    }
+    if component == "flatpak" {
+        // The system-helper policy is valid untranslated XML.  Meson's
+        // i18n.merge_file() invokes msgfmt with ITS rules, but the target
+        // build intentionally does not carry the host itstool rules.  Keep
+        // the authoritative policy source intact and install it directly in
+        // this output mirror; authorization semantics remain unchanged.
+        let helper_meson = source_copy.join("system-helper/meson.build");
+        let body = fs::read_to_string(&helper_meson)?;
+        let old = "i18n.merge_file(\n  input : 'org.freedesktop.Flatpak.policy.in',\n  output : 'org.freedesktop.Flatpak.policy',\n  po_dir : '../po',\n  install : true,\n  install_dir : get_option('datadir') / 'polkit-1' / 'actions',\n)";
+        let replacement = "install_data(\n  'org.freedesktop.Flatpak.policy.in',\n  rename : 'org.freedesktop.Flatpak.policy',\n  install_dir : get_option('datadir') / 'polkit-1' / 'actions',\n)";
+        if !body.contains(old) {
+            bail!("Flatpak system-helper policy layout changed unexpectedly");
+        }
+        fs::write(helper_meson, body.replace(old, replacement))?;
     }
     if component == "networkmanager" {
         let data_meson = source_copy.join("data/meson.build");
@@ -9015,28 +9165,32 @@ fn rewrite_staged_pkgconfig_files(install_dir: &Path) -> Result<()> {
                 visit(&path, prefix)?;
             } else if metadata.is_file() && path.extension().and_then(OsStr::to_str) == Some("pc") {
                 let contents = fs::read_to_string(&path)?;
-                let rewritten = contents
-                    .lines()
-                    .map(|line| {
-                        if let Some(value) = line.strip_prefix("prefix=/usr") {
-                            format!("prefix={}{}", prefix.display(), value)
-                        } else if let Some(value) = line.strip_prefix("libdir=/usr") {
-                            format!("libdir=${{prefix}}{}", value)
-                        } else if let Some(value) = line.strip_prefix("includedir=/usr") {
-                            format!("includedir=${{prefix}}{}", value)
-                        } else {
-                            line.to_string()
-                        }
-                    })
-                    .collect::<Vec<_>>()
-                    .join("\n")
-                    + "\n";
+                let rewritten = rewrite_pkgconfig_for_staged_consumer(&contents, prefix);
                 fs::write(&path, rewritten)?;
             }
         }
         Ok(())
     }
     visit(install_dir, &install_dir.join("usr"))
+}
+
+fn rewrite_pkgconfig_for_staged_consumer(contents: &str, prefix: &Path) -> String {
+    contents
+        .lines()
+        .map(|line| {
+            if let Some(value) = line.strip_prefix("prefix=/usr") {
+                format!("prefix={}{}", prefix.display(), value)
+            } else if let Some(value) = line.strip_prefix("libdir=/usr") {
+                format!("libdir=${{prefix}}{}", value)
+            } else if let Some(value) = line.strip_prefix("includedir=/usr") {
+                format!("includedir=${{prefix}}{}", value)
+            } else {
+                line.to_string()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+        + "\n"
 }
 
 fn remove_staged_libtool_archives(path: &Path) -> Result<()> {
@@ -9450,6 +9604,24 @@ fn build_bubblewrap(repo_root: &Path) -> Result<()> {
     )
 }
 
+fn build_xdg_dbus_proxy(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(
+        repo_root,
+        "xdg-dbus-proxy",
+        "src/system/packages/xdg-dbus-proxy",
+        &["glib", "libffi", "zlib"],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Dtests=false",
+            "-Dman=disabled",
+            "--wrap-mode=nofallback",
+        ],
+        "usr/bin/xdg-dbus-proxy",
+        &[],
+    )
+}
+
 fn build_gstreamer(repo_root: &Path) -> Result<()> {
     build_meson_runtime(
         repo_root,
@@ -9526,6 +9698,7 @@ fn build_xdg_desktop_portal(repo_root: &Path) -> Result<()> {
             "systemd",
             "dbus",
             "flatpak",
+            "polkit",
             "ostree",
             "xz",
             "curl",
@@ -10812,7 +10985,7 @@ fn cosmic_native_components(stage: BuildStage) -> Vec<&'static str> {
             .copied()
             .filter(|component| *component != "formal-sysroot"),
     );
-    if stage == BuildStage::CosmicUtilities {
+    if stage == BuildStage::CosmicStorage {
         // btrfs-progs is built inside the installer stage and publishes its
         // development library from this nested install root.
         components.push("btrfs-progs");
@@ -11117,10 +11290,24 @@ fn build_cosmic_desktop_component(repo_root: &Path, stage: BuildStage) -> Result
                 "cosmic-calculator",
                 "cosmic-storage",
                 "cosmic-monitor",
-                "cosmic-store",
             ] {
-                build_cosmic_just_component(repo_root, &install, component, &env)?;
+                copy_tree_contents(
+                    &repo_root.join("out/build").join(component).join("install"),
+                    &install,
+                )?;
             }
+        }
+        BuildStage::CosmicRandr
+        | BuildStage::CosmicScreenshot
+        | BuildStage::PopLauncher
+        | BuildStage::CosmicCalculator
+        | BuildStage::CosmicStorage
+        | BuildStage::CosmicMonitor => {
+            let component = stage_graph::stage_id(stage);
+            build_cosmic_just_component(repo_root, &install, component, &env)?;
+        }
+        BuildStage::CosmicStore => {
+            build_cosmic_just_component(repo_root, &install, "cosmic-store", &env)?;
         }
         BuildStage::Flatpak => build_flatpak(repo_root)?,
         BuildStage::CosmicPortal => {
@@ -11249,7 +11436,13 @@ fn build_cosmic_desktop(repo_root: &Path) -> Result<()> {
         "cosmic-files",
         "cosmic-term",
         "cosmic-tweaks",
-        "cosmic-utilities",
+        "cosmic-randr",
+        "cosmic-screenshot",
+        "pop-launcher",
+        "cosmic-calculator",
+        "cosmic-storage",
+        "cosmic-monitor",
+        "cosmic-store",
         "cosmic-portal",
         "cosmic-assets",
         "greetd",
@@ -11614,6 +11807,9 @@ fn build_flatpak(repo_root: &Path) -> Result<()> {
             "appstream",
             "gdk-pixbuf",
             "gpgme",
+            "polkit",
+            "bubblewrap",
+            "xdg-dbus-proxy",
         ],
         &[
             "--prefix=/usr",
@@ -11629,14 +11825,23 @@ fn build_flatpak(repo_root: &Path) -> Result<()> {
             "-Dselinux_module=disabled",
             "-Dxauth=disabled",
             "-Dwayland_security_context=disabled",
-            "-Dsystem_helper=disabled",
+            "-Dsystem_helper=enabled",
             "-Dsystemd=enabled",
+            // MattOS grants ordinary administrative users membership in
+            // `sudo`, not Debian/Fedora's `wheel`.  Flatpak's generated
+            // system-helper polkit rule must follow that distro policy so
+            // COSMIC Store can authorize system installs without making the
+            // installation tree writable or running Store as root.
+            "-Dprivileged_group=sudo",
             "-Dseccomp=disabled",
             // Never let Meson record the staged build-tree path returned by
             // find_program("fusermount3") in the shipped binary.  Flatpak
             // executes fusermount from the target package closure at this
             // stable runtime location.
             "-Dsystem_fusermount=/usr/bin/fusermount3",
+            "-Dsystem_bubblewrap=/usr/bin/bwrap",
+            "-Dsystem_dbus_proxy=/usr/bin/xdg-dbus-proxy",
+            "--wrap-mode=nofallback",
         ],
         "usr/bin/flatpak",
         &[],
@@ -11985,6 +12190,13 @@ fn build_duktape(repo_root: &Path) -> Result<()> {
     let dukutil_body = fs::read_to_string(&dukutil)?
         .replace("xrange", "range")
         .replace("unicode", "str")
+        // Duktape's generators use Python 2 ``str`` as a byte string.  The
+        // Python 3 compatibility alias above makes that value a Unicode
+        // string, so emitArray() must restore the original one-byte mapping
+        // instead of UTF-8 expanding values above 0xff.  Those expansions
+        // silently truncate generated tables in C and make every Duktape
+        // evaluation fatal at runtime.
+        .replace("data = data.encode('utf-8')", "data = data.encode('latin-1')")
         .replace("return nbits / 8", "return nbits // 8")
         .replace("(skip * (res % 256)) / 256", "(skip * (res % 256)) // 256")
         .replace(
@@ -16561,15 +16773,7 @@ fn build_rootfs_into(repo_root: &Path, out: &Path) -> Result<()> {
     }
     let package_owned = packaging::package_owned_paths(out)?;
     let package_snapshot = packaging::snapshot_package_files(out, &package_owned)?;
-    for rel in [
-        "README.md",
-        "etc/group",
-        "etc/inittab",
-        "etc/passwd",
-        "etc/skel/.local/share/flatpak/overrides/global",
-        "usr/libexec/mattos/brush-login",
-        "usr/libexec/mattos/validate-shell-env",
-    ] {
+    for rel in LEGACY_SKELETON_FILES {
         packaging::reject_legacy_collision(&package_owned, Path::new(rel))?;
         let source = skeleton.join(rel);
         let destination = out.join(rel);
@@ -18100,14 +18304,6 @@ fn apply_live_profile(repo_root: &Path, rootfs: &Path) -> Result<()> {
         );
     }
     copy_tree_excluding_dotgit(&live_src, rootfs)?;
-
-    // The live account is pre-created, so it never passes through useradd's
-    // /etc/skel handling. Give it the same Flatpak display compatibility
-    // default that persistent users receive from the skeleton.
-    copy_file_preserving(
-        &rootfs.join("etc/skel/.local/share/flatpak/overrides/global"),
-        &rootfs.join("home/mattos/.local/share/flatpak/overrides/global"),
-    )?;
 
     let notice_script = rootfs.join("etc/profile.d/10-mattos-live-notice.sh");
     if notice_script.exists() {
@@ -19667,6 +19863,79 @@ fn run_cmd_capture(cwd: &Path, program: &str, args: &[&str]) -> Result<String> {
 mod tests {
     use super::*;
 
+    fn write_pkgconfig_overlay_fixture_manifest(root: &Path, stage: &str, digest: &str) {
+        let manifest = cache_manifest::StageManifest {
+            schema_version: cache_manifest::STAGE_MANIFEST_SCHEMA_VERSION,
+            stage: stage.to_string(),
+            inputs: cache_manifest::StageInputs {
+                source_digest: "fixture".to_string(),
+                configuration_digest: "fixture".to_string(),
+                tool_digest: "fixture".to_string(),
+                build_provenance_digest: "fixture".to_string(),
+                environment_digest: "fixture".to_string(),
+                dependency_digests: BTreeMap::new(),
+                full_digest: format!("fixture-{stage}"),
+            },
+            input_details: cache_manifest::StageInputDetails::default(),
+            expected_outputs: Vec::new(),
+            output_content_digest: digest.to_string(),
+        };
+        stage_cache::write_stage_manifest(root, &manifest).unwrap();
+    }
+
+    #[test]
+    fn pkgconfig_consumer_overlay_is_repeatable_and_never_rewrites_published_producers() {
+        let temporary = tempfile::tempdir().unwrap();
+        let root = temporary.path();
+        let autotools = root.join("out/build/autotools-fixture/install/usr/lib/x86_64-linux-gnu/pkgconfig");
+        let meson = root.join("out/build/meson-fixture/install/usr/lib/x86_64-linux-gnu/pkgconfig");
+        fs::create_dir_all(&autotools).unwrap();
+        fs::create_dir_all(&meson).unwrap();
+        let autotools_pc = autotools.join("autotools-fixture.pc");
+        let meson_pc = meson.join("meson-fixture.pc");
+        fs::write(&autotools_pc, "prefix=/usr\nlibdir=/usr/lib/x86_64-linux-gnu\n").unwrap();
+        fs::write(&meson_pc, "prefix=/usr\nincludedir=/usr/include\n").unwrap();
+        write_pkgconfig_overlay_fixture_manifest(root, "autotools-fixture", "autotools-output");
+        write_pkgconfig_overlay_fixture_manifest(root, "meson-fixture", "meson-output");
+
+        let sources = vec![
+            ("autotools-fixture".to_string(), "lib".to_string(), autotools.clone()),
+            ("meson-fixture".to_string(), "lib".to_string(), meson.clone()),
+        ];
+        let before_autotools = fs::read(&autotools_pc).unwrap();
+        let before_meson = fs::read(&meson_pc).unwrap();
+        let first = staged_pkgconfig_overlay(root, &sources).unwrap();
+        let second = staged_pkgconfig_overlay(root, &sources).unwrap();
+
+        assert_eq!(first, second, "identical consumers reuse one immutable overlay");
+        assert_eq!(fs::read(&autotools_pc).unwrap(), before_autotools);
+        assert_eq!(fs::read(&meson_pc).unwrap(), before_meson);
+        assert_eq!(
+            fs::read_to_string(first[0].join("autotools-fixture.pc")).unwrap(),
+            format!(
+                "prefix={}\nlibdir=${{prefix}}/lib/x86_64-linux-gnu\n",
+                root.join("out/build/autotools-fixture/install/usr").display()
+            )
+        );
+        assert_eq!(
+            fs::read_to_string(first[1].join("meson-fixture.pc")).unwrap(),
+            format!(
+                "prefix={}\nincludedir=${{prefix}}/include\n",
+                root.join("out/build/meson-fixture/install/usr").display()
+            )
+        );
+    }
+
+    #[test]
+    fn staged_pkgconfig_rewrite_is_idempotent() {
+        let prefix = Path::new("/tmp/mattos-stage/usr");
+        let first = rewrite_pkgconfig_for_staged_consumer(
+            "prefix=/usr\nlibdir=/usr/lib/x86_64-linux-gnu\nincludedir=/usr/include\n",
+            prefix,
+        );
+        assert_eq!(rewrite_pkgconfig_for_staged_consumer(&first, prefix), first);
+    }
+
     #[test]
     fn source_mirror_sync_excludes_and_deletes_derived_cargo_outputs() {
         assert!(SOURCE_MIRROR_RSYNC_FLAGS.contains(&"--delete"));
@@ -19843,6 +20112,27 @@ mod tests {
     }
 
     #[test]
+    fn flatpak_build_forces_owned_sandbox_helpers_without_wrap_fallbacks() {
+        let source = include_str!("main.rs");
+        let flatpak = source
+            .split_once("fn build_flatpak(repo_root: &Path) -> Result<()>")
+            .expect("build_flatpak implementation")
+            .1
+            .split_once("fn build_libarchive")
+            .expect("build_flatpak boundary")
+            .0;
+        for required in [
+            "\"bubblewrap\"",
+            "\"xdg-dbus-proxy\"",
+            "-Dsystem_bubblewrap=/usr/bin/bwrap",
+            "-Dsystem_dbus_proxy=/usr/bin/xdg-dbus-proxy",
+            "--wrap-mode=nofallback",
+        ] {
+            assert!(flatpak.contains(required), "Flatpak build omits {required}");
+        }
+    }
+
+    #[test]
     fn memory_intensive_toolchain_and_graphics_stages_are_capped() {
         for stage in build_plan(BuildStage::All) {
             let expected = if stage == BuildStage::Libcap {
@@ -19868,6 +20158,13 @@ mod tests {
                     | BuildStage::CosmicTerm
                     | BuildStage::CosmicTweaks
                     | BuildStage::CosmicUtilities
+                    | BuildStage::CosmicRandr
+                    | BuildStage::CosmicScreenshot
+                    | BuildStage::PopLauncher
+                    | BuildStage::CosmicCalculator
+                    | BuildStage::CosmicStorage
+                    | BuildStage::CosmicMonitor
+                    | BuildStage::CosmicStore
                     | BuildStage::Flatpak
                     | BuildStage::CosmicPortal
                     | BuildStage::CosmicInitialSetup
@@ -19940,6 +20237,12 @@ mod tests {
             ("cosmic-files", 120.000),
             ("cosmic-term", 90.000),
             ("cosmic-tweaks", 90.000),
+            ("cosmic-randr", 45.000),
+            ("cosmic-screenshot", 60.000),
+            ("pop-launcher", 60.000),
+            ("cosmic-calculator", 45.000),
+            ("cosmic-storage", 60.000),
+            ("cosmic-monitor", 60.000),
             ("cosmic-utilities", 120.000),
             ("cosmic-portal", 60.000),
             ("cosmic-assets", 5.000),
@@ -19957,6 +20260,8 @@ mod tests {
             ("file", 8.000),
             ("flatpak", 180.000),
             ("bubblewrap", 10.000),
+            ("xdg-dbus-proxy", 5.000),
+            ("cosmic-store", 120.000),
             ("fuse3", 20.000),
             ("findutils", 57.703),
             ("gcc-compiler", 647.434),
@@ -21472,40 +21777,42 @@ mod tests {
     }
 
     #[test]
-    fn flatpak_x11_compatibility_default_reaches_live_and_installed_users() {
-        let default = include_str!(
-            "../../../rootfs/skeleton/etc/skel/.local/share/flatpak/overrides/global"
+    fn flatpak_defaults_leave_socket_policy_to_unmodified_application_manifests() {
+        // MattOS deliberately ships no Flatpak overrides. Socket policy belongs
+        // to each upstream application manifest: Wayland-only apps use COSMIC's
+        // Wayland socket, X11-only apps use Xwayland, and fallback-X11 apps may
+        // choose native Wayland when it is available.
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        let skeleton = root.join("src/rootfs/skeleton/etc/skel/.local/share/flatpak/overrides");
+        assert!(
+            !skeleton.exists(),
+            "MattOS must not ship global or application-specific Flatpak overrides"
         );
-        for contract in [
-            "sockets=x11;",
-            "unset-environment=WAYLAND_DISPLAY;",
-            "WAYLAND_DISPLAY=",
-            "XDG_SESSION_TYPE=x11",
-        ] {
-            assert!(
-                default.contains(contract),
-                "Flatpak compatibility default omits {contract}"
-            );
-        }
+        assert!(
+            !LEGACY_SKELETON_FILES.contains(&"etc/skel/.local/share/flatpak/overrides/global"),
+            "rootfs assembly must not retain a copy rule for the removed X11-only override"
+        );
+    }
 
-        // Persistent accounts receive this through useradd's /etc/skel
-        // contract, while the pre-created live account receives the same
-        // file explicitly during live-profile assembly.
-        let builder = include_str!("main.rs");
-        assert!(builder.contains("etc/skel/.local/share/flatpak/overrides/global"));
-        assert!(builder.contains("home/mattos/.local/share/flatpak/overrides/global"));
-        let live_tmpfiles = include_str!("../../../system/profiles/live/etc/tmpfiles.d/mattos-live.conf");
-        for path in [
-            "/home/mattos/.local",
-            "/home/mattos/.local/share",
-            "/home/mattos/.local/share/flatpak",
-            "/home/mattos/.local/share/flatpak/overrides",
-        ] {
-            assert!(
-                live_tmpfiles.contains(&format!("d {path} 0755 1000 1000 -")),
-                "live Flatpak data directory must be owned by the live user: {path}"
-            );
-        }
+    #[test]
+    fn flatpak_package_owns_signed_flathub_policy_without_application_overrides() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        let descriptor = root.join("src/system/packages/flatpak/resources/flathub.flatpakrepo");
+        let policy = std::fs::read_to_string(&descriptor)
+            .expect("MattOS must retain the packaged Flathub descriptor");
+        assert!(policy.contains("[Flatpak Repo]"));
+        assert!(policy.contains("Url=https://dl.flathub.org/repo/"));
+        let key = policy
+            .split_once("GPGKey=")
+            .expect("Flathub policy must embed its verification key")
+            .1
+            .trim();
+        assert!(key.len() > 3_000, "Flathub policy must retain the full pinned public key");
+        let package_source = include_str!("packaging.rs");
+        assert!(package_source.contains("usr/share/flatpak/remotes.d/flathub.flatpakrepo"));
+        assert!(package_source.contains("stage_flatpak_system_remote"));
+        assert!(package_source.contains("var/lib/flatpak/repo"));
+        assert!(!root.join("src/rootfs/skeleton/etc/skel/.local/share/flatpak/overrides").exists());
     }
 
     #[test]

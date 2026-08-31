@@ -66,8 +66,16 @@ pub(crate) enum BuildStage {
     CosmicTerm,
     CosmicTweaks,
     CosmicUtilities,
+    CosmicRandr,
+    CosmicScreenshot,
+    PopLauncher,
+    CosmicCalculator,
+    CosmicStorage,
+    CosmicMonitor,
+    CosmicStore,
     Flatpak,
     Bubblewrap,
+    XdgDbusProxy,
     Gstreamer,
     GstreamerBase,
     XdgDesktopPortal,
@@ -210,8 +218,16 @@ pub(crate) fn stage_id(stage: BuildStage) -> &'static str {
         BuildStage::CosmicTerm => "cosmic-term",
         BuildStage::CosmicTweaks => "cosmic-tweaks",
         BuildStage::CosmicUtilities => "cosmic-utilities",
+        BuildStage::CosmicRandr => "cosmic-randr",
+        BuildStage::CosmicScreenshot => "cosmic-screenshot",
+        BuildStage::PopLauncher => "pop-launcher",
+        BuildStage::CosmicCalculator => "cosmic-calculator",
+        BuildStage::CosmicStorage => "cosmic-storage",
+        BuildStage::CosmicMonitor => "cosmic-monitor",
+        BuildStage::CosmicStore => "cosmic-store",
         BuildStage::Flatpak => "flatpak",
         BuildStage::Bubblewrap => "bubblewrap",
+        BuildStage::XdgDbusProxy => "xdg-dbus-proxy",
         BuildStage::Gstreamer => "gstreamer",
         BuildStage::GstreamerBase => "gstreamer-base",
         BuildStage::XdgDesktopPortal => "xdg-desktop-portal",
@@ -479,14 +495,44 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         // inputs as the first-party applications.
         // cosmic-ext-storage links the target-owned libbtrfsutil development
         // output produced as part of the installer stage's btrfs-progs build.
+        // Compatibility aggregate only: leaf utilities compile in their own
+        // stages so a Calculator, Storage, Monitor, or launcher change does
+        // not rebuild its siblings.
         BuildStage::CosmicUtilities => &[
+            "cosmic-randr",
+            "cosmic-screenshot",
+            "pop-launcher",
+            "cosmic-calculator",
+            "cosmic-storage",
+            "cosmic-monitor",
+        ],
+        BuildStage::CosmicRandr
+        | BuildStage::CosmicScreenshot
+        | BuildStage::PopLauncher
+        | BuildStage::CosmicCalculator
+        | BuildStage::CosmicMonitor => {
+            &["formal-sysroot", "rust", "xkbcommon", "glib", "zlib"]
+        }
+        // cosmic-ext-storage links target-owned libbtrfsutil from installer.
+        BuildStage::CosmicStorage => &[
             "formal-sysroot",
             "rust",
             "xkbcommon",
             "installer",
             "glib",
             "zlib",
+        ],
+        // Store alone consumes the Flatpak/OSTree native stack. Keeping it
+        // separate prevents a Store or Flatpak update from invalidating the
+        // unrelated COSMIC utility applications.
+        BuildStage::CosmicStore => &[
+            "formal-sysroot",
+            "rust",
+            "xkbcommon",
+            "glib",
+            "zlib",
             "flatpak",
+            "polkit",
             "ostree",
             "xz",
             "libarchive",
@@ -527,10 +573,22 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "libgcrypt",
             "libgpg-error",
             "libksba",
+            // Meson discovers these through Flatpak's actual build graph.
+            // They must be declared so its output cannot silently depend on
+            // host metadata or wrap-built helpers.
+            "appstream",
+            "gdk-pixbuf",
+            "gpgme",
+            "polkit",
+            "bubblewrap",
+            "xdg-dbus-proxy",
         ],
         // Bubblewrap consumes Linux's seccomp syscall ABI directly but links
         // libcap for capability handling. Do not invent a libseccomp edge.
         BuildStage::Bubblewrap => &["formal-sysroot", "libcap"],
+        // A standalone, target-owned D-Bus sandbox proxy.  Flatpak consumes
+        // its published binary rather than a Meson wrap subproject.
+        BuildStage::XdgDbusProxy => &["formal-sysroot", "glib", "libffi", "zlib"],
         BuildStage::Gstreamer => &["formal-sysroot", "glib", "libffi", "zlib"],
         // gio-2.0's declared pkg-config requirements include zlib, so the
         // plugins-base stage must receive it as a direct target input rather
@@ -560,6 +618,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "systemd",
             "dbus",
             "flatpak",
+            "polkit",
             "ostree",
             "xz",
             "curl",
@@ -666,7 +725,13 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "cosmic-files",
             "cosmic-term",
             "cosmic-tweaks",
-            "cosmic-utilities",
+            "cosmic-randr",
+            "cosmic-screenshot",
+            "pop-launcher",
+            "cosmic-calculator",
+            "cosmic-storage",
+            "cosmic-monitor",
+            "cosmic-store",
             "flatpak",
             "cosmic-portal",
             "cosmic-assets",
@@ -884,8 +949,16 @@ pub(crate) fn all_build_stages() -> &'static [BuildStage] {
         BuildStage::CosmicTerm,
         BuildStage::CosmicTweaks,
         BuildStage::CosmicUtilities,
+        BuildStage::CosmicRandr,
+        BuildStage::CosmicScreenshot,
+        BuildStage::PopLauncher,
+        BuildStage::CosmicCalculator,
+        BuildStage::CosmicStorage,
+        BuildStage::CosmicMonitor,
+        BuildStage::CosmicStore,
         BuildStage::Flatpak,
         BuildStage::Bubblewrap,
+        BuildStage::XdgDbusProxy,
         BuildStage::Gstreamer,
         BuildStage::GstreamerBase,
         BuildStage::XdgDesktopPortal,
@@ -1126,6 +1199,36 @@ mod tests {
     }
 
     #[test]
+    fn flatpak_and_store_edges_cover_only_their_real_owned_inputs() {
+        let flatpak = direct_dependencies(BuildStage::Flatpak);
+        for required in [
+            "appstream",
+            "gdk-pixbuf",
+            "gpgme",
+            "bubblewrap",
+            "xdg-dbus-proxy",
+        ] {
+            assert!(
+                flatpak.contains(&required),
+                "Flatpak's native build environment omits {required}"
+            );
+        }
+
+        let store = direct_dependencies(BuildStage::CosmicStore);
+        assert!(store.contains(&"flatpak"));
+        assert!(store.contains(&"ostree"));
+        assert!(!store.contains(&"mesa"));
+        assert!(!store.contains(&"pipewire"));
+
+        let utilities = direct_dependencies(BuildStage::CosmicUtilities);
+        assert!(!utilities.contains(&"flatpak"));
+        assert!(!utilities.contains(&"ostree"));
+
+        let desktop = direct_dependencies(BuildStage::CosmicDesktop);
+        assert!(desktop.contains(&"cosmic-store"));
+    }
+
+    #[test]
     fn composition_edges_are_confined_to_the_desktop_aggregate() {
         let leaves = [
             "cosmic-session",
@@ -1180,6 +1283,8 @@ mod tests {
                 "live-root",
                 "iso",
                 "cosmic-utilities",
+                "cosmic-store",
+                "cosmic-storage",
                 "ostree",
                 "flatpak",
                 "xdg-desktop-portal",
@@ -1237,6 +1342,8 @@ mod tests {
                 "cosmic-portal",
                 "cosmic-workspaces",
                 "cosmic-utilities",
+                "cosmic-store",
+                "cosmic-storage",
                 "ostree",
                 "flatpak",
                 "xdg-desktop-portal",
@@ -1263,6 +1370,13 @@ mod tests {
                 "cosmic-workspaces",
                 "cosmic-desktop",
                 "cosmic-utilities",
+                "cosmic-randr",
+                "cosmic-screenshot",
+                "pop-launcher",
+                "cosmic-calculator",
+                "cosmic-storage",
+                "cosmic-monitor",
+                "cosmic-store",
                 "ostree",
                 "flatpak",
                 "xwayland",
@@ -1293,7 +1407,7 @@ mod tests {
             "cosmic-files",
             "cosmic-term",
             "cosmic-tweaks",
-            "cosmic-utilities",
+            "cosmic-store",
             "cosmic-portal",
             "cosmic-assets",
             "greetd",
@@ -1312,6 +1426,33 @@ mod tests {
                 .into_iter()
                 .collect(),
                 "{component} invalidated an unrelated native COSMIC stage"
+            );
+        }
+        // The compatibility aggregate is composition-only: each leaf also
+        // refreshes it, but never causes another utility leaf to compile.
+        for component in [
+            "cosmic-randr",
+            "cosmic-screenshot",
+            "pop-launcher",
+            "cosmic-calculator",
+            "cosmic-storage",
+            "cosmic-monitor",
+        ] {
+            assert_eq!(
+                downstream_invalidation(&[component]),
+                [
+                    component,
+                    "cosmic-utilities",
+                    "cosmic-desktop",
+                    "packages",
+                    "repository",
+                    "rootfs",
+                    "live-root",
+                    "iso",
+                ]
+                .into_iter()
+                .collect(),
+                "{component} invalidated another utility leaf"
             );
         }
         for unrelated in [
@@ -1448,24 +1589,26 @@ mod tests {
         let scenarios: &[(&str, &[&str], usize, &[&str])] = &[
             ("Brush source", &["brush"], 6, &["zlib", "linux"]),
             // The first-class Flatpak desktop integration stages legitimately
-            // consume glibc outputs, extending this closure from 128 to 141.
-            ("glibc source", &["glibc"], 141, &["linux"]),
-            ("Linux x86_64 config", &["linux"], 14, &["glibc", "brush"]),
+            // consume glibc outputs. The explicit Flatpak proxy and isolated
+            // Store stage and the six independent utility consumers extend
+            // this closure from 141 to 149.
+            ("glibc source", &["glibc"], 149, &["linux"]),
+            ("Linux x86_64 config", &["linux"], 16, &["glibc", "brush"]),
             (
                 "Linux x86_64 UAPI source",
                 &["linux", "glibc", "linux-headers"],
-                142,
+                150,
                 &[],
             ),
             (
                 "GCC source",
                 &["gcc-runtime", "gcc-compiler"],
-                139,
+                147,
                 &["linux", "glibc", "linux-headers"],
             ),
             // Initial Setup now has its real systemd/libinput build edges, so
             // it is part of the legitimate native-library cascade.
-            ("zlib shared library", &["zlib"], 68, &["brush", "linux"]),
+            ("zlib shared library", &["zlib"], 76, &["brush", "linux"]),
             ("package metadata", &["packages"], 5, &["brush", "zlib"]),
             (
                 "repository policy",

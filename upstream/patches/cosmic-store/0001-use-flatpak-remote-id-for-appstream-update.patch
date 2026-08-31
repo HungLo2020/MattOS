@@ -1,0 +1,22 @@
+diff --git a/src/backend/flatpak.rs b/src/backend/flatpak.rs
+--- a/src/backend/flatpak.rs
++++ b/src/backend/flatpak.rs
+@@ -50,7 +50,8 @@
+-            let source_id = match remote.name() {
+-                Some(name) => this.source_id(&name),
+-                None => {
+-                    log::warn!("remote {:?} missing name", remote);
+-                    continue;
+-                }
+-            };
++            let remote_name = match remote.name() {
++                Some(name) => name,
++                None => {
++                    log::warn!("remote {:?} missing name", remote);
++                    continue;
++                }
++            };
++            let source_id = this.source_id(&remote_name);
+@@ -84,1 +84,1 @@
+-                match inst.update_appstream_sync(&source_id, None, Cancellable::NONE) {
++                match inst.update_appstream_sync(&remote_name, None, Cancellable::NONE) {

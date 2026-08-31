@@ -56,7 +56,16 @@ where
     let mut reused_digest = None;
 
     if let Ok(mut manifest) = read_stage_manifest(repo_root, &spec.id) {
-        if can_migrate_narrowed_manifest(repo_root, &evaluation, &manifest)? {
+        // A manifest rekey is safe only when the *published* output still
+        // matches the manifest as well as the narrowed input contract.  The
+        // build-directory stamps used by Autotools, CMake, and Meson are
+        // private implementation state; they may run only after this layer
+        // has already made a real cache-miss decision.  In particular, never
+        // label a changed install tree as a migration and then enter a helper
+        // which has to configure or compile it.
+        if can_migrate_narrowed_manifest(repo_root, &evaluation, &manifest)?
+            && cached_output_miss_reason(repo_root, spec, &manifest)?.is_empty()
+        {
             manifest.inputs = inputs.clone();
             manifest.input_details = evaluation.details.clone();
             write_stage_manifest(repo_root, &manifest)?;
@@ -193,6 +202,19 @@ fn cache_miss_reason(
         }
         return Ok(format!("input digest changed ({})", changed.join(", ")));
     }
+    cached_output_miss_reason(repo_root, spec, manifest)
+}
+
+/// Validate only the published-output half of the cache contract.
+///
+/// This is deliberately shared by the planner and executor.  A migration is
+/// a metadata-only rekey of a proven published artifact; if this check fails,
+/// the stage is a real miss and its private build helper is allowed to run.
+fn cached_output_miss_reason(
+    repo_root: &Path,
+    spec: &StageSpec,
+    manifest: &StageManifest,
+) -> Result<String> {
     let current_inventory = match output_inventory(repo_root, &spec.outputs) {
         Ok(inventory) if !inventory.is_empty() => inventory,
         Ok(_) => return Ok("expected output inventory is empty".to_string()),
@@ -450,7 +472,9 @@ pub(crate) fn explain_stage_impact(repo_root: &Path, spec: &StageSpec) -> Result
             migration_eligible: false,
         });
     }
-    let migration_eligible = can_migrate_narrowed_manifest(repo_root, &evaluation, &manifest)?;
+    let migration_candidate = can_migrate_narrowed_manifest(repo_root, &evaluation, &manifest)?;
+    let output_reusable = cached_output_miss_reason(repo_root, spec, &manifest)?.is_empty();
+    let migration_eligible = migration_candidate && output_reusable;
     if migration_eligible {
         return Ok(StageImpact {
             stage: spec.id.clone(),
@@ -464,8 +488,8 @@ pub(crate) fn explain_stage_impact(repo_root: &Path, spec: &StageSpec) -> Result
             migration_eligible: true,
         });
     }
-    let classification = if migration_eligible {
-        "expected one-time migration"
+    let classification = if migration_candidate && !output_reusable {
+        "published output change"
     } else if manifest.schema_version != STAGE_MANIFEST_SCHEMA_VERSION
         || manifest.input_details.recipe != evaluation.details.recipe
     {
@@ -1099,6 +1123,105 @@ mod tests {
         publish(&upstream, "changed bytes").unwrap();
         run_consumer().unwrap();
         assert_eq!(consumer_runs.get(), 2);
+    }
+
+    #[test]
+    fn changed_published_output_is_a_miss_for_autotools_cmake_and_meson_consumers() {
+        // These names model the three build-helper families.  The stage cache
+        // must make the same decision before any helper can inspect its
+        // private build stamp: a changed published install artifact is a real
+        // miss, never a metadata-only migration.
+        for helper in ["autotools", "cmake", "meson"] {
+            let root = tempfile::tempdir().unwrap();
+            let spec = StageSpec {
+                id: helper.to_string(),
+                source_inputs: Vec::new(),
+                configuration_inputs: Vec::new(),
+                tools: Vec::new(),
+                dependencies: Vec::new(),
+                outputs: vec![format!("out/build/{helper}/install/usr/bin/example").into()],
+                recipe: format!("{helper}-recipe"),
+            };
+            let runs = Cell::new(0);
+            let run = || {
+                execute_cached_stage(
+                    root.path(),
+                    &spec,
+                    || Ok(()),
+                    || {
+                        runs.set(runs.get() + 1);
+                        let output = root.path().join(&spec.outputs[0]);
+                        fs::create_dir_all(output.parent().unwrap())?;
+                        fs::write(output, format!("published run {}", runs.get()))?;
+                        Ok(())
+                    },
+                )
+            };
+
+            run().unwrap();
+            fs::write(root.path().join(&spec.outputs[0]), "modified outside manifest").unwrap();
+
+            let impact = explain_stage_impact(root.path(), &spec).unwrap();
+            assert_eq!(impact.status, "MISS", "{helper}");
+            assert_eq!(impact.classification, "published output change", "{helper}");
+            assert!(!impact.migration_eligible, "{helper}");
+
+            run().unwrap();
+            assert_eq!(runs.get(), 2, "{helper}");
+        }
+    }
+
+    #[test]
+    fn narrowed_input_migration_with_unchanged_output_never_enters_action() {
+        let root = tempfile::tempdir().unwrap();
+        fs::create_dir_all(root.path().join("source/retained")).unwrap();
+        fs::write(root.path().join("source/retained/input"), "same bytes").unwrap();
+        fs::write(root.path().join("source/removed-input"), "also unchanged").unwrap();
+        let old = StageSpec {
+            id: "autotools".to_string(),
+            source_inputs: vec!["source".into()],
+            configuration_inputs: Vec::new(),
+            tools: Vec::new(),
+            dependencies: Vec::new(),
+            outputs: vec!["out/build/autotools/install/usr/bin/example".into()],
+            recipe: "autotools-recipe".to_string(),
+        };
+        let current = StageSpec {
+            source_inputs: vec!["source/retained".into()],
+            ..old.clone()
+        };
+        let runs = Cell::new(0);
+        let run = |spec: &StageSpec| {
+            execute_cached_stage(
+                root.path(),
+                spec,
+                || Ok(()),
+                || {
+                    runs.set(runs.get() + 1);
+                    let output = root.path().join(&spec.outputs[0]);
+                    fs::create_dir_all(output.parent().unwrap())?;
+                    fs::write(output, "published bytes")?;
+                    Ok(())
+                },
+            )
+        };
+
+        run(&old).unwrap();
+        let impact = explain_stage_impact(root.path(), &current).unwrap();
+        assert_eq!(impact.status, "MIGRATE");
+        assert!(impact.migration_eligible);
+        run(&current).unwrap();
+        assert_eq!(runs.get(), 1);
+        assert_eq!(
+            read_stage_manifest(root.path(), "autotools")
+                .unwrap()
+                .inputs
+                .full_digest,
+            compute_stage_evaluation(root.path(), &current)
+                .unwrap()
+                .inputs
+                .full_digest
+        );
     }
 
     #[test]

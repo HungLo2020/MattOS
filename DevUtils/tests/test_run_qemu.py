@@ -13,12 +13,14 @@ import run_qemu
 from common import RepoError, ensure_project_temp_root, mattos_build_environment
 from run_qemu import (
     acceleration_arguments,
+    cleanup_test_control_socket,
     ensure_iso_exists,
     graphical_gpu_device,
     image_build_commands,
     launch_qemu,
     network_arguments,
     prepare_install_disk,
+    test_control_socket,
     uefi_firmware_arguments,
 )
 
@@ -142,6 +144,50 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
             args = type("Args", (), {"no_install_disk": True, "install_disk": None})()
             self.assertIsNone(prepare_install_disk(Path(temporary), args))
 
+    def test_test_control_uses_scoped_qmp_socket_and_removes_stale_socket(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            stale = root / "out/qemu/test-control/qmp.sock"
+            stale.parent.mkdir(parents=True)
+            stale.write_text("stale", encoding="utf-8")
+            args = type(
+                "Args",
+                (),
+                {"test_control": True, "qmp_socket": None, "headless": False, "dry_run": False},
+            )()
+            self.assertEqual(test_control_socket(root, args), stale)
+            self.assertFalse(stale.exists())
+            stale.write_text("created", encoding="utf-8")
+            cleanup_test_control_socket(stale)
+            self.assertFalse(stale.exists())
+
+    def test_test_control_rejects_headless_or_unscoped_socket(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            headless = type(
+                "Args",
+                (),
+                {"test_control": True, "qmp_socket": None, "headless": True, "dry_run": False},
+            )()
+            with self.assertRaises(RepoError):
+                test_control_socket(root, headless)
+            outside = type(
+                "Args",
+                (),
+                {"test_control": True, "qmp_socket": root / "outside.sock", "headless": False, "dry_run": False},
+            )()
+            with self.assertRaises(RepoError):
+                test_control_socket(root, outside)
+
+    def test_qmp_socket_requires_explicit_test_control_mode(self) -> None:
+        args = type(
+            "Args",
+            (),
+            {"test_control": False, "qmp_socket": Path("out/qemu/test-control/qmp.sock"), "headless": False, "dry_run": False},
+        )()
+        with self.assertRaises(RepoError):
+            test_control_socket(Path("/repo"), args)
+
     def test_qemu_command_attaches_install_disk_as_virtio(self) -> None:
         with TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -169,6 +215,8 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
             ), mock.patch(
                 "run_qemu.graphical_gpu_device",
                 return_value="virtio-vga-gl,blob=true,hostmem=256M",
+            ), mock.patch(
+                "run_qemu.choose_graphical_display", return_value="gtk,gl=on"
             ):
                 self.assertEqual(launch_qemu(root, root / "mattos.iso", args), 0)
             command = launched.call_args.args[0]
@@ -178,6 +226,43 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
             self.assertNotIn("-vga", command)
             self.assertIn("qemu-xhci,id=mattos-xhci", command)
             self.assertIn("usb-tablet,bus=mattos-xhci.0", command)
+
+    def test_test_control_adds_qmp_without_changing_normal_qemu_arguments(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            args = type(
+                "Args",
+                (),
+                {
+                    "no_install_disk": True,
+                    "install_disk": None,
+                    "no_network": True,
+                    "serial_console": True,
+                    "dry_run": False,
+                    "headless": False,
+                    "qemu_arg": [],
+                    "memory": 1024,
+                    "cpus": 1,
+                    "test_control": True,
+                    "qmp_socket": None,
+                },
+            )()
+            process = mock.Mock()
+            process.wait.return_value = 0
+            with mock.patch("run_qemu.subprocess.Popen", return_value=process) as launched, mock.patch(
+                "run_qemu.mattos_build_environment", return_value={}
+            ), mock.patch(
+                "run_qemu.graphical_gpu_device",
+                return_value="virtio-vga-gl,blob=true,hostmem=256M",
+            ), mock.patch(
+                "run_qemu.choose_graphical_display", return_value="gtk,gl=on"
+            ):
+                self.assertEqual(launch_qemu(root, root / "mattos.iso", args), 0)
+            command = launched.call_args.args[0]
+            self.assertIn("-qmp", command)
+            self.assertIn("unix:" + str(root / "out/qemu/test-control/qmp.sock") + ",server=on,wait=off", command)
+            self.assertIn("signal=off", command[command.index("-chardev") + 1])
+            self.assertFalse((root / "out/qemu/test-control/qmp.sock").exists())
 
 
 @unittest.skipUnless(

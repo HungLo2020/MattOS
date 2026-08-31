@@ -32,6 +32,9 @@ DEFAULT_VM_CPUS = 4
 VIRTIO_GPU_GL_DEVICE = "virtio-vga-gl,blob=true,hostmem=256M"
 QEMU_TABLET_CONTROLLER = "qemu-xhci,id=mattos-xhci"
 QEMU_TABLET_DEVICE = "usb-tablet,bus=mattos-xhci.0"
+TEST_CONTROL_DIRECTORY_RELATIVE = Path("out/qemu/test-control")
+TEST_CONTROL_QMP_SOCKET_NAME = "qmp.sock"
+TEST_CONTROL_SERIAL_SOCKET_NAME = "serial.sock"
 UEFI_FIRMWARE_CANDIDATES = (
     Path("/usr/share/ovmf/OVMF.fd"),
     Path("/usr/share/qemu/OVMF.fd"),
@@ -73,6 +76,23 @@ def parse_args() -> argparse.Namespace:
         "--headless",
         action="store_true",
         help="omit the graphical GPU and run with serial output (for CI/headless hosts)",
+    )
+    parser.add_argument(
+        "--test-control",
+        action="store_true",
+        help=(
+            "enable the local QMP control socket for graphical development testing; "
+            "use DevUtils/qemu_test_control.py to capture screenshots or inject input"
+        ),
+    )
+    parser.add_argument(
+        "--qmp-socket",
+        type=Path,
+        metavar="PATH",
+        help=(
+            "override the local QMP socket used with --test-control "
+            "(must be inside out/qemu/test-control)"
+        ),
     )
     parser.add_argument(
         "--qemu-arg",
@@ -232,6 +252,68 @@ def image_build_commands(clean: bool) -> List[List[str]]:
     return commands
 
 
+def test_control_paths(repo_root: Path, args: argparse.Namespace) -> tuple[Path, Path] | None:
+    """Prepare QMP and serial sockets used only by explicit graphical tests.
+
+    Keeping the control endpoint under one repository-owned directory makes
+    cleanup deterministic and prevents a command-line path typo from deleting
+    an unrelated host socket. QEMU creates the socket itself once it starts.
+    """
+    if not getattr(args, "test_control", False):
+        if getattr(args, "qmp_socket", None) is not None:
+            raise RepoError("--qmp-socket requires --test-control")
+        return None
+    if args.headless:
+        raise RepoError("--test-control requires a graphical QEMU run, not --headless")
+
+    control_root = (repo_root / TEST_CONTROL_DIRECTORY_RELATIVE).resolve()
+    requested = args.qmp_socket or (control_root / TEST_CONTROL_QMP_SOCKET_NAME)
+    socket_path = requested if requested.is_absolute() else repo_root / requested
+    socket_path = socket_path.resolve()
+    try:
+        socket_path.relative_to(control_root)
+    except ValueError as exc:
+        raise RepoError(f"test-control QMP socket must stay under {control_root}") from exc
+    if socket_path.name == "." or socket_path == control_root:
+        raise RepoError("test-control QMP socket must name a socket file")
+    serial_path = control_root / TEST_CONTROL_SERIAL_SOCKET_NAME
+    if socket_path == serial_path:
+        raise RepoError("test-control QMP and serial sockets must use different paths")
+    if not args.dry_run:
+        socket_path.parent.mkdir(parents=True, exist_ok=True)
+        for path in (socket_path, serial_path):
+            if path.exists() or path.is_symlink():
+                if path.is_dir():
+                    raise RepoError(f"refusing to replace test-control directory: {path}")
+                path.unlink()
+    return socket_path, serial_path
+
+
+def test_control_socket(repo_root: Path, args: argparse.Namespace) -> Path | None:
+    """Compatibility wrapper for tests and callers needing only the QMP path."""
+    paths = test_control_paths(repo_root, args)
+    return paths[0] if paths is not None else None
+
+
+def cleanup_test_control_paths(paths: tuple[Path, Path] | None) -> None:
+    """Remove only the QMP/serial paths selected by ``test_control_paths``."""
+    if paths is None:
+        return
+    for socket_path in paths:
+        try:
+            if socket_path.exists() or socket_path.is_symlink():
+                if socket_path.is_socket() or socket_path.is_symlink() or socket_path.is_file():
+                    socket_path.unlink()
+        except OSError as exc:
+            print(f"[qemu] warning: could not remove test-control socket {socket_path}: {exc}", file=sys.stderr)
+
+
+def cleanup_test_control_socket(socket_path: Path | None) -> None:
+    """Compatibility wrapper that removes one formerly QMP-only socket."""
+    if socket_path is not None:
+        cleanup_test_control_paths((socket_path, socket_path.with_name(".unused")))
+
+
 def prepare_install_disk(repo_root: Path, args: argparse.Namespace) -> Path | None:
     """Return a persistent qcow2 target disk, creating it only when absent."""
     if args.no_install_disk:
@@ -307,13 +389,30 @@ def launch_qemu(repo_root: Path, iso_path: Path, args: argparse.Namespace) -> in
         "-boot",
         "d",
     ]
+    control_paths = test_control_paths(repo_root, args)
+    if control_paths is not None:
+        control_socket, control_serial = control_paths
+        qemu_cmd.extend(["-qmp", f"unix:{control_socket},server=on,wait=off"])
+        qemu_cmd.extend(
+            [
+                "-chardev",
+                f"socket,id=mattos-test-serial,path={control_serial},server=on,wait=off,signal=off",
+                "-serial",
+                "chardev:mattos-test-serial",
+            ]
+        )
+        print(
+            f"[qemu] test control: QMP socket {control_socket} "
+            f"and serial socket {control_serial} (DevUtils/qemu_test_control.py)"
+        )
     if not args.headless:
         # The native COSMIC installer is a DRM/KMS Wayland client session.
-        # `virtio-vga-gl` is deliberately the only display device: unlike
-        # `virtio-gpu-gl-pci` it remains visible to firmware and GRUB, while
-        # also publishing the VirGL capset required by Mesa's source-built
-        # virgl Gallium renderer for GBM/EGL dmabuf scanout.
-        qemu_cmd.extend(["-device", graphical_gpu_device(repo_root)])
+        # Normal graphical runs deliberately use virtio-vga-gl and VirGL.
+        # QEMU cannot expose a screendump surface for that GL display, so the
+        # explicitly opt-in test-control mode uses a conventional VGA surface
+        # that QMP can capture. This does not change normal graphical runs.
+        gpu_device = "virtio-vga" if control_paths is not None else graphical_gpu_device(repo_root)
+        qemu_cmd.extend(["-device", gpu_device])
         # A graphical desktop guest needs an absolute pointer. The default
         # PS/2 mouse is relative-only and did not produce usable pointer
         # motion in the COSMIC KMS session. One USB tablet is sufficient.
@@ -333,18 +432,23 @@ def launch_qemu(repo_root: Path, iso_path: Path, args: argparse.Namespace) -> in
             qemu_cmd.extend(["-display", "default"])
         else:
             qemu_cmd.extend(["-display", display])
-        print(f"[qemu] graphics: {VIRTIO_GPU_GL_DEVICE} with display={display} (VirGL requested)")
-        qemu_cmd.extend(["-serial", "stdio", "-monitor", "none", "-no-reboot", "-no-shutdown"])
+        graphics_label = "virtio-vga with QMP-capturable surface" if control_paths is not None else f"{VIRTIO_GPU_GL_DEVICE} (VirGL requested)"
+        print(f"[qemu] graphics: {graphics_label} with display={display}")
+        if control_paths is None:
+            qemu_cmd.extend(["-serial", "stdio"])
+        qemu_cmd.extend(["-monitor", "none", "-no-reboot", "-no-shutdown"])
     elif args.headless:
         qemu_cmd.extend(["-nographic", "-serial", "stdio", "-monitor", "none", "-no-reboot", "-no-shutdown"])
     else:
-        display = choose_graphical_display(repo_root)
+        display = "gtk,gl=off" if control_paths is not None else choose_graphical_display(repo_root)
         if display == "default":
             qemu_cmd.extend(["-display", "default"])
         else:
             qemu_cmd.extend(["-display", display])
-        print(f"[qemu] graphics: {VIRTIO_GPU_GL_DEVICE} with display={display} (VirGL requested)")
-        qemu_cmd.extend(["-serial", f"file:{logs_dir / 'qemu-serial.log'}"])
+        graphics_label = "virtio-vga with QMP-capturable surface" if control_paths is not None else f"{VIRTIO_GPU_GL_DEVICE} (VirGL requested)"
+        print(f"[qemu] graphics: {graphics_label} with display={display}")
+        if control_paths is None:
+            qemu_cmd.extend(["-serial", f"file:{logs_dir / 'qemu-serial.log'}"])
 
     for extra in args.qemu_arg:
         qemu_cmd.append(extra)
@@ -353,17 +457,22 @@ def launch_qemu(repo_root: Path, iso_path: Path, args: argparse.Namespace) -> in
     if args.dry_run:
         return 0
 
-    proc = subprocess.Popen(qemu_cmd, cwd=str(repo_root), env=mattos_build_environment(repo_root))
+    proc: subprocess.Popen[str] | None = None
     try:
+        proc = subprocess.Popen(qemu_cmd, cwd=str(repo_root), env=mattos_build_environment(repo_root))
         return proc.wait()
     except KeyboardInterrupt:
         print("\nInterrupted, terminating QEMU...")
+        if proc is None:
+            raise
         proc.send_signal(signal.SIGINT)
         try:
             return proc.wait(timeout=5)
         except subprocess.TimeoutExpired:
             proc.terminate()
             return proc.wait(timeout=5)
+    finally:
+        cleanup_test_control_paths(control_paths)
 
 
 def main() -> int:

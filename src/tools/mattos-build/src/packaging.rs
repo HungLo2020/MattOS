@@ -2520,6 +2520,7 @@ fn package_specs() -> Vec<PackageSpec> {
                 "libdbus-1-3",
                 "libzstd1",
                 "gnupg",
+                "polkit",
             ],
             provides: &["flatpak", "libflatpak0"],
             conflicts: &[],
@@ -3696,7 +3697,23 @@ fn package_recipe_revision(package: &str) -> u32 {
         // mount each user's document filesystem; a revision-1 package loses
         // that privileged target contract even though the stage install is
         // otherwise current.
-        "flatpak" => 2,
+        // Flatpak now owns the target-built sandbox executables it configures
+        // Meson to consume.  Bump the package recipe so an older payload that
+        // lacks either executable cannot be reused.
+        // Revision 4 seeds the empty default OSTree repository with the
+        // signed MattOS Flathub policy. This is metadata only: no applications
+        // or runtimes are embedded in the image.
+        // Revision 6 includes the mandatory empty refs/heads and
+        // refs/remotes namespaces in the seeded OSTree repository; libostree
+        // otherwise cannot complete the first system installation.
+        // Revision 8 selects MattOS's administrative `sudo` group for
+        // Flatpak system-helper authorization instead of the upstream
+        // `wheel` default.
+        "flatpak" => 8,
+        // Revision 2 stops copying Flatpak-owned /usr/bin/bwrap into the
+        // portal package. The portal depends on Flatpak for that runtime
+        // helper, leaving a single package owner for the executable.
+        "xdg-desktop-portal" => 2,
         "cosmic-edit" | "mattos-cozy" => 1,
         "libgpg-error0" | "libgcrypt20" | "libassuan9" | "libksba8" | "libnpth0" | "gpgv" => 2,
         _ => 1,
@@ -3915,6 +3932,8 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
                 "libxml2",
                 "libarchive",
                 "libpng",
+                "bubblewrap",
+                "xdg-dbus-proxy",
             ],
             "xwayland" => &[
                 "xwayland",
@@ -3927,12 +3946,7 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
                 "libxkbfile",
                 "xkbcomp",
             ],
-            "xdg-desktop-portal" => &[
-                "xdg-desktop-portal",
-                "bubblewrap",
-                "gstreamer",
-                "gstreamer-base",
-            ],
+            "xdg-desktop-portal" => &["xdg-desktop-portal", "gstreamer", "gstreamer-base"],
             "cosmic-desktop" => &["cosmic-desktop"],
             "cosmic-edit" => &["cosmic-edit"],
             "cosmic-initial-setup" => &["cosmic-initial-setup"],
@@ -3972,7 +3986,13 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
 fn package_source_roots(source_component: &str) -> &'static [&'static str] {
     match source_component {
         "mattos-compat" => &["src/system/compat/mattos-compat"],
-        "MattOS" => &["src/rootfs/skeleton", "src/system/packages/config"],
+        "MattOS" => &[
+            "src/rootfs/skeleton",
+            "src/system/packages/config",
+            // The MattOS filesystem/base-files payload is assembled by this
+            // module; recipe changes must invalidate those package artifacts.
+            "src/tools/mattos-build/src/packaging.rs",
+        ],
         "ca-certificates" => &["src/system/network"],
         "linux" => &["src/kernel/linux"],
         "kernel-modules" => &["src/kernel/linux", "src/kernel/config"],
@@ -4092,6 +4112,8 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
             "src/system/libraries/libxml2",
             "src/system/libraries/libarchive",
             "src/system/libraries/libpng",
+            "src/system/security/bubblewrap",
+            "src/system/packages/xdg-dbus-proxy",
         ],
         "xwayland" => &[
             "src/system/graphics/xwayland",
@@ -4108,7 +4130,6 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
             "src/system/packages/xdg-desktop-portal",
             "src/system/packages/xdg-desktop-portal-gvdb",
             "src/system/packages/xdg-desktop-portal-libglnx",
-            "src/system/security/bubblewrap",
             "src/system/multimedia/gstreamer",
         ],
         "cosmic-comp" => &["src/desktop/cosmic/cosmic-comp"],
@@ -4951,12 +4972,22 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
                 "usr/bin/pkcheck",
                 "usr/lib/polkit-1/polkitd",
                 "usr/lib/polkit-1/polkit-agent-helper-1",
+                "usr/lib/systemd/system/polkit.service",
+                "usr/lib/systemd/system/polkit-agent-helper.socket",
+                "usr/lib/systemd/system/polkit-agent-helper@.service",
+                "usr/lib/sysusers.d/polkit.conf",
+                "usr/lib/tmpfiles.d/polkit-tmpfiles.conf",
                 "usr/lib/x86_64-linux-gnu/libpolkit-agent-1.so",
                 "usr/lib/x86_64-linux-gnu/libpolkit-agent-1.so.0",
                 "usr/lib/x86_64-linux-gnu/libpolkit-agent-1.so.0.0.0",
                 "usr/lib/x86_64-linux-gnu/libpolkit-gobject-1.so",
                 "usr/lib/x86_64-linux-gnu/libpolkit-gobject-1.so.0",
                 "usr/lib/x86_64-linux-gnu/libpolkit-gobject-1.so.0.0.0",
+                "usr/share/dbus-1/system-services/org.freedesktop.PolicyKit1.service",
+                "usr/share/dbus-1/system.d/org.freedesktop.PolicyKit1.conf",
+                "usr/share/polkit-1/actions/org.freedesktop.policykit.policy",
+                "usr/share/polkit-1/polkitd.conf",
+                "usr/share/polkit-1/rules.d/50-default.rules",
             ],
         )?,
         "network-manager" => stage_network_manager(repo_root, &staging)?,
@@ -5925,6 +5956,13 @@ fn stage_base_files(repo_root: &Path, staging: &Path) -> Result<()> {
     for name in ["os-release", "hostname", "profile", "shells"] {
         copy_preserving(&skeleton.join(name), &staging.join("etc").join(name))?;
     }
+    let user_skeleton = skeleton.join("skel");
+    if user_skeleton.is_dir() {
+        // /etc/skel is the single packaged source for defaults inherited by
+        // installed users and explicitly mirrored into the pre-created live
+        // account. Do not leave its contents as unowned rootfs overlay data.
+        copy_tree_preserving(&user_skeleton, &staging.join("etc/skel"))?;
+    }
     copy_preserving(
         &repo_root.join("src/system/packages/config/base-files/environment"),
         &staging.join("etc/environment"),
@@ -6288,6 +6326,8 @@ fn stage_flatpak(repo_root: &Path, staging: &Path) -> Result<()> {
         "libxml2",
         "libarchive",
         "libpng",
+        "bubblewrap",
+        "xdg-dbus-proxy",
         "flatpak",
     ] {
         let install = component_install(repo_root, component);
@@ -6302,12 +6342,119 @@ fn stage_flatpak(repo_root: &Path, staging: &Path) -> Result<()> {
         &repo_root.join("src/system/packages/flatpak/COPYING"),
         &staging.join("usr/share/doc/flatpak/copyright"),
     )?;
+    // MattOS ships Flathub as a distro-owned, signed system remote. Flatpak
+    // imports this descriptor for both system and user installations without
+    // any first-run shell setup or application-specific override policy.
+    copy_preserving(
+        &repo_root.join("src/system/packages/flatpak/resources/flathub.flatpakrepo"),
+        &staging.join("usr/share/flatpak/remotes.d/flathub.flatpakrepo"),
+    )?;
+    stage_flatpak_system_remote(
+        &repo_root.join("src/system/packages/flatpak/resources/flathub.flatpakrepo"),
+        staging,
+    )?;
     // The document portal mounts its per-user document filesystem through
     // libfuse's privileged helper. The source build deliberately avoids
     // setting ownership bits (it runs unprivileged), so establish the target
     // package's documented root-owned setuid contract at package staging.
     set_mode(staging.join("usr/bin/fusermount3"), 0o4755)?;
     Ok(())
+}
+
+/// Seed Flatpak's default system installation from MattOS's signed static
+/// policy. Flatpak normally imports descriptors in `remotes.d` lazily when a
+/// writable OSTree repository is first opened. A fresh live system has no such
+/// repository yet, so a non-root `flatpak remotes` would otherwise show
+/// nothing even though the descriptor is present. This is the same normal
+/// system-remote configuration Flatpak writes when it imports a descriptor,
+/// materialized deterministically while composing the MattOS package.
+///
+/// The repository contains no objects or refs: only the required OSTree
+/// layout, remote configuration, and public verification key derived from the
+/// packaged descriptor. Application and runtime content remains user data.
+fn stage_flatpak_system_remote(descriptor: &Path, staging: &Path) -> Result<()> {
+    let policy = fs::read_to_string(descriptor)
+        .with_context(|| format!("failed to read Flatpak remote policy {}", descriptor.display()))?;
+    let value = |key: &str| -> Result<String> {
+        policy
+            .lines()
+            .find_map(|line| line.strip_prefix(&format!("{key}=")))
+            .map(str::to_owned)
+            .with_context(|| format!("Flatpak remote policy is missing {key}"))
+    };
+    let url = value("Url")?;
+    let title = value("Title")?;
+    let homepage = value("Homepage")?;
+    let comment = value("Comment")?;
+    let description = value("Description")?;
+    let icon = value("Icon")?;
+    let gpg_key = decode_flatpak_base64(&value("GPGKey")?)?;
+    if gpg_key.len() < 10 {
+        bail!("Flatpak remote policy contains an invalid short GPG key");
+    }
+
+    let repo = staging.join("var/lib/flatpak/repo");
+    // libostree requires the remote-ref namespace to exist even before the
+    // first pull.  `flatpak remote-add` creates it as part of repository
+    // initialization; omit it and a later install fails opening
+    // `refs/remotes` after downloading content.
+    for directory in [
+        "objects",
+        "refs",
+        "refs/heads",
+        "refs/remotes",
+        "state",
+        "tmp",
+        "extensions",
+    ] {
+        fs::create_dir_all(repo.join(directory))?;
+    }
+    fs::write(
+        repo.join("config"),
+        format!(
+            "[core]\nrepo_version=1\nmode=bare-user-only\nmin-free-space-size=500MB\nxa.applied-remotes=flathub;\n\n[remote \"flathub\"]\nurl={url}\nxa.title={title}\ngpg-verify=true\ngpg-verify-summary=true\nxa.comment={comment}\nxa.description={description}\nxa.icon={icon}\nxa.homepage={homepage}\n"
+        ),
+    )?;
+    fs::write(repo.join("flathub.trustedkeys.gpg"), gpg_key)?;
+    Ok(())
+}
+
+/// Decode the standard base64 GPG payload in a `.flatpakrepo` without adding a
+/// host tool or an unrelated runtime dependency to package composition.
+fn decode_flatpak_base64(input: &str) -> Result<Vec<u8>> {
+    let mut output = Vec::with_capacity(input.len() * 3 / 4);
+    let mut chunk = [0u8; 4];
+    let mut chunk_len = 0;
+    for byte in input.bytes().filter(|byte| !byte.is_ascii_whitespace()) {
+        chunk[chunk_len] = match byte {
+            b'A'..=b'Z' => byte - b'A',
+            b'a'..=b'z' => byte - b'a' + 26,
+            b'0'..=b'9' => byte - b'0' + 52,
+            b'+' => 62,
+            b'/' => 63,
+            b'=' => 64,
+            _ => bail!("invalid base64 byte {byte:?} in Flatpak remote policy"),
+        };
+        chunk_len += 1;
+        if chunk_len != 4 {
+            continue;
+        }
+        if chunk[0] == 64 || chunk[1] == 64 || (chunk[2] == 64 && chunk[3] != 64) {
+            bail!("invalid base64 padding in Flatpak remote policy");
+        }
+        output.push((chunk[0] << 2) | (chunk[1] >> 4));
+        if chunk[2] != 64 {
+            output.push((chunk[1] << 4) | (chunk[2] >> 2));
+            if chunk[3] != 64 {
+                output.push((chunk[2] << 6) | chunk[3]);
+            }
+        }
+        chunk_len = 0;
+    }
+    if chunk_len != 0 {
+        bail!("incomplete base64 payload in Flatpak remote policy");
+    }
+    Ok(output)
 }
 
 fn copy_component_usr_and_etc(repo_root: &Path, staging: &Path, component: &str) -> Result<()> {
@@ -6341,10 +6488,13 @@ fn stage_xwayland(repo_root: &Path, staging: &Path) -> Result<()> {
 }
 
 fn stage_xdg_desktop_portal(repo_root: &Path, staging: &Path) -> Result<()> {
-    // The generic broker, its content-validation sandbox helper, and the
-    // GStreamer pbutils closure must ship together. The COSMIC backend stays
-    // in cosmic-desktop because it is a separate first-class upstream source.
-    for component in ["bubblewrap", "gstreamer", "gstreamer-base", "xdg-desktop-portal"] {
+    // The generic broker and its GStreamer pbutils closure ship together. The
+    // portal executes Bubblewrap at /usr/bin/bwrap, but Flatpak owns that
+    // target-built executable and is the portal package's declared runtime
+    // dependency. Copying it here would create two Debian package owners for
+    // the same path. The COSMIC backend remains in cosmic-desktop because it
+    // is a separate first-class upstream source.
+    for component in ["gstreamer", "gstreamer-base", "xdg-desktop-portal"] {
         copy_component_usr_and_etc(repo_root, staging, component)?;
     }
     Ok(())
@@ -10593,10 +10743,46 @@ mod tests {
                 "libxml2",
                 "libarchive",
                 "libpng",
+                "bubblewrap",
+                "xdg-dbus-proxy",
             ]
         );
         assert!(package_source_roots("flatpak").contains(&"src/system/packages/flatpak"));
         assert!(package_source_roots("flatpak").contains(&"src/system/packages/ostree"));
+        assert!(package_source_roots("flatpak").contains(&"src/system/security/bubblewrap"));
+        assert!(package_source_roots("flatpak").contains(&"src/system/packages/xdg-dbus-proxy"));
+    }
+
+    #[test]
+    fn portal_package_consumes_flatpak_owned_bubblewrap_without_copying_it() {
+        let specs = package_specs();
+        let portal = specs
+            .iter()
+            .find(|spec| spec.name == "xdg-desktop-portal")
+            .expect("portal package spec");
+        assert!(portal.depends.contains(&"flatpak"));
+        assert_eq!(
+            package_stage_dependencies("xdg-desktop-portal"),
+            ["xdg-desktop-portal", "gstreamer", "gstreamer-base"]
+        );
+        assert!(!package_source_roots("xdg-desktop-portal")
+            .contains(&"src/system/security/bubblewrap"));
+
+        let root = tempfile::tempdir().unwrap();
+        for (component, relative) in [
+            ("bubblewrap", "usr/bin/bwrap"),
+            ("gstreamer", "usr/lib/libgstreamer-1.0.so.0"),
+            ("gstreamer-base", "usr/lib/libgstpbutils-1.0.so.0"),
+            ("xdg-desktop-portal", "usr/libexec/xdg-desktop-portal"),
+        ] {
+            let path = root.path().join("out/build").join(component).join("install").join(relative);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(path, component).unwrap();
+        }
+        let staging = root.path().join("staging");
+        stage_xdg_desktop_portal(root.path(), &staging).unwrap();
+        assert!(!staging.join("usr/bin/bwrap").exists());
+        assert!(staging.join("usr/libexec/xdg-desktop-portal").is_file());
     }
 
     #[test]
@@ -11323,7 +11509,11 @@ mod tests {
         assert_eq!(package_recipe_revision("git"), 2);
         assert_eq!(package_recipe_revision("openssh-server"), 2);
         assert_eq!(package_recipe_revision("libpam-runtime"), 2);
-        assert_eq!(package_recipe_revision("flatpak"), 2);
+        // Flatpak's package payload now includes MattOS's signed Flathub
+        // policy and the minimal initialized OSTree layout used by a fresh
+        // system installation. Keep this fixed recipe-revision expectation
+        // aligned with that intentional payload contract.
+        assert_eq!(package_recipe_revision("flatpak"), 8);
         let ssh_service = include_str!("../../../system/network/openssh/ssh.service");
         assert!(ssh_service.contains("\nType=notify\n"));
         assert!(ssh_service.contains("ExecStart=/usr/sbin/sshd -D"));
@@ -12276,6 +12466,32 @@ mod tests {
         );
     }
 
+    #[test]
+    fn package_staging_cannot_mutate_a_cached_stage_input_tree() {
+        let temp = tempfile::tempdir().unwrap();
+        let source = temp.path().join("cached-stage/install");
+        let staging = temp.path().join("package-staging");
+        let descriptor = source.join("usr/lib/x86_64-linux-gnu/pkgconfig/example.pc");
+        fs::create_dir_all(descriptor.parent().unwrap()).unwrap();
+        fs::write(
+            &descriptor,
+            "prefix=/usr\nlibdir=${prefix}/lib/x86_64-linux-gnu\n",
+        )
+        .unwrap();
+        let before = sha256_file(&descriptor).unwrap();
+
+        copy_tree_preserving(&source, &staging).unwrap();
+        normalize_tree_timestamps(&staging).unwrap();
+        normalize_package_modes(&staging).unwrap();
+
+        assert_eq!(sha256_file(&descriptor).unwrap(), before);
+        assert_eq!(
+            fs::read_to_string(staging.join("usr/lib/x86_64-linux-gnu/pkgconfig/example.pc"))
+                .unwrap(),
+            "prefix=/usr\nlibdir=${prefix}/lib/x86_64-linux-gnu\n"
+        );
+    }
+
     #[cfg(unix)]
     #[test]
     fn package_tree_staging_preserves_hardlink_identity_and_installed_size() {
@@ -12849,6 +13065,41 @@ mod tests {
         assert!(
             validate_package_cache(root, &spec, "1.0-1mattos1", &staging, &artifact, &input,)
                 .is_err()
+        );
+    }
+
+    #[test]
+    fn signed_flatpak_policy_seeds_a_minimal_readable_system_remote() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        let descriptor = root.join("src/system/packages/flatpak/resources/flathub.flatpakrepo");
+        let temporary = tempfile::tempdir().unwrap();
+        stage_flatpak_system_remote(&descriptor, temporary.path()).unwrap();
+
+        let repo = temporary.path().join("var/lib/flatpak/repo");
+        let config = fs::read_to_string(repo.join("config")).unwrap();
+        assert!(config.contains("mode=bare-user-only"));
+        assert!(config.contains("xa.applied-remotes=flathub;"));
+        assert!(config.contains("[remote \"flathub\"]"));
+        assert!(config.contains("url=https://dl.flathub.org/repo/"));
+        assert!(config.contains("gpg-verify=true"));
+        assert!(config.contains("gpg-verify-summary=true"));
+        for directory in [
+            "objects",
+            "refs",
+            "refs/heads",
+            "refs/remotes",
+            "state",
+            "tmp",
+            "extensions",
+        ] {
+            assert!(repo.join(directory).is_dir(), "missing OSTree {directory} directory");
+        }
+        assert!(
+            fs::metadata(repo.join("flathub.trustedkeys.gpg"))
+                .unwrap()
+                .len()
+                > 1_000,
+            "the seeded key must be the decoded full Flathub public key"
         );
     }
 }

@@ -179,11 +179,13 @@ fn cosmic_greeter_environment_exposes_systemd_libudev_metadata_only_through_its_
         .map(|(_, value)| value)
         .unwrap();
     let pkgconfig_dirs = std::env::split_paths(pkgconfig).collect::<Vec<_>>();
-    assert!(
-        pkgconfig_dirs
-            .iter()
-            .any(|path| { path == &systemd_usr.join("lib/x86_64-linux-gnu/pkgconfig") })
-    );
+    let libudev_overlay = pkgconfig_dirs
+        .iter()
+        .find(|path| path.ends_with("systemd/lib"))
+        .expect("systemd libudev metadata must be exposed through its private consumer overlay");
+    assert!(fs::read_to_string(libudev_overlay.join("libudev.pc"))
+        .unwrap()
+        .contains(&format!("prefix={}", systemd_usr.display())));
     assert!(
         systemd_usr
             .join("lib/x86_64-linux-gnu/pkgconfig/libudev.pc")
@@ -235,11 +237,13 @@ fn cosmic_workspaces_environment_exposes_declared_udev_inputs_without_runtime_on
         .map(|(_, value)| value)
         .unwrap();
     let pkgconfig_dirs = std::env::split_paths(pkgconfig).collect::<Vec<_>>();
-    assert!(
-        pkgconfig_dirs
-            .iter()
-            .any(|path| { path == &systemd_usr.join("lib/x86_64-linux-gnu/pkgconfig") })
-    );
+    let libudev_overlay = pkgconfig_dirs
+        .iter()
+        .find(|path| path.ends_with("systemd/lib"))
+        .expect("systemd libudev metadata must be exposed through its private consumer overlay");
+    assert!(fs::read_to_string(libudev_overlay.join("libudev.pc"))
+        .unwrap()
+        .contains(&format!("prefix={}", systemd_usr.display())));
     assert!(
         !pkgconfig_dirs
             .iter()
@@ -279,11 +283,13 @@ fn cosmic_initial_setup_environment_exposes_declared_udev_inputs_without_runtime
         .map(|(_, value)| value)
         .unwrap();
     let pkgconfig_dirs = std::env::split_paths(pkgconfig).collect::<Vec<_>>();
-    assert!(
-        pkgconfig_dirs
-            .iter()
-            .any(|path| { path == &systemd_usr.join("lib/x86_64-linux-gnu/pkgconfig") })
-    );
+    let libudev_overlay = pkgconfig_dirs
+        .iter()
+        .find(|path| path.ends_with("systemd/lib"))
+        .expect("systemd libudev metadata must be exposed through its private consumer overlay");
+    assert!(fs::read_to_string(libudev_overlay.join("libudev.pc"))
+        .unwrap()
+        .contains(&format!("prefix={}", systemd_usr.display())));
     assert!(
         systemd_usr
             .join("lib/x86_64-linux-gnu/pkgconfig/libudev.pc")
