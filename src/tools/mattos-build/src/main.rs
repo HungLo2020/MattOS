@@ -18353,6 +18353,10 @@ fn enforce_auth_file_modes(rootfs: &Path) -> Result<()> {
         // special modes, so the final image establishes the runtime
         // contract explicitly just like the authentication helpers above.
         ("usr/bin/fusermount3", 0o4755),
+        // Flatpak system AppStream and installation authorization uses the
+        // polkit authentication helper, whose upstream contract is setuid
+        // root.  Package/rootfs copying can otherwise reduce it to 0755.
+        ("usr/lib/polkit-1/polkit-agent-helper-1", 0o4755),
     ] {
         let path = rootfs.join(rel);
         if !path.exists() {
@@ -18405,6 +18409,7 @@ fn validate_auth_file_modes(rootfs: &Path) -> Result<()> {
         ("usr/bin/passwd", 0o4755),
         ("usr/bin/sudo", 0o4755),
         ("usr/bin/fusermount3", 0o4755),
+        ("usr/lib/polkit-1/polkit-agent-helper-1", 0o4755),
         ("root", 0o700),
         ("home/mattos", 0o750),
     ] {
@@ -23921,6 +23926,7 @@ mod tests {
             "usr/bin/passwd",
             "usr/bin/sudo",
             "usr/bin/fusermount3",
+            "usr/lib/polkit-1/polkit-agent-helper-1",
         ] {
             write(&root.join(rel), "x\n");
         }
@@ -23970,6 +23976,7 @@ mod tests {
             "usr/bin/passwd",
             "usr/bin/sudo",
             "usr/bin/fusermount3",
+            "usr/lib/polkit-1/polkit-agent-helper-1",
         ] {
             write(&root.join(rel), "x\n");
         }

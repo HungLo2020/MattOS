@@ -4989,7 +4989,13 @@ fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> {
                 "usr/share/polkit-1/polkitd.conf",
                 "usr/share/polkit-1/rules.d/50-default.rules",
             ],
-        )?,
+        )
+        .and_then(|()| {
+            // Flatpak's system AppStream transaction authenticates through
+            // polkit-agent-helper-1. Preserve its upstream setuid-root
+            // contract when copying the runtime subset into the package.
+            set_mode(staging.join("usr/lib/polkit-1/polkit-agent-helper-1"), 0o4755)
+        })?,
         "network-manager" => stage_network_manager(repo_root, &staging)?,
         "mattos-cozy" => stage_cozy(repo_root, &staging)?,
         "libdbus-1-3" => {
@@ -6525,10 +6531,6 @@ fn stage_cosmic_desktop(repo_root: &Path, staging: &Path) -> Result<()> {
         .replace("GDK_BACKEND=wayland,x11", "GDK_BACKEND=wayland")
         .replace("QT_QPA_PLATFORM=\"wayland;xcb\"", "QT_QPA_PLATFORM=wayland")
         .replace(
-            "export DCONF_PROFILE=/usr/share/dconf/profile/cosmic",
-            "export DCONF_PROFILE=/usr/share/dconf/profile/cosmic\n\n# Flatpak exports desktop entries and themed icons outside the standard XDG\n# locations. Make them visible to COSMIC, its launcher, and session helpers.\nflatpak_user_exports=\"${XDG_DATA_HOME:-$HOME/.local/share}/flatpak/exports/share\"\nflatpak_system_exports=\"/var/lib/flatpak/exports/share\"\nexport XDG_DATA_DIRS=\"${flatpak_user_exports}:${flatpak_system_exports}:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}\"",
-        )
-        .replace(
             "XDG_SESSION_TYPE XDG_CURRENT_DESKTOP DCONF_PROFILE SSH_AUTH_SOCK",
             "XDG_SESSION_TYPE XDG_CURRENT_DESKTOP DCONF_PROFILE XDG_DATA_DIRS SSH_AUTH_SOCK",
         )
@@ -6536,6 +6538,29 @@ fn stage_cosmic_desktop(repo_root: &Path, staging: &Path) -> Result<()> {
             "exec /usr/bin/dbus-run-session -- /usr/bin/cosmic-session",
             "exec /usr/bin/dbus-run-session --config-file=/usr/share/dbus-1/mattos-private-session.conf -- /usr/bin/cosmic-session",
         );
+    let flatpak_environment = "# Flatpak exports desktop entries and themed icons outside the standard XDG\n# locations. Make them visible to COSMIC, its launcher, and session helpers.\nflatpak_user_exports=\"${XDG_DATA_HOME:-$HOME/.local/share}/flatpak/exports/share\"\nflatpak_system_exports=\"/var/lib/flatpak/exports/share\"\nexport XDG_DATA_DIRS=\"${flatpak_user_exports}:${flatpak_system_exports}:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}\"";
+    let dconf_anchor = [
+        "export DCONF_PROFILE=/usr/share/dconf/profile/cosmic",
+        "export DCONF_PROFILE=cosmic",
+    ]
+    .into_iter()
+    .find(|anchor| wayland_session.contains(anchor))
+    .ok_or_else(|| anyhow::anyhow!("pinned start-cosmic is missing its DCONF_PROFILE export"))?;
+    let wayland_session = wayland_session.replace(
+        dconf_anchor,
+        &format!("{dconf_anchor}\n\n{flatpak_environment}"),
+    );
+    let rewritten = &wayland_session;
+    for required in [
+        "export XDG_DATA_DIRS=",
+        "flatpak_user_exports=",
+        "flatpak_system_exports=",
+        "systemctl --user import-environment XDG_SESSION_TYPE XDG_CURRENT_DESKTOP DCONF_PROFILE XDG_DATA_DIRS SSH_AUTH_SOCK",
+    ] {
+        if !rewritten.contains(required) {
+            bail!("packaged start-cosmic is missing Flatpak desktop/icon environment: {required}");
+        }
+    }
     fs::write(&start_cosmic, wayland_session)?;
 
     let integration = repo_root.join("src/system/session/cosmic");
@@ -9203,6 +9228,7 @@ fn normalize_package_modes(root: &Path) -> Result<()> {
                     | "usr/bin/login"
                     | "usr/bin/su"
                     | "usr/bin/fusermount3"
+                    | "usr/lib/polkit-1/polkit-agent-helper-1"
             )
         ) {
             0o4755
@@ -10927,6 +10953,7 @@ mod tests {
             "flatpak_system_exports",
             "flatpak/exports/share",
             "XDG_SESSION_TYPE XDG_CURRENT_DESKTOP DCONF_PROFILE XDG_DATA_DIRS SSH_AUTH_SOCK",
+            "export DCONF_PROFILE=cosmic",
         ] {
             assert!(
                 source.contains(required),
@@ -12527,6 +12554,7 @@ mod tests {
             "usr/bin/sudo",
             "usr/bin/login",
             "usr/bin/su",
+            "usr/lib/polkit-1/polkit-agent-helper-1",
         ] {
             fs::create_dir_all(temp.path().join(rel).parent().unwrap()).unwrap();
             fs::write(temp.path().join(rel), "executable").unwrap();
@@ -12540,6 +12568,7 @@ mod tests {
             "usr/bin/sudo",
             "usr/bin/login",
             "usr/bin/su",
+            "usr/lib/polkit-1/polkit-agent-helper-1",
         ] {
             assert_eq!(
                 fs::metadata(temp.path().join(rel))

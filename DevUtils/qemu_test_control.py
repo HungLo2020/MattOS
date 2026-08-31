@@ -8,7 +8,7 @@ while that QEMU process remains alive:
   python3 DevUtils/qemu_test_control.py screenshot out/qemu/test-control/cosmic.ppm
   python3 DevUtils/qemu_test_control.py key ctrl-alt-t
   python3 DevUtils/qemu_test_control.py text 'flatpak --user list'
-  python3 DevUtils/qemu_test_control.py click 640 400 --screen 1280x800
+  python3 DevUtils/qemu_test_control.py click 640 400
   python3 DevUtils/qemu_test_control.py serial 'pgrep -af cosmic-comp'
 
 The QMP protocol is local Unix-socket only. Commands time out by default and
@@ -22,6 +22,7 @@ import json
 import re
 import socket
 import sys
+import tempfile
 import time
 from pathlib import Path
 from typing import Any
@@ -30,7 +31,6 @@ from typing import Any
 DEFAULT_SOCKET = Path("out/qemu/test-control/qmp.sock")
 DEFAULT_SERIAL_SOCKET = Path("out/qemu/test-control/serial.sock")
 QMP_TIMEOUT_SECONDS = 10.0
-ABSOLUTE_AXIS_MAX = 0x7FFF
 
 
 class QmpError(RuntimeError):
@@ -197,21 +197,62 @@ def qcode_events_for_text(value: str) -> list[dict[str, Any]]:
     return events
 
 
+def ppm_dimensions(path: Path) -> tuple[int, int]:
+    """Read the dimensions from a QMP screendump without decoding pixels."""
+    with path.open("rb") as image:
+        magic = image.readline().strip()
+        if magic not in {b"P3", b"P6"}:
+            raise QmpError(f"QMP screendump is not a PPM image: {path}")
+        tokens: list[bytes] = []
+        while len(tokens) < 2:
+            line = image.readline()
+            if not line:
+                raise QmpError(f"QMP screendump has no dimensions: {path}")
+            if line.startswith(b"#"):
+                continue
+            tokens.extend(line.split())
+        try:
+            width, height = int(tokens[0]), int(tokens[1])
+        except ValueError as exc:
+            raise QmpError(f"QMP screendump has invalid dimensions: {path}") from exc
+        if width <= 0 or height <= 0:
+            raise QmpError(f"QMP screendump has non-positive dimensions: {path}")
+        return width, height
+
+
+def display_size(client: QmpClient) -> tuple[int, int]:
+    """Capture a temporary host-side screendump to establish QEMU coordinates."""
+    with tempfile.TemporaryDirectory(prefix="mattos-qmp-") as temporary:
+        path = Path(temporary) / "display.ppm"
+        monitor(client, f"screendump {path}")
+        if not path.is_file():
+            raise QmpError("QEMU did not create a display screendump")
+        return ppm_dimensions(path)
+
+
 def click(client: QmpClient, x: int, y: int, width: int, height: int) -> None:
     if not 0 <= x < width or not 0 <= y < height:
         raise QmpError(f"click ({x}, {y}) is outside {width}x{height}")
-    scaled_x = round(x * ABSOLUTE_AXIS_MAX / max(width - 1, 1))
-    scaled_y = round(y * ABSOLUTE_AXIS_MAX / max(height - 1, 1))
+    # QMP's absolute tablet axes are 0..32767, while screendump coordinates
+    # are pixels. Scale against the dimensions captured from this guest, not
+    # a host/window-size guess. HMP mouse_move is relative and therefore
+    # cannot safely represent a screenshot coordinate.
+    absolute_x = round(x * 32767 / max(width - 1, 1))
+    absolute_y = round(y * 32767 / max(height - 1, 1))
     client.execute(
         "input-send-event",
-        {
-            "events": [
-                {"type": "abs", "data": {"axis": "x", "value": scaled_x}},
-                {"type": "abs", "data": {"axis": "y", "value": scaled_y}},
-                {"type": "btn", "data": {"down": True, "button": "left"}},
-                {"type": "btn", "data": {"down": False, "button": "left"}},
-            ]
-        },
+        {"events": [
+            {"type": "abs", "data": {"axis": "x", "value": absolute_x}},
+            {"type": "abs", "data": {"axis": "y", "value": absolute_y}},
+        ]},
+    )
+    client.execute(
+        "input-send-event",
+        {"events": [{"type": "btn", "data": {"button": "left", "down": True}}]},
+    )
+    client.execute(
+        "input-send-event",
+        {"events": [{"type": "btn", "data": {"button": "left", "down": False}}]},
     )
 
 
@@ -243,7 +284,13 @@ def parse_args() -> argparse.Namespace:
     click_parser = commands.add_parser("click", help="click a display coordinate through the USB tablet")
     click_parser.add_argument("x", type=int)
     click_parser.add_argument("y", type=int)
-    click_parser.add_argument("--screen", type=parse_screen, default=(1280, 800), metavar="WIDTHxHEIGHT")
+    click_parser.add_argument(
+        "--screen",
+        type=parse_screen,
+        default=None,
+        metavar="WIDTHxHEIGHT",
+        help="display size; defaults to the dimensions of a live QMP screendump",
+    )
     serial = commands.add_parser("serial", help="run one command through the existing guest serial shell")
     serial.add_argument("shell_command")
     return parser.parse_args()
@@ -281,7 +328,8 @@ def main() -> int:
         elif args.command == "text":
             client.execute("input-send-event", {"events": qcode_events_for_text(args.text)})
         elif args.command == "click":
-            click(client, args.x, args.y, *args.screen)
+            width, height = args.screen or display_size(client)
+            click(client, args.x, args.y, width, height)
     return 0
 
 
