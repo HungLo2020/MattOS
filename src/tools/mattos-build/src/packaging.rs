@@ -6320,6 +6320,14 @@ fn stage_flatpak(repo_root: &Path, staging: &Path) -> Result<()> {
     // their target-built runtime files as an explicit, closed payload. This
     // is deliberately not a host fallback: every copied tree comes from a
     // declared MattOS build stage and is covered by the package cache input.
+    // Seed the empty remote only before copying the optional bundled app
+    // installation.  When Firefox is provisioned, its complete verified
+    // OSTree repository below replaces this seed; doing this afterward would
+    // silently erase the bundled refs/configuration.
+    stage_flatpak_system_remote(
+        &repo_root.join("src/system/packages/flatpak/resources/flathub.flatpakrepo"),
+        staging,
+    )?;
     for component in [
         "ostree",
         "gpgme",
@@ -6337,7 +6345,7 @@ fn stage_flatpak(repo_root: &Path, staging: &Path) -> Result<()> {
         "flatpak",
     ] {
         let install = component_install(repo_root, component);
-        for top_level in ["usr", "etc"] {
+        for top_level in ["usr", "etc", "var"] {
             let source = install.join(top_level);
             if source.is_dir() {
                 copy_tree_preserving(&source, &staging.join(top_level))?;
@@ -6355,10 +6363,39 @@ fn stage_flatpak(repo_root: &Path, staging: &Path) -> Result<()> {
         &repo_root.join("src/system/packages/flatpak/resources/flathub.flatpakrepo"),
         &staging.join("usr/share/flatpak/remotes.d/flathub.flatpakrepo"),
     )?;
-    stage_flatpak_system_remote(
-        &repo_root.join("src/system/packages/flatpak/resources/flathub.flatpakrepo"),
-        staging,
-    )?;
+    let resources = repo_root.join("src/system/packages/flatpak/resources");
+    for unit in [
+        "mattos-flatpak-system-update.service",
+        "mattos-flatpak-system-update.timer",
+        "mattos-flatpak-user-update.service",
+        "mattos-flatpak-user-update.timer",
+    ] {
+        let destination = if unit.contains("user") {
+            staging.join("usr/lib/systemd/user").join(unit)
+        } else {
+            staging.join("usr/lib/systemd/system").join(unit)
+        };
+        copy_preserving(&resources.join(unit), &destination)?;
+    }
+    for (target, link) in [
+        (
+            "usr/lib/systemd/system/mattos-flatpak-system-update.timer",
+            "etc/systemd/system/timers.target.wants/mattos-flatpak-system-update.timer",
+        ),
+        (
+            "usr/lib/systemd/user/mattos-flatpak-user-update.timer",
+            "etc/systemd/user/timers.target.wants/mattos-flatpak-user-update.timer",
+        ),
+    ] {
+        let link = staging.join(link);
+        if let Some(parent) = link.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        if link.exists() || link.symlink_metadata().is_ok() {
+            fs::remove_file(&link)?;
+        }
+        std::os::unix::fs::symlink(format!("/{target}"), link)?;
+    }
     // The document portal mounts its per-user document filesystem through
     // libfuse's privileged helper. The source build deliberately avoids
     // setting ownership bits (it runs unprivileged), so establish the target
@@ -9147,7 +9184,14 @@ fn validate_staged_runtime_ownership(repo_root: &Path, specs: &[PackageSpec]) ->
                 if let Some(name) = path.file_name().and_then(OsStr::to_str) {
                     owners.entry(name.to_string()).or_insert(spec.name);
                 }
-                if let Some(dynamic) = command_text("readelf", &["-d"], path)? {
+                // Flatpak's bundled OSTree repository is an application/runtime
+                // payload, not part of MattOS's host ELF namespace.  Its object
+                // store legitimately contains copies of libraries such as
+                // libm.so.6; inspecting those objects as package ELF outputs
+                // creates false cross-package SONAME ownership collisions.
+                if !path.starts_with(root.join("var/lib/flatpak"))
+                    && let Some(dynamic) = command_text("readelf", &["-d"], path)?
+                {
                     if let Some(soname) = dynamic_value(&dynamic, "Library soname") {
                         if let Some(owner) = soname_owners.get(&soname) {
                             if *owner != spec.name {
@@ -10777,6 +10821,14 @@ mod tests {
         assert!(package_source_roots("flatpak").contains(&"src/system/packages/ostree"));
         assert!(package_source_roots("flatpak").contains(&"src/system/security/bubblewrap"));
         assert!(package_source_roots("flatpak").contains(&"src/system/packages/xdg-dbus-proxy"));
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        assert!(root
+            .join("src/system/packages/flatpak/resources/firefox.toml")
+            .is_file());
+        assert!(root
+            .join("out/build/flatpak/install/var/lib/flatpak")
+            .to_string_lossy()
+            .ends_with("var/lib/flatpak"));
     }
 
     #[test]

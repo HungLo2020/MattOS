@@ -1,0 +1,6 @@
+schema_version = 1
+app_id = "org.mozilla.firefox"
+branch = "stable"
+remote_name = "flathub"
+remote_url = "https://dl.flathub.org/repo/"
+collection_id = "org.flathub.Stable"

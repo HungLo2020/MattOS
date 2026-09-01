@@ -119,7 +119,14 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::CosmicStorage => & ["src/desktop/cosmic/cosmic-storage"],
         BuildStage::CosmicMonitor => & ["src/desktop/cosmic/cosmic-monitor"],
         BuildStage::CosmicStore => &["src/desktop/cosmic/cosmic-store"],
-        BuildStage::Flatpak => &["src/system/packages/flatpak"],
+        BuildStage::Flatpak => &[
+            "src/system/packages/flatpak",
+            "src/system/packages/flatpak/resources/firefox.toml",
+            "src/system/packages/flatpak/resources/mattos-flatpak-system-update.service",
+            "src/system/packages/flatpak/resources/mattos-flatpak-system-update.timer",
+            "src/system/packages/flatpak/resources/mattos-flatpak-user-update.service",
+            "src/system/packages/flatpak/resources/mattos-flatpak-user-update.timer",
+        ],
         BuildStage::Bubblewrap => &["src/system/security/bubblewrap"],
         BuildStage::XdgDbusProxy => &["src/system/packages/xdg-dbus-proxy"],
         // GStreamer ships core and plugins-base in one immutable upstream
@@ -506,7 +513,9 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
         // Revision 4 packages MattOS's signed Flathub descriptor as Flatpak
         // policy, so only Flatpak/package/image composition is invalidated
         // when that policy changes.
-        BuildStage::Flatpak => 7,
+        // Revision 8 provisions the current Flathub Firefox closure and the
+        // system/user update timers in the Flatpak-owned output.
+        BuildStage::Flatpak => 8,
         // Revision 4 enables the target-owned libcurl fetcher as well as
         // GPGME: Flatpak needs OSTree to verify and download HTTPS remote
         // metadata and commits without host libraries.
@@ -695,7 +704,7 @@ mod tests {
         assert_eq!(recipe_revision(BuildStage::Duktape), 3);
         assert_eq!(recipe_revision(BuildStage::Polkit), 2);
         assert_eq!(recipe_revision(BuildStage::CosmicWorkspaces), 2);
-        assert_eq!(recipe_revision(BuildStage::Flatpak), 7);
+        assert_eq!(recipe_revision(BuildStage::Flatpak), 8);
         assert_eq!(recipe_revision(BuildStage::Ostree), 4);
         assert_eq!(recipe_revision(BuildStage::Curl), 2);
         assert_eq!(recipe_revision(BuildStage::GstreamerBase), 2);
