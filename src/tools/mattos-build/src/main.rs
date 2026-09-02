@@ -42,6 +42,8 @@ const GRUB_SYSTEMD_ENTRY: &str = "menuentry \"Start MattOS Live\"";
 const GRUB_RESCUE_ENTRY: &str = "menuentry \"MattOS Rescue\"";
 const INITRAMFS_ARCHIVE_PATH: &str = "out/build/early-initramfs.cpio.xz";
 const LIVE_ROOT_IMAGE_PATH: &str = "out/build/live-root.squashfs";
+const LIVE_ROOT_SQUASHFS_COMPRESSION: &str = "zstd";
+const LIVE_ROOT_SQUASHFS_LEVEL: &str = "12";
 const INSTALLED_INITRAMFS_PATH: &str = "out/build/installed-initramfs.cpio.xz";
 const FINAL_ISO_PATH: &str = "out/images/mattos-x86_64.iso";
 const ARTIFACT_REPORT_PATH: &str = "out/reports/artifacts.tsv";
@@ -1424,7 +1426,7 @@ fn collect_artifact_records(repo_root: &Path) -> Result<Vec<ArtifactRecord>> {
             repo_root,
             "Live root SquashFS",
             LIVE_ROOT_IMAGE_PATH,
-            "read-only live root",
+            "read-only live root (Zstd level 12)",
         )?,
         artifact_record(
             repo_root,
@@ -3647,7 +3649,7 @@ fn stage_resource_profile(stage: BuildStage) -> scheduler::StageResourceProfile 
         | BuildStage::Rust
         | BuildStage::SudoRs
         | BuildStage::Init
-        // XZ-backed squashfs compression scales cleanly to four workers but
+        // Zstd-backed squashfs compression scales cleanly to four workers but
         // needs the same bounded per-worker memory admission as compilers.
         | BuildStage::LiveRoot => scheduler::StageResourceProfile::memory_heavy(),
         _ => scheduler::StageResourceProfile::standard(),
@@ -3900,6 +3902,7 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
             "out/build/iso".into(),
             "out/images/mattos-x86_64.iso".into(),
             "out/reports/live-image-inventory.tsv".into(),
+            "out/reports/artifacts.tsv".into(),
         ],
         BuildStage::Rootfs => vec!["out/build/rootfs".into()],
         _ => vec![format!("out/build/{}/install", stage_output_directory(stage)).into()],
@@ -19162,7 +19165,9 @@ fn build_live_root_atomic(repo_root: &Path) -> Result<()> {
             path_str(&temp)?,
             "-noappend",
             "-comp",
-            "xz",
+            LIVE_ROOT_SQUASHFS_COMPRESSION,
+            "-Xcompression-level",
+            LIVE_ROOT_SQUASHFS_LEVEL,
             "-b",
             "1M",
             "-processors",
@@ -19188,7 +19193,7 @@ fn build_live_root_atomic(repo_root: &Path) -> Result<()> {
     fs::write(
         reports.join("live-root-inventory.tsv"),
         format!(
-            "artifact\tfilesystem\tregular_files\tuncompressed_regular_bytes\tcompressed_bytes\tordinary_payload_in_early_initramfs\n{}\tsquashfs-xz\t{}\t{}\t{}\t0\n",
+            "artifact\tfilesystem\tregular_files\tuncompressed_regular_bytes\tcompressed_bytes\tordinary_payload_in_early_initramfs\n{}\tsquashfs-zstd-level12\t{}\t{}\t{}\t0\n",
             LIVE_ROOT_IMAGE_PATH, files, uncompressed_bytes, compressed_bytes
         ),
     )?;
@@ -19404,7 +19409,7 @@ fn write_live_image_inventory(
         fs::metadata(&initramfs)?.len()
     ));
     lines.push(format!(
-        "artifact\t{}\t{}\tsquashfs-xz",
+        "artifact\t{}\t{}\tsquashfs-zstd-level12",
         LIVE_ROOT_IMAGE_PATH,
         fs::metadata(&live_root)?.len()
     ));
@@ -19537,7 +19542,10 @@ fn build_iso_atomic(repo_root: &Path) -> Result<()> {
     write_live_image_inventory(repo_root, &image_temp, &report_temp)?;
     performance::atomic_replace_path(&iso_root, &iso_destination)?;
     performance::atomic_replace_path(&image_temp, &image_destination)?;
-    performance::atomic_replace_path(&report_temp, &report_destination)
+    performance::atomic_replace_path(&report_temp, &report_destination)?;
+    // Refresh the report from the image just published so successful builds
+    // cannot leave historical SquashFS/ISO sizes behind.
+    report_artifacts(repo_root)
 }
 
 fn validate_dual_firmware_iso(repo_root: &Path, image: &Path) -> Result<()> {

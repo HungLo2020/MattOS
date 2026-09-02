@@ -469,7 +469,9 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
         BuildStage::Apt => 2,
         BuildStage::Python => 4,
         BuildStage::Llvm => 6,
-        BuildStage::LiveRoot => 1,
+        // Revision 2 selects the measured canonical Zstd level-12 SquashFS
+        // configuration and its corresponding published report.
+        BuildStage::LiveRoot => 2,
         // Revision 5 establishes the pre-created live user's Flatpak data
         // hierarchy through tmpfiles, including correct UID/GID ownership.
         // Revision 4 preserves fuse3's setuid fusermount3 contract after
@@ -709,6 +711,7 @@ mod tests {
         assert_eq!(recipe_revision(BuildStage::Curl), 2);
         assert_eq!(recipe_revision(BuildStage::GstreamerBase), 2);
         assert_eq!(recipe_revision(BuildStage::Rootfs), 5);
+        assert_eq!(recipe_revision(BuildStage::LiveRoot), 2);
     }
 
     #[test]
