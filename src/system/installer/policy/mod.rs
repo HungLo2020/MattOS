@@ -1549,6 +1549,17 @@ fn configure_installed_apt(target: &Path) -> Result<()> {
             bail!("installed APT keyring is missing: /{keyring}");
         }
     }
+    let timer = target.join("usr/lib/systemd/system/mattos-apt-daily.timer");
+    if !timer.is_file() {
+        bail!("installed APT metadata refresh timer is missing: {}", timer.display());
+    }
+    let wants = target.join("etc/systemd/system/timers.target.wants");
+    fs::create_dir_all(&wants)?;
+    let enabled = wants.join("mattos-apt-daily.timer");
+    remove_optional_file(&enabled)?;
+    #[cfg(unix)]
+    std::os::unix::fs::symlink("/usr/lib/systemd/system/mattos-apt-daily.timer", &enabled)
+        .context("enable installed MattOS APT metadata refresh timer")?;
     Ok(())
 }
 
@@ -1993,6 +2004,9 @@ mod tests {
             )
             .unwrap();
         }
+        let timer = target.join("usr/lib/systemd/system/mattos-apt-daily.timer");
+        fs::create_dir_all(timer.parent().unwrap()).unwrap();
+        fs::write(&timer, "[Timer]\\n").unwrap();
 
         configure_installed_apt(target).unwrap();
         let local = fs::read_to_string(target.join("etc/apt/sources.list.d/mattos.sources"))
@@ -2006,6 +2020,8 @@ mod tests {
         assert!(local.contains("Enabled: no"));
         assert!(hosted.contains("Enabled: yes"));
         assert!(debian.contains("Enabled: no"));
+        let enabled = target.join("etc/systemd/system/timers.target.wants/mattos-apt-daily.timer");
+        assert_eq!(fs::read_link(enabled).unwrap(), Path::new("/usr/lib/systemd/system/mattos-apt-daily.timer"));
         assert!(
             fs::read_to_string(target.join("etc/apt/apt.conf.d/01mattos"))
                 .unwrap()

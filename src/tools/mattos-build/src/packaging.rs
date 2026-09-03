@@ -6114,6 +6114,13 @@ fn stage_apt(repo_root: &Path, staging: &Path) -> Result<()> {
             &staging.join("usr/share/keyrings").join(name),
         )?;
     }
+    let resources = repo_root.join("src/system/packages/apt/resources");
+    for unit in ["mattos-apt-daily.service", "mattos-apt-daily.timer"] {
+        copy_preserving(
+            &resources.join(unit),
+            &staging.join("usr/lib/systemd/system").join(unit),
+        )?;
+    }
     for rel in [
         "etc/apt/auth.conf.d",
         "etc/apt/preferences.d",
@@ -6173,6 +6180,10 @@ pub(crate) fn validate_live_apt_policy(rootfs: &Path) -> Result<()> {
         || !keyrings.join("mattos-archive-keyring.asc").is_file()
         || !keyrings.join("debian-archive-keyring.asc").is_file()
         || !rootfs.join("usr/bin/gpgv").is_file()
+        || fs::symlink_metadata(
+            rootfs.join("etc/systemd/system/timers.target.wants/mattos-apt-daily.timer"),
+        )
+        .is_ok()
         || !preferences.contains("Pin-Priority: 990")
     {
         bail!("live APT policy does not enable both local and hosted MattOS repositories")

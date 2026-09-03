@@ -32,6 +32,7 @@ from typing import Any
 DEFAULT_SOCKET = Path("out/qemu/test-control/qmp.sock")
 DEFAULT_SERIAL_SOCKET = Path("out/qemu/test-control/serial.sock")
 QMP_TIMEOUT_SECONDS = 10.0
+SERIAL_PROMPT_WAKEUP = b"\r"
 
 
 class QmpError(RuntimeError):
@@ -126,7 +127,7 @@ def serial_command_stream(
     if timeout <= 0:
         raise QmpError("serial idle timeout must be positive")
     marker = f"__MATTOS_TEST_DONE_{time.monotonic_ns()}__"
-    payload = f"{command}\nprintf '\\n{marker}:%s\\n' \"$?\"\n".encode("utf-8")
+    payload = serial_command_payload(command, marker)
     connect_deadline = time.monotonic() + timeout
     last_progress = time.monotonic()
     last_heartbeat = last_progress
@@ -146,6 +147,11 @@ def serial_command_stream(
                 if time.monotonic() >= connect_deadline:
                     raise QmpError(f"serial socket did not become ready: {socket_path}")
                 time.sleep(0.1)
+        # A socket client may attach after getty has already drawn its prompt;
+        # serial output is not replayed to a new client.  Wake the shell with
+        # the same harmless carriage return an interactive user would press so
+        # it emits a fresh prompt before we submit the requested command.
+        connection.sendall(SERIAL_PROMPT_WAKEUP)
         # Give the automatic-login getty a bounded opportunity to print its
         # shell prompt before emitting the command.
         while time.monotonic() < connect_deadline:
@@ -200,6 +206,18 @@ def serial_command_stream(
                     raise QmpError(f"guest command failed ({marker}:{completed[-1]}):\n{output}")
                 return output
     raise QmpError(f"serial connection closed before command completion: {command!r}")
+
+
+def serial_command_payload(command: str, marker: str) -> bytes:
+    """Encode a shell command for QEMU's raw serial-console chardev.
+
+    The host socket is not a terminal.  Send an explicit carriage return for
+    each shell line so the guest serial line discipline submits it exactly as
+    if the user pressed Enter.  A bare socket newline is not reliable across
+    serial-console configurations.
+    """
+    script = f"{command}\nprintf '\\n{marker}:%s\\n' \"$?\"\n"
+    return script.replace("\n", "\r").encode("utf-8")
 
 
 def serial_command(socket_path: Path, command: str, timeout: float) -> str:

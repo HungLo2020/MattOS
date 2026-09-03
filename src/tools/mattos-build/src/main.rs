@@ -20202,6 +20202,29 @@ mod tests {
     }
 
     #[test]
+    fn installed_apt_metadata_refresh_is_timer_driven_and_never_upgrades() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        let resources = root.join("src/system/packages/apt/resources");
+        let service = std::fs::read_to_string(resources.join("mattos-apt-daily.service")).unwrap();
+        let timer = std::fs::read_to_string(resources.join("mattos-apt-daily.timer")).unwrap();
+        assert!(service.contains("ExecStart=/usr/bin/apt-get update"));
+        for forbidden in ["upgrade", "dist-upgrade", " install"] {
+            assert!(!service.contains(forbidden), "APT metadata service contains {forbidden}");
+        }
+        assert!(service.contains("Wants=network-online.target"));
+        assert!(service.contains("After=network-online.target"));
+        for required in [
+            "OnBootSec=5min",
+            "OnUnitActiveSec=1d",
+            "Persistent=true",
+            "RandomizedDelaySec=30min",
+            "WantedBy=timers.target",
+        ] {
+            assert!(timer.contains(required), "APT metadata timer omits {required}");
+        }
+    }
+
+    #[test]
     fn memory_intensive_toolchain_and_graphics_stages_are_capped() {
         for stage in build_plan(BuildStage::All) {
             let expected = if stage == BuildStage::Libcap {

@@ -54,3 +54,15 @@ class QemuTestControlTests(unittest.TestCase):
             args = control.parse_args()
         self.assertEqual(args.command, "serial")
         self.assertEqual(args.shell_command, "uname -a")
+
+    def test_serial_payload_submits_each_shell_line_with_carriage_return(self) -> None:
+        payload = control.serial_command_payload("printf test", "__DONE__")
+        self.assertTrue(payload.endswith(b"\r"))
+        self.assertNotIn(b"\n", payload)
+        self.assertEqual(payload.count(b"\r"), 2)
+        self.assertIn(b"printf test\rprintf '\\n__DONE__:%s\\n' \"$?\"\r", payload)
+
+    def test_serial_console_wakeup_is_a_harmless_carriage_return(self) -> None:
+        # A fresh socket connection cannot rely on getty replaying an already
+        # rendered prompt, so the stream emits this byte before it reads.
+        self.assertEqual(control.SERIAL_PROMPT_WAKEUP, b"\r")
