@@ -2,7 +2,7 @@
 
 use crate::{
     InstallPlan, InstallProgress, InstalledProfile, RootCredentialPolicy, StoragePlan, engine,
-    render_plan,
+    optional_package, optional_package_defaults, render_plan,
 };
 use anyhow::{Result, bail};
 use std::path::PathBuf;
@@ -23,6 +23,7 @@ pub struct InstallerFrontendModel {
     pub selected_disk: Option<PathBuf>,
     pub storage: StoragePlan,
     pub installed_profile: InstalledProfile,
+    pub optional_packages: Vec<String>,
     pub hostname: String,
     pub full_name: String,
     pub username: String,
@@ -43,6 +44,7 @@ impl InstallerFrontendModel {
             selected_disk: None,
             storage: StoragePlan::guided_btrfs(),
             installed_profile: InstalledProfile::Desktop,
+            optional_packages: optional_package_defaults(InstalledProfile::Desktop),
             hostname: "mattos".into(),
             full_name: "MattOS User".into(),
             username: "mattos".into(),
@@ -74,6 +76,26 @@ impl InstallerFrontendModel {
         Ok(())
     }
 
+    pub fn select_profile(&mut self, profile: InstalledProfile) {
+        self.installed_profile = profile;
+        self.optional_packages = optional_package_defaults(profile);
+        self.state = FrontendState::Planning;
+    }
+
+    pub fn toggle_optional_package(&mut self, id: &str) -> Result<()> {
+        if optional_package(id).is_none() {
+            bail!("unknown optional package {id}");
+        }
+        if let Some(index) = self.optional_packages.iter().position(|selected| selected == id) {
+            self.optional_packages.remove(index);
+        } else {
+            self.optional_packages.push(id.to_owned());
+            self.optional_packages.sort();
+        }
+        self.state = FrontendState::Planning;
+        Ok(())
+    }
+
     pub fn plan(
         &self,
         password_hash: Option<String>,
@@ -87,6 +109,7 @@ impl InstallerFrontendModel {
             target_disk,
             storage: self.storage.clone(),
             installed_profile: self.installed_profile,
+            optional_packages: self.optional_packages.clone(),
             hostname: self.hostname.clone(),
             full_name: self.full_name.clone(),
             username: self.username.clone(),
@@ -137,6 +160,7 @@ mod tests {
             selected_disk: None,
             storage: StoragePlan::guided_btrfs(),
             installed_profile: InstalledProfile::Cli,
+            optional_packages: Vec::new(),
             hostname: "mattos".into(),
             full_name: "Test User".into(),
             administrator: true,
@@ -165,6 +189,7 @@ mod tests {
             selected_disk: None,
             storage: StoragePlan::guided_btrfs(),
             installed_profile: InstalledProfile::Desktop,
+            optional_packages: optional_package_defaults(InstalledProfile::Desktop),
             hostname: "mattos".into(),
             full_name: "Test User".into(),
             administrator: true,
@@ -199,6 +224,7 @@ mod tests {
             selected_disk: None,
             storage: StoragePlan::guided_btrfs(),
             installed_profile: InstalledProfile::Desktop,
+            optional_packages: optional_package_defaults(InstalledProfile::Desktop),
             hostname: "mattos".into(),
             full_name: "Test User".into(),
             username: "tester".into(),
@@ -237,6 +263,7 @@ mod tests {
             selected_disk: Some("/dev/vda".into()),
             storage: StoragePlan::guided_btrfs(),
             installed_profile: InstalledProfile::Desktop,
+            optional_packages: optional_package_defaults(InstalledProfile::Desktop),
             hostname: "mattos".into(),
             full_name: "Test User".into(),
             administrator: false,
@@ -257,5 +284,45 @@ mod tests {
         let rendered = render_plan(&plan).unwrap();
         assert!(!rendered.contains("only-a-hash"));
         assert!(!rendered.contains("password"));
+    }
+
+    #[test]
+    fn graphical_model_defaults_and_persists_explicit_optional_selection() {
+        let mut model = InstallerFrontendModel {
+            disks: Vec::new(),
+            partitions: Vec::new(),
+            selected_disk: Some("/dev/vda".into()),
+            storage: StoragePlan::guided_btrfs(),
+            installed_profile: InstalledProfile::Desktop,
+            optional_packages: optional_package_defaults(InstalledProfile::Desktop),
+            hostname: "mattos".into(),
+            full_name: "Test User".into(),
+            username: "tester".into(),
+            administrator: false,
+            automatic_login: false,
+            locale: "en_US.UTF-8".into(),
+            keyboard_layout: "us".into(),
+            keyboard_variant: String::new(),
+            timezone: "Etc/UTC".into(),
+            state: FrontendState::Planning,
+        };
+        assert_eq!(model.optional_packages, ["firefox"]);
+        model.toggle_optional_package("firefox").unwrap();
+        assert!(model.optional_packages.is_empty());
+        assert!(model
+            .toggle_optional_package("not-in-catalog")
+            .unwrap_err()
+            .to_string()
+            .contains("unknown optional package"));
+        assert!(model
+            .plan(None, RootCredentialPolicy::SameAsUser)
+            .unwrap()
+            .optional_packages
+            .is_empty());
+
+        model.select_profile(InstalledProfile::Cli);
+        assert!(model.optional_packages.is_empty());
+        model.select_profile(InstalledProfile::Desktop);
+        assert_eq!(model.optional_packages, ["firefox"]);
     }
 }

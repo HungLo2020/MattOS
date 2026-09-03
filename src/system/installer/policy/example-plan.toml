@@ -1,7 +1,8 @@
-version = 5
+version = 6
 target_disk = "/dev/vdb"
 storage = { mode = "guided_whole_disk", filesystem = "btrfs", efi = { policy = "create" } }
 installed_profile = "cli"
+optional_packages = []
 hostname = "mattos"
 full_name = "MattOS User"
 username = "matt"

@@ -161,7 +161,10 @@ def parse_args() -> argparse.Namespace:
 
 def network_arguments(disabled: bool) -> List[str]:
     if disabled:
-        return []
+        # Omitting a NIC configuration does not make QEMU offline: QEMU then
+        # creates its default user-mode NIC.  This mode is used for installer
+        # failure-path validation, so explicitly suppress every default NIC.
+        return ["-nic", "none"]
     return ["-netdev", "user,id=net0", "-device", "virtio-net-pci,netdev=net0"]
 
 
@@ -291,15 +294,16 @@ def image_build_commands(clean: bool) -> List[List[str]]:
 
 
 def test_control_paths(repo_root: Path, args: argparse.Namespace) -> tuple[Path, Path] | None:
-    """Prepare QMP and serial sockets used only by explicit graphical tests.
+    """Prepare local control sockets for tests and installed-disk lifecycle checks.
 
     Keeping the control endpoint under one repository-owned directory makes
     cleanup deterministic and prevents a command-line path typo from deleting
     an unrelated host socket. QEMU creates the socket itself once it starts.
     """
-    if not (getattr(args, "test_control", False) or getattr(args, "install", False)):
+    lifecycle_control = getattr(args, "install", False) or getattr(args, "run_installed", False)
+    if not (getattr(args, "test_control", False) or lifecycle_control):
         if getattr(args, "qmp_socket", None) is not None:
-            raise RepoError("--qmp-socket requires --test-control")
+            raise RepoError("--qmp-socket requires --test-control, --install, or --run-installed")
         return None
     if args.headless:
         raise RepoError("--test-control requires a graphical QEMU run, not --headless")
@@ -601,7 +605,13 @@ def _launch_one(
         # QEMU cannot expose a screendump surface for that GL display, so the
         # explicitly opt-in test-control mode uses a conventional VGA surface
         # that QMP can capture. This does not change normal graphical runs.
-        gpu_device = "virtio-vga" if control_paths is not None else graphical_gpu_device(repo_root)
+        # The normal installed-user workflow also gets a private QMP/serial
+        # control channel so the launcher can be validated and shut down
+        # cleanly, but it must retain the real VirGL GPU.  Only the explicit
+        # screenshot/test mode (and the non-user install lifecycle) switches
+        # to the QMP-capturable conventional VGA surface.
+        use_capturable_gpu = getattr(args, "test_control", False) or getattr(args, "install", False)
+        gpu_device = "virtio-vga" if use_capturable_gpu else graphical_gpu_device(repo_root)
         qemu_cmd.extend(["-device", gpu_device])
         # A graphical desktop guest needs an absolute pointer. The default
         # PS/2 mouse is relative-only and did not produce usable pointer
@@ -623,23 +633,30 @@ def _launch_one(
             qemu_cmd.extend(["-display", "default"])
         else:
             qemu_cmd.extend(["-display", display])
-        graphics_label = "virtio-vga with QMP-capturable surface" if control_paths is not None else f"{VIRTIO_GPU_GL_DEVICE} (VirGL requested)"
+        graphics_label = "virtio-vga with QMP-capturable surface" if use_capturable_gpu else f"{VIRTIO_GPU_GL_DEVICE} (VirGL requested)"
         print(f"[qemu] graphics: {graphics_label} with display={display}")
         if control_paths is None:
             qemu_cmd.extend(["-serial", "stdio"])
-        qemu_cmd.extend(["-monitor", "none", "-no-reboot", "-no-shutdown"])
+        qemu_cmd.extend(["-monitor", "none", "-no-reboot"])
+        if lifecycle is None:
+            qemu_cmd.append("-no-shutdown")
     elif args.headless:
-        qemu_cmd.extend(["-nographic", "-serial", "stdio", "-monitor", "none", "-no-reboot", "-no-shutdown"])
+        qemu_cmd.extend(["-nographic", "-serial", "stdio", "-monitor", "none", "-no-reboot"])
+        if lifecycle is None:
+            qemu_cmd.append("-no-shutdown")
     else:
-        display = "gtk,gl=off" if control_paths is not None else choose_graphical_display(repo_root)
+        use_capturable_gpu = getattr(args, "test_control", False) or getattr(args, "install", False)
+        display = "gtk,gl=off" if use_capturable_gpu else choose_graphical_display(repo_root)
         if display == "default":
             qemu_cmd.extend(["-display", "default"])
         else:
             qemu_cmd.extend(["-display", display])
-        graphics_label = "virtio-vga with QMP-capturable surface" if control_paths is not None else f"{VIRTIO_GPU_GL_DEVICE} (VirGL requested)"
+        graphics_label = "virtio-vga with QMP-capturable surface" if use_capturable_gpu else f"{VIRTIO_GPU_GL_DEVICE} (VirGL requested)"
         print(f"[qemu] graphics: {graphics_label} with display={display}")
         if control_paths is None:
             qemu_cmd.extend(["-serial", f"file:{logs_dir / 'qemu-serial.log'}"])
+        if lifecycle is None:
+            qemu_cmd.append("-no-shutdown")
 
     for extra in args.qemu_arg:
         qemu_cmd.append(extra)
@@ -679,9 +696,9 @@ TEST_INSTALL_PASSWORD_HASH = "$6$mattos$gNJjrFx.MYr9CTiHVOBlhO.TEvrlR9qInoPDSU2G
 
 def _test_install_plan() -> str:
     return "\n".join([
-        'version = 5', 'target_disk = "/dev/vda"',
+        'version = 6', 'target_disk = "/dev/vda"',
         'storage = { mode = "guided_whole_disk", filesystem = "btrfs", efi = { policy = "create" } }',
-        'installed_profile = "desktop"', 'hostname = "mattos-test"',
+        'installed_profile = "desktop"', 'optional_packages = ["firefox"]', 'hostname = "mattos-test"',
         'full_name = "MattOS Test User"', 'username = "mattos"',
         f'password_hash = "{TEST_INSTALL_PASSWORD_HASH}"', 'administrator = true',
         'automatic_login = true', 'root_credential = { mode = "same_as_user" }',
@@ -749,35 +766,36 @@ def _verify_installed_disk_boot(
     verification_args.headless = False
     output_path = install_task_log(repo_root).with_name("installed-test-boot.log")
     output_path.write_text("MattOS installed-disk boot verification log\n", encoding="utf-8")
-    # Do not use ``set -e`` here.  The serial protocol appends its completion
-    # marker after this command; an early shell exit turns one failed assertion
-    # into an opaque serial timeout.  Each probe is instead reported by name,
-    # and the final non-zero status still makes the validation fail closed.
+    # The QEMU serial backend is a UART, not a bulk shell-command transport.
+    # A previous verifier injected every assertion as one multi-kilobyte
+    # terminal line; its echo could be truncated before the shell received a
+    # newline, leaving the VM healthy but the launcher waiting forever.  Keep
+    # each assertion independently framed and short.  This does not weaken
+    # verification: every check still has to exit zero, but it makes the
+    # transport contract explicit and lets the log identify the failed probe.
+    #
+    # The ESP is mounted after the installed initramfs has already handed
+    # control to the mounted root.  The authoritative proof of its fallback
+    # loader/config is therefore the observed UEFI -> GRUB boot, while the
+    # installed root-side GRUB configuration is directly inspectable here.
     checks = (
-        "failed=0; "
-        "check() { name=$1; shift; if \"$@\"; then echo \"[installed-check] PASS $name\"; "
-        "else rc=$?; echo \"[installed-check] FAIL $name rc=$rc\"; failed=1; fi; }; "
-        "check not-live test ! -e /run/mattos-live; "
-        "check profile-file test -f /etc/mattos-installed-profile; "
-        "check profile-value sh -c 'test \"$(cat /etc/mattos-installed-profile)\" = desktop'; "
-        "check hostname sh -c 'test \"$(cat /etc/hostname)\" = mattos-test'; "
-        "check user id mattos; "
-        "check uefi test -d /sys/firmware/efi; "
-        "check efi-partition test -b /dev/vda1; check root-partition test -b /dev/vda2; "
-        "check kernel test -f /boot/vmlinuz; check initramfs test -f /boot/installed-initramfs.cpio.xz; "
-        # The ESP is mounted after the installed initramfs has already handed
-        # control to the mounted root.  The authoritative proof of its
-        # fallback loader/config is therefore the observed UEFI -> GRUB boot,
-        # while the installed root-side GRUB configuration is directly
-        # inspectable here.  Do not assume the ESP's on-disk case/layout in
-        # this post-boot check: FAT's presentation is implementation-defined.
-        "check grub-config test -f /boot/grub/grub.cfg; "
-        "check grub-menu grep -q \"menuentry 'MattOS'\" /boot/grub/grub.cfg; "
-        "check root-mount findmnt -no SOURCE /; check efi-mount findmnt -no SOURCE /boot/efi; "
-        "check gpt lsblk -no PTTYPE /dev/vda; "
-        "check graphical-target systemctl is-active graphical.target; "
-        "check mattos-repository grep -q '^Enabled: yes' /etc/apt/sources.list.d/mattos-hosted.sources; "
-        "test \"$failed\" -eq 0"
+        ("not-live", "test ! -e /run/mattos-live"),
+        ("profile-file", "test -f /etc/mattos-installed-profile"),
+        ("profile-value", "test \"$(cat /etc/mattos-installed-profile)\" = desktop"),
+        ("hostname", "test \"$(cat /etc/hostname)\" = mattos-test"),
+        ("user", "id mattos"),
+        ("uefi", "test -d /sys/firmware/efi"),
+        ("efi-partition", "test -b /dev/vda1"),
+        ("root-partition", "test -b /dev/vda2"),
+        ("kernel", "test -f /boot/vmlinuz"),
+        ("initramfs", "test -f /boot/installed-initramfs.cpio.xz"),
+        ("grub-config", "test -f /boot/grub/grub.cfg"),
+        ("grub-menu", "grep -q \"menuentry 'MattOS'\" /boot/grub/grub.cfg"),
+        ("root-mount", "findmnt -no SOURCE /"),
+        ("efi-mount", "findmnt -no SOURCE /boot/efi"),
+        ("gpt", "lsblk -no PTTYPE /dev/vda"),
+        ("graphical-target", "systemctl is-active graphical.target"),
+        ("mattos-repository", "grep -q '^Enabled: yes' /etc/apt/sources.list.d/mattos-hosted.sources"),
     )
     result: dict[str, object] = {}
 
@@ -789,13 +807,17 @@ def _verify_installed_disk_boot(
             with output_path.open("a", encoding="utf-8") as log:
                 log.write(chunk)
 
-        output = serial_command_stream(
-            control_paths[1].resolve(),
-            checks,
-            INSTALL_BOOT_IDLE_SECONDS,
-            on_output=stream,
-        )
-        result.update({"uefi_grub_boot": True, "serial_checks": output})
+        completed_checks: list[str] = []
+        for name, command in checks:
+            output = serial_command_stream(
+                control_paths[1].resolve(),
+                command,
+                INSTALL_BOOT_IDLE_SECONDS,
+                on_output=stream,
+            )
+            stream(f"[installed-check] PASS {name}\n")
+            completed_checks.append(output)
+        result.update({"uefi_grub_boot": True, "serial_checks": "".join(completed_checks)})
 
     exit_code = _launch_one(
         repo_root,

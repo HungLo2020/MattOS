@@ -5,6 +5,7 @@ use clap::{Parser, Subcommand};
 use mattos_installer::{
     Choice, EncryptionPolicy, Filesystem, GuidedEfi, InstallPlan, InstalledProfile, PLAN_VERSION,
     PartitionAction, PartitionOperation, RootCredentialPolicy, RootFilesystem, StoragePlan,
+    optional_package_catalog, optional_package_defaults,
     discover_keyboard_layouts, discover_locales, discover_timezones, engine, execute, render_plan,
 };
 use std::io::{self, Write};
@@ -73,6 +74,20 @@ fn guided_install() -> Result<()> {
         "desktop" => InstalledProfile::Desktop,
         _ => bail!("profile must be cli or desktop"),
     };
+    let defaults = optional_package_defaults(profile);
+    let mut optional_packages = Vec::new();
+    for package in optional_package_catalog() {
+        let selected_by_default = defaults.iter().any(|id| id == package.id);
+        if prompt_yes_no(
+            &format!(
+                "Install optional {} via Flatpak (requires Internet; failure will not stop MattOS installation)",
+                package.display_name
+            ),
+            selected_by_default,
+        )? {
+            optional_packages.push(package.id.to_owned());
+        }
+    }
     let mut user_password = prompt_password("User password")?.into_bytes();
     let confirmation = prompt_password("Confirm user password")?;
     if String::from_utf8_lossy(&user_password) != confirmation {
@@ -139,6 +154,7 @@ fn guided_install() -> Result<()> {
         target_disk,
         storage,
         installed_profile: profile,
+        optional_packages,
         full_name: prompt("Full name")?,
         username: prompt("Username")?,
         hostname: prompt("Computer name")?,

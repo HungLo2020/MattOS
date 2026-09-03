@@ -16,6 +16,7 @@ use mattos_installer::{
     Choice, EncryptionPolicy, Filesystem, GuidedEfi, InstallProgress, InstallStage,
     InstalledProfile, KeyboardLayout, PartitionAction, PartitionOperation, RootCredentialPolicy,
     RootFilesystem, StoragePlan, discover_keyboard_layouts, discover_locales, discover_timezones,
+    optional_package_catalog,
     engine, execute_with_progress, render_storage_plan,
 };
 
@@ -24,6 +25,7 @@ enum Page {
     Welcome,
     Locale,
     Profile,
+    OptionalPackages,
     Disk,
     Storage,
     Account,
@@ -39,6 +41,7 @@ enum Message {
     Back,
     SelectDisk(usize),
     SelectProfile(InstalledProfile),
+    ToggleOptionalPackage(String),
     FullName(String),
     Hostname(String),
     Username(String),
@@ -122,7 +125,8 @@ impl InstallerApp {
         self.page = match self.page {
             Page::Welcome => Page::Locale,
             Page::Locale => Page::Profile,
-            Page::Profile => Page::Disk,
+            Page::Profile => Page::OptionalPackages,
+            Page::OptionalPackages => Page::Disk,
             Page::Disk => {
                 if self.model.selected_disk.is_some() {
                     Page::Storage
@@ -163,7 +167,8 @@ impl InstallerApp {
         self.page = match self.page {
             Page::Locale => Page::Welcome,
             Page::Profile => Page::Locale,
-            Page::Disk => Page::Profile,
+            Page::Disk => Page::OptionalPackages,
+            Page::OptionalPackages => Page::Profile,
             Page::Storage => Page::Disk,
             Page::Account => Page::Storage,
             Page::Review => Page::Account,
@@ -457,6 +462,25 @@ impl InstallerApp {
                 .push(widget::text::title2("Choose the installed MattOS profile"))
                 .push(profile_card("MattOS Desktop", "Graphical MattOS environment using COSMIC.", self.model.installed_profile == InstalledProfile::Desktop, InstalledProfile::Desktop))
                 .push(profile_card("MattOS CLI", "Non-graphical MattOS base.", self.model.installed_profile == InstalledProfile::Cli, InstalledProfile::Cli)).into(),
+            Page::OptionalPackages => {
+                let mut content = widget::column::with_capacity(optional_package_catalog().len() + 3)
+                    .spacing(12)
+                    .width(Length::Fill)
+                    .push(widget::text::title2("Optional packages"))
+                    .push(wrapped_body("Selected third-party applications are downloaded from their normal remotes into the installed system. They require Internet access; a download failure is reported but never prevents MattOS itself from installing."));
+                for package in optional_package_catalog() {
+                    let selected = self.model.optional_packages.iter().any(|id| id == package.id);
+                    content = content.push(
+                        widget::button::standard(if selected {
+                            format!("{} — selected", package.display_name)
+                        } else {
+                            format!("{} — not selected", package.display_name)
+                        })
+                        .on_press(Message::ToggleOptionalPackage(package.id.to_owned())),
+                    );
+                }
+                content.into()
+            }
             Page::Disk => {
                 let mut content = widget::column::with_capacity(self.model.disks.len() + 3).spacing(12).width(Length::Fill)
                     .push(widget::text::title2("Select a target disk"))
@@ -493,6 +517,8 @@ impl InstallerApp {
                     .push(wrapped_body(disk_description))
                     .push(widget::text::heading("Installation"))
                     .push(wrapped_body(format!("Full name: {}. Username: {}. Computer: {}. Account type: {}. Automatic login: {}. Root: {}.", self.model.full_name, self.model.username, self.model.hostname, if self.model.administrator { "Administrator" } else { "Standard user" }, if self.model.automatic_login { "Enabled" } else { "Disabled" }, if self.separate_root { "separate password configured" } else { "uses the user password" })))
+                    .push(widget::text::heading("Optional packages"))
+                    .push(wrapped_body(if self.model.optional_packages.is_empty() { "None selected.".to_owned() } else { self.model.optional_packages.join(", ") }))
                     .push(widget::text::heading("Region and input"))
                     .push(wrapped_body(format!("Locale: {}. Keyboard: {}. Variant: {}. Timezone: {}.", self.model.locale, self.model.keyboard_layout, if self.model.keyboard_variant.is_empty() { "Default" } else { &self.model.keyboard_variant }, self.model.timezone)))
                     .push(widget::text::heading("Boot and filesystem"))
@@ -694,7 +720,12 @@ impl Application for InstallerApp {
                     self.fail(error.to_string());
                 }
             }
-            Message::SelectProfile(profile) => self.model.installed_profile = profile,
+            Message::SelectProfile(profile) => self.model.select_profile(profile),
+            Message::ToggleOptionalPackage(id) => {
+                if let Err(error) = self.model.toggle_optional_package(&id) {
+                    self.fail(error.to_string());
+                }
+            }
             Message::FullName(value) => self.model.full_name = value,
             Message::Hostname(value) => self.model.hostname = value,
             Message::Username(value) => self.model.username = value,

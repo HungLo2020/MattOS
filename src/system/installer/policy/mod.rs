@@ -6,8 +6,9 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::os::unix::fs::{FileTypeExt, PermissionsExt};
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
-pub const PLAN_VERSION: u32 = 5;
+pub const PLAN_VERSION: u32 = 6;
 pub const MINIMUM_DISK_BYTES: u64 = 8 * 1024 * 1024 * 1024;
 pub const EFI_MIB: u64 = 512;
 pub const LIVE_SOURCE: &str = "/run/mattos/lower";
@@ -122,6 +123,53 @@ struct ResolvedStorage {
 pub enum InstalledProfile {
     Cli,
     Desktop,
+}
+
+/// Declarative installer-owned application metadata. The catalog is the only
+/// place that knows which optional applications MattOS offers; the engine
+/// consumes every entry uniformly.
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum OptionalPackageBackend {
+    Flatpak,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct OptionalPackage {
+    pub id: &'static str,
+    pub display_name: &'static str,
+    pub backend: OptionalPackageBackend,
+    pub flatpak_remote: &'static str,
+    pub flatpak_app_id: &'static str,
+    pub default_profiles: &'static [InstalledProfile],
+    pub failure_is_nonfatal: bool,
+}
+
+const DESKTOP_PROFILE: &[InstalledProfile] = &[InstalledProfile::Desktop];
+const OPTIONAL_PACKAGE_CATALOG: &[OptionalPackage] = &[OptionalPackage {
+    id: "firefox",
+    display_name: "Firefox",
+    backend: OptionalPackageBackend::Flatpak,
+    flatpak_remote: "flathub",
+    flatpak_app_id: "org.mozilla.firefox",
+    default_profiles: DESKTOP_PROFILE,
+    failure_is_nonfatal: true,
+}];
+
+pub fn optional_package_catalog() -> &'static [OptionalPackage] {
+    OPTIONAL_PACKAGE_CATALOG
+}
+
+pub fn optional_package_defaults(profile: InstalledProfile) -> Vec<String> {
+    OPTIONAL_PACKAGE_CATALOG
+        .iter()
+        .filter(|package| package.default_profiles.contains(&profile))
+        .map(|package| package.id.to_owned())
+        .collect()
+}
+
+pub fn optional_package(id: &str) -> Option<&'static OptionalPackage> {
+    OPTIONAL_PACKAGE_CATALOG.iter().find(|package| package.id == id)
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -400,6 +448,10 @@ pub struct InstallPlan {
     pub target_disk: PathBuf,
     pub storage: StoragePlan,
     pub installed_profile: InstalledProfile,
+    /// Explicit selected IDs from [`optional_package_catalog`]. Missing from
+    /// legacy plans means no optional applications, preserving their intent.
+    #[serde(default)]
+    pub optional_packages: Vec<String>,
     pub hostname: String,
     pub full_name: String,
     pub username: String,
@@ -439,6 +491,15 @@ impl InstallPlan {
             bail!("target_disk must be an explicit absolute /dev path");
         }
         self.storage.validate(&self.target_disk)?;
+        let mut selected = std::collections::BTreeSet::new();
+        for id in &self.optional_packages {
+            if !selected.insert(id) {
+                bail!("optional package {id} is selected more than once");
+            }
+            if optional_package(id).is_none() {
+                bail!("unknown optional package {id}");
+            }
+        }
         validate_identifier(&self.hostname, "hostname")?;
         validate_identifier(&self.username, "username")?;
         if self.username == "root" {
@@ -531,9 +592,14 @@ pub fn render_plan(plan: &InstallPlan) -> Result<String> {
     plan.validate_policy()?;
     let storage = render_storage_plan(&plan.storage, &plan.target_disk)?;
     Ok(format!(
-        "MattOS install plan\n  target: {}\n{storage}  profile: {:?}\n  locale: {}\n  keyboard: {} ({})\n  timezone: {}\n  hostname: {}\n  full name: {}\n  user: {}\n  account type: {}\n  automatic login: {}\n  root credential: {}\n",
+        "MattOS install plan\n  target: {}\n{storage}  profile: {:?}\n  optional packages: {}\n  locale: {}\n  keyboard: {} ({})\n  timezone: {}\n  hostname: {}\n  full name: {}\n  user: {}\n  account type: {}\n  automatic login: {}\n  root credential: {}\n",
         plan.target_disk.display(),
         plan.installed_profile,
+        if plan.optional_packages.is_empty() {
+            "none".to_owned()
+        } else {
+            plan.optional_packages.join(", ")
+        },
         plan.locale,
         plan.keyboard_layout,
         if plan.keyboard_variant.is_empty() {
@@ -1391,7 +1457,151 @@ where
         },
     )?;
     configure_installed_profile(plan, target)?;
+    provision_optional_packages(plan, target, progress)?;
     Ok(())
+}
+
+/// Best-effort third-party application provisioning happens only after the
+/// deployed target has its normal Flatpak remote and installed-system policy.
+/// Each catalog entry is isolated: a network or transaction failure is logged
+/// for the user but never invalidates the completed MattOS installation.
+fn provision_optional_packages<F>(
+    plan: &InstallPlan,
+    target: &Path,
+    progress: &mut F,
+) -> Result<()>
+where
+    F: FnMut(InstallProgress),
+{
+    if plan.optional_packages.is_empty() {
+        return Ok(());
+    }
+    let log_path = target.join("var/log/mattos-installer-optional-packages.log");
+    if let Some(parent) = log_path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    for id in &plan.optional_packages {
+        let package = optional_package(id).expect("validated optional package ID");
+        progress(InstallProgress::new(
+            InstallStage::ConfiguringSystem,
+            7,
+            format!(
+                "Installing optional application {} (network required; failures are nonfatal)",
+                package.display_name
+            ),
+        ));
+    }
+    let results = provision_optional_packages_with(plan, |package| {
+        let output = match package.backend {
+            OptionalPackageBackend::Flatpak => Command::new("/usr/bin/timeout")
+                .args(["--signal=TERM", "12m", "/usr/libexec/mattos-flatpak-target-install"])
+                .args(flatpak_target_install_arguments(target, package)?)
+                .output()
+                .context("run target-rooted Flatpak install from live environment"),
+        }?;
+        if output.status.success() {
+            Ok(())
+        } else {
+            bail!(
+                "exit {}\nstdout:\n{}\nstderr:\n{}",
+                output.status,
+                String::from_utf8_lossy(&output.stdout),
+                String::from_utf8_lossy(&output.stderr),
+            )
+        }
+    });
+    let mut log = "MattOS optional package provisioning\n".to_owned();
+    for result in results {
+        match &result.outcome {
+            OptionalPackageProvisionOutcome::Installed => {
+                log.push_str(&format!("installed {} ({})\n", result.package.id, result.package.flatpak_app_id));
+                progress(InstallProgress::new(
+                    InstallStage::ConfiguringSystem,
+                    7,
+                    format!("Installed optional application {}", result.package.display_name),
+                ));
+            }
+            OptionalPackageProvisionOutcome::Failed(error) => {
+                // The target log is retained for a successful installation,
+                // but emit the complete transaction failure as well so a
+                // serial-driven installer run cannot lose the actionable
+                // Flatpak/OSTree stderr if later verification fails.
+                eprintln!(
+                    "mattos-install: optional application {} ({}) failed:\n{error}",
+                    result.package.display_name, result.package.flatpak_app_id,
+                );
+                log.push_str(&format!(
+                    "failed {} ({}); continuing installation\n{error}\n",
+                    result.package.id, result.package.flatpak_app_id,
+                ));
+                progress(InstallProgress::new(
+                    InstallStage::ConfiguringSystem,
+                    7,
+                    format!(
+                        "Could not install optional application {}; MattOS installation will continue",
+                        result.package.display_name
+                    ),
+                ));
+            }
+        }
+    }
+    fs::write(log_path, log)?;
+    Ok(())
+}
+
+#[derive(Debug, Eq, PartialEq)]
+enum OptionalPackageProvisionOutcome {
+    Installed,
+    Failed(String),
+}
+
+#[derive(Debug)]
+struct OptionalPackageProvisionResult {
+    package: &'static OptionalPackage,
+    outcome: OptionalPackageProvisionOutcome,
+}
+
+/// Execute every selected catalog entry independently.  The caller supplies
+/// the backend transaction so this policy stays testable without a target
+/// root or a network, while preserving the rule that one failed application
+/// never aborts the completed operating-system installation.
+fn provision_optional_packages_with<R>(
+    plan: &InstallPlan,
+    mut provision: R,
+) -> Vec<OptionalPackageProvisionResult>
+where
+    R: FnMut(&OptionalPackage) -> Result<()>,
+{
+    plan.optional_packages
+        .iter()
+        .map(|id| {
+            let package = optional_package(id).expect("validated optional package ID");
+            let outcome = match provision(package) {
+                Ok(()) => OptionalPackageProvisionOutcome::Installed,
+                Err(error) => OptionalPackageProvisionOutcome::Failed(format!("{error:#}")),
+            };
+            OptionalPackageProvisionResult { package, outcome }
+        })
+        .collect()
+}
+
+/// Arguments for the target-rooted Flatpak helper. The helper runs in the
+/// booted live environment, but opens only the mounted target's system
+/// installation, preserving a normal `flathub` origin on the deployed app.
+fn flatpak_target_install_arguments(target: &Path, package: &OptionalPackage) -> Result<Vec<String>> {
+    let target = target
+        .to_str()
+        .context("optional Flatpak target path is not valid UTF-8")?;
+    match package.backend {
+        OptionalPackageBackend::Flatpak => Ok(vec![
+            "--target-root".to_owned(),
+            target.to_owned(),
+            "--remote".to_owned(),
+            package.flatpak_remote.to_owned(),
+            "--app".to_owned(),
+            package.flatpak_app_id.to_owned(),
+        ]),
+    }
 }
 
 fn normalize_systemd_unit_permissions(target: &Path) -> Result<()> {
@@ -1930,6 +2140,7 @@ mod tests {
             target_disk: disk.into(),
             storage: StoragePlan::guided_btrfs(),
             installed_profile: profile,
+            optional_packages: optional_package_defaults(profile),
             hostname: "mattos-test".into(),
             full_name: "MattOS Test User".into(),
             username: "mattos-user".into(),
@@ -2514,5 +2725,90 @@ mod tests {
         assert!(config.contains("[initial_session]"));
         assert!(config.contains("command = \"/usr/bin/start-cosmic\""));
         assert!(config.contains(&format!("user = \"{}\"", candidate.username)));
+    }
+
+    #[test]
+    fn optional_catalog_defaults_firefox_only_for_desktop() {
+        let firefox = optional_package("firefox").expect("Firefox catalog entry");
+        assert_eq!(firefox.display_name, "Firefox");
+        assert_eq!(firefox.backend, OptionalPackageBackend::Flatpak);
+        assert_eq!(firefox.flatpak_remote, "flathub");
+        assert_eq!(firefox.flatpak_app_id, "org.mozilla.firefox");
+        assert!(firefox.failure_is_nonfatal);
+        assert_eq!(optional_package_defaults(InstalledProfile::Desktop), ["firefox"]);
+        assert!(optional_package_defaults(InstalledProfile::Cli).is_empty());
+    }
+
+    #[test]
+    fn optional_package_selection_is_explicit_and_fail_closed() {
+        let mut candidate = plan("/dev/vda", InstalledProfile::Desktop);
+        candidate.optional_packages = Vec::new();
+        candidate.validate_policy().unwrap();
+
+        candidate.optional_packages = vec!["not-in-catalog".into()];
+        assert!(candidate
+            .validate_policy()
+            .unwrap_err()
+            .to_string()
+            .contains("unknown optional package"));
+
+        candidate.optional_packages = vec!["firefox".into(), "firefox".into()];
+        assert!(candidate
+            .validate_policy()
+            .unwrap_err()
+            .to_string()
+            .contains("selected more than once"));
+    }
+
+    #[test]
+    fn optional_provisioning_attempts_all_entries_after_a_failure() {
+        let mut candidate = plan("/dev/vda", InstalledProfile::Desktop);
+        candidate.optional_packages = vec!["firefox".into(), "firefox".into()];
+        // The public plan rejects duplicate IDs.  This focused executor test
+        // deliberately models two catalog transactions to prove an earlier
+        // failure cannot abort a later independent application.
+        let calls = std::cell::Cell::new(0usize);
+        let results = provision_optional_packages_with(&candidate, |_| {
+            let current = calls.get();
+            calls.set(current + 1);
+            if current == 0 {
+                bail!("simulated unreachable remote")
+            }
+            Ok(())
+        });
+        assert_eq!(calls.get(), 2);
+        assert!(matches!(
+            results[0].outcome,
+            OptionalPackageProvisionOutcome::Failed(ref error) if error.contains("unreachable remote")
+        ));
+        assert_eq!(results[1].outcome, OptionalPackageProvisionOutcome::Installed);
+    }
+
+    #[test]
+    fn optional_flatpak_transaction_uses_a_target_rooted_live_helper() {
+        let firefox = optional_package("firefox").unwrap();
+        assert_eq!(
+            flatpak_target_install_arguments(Path::new("/run/mattos-installer/target"), firefox)
+                .unwrap(),
+            vec![
+                "--target-root",
+                "/run/mattos-installer/target",
+                "--remote",
+                "flathub",
+                "--app",
+                "org.mozilla.firefox",
+            ]
+        );
+    }
+
+    #[test]
+    fn optional_flatpak_helper_never_receives_a_chroot_or_live_resolver_path() {
+        let args = flatpak_target_install_arguments(
+            Path::new("/run/mattos-installer/target"),
+            optional_package("firefox").unwrap(),
+        )
+        .unwrap();
+        assert!(!args.iter().any(|arg| arg == "chroot" || arg.contains("resolv.conf")));
+        assert!(args.iter().any(|arg| arg == "--target-root"));
     }
 }

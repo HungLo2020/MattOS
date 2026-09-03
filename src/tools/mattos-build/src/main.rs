@@ -3828,6 +3828,7 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::Flatpak => vec![
             "out/build/flatpak/install/usr/bin/flatpak".into(),
             "out/build/flatpak/install/usr/lib/x86_64-linux-gnu/libflatpak.so.0".into(),
+            "out/build/flatpak/install/usr/libexec/mattos-flatpak-target-install".into(),
         ],
         BuildStage::Bubblewrap => vec!["out/build/bubblewrap/install/usr/bin/bwrap".into()],
         BuildStage::XdgDbusProxy => {
@@ -11849,6 +11850,84 @@ fn build_flatpak(repo_root: &Path) -> Result<()> {
         "usr/bin/flatpak",
         &[],
     )?;
+    build_flatpak_target_install_helper(repo_root)?;
+    Ok(())
+}
+
+/// Build the MattOS-owned installer helper against the target-built
+/// libflatpak shipped in the Flatpak package. It opens an explicit target
+/// installation while running in the booted live system, never in a chroot.
+fn build_flatpak_target_install_helper(repo_root: &Path) -> Result<()> {
+    let source = repo_root.join("src/system/installer/flatpak-target-install.c");
+    if !source.is_file() {
+        bail!("missing MattOS Flatpak target-install helper {}", source.display());
+    }
+    let install = repo_root.join("out/build/flatpak/install");
+    let output = install.join("usr/libexec/mattos-flatpak-target-install");
+    if let Some(parent) = output.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    let compiler = repo_root.join("out/build/gcc-toolchain/install/usr/bin/gcc");
+    let sysroot = repo_root.join("out/sysroot");
+    let libc_search = format!("-B{}/usr/lib/x86_64-linux-gnu/", sysroot.display());
+    let gcc_search = format!(
+        "-B{}/usr/lib/x86_64-linux-gnu/gcc/x86_64-pc-linux-gnu/15.3.0/",
+        sysroot.display()
+    );
+    let flatpak_usr = install.join("usr");
+    let flatpak_lib = flatpak_usr.join("lib/x86_64-linux-gnu");
+    let glib_usr = repo_root.join("out/build/glib/install/usr");
+    let glib_lib = glib_usr.join("lib/x86_64-linux-gnu");
+    let ostree_usr = repo_root.join("out/build/ostree/install/usr");
+    let gcc_runtime_lib = repo_root.join("out/build/gcc-runtime/install/usr/lib/lib64");
+    let args = vec![
+        format!("--sysroot={}", sysroot.display()),
+        libc_search,
+        gcc_search,
+        "-std=c11".to_string(),
+        "-O2".to_string(),
+        "-fno-ident".to_string(),
+        format!("-ffile-prefix-map={}=/usr/src/mattos", repo_root.display()),
+        format!("-fdebug-prefix-map={}=/usr/src/mattos", repo_root.display()),
+        format!("-fmacro-prefix-map={}=/usr/src/mattos", repo_root.display()),
+        format!("-I{}", flatpak_usr.join("include").display()),
+        format!("-I{}", flatpak_usr.join("include/flatpak").display()),
+        format!("-I{}", glib_usr.join("include/glib-2.0").display()),
+        format!("-I{}", glib_lib.join("glib-2.0/include").display()),
+        format!("-I{}", ostree_usr.join("include/ostree-1").display()),
+        format!("-L{}", flatpak_lib.display()),
+        format!("-L{}", glib_lib.display()),
+        format!("-L{}", gcc_runtime_lib.display()),
+        format!("-Wl,-rpath-link,{}", flatpak_lib.display()),
+        format!("-Wl,-rpath-link,{}", glib_lib.display()),
+        format!("-Wl,-rpath-link,{}", gcc_runtime_lib.display()),
+        format!("-Wl,-rpath-link,{}", ostree_usr.join("lib/x86_64-linux-gnu").display()),
+        path_str(&source)?.to_owned(),
+        "-Wl,--no-as-needed".to_string(),
+        "-lflatpak".to_string(),
+        "-lgio-2.0".to_string(),
+        "-lgobject-2.0".to_string(),
+        "-lglib-2.0".to_string(),
+        "-Wl,--as-needed".to_string(),
+        "-o".to_string(),
+        path_str(&output)?.to_owned(),
+    ];
+    let args_ref = args.iter().map(String::as_str).collect::<Vec<_>>();
+    let environment = staged_library_environment(
+        repo_root,
+        &[
+            "flatpak", "glib", "libffi", "zlib", "xz", "curl", "openssl", "libcap",
+            "libarchive", "libxml2", "fuse3", "ostree", "systemd", "dbus", "gpgv",
+            "zstd", "wayland", "xkbcommon", "libpng", "libbsd", "libassuan",
+            "libgcrypt", "libgpg-error", "libksba", "json-glib", "appstream",
+            "gdk-pixbuf", "gpgme", "polkit", "bubblewrap", "xdg-dbus-proxy",
+        ],
+    )?;
+    run_cmd_with_env_overrides(repo_root, path_str(&compiler)?, &args_ref, &environment)?;
+    set_mode(output.clone(), 0o755)?;
+    if !output.is_file() {
+        bail!("Flatpak target-install helper was not produced at {}", output.display());
+    }
     Ok(())
 }
 
@@ -20199,6 +20278,37 @@ mod tests {
                 assert!(body.contains("--assumeyes"));
             }
         }
+    }
+
+    #[test]
+    fn flatpak_stage_publishes_the_target_rooted_installer_helper() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        let helper = std::fs::read_to_string(
+            root.join("src/system/installer/flatpak-target-install.c"),
+        )
+        .unwrap();
+        for required in [
+            "flatpak_installation_new_for_path",
+            "flatpak_transaction_new_for_installation",
+            "flatpak_transaction_add_install",
+            "flatpak_transaction_run",
+            "var", "lib", "flatpak",
+        ] {
+            assert!(helper.contains(required), "target-install helper omits {required}");
+        }
+        for forbidden in ["/usr/bin/chroot", "resolv.conf", "FLATPAK_SYSTEM_DIR"] {
+            assert!(
+                !helper.contains(forbidden),
+                "target-install helper must not depend on {forbidden}"
+            );
+        }
+        assert!(
+            build_stage_spec(BuildStage::Flatpak)
+                .outputs
+                .iter()
+                .any(|output| output.ends_with("usr/libexec/mattos-flatpak-target-install")),
+            "Flatpak stage must publish the helper in its verified output contract"
+        );
     }
 
     #[test]

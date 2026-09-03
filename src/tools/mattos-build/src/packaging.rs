@@ -3708,8 +3708,10 @@ fn package_recipe_revision(package: &str) -> u32 {
         // otherwise cannot complete the first system installation.
         // Revision 8 selects MattOS's administrative `sudo` group for
         // Flatpak system-helper authorization instead of the upstream
-        // `wheel` default.
-        "flatpak" => 8,
+        // `wheel` default. Revision 9 ships the target-rooted optional
+        // install helper, which uses the live libflatpak runtime and writes
+        // only the mounted target installation.
+        "flatpak" => 9,
         // Revision 2 stops copying Flatpak-owned /usr/bin/bwrap into the
         // portal package. The portal depends on Flatpak for that runtime
         // helper, leaving a single package owner for the executable.
@@ -4101,6 +4103,7 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         ],
         "flatpak" => &[
             "src/system/packages/flatpak",
+            "src/system/installer/flatpak-target-install.c",
             "src/system/packages/ostree",
             "src/system/security/gpgme",
             "src/system/libraries/gdk-pixbuf",
@@ -6335,9 +6338,8 @@ fn stage_flatpak(repo_root: &Path, staging: &Path) -> Result<()> {
     // their target-built runtime files as an explicit, closed payload. This
     // is deliberately not a host fallback: every copied tree comes from a
     // declared MattOS build stage and is covered by the package cache input.
-    // Seed the empty remote only before copying the optional bundled app
-    // installation. Firefox is maintained as an independent native .deb and
-    // is not part of Flatpak's installed repository.
+    // Seed only the configured remote. Optional applications are installed
+    // into the target later by the installer and are never package payload.
     stage_flatpak_system_remote(
         &repo_root.join("src/system/packages/flatpak/resources/flathub.flatpakrepo"),
         staging,
@@ -6366,6 +6368,10 @@ fn stage_flatpak(repo_root: &Path, staging: &Path) -> Result<()> {
             }
         }
     }
+    copy_preserving(
+        &repo_root.join("out/build/flatpak/install/usr/libexec/mattos-flatpak-target-install"),
+        &staging.join("usr/libexec/mattos-flatpak-target-install"),
+    )?;
     copy_preserving(
         &repo_root.join("src/system/packages/flatpak/COPYING"),
         &staging.join("usr/share/doc/flatpak/copyright"),
@@ -10835,6 +10841,10 @@ mod tests {
         assert!(package_source_roots("flatpak").contains(&"src/system/packages/ostree"));
         assert!(package_source_roots("flatpak").contains(&"src/system/security/bubblewrap"));
         assert!(package_source_roots("flatpak").contains(&"src/system/packages/xdg-dbus-proxy"));
+        assert!(
+            package_source_roots("flatpak")
+                .contains(&"src/system/installer/flatpak-target-install.c")
+        );
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
         assert!(!root
             .join("src/system/packages/flatpak/resources")
@@ -11607,11 +11617,10 @@ mod tests {
         assert_eq!(package_recipe_revision("git"), 2);
         assert_eq!(package_recipe_revision("openssh-server"), 2);
         assert_eq!(package_recipe_revision("libpam-runtime"), 2);
-        // Flatpak's package payload now includes MattOS's signed Flathub
-        // policy and the minimal initialized OSTree layout used by a fresh
-        // system installation. Keep this fixed recipe-revision expectation
-        // aligned with that intentional payload contract.
-        assert_eq!(package_recipe_revision("flatpak"), 8);
+        // Flatpak's package payload includes MattOS's signed Flathub policy,
+        // a minimal initialized OSTree layout, and the target-rooted optional
+        // install helper. Keep this expectation aligned with that contract.
+        assert_eq!(package_recipe_revision("flatpak"), 9);
         let ssh_service = include_str!("../../../system/network/openssh/ssh.service");
         assert!(ssh_service.contains("\nType=notify\n"));
         assert!(ssh_service.contains("ExecStart=/usr/sbin/sshd -D"));

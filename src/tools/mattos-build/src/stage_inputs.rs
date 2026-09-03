@@ -121,6 +121,7 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::CosmicStore => &["src/desktop/cosmic/cosmic-store"],
         BuildStage::Flatpak => &[
             "src/system/packages/flatpak",
+            "src/system/installer/flatpak-target-install.c",
             "src/system/packages/flatpak/resources/mattos-flatpak-system-update.service",
             "src/system/packages/flatpak/resources/mattos-flatpak-system-update.timer",
             "src/system/packages/flatpak/resources/mattos-flatpak-user-update.service",

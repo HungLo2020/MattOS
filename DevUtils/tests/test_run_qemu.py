@@ -66,8 +66,8 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
             ["-netdev", "user,id=net0", "-device", "virtio-net-pci,netdev=net0"],
         )
 
-    def test_no_network_omits_all_network_arguments(self) -> None:
-        self.assertEqual(network_arguments(True), [])
+    def test_no_network_explicitly_disables_qemu_default_networking(self) -> None:
+        self.assertEqual(network_arguments(True), ["-nic", "none"])
 
     def test_qemu_uses_ovmf_for_the_installed_efi_boot_path(self) -> None:
         with TemporaryDirectory() as temporary:
@@ -256,6 +256,22 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
             self.assertIn("order=c", command)
             self.assertNotIn("media=cdrom", " ".join(command))
             self.assertIn(f"file={disk.resolve()},if=virtio,format=qcow2", command)
+            self.assertIn("-qmp", command)
+            self.assertIn("virtio-vga-gl,blob=true,hostmem=256M", command)
+
+    def test_run_installed_keeps_normal_virgl_while_exposing_scoped_shutdown_control(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            args = type(
+                "Args", (), {
+                    "install": False, "run_installed": True, "test_control": False,
+                    "qmp_socket": None, "headless": False, "dry_run": False,
+                },
+            )()
+            qmp, serial = run_qemu.test_control_paths(root, args)
+            self.assertEqual(qmp, root / "out/qemu/test-control/qmp.sock")
+            self.assertEqual(serial, root / "out/qemu/test-control/serial.sock")
+            run_qemu.cleanup_test_control_paths((qmp, serial))
 
     def test_test_control_uses_scoped_qmp_socket_and_removes_stale_socket(self) -> None:
         with TemporaryDirectory() as temporary:

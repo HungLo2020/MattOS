@@ -33,6 +33,13 @@ DEFAULT_SOCKET = Path("out/qemu/test-control/qmp.sock")
 DEFAULT_SERIAL_SOCKET = Path("out/qemu/test-control/serial.sock")
 QMP_TIMEOUT_SECONDS = 10.0
 SERIAL_PROMPT_WAKEUP = b"\r"
+GRUB_PROMPT = b"grub>"
+LIVE_USERSPACE_SIGNATURES = (b"systemd[", b"MattOS Live Environment", b"login:")
+# Brush emits OSC shell-integration records immediately before its prompt, so
+# a live prompt is not necessarily preceded by a terminal newline.  The fresh
+# marker probe below is the actual proof that this is a shell; this expression
+# only decides when it is safe to send that harmless probe.
+SHELL_PROMPT = re.compile(rb"[^\r\n]{1,240}[$#] ?(?:\r?\n|\r|$)")
 
 
 class QmpError(RuntimeError):
@@ -108,6 +115,115 @@ def wait_for_socket(socket_path: Path, timeout: float) -> None:
     raise QmpError(f"QMP socket did not become ready within {timeout:g}s: {socket_path}")
 
 
+def serial_console_is_grub(output: bytes) -> bool:
+    """Return whether the serial stream is owned by the GRUB command shell."""
+    return GRUB_PROMPT in output.lower()
+
+
+def serial_console_has_shell_prompt(output: bytes) -> bool:
+    """Recognize a POSIX shell prompt, never a boot-loader prompt."""
+    return SHELL_PROMPT.search(output) is not None
+
+
+def shell_probe_payload(marker: str) -> bytes:
+    """Return a harmless, unique command used to prove a live shell owns serial."""
+    return f"printf '\\n{marker}\\n'\r".encode("utf-8")
+
+
+def shell_probe_satisfied(output: bytes, marker: str) -> bool:
+    """Accept only the probe command's output frame, never its terminal echo.
+
+    A serial console echoes the literal ``printf '\\nMARKER\\n'`` before the
+    shell has executed it.  Treating that echo as readiness lets the next
+    command be injected while the shell still owns the probe input.  Require
+    real serial line boundaries, which the printf output has and the escaped
+    command echo does not.
+    """
+    marker_bytes = marker.encode("utf-8")
+    return re.search(
+        rb"(?:\r\n|\n|\r)" + re.escape(marker_bytes) + rb"(?:\r\n|\n|\r)",
+        output,
+    ) is not None
+
+
+def wait_for_live_shell(
+    connection: socket.socket,
+    timeout: float,
+    *,
+    on_output: Callable[[str], None] | None = None,
+) -> None:
+    """Wait for, then positively probe, the MattOS userspace serial shell.
+
+    QMP being reachable says only that QEMU has started.  In particular, OVMF
+    and GRUB can own the same serial device before Linux starts.  This function
+    normally waits for userspace output before sending input.  A serial socket
+    can also be attached after boot, however, in which case QEMU has no boot
+    transcript to replay.  After a short *silent-attach* interval this function
+    sends exactly one harmless carriage return to redraw the current console.
+    It immediately rejects a resulting ``grub>`` prompt and still requires a
+    fresh unique shell-probe response before callers can submit a real command.
+    Thus an installer plan is never typed at a boot-loader prompt.
+    """
+    if timeout <= 0:
+        raise QmpError("serial shell-readiness timeout must be positive")
+    deadline = time.monotonic() + timeout
+    received = bytearray()
+    saw_userspace = False
+    wake_sent = False
+    # A late client sees no historical serial output.  Do not wait for the
+    # caller's full command timeout before asking the current console to redraw
+    # its prompt, but leave enough time for an in-progress boot to emit normal
+    # userspace evidence first.
+    silent_attach_wakeup = time.monotonic() + min(0.25, max(timeout / 4, 0.01))
+
+    def emit(chunk: bytes) -> None:
+        if on_output is not None:
+            on_output(chunk.decode("utf-8", errors="replace"))
+
+    while time.monotonic() < deadline:
+        try:
+            chunk = connection.recv(4096)
+        except TimeoutError:
+            if not wake_sent and (saw_userspace or time.monotonic() >= silent_attach_wakeup):
+                # This is never a workload command: it only redraws whichever
+                # console owns serial.  A boot-loader response is explicitly
+                # rejected below, and the unique shell probe remains mandatory
+                # before the caller's actual command is submitted.
+                connection.sendall(SERIAL_PROMPT_WAKEUP)
+                wake_sent = True
+            continue
+        if not chunk:
+            raise QmpError("serial connection closed before MattOS userspace shell became ready")
+        received.extend(chunk)
+        emit(chunk)
+        if serial_console_is_grub(received):
+            raise QmpError(
+                "GRUB owns the serial console; refusing to submit MattOS shell commands. "
+                "The guest did not auto-boot into userspace."
+            )
+        saw_userspace = saw_userspace or any(signature in received for signature in LIVE_USERSPACE_SIGNATURES)
+        if not serial_console_has_shell_prompt(received):
+            continue
+
+        marker = f"__MATTOS_LIVE_SHELL_{time.monotonic_ns()}__"
+        connection.sendall(shell_probe_payload(marker))
+        while time.monotonic() < deadline:
+            try:
+                probe_chunk = connection.recv(4096)
+            except TimeoutError:
+                continue
+            if not probe_chunk:
+                raise QmpError("serial connection closed while verifying the MattOS shell")
+            received.extend(probe_chunk)
+            emit(probe_chunk)
+            if serial_console_is_grub(received):
+                raise QmpError("GRUB took ownership of serial while verifying the MattOS shell")
+            if shell_probe_satisfied(received, marker):
+                return
+        raise QmpError("MattOS shell prompt did not answer its unique readiness probe")
+    raise QmpError("MattOS userspace shell did not become ready before the readiness deadline")
+
+
 def serial_command_stream(
     socket_path: Path,
     command: str,
@@ -147,26 +263,8 @@ def serial_command_stream(
                 if time.monotonic() >= connect_deadline:
                     raise QmpError(f"serial socket did not become ready: {socket_path}")
                 time.sleep(0.1)
-        # A socket client may attach after getty has already drawn its prompt;
-        # serial output is not replayed to a new client.  Wake the shell with
-        # the same harmless carriage return an interactive user would press so
-        # it emits a fresh prompt before we submit the requested command.
-        connection.sendall(SERIAL_PROMPT_WAKEUP)
-        # Give the automatic-login getty a bounded opportunity to print its
-        # shell prompt before emitting the command.
-        while time.monotonic() < connect_deadline:
-            try:
-                chunk = connection.recv(4096)
-            except TimeoutError:
-                break
-            if not chunk:
-                break
-            received.extend(chunk)
-            emit(chunk)
-            if b"$ " in received:
-                break
+        wait_for_live_shell(connection, timeout, on_output=on_output)
         connection.sendall(payload)
-        encoded_marker = marker.encode("utf-8")
         while True:
             try:
                 chunk = connection.recv(4096)
@@ -194,16 +292,11 @@ def serial_command_stream(
             received.extend(chunk)
             emit(chunk)
             last_progress = time.monotonic()
-            if encoded_marker in received:
+            exit_code = completion_exit_code(received, marker)
+            if exit_code is not None:
                 output = received.decode("utf-8", errors="replace")
-                completed = re.findall(rf"{re.escape(marker)}:(-?\d+)", output)
-                # The terminal echoes the printf command before it executes;
-                # only a marker followed by a numeric exit status is proof
-                # that the guest shell finished the requested command.
-                if not completed:
-                    continue
-                if completed[-1] != "0":
-                    raise QmpError(f"guest command failed ({marker}:{completed[-1]}):\n{output}")
+                if exit_code != 0:
+                    raise QmpError(f"guest command failed ({marker}:{exit_code}):\n{output}")
                 return output
     raise QmpError(f"serial connection closed before command completion: {command!r}")
 
@@ -212,12 +305,29 @@ def serial_command_payload(command: str, marker: str) -> bytes:
     """Encode a shell command for QEMU's raw serial-console chardev.
 
     The host socket is not a terminal.  Send an explicit carriage return for
-    each shell line so the guest serial line discipline submits it exactly as
-    if the user pressed Enter.  A bare socket newline is not reliable across
-    serial-console configurations.
+    one complete shell compound command with a CRLF submit sequence.  The
+    completion frame must not be queued as a second input line: a long-running
+    program can otherwise read it from stdin before the interactive shell gets
+    it, leaving the host waiting forever for a marker that was never printed.
+    A bare socket newline is not reliable across serial-console configurations.
     """
-    script = f"{command}\nprintf '\\n{marker}:%s\\n' \"$?\"\n"
-    return script.replace("\n", "\r").encode("utf-8")
+    script = f"( {command} ); rc=$?; printf '\\n{marker}:%s\\n' \"$rc\""
+    # Some QEMU serial backends display a lone CR but do not reliably submit
+    # it to the guest line discipline under load.  CRLF is the terminal's
+    # canonical Enter sequence; the trailing LF is only an empty shell line.
+    return (script + "\r\n").encode("utf-8")
+
+
+def completion_exit_code(output: bytes, marker: str) -> int | None:
+    """Return the exact command completion frame's exit status, if present.
+
+    The token is fresh per command, so text echoed from a previous command or
+    a prompt cannot satisfy this parser.  The explicit numeric suffix keeps an
+    echoed wrapper from looking like completion.  ``\r``, ``\n``, and prompt
+    text around the frame are intentionally irrelevant.
+    """
+    match = re.search(re.escape(marker.encode("utf-8")) + rb":(-?\d+)(?:\r\n|\n|\r|$)", output)
+    return int(match.group(1)) if match is not None else None
 
 
 def serial_command(socket_path: Path, command: str, timeout: float) -> str:
