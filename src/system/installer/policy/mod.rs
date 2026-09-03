@@ -1527,7 +1527,11 @@ fn configure_installed_apt(target: &Path) -> Result<()> {
         || !local.contains("file:/usr/share/mattos/repository")
         || !hosted.contains("Enabled: yes")
         || !hosted.contains("https://packages.mattsherfey.com")
-        || !debian.contains("Enabled: yes")
+        // MattOS's installed native policy deliberately exposes only the
+        // signed hosted MattOS repository. Debian repositories are retained
+        // as documented templates for explicit future policy decisions, but
+        // they must not silently become part of normal installed APT state.
+        || !debian.contains("Enabled: no")
         || !debian.contains("Suites: trixie trixie-updates")
         || !debian.contains("Suites: trixie-security")
         || !preferences.contains("Pin-Priority: 990")
@@ -1961,7 +1965,7 @@ mod tests {
     }
 
     #[test]
-    fn installed_apt_transition_disables_local_and_enables_signed_remotes() {
+    fn installed_apt_transition_disables_local_and_debian_but_enables_signed_mattos() {
         let target = tempfile::tempdir().unwrap();
         let target = target.path();
         let template_root = target.join("usr/share/mattos/apt/installed");
@@ -1996,8 +2000,12 @@ mod tests {
         let hosted =
             fs::read_to_string(target.join("etc/apt/sources.list.d/mattos-hosted.sources"))
                 .unwrap();
+        let debian =
+            fs::read_to_string(target.join("etc/apt/sources.list.d/debian-trixie.sources"))
+                .unwrap();
         assert!(local.contains("Enabled: no"));
         assert!(hosted.contains("Enabled: yes"));
+        assert!(debian.contains("Enabled: no"));
         assert!(
             fs::read_to_string(target.join("etc/apt/apt.conf.d/01mattos"))
                 .unwrap()

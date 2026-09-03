@@ -3828,8 +3828,6 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::Flatpak => vec![
             "out/build/flatpak/install/usr/bin/flatpak".into(),
             "out/build/flatpak/install/usr/lib/x86_64-linux-gnu/libflatpak.so.0".into(),
-            "out/build/flatpak/install/var/lib/flatpak".into(),
-            "out/build/flatpak/install/usr/share/mattos/flatpak/firefox-provenance.toml".into(),
         ],
         BuildStage::Bubblewrap => vec!["out/build/bubblewrap/install/usr/bin/bwrap".into()],
         BuildStage::XdgDbusProxy => {
@@ -11851,223 +11849,7 @@ fn build_flatpak(repo_root: &Path) -> Result<()> {
         "usr/bin/flatpak",
         &[],
     )?;
-    provision_firefox_flatpak(repo_root)
-}
-
-#[derive(Debug, Deserialize)]
-struct FirefoxFlatpakPolicy {
-    schema_version: u32,
-    app_id: String,
-    branch: String,
-    remote_name: String,
-    remote_url: String,
-    collection_id: String,
-}
-
-/// Resolve and deploy the official Flathub Firefox app and its complete
-/// runtime closure into the Flatpak stage's target system installation.
-///
-/// This intentionally uses an isolated Flatpak installation rooted below
-/// out/tmp.  No host application, runtime, library, or repository is copied;
-/// Flatpak downloads and verifies the refs from the declared remote, and the
-/// resulting OSTree installation is then published as stage output.  A warm
-/// stage never calls this function, so a resolved snapshot remains stable
-/// until the Flatpak stage is deliberately refreshed.
-fn provision_firefox_flatpak(repo_root: &Path) -> Result<()> {
-    let policy_path = repo_root.join("src/system/packages/flatpak/resources/firefox.toml");
-    let policy: FirefoxFlatpakPolicy = toml::from_str(&fs::read_to_string(&policy_path)?)
-        .with_context(|| format!("failed to parse {}", policy_path.display()))?;
-    if policy.schema_version != 1 || policy.app_id != "org.mozilla.firefox" {
-        bail!("unsupported Firefox Flatpak policy");
-    }
-
-    let output = repo_root.join("out/build/flatpak/install");
-    let descriptor = repo_root.join("src/system/packages/flatpak/resources/flathub.flatpakrepo");
-    let work = repo_root
-        .join("out/tmp")
-        .join(format!("firefox-flatpak-{}", std::process::id()));
-    remove_path_if_exists(&work)?;
-    fs::create_dir_all(&work)?;
-    let user_dir = work.join("user");
-    fs::create_dir_all(&user_dir)?;
-
-    let result = (|| -> Result<()> {
-        flatpak_external(
-            repo_root,
-            &user_dir,
-            &[
-                "--user",
-                "remote-add",
-                "--if-not-exists",
-                &policy.remote_name,
-                &descriptor.to_string_lossy(),
-            ],
-        )?;
-        flatpak_external(
-            repo_root,
-            &user_dir,
-            &[
-                "--user",
-                "remote-modify",
-                &format!("--collection-id={}", policy.collection_id),
-                &policy.remote_name,
-            ],
-        )?;
-        let runtime = flatpak_external_capture(
-            repo_root,
-            &user_dir,
-            &[
-                "--user",
-                "remote-info",
-                "--show-runtime",
-                &policy.remote_name,
-                &policy.app_id,
-            ],
-        )?;
-        let runtime = runtime.trim();
-        let runtime_install_ref = runtime
-            .strip_prefix("runtime/")
-            .unwrap_or(runtime)
-            .replace("/x86_64/", "//");
-        if !runtime_install_ref.starts_with("org.freedesktop.Platform//") {
-            bail!("Firefox resolved an unexpected runtime ref: {runtime}");
-        }
-        flatpak_external(
-            repo_root,
-            &user_dir,
-            &[
-                "--user",
-                "install",
-                "--noninteractive",
-                "--assumeyes",
-                &policy.remote_name,
-                &runtime_install_ref,
-            ],
-        )?;
-        flatpak_external(
-            repo_root,
-            &user_dir,
-            &[
-                "--user",
-                "install",
-                "--noninteractive",
-                "--assumeyes",
-                &policy.remote_name,
-                &format!("{}/x86_64/{}", policy.app_id, policy.branch),
-            ],
-        )?;
-
-        let app_ref = format!("app/{}/x86_64/{}", policy.app_id, policy.branch);
-        let media = work.join("offline");
-        fs::create_dir_all(&media)?;
-        flatpak_external(
-            repo_root,
-            &user_dir,
-            &[
-                "--user",
-                "create-usb",
-                &format!("--destination-repo={}", media.join("repo").display()),
-                &media.to_string_lossy(),
-                &app_ref,
-            ],
-        )?;
-
-        let provenance = firefox_flatpak_provenance(
-            repo_root,
-            &user_dir,
-            &policy,
-            runtime,
-        )?;
-        let destination = output.join("var/lib/flatpak");
-        remove_path_if_exists(&destination)?;
-        copy_tree_contents(&user_dir, &destination)?;
-        let provenance_path = output.join("usr/share/mattos/flatpak/firefox-provenance.toml");
-        if let Some(parent) = provenance_path.parent() {
-            fs::create_dir_all(parent)?;
-        }
-        fs::write(provenance_path, provenance)?;
-        Ok(())
-    })();
-    remove_path_if_exists(&work)?;
-    result
-}
-
-fn flatpak_external(repo_root: &Path, user_dir: &Path, args: &[&str]) -> Result<()> {
-    let output = flatpak_external_output(repo_root, user_dir, args)?;
-    if !output.status.success() {
-        bail!(
-            "Flatpak command failed ({}): flatpak {}\n{}",
-            output.status,
-            args.join(" "),
-            String::from_utf8_lossy(&output.stderr)
-        );
-    }
     Ok(())
-}
-
-fn flatpak_external_capture(repo_root: &Path, user_dir: &Path, args: &[&str]) -> Result<String> {
-    let output = flatpak_external_output(repo_root, user_dir, args)?;
-    if !output.status.success() {
-        bail!(
-            "Flatpak query failed ({}): flatpak {}\n{}",
-            output.status,
-            args.join(" "),
-            String::from_utf8_lossy(&output.stderr)
-        );
-    }
-    Ok(String::from_utf8(output.stdout).context("Flatpak output was not UTF-8")?)
-}
-
-fn flatpak_external_output(repo_root: &Path, user_dir: &Path, args: &[&str]) -> Result<Output> {
-    let mut command = Command::new("flatpak");
-    command.args(args).current_dir(repo_root).env("FLATPAK_USER_DIR", user_dir);
-    apply_reproducible_process_environment(&mut command);
-    apply_mattos_tmp_environment(&mut command, repo_root)?;
-    command.output().context("failed to run host Flatpak resolver")
-}
-
-fn firefox_flatpak_provenance(
-    repo_root: &Path,
-    user_dir: &Path,
-    policy: &FirefoxFlatpakPolicy,
-    runtime: &str,
-) -> Result<String> {
-    let app_ref = format!("app/{}/x86_64/{}", policy.app_id, policy.branch);
-    let app_commit = flatpak_external_capture(
-        repo_root,
-        user_dir,
-        &["--user", "remote-info", "--show-commit", &policy.remote_name, &app_ref],
-    )?;
-    let runtime_ref = format!("runtime/{runtime}");
-    let runtime_commit = flatpak_external_capture(
-        repo_root,
-        user_dir,
-        &["--user", "remote-info", "--show-commit", &policy.remote_name, &runtime_ref],
-    )?;
-    let installed = flatpak_external_capture(
-        repo_root,
-        user_dir,
-        &["--user", "list", "--columns=ref,origin"],
-    )?;
-    let refs = installed
-        .lines()
-        .filter(|line| line.split_whitespace().nth(1) == Some(policy.remote_name.as_str()))
-        .collect::<Vec<_>>()
-        .join("\n");
-    Ok(format!(
-        "schema_version = 1\napp_id = {:?}\nbranch = {:?}\nremote_name = {:?}\nremote_url = {:?}\ncollection_id = {:?}\nresolved_app_ref = {:?}\nresolved_app_commit = {:?}\nresolved_runtime_ref = {:?}\nresolved_runtime_commit = {:?}\nresolved_refs = {:?}\nresolution_timestamp = {:?}\noffline_ostree_repo = \"/var/lib/flatpak/repo\"\n",
-        policy.app_id,
-        policy.branch,
-        policy.remote_name,
-        policy.remote_url,
-        policy.collection_id,
-        app_ref,
-        app_commit.trim(),
-        runtime_ref,
-        runtime_commit.trim(),
-        refs,
-        Utc::now().to_rfc3339(),
-    ))
 }
 
 fn build_libarchive(repo_root: &Path) -> Result<()> {
@@ -20378,24 +20160,25 @@ mod tests {
     }
 
     #[test]
-    fn flatpak_stage_provisions_a_refreshable_firefox_closure_and_update_policy() {
+    fn flatpak_stage_has_no_built_in_firefox_payload() {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
-        let policy = fs::read_to_string(
-            root.join("src/system/packages/flatpak/resources/firefox.toml"),
-        )
-        .unwrap();
-        assert!(policy.contains("app_id = \"org.mozilla.firefox\""));
-        assert!(policy.contains("branch = \"stable\""));
-        assert!(policy.contains("remote_name = \"flathub\""));
         let source = include_str!("main.rs");
-        for required in [
-            "provision_firefox_flatpak(repo_root)",
+        let flatpak = source
+            .split_once("fn build_flatpak(repo_root: &Path) -> Result<()>")
+            .expect("build_flatpak implementation")
+            .1
+            .split_once("fn build_libarchive")
+            .expect("build_flatpak boundary")
+            .0;
+        for forbidden in [
+            "org.mozilla.firefox",
+            "provision_firefox_flatpak",
+            "firefox-provenance.toml",
             "resolved_app_commit",
             "resolved_runtime_commit",
-            "offline_ostree_repo",
-            "\"create-usb\"",
+            "create-usb",
         ] {
-            assert!(source.contains(required), "Firefox provisioning omits {required}");
+            assert!(!flatpak.contains(forbidden), "Flatpak still contains Firefox integration: {forbidden}");
         }
         for unit in [
             "mattos-flatpak-system-update.service",

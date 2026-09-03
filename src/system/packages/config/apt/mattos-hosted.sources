@@ -1,4 +1,4 @@
-Enabled: no
+Enabled: yes
 Types: deb
 URIs: https://packages.mattsherfey.com
 Suites: trixie

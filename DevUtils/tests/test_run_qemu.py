@@ -17,11 +17,14 @@ from run_qemu import (
     ensure_iso_exists,
     graphical_gpu_device,
     image_build_commands,
+    install_completion_marker,
     launch_qemu,
     network_arguments,
     prepare_install_disk,
     test_control_socket,
     uefi_firmware_arguments,
+    validate_completed_install,
+    write_install_completion,
 )
 
 
@@ -143,6 +146,116 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
         with TemporaryDirectory() as temporary:
             args = type("Args", (), {"no_install_disk": True, "install_disk": None})()
             self.assertIsNone(prepare_install_disk(Path(temporary), args))
+
+    def test_install_mode_recreates_only_the_dedicated_test_disk(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            disk = root / "out/qemu/installed-test.qcow2"
+            disk.parent.mkdir(parents=True)
+            disk.write_bytes(b"old")
+            args = type("Args", (), {"no_install_disk": False, "install_disk": None, "install": True, "run_installed": False})()
+            def create_disk(*_args, **_kwargs):
+                disk.write_bytes(b"new")
+                return subprocess.CompletedProcess([], 0)
+            with mock.patch("run_qemu.shutil.which", return_value="/usr/bin/qemu-img"), mock.patch(
+                "run_qemu.subprocess.run", side_effect=create_disk
+            ) as create:
+                self.assertEqual(prepare_install_disk(root, args), disk.resolve())
+            self.assertEqual(create.call_args.args[0][0:4], ["qemu-img", "create", "-f", "qcow2"])
+            self.assertEqual(disk.read_bytes(), b"new")
+
+    def test_run_installed_requires_existing_dedicated_disk(self) -> None:
+        with TemporaryDirectory() as temporary:
+            args = type("Args", (), {"no_install_disk": False, "install_disk": None, "install": False, "run_installed": True})()
+            with self.assertRaises(RepoError):
+                prepare_install_disk(Path(temporary), args)
+
+    def test_run_installed_rejects_an_unmarked_disk(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            disk = root / "out/qemu/installed-test.qcow2"
+            disk.parent.mkdir(parents=True)
+            disk.write_bytes(b"incomplete")
+            args = type("Args", (), {"no_install_disk": False, "install_disk": None, "install": False, "run_installed": True})()
+            with self.assertRaisesRegex(RepoError, "has not completed installation verification"):
+                prepare_install_disk(root, args)
+
+    def test_install_invalidates_the_completion_marker_before_recreating_disk(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            disk = root / "out/qemu/installed-test.qcow2"
+            disk.parent.mkdir(parents=True)
+            disk.write_bytes(b"old")
+            marker = install_completion_marker(root)
+            marker.write_text('{"schema": 1}\n', encoding="utf-8")
+            args = type("Args", (), {"no_install_disk": False, "install_disk": None, "install": True, "run_installed": False})()
+            def create_disk(*_args, **_kwargs):
+                disk.write_bytes(b"fresh")
+                return subprocess.CompletedProcess([], 0)
+            with mock.patch("run_qemu.shutil.which", return_value="/usr/bin/qemu-img"), mock.patch(
+                "run_qemu.subprocess.run", side_effect=create_disk
+            ):
+                prepare_install_disk(root, args)
+            self.assertFalse(marker.exists())
+
+    def test_completion_metadata_is_written_only_after_explicit_boot_verification(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            disk = root / "out/qemu/installed-test.qcow2"
+            disk.parent.mkdir(parents=True)
+            disk.write_bytes(b"qcow2")
+            self.assertFalse(install_completion_marker(root).exists())
+            with mock.patch("run_qemu.qemu_disk_virtual_size", return_value=16 * 1024**3):
+                marker = write_install_completion(root, disk, {"uefi_grub_boot": True})
+            self.assertTrue(marker.is_file())
+            payload = __import__("json").loads(marker.read_text(encoding="utf-8"))
+            self.assertTrue(payload["verification"]["uefi_grub_boot"])
+
+    def test_installed_validation_rejects_changed_or_corrupt_disk(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            disk = root / "out/qemu/installed-test.qcow2"
+            disk.parent.mkdir(parents=True)
+            disk.write_bytes(b"qcow2")
+            marker = install_completion_marker(root)
+            marker.write_text(
+                '{"schema": 1, "disk": "' + str(disk.resolve()) + '", '
+                '"virtual_size": 1, "verification": {"uefi_grub_boot": true}}\n',
+                encoding="utf-8",
+            )
+            with mock.patch("run_qemu.qemu_disk_virtual_size", return_value=2):
+                with self.assertRaisesRegex(RepoError, "changed after verification"):
+                    validate_completed_install(root, disk)
+
+    def test_installed_boot_omits_install_media_and_uses_disk_boot_order(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            disk = root / "out/qemu/installed-test.qcow2"
+            disk.parent.mkdir(parents=True)
+            disk.write_bytes(b"qcow2")
+            args = type(
+                "Args", (), {
+                    "no_install_disk": False, "install_disk": None, "install": False,
+                    "run_installed": True, "no_network": True, "serial_console": True,
+                    "dry_run": False, "headless": False, "qemu_arg": [], "memory": 1024,
+                    "cpus": 1, "test_control": False, "qmp_socket": None,
+                }
+            )()
+            process = mock.Mock()
+            process.wait.return_value = 0
+            with mock.patch("run_qemu.prepare_install_disk", return_value=disk.resolve()), mock.patch(
+                "run_qemu.subprocess.Popen", return_value=process
+            ) as launched, mock.patch(
+                "run_qemu.mattos_build_environment", return_value={}
+            ), mock.patch("run_qemu.choose_graphical_display", return_value="gtk,gl=on"), mock.patch(
+                "run_qemu.graphical_gpu_device", return_value="virtio-vga-gl,blob=true,hostmem=256M"
+            ):
+                self.assertEqual(launch_qemu(root, None, args), 0)
+            command = launched.call_args.args[0]
+            self.assertIn("-boot", command)
+            self.assertIn("order=c", command)
+            self.assertNotIn("media=cdrom", " ".join(command))
+            self.assertIn(f"file={disk.resolve()},if=virtio,format=qcow2", command)
 
     def test_test_control_uses_scoped_qmp_socket_and_removes_stale_socket(self) -> None:
         with TemporaryDirectory() as temporary:

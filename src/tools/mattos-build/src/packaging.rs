@@ -3076,7 +3076,7 @@ fn validate_apt_compatibility_policy(repo_root: &Path, protected: &[String]) -> 
     let config = repo_root.join("src/system/packages/config/apt");
     let preferences = fs::read_to_string(config.join("00mattos-priority"))?;
     for required in [
-        "Pin: release o=MattOS,l=MattOS Local,n=trixie\nPin-Priority: 1001",
+        "Pin: release o=MattOS,l=MattOS Local,n=trixie\nPin-Priority: 990",
         "Pin: release o=MattOS,l=MattOS,n=trixie\nPin-Priority: 990",
         "Pin: release o=Debian,n=trixie\nPin-Priority: 500",
         "Pin: release o=Debian\nPin-Priority: -1",
@@ -3113,7 +3113,7 @@ fn validate_apt_compatibility_policy(repo_root: &Path, protected: &[String]) -> 
     let hosted = fs::read_to_string(config.join("mattos-hosted.sources"))?;
     if !hosted.contains("URIs: https://packages.mattsherfey.com")
         || !hosted.contains("Suites: trixie")
-        || !hosted.contains("Enabled: no")
+        || !hosted.contains("Enabled: yes")
         || hosted.contains("Trusted: yes")
     {
         bail!("hosted MattOS source scaffold is invalid")
@@ -4171,6 +4171,10 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
 
 fn package_configuration_roots(package: &str) -> &'static [&'static str] {
     match package {
+        // APT installs these policy files into the runtime package. Keep the
+        // package cache identity tied to their bytes so live/rootfs overlays
+        // cannot reuse an artifact containing an older repository policy.
+        "apt" => &["src/system/packages/config/apt"],
         "dbus-broker" => &[
             "src/system/dbus/config/system.conf",
             "src/system/dbus/config/dbus.conf",
@@ -6162,16 +6166,16 @@ pub(crate) fn validate_live_apt_policy(rootfs: &Path) -> Result<()> {
     if !local.contains("URIs: file:/usr/share/mattos/repository")
         || local.contains("Enabled: no")
         || !local.contains("Trusted: yes")
-        || !hosted.contains("Enabled: no")
+        || !hosted.contains("Enabled: yes")
         || !debian.contains("Enabled: no")
         || !hosted.contains("Signed-By: /usr/share/keyrings/mattos-archive-keyring.asc")
         || !debian.contains("Signed-By: /usr/share/keyrings/debian-archive-keyring.asc")
         || !keyrings.join("mattos-archive-keyring.asc").is_file()
         || !keyrings.join("debian-archive-keyring.asc").is_file()
         || !rootfs.join("usr/bin/gpgv").is_file()
-        || !preferences.contains("Pin-Priority: 1001")
+        || !preferences.contains("Pin-Priority: 990")
     {
-        bail!("live APT policy is not embedded-repository-only")
+        bail!("live APT policy does not enable both local and hosted MattOS repositories")
     }
     Ok(())
 }
@@ -6321,9 +6325,8 @@ fn stage_flatpak(repo_root: &Path, staging: &Path) -> Result<()> {
     // is deliberately not a host fallback: every copied tree comes from a
     // declared MattOS build stage and is covered by the package cache input.
     // Seed the empty remote only before copying the optional bundled app
-    // installation.  When Firefox is provisioned, its complete verified
-    // OSTree repository below replaces this seed; doing this afterward would
-    // silently erase the bundled refs/configuration.
+    // installation. Firefox is maintained as an independent native .deb and
+    // is not part of Flatpak's installed repository.
     stage_flatpak_system_remote(
         &repo_root.join("src/system/packages/flatpak/resources/flathub.flatpakrepo"),
         staging,
@@ -10822,13 +10825,18 @@ mod tests {
         assert!(package_source_roots("flatpak").contains(&"src/system/security/bubblewrap"));
         assert!(package_source_roots("flatpak").contains(&"src/system/packages/xdg-dbus-proxy"));
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
-        assert!(root
-            .join("src/system/packages/flatpak/resources/firefox.toml")
-            .is_file());
-        assert!(root
-            .join("out/build/flatpak/install/var/lib/flatpak")
-            .to_string_lossy()
-            .ends_with("var/lib/flatpak"));
+        assert!(!root
+            .join("src/system/packages/flatpak/resources")
+            .join("firefox.toml")
+            .exists());
+    }
+
+    #[test]
+    fn apt_package_cache_tracks_repository_policy_configuration() {
+        assert_eq!(
+            package_configuration_roots("apt"),
+            ["src/system/packages/config/apt"]
+        );
     }
 
     #[test]
@@ -12844,8 +12852,12 @@ mod tests {
         let preferences =
             fs::read_to_string(root.join("src/system/packages/config/apt/00mattos-priority"))
                 .unwrap();
-        let local = preferences.find("Pin-Priority: 1001").unwrap();
-        let hosted = preferences.find("Pin-Priority: 990").unwrap();
+        let local = preferences
+            .find("Pin: release o=MattOS,l=MattOS Local,n=trixie\nPin-Priority: 990")
+            .unwrap();
+        let hosted = preferences
+            .find("Pin: release o=MattOS,l=MattOS,n=trixie\nPin-Priority: 990")
+            .unwrap();
         let debian = preferences.find("Pin-Priority: 500").unwrap();
         let blocked = preferences.find("Pin-Priority: -1").unwrap();
         assert!(local < hosted && hosted < debian && debian < blocked);
@@ -12862,10 +12874,10 @@ mod tests {
     }
 
     #[test]
-    fn apt_sources_are_signed_disabled_scaffolds_and_never_trust_debian() {
+    fn apt_sources_enable_hosted_mattos_and_never_trust_debian() {
         let hosted = include_str!("../../../system/packages/config/apt/mattos-hosted.sources");
         let debian = include_str!("../../../system/packages/config/apt/debian-trixie.sources");
-        assert!(hosted.contains("Enabled: no"));
+        assert!(hosted.contains("Enabled: yes"));
         assert!(hosted.contains("https://packages.mattsherfey.com"));
         assert!(hosted.contains("Signed-By:"));
         assert!(debian.contains("Enabled: no"));

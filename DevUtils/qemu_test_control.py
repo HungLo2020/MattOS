@@ -25,6 +25,7 @@ import sys
 import tempfile
 import time
 from pathlib import Path
+from collections.abc import Callable
 from typing import Any
 
 
@@ -106,12 +107,35 @@ def wait_for_socket(socket_path: Path, timeout: float) -> None:
     raise QmpError(f"QMP socket did not become ready within {timeout:g}s: {socket_path}")
 
 
-def serial_command(socket_path: Path, command: str, timeout: float) -> str:
-    """Run one bounded command through the existing automatic serial shell."""
+def serial_command_stream(
+    socket_path: Path,
+    command: str,
+    timeout: float,
+    *,
+    on_output: Callable[[str], None] | None = None,
+    progress_probe: Callable[[], bool] | None = None,
+    heartbeat_seconds: float = 15.0,
+) -> str:
+    """Run a serial command while streaming output and detecting real stalls.
+
+    ``timeout`` is an *idle-progress* limit, never a total wall-clock limit.
+    Output from the guest resets it.  Callers running long destructive work can
+    also provide a probe (for example target-disk growth) that resets it only
+    when an independently observable operation made progress.
+    """
+    if timeout <= 0:
+        raise QmpError("serial idle timeout must be positive")
     marker = f"__MATTOS_TEST_DONE_{time.monotonic_ns()}__"
     payload = f"{command}\nprintf '\\n{marker}:%s\\n' \"$?\"\n".encode("utf-8")
-    deadline = time.monotonic() + timeout
+    connect_deadline = time.monotonic() + timeout
+    last_progress = time.monotonic()
+    last_heartbeat = last_progress
     received = bytearray()
+
+    def emit(chunk: bytes) -> None:
+        if on_output is not None:
+            on_output(chunk.decode("utf-8", errors="replace"))
+
     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as connection:
         connection.settimeout(min(timeout, 1.0))
         while True:
@@ -119,12 +143,12 @@ def serial_command(socket_path: Path, command: str, timeout: float) -> str:
                 connection.connect(str(socket_path))
                 break
             except (FileNotFoundError, ConnectionRefusedError):
-                if time.monotonic() >= deadline:
+                if time.monotonic() >= connect_deadline:
                     raise QmpError(f"serial socket did not become ready: {socket_path}")
                 time.sleep(0.1)
         # Give the automatic-login getty a bounded opportunity to print its
         # shell prompt before emitting the command.
-        while time.monotonic() < deadline:
+        while time.monotonic() < connect_deadline:
             try:
                 chunk = connection.recv(4096)
             except TimeoutError:
@@ -132,18 +156,38 @@ def serial_command(socket_path: Path, command: str, timeout: float) -> str:
             if not chunk:
                 break
             received.extend(chunk)
+            emit(chunk)
             if b"$ " in received:
                 break
         connection.sendall(payload)
         encoded_marker = marker.encode("utf-8")
-        while time.monotonic() < deadline:
+        while True:
             try:
                 chunk = connection.recv(4096)
             except TimeoutError:
+                now = time.monotonic()
+                if progress_probe is not None and progress_probe():
+                    last_progress = now
+                    if on_output is not None:
+                        on_output("[serial] target activity observed; extending progress window\n")
+                if now - last_heartbeat >= heartbeat_seconds:
+                    if on_output is not None:
+                        on_output(
+                            "[serial] waiting for guest command progress "
+                            f"({now - last_progress:.0f}s since last activity)\n"
+                        )
+                    last_heartbeat = now
+                if now - last_progress >= timeout:
+                    raise QmpError(
+                        f"serial command made no guest-output or externally observable progress "
+                        f"for {timeout:g}s: {command!r}"
+                    )
                 continue
             if not chunk:
                 break
             received.extend(chunk)
+            emit(chunk)
+            last_progress = time.monotonic()
             if encoded_marker in received:
                 output = received.decode("utf-8", errors="replace")
                 completed = re.findall(rf"{re.escape(marker)}:(-?\d+)", output)
@@ -155,7 +199,12 @@ def serial_command(socket_path: Path, command: str, timeout: float) -> str:
                 if completed[-1] != "0":
                     raise QmpError(f"guest command failed ({marker}:{completed[-1]}):\n{output}")
                 return output
-    raise QmpError(f"serial command did not finish within {timeout:g}s: {command!r}")
+    raise QmpError(f"serial connection closed before command completion: {command!r}")
+
+
+def serial_command(socket_path: Path, command: str, timeout: float) -> str:
+    """Run one serial command, retaining the historical buffered API."""
+    return serial_command_stream(socket_path, command, timeout)
 
 
 def monitor(client: QmpClient, command: str) -> str:

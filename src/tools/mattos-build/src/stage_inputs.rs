@@ -121,7 +121,6 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::CosmicStore => &["src/desktop/cosmic/cosmic-store"],
         BuildStage::Flatpak => &[
             "src/system/packages/flatpak",
-            "src/system/packages/flatpak/resources/firefox.toml",
             "src/system/packages/flatpak/resources/mattos-flatpak-system-update.service",
             "src/system/packages/flatpak/resources/mattos-flatpak-system-update.timer",
             "src/system/packages/flatpak/resources/mattos-flatpak-user-update.service",
@@ -515,9 +514,9 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
         // Revision 4 packages MattOS's signed Flathub descriptor as Flatpak
         // policy, so only Flatpak/package/image composition is invalidated
         // when that policy changes.
-        // Revision 8 provisions the current Flathub Firefox closure and the
-        // system/user update timers in the Flatpak-owned output.
-        BuildStage::Flatpak => 8,
+        // Revision 7 covers the Flathub descriptor and system/user update
+        // timers; Firefox is maintained outside the core build DAG.
+        BuildStage::Flatpak => 7,
         // Revision 4 enables the target-owned libcurl fetcher as well as
         // GPGME: Flatpak needs OSTree to verify and download HTTPS remote
         // metadata and commits without host libraries.
@@ -706,7 +705,7 @@ mod tests {
         assert_eq!(recipe_revision(BuildStage::Duktape), 3);
         assert_eq!(recipe_revision(BuildStage::Polkit), 2);
         assert_eq!(recipe_revision(BuildStage::CosmicWorkspaces), 2);
-        assert_eq!(recipe_revision(BuildStage::Flatpak), 8);
+        assert_eq!(recipe_revision(BuildStage::Flatpak), 7);
         assert_eq!(recipe_revision(BuildStage::Ostree), 4);
         assert_eq!(recipe_revision(BuildStage::Curl), 2);
         assert_eq!(recipe_revision(BuildStage::GstreamerBase), 2);

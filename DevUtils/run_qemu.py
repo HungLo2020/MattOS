@@ -1,12 +1,19 @@
 #!/usr/bin/env python3
 import argparse
+import base64
+import json
 import os
 import shutil
 import signal
 import subprocess
 import sys
+import time
+from datetime import UTC, datetime
 from pathlib import Path
+from collections.abc import Callable
 from typing import List
+
+from qemu_test_control import QmpClient, QmpError, serial_command, serial_command_stream, wait_for_socket
 
 from common import (
     RepoError,
@@ -18,6 +25,9 @@ from common import (
 )
 
 DEFAULT_INSTALL_DISK_RELATIVE = Path("out/qemu/mattos-dev.qcow2")
+INSTALL_TEST_DISK_RELATIVE = Path("out/qemu/installed-test.qcow2")
+INSTALL_TEST_COMPLETION_RELATIVE = Path("out/qemu/installed-test.complete.json")
+INSTALL_TEST_LOG_RELATIVE = Path("out/logs/installed-test-install.log")
 DEFAULT_INSTALL_DISK_SIZE = "16G"
 DEFAULT_VM_MEMORY_MIB = 6144
 DEFAULT_VM_CPUS = 4
@@ -35,6 +45,9 @@ QEMU_TABLET_DEVICE = "usb-tablet,bus=mattos-xhci.0"
 TEST_CONTROL_DIRECTORY_RELATIVE = Path("out/qemu/test-control")
 TEST_CONTROL_QMP_SOCKET_NAME = "qmp.sock"
 TEST_CONTROL_SERIAL_SOCKET_NAME = "serial.sock"
+INSTALL_PROGRESS_IDLE_SECONDS = 10 * 60
+INSTALL_BOOT_IDLE_SECONDS = 4 * 60
+INSTALL_SHUTDOWN_SECONDS = 90
 UEFI_FIRMWARE_CANDIDATES = (
     Path("/usr/share/ovmf/OVMF.fd"),
     Path("/usr/share/qemu/OVMF.fd"),
@@ -106,6 +119,16 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="build the dependency-correct ISO once and exit without launching QEMU",
     )
+    parser.add_argument(
+        "--install",
+        action="store_true",
+        help="recreate the dedicated installed-test.qcow2 and install the Desktop profile",
+    )
+    parser.add_argument(
+        "--run-installed",
+        action="store_true",
+        help="boot the existing dedicated installed-test.qcow2 without building or modifying it",
+    )
     disk = parser.add_mutually_exclusive_group()
     disk.add_argument(
         "--no-install-disk",
@@ -118,7 +141,22 @@ def parse_args() -> argparse.Namespace:
         metavar="PATH",
         help="use or create this persistent qcow2 install disk instead of the default",
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.build_only and (args.install or args.run_installed):
+        parser.error("--build-only cannot be combined with --install or --run-installed")
+    if args.install and args.install_disk is not None:
+        parser.error("--install always uses the dedicated installed-test.qcow2 disk")
+    if args.run_installed and args.install_disk is not None:
+        parser.error("--run-installed always uses the dedicated installed-test.qcow2 disk")
+    if args.run_installed and args.no_install_disk:
+        parser.error("--run-installed requires the dedicated installed-test.qcow2 disk")
+    if args.install and args.no_install_disk:
+        parser.error("--install requires the dedicated installed-test.qcow2 disk")
+    if args.install and args.no_build:
+        parser.error("--install always builds the canonical current ISO; omit --no-build")
+    if args.run_installed and args.clean and not args.install:
+        parser.error("--run-installed never builds; --clean is not applicable")
+    return args
 
 
 def network_arguments(disabled: bool) -> List[str]:
@@ -259,7 +297,7 @@ def test_control_paths(repo_root: Path, args: argparse.Namespace) -> tuple[Path,
     cleanup deterministic and prevents a command-line path typo from deleting
     an unrelated host socket. QEMU creates the socket itself once it starts.
     """
-    if not getattr(args, "test_control", False):
+    if not (getattr(args, "test_control", False) or getattr(args, "install", False)):
         if getattr(args, "qmp_socket", None) is not None:
             raise RepoError("--qmp-socket requires --test-control")
         return None
@@ -314,16 +352,130 @@ def cleanup_test_control_socket(socket_path: Path | None) -> None:
         cleanup_test_control_paths((socket_path, socket_path.with_name(".unused")))
 
 
+def install_completion_marker(repo_root: Path) -> Path:
+    return (repo_root / INSTALL_TEST_COMPLETION_RELATIVE).resolve()
+
+
+def install_task_log(repo_root: Path) -> Path:
+    return (repo_root / INSTALL_TEST_LOG_RELATIVE).resolve()
+
+
+def invalidate_install_completion(repo_root: Path) -> None:
+    """Remove only the dedicated success marker before a destructive install."""
+    marker = install_completion_marker(repo_root)
+    if marker.exists() or marker.is_symlink():
+        if marker.is_dir():
+            raise RepoError(f"refusing to remove install completion directory: {marker}")
+        marker.unlink()
+
+
+def write_install_completion(repo_root: Path, disk: Path, verification: dict[str, object]) -> Path:
+    """Publish completion metadata only after an independent UEFI disk boot."""
+    marker = install_completion_marker(repo_root)
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "schema": 1,
+        "disk": str(disk.resolve()),
+        "virtual_size": qemu_disk_virtual_size(disk),
+        "verified_at": datetime.now(UTC).isoformat(),
+        "verification": verification,
+    }
+    temporary = marker.with_name(f".{marker.name}.building-{os.getpid()}")
+    temporary.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    temporary.replace(marker)
+    return marker
+
+
+def qemu_disk_virtual_size(disk: Path) -> int:
+    if not shutil.which("qemu-img"):
+        raise RepoError("qemu-img is required to validate the installed test disk")
+    completed = subprocess.run(
+        ["qemu-img", "info", "--output=json", str(disk)],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if completed.returncode != 0:
+        raise RepoError(f"qemu-img could not inspect installed test disk {disk}: {completed.stderr.strip()}")
+    try:
+        value = json.loads(completed.stdout)
+        size = value["virtual-size"]
+    except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        raise RepoError(f"qemu-img returned invalid metadata for installed test disk {disk}") from exc
+    if not isinstance(size, int) or size < 8 * 1024 * 1024 * 1024:
+        raise RepoError(f"installed test disk has an invalid virtual size: {size!r}")
+    return size
+
+
+def validate_completed_install(repo_root: Path, disk: Path) -> dict[str, object]:
+    """Refuse disk boots unless a prior real no-ISO boot published success."""
+    marker = install_completion_marker(repo_root)
+    if not disk.is_file() or not marker.is_file():
+        raise RepoError(
+            "installed test disk is missing or has not completed installation verification; "
+            "run: python3 DevUtils/run_qemu.py --install"
+        )
+    try:
+        payload = json.loads(marker.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RepoError(
+            "installed test disk completion metadata is invalid; "
+            "run: python3 DevUtils/run_qemu.py --install"
+        ) from exc
+    if (
+        payload.get("schema") != 1
+        or payload.get("disk") != str(disk.resolve())
+        or not isinstance(payload.get("verification"), dict)
+    ):
+        raise RepoError(
+            "installed test disk completion metadata does not match this disk; "
+            "run: python3 DevUtils/run_qemu.py --install"
+        )
+    if payload.get("virtual_size") != qemu_disk_virtual_size(disk):
+        raise RepoError(
+            "installed test disk changed after verification; "
+            "run: python3 DevUtils/run_qemu.py --install"
+        )
+    completed = subprocess.run(
+        ["qemu-img", "check", "--output=json", str(disk)],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if completed.returncode != 0:
+        raise RepoError(
+            "installed test disk failed qemu-img integrity validation; "
+            "run: python3 DevUtils/run_qemu.py --install"
+        )
+    return payload
+
+
 def prepare_install_disk(repo_root: Path, args: argparse.Namespace) -> Path | None:
-    """Return a persistent qcow2 target disk, creating it only when absent."""
+    """Return the selected disk, recreating only the explicit --install test disk."""
     if args.no_install_disk:
         return None
 
-    disk = args.install_disk or (repo_root / DEFAULT_INSTALL_DISK_RELATIVE)
+    if getattr(args, "install", False):
+        if not getattr(args, "dry_run", False):
+            invalidate_install_completion(repo_root)
+        disk = repo_root / INSTALL_TEST_DISK_RELATIVE
+        if not getattr(args, "dry_run", False) and (disk.exists() or disk.is_symlink()):
+            if not disk.is_file():
+                raise RepoError(f"refusing to replace non-file install test disk: {disk}")
+            disk.unlink()
+    elif getattr(args, "run_installed", False):
+        disk = repo_root / INSTALL_TEST_DISK_RELATIVE
+        disk = disk.resolve()
+        validate_completed_install(repo_root, disk)
+        return disk
+    else:
+        disk = args.install_disk or (repo_root / DEFAULT_INSTALL_DISK_RELATIVE)
     disk = disk if disk.is_absolute() else repo_root / disk
     disk = disk.resolve()
     disk.parent.mkdir(parents=True, exist_ok=True)
-    if not disk.exists():
+    if not disk.exists() and not getattr(args, "dry_run", False):
         if not shutil.which("qemu-img"):
             raise RepoError("qemu-img is required to create the development install disk")
         print(f"+ qemu-img create -f qcow2 {disk} {DEFAULT_INSTALL_DISK_SIZE}")
@@ -335,13 +487,13 @@ def prepare_install_disk(repo_root: Path, args: argparse.Namespace) -> Path | No
         )
         if completed.returncode != 0:
             raise RepoError(f"failed to create QEMU install disk: {disk}")
-    if not disk.is_file():
+    if not getattr(args, "dry_run", False) and not disk.is_file():
         raise RepoError(f"QEMU install disk is not a regular file: {disk}")
     return disk
 
 
 def build_if_needed(repo_root: Path, args: argparse.Namespace) -> None:
-    if args.no_build:
+    if args.no_build or getattr(args, "run_installed", False) and not getattr(args, "install", False):
         return
 
     build_environment = mattos_build_environment(repo_root)
@@ -364,7 +516,38 @@ def build_if_needed(repo_root: Path, args: argparse.Namespace) -> None:
         run_command(command, cwd=repo_root, dry_run=args.dry_run, env=build_environment)
 
 
-def launch_qemu(repo_root: Path, iso_path: Path, args: argparse.Namespace) -> int:
+def _terminate_task_vm(proc: subprocess.Popen[str], control_paths: tuple[Path, Path] | None, reason: str) -> int:
+    """Stop only the QEMU process this launcher started, with bounded cleanup."""
+    if proc.poll() is not None:
+        return proc.returncode or 0
+    print(f"[qemu] {reason}; requesting guest shutdown")
+    if control_paths is not None:
+        try:
+            with QmpClient(control_paths[0].resolve(), 10.0) as qmp:
+                qmp.execute("system_powerdown")
+        except (OSError, QmpError) as exc:
+            print(f"[qemu] warning: QMP shutdown request failed: {exc}", file=sys.stderr)
+    try:
+        return proc.wait(timeout=INSTALL_SHUTDOWN_SECONDS)
+    except subprocess.TimeoutExpired:
+        print("[qemu] guest did not shut down cleanly; terminating task-owned QEMU", file=sys.stderr)
+        proc.terminate()
+        try:
+            return proc.wait(timeout=15)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            return proc.wait(timeout=10)
+
+
+def _launch_one(
+    repo_root: Path,
+    iso_path: Path | None,
+    args: argparse.Namespace,
+    *,
+    boot_iso: bool,
+    install_disk: Path | None = None,
+    lifecycle: Callable[[subprocess.Popen[str], tuple[Path, Path]], None] | None = None,
+) -> int:
     logs_dir = repo_root / "out" / "logs"
     if not args.dry_run:
         logs_dir.mkdir(parents=True, exist_ok=True)
@@ -380,15 +563,22 @@ def launch_qemu(repo_root: Path, iso_path: Path, args: argparse.Namespace) -> in
         str(args.memory),
         "-smp",
         str(args.cpus),
-        "-drive",
-        f"file={iso_path},if=none,id=mattos-cd,media=cdrom,readonly=on",
-        "-device",
-        "virtio-scsi-pci,id=mattos-scsi",
-        "-device",
-        "scsi-cd,drive=mattos-cd,bus=mattos-scsi.0,bootindex=1",
-        "-boot",
-        "d",
     ]
+    if boot_iso:
+        if iso_path is None:
+            raise RepoError("installation-media boot requires an ISO")
+        qemu_cmd.extend([
+            "-drive",
+            f"file={iso_path},if=none,id=mattos-cd,media=cdrom,readonly=on",
+            "-device",
+            "virtio-scsi-pci,id=mattos-scsi",
+            "-device",
+            "scsi-cd,drive=mattos-cd,bus=mattos-scsi.0,bootindex=1",
+            "-boot",
+            "d",
+        ])
+    else:
+        qemu_cmd.extend(["-boot", "order=c"])
     control_paths = test_control_paths(repo_root, args)
     if control_paths is not None:
         control_socket, control_serial = control_paths
@@ -417,7 +607,8 @@ def launch_qemu(repo_root: Path, iso_path: Path, args: argparse.Namespace) -> in
         # PS/2 mouse is relative-only and did not produce usable pointer
         # motion in the COSMIC KMS session. One USB tablet is sufficient.
         qemu_cmd.extend(["-device", QEMU_TABLET_CONTROLLER, "-device", QEMU_TABLET_DEVICE])
-    install_disk = prepare_install_disk(repo_root, args)
+    if install_disk is None:
+        install_disk = prepare_install_disk(repo_root, args)
     if install_disk is not None:
         qemu_cmd.extend(["-drive", f"file={install_disk},if=virtio,format=qcow2"])
     qemu_cmd.extend(network_arguments(args.no_network))
@@ -460,6 +651,11 @@ def launch_qemu(repo_root: Path, iso_path: Path, args: argparse.Namespace) -> in
     proc: subprocess.Popen[str] | None = None
     try:
         proc = subprocess.Popen(qemu_cmd, cwd=str(repo_root), env=mattos_build_environment(repo_root))
+        if lifecycle is not None:
+            if control_paths is None:
+                raise RepoError("noninteractive QEMU lifecycle requires test-control sockets")
+            lifecycle(proc, control_paths)
+            return _terminate_task_vm(proc, control_paths, "noninteractive lifecycle completed")
         return proc.wait()
     except KeyboardInterrupt:
         print("\nInterrupted, terminating QEMU...")
@@ -469,10 +665,187 @@ def launch_qemu(repo_root: Path, iso_path: Path, args: argparse.Namespace) -> in
         try:
             return proc.wait(timeout=5)
         except subprocess.TimeoutExpired:
-            proc.terminate()
-            return proc.wait(timeout=5)
+            return _terminate_task_vm(proc, control_paths, "interrupted")
+    except Exception:
+        if proc is not None and proc.poll() is None:
+            _terminate_task_vm(proc, control_paths, "lifecycle failed")
+        raise
     finally:
         cleanup_test_control_paths(control_paths)
+
+
+TEST_INSTALL_PASSWORD_HASH = "$6$mattos$gNJjrFx.MYr9CTiHVOBlhO.TEvrlR9qInoPDSU2Gdy8X8M7knkYWQnK9XOJH2alPkUhn2eswpESNckixqbhpD/"
+
+
+def _test_install_plan() -> str:
+    return "\n".join([
+        'version = 5', 'target_disk = "/dev/vda"',
+        'storage = { mode = "guided_whole_disk", filesystem = "btrfs", efi = { policy = "create" } }',
+        'installed_profile = "desktop"', 'hostname = "mattos-test"',
+        'full_name = "MattOS Test User"', 'username = "mattos"',
+        f'password_hash = "{TEST_INSTALL_PASSWORD_HASH}"', 'administrator = true',
+        'automatic_login = true', 'root_credential = { mode = "same_as_user" }',
+        'locale = "en_US.UTF-8"', 'keyboard_layout = "us"', 'keyboard_variant = ""',
+        'timezone = "Etc/UTC"', 'test_autologin = true', '',
+    ])
+
+
+def _run_automatic_test_install(repo_root: Path, disk: Path, control_paths: tuple[Path, Path]) -> None:
+    """Run the real installer with streamed, persistent, progress-aware logs."""
+    wait_for_socket(control_paths[0], 120)
+    log_path = install_task_log(repo_root)
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    log_path.write_text("MattOS automated installation log\n", encoding="utf-8")
+    encoded = base64.b64encode(_test_install_plan().encode()).decode()
+    command = (
+        f"printf '%s' {encoded} | base64 -d > /tmp/mattos-test-plan.toml && "
+        "sudo mattos-install install /tmp/mattos-test-plan.toml --yes-really-erase"
+    )
+    last_disk_state: tuple[int, int] | None = None
+
+    def disk_progress() -> bool:
+        nonlocal last_disk_state
+        try:
+            stat = disk.stat()
+            state = (stat.st_size, stat.st_mtime_ns)
+        except FileNotFoundError:
+            return False
+        changed = state != last_disk_state
+        last_disk_state = state
+        return changed
+
+    def stream(chunk: str) -> None:
+        print(chunk, end="", flush=True)
+        with log_path.open("a", encoding="utf-8") as log:
+            log.write(chunk)
+            log.flush()
+
+    disk_progress()
+    try:
+        serial_command_stream(
+            control_paths[1].resolve(),
+            command,
+            INSTALL_PROGRESS_IDLE_SECONDS,
+            on_output=stream,
+            progress_probe=disk_progress,
+        )
+    except Exception as exc:
+        raise RepoError(
+            f"automated MattOS installation failed; full guest log: {log_path}; error: {exc}"
+        ) from exc
+
+
+def _verify_installed_disk_boot(
+    repo_root: Path,
+    disk: Path,
+    args: argparse.Namespace,
+) -> dict[str, object]:
+    """Boot the target with no ISO and prove its real UEFI/GRUB path works."""
+    verification_args = argparse.Namespace(**vars(args))
+    verification_args.install = False
+    verification_args.run_installed = False
+    verification_args.test_control = True
+    verification_args.serial_console = False
+    verification_args.headless = False
+    output_path = install_task_log(repo_root).with_name("installed-test-boot.log")
+    output_path.write_text("MattOS installed-disk boot verification log\n", encoding="utf-8")
+    # Do not use ``set -e`` here.  The serial protocol appends its completion
+    # marker after this command; an early shell exit turns one failed assertion
+    # into an opaque serial timeout.  Each probe is instead reported by name,
+    # and the final non-zero status still makes the validation fail closed.
+    checks = (
+        "failed=0; "
+        "check() { name=$1; shift; if \"$@\"; then echo \"[installed-check] PASS $name\"; "
+        "else rc=$?; echo \"[installed-check] FAIL $name rc=$rc\"; failed=1; fi; }; "
+        "check not-live test ! -e /run/mattos-live; "
+        "check profile-file test -f /etc/mattos-installed-profile; "
+        "check profile-value sh -c 'test \"$(cat /etc/mattos-installed-profile)\" = desktop'; "
+        "check hostname sh -c 'test \"$(cat /etc/hostname)\" = mattos-test'; "
+        "check user id mattos; "
+        "check uefi test -d /sys/firmware/efi; "
+        "check efi-partition test -b /dev/vda1; check root-partition test -b /dev/vda2; "
+        "check kernel test -f /boot/vmlinuz; check initramfs test -f /boot/installed-initramfs.cpio.xz; "
+        # The ESP is mounted after the installed initramfs has already handed
+        # control to the mounted root.  The authoritative proof of its
+        # fallback loader/config is therefore the observed UEFI -> GRUB boot,
+        # while the installed root-side GRUB configuration is directly
+        # inspectable here.  Do not assume the ESP's on-disk case/layout in
+        # this post-boot check: FAT's presentation is implementation-defined.
+        "check grub-config test -f /boot/grub/grub.cfg; "
+        "check grub-menu grep -q \"menuentry 'MattOS'\" /boot/grub/grub.cfg; "
+        "check root-mount findmnt -no SOURCE /; check efi-mount findmnt -no SOURCE /boot/efi; "
+        "check gpt lsblk -no PTTYPE /dev/vda; "
+        "check graphical-target systemctl is-active graphical.target; "
+        "check mattos-repository grep -q '^Enabled: yes' /etc/apt/sources.list.d/mattos-hosted.sources; "
+        "test \"$failed\" -eq 0"
+    )
+    result: dict[str, object] = {}
+
+    def lifecycle(_proc: subprocess.Popen[str], control_paths: tuple[Path, Path]) -> None:
+        wait_for_socket(control_paths[0], 120)
+
+        def stream(chunk: str) -> None:
+            print(chunk, end="", flush=True)
+            with output_path.open("a", encoding="utf-8") as log:
+                log.write(chunk)
+
+        output = serial_command_stream(
+            control_paths[1].resolve(),
+            checks,
+            INSTALL_BOOT_IDLE_SECONDS,
+            on_output=stream,
+        )
+        result.update({"uefi_grub_boot": True, "serial_checks": output})
+
+    exit_code = _launch_one(
+        repo_root,
+        None,
+        verification_args,
+        boot_iso=False,
+        install_disk=disk,
+        lifecycle=lifecycle,
+    )
+    if exit_code != 0:
+        raise RepoError(f"installed-disk verification VM exited with status {exit_code}")
+    return result
+
+
+def launch_qemu(repo_root: Path, iso_path: Path | None, args: argparse.Namespace) -> int:
+    """Launch QEMU, with --install publishing a marker only after real boot proof."""
+    if not getattr(args, "install", False):
+        return _launch_one(repo_root, iso_path, args, boot_iso=not getattr(args, "run_installed", False))
+    disk = prepare_install_disk(repo_root, args)
+    assert disk is not None
+    if args.dry_run:
+        # A dry run must never create completion state or claim that a disk
+        # booted: it only renders the installation-media QEMU invocation.
+        return _launch_one(repo_root, iso_path, args, boot_iso=True, install_disk=disk)
+    try:
+        result = _launch_one(
+            repo_root,
+            iso_path,
+            args,
+            boot_iso=True,
+            install_disk=disk,
+            lifecycle=lambda _proc, paths: _run_automatic_test_install(repo_root, disk, paths),
+        )
+        if result != 0:
+            raise RepoError(f"installer VM exited with status {result}")
+        verification = _verify_installed_disk_boot(repo_root, disk, args)
+        marker = write_install_completion(repo_root, disk, verification)
+        print(f"[qemu] installed disk validated: {disk} (completion marker: {marker})")
+    except Exception:
+        invalidate_install_completion(repo_root)
+        if disk.exists() and disk.is_file():
+            disk.unlink()
+        raise
+    if not args.run_installed:
+        return 0
+    installed_args = argparse.Namespace(**vars(args))
+    installed_args.install = False
+    installed_args.run_installed = True
+    installed_args.test_control = False
+    return _launch_one(repo_root, None, installed_args, boot_iso=False, install_disk=disk)
 
 
 def main() -> int:
@@ -496,6 +869,8 @@ def main() -> int:
 
     if args.dry_run:
         iso_path = repo_root / "out" / "images" / "mattos-x86_64.iso"
+    elif args.run_installed and not getattr(args, "install", False):
+        iso_path = None
     else:
         iso_path = ensure_iso_exists(repo_root)
 
