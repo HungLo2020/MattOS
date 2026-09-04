@@ -478,7 +478,11 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         // resolve systemd's target-owned libudev.pc, and its input graph
         // links the target-owned libinput development output.
         BuildStage::CosmicOsd => &["formal-sysroot", "xkbcommon", "systemd", "libinput"],
-        BuildStage::CosmicBg => &["formal-sysroot", "dav1d"],
+        // cosmic-bg's locked libcosmic/winit graph builds
+        // smithay-client-toolkit, whose build script resolves xkbcommon via
+        // pkg-config.  The target-owned development metadata is therefore a
+        // real compile dependency alongside dav1d.
+        BuildStage::CosmicBg => &["formal-sysroot", "dav1d", "xkbcommon"],
         // cosmic-workspaces declares libudev-dev and libinput-dev.  These
         // are build-time native inputs, not runtime desktop membership.
         BuildStage::CosmicWorkspaces => {
@@ -589,7 +593,13 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         // A standalone, target-owned D-Bus sandbox proxy.  Flatpak consumes
         // its published binary rather than a Meson wrap subproject.
         BuildStage::XdgDbusProxy => &["formal-sysroot", "glib", "libffi", "zlib"],
-        BuildStage::Gstreamer => &["formal-sysroot", "glib", "libffi", "zlib"],
+        BuildStage::Gstreamer => &[
+            "formal-sysroot",
+            "glib",
+            "libffi",
+            "zlib",
+            "pcre2",
+        ],
         // gio-2.0's declared pkg-config requirements include zlib, so the
         // plugins-base stage must receive it as a direct target input rather
         // than relying on any host pkg-config search path.
@@ -598,6 +608,9 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "glib",
             "libffi",
             "zlib",
+            // The stage links helper binaries through GLib; carry GLib's
+            // target PCRE2 ABI explicitly rather than consulting the host.
+            "pcre2",
             "gstreamer",
         ],
         BuildStage::XdgDesktopPortal => &[
@@ -666,7 +679,16 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "systemd",
             "wayland",
         ],
-        BuildStage::GdkPixbuf => &["formal-sysroot", "glib", "libffi", "zlib", "libpng"],
+        BuildStage::GdkPixbuf => &[
+            "formal-sysroot",
+            "glib",
+            "libffi",
+            "zlib",
+            "libpng",
+            // gdk-pixbuf's helper executables link through GLib, whose
+            // published target ABI needs libpcre2-8 at link time.
+            "pcre2",
+        ],
         BuildStage::Gpgme => &[
             "formal-sysroot",
             "libassuan",
@@ -1223,6 +1245,11 @@ mod tests {
         let utilities = direct_dependencies(BuildStage::CosmicUtilities);
         assert!(!utilities.contains(&"flatpak"));
         assert!(!utilities.contains(&"ostree"));
+
+        let background = direct_dependencies(BuildStage::CosmicBg);
+        assert!(background.contains(&"dav1d"));
+        assert!(background.contains(&"xkbcommon"));
+        assert!(!background.contains(&"pipewire"));
 
         let desktop = direct_dependencies(BuildStage::CosmicDesktop);
         assert!(desktop.contains(&"cosmic-store"));

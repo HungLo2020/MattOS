@@ -2245,6 +2245,57 @@ mod tests {
     }
 
     #[test]
+    fn cache_hit_never_runs_a_mutating_cargo_mirror_action() {
+        // Model a COSMIC consumer whose miss action would rewrite Cargo.lock
+        // and invoke `cargo update`. A reusable stage must return before that
+        // closure runs; otherwise a planner HIT could itself alter Cargo
+        // fingerprints and manufacture a later rebuild.
+        use std::cell::Cell;
+
+        let root = tempdir().unwrap();
+        let spec = StageSpec {
+            id: "cosmic-consumer".to_string(),
+            source_inputs: Vec::new(),
+            configuration_inputs: Vec::new(),
+            tools: Vec::new(),
+            dependencies: Vec::new(),
+            outputs: vec![PathBuf::from("out/install")],
+            recipe: "cosmic consumer fixture".to_string(),
+        };
+        let actions = Cell::new(0);
+        begin_test_integrity_cache();
+        execute_cached_stage(
+            root.path(),
+            &spec,
+            || Ok(()),
+            || {
+                actions.set(actions.get() + 1);
+                fs::create_dir_all(root.path().join("out/install"))?;
+                fs::write(root.path().join("out/install/Cargo.lock"), "first lock")?;
+                Ok(())
+            },
+        )
+        .unwrap();
+        execute_cached_stage(
+            root.path(),
+            &spec,
+            || Ok(()),
+            || {
+                actions.set(actions.get() + 1);
+                fs::write(root.path().join("out/install/Cargo.lock"), "rewritten lock")?;
+                bail!("a cache-hit COSMIC stage must not prepare its Cargo mirror")
+            },
+        )
+        .unwrap();
+        assert_eq!(actions.get(), 1);
+        assert_eq!(
+            fs::read_to_string(root.path().join("out/install/Cargo.lock")).unwrap(),
+            "first lock"
+        );
+        end_test_integrity_cache();
+    }
+
+    #[test]
     fn stable_digest_ignores_timestamps_but_detects_content_and_modes() {
         let root = tempdir().unwrap();
         let file = root.path().join("source.c");

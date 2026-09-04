@@ -11082,7 +11082,13 @@ mod tests {
         );
         assert!(resources.join("themes/nebula-dark.ron").is_file());
 
-        let source = include_str!("main.rs");
+        let source = format!(
+            "{}\n{}\n{}\n{}",
+            include_str!("main.rs"),
+            include_str!("stages/image.rs"),
+            include_str!("stages/registry.rs"),
+            include_str!("stages/desktop.rs")
+        );
         for path in [
             "resources/COSMIC/defaults",
             "resources/COSMIC/layouts",

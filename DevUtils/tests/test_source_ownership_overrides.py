@@ -10,6 +10,7 @@ import tempfile
 import time
 import tomllib
 import unittest
+from unittest import mock
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 GENERATOR = ROOT / "DevUtils" / "generate_source_overrides.py"
@@ -26,6 +27,21 @@ class SourceOwnershipGraphTest(unittest.TestCase):
     def setUpClass(cls) -> None:
         subprocess.run(["python3", str(GENERATOR)], cwd=ROOT, check=True)
         cls.index = json.loads(INDEX.read_text())
+
+    def test_relocated_dispatcher_finds_checkout_from_consumer_cwd(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="source-dispatch-root-") as raw:
+            root = pathlib.Path(raw) / "checkout"
+            (root / "DevUtils").mkdir(parents=True)
+            (root / "DevUtils" / "cargo_source_owned.py").write_text("# marker\n")
+            consumer = root / "out" / "build" / "fixture" / "source"
+            consumer.mkdir(parents=True)
+            previous = pathlib.Path.cwd()
+            try:
+                os.chdir(consumer)
+                with mock.patch.dict(os.environ, {"MATTOS_REPO_ROOT": ""}, clear=False):
+                    self.assertEqual(dispatcher.repo_root(), root.resolve())
+            finally:
+                os.chdir(previous)
 
     def test_no_repo_root_patch_config(self) -> None:
         self.assertFalse((ROOT / ".cargo" / "config.toml").exists())
@@ -257,6 +273,10 @@ with g.consumer_mirror_lock(root, mirror):
             dispatcher.lock_reconciliation_args(original),
             ["--offline", "--features", "wayland,systemd"],
         )
+        self.assertEqual(
+            dispatcher.fetch_reconciliation_args(original),
+            ["--offline"],
+        )
         frozen = ["check", "--frozen", "--all-features", "--manifest-path=Cargo.toml"]
         self.assertEqual(
             dispatcher.metadata_resolution_args(frozen),
@@ -265,6 +285,10 @@ with g.consumer_mirror_lock(root, mirror):
         self.assertEqual(
             dispatcher.lock_reconciliation_args(frozen),
             ["--offline", "--all-features", "--manifest-path=Cargo.toml"],
+        )
+        self.assertEqual(
+            dispatcher.fetch_reconciliation_args(frozen),
+            ["--offline", "--manifest-path=Cargo.toml"],
         )
         self.assertTrue(dispatcher.requires_lock_reconciliation(original))
         self.assertTrue(dispatcher.requires_lock_reconciliation(frozen))
@@ -372,7 +396,10 @@ with g.consumer_mirror_lock(root, mirror):
                 check=False,
             )
             self.assertEqual(strict_rewritten.returncode, 0, strict_rewritten.stderr)
-            self.assertIn('lock_reconcile_argv=', trace.read_text())
+            trace_text = trace.read_text()
+            self.assertIn('lock_reconcile_1_argv=', trace_text)
+            self.assertIn('"fetch"', trace_text)
+            self.assertNotIn('"update"', trace_text)
 
     def test_lock_derived_patch_closes_external_transitive_owned_git_edge(self) -> None:
         output_root = ROOT / "out" / "tmp"
@@ -756,7 +783,7 @@ with g.consumer_mirror_lock(root, mirror):
                 shutil.copytree(backup, canonical, symlinks=True)
 
     def test_cosmic_build_mirror_applies_registered_patch_before_cargo_isolation(self) -> None:
-        source = (ROOT / "src/tools/mattos-build/src/main.rs").read_text()
+        source = (ROOT / "src/tools/mattos-build/src/stages/desktop.rs").read_text()
         body = source.split("fn build_cosmic_just_component(", 1)[1].split(
             "fn build_cosmic_desktop_component(", 1
         )[0]

@@ -384,6 +384,10 @@ fn real_stage_specs_track_tool_recipe_and_dependency_output_identity() {
         &root.join("src/system/data/linux-firmware/WHENCE"),
         "fixture firmware provenance\n",
     );
+    write_file(
+        &root.join("src/tools/mattos-build/src/stages/image.rs"),
+        "fixture image policy\n",
+    );
     let initramfs_before = performance::compute_stage_inputs(root, &initramfs).unwrap();
     initramfs.recipe.push_str(":revision-two");
     let initramfs_after = performance::compute_stage_inputs(root, &initramfs).unwrap();
@@ -437,7 +441,8 @@ fn package_rootfs_initramfs_and_iso_contracts_follow_consumed_artifacts() {
         [
             PathBuf::from("src/boot/live-init.c"),
             PathBuf::from("src/boot/module-loader.h"),
-            PathBuf::from("src/system/data/linux-firmware")
+            PathBuf::from("src/system/data/linux-firmware"),
+            PathBuf::from("src/tools/mattos-build/src/stages/image.rs")
         ]
     );
     assert_eq!(
@@ -456,7 +461,13 @@ fn package_rootfs_initramfs_and_iso_contracts_follow_consumed_artifacts() {
     assert_eq!(live_root.tools, ["mksquashfs", "unsquashfs"]);
 
     let iso = build_stage_spec(BuildStage::Iso);
-    assert_eq!(iso.source_inputs, [PathBuf::from(AUTHORITATIVE_GRUB_CFG)]);
+    assert_eq!(
+        iso.source_inputs,
+        [
+            PathBuf::from(AUTHORITATIVE_GRUB_CFG),
+            PathBuf::from("src/tools/mattos-build/src/stages/image.rs"),
+        ]
+    );
     assert!(iso.dependencies.contains(&"linux".to_string()));
     assert!(iso.dependencies.contains(&"live-root".to_string()));
     assert!(iso.dependencies.contains(&"initramfs".to_string()));
@@ -539,4 +550,87 @@ fn cold_build_concurrency_groups_preserve_barriers_and_output_ownership() {
             }
         }
     }
+}
+
+#[test]
+fn meson_runtime_reconfigures_disposable_state_before_reuse() {
+    let helper = include_str!("stages/helpers/meson.rs");
+    let reusable_tree = helper
+        .find("if build_dir.join(\"build.ninja\").is_file()")
+        .expect("Meson helper must distinguish an existing disposable build tree");
+    let reconfigure = helper[reusable_tree..]
+        .find("\"--reconfigure\"")
+        .expect("existing Meson trees must be reconfigured before reuse");
+    let compile = helper[reusable_tree..]
+        .find("\"compile\"")
+        .expect("Meson helper must compile after configuring");
+    let install = helper[reusable_tree..]
+        .find("\"install\"")
+        .expect("Meson helper must install after compiling");
+    assert!(reconfigure < compile);
+    assert!(compile < install);
+}
+
+#[test]
+fn iputils_reconfigures_its_disposable_meson_tree_before_installing() {
+    let source = include_str!("main.rs");
+    let start = source
+        .find("fn build_iputils(")
+        .expect("iputils recipe must remain available");
+    let end = start
+        + source[start..]
+            .find("\nfn curl_configure_options")
+            .expect("iputils recipe boundary must remain available");
+    let body = &source[start..end];
+    let reconfigure = body
+        .find("\"--reconfigure\"")
+        .expect("iputils must reconfigure an existing Meson tree");
+    let install = body
+        .find("remove_path_if_exists(&install_dir)")
+        .expect("iputils must reset its staged install output after compiling");
+    assert!(reconfigure < install);
+}
+
+#[test]
+fn file_stage_disables_undeclared_libseccomp_instead_of_using_host_headers() {
+    let helper = include_str!("stages/helpers/autotools.rs");
+    let start = helper
+        .find("fn build_file(")
+        .expect("file recipe must remain available");
+    let end = start
+        + helper[start..]
+            .find("\nfn build_less")
+            .expect("file recipe boundary must remain available");
+    assert!(helper[start..end].contains("--disable-libseccomp"));
+}
+
+#[test]
+fn gdk_pixbuf_declares_glibs_pcre2_link_requirement() {
+    let stage = build_stage_spec(BuildStage::GdkPixbuf);
+    assert!(stage.dependencies.contains(&"pcre2".to_string()));
+    let source = include_str!("main.rs");
+    let start = source.find("fn build_gdk_pixbuf(").unwrap();
+    let end = start + source[start..].find("\nfn build_gpgme").unwrap();
+    assert!(source[start..end].contains("\"pcre2\""));
+}
+
+#[test]
+fn gstreamer_base_declares_glibs_pcre2_link_requirement() {
+    let stage = build_stage_spec(BuildStage::GstreamerBase);
+    assert!(stage.dependencies.contains(&"pcre2".to_string()));
+    let source = include_str!("stages/graphics.rs");
+    let start = source.find("fn build_gstreamer_base(").unwrap();
+    let end = start + source[start..].find("\nfn build_").unwrap_or(source[start..].len());
+    assert!(source[start..end].contains("\"pcre2\""));
+}
+
+#[test]
+fn cmake_runtime_reconfigures_stale_host_discovery_from_target_prefixes() {
+    let source = include_str!("stages/graphics.rs");
+    let start = source.find("fn build_vulkan_cmake(").unwrap();
+    let end = start + source[start..].find("\nfn build_vulkan_headers(").unwrap();
+    let helper = &source[start..end];
+    assert!(helper.contains("cmake-prefix-path={cmake_prefix_path}"));
+    assert!(helper.contains("-DCMAKE_PREFIX_PATH={cmake_prefix_path}"));
+    assert!(helper.contains("CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY=OFF"));
 }

@@ -17,6 +17,14 @@ def repo_root() -> pathlib.Path:
     value = os.environ.get('MATTOS_REPO_ROOT')
     if value:
         return pathlib.Path(value).resolve()
+    # The production dispatcher is copied to out/source-ownership/bin.  Its
+    # own path is not below the checkout root, but a Cargo consumer's working
+    # directory is.  Keep direct/manual dispatcher use safe as well as the
+    # normal MATTOS_REPO_ROOT environment supplied by mattos-build.
+    cwd = pathlib.Path.cwd().resolve()
+    for candidate in (cwd, *cwd.parents):
+        if (candidate / 'DevUtils' / 'cargo_source_owned.py').is_file():
+            return candidate
     return pathlib.Path(__file__).resolve().parents[1]
 
 
@@ -142,6 +150,33 @@ def requires_lock_reconciliation(original: list[str]) -> bool:
     return any(arg in {'--locked', '--frozen'} for arg in original)
 
 
+def fetch_reconciliation_args(original: list[str], allow_network: bool = False) -> list[str]:
+    """Return the subset of lock policy accepted by ``cargo fetch``.
+
+    Cargo metadata does not always canonicalize ``[[patch.unused]]`` after
+    output-owned patch injection, while a later ``cargo build --locked`` does
+    notice that stale serialization.  ``cargo fetch`` resolves and writes the
+    lock without compiling; it deliberately receives neither feature flags nor
+    a build subcommand, because those are not valid fetch options.
+    """
+    result: list[str] = []
+    values = {'--manifest-path'}
+    i = 0
+    for arg in lock_reconciliation_args(original, allow_network):
+        if arg in values:
+            # The matching value is appended by the next loop iteration.
+            result.append(arg)
+            i = 1
+            continue
+        if i:
+            result.append(arg)
+            i = 0
+            continue
+        if arg.startswith('--manifest-path=') or arg == '--offline':
+            result.append(arg)
+    return result
+
+
 def digest_file(path: pathlib.Path | None) -> str:
     if path is None or not path.is_file():
         return 'missing'
@@ -184,14 +219,39 @@ def reconcile_output_lock(
     """Reconcile a copied output lock after MattOS rewrites source identities."""
     if not requires_lock_reconciliation(original):
         return None
-    command = [
+    command = [real_cargo, 'fetch', *fetch_reconciliation_args(original, allow_network)]
+    # Cargo applies output-owned path patches in dependency layers.  A lock
+    # digest is not by itself proof that Cargo regards the lock as settled:
+    # Cargo can retain an identical lock file while its internal patch graph
+    # has just become usable after a fetch.  Verify the *same strict
+    # resolution contract* as the caller after every non-compiling fetch
+    # instead of treating a stable digest as a cache-validity proxy.
+    #
+    # This executes only inside an output consumer mirror and only for a
+    # caller that explicitly requested --locked/--frozen.  MattOS stage cache
+    # hits return before the dispatcher, so a reusable stage cannot mutate
+    # its mirror or shared target through this path.
+    verification = [
         real_cargo,
         'metadata',
         '--format-version',
         '1',
-        *lock_reconciliation_args(original, allow_network),
+        *metadata_resolution_args(original),
     ]
-    return run_capture(command, cwd, trace, 'lock_reconcile', capture_stdout=True)
+    for attempt in range(1, 5):
+        completed = run_capture(command, cwd, trace, f'lock_reconcile_{attempt}', capture_stdout=True)
+        if completed.returncode != 0:
+            return completed
+        verified = run_capture(
+            verification,
+            cwd,
+            trace,
+            f'lock_verify_{attempt}',
+            capture_stdout=True,
+        )
+        if verified.returncode == 0:
+            return completed
+    return verified
 
 
 def cargo_git_source_repo(source: str) -> str | None:

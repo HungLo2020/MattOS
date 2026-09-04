@@ -165,12 +165,12 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "resources/COSMIC/defaults",
         ],
         BuildStage::Greetd => &["src/system/session/greetd"],
-        // The aggregate copies/stages component outputs according to the
-        // orchestration code, so changes to that output policy must invalidate
-        // the aggregate rather than reusing an old install tree.
+        // The aggregate copies component outputs according to this narrowly
+        // owned policy.  Do not fingerprint the global build dispatcher or
+        // package subsystem: unrelated importer, reporting, or repository
+        // changes cannot affect the aggregate's published install tree.
         BuildStage::CosmicDesktop => &[
-            "src/tools/mattos-build/src/main.rs",
-            "src/tools/mattos-build/src/packaging.rs",
+            "src/tools/mattos-build/src/stages/desktop_aggregation.rs",
         ],
         BuildStage::Python => &["src/development/python/cpython"],
         BuildStage::Llvm => &["src/toolchain/llvm-project"],
@@ -243,19 +243,170 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "src/system/data/linux-firmware",
             "upstream/policies/gitlinks.toml",
         ],
-        BuildStage::Rootfs | BuildStage::LiveRoot | BuildStage::All => &[],
+        // Rootfs/live-image assembly is implemented independently from the
+        // dispatcher.  Its own policy is a semantic input to image stages;
+        // unrelated command/import/package edits are not.
+        BuildStage::Rootfs | BuildStage::LiveRoot => {
+            &["src/tools/mattos-build/src/stages/image.rs"]
+        }
+        BuildStage::All => &[],
         BuildStage::Initramfs => &[
             "src/boot/live-init.c",
             "src/boot/module-loader.h",
             "src/system/data/linux-firmware",
+            "src/tools/mattos-build/src/stages/image.rs",
         ],
-        BuildStage::Iso => &[AUTHORITATIVE_GRUB_CFG],
+        BuildStage::Iso => &[
+            AUTHORITATIVE_GRUB_CFG,
+            "src/tools/mattos-build/src/stages/image.rs",
+        ],
     };
     let mut inputs = roots.iter().map(PathBuf::from).collect::<Vec<_>>();
+    // These consumers declare one or more packages from libcosmic's Git
+    // repository.  The build recipe replaces those declarations only in its
+    // output-owned mirror, so the pinned libcosmic and iced trees are real
+    // source inputs even when the consumer names `cosmic-config` rather than
+    // the top-level `libcosmic` package.  Keep this list narrow: desktop
+    // siblings which do not declare that Git source must not fan out when it
+    // changes.
+    if cosmic_stage_uses_owned_libcosmic(stage) {
+        for input in [
+            PathBuf::from("src/desktop/cosmic/libcosmic"),
+            PathBuf::from("src/desktop/cosmic/iced"),
+        ] {
+            if !inputs.contains(&input) {
+                inputs.push(input);
+            }
+        }
+    }
+    if matches!(
+        stage,
+        BuildStage::Brush
+            | BuildStage::Coreutils
+            | BuildStage::Grep
+            | BuildStage::Sed
+            | BuildStage::Findutils
+            | BuildStage::Diffutils
+            | BuildStage::Init
+            | BuildStage::Pam
+            | BuildStage::Shadow
+            | BuildStage::SudoRs
+            | BuildStage::UtilLinux
+            | BuildStage::Kmod
+            | BuildStage::Ncurses
+            | BuildStage::Procps
+    ) {
+        inputs.push("src/tools/mattos-build/src/stages/base_userland.rs".into());
+    }
+    if matches!(
+        stage,
+        BuildStage::Kernel
+            | BuildStage::Glibc
+            | BuildStage::GccRuntime
+            | BuildStage::GccToolchain
+            | BuildStage::Binutils
+            | BuildStage::Make
+    ) {
+        inputs.push("src/tools/mattos-build/src/stages/toolchain.rs".into());
+    }
+    if matches!(
+        stage,
+        BuildStage::CosmicComp
+            | BuildStage::CosmicSession
+            | BuildStage::CosmicGreeter
+            | BuildStage::CosmicPanel
+            | BuildStage::CosmicApplets
+            | BuildStage::CosmicAppLibrary
+            | BuildStage::CosmicLauncher
+            | BuildStage::CosmicSettings
+            | BuildStage::CosmicSettingsDaemon
+            | BuildStage::CosmicNotifications
+            | BuildStage::CosmicOsd
+            | BuildStage::CosmicBg
+            | BuildStage::CosmicWorkspaces
+            | BuildStage::CosmicFiles
+            | BuildStage::CosmicTerm
+            | BuildStage::CosmicTweaks
+            | BuildStage::CosmicUtilities
+            | BuildStage::CosmicRandr
+            | BuildStage::CosmicScreenshot
+            | BuildStage::PopLauncher
+            | BuildStage::CosmicCalculator
+            | BuildStage::CosmicStorage
+            | BuildStage::CosmicMonitor
+            | BuildStage::CosmicStore
+            | BuildStage::CosmicPortal
+            | BuildStage::CosmicAssets
+            | BuildStage::Greetd
+            | BuildStage::CosmicEdit
+            | BuildStage::CosmicInitialSetup
+    ) {
+        inputs.push("src/tools/mattos-build/src/stages/desktop.rs".into());
+    }
+    if matches!(
+        stage,
+        BuildStage::Libseat
+            | BuildStage::X11Compat
+            | BuildStage::Libepoxy
+            | BuildStage::Freetype
+            | BuildStage::Libfontenc
+            | BuildStage::Libxfont
+            | BuildStage::Libxcvt
+            | BuildStage::Libxshmfence
+            | BuildStage::Libxkbfile
+            | BuildStage::Xkbcomp
+            | BuildStage::Xwayland
+            | BuildStage::Bubblewrap
+            | BuildStage::XdgDbusProxy
+            | BuildStage::Gstreamer
+            | BuildStage::GstreamerBase
+            | BuildStage::XdgDesktopPortal
+            | BuildStage::Libglvnd
+            | BuildStage::NvidiaDriver
+            | BuildStage::LibdisplayInfo
+            | BuildStage::Libevdev
+            | BuildStage::Libinput
+            | BuildStage::Pixman
+            | BuildStage::Libdrm
+            | BuildStage::VulkanHeaders
+            | BuildStage::VulkanLoader
+            | BuildStage::VulkanTools
+            | BuildStage::Mesa
+    ) {
+        inputs.push("src/tools/mattos-build/src/stages/graphics.rs".into());
+    }
     if stage == BuildStage::Glibc {
         inputs.extend(linux_x86_uapi_inputs().into_iter().map(PathBuf::from));
     }
     inputs
+}
+
+fn cosmic_stage_uses_owned_libcosmic(stage: BuildStage) -> bool {
+    matches!(
+        stage,
+        BuildStage::CosmicComp
+            | BuildStage::CosmicGreeter
+            | BuildStage::CosmicPanel
+            | BuildStage::CosmicApplets
+            | BuildStage::CosmicAppLibrary
+            | BuildStage::CosmicLauncher
+            | BuildStage::CosmicSettings
+            | BuildStage::CosmicSettingsDaemon
+            | BuildStage::CosmicNotifications
+            | BuildStage::CosmicOsd
+            | BuildStage::CosmicBg
+            | BuildStage::CosmicWorkspaces
+            | BuildStage::CosmicFiles
+            | BuildStage::CosmicTerm
+            | BuildStage::CosmicEdit
+            | BuildStage::CosmicInitialSetup
+            | BuildStage::CosmicTweaks
+            | BuildStage::CosmicCalculator
+            | BuildStage::CosmicStorage
+            | BuildStage::CosmicMonitor
+            | BuildStage::CosmicStore
+            | BuildStage::CosmicPortal
+    )
 }
 
 pub(crate) fn configuration_inputs(stage: BuildStage) -> Vec<PathBuf> {
@@ -611,7 +762,9 @@ mod tests {
     #[test]
     fn stage_input_families_remain_narrow() {
         assert!(source_inputs(BuildStage::Brush).iter().all(|path| {
-            path.starts_with("src/userland/brush") || path.starts_with("upstream/patches/brush")
+            path.starts_with("src/userland/brush")
+                || path.starts_with("upstream/patches/brush")
+                || path == "src/tools/mattos-build/src/stages/base_userland.rs"
         }));
         assert!(
             !source_inputs(BuildStage::Brush)
@@ -629,11 +782,19 @@ mod tests {
     fn cosmic_component_inputs_are_leaf_precise() {
         assert_eq!(
             source_inputs(BuildStage::CosmicPanel),
-            vec![PathBuf::from("src/desktop/cosmic/cosmic-panel")]
+            vec![
+                PathBuf::from("src/desktop/cosmic/cosmic-panel"),
+                PathBuf::from("src/desktop/cosmic/libcosmic"),
+                PathBuf::from("src/desktop/cosmic/iced"),
+                PathBuf::from("src/tools/mattos-build/src/stages/desktop.rs"),
+            ]
         );
         assert_eq!(
             source_inputs(BuildStage::CosmicSession),
-            vec![PathBuf::from("src/desktop/cosmic/cosmic-session")]
+            vec![
+                PathBuf::from("src/desktop/cosmic/cosmic-session"),
+                PathBuf::from("src/tools/mattos-build/src/stages/desktop.rs"),
+            ]
         );
         assert_eq!(
             source_inputs(BuildStage::CosmicInitialSetup),
@@ -641,6 +802,9 @@ mod tests {
                 PathBuf::from("src/desktop/cosmic/cosmic-initial-setup"),
                 PathBuf::from("resources/COSMIC/layouts"),
                 PathBuf::from("resources/COSMIC/themes"),
+                PathBuf::from("src/desktop/cosmic/libcosmic"),
+                PathBuf::from("src/desktop/cosmic/iced"),
+                PathBuf::from("src/tools/mattos-build/src/stages/desktop.rs"),
             ]
         );
         assert_eq!(
@@ -650,15 +814,24 @@ mod tests {
                 PathBuf::from("src/desktop/cosmic/libcosmic"),
                 PathBuf::from("src/desktop/cosmic/iced"),
                 PathBuf::from("upstream/patches/cosmic-files"),
+                PathBuf::from("src/tools/mattos-build/src/stages/desktop.rs"),
             ]
         );
         assert_eq!(
             source_inputs(BuildStage::CosmicStore),
-            vec![PathBuf::from("src/desktop/cosmic/cosmic-store")]
+            vec![
+                PathBuf::from("src/desktop/cosmic/cosmic-store"),
+                PathBuf::from("src/desktop/cosmic/libcosmic"),
+                PathBuf::from("src/desktop/cosmic/iced"),
+                PathBuf::from("src/tools/mattos-build/src/stages/desktop.rs"),
+            ]
         );
         assert_eq!(
             source_inputs(BuildStage::XdgDbusProxy),
-            vec![PathBuf::from("src/system/packages/xdg-dbus-proxy")]
+            vec![
+                PathBuf::from("src/system/packages/xdg-dbus-proxy"),
+                PathBuf::from("src/tools/mattos-build/src/stages/graphics.rs"),
+            ]
         );
         assert!(
             source_inputs(BuildStage::CosmicAssets)
@@ -666,10 +839,9 @@ mod tests {
         );
         assert_eq!(
             source_inputs(BuildStage::CosmicDesktop),
-            vec![
-                PathBuf::from("src/tools/mattos-build/src/main.rs"),
-                PathBuf::from("src/tools/mattos-build/src/packaging.rs"),
-            ]
+            vec![PathBuf::from(
+                "src/tools/mattos-build/src/stages/desktop_aggregation.rs"
+            )]
         );
         for stage in [
             BuildStage::CosmicSession,
@@ -688,6 +860,328 @@ mod tests {
                 crate::stage_graph::stage_id(stage)
             );
         }
+    }
+
+    #[test]
+    fn cosmic_desktop_identity_is_scoped_to_its_aggregation_policy() {
+        let root = tempfile::tempdir().expect("temporary repository");
+        let policy = root
+            .path()
+            .join("src/tools/mattos-build/src/stages/desktop_aggregation.rs");
+        std::fs::create_dir_all(policy.parent().expect("policy parent"))
+            .expect("create policy parent");
+        std::fs::write(&policy, "aggregate = [\"cosmic-panel\"]\n")
+            .expect("write aggregation policy");
+
+        let unrelated = [
+            "src/tools/mattos-build/src/main.rs",
+            "src/tools/mattos-build/src/packaging.rs",
+            "src/tools/mattos-build/src/commands/doctor.rs",
+            "src/tools/mattos-build/src/commands/report.rs",
+            "src/tools/mattos-build/src/source/import.rs",
+        ];
+        for path in unrelated {
+            let path = root.path().join(path);
+            std::fs::create_dir_all(path.parent().expect("unrelated parent"))
+                .expect("create unrelated parent");
+            std::fs::write(path, "unrelated = true\n").expect("write unrelated input");
+        }
+
+        let roots = source_inputs(BuildStage::CosmicDesktop);
+        let baseline = crate::performance::tracked_source_digest(root.path(), &roots, false)
+            .expect("baseline cosmic desktop identity");
+
+        for path in unrelated {
+            std::fs::write(root.path().join(path), "unrelated = false\n")
+                .expect("change unrelated input");
+            assert_eq!(
+                baseline,
+                crate::performance::tracked_source_digest(root.path(), &roots, false)
+                    .expect("scoped cosmic desktop identity"),
+                "{path} must not invalidate CosmicDesktop"
+            );
+        }
+
+        std::fs::write(&policy, "aggregate = [\"cosmic-files\"]\n")
+            .expect("change aggregation policy");
+        assert_ne!(
+            baseline,
+            crate::performance::tracked_source_digest(root.path(), &roots, false)
+                .expect("changed cosmic desktop identity"),
+            "aggregation policy must invalidate CosmicDesktop"
+        );
+    }
+
+    #[test]
+    fn image_stages_own_their_implementation_input() {
+        let image_module = PathBuf::from("src/tools/mattos-build/src/stages/image.rs");
+        for stage in [
+            BuildStage::Rootfs,
+            BuildStage::LiveRoot,
+            BuildStage::Initramfs,
+            BuildStage::Iso,
+        ] {
+            assert!(
+                source_inputs(stage).contains(&image_module),
+                "{} must track its image implementation",
+                crate::stage_graph::stage_id(stage)
+            );
+        }
+    }
+
+    #[test]
+    fn shared_native_helpers_do_not_become_blanket_stage_inputs() {
+        let helper_roots = [
+            "src/tools/mattos-build/src/stages/helpers/native.rs",
+            "src/tools/mattos-build/src/stages/helpers/pkgconfig.rs",
+            "src/tools/mattos-build/src/stages/helpers/autotools.rs",
+            "src/tools/mattos-build/src/stages/helpers/meson.rs",
+            "src/tools/mattos-build/src/stages/helpers/cargo.rs",
+        ];
+        for stage in [
+            BuildStage::Kernel,
+            BuildStage::Glibc,
+            BuildStage::CosmicFiles,
+            BuildStage::Flatpak,
+            BuildStage::NetworkManager,
+        ] {
+            let roots = source_inputs(stage);
+            assert!(
+                helper_roots.iter().all(|helper| !roots.contains(&PathBuf::from(helper))),
+                "shared helper implementation must not become a blanket source input for {}",
+                crate::stage_graph::stage_id(stage)
+            );
+        }
+    }
+
+    #[test]
+    fn registry_implementation_is_not_a_global_stage_source_input() {
+        let registry = PathBuf::from("src/tools/mattos-build/src/stages/registry.rs");
+        for stage in crate::stage_graph::build_plan(BuildStage::All) {
+            assert!(
+                !source_inputs(stage).contains(&registry),
+                "one registry metadata edit must not globally invalidate {}",
+                crate::stage_graph::stage_id(stage)
+            );
+        }
+    }
+
+    #[test]
+    fn base_userland_recipe_implementation_is_owned_only_by_its_stages() {
+        let implementation = PathBuf::from("src/tools/mattos-build/src/stages/base_userland.rs");
+        for stage in [
+            BuildStage::Brush,
+            BuildStage::Coreutils,
+            BuildStage::Grep,
+            BuildStage::Sed,
+            BuildStage::Findutils,
+            BuildStage::Diffutils,
+            BuildStage::Init,
+            BuildStage::Pam,
+            BuildStage::Shadow,
+            BuildStage::SudoRs,
+            BuildStage::UtilLinux,
+            BuildStage::Kmod,
+            BuildStage::Ncurses,
+            BuildStage::Procps,
+        ] {
+            assert!(source_inputs(stage).contains(&implementation));
+        }
+        for stage in [BuildStage::Kernel, BuildStage::Glibc, BuildStage::Mesa, BuildStage::CosmicFiles, BuildStage::Flatpak] {
+            assert!(!source_inputs(stage).contains(&implementation));
+        }
+    }
+
+    #[test]
+    fn toolchain_recipe_implementation_is_owned_only_by_foundational_toolchain_stages() {
+        let implementation = PathBuf::from("src/tools/mattos-build/src/stages/toolchain.rs");
+        for stage in [
+            BuildStage::Kernel,
+            BuildStage::Glibc,
+            BuildStage::GccRuntime,
+            BuildStage::GccToolchain,
+            BuildStage::Binutils,
+            BuildStage::Make,
+        ] {
+            assert!(source_inputs(stage).contains(&implementation));
+        }
+        for stage in [
+            BuildStage::Mesa,
+            BuildStage::CosmicFiles,
+            BuildStage::Flatpak,
+            BuildStage::NetworkManager,
+        ] {
+            assert!(!source_inputs(stage).contains(&implementation));
+        }
+    }
+
+    #[test]
+    fn base_userland_recipe_identity_changes_only_for_its_owners() {
+        let root = tempfile::tempdir().expect("temporary repository");
+        for path in [
+            "src/userland/brush/README",
+            "upstream/patches/brush/0001.patch",
+            "src/tools/mattos-build/src/stages/base_userland.rs",
+        ] {
+            let path = root.path().join(path);
+            std::fs::create_dir_all(path.parent().expect("input parent"))
+                .expect("create input parent");
+            std::fs::write(path, "original\n").expect("write input");
+        }
+
+        let roots = source_inputs(BuildStage::Brush);
+        let baseline = crate::performance::tracked_source_digest(root.path(), &roots, false)
+            .expect("baseline base-userland identity");
+
+        for path in [
+            "src/tools/mattos-build/src/main.rs",
+            "src/tools/mattos-build/src/commands/cache.rs",
+            "src/tools/mattos-build/src/stages/image.rs",
+            "src/tools/mattos-build/src/stages/desktop_aggregation.rs",
+        ] {
+            let path = root.path().join(path);
+            std::fs::create_dir_all(path.parent().expect("unrelated parent"))
+                .expect("create unrelated parent");
+            std::fs::write(&path, "unrelated\n").expect("write unrelated input");
+            assert_eq!(
+                baseline,
+                crate::performance::tracked_source_digest(root.path(), &roots, false)
+                    .expect("narrow base-userland identity"),
+                "{path:?} must not invalidate Brush"
+            );
+        }
+
+        let implementation = root
+            .path()
+            .join("src/tools/mattos-build/src/stages/base_userland.rs");
+        std::fs::write(&implementation, "changed recipe\n").expect("change recipe");
+        assert_ne!(
+            baseline,
+            crate::performance::tracked_source_digest(root.path(), &roots, false)
+                .expect("changed base-userland identity"),
+            "an owned recipe change must invalidate Brush"
+        );
+    }
+
+    #[test]
+    fn graphics_recipe_implementation_is_owned_only_by_graphics_platform_stages() {
+        let implementation = PathBuf::from("src/tools/mattos-build/src/stages/graphics.rs");
+        for stage in [
+            BuildStage::Mesa,
+            BuildStage::Xwayland,
+            BuildStage::VulkanLoader,
+            BuildStage::Libdrm,
+            BuildStage::Libinput,
+            BuildStage::NvidiaDriver,
+            BuildStage::XdgDesktopPortal,
+        ] {
+            assert!(source_inputs(stage).contains(&implementation));
+        }
+        for stage in [
+            BuildStage::Kernel,
+            BuildStage::Glibc,
+            BuildStage::CosmicFiles,
+            BuildStage::Flatpak,
+            BuildStage::NetworkManager,
+        ] {
+            assert!(!source_inputs(stage).contains(&implementation));
+        }
+    }
+
+    #[test]
+    fn desktop_recipe_implementation_is_owned_only_by_desktop_stages() {
+        let implementation = PathBuf::from("src/tools/mattos-build/src/stages/desktop.rs");
+        for stage in [
+            BuildStage::CosmicComp,
+            BuildStage::CosmicSession,
+            BuildStage::CosmicGreeter,
+            BuildStage::CosmicPanel,
+            BuildStage::CosmicApplets,
+            BuildStage::CosmicAppLibrary,
+            BuildStage::CosmicLauncher,
+            BuildStage::CosmicSettings,
+            BuildStage::CosmicSettingsDaemon,
+            BuildStage::CosmicNotifications,
+            BuildStage::CosmicOsd,
+            BuildStage::CosmicBg,
+            BuildStage::CosmicWorkspaces,
+            BuildStage::CosmicFiles,
+            BuildStage::CosmicTerm,
+            BuildStage::CosmicTweaks,
+            BuildStage::CosmicUtilities,
+            BuildStage::CosmicRandr,
+            BuildStage::CosmicScreenshot,
+            BuildStage::PopLauncher,
+            BuildStage::CosmicCalculator,
+            BuildStage::CosmicStorage,
+            BuildStage::CosmicMonitor,
+            BuildStage::CosmicStore,
+            BuildStage::CosmicPortal,
+            BuildStage::CosmicAssets,
+            BuildStage::Greetd,
+            BuildStage::CosmicEdit,
+            BuildStage::CosmicInitialSetup,
+        ] {
+            assert!(source_inputs(stage).contains(&implementation));
+        }
+        for stage in [
+            BuildStage::Kernel,
+            BuildStage::Glibc,
+            BuildStage::Mesa,
+            BuildStage::Flatpak,
+            BuildStage::Rootfs,
+            BuildStage::LiveRoot,
+        ] {
+            assert!(!source_inputs(stage).contains(&implementation));
+        }
+    }
+
+    #[test]
+    fn desktop_recipe_identity_changes_only_for_its_owners() {
+        let root = tempfile::tempdir().expect("temporary repository");
+        for path in [
+            "src/desktop/cosmic/cosmic-store/README",
+            "src/desktop/cosmic/libcosmic/README",
+            "src/desktop/cosmic/iced/README",
+            "src/tools/mattos-build/src/stages/desktop.rs",
+        ] {
+            let path = root.path().join(path);
+            std::fs::create_dir_all(path.parent().expect("input parent"))
+                .expect("create input parent");
+            std::fs::write(path, "original\n").expect("write input");
+        }
+
+        let roots = source_inputs(BuildStage::CosmicStore);
+        let baseline = crate::performance::tracked_source_digest(root.path(), &roots, false)
+            .expect("baseline desktop identity");
+        for path in [
+            "src/tools/mattos-build/src/main.rs",
+            "src/tools/mattos-build/src/stages/base_userland.rs",
+            "src/tools/mattos-build/src/stages/image.rs",
+            "src/tools/mattos-build/src/stages/desktop_aggregation.rs",
+        ] {
+            let path = root.path().join(path);
+            std::fs::create_dir_all(path.parent().expect("unrelated parent"))
+                .expect("create unrelated parent");
+            std::fs::write(&path, "unrelated\n").expect("write unrelated input");
+            assert_eq!(
+                baseline,
+                crate::performance::tracked_source_digest(root.path(), &roots, false)
+                    .expect("narrow desktop identity"),
+                "{path:?} must not invalidate CosmicStore"
+            );
+        }
+
+        let implementation = root
+            .path()
+            .join("src/tools/mattos-build/src/stages/desktop.rs");
+        std::fs::write(&implementation, "changed recipe\n").expect("change recipe");
+        assert_ne!(
+            baseline,
+            crate::performance::tracked_source_digest(root.path(), &roots, false)
+                .expect("changed desktop identity"),
+            "an owned recipe change must invalidate CosmicStore"
+        );
     }
 
     #[test]
@@ -765,6 +1259,7 @@ mod tests {
                 PathBuf::from("src/desktop/cosmic/libcosmic"),
                 PathBuf::from("src/desktop/cosmic/iced"),
                 PathBuf::from("upstream/patches/cosmic-files"),
+                PathBuf::from("src/tools/mattos-build/src/stages/desktop.rs"),
             ]
         );
     }
@@ -813,5 +1308,89 @@ mod tests {
                 "normal Cargo dependency {cargo_dependency} was promoted into stage source ownership"
             );
         }
+    }
+
+    #[test]
+    fn only_actual_libcosmic_git_consumers_own_the_libcosmic_source_identity() {
+        let owned = [
+            BuildStage::CosmicAppLibrary,
+            BuildStage::CosmicBg,
+            BuildStage::CosmicStore,
+            BuildStage::CosmicPortal,
+        ];
+        for stage in owned {
+            let inputs = source_inputs(stage);
+            assert!(
+                inputs.contains(&PathBuf::from("src/desktop/cosmic/libcosmic")),
+                "{} must own its patched libcosmic source identity",
+                crate::stage_graph::stage_id(stage)
+            );
+            assert!(
+                inputs.contains(&PathBuf::from("src/desktop/cosmic/iced")),
+                "{} must own its patched iced source identity",
+                crate::stage_graph::stage_id(stage)
+            );
+        }
+        for stage in [
+            BuildStage::CosmicSession,
+            BuildStage::CosmicAssets,
+            BuildStage::CosmicUtilities,
+            BuildStage::Flatpak,
+        ] {
+            let inputs = source_inputs(stage);
+            assert!(
+                !inputs.contains(&PathBuf::from("src/desktop/cosmic/libcosmic")),
+                "{} must not inherit unrelated libcosmic invalidation",
+                crate::stage_graph::stage_id(stage)
+            );
+        }
+    }
+
+    #[test]
+    fn libcosmic_source_change_invalidates_its_consumers_but_not_desktop_siblings() {
+        let root = tempfile::tempdir().expect("temporary repository");
+        for path in [
+            "src/desktop/cosmic/cosmic-store/README",
+            "src/desktop/cosmic/cosmic-session/README",
+            "src/desktop/cosmic/libcosmic/README",
+            "src/desktop/cosmic/iced/README",
+            "src/tools/mattos-build/src/stages/desktop.rs",
+        ] {
+            let path = root.path().join(path);
+            std::fs::create_dir_all(path.parent().expect("input parent"))
+                .expect("create input parent");
+            std::fs::write(path, "original\n").expect("write input");
+        }
+        let store_inputs = source_inputs(BuildStage::CosmicStore);
+        let session_inputs = source_inputs(BuildStage::CosmicSession);
+        let store_before = crate::performance::tracked_source_digest(
+            root.path(),
+            &store_inputs,
+            false,
+        )
+        .expect("store baseline");
+        let session_before = crate::performance::tracked_source_digest(
+            root.path(),
+            &session_inputs,
+            false,
+        )
+        .expect("session baseline");
+
+        std::fs::write(
+            root.path().join("src/desktop/cosmic/libcosmic/README"),
+            "changed pinned libcosmic\n",
+        )
+        .expect("change libcosmic");
+
+        assert_ne!(
+            store_before,
+            crate::performance::tracked_source_digest(root.path(), &store_inputs, false)
+                .expect("changed store identity")
+        );
+        assert_eq!(
+            session_before,
+            crate::performance::tracked_source_digest(root.path(), &session_inputs, false)
+                .expect("unrelated session identity")
+        );
     }
 }
