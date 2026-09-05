@@ -311,6 +311,31 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
     }
     if matches!(
         stage,
+        BuildStage::Bzip2
+            | BuildStage::Lz4
+            | BuildStage::Xz
+            | BuildStage::Xxhash
+            | BuildStage::Zstd
+            | BuildStage::Openssl
+            | BuildStage::Elfutils
+            | BuildStage::Pcre2
+            | BuildStage::Selinux
+            | BuildStage::Libxcrypt
+            | BuildStage::Libmd
+            | BuildStage::Libbsd
+            | BuildStage::Libndp
+            | BuildStage::Readline
+            | BuildStage::LibgpgError
+            | BuildStage::Libgcrypt
+            | BuildStage::Libassuan
+            | BuildStage::Libksba
+            | BuildStage::Npth
+            | BuildStage::Gpgv
+    ) {
+        inputs.push("src/tools/mattos-build/src/stages/libraries.rs".into());
+    }
+    if matches!(
+        stage,
         BuildStage::CosmicComp
             | BuildStage::CosmicSession
             | BuildStage::CosmicGreeter
@@ -1013,6 +1038,91 @@ mod tests {
         ] {
             assert!(!source_inputs(stage).contains(&implementation));
         }
+    }
+
+    #[test]
+    fn libraries_recipe_implementation_is_owned_only_by_its_library_stages() {
+        let implementation = PathBuf::from("src/tools/mattos-build/src/stages/libraries.rs");
+        for stage in [
+            BuildStage::Bzip2,
+            BuildStage::Lz4,
+            BuildStage::Xz,
+            BuildStage::Xxhash,
+            BuildStage::Zstd,
+            BuildStage::Openssl,
+            BuildStage::Elfutils,
+            BuildStage::Pcre2,
+            BuildStage::Selinux,
+            BuildStage::Libxcrypt,
+            BuildStage::Libmd,
+            BuildStage::Libbsd,
+            BuildStage::Libndp,
+            BuildStage::Readline,
+            BuildStage::LibgpgError,
+            BuildStage::Libgcrypt,
+            BuildStage::Libassuan,
+            BuildStage::Libksba,
+            BuildStage::Npth,
+            BuildStage::Gpgv,
+        ] {
+            assert!(source_inputs(stage).contains(&implementation));
+        }
+        for stage in [
+            BuildStage::Kernel,
+            BuildStage::Glibc,
+            BuildStage::Mesa,
+            BuildStage::CosmicFiles,
+            BuildStage::Flatpak,
+            BuildStage::NetworkManager,
+        ] {
+            assert!(!source_inputs(stage).contains(&implementation));
+        }
+    }
+
+    #[test]
+    fn libraries_recipe_identity_changes_only_for_its_owners() {
+        let root = tempfile::tempdir().expect("temporary repository");
+        for path in [
+            "src/system/libraries/lz4/README",
+            "src/tools/mattos-build/src/stages/libraries.rs",
+        ] {
+            let path = root.path().join(path);
+            std::fs::create_dir_all(path.parent().expect("input parent"))
+                .expect("create input parent");
+            std::fs::write(path, "original\n").expect("write input");
+        }
+
+        let roots = source_inputs(BuildStage::Lz4);
+        let baseline = crate::performance::tracked_source_digest(root.path(), &roots, false)
+            .expect("baseline libraries identity");
+        for path in [
+            "src/tools/mattos-build/src/main.rs",
+            "src/tools/mattos-build/src/stages/base_userland.rs",
+            "src/tools/mattos-build/src/stages/desktop.rs",
+            "src/tools/mattos-build/src/stages/image.rs",
+        ] {
+            let path = root.path().join(path);
+            std::fs::create_dir_all(path.parent().expect("unrelated parent"))
+                .expect("create unrelated parent");
+            std::fs::write(&path, "unrelated\n").expect("write unrelated input");
+            assert_eq!(
+                baseline,
+                crate::performance::tracked_source_digest(root.path(), &roots, false)
+                    .expect("narrow libraries identity"),
+                "{path:?} must not invalidate LZ4"
+            );
+        }
+
+        let implementation = root
+            .path()
+            .join("src/tools/mattos-build/src/stages/libraries.rs");
+        std::fs::write(&implementation, "changed recipe\n").expect("change recipe");
+        assert_ne!(
+            baseline,
+            crate::performance::tracked_source_digest(root.path(), &roots, false)
+                .expect("changed libraries identity"),
+            "an owned recipe change must invalidate LZ4"
+        );
     }
 
     #[test]

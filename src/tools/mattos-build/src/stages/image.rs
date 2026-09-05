@@ -173,6 +173,26 @@ fn build_installer(repo_root: &Path) -> Result<()> {
         run_cmd(&btrfs_source, "autoreconf", &["-fiv"])?;
     }
     let btrfs_env = staged_library_environment(repo_root, &["util-linux", "zlib", "zstd"])?;
+    // btrfs-progs' generated Makefile consumes EXTRA_CFLAGS rather than the
+    // generic CPPFLAGS supplied by staged_library_environment.  Pass it as a
+    // make command-line variable because the generated Makefile initializes
+    // EXTRA_CFLAGS itself; libuuid remains target-owned and never comes from
+    // the host include tree.
+    let btrfs_extra_cflags = ["util-linux", "zlib", "zstd"]
+        .iter()
+        .map(|component| {
+            format!(
+                "-I{}",
+                repo_root
+                    .join("out/build")
+                    .join(component)
+                    .join("install/usr/include")
+                    .display()
+            )
+        })
+        .collect::<Vec<_>>()
+        .join(" ");
+    let btrfs_extra_cflags = format!("EXTRA_CFLAGS={btrfs_extra_cflags}");
     if !btrfs_source.join("config.status").is_file() {
         run_cmd_with_env_overrides(
             &btrfs_source,
@@ -192,12 +212,16 @@ fn build_installer(repo_root: &Path) -> Result<()> {
             &btrfs_env,
         )?;
     }
-    run_cmd_with_env_overrides(&btrfs_source, "make", &[], &btrfs_env)?;
+    run_cmd_with_env_overrides(&btrfs_source, "make", &[&btrfs_extra_cflags], &btrfs_env)?;
     remove_path_if_exists(&btrfs_install)?;
     run_cmd_with_env_overrides(
         &btrfs_source,
         "make",
-        &["install", &format!("DESTDIR={}", btrfs_install.display())],
+        &[
+            "install",
+            &format!("DESTDIR={}", btrfs_install.display()),
+            &btrfs_extra_cflags,
+        ],
         &btrfs_env,
     )?;
     for required in ["usr/bin/btrfs", "usr/bin/mkfs.btrfs"] {

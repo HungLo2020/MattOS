@@ -10956,6 +10956,7 @@ mod tests {
                 "libepoxy",
                 "libdrm",
                 "libglvnd",
+                "libmd",
                 "mesa",
             ]
         );

@@ -320,7 +320,7 @@ fn build_libfontenc(repo_root: &Path) -> Result<()> {
     build_xorg_autotools_component(
         repo_root,
         "libfontenc",
-        &["xorg-util-macros", "xorgproto"],
+        &["xorg-util-macros", "xorgproto", "zlib"],
         &[
             "--prefix=/usr",
             "--libdir=/usr/lib/x86_64-linux-gnu",
@@ -429,6 +429,7 @@ fn build_xwayland(repo_root: &Path) -> Result<()> {
             "libepoxy",
             "libdrm",
             "libglvnd",
+            "libmd",
             "mesa",
         ],
         &[
@@ -559,6 +560,7 @@ fn build_xdg_desktop_portal(repo_root: &Path) -> Result<()> {
         &[
             "glib",
             "libffi",
+            "pcre2",
             "zlib",
             "json-glib",
             "fuse3",
@@ -1657,6 +1659,7 @@ fn build_mesa(repo_root: &Path) -> Result<()> {
         &[
             "libdrm",
             "libdisplay-info",
+            "elfutils",
             "libffi",
             "llvm",
             "zlib",
