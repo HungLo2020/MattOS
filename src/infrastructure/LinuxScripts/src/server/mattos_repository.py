@@ -24,12 +24,18 @@ import subprocess
 import sys
 import tempfile
 import time
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass, replace
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
+from server.r2_repository import R2Error
+
+
+REPOSITORIES = ("mattos", "mattpackages")
+SELECTION_ERROR = "Repository selection is required. Update your publishing script and pass --repo mattos or --repo mattpackages. No operation was performed."
+CONFIG_PATH = Path("/etc/mattos-repository/server.json")
 
 DEFAULT_ROOT = Path("/srv/storage/Storage/MattOSPackageRepo")
 DEFAULT_SUITE = "trixie"
@@ -103,7 +109,7 @@ def install_dependencies() -> None:
     privileged(["apt-get", "install", "-y", *sorted(set(packages))])
 
 
-def ensure_tree_permissions(root: Path, user: str) -> None:
+def ensure_tree_permissions(root: Path, user: str, *, sensitive_paths: tuple[Path, ...] = ()) -> None:
     """Keep repository contents service-readable without touching package data."""
     try:
         import pwd
@@ -111,17 +117,18 @@ def ensure_tree_permissions(root: Path, user: str) -> None:
         gid = pwd.getpwnam(user).pw_gid
     except KeyError as exc:
         raise RepositoryError(f"Repository service user does not exist: {user}") from exc
+    private_paths = {path.resolve() for path in sensitive_paths}
     for path in sorted(root.rglob("*")):
         try:
             os.chown(path, uid, gid)
-            os.chmod(path, 0o755 if path.is_dir() else (0o600 if path.name in {"private-key.asc", "token"} else 0o644))
+            os.chmod(path, 0o755 if path.is_dir() else (0o600 if (path.name in {"private-key.asc", "token", "api-token", "r2-credentials.json"} or path.resolve() in private_paths) else 0o644))
         except PermissionError as exc:
             raise RepositoryError(f"Could not set repository permissions on {path}") from exc
     os.chown(root, uid, gid)
     os.chmod(root, 0o755)
 
 
-def service_definition(config: "ServerConfig", user: str) -> str:
+def service_definition(config_path: Path, user: str) -> str:
     script = Path(__file__).resolve().parents[2] / "Tools" / "ManageMattOSRepositoryServer.py"
     bind = os.environ.get("MATTOS_REPOSITORY_BIND")
     if not bind and shutil.which("tailscale"):
@@ -129,17 +136,15 @@ def service_definition(config: "ServerConfig", user: str) -> str:
         bind = result.stdout.strip().splitlines()[0] if result.returncode == 0 and result.stdout.strip() else None
     bind = bind or "127.0.0.1"
     return "\n".join((
-        "[Unit]", "Description=MattOS local Debian repository API", "After=network-online.target", "Wants=network-online.target", "",
+        "[Unit]", "Description=MattOS and MattPackages Debian repository API", "After=network-online.target", "Wants=network-online.target", "",
         "[Service]", "Type=simple", f"User={user}", f"WorkingDirectory={script.parent.parent}",
-        f"Environment=MATTOS_REPOSITORY_ROOT={config.root}", f"Environment=MATTOS_REPOSITORY_TOKEN_FILE={config.token_file}",
-        f"Environment=MATTOS_REPOSITORY_PUBLIC_URL={config.public_url}",
         "Environment=MATTOS_REPOSITORY_ALLOW_ANONYMOUS=1",
-        f"ExecStart=/usr/bin/python3 {script} serve --bind {bind} --port {os.environ.get('MATTOS_REPOSITORY_PORT', str(DEFAULT_PORT))}",
+        f'ExecStart=/usr/bin/python3 "{script}" --config "{config_path}" serve --bind {bind} --port {os.environ.get("MATTOS_REPOSITORY_PORT", str(DEFAULT_PORT))}',
         "Restart=on-failure", "RestartSec=5", "", "[Install]", "WantedBy=multi-user.target", "",
     ))
 
 
-def install_service(config: "ServerConfig", user: str) -> None:
+def install_service(config_path: Path, user: str) -> None:
     """Recreate the generated service so changed settings take effect immediately."""
     if SERVICE_PATH.exists():
         # A running unit keeps its old environment even after its unit file is
@@ -150,7 +155,7 @@ def install_service(config: "ServerConfig", user: str) -> None:
         privileged(["rm", "-f", str(SERVICE_PATH)])
         privileged(["systemctl", "daemon-reload"])
     with tempfile.NamedTemporaryFile("w", encoding="utf-8", prefix="mattos-repository-", suffix=".service", delete=False) as temporary:
-        temporary.write(service_definition(config, user))
+        temporary.write(service_definition(config_path, user))
         source = Path(temporary.name)
     try:
         privileged(["install", "-o", "root", "-g", "root", "-m", "0644", str(source), str(SERVICE_PATH)])
@@ -194,24 +199,101 @@ class ServerConfig:
     bucket: str = DEFAULT_BUCKET
     endpoint: str = ""
     r2_enabled: bool = True
+    repository: str = "mattos"
+    credentials_file: Path | None = None
+
+    @property
+    def label(self) -> str:
+        return "MattOS" if self.repository == "mattos" else "MattPackages"
 
     @classmethod
-    def from_env(cls) -> "ServerConfig":
-        root = Path(os.environ.get("MATTOS_REPOSITORY_ROOT", str(DEFAULT_ROOT))).expanduser()
-        key = os.environ.get("MATTOS_REPOSITORY_PRIVATE_KEY_FILE")
-        return cls(
-            root=root,
-            suite=os.environ.get("MATTOS_REPOSITORY_SUITE", DEFAULT_SUITE),
-            component=os.environ.get("MATTOS_REPOSITORY_COMPONENT", DEFAULT_COMPONENT),
-            architectures=validate_architectures(os.environ.get("MATTOS_REPOSITORY_ARCHITECTURES", "amd64")),
-            public_url=os.environ.get("MATTOS_REPOSITORY_PUBLIC_URL", "https://packages.mattsherfey.com").rstrip("/"),
-            token_file=Path(os.environ.get("MATTOS_REPOSITORY_TOKEN_FILE", str(root / "api-token"))).expanduser(),
-            private_key_file=Path(key).expanduser() if key else None,
-            r2_item=os.environ.get("MATTOS_R2_ITEM", DEFAULT_R2_ITEM),
-            gpg_item=os.environ.get("MATTOS_GPG_ITEM", DEFAULT_GPG_ITEM),
-            bucket=os.environ.get("MATTOS_R2_BUCKET", DEFAULT_BUCKET),
-            endpoint=os.environ.get("MATTOS_R2_ENDPOINT", ""),
-        )
+    def from_env(cls, repository: str, base: "ServerConfig | None" = None) -> "ServerConfig":
+        if repository not in REPOSITORIES:
+            raise RepositoryError(SELECTION_ERROR)
+        prefix = repository.upper()
+        if base is None:
+            base = cls() if repository == "mattos" else cls(
+                repository="mattpackages", root=Path("/srv/storage/Storage/MattPackagesRepo"),
+                suite="stable", public_url="https://mattpackages.mattsherfey.com",
+                bucket="mattpackages-apt-repo", r2_item="MattPackages R2 Repository Publisher",
+            )
+        root = Path(os.environ.get(f"{prefix}_REPOSITORY_ROOT", str(base.root))).expanduser()
+        values = asdict(base)
+        values.update(root=root, repository=repository)
+        for field, suffix in (
+            ("suite", "REPOSITORY_SUITE"), ("component", "REPOSITORY_COMPONENT"),
+            ("public_url", "REPOSITORY_PUBLIC_URL"), ("r2_item", "R2_ITEM"),
+            ("gpg_item", "GPG_ITEM"), ("bucket", "R2_BUCKET"), ("endpoint", "R2_ENDPOINT"),
+        ):
+            values[field] = os.environ.get(f"{prefix}_{suffix}", str(values[field])).rstrip("/")
+        values["architectures"] = validate_architectures(os.environ.get(
+            f"{prefix}_REPOSITORY_ARCHITECTURES", ",".join(base.architectures)))
+        for field, suffix in (("private_key_file", "REPOSITORY_PRIVATE_KEY_FILE"),
+                              ("credentials_file", "R2_CREDENTIALS_FILE")):
+            value = os.environ.get(f"{prefix}_{suffix}", values[field])
+            values[field] = Path(value).expanduser() if value else None
+        values["token_file"] = Path(os.environ.get(
+            f"{prefix}_REPOSITORY_TOKEN_FILE", str(root / "api-token" if root != base.root else base.token_file))).expanduser()
+        return cls(**values)
+
+
+def validate_configs(configs: dict[str, ServerConfig]) -> None:
+    if set(configs) != set(REPOSITORIES):
+        raise RepositoryError("Server configuration must contain mattos and mattpackages")
+    first, second = (configs[name] for name in REPOSITORIES)
+    roots = [config.root.resolve() for config in (first, second)]
+    if roots[0] == roots[1] or roots[0] in roots[1].parents or roots[1] in roots[0].parents:
+        raise RepositoryError("Repositories must have separate, non-overlapping local roots")
+    if first.bucket == second.bucket:
+        raise RepositoryError("MattOS and MattPackages must use different R2 buckets")
+    caches = [(config.credentials_file or config.root / "r2-credentials.json").resolve() for config in (first, second)]
+    if caches[0] == caches[1]:
+        raise RepositoryError("Repositories must have separate R2 credential caches")
+    for name, config in configs.items():
+        if config.repository != name:
+            raise RepositoryError("Repository identity does not match its configuration entry")
+        for value in (config.suite, config.component):
+            if not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9+._-]*", value):
+                raise RepositoryError("Invalid repository suite or component")
+        validate_architectures(",".join(config.architectures))
+
+
+def load_configs(path: Path = CONFIG_PATH) -> dict[str, ServerConfig]:
+    saved = {}
+    if path.is_file():
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            if set(payload) != set(REPOSITORIES):
+                raise ValueError("both repositories must be configured")
+            for name, values in payload.items():
+                for field in ("root", "token_file", "private_key_file", "credentials_file"):
+                    if values.get(field) is not None:
+                        values[field] = Path(values[field])
+                values["architectures"] = tuple(values["architectures"])
+                saved[name] = ServerConfig(**values)
+        except (TypeError, ValueError, KeyError, AttributeError) as exc:
+            raise RepositoryError(f"Invalid server configuration: {path}") from exc
+    configs = {name: ServerConfig.from_env(name, saved.get(name)) for name in REPOSITORIES}
+    # Both archives deliberately use the existing MattOS signing key and API credential.
+    mattos = configs["mattos"]
+    configs["mattpackages"] = replace(configs["mattpackages"],
+        private_key_file=mattos.private_key_file or mattos.root / "private-key.asc",
+        gpg_item=mattos.gpg_item, token_file=mattos.token_file)
+    validate_configs(configs)
+    return configs
+
+
+def save_configs(configs: dict[str, ServerConfig], path: Path) -> None:
+    validate_configs(configs)
+    payload = json.dumps({name: asdict(config) for name, config in configs.items()}, default=str, indent=2) + "\n"
+    with tempfile.NamedTemporaryFile("w", encoding="utf-8") as temporary:
+        temporary.write(payload)
+        temporary.flush()
+        privileged(["install", "-d", "-m", "0755", str(path.parent)])
+        # Install next to the destination, then atomically replace the configuration.
+        target = path.with_name(path.name + ".new")
+        privileged(["install", "-m", "0644", temporary.name, str(target)])
+        privileged(["mv", "-f", str(target), str(path)])
 
 
 def package_metadata(path: Path) -> tuple[str, str, str]:
@@ -254,9 +336,9 @@ class RepositoryManager:
         conf.mkdir(parents=True, exist_ok=True)
         (conf / "distributions").write_text(
             "".join((
-                "Origin: MattOS\n", "Label: MattOS\n", f"Codename: {self.config.suite}\n",
+                f"Origin: {self.config.label}\n", f"Label: {self.config.label}\n", f"Codename: {self.config.suite}\n",
                 f"Suite: {self.config.suite}\n", f"Architectures: {' '.join(self.config.architectures)}\n",
-                f"Components: {self.config.component}\n", "Description: MattOS Debian packages\n",
+                f"Components: {self.config.component}\n", f"Description: {self.config.label} Debian packages\n",
                 f"SignWith: {fingerprint}\n", "DebIndices: Packages Release . .gz\n",
             )), encoding="utf-8",
         )
@@ -324,7 +406,7 @@ class RepositoryManager:
 
             shutil.copytree(active, stage, copy_function=copy_file, dirs_exist_ok=True)
         else:
-            stage.mkdir(parents=True)
+            stage.mkdir(parents=True, exist_ok=True)
 
     def _commit(self, stage: Path) -> None:
         release = self.releases / f"release-{time.time_ns()}-{secrets.token_hex(4)}"
@@ -363,16 +445,6 @@ class RepositoryManager:
         try:
             keys = r2.keys()
             active = self._active()
-            if keys and (not active or not any((active / "pool").rglob("*.deb"))):
-                stage = Path(tempfile.mkdtemp(prefix="mattos-r2-sync-", dir=self.releases))
-                try:
-                    for key in sorted(keys):
-                        r2.download(key, stage / key)
-                    self._commit(stage)
-                    active = self._active()
-                except Exception:
-                    shutil.rmtree(stage, ignore_errors=True)
-                    raise
             if active:
                 r2.publish(active, keys)
         finally:
@@ -381,7 +453,7 @@ class RepositoryManager:
     def init(self) -> None:
         with self._lock() as handle:
             try:
-                token = self.ensure_token()
+                self.ensure_token()
                 if self._active():
                     return
                 self.ensure_layout()
@@ -391,6 +463,8 @@ class RepositoryManager:
                         self._key_material()
                     except RepositoryError:
                         pass
+                if not key_path.is_file() and self.config.repository == "mattpackages":
+                    raise RepositoryError("Existing MattOS signing key is required; initialize MattOS or restore its key first")
                 if not key_path.is_file():
                     key_path.parent.mkdir(parents=True, exist_ok=True)
                     with tempfile.TemporaryDirectory(prefix="mattos-gpg-") as temp:
@@ -403,9 +477,35 @@ class RepositoryManager:
                     key_path.chmod(0o600)
                 stage = Path(tempfile.mkdtemp(prefix="mattos-repository-", dir=self.releases))
                 try:
-                    self._build(stage, [])
-                    self._commit(stage)
-                    self.synchronize_r2()
+                    packages = []
+                    r2 = self._r2() if self.config.r2_enabled else None
+                    owner = r2.lock() if r2 else None
+                    try:
+                        keys = r2.keys() if r2 else set()
+                        if keys and self.config.repository == "mattpackages":
+                            raise RepositoryError("MattPackages must start empty: its R2 bucket already contains repository files; refusing to import or overwrite them")
+                        for key in sorted(keys):
+                            if key.startswith("pool/") and key.endswith(".deb"):
+                                if ".." in Path(key).parts or "\\" in key:
+                                    raise RepositoryError("Unsafe R2 package path")
+                                destination = stage / ".restore" / key
+                                r2.download(key, destination)
+                                packages.append(destination)
+                        self._build(stage, packages)
+                        # Bootstrap must retain every existing package payload, including
+                        # older pool objects no longer referenced by the current index.
+                        for package in packages:
+                            destination = stage / package.relative_to(stage / ".restore")
+                            destination.parent.mkdir(parents=True, exist_ok=True)
+                            if not destination.exists():
+                                shutil.copy2(package, destination)
+                        shutil.rmtree(stage / ".restore", ignore_errors=True)
+                        self._commit(stage)
+                        if r2:
+                            r2.publish(self._active(), keys)
+                    finally:
+                        if r2 and owner:
+                            r2.unlock(owner)
                 except Exception:
                     shutil.rmtree(stage, ignore_errors=True)
                     raise
@@ -420,6 +520,8 @@ class RepositoryManager:
         distributions = active / "conf" / "distributions"
         current = distributions.read_text(encoding="utf-8") if distributions.is_file() else ""
         expected = (
+            f"Origin: {self.config.label}\n",
+            f"Label: {self.config.label}\n",
             f"Suite: {self.config.suite}\n",
             f"Components: {self.config.component}\n",
             f"Architectures: {' '.join(self.config.architectures)}\n",
@@ -460,7 +562,7 @@ class RepositoryManager:
                 raise
             finally:
                 handle.close()
-        return {"name": name, "version": version, "architecture": architecture}
+        return {"repository": self.config.repository, "name": name, "version": version, "architecture": architecture}
 
     def remove(self, name: str, version: str | None = None) -> None:
         with self._lock() as handle:
@@ -498,7 +600,7 @@ class RepositoryManager:
 
     def status(self) -> dict[str, Any]:
         active = self._active()
-        return {"initialized": active is not None, "root": str(self.root), "public_url": self.config.public_url, "suite": self.config.suite, "component": self.config.component, "architectures": list(self.config.architectures), "packages": len(self.packages())}
+        return {"repository": self.config.repository, "bucket": self.config.bucket, "initialized": active is not None, "root": str(self.root), "public_url": self.config.public_url, "suite": self.config.suite, "component": self.config.component, "architectures": list(self.config.architectures), "packages": len(self.packages())}
 
     def public_key(self) -> str:
         with tempfile.TemporaryDirectory(prefix="mattos-public-key-") as temp:
@@ -511,6 +613,14 @@ class RepositoryManager:
         """Return the key only for the explicitly requested authenticated export."""
         return self._key_material()
 
+    def publish(self) -> None:
+        with self._lock() as handle:
+            try:
+                self.verify()
+                self.synchronize_r2()
+            finally:
+                handle.close()
+
     def verify(self) -> None:
         active = self._active()
         if not active:
@@ -518,32 +628,43 @@ class RepositoryManager:
         run(["reprepro", "--basedir", str(active), "check", self.config.suite])
 
 
-def setup_server(config: ServerConfig) -> tuple[str, bool]:
-    """Install dependencies and reconcile the server installation safely."""
+def setup_server(config: ServerConfig, configs: dict[str, ServerConfig], config_path: Path) -> None:
+    """Set up only the selected archive; the shared service exposes both."""
+    validate_configs(configs)
     install_dependencies()
     user = service_user()
-    root = config.root
-    privileged(["install", "-d", "-o", user, "-g", user, "-m", "0755", str(root)])
-    privileged(["install", "-d", "-o", user, "-g", user, "-m", "0755", str(config.token_file.parent)])
-    if os.geteuid() != 0 and root.exists():
-        privileged(["chown", "-R", user, str(root)])
+    for directory in (config.root, config.token_file.parent):
+        privileged(["install", "-d", "-o", user, "-g", user, "-m", "0755", str(directory)])
     manager = RepositoryManager(config)
     manager.init()
     manager.reconcile_configuration()
-    ensure_tree_permissions(root, user)
-    install_service(config, user)
-    manager.synchronize_r2()
-    token = manager.ensure_token()
-    provision_client_token(token, user)
-    return token, False
+    manager.publish()
+    ensure_tree_permissions(config.root, user, sensitive_paths=(
+        config.private_key_file or config.root / "private-key.asc",
+        config.token_file, config.credentials_file or config.root / "r2-credentials.json"))
+    save_configs(configs, config_path)
+    provision_client_token(manager.ensure_token(), user)
+    install_service(config_path, user)
 
 
 class RepositoryHandler(BaseHTTPRequestHandler):
-    server_version = "MattOSRepository/1.0"
+    server_version = "MattRepositories/2.0"
 
     @property
     def manager(self) -> RepositoryManager:
-        return self.server.manager  # type: ignore[attr-defined]
+        return self.server.managers[self.repository]  # type: ignore[attr-defined]
+
+    def _select_api(self) -> str | None:
+        path = urlparse(self.path).path
+        parts = path.split("/")
+        if len(parts) != 5 or parts[1:3] != ["v2", "repos"] or not parts[3]:
+            self._error(400, SELECTION_ERROR)
+            return None
+        if parts[3] not in self.server.managers:
+            self._error(400, "Unknown repository. Use --repo mattos or --repo mattpackages. No operation was performed.")
+            return None
+        self.repository = parts[3]
+        return "/" + parts[4]
 
     def _authorized(self) -> bool:
         if os.environ.get("MATTOS_REPOSITORY_ALLOW_ANONYMOUS") == "1":
@@ -572,9 +693,18 @@ class RepositoryHandler(BaseHTTPRequestHandler):
             self.send_header("Location", "/repository/")
             self.end_headers()
             return True
-        if not path.startswith(prefix):
+        self.repository = "mattos"
+        if path.startswith("/repositories/"):
+            parts = path.split("/", 3)
+            if len(parts) != 4 or parts[2] not in self.server.managers:
+                self._error(404, "unknown repository")
+                return True
+            self.repository = parts[2]
+            relative = parts[3]
+        elif path.startswith(prefix):
+            relative = path.removeprefix(prefix)
+        else:
             return False
-        relative = path.removeprefix(prefix)
         if not relative.startswith(("dists/", "pool/")):
             self._error(404, "repository file not found")
             return True
@@ -585,7 +715,7 @@ class RepositoryHandler(BaseHTTPRequestHandler):
         root = active.resolve()
         target = (root / relative).resolve()
         try:
-            target.relative_to(root)
+            target.relative_to(root / relative.split("/", 1)[0])
         except ValueError:
             self._error(404, "repository file not found")
             return True
@@ -601,89 +731,128 @@ class RepositoryHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         if self._serve_repository_file(urlparse(self.path).path):
             return
+        path = self._select_api()
+        if path is None: return
         if not self._authorized(): return self._error(401, "authentication required")
-        path = urlparse(self.path).path
         try:
-            if path == "/v1/status": return self._send(200, self.manager.status())
-            if path == "/v1/packages": return self._send(200, {"packages": self.manager.packages()})
-            if path == "/v1/public-key": return self._send(200, self.manager.public_key(), "text/plain; charset=utf-8")
-            if path == "/v1/private-key": return self._send(200, self.manager.private_key(), "text/plain; charset=utf-8")
-            if path == "/v1/verify": self.manager.verify(); return self._send(200, {"verified": True})
+            if path == "/status": return self._send(200, self.manager.status())
+            if path == "/packages": return self._send(200, {"repository": self.repository, "packages": self.manager.packages()})
+            if path == "/public-key": return self._send(200, self.manager.public_key(), "text/plain; charset=utf-8")
+            if path == "/private-key": return self._send(200, self.manager.private_key(), "text/plain; charset=utf-8")
+            if path == "/verify": self.manager.verify(); return self._send(200, {"repository": self.repository, "verified": True})
             self._error(404, "unknown endpoint")
-        except RepositoryError as exc: self._error(400, str(exc))
+        except (RepositoryError, R2Error, OSError) as exc: self._error(400, str(exc))
 
     def do_POST(self) -> None:
+        path = self._select_api()
+        if path is None: return
         if not self._authorized(): return self._error(401, "authentication required")
-        path = urlparse(self.path).path
         try:
-            if path == "/v1/upload":
+            if path == "/upload":
                 length = int(self.headers.get("Content-Length", "0")); filename = self.headers.get("X-Package-Filename", "package.deb")
                 if Path(filename).name != filename or not filename.endswith(".deb") or length <= 0: return self._error(400, "invalid package upload")
-                with tempfile.NamedTemporaryFile(prefix="mattos-upload-", suffix=".deb", delete=False) as temp:
-                    remaining = length
-                    while remaining:
-                        block = self.rfile.read(min(1024 * 1024, remaining));
-                        if not block: raise RepositoryError("incomplete package upload")
-                        temp.write(block); remaining -= len(block)
-                    temporary = Path(temp.name)
-                try: return self._send(200, self.manager.add(temporary))
-                finally: temporary.unlink(missing_ok=True)
-            if path == "/v1/remove":
+                with tempfile.TemporaryDirectory(prefix="repository-upload-") as directory:
+                    temporary = Path(directory) / filename
+                    with temporary.open("wb") as output:
+                        remaining = length
+                        while remaining:
+                            block = self.rfile.read(min(1024 * 1024, remaining))
+                            if not block:
+                                raise RepositoryError("incomplete package upload")
+                            output.write(block)
+                            remaining -= len(block)
+                    return self._send(200, self.manager.add(temporary))
+            if path == "/remove":
                 length = int(self.headers.get("Content-Length", "0")); body = json.loads(self.rfile.read(length))
-                self.manager.remove(str(body["name"]), str(body["version"]) if body.get("version") else None); return self._send(200, {"removed": True})
-            if path == "/v1/init": self.manager.init(); return self._send(200, self.manager.status())
-            if path == "/v1/publish": self.manager.verify(); return self._send(200, {"published": True})
+                self.manager.remove(str(body["name"]), str(body["version"]) if body.get("version") else None); return self._send(200, {"repository": self.repository, "removed": True})
+            if path == "/init": self.manager.init(); return self._send(200, self.manager.status())
+            if path == "/publish": self.manager.publish(); return self._send(200, {"repository": self.repository, "published": True})
             self._error(404, "unknown endpoint")
-        except (RepositoryError, KeyError, ValueError, json.JSONDecodeError) as exc: self._error(400, str(exc))
+        except (RepositoryError, R2Error, OSError, KeyError, ValueError, json.JSONDecodeError) as exc: self._error(400, str(exc))
 
     def log_message(self, format: str, *args: Any) -> None:
         print(f"[mattos-repository] {format % args}", file=sys.stderr)
 
 
-def serve(config: ServerConfig, bind: str, port: int) -> None:
-    manager = RepositoryManager(config)
+def create_server(configs: dict[str, ServerConfig], bind: str, port: int) -> ThreadingHTTPServer:
+    validate_configs(configs)
+    config = configs["mattos"]
     token = config.token_file.read_text(encoding="utf-8").strip() if config.token_file.is_file() else ""
+    if not token and os.environ.get("MATTOS_REPOSITORY_ALLOW_ANONYMOUS") != "1":
+        raise RepositoryError("API token is missing; run init first or explicitly allow anonymous access")
     server = ThreadingHTTPServer((bind, port), RepositoryHandler)
-    server.manager = manager  # type: ignore[attr-defined]
-    server.token = token  # type: ignore[attr-defined]
-    print(f"MattOS repository API listening on {bind}:{port}")
-    server.serve_forever()
+    server.managers = {name: RepositoryManager(config) for name, config in configs.items()}
+    server.token = token
+    return server
+
+
+def serve(configs: dict[str, ServerConfig], bind: str, port: int) -> None:
+    with create_server(configs, bind, port) as server:
+        print(f"MattOS and MattPackages repository API listening on {bind}:{port}")
+        server.serve_forever()
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Manage the local MattOS Debian repository")
-    parser.add_argument("--root", type=Path)
+    parser = argparse.ArgumentParser(description="Manage the MattOS and MattPackages Debian repositories")
+    parser.add_argument("--repo", choices=REPOSITORIES, help="Required for every operation except starting the shared service")
+    parser.add_argument("--config", type=Path, default=CONFIG_PATH)
+    parser.add_argument("--root", type=Path, help="Override only the selected repository's local root")
     sub = parser.add_subparsers(dest="command", required=True)
-    sub.add_parser("init"); sub.add_parser("setup"); sub.add_parser("status"); sub.add_parser("verify"); sub.add_parser("list")
-    add = sub.add_parser("add"); add.add_argument("package", type=Path)
+    for command in ("init", "setup", "status", "verify", "list", "publish", "token"):
+        sub.add_parser(command)
+    for command in ("add", "upload"):
+        add = sub.add_parser(command)
+        add.add_argument("package", type=Path)
     remove = sub.add_parser("remove"); remove.add_argument("name"); remove.add_argument("--version")
-    api = sub.add_parser("serve"); api.add_argument("--bind", default=os.environ.get("MATTOS_REPOSITORY_BIND", DEFAULT_BIND)); api.add_argument("--port", type=int, default=int(os.environ.get("MATTOS_REPOSITORY_PORT", str(DEFAULT_PORT))))
-    sub.add_parser("token")
+    for command in ("export-key", "export-private-key"):
+        key = sub.add_parser(command); key.add_argument("--output", type=Path, required=True)
+    api = sub.add_parser("serve")
+    api.add_argument("--bind", default=os.environ.get("MATTOS_REPOSITORY_BIND", DEFAULT_BIND))
+    api.add_argument("--port", type=int, default=int(os.environ.get("MATTOS_REPOSITORY_PORT", str(DEFAULT_PORT))))
     args = parser.parse_args(argv)
-    config = ServerConfig.from_env()
-    if args.root: config = ServerConfig(args.root.expanduser(), config.suite, config.component, config.architectures, config.public_url, config.token_file, config.private_key_file)
-    manager = RepositoryManager(config)
+    if args.command != "serve" and not args.repo:
+        parser.error(SELECTION_ERROR)
+    if args.command == "serve" and (args.repo or args.root):
+        parser.error("serve runs both repositories; use --config to configure them")
     try:
+        configs = load_configs(args.config)
         if args.command == "serve":
-            if not config.token_file.is_file() and os.environ.get("MATTOS_REPOSITORY_ALLOW_ANONYMOUS") != "1":
-                raise RepositoryError("API token is missing; run init first or explicitly allow anonymous access")
-            serve(config, args.bind, args.port)
-        elif args.command == "token": print(manager.ensure_token())
+            serve(configs, args.bind, args.port)
+            return 0
+        config = configs[args.repo]
+        if args.root:
+            root = args.root.expanduser().resolve()
+            token_file = root / "api-token" if config.token_file == config.root / "api-token" else config.token_file
+            config = replace(config, root=root, token_file=token_file)
+            configs[args.repo] = config
+            if args.repo == "mattos":
+                configs["mattpackages"] = replace(configs["mattpackages"],
+                    private_key_file=config.private_key_file or root / "private-key.asc",
+                    token_file=config.token_file)
+            validate_configs(configs)
+        manager = RepositoryManager(config)
+        if args.command == "token": print(manager.ensure_token())
         elif args.command == "init": manager.init(); print(json.dumps(manager.status(), indent=2, sort_keys=True))
         elif args.command == "setup":
-            token, tunnel_configured = setup_server(config)
+            setup_server(config, configs, args.config.resolve())
             print(json.dumps(manager.status(), indent=2, sort_keys=True))
-            print("API token (store it in the client token file):")
-            print(token)
-            print("Cloudflare R2 synchronization: configured and completed")
+            print("Shared repository service configured; selected repository synchronized with R2.")
         elif args.command == "status": print(json.dumps(manager.status(), indent=2, sort_keys=True))
-        elif args.command == "verify": manager.verify(); print("Repository verification passed.")
+        elif args.command == "verify": manager.verify(); print(f"{args.repo}: repository verification passed.")
+        elif args.command == "publish": manager.publish(); print(f"{args.repo}: repository published.")
         elif args.command == "list":
             for item in manager.packages(): print(f"{item['name']}\t{item['version']}\t{item['architecture']}")
-        elif args.command == "add": print(json.dumps(manager.add(args.package), sort_keys=True))
-        elif args.command == "remove": manager.remove(args.name, args.version); print("Package removed.")
+        elif args.command in {"add", "upload"}: print(json.dumps(manager.add(args.package), sort_keys=True))
+        elif args.command == "remove": manager.remove(args.name, args.version); print(f"{args.repo}: package removed.")
+        elif args.command in {"export-key", "export-private-key"}:
+            content = manager.public_key() if args.command == "export-key" else manager.private_key()
+            output = args.output.expanduser().resolve()
+            output.parent.mkdir(parents=True, exist_ok=True)
+            with output.open("w", encoding="utf-8") as handle:
+                os.fchmod(handle.fileno(), 0o644 if args.command == "export-key" else 0o600)
+                handle.write(content)
         return 0
-    except RepositoryError as exc:
+    except (RepositoryError, R2Error, OSError) as exc:
         print(f"Error: {exc}", file=sys.stderr); return 1
 
 

@@ -161,7 +161,7 @@ def repository_versions(root: Path, package: str) -> list[str]:
     if not publisher.is_file():
         raise RecipeError(f"publisher not found: {publisher}")
     try:
-        output = command([sys.executable, str(publisher), "--non-interactive", "list"], cwd=root)
+        output = command([sys.executable, str(publisher), "--non-interactive", "--repo", "mattos", "list"], cwd=root)
     except RecipeError:
         return []
     return [line.split("\t", 2)[1] for line in output.splitlines()
@@ -173,7 +173,7 @@ def publish(root: Path, artifact: Path, *, dry_run: bool) -> None:
     args = [sys.executable, str(publisher), "--non-interactive"]
     if dry_run:
         args.append("--dry-run")
-    args += ["upload", str(artifact)]
+    args += ["--repo", "mattos", "upload", str(artifact)]
     command(args, cwd=root)
 
 

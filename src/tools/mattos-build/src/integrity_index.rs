@@ -10,6 +10,7 @@ use std::path::{Component, Path, PathBuf};
 use std::sync::Mutex;
 
 const SCHEMA_VERSION: u32 = 1;
+const BINARY_MAGIC: &[u8] = b"MATTOS-INTEGRITY\0";
 
 #[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
 pub(crate) struct FileFingerprint {
@@ -64,14 +65,8 @@ pub(crate) fn start(repo_root: &Path) {
     let path = path(repo_root);
     let entries = fs::read(&path)
         .ok()
-        .and_then(|body| serde_json::from_slice::<PersistentIntegrityIndexFile>(&body).ok())
-        .filter(|index| index.schema_version == SCHEMA_VERSION)
-        .filter(|index| {
-            digest_serializable(&(index.schema_version, &index.entries))
-                .is_ok_and(|digest| digest == index.entries_sha256)
-        })
-        .filter(|index| entries_valid(&index.entries))
-        .map(|index| index.entries)
+        .and_then(|body| parse_binary(&body).or_else(|| parse_legacy_json(&body)))
+        .filter(entries_valid)
         .unwrap_or_default();
     with_index(|index| {
         *index = Some(PersistentIntegrityIndex {
@@ -91,16 +86,115 @@ pub(crate) fn serialized_if_dirty() -> Result<Option<(PathBuf, Vec<u8>)>> {
         let Some(index) = borrowed.as_ref().filter(|index| index.dirty) else {
             return Ok(None);
         };
-        let file = PersistentIntegrityIndexFile {
-            schema_version: SCHEMA_VERSION,
-            entries_sha256: digest_serializable(&(SCHEMA_VERSION, &index.entries))?,
-            entries: index.entries.clone(),
-        };
         Ok(Some((
             path(&index.repo_root),
-            serde_json::to_vec_pretty(&file)?,
+            serialize_binary(&index.entries),
         )))
     })
+}
+
+fn parse_legacy_json(body: &[u8]) -> Option<BTreeMap<String, PersistentFileDigest>> {
+    serde_json::from_slice::<PersistentIntegrityIndexFile>(body)
+        .ok()
+        .filter(|index| index.schema_version == SCHEMA_VERSION)
+        .filter(|index| {
+            digest_serializable(&(index.schema_version, &index.entries))
+                .is_ok_and(|digest| digest == index.entries_sha256)
+        })
+        .map(|index| index.entries)
+}
+
+fn put_u32(body: &mut Vec<u8>, value: u32) {
+    body.extend_from_slice(&value.to_le_bytes());
+}
+
+fn put_u64(body: &mut Vec<u8>, value: u64) {
+    body.extend_from_slice(&value.to_le_bytes());
+}
+
+fn put_i64(body: &mut Vec<u8>, value: i64) {
+    body.extend_from_slice(&value.to_le_bytes());
+}
+
+fn take<'a>(body: &'a [u8], offset: &mut usize, length: usize) -> Option<&'a [u8]> {
+    let end = offset.checked_add(length)?;
+    let value = body.get(*offset..end)?;
+    *offset = end;
+    Some(value)
+}
+
+fn take_u32(body: &[u8], offset: &mut usize) -> Option<u32> {
+    Some(u32::from_le_bytes(take(body, offset, 4)?.try_into().ok()?))
+}
+
+fn take_u64(body: &[u8], offset: &mut usize) -> Option<u64> {
+    Some(u64::from_le_bytes(take(body, offset, 8)?.try_into().ok()?))
+}
+
+fn take_i64(body: &[u8], offset: &mut usize) -> Option<i64> {
+    Some(i64::from_le_bytes(take(body, offset, 8)?.try_into().ok()?))
+}
+
+fn serialize_binary(entries: &BTreeMap<String, PersistentFileDigest>) -> Vec<u8> {
+    let mut body = Vec::new();
+    body.extend_from_slice(BINARY_MAGIC);
+    put_u32(&mut body, SCHEMA_VERSION);
+    put_u64(&mut body, entries.len() as u64);
+    for (path, entry) in entries {
+        let path = path.as_bytes();
+        put_u32(&mut body, path.len() as u32);
+        body.extend_from_slice(path);
+        put_u64(&mut body, entry.fingerprint.device);
+        put_u64(&mut body, entry.fingerprint.inode);
+        put_u32(&mut body, entry.fingerprint.file_type);
+        put_u64(&mut body, entry.fingerprint.size);
+        put_i64(&mut body, entry.fingerprint.mtime_seconds);
+        put_i64(&mut body, entry.fingerprint.mtime_nanoseconds);
+        put_i64(&mut body, entry.fingerprint.ctime_seconds);
+        put_i64(&mut body, entry.fingerprint.ctime_nanoseconds);
+        put_u32(&mut body, entry.sha256.len() as u32);
+        body.extend_from_slice(entry.sha256.as_bytes());
+    }
+    let checksum = Sha256::digest(&body);
+    body.extend_from_slice(&checksum);
+    body
+}
+
+fn parse_binary(body: &[u8]) -> Option<BTreeMap<String, PersistentFileDigest>> {
+    let checksum_offset = body.len().checked_sub(32)?;
+    let (payload, checksum) = body.split_at(checksum_offset);
+    if Sha256::digest(payload).as_slice() != checksum {
+        return None;
+    }
+    let mut offset = 0;
+    if take(payload, &mut offset, BINARY_MAGIC.len())? != BINARY_MAGIC {
+        return None;
+    }
+    if take_u32(payload, &mut offset)? != SCHEMA_VERSION {
+        return None;
+    }
+    let count = take_u64(payload, &mut offset)? as usize;
+    let mut entries = BTreeMap::new();
+    for _ in 0..count {
+        let path_length = take_u32(payload, &mut offset)? as usize;
+        let path = String::from_utf8(take(payload, &mut offset, path_length)?.to_vec()).ok()?;
+        let fingerprint = FileFingerprint {
+            device: take_u64(payload, &mut offset)?,
+            inode: take_u64(payload, &mut offset)?,
+            file_type: take_u32(payload, &mut offset)?,
+            size: take_u64(payload, &mut offset)?,
+            mtime_seconds: take_i64(payload, &mut offset)?,
+            mtime_nanoseconds: take_i64(payload, &mut offset)?,
+            ctime_seconds: take_i64(payload, &mut offset)?,
+            ctime_nanoseconds: take_i64(payload, &mut offset)?,
+        };
+        let digest_length = take_u32(payload, &mut offset)? as usize;
+        let sha256 = String::from_utf8(take(payload, &mut offset, digest_length)?.to_vec()).ok()?;
+        if entries.insert(path, PersistentFileDigest { fingerprint, sha256 }).is_some() {
+            return None;
+        }
+    }
+    (offset == payload.len()).then_some(entries)
 }
 
 pub(crate) fn path(repo_root: &Path) -> PathBuf {

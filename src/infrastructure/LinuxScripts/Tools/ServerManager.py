@@ -74,9 +74,29 @@ def uptime_kuma_action() -> int:
 
 
 def mattos_repository_action() -> int:
-    """Initialize the local MattOS repository and provision its API token."""
-
-    return mattos_repository_main(["setup"])
+    """Explicitly select an archive before running repository management."""
+    repositories = ("mattos", "mattpackages")
+    actions = ("setup", "status", "list", "verify", "publish")
+    try:
+        print("1. MattOS\n2. MattPackages\n0. Cancel")
+        choice = input("Repository: ").strip()
+        if choice == "0":
+            return 0
+        if choice not in {"1", "2"}:
+            print("Select a repository explicitly; no operation was performed.")
+            return 2
+        repository = repositories[int(choice) - 1]
+        for index, action in enumerate(actions, 1):
+            print(f"{index}. {action}")
+        choice = input(f"Action for {repository} (0 to cancel): ").strip()
+        if choice == "0":
+            return 0
+        if choice not in {str(index) for index in range(1, len(actions) + 1)}:
+            print("Select a listed action; no operation was performed.")
+            return 2
+        return mattos_repository_main(["--repo", repository, actions[int(choice) - 1]])
+    except EOFError:
+        return 0
 
 
 def capabilities() -> tuple[tuple[str, str, Callable[[], int]], ...]:
@@ -88,7 +108,7 @@ def capabilities() -> tuple[tuple[str, str, Callable[[], int]], ...]:
         ("Restic backup manager", "Configure, run, restore, and schedule local Restic backup jobs", restic_backup_action),
         ("ZIP backup manager", "Configure, archive, retain, and schedule local ZIP backup jobs", zip_backup_action),
         ("Uptime Kuma", "Install, start, stop, or remove the Uptime Kuma monitoring container", uptime_kuma_action),
-        ("MattOS repository setup", "Initialize the local signed Debian repository and display its API token", mattos_repository_action),
+        ("Debian repository management", "Set up and manage MattOS or MattPackages", mattos_repository_action),
     )
 
 

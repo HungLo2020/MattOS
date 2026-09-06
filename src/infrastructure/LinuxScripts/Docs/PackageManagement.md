@@ -75,6 +75,19 @@ Profiles can run repository Python dependency scripts before their packages are 
 script_dependencies = ["hello_world.py"]
 ```
 
+Platform sections can declare the same `script_dependencies` field when a setup
+script should run only for that platform:
+
+```toml
+[platforms.mattos]
+script_dependencies = ["configure_cosmic_wallpapers.py"]
+```
+
+Platform scripts are included in the plan only when that platform is selected.
+They run during apply, before package-provider operations, using the invoking
+user's project Python interpreter. They are suitable for configuring an
+already-installed desktop or service and do not imply package installation.
+
 Packages can run dependency scripts immediately before or after that individual package's provider operation:
 
 ```toml

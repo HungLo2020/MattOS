@@ -4,6 +4,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -12,6 +13,27 @@ import common.framework as framework
 
 
 class FrameworkTests(unittest.TestCase):
+    def test_repository_listing_selects_mattos(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            publisher = root / "src/infrastructure/LinuxScripts/GenericScripts/ManageMattOSRepository.py"
+            publisher.parent.mkdir(parents=True)
+            publisher.touch()
+            with mock.patch.object(framework, "command", return_value="fastfetch\t2.68.1\tamd64\n") as run:
+                self.assertEqual(framework.repository_versions(root, "fastfetch"), ["2.68.1"])
+            self.assertEqual(run.call_args.args[0][2:], ["--non-interactive", "--repo", "mattos", "list"])
+
+    def test_publish_selects_mattos_for_normal_and_dry_run(self):
+        artifact = Path("/repo/fastfetch.deb")
+        for dry_run in (False, True):
+            with self.subTest(dry_run=dry_run), mock.patch.object(framework, "command") as run:
+                framework.publish(Path("/repo"), artifact, dry_run=dry_run)
+                args = [sys.executable, str(Path("/repo/src/infrastructure/LinuxScripts/GenericScripts/ManageMattOSRepository.py")), "--non-interactive"]
+                if dry_run:
+                    args.append("--dry-run")
+                args += ["--repo", "mattos", "upload", str(artifact)]
+                self.assertEqual(run.call_args.args[0], args)
+
     def test_archive_traversal_is_rejected(self):
         with tempfile.TemporaryDirectory() as directory:
             archive = Path(directory) / "bad.tar"

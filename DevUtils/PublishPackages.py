@@ -109,7 +109,7 @@ def upload_packages(repo_root: Path, packages: list[Path], *, dry_run: bool) -> 
     ]
     if dry_run:
         command.append("--dry-run")
-    command.extend(["upload", *(str(package) for package in packages)])
+    command.extend(["--repo", "mattos", "upload", *(str(package) for package in packages)])
     run_command(command, cwd=repo_root)
 
 

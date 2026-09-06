@@ -3,6 +3,7 @@ import sys
 import tempfile
 import unittest
 import importlib.util
+import json
 from io import StringIO
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -76,6 +77,13 @@ class PackagePlanningTests(unittest.TestCase):
         self.assertNotIn("qdirstat", platforms_by_package)
         self.assertNotIn("steam", platforms_by_package)
         self.assertNotIn("libreoffice", platforms_by_package)
+        self.assertIn("configure_cosmic_wallpapers.py", plan.profile_scripts)
+
+    def test_platform_profile_scripts_are_excluded_on_other_platforms(self):
+        mattos_plan = resolve_profiles(["desktop"], self.catalog, self.profiles, "mattos", ("apt",))
+        linux_plan = resolve_profiles(["desktop"], self.catalog, self.profiles, "linux", ("apt",))
+        self.assertEqual(mattos_plan.profile_scripts, ("configure_cosmic_wallpapers.py",))
+        self.assertEqual(linux_plan.profile_scripts, ())
 
     def test_mattos_is_detected_as_an_apt_platform(self):
         platform_name = detect_package_platform(
@@ -314,6 +322,22 @@ class PackagePlanningTests(unittest.TestCase):
                 destination = configure_variety.deploy_configuration(source, account)
         self.assertEqual(destination.name, "variety.conf")
         self.assertEqual(destination.parent.name, "variety")
+
+    def test_cosmic_wallpaper_hook_writes_native_settings(self):
+        configure_cosmic = load_setup_script("configure_cosmic_wallpapers.py")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            home = root / "home"
+            account = type("Account", (), {"pw_dir": str(home), "pw_uid": 1000, "pw_gid": 1000})()
+            wallpaper_directory = Path("/mnt/storage/OneDrive/Media/Wallpapers/Wide")
+            configure_cosmic.configure(home, wallpaper_directory, account)
+
+            background = home / ".config/cosmic/com.system76.CosmicBackground/v1/all"
+            current_folder = home / ".config/cosmic/com.system76.CosmicSettings.Wallpaper/v1/current-folder"
+            recent_folders = home / ".config/cosmic/com.system76.CosmicSettings.Wallpaper/v1/recent-folders"
+            self.assertIn('source: Path("/mnt/storage/OneDrive/Media/Wallpapers/Wide")', background.read_text(encoding="utf-8"))
+            self.assertEqual(current_folder.read_text(encoding="utf-8"), 'Some("/mnt/storage/OneDrive/Media/Wallpapers/Wide")')
+            self.assertEqual(json.loads(recent_folders.read_text(encoding="utf-8")), [str(wallpaper_directory)])
 
     def test_tailscale_hook_skips_interactive_enrollment_when_connected(self):
         configure_tailscale = load_tailscale_configure_script()

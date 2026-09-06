@@ -1,7 +1,8 @@
 fn build_rootfs(repo_root: &Path) -> Result<()> {
-    // Package/repository manifests are resolved before the rootfs key so a
-    // package change cannot be hidden behind an old rootfs manifest.
-    packaging::build_all_packages(repo_root)?;
+    // Establish the cheap package publication boundary first. On a warm
+    // build this reads package manifests and published .deb checksums only;
+    // it does not recursively validate staging trees or invoke dpkg-deb.
+    packaging::ensure_package_set(repo_root)?;
     packaging::generate_repository(repo_root)?;
     let spec = build_stage_spec(BuildStage::Rootfs);
     performance::execute_cached_stage(

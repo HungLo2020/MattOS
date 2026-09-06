@@ -1,95 +1,155 @@
 # Server Management
 
-## MattOS Debian repository
+## MattOS and MattPackages Debian repositories
 
-The home-server repository is managed by
-`Tools/ManageMattOSRepositoryServer.py`. It stores the persistent signed
-repository under `/srv/storage/Storage/MattOSPackageRepo/` by default and exposes a small
-authenticated API for the compatibility client in
-`GenericScripts/ManageMattOSRepository.py`.
+One `mattos-repository.service` manages two independent signed APT archives:
 
-Initialize it once on the home server from the Server Manager's
-`MattOS repository setup` capability:
+| Selection | Local root | R2 bucket | Public URL | Suite / component |
+| --- | --- | --- | --- | --- |
+| `--repo mattos` | `/srv/storage/Storage/MattOSPackageRepo` | `matt-apt-repo` | `https://packages.mattsherfey.com` | `trixie / main` |
+| `--repo mattpackages` | `/srv/storage/Storage/MattPackagesRepo` | `mattpackages-apt-repo` | `https://mattpackages.mattsherfey.com` | `stable / main` |
+
+Both support `amd64` and architecture-independent (`all`) packages. MattPackages
+uses the existing MattOS signing key, but separate local state and R2 credentials.
+There are no package ownership rules: the explicit selector determines where a
+package goes. Creating MattPackages does not copy, move, or remove any packages,
+and does not enable an APT source on any machine.
+
+### Provisioning and server setup
+
+Before setting up MattPackages:
+
+1. Create an empty R2 bucket named `mattpackages-apt-repo` and connect the custom
+   domain `mattpackages.mattsherfey.com` to it in Cloudflare. Keep the existing
+   MattOS bucket and domain intact. The publisher uses an existing bucket; it
+   does not create buckets or DNS records.
+2. Create R2 object read/write credentials for the new bucket. In Bitwarden,
+   create a login named `MattPackages R2 Repository Publisher`, with the access
+   key ID as username and secret access key as password. Add custom fields
+   `R2_ENDPOINT`, `R2_BUCKET_NAME=mattpackages-apt-repo`, and
+   `R2_PUBLIC_URL=https://mattpackages.mattsherfey.com`.
+3. Keep the existing `MattOS Repository Signing Key` item and local private key.
+   MattPackages reuses that key and never generates a replacement of its own.
+   Bitwarden must be available/unlocked during initial provisioning if the key
+   or R2 credentials are not already cached.
+4. Update LinuxScripts on the server, then run:
+
+   ```bash
+   sudo python3 Tools/ManageMattOSRepositoryServer.py --repo mattpackages setup
+   ```
+
+Alternatively, run `python3 Tools/ServerManager.py`, choose **Debian repository
+management**, select **MattPackages**, and select **setup**. The menu also offers
+status, listing, verification, and publication for either selected repository.
+
+Setup installs dependencies, initializes only the selected repository, saves both
+configurations to `/etc/mattos-repository/server.json`, and updates the shared
+service. It starts MattPackages as a signed empty archive. If its local archive
+is absent but its bucket already contains repository files, setup refuses to
+import or overwrite those files. Existing initialized archives are retained on
+repeated setup. Keep a backup of local repository state for disaster recovery.
+
+The existing MattOS root, bucket, public URL, package contents, and key remain in
+use. If your existing server uses non-default paths or R2 settings, supply those
+settings on the first setup so they are captured in the new configuration file.
+Do not copy the MattOS R2 credential cache into MattPackages.
+
+### Configuration and access
+
+`server.json` persists repository metadata, paths, bucket destinations, credential
+cache paths, and Bitwarden item names. It contains no credential values or private
+key material. The service explicitly loads this file on restart. Server commands
+accept `--config PATH` before the subcommand for an alternate configuration.
+
+Environment overrides use `MATTOS_` or `MATTPACKAGES_` prefixes:
+`REPOSITORY_ROOT`, `REPOSITORY_SUITE`, `REPOSITORY_COMPONENT`,
+`REPOSITORY_ARCHITECTURES`, `REPOSITORY_PUBLIC_URL`, `R2_BUCKET`, `R2_ENDPOINT`,
+`R2_ITEM`, and `R2_CREDENTIALS_FILE`. For example,
+`MATTPACKAGES_R2_BUCKET=mattpackages-apt-repo`. Supply overrides when running
+setup to persist them. The signing key and API token are shared and selected by
+`MATTOS_REPOSITORY_PRIVATE_KEY_FILE`, `MATTOS_GPG_ITEM`, and
+`MATTOS_REPOSITORY_TOKEN_FILE`.
+
+R2 credentials are cached in each root's `r2-credentials.json`. Cached or
+Bitwarden destinations must match the selected repository configuration;
+mismatches fail before R2 requests. Set `MATTPACKAGES_R2_REFRESH_CREDENTIALS=1`
+(or the MattOS equivalent) when running setup to refresh that repository's cache.
+Roots cannot overlap, buckets must differ, and credential caches must be separate.
+
+The installed service retains Tailscale-based access: it binds to the Tailscale
+IPv4 address when available (otherwise loopback), uses port 8790, and allows
+clients that can reach it to operate without a separate token. Keep the
+management service private. `MATTOS_REPOSITORY_BIND`, `MATTOS_REPOSITORY_PORT`,
+and `MATTOS_REPOSITORY_SERVICE_USER` customize service installation.
+
+### Explicit client selection
+
+The standalone helper still defaults to `http://hunglosvr:8790`:
 
 ```bash
-sudo python3 Tools/ServerManager.py
+python3 GenericScripts/ManageMattOSRepository.py --repo mattos list
+python3 GenericScripts/ManageMattOSRepository.py --repo mattpackages list
+python3 GenericScripts/ManageMattOSRepository.py --repo mattpackages status
+python3 GenericScripts/ManageMattOSRepository.py --repo mattpackages --dry-run upload package.deb
+python3 GenericScripts/ManageMattOSRepository.py --repo mattpackages upload package.deb
 ```
 
-Choose `MattOS repository setup`. It installs the required Debian, GPG, and
-R2 client packages, creates `/srv/storage/Storage/MattOSPackageRepo/` without
-deleting existing packages, installs/updates the systemd service, and enables
-it. Bitwarden is used only when the server needs credentials or the signing
-key; cached credentials are reused afterward.
+Every command requires `--repo mattos` or `--repo mattpackages`, including
+`doctor`, `init`, `add`/`upload`, `remove`, `publish`, `list`, `status`, `verify`,
+and key exports. Put global options before the subcommand. There is no default,
+environment fallback, or automatic selection based on the host distro. Missing
+or invalid selection exits with code 2 before configuration or network access.
+Listing remains tab-separated `name`, `version`, `architecture` on stdout; the
+selected repository is reported separately on stderr.
 
-The API binds to the server's Tailscale IPv4 address when Tailscale is
-available. The installed service uses Tailscale membership as its access
-boundary, so clients do not need a copied token or Bitwarden authentication.
-The compatibility client defaults to:
+The transport uses `/v2/repos/mattos/...` or `/v2/repos/mattpackages/...`.
+All old `/v1/...` requests are rejected with an instruction to update the helper
+and pass the selector. Downloading or importing the updated helper alone is not
+enough: downstream callers must pass the switch. This change deliberately does
+not edit any downstream project or MattOS installer/source configuration.
 
-```text
-http://hunglosvr:8790
-```
+A machine-wide transport override can be placed in
+`/etc/mattos-repository/client.conf` as `SERVER_URL=http://hostname:8790`.
+`MATTOS_REPOSITORY_SERVER_URL` overrides it for both repositories. Clients have
+no R2, boto3, or Bitwarden dependency.
 
-This means existing projects need no repository URL, token, or per-project
-setting. They only need the current compatible
-`ManageMattOSRepository.py` file and access to the tailnet.
-
-The built-in service serves the public repository locally as `/repository/`.
-Cloudflare R2 remains the public APT publication target, so normal APT users
-continue using `https://packages.mattsherfey.com`.
-
-The server manager supports `init`, `status`, `token`, `add`, `remove`,
-`list`, `verify`, and `serve`. Every mutation is serialized and publishes a
-new release directory atomically. The server owns the private signing key;
-clients use `export-key` to retrieve the public key.
-
-If a manual unit is ever needed, it should be equivalent to:
-
-```ini
-[Unit]
-Description=MattOS repository API
-After=network-online.target
-
-[Service]
-User=mattos-repo
-WorkingDirectory=/opt/LinuxScripts
-Environment=MATTOS_REPOSITORY_ROOT=/srv/storage/Storage/MattOSPackageRepo
-Environment=MATTOS_REPOSITORY_TOKEN_FILE=/srv/storage/Storage/MattOSPackageRepo/api-token
-Environment=MATTOS_REPOSITORY_PUBLIC_URL=https://packages.mattsherfey.com
-ExecStart=/usr/bin/python3 /opt/LinuxScripts/Tools/ManageMattOSRepositoryServer.py serve --bind 100.x.y.z --port 8790
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target
-```
-
-The setup command owns the service configuration and updates only its own
-unit. It performs an initial synchronization from the existing Cloudflare R2
-repository. Later package operations update the persistent local repository
-and publish only changed R2 objects.
-
-### Tailscale name
-
-The client is already configured for your existing Tailscale machine name,
-`hunglosvr`. Verify from another tailnet-connected client with:
+### Administration and publication
 
 ```bash
-ping hunglosvr
-curl http://hunglosvr:8790/v1/status
+python3 Tools/ManageMattOSRepositoryServer.py --repo mattos status
+python3 Tools/ManageMattOSRepositoryServer.py --repo mattpackages list
+python3 Tools/ManageMattOSRepositoryServer.py --repo mattpackages verify
+python3 Tools/ManageMattOSRepositoryServer.py --repo mattpackages publish
 ```
 
-MagicDNS must be enabled in the tailnet DNS settings. If the short name does
-not resolve, use the server's full MagicDNS name (`hunglosvr.<tailnet>.ts.net`)
-in `/etc/mattos-repository/client.conf`:
+Server repository commands require the same explicit selector. The exception is
+`serve`: it starts the shared service for both configurations and accepts no
+repository selector. `setup` persists configuration; `init` initializes only the
+selected archive without installing a service.
+
+Uploads and removals publish immediately. `publish` verifies local state and
+retries synchronization to R2; `verify` checks local reprepro consistency only.
+A local commit can succeed before an R2 failure, so retry `publish` after fixing
+a publication error. Each mutation holds its repository's local lock; R2 uses a
+separate lock in each bucket. Public R2 uploads are incremental, not an atomic
+multi-object transaction. Normal synchronization never imports remote packages
+into an empty archive or restores the last package after explicit removal.
+
+The local HTTP server exposes `/repositories/mattos/dists/...` and
+`/repositories/mattpackages/dists/...` (and corresponding `pool/...` paths).
+The old public `/repository/...` path remains a MattOS download alias; it is not
+a management endpoint. Normal APT users download directly from the R2 domains.
+
+Public key export is available through either selected helper:
 
 ```bash
-sudo install -d -m 0755 /etc/mattos-repository
-printf '%s\n' 'SERVER_URL=http://hunglosvr.<tailnet>.ts.net:8790' | sudo tee /etc/mattos-repository/client.conf
+python3 GenericScripts/ManageMattOSRepository.py --repo mattpackages export-key --output archive-key.asc
 ```
 
-If a different name is preferred, set `SERVER_URL=http://that-name:8790` in
-`/etc/mattos-repository/client.conf`; this is one machine-wide setting, not a
-per-project setting.
+The new APT source will use `https://mattpackages.mattsherfey.com`, suite `stable`,
+component `main`, and the shared key via `Signed-By`. Provisioning sources and
+keys on clients or in MattOS is a separate task. The suite name does not promise
+binary compatibility with every APT distribution.
 
 Run the Linux-only server administration interface with:
 

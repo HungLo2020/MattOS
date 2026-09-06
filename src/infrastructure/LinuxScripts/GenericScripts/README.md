@@ -6,40 +6,34 @@ Standalone utilities that can be used independently of package profiles.
 
 `GenericBackup.sh` creates a timestamped ZIP archive. Edit `DIR_TO_BACKUP` and `DIR_TO_BACKUP_TO` in the script before running it. It excludes `node_modules`, `*.tmp`, and `.git`, writes the archive to `/tmp`, then moves it to the configured destination.
 
-## MattOS Repository Manager
+## Debian Repository Manager
 
-`ManageMattOSRepository.py` is the compatibility client for the locally hosted,
-signed MattOS Debian repository. It does not build `.deb` packages; it sends
-packages to the home-server repository service, which runs `reprepro` and
-publishes the repository.
+`ManageMattOSRepository.py` is the standalone client for the shared MattOS and
+MattPackages server. It uploads existing `.deb` files; the server signs and
+publishes each selected repository to its own R2 bucket.
 
-```bash
-python3 GenericScripts/ManageMattOSRepository.py doctor
-python3 GenericScripts/ManageMattOSRepository.py status
-python3 GenericScripts/ManageMattOSRepository.py upload /absolute/path/package.deb
-```
-
-The client defaults to the existing Tailscale MagicDNS name `hunglosvr` on port
-8790, so projects do not need per-project configuration:
+Every command requires an explicit repository. Put global options before the
+subcommand:
 
 ```bash
-python3 GenericScripts/ManageMattOSRepository.py upload package.deb
+python3 GenericScripts/ManageMattOSRepository.py --repo mattos list
+python3 GenericScripts/ManageMattOSRepository.py --repo mattpackages doctor
+python3 GenericScripts/ManageMattOSRepository.py --repo mattpackages status
+python3 GenericScripts/ManageMattOSRepository.py --repo mattpackages --dry-run upload package.deb
+python3 GenericScripts/ManageMattOSRepository.py --repo mattpackages upload package.deb
 ```
 
-No token or Bitwarden setup is needed on client machines: the installed server
-uses Tailscale membership as the access boundary. A machine-wide URL override
-can still be placed in `/etc/mattos-repository/client.conf`; the client has no
-Cloudflare, R2, boto3, or Bitwarden dependency.
+Selection also applies to `init`, `add`, `remove`, `publish`, `verify`, and both
+key export commands. Omitting `--repo` fails clearly without performing an
+operation. Old helpers using unqualified API requests are rejected by the server.
+There is no package ownership filtering or automatic package migration.
 
-On the home server, initialize and run the separate server manager:
+The client defaults to `http://hunglosvr:8790`. The server retains Tailscale-based
+access, so clients need no Bitwarden or R2 configuration and no separate token.
+A transport override can be placed in `/etc/mattos-repository/client.conf` as
+`SERVER_URL=http://hostname:8790`.
 
-```bash
-python3 Tools/ServerManager.py
-```
-
-Choose `MattOS repository setup`. It installs dependencies, ensures the
-repository directory exists, updates the service safely, and enables it.
-Keep the mutation API private behind Tailscale.
-
-The server setup uses the existing Cloudflare R2 credentials and publishes
-incremental changes to the existing R2 bucket; no tunnel is required.
+Run `python3 Tools/ServerManager.py` on the server and choose **Debian repository
+management** to select and manage either archive. MattPackages starts empty,
+uses a separate R2 bucket, and shares the existing MattOS signing key.
+See [server provisioning and configuration](../Docs/ServerManagement.md).

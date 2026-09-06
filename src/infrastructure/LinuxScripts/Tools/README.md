@@ -20,7 +20,7 @@ On Linux, the next optional Setup step opens `ServerManager.py`. It can also be 
 python3 Tools/ServerManager.py
 ```
 
-Server capabilities include Btrfs snapshot management for `/srv/storage`, plus legacy-compatible Restic and ZIP backup managers. Restic configurations, generated helpers, and password files remain under `~/.config/restic-mattmc/`; ZIP configurations and helpers remain under `~/.config/zip-backup-manager/`. Their systemd timers run as the user who configures them. The Server Manager also provides MattOS repository setup, which initializes the signed local Debian repository and creates its API token; the repository API should then be run as a dedicated systemd service.
+Server capabilities include Btrfs snapshot management for `/srv/storage`, plus legacy-compatible Restic and ZIP backup managers. Restic configurations, generated helpers, and password files remain under `~/.config/restic-mattmc/`; ZIP configurations and helpers remain under `~/.config/zip-backup-manager/`. Their systemd timers run as the user who configures them. The Server Manager provides Debian repository management: explicitly select MattOS or MattPackages, then setup, status, list, verify, or publish. Both repositories run in one systemd service with separate local roots and R2 buckets; MattPackages starts empty and shares the existing MattOS signing key. See [server management](../Docs/ServerManagement.md).
 
 `ContainerManager.py` is also available directly and preserves the legacy queue-then-run lifecycle flow:
 

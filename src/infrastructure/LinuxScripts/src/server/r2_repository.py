@@ -27,21 +27,29 @@ class R2Publisher:
             import boto3
         except ImportError as exc:
             raise R2Error("boto3 is required on the repository server") from exc
-        cache_path = Path(os.environ.get("MATTOS_R2_CREDENTIALS_FILE", str(config.root / "r2-credentials.json"))).expanduser()
+        cache_path = (config.credentials_file or config.root / "r2-credentials.json").expanduser()
         cached: dict[str, str] = {}
-        if cache_path.is_file() and os.environ.get("MATTOS_R2_REFRESH_CREDENTIALS") != "1":
+        if cache_path.is_file() and os.environ.get(f"{config.repository.upper()}_R2_REFRESH_CREDENTIALS") != "1":
             try:
                 payload = json.loads(cache_path.read_text(encoding="utf-8"))
                 if isinstance(payload, dict):
                     cached = {str(key): str(value) for key, value in payload.items()}
             except (OSError, json.JSONDecodeError):
                 cached = {}
+
+        def check_destination(bucket: str, public_url: str, endpoint: str) -> None:
+            if bucket != config.bucket or public_url.rstrip("/") != config.public_url.rstrip("/"):
+                raise R2Error(f"R2 credentials do not match the configured destination for {config.repository}; refusing to publish")
+            if config.endpoint and endpoint.rstrip("/") != config.endpoint.rstrip("/"):
+                raise R2Error(f"R2 credentials do not match the configured endpoint for {config.repository}")
+
         if cached.get("access_key") and cached.get("secret_key") and cached.get("endpoint") and cached.get("bucket"):
             access = cached["access_key"]
             secret = cached["secret_key"]
             endpoint = cached["endpoint"]
             bucket = cached["bucket"]
             public_url = cached.get("public_url", config.public_url).rstrip("/")
+            check_destination(bucket, public_url, endpoint)
         else:
             item = bitwarden.item(config.r2_item)
             login = item.get("login") or {}
@@ -51,14 +59,16 @@ class R2Publisher:
             endpoint = config.endpoint or custom.get("R2_ENDPOINT", "")
             bucket = custom.get("R2_BUCKET_NAME", config.bucket)
             public_url = custom.get("R2_PUBLIC_URL", config.public_url).rstrip("/")
+            check_destination(bucket, public_url, endpoint)
             if access and secret and endpoint and bucket:
                 cache_path.parent.mkdir(parents=True, exist_ok=True)
-                cache_path.write_text(json.dumps({"access_key": access, "secret_key": secret, "endpoint": endpoint, "bucket": bucket, "public_url": public_url}, indent=2) + "\n", encoding="utf-8")
-                cache_path.chmod(0o600)
+                with cache_path.open("w", encoding="utf-8") as handle:
+                    os.fchmod(handle.fileno(), 0o600)
+                    handle.write(json.dumps({"access_key": access, "secret_key": secret, "endpoint": endpoint, "bucket": bucket, "public_url": public_url}, indent=2) + "\n")
         if not access or not secret or not endpoint or not bucket:
             raise R2Error("R2 Bitwarden item is missing credentials, endpoint, or bucket")
-        self.bucket = bucket
-        self.public_url = public_url
+        self.bucket = config.bucket
+        self.public_url = config.public_url
         self.client = boto3.client("s3", endpoint_url=endpoint, aws_access_key_id=access, aws_secret_access_key=secret, region_name="auto")
 
     def call(self, method: str, **kwargs: Any) -> Any:

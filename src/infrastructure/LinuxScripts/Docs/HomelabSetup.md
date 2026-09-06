@@ -15,7 +15,7 @@ flowchart LR
 
 ## Home-server Debian Repository
 
-The MattOS Debian APT repository is built and signed on the home server and
+The MattOS and MattPackages Debian APT repositories are built and signed on the home server and
 served over HTTPS at the configured repository URL.
 
 ```text
@@ -98,3 +98,8 @@ qBittorrent uses Gluetun's network namespace, keeping torrent traffic inside the
 - The DigitalOcean droplet runs Uptime Kuma and relays monitoring events to Discord.
 - The home server runs Homepage, Portainer, the Ollama/Open WebUI stack, AUTOMATIC1111, and the Jellyfin media stack.
 - Uptime Kuma is deliberately outside the normal home-server Container Manager queue because its monitoring value depends on being independent from the services it monitors.
+
+Repository management now requires `--repo mattos` or `--repo mattpackages`.
+Both archives share one service and signing key, with separate local roots and
+R2 buckets. See [ServerManagement.md](ServerManagement.md) for setup and the
+intentional rejection of older publishing clients.

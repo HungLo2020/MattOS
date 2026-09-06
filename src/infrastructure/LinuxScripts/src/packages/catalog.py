@@ -142,11 +142,12 @@ def _profile_packages(value: Any, label: str) -> tuple[ProfilePackage, ...]:
 def _platform_profile_data(
     value: Any,
     profile_name: str,
-) -> tuple[dict[str, tuple[ProfilePackage, ...]], dict[str, tuple[str, ...]]]:
+) -> tuple[dict[str, tuple[ProfilePackage, ...]], dict[str, tuple[str, ...]], dict[str, tuple[str, ...]]]:
     if not isinstance(value, dict):
         raise ValueError(f"Profile '{profile_name}' platforms must be a table.")
     packages_by_platform: dict[str, tuple[ProfilePackage, ...]] = {}
     delete_packages_by_platform: dict[str, tuple[str, ...]] = {}
+    scripts_by_platform: dict[str, tuple[str, ...]] = {}
     for platform_name, platform_entry in value.items():
         if platform_name not in _PROFILE_PLATFORMS:
             raise ValueError(f"Profile '{profile_name}' has unsupported platform '{platform_name}'.")
@@ -154,7 +155,7 @@ def _platform_profile_data(
             raise ValueError(f"Profile '{profile_name}' platform '{platform_name}' must be a table.")
         _validate_keys(
             platform_entry,
-            {"required_packages", "optional_packages", "delete_packages"},
+            {"required_packages", "optional_packages", "delete_packages", "script_dependencies"},
             f"Profile '{profile_name}' platform '{platform_name}'",
         )
         packages_by_platform[platform_name] = _profile_packages(
@@ -165,7 +166,11 @@ def _platform_profile_data(
             platform_entry.get("delete_packages", []),
             f"Profile '{profile_name}' platform '{platform_name}' delete_packages",
         )
-    return packages_by_platform, delete_packages_by_platform
+        scripts_by_platform[platform_name] = _script_list(
+            platform_entry.get("script_dependencies", []),
+            f"Profile '{profile_name}' platform '{platform_name}' script_dependencies",
+        )
+    return packages_by_platform, delete_packages_by_platform, scripts_by_platform
 
 
 def load_profile(path: Path) -> ProfileDefinition:
@@ -187,7 +192,9 @@ def load_profile(path: Path) -> ProfileDefinition:
         {"name", "description", "includes", "required_packages", "optional_packages", "script_dependencies"},
         f"Profile '{name}'",
     )
-    platform_packages, platform_delete_packages = _platform_profile_data(document.get("platforms", {}), name)
+    platform_packages, platform_delete_packages, platform_script_dependencies = _platform_profile_data(
+        document.get("platforms", {}), name
+    )
     return ProfileDefinition(
         name,
         description,
@@ -199,6 +206,7 @@ def load_profile(path: Path) -> ProfileDefinition:
         platform_packages,
         _script_list(profile.get("script_dependencies", []), f"Profile '{name}' script_dependencies"),
         platform_delete_packages,
+        platform_script_dependencies,
     )
 
 

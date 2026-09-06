@@ -88,6 +88,8 @@ def _expand_profiles(
         expanded.append(name)
         for script in profile.script_dependencies:
             profile_scripts[script] = None
+        for script in profile.platform_script_dependencies.get(platform_name, ()):
+            profile_scripts[script] = None
         platform_packages = profile.platform_packages.get(platform_name, ())
         for package in (*profile.packages, *platform_packages):
             requested_packages[package.name] = requested_packages.get(package.name, False) or package.required

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Project-agnostic client for the locally hosted MattOS Debian repository.
+"""Standalone client for the MattOS and MattPackages Debian repositories.
 
 The command-line interface intentionally retains the historical repository
 manager commands. Repository state, signing, reprepro, and publication now
@@ -25,6 +25,9 @@ from typing import Any, Iterable, Sequence
 SOURCE_DIRECTORY = Path(__file__).resolve().parents[1] / "src"
 if str(SOURCE_DIRECTORY) not in sys.path:
     sys.path.insert(0, str(SOURCE_DIRECTORY))
+
+REPOSITORIES = ("mattos", "mattpackages")
+SELECTION_ERROR = "Repository selection is required. Use --repo mattos or --repo mattpackages. No operation was performed."
 
 DEFAULT_SERVER_URL = "http://hunglosvr:8790"
 DEFAULT_PUBLIC_URL = "https://packages.mattsherfey.com"
@@ -117,9 +120,15 @@ class Config:
     architectures: tuple[str, ...] = DEFAULT_REPOSITORY_ARCHITECTURES
     server_url: str = DEFAULT_SERVER_URL
     token_file: Path = DEFAULT_TOKEN_FILE
+    repository: str = ""
 
     @classmethod
-    def from_env(cls) -> "Config":
+    def from_env(cls, repository: str) -> "Config":
+        if repository not in REPOSITORIES:
+            raise ConfigurationError(SELECTION_ERROR)
+        prefix = repository.upper()
+        public_url = DEFAULT_PUBLIC_URL if repository == "mattos" else "https://mattpackages.mattsherfey.com"
+        suite = DEFAULT_SUITE if repository == "mattos" else "stable"
         file_values: dict[str, str] = {}
         for candidate in (SERVER_CONFIG_FILE, Path.home() / ".config" / "mattos-repository" / "client.conf"):
             if candidate.is_file():
@@ -132,16 +141,13 @@ class Config:
         token_value = os.environ.get("MATTOS_REPOSITORY_TOKEN_FILE") or file_values.get("TOKEN_FILE")
         token_path = Path(token_value).expanduser() if token_value else DEFAULT_TOKEN_FILE
         return cls(
-            r2_item=os.environ.get("MATTOS_R2_ITEM", DEFAULT_R2_ITEM),
-            gpg_item=os.environ.get("MATTOS_GPG_ITEM", DEFAULT_GPG_ITEM),
-            bucket=os.environ.get("MATTOS_R2_BUCKET", DEFAULT_BUCKET),
-            endpoint=os.environ.get("MATTOS_R2_ENDPOINT", ""),
-            public_url=os.environ.get("MATTOS_REPOSITORY_URL", DEFAULT_PUBLIC_URL).rstrip("/"),
-            suite=os.environ.get("MATTOS_REPOSITORY_SUITE", DEFAULT_SUITE),
-            component=os.environ.get("MATTOS_REPOSITORY_COMPONENT", DEFAULT_COMPONENT),
-            architectures=validate_architectures(os.environ.get("MATTOS_REPOSITORY_ARCHITECTURES", "amd64")),
+            public_url=os.environ.get(f"{prefix}_REPOSITORY_URL", public_url).rstrip("/"),
+            suite=os.environ.get(f"{prefix}_REPOSITORY_SUITE", suite),
+            component=os.environ.get(f"{prefix}_REPOSITORY_COMPONENT", DEFAULT_COMPONENT),
+            architectures=validate_architectures(os.environ.get(f"{prefix}_REPOSITORY_ARCHITECTURES", "amd64")),
             server_url=server_url,
             token_file=token_path,
+            repository=repository,
         )
 
 
@@ -221,6 +227,8 @@ class ServerRepository:
     """HTTP client for the home-server repository API."""
 
     def __init__(self, config: Config) -> None:
+        if config.repository not in REPOSITORIES:
+            raise ConfigurationError(SELECTION_ERROR)
         self.config = config
         token = os.environ.get("MATTOS_REPOSITORY_TOKEN")
         token_candidates = [config.token_file, SYSTEM_TOKEN_FILE]
@@ -242,13 +250,14 @@ class ServerRepository:
         if body is not None:
             request_headers["Content-Length"] = str(len(body))
             request_headers["Content-Type"] = content_type
-        request = urllib.request.Request(f"{self.config.server_url}{endpoint}", data=body, headers=request_headers, method=method)
+        request = urllib.request.Request(f"{self.config.server_url}/v2/repos/{self.config.repository}{endpoint}", data=body, headers=request_headers, method=method)
         try:
             with urllib.request.urlopen(request, timeout=120) as response:
                 payload = response.read()
                 response_type = response.headers.get_content_type()
         except urllib.error.HTTPError as exc:
             detail = exc.read().decode("utf-8", errors="replace")
+            exc.close()
             try:
                 detail = str(json.loads(detail).get("error", detail))
             except json.JSONDecodeError:
@@ -264,10 +273,10 @@ class ServerRepository:
             raise RemoteError("Repository server returned invalid JSON") from exc
 
     def upload(self, path: Path) -> dict[str, Any]:
-        return self.request("POST", "/v1/upload", body=path.read_bytes(), content_type="application/vnd.debian.binary-package", headers={"X-Package-Filename": path.name})
+        return self.request("POST", "/upload", body=path.read_bytes(), content_type="application/vnd.debian.binary-package", headers={"X-Package-Filename": path.name})
 
     def remove(self, name: str, version: str | None = None) -> dict[str, Any]:
-        return self.request("POST", "/v1/remove", body=json.dumps({"name": name, "version": version}).encode())
+        return self.request("POST", "/remove", body=json.dumps({"name": name, "version": version}).encode())
 
 
 def fetch_public_bytes(url: str, description: str) -> bytes:
@@ -282,7 +291,7 @@ def fetch_public_bytes(url: str, description: str) -> bytes:
 def doctor(config: Config, *, as_json: bool) -> int:
     result = {
         "python": sys.executable, "python_version": sys.version.split()[0],
-        "server_url": config.server_url, "public_url": config.public_url,
+        "repository": config.repository, "server_url": config.server_url, "public_url": config.public_url,
         "token_configured": bool(os.environ.get("MATTOS_REPOSITORY_TOKEN") or config.token_file.is_file()),
         "system_dependencies": {"dpkg-deb": command_exists("dpkg-deb")},
     }
@@ -294,8 +303,16 @@ def doctor(config: Config, *, as_json: bool) -> int:
     return 0 if all(result["system_dependencies"].values()) else 10
 
 
+class RepositoryParser(argparse.ArgumentParser):
+    def error(self, message: str) -> None:
+        if "required: --repo" in message:
+            message = SELECTION_ERROR
+        super().error(message)
+
+
 def parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(description="Manage the locally hosted MattOS Debian repository")
+    p = RepositoryParser(description="Manage the MattOS and MattPackages Debian repositories")
+    p.add_argument("--repo", choices=REPOSITORIES, required=True, help="Explicit repository selection; no default")
     p.add_argument("--yes", action="store_true", help="Retained for compatibility")
     p.add_argument("--non-interactive", action="store_true", help="Never prompt")
     p.add_argument("--dry-run", action="store_true", help="Validate without changing the server")
@@ -319,9 +336,10 @@ def parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv[1:] if argv is not None else None)
     try:
-        config = Config.from_env()
+        config = Config.from_env(args.repo)
         if args.command == "doctor":
             return doctor(config, as_json=args.json)
+        print(f"Repository: {config.repository} ({config.public_url})", file=sys.stderr)
         repository = ServerRepository(config)
         if args.command in {"upload", "add"}:
             infos = validate_packages(args.packages, config.architectures)
@@ -336,7 +354,7 @@ def main(argv: list[str] | None = None) -> int:
             if args.dry_run:
                 print("Dry run: initialize the server repository if needed")
                 return 0
-            print(json.dumps(repository.request("POST", "/v1/init"), indent=2, sort_keys=True))
+            print(json.dumps(repository.request("POST", "/init"), indent=2, sort_keys=True))
             return 0
         if args.command == "remove":
             if args.dry_run:
@@ -347,33 +365,42 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "publish":
             if args.dry_run:
-                print("Dry run: verify the server repository")
+                print("Dry run: verify and publish the selected server repository")
                 return 0
-            print(json.dumps(repository.request("POST", "/v1/publish"), indent=2, sort_keys=True))
+            print(json.dumps(repository.request("POST", "/publish"), indent=2, sort_keys=True))
             return 0
         if args.command == "list":
-            for item in repository.request("GET", "/v1/packages")["packages"]:
+            for item in repository.request("GET", "/packages")["packages"]:
                 print(f"{item['name']}\t{item['version']}\t{item['architecture']}")
             return 0
         if args.command == "status":
-            print(json.dumps(repository.request("GET", "/v1/status"), indent=2, sort_keys=True))
+            print(json.dumps(repository.request("GET", "/status"), indent=2, sort_keys=True))
             return 0
         if args.command == "verify":
-            repository.request("GET", "/v1/verify")
+            repository.request("GET", "/verify")
             print("Repository verification passed.")
             return 0
         if args.command == "export-key":
+            if args.dry_run:
+                print(f"Dry run: export public key to {args.output}")
+                return 0
+            content = repository.request("GET", "/public-key")
             output = args.output.expanduser().resolve()
             output.parent.mkdir(parents=True, exist_ok=True)
-            output.write_text(repository.request("GET", "/v1/public-key"), encoding="utf-8")
+            output.write_text(content, encoding="utf-8")
             output.chmod(0o644)
             return 0
         if args.command == "export-private-key":
+            if args.dry_run:
+                print(f"Dry run: export private key to {args.output}")
+                return 0
             print("Warning: writing a private signing key locally.", file=sys.stderr)
+            content = repository.request("GET", "/private-key")
             output = args.output.expanduser().resolve()
             output.parent.mkdir(parents=True, exist_ok=True)
-            output.write_text(repository.request("GET", "/v1/private-key"), encoding="utf-8")
-            output.chmod(0o600)
+            with output.open("w", encoding="utf-8") as handle:
+                os.fchmod(handle.fileno(), 0o600)
+                handle.write(content)
             return 0
         raise AppError(f"Unknown command: {args.command}")
     except AppError as exc:

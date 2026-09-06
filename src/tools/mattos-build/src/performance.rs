@@ -267,10 +267,9 @@ pub(crate) fn finish_timing_run(result: &Result<()>) -> Result<()> {
 }
 
 fn persist_persistent_integrity_index() -> Result<()> {
-    let Some((path, mut body)) = integrity_index::serialized_if_dirty()? else {
+    let Some((path, body)) = integrity_index::serialized_if_dirty()? else {
         return Ok(());
     };
-    body.push(b'\n');
     atomic_write(&path, &body)
 }
 
@@ -2092,16 +2091,10 @@ mod tests {
         end_test_integrity_session(true);
 
         let index_path = integrity_index::path(root.path());
-        let mut index: serde_json::Value =
-            serde_json::from_slice(&fs::read(&index_path).unwrap()).unwrap();
-        let entry = index["entries"]
-            .as_object_mut()
-            .unwrap()
-            .values_mut()
-            .next()
-            .unwrap();
-        entry["sha256"] = serde_json::Value::String("0".repeat(64));
-        fs::write(&index_path, serde_json::to_vec_pretty(&index).unwrap()).unwrap();
+        let mut index = fs::read(&index_path).unwrap();
+        let last = index.last_mut().unwrap();
+        *last ^= 0xff;
+        fs::write(&index_path, index).unwrap();
 
         begin_test_integrity_session(root.path());
         output_inventory(root.path(), &[output]).unwrap();

@@ -429,6 +429,7 @@ struct PackageInventoryEntry {
 
 const PACKAGE_CACHE_SCHEMA_VERSION: u32 = 1;
 const PACKAGE_AUDIT_SCHEMA_VERSION: u32 = 1;
+const PACKAGE_SET_SCHEMA_VERSION: u32 = 1;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct PackageCacheManifest {
@@ -471,6 +472,21 @@ struct PackageAuditManifest {
     input_digest: String,
     package_count: usize,
     policy: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+struct PackageSetEntry {
+    package: String,
+    cache_key: String,
+    artifact_path: String,
+    artifact_sha256: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+struct PackageSetManifest {
+    schema_version: u32,
+    policy: String,
+    packages: Vec<PackageSetEntry>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -3242,18 +3258,22 @@ fn print_publish_plan(repo_root: &Path, artifacts: &[PathBuf]) -> Result<()> {
     if approved.len() != artifacts.len() {
         bail!("duplicate publication artifacts are not allowed")
     }
-    let command = std::iter::once("python3".to_string())
-        .chain(std::iter::once(shell_escape(path_str(&publisher)?)))
-        .chain(std::iter::once("upload".to_string()))
+    let command = format_publish_command(&publisher, &approved)?;
+    println!("validated non-publishing command (not executed):\n{command}");
+    Ok(())
+}
+
+fn format_publish_command(publisher: &Path, approved: &[PathBuf]) -> Result<String> {
+    Ok(std::iter::once("python3".to_string())
+        .chain(std::iter::once(shell_escape(path_str(publisher)?)))
+        .chain(["--repo".to_string(), "mattos".to_string(), "upload".to_string()])
         .chain(
             approved
                 .iter()
                 .map(|path| shell_escape(path_str(path).unwrap())),
         )
         .collect::<Vec<_>>()
-        .join(" ");
-    println!("validated non-publishing command (not executed):\n{command}");
-    Ok(())
+        .join(" "))
 }
 
 fn validate_publication_artifact_location(
@@ -3299,7 +3319,7 @@ fn build_packages(repo_root: &Path, names: &[String]) -> Result<()> {
         validate_package_name(name)?;
         let spec = specs
             .iter()
-            .find(|spec| spec.name == name)
+            .find(|spec| spec.name == *name)
             .ok_or_else(|| anyhow!("unknown MattOS package {name}"))?;
         selected.push(spec.clone());
     }
@@ -3492,7 +3512,108 @@ fn build_packages(repo_root: &Path, names: &[String]) -> Result<()> {
     inventory.package.sort_by(|a, b| a.name.cmp(&b.name));
     write_inventory(repo_root, &inventory)?;
     ensure_package_facts(repo_root, &inventory)?;
-    print_inventory(repo_root)
+    print_inventory(repo_root)?;
+    write_package_set_manifest(repo_root)
+}
+
+fn package_set_manifest_path(repo_root: &Path) -> PathBuf {
+    repo_root.join("out/state/packages/package-set.json")
+}
+
+fn package_set_policy() -> &'static str {
+    "package-set-v1:approved-package-cache-manifests-and-artifact-sha256"
+}
+
+fn package_set_entries(repo_root: &Path) -> Result<Vec<PackageSetEntry>> {
+    let specs = package_specs();
+    let mut source_digests = BTreeMap::new();
+    let mut entries = Vec::with_capacity(PACKAGE_NAMES.len());
+    for name in PACKAGE_NAMES {
+        let spec = specs
+            .iter()
+            .find(|spec| spec.name == *name)
+            .ok_or_else(|| anyhow!("unknown MattOS package {name}"))?;
+        let version = package_version(repo_root, spec)?;
+        let input = package_cache_input(repo_root, spec, &version, &mut source_digests)?;
+        let manifest_path = package_cache_manifest_path(repo_root, name);
+        let manifest: PackageCacheManifest = serde_json::from_slice(
+            &fs::read(&manifest_path).with_context(|| {
+                format!("package cache manifest missing: {}", manifest_path.display())
+            })?,
+        )
+        .with_context(|| format!("package cache manifest is invalid: {}", manifest_path.display()))?;
+        if manifest.schema_version != PACKAGE_CACHE_SCHEMA_VERSION
+            || manifest.package != *name
+            || manifest.cache_key != input.cache_key
+        {
+            bail!("package cache manifest is stale for {name}");
+        }
+        let artifact = repo_root.join(&manifest.artifact_path);
+        if !artifact.is_file() {
+            bail!("cached package artifact is missing for {name}");
+        }
+        let artifact_sha256 = sha256_file(&artifact)?;
+        if artifact_sha256 != manifest.artifact_sha256
+            || manifest.inventory_entry.sha256 != artifact_sha256
+            || manifest.inventory_entry.version != version
+            || manifest.inventory_entry.architecture != ARCH
+        {
+            bail!("cached package artifact or metadata is stale for {name}");
+        }
+        entries.push(PackageSetEntry {
+            package: name.to_string(),
+            cache_key: input.cache_key,
+            artifact_path: manifest.artifact_path,
+            artifact_sha256,
+        });
+    }
+    Ok(entries)
+}
+
+fn write_package_set_manifest(repo_root: &Path) -> Result<()> {
+    let manifest = PackageSetManifest {
+        schema_version: PACKAGE_SET_SCHEMA_VERSION,
+        policy: package_set_policy().to_string(),
+        packages: package_set_entries(repo_root)?,
+    };
+    performance::atomic_write_json(&package_set_manifest_path(repo_root), &manifest)
+}
+
+/// Establishes the cheap package publication boundary used by Rootfs. A hit
+/// reads package manifests and hashes only published .debs; it never walks a
+/// staging tree or invokes dpkg-deb. A miss deliberately falls through to the
+/// existing deep package validation/build path.
+pub(crate) fn ensure_package_set(repo_root: &Path) -> Result<bool> {
+    let current_entries = package_set_entries(repo_root).ok();
+    let reusable = fs::read(package_set_manifest_path(repo_root))
+        .ok()
+        .and_then(|body| serde_json::from_slice::<PackageSetManifest>(&body).ok())
+        .is_some_and(|manifest| {
+            current_entries.as_ref().is_some_and(|entries| {
+                manifest.schema_version == PACKAGE_SET_SCHEMA_VERSION
+                    && manifest.policy == package_set_policy()
+                    && entries == &manifest.packages
+            })
+        });
+    if reusable {
+        performance::timed(
+            "package-set-preflight",
+            "hit",
+            "package cache manifests and published artifact checksums matched",
+            package_set_policy(),
+            || Ok(()),
+        )?;
+        return Ok(true);
+    }
+    performance::timed(
+        "package-set-preflight",
+        "miss",
+        "package publication boundary missing, stale, or corrupt; deep package validation required",
+        package_set_policy(),
+        || Ok(()),
+    )?;
+    build_all_packages(repo_root)?;
+    Ok(false)
 }
 
 fn ensure_package_facts(repo_root: &Path, inventory: &PackageInventory) -> Result<()> {
@@ -11158,6 +11279,36 @@ mod tests {
         assert_ne!(first, output_change);
     }
 
+    #[test]
+    fn package_set_boundary_is_exact_and_detects_artifact_or_input_changes() {
+        let entry = PackageSetEntry {
+            package: "example".into(),
+            cache_key: "input-a".into(),
+            artifact_path: "out/packages/amd64/example.deb".into(),
+            artifact_sha256: "artifact-a".into(),
+        };
+        let manifest = PackageSetManifest {
+            schema_version: PACKAGE_SET_SCHEMA_VERSION,
+            policy: package_set_policy().into(),
+            packages: vec![entry.clone()],
+        };
+        assert_eq!(manifest.packages, vec![entry.clone()]);
+
+        let mut changed_input = entry.clone();
+        changed_input.cache_key = "input-b".into();
+        assert_ne!(manifest.packages, vec![changed_input]);
+
+        let mut changed_artifact = entry;
+        changed_artifact.artifact_sha256 = "artifact-b".into();
+        assert_ne!(manifest.packages, vec![changed_artifact]);
+    }
+
+    #[test]
+    fn package_set_policy_is_a_distinct_cache_boundary() {
+        assert!(package_set_policy().contains("approved-package-cache-manifests"));
+        assert_ne!(package_set_policy(), "package-cache-v1");
+    }
+
     fn run_ok(cwd: &Path, program: &str, args: &[&str]) {
         let status = Command::new(program)
             .args(args)
@@ -12896,7 +13047,20 @@ mod tests {
                 )
             )
             .unwrap(),
-            "ff56c6cb56951543dfb8eb0298f424d34517a1d87175a44060ef6f97d6a51cd4"
+            "0b0be18e1164481612aa41ab6300c301b5d1088f86f9f653aed5a516ed50f35c"
+        );
+    }
+
+    #[test]
+    fn publish_plan_selects_mattos_repository_without_executing_manager() {
+        let command = format_publish_command(
+            Path::new("src/infrastructure/LinuxScripts/GenericScripts/ManageMattOSRepository.py"),
+            &[PathBuf::from("out/packages/amd64/example_1.0_amd64.deb")],
+        )
+        .unwrap();
+        assert_eq!(
+            command,
+            "python3 src/infrastructure/LinuxScripts/GenericScripts/ManageMattOSRepository.py --repo mattos upload out/packages/amd64/example_1.0_amd64.deb"
         );
     }
 

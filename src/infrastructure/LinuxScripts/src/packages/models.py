@@ -55,6 +55,7 @@ class ProfileDefinition:
     platform_packages: Mapping[str, tuple[ProfilePackage, ...]]
     script_dependencies: tuple[str, ...]
     platform_delete_packages: Mapping[str, tuple[str, ...]] = field(default_factory=dict)
+    platform_script_dependencies: Mapping[str, tuple[str, ...]] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)

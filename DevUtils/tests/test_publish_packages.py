@@ -57,7 +57,17 @@ class PublishPackagesTests(unittest.TestCase):
                 PublishPackages.upload_packages(Path("/repo"), packages, dry_run=True)
         command = run.call_args.args[0]
         self.assertEqual(command[:4], [sys.executable, "/repo/ManageMattOSRepository.py", "--non-interactive", "--dry-run"])
-        self.assertEqual(command[4:], ["upload", *(str(path) for path in packages)])
+        self.assertEqual(command[4:], ["--repo", "mattos", "upload", *(str(path) for path in packages)])
+
+    def test_upload_selects_mattos_without_dry_run(self) -> None:
+        packages = [Path("/repo/out/packages/amd64/a.deb")]
+        with mock.patch("PublishPackages.run_command") as run:
+            with mock.patch.object(PublishPackages, "publisher_path", return_value=Path("/repo/ManageMattOSRepository.py")):
+                PublishPackages.upload_packages(Path("/repo"), packages, dry_run=False)
+        self.assertEqual(
+            run.call_args.args[0],
+            [sys.executable, "/repo/ManageMattOSRepository.py", "--non-interactive", "--repo", "mattos", "upload", str(packages[0])],
+        )
 
 
 if __name__ == "__main__":
