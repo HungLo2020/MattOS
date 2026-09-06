@@ -39,7 +39,15 @@ LIVE_USERSPACE_SIGNATURES = (b"systemd[", b"MattOS Live Environment", b"login:")
 # a live prompt is not necessarily preceded by a terminal newline.  The fresh
 # marker probe below is the actual proof that this is a shell; this expression
 # only decides when it is safe to send that harmless probe.
-SHELL_PROMPT = re.compile(rb"[^\r\n]{1,240}[$#] ?(?:\r?\n|\r|$)")
+# The serial UART can interleave a kernel line immediately after a prompt
+# (for example ``mattos@host:~$ [  8.4] clocksource...``).  Anchor on the
+# normal user@host:path shell shape and accept that interleaving, while not
+# treating arbitrary boot-loader text or echoed commands as a shell prompt.
+SHELL_PROMPT = re.compile(
+    rb"(?:^|[\r\n])(?:\x1b\][^\r\n]*?(?:\x1b\\|\x07))*"
+    rb"[A-Za-z0-9_.-]+@[A-Za-z0-9_.-]+:[^\r\n]{0,160}[$#] ?"
+    rb"(?=\r?\n|\r|$|\[)"
+)
 
 
 class QmpError(RuntimeError):

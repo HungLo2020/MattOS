@@ -23,10 +23,12 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::Gzip => &[
             "src/userland/gzip",
             "upstream/policies/release-archives.toml",
+            "src/tools/mattos-build/src/stages/foundation_libraries.rs",
         ],
         BuildStage::Patch => &[
             "src/userland/patch",
             "upstream/policies/release-archives.toml",
+            "src/tools/mattos-build/src/stages/foundation_libraries.rs",
         ],
         BuildStage::File => &["src/userland/file"],
         BuildStage::Less => &[
@@ -106,10 +108,19 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "resources/COSMIC/layouts",
             "resources/COSMIC/themes",
         ],
-        BuildStage::Polkit => &["src/system/security/polkit"],
+        BuildStage::Polkit => &[
+            "src/system/security/polkit",
+            "src/tools/mattos-build/src/stages/system_services.rs",
+        ],
         BuildStage::Duktape => &["src/system/security/duktape"],
-        BuildStage::NetworkManager => &["src/system/network/NetworkManager"],
-        BuildStage::Cozy => &["src/userland/cozy"],
+        BuildStage::NetworkManager => &[
+            "src/system/network/NetworkManager",
+            "src/tools/mattos-build/src/stages/system_services.rs",
+        ],
+        BuildStage::Cozy => &[
+            "src/userland/cozy",
+            "src/tools/mattos-build/src/stages/desktop_support.rs",
+        ],
         BuildStage::CosmicTweaks => &["src/desktop/cosmic/cosmic-tweaks"],
         BuildStage::CosmicUtilities => &[],
         BuildStage::CosmicRandr => & ["src/desktop/cosmic/cosmic-randr"],
@@ -172,36 +183,77 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::CosmicDesktop => &[
             "src/tools/mattos-build/src/stages/desktop_aggregation.rs",
         ],
-        BuildStage::Python => &["src/development/python/cpython"],
-        BuildStage::Llvm => &["src/toolchain/llvm-project"],
+        BuildStage::Python => &[
+            "src/development/python/cpython",
+            "src/tools/mattos-build/src/stages/runtime_tooling.rs",
+        ],
+        BuildStage::Llvm => &[
+            "src/toolchain/llvm-project",
+            "src/tools/mattos-build/src/stages/runtime_tooling.rs",
+        ],
         BuildStage::Rust => &[
             "src/toolchain/rust",
             "upstream/policies/release-archives.toml",
+            "src/tools/mattos-build/src/stages/runtime_tooling.rs",
         ],
         BuildStage::Kmod => &["src/system/kmod"],
         BuildStage::Procps => &["src/userland/procps-ng"],
         BuildStage::Ncurses => &["src/system/terminal/ncurses"],
-        BuildStage::Iproute2 => &["src/userland/iproute2"],
-        BuildStage::Iputils => &["src/userland/iputils"],
-        BuildStage::Curl => &["src/userland/curl"],
-        BuildStage::Expat => &["src/system/libraries/expat/expat"],
-        BuildStage::Libcap => &["src/system/libraries/libcap"],
-        BuildStage::Attr => &["src/system/libraries/attr"],
+        BuildStage::Iproute2 => &[
+            "src/userland/iproute2",
+            "src/tools/mattos-build/src/stages/networking.rs",
+        ],
+        BuildStage::Iputils => &[
+            "src/userland/iputils",
+            "src/tools/mattos-build/src/stages/networking.rs",
+        ],
+        BuildStage::Curl => &[
+            "src/userland/curl",
+            "src/tools/mattos-build/src/stages/networking.rs",
+        ],
+        BuildStage::Expat => &[
+            "src/system/libraries/expat/expat",
+            "src/tools/mattos-build/src/stages/foundation_libraries.rs",
+        ],
+        BuildStage::Libcap => &[
+            "src/system/libraries/libcap",
+            "src/tools/mattos-build/src/stages/foundation_libraries.rs",
+        ],
+        BuildStage::Attr => &[
+            "src/system/libraries/attr",
+            "src/tools/mattos-build/src/stages/foundation_libraries.rs",
+        ],
         BuildStage::Tar => &[
             "src/userland/tar",
             "src/build-support/paxutils",
             "src/build-support/gnulib",
+            "src/tools/mattos-build/src/stages/archive_tools.rs",
         ],
-        BuildStage::Acl => &["src/system/libraries/acl"],
-        BuildStage::Zlib => &["src/system/libraries/zlib"],
+        BuildStage::Acl => &[
+            "src/system/libraries/acl",
+            "src/tools/mattos-build/src/stages/foundation_libraries.rs",
+        ],
+        BuildStage::Zlib => &[
+            "src/system/libraries/zlib",
+            "src/tools/mattos-build/src/stages/foundation_libraries.rs",
+        ],
         BuildStage::Bzip2 => &["src/system/libraries/bzip2"],
         BuildStage::Lz4 => &["src/system/libraries/lz4"],
         BuildStage::Xz => &["src/system/libraries/xz"],
         BuildStage::Xxhash => &["src/system/libraries/xxhash"],
         BuildStage::Zstd => &["src/system/libraries/zstd"],
-        BuildStage::Dav1d => &["src/system/multimedia/dav1d"],
-        BuildStage::Glib => &["src/system/libraries/glib"],
-        BuildStage::Pipewire => &["src/system/multimedia/pipewire"],
+        BuildStage::Dav1d => &[
+            "src/system/multimedia/dav1d",
+            "src/tools/mattos-build/src/stages/runtime_libraries.rs",
+        ],
+        BuildStage::Glib => &[
+            "src/system/libraries/glib",
+            "src/tools/mattos-build/src/stages/runtime_libraries.rs",
+        ],
+        BuildStage::Pipewire => &[
+            "src/system/multimedia/pipewire",
+            "src/tools/mattos-build/src/stages/runtime_libraries.rs",
+        ],
         BuildStage::Openssl => &["src/system/libraries/openssl"],
         BuildStage::Elfutils => &["src/system/libraries/elfutils"],
         BuildStage::Pcre2 => &["src/system/libraries/pcre2", "src/build-support/sljit"],
@@ -215,11 +267,18 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::Shadow => &["src/system/auth/shadow"],
         BuildStage::SudoRs => &["src/system/auth/sudo-rs"],
         BuildStage::UtilLinux => &["src/userland/util-linux", "upstream/patches/util-linux"],
-        BuildStage::Systemd => &["src/system/systemd"],
-        BuildStage::Dbus => &["src/system/dbus/dbus"],
+        BuildStage::Systemd => &[
+            "src/system/systemd",
+            "src/tools/mattos-build/src/stages/system_runtime.rs",
+        ],
+        BuildStage::Dbus => &[
+            "src/system/dbus/dbus",
+            "src/tools/mattos-build/src/stages/system_runtime.rs",
+        ],
         BuildStage::DbusBroker => &[
             "src/system/dbus/dbus-broker",
             "upstream/patches/dbus-broker",
+            "src/tools/mattos-build/src/stages/system_runtime.rs",
         ],
         BuildStage::Dpkg => &["src/system/packages/dpkg"],
         BuildStage::LibgpgError => &["src/system/security/libgpg-error"],
@@ -367,6 +426,24 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             | BuildStage::CosmicInitialSetup
     ) {
         inputs.push("src/tools/mattos-build/src/stages/desktop.rs".into());
+    }
+    if matches!(
+        stage,
+        BuildStage::Libfyaml
+            | BuildStage::Libxmlb
+            | BuildStage::JsonGlib
+            | BuildStage::Appstream
+            | BuildStage::GdkPixbuf
+            | BuildStage::Gpgme
+            | BuildStage::Flatpak
+            | BuildStage::Libarchive
+            | BuildStage::Libxml2
+            | BuildStage::Libpng
+            | BuildStage::Fuse3
+            | BuildStage::Ostree
+            | BuildStage::Duktape
+    ) {
+        inputs.push("src/tools/mattos-build/src/stages/flatpak.rs".into());
     }
     if matches!(
         stage,
@@ -1041,6 +1118,89 @@ mod tests {
     }
 
     #[test]
+    fn runtime_tooling_recipe_implementation_is_scoped_to_its_owned_stages() {
+        let implementation = PathBuf::from(
+            "src/tools/mattos-build/src/stages/runtime_tooling.rs",
+        );
+        for stage in [BuildStage::Python, BuildStage::Llvm, BuildStage::Rust] {
+            assert!(source_inputs(stage).contains(&implementation));
+        }
+        for stage in [
+            BuildStage::Glibc,
+            BuildStage::GccRuntime,
+            BuildStage::CosmicFiles,
+            BuildStage::Flatpak,
+            BuildStage::Rootfs,
+        ] {
+            assert!(!source_inputs(stage).contains(&implementation));
+        }
+    }
+
+    #[test]
+    fn runtime_tooling_recipe_change_does_not_fan_out_to_unrelated_stages() {
+        let root = tempfile::tempdir().expect("temporary repository");
+        let implementation = root
+            .path()
+            .join("src/tools/mattos-build/src/stages/runtime_tooling.rs");
+        std::fs::create_dir_all(implementation.parent().expect("implementation parent"))
+            .expect("create implementation parent");
+        std::fs::write(&implementation, "original runtime tooling recipe\n")
+            .expect("write implementation");
+        let materialize = |input: &std::path::Path| {
+            let path = root.path().join(input);
+            if path.extension().is_some() {
+                std::fs::create_dir_all(path.parent().expect("input parent"))
+                    .expect("create input parent");
+                std::fs::write(path, "source\n").expect("write input");
+            } else {
+                std::fs::create_dir_all(&path).expect("create input directory");
+                std::fs::write(path.join("README"), "source\n")
+                    .expect("write directory input");
+            }
+        };
+        for input in source_inputs(BuildStage::Python) {
+            if input != implementation.strip_prefix(root.path()).expect("relative implementation") {
+                materialize(&input);
+            }
+        }
+        for input in source_inputs(BuildStage::Bzip2) {
+            materialize(&input);
+        }
+        let python_before = crate::performance::tracked_source_digest(
+            root.path(),
+            &source_inputs(BuildStage::Python),
+            false,
+        )
+        .expect("python baseline");
+        let bzip2_before = crate::performance::tracked_source_digest(
+            root.path(),
+            &source_inputs(BuildStage::Bzip2),
+            false,
+        )
+        .expect("bzip2 baseline");
+        std::fs::write(&implementation, "changed runtime tooling recipe\n")
+            .expect("change implementation");
+        assert_ne!(
+            python_before,
+            crate::performance::tracked_source_digest(
+                root.path(),
+                &source_inputs(BuildStage::Python),
+                false,
+            )
+            .expect("changed python identity")
+        );
+        assert_eq!(
+            bzip2_before,
+            crate::performance::tracked_source_digest(
+                root.path(),
+                &source_inputs(BuildStage::Bzip2),
+                false,
+            )
+            .expect("unrelated bzip2 identity")
+        );
+    }
+
+    #[test]
     fn libraries_recipe_implementation_is_owned_only_by_its_library_stages() {
         let implementation = PathBuf::from("src/tools/mattos-build/src/stages/libraries.rs");
         for stage in [
@@ -1501,6 +1661,592 @@ mod tests {
             session_before,
             crate::performance::tracked_source_digest(root.path(), &session_inputs, false)
                 .expect("unrelated session identity")
+        );
+    }
+
+    #[test]
+    fn flatpak_recipe_implementation_is_owned_only_by_its_platform_stages() {
+        let implementation = PathBuf::from("src/tools/mattos-build/src/stages/flatpak.rs");
+        for stage in [
+            BuildStage::Libfyaml,
+            BuildStage::Libxmlb,
+            BuildStage::JsonGlib,
+            BuildStage::Appstream,
+            BuildStage::GdkPixbuf,
+            BuildStage::Gpgme,
+            BuildStage::Flatpak,
+            BuildStage::Libarchive,
+            BuildStage::Libxml2,
+            BuildStage::Libpng,
+            BuildStage::Fuse3,
+            BuildStage::Ostree,
+            BuildStage::Duktape,
+        ] {
+            assert!(source_inputs(stage).contains(&implementation));
+        }
+        for stage in [
+            BuildStage::Polkit,
+            BuildStage::NetworkManager,
+            BuildStage::CosmicStore,
+            BuildStage::CosmicFiles,
+            BuildStage::Mesa,
+            BuildStage::Rootfs,
+        ] {
+            assert!(!source_inputs(stage).contains(&implementation));
+        }
+    }
+
+    #[test]
+    fn flatpak_recipe_identity_changes_only_for_its_owners() {
+        let root = tempfile::tempdir().expect("temporary repository");
+        let materialize = |path: &std::path::Path| {
+            if path.extension().is_some() {
+                std::fs::create_dir_all(path.parent().expect("input parent"))
+                    .expect("create input parent");
+                std::fs::write(path, "original\n").expect("write input");
+            } else {
+                std::fs::create_dir_all(path).expect("create input directory");
+                std::fs::write(path.join("README"), "original\n")
+                    .expect("write directory input");
+            }
+        };
+        for input in source_inputs(BuildStage::Flatpak) {
+            materialize(&root.path().join(input));
+        }
+        for input in source_inputs(BuildStage::Polkit) {
+            materialize(&root.path().join(input));
+        }
+        let flatpak_inputs = source_inputs(BuildStage::Flatpak);
+        let polkit_inputs = source_inputs(BuildStage::Polkit);
+        let flatpak_before = crate::performance::tracked_source_digest(
+            root.path(),
+            &flatpak_inputs,
+            false,
+        )
+        .expect("flatpak baseline");
+        let polkit_before = crate::performance::tracked_source_digest(root.path(), &polkit_inputs, false)
+            .expect("polkit baseline");
+        std::fs::write(
+            root.path().join("src/tools/mattos-build/src/stages/flatpak.rs"),
+            "changed flatpak recipe\n",
+        )
+        .expect("change flatpak recipe");
+        assert_ne!(
+            flatpak_before,
+            crate::performance::tracked_source_digest(root.path(), &flatpak_inputs, false)
+                .expect("changed flatpak identity")
+        );
+        assert_eq!(
+            polkit_before,
+            crate::performance::tracked_source_digest(root.path(), &polkit_inputs, false)
+                .expect("unrelated polkit identity")
+        );
+    }
+
+    #[test]
+    fn system_service_recipe_implementation_is_scoped_to_its_owned_stages() {
+        let implementation = PathBuf::from(
+            "src/tools/mattos-build/src/stages/system_services.rs",
+        );
+        for stage in [BuildStage::Polkit, BuildStage::NetworkManager] {
+            assert!(source_inputs(stage).contains(&implementation));
+        }
+        for stage in [
+            BuildStage::Systemd,
+            BuildStage::Dbus,
+            BuildStage::Flatpak,
+            BuildStage::CosmicStore,
+            BuildStage::Rootfs,
+        ] {
+            assert!(!source_inputs(stage).contains(&implementation));
+        }
+    }
+
+    #[test]
+    fn system_service_recipe_change_does_not_fan_out_to_unrelated_stages() {
+        let root = tempfile::tempdir().expect("temporary repository");
+        let implementation = root
+            .path()
+            .join("src/tools/mattos-build/src/stages/system_services.rs");
+        std::fs::create_dir_all(implementation.parent().expect("implementation parent"))
+            .expect("create implementation parent");
+        std::fs::write(&implementation, "original system-service recipe\n")
+            .expect("write implementation");
+        let materialize = |input: &std::path::Path| {
+            let path = root.path().join(input);
+            if path.extension().is_some() {
+                std::fs::create_dir_all(path.parent().expect("input parent"))
+                    .expect("create input parent");
+                std::fs::write(path, "source\n").expect("write input");
+            } else {
+                std::fs::create_dir_all(&path).expect("create input directory");
+                std::fs::write(path.join("README"), "source\n").expect("write directory input");
+            }
+        };
+        for input in source_inputs(BuildStage::Polkit) {
+            if input != implementation.strip_prefix(root.path()).expect("relative implementation") {
+                materialize(&input);
+            }
+        }
+        for input in source_inputs(BuildStage::Flatpak) {
+            materialize(&input);
+        }
+        let polkit_before = crate::performance::tracked_source_digest(
+            root.path(),
+            &source_inputs(BuildStage::Polkit),
+            false,
+        )
+        .expect("polkit baseline");
+        let flatpak_before = crate::performance::tracked_source_digest(
+            root.path(),
+            &source_inputs(BuildStage::Flatpak),
+            false,
+        )
+        .expect("flatpak baseline");
+        std::fs::write(&implementation, "changed system-service recipe\n")
+            .expect("change implementation");
+        assert_ne!(
+            polkit_before,
+            crate::performance::tracked_source_digest(
+                root.path(),
+                &source_inputs(BuildStage::Polkit),
+                false,
+            )
+            .expect("changed polkit identity")
+        );
+        assert_eq!(
+            flatpak_before,
+            crate::performance::tracked_source_digest(
+                root.path(),
+                &source_inputs(BuildStage::Flatpak),
+                false,
+            )
+            .expect("unrelated flatpak identity")
+        );
+    }
+
+    #[test]
+    fn system_runtime_recipe_implementation_is_scoped_to_its_owned_stages() {
+        let implementation = PathBuf::from(
+            "src/tools/mattos-build/src/stages/system_runtime.rs",
+        );
+        for stage in [BuildStage::Systemd, BuildStage::Dbus, BuildStage::DbusBroker] {
+            assert!(source_inputs(stage).contains(&implementation));
+        }
+        for stage in [
+            BuildStage::Polkit,
+            BuildStage::NetworkManager,
+            BuildStage::Dav1d,
+            BuildStage::CosmicSession,
+            BuildStage::Rootfs,
+        ] {
+            assert!(!source_inputs(stage).contains(&implementation));
+        }
+    }
+
+    #[test]
+    fn system_runtime_recipe_change_does_not_fan_out_to_unrelated_stages() {
+        let root = tempfile::tempdir().expect("temporary repository");
+        let implementation = root
+            .path()
+            .join("src/tools/mattos-build/src/stages/system_runtime.rs");
+        std::fs::create_dir_all(implementation.parent().expect("implementation parent"))
+            .expect("create implementation parent");
+        std::fs::write(&implementation, "original system-runtime recipe\n")
+            .expect("write implementation");
+        let materialize = |input: &std::path::Path| {
+            let path = root.path().join(input);
+            if path.extension().is_some() {
+                std::fs::create_dir_all(path.parent().expect("input parent"))
+                    .expect("create input parent");
+                std::fs::write(path, "source\n").expect("write input");
+            } else {
+                std::fs::create_dir_all(&path).expect("create input directory");
+                std::fs::write(path.join("README"), "source\n")
+                    .expect("write directory input");
+            }
+        };
+        for input in source_inputs(BuildStage::DbusBroker) {
+            if input != implementation.strip_prefix(root.path()).expect("relative implementation") {
+                materialize(&input);
+            }
+        }
+        for input in source_inputs(BuildStage::Bzip2) {
+            materialize(&input);
+        }
+        let runtime_inputs = source_inputs(BuildStage::DbusBroker);
+        let bzip2_inputs = source_inputs(BuildStage::Bzip2);
+        let runtime_before = crate::performance::tracked_source_digest(
+            root.path(),
+            &runtime_inputs,
+            false,
+        )
+        .expect("system-runtime baseline");
+        let bzip2_before = crate::performance::tracked_source_digest(
+            root.path(),
+            &bzip2_inputs,
+            false,
+        )
+        .expect("bzip2 baseline");
+        std::fs::write(&implementation, "changed system-runtime recipe\n")
+            .expect("change implementation");
+        assert_ne!(
+            runtime_before,
+            crate::performance::tracked_source_digest(root.path(), &runtime_inputs, false)
+                .expect("changed system-runtime identity")
+        );
+        assert_eq!(
+            bzip2_before,
+            crate::performance::tracked_source_digest(root.path(), &bzip2_inputs, false)
+                .expect("unrelated bzip2 identity")
+        );
+    }
+
+    #[test]
+    fn runtime_library_recipe_implementation_is_scoped_to_its_owned_stages() {
+        let implementation = PathBuf::from(
+            "src/tools/mattos-build/src/stages/runtime_libraries.rs",
+        );
+        for stage in [BuildStage::Dav1d, BuildStage::Glib, BuildStage::Pipewire] {
+            assert!(source_inputs(stage).contains(&implementation));
+        }
+        for stage in [
+            BuildStage::Systemd,
+            BuildStage::Libpng,
+            BuildStage::CosmicFiles,
+            BuildStage::Flatpak,
+            BuildStage::Rootfs,
+        ] {
+            assert!(!source_inputs(stage).contains(&implementation));
+        }
+    }
+
+    #[test]
+    fn runtime_library_recipe_change_does_not_fan_out_to_unrelated_stages() {
+        let root = tempfile::tempdir().expect("temporary repository");
+        let implementation = root
+            .path()
+            .join("src/tools/mattos-build/src/stages/runtime_libraries.rs");
+        std::fs::create_dir_all(implementation.parent().expect("implementation parent"))
+            .expect("create implementation parent");
+        std::fs::write(&implementation, "original runtime-library recipe\n")
+            .expect("write implementation");
+        let materialize = |input: &std::path::Path| {
+            let path = root.path().join(input);
+            if path.extension().is_some() {
+                std::fs::create_dir_all(path.parent().expect("input parent"))
+                    .expect("create input parent");
+                std::fs::write(path, "source\n").expect("write input");
+            } else {
+                std::fs::create_dir_all(&path).expect("create input directory");
+                std::fs::write(path.join("README"), "source\n")
+                    .expect("write directory input");
+            }
+        };
+        for input in source_inputs(BuildStage::Glib) {
+            if input != implementation.strip_prefix(root.path()).expect("relative implementation") {
+                materialize(&input);
+            }
+        }
+        for input in source_inputs(BuildStage::Bzip2) {
+            materialize(&input);
+        }
+        let glib_inputs = source_inputs(BuildStage::Glib);
+        let bzip2_inputs = source_inputs(BuildStage::Bzip2);
+        let glib_before = crate::performance::tracked_source_digest(root.path(), &glib_inputs, false)
+            .expect("glib baseline");
+        let bzip2_before = crate::performance::tracked_source_digest(root.path(), &bzip2_inputs, false)
+            .expect("bzip2 baseline");
+        std::fs::write(&implementation, "changed runtime-library recipe\n")
+            .expect("change implementation");
+        assert_ne!(
+            glib_before,
+            crate::performance::tracked_source_digest(root.path(), &glib_inputs, false)
+                .expect("changed glib identity")
+        );
+        assert_eq!(
+            bzip2_before,
+            crate::performance::tracked_source_digest(root.path(), &bzip2_inputs, false)
+                .expect("unrelated bzip2 identity")
+        );
+    }
+
+    #[test]
+    fn foundation_library_recipe_implementation_is_scoped_to_its_owned_stages() {
+        let implementation = PathBuf::from(
+            "src/tools/mattos-build/src/stages/foundation_libraries.rs",
+        );
+        for stage in [
+            BuildStage::Expat,
+            BuildStage::Libcap,
+            BuildStage::Attr,
+            BuildStage::Acl,
+            BuildStage::Zlib,
+            BuildStage::Gzip,
+            BuildStage::Patch,
+        ] {
+            assert!(source_inputs(stage).contains(&implementation));
+        }
+        for stage in [
+            BuildStage::Bzip2,
+            BuildStage::Libpng,
+            BuildStage::Systemd,
+            BuildStage::CosmicStore,
+            BuildStage::Flatpak,
+            BuildStage::Rootfs,
+        ] {
+            assert!(!source_inputs(stage).contains(&implementation));
+        }
+    }
+
+    #[test]
+    fn foundation_library_recipe_change_does_not_fan_out_to_unrelated_stages() {
+        let root = tempfile::tempdir().expect("temporary repository");
+        let implementation = root
+            .path()
+            .join("src/tools/mattos-build/src/stages/foundation_libraries.rs");
+        std::fs::create_dir_all(implementation.parent().expect("implementation parent"))
+            .expect("create implementation parent");
+        std::fs::write(&implementation, "original foundation-library recipe\n")
+            .expect("write implementation");
+        let materialize = |input: &std::path::Path| {
+            let path = root.path().join(input);
+            if path.extension().is_some() {
+                std::fs::create_dir_all(path.parent().expect("input parent"))
+                    .expect("create input parent");
+                std::fs::write(path, "source\n").expect("write input");
+            } else {
+                std::fs::create_dir_all(&path).expect("create input directory");
+                std::fs::write(path.join("README"), "source\n").expect("write directory input");
+            }
+        };
+        for input in source_inputs(BuildStage::Expat) {
+            if input != implementation.strip_prefix(root.path()).expect("relative implementation") {
+                materialize(&input);
+            }
+        }
+        for input in source_inputs(BuildStage::Bzip2) {
+            materialize(&input);
+        }
+        let expat_inputs = source_inputs(BuildStage::Expat);
+        let bzip2_inputs = source_inputs(BuildStage::Bzip2);
+        let expat_before = crate::performance::tracked_source_digest(root.path(), &expat_inputs, false)
+            .expect("expat baseline");
+        let bzip2_before = crate::performance::tracked_source_digest(root.path(), &bzip2_inputs, false)
+            .expect("bzip2 baseline");
+        std::fs::write(&implementation, "changed foundation-library recipe\n")
+            .expect("change implementation");
+        assert_ne!(
+            expat_before,
+            crate::performance::tracked_source_digest(root.path(), &expat_inputs, false)
+                .expect("changed expat identity")
+        );
+        assert_eq!(
+            bzip2_before,
+            crate::performance::tracked_source_digest(root.path(), &bzip2_inputs, false)
+                .expect("unrelated bzip2 identity")
+        );
+    }
+
+    #[test]
+    fn networking_recipe_implementation_is_scoped_to_its_owned_stages() {
+        let implementation = PathBuf::from(
+            "src/tools/mattos-build/src/stages/networking.rs",
+        );
+        for stage in [BuildStage::Iproute2, BuildStage::Iputils, BuildStage::Curl] {
+            assert!(source_inputs(stage).contains(&implementation));
+        }
+        for stage in [
+            BuildStage::Systemd,
+            BuildStage::Glib,
+            BuildStage::CosmicFiles,
+            BuildStage::Flatpak,
+            BuildStage::Rootfs,
+        ] {
+            assert!(!source_inputs(stage).contains(&implementation));
+        }
+    }
+
+    #[test]
+    fn networking_recipe_change_does_not_fan_out_to_unrelated_stages() {
+        let root = tempfile::tempdir().expect("temporary repository");
+        let implementation = root
+            .path()
+            .join("src/tools/mattos-build/src/stages/networking.rs");
+        std::fs::create_dir_all(implementation.parent().expect("implementation parent"))
+            .expect("create implementation parent");
+        std::fs::write(&implementation, "original networking recipe\n")
+            .expect("write implementation");
+        let materialize = |input: &std::path::Path| {
+            let path = root.path().join(input);
+            if path.extension().is_some() {
+                std::fs::create_dir_all(path.parent().expect("input parent"))
+                    .expect("create input parent");
+                std::fs::write(path, "source\n").expect("write input");
+            } else {
+                std::fs::create_dir_all(&path).expect("create input directory");
+                std::fs::write(path.join("README"), "source\n")
+                    .expect("write directory input");
+            }
+        };
+        for input in source_inputs(BuildStage::Curl) {
+            if input != implementation.strip_prefix(root.path()).expect("relative implementation") {
+                materialize(&input);
+            }
+        }
+        for input in source_inputs(BuildStage::Bzip2) {
+            materialize(&input);
+        }
+        let curl_inputs = source_inputs(BuildStage::Curl);
+        let bzip2_inputs = source_inputs(BuildStage::Bzip2);
+        let curl_before = crate::performance::tracked_source_digest(root.path(), &curl_inputs, false)
+            .expect("curl baseline");
+        let bzip2_before = crate::performance::tracked_source_digest(root.path(), &bzip2_inputs, false)
+            .expect("bzip2 baseline");
+        std::fs::write(&implementation, "changed networking recipe\n")
+            .expect("change implementation");
+        assert_ne!(
+            curl_before,
+            crate::performance::tracked_source_digest(root.path(), &curl_inputs, false)
+                .expect("changed curl identity")
+        );
+        assert_eq!(
+            bzip2_before,
+            crate::performance::tracked_source_digest(root.path(), &bzip2_inputs, false)
+                .expect("unrelated bzip2 identity")
+        );
+    }
+
+    #[test]
+    fn desktop_support_recipe_implementation_is_scoped_to_cozy() {
+        let implementation = PathBuf::from(
+            "src/tools/mattos-build/src/stages/desktop_support.rs",
+        );
+        assert!(source_inputs(BuildStage::Cozy).contains(&implementation));
+        for stage in [
+            BuildStage::CosmicDesktop,
+            BuildStage::CosmicFiles,
+            BuildStage::Flatpak,
+            BuildStage::Rootfs,
+        ] {
+            assert!(!source_inputs(stage).contains(&implementation));
+        }
+    }
+
+    #[test]
+    fn desktop_support_recipe_change_does_not_fan_out() {
+        let root = tempfile::tempdir().expect("temporary repository");
+        let implementation = root
+            .path()
+            .join("src/tools/mattos-build/src/stages/desktop_support.rs");
+        std::fs::create_dir_all(implementation.parent().expect("implementation parent"))
+            .expect("create implementation parent");
+        std::fs::write(&implementation, "original desktop support recipe\n")
+            .expect("write implementation");
+        let materialize = |input: &std::path::Path| {
+            let path = root.path().join(input);
+            if path.extension().is_some() {
+                std::fs::create_dir_all(path.parent().expect("input parent"))
+                    .expect("create input parent");
+                std::fs::write(path, "source\n").expect("write input");
+            } else {
+                std::fs::create_dir_all(&path).expect("create input directory");
+                std::fs::write(path.join("README"), "source\n")
+                    .expect("write directory input");
+            }
+        };
+        for input in source_inputs(BuildStage::Cozy) {
+            if input != implementation.strip_prefix(root.path()).expect("relative implementation") {
+                materialize(&input);
+            }
+        }
+        for input in source_inputs(BuildStage::Bzip2) {
+            materialize(&input);
+        }
+        let cozy_inputs = source_inputs(BuildStage::Cozy);
+        let bzip2_inputs = source_inputs(BuildStage::Bzip2);
+        let cozy_before = crate::performance::tracked_source_digest(root.path(), &cozy_inputs, false)
+            .expect("cozy baseline");
+        let bzip2_before = crate::performance::tracked_source_digest(root.path(), &bzip2_inputs, false)
+            .expect("bzip2 baseline");
+        std::fs::write(&implementation, "changed desktop support recipe\n")
+            .expect("change implementation");
+        assert_ne!(
+            cozy_before,
+            crate::performance::tracked_source_digest(root.path(), &cozy_inputs, false)
+                .expect("changed cozy identity")
+        );
+        assert_eq!(
+            bzip2_before,
+            crate::performance::tracked_source_digest(root.path(), &bzip2_inputs, false)
+                .expect("unrelated bzip2 identity")
+        );
+    }
+
+    #[test]
+    fn archive_recipe_implementation_is_scoped_to_tar() {
+        let implementation = PathBuf::from(
+            "src/tools/mattos-build/src/stages/archive_tools.rs",
+        );
+        assert!(source_inputs(BuildStage::Tar).contains(&implementation));
+        for stage in [
+            BuildStage::Acl,
+            BuildStage::Bzip2,
+            BuildStage::CosmicFiles,
+            BuildStage::Flatpak,
+            BuildStage::Rootfs,
+        ] {
+            assert!(!source_inputs(stage).contains(&implementation));
+        }
+    }
+
+    #[test]
+    fn archive_recipe_change_does_not_fan_out() {
+        let root = tempfile::tempdir().expect("temporary repository");
+        let implementation = root
+            .path()
+            .join("src/tools/mattos-build/src/stages/archive_tools.rs");
+        std::fs::create_dir_all(implementation.parent().expect("implementation parent"))
+            .expect("create implementation parent");
+        std::fs::write(&implementation, "original archive recipe\n")
+            .expect("write implementation");
+        let materialize = |input: &std::path::Path| {
+            let path = root.path().join(input);
+            if path.extension().is_some() {
+                std::fs::create_dir_all(path.parent().expect("input parent"))
+                    .expect("create input parent");
+                std::fs::write(path, "source\n").expect("write input");
+            } else {
+                std::fs::create_dir_all(&path).expect("create input directory");
+                std::fs::write(path.join("README"), "source\n")
+                    .expect("write directory input");
+            }
+        };
+        for input in source_inputs(BuildStage::Tar) {
+            if input != implementation.strip_prefix(root.path()).expect("relative implementation") {
+                materialize(&input);
+            }
+        }
+        for input in source_inputs(BuildStage::Bzip2) {
+            materialize(&input);
+        }
+        let tar_inputs = source_inputs(BuildStage::Tar);
+        let bzip2_inputs = source_inputs(BuildStage::Bzip2);
+        let tar_before = crate::performance::tracked_source_digest(root.path(), &tar_inputs, false)
+            .expect("tar baseline");
+        let bzip2_before = crate::performance::tracked_source_digest(root.path(), &bzip2_inputs, false)
+            .expect("bzip2 baseline");
+        std::fs::write(&implementation, "changed archive recipe\n")
+            .expect("change implementation");
+        assert_ne!(
+            tar_before,
+            crate::performance::tracked_source_digest(root.path(), &tar_inputs, false)
+                .expect("changed tar identity")
+        );
+        assert_eq!(
+            bzip2_before,
+            crate::performance::tracked_source_digest(root.path(), &bzip2_inputs, false)
+                .expect("unrelated bzip2 identity")
         );
     }
 }

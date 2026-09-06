@@ -164,6 +164,14 @@ class QemuTestControlTests(unittest.TestCase):
         stream = b"\x1b]3008;type=shell\x1b\\mattos@mattos-test:~$ \r"
         self.assertTrue(control.serial_console_has_shell_prompt(stream))
 
+    def test_shell_prompt_survives_interleaved_kernel_line(self) -> None:
+        # The installed-disk verifier observed this exact UART framing: the
+        # prompt was already rendered and the kernel watchdog line arrived
+        # without a preceding newline.  Prompt detection must still wake the
+        # shell probe instead of timing out.
+        stream = b"\r\nmattos@mattos-test:~$ [    8.456293] clocksource: Watchdog\r\n"
+        self.assertTrue(control.serial_console_has_shell_prompt(stream))
+
     def test_shell_probe_is_a_harmless_printf_command(self) -> None:
         payload = control.shell_probe_payload("__MATTOS_LIVE_SHELL_probe__")
         self.assertEqual(payload, b"printf '\\n__MATTOS_LIVE_SHELL_probe__\\n'\r")

@@ -573,7 +573,7 @@ fn meson_runtime_reconfigures_disposable_state_before_reuse() {
 
 #[test]
 fn iputils_reconfigures_its_disposable_meson_tree_before_installing() {
-    let source = include_str!("main.rs");
+    let source = include_str!("stages/networking.rs");
     let start = source
         .find("fn build_iputils(")
         .expect("iputils recipe must remain available");
@@ -608,7 +608,7 @@ fn file_stage_disables_undeclared_libseccomp_instead_of_using_host_headers() {
 fn gdk_pixbuf_declares_glibs_pcre2_link_requirement() {
     let stage = build_stage_spec(BuildStage::GdkPixbuf);
     assert!(stage.dependencies.contains(&"pcre2".to_string()));
-    let source = include_str!("main.rs");
+    let source = include_str!("stages/flatpak.rs");
     let start = source.find("fn build_gdk_pixbuf(").unwrap();
     let end = start + source[start..].find("\nfn build_gpgme").unwrap();
     assert!(source[start..end].contains("\"pcre2\""));
