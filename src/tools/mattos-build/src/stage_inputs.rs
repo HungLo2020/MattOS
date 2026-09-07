@@ -1069,6 +1069,42 @@ mod tests {
     }
 
     #[test]
+    fn package_cache_implementation_is_not_a_stage_recipe_input() {
+        let cache = PathBuf::from("src/tools/mattos-build/src/packaging/cache.rs");
+        for stage in crate::stage_graph::build_plan(BuildStage::All) {
+            assert!(
+                !source_inputs(stage).contains(&cache),
+                "package-cache mechanics must not become a blanket recipe input for {}",
+                crate::stage_graph::stage_id(stage)
+            );
+        }
+    }
+
+    #[test]
+    fn package_staging_implementation_is_not_a_blanket_stage_input() {
+        let staging = PathBuf::from("src/tools/mattos-build/src/packaging/staging.rs");
+        for stage in crate::stage_graph::build_plan(BuildStage::All) {
+            assert!(
+                !source_inputs(stage).contains(&staging),
+                "package-payload mechanics must not become a blanket recipe input for {}",
+                crate::stage_graph::stage_id(stage)
+            );
+        }
+    }
+
+    #[test]
+    fn package_audit_implementation_is_not_a_blanket_stage_input() {
+        let audit = PathBuf::from("src/tools/mattos-build/src/packaging/audit.rs");
+        for stage in crate::stage_graph::build_plan(BuildStage::All) {
+            assert!(
+                !source_inputs(stage).contains(&audit),
+                "package audit mechanics must not become a blanket recipe input for {}",
+                crate::stage_graph::stage_id(stage)
+            );
+        }
+    }
+
+    #[test]
     fn base_userland_recipe_implementation_is_owned_only_by_its_stages() {
         let implementation = PathBuf::from("src/tools/mattos-build/src/stages/base_userland.rs");
         for stage in [

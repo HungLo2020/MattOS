@@ -4,6 +4,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -33,11 +34,25 @@ impl SourceQuery {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub(crate) struct GitSourceSnapshot {
     index: BTreeMap<String, String>,
     modified: BTreeSet<String>,
     untracked: BTreeSet<String>,
+    root_entries: Mutex<BTreeMap<SourceRootKey, Vec<SourceEntry>>>,
+}
+
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+struct SourceRootKey {
+    root: PathBuf,
+    exclude_documentation: bool,
+}
+
+#[derive(Clone, Debug)]
+struct SourceEntry {
+    path: String,
+    prefix: String,
+    value: String,
 }
 
 #[cfg(test)]
@@ -99,6 +114,7 @@ impl GitSourceSnapshot {
             index: index_entries,
             modified: nul_paths(modified),
             untracked: nul_paths(untracked),
+            root_entries: Mutex::new(BTreeMap::new()),
         })
     }
 
@@ -158,55 +174,105 @@ impl GitSourceSnapshot {
         writer.write_all(b"[\"git-index-and-working-tree\",{")?;
         let mut first = true;
         for root in &query.roots {
-            let root_text = root.to_string_lossy();
-            let root_text = root_text.trim_end_matches('/');
-            let lookup_timer = Instant::now();
-            let mut index = self.index.range(root_text.to_string()..).peekable();
-            let mut untracked = self.untracked.range(root_text.to_string()..).peekable();
-            record_phase("prefix_lookup", lookup_timer.elapsed());
-            let selection_timer = Instant::now();
-            loop {
-                let next_index = index
-                    .peek()
-                    .and_then(|(path, _)| path_is_selected(path, root).then_some(path.as_str()));
-                let next_untracked = untracked
-                    .peek()
-                    .and_then(|path| path_is_selected(path, root).then_some(path.as_str()));
-                let take_untracked = match (next_index, next_untracked) {
-                    (None, None) => break,
-                    (None, Some(_)) => true,
-                    (Some(_), None) => false,
-                    (Some(index_path), Some(untracked_path)) => untracked_path < index_path,
-                };
-                if take_untracked {
-                    let path = untracked.next().expect("peeked untracked path");
-                    if query.exclude_documentation && is_irrelevant_documentation(Path::new(path)) {
-                        continue;
-                    }
-                    let digest = working_digest(&repo_root.join(path))?
-                        .with_context(|| format!("untracked source disappeared: {path}"))?;
-                    write_entry(writer, &mut first, path, "untracked:", &digest)?;
-                } else {
-                    let (path, header) = index.next().expect("peeked index entry");
-                    if query.exclude_documentation && is_irrelevant_documentation(Path::new(path)) {
-                        continue;
-                    }
-                    if self.modified.contains(path) {
-                        match working_digest(&repo_root.join(path))? {
-                            Some(digest) => {
-                                write_entry(writer, &mut first, path, "working:", &digest)?
-                            }
-                            None => write_entry(writer, &mut first, path, "working:", "<deleted>")?,
-                        }
-                    } else {
-                        write_entry(writer, &mut first, path, "index:", header)?;
-                    }
-                }
+            let key = SourceRootKey {
+                root: root.clone(),
+                exclude_documentation: query.exclude_documentation,
+            };
+            let cached = self
+                .root_entries
+                .lock()
+                .map_err(|_| anyhow::anyhow!("source root cache lock poisoned"))?
+                .get(&key)
+                .cloned();
+            let entries = if let Some(entries) = cached {
+                record_phase("root_cache_hit", Duration::ZERO);
+                entries
+            } else {
+                let entries = self.compute_root_entries(
+                    repo_root,
+                    root,
+                    query.exclude_documentation,
+                    working_digest,
+                    record_phase,
+                )?;
+                self.root_entries
+                    .lock()
+                    .map_err(|_| anyhow::anyhow!("source root cache lock poisoned"))?
+                    .insert(key, entries.clone());
+                entries
+            };
+            for entry in entries {
+                write_entry(writer, &mut first, &entry.path, &entry.prefix, &entry.value)?;
             }
-            record_phase("entry_selection", selection_timer.elapsed());
         }
         writer.write_all(b"}]")?;
         Ok(())
+    }
+
+    fn compute_root_entries(
+        &self,
+        repo_root: &Path,
+        root: &Path,
+        exclude_documentation: bool,
+        working_digest: &mut impl FnMut(&Path) -> Result<Option<String>>,
+        record_phase: &mut impl FnMut(&str, Duration),
+    ) -> Result<Vec<SourceEntry>> {
+        let root_text = root.to_string_lossy();
+        let root_text = root_text.trim_end_matches('/');
+        let lookup_timer = Instant::now();
+        let mut index = self.index.range(root_text.to_string()..).peekable();
+        let mut untracked = self.untracked.range(root_text.to_string()..).peekable();
+        record_phase("prefix_lookup", lookup_timer.elapsed());
+        let selection_timer = Instant::now();
+        let mut entries = Vec::new();
+        loop {
+            let next_index = index
+                .peek()
+                .and_then(|(path, _)| path_is_selected(path, root).then_some(path.as_str()));
+            let next_untracked = untracked
+                .peek()
+                .and_then(|path| path_is_selected(path, root).then_some(path.as_str()));
+            let take_untracked = match (next_index, next_untracked) {
+                (None, None) => break,
+                (None, Some(_)) => true,
+                (Some(_), None) => false,
+                (Some(index_path), Some(untracked_path)) => untracked_path < index_path,
+            };
+            if take_untracked {
+                let path = untracked.next().expect("peeked untracked path");
+                if exclude_documentation && is_irrelevant_documentation(Path::new(path)) {
+                    continue;
+                }
+                let digest = working_digest(&repo_root.join(path))?
+                    .with_context(|| format!("untracked source disappeared: {path}"))?;
+                entries.push(SourceEntry {
+                    path: path.clone(),
+                    prefix: "untracked:".to_string(),
+                    value: digest,
+                });
+            } else {
+                let (path, header) = index.next().expect("peeked index entry");
+                if exclude_documentation && is_irrelevant_documentation(Path::new(path)) {
+                    continue;
+                }
+                if self.modified.contains(path) {
+                    entries.push(SourceEntry {
+                        path: path.clone(),
+                        prefix: "working:".to_string(),
+                        value: working_digest(&repo_root.join(path))?
+                            .unwrap_or_else(|| "<deleted>".to_string()),
+                    });
+                } else {
+                    entries.push(SourceEntry {
+                        path: path.clone(),
+                        prefix: "index:".to_string(),
+                        value: header.clone(),
+                    });
+                }
+            }
+        }
+        record_phase("entry_selection", selection_timer.elapsed());
+        Ok(entries)
     }
 
     #[cfg(test)]
@@ -371,6 +437,33 @@ mod tests {
             snapshot.untracked_paths(&roots),
             ["root/new"].into_iter().collect()
         );
+    }
+
+    #[test]
+    fn repeated_source_root_selection_reuses_the_snapshot_cache() {
+        let snapshot = GitSourceSnapshot::from_git_output(
+            b"100644 a 0\troot/file\0100644 b 0\tother/file\0",
+            b"root/file\0",
+            b"",
+        )
+        .unwrap();
+        let query_a = SourceQuery::new(&[PathBuf::from("root")], false);
+        let query_b = SourceQuery::new(
+            &[PathBuf::from("root"), PathBuf::from("other")],
+            false,
+        );
+        let mut working_calls = 0;
+        let mut digest = |_: &Path| {
+            working_calls += 1;
+            Ok(Some("working-digest".to_string()))
+        };
+        snapshot
+            .digest_query(Path::new("/repo"), &query_a, &mut digest, |_, _| {})
+            .unwrap();
+        snapshot
+            .digest_query(Path::new("/repo"), &query_b, &mut digest, |_, _| {})
+            .unwrap();
+        assert_eq!(working_calls, 1);
     }
 
     #[test]

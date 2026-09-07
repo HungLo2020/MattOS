@@ -3993,7 +3993,7 @@ mod tests {
             .1
             .trim();
         assert!(key.len() > 3_000, "Flathub policy must retain the full pinned public key");
-        let package_source = include_str!("packaging.rs");
+        let package_source = include_str!("packaging/staging.rs");
         assert!(package_source.contains("usr/share/flatpak/remotes.d/flathub.flatpakrepo"));
         assert!(package_source.contains("stage_flatpak_system_remote"));
         assert!(package_source.contains("var/lib/flatpak/repo"));
