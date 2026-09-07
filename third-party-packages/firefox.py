@@ -3,15 +3,17 @@
 
 from __future__ import annotations
 
-import json
 import re
 import shutil
 import sys
 from pathlib import Path
-from urllib.request import Request, urlopen
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import BuildResult, PackageRecipe, RecipeError, command, download, extract_archive, require_tools, run_recipe, sha256_file, write_control, write_provenance
+from common import (
+    BuildResult, PackageRecipe, RecipeError, command, download,
+    extract_archive, fetch_json, finalize_package, run_recipe, sha256_file,
+    require_tools,
+)
 
 MOZILLA_FINGERPRINT = "14F26682D0916CDD81E37B6D61B7B526D98F0353"
 VERSION_API = "https://product-details.mozilla.org/1.0/firefox_versions.json"
@@ -20,23 +22,27 @@ RELEASE_ROOT = "https://ftp.mozilla.org/pub/firefox/releases/{version}"
 
 class FirefoxRecipe(PackageRecipe):
     name = "firefox"
+    repository = "mattos"
+    section = "web"
+    description = "Official Mozilla Firefox web browser"
+    provides = ("www-browser",)
+    depends = (
+        "libc6", "libgcc-s1", "libstdc++6", "libgtk-3-0", "libpango-1.0-0",
+        "libgdk-pixbuf-2.0-0", "libglib2.0-0t64", "libcairo2", "libatk1.0-0",
+        "libfontconfig1", "libfreetype6", "libdbus-1-3", "libasound2", "libx11-6",
+        "libxcomposite1", "libxdamage1", "libxext6", "libxfixes3", "libxrandr2",
+        "libxrender1", "libxcb1", "libxcb-shm0", "libx11-xcb1",
+    )
 
     def discover_version(self) -> tuple[str, dict[str, str]]:
-        with urlopen(Request(VERSION_API, headers={"User-Agent": "MattOS-third-party-packages/1"}), timeout=30) as response:
-            data = json.load(response)
+        data = fetch_json(VERSION_API)
         version = str(data.get("LATEST_FIREFOX_VERSION", ""))
         if not re.fullmatch(r"[0-9]+(?:\.[0-9]+)+", version):
             raise RecipeError("Mozilla API did not return a stable Firefox version")
         return version, {"upstream": "https://ftp.mozilla.org/pub/firefox/releases", "release_api": VERSION_API, "channel": "stable", "signing_key_fingerprint": MOZILLA_FINGERPRINT}
 
-    def dependency_names(self) -> tuple[str, ...]:
-        # These are runtime ABI names from the official Mozilla binary. They
-        # are deliberately declared, not bundled from the build host. The
-        # MattOS repository must contain compatible providers before install.
-        return ("libc6", "libgcc-s1", "libstdc++6", "libgtk-3-0", "libpango-1.0-0", "libgdk-pixbuf-2.0-0", "libglib2.0-0t64", "libcairo2", "libatk1.0-0", "libfontconfig1", "libfreetype6", "libdbus-1-3", "libasound2", "libx11-6", "libxcomposite1", "libxdamage1", "libxext6", "libxfixes3", "libxrandr2", "libxrender1", "libxcb1", "libxcb-shm0", "libx11-xcb1")
-
     def build(self, workspace: Path, version: str, provenance: dict[str, str]) -> BuildResult:
-        require_tools(["curl", "tar", "gpg", "gpgv", "sha512sum", "dpkg-deb"])
+        require_tools(["gpg", "gpgv", "sha512sum"])
         root = RELEASE_ROOT.format(version=version)
         filename = f"firefox-{version}.tar.xz"
         key = workspace / "KEY"
@@ -85,12 +91,8 @@ class FirefoxRecipe(PackageRecipe):
         desktop = staging / "usr/share/applications/firefox.desktop"
         desktop.parent.mkdir(parents=True, exist_ok=True)
         desktop.write_text("[Desktop Entry]\nName=Firefox\nComment=Web Browser\nExec=firefox %u\nIcon=firefox\nTerminal=false\nType=Application\nCategories=Network;WebBrowser;\nMimeType=x-scheme-handler/http;x-scheme-handler/https;text/html;\n", encoding="utf-8")
-        write_control(staging, name=self.name, version=version, description="Official Mozilla Firefox web browser", depends=self.dependency_names(), provides=["www-browser"])
         provenance = {**provenance, "release_url": root, "archive": filename, "archive_sha512": check, "archive_sha256": actual, "architecture": "x86_64"}
-        write_provenance(staging, provenance)
-        artifact = workspace / f"{self.name}_{version}_amd64.deb"
-        command(["dpkg-deb", "--root-owner-group", "--build", str(staging), str(artifact)])
-        return BuildResult(self.name, version, self.architecture, artifact, provenance)
+        return finalize_package(self, staging, workspace, version, provenance)
 
 
 if __name__ == "__main__":

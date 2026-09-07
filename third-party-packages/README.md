@@ -18,17 +18,51 @@ python3 third-party-packages/firefox.py update
 python3 third-party-packages/firefox.py publish --dry-run
 ```
 
-`check` performs version discovery and reports the repository state. `build`
-creates a local package without publishing. `publish` builds and uploads, and
-`update` is the normal idempotent mode: it skips a version already present in
-the MattOS repository. `--dry-run` still validates the package through the
-real publisher without changing the server.
+With no command, a recipe performs the read-only `check` operation. `check`
+discovers the upstream version and queries only the `mattos` repository.
+`build` creates a local package without credentials or repository access;
+only the requested `.deb` is retained in `--output` (or `dist/`). `update` is
+the idempotent lifecycle: it checks the `mattos` repository, skips a version
+already published there, or downloads, verifies, builds, stages, validates,
+and publishes the new package. `publish` performs the same lifecycle without
+the version-skip policy. `--dry-run` passes through to the repository client,
+but tests should mock it; no real upload is performed by the package tests.
 
-Recipes keep package-specific release URLs, build/install policy, metadata,
-runtime dependencies, and verification rules small. `common/` owns temporary
-workspace cleanup, retries, archive traversal checks, package metadata,
-provenance, idempotency checks, and invocation of the existing repository
-publisher. Never add downloaded source or build directories here.
+All `check`, `update`, and `publish` operations invoke
+`ManageMattOSRepository.py --repo mattos`. The repository selection is a
+framework invariant; recipes cannot select `mattpackages`. Update and publish
+workspaces are disposable even when a download, build, validation, or upload
+fails. A local build is also disposable except for its final `.deb`.
+
+Recipes keep package-specific release URLs, build/install policy, and unusual
+verification rules small. `PackageRecipe` owns ordinary Debian metadata;
+`common/` owns temporary workspace cleanup, retries, archive traversal checks,
+canonical control/provenance rendering, `.deb` construction, idempotency, and
+invocation of the existing repository publisher. For a normal CMake package,
+the recipe can be as small as:
+
+```python
+class ExampleRecipe(PackageRecipe):
+    name = "example"
+    repository = "mattos"  # REQUIRED: "mattos" or "mattpackages"
+    description = "An ordinary native application"
+    depends = ("libc6",)
+
+    def discover_version(self):
+        return github_latest_release("owner", "example")
+
+    def build(self, workspace, version, provenance):
+        archive = workspace / "source.tar.gz"
+        tag = provenance["release_tag"]
+        url = github_source_archive("owner", "example", tag)
+        download(url, archive)
+        source = extract_archive(archive, workspace / "source")
+        staging = workspace / "package"
+        cmake_build_install(source, workspace / "build", staging)
+        provenance = {**provenance, "source_url": url,
+                      "source_sha256": sha256_file(archive)}
+        return finalize_package(self, staging, workspace, version, provenance)
+```
 
 Versions are upstream versions; a package rebuild with the same upstream
 version is intentionally rejected/skipped by repository identity. A recipe
@@ -38,6 +72,10 @@ declared in `Depends`; host libraries are never copied into a package.
 
 The publisher requires the usual MattOS repository configuration/token and
 uses the vendored LinuxScripts implementation. Publication is per complete
-`.deb`; the server atomically validates and indexes it. Tests should use local
-fixtures and fake publisher/build functions; network publication tests are
-explicit integration tests only.
+`.deb`; the server atomically validates and indexes it. Tests use local
+fixtures and mocked publisher/build functions; this suite never uploads.
+
+`repository` is required on every recipe and is not a command-line option.
+Use `mattos` for packages intended for the MattOS distribution. Select
+`mattpackages` only for a package intentionally maintained in that separate
+repository; the framework accepts no other value and never silently defaults.
