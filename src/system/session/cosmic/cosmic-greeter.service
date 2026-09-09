@@ -2,10 +2,12 @@
 Description=COSMIC graphical login
 After=systemd-user-sessions.service systemd-logind.service systemd-udev-trigger.service
 Wants=systemd-logind.service systemd-udev-trigger.service cosmic-greeter-daemon.service
+Wants=mattos-graphics-watchdog.service
 Conflicts=getty@tty1.service
 
 [Service]
 Type=simple
+ExecStartPre=/usr/bin/mattos-graphics-startup --before
 ExecStart=/usr/bin/greetd --config /etc/greetd/cosmic-greeter.toml
 # greetd exits successfully when its initial greeter command exits before
 # creating a login session.  Keep the display manager available in that case

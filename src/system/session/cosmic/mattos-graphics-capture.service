@@ -1,0 +1,11 @@
+[Unit]
+Description=Capture live boot graphics evidence (also on CLI boots)
+ConditionPathExists=/run/mattos-live
+After=systemd-udev-trigger.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/mattos-graphics-startup --capture
+TimeoutStartSec=90s
+StandardOutput=journal+console
+StandardError=journal+console

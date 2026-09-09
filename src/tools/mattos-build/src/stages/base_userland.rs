@@ -925,71 +925,22 @@ fn util_linux_meson_options() -> Vec<String> {
 }
 
 fn build_kmod(repo_root: &Path) -> Result<()> {
-    let source = repo_root.join("src/system/kmod");
-    if !source.join("meson.build").exists() {
-        bail!(
-            "kmod source not found in {}; run upstream import kmod first",
-            source.display()
-        );
-    }
-
-    let out_root = repo_root.join("out/build/kmod");
-    let build_dir = out_root.join("build");
-    let install_dir = out_root.join("install");
-    let options_path = out_root.join("meson-options.txt");
-    fs::create_dir_all(&out_root)
-        .with_context(|| format!("failed to create {}", out_root.display()))?;
     let options = kmod_meson_options();
-    let options_text = format!("{}\n", options.join("\n"));
-    let configured = build_dir.join("build.ninja").exists();
-    let changed = fs::read_to_string(&options_path).ok().as_deref() != Some(options_text.as_str());
-
-    if !configured {
-        let mut args = vec!["setup".to_string()];
-        args.push(build_dir.display().to_string());
-        args.push(source.display().to_string());
-        args.extend(options.clone());
-        let refs: Vec<&str> = args.iter().map(String::as_str).collect();
-        run_cmd(repo_root, "meson", &refs)?;
-        fs::write(&options_path, &options_text)
-            .with_context(|| format!("failed to write {}", options_path.display()))?;
-    } else {
-        // Meson serializes version-sensitive state in build.dat.  Its
-        // build.ninja sentinel can outlive a host Meson update, after which
-        // `meson compile` rejects the old serialized model.  Reconfigure this
-        // disposable build tree before every requested kmod rebuild.
-        let mut args = vec!["setup".to_string(), "--reconfigure".to_string()];
-        args.push(build_dir.display().to_string());
-        args.push(source.display().to_string());
-        args.extend(options.clone());
-        let refs: Vec<&str> = args.iter().map(String::as_str).collect();
-        run_cmd(repo_root, "meson", &refs)?;
-        if changed {
-            fs::write(&options_path, &options_text)
-                .with_context(|| format!("failed to write {}", options_path.display()))?;
-        }
-    }
-
-    run_cmd(
+    let refs: Vec<&str> = options.iter().map(String::as_str).collect();
+    // Modules ship as .ko.zst. Kernel-assisted loading alone is insufficient:
+    // modinfo and userspace ELF inspection also need target-owned libzstd.
+    // Use the shared target-only Meson environment and output-owned mirror,
+    // including dependency-output stamps, instead of host pkg-config lookup.
+    build_meson_runtime(
         repo_root,
-        "meson",
-        &["compile", "-C", path_str(&build_dir)?],
+        "kmod",
+        "src/system/kmod",
+        &["zstd"],
+        &refs,
+        "usr/lib/x86_64-linux-gnu/libkmod.so.2",
+        &[],
     )?;
-    remove_path_if_exists(&install_dir)?;
-    fs::create_dir_all(&install_dir)
-        .with_context(|| format!("failed to create {}", install_dir.display()))?;
-    run_cmd(
-        repo_root,
-        "meson",
-        &[
-            "install",
-            "-C",
-            path_str(&build_dir)?,
-            "--no-rebuild",
-            "--destdir",
-            path_str(&install_dir)?,
-        ],
-    )?;
+    let install_dir = repo_root.join("out/build/kmod/install");
     for command in KMOD_BINARIES {
         let path = install_dir.join(command.source_rel);
         if !path_entry_exists(&path) {
@@ -1006,7 +957,7 @@ fn kmod_meson_options() -> Vec<String> {
         "--libdir=lib/x86_64-linux-gnu".to_string(),
         "--sysconfdir=/etc".to_string(),
         "--auto-features=disabled".to_string(),
-        "-Dzstd=disabled".to_string(),
+        "-Dzstd=enabled".to_string(),
         "-Dxz=disabled".to_string(),
         "-Dzlib=disabled".to_string(),
         "-Dopenssl=disabled".to_string(),
@@ -1018,6 +969,20 @@ fn kmod_meson_options() -> Vec<String> {
         "-Dmanpages=false".to_string(),
         "-Ddocs=false".to_string(),
     ]
+}
+
+#[cfg(test)]
+mod kmod_compression_tests {
+    use super::*;
+
+    #[test]
+    fn shipped_zstd_modules_require_explicit_target_zstd_support() {
+        let options = kmod_meson_options();
+        assert!(options.iter().any(|o| o == "-Dzstd=enabled"));
+        assert!(!options.iter().any(|o| o == "-Dzstd=disabled"));
+        assert!(options.iter().any(|o| o == "-Ddlopen=[]"));
+        assert_eq!(stage_graph::direct_dependencies(BuildStage::Kmod), &["formal-sysroot", "zstd"]);
+    }
 }
 
 fn build_ncurses(repo_root: &Path) -> Result<()> {

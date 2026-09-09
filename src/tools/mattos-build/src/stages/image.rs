@@ -14,6 +14,8 @@ fn build_rootfs(repo_root: &Path) -> Result<()> {
 }
 
 const BOOT_CRITICAL_MODULES: &[&str] = &[
+    // Common Intel systems expose NVMe behind a VMD PCI domain.
+    "vmd",
     "nvme",
     "ahci",
     "sd_mod",
@@ -26,6 +28,13 @@ const BOOT_CRITICAL_MODULES: &[&str] = &[
     "usb_storage",
     "uas",
     "xhci_pci",
+    "ehci_pci",
+    "ohci_pci",
+    "sdhci_pci",
+    "sdhci_acpi",
+    "mmc_block",
+    "usbhid",
+    "hid_generic",
     "btrfs",
     "ext4",
 ];
@@ -100,6 +109,13 @@ fn module_firmware_requirements(
 }
 
 fn stage_boot_module_closure(repo_root: &Path, tree: &Path) -> Result<(String, usize, usize)> {
+    let config = fs::read_to_string(repo_root.join("out/build/linux/build/.config"))?;
+    for required in ["CONFIG_DEVTMPFS", "CONFIG_BLK_DEV_LOOP", "CONFIG_ISO9660_FS",
+        "CONFIG_SQUASHFS", "CONFIG_SQUASHFS_ZSTD", "CONFIG_OVERLAY_FS"] {
+        if kernel_config_state(&config, required) != Some(KernelConfigState::Builtin) {
+            bail!("minimal initramfs requires {required}=y; no userspace/module fallback is staged");
+        }
+    }
     let release = fs::read_to_string(repo_root.join("out/build/linux/kernel-release"))?
         .trim()
         .to_owned();
@@ -137,6 +153,13 @@ fn stage_boot_module_closure(repo_root: &Path, tree: &Path) -> Result<(String, u
         fs::create_dir_all(destination.parent().expect("module has parent"))?;
         fs::copy(module_root.join(relative), &destination)?;
     }
+    // Diagnostic metadata describes exactly the staged closure, not modules
+    // absent from this small image. PID1 loads the ordered modules.load list.
+    let module_metadata = ordered
+        .iter()
+        .map(|path| format!("{}: {}\n", path, dependencies[path].join(" ")))
+        .collect::<String>();
+    fs::write(destination_root.join("modules.dep"), module_metadata)?;
     let firmware_requirements = module_firmware_requirements(&module_root, &ordered)?;
     let firmware_source = repo_root.join("src/system/data/linux-firmware");
     for requirement in &firmware_requirements {
@@ -159,6 +182,11 @@ fn stage_boot_module_closure(repo_root: &Path, tree: &Path) -> Result<(String, u
         .map(|path| format!("/usr/lib/modules/{release}/{path}\n"))
         .collect::<String>();
     fs::write(tree.join("modules.load"), list)?;
+    // Kernel firmware lookup uses /lib/firmware before the merged-/usr root
+    // exists. Keep the same path contract in both early initramfs variants.
+    if !tree.join("lib").symlink_metadata().is_ok() {
+        std::os::unix::fs::symlink("usr/lib", tree.join("lib"))?;
+    }
     Ok((release, ordered.len(), firmware_requirements.len()))
 }
 
@@ -658,6 +686,7 @@ fn validate_rootfs_mutable_state(rootfs: &Path) -> Result<()> {
 }
 
 fn validate_live_desktop_boot_contract(rootfs: &Path) -> Result<()> {
+    validate_amd_firmware_payload(rootfs)?;
     for rel in [
         "usr/lib/systemd/system/mattos-live-graphical.target",
         "usr/lib/systemd/system/mattos.target",
@@ -669,6 +698,12 @@ fn validate_live_desktop_boot_contract(rootfs: &Path) -> Result<()> {
         "etc/pam.d/cosmic-greeter",
         "usr/bin/greetd",
         "usr/bin/start-cosmic",
+        "usr/bin/mattos-graphics-report",
+        "usr/bin/mattos-graphics-startup",
+        "usr/lib/systemd/system/mattos-graphics-watchdog.service",
+        "usr/lib/systemd/system/mattos-graphics-recovery.service",
+        "usr/lib/systemd/system/mattos-graphics-capture.service",
+        "usr/bin/cosmic-randr",
         "usr/bin/cosmic-session",
         "usr/bin/cosmic-panel",
         "usr/bin/cosmic-launcher",
@@ -740,6 +775,79 @@ fn validate_live_desktop_boot_contract(rootfs: &Path) -> Result<()> {
         }
     }
     Ok(())
+}
+
+/// Validate the redistribution contract actually carried by the firmware
+/// package, not all MODULE_FIRMWARE declarations (which include optional and
+/// unreleased hardware). Never resolve a firmware link into the build host.
+fn validate_amd_firmware_payload(rootfs: &Path) -> Result<()> {
+    let whence = fs::read_to_string(rootfs.join("usr/share/doc/linux-firmware/WHENCE"))?;
+    let firmware = fs::canonicalize(rootfs.join("usr/lib/firmware"))?;
+    if !firmware.starts_with(fs::canonicalize(rootfs)?) {
+        bail!("firmware directory escapes rootfs");
+    }
+    let mut count = 0;
+    for line in whence.lines() {
+        let Some(name) = line.strip_prefix("File: amdgpu/") else {
+            continue;
+        };
+        let name = name.trim();
+        if name.is_empty()
+            || Path::new(name)
+                .components()
+                .any(|c| !matches!(c, std::path::Component::Normal(_)))
+        {
+            bail!("invalid AMD firmware WHENCE path: {name}");
+        }
+        let valid = ["", ".zst", ".xz"].into_iter().any(|suffix| {
+            let path = firmware.join(format!("amdgpu/{name}{suffix}"));
+            fs::canonicalize(path).ok().is_some_and(|resolved| {
+                resolved.starts_with(&firmware)
+                    && resolved.is_file()
+                    && fs::metadata(resolved).is_ok_and(|metadata| metadata.len() > 0)
+            })
+        });
+        if !valid {
+            bail!("packaged AMD firmware missing, empty or escaping rootfs: amdgpu/{name}");
+        }
+        count += 1;
+    }
+    if count == 0 {
+        bail!("firmware WHENCE has no AMDGPU payload contract");
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod amd_firmware_payload_tests {
+    use super::*;
+
+    #[test]
+    fn compressed_firmware_and_relative_links_are_required_inside_image() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        let firmware = root.join("usr/lib/firmware/amdgpu");
+        let doc = root.join("usr/share/doc/linux-firmware");
+        fs::create_dir_all(&firmware).unwrap();
+        fs::create_dir_all(&doc).unwrap();
+        fs::write(doc.join("WHENCE"), "File: amdgpu/display.bin\n").unwrap();
+        assert!(validate_amd_firmware_payload(root).is_err());
+        fs::write(firmware.join("display.bin.zst"), b"fixture").unwrap();
+        validate_amd_firmware_payload(root).unwrap();
+        fs::remove_file(firmware.join("display.bin.zst")).unwrap();
+        fs::write(firmware.join("target.zst"), b"fixture").unwrap();
+        std::os::unix::fs::symlink("target.zst", firmware.join("display.bin.zst")).unwrap();
+        validate_amd_firmware_payload(root).unwrap();
+        fs::remove_file(firmware.join("target.zst")).unwrap();
+        assert!(validate_amd_firmware_payload(root).is_err());
+        fs::remove_file(firmware.join("display.bin.zst")).unwrap();
+        std::os::unix::fs::symlink(doc.join("WHENCE"), firmware.join("display.bin.zst")).unwrap();
+        assert!(validate_amd_firmware_payload(root).is_err());
+        fs::write(doc.join("WHENCE"), "File: amdgpu/../escape\n").unwrap();
+        assert!(validate_amd_firmware_payload(root).is_err());
+        fs::write(doc.join("WHENCE"), "File: other/firmware.bin\n").unwrap();
+        assert!(validate_amd_firmware_payload(root).is_err());
+    }
 }
 
 fn build_rootfs_into(repo_root: &Path, out: &Path) -> Result<()> {
@@ -3290,6 +3398,8 @@ fn build_iso_atomic(repo_root: &Path) -> Result<()> {
             // hybrid GRUB image; this xorriso build does not support UDF.
             "-iso-level",
             "3",
+            "-volid",
+            "MATTOS_LIVE",
         ],
         &[
             ("SOURCE_DATE_EPOCH", MATTOS_SOURCE_DATE_EPOCH.to_string()),
@@ -3372,6 +3482,7 @@ fn validate_staged_grub_config(path: &Path) -> Result<()> {
         "menuentry \"Install MattOS\"",
         "menuentry \"Install MattOS (CLI)\"",
         GRUB_RESCUE_ENTRY,
+        "menuentry \"MattOS AMD graphics diagnostics (CLI)\"",
         GRUB_EARLY_RDINIT,
         GRUB_RESCUE_MARKER,
     ] {
@@ -3387,9 +3498,9 @@ fn validate_staged_grub_config(path: &Path) -> Result<()> {
     if content
         .matches("initrd /boot/early-initramfs.cpio.xz")
         .count()
-        != 5
+        != 6
     {
-        bail!("staged GRUB config must load the early initramfs for all five entries");
+        bail!("staged GRUB config must load the early initramfs for all six entries");
     }
 
     Ok(())

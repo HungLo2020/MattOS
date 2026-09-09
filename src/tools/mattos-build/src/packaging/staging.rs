@@ -2360,6 +2360,16 @@ fn stage_cosmic_desktop(repo_root: &Path, staging: &Path) -> Result<()> {
 
     let integration = repo_root.join("src/system/session/cosmic");
     copy_preserving(
+        &integration.join("mattos-graphics-report"),
+        &staging.join("usr/bin/mattos-graphics-report"),
+    )?;
+    set_mode(staging.join("usr/bin/mattos-graphics-report"), 0o755)?;
+    copy_preserving(
+        &integration.join("mattos-graphics-startup"),
+        &staging.join("usr/bin/mattos-graphics-startup"),
+    )?;
+    set_mode(staging.join("usr/bin/mattos-graphics-startup"), 0o755)?;
+    copy_preserving(
         &integration.join("cosmic-greeter.toml"),
         &staging.join("etc/greetd/cosmic-greeter.toml"),
     )?;
@@ -2372,12 +2382,25 @@ fn stage_cosmic_desktop(repo_root: &Path, staging: &Path) -> Result<()> {
         &staging.join("usr/bin/cosmic-greeter-start"),
     )?;
     set_mode(staging.join("usr/bin/cosmic-greeter-start"), 0o755)?;
-    for unit in ["cosmic-greeter.service", "cosmic-greeter-daemon.service"] {
+    for unit in [
+        "cosmic-greeter.service",
+        "cosmic-greeter-daemon.service",
+        "mattos-graphics-watchdog.service",
+        "mattos-graphics-recovery.service",
+        "mattos-graphics-capture.service",
+    ] {
         copy_preserving(
             &integration.join(unit),
             &staging.join("usr/lib/systemd/system").join(unit),
         )?;
     }
+    let wants = staging.join("etc/systemd/system/multi-user.target.wants");
+    fs::create_dir_all(&wants)?;
+    #[cfg(unix)]
+    std::os::unix::fs::symlink(
+        "/usr/lib/systemd/system/mattos-graphics-capture.service",
+        wants.join("mattos-graphics-capture.service"),
+    )?;
     copy_preserving(
         &integration.join("cosmic-desktop.conf"),
         &staging.join("usr/lib/environment.d/90-cosmic-desktop.conf"),

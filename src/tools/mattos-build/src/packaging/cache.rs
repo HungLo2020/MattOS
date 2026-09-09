@@ -370,7 +370,9 @@ pub(crate) fn package_recipe_revision(package: &str) -> u32 {
         // Revision 3 keeps the greeter daemon display-manager-scoped instead
         // of enabling it in every multi-user/CLI boot. Revision 2 supplied the
         // freedesktop hicolor fallback index.
-        "cosmic-desktop" => 5,
+        // Revision 6 ships bounded, read-only physical graphics diagnostics.
+        // Revision 7 adds live startup evidence and bounded text recovery.
+        "cosmic-desktop" => 7,
         "mattos-compat" => 3,
         // Revision 2 preserves fuse3's documented setuid fusermount3 helper
         // in the Flatpak payload.  The document portal invokes this helper to

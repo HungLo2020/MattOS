@@ -823,6 +823,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         BuildStage::Llvm => &["formal-sysroot", "zlib", "zstd"],
         BuildStage::Rust => &["formal-sysroot", "llvm", "openssl", "zlib"],
         BuildStage::Procps => &["formal-sysroot", "ncurses"],
+        BuildStage::Kmod => &["formal-sysroot", "zstd"],
         BuildStage::Iproute2 => &[
             "formal-sysroot",
             "libcap",

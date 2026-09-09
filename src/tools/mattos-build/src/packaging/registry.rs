@@ -882,7 +882,7 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             name: "libkmod2",
             description: "kmod runtime library built for MattOS",
             source_component: "kmod",
-            depends: &[],
+            depends: &["libzstd1"],
             provides: &["libkmod2"],
             conflicts: &[],
             replaces: &[],
@@ -2162,6 +2162,12 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             description: "Complete source-built COSMIC desktop and graphical login for MattOS",
             source_component: "cosmic-desktop",
             depends: &[
+                // Live graphics probing/recovery uses existing target tools.
+                "coreutils",
+                "procps",
+                "mattos-sudo-rs",
+                "util-linux",
+                "kmod",
                 "cosmic-comp",
                 "dbus-broker",
                 "libdbus-1-3",

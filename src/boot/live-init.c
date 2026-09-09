@@ -10,8 +10,10 @@
 #define _GNU_SOURCE
 
 #include <errno.h>
+#include <dirent.h>
 #include <fcntl.h>
 #include <linux/loop.h>
+#include <poll.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -19,9 +21,11 @@
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sys/mount.h>
+#include <sys/reboot.h>
 #include <sys/stat.h>
 #include <sys/sysmacros.h>
 #include <sys/types.h>
+#include <sys/utsname.h>
 #include <unistd.h>
 
 #include "module-loader.h"
@@ -36,19 +40,51 @@
 
 static void message(const char *format, ...)
 {
+    char text[2048];
     va_list arguments;
     va_start(arguments, format);
-    dprintf(STDERR_FILENO, "mattos-live-init: ");
-    vdprintf(STDERR_FILENO, format, arguments);
-    dprintf(STDERR_FILENO, "\n");
+    vsnprintf(text, sizeof(text), format, arguments);
     va_end(arguments);
+    /* /dev/console can be the last serial console on the kernel command
+     * line. printk reaches both registered consoles and retains the report
+     * in dmesg, including on physical machines without a serial cable. */
+    int log = open("/dev/kmsg", O_WRONLY | O_CLOEXEC | O_NONBLOCK);
+    if (log >= 0) {
+        dprintf(log, "<6>mattos-live-init: %s\n", text);
+        close(log);
+    } else {
+        dprintf(STDERR_FILENO, "mattos-live-init: %s\n", text);
+    }
 }
 
 static void fatal(const char *operation)
 {
     message("%s failed: %s", operation, strerror(errno));
-    for (;;)
-        pause();
+    message("Emergency console: d = diagnostics, r = reboot. Capture this screen.");
+    int screen = open("/dev/tty0", O_RDWR | O_CLOEXEC | O_NONBLOCK);
+    struct pollfd inputs[] = {{STDIN_FILENO, POLLIN, 0}, {screen, POLLIN, 0}};
+    for (;;) {
+        if (poll(inputs, 2, -1) <= 0) continue;
+        char input[32];
+        int ready = inputs[1].revents & POLLIN ? screen : STDIN_FILENO;
+        ssize_t count = read(ready, input, sizeof(input));
+        if (count <= 0) { sleep(1); continue; }
+        if (input[0] == 'r') { sync(); reboot(RB_AUTOBOOT); }
+        const char *paths[] = {"/proc/cmdline", "/proc/partitions", "/proc/modules", "/proc/mounts", NULL};
+        for (size_t i = 0; paths[i]; ++i) {
+            message("%s", paths[i]);
+            int fd = open(paths[i], O_RDONLY | O_CLOEXEC);
+            if (fd < 0) continue;
+            char buffer[4096];
+            ssize_t n;
+            while ((n = read(fd, buffer, sizeof(buffer))) > 0) {
+                (void)write(STDERR_FILENO, buffer, (size_t)n);
+                if (screen >= 0) (void)write(screen, buffer, (size_t)n);
+            }
+            close(fd);
+        }
+        message("Check raw ISO checksum and try another USB port; r reboots, d repeats diagnostics.");
+    }
 }
 
 static void make_directory(const char *path, mode_t mode)
@@ -104,27 +140,54 @@ static bool command_line_has_token(const char *needle)
     return false;
 }
 
+static bool mattos_iso_descriptor(const unsigned char *data, ssize_t bytes)
+{
+    return bytes == 2048 && data[0] == 1 && data[6] == 1 &&
+        memcmp(data + 1, "CD001", 5) == 0 &&
+        memcmp(data + 40, "MATTOS_LIVE                     ", 32) == 0;
+}
+
 static void mount_live_medium(void)
 {
-    static const char *const candidates[] = {
-        "/dev/sr0", "/dev/sr1", "/dev/cdrom", NULL
-    };
-
-    for (unsigned int attempt = 0; attempt < 100; ++attempt) {
-        for (size_t index = 0; candidates[index] != NULL; ++index) {
-            if (!file_exists(candidates[index]))
+    /* Inspect the primary ISO9660 descriptor before mounting. No udev or
+     * device-name assumptions: sysfs lists both whole disks and partitions. */
+    for (unsigned int attempt = 0; attempt < 120; ++attempt) {
+        DIR *devices = opendir("/sys/class/block");
+        struct dirent *entry;
+        while (devices && (entry = readdir(devices)) != NULL) {
+            if (entry->d_name[0] == '.')
                 continue;
-            if (mount(candidates[index], "/run/mattos/medium", "iso9660",
+            char device[512];
+            snprintf(device, sizeof(device), "/dev/%s", entry->d_name);
+            int fd = open(device, O_RDONLY | O_CLOEXEC | O_NONBLOCK);
+            if (fd < 0)
+                continue;
+            unsigned char descriptor[2048];
+            ssize_t bytes = pread(fd, descriptor, sizeof(descriptor), 16 * 2048);
+            close(fd);
+            if (!mattos_iso_descriptor(descriptor, bytes))
+                continue;
+            if (mount(device, "/run/mattos/medium", "iso9660",
                       MS_RDONLY | MS_NODEV | MS_NOSUID, NULL) == 0) {
                 if (file_exists(LIVE_ROOT_PATH)) {
-                    message("mounted live medium from %s", candidates[index]);
+                    message("mounted live medium from %s (label MATTOS_LIVE)", device);
+                    FILE *report = fopen("/run/mattos/live-medium", "we");
+                    if (report) { fprintf(report, "%s\n", device); fclose(report); }
+                    closedir(devices);
                     return;
                 }
                 umount2("/run/mattos/medium", MNT_DETACH);
+                message("rejected %s: missing /live/rootfs.squashfs", device);
+            } else {
+                message("cannot mount labelled medium %s: %s", device, strerror(errno));
             }
         }
-        usleep(100000);
+        if (devices) closedir(devices);
+        if (attempt % 10 == 0)
+            message("waiting for MATTOS_LIVE storage (%u/60 seconds); see /sys/class/block", attempt / 2);
+        usleep(500000);
     }
+    message("No usable MATTOS_LIVE ISO found. Check USB write/port, storage driver and kernel logs; reboot to retry.");
     errno = ENOENT;
     fatal("locate MattOS live medium");
 }
@@ -223,6 +286,8 @@ static void switch_to_live_root(const char *new_root, const char *real_init,
 int main(void)
 {
     message("starting minimal live-media early userspace");
+    struct utsname kernel;
+    if (uname(&kernel) == 0) message("kernel %s %s", kernel.release, kernel.machine);
 
     make_directory("/dev", 0755);
     make_directory("/proc", 0555);
@@ -282,4 +347,5 @@ int main(void)
     }
     message("live root mounted read-only with writable tmpfs overlay");
     switch_to_live_root("/newroot", real_init, systemd_target);
+    return 1;
 }

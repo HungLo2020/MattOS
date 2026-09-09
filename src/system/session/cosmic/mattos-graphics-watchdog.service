@@ -1,0 +1,13 @@
+[Unit]
+Description=Bounded live COSMIC graphics startup check
+ConditionPathExists=/run/mattos-live
+After=systemd-user-sessions.service
+OnFailure=mattos-graphics-recovery.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/timeout --kill-after=2s 120s /usr/bin/mattos-graphics-startup --wait
+TimeoutStartSec=125s
+RemainAfterExit=yes
+StandardOutput=journal+console
+StandardError=journal+console

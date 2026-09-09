@@ -291,6 +291,7 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::Init => &["src/userland/init"],
         BuildStage::Installer => &[
             "src/system/installer",
+            "src/tools/mattos-build/src/stages/image.rs",
             "src/boot/module-loader.h",
             "src/system/storage/btrfs-progs",
             "src/system/storage/dosfstools",
@@ -803,7 +804,7 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
         // Revision 4 moves EGL/GLES dispatch to source-built GLVND while Mesa
         // remains a coinstallable vendor implementation.
         BuildStage::Mesa => 4,
-        BuildStage::Iso => 2,
+        BuildStage::Iso => 3,
         BuildStage::UtilLinux => 5,
         _ => 1,
     }
@@ -1018,6 +1019,7 @@ mod tests {
     fn image_stages_own_their_implementation_input() {
         let image_module = PathBuf::from("src/tools/mattos-build/src/stages/image.rs");
         for stage in [
+            BuildStage::Installer,
             BuildStage::Rootfs,
             BuildStage::LiveRoot,
             BuildStage::Initramfs,

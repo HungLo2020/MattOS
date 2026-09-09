@@ -51,6 +51,21 @@ class _FakeSerialSocket:
 
 
 class QemuTestControlTests(unittest.TestCase):
+    def test_text_delivery_paces_balanced_character_batches(self) -> None:
+        client = mock.Mock()
+        with mock.patch.object(control.time, "sleep") as pause:
+            control.type_text(client, "aA!\n")
+        self.assertEqual(client.execute.call_count, 4)
+        self.assertEqual(pause.call_count, 4)
+        for call, character in zip(client.execute.call_args_list, "aA!\n"):
+            self.assertEqual(call.args, ("input-send-event", {
+                "events": control.qcode_events_for_text(character)}))
+            self.assertLessEqual(len(call.args[1]["events"]), 4)
+        client.reset_mock()
+        with self.assertRaises(control.QmpError):
+            control.type_text(client, "valid prefix 😀")
+        client.execute.assert_not_called()
+
     def test_text_events_cover_shell_commands_without_guest_automation(self) -> None:
         events = control.qcode_events_for_text("flatpak --user list\n")
         self.assertGreater(len(events), 10)

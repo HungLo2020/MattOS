@@ -3872,7 +3872,7 @@ mod tests {
         let path = tmp.path().join("grub.cfg");
         write(
             &path,
-            "menuentry \"Start MattOS Live\" { linux /boot/vmlinuz rdinit=/init initrd /boot/early-initramfs.cpio.xz }\nmenuentry \"Start MattOS Live (CLI)\" { linux /boot/vmlinuz rdinit=/init initrd /boot/early-initramfs.cpio.xz }\nmenuentry \"Install MattOS\" { linux /boot/vmlinuz rdinit=/init initrd /boot/early-initramfs.cpio.xz }\nmenuentry \"Install MattOS (CLI)\" { linux /boot/vmlinuz rdinit=/init initrd /boot/early-initramfs.cpio.xz }\nmenuentry \"MattOS Rescue\" { linux /boot/vmlinuz rdinit=/init mattos.rescue=1 initrd /boot/early-initramfs.cpio.xz }\n",
+            "menuentry \"Start MattOS Live\" { linux /boot/vmlinuz rdinit=/init initrd /boot/early-initramfs.cpio.xz }\nmenuentry \"Start MattOS Live (CLI)\" { linux /boot/vmlinuz rdinit=/init initrd /boot/early-initramfs.cpio.xz }\nmenuentry \"Install MattOS\" { linux /boot/vmlinuz rdinit=/init initrd /boot/early-initramfs.cpio.xz }\nmenuentry \"Install MattOS (CLI)\" { linux /boot/vmlinuz rdinit=/init initrd /boot/early-initramfs.cpio.xz }\nmenuentry \"MattOS Rescue\" { linux /boot/vmlinuz rdinit=/init mattos.rescue=1 initrd /boot/early-initramfs.cpio.xz }\nmenuentry \"MattOS AMD graphics diagnostics (CLI)\" { linux /boot/vmlinuz rdinit=/init initrd /boot/early-initramfs.cpio.xz }\n",
         );
 
         validate_staged_grub_config(&path).expect("valid staged config should pass");
@@ -3886,7 +3886,7 @@ mod tests {
             .map(str::trim)
             .filter(|line| line.starts_with("linux "))
             .collect::<Vec<_>>();
-        assert_eq!(linux_lines.len(), 5);
+        assert_eq!(linux_lines.len(), 6);
         assert!(
             linux_lines
                 .iter()
@@ -3894,7 +3894,7 @@ mod tests {
         );
         assert_eq!(
             grub.matches("initrd /boot/early-initramfs.cpio.xz").count(),
-            5
+            6
         );
         for required in ["insmod all_video", "set gfxpayload=keep"] {
             assert!(

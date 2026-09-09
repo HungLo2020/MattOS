@@ -31,6 +31,7 @@ Environment=LIBGL_DRIVERS_PATH=/usr/lib/x86_64-linux-gnu/dri
 # Require both coldplug completion and a usable KMS/input device before the
 # compositor takes its one-shot backend snapshot.
 ExecStartPre=/usr/bin/udevadm settle --timeout=180
+ExecStartPre=/usr/bin/mattos-graphics-startup --before
 ExecStartPre=/bin/sh -c 'for path in /dev/dri/card[0-9]*; do test -c "$path" && exit 0; done; exit 1'
 ExecStartPre=/bin/sh -c 'for path in /dev/input/event[0-9]*; do test -c "$path" && exit 0; done; exit 1'
 # Mesa's source-built VirGL Gallium path is selected by kmsro for the QEMU

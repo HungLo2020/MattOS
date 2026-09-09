@@ -1,0 +1,74 @@
+#!/bin/sh
+# Read-only, bounded diagnostics. Run with sudo and redirect stdout to a file.
+# Do not load drivers, alter KMS, dump the user's environment, or reset devices.
+export LC_ALL=C
+export SYSTEMD_PAGER=cat
+export SYSTEMD_COLORS=0
+run() {
+    printf '\n###'
+    printf ' %s' "$@"
+    printf '\n'
+    timeout --kill-after=2s 15s "$@" 2>&1
+    result=$?
+    [ "$result" -eq 0 ] || printf '[diagnostic exit status: %s]\n' "$result"
+    return 0
+}
+run uname -a
+run cat /proc/cmdline /run/mattos/live-medium /proc/modules
+run sh -c 'for p in /sys/module/amdgpu/parameters/*; do
+    [ ! -f "$p" ] || { printf "%s=" "$p"; cat "$p"; }
+done'
+run cat /sys/module/firmware_class/parameters/path
+run ls -ld /lib /lib/firmware /usr/lib/firmware
+run sh -c 'for p in /sys/bus/pci/devices/*; do
+    case "$(cat "$p/class" 2>/dev/null)" in 0x03*)
+        printf "\nPCI %s\n" "${p##*/}"
+        for f in vendor device subsystem_vendor subsystem_device revision boot_vga modalias power/runtime_status; do
+            printf "%s=" "$f"; cat "$p/$f" 2>/dev/null
+        done
+        readlink "$p/driver"
+    esac
+done'
+run sh -c 'cat /sys/class/tty/tty0/active; for card in /sys/class/drm/card[0-9]*; do
+    [ -f "$card/dev" ] || continue
+    udevadm info --query=property --path="$card"
+done'
+run sh -c 'ls -l /dev/dri /sys/class/drm; for p in /sys/class/drm/*; do
+    printf "\nDRM %s\n" "$p"
+    readlink -f "$p/device"
+    for f in status enabled modes device/uevent; do
+        [ ! -f "$p/$f" ] || { printf "%s:\n" "$f"; cat "$p/$f"; }
+    done
+done'
+run sh -c 'dmesg | grep -Ei "amdgpu|drm|firmware|iommu|simpledrm|i915|nouveau|timeout|failed"'
+# Used before greetd starts: absence of an Initialized-amdgpu line is evidence
+# of incomplete/asynchronous initialization, not a reason to prevent startup.
+if [ "${1:-}" = --brief ]; then exit 0; fi
+run modinfo amdgpu
+run modprobe --show-depends amdgpu
+run sh -c 'modinfo -F firmware amdgpu | while IFS= read -r name; do
+    found=no
+    for suffix in "" .zst .xz; do
+        if [ -f "/usr/lib/firmware/$name$suffix" ]; then found=yes; break; fi
+    done
+    [ "$found" = yes ] || printf "ADVERTISED_NOT_PRESENT (may be optional): %s\n" "$name"
+done'
+run sh -c 'ls -l /usr/lib/x86_64-linux-gnu/libgallium* /usr/lib/x86_64-linux-gnu/libEGL* /usr/lib/x86_64-linux-gnu/libgbm* /usr/lib/x86_64-linux-gnu/libdrm* /usr/lib/x86_64-linux-gnu/libLLVM*.so* /usr/lib/x86_64-linux-gnu/libvulkan_radeon* /usr/lib/x86_64-linux-gnu/dri /usr/lib/x86_64-linux-gnu/gbm; cat /usr/share/glvnd/egl_vendor.d/*.json /usr/share/vulkan/icd.d/radeon*.json'
+run systemctl --failed --no-pager
+run systemctl show cosmic-greeter.service systemd-udev-trigger.service systemd-udevd.service systemd-logind.service -p ActiveState -p SubState -p Result -p ExecMainCode -p ExecMainStatus -p NRestarts
+run loginctl seat-status seat0
+run sh -c 'for clients in /sys/kernel/debug/dri/*/clients; do
+    [ ! -r "$clients" ] || { printf "\n%s\n" "$clients"; cat "$clients"; }
+done'
+run loginctl list-sessions --no-pager
+run ps -eo pid,ppid,uid,stat,wchan:24,comm
+run sh -c 'for pid in $(pgrep -x cosmic-comp); do
+    printf "\nCOMPOSITOR PID %s\n" "$pid"
+    grep -E "^(Name|State|Uid|Gid|Groups):" "/proc/$pid/status"
+    grep -E "libgallium|libEGL|libgbm|libdrm|libLLVM|libvulkan" "/proc/$pid/maps"
+    ls -l "/proc/$pid/fd" | grep /dev/dri/
+    tr "\000" "\n" < "/proc/$pid/environ" | grep -E "^(XDG_SESSION_TYPE|XDG_RUNTIME_DIR|LIBSEAT_BACKEND|DRI_PRIME|COSMIC_RENDER_DEVICE|COSMIC_BACKEND|MESA_LOADER_DRIVER_OVERRIDE|LIBGL_ALWAYS_SOFTWARE|GBM_BACKEND)="
+done'
+run journalctl -b --no-pager -o short-monotonic -n 500 -u cosmic-greeter.service -u systemd-udevd.service -u systemd-logind.service
+run journalctl -b --no-pager -o short-monotonic -n 500 _COMM=cosmic-comp _COMM=cosmic-session
+printf '\nReport complete. Advertised firmware is not necessarily required by the installed GPU.\n'

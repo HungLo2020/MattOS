@@ -1,0 +1,10 @@
+[Unit]
+Description=Capture failed live graphics startup and restore text login
+ConditionPathExists=/run/mattos-live
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/mattos-graphics-startup --fallback
+TimeoutStartSec=150s
+StandardOutput=journal+console
+StandardError=journal+console

@@ -57,6 +57,8 @@ UEFI_FIRMWARE_CANDIDATES = (
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Build and run MattOS in QEMU")
     parser.add_argument("--no-build", action="store_true", help="skip build/image steps")
+    parser.add_argument("--live-media", choices=("optical", "usb", "nvme", "sata"),
+                        default="optical", help="ISO transport (USB/NVMe/SATA use raw disk bytes)")
     parser.add_argument("--clean", action="store_true", help="clean build artifacts before rebuilding")
     parser.add_argument(
         "--memory",
@@ -571,16 +573,32 @@ def _launch_one(
     if boot_iso:
         if iso_path is None:
             raise RepoError("installation-media boot requires an ISO")
-        qemu_cmd.extend([
-            "-drive",
-            f"file={iso_path},if=none,id=mattos-cd,media=cdrom,readonly=on",
-            "-device",
-            "virtio-scsi-pci,id=mattos-scsi",
-            "-device",
-            "scsi-cd,drive=mattos-cd,bus=mattos-scsi.0,bootindex=1",
-            "-boot",
-            "d",
-        ])
+        media = getattr(args, "live_media", "optical")
+        if media != "optical":
+            # ATA rejects read-only block backends; OVMF's NVMe boot also
+            # issues commands requiring a writable backend. Disposable
+            # snapshots model raw-written disks without modifying the ISO.
+            protection = "snapshot=on" if media in ("sata", "nvme") else "readonly=on"
+            qemu_cmd.extend(["-drive", f"file={iso_path},format=raw,if=none,id=mattos-media,{protection}"])
+            if media == "usb":
+                qemu_cmd.extend(["-device", "qemu-xhci,id=mattos-media-xhci",
+                                 "-device", "usb-storage,drive=mattos-media,bus=mattos-media-xhci.0,bootindex=1"])
+            elif media == "nvme":
+                qemu_cmd.extend(["-device", "nvme,drive=mattos-media,serial=MATTOSLIVE,bootindex=1"])
+            else:
+                qemu_cmd.extend(["-device", "ich9-ahci,id=mattos-media-ahci",
+                                 "-device", "ide-hd,drive=mattos-media,bus=mattos-media-ahci.0,bootindex=1"])
+        else:
+            qemu_cmd.extend([
+                "-drive",
+                f"file={iso_path},if=none,id=mattos-cd,media=cdrom,readonly=on",
+                "-device",
+                "virtio-scsi-pci,id=mattos-scsi",
+                "-device",
+                "scsi-cd,drive=mattos-cd,bus=mattos-scsi.0,bootindex=1",
+                "-boot",
+                "d",
+            ])
     else:
         qemu_cmd.extend(["-boot", "order=c"])
     control_paths = test_control_paths(repo_root, args)

@@ -1,0 +1,109 @@
+#!/bin/sh
+# Live-only startup observation/recovery; never modeset or choose a GPU.
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export LC_ALL=C
+export SYSTEMD_PAGER=cat
+umask 077
+reports=/run/mattos-graphics
+
+enabled_current_mode() (
+    # Parse only the pinned cosmic-randr's canonical output/mode records.
+    # Do not require awk (not part of the MattOS runtime closure).
+    set -f
+    enabled=no
+    while IFS= read -r line; do
+        case "$line" in
+            output\ *)
+                enabled=no
+                case "$line" in *' enabled=#true {'*) enabled=yes ;; esac ;;
+            *' current=#true'*)
+                set -- $line
+                [ "$enabled" = yes ] && [ "${1:-}" = mode ] || continue
+                case "${2:-}:${3:-}" in *[!0-9:]*|:|:*) continue ;; esac
+                if [ "${2:-0}" -gt 0 ] && [ "${3:-0}" -gt 0 ]; then return 0; fi ;;
+        esac
+    done
+    return 1
+)
+
+check_session() {
+    # A process or socket alone is not readiness. Ask the actual compositor
+    # using its existing, read-only Wayland output-management client, as its UID.
+    for pid in $(pgrep -x cosmic-comp); do
+        uid=$(sed -n 's/^Uid:[[:space:]]*\([0-9]*\).*/\1/p' "/proc/$pid/status")
+        case "$uid" in ''|*[!0-9]*) continue ;; esac
+        runtime=$(tr '\000' '\n' < "/proc/$pid/environ" | sed -n 's/^XDG_RUNTIME_DIR=//p')
+        case "$runtime" in "/run/user/$uid"|/run/mattos-installer|/run/cosmic-greeter) ;; *) continue ;; esac
+        # Also require a session UI, not an otherwise empty compositor.
+        if ! pgrep -u "$uid" -x 'cosmic-panel|cosmic-greeter' >/dev/null &&
+           ! pgrep -u "$uid" -f '^/usr/bin/mattos-install-cosmic([[:space:]]|$)' >/dev/null; then
+            continue
+        fi
+        # Record which device COSMIC actually opened, not an assumed card0.
+        ls -l "/proc/$pid/fd" 2>/dev/null | grep -q '/dev/dri/card[0-9]' || continue
+        for socket in "$runtime"/wayland-[0-9]*; do
+            [ -S "$socket" ] || continue
+            if timeout --kill-after=1s 5s sudo -n -u "#$uid" -- \
+                /usr/bin/env -i PATH="$PATH" XDG_RUNTIME_DIR="$runtime" \
+                WAYLAND_DISPLAY="${socket##*/}" /usr/bin/cosmic-randr list --kdl \
+                > "$reports/outputs.kdl" 2> "$reports/probe-error.txt"; then
+                # Match enabled + positive current mode in the SAME output.
+                if enabled_current_mode < "$reports/outputs.kdl"; then
+                    printf 'Responsive COSMIC output: pid=%s uid=%s socket=%s\n' "$pid" "$uid" "$socket"
+                    return 0
+                fi
+            fi
+        done
+    done
+    return 1
+}
+
+capture() {
+    timeout --kill-after=2s 60s /usr/bin/mattos-graphics-report > "$reports/report.txt" 2>&1
+    status=$?
+    printf '\nCapture exit=%s (124 means bounded partial report)\n' "$status" >> "$reports/report.txt"
+    timeout --kill-after=2s 10s journalctl -b --no-pager -o short-monotonic > "$reports/journal.txt" 2>&1
+    timeout --kill-after=2s 10s dmesg > "$reports/dmesg.txt" 2>&1
+    printf 'MattOS graphics diagnostics: %s/{report,journal,dmesg}.txt (copy with sudo before reboot)\n' "$reports"
+}
+
+[ -e /run/mattos-live ] || exit 0
+mkdir -p "$reports" || exit 1
+case "${1:-}" in
+    --before)
+        timeout --kill-after=1s 10s /usr/bin/mattos-graphics-report --brief > "$reports/before-cosmic.txt" 2>&1
+        cat "$reports/before-cosmic.txt"
+        # Diagnostics must never prevent the real compositor from starting.
+        exit 0 ;;
+    --capture) capture ;;
+    --check) check_session ;;
+    --wait)
+        echo 'MattOS: watching graphical startup for at most 120 seconds; no GPU selection overrides.'
+        while ! check_session; do sleep 2; done
+        echo 'MattOS: compositor answered Wayland and advertised an enabled current output.' ;;
+    --fallback)
+        echo 'MattOS: graphical startup did not establish a responsive enabled output within its deadline.'
+        echo 'Capturing the original failure, then opening the normal live text login on tty1.'
+        capture
+        # Stop only the live graphics entrypoints; do not isolate targets or
+        # interrupt an unrelated CLI installer/network/serial session.
+        timeout --kill-after=2s 15s systemctl stop cosmic-greeter.service \
+            mattos-cosmic-installer-session.service mattos-install-graphical.service
+        timeout --kill-after=2s 10s systemctl start getty@tty1.service
+        # Existing live getty auto-login creates a normal logind session.
+        # Activating it switches VTs without introducing chvt/host tools.
+        for attempt in $(seq 1 15); do
+            for session in $(loginctl list-sessions --no-legend | sed -n 's/^[[:space:]]*\([^[:space:]]*\).*/\1/p'); do
+                if [ "$(loginctl show-session "$session" -p VTNr --value)" = 1 ] &&
+                   [ "$(loginctl show-session "$session" -p Type --value)" = tty ]; then
+                    loginctl activate "$session"
+                    printf 'Graphics recovery: tty1 active. sudo cat %s/report.txt\n' "$reports" > /dev/tty1
+                    exit 0
+                fi
+            done
+            sleep 1
+        done
+        echo 'Could not activate tty1. Use Ctrl+Alt+F1, serial, or the AMD graphics diagnostics CLI boot entry.'
+        exit 1 ;;
+    *) echo 'usage: mattos-graphics-startup --before|--capture|--check|--wait|--fallback' >&2; exit 2 ;;
+esac

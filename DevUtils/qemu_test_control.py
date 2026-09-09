@@ -382,6 +382,17 @@ def qcode_events_for_text(value: str) -> list[dict[str, Any]]:
     return events
 
 
+def type_text(client: QmpClient, value: str) -> None:
+    # Validate the whole input before touching the guest. A single large QMP
+    # batch can overflow the emulated PS/2 keyboard FIFO and lose key releases,
+    # leaving autorepeat active. Pace bounded character-sized press/release
+    # groups at human typing speed; this is input delivery, not boot readiness.
+    qcode_events_for_text(value)
+    for character in value:
+        client.execute("input-send-event", {"events": qcode_events_for_text(character)})
+        time.sleep(0.04)
+
+
 def ppm_dimensions(path: Path) -> tuple[int, int]:
     """Read the dimensions from a QMP screendump without decoding pixels."""
     with path.open("rb") as image:
@@ -511,7 +522,7 @@ def main() -> int:
         elif args.command == "key":
             send_key(client, args.key)
         elif args.command == "text":
-            client.execute("input-send-event", {"events": qcode_events_for_text(args.text)})
+            type_text(client, args.text)
         elif args.command == "click":
             width, height = args.screen or display_size(client)
             click(client, args.x, args.y, width, height)

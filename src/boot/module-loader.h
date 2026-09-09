@@ -25,6 +25,7 @@ static int mattos_load_boot_modules(void)
             continue;
         int module = open(path, O_RDONLY | O_CLOEXEC);
         if (module < 0) {
+            dprintf(STDERR_FILENO, "mattos modules: open %s: %s\n", path, strerror(errno));
             fclose(list);
             return -1;
         }
@@ -33,6 +34,7 @@ static int mattos_load_boot_modules(void)
         int saved_errno = errno;
         close(module);
         if (result < 0 && saved_errno != EEXIST) {
+            dprintf(STDERR_FILENO, "mattos modules: load %s: %s\n", path, strerror(saved_errno));
             errno = saved_errno;
             fclose(list);
             return -1;
