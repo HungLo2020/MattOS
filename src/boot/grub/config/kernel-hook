@@ -1,0 +1,6 @@
+#!/bin/sh
+set -eu
+# Kernel package hooks may also run while composing an uninstalled rootfs.
+# Only regenerate an installed system's configuration.
+test -f /etc/default/grub || exit 0
+exec /usr/sbin/update-grub

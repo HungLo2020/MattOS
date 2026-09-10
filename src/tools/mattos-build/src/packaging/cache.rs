@@ -331,6 +331,12 @@ pub(crate) fn package_definition_digest(spec: &PackageSpec) -> Result<String> {
 
 pub(crate) fn package_recipe_revision(package: &str) -> u32 {
     match package {
+        // Preserve the new components' upstream license texts in their native packages.
+        "libnl-3-200" | "libnl-genl-3-200" | "wpasupplicant" => 2,
+        // Also retain administrator menu/hook edits with dpkg conffile semantics.
+        "grub-efi-amd64" => 3,
+        // Versioned installed kernel assets are paired using this release file.
+        "mattos-installer" => 2,
         // Revision 2 adds cfdisk to the deliberately selected base payload.
         // Keep this per-package so an unrelated staging-recipe edit does not
         // invalidate every package.

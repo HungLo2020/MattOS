@@ -1490,6 +1490,8 @@ include!("stages/graphics.rs");
 include!("stages/desktop.rs");
 include!("stages/flatpak.rs");
 include!("stages/system_services.rs");
+include!("stages/wifi.rs");
+include!("stages/grub.rs");
 include!("stages/foundation_libraries.rs");
 include!("stages/networking.rs");
 include!("stages/system_runtime.rs");
@@ -1504,36 +1506,6 @@ fn stage_output_file(source: &Path, destination: &Path, mode: u32) -> Result<()>
     fs::copy(source, destination)
         .with_context(|| format!("failed to stage {}", source.display()))?;
     set_mode(destination.to_path_buf(), mode)
-}
-
-fn sanitize_embedded_output_path(binary: &Path, mirror: &Path) -> Result<()> {
-    let old = mirror.to_string_lossy().into_owned();
-    let replacement = "/usr/src/mattos/cosmic-sources/cosmic-workspaces";
-    if replacement.len() > old.len() {
-        bail!("sanitized output path is longer than the embedded host path");
-    }
-    let mut bytes = fs::read(binary)?;
-    let old_bytes = old.as_bytes();
-    let mut replacements = 0;
-    let mut offset = 0;
-    while let Some(relative) = bytes[offset..]
-        .windows(old_bytes.len())
-        .position(|window| window == old_bytes)
-    {
-        let start = offset + relative;
-        bytes[start..start + old_bytes.len()].fill(0);
-        bytes[start..start + replacement.len()].copy_from_slice(replacement.as_bytes());
-        replacements += 1;
-        offset = start + replacement.len();
-    }
-    if replacements == 0 {
-        bail!(
-            "{} did not contain the expected embedded mirror path",
-            binary.display()
-        );
-    }
-    fs::write(binary, bytes)?;
-    Ok(())
 }
 
 fn copy_file_preserving(source: &Path, destination: &Path) -> Result<()> {
@@ -2338,6 +2310,7 @@ mod tests {
                     | BuildStage::CosmicNotifications
                     | BuildStage::CosmicOsd
                     | BuildStage::CosmicBg
+                    | BuildStage::CosmicIdle
                     | BuildStage::CosmicWorkspaces
                     | BuildStage::CosmicFiles
                     | BuildStage::CosmicTerm
@@ -2392,10 +2365,13 @@ mod tests {
         assert_eq!(by_id["initramfs"].dependencies, ["linux", "make"]);
         assert_eq!(
             by_id["iso"].dependencies,
-            ["initramfs", "linux", "live-root"]
+            ["grub", "initramfs", "linux", "live-root"]
         );
 
         let durations = BTreeMap::from([
+            ("libnl", 32.0),
+            ("wpa-supplicant", 42.0),
+            ("grub", 180.0),
             ("acl", 16.862),
             ("apt", 168.123),
             ("attr", 12.009),
@@ -2418,6 +2394,7 @@ mod tests {
             ("cosmic-notifications", 60.000),
             ("cosmic-osd", 45.000),
             ("cosmic-bg", 45.000),
+            ("cosmic-idle", 30.000),
             ("cosmic-workspaces", 60.000),
             ("cosmic-files", 120.000),
             ("cosmic-term", 90.000),

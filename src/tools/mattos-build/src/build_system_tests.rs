@@ -502,7 +502,7 @@ fn cold_build_concurrency_groups_preserve_barriers_and_output_ownership() {
     );
     assert_eq!(
         graph["iso"],
-        ["initramfs", "linux", "live-root"].into_iter().collect()
+        ["grub", "initramfs", "linux", "live-root"].into_iter().collect()
     );
 
     let independent_after_sysroot = [

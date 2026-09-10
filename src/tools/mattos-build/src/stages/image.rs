@@ -418,14 +418,14 @@ fn build_installer(repo_root: &Path) -> Result<()> {
     remove_path_if_exists(&init_tree)?;
 
     let efi = installer_out.join("BOOTX64.EFI");
-    run_cmd(
+    run_owned_grub(
         repo_root,
         "grub-mkimage",
         &[
             "-O",
             "x86_64-efi",
             "-d",
-            "/usr/lib/grub/x86_64-efi",
+            path_str(&repo_root.join("out/build/grub/install/usr/lib/grub/x86_64-efi"))?,
             "-p",
             "/EFI/BOOT",
             "-o",
@@ -441,6 +441,7 @@ fn build_installer(repo_root: &Path) -> Result<()> {
             "serial",
             "terminal",
         ],
+        &[],
     )?;
     if fs::metadata(&efi)?.len() < 128 * 1024 {
         bail!("generated installed-system EFI GRUB image is unexpectedly small");
@@ -3382,7 +3383,7 @@ fn build_iso_atomic(repo_root: &Path) -> Result<()> {
     let image_temp = performance::temporary_sibling(&image_destination, "building")?;
     let build_tmp = repo_root.join("out/tmp");
     fs::create_dir_all(&build_tmp)?;
-    let result = run_cmd_with_env_overrides(
+    let result = run_owned_grub(
         repo_root,
         "grub-mkrescue",
         &[
@@ -3426,6 +3427,24 @@ fn build_iso_atomic(repo_root: &Path) -> Result<()> {
     // Refresh the report from the image just published so successful builds
     // cannot leave historical SquashFS/ISO sizes behind.
     report_artifacts(repo_root)
+}
+
+// Host formatting tools remain build prerequisites, but executable GRUB code
+// and module/data directories are exclusively MattOS-owned stage outputs.
+fn run_owned_grub(repo_root: &Path, tool: &str, args: &[&str], overrides: &[(&str, String)]) -> Result<()> {
+    if !matches!(tool, "grub-mkimage" | "grub-mkrescue") { bail!("unsupported build GRUB tool: {tool}"); }
+    let install = repo_root.join("out/build/grub/install");
+    let binary = install.join("usr/bin").join(tool);
+    let loader = repo_root.join("out/build/glibc/install/lib64/ld-linux-x86-64.so.2");
+    let libraries = ["glibc", "gcc-runtime", "zlib", "xz"].map(|component|
+        repo_root.join("out/build").join(component).join("install/usr/lib/x86_64-linux-gnu"));
+    let library_path = std::env::join_paths(libraries)?.to_string_lossy().into_owned();
+    let mut command = vec!["--library-path", &library_path, path_str(&binary)?];
+    command.extend_from_slice(args);
+    let mut env = overrides.to_vec();
+    env.push(("pkglibdir", install.join("usr/lib/grub").display().to_string()));
+    env.push(("pkgdatadir", install.join("usr/share/grub").display().to_string()));
+    run_cmd_with_env_overrides(repo_root, path_str(&loader)?, &command, &env)
 }
 
 fn validate_dual_firmware_iso(repo_root: &Path, image: &Path) -> Result<()> {

@@ -1,0 +1,17 @@
+--- a/brush-core/src/openfiles.rs
++++ b/brush-core/src/openfiles.rs
+@@ -238,6 +238,14 @@
+         // fail (e.g. under descriptor exhaustion), so the conversion is fallible and the error is
+         // surfaced to the caller rather than silently degrading the child's streams.
+         match open_file {
++            // inherit() refers to the child's destination descriptor, not this
++            // source descriptor. For example, stdout redirected to Stderr must
++            // duplicate fd 2 rather than inherit fd 1.
++            #[cfg(unix)]
++            file @ (OpenFile::Stdin(_) | OpenFile::Stdout(_) | OpenFile::Stderr(_)) => {
++                Ok(file.try_clone_to_owned()?.into())
++            }
++            #[cfg(not(unix))]
+             OpenFile::Stdin(_) | OpenFile::Stdout(_) | OpenFile::Stderr(_) => Ok(Self::inherit()),
+             OpenFile::File(f) => Ok(f.try_clone()?.into()),
+             OpenFile::PipeReader(r) => Ok(r.try_clone()?.into()),

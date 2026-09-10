@@ -2039,3 +2039,51 @@ current_mattos_version = "1.54.0-1mattos1"
 expected_debian_role = "network interface manager"
 classification = "debian-compatible"
 known_gaps = ["None"]
+
+[[package]]
+debian_name = "libnl-3-200"
+mattos_name = "libnl-3-200"
+source_component = "libnl"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libnl-3.so.200"]
+provided_abi_or_commands = ["libnl-3.so.200"]
+protected = false
+current_mattos_version = "0~git.43878680c994-1mattos1"
+expected_debian_role = "Netlink core runtime"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
+debian_name = "libnl-genl-3-200"
+mattos_name = "libnl-genl-3-200"
+source_component = "libnl"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libnl-genl-3.so.200"]
+provided_abi_or_commands = ["libnl-genl-3.so.200"]
+protected = false
+current_mattos_version = "0~git.43878680c994-1mattos1"
+expected_debian_role = "Generic Netlink runtime"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
+debian_name = "wpasupplicant"
+mattos_name = "wpasupplicant"
+source_component = "wpa-supplicant"
+owned_paths = ["/usr/sbin/wpa_supplicant", "/usr/sbin/wpa_cli", "/usr/sbin/wpa_passphrase"]
+provided_abi_or_commands = ["fi.w1.wpa_supplicant1", "wpa_supplicant", "wpa_cli", "wpa_passphrase"]
+protected = false
+current_mattos_version = "0~git.831364bf0271-1mattos1"
+expected_debian_role = "NetworkManager Wi-Fi supplicant backend"
+classification = "debian-compatible"
+known_gaps = ["No hostapd or legacy WEXT backend; nl80211 with WPA2/WPA3 and enterprise EAP"]
+
+[[package]]
+debian_name = "grub-efi-amd64"
+mattos_name = "grub-efi-amd64"
+source_component = "grub"
+owned_paths = ["/usr/sbin/grub-install", "/usr/sbin/grub-mkconfig", "/usr/sbin/update-grub", "/usr/lib/grub"]
+provided_abi_or_commands = ["grub-install", "grub-mkconfig", "update-grub", "x86_64-efi and i386-pc modules"]
+protected = false
+current_mattos_version = "0~git.d38d6a1a9b79-1mattos1"
+expected_debian_role = "UEFI boot manager and kernel menu management"
+classification = "debian-compatible"
+known_gaps = ["Common utilities included in this package rather than Debian's separate grub-common; no signed shim, ZFS, LVM or TPM provisioning utility"]

@@ -1,0 +1,37 @@
+diff --git a/util/grub-mkrescue.c b/util/grub-mkrescue.c
+--- a/util/grub-mkrescue.c
++++ b/util/grub-mkrescue.c
+@@ -37,5 +37,7 @@
+ #include <string.h>
+ #include <time.h>
++#include <stdlib.h>
++#include <errno.h>
+ 
+ static char *source_dirs[GRUB_INSTALL_PLATFORM_MAX];
+ static char *rom_directory;
+@@ -580,8 +582,24 @@
+   {
+     time_t tim;
+     struct tm *tmm;
+-    tim = time (NULL);
++    const char *epoch = getenv ("SOURCE_DATE_EPOCH");
++    if (epoch)
++      {
++        char *end;
++        long long value;
++        errno = 0;
++        value = strtoll (epoch, &end, 10);
++        if (errno || !*epoch || *end || value < 0)
++          grub_util_error ("%s", "invalid SOURCE_DATE_EPOCH");
++        tim = (time_t) value;
++        if ((long long) tim != value)
++          grub_util_error ("%s", "SOURCE_DATE_EPOCH outside time_t range");
++      }
++    else
++      tim = time (NULL);
+     tmm = gmtime (&tim);
++    if (!tmm)
++      grub_util_error ("%s", "unrepresentable image timestamp");
+     iso_uuid = xmalloc (55);
+     grub_snprintf (iso_uuid, 50,
+ 		   "%04d-%02d-%02d-%02d-%02d-%02d-00",

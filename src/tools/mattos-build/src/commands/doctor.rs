@@ -40,7 +40,6 @@ fn doctor() -> Result<()> {
         "gzip",
         "mformat",
         "mcopy",
-        "grub-mkrescue",
         "xorriso",
         "pkg-config",
         "bash",
@@ -73,7 +72,6 @@ fn doctor() -> Result<()> {
         ("mcopy", vec!["-V"]),
         ("meson", vec!["--version"]),
         ("ninja", vec!["--version"]),
-        ("grub-mkrescue", vec!["--version"]),
         ("xorriso", vec!["-version"]),
         ("bindgen", vec!["--version"]),
     ] {

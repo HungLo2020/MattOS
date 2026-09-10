@@ -1,0 +1,10 @@
+diff --git a/configure.ac b/configure.ac
+--- a/configure.ac
++++ b/configure.ac
+@@ -2161,3 +2161,5 @@
+-if test "x$with_unifont" = x; then
++if test "x$with_unifont" = xno; then
++  FONT_SOURCE=
++elif test "x$with_unifont" = x; then
+   # search in well-known directories
+   for ext in pcf pcf.gz bdf bdf.gz ttf ttf.gz otf otf.gz; do

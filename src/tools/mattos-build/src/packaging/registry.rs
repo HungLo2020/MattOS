@@ -2,6 +2,22 @@ use anyhow::{bail, Result};
 use serde::Serialize;
 use std::collections::{BTreeMap, BTreeSet};
 
+#[cfg(test)]
+mod wifi_grub_tests {
+    use super::*;
+    #[test]
+    fn wifi_and_bootloader_runtime_dependencies_are_complete() {
+        let specs = package_specs();
+        let network = specs.iter().find(|p| p.name == "network-manager").unwrap();
+        assert!(network.depends.contains(&"wpasupplicant"));
+        let supplicant = specs.iter().find(|p| p.name == "wpasupplicant").unwrap();
+        for dependency in ["libnl-3-200", "libnl-genl-3-200", "libssl3t64", "libdbus-1-3"] {
+            assert!(supplicant.depends.contains(&dependency));
+        }
+        assert!(specs.iter().find(|p| p.name == "mattos-installer").unwrap().depends.contains(&"grub-efi-amd64"));
+    }
+}
+
 pub(crate) const PACKAGE_NAMES: &[&str] = &[
     "mattos-filesystem",
     "mattos-compat",
@@ -142,6 +158,10 @@ pub(crate) const PACKAGE_NAMES: &[&str] = &[
     "libduktape207",
     "polkit",
     "network-manager",
+    "libnl-3-200",
+    "libnl-genl-3-200",
+    "wpasupplicant",
+    "grub-efi-amd64",
     "mattos-cozy",
     "libpython3.14",
     "python3",
@@ -1299,6 +1319,7 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
                 "linux-modules-7.2.0-rc5-mattos",
                 "linux-firmware",
                 "wireless-regdb",
+                "grub-efi-amd64",
             ],
             provides: &[
                 "mattos-installer",
@@ -2200,6 +2221,7 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
                 "cosmic-notifications",
                 "cosmic-osd",
                 "cosmic-bg",
+                "cosmic-idle",
                 "cosmic-workspaces",
                 "cosmic-files",
                 "cosmic-term",
@@ -2262,6 +2284,8 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
                 "libc6",
                 "libglib2.0-0t64",
                 "libpam0g",
+                "libpam-modules",
+                "libpam-runtime",
                 "libdbus-1-3",
                 "libsystemd0",
                 "libduktape207",
@@ -2287,12 +2311,41 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
                 "libreadline8",
                 "libncursesw6",
                 "mattos-libtinfow6",
+                "wpasupplicant",
             ],
             provides: &["network-manager", "networkmanager"],
             conflicts: &[],
             replaces: &[],
             essential: false,
             priority: "important",
+        },
+        PackageSpec {
+            name: "libnl-3-200",
+            description: "Netlink core runtime library",
+            source_component: "libnl",
+            depends: &["libc6"],
+            provides: &[], conflicts: &[], replaces: &[], essential: false, priority: "important",
+        },
+        PackageSpec {
+            name: "libnl-genl-3-200",
+            description: "Generic Netlink runtime library",
+            source_component: "libnl",
+            depends: &["libc6", "libnl-3-200"],
+            provides: &[], conflicts: &[], replaces: &[], essential: false, priority: "important",
+        },
+        PackageSpec {
+            name: "wpasupplicant",
+            description: "WPA2/WPA3 and enterprise Wi-Fi supplicant with D-Bus activation",
+            source_component: "wpa-supplicant",
+            depends: &["libc6", "libssl3t64", "mattos-libcrypto3", "libdbus-1-3", "dbus-broker", "libnl-3-200", "libnl-genl-3-200"],
+            provides: &[], conflicts: &[], replaces: &[], essential: false, priority: "important",
+        },
+        PackageSpec {
+            name: "grub-efi-amd64",
+            description: "Source-built GRUB boot manager, EFI modules and standard configuration tools",
+            source_component: "grub",
+            depends: &["libc6", "liblzma5", "zlib1g", "coreutils", "mattos-brush"],
+            provides: &[], conflicts: &[], replaces: &[], essential: false, priority: "important",
         },
         PackageSpec {
             name: "mattos-cozy",

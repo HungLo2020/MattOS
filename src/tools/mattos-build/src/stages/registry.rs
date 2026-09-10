@@ -18,6 +18,7 @@ fn stage_resource_profile(stage: BuildStage) -> scheduler::StageResourceProfile 
             | BuildStage::CosmicNotifications
             | BuildStage::CosmicOsd
             | BuildStage::CosmicBg
+            | BuildStage::CosmicIdle
             | BuildStage::CosmicWorkspaces
             | BuildStage::CosmicFiles
             | BuildStage::CosmicTerm
@@ -196,6 +197,9 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         }
         BuildStage::CosmicBg => {
             vec!["out/build/cosmic-bg/install/usr/bin/cosmic-bg".into()]
+        }
+        BuildStage::CosmicIdle => {
+            vec!["out/build/cosmic-idle/install/usr/bin/cosmic-idle".into()]
         }
         BuildStage::CosmicWorkspaces => {
             vec!["out/build/cosmic-workspaces/install/usr/bin/cosmic-workspaces".into()]
@@ -609,6 +613,7 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
         | BuildStage::CosmicNotifications
         | BuildStage::CosmicOsd
         | BuildStage::CosmicBg
+        | BuildStage::CosmicIdle
         | BuildStage::CosmicWorkspaces
         | BuildStage::CosmicFiles
         | BuildStage::CosmicTerm
@@ -688,6 +693,9 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::Polkit => build_polkit(repo_root),
         BuildStage::Duktape => build_duktape(repo_root),
         BuildStage::NetworkManager => build_networkmanager(repo_root),
+        BuildStage::Libnl => build_libnl(repo_root),
+        BuildStage::WpaSupplicant => build_wpa_supplicant(repo_root),
+        BuildStage::Grub => build_grub(repo_root),
         BuildStage::Apt => packaging::build_apt(repo_root),
         BuildStage::Init => build_init(repo_root),
         BuildStage::Installer => build_installer(repo_root),

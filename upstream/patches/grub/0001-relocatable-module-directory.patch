@@ -1,0 +1,15 @@
+diff --git a/grub-core/osdep/unix/config.c b/grub-core/osdep/unix/config.c
+--- a/grub-core/osdep/unix/config.c
++++ b/grub-core/osdep/unix/config.c
+@@ -52,6 +52,11 @@
+ const char *
+ grub_util_get_pkglibdir (void)
+ {
++  /* Match the existing pkgdatadir relocation contract for source-owned
++     build tools. Unset means the normal installed /usr/lib/grub. */
++  const char *ret = getenv ("pkglibdir");
++  if (ret && ret[0] == '/')
++    return ret;
+   return GRUB_LIBDIR "/" PACKAGE;
+ }
+ 

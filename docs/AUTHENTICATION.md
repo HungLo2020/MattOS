@@ -1,5 +1,36 @@
 # Authentication
 
+## Desktop authorization and installed-system diagnostics
+
+NetworkManager and COSMIC OSD must use the packaged
+`/usr/lib/polkit-1/polkit-agent-helper-1`, owned by root with mode `04755`.
+NetworkManager's Meson option and OSD's Just variable explicitly select this
+path, never a helper discovered on the build host. The `libpam-runtime` package
+owns `/etc/pam.d/polkit-1`, a self-contained `pam_unix` authentication/account
+stack; Polkit depends on that policy and the PAM modules. MattOS does not ship
+Debian's `common-*` PAM includes. Administrator selection remains Polkit policy
+(`sudo` group); no authorization is bypassed.
+
+Brush's output-only descriptor patch preserves the source descriptor when
+spawning external commands with redirections such as `>&2`. This also keeps
+GRUB status output out of generated configuration. Test external commands as
+well as builtins: the latter alone did not reproduce the defect.
+
+Installed GRUB enables ttyS0 only when the live kernel reports a real UART
+type, not a placeholder `PORT_UNKNOWN` node. This retains QEMU serial boot
+verification without creating an endlessly failing getty on UART-less PCs.
+OpenSSH retains its existing opt-in service policy; `ssh.service` is the unit
+name, and absence of an `sshd.service` alias is not a failure. Starting it does
+not enable it for subsequent boots; administrators can deliberately enable
+`ssh.service` when persistent remote access is wanted.
+
+An inherited `DEBUG=release` previously selected Make's debug target (only
+`DEBUG=0` selects release), causing Workspaces to look for localization in a
+build tree. COSMIC Workspaces is now built in release mode with its localization embedded;
+the installed binary must not depend on the build mirror. COSMIC Idle is a
+separately pinned, source-owned stage included in the desktop aggregate because
+the upstream session starts it unconditionally.
+
 MattOS provides a local, PAM-backed authentication stack for the live image. The normal boot path is:
 
 ```text
@@ -86,7 +117,8 @@ The build enforces and validates these image modes. Initramfs assembly forces ar
 | `/root` | `root:root` | `0700` |
 | `/home/mattos` | `mattos:mattos` | `0750` |
 
-Only the four authentication programs that require an effective root identity are setuid. PAM modules and `unix_chkpwd` are not setuid.
+The four login/sudo programs above and Polkit's agent helper require an effective
+root identity and are setuid. PAM modules and `unix_chkpwd` are not setuid.
 
 The authentication binaries and modules use the staged ELF loader plus `libc.so.6`, `libpam.so.0`, `libpam_misc.so.0`, `libcrypt.so.1`, `libbsd.so.0`, `libmd.so.0`, and `libgcc_s.so.1` as required by their `DT_NEEDED` entries.
 

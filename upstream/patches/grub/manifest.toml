@@ -1,0 +1,23 @@
+schema_version = 1
+component = "grub"
+upstream_commit = "d38d6a1a9b79427848976f53d474392cd29c2a71"
+upstream_tree = "ffabf807f84ef718fdba560ccc4769f718984754"
+application = "output-mirror-only"
+
+[[patch]]
+path = "upstream/patches/grub/0001-relocatable-module-directory.patch"
+sha256 = "4ebda2227e84239d98d3e358c098bdaffd62e9334a18431555e4b55407bbaaa0"
+purpose = "Relocate the module root for MattOS-owned grub-mkrescue so both BIOS and EFI modules come from declared stage outputs, never the build host. Mirrors upstream's existing pkgdatadir environment contract."
+documentation = "docs/WIFI_AND_GRUB.md"
+
+[[patch]]
+path = "upstream/patches/grub/0002-mkrescue-source-date-epoch.patch"
+sha256 = "aa5d0e2ee334a2cd710442ef353fe3125e6cac2bc118cc048493209dfa46e249"
+purpose = "Honor SOURCE_DATE_EPOCH for mkrescue boot-search UUIDs, following Debian bug 787795. Fail closed on invalid timestamps instead of silently falling back to wall time; canonical MattOS already sets xorriso file dates."
+documentation = "docs/WIFI_AND_GRUB.md"
+
+[[patch]]
+path = "upstream/patches/grub/0003-without-unifont.patch"
+sha256 = "786994b35d08b7876cceb1a1c632f6303745769485dd8ff6494bb8b86d0d30f0"
+purpose = "Honor --without-unifont without searching host fonts. Retain built-in ASCII glyphs and generate the external boot-label PF2 separately with the upstream converter and a source-owned font."
+documentation = "docs/WIFI_AND_GRUB.md"

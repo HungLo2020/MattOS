@@ -1983,53 +1983,75 @@ fn write_storage_identity(identity: &StorageIdentity, target: &Path) -> Result<(
 }
 
 fn install_boot_files(identity: &StorageIdentity, target: &Path) -> Result<()> {
+    let release = fs::read_to_string("/usr/lib/mattos/installer/kernel-release")?;
+    let release = validate_kernel_release(&release)?;
     for (source, destination) in [
-        ("/usr/lib/mattos/installer/vmlinuz", "boot/vmlinuz"),
+        ("/usr/lib/mattos/installer/vmlinuz", format!("boot/vmlinuz-{release}")),
         (
             "/usr/lib/mattos/installer/installed-initramfs.cpio.xz",
-            "boot/installed-initramfs.cpio.xz",
-        ),
-        (
-            "/usr/lib/mattos/installer/BOOTX64.EFI",
-            "boot/efi/EFI/BOOT/BOOTX64.EFI",
+            format!("boot/initrd.img-{release}"),
         ),
     ] {
         let destination = target.join(destination);
         fs::create_dir_all(destination.parent().expect("boot destination parent"))?;
         fs::copy(source, &destination).with_context(|| format!("install boot asset {source}"))?;
     }
-    let prefix = if identity.root_filesystem == Filesystem::Btrfs {
-        "/@/boot/grub"
-    } else {
-        "/boot/grub"
-    };
-    fs::write(
-        target.join("boot/efi/EFI/BOOT/grub.cfg"),
-        format!(
-            "search --no-floppy --fs-uuid --set=root {}\nset prefix=($root){prefix}\nconfigfile ($root){prefix}/grub.cfg\n",
-            identity.root_uuid,
-        ),
-    )?;
+    // Compatibility links are not additional kernels. Upstream 10_linux
+    // enumerates the versioned files and pairs each with its own initramfs.
+    for (link, value) in [("vmlinuz", format!("vmlinuz-{release}")),
+        ("installed-initramfs.cpio.xz", format!("initrd.img-{release}"))] {
+        std::os::unix::fs::symlink(value, target.join("boot").join(link))?;
+    }
+    fs::create_dir_all(target.join("etc/default"))?;
+    fs::write(target.join("etc/default/grub"), render_installed_grub_defaults(identity, usable_pc_serial_console(Path::new("/sys/class/tty/ttyS0/type"))))?;
     fs::create_dir_all(target.join("boot/grub"))?;
-    fs::write(
-        target.join("boot/grub/grub.cfg"),
-        render_installed_grub_config(identity),
-    )?;
-    Ok(())
+    // grub-probe needs real block nodes and mountinfo for the target, rather
+    // than the live overlay. Track only our temporary nonrecursive mounts.
+    let mut mounts = MountStack::new();
+    for name in ["dev", "sys"] {
+        let destination = target.join(name);
+        fs::create_dir_all(&destination)?;
+        mounts.mount(&["--bind".as_ref(), Path::new("/").join(name).as_os_str(), destination.as_os_str()], &destination)?;
+    }
+    let proc = target.join("proc");
+    fs::create_dir_all(&proc)?;
+    mounts.mount(&["-t".as_ref(), "proc".as_ref(), "proc".as_ref(), proc.as_os_str()], &proc)?;
+    engine::run("chroot", &[target.as_os_str(), "/usr/sbin/grub-install".as_ref(),
+        "--target=x86_64-efi".as_ref(), "--efi-directory=/boot/efi".as_ref(),
+        "--bootloader-id=MattOS".as_ref(), "--removable".as_ref(), "--no-nvram".as_ref()])?;
+    engine::run("chroot", &[target.as_os_str(), "/usr/sbin/update-grub".as_ref()])?;
+    mounts.unmount_all()
 }
 
-fn render_installed_grub_config(identity: &StorageIdentity) -> String {
-    let (boot_prefix, root_flags, filesystem) = match identity.root_filesystem {
+fn validate_kernel_release(release: &str) -> Result<&str> {
+    let release = release.trim();
+    if release.is_empty() || !release.bytes().all(|c| c.is_ascii_alphanumeric() || b".-_+".contains(&c)) {
+        bail!("invalid installer kernel-release asset");
+    }
+    Ok(release)
+}
+
+fn usable_pc_serial_console(uart_type: &Path) -> bool {
+    // serial8250 creates placeholder ttyS nodes even on machines without a
+    // UART. Type 0 is PORT_UNKNOWN, not evidence of an available console.
+    fs::read_to_string(uart_type).ok()
+        .and_then(|value| value.trim().parse::<u32>().ok())
+        .is_some_and(|value| value != 0)
+}
+
+fn render_installed_grub_defaults(identity: &StorageIdentity, serial: bool) -> String {
+    let (root_flags, filesystem) = match identity.root_filesystem {
         Filesystem::Btrfs => (
-            "/@",
             format!(" rootflags=subvol=@,{BTRFS_MOUNT_OPTIONS}"),
             "btrfs",
         ),
-        Filesystem::Ext4 => ("", String::new(), "ext4"),
+        Filesystem::Ext4 => (String::new(), "ext4"),
         Filesystem::Fat32 => unreachable!(),
     };
+    let terminal = if serial { "GRUB_TERMINAL=\"console serial\"\nGRUB_SERIAL_COMMAND=\"serial --speed=115200 --unit=0 --word=8 --parity=no --stop=1\"" } else { "GRUB_TERMINAL=console" };
+    let serial_console = if serial { " console=ttyS0,115200" } else { "" };
     format!(
-        "set timeout=2\nset default=0\nmenuentry 'MattOS' {{\n linux {boot_prefix}/boot/vmlinuz mattos.root_uuid={} mattos.root_fstype={filesystem} rootfstype={filesystem}{root_flags} rw console=tty0 console=ttyS0,115200\n initrd {boot_prefix}/boot/installed-initramfs.cpio.xz\n}}\n",
+        "# MattOS installed-system policy; menu generation belongs to grub-mkconfig.\nGRUB_DEFAULT=0\nGRUB_TIMEOUT_STYLE=menu\nGRUB_TIMEOUT=5\nGRUB_DISTRIBUTOR=MattOS\nGRUB_DISABLE_OS_PROBER=true\n{terminal}\nGRUB_CMDLINE_LINUX=\"mattos.root_uuid={} mattos.root_fstype={filesystem} rootfstype={filesystem}{root_flags} rw console=tty0{serial_console}\"\n",
         identity.root_uuid
     )
 }
@@ -2348,18 +2370,41 @@ mod tests {
             home_filesystem: None,
             root_filesystem: Filesystem::Btrfs,
         };
-        let config = render_installed_grub_config(&identity);
+        let config = render_installed_grub_defaults(&identity, false);
+        assert!(!config.contains("ttyS0"));
+        assert!(!config.contains("GRUB_SERIAL_COMMAND"));
+        assert!(render_installed_grub_defaults(&identity, true).contains("console=ttyS0,115200"));
         assert!(config.contains("mattos.root_uuid=test-uuid"));
-        assert!(config.contains("linux /@/boot/vmlinuz"));
-        assert!(config.contains("initrd /@/boot/installed-initramfs.cpio.xz"));
+        assert!(config.contains("rootflags=subvol=@,"));
+        assert!(config.contains("GRUB_TIMEOUT_STYLE=menu"));
+        assert!(config.contains("GRUB_DISTRIBUTOR=MattOS"));
         assert!(!config.contains("root=UUID="));
     }
 
     #[test]
-    fn installed_efi_config_addresses_the_btrfs_root_subvolume_from_the_top_level() {
+    fn installed_grub_uses_upstream_probe_and_menu_generation() {
         let source = include_str!("mod.rs");
-        assert!(source.contains("set prefix=($root)/@/boot/grub"));
-        assert!(source.contains("configfile ($root)/@/boot/grub/grub.cfg"));
+        assert!(source.contains("/usr/sbin/grub-install"));
+        assert!(source.contains("/usr/sbin/update-grub"));
+        assert!(source.contains("--removable"));
+        assert!(source.contains("--no-nvram"));
+        assert_eq!(validate_kernel_release("7.2.0-rc5-mattos\n").unwrap(), "7.2.0-rc5-mattos");
+        for invalid in ["", "../x", "kernel;reboot", "a b", "a\nb"] {
+            assert!(validate_kernel_release(invalid).is_err());
+        }
+    }
+
+    #[test]
+    fn serial_console_requires_a_real_uart_not_a_placeholder_tty() {
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("type");
+        assert!(!usable_pc_serial_console(&path));
+        for value in ["0\n", "", "unknown", "-1"] {
+            fs::write(&path, value).unwrap();
+            assert!(!usable_pc_serial_console(&path), "{value:?}");
+        }
+        fs::write(&path, "4\n").unwrap();
+        assert!(usable_pc_serial_console(&path));
     }
 
     #[test]
@@ -2378,9 +2423,9 @@ mod tests {
         let fstab = fs::read_to_string(directory.path().join("etc/fstab")).unwrap();
         assert!(fstab.contains("PARTUUID=root-part / ext4 defaults"));
         assert!(!fstab.contains("subvol="));
-        let grub = render_installed_grub_config(&identity);
+        let grub = render_installed_grub_defaults(&identity, false);
         assert!(grub.contains("mattos.root_fstype=ext4"));
-        assert!(grub.contains("linux /boot/vmlinuz"));
+        assert!(!grub.contains("rootflags=subvol="));
         assert!(!grub.contains("/@/"));
     }
 

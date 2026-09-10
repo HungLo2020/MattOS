@@ -15,3 +15,9 @@ path = "upstream/patches/brush/0002-select-sh-mode-from-invocation-name.patch"
 sha256 = "a5049e836e578d76d424b075246aafb18a3d4f2f2f08f3447d7ccb8484811a59"
 purpose = "Select POSIX-compatible mode for the sh entry point while retaining Bash-compatible behavior for bash and brush."
 documentation = "docs/USERLAND_COMMANDS.md"
+
+[[patch]]
+path = "upstream/patches/brush/0003-preserve-standard-descriptor-redirections.patch"
+sha256 = "e2c4e6b8a855f5f7a4d2102f3336fbadaf50e2588c6b5af364a882dd26747cf1"
+purpose = "Duplicate the source standard descriptor when spawning children; inherit() loses cross-descriptor redirections and pollutes generated GRUB configuration."
+documentation = "docs/AUTHENTICATION.md"

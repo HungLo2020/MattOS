@@ -326,7 +326,7 @@ fn build_cosmic_just_component(
         repo_root,
         &mirror,
         path_str(&just)?,
-        &["build-release", "--locked"],
+        &cosmic_just_build_arguments(component),
         env,
     )?;
     let rootdir = format!("rootdir={}", install.display());
@@ -344,6 +344,41 @@ fn build_cosmic_just_component(
         vec![rootdir.as_str(), "prefix=/usr", "install"]
     };
     run_cmd_with_env_overrides(&mirror, path_str(&just)?, &install_args, env)
+}
+
+fn cosmic_just_build_arguments(component: &str) -> Vec<&'static str> {
+    if component == "cosmic-osd" {
+        // The justfile sets the Rust compile-time helper path explicitly, so
+        // merely exporting POLKIT_AGENT_HELPER_1 in our environment cannot win.
+        vec!["--set", "polkit-agent-helper-1", "/usr/lib/polkit-1/polkit-agent-helper-1", "build-release", "--locked"]
+    } else {
+        vec!["build-release", "--locked"]
+    }
+}
+
+#[cfg(test)]
+#[test]
+fn osd_build_uses_the_packaged_polkit_helper() {
+    assert_eq!(cosmic_just_build_arguments("cosmic-osd"), vec![
+        "--set", "polkit-agent-helper-1", "/usr/lib/polkit-1/polkit-agent-helper-1",
+        "build-release", "--locked",
+    ]);
+    assert_eq!(cosmic_just_build_arguments("cosmic-panel"), vec!["build-release", "--locked"]);
+}
+
+#[cfg(test)]
+#[test]
+fn cosmic_make_release_is_independent_of_inherited_debug_variables() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    for component in ["cosmic-workspaces", "cosmic-settings-daemon"] {
+        let output = std::process::Command::new("make")
+            .current_dir(root.join("desktop/cosmic").join(component))
+            .env("DEBUG", "release").env("ARGS", "--verbose")
+            .args(["-n", "DEBUG=0", "TARGET=release", "ARGS=--release --locked"])
+            .output().unwrap();
+        assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+        assert!(String::from_utf8_lossy(&output.stdout).contains("cargo build --release --locked --bin"));
+    }
 }
 
 fn build_cosmic_desktop_component(repo_root: &Path, stage: BuildStage) -> Result<()> {
@@ -364,6 +399,7 @@ fn build_cosmic_desktop_component(repo_root: &Path, stage: BuildStage) -> Result
         BuildStage::CosmicNotifications => Some("cosmic-notifications"),
         BuildStage::CosmicOsd => Some("cosmic-osd"),
         BuildStage::CosmicBg => Some("cosmic-bg"),
+        BuildStage::CosmicIdle => Some("cosmic-idle"),
         BuildStage::CosmicFiles => Some("cosmic-files"),
         BuildStage::CosmicTerm => Some("cosmic-term"),
         BuildStage::CosmicTweaks => Some("cosmic-tweaks"),
@@ -389,22 +425,16 @@ fn build_cosmic_desktop_component(repo_root: &Path, stage: BuildStage) -> Result
             )?;
             apply_component_patches(repo_root, component, &mirror)?;
             isolate_cargo_build_mirror(&mirror)?;
-            run_locked_cosmic_command(repo_root, &mirror, "make", &["-j4"], &env)?;
+            // DEBUG/ARGS inherited from Cargo's build environment must not
+            // select a dev binary whose rust-embed assets need the source tree.
+            run_locked_cosmic_command(repo_root, &mirror, "make", &["-j4", "DEBUG=0", "TARGET=release", "ARGS=--release --locked"], &env)?;
             let destdir = format!("DESTDIR={}", install.display());
             run_cmd_with_env_overrides(
                 &mirror,
                 "make",
-                &[destdir.as_str(), "prefix=/usr", "install"],
+                &[destdir.as_str(), "prefix=/usr", "DEBUG=0", "TARGET=release", "install"],
                 &env,
             )?;
-            if component == "cosmic-workspaces" {
-                // rust-embed materializes CARGO_MANIFEST_DIR in the generated
-                // asset metadata. It is output data, not authoritative source,
-                // but the absolute mirror path would leak the build host into
-                // the shipped ELF. Keep the generated asset layout unchanged
-                // while replacing only that deterministic path prefix.
-                sanitize_embedded_output_path(&install.join("usr/bin/cosmic-workspaces"), &mirror)?;
-            }
         }
         BuildStage::CosmicUtilities => {
             for component in [

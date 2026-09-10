@@ -1,0 +1,13 @@
+[Unit]
+Description=WPA supplicant (NetworkManager Wi-Fi backend)
+After=dbus.service
+
+[Service]
+Type=dbus
+BusName=fi.w1.wpa_supplicant1
+ExecStart=/usr/sbin/wpa_supplicant -u -s
+Restart=on-failure
+
+[Install]
+Alias=dbus-fi.w1.wpa_supplicant1.service
+WantedBy=multi-user.target

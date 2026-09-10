@@ -1075,6 +1075,9 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "cosmic-initial-setup" => &["cosmic-initial-setup"],
             "polkit" => &["polkit"],
             "networkmanager" => &["networkmanager"],
+            "libnl" => &["libnl"],
+            "wpa-supplicant" => &["wpa-supplicant"],
+            "grub" => &["grub"],
             "cozy" => &["cozy"],
             "cpython" => &["cpython"],
             "llvm" => &["llvm"],
@@ -1282,6 +1285,9 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
             "src/tools/mattos-build/src/packaging.rs",
         ],
         "networkmanager" => &["src/system/network/NetworkManager"],
+        "libnl" => &["src/system/network/libnl"],
+        "wpa-supplicant" => &["src/system/network/hostap", "src/system/network/wpa-supplicant"],
+        "grub" => &["src/boot/grub/upstream", "src/build-support/grub-gnulib"],
         "cozy" => &["src/userland/cozy"],
         "cpython" => &["src/development/python/cpython"],
         "llvm" => &["src/toolchain/llvm-project"],
@@ -1295,6 +1301,7 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
 
 fn package_configuration_roots(package: &str) -> &'static [&'static str] {
     match package {
+        "grub-efi-amd64" => &["src/boot/grub/config"],
         // APT installs these policy files into the runtime package. Keep the
         // package cache identity tied to their bytes so live/rootfs overlays
         // cannot reuse an artifact containing an older repository policy.
@@ -1505,6 +1512,9 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "libduktape207" => component_snapshot_version(repo_root, "duktape")?,
         "polkit" => component_snapshot_version(repo_root, "polkit")?,
         "network-manager" => component_snapshot_version(repo_root, "networkmanager")?,
+        "libnl-3-200" | "libnl-genl-3-200" => component_snapshot_version(repo_root, "libnl")?,
+        "wpasupplicant" => component_snapshot_version(repo_root, "wpa-supplicant")?,
+        "grub-efi-amd64" => component_snapshot_version(repo_root, "grub")?,
         "mattos-cozy" => cargo_package_version(&repo_root.join("src/userland/cozy/Cargo.toml"))?,
         "cosmic-desktop" => component_snapshot_version(repo_root, "cosmic-session")?,
         "libdbus-1-3" => component_snapshot_version(repo_root, "dbus")?,
@@ -1873,7 +1883,7 @@ fn write_provenance(
         | "libgpg-error" | "libgcrypt" | "libassuan" | "libksba" | "npth"
         | "gnupg" | "less" | "git" | "openssh" | "libffi" | "wayland"
         | "xkbcommon" | "libglvnd" | "xkeyboard-config" | "cpython" | "llvm"
-        | "rust") => {
+        | "rust" | "libnl" | "wpa-supplicant" | "grub") => {
             let state = read_sync_state(repo_root, component)?
                 .ok_or_else(|| anyhow!("upstream state missing for {component}"))?;
             (
@@ -3886,7 +3896,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 169);
+        assert_eq!(PACKAGE_NAMES.len(), 173);
     }
 
     #[test]
@@ -3934,7 +3944,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 169);
+        assert_eq!(PACKAGE_NAMES.len(), 173);
         assert_eq!(
             UTIL_LINUX_BASE_PATHS,
             &[
@@ -4015,7 +4025,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 169);
+        assert_eq!(PACKAGE_NAMES.len(), 173);
         let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
         for dependency in [
             "libffi8",
@@ -4935,6 +4945,23 @@ mod tests {
             sha256_file(&destination).unwrap(),
             sha256_file(&destination).unwrap()
         );
+    }
+
+    #[test]
+    fn polkit_authentication_has_a_complete_self_contained_pam_policy() {
+        let policy = include_str!("../../../system/auth/config/pam.d/polkit-1");
+        assert!(policy.contains("auth required pam_unix.so"));
+        assert!(policy.contains("account required pam_unix.so"));
+        assert!(!policy.contains("@include"));
+        assert!(!policy.contains("pam_permit"));
+        let packages = package_specs();
+        let polkit = packages.iter().find(|p| p.name == "polkit").unwrap();
+        for dependency in ["libpam0g", "libpam-modules", "libpam-runtime"] {
+            assert!(polkit.depends.contains(&dependency));
+        }
+        assert!(package_configuration_roots("libpam-runtime").contains(&"src/system/auth/config/pam.d"));
+        let network_recipe = include_str!("stages/system_services.rs");
+        assert!(network_recipe.contains("-Dpolkit_agent_helper_1=/usr/lib/polkit-1/polkit-agent-helper-1"));
     }
 
     #[test]

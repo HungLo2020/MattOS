@@ -59,6 +59,7 @@ pub(crate) enum BuildStage {
     CosmicNotifications,
     CosmicOsd,
     CosmicBg,
+    CosmicIdle,
     CosmicWorkspaces,
     CosmicFiles,
     CosmicEdit,
@@ -144,6 +145,9 @@ pub(crate) enum BuildStage {
     Polkit,
     Duktape,
     NetworkManager,
+    Libnl,
+    WpaSupplicant,
+    Grub,
     Apt,
     Init,
     Installer,
@@ -211,6 +215,7 @@ pub(crate) fn stage_id(stage: BuildStage) -> &'static str {
         BuildStage::CosmicNotifications => "cosmic-notifications",
         BuildStage::CosmicOsd => "cosmic-osd",
         BuildStage::CosmicBg => "cosmic-bg",
+        BuildStage::CosmicIdle => "cosmic-idle",
         BuildStage::CosmicWorkspaces => "cosmic-workspaces",
         BuildStage::CosmicFiles => "cosmic-files",
         BuildStage::CosmicEdit => "cosmic-edit",
@@ -296,6 +301,9 @@ pub(crate) fn stage_id(stage: BuildStage) -> &'static str {
         BuildStage::Polkit => "polkit",
         BuildStage::Duktape => "duktape",
         BuildStage::NetworkManager => "networkmanager",
+        BuildStage::Libnl => "libnl",
+        BuildStage::WpaSupplicant => "wpa-supplicant",
+        BuildStage::Grub => "grub",
         BuildStage::Apt => "apt",
         BuildStage::Init => "init",
         BuildStage::Installer => "installer",
@@ -487,6 +495,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         // pkg-config.  The target-owned development metadata is therefore a
         // real compile dependency alongside dav1d.
         BuildStage::CosmicBg => &["formal-sysroot", "dav1d", "xkbcommon"],
+        BuildStage::CosmicIdle => &["formal-sysroot"],
         // cosmic-workspaces declares libudev-dev and libinput-dev.  These
         // are build-time native inputs, not runtime desktop membership.
         BuildStage::CosmicWorkspaces => {
@@ -754,6 +763,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "cosmic-notifications",
             "cosmic-osd",
             "cosmic-bg",
+            "cosmic-idle",
             "cosmic-workspaces",
             "cosmic-files",
             "cosmic-term",
@@ -788,6 +798,9 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "libffi",
         ],
         BuildStage::Duktape => &["formal-sysroot"],
+        BuildStage::Libnl => &["formal-sysroot"],
+        BuildStage::WpaSupplicant => &["formal-sysroot", "openssl", "libnl", "dbus"],
+        BuildStage::Grub => &["formal-sysroot", "zlib", "xz", "freetype"],
         BuildStage::NetworkManager => &[
             "formal-sysroot",
             "glib",
@@ -890,6 +903,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "systemd",
         ],
         BuildStage::Installer => &[
+            "grub",
             "formal-sysroot",
             "util-linux",
             "zlib",
@@ -914,7 +928,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         ],
         BuildStage::LiveRoot => &["rootfs"],
         BuildStage::Initramfs => &["formal-sysroot", "linux"],
-        BuildStage::Iso => &["linux", "live-root", "initramfs"],
+        BuildStage::Iso => &["linux", "live-root", "initramfs", "grub"],
         _ => &["formal-sysroot"],
     }
 }
@@ -976,6 +990,7 @@ pub(crate) fn all_build_stages() -> &'static [BuildStage] {
         BuildStage::CosmicNotifications,
         BuildStage::CosmicOsd,
         BuildStage::CosmicBg,
+        BuildStage::CosmicIdle,
         BuildStage::CosmicWorkspaces,
         BuildStage::CosmicFiles,
         BuildStage::CosmicEdit,
@@ -1061,6 +1076,9 @@ pub(crate) fn all_build_stages() -> &'static [BuildStage] {
         BuildStage::Polkit,
         BuildStage::Duktape,
         BuildStage::NetworkManager,
+        BuildStage::Libnl,
+        BuildStage::WpaSupplicant,
+        BuildStage::Grub,
         BuildStage::Apt,
         BuildStage::Init,
         BuildStage::Installer,
@@ -1631,23 +1649,23 @@ mod tests {
             // consume glibc outputs. The explicit Flatpak proxy and isolated
             // Store stage and the six independent utility consumers extend
             // this closure from 141 to 149.
-            ("glibc source", &["glibc"], 149, &["linux"]),
+            ("glibc source", &["glibc"], 153, &["linux"]),
             ("Linux x86_64 config", &["linux"], 16, &["glibc", "brush"]),
             (
                 "Linux x86_64 UAPI source",
                 &["linux", "glibc", "linux-headers"],
-                150,
+                154,
                 &[],
             ),
             (
                 "GCC source",
                 &["gcc-runtime", "gcc-compiler"],
-                147,
+                151,
                 &["linux", "glibc", "linux-headers"],
             ),
             // Initial Setup now has its real systemd/libinput build edges, so
             // it is part of the legitimate native-library cascade.
-            ("zlib shared library", &["zlib"], 76, &["brush", "linux"]),
+            ("zlib shared library", &["zlib"], 78, &["brush", "linux"]),
             ("package metadata", &["packages"], 5, &["brush", "zlib"]),
             (
                 "repository policy",

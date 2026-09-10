@@ -58,6 +58,8 @@ fn build_networkmanager(repo_root: &Path) -> Result<()> {
             "-Ddocs=false",
             "-Dman=false",
             "-Dpolkit=true",
+            // Never let Meson discover the build host's libexec layout.
+            "-Dpolkit_agent_helper_1=/usr/lib/polkit-1/polkit-agent-helper-1",
             "-Dnmcli=true",
             "-Dnmtui=false",
             "-Dwifi=true",

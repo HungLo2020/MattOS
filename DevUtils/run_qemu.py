@@ -3,6 +3,7 @@ import argparse
 import base64
 import json
 import os
+import shlex
 import shutil
 import signal
 import subprocess
@@ -709,7 +710,19 @@ def _launch_one(
         cleanup_test_control_paths(control_paths)
 
 
+# Credentials belong only to the disposable --install fixture, not normal
+# installer policy. Authenticate its menu inspection without relaxing GRUB's
+# upstream root-only grub.cfg permissions or installed sudo policy.
+TEST_INSTALL_PASSWORD = "mattos"
 TEST_INSTALL_PASSWORD_HASH = "$6$mattos$gNJjrFx.MYr9CTiHVOBlhO.TEvrlR9qInoPDSU2Gdy8X8M7knkYWQnK9XOJH2alPkUhn2eswpESNckixqbhpD/"
+
+
+def installed_grub_menu_probe() -> str:
+    return (
+        f"printf '%s\\n' {shlex.quote(TEST_INSTALL_PASSWORD)} | sudo -S grep -q "
+        "\"menuentry 'MattOS GNU/Linux'\" /boot/grub/grub.cfg && "
+        "sudo -n grep -q 'Advanced options for MattOS' /boot/grub/grub.cfg"
+    )
 
 
 def _test_install_plan() -> str:
@@ -808,7 +821,7 @@ def _verify_installed_disk_boot(
         ("kernel", "test -f /boot/vmlinuz"),
         ("initramfs", "test -f /boot/installed-initramfs.cpio.xz"),
         ("grub-config", "test -f /boot/grub/grub.cfg"),
-        ("grub-menu", "grep -q \"menuentry 'MattOS'\" /boot/grub/grub.cfg"),
+        ("grub-menu", installed_grub_menu_probe()),
         ("root-mount", "findmnt -no SOURCE /"),
         ("efi-mount", "findmnt -no SOURCE /boot/efi"),
         ("gpt", "lsblk -no PTTYPE /dev/vda"),

@@ -742,6 +742,10 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             set_mode(staging.join("usr/lib/polkit-1/polkit-agent-helper-1"), 0o4755)
         })?,
         "network-manager" => stage_network_manager(repo_root, &staging)?,
+        "libnl-3-200" => stage_imported_soname_library(repo_root, &staging, "libnl", "libnl-3.so.200", "src/system/network/libnl/COPYING", "libnl-3-200")?,
+        "libnl-genl-3-200" => stage_imported_soname_library(repo_root, &staging, "libnl", "libnl-genl-3.so.200", "src/system/network/libnl/COPYING", "libnl-genl-3-200")?,
+        "wpasupplicant" => stage_wpa_supplicant(repo_root, &staging)?,
+        "grub-efi-amd64" => stage_grub_package(repo_root, &staging)?,
         "mattos-cozy" => stage_cozy(repo_root, &staging)?,
         "libdbus-1-3" => {
             stage_imported_soname_library(
@@ -1035,6 +1039,7 @@ fn stage_mattos_installer(repo_root: &Path, staging: &Path) -> Result<()> {
             "installed-initramfs.cpio.xz",
         ),
         (installer.join("BOOTX64.EFI"), "BOOTX64.EFI"),
+        (repo_root.join("out/build/linux/kernel-release"), "kernel-release"),
     ] {
         copy_preserving(&source, &assets.join(name))?;
     }
@@ -2531,6 +2536,112 @@ fn stage_cosmic_initial_setup(repo_root: &Path, staging: &Path) -> Result<()> {
         }
     }
     Ok(())
+}
+
+fn stage_grub_package(repo_root: &Path, staging: &Path) -> Result<()> {
+    for directory in ["usr", "etc"] {
+        copy_tree_preserving(&component_install(repo_root, "grub").join(directory), &staging.join(directory))?;
+    }
+    // These belong respectively to a global index and hybrid media, not the
+    // installed x86_64 UEFI package. Do not exempt BIOS objects from ELF audit.
+    remove_path_if_exists(&staging.join("usr/share/info/dir"))?;
+    remove_path_if_exists(&staging.join("usr/lib/grub/i386-pc"))?;
+    copy_preserving(&repo_root.join("src/boot/grub/upstream/COPYING"),
+        &staging.join("usr/share/doc/grub-efi-amd64/copyright"))?;
+    let policy = repo_root.join("src/boot/grub/config");
+    stage_executable(&policy.join("update-grub"), &staging.join("usr/sbin/update-grub"), 0o755)?;
+    let mut conffiles = Vec::new();
+    for entry in fs::read_dir(staging.join("etc/grub.d"))? {
+        let path = entry?.path();
+        if path.is_file() && path.file_name().is_some_and(|name| name != "README") {
+            conffiles.push(format!("/{}", path.strip_prefix(staging)?.display()));
+        }
+    }
+    for hook in ["postinst.d", "postrm.d"] {
+        let relative = format!("etc/kernel/{hook}/zz-update-grub");
+        stage_executable(&policy.join("kernel-hook"), &staging.join(&relative), 0o755)?;
+        conffiles.push(format!("/{relative}"));
+    }
+    // Preserve administrator edits (especially 40_custom) across upgrades.
+    // /etc/default/grub and generated /boot/grub/grub.cfg are installer/user
+    // state and intentionally are not shipped or overwritten by this package.
+    conffiles.sort();
+    fs::write(staging.join("DEBIAN/conffiles"), format!("{}\n", conffiles.join("\n")))?;
+    Ok(())
+}
+
+fn stage_wpa_supplicant(repo_root: &Path, staging: &Path) -> Result<()> {
+    copy_tree_preserving(&component_install(repo_root, "wpa-supplicant").join("usr"), &staging.join("usr"))?;
+    // Upstream COPYING refers to README for the current BSD license terms.
+    copy_preserving(&repo_root.join("src/system/network/hostap/wpa_supplicant/README"),
+        &staging.join("usr/share/doc/wpasupplicant/copyright"))?;
+    for relative in WPA_RUNTIME_FILES {
+        if !staging.join(relative).is_file() {
+            bail!("wpasupplicant package is missing /{relative}");
+        }
+    }
+    Ok(())
+}
+
+const WPA_RUNTIME_FILES: &[&str] = &[
+    "usr/sbin/wpa_supplicant", "usr/sbin/wpa_cli", "usr/sbin/wpa_passphrase",
+    "usr/share/dbus-1/system-services/fi.w1.wpa_supplicant1.service",
+    "usr/share/dbus-1/system.d/wpa_supplicant.conf",
+    "usr/lib/systemd/system/wpa_supplicant.service",
+];
+
+#[cfg(test)]
+mod wifi_payload_tests {
+    use super::*;
+    #[test]
+    fn grub_preserves_custom_configuration_and_keeps_bios_objects_out_of_efi_package() {
+        let fixture = tempfile::tempdir().unwrap();
+        let install = fixture.path().join("out/build/grub/install");
+        for relative in ["usr/lib/grub/i386-pc/linux.mod", "usr/lib/grub/x86_64-efi/linux.mod",
+            "usr/share/info/dir", "etc/grub.d/00_header", "etc/grub.d/40_custom", "etc/grub.d/README"] {
+            let path = install.join(relative);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(path, relative).unwrap();
+        }
+        for relative in ["src/boot/grub/upstream/COPYING", "src/boot/grub/config/update-grub", "src/boot/grub/config/kernel-hook"] {
+            let path = fixture.path().join(relative);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(path, "fixture").unwrap();
+        }
+        let staging = fixture.path().join("payload");
+        fs::create_dir_all(staging.join("DEBIAN")).unwrap();
+        stage_grub_package(fixture.path(), &staging).unwrap();
+        assert!(!staging.join("usr/lib/grub/i386-pc").exists());
+        assert!(!staging.join("usr/share/info/dir").exists());
+        assert!(staging.join("usr/lib/grub/x86_64-efi/linux.mod").is_file());
+        let files = fs::read_to_string(staging.join("DEBIAN/conffiles")).unwrap();
+        assert_eq!(files, "/etc/grub.d/00_header\n/etc/grub.d/40_custom\n/etc/kernel/postinst.d/zz-update-grub\n/etc/kernel/postrm.d/zz-update-grub\n");
+        assert!(!staging.join("etc/default/grub").exists());
+        assert!(!staging.join("boot/grub/grub.cfg").exists());
+        assert!(staging.join("usr/share/doc/grub-efi-amd64/copyright").is_file());
+    }
+    #[test]
+    fn stages_the_complete_directory_tree_and_rejects_missing_activation_files() {
+        let fixture = tempfile::tempdir().unwrap();
+        let install = fixture.path().join("out/build/wpa-supplicant/install");
+        let license = fixture.path().join("src/system/network/hostap/wpa_supplicant/README");
+        fs::create_dir_all(license.parent().unwrap()).unwrap();
+        fs::write(&license, "upstream license").unwrap();
+        for relative in WPA_RUNTIME_FILES {
+            let path = install.join(relative);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(&path, relative).unwrap();
+        }
+        let staging = fixture.path().join("payload");
+        stage_wpa_supplicant(fixture.path(), &staging).unwrap();
+        assert_eq!(fs::read_to_string(staging.join("usr/share/doc/wpasupplicant/copyright")).unwrap(), "upstream license");
+        for relative in WPA_RUNTIME_FILES {
+            assert_eq!(fs::read_to_string(staging.join(relative)).unwrap(), *relative);
+        }
+        fs::remove_file(install.join(WPA_RUNTIME_FILES[3])).unwrap();
+        let fresh = fixture.path().join("missing-activation");
+        assert!(stage_wpa_supplicant(fixture.path(), &fresh).is_err());
+    }
 }
 
 fn stage_network_manager(repo_root: &Path, staging: &Path) -> Result<()> {

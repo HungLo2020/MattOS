@@ -29,6 +29,16 @@ from run_qemu import (
 
 
 class QemuNetworkArgumentsTests(unittest.TestCase):
+    def test_generated_grub_menu_is_inspected_with_fixture_authorization(self) -> None:
+        command = run_qemu.installed_grub_menu_probe()
+        self.assertIn("sudo -S grep -q", command)
+        self.assertIn("sudo -n grep -q", command)
+        self.assertIn("menuentry 'MattOS GNU/Linux'", command)
+        self.assertIn("Advanced options for MattOS", command)
+        self.assertIn(run_qemu.TEST_INSTALL_PASSWORD, command)
+        self.assertNotIn("chmod", command)
+        self.assertNotIn("NOPASSWD", command)
+
     def test_kvm_is_used_when_accessible(self) -> None:
         with mock.patch("run_qemu.Path.exists", return_value=True), mock.patch(
             "run_qemu.os.access", return_value=True

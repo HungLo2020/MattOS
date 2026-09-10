@@ -94,6 +94,7 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::CosmicNotifications => &["src/desktop/cosmic/cosmic-notifications"],
         BuildStage::CosmicOsd => &["src/desktop/cosmic/cosmic-osd"],
         BuildStage::CosmicBg => &["src/desktop/cosmic/cosmic-bg"],
+        BuildStage::CosmicIdle => &["src/desktop/cosmic/cosmic-idle"],
         BuildStage::CosmicWorkspaces => &["src/desktop/cosmic/cosmic-workspaces"],
         BuildStage::CosmicFiles => &[
             "src/desktop/cosmic/cosmic-files",
@@ -117,6 +118,9 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "src/system/network/NetworkManager",
             "src/tools/mattos-build/src/stages/system_services.rs",
         ],
+        BuildStage::Libnl => &["src/system/network/libnl", "src/tools/mattos-build/src/stages/wifi.rs"],
+        BuildStage::WpaSupplicant => &["src/system/network/hostap", "src/system/network/wpa-supplicant", "src/tools/mattos-build/src/stages/wifi.rs"],
+        BuildStage::Grub => &["src/boot/grub/upstream", "src/build-support/grub-gnulib", "src/build-support/autoconf-archive", "src/desktop/fonts/open-sans/fonts/ttf/OpenSans-Regular.ttf", "src/desktop/fonts/open-sans/OFL.txt", "upstream/patches/grub", "src/tools/mattos-build/src/stages/grub.rs"],
         BuildStage::Cozy => &[
             "src/userland/cozy",
             "src/tools/mattos-build/src/stages/desktop_support.rs",
@@ -408,6 +412,7 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             | BuildStage::CosmicNotifications
             | BuildStage::CosmicOsd
             | BuildStage::CosmicBg
+            | BuildStage::CosmicIdle
             | BuildStage::CosmicWorkspaces
             | BuildStage::CosmicFiles
             | BuildStage::CosmicTerm
@@ -498,6 +503,7 @@ fn cosmic_stage_uses_owned_libcosmic(stage: BuildStage) -> bool {
             | BuildStage::CosmicNotifications
             | BuildStage::CosmicOsd
             | BuildStage::CosmicBg
+            | BuildStage::CosmicIdle
             | BuildStage::CosmicWorkspaces
             | BuildStage::CosmicFiles
             | BuildStage::CosmicTerm
@@ -586,6 +592,7 @@ pub(crate) fn ownership_contract_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::CosmicNotifications => &["cosmic-notifications"],
         BuildStage::CosmicOsd => &["cosmic-osd"],
         BuildStage::CosmicBg => &["cosmic-bg"],
+        BuildStage::CosmicIdle => &["cosmic-idle"],
         BuildStage::CosmicWorkspaces => &["cosmic-workspaces"],
         BuildStage::CosmicFiles => &["cosmic-files"],
         BuildStage::CosmicEdit => &["cosmic-edit"],
@@ -676,6 +683,7 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
         | BuildStage::CosmicNotifications
         | BuildStage::CosmicOsd
         | BuildStage::CosmicBg
+        | BuildStage::CosmicIdle
         | BuildStage::CosmicWorkspaces
         | BuildStage::CosmicFiles
         | BuildStage::CosmicTerm
@@ -702,12 +710,14 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
             "ld",
             "autoreconf",
             "make",
-            "grub-mkimage",
             "cpio",
             "xz",
             "modinfo",
         ],
-        BuildStage::Iso => &["grub-mkrescue", "xorriso"],
+        BuildStage::Iso => &["xorriso"],
+        BuildStage::Libnl => &["autoreconf", "gcc", "ld", "make", "pkg-config", "flex", "bison"],
+        BuildStage::WpaSupplicant => &["gcc", "ld", "make", "pkg-config"],
+        BuildStage::Grub => &["autoreconf", "automake", "gettextize", "gcc", "ld", "make", "pkg-config", "flex", "bison", "python3", "patch"],
         stage if is_rust_stage(stage) => &["cargo", "rustc", "gcc", "ld"],
         _ => &["gcc", "g++", "as", "ld", "make"],
     };
@@ -1412,6 +1422,7 @@ mod tests {
             BuildStage::CosmicNotifications,
             BuildStage::CosmicOsd,
             BuildStage::CosmicBg,
+            BuildStage::CosmicIdle,
             BuildStage::CosmicWorkspaces,
             BuildStage::CosmicFiles,
             BuildStage::CosmicTerm,

@@ -23,12 +23,12 @@ sync = "copy"
 [[component]]
 name = "brush"
 repo = "https://github.com/reubeno/brush.git"
-branch = "master"
+branch = "main"
 revision = "71afef7ce79ad2fd94833fa4f93fa5486c86c56b"
 path = "src/userland/brush"
 sync = "copy"
 patch_manifest = "upstream/patches/brush/manifest.toml"
-patch_manifest_sha256 = "4ac8fb49466401acaac6b6bb9c16bc49c24e951ed5c597d5efa80fbc07f02883"
+patch_manifest_sha256 = "b13f7bf2b9789592e25460381a4c6b41a9a55312ac2b92ff63866f6e210c660b"
 
 [[component]]
 name = "cozy"
@@ -167,6 +167,48 @@ path = "src/desktop/cosmic/cosmic-initial-setup"
 sync = "copy"
 lfs_policy = "upstream/policies/cosmic-initial-setup-lfs.toml"
 lfs_policy_sha256 = "c3bd66a6537ce37e87bfa766a4abbbd7327f1fb6029a9b17bd05d4f10f04eacf"
+
+[[component]]
+name = "wpa-supplicant"
+repo = "https://git.w1.fi/hostap.git"
+branch = "hostap_2_12"
+revision = "831364bf02710ad09c2f27d3efa92abeeb5634c0"
+path = "src/system/network/hostap"
+sync = "copy"
+
+[[component]]
+name = "libnl"
+repo = "https://github.com/thom311/libnl.git"
+branch = "libnl3_12_0"
+revision = "43878680c994989f16637dc47be19bb8dc154985"
+path = "src/system/network/libnl"
+sync = "copy"
+
+[[component]]
+name = "grub"
+repo = "https://gitlab.freedesktop.org/gnu-grub/grub.git"
+branch = "grub-2.14"
+revision = "d38d6a1a9b79427848976f53d474392cd29c2a71"
+path = "src/boot/grub/upstream"
+sync = "copy"
+patch_manifest = "upstream/patches/grub/manifest.toml"
+patch_manifest_sha256 = "39dd66d1bd690957162a8fb5c632c0eb642d7df4f1d57f85fb36086a6e65bc9e"
+
+[[component]]
+name = "grub-gnulib"
+repo = "https://git.savannah.gnu.org/git/gnulib.git"
+branch = "master"
+revision = "9f48fb992a3d7e96610c4ce8be969cff2d61a01b"
+path = "src/build-support/grub-gnulib"
+sync = "copy"
+
+[[component]]
+name = "autoconf-archive"
+repo = "https://git.savannah.gnu.org/git/autoconf-archive.git"
+branch = "v2023.02.20"
+revision = "4cd9fa38f0f6cd6998a8d25d25824a0d59ee4fea"
+path = "src/build-support/autoconf-archive"
+sync = "copy"
 
 [[component]]
 name = "networkmanager"
@@ -319,6 +361,14 @@ repo = "https://github.com/pop-os/cosmic-bg.git"
 branch = "master"
 revision = "76e89e6aff4224e3a820cbe71c74ee91adb60d03"
 path = "src/desktop/cosmic/cosmic-bg"
+sync = "copy"
+
+[[component]]
+name = "cosmic-idle"
+repo = "https://github.com/pop-os/cosmic-idle.git"
+branch = "master"
+revision = "c95d066b5b640509a6369634b669ca60dc50e168"
+path = "src/desktop/cosmic/cosmic-idle"
 sync = "copy"
 
 [[component]]
