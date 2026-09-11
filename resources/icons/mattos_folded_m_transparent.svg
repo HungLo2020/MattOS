@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">MattOS Folded M — Transparent</title>
+  <desc id="desc">The MattOS folded M mark in Nord colors with a soft centered outline and transparent background.</desc>
+
+  <!-- Transparent background: no background shape is drawn. -->
+
+  <!-- Perfectly centered soft outline / shadow -->
+  <path d="M102 386 L102 148 L256 294 L410 148 L410 386"
+        fill="none"
+        stroke="#4C566A"
+        stroke-width="92"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+  <!-- Base M -->
+  <path d="M102 386 L102 148 L256 294 L410 148 L410 386"
+        fill="none"
+        stroke="#5E81AC"
+        stroke-width="68"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+  <!-- Left folded section -->
+  <path d="M102 148 L256 294"
+        fill="none"
+        stroke="#81A1C1"
+        stroke-width="68"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+  <!-- Right folded section -->
+  <path d="M256 294 L410 148"
+        fill="none"
+        stroke="#88C0D0"
+        stroke-width="68"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+  <!-- Clean center junction -->
+  <circle cx="256" cy="294" r="34" fill="#8FBCBB"/>
+</svg>

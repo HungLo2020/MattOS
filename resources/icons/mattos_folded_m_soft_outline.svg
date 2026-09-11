@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">MattOS Folded M — Soft Outline</title>
+  <desc id="desc">A large rounded folded M in Nord colors with a perfectly aligned soft outline.</desc>
+
+  <defs>
+    <linearGradient id="bg" x1="40" y1="40" x2="472" y2="472" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2E3440"/>
+      <stop offset="1" stop-color="#3B4252"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded icon field -->
+  <rect x="28" y="28" width="456" height="456" rx="124" fill="url(#bg)"/>
+
+  <!-- Perfectly centered soft outline / shadow -->
+  <path d="M102 386 L102 148 L256 294 L410 148 L410 386"
+        fill="none"
+        stroke="#4C566A"
+        stroke-width="92"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+  <!-- Base M -->
+  <path d="M102 386 L102 148 L256 294 L410 148 L410 386"
+        fill="none"
+        stroke="#5E81AC"
+        stroke-width="68"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+  <!-- Left folded section -->
+  <path d="M102 148 L256 294"
+        fill="none"
+        stroke="#81A1C1"
+        stroke-width="68"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+  <!-- Right folded section -->
+  <path d="M256 294 L410 148"
+        fill="none"
+        stroke="#88C0D0"
+        stroke-width="68"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+  <!-- Clean center junction -->
+  <circle cx="256" cy="294" r="34" fill="#8FBCBB"/>
+</svg>
