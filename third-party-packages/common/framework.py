@@ -45,6 +45,19 @@ class BuildResult:
     provenance: dict[str, str]
 
 
+@dataclass(frozen=True)
+class ReleaseSelection:
+    """The deliberate MattOS release chosen for one recipe.
+
+    Upstream discovery is informative: it tells maintainers whether a newer
+    release exists.  This selection is authoritative for builds, so an
+    ordinary check or update never silently changes what MattOS publishes.
+    """
+
+    version: str
+    provenance: dict[str, str]
+
+
 class PackageRecipe:
     """Recipe interface implemented by one small package-specific module."""
 
@@ -104,6 +117,39 @@ def repo_root(script: Path) -> Path:
     raise RecipeError(f"cannot locate MattOS repository root from {script}")
 
 
+def release_selections(root: Path) -> dict[str, ReleaseSelection]:
+    """Load the checked-in, auditable third-party release selections."""
+    path = root / "third-party-packages/releases.json"
+    try:
+        document = json.loads(path.read_text(encoding="utf-8"))
+        packages = document["packages"]
+    except (OSError, KeyError, TypeError, json.JSONDecodeError) as exc:
+        raise RecipeError(f"release selections are invalid ({path}): {exc}") from exc
+    if not isinstance(document, dict) or document.get("format") != 1 or not isinstance(packages, dict):
+        raise RecipeError(f"release selections are invalid ({path}): expected format 1 package map")
+    selections: dict[str, ReleaseSelection] = {}
+    for name, value in packages.items():
+        if not isinstance(name, str) or not isinstance(value, dict):
+            raise RecipeError(f"release selections are invalid ({path}): malformed package entry")
+        version = value.get("version")
+        if not isinstance(version, str) or not version.strip():
+            raise RecipeError(f"release selection for {name} must contain a non-empty version")
+        provenance = {key: item for key, item in value.items() if key != "version"}
+        if not all(isinstance(key, str) and isinstance(item, str) and item for key, item in provenance.items()):
+            raise RecipeError(f"release selection provenance for {name} must contain non-empty strings")
+        selections[name] = ReleaseSelection(version, provenance)
+    return selections
+
+
+def selected_release(root: Path, recipe: PackageRecipe) -> ReleaseSelection:
+    try:
+        return release_selections(root)[recipe.name]
+    except KeyError as exc:
+        raise RecipeError(
+            f"recipe {recipe.name} has no selected release in third-party-packages/releases.json"
+        ) from exc
+
+
 def require_tools(names: Iterable[str]) -> None:
     missing = [name for name in names if shutil.which(name) is None]
     if missing:
@@ -117,7 +163,8 @@ def command(args: Sequence[str], *, cwd: Path | None = None, env: dict[str, str]
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
         )
     except (OSError, subprocess.CalledProcessError) as exc:
-        output = getattr(exc, "stdout", "") or ""
+        output = (getattr(exc, "stdout", "") or getattr(exc, "output", "")
+                  or getattr(exc, "stderr", "") or "")
         raise RecipeError(f"command failed: {' '.join(args)}\n{output}") from exc
     return result.stdout
 
@@ -384,7 +431,8 @@ def _write_container_result(recipe: PackageRecipe, workspace: Path,
     return 0
 
 
-def repository_versions(root: Path, package: str, repository: str) -> list[str]:
+def repository_inventory(root: Path, repository: str) -> dict[str, list[str]]:
+    """Return one verified package/version snapshot for a Matt repository."""
     if repository not in VALID_REPOSITORIES:
         raise RecipeError(f"unsupported repository {repository!r}")
     publisher = root / PUBLISHER_RELATIVE
@@ -394,8 +442,71 @@ def repository_versions(root: Path, package: str, repository: str) -> list[str]:
         sys.executable, str(publisher), "--non-interactive", "--repo",
         repository, "list",
     ], cwd=root)
-    return [line.split("\t", 2)[1] for line in output.splitlines()
-            if line.startswith(package + "\t") and len(line.split("\t", 2)) == 3]
+    inventory: dict[str, list[str]] = {}
+    for line in output.splitlines():
+        fields = line.split("\t", 2)
+        if len(fields) != 3 or not fields[0] or not fields[1]:
+            continue
+        inventory.setdefault(fields[0], []).append(fields[1])
+    return {package: sorted(set(versions)) for package, versions in inventory.items()}
+
+
+def write_repository_inventory(path: Path, repository: str, inventory: dict[str, list[str]]) -> None:
+    if repository not in VALID_REPOSITORIES:
+        raise RecipeError(f"unsupported repository {repository!r}")
+    path.write_text(json.dumps({
+        "format": 1,
+        "repository": repository,
+        "packages": inventory,
+    }, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def read_repository_inventory(path: Path, repository: str) -> dict[str, list[str]]:
+    try:
+        document = json.loads(path.read_text(encoding="utf-8"))
+        packages = document["packages"]
+    except (OSError, KeyError, TypeError, json.JSONDecodeError) as exc:
+        raise RecipeError(f"repository inventory is invalid ({path}): {exc}") from exc
+    if (not isinstance(document, dict) or document.get("format") != 1
+            or document.get("repository") != repository or not isinstance(packages, dict)):
+        raise RecipeError(f"repository inventory is invalid ({path}): repository identity mismatch")
+    inventory: dict[str, list[str]] = {}
+    for package, versions in packages.items():
+        if not isinstance(package, str) or not isinstance(versions, list) or not all(
+                isinstance(version, str) and version for version in versions):
+            raise RecipeError(f"repository inventory is invalid ({path}): malformed package versions")
+        inventory[package] = list(versions)
+    return inventory
+
+
+def repository_versions(root: Path, package: str, repository: str,
+                        inventory_path: Path | None = None) -> list[str]:
+    inventory = (read_repository_inventory(inventory_path, repository)
+                 if inventory_path else repository_inventory(root, repository))
+    return inventory.get(package, [])
+
+
+def newest_debian_version(versions: Sequence[str]) -> str | None:
+    """Select a Debian version with dpkg's comparison semantics."""
+    newest: str | None = None
+    for version in versions:
+        if newest is None:
+            newest = version
+        elif subprocess.run(["dpkg", "--compare-versions", version, "gt", newest], check=False).returncode == 0:
+            newest = version
+    return newest
+
+
+def release_state(upstream: str, selected: str, published: Sequence[str]) -> tuple[str, str | None]:
+    """Classify the three independently meaningful package versions."""
+    repository = newest_debian_version(published)
+    if selected not in published:
+        return "pending-publish", repository
+    if upstream != selected:
+        return "upstream-newer", repository
+    if repository != selected:
+        return "repository-diverged", repository
+    return "up-to-date", repository
 
 
 def publish(root: Path, artifact: Path, *, repository: str, dry_run: bool) -> None:
@@ -417,6 +528,8 @@ def run_recipe(recipe: PackageRecipe, argv: Sequence[str], script: Path) -> int:
     parser.add_argument("--workspace", type=Path, help=argparse.SUPPRESS)
     parser.add_argument("--request", type=Path, help=argparse.SUPPRESS)
     parser.add_argument("--result-json", type=Path, help=argparse.SUPPRESS)
+    parser.add_argument("--repository-inventory", type=Path, help=argparse.SUPPRESS)
+    parser.add_argument("--describe-json", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args(list(argv))
     if args.command == "__container-build":
         if not args.workspace or not args.request:
@@ -430,6 +543,14 @@ def run_recipe(recipe: PackageRecipe, argv: Sequence[str], script: Path) -> int:
         return _write_container_result(recipe, args.workspace, version, provenance)
     root = repo_root(script)
     repository = validate_repository(recipe)
+    selection = selected_release(root, recipe)
+    if args.describe_json:
+        print(json.dumps({
+            "package": recipe.name,
+            "repository": repository,
+            "selected_version": selection.version,
+        }, sort_keys=True))
+        return 0
     print(f"[{recipe.name}] mode: {args.command}", flush=True)
     print(f"[{recipe.name}] declared repository: {repository}", flush=True)
     print(
@@ -438,32 +559,45 @@ def run_recipe(recipe: PackageRecipe, argv: Sequence[str], script: Path) -> int:
         "publish (build and publish)",
         flush=True,
     )
-    if args.command == "build":
-        print(f"[{recipe.name}] repository lookup: skipped (local build)", flush=True)
-    else:
-        print(f"[{recipe.name}] discovering upstream version and checking {repository}...", flush=True)
-    version, provenance = recipe.discover_version()
+    print(f"[{recipe.name}] selected MattOS release: {selection.version}", flush=True)
+    print(f"[{recipe.name}] discovering upstream latest release...", flush=True)
+    upstream_version, upstream_provenance = recipe.discover_version()
+    version = selection.version
     provenance = {
-        **provenance, "package": recipe.name, "version": version,
+        **upstream_provenance, **selection.provenance,
+        "package": recipe.name, "version": version,
         "architecture": recipe.architecture, "repository": repository,
     }
     existing: list[str] = []
     if args.command in ("check", "update", "publish"):
-        existing = repository_versions(root, recipe.name, repository)
+        existing = repository_versions(root, recipe.name, repository, args.repository_inventory)
+    state, repository_version = release_state(upstream_version, version, existing)
     if args.command == "check":
         published = ", ".join(existing) if existing else "not published"
-        print(f"[{recipe.name}] upstream version: {version}", flush=True)
+        print(f"[{recipe.name}] upstream latest: {upstream_version}", flush=True)
+        print(f"[{recipe.name}] MattOS selected: {version}", flush=True)
         print(f"[{recipe.name}] published versions in {repository}: {published}", flush=True)
+        print(f"[{recipe.name}] newest published: {repository_version or 'not published'}", flush=True)
+        print(f"[{recipe.name}] release status: {state.replace('-', ' ')}", flush=True)
         print(f"[{recipe.name}] check complete; no build or upload performed", flush=True)
         if args.result_json:
-            args.result_json.write_text(json.dumps({"status": "checked", "package": recipe.name, "version": version}) + "\n", encoding="utf-8")
+            args.result_json.write_text(json.dumps({
+                "status": "checked", "package": recipe.name,
+                "upstream_version": upstream_version, "selected_version": version,
+                "repository_version": repository_version, "release_state": state,
+                "published_versions": existing,
+            }, sort_keys=True) + "\n", encoding="utf-8")
         return 0
     if args.command == "update" and version in existing:
-        print(f"[{recipe.name}] version {version} is already published in {repository}; no build or upload needed", flush=True)
+        print(f"[{recipe.name}] selected release {version} is already published in {repository}; no build or upload needed", flush=True)
         if args.result_json:
-            args.result_json.write_text(json.dumps({"status": "up-to-date", "package": recipe.name, "version": version}) + "\n", encoding="utf-8")
+            args.result_json.write_text(json.dumps({
+                "status": state, "package": recipe.name,
+                "upstream_version": upstream_version, "selected_version": version,
+                "repository_version": repository_version, "published_versions": existing,
+            }, sort_keys=True) + "\n", encoding="utf-8")
         return 0
-    print(f"[{recipe.name}] upstream version selected: {version}", flush=True)
+    print(f"[{recipe.name}] selected release to build: {version}", flush=True)
     if args.command == "build":
         print(f"[{recipe.name}] starting local build; only the final .deb will be retained", flush=True)
     else:
@@ -495,5 +629,9 @@ def run_recipe(recipe: PackageRecipe, argv: Sequence[str], script: Path) -> int:
         raise RecipeError(f"out/tmp is required and the tool is missing: {exc}") from exc
     if args.result_json:
         status = "built" if args.command == "build" else ("dry-run" if args.dry_run else "uploaded")
-        args.result_json.write_text(json.dumps({"status": status, "package": recipe.name, "version": version}) + "\n", encoding="utf-8")
+        args.result_json.write_text(json.dumps({
+            "status": status, "package": recipe.name,
+            "upstream_version": upstream_version, "selected_version": version,
+            "repository_version": repository_version, "published_versions": existing,
+        }, sort_keys=True) + "\n", encoding="utf-8")
     return 0

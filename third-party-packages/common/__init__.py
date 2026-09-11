@@ -3,6 +3,7 @@
 from .framework import (
     BuildResult,
     PackageRecipe,
+    ReleaseSelection,
     RecipeError,
     autotools_build_install,
     build_in_container,
@@ -16,19 +17,25 @@ from .framework import (
     github_source_archive,
     require_tools,
     package_staging,
+    read_repository_inventory,
+    release_selections,
+    release_state,
+    repository_inventory,
     run_recipe,
     sha256_file,
     validate_package_artifact,
     validate_repository,
+    write_repository_inventory,
     write_control,
     write_provenance,
 )
 
 __all__ = [
-    "BuildResult", "PackageRecipe", "RecipeError", "autotools_build_install",
+    "BuildResult", "PackageRecipe", "RecipeError", "ReleaseSelection", "autotools_build_install",
     "build_in_container", "cmake_build_install",
     "command", "download", "extract_archive", "fetch_json", "finalize_package",
     "github_latest_release", "github_source_archive", "require_tools",
-    "package_staging", "run_recipe", "sha256_file", "validate_package_artifact", "write_control",
-    "validate_repository", "write_provenance",
+    "package_staging", "read_repository_inventory", "release_selections", "release_state",
+    "repository_inventory", "run_recipe", "sha256_file", "validate_package_artifact", "write_control",
+    "validate_repository", "write_provenance", "write_repository_inventory",
 ]

@@ -17,6 +17,11 @@ import common
 
 
 class FrameworkTests(unittest.TestCase):
+    @staticmethod
+    def write_selection(root: Path, name: str = "fixture", version: str = "1.0") -> None:
+        path = root / "third-party-packages/releases.json"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps({"format": 1, "packages": {name: {"version": version}}}))
     def test_common_exports_match_framework_symbols(self):
         self.assertEqual(len(common.__all__), len(set(common.__all__)))
         for name in common.__all__:
@@ -125,6 +130,26 @@ class FrameworkTests(unittest.TestCase):
                     run.call_args.args[0][2:],
                     ["--non-interactive", "--repo", repository, "list"],
                 )
+
+    def test_release_selection_and_three_version_state_are_explicit(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.write_selection(root, "fixture", "1.0")
+            selected = framework.selected_release(root, type("Fixture", (framework.PackageRecipe,), {"name": "fixture"})())
+            self.assertEqual(selected.version, "1.0")
+            self.assertEqual(framework.release_state("1.1", "1.0", ["1.0"]), ("upstream-newer", "1.0"))
+            self.assertEqual(framework.release_state("1.0", "1.0", []), ("pending-publish", None))
+
+    def test_repository_inventory_snapshot_avoids_repeated_remote_lookup(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            snapshot = root / "inventory.json"
+            framework.write_repository_inventory(snapshot, "mattos", {"fixture": ["1.0"]})
+            with mock.patch.object(framework, "repository_inventory", side_effect=AssertionError("remote lookup")):
+                self.assertEqual(framework.repository_versions(root, "fixture", "mattos", snapshot), ["1.0"])
+            snapshot.write_text('{"format": 1, "repository": "mattpackages", "packages": {}}')
+            with self.assertRaises(framework.RecipeError):
+                framework.repository_versions(root, "fixture", "mattos", snapshot)
 
     def test_repository_lookup_failure_is_not_version_absent(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -249,6 +274,7 @@ class FrameworkTests(unittest.TestCase):
             (root / "Cargo.toml").write_text("[workspace]\n")
             (root / "upstream/sources.toml").parent.mkdir(parents=True)
             (root / "upstream/sources.toml").write_text("sources = []\n")
+            self.write_selection(root, version="1.0-1")
             destination = root / "dist"
             with mock.patch.object(framework, "repo_root", return_value=root), \
                  mock.patch.object(framework, "repository_versions", side_effect=AssertionError("build queried repository")), \
@@ -270,10 +296,30 @@ class FrameworkTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
+            self.write_selection(root)
             with mock.patch.object(framework, "repo_root", return_value=root), \
                  mock.patch.object(framework, "repository_versions", return_value=[]), \
                  mock.patch.object(framework, "build_in_container", side_effect=lambda _root, recipe, _script, workspace, version, provenance: recipe.build(workspace, version, provenance)):
                 self.assertEqual(framework.run_recipe(FixtureRecipe(), [], root / "recipe.py"), 0)
+
+    def test_update_uses_selected_release_not_newer_upstream_release(self):
+        class FixtureRecipe(framework.PackageRecipe):
+            name = "fixture"
+            repository = "mattos"
+
+            def discover_version(self):
+                return "2.0", {"release_tag": "v2.0"}
+
+            def build(self, *_args):
+                raise AssertionError("published selected release must not build")
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.write_selection(root, version="1.0")
+            with mock.patch.object(framework, "repo_root", return_value=root), \
+                 mock.patch.object(framework, "repository_versions", return_value=["1.0"]), \
+                 mock.patch.object(framework, "build_in_container", side_effect=AssertionError("unexpected build")):
+                self.assertEqual(framework.run_recipe(FixtureRecipe(), ["update"], root / "recipe.py"), 0)
 
     def test_failed_update_cleans_ephemeral_workspace(self):
         class FailingRecipe(framework.PackageRecipe):
@@ -292,6 +338,7 @@ class FrameworkTests(unittest.TestCase):
             (root / "Cargo.toml").write_text("[workspace]\n")
             (root / "upstream/sources.toml").parent.mkdir(parents=True)
             (root / "upstream/sources.toml").write_text("sources = []\n")
+            self.write_selection(root)
             with mock.patch.object(framework, "repo_root", return_value=root), \
                  mock.patch.object(framework, "repository_versions", return_value=[]), \
                  mock.patch.object(framework, "build_in_container", side_effect=lambda _root, recipe, _script, workspace, version, provenance: recipe.build(workspace, version, provenance)):
@@ -319,6 +366,7 @@ class FrameworkTests(unittest.TestCase):
             (root / "Cargo.toml").write_text("[workspace]\n")
             (root / "upstream/sources.toml").parent.mkdir(parents=True)
             (root / "upstream/sources.toml").write_text("sources = []\n")
+            self.write_selection(root)
             with mock.patch.object(framework, "repo_root", return_value=root), \
                  mock.patch.object(framework, "repository_versions", return_value=[]), \
                  mock.patch.object(framework, "publish", side_effect=framework.RecipeError("upload failed")), \

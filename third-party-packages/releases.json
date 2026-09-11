@@ -1,0 +1,24 @@
+{
+  "format": 1,
+  "packages": {
+    "btop": {
+      "release_tag": "v1.4.7",
+      "version": "1.4.7"
+    },
+    "fastfetch": {
+      "release_tag": "v2.68.1",
+      "version": "2.68.1"
+    },
+    "firefox": {
+      "version": "155.0"
+    },
+    "htop": {
+      "release_tag": "3.5.3",
+      "version": "3.5.3"
+    },
+    "rsync": {
+      "release_tag": "v3.5.0",
+      "version": "3.5.0"
+    }
+  }
+}

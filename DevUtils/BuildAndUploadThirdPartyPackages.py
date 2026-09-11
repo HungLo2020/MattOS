@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
-"""Discover and update every independent MattOS third-party package recipe.
+"""Check or publish independent MattOS third-party package recipes.
 
-This is deliberately an orchestration layer: recipes remain the authority for
-their upstream/version/build policy, and the common framework remains the
-authority for repository selection and publication.  Every recipe is invoked
-in a separate process so a broken upstream cannot prevent the remaining
-packages from being checked.
+The repository inventory is fetched once per declared repository, then passed
+to every isolated recipe as a checked snapshot. Consequently status reporting
+never builds packages, and checking ten recipes does not perform ten remote
+``list`` operations.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
-import os
 import subprocess
 import sys
 import tempfile
@@ -23,12 +21,25 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 RECIPES = ROOT / "third-party-packages"
 SKIP = frozenset({"__init__.py"})
+sys.path.insert(0, str(RECIPES))
+from common import RecipeError, repository_inventory, write_repository_inventory  # noqa: E402
+
+
+@dataclass(frozen=True)
+class RecipeDescriptor:
+    path: Path
+    package: str
+    repository: str
+    selected_version: str
 
 
 @dataclass(frozen=True)
 class Outcome:
     recipe: str
     status: str
+    upstream: str
+    selected: str
+    published: str
     detail: str
     output: str
 
@@ -42,17 +53,14 @@ class Colors:
 
     def status(self, status: str) -> str:
         palette = {
-            "UP TO DATE": "36", "UPLOADED": "32", "DRY RUN": "33", "FAILED": "31",
+            "UP TO DATE": "32", "UPSTREAM NEWER": "33", "PENDING PUBLISH": "33",
+            "REPOSITORY DIVERGED": "33", "UPLOADED": "32", "DRY RUN": "33", "FAILED": "31",
         }
         return self.paint(f"1;{palette[status]}", status)
 
 
 def discover_recipes(root: Path = RECIPES) -> list[Path]:
-    """Only immediate, executable recipe modules are eligible for bulk work."""
-    return sorted(
-        path for path in root.glob("*.py")
-        if path.name not in SKIP and not path.name.startswith("_")
-    )
+    return sorted(path for path in root.glob("*.py") if path.name not in SKIP and not path.name.startswith("_"))
 
 
 def tail(text: str, lines: int = 8) -> str:
@@ -61,7 +69,6 @@ def tail(text: str, lines: int = 8) -> str:
 
 
 def failure_summary(text: str) -> str:
-    """Keep the normal table legible while retaining full captured output."""
     values = [line.strip() for line in text.splitlines() if line.strip()]
     for line in reversed(values):
         if line.startswith("error:"):
@@ -69,66 +76,119 @@ def failure_summary(text: str) -> str:
     return tail(text, lines=1)
 
 
-def invoke(recipe: Path, *, dry_run: bool) -> Outcome:
+def descriptor(path: Path) -> RecipeDescriptor:
+    completed = subprocess.run(
+        [sys.executable, str(path), "--describe-json"], cwd=ROOT, text=True,
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+    )
+    if completed.returncode:
+        raise RecipeError(f"{path.stem}: {failure_summary(completed.stdout)}")
+    try:
+        data = json.loads(completed.stdout)
+        return RecipeDescriptor(path, str(data["package"]), str(data["repository"]), str(data["selected_version"]))
+    except (KeyError, TypeError, json.JSONDecodeError) as exc:
+        raise RecipeError(f"{path.stem}: invalid recipe descriptor: {exc}") from exc
+
+
+def invoke(recipe: RecipeDescriptor, *, mode: str, dry_run: bool, inventory: Path) -> Outcome:
     with tempfile.TemporaryDirectory(prefix="mattos-third-party-result-", dir=ROOT / "out/tmp") as temp:
         result = Path(temp) / "result.json"
-        args = [sys.executable, str(recipe), "update", "--result-json", str(result)]
+        arguments = [sys.executable, str(recipe.path), mode, "--result-json", str(result),
+                     "--repository-inventory", str(inventory)]
         if dry_run:
-            args.append("--dry-run")
-        completed = subprocess.run(args, cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            arguments.append("--dry-run")
+        completed = subprocess.run(arguments, cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         output = completed.stdout
         if completed.returncode:
-            return Outcome(recipe.stem, "FAILED", f"exit {completed.returncode}: {failure_summary(output)}", output)
+            return Outcome(recipe.package, "FAILED", "?", recipe.selected_version, "?",
+                           f"exit {completed.returncode}: {failure_summary(output)}", output)
         try:
             data = json.loads(result.read_text(encoding="utf-8"))
-            status = str(data["status"])
-            version = str(data["version"])
+            status = str(data.get("status", ""))
+            state = str(data.get("release_state")) if status == "checked" else status
+            upstream = str(data["upstream_version"])
+            selected = str(data["selected_version"])
+            published = str(data.get("repository_version") or "not published")
         except (OSError, KeyError, TypeError, json.JSONDecodeError) as exc:
-            return Outcome(recipe.stem, "FAILED", f"recipe returned no valid result manifest: {exc}", output)
+            return Outcome(recipe.package, "FAILED", "?", recipe.selected_version, "?",
+                           f"recipe returned no valid result manifest: {exc}", output)
         labels = {
-            "up-to-date": "UP TO DATE",
-            "uploaded": "UPLOADED",
-            "dry-run": "DRY RUN",
+            "up-to-date": "UP TO DATE", "upstream-newer": "UPSTREAM NEWER",
+            "pending-publish": "PENDING PUBLISH", "repository-diverged": "REPOSITORY DIVERGED",
+            "uploaded": "UPLOADED", "dry-run": "DRY RUN",
         }
-        label = labels.get(status)
+        label = labels.get(state)
         if not label:
-            return Outcome(recipe.stem, "FAILED", f"recipe returned unknown status {status!r}", output)
-        return Outcome(recipe.stem, label, version, output)
+            return Outcome(recipe.package, "FAILED", upstream, selected, published,
+                           f"recipe returned unknown status {state!r}", output)
+        detail = "selected release is already published" if state == "up-to-date" else state.replace("-", " ")
+        return Outcome(recipe.package, label, upstream, selected, published, detail, output)
+
+
+def print_outcome(colors: Colors, outcome: Outcome) -> None:
+    print(
+        f"{colors.status(outcome.status):<25} {outcome.recipe:<14} "
+        f"upstream {outcome.upstream:<12} selected {outcome.selected:<12} "
+        f"repo {outcome.published:<14} {outcome.detail}", flush=True,
+    )
 
 
 def main(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(description="Check, build, and publish all MattOS third-party recipes")
-    parser.add_argument("--dry-run", action="store_true", help="pass --dry-run to recipe publication")
+    parser = argparse.ArgumentParser(description="Check or update all MattOS third-party package recipes")
+    parser.add_argument("--check", action="store_true", help="read-only three-version status report (never builds)")
+    parser.add_argument("--dry-run", action="store_true", help="validate publication without uploading")
     parser.add_argument("--recipe", action="append", default=[], metavar="NAME", help="run only a discovered recipe (repeatable)")
     parser.add_argument("--color", choices=("auto", "always", "never"), default="auto")
-    parser.add_argument("--verbose", action="store_true", help="print each recipe's complete captured output")
+    parser.add_argument("--verbose", action="store_true", help="print complete captured output for each recipe")
     args = parser.parse_args(argv)
     (ROOT / "out/tmp").mkdir(parents=True, exist_ok=True)
-    enabled = args.color == "always" or (args.color == "auto" and sys.stdout.isatty())
-    colors = Colors(enabled)
-    recipes = discover_recipes()
+    colors = Colors(args.color == "always" or (args.color == "auto" and sys.stdout.isatty()))
+    paths = discover_recipes()
     requested = set(args.recipe)
     if requested:
-        recipes = [recipe for recipe in recipes if recipe.stem in requested]
-        missing = requested - {recipe.stem for recipe in recipes}
+        paths = [path for path in paths if path.stem in requested]
+        missing = requested - {path.stem for path in paths}
         if missing:
             parser.error("unknown third-party recipe(s): " + ", ".join(sorted(missing)))
-    if not recipes:
+    if not paths:
         parser.error("no third-party package recipes were discovered")
-    mode = "DRY RUN" if args.dry_run else "UPDATE AND PUBLISH"
-    print(colors.paint("1", f"MattOS third-party packages — {mode}"))
-    print(f"Discovered {len(recipes)} recipe(s): " + ", ".join(recipe.stem for recipe in recipes))
-    outcomes: list[Outcome] = []
+    try:
+        recipes = [descriptor(path) for path in paths]
+    except RecipeError as exc:
+        parser.error(str(exc))
+    mode = "check" if args.check else "update"
+    title = "READ-ONLY STATUS" if args.check else ("UPDATE AND PUBLISH" if not args.dry_run else "DRY-RUN UPDATE")
+    print(colors.paint("1", f"MattOS third-party packages — {title}"))
+    print("Columns: upstream latest | MattOS selected release | newest published repository version")
+    print("Inventory: one checked query per declared repository; no package is built to determine status.")
+    grouped: dict[str, list[RecipeDescriptor]] = {}
     for recipe in recipes:
-        print(f"\n{colors.paint('1', f'[{recipe.stem}]')} checking upstream and its declared repository…", flush=True)
-        outcome = invoke(recipe, dry_run=args.dry_run)
-        outcomes.append(outcome)
-        print(f"{colors.status(outcome.status):<20} {recipe.stem:<16} {outcome.detail}", flush=True)
-        if args.verbose and outcome.output.strip():
-            print(outcome.output.rstrip())
+        grouped.setdefault(recipe.repository, []).append(recipe)
+    outcomes: list[Outcome] = []
+    with tempfile.TemporaryDirectory(prefix="mattos-third-party-inventory-", dir=ROOT / "out/tmp") as temporary:
+        snapshots: dict[str, Path] = {}
+        for repository in grouped:
+            try:
+                inventory = repository_inventory(ROOT, repository)
+                snapshot = Path(temporary) / f"{repository}.json"
+                write_repository_inventory(snapshot, repository, inventory)
+                snapshots[repository] = snapshot
+                print(f"Repository {repository}: inventory loaded once ({len(inventory)} package name(s)).")
+            except RecipeError as exc:
+                print(colors.status("FAILED") + f" repository {repository}: {exc}")
+                for recipe in grouped[repository]:
+                    outcomes.append(Outcome(recipe.package, "FAILED", "?", recipe.selected_version, "?", str(exc), ""))
+        for recipe in recipes:
+            snapshot = snapshots.get(recipe.repository)
+            if snapshot:
+                outcome = invoke(recipe, mode=mode, dry_run=args.dry_run, inventory=snapshot)
+                outcomes.append(outcome)
+                print_outcome(colors, outcome)
+                if args.verbose and outcome.output.strip():
+                    print(outcome.output.rstrip())
     print("\n" + colors.paint("1", "Summary"))
     for outcome in outcomes:
-        print(f"{colors.status(outcome.status):<20} {outcome.recipe:<16} {outcome.detail}")
+        print_outcome(colors, outcome)
     failed = [outcome for outcome in outcomes if outcome.status == "FAILED"]
     print(f"\n{len(outcomes) - len(failed)}/{len(outcomes)} recipe(s) completed successfully.")
     return 1 if failed else 0

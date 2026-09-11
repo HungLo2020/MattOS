@@ -18,19 +18,36 @@ python3 third-party-packages/fastfetch.py check
 python3 third-party-packages/fastfetch.py build
 python3 third-party-packages/firefox.py update
 python3 third-party-packages/firefox.py publish --dry-run
+python3 DevUtils/BuildAndUploadThirdPartyPackages.py --check
 python3 DevUtils/BuildAndUploadThirdPartyPackages.py
 python3 DevUtils/BuildAndUploadThirdPartyPackages.py --dry-run --recipe htop
 ```
 
-With no command, a recipe performs the read-only `check` operation. `check`
-discovers the upstream version and queries only the `mattos` repository.
+With no command, a recipe performs the read-only `check` operation. Every
+recipe has three deliberately separate versions: the **upstream latest**,
+the checked-in **MattOS selected release** in `releases.json`, and the newest
+version already **published** in that recipe's declared repository. `check`
+reports all three and never builds anything. The selection is the version
+that `build`/`update` use; seeing a newer upstream release is a maintainer
+signal, not permission for a script to publish it automatically.
+
+`DevUtils/BuildAndUploadThirdPartyPackages.py --check` is the efficient
+whole-tree version of that report. It obtains one validated inventory per
+repository, passes a temporary snapshot to every recipe, and therefore does
+not query the package server once per recipe or compile packages just to
+decide their status. Its default `update` mode uses the same snapshot and
+only builds when a selected MattOS release is absent from its repository.
+Use `--dry-run` to exercise the publish command for such a missing selected
+release without uploading it.
+
 `build` creates a local package without credentials or repository access;
 only the requested `.deb` is retained in `--output` (or `dist/`). `update` is
-the idempotent lifecycle: it checks the `mattos` repository, skips a version
-already published there, or downloads, verifies, builds, stages, validates,
-and publishes the new package. `publish` performs the same lifecycle without
-the version-skip policy. `--dry-run` passes through to the repository client,
-but tests should mock it; no real upload is performed by the package tests.
+the idempotent lifecycle: it checks the recipe's declared repository, skips a
+selected release already published there, or downloads, verifies, builds,
+stages, validates, and publishes the selected release. `publish` performs
+the same lifecycle without the version-skip policy. `--dry-run` passes
+through to the repository client, but tests should mock it; no real upload is
+performed by the package tests.
 
 All `check`, `update`, and `publish` operations invoke the repository declared
 by the recipe as `ManageMattOSRepository.py --repo <repository>`. Update and
@@ -92,8 +109,9 @@ image through Podman (preferred) or Docker; set
 does not need to implement container handling.
 
 `DevUtils/BuildAndUploadThirdPartyPackages.py` discovers immediate recipe
-modules, invokes each recipe's idempotent `update` lifecycle in name order,
-and prints a colored summary: **UP TO DATE**, **UPLOADED**, **DRY RUN**, or
-**FAILED**. A failure is isolated to that recipe, so an unavailable upstream
-does not hide results from the others. `--recipe NAME` restricts the run and
-`--dry-run` preserves the normal publication command without uploading.
+modules, groups them by their recipe-owned repository, and prints a colored
+table with **upstream**, **selected**, and **repo** versions. Results include
+**UP TO DATE**, **UPSTREAM NEWER**, **PENDING PUBLISH**, **UPLOADED**,
+**DRY RUN**, or **FAILED**. `--recipe NAME` restricts the run; `--check`
+is strictly read-only; and `--dry-run` preserves the normal publication
+command without uploading.
