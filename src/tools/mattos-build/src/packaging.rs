@@ -1301,6 +1301,7 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
 
 fn package_configuration_roots(package: &str) -> &'static [&'static str] {
     match package {
+        "flatpak" => &["src/system/packages/config/flatpak"],
         "grub-efi-amd64" => &["src/boot/grub/config"],
         // APT installs these policy files into the runtime package. Keep the
         // package cache identity tied to their bytes so live/rootfs overlays
@@ -3184,7 +3185,7 @@ mod tests {
         );
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
         assert!(!root
-            .join("src/system/packages/flatpak/resources")
+            .join("src/system/packages/config/flatpak")
             .join("firefox.toml")
             .exists());
     }
@@ -3195,6 +3196,8 @@ mod tests {
             package_configuration_roots("apt"),
             ["src/system/packages/config/apt"]
         );
+        assert_eq!(package_configuration_roots("flatpak"), ["src/system/packages/config/flatpak"]);
+        assert!(!crate::stage_inputs::source_inputs(crate::BuildStage::Flatpak).iter().any(|p| p.starts_with("src/system/packages/config/flatpak")));
     }
 
     #[test]
@@ -5588,7 +5591,7 @@ mod tests {
     #[test]
     fn signed_flatpak_policy_seeds_a_minimal_readable_system_remote() {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
-        let descriptor = root.join("src/system/packages/flatpak/resources/flathub.flatpakrepo");
+        let descriptor = root.join("src/system/packages/config/flatpak/flathub.flatpakrepo");
         let temporary = tempfile::tempdir().unwrap();
         stage_flatpak_system_remote(&descriptor, temporary.path()).unwrap();
 

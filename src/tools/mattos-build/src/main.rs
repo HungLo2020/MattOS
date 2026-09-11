@@ -2221,7 +2221,7 @@ mod tests {
             "mattos-flatpak-user-update.timer",
         ] {
             let body = fs::read_to_string(
-                root.join("src/system/packages/flatpak/resources").join(unit),
+                root.join("src/system/packages/config/flatpak").join(unit),
             )
             .unwrap();
             if unit.ends_with(".timer") {
@@ -2269,7 +2269,7 @@ mod tests {
     #[test]
     fn installed_apt_metadata_refresh_is_timer_driven_and_never_upgrades() {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
-        let resources = root.join("src/system/packages/apt/resources");
+        let resources = root.join("src/system/packages/config/apt/units");
         let service = std::fs::read_to_string(resources.join("mattos-apt-daily.service")).unwrap();
         let timer = std::fs::read_to_string(resources.join("mattos-apt-daily.timer")).unwrap();
         assert!(service.contains("ExecStart=/usr/bin/apt-get update"));
@@ -3959,7 +3959,7 @@ mod tests {
     #[test]
     fn flatpak_package_owns_signed_flathub_policy_without_application_overrides() {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
-        let descriptor = root.join("src/system/packages/flatpak/resources/flathub.flatpakrepo");
+        let descriptor = root.join("src/system/packages/config/flatpak/flathub.flatpakrepo");
         let policy = std::fs::read_to_string(&descriptor)
             .expect("MattOS must retain the packaged Flathub descriptor");
         assert!(policy.contains("[Flatpak Repo]"));

@@ -83,6 +83,17 @@ def main():
             report.write_text(output)
             with QmpClient(paths[0], 10) as qmp:
                 qmp.execute("screendump", {"filename": str(root / f"out/logs/live-media-{media}.ppm")})
+            output += serial_command(paths[1],
+                "(set -e; test -s /usr/share/libdrm/amdgpu.ids; "
+                "dpkg-query -S /usr/share/libdrm/amdgpu.ids; "
+                "test ! -e /etc/systemd/system/timers.target.wants/mattos-apt-bootstrap.timer; "
+                "for theme in Dark Light; do for suffix in '' .Builder; do "
+                "grep -qx false /usr/share/cosmic/com.system76.CosmicTheme.$theme$suffix/v2/frosted_maximized_apps || exit 1; "
+                "done; done; "
+                "sudo journalctl -b --no-pager -o cat > /tmp/mattos-desktop-policy-journal; "
+                "if grep -E 'GetKey.*(frosted_maximized_apps|padding_overlap|keep_style_on_maximize)' /tmp/mattos-desktop-policy-journal; "
+                "then exit 1; fi; echo DESKTOP_POLICY_RUNTIME_OK)", 60)
+            report.write_text(output)
             print(output, flush=True)
             # A desktop may handle the emulated power button with an
             # interactive confirmation dialog. Request orderly shutdown from

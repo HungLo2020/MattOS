@@ -146,3 +146,18 @@ shared `InstallPlan → policy validation → engine` execution path begins, it 
 hashed with MattOS libxcrypt SHA-512, the plaintext buffers are cleared, and
 only the crypt hash reaches the in-memory plan. Plaintext is never put in argv,
 logs, or a persistent plan. Unattended CLI plans accept an explicit crypt hash.
+# Validation and initial package discovery
+
+`DevUtils/run_qemu.py --install` requires the installer and independent disk
+boot to exit successfully. Forced QEMU termination is a failure, even when
+QEMU itself returns zero. Failed test disks are retained without a completion
+marker for diagnosis; a subsequent explicit `--install` replaces the test disk.
+The boot checks include compositor/panel processes; these are not a substitute
+for interactive GUI or application acceptance tests.
+
+Installed systems enable a bounded APT index bootstrap 15 seconds after boot,
+independently of login. Only a fully successful refresh records completion.
+Offline failures do not prevent installation or login, and retry on a later
+boot; the randomized daily metadata refresh remains enabled. No native package
+upgrade is performed by either service. Inspect `mattos-apt-bootstrap.service`
+when package discovery is empty immediately after a fresh installation.

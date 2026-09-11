@@ -1,0 +1,12 @@
+--- a/src/page/wifi.rs
++++ b/src/page/wifi.rs
+@@ -839,8 +839,7 @@
+         let conn = zbus::Connection::system().await.unwrap();
+         let settings = network_manager::dbus::settings::NetworkManagerSettings::new(&conn).await?;
+ 
+-        _ = settings.load_connections(&[]).await;
+-
++        // Listing saved connections does not require the root-only reload API.
+         let settings = settings
+             // Get a list of known connections.
+             .list_connections()

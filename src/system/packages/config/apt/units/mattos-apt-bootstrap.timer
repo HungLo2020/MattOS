@@ -1,0 +1,9 @@
+[Unit]
+Description=Initialize package discovery promptly after installed boot
+
+[Timer]
+OnBootSec=15s
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target

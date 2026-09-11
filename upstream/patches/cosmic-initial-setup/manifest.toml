@@ -1,0 +1,11 @@
+schema_version = 1
+component = "cosmic-initial-setup"
+upstream_commit = "b5ac4182bb00bc774ca86febadf0369e362bc031"
+upstream_tree = "208918b107a39525c8a545f8cff39e77590e4733"
+application = "output-mirror-only"
+
+[[patch]]
+path = "upstream/patches/cosmic-initial-setup/0001-list-connections-without-root-reload.patch"
+sha256 = "2905a63a5c69bc782cb4d3b054f1ca2e1724013ce1fe6f3aace6b230a4ab1012"
+purpose = "List saved connections without invoking NetworkManager root-only LoadConnections."
+documentation = "docs/SOURCE_OWNERSHIP.md"

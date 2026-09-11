@@ -103,3 +103,18 @@ python3 DevUtils/test_source_ownership_overrides.py
 ```
 
 The first command validates source/patch provenance and regenerates the derived ownership catalog. The second exercises source-qualified resolution, canonical/private mirror separation, Git-format output-patch application, idempotent consumer patching, build-mirror patch ordering, lock-derived transitive owned-source closure, derived-lock reconciliation, Cargo metadata resolution-policy propagation, gitlink replacement behavior, metadata fail-closed checks, provenance agreement, and preservation of pristine imported manifests.
+# Desktop integration provenance
+
+MattOS Flatpak and APT policy resources live in
+`src/system/packages/config/{flatpak,apt}`, outside the corresponding imported
+upstream trees. Package configuration inputs own these files.
+
+Initial Setup's saved-connection listing fix is an output-mirror patch; it does
+not grant access to NetworkManager's root-only reload API. COSMIC theme and
+panel defaults remain MattOS resources, covered by
+`DevUtils/tests/test_desktop_policy.py` against the pinned schemas.
+
+OSTree's nested ordinary-file bsdiff/libglnx imports are explicitly registered
+gitlink replacements and audited independently, not ignored. The provenance
+audit also records the exact pinned AppStream deliberately broken test symlink;
+its Git blob identity is still verified and the link is never followed.

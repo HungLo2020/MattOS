@@ -410,6 +410,23 @@ def symlink_escapes(component_root: Path, path: str, target: str) -> bool:
     return joined == ".." or joined.startswith("../")
 
 
+def declared_broken_test_link(component: dict, path: str, target: str) -> bool:
+    document = load_toml(ROOT / "upstream/policies/verification-symlinks.toml")
+    if document.get("schema_version") != 1:
+        raise AuditFailure("unsupported test symlink policy")
+    # Only deliberately nonexistent targets within upstream tests can qualify;
+    # no filesystem lookup or traversal is performed for the exception.
+    if not path.startswith("tests/") or target != "/nonexistent":
+        return False
+    return any(
+        item.get("component") == component["name"]
+        and item.get("upstream_commit") == component["revision"]
+        and item.get("path") == path and item.get("target") == target
+        and bool(item.get("reason"))
+        for item in document.get("fixture", [])
+    )
+
+
 def raw_worktree_blob_oids(component: dict, paths: list[str]) -> dict[str, str]:
     if not paths:
         return {}
@@ -475,7 +492,7 @@ def verify_component_tree(
                 continue
             target = os.readlink(local)
             payload = os.fsencode(target)
-            if symlink_escapes(source_root, path, target):
+            if symlink_escapes(source_root, path, target) and not declared_broken_test_link(component, path, target):
                 failures.append(f"upstream symlink escapes component tree: {path} -> {target}")
         else:
             if not stat.S_ISREG(metadata.st_mode):
@@ -521,7 +538,20 @@ def verify_component_tree(
         if not path.endswith(".git/") and not source_selection_retains(source_selection, path)
     )
     failures.extend(f"stale source-selection-excluded path {path}" for path in stale_excluded)
-    extra_paths = sorted(local_paths - expected_non_gitlinks - set(nested_git))
+    # A nested, separately pinned component owns its own ordinary files.
+    # Its complete tree is checked independently in this same audit; never
+    # ignore arbitrary subdirectories or excluded/unregistered gitlinks.
+    owned_prefixes = [
+        path + "/"
+        for mode, _, _, path in entries
+        if mode == "160000"
+        and (policy := gitlink_policies.get((name, path), {})).get("action") == "replacement"
+        and policy.get("replacement_path") == f"{component['path']}/{path}"
+    ]
+    extra_paths = sorted(
+        path for path in local_paths - expected_non_gitlinks - set(nested_git)
+        if not any(path.startswith(prefix) for prefix in owned_prefixes)
+    )
     repository_extras = [Path(component["path"]) / path for path in extra_paths]
     ignored = ignored_repository_paths(repository_extras)
     unexplained_extras = [

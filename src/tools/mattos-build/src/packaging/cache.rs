@@ -378,7 +378,9 @@ pub(crate) fn package_recipe_revision(package: &str) -> u32 {
         // freedesktop hicolor fallback index.
         // Revision 6 ships bounded, read-only physical graphics diagnostics.
         // Revision 7 adds live startup evidence and bounded text recovery.
-        "cosmic-desktop" => 7,
+        "cosmic-desktop" => 8,
+        // Own libdrm's AMD device-name database as well as its SONAME.
+        "libdrm-amdgpu1" => 2,
         "mattos-compat" => 3,
         // Revision 2 preserves fuse3's documented setuid fusermount3 helper
         // in the Flatpak payload.  The document portal invokes this helper to

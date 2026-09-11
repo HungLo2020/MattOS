@@ -1,0 +1,10 @@
+schema_version = 1
+# These deliberately broken upstream test fixtures are never followed by the
+# provenance audit. Their link bytes must still match the pinned Git object.
+# This is not permission to package them or to accept other escaping links.
+[[fixture]]
+component = "appstream"
+upstream_commit = "c046aa7e28e1950d44874bc5bdfc2268a338255f"
+path = "tests/samples/compose/usr/share/metainfo/org.example.nonexistent-badlink.metainfo.xml"
+target = "/nonexistent"
+reason = "Pinned AppStream negative-test fixture tests handling of a broken metadata symlink."

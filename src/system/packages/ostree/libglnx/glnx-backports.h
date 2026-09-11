@@ -28,8 +28,6 @@
 
 #include <string.h>
 
-#include <glib-unix.h>
-#include <glib/gstdio.h>
 #include <gio/gio.h>
 
 G_BEGIN_DECLS
@@ -52,68 +50,6 @@ G_BEGIN_DECLS
         _destroy (_p);                                                         \
       }                                                                        \
   } G_STMT_END
-#endif
-
-#if !GLIB_CHECK_VERSION(2, 76, 0)
-gboolean _glnx_close (gint     fd,
-                      GError **error);
-#else
-#define _glnx_close g_close
-#endif
-
-#if !GLIB_CHECK_VERSION(2, 76, 0)
-static inline gboolean
-g_clear_fd (int     *fd_ptr,
-            GError **error)
-{
-  int fd = *fd_ptr;
-
-  *fd_ptr = -1;
-
-  if (fd < 0)
-    return TRUE;
-
-  /* Suppress "Not available before" warning */
-  G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-  /* This importantly calls _glnx_close to always get async-signal-safe if
-   * error == NULL */
-  return _glnx_close (fd, error);
-  G_GNUC_END_IGNORE_DEPRECATIONS
-}
-
-#else
-
-static inline gboolean
-_glnx_clear_fd (int     *fd_ptr,
-                GError **error)
-{
-    G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-    return g_clear_fd (fd_ptr, error);
-    G_GNUC_END_IGNORE_DEPRECATIONS
-}
-#define g_clear_fd _glnx_clear_fd
-
-#endif
-
-/* This is part of the backport of g_autofd, but we define it
- * unconditionally because it's also used to implement glnx_close_fd() */
-static inline void
-_glnx_clear_fd_ignore_error (int *fd_ptr)
-{
-  /* Don't overwrite thread-local errno if closing the fd fails */
-  int errsv = errno;
-
-  if (!g_clear_fd (fd_ptr, NULL))
-    {
-      /* Do nothing: we ignore all errors, except for EBADF which
-       * is a programming error, checked for by g_close(). */
-    }
-
-  errno = errsv;
-}
-
-#if !GLIB_CHECK_VERSION(2, 76, 0)
-#define g_autofd __attribute__((cleanup(_glnx_clear_fd_ignore_error)))
 #endif
 
 #if !GLIB_CHECK_VERSION(2, 40, 0)
@@ -142,10 +78,6 @@ gboolean              glnx_set_object  (GObject **object_ptr,
 
 #if !GLIB_CHECK_VERSION(2, 42, 0)
 #define G_OPTION_FLAG_NONE ((GOptionFlags) 0)
-#endif
-
-#ifndef G_PID_FORMAT  /* added in 2.50 */
-#define G_PID_FORMAT "i"
 #endif
 
 #if !GLIB_CHECK_VERSION(2, 60, 0)
@@ -193,22 +125,16 @@ _glnx_memdup2 (gconstpointer mem,
   (((a) > (b) ? (a) - (b) : (b) - (a)) < (epsilon))
 #endif
 
+#if !GLIB_CHECK_VERSION(2, 70, 0)
+#define g_steal_fd _glnx_steal_fd
 static inline int
 _glnx_steal_fd (int *fdp)
 {
-#if GLIB_CHECK_VERSION(2, 70, 0)
-  /* Allow it to be used without deprecation warnings, even if the target
-   * GLib version is older */
-  G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-  return g_steal_fd (fdp);
-  G_GNUC_END_IGNORE_DEPRECATIONS
-#else
   int fd = *fdp;
   *fdp = -1;
   return fd;
-#endif
 }
-#define g_steal_fd _glnx_steal_fd
+#endif
 
 #if !GLIB_CHECK_VERSION(2, 74, 0)
 #define G_APPLICATION_DEFAULT_FLAGS ((GApplicationFlags) 0)
@@ -221,13 +147,6 @@ _glnx_steal_fd (int *fdp)
 #define G_TEST_TRAP_DEFAULT ((GTestTrapFlags) 0)
 #define G_TLS_CERTIFICATE_NO_FLAGS ((GTlsCertificateFlags) 0)
 #define G_TYPE_FLAG_NONE ((GTypeFlags) 0)
-#endif
-
-#if !GLIB_CHECK_VERSION(2, 80, 0)
-#define g_closefrom _glnx_closefrom
-int _glnx_closefrom (int lowfd);
-#define g_fdwalk_set_cloexec _glnx_fdwalk_set_cloexec
-int _glnx_fdwalk_set_cloexec (int lowfd);
 #endif
 
 G_END_DECLS

@@ -43,6 +43,7 @@ glnx_local_obj_unref (void *v)
   if (o)
     g_object_unref (o);
 }
+#define glnx_unref_object __attribute__ ((cleanup(glnx_local_obj_unref)))
 
 /* Backwards-compat with older libglnx */
 #define glnx_steal_fd g_steal_fd
@@ -51,23 +52,38 @@ glnx_local_obj_unref (void *v)
  * glnx_close_fd:
  * @fdp: Pointer to fd
  *
- * Same as `g_clear_fd()`, but ignoring the error (if any) and making sure
- * not to alter `errno`. As a result, this function can be used for cleanup
- * in contexts where `errno` needs to be preserved.
+ * Effectively `close (g_steal_fd (&fd))`.  Also
+ * asserts that `close()` did not raise `EBADF` - encountering
+ * that error is usually a critical bug in the program.
  */
-#define glnx_close_fd _glnx_clear_fd_ignore_error
+static inline void
+glnx_close_fd (int *fdp)
+{
+  int errsv;
+
+  g_assert (fdp);
+
+  int fd = g_steal_fd (fdp);
+  if (fd >= 0)
+    {
+      errsv = errno;
+      if (close (fd) < 0)
+        g_assert (errno != EBADF);
+      errno = errsv;
+    }
+}
 
 /**
  * glnx_fd_close:
  *
- * Deprecated in favor of `g_autofd`.
+ * Deprecated in favor of `glnx_autofd`.
  */
-#define glnx_fd_close g_autofd
+#define glnx_fd_close __attribute__((cleanup(glnx_close_fd)))
 /**
  * glnx_autofd:
  *
- * Deprecated in favor of `g_autofd`.
+ * Call close() on a variable location when it goes out of scope.
  */
-#define glnx_autofd g_autofd
+#define glnx_autofd __attribute__((cleanup(glnx_close_fd)))
 
 G_END_DECLS

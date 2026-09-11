@@ -540,10 +540,13 @@ def _terminate_task_vm(proc: subprocess.Popen[str], control_paths: tuple[Path, P
         print("[qemu] guest did not shut down cleanly; terminating task-owned QEMU", file=sys.stderr)
         proc.terminate()
         try:
-            return proc.wait(timeout=15)
+            proc.wait(timeout=15)
         except subprocess.TimeoutExpired:
             proc.kill()
-            return proc.wait(timeout=10)
+            proc.wait(timeout=10)
+        # QEMU may return zero after SIGTERM. That is not a guest shutdown
+        # and must never publish a successful installation completion marker.
+        return 1
 
 
 def _launch_one(
@@ -777,6 +780,12 @@ def _run_automatic_test_install(repo_root: Path, disk: Path, control_paths: tupl
             on_output=stream,
             progress_probe=disk_progress,
         )
+        serial_command_stream(
+            control_paths[1].resolve(),
+            "sudo systemctl --no-block poweroff",
+            INSTALL_BOOT_IDLE_SECONDS,
+            on_output=stream,
+        )
     except Exception as exc:
         raise RepoError(
             f"automated MattOS installation failed; full guest log: {log_path}; error: {exc}"
@@ -826,6 +835,7 @@ def _verify_installed_disk_boot(
         ("efi-mount", "findmnt -no SOURCE /boot/efi"),
         ("gpt", "lsblk -no PTTYPE /dev/vda"),
         ("graphical-target", "systemctl is-active graphical.target"),
+        ("compositor", "(for n in $(seq 1 90); do pgrep -x cosmic-comp >/dev/null && pgrep -x cosmic-panel >/dev/null && exit 0; sleep 1; done; exit 1)"),
         ("mattos-repository", "grep -q '^Enabled: yes' /etc/apt/sources.list.d/mattos-hosted.sources"),
     )
     result: dict[str, object] = {}
@@ -849,6 +859,12 @@ def _verify_installed_disk_boot(
             stream(f"[installed-check] PASS {name}\n")
             completed_checks.append(output)
         result.update({"uefi_grub_boot": True, "serial_checks": "".join(completed_checks)})
+        serial_command_stream(
+            control_paths[1].resolve(),
+            f"printf '%s\\n' {shlex.quote(TEST_INSTALL_PASSWORD)} | sudo -S systemctl --no-block poweroff",
+            INSTALL_BOOT_IDLE_SECONDS,
+            on_output=stream,
+        )
 
     exit_code = _launch_one(
         repo_root,
@@ -860,6 +876,7 @@ def _verify_installed_disk_boot(
     )
     if exit_code != 0:
         raise RepoError(f"installed-disk verification VM exited with status {exit_code}")
+    result["clean_shutdown"] = True
     return result
 
 
@@ -889,8 +906,7 @@ def launch_qemu(repo_root: Path, iso_path: Path | None, args: argparse.Namespace
         print(f"[qemu] installed disk validated: {disk} (completion marker: {marker})")
     except Exception:
         invalidate_install_completion(repo_root)
-        if disk.exists() and disk.is_file():
-            disk.unlink()
+        print(f"[qemu] failed installation disk retained for diagnosis: {disk}", file=sys.stderr)
         raise
     if not args.run_installed:
         return 0

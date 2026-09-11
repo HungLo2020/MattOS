@@ -106,6 +106,7 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::CosmicEdit => &["src/desktop/cosmic/cosmic-edit"],
         BuildStage::CosmicInitialSetup => &[
             "src/desktop/cosmic/cosmic-initial-setup",
+            "upstream/patches/cosmic-initial-setup",
             "resources/COSMIC/layouts",
             "resources/COSMIC/themes",
         ],
@@ -137,10 +138,6 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::Flatpak => &[
             "src/system/packages/flatpak",
             "src/system/installer/flatpak-target-install.c",
-            "src/system/packages/flatpak/resources/mattos-flatpak-system-update.service",
-            "src/system/packages/flatpak/resources/mattos-flatpak-system-update.timer",
-            "src/system/packages/flatpak/resources/mattos-flatpak-user-update.service",
-            "src/system/packages/flatpak/resources/mattos-flatpak-user-update.timer",
         ],
         BuildStage::Bubblewrap => &["src/system/security/bubblewrap"],
         BuildStage::XdgDbusProxy => &["src/system/packages/xdg-dbus-proxy"],
@@ -913,6 +910,7 @@ mod tests {
             source_inputs(BuildStage::CosmicInitialSetup),
             vec![
                 PathBuf::from("src/desktop/cosmic/cosmic-initial-setup"),
+                PathBuf::from("upstream/patches/cosmic-initial-setup"),
                 PathBuf::from("resources/COSMIC/layouts"),
                 PathBuf::from("resources/COSMIC/themes"),
                 PathBuf::from("src/desktop/cosmic/libcosmic"),

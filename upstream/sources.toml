@@ -165,6 +165,8 @@ branch = "master"
 revision = "b5ac4182bb00bc774ca86febadf0369e362bc031"
 path = "src/desktop/cosmic/cosmic-initial-setup"
 sync = "copy"
+patch_manifest = "upstream/patches/cosmic-initial-setup/manifest.toml"
+patch_manifest_sha256 = "c76951cf93e53497c43c3d24249b48f1abbe7208aede674024ee939b6aea3ff1"
 lfs_policy = "upstream/policies/cosmic-initial-setup-lfs.toml"
 lfs_policy_sha256 = "c3bd66a6537ce37e87bfa766a4abbbd7327f1fb6029a9b17bd05d4f10f04eacf"
 
@@ -396,6 +398,8 @@ branch = "master"
 revision = "4ac0da3af97207fb3807375928812f23ec04161f"
 path = "src/desktop/cosmic/cosmic-edit"
 sync = "copy"
+lfs_policy = "upstream/policies/cosmic-edit-lfs.toml"
+lfs_policy_sha256 = "f783daa1c93ea9058d38d4e4b3ee97d696ccac0a829caf54ad544464941a9e4f"
 
 [[component]]
 name = "cosmic-calculator"
@@ -498,6 +502,7 @@ branch = "v2026.1"
 revision = "84fcfe17adcc69b926e8205782c1f735c09bfdd9"
 path = "src/system/packages/ostree"
 sync = "copy"
+gitlink_policy = "upstream/policies/gitlinks.toml#ostree"
 
 [[component]]
 name = "libglnx"
@@ -522,6 +527,8 @@ branch = "master"
 revision = "ca4615b22889bbecb83c614e1b52d8af97ef4aca"
 path = "src/desktop/cosmic/cosmic-store"
 sync = "copy"
+patch_manifest = "upstream/patches/cosmic-store/manifest.toml"
+patch_manifest_sha256 = "98a1e655ababfa9826ae23962aa65cbce2f91b6074ce54280f7982e61fafc94a"
 
 [[component]]
 name = "cosmic-term"
@@ -756,6 +763,7 @@ branch = "VER-2-14-3"
 revision = "0a0221a1347e2f1e07c395263540026e9a0aa7c7"
 path = "src/system/libraries/freetype"
 sync = "copy"
+gitlink_policy = "upstream/policies/gitlinks.toml#freetype"
 
 [[component]]
 name = "libfontenc"

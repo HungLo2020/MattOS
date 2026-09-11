@@ -1,0 +1,9 @@
+schema_version = 1
+component = "cosmic-edit"
+upstream_commit = "4ac0da3af97207fb3807375928812f23ec04161f"
+source = "https://media.githubusercontent.com/media/pop-os/cosmic-edit/4ac0da3af97207fb3807375928812f23ec04161f/{path}"
+
+[[object]]
+path = "res/screenshots/screenshot-1.png"
+sha256 = "3ba78b19f6c4ecce1cbbb7a85495426ab5102575fef9838b5a1df199c951e985"
+size = 258913

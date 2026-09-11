@@ -29,6 +29,37 @@ from run_qemu import (
 
 
 class QemuNetworkArgumentsTests(unittest.TestCase):
+    def test_forced_shutdown_is_failure_even_when_qemu_exits_zero(self) -> None:
+        proc = mock.Mock()
+        proc.poll.return_value = None
+        proc.wait.side_effect = [subprocess.TimeoutExpired("qemu", 1), 0]
+        self.assertEqual(run_qemu._terminate_task_vm(proc, None, "test"), 1)
+        proc.terminate.assert_called_once()
+
+    def test_clean_shutdown_preserves_success(self) -> None:
+        proc = mock.Mock()
+        proc.poll.return_value = None
+        proc.wait.return_value = 0
+        self.assertEqual(run_qemu._terminate_task_vm(proc, None, "test"), 0)
+        proc.terminate.assert_not_called()
+
+    def test_failed_install_retains_disk_and_removes_completion(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            disk = root / "out/qemu/installed-test.qcow2"
+            disk.parent.mkdir(parents=True)
+            disk.write_bytes(b"diagnostic evidence")
+            marker = install_completion_marker(root)
+            marker.write_text("stale marker")
+            args = mock.Mock(install=True, dry_run=False)
+            with mock.patch("run_qemu.prepare_install_disk", return_value=disk), mock.patch(
+                "run_qemu._launch_one", side_effect=RepoError("verification failure")
+            ):
+                with self.assertRaisesRegex(RepoError, "verification failure"):
+                    launch_qemu(root, root / "image.iso", args)
+            self.assertEqual(disk.read_bytes(), b"diagnostic evidence")
+            self.assertFalse(marker.exists())
+
     def test_generated_grub_menu_is_inspected_with_fixture_authorization(self) -> None:
         command = run_qemu.installed_grub_menu_probe()
         self.assertIn("sudo -S grep -q", command)

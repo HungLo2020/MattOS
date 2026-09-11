@@ -26,7 +26,6 @@ check_functions = [
   'renameat2',
   'memfd_create',
   'copy_file_range',
-  'name_to_handle_at',
 ]
 conf = configuration_data()
 foreach check_function : check_functions
@@ -41,7 +40,7 @@ foreach check_function : check_functions
     #include <linux/random.h>
     #include <sys/mman.h>
 
-    void func (void) {
+    int func (void) {
       (void) ''' + check_function + ''';
     }
     ''',
@@ -50,16 +49,6 @@ foreach check_function : check_functions
   )
   conf.set10('HAVE_DECL_' + check_function.underscorify().to_upper(), have_it)
 endforeach
-
-check_functions = [
-  'close_range',
-]
-foreach check_function : check_functions
-  if cc.has_function(check_function)
-    conf.set('HAVE_' + check_function.underscorify().to_upper(), 1)
-  endif
-endforeach
-
 config_h = configure_file(
   output : 'libglnx-config.h',
   configuration : conf,
@@ -77,8 +66,6 @@ libglnx_sources = [
   'glnx-backport-testutils.h',
   'glnx-backports.c',
   'glnx-backports.h',
-  'glnx-chase.c',
-  'glnx-chase.h',
   'glnx-console.c',
   'glnx-console.h',
   'glnx-dirfd.c',
@@ -111,9 +98,6 @@ libglnx_dep = declare_dependency(
   dependencies : libglnx_deps,
   include_directories : libglnx_inc,
   link_with : libglnx)
-if meson.version().version_compare('>= 0.54.0')
-  meson.override_dependency('libglnx', libglnx_dep)
-endif
 
 subdir('tests')
 

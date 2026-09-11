@@ -531,14 +531,17 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             "src/system/libraries/libdrm/README.rst",
             "libdrm2",
         )?,
-        "libdrm-amdgpu1" => stage_imported_soname_library(
+        "libdrm-amdgpu1" => {
+            stage_imported_soname_library(
             repo_root,
             &staging,
             "libdrm",
             "libdrm_amdgpu.so.1",
             "src/system/libraries/libdrm/README.rst",
             "libdrm-amdgpu1",
-        )?,
+            )?;
+            stage_amdgpu_ids(&component_install(repo_root, "libdrm"), &staging)?;
+        },
         "libdrm-nouveau2" => stage_imported_soname_library(
             repo_root,
             &staging,
@@ -1860,8 +1863,8 @@ fn stage_apt(repo_root: &Path, staging: &Path) -> Result<()> {
             &staging.join("usr/share/keyrings").join(name),
         )?;
     }
-    let resources = repo_root.join("src/system/packages/apt/resources");
-    for unit in ["mattos-apt-daily.service", "mattos-apt-daily.timer"] {
+    let resources = repo_root.join("src/system/packages/config/apt/units");
+    for unit in ["mattos-apt-daily.service", "mattos-apt-daily.timer", "mattos-apt-bootstrap.service", "mattos-apt-bootstrap.timer"] {
         copy_preserving(
             &resources.join(unit),
             &staging.join("usr/lib/systemd/system").join(unit),
@@ -2084,7 +2087,7 @@ pub(crate) fn stage_flatpak(repo_root: &Path, staging: &Path) -> Result<()> {
     // Seed only the configured remote. Optional applications are installed
     // into the target later by the installer and are never package payload.
     stage_flatpak_system_remote(
-        &repo_root.join("src/system/packages/flatpak/resources/flathub.flatpakrepo"),
+        &repo_root.join("src/system/packages/config/flatpak/flathub.flatpakrepo"),
         staging,
     )?;
     for component in [
@@ -2123,10 +2126,10 @@ pub(crate) fn stage_flatpak(repo_root: &Path, staging: &Path) -> Result<()> {
     // imports this descriptor for both system and user installations without
     // any first-run shell setup or application-specific override policy.
     copy_preserving(
-        &repo_root.join("src/system/packages/flatpak/resources/flathub.flatpakrepo"),
+        &repo_root.join("src/system/packages/config/flatpak/flathub.flatpakrepo"),
         &staging.join("usr/share/flatpak/remotes.d/flathub.flatpakrepo"),
     )?;
-    let resources = repo_root.join("src/system/packages/flatpak/resources");
+    let resources = repo_root.join("src/system/packages/config/flatpak");
     for unit in [
         "mattos-flatpak-system-update.service",
         "mattos-flatpak-system-update.timer",
@@ -2304,6 +2307,35 @@ pub(crate) fn stage_xdg_desktop_portal(repo_root: &Path, staging: &Path) -> Resu
         copy_component_usr_and_etc(repo_root, staging, component)?;
     }
     Ok(())
+}
+
+fn stage_amdgpu_ids(install: &Path, staging: &Path) -> Result<()> {
+    let relative = "usr/share/libdrm/amdgpu.ids";
+    let source = install.join(relative);
+    if fs::metadata(&source)?.len() == 0 {
+        bail!("libdrm AMD device database is empty: {}", source.display());
+    }
+    copy_preserving(&source, &staging.join(relative))
+}
+
+#[cfg(test)]
+mod desktop_data_tests {
+    use super::*;
+
+    #[test]
+    fn amd_database_is_required_and_staged_byte_for_byte() {
+        let source = tempfile::tempdir().unwrap();
+        let target = tempfile::tempdir().unwrap();
+        assert!(stage_amdgpu_ids(source.path(), target.path()).is_err());
+        let relative = "usr/share/libdrm/amdgpu.ids";
+        let file = source.path().join(relative);
+        fs::create_dir_all(file.parent().unwrap()).unwrap();
+        fs::write(&file, "").unwrap();
+        assert!(stage_amdgpu_ids(source.path(), target.path()).is_err());
+        fs::write(&file, "# AMD device names\n164E, C1, AMD Radeon Graphics\n").unwrap();
+        stage_amdgpu_ids(source.path(), target.path()).unwrap();
+        assert_eq!(fs::read(file).unwrap(), fs::read(target.path().join(relative)).unwrap());
+    }
 }
 
 fn stage_cosmic_desktop(repo_root: &Path, staging: &Path) -> Result<()> {

@@ -1,2 +1,4 @@
 * linguist-vendored=false
 * linguist-generated=false
+# Preserve the pinned upstream blob, including its whitespace-only line.
+src/system/packages/ostree/libglnx/glnx-xattrs.c -whitespace

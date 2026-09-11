@@ -31,7 +31,6 @@ G_BEGIN_DECLS
 #include <glnx-backport-autocleanups.h>
 #include <glnx-backport-testutils.h>
 #include <glnx-backports.h>
-#include <glnx-chase.h>
 #include <glnx-lockfile.h>
 #include <glnx-errors.h>
 #include <glnx-dirfd.h>

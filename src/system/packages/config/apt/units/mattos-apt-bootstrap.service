@@ -1,0 +1,13 @@
+[Unit]
+Description=Initialize MattOS package indexes (routine refreshes remain randomized)
+Wants=network-online.target
+After=network-online.target
+ConditionPathExists=!/var/lib/mattos/apt/initialized
+
+[Service]
+Type=oneshot
+StateDirectory=mattos/apt
+ExecStart=/usr/bin/apt-get -o APT::Update::Error-Mode=any -o Acquire::Retries=0 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 update
+ExecStartPost=/usr/bin/touch /var/lib/mattos/apt/initialized
+TimeoutStartSec=120
+# No automatic restart: offline boots remain usable and retry next boot.
