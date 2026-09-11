@@ -109,6 +109,8 @@ See `docs/SESSIONS.md` for pam_systemd, logind sessions, runtime directories, pe
 
 See `docs/PACKAGING.md` for `.deb` construction, the local MattOS APT repository, imported dpkg/APT builds, and hybrid rootfs assembly.
 
+Use `python3 DevUtils/VendoredPackageStatus.py` for a read-only joined report of each vendored component's upstream branch tip, MattOS source pin/provenance state, locally built package versions, and hosted repository versions. Add `--component NAME --verbose` for an individual package-family report.
+
 See `docs/DEBIAN_COMPATIBILITY.md` for the Debian 13 `amd64` contract, package-name mapping, protected-package policy, validation results, and known gaps. See `docs/SELF_HOSTING_DEVELOPMENT.md` for the pinned CPython, LLVM/Clang/LLD, and Rust/Cargo development foundation. See `docs/REMOTE_REPOSITORY.md` for the read-only LinuxScripts publisher integration; the build itself never publishes, while `DevUtils/PublishPackages.py` performs explicit uploads.
 
 ## Build stages
