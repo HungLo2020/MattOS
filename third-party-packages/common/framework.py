@@ -28,6 +28,8 @@ from urllib.request import Request, urlopen
 
 VALID_REPOSITORIES = frozenset(("mattos", "mattpackages"))
 PUBLISHER_RELATIVE = Path("src/infrastructure/LinuxScripts/GenericScripts/ManageMattOSRepository.py")
+CONTAINERFILE_RELATIVE = Path("third-party-packages/Containerfile")
+CONTAINER_IMAGE = "localhost/mattos-third-party-builder:1"
 
 
 class RecipeError(RuntimeError):
@@ -60,6 +62,9 @@ class PackageRecipe:
 
     def build(self, workspace: Path, version: str, provenance: dict[str, str]) -> BuildResult:
         raise NotImplementedError
+
+    def preflight(self, root: Path) -> None:
+        """Reject a recipe whose declared target closure is not available."""
 
     def dependency_names(self) -> Sequence[str]:
         return self.depends
@@ -256,7 +261,7 @@ def github_source_archive(owner: str, repository: str, release_tag: str) -> str:
 def cmake_build_install(source: Path, build: Path, staging: Path,
                         *, options: Sequence[str] = ()) -> None:
     """Configure, build, and DESTDIR-install a conventional CMake project."""
-    require_tools(["cmake", "make", "cc"])
+    require_tools(["cmake", "make", "cc", "c++"])
     command([
         "cmake", "-S", str(source), "-B", str(build),
         "-DCMAKE_BUILD_TYPE=Release", "-DCMAKE_INSTALL_PREFIX=/usr", *options,
@@ -264,6 +269,119 @@ def cmake_build_install(source: Path, build: Path, staging: Path,
     command(["cmake", "--build", str(build), "--parallel"])
     env = {**os.environ, "DESTDIR": str(staging)}
     command(["cmake", "--install", str(build)], env=env)
+
+
+def autotools_build_install(source: Path, build: Path, staging: Path,
+                            *, options: Sequence[str] = ()) -> None:
+    """Build and DESTDIR-install a conventional Autotools release archive."""
+    require_tools(["make", "cc", "c++", "sh"])
+    configure = source / "configure"
+    if not configure.is_file():
+        require_tools(["autoreconf"])
+        command(["autoreconf", "--install", "--force"], cwd=source)
+    build.mkdir(parents=True, exist_ok=True)
+    command([
+        str(configure), "--prefix=/usr", "--disable-dependency-tracking", *options,
+    ], cwd=build)
+    command(["make", "-j", str(os.cpu_count() or 1)], cwd=build)
+    command(["make", f"DESTDIR={staging}", "install"], cwd=build)
+
+
+def container_engine() -> str:
+    """Return the explicitly selected or first available rootless engine."""
+    selected = os.environ.get("MATTOS_THIRD_PARTY_CONTAINER_ENGINE")
+    if selected:
+        if shutil.which(selected) is None:
+            raise RecipeError(f"requested container engine is unavailable: {selected}")
+        return selected
+    for candidate in ("podman", "docker"):
+        if shutil.which(candidate):
+            return candidate
+    raise RecipeError(
+        "third-party builds require Podman or Docker; install one or set "
+        "MATTOS_THIRD_PARTY_CONTAINER_ENGINE"
+    )
+
+
+def ensure_builder_image(root: Path, engine: str) -> None:
+    containerfile = root / CONTAINERFILE_RELATIVE
+    if not containerfile.is_file():
+        raise RecipeError(f"third-party builder definition is missing: {containerfile}")
+    command([
+        engine, "build", "--tag", CONTAINER_IMAGE, "--file", str(containerfile), str(containerfile.parent),
+    ], cwd=root)
+
+
+def _container_workspace(root: Path, workspace: Path) -> str:
+    relative = workspace.resolve().relative_to(root.resolve())
+    return "/workspace/" + relative.as_posix()
+
+
+def build_in_container(root: Path, recipe: PackageRecipe, script: Path, workspace: Path,
+                       version: str, provenance: dict[str, str]) -> BuildResult:
+    """Run recipe payload assembly in the pinned local builder image.
+
+    The host performs repository lookup and publishing.  The container only
+    receives source/build workspace access, so repository credentials never
+    enter the build environment.
+    """
+    engine = container_engine()
+    ensure_builder_image(root, engine)
+    request = workspace / "container-request.json"
+    request.write_text(json.dumps({"version": version, "provenance": provenance}, sort_keys=True), encoding="utf-8")
+    relative_script = script.resolve().relative_to(root.resolve())
+    container_workspace = _container_workspace(root, workspace)
+    # Rootless Podman's container root maps to the calling host user. Docker
+    # needs an explicit UID/GID to avoid leaving root-owned temporary files.
+    user_args: list[str] = []
+    if Path(engine).name != "podman":
+        user_args = ["--user", f"{os.getuid()}:{os.getgid()}"]
+    args = [
+        engine, "run", "--rm", *user_args,
+        "--volume", f"{root.resolve()}:/workspace:rw", "--workdir", "/workspace",
+        CONTAINER_IMAGE, "python3", f"/workspace/{relative_script.as_posix()}",
+        "__container-build", "--workspace", container_workspace,
+        "--request", f"{container_workspace}/container-request.json",
+    ]
+    command(args, cwd=root)
+    result_path = workspace / "container-result.json"
+    try:
+        data = json.loads(result_path.read_text(encoding="utf-8"))
+        artifact = (workspace / str(data["artifact"])).resolve()
+    except (OSError, KeyError, TypeError, json.JSONDecodeError) as exc:
+        raise RecipeError("container build completed without a valid result manifest") from exc
+    if not artifact.is_relative_to(workspace.resolve()) or not artifact.is_file():
+        raise RecipeError("container build returned an invalid package artifact path")
+    return BuildResult(recipe.name, version, recipe.architecture, artifact, provenance)
+
+
+def validate_package_artifact(recipe: PackageRecipe, result: BuildResult) -> None:
+    """Fail closed on a malformed or mismatched package before persistence/upload."""
+    require_tools(["dpkg-deb"])
+    fields = command([
+        "dpkg-deb", "--show", "--showformat=${Package}\\n${Version}\\n${Architecture}\\n",
+        str(result.artifact),
+    ]).splitlines()
+    expected = [recipe.name, result.version, recipe.architecture]
+    if fields != expected:
+        raise RecipeError(f"built package metadata mismatch: expected {expected}, got {fields}")
+    contents = command(["dpkg-deb", "--contents", str(result.artifact)])
+    provenance_path = f"./usr/share/mattos/third-party/{recipe.name}/provenance.json"
+    if provenance_path not in contents:
+        raise RecipeError(f"built package omitted package-scoped provenance: {provenance_path}")
+
+
+def _write_container_result(recipe: PackageRecipe, workspace: Path,
+                            version: str, provenance: dict[str, str]) -> int:
+    result = recipe.build(workspace, version, provenance)
+    artifact = result.artifact.resolve()
+    if not artifact.is_relative_to(workspace.resolve()):
+        raise RecipeError("recipe artifact must remain inside its disposable workspace")
+    (workspace / "container-result.json").write_text(
+        json.dumps({"artifact": artifact.relative_to(workspace.resolve()).as_posix()}, sort_keys=True),
+        encoding="utf-8",
+    )
+    return 0
 
 
 def repository_versions(root: Path, package: str, repository: str) -> list[str]:
@@ -293,10 +411,23 @@ def publish(root: Path, artifact: Path, *, repository: str, dry_run: bool) -> No
 
 def run_recipe(recipe: PackageRecipe, argv: Sequence[str], script: Path) -> int:
     parser = argparse.ArgumentParser(description=f"Maintain the MattOS {recipe.name} package")
-    parser.add_argument("command", nargs="?", choices=("check", "build", "publish", "update"), default="check")
+    parser.add_argument("command", nargs="?", choices=("check", "build", "publish", "update", "__container-build"), default="check")
     parser.add_argument("--dry-run", action="store_true", help="validate publication without uploading")
     parser.add_argument("--output", type=Path, help="local output directory for the .deb")
+    parser.add_argument("--workspace", type=Path, help=argparse.SUPPRESS)
+    parser.add_argument("--request", type=Path, help=argparse.SUPPRESS)
+    parser.add_argument("--result-json", type=Path, help=argparse.SUPPRESS)
     args = parser.parse_args(list(argv))
+    if args.command == "__container-build":
+        if not args.workspace or not args.request:
+            raise RecipeError("container build requires --workspace and --request")
+        try:
+            request = json.loads(args.request.read_text(encoding="utf-8"))
+            version = str(request["version"])
+            provenance = dict(request["provenance"])
+        except (OSError, KeyError, TypeError, json.JSONDecodeError) as exc:
+            raise RecipeError(f"container build request is invalid ({args.request}): {exc}") from exc
+        return _write_container_result(recipe, args.workspace, version, provenance)
     root = repo_root(script)
     repository = validate_repository(recipe)
     print(f"[{recipe.name}] mode: {args.command}", flush=True)
@@ -324,9 +455,13 @@ def run_recipe(recipe: PackageRecipe, argv: Sequence[str], script: Path) -> int:
         print(f"[{recipe.name}] upstream version: {version}", flush=True)
         print(f"[{recipe.name}] published versions in {repository}: {published}", flush=True)
         print(f"[{recipe.name}] check complete; no build or upload performed", flush=True)
+        if args.result_json:
+            args.result_json.write_text(json.dumps({"status": "checked", "package": recipe.name, "version": version}) + "\n", encoding="utf-8")
         return 0
-    if args.command in ("update", "publish") and version in existing:
+    if args.command == "update" and version in existing:
         print(f"[{recipe.name}] version {version} is already published in {repository}; no build or upload needed", flush=True)
+        if args.result_json:
+            args.result_json.write_text(json.dumps({"status": "up-to-date", "package": recipe.name, "version": version}) + "\n", encoding="utf-8")
         return 0
     print(f"[{recipe.name}] upstream version selected: {version}", flush=True)
     if args.command == "build":
@@ -337,13 +472,15 @@ def run_recipe(recipe: PackageRecipe, argv: Sequence[str], script: Path) -> int:
     if args.command == "build":
         output.mkdir(parents=True, exist_ok=True)
     try:
+        recipe.preflight(root)
         (root / "out/tmp").mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix=f"mattos-{recipe.name}-", dir=root / "out/tmp") as temporary:
             workspace = Path(temporary).resolve()
-            result = recipe.build(workspace, version, provenance)
+            result = build_in_container(root, recipe, script, workspace, version, provenance)
             artifact = result.artifact.resolve()
             if not artifact.is_relative_to(workspace):
                 raise RecipeError("recipe artifact must remain inside its disposable workspace")
+            validate_package_artifact(recipe, result)
             print(f"[{recipe.name}] package built: {result.artifact.name}", flush=True)
             print(f"[{recipe.name}] artifact SHA-256: {sha256_file(result.artifact)}", flush=True)
             if args.command in ("publish", "update"):
@@ -356,4 +493,7 @@ def run_recipe(recipe: PackageRecipe, argv: Sequence[str], script: Path) -> int:
                 print(f"[{recipe.name}] local artifact saved: {destination}", flush=True)
     except FileNotFoundError as exc:
         raise RecipeError(f"out/tmp is required and the tool is missing: {exc}") from exc
+    if args.result_json:
+        status = "built" if args.command == "build" else ("dry-run" if args.dry_run else "uploaded")
+        args.result_json.write_text(json.dumps({"status": status, "package": recipe.name, "version": version}) + "\n", encoding="utf-8")
     return 0

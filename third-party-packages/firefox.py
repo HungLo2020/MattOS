@@ -41,6 +41,17 @@ class FirefoxRecipe(PackageRecipe):
             raise RecipeError("Mozilla API did not return a stable Firefox version")
         return version, {"upstream": "https://ftp.mozilla.org/pub/firefox/releases", "release_api": VERSION_API, "channel": "stable", "signing_key_fingerprint": MOZILLA_FINGERPRINT}
 
+    def preflight(self, root: Path) -> None:
+        """Do not publish a browser whose native MattOS runtime is absent."""
+        packages = root / "out/packages/amd64"
+        available = {artifact.name.split("_", 1)[0] for artifact in packages.glob("*.deb")}
+        missing = [dependency for dependency in self.depends if dependency not in available]
+        if missing:
+            raise RecipeError(
+                "Firefox native runtime closure is not yet available in MattOS; "
+                "missing package(s): " + ", ".join(missing)
+            )
+
     def build(self, workspace: Path, version: str, provenance: dict[str, str]) -> BuildResult:
         require_tools(["gpg", "gpgv", "sha512sum"])
         root = RELEASE_ROOT.format(version=version)

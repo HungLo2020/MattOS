@@ -1,0 +1,20 @@
+# Deliberately small, reproducible builder for independent native packages.
+# Repository credentials and publication stay on the host; this image only
+# downloads, verifies, compiles, stages, and creates a .deb in a disposable
+# workspace mounted by the framework.
+# Debian trixie-slim, pinned after verification with Podman's manifest digest.
+FROM docker.io/library/debian@sha256:abc9cb88a5587630d7f915f47b23b0668fe250fbfc6457aa4d52b534c1bbf73f
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LC_ALL=C.UTF-8 \
+    TZ=UTC
+
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends \
+        autoconf automake build-essential ca-certificates cmake dpkg-dev file \
+        gpg gpgv libacl1-dev libattr1-dev libcap-dev libncursesw5-dev \
+        libnl-3-dev libnl-genl-3-dev libsystemd-dev libtool make pkg-config \
+        python3 xz-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace

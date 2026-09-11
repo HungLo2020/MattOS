@@ -3,9 +3,11 @@
 This directory contains independently maintained package recipes. They are
 not `BuildStage`s and are never fetched or built by a normal MattOS ISO build.
 Each recipe downloads source or an upstream binary into a disposable
-`out/tmp/mattos-*` directory, verifies what the upstream publishes, creates a
-native `.deb`, and can upload it through the existing vendored
-`ManageMattOSRepository.py` client.
+`out/tmp/mattos-*` directory inside the local `Containerfile` builder image,
+verifies what the upstream publishes, creates a native `.deb`, and can upload
+it through the existing vendored `ManageMattOSRepository.py` client. The
+container never receives repository credentials: repository lookup and upload
+remain host-side after the artifact has passed Debian metadata validation.
 
 ## Commands
 
@@ -16,6 +18,8 @@ python3 third-party-packages/fastfetch.py check
 python3 third-party-packages/fastfetch.py build
 python3 third-party-packages/firefox.py update
 python3 third-party-packages/firefox.py publish --dry-run
+python3 DevUtils/BuildAndUploadThirdPartyPackages.py
+python3 DevUtils/BuildAndUploadThirdPartyPackages.py --dry-run --recipe htop
 ```
 
 With no command, a recipe performs the read-only `check` operation. `check`
@@ -28,11 +32,10 @@ and publishes the new package. `publish` performs the same lifecycle without
 the version-skip policy. `--dry-run` passes through to the repository client,
 but tests should mock it; no real upload is performed by the package tests.
 
-All `check`, `update`, and `publish` operations invoke
-`ManageMattOSRepository.py --repo mattos`. The repository selection is a
-framework invariant; recipes cannot select `mattpackages`. Update and publish
-workspaces are disposable even when a download, build, validation, or upload
-fails. A local build is also disposable except for its final `.deb`.
+All `check`, `update`, and `publish` operations invoke the repository declared
+by the recipe as `ManageMattOSRepository.py --repo <repository>`. Update and
+publish workspaces are disposable even when a download, build, validation, or
+upload fails. A local build is also disposable except for its final `.deb`.
 
 Recipes keep package-specific release URLs, build/install policy, and unusual
 verification rules small. `PackageRecipe` owns ordinary Debian metadata;
@@ -79,3 +82,18 @@ fixtures and mocked publisher/build functions; this suite never uploads.
 Use `mattos` for packages intended for the MattOS distribution. Select
 `mattpackages` only for a package intentionally maintained in that separate
 repository; the framework accepts no other value and never silently defaults.
+
+## Builder image and bulk updates
+
+`third-party-packages/Containerfile` is the canonical, rootless-compatible
+build environment for every recipe. The framework builds or reuses its local
+image through Podman (preferred) or Docker; set
+`MATTOS_THIRD_PARTY_CONTAINER_ENGINE` only to explicitly choose one. A recipe
+does not need to implement container handling.
+
+`DevUtils/BuildAndUploadThirdPartyPackages.py` discovers immediate recipe
+modules, invokes each recipe's idempotent `update` lifecycle in name order,
+and prints a colored summary: **UP TO DATE**, **UPLOADED**, **DRY RUN**, or
+**FAILED**. A failure is isolated to that recipe, so an unavailable upstream
+does not hide results from the others. `--recipe NAME` restricts the run and
+`--dry-run` preserves the normal publication command without uploading.

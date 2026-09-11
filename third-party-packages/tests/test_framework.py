@@ -52,7 +52,7 @@ class FrameworkTests(unittest.TestCase):
                 framework.github_latest_release("owner", "missing")
 
     def test_real_recipe_modules_have_required_contract_metadata(self):
-        for filename in ("fastfetch.py", "firefox.py"):
+        for filename in ("btop.py", "fastfetch.py", "firefox.py", "htop.py", "rsync.py"):
             with self.subTest(filename=filename):
                 namespace = self.load_recipe(filename)
                 recipe_types = [value for value in namespace.values()
@@ -87,10 +87,11 @@ class FrameworkTests(unittest.TestCase):
                 self.assertEqual(exit_info.exception.code, 0)
 
     def test_shipped_recipes_declare_mattos(self):
-        fastfetch = runpy.run_path(str(PACKAGE_ROOT / "fastfetch.py"))["FastfetchRecipe"]
-        firefox = runpy.run_path(str(PACKAGE_ROOT / "firefox.py"))["FirefoxRecipe"]
-        self.assertEqual(framework.validate_repository(fastfetch()), "mattos")
-        self.assertEqual(framework.validate_repository(firefox()), "mattos")
+        for filename in ("btop.py", "fastfetch.py", "firefox.py", "htop.py", "rsync.py"):
+            recipe_type = next(value for value in self.load_recipe(filename).values()
+                               if isinstance(value, type) and issubclass(value, framework.PackageRecipe)
+                               and value is not framework.PackageRecipe)
+            self.assertEqual(framework.validate_repository(recipe_type()), "mattos")
 
     def test_repository_metadata_is_required_and_allowlist_is_exact(self):
         class Missing(framework.PackageRecipe):
@@ -146,6 +147,36 @@ class FrameworkTests(unittest.TestCase):
                     args.append("--dry-run")
                 args += ["--repo", repository, "upload", str(artifact)]
                 self.assertEqual(run.call_args.args[0], args)
+
+    def test_container_build_keeps_publishing_outside_and_returns_workspace_artifact(self):
+        class FixtureRecipe(framework.PackageRecipe):
+            name = "fixture"
+            repository = "mattos"
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "third-party-packages").mkdir()
+            containerfile = root / framework.CONTAINERFILE_RELATIVE
+            containerfile.parent.mkdir(parents=True, exist_ok=True)
+            containerfile.write_text("FROM scratch\n")
+            script = root / "third-party-packages/fixture.py"
+            script.write_text("# fixture\n")
+            workspace = root / "out/tmp/workspace"
+            workspace.mkdir(parents=True)
+
+            def fake_command(args, **_kwargs):
+                if args[1] == "run":
+                    (workspace / "fixture_1.0_amd64.deb").write_bytes(b"deb")
+                    (workspace / "container-result.json").write_text(json.dumps({"artifact": "fixture_1.0_amd64.deb"}))
+                return ""
+
+            with mock.patch.object(framework, "container_engine", return_value="podman"), \
+                 mock.patch.object(framework, "command", side_effect=fake_command) as invoke:
+                result = framework.build_in_container(root, FixtureRecipe(), script, workspace, "1.0", {"source": "fixture"})
+            self.assertEqual(result.artifact, workspace / "fixture_1.0_amd64.deb")
+            run_args = next(call.args[0] for call in invoke.call_args_list if call.args[0][1] == "run")
+            self.assertNotIn("upload", run_args)
+            self.assertIn("__container-build", run_args)
 
     def test_archive_traversal_is_rejected(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -220,7 +251,8 @@ class FrameworkTests(unittest.TestCase):
             (root / "upstream/sources.toml").write_text("sources = []\n")
             destination = root / "dist"
             with mock.patch.object(framework, "repo_root", return_value=root), \
-                 mock.patch.object(framework, "repository_versions", side_effect=AssertionError("build queried repository")):
+                 mock.patch.object(framework, "repository_versions", side_effect=AssertionError("build queried repository")), \
+                 mock.patch.object(framework, "build_in_container", side_effect=lambda _root, recipe, _script, workspace, version, provenance: recipe.build(workspace, version, provenance)):
                 self.assertEqual(framework.run_recipe(FixtureRecipe(), ["build", "--output", str(destination)], root / "recipe.py"), 0)
             self.assertTrue((destination / "fixture_1.0-1_amd64.deb").is_file())
             self.assertEqual(list((root / "out/tmp").iterdir()), [])
@@ -239,7 +271,8 @@ class FrameworkTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             with mock.patch.object(framework, "repo_root", return_value=root), \
-                 mock.patch.object(framework, "repository_versions", return_value=[]):
+                 mock.patch.object(framework, "repository_versions", return_value=[]), \
+                 mock.patch.object(framework, "build_in_container", side_effect=lambda _root, recipe, _script, workspace, version, provenance: recipe.build(workspace, version, provenance)):
                 self.assertEqual(framework.run_recipe(FixtureRecipe(), [], root / "recipe.py"), 0)
 
     def test_failed_update_cleans_ephemeral_workspace(self):
@@ -260,7 +293,8 @@ class FrameworkTests(unittest.TestCase):
             (root / "upstream/sources.toml").parent.mkdir(parents=True)
             (root / "upstream/sources.toml").write_text("sources = []\n")
             with mock.patch.object(framework, "repo_root", return_value=root), \
-                 mock.patch.object(framework, "repository_versions", return_value=[]):
+                 mock.patch.object(framework, "repository_versions", return_value=[]), \
+                 mock.patch.object(framework, "build_in_container", side_effect=lambda _root, recipe, _script, workspace, version, provenance: recipe.build(workspace, version, provenance)):
                 with self.assertRaises(framework.RecipeError):
                     framework.run_recipe(FailingRecipe(), ["update"], root / "recipe.py")
             self.assertEqual(list((root / "out/tmp").iterdir()), [])
@@ -287,13 +321,14 @@ class FrameworkTests(unittest.TestCase):
             (root / "upstream/sources.toml").write_text("sources = []\n")
             with mock.patch.object(framework, "repo_root", return_value=root), \
                  mock.patch.object(framework, "repository_versions", return_value=[]), \
-                 mock.patch.object(framework, "publish", side_effect=framework.RecipeError("upload failed")):
+                 mock.patch.object(framework, "publish", side_effect=framework.RecipeError("upload failed")), \
+                 mock.patch.object(framework, "build_in_container", side_effect=lambda _root, recipe, _script, workspace, version, provenance: recipe.build(workspace, version, provenance)):
                 with self.assertRaises(framework.RecipeError):
                     framework.run_recipe(FixtureRecipe(), ["publish"], root / "recipe.py")
             self.assertEqual(list((root / "out/tmp").iterdir()), [])
 
     def test_recipes_are_outside_the_core_dag(self):
-        for recipe in (ROOT / "third-party-packages/firefox.py", ROOT / "third-party-packages/fastfetch.py"):
+        for recipe in (ROOT / "third-party-packages/firefox.py", ROOT / "third-party-packages/fastfetch.py", ROOT / "third-party-packages/htop.py", ROOT / "third-party-packages/btop.py", ROOT / "third-party-packages/rsync.py"):
             text = recipe.read_text(encoding="utf-8")
             self.assertNotIn("BuildStage", text)
             self.assertIn(
