@@ -1,0 +1,30 @@
+--- a/src/plugins/qpa/integration.cpp
++++ b/src/plugins/qpa/integration.cpp
+@@ -145,13 +145,23 @@ QPlatformTheme *Integration::createPlatformTheme(const QString &name) const
+ 
+ QPlatformTheme *Integration::createPlatformTheme(const QString &name) const
+ {
+-    return QGenericUnixTheme::createUnixTheme(name);
++    if (QPlatformTheme *theme = QGenericUnixTheme::createUnixTheme(name)) {
++        return theme;
++    }
++
++    // A KDE session can advertise the KDE theme before all optional KDE
++    // theme inputs are available.  Qt assumes this factory never returns a
++    // null theme and dereferences it during QGuiApplication construction.
++    // Keep KWin usable with the generic Qt theme while retaining the KDE
++    // theme whenever it can be created.
++    qCWarning(KWIN_QPA) << "Platform theme is unavailable:" << name << "; using the generic theme";
++    return QGenericUnixTheme::createUnixTheme(QStringLiteral("generic"));
+ }
+ 
+ QStringList Integration::themeNames() const
+ {
+-    if (qEnvironmentVariableIsSet("KDE_FULL_SESSION")) {
+-        return QStringList({QStringLiteral("kde")});
+-    }
++    // KWin's QPA is the compositor's internal platform integration, not a
++    // client application.  Keep its style-hint provider independent of the
++    // optional KDE client-theme factory during shell startup.
+     return QStringList({QLatin1String(QGenericUnixTheme::name)});
+ }

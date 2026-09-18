@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: None
+# SPDX-License-Identifier: CC0-1.0
+
+[Desktop Entry]
+Type=Application
+Name=Night Time Service
+Name[ar]=خدمة وقت الليل
+Name[ca]=Servei d'hora de nit
+Name[ca@valencia]=Servei prompte de nit
+Name[cs]=Noční služba
+Name[de]=Nachtzeit-Dienst
+Name[es]=Servicio de hora nocturna
+Name[eu]=Gaueko ordu zerbitzua
+Name[fi]=Yöaikapalvelu
+Name[fr]=Service de nuit
+Name[ga]=Seirbhís an Sholais Oíche
+Name[gl]=Servizo nocturno
+Name[he]=שירות לילי
+Name[hu]=Éjszakai szolgáltatás
+Name[is]=Næturþjónusta
+Name[it]=Servizio notturno
+Name[ka]=ღამის სერვისი
+Name[ko]=야간 서비스
+Name[lt]=Nakties laiko tarnyba
+Name[lv]=Nakts laika serviss
+Name[nb]=Kveldstid-tjeneste
+Name[nl]=Nachttijdservice
+Name[nn]=Kveldstid-teneste
+Name[pl]=Usługa nocnych barw
+Name[pt_BR]=Serviço de hora noturna
+Name[ro]=Serviciu de oră nocturnă
+Name[sk]=Služba nočného času
+Name[sl]=Storitev nočnega časa
+Name[sv]=Nattjänst
+Name[ta]=இரவு நேர செவை
+Name[tr]=Gece Zamanı Hizmeti
+Name[uk]=Служба нічного часу
+Name[zh_CN]=夜间服务
+Name[zh_TW]=夜間時間服務
+Exec=@KDE_INSTALL_FULL_LIBEXECDIR@/knighttimed
+NoDisplay=true
+OnlyShowIn=KDE;
+X-systemd-skip=true

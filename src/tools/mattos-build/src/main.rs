@@ -1487,6 +1487,9 @@ include!("stages/helpers/pkgconfig.rs");
 include!("stages/helpers/autotools.rs");
 include!("stages/helpers/meson.rs");
 include!("stages/graphics.rs");
+include!("stages/qt.rs");
+include!("stages/kde_foundation.rs");
+include!("stages/plasma.rs");
 include!("stages/desktop.rs");
 include!("stages/flatpak.rs");
 include!("stages/system_services.rs");
@@ -2368,7 +2371,7 @@ mod tests {
             ["grub", "initramfs", "linux", "live-root"]
         );
 
-        let durations = BTreeMap::from([
+        let mut durations: BTreeMap<String, f64> = BTreeMap::from([
             ("libnl", 32.0),
             ("wpa-supplicant", 42.0),
             ("grub", 180.0),
@@ -2505,6 +2508,56 @@ mod tests {
             ("procps-ng", 29.727),
             ("cpython", 180.000),
             ("rootfs", 107.053),
+            ("qtbase", 2_500.000),
+            ("qtlocation", 300.000),
+            ("qttools", 300.000),
+            ("kconfigwidgets", 90.000),
+            ("kcolorscheme", 90.000),
+            ("kwindowsystem", 90.000),
+            ("kguiaddons", 90.000),
+            ("kiconthemes", 90.000),
+            ("kirigami", 120.000),
+            ("kdecoration", 90.000),
+            ("kcmutils", 90.000),
+            ("kxmlgui", 90.000),
+            ("kglobalaccel", 90.000),
+            ("karchive", 90.000),
+            ("kwayland", 90.000),
+            ("breeze-icons", 90.000),
+            ("kbookmarks", 90.000),
+            ("kcompletion", 90.000),
+            ("kitemviews", 90.000),
+            ("kitemmodels", 90.000),
+            ("kjobwidgets", 90.000),
+            ("kservice", 90.000),
+            ("kparts", 90.000),
+            ("solid", 90.000),
+            ("kded", 90.000),
+            ("plasma-framework", 120.000),
+            ("plasma-activities", 90.000),
+            ("plasma-activities-stats", 90.000),
+            ("kwin", 300.000),
+            ("ksysguard", 90.000),
+            ("plasma-workspace", 300.000),
+            ("plasma-desktop", 300.000),
+            ("breeze", 90.000),
+            ("qtsvg", 90.000),
+            ("qtwayland", 300.000),
+            ("qtpositioning", 300.000),
+            ("qtdeclarative", 1_000.000),
+            ("qt5compat", 120.000),
+            ("qtshadertools", 120.000),
+            ("kcoreaddons", 90.000),
+            ("kconfig", 90.000),
+            ("kdbusaddons", 90.000),
+            ("kauth", 90.000),
+            ("ki18n", 90.000),
+            ("kwidgetsaddons", 90.000),
+            ("polkit-qt-1", 60.000),
+            ("yaml-cpp", 30.000),
+            ("kpmcore", 120.000),
+            ("qtsvg", 90.000),
+            ("qtwayland", 300.000),
             ("rust", 1_800.000),
             ("seatd", 20.000),
             ("sed", 53.006),
@@ -2524,6 +2577,13 @@ mod tests {
         .into_iter()
         .map(|(stage, duration)| (stage.to_string(), duration))
         .collect();
+        // Keep this behavioral scheduler smoke test resilient as the explicit
+        // production graph grows: newly added stages get a conservative
+        // synthetic duration, while the measured entries above retain their
+        // historical estimates.
+        for node in &nodes {
+            durations.entry(node.id.clone()).or_insert(60.0);
+        }
         let report = scheduler::simulate(&nodes, &durations, budget).unwrap();
         println!(
             "successful cold simulation: serial={:.3}s scheduled={:.3}s critical={:.3}s",
@@ -3925,17 +3985,30 @@ mod tests {
         assert!(cli.contains("Requires=multi-user.target"));
         assert!(!cli.contains("graphical.target"));
 
-        let live_greetd = include_str!("../../../system/profiles/live/etc/greetd/cosmic-live.toml");
+        let live_greetd = include_str!("../../../system/session/plasma/plasma-live.toml");
         assert!(live_greetd.contains("[initial_session]"));
-        assert!(live_greetd.contains("command = \"/usr/bin/start-cosmic\""));
+        assert!(live_greetd.contains("command = \"/usr/bin/start-plasma\""));
         assert!(live_greetd.contains("user = \"mattos\""));
         let live_override = include_str!(
-            "../../../system/profiles/live/etc/systemd/system/cosmic-greeter.service.d/live.conf"
+            "../../../system/profiles/live/etc/systemd/system/plasma-greeter.service.d/live.conf"
         );
         assert!(
             live_override
-                .contains("ExecStart=/usr/bin/greetd --config /etc/greetd/cosmic-live.toml")
+                .contains("ExecStart=/usr/bin/greetd --config /etc/greetd/plasma-live.toml")
         );
+    }
+
+    #[test]
+    fn plasma_live_session_uses_the_systemd_user_bus_and_fallback_autostart() {
+        let launcher = include_str!("../../../system/session/plasma/start-plasma");
+        assert!(launcher.contains("export DBUS_SESSION_BUS_ADDRESS=\"unix:path=${XDG_RUNTIME_DIR}/bus\""));
+        assert!(launcher.contains("plasma-dbus-run-session-if-needed"));
+        assert!(launcher.contains("/usr/plugins:/usr/lib/x86_64-linux-gnu/plugins"));
+        assert!(!launcher.contains("mattos-private-session.conf"));
+
+        let staging = include_str!("packaging/staging.rs");
+        assert!(staging.contains("let autostart = install_root.join(\"etc/xdg/autostart\")"));
+        assert!(staging.contains("copy_tree_preserving(&autostart, &staging.join(\"etc/xdg/autostart\"))"));
     }
 
     #[test]

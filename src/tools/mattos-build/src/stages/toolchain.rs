@@ -143,12 +143,39 @@ fn build_kernel(repo_root: &Path) -> Result<()> {
         "KBUILD_BUILD_VERSION=1",
         "KCONFIG_NOTIMESTAMP=1",
     ];
+    // Kernel modules can retain __FILE__ paths in modinfo/debug-adjacent
+    // strings even when normal ELF debug sections are not packaged. Keep the
+    // source path deterministic and non-host-specific at compile time; this
+    // also covers compressed .ko.zst payloads that the package audit inspects.
+    //
+    // Kbuild itself adds `-fmacro-prefix-map=$(srcroot)/=` to
+    // KBUILD_CPPFLAGS for out-of-tree builds. That mapping is intentionally
+    // relative, but it is not suitable for MattOS package validation: it can
+    // leave absolute include paths in __FILE__ data when the compiler is
+    // invoked with an absolute source path. Supply the complete CPPFLAGS
+    // value on the make command line so Kbuild does not append its empty
+    // replacement map; the command-line assignment is the only generic way
+    // to replace that built-in flag without patching the vendored kernel.
+    let kernel_cppflags_map = format!(
+        "KBUILD_CPPFLAGS=-D__KERNEL__ -fmacro-prefix-map={}/=/usr/src/mattos/linux/ -I{}/arch/x86/entry/vdso/vdso64/..",
+        source.display(),
+        source.display()
+    );
+    let kernel_cflags_map = format!(
+        "KCFLAGS=-ffile-prefix-map={}=/usr/src/mattos/linux -fdebug-prefix-map={}=/usr/src/mattos/linux",
+        source.display(),
+        source.display()
+    );
     let mut olddefconfig_args = vec![output_arg.as_str(), "olddefconfig"];
     olddefconfig_args.extend(kernel_reproducible_args);
+    olddefconfig_args.push(kernel_cppflags_map.as_str());
+    olddefconfig_args.push(kernel_cflags_map.as_str());
     run_cmd_with_env(&source, "make", &olddefconfig_args, env.as_ref())?;
     validate_kernel_config_policy(&fs::read_to_string(build.join(".config"))?, &policy)?;
     let mut build_args = vec![output_arg.as_str(), "-j", "4"];
     build_args.extend(kernel_reproducible_args);
+    build_args.push(kernel_cppflags_map.as_str());
+    build_args.push(kernel_cflags_map.as_str());
     run_cmd_with_env(&source, "make", &build_args, env.as_ref()).context("kernel build failed")?;
 
     let bz = build.join("arch/x86/boot/bzImage");
@@ -169,10 +196,13 @@ fn build_kernel(repo_root: &Path) -> Result<()> {
         "DEPMOD=true",
     ];
     modules_install_args.extend(kernel_reproducible_args);
+    modules_install_args.push(kernel_cppflags_map.as_str());
+    modules_install_args.push(kernel_cflags_map.as_str());
     run_cmd_with_env(&source, "make", &modules_install_args, env.as_ref())?;
     for link in ["build", "source"] {
         remove_path_if_exists(&module_dir.join(link))?;
     }
+    normalize_kernel_module_paths(repo_root, &modules)?;
     run_cmd(
         repo_root,
         "depmod",
@@ -200,6 +230,96 @@ fn build_kernel(repo_root: &Path) -> Result<()> {
     }
     fs::write(out_root.join("kernel-release"), format!("{release}\n"))?;
     Ok(())
+}
+
+/// UBSAN records source locations in loadable modules using the compiler's
+/// absolute source names. Prefix-map options normalize ordinary debug and
+/// macro locations, but GCC deliberately keeps the original path in its UBSAN
+/// metadata. Normalize that metadata after modules_install while retaining the
+/// instrumentation and ELF layout. The replacement is deliberately the same
+/// byte length as the checkout prefix, so offsets, relocations, and module
+/// behavior are unchanged; the extra slashes are harmless in diagnostic paths.
+fn normalize_kernel_module_paths(repo_root: &Path, modules: &Path) -> Result<()> {
+    let checkout_prefix = repo_root.to_string_lossy().into_owned();
+    let stable_prefix = "/usr/src/mattos";
+    if stable_prefix.len() > checkout_prefix.len() {
+        bail!(
+            "stable kernel source prefix is longer than checkout prefix: {} > {}",
+            stable_prefix.len(),
+            checkout_prefix.len()
+        );
+    }
+    let replacement = {
+        let mut value = stable_prefix.as_bytes().to_vec();
+        value.resize(checkout_prefix.len(), b'/');
+        value
+    };
+    let old = checkout_prefix.as_bytes();
+    let mut files = Vec::new();
+    collect_regular_files(modules, &mut files)?;
+    let mut normalized = 0usize;
+    for (index, path) in files.into_iter().enumerate() {
+        let extension = path.extension().and_then(OsStr::to_str);
+        if !matches!(extension, Some("ko") | Some("zst")) {
+            continue;
+        }
+        let mut payload = if extension == Some("zst") {
+            let output = Command::new("zstd")
+                .args(["--quiet", "--decompress", "--stdout"])
+                .arg(&path)
+                .output()
+                .with_context(|| format!("decompress kernel module {}", path.display()))?;
+            if !output.status.success() {
+                bail!("could not decompress kernel module {}", path.display());
+            }
+            output.stdout
+        } else {
+            fs::read(&path)?
+        };
+        if !replace_fixed_length_prefixes(&mut payload, old, &replacement) {
+            continue;
+        }
+        if extension == Some("zst") {
+            let raw_path = repo_root
+                .join("out/tmp")
+                .join(format!(".mattos-kernel-normalize-{}-{index}.raw", std::process::id()));
+            fs::create_dir_all(raw_path.parent().expect("temporary file has a parent"))?;
+            fs::write(&raw_path, &payload)?;
+            let child = Command::new("zstd")
+                .args(["--quiet", "--compress", "--stdout"])
+                .stdout(Stdio::piped())
+                .arg(&raw_path)
+                .spawn()
+                .with_context(|| format!("recompress kernel module {}", path.display()))?;
+            let output = child.wait_with_output()?;
+            remove_path_if_exists(&raw_path)?;
+            if !output.status.success() {
+                bail!("could not recompress kernel module {}", path.display());
+            }
+            fs::write(&path, output.stdout)?;
+        } else {
+            fs::write(&path, payload)?;
+        }
+        normalized += 1;
+    }
+    if normalized > 0 {
+        println!("normalized host source paths in {normalized} kernel module payload(s)");
+    }
+    Ok(())
+}
+
+fn replace_fixed_length_prefixes(bytes: &mut [u8], old: &[u8], replacement: &[u8]) -> bool {
+    if old.is_empty() || old.len() != replacement.len() || bytes.len() < old.len() {
+        return false;
+    }
+    let mut changed = false;
+    for offset in 0..=bytes.len() - old.len() {
+        if &bytes[offset..offset + old.len()] == old {
+            bytes[offset..offset + old.len()].copy_from_slice(replacement);
+            changed = true;
+        }
+    }
+    changed
 }
 
 const GLIBC_MINIMUM_KERNEL: &str = "5.10.0";
@@ -605,7 +725,6 @@ fn build_gcc_runtime(repo_root: &Path) -> Result<()> {
         "--disable-libsanitizer",
         "--disable-libssp",
         "--disable-libquadmath",
-        "--disable-libgomp",
         "--disable-libatomic",
         "--disable-libvtv",
         "--disable-libcc1",
@@ -631,7 +750,7 @@ fn build_gcc_runtime(repo_root: &Path) -> Result<()> {
     fs::write(
         output.join("configure-invocation.txt"),
         format!(
-            "SOURCE_DATE_EPOCH={} LC_ALL=C TZ=UTC CFLAGS_FOR_TARGET='{}' CXXFLAGS_FOR_TARGET='{}' LDFLAGS_FOR_TARGET='-Wl,-z,relro -Wl,-z,now' {} {}\nmake all-target-libgcc all-target-libstdc++-v3\nmake DESTDIR={} install-target-libgcc install-target-libstdc++-v3\n",
+            "SOURCE_DATE_EPOCH={} LC_ALL=C TZ=UTC CFLAGS_FOR_TARGET='{}' CXXFLAGS_FOR_TARGET='{}' LDFLAGS_FOR_TARGET='-Wl,-z,relro -Wl,-z,now' {} {}\nmake all-target-libgcc all-target-libstdc++-v3 all-target-libgomp\nmake DESTDIR={} install-target-libgcc install-target-libstdc++-v3 install-target-libgomp\n",
             MATTOS_SOURCE_DATE_EPOCH,
             env[3].1,
             env[4].1,
@@ -645,7 +764,7 @@ fn build_gcc_runtime(repo_root: &Path) -> Result<()> {
     run_gcc_bootstrap_command(
         &build,
         Path::new("make"),
-        &["all-target-libgcc", "all-target-libstdc++-v3"],
+        &["all-target-libgcc", "all-target-libstdc++-v3", "all-target-libgomp"],
         &env,
     )
     .context("GCC runtime build failed")?;
@@ -657,6 +776,7 @@ fn build_gcc_runtime(repo_root: &Path) -> Result<()> {
             destdir.as_str(),
             "install-target-libgcc",
             "install-target-libstdc++-v3",
+            "install-target-libgomp",
         ],
         &env,
     )
@@ -664,8 +784,12 @@ fn build_gcc_runtime(repo_root: &Path) -> Result<()> {
 
     let libgcc = find_unique_file_named(&raw_install, "libgcc_s.so.1")?;
     let libstdcxx = find_unique_file_named(&raw_install, GCC_RUNTIME_LIBSTDCXX_ABI)?;
+    // The install tree also contains the SONAME symlink; select the real
+    // versioned ELF so the staging layer can own the payload deterministically.
+    let libgomp = find_unique_file_named(&raw_install, "libgomp.so.1.0.0")?;
     fs::copy(&libgcc, runtime.join("libgcc_s.so.1"))?;
     fs::copy(&libstdcxx, runtime.join(GCC_RUNTIME_LIBSTDCXX_ABI))?;
+    fs::copy(&libgomp, runtime.join("libgomp.so.1"))?;
     std::os::unix::fs::symlink(GCC_RUNTIME_LIBSTDCXX_ABI, runtime.join("libstdc++.so.6"))?;
 
     let libgcc_needed = elf_needed_names(&runtime.join("libgcc_s.so.1"))?;
@@ -1582,4 +1706,3 @@ fn assert_kernel_build_path_safe(repo_root: &Path) -> Result<()> {
     }
     Ok(())
 }
-

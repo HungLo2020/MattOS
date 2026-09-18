@@ -1,0 +1,118 @@
+# SPDX-FileCopyrightText: KDE Contributors
+# SPDX-License-Identifier: BSD-2-Clause
+
+add_library(KF6Runner SHARED)
+add_library(KF6::Runner ALIAS KF6Runner)
+
+set_target_properties(KF6Runner PROPERTIES
+    VERSION     ${KRUNNER_VERSION}
+    SOVERSION   ${KRUNNER_SOVERSION}
+    EXPORT_NAME Runner
+)
+
+target_sources(KF6Runner PRIVATE
+    abstractrunner.cpp
+    abstractrunner.h
+    abstractrunnertest.h
+    dbusrunner.cpp
+    dbusrunner_p.h
+    dbusutils_p.h
+    querymatch.cpp
+    querymatch.h
+    runnercontext.cpp
+    runnercontext.h
+    runnermanager.cpp
+    runnermanager.h
+    runnersyntax.cpp
+    runnersyntax.h
+    action.h
+    action.cpp
+
+    model/runnerresultsmodel.cpp
+    model/runnerresultsmodel_p.h
+    model/resultsmodel.cpp
+    model/resultsmodel.h
+)
+ecm_qt_declare_logging_category(KF6Runner
+    HEADER krunner_debug.h
+    IDENTIFIER KRUNNER
+    CATEGORY_NAME kf.runner
+    OLD_CATEGORY_NAMES org.kde.krunner
+    DESCRIPTION "KRunner"
+    EXPORT KRUNNER
+)
+set_property(SOURCE "data/org.kde.krunner1.xml" PROPERTY INCLUDE dbusutils_p.h)
+
+ecm_generate_export_header(KF6Runner
+    BASE_NAME KRunner
+    GROUP_BASE_NAME KF
+    VERSION ${KF_VERSION}
+    USE_VERSION_HEADER
+    DEPRECATED_BASE_VERSION 0
+    DEPRECATION_VERSIONS
+    EXCLUDE_DEPRECATED_BEFORE_AND_AT ${EXCLUDE_DEPRECATED_BEFORE_AND_AT}
+)
+
+target_include_directories(KF6Runner INTERFACE "$<INSTALL_INTERFACE:${KDE_INSTALL_INCLUDEDIR_KF}/KRunner>")
+
+target_link_libraries(KF6Runner
+    PUBLIC
+        Qt6::Core
+        KF6::CoreAddons # KPluginFactory
+        KF6::ConfigCore
+    PRIVATE
+        Qt6::DBus
+        Qt6::Gui
+        KF6::ConfigCore
+        KF6::I18n
+        KF6::ItemModels
+        KF6::WindowSystem
+)
+ecm_generate_headers(KRunner_CamelCase_HEADERS
+  HEADER_NAMES
+    AbstractRunner
+    Action
+    RunnerContext
+    RunnerManager
+    RunnerSyntax
+    QueryMatch
+    AbstractRunnerTest
+
+    PREFIX KRunner
+    REQUIRED_HEADERS KRunner_HEADERS
+)
+ecm_generate_headers(KRunner_CamelCase_HEADERS
+  HEADER_NAMES ResultsModel
+    PREFIX KRunner
+    REQUIRED_HEADERS KRunner_HEADERS
+    RELATIVE model
+)
+
+# Install files
+
+install(TARGETS KF6Runner
+        EXPORT KF6RunnerTargets
+        ${KF_INSTALL_TARGETS_DEFAULT_ARGS})
+
+install(FILES ${KRunner_CamelCase_HEADERS}
+        DESTINATION ${KDE_INSTALL_INCLUDEDIR_KF}/KRunner/KRunner
+        COMPONENT Devel)
+
+install(FILES
+            ${CMAKE_CURRENT_BINARY_DIR}/krunner_export.h
+            ${KRunner_HEADERS}
+        DESTINATION ${KDE_INSTALL_INCLUDEDIR_KF}/KRunner/krunner
+        COMPONENT Devel)
+
+ecm_qt_install_logging_categories(
+    EXPORT KRUNNER
+    FILE krunner.categories
+    DESTINATION ${KDE_INSTALL_LOGGINGCATEGORIESDIR}
+)
+
+ecm_generate_qdoc(KF6Runner krunner.qdocconf)
+
+install(FILES
+   "data/org.kde.krunner1.xml"
+   DESTINATION ${KDE_INSTALL_DBUSINTERFACEDIR}
+   RENAME kf6_org.kde.krunner1.xml)

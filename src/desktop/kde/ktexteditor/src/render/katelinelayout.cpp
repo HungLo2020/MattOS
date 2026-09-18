@@ -1,0 +1,162 @@
+/*
+    SPDX-FileCopyrightText: 2002-2005 Hamish Rodda <rodda@kde.org>
+    SPDX-FileCopyrightText: 2003 Anakim Border <aborder@sources.sourceforge.net>
+
+    SPDX-License-Identifier: LGPL-2.0-or-later
+*/
+
+#include "katelinelayout.h"
+#include "katetextfolding.h"
+#include "katetextlayout.h"
+
+#include <QTextLine>
+
+#include "katepartdebug.h"
+
+KateLineLayout::KateLineLayout()
+    : m_line(-1)
+    , m_virtualLine(-1)
+{
+}
+
+void KateLineLayout::clear()
+{
+    m_line = -1;
+    m_virtualLine = -1;
+    shiftX = 0;
+    // not touching dirty
+    m_layout.clearLayout();
+    // not touching layout dirty
+}
+
+bool KateLineLayout::includesCursor(const KTextEditor::Cursor realCursor) const
+{
+    return realCursor.line() == line();
+}
+
+int KateLineLayout::line() const
+{
+    return m_line;
+}
+
+void KateLineLayout::setLine(Kate::TextFolding &folding, int line, int virtualLine)
+{
+    m_line = line;
+    m_virtualLine = (virtualLine == -1) ? folding.lineToVisibleLine(line) : virtualLine;
+}
+
+int KateLineLayout::virtualLine() const
+{
+    return m_virtualLine;
+}
+
+void KateLineLayout::setVirtualLine(int virtualLine)
+{
+    m_virtualLine = virtualLine;
+}
+
+bool KateLineLayout::startsInvisibleBlock(Kate::TextFolding &folding) const
+{
+    if (!isValid()) {
+        return false;
+    }
+
+    return (virtualLine() + 1) != folding.lineToVisibleLine(line() + 1);
+}
+
+bool KateLineLayout::isValid() const
+{
+    return line() != -1 && layout().lineCount() > 0;
+}
+
+void KateLineLayout::endLayout()
+{
+    m_layout.endLayout();
+    layoutDirty = m_layout.lineCount() <= 0;
+    m_dirtyList.clear();
+    if (m_layout.lineCount() > 0) {
+        for (int i = 0; i < qMax(1, m_layout.lineCount()); ++i) {
+            m_dirtyList.append(true);
+        }
+    }
+}
+
+void KateLineLayout::invalidateLayout()
+{
+    layoutDirty = true;
+    m_dirtyList.clear();
+}
+
+bool KateLineLayout::isDirty(int viewLine) const
+{
+    Q_ASSERT(isValid() && viewLine >= 0 && viewLine < viewLineCount());
+    return m_dirtyList[viewLine];
+}
+
+bool KateLineLayout::setDirty(int viewLine, bool dirty)
+{
+    Q_ASSERT(isValid() && viewLine >= 0 && viewLine < viewLineCount());
+    m_dirtyList[viewLine] = dirty;
+    return dirty;
+}
+
+KTextEditor::Cursor KateLineLayout::start() const
+{
+    return KTextEditor::Cursor(line(), 0);
+}
+
+int KateLineLayout::viewLineCount() const
+{
+    return m_layout.lineCount();
+}
+
+KateTextLayout KateLineLayout::viewLine(int viewLine)
+{
+    if (viewLine < 0) {
+        viewLine += viewLineCount();
+    }
+    Q_ASSERT(isValid());
+    Q_ASSERT(viewLine >= 0 && viewLine < viewLineCount());
+    return KateTextLayout(this, viewLine);
+}
+
+int KateLineLayout::width() const
+{
+    int width = 0;
+
+    for (int i = 0; i < m_layout.lineCount(); ++i) {
+        width = qMax((int)m_layout.lineAt(i).naturalTextWidth(), width);
+    }
+
+    return width;
+}
+
+int KateLineLayout::widthOfLastLine()
+{
+    const KateTextLayout &lastLine = viewLine(viewLineCount() - 1);
+    return lastLine.width() + lastLine.xOffset();
+}
+
+void KateLineLayout::debugOutput() const
+{
+    qCDebug(LOG_KTE) << "KateLineLayout: " << this << " valid " << isValid() << " line " << line() << " width " << width() << " viewLineCount "
+                     << viewLineCount();
+}
+
+int KateLineLayout::viewLineForColumn(int column) const
+{
+    int len = 0;
+    int i = 0;
+    for (; i < m_layout.lineCount() - 1; ++i) {
+        len += m_layout.lineAt(i).textLength();
+        if (column < len) {
+            return i;
+        }
+    }
+    return i;
+}
+
+bool KateLineLayout::isRightToLeft() const
+{
+    return m_layout.textOption().textDirection() == Qt::RightToLeft;
+}

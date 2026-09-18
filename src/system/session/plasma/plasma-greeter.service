@@ -1,0 +1,19 @@
+[Unit]
+Description=MattOS Plasma Wayland session
+After=systemd-logind.service systemd-udev-trigger.service
+Wants=systemd-logind.service systemd-udev-trigger.service
+Conflicts=getty@tty1.service
+
+[Service]
+Type=simple
+ExecStartPre=/usr/bin/udevadm settle --timeout=180
+ExecStartPre=/usr/bin/mattos-graphics-startup --before
+ExecStart=/usr/bin/greetd --config /etc/greetd/plasma-live.toml
+Restart=on-failure
+RestartSec=2
+TimeoutStopSec=10s
+StandardOutput=journal+console
+StandardError=journal+console
+
+[Install]
+Alias=display-manager.service

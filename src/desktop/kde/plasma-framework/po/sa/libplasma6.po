@@ -1,0 +1,312 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR This file is copyright:
+# This file is distributed under the same license as the plasma-framework package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma-framework\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-04-05 02:41+0000\n"
+"PO-Revision-Date: 2024-12-15 22:18+0530\n"
+"Last-Translator: \n"
+"Language-Team: Sanskrit <kde-i18n-doc@kde.org>\n"
+"Language: sa\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n>2);\n"
+"X-Generator: Poedit 3.5\n"
+
+#: declarativeimports/plasmaextracomponents/qml/BasicPlasmoidHeading.qml:82
+#, kde-format
+msgid "More actions"
+msgstr "अधिकानि क्रियाः"
+
+#: declarativeimports/plasmaextracomponents/qml/ExpandableListItem.qml:587
+#, kde-format
+msgctxt "@action:button"
+msgid "Collapse"
+msgstr "संव्लीयते"
+
+#: declarativeimports/plasmaextracomponents/qml/ExpandableListItem.qml:587
+#, kde-format
+msgctxt "@action:button"
+msgid "Expand"
+msgstr "वर्धयति"
+
+#: declarativeimports/plasmaextracomponents/qml/PasswordField.qml:50
+#, kde-format
+msgid "Password"
+msgstr "गुप्तपद"
+
+#: declarativeimports/plasmaextracomponents/qml/SearchField.qml:62
+#, kde-format
+msgid "Search…"
+msgstr "अन्वेषण…"
+
+#: declarativeimports/plasmaextracomponents/qml/SearchField.qml:64
+#, kde-format
+msgid "Search"
+msgstr "अन्वेषण"
+
+#: declarativeimports/plasmaextracomponents/qml/SearchField.qml:75
+#, kde-format
+msgid "Clear search"
+msgstr "अन्वेषणं स्वच्छं कुर्वन्तु"
+
+#: plasma/applet.cpp:318
+#, kde-format
+msgid "Unknown"
+msgstr "अज्ञात्"
+
+#: plasma/applet.cpp:764
+#, kde-format
+msgid "Activate %1 Widget"
+msgstr "%1 विजेट् सक्रियताम्"
+
+#: plasma/containment.cpp:100 plasma/private/applet_p.cpp:101
+#, kde-format
+msgctxt "%1 is the name of the applet"
+msgid "Remove %1"
+msgstr "%1 निष्कासयन्तु"
+
+#: plasma/containment.cpp:106 plasma/corona.cpp:365 plasma/corona.cpp:486
+#, kde-format
+msgid "Enter Edit Mode"
+msgstr "सम्पादनविधिं प्रविशन्तु"
+
+#: plasma/containment.cpp:109 plasma/private/applet_p.cpp:106
+#, kde-format
+msgctxt "%1 is the name of the applet"
+msgid "Configure %1..."
+msgstr "%1 विन्यस्यताम्..."
+
+#: plasma/corona.cpp:314 plasma/corona.cpp:471
+#, kde-format
+msgid "Lock Widgets"
+msgstr "विजेट् तालान्"
+
+#: plasma/corona.cpp:314
+#, kde-format
+msgid "Unlock Widgets"
+msgstr "विजेट् मुक्तं कुर्वन्तु"
+
+#: plasma/corona.cpp:363
+#, kde-format
+msgid "Exit Edit Mode"
+msgstr "सम्पादन विधितः निर्गच्छन्तु"
+
+#: plasma/pluginloader.cpp:145
+#, kde-format
+msgid "Could not find requested component: %1"
+msgstr "अनुरोधितं घटकं न प्राप्नोत्: %1"
+
+#: plasma/private/applet_p.cpp:119
+#, kde-format
+msgid "Show Alternatives..."
+msgstr "विकल्पान् दर्शयतु..."
+
+#: plasma/private/applet_p.cpp:237
+#, kde-format
+msgid "Widget Removed"
+msgstr "विजेट् निष्कासितम्"
+
+#: plasma/private/applet_p.cpp:238
+#, kde-format
+msgid "The widget \"%1\" has been removed."
+msgstr "\"%1\" इति विजेट् निष्कासितम् ।."
+
+#: plasma/private/applet_p.cpp:242
+#, kde-format
+msgid "Panel Removed"
+msgstr "फलकं निष्कासितम्"
+
+#: plasma/private/applet_p.cpp:243
+#, kde-format
+msgid "A panel has been removed."
+msgstr "एकं फलकं निष्कासितम् अस्ति।."
+
+#: plasma/private/applet_p.cpp:246
+#, kde-format
+msgid "Desktop Removed"
+msgstr "कार्यमुखं निष्कासितम्"
+
+#: plasma/private/applet_p.cpp:247
+#, kde-format
+msgid "A desktop has been removed."
+msgstr "एकः कार्यमुखः निष्कासितः अस्ति।."
+
+#: plasma/private/applet_p.cpp:250
+#, kde-format
+msgid "Undo"
+msgstr "अपाकरोति"
+
+#: plasma/private/applet_p.cpp:341
+#, kde-format
+msgid "Widget Settings"
+msgstr "विजेट् समायोजननि"
+
+#: plasma/private/applet_p.cpp:347
+#, kde-format
+msgid "Remove this Widget"
+msgstr "एतत् विजेट् निष्कासयन्तु"
+
+#: plasma/private/containment_p.cpp:51
+#, kde-format
+msgid "Remove this Panel"
+msgstr "एतत् फलकं निष्कासयन्तु"
+
+#: plasma/private/containment_p.cpp:53
+#, kde-format
+msgid "Remove this Activity"
+msgstr "एतत् क्रियाकलापं निष्कासयन्तु"
+
+#: plasma/private/containment_p.cpp:58
+#, kde-format
+msgid "Activity Settings"
+msgstr "क्रियाकलाप समायोजननि"
+
+#: plasma/private/containment_p.cpp:70
+#, kde-format
+msgid "Add or Manage Widgets…"
+msgstr "विजेट् योजयन्तु वा प्रबन्धयन्तु वा..."
+
+#: plasmaquick/appletquickitem.cpp:540
+#, kde-format
+msgid "The root item of %1 must be of type ContainmentItem"
+msgstr "%1 इत्यस्य मूलवस्तु ContaimentItem इति प्रकारस्य भवितुमर्हति"
+
+#: plasmaquick/appletquickitem.cpp:545
+#, kde-format
+msgid "The root item of %1 must be of type PlasmoidItem"
+msgstr "%1 इत्यस्य मूलवस्तु PlasmoidItem प्रकारस्य भवितुम् अर्हति"
+
+#: plasmaquick/appletquickitem.cpp:553
+#, kde-format
+msgid "Unknown Applet"
+msgstr "अज्ञात् Applet"
+
+#: plasmaquick/appletquickitem.cpp:567
+#, kde-format
+msgid ""
+"This Widget was written for an unknown older version of Plasma and is not "
+"compatible with Plasma %1. Please contact the widget's author for an updated "
+"version."
+msgstr ""
+"इदं विजेट् प्लाज्मा इत्यस्य अज्ञातस्य प्राचीनसंस्करणस्य कृते लिखितम् अस्ति तथा च प्लाज्मा %1 "
+"इत्यनेन सह सङ्गतं नास्ति । अद्यतनसंस्करणार्थं विजेट्-लेखकस्य सम्पर्कं कुर्वन्तु ।"
+
+#: plasmaquick/appletquickitem.cpp:570 plasmaquick/appletquickitem.cpp:577
+#: plasmaquick/appletquickitem.cpp:583
+#, kde-format
+msgid "%1 is not compatible with Plasma %2"
+msgstr "%1 प्लाज्मा %2 इत्यनेन सह सङ्गतं नास्ति"
+
+#: plasmaquick/appletquickitem.cpp:574
+#, kde-format
+msgid ""
+"This Widget was written for Plasma %1 and is not compatible with Plasma %2. "
+"Please contact the widget's author for an updated version."
+msgstr ""
+"इदं विजेट् प्लाज्मा %1 कृते लिखितम् अस्ति तथा च प्लाज्मा %2 इत्यनेन सह सङ्गतं नास्ति । "
+"अद्यतनसंस्करणार्थं विजेट्-लेखकस्य सम्पर्कं कुर्वन्तु ।"
+
+#: plasmaquick/appletquickitem.cpp:580
+#, kde-format
+msgid ""
+"This Widget was written for Plasma %1 and is not compatible with Plasma %2. "
+"Please update Plasma in order to use the widget."
+msgstr ""
+"इदं विजेट् प्लाज्मा %1 कृते लिखितम् अस्ति तथा च प्लाज्मा %2 इत्यनेन सह सङ्गतं नास्ति । कृपया "
+"विजेट् इत्यस्य उपयोगाय प्लाज्मा अपडेट् कुर्वन्तु ।"
+
+#: plasmaquick/appletquickitem.cpp:589 plasmaquick/appletquickitem.cpp:611
+#, kde-format
+msgid "Sorry! There was an error loading %1."
+msgstr "क्षम्यताम्‌! %1 लोड् करणं त्रुटिः आसीत् ।"
+
+#: plasmaquick/appletquickitem.cpp:606
+#, kde-format
+msgid "Error loading QML file: %1 %2"
+msgstr "QML सञ्चिकायाः आरोपयने त्रुटिः: %1 %2"
+
+#: plasmaquick/appletquickitem.cpp:609
+#, kde-format
+msgid "Error loading Applet: package %1 does not exist."
+msgstr "Applet आरोपयने त्रुटिः: संकुल %1 नास्ति ।"
+
+#: plasmaquick/configview.cpp:189
+#, kde-format
+msgid "%1 — %2 Settings"
+msgstr "%1 — %2 समायोजननि"
+
+#: plasmaquick/configview.cpp:190
+#, kde-format
+msgid "%1 Settings"
+msgstr "%1 समायोजननि"
+
+#: plasmaquick/plasmoid/containmentitem.cpp:569
+#, kde-format
+msgid "Plasma Package"
+msgstr "Plasma सम्पुट"
+
+#: plasmaquick/plasmoid/containmentitem.cpp:573
+#, kde-format
+msgid "Install"
+msgstr "प्रतिस्थायतु"
+
+#: plasmaquick/plasmoid/containmentitem.cpp:584
+#, kde-format
+msgid "Package Installation Failed"
+msgstr "संकुलस्थापनं विफलम्"
+
+#: plasmaquick/plasmoid/containmentitem.cpp:600
+#, kde-format
+msgid "The package you just dropped is invalid."
+msgstr "भवता इदानीं यत् संकुलं पातितम् तत् अमान्यम् अस्ति ।."
+
+#: plasmaquick/plasmoid/containmentitem.cpp:609
+#, kde-format
+msgid "Widgets"
+msgstr "विजेटस्"
+
+#: plasmaquick/plasmoid/containmentitem.cpp:614
+#, kde-format
+msgctxt "Add widget"
+msgid "Add %1"
+msgstr "%1 योजयन्तु"
+
+#: plasmaquick/plasmoid/containmentitem.cpp:628
+#, kde-format
+msgctxt "Add icon widget"
+msgid "Add Icon"
+msgstr "चिह्नं योजयतु"
+
+#: plasmaquick/plasmoid/containmentitem.cpp:640
+#, kde-format
+msgid "Wallpaper"
+msgstr "दीवार्पत्तिः"
+
+#: plasmaquick/plasmoid/containmentitem.cpp:650
+#, kde-format
+msgctxt "Set wallpaper"
+msgid "Set %1"
+msgstr "%1 निरूपयतु"
+
+#: plasmaquick/plasmoid/dropmenu.cpp:29
+#, kde-format
+msgid "Content dropped"
+msgstr "सामग्रीं पातितम्"
+
+#~ msgid "Whether or not to create an on-disk cache for the theme."
+#~ msgstr "विषयस्य कृते भण्डारणसञ्चयस्य निर्माणं कर्तव्यं वा न वा।."
+
+#~ msgid ""
+#~ "The maximum size of the on-disk Theme cache in kilobytes. Note that these "
+#~ "files are sparse files, so the maximum size may not be used. Setting a "
+#~ "larger size is therefore often quite safe."
+#~ msgstr ""
+#~ "भण्डारणस्थस्य विषयसञ्चयस्य अधिकतमः आकारः kilobyte मध्ये । ध्यानं कुर्वन्तु यत् एताः "
+#~ "सञ्चिकाः विरलसञ्चिकाः सन्ति, अतः अधिकतमस्य आकारस्य उपयोगः न भवितुं शक्नोति । अतः "
+#~ "बृहत्तरं आकारं निरूपयत् करणं प्रायः अत्यन्तं सुरक्षितं भवति ।."

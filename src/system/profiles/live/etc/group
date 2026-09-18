@@ -3,4 +3,6 @@ tty:x:5:
 utmp:x:43:
 shadow:x:42:
 sudo:x:27:mattos
+video:x:984:mattos
+render:x:987:mattos
 mattos:x:1000:

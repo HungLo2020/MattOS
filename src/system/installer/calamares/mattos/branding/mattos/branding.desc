@@ -1,0 +1,18 @@
+---
+componentName: mattos
+strings:
+    productName: MattOS
+    shortProductName: MattOS
+    version: Development
+    shortVersion: Development
+    versionedName: MattOS Development
+    shortVersionedName: MattOS Development
+    bootloaderEntryName: MattOS
+images:
+    productLogo: ""
+style:
+    sidebarBackground: "#1d2638"
+    sidebarText: "#ffffff"
+    sidebarTextSelect: "#ffffff"
+    sidebarTextCurrent: "#69b7ff"
+    welcomeText: "Install MattOS"

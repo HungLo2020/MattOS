@@ -1,0 +1,109 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR This file is copyright:
+# This file is distributed under the same license as the libksysguard package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libksysguard\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-11-17 11:53+0000\n"
+"PO-Revision-Date: 2025-09-19 07:09+0200\n"
+"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
+"Language-Team: Georgian <kde-i18n-doc@kde.org>\n"
+"Language: ka\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.7\n"
+
+#: contents/ui/Config.qml:42
+#, kde-format
+msgctxt "@title:group"
+msgid "Appearance"
+msgstr "გარეგნობა"
+
+#: contents/ui/Config.qml:47
+#, kde-format
+msgctxt "@option:check"
+msgid "Show legend"
+msgstr "ახსნის ჩვენება"
+
+#: contents/ui/Config.qml:51
+#, kde-format
+msgctxt "@option:check"
+msgid "Stacked charts"
+msgstr "მიწყობილი გრაფიკები"
+
+#: contents/ui/Config.qml:55
+#, kde-format
+msgctxt "@option:check"
+msgid "Smooth lines"
+msgstr "ხაზების მოგლუვება"
+
+#: contents/ui/Config.qml:59
+#, kde-format
+msgctxt "@option:check"
+msgid "Show grid lines"
+msgstr "ბადის ხაზების ჩვენება"
+
+#: contents/ui/Config.qml:63
+#, kde-format
+msgctxt "@option:check"
+msgid "Show Y axis labels"
+msgstr "Y ღერძის ჭდეების ჩვენება"
+
+#: contents/ui/Config.qml:67
+#, kde-format
+msgctxt "@label:spinbox"
+msgid "Opacity of area below line:"
+msgstr "ალაგის გაუმჭვირვალობა ხაზის ქვეშ:"
+
+#: contents/ui/Config.qml:73
+#, kde-format
+msgctxt "title:group"
+msgid "Data Ranges"
+msgstr "მონაცემის შუალედები"
+
+#: contents/ui/Config.qml:78
+#, kde-format
+msgctxt "@option:check"
+msgid "Automatic Y data range"
+msgstr "Y მონაცემების ავტომატური დიაპაზონი"
+
+#: contents/ui/Config.qml:82
+#, kde-format
+msgctxt "@label:spinbox"
+msgid "From (Y):"
+msgstr "საიდან (Y):"
+
+#: contents/ui/Config.qml:89
+#, kde-format
+msgctxt "@label:spinbox"
+msgid "To (Y):"
+msgstr "სადამდე(Y):"
+
+#: contents/ui/Config.qml:96
+#, kde-format
+msgctxt "@label:spinbox"
+msgid "History to show:"
+msgstr "ისტორია საჩვენებლად:"
+
+#: contents/ui/Config.qml:98
+#, kde-format
+msgctxt "@item:valuesuffix %1 is seconds of history"
+msgid "second"
+msgid_plural "seconds"
+msgstr[0] "წამი"
+msgstr[1] "წამი"
+
+#~ msgctxt "@label:spinbox"
+#~ msgid "Show last:"
+#~ msgstr "ბოლოს ჩვენება:"
+
+#~ msgid "Fill Opacity:"
+#~ msgstr "გაუმჭვირვალეობით შევსება:"
+
+#~ msgid "Amount of History to Keep:"
+#~ msgstr "დასატოვებელი ისტორიის რაოდენობა:"

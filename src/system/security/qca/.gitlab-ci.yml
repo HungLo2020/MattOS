@@ -1,0 +1,52 @@
+include:
+  - project: sysadmin/ci-utilities
+    file:
+      - /gitlab-templates/linux-qt6.yml
+      - /gitlab-templates/freebsd-qt6.yml
+      - /gitlab-templates/android-qt6.yml
+
+build_ubuntu_20_10:
+  stage: build
+  image: ubuntu:groovy
+  tags:
+    - Linux
+  before_script:
+    - sed -i -e 's/# deb-src/deb-src/g' /etc/apt/sources.list
+    - sed -i -e 's/archive/old-releases/g' /etc/apt/sources.list
+    - sed -i -e 's/security.ubuntu/old-releases.ubuntu/g' /etc/apt/sources.list
+    - echo "91.189.91.124 old-releases.ubuntu.com" >> /etc/hosts
+    - apt update
+    - apt install --yes eatmydata
+    - eatmydata apt build-dep --yes --no-install-recommends qca2
+    - eatmydata apt install --yes --no-install-recommends ninja-build libbotan-2-dev libnss3-dev libgcrypt20-dev libpkcs11-helper1-dev gnupg
+  script:
+    - mkdir -p build && cd build
+    - cmake -G Ninja .. -DBUILD_PLUGINS=all
+    - ninja
+    - QT_PLUGIN_PATH=`pwd`/lib/qca-qt5/ ctest -V
+
+
+build_fedora_rawhide_openssl4:
+  stage: build
+  image: fedora:rawhide
+  tags:
+    - Linux
+  before_script:
+    - dnf -y --setopt=install_weak_deps=False install git gcc-c++ make cmake ninja-build qt6-qtbase-devel qt6-qt5compat-devel botan3-devel cyrus-sasl-devel nss-devel libgcrypt-devel pkcs11-helper-devel gnupg
+  script:
+    - mkdir -p build && cd build
+    - cmake -G Ninja -DBUILD_WITH_QT6=ON .. -DBUILD_PLUGINS=all
+    - ninja
+    - OPENSSL_ENABLE_SHA1_SIGNATURES=1 QT_PLUGIN_PATH=`pwd`/lib/qca-qt6/ ctest -V
+
+clang_format:
+  stage: build
+  image: debian:testing
+  tags:
+    - Linux
+  before_script:
+    - apt-get update
+    - apt-get install --yes --no-install-recommends git clang-format-19
+  script:
+    - find . \( -name "*.cpp" -or -name "*.h"  -or -name "*.c"  -or -name "*.cc" \) -exec clang-format-19 -i {} \;
+    - git diff --exit-code

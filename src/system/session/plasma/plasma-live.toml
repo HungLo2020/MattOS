@@ -1,0 +1,13 @@
+[terminal]
+vt = 1
+
+[general]
+service = "plasma-greeter"
+
+[initial_session]
+command = "/usr/bin/start-plasma"
+user = "mattos"
+
+[default_session]
+command = "/usr/bin/start-plasma"
+user = "mattos"

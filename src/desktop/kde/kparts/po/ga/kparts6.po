@@ -1,0 +1,79 @@
+# translation of kdelibs4.po to Irish
+# Translation of kdelibs4.po to Irish
+# Copyright (C) 1999,2003,2004 Free Software Foundation, Inc.
+# Sean V. Kelley <s_oceallaigh@yahoo.com>, 1999
+# Kevin Scannell <kscanne@gmail.com>, 2004-2009
+# Séamus Ó Ciardhuáin <seoc at iolfree.ie>, 2003,2004
+msgid ""
+msgstr ""
+"Project-Id-Version: kdelibs4\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-11-17 11:49+0000\n"
+"PO-Revision-Date: 2004-12-14 09:11-0600\n"
+"Last-Translator: Kevin Scannell <kscanne@gmail.com>\n"
+"Language-Team: Irish <gaeilge-gnulinux@lists.sourceforge.net>\n"
+"Language: ga\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=5; plural=n==1 ? 0 : n==2 ? 1 : n<7 ? 2 : n < 11 ? "
+"3 : 4\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Séamus Ó Ciardhuáin,Kevin Scannell,Sean V. Kelley"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "seoc@iolfree.ie,kscanne@gmail.com,s_oceallaigh@yahoo.com"
+
+#: navigationextension.cpp:196
+#, kde-format
+msgid "<qt>Do you want to search the Internet for <b>%1</b>?</qt>"
+msgstr "<qt>An bhfuil fonn ort an tIdirlíon a chuardach ar <b>%1</b>?</qt>"
+
+#: navigationextension.cpp:197
+#, kde-format
+msgid "Internet Search"
+msgstr "Cuardach Idirlín"
+
+#: navigationextension.cpp:198
+#, kde-format
+msgid "&Search"
+msgstr "&Cuardach"
+
+#: partloader.cpp:152
+#, kde-format
+msgid "KPluginFactory could not load the plugin: %1"
+msgstr ""
+
+#: partloader.cpp:156
+#, kde-format
+msgid "No part was found for mimeType %1"
+msgstr ""
+
+#: partloader.cpp:160
+#, kde-format
+msgid "No part could be instantiated for mimeType %1"
+msgstr ""
+
+#: readwritepart.cpp:84
+#, kde-format
+msgid "Untitled"
+msgstr "Gan Teideal"
+
+#: readwritepart.cpp:93
+#, kde-format
+msgid ""
+"The document \"%1\" has been modified.\n"
+"Do you want to save your changes or discard them?"
+msgstr ""
+"Athraíodh cáipéis \"%1\".\n"
+"An bhfuil fonn ort do chuid athruithe a shábháil?"
+
+#: readwritepart.cpp:96
+#, kde-format
+msgid "Close Document"
+msgstr "Dún an Cháipéis"

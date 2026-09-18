@@ -1,0 +1,337 @@
+# translation of plasma_applet_devicenotifier.po to Belarusian Latin
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Ihar Hrachyshka <ihar.hrachyshka@gmail.com>, 2008.
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma_applet_devicenotifier\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-17 02:39+0000\n"
+"PO-Revision-Date: 2008-10-05 10:34+0300\n"
+"Last-Translator: Ihar Hrachyshka <ihar.hrachyshka@gmail.com>\n"
+"Language-Team: Belarusian Latin <i18n@mova.org>\n"
+"Language: be@latin\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || n%10>=5 && n%10<=9 || n"
+"%100>=11 && n%100<=14 ? 2 : 3);\n"
+"X-Generator: KBabel 1.11.4\n"
+
+#: actions/checkaction.cpp:72
+#, kde-format
+msgctxt "@action:button check a storageAccess (i.e disk) for error"
+msgid "Check for Errors"
+msgstr ""
+
+#: actions/mountaction.cpp:97
+#, kde-format
+msgid "Mount"
+msgstr ""
+
+#: actions/mountandopenaction.cpp:178
+#, kde-format
+msgid "Open in File Manager"
+msgstr ""
+
+#: actions/mountandopenaction.cpp:181
+#, kde-format
+msgid "Try to Fix"
+msgstr ""
+
+#: actions/mountandopenaction.cpp:181
+#, kde-format
+msgid "Mount and Open"
+msgstr ""
+
+#: actions/mountandopenaction.cpp:183
+#, kde-format
+msgid "Eject"
+msgstr ""
+
+#: actions/mountandopenaction.cpp:185
+#, kde-format
+msgid "Safely remove"
+msgstr ""
+
+#: devicemessagemonitor_p.cpp:171
+#, kde-format
+msgid "This device has file system errors."
+msgstr ""
+
+#: devicemessagemonitor_p.cpp:173
+#, kde-format
+msgctxt "@label device is a storage disk"
+msgid "This device has no errors"
+msgstr ""
+
+#: devicemessagemonitor_p.cpp:176
+#, kde-format
+msgid "Successfully repaired!"
+msgstr ""
+
+#: devicemessagemonitor_p.cpp:180
+#, kde-format
+msgid "Device Status"
+msgstr ""
+
+#: devicemessagemonitor_p.cpp:181
+#, kde-format
+msgid "A device can now be safely removed"
+msgstr ""
+
+#: devicemessagemonitor_p.cpp:185
+#, kde-format
+msgid "This device can now be safely removed."
+msgstr ""
+
+#: devicemessagemonitor_p.cpp:192
+#, fuzzy, kde-format
+#| msgid "1 action for this device"
+#| msgid_plural "%1 actions for this device"
+msgid "You are not authorized to mount this device."
+msgstr "%1 aperacyja dla hetaj pryłady"
+
+#: devicemessagemonitor_p.cpp:196
+#, fuzzy, kde-format
+#| msgid "1 action for this device"
+#| msgid_plural "%1 actions for this device"
+msgid "You are not authorized to eject this disc."
+msgstr "%1 aperacyja dla hetaj pryłady"
+
+#: devicemessagemonitor_p.cpp:199
+#, fuzzy, kde-format
+#| msgid "1 action for this device"
+#| msgid_plural "%1 actions for this device"
+msgctxt "Remove is less technical for unmount"
+msgid "You are not authorized to remove this device."
+msgstr "%1 aperacyja dla hetaj pryłady"
+
+#: devicemessagemonitor_p.cpp:202
+#, fuzzy, kde-format
+#| msgid "1 action for this device"
+#| msgid_plural "%1 actions for this device"
+msgid "You are not authorized to repair this device."
+msgstr "%1 aperacyja dla hetaj pryłady"
+
+#: devicemessagemonitor_p.cpp:204 devicemessagemonitor_p.cpp:269
+#, kde-format
+msgid "Unknown error type"
+msgstr ""
+
+#: devicemessagemonitor_p.cpp:208
+#, fuzzy, kde-format
+#| msgid "Last plugged in device: %1"
+msgid "Could not mount this device as it is busy."
+msgstr "Apošniaja padłučanaja pryłada: %1"
+
+#: devicemessagemonitor_p.cpp:235
+#, fuzzy, kde-format
+#| msgid ""
+#| "Cannot eject the disc.\n"
+#| "One or more files on this disc are open within an application."
+msgid "One or more files on this device are open within an application."
+msgstr ""
+"Nie ŭdałosia vysunuć dysk.\n"
+"Prynamsi, adzin fajł z hetaj pryłady adčynieny ŭ niejkaj aplikacyi."
+
+#: devicemessagemonitor_p.cpp:237
+#, fuzzy, kde-format
+#| msgid ""
+#| "Cannot unmount the device.\n"
+#| "One or more files on this device are open within an application."
+msgid "One or more files on this device are opened in application \"%2\"."
+msgid_plural ""
+"One or more files on this device are opened in following applications: %2."
+msgstr[0] ""
+"Nie ŭdałosia admantavać pryładu.\n"
+"Prynamsi, adzin fajł z hetaj pryłady adčynieny ŭ niejkaj aplikacyi."
+msgstr[1] ""
+"Nie ŭdałosia admantavać pryładu.\n"
+"Prynamsi, adzin fajł z hetaj pryłady adčynieny ŭ niejkaj aplikacyi."
+msgstr[2] ""
+"Nie ŭdałosia admantavać pryładu.\n"
+"Prynamsi, adzin fajł z hetaj pryłady adčynieny ŭ niejkaj aplikacyi."
+msgstr[3] ""
+"Nie ŭdałosia admantavać pryładu.\n"
+"Prynamsi, adzin fajł z hetaj pryłady adčynieny ŭ niejkaj aplikacyi."
+
+#: devicemessagemonitor_p.cpp:240
+#, kde-format
+msgctxt "separator in list of apps blocking device unmount"
+msgid ", "
+msgstr ""
+
+#: devicemessagemonitor_p.cpp:258
+#, fuzzy, kde-format
+#| msgid "Last plugged in device: %1"
+msgid "Could not mount this device."
+msgstr "Apošniaja padłučanaja pryłada: %1"
+
+#: devicemessagemonitor_p.cpp:262
+#, fuzzy, kde-format
+#| msgid "1 action for this device"
+#| msgid_plural "%1 actions for this device"
+msgid "Could not eject this disc."
+msgstr "%1 aperacyja dla hetaj pryłady"
+
+#: devicemessagemonitor_p.cpp:264
+#, fuzzy, kde-format
+#| msgid "Last plugged in device: %1"
+msgctxt "Remove is less technical for unmount"
+msgid "Could not remove this device."
+msgstr "Apošniaja padłučanaja pryłada: %1"
+
+#: devicemessagemonitor_p.cpp:267
+#, fuzzy, kde-format
+#| msgid "Last plugged in device: %1"
+msgid "Could not repair this device: %1"
+msgstr "Apošniaja padłučanaja pryłada: %1"
+
+#: qml/DeviceItem.qml:99
+#, kde-format
+msgctxt ""
+"Accessing is a less technical word for Mounting; translation should be short "
+"and mean 'Currently mounting this device'"
+msgid "Checking…"
+msgstr ""
+
+#: qml/DeviceItem.qml:101
+#, kde-format
+msgctxt ""
+"Accessing is a less technical word for Mounting; translation should be short "
+"and mean 'Currently mounting this device'"
+msgid "Repairing…"
+msgstr ""
+
+#: qml/DeviceItem.qml:104
+#, kde-format
+msgctxt "@info:status Free disk space"
+msgid "%1 free of %2"
+msgstr ""
+
+#: qml/DeviceItem.qml:108
+#, kde-format
+msgctxt ""
+"Accessing is a less technical word for Mounting; translation should be short "
+"and mean 'Currently mounting this device'"
+msgid "Accessing…"
+msgstr ""
+
+#: qml/DeviceItem.qml:111
+#, kde-format
+msgctxt ""
+"Removing is a less technical word for Unmounting; translation should be "
+"short and mean 'Currently unmounting this device'"
+msgid "Removing…"
+msgstr ""
+
+#: qml/DeviceItem.qml:114
+#, kde-format
+msgid "Don't unplug yet! Files are still being transferred…"
+msgstr ""
+
+#: qml/FullRepresentation.qml:47 qml/main.qml:123
+#, kde-format
+msgid "Remove All"
+msgstr ""
+
+#: qml/FullRepresentation.qml:48
+#, fuzzy, kde-format
+#| msgid "1 action for this device"
+#| msgid_plural "%1 actions for this device"
+msgid "Click to safely remove all devices"
+msgstr "%1 aperacyja dla hetaj pryłady"
+
+#: qml/FullRepresentation.qml:162
+#, fuzzy, kde-format
+#| msgid "Last plugged in device: %1"
+msgid "No removable devices attached"
+msgstr "Apošniaja padłučanaja pryłada: %1"
+
+#: qml/FullRepresentation.qml:162
+#, fuzzy, kde-format
+#| msgid "No devices plugged in"
+msgid "No disks available"
+msgstr "Niama padłučanych pryładaŭ"
+
+#: qml/main.qml:72
+#, fuzzy, kde-format
+#| msgid "Last plugged in device: %1"
+msgid "Most Recent Device"
+msgstr "Apošniaja padłučanaja pryłada: %1"
+
+#: qml/main.qml:72
+#, kde-format
+msgid "No Devices Available"
+msgstr ""
+
+#: qml/main.qml:109
+#, fuzzy, kde-format
+#| msgid "Last plugged in device: %1"
+msgctxt "Open auto mounter kcm"
+msgid "Configure Removable Devices…"
+msgstr "Apošniaja padłučanaja pryłada: %1"
+
+#: qml/main.qml:131
+#, kde-format
+msgid "Removable Devices"
+msgstr ""
+
+#: qml/main.qml:146
+#, fuzzy, kde-format
+#| msgid "Last plugged in device: %1"
+msgid "Non Removable Devices"
+msgstr "Apošniaja padłučanaja pryłada: %1"
+
+#: qml/main.qml:161
+#, kde-format
+msgid "All Devices"
+msgstr ""
+
+#: qml/main.qml:178
+#, fuzzy, kde-format
+#| msgid "No devices plugged in"
+msgid "Show popup when new device is plugged in"
+msgstr "Niama padłučanych pryładaŭ"
+
+#, fuzzy
+#~| msgid "1 action for this device"
+#~| msgid_plural "%1 actions for this device"
+#~ msgid "1 action for this device"
+#~ msgid_plural "%1 actions for this device"
+#~ msgstr[0] "%1 aperacyja dla hetaj pryłady"
+#~ msgstr[1] "%1 aperacyja dla hetaj pryłady"
+#~ msgstr[2] "%1 aperacyja dla hetaj pryłady"
+
+#, fuzzy
+#~| msgid "1 action for this device"
+#~| msgid_plural "%1 actions for this device"
+#~ msgid "Click to safely remove this device."
+#~ msgstr "%1 aperacyja dla hetaj pryłady"
+
+#, fuzzy
+#~| msgid "<font color=\"%1\">Devices recently plugged in:</font>"
+#~ msgid "Devices recently plugged in:"
+#~ msgstr "<font color=\"%1\">Niadaŭna padłučanyja pryłady:</font>"
+
+#, fuzzy
+#~ msgid " second"
+#~ msgid_plural " seconds"
+#~ msgstr[0] " sekundaŭ"
+#~ msgstr[1] " sekundaŭ"
+#~ msgstr[2] " sekundaŭ"
+
+#~ msgid "&Time to stay on top:"
+#~ msgstr "&Kolki trymać naviersie:"
+
+#~ msgid "&Number of items displayed:"
+#~ msgstr "&Kolkaść pakazanych elementaŭ:"
+
+#~ msgid "Unlimited"
+#~ msgstr "Biaźmiežnaja"
+
+#~ msgid "&Display time of items:"
+#~ msgstr "&Termin pakazvańnia elementaŭ:"

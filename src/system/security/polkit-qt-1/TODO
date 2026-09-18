@@ -1,0 +1,11 @@
+TODO
+====
+
+- Policy Kit 1 port
+ * polkit-qt
+  + Console Kit support
+  
+ * polkit-qt-gui
+  + authorization checking for non privileged user
+  
+- document Listener and co.

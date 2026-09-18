@@ -1,0 +1,107 @@
+/**
+\mainpage Polkit-qt-1 - Qt wrapper around polkit-1
+
+\section polkitqt1_overview Overview
+
+\note Please note that if you're developing an application which can rely not just on Qt modules,
+      but also Qt extensions like from the KDE Frameworks, you might want to use instead
+      KAuth from KDE Frameworks.
+
+polkit-qt-1 aims to make it easy for Qt developers to take advantage of
+polkit API. It is a convenience wrapper around QAction and QAbstractButton
+that lets you integrate those two components easily with polkit.
+
+polkit-qt-1 is not a direct replacement of polkit-qt: it is based on polkit-1, which is not
+backwards compatible in any way with Policykit <= 0.9, which was the backend of polkit-qt.
+You are encouraged to port polkit-qt applications to polkit-qt or KAuth (from KDE Frameworks),
+since PolicyKit <= 0.9 is no longer maintained.
+
+polkit-qt-1 is split in three libraries: polkit-qt-core-1, polkit-qt-gui-1 and polkit-qt-agent-1
+
+\b polkit-qt-core-1 lets you control actions and authentication without a GUI, with some very
+simple functions. It also lets you retrieve and control useful information on the polkit
+authority. You will be mostly interested in the \c Authority class.
+
+\b polkit-qt-gui-1 lets you easily associate GUI items with polkit actions. Through some simple
+wrapper classes you are able to associate QAction and QAbstractButton to a polkit action,
+and get their properties changed accordingly to polkit's result. It includes the classes
+Action, ActionButton and ActionButtons
+
+\b polkit-qt-agent-1 lets you write your own polkit authentication agents in a very simple way.
+
+\li A sample usage of polkit-qt-1 can be found in \ref polkitqt1_example
+\li <a href="classes.html">Alphabetical Class List</a>
+\li <a href="hierarchy.html">Class Hierarchy</a>
+
+
+
+
+\page polkitqt1_example Polkit-qt-1 usage example
+
+You can find an example usage of Polkit-qt-1 in the examples/ dir. You can
+build it by passing \c -DBUILD_EXAMPLES=TRUE to your cmake line. The structure
+consists of a .ui file and a main class, to demonstrate how easy it is to integrate
+polkit support in an existing application. Let's see some details about it:
+
+\code
+bt = new ActionButton(kickPB, "org.qt.policykit.examples.kick", this);
+bt->setText("Kick... (long)");
+// here we set the behavior of PolKitResul = No
+bt->setVisible(true, Action::No);
+bt->setEnabled(true, Action::No);
+bt->setText("Kick (long)", Action::No);
+bt->setIcon(QPixmap(":/Icons/custom-no.png"), Action::No);
+bt->setToolTip("If your admin wasn't annoying, you could do this", Action::No);
+// here we set the behavior of PolKitResul = Auth
+bt->setVisible(true, Action::Auth);
+bt->setEnabled(true, Action::Auth);
+bt->setText("Kick... (long)", Action::Auth);
+bt->setIcon(QPixmap(":/Icons/action-locked-default.png"), Action::Auth);
+bt->setToolTip("Only card carrying tweakers can do this!", Action::Auth);
+// here we set the behavior of PolKitResul = Yes
+bt->setVisible(true, Action::Yes);
+bt->setEnabled(true, Action::Yes);
+bt->setText("Kick! (long)", Action::Yes);
+bt->setIcon(QPixmap(":/Icons/custom-yes.png"), Action::Yes);
+bt->setToolTip("Go ahead, kick kick kick!", Action::Yes);
+\endcode
+
+This small paragraph sets up an action button using an existing button defined in the
+UI file, \c kickPB . As you can see, you can set custom properties on your button depending
+on the action status/result. The code is mostly self-explainatory
+
+\code
+bt = new ActionButtons(QList<QAbstractButton*>() << listenPB << listenCB,
+                           "org.qt.policykit.examples.listen", this);
+bt->setIcon(QPixmap(":/Icons/action-locked.png"));
+bt->setIcon(QPixmap(":/Icons/action-unlocked.png"), Action::Yes);
+bt->setText("Click to make changes...");
+\endcode
+
+This demonstrates the use of ActionButtons, that lets you associate multiple buttons with a
+single action with extreme ease. \c listenPB and \c listenCB, both defined in the ui file,
+are kept in sync with the action.
+
+\code
+connect(bt, SIGNAL(triggered(bool)), this, SLOT(activateAction()));
+connect(bt, SIGNAL(clicked(QAbstractButton*,bool)), bt, SLOT(activate()));
+connect(bt, SIGNAL(authorized()), this, SLOT(actionActivated()));
+\endcode
+
+Those three signals are all you need to control the action and the activation. Action::triggered()
+lets you start the activation/revoke when needed, ActionButton::clicked() lets you do the same thing
+with even more ease, just by manually connecting the signal to ActionButton::activate() (see the docs
+to understand why this connection doesn't happen automatically), and Action::authorized() signal notifies
+you when polkit has authorized you to perform the action.
+
+As you can see, usage of polkit-qt-1 is extremely simple. Have a look at the complete example
+and to the API Docs for more details.
+
+
+*/
+
+// DOXYGEN_PROJECTVERSION=0.96.1
+// DOXYGEN_PROJECTNAME=PolkitQt-1
+// DOXYGEN_ENABLE=YES
+
+// vim:ts=4:sw=4:expandtab:filetype=doxygen

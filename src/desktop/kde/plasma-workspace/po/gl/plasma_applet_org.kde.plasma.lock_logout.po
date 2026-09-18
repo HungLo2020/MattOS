@@ -1,0 +1,193 @@
+# translation of plasma_applet_lockout.po to galician
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+# Marce Villarino <mvillarino@kde-espana.es>, 2009.
+# marce villarino <mvillarino@users.sourceforge.net>, 2009.
+# Marce Villarino <mvillarino@kde-espana.es>, 2009, 2011.
+# Marce Villarino <mvillarino@kde-espana.es>, 2011, 2012, 2014.
+# Adrián Chaves Fernández <adriyetichaves@gmail.com>, 2013, 2015.
+# SPDX-FileCopyrightText: 2023, 2024 Adrián Chaves (Gallaecio)
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma_applet_lockout\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-02-10 02:38+0000\n"
+"PO-Revision-Date: 2024-06-27 21:00+0200\n"
+"Last-Translator: Adrián Chaves (Gallaecio) <adrian@chaves.io>\n"
+"Language-Team: Proxecto Trasno (proxecto@trasno.gal)\n"
+"Language: gl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 24.05.1\n"
+
+#: config.qml:13
+#, kde-format
+msgid "General"
+msgstr "Xeral"
+
+#: ConfigGeneral.qml:119
+#, kde-format
+msgid "Unavailable"
+msgstr ""
+
+#: data.js:5
+#, kde-format
+msgid "Lock"
+msgstr "Trancar"
+
+#: data.js:6
+#, kde-format
+msgid "Lock the screen"
+msgstr "Trancar a pantalla"
+
+#: data.js:12
+#, fuzzy, kde-format
+#| msgid "Switch user"
+msgid "Switch user…"
+msgstr "Cambiar de persoa usuaria"
+
+#: data.js:13
+#, kde-format
+msgid "Start a parallel session as a different user"
+msgstr "Comezar unha sesión paralela cunha persoa usuaria distinta."
+
+#: data.js:19
+#, fuzzy, kde-format
+#| msgid "Shut Down"
+msgid "Shut down"
+msgstr "Apagar"
+
+#: data.js:20
+#, kde-format
+msgid "Turn off the computer"
+msgstr "Apagar o computador"
+
+#: data.js:26
+#, kde-format
+msgid "Restart"
+msgstr "Reiniciar"
+
+#: data.js:27
+#, kde-format
+msgid "Reboot the computer"
+msgstr "Reiniciar o computador"
+
+#: data.js:33
+#, fuzzy, kde-format
+#| msgid "Log Out"
+msgid "Log out"
+msgstr "Saír"
+
+#: data.js:34
+#, kde-format
+msgid "End the session"
+msgstr "Rematar a sesión"
+
+#: data.js:40
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Show logout screen"
+msgstr "Amosar a pantalla de saída."
+
+#: data.js:41
+#, kde-format
+msgid "Log out, turn off, or restart the computer"
+msgstr "Saír, apagar ou reiniciar o computador."
+
+#: data.js:47
+#, kde-format
+msgctxt "Suspend to RAM"
+msgid "Sleep"
+msgstr "Durmir"
+
+#: data.js:48
+#, kde-format
+msgid "Sleep (suspend to RAM)"
+msgstr "Suspender (en memoria)"
+
+#: data.js:54
+#, kde-format
+msgid "Hibernate"
+msgstr "Hibernar"
+
+#: data.js:55
+#, kde-format
+msgid "Hibernate (suspend to disk)"
+msgstr "Hibernar (suspender en disco)"
+
+#, fuzzy
+#~| msgctxt "Heading for list of actions (leave, lock, shutdown, ...)"
+#~| msgid "Actions"
+#~ msgctxt "@title:column"
+#~ msgid "Actions"
+#~ msgstr "Accións"
+
+#~ msgctxt ""
+#~ "Heading for a list of actions (leave, lock, switch user, hibernate, "
+#~ "suspend)"
+#~ msgid "Show actions:"
+#~ msgstr "Amosar as accións:"
+
+#~ msgid "Log Out"
+#~ msgstr "Saír"
+
+#~ msgctxt "@option:check"
+#~ msgid "Show logout screen"
+#~ msgstr "Amosar a pantalla de saída."
+
+#~ msgid "Shut Down"
+#~ msgstr "Apagar"
+
+#~ msgid "Switch User"
+#~ msgstr "Cambiar de persoa usuaria"
+
+#~ msgid "Shutdown…"
+#~ msgstr "Apagar…"
+
+#~ msgid "Restart…"
+#~ msgstr "Reiniciar…"
+
+#~ msgid "Logout…"
+#~ msgstr "Saír…"
+
+#~ msgid "Logout"
+#~ msgstr "Saír"
+
+#~ msgid "Reboot"
+#~ msgstr "Reiniciar"
+
+#~ msgid "Do you want to suspend to disk (hibernate)?"
+#~ msgstr "Quere suspender no disco (hibernar)?"
+
+#~ msgid "Yes"
+#~ msgstr "Si"
+
+#~ msgid "No"
+#~ msgstr "Non"
+
+#~ msgid "Do you want to suspend to RAM (sleep)?"
+#~ msgstr "Quere suspender na RAM (durmir)?"
+
+#~ msgid "Leave"
+#~ msgstr "Saír"
+
+#~ msgid "Leave..."
+#~ msgstr "Saír…"
+
+#~ msgid "Suspend"
+#~ msgstr "Suspender"
+
+#~ msgid "Lock/Logout Settings"
+#~ msgstr "Configuración de iniciar e saír da sesión"
+
+#~ msgid "SystemTray Settings"
+#~ msgstr "Configuración da bandexa do sistema"
+
+#~ msgid "Configure Lock/Logout"
+#~ msgstr "Configurar o tranque/saída"
+
+#~ msgid "Please select one or more items on the list below."
+#~ msgstr "Escolla un ou máis elementos na lista en baixo."

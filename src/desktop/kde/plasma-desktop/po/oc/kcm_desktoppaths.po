@@ -1,0 +1,283 @@
+# translation of kcmkonq.po to Occitan (lengadocian)
+# Occitan translation of kcmkonq.po
+# Copyright (C) 2002,2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+#
+# Yannig MARCHEGAY (Kokoyaya) <yannig@marchegay.org> - 2006-2007
+#
+# Yannig Marchegay (Kokoyaya) <yannig@marchegay.org>, 2007, 2008.
+msgid ""
+msgstr ""
+"Project-Id-Version: kcmkonq\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-11-17 11:53+0000\n"
+"PO-Revision-Date: 2008-08-05 22:26+0200\n"
+"Last-Translator: Yannig Marchegay (Kokoyaya) <yannig@marchegay.org>\n"
+"Language-Team: Occitan (lengadocian) <ubuntu-l10n-oci@lists.ubuntu.com>\n"
+"Language: oc\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: KBabel 1.11.4\n"
+
+#: ui/main.qml:52
+#, fuzzy, kde-format
+#| msgid "Desktop"
+msgctxt "@label:textbox"
+msgid "Desktop folder:"
+msgstr "Burèu"
+
+#: ui/main.qml:58
+#, kde-format
+msgctxt "@info:tooltip and accessible description"
+msgid "This folder contains all the files you see on your desktop."
+msgstr ""
+
+#: ui/main.qml:66
+#, fuzzy, kde-format
+#| msgid "Move Up"
+msgctxt "@label:textbox"
+msgid "Documents folder:"
+msgstr "Montar"
+
+#: ui/main.qml:72
+#, kde-format
+msgctxt "@info:tooltip and accessible description"
+msgid "This folder will be used by default to open or save documents."
+msgstr ""
+
+#: ui/main.qml:80
+#, fuzzy, kde-format
+#| msgid "Move Up"
+msgctxt "@label:textbox"
+msgid "Downloads folder:"
+msgstr "Montar"
+
+#: ui/main.qml:86
+#, kde-format
+msgctxt "@info:tooltip and accessible description"
+msgid "This folder will be used by default to save your downloaded items."
+msgstr ""
+
+#: ui/main.qml:94
+#, fuzzy, kde-format
+#| msgid "Move Up"
+msgctxt "@label:textbox"
+msgid "Videos folder:"
+msgstr "Montar"
+
+#: ui/main.qml:100
+#, kde-format
+msgctxt "@info:tooltip and accessible description"
+msgid "This folder will be used by default to open or save video files."
+msgstr ""
+
+#: ui/main.qml:108
+#, fuzzy, kde-format
+#| msgid "Move Up"
+msgctxt "@label:textbox"
+msgid "Pictures folder:"
+msgstr "Montar"
+
+#: ui/main.qml:114
+#, kde-format
+msgctxt "@info:tooltip and accessible description"
+msgid "This folder will be used by default to open or save image files."
+msgstr ""
+
+#: ui/main.qml:122
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Music folder:"
+msgstr ""
+
+#: ui/main.qml:128
+#, kde-format
+msgctxt "@info:tooltip and accessible description"
+msgid "This folder will be used by default to open or save music files."
+msgstr ""
+
+#: ui/main.qml:136
+#, fuzzy, kde-format
+#| msgid "Move Up"
+msgctxt "@label:textbox"
+msgid "Public folder:"
+msgstr "Montar"
+
+#: ui/main.qml:142
+#, kde-format
+msgctxt "@info:tooltip and accessible description"
+msgid ""
+"This folder will be used by default for publicly-shared files when network "
+"sharing is enabled."
+msgstr ""
+
+#: ui/main.qml:150
+#, fuzzy, kde-format
+#| msgid "Move Up"
+msgctxt "@label:textbox"
+msgid "Templates folder:"
+msgstr "Montar"
+
+#: ui/main.qml:156
+#, kde-format
+msgctxt "@info:tooltip and accessible description"
+msgid "This folder will be used by default to open or save file templates."
+msgstr ""
+
+#: ui/UrlRequester.qml:74
+#, kde-format
+msgctxt "@action:button"
+msgid "Choose new location"
+msgstr ""
+
+#, fuzzy
+#~| msgid "Move Up"
+#~ msgid "Documents path:"
+#~ msgstr "Montar"
+
+#, fuzzy
+#~| msgid "Move Up"
+#~ msgid "Downloads path:"
+#~ msgstr "Montar"
+
+#, fuzzy
+#~| msgid "Move Up"
+#~ msgid "Music path:"
+#~ msgstr "Montar"
+
+#~ msgid "Desktop"
+#~ msgstr "Burèu"
+
+#, fuzzy
+#~| msgid "Move Up"
+#~ msgid "Music"
+#~ msgstr "Montar"
+
+#, fuzzy
+#~| msgid "Move Up"
+#~ msgid "Pictures"
+#~ msgstr "Montar"
+
+#, fuzzy
+#~| msgid "Move Up"
+#~ msgid "Videos"
+#~ msgstr "Montar"
+
+#, fuzzy
+#~| msgid "Move Up"
+#~ msgid "Autostart path:"
+#~ msgstr "Montar"
+
+#, fuzzy
+#~| msgid "Move"
+#~ msgid "Movies"
+#~ msgstr "Desplaçar"
+
+#, fuzzy
+#~| msgid "Move"
+#~ msgctxt "Move files from old to new place"
+#~ msgid "Move"
+#~ msgstr "Desplaçar"
+
+#, fuzzy
+#~| msgid "Move"
+#~ msgctxt "Move the directory"
+#~ msgid "Move"
+#~ msgstr "Desplaçar"
+
+#~ msgid "Confirmation Required"
+#~ msgstr "Confirmacion necessària"
+
+#~ msgid "Menu Editor"
+#~ msgstr "Editor de menuts"
+
+#~ msgid "Menu"
+#~ msgstr "Menut"
+
+#~ msgid "New..."
+#~ msgstr "Novèl..."
+
+#~ msgid "Remove"
+#~ msgstr "Suprimir"
+
+#~ msgid "Move Up"
+#~ msgstr "Montar"
+
+#~ msgid "Move Down"
+#~ msgstr "Davalar"
+
+#, fuzzy
+#~| msgid "Confirmation Required"
+#~ msgctxt "@title:group what to do when a file is deleted"
+#~ msgid "Ask Confirmation For"
+#~ msgstr "Confirmacion necessària"
+
+#~ msgid " MB"
+#~ msgstr " Mo"
+
+#~ msgid "Sound Files"
+#~ msgstr "Fichièrs de son"
+
+#~ msgid "General"
+#~ msgstr "General"
+
+#~ msgid ""
+#~ "Uncheck this option if you do not want to have icons on the desktop. "
+#~ "Without icons the desktop will be somewhat faster but you will no longer "
+#~ "be able to drag files to the desktop."
+#~ msgstr ""
+#~ "Desmarcatz aquesta opcion se volètz pas d'icònz sul burèu. Aquò pòt "
+#~ "rendre lo burèu mai rapid mas perdretz la possibilitat de "
+#~ "lissar / depausar de fichièrs sul burèu."
+
+#~ msgid ""
+#~ "Check this option if you want to run X11 programs that draw into the "
+#~ "desktop such as xsnow, xpenguin or xmountain. If you have problems with "
+#~ "applications like netscape that check the root window for running "
+#~ "instances, disable this option."
+#~ msgstr ""
+#~ "Marcatz aquesta opcion se desiratz utilizar de programas X11 que "
+#~ "dessenhan dirèctament sul burèu, coma « xsnow », « xpenguin » o "
+#~ "« xmountain ». Se aquò crea de problèmas amb d'aplicacions coma Netscape "
+#~ "(qu'analiza la fenèstra raiç (lo fons del burèu) per i cercar "
+#~ "d'instàncias d'ele meteis), desmarcatz aquesta opcion."
+
+#~ msgid "&None"
+#~ msgstr "&Pas cap"
+
+#~ msgid ""
+#~ "If this option is selected, there is one menu bar at the top of the "
+#~ "screen which shows the desktop menus."
+#~ msgstr ""
+#~ "Se aquesta opcion es activada, una barra afichant los menuts del burèu "
+#~ "serà presenta en naut de l'escran."
+
+#~ msgid ""
+#~ "If this option is selected, applications will not have their menu bar "
+#~ "attached to their own window anymore. Instead, there is one menu bar at "
+#~ "the top of the screen which shows the menus of the currently active "
+#~ "application. You might recognize this behavior from Mac OS."
+#~ msgstr ""
+#~ "Se aquesta opcion es seleccionada, la barra de menuts de las aplicacions "
+#~ "serà pas mai dins la fenèstra de l'aplicacion. Una barra de menuts se "
+#~ "trobarà en efièch en naut de l'escran, e aficharà los menuts de "
+#~ "l'aplicacion correnta. Benlèu i reconeisseretz lo comportament de Mac OS."
+
+#~ msgid "Edit..."
+#~ msgstr "Editar..."
+
+#~ msgid ""
+#~ "Check this option if you want to see your icons automatically aligned to "
+#~ "the grid when you move them."
+#~ msgstr ""
+#~ "Validatz aquesta opcion se volètz afichar automaticament las icònas "
+#~ "alignadas sus una gresilha quand las desplaçatz."
+
+#~ msgid "Select for which types of files you want to enable preview images."
+#~ msgstr ""
+#~ "Seleccionatz los tipes de fichièrs pelsquals volètz activar los imatges "
+#~ "d'apercebut."
+
+#~ msgid "Show Icon Previews For"
+#~ msgstr "Afichar l'apercebut per"

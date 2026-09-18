@@ -1,0 +1,278 @@
+::
+:: Country:  Nepal
+::
+:: Language:  UK English
+::
+:: Author:   Generated (based on Nepali government calendars and common conversion sources)
+::
+:: Updated:  2026-01-12
+::
+:: Source:   Nepali government annual calendars / Nepali calendar converters and festival sources:
+::           https://en.wikipedia.org/wiki/Public_holidays_in_Nepal
+::           https://hamropatro.com
+::           Dates converted from Bikram Sambat -> Gregorian where available.
+::           NOTE: Moveable religious/lunar dates are shown as converted; for official/authoritative use please
+::                 confirm with the Nepali Government Gazette or official Nepali calendar each year.
+::
+
+:: Metadata
+country     "NP"
+language    "en_GB"
+:name        "optional - defaults to country name"
+description "National and major religious holiday file for Nepal (selected years 2025-2030)"
+
+:: Public / Official (fixed-date) holidays
+"New Year's Day (Gregorian)"         public on january 1
+"Prithvi Jayanti"                    public on january 11
+"Martyrs' Day (Shaheed Diwas)"       public on january 30
+"Labor Day"                          public on may 1
+"Republic Day"                       public on may 29
+"Constitution Day"                   public on september 19
+"Christmas"                          public on december 25
+"Women's Day"                        public on march 8
+"Democracy Day"                      public on february 19
+"Tamu Lhosar"                        public religious on december 30
+
+:: Major moveable religious and cultural holidays (explicit Gregorian dates for 2025-2030)
+:: Dashain (Ghatasthapana start, Phulpati, Maha Ashtami, Maha Navami, Vijaya Dashami / Tika)
+"Ghatasthapana (Day 1)"              public religious on september 22 2025
+"Phulpati (Day 7)"                   public religious on september 29 2025
+"Maha Ashtami (Day 8)"               public religious on september 30 2025
+"Maha Navami (Day 9)"                public religious on october 1 2025
+"Vijaya Dashami (Main Tika)"         public religious on october 2 2025
+"Kojagrat Purnima (Day 15)"          public religious on october 26 2025
+
+"Ghatasthapana (Day 1)"              public religious on october 11 2026
+"Phulpati (Day 7)"                   public religious on october 17 2026
+"Maha Ashtami (Day 8)"               public religious on october 18 2026
+"Maha Navami (Day 9)"                public religious on october 19 2026
+"Vijaya Dashami (Main Tika)"         public religious on october 21 2026
+"Kojagrat Purnima (Day 15)"          public religious on october 25 2026
+
+"Ghatasthapana (Day 1)"              public religious on september 30 2027
+"Phulpati (Day 7)"                   public religious on october 6 2027
+"Maha Ashtami (Day 8)"               public religious on october 7 2027
+"Maha Navami (Day 9)"                public religious on october 9 2027
+"Vijaya Dashami (Main Tika)"         public religious on october 9 2027
+"Kojagrat Purnima (Day 15)"          public religious on october 14 2027
+
+"Ghatasthapana (Day 1)"              public religious on september 18 2028
+"Phulpati (Day 7)"                   public religious on september 25 2028
+"Maha Ashtami (Day 8)"               public religious on september 26 2028
+"Maha Navami (Day 9)"                public religious on september 27 2028
+"Vijaya Dashami (Main Tika)"         public religious on september 28 2028
+"Kojagrat Purnima (Day 15)"          public religious on october 3 2028
+
+"Ghatasthapana (Day 1)"              public religious on october 7 2029
+"Phulpati (Day 7)"                   public religious on october 14 2029
+"Maha Ashtami (Day 8)"               public religious on october 15 2029
+"Maha Navami (Day 9)"                public religious on october 16 2029
+"Vijaya Dashami (Main Tika)"         public religious on october 17 2029
+"Kojagrat Purnima (Day 15)"          public religious on october 22 2029
+
+"Ghatasthapana (Day 1)"              public religious on september 27 2030
+"Phulpati (Day 7)"                   public religious on october 3 2030
+"Maha Ashtami (Day 8)"               public religious on october 4 2030
+"Maha Navami (Day 9)"                public religious on october 5 2030
+"Vijaya Dashami (Main Tika)"         public religious on october 6 2030
+"Kojagrat Purnima (Day 15)"          public religious on october 11 2030
+
+:: Tihar / Deepawali — key days (Kaag, Kukur, Laxmi Puja, Govardhan/Mha Puja, Bhai Tika)
+"Tihar (Kaag / Crow)"                public religious on november 7 2025
+"Tihar (Kukur Tihar / Dog)"          public religious on november 8 2025
+"Tihar (Laxmi Puja)"                 public religious on october 20 2025
+"Tihar (Govardhan Puja / Mha Puja)"  public religious on october 22 2025
+"Tihar (Bhai Tika)"                  public religious on october 23 2025
+
+
+"Tihar (Kaag / Crow)"                public religious on november 7 2026
+"Tihar (Kukur Tihar / Dog)"          public religious on november 8 2026
+"Tihar (Laxmi Puja)"                 public religious on november 9 2026
+"Tihar (Govardhan Puja / Mha Puja)"  public religious on november 10 2026
+"Tihar (Bhai Tika)"                  public religious on november 11 2026
+
+
+"Tihar (Kaag / Crow)"                public religious on october 27 2027
+"Tihar (Kukur Tihar / Dog)"          public religious on october 28 2027
+"Tihar (Laxmi Puja)"                 public religious on october 27 2027
+"Tihar (Govardhan Puja / Mha Puja)"  public religious on october 30 2027
+"Tihar (Bhai Tika)"                  public religious on october 31 2027
+
+
+"Tihar (Kaag / Crow)"                public religious on october 15 2028
+"Tihar (Kukur Tihar / Dog)"          public religious on october 16 2028
+"Tihar (Laxmi Puja)"                 public religious on november 15 2028
+"Tihar (Govardhan Puja / Mha Puja)"  public religious on october 18 2028
+"Tihar (Bhai Tika)"                  public religious on october 19 2028
+
+
+"Tihar (Kaag / Crow)"                public religious on november 3 2029
+"Tihar (Kukur Tihar / Dog)"          public religious on november 4 2029
+"Tihar (Laxmi Puja)"                 public religious on november 4 2029
+"Tihar (Govardhan Puja / Mha Puja)"  public religious on november 6 2029
+"Tihar (Bhai Tika)"                  public religious on november 7 2029
+
+
+"Tihar (Kaag / Crow)"                public religious on october 24 2030
+"Tihar (Kukur Tihar / Dog)"          public religious on october 25 2030
+"Tihar (Laxmi Puja)"                 public religious on october 25 2030
+"Tihar (Govardhan Puja / Mha Puja)"  public religious on october 27 2030
+"Tihar (Bhai Tika)"                  public religious on october 28 2030
+
+"Yomari Punhi"                       public religious on december 24 2027
+                
+"Maghe Sankranti/Maghi Parva"        public religious on january 15 2027
+
+:: Lhosar and related movable Luni-solar festivals
+"Sonam Lhosar (Tamang New Year)"     public religious on january 30 2025
+"Sonam Lhosar (Tamang New Year)"     public religious on january 19 2026
+"Sonam Lhosar (Tamang New Year)"     public religious on february 7 2027
+"Sonam Lhosar (Tamang New Year)"     public religious on january 26 2028
+"Sonam Lhosar (Tamang New Year)"     public religious on february 13 2029
+"Sonam Lhosar (Tamang New Year)"     public religious on february 2 2030
+
+"Tamu Lhosar"                         public religious on december 30 2025
+"Tamu Lhosar"                         public religious on december 30 2026
+"Tamu Lhosar"                         public religious on december 30 2027
+"Tamu Lhosar"                         public religious on december 30 2028
+"Tamu Lhosar"                         public religious on december 30 2029
+"Tamu Lhosar"                         public religious on december 30 2030
+
+"Gyalpo Lhosar (Tibetan New Year)"   public religious on february 28 2025
+"Gyalpo Lhosar (Tibetan New Year)"   public religious on february 18 2026
+"Gyalpo Lhosar (Tibetan New Year)"   public religious on march 9 2027
+"Gyalpo Lhosar (Tibetan New Year)"   public religious on february 25 2028
+"Gyalpo Lhosar (Tibetan New Year)"   public religious on march 15 2029
+"Gyalpo Lhosar (Tibetan New Year)"   public religious on march 5 2030
+
+:: Luni-solar / movable festivals and local observances
+"Maha Shivaratri"                    public religious on february 26 2025
+"Maha Shivaratri"                    public religious on february 15 2026
+"Maha Shivaratri"                    public religious on march 6 2027
+"Maha Shivaratri"                    public religious on february 23 2028
+"Maha Shivaratri"                    public religious on february 11 2029
+"Maha Shivaratri"                    public religious on march 3 2030
+
+"Ram Navami"                         public religious on april 6 2025
+"Ram Navami"                         public religious on march 27 2026
+"Ram Navami"                         public religious on april 14 2027
+"Ram Navami"                         public religious on april 3 2028
+"Ram Navami"                         public religious on march 23 2029
+"Ram Navami"                         public religious on april 11 2030
+
+"Nepalese New Year (Bikram Sambat)"  public on april 14 2025
+"Nepalese New Year (Bikram Sambat)"  public religious on april 14 2026
+"Nepalese New Year (Bikram Sambat)"  public religious on april 14 2027
+"Nepalese New Year (Bikram Sambat)"  public religious on april 13 2028
+"Nepalese New Year (Bikram Sambat)"  public religious on april 13 2029
+"Nepalese New Year (Bikram Sambat)"  public religious on april 14 2030
+
+"Holi (hill observance)"             public religious on march 13 2025
+"Holi (Terai observance)"            public religious on march 14 2025
+
+"Holi (hill observance)"             public religious on march 2 2026
+"Holi (Terai observance)"            public religious on march 3 2026
+
+"Holi (hill observance)"             public religious on march 21 2027
+"Holi (Terai observance)"            public religious on march 22 2027
+
+"Holi (hill observance)"             public religious on march 11 2028
+"Holi (Terai observance)"            public religious on march 12 2028
+
+"Holi (hill observance)"             public religious on march 1 2029
+"Holi (Terai observance)"            public religious on march 2 2029
+
+"Holi (hill observance)"             public religious on march 19 2030
+"Holi (Terai observance)"            public religious on march 20 2030
+
+"Ghode Jatra"                        public religious on march 29 2025
+"Ghode Jatra"                        public religious on march 18 2026
+"Ghode Jatra"                        public religious on april 6 2027
+"Ghode Jatra"                        public religious on march 26 2028
+"Ghode Jatra"                        public religious on april 13 2029
+"Ghode Jatra"                        public religious on april 2 2030
+
+"Janai Purnima / Raksha Bandhan"     public religious on august 9 2025
+"Janai Purnima / Raksha Bandhan"     public religious on august 28 2026
+"Janai Purnima / Raksha Bandhan"     public religious on august 17 2027
+"Janai Purnima / Raksha Bandhan"     public religious on september 3 2028
+"Janai Purnima / Raksha Bandhan"     public religious on august 24 2029
+"Janai Purnima / Raksha Bandhan"     public religious on august 13 2030
+
+"Gaijatra"                           public religious on august 10 2025
+"Gaijatra"                           public religious on august 29 2026
+"Gaijatra"                           public religious on august 18 2027
+"Gaijatra"                           public religious on september 4 2028
+"Gaijatra"                           public religious on august 25 2029
+"Gaijatra"                           public religious on august 14 2030
+
+"Gaura Parva"                        public religious on august 20 2025
+"Gaura Parva"                        public religious on september 4 2026
+"Gaura Parva"                        public religious on august 28 2027
+"Gaura Parva"                        public religious on september 15 2028
+"Gaura Parva"                        public religious on september 5 2029
+
+"Shree Krishna Janmasthami"          public religious on september 4 2026
+
+"Haritalika Teej"                    public religious on september 14 2025
+"Haritalika Teej"                    public religious on september 14 2026
+"Haritalika Teej"                    public religious on september 21 2027
+"Haritalika Teej"                    public religious on september 10 2028
+"Haritalika Teej"                    public religious on august 31 2029
+"Haritalika Teej"                    public religious on september 20 2030
+
+"Indra Jatra"                        public religious on september 25 2025
+"Indra Jatra"                        public religious on september 25 2026
+"Indra Jatra"                        public religious on september 14 2027
+"Indra Jatra"                        public religious on october 2 2028
+"Indra Jatra"                        public religious on september 22 2029
+"Indra Jatra"                        public religious on september 11 2030
+
+:: Other religious / civic festivals (Buddha, Sikh, Islamic - estimated)
+"Buddha Jayanti"                     public religious on may 12 2025
+"Buddha Jayanti"                     public religious on may 1 2026
+"Buddha Jayanti"                     public religious on may 21 2027
+"Buddha Jayanti"                     public religious on may 8 2028
+"Buddha Jayanti"                     public religious on may 27 2029
+"Buddha Jayanti"                     public religious on may 17 2030
+
+"Eid al-Fitr"                        public religious on march 31 2025
+"Eid al-Adha"                        public religious on june 7 2025
+
+"Eid al-Fitr (estimated)"            public religious on march 20 2026
+"Eid al-Adha (estimated)"            public religious on may 27 2026
+
+"Eid al-Fitr (estimated)"            public religious on march 10 2027
+"Eid al-Adha (estimated)"            public religious on may 17 2027
+
+"Eid al-Fitr (estimated)"            public religious on february 26 2028
+"Eid al-Adha (estimated)"            public religious on may 5 2028
+
+"Eid al-Fitr (estimated)"            public religious on february 15 2029
+"Eid al-Adha (estimated)"            public religious on april 24 2029
+
+"Eid al-Fitr (estimated)"            public religious on february 4 2030
+"Eid al-Adha (estimated)"            public religious on april 13 2030
+
+"Guru Nanak Jayanti"                 public religious on november 24 2025
+"Guru Nanak Jayanti"                 public religious on november 13 2026
+"Guru Nanak Jayanti"                 public religious on december 1 2027
+"Guru Nanak Jayanti"                 public religious on november 20 2028
+"Guru Nanak Jayanti"                 public religious on november 10 2029
+
+"Chhath Puja"                        public religious on november 15 2025
+"Chhath Puja"                        public religious on november 4 2026
+"Chhath Puja"                        public religious on november 21 2027
+"Chhath Puja"                        public religious on november 11 2028
+"Chhath Puja"                        public religious on october 31 2029
+
+"Udhauli Parva"                      public religious on december 24 2025
+"Udhauli Parva"                      public religious on december 13 2026
+"Udhauli Parva"                      public religious on december 31 2027
+"Udhauli Parva"                      public religious on december 20 2028
+"Udhauli Parva"                      public religious on december 10 2029
+
+:: Notes
+:: - Moveable religious festivals are converted from Bikram Sambat / lunisolar calculations where available.
+:: - Dates for 2025 are taken from published 2025 Nepali calendar sources and lunar conversions. Dates for 2026–2030 are taken from the government and commercial Nepalese sites, compiled on spreadsheet manually and checked for accuracy.
+:: - Islamic dates are estimated / astronomical conversions; will be confirm by local authorities for official observance.

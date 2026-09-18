@@ -1,0 +1,859 @@
+# SPDX-FileCopyrightText: 2021, 2022, 2023, 2024, 2025 Xavier Besnard <xavier.besnard@kde.org>
+# Xavier Besnard <xavier.besnard@kde.org>, 2023.
+msgid ""
+msgstr ""
+"Project-Id-Version: kirigami-addons\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-07-03 06:55+0000\n"
+"PO-Revision-Date: 2025-03-24 09:44+0100\n"
+"Last-Translator: Xavier Besnard <xavier.besnard@kde.org>\n"
+"Language-Team: French <French <kde-francophone@kde.org>>\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Accelerator-Marker: &\n"
+"X-Environment: kde\n"
+"X-Generator: Lokalize 24.12.3\n"
+"X-Text-Markup: kde4\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Xavier Besnard"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "xavier.besnard@kde.org"
+
+#: components/AbstractMaximizeComponent.qml:132
+#, kde-format
+msgid "Close"
+msgstr "Fermer"
+
+#: components/AlbumMaximizeComponent.qml:150
+#, kde-format
+msgid "Zoom in"
+msgstr "Zoom avant"
+
+#: components/AlbumMaximizeComponent.qml:155
+#, kde-format
+msgid "Zoom out"
+msgstr "Zoom arrière"
+
+#: components/AlbumMaximizeComponent.qml:161
+#, kde-format
+msgid "Rotate left"
+msgstr "Tourner vers la gauche"
+
+#: components/AlbumMaximizeComponent.qml:167
+#, kde-format
+msgid "Rotate right"
+msgstr "Tourner vers la droite"
+
+#: components/AlbumMaximizeComponent.qml:172
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Show caption"
+msgstr "Afficher une légende"
+
+#: components/AlbumMaximizeComponent.qml:172
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Hide caption"
+msgstr "Masquer la légende"
+
+#: components/AlbumMaximizeComponent.qml:178
+#, kde-format
+msgid "Save as"
+msgstr "Enregistrer sous"
+
+#: components/AlbumMaximizeComponent.qml:256
+#, kde-format
+msgid "Previous image"
+msgstr "Image précédente"
+
+#: components/AlbumMaximizeComponent.qml:276
+#, kde-format
+msgid "Next image"
+msgstr "Image suivante"
+
+#: components/Banner.qml:185 formcard/AboutPage.qml:502
+#, kde-format
+msgctxt "@action:button"
+msgid "Close"
+msgstr "Fermer"
+
+#: components/ConvergentContextMenu.qml:274
+#, kde-format
+msgctxt "@action:button"
+msgid "Go Back"
+msgstr "Revenir en arrière"
+
+#: components/DownloadAction.qml:40
+#, kde-format
+msgid "Download"
+msgstr "Télécharger"
+
+#: components/MessageDialog.qml:99
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Success"
+msgstr "Succès"
+
+#: components/MessageDialog.qml:101 components/MessageDialog.qml:107
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Warning"
+msgstr "Avertissement"
+
+#: components/MessageDialog.qml:103
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Error"
+msgstr "Erreur"
+
+#: components/MessageDialog.qml:105
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Information"
+msgstr "Informations"
+
+#: components/MessageDialog.qml:255
+#, kde-format
+msgctxt "@label:checkbox"
+msgid "Do not show again"
+msgstr "Ne plus afficher"
+
+#: components/VideoMaximizeDelegate.qml:281
+#, kde-format
+msgctxt "@action:button"
+msgid "Volume"
+msgstr "Volume"
+
+#: dateandtime/DatePopup.qml:87 dateandtime/TimePopup.qml:46
+#, kde-format
+msgctxt "@action:button"
+msgid "Cancel"
+msgstr "Annuler"
+
+#: dateandtime/DatePopup.qml:99 dateandtime/TimePopup.qml:57
+#, kde-format
+msgctxt "@action:button"
+msgid "Select"
+msgstr "Sélectionner"
+
+#: dateandtime/private/DatePicker.qml:275
+#, kde-format
+msgid "Day"
+msgstr "Jour"
+
+#: dateandtime/private/DatePicker.qml:278
+#, kde-format
+msgid "Month"
+msgstr "Mois"
+
+#: dateandtime/private/DatePicker.qml:281
+#, kde-format
+msgid "Year"
+msgstr "Année"
+
+#: dateandtime/private/DatePicker.qml:366
+#, kde-format
+msgctxt "@action:button"
+msgid "Go Previous"
+msgstr "Aller au précédent"
+
+#: dateandtime/private/DatePicker.qml:379
+#, kde-format
+msgctxt "@action:button"
+msgid "Jump to today"
+msgstr "Aller à aujourd'hui"
+
+#: dateandtime/private/DatePicker.qml:386
+#, kde-format
+msgctxt "@action:button"
+msgid "Go Next"
+msgstr "Aller au suivant"
+
+#: dateandtime/TimePicker.qml:97
+#, kde-format
+msgid "Hours"
+msgstr "Heures"
+
+#: dateandtime/TimePicker.qml:119
+#, kde-format
+msgctxt "Time separator"
+msgid ":"
+msgstr ":"
+
+#: dateandtime/TimePicker.qml:134
+#, kde-format
+msgid "Minutes"
+msgstr "Minutes"
+
+#: formcard/aboutcomponent.cpp:25
+#, kde-format
+msgctxt "@info Platform name"
+msgid "%1 (%2)"
+msgstr "%1 (%2)"
+
+#: formcard/aboutcomponent.cpp:29
+#, kde-format
+msgid "KDE Frameworks"
+msgstr "Environnements de développement de KDE"
+
+#: formcard/aboutcomponent.cpp:30
+#, kde-format
+msgctxt "@info"
+msgid "Collection of libraries created by the KDE Community to extend Qt."
+msgstr ""
+"Collection de bibliothèques créées par la communauté de KDE pour étendre Qt."
+
+#: formcard/aboutcomponent.cpp:35
+#, kde-format
+msgid "Qt"
+msgstr "Qt"
+
+#: formcard/aboutcomponent.cpp:36
+#, kde-format
+msgctxt "@info"
+msgid "Cross-platform application development framework."
+msgstr "Environnement de développement d'applications multi-plate-forme"
+
+#: formcard/aboutcomponent.cpp:37
+#, kde-format
+msgid "Using %1 and built against %2"
+msgstr "Utilisation de %1 et compilation concernant %2"
+
+#: formcard/aboutcomponent.cpp:41
+#, kde-format
+msgctxt "@info"
+msgid "Underlying platform."
+msgstr "Plate-forme sous-jacente."
+
+#: formcard/AboutKDEPage.qml:24
+#: statefulapplication/abstractkirigamiapplication.cpp:174
+#, kde-format
+msgid "About KDE"
+msgstr "À propos de KDE"
+
+#: formcard/AboutKDEPage.qml:50
+#, kde-format
+msgid "KDE"
+msgstr "KDE"
+
+#: formcard/AboutKDEPage.qml:59
+#, kde-format
+msgid "Be Free!"
+msgstr "Soyez libre !"
+
+#: formcard/AboutKDEPage.qml:68
+#, kde-format
+msgid ""
+"KDE is a world-wide community of software engineers, artists, writers, "
+"translators and creators who are committed to Free Software development. KDE "
+"produces the Plasma desktop environment, hundreds of applications, and the "
+"many software libraries that support them.\n"
+"\n"
+"KDE is a cooperative enterprise: no single entity controls its direction or "
+"products. Instead, we work together to achieve the common goal of building "
+"the world's finest Free Software. Everyone is welcome to join and contribute "
+"to KDE, including you."
+msgstr ""
+"KDE est une communauté mondiale d'ingénieurs en logiciels, d'artistes, "
+"d'écrivains, de traducteurs et de créateurs qui s'engagent dans le "
+"développement du Logiciel Libre. KDE produit l'environnement de bureau "
+"Plasma, des centaines d'applications et les nombreuses bibliothèques "
+"logicielles qui leur permettent d'exister. \n"
+"\n"
+"KDE est une entreprise collaborative : aucune entité ne contrôle sa "
+"stratégie ou ses produits. Au lieu de cela, chacun travaille avec la "
+"communauté pour atteindre l'objectif commun de construire les meilleurs "
+"logiciels libres au monde. Tout le monde est invité à se joindre et à "
+"contribuer à KDE, y compris vous."
+
+#: formcard/AboutKDEPage.qml:77 formcard/AboutPage.qml:225
+#, kde-format
+msgid "Homepage"
+msgstr "Page d'accueil"
+
+#: formcard/AboutKDEPage.qml:83
+#, kde-format
+msgid "Report bugs"
+msgstr "Signaler des bogues"
+
+#: formcard/AboutKDEPage.qml:88
+#, kde-format
+msgid ""
+"Software can always be improved, and the KDE team is ready to do so. "
+"However, you - the user - must tell us when something does not work as "
+"expected or could be done better.\n"
+"\n"
+"KDE has a bug tracking system. Use the button below to file a bug, or use "
+"the program's About page to report a bug specific to this application.\n"
+"\n"
+"If you have a suggestion for improvement then you are welcome to use the bug "
+"tracking system to register your wish. Make sure you use the severity called "
+"\"Wishlist\"."
+msgstr ""
+"Les logiciels peuvent toujours être améliorés et l'équipe de KDE est prête à "
+"le faire. Cependant, vous - les personnes utilisatrices - devez nous "
+"signaler quand quelque chose ne fonctionne pas comme prévu ou pourrait être "
+"mieux fait. \n"
+"\n"
+"KDE dispose d'un système de suivi des bogues. Utilisez le bouton ci-dessous "
+"pour signaler un bogue ou utilisez la page « À propos » du programme pour "
+"signaler un bogue spécifique à cette application. \n"
+"\n"
+"Si vous avez une proposition d'amélioration, vous pouvez utiliser le système "
+"de suivi des bogues pour enregistrer celle-ci. Veuillez vous assurer "
+"d'utiliser un niveau de criticité dans la « Liste de souhaits »."
+
+#: formcard/AboutKDEPage.qml:110
+#, kde-format
+msgid "Report a bug"
+msgstr "Signaler un bogue"
+
+#: formcard/AboutKDEPage.qml:116
+#, kde-format
+msgid "Join us"
+msgstr "Rejoignez-nous"
+
+#: formcard/AboutKDEPage.qml:121
+#, kde-format
+msgid ""
+"You do not have to be a software developer to be a member of the KDE team. "
+"You can join the language teams that translate program interfaces. You can "
+"provide graphics, themes, sounds, and improved documentation. You decide!"
+msgstr ""
+"Vous n'avez pas besoin d'être un développeur de logiciels pour faire partie "
+"de l'équipe de KDE. Vous pouvez rejoindre les équipes nationales traduisant "
+"les interfaces de programmes. Vous pouvez fournir des illustrations, des "
+"thèmes, des sons et une documentation améliorée. C'est vous qui décidez !"
+
+#: formcard/AboutKDEPage.qml:129 formcard/AboutPage.qml:253
+#, kde-format
+msgid "Get Involved"
+msgstr "Impliquez-vous"
+
+#: formcard/AboutKDEPage.qml:139
+#, kde-format
+msgid "Developer Documentation"
+msgstr "Documentation pour équipe de développement"
+
+#: formcard/AboutKDEPage.qml:145
+#, kde-format
+msgid "Support us"
+msgstr "Soutenez nous"
+
+#: formcard/AboutKDEPage.qml:150
+#, kde-format
+msgid ""
+"KDE software is and will always be available free of charge, however "
+"creating it is not free.\n"
+"\n"
+"To support development the KDE community has formed the KDE e.V., a non-"
+"profit organization legally founded in Germany. KDE e.V. represents the KDE "
+"community in legal and financial matters.\n"
+"\n"
+"KDE benefits from many kinds of contributions, including financial. We use "
+"the funds to reimburse members and others for expenses they incur when "
+"contributing. Further funds are used for legal support and organizing "
+"conferences and meetings.\n"
+"\n"
+"We would like to encourage you to support our efforts with a financial "
+"donation.\n"
+"\n"
+"Thank you very much in advance for your support."
+msgstr ""
+"Le logiciel KDE est et sera toujours disponible gratuitement, mais sa "
+"création n'est pas gratuite. \n"
+"\n"
+"Pour soutenir les développements, la communauté KDE a créé une organisation "
+"à but non lucratif nommée KDE e.V., légalement enregistrée en Allemagne. KDE "
+"e.V. représente la communauté KDE en matière juridique et financière. \n"
+"\n"
+"KDE bénéficie de nombreux types de contributions, y compris financières. Les "
+"fonds sont utilisés pour rembourser les membres et d'autres personnes pour "
+"les dépenses qu'ils engagent lorsqu'ils contribuent. D'autres fonds sont "
+"utilisés pour le soutien juridique et l'organisation de conférences et de "
+"réunions. \n"
+"\n"
+"Nous vous encourageons à soutenir nos efforts par un don financier. \n"
+"\n"
+"Merci beaucoup d'avance pour votre soutien."
+
+#: formcard/AboutKDEPage.qml:163
+#, kde-format
+msgid "KDE e.V."
+msgstr "KDE e.V."
+
+#: formcard/AboutKDEPage.qml:173 formcard/AboutPage.qml:239
+#, kde-format
+msgid "Donate"
+msgstr "Faire un don"
+
+#: formcard/AboutPage.qml:91
+#: statefulapplication/abstractkirigamiapplication.cpp:167
+#, kde-format
+msgid "About %1"
+msgstr "À propos de %1"
+
+#: formcard/AboutPage.qml:136
+#, kde-format
+msgid "Copyright"
+msgstr "Licence"
+
+#: formcard/AboutPage.qml:144
+#, kde-format
+msgid "Description"
+msgstr "Description"
+
+#: formcard/AboutPage.qml:157
+#, kde-format
+msgid "License"
+msgid_plural "Licenses"
+msgstr[0] "Licence"
+msgstr[1] "Licences"
+
+#: formcard/AboutPage.qml:279
+#, kde-format
+msgid "Report a Bug"
+msgstr "Signaler un bogue"
+
+#: formcard/AboutPage.qml:285
+#, kde-format
+msgid "Libraries in use"
+msgstr "Bibliothèques en cours d'utilisation"
+
+#: formcard/AboutPage.qml:288
+#, kde-format
+msgctxt "@action:button"
+msgid "Copy to Clipboard"
+msgstr "Copier dans le presse-papier"
+
+#: formcard/AboutPage.qml:292
+#, kde-format
+msgctxt "@info"
+msgid "System information copied to clipboard."
+msgstr "Informations sur le système copiées dans le presse-papier."
+
+#: formcard/AboutPage.qml:305
+#, kde-format
+msgid "Authors"
+msgstr "Auteurs"
+
+#: formcard/AboutPage.qml:320
+#, kde-format
+msgid "Credits"
+msgstr "Remerciements"
+
+#: formcard/AboutPage.qml:335
+#, kde-format
+msgid "Translators"
+msgstr "Équipe de traduction"
+
+#: formcard/AboutPage.qml:404
+#, kde-format
+msgid "Visit %1's KDE Store page"
+msgstr "Consulter la page %1 de la boutique de KDE"
+
+#: formcard/AboutPage.qml:413
+#, kde-format
+msgid "Send an email to %1"
+msgstr "Envoyer un courriel vers %1"
+
+#: formcard/android/FormColorDelegate.qml:42 formcard/FormColorDelegate.qml:52
+#, kde-format
+msgctxt "@action:button"
+msgid "Color"
+msgstr "Couleur"
+
+#: formcard/android/FormColorDelegate.qml:43 formcard/FormColorDelegate.qml:53
+#, kde-format
+msgctxt "Accessible description"
+msgid "Current color \"%1\""
+msgstr "Couleur courante « %1 »"
+
+#: formcard/android/FormIconDelegate.qml:43
+#, kde-format
+msgctxt "@action:button"
+msgid "Icon"
+msgstr "Icône"
+
+#: formcard/FormDateTimeDelegate.qml:202
+#, kde-format
+msgctxt "Displayed in place of the date if the selected day is today"
+msgid "Today"
+msgstr "Aujourd'hui"
+
+#: formcard/FormDateTimeDelegate.qml:229 formcard/FormDateTimeDelegate.qml:366
+#, kde-format
+msgctxt "Date is not set"
+msgid "Not set"
+msgstr "Non défini"
+
+#: formcard/FormLinkDelegate.qml:52
+#, kde-format
+msgctxt "@action:inmnenu"
+msgid "Open Link"
+msgstr "Ouvrir le lien"
+
+#: formcard/FormLinkDelegate.qml:58
+#, kde-format
+msgctxt "@action:inmnenu"
+msgid "Copy Link to Clipboard"
+msgstr "Copier le lien dans le presse-papier"
+
+#: formcard/FormLinkDelegate.qml:64
+#, kde-format
+msgctxt "@info:status"
+msgid "Url copied to clipboard."
+msgstr "URL copiée dans le presse-papier."
+
+#: formcard/FormPasswordFieldDelegate.qml:249
+#: formcard/FormTextAreaDelegate.qml:174 formcard/FormTextFieldDelegate.qml:271
+#, kde-format
+msgctxt "@label %1 is current text length, %2 is maximum length of text field"
+msgid "%1/%2"
+msgstr "%1 / %2"
+
+#: settings/CategorizedSettings.qml:46 settings/ConfigurationView.qml:83
+#, kde-format
+msgctxt "@title:window"
+msgid "Settings"
+msgstr "Configuration"
+
+#: settings/CategorizedSettings.qml:46
+#, kde-format
+msgctxt "@title:window"
+msgid "Settings — %1"
+msgstr "Configuration — %1"
+
+#: settings/CategorizedSettings.qml:100
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Go back"
+msgstr "Revenir en arrière"
+
+#: settings/private/ConfigMobilePage.qml:26
+#, kde-format
+msgctxt "@title"
+msgid "Settings"
+msgstr "Configuration"
+
+#: settings/private/ConfigMobilePage.qml:99
+#, kde-format
+msgctxt "@title:group"
+msgid "Settings"
+msgstr "Configuration"
+
+#: settings/private/SonnetConfigPage.qml:41
+#, kde-format
+msgctxt "@label:checkbox"
+msgid "Enable automatic spell checking"
+msgstr "Activer la correction orthographique automatiquement"
+
+#: settings/private/SonnetConfigPage.qml:55
+#, kde-format
+msgctxt "@label:checkbox"
+msgid "Ignore uppercase words"
+msgstr "Ignorer les mots en majuscule"
+
+#: settings/private/SonnetConfigPage.qml:69
+#, kde-format
+msgctxt "@label:checkbox"
+msgid "Ignore hyphenated words"
+msgstr "Ignorer les mots avec des traits d'union"
+
+#: settings/private/SonnetConfigPage.qml:83
+#, kde-format
+msgctxt "@label:checkbox"
+msgid "Detect language automatically"
+msgstr "Détecter la langue automatiquement"
+
+#: settings/private/SonnetConfigPage.qml:96
+#, kde-format
+msgctxt "@label:listbox"
+msgid "Selected default language:"
+msgstr "Langue par défaut sélectionnée :"
+
+#: settings/private/SonnetConfigPage.qml:97
+#, kde-format
+msgctxt "No selected language"
+msgid "None"
+msgstr "Aucun"
+
+#: settings/private/SonnetConfigPage.qml:117
+#, kde-format
+msgctxt "@label:listbox"
+msgid "Additional Spell Checking Languages"
+msgstr "Langues supplémentaires de correction orthographique"
+
+#: settings/private/SonnetConfigPage.qml:118
+#, kde-format
+msgid ""
+"%1 will provide spell checking and suggestions for the languages listed here "
+"when autodetection is enabled."
+msgstr ""
+"%1 fournira une vérification orthographique et des suggestions pour les "
+"langues répertoriées ici lorsque la détection automatique est activée."
+
+#: settings/private/SonnetConfigPage.qml:131
+#, kde-format
+msgctxt "@action:button"
+msgid "Open Personal Dictionary"
+msgstr "Ouvrir un dictionnaire personnel"
+
+#: settings/private/SonnetConfigPage.qml:143
+#, kde-format
+msgctxt "@title:window"
+msgid "Spell checking languages"
+msgstr "Langues pour la correction orthographique"
+
+#: settings/private/SonnetConfigPage.qml:155
+#, kde-format
+msgid "Default Language"
+msgstr "Langue par défaut"
+
+#: settings/private/SonnetConfigPage.qml:167
+#, kde-format
+msgctxt "@title:window"
+msgid "Spell checking dictionary"
+msgstr "Dictionnaire de vérification orthographique"
+
+#: settings/private/SonnetConfigPage.qml:174
+#, kde-format
+msgctxt "Placeholder message"
+msgid "Add a new word to your personal dictionary…"
+msgstr "Ajouter un nouveau mot à votre dictionnaire personnel…"
+
+#: settings/private/SonnetConfigPage.qml:177
+#, kde-format
+msgctxt "@action:button"
+msgid "Add Word"
+msgstr "Ajouter un mot"
+
+#: settings/private/SonnetConfigPage.qml:212
+#, kde-format
+msgctxt "@action:button"
+msgid "Delete word"
+msgstr "Supprimer un mot"
+
+#: settings/ShortcutsConfigurationModule.qml:26
+#, kde-format
+msgctxt "@action:button"
+msgid "Keyboard Shortcuts"
+msgstr "Raccourcis clavier"
+
+#: settings/SpellcheckingConfigurationModule.qml:15
+#, kde-format
+msgctxt "@action:button"
+msgid "Spell Checking"
+msgstr "Correction orthographique"
+
+#: statefulapplication/abstractkirigamiapplication.cpp:145
+#, kde-format
+msgid "Open Command Bar"
+msgstr "Ouvrir une barre de commande"
+
+#: statefulapplication/private/keysequencehelper.cpp:117
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Reserved Shortcut"
+msgstr "Raccourci réservé"
+
+#: statefulapplication/private/keysequencehelper.cpp:119
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The F12 key is reserved on Windows, so cannot be used for a global "
+"shortcut.\n"
+"Please choose another one."
+msgstr ""
+"La touche « F12 » est réservée sous Windows. Ainsi, il est impossible de "
+"l'utiliser pour un raccourci global. \n"
+"Veuillez en sélectionner un autre."
+
+#: statefulapplication/private/keysequencehelper.cpp:143
+#, kde-format
+msgctxt ""
+"@title:dialog This happen when a global shortcut is already defined with the "
+"same shortcut"
+msgid "Global Shortcut Shadowing"
+msgstr "Mise en cache de raccourcis globaux"
+
+#: statefulapplication/private/keysequencehelper.cpp:146
+#, kde-format
+msgctxt "@info"
+msgid "The '%1' key combination is shadowed by following global actions:\n"
+msgstr ""
+"La combinaison de touches « %1 » est suivie par les actions globales "
+"suivantes : \n"
+
+#: statefulapplication/private/keysequencehelper.cpp:148
+#: statefulapplication/private/keysequencehelper.cpp:154
+#, kde-format
+msgctxt "@info"
+msgid "Action '%1' in context '%2'\n"
+msgstr "Action « %1 » dans le contexte « %2 »\n"
+
+#: statefulapplication/private/keysequencehelper.cpp:152
+#, kde-format
+msgctxt "@info"
+msgid "The '%1' key combination shadows following global actions:\n"
+msgstr ""
+"La combinaison de touches « %1 » suit les actions globales suivantes :\n"
+
+#: statefulapplication/private/keysequencehelper.cpp:193
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Conflict with Standard Application Shortcut"
+msgstr "Conflit avec le raccourci standard de l'application"
+
+#: statefulapplication/private/keysequencehelper.cpp:195
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The '%1' key combination is also used for the standard action \"%2\" that "
+"some applications use.\n"
+"Do you really want to use it as a global shortcut as well?"
+msgstr ""
+"La combinaison de touches « %1 » est aussi utilisée pour l'action standard "
+"« %2 » que certaines applications utilisent.\n"
+"Voulez-vous vraiment l'utiliser comme raccourci également ?"
+
+#: statefulapplication/private/KeySequenceItem.qml:129
+#, kde-format
+msgctxt "What the user inputs now will be taken as the new shortcut"
+msgid "Input"
+msgstr "Entrée"
+
+#: statefulapplication/private/KeySequenceItem.qml:130
+#, kde-format
+msgctxt "No shortcut defined"
+msgid "None"
+msgstr "Aucun"
+
+#: statefulapplication/private/KeySequenceItem.qml:141
+#, kde-format
+msgid ""
+"Click on the button, then enter the shortcut like you would in the program.\n"
+"Example for Ctrl+A: hold the Ctrl key and press A."
+msgstr ""
+"Cliquez sur le bouton puis saisissez le raccourci comme vous le feriez dans "
+"le programme. \n"
+"Exemple pour « CTRL + A » : maintenez enfoncée la touche « CTRL » et appuyez "
+"sur la touche « A »."
+
+#: statefulapplication/private/KeySequenceItem.qml:182
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Clear Key Sequence"
+msgstr "Effacer la séquence de touches"
+
+#: statefulapplication/private/KeySequenceItem.qml:198
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cancel Key Sequence Recording"
+msgstr "Annuler l'enregistrement de la séquence de touches"
+
+#: statefulapplication/private/KQuickCommandBarPage.qml:55
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "No results found"
+msgstr "Aucun résultat trouvé"
+
+#: statefulapplication/private/ShortcutsEditor.qml:19
+#: statefulapplication/StatefulWindow.qml:99
+#, kde-format
+msgctxt "@title:window"
+msgid "Shortcuts"
+msgstr "Raccourcis"
+
+#: statefulapplication/private/ShortcutsEditor.qml:23
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Filter…"
+msgstr "Filtrer..."
+
+#: statefulapplication/private/ShortcutsEditor.qml:69
+#, kde-format
+msgctxt "@title:window"
+msgid "Shortcut: %1"
+msgstr "Raccourci : %1"
+
+#: statefulapplication/private/ShortcutsEditor.qml:89
+#, kde-format
+msgctxt "@label"
+msgid "Shortcut:"
+msgstr "Raccourci :"
+
+#: statefulapplication/private/ShortcutsEditor.qml:144
+#: statefulapplication/private/ShortcutsEditor.qml:172
+#, kde-format
+msgctxt "@label"
+msgid "Alternative:"
+msgstr "Alternative :"
+
+#: statefulapplication/private/ShortcutsEditor.qml:210
+#, kde-format
+msgctxt "Placeholder message"
+msgid "No shortcuts found"
+msgstr "Aucun raccourci trouvé"
+
+#: statefulapplication/shortcutsmodel.cpp:41
+#, kde-format
+msgctxt "List separator"
+msgid ", "
+msgstr ", "
+
+#: statefulapplication/StatefulWindow.qml:109
+#, kde-format
+msgctxt "@title:window"
+msgid "About %1"
+msgstr "À propos de %1"
+
+#: statefulapplication/StatefulWindow.qml:122
+#, kde-format
+msgctxt "@title:window"
+msgid "About KDE"
+msgstr "À propos de KDE"
+
+#~ msgid "Windowing system"
+#~ msgstr "Système de fenêtrage"
+
+#~ msgctxt "time in hour (PM)"
+#~ msgid "%1 PM"
+#~ msgstr "%1 PM"
+
+#~ msgctxt "time in hour (AM)"
+#~ msgid "%1 AM"
+#~ msgstr "%1 AM"
+
+#~ msgctxt "%1 is month name, %2 is year"
+#~ msgid "%1 %2"
+#~ msgstr "%1 %2"
+
+#~ msgid "Accept"
+#~ msgstr "Accepter"
+
+#~ msgid ""
+#~ "Software can always be improved, and the KDE team is ready to do so. "
+#~ "However, you - the user - must tell us when something does not work as "
+#~ "expected or could be done better.\n"
+#~ msgstr ""
+#~ "Les logiciels peuvent toujours être améliorés et l'équipe KDE est prête à "
+#~ "le faire. Cependant, vous - la personne utilisatrice - devez nous dire "
+#~ "quand quelque chose ne fonctionne pas comme prévu ou pourrait être fait "
+#~ "mieux.\n"
+
+#~ msgid ""
+#~ "KDE software is and will always be available free of charge, however "
+#~ "creating it is not free.\n"
+#~ msgstr ""
+#~ "Le logiciel KDE est et sera toujours disponible gratuitement, mais sa "
+#~ "production n'est pas gratuite.\n"

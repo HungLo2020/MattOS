@@ -1,0 +1,830 @@
+# Copyright (C) 2024 This file is copyright:
+# This file is distributed under the same license as the kirigami-addons package.
+#
+# SPDX-FileCopyrightText: 2024, 2025 Toms Trasuns <toms.trasuns@posteo.net>
+msgid ""
+msgstr ""
+"Project-Id-Version: kirigami-addons\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-07-03 06:55+0000\n"
+"PO-Revision-Date: 2025-01-27 17:54+0200\n"
+"Last-Translator: Toms Trasuns <toms.trasuns@posteo.net>\n"
+"Language-Team: Latvian <kde-i18n-doc@kde.org>\n"
+"Language: lv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : "
+"2);\n"
+"X-Generator: Lokalize 24.12.1\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Toms Trasūns"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "toms.trasuns@posteo.net"
+
+#: components/AbstractMaximizeComponent.qml:132
+#, kde-format
+msgid "Close"
+msgstr "Aizvērt"
+
+#: components/AlbumMaximizeComponent.qml:150
+#, kde-format
+msgid "Zoom in"
+msgstr "Tuvināt"
+
+#: components/AlbumMaximizeComponent.qml:155
+#, kde-format
+msgid "Zoom out"
+msgstr "Tālināt"
+
+#: components/AlbumMaximizeComponent.qml:161
+#, kde-format
+msgid "Rotate left"
+msgstr "Pagriezt pa kreisi"
+
+#: components/AlbumMaximizeComponent.qml:167
+#, kde-format
+msgid "Rotate right"
+msgstr "Pagriezt pa labi"
+
+#: components/AlbumMaximizeComponent.qml:172
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Show caption"
+msgstr "Rādīt parakstu"
+
+#: components/AlbumMaximizeComponent.qml:172
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Hide caption"
+msgstr "Slēpt parakstu"
+
+#: components/AlbumMaximizeComponent.qml:178
+#, kde-format
+msgid "Save as"
+msgstr "Saglabāt kā"
+
+#: components/AlbumMaximizeComponent.qml:256
+#, kde-format
+msgid "Previous image"
+msgstr "Iepriekšējais attēls"
+
+#: components/AlbumMaximizeComponent.qml:276
+#, kde-format
+msgid "Next image"
+msgstr "Nākamais attēls"
+
+#: components/Banner.qml:185 formcard/AboutPage.qml:502
+#, kde-format
+msgctxt "@action:button"
+msgid "Close"
+msgstr "Aizvērt"
+
+#: components/ConvergentContextMenu.qml:274
+#, kde-format
+msgctxt "@action:button"
+msgid "Go Back"
+msgstr "Atgriezties"
+
+#: components/DownloadAction.qml:40
+#, kde-format
+msgid "Download"
+msgstr "Lejupielādēt"
+
+#: components/MessageDialog.qml:99
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Success"
+msgstr "Izdevās"
+
+#: components/MessageDialog.qml:101 components/MessageDialog.qml:107
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Warning"
+msgstr "Brīdinājums"
+
+#: components/MessageDialog.qml:103
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Error"
+msgstr "Kļūda"
+
+#: components/MessageDialog.qml:105
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Information"
+msgstr "Informācija"
+
+#: components/MessageDialog.qml:255
+#, kde-format
+msgctxt "@label:checkbox"
+msgid "Do not show again"
+msgstr "Vairs nerādīt"
+
+#: components/VideoMaximizeDelegate.qml:281
+#, kde-format
+msgctxt "@action:button"
+msgid "Volume"
+msgstr "Skaļums"
+
+#: dateandtime/DatePopup.qml:87 dateandtime/TimePopup.qml:46
+#, kde-format
+msgctxt "@action:button"
+msgid "Cancel"
+msgstr "Atcelt"
+
+#: dateandtime/DatePopup.qml:99 dateandtime/TimePopup.qml:57
+#, kde-format
+msgctxt "@action:button"
+msgid "Select"
+msgstr "Atlasīt"
+
+#: dateandtime/private/DatePicker.qml:275
+#, kde-format
+msgid "Day"
+msgstr "Diena"
+
+#: dateandtime/private/DatePicker.qml:278
+#, kde-format
+msgid "Month"
+msgstr "Mēnesis"
+
+#: dateandtime/private/DatePicker.qml:281
+#, kde-format
+msgid "Year"
+msgstr "Gads"
+
+#: dateandtime/private/DatePicker.qml:366
+#, kde-format
+msgctxt "@action:button"
+msgid "Go Previous"
+msgstr "Iet uz iepriekšējo"
+
+#: dateandtime/private/DatePicker.qml:379
+#, kde-format
+msgctxt "@action:button"
+msgid "Jump to today"
+msgstr "Iet uz šodienu"
+
+#: dateandtime/private/DatePicker.qml:386
+#, kde-format
+msgctxt "@action:button"
+msgid "Go Next"
+msgstr "Iet uz nākamo"
+
+#: dateandtime/TimePicker.qml:97
+#, kde-format
+msgid "Hours"
+msgstr "Stundas"
+
+#: dateandtime/TimePicker.qml:119
+#, kde-format
+msgctxt "Time separator"
+msgid ":"
+msgstr ":"
+
+#: dateandtime/TimePicker.qml:134
+#, kde-format
+msgid "Minutes"
+msgstr "Minūtes"
+
+#: formcard/aboutcomponent.cpp:25
+#, kde-format
+msgctxt "@info Platform name"
+msgid "%1 (%2)"
+msgstr "%1 (%2)"
+
+#: formcard/aboutcomponent.cpp:29
+#, kde-format
+msgid "KDE Frameworks"
+msgstr "KDE Frameworks"
+
+#: formcard/aboutcomponent.cpp:30
+#, kde-format
+msgctxt "@info"
+msgid "Collection of libraries created by the KDE Community to extend Qt."
+msgstr "KDE kopienas izveidotas bibliotēkas „Qt“ paplašināšanai."
+
+#: formcard/aboutcomponent.cpp:35
+#, kde-format
+msgid "Qt"
+msgstr "Qt"
+
+#: formcard/aboutcomponent.cpp:36
+#, kde-format
+msgctxt "@info"
+msgid "Cross-platform application development framework."
+msgstr "Vairāku platformu programmu izstrādes satvars."
+
+#: formcard/aboutcomponent.cpp:37
+#, kde-format
+msgid "Using %1 and built against %2"
+msgstr "Izmanto „%1“ un ir būvēts pret „%2“"
+
+#: formcard/aboutcomponent.cpp:41
+#, kde-format
+msgctxt "@info"
+msgid "Underlying platform."
+msgstr "Pamata platforma."
+
+#: formcard/AboutKDEPage.qml:24
+#: statefulapplication/abstractkirigamiapplication.cpp:174
+#, kde-format
+msgid "About KDE"
+msgstr "Par KDE"
+
+#: formcard/AboutKDEPage.qml:50
+#, kde-format
+msgid "KDE"
+msgstr "KDE"
+
+#: formcard/AboutKDEPage.qml:59
+#, kde-format
+msgid "Be Free!"
+msgstr "Baudi brīvību!"
+
+#: formcard/AboutKDEPage.qml:68
+#, kde-format
+msgid ""
+"KDE is a world-wide community of software engineers, artists, writers, "
+"translators and creators who are committed to Free Software development. KDE "
+"produces the Plasma desktop environment, hundreds of applications, and the "
+"many software libraries that support them.\n"
+"\n"
+"KDE is a cooperative enterprise: no single entity controls its direction or "
+"products. Instead, we work together to achieve the common goal of building "
+"the world's finest Free Software. Everyone is welcome to join and contribute "
+"to KDE, including you."
+msgstr ""
+"KDE ir starptautiska programmētāju, mākslinieku, rakstnieku un tulkotāju "
+"kopiena, kuri ir vienojušies brīvās programmatūras izstrādē. KDE izstrādā "
+"„Plasma“ darba vidi, simtiem programmu un daudzas programmatūras "
+"bibliotēkas, kas tām visām ir pamatā.\n"
+"\n"
+"KDE ir uz sadarbību vērsts projekts: to vai tā kopējo virzienu nekontrolē "
+"kāda viena atsevišķa vienība. Tā vietā mēs strādājam visi kopā ar mērķi "
+"izveidot pasaulē labāko brīvo programmatūru. Aicinām ikkatru mums "
+"pievienoties no piedalīties KDE veidošanā — arī Tevi!"
+
+#: formcard/AboutKDEPage.qml:77 formcard/AboutPage.qml:225
+#, kde-format
+msgid "Homepage"
+msgstr "Mājaslapa"
+
+#: formcard/AboutKDEPage.qml:83
+#, kde-format
+msgid "Report bugs"
+msgstr "Ziņo par kļūdām"
+
+#: formcard/AboutKDEPage.qml:88
+#, kde-format
+msgid ""
+"Software can always be improved, and the KDE team is ready to do so. "
+"However, you - the user - must tell us when something does not work as "
+"expected or could be done better.\n"
+"\n"
+"KDE has a bug tracking system. Use the button below to file a bug, or use "
+"the program's About page to report a bug specific to this application.\n"
+"\n"
+"If you have a suggestion for improvement then you are welcome to use the bug "
+"tracking system to register your wish. Make sure you use the severity called "
+"\"Wishlist\"."
+msgstr ""
+"Programmatūru vienmēr iespējams uzlabot, ko KDE komanda ir gatava darīt. "
+"Tomēr mēs vēlamies arī no Tevis, lietotāj, dzirdēt, kas nedarbojas tā, kā to "
+"vēlies, vai kas varētu darboties labāk.\n"
+"\n"
+"KDE eksistē kļūdu izsekošanas sistēma. Spied uz zemāk esošās pogas, lai "
+"iesniegtu ziņojumu par kļūdu, vai izmanto programmas „Par“ lapu, lai ziņotu "
+"par konkrētās programmas kļūdu.\n"
+"\n"
+"Tāpat arī aicinām izmantot kļūdu izsekošanas sistēmu, ja Tev ir kāds "
+"ieteikums par uzlabojumiem, tomēr tādā gadījumā neaizmirsti norādīt, ka tas "
+"ir lūgums („Wishlist“)."
+
+#: formcard/AboutKDEPage.qml:110
+#, kde-format
+msgid "Report a bug"
+msgstr "Ziņot par kļūdu"
+
+#: formcard/AboutKDEPage.qml:116
+#, kde-format
+msgid "Join us"
+msgstr "Pievienojies mums"
+
+#: formcard/AboutKDEPage.qml:121
+#, kde-format
+msgid ""
+"You do not have to be a software developer to be a member of the KDE team. "
+"You can join the language teams that translate program interfaces. You can "
+"provide graphics, themes, sounds, and improved documentation. You decide!"
+msgstr ""
+"Lai būtu daļa no KDE komandas, Tev nav obligāti jābūt programmētājam. Vari "
+"pievienoties valodu komandām, kuru dalībnieki tulko programmu saskarni. Vai "
+"arī vari zīmēt attēlus, veidot tēmas, skaņas vai pilnveidot dokumentāciju. "
+"Lēmums ir Tavās rokās!"
+
+#: formcard/AboutKDEPage.qml:129 formcard/AboutPage.qml:253
+#, kde-format
+msgid "Get Involved"
+msgstr "Iesaisties"
+
+#: formcard/AboutKDEPage.qml:139
+#, kde-format
+msgid "Developer Documentation"
+msgstr "Dokumentācija izstrādātājiem"
+
+#: formcard/AboutKDEPage.qml:145
+#, kde-format
+msgid "Support us"
+msgstr "Atbalsti mūs"
+
+#: formcard/AboutKDEPage.qml:150
+#, kde-format
+msgid ""
+"KDE software is and will always be available free of charge, however "
+"creating it is not free.\n"
+"\n"
+"To support development the KDE community has formed the KDE e.V., a non-"
+"profit organization legally founded in Germany. KDE e.V. represents the KDE "
+"community in legal and financial matters.\n"
+"\n"
+"KDE benefits from many kinds of contributions, including financial. We use "
+"the funds to reimburse members and others for expenses they incur when "
+"contributing. Further funds are used for legal support and organizing "
+"conferences and meetings.\n"
+"\n"
+"We would like to encourage you to support our efforts with a financial "
+"donation.\n"
+"\n"
+"Thank you very much in advance for your support."
+msgstr ""
+"KDE programmatūra ir un vienmēr būs pieejama bez maksas, tomēr tās izveide "
+"nepaliek bez izdevumiem.\n"
+"\n"
+"Lai atbalstītu KDE kopienas darbu, esam Vācijā reģistrējuši bezpeļņas "
+"organizācija „KDE e.V.“, kas pārstāv KDE kopienu juridiskos un finanšu "
+"jautājumos.\n"
+"\n"
+"KDE gūst labumu no dažādas palīdzības — tostarp arī finansiālas. Ziedotos "
+"līdzekļus izmantojam, lai kompensētu dalībnieku darbu un segtu citus "
+"izdevumus, kas rodas, sniedzot projektam atbalstu. Tāpat līdzekļi tiek "
+"izmantoti juridiskam atbalstam un konferenču un sapulču organizēšanai.\n"
+"\n"
+"Mēs mudināt arī Tevi atbalstīt mūsu pieliktās pūles ar finansiālu "
+"ziedojumu.\n"
+"\n"
+"Jau iepriekš sirsnīgi pateicamies par atbalstu!"
+
+#: formcard/AboutKDEPage.qml:163
+#, fuzzy, kde-format
+#| msgid "KDE e.V"
+msgid "KDE e.V."
+msgstr "KDE e.V"
+
+#: formcard/AboutKDEPage.qml:173 formcard/AboutPage.qml:239
+#, kde-format
+msgid "Donate"
+msgstr "Ziedot"
+
+#: formcard/AboutPage.qml:91
+#: statefulapplication/abstractkirigamiapplication.cpp:167
+#, kde-format
+msgid "About %1"
+msgstr "Par „%1“"
+
+#: formcard/AboutPage.qml:136
+#, kde-format
+msgid "Copyright"
+msgstr "Autortiesības"
+
+#: formcard/AboutPage.qml:144
+#, kde-format
+msgid "Description"
+msgstr "Apraksts"
+
+#: formcard/AboutPage.qml:157
+#, kde-format
+msgid "License"
+msgid_plural "Licenses"
+msgstr[0] "Licence"
+msgstr[1] "Licences"
+msgstr[2] "Licences"
+
+#: formcard/AboutPage.qml:279
+#, kde-format
+msgid "Report a Bug"
+msgstr "Ziņot par kļūdu"
+
+#: formcard/AboutPage.qml:285
+#, kde-format
+msgid "Libraries in use"
+msgstr "Izmantotās bibliotēkas"
+
+#: formcard/AboutPage.qml:288
+#, kde-format
+msgctxt "@action:button"
+msgid "Copy to Clipboard"
+msgstr "Kopēt starpliktuvē"
+
+#: formcard/AboutPage.qml:292
+#, kde-format
+msgctxt "@info"
+msgid "System information copied to clipboard."
+msgstr "Sistēmas informācija ir nokopēta starpliktuvē."
+
+#: formcard/AboutPage.qml:305
+#, kde-format
+msgid "Authors"
+msgstr "Autori"
+
+#: formcard/AboutPage.qml:320
+#, kde-format
+msgid "Credits"
+msgstr "Veidotāji"
+
+#: formcard/AboutPage.qml:335
+#, kde-format
+msgid "Translators"
+msgstr "Tulkotāji"
+
+#: formcard/AboutPage.qml:404
+#, kde-format
+msgid "Visit %1's KDE Store page"
+msgstr "Apmeklēt „%1“ KDE veikala lapu"
+
+#: formcard/AboutPage.qml:413
+#, kde-format
+msgid "Send an email to %1"
+msgstr "Sūtīt e-pasta vēstuli „%1“"
+
+#: formcard/android/FormColorDelegate.qml:42 formcard/FormColorDelegate.qml:52
+#, kde-format
+msgctxt "@action:button"
+msgid "Color"
+msgstr "Krāsa"
+
+#: formcard/android/FormColorDelegate.qml:43 formcard/FormColorDelegate.qml:53
+#, kde-format
+msgctxt "Accessible description"
+msgid "Current color \"%1\""
+msgstr "Pašreizēja krāsa „%1“"
+
+#: formcard/android/FormIconDelegate.qml:43
+#, kde-format
+msgctxt "@action:button"
+msgid "Icon"
+msgstr ""
+
+#: formcard/FormDateTimeDelegate.qml:202
+#, kde-format
+msgctxt "Displayed in place of the date if the selected day is today"
+msgid "Today"
+msgstr "Šodiena"
+
+#: formcard/FormDateTimeDelegate.qml:229 formcard/FormDateTimeDelegate.qml:366
+#, kde-format
+msgctxt "Date is not set"
+msgid "Not set"
+msgstr "Nav iestatīts"
+
+#: formcard/FormLinkDelegate.qml:52
+#, kde-format
+msgctxt "@action:inmnenu"
+msgid "Open Link"
+msgstr "Atvērt saiti"
+
+#: formcard/FormLinkDelegate.qml:58
+#, kde-format
+msgctxt "@action:inmnenu"
+msgid "Copy Link to Clipboard"
+msgstr "Kopēt saiti starpliktuvē"
+
+#: formcard/FormLinkDelegate.qml:64
+#, kde-format
+msgctxt "@info:status"
+msgid "Url copied to clipboard."
+msgstr "URL ir nokopēts starpliktuvē."
+
+#: formcard/FormPasswordFieldDelegate.qml:249
+#: formcard/FormTextAreaDelegate.qml:174 formcard/FormTextFieldDelegate.qml:271
+#, kde-format
+msgctxt "@label %1 is current text length, %2 is maximum length of text field"
+msgid "%1/%2"
+msgstr "%1/%2"
+
+#: settings/CategorizedSettings.qml:46 settings/ConfigurationView.qml:83
+#, kde-format
+msgctxt "@title:window"
+msgid "Settings"
+msgstr "Iestatījumi"
+
+#: settings/CategorizedSettings.qml:46
+#, kde-format
+msgctxt "@title:window"
+msgid "Settings — %1"
+msgstr "Iestatījumi — %1"
+
+#: settings/CategorizedSettings.qml:100
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Go back"
+msgstr "Iet atpakaļ"
+
+#: settings/private/ConfigMobilePage.qml:26
+#, kde-format
+msgctxt "@title"
+msgid "Settings"
+msgstr "Iestatījumi"
+
+#: settings/private/ConfigMobilePage.qml:99
+#, kde-format
+msgctxt "@title:group"
+msgid "Settings"
+msgstr "Iestatījumi"
+
+#: settings/private/SonnetConfigPage.qml:41
+#, kde-format
+msgctxt "@label:checkbox"
+msgid "Enable automatic spell checking"
+msgstr "Ieslēgt automātisko pareizrakstības pārbaudi"
+
+#: settings/private/SonnetConfigPage.qml:55
+#, kde-format
+msgctxt "@label:checkbox"
+msgid "Ignore uppercase words"
+msgstr "Ignorēt ar lielajiem burtiem rakstītus vārdus"
+
+#: settings/private/SonnetConfigPage.qml:69
+#, kde-format
+msgctxt "@label:checkbox"
+msgid "Ignore hyphenated words"
+msgstr "Ignorēt vārdus, kas satur defisi"
+
+#: settings/private/SonnetConfigPage.qml:83
+#, kde-format
+msgctxt "@label:checkbox"
+msgid "Detect language automatically"
+msgstr "Automātiski noteikt valodu"
+
+#: settings/private/SonnetConfigPage.qml:96
+#, kde-format
+msgctxt "@label:listbox"
+msgid "Selected default language:"
+msgstr "Izvēlētā noklusējuma valoda:"
+
+#: settings/private/SonnetConfigPage.qml:97
+#, kde-format
+msgctxt "No selected language"
+msgid "None"
+msgstr "Neviena"
+
+#: settings/private/SonnetConfigPage.qml:117
+#, kde-format
+msgctxt "@label:listbox"
+msgid "Additional Spell Checking Languages"
+msgstr "Papildu pareizrakstības pārbaudes valodas"
+
+#: settings/private/SonnetConfigPage.qml:118
+#, kde-format
+msgid ""
+"%1 will provide spell checking and suggestions for the languages listed here "
+"when autodetection is enabled."
+msgstr ""
+"%1 nodrošinās pareizrakstības pārbaudi un ieteikumus sarakstā norādītajām "
+"valodām, ja ir ieslēgta valodu automātiska noteikšana."
+
+#: settings/private/SonnetConfigPage.qml:131
+#, kde-format
+msgctxt "@action:button"
+msgid "Open Personal Dictionary"
+msgstr "Atvērt personīgo vārdnīcu"
+
+#: settings/private/SonnetConfigPage.qml:143
+#, kde-format
+msgctxt "@title:window"
+msgid "Spell checking languages"
+msgstr "Pareizrakstības pārbaudes valodas"
+
+#: settings/private/SonnetConfigPage.qml:155
+#, kde-format
+msgid "Default Language"
+msgstr "Noklusējuma valoda"
+
+#: settings/private/SonnetConfigPage.qml:167
+#, kde-format
+msgctxt "@title:window"
+msgid "Spell checking dictionary"
+msgstr "Pareizrakstības pārbaudes vārdnīca"
+
+#: settings/private/SonnetConfigPage.qml:174
+#, kde-format
+msgctxt "Placeholder message"
+msgid "Add a new word to your personal dictionary…"
+msgstr "Pievienot jaunu vārdu personīgajai vārdnīcai…"
+
+#: settings/private/SonnetConfigPage.qml:177
+#, kde-format
+msgctxt "@action:button"
+msgid "Add Word"
+msgstr "Pievienot vārdu"
+
+#: settings/private/SonnetConfigPage.qml:212
+#, kde-format
+msgctxt "@action:button"
+msgid "Delete word"
+msgstr "Dzēst vārdu"
+
+#: settings/ShortcutsConfigurationModule.qml:26
+#, kde-format
+msgctxt "@action:button"
+msgid "Keyboard Shortcuts"
+msgstr "Tastatūras saīsnes"
+
+#: settings/SpellcheckingConfigurationModule.qml:15
+#, kde-format
+msgctxt "@action:button"
+msgid "Spell Checking"
+msgstr "Pareizrakstības pārbaude"
+
+#: statefulapplication/abstractkirigamiapplication.cpp:145
+#, kde-format
+msgid "Open Command Bar"
+msgstr "Atvērt komandu joslu"
+
+#: statefulapplication/private/keysequencehelper.cpp:117
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Reserved Shortcut"
+msgstr "Rezervēta saīsne"
+
+#: statefulapplication/private/keysequencehelper.cpp:119
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The F12 key is reserved on Windows, so cannot be used for a global "
+"shortcut.\n"
+"Please choose another one."
+msgstr ""
+"„F12“ taustiņš „Windows“ operētājsistēmā ir rezervēts, tāpēc to nevar "
+"izmantot kā globālo saīsni.\n"
+"Izvēlieties kādu citu."
+
+#: statefulapplication/private/keysequencehelper.cpp:143
+#, kde-format
+msgctxt ""
+"@title:dialog This happen when a global shortcut is already defined with the "
+"same shortcut"
+msgid "Global Shortcut Shadowing"
+msgstr "Globālo saīšņu ēnošana"
+
+#: statefulapplication/private/keysequencehelper.cpp:146
+#, kde-format
+msgctxt "@info"
+msgid "The '%1' key combination is shadowed by following global actions:\n"
+msgstr "„%1“ taustiņu kombināciju ēno šādas globālās darbības:\n"
+
+#: statefulapplication/private/keysequencehelper.cpp:148
+#: statefulapplication/private/keysequencehelper.cpp:154
+#, kde-format
+msgctxt "@info"
+msgid "Action '%1' in context '%2'\n"
+msgstr "Darbība „%1“, kas notiek „%2“ kontekstā\n"
+
+#: statefulapplication/private/keysequencehelper.cpp:152
+#, kde-format
+msgctxt "@info"
+msgid "The '%1' key combination shadows following global actions:\n"
+msgstr "„%1“ taustiņu kombinācija ēno šādas globālās darbības:\n"
+
+#: statefulapplication/private/keysequencehelper.cpp:193
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Conflict with Standard Application Shortcut"
+msgstr "Konflikts ar programmu standarta saīsni"
+
+#: statefulapplication/private/keysequencehelper.cpp:195
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The '%1' key combination is also used for the standard action \"%2\" that "
+"some applications use.\n"
+"Do you really want to use it as a global shortcut as well?"
+msgstr ""
+"Taustiņu kombināciju „%1“ citas programmas bieži izmanto kā standarta "
+"kombināciju darbībai „%2“.\n"
+"Vai tiešām vēlaties to izmantot arī kā globālu saīsni?"
+
+#: statefulapplication/private/KeySequenceItem.qml:129
+#, kde-format
+msgctxt "What the user inputs now will be taken as the new shortcut"
+msgid "Input"
+msgstr "Ievade"
+
+#: statefulapplication/private/KeySequenceItem.qml:130
+#, kde-format
+msgctxt "No shortcut defined"
+msgid "None"
+msgstr "Nav"
+
+#: statefulapplication/private/KeySequenceItem.qml:141
+#, kde-format
+msgid ""
+"Click on the button, then enter the shortcut like you would in the program.\n"
+"Example for Ctrl+A: hold the Ctrl key and press A."
+msgstr ""
+"Klikšķiniet uz pogas, pēc tam ierakstiet saīsni tā, kā to spiestu "
+"programmā.\n"
+"Piemēram, lai ievadītu saīsni „Ctrl+A“, nospiežot un pieturot nospiestu "
+"„Ctrl“ taustiņu, nospiediet „A“."
+
+#: statefulapplication/private/KeySequenceItem.qml:182
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Clear Key Sequence"
+msgstr "Notīrīt taustiņu virkni"
+
+#: statefulapplication/private/KeySequenceItem.qml:198
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cancel Key Sequence Recording"
+msgstr "Atcelt taustiņu virknes ierakstīšanu"
+
+#: statefulapplication/private/KQuickCommandBarPage.qml:55
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "No results found"
+msgstr "Nekas nav atrasts"
+
+#: statefulapplication/private/ShortcutsEditor.qml:19
+#: statefulapplication/StatefulWindow.qml:99
+#, kde-format
+msgctxt "@title:window"
+msgid "Shortcuts"
+msgstr "Saīsnes"
+
+#: statefulapplication/private/ShortcutsEditor.qml:23
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Filter…"
+msgstr "Filtrēt…"
+
+#: statefulapplication/private/ShortcutsEditor.qml:69
+#, kde-format
+msgctxt "@title:window"
+msgid "Shortcut: %1"
+msgstr "Saīsne: „%1“"
+
+#: statefulapplication/private/ShortcutsEditor.qml:89
+#, kde-format
+msgctxt "@label"
+msgid "Shortcut:"
+msgstr "Saīsne:"
+
+#: statefulapplication/private/ShortcutsEditor.qml:144
+#: statefulapplication/private/ShortcutsEditor.qml:172
+#, kde-format
+msgctxt "@label"
+msgid "Alternative:"
+msgstr "Alternatīva:"
+
+#: statefulapplication/private/ShortcutsEditor.qml:210
+#, kde-format
+msgctxt "Placeholder message"
+msgid "No shortcuts found"
+msgstr "Saīsnes nav atrastas"
+
+#: statefulapplication/shortcutsmodel.cpp:41
+#, kde-format
+msgctxt "List separator"
+msgid ", "
+msgstr ", "
+
+#: statefulapplication/StatefulWindow.qml:109
+#, kde-format
+msgctxt "@title:window"
+msgid "About %1"
+msgstr "Par „%1“"
+
+#: statefulapplication/StatefulWindow.qml:122
+#, kde-format
+msgctxt "@title:window"
+msgid "About KDE"
+msgstr "Par KDE"
+
+#~ msgid "Windowing system"
+#~ msgstr "Logu sistēma"
+
+#~ msgctxt "time in hour (PM)"
+#~ msgid "%1 PM"
+#~ msgstr "%1 PM"
+
+#~ msgctxt "time in hour (AM)"
+#~ msgid "%1 AM"
+#~ msgstr "%1 AM"

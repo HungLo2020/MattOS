@@ -1,0 +1,5 @@
+# Ignore the following files
+/build*/
+/.vscode/
+/.clang-format
+/compile_commands.json

@@ -1,0 +1,10 @@
+.kdev4
+*.kdev4
+/build*
+.clang-format
+cmake-build-debug*
+.idea
+/compile_commands.json
+.clangd
+.cache
+

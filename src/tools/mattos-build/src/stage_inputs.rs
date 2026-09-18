@@ -9,6 +9,7 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "src/kernel/linux",
             "src/kernel/config/x86_64_mattos.config",
             "src/kernel/config/x86_64_mattos.policy.toml",
+            "src/tools/mattos-build/src/stages/toolchain.rs",
         ],
         BuildStage::Glibc => &["src/system/libc/glibc"],
         BuildStage::GccRuntime | BuildStage::GccToolchain => &["src/toolchain/gcc"],
@@ -38,6 +39,105 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::Git => &["src/userland/git"],
         BuildStage::Openssh => &["src/system/network/openssh-portable"],
         BuildStage::Libffi => &["src/system/libraries/libffi/libffi"],
+        BuildStage::QtBase => &[
+            "src/desktop/qt/qtbase",
+            "src/tools/mattos-build/src/stages/qt.rs",
+        ],
+        BuildStage::QtSvg => &[
+            "src/desktop/qt/qtsvg",
+            "src/tools/mattos-build/src/stages/qt.rs",
+        ],
+        BuildStage::QtWayland => &[
+            "src/desktop/qt/qtwayland",
+            "src/tools/mattos-build/src/stages/qt.rs",
+        ],
+        BuildStage::QtDeclarative => &[
+            "src/desktop/qt/qtdeclarative",
+            "src/tools/mattos-build/src/stages/qt.rs",
+        ],
+        BuildStage::QtShaderTools => &["src/desktop/qt/qtshadertools", "src/tools/mattos-build/src/stages/qt.rs"],
+        BuildStage::QtPositioning => &["src/desktop/qt/qtpositioning", "src/tools/mattos-build/src/stages/qt.rs"],
+        BuildStage::QtLocation => &["src/desktop/qt/qtlocation", "src/tools/mattos-build/src/stages/qt.rs"],
+        BuildStage::QtTools => &["src/desktop/qt/qttools", "src/tools/mattos-build/src/stages/qt.rs"],
+        BuildStage::QtMultimedia => &["src/desktop/qt/qtmultimedia", "src/tools/mattos-build/src/stages/qt.rs"],
+        BuildStage::QtSpeech => &["src/desktop/qt/qtspeech", "src/tools/mattos-build/src/stages/qt.rs"],
+        BuildStage::QtCore5Compat => &["src/desktop/qt/qt5compat", "src/tools/mattos-build/src/stages/qt.rs"],
+        BuildStage::Qca => &["src/system/security/qca", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KCoreAddons => &["src/desktop/kde/kcoreaddons", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KI18n => &["src/desktop/kde/ki18n", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KWidgetsAddons => &["src/desktop/kde/kwidgetsaddons", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KConfig => &["src/desktop/kde/kconfig", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KConfigWidgets => &["src/desktop/kde/kconfigwidgets", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KDbusAddons => &["src/desktop/kde/kdbusaddons", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KAuth => &["src/desktop/kde/kauth", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KArchive => &["src/desktop/kde/karchive", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KDecoration => &["src/desktop/kde/kdecoration", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KWayland => &["src/desktop/kde/kwayland", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KNightTime => &["src/desktop/kde/knighttime", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KHolidays => &["src/desktop/kde/kholidays", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::Libcanberra => &["src/system/libraries/libcanberra", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::Libqrencode => &["src/system/libraries/qrencode", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KirigamiPlatform => &["src/desktop/kde/kirigami", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KirigamiAddons => &["src/desktop/kde/kirigami-addons", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KQuickCharts => &["src/desktop/kde/kquickcharts", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KColorScheme => &["src/desktop/kde/kcolorscheme", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KCrash => &["src/desktop/kde/kcrash", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KGlobalAccel => &["src/desktop/kde/kglobalaccel", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KGuiAddons => &["src/desktop/kde/kguiaddons", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KIdleTime => &["src/desktop/kde/kidletime", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KPackage => &["src/desktop/kde/kpackage", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KService => &["src/desktop/kde/kservice", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::QCoro => &["src/desktop/kde/qcoro", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KSvg => &["src/desktop/kde/ksvg", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KDEDeclarative => &["src/desktop/kde/kdeclarative", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KIconThemes => &["src/desktop/kde/kiconthemes", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::BreezeIcons => &["src/desktop/kde/breeze-icons", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KItemModels => &["src/desktop/kde/kitemmodels", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KItemViews => &["src/desktop/kde/kitemviews", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KJobWidgets => &["src/desktop/kde/kjobwidgets", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KCMUtils => &["src/desktop/kde/kcmutils", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KDED => &["src/desktop/kde/kded", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KIO => &["src/desktop/kde/kio", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KUnitConversion => &["src/desktop/kde/kunitconversion", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KSolid => &["src/desktop/kde/solid", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KDocTools => &["src/desktop/kde/kdoctools", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KBookmarks => &["src/desktop/kde/kbookmarks", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KCompletion => &["src/desktop/kde/kcompletion", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KCodecs => &["src/desktop/kde/kcodecs", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KNewStuff => &["src/desktop/kde/knewstuff", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KAttica => &["src/desktop/kde/attica", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KNotifications => &["src/desktop/kde/knotifications", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KParts => &["src/desktop/kde/kparts", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KXmlGui => &["src/desktop/kde/kxmlgui", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KPrison => &["src/desktop/kde/prison", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KRunner => &["src/desktop/kde/krunner", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KStatusNotifierItem => &["src/desktop/kde/kstatusnotifieritem", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KTextEditor => &["src/desktop/kde/ktexteditor", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KSyntaxHighlighting => &["src/desktop/kde/ksyntaxhighlighting", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KTextWidgets => &["src/desktop/kde/ktextwidgets", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KSonnet => &["src/desktop/kde/sonnet", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KWallet => &["src/desktop/kde/kwallet", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KWindowSystem => &["src/desktop/kde/kwindowsystem", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::PlasmaWaylandProtocols => &["src/desktop/kde/plasma-wayland-protocols", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::WaylandProtocols => &["src/graphics/wayland-protocols", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::PolkitQt6 => &["src/system/security/polkit-qt-1", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::YamlCpp => &["src/system/libraries/yaml-cpp", "upstream/patches/yaml-cpp", "upstream/state/yaml-cpp.toml", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KPMCore => &["src/system/storage/kpmcore", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::PlasmaKWin => &["src/desktop/kde/kwin", "upstream/patches/kwin", "src/tools/mattos-build/src/stages/plasma.rs", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::PlasmaFramework => &["src/desktop/kde/plasma-framework", "src/tools/mattos-build/src/stages/plasma.rs", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::PlasmaActivities => &["src/desktop/kde/plasma-activities", "src/tools/mattos-build/src/stages/plasma.rs"],
+        BuildStage::KActivityManagerd => &["src/desktop/kde/kactivitymanagerd", "src/tools/mattos-build/src/stages/plasma.rs", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::KGlobalAccelD => &["src/desktop/kde/kglobalacceld", "src/tools/mattos-build/src/stages/plasma.rs", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::PlasmaActivitiesStats => &["src/desktop/kde/plasma-activities-stats", "src/tools/mattos-build/src/stages/plasma.rs"],
+        BuildStage::Plasma5Support => &["src/desktop/kde/plasma5support", "src/tools/mattos-build/src/stages/plasma.rs", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::LibKScreen => &["src/desktop/kde/libkscreen", "src/tools/mattos-build/src/stages/plasma.rs"],
+        BuildStage::LayerShellQt => &["src/desktop/kde/layer-shell-qt", "src/tools/mattos-build/src/stages/plasma.rs"],
+        BuildStage::KScreenLocker => &["src/desktop/kde/kscreenlocker", "src/tools/mattos-build/src/stages/plasma.rs"],
+        BuildStage::KSysGuard => &["src/desktop/kde/ksysguard", "src/tools/mattos-build/src/stages/plasma.rs"],
+        BuildStage::Icu => &["src/system/libraries/icu", "src/tools/mattos-build/src/stages/libraries.rs"],
+        BuildStage::PlasmaWorkspace => &["src/desktop/kde/plasma-workspace", "src/tools/mattos-build/src/stages/plasma.rs", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::PlasmaDesktop => &["src/desktop/kde/plasma-desktop", "src/tools/mattos-build/src/stages/plasma.rs", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        BuildStage::Breeze => &["src/desktop/kde/breeze", "src/tools/mattos-build/src/stages/plasma.rs", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
         BuildStage::Wayland => &["src/system/libraries/wayland"],
         BuildStage::Xkbcommon => &["src/system/libraries/xkbcommon"],
         BuildStage::Libseat => &["src/system/libraries/seatd"],
@@ -62,12 +162,22 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "src/system/graphics/libxcb",
             "src/system/graphics/libx11",
             "src/system/graphics/libxext",
+            "src/system/graphics/libxfixes",
+            "src/system/graphics/xcb-util",
+            "src/system/graphics/xcb-renderutil",
+            "src/system/graphics/xcb-image",
+            "src/system/graphics/xcb-cursor",
+            "src/system/graphics/xcb-util-wm",
+            "src/system/graphics/xcb-keysyms",
+            "src/system/graphics/xcb-util-m4",
         ],
         BuildStage::Libepoxy => &["src/system/graphics/libepoxy"],
         BuildStage::Freetype => &["src/system/libraries/freetype"],
+        BuildStage::Fontconfig => &["src/system/libraries/fontconfig"],
         BuildStage::Libfontenc => &["src/system/graphics/libfontenc"],
         BuildStage::Libxfont => &["src/system/graphics/libxfont"],
         BuildStage::Libxcvt => &["src/system/graphics/libxcvt"],
+        BuildStage::Lcms2 => &["src/system/graphics/lcms2", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
         BuildStage::Libxshmfence => &["src/system/graphics/libxshmfence"],
         BuildStage::Libxkbfile => &["src/system/graphics/libxkbfile"],
         BuildStage::Xkbcomp => &["src/system/graphics/xkbcomp"],
@@ -183,6 +293,8 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         // changes cannot affect the aggregate's published install tree.
         BuildStage::CosmicDesktop => &[
             "src/tools/mattos-build/src/stages/desktop_aggregation.rs",
+            "src/system/session/cosmic",
+            "src/system/session/plasma",
         ],
         BuildStage::Python => &[
             "src/development/python/cpython",
@@ -361,9 +473,7 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
     }
     if matches!(
         stage,
-        BuildStage::Kernel
-            | BuildStage::Glibc
-            | BuildStage::GccRuntime
+        BuildStage::GccRuntime
             | BuildStage::GccToolchain
             | BuildStage::Binutils
             | BuildStage::Make
@@ -392,6 +502,7 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             | BuildStage::Libksba
             | BuildStage::Npth
             | BuildStage::Gpgv
+            | BuildStage::Libqrencode
     ) {
         inputs.push("src/tools/mattos-build/src/stages/libraries.rs".into());
     }
@@ -454,6 +565,7 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             | BuildStage::X11Compat
             | BuildStage::Libepoxy
             | BuildStage::Freetype
+            | BuildStage::Fontconfig
             | BuildStage::Libfontenc
             | BuildStage::Libxfont
             | BuildStage::Libxcvt
@@ -636,6 +748,7 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
         | BuildStage::Libdrm
         | BuildStage::Libepoxy
         | BuildStage::Freetype
+        | BuildStage::Fontconfig
         | BuildStage::Libxcvt
         | BuildStage::Libxkbfile
         | BuildStage::Xwayland
@@ -658,6 +771,12 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
         BuildStage::VulkanHeaders | BuildStage::VulkanLoader | BuildStage::VulkanTools => {
             &["gcc", "g++", "ld", "cmake", "ninja", "pkg-config"]
         }
+        BuildStage::KCoreAddons
+        | BuildStage::KI18n
+        | BuildStage::KWidgetsAddons
+        | BuildStage::PolkitQt6
+        | BuildStage::YamlCpp
+        | BuildStage::KPMCore => &["gcc", "g++", "ld", "cmake", "ninja", "pkg-config", "python3", "msgfmt", "msgmerge"],
         BuildStage::NvidiaDriver => &["gcc", "ld", "make", "depmod", "zstd", "curl"],
         BuildStage::LibgpgError
         | BuildStage::Libgcrypt
@@ -950,9 +1069,11 @@ mod tests {
         );
         assert_eq!(
             source_inputs(BuildStage::CosmicDesktop),
-            vec![PathBuf::from(
-                "src/tools/mattos-build/src/stages/desktop_aggregation.rs"
-            )]
+            vec![
+                PathBuf::from("src/tools/mattos-build/src/stages/desktop_aggregation.rs"),
+                PathBuf::from("src/system/session/cosmic"),
+                PathBuf::from("src/system/session/plasma"),
+            ]
         );
         for stage in [
             BuildStage::CosmicSession,
@@ -999,6 +1120,12 @@ mod tests {
         }
 
         let roots = source_inputs(BuildStage::CosmicDesktop);
+        for path in ["src/system/session/cosmic", "src/system/session/plasma"] {
+            let path = root.path().join(path);
+            std::fs::create_dir_all(&path).expect("create session integration input");
+            std::fs::write(path.join("session.conf"), "session = true\n")
+                .expect("write session integration input");
+        }
         let baseline = crate::performance::tracked_source_digest(root.path(), &roots, false)
             .expect("baseline cosmic desktop identity");
 
@@ -1020,6 +1147,18 @@ mod tests {
             crate::performance::tracked_source_digest(root.path(), &roots, false)
                 .expect("changed cosmic desktop identity"),
             "aggregation policy must invalidate CosmicDesktop"
+        );
+
+        std::fs::write(
+            root.path().join("src/system/session/plasma/session.conf"),
+            "session = changed\n",
+        )
+        .expect("change Plasma session integration");
+        assert_ne!(
+            baseline,
+            crate::performance::tracked_source_digest(root.path(), &roots, false)
+                .expect("changed Plasma session identity"),
+            "Plasma session integration must invalidate CosmicDesktop"
         );
     }
 
@@ -1144,8 +1283,6 @@ mod tests {
     fn toolchain_recipe_implementation_is_owned_only_by_foundational_toolchain_stages() {
         let implementation = PathBuf::from("src/tools/mattos-build/src/stages/toolchain.rs");
         for stage in [
-            BuildStage::Kernel,
-            BuildStage::Glibc,
             BuildStage::GccRuntime,
             BuildStage::GccToolchain,
             BuildStage::Binutils,
@@ -1164,6 +1301,20 @@ mod tests {
     }
 
     #[test]
+    fn kernel_recipe_implementation_is_owned_by_kernel_only() {
+        let implementation = PathBuf::from("src/tools/mattos-build/src/stages/toolchain.rs");
+        assert!(source_inputs(BuildStage::Kernel).contains(&implementation));
+        for stage in [
+            BuildStage::Glibc,
+            BuildStage::Mesa,
+            BuildStage::CosmicFiles,
+            BuildStage::Flatpak,
+        ] {
+            assert!(!source_inputs(stage).contains(&implementation));
+        }
+    }
+
+    #[test]
     fn runtime_tooling_recipe_implementation_is_scoped_to_its_owned_stages() {
         let implementation = PathBuf::from(
             "src/tools/mattos-build/src/stages/runtime_tooling.rs",
@@ -1172,6 +1323,7 @@ mod tests {
             assert!(source_inputs(stage).contains(&implementation));
         }
         for stage in [
+            BuildStage::Kernel,
             BuildStage::Glibc,
             BuildStage::GccRuntime,
             BuildStage::CosmicFiles,

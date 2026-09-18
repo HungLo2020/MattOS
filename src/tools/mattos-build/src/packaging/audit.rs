@@ -101,6 +101,14 @@ pub(crate) fn bootstrap_source_attribution(
         "libssl.so.3" => (Some("OpenSSL"), "A", "libssl3t64", "high", "high"),
         "libelf.so.1" => (Some("elfutils"), "A", "libelf1t64", "medium", "high"),
         "libexpat.so.1" => (Some("Expat"), "A", "libexpat1", "low", "high"),
+        "libfreetype.so.6" => (Some("FreeType"), "A", "libfreetype6", "low", "high"),
+        "libfontconfig.so.1" => (
+            Some("Fontconfig"),
+            "A",
+            "libfontconfig1",
+            "low",
+            "high",
+        ),
         "libgcc_s.so.1" => (
             Some("GCC runtime"),
             "D",
@@ -433,6 +441,9 @@ pub(crate) fn runtime_libraries_for_spec(repo_root: &Path, spec: &PackageSpec) -
                 | "libsystemd0"
                 | "libudev1"
                 | "libexpat1"
+                | "libfreetype6"
+                | "libfontconfig1"
+                | "fontconfig"
                 | "libcap2"
                 | "libattr1"
                 | "libacl1"
@@ -564,6 +575,9 @@ fn runtime_libraries_in_staging(repo_root: &Path, package: &str) -> Result<Vec<S
         component_install(repo_root, "xxhash").join("usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "zstd").join("usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "openssl").join("usr/lib/x86_64-linux-gnu"),
+        component_install(repo_root, "freetype").join("usr/lib/x86_64-linux-gnu"),
+        component_install(repo_root, "fontconfig").join("usr/lib/x86_64-linux-gnu"),
+        component_install(repo_root, "expat").join("usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "elfutils").join("usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "libmd").join("usr/lib/x86_64-linux-gnu"),
         component_install(repo_root, "libbsd").join("usr/lib/x86_64-linux-gnu"),

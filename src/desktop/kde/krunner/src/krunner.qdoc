@@ -1,0 +1,12 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// SPDX-FileCopyrightText: None
+
+/*!
+    \module KRunner
+    \title KRunner C++ Classes
+    \ingroup modules
+    \cmakepackage KF6
+    \cmakecomponent Runner
+
+    \brief Framework for Plasma runners.
+*/

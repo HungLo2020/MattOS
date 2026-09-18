@@ -1,0 +1,25 @@
+Policy Kit 1 support for polkit-qt
+==================================
+
+This is initial port to PK1.
+
+What's working?
+---------------
+polkit-qt-core
+polkit-qt-gui
+
+TO-DO
+-----
+* polkit-qt-core
+  - temporary authorization handling functions
+  - move from Auth namespace to Authority class?
+  - tests
+
+Documentation
+-------------
+http://fedoraproject.org/wiki/Features/PolicyKitOne
+http://hal.freedesktop.org/docs/polkit/index.html
+
+Porting guide
+-------------
+http://cgit.freedesktop.org/PolicyKit/tree/docs/PORTING-GUIDE

@@ -1,0 +1,28 @@
+*~
+build/
+apidocs/
+Doxyfile
+*.patch
+
+# CMake
+CMakeCache.txt
+CMakeFiles
+cmake_install.cmake
+CMakeLists.txt.user
+CMakeLists.txt.user.*
+
+# QtCreator
+qtcreator-build
+
+# Misc
+*.moc
+moc_*
+ui_*
+Makefile
+
+# LSP and IDEs
+/.clang-format
+/compile_commands.json
+.clangd
+.cache
+.idea

@@ -1,0 +1,862 @@
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+# SPDX-FileCopyrightText: 2008, 2009, 2013, 2022, 2026 Sergiu Bivol <sergiu@cip.md>
+# Cristian Oneț <onet.cristian@gmail.com>, 2010.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: kwalletd\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-02-18 00:41+0000\n"
+"PO-Revision-Date: 2026-03-16 16:28+0000\n"
+"Last-Translator: Sergiu Bivol <sergiu@cip.md>\n"
+"Language-Team: Romanian <kde-i18n-ro@kde.org>\n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
+"20)) ? 1 : 2;\n"
+"X-Generator: Lokalize 25.12.3\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Sergiu Bivol"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "sergiu@cip.md"
+
+#. i18n: ectx: property (text), widget (QPushButton, _allowOnce)
+#: ksecretd/kbetterthankdialogbase.ui:50
+#, kde-format
+msgid "Allow &Once"
+msgstr "Permite &o dată"
+
+#. i18n: ectx: property (text), widget (QPushButton, _allowAlways)
+#: ksecretd/kbetterthankdialogbase.ui:60
+#, kde-format
+msgid "Allow &Always"
+msgstr "Permite întotde&auna"
+
+#. i18n: ectx: property (text), widget (QPushButton, _deny)
+#: ksecretd/kbetterthankdialogbase.ui:67
+#, kde-format
+msgid "&Deny"
+msgstr "&Respinge"
+
+#. i18n: ectx: property (text), widget (QPushButton, _denyForever)
+#: ksecretd/kbetterthankdialogbase.ui:74
+#, kde-format
+msgid "Deny &Forever"
+msgstr "Repinge &mereu"
+
+#: ksecretd/knewwalletdialog.cpp:50
+#, kde-format
+msgid ""
+"<qt>KDE has requested to create a new wallet named '<b>%1</b>'. This is used "
+"to store sensitive data in a secure fashion. Please choose the new wallet's "
+"type below or click cancel to deny the application's request.</qt>"
+msgstr ""
+"<qt>KDE a cerut crearea unui nou portofel „<b>%1</b>”. Acesta este utilizat "
+"pentru a păstra datele sensibile într-un mod sigur. Alegeți mai jos tipul "
+"noului portofel sau apăsați pe Renunță pentru a respinge cererea aplicației."
+"</qt>"
+
+#: ksecretd/knewwalletdialog.cpp:55
+#, kde-format
+msgid ""
+"<qt>The application '<b>%1</b>' has requested to create a new wallet named "
+"'<b>%2</b>'. This is used to store sensitive data in a secure fashion. "
+"Please choose the new wallet's type below or click cancel to deny the "
+"application's request.</qt>"
+msgstr ""
+"<qt>Aplicația „<b>%1</b>” a cerut crearea unui nou portofel denumit „<b>%2</"
+"b>”. Acesta este utilizat pentru a păstra datele sensibile într-un mod "
+"sigur. Alegeți mai jos tipul noului portofel sau apăsați pe Renunță pentru a "
+"respinge cererea aplicației.</qt>"
+
+#: ksecretd/knewwalletdialog.cpp:125 ksecretd/knewwalletdialog.cpp:132
+#: ksecretd/kwalletwizard.cpp:151 ksecretd/kwalletwizard.cpp:157
+#, kde-format
+msgid ""
+"The GpgME library failed to initialize for the OpenPGP protocol. Please "
+"check your system's configuration then try again."
+msgstr ""
+"Biblioteca GpgME nu a putut fi inițializată pentru protocolul OpenPGP. "
+"Verificați configurația sistemului și încercați din nou."
+
+#: ksecretd/knewwalletdialog.cpp:153
+#, kde-format
+msgid ""
+"Seems that your system has no keys suitable for encryption. Please set-up at "
+"least one encryption key, then try again."
+msgstr ""
+"Se pare că sistemul dumneavoastră nu are chei potrivite pentru criptare. "
+"Configurați cel puțin o cheie de criptare și reîncercați."
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: ksecretd/knewwalletdialoggpg.ui:17
+#, kde-format
+msgid "Please select the signing key from the list below:"
+msgstr "Alegeți cheia de semnare din lista de mai jos:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_2)
+#: ksecretd/knewwalletdialoggpg.ui:24
+#, kde-format
+msgid ""
+"<html><head/><body><p><span style=\" font-weight:600;\">NOTE:</span> this "
+"list shows only &quot;ultimate-level&quot; trusted keys</p></body></html>"
+msgstr ""
+"<html><head/><body><p><span style=\" font-weight:600;\">NOTĂ:</span> Această "
+"listă arată doar cheile cu încredere de nivel maxim</p></body></html>"
+
+#. i18n: ectx: property (text), widget (QTableWidget, listCertificates)
+#: ksecretd/knewwalletdialoggpg.ui:59
+#, kde-format
+msgid "Name"
+msgstr "Nume"
+
+#. i18n: ectx: property (text), widget (QTableWidget, listCertificates)
+#: ksecretd/knewwalletdialoggpg.ui:64
+#, kde-format
+msgid "E-Mail"
+msgstr "E-Mail"
+
+#. i18n: ectx: property (text), widget (QTableWidget, listCertificates)
+#: ksecretd/knewwalletdialoggpg.ui:69
+#, kde-format
+msgid "Key-ID"
+msgstr "Id. cheie"
+
+#. i18n: ectx: property (comment), widget (KTitleWidget, ktitlewidget)
+#: ksecretd/knewwalletdialogintro.ui:17 ksecretd/kwalletwizardpageintro.ui:17
+#, kde-format
+msgid "The KDE Wallet System"
+msgstr "Sistemul de portofele KDE"
+
+#. i18n: ectx: property (text), widget (QLabel, labelIntro)
+#: ksecretd/knewwalletdialogintro.ui:30
+#, no-c-format, kde-format
+msgid ""
+"<html><head/><body><p>The application '<span style=\" font-weight:600;\">%1</"
+"span>' has requested to open the KDE wallet. This is used to store sensitive "
+"data in a secure fashion. Please choose the new wallet's type below or click "
+"cancel to deny the application's request.</p></body></html>"
+msgstr ""
+"<html><head/><body><p>Aplicația „<span style=\" font-weight:600;\">%1</"
+"span>” a cerut deschiderea portofelului KDE. Acesta este utilizat pentru a "
+"păstra datele sensibile într-un mod sigur. Alegeți mai jos tipul noului "
+"portofel sau apăsați pe Renunță pentru a respinge cererea aplicației.</p></"
+"body></html>"
+
+#. i18n: ectx: property (text), widget (QRadioButton, radioBlowfish)
+#. i18n: ectx: property (text), widget (QRadioButton, _radioBlowfish)
+#: ksecretd/knewwalletdialogintro.ui:66
+#: ksecretd/kwalletwizardpagepasswordgpg.ui:68
+#, kde-format
+msgid "Classic, blowfish encrypted file"
+msgstr "Clasică, fișier criptat cu blowfish"
+
+#. i18n: ectx: property (text), widget (QRadioButton, radioGpg)
+#. i18n: ectx: property (text), widget (QRadioButton, _radioGpg)
+#: ksecretd/knewwalletdialogintro.ui:73
+#: ksecretd/kwalletwizardpagepasswordgpg.ui:55
+#, kde-format
+msgid "Use GPG encryption, for better protection"
+msgstr "Folosește criptare GPG, pentru protecție mai bună"
+
+#: ksecretd/ksecretd.cpp:616
+#, kde-format
+msgid ""
+"<qt>KDE has requested to open the wallet '<b>%1</b>'. Please enter the "
+"password for this wallet below.</qt>"
+msgstr ""
+"<qt>KDE a cerut deschiderea portofelului „<b>%1</b>”. Introduceți mai jos "
+"parola pentru acest portofel.</qt>"
+
+#: ksecretd/ksecretd.cpp:620
+#, kde-format
+msgid ""
+"<qt>The application '<b>%1</b>' has requested to open the wallet '<b>%2</"
+"b>'. Please enter the password for this wallet below.</qt>"
+msgstr ""
+"<qt>Aplicația „<b>%1</b>” a cerut deschiderea portofelului „<b>%2</b>”. "
+"Introduceți mai jos parola pentru acest portofel.</qt>"
+
+#. i18n( "&Open" ), "wallet-open"));
+#: ksecretd/ksecretd.cpp:631 ksecretd/ksecretd.cpp:740
+#: ksecretd/ksecretd.cpp:844 ksecretd/ksecretd.cpp:957
+#: ksecretd/ksecretd.cpp:980 ksecretd/ksecretd.cpp:991
+#: ksecretd/ksecretd.cpp:996 ksecretd/ksecretd.cpp:1586 ksecretd/main.cpp:160
+#: ksecretd/main.cpp:162
+#, kde-format
+msgid "KDE Wallet Service"
+msgstr "Serviciul de portofel KDE"
+
+#: ksecretd/ksecretd.cpp:646
+#, kde-format
+msgid "An application has requested to open a wallet (%1)."
+msgstr "O aplicație a cerut deschiderea unui portofel (%1)."
+
+#: ksecretd/ksecretd.cpp:647
+#, kde-format
+msgctxt ""
+"Text of a button for switching to the (unnamed) application requesting a "
+"password"
+msgid "Switch there"
+msgstr "Comută acolo"
+
+#: ksecretd/ksecretd.cpp:649
+#, kde-format
+msgid "<b>%1</b> has requested to open a wallet (%2)."
+msgstr "<b>%1</b> a cerut deschiderea unui portofel (%2)."
+
+#: ksecretd/ksecretd.cpp:651
+#, kde-format
+msgctxt ""
+"Text of a button for switching to the application requesting a password"
+msgid "Switch to %1"
+msgstr "Schimbă la %1"
+
+#: ksecretd/ksecretd.cpp:668 ksecretd/ksecretd.cpp:750
+#, kde-format
+msgid ""
+"<qt>Error opening the wallet '<b>%1</b>'. Please try again.<br />(Error code "
+"%2: %3)</qt>"
+msgstr ""
+"<qt>Eroare la deschiderea portofelului „<b>%1</b>”. Reîncercați.<br />(Cod "
+"eroare  %2: %3)</qt>"
+
+#: ksecretd/ksecretd.cpp:716
+#, kde-format
+msgid ""
+"KDE has requested to open the wallet. This is used to store sensitive data "
+"in a secure fashion. Please enter a password to use with this wallet or "
+"click cancel to deny the application's request."
+msgstr ""
+"KDE a cerut deschiderea portofelului. Acesta este utilizat pentru a păstra "
+"datele sensibile într-un mod sigur. Introduceți o parolă de utilizat cu "
+"acest portofel sau apăsați pe Renunță pentru a respinge cererea aplicației."
+
+#: ksecretd/ksecretd.cpp:721
+#, kde-format
+msgid ""
+"<qt>The application '<b>%1</b>' has requested to open the KDE wallet. This "
+"is used to store sensitive data in a secure fashion. Please enter a password "
+"to use with this wallet or click cancel to deny the application's request.</"
+"qt>"
+msgstr ""
+"<qt>Aplicația „<b>%1</b>” a cerut deschiderea portofelului. Acesta este "
+"utilizat pentru a păstra datele sensibile într-un mod sigur. Introduceți o "
+"parolă de utilizat cu acest portofel sau apăsați pe Renunță pentru a "
+"respinge cererea aplicației.</qt>"
+
+#: ksecretd/ksecretd.cpp:729
+#, kde-format
+msgid ""
+"<qt>KDE has requested to create a new wallet named '<b>%1</b>'. Please "
+"choose a password for this wallet, or cancel to deny the application's "
+"request.</qt>"
+msgstr ""
+"<qt>KDE a cerut crearea unui nou portofel cu denumirea „<b>%1</b>”. Alegeți "
+"o parolă pentru acest portofel sau apăsați pe Renunță pentru a respinge "
+"cererea aplicației.</qt>"
+
+#: ksecretd/ksecretd.cpp:734
+#, kde-format
+msgid ""
+"<qt>The application '<b>%1</b>' has requested to create a new wallet named "
+"'<b>%2</b>'. Please choose a password for this wallet, or cancel to deny the "
+"application's request.</qt>"
+msgstr ""
+"<qt>Aplicația „<b>%1</b>” a cerut crearea unui nou portofel cu denumirea „<b>"
+"%2</b>”. Alegeți o parolă pentru acest portofel sau apăsați pe Renunță "
+"pentru a respinge cererea aplicației.</qt>"
+
+#: ksecretd/ksecretd.cpp:846
+#, kde-format
+msgid "<qt>KDE has requested access to the open wallet '<b>%1</b>'.</qt>"
+msgstr ""
+"<qt>KDE a cerut acces pentru deschiderea portofelului „<b>%1</b>”.</qt>"
+
+#: ksecretd/ksecretd.cpp:848
+#, kde-format
+msgid ""
+"<qt>The application '<b>%1</b>' has requested access to the open wallet '<b>"
+"%2</b>'.</qt>"
+msgstr ""
+"<qt>Aplicația „<b>%1</b>” a cerut acces pentru a deschide portofelul „<b>%2</"
+"b>”.</qt>"
+
+#: ksecretd/ksecretd.cpp:956
+#, kde-format
+msgid ""
+"Unable to open wallet. The wallet must be opened in order to change the "
+"password."
+msgstr ""
+"Imposibil de deschis portofelul. Portofelul trebuie deschis pentru a "
+"modifica parola."
+
+#: ksecretd/ksecretd.cpp:972
+#, kde-format
+msgid ""
+"<qt>The <b>%1</b> wallet is encrypted using GPG key <b>%2</b>. Please use "
+"<b>GPG</b> tools (such as <b>kleopatra</b>) to change the passphrase "
+"associated to that key.</qt>"
+msgstr ""
+"<qt>Portofelul <b>%1</b> e criptat cu cheia GPG <b>%2</b>. Folosiți unelte "
+"<b>GPG</b> (ca <b>kleopatra</b>) pentru a schimba fraza de acces asociată cu "
+"acea cheie.</qt>"
+
+#: ksecretd/ksecretd.cpp:979
+#, kde-format
+msgid "<qt>Please choose a new password for the wallet '<b>%1</b>'.</qt>"
+msgstr "<qt>Alegeți o nouă parolă pentru portofelul „<b>%1</b>”.</qt>"
+
+#: ksecretd/ksecretd.cpp:991
+#, kde-format
+msgid "Error re-encrypting the wallet. Password was not changed."
+msgstr "Eroare la recriptarea portofelului. Parola nu a fost modificată."
+
+#: ksecretd/ksecretd.cpp:996
+#, kde-format
+msgid "Error reopening the wallet. Data may be lost."
+msgstr "Eroare la redeschiderea portofelului. Datele puteau fi pierdute."
+
+#: ksecretd/ksecretd.cpp:1585
+#, kde-format
+msgid ""
+"There have been repeated failed attempts to gain access to a wallet. An "
+"application may be misbehaving."
+msgstr ""
+"Au avut loc tentative eșuate repetate de acces la un portofel. O aplicație "
+"poate să creeze probleme."
+
+#: ksecretd/kwalletwizard.cpp:40
+#, kde-format
+msgid "KWallet"
+msgstr "KWallet"
+
+#: ksecretd/kwalletwizard.cpp:272
+#, kde-format
+msgid "<qt>Password is empty.  <b>(WARNING: Insecure)</b></qt>"
+msgstr "<qt>Parola este goală.  <b>(ATENȚIE: Nesigur)</b></qt>"
+
+#: ksecretd/kwalletwizard.cpp:274
+#, kde-format
+msgid "Passwords match."
+msgstr "Parolele se potrivesc."
+
+#: ksecretd/kwalletwizard.cpp:277
+#, kde-format
+msgid "Passwords do not match."
+msgstr "Parolele nu se potrivesc."
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel2_3)
+#: ksecretd/kwalletwizardpageexplanation.ui:17
+#, kde-format
+msgid ""
+"<html><head/><body><p>The KDE Wallet system stores your data in a <span "
+"style=\" font-style:italic;\">wallet</span> file on your local hard disk. "
+"The data is only written in the encrypted form of your choice - blowfish "
+"algorithm with your password as the key or using a GPG encryption key. When "
+"a wallet is opened, the wallet manager application will launch and display "
+"an icon in the system tray. You can use this application to manage all of "
+"your wallets. It even permits you to drag wallets and wallet contents, "
+"allowing you to easily copy a wallet to a remote system.</p></body></html>"
+msgstr ""
+"<html><head/><body><p>Sistemul de portofele KDE vă stochează datele într-un "
+"fișier <span style=\" font-style:italic;\">wallet</span> pe discul dur "
+"local. Datele sunt scrise numai în forma criptată aleasă de dumneavoastră – "
+"utilizând algoritmul blowfish cu parola dumneavoastră în calitate de cheie "
+"sau folosind o cheie de criptare GPG. La deschiderea unui portofel, "
+"gestionarul de portofele se va lansa și va afișa o pictogramă în tava de "
+"sistem. Puteți utiliza această aplicație pentru a vă gestiona toate "
+"portofelele. Aceasta vă permite chiar și să trageți portofelele și "
+"conținutul acestora, permițându-vă să copiați cu ușurință un portofel către "
+"un sistem aflat la distanță.</p></body></html>"
+
+#. i18n: ectx: property (text), widget (QLabel, label_3)
+#: ksecretd/kwalletwizardpagegpgkey.ui:24
+#, kde-format
+msgid ""
+"<html><head/><body><p>The GPG-based wallet use a GPG encryption key to "
+"securely encrypt data on disk. The key must be available when decrypting is "
+"needed or your wallet will not be accessible. For example, if you choose a "
+"SmartCard-based encryption key, the GPG system will prompt you to enter it "
+"and its associated PIN when attempting to open the wallet. <span style=\" "
+"font-weight:600;\">NOTE:</span> this list contains only &quot;ultimate-"
+"level&quot; trusted keys.</p></body></html>"
+msgstr ""
+"<html><head/><body><p>Portofelul bazat pe GPG folosește o cheie de criptare "
+"GPG pentru a cripta datele pe disc în siguranță. Cheia trebuie să fie "
+"disponibilă când e necesară decriptarea, în caz contrar portofelul nu va fi "
+"disponibil. De exemplu, dacă alegeți o cheie de criptare bazată pe "
+"SmartCard, sistemul GPG vă va cere să introduceți cartela și PIN-ul acesteia "
+"când încercați să deschideți portofelul. <span style=\" font-weight:600;"
+"\">NOTĂ:</span> această listă conține doar chei cu încredere de nivel maxim."
+"</p></body></html>"
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: ksecretd/kwalletwizardpagegpgkey.ui:42
+#, kde-format
+msgid "Select encryption GPG key:"
+msgstr "Alegeți cheia de criptare GPG:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_2)
+#: ksecretd/kwalletwizardpagegpgkey.ui:81
+#, kde-format
+msgid ""
+"Unable to locate at least one <b>encrypting GPG key</b>. KDE Wallet needs "
+"such <b>encrypting key</b> to securely store passwords or other sensitive "
+"data on disk. If you still want to setup a GPG-based wallet, then cancel "
+"this wizard, set-up an <b>encrypting GPG key</b>, then retry this assistant. "
+"Otherwise, you may still click back, then choose a classic, blowfish "
+"encrypted file format on the previous page."
+msgstr ""
+"Nu poate fi găsită nicio <b>cheie GPG pentru criptare</b>. Portofelul KDE "
+"necesită o <b>cheie pentru criptare</b> pentru a păstra în siguranță parole "
+"sau alte date sensibile pe disc. Dacă doriți totuși să inițializați un "
+"portofel bazat pe GPG, atunci închideți acest asistent, configurați o "
+"<b>cheie GPG pentru criptare</b>, apoi deschideți din nou acest asistent. În "
+"caz contrar, puteți apăsa Înapoi și alege un format de fișier cu criptare "
+"clasică Blowfish de pe pagina precedentă."
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel2)
+#: ksecretd/kwalletwizardpageintro.ui:30
+#, kde-format
+msgid ""
+"Welcome to KWallet, the KDE Wallet System.  KWallet allows you to store your "
+"passwords and other personal information on disk in an encrypted file, "
+"preventing others from viewing the information.  This wizard will tell you "
+"about KWallet and help you configure it for the first time."
+msgstr ""
+"Bun venit în KWallet, sistemul de portofele KDE. KWallet vă permite să "
+"păstrați parolele și alte date personale pe disc într-un fișier criptat, "
+"preîntâmpinând vizualizarea lor de către alte persoane. Acest expert vă va "
+"spune despre KWallet și vă va ajuta să îl configurați pentru prima dată."
+
+#. i18n: ectx: property (text), widget (QRadioButton, _basic)
+#: ksecretd/kwalletwizardpageintro.ui:69
+#, kde-format
+msgid "&Basic setup (recommended)"
+msgstr "Configurare de &bază (recomandată)"
+
+#. i18n: ectx: property (text), widget (QRadioButton, _advanced)
+#: ksecretd/kwalletwizardpageintro.ui:79
+#, kde-format
+msgid "&Advanced setup"
+msgstr "Configurare &avansată"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel1_3)
+#: ksecretd/kwalletwizardpageoptions.ui:16
+#, kde-format
+msgid ""
+"The KDE Wallet system allows you to control the level of security of your "
+"personal data.  Some of these settings do impact usability.  While the "
+"default settings are generally acceptable for most users, you may wish to "
+"change some of them.  You may further tune these settings from the KWallet "
+"control module."
+msgstr ""
+"Sistemul de portofele KDE vă permite să controlați nivelul de securitate al "
+"datelor personale. Unele dintre aceste configurări afectează uzabilitatea. "
+"Cu toate că configurările implicite sunt în general acceptabile pentru "
+"majoritatea utilizatorilor, ați putea dori să le modificați pe unele din "
+"ele. Puteți personaliza suplimentar aceste configurări din modulul de "
+"control KWallet."
+
+#. i18n: ectx: property (text), widget (QCheckBox, _closeIdle)
+#: ksecretd/kwalletwizardpageoptions.ui:48
+#, kde-format
+msgid "Automatically close idle wallets"
+msgstr "Închide automat portofelele inactive"
+
+#. i18n: ectx: property (text), widget (QCheckBox, _networkWallet)
+#: ksecretd/kwalletwizardpageoptions.ui:55
+#, kde-format
+msgid "Store network passwords and local passwords in separate wallet files"
+msgstr ""
+"Stochează parolele de rețea și pe cele locale în fișiere-portofel separate"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel3)
+#: ksecretd/kwalletwizardpagepassword.ui:16
+#, kde-format
+msgid ""
+"Various applications may attempt to use the KDE wallet to store passwords or "
+"other information such as web form data and cookies.  If you would like "
+"these applications to use the wallet, you must enable it now and choose a "
+"password.  The password you choose <i>cannot</i> be recovered if it is lost, "
+"and will allow anyone who knows it to obtain all the information contained "
+"in the wallet."
+msgstr ""
+"Diferite aplicații pot încerca să utilizeze portofelul KDE pentru a stoca "
+"parole sau alte informații cum ar fi datele din formulare web sau „cookies”. "
+"Dacă doriți să permiteți acestor aplicații să utilizeze portofelul, trebuie "
+"să îl activați acum și să alegeți o parolă. Parola pe care o veți alege "
+"<i>nu poate</i> fi recuperată dacă este pierdută, și va permite oricui o "
+"cunoaște să obțină toate informațiile conținute în portofel."
+
+#. i18n: ectx: property (text), widget (QCheckBox, _useWallet)
+#: ksecretd/kwalletwizardpagepassword.ui:29
+#: ksecretd/kwalletwizardpagepasswordgpg.ui:30
+#, kde-format
+msgid "Yes, I wish to use the KDE wallet to store my personal information."
+msgstr ""
+"Da, doresc să utilizez portofelul KDE pentru a stoca datele mele personale."
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel1_3)
+#: ksecretd/kwalletwizardpagepassword.ui:88
+#: ksecretd/kwalletwizardpagepasswordgpg.ui:106
+#, kde-format
+msgid "Enter a new password:"
+msgstr "Introduceți o parolă nouă:"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel2_3)
+#: ksecretd/kwalletwizardpagepassword.ui:104
+#: ksecretd/kwalletwizardpagepasswordgpg.ui:122
+#, kde-format
+msgid "Verify password:"
+msgstr "Verificați parola:"
+
+#. i18n: ectx: property (text), widget (QLabel, textLabel3)
+#: ksecretd/kwalletwizardpagepasswordgpg.ui:17
+#, kde-format
+msgid ""
+"<html><head/><body><p>Various applications may attempt to use the KDE wallet "
+"to store passwords or other information such as web form data and cookies. "
+"If you would like these applications to use the wallet, you must enable it "
+"now and choose method for its encryption.</p><p>GPG method is more secure, "
+"but you must have configured at least one encrypting key on your system.</"
+"p><p>If you choose the classic format, be warned that the password you "
+"choose <span style=\" font-style:italic;\">cannot</span> be recovered if it "
+"is lost, and will allow anyone who knows it to obtain all the information "
+"contained in the wallet.</p></body></html>"
+msgstr ""
+"<html><head/><body><p>Diferite aplicații pot încerca să utilizeze portofelul "
+"KDE pentru a stoca parole sau alte informații cum ar fi datele din formulare "
+"web sau „cookies”. Dacă doriți să permiteți acestor aplicații să utilizeze "
+"portofelul, trebuie să îl activați acum și să alegeți o metodă pentru "
+"criptarea acestuia.</p><p>Metoda GPG e mai sigură, dar trebuie să fi "
+"configurat cel puțin o cheie pentru criptare în sistem.</p><p>Dacă alegeți "
+"formatul clasic, să aveți în vedere faptul că parola pe care o alegeți <span "
+"style=\" font-style:italic;\">nu poate</span> fi recuperată dacă este "
+"pierdută și va permite oricui o cunoaște să obțină toate informațiile "
+"conținute în portofel.</p></body></html>"
+
+#. i18n: ectx: property (title), widget (QGroupBox, _groupBox)
+#: ksecretd/kwalletwizardpagepasswordgpg.ui:46
+#, kde-format
+msgid "What kind of encryption do you wish?"
+msgstr "Ce fel de criptare doriți?"
+
+#: ksecretd/main.cpp:164
+#, kde-format
+msgid "(C) 2002-2025, The KDE Developers"
+msgstr "(c) 2002-2025, Programatorii KDE"
+
+#: ksecretd/main.cpp:165
+#, kde-format
+msgid "Valentin Rusu"
+msgstr "Valentin Rusu"
+
+#: ksecretd/main.cpp:165
+#, kde-format
+msgid "Former Maintainer, GPG backend support"
+msgstr "Fostul responsabil, suport pentru platforma GPG"
+
+#: ksecretd/main.cpp:166
+#, kde-format
+msgid "Michael Leupold"
+msgstr "Michael Leupold"
+
+#: ksecretd/main.cpp:166
+#, kde-format
+msgid "Former Maintainer"
+msgstr "Fostul responsabil"
+
+#: ksecretd/main.cpp:167
+#, kde-format
+msgid "George Staikos"
+msgstr "George Staikos"
+
+#: ksecretd/main.cpp:167
+#, kde-format
+msgid "Former maintainer"
+msgstr "Fostul responsabil"
+
+#: ksecretd/main.cpp:168
+#, kde-format
+msgid "Thiago Maceira"
+msgstr "Thiago Maceira"
+
+#: ksecretd/main.cpp:168
+#, kde-format
+msgid "D-Bus Interface"
+msgstr "Interfață D-Bus"
+
+#: kwalletbackend/backendpersisthandler.cpp:395
+#, kde-format
+msgid ""
+"<qt>Error when attempting to initialize OpenPGP while attempting to save the "
+"wallet <b>%1</b>. Error code is <b>%2</b>. Please fix your system "
+"configuration, then try again.</qt>"
+msgstr ""
+"<qt>Eroare de inițializare OpenPGP la salvarea portofelului <b>%1</b>. Codul "
+"erorii e <b>%2</b>. Corectați configurația sistemului și încercați din nou.</"
+"qt>"
+
+#: kwalletbackend/backendpersisthandler.cpp:407
+#, kde-format
+msgid ""
+"<qt>Error when attempting to initialize OpenPGP while attempting to save the "
+"wallet <b>%1</b>. Please fix your system configuration, then try again.</qt>"
+msgstr ""
+"<qt>Eroare de inițializare OpenPGP la salvarea portofelului <b>%1</b>. "
+"Corectați configurația sistemului și încercați din nou.</qt>"
+
+#: kwalletbackend/backendpersisthandler.cpp:461
+#, kde-format
+msgid ""
+"<qt>Encryption error while attempting to save the wallet <b>%1</b>. Error "
+"code is <b>%2 (%3)</b>. Please fix your system configuration, then try "
+"again. This error may occur if you are not using a full trust GPG key. "
+"Please ensure you have the secret key for the key you are using.</qt>"
+msgstr ""
+"<qt>Eroare de criptare la salvarea portofelului <b>%1</b>. Codul erorii e <b>"
+"%2 (%3)</b>. Corectați configurația sistemului și încercați din nou. Această "
+"eroare poate interveni dacă nu folosiți o cheie GPG cu încredere deplină. "
+"Asigurați-vă că aveți cheia secretă pentru cheia pe care o folosiți.</qt>"
+
+#: kwalletbackend/backendpersisthandler.cpp:478
+#, kde-format
+msgid ""
+"<qt>File handling error while attempting to save the wallet <b>%1</b>. Error "
+"was <b>%2</b>. Please fix your system configuration, then try again.</qt>"
+msgstr ""
+"<qt>Eroare de manipulare a fișierului la salvarea portofelului <b>%1</b>. "
+"Eroarea a fost <b>%2</b>. Corectați configurația sistemului și încercați din "
+"nou.</qt>"
+
+#: kwalletbackend/backendpersisthandler.cpp:500
+#, kde-format
+msgid ""
+"<qt>Error when attempting to initialize OpenPGP while attempting to open the "
+"wallet <b>%1</b>. Error code is <b>%2</b>. Please fix your system "
+"configuration, then try again.</qt>"
+msgstr ""
+"<qt>Eroare de inițializare OpenPGP la deschiderea portofelului <b>%1</b>. "
+"Codul erorii e <b>%2</b>. Corectați configurația sistemului și încercați din "
+"nou.</qt>"
+
+#: kwalletbackend/backendpersisthandler.cpp:522
+#, kde-format
+msgid ""
+"<qt>Error when attempting to initialize OpenPGP while attempting to open the "
+"wallet <b>%1</b>. Please fix your system configuration, then try again.</qt>"
+msgstr ""
+"<qt>Eroare de inițializare OpenPGP la deschiderea portofelului <b>%1</b>. "
+"Corectați configurația sistemului și încercați din nou.</qt>"
+
+#: kwalletbackend/backendpersisthandler.cpp:535
+#, kde-format
+msgid "Retry"
+msgstr "Reîncearcă"
+
+#: kwalletbackend/backendpersisthandler.cpp:540
+#, kde-format
+msgid ""
+"<qt>Error when attempting to decrypt the wallet <b>%1</b> using GPG. If "
+"you're using a SmartCard, please ensure it's inserted then try again."
+"<br><br>GPG error was <b>%2</b></qt>"
+msgstr ""
+"<qt>Eroare la decriptarea portofelului <b>%1</b> folosind GPG. Dacă folosiți "
+"un SmartCard, asigurați-vă că e introdus și încercați din nou."
+"<br><br>Eroarea GPG a fost <b>%2</b></qt>"
+
+#: kwalletbackend/backendpersisthandler.cpp:544
+#, kde-format
+msgid "kwalletd GPG backend"
+msgstr "platformă GPG pentru kwalletd"
+
+#: kwalletbackend/backendpersisthandler.cpp:590
+#, kde-format
+msgid ""
+"<qt>Error when attempting to open the wallet <b>%1</b>. The wallet was "
+"encrypted using the GPG Key ID <b>%2</b> but this key was not found on your "
+"system.</qt>"
+msgstr ""
+"<qt>Eroare la deschiderea portofelului <b>%1</b>. Portofelul a fost criptat "
+"cu cheia GPG cu identificator <b>%2</b>, dar această cheie nu a fost găsită "
+"în sistem.</qt>"
+
+#: kwalletbackend/kwalletbackend.cc:272
+#, kde-format
+msgid "Already open."
+msgstr "Deja deschis."
+
+#: kwalletbackend/kwalletbackend.cc:274
+#, kde-format
+msgid "Error opening file."
+msgstr "Eroare la deschiderea fișierului."
+
+#: kwalletbackend/kwalletbackend.cc:276
+#, kde-format
+msgid "Not a wallet file."
+msgstr "Nu este un fișier-portofel."
+
+#: kwalletbackend/kwalletbackend.cc:278
+#, kde-format
+msgid "Unsupported file format revision."
+msgstr "Revizie de format a fișierului nesusținută."
+
+#: kwalletbackend/kwalletbackend.cc:282
+#, kde-format
+msgid "Unknown encryption scheme."
+msgstr "Schemă de criptare necunoscută."
+
+#: kwalletbackend/kwalletbackend.cc:284
+#, kde-format
+msgid "Corrupt file?"
+msgstr "Fișier corupt?"
+
+#: kwalletbackend/kwalletbackend.cc:286
+#, kde-format
+msgid "Error validating wallet integrity. Possibly corrupted."
+msgstr ""
+"Eroare la validarea integrității portofelului. E posibil să fie corupt."
+
+#: kwalletbackend/kwalletbackend.cc:290
+#, kde-format
+msgid "Read error - possibly incorrect password."
+msgstr "Eroare de citire - parolă probabil incorectă."
+
+#: kwalletbackend/kwalletbackend.cc:292
+#, kde-format
+msgid "Decryption error."
+msgstr "Eroare la decriptare."
+
+#: kwalletbackend/kwalletbackend.cc:472
+#, kde-format
+msgid ""
+"Failed to sync wallet <b>%1</b> to disk. Error codes are:\n"
+"RC <b>%2</b>\n"
+"SF <b>%3</b>. Please file a BUG report using this information to bugs.kde.org"
+msgstr ""
+"Sincronizarea portofelului <b>%1</b> pe disc a eșuat. Codurile de eroare "
+"sunt:\n"
+"RC <b>%2</b>\n"
+"SF <b>%3</b>. Raportați un defect cu aceste informații la bugs.kde.org"
+
+#: kwalletd/kwalletd.cpp:119
+#, kde-format
+msgid "Migrating the wallet \"%1\". Please provide the password to unlock."
+msgstr "Se migrează portofelul „%1”. Furnizați parola pentru deblocare."
+
+#: kwalletd/main.cpp:32
+#, kde-format
+msgid "kwalletd"
+msgstr "kwalletd"
+
+#: kwalletd/main.cpp:34
+#, kde-format
+msgid "A KWallet compatibility service, wrapping upon Secret Service"
+msgstr "Serviciu de compatibilitate cu KWallet, ce înfășoară Secret Service"
+
+#: kwalletd/main.cpp:36
+#, kde-format
+msgid "(C) 2025, The KDE Developers"
+msgstr "(C) 2025, Programatorii KDE"
+
+#: kwalletd/main.cpp:38
+#, kde-format
+msgid "Marco Martin"
+msgstr "Marco Martin"
+
+#: kwalletd/main.cpp:38
+#, kde-format
+msgid "Author"
+msgstr "Autor"
+
+#: kwalletd/secretserviceclient.cpp:241
+#, kde-format
+msgid "Item not found"
+msgstr "Elementul nu a fost găsit"
+
+#: kwalletd/secretserviceclient.cpp:261
+#, kde-format
+msgid "Could not connect to Secret Service"
+msgstr "Nu s-a putut conecta la Secret Service"
+
+#: kwalletd/secretserviceclient.cpp:423
+#, kde-format
+msgid "Unable to unlock collectionName %1"
+msgstr "Nu s-a putut debloca collectionName %1"
+
+#: kwalletd/secretserviceclient.cpp:515
+#, kde-format
+msgid "No collections"
+msgstr "Nicio colecție"
+
+#: kwalletd/secretserviceclient.cpp:552 kwalletd/secretserviceclient.cpp:599
+#: kwalletd/secretserviceclient.cpp:702
+#, kde-format
+msgid "No entries"
+msgstr "Nicio înregistrare"
+
+#: kwalletd/secretserviceclient.cpp:617
+#, kde-format
+msgid "Entry not found, key: %1, folder: %2"
+msgstr "Înregistrarea nu a fost găsită, cheie: %1, dosar: %2"
+
+#: kwalletd/secretserviceclient.cpp:726
+#, kde-format
+msgid "Unable to unlock item"
+msgstr "Elementul nu poate fi deblocat"
+
+#: kwalletd/secretserviceclient.cpp:769 kwalletd/secretserviceclient.cpp:887
+#, kde-format
+msgid "Entry to rename not found"
+msgstr "Înregistrarea de redenumit nu a fost găsită"
+
+#: kwalletd/secretserviceclient.cpp:776
+#, kde-format
+msgid "Entry named %1 in folder %2 and wallet %3 already exists."
+msgstr "Înregistrarea numită %1 în dosarul %2 și portofelul %3 există deja."
+
+#: kwalletd/secretserviceclient.cpp:791 kwalletd/secretserviceclient.cpp:806
+#, kde-format
+msgid "Entry to rename incomplete"
+msgstr "Înregistrarea de redenumit e incompletă"
+
+#: kwalletd/secretserviceclient.cpp:851
+#, kde-format
+msgid "Failed to create SecretValue"
+msgstr "Nu s-a putut crea SecretValue"
+
+#, fuzzy
+#~| msgid "KDE Wallet Service"
+#~ msgid "KDE Wallet Migration Agent"
+#~ msgstr "Serviciul de portofel KDE"
+
+#~ msgctxt "Text of a button to ignore the open-wallet notification"
+#~ msgid "Ignore"
+#~ msgstr "Ignoră"
+
+#~ msgid "&Open"
+#~ msgstr "&Deschide"
+
+#~ msgid "C&reate"
+#~ msgstr "C&reează"
+
+#~ msgid ""
+#~ "(C) 2002-2008 George Staikos, Michael Leupold, Thiago Maceira, Valentin "
+#~ "Rusu"
+#~ msgstr ""
+#~ "(C) 2002-2008 George Staikos, Michael Leupold, Thiago Maceira, Valentin "
+#~ "Rusu"
+
+#~ msgid "Maintainer"
+#~ msgstr "Responsabil"

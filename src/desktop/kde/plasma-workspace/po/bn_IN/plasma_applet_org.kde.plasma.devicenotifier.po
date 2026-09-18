@@ -1,0 +1,320 @@
+# translation of plasma_applet_devicenotifier.po to Bengali INDIA
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Runa Bhattacharjee <runab@fedoraproject.org>, 2008.
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma_applet_devicenotifier\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-17 02:39+0000\n"
+"PO-Revision-Date: 2008-07-04 12:04+0530\n"
+"Last-Translator: Runa Bhattacharjee <runab@fedoraproject.org>\n"
+"Language-Team: Bengali INDIA <discuss@ankur.org.in>\n"
+"Language: bn_IN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: KBabel 1.11.4\n"
+
+#: actions/checkaction.cpp:72
+#, kde-format
+msgctxt "@action:button check a storageAccess (i.e disk) for error"
+msgid "Check for Errors"
+msgstr ""
+
+#: actions/mountaction.cpp:97
+#, kde-format
+msgid "Mount"
+msgstr ""
+
+#: actions/mountandopenaction.cpp:178
+#, kde-format
+msgid "Open in File Manager"
+msgstr ""
+
+#: actions/mountandopenaction.cpp:181
+#, kde-format
+msgid "Try to Fix"
+msgstr ""
+
+#: actions/mountandopenaction.cpp:181
+#, kde-format
+msgid "Mount and Open"
+msgstr ""
+
+#: actions/mountandopenaction.cpp:183
+#, kde-format
+msgid "Eject"
+msgstr ""
+
+#: actions/mountandopenaction.cpp:185
+#, kde-format
+msgid "Safely remove"
+msgstr ""
+
+#: devicemessagemonitor_p.cpp:171
+#, kde-format
+msgid "This device has file system errors."
+msgstr ""
+
+#: devicemessagemonitor_p.cpp:173
+#, kde-format
+msgctxt "@label device is a storage disk"
+msgid "This device has no errors"
+msgstr ""
+
+#: devicemessagemonitor_p.cpp:176
+#, kde-format
+msgid "Successfully repaired!"
+msgstr ""
+
+#: devicemessagemonitor_p.cpp:180
+#, kde-format
+msgid "Device Status"
+msgstr ""
+
+#: devicemessagemonitor_p.cpp:181
+#, kde-format
+msgid "A device can now be safely removed"
+msgstr ""
+
+#: devicemessagemonitor_p.cpp:185
+#, kde-format
+msgid "This device can now be safely removed."
+msgstr ""
+
+#: devicemessagemonitor_p.cpp:192
+#, fuzzy, kde-format
+#| msgid "1 action for this device"
+#| msgid_plural "%1 actions for this device"
+msgid "You are not authorized to mount this device."
+msgstr "চিহ্নিত ডিভাইসের জন্য ১-টি কর্ম"
+
+#: devicemessagemonitor_p.cpp:196
+#, fuzzy, kde-format
+#| msgid "1 action for this device"
+#| msgid_plural "%1 actions for this device"
+msgid "You are not authorized to eject this disc."
+msgstr "চিহ্নিত ডিভাইসের জন্য ১-টি কর্ম"
+
+#: devicemessagemonitor_p.cpp:199
+#, fuzzy, kde-format
+#| msgid "1 action for this device"
+#| msgid_plural "%1 actions for this device"
+msgctxt "Remove is less technical for unmount"
+msgid "You are not authorized to remove this device."
+msgstr "চিহ্নিত ডিভাইসের জন্য ১-টি কর্ম"
+
+#: devicemessagemonitor_p.cpp:202
+#, fuzzy, kde-format
+#| msgid "1 action for this device"
+#| msgid_plural "%1 actions for this device"
+msgid "You are not authorized to repair this device."
+msgstr "চিহ্নিত ডিভাইসের জন্য ১-টি কর্ম"
+
+#: devicemessagemonitor_p.cpp:204 devicemessagemonitor_p.cpp:269
+#, kde-format
+msgid "Unknown error type"
+msgstr ""
+
+#: devicemessagemonitor_p.cpp:208
+#, fuzzy, kde-format
+#| msgid "1 action for this device"
+#| msgid_plural "%1 actions for this device"
+msgid "Could not mount this device as it is busy."
+msgstr "চিহ্নিত ডিভাইসের জন্য ১-টি কর্ম"
+
+#: devicemessagemonitor_p.cpp:235
+#, fuzzy, kde-format
+#| msgid ""
+#| "Cannot eject the disc.\n"
+#| "One or more files on this disc are open within an application."
+msgid "One or more files on this device are open within an application."
+msgstr ""
+"ডিস্ক বের করা যায়নি।\n"
+"কোনো অ্যাপ্লিকেশনের মধ্যে এই ডিস্কের এক অথবা একাধিক ফাইল খোলা রয়েছে।"
+
+#: devicemessagemonitor_p.cpp:237
+#, fuzzy, kde-format
+#| msgid ""
+#| "Cannot unmount the device.\n"
+#| "One or more files on this device are open within an application."
+msgid "One or more files on this device are opened in application \"%2\"."
+msgid_plural ""
+"One or more files on this device are opened in following applications: %2."
+msgstr[0] ""
+"ডিভাইস আন-মাউন্ট করা যায়নি।\n"
+"কোনো অ্যাপ্লিকেশনের মধ্যে এই ডিভাইসের এক অথবা একাধিক ফাইল খোলা রয়েছে।"
+msgstr[1] ""
+"ডিভাইস আন-মাউন্ট করা যায়নি।\n"
+"কোনো অ্যাপ্লিকেশনের মধ্যে এই ডিভাইসের এক অথবা একাধিক ফাইল খোলা রয়েছে।"
+
+#: devicemessagemonitor_p.cpp:240
+#, kde-format
+msgctxt "separator in list of apps blocking device unmount"
+msgid ", "
+msgstr ""
+
+#: devicemessagemonitor_p.cpp:258
+#, fuzzy, kde-format
+#| msgid "1 action for this device"
+#| msgid_plural "%1 actions for this device"
+msgid "Could not mount this device."
+msgstr "চিহ্নিত ডিভাইসের জন্য ১-টি কর্ম"
+
+#: devicemessagemonitor_p.cpp:262
+#, fuzzy, kde-format
+#| msgid "1 action for this device"
+#| msgid_plural "%1 actions for this device"
+msgid "Could not eject this disc."
+msgstr "চিহ্নিত ডিভাইসের জন্য ১-টি কর্ম"
+
+#: devicemessagemonitor_p.cpp:264
+#, fuzzy, kde-format
+#| msgid "1 action for this device"
+#| msgid_plural "%1 actions for this device"
+msgctxt "Remove is less technical for unmount"
+msgid "Could not remove this device."
+msgstr "চিহ্নিত ডিভাইসের জন্য ১-টি কর্ম"
+
+#: devicemessagemonitor_p.cpp:267
+#, fuzzy, kde-format
+#| msgid "1 action for this device"
+#| msgid_plural "%1 actions for this device"
+msgid "Could not repair this device: %1"
+msgstr "চিহ্নিত ডিভাইসের জন্য ১-টি কর্ম"
+
+#: qml/DeviceItem.qml:99
+#, kde-format
+msgctxt ""
+"Accessing is a less technical word for Mounting; translation should be short "
+"and mean 'Currently mounting this device'"
+msgid "Checking…"
+msgstr ""
+
+#: qml/DeviceItem.qml:101
+#, kde-format
+msgctxt ""
+"Accessing is a less technical word for Mounting; translation should be short "
+"and mean 'Currently mounting this device'"
+msgid "Repairing…"
+msgstr ""
+
+#: qml/DeviceItem.qml:104
+#, kde-format
+msgctxt "@info:status Free disk space"
+msgid "%1 free of %2"
+msgstr ""
+
+#: qml/DeviceItem.qml:108
+#, kde-format
+msgctxt ""
+"Accessing is a less technical word for Mounting; translation should be short "
+"and mean 'Currently mounting this device'"
+msgid "Accessing…"
+msgstr ""
+
+#: qml/DeviceItem.qml:111
+#, kde-format
+msgctxt ""
+"Removing is a less technical word for Unmounting; translation should be "
+"short and mean 'Currently unmounting this device'"
+msgid "Removing…"
+msgstr ""
+
+#: qml/DeviceItem.qml:114
+#, kde-format
+msgid "Don't unplug yet! Files are still being transferred…"
+msgstr ""
+
+#: qml/FullRepresentation.qml:47 qml/main.qml:123
+#, kde-format
+msgid "Remove All"
+msgstr ""
+
+#: qml/FullRepresentation.qml:48
+#, fuzzy, kde-format
+#| msgid "1 action for this device"
+#| msgid_plural "%1 actions for this device"
+msgid "Click to safely remove all devices"
+msgstr "চিহ্নিত ডিভাইসের জন্য ১-টি কর্ম"
+
+#: qml/FullRepresentation.qml:162
+#, kde-format
+msgid "No removable devices attached"
+msgstr ""
+
+#: qml/FullRepresentation.qml:162
+#, kde-format
+msgid "No disks available"
+msgstr ""
+
+#: qml/main.qml:72
+#, kde-format
+msgid "Most Recent Device"
+msgstr ""
+
+#: qml/main.qml:72
+#, kde-format
+msgid "No Devices Available"
+msgstr ""
+
+#: qml/main.qml:109
+#, kde-format
+msgctxt "Open auto mounter kcm"
+msgid "Configure Removable Devices…"
+msgstr ""
+
+#: qml/main.qml:131
+#, kde-format
+msgid "Removable Devices"
+msgstr ""
+
+#: qml/main.qml:146
+#, kde-format
+msgid "Non Removable Devices"
+msgstr ""
+
+#: qml/main.qml:161
+#, kde-format
+msgid "All Devices"
+msgstr ""
+
+#: qml/main.qml:178
+#, kde-format
+msgid "Show popup when new device is plugged in"
+msgstr ""
+
+#, fuzzy
+#~| msgid "1 action for this device"
+#~| msgid_plural "%1 actions for this device"
+#~ msgid "1 action for this device"
+#~ msgid_plural "%1 actions for this device"
+#~ msgstr[0] "চিহ্নিত ডিভাইসের জন্য ১-টি কর্ম"
+#~ msgstr[1] "চিহ্নিত ডিভাইসের জন্য ১-টি কর্ম"
+
+#, fuzzy
+#~| msgid "<font color=\"%1\">Devices recently plugged in:</font>"
+#~ msgid "Devices recently plugged in:"
+#~ msgstr "<font color=\"%1\">সম্প্রতি সংযুক্ত করা ডিভাইস:</font>"
+
+#, fuzzy
+#~| msgid " sec"
+#~ msgid " second"
+#~ msgid_plural " seconds"
+#~ msgstr[0] " sec"
+#~ msgstr[1] " sec"
+
+#~ msgid "&Time to stay on top:"
+#~ msgstr "চিহ্নিত সময় অবধি উপরে স্থাপিত হবে: (&T)"
+
+#~ msgid "&Number of items displayed:"
+#~ msgstr "প্রদর্শিত বস্তুর সংখ্যা: (&N)"
+
+#~ msgid "Unlimited"
+#~ msgstr "সীমাবিহীন"
+
+#~ msgid "&Display time of items:"
+#~ msgstr "বস্তু সংক্রান্ত সময় প্রদর্শন করা হবে: (&D)"

@@ -98,7 +98,7 @@ fn build_xorg_autotools_component(
             .join(format!("{component}.toml")),
     )?;
     let stamp = format!(
-        "{state}\n{}\ndependencies={}\nxorg-compat-recipe=2\n",
+        "{state}\n{}\ndependencies={}\nxorg-compat-recipe=3\n",
         options.join("\n"),
         dependencies.join(",")
     );
@@ -110,9 +110,20 @@ fn build_xorg_autotools_component(
     fs::create_dir_all(&out_root)?;
     sync_build_source(&source, &source_copy)?;
     let mut env = staged_library_environment(repo_root, dependencies)?;
+    let mut aclocal_paths = Vec::new();
     let aclocal = repo_root.join("out/build/xorg-util-macros/install/usr/share/aclocal");
     if aclocal.is_dir() {
-        env.push(("ACLOCAL_PATH", aclocal.display().to_string()));
+        aclocal_paths.push(aclocal);
+    }
+    let xcb_util_m4 = repo_root.join("src/system/graphics/xcb-util-m4");
+    if xcb_util_m4.is_dir() {
+        aclocal_paths.push(xcb_util_m4);
+    }
+    if !aclocal_paths.is_empty() {
+        env.push((
+            "ACLOCAL_PATH",
+            std::env::join_paths(aclocal_paths)?.to_string_lossy().to_string(),
+        ));
     }
     if !source_copy.join("configure").is_file() {
         run_cmd_with_env_overrides(&source_copy, "autoreconf", &["-fiv"], &env)?;
@@ -241,6 +252,78 @@ fn build_x11_compat(repo_root: &Path) -> Result<()> {
         &common,
         &["usr/lib/x86_64-linux-gnu/libXext.so.6"],
     )?;
+    build_xorg_autotools_component(
+        repo_root,
+        "libxfixes",
+        &[
+            "xorg-util-macros",
+            "xorgproto",
+            "libxau",
+            "libxdmcp",
+            "libxcb",
+            "libx11",
+            "libxext",
+        ],
+        &common,
+        &["usr/lib/x86_64-linux-gnu/libXfixes.so.3"],
+    )?;
+    build_xorg_autotools_component(
+        repo_root,
+        "xcb-util",
+        &["xorg-util-macros", "xorgproto", "libxau", "libxdmcp", "libxcb"],
+        &common,
+        &["usr/lib/x86_64-linux-gnu/libxcb-util.so.1"],
+    )?;
+    build_xorg_autotools_component(
+        repo_root,
+        "xcb-renderutil",
+        &["xorg-util-macros", "xorgproto", "libxau", "libxdmcp", "libxcb"],
+        &common,
+        &["usr/lib/x86_64-linux-gnu/libxcb-render-util.so.0"],
+    )?;
+    build_xorg_autotools_component(
+        repo_root,
+        "xcb-image",
+        &[
+            "xorg-util-macros",
+            "xorgproto",
+            "libxau",
+            "libxdmcp",
+            "libxcb",
+            "xcb-util",
+        ],
+        &common,
+        &["usr/lib/x86_64-linux-gnu/libxcb-image.so.0"],
+    )?;
+    build_xorg_autotools_component(
+        repo_root,
+        "xcb-cursor",
+        &[
+            "xorg-util-macros",
+            "xorgproto",
+            "libxau",
+            "libxdmcp",
+            "libxcb",
+            "xcb-renderutil",
+            "xcb-image",
+        ],
+        &common,
+        &["usr/lib/x86_64-linux-gnu/libxcb-cursor.so.0"],
+    )?;
+    build_xorg_autotools_component(
+        repo_root,
+        "xcb-util-wm",
+        &["xorg-util-macros", "xorgproto", "libxau", "libxdmcp", "libxcb"],
+        &common,
+        &["usr/lib/x86_64-linux-gnu/libxcb-icccm.so.4"],
+    )?;
+    build_xorg_autotools_component(
+        repo_root,
+        "xcb-keysyms",
+        &["xorg-util-macros", "xorgproto", "libxau", "libxdmcp", "libxcb"],
+        &common,
+        &["usr/lib/x86_64-linux-gnu/libxcb-keysyms.so.1"],
+    )?;
 
     let aggregate = repo_root.join("out/build/x11-compat/install");
     remove_path_if_exists(&aggregate)?;
@@ -259,6 +342,13 @@ fn build_x11_compat(repo_root: &Path) -> Result<()> {
         "libxcb",
         "libx11",
         "libxext",
+        "libxfixes",
+        "xcb-util",
+        "xcb-renderutil",
+        "xcb-image",
+        "xcb-cursor",
+        "xcb-util-wm",
+        "xcb-keysyms",
     ] {
         copy_tree_contents(
             &repo_root.join("out/build").join(component).join("install"),
@@ -313,6 +403,39 @@ fn build_freetype(repo_root: &Path) -> Result<()> {
         ],
         "usr/lib/x86_64-linux-gnu/libfreetype.so.6",
         &[],
+    )
+}
+
+fn build_fontconfig(repo_root: &Path) -> Result<()> {
+    // Qt's Unix font database uses Fontconfig to discover the system font
+    // directories. Keep this target-owned instead of enabling Qt's feature
+    // against a host library; the generated config deliberately names only
+    // the normal in-image font locations.
+    build_meson_runtime(
+        repo_root,
+        "fontconfig",
+        "src/system/libraries/fontconfig",
+        &["expat", "freetype", "zlib"],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Ddoc=disabled",
+            "-Ddoc-txt=disabled",
+            "-Ddoc-man=disabled",
+            "-Ddoc-pdf=disabled",
+            "-Ddoc-html=disabled",
+            "-Dnls=disabled",
+            "-Dtests=disabled",
+            "-Dtools=enabled",
+            "-Dcache-build=disabled",
+            "-Dxml-backend=expat",
+            "-Diconv=disabled",
+            "-Dfontations=disabled",
+            "-Ddefault-fonts-dirs=/usr/share/fonts,/usr/local/share/fonts",
+            "-Dadditional-fonts-dirs=no",
+        ],
+        "usr/lib/x86_64-linux-gnu/libfontconfig.so.1",
+        &[("FONTCONFIG_PATH", "/etc/fonts".to_string())],
     )
 }
 
@@ -1105,7 +1228,7 @@ fn build_libdrm(repo_root: &Path) -> Result<()> {
         repo_root,
         "libdrm",
         "src/system/libraries/libdrm",
-        &[],
+        &["systemd"],
         &[
             "--prefix=/usr",
             "--libdir=lib/x86_64-linux-gnu",
@@ -1122,7 +1245,11 @@ fn build_libdrm(repo_root: &Path) -> Result<()> {
             "-Dfreedreno=disabled",
             "-Dvc4=disabled",
             "-Detnaviv=disabled",
-            "-Dudev=false",
+            // KWin's DRM backend uses udev to select the primary GPU and
+            // obtain its device node.  Disabling this feature leaves the
+            // target libdrm unable to enumerate a real DRM card even though
+            // the kernel node exists; use the source-owned libudev API.
+            "-Dudev=true",
         ],
         "usr/lib/x86_64-linux-gnu/libdrm.so.2",
         &[],

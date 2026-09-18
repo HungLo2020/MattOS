@@ -53,9 +53,17 @@ fn import_component(repo_root: &Path, comp: &ComponentDef, update: bool) -> Resu
 
     if update {
         if let Some(prior_state) = read_sync_state(repo_root, &comp.name)? {
-            if prior_state.repo != comp.repo || prior_state.branch != comp.branch {
+            // `branch` is descriptive selection provenance, while the pinned
+            // immutable revision is the actual import identity.  A component
+            // commonly moves from one release tag to the next (for example
+            // KF 6.5 to KF 6.21) in the same upstream repository.  Rejecting
+            // that transition made the supported three-way update path
+            // unusable and encouraged manual state edits.  Repository
+            // identity remains a hard boundary; the new branch and revision
+            // are recorded atomically in the updated state on success.
+            if prior_state.repo != comp.repo {
                 bail!(
-                    "state mismatch for {} (repo/branch changed); inspect upstream/state/{}.toml",
+                    "state mismatch for {} (repository changed); inspect upstream/state/{}.toml",
                     comp.name,
                     comp.name
                 )

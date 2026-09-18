@@ -1,0 +1,316 @@
+# Fuminobu Takeyama <ftake@geeko.jp>, 2016.
+# Tomohiro Hyakutake <tomhioo@outlook.jp>, 2019.
+# Ryuichi Yamada <ryuichi_ya220@outlook.jp>, 2022, 2023.
+# Fumiaki Okushi <fumiaki.okushi@gmail.com>, 2011, 2016, 2022.
+msgid ""
+msgstr ""
+"Project-Id-Version: plasmapkg\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-04-05 02:41+0000\n"
+"PO-Revision-Date: 2024-09-11 19:39+0900\n"
+"Last-Translator: UTUMI Hirosi <utuhiro78@yahoo.co.jp>\n"
+"Language-Team: Japanese <kde-jp@kde.org>\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Accelerator-Marker: &\n"
+"X-Text-Markup: kde4\n"
+"X-Generator: Poedit 3.4.2\n"
+
+#: declarativeimports/plasmaextracomponents/qml/BasicPlasmoidHeading.qml:82
+#, kde-format
+msgid "More actions"
+msgstr "その他のアクション"
+
+#: declarativeimports/plasmaextracomponents/qml/ExpandableListItem.qml:587
+#, kde-format
+msgctxt "@action:button"
+msgid "Collapse"
+msgstr "折りたたむ"
+
+#: declarativeimports/plasmaextracomponents/qml/ExpandableListItem.qml:587
+#, kde-format
+msgctxt "@action:button"
+msgid "Expand"
+msgstr "展開する"
+
+#: declarativeimports/plasmaextracomponents/qml/PasswordField.qml:50
+#, kde-format
+msgid "Password"
+msgstr "パスワード"
+
+#: declarativeimports/plasmaextracomponents/qml/SearchField.qml:62
+#, kde-format
+msgid "Search…"
+msgstr "検索..."
+
+#: declarativeimports/plasmaextracomponents/qml/SearchField.qml:64
+#, kde-format
+msgid "Search"
+msgstr "検索"
+
+#: declarativeimports/plasmaextracomponents/qml/SearchField.qml:75
+#, kde-format
+msgid "Clear search"
+msgstr "検索をクリア"
+
+#: plasma/applet.cpp:318
+#, kde-format
+msgid "Unknown"
+msgstr "不明"
+
+#: plasma/applet.cpp:764
+#, kde-format
+msgid "Activate %1 Widget"
+msgstr "%1 ウィジェットを有効化"
+
+#: plasma/containment.cpp:100 plasma/private/applet_p.cpp:101
+#, kde-format
+msgctxt "%1 is the name of the applet"
+msgid "Remove %1"
+msgstr "%1を削除"
+
+#: plasma/containment.cpp:106 plasma/corona.cpp:365 plasma/corona.cpp:486
+#, kde-format
+msgid "Enter Edit Mode"
+msgstr "編集モードに入る"
+
+#: plasma/containment.cpp:109 plasma/private/applet_p.cpp:106
+#, kde-format
+msgctxt "%1 is the name of the applet"
+msgid "Configure %1..."
+msgstr "%1を設定..."
+
+#: plasma/corona.cpp:314 plasma/corona.cpp:471
+#, kde-format
+msgid "Lock Widgets"
+msgstr "ウィジェットをロック"
+
+#: plasma/corona.cpp:314
+#, kde-format
+msgid "Unlock Widgets"
+msgstr "ウィジェットのロックを解除"
+
+#: plasma/corona.cpp:363
+#, kde-format
+msgid "Exit Edit Mode"
+msgstr "編集モードから出る"
+
+#: plasma/pluginloader.cpp:145
+#, kde-format
+msgid "Could not find requested component: %1"
+msgstr "要求されたコンポーネントが見つかりませんでした: %1"
+
+#: plasma/private/applet_p.cpp:119
+#, kde-format
+msgid "Show Alternatives..."
+msgstr "代替を表示..."
+
+#: plasma/private/applet_p.cpp:237
+#, kde-format
+msgid "Widget Removed"
+msgstr "ウィジェットの削除"
+
+#: plasma/private/applet_p.cpp:238
+#, kde-format
+msgid "The widget \"%1\" has been removed."
+msgstr "\"%1\" ウィジェットが削除されました。"
+
+#: plasma/private/applet_p.cpp:242
+#, kde-format
+msgid "Panel Removed"
+msgstr "パネルの削除"
+
+#: plasma/private/applet_p.cpp:243
+#, kde-format
+msgid "A panel has been removed."
+msgstr "パネルが削除されました。"
+
+#: plasma/private/applet_p.cpp:246
+#, kde-format
+msgid "Desktop Removed"
+msgstr "デスクトップの削除"
+
+#: plasma/private/applet_p.cpp:247
+#, kde-format
+msgid "A desktop has been removed."
+msgstr "デスクトップが削除されました。"
+
+#: plasma/private/applet_p.cpp:250
+#, kde-format
+msgid "Undo"
+msgstr "元に戻す"
+
+#: plasma/private/applet_p.cpp:341
+#, kde-format
+msgid "Widget Settings"
+msgstr "ウィジェットの設定"
+
+#: plasma/private/applet_p.cpp:347
+#, kde-format
+msgid "Remove this Widget"
+msgstr "このウィジェットを削除"
+
+#: plasma/private/containment_p.cpp:51
+#, kde-format
+msgid "Remove this Panel"
+msgstr "このパネルを削除"
+
+#: plasma/private/containment_p.cpp:53
+#, kde-format
+msgid "Remove this Activity"
+msgstr "このアクティビティを削除"
+
+#: plasma/private/containment_p.cpp:58
+#, kde-format
+msgid "Activity Settings"
+msgstr "アクティビティの設定"
+
+#: plasma/private/containment_p.cpp:70
+#, kde-format
+msgid "Add or Manage Widgets…"
+msgstr "ウィジェットを追加または管理..."
+
+#: plasmaquick/appletquickitem.cpp:540
+#, kde-format
+msgid "The root item of %1 must be of type ContainmentItem"
+msgstr "%1 のルート項目は ContainmentItem タイプである必要があります"
+
+#: plasmaquick/appletquickitem.cpp:545
+#, kde-format
+msgid "The root item of %1 must be of type PlasmoidItem"
+msgstr "%1 のルート項目は PlasmoidItem タイプである必要があります"
+
+#: plasmaquick/appletquickitem.cpp:553
+#, kde-format
+msgid "Unknown Applet"
+msgstr "不明なアプレット"
+
+#: plasmaquick/appletquickitem.cpp:567
+#, kde-format
+msgid ""
+"This Widget was written for an unknown older version of Plasma and is not "
+"compatible with Plasma %1. Please contact the widget's author for an updated "
+"version."
+msgstr ""
+"このウィジェットは不明な古いバージョンの Plasma 用に作成されているため、"
+"Plasma %1 とは互換性がありません。アップデート版についてはウィジェットの作成"
+"者に問い合わせてください。"
+
+#: plasmaquick/appletquickitem.cpp:570 plasmaquick/appletquickitem.cpp:577
+#: plasmaquick/appletquickitem.cpp:583
+#, kde-format
+msgid "%1 is not compatible with Plasma %2"
+msgstr "%1 は Plasma %2 と互換性がありません"
+
+#: plasmaquick/appletquickitem.cpp:574
+#, kde-format
+msgid ""
+"This Widget was written for Plasma %1 and is not compatible with Plasma %2. "
+"Please contact the widget's author for an updated version."
+msgstr ""
+"このウィジェットは Plasma %1 用に作成されており、Plasma %2 とは互換性がありま"
+"せん。アップデート版についてはウィジェットの作成者に問い合わせてください。"
+
+#: plasmaquick/appletquickitem.cpp:580
+#, kde-format
+msgid ""
+"This Widget was written for Plasma %1 and is not compatible with Plasma %2. "
+"Please update Plasma in order to use the widget."
+msgstr ""
+"このウィジェットは Plasma %1 用に作成されているため、Plasma %2 とは互換性があ"
+"りません。ウィジェットを使用するには Plasma をアップデートしてください。"
+
+#: plasmaquick/appletquickitem.cpp:589 plasmaquick/appletquickitem.cpp:611
+#, kde-format
+msgid "Sorry! There was an error loading %1."
+msgstr "申し訳ありません。%1 の読み込み中にエラーが発生しました。"
+
+#: plasmaquick/appletquickitem.cpp:606
+#, kde-format
+msgid "Error loading QML file: %1 %2"
+msgstr "QML ファイルの読み込みに失敗しました: %1 %2"
+
+#: plasmaquick/appletquickitem.cpp:609
+#, kde-format
+msgid "Error loading Applet: package %1 does not exist."
+msgstr ""
+"アプレットの読み込み中にエラーが発生しました: パッケージ %1 は存在しません。"
+
+#: plasmaquick/configview.cpp:189
+#, kde-format
+msgid "%1 — %2 Settings"
+msgstr "%1 — %2 設定"
+
+#: plasmaquick/configview.cpp:190
+#, kde-format
+msgid "%1 Settings"
+msgstr "%1 の設定"
+
+#: plasmaquick/plasmoid/containmentitem.cpp:569
+#, kde-format
+msgid "Plasma Package"
+msgstr "Plasma パッケージ"
+
+#: plasmaquick/plasmoid/containmentitem.cpp:573
+#, kde-format
+msgid "Install"
+msgstr "インストール"
+
+#: plasmaquick/plasmoid/containmentitem.cpp:584
+#, kde-format
+msgid "Package Installation Failed"
+msgstr "パッケージのインストールに失敗"
+
+#: plasmaquick/plasmoid/containmentitem.cpp:600
+#, kde-format
+msgid "The package you just dropped is invalid."
+msgstr "あなたがドロップしたパッケージは無効です。"
+
+#: plasmaquick/plasmoid/containmentitem.cpp:609
+#, kde-format
+msgid "Widgets"
+msgstr "ウィジェット"
+
+#: plasmaquick/plasmoid/containmentitem.cpp:614
+#, kde-format
+msgctxt "Add widget"
+msgid "Add %1"
+msgstr "%1 を追加 "
+
+#: plasmaquick/plasmoid/containmentitem.cpp:628
+#, kde-format
+msgctxt "Add icon widget"
+msgid "Add Icon"
+msgstr "アイコンを追加"
+
+#: plasmaquick/plasmoid/containmentitem.cpp:640
+#, kde-format
+msgid "Wallpaper"
+msgstr "壁紙"
+
+#: plasmaquick/plasmoid/containmentitem.cpp:650
+#, kde-format
+msgctxt "Set wallpaper"
+msgid "Set %1"
+msgstr "%1 を設定"
+
+#: plasmaquick/plasmoid/dropmenu.cpp:29
+#, kde-format
+msgid "Content dropped"
+msgstr "コンテンツがドロップされました"
+
+#~ msgid "Whether or not to create an on-disk cache for the theme."
+#~ msgstr "テーマのためにディスク上にキャッシュを作成するかどうか。"
+
+#~ msgid ""
+#~ "The maximum size of the on-disk Theme cache in kilobytes. Note that these "
+#~ "files are sparse files, so the maximum size may not be used. Setting a "
+#~ "larger size is therefore often quite safe."
+#~ msgstr ""
+#~ "ディスク上のテーマキャッシュの最大サイズ (キロバイト) です。これらのファイ"
+#~ "ルはスパースファイルなので、設定された最大サイズが使用されない可能性がある"
+#~ "ことに注意してください。したがって、より大きなサイズを設定することが、多く"
+#~ "の場合安全です。"

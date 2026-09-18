@@ -1,0 +1,836 @@
+# Copyright (C) 2023 This file is copyright:
+# This file is distributed under the same license as the kirigami-addons package.
+#
+# SPDX-FileCopyrightText: 2021, 2022, 2023, 2024, 2025 Kishore G <kishore96@gmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: kirigami-addons\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-07-03 06:55+0000\n"
+"PO-Revision-Date: 2025-04-13 18:02+0530\n"
+"Last-Translator: Kishore G <kishore96@gmail.com>\n"
+"Language-Team: Tamil <kde-i18n-doc@kde.org>\n"
+"Language: ta\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 24.12.3\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "கோ. கிஷோர்"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "Kde-l10n-ta@kde.org"
+
+#: components/AbstractMaximizeComponent.qml:132
+#, kde-format
+msgid "Close"
+msgstr "மூடு"
+
+#: components/AlbumMaximizeComponent.qml:150
+#, kde-format
+msgid "Zoom in"
+msgstr "பெரிதாக்கு"
+
+#: components/AlbumMaximizeComponent.qml:155
+#, kde-format
+msgid "Zoom out"
+msgstr "சிறிதாக்கு"
+
+#: components/AlbumMaximizeComponent.qml:161
+#, kde-format
+msgid "Rotate left"
+msgstr "இடதுபுறமாக திருப்பு"
+
+#: components/AlbumMaximizeComponent.qml:167
+#, kde-format
+msgid "Rotate right"
+msgstr "வலதுபுறமாக திருப்பு"
+
+#: components/AlbumMaximizeComponent.qml:172
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Show caption"
+msgstr "படவிளக்கத்தைக் காட்டு"
+
+#: components/AlbumMaximizeComponent.qml:172
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Hide caption"
+msgstr "படவிளக்கத்தை மறை"
+
+#: components/AlbumMaximizeComponent.qml:178
+#, kde-format
+msgid "Save as"
+msgstr "வேறு பெயரில் சேமி"
+
+#: components/AlbumMaximizeComponent.qml:256
+#, kde-format
+msgid "Previous image"
+msgstr "முந்தைய படம்"
+
+#: components/AlbumMaximizeComponent.qml:276
+#, kde-format
+msgid "Next image"
+msgstr "அடுத்த படம்"
+
+#: components/Banner.qml:185 formcard/AboutPage.qml:502
+#, kde-format
+msgctxt "@action:button"
+msgid "Close"
+msgstr "மூடு"
+
+#: components/ConvergentContextMenu.qml:274
+#, kde-format
+msgctxt "@action:button"
+msgid "Go Back"
+msgstr "பின்னே செல்"
+
+#: components/DownloadAction.qml:40
+#, kde-format
+msgid "Download"
+msgstr "பதிவிறக்கு"
+
+#: components/MessageDialog.qml:99
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Success"
+msgstr "வெற்றி"
+
+#: components/MessageDialog.qml:101 components/MessageDialog.qml:107
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Warning"
+msgstr "எச்சரிக்கை"
+
+#: components/MessageDialog.qml:103
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Error"
+msgstr "சிக்கல்"
+
+#: components/MessageDialog.qml:105
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Information"
+msgstr "தகவல்"
+
+#: components/MessageDialog.qml:255
+#, kde-format
+msgctxt "@label:checkbox"
+msgid "Do not show again"
+msgstr "மறுபடியும் காட்டாதே"
+
+#: components/VideoMaximizeDelegate.qml:281
+#, kde-format
+msgctxt "@action:button"
+msgid "Volume"
+msgstr "ஒலியளவு"
+
+#: dateandtime/DatePopup.qml:87 dateandtime/TimePopup.qml:46
+#, kde-format
+msgctxt "@action:button"
+msgid "Cancel"
+msgstr "ரத்து செய்"
+
+#: dateandtime/DatePopup.qml:99 dateandtime/TimePopup.qml:57
+#, kde-format
+msgctxt "@action:button"
+msgid "Select"
+msgstr "தேர்ந்தெடு"
+
+#: dateandtime/private/DatePicker.qml:275
+#, kde-format
+msgid "Day"
+msgstr "நாள்"
+
+#: dateandtime/private/DatePicker.qml:278
+#, kde-format
+msgid "Month"
+msgstr "மாதம்"
+
+#: dateandtime/private/DatePicker.qml:281
+#, kde-format
+msgid "Year"
+msgstr "ஆண்டு"
+
+#: dateandtime/private/DatePicker.qml:366
+#, kde-format
+msgctxt "@action:button"
+msgid "Go Previous"
+msgstr "முந்தையதற்கு செல்"
+
+#: dateandtime/private/DatePicker.qml:379
+#, kde-format
+msgctxt "@action:button"
+msgid "Jump to today"
+msgstr "இன்றுக்கு செல்"
+
+#: dateandtime/private/DatePicker.qml:386
+#, kde-format
+msgctxt "@action:button"
+msgid "Go Next"
+msgstr "அடுத்ததற்கு செல்"
+
+#: dateandtime/TimePicker.qml:97
+#, kde-format
+msgid "Hours"
+msgstr "மணிநேரம்"
+
+#: dateandtime/TimePicker.qml:119
+#, kde-format
+msgctxt "Time separator"
+msgid ":"
+msgstr ":"
+
+#: dateandtime/TimePicker.qml:134
+#, kde-format
+msgid "Minutes"
+msgstr "நிமிடங்கள்"
+
+#: formcard/aboutcomponent.cpp:25
+#, kde-format
+msgctxt "@info Platform name"
+msgid "%1 (%2)"
+msgstr "%1 (%2)"
+
+#: formcard/aboutcomponent.cpp:29
+#, kde-format
+msgid "KDE Frameworks"
+msgstr "கே.டீ.யீ. நிரலகங்கள்"
+
+#: formcard/aboutcomponent.cpp:30
+#, kde-format
+msgctxt "@info"
+msgid "Collection of libraries created by the KDE Community to extend Qt."
+msgstr "Qt-யுடன் பயன்படுத்தக்கூடிய, கே.டீ.யீ. சமூகத்தால் உருவாக்கப்பட்டுள்ள, நிரலகங்கள்."
+
+#: formcard/aboutcomponent.cpp:35
+#, kde-format
+msgid "Qt"
+msgstr "Qt"
+
+#: formcard/aboutcomponent.cpp:36
+#, kde-format
+msgctxt "@info"
+msgid "Cross-platform application development framework."
+msgstr "பல்லியக்குதள செயலி உருவாக்க நிரலகம்."
+
+#: formcard/aboutcomponent.cpp:37
+#, kde-format
+msgid "Using %1 and built against %2"
+msgstr "%1 பயன்படுத்தி %2 கொண்டு தொகுக்கப்பட்டுள்ளது"
+
+#: formcard/aboutcomponent.cpp:41
+#, kde-format
+msgctxt "@info"
+msgid "Underlying platform."
+msgstr "இயக்குதளம்."
+
+#: formcard/AboutKDEPage.qml:24
+#: statefulapplication/abstractkirigamiapplication.cpp:174
+#, kde-format
+msgid "About KDE"
+msgstr "கே.டீ.யீ. பற்றி"
+
+#: formcard/AboutKDEPage.qml:50
+#, kde-format
+msgid "KDE"
+msgstr "கே.டீ.யீ."
+
+#: formcard/AboutKDEPage.qml:59
+#, kde-format
+msgid "Be Free!"
+msgstr "சுதந்திரமாக இரு"
+
+#: formcard/AboutKDEPage.qml:68
+#, kde-format
+msgid ""
+"KDE is a world-wide community of software engineers, artists, writers, "
+"translators and creators who are committed to Free Software development. KDE "
+"produces the Plasma desktop environment, hundreds of applications, and the "
+"many software libraries that support them.\n"
+"\n"
+"KDE is a cooperative enterprise: no single entity controls its direction or "
+"products. Instead, we work together to achieve the common goal of building "
+"the world's finest Free Software. Everyone is welcome to join and contribute "
+"to KDE, including you."
+msgstr ""
+"கே.டீ.யீ. என்பது,  கட்டற்ற மென்பொருள் உருவாக்கத்திற்கு அர்பணிப்புக் கொண்ட மென்பொருள் "
+"பொறிஞர்கள், கலைஞர்கள், எழுத்தாளர்கள், மொழிபெயர்ப்பாளர்கள் மற்றும் படைப்பாலிகளைக் கொண்ட "
+"உலகளாவிய குழு ஆகும். பிளாஸ்மா பணிமேடை சூழல், நூற்றுக்கணக்கான செயலிகள், மற்றும் அவற்றை "
+"ஆதரிக்கும் பல நிரலகங்களை கே.டீ.யீ. உருவாக்குகிறது.\n"
+"\n"
+" கே.டீ.யீ. ஒரு கூட்டுறவு அமைப்பாகும்: எந்தவொரு தனிப்பட்ட நிறுவனமோ நபரோ அதன் நோக்கத்தையோ "
+"படைப்புக்களையோ கட்டுப்படுத்துவதில்லை. கே.டீ.யீ.-யில் நீங்கள் உட்பட எவரேனும் இணைந்து "
+"பங்களிக்கலாம்."
+
+#: formcard/AboutKDEPage.qml:77 formcard/AboutPage.qml:225
+#, kde-format
+msgid "Homepage"
+msgstr "முகப்புப்பக்கம்"
+
+#: formcard/AboutKDEPage.qml:83
+#, kde-format
+msgid "Report bugs"
+msgstr "பிழைகளைத் தெரிவிப்பது"
+
+#: formcard/AboutKDEPage.qml:88
+#, kde-format
+msgid ""
+"Software can always be improved, and the KDE team is ready to do so. "
+"However, you - the user - must tell us when something does not work as "
+"expected or could be done better.\n"
+"\n"
+"KDE has a bug tracking system. Use the button below to file a bug, or use "
+"the program's About page to report a bug specific to this application.\n"
+"\n"
+"If you have a suggestion for improvement then you are welcome to use the bug "
+"tracking system to register your wish. Make sure you use the severity called "
+"\"Wishlist\"."
+msgstr ""
+"எந்த மென்பொருளும் மேம்படுத்தத் தக்கதே. கே.டீ.யீ. குழு அதனைச் செய்ய தயாராக உள்ளது. ஆயினும் "
+"பயனராகிய நீங்கள், எதிர்பார்த்தப்படி வேலை செய்யாதவை குறித்தும், இன்னும் சிறப்பாகச் "
+"செய்யக்கூடியவை குறித்தும் எங்களுக்கு தெரியப்படுத்த வேண்டும்.\n"
+"\n"
+"கே.டீ.யீ.க்கு, பிழைகளை கண்காணிக்கும் அமைப்பொன்று உள்ளது. கீழுள்ள பட்டனைக் கொண்டோ, "
+"குறிப்பிட்ட நிரலின் 'பற்றி' பக்கத்தையோ கொண்டு பிழையறிக்கைகளை பதிவுசெய்யலாம்.நீங்கள் "
+"விரும்பும் மாற்றங்களை பரிந்துரைக்கக் கூட பிழைகளை கண்காணிக்கும் அமைப்பினைப் பயன்படுத்தலாம். "
+"அப்படி தெரிவிக்கும்போது, \"Wishlist\" என்ற முக்கியத்துவத்தை தேர்ந்தெடுங்கள்."
+
+#: formcard/AboutKDEPage.qml:110
+#, kde-format
+msgid "Report a bug"
+msgstr "பிழையைத் தெரிவிப்பது"
+
+#: formcard/AboutKDEPage.qml:116
+#, kde-format
+msgid "Join us"
+msgstr "எங்களுடன் சேருங்கள்"
+
+#: formcard/AboutKDEPage.qml:121
+#, kde-format
+msgid ""
+"You do not have to be a software developer to be a member of the KDE team. "
+"You can join the language teams that translate program interfaces. You can "
+"provide graphics, themes, sounds, and improved documentation. You decide!"
+msgstr ""
+"கே.டீ.யீ.யில் பங்களிக்க நீங்கள் நிரலாளராக இருக்கவேண்டிய அவசியம் இல்லை. செயலிகளை "
+"மொழிபெயர்க்கும் குழுக்களில் செரலாம். ஓவியங்களையும் தோற்றத்திட்டங்களையும் உருவாக்கலாம். "
+"கையேடுகளை எழுதலாம். முடிவு உங்களதே!"
+
+#: formcard/AboutKDEPage.qml:129 formcard/AboutPage.qml:253
+#, kde-format
+msgid "Get Involved"
+msgstr "பங்களிப்பது"
+
+#: formcard/AboutKDEPage.qml:139
+#, kde-format
+msgid "Developer Documentation"
+msgstr "நிரலாளர்களுக்கான கையேடு"
+
+#: formcard/AboutKDEPage.qml:145
+#, kde-format
+msgid "Support us"
+msgstr "எங்களை ஆதரிப்பது"
+
+#: formcard/AboutKDEPage.qml:150
+#, kde-format
+msgid ""
+"KDE software is and will always be available free of charge, however "
+"creating it is not free.\n"
+"\n"
+"To support development the KDE community has formed the KDE e.V., a non-"
+"profit organization legally founded in Germany. KDE e.V. represents the KDE "
+"community in legal and financial matters.\n"
+"\n"
+"KDE benefits from many kinds of contributions, including financial. We use "
+"the funds to reimburse members and others for expenses they incur when "
+"contributing. Further funds are used for legal support and organizing "
+"conferences and meetings.\n"
+"\n"
+"We would like to encourage you to support our efforts with a financial "
+"donation.\n"
+"\n"
+"Thank you very much in advance for your support."
+msgstr ""
+"கேடீயீ. மென்பொருட்கள் இலவசமாகக் கிடைக்கிறது, மேலும் எப்பொழுதும் இலவசமாகவே கிடைக்கும். "
+"ஆனால் அதனை உருவாக்குவது இலவசமல்ல.\n"
+"\n"
+"உருவாக்கத்தினை தொடர்ந்து ஆதரிக்க, கே.டீ.யீ. சமூகம், KDE e.V. எனும் லாப நோக்கற்ற அமைப்பை "
+"ஜெர்மனியில் சட்டபூர்வமாக தொடங்கியுள்ளது. KDE e.V. ஆனது கே.டீ.யீ. சமூகத்தை சட்ட பூர்வமான "
+"மற்றும் நிதி ரீதியான விஷயங்களில் பிரதிபலிக்கிறது.\n"
+"\n"
+"நிதி உள்ளிட்ட பல்வேறு பங்களிப்புகளால் கே.டீ.யீ. பயனடைகிறது. நாங்கள் இந்நிதியினை, "
+"பங்களிக்கும் போது ஏற்படும் செலவுகளுக்காக உறுப்பினர்களுக்கும் மற்றோருக்கும் வழங்குகிறோம். "
+"எஞ்சியிருக்கும் நிதி, சட்ட ஆதரவிற்கும் மாநாடுகளை நடத்தவும் பயன்படுத்தப்படுகிறது. <br /> "
+"எங்களது முயற்சிகளுக்கு நிதியளித்து ஆதரிக்க உங்களை ஊக்குவிக்க விரும்புகிறோம்.\n"
+"\n"
+"உங்களுடைய ஆதரவிற்கு முன்கூட்டியே நன்றி."
+
+#: formcard/AboutKDEPage.qml:163
+#, kde-format
+msgid "KDE e.V."
+msgstr "கே.டீ.யீ. e.V."
+
+#: formcard/AboutKDEPage.qml:173 formcard/AboutPage.qml:239
+#, kde-format
+msgid "Donate"
+msgstr "நன்கொடை அளிப்பது"
+
+#: formcard/AboutPage.qml:91
+#: statefulapplication/abstractkirigamiapplication.cpp:167
+#, kde-format
+msgid "About %1"
+msgstr "%1 பற்றி "
+
+#: formcard/AboutPage.qml:136
+#, kde-format
+msgid "Copyright"
+msgstr "பதிப்புரிமை"
+
+#: formcard/AboutPage.qml:144
+#, kde-format
+msgid "Description"
+msgstr "விவரணம்"
+
+#: formcard/AboutPage.qml:157
+#, kde-format
+msgid "License"
+msgid_plural "Licenses"
+msgstr[0] "உரிமம்"
+msgstr[1] "உரிமங்கள்"
+
+#: formcard/AboutPage.qml:279
+#, kde-format
+msgid "Report a Bug"
+msgstr "பிழையை தெரிவி"
+
+#: formcard/AboutPage.qml:285
+#, kde-format
+msgid "Libraries in use"
+msgstr "பயனிலுள்ள நிரலகங்கள்"
+
+#: formcard/AboutPage.qml:288
+#, kde-format
+msgctxt "@action:button"
+msgid "Copy to Clipboard"
+msgstr "பிடிப்புப்பலகைக்கு நகலெடு"
+
+#: formcard/AboutPage.qml:292
+#, kde-format
+msgctxt "@info"
+msgid "System information copied to clipboard."
+msgstr "கணினி விவரங்கள் பிடிப்புப்பலகைக்கு நகலெடுக்கப்பட்டன."
+
+#: formcard/AboutPage.qml:305
+#, kde-format
+msgid "Authors"
+msgstr "இயற்றியவர்கள்"
+
+#: formcard/AboutPage.qml:320
+#, kde-format
+msgid "Credits"
+msgstr "நன்றி"
+
+#: formcard/AboutPage.qml:335
+#, kde-format
+msgid "Translators"
+msgstr "மொழிபெயர்ப்பாளர்கள்"
+
+#: formcard/AboutPage.qml:404
+#, kde-format
+msgid "Visit %1's KDE Store page"
+msgstr "%1-இன் கே.டீ.யீ. களஞ்சியப் பக்கத்தை பாருங்கள்"
+
+#: formcard/AboutPage.qml:413
+#, kde-format
+msgid "Send an email to %1"
+msgstr "%1 என்பவருக்கு மின்னஞ்சல் அனுப்பு"
+
+#: formcard/android/FormColorDelegate.qml:42 formcard/FormColorDelegate.qml:52
+#, kde-format
+msgctxt "@action:button"
+msgid "Color"
+msgstr "நிறம்"
+
+#: formcard/android/FormColorDelegate.qml:43 formcard/FormColorDelegate.qml:53
+#, kde-format
+msgctxt "Accessible description"
+msgid "Current color \"%1\""
+msgstr "தற்போதைய நிறம் \"%1\""
+
+#: formcard/android/FormIconDelegate.qml:43
+#, kde-format
+msgctxt "@action:button"
+msgid "Icon"
+msgstr "சின்னம்"
+
+#: formcard/FormDateTimeDelegate.qml:202
+#, kde-format
+msgctxt "Displayed in place of the date if the selected day is today"
+msgid "Today"
+msgstr "இன்று"
+
+#: formcard/FormDateTimeDelegate.qml:229 formcard/FormDateTimeDelegate.qml:366
+#, kde-format
+msgctxt "Date is not set"
+msgid "Not set"
+msgstr "அமைக்கப்படவில்லை"
+
+#: formcard/FormLinkDelegate.qml:52
+#, kde-format
+msgctxt "@action:inmnenu"
+msgid "Open Link"
+msgstr "இணைப்பை திற"
+
+#: formcard/FormLinkDelegate.qml:58
+#, kde-format
+msgctxt "@action:inmnenu"
+msgid "Copy Link to Clipboard"
+msgstr "இணைப்பை பிடிப்புப்பலகைக்கு நகலெடு"
+
+#: formcard/FormLinkDelegate.qml:64
+#, kde-format
+msgctxt "@info:status"
+msgid "Url copied to clipboard."
+msgstr "பிடிப்புப்பலகைக்கு முகவரி நகலெடுக்கப்பட்டது."
+
+#: formcard/FormPasswordFieldDelegate.qml:249
+#: formcard/FormTextAreaDelegate.qml:174 formcard/FormTextFieldDelegate.qml:271
+#, kde-format
+msgctxt "@label %1 is current text length, %2 is maximum length of text field"
+msgid "%1/%2"
+msgstr "%1/%2"
+
+#: settings/CategorizedSettings.qml:46 settings/ConfigurationView.qml:83
+#, kde-format
+msgctxt "@title:window"
+msgid "Settings"
+msgstr "அமைப்புகள்"
+
+#: settings/CategorizedSettings.qml:46
+#, kde-format
+msgctxt "@title:window"
+msgid "Settings — %1"
+msgstr "அமைப்புகள் — %1"
+
+#: settings/CategorizedSettings.qml:100
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Go back"
+msgstr "பின்னே செல்"
+
+#: settings/private/ConfigMobilePage.qml:26
+#, kde-format
+msgctxt "@title"
+msgid "Settings"
+msgstr "அமைப்புகள்"
+
+#: settings/private/ConfigMobilePage.qml:99
+#, kde-format
+msgctxt "@title:group"
+msgid "Settings"
+msgstr "அமைப்புகள்"
+
+#: settings/private/SonnetConfigPage.qml:41
+#, kde-format
+msgctxt "@label:checkbox"
+msgid "Enable automatic spell checking"
+msgstr "தானியங்கி சொல் திருத்தத்தை இயக்கு"
+
+#: settings/private/SonnetConfigPage.qml:55
+#, kde-format
+msgctxt "@label:checkbox"
+msgid "Ignore uppercase words"
+msgstr "பெரிய எழுத்துகள் மட்டுமுடைய சொற்களை பொருட்படுத்தாதே"
+
+#: settings/private/SonnetConfigPage.qml:69
+#, kde-format
+msgctxt "@label:checkbox"
+msgid "Ignore hyphenated words"
+msgstr "இடைக்கோட்டுடைய சொற்களை பொருட்படுத்தாதே"
+
+#: settings/private/SonnetConfigPage.qml:83
+#, kde-format
+msgctxt "@label:checkbox"
+msgid "Detect language automatically"
+msgstr "மொழியை தானாக கண்டறி"
+
+#: settings/private/SonnetConfigPage.qml:96
+#, kde-format
+msgctxt "@label:listbox"
+msgid "Selected default language:"
+msgstr "தேர்ந்தெடுத்துள்ள இயல்பிருப்பு மொழி:"
+
+#: settings/private/SonnetConfigPage.qml:97
+#, kde-format
+msgctxt "No selected language"
+msgid "None"
+msgstr "ஏதுமில்லை"
+
+#: settings/private/SonnetConfigPage.qml:117
+#, kde-format
+msgctxt "@label:listbox"
+msgid "Additional Spell Checking Languages"
+msgstr "கூடுதல் சொல் திருத்த மொழிகள்"
+
+#: settings/private/SonnetConfigPage.qml:118
+#, kde-format
+msgid ""
+"%1 will provide spell checking and suggestions for the languages listed here "
+"when autodetection is enabled."
+msgstr ""
+"தானாக கண்டறியும் அம்சம் இயக்கப்பட்டிருப்பின், கீழுள்ள மொழிகளுக்கான சொல் திருத்தத்தையும் "
+"பரிந்துரைகளையும் %1 வழங்கும்."
+
+#: settings/private/SonnetConfigPage.qml:131
+#, kde-format
+msgctxt "@action:button"
+msgid "Open Personal Dictionary"
+msgstr "தனிப்பயன் அகரமுதலியை திற"
+
+#: settings/private/SonnetConfigPage.qml:143
+#, kde-format
+msgctxt "@title:window"
+msgid "Spell checking languages"
+msgstr "சொல் திருத்த மொழிகள்"
+
+#: settings/private/SonnetConfigPage.qml:155
+#, kde-format
+msgid "Default Language"
+msgstr "இயல்பிருப்பு மொழி"
+
+#: settings/private/SonnetConfigPage.qml:167
+#, kde-format
+msgctxt "@title:window"
+msgid "Spell checking dictionary"
+msgstr "சொல் திருத்த அகரமுதலி"
+
+#: settings/private/SonnetConfigPage.qml:174
+#, kde-format
+msgctxt "Placeholder message"
+msgid "Add a new word to your personal dictionary…"
+msgstr "தனிப்பயன் அகரமுதலியில் ஓர் புதிய சொல்லைச் சேர்…"
+
+#: settings/private/SonnetConfigPage.qml:177
+#, kde-format
+msgctxt "@action:button"
+msgid "Add Word"
+msgstr "சொல்லை சேர்"
+
+#: settings/private/SonnetConfigPage.qml:212
+#, kde-format
+msgctxt "@action:button"
+msgid "Delete word"
+msgstr "சொல்லை நீக்கு"
+
+#: settings/ShortcutsConfigurationModule.qml:26
+#, kde-format
+msgctxt "@action:button"
+msgid "Keyboard Shortcuts"
+msgstr "விசைப்பலகை சுருக்குவழிகள்"
+
+#: settings/SpellcheckingConfigurationModule.qml:15
+#, kde-format
+msgctxt "@action:button"
+msgid "Spell Checking"
+msgstr "சொல் திருத்தம்"
+
+#: statefulapplication/abstractkirigamiapplication.cpp:145
+#, kde-format
+msgid "Open Command Bar"
+msgstr "கட்டளை பட்டையை திற"
+
+#: statefulapplication/private/keysequencehelper.cpp:117
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Reserved Shortcut"
+msgstr "ஒதுக்கப்பட்டுள்ள சுருக்குவழி"
+
+#: statefulapplication/private/keysequencehelper.cpp:119
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The F12 key is reserved on Windows, so cannot be used for a global "
+"shortcut.\n"
+"Please choose another one."
+msgstr ""
+"F12 விண்டோஸுக்காக ஒதுக்கப்பட்டுள்ளதால், அதை பொதுவான சுருக்குவழியாக பயன்படுத்த "
+"முடியாது.\n"
+"வேறொன்றைத் தேர்வு செய்யவும்."
+
+#: statefulapplication/private/keysequencehelper.cpp:143
+#, kde-format
+msgctxt ""
+"@title:dialog This happen when a global shortcut is already defined with the "
+"same shortcut"
+msgid "Global Shortcut Shadowing"
+msgstr "பொதுவான சுருக்குவழியுடன் முரண்பாடு"
+
+#: statefulapplication/private/keysequencehelper.cpp:146
+#, kde-format
+msgctxt "@info"
+msgid "The '%1' key combination is shadowed by following global actions:\n"
+msgstr "'%1' என்ற விசைக்கூட்டு, பின்வரும் பொது சுருக்குவழிகளுடன் முரண்படுகிறது:\n"
+
+#: statefulapplication/private/keysequencehelper.cpp:148
+#: statefulapplication/private/keysequencehelper.cpp:154
+#, kde-format
+msgctxt "@info"
+msgid "Action '%1' in context '%2'\n"
+msgstr "'%2' என்பதில் '%1' என்ற செயல்\n"
+
+#: statefulapplication/private/keysequencehelper.cpp:152
+#, kde-format
+msgctxt "@info"
+msgid "The '%1' key combination shadows following global actions:\n"
+msgstr "'%1' என்ற விசைக்கூட்டு, பின்வரும் பொது சுருக்குவழிகளுடன் முரண்படுகிறது:\n"
+
+#: statefulapplication/private/keysequencehelper.cpp:193
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Conflict with Standard Application Shortcut"
+msgstr "வழக்கமான செயலி சுருக்குவழியுடன் முரண்பாடு"
+
+#: statefulapplication/private/keysequencehelper.cpp:195
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The '%1' key combination is also used for the standard action \"%2\" that "
+"some applications use.\n"
+"Do you really want to use it as a global shortcut as well?"
+msgstr ""
+"'%1' என்ற விசைக்கூட்டு, சில செயலிகளால் \"%2\" என்ற செயலுக்கு வழக்கமாக பயன்படுத்தப்பட்டு "
+"வருகிறது.\n"
+"இருப்பினும் இதை நீங்கள் ஒரு பொது சுருக்குவழியாக பயன்படுத்த விரும்புகிறீர்களா?"
+
+#: statefulapplication/private/KeySequenceItem.qml:129
+#, kde-format
+msgctxt "What the user inputs now will be taken as the new shortcut"
+msgid "Input"
+msgstr "உள்ளிடு"
+
+#: statefulapplication/private/KeySequenceItem.qml:130
+#, kde-format
+msgctxt "No shortcut defined"
+msgid "None"
+msgstr "ஏதுமில்லை"
+
+#: statefulapplication/private/KeySequenceItem.qml:141
+#, kde-format
+msgid ""
+"Click on the button, then enter the shortcut like you would in the program.\n"
+"Example for Ctrl+A: hold the Ctrl key and press A."
+msgstr ""
+"பட்டனை அழுத்தி, நீங்கள் பயன்படுத்த விரும்பும் சுருக்குவழியை உள்ளிடவும்.\n"
+"Ctrl+A -க்கான உதாரணம்: Ctrl விசையை அழுத்தியபடியே A-ஐ தட்டவும்."
+
+#: statefulapplication/private/KeySequenceItem.qml:182
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Clear Key Sequence"
+msgstr "விசைக்கூட்டை நீக்கு"
+
+#: statefulapplication/private/KeySequenceItem.qml:198
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cancel Key Sequence Recording"
+msgstr "விசைக்கூட்டை பதிவு செய்வதை கைவிடு"
+
+#: statefulapplication/private/KQuickCommandBarPage.qml:55
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "No results found"
+msgstr "முடிவேதும் இல்லை"
+
+#: statefulapplication/private/ShortcutsEditor.qml:19
+#: statefulapplication/StatefulWindow.qml:99
+#, kde-format
+msgctxt "@title:window"
+msgid "Shortcuts"
+msgstr "சுருக்குவழிகள்"
+
+#: statefulapplication/private/ShortcutsEditor.qml:23
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Filter…"
+msgstr "வடிகட்டு…"
+
+#: statefulapplication/private/ShortcutsEditor.qml:69
+#, kde-format
+msgctxt "@title:window"
+msgid "Shortcut: %1"
+msgstr "சுருக்குவழி: %1"
+
+#: statefulapplication/private/ShortcutsEditor.qml:89
+#, kde-format
+msgctxt "@label"
+msgid "Shortcut:"
+msgstr "சுருக்குவழி:"
+
+#: statefulapplication/private/ShortcutsEditor.qml:144
+#: statefulapplication/private/ShortcutsEditor.qml:172
+#, kde-format
+msgctxt "@label"
+msgid "Alternative:"
+msgstr "மாற்று:"
+
+#: statefulapplication/private/ShortcutsEditor.qml:210
+#, kde-format
+msgctxt "Placeholder message"
+msgid "No shortcuts found"
+msgstr "எந்த சுருக்குவழியும் கண்டுபிடிக்கப்படவில்லை"
+
+#: statefulapplication/shortcutsmodel.cpp:41
+#, kde-format
+msgctxt "List separator"
+msgid ", "
+msgstr ", "
+
+#: statefulapplication/StatefulWindow.qml:109
+#, kde-format
+msgctxt "@title:window"
+msgid "About %1"
+msgstr "%1 பற்றி"
+
+#: statefulapplication/StatefulWindow.qml:122
+#, kde-format
+msgctxt "@title:window"
+msgid "About KDE"
+msgstr "கே.டீ.யீ. பற்றி"
+
+#~ msgctxt "time in hour (PM)"
+#~ msgid "%1 PM"
+#~ msgstr "%1 பி.ப."
+
+#~ msgctxt "time in hour (AM)"
+#~ msgid "%1 AM"
+#~ msgstr "%1 மு.ப."
+
+#~ msgctxt "%1 is month name, %2 is year"
+#~ msgid "%1 %2"
+#~ msgstr "%1 %2"
+
+#~ msgid "Accept"
+#~ msgstr "ஏற்றுக்கொள்"
+
+#~ msgid ""
+#~ "Software can always be improved, and the KDE team is ready to do so. "
+#~ "However, you - the user - must tell us when something does not work as "
+#~ "expected or could be done better.\n"
+#~ msgstr ""
+#~ "மென்பொருள் மேம்படுத்தத்தக்கதே; அதற்கு கே.டீ.யீ.யும் தயாராக உள்ளது. ஆனால், "
+#~ "எதிர்பார்த்தப்படி எதாவது இல்லாத பட்சத்தில் அதை எங்களிடம் தெரிவிப்பது, பயனராகிய "
+#~ "உங்களுடைய பொறுப்பு.\n"
+
+#~ msgid ""
+#~ "KDE software is and will always be available free of charge, however "
+#~ "creating it is not free.\n"
+#~ msgstr ""
+#~ "கே.டீ.யீ. செயலிகள் இலவசமாக விநியோகிக்கப்பட்டாலும், அவற்றை உருவாக்குவது எளிதல்ல.\n"

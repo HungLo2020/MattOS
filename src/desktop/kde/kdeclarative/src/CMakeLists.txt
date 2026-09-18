@@ -1,0 +1,2 @@
+add_subdirectory(qmlcontrols)
+add_subdirectory(calendarevents)

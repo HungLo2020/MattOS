@@ -1,0 +1,675 @@
+# Translation of libkholidays.po to Brazilian Portuguese
+# Copyright (C) 2005-2015 This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Henrique Pinto <henrique.pinto@kdemail.net>, 2005.
+# André Marcelo Alvarenga <alvarenga@kde.org>, 2008, 2009, 2010, 2012, 2014, 2015.
+# Luiz Fernando Ranghetti <elchevive@opensuse.org>, 2010, 2020, 2022.
+# Aracele Torres <araceletorres@gmail.com>, 2010.
+# SPDX-FileCopyrightText: 2026 Marcus Gama <marcus.gama@gmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: libkholidays5\n"
+"Report-Msgid-Bugs-To: http://bugs.kde.org\n"
+"POT-Creation-Date: 2015-06-13 09:34+0000\n"
+"PO-Revision-Date: 2026-04-11 08:12-0300\n"
+"Last-Translator: Marcus Gama <marcus.gama@gmail.com>\n"
+"Language-Team: Brazilian Portuguese <kde-i18n-pt_BR@kde.org>\n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Lokalize 25.12.3\n"
+"X-Qt-Contexts: true\n"
+
+#: astroseasons.cpp:139
+msgctxt "AstroSeasons|"
+msgid "June Solstice"
+msgstr "Solstício de junho"
+
+#: astroseasons.cpp:141
+msgctxt "AstroSeasons|"
+msgid "December Solstice"
+msgstr "Solstício de dezembro"
+
+#: astroseasons.cpp:143
+msgctxt "AstroSeasons|"
+msgid "March Equinox"
+msgstr "Equinócio de março"
+
+#: astroseasons.cpp:145
+msgctxt "AstroSeasons|"
+msgid "September Equinox"
+msgstr "Equinócio de setembro"
+
+#: declarative/holidayregionsmodel.cpp:89
+msgctxt "HolidayRegionsDeclarativeModel|"
+msgid "Region"
+msgstr "Região"
+
+#: declarative/holidayregionsmodel.cpp:91
+msgctxt "HolidayRegionsDeclarativeModel|"
+msgid "Name"
+msgstr "Nome"
+
+#: declarative/holidayregionsmodel.cpp:93
+msgctxt "HolidayRegionsDeclarativeModel|"
+msgid "Description"
+msgstr "Descrição"
+
+#: holidaycategories.cpp:39
+msgctxt "QObject|public holiday type"
+msgid "public"
+msgstr "público"
+
+#: holidaycategories.cpp:42
+msgctxt "QObject|civil holiday type"
+msgid "civil"
+msgstr "civil"
+
+#: holidaycategories.cpp:45
+msgctxt "QObject|religious holiday type"
+msgid "religious"
+msgstr "religioso"
+
+#: holidaycategories.cpp:48
+msgctxt "QObject|school holiday type"
+msgid "school"
+msgstr "escolar"
+
+#: holidaycategories.cpp:51
+msgctxt "QObject|government holiday type"
+msgid "government"
+msgstr "governamental"
+
+#: holidaycategories.cpp:54
+msgctxt "QObject|financial holiday type"
+msgid "financial"
+msgstr "financeiro"
+
+#: holidaycategories.cpp:57
+msgctxt "QObject|cultural holiday type"
+msgid "cultural"
+msgstr "cultural"
+
+#: holidaycategories.cpp:60
+msgctxt "QObject|commemorative holiday type"
+msgid "commemorative"
+msgstr "comemorativo"
+
+#: holidaycategories.cpp:63
+msgctxt "QObject|historical holiday type"
+msgid "historical"
+msgstr "histórico"
+
+#: holidaycategories.cpp:66
+msgctxt "QObject|nameday holiday type"
+msgid "nameday"
+msgstr "dia do nome"
+
+#: holidaycategories.cpp:69
+msgctxt "QObject|seasonal holiday type"
+msgid "seasonal"
+msgstr "sazonal"
+
+#: holidaycategories.cpp:77
+msgctxt "QObject|"
+msgid ""
+"Public Holiday: a day-off from work or school (typically) to commemorate a "
+"historical event, or to honor people.  Public holidays are always bounded to "
+"a political region at national, regional or local level."
+msgstr ""
+"Feriado público: um dia de folga do trabalho ou da escola (normalmente) para "
+"comemorar um evento histórico ou homenagear pessoas. Os feriados são sempre "
+"restritos a uma região política em nível nacional, regional ou local."
+
+#: holidaycategories.cpp:82
+msgctxt "QObject|"
+msgid ""
+"Civil Service Holiday: a day-off from work for government workers but not a "
+"day off for private sector workers."
+msgstr ""
+"Feriado civil (do Serviço Público): um dia de folga para os funcionários "
+"públicos, mas não para os trabalhadores do setor privado."
+
+#: holidaycategories.cpp:85
+msgctxt "QObject|"
+msgid ""
+"Religious Holiday: a special day in a religion and not bound to any "
+"political region. Religions can have holidays that range in devotion to "
+"those were work/school are forbidden, days of prayer obligation, to "
+"historical remembrances, etc. Governments often have public holidays for "
+"some religious holidays."
+msgstr ""
+"Feriado religioso: um dia especial em uma religião e não vinculado a nenhuma "
+"região política. As religiões podem ter feriados que variam em devoção a "
+"dias em que o trabalho/escola são proibidos, dias de obrigação de oração, "
+"comemorações históricas, etc. Os governos geralmente têm feriados públicos "
+"para alguns feriados religiosos."
+
+#: holidaycategories.cpp:91
+msgctxt "QObject|"
+msgid ""
+"School Holiday: a day-off from school, either as a one-off Public Holiday or "
+"extended periods between school terms.  This can vary widely depending on "
+"school level, type, location."
+msgstr ""
+"Férias escolares: um dia de folga da escola, seja um feriado nacional "
+"isolado ou períodos prolongados entre os trimestres letivos. Isso pode "
+"variar bastante dependendo do nível, tipo e localização da escola."
+
+#: holidaycategories.cpp:96
+msgctxt "QObject|"
+msgid ""
+"Government Holiday: a special day recognized by a political region but "
+"without a day-off for workers, students, etc."
+msgstr ""
+"Feriado governamental: um dia especial reconhecido por uma região política, "
+"mas que não representa folga para trabalhadores, estudantes, etc."
+
+#: holidaycategories.cpp:99
+msgctxt "QObject|"
+msgid "Financial Holiday: banks and markets may close on some public holidays"
+msgstr "Feriado financeiro: bancos e mercados podem fechar em alguns feriados."
+
+#: holidaycategories.cpp:102
+msgctxt "QObject|"
+msgid ""
+"Cultural Holiday: a special day in the culture and therefore usually bound "
+"to a political region. A day where people celebrate in some fashion. eg. "
+"Halloween, St. Valentines"
+msgstr ""
+"Feriado Cultural: um dia especial na cultura e, portanto, geralmente "
+"associado a uma região política. Um dia em que as pessoas celebram de alguma "
+"forma. Ex.: Halloween, Dia dos Namorados."
+
+#: holidaycategories.cpp:107
+msgctxt "QObject|"
+msgid ""
+"Commemorative Holiday: a special day to remember usually bound to a "
+"political region. Not a day-off from work or school; banks are open, etc."
+msgstr ""
+"Feriado comemorativo: um dia especial para recordar, geralmente associado a "
+"uma região política. Não é um dia de folga do trabalho ou da escola; os "
+"bancos estão abertos, etc."
+
+#: holidaycategories.cpp:111
+msgctxt "QObject|"
+msgid ""
+"Historical Holiday: similar to a Commemorative Holiday but historical in "
+"nature."
+msgstr ""
+"Feriado Histórico: semelhante a um feriado comemorativo, mas de natureza "
+"histórica."
+
+#: holidaycategories.cpp:114
+msgctxt "QObject|"
+msgid ""
+"Name Day Holiday: in some political regions each day is assigned a first "
+"name and persons with that name celebrate that day as their \"Name Day\"."
+msgstr ""
+"Feriado de Dia do Nome: em algumas regiões políticas, cada dia da semana "
+"recebe um nome próprio e as pessoas com esse nome comemoram esse dia como "
+"seu \"Dia do Nome\"."
+
+#: holidaycategories.cpp:119
+msgctxt "QObject|"
+msgid ""
+"Seasonal Days: the day corresponds to a seasonal event like an equinox, "
+"solstice, daylight saving time starts/ends."
+msgstr ""
+"Dias Sazonais: o dia corresponde a um evento sazonal, como um equinócio, "
+"solstício ou início/fim do horário de verão."
+
+#: holidayregion.cpp:228
+msgctxt "HolidayRegion|Canadian region"
+msgid "Quebec"
+msgstr "Quebec"
+
+#: holidayregion.cpp:231
+msgctxt "HolidayRegion|German region"
+msgid "Germany, Bavaria"
+msgstr "Alemanha, Baviera"
+
+#: holidayregion.cpp:233
+msgctxt "HolidayRegion|German region"
+msgid "Germany, Brandenburg"
+msgstr "Alemanha, Brandemburgo"
+
+#: holidayregion.cpp:235
+msgctxt "HolidayRegion|German region"
+msgid "Germany, Berlin"
+msgstr "Alemanha, Berlim"
+
+#: holidayregion.cpp:237
+msgctxt "HolidayRegion|German region"
+msgid "Germany, Baden-Wuerttemberg"
+msgstr "Alemanha, Baden-Württemberg"
+
+#: holidayregion.cpp:239
+msgctxt "HolidayRegion|German region"
+msgid "Germany, Hesse"
+msgstr "Alemanha, Hesse"
+
+#: holidayregion.cpp:241
+msgctxt "HolidayRegion|German region"
+msgid "Germany, Mecklenburg-Hither Pomerania"
+msgstr "Alemanha, Mecklemburgo-Pomerânia Ocidental"
+
+#: holidayregion.cpp:243
+msgctxt "HolidayRegion|German region"
+msgid "Germany, Lower Saxony"
+msgstr "Alemanha, Baixa Saxônia"
+
+#: holidayregion.cpp:245
+msgctxt "HolidayRegion|German region"
+msgid "Germany, North Rhine-Westphalia"
+msgstr "Alemanha, Renânia do Norte-Vestfália"
+
+#: holidayregion.cpp:247
+msgctxt "HolidayRegion|German region"
+msgid "Germany, Rhineland-Palatinate"
+msgstr "Alemanha, Renânia-Palatinado"
+
+#: holidayregion.cpp:249
+msgctxt "HolidayRegion|German region"
+msgid "Germany, Schleswig-Holstein"
+msgstr "Alemanha, Schleswig-Holstein"
+
+#: holidayregion.cpp:251
+msgctxt "HolidayRegion|German region"
+msgid "Germany, Saarland"
+msgstr "Alemanha, Sarre"
+
+#: holidayregion.cpp:253
+msgctxt "HolidayRegion|German region"
+msgid "Germany, Saxony"
+msgstr "Alemanha, Saxônia"
+
+#: holidayregion.cpp:255
+msgctxt "HolidayRegion|German region"
+msgid "Germany, Saxony-Anhalt"
+msgstr "Alemanha, Saxônia-Anhalt"
+
+#: holidayregion.cpp:257
+msgctxt "HolidayRegion|German region"
+msgid "Germany, Thuringia"
+msgstr "Alemanha, Turíngia"
+
+#: holidayregion.cpp:260
+msgctxt "HolidayRegion|Spanish region"
+msgid "Catalonia"
+msgstr "Catalunha"
+
+#: holidayregion.cpp:262
+msgctxt "HolidayRegion|UK Region"
+msgid "England and Wales"
+msgstr "Inglaterra e País de Gales"
+
+#: holidayregion.cpp:264
+msgctxt "HolidayRegion|UK Region"
+msgid "England"
+msgstr "Inglaterra"
+
+#: holidayregion.cpp:266
+msgctxt "HolidayRegion|UK Region"
+msgid "Wales"
+msgstr "País de Gales"
+
+#: holidayregion.cpp:268
+msgctxt "HolidayRegion|UK Region"
+msgid "Scotland"
+msgstr "Escócia"
+
+#: holidayregion.cpp:270
+msgctxt "HolidayRegion|UK Region"
+msgid "Northern Ireland"
+msgstr "Irlanda do Norte"
+
+#: holidayregion.cpp:272
+msgctxt "HolidayRegion|Italian Region"
+msgid "South Tyrol"
+msgstr "Tirol do Sul"
+
+#: holidayregion.cpp:274
+msgctxt "HolidayRegion|"
+msgid "New South Wales"
+msgstr "Nova Gales do Sul"
+
+#: holidayregion.cpp:276
+msgctxt "HolidayRegion|Australian Region"
+msgid "Queensland"
+msgstr "Queensland"
+
+#: holidayregion.cpp:278
+msgctxt "HolidayRegion|Australian Region"
+msgid "Victoria"
+msgstr "Vitória"
+
+#: holidayregion.cpp:280
+msgctxt "HolidayRegion|Australian Region"
+msgid "South Australia"
+msgstr "Austrália do Sul"
+
+#: holidayregion.cpp:282
+msgctxt "HolidayRegion|Australian Region"
+msgid "Northern Territory"
+msgstr "Território do Norte"
+
+#: holidayregion.cpp:284
+msgctxt "HolidayRegion|Australian Region"
+msgid "Australian Capital Territory"
+msgstr "Território da Capital da Austrália"
+
+#: holidayregion.cpp:286
+msgctxt "HolidayRegion|Australian Region"
+msgid "Western Australia"
+msgstr "Austrália Ocidental"
+
+#: holidayregion.cpp:288
+msgctxt "HolidayRegion|Australian Region"
+msgid "Tasmania"
+msgstr "Tasmânia"
+
+#: holidayregion.cpp:290
+msgctxt "HolidayRegion|Bosnian and Herzegovinian Region"
+msgid "Republic of Srpska"
+msgstr "República Sérvia"
+
+#: holidayregion.cpp:308
+msgctxt "HolidayRegion|Holiday type"
+msgid "Public"
+msgstr "Público"
+
+#: holidayregion.cpp:310
+msgctxt "HolidayRegion|Holiday type"
+msgid "Civil"
+msgstr "Civil"
+
+#: holidayregion.cpp:312
+msgctxt "HolidayRegion|Holiday type"
+msgid "Religious"
+msgstr "Religioso"
+
+#: holidayregion.cpp:314
+msgctxt "HolidayRegion|Holiday type"
+msgid "Government"
+msgstr "Governo"
+
+#: holidayregion.cpp:316
+msgctxt "HolidayRegion|Holiday type"
+msgid "Financial"
+msgstr "Financeiro"
+
+#: holidayregion.cpp:318
+msgctxt "HolidayRegion|Holiday type"
+msgid "Cultural"
+msgstr "Cultural"
+
+#: holidayregion.cpp:320
+msgctxt "HolidayRegion|Holiday type"
+msgid "Commemorative"
+msgstr "Comemorativo"
+
+#: holidayregion.cpp:322
+msgctxt "HolidayRegion|Holiday type"
+msgid "Historical"
+msgstr "Histórico"
+
+#: holidayregion.cpp:324
+msgctxt "HolidayRegion|Holiday type"
+msgid "School"
+msgstr "Escolar"
+
+#: holidayregion.cpp:326
+msgctxt "HolidayRegion|Holiday type"
+msgid "Seasonal"
+msgstr "Estações"
+
+#: holidayregion.cpp:328
+msgctxt "HolidayRegion|Holiday type"
+msgid "Name Days"
+msgstr "Dias com Nome"
+
+#: holidayregion.cpp:330
+msgctxt "HolidayRegion|Holiday type"
+msgid "Personal"
+msgstr "Pessoal"
+
+#: holidayregion.cpp:332
+msgctxt "HolidayRegion|Holiday type"
+msgid "Christian"
+msgstr "Cristão"
+
+#: holidayregion.cpp:334
+msgctxt "HolidayRegion|Holiday type"
+msgid "Anglican"
+msgstr "Anglicano"
+
+#: holidayregion.cpp:336
+msgctxt "HolidayRegion|Holiday type"
+msgid "Catholic"
+msgstr "Católico"
+
+#: holidayregion.cpp:338
+msgctxt "HolidayRegion|Holiday type"
+msgid "Protestant"
+msgstr "Protestante"
+
+#: holidayregion.cpp:340
+msgctxt "HolidayRegion|Holiday type"
+msgid "Orthodox"
+msgstr "Ortodoxo"
+
+#: holidayregion.cpp:342
+msgctxt "HolidayRegion|Holiday type"
+msgid "Jewish"
+msgstr "Judeu"
+
+#: holidayregion.cpp:344
+msgctxt "HolidayRegion|Holiday type"
+msgid "Jewish Orthodox"
+msgstr "Judeu Ortodoxo"
+
+#: holidayregion.cpp:346
+msgctxt "HolidayRegion|Holiday type"
+msgid "Jewish Conservative"
+msgstr "Judeu Conservador"
+
+#: holidayregion.cpp:348
+msgctxt "HolidayRegion|Holiday type"
+msgid "Jewish Reform"
+msgstr "Judeu Reformista"
+
+#: holidayregion.cpp:350
+msgctxt "HolidayRegion|Holiday type"
+msgid "Islamic"
+msgstr "Islâmico"
+
+#: holidayregion.cpp:352
+msgctxt "HolidayRegion|Holiday type"
+msgid "Islamic Sunni"
+msgstr "Islâmico Sunita"
+
+#: holidayregion.cpp:354
+msgctxt "HolidayRegion|Holiday type"
+msgid "Islamic Shia"
+msgstr "Islâmico Xiita"
+
+#: holidayregion.cpp:356
+msgctxt "HolidayRegion|Holiday type"
+msgid "Islamic Sufi"
+msgstr "Islâmico Sufista"
+
+#: holidayregion.cpp:362
+#, qt-format
+msgctxt ""
+"HolidayRegion|Holiday file display name, %1 = region name, %2 = holiday type"
+msgid "%1 - %2"
+msgstr "%1 - %2"
+
+#: holidayregion.cpp:370
+msgctxt "HolidayRegion|Unknown holiday region"
+msgid "Unknown"
+msgstr "Desconhecida"
+
+#: lunarphase.cpp:30
+msgctxt "LunarPhase|"
+msgid "New Moon"
+msgstr "Lua nova"
+
+#: lunarphase.cpp:32
+msgctxt "LunarPhase|"
+msgid "Full Moon"
+msgstr "Lua cheia"
+
+#: lunarphase.cpp:34
+msgctxt "LunarPhase|"
+msgid "First Quarter Moon"
+msgstr "Lua crescente"
+
+#: lunarphase.cpp:36
+msgctxt "LunarPhase|"
+msgid "Last Quarter Moon"
+msgstr "Lua minguante"
+
+#: lunarphase.cpp:40
+msgctxt "LunarPhase|"
+msgid "Waxing Crescent"
+msgstr "Quase quarto crescente"
+
+#: lunarphase.cpp:42
+msgctxt "LunarPhase|"
+msgid "Waxing Gibbous"
+msgstr "Quase lua cheia"
+
+#: lunarphase.cpp:44
+msgctxt "LunarPhase|"
+msgid "Waning Gibbous"
+msgstr "Quase quarto minguante"
+
+#: lunarphase.cpp:46
+msgctxt "LunarPhase|"
+msgid "Waning Crescent"
+msgstr "Quase lua nova"
+
+#: zodiac.cpp:66
+msgctxt "Zodiac|"
+msgid "Aries"
+msgstr "Áries"
+
+#: zodiac.cpp:68
+msgctxt "Zodiac|"
+msgid "Taurus"
+msgstr "Touro"
+
+#: zodiac.cpp:70
+msgctxt "Zodiac|"
+msgid "Gemini"
+msgstr "Gêmeos"
+
+#: zodiac.cpp:72
+msgctxt "Zodiac|"
+msgid "Cancer"
+msgstr "Câncer"
+
+#: zodiac.cpp:74
+msgctxt "Zodiac|"
+msgid "Leo"
+msgstr "Leão"
+
+#: zodiac.cpp:76
+msgctxt "Zodiac|"
+msgid "Virgo"
+msgstr "Virgem"
+
+#: zodiac.cpp:78
+msgctxt "Zodiac|"
+msgid "Libra"
+msgstr "Libra"
+
+#: zodiac.cpp:80
+msgctxt "Zodiac|"
+msgid "Scorpio"
+msgstr "Escorpião"
+
+#: zodiac.cpp:82
+msgctxt "Zodiac|"
+msgid "Sagittarius"
+msgstr "Sagitário"
+
+#: zodiac.cpp:84
+msgctxt "Zodiac|"
+msgid "Capricorn"
+msgstr "Capricórnio"
+
+#: zodiac.cpp:86
+msgctxt "Zodiac|"
+msgid "Aquarius"
+msgstr "Aquário"
+
+#: zodiac.cpp:88
+msgctxt "Zodiac|"
+msgid "Pisces"
+msgstr "Peixes"
+
+#: zodiac.cpp:258
+msgctxt "HolidayRegion|zodiac symbol for Aries"
+msgid "ram"
+msgstr "carneiro"
+
+#: zodiac.cpp:260
+msgctxt "HolidayRegion|zodiac symbol for Taurus"
+msgid "bull"
+msgstr "touro"
+
+#: zodiac.cpp:262
+msgctxt "HolidayRegion|zodiac symbol for Gemini"
+msgid "twins"
+msgstr "gêmeos"
+
+#: zodiac.cpp:264
+msgctxt "HolidayRegion|zodiac symbol for Cancer"
+msgid "crab"
+msgstr "caranguejo"
+
+#: zodiac.cpp:266
+msgctxt "HolidayRegion|zodiac symbol for Leo"
+msgid "lion"
+msgstr "leão"
+
+#: zodiac.cpp:268
+msgctxt "HolidayRegion|zodiac symbol for Virgo"
+msgid "virgin"
+msgstr "virgem"
+
+#: zodiac.cpp:270
+msgctxt "HolidayRegion|zodiac symbol for Libra"
+msgid "scales"
+msgstr "balança"
+
+#: zodiac.cpp:272
+msgctxt "HolidayRegion|zodiac symbol for Scorpion"
+msgid "scorpion"
+msgstr "escorpião"
+
+#: zodiac.cpp:274
+msgctxt "HolidayRegion|zodiac symbol for Sagittarius"
+msgid "archer"
+msgstr "arqueiro"
+
+#: zodiac.cpp:276
+msgctxt "HolidayRegion|zodiac symbol for Capricorn"
+msgid "goat"
+msgstr "bode"
+
+#: zodiac.cpp:278
+msgctxt "HolidayRegion|zodiac symbol for Aquarius"
+msgid "water carrier"
+msgstr "carregador de água"
+
+#: zodiac.cpp:280
+msgctxt "HolidayRegion|zodiac symbol for Pices"
+msgid "fish"
+msgstr "peixes"

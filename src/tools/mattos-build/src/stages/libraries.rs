@@ -1320,6 +1320,24 @@ fn build_libbsd(repo_root: &Path) -> Result<()> {
     Ok(())
 }
 
+fn build_icu(repo_root: &Path) -> Result<()> {
+    build_autotools_import(
+        repo_root,
+        "icu",
+        "src/system/libraries/icu/icu4c/source",
+        &[],
+        &[
+            "--prefix=/usr",
+            "--libdir=/usr/lib/x86_64-linux-gnu",
+            "--disable-samples",
+            "--disable-tests",
+            "--disable-extras",
+            "--with-data-packaging=archive",
+        ],
+        &["usr/lib/x86_64-linux-gnu/libicuuc.so"],
+    )
+}
+
 fn build_libndp(repo_root: &Path) -> Result<()> {
     let source = repo_root.join("src/system/network/libndp");
     let out_root = repo_root.join("out/build/libndp");
@@ -1408,4 +1426,3 @@ fn build_readline(repo_root: &Path) -> Result<()> {
     fs::write(pc, body)?;
     Ok(())
 }
-

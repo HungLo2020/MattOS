@@ -1,0 +1,848 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR This file is copyright:
+# This file is distributed under the same license as the kirigami-addons package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: kirigami-addons\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-07-03 06:55+0000\n"
+"PO-Revision-Date: 2025-03-23 05:20+0100\n"
+"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
+"Language-Team: Georgian <kde-i18n-doc@kde.org>\n"
+"Language: ka\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.5\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Temuri Doghonadze"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "Temuri.doghonadze@gmail.com"
+
+#: components/AbstractMaximizeComponent.qml:132
+#, kde-format
+msgid "Close"
+msgstr "დახურვა"
+
+#: components/AlbumMaximizeComponent.qml:150
+#, kde-format
+msgid "Zoom in"
+msgstr "გადიდება"
+
+#: components/AlbumMaximizeComponent.qml:155
+#, kde-format
+msgid "Zoom out"
+msgstr "დაპატარავება"
+
+#: components/AlbumMaximizeComponent.qml:161
+#, kde-format
+msgid "Rotate left"
+msgstr "მარცხნივ მოტრიალება"
+
+#: components/AlbumMaximizeComponent.qml:167
+#, kde-format
+msgid "Rotate right"
+msgstr "მარჯვნივ მოტრიალება"
+
+#: components/AlbumMaximizeComponent.qml:172
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Show caption"
+msgstr "წარწერის ჩვენება"
+
+#: components/AlbumMaximizeComponent.qml:172
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Hide caption"
+msgstr "წარწერის დამალვა"
+
+#: components/AlbumMaximizeComponent.qml:178
+#, kde-format
+msgid "Save as"
+msgstr "შენახვა, როგორც"
+
+#: components/AlbumMaximizeComponent.qml:256
+#, kde-format
+msgid "Previous image"
+msgstr "წინა გამოსახულება"
+
+#: components/AlbumMaximizeComponent.qml:276
+#, kde-format
+msgid "Next image"
+msgstr "შემდეგი გამოსახულება"
+
+#: components/Banner.qml:185 formcard/AboutPage.qml:502
+#, kde-format
+msgctxt "@action:button"
+msgid "Close"
+msgstr "დახურვა"
+
+#: components/ConvergentContextMenu.qml:274
+#, kde-format
+msgctxt "@action:button"
+msgid "Go Back"
+msgstr "უკან დაბრუნება"
+
+#: components/DownloadAction.qml:40
+#, kde-format
+msgid "Download"
+msgstr "გადმოწერა"
+
+#: components/MessageDialog.qml:99
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Success"
+msgstr "წარმატებულია"
+
+#: components/MessageDialog.qml:101 components/MessageDialog.qml:107
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Warning"
+msgstr "ყურადღება"
+
+#: components/MessageDialog.qml:103
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Error"
+msgstr "შეცდომა"
+
+#: components/MessageDialog.qml:105
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Information"
+msgstr "ინფორმაცია"
+
+#: components/MessageDialog.qml:255
+#, kde-format
+msgctxt "@label:checkbox"
+msgid "Do not show again"
+msgstr "აღარ მაჩვენო"
+
+#: components/VideoMaximizeDelegate.qml:281
+#, kde-format
+msgctxt "@action:button"
+msgid "Volume"
+msgstr "ხმა"
+
+#: dateandtime/DatePopup.qml:87 dateandtime/TimePopup.qml:46
+#, kde-format
+msgctxt "@action:button"
+msgid "Cancel"
+msgstr "გაუქმება"
+
+#: dateandtime/DatePopup.qml:99 dateandtime/TimePopup.qml:57
+#, kde-format
+msgctxt "@action:button"
+msgid "Select"
+msgstr "მონიშვნა"
+
+#: dateandtime/private/DatePicker.qml:275
+#, kde-format
+msgid "Day"
+msgstr "დღე"
+
+#: dateandtime/private/DatePicker.qml:278
+#, kde-format
+msgid "Month"
+msgstr "თვე"
+
+#: dateandtime/private/DatePicker.qml:281
+#, kde-format
+msgid "Year"
+msgstr "წელი"
+
+#: dateandtime/private/DatePicker.qml:366
+#, kde-format
+msgctxt "@action:button"
+msgid "Go Previous"
+msgstr "წინაზე გადასვლა"
+
+#: dateandtime/private/DatePicker.qml:379
+#, kde-format
+msgctxt "@action:button"
+msgid "Jump to today"
+msgstr "დღევანდელზე გადასვლა"
+
+#: dateandtime/private/DatePicker.qml:386
+#, kde-format
+msgctxt "@action:button"
+msgid "Go Next"
+msgstr "შემდეგზე გადასვლა"
+
+#: dateandtime/TimePicker.qml:97
+#, kde-format
+msgid "Hours"
+msgstr "საათი"
+
+#: dateandtime/TimePicker.qml:119
+#, kde-format
+msgctxt "Time separator"
+msgid ":"
+msgstr ":"
+
+#: dateandtime/TimePicker.qml:134
+#, kde-format
+msgid "Minutes"
+msgstr "წუთი"
+
+#: formcard/aboutcomponent.cpp:25
+#, kde-format
+msgctxt "@info Platform name"
+msgid "%1 (%2)"
+msgstr "%1 (%2)"
+
+#: formcard/aboutcomponent.cpp:29
+#, kde-format
+msgid "KDE Frameworks"
+msgstr "KDE-სი გამოყენებული ბიბლიოთეკები"
+
+#: formcard/aboutcomponent.cpp:30
+#, kde-format
+msgctxt "@info"
+msgid "Collection of libraries created by the KDE Community to extend Qt."
+msgstr ""
+"Qt-ის ფუნქციონალის გასაფართოებლად KDE-ის საზოგადოების მიერ შექმნილი "
+"ბიბლიოთეკების კოლექცია."
+
+#: formcard/aboutcomponent.cpp:35
+#, kde-format
+msgid "Qt"
+msgstr "Qt"
+
+#: formcard/aboutcomponent.cpp:36
+#, kde-format
+msgctxt "@info"
+msgid "Cross-platform application development framework."
+msgstr "მრავალპლატფორმული აპლიკაციის შემუშავების ბიბლიოთეკა."
+
+#: formcard/aboutcomponent.cpp:37
+#, kde-format
+msgid "Using %1 and built against %2"
+msgstr "გამოიყენება %1 და აგებულირა %2-ით"
+
+#: formcard/aboutcomponent.cpp:41
+#, kde-format
+msgctxt "@info"
+msgid "Underlying platform."
+msgstr "ძირითადი პლატფორმა."
+
+#: formcard/AboutKDEPage.qml:24
+#: statefulapplication/abstractkirigamiapplication.cpp:174
+#, kde-format
+msgid "About KDE"
+msgstr "KDE-ს შესახებ"
+
+#: formcard/AboutKDEPage.qml:50
+#, kde-format
+msgid "KDE"
+msgstr "KDE"
+
+#: formcard/AboutKDEPage.qml:59
+#, kde-format
+msgid "Be Free!"
+msgstr "იყავით თავისუფალი!"
+
+#: formcard/AboutKDEPage.qml:68
+#, kde-format
+msgid ""
+"KDE is a world-wide community of software engineers, artists, writers, "
+"translators and creators who are committed to Free Software development. KDE "
+"produces the Plasma desktop environment, hundreds of applications, and the "
+"many software libraries that support them.\n"
+"\n"
+"KDE is a cooperative enterprise: no single entity controls its direction or "
+"products. Instead, we work together to achieve the common goal of building "
+"the world's finest Free Software. Everyone is welcome to join and contribute "
+"to KDE, including you."
+msgstr ""
+"KDE არის პროგრამული უზრუნველყოფის ინჟინრების, მხატვრების, მწერლების, "
+"მთარგმნელებისა და შემქმნელების მსოფლიო საზოგადოება, რომლებიც მზად არიან "
+"უფასო პროგრამული უზრუნველყოფის განვითარებისთვის. KDE აწარმოებს პლაზმური "
+"დესკტოპის გარემოს, ასობით აპლიკაციას და ბევრ პროგრამულ ბიბლიოთეკს, რომლებიც "
+"მხარს უჭერენ მათ.\n"
+"\n"
+"KDE კოოპერატიული საწარმოა: პროდუქტების მიმართულებას ერთი ადამიანი არ "
+"აკონტროლებს. პირიქით, ჩვენ ერთად ვმუშაობთ, რათა მსოფლიოში საუკეთესო "
+"თავისუფალი პროგრამები შევქმნათ. KDE-ის საზოგადოებაში ყველას მივესალმებით, "
+"თქვენი ჩათვლით."
+
+#: formcard/AboutKDEPage.qml:77 formcard/AboutPage.qml:225
+#, kde-format
+msgid "Homepage"
+msgstr "Homepage"
+
+#: formcard/AboutKDEPage.qml:83
+#, kde-format
+msgid "Report bugs"
+msgstr "შეცდომის პატაკი"
+
+#: formcard/AboutKDEPage.qml:88
+#, kde-format
+msgid ""
+"Software can always be improved, and the KDE team is ready to do so. "
+"However, you - the user - must tell us when something does not work as "
+"expected or could be done better.\n"
+"\n"
+"KDE has a bug tracking system. Use the button below to file a bug, or use "
+"the program's About page to report a bug specific to this application.\n"
+"\n"
+"If you have a suggestion for improvement then you are welcome to use the bug "
+"tracking system to register your wish. Make sure you use the severity called "
+"\"Wishlist\"."
+msgstr ""
+"პროგრამების გაუმჯობესება ყოველთვის შესაძლებელია და KDE-ის გუნდი ამისთვის "
+"ყოველთვის მზადაა. მაგრამ თქვენ - მომხმარებელმა უნდა გვითხრათ, თუ რამე უკეთ "
+"შეგვეძლო გაგვეკეთებინა ან შეცდომა დავუშვით.\n"
+"\n"
+"KDE-ს შეცდომების თვალყურის დევნების გვერდი გააჩნია. შეცდომის შესახებ "
+"ანგარიშისთვის ქვემოთ ღილაკი გამოიყენეთ, ან აპლიკაციის 'შესახებ' ჩანართიდან.\n"
+"\n"
+"თუ გაქვთ იდეა, როგორ გავაუმჯობესოთ, გამოიყენეთ შეცდომების გადმოცემის სისტემა "
+"თქვენი სურვილის დასარეგისტრირებალად. დარწმუნდით, რომ შეცდომის სიმძიმეში "
+"\"სურვილი\" აირჩიეთ."
+
+#: formcard/AboutKDEPage.qml:110
+#, kde-format
+msgid "Report a bug"
+msgstr "შეცდომის პატაკი"
+
+#: formcard/AboutKDEPage.qml:116
+#, kde-format
+msgid "Join us"
+msgstr "შემოგვიერთდით"
+
+#: formcard/AboutKDEPage.qml:121
+#, kde-format
+msgid ""
+"You do not have to be a software developer to be a member of the KDE team. "
+"You can join the language teams that translate program interfaces. You can "
+"provide graphics, themes, sounds, and improved documentation. You decide!"
+msgstr ""
+"KDE გუნდის მონაწილე რომ გახდეთ აუცილებელი არაა პროგრამისტი იყოთ. შეგიძლიათ "
+"მიუერთდეთ ენის გუნდებს KDE-ეს მშობლიურ ენაზე სათარგმნელად. შეგიძლიათ შექმნათ "
+"ნახატები, თემები, ხმოვანი ფაილები და გააუმჯობესოთ დოკუმენტაცია. გადაწყვიტეთ "
+"რას ისურვებთ!"
+
+#: formcard/AboutKDEPage.qml:129 formcard/AboutPage.qml:253
+#, kde-format
+msgid "Get Involved"
+msgstr "შემოგვიერთდით"
+
+#: formcard/AboutKDEPage.qml:139
+#, kde-format
+msgid "Developer Documentation"
+msgstr "პროგრამისტის დოკუმენტაცია"
+
+#: formcard/AboutKDEPage.qml:145
+#, kde-format
+msgid "Support us"
+msgstr "მხარი დაგვიჭირეთ"
+
+#: formcard/AboutKDEPage.qml:150
+#, kde-format
+msgid ""
+"KDE software is and will always be available free of charge, however "
+"creating it is not free.\n"
+"\n"
+"To support development the KDE community has formed the KDE e.V., a non-"
+"profit organization legally founded in Germany. KDE e.V. represents the KDE "
+"community in legal and financial matters.\n"
+"\n"
+"KDE benefits from many kinds of contributions, including financial. We use "
+"the funds to reimburse members and others for expenses they incur when "
+"contributing. Further funds are used for legal support and organizing "
+"conferences and meetings.\n"
+"\n"
+"We would like to encourage you to support our efforts with a financial "
+"donation.\n"
+"\n"
+"Thank you very much in advance for your support."
+msgstr ""
+"KDE-ის პროგრამები იყო, არის და იქნება უფასო, მაგრამ მათი შექნა ფასიანია.\n"
+"\n"
+"KDE-ის განვითარებისთვის KDE-ის საზოგადოებამ შექმნა KDE e.V. ორგანიზაცია, "
+"რომელიც ოფიციალურად გერმანიაშია დაფუძნებული. KDE e.V. წარმოადგენს KDE-ის "
+"საზოგადოებას იურიდიული და ფინანსური მხრივ.\n"
+"\n"
+"KDE-ს შეუძლია ისარგებლოს მრავალმხრივი შემოწირვებით, ფინანსურის ჩათვლით. ამ "
+"თანხებს ჩვენს წევრებში და სხვებში ვხარჯავთ. დარჩენილი თანხები კი იურიდიულ "
+"მხარდაჭერაში და კონფერენციებში და შეხვედრებში იხარჯება.\n"
+"\n"
+"დაჟინებით გირჩევთ, ფინანსურად მხარი დაგვიჭიროთ.\n"
+"\n"
+"მადლობა წინასწარ."
+
+#: formcard/AboutKDEPage.qml:163
+#, kde-format
+msgid "KDE e.V."
+msgstr "KDE e.V."
+
+#: formcard/AboutKDEPage.qml:173 formcard/AboutPage.qml:239
+#, kde-format
+msgid "Donate"
+msgstr "შემოწირულობა"
+
+#: formcard/AboutPage.qml:91
+#: statefulapplication/abstractkirigamiapplication.cpp:167
+#, kde-format
+msgid "About %1"
+msgstr "%1-ის შესახებ"
+
+#: formcard/AboutPage.qml:136
+#, kde-format
+msgid "Copyright"
+msgstr "საავტორო უფლებები"
+
+#: formcard/AboutPage.qml:144
+#, kde-format
+msgid "Description"
+msgstr "აღწერა"
+
+#: formcard/AboutPage.qml:157
+#, kde-format
+msgid "License"
+msgid_plural "Licenses"
+msgstr[0] "ლიცენზია"
+msgstr[1] "ლიცენზიები"
+
+#: formcard/AboutPage.qml:279
+#, kde-format
+msgid "Report a Bug"
+msgstr "შეცდომის პატაკი"
+
+#: formcard/AboutPage.qml:285
+#, kde-format
+msgid "Libraries in use"
+msgstr "გამოყენებული ბიბლიოთეკები"
+
+#: formcard/AboutPage.qml:288
+#, kde-format
+msgctxt "@action:button"
+msgid "Copy to Clipboard"
+msgstr "ბუფერში კოპირება"
+
+#: formcard/AboutPage.qml:292
+#, kde-format
+msgctxt "@info"
+msgid "System information copied to clipboard."
+msgstr "ინფორმაცია სისტემის შესახებ დაკოპირდა ბუფერში."
+
+#: formcard/AboutPage.qml:305
+#, kde-format
+msgid "Authors"
+msgstr "ავტორები"
+
+#: formcard/AboutPage.qml:320
+#, kde-format
+msgid "Credits"
+msgstr "კრედიტები"
+
+#: formcard/AboutPage.qml:335
+#, kde-format
+msgid "Translators"
+msgstr "მთარგმნელები"
+
+#: formcard/AboutPage.qml:404
+#, kde-format
+msgid "Visit %1's KDE Store page"
+msgstr "ეწვიეთ %1-ის KDE მაღაზიის გვერდს"
+
+#: formcard/AboutPage.qml:413
+#, kde-format
+msgid "Send an email to %1"
+msgstr "%1-სთვის ელფოსტის გაგზავნა"
+
+#: formcard/android/FormColorDelegate.qml:42 formcard/FormColorDelegate.qml:52
+#, kde-format
+msgctxt "@action:button"
+msgid "Color"
+msgstr "ფერი"
+
+#: formcard/android/FormColorDelegate.qml:43 formcard/FormColorDelegate.qml:53
+#, kde-format
+msgctxt "Accessible description"
+msgid "Current color \"%1\""
+msgstr "მიმდინარე ფერია \"%1\""
+
+#: formcard/android/FormIconDelegate.qml:43
+#, kde-format
+msgctxt "@action:button"
+msgid "Icon"
+msgstr "ხატულა"
+
+#: formcard/FormDateTimeDelegate.qml:202
+#, kde-format
+msgctxt "Displayed in place of the date if the selected day is today"
+msgid "Today"
+msgstr "დღეს"
+
+#: formcard/FormDateTimeDelegate.qml:229 formcard/FormDateTimeDelegate.qml:366
+#, kde-format
+msgctxt "Date is not set"
+msgid "Not set"
+msgstr "დაყენებული არაა"
+
+#: formcard/FormLinkDelegate.qml:52
+#, kde-format
+msgctxt "@action:inmnenu"
+msgid "Open Link"
+msgstr "ბმულის გახსნა"
+
+#: formcard/FormLinkDelegate.qml:58
+#, kde-format
+msgctxt "@action:inmnenu"
+msgid "Copy Link to Clipboard"
+msgstr "ბმულის კოპირება ბუფერში"
+
+#: formcard/FormLinkDelegate.qml:64
+#, kde-format
+msgctxt "@info:status"
+msgid "Url copied to clipboard."
+msgstr "URL დაკოპირდა ბუფერში."
+
+#: formcard/FormPasswordFieldDelegate.qml:249
+#: formcard/FormTextAreaDelegate.qml:174 formcard/FormTextFieldDelegate.qml:271
+#, kde-format
+msgctxt "@label %1 is current text length, %2 is maximum length of text field"
+msgid "%1/%2"
+msgstr "%1/%2"
+
+#: settings/CategorizedSettings.qml:46 settings/ConfigurationView.qml:83
+#, kde-format
+msgctxt "@title:window"
+msgid "Settings"
+msgstr "მორგება"
+
+#: settings/CategorizedSettings.qml:46
+#, kde-format
+msgctxt "@title:window"
+msgid "Settings — %1"
+msgstr "პარამეტრები — %1"
+
+#: settings/CategorizedSettings.qml:100
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Go back"
+msgstr "უკან დაბრუნება"
+
+#: settings/private/ConfigMobilePage.qml:26
+#, kde-format
+msgctxt "@title"
+msgid "Settings"
+msgstr "მორგება"
+
+#: settings/private/ConfigMobilePage.qml:99
+#, kde-format
+msgctxt "@title:group"
+msgid "Settings"
+msgstr "მორგება"
+
+#: settings/private/SonnetConfigPage.qml:41
+#, kde-format
+msgctxt "@label:checkbox"
+msgid "Enable automatic spell checking"
+msgstr "მართლწერის ავტომატური შემოწმების ჩართვა"
+
+#: settings/private/SonnetConfigPage.qml:55
+#, kde-format
+msgctxt "@label:checkbox"
+msgid "Ignore uppercase words"
+msgstr "ზედა რეგისტრის მქონე სიტყვების გამოტოვება"
+
+#: settings/private/SonnetConfigPage.qml:69
+#, kde-format
+msgctxt "@label:checkbox"
+msgid "Ignore hyphenated words"
+msgstr "გამოტოვების მქონე სიტყვების იგნორი"
+
+#: settings/private/SonnetConfigPage.qml:83
+#, kde-format
+msgctxt "@label:checkbox"
+msgid "Detect language automatically"
+msgstr "ენების ავტომატური გამოცნობა"
+
+#: settings/private/SonnetConfigPage.qml:96
+#, kde-format
+msgctxt "@label:listbox"
+msgid "Selected default language:"
+msgstr "აირჩიეთ ნაგულისხმევი ენა:"
+
+#: settings/private/SonnetConfigPage.qml:97
+#, kde-format
+msgctxt "No selected language"
+msgid "None"
+msgstr "არაფერი"
+
+#: settings/private/SonnetConfigPage.qml:117
+#, kde-format
+msgctxt "@label:listbox"
+msgid "Additional Spell Checking Languages"
+msgstr "მართლწერის შემოწმების დამატებითი ენები"
+
+#: settings/private/SonnetConfigPage.qml:118
+#, kde-format
+msgid ""
+"%1 will provide spell checking and suggestions for the languages listed here "
+"when autodetection is enabled."
+msgstr ""
+"%1 წარმოგიდგენთ მართლწერის შემოწმებისა და მინიშნებებს აქ ჩამოთვლილი "
+"ენებისთვის, როცა ავტომატური არჩევა ჩართულია."
+
+#: settings/private/SonnetConfigPage.qml:131
+#, kde-format
+msgctxt "@action:button"
+msgid "Open Personal Dictionary"
+msgstr "პირადი ლექსიკონის გახსნა"
+
+#: settings/private/SonnetConfigPage.qml:143
+#, kde-format
+msgctxt "@title:window"
+msgid "Spell checking languages"
+msgstr "მართლწერის შემოწმების ენები"
+
+#: settings/private/SonnetConfigPage.qml:155
+#, kde-format
+msgid "Default Language"
+msgstr "ნაგულისხმევი ენა"
+
+#: settings/private/SonnetConfigPage.qml:167
+#, kde-format
+msgctxt "@title:window"
+msgid "Spell checking dictionary"
+msgstr "მართლწერის შემოწმების ლექსიკონი"
+
+#: settings/private/SonnetConfigPage.qml:174
+#, kde-format
+msgctxt "Placeholder message"
+msgid "Add a new word to your personal dictionary…"
+msgstr "დაამატეთ ახალი სიტყვა თქვენს პირად ლექსიკონში…"
+
+#: settings/private/SonnetConfigPage.qml:177
+#, kde-format
+msgctxt "@action:button"
+msgid "Add Word"
+msgstr "სიტყვის დამატება"
+
+#: settings/private/SonnetConfigPage.qml:212
+#, kde-format
+msgctxt "@action:button"
+msgid "Delete word"
+msgstr "სიტყვის წაშლა"
+
+#: settings/ShortcutsConfigurationModule.qml:26
+#, kde-format
+msgctxt "@action:button"
+msgid "Keyboard Shortcuts"
+msgstr "კლავიატურის მალსახმობები"
+
+#: settings/SpellcheckingConfigurationModule.qml:15
+#, kde-format
+msgctxt "@action:button"
+msgid "Spell Checking"
+msgstr "მართლწერის შემოწმება"
+
+#: statefulapplication/abstractkirigamiapplication.cpp:145
+#, kde-format
+msgid "Open Command Bar"
+msgstr "ბრძანებების ველის გახსნა"
+
+#: statefulapplication/private/keysequencehelper.cpp:117
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Reserved Shortcut"
+msgstr "დარეზერვებულია მალსახმობი"
+
+#: statefulapplication/private/keysequencehelper.cpp:119
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The F12 key is reserved on Windows, so cannot be used for a global "
+"shortcut.\n"
+"Please choose another one."
+msgstr ""
+"Windows-ზე F12 ღილაკი დარეზერვებულია და მისი გამოყენება გლობალურ მალსახმობად "
+"აკრძალულია.\n"
+"აირჩეთ სხვა."
+
+#: statefulapplication/private/keysequencehelper.cpp:143
+#, kde-format
+msgctxt ""
+"@title:dialog This happen when a global shortcut is already defined with the "
+"same shortcut"
+msgid "Global Shortcut Shadowing"
+msgstr "გლობალური მალსახმობის გადაჩრდილვა"
+
+#: statefulapplication/private/keysequencehelper.cpp:146
+#, kde-format
+msgctxt "@info"
+msgid "The '%1' key combination is shadowed by following global actions:\n"
+msgstr ""
+"ღილაკების კომბინაცია '%1' შემდეგი გლობალური ქმედებებითაა გადაჩრდილული:\n"
+
+#: statefulapplication/private/keysequencehelper.cpp:148
+#: statefulapplication/private/keysequencehelper.cpp:154
+#, kde-format
+msgctxt "@info"
+msgid "Action '%1' in context '%2'\n"
+msgstr "ქმედება \"%1' '%2'-ის კონტექსტში\n"
+
+#: statefulapplication/private/keysequencehelper.cpp:152
+#, kde-format
+msgctxt "@info"
+msgid "The '%1' key combination shadows following global actions:\n"
+msgstr "ღილაკების კომბინაცია '%1' შემდეგ გლობალურ ქმედებებს გადაჩრდილავს:\n"
+
+#: statefulapplication/private/keysequencehelper.cpp:193
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Conflict with Standard Application Shortcut"
+msgstr "კონფლიქტი პროგრამის სტანდარტულ მალსახმობთან"
+
+#: statefulapplication/private/keysequencehelper.cpp:195
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The '%1' key combination is also used for the standard action \"%2\" that "
+"some applications use.\n"
+"Do you really want to use it as a global shortcut as well?"
+msgstr ""
+"კლავიშების ბმული %1 უკვე გამოიყენება \"%2\" სტანდარტული ქმედებისთვის.\n"
+"გადმოვამისამართო იგი ახალ ქმედებაზე?"
+
+#: statefulapplication/private/KeySequenceItem.qml:129
+#, kde-format
+msgctxt "What the user inputs now will be taken as the new shortcut"
+msgid "Input"
+msgstr "შეტანის ფაილი"
+
+#: statefulapplication/private/KeySequenceItem.qml:130
+#, kde-format
+msgctxt "No shortcut defined"
+msgid "None"
+msgstr "არაფერი"
+
+#: statefulapplication/private/KeySequenceItem.qml:141
+#, kde-format
+msgid ""
+"Click on the button, then enter the shortcut like you would in the program.\n"
+"Example for Ctrl+A: hold the Ctrl key and press A."
+msgstr ""
+"დააჭირეთ ღილაკს და და შეიყვანეთ მალსახმობი, როგორც პროგრამაში.\n"
+"მაგალითად Ctrl+A: დააჭირეთ Ctrl-ს და A-ს."
+
+#: statefulapplication/private/KeySequenceItem.qml:182
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Clear Key Sequence"
+msgstr "ღილაკების მიმდევრობის გასუფთავება"
+
+#: statefulapplication/private/KeySequenceItem.qml:198
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cancel Key Sequence Recording"
+msgstr "ღილაკების მიმდევრობის ჩაწერის გაუქმება"
+
+#: statefulapplication/private/KQuickCommandBarPage.qml:55
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "No results found"
+msgstr "შედეგების გარეშე"
+
+#: statefulapplication/private/ShortcutsEditor.qml:19
+#: statefulapplication/StatefulWindow.qml:99
+#, kde-format
+msgctxt "@title:window"
+msgid "Shortcuts"
+msgstr "მალსახმობები"
+
+#: statefulapplication/private/ShortcutsEditor.qml:23
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Filter…"
+msgstr "ფილტრი…"
+
+#: statefulapplication/private/ShortcutsEditor.qml:69
+#, kde-format
+msgctxt "@title:window"
+msgid "Shortcut: %1"
+msgstr "მალსახმობი: %1"
+
+#: statefulapplication/private/ShortcutsEditor.qml:89
+#, kde-format
+msgctxt "@label"
+msgid "Shortcut:"
+msgstr "მალსახმობი:"
+
+#: statefulapplication/private/ShortcutsEditor.qml:144
+#: statefulapplication/private/ShortcutsEditor.qml:172
+#, kde-format
+msgctxt "@label"
+msgid "Alternative:"
+msgstr "ალტერნატივა:"
+
+#: statefulapplication/private/ShortcutsEditor.qml:210
+#, kde-format
+msgctxt "Placeholder message"
+msgid "No shortcuts found"
+msgstr "მალსახმობების გარეშე."
+
+#: statefulapplication/shortcutsmodel.cpp:41
+#, kde-format
+msgctxt "List separator"
+msgid ", "
+msgstr ", "
+
+#: statefulapplication/StatefulWindow.qml:109
+#, kde-format
+msgctxt "@title:window"
+msgid "About %1"
+msgstr "%1-ის შესახებ"
+
+#: statefulapplication/StatefulWindow.qml:122
+#, kde-format
+msgctxt "@title:window"
+msgid "About KDE"
+msgstr "KDE-ის შესახებ"
+
+#~ msgid "Windowing system"
+#~ msgstr "ფანჯრული სისტემა"
+
+#~ msgctxt "time in hour (PM)"
+#~ msgid "%1 PM"
+#~ msgstr "%1 PM"
+
+#~ msgctxt "time in hour (AM)"
+#~ msgid "%1 AM"
+#~ msgstr "%1 AM"
+
+#~ msgctxt "%1 is month name, %2 is year"
+#~ msgid "%1 %2"
+#~ msgstr "%1 %2"
+
+#~ msgid "Accept"
+#~ msgstr "დასტური"
+
+#~ msgid ""
+#~ "Software can always be improved, and the KDE team is ready to do so. "
+#~ "However, you - the user - must tell us when something does not work as "
+#~ "expected or could be done better.\n"
+#~ msgstr ""
+#~ "პროგრამის გაუმჯობესება ყოველთვის შეიძლება და KDE გუნდი ამისთვის მზადაა. "
+#~ "ამისათვის საჭიროა რომ თქვენ - მომხმარებელმა - შეგვატყობინოთ თქვენი "
+#~ "სურვილები და წინადადებები.\n"
+
+#~ msgid ""
+#~ "KDE software is and will always be available free of charge, however "
+#~ "creating it is not free.\n"
+#~ msgstr ""
+#~ "KDE პროგრამა არის და ყოველთვის ხელმისაწვდომი იქნება უფასოდ, თუმცა მისი "
+#~ "შექმნა უფასო არ არის.\n"

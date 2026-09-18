@@ -53,6 +53,90 @@ classification = "debian-compatible"
 known_gaps = ["Debian maintainer metadata is intentionally smaller"]
 
 [[package]]
+debian_name = "libgomp1"
+mattos_name = "libgomp1"
+source_component = "gcc"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libgomp.so.1"]
+provided_abi_or_commands = ["GOMP OpenMP runtime"]
+protected = false
+current_mattos_version = "15.3.0-1mattos1"
+expected_debian_role = "compiler support runtime"
+classification = "debian-compatible"
+known_gaps = ["Debian maintainer metadata is intentionally smaller"]
+
+[[package]]
+debian_name = "plasma-activities-stats"
+mattos_name = "plasma-activities-stats"
+source_component = "plasma-activities-stats"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libPlasmaActivitiesStats.so.6"]
+provided_abi_or_commands = ["Plasma activity statistics runtime"]
+protected = false
+current_mattos_version = "6.6.5-1mattos1"
+expected_debian_role = "Plasma runtime library"
+classification = "mattos-extension"
+known_gaps = ["Development metadata is shipped with the runtime package"]
+
+[[package]]
+debian_name = "kf6-kcmutils"
+mattos_name = "kf6-kcmutils"
+source_component = "kcmutils"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6KCMUtils.so.6"]
+provided_abi_or_commands = ["KDE control module utilities"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE runtime library"
+classification = "mattos-extension"
+known_gaps = ["Development metadata is shipped with the runtime package"]
+
+[[package]]
+debian_name = "libprocesscore10"
+mattos_name = "libprocesscore10"
+source_component = "ksysguard"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libprocesscore.so.10"]
+provided_abi_or_commands = ["KSysGuard process information runtime"]
+protected = false
+current_mattos_version = "6.6.5-1mattos1"
+expected_debian_role = "KDE runtime library"
+classification = "mattos-extension"
+known_gaps = ["Development metadata is shipped with the runtime package"]
+
+[[package]]
+debian_name = "kf6-knewstuffcore"
+mattos_name = "kf6-knewstuffcore"
+source_component = "knewstuff"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6NewStuffCore.so.6"]
+provided_abi_or_commands = ["KDE NewStuff core runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE runtime library"
+classification = "mattos-extension"
+known_gaps = ["Development metadata is shipped with the runtime package"]
+
+[[package]]
+debian_name = "kf6-attica"
+mattos_name = "kf6-attica"
+source_component = "attica"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6Attica.so.6"]
+provided_abi_or_commands = ["KDE Open Collaboration Services client runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE runtime library"
+classification = "mattos-extension"
+known_gaps = ["Development metadata is shipped with the runtime package"]
+
+[[package]]
+debian_name = "kf6-sonnet"
+mattos_name = "kf6-sonnet"
+source_component = "sonnet"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6SonnetCore.so.6"]
+provided_abi_or_commands = ["KDE spell checking runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE runtime library"
+classification = "mattos-extension"
+known_gaps = ["Development metadata is shipped with the runtime package"]
+
+[[package]]
 debian_name = "libstdc++6"
 mattos_name = "libstdc++6"
 source_component = "gcc"
@@ -641,6 +725,42 @@ classification = "debian-compatible"
 known_gaps = ["Snapshot version relies on repository policy"]
 
 [[package]]
+debian_name = "libfreetype6"
+mattos_name = "libfreetype6"
+source_component = "freetype"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libfreetype.so.6"]
+provided_abi_or_commands = ["FREETYPE_2.0.1"]
+protected = false
+current_mattos_version = "0~git.0a0221a1347e-1mattos1"
+expected_debian_role = "font rasterization runtime"
+classification = "debian-compatible"
+known_gaps = ["Snapshot version relies on repository policy"]
+
+[[package]]
+debian_name = "libfontconfig1"
+mattos_name = "libfontconfig1"
+source_component = "fontconfig"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libfontconfig.so.1"]
+provided_abi_or_commands = ["FONTCONFIG_2.11.0"]
+protected = false
+current_mattos_version = "0~git.6d0a98982ec3-1mattos1"
+expected_debian_role = "font discovery runtime"
+classification = "debian-compatible"
+known_gaps = ["Snapshot version relies on repository policy"]
+
+[[package]]
+debian_name = "fontconfig"
+mattos_name = "fontconfig"
+source_component = "fontconfig"
+owned_paths = ["/etc/fonts", "/usr/bin/fc-match", "/usr/share/fontconfig"]
+provided_abi_or_commands = ["fontconfig utilities and system configuration"]
+protected = false
+current_mattos_version = "0~git.6d0a98982ec3-1mattos1"
+expected_debian_role = "font discovery configuration"
+classification = "mattos-extension"
+known_gaps = ["Locale-specific messages are intentionally disabled"]
+
+[[package]]
 debian_name = "libcap2"
 mattos_name = "libcap2"
 source_component = "libcap"
@@ -1061,6 +1181,91 @@ classification = "debian-compatible"
 known_gaps = ["Static libffi archive is intentionally omitted"]
 
 [[package]]
+debian_name = "libicu78"
+mattos_name = "libicu78"
+source_component = "icu"
+owned_paths = [
+    "/usr/lib/x86_64-linux-gnu/libicudata.so.78",
+    "/usr/lib/x86_64-linux-gnu/libicui18n.so.78",
+    "/usr/lib/x86_64-linux-gnu/libicuio.so.78",
+    "/usr/lib/x86_64-linux-gnu/libicuuc.so.78",
+    "/usr/share/icu/78.3/icudt78l.dat",
+]
+provided_abi_or_commands = ["ICU 78 runtime libraries"]
+protected = false
+current_mattos_version = "0~git.21d1eb0f306e-1mattos1"
+expected_debian_role = "Unicode and globalization runtime libraries"
+classification = "debian-compatible"
+known_gaps = ["ICU tools, headers, static archives, test libraries, and locale development data are not runtime packaged"]
+
+[[package]]
+debian_name = "kf6-kdeclarative"
+mattos_name = "kf6-kdeclarative"
+source_component = "kdeclarative"
+owned_paths = [
+    "/usr/lib/x86_64-linux-gnu/libKF6CalendarEvents.so.6",
+    "/usr/lib/x86_64-linux-gnu/libkquickcontrolsprivate.so.0",
+]
+provided_abi_or_commands = ["KDE Declarative CalendarEvents and QuickControls runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Declarative runtime support"
+classification = "mattos-extension"
+known_gaps = ["Development headers and CMake metadata are retained for source-owned downstream builds"]
+
+[[package]]
+debian_name = "qt6-base-dev"
+mattos_name = "qt6-base"
+source_component = "qtbase"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libQt6Core.so.6", "/usr/plugins/platforms/libqwayland.so", "/usr/lib/x86_64-linux-gnu/cmake/Qt6"]
+provided_abi_or_commands = ["Qt 6 Core/Gui/Widgets runtime", "Qt Wayland client platform plugin", "Qt6 CMake development targets"]
+protected = false
+current_mattos_version = "6.11.2-1mattos1"
+expected_debian_role = "Qt base runtime and development metadata"
+classification = "mattos-alternative"
+known_gaps = ["Runtime and development metadata remain together until a consumer proves a safe split"]
+
+[[package]]
+debian_name = "qt6-shadertools"
+mattos_name = "qt6-shadertools"
+source_component = "qtshadertools"
+owned_paths = [
+    "/usr/lib/x86_64-linux-gnu/libQt6ShaderTools.so.6",
+    "/usr/bin/qsb",
+    "/usr/lib/x86_64-linux-gnu/cmake/Qt6ShaderTools",
+]
+provided_abi_or_commands = ["Qt 6 ShaderTools runtime and qsb shader baker"]
+protected = false
+current_mattos_version = "6.11.2-1mattos1"
+expected_debian_role = "Qt 6 ShaderTools runtime and development metadata"
+classification = "mattos-extension"
+known_gaps = ["ShaderTools runtime and development metadata remain together for QtQuick consumers"]
+
+[[package]]
+debian_name = "libqt6svg6"
+mattos_name = "qt6-svg"
+source_component = "qtsvg"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libQt6Svg.so.6", "/usr/plugins/imageformats/libqsvg.so", "/usr/lib/x86_64-linux-gnu/cmake/Qt6Svg"]
+provided_abi_or_commands = ["Qt 6 SVG runtime and image/icon plugins", "QtSvg CMake development targets"]
+protected = false
+current_mattos_version = "6.11.2-1mattos1"
+expected_debian_role = "Qt SVG runtime and development metadata"
+classification = "mattos-alternative"
+known_gaps = ["Runtime and development metadata remain together until a consumer proves a safe split"]
+
+[[package]]
+debian_name = "libqt6waylandcompositor6"
+mattos_name = "qt6-wayland"
+source_component = "qtwayland"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libQt6WaylandCompositor.so.6", "/usr/plugins/wayland-graphics-integration-server", "/usr/lib/x86_64-linux-gnu/cmake/Qt6WaylandCompositor"]
+provided_abi_or_commands = ["Qt 6 Wayland compositor ABI and server integration plugins", "QtWayland CMake development targets"]
+protected = false
+current_mattos_version = "6.11.2-1mattos1"
+expected_debian_role = "Qt Wayland compositor runtime and development metadata"
+classification = "mattos-alternative"
+known_gaps = ["QtBase owns the Qt Wayland client platform plugin by upstream design"]
+
+[[package]]
 debian_name = "libwayland-client0"
 mattos_name = "libwayland-client0"
 source_component = "wayland"
@@ -1071,6 +1276,18 @@ current_mattos_version = "1.26.0-1mattos1"
 expected_debian_role = "Wayland client runtime library"
 classification = "debian-compatible"
 known_gaps = ["Development headers, wayland-scanner, tests, and documentation are intentionally not shipped"]
+
+[[package]]
+debian_name = "libwayland-cursor0"
+mattos_name = "libwayland-cursor0"
+source_component = "wayland"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libwayland-cursor.so.0 -> libwayland-cursor.so.0.26.0", "/usr/lib/x86_64-linux-gnu/libwayland-cursor.so.0.26.0"]
+provided_abi_or_commands = ["libwayland-cursor.so.0 Wayland cursor runtime ABI"]
+protected = false
+current_mattos_version = "1.26.0-1mattos1"
+expected_debian_role = "Wayland cursor runtime library"
+classification = "debian-compatible"
+known_gaps = ["Development symlinks, headers, tests, and documentation are intentionally not shipped"]
 
 [[package]]
 debian_name = "libwayland-egl1"
@@ -1690,8 +1907,22 @@ known_gaps = ["None"]
 debian_name = "libxcb1"
 mattos_name = "libxcb1"
 source_component = "X.Org libxcb pinned source"
-owned_paths = ["/usr/lib/x86_64-linux-gnu/libxcb.so.1"]
-provided_abi_or_commands = ["libxcb ABI 1"]
+owned_paths = [
+  "/usr/lib/x86_64-linux-gnu/libxcb.so.1",
+  "/usr/lib/x86_64-linux-gnu/libxcb-composite.so.0",
+  "/usr/lib/x86_64-linux-gnu/libxcb-dri3.so.0",
+  "/usr/lib/x86_64-linux-gnu/libxcb-glx.so.0",
+  "/usr/lib/x86_64-linux-gnu/libxcb-present.so.0",
+  "/usr/lib/x86_64-linux-gnu/libxcb-randr.so.0",
+  "/usr/lib/x86_64-linux-gnu/libxcb-render.so.0",
+  "/usr/lib/x86_64-linux-gnu/libxcb-res.so.0",
+  "/usr/lib/x86_64-linux-gnu/libxcb-shape.so.0",
+  "/usr/lib/x86_64-linux-gnu/libxcb-shm.so.0",
+  "/usr/lib/x86_64-linux-gnu/libxcb-sync.so.1",
+  "/usr/lib/x86_64-linux-gnu/libxcb-xfixes.so.0",
+  "/usr/lib/x86_64-linux-gnu/libxcb-xkb.so.1",
+]
+provided_abi_or_commands = ["libxcb ABI 1 and selected XCB extension ABIs"]
 protected = true
 current_mattos_version = "0~git.622152ee42a3-1mattos1"
 expected_debian_role = "X protocol transport ABI"
@@ -1703,8 +1934,12 @@ debian_name = "libx11-6"
 mattos_name = "libx11-6"
 debian_epoch = 2
 source_component = "X.Org libX11 1.8.12"
-owned_paths = ["/usr/lib/x86_64-linux-gnu/libX11.so.6", "/usr/share/X11/locale"]
-provided_abi_or_commands = ["libX11 ABI 6", "X11 locale and Compose data used by Wayland-native toolkits"]
+owned_paths = [
+  "/usr/lib/x86_64-linux-gnu/libX11.so.6",
+  "/usr/lib/x86_64-linux-gnu/libX11-xcb.so.1",
+  "/usr/share/X11/locale",
+]
+provided_abi_or_commands = ["libX11 ABI 6", "X11/XCB bridge ABI 1", "X11 locale and Compose data used by Wayland-native toolkits"]
 protected = true
 current_mattos_version = "2:1.8.12-1mattos1"
 expected_debian_role = "X11 client ABI"
@@ -1725,6 +1960,18 @@ classification = "debian-compatible"
 known_gaps = ["None"]
 
 [[package]]
+debian_name = "libxfixes3"
+mattos_name = "libxfixes3"
+source_component = "X.Org libXfixes pinned source"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libXfixes.so.3"]
+provided_abi_or_commands = ["libXfixes ABI 3"]
+protected = true
+current_mattos_version = "6.0.2-1mattos1"
+expected_debian_role = "X11 fixes extension client ABI"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
 debian_name = "libglvnd0"
 mattos_name = "libglvnd0"
 source_component = "libglvnd 1.7.0"
@@ -1735,6 +1982,126 @@ current_mattos_version = "1.7.0-1mattos1"
 expected_debian_role = "vendor-neutral GL dispatch"
 classification = "debian-compatible"
 known_gaps = ["None"]
+
+[[package]]
+debian_name = "libgl-dev"
+mattos_name = "libglvnd-dev"
+source_component = "libglvnd 1.7.0"
+owned_paths = ["/usr/include/GL/gl.h", "/usr/lib/x86_64-linux-gnu/libGL.so", "/usr/lib/x86_64-linux-gnu/libOpenGL.so", "/usr/lib/x86_64-linux-gnu/pkgconfig/opengl.pc"]
+provided_abi_or_commands = ["OpenGL, EGL and GLX development headers and linker interfaces"]
+protected = false
+current_mattos_version = "1.7.0-1mattos1"
+expected_debian_role = "vendor-neutral OpenGL development interface"
+classification = "mattos-alternative"
+known_gaps = ["CMake metadata is shipped when upstream libglvnd provides it"]
+
+[[package]]
+debian_name = "libkf6coreaddons6"
+mattos_name = "kf6-kcoreaddons"
+source_component = "KDE Frameworks KCoreAddons 6.5.0"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6CoreAddons.so.6", "/usr/lib/x86_64-linux-gnu/cmake/KF6CoreAddons"]
+provided_abi_or_commands = ["KDE CoreAddons ABI and CMake development metadata"]
+protected = false
+current_mattos_version = "6.5.0-1mattos1"
+expected_debian_role = "KDE Frameworks core add-ons"
+classification = "mattos-alternative"
+known_gaps = ["Runtime and development metadata remain together"]
+
+[[package]]
+debian_name = "libkf6configcore6"
+mattos_name = "kf6-kconfig"
+source_component = "KDE Frameworks KConfig 6.26.0"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6ConfigCore.so.6", "/usr/lib/x86_64-linux-gnu/cmake/KF6Config"]
+provided_abi_or_commands = ["KDE KConfig core ABI and CMake development metadata"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE configuration framework"
+classification = "mattos-alternative"
+known_gaps = ["Runtime and development metadata remain together"]
+
+[[package]]
+debian_name = "libkf6dbusaddons6"
+mattos_name = "kf6-kdbusaddons"
+source_component = "KDE Frameworks KDBusAddons 6.26.0"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6DBusAddons.so.6", "/usr/lib/x86_64-linux-gnu/cmake/KF6DBusAddons"]
+provided_abi_or_commands = ["KDE D-Bus add-ons ABI and CMake development metadata"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE D-Bus framework"
+classification = "mattos-alternative"
+known_gaps = ["Runtime and development metadata remain together"]
+
+[[package]]
+debian_name = "libkf6authcore6"
+mattos_name = "kf6-kauth"
+source_component = "KDE Frameworks KAuth 6.26.0"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6AuthCore.so.6", "/usr/lib/x86_64-linux-gnu/cmake/KF6Auth"]
+provided_abi_or_commands = ["KDE authorization framework ABI and CMake development metadata"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE authorization framework"
+classification = "mattos-alternative"
+known_gaps = ["Runtime and development metadata remain together"]
+
+[[package]]
+debian_name = "libkf6i18n6"
+mattos_name = "kf6-ki18n"
+source_component = "KDE Frameworks KI18n 6.5.0"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6I18n.so.6", "/usr/lib/x86_64-linux-gnu/cmake/KF6I18n"]
+provided_abi_or_commands = ["KDE internationalization ABI and translation metadata"]
+protected = false
+current_mattos_version = "6.5.0-1mattos1"
+expected_debian_role = "KDE Frameworks translations"
+classification = "mattos-alternative"
+known_gaps = ["Runtime and development metadata remain together"]
+
+[[package]]
+debian_name = "libkf6widgetsaddons6"
+mattos_name = "kf6-kwidgetsaddons"
+source_component = "KDE Frameworks KWidgetsAddons 6.5.0"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6WidgetsAddons.so.6", "/usr/lib/x86_64-linux-gnu/cmake/KF6WidgetsAddons"]
+provided_abi_or_commands = ["KDE WidgetsAddons ABI and CMake development metadata"]
+protected = false
+current_mattos_version = "6.5.0-1mattos1"
+expected_debian_role = "KDE Frameworks widget extensions"
+classification = "mattos-alternative"
+known_gaps = ["Runtime and development metadata remain together"]
+
+[[package]]
+debian_name = "libpolkit-qt6-1-1"
+mattos_name = "polkit-qt6-1"
+source_component = "polkit-qt-1 0.200.0"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libpolkit-qt6-core-1.so.1", "/usr/lib/x86_64-linux-gnu/cmake/PolkitQt6-1"]
+provided_abi_or_commands = ["Qt 6 Polkit bindings"]
+protected = false
+current_mattos_version = "0.200.0-1mattos1"
+expected_debian_role = "Qt 6 PolicyKit bindings"
+classification = "mattos-alternative"
+known_gaps = ["Runtime and development metadata remain together"]
+
+[[package]]
+debian_name = "libyaml-cpp0.8"
+mattos_name = "libyaml-cpp0.8"
+source_component = "yaml-cpp 0.8.0"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libyaml-cpp.so.0.8", "/usr/lib/x86_64-linux-gnu/cmake/yaml-cpp"]
+provided_abi_or_commands = ["yaml-cpp C++ ABI"]
+protected = false
+current_mattos_version = "0.8.0-1mattos1"
+expected_debian_role = "YAML C++ parser"
+classification = "debian-compatible"
+known_gaps = ["Runtime and development metadata remain together"]
+
+[[package]]
+debian_name = "libkpmcore13"
+mattos_name = "libkpmcore13"
+source_component = "KPMCore 25.12.3"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libkpmcore.so.13", "/usr/lib/x86_64-linux-gnu/qt6/plugins/kpmcore/pmsfdiskbackendplugin.so", "/usr/lib/x86_64-linux-gnu/cmake/KPMcore"]
+provided_abi_or_commands = ["KDE partition-manager core ABI and sfdisk backend"]
+protected = false
+current_mattos_version = "25.12.3-1mattos1"
+expected_debian_role = "KDE partition management core"
+classification = "mattos-alternative"
+known_gaps = ["Calamares integration is intentionally not included yet"]
 
 [[package]]
 debian_name = "libglx0"
@@ -2087,3 +2454,654 @@ current_mattos_version = "0~git.d38d6a1a9b79-1mattos1"
 expected_debian_role = "UEFI boot manager and kernel menu management"
 classification = "debian-compatible"
 known_gaps = ["Common utilities included in this package rather than Debian's separate grub-common; no signed shim, ZFS, LVM or TPM provisioning utility"]
+
+[[package]]
+debian_name = "kwin"
+mattos_name = "kwin"
+source_component = "kwin"
+owned_paths = ["/usr/bin/kwin_wayland"]
+provided_abi_or_commands = ["KWin Wayland compositor"]
+protected = false
+current_mattos_version = "6.6.3-1mattos1"
+expected_debian_role = "Wayland compositor"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "qt6-declarative"
+mattos_name = "qt6-declarative"
+source_component = "qtdeclarative"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libQt6Quick.so.6", "/usr/lib/x86_64-linux-gnu/libQt6Qml.so.6"]
+provided_abi_or_commands = ["Qt QML and Quick runtime"]
+protected = false
+current_mattos_version = "6.11.2-1mattos1"
+expected_debian_role = "Qt QML and Quick runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "breeze-icons"
+mattos_name = "breeze-icons"
+source_component = "breeze-icons"
+owned_paths = ["/usr/share/icons/breeze"]
+provided_abi_or_commands = ["Breeze icon theme"]
+protected = false
+current_mattos_version = "6.6.5-1mattos1"
+expected_debian_role = "Breeze icon theme"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-kirigami"
+mattos_name = "kf6-kirigami"
+source_component = "kirigami"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKirigamiPlatform.so.6"]
+provided_abi_or_commands = ["KDE Kirigami Qt Quick controls runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Kirigami Qt Quick controls runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-kirigami-addons"
+mattos_name = "kf6-kirigami-addons"
+source_component = "kirigami-addons"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKirigamiAddonsStatefulApp.so.6", "/usr/lib/x86_64-linux-gnu/qml/org/kde/kirigamiaddons"]
+provided_abi_or_commands = ["KDE Kirigami Addons Qt Quick controls runtime"]
+protected = false
+current_mattos_version = "1.9.0-1mattos1"
+expected_debian_role = "KDE Kirigami Addons Qt Quick controls runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-kquickcharts"
+mattos_name = "kf6-kquickcharts"
+source_component = "kquickcharts"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libQuickCharts.so.1", "/usr/lib/x86_64-linux-gnu/qml/org/kde/quickcharts"]
+provided_abi_or_commands = ["KDE Quick Charts Qt Quick runtime and controls"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Quick Charts Qt Quick runtime and controls"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "qt6-positioning"
+mattos_name = "qt6-positioning"
+source_component = "qtpositioning"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libQt6Positioning.so.6"]
+provided_abi_or_commands = ["Qt 6 positioning runtime"]
+protected = false
+current_mattos_version = "6.11.2-1mattos1"
+expected_debian_role = "Qt 6 positioning runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-kbookmarks"
+mattos_name = "kf6-kbookmarks"
+source_component = "kbookmarks"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6Bookmarks.so.6", "/usr/lib/x86_64-linux-gnu/libKF6BookmarksWidgets.so.6"]
+provided_abi_or_commands = ["KDE Frameworks bookmarks runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Frameworks bookmarks runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-kitemviews"
+mattos_name = "kf6-kitemviews"
+source_component = "kitemviews"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6ItemViews.so.6"]
+provided_abi_or_commands = ["KDE Frameworks item views runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Frameworks item views runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-kconfigwidgets"
+mattos_name = "kf6-kconfigwidgets"
+source_component = "kconfigwidgets"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6ConfigWidgets.so.6"]
+provided_abi_or_commands = ["KDE Frameworks configuration widgets runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Frameworks configuration widgets runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-kxmlgui"
+mattos_name = "kf6-kxmlgui"
+source_component = "kxmlgui"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6XmlGui.so.6"]
+provided_abi_or_commands = ["KDE Frameworks XML GUI runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Frameworks XML GUI runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-kstatusnotifieritem"
+mattos_name = "kf6-kstatusnotifieritem"
+source_component = "kstatusnotifieritem"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6StatusNotifierItem.so.6"]
+provided_abi_or_commands = ["KDE Frameworks system tray item runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Frameworks system tray item runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-kholidays"
+mattos_name = "kf6-kholidays"
+source_component = "kholidays"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6Holidays.so.6"]
+provided_abi_or_commands = ["KDE Frameworks holiday calendar runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Frameworks holiday calendar runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-knighttime"
+mattos_name = "kf6-knighttime"
+source_component = "knighttime"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKNightTime.so.0"]
+provided_abi_or_commands = ["KDE NightTime display color temperature runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE NightTime display color temperature runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-kwayland"
+mattos_name = "kf6-kwayland"
+source_component = "kwayland"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKWaylandClient.so.6"]
+provided_abi_or_commands = ["KDE Wayland protocol client library"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Wayland protocol client library"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "liblcms2-2"
+mattos_name = "liblcms2-2"
+source_component = "lcms2"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/liblcms2.so.2"]
+provided_abi_or_commands = ["Little CMS color management runtime library"]
+protected = false
+current_mattos_version = "2.17-1mattos1"
+expected_debian_role = "color management runtime library"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-kidletime"
+mattos_name = "kf6-kidletime"
+source_component = "kidletime"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6IdleTime.so.6"]
+provided_abi_or_commands = ["KDE Frameworks idle-time runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Frameworks idle-time runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-kdecoration"
+mattos_name = "kf6-kdecoration"
+source_component = "kdecoration"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libkdecorations3.so.6"]
+provided_abi_or_commands = ["KDE window decoration library"]
+protected = false
+current_mattos_version = "6.6.5-1mattos1"
+expected_debian_role = "KDE window decoration library"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-kcodecs"
+mattos_name = "kf6-kcodecs"
+source_component = "kcodecs"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6Codecs.so.6"]
+provided_abi_or_commands = ["KDE Frameworks text codec runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Frameworks text codec runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-solid"
+mattos_name = "kf6-solid"
+source_component = "solid"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6Solid.so.6"]
+provided_abi_or_commands = ["KDE Frameworks hardware integration runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Frameworks hardware integration runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "libcanberra0"
+mattos_name = "libcanberra0"
+source_component = "libcanberra"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libcanberra.so.0"]
+provided_abi_or_commands = ["libcanberra event sound runtime library"]
+protected = false
+current_mattos_version = "0~git.4d8b9f3f2f5a-1mattos1"
+expected_debian_role = "event sound runtime library"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-kcompletion"
+mattos_name = "kf6-kcompletion"
+source_component = "kcompletion"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6Completion.so.6"]
+provided_abi_or_commands = ["KDE Frameworks completion widgets runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Frameworks completion widgets runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-kservice"
+mattos_name = "kf6-kservice"
+source_component = "kservice"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6Service.so.6"]
+provided_abi_or_commands = ["KDE Frameworks service and desktop plugin runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Frameworks service and desktop plugin runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-kjobwidgets"
+mattos_name = "kf6-kjobwidgets"
+source_component = "kjobwidgets"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6JobWidgets.so.6"]
+provided_abi_or_commands = ["KDE Frameworks job widgets runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Frameworks job widgets runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-kcolorscheme"
+mattos_name = "kf6-kcolorscheme"
+source_component = "kcolorscheme"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6ColorScheme.so.6"]
+provided_abi_or_commands = ["KDE Frameworks color scheme runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Frameworks color scheme runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-kiconthemes"
+mattos_name = "kf6-kiconthemes"
+source_component = "kiconthemes"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6IconThemes.so.6"]
+provided_abi_or_commands = ["KDE Frameworks icon theme runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Frameworks icon theme runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-kglobalaccel"
+mattos_name = "kf6-kglobalaccel"
+source_component = "kglobalaccel"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6GlobalAccel.so.6"]
+provided_abi_or_commands = ["KDE Frameworks global shortcut runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Frameworks global shortcut runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-kitemmodels"
+mattos_name = "kf6-kitemmodels"
+source_component = "kitemmodels"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6ItemModels.so.6"]
+provided_abi_or_commands = ["KDE Frameworks item models runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Frameworks item models runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-kguiaddons"
+mattos_name = "kf6-kguiaddons"
+source_component = "kguiaddons"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6GuiAddons.so.6"]
+provided_abi_or_commands = ["KDE Frameworks GUI utilities runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Frameworks GUI utilities runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-knotifications"
+mattos_name = "kf6-knotifications"
+source_component = "knotifications"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6Notifications.so.6"]
+provided_abi_or_commands = ["KDE Frameworks desktop notification runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Frameworks desktop notification runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-ksvg"
+mattos_name = "kf6-ksvg"
+source_component = "ksvg"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6Svg.so.6"]
+provided_abi_or_commands = ["KDE Frameworks SVG icon support runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Frameworks SVG icon support runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-kio"
+mattos_name = "kf6-kio"
+source_component = "kio"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6KIOCore.so.6", "/usr/lib/x86_64-linux-gnu/libKF6KIOWidgets.so.6", "/usr/lib/x86_64-linux-gnu/libKF6KIOGui.so.6"]
+provided_abi_or_commands = ["KDE Frameworks I/O runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Frameworks I/O runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-karchive"
+mattos_name = "kf6-karchive"
+source_component = "karchive"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6Archive.so.6"]
+provided_abi_or_commands = ["KDE Frameworks archive handling runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Frameworks archive handling runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-kunitconversion"
+mattos_name = "kf6-kunitconversion"
+source_component = "kunitconversion"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6UnitConversion.so.6"]
+provided_abi_or_commands = ["KDE Frameworks unit conversion runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Frameworks unit conversion runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-kpackage"
+mattos_name = "kf6-kpackage"
+source_component = "kpackage"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6Package.so.6"]
+provided_abi_or_commands = ["KDE Frameworks package and plugin runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Frameworks package and plugin runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "plasma5support"
+mattos_name = "plasma5support"
+source_component = "plasma5support"
+owned_paths = [
+    "/usr/lib/x86_64-linux-gnu/libPlasma5Support.so.6",
+    "/usr/lib/x86_64-linux-gnu/qml/org/kde/plasma/plasma5support/libplasma5supportplugin.so",
+]
+provided_abi_or_commands = ["Plasma 5 compatibility support and QML data engines"]
+protected = false
+current_mattos_version = "6.6.5-1mattos1"
+expected_debian_role = "Plasma compatibility runtime"
+classification = "mattos-extension"
+known_gaps = ["Development metadata is shipped with the runtime package"]
+
+[[package]]
+debian_name = "kf6-kwindowsystem"
+mattos_name = "kf6-kwindowsystem"
+source_component = "kwindowsystem"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6WindowSystem.so.6"]
+provided_abi_or_commands = ["KDE Frameworks window system integration runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Frameworks window system integration runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "plasma-activities"
+mattos_name = "plasma-activities"
+source_component = "plasma-activities"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libPlasmaActivities.so.7"]
+provided_abi_or_commands = ["Plasma activities runtime"]
+protected = false
+current_mattos_version = "6.6.5-1mattos1"
+expected_debian_role = "Plasma activities runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kactivitymanagerd"
+mattos_name = "kactivitymanagerd"
+source_component = "kactivitymanagerd"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libexec/kactivitymanagerd", "/usr/share/dbus-1/services/org.kde.ActivityManager.service"]
+provided_abi_or_commands = ["KDE Plasma activity manager daemon", "org.kde.ActivityManager D-Bus service"]
+protected = false
+current_mattos_version = "6.6.5-1mattos1"
+expected_debian_role = "Plasma activity manager daemon"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kglobalacceld"
+mattos_name = "kglobalacceld"
+source_component = "kglobalacceld"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libexec/kglobalacceld", "/usr/share/dbus-1/services/org.kde.kglobalaccel.service"]
+provided_abi_or_commands = ["KDE global shortcuts daemon", "org.kde.kglobalaccel D-Bus service"]
+protected = false
+current_mattos_version = "6.6.5-1mattos1"
+expected_debian_role = "Plasma global shortcut daemon"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kf6-kcrash"
+mattos_name = "kf6-kcrash"
+source_component = "kcrash"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6Crash.so.6"]
+provided_abi_or_commands = ["KDE Frameworks 6 crash handling runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE Frameworks crash handling runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "layer-shell-qt"
+mattos_name = "layer-shell-qt"
+source_component = "layer-shell-qt"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libLayerShellQtInterface.so.6"]
+provided_abi_or_commands = ["Qt Wayland layer-shell integration"]
+protected = false
+current_mattos_version = "6.6.5-1mattos1"
+expected_debian_role = "Qt Wayland layer-shell integration"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "plasma-framework"
+mattos_name = "plasma-framework"
+source_component = "plasma-framework"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libPlasma.so.7", "/usr/lib/x86_64-linux-gnu/libPlasmaQuick.so.7"]
+provided_abi_or_commands = ["Plasma framework runtime and QML plugins"]
+protected = false
+current_mattos_version = "6.6.5-1mattos1"
+expected_debian_role = "Plasma framework runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "krunner"
+mattos_name = "krunner"
+source_component = "krunner"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6Runner.so.6"]
+provided_abi_or_commands = ["KDE runner framework runtime"]
+protected = false
+current_mattos_version = "6.6.5-1mattos1"
+expected_debian_role = "KDE runner framework"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "plasma-workspace"
+mattos_name = "plasma-workspace"
+source_component = "plasma-workspace"
+owned_paths = ["/usr/bin/startplasma-wayland"]
+provided_abi_or_commands = ["Plasma Wayland session"]
+protected = false
+current_mattos_version = "6.4.3-1mattos1"
+expected_debian_role = "Plasma workspace and session shell"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "plasma-desktop"
+mattos_name = "plasma-desktop"
+source_component = "plasma-desktop"
+owned_paths = ["/usr/bin/plasmashell"]
+provided_abi_or_commands = ["Plasma desktop shell"]
+protected = false
+current_mattos_version = "6.4.3-1mattos1"
+expected_debian_role = "Plasma desktop shell and control modules"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "breeze"
+mattos_name = "breeze"
+source_component = "breeze"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/plugins/styles/breeze6.so"]
+provided_abi_or_commands = ["Breeze Qt6 style"]
+protected = false
+current_mattos_version = "6.4.3-1mattos1"
+expected_debian_role = "Plasma desktop visual style"
+classification = "mattos-extension"
+known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "qt6-tools"
+mattos_name = "qt6-tools"
+source_component = "qttools"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libQt6Designer.so.6"]
+provided_abi_or_commands = ["Qt 6 target tooling and development metadata"]
+protected = false
+current_mattos_version = "6.11.2-1mattos1"
+expected_debian_role = "Qt 6 tools runtime and development package"
+classification = "mattos-extension"
+known_gaps = ["MattOS Qt foundation package"]
+
+[[package]]
+debian_name = "qt6-multimedia"
+mattos_name = "qt6-multimedia"
+source_component = "qtmultimedia"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libQt6Multimedia.so.6"]
+provided_abi_or_commands = ["Qt 6 multimedia runtime"]
+protected = false
+current_mattos_version = "6.11.2-1mattos1"
+expected_debian_role = "Qt 6 multimedia runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Qt foundation package"]
+
+[[package]]
+debian_name = "qt6-speech"
+mattos_name = "qt6-speech"
+source_component = "qtspeech"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libQt6TextToSpeech.so.6"]
+provided_abi_or_commands = ["Qt 6 text-to-speech runtime"]
+protected = false
+current_mattos_version = "6.11.2-1mattos1"
+expected_debian_role = "Qt 6 speech runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Qt foundation package"]
+
+[[package]]
+debian_name = "qt6-core5compat"
+mattos_name = "qt6-core5compat"
+source_component = "qt5compat"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libQt6Core5Compat.so.6"]
+provided_abi_or_commands = ["Qt 6 Core5Compat runtime"]
+protected = false
+current_mattos_version = "6.11.2-1mattos1"
+expected_debian_role = "Qt 6 compatibility runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS Qt foundation package"]
+
+[[package]]
+debian_name = "qca-qt6"
+mattos_name = "qca-qt6"
+source_component = "qca"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libqca-qt6.so.2"]
+provided_abi_or_commands = ["Qt Cryptographic Architecture Qt 6 runtime"]
+protected = false
+current_mattos_version = "2.3.12-1mattos1"
+expected_debian_role = "Qt 6 cryptographic architecture runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS KDE foundation package"]
+
+[[package]]
+debian_name = "kf6-ksyntaxhighlighting"
+mattos_name = "kf6-ksyntaxhighlighting"
+source_component = "ksyntaxhighlighting"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6SyntaxHighlighting.so.6"]
+provided_abi_or_commands = ["KDE Frameworks 6 syntax highlighting runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE syntax highlighting runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS KDE foundation package"]
+
+[[package]]
+debian_name = "kf6-kwallet"
+mattos_name = "kf6-kwallet"
+source_component = "kwallet"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKF6Wallet.so.6"]
+provided_abi_or_commands = ["KDE Frameworks 6 wallet API runtime"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE wallet API runtime"
+classification = "mattos-extension"
+known_gaps = ["Daemon backends are intentionally disabled for the Plasma shell foundation"]

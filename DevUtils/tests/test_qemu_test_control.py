@@ -101,9 +101,16 @@ class QemuTestControlTests(unittest.TestCase):
         control.click(client, 300, 145, 640, 480)
         self.assertEqual(client.execute.call_args_list[0].args[0], "input-send-event")
         events = client.execute.call_args_list[0].args[1]["events"]
-        self.assertEqual(events[0]["data"]["value"], round(300 * 32767 / 639))
-        self.assertEqual(events[1]["data"]["value"], round(145 * 32767 / 479))
+        self.assertEqual(events[0]["data"]["value"], round(300 * control.QMP_ABSOLUTE_AXIS_MAX / 639))
+        self.assertEqual(events[1]["data"]["value"], round(145 * control.QMP_ABSOLUTE_AXIS_MAX / 479))
         self.assertEqual(len(client.execute.call_args_list), 3)
+
+    def test_click_uses_full_qemu_tablet_axis_range(self) -> None:
+        client = mock.Mock()
+        control.click(client, 639, 479, 640, 480)
+        events = client.execute.call_args_list[0].args[1]["events"]
+        self.assertEqual(events[0]["data"]["value"], control.QMP_ABSOLUTE_AXIS_MAX)
+        self.assertEqual(events[1]["data"]["value"], control.QMP_ABSOLUTE_AXIS_MAX)
 
     def test_serial_subcommand_keeps_command_text_separate_from_subcommand_name(self) -> None:
         with mock.patch.object(sys, "argv", ["qemu_test_control.py", "serial", "uname -a"]):
@@ -116,7 +123,12 @@ class QemuTestControlTests(unittest.TestCase):
         self.assertTrue(payload.endswith(b"\r\n"))
         self.assertEqual(payload.count(b"\r"), 1)
         self.assertEqual(payload.count(b"\n"), 1)
-        self.assertIn(b"( printf test ); rc=$?; printf '\\n__DONE__:%s\\n' \"$rc\"\r\n", payload)
+        self.assertIn(b"( printf test ) </dev/null; rc=$?; printf '\\n__DONE__:%s\\n' \"$rc\"\r\n", payload)
+
+    def test_serial_payload_detaches_command_stdin_but_keeps_serial_output(self) -> None:
+        payload = control.serial_command_payload("gui-program &", "__DONE__")
+        self.assertIn(b"( gui-program & ) </dev/null", payload)
+        self.assertNotIn(b">/dev/null", payload)
 
     def test_completion_parser_accepts_all_serial_line_endings_and_prompts(self) -> None:
         marker = "__MATTOS_TEST_DONE_new__"
@@ -197,7 +209,7 @@ class QemuTestControlTests(unittest.TestCase):
             control.serial_command_stream(Path("serial.sock"), "true", 1)
         self.assertEqual(len(connection.sent), 2)
         self.assertIn(b"__MATTOS_LIVE_SHELL_", connection.sent[0])
-        self.assertIn(b"( true ); rc=$?", connection.sent[1])
+        self.assertIn(b"( true ) </dev/null; rc=$?", connection.sent[1])
 
     def test_getty_is_woken_only_after_userspace_boot_evidence(self) -> None:
         connection = _FakeSerialSocket([b"systemd[1]: Started serial-getty\r\n"], wake_prompt=True)

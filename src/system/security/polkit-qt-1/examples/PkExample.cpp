@@ -1,0 +1,227 @@
+// This is an example not a library
+/*
+    SPDX-FileCopyrightText: 2009 Radek Novacek <rnovacek@redhat.com>
+    SPDX-FileCopyrightText: 2008 Daniel Nicoletti <dantti85-pk@yahoo.com.br>
+
+    SPDX-License-Identifier: GPL-2.0-or-later
+*/
+
+#include "PkExample.h"
+
+#include <polkitqt1-gui-actionbutton.h>
+#include <polkitqt1-gui-actionbuttons.h>
+#include <polkitqt1-authority.h>
+#include <QDebug>
+
+#include <QDBusMessage>
+#include <QDBusConnection>
+
+using namespace PolkitQt1;
+using namespace PolkitQt1::Gui;
+
+PkExample::PkExample(QMainWindow *parent)
+        : QMainWindow(parent)
+{
+    setupUi(this);
+
+    ActionButton *bt;
+
+    // Here we create an ActionButton that is a subclass of Action
+    // always pass a QAbstractButton pointer and action id
+    // You can change the action id later if you want
+    bt = new ActionButton(kickPB, "org.qt.policykit.examples.kick", this);
+    // Here we are setting the text and icon to all four states
+    // an action might have
+    bt->setText("Kick!");
+    bt->setIcon(QPixmap(":/Icons/custom-no.png"));
+    // By using set{Yes|No|Auth}Enabled you can set the states
+    // when the button is enabled
+    bt->setEnabled(true, Action::No);
+    // As ActionButton is also an Action we cast it to add to menu
+    menuActions->addAction(qobject_cast<Action *>(bt));
+    toolBar->addAction(qobject_cast<Action *>(bt));
+    // this signal is emitted when the user click on the action,
+    // it will only happen if it was inserted in a QMenu or a QToolBar
+    connect(bt, SIGNAL(triggered(bool)), this, SLOT(activateAction()));
+    // This signal was propagated from the QAbstractButton just for
+    // convenience in this case we don't have any benefit but the code
+    // look cleaner
+    connect(bt, SIGNAL(clicked(QAbstractButton*,bool)), bt, SLOT(activate()));
+    // this is the Action activated signal, it is always emitted whenever
+    // someone click and get authorized to do the action
+    connect(bt, SIGNAL(authorized()), this, SLOT(actionActivated()));
+
+    bt = new ActionButton(cryPB, "org.qt.policykit.examples.cry", this);
+    bt->setText("Cry!");
+    bt->setIcon(QPixmap(":/Icons/custom-yes.png"));
+    menuActions->addAction(qobject_cast<Action *>(bt));
+    toolBar->addAction(qobject_cast<Action *>(bt));
+    connect(bt, SIGNAL(triggered(bool)), this, SLOT(activateAction()));
+    connect(bt, SIGNAL(clicked(QAbstractButton*,bool)), bt, SLOT(activate()));
+    connect(bt, SIGNAL(authorized()), this, SLOT(actionActivated()));
+
+    bt = new ActionButton(bleedPB, "org.qt.policykit.examples.bleed", this);
+    bt->setText("Bleed!");
+    bt->setIcon(QPixmap(":/Icons/action-locked-default.png"));
+    menuActions->addAction(qobject_cast<Action *>(bt));
+    toolBar->addAction(qobject_cast<Action *>(bt));
+    connect(bt, SIGNAL(triggered(bool)), this, SLOT(activateAction()));
+    connect(bt, SIGNAL(clicked(QAbstractButton*,bool)), bt, SLOT(activate()));
+    connect(bt, SIGNAL(authorized()), this, SLOT(actionActivated()));
+
+    // This action is more customized
+    bt = new ActionButton(playPB, "org.qt.policykit.examples.play", this);
+    bt->setText("Play!");
+    bt->setVisible(true, Action::No | Action::Auth | Action::Yes);
+    bt->setEnabled(true, Action::No | Action::Auth | Action::Yes);
+    // here we set the behavior of PolKitResul = No
+    bt->setText("Can't play!", Action::No);
+    bt->setIcon(QPixmap(":/Icons/custom-no.png"), Action::No);
+    bt->setToolTip("If your admin wasn't annoying, you could do this", Action::No);
+    // here we set the behavior of PolKitResul = Auth
+    bt->setText("Play?", Action::Auth);
+    bt->setIcon(QPixmap(":/Icons/action-locked-default.png"), Action::Auth);
+    bt->setToolTip("Only card carrying tweakers can do this!", Action::Auth);
+    // here we set the behavior of PolKitResul = Yes
+    bt->setText("Play!", Action::Yes);
+    bt->setIcon(QPixmap(":/Icons/custom-yes.png"), Action::Yes);
+    bt->setToolTip("Go ahead, play!", Action::Yes);
+
+    menuActions->addAction(qobject_cast<Action *>(bt));
+    toolBar->addAction(qobject_cast<Action *>(bt));
+    connect(bt, SIGNAL(triggered(bool)), this, SLOT(activateAction()));
+    connect(bt, SIGNAL(clicked(QAbstractButton*,bool)), bt, SLOT(activate()));
+    connect(bt, SIGNAL(authorized()), this, SLOT(actionActivated()));
+
+    bt = new ActionButton(deletePB, "org.qt.policykit.examples.delete", this);
+    bt->setText("Delete!");
+    bt->setIcon(QPixmap(":/Icons/custom-no.png"), Action::No);
+    bt->setIcon(QPixmap(":/Icons/action-locked-default.png"), Action::Auth);
+    bt->setIcon(QPixmap(":/Icons/custom-yes.png"), Action::Yes);
+    menuActions->addAction(qobject_cast<Action *>(bt));
+    toolBar->addAction(qobject_cast<Action *>(bt));
+    connect(bt, SIGNAL(triggered(bool)), this, SLOT(activateAction()));
+    connect(bt, SIGNAL(clicked(QAbstractButton*,bool)), bt, SLOT(activate()));
+    connect(bt, SIGNAL(authorized()), this, SLOT(actionActivated()));
+
+    bt = new ActionButton(listenPB, "org.qt.policykit.examples.listen", this);
+    bt->setText("Listen!");
+    bt->setIcon(QPixmap(":/Icons/custom-no.png"), Action::No);
+    bt->setIcon(QPixmap(":/Icons/action-locked-default.png"), Action::Auth);
+    bt->setIcon(QPixmap(":/Icons/custom-yes.png"), Action::Yes);
+    menuActions->addAction(qobject_cast<Action *>(bt));
+    toolBar->addAction(qobject_cast<Action *>(bt));
+    connect(bt, SIGNAL(triggered(bool)), this, SLOT(activateAction()));
+    connect(bt, SIGNAL(clicked(QAbstractButton*,bool)), bt, SLOT(activate()));
+    connect(bt, SIGNAL(authorized()), this, SLOT(actionActivated()));
+
+    bt = new ActionButton(setPB, "org.qt.policykit.examples.set", this);
+    bt->setText("Set!");
+    bt->setIcon(QPixmap(":/Icons/custom-no.png"), Action::No);
+    bt->setIcon(QPixmap(":/Icons/action-locked-default.png"), Action::Auth);
+    bt->setIcon(QPixmap(":/Icons/custom-yes.png"), Action::Yes);
+    menuActions->addAction(qobject_cast<Action *>(bt));
+    toolBar->addAction(qobject_cast<Action *>(bt));
+    connect(bt, SIGNAL(triggered(bool)), this, SLOT(activateAction()));
+    connect(bt, SIGNAL(clicked(QAbstractButton*,bool)), bt, SLOT(activate()));
+    connect(bt, SIGNAL(authorized()), this, SLOT(actionActivated()));
+
+    bt = new ActionButton(shoutPB, "org.qt.policykit.examples.shout", this);
+    bt->setIcon(QPixmap(":/Icons/custom-no.png"), Action::No);
+    bt->setIcon(QPixmap(":/Icons/action-locked-default.png"), Action::Auth);
+    bt->setIcon(QPixmap(":/Icons/custom-yes.png"), Action::Yes);
+    bt->setText("Can't shout!", Action::No);
+    bt->setText("Shout?", Action::Auth);
+    bt->setText("Shout!", Action::Yes);
+    menuActions->addAction(qobject_cast<Action *>(bt));
+    toolBar->addAction(qobject_cast<Action *>(bt));
+    connect(bt, SIGNAL(triggered(bool)), this, SLOT(activateAction()));
+    connect(bt, SIGNAL(clicked(QAbstractButton*,bool)), bt, SLOT(activate()));
+    connect(bt, SIGNAL(authorized()), this, SLOT(actionActivated()));
+
+    // test configChanged
+}
+
+PkExample::~PkExample()
+{
+}
+
+void PkExample::activateAction()
+{
+    // Here we cast the sender() to an Action and call activate()
+    // on it.
+    // Be careful in doing the same for ActionButton won't work as expected
+    // as action->activate() is calling Action::activate() and
+    // not ActionButton::activate which are different.
+    // You can cast then to ActionButton but be careful
+    // an Action casted to ActionButton may crash you app
+    Action *action = qobject_cast<Action *>(sender());
+    // calling activate with winId() makes the auth dialog
+    // be correct parented with your application.
+    action->activate();
+}
+
+void PkExample::actionActivated()
+{
+    // This slot is called whenever an action is allowed
+    // here you will do your dirt job by calling a helper application
+    // that might erase your hardrive ;)
+    Action *action = qobject_cast<Action *>(sender());
+
+    // this is our Special Action that after allowed will call the helper
+    if (action->is("org.qt.policykit.examples.set")) {
+        qDebug() << "toggled for: org.qt.policykit.examples.set";
+
+        QDBusMessage message;
+        message = QDBusMessage::createMethodCall("org.qt.policykit.examples",
+                  "/",
+                  "org.qt.policykit.examples",
+                  QLatin1String("set"));
+        QList<QVariant> argumentList;
+        argumentList << QVariant::fromValue(setCB->currentText());
+        message.setArguments(argumentList);
+        // notice the systemBus here..
+        QDBusMessage reply = QDBusConnection::systemBus().call(message);
+        if (reply.type() == QDBusMessage::ReplyMessage
+                && reply.arguments().size() == 1) {
+            // the reply can be anything, here we receive a bool
+            QListWidgetItem *item;
+            if (reply.arguments().first().toBool())
+                item = new QListWidgetItem(QPixmap(":/Icons/custom-yes.png"),
+                                           QString("Implicit authorization for shout has been set to %0")
+                                           .arg(setCB->currentText()));
+            else
+                item = new QListWidgetItem(QPixmap(":/Icons/custom-no.png"),
+                                           QString("Can't change the implicit authorization. Denied."));
+            actionList->addItem(item);
+            qDebug() << reply.arguments().first().toString();
+        } else if (reply.type() == QDBusMessage::MethodCallMessage) {
+            qWarning() << "Message did not receive a reply (timeout by message bus)";
+        }
+        return;
+    }
+
+    // As debug message says we are pretending to be the mechanism for the
+    // following action, here you will actually call your DBus helper that
+    // will run as root (setuid is not needed, see DBus docs).
+    // In the helper application you will issue checkAuthorizationSync,
+    // passing the action id and the caller pid (which DBus will tell you).
+    qDebug() << "pretending to be the mechanism for action:" << action->actionId();
+
+    Authority::Result result;
+    UnixProcessSubject subject(static_cast<uint>(QCoreApplication::applicationPid()));
+
+    result = Authority::instance()->checkAuthorizationSync(action->actionId(), subject,
+             Authority::AllowUserInteraction);
+    if (result == Authority::Yes) {
+        // in the helper you will do the action
+        qDebug() << "caller is authorized to do:" << action->actionId();
+        QListWidgetItem *item = new QListWidgetItem(QPixmap(":/Icons/custom-yes.png"), action->actionId());
+        actionList->addItem(item);
+    } else {
+        // OR return false to notify the caller that the action is not authorized.
+        qDebug() << "caller is NOT authorized to do:" << action->actionId();
+        QListWidgetItem *item = new QListWidgetItem(QIcon(":/Icons/custom-no.png"), action->actionId());
+        actionList->addItem(item);
+    }
+}

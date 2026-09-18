@@ -1,0 +1,266 @@
+# Translation of plasma_applet_org.kde.plasma.devicenotifier.po to Catalan (Valencian)
+# Copyright (C) 2007-2025 This_file_is_part_of_KDE
+# This file is distributed under the license LGPL version 2.1 or
+# version 3 or later versions approved by the membership of KDE e.V.
+#
+# SPDX-FileCopyrightText: 2008 Orestes Mas Casals <orestes@tsc.upc.edu>
+# SPDX-FileCopyrightText: 2014, 2018, 2020 Antoni Bella Pérez <antonibella5@yahoo.com>
+# SPDX-FileCopyrightText: 2007, 2008, 2009, 2010, 2011, 2012, 2016, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025 Josep M. Ferrer <txemaq@gmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma-workspace\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-17 02:39+0000\n"
+"PO-Revision-Date: 2025-07-15 10:02+0200\n"
+"Last-Translator: Josep M. Ferrer <txemaq@gmail.com>\n"
+"Language-Team: Catalan <kde-i18n-ca@kde.org>\n"
+"Language: ca@valencia\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 22.12.3\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Accelerator-Marker: &\n"
+
+#: actions/checkaction.cpp:72
+#, kde-format
+msgctxt "@action:button check a storageAccess (i.e disk) for error"
+msgid "Check for Errors"
+msgstr "Comprova per a buscar errades"
+
+#: actions/mountaction.cpp:97
+#, kde-format
+msgid "Mount"
+msgstr "Munta"
+
+#: actions/mountandopenaction.cpp:178
+#, kde-format
+msgid "Open in File Manager"
+msgstr "Obri en el gestor de fitxers"
+
+#: actions/mountandopenaction.cpp:181
+#, kde-format
+msgid "Try to Fix"
+msgstr "Intenta corregir"
+
+#: actions/mountandopenaction.cpp:181
+#, kde-format
+msgid "Mount and Open"
+msgstr "Munta i obri"
+
+#: actions/mountandopenaction.cpp:183
+#, kde-format
+msgid "Eject"
+msgstr "Expulsa"
+
+#: actions/mountandopenaction.cpp:185
+#, kde-format
+msgid "Safely remove"
+msgstr "Extrau amb seguretat"
+
+#: devicemessagemonitor_p.cpp:171
+#, kde-format
+msgid "This device has file system errors."
+msgstr "Este dispositiu té errors del sistema de fitxers."
+
+#: devicemessagemonitor_p.cpp:173
+#, kde-format
+msgctxt "@label device is a storage disk"
+msgid "This device has no errors"
+msgstr "Este dispositiu no té errors"
+
+#: devicemessagemonitor_p.cpp:176
+#, kde-format
+msgid "Successfully repaired!"
+msgstr "S'ha reparat correctament!"
+
+#: devicemessagemonitor_p.cpp:180
+#, kde-format
+msgid "Device Status"
+msgstr "Estat del dispositiu"
+
+#: devicemessagemonitor_p.cpp:181
+#, kde-format
+msgid "A device can now be safely removed"
+msgstr "Ara es pot extraure amb seguretat un dispositiu"
+
+#: devicemessagemonitor_p.cpp:185
+#, kde-format
+msgid "This device can now be safely removed."
+msgstr "Ara es pot extraure amb seguretat este dispositiu."
+
+#: devicemessagemonitor_p.cpp:192
+#, kde-format
+msgid "You are not authorized to mount this device."
+msgstr "No esteu autoritzat a muntar este dispositiu."
+
+#: devicemessagemonitor_p.cpp:196
+#, kde-format
+msgid "You are not authorized to eject this disc."
+msgstr "No esteu autoritzat a expulsar este disc."
+
+#: devicemessagemonitor_p.cpp:199
+#, kde-format
+msgctxt "Remove is less technical for unmount"
+msgid "You are not authorized to remove this device."
+msgstr "No esteu autoritzat a extraure este dispositiu."
+
+#: devicemessagemonitor_p.cpp:202
+#, kde-format
+msgid "You are not authorized to repair this device."
+msgstr "No esteu autoritzat a reparar este dispositiu."
+
+#: devicemessagemonitor_p.cpp:204 devicemessagemonitor_p.cpp:269
+#, kde-format
+msgid "Unknown error type"
+msgstr "Tipus d'error desconegut"
+
+#: devicemessagemonitor_p.cpp:208
+#, kde-format
+msgid "Could not mount this device as it is busy."
+msgstr "No s'ha pogut muntar este dispositiu atés que està ocupat."
+
+#: devicemessagemonitor_p.cpp:235
+#, kde-format
+msgid "One or more files on this device are open within an application."
+msgstr "Un o més fitxers d'este dispositiu estan oberts en una aplicació."
+
+#: devicemessagemonitor_p.cpp:237
+#, kde-format
+msgid "One or more files on this device are opened in application \"%2\"."
+msgid_plural ""
+"One or more files on this device are opened in following applications: %2."
+msgstr[0] ""
+"Un o més fitxers d'este dispositiu estan oberts en l'aplicació «%2»."
+msgstr[1] ""
+"Un o més fitxers d'este dispositiu estan oberts en les aplicacions següents: "
+"%2."
+
+#: devicemessagemonitor_p.cpp:240
+#, kde-format
+msgctxt "separator in list of apps blocking device unmount"
+msgid ", "
+msgstr ", "
+
+#: devicemessagemonitor_p.cpp:258
+#, kde-format
+msgid "Could not mount this device."
+msgstr "No s'ha pogut muntar este dispositiu."
+
+#: devicemessagemonitor_p.cpp:262
+#, kde-format
+msgid "Could not eject this disc."
+msgstr "No s'ha pogut expulsar este disc."
+
+#: devicemessagemonitor_p.cpp:264
+#, kde-format
+msgctxt "Remove is less technical for unmount"
+msgid "Could not remove this device."
+msgstr "No s'ha pogut extraure este dispositiu."
+
+#: devicemessagemonitor_p.cpp:267
+#, kde-format
+msgid "Could not repair this device: %1"
+msgstr "No s'ha pogut reparar este dispositiu: %1"
+
+# skip-rule: kct-remove
+#: qml/DeviceItem.qml:99
+#, kde-format
+msgctxt ""
+"Accessing is a less technical word for Mounting; translation should be short "
+"and mean 'Currently mounting this device'"
+msgid "Checking…"
+msgstr "S'està comprovant…"
+
+# skip-rule: kct-remove
+#: qml/DeviceItem.qml:101
+#, kde-format
+msgctxt ""
+"Accessing is a less technical word for Mounting; translation should be short "
+"and mean 'Currently mounting this device'"
+msgid "Repairing…"
+msgstr "S'està reparant…"
+
+#: qml/DeviceItem.qml:104
+#, kde-format
+msgctxt "@info:status Free disk space"
+msgid "%1 free of %2"
+msgstr "%1 lliure de %2"
+
+#: qml/DeviceItem.qml:108
+#, kde-format
+msgctxt ""
+"Accessing is a less technical word for Mounting; translation should be short "
+"and mean 'Currently mounting this device'"
+msgid "Accessing…"
+msgstr "Accedint…"
+
+# skip-rule: kct-remove
+#: qml/DeviceItem.qml:111
+#, kde-format
+msgctxt ""
+"Removing is a less technical word for Unmounting; translation should be "
+"short and mean 'Currently unmounting this device'"
+msgid "Removing…"
+msgstr "Extraent…"
+
+#: qml/DeviceItem.qml:114
+#, kde-format
+msgid "Don't unplug yet! Files are still being transferred…"
+msgstr "No el desconnecteu! Encara s'estan transferint els fitxers…"
+
+#: qml/FullRepresentation.qml:47 qml/main.qml:123
+#, kde-format
+msgid "Remove All"
+msgstr "Extrau-los tots"
+
+#: qml/FullRepresentation.qml:48
+#, kde-format
+msgid "Click to safely remove all devices"
+msgstr "Cliqueu per a extraure amb seguretat tots els dispositius"
+
+#: qml/FullRepresentation.qml:162
+#, kde-format
+msgid "No removable devices attached"
+msgstr "No hi ha cap dispositiu extraïble connectat"
+
+#: qml/FullRepresentation.qml:162
+#, kde-format
+msgid "No disks available"
+msgstr "No hi ha cap disc disponible"
+
+#: qml/main.qml:72
+#, kde-format
+msgid "Most Recent Device"
+msgstr "Dispositiu més recent"
+
+#: qml/main.qml:72
+#, kde-format
+msgid "No Devices Available"
+msgstr "No hi ha disponible cap dispositiu"
+
+#: qml/main.qml:109
+#, kde-format
+msgctxt "Open auto mounter kcm"
+msgid "Configure Removable Devices…"
+msgstr "Configura els dispositius extraïbles…"
+
+#: qml/main.qml:131
+#, kde-format
+msgid "Removable Devices"
+msgstr "Dispositius extraïbles"
+
+#: qml/main.qml:146
+#, kde-format
+msgid "Non Removable Devices"
+msgstr "Dispositius no extraïbles"
+
+#: qml/main.qml:161
+#, kde-format
+msgid "All Devices"
+msgstr "Tots els dispositius"
+
+#: qml/main.qml:178
+#, kde-format
+msgid "Show popup when new device is plugged in"
+msgstr "Mostra un missatge emergent quan es connecte un dispositiu nou"

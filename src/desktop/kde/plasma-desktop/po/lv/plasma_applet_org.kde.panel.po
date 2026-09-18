@@ -1,0 +1,71 @@
+# Copyright (C) 2024 This file is copyright:
+# This file is distributed under the same license as the plasma-desktop package.
+#
+# Maris Nartiss <maris.kde@gmail.com>, 2019.
+# SPDX-FileCopyrightText: 2024 Toms Trasuns <toms.trasuns@posteo.net>
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma-desktop\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-04-02 02:40+0000\n"
+"PO-Revision-Date: 2024-09-10 11:13+0300\n"
+"Last-Translator: Toms Trasuns <toms.trasuns@posteo.net>\n"
+"Language-Team: Latvian <kde-i18n-doc@kde.org>\n"
+"Language: lv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : "
+"2);\n"
+"X-Generator: Lokalize 24.08.0\n"
+
+#: ConfigOverlay.qml:368
+#, fuzzy, kde-format
+#| msgid "Remove"
+msgctxt "@action:inmenu removes widget"
+msgid "Remove"
+msgstr "Noņemt"
+
+#: ConfigOverlay.qml:378
+#, fuzzy, kde-format
+#| msgid "Configure…"
+msgctxt "@action:inmenu opens widget config dialog"
+msgid "Configure…"
+msgstr "Konfigurēt…"
+
+#: ConfigOverlay.qml:389
+#, fuzzy, kde-format
+#| msgid "Show Alternatives…"
+msgctxt "@action:inmenu opens widget alternatives explorer"
+msgid "Show Alternatives…"
+msgstr "Rādīt alternatīvas…"
+
+#: ConfigOverlay.qml:408
+#, fuzzy, kde-format
+#| msgid "Spacer width"
+msgctxt "@label:spinbox"
+msgid "Spacer width"
+msgstr "Atdalītāja platums"
+
+#: ConfigOverlay.qml:431
+#, kde-format
+msgctxt ""
+"@option:check Whether to allow a spacer widget to fill available space"
+msgid "Flexible size"
+msgstr "Elastīgs izmērs"
+
+#: main.qml:462
+#, fuzzy, kde-format
+#| msgid "Open Panel configuration ui"
+msgctxt ""
+"@info:whatsthis Accessible description for entering Panel edit mode click "
+"area"
+msgid "Open Panel configuration ui"
+msgstr "Atvērt paneļa konfigurēšanas saskarni"
+
+#: main.qml:469
+#, fuzzy, kde-format
+#| msgid "Add Widgets…"
+msgctxt "@action:button opens widget explorer"
+msgid "Add Widgets…"
+msgstr "Pievienot logdaļas…"

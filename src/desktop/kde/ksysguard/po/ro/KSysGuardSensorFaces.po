@@ -1,0 +1,411 @@
+# Copyright (C) 2026 This file is copyright:
+# This file is distributed under the same license as the libksysguard package.
+# SPDX-FileCopyrightText: 2020, 2021, 2022, 2026 Sergiu Bivol <sergiu@cip.md>
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libksysguard\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-04-22 02:43+0000\n"
+"PO-Revision-Date: 2026-01-03 15:05+0000\n"
+"Last-Translator: Sergiu Bivol <sergiu@cip.md>\n"
+"Language-Team: Romanian <kde-i18n-ro@kde.org>\n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
+"20)) ? 1 : 2;\n"
+"X-Generator: Lokalize 25.08.1\n"
+
+#: ConfigAppearance.qml:72
+#, kde-format
+msgid "Load Preset"
+msgstr "Încarcă preconfigurare"
+
+#: ConfigAppearance.qml:99
+#, kde-format
+msgid "Delete this preset"
+msgstr "Șterge această preconfigurare"
+
+#: ConfigAppearance.qml:125
+#, kde-format
+msgid "Presets:"
+msgstr "Preconfigurări:"
+
+#: ConfigAppearance.qml:129
+#, kde-format
+msgid "Load Preset..."
+msgstr "Încarcă preconfigurare..."
+
+#: ConfigAppearance.qml:134
+#, kde-format
+msgid "Get new presets..."
+msgstr "Obține preconfigurări noi..."
+
+#: ConfigAppearance.qml:146
+#, kde-format
+msgid "Save Settings As Preset"
+msgstr "Salvează configurările ca preconfigurare"
+
+#: ConfigAppearance.qml:156
+#, kde-format
+msgid "Title:"
+msgstr "Titlu:"
+
+#: ConfigAppearance.qml:162
+#, kde-format
+msgid "Show Title"
+msgstr "Arată titlul"
+
+#: ConfigAppearance.qml:167
+#, kde-format
+msgid "Display Style:"
+msgstr "Stilul afișării:"
+
+#: ConfigAppearance.qml:187
+#, kde-format
+msgid "Get New Display Styles..."
+msgstr "Obține stiluri de afișare noi..."
+
+#: ConfigAppearance.qml:197
+#, kde-format
+msgid "Minimum Time Between Updates:"
+msgstr "Durată minimă între actualizări:"
+
+#: ConfigAppearance.qml:206
+#, kde-format
+msgid "No Limit"
+msgstr "Fără limită"
+
+#. i18ndp doesn't handle floats :(
+#: ConfigAppearance.qml:210
+#, kde-format
+msgid "1 second"
+msgstr "1 secundă"
+
+#: ConfigAppearance.qml:212
+#, kde-format
+msgid "%1 seconds"
+msgstr "%1 secunde"
+
+#: ConfigSensors.qml:131
+#, kde-format
+msgid "Total Sensor"
+msgid_plural "Total Sensors"
+msgstr[0] "Total senzor"
+msgstr[1] "Total senzori"
+msgstr[2] "Total senzori"
+
+#: ConfigSensors.qml:150
+#, kde-format
+msgid "Sensors"
+msgstr "Senzori"
+
+#: ConfigSensors.qml:176
+#, kde-format
+msgid "Text-Only Sensors"
+msgstr "Senzori numai-text"
+
+#: facepackages/barchart/contents/ui/Config.qml:35
+#, kde-format
+msgctxt "@title:group General options"
+msgid "General:"
+msgstr "Generale:"
+
+#: facepackages/barchart/contents/ui/Config.qml:37
+#: facepackages/linechart/contents/ui/Config.qml:47
+#: facepackages/piechart/contents/ui/Config.qml:34
+#, kde-format
+msgctxt "@option:check"
+msgid "Show legend"
+msgstr "Arată legenda"
+
+#: facepackages/barchart/contents/ui/Config.qml:41
+#, kde-format
+msgctxt "@option:check"
+msgid "Stacked bars"
+msgstr "Bare suprapuse"
+
+#: facepackages/barchart/contents/ui/Config.qml:49
+#, kde-format
+msgctxt "@label for radiobutton group, Orientation of bar chart"
+msgid "Bar orientation:"
+msgstr "Orientarea barelor:"
+
+#: facepackages/barchart/contents/ui/Config.qml:51
+#, kde-format
+msgctxt "@option:radio Vertical option for the bar chart"
+msgid "Vertical"
+msgstr "Verticală"
+
+#: facepackages/barchart/contents/ui/Config.qml:56
+#, kde-format
+msgctxt "@option:radio Horizontal option for the bar chart"
+msgid "Horizontal"
+msgstr "Orizontală"
+
+#: facepackages/barchart/contents/ui/Config.qml:67
+#, kde-format
+msgctxt "@label Options about axis and label of bar chart"
+msgid "Axis:"
+msgstr "Axă:"
+
+#: facepackages/barchart/contents/ui/Config.qml:69
+#: facepackages/linechart/contents/ui/Config.qml:63
+#, kde-format
+msgctxt "@option:check"
+msgid "Show Y axis labels"
+msgstr "Arată etichetele axei Y"
+
+#: facepackages/barchart/contents/ui/Config.qml:74
+#: facepackages/linechart/contents/ui/Config.qml:59
+#, kde-format
+msgctxt "@option:check"
+msgid "Show grid lines"
+msgstr "Arată liniile grilei"
+
+#: facepackages/barchart/contents/ui/Config.qml:78
+#: facepackages/horizontalbars/contents/ui/Config.qml:29
+#: facepackages/piechart/contents/ui/Config.qml:61
+#, kde-format
+msgctxt "@option:check"
+msgid "Automatic data range"
+msgstr "Diapazon de date automat"
+
+#: facepackages/barchart/contents/ui/Config.qml:82
+#: facepackages/horizontalbars/contents/ui/Config.qml:33
+#: facepackages/piechart/contents/ui/Config.qml:65
+#, kde-format
+msgctxt "@label:spinbox data range"
+msgid "From:"
+msgstr "De la:"
+
+#: facepackages/barchart/contents/ui/Config.qml:89
+#: facepackages/horizontalbars/contents/ui/Config.qml:40
+#: facepackages/piechart/contents/ui/Config.qml:72
+#, kde-format
+msgctxt "@label:spinbox data range"
+msgid "To:"
+msgstr "Până la:"
+
+#: facepackages/colorgrid/contents/ui/Config.qml:22
+#, kde-format
+msgctxt "@option:check"
+msgid "Use sensor color:"
+msgstr "Folosește culoarea senzorului:"
+
+#: facepackages/colorgrid/contents/ui/Config.qml:27
+#: facepackages/facegrid/contents/ui/Config.qml:35
+#, kde-format
+msgctxt "@label:spinbox"
+msgid "Number of columns:"
+msgstr "Număr de coloane:"
+
+#: facepackages/colorgrid/contents/ui/Config.qml:34
+#: facepackages/facegrid/contents/ui/Config.qml:42
+#, kde-format
+msgctxt "@label automatic number of columns"
+msgid "Automatic"
+msgstr "Automat"
+
+#: facepackages/facegrid/contents/ui/Config.qml:54
+#, kde-format
+msgctxt "@label:listbox items are sensor face names"
+msgid "Display style:"
+msgstr "Stilul afișării:"
+
+#: facepackages/linechart/contents/ui/Config.qml:42
+#, kde-format
+msgctxt "@title:group"
+msgid "Appearance"
+msgstr "Aspect"
+
+#: facepackages/linechart/contents/ui/Config.qml:51
+#, kde-format
+msgctxt "@option:check"
+msgid "Stacked charts"
+msgstr "Grafice suprapuse"
+
+#: facepackages/linechart/contents/ui/Config.qml:55
+#, kde-format
+msgctxt "@option:check"
+msgid "Smooth lines"
+msgstr "Linii netede"
+
+#: facepackages/linechart/contents/ui/Config.qml:67
+#, kde-format
+msgctxt "@label:spinbox"
+msgid "Opacity of area below line:"
+msgstr "Opacitatea zonei de sub linie:"
+
+#: facepackages/linechart/contents/ui/Config.qml:73
+#, kde-format
+msgctxt "title:group"
+msgid "Data Ranges"
+msgstr "Diapazoane de date"
+
+#: facepackages/linechart/contents/ui/Config.qml:78
+#, kde-format
+msgctxt "@option:check"
+msgid "Automatic Y data range"
+msgstr "Diapazon de date Y automat"
+
+#: facepackages/linechart/contents/ui/Config.qml:82
+#, kde-format
+msgctxt "@label:spinbox"
+msgid "From (Y):"
+msgstr "De la (Y):"
+
+#: facepackages/linechart/contents/ui/Config.qml:89
+#, kde-format
+msgctxt "@label:spinbox"
+msgid "To (Y):"
+msgstr "Până la (Y):"
+
+#: facepackages/linechart/contents/ui/Config.qml:96
+#, kde-format
+msgctxt "@label:spinbox"
+msgid "History to show:"
+msgstr "Istoric de arătat:"
+
+#: facepackages/linechart/contents/ui/Config.qml:98
+#, kde-format
+msgctxt "@item:valuesuffix %1 is seconds of history"
+msgid "second"
+msgid_plural "seconds"
+msgstr[0] "secundă"
+msgstr[1] "secunde"
+msgstr[2] "de secunde"
+
+#: facepackages/piechart/contents/ui/Config.qml:38
+#, kde-format
+msgctxt "@label:spinbox"
+msgid "Starting angle:"
+msgstr "Unghi inițial:"
+
+#: facepackages/piechart/contents/ui/Config.qml:43
+#: facepackages/piechart/contents/ui/Config.qml:52
+#, kde-format
+msgctxt "@label angle degrees"
+msgid "°"
+msgstr "°"
+
+#: facepackages/piechart/contents/ui/Config.qml:47
+#, kde-format
+msgctxt "@label:spinbox"
+msgid "Total pie angle:"
+msgstr "Unghi total diagramă:"
+
+#: facepackages/piechart/contents/ui/Config.qml:56
+#, kde-format
+msgctxt "@option:check"
+msgid "Rounded lines"
+msgstr "Linii rotunjite"
+
+#: facepackages/textonly/contents/ui/Config.qml:24
+#, kde-format
+msgctxt "@option:check"
+msgid "Group sensors based on the value of the total sensors."
+msgstr "Grupează senzorii în baza valorii senzorilor totali."
+
+#: import/Choices.qml:53
+#, kde-format
+msgctxt "@label"
+msgid "Click to select a sensor…"
+msgstr "Apăsați pentru a alege un senzor…"
+
+#: import/Choices.qml:373
+#, kde-format
+msgid "Search..."
+msgstr "Caută…"
+
+#: import/Choices.qml:387
+#, kde-format
+msgctxt "@action:button"
+msgid "Back"
+msgstr "Înapoi"
+
+#: SensorFaceController.cpp:450
+#, kde-format
+msgid "System Monitor Sensor"
+msgstr "Senzor de monitorizare a sistemului"
+
+#, fuzzy
+#~| msgctxt "%1 is seconds of history"
+#~| msgid "%1 second"
+#~| msgid_plural "%1 seconds"
+#~ msgctxt "@item:valuesuffix %1 is seconds of history"
+#~ msgid "%1 second"
+#~ msgid_plural "%1 seconds"
+#~ msgstr[0] "%1 secundă"
+#~ msgstr[1] "%1 secunde"
+#~ msgstr[2] "%1 de secunde"
+
+#, fuzzy
+#~| msgctxt "angle degrees"
+#~| msgid "%1°"
+#~ msgctxt "@label angle degrees"
+#~ msgid "%1°"
+#~ msgstr "%1°"
+
+#, fuzzy
+#~| msgctxt "angle degrees"
+#~| msgid "%1°"
+#~ msgctxt "@label angle"
+#~ msgid "%1°"
+#~ msgstr "%1°"
+
+#, fuzzy
+#~| msgid "Show Title"
+#~ msgctxt "@label:spinbox"
+#~ msgid "Show last:"
+#~ msgstr "Arată titlul"
+
+#~ msgid "Fill Opacity:"
+#~ msgstr "Opacitate umplere:"
+
+#~ msgid "Amount of History to Keep:"
+#~ msgstr "Volumul de istoric păstrat:"
+
+#~ msgctxt "angle"
+#~ msgid "%1°"
+#~ msgstr "%1°"
+
+#~ msgid "User Interface"
+#~ msgstr "Interfață cu utilizatorul"
+
+#~ msgid ""
+#~ "The compact representation of the sensors plasmoid when collapsed, for "
+#~ "instance in a panel."
+#~ msgstr ""
+#~ "Reprezentarea compactă a plasmoidului cu senzori la strângere, de exemplu "
+#~ "într-un panou."
+
+#~ msgid "The representation of the plasmoid when it's fully expanded."
+#~ msgstr "Reprezentarea plasmoidului când e desfășurat pe deplin."
+
+#~ msgid "The optional configuration page for this face."
+#~ msgstr "Pagina opțională de configurare pentru această fațetă."
+
+#~ msgid "Configuration support"
+#~ msgstr "Susținere pentru configurare"
+
+#~ msgid "KConfigXT xml file for face-specific configuration options."
+#~ msgstr ""
+#~ "Fișier XML KConfigXT pentru opțiuni de configurare specifice fațetei."
+
+#~ msgid ""
+#~ "The configuration file that describes face properties and capabilities."
+#~ msgstr ""
+#~ "Fișierul de configurare ce descrie proprietățile și capabilitățile "
+#~ "fațetei."
+
+#~ msgid "Automatic X Data Range"
+#~ msgstr "Diapazon de date X automat"
+
+#~ msgid "From (X):"
+#~ msgstr "De la (X):"
+
+#~ msgid "To (X):"
+#~ msgstr "Până la (X):"

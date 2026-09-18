@@ -1649,14 +1649,14 @@ fn configure_installed_profile(plan: &InstallPlan, target: &Path) -> Result<()> 
     #[cfg(unix)]
     std::os::unix::fs::symlink(unit, &default_target)?;
 
-    let greetd_config = target.join("etc/greetd/cosmic-greeter.toml");
+    let greetd_config = target.join("etc/greetd/plasma.toml");
     if plan.installed_profile == InstalledProfile::Desktop && !greetd_config.is_file() {
-        bail!("desktop profile is missing COSMIC greetd configuration")
+        bail!("desktop profile is missing Plasma greetd configuration")
     }
     if plan.installed_profile == InstalledProfile::Desktop && plan.automatic_login {
         let mut config = fs::read_to_string(&greetd_config)?;
         config.push_str(&format!(
-            "\n[initial_session]\ncommand = \"/usr/bin/start-cosmic\"\nuser = \"{}\"\n",
+            "\n[initial_session]\ncommand = \"/usr/bin/start-plasma\"\nuser = \"{}\"\n",
             plan.username
         ));
         fs::write(greetd_config, config)?;
@@ -1670,7 +1670,9 @@ fn remove_live_only_state(target: &Path) -> Result<()> {
         "etc/systemd/system/getty@tty1.service.d/autologin.conf",
         "etc/systemd/system/serial-getty@ttyS0.service.d/autologin.conf",
         "etc/systemd/system/cosmic-greeter.service.d/live.conf",
+        "etc/systemd/system/plasma-greeter.service.d/live.conf",
         "etc/greetd/cosmic-live.toml",
+        "etc/greetd/plasma-live.toml",
         "etc/sudoers.d/00-mattos-live",
         "etc/tmpfiles.d/mattos-live.conf",
         "etc/motd",
@@ -2092,14 +2094,29 @@ fn create_user(plan: &InstallPlan, target: &Path) -> Result<()> {
             "useradd",
             &[
                 base.as_slice(),
-                &["--groups".as_ref(), "sudo".as_ref(), plan.username.as_ref()],
+                &[
+                    "--groups".as_ref(),
+                    "sudo".as_ref(),
+                    "video".as_ref(),
+                    "render".as_ref(),
+                    plan.username.as_ref(),
+                ],
             ]
             .concat(),
         )?;
     } else {
         engine::run(
             "useradd",
-            &[base.as_slice(), &[plan.username.as_ref()]].concat(),
+            &[
+                base.as_slice(),
+                &[
+                    "--groups".as_ref(),
+                    "video".as_ref(),
+                    "render".as_ref(),
+                    plan.username.as_ref(),
+                ],
+            ]
+            .concat(),
         )?;
     }
     if let Some(hash) = &plan.password_hash {
@@ -2644,7 +2661,9 @@ mod tests {
             "etc/systemd/system/getty@tty1.service.d/autologin.conf",
             "etc/systemd/system/serial-getty@ttyS0.service.d/autologin.conf",
             "etc/systemd/system/cosmic-greeter.service.d/live.conf",
+            "etc/systemd/system/plasma-greeter.service.d/live.conf",
             "etc/greetd/cosmic-live.toml",
+            "etc/greetd/plasma-live.toml",
             "etc/sudoers.d/00-mattos-live",
             "etc/tmpfiles.d/mattos-live.conf",
             "etc/motd",
@@ -2743,8 +2762,8 @@ mod tests {
             fs::create_dir_all(directory.path().join("etc/systemd/system")).unwrap();
             fs::create_dir_all(directory.path().join("etc/greetd")).unwrap();
             fs::write(
-                directory.path().join("etc/greetd/cosmic-greeter.toml"),
-                "[default_session]\ncommand = \"/usr/bin/cosmic-greeter-start\"\nuser = \"cosmic-greeter\"\n",
+                directory.path().join("etc/greetd/plasma.toml"),
+                "[default_session]\ncommand = \"/usr/bin/start-plasma\"\nuser = \"mattos\"\n",
             )
             .unwrap();
             let mut candidate = plan("/dev/vda", profile);
@@ -2763,17 +2782,17 @@ mod tests {
         fs::create_dir_all(directory.path().join("etc/systemd/system")).unwrap();
         fs::create_dir_all(directory.path().join("etc/greetd")).unwrap();
         fs::write(
-            directory.path().join("etc/greetd/cosmic-greeter.toml"),
-            "[default_session]\ncommand = \"/usr/bin/cosmic-greeter-start\"\nuser = \"cosmic-greeter\"\n",
+            directory.path().join("etc/greetd/plasma.toml"),
+            "[default_session]\ncommand = \"/usr/bin/start-plasma\"\nuser = \"mattos\"\n",
         )
         .unwrap();
         let mut candidate = plan("/dev/vda", InstalledProfile::Desktop);
         candidate.automatic_login = true;
         configure_installed_profile(&candidate, directory.path()).unwrap();
         let config =
-            fs::read_to_string(directory.path().join("etc/greetd/cosmic-greeter.toml")).unwrap();
+            fs::read_to_string(directory.path().join("etc/greetd/plasma.toml")).unwrap();
         assert!(config.contains("[initial_session]"));
-        assert!(config.contains("command = \"/usr/bin/start-cosmic\""));
+        assert!(config.contains("command = \"/usr/bin/start-plasma\""));
         assert!(config.contains(&format!("user = \"{}\"", candidate.username)));
     }
 

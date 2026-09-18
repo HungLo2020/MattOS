@@ -1,0 +1,303 @@
+# translation of plasma_applet_devicenotifier.po to Chinese Traditional
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Franklin Weng <franklin@goodhorse.idv.tw>, 2010, 2011, 2012, 2014.
+# Jeff Huang <s8321414@gmail.com>, 2016.
+# pan93412 <pan93412@gmail.com>, 2018, 2019, 2020.
+# Franklin Weng <franklin at goodhorse dot idv dot tw>, 2007, 2008.
+# Frank Weng (a.k.a. Franklin) <franklin at goodhorse dot idv dot tw>, 2008, 2009, 2010.
+# SPDX-FileCopyrightText: 2023, 2024, 2025 Kisaragi Hiu <mail@kisaragi-hiu.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma_applet_devicenotifier\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-17 02:39+0000\n"
+"PO-Revision-Date: 2025-08-08 02:22+0900\n"
+"Last-Translator: Kisaragi Hiu <mail@kisaragi-hiu.com>\n"
+"Language-Team: Traditional Chinese <zh-l10n@lists.slat.org>\n"
+"Language: zh_TW\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 25.07.70\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: actions/checkaction.cpp:72
+#, kde-format
+msgctxt "@action:button check a storageAccess (i.e disk) for error"
+msgid "Check for Errors"
+msgstr "檢查錯誤"
+
+#: actions/mountaction.cpp:97
+#, kde-format
+msgid "Mount"
+msgstr "掛載"
+
+#: actions/mountandopenaction.cpp:178
+#, kde-format
+msgid "Open in File Manager"
+msgstr "在檔案管理員開啟"
+
+#: actions/mountandopenaction.cpp:181
+#, kde-format
+msgid "Try to Fix"
+msgstr "嘗試修復"
+
+#: actions/mountandopenaction.cpp:181
+#, kde-format
+msgid "Mount and Open"
+msgstr "掛載並開啟"
+
+#: actions/mountandopenaction.cpp:183
+#, kde-format
+msgid "Eject"
+msgstr "退出"
+
+#: actions/mountandopenaction.cpp:185
+#, kde-format
+msgid "Safely remove"
+msgstr "安全地移除"
+
+#: devicemessagemonitor_p.cpp:171
+#, kde-format
+msgid "This device has file system errors."
+msgstr "此裝置有檔案系統錯誤。"
+
+#: devicemessagemonitor_p.cpp:173
+#, kde-format
+msgctxt "@label device is a storage disk"
+msgid "This device has no errors"
+msgstr "此裝置沒有錯誤"
+
+#: devicemessagemonitor_p.cpp:176
+#, kde-format
+msgid "Successfully repaired!"
+msgstr "成功修復！"
+
+#: devicemessagemonitor_p.cpp:180
+#, kde-format
+msgid "Device Status"
+msgstr "裝置狀態"
+
+#: devicemessagemonitor_p.cpp:181
+#, kde-format
+msgid "A device can now be safely removed"
+msgstr "某裝置現在可以安全移除"
+
+#: devicemessagemonitor_p.cpp:185
+#, kde-format
+msgid "This device can now be safely removed."
+msgstr "此裝置現在可以安全移除。"
+
+#: devicemessagemonitor_p.cpp:192
+#, kde-format
+msgid "You are not authorized to mount this device."
+msgstr "您沒有掛載此裝置的權限。"
+
+#: devicemessagemonitor_p.cpp:196
+#, kde-format
+msgid "You are not authorized to eject this disc."
+msgstr "您沒有退出此碟片的權限。"
+
+#: devicemessagemonitor_p.cpp:199
+#, kde-format
+msgctxt "Remove is less technical for unmount"
+msgid "You are not authorized to remove this device."
+msgstr "您沒有移除此裝置的權限。"
+
+#: devicemessagemonitor_p.cpp:202
+#, kde-format
+msgid "You are not authorized to repair this device."
+msgstr "您沒有修復此裝置的權限。"
+
+#: devicemessagemonitor_p.cpp:204 devicemessagemonitor_p.cpp:269
+#, kde-format
+msgid "Unknown error type"
+msgstr "未知的錯誤類型"
+
+#: devicemessagemonitor_p.cpp:208
+#, kde-format
+msgid "Could not mount this device as it is busy."
+msgstr "無法掛載裝置，裝置忙碌中。"
+
+#: devicemessagemonitor_p.cpp:235
+#, kde-format
+msgid "One or more files on this device are open within an application."
+msgstr "裝置上的一或多個檔案正被應用程式開啟。"
+
+#: devicemessagemonitor_p.cpp:237
+#, kde-format
+msgid "One or more files on this device are opened in application \"%2\"."
+msgid_plural ""
+"One or more files on this device are opened in following applications: %2."
+msgstr[0] "裝置上的一或多個檔案正被以下應用程式開啟：%2。"
+
+#: devicemessagemonitor_p.cpp:240
+#, kde-format
+msgctxt "separator in list of apps blocking device unmount"
+msgid ", "
+msgstr "、"
+
+#: devicemessagemonitor_p.cpp:258
+#, kde-format
+msgid "Could not mount this device."
+msgstr "無法掛載此裝置。"
+
+#: devicemessagemonitor_p.cpp:262
+#, kde-format
+msgid "Could not eject this disc."
+msgstr "無法退出碟片。"
+
+#: devicemessagemonitor_p.cpp:264
+#, kde-format
+msgctxt "Remove is less technical for unmount"
+msgid "Could not remove this device."
+msgstr "無法移除此裝置。"
+
+#: devicemessagemonitor_p.cpp:267
+#, kde-format
+msgid "Could not repair this device: %1"
+msgstr "無法修復此裝置：%1"
+
+#: qml/DeviceItem.qml:99
+#, kde-format
+msgctxt ""
+"Accessing is a less technical word for Mounting; translation should be short "
+"and mean 'Currently mounting this device'"
+msgid "Checking…"
+msgstr "檢查中…"
+
+#: qml/DeviceItem.qml:101
+#, kde-format
+msgctxt ""
+"Accessing is a less technical word for Mounting; translation should be short "
+"and mean 'Currently mounting this device'"
+msgid "Repairing…"
+msgstr "修復中…"
+
+#: qml/DeviceItem.qml:104
+#, kde-format
+msgctxt "@info:status Free disk space"
+msgid "%1 free of %2"
+msgstr "剩餘 %1，共 %2"
+
+# 存取在華語沒有比掛載還要 less technical.
+# --Kisaragi 20250305
+#: qml/DeviceItem.qml:108
+#, kde-format
+msgctxt ""
+"Accessing is a less technical word for Mounting; translation should be short "
+"and mean 'Currently mounting this device'"
+msgid "Accessing…"
+msgstr "掛載中…"
+
+#: qml/DeviceItem.qml:111
+#, kde-format
+msgctxt ""
+"Removing is a less technical word for Unmounting; translation should be "
+"short and mean 'Currently unmounting this device'"
+msgid "Removing…"
+msgstr "移除中…"
+
+#: qml/DeviceItem.qml:114
+#, kde-format
+msgid "Don't unplug yet! Files are still being transferred…"
+msgstr "請還不要拔！檔案還在傳輸…"
+
+#: qml/FullRepresentation.qml:47 qml/main.qml:123
+#, kde-format
+msgid "Remove All"
+msgstr "全部移除"
+
+#: qml/FullRepresentation.qml:48
+#, kde-format
+msgid "Click to safely remove all devices"
+msgstr "點擊以安全移除所有裝置"
+
+#: qml/FullRepresentation.qml:162
+#, kde-format
+msgid "No removable devices attached"
+msgstr "沒有插入可移除裝置"
+
+#: qml/FullRepresentation.qml:162
+#, kde-format
+msgid "No disks available"
+msgstr "沒有可用硬碟"
+
+#: qml/main.qml:72
+#, kde-format
+msgid "Most Recent Device"
+msgstr "上次插入的裝置"
+
+#: qml/main.qml:72
+#, kde-format
+msgid "No Devices Available"
+msgstr "沒有可用裝置"
+
+#: qml/main.qml:109
+#, kde-format
+msgctxt "Open auto mounter kcm"
+msgid "Configure Removable Devices…"
+msgstr "設定可移除裝置…"
+
+#: qml/main.qml:131
+#, kde-format
+msgid "Removable Devices"
+msgstr "可移除裝置"
+
+#: qml/main.qml:146
+#, kde-format
+msgid "Non Removable Devices"
+msgstr "不可移除裝置"
+
+#: qml/main.qml:161
+#, kde-format
+msgid "All Devices"
+msgstr "所有裝置"
+
+#: qml/main.qml:178
+#, kde-format
+msgid "Show popup when new device is plugged in"
+msgstr "當新裝置插入時顯示彈出式通知"
+
+#~ msgctxt "@action:button Mount a disk without verifying for errors"
+#~ msgid "Mount without verifying"
+#~ msgstr "不驗證直接掛載"
+
+#~ msgid "Filesystem is not responding"
+#~ msgstr "檔案系統無回應"
+
+#~ msgid "Filesystem mounted at '%1' is not responding"
+#~ msgstr "掛載於「%1」的檔案系統沒有回應"
+
+#~ msgid "Show:"
+#~ msgstr "顯示："
+
+#~ msgid "General"
+#~ msgstr "一般"
+
+#~ msgid ""
+#~ "It is currently <b>not safe</b> to remove this device: applications may "
+#~ "be accessing it. Click the eject button to safely remove this device."
+#~ msgstr ""
+#~ "目前無法<b>安全地</b>移除此裝置：可能還有應用程式正在使用它。點擊退出鍵可"
+#~ "以安全地移除此裝置。"
+
+#~ msgid "This device is currently accessible."
+#~ msgstr "此裝置目前可存取。"
+
+#~ msgid ""
+#~ "It is currently <b>not safe</b> to remove this device: applications may "
+#~ "be accessing other volumes on this device. Click the eject button on "
+#~ "these other volumes to safely remove this device."
+#~ msgstr ""
+#~ "目前無法<b>安全地</b>移除此裝置：可能還有應用程式正在使用此裝置的某些部"
+#~ "份。對該部份點擊退出鍵可以安全地移除此裝置。"
+
+#~ msgid "This device is not currently accessible."
+#~ msgstr "此裝置目前無法存取。"
+
+#~ msgid "1 action for this device"
+#~ msgid_plural "%1 actions for this device"
+#~ msgstr[0] "此裝置的 %1 個動作"

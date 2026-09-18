@@ -1,0 +1,26 @@
+{
+    "$schema": "https://autoconfig.kde.org/jsonschemas/kparts.schema.json",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "%{EMAIL}",
+                "Name": "%{AUTHOR}"
+            }
+        ],
+        "Description": "A %{APPNAME} KPart",
+        "Icon": "%{APPNAMELC}",
+        "License": "GPLv2+",
+        "MimeTypes": [
+            "text/plain"
+        ],
+        "Name": "%{APPNAME}Part",
+        "Version": "%{VERSION}",
+        "Website": ""
+    },
+    "KParts": {
+        "Capabilities": [
+            "ReadOnly",
+            "ReadWrite"
+        ]
+    }
+}

@@ -1,0 +1,531 @@
+# translation of plasma_wallpaper_image.po to Khmer
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+# Khoem Sokhem <khoemsokhem@khmeros.info>, 2008, 2009, 2010.
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma_wallpaper_image\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-17 02:39+0000\n"
+"PO-Revision-Date: 2010-11-17 10:34+0700\n"
+"Last-Translator: Khoem Sokhem <khoemsokhem@khmeros.info>\n"
+"Language-Team: Khmer <support@khmeros.info>\n"
+"Language: km\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: KBabel 1.11.4\n"
+"X-Language: km-CM\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr ""
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr ""
+
+#: imagepackage/contents/ui/AddFileDialog.qml:59
+#, fuzzy, kde-format
+#| msgid "Open Wallpaper Image"
+msgctxt "@title:window"
+msgid "Open Image"
+msgstr "បើក​រូបភាព​ផ្ទាំង​រូបភាព​"
+
+#: imagepackage/contents/ui/AddFileDialog.qml:71
+#, kde-format
+msgctxt "@title:window"
+msgid "Directory with the wallpaper to show slides from"
+msgstr ""
+
+#: imagepackage/contents/ui/config.qml:146
+#, fuzzy, kde-format
+#| msgid "&Positioning:"
+msgctxt "@label:listbox"
+msgid "Positioning:"
+msgstr "ការ​កំណត់​ទីតាំង ៖"
+
+#: imagepackage/contents/ui/config.qml:149
+#, fuzzy, kde-format
+#| msgid "Scaled & Cropped"
+msgctxt "@item:inlistbox"
+msgid "Scaled and cropped"
+msgstr "បានធ្វើមាត្រដ្ឋាន និង​ច្រឹប"
+
+#: imagepackage/contents/ui/config.qml:153
+#, fuzzy, kde-format
+#| msgid "Scaled"
+msgctxt "@item:inlistbox"
+msgid "Scaled"
+msgstr "បាន​ធ្វើ​មាត្រដ្ឋាន"
+
+#: imagepackage/contents/ui/config.qml:157
+#, fuzzy, kde-format
+#| msgid "Scaled, keep proportions"
+msgctxt "@item:inlistbox"
+msgid "Scaled, keep proportions"
+msgstr "បាន​ធ្វើមាត្រដ្ឋាន រក្សាសមាមាត្រ"
+
+#: imagepackage/contents/ui/config.qml:161
+#, fuzzy, kde-format
+#| msgid "Centered"
+msgctxt "@item:inlistbox"
+msgid "Centered"
+msgstr "កណ្ដាល"
+
+#: imagepackage/contents/ui/config.qml:189
+#, fuzzy, kde-format
+#| msgid "Get New Wallpapers..."
+msgctxt ""
+"@label:listbox part of a sentence: 'Switch dynamic wallpapers [based on]'"
+msgid "Switch dynamic wallpapers:"
+msgstr "យកផ្ទាំង​រូបភាព​ថ្មី..."
+
+#: imagepackage/contents/ui/config.qml:197
+#, kde-format
+msgctxt "@item:inlistbox part of a sentence: 'Switch dynamic wallpapers'"
+msgid "Based on whether the Plasma style is light or dark "
+msgstr ""
+
+#: imagepackage/contents/ui/config.qml:199
+#, kde-format
+msgctxt "@item:inlistbox part of a sentence: 'Switch dynamic wallpapers'"
+msgid "Based on the day-night cycle"
+msgstr ""
+
+#: imagepackage/contents/ui/config.qml:203
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Always use light variant"
+msgstr ""
+
+#: imagepackage/contents/ui/config.qml:207
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Always use dark variant"
+msgstr ""
+
+#: imagepackage/contents/ui/config.qml:221
+#, kde-format
+msgctxt "@action:button Configure day-night cycle times"
+msgid "Configure…"
+msgstr ""
+
+#: imagepackage/contents/ui/config.qml:232
+#, kde-format
+msgid "Background:"
+msgstr ""
+
+#: imagepackage/contents/ui/config.qml:233
+#, kde-format
+msgid "Blur"
+msgstr ""
+
+#: imagepackage/contents/ui/config.qml:242
+#, kde-format
+msgid "Solid color"
+msgstr ""
+
+#: imagepackage/contents/ui/config.qml:253
+#, kde-format
+msgid "Select Background Color"
+msgstr ""
+
+#: imagepackage/contents/ui/main.qml:37
+#, kde-format
+msgid "Open Wallpaper Image"
+msgstr "បើក​រូបភាព​ផ្ទាំង​រូបភាព​"
+
+#: imagepackage/contents/ui/ThumbnailsComponent.qml:88
+#, fuzzy, kde-format
+#| msgid "Open Wallpaper Image"
+msgid "Images"
+msgstr "បើក​រូបភាព​ផ្ទាំង​រូបភាព​"
+
+#: imagepackage/contents/ui/ThumbnailsComponent.qml:92
+#, kde-format
+msgctxt "@action:button the thing being added is an image file"
+msgid "Add…"
+msgstr ""
+
+#: imagepackage/contents/ui/ThumbnailsComponent.qml:93
+#, fuzzy, kde-format
+#| msgid "Open Wallpaper Image"
+msgctxt "@action:button"
+msgid "Add Wallpaper Image…"
+msgstr "បើក​រូបភាព​ផ្ទាំង​រូបភាព​"
+
+#: imagepackage/contents/ui/ThumbnailsComponent.qml:99
+#, fuzzy, kde-format
+#| msgid "Get New Wallpapers..."
+msgctxt "@action:button the new things being gotten are wallpapers"
+msgid "Get New…"
+msgstr "យកផ្ទាំង​រូបភាព​ថ្មី..."
+
+#: imagepackage/contents/ui/ThumbnailsComponent.qml:100
+#, fuzzy, kde-format
+#| msgid "Next Wallpaper Image"
+msgctxt "@action:button"
+msgid "Get New Wallpaper Images…"
+msgstr "ផ្ទាំង​រូបភាព​បន្ទាប់​"
+
+#: imagepackage/contents/ui/ThumbnailsComponent.qml:107
+#, kde-format
+msgctxt "@action:button the things being selected are wallpapers"
+msgid "Select All"
+msgstr ""
+
+#: imagepackage/contents/ui/ThumbnailsComponent.qml:108
+#, kde-format
+msgctxt "@action:button"
+msgid "Select All Slides"
+msgstr ""
+
+#: imagepackage/contents/ui/ThumbnailsComponent.qml:116
+#, kde-format
+msgctxt "@action:button the things being unselected are wallpapers"
+msgid "Select None"
+msgstr ""
+
+#: imagepackage/contents/ui/ThumbnailsComponent.qml:117
+#, kde-format
+msgctxt "@action:button"
+msgid "Unselect All Slides"
+msgstr ""
+
+#: imagepackage/contents/ui/WallpaperDelegate.qml:33
+#, kde-format
+msgid "Open Containing Folder"
+msgstr ""
+
+#: imagepackage/contents/ui/WallpaperDelegate.qml:39
+#, fuzzy, kde-format
+#| msgid "&System wallpapers:"
+msgid "Restore wallpaper"
+msgstr "ផ្ទាំង​រូបភាព​ប្រព័ន្ធ ៖"
+
+#: imagepackage/contents/ui/WallpaperDelegate.qml:44
+#, fuzzy, kde-format
+#| msgid "&System wallpapers:"
+msgid "Remove Wallpaper"
+msgstr "ផ្ទាំង​រូបភាព​ប្រព័ន្ធ ៖"
+
+#: plasma-apply-wallpaperimage.cpp:28
+#, kde-format
+msgid ""
+"This tool allows you to set an image as the wallpaper for the Plasma session."
+msgstr ""
+
+#: plasma-apply-wallpaperimage.cpp:30
+#, kde-format
+msgid ""
+"An image file or an installed wallpaper kpackage that you wish to set as the "
+"wallpaper for your Plasma session"
+msgstr ""
+
+#: plasma-apply-wallpaperimage.cpp:33
+#, kde-format
+msgid "Specify the fill mode (e.g., stretch, preserveAspectCrop, etc.)"
+msgstr ""
+
+#: plasma-apply-wallpaperimage.cpp:58
+#, kde-format
+msgid ""
+"There is a stray single quote in the filename of this wallpaper (') - please "
+"contact the author of the wallpaper to fix this, or rename the file "
+"yourself: %1"
+msgstr ""
+
+#: plasma-apply-wallpaperimage.cpp:96
+#, kde-format
+msgid "Invalid fill mode specified: %1"
+msgstr ""
+
+#: plasma-apply-wallpaperimage.cpp:112
+#, kde-format
+msgid "An error occurred while attempting to set the Plasma wallpaper:\n"
+msgstr ""
+
+#: plasma-apply-wallpaperimage.cpp:116
+#, kde-format
+msgid ""
+"Successfully set the wallpaper for all desktops to the KPackage based %1"
+msgstr ""
+
+#: plasma-apply-wallpaperimage.cpp:118
+#, kde-format
+msgid "Successfully set the wallpaper for all desktops to the image %1"
+msgstr ""
+
+#: plasma-apply-wallpaperimage.cpp:125
+#, kde-format
+msgid ""
+"The file passed to be set as wallpaper does not exist, or we cannot identify "
+"it as a wallpaper: %1"
+msgstr ""
+
+#: plugin/imagebackend.cpp:40
+#, kde-format
+msgid "Next Wallpaper Image"
+msgstr "ផ្ទាំង​រូបភាព​បន្ទាប់​"
+
+#. i18n people, this isn't a "word puzzle". there is a specific string format for QFileDialog::setNameFilters
+#: plugin/imagebackend.cpp:382
+#, kde-format
+msgid "Media Files"
+msgstr ""
+
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:53
+#, kde-format
+msgid "Order:"
+msgstr ""
+
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:60
+#, kde-format
+msgid "Random"
+msgstr ""
+
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:64
+#, kde-format
+msgid "A to Z"
+msgstr ""
+
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:68
+#, kde-format
+msgid "Z to A"
+msgstr ""
+
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:72
+#, kde-format
+msgid "Date modified (newest first)"
+msgstr ""
+
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:76
+#, kde-format
+msgid "Date modified (oldest first)"
+msgstr ""
+
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:101
+#, kde-format
+msgid "Group by folders"
+msgstr ""
+
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:113
+#, fuzzy, kde-format
+#| msgid "C&hange images every:"
+msgid "Change every:"
+msgstr "ផ្លាស់ប្ដូរ​រូបភាព​រៀងរាល់ ៖"
+
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:123
+#, kde-format
+msgid "%1 hour"
+msgid_plural "%1 hours"
+msgstr[0] ""
+
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:143
+#, kde-format
+msgid "%1 minute"
+msgid_plural "%1 minutes"
+msgstr[0] ""
+
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:163
+#, kde-format
+msgid "%1 second"
+msgid_plural "%1 seconds"
+msgstr[0] ""
+
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:203
+#, fuzzy, kde-format
+#| msgid "&Remove Folder"
+msgid "Folders"
+msgstr "យក​ថត​ចេញ"
+
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:207
+#, kde-format
+msgctxt "@action button the thing being added is a folder"
+msgid "Add…"
+msgstr ""
+
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:208
+#, fuzzy, kde-format
+#| msgid "&Add Folder..."
+msgctxt "@action:button"
+msgid "Add Folder…"
+msgstr "បន្ថែម​ថត..."
+
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:246
+#, fuzzy, kde-format
+#| msgid "&Remove Folder"
+msgid "Remove Folder"
+msgstr "យក​ថត​ចេញ"
+
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:257
+#, fuzzy, kde-format
+#| msgid "&Remove Folder"
+msgid "Open Folder…"
+msgstr "យក​ថត​ចេញ"
+
+#: slideshowpackage/contents/ui/SlideshowComponent.qml:272
+#, kde-format
+msgid "There are no wallpaper locations configured"
+msgstr ""
+
+#: wallpaperfileitemactionplugin/wallpaperfileitemaction.cpp:47
+#, fuzzy, kde-format
+#| msgid "Get New Wallpapers..."
+msgctxt "@action:inmenu"
+msgid "Set as Wallpaper"
+msgstr "យកផ្ទាំង​រូបភាព​ថ្មី..."
+
+#: wallpaperfileitemactionplugin/wallpaperfileitemaction.cpp:50
+#, kde-format
+msgctxt "@action:inmenu Set as Desktop Wallpaper"
+msgid "Desktop"
+msgstr ""
+
+#: wallpaperfileitemactionplugin/wallpaperfileitemaction.cpp:56
+#, kde-format
+msgctxt "@action:inmenu Set as Lockscreen Wallpaper"
+msgid "Lockscreen"
+msgstr ""
+
+#: wallpaperfileitemactionplugin/wallpaperfileitemaction.cpp:62
+#, kde-format
+msgctxt "@action:inmenu Set as both lockscreen and Desktop Wallpaper"
+msgid "Both"
+msgstr ""
+
+#: wallpaperfileitemactionplugin/wallpaperfileitemaction.cpp:95
+#, kde-kuit-format
+msgctxt "@info %1 is the dbus error message"
+msgid "An error occurred while attempting to set the Plasma wallpaper:<nl/>%1"
+msgstr ""
+
+#: wallpaperfileitemactionplugin/wallpaperfileitemaction.cpp:108
+#, kde-format
+msgid "An error occurred while attempting to open kscreenlockerrc config file."
+msgstr ""
+
+#, fuzzy
+#~| msgid "Tiled"
+#~ msgctxt "@item:inlistbox"
+#~ msgid "Tiled"
+#~ msgstr "ក្រឡាក្បឿង"
+
+#, fuzzy
+#~| msgid "Open Wallpaper Image"
+#~ msgctxt "@title:window"
+#~ msgid "Open Media"
+#~ msgstr "បើក​រូបភាព​ផ្ទាំង​រូបភាព​"
+
+#, fuzzy
+#~| msgid "Use system-installed wallpapers in slideshow"
+#~ msgid "There are no wallpapers in this slideshow"
+#~ msgstr "ប្រើ​ផ្ទាំង​រូបភាព​ដែលបាន​ដំឡើង​​របស់​ប្រព័ន្ធ​នៅ​ក្នុងកា​របញ្ចាំង​ស្លាយ"
+
+#, fuzzy
+#~| msgid "&System wallpapers:"
+#~ msgid "Add Custom Wallpaper"
+#~ msgstr "ផ្ទាំង​រូបភាព​ប្រព័ន្ធ ៖"
+
+#, fuzzy
+#~| msgid "&System wallpapers:"
+#~ msgid "Remove wallpaper"
+#~ msgstr "ផ្ទាំង​រូបភាព​ប្រព័ន្ធ ៖"
+
+#, fuzzy
+#~| msgctxt "Caption to wallpaper preview, %1 author name"
+#~| msgid "by %1"
+#~ msgid "%1 by %2"
+#~ msgstr "ដោយ %1"
+
+#, fuzzy
+#~| msgid "&System wallpapers:"
+#~ msgid "Wallpapers"
+#~ msgstr "ផ្ទាំង​រូបភាព​ប្រព័ន្ធ ៖"
+
+#, fuzzy
+#~| msgid "Download new wallpapers"
+#~ msgid "Download Wallpapers"
+#~ msgstr "ទាញយក​ផ្ទាំង​រូបភាព​ថ្មី"
+
+#~ msgid "Open..."
+#~ msgstr "បើក..."
+
+#~ msgid "Center Tiled"
+#~ msgstr "ក្រឡា​ក្បឿងកណ្ដាល"
+
+#~ msgid "Select Wallpaper Image File"
+#~ msgstr "ជ្រើស​​ឯកសារ​រូបភាព​ផ្ទាំង​រូបភាព​"
+
+#~ msgid "P&ositioning:"
+#~ msgstr "ការ​កំណត់​ទីតាំង ៖"
+
+#~ msgid "&Color:"
+#~ msgstr "ពណ៌ ៖"
+
+#~ msgid "Change wallpaper frame color"
+#~ msgstr "ផ្លាស់ប្ដូរ​ពណ៌​ស៊ុម​របស់​ផ្ទាំង​រូបភាព"
+
+#~ msgid ""
+#~ "Change the color of the frame that it may be visible when the wallpaper "
+#~ "is centered or scaled with the same proportions."
+#~ msgstr ""
+#~ "ផ្លាស់ប្ដូរ​ពណ៌​របស់​ស៊ុម​ ដែល​វា​អាច​ត្រូវ​បាន​មើល​នៅ​ពេល​ផ្ទាំង​រូបភាព​ត្រូវ​បាន​ដាក់​ចំកណ្ដាល​ ឬ​ធ្វើ​មាត្រដ្ឋាន​"
+#~ "ជាមួយ​សមាមាត្រ​ដូច​គ្នា​ ។​"
+
+#~ msgid "Remove from list"
+#~ msgstr "យក​ចេញ​ពី​បញ្ជី"
+
+#~ msgctxt ""
+#~ "(qtdt-format) Please do not change the quotes (') and translate only the "
+#~ "content of the quotes."
+#~ msgid "hh 'Hours' mm 'Mins' ss 'Secs'"
+#~ msgstr "hh 'ម៉ោង' mm 'នាទី' ss 'វិនាទី'"
+
+#~ msgid "&My downloaded wallpapers:"
+#~ msgstr "ផ្ទាំង​រូបភាព​ដែល​បានទាញយក​របស់​ខ្ញុំ ៖"
+
+#~ msgid ""
+#~ "Use wallpapers I have downloaded with \"Get New Wallpapers...\" in "
+#~ "slideshow"
+#~ msgstr ""
+#~ "ប្រើ​ផ្ទាំង​រូបភាព​ដែល​ខ្ញុំ​បាន​ទាញយក​ដោយ​ប្រើ \"យក​ផ្ទាំង​រូបភាព​ថ្មី...\" នៅ​ក្នុងកា​របញ្ចាំង​ស្លាយ"
+
+#~ msgid "Custom folders:"
+#~ msgstr "ថត​ផ្ទាល់ខ្លួន ៖"
+
+#~ msgid ""
+#~ "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/"
+#~ "REC-html40/strict.dtd\">\n"
+#~ "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/"
+#~ "css\">\n"
+#~ "p, li { white-space: pre-wrap; }\n"
+#~ "</style></head><body style=\" font-family:'Sans Serif'; font-size:11pt; "
+#~ "font-weight:400; font-style:normal;\">\n"
+#~ "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-"
+#~ "right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-"
+#~ "weight:600;\">Images</span></p></body></html>"
+#~ msgstr ""
+#~ "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/"
+#~ "REC-html40/strict.dtd\">\n"
+#~ "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/"
+#~ "css\">\n"
+#~ "p, li { white-space: pre-wrap; }\n"
+#~ "</style></head><body style=\" font-family:'Sans Serif'; font-size:11pt; "
+#~ "font-weight:400; font-style:normal;\">\n"
+#~ "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-"
+#~ "right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-"
+#~ "weight:600;\">រូបភាព</span></p></body></html>"
+
+#~ msgid "Finding images for the wallpaper slideshow."
+#~ msgstr "រក​រូបភាព​សម្រាប់​ការ​បញ្ចាំង​ស្លាយ​ផ្ទាំង​រូបភាព ។"
+
+#~ msgid "Adding wallpaper package in %1"
+#~ msgstr "បន្ថែម​កញ្ចប់​ផ្ទាំង​រូបភាព​នៅ​ក្នុង %1"
+
+#~ msgid "Adding image %1"
+#~ msgstr "បន្ថែម​រូបភាព %1"

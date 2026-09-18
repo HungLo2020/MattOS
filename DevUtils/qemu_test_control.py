@@ -33,6 +33,10 @@ DEFAULT_SOCKET = Path("out/qemu/test-control/qmp.sock")
 DEFAULT_SERIAL_SOCKET = Path("out/qemu/test-control/serial.sock")
 QMP_TIMEOUT_SECONDS = 10.0
 SERIAL_PROMPT_WAKEUP = b"\r"
+# QEMU's USB tablet exposes absolute axes in the full unsigned 16-bit range.
+# Keep this tied to the emulated device contract rather than the guest's
+# screen dimensions; the latter are used only to convert screenshot pixels.
+QMP_ABSOLUTE_AXIS_MAX = 65535
 GRUB_PROMPT = b"grub>"
 LIVE_USERSPACE_SIGNATURES = (b"systemd[", b"MattOS Live Environment", b"login:")
 # Brush emits OSC shell-integration records immediately before its prompt, so
@@ -319,7 +323,14 @@ def serial_command_payload(command: str, marker: str) -> bytes:
     it, leaving the host waiting forever for a marker that was never printed.
     A bare socket newline is not reliable across serial-console configurations.
     """
-    script = f"( {command} ); rc=$?; printf '\\n{marker}:%s\\n' \"$rc\""
+    # The command is deliberately non-interactive.  In particular, a command
+    # that backgrounds a GUI program must not leave that child holding (or
+    # consuming) the UART stdin after this socket client disconnects.  Keep
+    # stdout/stderr on the serial console for diagnostics, but give the
+    # command subshell an inert stdin.  The surrounding interactive getty is
+    # unaffected, so the next fresh test-control connection can still wake,
+    # probe and use it.
+    script = f"( {command} ) </dev/null; rc=$?; printf '\\n{marker}:%s\\n' \"$rc\""
     # Some QEMU serial backends display a lone CR but do not reliably submit
     # it to the guest line discipline under load.  CRLF is the terminal's
     # canonical Enter sequence; the trailing LF is only an empty shell line.
@@ -429,12 +440,12 @@ def display_size(client: QmpClient) -> tuple[int, int]:
 def click(client: QmpClient, x: int, y: int, width: int, height: int) -> None:
     if not 0 <= x < width or not 0 <= y < height:
         raise QmpError(f"click ({x}, {y}) is outside {width}x{height}")
-    # QMP's absolute tablet axes are 0..32767, while screendump coordinates
+    # QMP's USB-tablet absolute axes are 0..65535, while screendump coordinates
     # are pixels. Scale against the dimensions captured from this guest, not
     # a host/window-size guess. HMP mouse_move is relative and therefore
     # cannot safely represent a screenshot coordinate.
-    absolute_x = round(x * 32767 / max(width - 1, 1))
-    absolute_y = round(y * 32767 / max(height - 1, 1))
+    absolute_x = round(x * QMP_ABSOLUTE_AXIS_MAX / max(width - 1, 1))
+    absolute_y = round(y * QMP_ABSOLUTE_AXIS_MAX / max(height - 1, 1))
     client.execute(
         "input-send-event",
         {"events": [

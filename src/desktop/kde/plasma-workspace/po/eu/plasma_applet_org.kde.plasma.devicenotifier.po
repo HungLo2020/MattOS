@@ -1,0 +1,351 @@
+# Translation for plasma_applet_org.kde.plasma.devicenotifier.po to Euskara/Basque (eu).
+# Copyright (C) 2007-2026 This file is copyright:
+# This file is distributed under the same license as the plasma-workspace package.
+# SPDX-FileCopyrightText: 2023, 2024, 2025 KDE euskaratzeko proiektuaren arduraduna <xalba@ni.eus>
+#
+# Translators:
+# marcos <marcos@euskalgnu.org>, 2007.
+# Iñigo Salvador Azurmendi <xalba@ni.eus>, 2008, 2010, 2011, 2017, 2018, 2019, 2020, 2021, 2023, 2024, 2025, 2026.
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma-workspace\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-17 02:39+0000\n"
+"PO-Revision-Date: 2025-07-24 18:14+0200\n"
+"Last-Translator: Iñigo Salvador Azurmendi <xalba@ni.eus>\n"
+"Language-Team: Basque <kde-i18n-eu@kde.org>\n"
+"Language: eu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 25.04.3\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: actions/checkaction.cpp:72
+#, kde-format
+msgctxt "@action:button check a storageAccess (i.e disk) for error"
+msgid "Check for Errors"
+msgstr "Egiaztatu errore bila"
+
+#: actions/mountaction.cpp:97
+#, kde-format
+msgid "Mount"
+msgstr "Muntatu"
+
+#: actions/mountandopenaction.cpp:178
+#, kde-format
+msgid "Open in File Manager"
+msgstr "Ireki fitxategi-kudeatzailean"
+
+#: actions/mountandopenaction.cpp:181
+#, kde-format
+msgid "Try to Fix"
+msgstr "Saiatu konpontzen"
+
+#: actions/mountandopenaction.cpp:181
+#, kde-format
+msgid "Mount and Open"
+msgstr "Muntatu eta ireki"
+
+#: actions/mountandopenaction.cpp:183
+#, kde-format
+msgid "Eject"
+msgstr "Egotzi"
+
+#: actions/mountandopenaction.cpp:185
+#, kde-format
+msgid "Safely remove"
+msgstr "Kendu arriskurik gabe"
+
+#: devicemessagemonitor_p.cpp:171
+#, kde-format
+msgid "This device has file system errors."
+msgstr "Gailu honek fitxategi-sistemaren erroreak ditu."
+
+#: devicemessagemonitor_p.cpp:173
+#, kde-format
+msgctxt "@label device is a storage disk"
+msgid "This device has no errors"
+msgstr "Gailu honek ez du errorerik"
+
+#: devicemessagemonitor_p.cpp:176
+#, kde-format
+msgid "Successfully repaired!"
+msgstr "Ondo konpondu da!"
+
+#: devicemessagemonitor_p.cpp:180
+#, kde-format
+msgid "Device Status"
+msgstr "Gailuaren egoera"
+
+#: devicemessagemonitor_p.cpp:181
+#, kde-format
+msgid "A device can now be safely removed"
+msgstr "Orain, gailu bat modu seguruan ken daiteke"
+
+#: devicemessagemonitor_p.cpp:185
+#, kde-format
+msgid "This device can now be safely removed."
+msgstr "Orain, gailu hori modu seguruan ken daiteke."
+
+#: devicemessagemonitor_p.cpp:192
+#, kde-format
+msgid "You are not authorized to mount this device."
+msgstr "Ez zaude gailu hori muntatzera baimenduta."
+
+#: devicemessagemonitor_p.cpp:196
+#, kde-format
+msgid "You are not authorized to eject this disc."
+msgstr "Ez zaude disko hori egoztera baimenduta."
+
+#: devicemessagemonitor_p.cpp:199
+#, kde-format
+msgctxt "Remove is less technical for unmount"
+msgid "You are not authorized to remove this device."
+msgstr "Ez zaude gailu hori kentzera baimenduta."
+
+#: devicemessagemonitor_p.cpp:202
+#, kde-format
+msgid "You are not authorized to repair this device."
+msgstr "Ez duzu gailu hau konpontzeko baimenik."
+
+#: devicemessagemonitor_p.cpp:204 devicemessagemonitor_p.cpp:269
+#, kde-format
+msgid "Unknown error type"
+msgstr "Errore mota ezezaguna"
+
+#: devicemessagemonitor_p.cpp:208
+#, kde-format
+msgid "Could not mount this device as it is busy."
+msgstr "Ezin izan da gailu hori muntatu lanpetuta dagoelako."
+
+#: devicemessagemonitor_p.cpp:235
+#, kde-format
+msgid "One or more files on this device are open within an application."
+msgstr "Gailu horretako fitxategi bat gutxienez aplikazio batean irekita dago."
+
+#: devicemessagemonitor_p.cpp:237
+#, kde-format
+msgid "One or more files on this device are opened in application \"%2\"."
+msgid_plural ""
+"One or more files on this device are opened in following applications: %2."
+msgstr[0] ""
+"Gailu horretako fitxategi bat gutxienez \"%2\" aplikazioan irekita daude."
+msgstr[1] ""
+"Gailu horretako fitxategi bat gutxienez ondoko aplikazioetan irekita dago: %2"
+
+#: devicemessagemonitor_p.cpp:240
+#, kde-format
+msgctxt "separator in list of apps blocking device unmount"
+msgid ", "
+msgstr ", "
+
+#: devicemessagemonitor_p.cpp:258
+#, kde-format
+msgid "Could not mount this device."
+msgstr "Ezin izan du gailu hori muntatu."
+
+#: devicemessagemonitor_p.cpp:262
+#, kde-format
+msgid "Could not eject this disc."
+msgstr "Ezin izan du disko hori egotzi."
+
+#: devicemessagemonitor_p.cpp:264
+#, kde-format
+msgctxt "Remove is less technical for unmount"
+msgid "Could not remove this device."
+msgstr "Ezin izan du gailu hori kendu."
+
+#: devicemessagemonitor_p.cpp:267
+#, kde-format
+msgid "Could not repair this device: %1"
+msgstr "Ezin izan du gailu hau konpondu: %1"
+
+#: qml/DeviceItem.qml:99
+#, kde-format
+msgctxt ""
+"Accessing is a less technical word for Mounting; translation should be short "
+"and mean 'Currently mounting this device'"
+msgid "Checking…"
+msgstr "Egiaztatzen…"
+
+#: qml/DeviceItem.qml:101
+#, kde-format
+msgctxt ""
+"Accessing is a less technical word for Mounting; translation should be short "
+"and mean 'Currently mounting this device'"
+msgid "Repairing…"
+msgstr "Konpontzen…"
+
+#: qml/DeviceItem.qml:104
+#, kde-format
+msgctxt "@info:status Free disk space"
+msgid "%1 free of %2"
+msgstr "%1/%2 hutsik"
+
+#: qml/DeviceItem.qml:108
+#, kde-format
+msgctxt ""
+"Accessing is a less technical word for Mounting; translation should be short "
+"and mean 'Currently mounting this device'"
+msgid "Accessing…"
+msgstr "Atzitzen…"
+
+#: qml/DeviceItem.qml:111
+#, kde-format
+msgctxt ""
+"Removing is a less technical word for Unmounting; translation should be "
+"short and mean 'Currently unmounting this device'"
+msgid "Removing…"
+msgstr "Kentzen…"
+
+#: qml/DeviceItem.qml:114
+#, kde-format
+msgid "Don't unplug yet! Files are still being transferred…"
+msgstr "Oraindik ez deskonektatu! Fitxategiak transferitzen ari dira oraindik…"
+
+#: qml/FullRepresentation.qml:47 qml/main.qml:123
+#, kde-format
+msgid "Remove All"
+msgstr "Kendu guztiak"
+
+#: qml/FullRepresentation.qml:48
+#, kde-format
+msgid "Click to safely remove all devices"
+msgstr "Egin klik gailu guztiak era seguruan kentzeko."
+
+#: qml/FullRepresentation.qml:162
+#, kde-format
+msgid "No removable devices attached"
+msgstr "Ez dago konektatuta gailu eramangarririk"
+
+#: qml/FullRepresentation.qml:162
+#, kde-format
+msgid "No disks available"
+msgstr "Ez dago disko erabilgarririk"
+
+#: qml/main.qml:72
+#, kde-format
+msgid "Most Recent Device"
+msgstr "Konektatutako azken gailua"
+
+#: qml/main.qml:72
+#, kde-format
+msgid "No Devices Available"
+msgstr "Ez dago gailu eskuragarririk"
+
+#: qml/main.qml:109
+#, kde-format
+msgctxt "Open auto mounter kcm"
+msgid "Configure Removable Devices…"
+msgstr "Konfiguratu gailu aldagarriak…"
+
+#: qml/main.qml:131
+#, kde-format
+msgid "Removable Devices"
+msgstr "Gailu aldagarriak"
+
+#: qml/main.qml:146
+#, kde-format
+msgid "Non Removable Devices"
+msgstr "Gailu ez-aldagarriak"
+
+#: qml/main.qml:161
+#, kde-format
+msgid "All Devices"
+msgstr "Gailu guztiak"
+
+#: qml/main.qml:178
+#, kde-format
+msgid "Show popup when new device is plugged in"
+msgstr "Erakutsi laster-leihoa gailu berria konektatzen denean"
+
+#~ msgctxt "@action:button Mount a disk without verifying for errors"
+#~ msgid "Mount without verifying"
+#~ msgstr "Muntatu egiaztatu gabe"
+
+#~ msgid "Filesystem is not responding"
+#~ msgstr "Fitxategi sistemak ez du erantzuten"
+
+#~ msgid "Filesystem mounted at '%1' is not responding"
+#~ msgstr "'%1'(e)(a)n muntatutako fitxategi-sistemak ez du erantzuten"
+
+#~ msgid "Show:"
+#~ msgstr "Erakutsi:"
+
+#~ msgid "General"
+#~ msgstr "Orokorra"
+
+#~ msgid ""
+#~ "It is currently <b>not safe</b> to remove this device: applications may "
+#~ "be accessing it. Click the eject button to safely remove this device."
+#~ msgstr ""
+#~ "Une honetan <b>ez da segurua</b> gailu hau kentzea: aplikazioak berau "
+#~ "atzitzen egon daitezke. Egin klik egotzi botoian gailua era seguruan "
+#~ "kentzeko."
+
+#~ msgid "This device is currently accessible."
+#~ msgstr "Gailu hau une honetan atzitu daiteke."
+
+#~ msgid ""
+#~ "It is currently <b>not safe</b> to remove this device: applications may "
+#~ "be accessing other volumes on this device. Click the eject button on "
+#~ "these other volumes to safely remove this device."
+#~ msgstr ""
+#~ "Une honetan <b>ez da segurua</b> gailu hau kentzea : aplikazioak gailu "
+#~ "honetako beste bolumen batzuk atzitzen egon daitezke. Egin klik beste "
+#~ "bolumen hauen egotzi botoian gailu hau era seguruan kentzeko."
+
+#~ msgid "This device is not currently accessible."
+#~ msgstr "Gailu hau une honetan ezin da atzitu."
+
+#~ msgid "1 action for this device"
+#~ msgid_plural "%1 actions for this device"
+#~ msgstr[0] "ekintza 1 gailu honentzako"
+#~ msgstr[1] "%1 ekintza gailu honentzako"
+
+#~ msgid "Click to access this device from other applications."
+#~ msgstr "Egin klik gailu hau beste aplikazioetatik atzitzeko."
+
+#~ msgid "Click to safely remove this device."
+#~ msgstr "Egin klik gailu hau era seguruan kentzeko."
+
+#~ msgid "Available Devices"
+#~ msgstr "Gailu eskuragarriak"
+
+#~ msgid "This device is currently not accessible."
+#~ msgstr "Gailu hau momentu honetan ez da atzigarria."
+
+#~ msgid "Display"
+#~ msgstr "Bistaratu"
+
+#~ msgid "Automounting"
+#~ msgstr "Automuntaketa"
+
+#~ msgid "Show hidden devices"
+#~ msgstr "Erakutsi ezkutuko gailuak"
+
+#~ msgctxt "Hide a device"
+#~ msgid "Hide %1"
+#~ msgstr "Ezkutatu %1"
+
+#, fuzzy
+#~| msgid "Device is plugged in and can be accessed by applications."
+#~ msgid ""
+#~ "Device is plugged in and the volume can be accessed by applications. It "
+#~ "is not safe to remove this device."
+#~ msgstr "Gailua entxufatuta dago eta aplikazioek atzitu dezakete."
+
+#, fuzzy
+#~| msgid "Device is plugged in, but not mounted for access yet."
+#~ msgid ""
+#~ "Device is plugged in and the volume is not mounted for access yet. The "
+#~ "device can be safely removed."
+#~ msgstr ""
+#~ "Gailua entxufatuta dago, baino oraindik ez dago atzitzeko muntatuta."
+
+#~ msgid "Cannot mount the disc."
+#~ msgstr "Diskoa ezin muntatu."
+
+#~ msgid "Devices recently plugged in:"
+#~ msgstr "Oraintsu konektatutako gailuak:"

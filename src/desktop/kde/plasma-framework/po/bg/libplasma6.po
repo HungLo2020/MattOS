@@ -1,0 +1,297 @@
+# SPDX-FileCopyrightText: 2022, 2023, 2024, 2025 Mincho Kondarev <mkondarev@yahoo.de>
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-04-05 02:41+0000\n"
+"PO-Revision-Date: 2025-01-31 11:31+0100\n"
+"Last-Translator: Mincho Kondarev <mkondarev@yahoo.de>\n"
+"Language-Team: Bulgarian <kde-i18n-doc@kde.org>\n"
+"Language: bg\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 25.03.70\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+#: declarativeimports/plasmaextracomponents/qml/BasicPlasmoidHeading.qml:82
+#, kde-format
+msgid "More actions"
+msgstr "Допълнителни действия"
+
+#: declarativeimports/plasmaextracomponents/qml/ExpandableListItem.qml:587
+#, kde-format
+msgctxt "@action:button"
+msgid "Collapse"
+msgstr "Свиване"
+
+#: declarativeimports/plasmaextracomponents/qml/ExpandableListItem.qml:587
+#, kde-format
+msgctxt "@action:button"
+msgid "Expand"
+msgstr "Разгъване"
+
+#: declarativeimports/plasmaextracomponents/qml/PasswordField.qml:50
+#, kde-format
+msgid "Password"
+msgstr "Парола"
+
+#: declarativeimports/plasmaextracomponents/qml/SearchField.qml:62
+#, kde-format
+msgid "Search…"
+msgstr "Търсене…"
+
+#: declarativeimports/plasmaextracomponents/qml/SearchField.qml:64
+#, kde-format
+msgid "Search"
+msgstr "Търсене"
+
+#: declarativeimports/plasmaextracomponents/qml/SearchField.qml:75
+#, kde-format
+msgid "Clear search"
+msgstr "Изчистване на търсенето"
+
+#: plasma/applet.cpp:318
+#, kde-format
+msgid "Unknown"
+msgstr "Неизвестно"
+
+#: plasma/applet.cpp:764
+#, kde-format
+msgid "Activate %1 Widget"
+msgstr "Активиране на %1 Widget"
+
+#: plasma/containment.cpp:100 plasma/private/applet_p.cpp:101
+#, kde-format
+msgctxt "%1 is the name of the applet"
+msgid "Remove %1"
+msgstr "Премахване на %1"
+
+#: plasma/containment.cpp:106 plasma/corona.cpp:365 plasma/corona.cpp:486
+#, kde-format
+msgid "Enter Edit Mode"
+msgstr "Влизане в режим на редактиране"
+
+#: plasma/containment.cpp:109 plasma/private/applet_p.cpp:106
+#, kde-format
+msgctxt "%1 is the name of the applet"
+msgid "Configure %1..."
+msgstr "Конфигуриране на %1..."
+
+#: plasma/corona.cpp:314 plasma/corona.cpp:471
+#, kde-format
+msgid "Lock Widgets"
+msgstr "Заключване на уиджети"
+
+#: plasma/corona.cpp:314
+#, kde-format
+msgid "Unlock Widgets"
+msgstr "Отключване на уиджети"
+
+#: plasma/corona.cpp:363
+#, kde-format
+msgid "Exit Edit Mode"
+msgstr "Излизане от режима за редактиране"
+
+#: plasma/pluginloader.cpp:145
+#, kde-format
+msgid "Could not find requested component: %1"
+msgstr "Не можа да се намери заявения компонент:%1"
+
+#: plasma/private/applet_p.cpp:119
+#, kde-format
+msgid "Show Alternatives..."
+msgstr "Показване на алтернативи..."
+
+#: plasma/private/applet_p.cpp:237
+#, kde-format
+msgid "Widget Removed"
+msgstr "Уиджетът е премахнат"
+
+#: plasma/private/applet_p.cpp:238
+#, kde-format
+msgid "The widget \"%1\" has been removed."
+msgstr "Уиджетът „%1“  е премахнат."
+
+#: plasma/private/applet_p.cpp:242
+#, kde-format
+msgid "Panel Removed"
+msgstr "Панелът е премахнат"
+
+#: plasma/private/applet_p.cpp:243
+#, kde-format
+msgid "A panel has been removed."
+msgstr "Панелът е премахнат."
+
+#: plasma/private/applet_p.cpp:246
+#, kde-format
+msgid "Desktop Removed"
+msgstr "Работният плот е премахнат"
+
+#: plasma/private/applet_p.cpp:247
+#, kde-format
+msgid "A desktop has been removed."
+msgstr "Работният плот е премахнат."
+
+#: plasma/private/applet_p.cpp:250
+#, kde-format
+msgid "Undo"
+msgstr "Отмяна"
+
+#: plasma/private/applet_p.cpp:341
+#, kde-format
+msgid "Widget Settings"
+msgstr "Настройки на уиджет"
+
+#: plasma/private/applet_p.cpp:347
+#, kde-format
+msgid "Remove this Widget"
+msgstr "Премахване на този уиджет"
+
+#: plasma/private/containment_p.cpp:51
+#, kde-format
+msgid "Remove this Panel"
+msgstr "Премахване на този панел"
+
+#: plasma/private/containment_p.cpp:53
+#, kde-format
+msgid "Remove this Activity"
+msgstr "Премахване на тази дейност"
+
+#: plasma/private/containment_p.cpp:58
+#, kde-format
+msgid "Activity Settings"
+msgstr "Настройки на дейност"
+
+#: plasma/private/containment_p.cpp:70
+#, kde-format
+msgid "Add or Manage Widgets…"
+msgstr "Добавяне или управление на уиджети…"
+
+#: plasmaquick/appletquickitem.cpp:540
+#, kde-format
+msgid "The root item of %1 must be of type ContainmentItem"
+msgstr "Основният елемент на  %1 трябва да бъде от тип ContaimentItem"
+
+#: plasmaquick/appletquickitem.cpp:545
+#, kde-format
+msgid "The root item of %1 must be of type PlasmoidItem"
+msgstr "Основният елемент на  %1 трябва да бъде от тип PlasmoidItem"
+
+#: plasmaquick/appletquickitem.cpp:553
+#, kde-format
+msgid "Unknown Applet"
+msgstr "Неизвестна приставка"
+
+#: plasmaquick/appletquickitem.cpp:567
+#, kde-format
+msgid ""
+"This Widget was written for an unknown older version of Plasma and is not "
+"compatible with Plasma %1. Please contact the widget's author for an updated "
+"version."
+msgstr ""
+"Този уиджет е написан за неизвестна по-стара версия на Plasma и не е "
+"съвместим с Plasma %1. Моля, свържете се с автора на уиджета за по-"
+"актуализирана версия."
+
+#: plasmaquick/appletquickitem.cpp:570 plasmaquick/appletquickitem.cpp:577
+#: plasmaquick/appletquickitem.cpp:583
+#, kde-format
+msgid "%1 is not compatible with Plasma %2"
+msgstr "%1 не е съвместим с Plasma %2"
+
+#: plasmaquick/appletquickitem.cpp:574
+#, kde-format
+msgid ""
+"This Widget was written for Plasma %1 and is not compatible with Plasma %2. "
+"Please contact the widget's author for an updated version."
+msgstr ""
+"Този уиджет е написан за Plasma %1 и не е съвместим с Plasma %2. Моля, "
+"свържете се с автора на уиджета за по-актуализирана версия."
+
+#: plasmaquick/appletquickitem.cpp:580
+#, kde-format
+msgid ""
+"This Widget was written for Plasma %1 and is not compatible with Plasma %2. "
+"Please update Plasma in order to use the widget."
+msgstr ""
+"Този уиджет е написан за Plasma %1 и не е съвместим с Plasma %2. Моля, "
+"актуализирайте Plasma, за да можете да го използвате."
+
+#: plasmaquick/appletquickitem.cpp:589 plasmaquick/appletquickitem.cpp:611
+#, kde-format
+msgid "Sorry! There was an error loading %1."
+msgstr "За съжаление, възникна грешка при зареждане на %1."
+
+#: plasmaquick/appletquickitem.cpp:606
+#, kde-format
+msgid "Error loading QML file: %1 %2"
+msgstr "Грешка при зареждането на QML файл: %1 %2"
+
+#: plasmaquick/appletquickitem.cpp:609
+#, kde-format
+msgid "Error loading Applet: package %1 does not exist."
+msgstr "Грешка при зареждането на аплета: пакетът не съществува. %1"
+
+#: plasmaquick/configview.cpp:189
+#, kde-format
+msgid "%1 — %2 Settings"
+msgstr "%1 — %2 настройки"
+
+#: plasmaquick/configview.cpp:190
+#, kde-format
+msgid "%1 Settings"
+msgstr "%1 Настройки"
+
+#: plasmaquick/plasmoid/containmentitem.cpp:569
+#, kde-format
+msgid "Plasma Package"
+msgstr "Пакет на Plasma"
+
+#: plasmaquick/plasmoid/containmentitem.cpp:573
+#, kde-format
+msgid "Install"
+msgstr "Инсталиране"
+
+#: plasmaquick/plasmoid/containmentitem.cpp:584
+#, kde-format
+msgid "Package Installation Failed"
+msgstr "Инсталацията на пакета е неуспешна"
+
+#: plasmaquick/plasmoid/containmentitem.cpp:600
+#, kde-format
+msgid "The package you just dropped is invalid."
+msgstr "Пакетът, който току-що пуснахте, е невалиден."
+
+#: plasmaquick/plasmoid/containmentitem.cpp:609
+#, kde-format
+msgid "Widgets"
+msgstr "Уиджети"
+
+#: plasmaquick/plasmoid/containmentitem.cpp:614
+#, kde-format
+msgctxt "Add widget"
+msgid "Add %1"
+msgstr "Добавяне %1"
+
+#: plasmaquick/plasmoid/containmentitem.cpp:628
+#, kde-format
+msgctxt "Add icon widget"
+msgid "Add Icon"
+msgstr "Добавяне на икона"
+
+#: plasmaquick/plasmoid/containmentitem.cpp:640
+#, kde-format
+msgid "Wallpaper"
+msgstr "Тапет"
+
+#: plasmaquick/plasmoid/containmentitem.cpp:650
+#, kde-format
+msgctxt "Set wallpaper"
+msgid "Set %1"
+msgstr "Задаване на %1"
+
+#: plasmaquick/plasmoid/dropmenu.cpp:29
+#, kde-format
+msgid "Content dropped"
+msgstr "Съдържанието е пуснато"

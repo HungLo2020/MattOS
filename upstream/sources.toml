@@ -13,11 +13,99 @@ source_selection_policy = "upstream/policies/linux-source-selection.toml"
 source_selection_policy_sha256 = "9dd4e6baf71250d492c77664daefb06870061e509c90d61ddd6c683f4f87400a"
 
 [[component]]
+name = "kcolorscheme"
+repo = "https://invent.kde.org/frameworks/kcolorscheme.git"
+branch = "v6.26.0"
+revision = "196950d64256d1cd534be127eb368eef3ce28651"
+path = "src/desktop/kde/kcolorscheme"
+sync = "copy"
+
+[[component]]
+name = "kcrash"
+repo = "https://invent.kde.org/frameworks/kcrash.git"
+branch = "v6.26.0"
+revision = "593f44b698ac56a7037f23abf255fab3dfbc6f4e"
+path = "src/desktop/kde/kcrash"
+sync = "copy"
+
+[[component]]
+name = "kglobalaccel"
+repo = "https://invent.kde.org/frameworks/kglobalaccel.git"
+branch = "v6.26.0"
+revision = "39d049b3a3a9020a3a2239135c9c96079014b2ed"
+path = "src/desktop/kde/kglobalaccel"
+sync = "copy"
+
+[[component]]
+name = "kguiaddons"
+repo = "https://invent.kde.org/frameworks/kguiaddons.git"
+branch = "v6.26.0"
+revision = "3114d2b5fdc7cd648191a6a29ea2d971fc87bee0"
+path = "src/desktop/kde/kguiaddons"
+sync = "copy"
+
+[[component]]
+name = "kidletime"
+repo = "https://invent.kde.org/frameworks/kidletime.git"
+branch = "v6.26.0"
+revision = "ba2021993913f01cc53b12f9af23f673c0ef154e"
+path = "src/desktop/kde/kidletime"
+sync = "copy"
+
+[[component]]
+name = "kpackage"
+repo = "https://invent.kde.org/frameworks/kpackage.git"
+branch = "v6.26.0"
+revision = "97196f5bebfc2dbc1fc0f5ceba4635dbc565a761"
+path = "src/desktop/kde/kpackage"
+sync = "copy"
+
+[[component]]
+name = "kservice"
+repo = "https://invent.kde.org/frameworks/kservice.git"
+branch = "v6.26.0"
+revision = "e841de7efbb0459dc439060c632c734d4989ee4e"
+path = "src/desktop/kde/kservice"
+sync = "copy"
+
+[[component]]
+name = "ksvg"
+repo = "https://invent.kde.org/frameworks/ksvg.git"
+branch = "v6.26.0"
+revision = "d0cf7fe995ae20cbbd58f6f7c44b581993b6e297"
+path = "src/desktop/kde/ksvg"
+sync = "copy"
+
+[[component]]
+name = "kwindowsystem"
+repo = "https://invent.kde.org/frameworks/kwindowsystem.git"
+branch = "v6.26.0"
+revision = "6b6c7bd6801f014233d08612e32be0f37955030c"
+path = "src/desktop/kde/kwindowsystem"
+sync = "copy"
+
+[[component]]
+name = "plasma-wayland-protocols"
+repo = "https://invent.kde.org/libraries/plasma-wayland-protocols.git"
+branch = "v1.20.0"
+revision = "a3a088d5de5127c1f32d717e1b7e19b8574e1adc"
+path = "src/desktop/kde/plasma-wayland-protocols"
+sync = "copy"
+
+[[component]]
 name = "wayland"
 repo = "https://gitlab.freedesktop.org/wayland/wayland.git"
 branch = "1.26.0"
 revision = "87cc8a8728a923fc57938faa81ba0e74f34ecdc7"
 path = "src/system/libraries/wayland"
+sync = "copy"
+
+[[component]]
+name = "wayland-protocols"
+repo = "https://gitlab.freedesktop.org/wayland/wayland-protocols.git"
+branch = "1.46"
+revision = "2afd6ce87f2b10666dd6541e619fb1fc4279d378"
+path = "src/graphics/wayland-protocols"
 sync = "copy"
 
 [[component]]
@@ -202,6 +290,177 @@ repo = "https://git.savannah.gnu.org/git/gnulib.git"
 branch = "master"
 revision = "9f48fb992a3d7e96610c4ce8be969cff2d61a01b"
 path = "src/build-support/grub-gnulib"
+sync = "copy"
+
+# Qt/KDE installer foundation.  These are deliberately separate source-owned
+# components: Calamares' initial Widgets UI does not need the whole Qt or KDE
+# application stacks, nor QML/Kirigami.
+[[component]]
+name = "qtbase"
+repo = "https://code.qt.io/qt/qtbase.git"
+branch = "v6.11.2"
+revision = "ef55f427f2c8b410d34f8a7681020a3000cf6866"
+path = "src/desktop/qt/qtbase"
+sync = "copy"
+
+[[component]]
+name = "qtsvg"
+repo = "https://code.qt.io/qt/qtsvg.git"
+branch = "v6.11.2"
+revision = "17ca512f903f935282ebeca496aac5d11ba4199a"
+path = "src/desktop/qt/qtsvg"
+sync = "copy"
+
+[[component]]
+name = "qtwayland"
+repo = "https://code.qt.io/qt/qtwayland.git"
+branch = "v6.11.2"
+revision = "fd0456558bc1766da85aee42f6a87f79092cbb13"
+path = "src/desktop/qt/qtwayland"
+sync = "copy"
+
+[[component]]
+name = "qtdeclarative"
+repo = "https://code.qt.io/qt/qtdeclarative.git"
+branch = "v6.11.2"
+revision = "4e3399c26ec57246c08de019cfcbda8d23604cfa"
+path = "src/desktop/qt/qtdeclarative"
+sync = "copy"
+
+[[component]]
+name = "qtpositioning"
+repo = "https://github.com/qt/qtpositioning.git"
+branch = "v6.11.2"
+revision = "45de3dd3cca4b00523071d42357ea607289440c4"
+path = "src/desktop/qt/qtpositioning"
+sync = "copy"
+
+[[component]]
+name = "qtlocation"
+repo = "https://github.com/qt/qtlocation.git"
+branch = "v6.11.2"
+revision = "709ecccbd647ffa25545e0886be59001d0266e88"
+path = "src/desktop/qt/qtlocation"
+sync = "copy"
+
+[[component]]
+name = "qtshadertools"
+repo = "https://code.qt.io/qt/qtshadertools.git"
+branch = "v6.11.2"
+revision = "c70b59ea4a47ccbee7e0d0353b9e91d719120bfd"
+path = "src/desktop/qt/qtshadertools"
+sync = "copy"
+
+[[component]]
+name = "qttools"
+repo = "https://code.qt.io/qt/qttools.git"
+branch = "v6.11.2"
+revision = "8026c0462f19e9549501718152523ea223a19fd3"
+path = "src/desktop/qt/qttools"
+sync = "copy"
+
+[[component]]
+name = "qtspeech"
+repo = "https://code.qt.io/qt/qtspeech.git"
+branch = "v6.11.2"
+revision = "ae2de454bc73956632841221c535959f6f950346"
+path = "src/desktop/qt/qtspeech"
+sync = "copy"
+
+[[component]]
+name = "qca"
+repo = "https://invent.kde.org/libraries/qca.git"
+branch = "v2.3.12"
+revision = "c7de7c95043b7af1846cd55058474cff4508bb6c"
+path = "src/system/security/qca"
+sync = "copy"
+
+[[component]]
+name = "qtmultimedia"
+repo = "https://code.qt.io/qt/qtmultimedia.git"
+branch = "v6.11.2"
+revision = "6f162ccac1425edbd7b4d1582fabab5973b43d6c"
+path = "src/desktop/qt/qtmultimedia"
+sync = "copy"
+
+[[component]]
+name = "kcoreaddons"
+repo = "https://invent.kde.org/frameworks/kcoreaddons.git"
+branch = "v6.26.0"
+revision = "799c32965cc502ca72815b23e2642f5ba277736d"
+path = "src/desktop/kde/kcoreaddons"
+sync = "copy"
+
+[[component]]
+name = "kconfig"
+repo = "https://invent.kde.org/frameworks/kconfig.git"
+branch = "v6.26.0"
+revision = "320c75b97892aeef45b947f78f46a461fe42a38d"
+path = "src/desktop/kde/kconfig"
+sync = "copy"
+
+[[component]]
+name = "kdbusaddons"
+repo = "https://invent.kde.org/frameworks/kdbusaddons.git"
+branch = "v6.26.0"
+revision = "076bb542e5dbe36c26aaaf6b57c88574ef5bfe3d"
+path = "src/desktop/kde/kdbusaddons"
+sync = "copy"
+
+[[component]]
+name = "kauth"
+repo = "https://invent.kde.org/frameworks/kauth.git"
+branch = "v6.26.0"
+revision = "e29d60d4f37872b1c73c36dd0a86c250f8150805"
+path = "src/desktop/kde/kauth"
+sync = "copy"
+
+[[component]]
+name = "ki18n"
+repo = "https://invent.kde.org/frameworks/ki18n.git"
+branch = "v6.26.0"
+revision = "be6d61539b251ae8f70b64a6528098426dba2af6"
+path = "src/desktop/kde/ki18n"
+sync = "copy"
+
+[[component]]
+name = "kwidgetsaddons"
+repo = "https://invent.kde.org/frameworks/kwidgetsaddons.git"
+branch = "v6.26.0"
+revision = "372bd8fa11769909d5edfd2797ff8059aedf06ab"
+path = "src/desktop/kde/kwidgetsaddons"
+sync = "copy"
+
+[[component]]
+name = "polkit-qt-1"
+repo = "https://invent.kde.org/libraries/polkit-qt-1.git"
+branch = "v0.200.0"
+revision = "aa1c6c414ec021fd32e30492c00bb13347e228db"
+path = "src/system/security/polkit-qt-1"
+sync = "copy"
+
+[[component]]
+name = "kpmcore"
+repo = "https://invent.kde.org/system/kpmcore.git"
+branch = "v25.12.3"
+revision = "b348efa14a9511ec4c0c3c523bb255a910b402d0"
+path = "src/system/storage/kpmcore"
+sync = "copy"
+
+[[component]]
+name = "yaml-cpp"
+repo = "https://github.com/jbeder/yaml-cpp.git"
+branch = "0.8.0"
+revision = "f7320141120f720aecc4c32be25586e7da9eb978"
+path = "src/system/libraries/yaml-cpp"
+sync = "copy"
+
+[[component]]
+name = "calamares"
+repo = "https://codeberg.org/calamares/calamares.git"
+branch = "v3.4.3"
+revision = "af2eaf829b7c60ae5b69b9fe68f9158dc98d3331"
+path = "src/system/installer/calamares/upstream"
 sync = "copy"
 
 [[component]]
@@ -733,6 +992,38 @@ path = "src/system/graphics/libxcvt"
 sync = "copy"
 
 [[component]]
+name = "lcms2"
+repo = "https://github.com/mm2/Little-CMS.git"
+branch = "lcms2.16"
+revision = "453bafeb85b4ef96498866b7a8eadcc74dff9223"
+path = "src/system/graphics/lcms2"
+sync = "copy"
+
+[[component]]
+name = "kwayland"
+repo = "https://invent.kde.org/plasma/kwayland.git"
+branch = "v6.6.5"
+revision = "ecaff1e7bac58ca30dee99fb18c7e5adaf9a242d"
+path = "src/desktop/kde/kwayland"
+sync = "copy"
+
+[[component]]
+name = "kholidays"
+repo = "https://github.com/KDE/kholidays.git"
+branch = "v6.24.0"
+revision = "a1d6f12f38f534e07e6d0188ef95cbdd133a3d02"
+path = "src/desktop/kde/kholidays"
+sync = "copy"
+
+[[component]]
+name = "knighttime"
+repo = "https://invent.kde.org/plasma/knighttime.git"
+branch = "v6.6.5"
+revision = "efac6959b747be82a67d2f7941e0fc2bfc1d4838"
+path = "src/desktop/kde/knighttime"
+sync = "copy"
+
+[[component]]
 name = "libxshmfence"
 repo = "https://gitlab.freedesktop.org/xorg/lib/libxshmfence.git"
 branch = "libxshmfence-1.3.3"
@@ -861,6 +1152,70 @@ repo = "https://gitlab.freedesktop.org/xorg/lib/libxext.git"
 branch = "libXext-1.3.6"
 revision = "3826a58d190c2d8093d3586cb33867668cbb4553"
 path = "src/system/graphics/libxext"
+sync = "copy"
+
+[[component]]
+name = "libxfixes"
+repo = "https://gitlab.freedesktop.org/xorg/lib/libxfixes.git"
+branch = "libXfixes-6.0.2"
+revision = "70d5b0e37f8a759f3dbc218f22954347ceed094a"
+path = "src/system/graphics/libxfixes"
+sync = "copy"
+
+[[component]]
+name = "xcb-cursor"
+repo = "https://gitlab.freedesktop.org/xorg/lib/libxcb-cursor.git"
+branch = "xcb-util-cursor-0.1.6"
+revision = "7b0fa99aa13084a9bf7be4180066f6a74b0adef1"
+path = "src/system/graphics/xcb-cursor"
+sync = "copy"
+
+[[component]]
+name = "xcb-util-wm"
+repo = "https://gitlab.freedesktop.org/xorg/lib/libxcb-wm.git"
+branch = "xcb-util-wm-0.4.2"
+revision = "0c6681e465c9cc7b1fbb60778ba1eaa61ab01a14"
+path = "src/system/graphics/xcb-util-wm"
+sync = "copy"
+
+[[component]]
+name = "xcb-keysyms"
+repo = "https://gitlab.freedesktop.org/xorg/lib/libxcb-keysyms.git"
+branch = "xcb-util-keysyms-0.4.1"
+revision = "85e093f14b0ade2956e0a5d1c37cfde06d8b1ba6"
+path = "src/system/graphics/xcb-keysyms"
+sync = "copy"
+
+[[component]]
+name = "xcb-renderutil"
+repo = "https://gitlab.freedesktop.org/xorg/lib/libxcb-render-util.git"
+branch = "xcb-util-renderutil-0.3.10"
+revision = "5293d8b6165f23b9f7a8bcc903da0e4d7a75984c"
+path = "src/system/graphics/xcb-renderutil"
+sync = "copy"
+
+[[component]]
+name = "xcb-image"
+repo = "https://gitlab.freedesktop.org/xorg/lib/libxcb-image.git"
+branch = "xcb-util-image-0.4.1"
+revision = "525ce59fe2329d4b23fc0c52ed9dd92daac8ac2a"
+path = "src/system/graphics/xcb-image"
+sync = "copy"
+
+[[component]]
+name = "xcb-util"
+repo = "https://gitlab.freedesktop.org/xorg/lib/libxcb-util.git"
+branch = "master"
+revision = "523cbc8af809d9525703f2fa3680d8c880fe4e9c"
+path = "src/system/graphics/xcb-util"
+sync = "copy"
+
+[[component]]
+name = "xcb-util-m4"
+repo = "https://gitlab.freedesktop.org/xorg/util/xcb-util-m4.git"
+branch = "master"
+revision = "c617eee22ae5c285e79e81ec39ce96862fd3262f"
+path = "src/system/graphics/xcb-util-m4"
 sync = "copy"
 
 [[component]]
@@ -1467,4 +1822,435 @@ repo = "https://github.com/pnggroup/libpng.git"
 branch = "v1.6.58"
 revision = "3061454d980de7d53608f594194cfac722721d2a"
 path = "src/system/libraries/libpng"
+sync = "copy"
+
+[[component]]
+name = "qt5compat"
+repo = "https://code.qt.io/qt/qt5compat.git"
+branch = "v6.11.2"
+revision = "abebcdb4964aa1f9ca01b97d793ed57d305d2a66"
+path = "src/desktop/qt/qt5compat"
+sync = "copy"
+
+# Initial source-owned Plasma runtime components.  These remain separate from
+# the COSMIC fallback until their dependency stages and profile integration
+# are complete.
+[[component]]
+name = "kwin"
+repo = "https://invent.kde.org/plasma/kwin.git"
+branch = "v6.6.5"
+revision = "b04d59c03749484a8a0ed5a8d4cda515a267c59b"
+path = "src/desktop/kde/kwin"
+sync = "copy"
+patch_manifest = "upstream/patches/kwin/manifest.toml"
+patch_manifest_sha256 = "e56ee21b0aa25a30ca042a1cb0d34e17a63b85ec51ba7d424f0406a5e2852c28"
+
+[[component]]
+name = "kdecoration"
+repo = "https://invent.kde.org/plasma/kdecoration.git"
+branch = "v6.6.5"
+revision = "f67c905fc7aa4a87547bf52c22d586b39bc07dfd"
+path = "src/desktop/kde/kdecoration"
+sync = "copy"
+
+[[component]]
+name = "libcanberra"
+repo = "https://github.com/Distrotech/libcanberra.git"
+branch = "master"
+revision = "edbf1733563f37c650d99fae1e826bf4a46ac3f7"
+path = "src/system/libraries/libcanberra"
+sync = "copy"
+
+[[component]]
+name = "plasma-workspace"
+repo = "https://invent.kde.org/plasma/plasma-workspace.git"
+branch = "v6.6.5"
+revision = "28245c69a5aea1dc11d44f75616b86b04a7fb2aa"
+path = "src/desktop/kde/plasma-workspace"
+sync = "copy"
+
+[[component]]
+name = "plasma-desktop"
+repo = "https://invent.kde.org/plasma/plasma-desktop.git"
+branch = "v6.6.5"
+revision = "c9b4885d4c80e4f22e7ff324c5eba08b44f49df9"
+path = "src/desktop/kde/plasma-desktop"
+sync = "copy"
+
+[[component]]
+name = "breeze"
+repo = "https://invent.kde.org/plasma/breeze.git"
+branch = "v6.6.5"
+revision = "bfe46a06e92a196fe3051706051d5c5e2d497e92"
+path = "src/desktop/kde/breeze"
+sync = "copy"
+
+[[component]]
+name = "karchive"
+repo = "https://invent.kde.org/frameworks/karchive.git"
+branch = "v6.26.0"
+revision = "ae524cc12a9f635284903b1ac94c81c31cd5fb59"
+path = "src/desktop/kde/karchive"
+sync = "copy"
+
+[[component]]
+name = "kirigami"
+repo = "https://invent.kde.org/frameworks/kirigami.git"
+branch = "v6.26.0"
+revision = "12a3cf2a6ef624da37956f4c117958e1a2fe4945"
+path = "src/desktop/kde/kirigami"
+sync = "copy"
+
+[[component]]
+name = "kirigami-addons"
+repo = "https://github.com/KDE/kirigami-addons.git"
+branch = "v1.9.0"
+revision = "d53b2b24608ae66dbaa4f09d8d7ebae6c9f642b5"
+path = "src/desktop/kde/kirigami-addons"
+sync = "copy"
+
+[[component]]
+name = "kquickcharts"
+repo = "https://github.com/KDE/kquickcharts.git"
+branch = "v6.26.0"
+revision = "339e5f19dfbfe89cf69b5ea85f162a657eec7468"
+path = "src/desktop/kde/kquickcharts"
+sync = "copy"
+
+[[component]]
+name = "kdeclarative"
+repo = "https://github.com/KDE/kdeclarative.git"
+branch = "v6.26.0"
+revision = "23ab14a1e34671956172361ae68fd9d92df90e5f"
+path = "src/desktop/kde/kdeclarative"
+sync = "copy"
+
+[[component]]
+name = "breeze-icons"
+repo = "https://github.com/KDE/breeze-icons.git"
+branch = "v6.26.0"
+revision = "872cc3cc073f857e2160105216488585e340d314"
+path = "src/desktop/kde/breeze-icons"
+sync = "copy"
+
+[[component]]
+name = "kiconthemes"
+repo = "https://github.com/KDE/kiconthemes.git"
+branch = "v6.26.0"
+revision = "668d7a3d3b088bbf1073ccfcbf7ca3e6b40ece32"
+path = "src/desktop/kde/kiconthemes"
+sync = "copy"
+
+[[component]]
+name = "kitemmodels"
+repo = "https://github.com/KDE/kitemmodels.git"
+branch = "v6.26.0"
+revision = "1a580ef218d8b71f7432c591880371b0b197680a"
+path = "src/desktop/kde/kitemmodels"
+sync = "copy"
+
+[[component]]
+name = "kcmutils"
+repo = "https://github.com/KDE/kcmutils.git"
+branch = "v6.26.0"
+revision = "1ffa3b5e5f9de44bb49c8c6a17664c43ee46431d"
+path = "src/desktop/kde/kcmutils"
+sync = "copy"
+
+[[component]]
+name = "kded"
+repo = "https://github.com/KDE/kded.git"
+branch = "v6.26.0"
+revision = "0a508287490b6e6f3062e2624678463090de202f"
+path = "src/desktop/kde/kded"
+sync = "copy"
+
+[[component]]
+name = "kio"
+repo = "https://github.com/KDE/kio.git"
+branch = "v6.26.0"
+revision = "caf323e0f314ee28b8a9cc1a6cc9fa18a6eeef16"
+path = "src/desktop/kde/kio"
+sync = "copy"
+
+[[component]]
+name = "kunitconversion"
+repo = "https://invent.kde.org/frameworks/kunitconversion.git"
+branch = "v6.26.0"
+revision = "3d30c3a00260fe0fa70ce1d1889ff41657cc05f5"
+path = "src/desktop/kde/kunitconversion"
+sync = "copy"
+
+[[component]]
+name = "knewstuff"
+repo = "https://github.com/KDE/knewstuff.git"
+branch = "v6.26.0"
+revision = "3b47aebf3df8e60324921f994bee10f7ff891560"
+path = "src/desktop/kde/knewstuff"
+sync = "copy"
+
+[[component]]
+name = "solid"
+repo = "https://github.com/KDE/solid.git"
+branch = "v6.26.0"
+revision = "f4ee22958f3a6feee71eda3f8d63347c74c886c0"
+path = "src/desktop/kde/solid"
+sync = "copy"
+
+[[component]]
+name = "kdoctools"
+repo = "https://github.com/KDE/kdoctools.git"
+branch = "v6.26.0"
+revision = "6645649958326fac6d879626ff5729604ef25342"
+path = "src/desktop/kde/kdoctools"
+sync = "copy"
+
+[[component]]
+name = "kbookmarks"
+repo = "https://github.com/KDE/kbookmarks.git"
+branch = "v6.26.0"
+revision = "93a31eb7c67ed8ba70b00a5263b77283a2c2202e"
+path = "src/desktop/kde/kbookmarks"
+sync = "copy"
+
+[[component]]
+name = "kcompletion"
+repo = "https://github.com/KDE/kcompletion.git"
+branch = "v6.26.0"
+revision = "3bcc8d95c960c71cea26737088b4aae8332547f6"
+path = "src/desktop/kde/kcompletion"
+sync = "copy"
+
+[[component]]
+name = "kcodecs"
+repo = "https://github.com/KDE/kcodecs.git"
+branch = "v6.26.0"
+revision = "90bc6c5db860fa715fd4cf2f3b35fb49986fac39"
+path = "src/desktop/kde/kcodecs"
+sync = "copy"
+
+[[component]]
+name = "knotifications"
+repo = "https://github.com/KDE/knotifications.git"
+branch = "v6.26.0"
+revision = "9c3cb2911c88006f844780efda67f5507128491d"
+path = "src/desktop/kde/knotifications"
+sync = "copy"
+
+[[component]]
+name = "kparts"
+repo = "https://github.com/KDE/kparts.git"
+branch = "v6.26.0"
+revision = "a534217afb47501a3e5918cccd66bab12e1f84c5"
+path = "src/desktop/kde/kparts"
+sync = "copy"
+
+[[component]]
+name = "prison"
+repo = "https://github.com/KDE/prison.git"
+branch = "v6.26.0"
+revision = "5f8346bd9dd244a6dc2541cf906d129be4dbc2c5"
+path = "src/desktop/kde/prison"
+sync = "copy"
+
+[[component]]
+name = "krunner"
+repo = "https://github.com/KDE/krunner.git"
+branch = "v6.26.0"
+revision = "40908a96309a57299367d2b3b9834c2392f6f4d2"
+path = "src/desktop/kde/krunner"
+sync = "copy"
+
+[[component]]
+name = "kstatusnotifieritem"
+repo = "https://github.com/KDE/kstatusnotifieritem.git"
+branch = "v6.26.0"
+revision = "fb56832ebcff866cd817728e86a2f831745ac9f3"
+path = "src/desktop/kde/kstatusnotifieritem"
+sync = "copy"
+
+[[component]]
+name = "ktexteditor"
+repo = "https://github.com/KDE/ktexteditor.git"
+branch = "v6.26.0"
+revision = "163ad01d31c7a7e5190bd9dc7187d91e08bf55c3"
+path = "src/desktop/kde/ktexteditor"
+sync = "copy"
+
+[[component]]
+name = "ksyntaxhighlighting"
+repo = "https://invent.kde.org/frameworks/syntax-highlighting.git"
+branch = "v6.26.0"
+revision = "8a8789ca55c1209109f97a34b18e633c4240bee0"
+path = "src/desktop/kde/ksyntaxhighlighting"
+sync = "copy"
+
+[[component]]
+name = "ktextwidgets"
+repo = "https://github.com/KDE/ktextwidgets.git"
+branch = "v6.26.0"
+revision = "2d8f56b0749328924d56a953f8c7717f14bb264a"
+path = "src/desktop/kde/ktextwidgets"
+sync = "copy"
+
+[[component]]
+name = "kwallet"
+repo = "https://github.com/KDE/kwallet.git"
+branch = "v6.26.0"
+revision = "5c19119682c3f88f5fc31c33648c5e3bd2228f5b"
+path = "src/desktop/kde/kwallet"
+sync = "copy"
+
+[[component]]
+name = "kitemviews"
+repo = "https://github.com/KDE/kitemviews.git"
+branch = "v6.26.0"
+revision = "e423e89d213c5cc0a4ab1eb910f2f2d923f2adb2"
+path = "src/desktop/kde/kitemviews"
+sync = "copy"
+
+[[component]]
+name = "kjobwidgets"
+repo = "https://github.com/KDE/kjobwidgets.git"
+branch = "v6.26.0"
+revision = "90db0d70c33a918ae580ab6ffe502c6683d6f570"
+path = "src/desktop/kde/kjobwidgets"
+sync = "copy"
+
+[[component]]
+name = "qrencode"
+repo = "https://github.com/fukuchi/libqrencode.git"
+branch = "v4.1.1"
+revision = "0f6149e41533a34029e72ff9234a18e0f22ab992"
+path = "src/system/libraries/qrencode"
+sync = "copy"
+
+[[component]]
+name = "sonnet"
+repo = "https://invent.kde.org/frameworks/sonnet.git"
+branch = "v6.26.0"
+revision = "6a5b336f9ae58373bb6fa613e13304ea78ccb33e"
+path = "src/desktop/kde/sonnet"
+sync = "copy"
+
+[[component]]
+name = "attica"
+repo = "https://invent.kde.org/frameworks/attica.git"
+branch = "v6.26.0"
+revision = "aef3c6951afb0c5a850957bcfdafdc129f442b5b"
+path = "src/desktop/kde/attica"
+sync = "copy"
+patch_manifest = "upstream/patches/attica/manifest.toml"
+patch_manifest_sha256 = "acac4660ff8b83ec78a903307b1cc39b82528eb9ba02963aa3f3e49d365ccab3"
+
+[[component]]
+name = "kxmlgui"
+repo = "https://invent.kde.org/frameworks/kxmlgui.git"
+branch = "v6.26.0"
+revision = "565fe2af48a57370acd8e5260e1cb63b9ad5ca79"
+path = "src/desktop/kde/kxmlgui"
+sync = "copy"
+
+[[component]]
+name = "kconfigwidgets"
+repo = "https://invent.kde.org/frameworks/kconfigwidgets.git"
+branch = "v6.26.0"
+revision = "0307ea844f9933a9a29cb8e34e777b3ae24a07ae"
+path = "src/desktop/kde/kconfigwidgets"
+sync = "copy"
+
+[[component]]
+name = "plasma-framework"
+repo = "https://invent.kde.org/plasma/plasma-framework.git"
+branch = "v6.6.5"
+revision = "e43e11f184067b0c285c68a5baed179c2eacbeb8"
+path = "src/desktop/kde/plasma-framework"
+sync = "copy"
+
+[[component]]
+name = "plasma-activities"
+repo = "https://invent.kde.org/plasma/plasma-activities.git"
+branch = "v6.6.5"
+revision = "144e52b0a5c48b367bbcee87f126fd6cdd3d308e"
+path = "src/desktop/kde/plasma-activities"
+sync = "copy"
+
+[[component]]
+name = "kglobalacceld"
+repo = "https://invent.kde.org/plasma/kglobalacceld.git"
+branch = "v6.6.5"
+revision = "a243a4bc4f02c016e474ef38cba5ed9c268945a8"
+path = "src/desktop/kde/kglobalacceld"
+sync = "copy"
+
+[[component]]
+name = "kactivitymanagerd"
+repo = "https://invent.kde.org/plasma/kactivitymanagerd.git"
+branch = "v6.6.5"
+revision = "e0de79231b4315ca688c458e22c531e8b6febfb3"
+path = "src/desktop/kde/kactivitymanagerd"
+sync = "copy"
+
+[[component]]
+name = "plasma-activities-stats"
+repo = "https://invent.kde.org/plasma/plasma-activities-stats.git"
+branch = "v6.6.5"
+revision = "ec88220621c2b2df85d633519f68b34f1b65f981"
+path = "src/desktop/kde/plasma-activities-stats"
+sync = "copy"
+
+[[component]]
+name = "plasma5support"
+repo = "https://invent.kde.org/plasma/plasma5support.git"
+branch = "v6.6.5"
+revision = "29d9fd23306bc5b90332bd98cde238ffb19ed830"
+path = "src/desktop/kde/plasma5support"
+sync = "copy"
+
+[[component]]
+name = "libkscreen"
+repo = "https://invent.kde.org/plasma/libkscreen.git"
+branch = "v6.6.5"
+revision = "7545098506d4969e8fc8677b205bd54e3756e3ca"
+path = "src/desktop/kde/libkscreen"
+sync = "copy"
+
+[[component]]
+name = "layer-shell-qt"
+repo = "https://invent.kde.org/plasma/layer-shell-qt.git"
+branch = "v6.6.5"
+revision = "8991054af11f13feb5714d31738d953104231508"
+path = "src/desktop/kde/layer-shell-qt"
+sync = "copy"
+
+[[component]]
+name = "kscreenlocker"
+repo = "https://invent.kde.org/plasma/kscreenlocker.git"
+branch = "v6.6.5"
+revision = "bdd1bdb995a26ac4dd7d1d1207e7e276c5405d77"
+path = "src/desktop/kde/kscreenlocker"
+sync = "copy"
+
+[[component]]
+name = "ksysguard"
+repo = "https://invent.kde.org/plasma/libksysguard.git"
+branch = "v6.6.5"
+revision = "7a8874ff0fde7f108a2ed44eb4ef6ec5f28f9064"
+path = "src/desktop/kde/ksysguard"
+sync = "copy"
+
+[[component]]
+name = "icu"
+repo = "https://github.com/unicode-org/icu.git"
+branch = "release-78.3"
+revision = "21d1eb0f306e1141c10931e914dfc038c06121da"
+path = "src/system/libraries/icu"
+sync = "copy"
+
+[[component]]
+name = "fontconfig"
+repo = "https://gitlab.freedesktop.org/fontconfig/fontconfig.git"
+branch = "2.17.1"
+revision = "6d0a98982ec351c165c9224c8b7dbdfca3010e47"
+path = "src/system/libraries/fontconfig"
 sync = "copy"

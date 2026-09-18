@@ -1,0 +1,83 @@
+// Copyright (C) 2017 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtquick-deployment.html
+\meta {keywords} {qmltopic}
+\title Deploying QML Applications
+\brief Provides information on how to use deploy QML applications.
+
+This page provides information on how to deploy QML applications. It covers the
+use of \QC for deployment, and the use of the Qt Resource System to package QML
+files and other resources with the application executable.
+
+\section1 Deploying applications with \QC
+
+\l{\QC Documentation}{\QC} deploys and packages QML applications to various
+platforms. For mobile devices, \QC can directly bundle applications to the
+respective platform package formats, such as APK.
+
+When you run your applications on the target platform, your application needs
+to access the location of the QML libraries. If you use
+\l{qmake Manual}{qmake}, the \c QT_INSTALL_QML environment variable points to
+the location of the libraries. The \l{Downloads}{Qt Installers} install the QML
+libraries in: \c{<version>}\c{/}\e{<compiler>}\c{/qml} directory.
+
+
+\section1 Using the Qt Resource System with QML
+
+The \l {The Qt Resource System}{Qt resource system} allows resource files to be
+stored as binary files in an application executable. The Qt Resource System is
+used for QML application as it enables QML files and other resources -- such as
+images and sound files -- to be referred to through the resource system URI
+scheme rather than relative or absolute paths to filesystem resources.
+
+\note Usage of the resource system means that the application executable
+usually must be re-compiled whenever a QML source file is changed, to update
+the resources in the package.
+
+The \l{qt_add_qml_module}{CMake QML Module API} automatically places your QML
+files in the resource system. To access them, load your main QML file as a
+resource or as a URL with the \c{qrc} scheme. The path in the resource system
+where your QML files are placed can be found by concatenating:
+
+\list
+\li the \c RESOURCE_PREFIX you have passed to \l{qt_add_qml_module}.
+\li \c{/qt/qml}, if you have \e{not} passed \c RESOURCE_PREFIX to
+    \l{qt_add_qml_module} and \l{QTP0001} policy is set to \c NEW.
+\li \c{/}, if you have \e{not} passed \c RESOURCE_PREFIX to \l{qt_add_qml_module}
+    and \l{QTP0001} policy is \c{not} set to \c NEW.
+\li If you have \e{not} passed \c NO_RESOURCE_TARGET_PATH to \l{qt_add_qml_module}:
+    the \c URI you have passed to \l{qt_add_qml_module} with dots replaced by slashes.
+\endlist
+
+For example, a module called \c{My.Own.Module} is placed at:
+\list
+\li \c{:/qt/qml/My/Own/Module/} if you have specified \c{/qt/qml} as \c RESOURCE_PREFIX, or
+    you have \e{not} passed \c RESOURCE_PREFIX and \l{QTP0001} policy is set to \c NEW.
+\li \c{:/My/Own/Module/} if you have specified \c{/} as \c RESOURCE_PREFIX, or
+    you have \e{not} passed \c RESOURCE_PREFIX and \l{QTP0001} policy is \e{not} set to \c NEW.
+\li \c{:/Some/Prefix/My/Own/Module/} if you have specified \c{Some/Prefix/} as \c RESOURCE_PREFIX
+\li \c{:/} if you have specified \c NO_RESOURCE_TARGET_PATH
+\endlist
+
+Once this is done, all files specified by relative paths in QML are loaded from
+the resource system. Use of the resource system is completely transparent to
+the QML layer; this means all QML code should refer to resource files using
+relative paths and should \e{not} use the \c{qrc} scheme. This scheme should
+only be used from C++ code to refer to resource files.
+
+\note When using qmake, you need to manually place your files in the resource
+system. See the \l{qmake Manual} and the \l{The Qt Resource System}{general
+documentation} on the resource system for how to do this. It's advisable to
+still follow the path naming convention outlined above.
+
+\section1 Related Information
+\list
+    \li \l{Deploying Qt Applications}
+    \li \l{\QC: Run on many platforms}
+    \li \l{Data Type Conversion Between QML and C++}{Exposing Attributes of C++ Types to QML}
+    \li \l{The Qt Resource System}
+\endlist
+
+*/

@@ -1,0 +1,365 @@
+# translation of plasma_applet_notifier.po to Finnish
+# Copyright © 2007, 2008, 2009, 2011 This_file_is_part_of_KDE
+# This file is distributed under the same license as the kde-workspace package.
+# Mikko Piippo <piippo@cc.helsinki.fi>, 2007, 2008.
+# Teemu Rytilahti <teemu.rytilahti@kde-fi.org>, 2008.
+# Teemu Rytilahti <teemu.rytilahti@d5k.net>, 2008.
+# SPDX-FileCopyrightText: 2009, 2012, 2018, 2019, 2020, 2021, 2022, 2023, 2025 Tommi Nieminen <translator@legisign.org>
+# SPDX-FileCopyrightText: 2010, 2011, 2024 Lasse Liehu <lliehu@kolumbus.fi>
+# Lasse Liehu <lasse.liehu@gmail.com>, 2011, 2013, 2014, 2016.
+# SPDX-FileCopyrightText: 2024 Kimmo Kujansuu <mrkujansuu@gmail.com>
+#
+# KDE Finnish translation sprint participants:
+# Author: Lliehu
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma_applet_notifier\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-17 02:39+0000\n"
+"PO-Revision-Date: 2025-08-14 18:37+0300\n"
+"Last-Translator: Tommi Nieminen <translator@legisign.org>\n"
+"Language-Team: Finnish <kde-i18n-doc@kde.org>\n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 25.04.0\n"
+
+#: actions/checkaction.cpp:72
+#, kde-format
+msgctxt "@action:button check a storageAccess (i.e disk) for error"
+msgid "Check for Errors"
+msgstr "Tarkista virheet"
+
+#: actions/mountaction.cpp:97
+#, kde-format
+msgid "Mount"
+msgstr "Liitä"
+
+#: actions/mountandopenaction.cpp:178
+#, kde-format
+msgid "Open in File Manager"
+msgstr "Avaa tiedostonhallintaan"
+
+#: actions/mountandopenaction.cpp:181
+#, kde-format
+msgid "Try to Fix"
+msgstr "Yritä korjata"
+
+#: actions/mountandopenaction.cpp:181
+#, kde-format
+msgid "Mount and Open"
+msgstr "Liitä ja avaa"
+
+#: actions/mountandopenaction.cpp:183
+#, kde-format
+msgid "Eject"
+msgstr "Irrota"
+
+#: actions/mountandopenaction.cpp:185
+#, kde-format
+msgid "Safely remove"
+msgstr "Poista turvallisesti"
+
+#: devicemessagemonitor_p.cpp:171
+#, kde-format
+msgid "This device has file system errors."
+msgstr "Laitteen tiedostojärjestelmässä on virheitä."
+
+#: devicemessagemonitor_p.cpp:173
+#, kde-format
+msgctxt "@label device is a storage disk"
+msgid "This device has no errors"
+msgstr "Laitteella ei ole virheitä"
+
+#: devicemessagemonitor_p.cpp:176
+#, kde-format
+msgid "Successfully repaired!"
+msgstr "Korjaus onnistui!"
+
+#: devicemessagemonitor_p.cpp:180
+#, kde-format
+msgid "Device Status"
+msgstr "Laitteen tila"
+
+#: devicemessagemonitor_p.cpp:181
+#, kde-format
+msgid "A device can now be safely removed"
+msgstr "Laite voidaan nyt poistaa turvallisesti"
+
+#: devicemessagemonitor_p.cpp:185
+#, kde-format
+msgid "This device can now be safely removed."
+msgstr "Tämä laite voidaan nyt poistaa turvallisesti."
+
+#: devicemessagemonitor_p.cpp:192
+#, kde-format
+msgid "You are not authorized to mount this device."
+msgstr "Sinulla ei ole oikeutta liittää tätä laitetta."
+
+#: devicemessagemonitor_p.cpp:196
+#, kde-format
+msgid "You are not authorized to eject this disc."
+msgstr "Sinulla ei ole oikeutta poistaa tätä levyä."
+
+#: devicemessagemonitor_p.cpp:199
+#, kde-format
+msgctxt "Remove is less technical for unmount"
+msgid "You are not authorized to remove this device."
+msgstr "Sinulla ei ole oikeutta poistaa tätä laitetta."
+
+#: devicemessagemonitor_p.cpp:202
+#, kde-format
+msgid "You are not authorized to repair this device."
+msgstr "Sinulla ei ole oikeutta korjata tätä laitetta."
+
+#: devicemessagemonitor_p.cpp:204 devicemessagemonitor_p.cpp:269
+#, kde-format
+msgid "Unknown error type"
+msgstr "Tuntematon virhetyyppi"
+
+#: devicemessagemonitor_p.cpp:208
+#, kde-format
+msgid "Could not mount this device as it is busy."
+msgstr "Tätä laitetta ei voitu liittää, koska se on varattu."
+
+#: devicemessagemonitor_p.cpp:235
+#, kde-format
+msgid "One or more files on this device are open within an application."
+msgstr "Yksi tai useampia laitteen tiedostoista on auki jossain ohjelmassa."
+
+#: devicemessagemonitor_p.cpp:237
+#, kde-format
+msgid "One or more files on this device are opened in application \"%2\"."
+msgid_plural ""
+"One or more files on this device are opened in following applications: %2."
+msgstr[0] "Yksi tai useampia laitteen tiedostoista on auki sovelluksessa ”2%”."
+msgstr[1] ""
+"Yksi tai useampia laitteen tiedostoista on auki seuraavissa sovelluksissa: "
+"%2."
+
+#: devicemessagemonitor_p.cpp:240
+#, kde-format
+msgctxt "separator in list of apps blocking device unmount"
+msgid ", "
+msgstr ", "
+
+#: devicemessagemonitor_p.cpp:258
+#, kde-format
+msgid "Could not mount this device."
+msgstr "Tätä laitetta ei voitu liittää."
+
+#: devicemessagemonitor_p.cpp:262
+#, kde-format
+msgid "Could not eject this disc."
+msgstr "Tätä levyä ei voitu poistaa."
+
+#: devicemessagemonitor_p.cpp:264
+#, kde-format
+msgctxt "Remove is less technical for unmount"
+msgid "Could not remove this device."
+msgstr "Tätä laitetta ei voitu poistaa."
+
+#: devicemessagemonitor_p.cpp:267
+#, kde-format
+msgid "Could not repair this device: %1"
+msgstr "Tätä laitetta ei voitu korjata: %1"
+
+#: qml/DeviceItem.qml:99
+#, kde-format
+msgctxt ""
+"Accessing is a less technical word for Mounting; translation should be short "
+"and mean 'Currently mounting this device'"
+msgid "Checking…"
+msgstr "Tarkistetaan…"
+
+#: qml/DeviceItem.qml:101
+#, kde-format
+msgctxt ""
+"Accessing is a less technical word for Mounting; translation should be short "
+"and mean 'Currently mounting this device'"
+msgid "Repairing…"
+msgstr "Korjataan…"
+
+#: qml/DeviceItem.qml:104
+#, kde-format
+msgctxt "@info:status Free disk space"
+msgid "%1 free of %2"
+msgstr "%1 / %2 vapaana"
+
+#: qml/DeviceItem.qml:108
+#, kde-format
+msgctxt ""
+"Accessing is a less technical word for Mounting; translation should be short "
+"and mean 'Currently mounting this device'"
+msgid "Accessing…"
+msgstr "Liitetään…"
+
+#: qml/DeviceItem.qml:111
+#, kde-format
+msgctxt ""
+"Removing is a less technical word for Unmounting; translation should be "
+"short and mean 'Currently unmounting this device'"
+msgid "Removing…"
+msgstr "Poistetaan…"
+
+#: qml/DeviceItem.qml:114
+#, kde-format
+msgid "Don't unplug yet! Files are still being transferred…"
+msgstr "Älä irrota laitetta vielä! Tiedostoja siirretään yhä…"
+
+#: qml/FullRepresentation.qml:47 qml/main.qml:123
+#, kde-format
+msgid "Remove All"
+msgstr "Poista kaikki"
+
+#: qml/FullRepresentation.qml:48
+#, kde-format
+msgid "Click to safely remove all devices"
+msgstr "Irrota kaikki laitteet turvallisesti napsauttamalla tästä"
+
+#: qml/FullRepresentation.qml:162
+#, kde-format
+msgid "No removable devices attached"
+msgstr "Siirrettäviä laitteita ei ole kytketty"
+
+#: qml/FullRepresentation.qml:162
+#, kde-format
+msgid "No disks available"
+msgstr "Ei käytettävissä olevia levyjä"
+
+#: qml/main.qml:72
+#, kde-format
+msgid "Most Recent Device"
+msgstr "Viimeisin laite"
+
+#: qml/main.qml:72
+#, kde-format
+msgid "No Devices Available"
+msgstr "Ei laitteita käytettävissä"
+
+#: qml/main.qml:109
+#, kde-format
+msgctxt "Open auto mounter kcm"
+msgid "Configure Removable Devices…"
+msgstr "Siirrettävien laitteiden asetukset…"
+
+#: qml/main.qml:131
+#, kde-format
+msgid "Removable Devices"
+msgstr "Siirrettävät laitteet"
+
+#: qml/main.qml:146
+#, kde-format
+msgid "Non Removable Devices"
+msgstr "Kiinteät laitteet"
+
+#: qml/main.qml:161
+#, kde-format
+msgid "All Devices"
+msgstr "Kaikki laitteet"
+
+#: qml/main.qml:178
+#, kde-format
+msgid "Show popup when new device is plugged in"
+msgstr "Avaa ponnahdusikkuna, kun uusi laite kytketään"
+
+#~ msgctxt "@action:button Mount a disk without verifying for errors"
+#~ msgid "Mount without verifying"
+#~ msgstr "Liitä tarkistamatta"
+
+#~ msgid "Show:"
+#~ msgstr "Näytä:"
+
+#~ msgid "General"
+#~ msgstr "Perusasetukset"
+
+#~ msgid ""
+#~ "It is currently <b>not safe</b> to remove this device: applications may "
+#~ "be accessing it. Click the eject button to safely remove this device."
+#~ msgstr ""
+#~ "Tämän laitteen poistaminen <b>ei tällä hetkellä ole turvallista</b>. "
+#~ "Ohjelmat saattavat käyttää sitä. Napsauta poistamispainiketta "
+#~ "poistaaksesi laitteen turvallisesti"
+
+#~ msgid "This device is currently accessible."
+#~ msgstr "Tämä laite on nyt saatavilla"
+
+#~ msgid ""
+#~ "It is currently <b>not safe</b> to remove this device: applications may "
+#~ "be accessing other volumes on this device. Click the eject button on "
+#~ "these other volumes to safely remove this device."
+#~ msgstr ""
+#~ "Tämän laitteen poistaminen <b>ei tällä hetkellä ole turvallista</b>. "
+#~ "Ohjelmat voivat käyttää laitteen muita taltioita. Napsauta näiden "
+#~ "taltioiden poistamispainiketta, jotta voit poistaa tämän laitteen "
+#~ "turvallisesti"
+
+#~ msgid "This device is not currently accessible."
+#~ msgstr "Tämä laite ei ole nyt saatavilla"
+
+#~ msgid "1 action for this device"
+#~ msgid_plural "%1 actions for this device"
+#~ msgstr[0] "%1 toiminto tälle laitteelle"
+#~ msgstr[1] "%1 toimintoa tälle laitteelle"
+
+#~ msgid "Click to access this device from other applications."
+#~ msgstr "Salli muiden sovellusten käyttää tätä laitetta napsauttamalla tästä"
+
+#~ msgid "Click to safely remove this device."
+#~ msgstr "Irrota tämä laite turvallisesti napsauttamalla tästä"
+
+#~ msgid "Available Devices"
+#~ msgstr "Käytettävissä olevat laitteet"
+
+#~ msgid "This device is currently not accessible."
+#~ msgstr "Tämä laite ei ole nyt saatavilla"
+
+#~ msgid "Display"
+#~ msgstr "Näyttö"
+
+#~ msgid "Automounting"
+#~ msgstr "Automaattinen liittäminen"
+
+#~ msgid "Show hidden devices"
+#~ msgstr "Näytä piilotetut laitteet"
+
+#~ msgctxt "Hide a device"
+#~ msgid "Hide %1"
+#~ msgstr "Piilota %1"
+
+#, fuzzy
+#~| msgid "Device is plugged in and can be accessed by applications."
+#~ msgid ""
+#~ "Device is plugged in and the volume can be accessed by applications. It "
+#~ "is not safe to remove this device."
+#~ msgstr "Laite on kytketty ja ohjelmat voivat käyttää sitä."
+
+#, fuzzy
+#~| msgid "Device is plugged in, but not mounted for access yet."
+#~ msgid ""
+#~ "Device is plugged in and the volume is not mounted for access yet. The "
+#~ "device can be safely removed."
+#~ msgstr "Laite on kytketty, muttei vielä liitetty tiedostojärjestelmään."
+
+#~ msgid "Cannot mount the disc."
+#~ msgstr "Levyä ei voi liittää."
+
+#~ msgid "Devices recently plugged in:"
+#~ msgstr "Viime aikoina liitetyt laitteet:"
+
+#~ msgid "&Time to stay on top:"
+#~ msgstr "&Näytetään päällä:"
+
+#~ msgid " sec"
+#~ msgstr " s"
+
+#~ msgid "&Number of items displayed:"
+#~ msgstr "&Näytettävien laitteiden määrä:"
+
+#~ msgid "Unlimited"
+#~ msgstr "Rajattomasti"
+
+#~ msgid "&Display time of items:"
+#~ msgstr "&Laitteiden näyttöaika:"

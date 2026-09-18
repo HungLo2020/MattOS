@@ -1,0 +1,85 @@
+# Spanish translations for kparts6.po package.
+# Copyright (C) 2000-2025 This file is copyright:
+# This file is distributed under the same license as the kparts package.
+#
+# SPDX-FileCopyrightText: 2000-2004 Pablo de Vicente <vicente@oan.es>
+# SPDX-FileCopyrightText: 2004, 2005 Pablo de Vicente <p.devicente@wanadoo.es>
+# SPDX-FileCopyrightText: 2005, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2020, 2021, 2022, 2023, 2025 Eloy Cuadra <ecuadra@eloihr.net>
+# SPDX-FileCopyrightText: 2005, 2006, 2007 Pablo de Vicente <pablo.devicente@gmail.com>
+# SPDX-FileCopyrightText: 2007 Enrique Matias Sanchez (aka Quique) <cronopios@gmail.com>
+# SPDX-FileCopyrightText: 2007 Jaime Robles <jaime@kde.org>
+# SPDX-FileCopyrightText: 2013 Javier Viñal <fjvinal@gmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: kparts6\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-11-17 11:49+0000\n"
+"PO-Revision-Date: 2025-05-18 13:44+0100\n"
+"Last-Translator: Eloy Cuadra <ecuadra@eloihr.net>\n"
+"Language-Team: Spanish <kde-l10n-es@kde.org>\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"First-Translator: Boris Wesslowski <Boris@Wesslowski.com>\n"
+"X-Generator: Lokalize 22.12.1\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Eloy Cuadra"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "ecuadra@eloihr.net"
+
+#: navigationextension.cpp:196
+#, kde-format
+msgid "<qt>Do you want to search the Internet for <b>%1</b>?</qt>"
+msgstr "<qt>¿Desea buscar <b>%1</b> en Internet?</qt>"
+
+#: navigationextension.cpp:197
+#, kde-format
+msgid "Internet Search"
+msgstr "Búsqueda en Internet"
+
+#: navigationextension.cpp:198
+#, kde-format
+msgid "&Search"
+msgstr "Bu&scar"
+
+#: partloader.cpp:152
+#, kde-format
+msgid "KPluginFactory could not load the plugin: %1"
+msgstr "KPluginFactory no ha podido cargar el complemento: %1"
+
+#: partloader.cpp:156
+#, kde-format
+msgid "No part was found for mimeType %1"
+msgstr "No se ha encontrado ninguna parte para el tipo MIME %1."
+
+#: partloader.cpp:160
+#, kde-format
+msgid "No part could be instantiated for mimeType %1"
+msgstr "No se ha crear una instancia de ninguna parte para el tipo MIME %1."
+
+#: readwritepart.cpp:84
+#, kde-format
+msgid "Untitled"
+msgstr "Sin título"
+
+#: readwritepart.cpp:93
+#, kde-format
+msgid ""
+"The document \"%1\" has been modified.\n"
+"Do you want to save your changes or discard them?"
+msgstr ""
+"El documento «%1» ha sido modificado\n"
+"¿Desea guardar los cambios o descartarlos?"
+
+#: readwritepart.cpp:96
+#, kde-format
+msgid "Close Document"
+msgstr "Cerrar documento"

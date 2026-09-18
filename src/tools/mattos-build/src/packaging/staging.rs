@@ -10,6 +10,9 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         "libgcc-s1" => {
             stage_gcc_runtime_library(repo_root, &staging, "libgcc_s.so.1", "libgcc-s1")?
         }
+        "libgomp1" => {
+            stage_gcc_runtime_library(repo_root, &staging, "libgomp.so.1", "libgomp1")?
+        }
         "libstdc++6" => {
             stage_gcc_runtime_library(repo_root, &staging, "libstdc++.so.6", "libstdc++6")?
         }
@@ -169,6 +172,23 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             "src/system/libraries/expat/expat/COPYING",
             "libexpat1",
         )?,
+        "libfreetype6" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "freetype",
+            "libfreetype.so.6",
+            "src/system/libraries/freetype/LICENSE.TXT",
+            "libfreetype6",
+        )?,
+        "libfontconfig1" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "fontconfig",
+            "libfontconfig.so.1",
+            "src/system/libraries/fontconfig/COPYING",
+            "libfontconfig1",
+        )?,
+        "fontconfig" => stage_fontconfig(repo_root, &staging)?,
         "libcap2" => stage_imported_soname_library(
             repo_root,
             &staging,
@@ -444,14 +464,133 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             "libffi8",
         )?,
         "libffi-dev" => stage_libffi_dev(repo_root, &staging)?,
-        "libxkbcommon0" => stage_imported_soname_library(
+        "libicu78" => {
+            stage_library_family(
+                repo_root,
+                &staging,
+                "icu",
+                &[
+                    "libicudata.so.78.3",
+                    "libicudata.so.78",
+                    "libicuuc.so.78.3",
+                    "libicuuc.so.78",
+                    "libicui18n.so.78.3",
+                    "libicui18n.so.78",
+                    "libicuio.so.78.3",
+                    "libicuio.so.78",
+                ],
+            )?;
+            // ICU's shared data is intentionally an external archive for the
+            // selected --with-data-packaging=archive build.  The data stub
+            // libicudata.so cannot initialize locale/time-zone services by
+            // itself, so it is part of this runtime package rather than an
+            // optional development payload.
+            let data = component_install(repo_root, "icu").join("usr/share/icu");
+            if !data.join("78.3/icudt78l.dat").is_file() {
+                bail!("ICU runtime data archive is missing from {}", data.display());
+            }
+            copy_tree_preserving(&data, &staging.join("usr/share/icu"))?;
+        }
+        "kf6-kdeclarative" => stage_kde_module(repo_root, &staging, "kdeclarative", "kf6-kdeclarative")?,
+        "qt6-base" => stage_qt_module(repo_root, &staging, "qtbase", "qt6-base")?,
+        "qt6-shadertools" => stage_qt_module(repo_root, &staging, "qtshadertools", "qt6-shadertools")?,
+        "qt6-declarative" => stage_qt_module(repo_root, &staging, "qtdeclarative", "qt6-declarative")?,
+        "qt6-svg" => stage_qt_module(repo_root, &staging, "qtsvg", "qt6-svg")?,
+        "qt6-wayland" => stage_qt_module(repo_root, &staging, "qtwayland", "qt6-wayland")?,
+        "qt6-tools" => stage_qt_module(repo_root, &staging, "qttools", "qt6-tools")?,
+        "qt6-multimedia" => stage_qt_module(repo_root, &staging, "qtmultimedia", "qt6-multimedia")?,
+        "qt6-speech" => stage_qt_module(repo_root, &staging, "qtspeech", "qt6-speech")?,
+        "qt6-core5compat" => stage_qt_module(repo_root, &staging, "qt5compat", "qt6-core5compat")?,
+        "qca-qt6" => stage_kde_module(repo_root, &staging, "qca", "qca-qt6")?,
+        "kwin" => stage_kde_module(repo_root, &staging, "kwin", "kwin")?,
+        "layer-shell-qt" => stage_kde_module(repo_root, &staging, "layer-shell-qt", "layer-shell-qt")?,
+        "plasma-workspace" => stage_kde_module(repo_root, &staging, "plasma-workspace", "plasma-workspace")?,
+        "plasma-framework" => stage_kde_module(repo_root, &staging, "plasma-framework", "plasma-framework")?,
+        "plasma5support" => stage_kde_module(repo_root, &staging, "plasma5support", "plasma5support")?,
+        "krunner" => stage_kde_module(repo_root, &staging, "krunner", "krunner")?,
+        "plasma-desktop" => stage_kde_module(repo_root, &staging, "plasma-desktop", "plasma-desktop")?,
+        "breeze" => stage_kde_module(repo_root, &staging, "breeze", "breeze")?,
+        "breeze-icons" => stage_kde_module(repo_root, &staging, "breeze-icons", "breeze-icons")?,
+        "kf6-kcoreaddons" => stage_kde_module(repo_root, &staging, "kcoreaddons", "kf6-kcoreaddons")?,
+        "kf6-ki18n" => stage_kde_module(repo_root, &staging, "ki18n", "kf6-ki18n")?,
+        "kf6-kwidgetsaddons" => stage_kde_module(repo_root, &staging, "kwidgetsaddons", "kf6-kwidgetsaddons")?,
+        "kf6-kconfig" => stage_kde_module(repo_root, &staging, "kconfig", "kf6-kconfig")?,
+        "kf6-kcmutils" => stage_kde_module(repo_root, &staging, "kcmutils", "kf6-kcmutils")?,
+        "kf6-knewstuffcore" => stage_kde_module(repo_root, &staging, "knewstuff", "kf6-knewstuffcore")?,
+        "kf6-attica" => stage_kde_module(repo_root, &staging, "attica", "kf6-attica")?,
+        "kf6-sonnet" => stage_kde_module(repo_root, &staging, "sonnet", "kf6-sonnet")?,
+        "kf6-kdbusaddons" => stage_kde_module(repo_root, &staging, "kdbusaddons", "kf6-kdbusaddons")?,
+        "kf6-kcrash" => stage_kde_module(repo_root, &staging, "kcrash", "kf6-kcrash")?,
+        "kf6-kwindowsystem" => stage_kde_module(repo_root, &staging, "kwindowsystem", "kf6-kwindowsystem")?,
+        "kf6-kpackage" => stage_kde_module(repo_root, &staging, "kpackage", "kf6-kpackage")?,
+        "kf6-karchive" => stage_kde_module(repo_root, &staging, "karchive", "kf6-karchive")?,
+        "kf6-kio" => stage_kde_module(repo_root, &staging, "kio", "kf6-kio")?,
+        "kf6-kunitconversion" => stage_kde_module(repo_root, &staging, "kunitconversion", "kf6-kunitconversion")?,
+        "kf6-ksvg" => stage_kde_module(repo_root, &staging, "ksvg", "kf6-ksvg")?,
+        "kf6-knotifications" => stage_kde_module(repo_root, &staging, "knotifications", "kf6-knotifications")?,
+        "kf6-kguiaddons" => stage_kde_module(repo_root, &staging, "kguiaddons", "kf6-kguiaddons")?,
+        "kf6-kitemmodels" => stage_kde_module(repo_root, &staging, "kitemmodels", "kf6-kitemmodels")?,
+        "kf6-kglobalaccel" => stage_kde_module(repo_root, &staging, "kglobalaccel", "kf6-kglobalaccel")?,
+        "kf6-kiconthemes" => stage_kde_module(repo_root, &staging, "kiconthemes", "kf6-kiconthemes")?,
+        "kf6-kcolorscheme" => stage_kde_module(repo_root, &staging, "kcolorscheme", "kf6-kcolorscheme")?,
+        "kf6-ksyntaxhighlighting" => stage_kde_module(repo_root, &staging, "ksyntaxhighlighting", "kf6-ksyntaxhighlighting")?,
+        "kf6-kjobwidgets" => stage_kde_module(repo_root, &staging, "kjobwidgets", "kf6-kjobwidgets")?,
+        "kf6-kcompletion" => stage_kde_module(repo_root, &staging, "kcompletion", "kf6-kcompletion")?,
+        "kf6-kservice" => stage_kde_module(repo_root, &staging, "kservice", "kf6-kservice")?,
+        "kf6-solid" => stage_kde_module(repo_root, &staging, "solid", "kf6-solid")?,
+        "kf6-kcodecs" => stage_kde_module(repo_root, &staging, "kcodecs", "kf6-kcodecs")?,
+        "kf6-kdecoration" => stage_kde_module(repo_root, &staging, "kdecoration", "kf6-kdecoration")?,
+        "kf6-kidletime" => stage_kde_module(repo_root, &staging, "kidletime", "kf6-kidletime")?,
+        "liblcms2-2" => stage_imported_soname_library(
             repo_root,
             &staging,
-            "xkbcommon",
-            "libxkbcommon.so.0",
-            "src/system/libraries/xkbcommon/LICENSE",
-            "libxkbcommon0",
+            "lcms2",
+            "liblcms2.so.2",
+            "src/system/graphics/lcms2/LICENSE",
+            "liblcms2-2",
         )?,
+        "kf6-kwayland" => stage_kde_module(repo_root, &staging, "kwayland", "kf6-kwayland")?,
+        "kf6-knighttime" => stage_kde_module(repo_root, &staging, "knighttime", "kf6-knighttime")?,
+        "kf6-kwallet" => stage_kde_module(repo_root, &staging, "kwallet", "kf6-kwallet")?,
+        "kf6-kholidays" => stage_kde_module(repo_root, &staging, "kholidays", "kf6-kholidays")?,
+        "kf6-kstatusnotifieritem" => stage_kde_module(repo_root, &staging, "kstatusnotifieritem", "kf6-kstatusnotifieritem")?,
+        "kf6-kxmlgui" => stage_kde_module(repo_root, &staging, "kxmlgui", "kf6-kxmlgui")?,
+        "kf6-kconfigwidgets" => stage_kde_module(repo_root, &staging, "kconfigwidgets", "kf6-kconfigwidgets")?,
+        "kf6-kitemviews" => stage_kde_module(repo_root, &staging, "kitemviews", "kf6-kitemviews")?,
+        "kf6-kbookmarks" => stage_kde_module(repo_root, &staging, "kbookmarks", "kf6-kbookmarks")?,
+        "qt6-positioning" => stage_qt_module(repo_root, &staging, "qtpositioning", "qt6-positioning")?,
+        "kf6-kirigami" => stage_kde_module(repo_root, &staging, "kirigami", "kf6-kirigami")?,
+        "kf6-kirigami-addons" => stage_kde_module(repo_root, &staging, "kirigami-addons", "kf6-kirigami-addons")?,
+        "kf6-kquickcharts" => stage_kde_module(repo_root, &staging, "kquickcharts", "kf6-kquickcharts")?,
+        "libcanberra0" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "libcanberra",
+            "libcanberra.so.0",
+            "src/system/libraries/libcanberra/LGPL",
+            "libcanberra0",
+        )?,
+        "plasma-activities" => stage_kde_module(repo_root, &staging, "plasma-activities", "plasma-activities")?,
+        "kactivitymanagerd" => stage_kde_module(repo_root, &staging, "kactivitymanagerd", "kactivitymanagerd")?,
+        "kglobalacceld" => stage_kde_module(repo_root, &staging, "kglobalacceld", "kglobalacceld")?,
+        "plasma-activities-stats" => stage_kde_module(repo_root, &staging, "plasma-activities-stats", "plasma-activities-stats")?,
+        "libprocesscore10" => stage_kde_module(repo_root, &staging, "ksysguard", "libprocesscore10")?,
+        "kf6-kauth" => stage_kde_module(repo_root, &staging, "kauth", "kf6-kauth")?,
+        "polkit-qt6-1" => stage_kde_module(repo_root, &staging, "polkit-qt-1", "polkit-qt6-1")?,
+        "libyaml-cpp0.8" => stage_kde_module(repo_root, &staging, "yaml-cpp", "libyaml-cpp0.8")?,
+        "libkpmcore13" => stage_kde_module(repo_root, &staging, "kpmcore", "libkpmcore13")?,
+        "libxkbcommon0" => {
+            for soname in ["libxkbcommon.so.0", "libxkbcommon-x11.so.0"] {
+                stage_imported_soname_library(
+                    repo_root,
+                    &staging,
+                    "xkbcommon",
+                    soname,
+                    "src/system/libraries/xkbcommon/LICENSE",
+                    "libxkbcommon0",
+                )?;
+            }
+        }
         "libwayland-client0" => stage_imported_soname_library(
             repo_root,
             &staging,
@@ -459,6 +598,14 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             "libwayland-client.so.0",
             "src/system/libraries/wayland/COPYING",
             "libwayland-client0",
+        )?,
+        "libwayland-cursor0" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "wayland",
+            "libwayland-cursor.so.0",
+            "src/system/libraries/wayland/COPYING",
+            "libwayland-cursor0",
         )?,
         "libwayland-server0" => stage_imported_soname_library(
             repo_root,
@@ -566,20 +713,52 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             "src/system/graphics/libxdmcp/COPYING",
             "libxdmcp6",
         )?,
-        "libxcb1" => stage_imported_soname_library(
-            repo_root,
-            &staging,
-            "x11-compat",
-            "libxcb.so.1",
-            "src/system/graphics/libxcb/COPYING",
-            "libxcb1",
-        )?,
+        "libxcb1" => {
+            for (component, soname) in [
+                ("x11-compat", "libxcb.so.1"),
+                ("x11-compat", "libxcb-xkb.so.1"),
+                ("x11-compat", "libxcb-composite.so.0"),
+                ("x11-compat", "libxcb-dri3.so.0"),
+                ("x11-compat", "libxcb-glx.so.0"),
+                ("x11-compat", "libxcb-present.so.0"),
+                ("x11-compat", "libxcb-randr.so.0"),
+                ("x11-compat", "libxcb-render.so.0"),
+                ("x11-compat", "libxcb-res.so.0"),
+                ("x11-compat", "libxcb-shape.so.0"),
+                ("x11-compat", "libxcb-shm.so.0"),
+                ("x11-compat", "libxcb-sync.so.1"),
+                ("x11-compat", "libxcb-xfixes.so.0"),
+                ("xcb-util", "libxcb-util.so.1"),
+                ("xcb-renderutil", "libxcb-render-util.so.0"),
+                ("xcb-image", "libxcb-image.so.0"),
+                ("xcb-cursor", "libxcb-cursor.so.0"),
+                ("xcb-util-wm", "libxcb-icccm.so.4"),
+                ("xcb-keysyms", "libxcb-keysyms.so.1"),
+            ] {
+                stage_imported_soname_library(
+                    repo_root,
+                    &staging,
+                    component,
+                    soname,
+                    "src/system/graphics/libxcb/COPYING",
+                    "libxcb1",
+                )?;
+            }
+        }
         "libx11-6" => {
             stage_imported_soname_library(
                 repo_root,
                 &staging,
                 "x11-compat",
                 "libX11.so.6",
+                "src/system/graphics/libx11/COPYING",
+                "libx11-6",
+            )?;
+            stage_imported_soname_library(
+                repo_root,
+                &staging,
+                "x11-compat",
+                "libX11-xcb.so.1",
                 "src/system/graphics/libx11/COPYING",
                 "libx11-6",
             )?;
@@ -596,6 +775,14 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             "src/system/graphics/libxext/COPYING",
             "libxext6",
         )?,
+        "libxfixes3" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "x11-compat",
+            "libXfixes.so.3",
+            "src/system/graphics/libxfixes/COPYING",
+            "libxfixes3",
+        )?,
         "libglvnd0" => stage_imported_soname_library(
             repo_root,
             &staging,
@@ -604,6 +791,7 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             "src/system/graphics/libglvnd/README.md",
             "libglvnd0",
         )?,
+        "libglvnd-dev" => stage_libglvnd_dev(repo_root, &staging)?,
         "libglx0" => stage_imported_soname_library(
             repo_root,
             &staging,
@@ -921,6 +1109,15 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         _ => bail!("no staging implementation for {}", spec.name),
     }
 
+    // Build-stage pkg-config files intentionally point at the disposable
+    // staged prefix so later source builds can consume them.  The Debian
+    // package is a target `/usr` view, however, and must not publish that
+    // host-side prefix.  Normalize only the copied package view here; never
+    // mutate the cache-owned build output.
+    normalize_staged_pkgconfig_paths(repo_root, &staging)?;
+    normalize_staged_cmake_paths(repo_root, &staging)?;
+    normalize_staged_rust_paths(repo_root, &staging)?;
+
     // NVIDIA's redistribution grant requires its userspace binaries to remain
     // unmodified. Open modules are already compressed; preserve every file in
     // this separately versioned stack byte-for-byte after extraction.
@@ -928,6 +1125,7 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         spec.name,
         "libc6"
             | "libgcc-s1"
+            | "libgomp1"
             | "libstdc++6"
             | "linux-modules-nvidia-595-open-7.2.0-rc5-mattos"
             | "nvidia-firmware-595"
@@ -940,6 +1138,12 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
     ) {
         strip_staged_debug(repo_root, &staging)?;
     }
+
+    // Every ordinary target package must be free of checkout/build-host
+    // paths, not only development packages. Runtime code can retain
+    // __FILE__-style paths from host-only headers just as easily as a
+    // toolchain package can retain paths in debug metadata.
+    validate_no_embedded_build_root(repo_root, &staging)?;
 
     let version = package_version(repo_root, spec)?;
     validate_debian_version(&version)?;
@@ -1018,6 +1222,416 @@ fn stage_libffi_dev(repo_root: &Path, staging: &Path) -> Result<()> {
     )
 }
 
+/// Stage only libglvnd's development interface. Runtime packages retain
+/// ownership of every SONAME link and real shared object; downstream CMake,
+/// qmake and pkg-config consumers need these unversioned linker symlinks.
+fn stage_libglvnd_dev(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = component_install(repo_root, "libglvnd").join("usr");
+    copy_tree_preserving(&install.join("include"), &staging.join("usr/include"))?;
+    let libdir = "lib/x86_64-linux-gnu";
+    for relative in [
+        "libGL.so", "libGLX.so", "libOpenGL.so", "libEGL.so",
+        "libGLESv1_CM.so", "libGLESv2.so", "libGLdispatch.so",
+    ] {
+        copy_path_preserving(
+            &install.join(libdir).join(relative),
+            &staging.join("usr").join(libdir).join(relative),
+        )?;
+    }
+    copy_tree_preserving(
+        &install.join(libdir).join("pkgconfig"),
+        &staging.join("usr").join(libdir).join("pkgconfig"),
+    )?;
+    let cmake = install.join(libdir).join("cmake");
+    if cmake.is_dir() {
+        copy_tree_preserving(&cmake, &staging.join("usr").join(libdir).join("cmake"))?;
+    }
+    copy_preserving(
+        &repo_root.join("src/system/graphics/libglvnd/README.md"),
+        &staging.join("usr/share/doc/libglvnd-dev/copyright"),
+    )
+}
+
+fn normalize_staged_pkgconfig_paths(repo_root: &Path, staging: &Path) -> Result<()> {
+    let build_root = repo_root.join("out/build");
+    let build_root_text = build_root.to_string_lossy().into_owned();
+    let mut install_prefixes = Vec::new();
+    if let Ok(entries) = fs::read_dir(&build_root) {
+        for entry in entries {
+            let path = entry?.path().join("install/usr");
+            if path.is_dir() {
+                install_prefixes.push(path.to_string_lossy().into_owned());
+            }
+        }
+    }
+    walk_tree(staging, &mut |path, metadata| {
+        if !metadata.is_file() || path.extension().and_then(OsStr::to_str) != Some("pc") {
+            return Ok(());
+        }
+        let original = fs::read_to_string(path)?;
+        let normalized = install_prefixes.iter().fold(original.clone(), |contents, prefix| {
+            contents.replace(prefix, "/usr")
+        });
+        if normalized.contains(&build_root_text) {
+            bail!(
+                "package pkg-config metadata /{} embeds the host build root",
+                path.strip_prefix(staging)?.display()
+            );
+        }
+        if normalized != original {
+            fs::write(path, normalized)?;
+        }
+        Ok(())
+    })
+}
+
+fn normalize_staged_cmake_paths(repo_root: &Path, staging: &Path) -> Result<()> {
+    let build_root = repo_root.join("out/build");
+    let build_root_text = build_root.to_string_lossy().into_owned();
+    let repo_root_text = repo_root.to_string_lossy().into_owned();
+    let llvm_build = build_root.join("llvm/build").to_string_lossy().into_owned();
+    let cmake_root = staging.join("usr/lib/x86_64-linux-gnu/cmake");
+    if !cmake_root.is_dir() {
+        return Ok(());
+    }
+
+    let mut install_prefixes = Vec::new();
+    if let Ok(entries) = fs::read_dir(&build_root) {
+        for entry in entries {
+            let path = entry?.path().join("install/usr");
+            if path.is_dir() {
+                install_prefixes.push(path.to_string_lossy().into_owned());
+            }
+        }
+    }
+    walk_tree(staging, &mut |path, metadata| {
+        if !metadata.is_file() || !path.starts_with(&cmake_root) {
+            return Ok(());
+        }
+        let original = match fs::read_to_string(path) {
+            Ok(contents) => contents,
+            Err(error) if error.kind() == std::io::ErrorKind::InvalidData => return Ok(()),
+            Err(error) => return Err(error.into()),
+        };
+        let mut normalized = install_prefixes.iter().fold(original.clone(), |contents, prefix| {
+            contents.replace(prefix, "/usr")
+        });
+        // LLVM exposes this build-tree helper in LLVMConfig.cmake. It is a
+        // development-time convenience, but publishing the disposable host
+        // path would make the target package non-reproducible and unusable.
+        for suffix in ["/./bin/llvm-lit", "/bin/llvm-lit"] {
+            normalized = normalized.replace(&format!("{llvm_build}{suffix}"), "/usr/bin/llvm-lit");
+        }
+        if normalized.contains(&build_root_text) || normalized.contains(&repo_root_text) {
+            bail!(
+                "package CMake metadata /{} embeds the host build root",
+                path.strip_prefix(staging)?.display()
+            );
+        }
+        if normalized != original {
+            fs::write(path, normalized)?;
+        }
+        Ok(())
+    })
+}
+
+fn normalize_staged_rust_paths(repo_root: &Path, staging: &Path) -> Result<()> {
+    let build_root = repo_root.join("out/build");
+    let build_root_text = build_root.to_string_lossy().into_owned();
+    let repo_root_text = repo_root.to_string_lossy().into_owned();
+    let install_prefix = component_install(repo_root, "rust")
+        .to_string_lossy()
+        .into_owned();
+    let rustlib_root = staging.join("usr/lib/rustlib");
+    if !rustlib_root.is_dir() {
+        return Ok(());
+    }
+    walk_tree(staging, &mut |path, metadata| {
+        if !metadata.is_file() || !path.starts_with(&rustlib_root) {
+            return Ok(());
+        }
+        let original = match fs::read_to_string(path) {
+            Ok(contents) => contents,
+            Err(error) if error.kind() == std::io::ErrorKind::InvalidData => return Ok(()),
+            Err(error) => return Err(error.into()),
+        };
+        // Rust's installer manifests use `file:<install-prefix>/usr/...`.
+        // Replace the install directory itself, rather than only relying on
+        // the `/usr`-suffixed spelling, so both manifest and installer
+        // generated forms normalize to the target filesystem view.
+        let normalized = original.replace(&install_prefix, "");
+        if normalized.contains(&build_root_text) || normalized.contains(&repo_root_text) {
+            bail!(
+                "package Rust metadata /{} embeds the host build root",
+                path.strip_prefix(staging)?.display()
+            );
+        }
+        if normalized != original {
+            fs::write(path, normalized)?;
+        }
+        Ok(())
+    })
+}
+
+#[cfg(test)]
+mod cmake_package_metadata_tests {
+    use super::*;
+
+    #[test]
+    fn normalizes_llvm_build_tree_helper_without_mutating_install_output() {
+        let fixture = tempfile::tempdir().unwrap();
+        let repo_root = fixture.path();
+        let staging = repo_root.join("staging");
+        let cmake = staging.join("usr/lib/x86_64-linux-gnu/cmake/llvm");
+        fs::create_dir_all(&cmake).unwrap();
+        fs::create_dir_all(repo_root.join("out/build/llvm/install/usr")).unwrap();
+        let config = cmake.join("LLVMConfig.cmake");
+        let root = repo_root.to_string_lossy();
+        fs::write(
+            &config,
+            format!(
+                "set(LLVM_DEFAULT_EXTERNAL_LIT \"{root}/out/build/llvm/build/./bin/llvm-lit\")\n"
+            ),
+        )
+        .unwrap();
+
+        normalize_staged_cmake_paths(repo_root, &staging).unwrap();
+
+        let contents = fs::read_to_string(config).unwrap();
+        assert!(contents.contains("/usr/bin/llvm-lit"));
+        assert!(!contents.contains(root.as_ref()));
+    }
+}
+
+#[cfg(test)]
+mod rust_package_metadata_tests {
+    use super::*;
+
+    #[test]
+    fn normalizes_rust_manifests_and_excludes_install_log() {
+        let fixture = tempfile::tempdir().unwrap();
+        let repo_root = fixture.path();
+        let staging = repo_root.join("staging");
+        let rustlib = staging.join("usr/lib/rustlib");
+        fs::create_dir_all(&rustlib).unwrap();
+        fs::create_dir_all(repo_root.join("out/build/rust/install/usr")).unwrap();
+        let root = repo_root.to_string_lossy();
+        fs::write(
+            rustlib.join("manifest-rustc"),
+            format!("file:{root}/out/build/rust/install/usr/bin/rustc\n"),
+        )
+        .unwrap();
+        fs::write(
+            rustlib.join("install.log"),
+            format!("install: creating {root}/out/build/rust/install/usr/bin/rustc\n"),
+        )
+        .unwrap();
+
+        normalize_staged_rust_paths(repo_root, &staging).unwrap();
+
+        let manifest = fs::read_to_string(rustlib.join("manifest-rustc")).unwrap();
+        assert_eq!(manifest, "file:/usr/bin/rustc\n");
+        assert!(rustlib.join("install.log").is_file());
+        assert!(!manifest.contains(root.as_ref()));
+    }
+}
+
+/// Preserve one upstream Qt module's complete `/usr` prefix. Qt plugins,
+/// tools and imported CMake targets reference sibling paths below that prefix,
+/// so an arbitrary runtime/development split would make later KF6 consumers
+/// fragile without reducing the required Qt foundation closure.
+fn stage_qt_module(
+    repo_root: &Path,
+    staging: &Path,
+    component: &str,
+    package: &str,
+) -> Result<()> {
+    let install = component_install(repo_root, component).join("usr");
+    if !install.is_dir() {
+        bail!("Qt package {package} requires staged {component} output at {}", install.display());
+    }
+    // A Qt module's install prefix is normally self-contained.  The Qt
+    // module build can, however, leave absolute links to sibling module
+    // outputs in the shared plugin tree while standalone module configure
+    // views are being assembled.  Those links are build-tree plumbing, not
+    // payload owned by this package.  Copy the prefix while rejecting links
+    // whose lexical target escapes the producing module's install prefix;
+    // otherwise the first package would claim a sibling plugin and the
+    // ownership audit would (correctly) reject the package set.
+    copy_qt_prefix_without_foreign_links(&install, &staging.join("usr"))?;
+    if component == "qtdeclarative" {
+        // Qt Declarative installs QML test fixtures/plugins alongside the
+        // runtime. They are not part of the target runtime package and some
+        // embed the build host path; keep them available in the stage output
+        // but exclude them from the shipped package.
+        let tests = staging.join("usr/qml/Qt/test");
+        if tests.exists() {
+            fs::remove_dir_all(tests)?;
+        }
+        // QuickTestUtilsPrivate is a static test-support library, not part of
+        // the QtQuick runtime or the development interface consumed by the
+        // Plasma closure.  Qt builds it as an archive containing CMake's
+        // disposable object-directory path; unlike ELF payloads it is not
+        // processed by the debug-strip pass, so retaining it would publish a
+        // host checkout path and fail the package boundary audit.  Exclude
+        // the test-only archives and their qmake sidecars together with the
+        // already-excluded QML fixtures.
+        for name in [
+            "libQt6QuickTestUtils.a",
+            "libQt6QuickTestUtils.prl",
+            "libQt6QuickControlsTestUtils.a",
+            "libQt6QuickControlsTestUtils.prl",
+        ] {
+            let path = staging.join("usr/lib/x86_64-linux-gnu").join(name);
+            if path.exists() {
+                fs::remove_file(path)?;
+            }
+        }
+    }
+    let source = repo_root.join("src/desktop/qt").join(component);
+    let licenses = source.join("LICENSES");
+    if !licenses.is_dir() {
+        bail!("Qt package {package} is missing retained upstream licenses at {}", licenses.display());
+    }
+    copy_tree_preserving(
+        &licenses,
+        &staging.join("usr/share/doc").join(package).join("licenses"),
+    )?;
+    copy_preserving(
+        &source.join("licenseRule.json"),
+        &staging.join("usr/share/doc").join(package).join("licenseRule.json"),
+    )
+}
+
+fn copy_qt_prefix_without_foreign_links(source: &Path, destination: &Path) -> Result<()> {
+    #[cfg(unix)]
+    let mut hardlinks = BTreeMap::new();
+    copy_qt_prefix_inner(source, destination, source, &mut hardlinks)
+}
+
+fn copy_qt_prefix_inner(
+    source: &Path,
+    destination: &Path,
+    owner_prefix: &Path,
+    hardlinks: &mut HardlinkMap,
+) -> Result<()> {
+    if !source.is_dir() {
+        bail!("required package input directory missing at {}", source.display());
+    }
+    fs::create_dir_all(destination)?;
+    let mut entries = fs::read_dir(source)?.collect::<std::io::Result<Vec<_>>>()?;
+    entries.sort_by_key(|entry| entry.file_name());
+    for entry in entries {
+        let from = entry.path();
+        let to = destination.join(entry.file_name());
+        let metadata = fs::symlink_metadata(&from)?;
+        if metadata.file_type().is_symlink() {
+            let target = fs::read_link(&from)?;
+            let resolved = if target.is_absolute() {
+                target
+            } else {
+                from.parent().unwrap_or(owner_prefix).join(target)
+            };
+            if !resolved.starts_with(owner_prefix) {
+                continue;
+            }
+        }
+        if metadata.is_dir() {
+            copy_qt_prefix_inner(&from, &to, owner_prefix, hardlinks)?;
+        } else {
+            copy_path_preserving_with_hardlinks(&from, &to, &metadata, hardlinks)?;
+        }
+    }
+    Ok(())
+}
+
+fn stage_kde_module(repo_root: &Path, staging: &Path, component: &str, package: &str) -> Result<()> {
+    let install_root = component_install(repo_root, component);
+    let install = install_root.join("usr");
+    if !install.is_dir() {
+        bail!("KDE package {package} requires staged {component} output at {}", install.display());
+    }
+    copy_tree_preserving(&install, &staging.join("usr"))?;
+    // Plasma's shell autostart desktop file is installed by KDE's
+    // KDE_INSTALL_AUTOSTARTDIR, which is /etc/xdg/autostart in this target.
+    // Keep it with the workspace package; omitting it leaves the classic
+    // plasma_session fallback with KWin but no plasmashell.  The systemd-user
+    // path remains the primary path, so this is also the correct fallback
+    // payload rather than a package-specific launcher.
+    if component == "plasma-workspace" {
+        let autostart = install_root.join("etc/xdg/autostart");
+        if autostart.is_dir() {
+            copy_tree_preserving(&autostart, &staging.join("etc/xdg/autostart"))?;
+        }
+        // ECM's QtBinariesDir query is evaluated against the build prefix.
+        // Normalize generated user units to the installed target path before
+        // publication; a runtime unit must never retain a developer checkout
+        // path or depend on a build-tree qdbus executable.
+        let host_qdbus = repo_root
+            .join("out/build/qtbase/install/usr/bin/qdbus")
+            .display()
+            .to_string();
+        let user_units = staging.join("usr/lib/systemd/user");
+        if user_units.is_dir() {
+            for entry in fs::read_dir(&user_units)? {
+                let path = entry?.path();
+                if path.extension().and_then(|ext| ext.to_str()) != Some("service") {
+                    continue;
+                }
+                let contents = fs::read_to_string(&path)?;
+                let normalized = contents.replace(&host_qdbus, "/usr/bin/qdbus");
+                if normalized != contents {
+                    fs::write(path, normalized)?;
+                }
+            }
+        }
+    }
+    // The calendar-event plugin is optional Plasma integration. It requires
+    // the separately maintained KCalendarCore/libical stack, which is not in
+    // the current shell closure; omit the complete optional family rather
+    // than shipping an unusable ELF with an absent dependency.
+    if matches!(component, "plasma-workspace" | "plasma-desktop") {
+        remove_path_if_exists(&staging.join("usr/lib/x86_64-linux-gnu/plugins/plasmacalendarplugins"))?;
+    }
+    if component == "breeze" {
+        // The optional Breeze settings helper is a KDE Control Module host;
+        // it is not part of the Wayland shell and would introduce a runtime
+        // dependency on the not-yet-packaged KCMUtils closure.  Keep the
+        // style/window-decoration payload while leaving that unrelated
+        // utility out of the first-class Breeze runtime package.
+        let settings = staging.join("usr/bin/breeze-settings6");
+        if settings.exists() { fs::remove_file(settings)?; }
+    }
+    let source = match component {
+        "kcoreaddons" | "ki18n" | "kwidgetsaddons" | "kconfig" | "kdbusaddons" | "kauth"
+        | "layer-shell-qt" | "plasma-framework" | "krunner" | "kcrash" | "kwindowsystem" | "kpackage" | "karchive" | "kio" | "ksvg" | "knotifications" | "kguiaddons" | "kitemmodels" | "kglobalaccel" | "kiconthemes" | "kcolorscheme" | "kcompletion" | "kjobwidgets" | "kservice" | "solid" | "kcodecs" | "kdecoration" | "kidletime" | "kwayland" | "knighttime" | "kholidays" | "kstatusnotifieritem" | "kxmlgui" | "kconfigwidgets" | "kitemviews" | "kbookmarks" | "kirigami" | "breeze-icons" | "plasma-activities"
+        | "kwin" | "plasma-workspace" | "plasma-desktop" | "breeze" | "plasma-activities-stats" | "kcmutils" | "ksysguard" | "knewstuff" | "attica" | "sonnet" | "kglobalacceld" | "kirigami-addons" | "kquickcharts" => {
+            repo_root.join("src/desktop/kde").join(component)
+        }
+        "polkit-qt-1" => repo_root.join("src/system/security/polkit-qt-1"),
+        "qca" => repo_root.join("src/system/security/qca"),
+        "yaml-cpp" => repo_root.join("src/system/libraries/yaml-cpp"),
+        "kpmcore" => repo_root.join("src/system/storage/kpmcore"),
+        component if repo_root.join("src/desktop/kde").join(component).is_dir() => {
+            // Keep the KDE source-root ownership rule generic for every
+            // first-class KDE package.  The package registry still controls
+            // which components can reach this helper; this guard only avoids
+            // a second, drift-prone list of source directories.
+            repo_root.join("src/desktop/kde").join(component)
+        }
+        _ => bail!("unknown KDE module source component {component}"),
+    };
+    let license = ["LICENSES", "LICENSE", "COPYING", "COPYING-ICONS", "COPYING.LIB"]
+        .iter()
+        .map(|name| source.join(name))
+        .find(|path| path.exists())
+        .ok_or_else(|| anyhow!("KDE package {package} lacks a retained upstream license"))?;
+    let destination = staging.join("usr/share/doc").join(package);
+    if license.is_dir() { copy_tree_preserving(&license, &destination.join("licenses"))?; }
+    else { copy_preserving(&license, &destination.join("copyright"))?; }
+    Ok(())
+}
+
 fn stage_mattos_installer(repo_root: &Path, staging: &Path) -> Result<()> {
     let installer = repo_root.join("out/build/installer");
     stage_executable(
@@ -1093,8 +1707,13 @@ fn stage_cpython_runtime(repo_root: &Path, staging: &Path) -> Result<()> {
                 .next()
                 .and_then(|part| part.as_os_str().to_str())
                 .is_some_and(|name| name.starts_with("config-"))
+                && !relative.components().any(|part| {
+                    part.as_os_str() == OsStr::new("__pycache__")
+                        || part.as_os_str().to_string_lossy().ends_with(".pyc")
+                })
         },
     )?;
+    normalize_cpython_package_metadata(repo_root, staging)?;
     copy_preserving(
         &repo_root.join("src/development/python/cpython/LICENSE"),
         &staging.join("usr/share/doc/python3/copyright"),
@@ -1109,10 +1728,35 @@ fn stage_cpython_venv(repo_root: &Path, staging: &Path) -> Result<()> {
     for relative in [
         "lib/python3.14/ensurepip",
         "lib/python3.14/venv",
-        "lib/python3.14/site-packages",
     ] {
-        copy_tree_preserving(&install.join(relative), &staging.join("usr").join(relative))?;
+        copy_tree_filtered(
+            &install.join(relative),
+            &staging.join("usr").join(relative),
+            &|relative, metadata| {
+                metadata.is_dir()
+                    || !relative.components().any(|part| {
+                        part.as_os_str() == OsStr::new("__pycache__")
+                            || part.as_os_str().to_string_lossy().ends_with(".pyc")
+                    })
+            },
+        )?;
     }
+    // ensurepip's wheel is the supported offline bootstrap path.  The
+    // installed pip package is useful for venv creation, but its generated
+    // bytecode embeds the disposable build root and must never enter the
+    // target package.  Recompile-on-first-use is deterministic and is also
+    // what Python does when the cache is absent.
+    copy_tree_filtered(
+        &install.join("lib/python3.14/site-packages"),
+        &staging.join("usr/lib/python3.14/site-packages"),
+        &|relative, metadata| {
+            metadata.is_dir()
+                || !relative.components().any(|part| {
+                    part.as_os_str() == OsStr::new("__pycache__")
+                        || part.as_os_str().to_string_lossy().ends_with(".pyc")
+                })
+        },
+    )?;
     copy_preserving(
         &repo_root.join("src/development/python/cpython/LICENSE"),
         &staging.join("usr/share/doc/python3-venv/copyright"),
@@ -1147,10 +1791,122 @@ fn stage_cpython_dev(repo_root: &Path, staging: &Path) -> Result<()> {
                 .is_some_and(|name| name.starts_with("config-"))
         },
     )?;
+    normalize_cpython_package_metadata(repo_root, staging)?;
     copy_preserving(
         &repo_root.join("src/development/python/cpython/LICENSE"),
         &staging.join("usr/share/doc/python3-dev/copyright"),
     )
+}
+
+fn normalize_cpython_package_metadata(repo_root: &Path, staging: &Path) -> Result<()> {
+    let build_root = repo_root.join("out/build");
+    let build_root_text = build_root.to_string_lossy().into_owned();
+    let repo_root_text = repo_root.to_string_lossy().into_owned();
+    let sysroot = repo_root.join("out/sysroot").to_string_lossy().into_owned();
+    let cpython = repo_root.join("out/build/cpython");
+    let cpython_source = cpython.join("source").to_string_lossy().into_owned();
+    let cpython_build = cpython.join("build").to_string_lossy().into_owned();
+    let mut install_prefixes = Vec::new();
+    if let Ok(entries) = fs::read_dir(&build_root) {
+        for entry in entries {
+            let install_prefix = entry?.path().join("install/usr");
+            if install_prefix.is_dir() {
+                install_prefixes.push(install_prefix.to_string_lossy().into_owned());
+            }
+        }
+    }
+    let python_stdlib = staging.join("usr/lib/python3.14");
+    let python_config_bin = staging.join("usr/bin");
+    walk_tree(staging, &mut |path, metadata| {
+        if !metadata.is_file() {
+            return Ok(());
+        }
+        // CPython emits more than Python source/JSON here.  Its generated
+        // config scripts and Makefile contain absolute source, build, and
+        // dependency-prefix paths too, and package validation must never
+        // publish those host paths.  Keep the selection explicit so binary
+        // runtime files are not treated as text metadata.
+        let is_python_metadata = path.starts_with(&python_stdlib)
+            && matches!(path.extension().and_then(OsStr::to_str), Some("json" | "py"));
+        let is_python_config_file = path
+            .strip_prefix(&python_stdlib)
+            .ok()
+            .and_then(|relative| relative.components().next())
+            .and_then(|component| component.as_os_str().to_str())
+            .is_some_and(|name| name.starts_with("config-"));
+        let is_python_config_script = path.starts_with(&python_config_bin)
+            && path
+                .file_name()
+                .and_then(OsStr::to_str)
+                .is_some_and(|name| name.ends_with("-config"));
+        if !(is_python_metadata || is_python_config_file || is_python_config_script) {
+            return Ok(());
+        }
+        let original = match fs::read_to_string(path) {
+            Ok(contents) => contents,
+            Err(error) if error.kind() == std::io::ErrorKind::InvalidData => return Ok(()),
+            Err(error) => return Err(error.into()),
+        };
+        let mut normalized = original.replace(&sysroot, "/");
+        normalized = normalized.replace(&cpython_source, "/usr/src/mattos/cpython");
+        normalized = normalized.replace(&cpython_build, "/usr/src/mattos/cpython/build");
+        for prefix in &install_prefixes {
+            normalized = normalized.replace(prefix, "/usr");
+        }
+        normalized = normalized.replace(&repo_root_text, "/usr/src/mattos");
+        if normalized.contains(&build_root_text) || normalized.contains(&repo_root_text) {
+            bail!(
+                "CPython metadata /{} retains the host build root",
+                path.strip_prefix(staging)?.display()
+            );
+        }
+        if normalized != original {
+            fs::write(path, normalized)?;
+        }
+        Ok(())
+    })
+}
+
+#[cfg(test)]
+mod cpython_package_metadata_tests {
+    use super::*;
+
+    #[test]
+    fn normalizes_config_scripts_and_generated_development_files() {
+        let fixture = tempfile::tempdir().unwrap();
+        let repo_root = fixture.path();
+        let staging = repo_root.join("staging");
+        let config_dir = staging.join("usr/lib/python3.14/config-3.14-x86_64-linux-gnu");
+        let script = staging.join("usr/bin/python3.14-config");
+        fs::create_dir_all(&config_dir).unwrap();
+        fs::create_dir_all(script.parent().unwrap()).unwrap();
+        fs::create_dir_all(repo_root.join("out/build/openssl/install/usr/include")).unwrap();
+
+        let root = repo_root.to_string_lossy();
+        fs::write(
+            &script,
+            format!(
+                "CFLAGS=--sysroot={root}/out/sysroot -I{root}/out/build/openssl/install/usr/include\n"
+            ),
+        )
+        .unwrap();
+        fs::write(
+            config_dir.join("Makefile"),
+            format!("srcdir={root}/out/build/cpython/source\nabs_builddir={root}/out/build/cpython/build\n"),
+        )
+        .unwrap();
+
+        normalize_cpython_package_metadata(repo_root, &staging).unwrap();
+
+        let script_contents = fs::read_to_string(script).unwrap();
+        let makefile_contents = fs::read_to_string(config_dir.join("Makefile")).unwrap();
+        assert!(!script_contents.contains(root.as_ref()));
+        assert!(!makefile_contents.contains(root.as_ref()));
+        assert!(script_contents.contains("--sysroot=/"));
+        assert!(script_contents.contains("-I/usr/include"));
+        assert!(makefile_contents.contains("/usr/src/mattos/cpython"));
+        assert!(makefile_contents.contains("/usr/src/mattos/cpython/build"));
+    }
 }
 
 fn llvm_install(repo_root: &Path) -> PathBuf {
@@ -1315,7 +2071,13 @@ pub(crate) fn stage_rustc(repo_root: &Path, staging: &Path) -> Result<()> {
                     .is_some_and(|name| name != "cargo")
         },
     )?;
-    copy_tree_preserving(&install.join("lib"), &staging.join("usr/lib"))?;
+    copy_tree_filtered(
+        &install.join("lib"),
+        &staging.join("usr/lib"),
+        &|relative, metadata| {
+            metadata.is_dir() || relative != Path::new("rustlib/install.log")
+        },
+    )?;
     copy_tree_preserving(
         &install.join("share/doc/rustc"),
         &staging.join("usr/share/doc/rustc"),
@@ -2114,6 +2876,11 @@ pub(crate) fn stage_flatpak(repo_root: &Path, staging: &Path) -> Result<()> {
             }
         }
     }
+    // Libtool archives are build-time link metadata, not part of Flatpak's
+    // runtime ABI.  The source stages retain them only where a later target
+    // build needs them; do not copy their disposable absolute build paths
+    // into the runtime Flatpak package.
+    remove_staged_libtool_archives_from_package(&staging)?;
     copy_preserving(
         &repo_root.join("out/build/flatpak/install/usr/libexec/mattos-flatpak-target-install"),
         &staging.join("usr/libexec/mattos-flatpak-target-install"),
@@ -2167,6 +2934,20 @@ pub(crate) fn stage_flatpak(repo_root: &Path, staging: &Path) -> Result<()> {
     // setting ownership bits (it runs unprivileged), so establish the target
     // package's documented root-owned setuid contract at package staging.
     set_mode(staging.join("usr/bin/fusermount3"), 0o4755)?;
+    Ok(())
+}
+
+fn remove_staged_libtool_archives_from_package(staging: &Path) -> Result<()> {
+    let mut archives = Vec::new();
+    walk_tree(staging, &mut |path, metadata| {
+        if metadata.is_file() && path.extension().and_then(OsStr::to_str) == Some("la") {
+            archives.push(path.to_owned());
+        }
+        Ok(())
+    })?;
+    for archive in archives {
+        fs::remove_file(archive)?;
+    }
     Ok(())
 }
 
@@ -2282,7 +3063,6 @@ fn stage_xwayland(repo_root: &Path, staging: &Path) -> Result<()> {
     // server. Each tree is a declared MattOS stage, never a host fallback.
     for component in [
         "libepoxy",
-        "freetype",
         "libfontenc",
         "libxfont",
         "libxcvt",
@@ -2292,6 +3072,43 @@ fn stage_xwayland(repo_root: &Path, staging: &Path) -> Result<()> {
         "xwayland",
     ] {
         copy_component_usr_and_etc(repo_root, staging, component)?;
+    }
+    Ok(())
+}
+
+fn stage_fontconfig(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = component_install(repo_root, "fontconfig");
+    stage_runtime_paths(
+        repo_root,
+        staging,
+        "fontconfig",
+        &[
+            "usr/bin/fc-cache",
+            "usr/bin/fc-cat",
+            "usr/bin/fc-conflist",
+            "usr/bin/fc-list",
+            "usr/bin/fc-match",
+            "usr/bin/fc-pattern",
+            "usr/bin/fc-query",
+            "usr/bin/fc-scan",
+            "usr/bin/fc-validate",
+        ],
+    )?;
+    for relative in ["etc/fonts", "usr/share/fontconfig", "usr/share/xml/fontconfig"] {
+        copy_tree_preserving(&install.join(relative), &staging.join(relative))?;
+    }
+    copy_preserving(
+        &repo_root.join("src/system/libraries/fontconfig/COPYING"),
+        &staging.join("usr/share/doc/fontconfig/copyright"),
+    )?;
+    for required in [
+        "usr/bin/fc-match",
+        "etc/fonts/fonts.conf",
+        "usr/share/fontconfig/conf.avail",
+    ] {
+        if !staging.join(required).exists() {
+            bail!("fontconfig package missing /{required}");
+        }
     }
     Ok(())
 }
@@ -2321,6 +3138,56 @@ fn stage_amdgpu_ids(install: &Path, staging: &Path) -> Result<()> {
 #[cfg(test)]
 mod desktop_data_tests {
     use super::*;
+    use std::os::unix::fs::symlink;
+
+    #[test]
+    fn fontconfig_staging_preserves_font_discovery_payload() {
+        let repo = tempfile::tempdir().unwrap();
+        let install = repo.path().join("out/build/fontconfig/install");
+        for relative in [
+            "usr/bin/fc-cache",
+            "usr/bin/fc-cat",
+            "usr/bin/fc-conflist",
+            "usr/bin/fc-list",
+            "usr/bin/fc-match",
+            "usr/bin/fc-pattern",
+            "usr/bin/fc-query",
+            "usr/bin/fc-scan",
+            "usr/bin/fc-validate",
+            "etc/fonts/fonts.conf",
+            "usr/share/fontconfig/conf.avail/45-generic.conf",
+            "usr/share/xml/fontconfig/fonts.dtd",
+        ] {
+            let path = install.join(relative);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(&path, relative.as_bytes()).unwrap();
+        }
+        fs::create_dir_all(install.join("etc/fonts/conf.d")).unwrap();
+        symlink(
+            "../../../usr/share/fontconfig/conf.avail/45-generic.conf",
+            install.join("etc/fonts/conf.d/45-generic.conf"),
+        )
+        .unwrap();
+        let license = repo.path().join("src/system/libraries/fontconfig/COPYING");
+        fs::create_dir_all(license.parent().unwrap()).unwrap();
+        fs::write(&license, b"fontconfig license").unwrap();
+
+        let staging = repo.path().join("staged");
+        fs::create_dir_all(&staging).unwrap();
+        stage_fontconfig(repo.path(), &staging).unwrap();
+
+        assert_eq!(
+            fs::read(staging.join("etc/fonts/fonts.conf")).unwrap(),
+            b"etc/fonts/fonts.conf"
+        );
+        assert!(staging.join("usr/share/fontconfig/conf.avail/45-generic.conf").is_file());
+        assert!(staging.join("usr/share/xml/fontconfig/fonts.dtd").is_file());
+        assert!(staging.join("etc/fonts/conf.d/45-generic.conf").is_symlink());
+        assert_eq!(
+            fs::read(staging.join("usr/share/doc/fontconfig/copyright")).unwrap(),
+            b"fontconfig license"
+        );
+    }
 
     #[test]
     fn amd_database_is_required_and_staged_byte_for_byte() {
@@ -2335,6 +3202,68 @@ mod desktop_data_tests {
         fs::write(&file, "# AMD device names\n164E, C1, AMD Radeon Graphics\n").unwrap();
         stage_amdgpu_ids(source.path(), target.path()).unwrap();
         assert_eq!(fs::read(file).unwrap(), fs::read(target.path().join(relative)).unwrap());
+    }
+
+    #[test]
+    fn breeze_staging_preserves_standard_theme_and_icon_lookup_paths() {
+        let fixture = tempfile::tempdir().unwrap();
+        let install = fixture.path().join("out/build/breeze-icons/install/usr");
+        for relative in [
+            "share/icons/breeze/index.theme",
+            "share/icons/breeze-dark/index.theme",
+            "share/icons/breeze/actions/22/go-next.svg",
+        ] {
+            let path = install.join(relative);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(&path, relative.as_bytes()).unwrap();
+        }
+        let license = fixture.path().join("src/desktop/kde/breeze-icons/COPYING");
+        fs::create_dir_all(license.parent().unwrap()).unwrap();
+        fs::write(&license, b"breeze license").unwrap();
+
+        let staging = fixture.path().join("staged");
+        stage_kde_module(fixture.path(), &staging, "breeze-icons", "breeze-icons").unwrap();
+
+        for relative in [
+            "usr/share/icons/breeze/index.theme",
+            "usr/share/icons/breeze-dark/index.theme",
+            "usr/share/icons/breeze/actions/22/go-next.svg",
+        ] {
+            assert!(staging.join(relative).is_file(), "missing staged /{relative}");
+        }
+        assert_eq!(
+            fs::read(staging.join("usr/share/doc/breeze-icons/copyright")).unwrap(),
+            b"breeze license"
+        );
+    }
+
+    #[test]
+    fn qt_declarative_staging_preserves_qml_module_and_plugin_paths() {
+        let fixture = tempfile::tempdir().unwrap();
+        let install = fixture.path().join("out/build/qtdeclarative/install/usr");
+        for relative in [
+            "lib/x86_64-linux-gnu/qml/QtQuick/qmldir",
+            "lib/x86_64-linux-gnu/qml/QtQuick/libqtquick2plugin.so",
+        ] {
+            let path = install.join(relative);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(&path, relative.as_bytes()).unwrap();
+        }
+        let source = fixture.path().join("src/desktop/qt/qtdeclarative");
+        fs::create_dir_all(source.join("LICENSES")).unwrap();
+        fs::write(source.join("LICENSES/Qt-LICENSE"), b"qt license").unwrap();
+        fs::write(source.join("licenseRule.json"), b"{}\n").unwrap();
+
+        let staging = fixture.path().join("staged");
+        stage_qt_module(fixture.path(), &staging, "qtdeclarative", "qt6-declarative").unwrap();
+
+        assert!(staging.join("usr/lib/x86_64-linux-gnu/qml/QtQuick/qmldir").is_file());
+        assert!(staging
+            .join("usr/lib/x86_64-linux-gnu/qml/QtQuick/libqtquick2plugin.so")
+            .is_file());
+        assert!(staging
+            .join("usr/share/doc/qt6-declarative/licenses/Qt-LICENSE")
+            .is_file());
     }
 }
 
@@ -2360,6 +3289,21 @@ fn stage_cosmic_desktop(repo_root: &Path, staging: &Path) -> Result<()> {
     )?;
     let start_cosmic = staging.join("usr/bin/start-cosmic");
     let wayland_session = fs::read_to_string(&start_cosmic)?
+        // The Plasma primary session is loaded through systemd's environment
+        // generator. COSMIC remains an explicit fallback, so it must not
+        // inherit KDE values when selected after a Plasma login.
+        .replace(
+            "export XDG_CURRENT_DESKTOP=\"${XDG_CURRENT_DESKTOP:=COSMIC}\"",
+            "export XDG_CURRENT_DESKTOP=COSMIC",
+        )
+        .replace(
+            "export XDG_SESSION_DESKTOP=\"${XDG_SESSION_DESKTOP:=COSMIC}\"",
+            "export XDG_SESSION_DESKTOP=COSMIC",
+        )
+        .replace(
+            "export XDG_SESSION_TYPE=\"${XDG_SESSION_TYPE:=wayland}\"",
+            "export XDG_SESSION_TYPE=wayland",
+        )
         .replace("GDK_BACKEND=wayland,x11", "GDK_BACKEND=wayland")
         .replace("QT_QPA_PLATFORM=\"wayland;xcb\"", "QT_QPA_PLATFORM=wayland")
         .replace(
@@ -2438,9 +3382,13 @@ fn stage_cosmic_desktop(repo_root: &Path, staging: &Path) -> Result<()> {
         "/usr/lib/systemd/system/mattos-graphics-capture.service",
         wants.join("mattos-graphics-capture.service"),
     )?;
+    // COSMIC is retained as a fallback, but its defaults must not be installed
+    // as global environment.d state: systemd-user would inject them into the
+    // primary Plasma session before start-plasma can establish KDE values.
+    fs::create_dir_all(staging.join("usr/share/mattos/cosmic"))?;
     copy_preserving(
         &integration.join("cosmic-desktop.conf"),
-        &staging.join("usr/lib/environment.d/90-cosmic-desktop.conf"),
+        &staging.join("usr/share/mattos/cosmic/cosmic-desktop.conf"),
     )?;
     copy_preserving(
         &integration.join("README.md"),
@@ -2455,8 +3403,29 @@ fn stage_cosmic_desktop(repo_root: &Path, staging: &Path) -> Result<()> {
     fs::create_dir_all(display_manager.parent().expect("display-manager parent"))?;
     #[cfg(unix)]
     std::os::unix::fs::symlink(
-        "/usr/lib/systemd/system/cosmic-greeter.service",
+        "/usr/lib/systemd/system/plasma-greeter.service",
         &display_manager,
+    )?;
+    // Plasma is the primary graphical session. Keep the COSMIC payload and
+    // unit available as an explicit fallback, but make the display-manager
+    // choice a source-owned profile decision rather than relying on host
+    // defaults or an already-running compositor.
+    let plasma = repo_root.join("src/system/session/plasma");
+    copy_preserving(&plasma.join("plasma-live.toml"), &staging.join("etc/greetd/plasma-live.toml"))?;
+    copy_preserving(&plasma.join("plasma.toml"), &staging.join("etc/greetd/plasma.toml"))?;
+    copy_preserving(&plasma.join("start-plasma"), &staging.join("usr/bin/start-plasma"))?;
+    set_mode(staging.join("usr/bin/start-plasma"), 0o755)?;
+    copy_preserving(
+        &plasma.join("plasma-greeter.service"),
+        &staging.join("usr/lib/systemd/system/plasma-greeter.service"),
+    )?;
+    copy_preserving(
+        &plasma.join("plasma-greeter.pam"),
+        &staging.join("etc/pam.d/plasma-greeter"),
+    )?;
+    copy_preserving(
+        &plasma.join("plasma-desktop.conf"),
+        &staging.join("usr/lib/environment.d/90-plasma-desktop.conf"),
     )?;
     for required in [
         "usr/bin/cosmic-session",
@@ -2476,7 +3445,13 @@ fn stage_cosmic_desktop(repo_root: &Path, staging: &Path) -> Result<()> {
         "usr/share/fonts/truetype/open-sans/OpenSans-Regular.ttf",
         "usr/share/fonts/truetype/noto/NotoSansMono[wdth,wght].ttf",
         "etc/pam.d/cosmic-greeter",
+        "etc/pam.d/plasma-greeter",
         "etc/systemd/system/display-manager.service",
+        "etc/greetd/plasma-live.toml",
+        "etc/greetd/plasma.toml",
+        "usr/bin/start-plasma",
+        "usr/lib/systemd/system/plasma-greeter.service",
+        "usr/lib/environment.d/90-plasma-desktop.conf",
     ] {
         if fs::symlink_metadata(staging.join(required)).is_err() {
             bail!("cosmic-desktop package is missing /{required}");
@@ -2574,6 +3549,14 @@ fn stage_grub_package(repo_root: &Path, staging: &Path) -> Result<()> {
     for directory in ["usr", "etc"] {
         copy_tree_preserving(&component_install(repo_root, "grub").join(directory), &staging.join(directory))?;
     }
+    // GRUB's installed modinfo.sh is used by grub-install/mkimage, but its
+    // generated build flags otherwise retain the disposable sysroot and
+    // component install prefixes.  Normalize this metadata in the package
+    // view only; the cache-owned GRUB build output remains untouched.
+    normalize_staged_grub_modinfo(
+        repo_root,
+        &staging.join("usr/lib/grub/x86_64-efi/modinfo.sh"),
+    )?;
     // These belong respectively to a global index and hybrid media, not the
     // installed x86_64 UEFI package. Do not exempt BIOS objects from ELF audit.
     remove_path_if_exists(&staging.join("usr/share/info/dir"))?;
@@ -2599,6 +3582,38 @@ fn stage_grub_package(repo_root: &Path, staging: &Path) -> Result<()> {
     // state and intentionally are not shipped or overwritten by this package.
     conffiles.sort();
     fs::write(staging.join("DEBIAN/conffiles"), format!("{}\n", conffiles.join("\n")))?;
+    Ok(())
+}
+
+fn normalize_staged_grub_modinfo(repo_root: &Path, path: &Path) -> Result<()> {
+    if !path.is_file() {
+        return Ok(());
+    }
+    let build_root = repo_root.join("out/build");
+    let sysroot = repo_root.join("out/sysroot").to_string_lossy().into_owned();
+    let repo_root_text = repo_root.to_string_lossy().into_owned();
+    let mut contents = fs::read_to_string(path)?;
+    contents = contents.replace(&sysroot, "/");
+    if let Ok(entries) = fs::read_dir(&build_root) {
+        for entry in entries {
+            let install_prefix = entry?.path().join("install/usr");
+            if install_prefix.is_dir() {
+                let install_prefix_text = install_prefix.to_string_lossy().into_owned();
+                contents = contents.replace(
+                    &install_prefix_text,
+                    "/usr",
+                );
+            }
+        }
+    }
+    contents = contents.replace(&repo_root_text, "/usr/src/mattos");
+    if contents.contains(&repo_root_text) {
+        bail!(
+            "GRUB metadata {} retains the host build root",
+            path.display()
+        );
+    }
+    fs::write(path, contents)?;
     Ok(())
 }
 
@@ -3581,7 +4596,7 @@ pub(crate) fn validate_no_mutable_system_state(staging: &Path) -> Result<()> {
     Ok(())
 }
 
-fn validate_no_embedded_build_root(repo_root: &Path, staging: &Path) -> Result<()> {
+pub(crate) fn validate_no_embedded_build_root(repo_root: &Path, staging: &Path) -> Result<()> {
     let needle = repo_root.to_string_lossy();
     walk_tree(staging, &mut |path, metadata| {
         if metadata.is_file() && !path.starts_with(staging.join("DEBIAN")) {

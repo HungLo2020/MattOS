@@ -38,10 +38,9 @@ pub(crate) use staging::{
 #[cfg(test)]
 pub(crate) use cache::{
     package_definition_digest,
-    package_recipe_revision, package_set_policy, package_set_manifest_path,
+    package_recipe_revision, package_set_policy,
     package_stage_dependency_digest, package_payload_source_digests,
     PACKAGE_SET_SCHEMA_VERSION,
-    PackageFacts, PackageElfMember, PackagePayloadFact, PackageSetEntry,
     PackageSetManifest,
 };
 
@@ -1022,6 +1021,62 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "git" => &["git"],
             "openssh" => &["openssh"],
             "libffi" => &["libffi"],
+            "icu" => &["icu"],
+            "freetype" => &["freetype"],
+            "fontconfig" => &["fontconfig"],
+            "kdeclarative" => &["kdeclarative"],
+            "kirigami-addons" => &["kirigami-addons"],
+            "kquickcharts" => &["kquickcharts"],
+        "qtbase" => &["qtbase"],
+        "qtshadertools" => &["qtshadertools"],
+        "qtdeclarative" => &["qtdeclarative"],
+        "qtsvg" => &["qtsvg"],
+        "qtwayland" => &["qtwayland"],
+        "qttools" => &["qttools"],
+        "qtmultimedia" => &["qtmultimedia"],
+        "qtspeech" => &["qtspeech"],
+        "qt5compat" => &["qt5compat"],
+        "qca" => &["qca"],
+            "kwin" => &["kwin"],
+            "plasma-framework" => &["plasma-framework"],
+            "krunner" => &["krunner"],
+            "plasma-activities" => &["plasma-activities"],
+            "plasma-activities-stats" => &["plasma-activities-stats"],
+            "plasma5support" => &["plasma5support"],
+            "ksysguard" => &["ksysguard"],
+            "knewstuff" => &["knewstuff"],
+            "attica" => &["attica"],
+            "sonnet" => &["sonnet"],
+            "plasma-workspace" => &["plasma-workspace"],
+            "plasma-desktop" => &["plasma-desktop"],
+            "breeze" => &["breeze"],
+            "breeze-icons" => &["breeze-icons"],
+            "kcoreaddons" => &["kcoreaddons"],
+            "ki18n" => &["ki18n"],
+            "kwidgetsaddons" => &["kwidgetsaddons"],
+            "kconfig" => &["kconfig"],
+            "kcmutils" => &["kcmutils"],
+            "kdbusaddons" => &["kdbusaddons"],
+            "kcrash" => &["kcrash"],
+            "kwindowsystem" => &["kwindowsystem"],
+            "kpackage" => &["kpackage"],
+            "karchive" => &["karchive"],
+            "kio" => &["kio"],
+            "kunitconversion" => &["kunitconversion"],
+            "ksvg" => &["ksvg"],
+            "knotifications" => &["knotifications"],
+            "kguiaddons" => &["kguiaddons"],
+            "kitemmodels" => &["kitemmodels"],
+            "kglobalaccel" => &["kglobalaccel"],
+            "kiconthemes" => &["kiconthemes"],
+            "kcolorscheme" => &["kcolorscheme"],
+            "kjobwidgets" => &["kjobwidgets"],
+            "kcompletion" => &["kcompletion"],
+            "kservice" => &["kservice"],
+            "kauth" => &["kauth"],
+            "polkit-qt-1" => &["polkit-qt-1"],
+            "yaml-cpp" => &["yaml-cpp"],
+            "kpmcore" => &["kpmcore"],
             "wayland" => &["wayland"],
             "xkbcommon" => &["xkbcommon"],
             "xkeyboard-config" => &[],
@@ -1061,7 +1116,6 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "xwayland" => &[
                 "xwayland",
                 "libepoxy",
-                "freetype",
                 "libfontenc",
                 "libxfont",
                 "libxcvt",
@@ -1174,7 +1228,10 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "dbus" => &["src/system/dbus/dbus"],
         "dav1d" => &["src/system/multimedia/dav1d"],
         "glib" => &["src/system/libraries/glib"],
-        "pipewire" => &["src/system/multimedia/pipewire"],
+        "pipewire" => &[
+            "src/system/multimedia/pipewire",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
         "linux-pam" => &["src/system/auth/linux-pam"],
         "shadow" => &["src/system/auth/shadow"],
         "sudo-rs" => &["src/system/auth/sudo-rs"],
@@ -1187,6 +1244,325 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "git" => &["src/userland/git"],
         "openssh" => &["src/system/network/openssh-portable"],
         "libffi" => &["src/system/libraries/libffi/libffi"],
+        "icu" => &["src/system/libraries/icu"],
+        "freetype" => &["src/system/libraries/freetype"],
+        "fontconfig" => &["src/system/libraries/fontconfig"],
+        "kdeclarative" => &["src/desktop/kde/kdeclarative"],
+        "qtbase" => &[
+            "src/desktop/qt/qtbase",
+            "src/tools/mattos-build/src/stages/qt.rs",
+        ],
+        "qtshadertools" => &[
+            "src/desktop/qt/qtshadertools",
+            "src/tools/mattos-build/src/stages/qt.rs",
+        ],
+        "qtdeclarative" => &[
+            "src/desktop/qt/qtdeclarative",
+            "src/tools/mattos-build/src/stages/qt.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "qtsvg" => &[
+            "src/desktop/qt/qtsvg",
+            "src/tools/mattos-build/src/stages/qt.rs",
+        ],
+        "qtwayland" => &[
+            "src/desktop/qt/qtwayland",
+            "src/tools/mattos-build/src/stages/qt.rs",
+        ],
+        "qttools" => &[
+            "src/desktop/qt/qttools",
+            "src/tools/mattos-build/src/stages/qt.rs",
+        ],
+        "qtmultimedia" => &[
+            "src/desktop/qt/qtmultimedia",
+            "src/tools/mattos-build/src/stages/qt.rs",
+        ],
+        "qtspeech" => &[
+            "src/desktop/qt/qtspeech",
+            "src/tools/mattos-build/src/stages/qt.rs",
+        ],
+        "qt5compat" => &[
+            "src/desktop/qt/qt5compat",
+            "src/tools/mattos-build/src/stages/qt.rs",
+        ],
+        "qca" => &[
+            "src/system/security/qca",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+        ],
+        "kcoreaddons" => &["src/desktop/kde/kcoreaddons", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        "ki18n" => &["src/desktop/kde/ki18n", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        "kwidgetsaddons" => &["src/desktop/kde/kwidgetsaddons", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        "kconfig" => &["src/desktop/kde/kconfig", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        "kdbusaddons" => &["src/desktop/kde/kdbusaddons", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        "kauth" => &["src/desktop/kde/kauth", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        "kwin" => &[
+            "src/desktop/kde/kwin",
+            "upstream/patches/kwin",
+            "src/tools/mattos-build/src/stages/plasma.rs",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "layer-shell-qt" => &[
+            "src/desktop/kde/layer-shell-qt",
+            "src/tools/mattos-build/src/stages/plasma.rs",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "plasma-workspace" => &[
+            "src/desktop/kde/plasma-workspace",
+            "src/tools/mattos-build/src/stages/plasma.rs",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "plasma-desktop" => &[
+            "src/desktop/kde/plasma-desktop",
+            "src/tools/mattos-build/src/stages/plasma.rs",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "breeze" => &[
+            "src/desktop/kde/breeze",
+            "src/tools/mattos-build/src/stages/plasma.rs",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "plasma-framework" => &[
+            "src/desktop/kde/plasma-framework",
+            "src/tools/mattos-build/src/stages/plasma.rs",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "krunner" => &[
+            "src/desktop/kde/krunner",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-kcrash" => &[
+            "src/desktop/kde/kcrash",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-kwindowsystem" => &[
+            "src/desktop/kde/kwindowsystem",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-kpackage" => &[
+            "src/desktop/kde/kpackage",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-karchive" => &[
+            "src/desktop/kde/karchive",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-kio" => &[
+            "src/desktop/kde/kio",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-kunitconversion" => &[
+            "src/desktop/kde/kunitconversion",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-ksvg" => &[
+            "src/desktop/kde/ksvg",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-knotifications" => &[
+            "src/desktop/kde/knotifications",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-kguiaddons" => &[
+            "src/desktop/kde/kguiaddons",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-kitemmodels" => &[
+            "src/desktop/kde/kitemmodels",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-kglobalaccel" => &[
+            "src/desktop/kde/kglobalaccel",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-kiconthemes" => &[
+            "src/desktop/kde/kiconthemes",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-kcolorscheme" => &[
+            "src/desktop/kde/kcolorscheme",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-ksyntaxhighlighting" => &[
+            "src/desktop/kde/ksyntaxhighlighting",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-kcompletion" => &[
+            "src/desktop/kde/kcompletion",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-kjobwidgets" => &[
+            "src/desktop/kde/kjobwidgets",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-kservice" => &[
+            "src/desktop/kde/kservice",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-solid" => &[
+            "src/desktop/kde/solid",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-kcodecs" => &[
+            "src/desktop/kde/kcodecs",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-kdecoration" => &[
+            "src/desktop/kde/kdecoration",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-kidletime" => &[
+            "src/desktop/kde/kidletime",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "liblcms2-2" => &[
+            "src/system/graphics/lcms2",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-kwayland" => &[
+            "src/desktop/kde/kwayland",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-knighttime" => &[
+            "src/desktop/kde/knighttime",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-kholidays" => &[
+            "src/desktop/kde/kholidays",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-kstatusnotifieritem" => &[
+            "src/desktop/kde/kstatusnotifieritem",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-kxmlgui" => &[
+            "src/desktop/kde/kxmlgui",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-kconfigwidgets" => &[
+            "src/desktop/kde/kconfigwidgets",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-kitemviews" => &[
+            "src/desktop/kde/kitemviews",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-kbookmarks" => &[
+            "src/desktop/kde/kbookmarks",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "qt6-positioning" => &[
+            "src/desktop/qt/qtpositioning",
+            "src/tools/mattos-build/src/stages/qt.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-kirigami" => &[
+            "src/desktop/kde/kirigami",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-kirigami-addons" => &[
+            "src/desktop/kde/kirigami-addons",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-kquickcharts" => &[
+            "src/desktop/kde/kquickcharts",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "libcanberra0" => &[
+            "src/system/libraries/libcanberra",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "breeze-icons" => &[
+            "src/desktop/kde/breeze-icons",
+            "src/tools/mattos-build/src/stages/plasma.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "plasma-activities" => &[
+            "src/desktop/kde/plasma-activities",
+            "src/tools/mattos-build/src/stages/plasma.rs",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "plasma-activities-stats" => &[
+            "src/desktop/kde/plasma-activities-stats",
+            "src/tools/mattos-build/src/stages/plasma.rs",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "plasma5support" => &[
+            "src/desktop/kde/plasma5support",
+            "src/tools/mattos-build/src/stages/plasma.rs",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kcmutils" => &[
+            "src/desktop/kde/kcmutils",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "ksysguard" => &[
+            "src/desktop/kde/ksysguard",
+            "src/tools/mattos-build/src/stages/plasma.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "knewstuff" => &[
+            "src/desktop/kde/knewstuff",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/stages/plasma.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "attica" => &[
+            "src/desktop/kde/attica",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "sonnet" => &[
+            "src/desktop/kde/sonnet",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/stages/plasma.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "polkit-qt-1" => &["src/system/security/polkit-qt-1", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        "yaml-cpp" => &["src/system/libraries/yaml-cpp", "upstream/patches/yaml-cpp", "upstream/state/yaml-cpp.toml", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        "kpmcore" => &["src/system/storage/kpmcore", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
         "wayland" => &["src/system/libraries/wayland"],
         "xkbcommon" => &["src/system/libraries/xkbcommon"],
         "xkeyboard-config" => &["src/system/data/xkeyboard-config"],
@@ -1212,6 +1588,17 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
             "src/system/graphics/libxcb",
             "src/system/graphics/libx11",
             "src/system/graphics/libxext",
+            "src/system/graphics/libxfixes",
+            "src/system/graphics/xcb-util",
+            "src/system/graphics/xcb-renderutil",
+            "src/system/graphics/xcb-image",
+            "src/system/graphics/xcb-cursor",
+            "src/system/graphics/xcb-util-wm",
+            "src/system/graphics/xcb-keysyms",
+            "src/system/graphics/xcb-util-m4",
+            // The payload dispatcher owns the selected X11/XCB library split;
+            // changes to it must invalidate packages assembled from x11-compat.
+            "src/tools/mattos-build/src/packaging/staging.rs",
         ],
         "libglvnd" => &["src/system/graphics/libglvnd"],
         "vulkan-loader" => &[
@@ -1245,7 +1632,6 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "xwayland" => &[
             "src/system/graphics/xwayland",
             "src/system/graphics/libepoxy",
-            "src/system/libraries/freetype",
             "src/system/graphics/libfontenc",
             "src/system/graphics/libxfont",
             "src/system/graphics/libxcvt",
@@ -1265,6 +1651,7 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
             "src/desktop/themes/pop-icon-theme",
             "src/system/session/greetd",
             "src/system/session/cosmic",
+            "src/system/session/plasma",
             "src/tools/mattos-build/src/main.rs",
         ],
         "cosmic-edit" => &["src/desktop/cosmic/cosmic-edit"],
@@ -1290,10 +1677,14 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "grub" => &["src/boot/grub/upstream", "src/build-support/grub-gnulib"],
         "cozy" => &["src/userland/cozy"],
         "cpython" => &["src/development/python/cpython"],
-        "llvm" => &["src/toolchain/llvm-project"],
+        "llvm" => &[
+            "src/toolchain/llvm-project",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
         "rust" => &[
             "src/toolchain/rust",
             "upstream/policies/release-archives.toml",
+            "src/tools/mattos-build/src/packaging/staging.rs",
         ],
         _ => &[],
     }
@@ -1302,6 +1693,11 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
 fn package_configuration_roots(package: &str) -> &'static [&'static str] {
     match package {
         "flatpak" => &["src/system/packages/config/flatpak"],
+        // ICU's archive data is assembled by the package staging dispatcher,
+        // not by the upstream ICU source stage. Track that narrow payload
+        // policy so a change to the dispatcher cannot leave a stale cached
+        // libicu package without /usr/share/icu/78.3/icudt78l.dat.
+        "libicu78" => &["src/tools/mattos-build/src/packaging/staging.rs"],
         "grub-efi-amd64" => &["src/boot/grub/config"],
         // APT installs these policy files into the runtime package. Keep the
         // package cache identity tied to their bytes so live/rootfs overlays
@@ -1392,6 +1788,7 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
             component_snapshot_version(repo_root, "linux")?
         }
         "libgcc-s1"
+        | "libgomp1"
         | "libstdc++6"
         | "mattos-libgcc-dev"
         | "mattos-libstdc++-dev"
@@ -1429,6 +1826,8 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "mattos-libproc2" | "procps" => component_snapshot_version(repo_root, "procps-ng")?,
         "libsystemd0" | "libudev1" | "udev" => component_snapshot_version(repo_root, "systemd")?,
         "libexpat1" => component_snapshot_version(repo_root, "expat")?,
+        "libfreetype6" => component_snapshot_version(repo_root, "freetype")?,
+        "libfontconfig1" | "fontconfig" => component_snapshot_version(repo_root, "fontconfig")?,
         "libcap2" => component_snapshot_version(repo_root, "libcap")?,
         "libattr1" => component_snapshot_version(repo_root, "attr")?,
         "libacl1" => component_snapshot_version(repo_root, "acl")?,
@@ -1463,7 +1862,71 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "git" => component_snapshot_version(repo_root, "git")?,
         "openssh-client" | "openssh-server" => component_snapshot_version(repo_root, "openssh")?,
         "libffi8" | "libffi-dev" => component_snapshot_version(repo_root, "libffi")?,
-        "libwayland-client0" | "libwayland-server0" | "libwayland-egl1" => {
+        "qt6-base" => component_snapshot_version(repo_root, "qtbase")?,
+        "qt6-shadertools" => component_snapshot_version(repo_root, "qtshadertools")?,
+        "qt6-declarative" => component_snapshot_version(repo_root, "qtdeclarative")?,
+        "qt6-svg" => component_snapshot_version(repo_root, "qtsvg")?,
+        "qt6-wayland" => component_snapshot_version(repo_root, "qtwayland")?,
+        "qt6-tools" => component_snapshot_version(repo_root, "qttools")?,
+        "qt6-multimedia" => component_snapshot_version(repo_root, "qtmultimedia")?,
+        "qt6-speech" => component_snapshot_version(repo_root, "qtspeech")?,
+        "qt6-core5compat" => component_snapshot_version(repo_root, "qt5compat")?,
+        "qca-qt6" => component_snapshot_version(repo_root, "qca")?,
+        "kf6-kwallet" => component_snapshot_version(repo_root, "kwallet")?,
+        "kf6-kcoreaddons" => component_snapshot_version(repo_root, "kcoreaddons")?,
+        "kf6-ki18n" => component_snapshot_version(repo_root, "ki18n")?,
+        "kf6-kwidgetsaddons" => component_snapshot_version(repo_root, "kwidgetsaddons")?,
+        "kf6-kconfig" => component_snapshot_version(repo_root, "kconfig")?,
+        "kf6-kdbusaddons" => component_snapshot_version(repo_root, "kdbusaddons")?,
+        "kf6-kcrash" => component_snapshot_version(repo_root, "kcrash")?,
+        "kf6-kwindowsystem" => component_snapshot_version(repo_root, "kwindowsystem")?,
+        "kf6-kpackage" => component_snapshot_version(repo_root, "kpackage")?,
+        "kf6-karchive" => component_snapshot_version(repo_root, "karchive")?,
+        "kf6-kio" => component_snapshot_version(repo_root, "kio")?,
+        "kf6-kunitconversion" => component_snapshot_version(repo_root, "kunitconversion")?,
+        "kf6-ksvg" => component_snapshot_version(repo_root, "ksvg")?,
+        "kf6-knotifications" => component_snapshot_version(repo_root, "knotifications")?,
+        "kf6-kguiaddons" => component_snapshot_version(repo_root, "kguiaddons")?,
+        "kf6-kitemmodels" => component_snapshot_version(repo_root, "kitemmodels")?,
+        "kf6-kglobalaccel" => component_snapshot_version(repo_root, "kglobalaccel")?,
+        "kf6-kiconthemes" => component_snapshot_version(repo_root, "kiconthemes")?,
+        "kf6-kcolorscheme" => component_snapshot_version(repo_root, "kcolorscheme")?,
+        "kf6-ksyntaxhighlighting" => component_snapshot_version(repo_root, "ksyntaxhighlighting")?,
+        "kf6-kjobwidgets" => component_snapshot_version(repo_root, "kjobwidgets")?,
+        "kf6-kcompletion" => component_snapshot_version(repo_root, "kcompletion")?,
+        "kf6-kservice" => component_snapshot_version(repo_root, "kservice")?,
+        "kf6-solid" => component_snapshot_version(repo_root, "solid")?,
+        "kf6-kcodecs" => component_snapshot_version(repo_root, "kcodecs")?,
+        "kf6-kdecoration" => component_snapshot_version(repo_root, "kdecoration")?,
+        "kf6-kidletime" => component_snapshot_version(repo_root, "kidletime")?,
+        "liblcms2-2" => component_snapshot_version(repo_root, "lcms2")?,
+        "kf6-kwayland" => component_snapshot_version(repo_root, "kwayland")?,
+        "kf6-knighttime" => component_snapshot_version(repo_root, "knighttime")?,
+        "kf6-kholidays" => component_snapshot_version(repo_root, "kholidays")?,
+        "kf6-kstatusnotifieritem" => component_snapshot_version(repo_root, "kstatusnotifieritem")?,
+        "kf6-kxmlgui" => component_snapshot_version(repo_root, "kxmlgui")?,
+        "kf6-kconfigwidgets" => component_snapshot_version(repo_root, "kconfigwidgets")?,
+        "kf6-kitemviews" => component_snapshot_version(repo_root, "kitemviews")?,
+        "kf6-kbookmarks" => component_snapshot_version(repo_root, "kbookmarks")?,
+        "qt6-positioning" => component_snapshot_version(repo_root, "qtpositioning")?,
+        "kf6-kirigami" => component_snapshot_version(repo_root, "kirigami")?,
+        "kf6-kirigami-addons" => component_snapshot_version(repo_root, "kirigami-addons")?,
+        "kf6-kquickcharts" => component_snapshot_version(repo_root, "kquickcharts")?,
+        "libcanberra0" => component_snapshot_version(repo_root, "libcanberra")?,
+        "breeze-icons" => component_snapshot_version(repo_root, "breeze-icons")?,
+        "plasma-activities" => component_snapshot_version(repo_root, "plasma-activities")?,
+        "plasma-activities-stats" => component_snapshot_version(repo_root, "plasma-activities-stats")?,
+        "plasma5support" => component_snapshot_version(repo_root, "plasma5support")?,
+        "kf6-kcmutils" => component_snapshot_version(repo_root, "kcmutils")?,
+        "libprocesscore10" => component_snapshot_version(repo_root, "ksysguard")?,
+        "kf6-knewstuffcore" => component_snapshot_version(repo_root, "knewstuff")?,
+        "kf6-attica" => component_snapshot_version(repo_root, "attica")?,
+        "kf6-sonnet" => component_snapshot_version(repo_root, "sonnet")?,
+        "kf6-kauth" => component_snapshot_version(repo_root, "kauth")?,
+        "polkit-qt6-1" => component_snapshot_version(repo_root, "polkit-qt-1")?,
+        "libyaml-cpp0.8" => component_snapshot_version(repo_root, "yaml-cpp")?,
+        "libkpmcore13" => component_snapshot_version(repo_root, "kpmcore")?,
+        "libwayland-client0" | "libwayland-cursor0" | "libwayland-server0" | "libwayland-egl1" => {
             component_snapshot_version(repo_root, "wayland")?
         }
         "libxkbcommon0" => component_snapshot_version(repo_root, "xkbcommon")?,
@@ -1484,7 +1947,8 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "libxcb1" => component_snapshot_version(repo_root, "libxcb")?,
         "libx11-6" => component_snapshot_version(repo_root, "libx11")?,
         "libxext6" => component_snapshot_version(repo_root, "libxext")?,
-        "libglvnd0" | "libglx0" | "libgl1" | "libopengl0" | "libegl1" | "libgles1"
+        "libxfixes3" => component_snapshot_version(repo_root, "libxfixes")?,
+        "libglvnd0" | "libglvnd-dev" | "libglx0" | "libgl1" | "libopengl0" | "libegl1" | "libgles1"
         | "libgles2" => {
             component_snapshot_version(repo_root, "libglvnd")?
         }
@@ -1518,9 +1982,20 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "grub-efi-amd64" => component_snapshot_version(repo_root, "grub")?,
         "mattos-cozy" => cargo_package_version(&repo_root.join("src/userland/cozy/Cargo.toml"))?,
         "cosmic-desktop" => component_snapshot_version(repo_root, "cosmic-session")?,
+        "kwin" => component_snapshot_version(repo_root, "kwin")?,
+        "layer-shell-qt" => component_snapshot_version(repo_root, "layer-shell-qt")?,
+        "plasma-framework" => component_snapshot_version(repo_root, "plasma-framework")?,
+        "krunner" => component_snapshot_version(repo_root, "krunner")?,
+        "kactivitymanagerd" => component_snapshot_version(repo_root, "kactivitymanagerd")?,
+        "kglobalacceld" => component_snapshot_version(repo_root, "kglobalacceld")?,
+        "plasma-workspace" => component_snapshot_version(repo_root, "plasma-workspace")?,
+        "plasma-desktop" => component_snapshot_version(repo_root, "plasma-desktop")?,
+        "breeze" => component_snapshot_version(repo_root, "breeze")?,
         "libdbus-1-3" => component_snapshot_version(repo_root, "dbus")?,
         "libdav1d7" => component_snapshot_version(repo_root, "dav1d")?,
         "libglib2.0-0t64" => component_snapshot_version(repo_root, "glib")?,
+        "libicu78" => component_snapshot_version(repo_root, "icu")?,
+        "kf6-kdeclarative" => component_snapshot_version(repo_root, "kdeclarative")?,
         "pipewire" => component_snapshot_version(repo_root, "pipewire")?,
         "libpython3.14" | "python3" | "python3-venv" | "python3-dev" => {
             component_snapshot_version(repo_root, "cpython")?
@@ -1587,6 +2062,7 @@ fn release_version_from_branch(branch: &str) -> Option<String> {
         "libxcb-",
         "libxdmcp-",
         "libxext-",
+        "libxfixes-",
         "llvmorg-",
         "openssl-",
         "pcre2-",
@@ -2360,6 +2836,9 @@ pub(crate) fn validate_dpkg_database(rootfs: &Path) -> Result<()> {
             "udev",
         ),
         ("/usr/lib/x86_64-linux-gnu/libexpat.so.1", "libexpat1"),
+        ("/usr/lib/x86_64-linux-gnu/libfreetype.so.6", "libfreetype6"),
+        ("/usr/lib/x86_64-linux-gnu/libfontconfig.so.1", "libfontconfig1"),
+        ("/usr/bin/fc-match", "fontconfig"),
         ("/usr/lib/x86_64-linux-gnu/libcap.so.2", "libcap2"),
         ("/usr/lib/x86_64-linux-gnu/libattr.so.1", "libattr1"),
         ("/usr/lib/x86_64-linux-gnu/libpcre2-8.so.0", "libpcre2-8-0"),
@@ -3134,6 +3613,7 @@ fn relative_display(root: &Path, path: &Path) -> Result<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use super::cache::PackageSetEntry;
     use super::repository::{dependency_name, exact_dependency_version, validate_release_sha256, validate_repository, validate_repository_packages};
     use std::os::unix::fs::{PermissionsExt, symlink};
 
@@ -3201,6 +3681,19 @@ mod tests {
     }
 
     #[test]
+    fn icu_package_cache_tracks_its_payload_staging_policy() {
+        assert_eq!(
+            package_configuration_roots("libicu78"),
+            ["src/tools/mattos-build/src/packaging/staging.rs"]
+        );
+        assert!(
+            package_configuration_roots("libicu78")
+                .iter()
+                .all(|root| *root != "src/system/libraries/icu")
+        );
+    }
+
+    #[test]
     fn portal_package_consumes_flatpak_owned_bubblewrap_without_copying_it() {
         let specs = package_specs();
         let portal = specs
@@ -3264,7 +3757,6 @@ mod tests {
             [
                 "xwayland",
                 "libepoxy",
-                "freetype",
                 "libfontenc",
                 "libxfont",
                 "libxcvt",
@@ -3300,6 +3792,10 @@ mod tests {
                 "mesa",
             ]
         );
+        assert!(!package_source_roots("xwayland")
+            .contains(&"src/system/libraries/freetype"));
+        assert_eq!(package_source_roots("freetype"), ["src/system/libraries/freetype"]);
+        assert_eq!(package_source_roots("fontconfig"), ["src/system/libraries/fontconfig"]);
     }
 
     #[test]
@@ -3713,7 +4209,7 @@ mod tests {
             .find(|spec| spec.name == "libxkbcommon0")
             .expect("xkbcommon runtime package must exist");
         assert_eq!(xkbcommon.source_component, "xkbcommon");
-        assert_eq!(xkbcommon.depends, &["libc6", "xkb-data"]);
+        assert_eq!(xkbcommon.depends, &["libc6", "xkb-data", "libxcb1"]);
 
         let xkb_data = specs
             .iter()
@@ -3899,7 +4395,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 173);
+        assert_eq!(PACKAGE_NAMES.len(), 255);
     }
 
     #[test]
@@ -3947,7 +4443,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 173);
+        assert_eq!(PACKAGE_NAMES.len(), 255);
         assert_eq!(
             UTIL_LINUX_BASE_PATHS,
             &[
@@ -4028,7 +4524,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 173);
+        assert_eq!(PACKAGE_NAMES.len(), 255);
         let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
         for dependency in [
             "libffi8",

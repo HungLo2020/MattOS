@@ -1,0 +1,249 @@
+# Spanish translations for plasma_applet_org.kde.plasma.kicker.po package.
+# Copyright (C) 2014-2026 This file is copyright:
+# This file is distributed under the same license as the plasma-desktop package.
+# Automatically generated, 2014.
+#
+# SPDX-FileCopyrightText: 2014, 2015, 2016, 2017, 2019, 2020, 2021, 2023, 2025, 2026 Eloy Cuadra <ecuadra@eloihr.net>
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma_applet_org.kde.plasma.kicker\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-04-05 02:42+0000\n"
+"PO-Revision-Date: 2026-01-09 00:42+0100\n"
+"Last-Translator: Eloy Cuadra <ecuadra@eloihr.net>\n"
+"Language-Team: Spanish <kde-l10n-es@kde.org>\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 25.12.0\n"
+
+#: code/tools.js:53
+#, kde-format
+msgid "Remove from Favorites"
+msgstr "Eliminar de favoritos"
+
+#: code/tools.js:57
+#, kde-format
+msgid "Add to Favorites"
+msgstr "Añadir a favoritos"
+
+#: code/tools.js:83
+#, kde-format
+msgid "On All Activities"
+msgstr "En todas las actividades"
+
+#: code/tools.js:133
+#, kde-format
+msgid "On the Current Activity"
+msgstr "En la actividad actual"
+
+#: code/tools.js:147
+#, kde-format
+msgid "Show in Favorites"
+msgstr "Mostrar en favoritos"
+
+#: config.qml:13
+#, kde-format
+msgctxt "@title:group for configuration dialog page"
+msgid "General"
+msgstr "General"
+
+#: ConfigGeneral.qml:48
+#, kde-format
+msgctxt "@label prefix for icon-only button"
+msgid "Icon:"
+msgstr "Icono:"
+
+#: ConfigGeneral.qml:133
+#, kde-format
+msgctxt "@item:inmenu Open icon chooser dialog"
+msgid "Choose…"
+msgstr "Escoger…"
+
+#: ConfigGeneral.qml:138
+#, kde-format
+msgctxt "@item:inmenu Reset icon to default"
+msgid "Clear Icon"
+msgstr "Borrar icono"
+
+#: ConfigGeneral.qml:159
+#, kde-format
+msgctxt "@label:listbox"
+msgid "Show applications as:"
+msgstr "Mostrar aplicaciones como:"
+
+#: ConfigGeneral.qml:161
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Name only"
+msgstr "Solo el nombre"
+
+#: ConfigGeneral.qml:161
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Description only"
+msgstr "Solo la descripción"
+
+#: ConfigGeneral.qml:162
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Name (Description)"
+msgstr "Nombre (Descripción)"
+
+#: ConfigGeneral.qml:162
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Description (Name)"
+msgstr "Descripción (Nombre)"
+
+#: ConfigGeneral.qml:172
+#, kde-format
+msgctxt "@title:group prefix for checkbox group"
+msgid "Behavior:"
+msgstr "Comportamiento:"
+
+#: ConfigGeneral.qml:174
+#, kde-format
+msgctxt "@option:check"
+msgid "Sort applications alphabetically"
+msgstr "Ordenar aplicaciones alfabéticamente"
+
+#: ConfigGeneral.qml:182
+#, kde-format
+msgctxt "@option:check"
+msgid "Flatten sub-menus to a single level"
+msgstr "Aplanar submenús hasta un único nivel"
+
+#: ConfigGeneral.qml:190
+#, kde-format
+msgctxt "@option:check"
+msgid "Show icons on the root level of the menu"
+msgstr "Mostrar iconos en el nivel raíz del menú"
+
+#: ConfigGeneral.qml:200
+#, kde-format
+msgctxt "@title:group prefix for checkbox group"
+msgid "Show categories:"
+msgstr "Mostrar categorías:"
+
+#: ConfigGeneral.qml:203
+#, kde-format
+msgctxt "@option:check"
+msgid "Recent applications"
+msgstr "Aplicaciones recientes"
+
+#: ConfigGeneral.qml:204
+#, kde-format
+msgctxt "@option:check"
+msgid "Often used applications"
+msgstr "Aplicaciones usadas con frecuencia"
+
+#: ConfigGeneral.qml:211
+#, kde-format
+msgctxt "@option:check"
+msgid "Recent files"
+msgstr "Archivos recientes"
+
+#: ConfigGeneral.qml:212
+#, kde-format
+msgctxt "@option:check"
+msgid "Often used files"
+msgstr "Archivos usados con frecuencia"
+
+#: ConfigGeneral.qml:218
+#, kde-format
+msgctxt "@label:listbox"
+msgid "Sort items in categories by:"
+msgstr "Ordenar elementos en categorías por:"
+
+#: ConfigGeneral.qml:219
+#, kde-format
+msgctxt ""
+"@item:inlistbox Sort items in categories by [Recently used | Often used]"
+msgid "Recently used"
+msgstr "Usados recientemente"
+
+#: ConfigGeneral.qml:219
+#, kde-format
+msgctxt ""
+"@item:inlistbox Sort items in categories by [Recently used | Often used]"
+msgid "Often used"
+msgstr "Usados con frecuencia"
+
+#: ConfigGeneral.qml:229
+#, kde-format
+msgctxt "@title:group prefix for checkbox group"
+msgid "Search:"
+msgstr "Buscar:"
+
+#: ConfigGeneral.qml:231
+#, kde-format
+msgctxt "@option:check"
+msgid "Expand search to bookmarks, files and emails"
+msgstr "Expandir la búsqueda a marcadores, archivos y correo electrónico"
+
+#: ConfigGeneral.qml:239
+#, kde-format
+msgctxt "@option:check"
+msgid "Align search results to bottom"
+msgstr "Alinear el resultado de la búsqueda al fondo"
+
+#: ConfigGeneral.qml:244
+#, kde-format
+msgctxt "@label prefix for a checkbox toggling Dark Mode"
+msgid "Appearance:"
+msgstr "Apariencia:"
+
+#: ConfigGeneral.qml:249
+#, kde-format
+msgctxt "@option:check"
+msgid "Prefer Dark Mode when available"
+msgstr "Preferir el modo oscuro cuando esté disponible"
+
+#: ConfigGeneral.qml:253
+#, kde-kuit-format
+msgctxt "@info:tooltip"
+msgid ""
+"This feature uses the complementary colors from your colorscheme, which "
+"usually feature a dark background."
+msgstr ""
+"Esta función usa los colores complementarios del esquema de color, que suele "
+"tener un fondo oscuro."
+
+#: DashboardRepresentation.qml:373
+#, kde-format
+msgctxt "@title:group for column with app and system action grids"
+msgid "Favorites"
+msgstr "Favoritos"
+
+#: ItemListDelegate.qml:31
+#, kde-format
+msgctxt "@action:inmenu accessible description for opening submenu"
+msgid "Open category"
+msgstr "Abrir categoría"
+
+#: ItemListDelegate.qml:32
+#, kde-format
+msgctxt "@action:inmenu accessible description for opening app or file"
+msgid "Launch"
+msgstr "Lanzar"
+
+#: main.qml:211
+#, kde-format
+msgctxt "@action:inmenu launches kmenuedit"
+msgid "Edit Applications…"
+msgstr "Editar aplicaciones…"
+
+#: MenuRepresentation.qml:177
+#, kde-format
+msgctxt "@title:group accessible name for favorite group in sidebar"
+msgid "Favorites"
+msgstr "Favoritos"
+
+#: MenuRepresentation.qml:353
+#, kde-format
+msgctxt "@info:status"
+msgid "No matches"
+msgstr "Sin coincidencias"

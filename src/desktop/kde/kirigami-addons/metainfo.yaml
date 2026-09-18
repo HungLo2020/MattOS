@@ -1,0 +1,12 @@
+maintainer: carlschwan
+description: Convergent visual components ("widgets") for Kirigami-based applications
+platforms:
+    - name: Linux
+    - name: FreeBSD
+    - name: Android
+public_lib: true
+deprecated: false
+release: false
+cmakename: KF5KirigamiAddons
+irc: kde-kirigami
+mailinglist: plasma-devel

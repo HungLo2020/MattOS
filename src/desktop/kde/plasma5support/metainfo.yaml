@@ -1,0 +1,13 @@
+description: Migration aids for plasma5 deprecated classes
+platforms:
+    - name: Linux
+    - name: FreeBSD
+portingAid: false
+deprecated: false
+release: true
+libraries:
+    - cmake: Plasma::Plasma5Support
+cmakename: Plasma5Support
+
+public_lib: true
+group: Plasma

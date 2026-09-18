@@ -1,0 +1,66 @@
+::
+:: Country:  Italy, South Tyrol
+::
+:: Language: German
+::
+:: Author:   Roland Reiterer <roland_reiterer2001@gmx.net>
+::
+:: Updated:
+::
+:: Source:
+::
+
+:: Metadata
+country     "IT-BZ"
+language    "de"
+name        "Italy, South Tyrol"
+:description "(please add description in source language) Regional holiday file for South Tyrol"
+
+:: Public Holidays
+"Neujahr"               public on january 1
+"Hl. 3 Könige"          public religious on january 6
+"Ostersonntag"          public religious on easter
+"Ostermontag"           public on easter plus 1 day
+"Tag der Freiheit"      public on april 25
+"Tag der Arbeit"        public on may 1
+"Tag der Republik"      public commemorative on ((year >= 2001) ? [june 2] : noop)
+"Maria Himmelfahrt"     public religious on august 15
+"Allerheiligen"         public religious on november 1
+"Hl. Franziskus"        public religious on ((year >= 2026) ? [october 4] : noop)
+"Maria Empfängnis"      public religious on december 8
+"Christtag"             public religious on december 25
+"Stephanstag"           public religious on december 26
+
+:: Religious
+"Hl. Joseph"            religious on march 19
+"Unnsinger Donnerstag"  religious on easter minus 52 days
+"Faschingsdienstag"     religious on easter minus 47 days
+"Aschermittwoch"        religious on easter minus 46 days
+"Pfingstsonntag"        religious on easter plus 49 days
+"Pfingstmontag"         religious on easter plus 50 days
+"Christi Himmelfahrt"   religious on easter plus 39 days
+"Hl. Peter und Paul"    religious on june 29
+"Hl. Franziskus"        religious on ((year < 2026) ? [october 4] : noop)
+"Allerseelen"           religious on november 2
+"Silvester"             religious on december 31
+
+:: Financial
+
+:: Cultural
+"Tag der Frau"          cultural on march 8
+"Vatertag"              cultural on march 19
+"Muttertag"             cultural on second sunday in may
+
+:: School
+
+:: Daylight Saving
+"Beginn der Sommerzeit" seasonal on last sunday in march
+"Ende der Sommerzeit"   seasonal on last sunday in october
+
+:: Seasons
+
+:: Name Days
+
+:: Commemorative
+"Nationalfeiertag"      commemorative on november 4
+"Tag der Republik"      commemorative on ((year < 2001) ? [june 2] : noop)

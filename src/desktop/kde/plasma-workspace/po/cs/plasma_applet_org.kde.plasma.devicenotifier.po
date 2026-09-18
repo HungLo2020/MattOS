@@ -1,0 +1,271 @@
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Lukáš Tinkl <ltinkl@redhat.com>, 2010.
+# SPDX-FileCopyrightText: 2010, 2011, 2016, 2018, 2019, 2020, 2026 Vít Pelčák <vit@pelcak.org>
+# Tomáš Chvátal <tomas.chvatal@gmail.com>, 2012.
+# SPDX-FileCopyrightText: 2021, 2025 Vit Pelcak <vit@pelcak.org>
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma_applet_devicenotifier\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-17 02:39+0000\n"
+"PO-Revision-Date: 2025-10-17 13:27+0200\n"
+"Last-Translator: Vit Pelcak <vit@pelcak.org>\n"
+"Language-Team: Czech <kde-i18n-doc@kde.org>\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Generator: Lokalize 25.12.3\n"
+"X-Language: cs_CZ\n"
+"X-Source-Language: en_US\n"
+
+#: actions/checkaction.cpp:72
+#, kde-format
+msgctxt "@action:button check a storageAccess (i.e disk) for error"
+msgid "Check for Errors"
+msgstr "Zkontrolovat chyby"
+
+#: actions/mountaction.cpp:97
+#, kde-format
+msgid "Mount"
+msgstr "Připojit"
+
+#: actions/mountandopenaction.cpp:178
+#, kde-format
+msgid "Open in File Manager"
+msgstr "Otevřít ve správci souborů"
+
+#: actions/mountandopenaction.cpp:181
+#, kde-format
+msgid "Try to Fix"
+msgstr "Pokusit se opravit"
+
+#: actions/mountandopenaction.cpp:181
+#, kde-format
+msgid "Mount and Open"
+msgstr "Připojit a otevřít"
+
+#: actions/mountandopenaction.cpp:183
+#, kde-format
+msgid "Eject"
+msgstr "Vysunout"
+
+#: actions/mountandopenaction.cpp:185
+#, kde-format
+msgid "Safely remove"
+msgstr "Bezpečně odstranit"
+
+#: devicemessagemonitor_p.cpp:171
+#, kde-format
+msgid "This device has file system errors."
+msgstr "Toto zařízení má chyby v souborovém systému."
+
+#: devicemessagemonitor_p.cpp:173
+#, kde-format
+msgctxt "@label device is a storage disk"
+msgid "This device has no errors"
+msgstr "Toto zařízení nemá žádné chyby"
+
+#: devicemessagemonitor_p.cpp:176
+#, kde-format
+msgid "Successfully repaired!"
+msgstr "Úspěšně opraveno."
+
+#: devicemessagemonitor_p.cpp:180
+#, kde-format
+msgid "Device Status"
+msgstr "Stav zařízení"
+
+#: devicemessagemonitor_p.cpp:181
+#, kde-format
+msgid "A device can now be safely removed"
+msgstr "Zařízení může být nyní bezpečně odebráno"
+
+#: devicemessagemonitor_p.cpp:185
+#, kde-format
+msgid "This device can now be safely removed."
+msgstr "Toto zařízení může být nyní bezpečně odebráno."
+
+#: devicemessagemonitor_p.cpp:192
+#, kde-format
+msgid "You are not authorized to mount this device."
+msgstr "Nemáte oprávnění odpojit toto zařízení."
+
+#: devicemessagemonitor_p.cpp:196
+#, kde-format
+msgid "You are not authorized to eject this disc."
+msgstr "Nemáte oprávnění vysunout tento disk."
+
+#: devicemessagemonitor_p.cpp:199
+#, kde-format
+msgctxt "Remove is less technical for unmount"
+msgid "You are not authorized to remove this device."
+msgstr "Nemáte oprávnění odstranit toto zařízení."
+
+#: devicemessagemonitor_p.cpp:202
+#, kde-format
+msgid "You are not authorized to repair this device."
+msgstr "Nemáte oprávnění opravit toto zařízení."
+
+#: devicemessagemonitor_p.cpp:204 devicemessagemonitor_p.cpp:269
+#, kde-format
+msgid "Unknown error type"
+msgstr "Neznámý typ chyby"
+
+#: devicemessagemonitor_p.cpp:208
+#, kde-format
+msgid "Could not mount this device as it is busy."
+msgstr "Nelze připojit toto zařízení protože se používá."
+
+#: devicemessagemonitor_p.cpp:235
+#, kde-format
+msgid "One or more files on this device are open within an application."
+msgstr ""
+"Jeden nebo více souborů z toho zařízení je používáno některou aplikací."
+
+#: devicemessagemonitor_p.cpp:237
+#, kde-format
+msgid "One or more files on this device are opened in application \"%2\"."
+msgid_plural ""
+"One or more files on this device are opened in following applications: %2."
+msgstr[0] ""
+"Jeden nebo více souborů z toho zařízení je používáno aplikací \"%2\"."
+msgstr[1] ""
+"Jeden nebo více souborů z toho zařízení je používáno těmito aplikacemi "
+"\"%2\"."
+msgstr[2] ""
+"Jeden nebo více souborů z toho zařízení je používáno těmito aplikacemi "
+"\"%2\"."
+
+#: devicemessagemonitor_p.cpp:240
+#, kde-format
+msgctxt "separator in list of apps blocking device unmount"
+msgid ", "
+msgstr ", "
+
+#: devicemessagemonitor_p.cpp:258
+#, kde-format
+msgid "Could not mount this device."
+msgstr "Nepovedlo se připojit toto zařízení."
+
+#: devicemessagemonitor_p.cpp:262
+#, kde-format
+msgid "Could not eject this disc."
+msgstr "Nelze odpojit tento disk."
+
+#: devicemessagemonitor_p.cpp:264
+#, kde-format
+msgctxt "Remove is less technical for unmount"
+msgid "Could not remove this device."
+msgstr "Nelze odpojit  toto zařízení."
+
+#: devicemessagemonitor_p.cpp:267
+#, kde-format
+msgid "Could not repair this device: %1"
+msgstr "Nepovedlo se opravit toto zařízení: %1"
+
+#: qml/DeviceItem.qml:99
+#, kde-format
+msgctxt ""
+"Accessing is a less technical word for Mounting; translation should be short "
+"and mean 'Currently mounting this device'"
+msgid "Checking…"
+msgstr "Kontroluji…"
+
+#: qml/DeviceItem.qml:101
+#, kde-format
+msgctxt ""
+"Accessing is a less technical word for Mounting; translation should be short "
+"and mean 'Currently mounting this device'"
+msgid "Repairing…"
+msgstr "Opravuji…"
+
+#: qml/DeviceItem.qml:104
+#, kde-format
+msgctxt "@info:status Free disk space"
+msgid "%1 free of %2"
+msgstr "%1 volné z %2"
+
+#: qml/DeviceItem.qml:108
+#, kde-format
+msgctxt ""
+"Accessing is a less technical word for Mounting; translation should be short "
+"and mean 'Currently mounting this device'"
+msgid "Accessing…"
+msgstr "Připojuji..."
+
+#: qml/DeviceItem.qml:111
+#, kde-format
+msgctxt ""
+"Removing is a less technical word for Unmounting; translation should be "
+"short and mean 'Currently unmounting this device'"
+msgid "Removing…"
+msgstr "Odstraňuje se..."
+
+#: qml/DeviceItem.qml:114
+#, kde-format
+msgid "Don't unplug yet! Files are still being transferred…"
+msgstr "Ještě nevypojovat. Soubory jsou stále ještě přenášeny…"
+
+#: qml/FullRepresentation.qml:47 qml/main.qml:123
+#, kde-format
+msgid "Remove All"
+msgstr "Odstranit vše"
+
+#: qml/FullRepresentation.qml:48
+#, kde-format
+msgid "Click to safely remove all devices"
+msgstr "Klikněte pro bezpečné odebrání všech zařízení"
+
+#: qml/FullRepresentation.qml:162
+#, kde-format
+msgid "No removable devices attached"
+msgstr "Nebyl připojeno žádné odpojitelné zařízení"
+
+#: qml/FullRepresentation.qml:162
+#, kde-format
+msgid "No disks available"
+msgstr "Žádné dostupné disky"
+
+#: qml/main.qml:72
+#, kde-format
+msgid "Most Recent Device"
+msgstr "Naposledy připojené zařízení"
+
+#: qml/main.qml:72
+#, kde-format
+msgid "No Devices Available"
+msgstr "Žádná dostupná zařízení"
+
+#: qml/main.qml:109
+#, kde-format
+msgctxt "Open auto mounter kcm"
+msgid "Configure Removable Devices…"
+msgstr "Nastavit odpojitelná zařízení…"
+
+#: qml/main.qml:131
+#, kde-format
+msgid "Removable Devices"
+msgstr "Odpojitelná zařízení"
+
+#: qml/main.qml:146
+#, kde-format
+msgid "Non Removable Devices"
+msgstr "Pouze neodpojitelná zařízení"
+
+#: qml/main.qml:161
+#, kde-format
+msgid "All Devices"
+msgstr "Všechna zařízení"
+
+#: qml/main.qml:178
+#, kde-format
+msgid "Show popup when new device is plugged in"
+msgstr "Zobrazit vyskakovací okno pokud je připojeno nové zařízení"
+
+#~ msgctxt "@action:button Mount a disk without verifying for errors"
+#~ msgid "Mount without verifying"
+#~ msgstr "Připojit bez ověření"

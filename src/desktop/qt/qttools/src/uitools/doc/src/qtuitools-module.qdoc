@@ -1,0 +1,17 @@
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    \module QtUiTools
+    \title Qt UI Tools C++ Classes
+    \since 4.1
+    \ingroup modules
+    \qtcmakepackage UiTools
+    \qtvariable uitools
+
+    \brief Provides the QUiLoader class to handle forms created with \QD.
+
+    The Qt UI Tools module allows you to dynamically create QWidget-based
+    user interfaces based on the information stored in UI files
+    (created with \QD).
+*/

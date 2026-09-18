@@ -692,13 +692,19 @@ fn validate_live_desktop_boot_contract(rootfs: &Path) -> Result<()> {
         "usr/lib/systemd/system/mattos-live-graphical.target",
         "usr/lib/systemd/system/mattos.target",
         "usr/lib/systemd/system/graphical.target",
-        "usr/lib/systemd/system/cosmic-greeter.service",
+        "usr/lib/systemd/system/plasma-greeter.service",
         "etc/systemd/system/display-manager.service",
         "etc/systemd/system/cosmic-greeter.service.d/live.conf",
+        "etc/systemd/system/plasma-greeter.service.d/live.conf",
         "etc/greetd/cosmic-live.toml",
+        "etc/greetd/plasma-live.toml",
+        "etc/greetd/plasma.toml",
         "etc/pam.d/cosmic-greeter",
+        "etc/pam.d/plasma-greeter",
+        "usr/lib/environment.d/90-plasma-desktop.conf",
         "usr/bin/greetd",
         "usr/bin/start-cosmic",
+        "usr/bin/start-plasma",
         "usr/bin/mattos-graphics-report",
         "usr/bin/mattos-graphics-startup",
         "usr/lib/systemd/system/mattos-graphics-watchdog.service",
@@ -727,37 +733,58 @@ fn validate_live_desktop_boot_contract(rootfs: &Path) -> Result<()> {
     if !cli.contains("Requires=multi-user.target") || cli.contains("graphical.target") {
         bail!("CLI live target must require only the non-graphical system target")
     }
-    let live_config = fs::read_to_string(rootfs.join("etc/greetd/cosmic-live.toml"))?;
+    let live_config = fs::read_to_string(rootfs.join("etc/greetd/plasma-live.toml"))?;
     for contract in [
         "[initial_session]",
-        "command = \"/usr/bin/start-cosmic\"",
+        "command = \"/usr/bin/start-plasma\"",
         "user = \"mattos\"",
         "[default_session]",
-        "command = \"/usr/bin/cosmic-greeter-start\"",
+        "command = \"/usr/bin/start-plasma\"",
     ] {
         if !live_config.contains(contract) {
             bail!("live greetd configuration is missing contract: {contract}")
         }
     }
-    let override_unit =
-        fs::read_to_string(rootfs.join("etc/systemd/system/cosmic-greeter.service.d/live.conf"))?;
-    if !override_unit.contains("ExecStart=/usr/bin/greetd --config /etc/greetd/cosmic-live.toml") {
-        bail!("live display-manager override does not select the live greetd configuration")
+    let override_unit = fs::read_to_string(
+        rootfs.join("etc/systemd/system/plasma-greeter.service.d/live.conf"),
+    )?;
+    if !override_unit.contains("ExecStart=/usr/bin/greetd --config /etc/greetd/plasma-live.toml") {
+        bail!("live display-manager override does not select the Plasma live greetd configuration")
     }
-    let pam = fs::read_to_string(rootfs.join("etc/pam.d/cosmic-greeter"))?;
+    if fs::read_link(rootfs.join("etc/systemd/system/display-manager.service"))?
+        != Path::new("/usr/lib/systemd/system/plasma-greeter.service")
+    {
+        bail!("live display-manager does not select the Plasma greeter service")
+    }
+    let pam = fs::read_to_string(rootfs.join("etc/pam.d/plasma-greeter"))?;
     if pam
         .matches("session    optional     pam_systemd.so")
         .count()
         != 1
     {
-        bail!("live COSMIC session lacks exactly one PAM/logind session hook")
+        bail!("live Plasma session lacks exactly one PAM/logind session hook")
+    }
+    let plasma_environment =
+        fs::read_to_string(rootfs.join("usr/lib/environment.d/90-plasma-desktop.conf"))?;
+    for required in [
+        "XDG_CURRENT_DESKTOP=KDE",
+        "XDG_SESSION_TYPE=wayland",
+        "QML2_IMPORT_PATH=/usr/lib/x86_64-linux-gnu/qml:/usr/lib/qt6/qml",
+        "QT_QPA_PLATFORM_PLUGIN_PATH=/usr/plugins/platforms:/usr/lib/x86_64-linux-gnu/plugins/platforms",
+    ] {
+        if !plasma_environment.contains(required) {
+            bail!("Plasma environment is missing {required}");
+        }
+    }
+    if path_entry_exists(&rootfs.join("usr/lib/environment.d/90-cosmic-desktop.conf")) {
+        bail!("COSMIC fallback environment must not leak into the global Plasma session");
     }
     let display_manager =
-        fs::read_to_string(rootfs.join("usr/lib/systemd/system/cosmic-greeter.service"))?;
-    if !display_manager.contains(
-        "Wants=systemd-logind.service systemd-udev-trigger.service cosmic-greeter-daemon.service",
-    ) {
-        bail!("display manager does not pull in its greeter account service")
+        fs::read_to_string(rootfs.join("usr/lib/systemd/system/plasma-greeter.service"))?;
+    if !display_manager.contains("Wants=systemd-logind.service systemd-udev-trigger.service")
+        || !display_manager.contains("ExecStart=/usr/bin/greetd --config /etc/greetd/plasma-live.toml")
+    {
+        bail!("Plasma display manager does not pull in logind/udev or its live configuration")
     }
     if path_entry_exists(
         &rootfs.join("etc/systemd/system/multi-user.target.wants/cosmic-greeter-daemon.service"),
@@ -1895,7 +1922,12 @@ fn validate_user_session_configuration(rootfs: &Path) -> Result<()> {
         let name = path.file_name().and_then(OsStr::to_str).unwrap_or_default();
         if matches!(
             name,
-            "login" | "su-l" | "systemd-user" | "sshd" | "cosmic-greeter"
+            "login"
+                | "su-l"
+                | "systemd-user"
+                | "sshd"
+                | "cosmic-greeter"
+                | "plasma-greeter"
         ) {
             continue;
         }
@@ -3656,6 +3688,27 @@ fn run_cmd_with_env(
     apply_reproducible_process_environment(&mut cmd);
     apply_mattos_tmp_environment(&mut cmd, cwd)?;
     apply_scheduler_parallelism(&mut cmd);
+
+    // Some build systems (notably Kbuild) recursively invoke make. When a
+    // caller explicitly supplies KBUILD_CPPFLAGS, propagate that exact
+    // command-line assignment through MAKEFLAGS so recursive sub-makes retain
+    // it as a command-line variable. This keeps source-path normalization
+    // consistent across ordinary C compilation and linker-script
+    // preprocessing without globally enabling make's environment override
+    // mode (which would also override Kbuild's internal srctree variables).
+    if let Some(cppflags) = args
+        .iter()
+        .find_map(|arg| arg.strip_prefix("KBUILD_CPPFLAGS="))
+    {
+        let escaped = cppflags.replace(' ', "\\ ");
+        let inherited = std::env::var("MAKEFLAGS").unwrap_or_default();
+        let makeflags = if inherited.is_empty() {
+            format!("KBUILD_CPPFLAGS={escaped}")
+        } else {
+            format!("{inherited} KBUILD_CPPFLAGS={escaped}")
+        };
+        cmd.env("MAKEFLAGS", makeflags);
+    }
 
     if let Some(env) = tool_env {
         let current_path = std::env::var("PATH").unwrap_or_default();

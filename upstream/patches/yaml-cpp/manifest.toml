@@ -1,0 +1,6 @@
+component = "yaml-cpp"
+application = "output-mirror-only"
+
+[[patch]]
+path = "upstream/patches/yaml-cpp/0001-emitterutils-include-cstdint.patch"
+sha256 = "b6f84bff1379ef946eb5a9ddbb61898590a0c6160f0a79bce03eda617ccdf7b9"

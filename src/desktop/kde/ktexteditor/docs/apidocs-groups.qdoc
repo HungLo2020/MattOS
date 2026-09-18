@@ -1,0 +1,196 @@
+/*! \page kte_group_doc_extensions.html
+
+\target kte_group_doc_extensions
+\title Document Extension Interfaces
+
+A KTextEditor implementation may implement a Document extension interface, but
+it does not \e need to. So as a KTextEditor user you have to cast the Document
+to the desired interface and then check, whether the cast returns NULL or the
+valid interface.
+
+Use qobject_cast to cast a Document \e doc into the
+\e DesiredExtensionInterface, example:
+\code
+  // doc is of type KTextEditor::Document*
+  auto iface = qobject_cast<KTextEditor::DesiredExtensionInterface*>(doc);
+
+  if (iface) {
+      // the implementation supports the interface
+      // do stuff
+  } else {
+      // the implementation does not support the interface
+  }
+\endcode
+
+\sa KTextEditor::Document
+
+The following classes are a list of all available Document extension interfaces.
+\generatelist kte_group_doc_extensions
+*/
+
+
+
+
+
+/*! \page kte_group_moving_classes.html
+
+\target kte_group_moving_classes
+\title  MovingCursors and MovingRanges
+\ingroup kte_group_doc_extensions
+
+If the KTextEditor implementation supports the KTextEditor::MovingInterface,
+there are several \e moving classes available.
+
+Instances of the \e moving classes are bound to a specific Document, and
+maintain their position in that document regardless of changes to the text.
+Changes to KTextEditor::MovingRange%s can be caught by using the class
+KTextEditor::MovingRangeFeedback.
+
+The following is a list of all classes that are available when the document
+supports the KTextEditor::MovingInterface:
+
+\generatelist kte_group_moving_classes
+*/
+
+
+
+
+
+/*! \page kte_group_view_extensions.html
+
+\target kte_group_view_extensions
+\title View Extension Interfaces
+
+A KTextEditor implementation may implement a View extension interface, but
+it does not \e need to. So as a KTextEditor user you have to cast the View
+to the desired interface and then check, whether the cast returns NULL or the
+valid interface.
+
+Use qobject_cast to cast a View \e view into the
+\e DesiredExtensionInterface, example:
+\code
+  // view is of type KTextEditor::View*
+  auto iface = qobject_cast<KTextEditor::DesiredExtensionInterface*>(view);
+
+  if (iface) {
+      // the implementation supports the interface
+      // do stuff
+  } else {
+      // the implementation does not support the interface
+  }
+\endcode
+
+\sa KTextEditor::View
+
+The following classes are a list of all available View extension interfaces.
+\generatelist kte_group_view_extensions
+*/
+
+
+
+
+
+/*! \page kte_group_editor_extensions.html
+
+\target kte_group_editor_extensions
+\title Editor Extension Interfaces
+
+A KTextEditor implementation may implement an Editor extension interface, but
+it does not \e need to. So as a KTextEditor user you have to cast the Editor
+to the desired interface and then check, whether the cast returns NULL or the
+valid interface.
+
+Use qobject_cast to cast a Editor \e editor into the
+\e DesiredExtensionInterface, example:
+\code
+  // editor is of type KTextEditor::Editor*
+  auto iface = qobject_cast<KTextEditor::DesiredExtensionInterface*>(view);
+
+  if (iface) {
+      // the implementation supports the interface
+      // do stuff
+  } else {
+      // the implementation does not support the interface
+  }
+\endcode
+
+\sa KTextEditor::Editor
+
+The following classes are a list of all available Editor extension interfaces.
+\generatelist kte_group_editor_extensions
+*/
+
+
+
+
+
+/*! \page kte_group_plugin_extensions.html
+
+\target kte_group_plugin_extensions
+\title Plugin Extension Interfaces
+A KTextEditor Plugin can use extension interfaces, but it does not \e need
+to. So as a KTextEditor implementer you have to cast the Plugin to the desired
+interface and then check, whether the cast returns NULL or the valid interface.
+
+Use qobject_cast to cast a Plugin \e plugin into the
+\e DesiredExtensionInterface, example:
+\code
+  // plugin is of type KTextEditor::Plugin*
+  auto iface = qobject_cast<KTextEditor::DesiredExtensionInterface*>(plugin);
+
+  if (iface) {
+      // the implementation supports the interface
+      // do stuff
+  } else {
+      // the implementation does not support the interface
+  }
+\endcode
+
+\sa KTextEditor::Plugin
+\generatelist kte_group_plugin_extensions
+*/
+
+
+
+
+
+/*! \page kte_group_command_extensions.html
+
+\target kte_group_command_extensions
+\title Command Extension Interfaces
+
+A KTextEditor command-line Command can use extension interfaces, but it does not
+\e need to. So as a KTextEditor implementer you have to cast the Command to
+the desired interface and then check, whether the cast returns NULL or the valid
+interface.
+
+Use qobject_cast to cast a Command \e cmd into the
+\e DesiredExtensionInterface, example:
+\code
+  // cmd is of type KTextEditor::Command*
+  auto iface = qobject_cast<KTextEditor::DesiredExtensionInterface*>(cmd);
+
+  if (iface) {
+      // the implementation supports the interface
+      // do stuff
+  } else {
+      // the implementation does not support the interface
+  }
+\endcode
+
+\sa KTextEditor::Command
+\generatelist kte_group_command_extensions
+*/
+
+
+
+/*! \page kte_group_ccmodel_extensions.html
+
+\target kte_group_ccmodel_extensions
+\title CodeCompletionModel Extension Interfaces
+A CodeCompletionModel implementation may implement a CodeCompletionModel
+extension interface, but it does not \e need to.
+
+\sa KTextEditor::CodeCompletionModel
+\generatelist kte_group_ccmodel_extensions
+*/

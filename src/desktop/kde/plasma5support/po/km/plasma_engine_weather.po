@@ -1,0 +1,5174 @@
+# translation of plasma_engine_weather.po to Khmer
+# Khoem Sokhem <khoemsokhem@khmeros.info>, 2009, 2012.
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma_engine_weather\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-11-17 11:54+0000\n"
+"PO-Revision-Date: 2012-06-14 10:32+0700\n"
+"Last-Translator: Khoem Sokhem <khoemsokhem@khmeros.info>\n"
+"Language-Team: Khmer\n"
+"Language: km\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: KBabel 1.11.4\n"
+"X-Language: km-CM\n"
+
+#: bbcukmet_i18n.dat:1
+#, kde-format
+msgctxt "weather condition"
+msgid "clear"
+msgstr "ស្រឡះ"
+
+#: bbcukmet_i18n.dat:2
+#, kde-format
+msgctxt "weather condition"
+msgid "clear intervals"
+msgstr "ចន្លោះ​ពេល​មេឃ​ស្រឡះ"
+
+#: bbcukmet_i18n.dat:3 ions/wetter.com/ion_wettercom.cpp:220
+#, kde-format
+msgctxt "weather condition"
+msgid "clear sky"
+msgstr "មេឃ​ស្រឡះ"
+
+#: bbcukmet_i18n.dat:4 ions/wetter.com/ion_wettercom.cpp:158
+#: ions/wetter.com/ion_wettercom.cpp:159
+#, kde-format
+msgctxt "weather condition"
+msgid "cloudy"
+msgstr "មាន​ពពក"
+
+#: bbcukmet_i18n.dat:5
+#, kde-format
+msgctxt "weather condition"
+msgid "cloudy with hail"
+msgstr "មាន​ពពក និង​ព្រិល"
+
+#: bbcukmet_i18n.dat:6
+#, kde-format
+msgctxt "weather condition"
+msgid "cloudy with heavy snow"
+msgstr "មាន​ពពក និង​ព្រិល​ខ្លាំង"
+
+#: bbcukmet_i18n.dat:7
+#, kde-format
+msgctxt "weather condition"
+msgid "cloudy with light snow"
+msgstr "មាន​ពពក និង​ព្រិល​តិចៗ"
+
+#: bbcukmet_i18n.dat:8
+#, kde-format
+msgctxt "weather condition"
+msgid "cloudy with sleet"
+msgstr "មាន​ភ្លៀង​លាយ​ព្រិល និង​ពពក"
+
+#: bbcukmet_i18n.dat:9 ions/wetter.com/ion_wettercom.cpp:167
+#: ions/wetter.com/ion_wettercom.cpp:168 ions/wetter.com/ion_wettercom.cpp:170
+#, kde-format
+msgctxt "weather condition"
+msgid "drizzle"
+msgstr "រលឹម​ស្រិចៗ"
+
+#: bbcukmet_i18n.dat:10
+#, kde-format
+msgctxt "weather condition"
+msgid "fog"
+msgstr "អ័ព្ទ"
+
+#: bbcukmet_i18n.dat:11
+#, kde-format
+msgctxt "weather condition"
+msgid "foggy"
+msgstr "មាន​អ័ព្ទ"
+
+#: bbcukmet_i18n.dat:12
+#, kde-format
+msgctxt "weather condition"
+msgid "grey cloud"
+msgstr "ពពក​ពណ៌​ប្រផះ"
+
+#: bbcukmet_i18n.dat:13
+#, kde-format
+msgctxt "weather condition"
+msgid "hail"
+msgstr "ធ្លាក់​ព្រិល"
+
+#: bbcukmet_i18n.dat:14
+#, kde-format
+msgctxt "weather condition"
+msgid "hail shower"
+msgstr "ភ្លៀង​មាន​​​ធ្លាក់​ព្រិល"
+
+#: bbcukmet_i18n.dat:15
+#, kde-format
+msgctxt "weather condition"
+msgid "hail showers"
+msgstr "ភ្លៀង​មាន​​ធ្លាក់​ព្រិល"
+
+#: bbcukmet_i18n.dat:16
+#, kde-format
+msgctxt "weather condition"
+msgid "hazy"
+msgstr "ចុះអ័ព្វ"
+
+#: bbcukmet_i18n.dat:17 ions/wetter.com/ion_wettercom.cpp:178
+#, kde-format
+msgctxt "weather condition"
+msgid "heavy rain"
+msgstr "ភ្លៀង​ខ្លាំង"
+
+#: bbcukmet_i18n.dat:18
+#, kde-format
+msgctxt "weather condition"
+msgid "heavy rain shower"
+msgstr "មាន​ភ្លៀង​ខ្លាំង"
+
+#: bbcukmet_i18n.dat:19
+#, fuzzy, kde-format
+#| msgctxt "weather condition"
+#| msgid "heavy rain shower"
+msgctxt "weather condition"
+msgid "heavy rain showers"
+msgstr "មាន​ភ្លៀង​ខ្លាំង"
+
+#: bbcukmet_i18n.dat:20
+#, kde-format
+msgctxt "weather condition"
+msgid "heavy shower"
+msgstr "​ភ្លៀង​ខ្លាំង"
+
+#: bbcukmet_i18n.dat:21 ions/wetter.com/ion_wettercom.cpp:191
+#, kde-format
+msgctxt "weather condition"
+msgid "heavy showers"
+msgstr "ភ្លៀង​ខ្លាំង"
+
+#: bbcukmet_i18n.dat:22 ions/wetter.com/ion_wettercom.cpp:187
+#, kde-format
+msgctxt "weather condition"
+msgid "heavy snow"
+msgstr "ព្រិល​ច្រើន"
+
+#: bbcukmet_i18n.dat:23
+#, kde-format
+msgctxt "weather condition"
+msgid "heavy snow shower"
+msgstr "ភ្លៀង​មាន​ធ្លាក់​​ព្រិល​ខ្លាំង​"
+
+#: bbcukmet_i18n.dat:24
+#, kde-format
+msgctxt "weather condition"
+msgid "heavy snow showers"
+msgstr "ភ្លៀង​មាន​ធ្លាក់​ព្រិល​​ខ្លាំង"
+
+#: bbcukmet_i18n.dat:25
+#, fuzzy, kde-format
+#| msgctxt "weather condition"
+#| msgid "white cloud"
+msgctxt "weather condition"
+msgid "light cloud"
+msgstr "ពពកស"
+
+#: bbcukmet_i18n.dat:26 ions/wetter.com/ion_wettercom.cpp:175
+#: ions/wetter.com/ion_wettercom.cpp:176
+#, kde-format
+msgctxt "weather condition"
+msgid "light rain"
+msgstr "ភ្លៀង​តិច"
+
+#: bbcukmet_i18n.dat:27
+#, kde-format
+msgctxt "weather condition"
+msgid "light rain shower"
+msgstr "មាន​ភ្លៀង​តិច"
+
+#: bbcukmet_i18n.dat:28
+#, fuzzy, kde-format
+#| msgctxt "weather condition"
+#| msgid "light rain shower"
+msgctxt "weather condition"
+msgid "light rain showers"
+msgstr "មាន​ភ្លៀង​តិច"
+
+#: bbcukmet_i18n.dat:29
+#, kde-format
+msgctxt "weather condition"
+msgid "light shower"
+msgstr "ភ្លៀង​តិច"
+
+#: bbcukmet_i18n.dat:30 ions/wetter.com/ion_wettercom.cpp:189
+#, kde-format
+msgctxt "weather condition"
+msgid "light showers"
+msgstr "ភ្លៀង​​តិច​ៗ"
+
+#: bbcukmet_i18n.dat:31 ions/wetter.com/ion_wettercom.cpp:184
+#: ions/wetter.com/ion_wettercom.cpp:185
+#, kde-format
+msgctxt "weather condition"
+msgid "light snow"
+msgstr "ព្រិល​តិចៗ"
+
+#: bbcukmet_i18n.dat:32
+#, kde-format
+msgctxt "weather condition"
+msgid "light snow shower"
+msgstr "ភ្លៀង​ធ្លាក់​​ព្រិល​តិច​ៗ"
+
+#: bbcukmet_i18n.dat:33 ions/wetter.com/ion_wettercom.cpp:194
+#, kde-format
+msgctxt "weather condition"
+msgid "light snow showers"
+msgstr "ភ្លៀង​មាន​ធ្លាក់​ព្រិល​តិច​ៗ"
+
+#: bbcukmet_i18n.dat:34
+#, kde-format
+msgctxt "weather condition"
+msgid "mist"
+msgstr "អ័ព្ទ"
+
+#: bbcukmet_i18n.dat:35
+#, kde-format
+msgctxt "weather condition"
+msgid "misty"
+msgstr "មាន​អ័ព្ទ"
+
+#: bbcukmet_i18n.dat:36 envcan_i18n.dat:1 noaa_i18n.dat:265
+#, kde-format
+msgctxt "weather condition"
+msgid "N/A"
+msgstr "មិនមាន"
+
+#: bbcukmet_i18n.dat:37
+#, kde-format
+msgctxt "weather condition"
+msgid "na"
+msgstr "មិនមាន"
+
+#: bbcukmet_i18n.dat:38
+#, kde-format
+msgctxt "weather condition"
+msgid "partly cloudy"
+msgstr "មាន​ពពក​ដោយ​កន្លែង"
+
+#: bbcukmet_i18n.dat:39
+#, kde-format
+msgctxt "weather condition"
+msgid "sandstorm"
+msgstr "ព្យុះ​ខ្សាច់"
+
+#: bbcukmet_i18n.dat:40
+#, kde-format
+msgctxt "weather condition"
+msgid "sleet"
+msgstr "ភ្លៀង​លាយ​ព្រិល"
+
+#: bbcukmet_i18n.dat:41
+#, kde-format
+msgctxt "weather condition"
+msgid "sleet shower"
+msgstr "ភ្លៀង​លាយ​ព្រិល"
+
+#: bbcukmet_i18n.dat:42
+#, kde-format
+msgctxt "weather condition"
+msgid "sleet showers"
+msgstr "ភ្លៀង​លាយ​ព្រិល"
+
+#: bbcukmet_i18n.dat:43 ions/wetter.com/ion_wettercom.cpp:207
+#, kde-format
+msgctxt "weather condition"
+msgid "sunny"
+msgstr "មាន​ពន្លឺថ្ងៃ"
+
+#: bbcukmet_i18n.dat:44
+#, kde-format
+msgctxt "weather condition"
+msgid "sunny intervals"
+msgstr "ចន្លោះ​ពេល​មាន​ពន្លឺ​ថ្ងៃ"
+
+#: bbcukmet_i18n.dat:45
+#, fuzzy, kde-format
+#| msgctxt "weather condition"
+#| msgid "white cloud"
+msgctxt "weather condition"
+msgid "thick cloud"
+msgstr "ពពកស"
+
+#: bbcukmet_i18n.dat:46 ions/wetter.com/ion_wettercom.cpp:196
+#: ions/wetter.com/ion_wettercom.cpp:197
+#, kde-format
+msgctxt "weather condition"
+msgid "thunderstorm"
+msgstr "ព្យុះ​មាន​រន្ទះ​ផ្គរ"
+
+#: bbcukmet_i18n.dat:47
+#, kde-format
+msgctxt "weather condition"
+msgid "thundery shower"
+msgstr "ភ្លៀង​មាន​ផ្គរ"
+
+#: bbcukmet_i18n.dat:48
+#, fuzzy, kde-format
+#| msgctxt "weather condition"
+#| msgid "thundery shower"
+msgctxt "weather condition"
+msgid "thundery showers"
+msgstr "ភ្លៀង​មាន​ផ្គរ"
+
+#: bbcukmet_i18n.dat:49
+#, kde-format
+msgctxt "weather condition"
+msgid "tropical storm"
+msgstr "ព្យុះ​តំបន់​ត្រូពិក"
+
+#: bbcukmet_i18n.dat:50
+#, kde-format
+msgctxt "weather condition"
+msgid "white cloud"
+msgstr "ពពកស"
+
+#: bbcukmet_i18n.dat:51
+#, kde-format
+msgctxt "weather forecast"
+msgid "clear"
+msgstr "ស្រឡះ"
+
+#: bbcukmet_i18n.dat:52
+#, kde-format
+msgctxt "weather forecast"
+msgid "clear intervals"
+msgstr "ចន្លោះ​ពេល​មេឃ​ស្រឡះ"
+
+#: bbcukmet_i18n.dat:53
+#, kde-format
+msgctxt "weather forecast"
+msgid "clear sky"
+msgstr "មេឃ​ស្រឡះ"
+
+#: bbcukmet_i18n.dat:54
+#, kde-format
+msgctxt "weather forecast"
+msgid "cloudy"
+msgstr "មាន​ពពក"
+
+#: bbcukmet_i18n.dat:55
+#, kde-format
+msgctxt "weather forecast"
+msgid "cloudy with hail"
+msgstr "មាន​ពពក និង​ព្រិល"
+
+#: bbcukmet_i18n.dat:56
+#, kde-format
+msgctxt "weather forecast"
+msgid "cloudy with heavy snow"
+msgstr "មាន​ពពក និង​ព្រិល​ខ្លាំង"
+
+#: bbcukmet_i18n.dat:57
+#, kde-format
+msgctxt "weather forecast"
+msgid "cloudy with light snow"
+msgstr "មាន​ពពក និង​ព្រិល​តិចៗ"
+
+#: bbcukmet_i18n.dat:58
+#, kde-format
+msgctxt "weather forecast"
+msgid "cloudy with sleet"
+msgstr "មាន​ភ្លៀង​លាយ​ព្រិល និង​ពពក"
+
+#: bbcukmet_i18n.dat:59
+#, kde-format
+msgctxt "weather forecast"
+msgid "drizzle"
+msgstr "រលឹម​ស្រិចៗ"
+
+#: bbcukmet_i18n.dat:60
+#, kde-format
+msgctxt "weather forecast"
+msgid "fog"
+msgstr "អ័ព្ទ"
+
+#: bbcukmet_i18n.dat:61
+#, kde-format
+msgctxt "weather forecast"
+msgid "foggy"
+msgstr "មាន​អ័ព្ទ"
+
+#: bbcukmet_i18n.dat:62
+#, kde-format
+msgctxt "weather forecast"
+msgid "grey cloud"
+msgstr "ពពក​ពណ៌​ប្រផះ"
+
+#: bbcukmet_i18n.dat:63
+#, kde-format
+msgctxt "weather forecast"
+msgid "hail"
+msgstr "ធ្លាក់​ព្រិល"
+
+#: bbcukmet_i18n.dat:64
+#, kde-format
+msgctxt "weather forecast"
+msgid "hail shower"
+msgstr "ភ្លៀង​ធ្លាក់​ព្រិល"
+
+#: bbcukmet_i18n.dat:65
+#, kde-format
+msgctxt "weather forecast"
+msgid "hail showers"
+msgstr "មាន​ភ្លៀង​ធ្លាក់​ព្រិល"
+
+#: bbcukmet_i18n.dat:66
+#, kde-format
+msgctxt "weather forecast"
+msgid "hazy"
+msgstr "ចុះអ័ព្ទ"
+
+#: bbcukmet_i18n.dat:67
+#, kde-format
+msgctxt "weather forecast"
+msgid "heavy rain"
+msgstr "ភ្លៀង​ខ្លាំង"
+
+#: bbcukmet_i18n.dat:68
+#, kde-format
+msgctxt "weather forecast"
+msgid "heavy rain shower"
+msgstr "មាន​ភ្លៀង​ខ្លាំង"
+
+#: bbcukmet_i18n.dat:69
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "heavy rain shower"
+msgctxt "weather forecast"
+msgid "heavy rain showers"
+msgstr "មាន​ភ្លៀង​ខ្លាំង"
+
+#: bbcukmet_i18n.dat:70
+#, kde-format
+msgctxt "weather forecast"
+msgid "heavy shower"
+msgstr "​ភ្លៀង​ខ្លាំង"
+
+#: bbcukmet_i18n.dat:71
+#, kde-format
+msgctxt "weather forecast"
+msgid "heavy showers"
+msgstr "មាន​ភ្លៀង​ខ្លាំង"
+
+#: bbcukmet_i18n.dat:72
+#, kde-format
+msgctxt "weather forecast"
+msgid "heavy snow"
+msgstr "ព្រិល​ច្រើន"
+
+#: bbcukmet_i18n.dat:73
+#, kde-format
+msgctxt "weather forecast"
+msgid "heavy snow shower"
+msgstr "មាន​ព្រិល​ខ្លាំង"
+
+#: bbcukmet_i18n.dat:74
+#, kde-format
+msgctxt "weather forecast"
+msgid "heavy snow showers"
+msgstr "មាន​ភ្លៀង​ខ្លាំង"
+
+#: bbcukmet_i18n.dat:75
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "white cloud"
+msgctxt "weather forecast"
+msgid "light cloud"
+msgstr "ពពក​ស"
+
+#: bbcukmet_i18n.dat:76
+#, kde-format
+msgctxt "weather forecast"
+msgid "light rain"
+msgstr "ភ្លៀង​តិច"
+
+#: bbcukmet_i18n.dat:77
+#, kde-format
+msgctxt "weather forecast"
+msgid "light rain shower"
+msgstr "មានភ្លៀង​តិច"
+
+#: bbcukmet_i18n.dat:78
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "light rain shower"
+msgctxt "weather forecast"
+msgid "light rain showers"
+msgstr "មានភ្លៀង​តិច"
+
+#: bbcukmet_i18n.dat:79
+#, kde-format
+msgctxt "weather forecast"
+msgid "light shower"
+msgstr "ភ្លៀង​តិច"
+
+#: bbcukmet_i18n.dat:80
+#, kde-format
+msgctxt "weather forecast"
+msgid "light showers"
+msgstr "ភ្លៀង​តិច"
+
+#: bbcukmet_i18n.dat:81
+#, kde-format
+msgctxt "weather forecast"
+msgid "light snow"
+msgstr "ព្រិល​តិច"
+
+#: bbcukmet_i18n.dat:82
+#, kde-format
+msgctxt "weather forecast"
+msgid "light snow shower"
+msgstr "ភ្លៀង​ព្រិល​តិច"
+
+#: bbcukmet_i18n.dat:83
+#, kde-format
+msgctxt "weather forecast"
+msgid "light snow showers"
+msgstr "ភ្លៀង​ព្រិល​តិច"
+
+#: bbcukmet_i18n.dat:84
+#, kde-format
+msgctxt "weather forecast"
+msgid "mist"
+msgstr "អ័ព្ទ"
+
+#: bbcukmet_i18n.dat:85
+#, kde-format
+msgctxt "weather forecast"
+msgid "misty"
+msgstr "មាន​អ័ព្ទ"
+
+#: bbcukmet_i18n.dat:86
+#, kde-format
+msgctxt "weather forecast"
+msgid "na"
+msgstr "មិន​មាន"
+
+#: bbcukmet_i18n.dat:87
+#, kde-format
+msgctxt "weather forecast"
+msgid "partly cloudy"
+msgstr "មាន​ពពក​ដោយ​កន្លែង"
+
+#: bbcukmet_i18n.dat:88
+#, kde-format
+msgctxt "weather forecast"
+msgid "sandstorm"
+msgstr "ព្យុះ​ខ្សាច់"
+
+#: bbcukmet_i18n.dat:89
+#, kde-format
+msgctxt "weather forecast"
+msgid "sleet"
+msgstr "ភ្លៀង​លាយ​ព្រិល"
+
+#: bbcukmet_i18n.dat:90
+#, kde-format
+msgctxt "weather forecast"
+msgid "sleet shower"
+msgstr "ភ្លៀង​លាយ​ព្រិល"
+
+#: bbcukmet_i18n.dat:91
+#, kde-format
+msgctxt "weather forecast"
+msgid "sleet showers"
+msgstr "ភ្លៀង​លាយ​ព្រិល"
+
+#: bbcukmet_i18n.dat:92
+#, kde-format
+msgctxt "weather forecast"
+msgid "sunny"
+msgstr "មាន​ពន្លឺថ្ងៃ"
+
+#: bbcukmet_i18n.dat:93
+#, kde-format
+msgctxt "weather forecast"
+msgid "sunny intervals"
+msgstr "ចន្លោះ​ពេល​មាន​ពន្លឺ​ថ្ងៃ"
+
+#: bbcukmet_i18n.dat:94
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "white cloud"
+msgctxt "weather forecast"
+msgid "thick cloud"
+msgstr "ពពក​ស"
+
+#: bbcukmet_i18n.dat:95
+#, fuzzy, kde-format
+#| msgctxt "weather condition"
+#| msgid "thunderstorm"
+msgctxt "weather forecast"
+msgid "thunderstorm"
+msgstr "ព្យុះ​មាន​រន្ទះ​ផ្គរ"
+
+#: bbcukmet_i18n.dat:96
+#, kde-format
+msgctxt "weather forecast"
+msgid "thundery shower"
+msgstr "ភ្លៀង​មាន​ផ្គរ"
+
+#: bbcukmet_i18n.dat:97
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "thundery shower"
+msgctxt "weather forecast"
+msgid "thundery showers"
+msgstr "ភ្លៀង​មាន​ផ្គរ"
+
+#: bbcukmet_i18n.dat:98
+#, kde-format
+msgctxt "weather forecast"
+msgid "tropical storm"
+msgstr "ព្យុះ​តំបន់​ត្រូពិក"
+
+#: bbcukmet_i18n.dat:99
+#, kde-format
+msgctxt "weather forecast"
+msgid "white cloud"
+msgstr "ពពក​ស"
+
+#: bbcukmet_i18n.dat:100
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Ice pellet"
+msgctxt "visibility"
+msgid "Excellent"
+msgstr "គ្រាប់​ទឹកកក"
+
+#: bbcukmet_i18n.dat:101
+#, fuzzy, kde-format
+#| msgctxt "visibility"
+#| msgid "Very good"
+msgctxt "visibility"
+msgid "Very Good"
+msgstr "ល្អណាស់"
+
+#: bbcukmet_i18n.dat:102
+#, kde-format
+msgctxt "visibility"
+msgid "Good"
+msgstr "ល្អ"
+
+#: bbcukmet_i18n.dat:103
+#, kde-format
+msgctxt "visibility"
+msgid "Moderate"
+msgstr "មធ្យម"
+
+#: bbcukmet_i18n.dat:104
+#, kde-format
+msgctxt "visibility"
+msgid "Poor"
+msgstr "មិនល្អ"
+
+#: bbcukmet_i18n.dat:105
+#, fuzzy, kde-format
+#| msgctxt "visibility"
+#| msgid "Very poor"
+msgctxt "visibility"
+msgid "Very Poor"
+msgstr "អាក្រក់​​ណាស់"
+
+#: envcan_i18n.dat:2 noaa_i18n.dat:7
+#, kde-format
+msgctxt "weather condition"
+msgid "Blowing Snow"
+msgstr "បែក​ព្រិល"
+
+#: envcan_i18n.dat:3 noaa_i18n.dat:10
+#, kde-format
+msgctxt "weather condition"
+msgid "Clear"
+msgstr "ស្រឡះ"
+
+#: envcan_i18n.dat:4
+#, kde-format
+msgctxt "weather condition"
+msgid "Cloudy"
+msgstr "មាន​ពពក"
+
+#: envcan_i18n.dat:5
+#, kde-format
+msgctxt "weather condition"
+msgid "Decreasing Cloud"
+msgstr "ពពក​តិច"
+
+#: envcan_i18n.dat:6
+#, kde-format
+msgctxt "weather condition"
+msgid "Distant Precipitation"
+msgstr "ភ្លៀង​ទឹក​កក​ព្រិល"
+
+#: envcan_i18n.dat:7
+#, kde-format
+msgctxt "weather condition"
+msgid "Drifting Snow"
+msgstr "គំនរ​ព្រិល"
+
+#: envcan_i18n.dat:8 noaa_i18n.dat:13
+#, kde-format
+msgctxt "weather condition"
+msgid "Drizzle"
+msgstr "រលឹម​ស្រិចៗ"
+
+#: envcan_i18n.dat:9 noaa_i18n.dat:18
+#, kde-format
+msgctxt "weather condition"
+msgid "Dust"
+msgstr "ធូលី"
+
+#: envcan_i18n.dat:10
+#, kde-format
+msgctxt "weather condition"
+msgid "Dust Devils"
+msgstr "ធូលី​ខ្លាំង"
+
+#: envcan_i18n.dat:11 noaa_i18n.dat:27
+#, kde-format
+msgctxt "weather condition"
+msgid "Fog"
+msgstr "អ័ព្ទ"
+
+#: envcan_i18n.dat:12
+#, kde-format
+msgctxt "weather condition"
+msgid "Fog Bank Near Station"
+msgstr "អ័ព្ទ​នៅ​ជិត​ស្ថានីយ"
+
+#: envcan_i18n.dat:13
+#, kde-format
+msgctxt "weather condition"
+msgid "Fog Depositing Ice"
+msgstr "អ័ព្ទ​មាន​ទឹកកក"
+
+#: envcan_i18n.dat:14
+#, kde-format
+msgctxt "weather condition"
+msgid "Fog Patches"
+msgstr "បំណែក​អ័ព្ទ"
+
+#: envcan_i18n.dat:15
+#, kde-format
+msgctxt "weather condition"
+msgid "Freezing drizzle"
+msgstr "រលឹម​ស្រិចៗ​ត្រជាក់"
+
+#: envcan_i18n.dat:16
+#, kde-format
+msgctxt "weather condition"
+msgid "Freezing rain"
+msgstr "ភ្លៀង​ទឹកកក"
+
+#: envcan_i18n.dat:17 noaa_i18n.dat:40
+#, kde-format
+msgctxt "weather condition"
+msgid "Funnel Cloud"
+msgstr "ពពក​រាង​ជីឡាវ"
+
+#: envcan_i18n.dat:18 noaa_i18n.dat:42
+#, kde-format
+msgctxt "weather condition"
+msgid "Hail"
+msgstr "ព្រិល"
+
+#: envcan_i18n.dat:19 noaa_i18n.dat:44
+#, kde-format
+msgctxt "weather condition"
+msgid "Haze"
+msgstr "អ័ព្ទ"
+
+#: envcan_i18n.dat:20 noaa_i18n.dat:45
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Blowing Snow"
+msgstr "មាន​​ព្រិល​ច្រើន"
+
+#: envcan_i18n.dat:21
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Drifting Snow"
+msgstr "ដុំ​ព្រិល​ច្រើន"
+
+#: envcan_i18n.dat:22 noaa_i18n.dat:46
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Drizzle"
+msgstr "រលឹម​ស្រិចៗ​ជាប់"
+
+#: envcan_i18n.dat:23
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Hail"
+msgstr "ព្រិល​ខ្លាំង"
+
+#: envcan_i18n.dat:24
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Mixed Rain and Drizzle"
+msgstr "មាន​ភ្លៀង និង​រលឹម​ស្រិចៗ​"
+
+#: envcan_i18n.dat:25
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Mixed Rain and Snow Shower"
+msgstr "មាន​ភ្លៀង និង​ព្រិល"
+
+#: envcan_i18n.dat:26 noaa_i18n.dat:62
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Rain"
+msgstr "ភ្លៀង​ខ្លាំង"
+
+#: envcan_i18n.dat:27
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Rain and Snow"
+msgstr "ភ្លៀង និង​ព្រិល​ច្រើន"
+
+#: envcan_i18n.dat:28
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Rainshower"
+msgstr "មាន​ភ្លៀង​ច្រើន"
+
+#: envcan_i18n.dat:29 noaa_i18n.dat:78
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Snow"
+msgstr "ព្រិល​ខ្លាំង"
+
+#: envcan_i18n.dat:30
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Snow Pellets"
+msgstr "មាន​គ្រាប់​ភ្លៀង​ច្រើន"
+
+#: envcan_i18n.dat:31
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Snowshower"
+msgstr "មាន​ភ្លៀង​ច្រើន"
+
+#: envcan_i18n.dat:32 noaa_i18n.dat:226
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm"
+msgstr "ព្យុះ"
+
+#: envcan_i18n.dat:33
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Thunderstorm with Hail"
+msgstr "ផ្គរ​ ​និង​ធ្លាក់​ព្រិល​"
+
+#: envcan_i18n.dat:34
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Thunderstorm with Rain"
+msgstr "មាន​ផ្គរ និង​ភ្លៀង"
+
+#: envcan_i18n.dat:35 noaa_i18n.dat:101
+#, kde-format
+msgctxt "weather condition"
+msgid "Ice Crystals"
+msgstr "ទឹកកក​គ្រីស្តាល់"
+
+#: envcan_i18n.dat:36 noaa_i18n.dat:102
+#, kde-format
+msgctxt "weather condition"
+msgid "Ice Pellets"
+msgstr "គ្រាប់​ទឹកកក"
+
+#: envcan_i18n.dat:37
+#, kde-format
+msgctxt "weather condition"
+msgid "Increasing Cloud"
+msgstr "ពពក​ច្រើន"
+
+#: envcan_i18n.dat:38 noaa_i18n.dat:106
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Drizzle"
+msgstr "រលឹម​ស្រិចៗ​តិច"
+
+#: envcan_i18n.dat:39 noaa_i18n.dat:111
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Freezing Drizzle"
+msgstr "រលឹម​ស្រិចៗ​ត្រជាក់​តិចៗ"
+
+#: envcan_i18n.dat:40 noaa_i18n.dat:115
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Freezing Rain"
+msgstr "ភ្លៀង​ត្រជាក់​តិចៗ"
+
+#: envcan_i18n.dat:41 noaa_i18n.dat:121
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Rain"
+msgstr "ភ្លៀង​តិចៗ"
+
+#: envcan_i18n.dat:42
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Rainshower"
+msgstr "មាន​ភ្លៀង​តិចៗ"
+
+#: envcan_i18n.dat:43 noaa_i18n.dat:137
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Snow"
+msgstr "ព្រិល​តិច"
+
+#: envcan_i18n.dat:44
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Snow Pellets"
+msgstr "គ្រាប់​ព្រិល​តិច"
+
+#: envcan_i18n.dat:45
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Snowshower"
+msgstr "មាន​ភ្លៀង​តិចៗ"
+
+#: envcan_i18n.dat:46
+#, kde-format
+msgctxt "weather condition"
+msgid "Lightning Visible"
+msgstr "មាន​ពន្លឺ"
+
+#: envcan_i18n.dat:47
+#, kde-format
+msgctxt "weather condition"
+msgid "Mainly Clear"
+msgstr "ស្រឡះ​ល្អ"
+
+#: envcan_i18n.dat:48
+#, kde-format
+msgctxt "weather condition"
+msgid "Mainly Sunny"
+msgstr "មាន​ពន្លឺ​ថ្ងៃ​ល្អ"
+
+#: envcan_i18n.dat:49
+#, kde-format
+msgctxt "weather condition"
+msgid "Mist"
+msgstr "អ័ព្ទ"
+
+#: envcan_i18n.dat:50
+#, kde-format
+msgctxt "weather condition"
+msgid "Mixed Rain and Drizzle"
+msgstr "មាន​ភ្លៀង​ និង​រលឹម​ស្រិចៗ"
+
+#: envcan_i18n.dat:51
+#, kde-format
+msgctxt "weather condition"
+msgid "Mixed Rain and Snow Shower"
+msgstr "មាន​ភ្លៀង​ និង​ព្រិល"
+
+#: envcan_i18n.dat:52 noaa_i18n.dat:165
+#, kde-format
+msgctxt "weather condition"
+msgid "Mostly Cloudy"
+msgstr "មាន​ពពក​ច្រើន"
+
+#: envcan_i18n.dat:53
+#, kde-format
+msgctxt "weather condition"
+msgid "Not Reported"
+msgstr "មិនបាន​រាយការណ៍"
+
+#: envcan_i18n.dat:54 noaa_i18n.dat:175
+#, kde-format
+msgctxt "weather condition"
+msgid "Partly Cloudy"
+msgstr "ពពក​ដោយ​កន្លែង"
+
+#: envcan_i18n.dat:55
+#, kde-format
+msgctxt "weather condition"
+msgid "Rain"
+msgstr "ភ្លៀង"
+
+#: envcan_i18n.dat:56
+#, kde-format
+msgctxt "weather condition"
+msgid "Rain and Snow"
+msgstr "ភ្លៀង និង​ព្រិល"
+
+#: envcan_i18n.dat:57
+#, kde-format
+msgctxt "weather condition"
+msgid "Rainshower"
+msgstr "មាន​ធ្លាក់​ភ្លៀង"
+
+#: envcan_i18n.dat:58
+#, kde-format
+msgctxt "weather condition"
+msgid "Recent Drizzle"
+msgstr "រលឹម​ស្រិចៗ​​ថ្មីៗ"
+
+#: envcan_i18n.dat:59
+#, kde-format
+msgctxt "weather condition"
+msgid "Recent Dust or Sand Storm"
+msgstr "បច្ចុប្បន្ន​មាន​ធូលី និង​ព្យុះ​ខ្សាច់"
+
+#: envcan_i18n.dat:60
+#, kde-format
+msgctxt "weather condition"
+msgid "Recent Fog"
+msgstr "អ័ព្ទ​ធ្លាក់​​ថ្មីៗ​"
+
+#: envcan_i18n.dat:61
+#, kde-format
+msgctxt "weather condition"
+msgid "Recent Freezing Precipitation"
+msgstr "បច្ចុប្បន្ន​មាន​ភ្លៀង​ទឹកកក"
+
+#: envcan_i18n.dat:62
+#, kde-format
+msgctxt "weather condition"
+msgid "Recent Hail"
+msgstr "បច្ចុប្បន្ន​ធ្លាក់​ព្រិល"
+
+#: envcan_i18n.dat:63
+#, kde-format
+msgctxt "weather condition"
+msgid "Recent Rain"
+msgstr "បច្ចុប្បន្ន​ភ្លៀង"
+
+#: envcan_i18n.dat:64
+#, kde-format
+msgctxt "weather condition"
+msgid "Recent Rain and Snow"
+msgstr "បច្ចុប្បន្ន​មាន​ភ្លៀង និង​ព្រិល"
+
+#: envcan_i18n.dat:65
+#, kde-format
+msgctxt "weather condition"
+msgid "Recent Rainshower"
+msgstr "បច្ចុប្បន្ន​មាន​ភ្លៀង​"
+
+#: envcan_i18n.dat:66
+#, kde-format
+msgctxt "weather condition"
+msgid "Recent Snow"
+msgstr "បច្ចុប្បន្ន​មាន​ព្រិល"
+
+#: envcan_i18n.dat:67
+#, kde-format
+msgctxt "weather condition"
+msgid "Recent Snowshower"
+msgstr "បច្ចុប្បន្ន​មាន​ភ្លៀង"
+
+#: envcan_i18n.dat:68
+#, kde-format
+msgctxt "weather condition"
+msgid "Recent Thunderstorm"
+msgstr "បច្ចុប្បន្ន​មាន​ផ្គរ"
+
+#: envcan_i18n.dat:69
+#, kde-format
+msgctxt "weather condition"
+msgid "Recent Thunderstorm with Hail"
+msgstr "បច្ចុប្បន្ន​មាន​ផ្គរ និង​គ្រាប់​ព្រិល"
+
+#: envcan_i18n.dat:70
+#, kde-format
+msgctxt "weather condition"
+msgid "Recent Thunderstorm with Heavy Hail"
+msgstr "បច្ចុប្បន្ន​មាន​ផ្គរ និង​គ្រាប់​ព្រិល​ច្រើន"
+
+#: envcan_i18n.dat:71
+#, kde-format
+msgctxt "weather condition"
+msgid "Recent Thunderstorm with Heavy Rain"
+msgstr "បច្ចុប្បន្ន​មាន​ព្យុះ និង​ភ្លៀង​ខ្លាំង"
+
+#: envcan_i18n.dat:72
+#, kde-format
+msgctxt "weather condition"
+msgid "Recent Thunderstorm with Rain"
+msgstr "បច្ចុប្បន្ន​មាន​ព្យុះ​​ និង​ភ្លៀង"
+
+#: envcan_i18n.dat:73
+#, kde-format
+msgctxt "weather condition"
+msgid "Sand or Dust Storm"
+msgstr "ព្យុះ​ខ្សាច់ ឬ​ធូលី"
+
+#: envcan_i18n.dat:74
+#, kde-format
+msgctxt "weather condition"
+msgid "Severe Sand or Dust Storm"
+msgstr "ព្យុះ​ខ្សាច់ ឬ​ធូលី​ខ្លាំង"
+
+#: envcan_i18n.dat:75 noaa_i18n.dat:195
+#, kde-format
+msgctxt "weather condition"
+msgid "Shallow Fog"
+msgstr "អ័ព្ទ​រាក់"
+
+#: envcan_i18n.dat:76 noaa_i18n.dat:209
+#, kde-format
+msgctxt "weather condition"
+msgid "Smoke"
+msgstr "ផ្សែង"
+
+#: envcan_i18n.dat:77 noaa_i18n.dat:210
+#, kde-format
+msgctxt "weather condition"
+msgid "Snow"
+msgstr "ព្រិល"
+
+#: envcan_i18n.dat:78
+#, kde-format
+msgctxt "weather condition"
+msgid "Snow Crystals"
+msgstr "ព្រិល​គ្រីស្តាល់"
+
+#: envcan_i18n.dat:79 noaa_i18n.dat:217
+#, kde-format
+msgctxt "weather condition"
+msgid "Snow Grains"
+msgstr "គ្រាប់​ពិល"
+
+#: envcan_i18n.dat:80
+#, kde-format
+msgctxt "weather condition"
+msgid "Squalls"
+msgstr "ព្យុះ"
+
+#: envcan_i18n.dat:81
+#, kde-format
+msgctxt "weather condition"
+msgid "Sunny"
+msgstr "មាន​ពន្លឺ​ថ្ងៃ"
+
+#: envcan_i18n.dat:82
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm with Hail"
+msgstr "រន្ទះ​​​ និង​​​ព្រិល"
+
+#: envcan_i18n.dat:83
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm with Rain"
+msgstr "រន្ទះ​ និង​​ភ្លៀង"
+
+#: envcan_i18n.dat:84
+#, fuzzy, kde-format
+#| msgctxt "weather condition"
+#| msgid "Thunderstorm with Rain"
+msgctxt "weather condition"
+msgid "Thunderstorm with light rainshowers"
+msgstr "រន្ទះ​ និង​​ភ្លៀង"
+
+#: envcan_i18n.dat:85
+#, fuzzy, kde-format
+#| msgctxt "weather condition"
+#| msgid "Recent Thunderstorm with Heavy Rain"
+msgctxt "weather condition"
+msgid "Thunderstorm with heavy rainshowers"
+msgstr "បច្ចុប្បន្ន​មាន​ព្យុះ និង​ភ្លៀង​ខ្លាំង"
+
+#: envcan_i18n.dat:86
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm with Sand or Dust Storm"
+msgstr "រន្ទះ​​មាន​ព្យុះ​ខ្សាច់ និង​ធូលី"
+
+#: envcan_i18n.dat:87
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm without Precipitation"
+msgstr "រន្ទះ​គ្មានភ្លៀង​ទឹកកក"
+
+#: envcan_i18n.dat:88
+#, kde-format
+msgctxt "weather condition"
+msgid "Tornado"
+msgstr "ព្យុះ​សង្ឃរា"
+
+#: envcan_i18n.dat:89
+#, kde-format
+msgctxt "weather forecast"
+msgid "A few clouds"
+msgstr "ពពក​តិច"
+
+#: envcan_i18n.dat:90
+#, kde-format
+msgctxt "weather forecast"
+msgid "A few flurries"
+msgstr "ទឹក​ក​ក​តិចៗ​បក់​តាម​ខ្យល់"
+
+#: envcan_i18n.dat:91
+#, kde-format
+msgctxt "weather forecast"
+msgid "A few flurries mixed with ice pellets"
+msgstr "ទឹកកក​តិចៗ​​បក់​តាម​ខ្យល់​​លាយ​គ្រាប់​ទឹកកក"
+
+#: envcan_i18n.dat:92
+#, kde-format
+msgctxt "weather forecast"
+msgid "A few flurries or rain showers"
+msgstr "ទឹកកក​តិចៗ​បក់​តាម​ខ្យល់ ឬ​គ្រាប់​ភ្លៀង"
+
+#: envcan_i18n.dat:93
+#, kde-format
+msgctxt "weather forecast"
+msgid "A few flurries or thundershowers"
+msgstr "ទឹកកក​បក់​តិចៗ​តាម​ខ្យល់ ឬ​រន្ទះ"
+
+#: envcan_i18n.dat:94
+#, kde-format
+msgctxt "weather forecast"
+msgid "A few rain showers or flurries"
+msgstr "មាន​ភ្លៀង ឬ​ទឹកកក​បន្តិច"
+
+#: envcan_i18n.dat:95
+#, kde-format
+msgctxt "weather forecast"
+msgid "A few rain showers or wet flurries"
+msgstr "មាន​ភ្លៀង ឬ​ទឹកកក​បន្តិចៗ"
+
+#: envcan_i18n.dat:96
+#, kde-format
+msgctxt "weather forecast"
+msgid "A few showers"
+msgstr "មាន​ភ្លៀង​តិច"
+
+#: envcan_i18n.dat:97
+#, kde-format
+msgctxt "weather forecast"
+msgid "A few showers or drizzle"
+msgstr "មាន​ភ្លៀង និង​រលឹម​ស្រិចៗ"
+
+#: envcan_i18n.dat:98
+#, kde-format
+msgctxt "weather forecast"
+msgid "A few showers or thundershowers"
+msgstr "មាន​ភ្លៀង និង​ផ្គរ​តិចៗ"
+
+#: envcan_i18n.dat:99
+#, kde-format
+msgctxt "weather forecast"
+msgid "A few showers or thunderstorms"
+msgstr "មាន​ភ្លៀង និង​ផ្គរ​តិចតួច"
+
+#: envcan_i18n.dat:100
+#, kde-format
+msgctxt "weather forecast"
+msgid "A few thundershowers"
+msgstr "មាន​ផ្គរ​តិចតួច"
+
+#: envcan_i18n.dat:101
+#, kde-format
+msgctxt "weather forecast"
+msgid "A few thunderstorms"
+msgstr "ផ្គរ​តិចតួច"
+
+#: envcan_i18n.dat:102
+#, kde-format
+msgctxt "weather forecast"
+msgid "A few wet flurries"
+msgstr "សើម​លាយ​ទឹកកក​តិចៗ​បក់​តាម​ខ្យល់"
+
+#: envcan_i18n.dat:103
+#, kde-format
+msgctxt "weather forecast"
+msgid "A few wet flurries or rain showers"
+msgstr "សើម​លាយ​ទឹកកក​តិចៗ​បក់​តាម​ខ្យល់ ឬ​មាន​ភ្លៀង"
+
+#: envcan_i18n.dat:104
+#, kde-format
+msgctxt "weather forecast"
+msgid "A mix of sun and cloud"
+msgstr "មាន​ថ្ងៃ​ និង​ពពក"
+
+#: envcan_i18n.dat:105
+#, kde-format
+msgctxt "weather forecast"
+msgid "Blizzard"
+msgstr "ព្យុះ​ទឹកកក"
+
+#: envcan_i18n.dat:106
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of drizzle"
+msgstr "មាន​រលឹម​ស្រិចៗ"
+
+#: envcan_i18n.dat:107
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of drizzle mixed with freezing drizzle"
+msgstr "មាន​រលឹម​ស្រិចៗ"
+
+#: envcan_i18n.dat:108
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of drizzle mixed with rain"
+msgstr "មាន​រលឹម​ស្រិចៗ​ និង​ភ្លៀង"
+
+#: envcan_i18n.dat:109
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of drizzle or rain"
+msgstr "មាន​រលឹម​ស្រិច ឬ​ភ្លៀង"
+
+#: envcan_i18n.dat:110
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of flurries"
+msgstr "មាន​ទឹកកក​បក់​តាម​ខ្យល់"
+
+#: envcan_i18n.dat:111
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of flurries at times heavy"
+msgstr "មាន​ទឹកកក​បក់​តាម​ខ្យល់​នៅ​ពេល​មាន​ខ្យល់​ខ្លាំង"
+
+#: envcan_i18n.dat:112
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of flurries mixed with ice pellets"
+msgstr "មាន​ទឹកកក​បក់​តាម​ខ្យល់​លាយ​នឹង​គ្រាប់​ទឹកកក"
+
+#: envcan_i18n.dat:113
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of flurries or ice pellets"
+msgstr "មាន​ទឹកកក​បក់​តាម​ខ្យល់ ឬ​គ្រាប់​ទឹកកក"
+
+#: envcan_i18n.dat:114
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of flurries or rain showers"
+msgstr "មាន​ទឹកកក​បក់​តាម​ខ្យល់ ឬ​ភ្លៀង"
+
+#: envcan_i18n.dat:115
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of flurries or thundershowers"
+msgstr "មាន​ទឹកកក​បក់​តាម​ខ្យល់ ឬ​ផ្គរ"
+
+#: envcan_i18n.dat:116
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of freezing drizzle"
+msgstr "មាន​រលឹម​ស្រិចៗ​ត្រជាក់"
+
+#: envcan_i18n.dat:117
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of freezing rain"
+msgstr "មាន​ភ្លៀង​ត្រជាក់"
+
+#: envcan_i18n.dat:118
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of freezing rain mixed with snow"
+msgstr "មាន​ភ្លៀង​ត្រជាក់​លាយ​នឹង​ព្រិល"
+
+#: envcan_i18n.dat:119
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of freezing rain or rain"
+msgstr "មាន​ភ្លៀង​ត្រជាក់ ឬ​ភ្លៀង"
+
+#: envcan_i18n.dat:120
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of freezing rain or snow"
+msgstr "មាន​ភ្លៀង​ត្រជាក់ ឬ​ព្រិល"
+
+#: envcan_i18n.dat:121
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of light snow"
+msgstr "មាន​ព្រិល​តិចៗ"
+
+#: envcan_i18n.dat:122
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of light snow and blowing snow"
+msgstr "មាន​ព្រិល​តិចៗ និង​ដុំ​ព្រិល"
+
+#: envcan_i18n.dat:123
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of light snow mixed with freezing drizzle"
+msgstr "មាន​ព្រិល​លាយ​នឹង​រលឹម​ស្រិចៗ"
+
+#: envcan_i18n.dat:124
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of light snow mixed with ice pellets"
+msgstr "មាន​ព្រិល​​លាយ​នឹង​គ្រាប់​ទឹកកក"
+
+#: envcan_i18n.dat:125
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of light snow mixed with rain"
+msgstr "មាន​ព្រិល​លាយ​ភ្លៀង"
+
+#: envcan_i18n.dat:126
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of light snow or freezing rain"
+msgstr "មាន​ព្រិល ឬ​ភ្លៀង​ទឹកកក"
+
+#: envcan_i18n.dat:127
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of light snow or ice pellets"
+msgstr "មាន​ព្រិល ឬ​គ្រាប់​ទឹកកក"
+
+#: envcan_i18n.dat:128
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of light snow or rain"
+msgstr "មាន​ព្រិល ឬ​ភ្លៀង​​តិច"
+
+#: envcan_i18n.dat:129
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of light wet snow"
+msgstr "មាន​ព្រិល​តិច"
+
+#: envcan_i18n.dat:130
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of rain"
+msgstr "មាន​ភ្លៀង"
+
+#: envcan_i18n.dat:131
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of rain at times heavy"
+msgstr "មាន​ភ្លៀង​ច្រើន​ដង"
+
+#: envcan_i18n.dat:132
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of rain mixed with snow"
+msgstr "មាន​ភ្លៀង​លាយ​នឹង​ព្រិល"
+
+#: envcan_i18n.dat:133
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of rain or drizzle"
+msgstr "មាន​ភ្លៀង​ ឬ​រលឹម​ស្រិចៗ"
+
+#: envcan_i18n.dat:134
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of rain or freezing rain"
+msgstr "មាន​ភ្លៀង ឬ​ភ្លៀង​ទឹកកក"
+
+#: envcan_i18n.dat:135
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of rain or snow"
+msgstr "មាន​ភ្លៀង ឬ​ព្រិល"
+
+#: envcan_i18n.dat:136
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of rain showers or flurries"
+msgstr "មាន​ភ្លៀង ឬ​ទឹកកក​"
+
+#: envcan_i18n.dat:137
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of rain showers or wet flurries"
+msgstr "មាន​ភ្លៀង ឬ​ទឹកកក"
+
+#: envcan_i18n.dat:138
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of severe thunderstorms"
+msgstr "មាន​ព្យុះ​ខ្លាំង​"
+
+#: envcan_i18n.dat:139
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of showers"
+msgstr "មាន​ភ្លៀង"
+
+#: envcan_i18n.dat:140
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of showers at times heavy"
+msgstr "មាន​ភ្លៀង​ច្រើន​ដង"
+
+#: envcan_i18n.dat:141
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of showers at times heavy or thundershowers"
+msgstr "មាន​ភ្លៀង​ច្រើនដង ឬ​ផ្គរ"
+
+#: envcan_i18n.dat:142
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of showers at times heavy or thunderstorms"
+msgstr "មាន​ភ្លៀង​ច្រើន​ដង ឬ​ព្យុះ"
+
+#: envcan_i18n.dat:143
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of showers or drizzle"
+msgstr "មាន​ភ្លៀង ឬ​រលឹម​ស្រិចៗ"
+
+#: envcan_i18n.dat:144
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of showers or thundershowers"
+msgstr "មាន​ភ្លៀង​ ឬ​រន្ទះ"
+
+#: envcan_i18n.dat:145
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of showers or thunderstorms"
+msgstr "មាន​ភ្លៀង ឬ​រន្ទះ"
+
+#: envcan_i18n.dat:146
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of snow"
+msgstr "មាន​ព្រិល"
+
+#: envcan_i18n.dat:147
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of snow and blizzard"
+msgstr "មាន​ព្រិល និង​ព្យុះ​ទឹកកក"
+
+#: envcan_i18n.dat:148
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of snow mixed with freezing drizzle"
+msgstr "មាន​ព្រិល​លាយ​រលឹម​ស្រិចៗ​ត្រជាក់"
+
+#: envcan_i18n.dat:149
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of snow mixed with freezing rain"
+msgstr "មាន​ព្រិល​លាយ​ភ្លៀង​ទឹកកក"
+
+#: envcan_i18n.dat:150
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of snow mixed with rain"
+msgstr "មាន​ព្រិល​លាយ​នឹង​ភ្លៀង"
+
+#: envcan_i18n.dat:151
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of snow or rain"
+msgstr "មាន​ព្រិល ឬ​ភ្លៀង"
+
+#: envcan_i18n.dat:152
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of snow squalls"
+msgstr "មាន​ព្យុះ​ព្រិល​ទឹកកក"
+
+#: envcan_i18n.dat:153
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of thundershowers"
+msgstr "មាន​រន្ទះ"
+
+#: envcan_i18n.dat:154
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of thunderstorms"
+msgstr "មាន​រន្ទះ"
+
+#: envcan_i18n.dat:155
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of thunderstorms and possible hail"
+msgstr "មាន​រន្ទះ និង​ព្រិល"
+
+#: envcan_i18n.dat:156
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of wet flurries"
+msgstr "មាន​ព្រិល​ទឹកកក"
+
+#: envcan_i18n.dat:157
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of wet flurries at times heavy"
+msgstr "មាន​ព្រិល​ទឹកកក​តិចៗ​នៅ​ពេល​ខ្លះ"
+
+#: envcan_i18n.dat:158
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of wet flurries or rain showers"
+msgstr "មាន​ព្រិល​ទឹកកក​តិចៗ ឬ​គ្រាប់​ភ្លៀង"
+
+#: envcan_i18n.dat:159
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of wet snow"
+msgstr "មាន​ព្រិល​​សើម"
+
+#: envcan_i18n.dat:160
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of wet snow mixed with rain"
+msgstr "មាន​ព្រិល​សើម​លាយ​ភ្លៀង"
+
+#: envcan_i18n.dat:161
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance of wet snow or rain"
+msgstr "មាន​ព្រិល​សើម ឬ​ភ្លៀង"
+
+#: envcan_i18n.dat:162 noaa_i18n.dat:356
+#, kde-format
+msgctxt "weather forecast"
+msgid "Clear"
+msgstr "ស្រឡះ"
+
+#: envcan_i18n.dat:163 noaa_i18n.dat:351
+#, kde-format
+msgctxt "weather forecast"
+msgid "Clearing"
+msgstr "ចាប់ផ្ដើម​ស្រឡះ"
+
+#: envcan_i18n.dat:164 noaa_i18n.dat:343
+#, kde-format
+msgctxt "weather forecast"
+msgid "Cloudy"
+msgstr "មាន​ពពក"
+
+#: envcan_i18n.dat:165
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "partly cloudy"
+msgctxt "weather forecast"
+msgid "Partly cloudy"
+msgstr "មាន​ពពក​ដោយ​កន្លែង"
+
+#: envcan_i18n.dat:166
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "partly cloudy"
+msgctxt "weather forecast"
+msgid "Mainly cloudy"
+msgstr "មាន​ពពក​ដោយ​កន្លែង"
+
+#: envcan_i18n.dat:167
+#, kde-format
+msgctxt "weather forecast"
+msgid "Cloudy periods"
+msgstr "មាន​ពពក​"
+
+#: envcan_i18n.dat:168
+#, kde-format
+msgctxt "weather forecast"
+msgid "Cloudy with sunny periods"
+msgstr "មាន​ពពក​ លាយ​​ពន្លឺថ្ងៃ"
+
+#: envcan_i18n.dat:169 noaa_i18n.dat:318
+#, kde-format
+msgctxt "weather forecast"
+msgid "Drizzle"
+msgstr "រលឹម​ស្រិចៗ"
+
+#: envcan_i18n.dat:170
+#, kde-format
+msgctxt "weather forecast"
+msgid "Drizzle mixed with freezing drizzle"
+msgstr "រលឹម​ស្រិចៗ​ត្រជាក់"
+
+#: envcan_i18n.dat:171
+#, kde-format
+msgctxt "weather forecast"
+msgid "Drizzle mixed with rain"
+msgstr "រលឹម​ស្រិចៗ​លាយ​ភ្លៀង"
+
+#: envcan_i18n.dat:172
+#, kde-format
+msgctxt "weather forecast"
+msgid "Drizzle or freezing drizzle"
+msgstr "រលឹម​ស្រិចៗ"
+
+#: envcan_i18n.dat:173
+#, kde-format
+msgctxt "weather forecast"
+msgid "Drizzle or rain"
+msgstr "រលឹម​ស្រិចៗ ឬ​ភ្លៀង"
+
+#: envcan_i18n.dat:174 noaa_i18n.dat:310
+#, kde-format
+msgctxt "weather forecast"
+msgid "Flurries"
+msgstr "ទឹកកក​បន្តិច​បក់​តាម​ខ្យល់"
+
+#: envcan_i18n.dat:175
+#, kde-format
+msgctxt "weather forecast"
+msgid "Flurries at times heavy"
+msgstr "ទឹកកក​​បន្តិច​បក់​តាម​ខ្យល់"
+
+#: envcan_i18n.dat:176
+#, kde-format
+msgctxt "weather forecast"
+msgid "Flurries at times heavy or rain showers"
+msgstr "ទឹកកក​បន្តិច​បក់​តាម​ខ្យល់​ ឬ​មាន​​ភ្លៀង"
+
+#: envcan_i18n.dat:177
+#, kde-format
+msgctxt "weather forecast"
+msgid "Flurries mixed with ice pellets"
+msgstr "មាន​ទឹកកក​បន្តិចៗ​បក់​តាម​ខ្យល់​លាយ​នឹង​គ្រាប់​ទឹកកក"
+
+#: envcan_i18n.dat:178
+#, kde-format
+msgctxt "weather forecast"
+msgid "Flurries or ice pellets"
+msgstr "មាន​ទឹកកក​បន្តិចៗ​បក់​តាម​ខ្យល់ ឬ​គ្រាប់​ទឹកកក"
+
+#: envcan_i18n.dat:179
+#, kde-format
+msgctxt "weather forecast"
+msgid "Flurries or rain showers"
+msgstr "មាន​ទឹកកក​បន្តិចៗ​បក់​តាម​ខ្យល់ ឬ​ភ្លៀង"
+
+#: envcan_i18n.dat:180
+#, kde-format
+msgctxt "weather forecast"
+msgid "Flurries or thundershowers"
+msgstr "មាន​ទឹកកក​បន្តិចៗ​បក់​តាម​ខ្យល់ ឬ​ផ្គរ"
+
+#: envcan_i18n.dat:181 noaa_i18n.dat:337
+#, kde-format
+msgctxt "weather forecast"
+msgid "Fog"
+msgstr "អ័ព្ទ"
+
+#: envcan_i18n.dat:182
+#, kde-format
+msgctxt "weather forecast"
+msgid "Fog developing"
+msgstr "អ័ព្ទ"
+
+#: envcan_i18n.dat:183
+#, kde-format
+msgctxt "weather forecast"
+msgid "Fog dissipating"
+msgstr "រលាយ​អ័ព្ទ"
+
+#: envcan_i18n.dat:184
+#, kde-format
+msgctxt "weather forecast"
+msgid "Fog patches"
+msgstr "ដុំ​អ័ព្ទ"
+
+#: envcan_i18n.dat:185
+#, kde-format
+msgctxt "weather forecast"
+msgid "Freezing drizzle"
+msgstr "រលឹម​ស្រិចៗ"
+
+#: envcan_i18n.dat:186
+#, kde-format
+msgctxt "weather forecast"
+msgid "Freezing rain"
+msgstr "ភ្លៀង​ទឹកកក"
+
+#: envcan_i18n.dat:187
+#, kde-format
+msgctxt "weather forecast"
+msgid "Freezing rain mixed with ice pellets"
+msgstr "ភ្លៀង​​​លាយ​នឹង​គ្រាប់​ទឹកកក"
+
+#: envcan_i18n.dat:188
+#, kde-format
+msgctxt "weather forecast"
+msgid "Freezing rain mixed with rain"
+msgstr "មាន​ភ្លៀង​​ទឹកកក"
+
+#: envcan_i18n.dat:189
+#, kde-format
+msgctxt "weather forecast"
+msgid "Freezing rain mixed with snow"
+msgstr "មាន​ភ្លៀង​ទឹកកក​លាយ​នឹង​ព្រិល"
+
+#: envcan_i18n.dat:190
+#, kde-format
+msgctxt "weather forecast"
+msgid "Freezing rain or ice pellets"
+msgstr "មាន​ភ្លៀង ឬ​គ្រាប់​ទឹកកក"
+
+#: envcan_i18n.dat:191
+#, kde-format
+msgctxt "weather forecast"
+msgid "Freezing rain or rain"
+msgstr "មាន​ភ្លៀង"
+
+#: envcan_i18n.dat:192
+#, kde-format
+msgctxt "weather forecast"
+msgid "Freezing rain or snow"
+msgstr "មាន​ភ្លៀង​ទឹកកក ឬ​ព្រិល"
+
+#: envcan_i18n.dat:193
+#, kde-format
+msgctxt "weather forecast"
+msgid "Ice fog"
+msgstr "អ័ព្ទ​ទឹកកក"
+
+#: envcan_i18n.dat:194
+#, kde-format
+msgctxt "weather forecast"
+msgid "Ice fog developing"
+msgstr "អ័ព្ទ​ទឹកកក"
+
+#: envcan_i18n.dat:195
+#, kde-format
+msgctxt "weather forecast"
+msgid "Ice fog dissipating"
+msgstr "អ័ព្ទ​ទឹកកក"
+
+#: envcan_i18n.dat:196
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Ice pellet"
+msgctxt "weather forecast"
+msgid "Ice pellets"
+msgstr "គ្រាប់​ទឹកកក"
+
+#: envcan_i18n.dat:197
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Ice pellet mixed with freezing rain"
+msgctxt "weather forecast"
+msgid "Ice pellets mixed with freezing rain"
+msgstr "គ្រាប់​ទឹកកក​លាយ​នឹង​ភ្លៀង"
+
+#: envcan_i18n.dat:198
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Ice pellet mixed with snow"
+msgctxt "weather forecast"
+msgid "Ice pellets mixed with snow"
+msgstr "គ្រាប់​ទឹកកក​លាយ​នឹង​ព្រិល"
+
+#: envcan_i18n.dat:199
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Ice pellet or freezing rain"
+msgctxt "weather forecast"
+msgid "Ice pellets or freezing rain"
+msgstr "គ្រាប់​ទឹកកក ឬ​ភ្លៀង​"
+
+#: envcan_i18n.dat:200
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Ice pellet or snow"
+msgctxt "weather forecast"
+msgid "Ice pellets or snow"
+msgstr "គ្រាប់​ទឹកកក ឬ​ព្រិល"
+
+#: envcan_i18n.dat:201
+#, kde-format
+msgctxt "weather forecast"
+msgid "Increasing cloudiness"
+msgstr "ពពក​ច្រើន"
+
+#: envcan_i18n.dat:202
+#, kde-format
+msgctxt "weather forecast"
+msgid "Increasing clouds"
+msgstr "កំពុង​មាន​ពពក​ច្រើន"
+
+#: envcan_i18n.dat:203
+#, kde-format
+msgctxt "weather forecast"
+msgid "Light snow"
+msgstr "ព្រិល​តិច"
+
+#: envcan_i18n.dat:204
+#, kde-format
+msgctxt "weather forecast"
+msgid "Light snow and blizzard"
+msgstr "ព្រិល​តិច ឬ​ព្យុះ​ទឹកកក​"
+
+#: envcan_i18n.dat:205
+#, kde-format
+msgctxt "weather forecast"
+msgid "Light snow and blizzard and blowing snow"
+msgstr "មាន​ព្រិល និង​ព្យុះ​ទឹកកក"
+
+#: envcan_i18n.dat:206
+#, kde-format
+msgctxt "weather forecast"
+msgid "Light snow and blowing snow"
+msgstr "មាន​ព្រិល"
+
+#: envcan_i18n.dat:207
+#, kde-format
+msgctxt "weather forecast"
+msgid "Light snow mixed with freezing drizzle"
+msgstr "មាន​ព្រិល​លាយ​នឹង​រលឹម​ស្រិចៗ​"
+
+#: envcan_i18n.dat:208
+#, kde-format
+msgctxt "weather forecast"
+msgid "Light snow mixed with freezing rain"
+msgstr "មាន​ព្រិល​លាយ​នឹង​ភ្លៀង​ទឹកកក"
+
+#: envcan_i18n.dat:209
+#, kde-format
+msgctxt "weather forecast"
+msgid "Light snow mixed with ice pellets"
+msgstr "មាន​ព្រិល​លាយ​នឹង​គ្រាប់​ទឹកកក"
+
+#: envcan_i18n.dat:210
+#, kde-format
+msgctxt "weather forecast"
+msgid "Light snow mixed with rain"
+msgstr "មាន​ព្រិល​លាយ​នឹង​ភ្លៀង"
+
+#: envcan_i18n.dat:211
+#, kde-format
+msgctxt "weather forecast"
+msgid "Light snow or freezing drizzle"
+msgstr "ព្រិល ឬ​រលឹម​ស្រិចៗ"
+
+#: envcan_i18n.dat:212
+#, kde-format
+msgctxt "weather forecast"
+msgid "Light snow or freezing rain"
+msgstr "មាន​ព្រិល ឬ​ភ្លៀង"
+
+#: envcan_i18n.dat:213
+#, kde-format
+msgctxt "weather forecast"
+msgid "Light snow or ice pellets"
+msgstr "មាន​ព្រិល ឬ​គ្រាប់​ទឹកកក"
+
+#: envcan_i18n.dat:214
+#, kde-format
+msgctxt "weather forecast"
+msgid "Light snow or rain"
+msgstr "មាន​ព្រិល ឬ​ភ្លៀង"
+
+#: envcan_i18n.dat:215
+#, kde-format
+msgctxt "weather forecast"
+msgid "Light wet snow"
+msgstr "មាន​ព្រិល​សើម​តិចៗ"
+
+#: envcan_i18n.dat:216
+#, kde-format
+msgctxt "weather forecast"
+msgid "Light wet snow or rain"
+msgstr "មាន​ព្រិល ឬ​ភ្លៀង"
+
+#: envcan_i18n.dat:217
+#, kde-format
+msgctxt "weather forecast"
+msgid "Local snow squalls"
+msgstr "មាន​ព្រិល"
+
+#: envcan_i18n.dat:218
+#, kde-format
+msgctxt "weather forecast"
+msgid "Near blizzard"
+msgstr "ព្យុះ​ទឹកកក​នៅ​ជិត"
+
+#: envcan_i18n.dat:219
+#, kde-format
+msgctxt "weather forecast"
+msgid "Overcast"
+msgstr "មេឃ​ស្រទំ"
+
+#: envcan_i18n.dat:220
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of drizzle"
+msgstr "រយៈពេល​មាន​រលឹម​ស្រិចៗ"
+
+#: envcan_i18n.dat:221
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of drizzle mixed with freezing drizzle"
+msgstr "រយៈពេល​មាន​រលឹម​ស្រិចៗ​"
+
+#: envcan_i18n.dat:222
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of drizzle mixed with rain"
+msgstr "រយៈពេល​រលឹម​ស្រិចៗ​​លាយ​ភ្លៀង"
+
+#: envcan_i18n.dat:223
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of drizzle or freezing drizzle"
+msgstr "រយៈពេល​រលឹម​ស្រិចៗ​ ឬ​ភ្លៀង"
+
+#: envcan_i18n.dat:224
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of drizzle or rain"
+msgstr "រយៈពេល​រលឹម​ស្រិចៗ ឬ​ភ្លៀង"
+
+#: envcan_i18n.dat:225
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of freezing drizzle"
+msgstr "រយៈពេល​មាន​​រលឹម​ស្រិចៗ"
+
+#: envcan_i18n.dat:226
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of freezing drizzle or drizzle"
+msgstr "រយៈពេល​រលឹម​ស្រិចៗ"
+
+#: envcan_i18n.dat:227
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of freezing drizzle or rain"
+msgstr "រយៈពេល​រលឹម​ស្រិចៗ ឬ​ភ្លៀង"
+
+#: envcan_i18n.dat:228
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of freezing rain"
+msgstr "រយៈពេល​មាន​ភ្លៀង​ទឹកកក"
+
+#: envcan_i18n.dat:229
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of freezing rain mixed with ice pellets"
+msgstr "រយៈពេល​ភ្លៀង​ទឹកកក​លាយ​នឹង​គ្រាប់​ទឹកកក"
+
+#: envcan_i18n.dat:230
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of freezing rain mixed with rain"
+msgstr "រយៈពេល​មាន​ភ្លៀង​ទឹកកក​លាយ​នឹង​ភ្លៀង"
+
+#: envcan_i18n.dat:231
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of freezing rain mixed with snow"
+msgstr "រយៈពេល​មាន​ភ្លៀង​ទឹកកក​លាយ​នឹង​ព្រិល"
+
+#: envcan_i18n.dat:232
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of freezing rain or ice pellets"
+msgstr "រយៈពេល​មាន​ភ្លៀង​ទឹកកក ឬ​គ្រាប់​ទឹកកក"
+
+#: envcan_i18n.dat:233
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of freezing rain or rain"
+msgstr "រយៈពេល​មាន​ភ្លៀង​ទឹកកក ឬ​ភ្លៀង"
+
+#: envcan_i18n.dat:234
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of freezing rain or snow"
+msgstr "រយៈពេល​មាន​ភ្លៀង​ទឹកកក ឬ​ព្រិល"
+
+#: envcan_i18n.dat:235
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Periods of ice pellet"
+msgctxt "weather forecast"
+msgid "Periods of ice pellets"
+msgstr "រយៈពេល​មាន​គ្រាប់​ទឹកកក"
+
+#: envcan_i18n.dat:236
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Periods of ice pellet mixed with freezing rain"
+msgctxt "weather forecast"
+msgid "Periods of ice pellets mixed with freezing rain"
+msgstr "រយៈ​ពេល​មាន​​គ្រាប់​ទឹកកក​លាយ​នឹង​ភ្លៀង​ទឹកកក"
+
+#: envcan_i18n.dat:237
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Periods of ice pellet mixed with snow"
+msgctxt "weather forecast"
+msgid "Periods of ice pellets mixed with snow"
+msgstr "រយៈពេល​មាន​គ្រាប់​ទឹកកក​លាយ​នឹង​ព្រិល"
+
+#: envcan_i18n.dat:238
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Periods of ice pellet or freezing rain"
+msgctxt "weather forecast"
+msgid "Periods of ice pellets or freezing rain"
+msgstr "រយៈ​ពេល​មាន​គ្រាប់​ទឹកកក ឬ​ភ្លៀង​ទឹកកក"
+
+#: envcan_i18n.dat:239
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Periods of ice pellet or snow"
+msgctxt "weather forecast"
+msgid "Periods of ice pellets or snow"
+msgstr "រយៈ​ពេល​មាន​គ្រាប់​ទឹកកក ឬ​ព្រិល"
+
+#: envcan_i18n.dat:240
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of light snow"
+msgstr "រយៈពេល​មាន​ព្រិល​តិចតួច"
+
+#: envcan_i18n.dat:241
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of light snow and blizzard"
+msgstr "រយៈពេល​មាន​ព្រិល និង​ព្យុះ​ទឹកកក​តិចតួច"
+
+#: envcan_i18n.dat:242
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of light snow and blizzard and blowing snow"
+msgstr "រយៈពេល​មាន​ព្រិល ព្យុះ​ទឹកកក និង​ដុំ​ព្រិល​តិចតួច"
+
+#: envcan_i18n.dat:243
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of light snow and blowing snow"
+msgstr "រយៈពេល​មាន​ព្រិល និង​ដុំ​ព្រិល​តិចតួច"
+
+#: envcan_i18n.dat:244
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of light snow mixed with freezing drizzle"
+msgstr "រយៈពេល​មាន​ព្រិល​តិចតួច​លាយ​នឹង​រលឹម​ស្រិចៗ"
+
+#: envcan_i18n.dat:245
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of light snow mixed with freezing rain"
+msgstr "រយៈពេល​មាន​ព្រិល​តិចតួច​លាយ​នឹង​ភ្លៀង​ទឹកកក"
+
+#: envcan_i18n.dat:246
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of light snow mixed with ice pellets"
+msgstr "រយៈពេល​មាន​ព្រិល​តិចតួច​លាយ​នឹង​គ្រាប់​ទឹកកក"
+
+#: envcan_i18n.dat:247
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of light snow mixed with rain"
+msgstr "រយៈពេល​មាន​ព្រិល​តិចតួច​លាយ​នឹង​ភ្លៀង"
+
+#: envcan_i18n.dat:248
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of light snow or freezing drizzle"
+msgstr "រយៈពេល​មាន​ព្រិល​តិចតួច​ ឬ​រលឹម​ស្រិចៗ"
+
+#: envcan_i18n.dat:249
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of light snow or freezing rain"
+msgstr "រយៈពេល​មាន​ព្រិល​តិចតួច ឬ​ភ្លៀង​ទឹកកក"
+
+#: envcan_i18n.dat:250
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of light snow or ice pellets"
+msgstr "រយៈពេល​មាន​ព្រិល​តិចតួច ឬ​គ្រាប់​ទឹកកក"
+
+#: envcan_i18n.dat:251
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of light snow or rain"
+msgstr "រយៈពេល​មាន​ព្រិល​តិចតួច ឬ​ភ្លៀង"
+
+#: envcan_i18n.dat:252
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of light wet snow"
+msgstr "រយៈពេល​មាន​ព្រិល​តិចតួច"
+
+#: envcan_i18n.dat:253
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of light wet snow mixed with rain"
+msgstr "រយៈ​ពេល​មាន​ព្រិល​តិចតួច​លាយ​នឹង​ភ្លៀង"
+
+#: envcan_i18n.dat:254
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of light wet snow or rain"
+msgstr "រយៈពេល​មាន​ព្រិល​ ឬ​ភ្លៀង"
+
+#: envcan_i18n.dat:255
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of rain"
+msgstr "រយៈពេល​មាន​ភ្លៀង"
+
+#: envcan_i18n.dat:256
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of rain mixed with freezing rain"
+msgstr "រយៈពេល​មាន​ភ្លៀង​លាយ​នឹង​ភ្លៀង​ទឹកកក"
+
+#: envcan_i18n.dat:257
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of rain mixed with snow"
+msgstr "រយៈពេល​មាន​ភ្លៀង​លាយ​នឹង​ព្រិល"
+
+#: envcan_i18n.dat:258
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of rain or drizzle"
+msgstr "រយៈពេល​មាន​ភ្លៀង ​ឬ​រលឹម​ស្រិចៗ"
+
+#: envcan_i18n.dat:259
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of rain or freezing rain"
+msgstr "រយៈពេល​មាន​ភ្លៀង ឬ​ភ្លៀង​ទឹកកក"
+
+#: envcan_i18n.dat:260
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of rain or snow"
+msgstr "រយៈពេល​មាន​ភ្លៀង ឬ​ព្រិល"
+
+#: envcan_i18n.dat:261
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of rain or thundershowers"
+msgstr "រយៈពេល​មាន​ព្រិល ឬ​ផ្គរ"
+
+#: envcan_i18n.dat:262
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of rain or thunderstorms"
+msgstr "រយៈពេល​មាន​ភ្លៀង ឬ​ព្យុះ"
+
+#: envcan_i18n.dat:263
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of snow"
+msgstr "រយៈពេល​មាន​ព្រិល"
+
+#: envcan_i18n.dat:264
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of snow and blizzard"
+msgstr "រយៈពេល​មាន​ព្រិល និង​ព្យុះ​ទឹកកក"
+
+#: envcan_i18n.dat:265
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of snow and blizzard and blowing snow"
+msgstr "រយៈពេល​មាន​ព្រិល និង​ព្យុះ​ទឹកកក និង​ដុំ​ព្រិល"
+
+#: envcan_i18n.dat:266
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of snow and blowing snow"
+msgstr "រយៈពេល​មាន​ព្រិល និង​ដុំ​ទឹកកក"
+
+#: envcan_i18n.dat:267
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of snow mixed with freezing drizzle"
+msgstr "រយៈពេល​មាន​ព្រិល​លាយ​នឹង​រលឹម​ស្រិចៗ"
+
+#: envcan_i18n.dat:268
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of snow mixed with freezing rain"
+msgstr "រយៈពេល​មាន​ព្រិល​លាយ​នឹង​ភ្លៀង​ទឹកកក"
+
+#: envcan_i18n.dat:269
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of snow mixed with ice pellets"
+msgstr "រយៈពេល​មាន​ព្រិល​លាយ​នឹង​គ្រាប់​ទឹកកក"
+
+#: envcan_i18n.dat:270
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of snow mixed with rain"
+msgstr "រយៈពេល​មាន​ព្រិល​លាយ​នឹង​ភ្លៀង"
+
+#: envcan_i18n.dat:271
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of snow or freezing drizzle"
+msgstr "រយៈពេល​មាន​ព្រិល ឬ​រលឹម​ស្រិចៗ"
+
+#: envcan_i18n.dat:272
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of snow or freezing rain"
+msgstr "រយៈពេល​មាន​ព្រិល ឬ​ភ្លៀង​ទឹកកក"
+
+#: envcan_i18n.dat:273
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of snow or ice pellets"
+msgstr "រយៈពេល​មាន​ព្រិល ឬ​គ្រាប់​ទឹកកក"
+
+#: envcan_i18n.dat:274
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of snow or rain"
+msgstr "រយៈពេល​មាន​ព្រិល ឬ​ភ្លៀង"
+
+#: envcan_i18n.dat:275
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of wet snow"
+msgstr "រយៈពេល​មាន​ព្រិល"
+
+#: envcan_i18n.dat:276
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of wet snow mixed with rain"
+msgstr "រយៈពេល​មាន​ព្រិល​លាយ​នឹង​ភ្លៀង"
+
+#: envcan_i18n.dat:277
+#, kde-format
+msgctxt "weather forecast"
+msgid "Periods of wet snow or rain"
+msgstr "រយៈពេល​មាន​ព្រិល ឬ​ភ្លៀង"
+
+#: envcan_i18n.dat:278 noaa_i18n.dat:322
+#, kde-format
+msgctxt "weather forecast"
+msgid "Rain"
+msgstr "ភ្លៀង"
+
+#: envcan_i18n.dat:279
+#, kde-format
+msgctxt "weather forecast"
+msgid "Rain at times heavy"
+msgstr "ពេល​ខ្លាំង"
+
+#: envcan_i18n.dat:280
+#, kde-format
+msgctxt "weather forecast"
+msgid "Rain at times heavy mixed with freezing rain"
+msgstr "ភ្លៀង​ខ្លាំង​លាយ​នឹង​ភ្លៀង​ទឹកកក"
+
+#: envcan_i18n.dat:281
+#, kde-format
+msgctxt "weather forecast"
+msgid "Rain at times heavy mixed with snow"
+msgstr "ភ្លៀង​ខ្លាំង​លាយ​នឹង​ព្រិល"
+
+#: envcan_i18n.dat:282
+#, kde-format
+msgctxt "weather forecast"
+msgid "Rain at times heavy or drizzle"
+msgstr "ភ្លៀង​ខ្លាំង​ ឬ​រលឹម​ស្រិចៗ"
+
+#: envcan_i18n.dat:283
+#, kde-format
+msgctxt "weather forecast"
+msgid "Rain at times heavy or freezing rain"
+msgstr "ភ្លៀង​ខ្លាំង ឬ​ភ្លៀង​ទឹកកក"
+
+#: envcan_i18n.dat:284
+#, kde-format
+msgctxt "weather forecast"
+msgid "Rain at times heavy or snow"
+msgstr "ភ្លៀង​ខ្លាំង ឬ​ព្រិល"
+
+#: envcan_i18n.dat:285
+#, kde-format
+msgctxt "weather forecast"
+msgid "Rain at times heavy or thundershowers"
+msgstr "ភ្លៀង​ខ្លាំង ឬ​ផ្គរ"
+
+#: envcan_i18n.dat:286
+#, kde-format
+msgctxt "weather forecast"
+msgid "Rain at times heavy or thunderstorms"
+msgstr "ភ្លៀង​ខ្លាំង ឬ​ព្យុះ"
+
+#: envcan_i18n.dat:287
+#, kde-format
+msgctxt "weather forecast"
+msgid "Rain mixed with freezing rain"
+msgstr "ភ្លៀង​លាយ​នឹង​ភ្លៀង​ទឹកកក"
+
+#: envcan_i18n.dat:288
+#, kde-format
+msgctxt "weather forecast"
+msgid "Rain mixed with snow"
+msgstr "ភ្លៀង​លាយ​នឹង​ព្រិល"
+
+#: envcan_i18n.dat:289
+#, kde-format
+msgctxt "weather forecast"
+msgid "Rain or drizzle"
+msgstr "ភ្លៀង ឬ​រលឹម​ស្រិច"
+
+#: envcan_i18n.dat:290
+#, kde-format
+msgctxt "weather forecast"
+msgid "Rain or freezing rain"
+msgstr "ភ្លៀង ឬ​ភ្លៀង​ទឹកកក"
+
+#: envcan_i18n.dat:291
+#, kde-format
+msgctxt "weather forecast"
+msgid "Rain or snow"
+msgstr "ភ្លៀង​ ឬ​ព្រិល"
+
+#: envcan_i18n.dat:292
+#, kde-format
+msgctxt "weather forecast"
+msgid "Rain or thundershowers"
+msgstr "ភ្លៀង ឬ​ផ្គរ"
+
+#: envcan_i18n.dat:293
+#, kde-format
+msgctxt "weather forecast"
+msgid "Rain or thunderstorms"
+msgstr "ភ្លៀង ឬ​ព្យុះ"
+
+#: envcan_i18n.dat:294
+#, kde-format
+msgctxt "weather forecast"
+msgid "Rain showers or flurries"
+msgstr "ភ្លៀង ឬ​ទឹកកក​បក់​តាម​ខ្យល់​"
+
+#: envcan_i18n.dat:295
+#, kde-format
+msgctxt "weather forecast"
+msgid "Rain showers or wet flurries"
+msgstr "ភ្លៀង ឬ​ទឹកកក​បក់​តាម​ខ្យល់"
+
+#: envcan_i18n.dat:296
+#, kde-format
+msgctxt "weather forecast"
+msgid "Showers"
+msgstr "ភ្លៀងរលឹម​"
+
+#: envcan_i18n.dat:297
+#, kde-format
+msgctxt "weather forecast"
+msgid "Showers at times heavy"
+msgstr "ភ្លៀង​រលឹម"
+
+#: envcan_i18n.dat:298
+#, kde-format
+msgctxt "weather forecast"
+msgid "Showers at times heavy or thundershowers"
+msgstr "ភ្លៀង​រលឹម​ ឬ​ផ្គរ"
+
+#: envcan_i18n.dat:299
+#, kde-format
+msgctxt "weather forecast"
+msgid "Showers at times heavy or thunderstorms"
+msgstr "ភ្លៀង​រលឹម ឬ​ព្យុះ"
+
+#: envcan_i18n.dat:300
+#, kde-format
+msgctxt "weather forecast"
+msgid "Showers or drizzle"
+msgstr "ភ្លៀង​រលឹម ឬ​រលឹម​ស្រិចៗ"
+
+#: envcan_i18n.dat:301
+#, kde-format
+msgctxt "weather forecast"
+msgid "Showers or thundershowers"
+msgstr "ភ្លៀង​រលឹម ឬ​ផ្គរ"
+
+#: envcan_i18n.dat:302
+#, kde-format
+msgctxt "weather forecast"
+msgid "Showers or thunderstorms"
+msgstr "ភ្លៀង​រលឹម ឬ​ព្យុះ"
+
+#: envcan_i18n.dat:303 noaa_i18n.dat:329
+#, kde-format
+msgctxt "weather forecast"
+msgid "Smoke"
+msgstr "ផ្សែង"
+
+#: envcan_i18n.dat:304 noaa_i18n.dat:305
+#, kde-format
+msgctxt "weather forecast"
+msgid "Snow"
+msgstr "ព្រិល"
+
+#: envcan_i18n.dat:305
+#, kde-format
+msgctxt "weather forecast"
+msgid "Snow and blizzard"
+msgstr "ព្រិល និង​ព្យុះ​ទឹកកក"
+
+#: envcan_i18n.dat:306
+#, kde-format
+msgctxt "weather forecast"
+msgid "Snow and blizzard and blowing snow"
+msgstr "ព្រិល និង​ព្យុះ​ទឹកកក​ និង​ដុំ​ព្រិល"
+
+#: envcan_i18n.dat:307
+#, kde-format
+msgctxt "weather forecast"
+msgid "Snow and blowing snow"
+msgstr "ព្រិល និង​ដុំ​ព្រិល"
+
+#: envcan_i18n.dat:308
+#, kde-format
+msgctxt "weather forecast"
+msgid "Snow at times heavy"
+msgstr "ព្រិល​ខ្លាំង"
+
+#: envcan_i18n.dat:309
+#, kde-format
+msgctxt "weather forecast"
+msgid "Snow at times heavy and blizzard"
+msgstr "ព្រិល​ខ្លាំង និង​ព្យុះ​ទឹកកក"
+
+#: envcan_i18n.dat:310
+#, kde-format
+msgctxt "weather forecast"
+msgid "Snow at times heavy and blowing snow"
+msgstr "ព្រិល​ខ្លាំង និង​ដុំ​ព្រិល"
+
+#: envcan_i18n.dat:311
+#, kde-format
+msgctxt "weather forecast"
+msgid "Snow at times heavy mixed with freezing drizzle"
+msgstr "ព្រិល​ខ្លាំង​លាយ​នឹង​រលឹម​ស្រិចៗ"
+
+#: envcan_i18n.dat:312
+#, kde-format
+msgctxt "weather forecast"
+msgid "Snow at times heavy mixed with freezing rain"
+msgstr "ព្រិល​ខ្លាំង​លាយ​នឹង​ភ្លៀង​ទឹកកក"
+
+#: envcan_i18n.dat:313
+#, kde-format
+msgctxt "weather forecast"
+msgid "Snow at times heavy mixed with ice pellets"
+msgstr "ព្រិល​ខ្លាំង​លាយ​នឹង​គ្រាប់​ទឹកកក"
+
+#: envcan_i18n.dat:314
+#, kde-format
+msgctxt "weather forecast"
+msgid "Snow at times heavy mixed with rain"
+msgstr "ព្រិល​ខ្លាំង​លាយ​នឹង​ភ្លៀង"
+
+#: envcan_i18n.dat:315
+#, kde-format
+msgctxt "weather forecast"
+msgid "Snow at times heavy or freezing rain"
+msgstr "ព្រិល​ខ្លាំង ឬ​ភ្លៀង​ទឹកកក"
+
+#: envcan_i18n.dat:316
+#, kde-format
+msgctxt "weather forecast"
+msgid "Snow at times heavy or ice pellets"
+msgstr "ព្រិល​ខ្លាំង ឬ​គ្រាប់​ទឹកកក"
+
+#: envcan_i18n.dat:317
+#, kde-format
+msgctxt "weather forecast"
+msgid "Snow at times heavy or rain"
+msgstr "ព្រិល​ខ្លាំង ឬ​ភ្លៀង"
+
+#: envcan_i18n.dat:318
+#, kde-format
+msgctxt "weather forecast"
+msgid "Snow mixed with freezing drizzle"
+msgstr "ព្រិល​លាយ​នឹងរលឹមស្រិចៗ"
+
+#: envcan_i18n.dat:319
+#, kde-format
+msgctxt "weather forecast"
+msgid "Snow mixed with freezing rain"
+msgstr "ព្រិល​លាយ​នឹង​ភ្លៀង​ទឹកកក"
+
+#: envcan_i18n.dat:320
+#, kde-format
+msgctxt "weather forecast"
+msgid "Snow mixed with ice pellets"
+msgstr "ព្រិល​លាយ​នឹង​គ្រាប់​ទឹកកក"
+
+#: envcan_i18n.dat:321
+#, kde-format
+msgctxt "weather forecast"
+msgid "Snow mixed with rain"
+msgstr "ព្រិល​លាយ​នឹង​ភ្លៀង"
+
+#: envcan_i18n.dat:322
+#, kde-format
+msgctxt "weather forecast"
+msgid "Snow or freezing drizzle"
+msgstr "ព្រិល ឬ​រលឹម​ស្រិចៗ"
+
+#: envcan_i18n.dat:323
+#, kde-format
+msgctxt "weather forecast"
+msgid "Snow or freezing rain"
+msgstr "ព្រិល ឬ​ភ្លៀង​ទឹកកក"
+
+#: envcan_i18n.dat:324
+#, kde-format
+msgctxt "weather forecast"
+msgid "Snow or ice pellets"
+msgstr "ព្រិល ឬ​គ្រាប់​ទឹកកក"
+
+#: envcan_i18n.dat:325
+#, kde-format
+msgctxt "weather forecast"
+msgid "Snow or rain"
+msgstr "ព្រិល ឬ​ភ្លៀង"
+
+#: envcan_i18n.dat:326
+#, kde-format
+msgctxt "weather forecast"
+msgid "Snow squalls"
+msgstr "មាន​ព្រិល​លាយ​ព្យុះ"
+
+#: envcan_i18n.dat:327 noaa_i18n.dat:348
+#, kde-format
+msgctxt "weather forecast"
+msgid "Sunny"
+msgstr "មាន​ពន្លឺ​ថ្ងៃ"
+
+#: envcan_i18n.dat:328
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Mainly Sunny"
+msgctxt "weather forecast"
+msgid "Mainly sunny"
+msgstr "ពន្លឺ​ថ្ងៃ​ខ្លាំង"
+
+#: envcan_i18n.dat:329
+#, kde-format
+msgctxt "weather forecast"
+msgid "Sunny with cloudy periods"
+msgstr "មាន​ពន្លឺ​ព្រះ​​អាទិត្យ​លាយ​នឹង​ពពក"
+
+#: envcan_i18n.dat:330 noaa_i18n.dat:274
+#, kde-format
+msgctxt "weather forecast"
+msgid "Thunderstorms"
+msgstr "ព្យុះ"
+
+#: envcan_i18n.dat:331
+#, kde-format
+msgctxt "weather forecast"
+msgid "Thunderstorms and possible hail"
+msgstr "ព្យុះ និង​ធ្លាក់ព្រិល​"
+
+#: envcan_i18n.dat:332
+#, kde-format
+msgctxt "weather forecast"
+msgid "Wet flurries"
+msgstr "មាន​ទឹកកក​តិចៗ"
+
+#: envcan_i18n.dat:333
+#, kde-format
+msgctxt "weather forecast"
+msgid "Wet flurries at times heavy"
+msgstr "មាន​ទឹកកក​តិចៗ​ច្រើន"
+
+#: envcan_i18n.dat:334
+#, kde-format
+msgctxt "weather forecast"
+msgid "Wet flurries at times heavy or rain showers"
+msgstr "មាន​ទឹកកក​តិចៗ​ច្រើន ឬ​មាន​ភ្លៀង"
+
+#: envcan_i18n.dat:335
+#, kde-format
+msgctxt "weather forecast"
+msgid "Wet flurries or rain showers"
+msgstr "មាន​ទឹកកក​តិចៗ ឬ​ភ្លៀង"
+
+#: envcan_i18n.dat:336
+#, kde-format
+msgctxt "weather forecast"
+msgid "Wet snow"
+msgstr "មានព្រិល"
+
+#: envcan_i18n.dat:337
+#, kde-format
+msgctxt "weather forecast"
+msgid "Wet snow at times heavy"
+msgstr "មានព្រិល​ច្រើន"
+
+#: envcan_i18n.dat:338
+#, kde-format
+msgctxt "weather forecast"
+msgid "Wet snow at times heavy mixed with rain"
+msgstr "មាន​ព្រិល​​ច្រើន​លាយ​នឹង​ភ្លៀង"
+
+#: envcan_i18n.dat:339
+#, kde-format
+msgctxt "weather forecast"
+msgid "Wet snow mixed with rain"
+msgstr "មាន​ព្រិលលាយ​នឹង​ភ្លៀង"
+
+#: envcan_i18n.dat:340
+#, kde-format
+msgctxt "weather forecast"
+msgid "Wet snow or rain"
+msgstr "មាន​ព្រិល ឬ​ភ្លៀង"
+
+#: envcan_i18n.dat:341 noaa_i18n.dat:338
+#, kde-format
+msgctxt "weather forecast"
+msgid "Windy"
+msgstr "មាន​ខ្យល់"
+
+#: ions/bbcukmet/ion_bbcukmet.cpp:669 ions/dwd/ion_dwd.cpp:500
+#, kde-format
+msgctxt "Short for Today"
+msgid "Today"
+msgstr ""
+
+#: ions/bbcukmet/ion_bbcukmet.cpp:669
+#, fuzzy, kde-format
+#| msgid "Night"
+msgctxt "Short for Tonight"
+msgid "Tonight"
+msgstr "យប់"
+
+#: ions/bbcukmet/ion_bbcukmet.cpp:690
+#, kde-format
+msgctxt "credit line, keep string short"
+msgid "Data from BBC Weather"
+msgstr ""
+
+#: ions/dwd/ion_dwd.cpp:504 ions/envcan/ion_envcan.cpp:1569
+#, kde-format
+msgctxt "Short for Saturday"
+msgid "Sat"
+msgstr "ស"
+
+#: ions/dwd/ion_dwd.cpp:505 ions/envcan/ion_envcan.cpp:1570
+#, kde-format
+msgctxt "Short for Sunday"
+msgid "Sun"
+msgstr "អា"
+
+#: ions/dwd/ion_dwd.cpp:506 ions/envcan/ion_envcan.cpp:1571
+#, kde-format
+msgctxt "Short for Monday"
+msgid "Mon"
+msgstr "ច"
+
+#: ions/dwd/ion_dwd.cpp:507 ions/envcan/ion_envcan.cpp:1572
+#, kde-format
+msgctxt "Short for Tuesday"
+msgid "Tue"
+msgstr "អ"
+
+#: ions/dwd/ion_dwd.cpp:508 ions/envcan/ion_envcan.cpp:1573
+#, kde-format
+msgctxt "Short for Wednesday"
+msgid "Wed"
+msgstr "ព"
+
+#: ions/dwd/ion_dwd.cpp:509 ions/envcan/ion_envcan.cpp:1574
+#, kde-format
+msgctxt "Short for Thursday"
+msgid "Thu"
+msgstr "ព្រ"
+
+#: ions/dwd/ion_dwd.cpp:510 ions/envcan/ion_envcan.cpp:1575
+#, kde-format
+msgctxt "Short for Friday"
+msgid "Fri"
+msgstr "សុ"
+
+#: ions/dwd/ion_dwd.cpp:535
+#, kde-format
+msgctxt "credit line, don't change name!"
+msgid "Source: Deutscher Wetterdienst"
+msgstr ""
+
+#: ions/envcan/ion_envcan.cpp:946 ions/envcan/ion_envcan.cpp:948
+#: ions/envcan/ion_envcan.cpp:1433 ions/envcan/ion_envcan.cpp:1562
+#: ions/envcan/ion_envcan.cpp:1578 ions/noaa/ion_noaa.cpp:383
+#, kde-format
+msgid "N/A"
+msgstr "មិន​មាន"
+
+#: ions/envcan/ion_envcan.cpp:1566
+#, kde-format
+msgid "day"
+msgstr "ថ្ងៃ"
+
+#: ions/envcan/ion_envcan.cpp:1567
+#, kde-format
+msgctxt "Short for tonight"
+msgid "nite"
+msgstr "យប់​"
+
+#: ions/envcan/ion_envcan.cpp:1568
+#, kde-format
+msgctxt "Short for night, appended to the end of the weekday"
+msgid "nt"
+msgstr "nt"
+
+#: ions/envcan/ion_envcan.cpp:1599
+#, kde-format
+msgctxt "precipitation total, very little"
+msgid "Trace"
+msgstr "តាម​ដាន"
+
+#: ions/envcan/ion_envcan.cpp:1625
+#, kde-format
+msgctxt "credit line, keep string short"
+msgid "Data from Environment and Climate Change Canada"
+msgstr ""
+
+#: ions/noaa/ion_noaa.cpp:484
+#, fuzzy, kde-format
+#| msgid "Data provided by NOAA National Weather Service"
+msgctxt "credit line, keep string short)"
+msgid "Data from NOAA National Weather Service"
+msgstr "ទិន្នន័យ​បាន​ផ្ដល់​ដោយ​សេវា​អាកាសធាតុ​ជាតិ NOAA"
+
+#. i18n: The forecast summary can include several single conditions that follow
+#. a temporary sequence, separated by " then ". Also include spaces if necessary.
+#. If there is no suitable separtor, a sentence separator might do.
+#: ions/noaa/ion_noaa.cpp:620
+#, kde-format
+msgctxt ""
+"Separator between forecast conditions that follow a temporal sequence (ex. "
+"\"Rain then Sunny\")"
+msgid " then "
+msgstr ""
+
+#: ions/wetter.com/ion_wettercom.cpp:156 ions/wetter.com/ion_wettercom.cpp:157
+#, kde-format
+msgctxt "weather condition"
+msgid "few clouds"
+msgstr "ពពក​តិច"
+
+#: ions/wetter.com/ion_wettercom.cpp:160 ions/wetter.com/ion_wettercom.cpp:161
+#, kde-format
+msgctxt "weather condition"
+msgid "overcast"
+msgstr "មេឃ​ស្រទំ"
+
+#: ions/wetter.com/ion_wettercom.cpp:162 ions/wetter.com/ion_wettercom.cpp:163
+#: ions/wetter.com/ion_wettercom.cpp:164
+#, kde-format
+msgctxt "weather condition"
+msgid "haze"
+msgstr "ចុះអ័ព្ទ"
+
+#: ions/wetter.com/ion_wettercom.cpp:165 ions/wetter.com/ion_wettercom.cpp:166
+#, kde-format
+msgctxt "weather condition"
+msgid "fog with icing"
+msgstr "អ័ព្ទ​លាយ​ទឹកកក"
+
+#: ions/wetter.com/ion_wettercom.cpp:169
+#, kde-format
+msgctxt "weather condition"
+msgid "light drizzle"
+msgstr "រលឹម​ស្រិចៗ​តិច"
+
+#: ions/wetter.com/ion_wettercom.cpp:171
+#, kde-format
+msgctxt "weather condition"
+msgid "heavy drizzle"
+msgstr "រលឹម​ស្រិចៗ​ជាប់​"
+
+#: ions/wetter.com/ion_wettercom.cpp:172
+#, kde-format
+msgctxt "weather condition"
+msgid "freezing drizzle"
+msgstr "រលឹម​ស្រិចៗហើយ​ត្រជាក់​"
+
+#: ions/wetter.com/ion_wettercom.cpp:173
+#, kde-format
+msgctxt "weather condition"
+msgid "heavy freezing drizzle"
+msgstr "រលឹម​ស្រិចៗ​ហើយ​​ត្រជាក់​ខ្លាំង"
+
+#: ions/wetter.com/ion_wettercom.cpp:174
+#, kde-format
+msgctxt "weather condition"
+msgid "rain"
+msgstr "ភ្លៀង"
+
+#: ions/wetter.com/ion_wettercom.cpp:177
+#, kde-format
+msgctxt "weather condition"
+msgid "moderate rain"
+msgstr "ភ្លៀង​ល្មម"
+
+#: ions/wetter.com/ion_wettercom.cpp:179
+#, kde-format
+msgctxt "weather condition"
+msgid "light freezing rain"
+msgstr "ភ្លៀង​ត្រជាក់​តិចៗ"
+
+#: ions/wetter.com/ion_wettercom.cpp:180
+#, kde-format
+msgctxt "weather condition"
+msgid "freezing rain"
+msgstr "ភ្លៀង​ទឹកកក"
+
+#: ions/wetter.com/ion_wettercom.cpp:181
+#, kde-format
+msgctxt "weather condition"
+msgid "light rain snow"
+msgstr "ភ្លៀង​មាន​ធ្លាក់​ព្រិល​តិច​ៗ"
+
+#: ions/wetter.com/ion_wettercom.cpp:182
+#, kde-format
+msgctxt "weather condition"
+msgid "heavy rain snow"
+msgstr "ភ្លៀង​មាន​​ធ្លាក់​ព្រិល​ខ្លាំង"
+
+#: ions/wetter.com/ion_wettercom.cpp:183
+#, kde-format
+msgctxt "weather condition"
+msgid "snow"
+msgstr "ព្រិល"
+
+#: ions/wetter.com/ion_wettercom.cpp:186
+#, kde-format
+msgctxt "weather condition"
+msgid "moderate snow"
+msgstr "ព្រិល​មធ្យម"
+
+#: ions/wetter.com/ion_wettercom.cpp:188 ions/wetter.com/ion_wettercom.cpp:190
+#, kde-format
+msgctxt "weather condition"
+msgid "showers"
+msgstr "ភ្លៀងរលឹម​"
+
+#: ions/wetter.com/ion_wettercom.cpp:192
+#, kde-format
+msgctxt "weather condition"
+msgid "light snow rain showers"
+msgstr "ភ្លៀង​​មាន​ធ្លាក់​ព្រិល​តិច​ៗ"
+
+#: ions/wetter.com/ion_wettercom.cpp:193
+#, kde-format
+msgctxt "weather condition"
+msgid "heavy snow rain showers"
+msgstr "ភ្លៀង​មាន​ធ្លាក់​ព្រិល​ខ្លាំង"
+
+#: ions/wetter.com/ion_wettercom.cpp:195
+#, kde-format
+msgctxt "weather condition"
+msgid "snow showers"
+msgstr "ភ្លៀង​​មាន​ធ្លាក់​ព្រិល"
+
+#: ions/wetter.com/ion_wettercom.cpp:198
+#, kde-format
+msgctxt "weather condition"
+msgid "light thunderstorm"
+msgstr "ព្យុះ​មាន​រន្ទះ​ផ្គរ​តិច​ៗ"
+
+#: ions/wetter.com/ion_wettercom.cpp:199
+#, kde-format
+msgctxt "weather condition"
+msgid "heavy thunderstorm"
+msgstr "ព្យុះ​មាន​រន្ទះ​ផ្គរ​ខ្លាំង"
+
+#: ions/wetter.com/ion_wettercom.cpp:200
+#, kde-format
+msgctxt "weather condition"
+msgid "n/a"
+msgstr "មិន​មាន"
+
+#: ions/wetter.com/ion_wettercom.cpp:362
+#, kde-format
+msgctxt "Geographical location: city, state, ISO-country-code"
+msgid "%1, %2, %3"
+msgstr "%1, %2, %3"
+
+#: ions/wetter.com/ion_wettercom.cpp:364
+#, kde-format
+msgctxt "Geographical location: quarter (city), state, ISO-country-code"
+msgid "%1 (%2), %3, %4"
+msgstr "%1 (%2), %3, %4"
+
+#: ions/wetter.com/ion_wettercom.cpp:670
+#, kde-format
+msgid "Day"
+msgstr "ថ្ងៃ"
+
+#: ions/wetter.com/ion_wettercom.cpp:680
+#, kde-format
+msgid "Night"
+msgstr "យប់"
+
+#: noaa_i18n.dat:1
+#, kde-format
+msgctxt "weather condition"
+msgid "A Few Clouds"
+msgstr "មាន​ពពក"
+
+#: noaa_i18n.dat:2
+#, kde-format
+msgctxt "weather condition"
+msgid "A Few Clouds and Breezy"
+msgstr "មាន​ពពក លាយ​នឹង​ខ្យល់​បក់​រំភើយ"
+
+#: noaa_i18n.dat:3
+#, kde-format
+msgctxt "weather condition"
+msgid "A Few Clouds and Windy"
+msgstr "មាន​ពពកលាយ​នឹង​ខ្យល់"
+
+#: noaa_i18n.dat:4
+#, kde-format
+msgctxt "weather condition"
+msgid "A Few Clouds with Haze"
+msgstr "មាន​ពពក​លាយ​នឹង​ចុះអ័ព្វ​"
+
+#: noaa_i18n.dat:5
+#, kde-format
+msgctxt "weather condition"
+msgid "Blowing Dust"
+msgstr "មាន​ដុំ​ធូលី"
+
+#: noaa_i18n.dat:6
+#, kde-format
+msgctxt "weather condition"
+msgid "Blowing Sand"
+msgstr "មាន​ដុំខ្សាច់"
+
+#: noaa_i18n.dat:8
+#, kde-format
+msgctxt "weather condition"
+msgid "Blowing Snow in Vicinity"
+msgstr "មាន​ដុំ​ទឹកកក​នៅ​កន្លែង​ជិត​ខាង"
+
+#: noaa_i18n.dat:9
+#, kde-format
+msgctxt "weather condition"
+msgid "Breezy"
+msgstr "មាន​ខ្យល់បក់រំភើយ"
+
+#: noaa_i18n.dat:11
+#, kde-format
+msgctxt "weather condition"
+msgid "Clear and Breezy"
+msgstr "មេឃ​ស្រឡះ លាយ​ខ្យល់បក​រំភើយ"
+
+#: noaa_i18n.dat:12
+#, kde-format
+msgctxt "weather condition"
+msgid "Clear with Haze"
+msgstr "មេឃ​ស្រឡះ​លាយ​នឹង​ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:14
+#, kde-format
+msgctxt "weather condition"
+msgid "Drizzle Fog"
+msgstr "រលឹមស្រិចៗលាយ​អ័ព្វ"
+
+#: noaa_i18n.dat:15
+#, kde-format
+msgctxt "weather condition"
+msgid "Drizzle Fog/Mist"
+msgstr "រលឹមស្រិចៗ អ័ព្វ/សើម"
+
+#: noaa_i18n.dat:16
+#, kde-format
+msgctxt "weather condition"
+msgid "Drizzle Ice Pellets"
+msgstr "រលឹមស្រិចៗ​ គ្រាប់​ទឹកកក"
+
+#: noaa_i18n.dat:17
+#, kde-format
+msgctxt "weather condition"
+msgid "Drizzle Snow"
+msgstr "រលឹមស្រិច​ លាយ​ព្រិល"
+
+#: noaa_i18n.dat:19
+#, kde-format
+msgctxt "weather condition"
+msgid "Dust/Sand Whirls"
+msgstr "ខ្យល់​គួច​ខ្សាច់/ធូលី"
+
+#: noaa_i18n.dat:20
+#, kde-format
+msgctxt "weather condition"
+msgid "Dust/Sand Whirls in Vicinity"
+msgstr "ខ្យល់គួច​ខ្សាច់/ធូលី​នៅ​កន្លែង​ជិតខាង"
+
+#: noaa_i18n.dat:21
+#, kde-format
+msgctxt "weather condition"
+msgid "Dust Storm"
+msgstr "ព្យុះ​ធូលី"
+
+#: noaa_i18n.dat:22
+#, kde-format
+msgctxt "weather condition"
+msgid "Dust Storm in Vicinity"
+msgstr "ព្យុះ​ធូលី​នៅ​កន្លែង​ជិត​ខាង"
+
+#: noaa_i18n.dat:23
+#, kde-format
+msgctxt "weather condition"
+msgid "Fair"
+msgstr "ស្រឡះ"
+
+#: noaa_i18n.dat:24
+#, kde-format
+msgctxt "weather condition"
+msgid "Fair and Breezy"
+msgstr "ស្រឡះ ហើយ​មានខ្យល់បក់​រំភើយ"
+
+#: noaa_i18n.dat:25
+#, kde-format
+msgctxt "weather condition"
+msgid "Fair and Windy"
+msgstr "ស្រឡះ ហើយ​មាន​ខ្យល់"
+
+#: noaa_i18n.dat:26
+#, kde-format
+msgctxt "weather condition"
+msgid "Fair with Haze"
+msgstr "ស្រឡះ​ហើយ​មាន​អ័ព្វ"
+
+#: noaa_i18n.dat:28
+#, kde-format
+msgctxt "weather condition"
+msgid "Fog in Vicinity"
+msgstr "អ័ព្វ​នៅ​កន្លែង​ជិតខាង"
+
+#: noaa_i18n.dat:29
+#, kde-format
+msgctxt "weather condition"
+msgid "Fog/Mist"
+msgstr "អ័ព្វ/សើ"
+
+#: noaa_i18n.dat:30
+#, kde-format
+msgctxt "weather condition"
+msgid "Freezing Drizzle"
+msgstr "រលឹម​ស្រិចៗ​ត្រជាក់"
+
+#: noaa_i18n.dat:31
+#, kde-format
+msgctxt "weather condition"
+msgid "Freezing Drizzle in Vicinity"
+msgstr "រលឹម​ស្រិចៗ​ត្រជាក់​នៅ​កន្លែង​ជិតខាង"
+
+#: noaa_i18n.dat:32
+#, kde-format
+msgctxt "weather condition"
+msgid "Freezing Drizzle Rain"
+msgstr "ភ្លៀង​រលឹម​ស្រិចៗ​ត្រជាក់​"
+
+#: noaa_i18n.dat:33
+#, kde-format
+msgctxt "weather condition"
+msgid "Freezing Drizzle Snow"
+msgstr "មាន​ព្រិល​ រលឹម​ស្រិចៗ​ត្រជាក់"
+
+#: noaa_i18n.dat:34
+#, kde-format
+msgctxt "weather condition"
+msgid "Freezing Fog"
+msgstr "អ័ព្វ​ត្រជាក់"
+
+#: noaa_i18n.dat:35
+#, kde-format
+msgctxt "weather condition"
+msgid "Freezing Fog in Vicinity"
+msgstr "អ័ព្វ​ត្រជាក់នៅ​កន្លែង​ជិតខាង"
+
+#: noaa_i18n.dat:36
+#, kde-format
+msgctxt "weather condition"
+msgid "Freezing Rain"
+msgstr "ភ្លៀង"
+
+#: noaa_i18n.dat:37
+#, kde-format
+msgctxt "weather condition"
+msgid "Freezing Rain in Vicinity"
+msgstr "ភ្លៀង​នៅ​កន្លែង​ជិតខាង"
+
+#: noaa_i18n.dat:38
+#, kde-format
+msgctxt "weather condition"
+msgid "Freezing Rain Rain"
+msgstr "ភ្លៀង"
+
+#: noaa_i18n.dat:39
+#, kde-format
+msgctxt "weather condition"
+msgid "Freezing Rain Snow"
+msgstr "ភ្លៀង​ និង​ព្រិល"
+
+#: noaa_i18n.dat:41
+#, kde-format
+msgctxt "weather condition"
+msgid "Funnel Cloud in Vicinity"
+msgstr "ពពករាង​ជីវឡាវ​នៅ​កន្លែង​ជិតខាង"
+
+#: noaa_i18n.dat:43
+#, kde-format
+msgctxt "weather condition"
+msgid "Hail Showers"
+msgstr "ភ្លៀង​ធ្លាក់ព្រិល"
+
+#: noaa_i18n.dat:47
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Drizzle Fog"
+msgstr "រលឹម​ស្រិចៗ​ មាន​អ័ព្វ​ខ្លាំង​"
+
+#: noaa_i18n.dat:48
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Drizzle Fog/Mist"
+msgstr "រលឹម​ស្រិចៗ​​មាន​អ័ព្វ/សើម​ខ្លាំង"
+
+#: noaa_i18n.dat:49
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Drizzle Ice Pellets"
+msgstr "គ្រាប់​ទឹកកក​លាយ​រលឹម​ស្រិចៗ​ខ្លាំង"
+
+#: noaa_i18n.dat:50
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Drizzle Snow"
+msgstr "រលឹម​ស្រិចៗ​លាយ​ព្រិល​ខ្លាំង"
+
+#: noaa_i18n.dat:51
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Dust Storm"
+msgstr "ព្យុះ​ធូលី​ខ្លាំង"
+
+#: noaa_i18n.dat:52
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Freezing Drizzle"
+msgstr "រលឹមស្រិចៗ​ត្រជាក់​ខ្លាំង"
+
+#: noaa_i18n.dat:53
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Freezing Drizzle Rain"
+msgstr "រលឹម​ស្រិចៗ​ត្រជាក់​ខ្លាំង"
+
+#: noaa_i18n.dat:54
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Freezing Drizzle Snow"
+msgstr "រលឹមស្រិចៗ​លាយ​ព្រិល​ខ្លាំង"
+
+#: noaa_i18n.dat:55
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Freezing Fog"
+msgstr "អ័ព្វ​ត្រជាក់​ខ្លាំង"
+
+#: noaa_i18n.dat:56
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Freezing Rain"
+msgstr "ភ្លៀង​ត្រជាក់​ខ្លាំង"
+
+#: noaa_i18n.dat:57
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Freezing Rain Rain"
+msgstr "ភ្លៀង​ត្រជាក់​ខ្លាំង"
+
+#: noaa_i18n.dat:58
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Freezing Rain Snow"
+msgstr "ភ្លៀង​ត្រជាក់ខ្លាំង​លាយ​ព្រិល​ខ្លាំង"
+
+#: noaa_i18n.dat:59
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Ice Pellets"
+msgstr "គ្រាប់​ទឹកកក​ខ្លាំង"
+
+#: noaa_i18n.dat:60
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Ice Pellets Drizzle"
+msgstr "រលឹម​ស្រិចៗ​មាន​គ្រាប់​ទឹកកក"
+
+#: noaa_i18n.dat:61
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Ice Pellets Rain"
+msgstr "មាន​ភ្លៀង​លាយ​គ្រាប់ទឹកកក​ខ្លាំង"
+
+#: noaa_i18n.dat:63
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Rain Fog"
+msgstr "ភ្លៀង​លាយ​អ័ព្វ​ខ្លាំង"
+
+#: noaa_i18n.dat:64
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Rain Fog/Mist"
+msgstr "ភ្លៀង​លាយ​អ័ព្វ/សើម​ខ្លាំង"
+
+#: noaa_i18n.dat:65
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Rain Freezing Drizzle"
+msgstr "រលឹម​ស្រិច និង​ភ្លៀង​ខ្លាំង"
+
+#: noaa_i18n.dat:66
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Rain Freezing Rain"
+msgstr "ភ្លៀង​ត្រជាក់​ខ្លាំង"
+
+#: noaa_i18n.dat:67
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Rain Ice Pellets"
+msgstr "គ្រាប់ព្រិល​លាយ​ភ្លៀង​ខ្លាំង"
+
+#: noaa_i18n.dat:68
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Rain Showers"
+msgstr "មាន​ភ្លៀង​ខ្លាំង"
+
+#: noaa_i18n.dat:69
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Rain Showers Fog/Mist"
+msgstr "មាន​ចុះអ័ព្វ​ ភ្លៀង/សើម"
+
+#: noaa_i18n.dat:70
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Rain Snow"
+msgstr "មាន​ព្រិល លាយ​ភ្លៀង​ខ្លាំង"
+
+#: noaa_i18n.dat:71
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Sand Storm"
+msgstr "មាន​ព្យុះខ្សាច់​ខ្លាំង"
+
+#: noaa_i18n.dat:72
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Showers Rain"
+msgstr "មាន​ភ្លៀង​ខ្លាំង"
+
+#: noaa_i18n.dat:73
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Showers Rain Fog/Mist"
+msgstr "មាន​អ័ព្វ ភ្លៀង​​​​/សើម"
+
+#: noaa_i18n.dat:74
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Showers Snow"
+msgstr "មានព្រិល​ខ្លាំង"
+
+#: noaa_i18n.dat:75
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Showers Snow Fog"
+msgstr "មាន​អ័ព្វ​លាយ​ព្រិល​ខ្លាំង"
+
+#: noaa_i18n.dat:76
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Showers Snow Fog/Mist"
+msgstr "មាន​អ័ព្វ​លាយ​ព្រិល​ខ្លាំង/សើម"
+
+#: noaa_i18n.dat:77
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy small Hail/Snow Pellets"
+msgstr "មានធ្លាក់ព្រិល​តិចតួច/គ្រាប់ព្រិល​"
+
+#: noaa_i18n.dat:79
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Snow Blowing Snow"
+msgstr "មាន​ដុំ​ព្រិល​ខ្លាំង"
+
+#: noaa_i18n.dat:80
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Snow Fog"
+msgstr "មាន​ព្រិល​អ័ព្វ​ខ្លាំង"
+
+#: noaa_i18n.dat:81
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Snow Fog/Mist"
+msgstr "មាន​អ័ព្វ​ ព្រិល/សើម"
+
+#: noaa_i18n.dat:82
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Snow Freezing Drizzle"
+msgstr "រលឹមស្រិចៗ​លាយ​ព្រិល​ខ្លាំង"
+
+#: noaa_i18n.dat:83
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Snow Freezing Rain"
+msgstr "មាន​ភ្លៀង លាយព្រិល​ខ្លាំង"
+
+#: noaa_i18n.dat:84
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Snow Grains"
+msgstr "មាន​គ្រាប់​ព្រិល​ខ្លាំង"
+
+#: noaa_i18n.dat:85
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Snow Low Drifting Snow"
+msgstr "មាន​ព្រិល​ខ្លាំង"
+
+#: noaa_i18n.dat:86
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Snow Rain"
+msgstr "មាន​ភ្លៀង លាយ​ព្រិល​ខ្លាំង"
+
+#: noaa_i18n.dat:87
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Snow Showers"
+msgstr "មានព្រិល​ខ្លាំង"
+
+#: noaa_i18n.dat:88
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Snow Showers Fog"
+msgstr "មាន​អ័ព្វ ព្រិល​ខ្លាំង"
+
+#: noaa_i18n.dat:89
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Snow Showers Fog/Mist"
+msgstr "មាន​ធ្លាក់ព្រិល/សំណើម​ខ្លាំង"
+
+#: noaa_i18n.dat:90
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Thunderstorm Rain"
+msgstr "មាន​ភ្លៀង ព្យុះ​ខ្លាំង"
+
+#: noaa_i18n.dat:91
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Thunderstorm Rain Fog"
+msgstr "មាន​អ័ព្វ​លាយ​ភ្លៀង និងព្យុះ​ខ្លាំង"
+
+#: noaa_i18n.dat:92
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Thunderstorm Rain Fog and Windy"
+msgstr "មាន​ចុះអ័ព្វ ព្យុះ និង​ខ្យល់​ខ្លាំង"
+
+#: noaa_i18n.dat:93
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Thunderstorm Rain Fog/Mist"
+msgstr "មាន​ចុះអ័ព្វ ព្យុះ/សើម"
+
+#: noaa_i18n.dat:94
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Thunderstorm Rain Hail"
+msgstr "មាន​ចុះអ័ព្វ ភ្លៀង ព្យុះ"
+
+#: noaa_i18n.dat:95
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Thunderstorm Rain Hail Fog"
+msgstr "មាន​ចុះអ័ព្វ ភ្លៀង ព្យុះ​ខ្លាំង"
+
+#: noaa_i18n.dat:96
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Thunderstorm Rain Hail Fog/Hail"
+msgstr "មាន​អ័ព្វ​ ភ្លៀង ព្យុះ/ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:97
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Thunderstorm Rain Hail Haze"
+msgstr "មាន​ចុះអ័ព្វ ភ្លៀង ព្យុះ"
+
+#: noaa_i18n.dat:98
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Thunderstorm Rain Haze"
+msgstr "មានចុះអ័ព្វ​ ភ្លៀង ព្យុះ​ខ្លាំង​"
+
+#: noaa_i18n.dat:99
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Thunderstorm Rain Small Hail/Snow Pellets"
+msgstr "មាន​ភ្លៀង​ ព្យុះ/គ្រាប់​ព្រិល"
+
+#: noaa_i18n.dat:100
+#, kde-format
+msgctxt "weather condition"
+msgid "Heavy Thunderstorm Snow"
+msgstr "មាន​ព្រិល និង​រន្ទះ​ខ្លាំង"
+
+#: noaa_i18n.dat:103
+#, kde-format
+msgctxt "weather condition"
+msgid "Ice Pellets Drizzle"
+msgstr "រលឹមស្រិចៗ​មាន​គ្រាប់​ទឹកកក"
+
+#: noaa_i18n.dat:104
+#, kde-format
+msgctxt "weather condition"
+msgid "Ice Pellets in Vicinity"
+msgstr "មាន​គ្រាប់​ទឹកកក​នៅ​កន្លែង​ជិតខាង"
+
+#: noaa_i18n.dat:105
+#, kde-format
+msgctxt "weather condition"
+msgid "Ice Pellets Rain"
+msgstr "ភ្លៀងមានគ្រាប់​ទឹកកកតិចតួច"
+
+#: noaa_i18n.dat:107
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Drizzle Fog"
+msgstr "រលឹមស្រិចមាន​អ័ព្វ​តិចតួច"
+
+#: noaa_i18n.dat:108
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Drizzle Fog/Mist"
+msgstr "រលឹមស្រិចៗ​មាន​អ័ព្វ/សើម​តិចតួច"
+
+#: noaa_i18n.dat:109
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Drizzle Ice Pellets"
+msgstr "រលឹមស្រិច​លាយ​គ្រាប់​ទឹកកក​តិចតួច"
+
+#: noaa_i18n.dat:110
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Drizzle Snow"
+msgstr "រលឹមស្រិចៗ​មាន​ព្រិល​តិចតួច"
+
+#: noaa_i18n.dat:112
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Freezing Drizzle Rain"
+msgstr "រលឹម​ស្រិចៗ​មាន​ទឹកកក​តិចតួច"
+
+#: noaa_i18n.dat:113
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Freezing Drizzle Snow"
+msgstr "រលឹមស្រិចៗ​លាយ​ព្រិល​តិចតួច"
+
+#: noaa_i18n.dat:114
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Freezing Fog"
+msgstr "អ័ព្វ​មាន​ទឹកកក​តិចតួច"
+
+#: noaa_i18n.dat:116
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Freezing Rain Rain"
+msgstr "ភ្លៀង​មាន​​ទឹកកក​តិចតួច"
+
+#: noaa_i18n.dat:117
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Freezing Rain Snow"
+msgstr "ភ្លៀងមាន​ព្រិល​តិចតួច"
+
+#: noaa_i18n.dat:118
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Ice Pellets"
+msgstr "គ្រាប់​ទឹកកក​តិចតួច"
+
+#: noaa_i18n.dat:119
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Ice Pellets Drizzle"
+msgstr "រលឹម​ស្រិចៗ​មាន​គ្រាប់​ទឹកកក​តិចតួច"
+
+#: noaa_i18n.dat:120
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Ice Pellets Rain"
+msgstr "ភ្លៀង​មាន​គ្រាប់​ទឹកកក​តិចតួច"
+
+#: noaa_i18n.dat:122
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Rain and Breezy"
+msgstr "មាន​ភ្លៀង ឬ​មាន​ខ្យល់​បក់រំភើយ​"
+
+#: noaa_i18n.dat:123
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Rain Fog"
+msgstr "ភ្លៀង​មាន​អ័ព្វ​តិចៗ"
+
+#: noaa_i18n.dat:124
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Rain Fog/Mist"
+msgstr "ភ្លៀង​មាន​អ័ព្វ​តិចៗ/សើម"
+
+#: noaa_i18n.dat:125
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Rain Freezing Drizzle"
+msgstr "រលឹមស្រិចៗ​លាយ​ទឹកកក​បន្តិចបន្តួច"
+
+#: noaa_i18n.dat:126
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Rain Freezing Rain"
+msgstr "មាន​ភ្លៀង​ទឹកកកបន្តិចបន្តួច"
+
+#: noaa_i18n.dat:127
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Rain Ice Pellets"
+msgstr "មាន​គ្រាប់​ទឹកកក​លាយ​ភ្លៀង​បន្តិចបន្តួច"
+
+#: noaa_i18n.dat:128
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Rain Showers"
+msgstr "មាន​ភ្លៀង​បន្តិចបន្តួច"
+
+#: noaa_i18n.dat:129
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Rain Showers Fog/Mist"
+msgstr "មានភ្លៀង​ចុះអ័ព្វ​បន្តិចបន្តួច/ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:130
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Rain Snow"
+msgstr "មាន​ភ្លៀង​ធ្លាក់​ព្រិល​បន្តិចបន្តួច"
+
+#: noaa_i18n.dat:131
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Showers Rain"
+msgstr "មាន​ភ្លៀង​បន្តិចបន្តួច"
+
+#: noaa_i18n.dat:132
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Showers Rain Fog/Mist"
+msgstr "ភ្លៀងចុះអ័ព្វ​បន្តិចបន្តួច/ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:133
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Showers Snow"
+msgstr "ធ្លាក់ព្រិល​បន្តិចបន្តួច"
+
+#: noaa_i18n.dat:134
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Showers Snow Fog"
+msgstr "ចុះអ័ព្វ​ព្រិលបន្តិចបន្តួច"
+
+#: noaa_i18n.dat:135
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Showers Snow Fog/Mist"
+msgstr "ចុះអ័ព្វ​មាន​ព្រិល​បន្តិចបន្តួច/ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:136
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Small Hail/Snow Pellets"
+msgstr "ធ្លាក់​ព្រិល​បន្តិចបន្តួច/គ្រាប់ព្រិល"
+
+#: noaa_i18n.dat:138
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Snow Blowing Snow"
+msgstr "ព្រិល​បន្តិចបន្តួច"
+
+#: noaa_i18n.dat:139
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Snow Blowing Snow Fog/Mist"
+msgstr "ព្រិល​បន្តិចបន្តួច/ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:140
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Snow Drizzle"
+msgstr "រលឹម​ស្រិចៗ​លាយ​ព្រិល​បន្តិចបន្តួច"
+
+#: noaa_i18n.dat:141
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Snow Fog"
+msgstr "ចុះអ័ព្វ និង​ព្រិល​បន្តិចបន្តួច"
+
+#: noaa_i18n.dat:142
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Snow Fog/Mist"
+msgstr "ព្រិល​បន្តិចបន្តួច/ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:143
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Snow Freezing Drizzle"
+msgstr "រលឹម​ស្រិចៗ​ និងព្រិល​បន្តិចបន្តួច"
+
+#: noaa_i18n.dat:144
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Snow Freezing Rain"
+msgstr "ភ្លៀង​ និង​ព្រិល​បន្តិចបន្តួច"
+
+#: noaa_i18n.dat:145
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Snow Grains"
+msgstr "គ្រាប់​ព្រិល​បន្តិចបន្តួច"
+
+#: noaa_i18n.dat:146
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Snow Low Drifting Snow"
+msgstr "មានព្រិល​រសាត់​បន្តិចបន្តួច"
+
+#: noaa_i18n.dat:147
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Snow Rain"
+msgstr "មាន​ភ្លៀង​ព្រិល​បន្តិចបន្តួច"
+
+#: noaa_i18n.dat:148
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Snow Showers"
+msgstr "មាន​ភ្លៀង​ព្រិល​បន្តិចបន្តួច"
+
+#: noaa_i18n.dat:149
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Snow Showers Fog"
+msgstr "មាន​ភ្លៀង​ចុះអ័ព្វ​បន្តិចបន្តួច"
+
+#: noaa_i18n.dat:150
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Snow Showers Fog/Mist"
+msgstr "មាន​ភ្លៀង​ចុះអ័ព្វ/ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:151
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Thunderstorm Rain"
+msgstr "មាន​ភ្លៀង​ និងព្យុះ​បន្តិចបន្តួច"
+
+#: noaa_i18n.dat:152
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Thunderstorm Rain Fog"
+msgstr "មាន​ភ្លៀង​ចុះអ័ព្វ ព្យុះ​បន្តិចបន្តួច"
+
+#: noaa_i18n.dat:153
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Thunderstorm Rain Fog/Mist"
+msgstr "មាន​ភ្លៀង​ចុះអ័ព្វ និងព្យុះ​បន្តិចបន្តួច/ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:154
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Thunderstorm Rain Hail"
+msgstr "មាន​ភ្លៀង​ព្យុះ​បន្តិចបន្តួច"
+
+#: noaa_i18n.dat:155
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Thunderstorm Rain Hail Fog"
+msgstr "មានចុះអ័ព្វ​ និង​ភ្លៀង​ព្យុះ​បន្តិចបន្តួច"
+
+#: noaa_i18n.dat:156
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Thunderstorm Rain Hail Fog/Mist"
+msgstr "មាន​ភ្លៀង​ព្យុះ​បន្តិចបន្តួច/ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:157
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Thunderstorm Rain Hail Haze"
+msgstr "ភ្លៀងចុះអ័ព្វ​ព្យុះតិច"
+
+#: noaa_i18n.dat:158
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Thunderstorm Rain Haze"
+msgstr "ភ្លៀង​ចុះអ័ព្វ​ព្យុះ​តិច"
+
+#: noaa_i18n.dat:159
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Thunderstorm Rain Small Hail/Snow Pellets"
+msgstr "ភ្លៀង​ព្យុះ​តិច/គ្រាប់​ព្រិល"
+
+#: noaa_i18n.dat:160
+#, kde-format
+msgctxt "weather condition"
+msgid "Light Thunderstorm Snow"
+msgstr "ព្រិល​ព្យុះ​តិច"
+
+#: noaa_i18n.dat:161
+#, kde-format
+msgctxt "weather condition"
+msgid "Low Drifting Dust"
+msgstr "ធូលី​រសាត់​ទាប"
+
+#: noaa_i18n.dat:162
+#, kde-format
+msgctxt "weather condition"
+msgid "Low Drifting Sand"
+msgstr "ខ្សាច់​រសាត់​ទាប"
+
+#: noaa_i18n.dat:163
+#, kde-format
+msgctxt "weather condition"
+msgid "Low Drifting Snow"
+msgstr "ព្រិល​រសាត់​ទាប"
+
+#: noaa_i18n.dat:164
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Mostly Clear"
+msgctxt "weather condition"
+msgid "Mostly Clear"
+msgstr "ស្រឡះ​ល្អ"
+
+#: noaa_i18n.dat:166
+#, kde-format
+msgctxt "weather condition"
+msgid "Mostly Cloudy and Breezy"
+msgstr "មាន​ពពក​ច្រើន និងខ្យល់​រំភើយ​"
+
+#: noaa_i18n.dat:167
+#, kde-format
+msgctxt "weather condition"
+msgid "Mostly Cloudy and Windy"
+msgstr "មាន​ពពក​ច្រើន និង​ខ្យល់"
+
+#: noaa_i18n.dat:168
+#, kde-format
+msgctxt "weather condition"
+msgid "Mostly Cloudy with Haze"
+msgstr "មាន​ពពក​ច្រើន​ ហើយ​ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:169
+#, kde-format
+msgctxt "weather condition"
+msgid "Overcast"
+msgstr "មេឃ​ស្រទុំ"
+
+#: noaa_i18n.dat:170
+#, kde-format
+msgctxt "weather condition"
+msgid "Overcast and Breezy"
+msgstr "មេឃ​ស្រទុំ និង​មាន​ខ្យល់​បក់​រំភើយ"
+
+#: noaa_i18n.dat:171
+#, kde-format
+msgctxt "weather condition"
+msgid "Overcast and Windy"
+msgstr "មេឃ​ស្រទុំ មាន​ខ្យល់"
+
+#: noaa_i18n.dat:172
+#, kde-format
+msgctxt "weather condition"
+msgid "Overcast with Haze"
+msgstr "មេឃ​ស្រទុំ ​មាន​ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:173
+#, kde-format
+msgctxt "weather condition"
+msgid "Partial Fog"
+msgstr "មានអ័ព្វ​បន្ថិច"
+
+#: noaa_i18n.dat:174
+#, kde-format
+msgctxt "weather condition"
+msgid "Partial Fog in Vicinity"
+msgstr "មាន​អ័ព្វ​បន្តិច​នៅកន្លែង​ជិត​ខាង"
+
+#: noaa_i18n.dat:176
+#, kde-format
+msgctxt "weather condition"
+msgid "Partly Cloudy and Breezy"
+msgstr "មាន​ពពក និងខ្យល់​រំភើយៗ​ដោយ​កន្លែង"
+
+#: noaa_i18n.dat:177
+#, kde-format
+msgctxt "weather condition"
+msgid "Partly Cloudy and Windy"
+msgstr "មាន​ពពក និង​ខ្យល់​ដោយ​កន្លែង"
+
+#: noaa_i18n.dat:178
+#, kde-format
+msgctxt "weather condition"
+msgid "Partly Cloudy with Haze"
+msgstr "មាន​ពពក និង​​អ័ព្វ​​​ដោយ​​កន្លែង​"
+
+#: noaa_i18n.dat:179
+#, fuzzy, kde-format
+#| msgctxt "weather condition"
+#| msgid "Heavy Freezing Fog"
+msgctxt "weather condition"
+msgid "Patchy Freezing Fog"
+msgstr "អ័ព្វ​ត្រជាក់​ខ្លាំង"
+
+#: noaa_i18n.dat:180
+#, kde-format
+msgctxt "weather condition"
+msgid "Patches of Fog"
+msgstr "បំណែក​អ័ព្វ"
+
+#: noaa_i18n.dat:181
+#, kde-format
+msgctxt "weather condition"
+msgid "Patches of Fog in Vicinity"
+msgstr "បំណែកអ័ព្វ​នៅកន្លែង​ជិត​ខាង"
+
+#: noaa_i18n.dat:182
+#, kde-format
+msgctxt "weather condition"
+msgid "Rain Fog"
+msgstr "ភ្លើង​ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:183
+#, kde-format
+msgctxt "weather condition"
+msgid "Rain Fog/Mist"
+msgstr "ភ្លៀង​ចុះអ័ព្វ/ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:184
+#, kde-format
+msgctxt "weather condition"
+msgid "Rain Freezing Drizzle"
+msgstr "រលឹម​ស្រិចៗ​ត្រជាក់"
+
+#: noaa_i18n.dat:185
+#, kde-format
+msgctxt "weather condition"
+msgid "Rain Freezing Rain"
+msgstr "មាន​ភ្លៀង​​ត្រជាក់"
+
+#: noaa_i18n.dat:186
+#, kde-format
+msgctxt "weather condition"
+msgid "Rain Ice Pellets"
+msgstr "ភ្លៀង​មានគ្រាប់​ទឹកកក"
+
+#: noaa_i18n.dat:187
+#, kde-format
+msgctxt "weather condition"
+msgid "Rain Showers"
+msgstr "មាន​ភ្លៀង"
+
+#: noaa_i18n.dat:188
+#, kde-format
+msgctxt "weather condition"
+msgid "Rain Showers Fog/Mist"
+msgstr "មានភ្លៀង​ចុះអ័ព្វ/ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:189
+#, kde-format
+msgctxt "weather condition"
+msgid "Rain Showers in Vicinity"
+msgstr "មាន​ភ្លៀង​នៅ​កន្លែង​ជិត​ខាង"
+
+#: noaa_i18n.dat:190
+#, kde-format
+msgctxt "weather condition"
+msgid "Rain Showers in Vicinity Fog/Mist"
+msgstr "មាន​ភ្លៀង​ចុះអ័ព្វ​នៅ​កន្លែង​ជិត​ខាង/ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:191
+#, kde-format
+msgctxt "weather condition"
+msgid "Rain Snow"
+msgstr "ភ្លៀង​ព្រិល"
+
+#: noaa_i18n.dat:192
+#, kde-format
+msgctxt "weather condition"
+msgid "Sand"
+msgstr "ខ្សាច់"
+
+#: noaa_i18n.dat:193
+#, kde-format
+msgctxt "weather condition"
+msgid "Sand Storm"
+msgstr "ព្យុះខ្សាច់"
+
+#: noaa_i18n.dat:194
+#, kde-format
+msgctxt "weather condition"
+msgid "Sand Storm in Vicinity"
+msgstr "ព្យុះខ្សាច់​នៅ​កន្លែង​ជិត​ខាង"
+
+#: noaa_i18n.dat:196
+#, kde-format
+msgctxt "weather condition"
+msgid "Shallow Fog in Vicinity"
+msgstr "ចុះអ័ព្វ​តិចៗ​នៅ​កន្លែង​ជិតខាង"
+
+#: noaa_i18n.dat:197
+#, kde-format
+msgctxt "weather condition"
+msgid "Showers Hail"
+msgstr "ភ្លៀង​ធ្លាក់​ព្រិល"
+
+#: noaa_i18n.dat:198
+#, kde-format
+msgctxt "weather condition"
+msgid "Showers Ice Pellets"
+msgstr "ភ្លៀង​មាន​គ្រាប់​ទឹកកក"
+
+#: noaa_i18n.dat:199
+#, kde-format
+msgctxt "weather condition"
+msgid "Showers in Vicinity Fog"
+msgstr "ភ្លៀង​ចុះអ័ព្វ​នៅ​កន្លែ​ងជិត​ខាង"
+
+#: noaa_i18n.dat:200
+#, kde-format
+msgctxt "weather condition"
+msgid "Showers in Vicinity Snow"
+msgstr "មាន​ភ្លៀង​​ព្រិល​នៅ​កន្លែង​ជិតខាង"
+
+#: noaa_i18n.dat:201
+#, kde-format
+msgctxt "weather condition"
+msgid "Showers Rain"
+msgstr "មាន​ភ្លៀង"
+
+#: noaa_i18n.dat:202
+#, kde-format
+msgctxt "weather condition"
+msgid "Showers Rain Fog/Mist"
+msgstr "ភ្លៀង​ចុះអ័ព្វ/ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:203
+#, kde-format
+msgctxt "weather condition"
+msgid "Showers Rain in Vicinity"
+msgstr "មាន​ភ្លៀង​នៅ​កន្លែង​ជិតខាង"
+
+#: noaa_i18n.dat:204
+#, kde-format
+msgctxt "weather condition"
+msgid "Showers Rain in Vicinity Fog/Mist"
+msgstr "ភ្លៀង​មាន​ចុះអ័ព្វ​នៅ​កន្លែ​ងជិត​ខាង/ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:205
+#, kde-format
+msgctxt "weather condition"
+msgid "Showers Snow"
+msgstr "ភ្លៀង​មាន​ព្រិល"
+
+#: noaa_i18n.dat:206
+#, kde-format
+msgctxt "weather condition"
+msgid "Showers Snow Fog"
+msgstr "ភ្លៀង​មានព្រិល​ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:207
+#, kde-format
+msgctxt "weather condition"
+msgid "Showers Snow Fog/Mist"
+msgstr "ភ្លៀង​មាន​ព្រិល​ចុះអ័ព្វ/ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:208
+#, kde-format
+msgctxt "weather condition"
+msgid "Small Hail/Snow Pellets"
+msgstr "ព្រិល​តិចៗ/គ្រាប់​ព្រិល"
+
+#: noaa_i18n.dat:211
+#, kde-format
+msgctxt "weather condition"
+msgid "Snow Blowing Snow"
+msgstr "ព្រិល​បក់​ព្រិល"
+
+#: noaa_i18n.dat:212
+#, kde-format
+msgctxt "weather condition"
+msgid "Snow Drizzle"
+msgstr "រលឹម​ស្រិចៗ​មាន​ព្រិល"
+
+#: noaa_i18n.dat:213
+#, kde-format
+msgctxt "weather condition"
+msgid "Snow Fog"
+msgstr "ព្រិល​ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:214
+#, kde-format
+msgctxt "weather condition"
+msgid "Snow Fog/Mist"
+msgstr "ចុះអ័ព្វ​ព្រិល/ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:215
+#, kde-format
+msgctxt "weather condition"
+msgid "Snow Freezing Drizzle"
+msgstr "រលឹម​ស្រិចៗ​មាន​ព្រិល​ត្រជាក់"
+
+#: noaa_i18n.dat:216
+#, kde-format
+msgctxt "weather condition"
+msgid "Snow Freezing Rain"
+msgstr "ភ្លៀង​ធ្លាក់​ព្រិល"
+
+#: noaa_i18n.dat:218
+#, kde-format
+msgctxt "weather condition"
+msgid "Snow Low Drifting Snow"
+msgstr "មាន​ព្រិល​តិចៗ​រសាត់"
+
+#: noaa_i18n.dat:219
+#, kde-format
+msgctxt "weather condition"
+msgid "Snow Rain"
+msgstr "ភ្លៀង​ព្រិល"
+
+#: noaa_i18n.dat:220
+#, kde-format
+msgctxt "weather condition"
+msgid "Snow Showers"
+msgstr "ភ្លៀង​ព្រិល"
+
+#: noaa_i18n.dat:221
+#, kde-format
+msgctxt "weather condition"
+msgid "Snow Showers Fog"
+msgstr "ភ្លៀង​ព្រិល​មាន​ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:222
+#, kde-format
+msgctxt "weather condition"
+msgid "Snow Showers Fog/Mist"
+msgstr "ភ្លៀង​ព្រិល​លាយ​ចុះអ័ព្វ/ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:223
+#, kde-format
+msgctxt "weather condition"
+msgid "Snow Showers in Vicinity"
+msgstr "ភ្លៀង​ព្រិល​នៅ​កន្លែង​ជិត​ខាង"
+
+#: noaa_i18n.dat:224
+#, kde-format
+msgctxt "weather condition"
+msgid "Snow Showers in Vicinity Fog"
+msgstr "ភ្លៀង​ព្រិល​មាន​ចុះអ័ព្វ​នៅ​កន្លែង​ជិតខាង"
+
+#: noaa_i18n.dat:225
+#, kde-format
+msgctxt "weather condition"
+msgid "Snow Showers in Vicinity Fog/Mist"
+msgstr "ភ្លៀង​ព្រិល​មាន​ចុះអ័ព្វ​ក្នុង​កន្លែង​ផ្សេង/ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:227
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Fog"
+msgstr "ព្យុះ​មាន​ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:228
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Hail"
+msgstr "ព្យុះ​ព្រិល"
+
+#: noaa_i18n.dat:229
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Hail Fog"
+msgstr "ព្យុះ​មាន​ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:230
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Haze in Vicinity"
+msgstr "ព្យុះ​ធ្លាក់ព្រិល​នៅ​កន្លែង​ជិត​ខាង"
+
+#: noaa_i18n.dat:231
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Haze in Vicinity Hail"
+msgstr "ព្យុះ​មាន​ធ្លាក់​ព្រិល​នៅ​កន្លែង​ជិតខាង"
+
+#: noaa_i18n.dat:232
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Heavy Rain"
+msgstr "ព្យុះ​មានភ្លៀង​ខ្លាំង"
+
+#: noaa_i18n.dat:233
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Heavy Rain Fog"
+msgstr "ព្យុះ​មាន​ភ្លៀង​ចុះអ័ព្វ​ខ្លាំង"
+
+#: noaa_i18n.dat:234
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Heavy Rain Fog/Mist"
+msgstr "ព្យុះ​មាន​ភ្លៀង​ចុះអ័ព្វខ្លាំង/ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:235
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Heavy Rain Hail"
+msgstr "ព្យុះ​មាន​​ភ្លៀង​ធ្លាក់​ព្រិលខ្លាំង"
+
+#: noaa_i18n.dat:236
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Heavy Rain Hail Fog"
+msgstr "ព្យុះ​មាន​ភ្លៀង​ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:237
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Heavy Rain Hail Fog/Mist"
+msgstr "ព្យុះ​មាន​ភ្លៀង​ចុះអ័ព្វ/​ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:238
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Heavy Rain Hail Haze"
+msgstr "ព្យុះ​មាន​ភ្លៀង​លាយ​ព្រិល​ខ្លាំង"
+
+#: noaa_i18n.dat:239
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Heavy Rain Haze"
+msgstr "ព្យុះ​មាន​ភ្លៀង​លាយ​ព្រិល​ខ្លាំង"
+
+#: noaa_i18n.dat:240
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Ice Pellets"
+msgstr "ព្យុះ​មាន​គ្រាប់​ទឹកកក"
+
+#: noaa_i18n.dat:241
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm in Vicinity"
+msgstr "ព្យុះ​នៅ​កន្លែង​ជិតខាង"
+
+#: noaa_i18n.dat:242
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm in Vicinity Fog"
+msgstr "ព្យុះ​មានចុះអ័ព្វ​នៅ​កន្លែង​ជិតខាង"
+
+#: noaa_i18n.dat:243
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm in Vicinity Fog/Mist"
+msgstr "ព្យុះ​មាន​ចុះអ័ព្វ​នៅ​កន្លែង​ជិតខាង/ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:244
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm in Vicinity Hail"
+msgstr "ព្យុះ​មានព្រិល​នៅ​កន្លែង​ជិតខាង"
+
+#: noaa_i18n.dat:245
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm in Vicinity Hail Haze"
+msgstr "ព្យុះ​មាន​ធ្លាក់ព្រិល​នៅ​កន្លែង​ជិតខាង"
+
+#: noaa_i18n.dat:246
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm in Vicinity Haze"
+msgstr "ព្យុះ​មាន​ព្រិល​នៅ​កន្លែ​ងជិតខាង"
+
+#: noaa_i18n.dat:247
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Light Rain"
+msgstr "ព្យុះ​មាន​ភ្លៀង​តិចៗ"
+
+#: noaa_i18n.dat:248
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Light Rain Fog"
+msgstr "ព្យុះ​មាន​​ភ្លៀង​ចុះអ័ព្វ​តិចៗ"
+
+#: noaa_i18n.dat:249
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Light Rain Fog/Mist"
+msgstr "ព្យុះ​មាន​ភ្លៀង​ចុះអ័ព្វ/ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:250
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Light Rain Hail"
+msgstr "ព្យុះ​ភ្លៀង​មាន​ព្រិលតិចៗ"
+
+#: noaa_i18n.dat:251
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Light Rain Hail Fog"
+msgstr "ព្យុះ​មាន​ភ្លៀង​លាយ​ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:252
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Light Rain Hail Fog/Mist"
+msgstr "ព្យុះ​ភ្លៀង​មានចុះអ័ព្វ​តិចៗ/ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:253
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Light Rain Hail Haze"
+msgstr "ព្យុះ​ភ្លៀង​មាន​ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:254
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Light Rain Haze"
+msgstr "ព្យុះ​មាន​ភ្លៀង​លាយ​​ព្រិល​​តិចៗ"
+
+#: noaa_i18n.dat:255
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Rain"
+msgstr "ព្យុះ​ភ្លៀង"
+
+#: noaa_i18n.dat:256
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Rain Fog/Mist"
+msgstr "ព្យុះ​ភ្លៀង​មាន​ព្រិល/ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:257
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Rain Hail Fog/Mist"
+msgstr "ព្យុះ​ភ្លៀង​មាន​ព្រិល/ចុះអ័ព្វ"
+
+#: noaa_i18n.dat:258
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Rain Small Hail/Snow Pellets"
+msgstr "ព្យុះ​ភ្លៀង/គ្រាប់​ព្រិល"
+
+#: noaa_i18n.dat:259
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Showers in Vicinity"
+msgstr "ព្យុះ​ភ្លៀង​​ន្លែង​ជិតខាង"
+
+#: noaa_i18n.dat:260
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Showers in Vicinity Hail"
+msgstr "ព្យុះ​មាន​ភ្លៀង​​ព្រិល​កន្លែង​ជិតខាង​"
+
+#: noaa_i18n.dat:261
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Small Hail/Snow Pellets"
+msgstr "ព្យុះ​មាន​​គ្រាប់​ព្រិល"
+
+#: noaa_i18n.dat:262
+#, kde-format
+msgctxt "weather condition"
+msgid "Thunderstorm Snow"
+msgstr "ព្យុះ​ព្រិល​"
+
+#: noaa_i18n.dat:263
+#, kde-format
+msgctxt "weather condition"
+msgid "Tornado/Water Spout"
+msgstr "ខ្យល់​គួច/បាញ់ទឹក"
+
+#: noaa_i18n.dat:264
+#, kde-format
+msgctxt "weather condition"
+msgid "Windy"
+msgstr "មាន​ខ្យល់"
+
+#: noaa_i18n.dat:266
+#, kde-format
+msgctxt "weather forecast"
+msgid "Ice Crystals"
+msgstr "ទឹកកក​គ្រីស្តាល់"
+
+#: noaa_i18n.dat:267
+#, kde-format
+msgctxt "weather forecast"
+msgid "Volcanic Ash"
+msgstr "ផេះ​ភ្នំភ្លើង"
+
+#: noaa_i18n.dat:268
+#, kde-format
+msgctxt "weather forecast"
+msgid "Water Spout"
+msgstr "ទឹកគួច"
+
+#: noaa_i18n.dat:269
+#, kde-format
+msgctxt "weather forecast"
+msgid "Freezing Spray"
+msgstr "ភ្លៀង​ទឹកកក"
+
+#: noaa_i18n.dat:270
+#, kde-format
+msgctxt "weather forecast"
+msgid "Frost"
+msgstr "សន្សើម"
+
+#: noaa_i18n.dat:271
+#, kde-format
+msgctxt "weather forecast"
+msgid "Slight Chance Thunderstorms"
+msgstr "មាន​ព្យុះ​ផ្គរ​បន្តិច​បន្តួច​ដោយ​ចៃដន្យ"
+
+#: noaa_i18n.dat:272
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance Thunderstorms"
+msgstr "មាន​ព្យុះ​ផ្គរ​ដោយចៃដន្យ"
+
+#: noaa_i18n.dat:273
+#, kde-format
+msgctxt "weather forecast"
+msgid "Thunderstorms Likely"
+msgstr "ទំនង​ជា​មាន​ព្យុះ​ផ្គរ"
+
+#: noaa_i18n.dat:275
+#, kde-format
+msgctxt "weather forecast"
+msgid "Severe Tstms"
+msgstr "មាន​ព្យុះ​ផ្គរ​ខ្លាំង"
+
+#: noaa_i18n.dat:276
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Chance Snow"
+msgctxt "weather forecast"
+msgid "Slight Chance Snow/Sleet"
+msgstr "មាន​ព្រិល​ដោយ​ចៃដន្យ"
+
+#: noaa_i18n.dat:277
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance Snow/Sleet"
+msgstr "មាន​ព្រិល​/ភ្លៀង​លាយ​ព្រិល​ដោយ​ចៃដន្យ"
+
+#: noaa_i18n.dat:278
+#, kde-format
+msgctxt "weather forecast"
+msgid "Snow/Sleet Likely"
+msgstr "ទំនង​ជា​មាន​ព្រិល​/ភ្លៀង​លាយ​ព្រិល"
+
+#: noaa_i18n.dat:279
+#, kde-format
+msgctxt "weather forecast"
+msgid "Snow/Sleet"
+msgstr "ព្រិល​/ភ្លៀង​លាយ​ព្រិល"
+
+#: noaa_i18n.dat:280
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Chance Rain"
+msgctxt "weather forecast"
+msgid "Slight Chance Rain/Sleet"
+msgstr "មាន​ភ្លៀង​ដោយ​ចៃដន្យ"
+
+#: noaa_i18n.dat:281
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance Rain/Sleet"
+msgstr "មាន​ភ្លៀង​/ភ្លៀង​លាយ​ព្រិល​ដោយ​ចៃដន្យ"
+
+#: noaa_i18n.dat:282
+#, kde-format
+msgctxt "weather forecast"
+msgid "Rain/Sleet Likely"
+msgstr "ទំនង​ជា​មាន​ភ្លៀង​/ភ្លៀង​លាយ​ព្រិល"
+
+#: noaa_i18n.dat:283
+#, kde-format
+msgctxt "weather forecast"
+msgid "Rain/Sleet"
+msgstr "ភ្លៀង/ភ្លៀង​លាយ​ព្រិល"
+
+#: noaa_i18n.dat:284
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Chance Rain/Freezing Rain"
+msgctxt "weather forecast"
+msgid "Slight Chance Rain/Freezing Rain"
+msgstr "មាន​ភ្លៀង​/ភ្លៀង​ទឹកកក​ដោយ​ចៃដន្យ"
+
+#: noaa_i18n.dat:285
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance Rain/Freezing Rain"
+msgstr "មាន​ភ្លៀង​/ភ្លៀង​ទឹកកក​ដោយ​ចៃដន្យ"
+
+#: noaa_i18n.dat:286
+#, kde-format
+msgctxt "weather forecast"
+msgid "Rain/Freezing Rain Likely"
+msgstr "ទំនង​ជា​មាន​ភ្លៀង​/ភ្លៀង​ទឹកកក​"
+
+#: noaa_i18n.dat:287
+#, kde-format
+msgctxt "weather forecast"
+msgid "Rain/Freezing Rain"
+msgstr "ភ្លៀង​/ភ្លៀង​ទឹកកក"
+
+#: noaa_i18n.dat:288
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Wintry Mix"
+msgctxt "weather forecast"
+msgid "Wintry Mix Likely"
+msgstr "លាយ​ខ្យល់​ត្រជាក់"
+
+#: noaa_i18n.dat:289
+#, kde-format
+msgctxt "weather forecast"
+msgid "Wintry Mix"
+msgstr "លាយ​ខ្យល់​ត្រជាក់"
+
+#: noaa_i18n.dat:290
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Chance Freezing Drizzle"
+msgctxt "weather forecast"
+msgid "Slight Chance Freezing Drizzle"
+msgstr "មាន​រលឹម​ស្រិចៗ​ត្រជាក់​ដោយ​ចៃដន្យ"
+
+#: noaa_i18n.dat:291
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance Freezing Drizzle"
+msgstr "មាន​រលឹម​ស្រិចៗ​ត្រជាក់​ដោយ​ចៃដន្យ"
+
+#: noaa_i18n.dat:292
+#, kde-format
+msgctxt "weather forecast"
+msgid "Freezing Drizzle Likely"
+msgstr "ទំនង​ជា​មាន​រលឹម​ស្រិចៗ​ត្រជាក់"
+
+#: noaa_i18n.dat:293
+#, kde-format
+msgctxt "weather forecast"
+msgid "Freezing Drizzle"
+msgstr "រលឹម​ស្រិចៗ​ត្រជាក់"
+
+#: noaa_i18n.dat:294
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Chance Freezing Rain"
+msgctxt "weather forecast"
+msgid "Slight Chance Freezing Rain"
+msgstr "មាន​ភ្លៀង​​ទឹកកក​ដោយ​ចៃដន្យ​"
+
+#: noaa_i18n.dat:295
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance Freezing Rain"
+msgstr "មាន​ភ្លៀង​​ទឹកកក​ដោយ​ចៃដន្យ​"
+
+#: noaa_i18n.dat:296
+#, kde-format
+msgctxt "weather forecast"
+msgid "Freezing Rain Likely"
+msgstr "ទំនង​ជា​មាន​ភ្លៀង​ទឹកកក"
+
+#: noaa_i18n.dat:297
+#, kde-format
+msgctxt "weather forecast"
+msgid "Freezing Rain"
+msgstr "ភ្លៀង​ទឹកកក"
+
+#: noaa_i18n.dat:298
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Chance Rain"
+msgctxt "weather forecast"
+msgid "Slight Chance Rain/Snow"
+msgstr "មាន​ភ្លៀង​ដោយ​ចៃដន្យ"
+
+#: noaa_i18n.dat:299
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance Rain/Snow"
+msgstr "មាន​ភ្លៀង/ព្រិល​ដោយចៃដន្យ"
+
+#: noaa_i18n.dat:300
+#, kde-format
+msgctxt "weather forecast"
+msgid "Rain/Snow Likely"
+msgstr "ទំនង​ជា​មាន​ភ្លៀង​/ព្រិល"
+
+#: noaa_i18n.dat:301
+#, kde-format
+msgctxt "weather forecast"
+msgid "Rain/Snow"
+msgstr "ភ្លៀង​/ព្រិល"
+
+#: noaa_i18n.dat:302
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Chance Snow"
+msgctxt "weather forecast"
+msgid "Slight Chance Snow"
+msgstr "មាន​ព្រិល​ដោយ​ចៃដន្យ"
+
+#: noaa_i18n.dat:303
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance Snow"
+msgstr "មាន​ព្រិល​ដោយ​ចៃដន្យ"
+
+#: noaa_i18n.dat:304
+#, kde-format
+msgctxt "weather forecast"
+msgid "Snow Likely"
+msgstr "ទំនង​ជា​មាន​ព្រិល"
+
+#: noaa_i18n.dat:306
+#, kde-format
+msgctxt "weather forecast"
+msgid "Heavy Snow"
+msgstr "ព្រិល​ខ្លាំង"
+
+#: noaa_i18n.dat:307
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Chance Flurries"
+msgctxt "weather forecast"
+msgid "Slight Chance Flurries"
+msgstr "មាន​ទឹកកក​បក់​តាម​ខ្យល់​ដោយ​ចៃដន្យ"
+
+#: noaa_i18n.dat:308
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance Flurries"
+msgstr "មាន​ទឹកកក​បក់​តាម​ខ្យល់​ដោយ​ចៃដន្យ"
+
+#: noaa_i18n.dat:309
+#, kde-format
+msgctxt "weather forecast"
+msgid "Flurries Likely"
+msgstr "ទំនង​ជា​មាន​ទឹកកក​បន្តិច​បក់​តាម​ខ្យល់"
+
+#: noaa_i18n.dat:311
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Chance Snow Showers"
+msgctxt "weather forecast"
+msgid "Slight Chance Snow Showers"
+msgstr "មាន​ភ្លៀង​ព្រិល​ដោយ​ចៃដន្យ"
+
+#: noaa_i18n.dat:312
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance Snow Showers"
+msgstr "មាន​ភ្លៀង​ព្រិល​ដោយ​ចៃដន្យ"
+
+#: noaa_i18n.dat:313
+#, kde-format
+msgctxt "weather forecast"
+msgid "Snow Showers Likely"
+msgstr "ទំនង​ជា​មាន​ភ្លៀង​ព្រិល​ដោយ​ចៃដន្យ"
+
+#: noaa_i18n.dat:314
+#, kde-format
+msgctxt "weather forecast"
+msgid "Snow Showers"
+msgstr "ភ្លៀង​ព្រិល"
+
+#: noaa_i18n.dat:315
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Chance Drizzle"
+msgctxt "weather forecast"
+msgid "Slight Chance Drizzle"
+msgstr "មាន​រលឹម​ស្រិចៗដោយចៃដន្យ"
+
+#: noaa_i18n.dat:316
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance Drizzle"
+msgstr "មាន​រលឹម​ស្រិចៗដោយចៃដន្យ"
+
+#: noaa_i18n.dat:317
+#, kde-format
+msgctxt "weather forecast"
+msgid "Drizzle Likely"
+msgstr "ទំនង​ជា​មាន​រលឹម​ស្រិចៗ"
+
+#: noaa_i18n.dat:319
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Chance Rain"
+msgctxt "weather forecast"
+msgid "Slight Chance Rain"
+msgstr "មាន​ភ្លៀង​ដោយ​ចៃដន្យ"
+
+#: noaa_i18n.dat:320
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance Rain"
+msgstr "មាន​ភ្លៀង​ដោយ​ចៃដន្យ"
+
+#: noaa_i18n.dat:321
+#, kde-format
+msgctxt "weather forecast"
+msgid "Rain Likely"
+msgstr "ទំនង​ជា​មាន​ភ្លៀង"
+
+#: noaa_i18n.dat:323
+#, kde-format
+msgctxt "weather forecast"
+msgid "Heavy Rain"
+msgstr "ភ្លៀង​ខ្លាំង"
+
+#: noaa_i18n.dat:324
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Chance Snow Showers"
+msgctxt "weather forecast"
+msgid "Slight Chance Rain Showers"
+msgstr "មាន​ភ្លៀង​ព្រិល​ដោយ​ចៃដន្យ"
+
+#: noaa_i18n.dat:325
+#, kde-format
+msgctxt "weather forecast"
+msgid "Chance Rain Showers"
+msgstr "មាន​មាន​ភ្លៀង​ដោយ​ចៃដន្យ"
+
+#: noaa_i18n.dat:326
+#, kde-format
+msgctxt "weather forecast"
+msgid "Rain Showers Likely"
+msgstr "ទំនង​ជា​មាន​ភ្លៀង"
+
+#: noaa_i18n.dat:327
+#, kde-format
+msgctxt "weather forecast"
+msgid "Rain Showers"
+msgstr "មាន​ភ្លៀង"
+
+#: noaa_i18n.dat:328
+#, kde-format
+msgctxt "weather forecast"
+msgid "Sleet"
+msgstr "ភ្លៀង​លាយ​ព្រិល"
+
+#: noaa_i18n.dat:330
+#, kde-format
+msgctxt "weather forecast"
+msgid "Freezing Fog"
+msgstr "អ័ព្ទ​ត្រជាក់"
+
+#: noaa_i18n.dat:331
+#, kde-format
+msgctxt "weather forecast"
+msgid "Ice Fog"
+msgstr "អ័ព្ទ​ទឹកកក"
+
+#: noaa_i18n.dat:332
+#, kde-format
+msgctxt "weather forecast"
+msgid "Haze"
+msgstr "អ័ព្ទ"
+
+#: noaa_i18n.dat:333
+#, kde-format
+msgctxt "weather forecast"
+msgid "Blowing Sand"
+msgstr "មាន​ដុំ​ខ្សាច់"
+
+#: noaa_i18n.dat:334
+#, kde-format
+msgctxt "weather forecast"
+msgid "Blowing Dust"
+msgstr "មាន​ដុំ​ធូលី"
+
+#: noaa_i18n.dat:335
+#, kde-format
+msgctxt "weather forecast"
+msgid "Blowing Snow"
+msgstr "មាន​ព្រិល​"
+
+#: noaa_i18n.dat:336
+#, kde-format
+msgctxt "weather forecast"
+msgid "Dense Fog"
+msgstr "អ័ព្ទ​ក្រាស់"
+
+#: noaa_i18n.dat:339
+#, kde-format
+msgctxt "weather forecast"
+msgid "Blustery"
+msgstr "សំបូរ​ទៅ​ដោយ​ខ្យល់"
+
+#: noaa_i18n.dat:340
+#, kde-format
+msgctxt "weather forecast"
+msgid "Breezy"
+msgstr "ខ្យល់​រំភើយ"
+
+#: noaa_i18n.dat:341
+#, kde-format
+msgctxt "weather forecast"
+msgid "Cold"
+msgstr "ត្រជាក់"
+
+#: noaa_i18n.dat:342
+#, kde-format
+msgctxt "weather forecast"
+msgid "Hot"
+msgstr "ក្ដៅ"
+
+#: noaa_i18n.dat:344
+#, kde-format
+msgctxt "weather forecast"
+msgid "Mostly Cloudy"
+msgstr "មាន​ពពក​ច្រើន"
+
+#: noaa_i18n.dat:345
+#, kde-format
+msgctxt "weather forecast"
+msgid "Partly Cloudy"
+msgstr "ពពក​ដោយ​កន្លែង"
+
+#: noaa_i18n.dat:346
+#, kde-format
+msgctxt "weather forecast"
+msgid "Mostly Sunny"
+msgstr "មាន​ពន្លឺ​ថ្ងៃ​ច្រើន"
+
+#: noaa_i18n.dat:347
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Mostly Sunny"
+msgctxt "weather forecast"
+msgid "Partly Sunny"
+msgstr "មាន​ពន្លឺ​ថ្ងៃ​ច្រើន"
+
+#: noaa_i18n.dat:349
+#, kde-format
+msgctxt "weather forecast"
+msgid "Increasing Clouds"
+msgstr "ពពក​ច្រើន"
+
+#: noaa_i18n.dat:350
+#, kde-format
+msgctxt "weather forecast"
+msgid "Becoming Cloudy"
+msgstr "ចាប់​ផ្ដើម​មាន​ពពក"
+
+#: noaa_i18n.dat:352
+#, kde-format
+msgctxt "weather forecast"
+msgid "Gradual Clearing"
+msgstr "ចាប់ផ្ដើម​ស្រឡះ"
+
+#: noaa_i18n.dat:353
+#, kde-format
+msgctxt "weather forecast"
+msgid "Clearing Late"
+msgstr "ក្រ​​ស្រឡះ"
+
+#: noaa_i18n.dat:354
+#, kde-format
+msgctxt "weather forecast"
+msgid "Decreasing Clouds"
+msgstr "ពពក​តិច"
+
+#: noaa_i18n.dat:355
+#, kde-format
+msgctxt "weather forecast"
+msgid "Becoming Sunny"
+msgstr "ចាប់​ផ្ដើម​មាន​ថ្ងៃ"
+
+#: noaa_i18n.dat:357
+#, kde-format
+msgctxt "weather forecast"
+msgid "Mostly Clear"
+msgstr "ស្រឡះ​ល្អ"
+
+#: noaa_i18n.dat:358
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Showers or thunderstorms"
+msgctxt "weahter forecast"
+msgid "Showers And Thunderstorms"
+msgstr "ភ្លៀង​រលឹម ឬ​ព្យុះ"
+
+#: noaa_i18n.dat:359
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Slight Chance Thunderstorms"
+msgctxt "weather forecast"
+msgid "Slight Chance Showers And Thunderstorms"
+msgstr "មាន​ព្យុះ​ផ្គរ​បន្តិច​បន្តួច​ដោយ​ចៃដន្យ"
+
+#: noaa_i18n.dat:360
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Chance of showers or thunderstorms"
+msgctxt "weather forecast"
+msgid "Chance Showers And Thunderstorms"
+msgstr "មាន​ភ្លៀង ឬ​រន្ទះ"
+
+#: noaa_i18n.dat:361
+#, fuzzy, kde-format
+#| msgctxt "weather forecast"
+#| msgid "Thunderstorms Likely"
+msgctxt "weather forecast"
+msgid "Showers And Thunderstorms Likely"
+msgstr "ទំនង​ជា​មាន​ព្យុះ​ផ្គរ"
+
+#~ msgid "UK"
+#~ msgstr "ចក្រភព​អង់គ្លេស"
+
+#~ msgid "USA"
+#~ msgstr "សហរដ្ឋ​អាមេរិក"
+
+#~ msgctxt "weather condition"
+#~ msgid "weather condition"
+#~ msgstr "លក្ខខណ្ឌ​អាកាសធាតុ"
+
+#~ msgctxt "weather condition"
+#~ msgid "thunder storm"
+#~ msgstr "ព្យុះ​មាន​ផ្គរ"
+
+#~ msgctxt "weather forecast"
+#~ msgid "thunder storm"
+#~ msgstr "ព្យុះ​មាន​ផ្គរ"
+
+#~ msgctxt "wind direction"
+#~ msgid "N"
+#~ msgstr "N"
+
+#~ msgctxt "wind direction"
+#~ msgid "NNE"
+#~ msgstr "NNE"
+
+#~ msgctxt "wind direction"
+#~ msgid "NE"
+#~ msgstr "NE"
+
+#~ msgctxt "wind direction"
+#~ msgid "ENE"
+#~ msgstr "ENE"
+
+#~ msgctxt "wind direction"
+#~ msgid "E"
+#~ msgstr "E"
+
+#~ msgctxt "wind direction"
+#~ msgid "SSE"
+#~ msgstr "SSE"
+
+#~ msgctxt "wind direction"
+#~ msgid "SE"
+#~ msgstr "SE"
+
+#~ msgctxt "wind direction"
+#~ msgid "ESE"
+#~ msgstr "ESE"
+
+#~ msgctxt "wind direction"
+#~ msgid "S"
+#~ msgstr "S"
+
+#~ msgctxt "wind direction"
+#~ msgid "NNW"
+#~ msgstr "NNW"
+
+#~ msgctxt "wind direction"
+#~ msgid "NW"
+#~ msgstr "NW"
+
+#~ msgctxt "wind direction"
+#~ msgid "WNW"
+#~ msgstr "WNW"
+
+#~ msgctxt "wind direction"
+#~ msgid "W"
+#~ msgstr "W"
+
+#~ msgctxt "wind direction"
+#~ msgid "SSW"
+#~ msgstr "SSW"
+
+#~ msgctxt "wind direction"
+#~ msgid "SW"
+#~ msgstr "SW"
+
+#~ msgctxt "wind direction"
+#~ msgid "WSW"
+#~ msgstr "WSW"
+
+#~ msgctxt "wind direction"
+#~ msgid "VR"
+#~ msgstr "VR"
+
+#~ msgctxt "pressure tendency"
+#~ msgid "rising"
+#~ msgstr "រះ​ឡើង"
+
+#~ msgctxt "pressure tendency"
+#~ msgid "falling"
+#~ msgstr "ធ្លាក់"
+
+#~ msgctxt "pressure tendency"
+#~ msgid "no change"
+#~ msgstr "គ្មាន​ការ​ផ្លាស់ប្ដូរ"
+
+#~ msgctxt "wind speed"
+#~ msgid "Calm"
+#~ msgstr "ត្រជាក់"
+
+#~ msgctxt "wind speed"
+#~ msgid "N/A"
+#~ msgstr "មិនមាន"
+
+#~ msgctxt "pressure tendency"
+#~ msgid "steady"
+#~ msgstr "ស្មើ"
+
+#~ msgctxt "wind direction - wind speed is too low to measure"
+#~ msgid "VR"
+#~ msgstr "VR"
+
+#~ msgid "N"
+#~ msgstr "N"
+
+#~ msgid "NNE"
+#~ msgstr "NNE"
+
+#~ msgid "NE"
+#~ msgstr "NE"
+
+#~ msgid "ENE"
+#~ msgstr "ENE"
+
+#~ msgid "E"
+#~ msgstr "E"
+
+#~ msgid "SSE"
+#~ msgstr "SSE"
+
+#~ msgid "SE"
+#~ msgstr "SE"
+
+#~ msgid "ESE"
+#~ msgstr "ESE"
+
+#~ msgid "S"
+#~ msgstr "S"
+
+#~ msgid "NNW"
+#~ msgstr "NNW"
+
+#~ msgid "NW"
+#~ msgstr "NW"
+
+#~ msgid "WNW"
+#~ msgstr "WNW"
+
+#~ msgid "W"
+#~ msgstr "W"
+
+#~ msgid "SSW"
+#~ msgstr "SSW"
+
+#~ msgid "SW"
+#~ msgstr "SW"
+
+#~ msgid "WSW"
+#~ msgstr "WSW"
+
+#~ msgid "Meteorological data is provided by Environment Canada"
+#~ msgstr "ទិន្នន័យ​ឧតុនិយម​ត្រូវ​បាន​ផ្ដល់​ដោយ​ក្រសួង​បរិស្ថាន​កាដាណា"
+
+#~ msgid "Supported by backstage.bbc.co.uk / Data from UK MET Office"
+#~ msgstr "បាន​គាំទ្រ​ដោយ​ backstage.bbc.co.uk / ទិន្នន័យ​ពី​ការិយាល័យ UK MET"

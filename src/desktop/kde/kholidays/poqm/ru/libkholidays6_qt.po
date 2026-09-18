@@ -1,0 +1,759 @@
+# KDE3 - kdepim/libkholidays.po Russian translation.
+# Copyright (C) 2005, KDE Russian translation team.
+#
+# Andrey Cherepanov <sibskull@mail.ru>, 2005.
+# Pavel Mihaduk <root@eurostream.info>, 2009.
+# Alexander Potashev <aspotashev@gmail.com>, 2011, 2014, 2015, 2016.
+# Yury G. Kudryashov <urkud.urkud@gmail.com>, 2011.
+# Alexander Lakhin <exclusion@gmail.com>, 2013.
+# Alexander Yavorsky <kekcuha@gmail.com>, 2020, 2022.
+# SPDX-FileCopyrightText: 2026 Olesya Gerasimenko <goa@altlinux.org>
+msgid ""
+msgstr ""
+"Project-Id-Version: libkholidays\n"
+"Report-Msgid-Bugs-To: http://bugs.kde.org\n"
+"POT-Creation-Date: 2015-06-13 09:34+0000\n"
+"PO-Revision-Date: 2026-06-22 12:23+0300\n"
+"Last-Translator: Olesya Gerasimenko <goa@altlinux.org>\n"
+"Language-Team: Basealt Translation Team\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 23.08.5\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Environment: kde\n"
+"X-Accelerator-Marker: &\n"
+"X-Text-Markup: kde4\n"
+"X-Qt-Contexts: true\n"
+
+#: astroseasons.cpp:139
+msgctxt "AstroSeasons|"
+msgid "June Solstice"
+msgstr "Летнее солнцестояние"
+
+#: astroseasons.cpp:141
+msgctxt "AstroSeasons|"
+msgid "December Solstice"
+msgstr "Зимнее солнцестояние"
+
+#: astroseasons.cpp:143
+msgctxt "AstroSeasons|"
+msgid "March Equinox"
+msgstr "Весеннее равноденствие"
+
+#: astroseasons.cpp:145
+msgctxt "AstroSeasons|"
+msgid "September Equinox"
+msgstr "Осеннее равноденствие"
+
+#: declarative/holidayregionsmodel.cpp:89
+msgctxt "HolidayRegionsDeclarativeModel|"
+msgid "Region"
+msgstr "Регион"
+
+#: declarative/holidayregionsmodel.cpp:91
+msgctxt "HolidayRegionsDeclarativeModel|"
+msgid "Name"
+msgstr "Название"
+
+#: declarative/holidayregionsmodel.cpp:93
+msgctxt "HolidayRegionsDeclarativeModel|"
+msgid "Description"
+msgstr "Описание"
+
+#: holidaycategories.cpp:39
+msgctxt "QObject|public holiday type"
+msgid "public"
+msgstr "Государственные"
+
+# Праздники в честь гражданских профессий, не относящихся к государственной службе. --aspotashev
+#: holidaycategories.cpp:42
+msgctxt "QObject|civil holiday type"
+msgid "civil"
+msgstr "Гражданские"
+
+#: holidaycategories.cpp:45
+msgctxt "QObject|religious holiday type"
+msgid "religious"
+msgstr "Религиозные"
+
+#: holidaycategories.cpp:48
+msgctxt "QObject|school holiday type"
+msgid "school"
+msgstr "Школьные"
+
+# Относящиеся к государственной или военной службе. --aspotashev
+#: holidaycategories.cpp:51
+msgctxt "QObject|government holiday type"
+msgid "government"
+msgstr "Служебные"
+
+#: holidaycategories.cpp:54
+msgctxt "QObject|financial holiday type"
+msgid "financial"
+msgstr "Финансовые"
+
+#: holidaycategories.cpp:57
+msgctxt "QObject|cultural holiday type"
+msgid "cultural"
+msgstr "Культурные"
+
+#: holidaycategories.cpp:60
+msgctxt "QObject|commemorative holiday type"
+msgid "commemorative"
+msgstr "Дни памяти"
+
+#: holidaycategories.cpp:63
+msgctxt "QObject|historical holiday type"
+msgid "historical"
+msgstr "Исторические"
+
+#: holidaycategories.cpp:66
+msgctxt "QObject|nameday holiday type"
+msgid "nameday"
+msgstr "Дни именин"
+
+#: holidaycategories.cpp:69
+msgctxt "QObject|seasonal holiday type"
+msgid "seasonal"
+msgstr "Сезонные"
+
+#: holidaycategories.cpp:77
+msgctxt "QObject|"
+msgid ""
+"Public Holiday: a day-off from work or school (typically) to commemorate a "
+"historical event, or to honor people.  Public holidays are always bounded to "
+"a political region at national, regional or local level."
+msgstr ""
+"Государственный праздник: как правило, это нерабочий или неучебный день в "
+"честь исторического события или людей. Государственные праздники всегда "
+"связаны с каким-либо политическим регионом на национальном, региональном или "
+"местном уровне."
+
+#: holidaycategories.cpp:82
+msgctxt "QObject|"
+msgid ""
+"Civil Service Holiday: a day-off from work for government workers but not a "
+"day off for private sector workers."
+msgstr ""
+"Праздник гражданской службы: нерабочий день для государственных служащих, но "
+"не для работников, занятых в частном секторе. "
+
+#: holidaycategories.cpp:85
+msgctxt "QObject|"
+msgid ""
+"Religious Holiday: a special day in a religion and not bound to any "
+"political region. Religions can have holidays that range in devotion to "
+"those were work/school are forbidden, days of prayer obligation, to "
+"historical remembrances, etc. Governments often have public holidays for "
+"some religious holidays."
+msgstr ""
+"Религиозный праздник: особый день в религии, не связанный с каким-либо "
+"политическим регионом. Религии могут иметь праздники, выражающие поклонение "
+"в различной форме; это могут быть дни запрета на работу или учёбу, дни "
+"обязательной молитвы, дни памяти об исторических событиях и так далее. "
+"Правительства часто предусматривают для некоторых религиозных праздников "
+"официальные нерабочие дни."
+
+#: holidaycategories.cpp:91
+msgctxt "QObject|"
+msgid ""
+"School Holiday: a day-off from school, either as a one-off Public Holiday or "
+"extended periods between school terms.  This can vary widely depending on "
+"school level, type, location."
+msgstr ""
+"Школьный праздник: неучебный день (либо единичный государственный праздник, "
+"либо продолжительные периоды между школьными четвертями). Школьные праздники "
+"могут значительно различаться в зависимости от уровня школы, её типа и "
+"расположения."
+
+#: holidaycategories.cpp:96
+msgctxt "QObject|"
+msgid ""
+"Government Holiday: a special day recognized by a political region but "
+"without a day-off for workers, students, etc."
+msgstr ""
+"Служебный праздник: особый день, признаваемый политическим регионом, но не "
+"предусматривающий выходного дня для работников, учащихся и так далее."
+
+#: holidaycategories.cpp:99
+msgctxt "QObject|"
+msgid "Financial Holiday: banks and markets may close on some public holidays"
+msgstr ""
+"Финансовый праздник: банки и рынки могут закрываться в некоторые "
+"государственные праздники."
+
+#: holidaycategories.cpp:102
+msgctxt "QObject|"
+msgid ""
+"Cultural Holiday: a special day in the culture and therefore usually bound "
+"to a political region. A day where people celebrate in some fashion. eg. "
+"Halloween, St. Valentines"
+msgstr ""
+"Культурный праздник: особый день в культуре (следовательно, обычно связан с "
+"политическим регионом). День, который люди каким-либо образом отмечают; "
+"например, Хэллоуин, день Святого Валентина."
+
+#: holidaycategories.cpp:107
+msgctxt "QObject|"
+msgid ""
+"Commemorative Holiday: a special day to remember usually bound to a "
+"political region. Not a day-off from work or school; banks are open, etc."
+msgstr ""
+"Праздник памяти: особый день в память (обычно связан с с политическим "
+"регионом). Не является нерабочим или неучебным, банки открыты и так далее."
+
+#: holidaycategories.cpp:111
+msgctxt "QObject|"
+msgid ""
+"Historical Holiday: similar to a Commemorative Holiday but historical in "
+"nature."
+msgstr ""
+"Исторический праздник: похож на праздник памяти, но исторического характера."
+
+#: holidaycategories.cpp:114
+msgctxt "QObject|"
+msgid ""
+"Name Day Holiday: in some political regions each day is assigned a first "
+"name and persons with that name celebrate that day as their \"Name Day\"."
+msgstr ""
+"Праздник именин: в некоторых политических регионах каждому дню присваивается "
+"имя, и люди с этим именем отмечают соответствующий день как свои «именины»."
+
+#: holidaycategories.cpp:119
+msgctxt "QObject|"
+msgid ""
+"Seasonal Days: the day corresponds to a seasonal event like an equinox, "
+"solstice, daylight saving time starts/ends."
+msgstr ""
+"Сезонные праздники: день, соответствующий сезонному событию (равноденствие, "
+"солнцестояние, начало или окончание летнего времени)."
+
+#: holidayregion.cpp:228
+msgctxt "HolidayRegion|Canadian region"
+msgid "Quebec"
+msgstr "Квебек"
+
+#: holidayregion.cpp:231
+msgctxt "HolidayRegion|German region"
+msgid "Germany, Bavaria"
+msgstr "Германия, Бавария"
+
+#: holidayregion.cpp:233
+msgctxt "HolidayRegion|German region"
+msgid "Germany, Brandenburg"
+msgstr "Германия, Бранденбург"
+
+#: holidayregion.cpp:235
+msgctxt "HolidayRegion|German region"
+msgid "Germany, Berlin"
+msgstr "Германия, Берлин"
+
+#: holidayregion.cpp:237
+msgctxt "HolidayRegion|German region"
+msgid "Germany, Baden-Wuerttemberg"
+msgstr "Германия, Баден-Вюртемберг"
+
+#: holidayregion.cpp:239
+msgctxt "HolidayRegion|German region"
+msgid "Germany, Hesse"
+msgstr "Германия, Гессен"
+
+#: holidayregion.cpp:241
+msgctxt "HolidayRegion|German region"
+msgid "Germany, Mecklenburg-Hither Pomerania"
+msgstr "Германия, Мекленбург-Передняя Померания"
+
+#: holidayregion.cpp:243
+msgctxt "HolidayRegion|German region"
+msgid "Germany, Lower Saxony"
+msgstr "Германия, Нижняя Саксония"
+
+#: holidayregion.cpp:245
+msgctxt "HolidayRegion|German region"
+msgid "Germany, North Rhine-Westphalia"
+msgstr "Германия, Северный Рейн — Вестфалия"
+
+#: holidayregion.cpp:247
+msgctxt "HolidayRegion|German region"
+msgid "Germany, Rhineland-Palatinate"
+msgstr "Германия, Рейнланд-Пфальц"
+
+#: holidayregion.cpp:249
+msgctxt "HolidayRegion|German region"
+msgid "Germany, Schleswig-Holstein"
+msgstr "Германия, Шлезвиг-Гольштейн"
+
+#: holidayregion.cpp:251
+msgctxt "HolidayRegion|German region"
+msgid "Germany, Saarland"
+msgstr "Германия, Саар"
+
+#: holidayregion.cpp:253
+msgctxt "HolidayRegion|German region"
+msgid "Germany, Saxony"
+msgstr "Германия, Саксония"
+
+#: holidayregion.cpp:255
+msgctxt "HolidayRegion|German region"
+msgid "Germany, Saxony-Anhalt"
+msgstr "Германия, Саксония-Анхальт"
+
+#: holidayregion.cpp:257
+msgctxt "HolidayRegion|German region"
+msgid "Germany, Thuringia"
+msgstr "Германия, Тюрингия"
+
+#: holidayregion.cpp:260
+msgctxt "HolidayRegion|Spanish region"
+msgid "Catalonia"
+msgstr "Каталония"
+
+#: holidayregion.cpp:262
+msgctxt "HolidayRegion|UK Region"
+msgid "England and Wales"
+msgstr "Англия и Уэльс"
+
+#: holidayregion.cpp:264
+msgctxt "HolidayRegion|UK Region"
+msgid "England"
+msgstr "Англия"
+
+#: holidayregion.cpp:266
+msgctxt "HolidayRegion|UK Region"
+msgid "Wales"
+msgstr "Уэльс"
+
+#: holidayregion.cpp:268
+msgctxt "HolidayRegion|UK Region"
+msgid "Scotland"
+msgstr "Шотландия"
+
+#: holidayregion.cpp:270
+msgctxt "HolidayRegion|UK Region"
+msgid "Northern Ireland"
+msgstr "Северная Ирландия"
+
+# Автоно́мная прови́нция Больца́но-Бо́цен — Ю́жный Тиро́ль (см. Википедия) --aspotashev
+#: holidayregion.cpp:272
+msgctxt "HolidayRegion|Italian Region"
+msgid "South Tyrol"
+msgstr "Больцано"
+
+#: holidayregion.cpp:274
+msgctxt "HolidayRegion|"
+msgid "New South Wales"
+msgstr "Новый Южный Уэльс"
+
+#: holidayregion.cpp:276
+msgctxt "HolidayRegion|Australian Region"
+msgid "Queensland"
+msgstr "Квинсленд"
+
+#: holidayregion.cpp:278
+msgctxt "HolidayRegion|Australian Region"
+msgid "Victoria"
+msgstr "Виктория"
+
+#: holidayregion.cpp:280
+msgctxt "HolidayRegion|Australian Region"
+msgid "South Australia"
+msgstr "Южная Австралия"
+
+#: holidayregion.cpp:282
+msgctxt "HolidayRegion|Australian Region"
+msgid "Northern Territory"
+msgstr "Северная территория"
+
+#: holidayregion.cpp:284
+msgctxt "HolidayRegion|Australian Region"
+msgid "Australian Capital Territory"
+msgstr "Австралийская столичная территория"
+
+#: holidayregion.cpp:286
+msgctxt "HolidayRegion|Australian Region"
+msgid "Western Australia"
+msgstr "Западная Австралия"
+
+#: holidayregion.cpp:288
+msgctxt "HolidayRegion|Australian Region"
+msgid "Tasmania"
+msgstr "Тасмания"
+
+#: holidayregion.cpp:290
+msgctxt "HolidayRegion|Bosnian and Herzegovinian Region"
+msgid "Republic of Srpska"
+msgstr "Республика Сербская"
+
+#: holidayregion.cpp:308
+msgctxt "HolidayRegion|Holiday type"
+msgid "Public"
+msgstr "Государственные"
+
+# Праздники в честь гражданских профессий, не относящихся к государственной службе. --aspotashev
+#: holidayregion.cpp:310
+msgctxt "HolidayRegion|Holiday type"
+msgid "Civil"
+msgstr "Гражданские"
+
+#: holidayregion.cpp:312
+msgctxt "HolidayRegion|Holiday type"
+msgid "Religious"
+msgstr "Религиозные"
+
+# Относящиеся к государственной или военной службе. --aspotashev
+#: holidayregion.cpp:314
+msgctxt "HolidayRegion|Holiday type"
+msgid "Government"
+msgstr "Служебные"
+
+#: holidayregion.cpp:316
+msgctxt "HolidayRegion|Holiday type"
+msgid "Financial"
+msgstr "Финансовые"
+
+#: holidayregion.cpp:318
+msgctxt "HolidayRegion|Holiday type"
+msgid "Cultural"
+msgstr "Культурные"
+
+#: holidayregion.cpp:320
+msgctxt "HolidayRegion|Holiday type"
+msgid "Commemorative"
+msgstr "Дни памяти"
+
+#: holidayregion.cpp:322
+msgctxt "HolidayRegion|Holiday type"
+msgid "Historical"
+msgstr "Исторические"
+
+#: holidayregion.cpp:324
+msgctxt "HolidayRegion|Holiday type"
+msgid "School"
+msgstr "Школьные"
+
+#: holidayregion.cpp:326
+msgctxt "HolidayRegion|Holiday type"
+msgid "Seasonal"
+msgstr "Сезонные"
+
+#: holidayregion.cpp:328
+msgctxt "HolidayRegion|Holiday type"
+msgid "Name Days"
+msgstr "Именины"
+
+#: holidayregion.cpp:330
+msgctxt "HolidayRegion|Holiday type"
+msgid "Personal"
+msgstr "Личные"
+
+#: holidayregion.cpp:332
+msgctxt "HolidayRegion|Holiday type"
+msgid "Christian"
+msgstr "Христианские"
+
+#: holidayregion.cpp:334
+msgctxt "HolidayRegion|Holiday type"
+msgid "Anglican"
+msgstr "Англиканские"
+
+#: holidayregion.cpp:336
+msgctxt "HolidayRegion|Holiday type"
+msgid "Catholic"
+msgstr "Католические"
+
+#: holidayregion.cpp:338
+msgctxt "HolidayRegion|Holiday type"
+msgid "Protestant"
+msgstr "Протестантские"
+
+#: holidayregion.cpp:340
+msgctxt "HolidayRegion|Holiday type"
+msgid "Orthodox"
+msgstr "Православные"
+
+#: holidayregion.cpp:342
+msgctxt "HolidayRegion|Holiday type"
+msgid "Jewish"
+msgstr "Еврейские"
+
+#: holidayregion.cpp:344
+msgctxt "HolidayRegion|Holiday type"
+msgid "Jewish Orthodox"
+msgstr "Ортодоксально-иудейские"
+
+#: holidayregion.cpp:346
+msgctxt "HolidayRegion|Holiday type"
+msgid "Jewish Conservative"
+msgstr "Консервативно-иудейские"
+
+#: holidayregion.cpp:348
+msgctxt "HolidayRegion|Holiday type"
+msgid "Jewish Reform"
+msgstr "Реформистско-иудейские"
+
+#: holidayregion.cpp:350
+msgctxt "HolidayRegion|Holiday type"
+msgid "Islamic"
+msgstr "Исламские"
+
+#: holidayregion.cpp:352
+msgctxt "HolidayRegion|Holiday type"
+msgid "Islamic Sunni"
+msgstr "Суннитские"
+
+#: holidayregion.cpp:354
+msgctxt "HolidayRegion|Holiday type"
+msgid "Islamic Shia"
+msgstr "Шиитские"
+
+#: holidayregion.cpp:356
+msgctxt "HolidayRegion|Holiday type"
+msgid "Islamic Sufi"
+msgstr "Суфийские"
+
+#: holidayregion.cpp:362
+#, qt-format
+msgctxt ""
+"HolidayRegion|Holiday file display name, %1 = region name, %2 = holiday type"
+msgid "%1 - %2"
+msgstr "%1; %2"
+
+#: holidayregion.cpp:370
+msgctxt "HolidayRegion|Unknown holiday region"
+msgid "Unknown"
+msgstr "Неизвестный"
+
+#: lunarphase.cpp:30
+msgctxt "LunarPhase|"
+msgid "New Moon"
+msgstr "Новолуние"
+
+#: lunarphase.cpp:32
+msgctxt "LunarPhase|"
+msgid "Full Moon"
+msgstr "Полнолуние"
+
+#: lunarphase.cpp:34
+msgctxt "LunarPhase|"
+msgid "First Quarter Moon"
+msgstr "Первая четверть Луны"
+
+#: lunarphase.cpp:36
+msgctxt "LunarPhase|"
+msgid "Last Quarter Moon"
+msgstr "Последняя четверть Луны"
+
+#: lunarphase.cpp:40
+msgctxt "LunarPhase|"
+msgid "Waxing Crescent"
+msgstr "Растущий серп Луны"
+
+#: lunarphase.cpp:42
+msgctxt "LunarPhase|"
+msgid "Waxing Gibbous"
+msgstr "Растущая выпуклая Луна"
+
+#: lunarphase.cpp:44
+msgctxt "LunarPhase|"
+msgid "Waning Gibbous"
+msgstr "Ущербная Луна"
+
+#: lunarphase.cpp:46
+msgctxt "LunarPhase|"
+msgid "Waning Crescent"
+msgstr "Убывающий серп Луны"
+
+#: zodiac.cpp:66
+msgctxt "Zodiac|"
+msgid "Aries"
+msgstr "Овен"
+
+#: zodiac.cpp:68
+msgctxt "Zodiac|"
+msgid "Taurus"
+msgstr "Телец"
+
+#: zodiac.cpp:70
+msgctxt "Zodiac|"
+msgid "Gemini"
+msgstr "Близнецы"
+
+#: zodiac.cpp:72
+msgctxt "Zodiac|"
+msgid "Cancer"
+msgstr "Рак"
+
+#: zodiac.cpp:74
+msgctxt "Zodiac|"
+msgid "Leo"
+msgstr "Лев"
+
+#: zodiac.cpp:76
+msgctxt "Zodiac|"
+msgid "Virgo"
+msgstr "Дева"
+
+#: zodiac.cpp:78
+msgctxt "Zodiac|"
+msgid "Libra"
+msgstr "Весы"
+
+#: zodiac.cpp:80
+msgctxt "Zodiac|"
+msgid "Scorpio"
+msgstr "Скорпион"
+
+#: zodiac.cpp:82
+msgctxt "Zodiac|"
+msgid "Sagittarius"
+msgstr "Стрелец"
+
+#: zodiac.cpp:84
+msgctxt "Zodiac|"
+msgid "Capricorn"
+msgstr "Козерог"
+
+#: zodiac.cpp:86
+msgctxt "Zodiac|"
+msgid "Aquarius"
+msgstr "Водолей"
+
+#: zodiac.cpp:88
+msgctxt "Zodiac|"
+msgid "Pisces"
+msgstr "Рыбы"
+
+#: zodiac.cpp:258
+msgctxt "HolidayRegion|zodiac symbol for Aries"
+msgid "ram"
+msgstr "овен"
+
+#: zodiac.cpp:260
+msgctxt "HolidayRegion|zodiac symbol for Taurus"
+msgid "bull"
+msgstr "телец"
+
+#: zodiac.cpp:262
+msgctxt "HolidayRegion|zodiac symbol for Gemini"
+msgid "twins"
+msgstr "близнецы"
+
+#: zodiac.cpp:264
+msgctxt "HolidayRegion|zodiac symbol for Cancer"
+msgid "crab"
+msgstr "рак"
+
+#: zodiac.cpp:266
+msgctxt "HolidayRegion|zodiac symbol for Leo"
+msgid "lion"
+msgstr "лев"
+
+#: zodiac.cpp:268
+msgctxt "HolidayRegion|zodiac symbol for Virgo"
+msgid "virgin"
+msgstr "дева"
+
+#: zodiac.cpp:270
+msgctxt "HolidayRegion|zodiac symbol for Libra"
+msgid "scales"
+msgstr "весы"
+
+#: zodiac.cpp:272
+msgctxt "HolidayRegion|zodiac symbol for Scorpion"
+msgid "scorpion"
+msgstr "скорпион"
+
+#: zodiac.cpp:274
+msgctxt "HolidayRegion|zodiac symbol for Sagittarius"
+msgid "archer"
+msgstr "стрелец"
+
+#: zodiac.cpp:276
+msgctxt "HolidayRegion|zodiac symbol for Capricorn"
+msgid "goat"
+msgstr "козерог"
+
+#: zodiac.cpp:278
+msgctxt "HolidayRegion|zodiac symbol for Aquarius"
+msgid "water carrier"
+msgstr "водолей"
+
+#: zodiac.cpp:280
+msgctxt "HolidayRegion|zodiac symbol for Pices"
+msgid "fish"
+msgstr "рыбы"
+
+# Или это "выберите, какой регион использовать"?
+#~ msgid "<p>Select to use Holiday Region</p>"
+#~ msgstr "<p>Выберите нужный регион со своими праздниками</p>"
+
+#~ msgid ""
+#~ "<p><b>Region:</b> %1<br/><b>Language:</b> %2<br/><b>Description:</b> %3</"
+#~ "p>"
+#~ msgstr ""
+#~ "<p><b>Регион:</b> %1<br/><b>Язык:</b> %2<br/><b>Описание:</b> %3</p>"
+
+#~ msgid ""
+#~ "<p>You can choose to display the Holiday Region for information only, or "
+#~ "to use the Holiday Region when displaying or calculating days off such as "
+#~ "Public Holidays.  If you choose to use the Holiday Region for Days Off, "
+#~ "then only those Holiday Events marked in the Holiday Region as Days Off "
+#~ "will be used for non-work days, Holiday Events that are not marked in the "
+#~ "Holiday Region as Days Off will continue to be work days.</p>"
+#~ msgstr ""
+#~ "<p>Вы можете выбрать, следует ли использовать выбранный регион праздников "
+#~ "только для информации, или же использовать его при показе и вычислении "
+#~ "выходных дней (государственных праздников и т. д.). Если вы решите "
+#~ "использовать регион праздников для вычисления выходных дней, то "
+#~ "нерабочими днями будут считаться только праздники, отмеченные как "
+#~ "выходные для этого региона. Остальные праздники будут всё ещё считаться "
+#~ "рабочими днями.</p>"
+
+#~ msgctxt "Combobox label, Holiday Region not used"
+#~ msgid "Not Used"
+#~ msgstr "Не используется"
+
+#~ msgctxt "Combobox label, use Holiday Region for information only"
+#~ msgid "Information"
+#~ msgstr "Для информации"
+
+#~ msgctxt "Combobox label, use Holiday Region for days off"
+#~ msgid "Days Off"
+#~ msgstr "Для выходных дней"
+
+#~ msgctxt "Header for Select column"
+#~ msgid "Select"
+#~ msgstr "Выберите"
+
+#~ msgid "<p>This column selects to use the Holiday Region</p>"
+#~ msgstr "<p>Этот столбец позволяет выбрать регион со своими праздниками</p>"
+
+#~ msgid "<p>This column displays the name of the Holiday Region</p>"
+#~ msgstr ""
+#~ "<p>Этот столбец показывает название региона со своими праздниками</p>"
+
+#~ msgctxt "Header for Language column"
+#~ msgid "Language"
+#~ msgstr "Язык"
+
+#~ msgid "<p>This column displays the language of the Holiday Region</p>"
+#~ msgstr "<p>Этот столбец показывает язык региона со своими праздниками</p>"
+
+#~ msgid "<p>This column displays the description of the Holiday Region</p>"
+#~ msgstr ""
+#~ "<p>Этот столбец показывает описание региона со своими праздниками</p>"
+
+#~ msgctxt "NAME OF TRANSLATORS"
+#~ msgid "Your names"
+#~ msgstr "Павел Михадюк"
+
+#~ msgctxt "EMAIL OF TRANSLATORS"
+#~ msgid "Your emails"
+#~ msgstr "pavel.mihaduk@gmail.com"
+
+#~ msgctxt "zodiac symbol for Aquarius"
+#~ msgid "water"
+#~ msgstr "водолей"

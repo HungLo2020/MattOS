@@ -333,6 +333,11 @@ pub(crate) fn package_recipe_revision(package: &str) -> u32 {
     match package {
         // Preserve the new components' upstream license texts in their native packages.
         "libnl-3-200" | "libnl-genl-3-200" | "wpasupplicant" => 2,
+        // Revision 2 excludes Breeze's optional KCMUtils-backed settings
+        // helper from the shell package; it is not part of the Wayland style
+        // or decoration runtime and would otherwise leak an undeclared host
+        // dependency into the package audit.
+        "breeze" => 2,
         // Also retain administrator menu/hook edits with dpkg conffile semantics.
         "grub-efi-amd64" => 3,
         // Versioned installed kernel assets are paired using this release file.
@@ -521,6 +526,10 @@ pub(crate) fn validate_package_cache(
     if !staging.is_dir() || !artifact.is_file() {
         bail!("cached package staging tree or artifact is missing")
     }
+    // Cached staging is an executable trust boundary. Recheck the generic
+    // host-path invariant before accepting it so an artifact produced before
+    // that invariant was applied cannot survive as a warm-cache hit.
+    super::staging::validate_no_embedded_build_root(repo_root, staging)?;
     let payload_digest = performance::measure_package_validation_step("payload_inventory", || {
         performance::output_path_digest(repo_root, staging)
     })?;

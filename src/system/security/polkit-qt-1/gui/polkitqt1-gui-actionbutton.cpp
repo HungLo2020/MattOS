@@ -1,0 +1,153 @@
+/*
+    This file is part of the Polkit-qt project
+    SPDX-FileCopyrightText: 2009 Daniel Nicoletti <dantti85-pk@yahoo.com.br>
+    SPDX-FileCopyrightText: 2009 Dario Freddi <drf@kde.org>
+
+    SPDX-License-Identifier: LGPL-2.0-or-later
+*/
+
+#include "polkitqt1-gui-actionbutton.h"
+
+#include "polkitqt1-gui-actionbutton_p.h"
+
+namespace PolkitQt1
+{
+
+namespace Gui
+{
+
+ActionButton::ActionButton(QAbstractButton *button, const QString &actionId, QObject *parent)
+        : Action(actionId, parent)
+        , d_ptr(new ActionButtonPrivate(QList<QAbstractButton *>() << button))
+{
+    d_ptr->q_ptr = this;
+
+    setButton(button);
+    connect(this, SIGNAL(dataChanged()), SLOT(updateButton()));
+}
+
+ActionButton::ActionButton(ActionButtonPrivate &dd, const QString &actionId, QObject *parent)
+        : Action(actionId, parent)
+        , d_ptr(&dd)
+{
+    d_ptr->q_ptr = this;
+
+    connect(this, SIGNAL(dataChanged()), SLOT(updateButton()));
+}
+
+ActionButton::~ActionButton()
+{
+    delete d_ptr;
+}
+
+void ActionButtonPrivate::updateButton()
+{
+    Q_Q(ActionButton);
+
+    Q_FOREACH(QAbstractButton *ent, buttons) {
+        ent->setVisible(q->isVisible());
+        ent->setEnabled(q->isEnabled());
+        ent->setText(q->text());
+        if (!q->toolTip().isNull()) {
+            ent->setToolTip(q->toolTip());
+        }
+        if (!q->whatsThis().isNull()) {
+            ent->setWhatsThis(q->whatsThis());
+        }
+        ent->setIcon(q->icon());
+        // if the item cannot do the action anymore
+        // lets revert to the initial state
+        if (ent->isCheckable()) {
+            ent->setChecked(q->isChecked());
+        }
+    }
+}
+
+bool ActionButton::activate()
+{
+    Q_D(ActionButton);
+
+    bool tg = false;
+    Q_FOREACH(QAbstractButton *ent, d->buttons) {
+        if (ent->isCheckable()) {
+            // we set the current Action state
+            ent->setChecked(isChecked());
+            // toggle the action cause we are not directly connected there..
+            tg = true;
+        }
+    }
+
+    if (tg) {
+        toggle();
+    }
+
+    return Action::activate();
+}
+
+void ActionButton::setButton(QAbstractButton *button)
+{
+    Q_D(ActionButton);
+
+    // First, let's clear the list
+    Q_FOREACH(QAbstractButton *ent, d->buttons) {
+        d->removeButton(ent);
+    }
+
+    // And then add it
+    d->addButton(button);
+}
+
+void ActionButtonPrivate::addButton(QAbstractButton *button)
+{
+    Q_Q(ActionButton);
+
+    buttons.append(button);
+    QObject::connect(button, SIGNAL(clicked(bool)), q, SLOT(streamClicked(bool)));
+    QObject::connect(q, SIGNAL(toggled(bool)), button, SLOT(toggle()));
+    if (q->isCheckable()) {
+        // the button should follow our first buttons
+        button->setCheckable(true);
+    } else if (button->isCheckable()) {
+        // if we are not checkable BUT the button
+        // is (eg a QCheckBox) we should set all buttons to
+        // checkable.
+        Q_FOREACH(QAbstractButton *ent, buttons) {
+            ent->setCheckable(true);
+        }
+        // set the checkable state of Action to store the initial state
+        q->setCheckable(true);
+    }
+    // call this after m_activateOnCheck receives the value
+    updateButton();
+}
+
+void ActionButtonPrivate::removeButton(QAbstractButton *button)
+{
+    Q_Q(ActionButton);
+
+    if (buttons.contains(button)) {
+        QObject::disconnect(button, SIGNAL(clicked(bool)), q, SLOT(streamClicked(bool)));
+        QObject::disconnect(q, SIGNAL(toggled(bool)), button, SLOT(toggle()));
+        buttons.removeOne(button);
+    }
+}
+
+QAbstractButton *ActionButton::button() const
+{
+    Q_D(const ActionButton);
+
+    return d->buttons.first();
+}
+
+void ActionButtonPrivate::streamClicked(bool c)
+{
+    Q_Q(ActionButton);
+
+    Q_EMIT q->clicked(qobject_cast<QAbstractButton *>(q->sender()), c);
+}
+
+}
+
+}
+
+#include "moc_polkitqt1-gui-actionbutton.cpp"

@@ -1,0 +1,98 @@
+# Copyright (C) YEAR This file is copyright:
+# This file is distributed under the same license as the libksysguard package.
+#
+# Marek Laane <qiilaq69@gmail.com>, 2020.
+# Mihkel Tõnnov <mihhkel@gmail.com>, 2020.
+msgid ""
+msgstr ""
+"Project-Id-Version: libksysguard\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-11-17 11:53+0000\n"
+"PO-Revision-Date: 2020-09-28 13:20+0200\n"
+"Last-Translator: Mihkel Tõnnov <mihhkel@gmail.com>\n"
+"Language-Team: Estonian <>\n"
+"Language: et\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 20.08.1\n"
+
+#: contents/ui/Config.qml:35
+#, kde-format
+msgctxt "@title:group General options"
+msgid "General:"
+msgstr ""
+
+#: contents/ui/Config.qml:37
+#, fuzzy, kde-format
+#| msgid "Show Sensors Legend"
+msgctxt "@option:check"
+msgid "Show legend"
+msgstr "Sensorite legendi näitamine"
+
+#: contents/ui/Config.qml:41
+#, fuzzy, kde-format
+#| msgid "Stacked Bars"
+msgctxt "@option:check"
+msgid "Stacked bars"
+msgstr "Virnastatud tulbad"
+
+#: contents/ui/Config.qml:49
+#, kde-format
+msgctxt "@label for radiobutton group, Orientation of bar chart"
+msgid "Bar orientation:"
+msgstr ""
+
+#: contents/ui/Config.qml:51
+#, kde-format
+msgctxt "@option:radio Vertical option for the bar chart"
+msgid "Vertical"
+msgstr ""
+
+#: contents/ui/Config.qml:56
+#, kde-format
+msgctxt "@option:radio Horizontal option for the bar chart"
+msgid "Horizontal"
+msgstr ""
+
+#: contents/ui/Config.qml:67
+#, kde-format
+msgctxt "@label Options about axis and label of bar chart"
+msgid "Axis:"
+msgstr ""
+
+#: contents/ui/Config.qml:69
+#, fuzzy, kde-format
+#| msgid "Show Y Axis Labels"
+msgctxt "@option:check"
+msgid "Show Y axis labels"
+msgstr "Y-telje nimetuste näitamine"
+
+#: contents/ui/Config.qml:74
+#, fuzzy, kde-format
+#| msgid "Show Grid Lines"
+msgctxt "@option:check"
+msgid "Show grid lines"
+msgstr "Alusvõrgu joonte näitamine"
+
+#: contents/ui/Config.qml:78
+#, fuzzy, kde-format
+#| msgid "Automatic Data Range"
+msgctxt "@option:check"
+msgid "Automatic data range"
+msgstr "Automaatne andmevahemik"
+
+#: contents/ui/Config.qml:82
+#, fuzzy, kde-format
+#| msgid "From:"
+msgctxt "@label:spinbox data range"
+msgid "From:"
+msgstr "Alates:"
+
+#: contents/ui/Config.qml:89
+#, fuzzy, kde-format
+#| msgid "To:"
+msgctxt "@label:spinbox data range"
+msgid "To:"
+msgstr "Kuni:"

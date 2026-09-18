@@ -21,6 +21,12 @@ fn build_autotools_import(
         "networkmanager" => "output-policy-install-adaptation-v4",
         "readline" => "output-pkgconfig-adaptation-v1",
         "ostree" => "output-submodule-and-docs-staging-adaptation-v5",
+        // The libcanberra mirror carries generated Autotools files whose
+        // build-aux entries are symlinks into the import host's automake
+        // installation.  Regenerate them in the output-owned source mirror
+        // so the build never depends on those stale host paths.
+        "libcanberra" => "output-autoreconf-generated-build-aux-v1",
+        "icu" => "output-icu-license-staging-v1",
         _ => "",
     };
     let stamp = format!(
@@ -34,6 +40,87 @@ fn build_autotools_import(
     }
     fs::create_dir_all(&out_root)?;
     sync_build_source(&source, &source_copy)?;
+    if component == "icu" {
+        // ICU's generated Makefile installs ../LICENSE relative to its
+        // source directory.  The source stage intentionally builds only
+        // icu4c/source, so materialize the immutable imported license at the
+        // disposable build root rather than widening the staged source.
+        let license = source
+            .parent()
+            .and_then(Path::parent)
+            .map(|root| root.join("LICENSE"))
+            .ok_or_else(|| anyhow!("unable to locate ICU imported license"))?;
+        fs::copy(license, out_root.join("LICENSE"))?;
+    }
+    if component == "libcanberra" {
+        // This old release expects gtk-doc's aclocal fragment even when
+        // documentation is not enabled.  Keep the adaptation in the
+        // disposable output mirror; the authoritative import is untouched.
+        let gtk_doc_m4 = source_copy.join("m4/gtk-doc.m4");
+        if gtk_doc_m4.is_symlink() || !gtk_doc_m4.is_file() {
+            remove_path_if_exists(&gtk_doc_m4)?;
+            fs::write(gtk_doc_m4, "dnl gtk-doc disabled for this target\n")?;
+        }
+        let gtk_doc_make = source_copy.join("gtk-doc.make");
+        if gtk_doc_make.is_symlink() || !gtk_doc_make.is_file() {
+            remove_path_if_exists(&gtk_doc_make)?;
+            fs::write(gtk_doc_make, "# gtk-doc disabled for this target\n")?;
+        }
+        let gtk_doc_subdir_make = source_copy.join("gtkdoc/gtk-doc.make");
+        if gtk_doc_subdir_make.is_symlink() || !gtk_doc_subdir_make.is_file() {
+            remove_path_if_exists(&gtk_doc_subdir_make)?;
+            fs::write(gtk_doc_subdir_make, "# gtk-doc disabled for this target\n")?;
+        }
+        // Automake 1.18 rejects the old gtk-doc template's `+=` without an
+        // earlier assignment.  Documentation is outside this runtime
+        // closure, so make the disposable documentation subdir inert too.
+        let top_makefile = source_copy.join("Makefile.am");
+        let top_contents = fs::read_to_string(&top_makefile)?;
+        let top_adjusted = top_contents.replace("SUBDIRS = src gtkdoc doc", "SUBDIRS = src");
+        if top_adjusted != top_contents {
+            fs::write(top_makefile, top_adjusted)?;
+        }
+        let gtk_makefile = source_copy.join("gtkdoc/Makefile.am");
+        let gtk_contents = fs::read_to_string(&gtk_makefile)?;
+        let gtk_adjusted = gtk_contents.replace("EXTRA_DIST +=", "EXTRA_DIST =");
+        if gtk_adjusted != gtk_contents {
+            fs::write(gtk_makefile, gtk_adjusted)?;
+        }
+        let src_makefile = source_copy.join("src/Makefile.am");
+        let src_contents = fs::read_to_string(&src_makefile)?;
+        let src_adjusted = src_contents.replace("noinst_PROGRAMS = \\\n\ttest-canberra", "noinst_PROGRAMS =");
+        if src_adjusted != src_contents {
+            fs::write(src_makefile, src_adjusted)?;
+        }
+        // The target deliberately uses libcanberra's built-in null backend:
+        // KWin needs the ABI for system-bell notifications, while loading
+        // arbitrary backend DSOs would add libltdl and an unneeded audio
+        // stack to the graphics closure.  The upstream configure check is
+        // unconditional, so remove only that check in the disposable mirror.
+        let configure_ac = source_copy.join("configure.ac");
+        let configure_contents = fs::read_to_string(&configure_ac)?;
+        let ltdl_check = "AC_CHECK_HEADER([ltdl.h],\n    [AC_CHECK_LIB([ltdl], [lt_dladvise_init], [LIBLTDL=-lltdl], [LIBLTDL=])],\n    [LIBLTDL=])\n\nAS_IF([test \"x$LIBLTDL\" = \"x\"],\n    [AC_MSG_ERROR([Unable to find libltdl.])])\nAC_SUBST([LIBLTDL])";
+        let without_ltdl_check = configure_contents.replace(
+            ltdl_check,
+            "LIBLTDL=\nAC_SUBST([LIBLTDL])",
+        );
+        let without_vorbis_check = without_ltdl_check.replace(
+            "PKG_CHECK_MODULES(VORBIS, [ vorbisfile ])",
+            "VORBIS_CFLAGS=\nVORBIS_LIBS=",
+        );
+        let without_gtk_doc = without_vorbis_check.replace("GTK_DOC_CHECK(1.9)", "dnl gtk-doc disabled");
+        if without_gtk_doc != configure_contents {
+            fs::write(configure_ac, without_gtk_doc)?;
+        }
+        // libcanberra's sound-file reader requires Vorbis even for the null
+        // backend.  Keep this optional decoder out of the minimal KWin ABI
+        // closure with an output-only unsupported implementation; WAV remains
+        // available and the public canberra ABI is unchanged.
+        fs::write(
+            source_copy.join("src/read-vorbis.c"),
+            "#include <stdio.h>\n#include <stdint.h>\n#include <sys/types.h>\n#include \"canberra.h\"\n#include \"read-vorbis.h\"\nstruct ca_vorbis { int unused; };\nint ca_vorbis_open(ca_vorbis **v, FILE *f) { (void)f; *v = NULL; return CA_ERROR_NOTSUPPORTED; }\nvoid ca_vorbis_close(ca_vorbis *v) { (void)v; }\nunsigned ca_vorbis_get_nchannels(ca_vorbis *v) { (void)v; return 0; }\nunsigned ca_vorbis_get_rate(ca_vorbis *v) { (void)v; return 0; }\nconst ca_channel_position_t *ca_vorbis_get_channel_map(ca_vorbis *v) { (void)v; return NULL; }\nint ca_vorbis_read_s16ne(ca_vorbis *v, int16_t *d, size_t *n) { (void)v; (void)d; (void)n; return CA_ERROR_NOTSUPPORTED; }\noff_t ca_vorbis_get_size(ca_vorbis *v) { (void)v; return 0; }\n",
+        )?;
+    }
     if component == "ostree" {
         // The release repository keeps this generated include out of the
         // source tree.  Materialize it in the output mirror before
@@ -98,7 +185,7 @@ fn build_autotools_import(
             "#ifndef MATTOS_OSTREE_ERR_COMPAT_H\n#define MATTOS_OSTREE_ERR_COMPAT_H\n#include <stdarg.h>\nvoid err(int, const char *, ...);\nvoid errx(int, const char *, ...);\n#endif\n",
         )?;
     }
-    if !source_copy.join("configure").is_file() {
+    if component == "libcanberra" || !source_copy.join("configure").is_file() {
         run_cmd(&source_copy, "autoreconf", &["-fiv"])?;
     }
     let mut env = staged_library_environment(repo_root, dependencies)?;
@@ -325,10 +412,11 @@ fn build_wayland(repo_root: &Path) -> Result<()> {
     )
 }
 
-/// Build only libxkbcommon itself.  The native COSMIC installer dynamically
-/// needs `libxkbcommon.so.0`; X11 helpers, Wayland helper tools, registry,
-/// documentation, and shell completion are deliberately not source-closure
-/// requirements for this runtime library.
+/// Build the xkbcommon runtime ABI used by both Wayland and KWin's Xwayland
+/// bridge.  The X11 companion library is a runtime requirement once KWin is
+/// built with its supported `--xwayland` session mode, so it is kept in the
+/// same source-owned component/package rather than being satisfied by a host
+/// pkg-config file or library.
 fn build_xkbcommon(repo_root: &Path) -> Result<()> {
     let source = repo_root.join("src/system/libraries/xkbcommon");
     if !source.join("meson.build").is_file() {
@@ -346,11 +434,12 @@ fn build_xkbcommon(repo_root: &Path) -> Result<()> {
         "--prefix=/usr",
         "--libdir=lib/x86_64-linux-gnu",
         "-Denable-tools=false",
-        "-Denable-x11=false",
+        "-Denable-x11=true",
         "-Denable-wayland=false",
         "-Denable-xkbregistry=false",
         "-Denable-docs=false",
         "-Denable-bash-completion=false",
+        "-Dxkb-config-root=/usr/share/X11/xkb",
     ];
     let stamp = format!("{state}\n{}\n", options.join("\n"));
     let stamp_path = out_root.join("build-stamp.txt");
@@ -360,10 +449,11 @@ fn build_xkbcommon(repo_root: &Path) -> Result<()> {
     }
     fs::create_dir_all(&out_root)?;
     sync_build_source(&source, &source_copy)?;
+    let env = staged_library_environment(repo_root, &["x11-compat"])?;
     if !build_dir.join("build.ninja").is_file() {
         let mut args = vec!["setup", path_str(&build_dir)?, path_str(&source_copy)?];
         args.extend(options);
-        run_cmd(repo_root, "meson", &args)?;
+        run_cmd_with_env_overrides(repo_root, "meson", &args, &env)?;
     } else {
         // Meson serializes its internal build model.  A build directory made
         // by an older Meson can still have build.ninja while meson compile
@@ -375,15 +465,21 @@ fn build_xkbcommon(repo_root: &Path) -> Result<()> {
             path_str(&source_copy)?,
         ];
         args.extend(options);
-        run_cmd(repo_root, "meson", &args)?;
+        run_cmd_with_env_overrides(repo_root, "meson", &args, &env)?;
     }
-    run_cmd(
+    run_cmd_with_env_overrides(
         repo_root,
         "ninja",
-        &["-C", path_str(&build_dir)?, "libxkbcommon.so.0.9.2"],
+        &[
+            "-C",
+            path_str(&build_dir)?,
+            "libxkbcommon.so.0.9.2",
+            "libxkbcommon-x11.so.0.9.2",
+        ],
+        &env,
     )?;
     remove_path_if_exists(&install_dir)?;
-    run_cmd(
+    run_cmd_with_env_overrides(
         repo_root,
         "meson",
         &[
@@ -396,6 +492,7 @@ fn build_xkbcommon(repo_root: &Path) -> Result<()> {
             "--tags",
             "runtime,devel",
         ],
+        &env,
     )?;
     let soname = install_dir.join("usr/lib/x86_64-linux-gnu/libxkbcommon.so.0");
     if !soname.is_file() {
@@ -403,7 +500,7 @@ fn build_xkbcommon(repo_root: &Path) -> Result<()> {
     }
     fs::write(&stamp_path, stamp)?;
     println!(
-        "xkbcommon origin: {}; features=x11,wayland,tools,registry,docs disabled",
+        "xkbcommon origin: {}; features=x11 enabled, wayland/tools/registry/docs disabled",
         install_dir.display()
     );
     Ok(())

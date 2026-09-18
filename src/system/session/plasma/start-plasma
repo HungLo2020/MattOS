@@ -1,0 +1,41 @@
+#!/bin/sh
+set -eu
+export XDG_CURRENT_DESKTOP=KDE
+export XDG_SESSION_DESKTOP=KDE
+export XDG_SESSION_TYPE=wayland
+export KDE_FULL_SESSION=true
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+# The target font tree is installed under /usr/share/fonts.  Qt otherwise
+# falls back to its compiled-in /usr/lib/fonts path, which is not present in
+# the minimal MattOS rootfs and leaves KWin/Plasma without fonts.
+export QT_QPA_FONTDIR=/usr/share/fonts
+# startplasma-wayland launches KWin itself.  KWin is the Wayland compositor,
+# not a client, so forcing the client QPA platform here makes it look for a
+# compositor socket before one exists and prevents the session from starting.
+# startplasma-wayland assigns the client platform to applications it launches.
+# greetd's PAM session has already created the per-user systemd/D-Bus bus.  Use
+# that bus when it is available so Plasma can start its systemd user target and
+# its D-Bus-activated shell services.  The private COSMIC bus is intentionally
+# not used for Plasma: it hides org.freedesktop.systemd1 and forces Plasma's
+# legacy fallback, which has no systemd-managed plasmashell service.
+unset QT_QPA_PLATFORM QT_WAYLAND_DISABLE_WINDOWDECORATION
+# Qt's built-in plugins live under the multiarch target prefix while the
+# source-owned Qt installation keeps its Qt-specific plugins under /usr/plugins.
+# Export both roots before Plasma starts its systemd user target so KPackage,
+# KWin decorations, QPA, and plasmashell all resolve target-owned plugins.
+export QT_PLUGIN_PATH="/usr/plugins:/usr/lib/x86_64-linux-gnu/plugins${QT_PLUGIN_PATH:+:${QT_PLUGIN_PATH}}"
+# Qt/KF QML modules are installed below the target's Debian multiarch QML
+# directory.  The Qt build prefix also contains /usr/qt6/qml on some
+# configurations; include both source-owned locations so Plasma does not
+# silently fall back to a host QML installation.
+export QML2_IMPORT_PATH="/usr/lib/x86_64-linux-gnu/qml:/usr/lib/qt6/qml${QML2_IMPORT_PATH:+:${QML2_IMPORT_PATH}}"
+export QT_QPA_PLATFORM_PLUGIN_PATH="/usr/plugins/platforms:/usr/lib/x86_64-linux-gnu/plugins/platforms${QT_QPA_PLATFORM_PLUGIN_PATH:+:${QT_QPA_PLATFORM_PLUGIN_PATH}}"
+flatpak_user_exports="${XDG_DATA_HOME:-$HOME/.local/share}/flatpak/exports/share"
+flatpak_system_exports="/var/lib/flatpak/exports/share"
+export XDG_DATA_DIRS="${flatpak_user_exports}:${flatpak_system_exports}:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+if [ -S "${XDG_RUNTIME_DIR:-}/bus" ]; then
+    export DBUS_SESSION_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR}/bus"
+fi
+systemctl --user import-environment XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP XDG_SESSION_TYPE KDE_FULL_SESSION QT_PLUGIN_PATH QT_QPA_PLATFORM_PLUGIN_PATH QML2_IMPORT_PATH QT_QPA_FONTDIR XDG_DATA_DIRS DBUS_SESSION_BUS_ADDRESS 2>/dev/null || true
+exec /usr/lib/x86_64-linux-gnu/libexec/plasma-dbus-run-session-if-needed /usr/bin/startplasma-wayland

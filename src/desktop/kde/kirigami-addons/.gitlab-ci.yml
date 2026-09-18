@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: None
+# SPDX-License-Identifier: CC0-1.0
+
+include:
+  - project: sysadmin/ci-utilities
+    file:
+      - /gitlab-templates/reuse-lint.yml
+      #- /gitlab-templates/windows-static.yml
+      - /gitlab-templates/linux-qt6.yml
+      - /gitlab-templates/linux-qt6-static.yml
+      - /gitlab-templates/freebsd-qt6.yml
+      - /gitlab-templates/android-qt6.yml
+      - /gitlab-templates/windows-qt6.yml
+      - /gitlab-templates/linux-qt6-next.yml
+
+qml-check-i18n:
+  stage: build
+  image: invent-registry.kde.org/sysadmin/ci-images/suse-qt515:latest
+  needs: []
+  rules:
+    - changes:
+      - "**/*.qml"
+  tags:
+    - Linux
+  script:
+    - git config --global --add safe.directory $CI_PROJECT_DIR
+    - bash -c "find src -iname '*.qml' -exec sed -i 's/^\([^*]*\)i18n(\(.*\)/\1i18nd(\"kirigami-addons\", \2/' {} \;"
+    - bash -c "find src -iname '*.qml' -exec sed -i 's/^\([^*]*\)i18nc(\(.*\)/\1i18ndc(\"kirigami-addons\", \2/' {} \;"
+    - bash -c "find src -iname '*.qml' -exec sed -i 's/^\([^*]*\)i18np(\(.*\)/\1i18ndp(\"kirigami-addons\", \2/' {} \;"
+    - bash -c "find src -iname '*.qml' -exec sed -i 's/^\([^*]*\)i18npc(\(.*\)/\1i18ndpc(\"kirigami-addons\", \2/' {} \;"
+
+  after_script:
+   - >
+     if [ $CI_JOB_STATUS != 'success' ]; then
+         git --no-pager diff
+     fi

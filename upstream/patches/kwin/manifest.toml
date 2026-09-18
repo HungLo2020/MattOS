@@ -1,0 +1,11 @@
+schema_version = 1
+component = "kwin"
+upstream_commit = "b04d59c03749484a8a0ed5a8d4cda515a267c59b"
+upstream_tree = "99868e7da683d59f3ed90b0f0fe7ebfa4be5bc2b"
+application = "output-mirror-only"
+
+[[patch]]
+path = "upstream/patches/kwin/0001-fallback-when-platform-theme-is-unavailable.patch"
+sha256 = "1014f6f110c930ba219a3a1e91e5faecd11ba1eb1ccde3a9a4ecc4b4a575191f"
+purpose = "Keep KWin from dereferencing a missing optional Qt platform theme during KDE session startup."
+documentation = "KDE_NOTES.md"

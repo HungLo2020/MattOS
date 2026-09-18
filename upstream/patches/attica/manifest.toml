@@ -1,0 +1,8 @@
+schema_version = 1
+component = "attica"
+upstream_commit = "aef3c6951afb0c5a850957bcfdafdc129f442b5b"
+application = "output-mirror-only"
+
+[[patch]]
+path = "upstream/patches/attica/0001-align-framework-version-for-kf-6.26.patch"
+sha256 = "04c111000e298386abf38e7d7cbdb1ab24b5802bd31633a66b2e2b914978cb5f"

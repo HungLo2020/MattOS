@@ -1,0 +1,40 @@
+# Tommi Nieminen <translator@legisign.org>, 2023.
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"PO-Revision-Date: 2023-08-28 18:14+0300\n"
+"Last-Translator: Tommi Nieminen <translator@legisign.org>\n"
+"Language-Team: Finnish <kde-i18n-doc@kde.org>\n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Qt-Contexts: true\n"
+
+#: kstatusnotifieritem.cpp:518 kstatusnotifieritem.cpp:1146
+msgctxt "KStatusNotifierItem|@action:inmenu"
+msgid "&Minimize"
+msgstr "P&ienennä"
+
+#: kstatusnotifieritem.cpp:884
+msgctxt "KStatusNotifierItem|@action:inmenu"
+msgid "Quit"
+msgstr "Lopeta"
+
+#: kstatusnotifieritem.cpp:1143
+msgctxt "KStatusNotifierItem|@action:inmenu"
+msgid "&Restore"
+msgstr "&Palauta"
+
+#~ msgctxt "KStatusNotifierItem|@title:window"
+#~ msgid "Confirm Quit From System Tray"
+#~ msgstr "Vahvista lopetus ilmoitusalueelta"
+
+#~ msgctxt "KStatusNotifierItem|"
+#~ msgid "<qt>Are you sure you want to quit <b>%1</b>?</qt>"
+#~ msgstr "<qt>Haluatko varmasti lopettaa: <b>%1</b>?</qt>"
+
+#~ msgctxt "KStatusNotifierItem|@action:button"
+#~ msgid "Quit"
+#~ msgstr "Lopeta"

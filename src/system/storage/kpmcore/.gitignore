@@ -1,0 +1,6 @@
+# SPDX-FileCopyrightText: none
+# SPDX-License-Identifier: CC0-1.0
+
+build*
+.kdev4/
+kpmcore.kdev4

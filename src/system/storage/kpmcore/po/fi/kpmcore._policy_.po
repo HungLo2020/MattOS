@@ -1,0 +1,33 @@
+# Tommi Nieminen <translator@legisign.org>, 2018, 2022, 2023.
+msgid ""
+msgstr ""
+"Project-Id-Version: desktop files\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-11-17 14:42+0000\n"
+"PO-Revision-Date: 2023-07-27 19:28+0300\n"
+"Last-Translator: Tommi Nieminen <translator@legisign.org>\n"
+"Language-Team: Finnish <kde-i18n-doc@kde.org>\n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: util/org.kde.kpmcore.externalcommand.policy.podir/org.kde.kpmcore.externalcommand.policy.in.h:1
+msgctxt "description"
+msgid "Run privileged partition manager helper"
+msgstr "Suorita osionhallinta-avustaja pääkäyttäjäoikeuksin"
+
+#: util/org.kde.kpmcore.externalcommand.policy.podir/org.kde.kpmcore.externalcommand.policy.in.h:2
+msgctxt "message"
+msgid "Authenticate to manage disks."
+msgstr "Tunnistaudu hallinnoidaksesi levyjä."
+
+#~ msgctxt "message"
+#~ msgid "Administrative privileges are required to manage disks"
+#~ msgstr "Levyjen hallintaan vaaditaan pääkäyttäjäoikeuksia"
+
+#, fuzzy
+#~ msgctxt "description"
+#~ msgid "Start external command daemon"
+#~ msgstr "Käynnistä ulkoinen komentopalvelu"
