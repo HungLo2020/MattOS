@@ -1,0 +1,31 @@
+# SPDX-License-Identifier: CC0-1.0
+# SPDX-FileCopyrightText: none
+
+*~
+build/
+apidocs/
+Doxyfile
+*.patch
+
+# CMake
+CMakeCache.txt
+CMakeFiles
+cmake_install.cmake
+CMakeLists.txt.user
+CMakeLists.txt.user.*
+
+# QtCreator
+qtcreator-build
+
+# Misc
+*.moc
+moc_*
+ui_*
+Makefile
+.clang-format
+/build*/
+cmake-build-debug*
+.idea
+/compile_commands.json
+.clangd
+.cache

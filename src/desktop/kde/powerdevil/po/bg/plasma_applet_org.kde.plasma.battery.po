@@ -1,0 +1,591 @@
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Zlatko Popov <zlatkopopov@fsa-bg.org>, 2008.
+# Yasen Pramatarov <yasen@lindeas.com>, 2009, 2010, 2011.
+# SPDX-FileCopyrightText: 2022, 2023, 2024, 2025, 2026 Mincho Kondarev <mkondarev@yahoo.de>
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma_applet_battery\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-03-17 02:42+0000\n"
+"PO-Revision-Date: 2026-01-19 19:48+0100\n"
+"Last-Translator: Mincho Kondarev <mkondarev@yahoo.de>\n"
+"Language-Team: Bulgarian <kde-i18n-doc@kde.org>\n"
+"Language: bg\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 26.03.70\n"
+
+#: BatteryItem.qml:99
+#, kde-format
+msgid "Charging"
+msgstr "Зареждане"
+
+#: BatteryItem.qml:101
+#, kde-format
+msgid "Discharging"
+msgstr "Разтоварване"
+
+#: BatteryItem.qml:103 main.qml:122
+#, kde-format
+msgid "Fully Charged"
+msgstr "Напълно заредена"
+
+#: BatteryItem.qml:105
+#, kde-format
+msgid "Not Charging"
+msgstr "Не се зарежда"
+
+#: BatteryItem.qml:108
+#, kde-format
+msgctxt "Battery is currently not present in the bay"
+msgid "Not present"
+msgstr "Не е налична"
+
+#: BatteryItem.qml:120
+#, kde-format
+msgctxt "Placeholder is battery percentage"
+msgid "%1%"
+msgstr "%1%"
+
+#: BatteryItem.qml:184
+#, kde-format
+msgid ""
+"This battery's health is at only %1% and it should be replaced. Contact the "
+"manufacturer."
+msgstr ""
+"Техническото състояние на тази батерия е само %1% и трябва да бъде заменена. "
+"Свържете се с производителя."
+
+#: BatteryItem.qml:203
+#, kde-format
+msgid "Time To Full:"
+msgstr "Време до пълно зареждане:"
+
+#: BatteryItem.qml:204
+#, kde-format
+msgid "Remaining Time:"
+msgstr "Оставащо време:"
+
+#: BatteryItem.qml:210
+#, kde-format
+msgctxt "@info"
+msgid "Estimating…"
+msgstr "Изчисляване…"
+
+#: BatteryItem.qml:220
+#, kde-format
+msgid "Battery Health:"
+msgstr "Техническо състояние на батерията:"
+
+#: BatteryItem.qml:226
+#, kde-format
+msgctxt "Placeholder is battery health percentage"
+msgid "%1%"
+msgstr "%1%"
+
+#: BatteryItem.qml:238
+#, kde-format
+msgid "Battery is configured to charge up to approximately %1%."
+msgstr "Батерията е конфигурирана да се зарежда до приблизително %1%."
+
+#: CompactRepresentation.qml:101 CompactRepresentation.qml:150
+#, kde-format
+msgctxt "battery percentage below battery icon"
+msgid "%1%"
+msgstr "%1%"
+
+#: InhibitionItem.qml:53
+#, kde-format
+msgctxt "@title:group"
+msgid "Sleep and Screen Locking after Inactivity"
+msgstr "Приспиване и Заключване на екрана след бездействие"
+
+#: InhibitionItem.qml:60 main.qml:97 PowerProfileItem.qml:76
+#, kde-format
+msgid "Power Management"
+msgstr "Управление на енергията"
+
+#: InhibitionItem.qml:65
+#, kde-format
+msgctxt "accessible-only status text"
+msgid "Automatic sleep and screen locking are currently blocked."
+msgstr ""
+"Автоматичното приспиване и заключване на екрана са деактивирани в момента."
+
+#: InhibitionItem.qml:67
+#, kde-format
+msgctxt "accessible-only status text"
+msgid ""
+"Screen locking is currently blocked. Sleep is automatic after inactivity."
+msgstr ""
+"Заключването на екрана е блокирано в момента. Автоматично приспиване след "
+"период на неактивност."
+
+#: InhibitionItem.qml:69
+#, kde-format
+msgctxt "accessible-only status text"
+msgid ""
+"Sleep is currently blocked. Screen locking is automatic after inactivity."
+msgstr ""
+"Приспиването е блокирано в момента. Екранът се заключва автоматично след "
+"период на неактивност."
+
+#: InhibitionItem.qml:71
+#, kde-format
+msgctxt "accessible-only status text"
+msgid "Sleep and screen locking are automatic after inactivity."
+msgstr "Автоматично приспиване и заключване на екрана след бездействие"
+
+#: InhibitionItem.qml:95
+#, kde-format
+msgctxt "@action:button Block sleep and screen locking after inactivity"
+msgid "Manually Block Sleep and Screen Locking"
+msgstr "Ръчно блокиране на приспиване и заключване на екрана"
+
+#: InhibitionItem.qml:118
+#, kde-format
+msgid "Failed to unblock automatic sleep and screen locking"
+msgstr ""
+"Неуспешно отблокиране на автоматичното приспиване и заключване на екрана"
+
+#: InhibitionItem.qml:121
+#, kde-format
+msgid "Failed to block automatic sleep and screen locking"
+msgstr "Неуспешно блокиране на автоматичното приспиване и заключване на екрана"
+
+#: InhibitionItem.qml:135
+#, kde-format
+msgctxt ""
+"@label corresponding to Manually Block Sleep and Screen Locking toggle"
+msgid "This will result in higher energy consumption."
+msgstr "Това ще доведе до повишена консумация на енергия."
+
+#: InhibitionItem.qml:136
+#, kde-format
+msgctxt ""
+"@label accessible - the sentence about higher energy consumption must be "
+"included (EU regulations)"
+msgid ""
+"You have manually blocked automatic sleep and screen locking. This will "
+"result in higher energy consumption."
+msgstr ""
+"Ръчно блокирахте автоматичното приспиване и заключване на екрана. Това ще "
+"доведе до повишена консумация на енергия."
+
+#: InhibitionItem.qml:143
+#, kde-format
+msgctxt "Minimize the length of this string as much as possible"
+msgid ""
+"Your laptop is configured not to sleep when closing the lid while an "
+"external monitor is connected."
+msgstr ""
+"Вашият лаптоп е конфигуриран да не се приспива при затваряне на екрана, "
+"докато е свързан с външен монитор."
+
+#: InhibitionItem.qml:162
+#, kde-format
+msgctxt "An application's reason for inhibiting sleep and/or screen locking"
+msgid "Unknown reason."
+msgstr "Неизвестна причина."
+
+#: InhibitionItem.qml:169
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) has been prevented from blocking this "
+"inactivity behavior. The user can choose to allow it again."
+msgid "%1 wants to block sleep and screen locking. (%2)"
+msgstr "%1 иска да блокира приспиването и заключването на екрана. (%2)"
+
+#: InhibitionItem.qml:171
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) has been prevented from blocking this "
+"inactivity behavior. The user can choose to allow it again."
+msgid "%1 wants to block screen locking. (%2)"
+msgstr "%1 иска да блокира заключването на екрана. (%2)"
+
+#: InhibitionItem.qml:173
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) has been prevented from blocking this "
+"inactivity behavior. The user can choose to allow it again."
+msgid "%1 wants to block sleep. (%2)"
+msgstr "%1 иска да блокира приспиването. (%2)"
+
+#: InhibitionItem.qml:177
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, in addition to the user's manual block switch."
+msgid "%1 is also blocking sleep and screen locking. (%2)"
+msgstr "%1 блокира и приспиването и заключването на екрана. (%2)"
+
+#: InhibitionItem.qml:179
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, in addition to the user's manual block switch."
+msgid "%1 is also blocking screen locking. (%2)"
+msgstr "%1 предотвратява и заключването на екрана. (%2)"
+
+#: InhibitionItem.qml:181
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, in addition to the user's manual block switch."
+msgid "%1 is also blocking sleep. (%2)"
+msgstr "%1 блокира и приспиването. (%2)"
+
+#: InhibitionItem.qml:185
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, the user can choose to unblock it."
+msgid "%1 is blocking sleep and screen locking. (%2)"
+msgstr "%1 блокира приспиването и заключването на екрана (%2)"
+
+#: InhibitionItem.qml:187
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, the user can choose to unblock it."
+msgid "%1 is blocking screen locking. (%2)"
+msgstr "%1 блокиране на заключването на екрана (%2)"
+
+#: InhibitionItem.qml:189
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, the user can choose to unblock it."
+msgid "%1 is blocking sleep. (%2)"
+msgstr "%1 блокира приспиването (%2)"
+
+#: InhibitionItem.qml:197
+#, kde-format
+msgctxt ""
+"@action:button Prevent an app from blocking automatic sleep and screen "
+"locking after inactivity"
+msgid "Unblock"
+msgstr "Отблокиране"
+
+#: InhibitionItem.qml:205
+#, kde-format
+msgctxt ""
+"@action:button Undo preventing an app from blocking automatic sleep and "
+"screen locking after inactivity"
+msgid "Allow"
+msgstr "Разрешаване"
+
+#: main.qml:76
+#, kde-format
+msgid "The battery applet has enabled suppressing sleep and screen locking"
+msgstr ""
+"Аплетът на батерията е активирал предотвратяване на приспиването и "
+"заключването на екрана"
+
+#: main.qml:97
+#, kde-format
+msgid "Power and Battery"
+msgstr "Захранване и батерия"
+
+#: main.qml:116
+#, kde-format
+msgid "Battery is not present in the bay"
+msgstr "Няма батерия в слота"
+
+#: main.qml:129
+#, kde-format
+msgid "Battery at %1%, not Charging"
+msgstr "Батерия на %1%, не се зарежда"
+
+#: main.qml:131
+#, kde-format
+msgid "Battery at %1%, plugged in but still discharging"
+msgstr "Батерия на %1%, включена, но все още се разрежда"
+
+#: main.qml:133
+#, kde-format
+msgid "Battery at %1%, Charging"
+msgstr "Батерия на %1%, зареждане"
+
+#: main.qml:136
+#, kde-format
+msgid "Battery at %1%"
+msgstr "Батерия на %1%"
+
+#: main.qml:144
+#, kde-format
+msgid "The power supply is not powerful enough to charge the battery"
+msgstr "Захранването не е достатъчно мощно, за да зареди батерията"
+
+#: main.qml:148
+#, kde-format
+msgid "No Batteries Available"
+msgstr "Няма налични батерии"
+
+#: main.qml:155
+#, kde-format
+msgctxt "time until fully charged - HH:MM"
+msgid "%1 until fully charged"
+msgstr "%1 до пълно зареждане"
+
+#: main.qml:157
+#, kde-format
+msgctxt "remaining time left of battery usage - HH:MM"
+msgid "%1 remaining"
+msgstr "Остават %1"
+
+#: main.qml:160
+#, kde-format
+msgid "Not charging"
+msgstr "Не се зарежда"
+
+#: main.qml:165
+#, kde-format
+msgid ""
+"Automatic sleep and screen locking are disabled; middle-click to re-enable"
+msgstr ""
+"Автоматичното приспиване и заключване на екрана са деактивирани, натиснете "
+"среден бутон на мишката за активиране"
+
+#: main.qml:167
+#, kde-format
+msgid "Middle-click to disable automatic sleep and screen locking"
+msgstr ""
+"Среден бутон на мишката за деактивиране на автоматичното приспиване и "
+"заключване на екрана"
+
+#: main.qml:172
+#, kde-format
+msgid "An application has requested activating Performance mode"
+msgid_plural "%1 applications have requested activating Performance mode"
+msgstr[0] ""
+"Едно приложение даде заявка за активиране на режим на висока производителност"
+msgstr[1] ""
+"%1 приложения дадоха заявка за активиране на режим на висока производителност"
+
+#: main.qml:176
+#, kde-format
+msgid "System is in Performance mode; scroll to change"
+msgstr ""
+"Системата е в режим на повишена производителност, превъртете списъка за "
+"промяна"
+
+#: main.qml:180
+#, kde-format
+msgid "An application has requested activating Power Save mode"
+msgid_plural "%1 applications have requested activating Power Save mode"
+msgstr[0] ""
+"Едно приложение даде заявка за активиране на режим пестене на енергия"
+msgstr[1] ""
+"%1 приложения дадоха заявка за активиране на режим пестене на енергия"
+
+#: main.qml:184
+#, kde-format
+msgid "System is in Power Save mode; scroll to change"
+msgstr ""
+"Системата е в режим на пестене на енергия, превъртете списъка за промяна"
+
+#: main.qml:187
+#, kde-format
+msgid "System is in Balanced Power mode; scroll to change"
+msgstr ""
+"Системата е в балансиран режим за пестене на енергия, превъртете списъка за "
+"промяна"
+
+#: main.qml:301
+#, kde-format
+msgid "&Show Energy Information…"
+msgstr "&Показване на информация за енергията…"
+
+#: main.qml:307
+#, kde-format
+msgid "Show Battery Percentage on Icon When Not Fully Charged"
+msgstr "Показване на проценти в иконата на батерията при непълно зареждане"
+
+#: main.qml:320
+#, kde-format
+msgid "&Configure Power Management…"
+msgstr "&Настройки на управление на енергията…"
+
+#: PowerProfileItem.qml:41
+#, kde-format
+msgid "Power Save"
+msgstr "Пестене на енергия"
+
+#: PowerProfileItem.qml:45
+#, kde-format
+msgid "Balanced"
+msgstr "Балансирано"
+
+#: PowerProfileItem.qml:49
+#, kde-format
+msgid "Performance"
+msgstr "Производителност"
+
+#: PowerProfileItem.qml:66
+#, kde-format
+msgid "Power Profile"
+msgstr "Енергиен профил"
+
+#: PowerProfileItem.qml:110
+#, kde-format
+msgctxt "Power profile"
+msgid "Automatic"
+msgstr "Автоматично"
+
+#: PowerProfileItem.qml:111
+#, kde-format
+msgctxt "Power profile"
+msgid "Not available"
+msgstr "Няма наличен"
+
+#: PowerProfileItem.qml:151
+#, kde-format
+msgid "Failed to activate %1 mode"
+msgstr "Активирането на %1 не бе успешно"
+
+#: PowerProfileItem.qml:228
+#, kde-format
+msgid ""
+"Performance mode has been disabled to reduce heat generation because the "
+"computer has detected that it may be sitting on your lap."
+msgstr ""
+"Режимът на висока производителност е изключен, за да се намали загряването "
+"на лаптопа."
+
+#: PowerProfileItem.qml:230
+#, kde-format
+msgid ""
+"Performance mode is unavailable because the computer is running too hot."
+msgstr ""
+"Режимът на висока производителност не е наличен, защото компютърът прегрява."
+
+#: PowerProfileItem.qml:232
+#, kde-format
+msgid "Performance mode is unavailable."
+msgstr "Режимът на висока производителност не е наличен."
+
+#: PowerProfileItem.qml:248
+#, kde-format
+msgid ""
+"Performance may be lowered to reduce heat generation because the computer "
+"has detected that it may be sitting on your lap."
+msgstr ""
+"Производителността може да бъде намалена, за да се намали загряването на "
+"компютъра."
+
+#: PowerProfileItem.qml:250
+#, kde-format
+msgid "Performance may be reduced because the computer is running too hot."
+msgstr "Производителността може да бъде намалена, защото компютърът загрява."
+
+#: PowerProfileItem.qml:252
+#, kde-format
+msgid "Performance may be reduced."
+msgstr "Производителността може да бъде намалена."
+
+#: PowerProfileItem.qml:265
+#, kde-format
+msgid "One application has requested activating %2:"
+msgid_plural "%1 applications have requested activating %2:"
+msgstr[0] "Едно приложение даде заявка за активиране %2:"
+msgstr[1] "%1 приложения дадоха заявка за активиране %2:"
+
+#: PowerProfileItem.qml:284
+#, kde-format
+msgctxt ""
+"%1 is the name of the application, %2 is the reason provided by it for "
+"activating performance mode"
+msgid "%1: %2"
+msgstr "%1: %2"
+
+#: PowerProfileItem.qml:302
+#, kde-format
+msgid "The TLP service automatically controls power profiles"
+msgstr "Услугата TLP автоматично контролира профилите на захранването"
+
+#: PowerProfileItem.qml:304
+#, kde-format
+msgid "Power profiles are not supported on your device."
+msgstr "Устройството ви не поддържа профили на захранването."
+
+#: PowerProfileItem.qml:305
+#, kde-kuit-format
+msgid ""
+"Power profiles may be supported on your device.<nl/>Try installing the "
+"<command>power-profiles-daemon</command> package using your distribution's "
+"package manager and restarting the system."
+msgstr ""
+"Възможно е устройството ви да поддържа профили на захранването.<nl/>Опитайте "
+"да инсталирате пакета <command>power-profiles-daemon</command>, като "
+"използвате мениджъра на пакети  на вашата дистрибуция и рестартирайте "
+"системата."
+
+#~ msgctxt "Sleep and Screen Locking after Inactivity"
+#~ msgid "Blocked"
+#~ msgstr "Блокирано"
+
+#~ msgctxt "Sleep and Screen Locking after Inactivity"
+#~ msgid "Automatic"
+#~ msgstr "Автоматично"
+
+#~ msgid "%1 application currently wants to block sleep and screen locking:"
+#~ msgid_plural ""
+#~ "%1 applications currently want to block sleep and screen locking:"
+#~ msgstr[0] ""
+#~ "%1 приложение иска да предотврати приспиването и заключването на екрана:"
+#~ msgstr[1] ""
+#~ "%1 приложения искат да предотврати приспиването и заключването на екрана:"
+
+#~ msgctxt "Application name; reason"
+#~ msgid "%1 has been prevented from blocking sleep and screen locking for %2"
+#~ msgstr ""
+#~ "%1 е изключено от предотвратяване на приспиването и заключването на "
+#~ "екрана за %2"
+
+#~ msgid "%1 is currently blocking sleep and screen locking (unknown reason)"
+#~ msgstr ""
+#~ "%1 предотвратява приспиването и заключването на екрана (неизвестна "
+#~ "причина)"
+
+#~ msgid "An application is currently blocking sleep and screen locking (%1)"
+#~ msgstr "Приложение блокира приспиването и заключването на екрана (%1)"
+
+#~ msgid ""
+#~ "An application is currently blocking sleep and screen locking (unknown "
+#~ "reason)"
+#~ msgstr ""
+#~ "Приложение блокира приспиването и заключването на екрана (неизвестна "
+#~ "причина)"
+
+#~ msgctxt "Application name: reason for preventing sleep and screen locking"
+#~ msgid "%1: %2"
+#~ msgstr "%1: %2"
+
+#~ msgctxt "Application name: reason for preventing sleep and screen locking"
+#~ msgid "Unknown application: %1"
+#~ msgstr "Неизвестно приложение: %1"
+
+#~ msgctxt "Application name: reason for preventing sleep and screen locking"
+#~ msgid "Unknown application: unknown reason"
+#~ msgstr "Неизвестно приложение: неизвестна причина"
+
+#~ msgctxt ""
+#~ "@action:button Undo preventing an app from blocking automatic sleep and "
+#~ "screen locking after inactivity"
+#~ msgid "Block Again"
+#~ msgstr "Повторно блокиране"
+
+#~ msgctxt ""
+#~ "@action:button Undo blocking sleep and screen locking after inactivity"
+#~ msgid "Unblock"
+#~ msgstr "Отблокиране"
+
+#~ msgctxt "@action:button Block sleep and screen locking after inactivity"
+#~ msgid "Manually Block"
+#~ msgstr "Ръчно блокиране"

@@ -1,0 +1,231 @@
+# SPDX-FileCopyrightText: 2026 Mint <5602mint@gmail.com>
+# Tomohiro Hyakutake <tomhioo@outlook.jp>, 2019.
+# Ryuichi Yamada <ryuichi_ya220@outlook.jp>, 2023.
+# Fumiaki Okushi <fumiaki.okushi@gmail.com>, 2019, 2023.
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma_applet_org.kde.plasma.volume\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-12-19 00:45+0000\n"
+"PO-Revision-Date: 2026-02-21 10:21+0900\n"
+"Last-Translator: Mint <5602mint@gmail.com>\n"
+"Language-Team: Japanese <kde-i18n-doc@kde.org>\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Accelerator-Marker: &\n"
+"X-Text-Markup: kde4\n"
+"X-Generator: Lokalize 25.12.2\n"
+
+#: ListItemBase.qml:72
+#, kde-format
+msgid "Currently not recording"
+msgstr "現在録音していません"
+
+#: ListItemBase.qml:73
+#, kde-format
+msgid "Currently not playing"
+msgstr "現在再生していません"
+
+#: ListItemBase.qml:204
+#, kde-format
+msgctxt "@action:button"
+msgid "Additional Options"
+msgstr "追加オプション"
+
+#: ListItemBase.qml:206
+#, kde-format
+msgid "Show additional options for %1"
+msgstr "%1の追加オプションを表示"
+
+#: ListItemBase.qml:228
+#, kde-format
+msgctxt "@action:button"
+msgid "Unmute"
+msgstr "ミュート解除"
+
+#: ListItemBase.qml:228
+#, kde-format
+msgctxt "@action:button"
+msgid "Mute"
+msgstr "ミュート"
+
+#: ListItemBase.qml:230
+#, kde-format
+msgid "Unmute %1"
+msgstr "%1 をミュート解除"
+
+#: ListItemBase.qml:230
+#, kde-format
+msgid "Mute %1"
+msgstr "%1 をミュート"
+
+#: ListItemBase.qml:253
+#, kde-format
+msgctxt "Accessibility data on volume slider"
+msgid "Adjust volume for %1"
+msgstr "%1 の音量を調整"
+
+#: ListItemBase.qml:317
+#, kde-format
+msgctxt "volume percentage"
+msgid "%1%"
+msgstr "%1%"
+
+#: ListItemBase.qml:338
+#, kde-format
+msgctxt "only used for sizing, should be widest possible string"
+msgid "100%"
+msgstr "100%"
+
+#: main.qml:36
+#, kde-format
+msgid "Audio Volume"
+msgstr "音量"
+
+#: main.qml:53 main.qml:55
+#, kde-format
+msgctxt "@label"
+msgid "Connection to the Sound Service Lost"
+msgstr "サウンドサービスの接続に失敗しました"
+
+#: main.qml:57
+#, kde-format
+msgid "No output or input devices found"
+msgstr "入力や出力デバイスが見つかりません"
+
+#: main.qml:61
+#, kde-format
+msgctxt "@info reconnecting to pulseaudio"
+msgid "Trying to reconnect…"
+msgstr "再接続中..."
+
+#: main.qml:79
+#, kde-format
+msgid "Audio Muted"
+msgstr "ミュート済み"
+
+#: main.qml:81
+#, kde-format
+msgid "Volume at %1%"
+msgstr "音量 %1%"
+
+#: main.qml:92
+#, kde-format
+msgid "Middle-click to unmute"
+msgstr "中クリックしてミュート解除"
+
+#: main.qml:93
+#, kde-format
+msgid "Middle-click to mute all audio"
+msgstr "中クリックしてすべての音声をミュート"
+
+#: main.qml:94
+#, kde-format
+msgid "Scroll to adjust volume"
+msgstr "スクロールして音量調整"
+
+#: main.qml:110
+#, kde-format
+msgid "Device name not found"
+msgstr "デバイスの名前が見つかりません"
+
+#: main.qml:338
+#, kde-format
+msgid "Devices"
+msgstr "デバイス"
+
+#: main.qml:345
+#, kde-format
+msgid "Applications"
+msgstr "アプリケーション"
+
+#: main.qml:369
+#, kde-format
+msgctxt "@action:button"
+msgid "More actions"
+msgstr ""
+
+#: main.qml:411
+#, kde-format
+msgctxt ""
+"@action:button keep this widget's pop-up open until explicitly dismissed"
+msgid "Keep open"
+msgstr "固定"
+
+#: main.qml:443
+#, kde-format
+msgctxt "@action retry connecting to pulseaudio"
+msgid "Retry"
+msgstr "再接続"
+
+#: main.qml:470
+#, kde-format
+msgid "No applications playing or recording audio"
+msgstr "再生や録音をしているアプリケーションはありません"
+
+#: main.qml:555
+#, kde-format
+msgctxt "@title:group listview section header"
+msgid "Output Devices"
+msgstr "出力デバイス"
+
+#: main.qml:557
+#, kde-format
+msgctxt "@title:group listview section header"
+msgid "Output Streams"
+msgstr "出力ストリーム"
+
+#: main.qml:615
+#, kde-format
+msgctxt "@title:group listview section header"
+msgid "Input Devices"
+msgstr "入力デバイス"
+
+#: main.qml:617
+#, kde-format
+msgctxt "@title:group listview section header"
+msgid "Input Streams"
+msgstr "入力ストリーム"
+
+#: main.qml:681
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Prolonged use of this feature will damage the device's speakers. Only use it "
+"temporarily to make quiet media audible."
+msgstr ""
+"この機能をオンにしたままにするとデバイスのスピーカーが故障するおそれがありま"
+"す。小さな音声を聞き取る場合にのみ使用してください。"
+
+#: main.qml:697
+#, kde-format
+msgid "Raise maximum volume"
+msgstr "最大音量を上げる"
+
+#: main.qml:711
+#, kde-format
+msgid "Force mute all playback devices"
+msgstr "すべての再生デバイスを強制的にミュート"
+
+#: main.qml:720
+#, kde-format
+msgid "Force mute all input devices"
+msgstr "すべての入力デバイスを強制的にミュート"
+
+#: main.qml:729
+#, kde-format
+msgid "Show virtual devices"
+msgstr "仮想デバイスを表示"
+
+#: main.qml:739
+#, kde-format
+msgid "&Configure Audio Devices…"
+msgstr "音声デバイスを設定(&C)..."
+
+#: StreamListItem.qml:36
+#, kde-format
+msgid "Stream name not found"
+msgstr "ストリームの名前が見つかりません"

@@ -1,0 +1,3391 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Translators:
+# Marek Černocký <marek@manet.cz>, 2012
+# Peter Hatina <phatina@redhat.com>, 2015
+# Tomas Smetana <tsmetana@redhat.com>, 2016. #zanata
+# Zdenek <chmelarz@gmail.com>, 2016. #zanata
+# Zdenek <chmelarz@gmail.com>, 2017. #zanata
+# Zdenek <chmelarz@gmail.com>, 2018. #zanata
+# Michal Konečný <michalkonec666@gmail.com>, 2019. #zanata
+# Pavel Borecki <pavel.borecki@gmail.com>, 2019. #zanata
+# Zdenek <chmelarz@gmail.com>, 2019. #zanata
+msgid ""
+msgstr ""
+"Project-Id-Version: udisks 2.9.0\n"
+"Report-Msgid-Bugs-To: https://github.com/storaged-project/udisks/issues\n"
+"POT-Creation-Date: 2020-05-20 18:02+0200\n"
+"PO-Revision-Date: 2019-08-22 01:48+0000\n"
+"Last-Translator: Michal Konečný <michalkonec666@gmail.com>\n"
+"Language-Team: Czech\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Generator: Zanata 4.6.2\n"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:16
+msgid "Mount a filesystem"
+msgstr "Připojit souborový systém"
+
+#: data/org.freedesktop.UDisks2.policy.in:17
+#: data/org.freedesktop.UDisks2.policy.in:28
+#: data/org.freedesktop.UDisks2.policy.in:39
+msgid "Authentication is required to mount the filesystem"
+msgstr "Pro připojení souborového systému je vyžadována autentizace"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:27
+msgid "Mount a filesystem on a system device"
+msgstr "Připojit souborový systém na systémovém zařízení"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:38
+msgid "Mount a filesystem from a device plugged into another seat"
+msgstr "Připojit souborový systém ze zařízení připojeného do jiného terminálu"
+
+#: data/org.freedesktop.UDisks2.policy.in:49
+msgid ""
+"Mount/unmount filesystems defined in the fstab file with the x-udisks-auth "
+"option"
+msgstr ""
+"Připojit/odpojit souborový systém definovaný v souboru fstab s volbou "
+"x-udisks-auth"
+
+#: data/org.freedesktop.UDisks2.policy.in:50
+msgid "Authentication is required to mount/unmount the filesystem"
+msgstr "Pro připojení/odpojení souborového systému je vyžadována autentizace"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:63
+msgid "Unmount a device mounted by another user"
+msgstr "Odpojit zařízení připojené jiným uživatelem"
+
+#: data/org.freedesktop.UDisks2.policy.in:64
+msgid ""
+"Authentication is required to unmount a filesystem mounted by another user"
+msgstr ""
+"Pro odpojení souborového systému připojeného jiným uživatelem je vyžadována "
+"autentizace"
+
+#: data/org.freedesktop.UDisks2.policy.in:76
+msgid "Take ownership of a filesystem"
+msgstr "Převzít vlastnictví souborového systému"
+
+#: data/org.freedesktop.UDisks2.policy.in:77
+msgid "Authentication is required to take ownership of a filesystem."
+msgstr "Pro převzetí vlastnictví souborového systému je vyžadováno ověření"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:89
+msgid "Unlock an encrypted device"
+msgstr "Odemknout šifrované zařízení"
+
+#: data/org.freedesktop.UDisks2.policy.in:90
+#: data/org.freedesktop.UDisks2.policy.in:101
+#: data/org.freedesktop.UDisks2.policy.in:112
+#: data/org.freedesktop.UDisks2.policy.in:123
+msgid "Authentication is required to unlock an encrypted device"
+msgstr "Pro odemknutí šifrovaného zařízení je vyžadována autentizace"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:100
+msgid "Unlock an encrypted system device"
+msgstr "Odemknout šifrované systémové zařízení"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:111
+msgid "Unlock an encrypted device plugged into another seat"
+msgstr "Odemknout šifrované zařízení připojené do jiného terminálu"
+
+#: data/org.freedesktop.UDisks2.policy.in:122
+msgid ""
+"Unlock an encrypted device specified in the crypttab file with the x-udisks-"
+"auth option"
+msgstr ""
+"Odemknout šifrované zařízení definované v souboru crypttab s volbou "
+"x-udisks-auth"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:136
+msgid "Lock an encrypted device unlocked by another user"
+msgstr "Zamknout šifrované zařízení odemknuté jiným uživatelem"
+
+#: data/org.freedesktop.UDisks2.policy.in:137
+msgid ""
+"Authentication is required to lock an encrypted device unlocked by another "
+"user"
+msgstr ""
+"Pro uzamknutí šifrovaného zařízení odemknutého jiným uživatelem je "
+"vyžadována autentizace"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:149
+#: data/org.freedesktop.UDisks2.policy.in:160
+msgid "Change passphrase for an encrypted device"
+msgstr "Změnit heslo pro šifrované zařízení"
+
+#: data/org.freedesktop.UDisks2.policy.in:150
+#: data/org.freedesktop.UDisks2.policy.in:161
+msgid ""
+"Authentication is required to change the passphrase for an encrypted device"
+msgstr "Pro změnu hesla pro šifrované zařízení je vyžadována autentizace"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:173
+msgid "Manage loop devices"
+msgstr "Spravovat zařízení místních smyček"
+
+#. Translators: Shown in authentication dialog when the user
+#. * requests setting up a loop device.
+#: data/org.freedesktop.UDisks2.policy.in:174 src/udiskslinuxmanager.c:357
+msgid "Authentication is required to set up a loop device"
+msgstr "Pro nastavení zařízení místní smyčky je vyžadována autentizace"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:187
+msgid "Delete loop devices"
+msgstr "Smazat zařízení místní smyčky."
+
+#: data/org.freedesktop.UDisks2.policy.in:188
+msgid ""
+"Authentication is required to delete a loop device set up by another user"
+msgstr ""
+"Pro smazání zařízení místní smyčky nastavené jiným uživatelem je vyžadována "
+"autentizace"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:197
+msgid "Modify loop devices"
+msgstr "Upravit zařízení místní smyčky."
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:198
+msgid ""
+"Authentication is required to modify a loop device set up by another user"
+msgstr ""
+"Pro úpravu zařízení místní smyčky vytvořeného jiným uživatelem je nutné "
+"ověření."
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:210
+msgid "Manage swapspace"
+msgstr "Spravovat odkládací oddíl"
+
+#: data/org.freedesktop.UDisks2.policy.in:211
+msgid "Authentication is required to manage swapspace"
+msgstr "Pro správu odkládacího oddílu je vyžadována autentizace"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:223
+msgid "Manage RAID arrays"
+msgstr "Spravovat pole RAID"
+
+#: data/org.freedesktop.UDisks2.policy.in:224
+msgid "Authentication is required to manage RAID arrays"
+msgstr "Pro správu polí RAID je nutné ověření"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:236
+msgid "Power off drive"
+msgstr "Vypnout disk"
+
+#: data/org.freedesktop.UDisks2.policy.in:237
+#: data/org.freedesktop.UDisks2.policy.in:248
+msgid "Authentication is required to power off a drive"
+msgstr "Pro vypnutí disku je nutné ověření"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:247
+msgid "Power off a system drive"
+msgstr "Vypnout systémový disk"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:258
+msgid "Power off a drive attached to another seat"
+msgstr "Vypnout mechaniku zapojenou do jiného terminálu"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:259
+msgid ""
+"Authentication is required to power off a drive plugged into another seat"
+msgstr ""
+"Pro vypnutí mechaniky zapojené do jiného terminálu je vyžadováno ověření"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:271
+msgid "Eject media"
+msgstr "Vysunout médium"
+
+#: data/org.freedesktop.UDisks2.policy.in:272
+#: data/org.freedesktop.UDisks2.policy.in:283
+msgid "Authentication is required to eject media"
+msgstr "Pro vysunutí média je vyžadována autentizace"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:282
+msgid "Eject media from a system drive"
+msgstr "Vysunout médium ze systémové mechaniky"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:293
+msgid "Eject media from a drive attached to another seat"
+msgstr "Vysunout médium z mechaniky zapojené do jiného terminálu"
+
+#: data/org.freedesktop.UDisks2.policy.in:294
+msgid ""
+"Authentication is required to eject media from a drive plugged into another "
+"seat"
+msgstr ""
+"Pro vysunutí média z mechaniky zapojené do jiného terminálu je vyžadována "
+"autentizace"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:306
+#: data/org.freedesktop.UDisks2.policy.in:328
+msgid "Modify a device"
+msgstr "Změnit zařízení"
+
+#: data/org.freedesktop.UDisks2.policy.in:307
+#: data/org.freedesktop.UDisks2.policy.in:318
+msgid "Authentication is required to modify a device"
+msgstr "Pro změnu zařízení je vyžadována autentizace"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:317
+msgid "Modify a system device"
+msgstr "Změnit systémové zařízení"
+
+#: data/org.freedesktop.UDisks2.policy.in:329
+msgid ""
+"Authentication is required to modify a device plugged into another seat"
+msgstr ""
+"Pro změnu zařízení zapojeného do jiného terminálu je vyžadována autentizace"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:339
+msgid "Rescan a device"
+msgstr "Přeskenovat zařízení"
+
+#: data/org.freedesktop.UDisks2.policy.in:340
+msgid "Authentication is required to rescan a device"
+msgstr "Pro přeskenování zařízení je nutné ověření"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:352
+msgid "Open a device"
+msgstr "Otevřít zařízení"
+
+#: data/org.freedesktop.UDisks2.policy.in:353
+#: data/org.freedesktop.UDisks2.policy.in:363
+msgid "Authentication is required to open a device"
+msgstr "Pro otevření zařízení je vyžadována autentizace"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:362
+msgid "Open a system device"
+msgstr "Otevřít systémové zařízení"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:382
+#: data/org.freedesktop.UDisks2.policy.in:393
+msgid "Modify system-wide configuration"
+msgstr "Změnit celosystémové nastavení"
+
+#: data/org.freedesktop.UDisks2.policy.in:383
+msgid "Authentication is required to modify system-wide configuration"
+msgstr "Pro změnu celosystémového nastavení je vyžadována autentizace"
+
+#: data/org.freedesktop.UDisks2.policy.in:394
+msgid ""
+"Authentication is required to retrieve secrets from system-wide "
+"configuration"
+msgstr ""
+"Pro získání utajených informací z celosystémového nastavení je vyžadována "
+"autentizace"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: data/org.freedesktop.UDisks2.policy.in:406
+msgid "Modify drive settings"
+msgstr "Upravit nastavení disku"
+
+#: data/org.freedesktop.UDisks2.policy.in:407
+msgid "Authentication is required to modify drive settings"
+msgstr "Pro úpravu nastavení disku je nutné ověření"
+
+#: data/org.freedesktop.UDisks2.policy.in:420
+msgid "Update SMART data"
+msgstr "Aktualizovat data SMART"
+
+#: data/org.freedesktop.UDisks2.policy.in:421
+msgid "Authentication is required to update SMART data"
+msgstr "Pro aktualizaci dat SMART je vyžadována autentizace"
+
+#: data/org.freedesktop.UDisks2.policy.in:431
+msgid "Set SMART data from blob"
+msgstr "Nastavit data SMART z binárně velkého objektu (blob)"
+
+#: data/org.freedesktop.UDisks2.policy.in:432
+msgid "Authentication is required to set SMART data from blob"
+msgstr "Je nutné ověření pro nastavení dat SMART z binárně velkého objektu"
+
+#: data/org.freedesktop.UDisks2.policy.in:442
+msgid "Run SMART self-test"
+msgstr "Spustit autokontrolu SMART"
+
+#: data/org.freedesktop.UDisks2.policy.in:443
+msgid "Authentication is required to run a SMART self-test"
+msgstr "Pro spuštění autokontroly SMART je vyžadována autentizace"
+
+#: data/org.freedesktop.UDisks2.policy.in:453
+msgid "Enable/Disable SMART"
+msgstr "Povolit/zakázat SMART"
+
+#: data/org.freedesktop.UDisks2.policy.in:454
+msgid "Authentication is required to enable/disable SMART"
+msgstr "Pro povolení/zakázání SMART je nutné ověření"
+
+#: data/org.freedesktop.UDisks2.policy.in:467
+msgid "Check power state"
+msgstr "Zkontrolovat stav napájení"
+
+#: data/org.freedesktop.UDisks2.policy.in:468
+msgid "Authentication is required to check the power state"
+msgstr "Pro kontrolu stavu napájení je vyžadováno ověření"
+
+#: data/org.freedesktop.UDisks2.policy.in:478
+msgid "Send standby command"
+msgstr "Poslat příkaz k uspání"
+
+#: data/org.freedesktop.UDisks2.policy.in:479
+#: data/org.freedesktop.UDisks2.policy.in:490
+#: data/org.freedesktop.UDisks2.policy.in:501
+msgid "Authentication is required to put a drive into standby mode"
+msgstr "Pro uspání disku je nutné ověření"
+
+#: data/org.freedesktop.UDisks2.policy.in:489
+msgid "Send standby command to a system drive"
+msgstr "Poslat příkaz k uspání systémovému disku"
+
+#: data/org.freedesktop.UDisks2.policy.in:500
+msgid "Send standby command to drive on other seat"
+msgstr "Poslat příkaz k uspání mechaniky v jiném terminálu"
+
+#: data/org.freedesktop.UDisks2.policy.in:514
+msgid "Securely erase a hard disk"
+msgstr "Bezpečně smazat disk"
+
+#: data/org.freedesktop.UDisks2.policy.in:515
+msgid "Authentication is required to securely erase a hard disk"
+msgstr "Pro bezpečné smazání disku je nutné ověření"
+
+#: data/org.freedesktop.UDisks2.policy.in:528
+msgid "Cancel job"
+msgstr "Zrušit akci"
+
+#. Translators: Shown in authentication dialog when canceling a job.
+#: data/org.freedesktop.UDisks2.policy.in:529 src/udisksbasejob.c:400
+msgid "Authentication is required to cancel a job"
+msgstr "Pro zrušení akce je vyžadováno ověření"
+
+#: data/org.freedesktop.UDisks2.policy.in:539
+msgid "Cancel job started by another user"
+msgstr "Zrušit akci spuštěnou jiným uživatelem"
+
+#: data/org.freedesktop.UDisks2.policy.in:540
+msgid "Authentication is required to cancel a job started by another user"
+msgstr "Pro zrušení akce spuštěné jiným uživatelem je vyžadováno ověření"
+
+#: modules/bcache/data/org.freedesktop.UDisks2.bcache.policy.in:13
+msgid "Manage Bcache"
+msgstr "Spravovat Bcache"
+
+#: modules/bcache/data/org.freedesktop.UDisks2.bcache.policy.in:14
+msgid "Authentication is required to manage Bcache"
+msgstr "Pro správu Bcache je nutné ověření"
+
+#: modules/bcache/udiskslinuxblockbcache.c:308
+msgid "Authentication is required to destroy bcache device."
+msgstr "Pro zničení Bcache zařízení je vyžadováno ověření."
+
+#: modules/bcache/udiskslinuxblockbcache.c:367
+msgid "Authentication is required to set mode of bcache device."
+msgstr "Pro nastavení módu Bcache zařízení je vyžadováno ověření."
+
+#: modules/bcache/udiskslinuxmanagerbcache.c:238
+msgid "Authentication is required to create bcache device."
+msgstr "Pro vytvoření Bcache zařízení je vyžadováno ověření."
+
+#: modules/btrfs/data/org.freedesktop.UDisks2.btrfs.policy.in:16
+msgid "Manage BTRFS"
+msgstr "Spravovat BTRFS"
+
+#: modules/btrfs/data/org.freedesktop.UDisks2.btrfs.policy.in:17
+msgid "Authentication is required to manage BTRFS"
+msgstr "Pro správu BTRFS je nutné ověření"
+
+#: modules/btrfs/udiskslinuxfilesystembtrfs.c:350
+#: modules/btrfs/udiskslinuxfilesystembtrfs.c:622
+msgid "Authentication is required to change label for BTRFS volume"
+msgstr "Pro změnu návěští svazku BTRFS je nutná autentizace"
+
+#: modules/btrfs/udiskslinuxfilesystembtrfs.c:479
+msgid "Authentication is required to add the device to the volume"
+msgstr "Pro přidání zařízení do svazku je nutné ověření"
+
+#: modules/btrfs/udiskslinuxfilesystembtrfs.c:692
+msgid "Authentication is required to create a new snapshot"
+msgstr "Pro vytvoření nového snapshotu je vyžadováno ověření"
+
+#: modules/btrfs/udiskslinuxfilesystembtrfs.c:753
+msgid "Authentication is required to check and repair the volume"
+msgstr "Pro kontrolu a opravu svazku je nutné ověření"
+
+#: modules/btrfs/udiskslinuxfilesystembtrfs.c:811
+msgid "Authentication is required to resize the volume"
+msgstr "Pro změnu velikosti svazku je nutné ověření"
+
+#: modules/btrfs/udiskslinuxmanagerbtrfs.c:207
+msgid "Authentication is required to create a new volume"
+msgstr "Pro vytvoření nového svazku je nutné ověření"
+
+#: modules/iscsi/data/org.freedesktop.UDisks2.iscsi.policy.in:16
+msgid "Manage iSCSI"
+msgstr "Spravovat iSCSI"
+
+#: modules/iscsi/data/org.freedesktop.UDisks2.iscsi.policy.in:17
+msgid "Authentication is required to manage iSCSI"
+msgstr "Pro správu iSCSI je vyžadována autentizace"
+
+#: modules/iscsi/udiskslinuxiscsisession.c:136
+#: modules/iscsi/udiskslinuxmanageriscsiinitiator.c:684
+msgid "Authentication is required to perform iSCSI logout"
+msgstr "Pro odhlášení iSCSI je nutné ověření"
+
+#: modules/iscsi/udiskslinuxiscsisession.c:160
+#: modules/iscsi/udiskslinuxmanageriscsiinitiator.c:702
+#, c-format
+msgid "Logout failed: %s"
+msgstr "Odhlášení selhalo: %s"
+
+#: modules/iscsi/udiskslinuxmanageriscsiinitiator.c:358
+msgid "Authentication is required change iSCSI initiator name"
+msgstr "Pro změnu názvu iniciátoru iSCSI je vyžadováno ověření"
+
+#: modules/iscsi/udiskslinuxmanageriscsiinitiator.c:367
+msgid "Empty initiator name"
+msgstr "Prázdný název iniciátoru"
+
+#: modules/iscsi/udiskslinuxmanageriscsiinitiator.c:409
+msgid "Error parsing the iSCSI initiator name"
+msgstr "Chyba při parsování jména iSCSI iniciátoru"
+
+#: modules/iscsi/udiskslinuxmanageriscsiinitiator.c:413
+#, c-format
+msgid "Error writing to %s while setting iSCSI initiator name: "
+msgstr "Chyba při zápisu do %s při nastavování názvu iniciátoru iSCSI:"
+
+#: modules/iscsi/udiskslinuxmanageriscsiinitiator.c:493
+msgid "Authentication is required to discover targets"
+msgstr "Pro hledání cílů je vyžadováno ověření"
+
+#: modules/iscsi/udiskslinuxmanageriscsiinitiator.c:511
+#: modules/iscsi/udiskslinuxmanageriscsiinitiator.c:557
+#, c-format
+msgid "Discovery failed: %s"
+msgstr "Hledání selhalo: %s"
+
+#: modules/iscsi/udiskslinuxmanageriscsiinitiator.c:545
+msgid "Authentication is required to discover firmware targets"
+msgstr "Pro hledání firmwarových cílů je vyžadováno ověření"
+
+#: modules/iscsi/udiskslinuxmanageriscsiinitiator.c:596
+msgid "Authentication is required to perform iSCSI login"
+msgstr "Pro přihlášení iSCSI je nutné ověření"
+
+#: modules/iscsi/udiskslinuxmanageriscsiinitiator.c:614
+#, c-format
+msgid "Login failed: %s"
+msgstr "Přihlášení selhalo: %s"
+
+#: modules/lvm2/data/org.freedesktop.UDisks2.lvm2.policy.in:16
+msgid "Manage LVM"
+msgstr "Spravovat LVM"
+
+#: modules/lvm2/data/org.freedesktop.UDisks2.lvm2.policy.in:17
+msgid "Authentication is required to manage LVM"
+msgstr "Pro správu LVM je vyžadována autentizace"
+
+#: modules/lvm2/udiskslinuxlogicalvolume.c:442
+msgid "Authentication is required to delete a logical volume"
+msgstr "Pro nastavení logického oddílu je vyžadována autentizace"
+
+#: modules/lvm2/udiskslinuxlogicalvolume.c:566
+msgid "Authentication is required to rename a logical volume"
+msgstr "Pro přejmenování logického oddílu je vyžadována autentizace"
+
+#: modules/lvm2/udiskslinuxlogicalvolume.c:628
+msgid "Authentication is required to resize a logical volume"
+msgstr "Pro změnu velikosti logického svazku je nutné ověření"
+
+#: modules/lvm2/udiskslinuxlogicalvolume.c:722
+msgid "Authentication is required to activate a logical volume"
+msgstr "Pro aktivaci logického oddílu je vyžadována autentizace"
+
+#: modules/lvm2/udiskslinuxlogicalvolume.c:790
+msgid "Authentication is required to deactivate a logical volume"
+msgstr "Pro deaktivaci logického oddílu je vyžadována autentizace"
+
+#: modules/lvm2/udiskslinuxlogicalvolume.c:857
+msgid "Authentication is required to create a snapshot of a logical volume"
+msgstr "Pro vytvoření obrazu logického oddílu je vyžadována autentizace"
+
+#: modules/lvm2/udiskslinuxlogicalvolume.c:914
+#: modules/lvm2/udiskslinuxlogicalvolume.c:977
+msgid "LVMCache not enabled at compile time."
+msgstr "Při kompilaci nebyla povolena LVMCache."
+
+#: modules/lvm2/udiskslinuxlogicalvolume.c:928
+msgid "Authentication is required to convert logical volume to cache"
+msgstr "Pro převedení logického svazku na cache je nutné ověření"
+
+#: modules/lvm2/udiskslinuxlogicalvolume.c:950
+#: modules/lvm2/udiskslinuxlogicalvolume.c:1013
+#, c-format
+msgid "Error converting volume: %s"
+msgstr "Chyba při konverzi svazku: %s"
+
+#: modules/lvm2/udiskslinuxlogicalvolume.c:991
+msgid "Authentication is required to split cache pool LV off of a cache LV"
+msgstr ""
+"Pro rozdělení mezipaměti úložiště LV od mezipaměti VL je vyžadována "
+"autentizace"
+
+#: modules/lvm2/udiskslinuxmanagerlvm2.c:259
+msgid "Authentication is required to create a volume group"
+msgstr "Pro vytvoření logické skupiny je vyžadována autentizace"
+
+#: modules/lvm2/udiskslinuxvdovolume.c:247
+msgid ""
+"Authentication is required to set deduplication/compression on a VDO volume"
+msgstr ""
+
+#: modules/lvm2/udiskslinuxvdovolume.c:323
+msgid "Authentication is required to resize a VDO volume"
+msgstr ""
+
+#: modules/lvm2/udiskslinuxvolumegroup.c:299
+msgid "Authentication is required to delete a volume group"
+msgstr "Pro odstránění logické skupiny je vyžadována autentizace"
+
+#: modules/lvm2/udiskslinuxvolumegroup.c:414
+msgid "Authentication is required to rename a volume group"
+msgstr "Pro přejmenování logické skupiny je vyžadována autentizace"
+
+#: modules/lvm2/udiskslinuxvolumegroup.c:528
+msgid "Authentication is required to add a device to a volume group"
+msgstr "Pro přidání zařízení do logické skupiny je vyžadována autentizace"
+
+#: modules/lvm2/udiskslinuxvolumegroup.c:627
+msgid "Authentication is required to remove a device from a volume group"
+msgstr "Pro odebrání zařízení z logické skupiny je vyžadována autentizace"
+
+#: modules/lvm2/udiskslinuxvolumegroup.c:636
+msgid "Authentication is required to empty a device in a volume group"
+msgstr "Pro vyčištění zařízení v logické skupině je vyžadována autentizace"
+
+#: modules/lvm2/udiskslinuxvolumegroup.c:856
+msgid "Authentication is required to create a logical volume"
+msgstr "Pro vytvoření logického oddílu je vyžadována autentizace"
+
+#: modules/lvm2/udiskslinuxvolumegroup.c:862
+msgid "Authentication is required to create a thin volume"
+msgstr "Pro vytvoření malého oddílu je vyžadována autentizace"
+
+#: modules/lvm2/udiskslinuxvolumegroup.c:868
+msgid "Authentication is required to create a thin pool volume"
+msgstr "Pro vytvoření malého oddílu úložiště je vyžadována autentizace"
+
+#: modules/lvm2/udiskslinuxvolumegroup.c:874
+msgid "Authentication is required to create a VDO volume"
+msgstr ""
+
+#: modules/lsm/data/org.freedesktop.UDisks2.lsm.policy.in:16
+msgid "Manage disk drive LED"
+msgstr "Spravovat LED disku"
+
+#: modules/lsm/data/org.freedesktop.UDisks2.lsm.policy.in:17
+msgid "Authentication is required to manage disk drive LED"
+msgstr "Pro správu LED disku je nutné ověření"
+
+#: modules/vdo/data/org.freedesktop.UDisks2.vdo.policy.in:16
+msgid "Manage VDO"
+msgstr "Správa VDO"
+
+#: modules/vdo/data/org.freedesktop.UDisks2.vdo.policy.in:17
+msgid "Authentication is required to manage VDO"
+msgstr "Pro správu VDO je vyžadováno ověření"
+
+#: modules/vdo/udiskslinuxblockvdo.c:379
+msgid ""
+"Authentication is required to change the write policy of the VDO volume"
+msgstr "Pro změnu politiky zápisu oddílu VDO je nutné ověření"
+
+#: modules/vdo/udiskslinuxblockvdo.c:430
+msgid "Authentication is required to deactivate the VDO volume"
+msgstr "Pro deaktivaci oddílu VDO je vyžadováno ověření"
+
+#: modules/vdo/udiskslinuxblockvdo.c:479
+msgid "Authentication is required to enable compression on the VDO volume"
+msgstr "Pro povolení komprese oddílu VDO je vyžadováno ověření"
+
+#: modules/vdo/udiskslinuxblockvdo.c:480
+msgid "Authentication is required to disable compression on the VDO volume"
+msgstr "Pro vypnutí komprese oddílu VDO je vyžadováno ověření"
+
+#: modules/vdo/udiskslinuxblockvdo.c:529
+msgid "Authentication is required to enable deduplication on the VDO volume"
+msgstr "Pro povolení deduplikace oddílu VDO je vyžadováno ověření"
+
+#: modules/vdo/udiskslinuxblockvdo.c:530
+msgid "Authentication is required to disable deduplication on the VDO volume"
+msgstr "Pro vypnutí deduplikace oddílu VDO je vyžadováno ověření"
+
+#: modules/vdo/udiskslinuxblockvdo.c:578
+msgid "Authentication is required to grow the logical VDO volume size"
+msgstr "Pro zvýšení velikosti logického oddílu VDO je vyžadováno ověření"
+
+#: modules/vdo/udiskslinuxblockvdo.c:625
+msgid "Authentication is required to grow the physical VDO volume size"
+msgstr "Pro zvýšení velikosti fyzického oddílu VDO je vyžadováno ověření"
+
+#: modules/vdo/udiskslinuxblockvdo.c:673
+msgid "Authentication is required to remove the VDO volume"
+msgstr "Pro odstranění oddílu VDO je nutné ověření"
+
+#: modules/vdo/udiskslinuxblockvdo.c:708
+msgid "Authentication is required to stop the VDO volume"
+msgstr "Pro zastavení oddílu VDO je nutné ověření"
+
+#: modules/vdo/udiskslinuxmanagervdo.c:245
+msgid "Authentication is required to create a new VDO volume"
+msgstr "Pro vytvoření nového oddílu VDO je nutné ověření"
+
+#: modules/vdo/udiskslinuxmanagervdo.c:364
+msgid "Authentication is required to activate existing VDO volume"
+msgstr "Pro aktivaci existujícího oddílu VDO je vyžadováno ověření"
+
+#: modules/vdo/udiskslinuxmanagervdo.c:407
+msgid "Authentication is required to start VDO volume"
+msgstr "Pro spuštění oddílu VDO je nutné ověření"
+
+#: modules/zram/data/org.freedesktop.UDisks2.zram.policy.in:13
+msgid "Manage zRAM"
+msgstr "Spravovat zRAM"
+
+#: modules/zram/data/org.freedesktop.UDisks2.zram.policy.in:14
+msgid "Authentication is required to manage zRAM"
+msgstr "Pro správu zRAM je nutné ověření"
+
+#: modules/zram/udiskslinuxmanagerzram.c:383
+msgid "Authentication is required to add zRAM kernel module"
+msgstr "Pro zavedení jaderného modulu zRAM je nutné ověření"
+
+#: modules/zram/udiskslinuxmanagerzram.c:479
+msgid "Authentication is required to remove zRAM kernel module"
+msgstr "Pro odstranění jaderného modulu zRAM je nutné ověření"
+
+#: modules/zram/udiskslinuxblockzram.c:321
+msgid "Authentication is required to enable zRAM device"
+msgstr "Pro povolení zařízení zRAM je nutné ověření"
+
+#: modules/zram/udiskslinuxblockzram.c:425
+msgid "Authentication is required to disable zRAM device"
+msgstr "Pro zrušení zařízení zRAM je nutné ověření"
+
+#. Translators: This is shown in an authentcation dialog when
+#. * the user is editing settings that involve system-level
+#. * passwords and secrets
+#: src/udiskslinuxblock.c:1328
+msgid "Authentication is required to read system-level secrets"
+msgstr ""
+"Pro čtení informací utajovaných na systémové úrovni je vyžadována "
+"autentizace"
+
+#. Translators: shown in authentication dialog - do not translate /etc/fstab
+#: src/udiskslinuxblock.c:2007
+msgid "Authentication is required to add an entry to the /etc/fstab file"
+msgstr "Pro přidání položky do souboru /etc/fstab je vyžadována autentizace"
+
+#. Translators: shown in authentication dialog - do not tranlsate
+#. /etc/crypttab
+#: src/udiskslinuxblock.c:2026
+msgid "Authentication is required to add an entry to the /etc/crypttab file"
+msgstr ""
+"Pro přidání položky do souboru /etc/crypttab je vyžadována autentizace"
+
+#. Translators: shown in authentication dialog - do not translate /etc/fstab
+#: src/udiskslinuxblock.c:2086
+msgid "Authentication is required to remove an entry from /etc/fstab file"
+msgstr "Pro odebrání položky ze souboru /etc/fstab je vyžadována autentizace"
+
+#. Translators: shown in authentication dialog - do not translate
+#. /etc/crypttab
+#: src/udiskslinuxblock.c:2105
+msgid ""
+"Authentication is required to remove an entry from the /etc/crypttab file"
+msgstr ""
+"Pro odebrání položky ze souboru /etc/crypttab je vyžadována autentizace"
+
+#. Translators: shown in authentication dialog - do not translate /etc/fstab
+#: src/udiskslinuxblock.c:2178
+msgid "Authentication is required to modify the /etc/fstab file"
+msgstr "Pro změnu souboru /etc/fstab je vyžadována autentizace"
+
+#. Translators: shown in authentication dialog - do not translate
+#. /etc/crypttab
+#: src/udiskslinuxblock.c:2197
+msgid "Authentication is required to modify the /etc/crypttab file"
+msgstr "Pro změnu souboru /etc/crypttab je vyžadována autentizace"
+
+#. Translators: Shown in authentication dialog when the user
+#. * requests erasing a hard disk using the SECURE ERASE UNIT
+#. * command.
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#. Translators: Shown in authentication dialog when the user
+#. * requests erasing a hard disk using the SECURE ERASE UNIT command.
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#: src/udiskslinuxblock.c:3059 src/udiskslinuxdriveata.c:2294
+msgid "Authentication is required to perform a secure erase of $(drive)"
+msgstr "Pro provedení bezpečného smazání $(drive) je nutné ověření"
+
+#. Translators: Shown in authentication dialog when formatting a
+#. * device. This includes both creating a filesystem or partition
+#. * table.
+#. *
+#. * Do not translate $(drive), it's a placeholder and will
+#. * be replaced by the name of the drive/device in question
+#: src/udiskslinuxblock.c:3071
+msgid "Authentication is required to format $(drive)"
+msgstr "Pro formátování $(drive) je nutné ověření"
+
+#: src/udiskslinuxblock.c:3113 src/udiskslinuxmdraid.c:1512
+msgid "Authentication is required to modify the system configuration"
+msgstr "Pro změnu celosystémového nastavení je vyžadována autentizace"
+
+#. Translators: Shown in authentication dialog when creating a
+#. * disk image file.
+#. *
+#. * Do not translate $(drive), it's a placeholder and will
+#. * be replaced by the name of the drive/device in question
+#: src/udiskslinuxblock.c:3629
+msgid "Authentication is required to open $(drive) for reading"
+msgstr "Pro otevření $(drive) ke čtení je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when restoring
+#. * from a disk image file.
+#. *
+#. * Do not translate $(drive), it's a placeholder and will
+#. * be replaced by the name of the drive/device in question
+#: src/udiskslinuxblock.c:3700
+msgid "Authentication is required to open $(drive) for writing"
+msgstr "Pro otevření $(drive) k zápisu je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when an application
+#. * wants to benchmark a device.
+#. *
+#. * Do not translate $(drive), it's a placeholder and will
+#. * be replaced by the name of the drive/device in question
+#: src/udiskslinuxblock.c:3774
+msgid "Authentication is required to open $(drive) for benchmarking"
+msgstr "Pro otevření $(drive) k měření rychlosti je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when an application
+#. * wants to benchmark a device.
+#. *
+#. * Do not translate $(drive), it's a placeholder and will
+#. * be replaced by the name of the drive/device in question
+#: src/udiskslinuxblock.c:3857
+msgid "Authentication is required to open $(drive)."
+msgstr "Pro otevření $(drive) je vyžadována autentizace"
+
+#. Translators: Shown in authentication dialog when an application
+#. * wants to rescan a device.
+#. *
+#. * Do not translate $(drive), it's a placeholder and will
+#. * be replaced by the name of the drive/device in question
+#: src/udiskslinuxblock.c:3914
+msgid "Authentication is required to rescan $(drive)"
+msgstr "Pro přeskenování $(drive) je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when the user
+#. * requests ejecting media from a drive.
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#: src/udiskslinuxdrive.c:1023
+msgid "Authentication is required to eject $(drive)"
+msgstr "Pro vysunutí $(drive) je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when the user
+#. * changes settings for a drive.
+#. *
+#. * Do not translate $(drive), it's a placeholder and will be
+#. * replaced by the name of the drive/device in question
+#: src/udiskslinuxdrive.c:1111
+msgid "Authentication is required to configure settings for $(drive)"
+msgstr "Pro změnu nastavení $(drive) je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when the user
+#. * requests ejecting media from a drive.
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#: src/udiskslinuxdrive.c:1426
+msgid "Authentication is required to power off $(drive)"
+msgstr "Pro vypnutí $(drive) je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when the user
+#. * refreshes SMART data from a disk.
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#: src/udiskslinuxdriveata.c:821
+msgid "Authentication is required to update SMART data from $(drive)"
+msgstr "Pro aktualizaci dat SMART z $(drive) je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when the user
+#. * tries to simulate SMART data from a libatasmart blob.
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#: src/udiskslinuxdriveata.c:832
+msgid "Authentication is required to set SMART data from a blob on $(drive)"
+msgstr ""
+"Je nutné ověření pro nastavení dat SMART z binárně velkého objektu (blob) na"
+" $(drive)"
+
+#. Translators: Shown in authentication dialog when the user
+#. * aborts a running SMART self-test.
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#: src/udiskslinuxdriveata.c:966
+msgid "Authentication is required to abort a SMART self-test on $(drive)"
+msgstr "Pro zastavení testu SMART na $(drive) je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when the user
+#. * initiates a SMART self-test.
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#: src/udiskslinuxdriveata.c:1214
+msgid "Authentication is required to start a SMART self-test on $(drive)"
+msgstr "Pro spuštění testu SMART na zařízení $(drive) je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when the user
+#. * requests the power state of a drive.
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#: src/udiskslinuxdriveata.c:1354
+msgid "Authentication is required to check power state for $(drive)"
+msgstr "Pro kontrolu stavu napájení disku $(drive) je nutné ověření"
+
+#. Translators: Shown in authentication dialog when the user
+#. * tries to wake up a drive from standby mode or tries to put a drive into
+#. * standby mode.
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#: src/udiskslinuxdriveata.c:1450
+msgid "Authentication is required to wake up $(drive) from standby mode"
+msgstr "Pro probuzení $(drive) je nutná autentizace"
+
+#: src/udiskslinuxdriveata.c:1451
+msgid "Authentication is required to put $(drive) in standby mode"
+msgstr "Pro uspání $(drive) je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when the user
+#. * requests enabling SMART on a disk.
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#: src/udiskslinuxdriveata.c:2381
+msgid "Authentication is required to enable SMART on $(drive)"
+msgstr "Pro povolení SMART na $(drive) je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when the user
+#. * requests enabling SMART on a disk.
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#: src/udiskslinuxdriveata.c:2391
+msgid "Authentication is required to disable SMART on $(drive)"
+msgstr "Pro zakázání SMART na $(drive) je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when the user
+#. * requests unlocking an encrypted device.
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#: src/udiskslinuxencrypted.c:494 src/udiskslinuxencrypted.c:959
+msgid "Authentication is required to unlock the encrypted device $(drive)"
+msgstr "Pro odemknutí šifrovaného zařízení $(drive) je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when the user
+#. * requests locking an encrypted device that was previously.
+#. * unlocked by another user.
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#: src/udiskslinuxencrypted.c:771
+msgid ""
+"Authentication is required to lock the encrypted device $(drive) unlocked by"
+" another user"
+msgstr ""
+"Pro zamknutí šifrovaného zařízení $(drive), které odemkl jiný uživatel, je "
+"nutná autentizace"
+
+#. Translators: Shown in authentication dialog when the user
+#. * requests resizing a encrypted block device.
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#: src/udiskslinuxencrypted.c:1093
+msgid "Authentication is required to resize the encrypted device $(drive)"
+msgstr ""
+"Pro změnu velikosti šifrovaného zařízení $(drive) je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when the user
+#. * requests mounting a filesystem.
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#: src/udiskslinuxfilesystem.c:893 src/udiskslinuxfilesystem.c:1075
+msgid "Authentication is required to mount $(drive)"
+msgstr "Pro připojení $(drive) je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when the
+#. * user requests mounting a filesystem that is in
+#. * /etc/fstab file with the x-udisks-auth option.
+#. *
+#. * Do not translate $(drive), it's a
+#. * placeholder and will be replaced by the name of
+#. * the drive/device in question
+#. *
+#. * Do not translate /etc/fstab
+#: src/udiskslinuxfilesystem.c:980
+msgid ""
+"Authentication is required to mount $(drive) referenced in the /etc/fstab "
+"file"
+msgstr ""
+"Pro připojení $(drive), zmíněného v souboru /etc/fstab, je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when the
+#. * user requests unmounting a filesystem that is in
+#. * /etc/fstab file with the x-udisks-auth option.
+#. *
+#. * Do not translate $(drive), it's a
+#. * placeholder and will be replaced by the name of
+#. * the drive/device in question
+#. *
+#. * Do not translate /etc/fstab
+#: src/udiskslinuxfilesystem.c:1374
+msgid ""
+"Authentication is required to unmount $(drive) referenced in the /etc/fstab "
+"file"
+msgstr ""
+"Pro odpojení $(drive), zmíněného v souboru /etc/fstab, je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when the user
+#. * requests unmounting a filesystem previously mounted by
+#. * another user.
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#: src/udiskslinuxfilesystem.c:1422
+msgid "Authentication is required to unmount $(drive) mounted by another user"
+msgstr ""
+"Pro odpojení $(drive), připojeného jiným uživatelem, je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when the user
+#. * requests changing the filesystem label.
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#: src/udiskslinuxfilesystem.c:1626
+msgid "Authentication is required to change the filesystem label on $(drive)"
+msgstr "Pro změnu návěští souborového systému v $(drive) je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when the user
+#. * requests resizing the filesystem.
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#: src/udiskslinuxfilesystem.c:1815
+msgid "Authentication is required to resize the filesystem on $(drive)"
+msgstr "Pro změnu velikosti souborového systému v $(drive) je nutné ověření"
+
+#. Translators: Shown in authentication dialog when the user
+#. * requests resizing the filesystem.
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#: src/udiskslinuxfilesystem.c:1986
+msgid "Authentication is required to repair the filesystem on $(drive)"
+msgstr "Pro opravu souborového systému v $(drive) je nutné ověření"
+
+#. Translators: Shown in authentication dialog when the user
+#. * requests resizing the filesystem.
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#: src/udiskslinuxfilesystem.c:2154
+msgid "Authentication is required to check the filesystem on $(drive)"
+msgstr "Pro kontrolu souborového systému v $(drive) je nutné ověření"
+
+#. Translators: Shown in authentication dialog when the user
+#. * requests taking ownership of the filesystem.
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#: src/udiskslinuxfilesystem.c:2306
+msgid ""
+"Authentication is required to change ownership of the filesystem on $(drive)"
+msgstr "Pro změnu vlastnictví souborového systému v $(drive) je nutné ověření"
+
+#. Translators: Shown in authentication dialog when the user
+#. * requests deleting a loop device previously set up by
+#. * another user.
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#: src/udiskslinuxloop.c:253
+msgid "Authentication is required to delete the loop device $(drive)"
+msgstr "Je nutné ověření pro smazání zařízení místní smyčky $(drive)"
+
+#. Translators: Shown in authentication dialog when the user
+#. * requests changing autoclear on a loop device set up by
+#. * another user.
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#: src/udiskslinuxloop.c:346
+msgid "Authentication is required to modify the loop device $(drive)"
+msgstr "Je nutné ověření pro úpravu zařízení místní smyčky $(drive)"
+
+#. Translators: Shown in authentication dialog when the user
+#. * attempts to start a RAID Array.
+#. TODO: variables
+#: src/udiskslinuxmanager.c:553
+msgid "Authentication is required to create a RAID array"
+msgstr "Pro vytvoření pole RAID je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when the user
+#. * attempts to start a RAID Array.
+#. TODO: variables
+#: src/udiskslinuxmdraid.c:629
+msgid "Authentication is required to start a RAID array"
+msgstr "Pro spuštění pole RAID je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when the user
+#. * attempts to stop a RAID Array.
+#. TODO: variables
+#: src/udiskslinuxmdraid.c:795
+msgid "Authentication is required to stop a RAID array"
+msgstr "Pro zastavení pole RAID je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when the user
+#. * attempts to remove a device from a RAID Array.
+#. TODO: variables
+#: src/udiskslinuxmdraid.c:1018
+msgid "Authentication is required to remove a device from a RAID array"
+msgstr "Pro odebrání zařízení z pole RAID je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when the user
+#. * attempts to add a device to a RAID Array.
+#. TODO: variables
+#: src/udiskslinuxmdraid.c:1169
+msgid "Authentication is required to add a device to a RAID array"
+msgstr "Pro přidání zařízení do pole RAID je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when the user
+#. * attempts to change whether it has a write-intent bitmap
+#. TODO: variables
+#: src/udiskslinuxmdraid.c:1288
+msgid ""
+"Authentication is required to configure the write-intent bitmap on a RAID "
+"array"
+msgstr "Je nutné ověření pro nastavení bitmapy se záměrem zápisu na poli RAID"
+
+#. Translators: Shown in authentication dialog when the user
+#. * attempts to start/stop data scrubbing operations
+#. TODO: variables
+#: src/udiskslinuxmdraid.c:1407
+msgid ""
+"Authentication is required to start/stop data scrubbing of a RAID array"
+msgstr "Je nutné ověření pro spuštění / zastavení čištění dat pole RAID"
+
+#: src/udiskslinuxmdraid.c:1493
+msgid "Authentication is required to delete a RAID array"
+msgstr "Pro zmazání pole RAID je vyžadována autentizace"
+
+#. Translators: Shown in authentication dialog when the user
+#. * requests modifying a partition (changing type, flags, name etc.).
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#: src/udiskslinuxpartition.c:150
+msgid "Authentication is required to modify the partition on device $(drive)"
+msgstr "Pro úpravu oddílu na zařízení $(drive) je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when the user
+#. * requests creating a new partition.
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#: src/udiskslinuxpartitiontable.c:314
+msgid "Authentication is required to create a partition on $(drive)"
+msgstr "Pro vytvoření oddílu $(drive) je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when the user
+#. * requests activating a swap device.
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#: src/udiskslinuxswapspace.c:195
+msgid "Authentication is required to activate swapspace on $(drive)"
+msgstr "Pro aktivaci odkládacího prostoru na $(drive) je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when the user
+#. * requests deactivating a swap device.
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#: src/udiskslinuxswapspace.c:291
+msgid "Authentication is required to deactivate swapspace on $(drive)"
+msgstr "Pro deaktivci odkládacího prostoru na $(drive) je nutná autentizace"
+
+#. Translators: Shown in authentication dialog when the user
+#. * requests setting label of a swap device.
+#. *
+#. * Do not translate $(drive), it's a placeholder and
+#. * will be replaced by the name of the drive/device in question
+#: src/udiskslinuxswapspace.c:365
+msgid "Authentication is required to set swapspace label on $(drive)"
+msgstr ""
+"Pro nastavení názvu odkládacího prostoru na $(drive) je nutná autentizace"
+
+#. Translators: Corresponds to the DOS/Master-Boot-Record "bootable" flag for
+#. a partition
+#: udisks/udisksclient.c:1179
+msgctxt "dos-part-flag"
+msgid "Bootable"
+msgstr "Zaveditelný"
+
+#. Translators: Corresponds to the GPT "system" flag for a partition,
+#. * see http://en.wikipedia.org/wiki/GUID_Partition_Table
+#: udisks/udisksclient.c:1189
+msgctxt "gpt-part-flag"
+msgid "System"
+msgstr "Systémový"
+
+#. Translators: Corresponds to the GPT "legacy bios bootable" flag for a
+#. partition,
+#. * see http://en.wikipedia.org/wiki/GUID_Partition_Table
+#: udisks/udisksclient.c:1196
+msgctxt "gpt-part-flag"
+msgid "Legacy BIOS Bootable"
+msgstr "Zaveditelný pro BIOS"
+
+#. Translators: Corresponds to the GPT "read-only" flag for a partition,
+#. * see http://en.wikipedia.org/wiki/GUID_Partition_Table
+#: udisks/udisksclient.c:1203
+msgctxt "gpt-part-flag"
+msgid "Read-only"
+msgstr "Jen ke čtení"
+
+#. Translators: Corresponds to the GPT "hidden" flag for a partition,
+#. * see http://en.wikipedia.org/wiki/GUID_Partition_Table
+#: udisks/udisksclient.c:1210
+msgctxt "gpt-part-flag"
+msgid "Hidden"
+msgstr "Skrytý"
+
+#. Translators: Corresponds to the GPT "no automount" flag for a partition,
+#. * see http://en.wikipedia.org/wiki/GUID_Partition_Table
+#: udisks/udisksclient.c:1217
+msgctxt "gpt-part-flag"
+msgid "No Automount"
+msgstr "Nepřipojovat automaticky"
+
+#. Translators: Partition info. First %s is the type, second %s is a list of
+#. flags
+#: udisks/udisksclient.c:1230
+#, c-format
+msgctxt "partition-info"
+msgid "%s (%s)"
+msgstr "%s (%s)"
+
+#. Translators: The Partition info when unknown
+#: udisks/udisksclient.c:1241
+msgctxt "partition-info"
+msgid "Unknown"
+msgstr "Neznámý"
+
+#. Translators: SI prefix and standard unit symbol, translate cautiously (or
+#. not at all)
+#: udisks/udisksclient.c:1713
+msgctxt "byte-size-pow2"
+msgid "KiB"
+msgstr "KiB"
+
+#. Translators: SI prefix and standard unit symbol, translate cautiously (or
+#. not at all)
+#: udisks/udisksclient.c:1719
+msgctxt "byte-size-pow2"
+msgid "MiB"
+msgstr "MiB"
+
+#. Translators: SI prefix and standard unit symbol, translate cautiously (or
+#. not at all)
+#: udisks/udisksclient.c:1725
+msgctxt "byte-size-pow2"
+msgid "GiB"
+msgstr "GiB"
+
+#. Translators: SI prefix and standard unit symbol, translate cautiously (or
+#. not at all)
+#: udisks/udisksclient.c:1731
+msgctxt "byte-size-pow2"
+msgid "TiB"
+msgstr "TiB"
+
+#. Translators: SI prefix and standard unit symbol, translate cautiously (or
+#. not at all)
+#: udisks/udisksclient.c:1756
+msgctxt "byte-size-pow10"
+msgid "KB"
+msgstr "KB"
+
+#. Translators: SI prefix and standard unit symbol, translate cautiously (or
+#. not at all)
+#: udisks/udisksclient.c:1762
+msgctxt "byte-size-pow10"
+msgid "MB"
+msgstr "MB"
+
+#. Translators: SI prefix and standard unit symbol, translate cautiously (or
+#. not at all)
+#: udisks/udisksclient.c:1768
+msgctxt "byte-size-pow10"
+msgid "GB"
+msgstr "GB"
+
+#. Translators: SI prefix and standard unit symbol, translate cautiously (or
+#. not at all)
+#: udisks/udisksclient.c:1774
+msgctxt "byte-size-pow10"
+msgid "TB"
+msgstr "TB"
+
+#. Translators: The first %s is the size in power-of-2 units, e.g. '64 KiB'
+#. * the second %s is the size as a number e.g. '65,536' (always > 1)
+#: udisks/udisksclient.c:1817
+#, c-format
+msgctxt "byte-size-pow2"
+msgid "%s (%s bytes)"
+msgstr "%s (%s bajtů)"
+
+#. Translators: The first %s is the size in power-of-10 units, e.g. '100 kB'
+#. * the second %s is the size as a number e.g. '100,000' (always > 1)
+#: udisks/udisksclient.c:1827
+#, c-format
+msgctxt "byte-size-pow10"
+msgid "%s (%s bytes)"
+msgstr "%s (%s bajtů)"
+
+#. Translators: This word is used to describe the media inserted into a device
+#: udisks/udisksclient.c:1888
+msgctxt "media"
+msgid "CompactFlash"
+msgstr "Kompaktní flash karta"
+
+#. Translators: This word is used to describe the media inserted into a device
+#: udisks/udisksclient.c:1893
+msgctxt "media"
+msgid "MemoryStick"
+msgstr "MemoryStick"
+
+#. Translators: This word is used to describe the media inserted into a device
+#: udisks/udisksclient.c:1898
+msgctxt "media"
+msgid "SmartMedia"
+msgstr "SmartMedia karta"
+
+#. Translators: This word is used to describe the media inserted into a device
+#: udisks/udisksclient.c:1903
+msgctxt "media"
+msgid "SecureDigital"
+msgstr "SecureDigital karta"
+
+#. Translators: This word is used to describe the media inserted into a device
+#: udisks/udisksclient.c:1908
+msgctxt "media"
+msgid "SD High Capacity"
+msgstr "SDHC"
+
+#. Translators: This word is used to describe the media inserted into a device
+#: udisks/udisksclient.c:1913
+msgctxt "media"
+msgid "Floppy"
+msgstr "Disketa"
+
+#. Translators: This word is used to describe the media inserted into a device
+#: udisks/udisksclient.c:1918
+msgctxt "media"
+msgid "Zip"
+msgstr "Zip"
+
+#. Translators: This word is used to describe the media inserted into a device
+#: udisks/udisksclient.c:1923
+msgctxt "media"
+msgid "Jaz"
+msgstr "Jaz"
+
+#. Translators: This word is used to describe the media inserted into a device
+#: udisks/udisksclient.c:1928
+msgctxt "media"
+msgid "Flash"
+msgstr "Flash"
+
+#. Translators: This word is used to describe the optical disc type, it may
+#. appear
+#. * in a slash-separated list e.g. 'CD/DVD/Blu-Ray'
+#: udisks/udisksclient.c:1962
+msgctxt "disc-type"
+msgid "CD"
+msgstr "CD"
+
+#. Translators: This word is used to describe the optical disc type, it may
+#. appear
+#. * in a slash-separated list e.g. 'CD/DVD/Blu-Ray'
+#: udisks/udisksclient.c:1971
+msgctxt "disc-type"
+msgid "DVD"
+msgstr "DVD"
+
+#. Translators: This word is used to describe the optical disc type, it may
+#. appear
+#. * in a slash-separated list e.g. 'CD/DVD/Blu-Ray'
+#: udisks/udisksclient.c:1980
+msgctxt "disc-type"
+msgid "Blu-Ray"
+msgstr "Blu-Ray"
+
+#. Translators: This word is used to describe the optical disc type, it may
+#. appear
+#. * in a slash-separated list e.g. 'CD/DVD/Blu-Ray'
+#: udisks/udisksclient.c:1989
+msgctxt "disc-type"
+msgid "HDDVD"
+msgstr "HDDVD"
+
+#: udisks/udisksclient.c:2010
+msgctxt "fs-type"
+msgid "FAT (12-bit version)"
+msgstr "FAT (12bitová verze)"
+
+#: udisks/udisksclient.c:2010 udisks/udisksclient.c:2011
+#: udisks/udisksclient.c:2012 udisks/udisksclient.c:2013
+#: udisks/udisksclient.c:2014
+msgctxt "fs-type"
+msgid "FAT"
+msgstr "FAT"
+
+#: udisks/udisksclient.c:2011
+msgctxt "fs-type"
+msgid "FAT (16-bit version)"
+msgstr "FAT (16bitová verze)"
+
+#: udisks/udisksclient.c:2012
+msgctxt "fs-type"
+msgid "FAT (32-bit version)"
+msgstr "FAT (32bitová verze)"
+
+#: udisks/udisksclient.c:2013
+#, c-format
+msgctxt "fs-type"
+msgid "FAT (version %s)"
+msgstr "FAT (verze %s)"
+
+#: udisks/udisksclient.c:2015
+#, c-format
+msgctxt "fs-type"
+msgid "NTFS (version %s)"
+msgstr "NTFS (verze %s)"
+
+#: udisks/udisksclient.c:2015 udisks/udisksclient.c:2016
+msgctxt "fs-type"
+msgid "NTFS"
+msgstr "NTFS"
+
+#: udisks/udisksclient.c:2017
+msgctxt "fs-type"
+msgid "HFS"
+msgstr "HFS"
+
+#: udisks/udisksclient.c:2018
+msgctxt "fs-type"
+msgid "HFS+"
+msgstr "HFS+"
+
+#: udisks/udisksclient.c:2019
+msgctxt "fs-type"
+msgid "APFS"
+msgstr "APFS"
+
+#: udisks/udisksclient.c:2020
+#, c-format
+msgctxt "fs-type"
+msgid "Ext2 (version %s)"
+msgstr "Ext2 (verze %s)"
+
+#: udisks/udisksclient.c:2020 udisks/udisksclient.c:2021
+msgctxt "fs-type"
+msgid "Ext2"
+msgstr "Ext2"
+
+#: udisks/udisksclient.c:2022
+#, c-format
+msgctxt "fs-type"
+msgid "Ext3 (version %s)"
+msgstr "Ext3 (verze %s)"
+
+#: udisks/udisksclient.c:2022 udisks/udisksclient.c:2023
+msgctxt "fs-type"
+msgid "Ext3"
+msgstr "Ext3"
+
+#: udisks/udisksclient.c:2024
+#, c-format
+msgctxt "fs-type"
+msgid "Ext4 (version %s)"
+msgstr "Ext4 (verze %s)"
+
+#: udisks/udisksclient.c:2024 udisks/udisksclient.c:2025
+msgctxt "fs-type"
+msgid "Ext4"
+msgstr "Ext4"
+
+#: udisks/udisksclient.c:2026
+#, c-format
+msgctxt "fs-type"
+msgid "Journal for Ext (version %s)"
+msgstr "Žurnál pro Ext (verze %s)"
+
+#: udisks/udisksclient.c:2026 udisks/udisksclient.c:2027
+msgctxt "fs-type"
+msgid "JDB"
+msgstr "JDB"
+
+#: udisks/udisksclient.c:2027
+msgctxt "fs-type"
+msgid "Journal for Ext"
+msgstr "Žurnál pro Ext"
+
+#: udisks/udisksclient.c:2028
+#, c-format
+msgctxt "fs-type"
+msgid "XFS (version %s)"
+msgstr "XFS (verze %s)"
+
+#: udisks/udisksclient.c:2028 udisks/udisksclient.c:2029
+msgctxt "fs-type"
+msgid "XFS"
+msgstr "XFS"
+
+#. TODO: No ID_FS_VERSION yet for btrfs...
+#: udisks/udisksclient.c:2031
+msgctxt "fs-type"
+msgid "Btrfs"
+msgstr "Btrfs"
+
+#: udisks/udisksclient.c:2032
+#, c-format
+msgctxt "fs-type"
+msgid "ISO 9660 (version %s)"
+msgstr "ISO 9660 (verze %s)"
+
+#: udisks/udisksclient.c:2032 udisks/udisksclient.c:2033
+msgctxt "fs-type"
+msgid "ISO9660"
+msgstr "ISO9660"
+
+#: udisks/udisksclient.c:2033
+msgctxt "fs-type"
+msgid "ISO 9660"
+msgstr "ISO 9660"
+
+#: udisks/udisksclient.c:2034
+#, c-format
+msgctxt "fs-type"
+msgid "UDF (version %s)"
+msgstr "UDF (verze %s)"
+
+#: udisks/udisksclient.c:2034 udisks/udisksclient.c:2035
+msgctxt "fs-type"
+msgid "UDF"
+msgstr "UDF"
+
+#: udisks/udisksclient.c:2036 udisks/udisksclient.c:2037
+msgctxt "fs-type"
+msgid "exFAT"
+msgstr "exFAT"
+
+#: udisks/udisksclient.c:2037
+#, c-format
+msgctxt "fs-type"
+msgid "exFAT (version %s)"
+msgstr "exFAT (verze %s)"
+
+#: udisks/udisksclient.c:2038
+#, c-format
+msgctxt "fs-type"
+msgid "Swap (version %s)"
+msgstr "Odkládací oddíl (verze %s)"
+
+#: udisks/udisksclient.c:2038 udisks/udisksclient.c:2039
+msgctxt "fs-type"
+msgid "Swap"
+msgstr "Odkládací oddíl"
+
+#: udisks/udisksclient.c:2040
+#, c-format
+msgctxt "fs-type"
+msgid "LVM2 Physical Volume (%s)"
+msgstr "Fyzický svazek LVM2 (%s)"
+
+#: udisks/udisksclient.c:2040 udisks/udisksclient.c:2041
+msgctxt "fs-type"
+msgid "LVM2 PV"
+msgstr "LVM2 PV"
+
+#: udisks/udisksclient.c:2041
+msgctxt "fs-type"
+msgid "LVM2 Physical Volume"
+msgstr "Fyzický svazek LVM2"
+
+#: udisks/udisksclient.c:2042
+#, c-format
+msgctxt "fs-type"
+msgid "Linux RAID Member (version %s)"
+msgstr "Člen linuxového RAIDu (verze %s)"
+
+#: udisks/udisksclient.c:2042 udisks/udisksclient.c:2043
+msgctxt "fs-type"
+msgid "Linux RAID Member"
+msgstr "Člen linuxového RAIDu"
+
+#: udisks/udisksclient.c:2044
+#, c-format
+msgctxt "fs-type"
+msgid "ZFS Device (ZPool version %s)"
+msgstr "Zařízení ZFS (ZPool verze %s)"
+
+#: udisks/udisksclient.c:2044
+#, c-format
+msgctxt "fs-type"
+msgid "ZFS (v%s)"
+msgstr "ZFS (v%s)"
+
+#: udisks/udisksclient.c:2045
+msgctxt "fs-type"
+msgid "ZFS Device"
+msgstr "Zařízení ZFS"
+
+#: udisks/udisksclient.c:2045
+msgctxt "fs-type"
+msgid "ZFS"
+msgstr "ZFS"
+
+#: udisks/udisksclient.c:2046
+#, c-format
+msgctxt "fs-type"
+msgid "Intel Rapid Storage Technology enterprise RAID Member (version %s)"
+msgstr "RAID člen Intel Rapid Storage Technology enterprise (verze %s)"
+
+#: udisks/udisksclient.c:2046
+#, c-format
+msgctxt "fs-type"
+msgid "Intel RSTe RAID Member (%s)"
+msgstr "RAID člen Intel RSTe (%s)"
+
+#: udisks/udisksclient.c:2047
+msgctxt "fs-type"
+msgid "Intel Rapid Storage Technology enterprise RAID Member"
+msgstr "RAID člen Intel Rapid Storage Technology enterprise"
+
+#: udisks/udisksclient.c:2047
+msgctxt "fs-type"
+msgid "Intel RSTe RAID Member"
+msgstr "RAID člen Intel RSTe"
+
+#: udisks/udisksclient.c:2048
+msgctxt "fs-type"
+msgid "Possibly Encrypted"
+msgstr "Možné šifrování"
+
+#: udisks/udisksclient.c:2048
+msgctxt "fs-type"
+msgid "Encrypted?"
+msgstr "Šifrováno?"
+
+#: udisks/udisksclient.c:2049
+#, c-format
+msgctxt "fs-type"
+msgid "LUKS Encryption (version %s)"
+msgstr "Šifrování LUKS (verze %s)"
+
+#: udisks/udisksclient.c:2049 udisks/udisksclient.c:2050
+msgctxt "fs-type"
+msgid "LUKS"
+msgstr "LUKS"
+
+#: udisks/udisksclient.c:2050
+msgctxt "fs-type"
+msgid "LUKS Encryption"
+msgstr "Šifrování LUKS"
+
+#: udisks/udisksclient.c:2051
+msgctxt "fs-type"
+msgid "VeraCrypt/TrueCrypt Encryption"
+msgstr "Šifrování VeraCrypt/TrueCrypt"
+
+#: udisks/udisksclient.c:2051
+msgctxt "fs-type"
+msgid "VeraCrypt/TrueCrypt"
+msgstr "VeraCrypt/TrueCrypt"
+
+#: udisks/udisksclient.c:2052
+msgctxt "fs-type"
+msgid "BitLocker Encryption"
+msgstr ""
+
+#: udisks/udisksclient.c:2052
+msgctxt "fs-type"
+msgid "BitLocker"
+msgstr ""
+
+#: udisks/udisksclient.c:2053
+#, c-format
+msgctxt "fs-type"
+msgid "VMFS (version %s)"
+msgstr "VMFS (verze %s)"
+
+#: udisks/udisksclient.c:2053
+#, c-format
+msgctxt "fs-type"
+msgid "VMFS (v%s)"
+msgstr "VMFS (v%s)"
+
+#: udisks/udisksclient.c:2054
+msgctxt "fs-type"
+msgid "VMFS"
+msgstr "VMFS"
+
+#: udisks/udisksclient.c:2055
+#, c-format
+msgctxt "fs-type"
+msgid "VMFS Volume Member (version %s)"
+msgstr "Člen oddílu VMFS (version %s)"
+
+#: udisks/udisksclient.c:2055
+#, c-format
+msgctxt "fs-type"
+msgid "VMFS Member (v%s)"
+msgstr "Člen VMFS (v%s)"
+
+#: udisks/udisksclient.c:2056
+msgctxt "fs-type"
+msgid "VMFS Volume Member"
+msgstr "Člen oddílu VMFS"
+
+#: udisks/udisksclient.c:2056
+msgctxt "fs-type"
+msgid "VMFS Member"
+msgstr "Člen VMFS"
+
+#. Translators: Shown for unknown filesystem types.
+#. * First %s is the raw filesystem type obtained from udev, second %s is
+#. version.
+#: udisks/udisksclient.c:2132
+#, c-format
+msgctxt "fs-type"
+msgid "Unknown (%s %s)"
+msgstr "Neznámý (%s %s)"
+
+#. Translators: Shown for unknown filesystem types.
+#. * First %s is the raw filesystem type obtained from udev.
+#: udisks/udisksclient.c:2141
+#, c-format
+msgctxt "fs-type"
+msgid "Unknown (%s)"
+msgstr "Neznámý (%s)"
+
+#. Translators: Shown for unknown filesystem types.
+#: udisks/udisksclient.c:2147 udisks/udisksclient.c:2161
+msgctxt "fs-type"
+msgid "Unknown"
+msgstr "Neznámý"
+
+#. Translators: name of partition table format
+#: udisks/udisksclient.c:2178
+msgid "Master Boot Record"
+msgstr "Hlavní zaváděcí záznam MBR"
+
+#. Translators: name of partition table format
+#: udisks/udisksclient.c:2180
+msgid "GUID Partition Table"
+msgstr "Tabulka oddílů GUID"
+
+#. Translators: name of partition table format
+#: udisks/udisksclient.c:2182
+msgid "Apple Partition Map"
+msgstr "Mapa oddílů Apple"
+
+#. Translators: name of partition table format
+#: udisks/udisksclient.c:2225 udisks/udisksclient.c:2230
+msgctxt "partition-subtype"
+msgid "Generic"
+msgstr "Obecný"
+
+#: udisks/udisksclient.c:2226 udisks/udisksclient.c:2231
+msgctxt "partition-subtype"
+msgid "Linux"
+msgstr "Linux"
+
+#: udisks/udisksclient.c:2227 udisks/udisksclient.c:2232
+#: udisks/udisksclient.c:2237
+msgctxt "partition-subtype"
+msgid "Windows"
+msgstr "Windows"
+
+#: udisks/udisksclient.c:2228 udisks/udisksclient.c:2234
+msgctxt "partition-subtype"
+msgid "Other"
+msgstr "Jiný"
+
+#: udisks/udisksclient.c:2233 udisks/udisksclient.c:2236
+msgctxt "partition-subtype"
+msgid "Mac OS X"
+msgstr "Mac OS X"
+
+#. see http://en.wikipedia.org/wiki/GUID_Partition_Table
+#. Not associated with any OS
+#: udisks/udisksclient.c:2325
+msgctxt "part-type"
+msgid "MBR Partition Scheme"
+msgstr "Schéma oddílů MBR"
+
+#: udisks/udisksclient.c:2326
+msgctxt "part-type"
+msgid "EFI System"
+msgstr "Systém EFI"
+
+#: udisks/udisksclient.c:2327
+msgctxt "part-type"
+msgid "BIOS Boot"
+msgstr "Zavaděč BIOS"
+
+#. This is also defined in the Apple and Solaris section
+#: udisks/udisksclient.c:2329
+msgctxt "part-type"
+msgid "ZFS"
+msgstr "ZFS"
+
+#. Extended Boot Partition, see
+#. http://www.freedesktop.org/wiki/Specifications/BootLoaderSpec/
+#: udisks/udisksclient.c:2331
+msgctxt "part-type"
+msgid "Extended Boot Partition"
+msgstr "Rozšířený zaváděcí oddíl"
+
+#. Discoverable Linux Partitions, see
+#. http://www.freedesktop.org/wiki/Specifications/DiscoverablePartitionsSpec
+#: udisks/udisksclient.c:2333
+msgctxt "part-type"
+msgid "Linux Root Partition (x86)"
+msgstr "Linuxový kořenový oddíl (x86)"
+
+#: udisks/udisksclient.c:2334
+msgctxt "part-type"
+msgid "Linux Root Partition (x86_64)"
+msgstr "Linuxový kořenový oddíl (x86_64)"
+
+#: udisks/udisksclient.c:2335
+msgctxt "part-type"
+msgid "Linux Home Partition"
+msgstr "Linuxový domovský adresář"
+
+#: udisks/udisksclient.c:2336
+msgctxt "part-type"
+msgid "Linux Server Data Partition"
+msgstr "Linuxový oddíl serverových dat"
+
+#. Linux
+#: udisks/udisksclient.c:2338
+msgctxt "part-type"
+msgid "Linux Swap"
+msgstr "Linuxový odkládací oddíl"
+
+#: udisks/udisksclient.c:2339
+msgctxt "part-type"
+msgid "Linux Filesystem"
+msgstr "Linuxový souborový systém"
+
+#: udisks/udisksclient.c:2340
+msgctxt "part-type"
+msgid "Linux RAID"
+msgstr "Linuxový RAID"
+
+#: udisks/udisksclient.c:2341 udisks/udisksclient.c:2427
+msgctxt "part-type"
+msgid "Linux LVM"
+msgstr "Linuxový LVM"
+
+#: udisks/udisksclient.c:2342
+msgctxt "part-type"
+msgid "Linux Reserved"
+msgstr "Rezervovaný oddíl pro Linux"
+
+#. Microsoft
+#: udisks/udisksclient.c:2344
+msgctxt "part-type"
+msgid "Basic Data"
+msgstr "Základní datový oddíl"
+
+#: udisks/udisksclient.c:2345
+msgctxt "part-type"
+msgid "Microsoft Reserved"
+msgstr "Rezervovaný oddíl pro Microsoft"
+
+#: udisks/udisksclient.c:2346
+msgctxt "part-type"
+msgid "Microsoft LDM metadata"
+msgstr "Metadatový oddíl LDM Microsoft"
+
+#: udisks/udisksclient.c:2347
+msgctxt "part-type"
+msgid "Microsoft LDM data"
+msgstr "Datový oddíl LDM Microsoft"
+
+#: udisks/udisksclient.c:2348
+msgctxt "part-type"
+msgid "Microsoft Windows Recovery Environment"
+msgstr "Záchranné prostředí systému Microsoft Windows"
+
+#. Apple OS X
+#: udisks/udisksclient.c:2350
+msgctxt "part-type"
+msgid "Apple HFS/HFS+"
+msgstr "Apple HFS/HFS+"
+
+#: udisks/udisksclient.c:2351
+msgctxt "part-type"
+msgid "Apple APFS"
+msgstr "Apple APFS"
+
+#. see http://developer.apple.com/documentation/mac/devices/devices-126.html
+#. *     http://lists.apple.com/archives/Darwin-drivers/2003/May/msg00021.html
+#: udisks/udisksclient.c:2352 udisks/udisksclient.c:2406
+msgctxt "part-type"
+msgid "Apple UFS"
+msgstr "Apple UFS"
+
+#: udisks/udisksclient.c:2353
+msgctxt "part-type"
+msgid "Apple ZFS"
+msgstr "Apple ZFS"
+
+#. same as ZFS
+#: udisks/udisksclient.c:2354
+msgctxt "part-type"
+msgid "Apple RAID"
+msgstr "Apple RAID"
+
+#: udisks/udisksclient.c:2355
+msgctxt "part-type"
+msgid "Apple RAID (offline)"
+msgstr "Apple RAID (mimo provoz)"
+
+#: udisks/udisksclient.c:2356
+msgctxt "part-type"
+msgid "Apple Boot"
+msgstr "Zaváděcí oddíl Apple"
+
+#: udisks/udisksclient.c:2357
+msgctxt "part-type"
+msgid "Apple Label"
+msgstr "Apple Label"
+
+#: udisks/udisksclient.c:2358
+msgctxt "part-type"
+msgid "Apple TV Recovery"
+msgstr "Záchranný oddíl Apple TV"
+
+#: udisks/udisksclient.c:2359
+msgctxt "part-type"
+msgid "Apple Core Storage"
+msgstr "Úložiště Apple Core"
+
+#. HP-UX
+#: udisks/udisksclient.c:2361
+msgctxt "part-type"
+msgid "HP-UX Data"
+msgstr "Data HP-UX"
+
+#: udisks/udisksclient.c:2362
+msgctxt "part-type"
+msgid "HP-UX Service"
+msgstr "Služba HP-UX"
+
+#. FreeBSD
+#: udisks/udisksclient.c:2364
+msgctxt "part-type"
+msgid "FreeBSD Boot"
+msgstr "Zaváděcí oddíl FreeBSD"
+
+#: udisks/udisksclient.c:2365
+msgctxt "part-type"
+msgid "FreeBSD Data"
+msgstr "Datový oddíl FreeBSD"
+
+#: udisks/udisksclient.c:2366
+msgctxt "part-type"
+msgid "FreeBSD Swap"
+msgstr "Odkládací oddíl FreeBSD"
+
+#: udisks/udisksclient.c:2367
+msgctxt "part-type"
+msgid "FreeBSD UFS"
+msgstr "FreeBSD UFS"
+
+#: udisks/udisksclient.c:2368
+msgctxt "part-type"
+msgid "FreeBSD Vinum"
+msgstr "FreeBSD Vinum"
+
+#: udisks/udisksclient.c:2369
+msgctxt "part-type"
+msgid "FreeBSD ZFS"
+msgstr "FreeBSD ZFS"
+
+#. Solaris
+#: udisks/udisksclient.c:2371
+msgctxt "part-type"
+msgid "Solaris Boot"
+msgstr "Zaváděcí oddíl Solaris"
+
+#: udisks/udisksclient.c:2372
+msgctxt "part-type"
+msgid "Solaris Root"
+msgstr "Kořenový oddíl Solaris"
+
+#: udisks/udisksclient.c:2373
+msgctxt "part-type"
+msgid "Solaris Swap"
+msgstr "Odkládací oddíl Solaris"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2374
+msgctxt "part-type"
+msgid "Solaris Backup"
+msgstr "Záložní oddíl Solaris"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2375
+msgctxt "part-type"
+msgid "Solaris /usr"
+msgstr "Solaris /usr"
+
+#. same as ZFS
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2376
+msgctxt "part-type"
+msgid "Solaris /var"
+msgstr "Solaris /var"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2377
+msgctxt "part-type"
+msgid "Solaris /home"
+msgstr "Solaris /home"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2378
+msgctxt "part-type"
+msgid "Solaris Alternate Sector"
+msgstr "Náhradní oddíl Solaris"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2379
+msgctxt "part-type"
+msgid "Solaris Reserved"
+msgstr "Rezervovaný oddíl pro Solaris"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2380
+msgctxt "part-type"
+msgid "Solaris Reserved (2)"
+msgstr "Rezervovaný oddíl pro Solaris (2)"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2381
+msgctxt "part-type"
+msgid "Solaris Reserved (3)"
+msgstr "Rezervovaný oddíl pro Solaris (3)"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2382
+msgctxt "part-type"
+msgid "Solaris Reserved (4)"
+msgstr "Rezervovaný oddíl pro Solaris (4)"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2383
+msgctxt "part-type"
+msgid "Solaris Reserved (5)"
+msgstr "Rezervovaný oddíl pro Solaris (5)"
+
+#. NetBSD
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2385
+msgctxt "part-type"
+msgid "NetBSD Swap"
+msgstr "Odkládací oddíl NetBSD"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2386
+msgctxt "part-type"
+msgid "NetBSD FFS"
+msgstr "NetBSD FFS"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2387
+msgctxt "part-type"
+msgid "NetBSD LFS"
+msgstr "NetBSD LFS"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2388
+msgctxt "part-type"
+msgid "NetBSD RAID"
+msgstr "NetBSD RAID"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2389
+msgctxt "part-type"
+msgid "NetBSD Concatenated"
+msgstr "Zřetězený oddíl NetBSD"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2390
+msgctxt "part-type"
+msgid "NetBSD Encrypted"
+msgstr "Šifrovaný oddíl NetBSD"
+
+#. VMWare, see http://blogs.vmware.com/vsphere/2011/08/vsphere-50-storage-
+#. features-part-7-gpt.html
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2392
+msgctxt "part-type"
+msgid "VMWare VMFS"
+msgstr "VMWare VMFS"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2393
+msgctxt "part-type"
+msgid "VMWare vmkcore"
+msgstr "VMWare vmkcore"
+
+#. ChromeOS, see http://www.chromium.org/chromium-os/chromiumos-design-
+#. docs/disk-format
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2395
+msgctxt "part-type"
+msgid "ChromeOS Firmware"
+msgstr "Firmware ChromeOS"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2396
+msgctxt "part-type"
+msgid "ChromeOS Kernel"
+msgstr "Jádro Chrome OS"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2397
+msgctxt "part-type"
+msgid "ChromeOS Root Filesystem"
+msgstr "Kořenový souborový systém ChromeOS"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2398
+msgctxt "part-type"
+msgid "ChromeOS Reserved"
+msgstr "Rezervováno ChromeOS"
+
+#. Intel Partition Types
+#. FFS = Fast Flash Standby, aka Intel Rapid start
+#. http://downloadmirror.intel.com/22647/eng/Intel%20Rapid%20Start%20Technology%20Deployment%20Guide%20v1.0.pdf
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2402
+msgctxt "part-type"
+msgid "Intel FFS Reserved"
+msgstr "Rezervované pro Intel FFS"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2407
+msgctxt "part-type"
+msgid "Apple HFS/HFS"
+msgstr "Apple HFS/HFS"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2408
+msgctxt "part-type"
+msgid "Apple Partition Map"
+msgstr "Mapa oddílů Apple"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2409
+msgctxt "part-type"
+msgid "Unused"
+msgstr "Nepoužitý"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2410
+msgctxt "part-type"
+msgid "Empty"
+msgstr "Prázdný"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2411
+msgctxt "part-type"
+msgid "Driver"
+msgstr "Driver"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2412
+msgctxt "part-type"
+msgid "Driver 4.3"
+msgstr "Driver 4.3"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2413
+msgctxt "part-type"
+msgid "ProDOS file system"
+msgstr "Souborový systém ProDOS"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2414
+msgctxt "part-type"
+msgid "FAT 12"
+msgstr "FAT 12"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2415
+msgctxt "part-type"
+msgid "FAT 16"
+msgstr "FAT 16"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2416
+msgctxt "part-type"
+msgid "FAT 32"
+msgstr "FAT 32"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2417
+msgctxt "part-type"
+msgid "FAT 16 (Windows)"
+msgstr "FAT 16 (Windows)"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2418
+msgctxt "part-type"
+msgid "FAT 32 (Windows)"
+msgstr "FAT 32 (Windows)"
+
+#. see http://www.win.tue.nl/~aeb/partitions/partition_types-1.html
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2421
+msgctxt "part-type"
+msgid "Extended"
+msgstr "Rozšiřující oddíl"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2422
+msgctxt "part-type"
+msgid "EFI GPT"
+msgstr "EFI GPT"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2423
+msgctxt "part-type"
+msgid "EFI (FAT-12/16/32)"
+msgstr "EFI (FAT-12/16/32)"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2424
+msgctxt "part-type"
+msgid "Linux swap"
+msgstr "Linuxový odkládací oddíl"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2425
+msgctxt "part-type"
+msgid "Linux"
+msgstr "Linux"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2426
+msgctxt "part-type"
+msgid "Linux Extended"
+msgstr "Linuxový rozšiřující oddíl"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2428
+msgctxt "part-type"
+msgid "Linux RAID auto"
+msgstr "Linuxový automatický RAID"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2429
+msgctxt "part-type"
+msgid "FAT12"
+msgstr "FAT12"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2430
+msgctxt "part-type"
+msgid "FAT16 <32M"
+msgstr "FAT16 <32M"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2431
+msgctxt "part-type"
+msgid "FAT16"
+msgstr "FAT16"
+
+#: udisks/udisksclient.c:2432
+msgctxt "part-type"
+msgid "NTFS/exFAT/HPFS"
+msgstr "NTFS/exFAT/HPFS"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2433
+msgctxt "part-type"
+msgid "W95 FAT32"
+msgstr "W95 FAT32"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2434
+msgctxt "part-type"
+msgid "W95 FAT32 (LBA)"
+msgstr "W95 FAT32 (LBA)"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2435
+msgctxt "part-type"
+msgid "W95 FAT16 (LBA)"
+msgstr "W95 FAT16 (LBA)"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2436
+msgctxt "part-type"
+msgid "W95 Ext d (LBA)"
+msgstr "Rozšiřující W95 (LBA)"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2437
+msgctxt "part-type"
+msgid "Hidden FAT12"
+msgstr "Skrytý FAT12"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2438
+msgctxt "part-type"
+msgid "Hidden FAT16 <32M"
+msgstr "Skrytý FAT16 <32"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2439
+msgctxt "part-type"
+msgid "Hidden FAT16"
+msgstr "Skrytý FAT16"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2440
+msgctxt "part-type"
+msgid "Hidden HPFS/NTFS"
+msgstr "Skrytý HPFS/NTFS"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2441
+msgctxt "part-type"
+msgid "Hidden W95 FAT32"
+msgstr "Skrytý W95 FAT32"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2442
+msgctxt "part-type"
+msgid "Hidden W95 FAT32 (LBA)"
+msgstr "Skrytý W95 FAT32 (LBA)"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2443
+msgctxt "part-type"
+msgid "Hidden W95 FAT16 (LBA)"
+msgstr "Skrytý W95 FAT16 (LBA)"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2444
+msgctxt "part-type"
+msgid "OPUS"
+msgstr "OPUS"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2445
+msgctxt "part-type"
+msgid "Compaq diagnostics"
+msgstr "Diagnostika Compaq"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2446
+msgctxt "part-type"
+msgid "PartitionMagic"
+msgstr "PartitionMagic"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2447
+msgctxt "part-type"
+msgid "Minix"
+msgstr "Minix"
+
+#. cf. http://en.wikipedia.org/wiki/MINIX_file_system
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2448 udisks/udisksclient.c:2449
+msgctxt "part-type"
+msgid "Hibernation"
+msgstr "Uspávací oddíl"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2450
+msgctxt "part-type"
+msgid "FreeBSD"
+msgstr "FreeBSD"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2451
+msgctxt "part-type"
+msgid "OpenBSD"
+msgstr "OpenBSD"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2452 udisks/udisksclient.c:2453
+msgctxt "part-type"
+msgid "Mac OS X"
+msgstr "macOS"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2454
+msgctxt "part-type"
+msgid "Solaris boot"
+msgstr "Zavaděč Solaris"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2455
+msgctxt "part-type"
+msgid "Solaris"
+msgstr "Solaris"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2456
+msgctxt "part-type"
+msgid "BeOS BFS"
+msgstr "BeOS BFS"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2457
+msgctxt "part-type"
+msgid "SkyOS SkyFS"
+msgstr "SkyOS SkyFS"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2600
+msgctxt "job"
+msgid "SMART self-test"
+msgstr "Test SMART"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2601
+msgctxt "job"
+msgid "Ejecting Medium"
+msgstr "Vysouvání média"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2602
+msgctxt "job"
+msgid "Unlocking Device"
+msgstr "Odemykání zařízení"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2603
+msgctxt "job"
+msgid "Locking Device"
+msgstr "Zamykání zařízení"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2604
+msgctxt "job"
+msgid "Modifying Encrypted Device"
+msgstr "Upravování šifrovaného zařízení"
+
+#: udisks/udisksclient.c:2605
+msgctxt "job"
+msgid "Resizing Encrypted Device"
+msgstr "Změna velikosti šifrovaného zařízení"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2606
+msgctxt "job"
+msgid "Starting Swap Device"
+msgstr "Spuštění odkládacího zařízení"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2607
+msgctxt "job"
+msgid "Stopping Swap Device"
+msgstr "Zastavení odkládacího zařízení"
+
+#: udisks/udisksclient.c:2608
+msgctxt "job"
+msgid "Modifying Swap Device"
+msgstr "Upravení odkládacího zařízení"
+
+#: udisks/udisksclient.c:2609
+msgctxt "job"
+msgid "Checking Filesystem"
+msgstr "Kontrolování souborového systému"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2610
+msgctxt "job"
+msgid "Mounting Filesystem"
+msgstr "Připojování souborového systému"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2611
+msgctxt "job"
+msgid "Unmounting Filesystem"
+msgstr "Odpojování souborového systému"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2612
+msgctxt "job"
+msgid "Modifying Filesystem"
+msgstr "Upravování souborového systému"
+
+#: udisks/udisksclient.c:2613
+msgctxt "job"
+msgid "Repairing Filesystem"
+msgstr "Oprava souborového systému"
+
+#: udisks/udisksclient.c:2614
+msgctxt "job"
+msgid "Resizing Filesystem"
+msgstr "Měnění velikosti souborového systému"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2615
+msgctxt "job"
+msgid "Erasing Device"
+msgstr "Vymazání zařízení"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2616
+msgctxt "job"
+msgid "Creating Filesystem"
+msgstr "Vytváření souborového systému"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2617
+msgctxt "job"
+msgid "Setting Up Loop Device"
+msgstr "Vytvářím loop zařízení"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2618
+msgctxt "job"
+msgid "Modifying Partition"
+msgstr "Upravování oddílu"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2619
+msgctxt "job"
+msgid "Deleting Partition"
+msgstr "Mazání oddílu"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2620
+msgctxt "job"
+msgid "Creating Partition"
+msgstr "Vytváření oddílu"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2621
+msgctxt "job"
+msgid "Cleaning Up"
+msgstr "Čištění"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2622
+msgctxt "job"
+msgid "ATA Secure Erase"
+msgstr "Bezpečné smazání ATA"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2623
+msgctxt "job"
+msgid "ATA Enhanced Secure Erase"
+msgstr "Vylepšené bezpečné mazání ATA"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2624
+msgctxt "job"
+msgid "Stopping RAID Array"
+msgstr "Zastavení pole RAID"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2625
+msgctxt "job"
+msgid "Starting RAID Array"
+msgstr "Spouštění pole RAID"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2626
+msgctxt "job"
+msgid "Marking Device as Faulty"
+msgstr "Označení zařízení jako vadné"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2627
+msgctxt "job"
+msgid "Removing Device from Array"
+msgstr "Odstranění zařízení z pole"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2628
+msgctxt "job"
+msgid "Adding Device to Array"
+msgstr "Přidávání zařízení do pole"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2629
+msgctxt "job"
+msgid "Setting Write-Intent Bitmap"
+msgstr "Nastavení Bitmapy se záměrem zápisu"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2630
+msgctxt "job"
+msgid "Creating RAID Array"
+msgstr "Vytváření pole RAID"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksclient.c:2637
+#, c-format
+msgctxt "unknown-job"
+msgid "Unknown (%s)"
+msgstr "Neznámý (%s)"
+
+#. Translators: 'Thumb' here refers to "USB thumb drive", see
+#. http://en.wikipedia.org/wiki/Thumb_drive
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:162
+msgctxt "media-type"
+msgid "Thumb"
+msgstr "USB Flash"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:164
+msgctxt "media-type"
+msgid "Floppy"
+msgstr "Disketa"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:165
+msgctxt "media-type"
+msgid "Zip"
+msgstr "Zip"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:166
+msgctxt "media-type"
+msgid "Jaz"
+msgstr "Jaz"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:168
+msgctxt "media-type"
+msgid "Flash"
+msgstr "Flash"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:169
+msgctxt "media-type"
+msgid "MemoryStick"
+msgstr "MemoryStick"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:170
+msgctxt "media-type"
+msgid "SmartMedia"
+msgstr "SmartMedia"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:171
+msgctxt "media-type"
+msgid "CompactFlash"
+msgstr "CompactFlash"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:172
+msgctxt "media-type"
+msgid "MMC"
+msgstr "MMC"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:172 udisks/udisksobjectinfo.c:173
+#: udisks/udisksobjectinfo.c:174 udisks/udisksobjectinfo.c:175
+msgctxt "media-type"
+msgid "SD"
+msgstr "SD"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:174
+msgctxt "media-type"
+msgid "SDXC"
+msgstr "SDXC"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:175
+msgctxt "media-type"
+msgid "SDHC"
+msgstr "SDHC"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:177
+msgctxt "media-type"
+msgid "CD-ROM"
+msgstr "CD-ROM"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:177 udisks/udisksobjectinfo.c:178
+#: udisks/udisksobjectinfo.c:179 udisks/udisksobjectinfo.c:194
+#: udisks/udisksobjectinfo.c:195 udisks/udisksobjectinfo.c:196
+msgctxt "media-type"
+msgid "CD"
+msgstr "CD"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:178
+msgctxt "media-type"
+msgid "CD-R"
+msgstr "CD-R"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:179
+msgctxt "media-type"
+msgid "CD-RW"
+msgstr "CD-RW"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:180 udisks/udisksobjectinfo.c:181
+#: udisks/udisksobjectinfo.c:182 udisks/udisksobjectinfo.c:183
+#: udisks/udisksobjectinfo.c:184 udisks/udisksobjectinfo.c:185
+#: udisks/udisksobjectinfo.c:186 udisks/udisksobjectinfo.c:187
+msgctxt "media-type"
+msgid "DVD"
+msgstr "DVD"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:181
+msgctxt "media-type"
+msgid "DVD-R"
+msgstr "DVD-R"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:182
+msgctxt "media-type"
+msgid "DVD-RW"
+msgstr "DVD-RW"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:183
+msgctxt "media-type"
+msgid "DVD-RAM"
+msgstr "DVD-RAM"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:184
+msgctxt "media-type"
+msgid "DVD+R"
+msgstr "DVD+R"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:185
+msgctxt "media-type"
+msgid "DVD+RW"
+msgstr "DVD+RW"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:186
+msgctxt "media-type"
+msgid "DVD+R DL"
+msgstr "DVD+R DL"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:187
+msgctxt "media-type"
+msgid "DVD+RW DL"
+msgstr "DVD+RW DL"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:188
+msgctxt "media-type"
+msgid "BD-ROM"
+msgstr "BD-ROM"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:188 udisks/udisksobjectinfo.c:189
+#: udisks/udisksobjectinfo.c:190
+msgctxt "media-type"
+msgid "Blu-Ray"
+msgstr "Blu-Ray"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:189
+msgctxt "media-type"
+msgid "BD-R"
+msgstr "BD-R"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:190
+msgctxt "media-type"
+msgid "BD-RE"
+msgstr "BD-RE"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:191 udisks/udisksobjectinfo.c:192
+#: udisks/udisksobjectinfo.c:193
+msgctxt "media-type"
+msgid "HDDVD"
+msgstr "HDDVD"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:192
+msgctxt "media-type"
+msgid "HDDVD-R"
+msgstr "HDDVD-R"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:193
+msgctxt "media-type"
+msgid "HDDVD-RW"
+msgstr "HDDVD-RW"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:194
+msgctxt "media-type"
+msgid "MO"
+msgstr "MO"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:195
+msgctxt "media-type"
+msgid "MRW"
+msgstr "MRW"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:196
+msgctxt "media-type"
+msgid "MRW-W"
+msgstr "MRW-W"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:252
+#, c-format
+msgid "%s Block Device"
+msgstr "%s Blokové zařízení"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:256
+msgid "Block Device"
+msgstr "Blokové zařízení"
+
+#. Translators: Used to describe a partition of a block device.
+#. *              The %u is the partition number.
+#. *              The %s is the description for the block device (e.g. "5 GB
+#. Block Device").
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:265
+#, c-format
+msgctxt "part-block"
+msgid "Partition %u of %s"
+msgstr "Oddíl %u z %s"
+
+#. Translators: String used for one-liner description of a block device.
+#. *              The first %s is the description of the object (e.g. "50 GB
+#. Block Device").
+#. *              The second %s is the special device file (e.g. "/dev/sda2").
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:275
+#, c-format
+msgctxt "one-liner-block"
+msgid "%s (%s)"
+msgstr "%s (%s)"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:308
+#, c-format
+msgid "%s Loop Device"
+msgstr "%s Loop zařízení"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:312
+msgid "Loop Device"
+msgstr "Loop zařízení"
+
+#. Translators: Used to describe a partition of a loop device.
+#. *              The %u is the partition number.
+#. *              The %s is the description for the loop device (e.g. "5 GB
+#. Loop Device").
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:321
+#, c-format
+msgctxt "part-loop"
+msgid "Partition %u of %s"
+msgstr "Oddíl %u z %s"
+
+#. Translators: String used for one-liner description of a loop device.
+#. *              The first %s is the description of the object (e.g. "2 GB
+#. Loop Device").
+#. *              The second %s is the name of the backing file (e.g.
+#. "/home/davidz/file.iso").
+#. *              The third %s is the special device file (e.g. "/dev/loop2").
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:332
+#, c-format
+msgctxt "one-liner-loop"
+msgid "%s — %s (%s)"
+msgstr "%s — %s (%s)"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:352
+msgctxt "mdraid-desc"
+msgid "RAID-0 Array"
+msgstr "Pole RAID-0"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:354
+msgctxt "mdraid-desc"
+msgid "RAID-1 Array"
+msgstr "Pole RAID-1"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:356
+msgctxt "mdraid-desc"
+msgid "RAID-4 Array"
+msgstr "Pole RAID-4"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:358
+msgctxt "mdraid-desc"
+msgid "RAID-5 Array"
+msgstr "Pole RAID-5"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:360
+msgctxt "mdraid-desc"
+msgid "RAID-6 Array"
+msgstr "Pole RAID-6"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:362
+msgctxt "mdraid-desc"
+msgid "RAID-10 Array"
+msgstr "Pole RAID-10"
+
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:364
+msgctxt "mdraid-desc"
+msgid "RAID Array"
+msgstr "Pole RAID"
+
+#. Translators: Used to format the description for a RAID array.
+#. *              The first %s is the size (e.g. '42.0 GB').
+#. *              The second %s is the level (e.g. 'RAID-5 Array').
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:404
+#, c-format
+msgctxt "mdraid-desc"
+msgid "%s %s"
+msgstr "%s %s"
+
+#. Translators: Used to describe a partition of a RAID Array.
+#. *              The %u is the partition number.
+#. *              The %s is the description for the drive (e.g. "2 TB
+#. RAID-5").
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:419
+#, c-format
+msgctxt "part-raid"
+msgid "Partition %u of %s"
+msgstr "Oddíl %u z %s"
+
+#. Translators: String used for one-liner description of running RAID array.
+#. *              The first %s is the array name (e.g. "AlphaGo").
+#. *              The second %s is the size and level (e.g. "2 TB RAID-5").
+#. *              The third %s is the special device file (e.g. "/dev/sda").
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:434
+#, c-format
+msgctxt "one-liner-mdraid-running"
+msgid "%s — %s (%s)"
+msgstr "%s — %s (%s)"
+
+#. Translators: String used for one-liner description of non-running RAID
+#. array.
+#. *              The first %s is the array name (e.g. "AlphaGo").
+#. *              The second %s is the size and level (e.g. "2 TB RAID-5").
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:445
+#, c-format
+msgctxt "one-liner-mdraid-not-running"
+msgid "%s — %s"
+msgstr "%s — %s"
+
+#. Translators: String used for one-liner description of running RAID array
+#. w/o a name.
+#. *              The first %s is the array name (e.g. "AlphaGo").
+#. *              The second %s is the size and level (e.g. "2 TB RAID-5").
+#. *              The third %s is the special device file (e.g. "/dev/sda").
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:459
+#, c-format
+msgctxt "one-liner-mdraid-no-name-running"
+msgid "%s — %s"
+msgstr "%s — %s"
+
+#. Translators: String used for one-liner description of non-running RAID
+#. array w/o a name.
+#. *              The first %s is the array name (e.g. "AlphaGo").
+#. *              The second %s is the size and level (e.g. "2 TB RAID-5").
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:469
+#, c-format
+msgctxt "one-liner-mdraid-no-name-not-running"
+msgid "%s"
+msgstr "%s"
+
+#. Translators: Used to describe drive without removable media. The %s is the
+#. type, e.g. 'Thumb'
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:597
+#, c-format
+msgctxt "drive-with-fixed-media"
+msgid "%s Drive"
+msgstr "Disk %s"
+
+#. Translators: Used to describe generic media. The %s is the type, e.g. 'Zip'
+#. or 'Floppy'
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:601
+#, c-format
+msgctxt "drive-with-generic-media"
+msgid "%s Disk"
+msgstr "Disk typu %s"
+
+#. Translators: Used to describe flash media. The %s is the type, e.g. 'SD' or
+#. 'CompactFlash'
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:605
+#, c-format
+msgctxt "flash-media"
+msgid "%s Card"
+msgstr "Karta %s"
+
+#. Translators: Used to describe optical discs. The %s is the type, e.g.
+#. 'CD-R' or 'DVD-ROM'
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:609
+#, c-format
+msgctxt "optical-media"
+msgid "%s Disc"
+msgstr "Disk %s"
+
+#. Translators: Used to describe a drive. The %s is the size, e.g. '20 GB'
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:629
+#, c-format
+msgctxt "drive-with-size"
+msgid "%s Drive"
+msgstr "Mechanika %s"
+
+#. Translators: Used to describe a drive we know very little about (removable
+#. media or size not known)
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:634
+msgctxt "generic-drive"
+msgid "Drive"
+msgstr "Mechanika"
+
+#. Translators: Used to describe a non-rotating drive (rotation rate either
+#. unknown
+#. * or it's a solid-state drive). The %s is the size, e.g. '20 GB'.
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:645
+#, c-format
+msgctxt "disk-non-rotational"
+msgid "%s Disk"
+msgstr "Disk %s"
+
+#. Translators: Used to describe a non-rotating drive (rotation rate either
+#. unknown
+#. * or it's a solid-state drive). The drive is either using removable media
+#. or its
+#. * size not known.
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:652
+msgctxt "disk-non-rotational"
+msgid "Disk"
+msgstr "Disk"
+
+#. Translators: Used to describe a hard-disk drive (HDD). The %s is the size,
+#. e.g. '20 GB'.
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:660
+#, c-format
+msgctxt "disk-hdd"
+msgid "%s Hard Disk"
+msgstr "Pevný disk %s"
+
+#. Translators: Used to describe a hard-disk drive (HDD) (removable media or
+#. size not known)
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:665
+msgctxt "disk-hdd"
+msgid "Hard Disk"
+msgstr "Pevný disk"
+
+#. Translators: Used to describe a card reader. The %s is the card type e.g.
+#. 'CompactFlash'.
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:673
+#, c-format
+msgctxt "drive-card-reader"
+msgid "%s Card Reader"
+msgstr "Čtečka karet %s"
+
+#. Translators: Used to describe drive. The first %s is the size e.g. '20 GB'
+#. and the
+#. * second %s is the drive type e.g. 'Thumb'.
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:684
+#, c-format
+msgctxt "drive-with-size-and-type"
+msgid "%s %s Drive"
+msgstr "Disk %s %s"
+
+#. Translators: Used to describe drive. The first %s is the drive type e.g.
+#. 'Thumb'.
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:690
+#, c-format
+msgctxt "drive-with-type"
+msgid "%s Drive"
+msgstr "Disk %s"
+
+#. Translators: String used for a blank disc. The %s is the disc type e.g.
+#. "CD-RW Disc"
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:769
+#, c-format
+msgctxt "optical-media"
+msgid "Blank %s"
+msgstr "Prázdný %s"
+
+#. Translators: String used for a mixed disc. The %s is the disc type e.g.
+#. "CD-ROM Disc"
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:777
+#, c-format
+msgctxt "optical-media"
+msgid "Mixed %s"
+msgstr "Mixovaný %s"
+
+#. Translators: String used for an audio disc. The %s is the disc type e.g.
+#. "CD-ROM Disc"
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:785
+#, c-format
+msgctxt "optical-media"
+msgid "Audio %s"
+msgstr "Zvukový %s"
+
+#. Translators: Used to describe a partition of a drive.
+#. *              The %u is the partition number.
+#. *              The %s is the description for the drive (e.g. "2 GB Thumb
+#. Drive").
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:838
+#, c-format
+msgctxt "part-drive"
+msgid "Partition %u of %s"
+msgstr "Oddíl %u z %s"
+
+#. Translators: String used for one-liner description of drive.
+#. *              The first %s is the description of the object (e.g. "80 GB
+#. Disk" or "Partition 2 of 2 GB Thumb Drive").
+#. *              The second %s is the name of the object (e.g. "INTEL
+#. SSDSA2MH080G1GC").
+#. *              The third %s is the fw revision (e.g "45ABX21").
+#. *              The fourth %s is the special device file (e.g. "/dev/sda").
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:856
+#, c-format
+msgctxt "one-liner-drive"
+msgid "%s — %s [%s] (%s)"
+msgstr "%s — %s [%s] (%s)"
+
+#. Translators: String used for one-liner description of drive w/o known fw
+#. revision.
+#. *              The first %s is the description of the object (e.g. "80 GB
+#. Disk").
+#. *              The second %s is the name of the object (e.g. "INTEL
+#. SSDSA2MH080G1GC").
+#. *              The third %s is the special device file (e.g. "/dev/sda").
+# auto translated by TM merge from project: storaged, version: storaged,
+# DocId: storaged
+#: udisks/udisksobjectinfo.c:869
+#, c-format
+msgctxt "one-liner-drive"
+msgid "%s — %s (%s)"
+msgstr "%s — %s (%s)"

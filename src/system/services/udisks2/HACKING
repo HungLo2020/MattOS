@@ -1,0 +1,115 @@
+CODING STYLE
+============
+
+ - Please follow the coding style already used (which is close to the
+   GNU style) - if adding new files please include the following mode
+   line for emacs and other editors:
+
+   -*- mode: C; c-file-style: "gnu"; indent-tabs-mode: nil; -*-
+
+ - Spaces, not tabs, are used.
+
+ - All external interfaces (network protocols, file formats, etc.)
+   should be documented in man pages or other documentation.
+
+
+SOURCE CONTROL
+==============
+
+Anonymous checkouts:
+
+  $ git clone git@github.com:storaged-project/udisks.git
+
+MAKING RELEASES
+===============
+
+Checklist for making a release:
+
+ - Update the NEWS file
+
+ - Update the AUTHORS file if we have any new authors since last release.  The
+   git command `git shortlog -se` helps.
+
+ - Check that everything works
+   - Run 'make check' and 'make ci'
+   - Check that you have no uncommitted or unpushed changes
+   - Check there are no glaring TODO or FIXME
+   - Sanity-check all new API
+   - Ensure newly added API is marked properly with "Since: X.Y"
+   - Ensure that deprecated API is marked as such
+
+ - Tag the release: git tag udisks-X.Y.Z
+
+ - Post-release actions:
+   - Bump the version in configure.in and packaging/udisks2.spec
+   - Prepare NEWS file - append " (unreleased)" to version number
+     - Commit message: Post-release version bump to X.Y.Z
+
+ - Upload new documentation to storaged.org website
+   - https://github.com/storaged-project/storaged-project.github.io
+   - Create new folder X.Y.Z in "doc/udisks2-api/" and update the "latest" symlink
+   - Add link to the new version to "doc/udisks2-api/index.html"
+
+When doing the first micro release in a new minor series (for example
+starting the 2.0.0, 2.1.0, 2.2.0 etc. series), do the following
+
+ - Update the date in man pages to "$MONTH $YEAR" e.g. "October 2012"
+
+ - At some point after the release, create the udisks-X-Y branch
+   - Perform the post-release actions above on the created branch
+   - This is for maintenance releases
+   - Do this when focus is on new feature development
+   - Then bump version on master to X.Y.90 (prereleases for X.Y+1.0)
+   - Add "Index of new symbols in X.Y+1" index to doc/udisks2-docs.xml
+
+For maintenance releases, the rules are simple
+
+ - Work on the udisks-X-Y branch
+ - If possible, cherry-pick fixes from master ('git cherry-pick')
+ - Do not add (or backport) any new API or features
+ - Do not add, remove or change any translatable strings
+ - Do not add new dependencies
+
+TRANSLATIONS
+============
+
+- Don't use VPATH build (To be fixed)
+
+- Some weeks before the planned release announce the upcoming release
+  on the GNOME Discourse in the Applications category with the i18n tag
+  https://discourse.gnome.org/
+
+- Check that Github -> Damned Lies synchronization works and that new strings
+  show up on the l10n module page: https://l10n.gnome.org/module/udisks/
+
+- Check that recent commits to the po/ directory done by the GNOME
+  Infrastructure Automation Bot (@gnomesysadmins) reflect the translation
+  status on the l10n page
+
+COMMITTING CODE
+===============
+
+ - Commit messages should be of the form (the five lines between the
+   lines starting with ===)
+
+=== begin example commit ===
+Short explanation of the commit
+
+Longer explanation explaining exactly what's changed, whether any
+external or private interfaces changed, what bugs were fixed (with bug
+tracker reference if applicable) and so forth. Be concise but not too brief.
+=== end example commit ===
+
+ - Always add a brief description of the commit to the _first_ line of
+   the commit and terminate by two newlines (it will work without the
+   second newline, but that is not nice for the interfaces).
+
+ - First line (the brief description) must only be one sentence and
+   must start with a capital letter. Don't use a trailing period.
+
+ - The main description (the body) is normal prose and should use normal
+   punctuation and capital letters where appropriate. Normally, for patches
+   sent to a mailing list it's copied from there.
+
+ - When committing code on behalf of others use the --author option, e.g.
+   git commit -a --author "Joe Coder <joe@coder.org>"

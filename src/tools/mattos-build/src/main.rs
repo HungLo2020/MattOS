@@ -1490,6 +1490,7 @@ include!("stages/graphics.rs");
 include!("stages/qt.rs");
 include!("stages/kde_foundation.rs");
 include!("stages/plasma.rs");
+include!("stages/plasma_apps.rs");
 include!("stages/desktop.rs");
 include!("stages/flatpak.rs");
 include!("stages/system_services.rs");
@@ -1509,319 +1510,6 @@ fn stage_output_file(source: &Path, destination: &Path, mode: u32) -> Result<()>
     fs::copy(source, destination)
         .with_context(|| format!("failed to stage {}", source.display()))?;
     set_mode(destination.to_path_buf(), mode)
-}
-
-fn copy_file_preserving(source: &Path, destination: &Path) -> Result<()> {
-    if let Some(parent) = destination.parent() {
-        fs::create_dir_all(parent)?;
-    }
-    fs::copy(source, destination)?;
-    let permissions = fs::metadata(source)?.permissions();
-    fs::set_permissions(destination, permissions)?;
-    Ok(())
-}
-
-#[allow(dead_code)]
-fn build_cosmic_desktop_legacy(repo_root: &Path) -> Result<()> {
-    const JUST_COMPONENTS: &[&str] = &[
-        "cosmic-session",
-        "cosmic-greeter",
-        "cosmic-panel",
-        "cosmic-applets",
-        "cosmic-applibrary",
-        "cosmic-launcher",
-        "cosmic-settings",
-        "cosmic-notifications",
-        "cosmic-osd",
-        "cosmic-bg",
-        "cosmic-files",
-        "cosmic-term",
-        "cosmic-randr",
-        "cosmic-screenshot",
-        "pop-launcher",
-    ];
-    const MAKE_COMPONENTS: &[&str] = &["cosmic-settings-daemon", "cosmic-workspaces"];
-
-    let out_root = repo_root.join("out/build/cosmic-desktop");
-    let sources = out_root.join("sources");
-    let install = out_root.join("install");
-    remove_path_if_exists(&install)?;
-    fs::create_dir_all(&sources)?;
-    fs::create_dir_all(&install)?;
-
-    // Upstream COSMIC uses `just` as its install/build recipe runner.  Keep
-    // this build-only Rust dependency output-owned instead of requiring an
-    // untracked host executable.
-    let just_root = repo_root.join("out/tools/cosmic-just");
-    let just = just_root.join("bin/just");
-    if !just.is_file() {
-        fs::create_dir_all(&just_root)?;
-        let root_arg = format!("--root={}", just_root.display());
-        run_cmd_with_env_overrides(
-            repo_root,
-            "cargo",
-            &[
-                "install",
-                "just",
-                "--version",
-                "1.40.0",
-                "--locked",
-                root_arg.as_str(),
-            ],
-            &[("CARGO_BUILD_JOBS", "4".to_string())],
-        )?;
-    }
-    let just_program = just
-        .to_str()
-        .ok_or_else(|| anyhow!("non-UTF-8 output-owned just path"))?;
-
-    let native_components = [
-        "glibc",
-        "gcc-runtime",
-        "openssl",
-        "zlib",
-        "zstd",
-        "wayland",
-        "xkbcommon",
-        "mesa",
-        "libdrm",
-        "libinput",
-        "systemd",
-        "dbus",
-        "dbus-broker",
-        "dav1d",
-        "glib",
-        "pipewire",
-    ];
-    let native = staged_library_environment(repo_root, &native_components)?;
-    let mut common_env = native;
-    let inherited_path = common_env
-        .iter()
-        .find_map(|(key, value)| (*key == "PATH").then_some(value.as_str()))
-        .unwrap_or_default();
-    let tool_path = std::env::join_paths(
-        std::iter::once(just_root.join("bin")).chain(std::env::split_paths(inherited_path)),
-    )?
-    .to_string_lossy()
-    .to_string();
-    if let Some((_, value)) = common_env.iter_mut().find(|(key, _)| *key == "PATH") {
-        *value = tool_path;
-    }
-    common_env.push(("CARGO_BUILD_JOBS", "4".to_string()));
-    common_env.push(("CARGO_INCREMENTAL", "0".to_string()));
-    // All COSMIC applications use the same pinned libcosmic stack. Sharing
-    // Cargo's output-owned target cache avoids rebuilding that dependency
-    // graph independently for every upstream workspace; builds remain
-    // sequential here, so Cargo never has concurrent writers to the cache.
-    common_env.push((
-        "CARGO_TARGET_DIR",
-        out_root.join("cargo-target").display().to_string(),
-    ));
-    common_env.push(("RUSTFLAGS", cosmic_source_remap_flags(repo_root)));
-    // Distribution binaries do not need every COSMIC application to perform
-    // a separate whole-program ThinLTO pass. This materially reduces peak
-    // link memory and wall time without changing enabled functionality.
-    common_env.push(("CARGO_PROFILE_RELEASE_LTO", "false".to_string()));
-    common_env.push(("CARGO_PROFILE_RELEASE_CODEGEN_UNITS", "4".to_string()));
-    common_env.push(("DESTDIR", install.display().to_string()));
-
-    for component in JUST_COMPONENTS {
-        let source = repo_root.join("src/desktop/cosmic").join(component);
-        let mirror = sources.join(component);
-        sync_build_source(&source, &mirror)?;
-        isolate_cargo_build_mirror(&mirror)?;
-        // cosmic-launcher and cosmic-notifications derive their profile name
-        // from env!("OUT_DIR").  Besides being unnecessary for a fixed
-        // distribution release build, that embeds Cargo's absolute output
-        // directory in the ELF payload.  Patch only the output-owned mirror;
-        // the authoritative pinned upstream sources remain untouched.
-        if matches!(*component, "cosmic-launcher" | "cosmic-notifications") {
-            let config = mirror.join("src/config.rs");
-            let original = fs::read_to_string(&config)?;
-            let profile_helper = r#"pub fn profile() -> &'static str {
-    std::env!("OUT_DIR")
-        .split(std::path::MAIN_SEPARATOR)
-        .nth_back(3)
-        .unwrap_or("unknown")
-}"#;
-            if !original.contains(profile_helper) {
-                bail!(
-                    "{} no longer contains the expected OUT_DIR profile helper",
-                    config.display()
-                );
-            }
-            fs::write(
-                &config,
-                original.replace(
-                    profile_helper,
-                    "pub fn profile() -> &'static str {\n    \"release\"\n}",
-                ),
-            )?;
-        }
-        run_cmd_with_env_overrides(
-            &mirror,
-            just_program,
-            &["build-release", "--locked"],
-            &common_env,
-        )?;
-        let rootdir = format!("rootdir={}", install.display());
-        let pop_launcher_target_dir = common_env
-            .iter()
-            .find(|(key, _)| *key == "CARGO_TARGET_DIR")
-            .map(|(_, value)| format!("target-dir={}/release", value));
-        let install_args = if *component == "pop-launcher" {
-            let mut args = vec![rootdir.as_str(), "install"];
-            if let Some(target_dir) = pop_launcher_target_dir.as_deref() {
-                args.insert(0, target_dir);
-            }
-            args
-        } else {
-            vec![rootdir.as_str(), "prefix=/usr", "install"]
-        };
-        run_cmd_with_env_overrides(&mirror, just_program, &install_args, &common_env)?;
-    }
-
-    for component in MAKE_COMPONENTS {
-        let source = repo_root.join("src/desktop/cosmic").join(component);
-        let mirror = sources.join(component);
-        sync_build_source(&source, &mirror)?;
-        isolate_cargo_build_mirror(&mirror)?;
-        let target = out_root.join("cargo-target");
-        let mut env = common_env.clone();
-        env.push(("CARGO_TARGET_DIR", target.display().to_string()));
-        run_cmd_with_env_overrides(&mirror, "make", &["-j4"], &env)?;
-        let destdir = format!("DESTDIR={}", install.display());
-        run_cmd_with_env_overrides(
-            &mirror,
-            "make",
-            &[destdir.as_str(), "prefix=/usr", "install"],
-            &env,
-        )?;
-    }
-
-    // The portal uses just for installation but names its build recipe
-    // `build`, not the `build-release` convention used by the applications.
-    // Invoke Cargo explicitly so the checked-in lockfile remains mandatory.
-    let portal_component = "xdg-desktop-portal-cosmic";
-    let portal = sources.join(portal_component);
-    sync_build_source(
-        &repo_root.join("src/desktop/cosmic").join(portal_component),
-        &portal,
-    )?;
-    isolate_cargo_build_mirror(&portal)?;
-    let portal_target = out_root.join("cargo-target");
-    let mut portal_env = common_env.clone();
-    portal_env.push(("CARGO_TARGET_DIR", portal_target.display().to_string()));
-    run_cmd_with_env_overrides(
-        &portal,
-        "cargo",
-        &[
-            "build",
-            "--release",
-            "--locked",
-            "--bin",
-            "xdg-desktop-portal-cosmic",
-        ],
-        &portal_env,
-    )?;
-    let portal_rootdir = format!("rootdir={}", install.display());
-    run_cmd_with_env_overrides(
-        &portal,
-        just_program,
-        &[portal_rootdir.as_str(), "prefix=/usr", "install"],
-        &portal_env,
-    )?;
-
-    let icons = sources.join("cosmic-icons");
-    sync_build_source(&repo_root.join("src/desktop/cosmic/cosmic-icons"), &icons)?;
-    let icons_rootdir = format!("rootdir={}", install.display());
-    run_cmd_with_env_overrides(
-        &icons,
-        just_program,
-        &[icons_rootdir.as_str(), "prefix=/usr", "install"],
-        &common_env,
-    )?;
-    // COSMIC does not ship a cursor set of its own.  Use the source-owned Pop
-    // cursor theme that upstream COSMIC distributions pair with the desktop.
-    copy_tree_contents(
-        &repo_root.join("src/desktop/themes/pop-icon-theme/Pop/cursors"),
-        &install.join("usr/share/icons/Pop/cursors"),
-    )?;
-    for metadata in ["index.theme", "cursor.theme"] {
-        let source = repo_root
-            .join("src/desktop/themes/pop-icon-theme/Pop")
-            .join(metadata);
-        if source.is_file() {
-            let destination = install.join("usr/share/icons/Pop").join(metadata);
-            fs::create_dir_all(destination.parent().expect("Pop theme parent"))?;
-            fs::copy(&source, destination)?;
-        }
-    }
-    // Match libcosmic's source defaults instead of relying on host font
-    // discovery. Open Sans is the interface family and Noto Sans Mono is
-    // required by cosmic-term; Pop's Fira families provide a broad fallback.
-    copy_tree_contents(
-        &repo_root.join("src/desktop/fonts/open-sans/fonts/ttf"),
-        &install.join("usr/share/fonts/truetype/open-sans"),
-    )?;
-    copy_tree_contents(
-        &repo_root.join("src/desktop/fonts/noto-sans-mono"),
-        &install.join("usr/share/fonts/truetype/noto"),
-    )?;
-    copy_tree_contents(
-        &repo_root.join("src/desktop/fonts/pop-fonts/fira"),
-        &install.join("usr/share/fonts/opentype/fira"),
-    )?;
-
-    let greetd = sources.join("greetd");
-    sync_build_source(&repo_root.join("src/system/session/greetd"), &greetd)?;
-    isolate_cargo_build_mirror(&greetd)?;
-    let greetd_target = greetd.join("target");
-    let mut greetd_env = common_env.clone();
-    greetd_env.push(("CARGO_TARGET_DIR", greetd_target.display().to_string()));
-    run_cmd_with_env_overrides(
-        &greetd,
-        "cargo",
-        &[
-            "build",
-            "--locked",
-            "--release",
-            "-p",
-            "greetd",
-            "-p",
-            "agreety",
-        ],
-        &greetd_env,
-    )?;
-    for binary in ["greetd", "agreety"] {
-        let destination = install.join("usr/bin").join(binary);
-        fs::create_dir_all(destination.parent().expect("greetd bin parent"))?;
-        fs::copy(greetd_target.join("release").join(binary), &destination)?;
-        set_mode(destination, 0o755)?;
-    }
-
-    for required in [
-        "usr/bin/cosmic-session",
-        "usr/bin/cosmic-panel",
-        "usr/bin/cosmic-launcher",
-        "usr/bin/cosmic-settings-daemon",
-        "usr/bin/cosmic-notifications",
-        "usr/bin/cosmic-osd",
-        "usr/bin/cosmic-bg",
-        "usr/bin/cosmic-workspaces",
-        "usr/bin/cosmic-files",
-        "usr/bin/cosmic-term",
-        "usr/bin/cosmic-ext-tweaks",
-        "usr/bin/greetd",
-        "usr/share/wayland-sessions/cosmic.desktop",
-        "usr/share/fonts/truetype/open-sans/OpenSans-Regular.ttf",
-        "usr/share/fonts/truetype/noto/NotoSansMono[wdth,wght].ttf",
-    ] {
-        if !install.join(required).is_file() {
-            bail!("COSMIC desktop build did not install /{required}");
-        }
-    }
-    Ok(())
 }
 
 include!("stages/helpers/cargo.rs");
@@ -1951,34 +1639,51 @@ mod tests {
     fn pkgconfig_consumer_overlay_is_repeatable_and_never_rewrites_published_producers() {
         let temporary = tempfile::tempdir().unwrap();
         let root = temporary.path();
-        let autotools = root.join("out/build/autotools-fixture/install/usr/lib/x86_64-linux-gnu/pkgconfig");
+        let autotools =
+            root.join("out/build/autotools-fixture/install/usr/lib/x86_64-linux-gnu/pkgconfig");
         let meson = root.join("out/build/meson-fixture/install/usr/lib/x86_64-linux-gnu/pkgconfig");
         fs::create_dir_all(&autotools).unwrap();
         fs::create_dir_all(&meson).unwrap();
         let autotools_pc = autotools.join("autotools-fixture.pc");
         let meson_pc = meson.join("meson-fixture.pc");
-        fs::write(&autotools_pc, "prefix=/usr\nlibdir=/usr/lib/x86_64-linux-gnu\n").unwrap();
+        fs::write(
+            &autotools_pc,
+            "prefix=/usr\nlibdir=/usr/lib/x86_64-linux-gnu\n",
+        )
+        .unwrap();
         fs::write(&meson_pc, "prefix=/usr\nincludedir=/usr/include\n").unwrap();
         write_pkgconfig_overlay_fixture_manifest(root, "autotools-fixture", "autotools-output");
         write_pkgconfig_overlay_fixture_manifest(root, "meson-fixture", "meson-output");
 
         let sources = vec![
-            ("autotools-fixture".to_string(), "lib".to_string(), autotools.clone()),
-            ("meson-fixture".to_string(), "lib".to_string(), meson.clone()),
+            (
+                "autotools-fixture".to_string(),
+                "lib".to_string(),
+                autotools.clone(),
+            ),
+            (
+                "meson-fixture".to_string(),
+                "lib".to_string(),
+                meson.clone(),
+            ),
         ];
         let before_autotools = fs::read(&autotools_pc).unwrap();
         let before_meson = fs::read(&meson_pc).unwrap();
         let first = staged_pkgconfig_overlay(root, &sources).unwrap();
         let second = staged_pkgconfig_overlay(root, &sources).unwrap();
 
-        assert_eq!(first, second, "identical consumers reuse one immutable overlay");
+        assert_eq!(
+            first, second,
+            "identical consumers reuse one immutable overlay"
+        );
         assert_eq!(fs::read(&autotools_pc).unwrap(), before_autotools);
         assert_eq!(fs::read(&meson_pc).unwrap(), before_meson);
         assert_eq!(
             fs::read_to_string(first[0].join("autotools-fixture.pc")).unwrap(),
             format!(
                 "prefix={}\nlibdir=${{prefix}}/lib/x86_64-linux-gnu\n",
-                root.join("out/build/autotools-fixture/install/usr").display()
+                root.join("out/build/autotools-fixture/install/usr")
+                    .display()
             )
         );
         assert_eq!(
@@ -2155,11 +1860,11 @@ mod tests {
                 format!("-j{jobs}")
             );
             assert_eq!(scheduler_command_args(&["all-gcc"]), ["all-gcc"]);
-        assert_eq!(
-            scheduler_command_args(&["all-target-libgcc"]),
-            ["all-target-libgcc"]
-        );
-    }
+            assert_eq!(
+                scheduler_command_args(&["all-target-libgcc"]),
+                ["all-target-libgcc"]
+            );
+        }
         let source = include_str!("stages/toolchain.rs");
         let prerequisite = source
             .split_once("fn build_static_prerequisite(")
@@ -2215,7 +1920,10 @@ mod tests {
             "resolved_runtime_commit",
             "create-usb",
         ] {
-            assert!(!flatpak.contains(forbidden), "Flatpak still contains Firefox integration: {forbidden}");
+            assert!(
+                !flatpak.contains(forbidden),
+                "Flatpak still contains Firefox integration: {forbidden}"
+            );
         }
         for unit in [
             "mattos-flatpak-system-update.service",
@@ -2223,15 +1931,17 @@ mod tests {
             "mattos-flatpak-user-update.service",
             "mattos-flatpak-user-update.timer",
         ] {
-            let body = fs::read_to_string(
-                root.join("src/system/packages/config/flatpak").join(unit),
-            )
-            .unwrap();
+            let body =
+                fs::read_to_string(root.join("src/system/packages/config/flatpak").join(unit))
+                    .unwrap();
             if unit.ends_with(".timer") {
                 assert!(body.contains("Persistent=true"));
                 assert!(body.contains("RandomizedDelaySec="));
             } else {
-                assert!(body.contains("flatpak"), "update unit {unit} is not Flatpak-backed");
+                assert!(
+                    body.contains("flatpak"),
+                    "update unit {unit} is not Flatpak-backed"
+                );
                 assert!(body.contains("--noninteractive"));
                 assert!(body.contains("--assumeyes"));
             }
@@ -2241,18 +1951,22 @@ mod tests {
     #[test]
     fn flatpak_stage_publishes_the_target_rooted_installer_helper() {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
-        let helper = std::fs::read_to_string(
-            root.join("src/system/installer/flatpak-target-install.c"),
-        )
-        .unwrap();
+        let helper =
+            std::fs::read_to_string(root.join("src/system/installer/flatpak-target-install.c"))
+                .unwrap();
         for required in [
             "flatpak_installation_new_for_path",
             "flatpak_transaction_new_for_installation",
             "flatpak_transaction_add_install",
             "flatpak_transaction_run",
-            "var", "lib", "flatpak",
+            "var",
+            "lib",
+            "flatpak",
         ] {
-            assert!(helper.contains(required), "target-install helper omits {required}");
+            assert!(
+                helper.contains(required),
+                "target-install helper omits {required}"
+            );
         }
         for forbidden in ["/usr/bin/chroot", "resolv.conf", "FLATPAK_SYSTEM_DIR"] {
             assert!(
@@ -2277,7 +1991,10 @@ mod tests {
         let timer = std::fs::read_to_string(resources.join("mattos-apt-daily.timer")).unwrap();
         assert!(service.contains("ExecStart=/usr/bin/apt-get update"));
         for forbidden in ["upgrade", "dist-upgrade", " install"] {
-            assert!(!service.contains(forbidden), "APT metadata service contains {forbidden}");
+            assert!(
+                !service.contains(forbidden),
+                "APT metadata service contains {forbidden}"
+            );
         }
         assert!(service.contains("Wants=network-online.target"));
         assert!(service.contains("After=network-online.target"));
@@ -2288,51 +2005,18 @@ mod tests {
             "RandomizedDelaySec=30min",
             "WantedBy=timers.target",
         ] {
-            assert!(timer.contains(required), "APT metadata timer omits {required}");
+            assert!(
+                timer.contains(required),
+                "APT metadata timer omits {required}"
+            );
         }
     }
 
     #[test]
-    fn memory_intensive_toolchain_and_graphics_stages_are_capped() {
+    fn all_parallel_stages_follow_dynamic_scheduler_grants() {
         for stage in build_plan(BuildStage::All) {
             let expected = if stage == BuildStage::Libcap {
                 scheduler::ChildJobPolicy::Serial
-            } else if matches!(
-                stage,
-                BuildStage::Llvm
-                    | BuildStage::Mesa
-                    | BuildStage::CosmicComp
-                    | BuildStage::CosmicSession
-                    | BuildStage::CosmicGreeter
-                    | BuildStage::CosmicPanel
-                    | BuildStage::CosmicApplets
-                    | BuildStage::CosmicAppLibrary
-                    | BuildStage::CosmicLauncher
-                    | BuildStage::CosmicSettings
-                    | BuildStage::CosmicSettingsDaemon
-                    | BuildStage::CosmicNotifications
-                    | BuildStage::CosmicOsd
-                    | BuildStage::CosmicBg
-                    | BuildStage::CosmicIdle
-                    | BuildStage::CosmicWorkspaces
-                    | BuildStage::CosmicFiles
-                    | BuildStage::CosmicTerm
-                    | BuildStage::CosmicTweaks
-                    | BuildStage::CosmicUtilities
-                    | BuildStage::CosmicRandr
-                    | BuildStage::CosmicScreenshot
-                    | BuildStage::PopLauncher
-                    | BuildStage::CosmicCalculator
-                    | BuildStage::CosmicStorage
-                    | BuildStage::CosmicMonitor
-                    | BuildStage::CosmicStore
-                    | BuildStage::Flatpak
-                    | BuildStage::CosmicPortal
-                    | BuildStage::CosmicInitialSetup
-                    | BuildStage::CosmicEdit
-                    | BuildStage::Greetd
-            ) {
-                scheduler::ChildJobPolicy::Capped(4)
             } else {
                 scheduler::ChildJobPolicy::SchedulerGrant
             };
@@ -2382,37 +2066,9 @@ mod tests {
             ("brush", 262.577),
             ("bzip2", 3.025),
             ("coreutils", 283.164),
-            ("cosmic-comp", 120.000),
-            ("cosmic-initial-setup", 120.000),
-            ("cosmic-edit", 90.000),
             ("cozy", 30.000),
-            ("cosmic-session", 45.000),
-            ("cosmic-greeter", 75.000),
-            ("cosmic-panel", 60.000),
-            ("cosmic-applets", 180.000),
-            ("cosmic-applibrary", 90.000),
-            ("cosmic-launcher", 90.000),
-            ("cosmic-settings", 180.000),
-            ("cosmic-settings-daemon", 90.000),
-            ("cosmic-notifications", 60.000),
-            ("cosmic-osd", 45.000),
-            ("cosmic-bg", 45.000),
-            ("cosmic-idle", 30.000),
-            ("cosmic-workspaces", 60.000),
-            ("cosmic-files", 120.000),
-            ("cosmic-term", 90.000),
-            ("cosmic-tweaks", 90.000),
-            ("cosmic-randr", 45.000),
-            ("cosmic-screenshot", 60.000),
             ("pop-launcher", 60.000),
-            ("cosmic-calculator", 45.000),
-            ("cosmic-storage", 60.000),
-            ("cosmic-monitor", 60.000),
-            ("cosmic-utilities", 120.000),
-            ("cosmic-portal", 60.000),
-            ("cosmic-assets", 5.000),
             ("greetd", 30.000),
-            ("cosmic-desktop", 2.000),
             ("curl", 100.519),
             ("dav1d", 15.000),
             ("dbus", 80.000),
@@ -2426,7 +2082,6 @@ mod tests {
             ("flatpak", 180.000),
             ("bubblewrap", 10.000),
             ("xdg-dbus-proxy", 5.000),
-            ("cosmic-store", 120.000),
             ("fuse3", 20.000),
             ("findutils", 57.703),
             ("gcc-compiler", 647.434),
@@ -2658,7 +2313,10 @@ mod tests {
     fn gstreamer_stage_output_contract_covers_the_complete_packaged_install() {
         for (stage, install) in [
             (BuildStage::Gstreamer, "out/build/gstreamer/install"),
-            (BuildStage::GstreamerBase, "out/build/gstreamer-base/install"),
+            (
+                BuildStage::GstreamerBase,
+                "out/build/gstreamer-base/install",
+            ),
             (
                 BuildStage::XdgDesktopPortal,
                 "out/build/xdg-desktop-portal/install",
@@ -2667,45 +2325,6 @@ mod tests {
             let spec = build_stage_spec(stage);
             assert_eq!(spec.outputs, [PathBuf::from(install)]);
         }
-    }
-
-    #[test]
-    fn cosmic_components_share_one_persistent_serialized_cargo_target() {
-        let root = Path::new("/workspace");
-        assert_eq!(
-            cosmic_shared_target(root),
-            PathBuf::from("/workspace/out/build/cosmic-desktop/target")
-        );
-        assert_eq!(
-            cosmic_shared_target_lock(root),
-            PathBuf::from("/workspace/out/cache/cosmic-cargo-target.lock")
-        );
-
-        for stage in [
-            BuildStage::CosmicSession,
-            BuildStage::CosmicGreeter,
-            BuildStage::CosmicPanel,
-            BuildStage::CosmicApplets,
-            BuildStage::CosmicLauncher,
-            BuildStage::CosmicSettings,
-        ] {
-            let output = &build_stage_spec(stage).outputs[0];
-            assert!(output.starts_with(Path::new("out/build")));
-            assert!(!output.starts_with(Path::new("out/build/cosmic-desktop/install")));
-        }
-    }
-
-    #[test]
-    fn cosmic_cargo_remaps_canonical_and_consumer_sources_to_one_identity() {
-        let flags = cosmic_source_remap_flags(Path::new("/workspace"));
-        assert!(flags.contains(
-            "--remap-path-prefix=/workspace/out/build/cosmic-desktop/sources=/usr/src/mattos/cosmic-sources"
-        ));
-        assert!(flags.contains(
-            "--remap-path-prefix=/workspace/out/source-ownership/sources=/usr/src/mattos/cosmic-sources"
-        ));
-        assert!(flags.contains("--remap-path-prefix=/workspace=/usr/src/mattos"));
-        assert_eq!(flags.matches("/usr/src/mattos/cosmic-sources").count(), 2);
     }
 
     #[test]
@@ -3923,7 +3542,7 @@ mod tests {
             .map(str::trim)
             .filter(|line| line.starts_with("linux "))
             .collect::<Vec<_>>();
-        assert_eq!(linux_lines.len(), 6);
+        assert_eq!(linux_lines.len(), 5);
         assert!(
             linux_lines
                 .iter()
@@ -3931,7 +3550,7 @@ mod tests {
         );
         assert_eq!(
             grub.matches("initrd /boot/early-initramfs.cpio.xz").count(),
-            6
+            5
         );
         for required in ["insmod all_video", "set gfxpayload=keep"] {
             assert!(
@@ -3953,7 +3572,6 @@ mod tests {
         for mode in [
             "mattos.mode=live",
             "mattos.mode=live-cli",
-            "mattos.mode=install-gui",
             "mattos.mode=install-cli",
         ] {
             assert!(grub.contains(mode), "GRUB omits explicit {mode} contract");
@@ -3964,7 +3582,6 @@ mod tests {
         for target in [
             "mattos-live-graphical.target",
             "mattos.target",
-            "mattos-install-graphical.target",
             "mattos-install-cli.target",
         ] {
             assert!(
@@ -4001,31 +3618,19 @@ mod tests {
     #[test]
     fn plasma_live_session_uses_the_systemd_user_bus_and_fallback_autostart() {
         let launcher = include_str!("../../../system/session/plasma/start-plasma");
-        assert!(launcher.contains("export DBUS_SESSION_BUS_ADDRESS=\"unix:path=${XDG_RUNTIME_DIR}/bus\""));
+        assert!(
+            launcher
+                .contains("export DBUS_SESSION_BUS_ADDRESS=\"unix:path=${XDG_RUNTIME_DIR}/bus\"")
+        );
         assert!(launcher.contains("plasma-dbus-run-session-if-needed"));
         assert!(launcher.contains("/usr/plugins:/usr/lib/x86_64-linux-gnu/plugins"));
         assert!(!launcher.contains("mattos-private-session.conf"));
 
         let staging = include_str!("packaging/staging.rs");
         assert!(staging.contains("let autostart = install_root.join(\"etc/xdg/autostart\")"));
-        assert!(staging.contains("copy_tree_preserving(&autostart, &staging.join(\"etc/xdg/autostart\"))"));
-    }
-
-    #[test]
-    fn flatpak_defaults_leave_socket_policy_to_unmodified_application_manifests() {
-        // MattOS deliberately ships no Flatpak overrides. Socket policy belongs
-        // to each upstream application manifest: Wayland-only apps use COSMIC's
-        // Wayland socket, X11-only apps use Xwayland, and fallback-X11 apps may
-        // choose native Wayland when it is available.
-        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
-        let skeleton = root.join("src/rootfs/skeleton/etc/skel/.local/share/flatpak/overrides");
         assert!(
-            !skeleton.exists(),
-            "MattOS must not ship global or application-specific Flatpak overrides"
-        );
-        assert!(
-            !LEGACY_SKELETON_FILES.contains(&"etc/skel/.local/share/flatpak/overrides/global"),
-            "rootfs assembly must not retain a copy rule for the removed X11-only override"
+            staging
+                .contains("copy_tree_preserving(&autostart, &staging.join(\"etc/xdg/autostart\"))")
         );
     }
 
@@ -4042,41 +3647,19 @@ mod tests {
             .expect("Flathub policy must embed its verification key")
             .1
             .trim();
-        assert!(key.len() > 3_000, "Flathub policy must retain the full pinned public key");
+        assert!(
+            key.len() > 3_000,
+            "Flathub policy must retain the full pinned public key"
+        );
         let package_source = include_str!("packaging/staging.rs");
         assert!(package_source.contains("usr/share/flatpak/remotes.d/flathub.flatpakrepo"));
         assert!(package_source.contains("stage_flatpak_system_remote"));
         assert!(package_source.contains("var/lib/flatpak/repo"));
-        assert!(!root.join("src/rootfs/skeleton/etc/skel/.local/share/flatpak/overrides").exists());
-    }
-
-    #[test]
-    fn graphical_installer_waits_for_the_actual_wayland_socket() {
-        let unit = include_str!("../../../system/units/mattos-install-graphical.service");
-        assert!(unit.contains("TimeoutStartSec=120"));
-        assert!(unit.contains("ExecStartPre=/usr/bin/sh -ec"));
-        assert!(unit.contains("test -S \"$${XDG_RUNTIME_DIR}/$${WAYLAND_DISPLAY}\""));
-        assert!(unit.contains("compositor did not publish"));
-        assert!(unit.contains("Environment=WGPU_BACKEND=gl"));
-        assert!(!unit.contains("LIBGL_ALWAYS_SOFTWARE"));
-        assert!(!unit.contains("MESA_LOADER_DRIVER_OVERRIDE"));
-        assert!(unit.contains("ExecStart=/usr/bin/mattos-install-cosmic"));
-    }
-
-    #[test]
-    fn graphical_installer_session_leaves_virtio_kms_renderer_selection_to_mesa() {
-        let unit = include_str!("../../../system/units/mattos-cosmic-installer-session.service");
-        assert!(unit.contains("VirGL Gallium path"));
-        assert!(unit.contains("Type=notify"));
-        assert!(unit.contains("NotifyAccess=all"));
-        assert!(unit.contains("Environment=LANG=en_US.UTF-8"));
-        assert!(unit.contains("Environment=XCURSOR_THEME=Pop"));
-        assert!(unit.contains(
-            "dbus-run-session --config-file=/usr/share/dbus-1/mattos-private-session.conf"
-        ));
-        assert!(!unit.contains("LIBGL_ALWAYS_SOFTWARE"));
-        assert!(!unit.contains("MESA_LOADER_DRIVER_OVERRIDE"));
-        assert!(!unit.contains("GALLIUM_DRIVER"));
+        assert!(
+            !root
+                .join("src/rootfs/skeleton/etc/skel/.local/share/flatpak/overrides")
+                .exists()
+        );
     }
 
     #[test]
@@ -4136,77 +3719,6 @@ mod tests {
     }
 
     #[test]
-    fn cosmic_installer_lock_pins_normal_dependencies() {
-        let lock_path = Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("../../system/installer/gui/cosmic/Cargo.lock");
-        validate_cosmic_installer_lock(&lock_path).unwrap();
-        let lock = fs::read_to_string(lock_path).unwrap();
-        for package in [
-            "libcosmic",
-            "cosmic-protocols",
-            "cosmic-freedesktop-icons",
-            "cosmic-settings-daemon",
-            "winit",
-            "accesskit_winit",
-        ] {
-            assert!(
-                lock.contains(&format!("name = {package:?}")),
-                "native COSMIC lock is missing {package}"
-            );
-        }
-    }
-
-    #[test]
-    fn cosmic_installer_lock_rejects_unpinned_git_and_registry_sources() {
-        let temporary = tempfile::tempdir().unwrap();
-        let authoritative = fs::read_to_string(
-            Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("../../system/installer/gui/cosmic/Cargo.lock"),
-        )
-        .unwrap();
-        let unpinned =
-            authoritative.replacen("#e429a025df36ab8145708acb309080ae3deec17a\"", "\"", 1);
-        let unpinned_path = temporary.path().join("unpinned.lock");
-        fs::write(&unpinned_path, unpinned).unwrap();
-        assert!(validate_cosmic_installer_lock(&unpinned_path).is_err());
-
-        let unchecked = authoritative.replacen("checksum = \"", "unchecked = \"", 1);
-        let unchecked_path = temporary.path().join("unchecked.lock");
-        fs::write(&unchecked_path, unchecked).unwrap();
-        assert!(validate_cosmic_installer_lock(&unchecked_path).is_err());
-    }
-
-    #[test]
-    fn cosmic_installer_recreates_its_output_owned_source_mirror() {
-        let source = include_str!("stages/image.rs");
-        let function = source
-            .split_once("fn build_cosmic_installer_frontend")
-            .unwrap()
-            .1
-            .split_once("fn validate_cosmic_installer_lock")
-            .unwrap()
-            .0;
-        let cleanup = function
-            .find("remove_path_if_exists(&source_root)")
-            .unwrap();
-        let first_sync = function.find("sync_build_source").unwrap();
-        assert!(cleanup < first_sync);
-        for demoted in [
-            "dbus-settings-bindings",
-            "freedesktop-icons",
-            "winit",
-            "window-clipboard",
-            "softbuffer",
-            "smithay-clipboard",
-            "accesskit",
-            "cryoglyph",
-            "rust-atomicwrites",
-        ] {
-            assert!(!function.contains(&format!("source_root.join({demoted:?})")));
-        }
-    }
-
-    #[test]
     fn write_sync_state_creates_directory() {
         let tmp = tempfile::tempdir().expect("tempdir");
         let root = tmp.path();
@@ -4253,8 +3765,10 @@ mod tests {
         assert!(command_exists_in_path("mattos-tool", &path));
         assert!(!command_exists_in_path("which", &path));
         assert!(!command_exists_in_path("missing-tool", &path));
-        assert!(include_str!("commands/doctor.rs")
-            .contains("if !missing_required.contains(&\"pkg-config\")"));
+        assert!(
+            include_str!("commands/doctor.rs")
+                .contains("if !missing_required.contains(&\"pkg-config\")")
+        );
     }
 
     #[test]
@@ -4355,51 +3869,6 @@ mod tests {
         write(&root.join("upstream/state/linux.toml"), "not=toml=");
         let result = read_sync_state(root, "linux");
         assert!(result.is_err());
-    }
-
-    #[test]
-    fn cosmic_just_mirror_uses_external_cargo_target_for_install() {
-        let tmp = tempfile::tempdir().expect("tempdir");
-        let justfile = tmp.path().join("justfile");
-        write(&justfile, "bin-src := 'target' / 'release' / name\n");
-
-        patch_cosmic_just_target_path(tmp.path()).expect("patch justfile");
-
-        let body = fs::read_to_string(justfile).expect("read patched justfile");
-        assert!(body.contains("bin-src := env('CARGO_TARGET_DIR', 'target') / 'release' / name"));
-    }
-
-    #[test]
-    fn cosmic_just_mirror_preserves_target_override() {
-        let tmp = tempfile::tempdir().expect("tempdir");
-        let justfile = tmp.path().join("justfile");
-        let original = "bin-src := env('CARGO_TARGET_DIR', 'target') / 'release' / name\n";
-        write(&justfile, original);
-
-        patch_cosmic_just_target_path(tmp.path()).expect("inspect justfile");
-
-        assert_eq!(
-            fs::read_to_string(justfile).expect("read justfile"),
-            original
-        );
-    }
-
-    #[test]
-    fn cosmic_just_mirror_adapts_release_recipe_name() {
-        let tmp = tempfile::tempdir().expect("tempdir");
-        let justfile = tmp.path().join("justfile");
-        write(
-            &justfile,
-            "bin-src := 'target' / 'release' / name\ndesktop-src := 'resources' / appid + '.desktop'\nappdata-src := 'resources' / appid + '.metainfo.xml'\nrelease *args:\n    cargo build --release {{args}}\n",
-        );
-
-        patch_cosmic_just_target_path(tmp.path()).expect("patch justfile");
-
-        let body = fs::read_to_string(justfile).expect("read patched justfile");
-        assert!(body.contains("build-release *args: (release args)"));
-        assert!(!body.contains("--locked {{args}}"));
-        assert!(body.contains("desktop-src := 'resources' / 'app.desktop'"));
-        assert!(body.contains("appdata-src := 'resources' / 'app.metainfo.xml'"));
     }
 
     #[test]
@@ -6772,5 +6241,18 @@ mod tests {
                 .exists()
         );
         assert!(!rootfs.join("home").exists());
+    }
+
+    #[test]
+    fn plasma_wayland_build_keeps_the_real_pager_without_x11_headers() {
+        let implementation = include_str!("stages/kde_foundation.rs");
+        assert!(implementation.contains("applets/pager/pagermodel.cpp"));
+        assert!(
+            implementation.contains("#ifdef HAVE_X11\\n#include <xwindowtasksmodel.h>\\n#endif")
+        );
+        assert!(implementation.contains("#include <QDBusConnection>\\n#include <QMimeData>"));
+        let plasma = include_str!("stages/plasma.rs");
+        assert!(plasma.contains("-DWITH_X11=OFF"));
+        assert!(plasma.contains("-DWITH_X11_SESSION=OFF"));
     }
 }

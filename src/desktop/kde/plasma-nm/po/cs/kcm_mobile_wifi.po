@@ -1,0 +1,225 @@
+# Copyright (C) 2024 This file is copyright:
+# This file is distributed under the same license as the plasma-nm package.
+# SPDX-FileCopyrightText: 2018, 2019, 2020, 2021, 2024, 2025, 2026 Vit Pelcak <vit@pelcak.org>
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma-nm\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-29 03:06+0000\n"
+"PO-Revision-Date: 2025-10-02 09:43+0200\n"
+"Last-Translator: Vit Pelcak <vit@pelcak.org>\n"
+"Language-Team: Czech <kde-i18n-doc@kde.org>\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Generator: Lokalize 25.12.3\n"
+
+#: ui/ConnectDialog.qml:58
+#, kde-format
+msgid "Invalid input."
+msgstr "Neplatný vstup."
+
+#: ui/ConnectionInfo.qml:15
+#, kde-format
+msgctxt "kcm page title"
+msgid "Connection Info for \"%1\""
+msgstr "Informace o připojení pro \"%1\""
+
+#: ui/ConnectionInfo.qml:22
+#, kde-format
+msgctxt "@title:group"
+msgid "Transfer Rates"
+msgstr "Přenosové rychlosti"
+
+#: ui/ConnectionInfo.qml:38
+#, kde-format
+msgid "Connected, ↓ %1/s, ↑ %2/s"
+msgstr "Připojen, ↓ %1/s, ↑ %2/s"
+
+#: ui/ConnectionInfo.qml:46
+#, kde-format
+msgctxt "@title:group"
+msgid "Connection Details"
+msgstr "Podrobnosti spojení"
+
+#: ui/main.qml:26
+#, kde-format
+msgid "Edit"
+msgstr "Upravit"
+
+#: ui/main.qml:87
+#, kde-format
+msgid "Wi-Fi"
+msgstr "Wi-Fi"
+
+#: ui/main.qml:98
+#, kde-format
+msgctxt "@title:group"
+msgid "Saved Networks"
+msgstr "Uložené sítě"
+
+#: ui/main.qml:135
+#, kde-format
+msgid "Available Networks"
+msgstr "Dostupné sítě"
+
+#: ui/main.qml:169
+#, kde-format
+msgid "Add Custom Connection"
+msgstr "Přidat vlastní spojení"
+
+#: ui/NetworkSettings.qml:15
+#, kde-format
+msgid "Add New Connection"
+msgstr "Přidat nové připojení"
+
+#: ui/NetworkSettings.qml:36
+#, kde-format
+msgid "Save"
+msgstr "Uložit"
+
+#: ui/NetworkSettings.qml:54
+#, kde-format
+msgctxt "@title:group"
+msgid "General"
+msgstr "Obecné"
+
+#: ui/NetworkSettings.qml:60
+#, kde-format
+msgid "SSID"
+msgstr "SSID"
+
+#: ui/NetworkSettings.qml:75
+#, kde-format
+msgid "Hidden Network"
+msgstr "Skrytá síť"
+
+#: ui/NetworkSettings.qml:82
+#, kde-format
+msgctxt "@title:group"
+msgid "Security"
+msgstr "Bezpečnost"
+
+#: ui/NetworkSettings.qml:89
+#, kde-format
+msgid "Security type"
+msgstr "Typ zabezpečení"
+
+#: ui/NetworkSettings.qml:99
+#, kde-format
+msgid "None"
+msgstr "Nic"
+
+#: ui/NetworkSettings.qml:100
+#, kde-format
+msgid "WEP Key"
+msgstr "WEP klíč"
+
+#: ui/NetworkSettings.qml:101
+#, kde-format
+msgid "Dynamic WEP"
+msgstr "Dynamický WEP"
+
+#: ui/NetworkSettings.qml:102
+#, kde-format
+msgid "WPA/WPA2 Personal"
+msgstr "WPA/WPA2 Personal"
+
+#: ui/NetworkSettings.qml:103
+#, kde-format
+msgid "WPA/WPA2 Enterprise"
+msgstr "WPA/WPA2 Enterprise"
+
+#: ui/NetworkSettings.qml:104
+#, kde-format
+msgid "WPA3 Personal"
+msgstr "WPA3 Personal"
+
+#: ui/NetworkSettings.qml:105
+#, kde-format
+msgid "WPA3 Enterprise"
+msgstr "WPA3 Enterprise"
+
+#: ui/NetworkSettings.qml:143
+#, kde-format
+msgid "Password"
+msgstr "Heslo"
+
+#: ui/NetworkSettings.qml:159
+#, kde-format
+msgid "Authentication:"
+msgstr "Ověření:"
+
+#: ui/NetworkSettings.qml:163
+#, kde-format
+msgid "TLS"
+msgstr "TLS"
+
+#: ui/NetworkSettings.qml:163
+#, kde-format
+msgid "LEAP"
+msgstr "LEAP"
+
+#: ui/NetworkSettings.qml:163
+#, kde-format
+msgid "FAST"
+msgstr "FAST"
+
+#: ui/NetworkSettings.qml:164
+#, kde-format
+msgid "Tunneled TLS"
+msgstr "Tunelované TLS"
+
+#: ui/NetworkSettings.qml:165
+#, kde-format
+msgid "Protected EAP"
+msgstr "Chráněný EAP"
+
+#: ui/NetworkSettings.qml:177
+#, kde-format
+msgctxt "@title:group"
+msgid "IP Settings"
+msgstr "Nastavení IP"
+
+#: ui/NetworkSettings.qml:183
+#, kde-format
+msgid "Method"
+msgstr "Metoda"
+
+#: ui/NetworkSettings.qml:184
+#, kde-format
+msgid "Automatic"
+msgstr "Automaticky"
+
+#: ui/NetworkSettings.qml:184
+#, kde-format
+msgid "Manual"
+msgstr "Manuálně"
+
+#: ui/NetworkSettings.qml:200
+#, kde-format
+msgid "IP Address"
+msgstr "IP adresa"
+
+#: ui/NetworkSettings.qml:218
+#, kde-format
+msgid "Gateway"
+msgstr "Brána"
+
+#: ui/NetworkSettings.qml:236
+#, kde-format
+msgid "Network prefix length"
+msgstr "Délka prefixu sítě"
+
+#: ui/NetworkSettings.qml:255
+#, kde-format
+msgid "DNS"
+msgstr "DNS"
+
+#: ui/PasswordField.qml:13
+#, kde-format
+msgid "Password…"
+msgstr "Heslo…"

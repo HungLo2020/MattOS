@@ -102,13 +102,7 @@ pub(crate) fn bootstrap_source_attribution(
         "libelf.so.1" => (Some("elfutils"), "A", "libelf1t64", "medium", "high"),
         "libexpat.so.1" => (Some("Expat"), "A", "libexpat1", "low", "high"),
         "libfreetype.so.6" => (Some("FreeType"), "A", "libfreetype6", "low", "high"),
-        "libfontconfig.so.1" => (
-            Some("Fontconfig"),
-            "A",
-            "libfontconfig1",
-            "low",
-            "high",
-        ),
+        "libfontconfig.so.1" => (Some("Fontconfig"), "A", "libfontconfig1", "low", "high"),
         "libgcc_s.so.1" => (
             Some("GCC runtime"),
             "D",
@@ -142,7 +136,9 @@ pub(crate) fn bootstrap_source_attribution(
 }
 
 #[cfg(test)]
-pub(crate) fn bootstrap_consumers(repo_root: &Path) -> Result<BTreeMap<String, Vec<BootstrapConsumer>>> {
+pub(crate) fn bootstrap_consumers(
+    repo_root: &Path,
+) -> Result<BTreeMap<String, Vec<BootstrapConsumer>>> {
     let staging_root = repo_root.join("out/packages/staging");
     let mut graph = BTreeMap::<String, Vec<BootstrapConsumer>>::new();
     if !staging_root.is_dir() {
@@ -223,8 +219,10 @@ pub(crate) fn generate_bootstrap_audit(repo_root: &Path) -> Result<()> {
     Ok(())
 }
 
-
-pub(crate) fn runtime_libraries_for_spec(repo_root: &Path, spec: &PackageSpec) -> Result<Vec<String>> {
+pub(crate) fn runtime_libraries_for_spec(
+    repo_root: &Path,
+    spec: &PackageSpec,
+) -> Result<Vec<String>> {
     match spec.name {
         "mattos-brush" => ldd_sonames(
             &repo_root.join("out/build/brush/cargo-target/release/brush"),
@@ -536,7 +534,11 @@ pub(crate) fn runtime_libraries_for_spec(repo_root: &Path, spec: &PackageSpec) -
         {
             runtime_libraries_in_staging(repo_root, name)
         }
-        _ => Ok(Vec::new()),
+        // Package staging is the authoritative runtime payload.  Audit every
+        // package by default so adding a new package cannot silently bypass
+        // ELF dependency ownership merely because its name was not added to
+        // this dispatch table.
+        _ => runtime_libraries_in_staging(repo_root, spec.name),
     }
 }
 
@@ -544,7 +546,10 @@ fn runtime_libraries_in_staging(repo_root: &Path, package: &str) -> Result<Vec<S
     let staging = repo_root.join("out/packages/staging").join(package);
     let mut binaries = Vec::new();
     walk_tree(&staging, &mut |path, metadata| {
-        if metadata.is_file() && !path.starts_with(staging.join("DEBIAN")) {
+        if metadata.is_file()
+            && !path.starts_with(staging.join("DEBIAN"))
+            && !path.starts_with(staging.join("var/lib/flatpak"))
+        {
             if let Some(facts) = crate::elf_cache::inspect(repo_root, path)?
                 && matches!(facts.elf_type.as_str(), "DYN" | "EXEC")
             {
@@ -652,7 +657,6 @@ fn ldd_sonames(binary: &Path, library_path: Option<&Path>) -> Result<Vec<String>
     Ok(libraries.into_iter().collect())
 }
 
-
 pub(crate) fn detect_staging_collisions(staging_root: &Path, specs: &[PackageSpec]) -> Result<()> {
     let mut owners: BTreeMap<PathBuf, (&str, bool)> = BTreeMap::new();
     for spec in specs {
@@ -681,7 +685,10 @@ pub(crate) fn detect_staging_collisions(staging_root: &Path, specs: &[PackageSpe
     Ok(())
 }
 
-pub(crate) fn validate_staged_runtime_ownership(repo_root: &Path, specs: &[PackageSpec]) -> Result<()> {
+pub(crate) fn validate_staged_runtime_ownership(
+    repo_root: &Path,
+    specs: &[PackageSpec],
+) -> Result<()> {
     let staging_root = repo_root.join("out/packages/staging");
     let mut owners = BTreeMap::<String, &str>::new();
     let mut soname_owners = BTreeMap::<String, &str>::new();

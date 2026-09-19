@@ -1,0 +1,91 @@
+#!/bin/bash
+#
+# lvmtest-my-configs - Create personal config and group overrides
+#
+# Creates copies of committed cluster test configs and groups under
+# configs/my/ and groups/my/ with user-specified customizations.
+# These directories are .gitignored so personal files won't pollute
+# the tracked tree.
+#
+# Usage:
+#   ./lvmtest-my-configs KEY=VALUE [KEY=VALUE ...]
+#
+# Example:
+#   ./lvmtest-my-configs \
+#       CLUSTER_NODE_OS_IMAGE="/path/to/image.qcow2" \
+#       LVM_SOURCE_DIR="/path/to/lvm.git" \
+#       SANLOCK_SOURCE_DIR="/path/to/sanlock.git"
+#
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR"
+
+if [ $# -eq 0 ]; then
+    echo "Usage: $0 KEY=VALUE [KEY=VALUE ...]" >&2
+    echo "Example: lvmtest-my-config CLUSTER_NODE_OS_IMAGE=\"/path/to/image.qcow2\" LVM_SOURCE_DIR=\"/path/to/lvm.git\" SANLOCK_SOURCE_DIR=\"/path/to/sanlock.git\"" >&2
+    exit 1
+fi
+
+# Parse KEY=VALUE arguments
+declare -a KEYS=()
+declare -a VALS=()
+for arg in "$@"; do
+    if [[ "$arg" != *=* ]]; then
+        echo "ERROR: invalid argument '$arg', expected KEY=VALUE" >&2
+        exit 1
+    fi
+    KEYS+=("${arg%%=*}")
+    VALS+=("${arg#*=}")
+done
+
+# Clean existing my/ files
+rm -f configs/my/*.conf
+rm -rf groups/my/*
+
+# Ensure directories exist
+mkdir -p configs/my groups/my/basic groups/my/standard groups/my/bridge
+
+# Generate my/ configs
+conf_count=0
+for src in configs/*.conf; do
+    [ -f "$src" ] || continue
+    name=$(basename "$src")
+    dst="configs/my/$name"
+    cp "$src" "$dst"
+    for i in "${!KEYS[@]}"; do
+        key="${KEYS[$i]}"
+        val="${VALS[$i]}"
+        if grep -q "^${key}=" "$dst"; then
+            sed -i "s|^${key}=.*|${key}=${val}|" "$dst"
+        else
+            echo "${key}=${val}" >> "$dst"
+        fi
+    done
+    conf_count=$((conf_count + 1))
+done
+
+# Generate my/ groups
+group_count=0
+for category in basic standard bridge; do
+    for src in groups/${category}/*.txt; do
+        [ -f "$src" ] || continue
+        name=$(basename "$src")
+        dst="groups/my/${category}/$name"
+        firstline=$(head -1 "$src")
+        case "$firstline" in
+            \#*) continue ;;
+        esac
+        cp "$src" "$dst"
+        sed -i '1s|^config \(.*\.conf\)$|config my/\1|' "$dst"
+        group_count=$((group_count + 1))
+    done
+done
+
+echo "Created $conf_count configs in configs/my/"
+echo "Created $group_count groups in groups/my/"
+echo "Customizations applied:"
+for i in "${!KEYS[@]}"; do
+    echo "  ${KEYS[$i]}=${VALS[$i]}"
+done

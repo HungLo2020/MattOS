@@ -1,0 +1,2 @@
+      <xi:include href="xml/udisks-generated-doc-org.freedesktop.UDisks2.ISCSI.Session.xml"/>
+      <xi:include href="xml/udisks-generated-doc-org.freedesktop.UDisks2.Manager.ISCSI.Initiator.xml"/>

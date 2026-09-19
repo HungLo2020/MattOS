@@ -1,0 +1,1217 @@
+Version 1.91.4
+--------------
+Released: 2026-09-10
+
+- Feature: Composite keyboard backlight device for unified brightness control (!341, !335)
+- Fix: Fix potential segmentation fault of the upower command (!340, #354)
+- Fix: Avoid updating full capacity from impossible charge-readings (!338, #351)
+- Fix: Stop I/O watch on keyboard backlight read error (!341)
+- Fix: Fallback to energy_full_design when energy_full is invalid (!333, !302, #336)
+- Fix: Fix up-version dupe warning while generating docs (!336)
+- Fix: Keep every battery of a device that has several (!337, #348)
+- Fix: Don't install polkit policy files when it is disabled (!342, #356)
+- Translation: Update Georgian translation (!332)
+
+Version 1.91.3
+--------------
+Released: 2026-07-02
+
+- Feature: up-device-battery: Prefer "Standard" over "Fast" charging (!316, #344)
+- Fix: Resolve potential leaks (!327)
+- Fix: Potential out-of-bound access (!328)
+- Fix: Improve access control (!326)
+- Fix: Remove unused codes (!329)
+- Fix: Fix for Asus Battery Charge Threshold Detection (!330, #347)
+- CI: code refactoring (!324)
+
+Version 1.91.2
+--------------
+Released: 2026-04-01
+
+- Feature: Skip the systemd inhibitor when performing CriticalPowerAction (!309)
+- Feature: Introduce "Auto" CriticalPowerAction using systemd-logind Sleep() (!309)
+- Fix: Test CanPowerOff() availability before calling PowerOff() (!311)
+- Fix: Add charge limit support for systems providing only charge_control_end_threshold (!310, #342, #285)
+
+Version 1.91.1
+--------------
+Released: 2026-02-10
+
+- Fix: a resource leak (!294)
+- Fix: a NULL exception caused by a Non-NULL GError pointer (!295, #331)
+- Fix client API: crashing when printing the error message from a NULL GError pointer (!304)
+- Fix: ACPI reports -NaN capacity value (!306)
+- Feature: Skip CriticalPowerAction when performing battery recalibration (!285, #312)
+- Deprecate: capacity_level and luminosity property (!293, !297 )
+- CI: Add a tartan LLVM static analysis (!300)
+- Feature: History supports voltage item (!299)
+
+Version 1.91.0
+--------------
+Released: 2025-11-25
+
+- New feature: Support multiple keyboard backlight LED control. (#291 !203)
+- Make installation of tests optional (!202)
+- Support conf.d style config file (!286)
+- Deprecate CapacityLevel property (!290 #333)
+
+Version 1.90.10
+--------------
+Released: 2025-08-26
+
+- Fix wrong model name of the devices (!267, #309)
+- Switch charge_types to "Custom" when charging threshold is enabled (!268, #275)
+- Fix invalid command line arguments (!269)
+- Fix leak when reporting daemon usage error (!270)
+- OpenBSD: support battery status from qcpas (!272)
+- Fix history progression (!274, #316)
+- Add a battery filter to the upower command line (!275)
+- Change the charging behaviors using charge_types (!276, !46, #275)
+- Fix integration tests issues, including floating point value and race between umockdev and upower (!277, !278)
+- Rework upower command (!280)
+- Propagate charge-threshold-enabled to display device (!281)
+
+Version 1.90.9
+--------------
+Released: 2025-04-10
+
+- Fix unstable OnBattery status (#306 #307)
+
+Version 1.90.8
+--------------
+Released: 2025-03-31
+
+- Fix the incorrect percentage value of a removed battery. (#292) (!246)
+- Fix device type for the gaming device. (#296 #295) (!247)
+- Determine the battery discharging status when connecting a low-power charger. (#276) (!244)
+- Fix memory leak when refreshing battery info. (#305) (!261)
+- Fix memory leak when getting device id. (!261)
+
+Version 1.90.7
+--------------
+Released: 2025-01-09
+
+- Find the correct parent id for input devices. (#268 #286)
+- Fix race condition in test_sibling_priority_no_overwrite. (!240)
+- Show charge-threshold-* status as yes/no. (!242)
+- Add zsh-completions for CLI. (!241)
+- Fix integration test. Extend the daemon stopping timeout to 10sec (#290)
+- Added pre-commit test and fixed code spelling, markdown, and code style issues. (!248)
+
+Version 1.90.6
+--------------
+Released: 2024-09-18
+
+- Fractional battery percentage (!226)
+- CI enhancement. (!236)
+- Tweak the default battery charging threshold to 75-80. (!234)
+- Fix g_object_weak_ref: assertion 'g_atomic_int_get (&object->ref_count) >= 1' failed (#281, !233)
+
+Version 1.90.5
+--------------
+Released: 2024-08-22
+
+- Suspend and Ignore as the CriticalPowerActions (!218 and !218)
+- Support for battery charging threshold (!208)
+- Tweak the device priority to make sure the device kind joystick can be correctly shown. (#267)
+
+Version 1.90.4
+--------------
+Released: 2024-04-08
+
+- Update the information for version 1.90.3.
+- Resolved high disk and CPU rate. (#256)
+- Update glib2 requirement to 2.66.0.
+- Stop guessing the unknown battery as a power supply.
+- Continue to support lid handling.
+- Fix org.freedesktop.UPower: EnergyRate is a positive value. (#252)
+- Fix uni-test python script. (!205)
+
+Version 1.90.3
+--------------
+Released: 2024-04-08
+
+- Resolved high disk and CPU rate. (#256)
+- Update glib2 requirement to 2.66.0.
+- Stop guessing the unknown battery as a power supply.
+- Continue to support lid handling.
+- Fix org.freedesktop.UPower: EnergyRate is a positive value. (#252)
+- Fix uni-test python script. (!205)
+
+Version 1.90.2
+--------------
+Released: 2023-07-06
+
+Note that this is the last release of UPower with lid handling. OS components
+that rely on the lid status should get it from logind instead. See:
+https://www.freedesktop.org/software/systemd/man/org.freedesktop.login1.html
+
+- Fix wireless devices not disappearing from Settings when disconnected
+- Require a newer libgudev to avoid bugs related to newline stripping
+  when reading sysfs attributes
+- Add installed-tests files for use with gnome-desktop-testing
+- Fix integration test to work with system installed upower binary and
+  under jhbuild
+
+Version 1.90.1
+--------------
+Released: 2023-07-04
+
+- Detect headsets with kernel batteries such as Logitech and
+  Steelseries headsets, and make them automatically disappear if
+  the headset is turned off (if the kernel driver supports the
+  wireless_status attribute)
+- Hide duplicate Logitech Bluetooth devices (Bolt-compatible devices
+  connected through Bluetooth would show as 2 batteries)
+- Hide duplicate Logitech wireless devices when they get connected
+  through USB as well
+- Fix Bluetooth device names not synchronizing, and use user-chosen
+  names when available
+- Handle the "present" sysfs attribute changing
+- Fix iDevices not appearing
+- Fix reading capacity_level with newer libgudev
+- Fix OpenBSD backend
+
+Version 1.90.0
+--------------
+Released: 2022-07-21
+
+Note that the version number bump was made to allow bugfixes for older
+releases while also making new releases that contain with more in-depth
+code changes. The old (soft) API/ABI guarantees are currently unchanged.
+
+Changes:
+- Refactor internal battery handling into separate classes
+- Guess charging/discharging state based on energy rate (#196)
+
+Bug fixes:
+- Fix polling after resume (#198)
+- Fix battery state guessing (#146)
+- Reload history when battery ID changes
+- Test fixes
+
+Version 0.99.19
+---------------
+Released: 2022-06-08
+
+Changes:
+- Move state guessing into DisplayDevice
+- Always use 90% threshold to consider a battery full
+- Various test improvements
+
+Bug fixes:
+- Fix mice showing up as keyboards (#189)
+- Allow unit test inspector to fail (#187)
+- Fix test cases when daemon shuts down too slowly (#188)
+
+Version 0.99.18
+---------------
+Released: 2022-05-17
+
+Changes:
+- Remove broken wakeup DBus API
+- Tag UPS hid devices using hwdb and update list from upstream
+- Only permit Refresh method when in debug mode
+- Refactor device polling
+- Refactor udev device discovery and sibling detection
+- Improved testing and CI
+- Handle SIGTERM to trigger a clean shutdown
+
+Bug fixes:
+- Improve polling of batteries after line-power "online" status change
+- Multiple wacom tablet detection fixes
+- Fix updates after a BT hid power supply moves in sysfs
+- Fix enumeration of "Whats Up!" devices on startup
+- Accept USB power supplies without warning
+- Allow building without gtk-doc
+
+Version 0.99.17
+---------------
+Released: 2022-03-09
+
+Bug fixes:
+- Fix FD handling issues that may cause lid to not be detected
+
+Version 0.99.16
+---------------
+Released: 2022-02-23
+
+Bug fixes:
+- Silence unnecessary udev event warnings
+- Increase test timeout (#171)
+- Explicitly link with plist
+- Fix UpClient reference leak
+- Fix DisplayDevice state on battery hotplug
+- Fix critical action to work after it was cancelled (#172)
+
+Version 0.99.15
+---------------
+Released: 2022-02-09
+
+Bug fixes:
+- Various build fixes
+- Update bluetooth device alias when it changes (#169)
+
+Version 0.99.14
+---------------
+Released: 2022-02-03
+
+Changes:
+- Port build system to meson
+- New ChargeCycles D-Bus property (#152)
+- New async GLib APIs (#121)
+- lid related functions are now deprecated
+- Refresh API is now deprecated
+
+Bug fixes:
+- Plenty of test suite fixes
+- Fix leak of inhibitor lock (#160)
+- Recognize USB power supplies (#148)
+- Fix time compression of data points (#167)
+- Fix disk write amplification when battery is low (#150)
+
+Version 0.99.13
+---------------
+Released: 2021-08-17
+
+Bug fixes:
+- Tweak default percentage levels to better match other operating systems
+- Support large energy rates seen in some modern laptops
+- Fix touchpads showing up as mice
+- Fix composite battery state when multiple batteries are used and
+  one isn't drawing any power
+- Make the icon and warning properties respect the "low battery level"
+  configuration option
+- Stop the device being suspended during the 20-second "shutdown" grace period
+
+Version 0.99.12
+~~~~~~~~~~~~~~~
+Released: 2021-06-17
+
+New Features:
+- Add a raft of new device types
+- Add support for iPhone XR, XS and newer models
+
+Bug fixes:
+- Work-around incorrect battery percentage reported by MacBooks
+- Identify keyboard/pointing device combos as keyboards
+- Fix small memory leak in Bluetooth backend
+- Fix warning in Bluetooth backend
+- Set update time in Bluetooth backend
+- Remove support for obsolete CSR devices
+
+Version 0.99.11
+~~~~~~~~~~~~~~~
+Released: 2019-09-03
+
+New Features:
+ - Add code of conduct document
+ - build: Migrate from intltool to gettext
+ - rules: Split off HID++ udev rules
+ - Harden systemd service
+ - Let systemd create /var/lib/upower
+ - Move D-Bus policy file to /usr/share/dbus-1/system.d/
+
+Bug fixes:
+ - Fix endless loop burning 100% CPU on keyboard plugout with external
+   backlight
+ - linux: Start polling for unknown device batteries too
+ - linux: Retry to get a battery type if it's unknown
+ - linux: Don't treat device batteries like laptop batteries
+ - Replace use of G_TYPE_INSTANCE_GET_PRIVATE and g_type_class_add_private()
+
+Version 0.99.10
+~~~~~~~~~~~~~~~
+Released: 2019-02-20
+
+Bugfixes:
+ - Set 'pending-charge' for DisplayDevice if at least one
+   battery is in the 'pending-charge' state
+ - Map pending-charge to fully-charged when charge is 100%
+
+Version 0.99.9
+~~~~~~~~~~~~~~
+Released: 2018-10-25
+
+Bugfixes:
+ - Fix lack of update after AC status changes, and broken keyboard
+   backlight, following the daemon lockdown added in 0.99.8
+ - Multiple API documentation fixes
+ - Out-of-tree build fixes
+
+Version 0.99.8
+~~~~~~~~~~~~~~
+Released: 2018-06-18
+
+New Features:
+ - Lock down systemd service file
+ - Add support for "Unknown" capacity level, and clarify handling
+   of devices with coarse battery levels
+ - Add a new version of up_client_get_devices() which unrefs contents
+
+Bugfixes:
+ - Fix warnings when D-Bus related properties change
+ - Prevent crash after attaching an Apple TV, and support newer
+   versions of iOS
+ - Lower severity of "unhandled action" messages
+ - Fix battery status on MacBooks after a plug or unplug event
+ - Fix double-close on exit
+
+Version 0.99.7
+~~~~~~~~~~~~~~
+Released: 2017-11-28
+
+New Features:
+ - Add support for Bluetooth LE device batteries (Bastien Nocera)
+ - Allow to be replaced via --replace,-r (Christian Kellner)
+
+Bugfixes:
+ - Fix critical action after resume from hibernate (Miroslav Sustek)
+ - Fix compilation with libimobiledevice git (Bastien Nocera)
+
+Version 0.99.6
+~~~~~~~~~~~~~~
+Released: 2017-09-11
+
+New Features:
+ - Add UP_DEVICE_KIND_GAMING_INPUT for gaming devices (Bastien Nocera)
+ - Detect joysticks as gaming input devices (Bastien Nocera)
+
+Bugfixes:
+ - Correctly close inhibitor FD (Benjamin Berg)
+ - Fix crash when '@' is present in the device name (oleid, Bastien Nocera)
+ - Fix lid detection on FreeBSD (Alberto Villa)
+ - Grab the model name from device if unavailable from battery (Bastien Nocera)
+
+Version 0.99.5
+~~~~~~~~~~~~~~
+Released: 2017-07-24
+
+New Features:
+ - Add a more complete self test for HID++ devices (Bastien Nocera)
+ - Add BatteryLevel property for devices with a finite number of power levels (Bastien Nocera)
+ - Add support for pausing and resuming of the daemon poll (Christian Kellner, Bastien Nocera)
+ - Get a serial number for device batteries (Bastien Nocera)
+ - Refresh devices after waking up from sleep (Christian Kellner)
+
+Bugfixes:
+ - Add proper error and cancellable handling to UpClient constructor (Martin Pitt)
+ - Do not spin in a loop when /proc/timer_stats cannot be written (Richard Hughes)
+ - Exit early from up-tool when connecting to upower fails (Martin Pitt)
+ - Expand the integration-tests to run in more environments (Bastien Nocera, Christian Kellner)
+ - Fix reading and writing the keyboard brightness level (Hans de Goede, Marco Trevisan)
+ - Fix -Wformat-y2k compilation errors (Bastien Nocera)
+ - Lower initial power usage when iDevice isn't accessible (Bastien Nocera)
+ - Simplify string checks in upower-glib (Bastien Nocera)
+
+Version 0.99.4
+~~~~~~~~~~~~~~
+Released: 2016-02-16
+
+New Features:
+ - Add support for Logitech G700s/G700 Gaming Mouse (muzena)
+ - Port to GDBus (Cosimo Cecchi)
+ - Support g_autoptr() for all libupower-glib object types (Kalev Lember)
+
+Bugfixes:
+ - Add critical action support for *BSD (Eric Koegel)
+ - Change the default low battery policy to percentage (Bastien Nocera)
+ - Fix deprecation warning in integration-test (Bastien Nocera)
+ - Fix memory leak in up_client_get_devices() (Bastien Nocera)
+ - Fix possible double-free (Bastien Nocera)
+ - Update HID rules and fix build regression (Arnaud Quette)
+
+Version 0.99.3
+~~~~~~~~~~~~~~
+Released: 2015-05-28
+
+Bugfixes:
+ - Bail out when iDevice state is malformed (Bastien Nocera)
+ - Defer getting iDevice info until ready (Bastien Nocera)
+ - Fix crash on uninitialized variant (Vlad Orlov)
+ - Fix libimobiledevice msg in configure (Bastien Nocera)
+ - More memory handling fixes in iDevice (Bastien Nocera)
+ - Properly detect bluetooth mice and keyboards that are HID devices (Marc Deslauriers)
+ - Support Logitech Unifying in Linux 3.19 (Peter Wu)
+ - Work-around broken battery on the Onda v975w (Bastien Nocera)
+
+Version 0.99.2
+~~~~~~~~~~~~~~
+Released: 2014-12-18
+
+Bugfixes:
+ - Avoid unaligned memory access in hidpp-device (Peter Wu)
+ - Bump GLib min req to 2.34 (Eric Koegel)
+ - Correct check to prevent the display of invalid ASCII codes (Eric Koegel)
+ - Fencepost array access error (Eric Koegel)
+ - Fix cleanup in up_device_idevice_coldplug/finalize (Nikolay Martynov)
+ - Fix crash if there is no session D-BUS (Martin Pitt)
+ - Fix error handling for Python 3.4 (Martin Pitt)
+ - Fix various memory and reference leaks (Peter Wu)
+ - Release resources at shutdown (Peter Wu)
+ - Respect the CriticalPowerAction config option (Bastien Nocera)
+ - Set update-time on the aggregate device (Bastien Nocera)
+ - Split out updating on_battery and warning_level (Bastien Nocera)
+ - Update aggregate device on battery removal (Evangelos Foutras)
+ - Update display device when battery is removed (Bastien Nocera)
+ - Use g_get_real_time() when possible (Bastien Nocera)
+
+Version 0.99.1
+~~~~~~~~~~~~~~
+Released: 2014-08-18
+
+New Features:
+ - Expose "capacity" and "energy-full-design" properties on OpenBSD (Fabian Raetz)
+ - Remove IsDocked property (Bastien Nocera)
+ - Remove unused polkit dependency (Eric Koegel, Martin Pitt)
+
+Bugfixes:
+ - Create the history directory at runtime (Cosimo Cecchi)
+ - Do not log a critical warning when using _set_object_path_sync() (Richard Hughes)
+ - Fix API doc for up_client_get_on_battery() (Bastien Nocera)
+ - Fix possible UpHistoryItem leak on failure (Bastien Nocera)
+ - Fix segfault on getting property when daemon is not running (Martin Pitt)
+ - Fix shutdown on boot on some machines (Bastien Nocera)
+ - Fix small memleak on startup with Logitech devices (Bastien Nocera)
+ - Free the obtained device list array after use (Alexander Jesner)
+ - Update lid status when updating AC status (Jasper Lievisse Adriaanse)
+
+Version 0.99.0
+~~~~~~~~~~~~~~
+Released: 2013-10-29
+
+Notes:
+ - This version contains major API changes. Use the 0.9.* versions if you want
+   to keep using the old API.
+
+New Features:
+ - Add WarningLevel and IconName properties to all devices (Bastien Nocera)
+ - Add DisplayDevice composite battery (Bastien Nocera)
+ - Enforce critical battery policy on the daemon side (Bastien Nocera)
+
+Bugfixes:
+ - Reduce client-side and daemon-side wake-ups (Bastien Nocera)
+ - Emit PropertiesChanged signals (Bastien Nocera)
+ - Register objects on the bus once they've been setup (Bastien Nocera)
+ - Clamp percentage for overfull batteries (Martin Pitt)
+
+Feature Removals:
+ - Remove battery recall support (Bastien Nocera)
+ - Remove QoS support (Bastien Nocera)
+ - Remove OnLowBattery property (use WarningLevel instead) (Bastien Nocera)
+ - Remove DeviceChanged and Changed signals (PropertiesChanged
+   signals are sent instead) (Bastien Nocera)
+
+Version 0.9.22
+~~~~~~~~~~~~~~
+Released: 2013-10-08
+
+New Features:
+ - Add temperature property for batteries (Seth Forshee)
+
+Bugfixes:
+ - Fix error handling in up_client_get_properties_sync() (Bastien Nocera, Martin Pitt)
+ - Make GetHistory() array order consistent (Martin Pitt)
+ - Fix crash with bluetooth input devices (Martin Pitt)
+ - Lots of fixes/rework for Logitech wireless input devices (Peter Wu)
+ - Allow valid UTF-8 encoded properties (Shih-Yuan Lee (FourDollars))
+ - Detect the battery of bluetooth input devices (Shih-Yuan Lee (FourDollars))
+ - Only one warning if no valid voltage found (Timothée Ravier)
+ - openbsd: Do not call g_thread_init() (Richard Hughes)
+
+Version 0.9.21
+~~~~~~~~~~~~~~
+Released: 2013-07-26
+
+New Features:
+ - Add support for Logitech Wireless (NonUnifying) devices (Arkadiusz Miśkiewicz)
+ - Use PIE to better secure installed tools and also use full RELRO in the daemon (Richard Hughes)
+
+Bugfixes:
+ - Allow clients to call org.freedesktop.DBus.Peer (Richard Hughes)
+ - Detect udev rules dir (Tom Gundersen)
+ - Drop --enable-systemd and linking to libsystemd-daemon (Martin Pitt)
+ - Find hidraw devices correctly with systemd udev >= v196 (Arkadiusz Miśkiewicz)
+ - Fix test for logind availability (Martin Pitt)
+ - Update the upower man page with all the current options (Richard Hughes)
+
+Version 0.9.20
+~~~~~~~~~~~~~~
+Released: 2013-03-18
+
+New Features:
+ - Add a --enable-deprecated configure argument to remove pm-utils support (Richard Hughes)
+ - Deprecate running the powersave scripts (Richard Hughes)
+ - Factor out the Logitech Unifying support to support other devices (Richard Hughes)
+ - Require applications to define UPOWER_ENABLE_DEPRECATED to use deprecated functionality (Richard Hughes)
+
+Bugfixes:
+ - Bump maximum accepted "time to empty" to 10 days (Martin Pitt)
+ - Don't use the deprecated INCLUDES in Makefile.am (Richard Hughes)
+ - Fix batteries which report current energy but full charge (Alex Hornung)
+ - Fix K750 features name, use 1 second interval (Julien Danjou)
+ - Fix memory leak in up_polkit_get_subject (Charles Kerr)
+ - Fix two memory leaks (Colin Watson)
+ - integration-test: Always run on a fake system bus (Martin Pitt)
+ - integration-test: Move to using umockdev (Martin Pitt)
+ - Never use -WError when building (Richard Hughes)
+ - Raise the hard PolicyKit dep to 0.97 (Richard Hughes)
+
+Version 0.9.19
+~~~~~~~~~~~~~~
+Released: 2013-01-02
+
+New Features:
+ - Add a Documentation tag to the service file (Matthias Clasen)
+ - Add luminosity property (Julien Danjou)
+ - Add support for Logitech Unifying devices (Julien Danjou)
+
+Bugfixes:
+ - Always return 0 from notify-upower.sh (Richard Hughes)
+ - Do not continue to poll if /proc/timer_stats is not readable (Richard Hughes)
+ - Fix "can-hibernate" formatting in upower --dump (Martin Pitt)
+ - Fix device matching for recent kernels (Peter Hurley)
+ - Fix srcdir != builddir (Colin Walters)
+ - Send resume signal when built with systemd and using pm-utils suspend (Jan Alexander Steffens)
+
+Version 0.9.18
+~~~~~~~~~~~~~~
+Released: 2012-08-08
+
+New Features:
+ - Use systemd if possible for suspend and hibernate (Matthias Clasen)
+
+Bugfixes:
+ - openbsd: Properly initialize update-time when creating devices (Landry Breuil)
+
+Version 0.9.17
+~~~~~~~~~~~~~~
+Released: 2012-06-25
+
+New Features:
+ - Fail on CRITICALs in the integration-test (Martin Pitt)
+
+Bugfixes:
+ - Drop 'type' parameter from CancelRequest() signature (Sascha Silbe)
+ - Fix the LatencyChanged signal (Sascha Silbe)
+ - Fix use-after-free of qos item (Sascha Silbe)
+ - Fix wrong PowerSupply property for devices without a scope sysfs attribute (Martin Pitt)
+ - linux: Don't allow non-power-supply devices to set the OnBattery property (Daniel Nicoletti)
+ - linux: Remove obsolete check for magicmouse_ and duplicated wacom_ checks (Daniel Nicoletti)
+ - linux: Treat the battery state 'not charging' as PENDING_CHARGE (Richard Hughes)
+ - Selectively disable warnings for deprecated GValueArray (Martin Pitt)
+
+Version 0.9.16
+~~~~~~~~~~~~~~
+Released: 2012-04-30
+
+Translations:
+New Features:
+ - Add boolean RunPowersaveCommand to UPower.conf (Landry Breuil)
+ - Install a systemd service file if systemd is used (Benedikt Morbach)
+
+Bugfixes:
+ - Clamp the UPS percentage from 0 to 100 to fix syslog spam (Richard Hughes)
+ - Correct the cap on the energy rate (Gary Ching-Pang Lin)
+ - Do not print error message for missing /etc/crypttab (Kelly Anderson)
+ - Fix crash in up_device_csr_finalize (Martin Pitt)
+ - Never detect HID devices with batteries as power supplies (Richard Hughes)
+ - Re-coldplug dock status when resuming from sleep (Evan Broder)
+ - Return all history records for a timespan of zero (Richard Hughes)
+ - libupower-glib: fix small memory leak (Pavel Vasin)
+ - libupower-glib: srcdir != builddir fix (Ryan Lortie)
+ - openbsd: Fix history by not trying to refresh if /dev/apm wasn't opened yet (Landry Breuil)
+ - openbsd: Handle case where minutes_left might be negative (Landry Breuil)
+ - openbsd: Set powersave command to apm -C/-A (Landry Breuil)
+ - openbsd: Use a singleton pattern to access /dev/apm (Landry Breuil)
+
+Version 0.9.15
+~~~~~~~~~~~~~~
+Released: 2011-12-05
+
+New Features:
+ - Add --with-historydir to specify where we want the history files to be stored (Landry Breuil)
+ - Use linear regression to get better predicted battery times (Leonardo Robol)
+
+Bugfixes:
+ - Don't assert when the power_supply device type is usb (Richard Hughes)
+ - Don't spam the log when we're saving history when on low power (Richard Hughes)
+ - Fail the tests gracefully if GI is not available (Martin Pitt)
+ - Fix crash in up_device_csr_finalize() (Martin Pitt)
+ - Fix invocation of src/linux/integration-test (Martin Pitt)
+ - Handle Linux power supplies not exporting a present property (Heiko Stübner)
+ - If a power-supply device doesn't report charge or energy, try to read the percentage (Richard Hughes)
+ - Move the wacom hack to allow us to support other types of USB device (Richard Hughes)
+ - Port the tests to Python 3 (Martin Pitt)
+
+Version 0.9.14
+~~~~~~~~~~~~~~
+Released: 2011-10-03
+
+New Features:
+ - Filter the debugging details unless --verbose is specified (Richard Hughes)
+
+Bugfixes:
+ - Fix linux up_backend_supports_sleep_state() return code (Christian Seiler)
+ - Fix the kFreeBSD detection (Pino Toscano)
+
+Version 0.9.13
+~~~~~~~~~~~~~~
+Released: 2011-09-05
+
+New Features:
+ - Modernize autotools config (Javier Jardón)
+ - Use git.mk and remove the manual .gitignore files (Richard Hughes)
+ - Use upstream gettext instead the glib one (Javier Jardón)
+
+Bugfixes:
+ - Avoid warnings about missing annotations (Javier Jardón)
+ - Don't rely on files' presence to define the default backend (Diego Elio Pettenò)
+ - Fully port the test suite to use GObject Introspection (Martin Pitt)
+ - Hardcode wacom battery devices as not power-supply devices (Richard Hughes)
+ - Use autoreconf instead custom script (Javier Jardón)
+ - Use g_unix_signal_add_full() which has been renamed in GLib (Denis Washington)
+
+Version 0.9.12
+~~~~~~~~~~~~~~
+Released: 2011-07-04
+
+Bugfixes:
+ - Add AC_PROG_LIBTOOL as advised by autotools (Landry Breuil)
+ - Add openbsd missing includes for close and strcmp (Landry Breuil)
+ - Fix how we estimate the device rate for batteries that do not provide this data (Richard Hughes)
+ - Silence some openbsd warnings about unused vars and bad return values (Landry Breuil)
+ - Switch to using .xz tarballs (Richard Hughes)
+
+Version 0.9.11
+~~~~~~~~~~~~~~
+Released: 2011-05-25
+
+New Features:
+ - Add new NotifySleep() and NotifyResume() signals that include the sleep type (Richard Hughes)
+
+Bugfixes:
+ - Ensure up-apm-native.h gets shipped in the tarball for OpenBSD (Richard Hughes)
+ - Check energy vs. charge in the Linux integration tests (Martin Pitt)
+ - Only include glib-unix.h if the GLib version is >= 2.29.4 (Richard Hughes)
+ - Respect $PYTHON for running the test suite (Martin Pitt)
+ - Run subset of tests when system D-BUS is not available (Martin Pitt)
+
+Version 0.9.10
+~~~~~~~~~~~~~~
+Released: 2011-05-03
+
+New Features:
+ - Add a config option 'IgnoreLid' for users with broken lid switches (Richard Hughes)
+ - Add integration test suite for Linux (Martin Pitt)
+ - Add option to run daemon on the session bus for testing (Martin Pitt)
+ - Add OpenBSD backend which uses the APM_IOC_GETPOWER ioctl() (Landry Breuil)
+ - Support virtual UPS devices for testing (Martin Pitt)
+
+Bugfixes:
+ - Consider a discharging UPS as "on battery" (Martin Pitt)
+ - Do not overwrite aclocal flags in autogen, fixes b.fd.o #35261 (Tobias Mueller)
+ - Fix "unknown" battery status guessing to not be recursive (Martin Pitt)
+ - Respect $UPOWER_CONF_FILE_NAME in up_config_init (Martin Pitt)
+ - Support batteries that report both energy and charge (Benson Leung)
+ - upower needs -pthread (Landry Breuil)
+ - Use the new threadsafe signal handling support in GLib (Richard Hughes)
+ - Wuninitialized needs -O (Landry Breuil)
+
+Version 0.9.9
+~~~~~~~~~~~~~
+Released: 2011-03-21
+
+New Features:
+ - Add a config option to disable the Watts Up Pro device (Richard Hughes)
+ - Add a LidForceSleep property to ensure that we don't melt any laptops (Richard Hughes)
+ - Add an option for polling dock devices in UPower.conf, defaulting to false (Richard Hughes)
+
+Bugfixes:
+ - Depend on stable GUdev API (Michael Biebl)
+ - Drop devkit and devkit-power-daemon symlinks (Michael Biebl)
+ - Fix bitmap check in the input code (Arnaud Patard)
+ - Honor ACLOCAL_FLAGS in Makefile.am (Richard Hughes)
+
+Version 0.9.8
+~~~~~~~~~~~~~
+Released: 2011-01-07
+
+New Features:
+ - Add an IsDocked binary property to the main interface (Richard Hughes)
+ - Use the number of active DRM devices to determine the system docked status (Richard Hughes)
+
+Bugfixes:
+ - Add method to set history dir (Martin Pitt)
+ - Check for and link against libplist (Martin Pitt)
+ - Drop check for polkit-backend again (Martin Pitt)
+ - Fix compilation error against Linux 2.6.36 (Martin Pitt)
+ - Fix links to git repository in HACKING (Zygmunt Krynicki)
+ - Fix self check to work as non-root (Martin Pitt)
+ - Re-add AM_MAINTAINER_MODE (but enable it by default) (Michael Biebl)
+ - Reduce race condition in history purging self check (Martin Pitt)
+ - Support the power_now sysfs attribute to get time remaining on new kernels (Richard Hughes)
+ - Update the list of HID UPS devices (Arnaud Quette)
+
+Version 0.9.7
+~~~~~~~~~~~~~
+Released: 2010-11-01
+
+Translations:
+ - Add French translation (Christoph Thompson)
+
+New Features:
+ - Add support for controlling leds keyboard backlights (Alex Murray)
+ - Port from EggDebug to the GLib built-in logging framework (Richard Hughes)
+
+Bugfixes:
+ - Fix building with gobject-introspection 0.9.10 (Edward Sheldrake)
+ - Fix up all the warnings when building with new versions of gobject-introspection (Richard Hughes)
+ - Keyboard backlight of zero is not an error (Alex Murray)
+ - libupower-glib: Reject invalid object paths to avoid asserting libdbus (Richard Hughes)
+ - Remove the UP_DEVICE_SUPPLY_CHARGED_THRESHOLD heuristic (Michal Schmidt)
+
+Version 0.9.6
+~~~~~~~~~~~
+Released: 2010-10-04
+
+New Features:
+ - Remove devkit-power-gobject (Richard Hughes)
+
+Bugfixes:
+ - Allow explicitly disabling libimobiledevice support (Brett Witherspoon)
+ - Free GErrors after returning them (Matthias Clasen)
+ - Add missing D-Bus return in up_qos_cancel_request() (Matthias Clasen)
+ - Fix double D-BUS return in up_daemon_*_allowed (Matthias Clasen)
+ - Fix up_polkit_get_subject() D-BUS error return (Matthias Clasen)
+ - Ensure the new device types get valid descriptions in upower --dump (Richard Hughes)
+ - Fix compile with the latest PolicyKit release (Richard Hughes)
+ - Only save by default 7 days data to stop the log files becoming huge. Fixes rh#634228 (Richard Hughes)
+ - Do not continue to poll the serial port if there is no Watts Up Pro adaptor (Richard Hughes)
+ - Fix the build with new versions of gobject-introspection (Richard Hughes)
+
+Version 0.9.5
+~~~~~~~~~~~
+Released: 2010-07-12
+
+New Features:
+ - Add battery query support for iDevices (Bastien Nocera)
+ - Assign names to our idle sources when using new versions of glib2 (Richard Hughes)
+ - Dynamic testing for enough hibernate swap (Martin Pitt)
+ - Port UPower to libusb1 to avoid unfixable crashes (Richard Hughes)
+ - Port to GTest (Richard Hughes)
+ - Get the powersave command from the backend rather than hardcoding Linux specifics (Richard Hughes)
+
+Bugfixes:
+ - Update the list of supported TrippLite HID Power Devices (Joseph Stockman)
+ - Fix a potential daemon crash. Fixes fd#27902 (Mariusz Ceier)
+ - Increase UP_DAEMON_SWAP_WATERLINE (Martin Pitt)
+ - Fix up a potential crasher in the CSR device code (Richard Hughes)
+ - When calculating used swap space, only use anonymous pages (Steven Walter)
+ - Use pm-is-supported to test if various sleep modes are supported (Victor Lowther)
+
+IMPORTANT NOTE:
+ - This is the last release with the deprecated devkit-power-gobject library
+   included. Users should have ported to libupower-glib months ago...
+
+Version 0.9.4
+~~~~~~~~~~~
+Released: 2010-05-12
+
+New Features:
+ - Detect when the kernel changes the reported charge units. Fixes rh#587112 (Kyle McMartin)
+
+Bugfixes:
+ - Only emit ::Sleeping() after we've checked AboutToSleep (Richard Hughes)
+ - Ensure we send ::Sleeping() if clients do not call AboutToSleep (Richard Hughes)
+ - Ensure we sent ::notify signals when UpDaemon properties change (Richard Hughes)
+
+Version 0.9.3
+~~~~~~~~~~~
+Released: 2010-05-06
+
+New Features:
+ - Add a config file with SleepTimeout and AllowHibernateEncryptedSwap entries (Richard Hughes)
+
+Bugfixes:
+ - Fix c&p typo in documentation (Michael Biebl)
+ - The gettext package should match the tarball name (Richard Hughes)
+ - Provide UpDaemon with C setters rather than relying on GObject properties (Richard Hughes)
+ - Sanity check the device is not already in the list before adding (Richard Hughes)
+ - Fix recognition of lithium iron phosphate (LiFePO4) batteries (Sascha Silbe)
+
+Version 0.9.2
+~~~~~~~~~~~~~
+Released: 2010-04-06
+
+New Features:
+ - Add a missing accessor: up_client_get_lid_is_present() (Richard Hughes)
+ - Change the tarball name to be all lower case to match udisks and udev (Richard Hughes)
+ - Convert the daemon to using objects from libupower-glib, not devkit-power-gobject (Richard Hughes)
+ - Do not allow client programs to enumerate the device list more than once (Richard Hughes)
+ - Get the encrypted swap status from the backend, rather than hardcoding Linux specifics (Richard Hughes)
+ - Get the kernel sleep capabilities from the backend, rather than hardcoding Linux specifics (Richard Hughes)
+ - Get the suspend and hibernate commands from the backend, rather than hardcoding Linux specifics (Richard Hughes)
+ - Get the swap size from the backend, rather than hardcoding Linux specifics (Richard Hughes)
+ - Show in ./configure summary if unit tests have been enabled or not (Michael Biebl)
+
+Bugfixes:
+ - Do not warn what we are correcting energy-full when there is no data to copy (Richard Hughes)
+ - Ensure we enumerate devices before we start monitoring them (Richard Hughes)
+ - Fixes to the autogen.sh script (Michael Biebl)
+ - Make dummy backend usable for architectures without a native backend (Michael Biebl)
+ - Remove libdevkit-power-gobject dependency from backends (Michael Biebl)
+ - Simplify udev subdirectory handling (Michael Biebl)
+
+Version 0.9.1
+~~~~~~~~~~~~~
+Released: 2010-03-03
+
+New Features:
+ - Add a new method and two new signals to inform userspace of the pending suspend and the resume event (Richard Hughes)
+ - Add {Suspend,Hibernate}Allowed D-Bus methods (Martin Pitt)
+ - Add up_polkit_is_allowed() function (Martin Pitt)
+ - Check PolicyKit in client's can_{suspend,hibernate} properties (Martin Pitt)
+ - Don't ship an introspection file for devkit-power-gobject, it's soon to be obsolete (Richard Hughes)
+ - Install the introspection data to the correct location (Richard Hughes)
+ - Make the upower client tool use libupower-glib, rather than devit-power-gobject (Richard Hughes)
+ - Use GCancellable in libupower-glib so we can eventually get to GIO async methods (Richard Hughes)
+
+Bugfixes:
+ - Ensure we return all lines of the UpDevice when we call up_device_to_string() (Richard Hughes)
+ - Fix libupower-glib include dir and pkgconfig (Martin Pitt)
+ - Fix up autogen.sh after the configure.ac modernisation (Michael Biebl)
+ - Fix up the FreeBSD backend compile (Michael Biebl)
+ - Fix up the include directory in the pkgconfig file (Richard Hughes)
+ - Make sure the tests link against all necessary libraries (Michael Biebl)
+ - Move the history files to /var/lib/upower (Michael Biebl)
+ - Update help and g_option_context_new to upower (Michael Biebl)
+ - Use the new project name in g_option_context_new (Michael Biebl)
+
+Version 0.9.0
+~~~~~~~~~~~
+Released: 2010-02-01
+
+NOTES:
+ - The DBus service and interfaces have been renamed
+ - The devkit-power-gobject library is still API and ABI stable
+ - The libupower library co-installs with devkit-power-gobject for now
+ - The version has changed to 0.9.0 from 015. You'll need to use an epoch in
+   your distro package if you're not renaming the package from DeviceKit-power
+   to UPower. See the sample Fedora spec if you need a template.
+
+Translations:
+ - Add Swedish translation (Daniel Nylander)
+ - Added Italian translation (Luca Ferretti)
+ - Add Polish translation (Piotr Drąg)
+
+New Features:
+ - Add initial GObject introspection support (Richard Hughes)
+
+Bugfixes:
+ - Use a fallback for the capability bit when checking the lid status. Fixes #25041 (Richard Hughes)
+ - Rename the DBus service from org.freedesktop.DeviceKit.Power to org.freedesktop.UPower (Richard Hughes)
+ - Rename the PolicyKit rules from org.freedesktop.devicekit.power to org.freedesktop.upower (Richard Hughes)
+ - Make the client tool be called upower, but maintain a symlink to devkit-power (Richard Hughes)
+ - Rename the man pages and rename the main daemon binary name (Richard Hughes)
+ - Change the version number to 0.9.0 and tarball name to UPower (Richard Hughes)
+ - Version-lock the devkit-power-gobject version to 015, not 0.9.0 (Richard Hughes)
+ - Make DkpClient a singleton to avoid some weird race conditions (Richard Hughes)
+ - Add libupower so applications can switch away from devkit-power-gobject (Richard Hughes)
+ - Update the Free Software Foundation address (Richard Hughes)
+
+Version 014
+~~~~~~~~~~~
+Released: 2010-01-08
+
+New Features:
+ - Import the FreeBSD backend (Joe Marcus Clarke)
+
+Bugfixes:
+ - Check if swap exists before determining how much is free (Debbie Beliveau)
+ - Comment out some problematic compiler warnings (Joe Marcus Clarke)
+ - Prevent segfault if connection to system dbus fails (Martin Koegler)
+ - Fix segfault in the history code. Fixes fd#25632 (Richard Hughes)
+
+Version 013
+~~~~~~~~~~~
+Released: 2009-12-07
+
+Note:
+ - The DBus interface of DeviceKit-power may be subject to change in future
+   versions of this daemon.
+ - This will probably be the last release of DeviceKit-power as the project has
+   been renamed to upower.
+
+New Features:
+ - When using devkit-power --monitor, print a timestamp before each message for
+   debugging. Fixes fd#24666 (Richard Hughes)
+
+Bugfixes:
+ - Update the list of HID UPS (Arnaud Quette)
+ - Use a gdouble for percentage to fix on-battery reporting (Byron Clark)
+ - Bug 24262 – incorrect battery recall warning for Lenovo T61 (Martin Pitt)
+ - Fix the toshiba battery recall notices by matching up the double quotes (Richard Hughes)
+ - Avoid going from discharging to pending-discharge when the expansion battery
+   is very low (Richard Hughes)
+ - Some vendors fill the NVRAM full of junk. Don't crash the daemon if the
+   battery is broken. Fixes rh#533654 (Richard Hughes)
+ - When the internal battery is in the unknown state, we can't make a decision
+   whether the system is on battery power (Richard Hughes)
+ - Some batteries give out massive rate values when nearly empty (Richard Hughes)
+
+Version 012
+~~~~~~~~~~~
+Released: 2009-10-19
+
+Note:
+ - The DBus interface of DeviceKit-power may be subject to change in future
+   versions of this daemon.
+
+New Features:
+ - Detect encrypted swap and prevent hibernate in this case. Fixes fd#23196 (Richard Hughes)
+ - Add g_object_notify() calls for properties on DkpClient (Richard Hughes)
+
+Bugfixes:
+ - Ensure we only reset the update-time property when we have done the refresh, not before (Richard Hughes)
+ - Don't emit changed events from the DkpBackend layer, instead push then through DkpDevice (Richard Hughes)
+ - When we do a delayed refresh, actually do 5 x 1 second apart rather than 1 x 3 seconds (Richard Hughes)
+
+Version 011
+~~~~~~~~~~~
+Released: 2009-10-06
+
+Note:
+ - The DBus interface of DeviceKit-power may be subject to change in future
+   versions of this daemon.
+ - The DBus interface has changed to use FirstLetterCaps property names
+   so Qt projects can use the DBus interface without resorting to ugly hacks.
+
+New Features:
+ - Return meaningful errors if the user tries to suspend or hibernate without
+   kernel support or swap set up (Richard Hughes)
+ - Use the sysfs file 'type' to work out the battery type before using a
+   fallback (Enrico Zini, Richard Hughes)
+
+Bugfixes:
+ - Update list of HID UPS devices (Arnaud Quette)
+ - Add backend code to make DeviceKit-power compile without GUdev for non-Linux
+   platforms (Richard Hughes)
+ - Only disable the polling if the kernel tells us we're fully charged, not if
+   we guessed it (Richard Hughes)
+ - Make the remove logic much cleaner to try to fix bugs where removing the
+   mouse kills the session (Richard Hughes)
+ - Fix up some small memory leaks (Richard Hughes)
+ - Freeze and thaw the device during initial coldplug (Richard Hughes)
+ - Fix up a few potential problems spotted by clang (Richard Hughes)
+ - Fix a tiny memory leak when we collect the properties from the interface
+   multiple times (Richard Hughes)
+ - Use voltage_now as a fallback to the design voltage (Enrico Zini, Richard Hughes)
+
+Version 010
+~~~~~~~~~~~
+Released: 2009-07-22
+
+Note:
+ - The DBus interface of DeviceKit-power may be subject to change in future
+   versions of this daemon.
+ - This project now depends on GUdev and PolicyKit1
+
+New Features:
+ - Port to GUdev (Richard Hughes)
+ - Port to PolicyKit1 (Richard Hughes)
+
+Bugfixes:
+ - Add a notify flag to set_lid_is_closed to fix the initial state (Loïc Minier)
+ - Correct a description string from one of the new enums (Richard Hughes)
+ - Only guess the battery status if we have > 1 battery in the system (Richard Hughes)
+ - Use the global battery state as a metric for single battery machines (Richard Hughes)
+ - Query the kernel to decide if we have hibernate and suspend support (Richard Hughes)
+ - If we don't have enough swap available, don't advertise hibernate. Fixes rh#513015 (Richard Hughes)
+ - Force a refresh all battery devices when the ac-adaptor changes. Fixes rh#512995 (Richard Hughes)
+
+Version 009
+~~~~~~~~~~~
+Released: 2009-07-06
+
+Note:
+ - The DBus interface of DeviceKit-power may be subject to change in future
+   versions of this daemon.
+ - The experimental devkit-power-gobject library has no API or ABI guarantees.
+ - This is the first version of DeviceKit-power where multiple laptop batteries
+   are officially supported.
+
+New Features:
+ - Interface with pm-powersave as external vendors are using this (Richard Hughes)
+ - Enable pretty compiler output with new automake versions (Richard Hughes)
+ - udev rules files now live in /lib/udev/rules.d, not /etc/udev/rules.d (Richard Hughes)
+ - Add battery recall data rules (Richard Hughes)
+ - Export the recall-notice, recall-vendor and recall-url properties on power devices (Richard Hughes)
+ - Protect the non-GObject accessors with DKP_DISABLE_DEPRECATED (Richard Hughes)
+ - Add two new state enums, pending-discharge and pending-charge (Richard Hughes)
+ - Use the global state to fix the unknown battery status (Richard Hughes)
+
+Bugfixes:
+ - Suppress lid change event on startup (Martin Pitt)
+ - Fix two issues with the pm-powersave code (Roland Dreier)
+ - Mark batteries as empty if they have unknown state and a very low energy (Richard Hughes)
+ - For power_supply, unknown is a valid state from the kernel (Richard Hughes)
+ - Don't assume all batteries have positive energy_full values (Richard Hughes)
+ - Add one more variation of lithium-poly (Richard Hughes)
+ - Don't show empty vendor, model or serials in the debug outputs (Richard Hughes)
+ - Fix a small memory leak on supply coldplugging (Richard Hughes)
+ - Hardcode pm-powersave like we do pm-suspend and pm-hibernate (Richard Hughes)
+ - Initial refresh after coldplug is not fatal if it fails (Richard Hughes)
+ - Set the GObject properties correctly in the DkpDeviceHid class (Richard Hughes)
+ - The UPS can't expose empty or fully-charged, so fixup these states (Richard Hughes)
+ - Fix detecting the USB UPS devices (Richard Hughes)
+ - Add a lid-is-present property (Richard Hughes)
+ - Be less asserty when enum values are added in newer versions of the spec (Richard Hughes)
+ - Add a DKP_CHECK_VERSION macro which we can use in client tools (Richard Hughes)
+ - Move the udev rules to their own directory (Richard Hughes)
+ - Move a small rule about the fully charged level from g-p-m (Richard Hughes)
+
+Version 008
+~~~~~~~~~~~
+Released: 2009-06-01
+
+Note:
+ - The DBus interface of DeviceKit-power may be subject to change in future
+   versions of this daemon.
+ - The experimental devkit-power-gobject library has no API or ABI guarantees.
+
+New Features:
+ - Allow the daemon to get the global online state for all devices (Matthew Garrett)
+ - Add a has-capability to the org.freedesktop.DeviceKit.Power.Wakeups interface (Richard Hughes)
+ - Add a property lid-is-closed for g-p-m and x-p-m to use (Richard Hughes)
+
+Bugfixes:
+ - Fix up some issues in DkpClient, and expose GObject properties (Ali Abdallah)
+ - Remove the 0x prefix from some rule matches (Ronald)
+ - Allow all DBus properties to be read with the new DBus (Richard Hughes)
+ - Only reset the update-time if the read was successful (Richard Hughes)
+ - Optimize the udev rules to skip non-usb devices (Richard Hughes)
+ - Ensure we get properties on devices correctly that have not yet been changed (Richard Hughes)
+ - Make the suspend and hibernate scripts execute synchronously. Fixes rh#497563 (Richard Hughes)
+ - Ignore method timeouts when we suspend and hibernate (Richard Hughes)
+ - Add two missing files to the last commit (Richard Hughes)
+ - Don't overwrite energy-full-design with zero after coldplug (Richard Hughes)
+ - Only get the device state for the poll after the refresh (Richard Hughes)
+ - Continue to poll when power supply device is marked unknown. Fixes rh#495493 (Richard Hughes)
+ - Correct a debugging statement (Richard Hughes)
+ - Never overwrite ID_PRODUCT or ID_VENDOR (Richard Hughes)
+ - Don't return history data relative to the earliest point (Richard Hughes)
+ - Setup different polls based on the battery state (Matthew Garrett)
+ - Don't poll on unknown forever. Based on a patch from Matthew Garrett (Richard Hughes)
+ - Fix up the return statuses from coldplug and refresh (Richard Hughes)
+ - Only attempt to print history if the device is capable (Richard Hughes)
+ - Allow properties in DkpDevice (client) to be set (Richard Hughes)
+
+Version 007
+~~~~~~~~~~~
+Released: 2009-03-30
+
+Note:
+ - The DBus interface of DeviceKit-power may be subject to change in future
+   versions of this daemon.
+ - The experimental devkit-power-gobject library has no API or ABI guarantees.
+
+New Features:
+ - Get rid of internal Object and instead use the GObject property system (Richard Hughes)
+ - Move the library directory from libdevkit-power to devkit-power-gobject (Richard Hughes)
+ - Ship a shared library. There are now three external projects using copies of
+   this, which is ridiculous (Richard Hughes)
+ - Require I_KNOW_THE_DEVICEKIT_POWER_API_IS_SUBJECT_TO_CHANGE (Richard Hughes)
+
+Bugfixes:
+ - Fix up DBus interface for CVE-2008-4311 (Stanislav Brabec)
+ - Fix g-p-m and DeviceKit-power when running with a permissive dbus. Fixes fd#20882 (Frederic Crozat)
+ - Remove use of EggObjList, and make the library more sane (Richard Hughes)
+ - Fix compile error in dkp-power. Fixes #20749 (Richard Hughes)
+
+Version 006
+~~~~~~~~~~~
+Released: 2009-02-10
+
+Bugfixes:
+ - Fix compile failure with gcc-4.4.0 and old versions of glib2 (Richard Hughes)
+ - Only enable the wakeups polling if a client requires the data (Richard Hughes)
+ - Correctly set the power-supply property (David Zeuthen)
+ - Don't crash when we limit the resolution of a small dataset (Richard Hughes)
+ - Don't sync to disk every 5 seconds, do it every 10 minutes (Richard Hughes)
+ - Fix the QoS interface with the proper signature (Richard Hughes)
+
+Version 005
+~~~~~~~~~~~
+Released: 2009-02-02
+
+New Features:
+ - Add a wakeups interface so we can get data from the system over DBus (Richard Hughes)
+ - Allow showing the wakeup data in the devkit-power command line tool (Richard Hughes)
+
+Version 004
+~~~~~~~~~~~
+Released: 2009-01-23
+
+Bugfixes:
+ - Fix the battery capacity calculation. Fixes fd#19165 (Richard Hughes)
+ - Special case machines where the kernel does not convert charge to power (Richard Hughes)
+ - Check all the power supply fields for valid data (Richard Hughes)
+
+Version 003
+~~~~~~~~~~~
+Released: 2008-12-09
+
+New Features:
+ - Implement the .QoS interface -- still proof of concept (Richard Hughes)
+
+Bugfixes:
+ - Enable the low power saving code in DkpHistory (Richard Hughes)
+ - Don't keep putting off the profile saving in DkpHistory (Richard Hughes)
+ - Allow DeviceKit-power to run with the 'fixed' DBus (Richard Hughes)
+
+Version 002
+~~~~~~~~~~~
+Released: 2008-11-13
+
+New Features:
+ - add in CanSuspend and CanHibernate into API (Richard Hughes)
+ - add two new properties, has-history and has-statistics (Richard Hughes)
+ - add voltage property of a power device (Richard Hughes)
+ - all logging for all the other device types too (Richard Hughes)
+ - Move object paths so things are rooted under /org/freedesktop/DeviceKit/Power (David Zeuthen)
+ - Add functionality to monitor a Watts Up Pro device (Richard Hughes)
+ - Turn some methods into properties (David Zeuthen)
+
+Bugfixes:
+ - Also rename configure.in to configure.ac in autogen.sh (David Zeuthen)
+ - Fix up deps and build system (David Zeuthen)
+ - We're a fd.o project (David Zeuthen)
+ - Update my email address (David Zeuthen)
+ - Update mailing list reference in man pages (David Zeuthen)
+ - Update bug report URL to point to our mailing list (David Zeuthen)
+ - Nuke devkit-power-on-battery for now (David Zeuthen)
+ - Don't report negative rate when charging (Richard Hughes)
+ - Remove the battery- and line-power- prefix from the device properties (Richard Hughes)
+ - Add DkpStatsObj convenience helpers (Richard Hughes)
+ - Save the time to full and time to empty too (Richard Hughes)
+ - Don't clear the list when we print it (Richard Hughes)
+ - Support getting stats from DkpSupply devices (Richard Hughes)
+ - Poll every 10 seconds to get better stats results (Richard Hughes)
+ - Work out the statistics by binning them into percentage sized holes (Richard Hughes)
+ - Add two remove functions to the generic object list (Richard Hughes)
+ - Don't unconditionally set the energy_full to energy_full_design if larger (Richard Hughes)
+ - Add a first approximation of a time resolution limiter (Richard Hughes)
+ - Expand the client helper library to cover all the base API for gnome-power-manager (Richard Hughes)
+ - Use 0 for unknown, not -1 as some values like rate and voltage are valid when negative (Richard Hughes)
+ - Use a better resolution limiting function for getting the history to reduce CPU load (Richard Hughes)
+ - Match the WUP device on the tty device, not the USB device (Richard Hughes)
+ - Fix the include headers for DeviceKit 002 (Richard Hughes)
+ - Document how to access the D-Bus service with examples (David Zeuthen)
+
+Version 001
+~~~~~~~~~~~
+Released: 2008-09-02
+
+- Initial proof of concept version
+

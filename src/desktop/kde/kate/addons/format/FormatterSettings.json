@@ -1,0 +1,132 @@
+{
+    "formatOnSave": true,
+    "formatterForJson": "jq",
+    "formatterForPython": "ruff",
+    "formatterForYaml": "yamlfmt",
+    "autopep8": {
+        "command": [
+            "autopep8"
+        ]
+    },
+    "clang-format": {
+        "command": [
+            "clang-format",
+            "--fallback-style=Webkit"
+        ],
+        "formatOnSave": true
+    },
+    "cmake-format": {
+        "command": [
+            "cmake-format"
+        ]
+    },
+    "dart": {
+        "command": [
+            "dart"
+        ]
+    },
+    "dfmt": {
+        "command": [
+            "dfmt"
+        ]
+    },
+    "erlfmt": {
+        "command": [
+            "erlfmt",
+            "-"
+        ]
+    },
+    "fish_indent": {
+        "command": [
+            "fish_indent"
+        ]
+    },
+    "gdformat": {
+        "command": [
+            "gdformat",
+            "-"
+        ]
+    },
+    "gofmt": {
+        "command": [
+            "gofmt"
+        ]
+    },
+    "jq": {
+        "command": [
+            "jq"
+        ]
+    },
+    "nixfmt": {
+        "command": [
+            "nixfmt"
+        ]
+    },
+    "odinfmt": {
+        "command": [
+            "odinfmt",
+            "-stdin"
+        ]
+    },
+    "opsi-script-beautifier": {
+        "command": [
+            "opsi-script-beautifier",
+            "-s"
+        ]
+    },
+    "prettier": {
+        "command": [
+            "prettier"
+        ]
+    },
+    "qmlformat": {
+        "command": [
+            "qmlformat"
+        ]
+    },
+    "ruff": {
+        "command": [
+            "ruff",
+            "format",
+            "-q",
+            "--stdin-filename",
+            "a.py"
+        ]
+    },
+    "rustfmt": {
+        "command": [
+            "rustfmt"
+        ]
+    },
+    "shfmt": {
+        "command": [
+            "shfmt"
+        ]
+    },
+    "swiftformat": {
+        "command": [
+            "swiftformat"
+        ]
+    },
+    "xmllint": {
+        "command": [
+            "xmllint"
+        ]
+    },
+    "yamlfmt": {
+        "command": [
+            "yamlfmt",
+            "-formatter",
+            "retain_line_breaks=true",
+            "-quiet",
+            "-"
+        ]
+    },
+    "zig": {
+        "command": [
+            "zig",
+            "fmt",
+            "--stdin"
+        ]
+    }
+}

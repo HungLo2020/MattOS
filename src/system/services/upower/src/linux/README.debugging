@@ -1,0 +1,8 @@
+===============
+Debugging
+===============
+
+When filing new bugs, please include information about the
+output of "upower -d", "/usr/libexec/upowerd -v -r", and:
+find  /sys/class/power_supply/hidpp_battery_1/ -type f -exec echo {} \; -exec cat {} \; -exec echo \;
+as appropriate.

@@ -1,0 +1,18 @@
+<!-- Page title -->
+[[!meta title="Version 2.03.41 - Bug Fix Release"]]
+
+Version 2.03.41
+===============
+
+* Allow `lvchange --syncaction repair` on RAID LVs with integrity.
+* Snapshot merge require exclusive lock on origin.
+* Fix adopt result routing in lvmlockd for lockspace start actions.
+* Fix more issues found by static analysis.
+
+<!-- remove the pending tag on release, remove draft tag once editing is complete -->
+[[!tag]]
+<!--
+For old releases add Release Timestamp like this, date from git show $COMMIT is fine.
+[[!meta date="Fri May 15 13:30:00 2026 +0200"]]
+-->
+

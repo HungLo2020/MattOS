@@ -1,0 +1,314 @@
+# * TODO: When changing files under test/shell/ - run only changed tests
+
+stages:
+  # Commits from third parties go through screening first before entering CI pipeline:
+  - approve
+  # Make sure MR passes build first:
+  - pre
+  # Make sure all commits within MR pass the build AND run test suite on one OS:
+  - test1
+  # TODO: Add manual confirmation here - in case of stress we could run the rest of pipeline on demand only(?)
+  # Matrix testing over supported versions of Fedora and RHEL:
+  - test
+  # Reboot the runners:
+  - post
+
+approve1:
+  stage: approve
+  script:
+    - echo "Approved..."
+  rules:
+    # If not a safe repository: Always require approval:
+    - if: $CI_PROJECT_PATH != "csonto/lvm2" && $CI_PROJECT_PATH != "lvmteam/lvm2"
+      when: manual
+    - if: $CI_MERGE_REQUEST_SOURCE_PROJECT_PATH != "lvmteam/lvm2"
+      when: manual
+    # TODO: for other branches than main/rhel: run pipeline only when requested:
+    - if: $CI_COMMIT_BRANCH != "main" && $CI_COMMIT_BRANCH !~ "^rhel.*"
+      when: manual
+    # TODO: Can we skip whole pipeline for drafts?
+    - if: $CI_MERGE_REQUEST_TITLE =~ /^Draft:/
+      when: manual
+
+    # Safe to run: 
+    - if: $CI_MERGE_REQUEST_SOURCE_PROJECT_PATH == "lvmteam/lvm2"
+      when: on_success
+    # On commit to main (after merge?):
+    - if: $CI_PROJECT_PATH == "lvmteam/lvm2" && ($CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH =~ /^rhel/)
+      when: on_success
+
+    # Anything else: manual
+    - when: manual
+  allow_failure: false
+
+
+pages:
+  image: elecnix/ikiwiki
+  stage: test
+  script:
+    - ikiwiki --setup ikiwiki.setup --libdir themes/ikistrap/lib
+  artifacts:
+    paths:
+      - public
+  only:
+    refs:
+      - main
+    changes:
+      - doc/**/*
+      - ikiwiki.setup
+
+make-rpm:
+  stage: pre
+  tags:
+    - builder
+  timeout: 10m
+  script:
+    - if bash ci/dry-run.sh --run-spec; then echo "# ./configure && make rpm"; exit 0; fi
+    - ./configure
+    - make rpm
+  rules:
+    - if: $CI_MERGE_REQUEST_TITLE =~ /^Draft:/
+      when: never
+    - when: on_success
+
+make-all:
+  stage: test1
+  tags:
+    - builder2
+  timeout: 2h
+  script:
+    # check all commits compile
+    - if bash ci/dry-run.sh; then echo "# ci/compile-all.sh"; exit 0; fi
+    - chmod 755 ci/compile-all.sh
+    - ci/compile-all.sh
+  rules:
+    - if: $CI_MERGE_REQUEST_TITLE =~ /^Draft:/
+      when: never
+    - if: $CI_MERGE_REQUEST_PROJECT_PATH == "lvmteam/lvm2"
+      when: on_success
+  allow_failure: true
+
+# TODO: Add more checks:
+# - static analysis
+# - spell checker
+# - autoformatter
+
+test-single:
+  stage: test1
+  artifacts:
+    paths:
+      - test/results/
+    expire_in: 1 week
+    when: always
+  tags:
+      - test
+  timeout: 2h
+  script:
+    - if bash ci/dry-run.sh; then echo "# ./configure && make && make check"; exit 0; fi
+    # TODO: Share snippets with next stage
+    # TODO: Skip the test suite:
+    # - when only doc files were touched,
+    #
+    # Common options go here, diffs to the above matrix
+    - >
+      ./configure
+      --with-default-use-devices-file=1
+      --enable-app-machineid
+      --enable-editline
+      --disable-readline
+      --enable-lvmlockd-dlm
+      --enable-fsadm
+      --enable-write_install
+      --enable-pkgconfig
+      --enable-cmdlib
+      --enable-dmeventd
+      --enable-blkid_wiping
+      --enable-udev_sync
+      --enable-lvmpolld
+      --enable-lvmlockd-sanlock
+      --enable-dbus-service --enable-notify-dbus
+      --enable-dmfilemapd
+      --with-vdo-format=/usr/bin/vdoformat
+      --disable-silent-rules
+    - make
+    - rm -rf test/results
+    - mkdir -p /dev/shm/lvm2-test
+    - mount -o remount,dev /dev/shm
+    # TODO: Need to distinguish failed test from failed harness
+    # TODO: Also need a way to find if run is incomplete, e.g. full disk resulting in many skipped tests
+    - VERBOSE=0 BATCH=1 LVM_TEST_DIR=/dev/shm/lvm2-test make check || true
+    - rm -rf /dev/shm/lvm2-test
+    - cut -d' ' -f2 test/results/list | sort | uniq -c
+    # Filter artifacts - keep only logs from tests which are not pass
+    - (cd test/results && rm $(grep 'passed$' list | cut -d' ' -f1 | sed -e 's|/|_|g' -e 's|.*|\0.txt|'))
+    - find test/results -type f -empty -delete
+    # TODO: Keep a list of known failures, and translate into regexp - or simply use python...
+    - if grep failed test/results/list | grep -v '\(dbustest\|lvconvert-mirror\|lvconvert-raid-reshape-size\|lvconvert-raid-reshape-stripes-load-fail\)\.sh' | sort; then false; else true; fi
+  rules:
+    - if: $CI_MERGE_REQUEST_TITLE =~ /^Draft:/
+      when: never
+    - when: on_success
+
+# TODO:
+# - check results of autoreconf and make generate - may need additional commit
+#     - we need a particular setup (rawhide OR latest supported fedora?)
+# - do make rpm and publish results as artifacts - we will use packit/COPR for this eventually
+
+# Run on any commits to main (master), rhel8, rhel9 branches
+test-all:
+  stage: test
+  needs:
+    - test-single
+  parallel:
+    matrix:
+      # TODO: Replace CONFIGURE with make rpm testing(?)
+      # - TAG: rhel8
+      #   CONFIGURE: >
+      #     --with-default-use-devices-file=0
+      #     --with-cluster=internal
+      #     --enable-cmirrord
+      #     --enable-lvmlockd-dlm
+      - TAG: rhel9
+        CONFIGURE: >
+          --with-default-use-devices-file=1
+          --enable-app-machineid
+          --enable-editline
+          --disable-readline
+          --enable-lvmlockd-dlm
+      - TAG: rhel10
+        CONFIGURE: >
+          --with-default-use-devices-file=1
+          --enable-app-machineid
+          --enable-editline
+          --disable-readline
+      - TAG: f42
+        CONFIGURE: >
+          --with-default-use-devices-file=1
+          --enable-app-machineid
+          --enable-editline
+          --disable-readline
+          --enable-lvmlockd-dlm
+      - LABEL: tsan
+        TAG: test
+        CONFIGURE: >
+          --enable-tsan
+          --with-default-use-devices-file=1
+          --enable-app-machineid
+          --enable-editline
+          --disable-readline
+          --enable-lvmlockd-dlm
+      - LABEL: asan
+        TAG: test
+        CONFIGURE: >
+          --enable-asan
+          --with-default-use-devices-file=1
+          --enable-app-machineid
+          --enable-editline
+          --disable-readline
+          --enable-lvmlockd-dlm
+      # f43 (latest supported fedora) is serving as first test - test1
+      # - TAG: f43
+      #   CONFIGURE: >
+      #     --with-default-use-devices-file=1
+      #     --enable-app-machineid
+      #     --enable-editline
+      #     --disable-readline
+      #     --enable-lvmlockd-dlm
+      # f44+ are not yet supported by gitlab runner
+      # - TAG: f44
+      #   CONFIGURE: >
+      #     --with-default-use-devices-file=1
+      #     --enable-app-machineid
+      #     --enable-editline
+      #     --disable-readline
+      # - TAG: rawhide
+      #   CONFIGURE: >
+      #     --with-default-use-devices-file=1
+      #     --enable-app-machineid
+      #     --enable-editline
+      #     --disable-readline
+  artifacts:
+    paths:
+      - test/results/
+    expire_in: 1 week
+    when: always
+  tags:
+      - ${TAG}
+  timeout: 2h
+  script:
+    - if bash ci/dry-run.sh; then echo "# ./configure && make && make check"; exit 0; fi
+    # Common options go here, diffs to the above matrix
+    - >
+      ./configure ${CONFIGURE}
+      --enable-fsadm
+      --enable-write_install
+      --enable-pkgconfig
+      --enable-cmdlib
+      --enable-dmeventd
+      --enable-blkid_wiping
+      --enable-udev_sync
+      --enable-lvmpolld
+      --enable-lvmlockd-sanlock
+      --enable-dbus-service --enable-notify-dbus
+      --enable-dmfilemapd
+      --with-vdo-format=/usr/bin/vdoformat
+      --disable-silent-rules
+    - make
+    - rm -rf test/results
+    - mkdir -p /dev/shm/lvm2-test
+    - mount -o remount,dev /dev/shm
+    # TODO: Need to distinguish failed test from failed harness
+    # TODO: Also need a way to find if run is incomplete, e.g. full disk resulting in many skipped tests
+    - VERBOSE=0 BATCH=1 LVM_TEST_DIR=/dev/shm/lvm2-test make check || true
+    - rm -rf /dev/shm/lvm2-test
+    - cut -d' ' -f2 test/results/list | sort | uniq -c
+    # Filter artifacts - keep only logs from tests which are not pass
+    - (cd test/results && rm $(grep 'passed$' list | cut -d' ' -f1 | sed -e 's|/|_|g' -e 's|.*|\0.txt|'))
+    - find test/results -type f -empty -delete
+    # TODO: Keep a list of known failures, and translate into regexp - or simply use python...
+    - if grep failed test/results/list | grep -v '\(dbustest\|lvconvert-mirror\|lvconvert-raid-reshape-size\|lvconvert-raid-reshape-stripes-load-fail\)\.sh' | sort; then false; else true; fi
+  rules:
+    # TODO: This takes a long time, run this only after succesfull review(?)
+    - if: $CI_MERGE_REQUEST_TITLE =~ /^Draft:/
+      when: never
+    # Filter only safe repositories, or user in developers:
+    # NOTE: Already done in approve stage, may be more caution than necessary
+    - if: $CI_PROJECT_PATH != "csonto/lvm2" && $CI_PROJECT_PATH != "lvmteam/lvm2"
+      when: manual
+    - when: on_success
+
+# reboot must be configured to let runner finish cleanly while not accepting new jobs
+# NOTE: If this causes warnings, gitlab-runner needs to be configured to be stopped using SIGQUIT
+# See: https://docs.gitlab.com/runner/commands/#gitlab-runner-stop-doesnt-shut-down-gracefully
+# NOTE: It should be possible to use after_script in test job, which runs
+# before artifacts collection, but reboot may be too eager to stop the job
+# while collecting artifacts
+# NOTE: What would happen when there are multiple jobs in the queue for each
+# tag? Could the tests run first and reboot only after them? I think so!
+reboot:
+  stage: post
+  parallel:
+    matrix:
+      # TODO: Problem: How to reboot the runner tagged 'test' which actually
+      # run the tests?
+      # - Add more tags for each machine, test will create a dirty file, and we
+      #   will check the presence of the file before reboot...
+      #- TAG: rhel8
+      - TAG: rhel9
+      - TAG: rhel10
+      - TAG: f42
+      #- TAG: f43
+      #- TAG: f44
+      #- TAG: rawhide
+  tags:
+      - ${TAG}
+  timeout: 1m
+  script:
+    - if bash ci/dry-run.sh; then echo "# reboot"; exit 0; fi
+    - reboot
+  allow_failure: true
+  rules:
+    - if: $CI_MERGE_REQUEST_TITLE =~ /^Draft:/
+      when: never
+    - when: always
+

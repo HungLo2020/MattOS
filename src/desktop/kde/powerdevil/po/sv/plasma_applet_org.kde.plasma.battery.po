@@ -1,0 +1,728 @@
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+#
+# SPDX-FileCopyrightText: 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2024, 2025 Stefan Asserhäll <stefan.asserhall@gmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-03-17 02:42+0000\n"
+"PO-Revision-Date: 2026-01-17 21:36+0100\n"
+"Last-Translator: Stefan Asserhäll <stefan.asserhall@gmail.com>\n"
+"Language-Team: Swedish <kde-i18n-doc@kde.org>\n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 25.08.3\n"
+
+#: BatteryItem.qml:99
+#, kde-format
+msgid "Charging"
+msgstr "Laddas"
+
+#: BatteryItem.qml:101
+#, kde-format
+msgid "Discharging"
+msgstr "Laddas ur"
+
+#: BatteryItem.qml:103 main.qml:122
+#, kde-format
+msgid "Fully Charged"
+msgstr "Fulladdat"
+
+#: BatteryItem.qml:105
+#, kde-format
+msgid "Not Charging"
+msgstr "Laddas inte"
+
+#: BatteryItem.qml:108
+#, kde-format
+msgctxt "Battery is currently not present in the bay"
+msgid "Not present"
+msgstr "Inte monterat"
+
+#: BatteryItem.qml:120
+#, kde-format
+msgctxt "Placeholder is battery percentage"
+msgid "%1%"
+msgstr "%1 %"
+
+#: BatteryItem.qml:184
+#, kde-format
+msgid ""
+"This battery's health is at only %1% and it should be replaced. Contact the "
+"manufacturer."
+msgstr ""
+"Batteriets kapacitet är bara %1 % och det behöver bytas ut. Kontakta "
+"tillverkaren."
+
+#: BatteryItem.qml:203
+#, kde-format
+msgid "Time To Full:"
+msgstr "Tid till fulladdat:"
+
+#: BatteryItem.qml:204
+#, kde-format
+msgid "Remaining Time:"
+msgstr "Återstående tid:"
+
+#: BatteryItem.qml:210
+#, kde-format
+msgctxt "@info"
+msgid "Estimating…"
+msgstr "Uppskattar…"
+
+#: BatteryItem.qml:220
+#, kde-format
+msgid "Battery Health:"
+msgstr "Batterikapacitet:"
+
+#: BatteryItem.qml:226
+#, kde-format
+msgctxt "Placeholder is battery health percentage"
+msgid "%1%"
+msgstr "%1 %"
+
+#: BatteryItem.qml:238
+#, kde-format
+msgid "Battery is configured to charge up to approximately %1%."
+msgstr "Batteriet är inställt att laddas upp till ungefär %1 %."
+
+#: CompactRepresentation.qml:101 CompactRepresentation.qml:150
+#, kde-format
+msgctxt "battery percentage below battery icon"
+msgid "%1%"
+msgstr "%1 %"
+
+#: InhibitionItem.qml:53
+#, kde-format
+msgctxt "@title:group"
+msgid "Sleep and Screen Locking after Inactivity"
+msgstr "Viloläge och skärmlåsning efter inaktivitet"
+
+#: InhibitionItem.qml:60 main.qml:97 PowerProfileItem.qml:76
+#, kde-format
+msgid "Power Management"
+msgstr "Strömsparhantering"
+
+#: InhibitionItem.qml:65
+#, kde-format
+msgctxt "accessible-only status text"
+msgid "Automatic sleep and screen locking are currently blocked."
+msgstr "Automatiskt viloläge och skärmlåsning är för närvarande förhindrade."
+
+#: InhibitionItem.qml:67
+#, kde-format
+msgctxt "accessible-only status text"
+msgid ""
+"Screen locking is currently blocked. Sleep is automatic after inactivity."
+msgstr ""
+"Skärmlåsning är för närvarande förhindrad. Viloläge är automatiskt efter "
+"inaktivitet."
+
+#: InhibitionItem.qml:69
+#, kde-format
+msgctxt "accessible-only status text"
+msgid ""
+"Sleep is currently blocked. Screen locking is automatic after inactivity."
+msgstr ""
+"Viloläge är för närvarande förhindrat. Skärmlåsning är automatisk efter "
+"inaktivitet."
+
+#: InhibitionItem.qml:71
+#, kde-format
+msgctxt "accessible-only status text"
+msgid "Sleep and screen locking are automatic after inactivity."
+msgstr "Viloläge och skärmlåsning är automatiska efter inaktivitet."
+
+#: InhibitionItem.qml:95
+#, kde-format
+msgctxt "@action:button Block sleep and screen locking after inactivity"
+msgid "Manually Block Sleep and Screen Locking"
+msgstr "Förhindra viloläge och skärmlåsning manuellt"
+
+#: InhibitionItem.qml:118
+#, kde-format
+msgid "Failed to unblock automatic sleep and screen locking"
+msgstr ""
+"Misslyckades ta bort blockering av automatiskt viloläge och skärmlåsning"
+
+#: InhibitionItem.qml:121
+#, kde-format
+msgid "Failed to block automatic sleep and screen locking"
+msgstr "Misslyckades förhindra automatiskt viloläge och skärmlåsning"
+
+#: InhibitionItem.qml:135
+#, kde-format
+msgctxt ""
+"@label corresponding to Manually Block Sleep and Screen Locking toggle"
+msgid "This will result in higher energy consumption."
+msgstr "Det resulterar i högre energiförbrukning."
+
+#: InhibitionItem.qml:136
+#, kde-format
+msgctxt ""
+"@label accessible - the sentence about higher energy consumption must be "
+"included (EU regulations)"
+msgid ""
+"You have manually blocked automatic sleep and screen locking. This will "
+"result in higher energy consumption."
+msgstr ""
+"Du har manuellt förhindrat automatiskt viloläge och skärmlåsning. Det "
+"resulterar i högre energiförbrukning."
+
+#: InhibitionItem.qml:143
+#, kde-format
+msgctxt "Minimize the length of this string as much as possible"
+msgid ""
+"Your laptop is configured not to sleep when closing the lid while an "
+"external monitor is connected."
+msgstr ""
+"Den bärbara datorn är inställd att inte gå till viloläge när locket stängs "
+"och en extern bildskärm är ansluten."
+
+#: InhibitionItem.qml:162
+#, kde-format
+msgctxt "An application's reason for inhibiting sleep and/or screen locking"
+msgid "Unknown reason."
+msgstr "Okänd orsak."
+
+#: InhibitionItem.qml:169
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) has been prevented from blocking this "
+"inactivity behavior. The user can choose to allow it again."
+msgid "%1 wants to block sleep and screen locking. (%2)"
+msgstr "%1 vill förhindra viloläge och skärmlåsning (%2)."
+
+#: InhibitionItem.qml:171
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) has been prevented from blocking this "
+"inactivity behavior. The user can choose to allow it again."
+msgid "%1 wants to block screen locking. (%2)"
+msgstr "%1 vill förhindra skärmlåsning (%2)."
+
+#: InhibitionItem.qml:173
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) has been prevented from blocking this "
+"inactivity behavior. The user can choose to allow it again."
+msgid "%1 wants to block sleep. (%2)"
+msgstr "%1 vill förhindra viloläge (%2)."
+
+#: InhibitionItem.qml:177
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, in addition to the user's manual block switch."
+msgid "%1 is also blocking sleep and screen locking. (%2)"
+msgstr "%1 förhindrar också viloläge och skärmlåsning (%2)."
+
+#: InhibitionItem.qml:179
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, in addition to the user's manual block switch."
+msgid "%1 is also blocking screen locking. (%2)"
+msgstr "%1 förhindrar också skärmlåsning (%2)."
+
+#: InhibitionItem.qml:181
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, in addition to the user's manual block switch."
+msgid "%1 is also blocking sleep. (%2)"
+msgstr "%1 förhindrar också viloläge (%2)."
+
+#: InhibitionItem.qml:185
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, the user can choose to unblock it."
+msgid "%1 is blocking sleep and screen locking. (%2)"
+msgstr "%1 förhindrar viloläge och skärmlåsning (%2)."
+
+#: InhibitionItem.qml:187
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, the user can choose to unblock it."
+msgid "%1 is blocking screen locking. (%2)"
+msgstr "%1 förhindrar skärmlåsning (%2)."
+
+#: InhibitionItem.qml:189
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, the user can choose to unblock it."
+msgid "%1 is blocking sleep. (%2)"
+msgstr "%1 förhindrar viloläge (%2)."
+
+#: InhibitionItem.qml:197
+#, kde-format
+msgctxt ""
+"@action:button Prevent an app from blocking automatic sleep and screen "
+"locking after inactivity"
+msgid "Unblock"
+msgstr "Sluta förhindra"
+
+#: InhibitionItem.qml:205
+#, kde-format
+msgctxt ""
+"@action:button Undo preventing an app from blocking automatic sleep and "
+"screen locking after inactivity"
+msgid "Allow"
+msgstr "Tillåt"
+
+#: main.qml:76
+#, kde-format
+msgid "The battery applet has enabled suppressing sleep and screen locking"
+msgstr ""
+"Batteriminiprogrammet har aktiverat undertryckande av viloläge och "
+"skärmlåsning:"
+
+#: main.qml:97
+#, kde-format
+msgid "Power and Battery"
+msgstr "Strömhantering och batteri"
+
+#: main.qml:116
+#, kde-format
+msgid "Battery is not present in the bay"
+msgstr "Batteriet finns inte på plats"
+
+#: main.qml:129
+#, kde-format
+msgid "Battery at %1%, not Charging"
+msgstr "Batteri %1 %, laddas inte"
+
+#: main.qml:131
+#, kde-format
+msgid "Battery at %1%, plugged in but still discharging"
+msgstr "Batteri %1 %, inkopplat med laddas fortfarande ur"
+
+#: main.qml:133
+#, kde-format
+msgid "Battery at %1%, Charging"
+msgstr "Batteri %1 %, laddas"
+
+#: main.qml:136
+#, kde-format
+msgid "Battery at %1%"
+msgstr "Batteri %1 %"
+
+#: main.qml:144
+#, kde-format
+msgid "The power supply is not powerful enough to charge the battery"
+msgstr "Kraftaggregatet är inte kraftfullt nog att ladda batteriet"
+
+#: main.qml:148
+#, kde-format
+msgid "No Batteries Available"
+msgstr "Inga batterier tillgängliga"
+
+#: main.qml:155
+#, kde-format
+msgctxt "time until fully charged - HH:MM"
+msgid "%1 until fully charged"
+msgstr "%1 till fulladdat"
+
+#: main.qml:157
+#, kde-format
+msgctxt "remaining time left of battery usage - HH:MM"
+msgid "%1 remaining"
+msgstr "%1 återstår"
+
+#: main.qml:160
+#, kde-format
+msgid "Not charging"
+msgstr "Laddas inte"
+
+#: main.qml:165
+#, kde-format
+msgid ""
+"Automatic sleep and screen locking are disabled; middle-click to re-enable"
+msgstr ""
+"Automatiskt viloläge och skärmlåsning är inaktiverade. Mittenklicka för att "
+"aktivera igen."
+
+#: main.qml:167
+#, kde-format
+msgid "Middle-click to disable automatic sleep and screen locking"
+msgstr "Mittenklicka för att inaktivera automatiskt viloläge och skärmlåsning"
+
+#: main.qml:172
+#, kde-format
+msgid "An application has requested activating Performance mode"
+msgid_plural "%1 applications have requested activating Performance mode"
+msgstr[0] "Ett program har begärt att aktivera prestandaläge"
+msgstr[1] "%1 program har begärt att aktivera prestandaläge"
+
+#: main.qml:176
+#, kde-format
+msgid "System is in Performance mode; scroll to change"
+msgstr "Systemet är i prestandaläge. Rulla för att ändra."
+
+#: main.qml:180
+#, kde-format
+msgid "An application has requested activating Power Save mode"
+msgid_plural "%1 applications have requested activating Power Save mode"
+msgstr[0] "Ett program har begärt att aktivera strömsparläge"
+msgstr[1] "%1 program har begärt att aktivera strömsparläge"
+
+#: main.qml:184
+#, kde-format
+msgid "System is in Power Save mode; scroll to change"
+msgstr "Systemet är i strömsparläge. Rulla för att ändra."
+
+#: main.qml:187
+#, kde-format
+msgid "System is in Balanced Power mode; scroll to change"
+msgstr "Systemet är i balanserat strömläge. Rulla för att ändra."
+
+#: main.qml:301
+#, kde-format
+msgid "&Show Energy Information…"
+msgstr "Vi&sa information om energi…"
+
+#: main.qml:307
+#, kde-format
+msgid "Show Battery Percentage on Icon When Not Fully Charged"
+msgstr "Visa batteriets procentvärde på ikon om inte fulladdat"
+
+#: main.qml:320
+#, kde-format
+msgid "&Configure Power Management…"
+msgstr "Anpassa strömspar&hantering…"
+
+#: PowerProfileItem.qml:41
+#, kde-format
+msgid "Power Save"
+msgstr "Spara ström"
+
+#: PowerProfileItem.qml:45
+#, kde-format
+msgid "Balanced"
+msgstr "balanserad"
+
+#: PowerProfileItem.qml:49
+#, kde-format
+msgid "Performance"
+msgstr "Prestanda"
+
+#: PowerProfileItem.qml:66
+#, kde-format
+msgid "Power Profile"
+msgstr "Strömsparprofil"
+
+#: PowerProfileItem.qml:110
+#, kde-format
+msgctxt "Power profile"
+msgid "Automatic"
+msgstr "Automatisk"
+
+#: PowerProfileItem.qml:111
+#, kde-format
+msgctxt "Power profile"
+msgid "Not available"
+msgstr "Inte tillgänglig"
+
+#: PowerProfileItem.qml:151
+#, kde-format
+msgid "Failed to activate %1 mode"
+msgstr "Misslyckades aktivera %1"
+
+#: PowerProfileItem.qml:228
+#, kde-format
+msgid ""
+"Performance mode has been disabled to reduce heat generation because the "
+"computer has detected that it may be sitting on your lap."
+msgstr ""
+"Prestandaläge har inaktiverats för att reducera värmeproduktion eftersom "
+"datorn har detekterat att du har den i knäet."
+
+#: PowerProfileItem.qml:230
+#, kde-format
+msgid ""
+"Performance mode is unavailable because the computer is running too hot."
+msgstr "Prestandaläge är inte tillgängligt eftersom datorn är för varm."
+
+#: PowerProfileItem.qml:232
+#, kde-format
+msgid "Performance mode is unavailable."
+msgstr "Prestandaläge är inte tillgängligt."
+
+#: PowerProfileItem.qml:248
+#, kde-format
+msgid ""
+"Performance may be lowered to reduce heat generation because the computer "
+"has detected that it may be sitting on your lap."
+msgstr ""
+"Prestanda kan ha minskats för att reducera värmeproduktion eftersom datorn "
+"har detekterat att du har den i knäet."
+
+#: PowerProfileItem.qml:250
+#, kde-format
+msgid "Performance may be reduced because the computer is running too hot."
+msgstr "Prestanda kan vara reducerad eftersom datorn är för varm."
+
+#: PowerProfileItem.qml:252
+#, kde-format
+msgid "Performance may be reduced."
+msgstr "Prestanda kan vara reducerad."
+
+#: PowerProfileItem.qml:265
+#, kde-format
+msgid "One application has requested activating %2:"
+msgid_plural "%1 applications have requested activating %2:"
+msgstr[0] "Ett program har begärt att %2 aktiveras:"
+msgstr[1] "%1 program har begärt att %2 aktiveras:"
+
+#: PowerProfileItem.qml:284
+#, kde-format
+msgctxt ""
+"%1 is the name of the application, %2 is the reason provided by it for "
+"activating performance mode"
+msgid "%1: %2"
+msgstr "%1: %2"
+
+#: PowerProfileItem.qml:302
+#, kde-format
+msgid "The TLP service automatically controls power profiles"
+msgstr "TLP-tjänsten hanterar strömprofiler automatiskt"
+
+#: PowerProfileItem.qml:304
+#, kde-format
+msgid "Power profiles are not supported on your device."
+msgstr "Strömsparprofiler stöds inte på enheten."
+
+#: PowerProfileItem.qml:305
+#, kde-kuit-format
+msgid ""
+"Power profiles may be supported on your device.<nl/>Try installing the "
+"<command>power-profiles-daemon</command> package using your distribution's "
+"package manager and restarting the system."
+msgstr ""
+"Strömprofiler skulle kunna stödjas på datorn.<nl/>Prova att installera "
+"paketet <command>power-profiles-daemon</command> med din distributions "
+"pakethanterare och starta om systemet."
+
+#~ msgctxt "Sleep and Screen Locking after Inactivity"
+#~ msgid "Blocked"
+#~ msgstr "Blockerat"
+
+#~ msgctxt "Sleep and Screen Locking after Inactivity"
+#~ msgid "Automatic"
+#~ msgstr "Automatiskt"
+
+#~ msgid "%1 application currently wants to block sleep and screen locking:"
+#~ msgid_plural ""
+#~ "%1 applications currently want to block sleep and screen locking:"
+#~ msgstr[0] ""
+#~ "%1 program vill för närvarande blockera viloläge och skärmlåsning:"
+#~ msgstr[1] ""
+#~ "%1 program vill för närvarande blockera viloläge och skärmlåsning:"
+
+#~ msgctxt "Application name; reason"
+#~ msgid "%1 has been prevented from blocking sleep and screen locking for %2"
+#~ msgstr ""
+#~ "%1 har förhindrats från att blockera viloläge och skärmlåsning för %2"
+
+#~ msgid "%1 is currently blocking sleep and screen locking (unknown reason)"
+#~ msgstr ""
+#~ "%1 förhindrar för närvarande viloläge och skärmlåsning (okänd orsak)"
+
+#~ msgid "An application is currently blocking sleep and screen locking (%1)"
+#~ msgstr "Ett program blockerar för närvarande viloläge och skärmlåsning (%1)"
+
+#~ msgid ""
+#~ "An application is currently blocking sleep and screen locking (unknown "
+#~ "reason)"
+#~ msgstr ""
+#~ "Ett program blockerar för närvarande viloläge och skärmlåsning (okänd "
+#~ "orsak)"
+
+#~ msgctxt "Application name: reason for preventing sleep and screen locking"
+#~ msgid "%1: %2"
+#~ msgstr "%1: %2"
+
+#~ msgctxt "Application name: reason for preventing sleep and screen locking"
+#~ msgid "Unknown application: %1"
+#~ msgstr "Okänt program: %1"
+
+#~ msgctxt "Application name: reason for preventing sleep and screen locking"
+#~ msgid "Unknown application: unknown reason"
+#~ msgstr "Okänt program: okänd orsak"
+
+#~ msgctxt ""
+#~ "@action:button Undo preventing an app from blocking automatic sleep and "
+#~ "screen locking after inactivity"
+#~ msgid "Block Again"
+#~ msgstr "Blockera igen"
+
+#~ msgctxt ""
+#~ "@action:button Undo blocking sleep and screen locking after inactivity"
+#~ msgid "Unblock"
+#~ msgstr "Sluta blockera"
+
+#~ msgctxt "@action:button Block sleep and screen locking after inactivity"
+#~ msgid "Manually Block"
+#~ msgstr "Blockera manuellt"
+
+#~ msgctxt ""
+#~ "@action:button Prevent an app from blocking automatic sleep and screen "
+#~ "locking after inactivity"
+#~ msgid "Only this time"
+#~ msgstr "Bara den här gången"
+
+#~ msgctxt ""
+#~ "@action:button Prevent an app from blocking automatic sleep and screen "
+#~ "locking after inactivity"
+#~ msgid "Every time for this app and reason"
+#~ msgstr "Varje gång för det här programmet och den här orsaken"
+
+#~ msgid ""
+#~ "%1 application has been prevented from blocking sleep and screen locking:"
+#~ msgid_plural ""
+#~ "%1 applications have been prevented from blocking sleep and screen "
+#~ "locking:"
+#~ msgstr[0] ""
+#~ "%1 program har förhindrats från att blockera viloläge och skärmlåsning:"
+#~ msgstr[1] ""
+#~ "%1 program har förhindrats från att blockera viloläge och skärmlåsning:"
+
+#, fuzzy
+#~| msgid "Battery at %1%"
+#~ msgctxt "Placeholder is the battery number"
+#~ msgid "Battery %1"
+#~ msgstr "Batteri %1 %"
+
+#~ msgid "Battery"
+#~ msgstr "Batteri"
+
+#~ msgid "The battery applet has enabled system-wide inhibition"
+#~ msgstr "Batteriminiprogrammet har aktiverat systemövergripande inhibering"
+
+#~ msgctxt "Placeholder is brightness percentage"
+#~ msgid "%1%"
+#~ msgstr "%1 %"
+
+#~ msgid "Battery and Brightness"
+#~ msgstr "Batteri och ljusstyrka"
+
+#~ msgid "Brightness"
+#~ msgstr "Ljusstyrka"
+
+#~ msgid "Display Brightness"
+#~ msgstr "Bildskärmens ljusstyrka"
+
+#~ msgid "Keyboard Brightness"
+#~ msgstr "Tangentbordets ljusstyrka"
+
+#, fuzzy
+#~| msgid "Performance mode is unavailable."
+#~ msgid "Performance mode has been manually enabled"
+#~ msgstr "Prestandaläge är inte tillgängligt."
+
+#~ msgid ""
+#~ "Performance mode is unavailable because the computer has detected it is "
+#~ "sitting on your lap."
+#~ msgstr ""
+#~ "Prestandaläge är inte tillgängligt eftersom datorn har detekterat att du "
+#~ "har den i knäet."
+
+#~ msgid "General"
+#~ msgstr "Allmänt"
+
+#~ msgctxt "short symbol to signal there is no battery currently available"
+#~ msgid "-"
+#~ msgstr "-"
+
+#~ msgid "Configure Power Saving..."
+#~ msgstr "Anpassa strömsparhantering..."
+
+#~ msgid "Time To Empty:"
+#~ msgstr "Tid till tomt:"
+
+#~ msgid "Power management is disabled"
+#~ msgstr "Strömsparhantering är inaktiverad"
+
+#~ msgid ""
+#~ "Disabling power management will prevent your screen and computer from "
+#~ "turning off automatically.\n"
+#~ "\n"
+#~ "Most applications will automatically suppress power management when they "
+#~ "don't want to have you interrupted."
+#~ msgstr ""
+#~ "Inaktivering av strömsparhantering förhindrar att bildskärmen och datorn "
+#~ "stängs av automatiskt.\n"
+#~ "\n"
+#~ "De flesta program förhindrar automatiskt strömsparhantering när de inte "
+#~ "vill att du ska bli avbruten."
+
+#~ msgctxt "Some Application and n others are currently suppressing PM"
+#~ msgid ""
+#~ "%2 and %1 other application are currently suppressing power management."
+#~ msgid_plural ""
+#~ "%2 and %1 other applications are currently suppressing power management."
+#~ msgstr[0] ""
+#~ "%2 och %1 annat program förhindrar för närvarande strömsparhantering."
+#~ msgstr[1] ""
+#~ "%2 och %1 andra program förhindrar för närvarande strömsparhantering."
+
+#~ msgctxt "Some Application is suppressing PM"
+#~ msgid "%1 is currently suppressing power management."
+#~ msgstr "%1 förhindrar för närvarande strömsparhantering."
+
+#~ msgctxt "Some Application is suppressing PM: Reason provided by the app"
+#~ msgid "%1 is currently suppressing power management: %2"
+#~ msgstr "%1 förhindrar för närvarande strömsparhantering: %2"
+
+#~ msgctxt "Used for measurement"
+#~ msgid "100%"
+#~ msgstr "100 %"
+
+#~ msgid "%1% Charging"
+#~ msgstr "%1 % laddas"
+
+#~ msgid "%1% Plugged in"
+#~ msgstr "%1 % inkopplad"
+
+#~ msgid "%1% Battery Remaining"
+#~ msgstr "%1 % batteri återstår"
+
+#~ msgctxt "The degradation in the battery's energy capacity"
+#~ msgid "Capacity degradation:"
+#~ msgstr "Kapacitetsförsämring:"
+
+#~ msgctxt "Placeholder is battery's capacity degradation"
+#~ msgid "%1%"
+#~ msgstr "%1 %"
+
+#~ msgctxt "Placeholder is battery capacity"
+#~ msgid "%1%"
+#~ msgstr "%1 %"
+
+#~ msgid "Vendor:"
+#~ msgstr "Tillverkare:"
+
+#~ msgid "Model:"
+#~ msgstr "Modell:"
+
+#~ msgid "No screen or keyboard brightness controls available"
+#~ msgstr ""
+#~ "Inga kontroller för skärmens eller tangentbordets ljusstyrka tillgängliga"
+
+#~ msgctxt "Placeholders are current and maximum brightness step"
+#~ msgid "%1/%2"
+#~ msgstr "%1/%2"
+
+#~ msgctxt "Placeholder is battery name"
+#~ msgid "%1:"
+#~ msgstr "%1:"
+
+#~ msgid "N/A"
+#~ msgstr "Ej tillgänglig"

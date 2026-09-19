@@ -1,0 +1,42 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: kdeorg\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-11-17 11:53+0000\n"
+"PO-Revision-Date: 2024-04-22 15:58\n"
+"Last-Translator: \n"
+"Language-Team: Chinese Simplified\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Crowdin-Project: kdeorg\n"
+"X-Crowdin-Project-ID: 269464\n"
+"X-Crowdin-Language: zh-CN\n"
+"X-Crowdin-File: /kf6-stable/messages/kpipewire/kpipewire6.pot\n"
+"X-Crowdin-File-ID: 51424\n"
+
+#: pipewirecore.cpp:90
+#, kde-format
+msgid ""
+"Invalid PipeWire installation. See https://gitlab.freedesktop.org/pipewire/"
+"pipewire/-/issues/3296 for more details."
+msgstr ""
+"本机安装的 PipeWire 无效。更多详情请见 https://gitlab.freedesktop.org/"
+"pipewire/pipewire/-/issues/3296 。"
+
+#: pipewirecore.cpp:107
+#, kde-format
+msgid "Failed to create PipeWire context"
+msgstr "创建 PipeWire 环境信息失败"
+
+#: pipewirecore.cpp:124
+#, kde-format
+msgid "Failed to connect to PipeWire"
+msgstr "无法连接到 PipeWire"
+
+#: pipewirecore.cpp:131
+#, kde-format
+msgid "Failed to start main PipeWire loop"
+msgstr "无法启动 PipeWire 主循环"

@@ -1,0 +1,8 @@
+File=ark.kcfg
+ClassName=ArkSettings
+Singleton=true
+Mutators=true
+SetUserTexts=true
+IncludeFiles=\"kerfuffle_export.h\"
+Visibility=KERFUFFLE_EXPORT
+GenerateProperties=true

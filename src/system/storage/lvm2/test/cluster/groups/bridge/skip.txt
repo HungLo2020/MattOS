@@ -1,0 +1,170 @@
+# TODO: some tests here might be able to run with some adjustment
+# to the test, or some extension of lvmtest features.
+#
+# Most tests here are not compatible with running against real
+# devices with a fixed size, i.e. they manipulate dev properties
+# in ways that's possible with dm, but not scsi.
+
+# lvmlockd - FIXME: replace these with native lvmtest cluster tests
+# run test/shell/aa-lvmlockd-dlm-prepare.sh  # lock-type
+# run test/shell/aa-lvmlockd-idm-prepare.sh  # lock-type
+# run test/shell/idm_fabric_failure_half_brain.sh  # lock-type
+# run test/shell/idm_fabric_failure.sh  # with-idm-failure
+# run test/shell/idm_fabric_failure_timeout.sh  # lock-type
+# run test/shell/idm_ilm_failure.sh  # lock-type
+# run test/shell/lvmlockd_failure.sh  # with-idm-failure
+# run test/shell/lvmlockd-hello-world.sh  # LVM_TEST_LVMLOCKD not configured
+# run test/shell/lvmlockd-lv-types.sh  # LVM_TEST_LVMLOCKD not configured
+# run test/shell/multi_hosts_lv_ex_timeout_hosta.sh  # with-multi-host
+# run test/shell/multi_hosts_lv_ex_timeout_hostb.sh  # with-multi-host
+# run test/shell/multi_hosts_lv_hosta.sh  # with-multi-host
+# run test/shell/multi_hosts_lv_hostb.sh  # with-multi-host
+# run test/shell/multi_hosts_lv_sh_timeout_hosta.sh  # with-multi-host
+# run test/shell/multi_hosts_lv_sh_timeout_hostb.sh  # with-multi-host
+# run test/shell/multi_hosts_vg_hosta.sh  # with-multi-host
+# run test/shell/multi_hosts_vg_hostb.sh  # with-multi-host
+# run test/shell/pr-sanlock.sh  # lock-type
+# run test/shell/stress_multi_threads_1.sh  # lock-type
+# run test/shell/stress_multi_threads_2.sh  # lock-type
+# run test/shell/stress_single_thread.sh  # lock-type
+# run test/shell/zz-lvmlockd-dlm-remove.sh  # lock-type
+# run test/shell/zz-lvmlockd-idm-remove.sh  # lock-type
+
+# use scsi_debug, often to set custom dev properties,
+# these could be handled with specific VM device settings in the cluster config
+# run test/shell/devicesfile-vpd-ids.sh  # scsi_debug_dev
+# run test/shell/duplicate-pvs-multipath.sh  # unconditional skip: mpath/scsi_debug cleanup broken after failure
+# run test/shell/integrity-blocksize-3.sh  # scsi_debug_dev
+# run test/shell/large-physical-sector-size.sh  # scsi_debug_dev
+# run test/shell/profiles-thin.sh  # scsi_debug_dev
+# run test/shell/topology-support.sh  # scsi_debug_dev
+# run test/shell/vdo-scsi-convert.sh  # scsi_debug_dev
+# run test/shell/writecache-cache-blocksize-2.sh  # scsi_debug_dev
+# run test/shell/writecache-cache-blocksize.sh  # scsi_debug_dev
+# run test/shell/writecache.sh  # scsi_debug_dev
+
+# loop devs, often to set custom dev properties,
+# these could be handled with specific VM device settings in the cluster config
+# run test/shell/allow-mixed-block-sizes.sh  # losetup
+# run test/shell/devicesfile-edit.sh  # losetup
+# run test/shell/devicesfile-refresh-extended.sh  # losetup
+# run test/shell/integrity-blocksize.sh  # losetup
+# run test/shell/losetup-partscan.sh  # needs loop
+
+# custom device size is required by the test
+# run test/shell/cachevol-cachedevice.sh  # device size: test assumes specific extent counts based on 512M devices
+# run test/shell/discards-thin.sh  # device size: hardcodes extent counts for 512M devices
+# run test/shell/integrity-imeta-segs.sh  # integrity metadata segment counts depend on custom dev size
+# run test/shell/lvcreate-cache-fail.sh  # device size: commands succeed on larger real devices instead of failing
+# run test/shell/lvcreate-operation.sh  # device size: hardcoded extent/size checks fail with real device geometry
+# run test/shell/lvcreate-raid10.sh  # device size: hardcoded extent counts for 512M devices
+# run test/shell/lvcreate-raid.sh  # device size: hardcoded extent counts for 512M devices
+# run test/shell/lvcreate-thin.sh  # device size: commands succeed on larger real devices instead of failing
+# run test/shell/lvresize-rounding.sh  # device size: rounding checks assume specific device sizes
+# run test/shell/process-each-duplicate-pvs.sh  # device size: duplicate PV detection assumes specific device sizes
+# run test/shell/pv-check-dev-size.sh  # device size: setphysicalvolumesize 16m does not exceed 1GB real device, no warning triggered
+# run test/shell/pvck-repair.sh  # device size: hardcoded mda2_offset=34603008 for 34MB device, real device has mda2 at different offset
+# run test/shell/pv-min-size.sh  # device size: pv_min_size=10240 (10MB) does not filter out 1GB real device
+# run test/shell/pvscan-autoactivate.sh  # device size: autoactivation checks assume specific device sizes
+# run test/shell/thin-overprovisioning.sh  # device size: overprovisioning thresholds differ with real device sizes
+# run test/shell/lvconvert-cache-chunks.sh  # device size: lvcreate -L1T cache pool exceeds 1G device capacity
+# run test/shell/lvcreate-cache.sh  # device size: cache-pool with 17G metadata needs 32759 extents, only ~10K available on 1G devices
+# run test/shell/lvcreate-thin-big.sh  # device size: 17G thin pool metadata requires PV >= 16GB (per test FIXME); cannot fit on 1G devices
+# run test/shell/lvcreate-thin-limits.sh  # device size: pool data size computed as (VG_extents - meta_extents) is negative (-9220) on 1G devices
+# run test/shell/thin-16g.sh  # thin pool metadata cannot be multisegment; 16G metadata requires contiguous space larger than any single 2G device
+# run test/shell/thin-large.sh  # device size: lvcreate -T -L250T exceeds 1G device capacity
+
+# dmstats
+# run test/shell/dmstats-create.sh  # dmstats: "Device not found" on real devices (path handling)
+# run test/shell/dmstats-filemap.sh  # dmstats: --filemap requires DM device; cannot map file on non-DM filesystem
+# run test/shell/dmstats-group.sh  # dmstats: "Device not found" on real devices
+# run test/shell/dmstats-group-ungroup-nouserdata.sh  # dmstats: "Device not found" on real devices
+# run test/shell/dmstats-group-ungroup-userdata.sh  # dmstats: "Device not found" on real devices
+# run test/shell/dmstats-histogram.sh  # dmstats: "Device not found" on real devices
+# run test/shell/dmstats-precise.sh  # dmstats: "Device not found" on real devices
+# run test/shell/dmstats-report.sh  # dmstats: "Device not found" on real devices
+# run test/shell/dmstats-ungroup.sh  # dmstats: "Device not found" on real devices
+# run test/shell/dmstats-userdata.sh  # dmstats: "Device not found" on real devices
+
+# use delay_dev
+# possibly have bridge code wrap the scsi devs with dm during setup to enable these
+# run test/shell/integrity-large.sh  # FIXME: unnecessarily uses delay_dev to minimize data written
+# run test/shell/lock-parallel.sh  # delay_dev
+# run test/shell/lvcreate-raid-nosync.sh  # delay_dev requires DM devices, not real devices
+# run test/shell/lvchange-raid1-writemostly.sh  # delay_dev
+# run test/shell/lvchange-rebuild-raid.sh  # delay_dev
+# run test/shell/lvconvert-cache-abort.sh  # delay_dev
+# run test/shell/lvconvert-repair-mirror.sh  # delay_dev
+# run test/shell/lvconvert-repair-raid.sh  # delay_dev
+# run test/shell/pvmove-open.sh  # delay_dev
+# run test/shell/pvmove-raid-restart.sh  # delay_dev
+# run test/shell/pvmove-restart.sh  # delay_dev
+# run test/shell/pvmove-resume-1.sh  # delay_dev
+# run test/shell/pvmove-resume-multiseg.sh  # delay_dev
+# run test/shell/snapshot-merge-stack.sh  # delay_dev
+# run test/shell/snapshot-merge-thin.sh  # delay_dev
+# run test/shell/lvconvert-raid.sh  # delay_dev
+# run test/shell/lvconvert-raid-reshape-size.sh  # delay_dev
+# run test/shell/lvconvert-raid-reshape-load.sh  # delay_dev
+# run test/shell/lvconvert-raid-reshape-stripes-load.sh  # delay_dev
+# run test/shell/lvconvert-raid-reshape-stripes-load-fail.sh  # delay_dev
+# run test/shell/lvconvert-raid-reshape-stripes-load-reload.sh  # delay_dev
+# run test/shell/lvconvert-raid-status-validation.sh  # delay_dev
+
+# use error_dev / writeerror_dev
+# possibly have bridge code wrap the scsi devs with dm during setup to enable these
+# run test/shell/lvconvert-repair-cache.sh  # error_dev: takes whole device offline; test needs specific-sector DM error target
+# run test/shell/lvcreate-signature-wiping.sh  # error_dev: takes whole device offline; test needs sector-level I/O error, not missing PV
+# run test/shell/lvm-conf-error.sh  # error_dev: takes whole device offline; LV becomes inaccessible rather than partially corrupt
+# run test/shell/lvextend-raid.sh  # writeerror_dev reads $name.table saved by DM error_dev, which does not exist for real devices
+# run test/shell/pv-corruption.sh  # writeerror_dev reads $name.table saved by DM error_dev, which does not exist for real devices
+# run test/shell/thin-flags.sh  # error_dev: takes whole device offline; pool shows partial PV missing instead of data I/O error
+
+# use dmsetup manipulation of test dev properties that is not possible with scsi devs
+# run test/shell/dmsecuretest.sh  # dmsetup
+# run test/shell/lvconvert-mirror.sh  # DM table manipulation: aux zero_dev uses dmsetup table on real devices
+# run test/shell/lvconvert-mirror-updown.sh  # DM table manipulation: aux zero_dev uses dmsetup table on real devices
+# run test/shell/lvcreate-large-raid.sh  # DM table manipulation: aux zero_dev reads sda.table saved by dmsetup, not present for real SCSI devices
+# run test/shell/mdata-strings.sh  # dmsetup rename fails on real SCSI devices; test's intended skip (test $LVM_TEST_DEVDIR = /dev) does not fire because LVM_TEST_DEVDIR is unset in bridge mode
+# run test/shell/thin-zero-meta.sh  # DM table manipulation: aux zero_dev reads sda.table saved by dmsetup, not present for real SCSI devices
+# run test/shell/lvconvert-vdo-raid.sh  # DM table manipulation: aux zero_dev reads sda.table saved by dmsetup, not present for real SCSI devices
+
+# vdo: missing tools or test features not supported in bridge mode
+# run test/shell/vdo-basic.sh  # extended tests not supported in cluster shell mode
+# run test/shell/vdo-compress.sh  # extended tests not supported in cluster shell mode
+# run test/shell/vdo-convert.sh  # missing lvm_vdo_wrapper tool
+# run test/shell/vdo-dedupe.sh  # extended tests not supported in cluster shell mode
+# run test/shell/vdo-rebuild.sh  # extended tests not supported in cluster shell mode
+
+# vdo: pool minimum size (~4G) exceeds available space on 1G devices
+# run test/shell/lvconvert-vdo.sh  # vdata LV spans multiple PVs when VG is scaled; check lv_field segtype returns one line per segment
+# run test/shell/lvextend-vdo-dmeventd.sh  # VDO dedup/compression reduces data_percent after writes; dmeventd 70% threshold never reached
+# run test/shell/lvrename-vdo.sh  # scaled VG (5 x 2G = 10G) exhausted by earlier LVs; insufficient space for 4G raid1
+# run test/shell/profiles-vdo.sh  # VDO pool -L5G, 2 x 1G devices
+# run test/shell/vdo-autoumount-dmeventd.sh  # VDO dedup/compression reduces data_percent after writes; dmeventd 70% threshold never reached, umount not triggered
+# run test/shell/vgsplit-vdo.sh  # lvcreate --vdo -L4G restricts to 2 named PVs (dev1, dev2); 2 x 2G = 8188 extents < 8192 needed
+
+# other
+# run test/shell/000-basic.sh  # requires build artifacts (lib/version-expected)
+# run test/shell/component-mirror.sh  # exclusive device access: mirror leg allocation conflicts with real shared devices
+# run test/shell/devicesfile-basic.sh  # devices file: test creates/removes PVs expecting device paths not present on cluster
+# run test/shell/devicesfile-devname.sh  # real SCSI devices use serial/wwid as IDNAME in the devices file, not devname path; test assumes IDNAME=/dev/sdX format
+# run test/shell/devicesfile-misc.sh  # devices file: assumes specific device path format
+# run test/shell/devicesfile-realdevs.sh  # devices file: hardcodes device properties incompatible with iSCSI devices
+# run test/shell/duplicate-pvs-md1.sh  # unreliable mdadm detection causes skip
+# run test/shell/lvconvert-raid-reshape.sh  # requires 65 devices, only 64 available
+# run test/shell/lvconvert-raid1-split-trackchanges.sh  # raid behavior: split-trackchanges timing differs on real devices
+# run test/shell/lvextend-caches.sh  # unconditional skip on kernel 5.19+/6.x (kills kernel)
+# run test/shell/multipath-config.sh  # unconditional skip: not applicable to real devices
+# run test/shell/open-file-limit.sh  # requires 200 devices, only 64 available
+# run test/shell/pvck-dump.sh  # requires revert before running so old data is not found on devs
+# run test/shell/read-ahead.sh  # iSCSI behavior: blockdev --setra 768 on PV but LV gets kernel read-ahead 8192
+# run test/shell/report-sort.sh  # report ordering: field values/ordering differ on real devices
+# run test/shell/select-report.sh  # report ordering: selection output differs on real devices
+# run test/shell/select-tools.sh  # report ordering: selection tool output differs on real devices
+# run test/shell/stray-device-node.sh  # outdated test
+# run test/shell/thin-dmeventd-warns.sh  # greps debug.log_DMEVENTD_out which is only created when dmeventd runs in foreground debug mode (virtual-device framework), not with the system dmeventd used in bridge mode
+# run test/shell/thin-foreign-dmeventd.sh  # greps debug.log_DMEVENTD_out which is only created when dmeventd runs in foreground debug mode (virtual-device framework), not with the system dmeventd used in bridge mode
+# run test/shell/udev-cookie-exhaust.sh  # DM_UDEV_SYNCHRONIZATION is unbound in bridge mode (set by virtual-device framework); set -u in the test causes an immediate crash
+# run test/shell/udev-pvscan-vgchange.sh  # mdadm
+# run test/shell/vgcreate-many-pvs.sh  # requires 100 devices

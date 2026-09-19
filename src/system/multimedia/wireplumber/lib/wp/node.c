@@ -1,0 +1,984 @@
+/* WirePlumber
+ *
+ * Copyright © 2019-2020 Collabora Ltd.
+ *    @author Julian Bouzas <julian.bouzas@collabora.com>
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+#include "node.h"
+#include "core.h"
+#include "object-manager.h"
+#include "log.h"
+#include "wpenums.h"
+#include "private/client-context.h"
+#include "private/pipewire-object-mixin.h"
+
+#include <pipewire/impl.h>
+
+WP_DEFINE_LOCAL_LOG_TOPIC ("wp-node")
+
+/*! \defgroup wpnode WpNode */
+/*!
+ * \struct WpNode
+ *
+ * The WpNode class allows accessing the properties and methods of a
+ * PipeWire node object (`struct pw_node`).
+ *
+ * A WpNode is constructed internally when a new node appears on the
+ * PipeWire registry and it is made available through the WpObjectManager API.
+ * Alternatively, a WpNode can also be constructed using
+ * wp_node_new_from_factory(), which creates a new node object
+ * on the remote PipeWire server by calling into a factory.
+ *
+ * \gproperties
+ *
+ * \gproperty{state, WpNodeState, G_PARAM_READABLE, The current state of the node}
+ *
+ * \gproperty{n-input-ports, uint, G_PARAM_READABLE, The number of input ports}
+ *
+ * \gproperty{n-output-ports, uint, G_PARAM_READABLE, The number of output ports}
+ *
+ * \gproperty{max-input-ports, uint, G_PARAM_READABLE, The max number of input ports}
+ *
+ * \gproperty{max-output-ports, uint, G_PARAM_READABLE, The max number of output ports}
+ *
+ * \gsignals
+ *
+ * \par ports-changed
+ * \parblock
+ * \code
+ * void
+ * ports_changed_callback (WpNode * self,
+ *                         gpointer user_data)
+ * \endcode
+ *
+ * Emitted when the node's ports change. This is only emitted when
+ * WP_NODE_FEATURE_PORTS is enabled.
+ *
+ * Flags: G_SIGNAL_RUN_LAST
+ * \endparblock
+ *
+ * \par state-changed
+ * \parblock
+ * \code
+ * void
+ * state_changed_callback (WpNode * self,
+ *                         WpNodeState old_state,
+ *                         WpNodeState new_state,
+ *                         gpointer user_data)
+ * \endcode
+ *
+ * Emitted when the node changes state. This is only emitted when
+ * WP_PIPEWIRE_OBJECT_FEATURE_INFO is enabled.
+ *
+ * Parameters:
+ * - `old_state` - the old state
+ * - `new_state` - the new state
+ *
+ * Flags: G_SIGNAL_RUN_LAST
+ * \endparblock
+ */
+
+
+enum {
+  PROP_STATE = WP_PW_OBJECT_MIXIN_PROP_CUSTOM_START,
+  PROP_N_INPUT_PORTS,
+  PROP_N_OUTPUT_PORTS,
+  PROP_MAX_INPUT_PORTS,
+  PROP_MAX_OUTPUT_PORTS,
+};
+
+enum {
+  SIGNAL_STATE_CHANGED,
+  SIGNAL_PORTS_CHANGED,
+  N_SIGNALS,
+};
+
+static guint32 signals[N_SIGNALS] = {0};
+
+struct _WpNode
+{
+  WpGlobalProxy parent;
+  WpObjectManager *ports_om;
+};
+
+static void wp_node_pw_object_mixin_priv_interface_init (
+    WpPwObjectMixinPrivInterface * iface);
+
+G_DEFINE_TYPE_WITH_CODE (WpNode, wp_node, WP_TYPE_GLOBAL_PROXY,
+    G_IMPLEMENT_INTERFACE (WP_TYPE_PIPEWIRE_OBJECT,
+        wp_pw_object_mixin_object_interface_init)
+    G_IMPLEMENT_INTERFACE (WP_TYPE_PW_OBJECT_MIXIN_PRIV,
+        wp_node_pw_object_mixin_priv_interface_init))
+
+static void
+wp_node_init (WpNode * self)
+{
+}
+
+static void
+wp_node_get_property (GObject * object, guint property_id,
+    GValue * value, GParamSpec * pspec)
+{
+  WpPwObjectMixinData *d = wp_pw_object_mixin_get_data (object);
+
+  switch (property_id) {
+  case PROP_STATE:
+    g_value_set_enum (value, d->info ?
+        ((struct pw_node_info *) d->info)->state : 0);
+    break;
+  case PROP_N_INPUT_PORTS:
+    g_value_set_uint (value, d->info ?
+        ((struct pw_node_info *) d->info)->n_input_ports : 0);
+    break;
+  case PROP_N_OUTPUT_PORTS:
+    g_value_set_uint (value, d->info ?
+        ((struct pw_node_info *) d->info)->n_output_ports : 0);
+    break;
+  case PROP_MAX_INPUT_PORTS:
+    g_value_set_uint (value, d->info ?
+        ((struct pw_node_info *) d->info)->max_input_ports : 0);
+    break;
+  case PROP_MAX_OUTPUT_PORTS:
+    g_value_set_uint (value, d->info ?
+        ((struct pw_node_info *) d->info)->max_output_ports : 0);
+    break;
+  default:
+    wp_pw_object_mixin_get_property (object, property_id, value, pspec);
+    break;
+  }
+}
+
+static void
+wp_node_on_ports_om_installed (WpObjectManager *ports_om, WpNode * self)
+{
+  wp_object_update_features (WP_OBJECT (self), WP_NODE_FEATURE_PORTS, 0);
+}
+
+static void
+wp_node_emit_ports_changed (WpObjectManager *ports_om, WpNode * self)
+{
+  g_signal_emit (self, signals[SIGNAL_PORTS_CHANGED], 0);
+}
+
+static void
+wp_node_enable_feature_ports (WpNode * self)
+{
+  g_autoptr (WpCore) core = wp_object_get_core (WP_OBJECT (self));
+  guint32 bound_id = wp_proxy_get_bound_id (WP_PROXY (self));
+
+  wp_debug_object (self, "enabling WP_NODE_FEATURE_PORTS, bound_id:%u",
+      bound_id);
+
+  self->ports_om = wp_object_manager_new ();
+  wp_object_manager_add_interest (self->ports_om,
+      WP_TYPE_PORT,
+      WP_CONSTRAINT_TYPE_PW_GLOBAL_PROPERTY, PW_KEY_NODE_ID, "=u", bound_id,
+      NULL);
+  wp_object_manager_request_object_features (self->ports_om,
+      WP_TYPE_PORT, WP_OBJECT_FEATURES_ALL);
+
+  g_signal_connect_object (self->ports_om, "installed",
+      G_CALLBACK (wp_node_on_ports_om_installed), self, 0);
+  g_signal_connect_object (self->ports_om, "objects-changed",
+      G_CALLBACK (wp_node_emit_ports_changed), self, 0);
+
+  wp_core_install_object_manager (core, self->ports_om);
+}
+
+static WpObjectFeatures
+wp_node_get_supported_features (WpObject * object)
+{
+  return wp_pw_object_mixin_get_supported_features (object)
+      | WP_NODE_FEATURE_PORTS;
+}
+
+enum {
+  STEP_PORTS = WP_PW_OBJECT_MIXIN_STEP_CUSTOM_START,
+};
+
+static void
+wp_node_activate_execute_step (WpObject * object,
+    WpFeatureActivationTransition * transition, guint step,
+    WpObjectFeatures missing)
+{
+  switch (step) {
+  case WP_PW_OBJECT_MIXIN_STEP_BIND:
+  case WP_TRANSITION_STEP_ERROR:
+    /* base class can handle BIND and ERROR */
+    WP_OBJECT_CLASS (wp_node_parent_class)->
+        activate_execute_step (object, transition, step, missing);
+    break;
+  case WP_PW_OBJECT_MIXIN_STEP_WAIT_INFO:
+    /* just wait, info will be emitted anyway after binding */
+    break;
+  case WP_PW_OBJECT_MIXIN_STEP_CACHE_PARAMS:
+    wp_pw_object_mixin_cache_params (object, missing);
+    break;
+  case STEP_PORTS:
+    wp_node_enable_feature_ports (WP_NODE (object));
+    break;
+  default:
+    g_assert_not_reached ();
+  }
+}
+
+static void
+wp_node_deactivate (WpObject * object, WpObjectFeatures features)
+{
+  wp_pw_object_mixin_deactivate (object, features);
+
+  if (features & WP_NODE_FEATURE_PORTS) {
+    WpNode *self = WP_NODE (object);
+    g_clear_object (&self->ports_om);
+    wp_object_update_features (object, 0, WP_NODE_FEATURE_PORTS);
+  }
+
+  WP_OBJECT_CLASS (wp_node_parent_class)->deactivate (object, features);
+}
+
+static const struct pw_node_events node_events = {
+  PW_VERSION_NODE_EVENTS,
+  .info = (HandleEventInfoFunc(node)) wp_pw_object_mixin_handle_event_info,
+  .param = wp_pw_object_mixin_handle_event_param,
+};
+
+static void
+wp_node_pw_proxy_created (WpProxy * proxy, struct pw_proxy * pw_proxy)
+{
+  wp_pw_object_mixin_handle_pw_proxy_created (proxy, pw_proxy,
+      node, &node_events);
+}
+
+static void
+wp_node_pw_proxy_destroyed (WpProxy * proxy)
+{
+  WpNode *self = WP_NODE (proxy);
+
+  wp_pw_object_mixin_handle_pw_proxy_destroyed (proxy);
+
+  g_clear_object (&self->ports_om);
+  wp_object_update_features (WP_OBJECT (self), 0, WP_NODE_FEATURE_PORTS);
+
+  WP_PROXY_CLASS (wp_node_parent_class)->pw_proxy_destroyed (proxy);
+}
+
+static void
+wp_node_class_init (WpNodeClass * klass)
+{
+  GObjectClass *object_class = (GObjectClass *) klass;
+  WpObjectClass *wpobject_class = (WpObjectClass *) klass;
+  WpProxyClass *proxy_class = (WpProxyClass *) klass;
+
+  object_class->get_property = wp_node_get_property;
+
+  wpobject_class->get_supported_features = wp_node_get_supported_features;
+  wpobject_class->activate_get_next_step =
+      wp_pw_object_mixin_activate_get_next_step;
+  wpobject_class->activate_execute_step = wp_node_activate_execute_step;
+  wpobject_class->deactivate = wp_node_deactivate;
+
+  proxy_class->pw_iface_type = PW_TYPE_INTERFACE_Node;
+  proxy_class->pw_iface_version = PW_VERSION_NODE;
+  proxy_class->pw_proxy_created = wp_node_pw_proxy_created;
+  proxy_class->pw_proxy_destroyed = wp_node_pw_proxy_destroyed;
+
+  wp_pw_object_mixin_class_override_properties (object_class);
+
+  g_object_class_install_property (object_class, PROP_STATE,
+      g_param_spec_enum ("state", "state", "state", WP_TYPE_NODE_STATE, 0,
+          G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_property (object_class, PROP_N_INPUT_PORTS,
+      g_param_spec_uint ("n-input-ports", "n-input-ports", "n-input-ports",
+          0, G_MAXUINT, 0, G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_property (object_class, PROP_N_OUTPUT_PORTS,
+      g_param_spec_uint ("n-output-ports", "n-output-ports", "n-output-ports",
+          0, G_MAXUINT, 0, G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_property (object_class, PROP_MAX_INPUT_PORTS,
+      g_param_spec_uint ("max-input-ports", "max-input-ports", "max-input-ports",
+          0, G_MAXUINT, 0, G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_property (object_class, PROP_MAX_OUTPUT_PORTS,
+      g_param_spec_uint ("max-output-ports", "max-output-ports", "max-output-ports",
+          0, G_MAXUINT, 0, G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+
+  signals[SIGNAL_STATE_CHANGED] = g_signal_new (
+      "state-changed", G_TYPE_FROM_CLASS (klass),
+      G_SIGNAL_RUN_LAST, 0, NULL, NULL, NULL, G_TYPE_NONE, 2,
+      WP_TYPE_NODE_STATE, WP_TYPE_NODE_STATE);
+
+  signals[SIGNAL_PORTS_CHANGED] = g_signal_new (
+      "ports-changed", G_TYPE_FROM_CLASS (klass),
+      G_SIGNAL_RUN_LAST, 0, NULL, NULL, NULL, G_TYPE_NONE, 0);
+}
+
+static void
+wp_node_process_info (gpointer instance, gpointer old_info, gpointer i)
+{
+  const struct pw_node_info *info = i;
+
+  if (info->change_mask & PW_NODE_CHANGE_MASK_STATE) {
+    enum pw_node_state old_state = old_info ?
+        ((struct pw_node_info *) old_info)->state : PW_NODE_STATE_CREATING;
+    g_signal_emit (instance, signals[SIGNAL_STATE_CHANGED], 0,
+        old_state, info->state);
+  }
+  if (info->change_mask & PW_NODE_CHANGE_MASK_INPUT_PORTS) {
+    g_object_notify (G_OBJECT (instance), "n-input-ports");
+    g_object_notify (G_OBJECT (instance), "max-input-ports");
+  }
+  if (info->change_mask & PW_NODE_CHANGE_MASK_OUTPUT_PORTS) {
+    g_object_notify (G_OBJECT (instance), "n-output-ports");
+    g_object_notify (G_OBJECT (instance), "max-output-ports");
+  }
+}
+
+static gint
+wp_node_enum_params (gpointer instance, guint32 id,
+    guint32 start, guint32 num, WpSpaPod *filter)
+{
+  WpPwObjectMixinData *d = wp_pw_object_mixin_get_data (instance);
+  return pw_node_enum_params (d->iface, 0, id, start, num,
+      filter ? wp_spa_pod_get_spa_pod (filter) : NULL);
+}
+
+static gint
+wp_node_set_param (gpointer instance, guint32 id, guint32 flags,
+    WpSpaPod * param)
+{
+  WpPwObjectMixinData *d = wp_pw_object_mixin_get_data (instance);
+  g_autoptr (WpSpaPod) p = param;
+  return pw_node_set_param (d->iface, id, flags,
+      wp_spa_pod_get_spa_pod (p));
+}
+
+static void
+wp_node_pw_object_mixin_priv_interface_init (
+    WpPwObjectMixinPrivInterface * iface)
+{
+  wp_pw_object_mixin_priv_interface_info_init (iface, node, NODE);
+  iface->process_info = wp_node_process_info;
+  iface->enum_params = wp_node_enum_params;
+  iface->set_param = wp_node_set_param;
+}
+
+/*!
+ * \brief Constructs a node on the PipeWire server by asking the remote factory
+ * \a factory_name to create it.
+ *
+ * Because of the nature of the PipeWire protocol, this operation completes
+ * asynchronously at some point in the future. In order to find out when
+ * this is done, you should call wp_object_activate(), requesting at least
+ * WP_PROXY_FEATURE_BOUND. When this feature is ready, the node is ready for
+ * use on the server. If the node cannot be created, this activation operation
+ * will fail.
+ *
+ * \ingroup wpnode
+ * \param core the wireplumber core
+ * \param factory_name the pipewire factory name to construct the node
+ * \param properties (nullable) (transfer full): the properties to pass to the
+ *   factory
+ * \returns (nullable) (transfer full): the new node or NULL if the core
+ *   is not connected and therefore the node cannot be created
+ */
+WpNode *
+wp_node_new_from_factory (WpCore * core,
+    const gchar * factory_name, WpProperties * properties)
+{
+  g_autoptr (WpProperties) props = properties;
+  return g_object_new (WP_TYPE_NODE,
+      "core", core,
+      "factory-name", factory_name,
+      "global-properties", props,
+      "own-global", FALSE,
+      NULL);
+}
+
+/*!
+ * \brief Gets the current state of the node
+ * \ingroup wpnode
+ * \param self the node
+ * \param error (out) (optional) (transfer none): the error
+ * \returns the current state of the node
+ */
+WpNodeState
+wp_node_get_state (WpNode * self, const gchar ** error)
+{
+  g_return_val_if_fail (WP_IS_NODE (self), WP_NODE_STATE_ERROR);
+  g_return_val_if_fail (wp_object_test_active_features (WP_OBJECT (self),
+          WP_PIPEWIRE_OBJECT_FEATURE_INFO), WP_NODE_STATE_ERROR);
+
+  WpPwObjectMixinData *d = wp_pw_object_mixin_get_data (self);
+  const struct pw_node_info *info = d->info;
+
+  if (error)
+    *error = info->error;
+  return (WpNodeState) info->state;
+}
+
+/*!
+ * \brief Gets the number of input ports of this node
+ *
+ * \remarks Requires WP_PIPEWIRE_OBJECT_FEATURE_INFO
+ *
+ * \ingroup wpnode
+ * \param self the node
+ * \param max (out) (optional): the maximum supported number of input ports
+ * \returns the number of input ports of this node, as reported by the node info
+ */
+guint
+wp_node_get_n_input_ports (WpNode * self, guint * max)
+{
+  g_return_val_if_fail (WP_IS_NODE (self), 0);
+  g_return_val_if_fail (wp_object_test_active_features (WP_OBJECT (self),
+          WP_PIPEWIRE_OBJECT_FEATURE_INFO), 0);
+
+  WpPwObjectMixinData *d = wp_pw_object_mixin_get_data (self);
+  const struct pw_node_info *info = d->info;
+
+  if (max)
+    *max = info->max_input_ports;
+  return info->n_input_ports;
+}
+
+/*!
+ * \brief Gets the number of output ports of this node
+ *
+ * \remarks Requires WP_PIPEWIRE_OBJECT_FEATURE_INFO
+ *
+ * \ingroup wpnode
+ * \param self the node
+ * \param max (out) (optional): the maximum supported number of output ports
+ * \returns the number of output ports of this node, as reported by the node info
+ */
+guint
+wp_node_get_n_output_ports (WpNode * self, guint * max)
+{
+  g_return_val_if_fail (WP_IS_NODE (self), 0);
+  g_return_val_if_fail (wp_object_test_active_features (WP_OBJECT (self),
+          WP_PIPEWIRE_OBJECT_FEATURE_INFO), 0);
+
+  WpPwObjectMixinData *d = wp_pw_object_mixin_get_data (self);
+  const struct pw_node_info *info = d->info;
+
+  if (max)
+    *max = info->max_output_ports;
+  return info->n_output_ports;
+}
+
+/*!
+ * \brief Gets the number of ports of this node
+ *
+ * Note that this number may not add up to
+ * wp_node_get_n_input_ports() + wp_node_get_n_output_ports()
+ * because it is discovered by looking at the number of available ports
+ * in the registry, however ports may appear there with a delay or may
+ * not appear at all if this client does not have permission to read them
+ *
+ * \remarks Requires WP_NODE_FEATURE_PORTS
+ *
+ * \ingroup wpnode
+ * \param self the node
+ * \returns the number of ports of this node.
+ */
+guint
+wp_node_get_n_ports (WpNode * self)
+{
+  g_return_val_if_fail (WP_IS_NODE (self), 0);
+  g_return_val_if_fail (wp_object_test_active_features (WP_OBJECT (self),
+          WP_NODE_FEATURE_PORTS), 0);
+
+  return wp_object_manager_get_n_objects (self->ports_om);
+}
+
+/*!
+ * \brief Gets a new iterator that iterates over all the ports that belong
+ * to this node
+ *
+ * \remarks Requires WP_NODE_FEATURE_PORTS
+ *
+ * \ingroup wpnode
+ * \param self the node
+ * \returns (transfer full): a WpIterator that iterates over WpPort objects
+ */
+WpIterator *
+wp_node_new_ports_iterator (WpNode * self)
+{
+  g_return_val_if_fail (WP_IS_NODE (self), NULL);
+  g_return_val_if_fail (wp_object_test_active_features (WP_OBJECT (self),
+          WP_NODE_FEATURE_PORTS), NULL);
+
+  return wp_object_manager_new_iterator (self->ports_om);
+}
+
+/*!
+ * \brief Gets a new iterator that iterates over all
+ * the ports that belong to this node and match the constraints
+ *
+ * The constraints specified in the variable arguments must follow the rules
+ * documented in wp_object_interest_new().
+ *
+ * \remarks Requires WP_NODE_FEATURE_PORTS
+ *
+ * \ingroup wpnode
+ * \param self the node
+ * \param ... a list of constraints, terminated by NULL
+ * \returns (transfer full): a WpIterator that iterates over WpPort objects
+ */
+WpIterator *
+wp_node_new_ports_filtered_iterator (WpNode * self, ...)
+{
+  WpObjectInterest *interest;
+  va_list args;
+  va_start (args, self);
+  interest = wp_object_interest_new_valist (WP_TYPE_PORT, &args);
+  va_end (args);
+  return wp_node_new_ports_filtered_iterator_full (self, interest);
+}
+
+/*!
+ * \brief Gets a new iterator that iterates over all
+ * the ports that belong to this node and match the \a interest
+ *
+ * \remarks Requires WP_NODE_FEATURE_PORTS
+ *
+ * \ingroup wpnode
+ * \param self the node
+ * \param interest (transfer full): the interest
+ * \returns (transfer full): a WpIterator that iterates over WpPort objects
+ */
+WpIterator *
+wp_node_new_ports_filtered_iterator_full (WpNode * self,
+    WpObjectInterest * interest)
+{
+  g_return_val_if_fail (WP_IS_NODE (self), NULL);
+  g_return_val_if_fail (wp_object_test_active_features (WP_OBJECT (self),
+          WP_NODE_FEATURE_PORTS), NULL);
+
+  return wp_object_manager_new_filtered_iterator_full (self->ports_om,
+      interest);
+}
+
+/*!
+ * \brief Retrieves the first port that matches the constraints
+ *
+ * The constraints specified in the variable arguments must follow the rules
+ * documented in wp_object_interest_new().
+ *
+ * \remarks Requires WP_NODE_FEATURE_PORTS
+ *
+ * \ingroup wpnode
+ * \param self the node
+ * \param ... a list of constraints, terminated by NULL
+ * \returns (transfer full) (nullable): the first port that matches the
+ *    constraints, or NULL if there is no such port
+ */
+WpPort *
+wp_node_lookup_port (WpNode * self, ...)
+{
+  WpObjectInterest *interest;
+  va_list args;
+  va_start (args, self);
+  interest = wp_object_interest_new_valist (WP_TYPE_PORT, &args);
+  va_end (args);
+  return wp_node_lookup_port_full (self, interest);
+}
+
+/*!
+ * \brief Retrieves the first port that matches the \a interest
+ *
+ * \remarks Requires WP_NODE_FEATURE_PORTS
+ *
+ * \ingroup wpnode
+ * \param self the node
+ * \param interest (transfer full): the interest
+ * \returns (transfer full) (nullable): the first port that matches the
+ *    \a interest, or NULL if there is no such port
+ */
+WpPort *
+wp_node_lookup_port_full (WpNode * self, WpObjectInterest * interest)
+{
+  g_return_val_if_fail (WP_IS_NODE (self), NULL);
+  g_return_val_if_fail (wp_object_test_active_features (WP_OBJECT (self),
+          WP_NODE_FEATURE_PORTS), NULL);
+
+  return (WpPort *)
+      wp_object_manager_lookup_full (self->ports_om, interest);
+}
+
+/*!
+ * \brief Sends a command to a node
+ *
+ * Valid commands are the short string reprepsentations of
+ * `enum spa_node_command`. For example, "Suspend" or "Flush" are valid commands
+ *
+ * \ingroup wpnode
+ * \param self the node
+ * \param command the command
+ */
+void
+wp_node_send_command (WpNode * self, const gchar * command)
+{
+  WpSpaIdValue command_value = wp_spa_id_value_from_short_name (
+      "Spa:Pod:Object:Command:Node", command);
+
+  g_return_if_fail (WP_IS_NODE (self));
+  g_return_if_fail (command_value != NULL);
+  g_return_if_fail (wp_object_test_active_features (WP_OBJECT (self),
+      WP_PROXY_FEATURE_BOUND));
+
+  struct spa_command cmd =
+      SPA_NODE_COMMAND_INIT(wp_spa_id_value_number (command_value));
+  pw_node_send_command ((struct pw_node*)wp_proxy_get_pw_proxy (WP_PROXY (self)), &cmd);
+}
+
+/*! \defgroup wpimplnode WpImplNode */
+
+enum {
+  PROP_PW_IMPL_NODE = WP_PW_OBJECT_MIXIN_PROP_CUSTOM_START,
+};
+
+struct _WpImplNode
+{
+  WpProxy parent;
+  struct pw_impl_node *pw_impl_node;
+};
+
+/* the pw_impl_node lives in the client context when there is one, so it is
+   owned by another thread; see private/client-context.h */
+static inline void
+wp_impl_node_lock (WpImplNode * self)
+{
+  WpClientContext *ctx = wp_proxy_get_client_context (WP_PROXY (self));
+  if (ctx)
+    wp_client_context_lock (ctx);
+}
+
+static inline void
+wp_impl_node_unlock (WpImplNode * self)
+{
+  WpClientContext *ctx = wp_proxy_get_client_context (WP_PROXY (self));
+  if (ctx)
+    wp_client_context_unlock (ctx);
+}
+
+static void wp_impl_node_pw_object_mixin_priv_interface_init (
+    WpPwObjectMixinPrivInterface * iface);
+
+G_DEFINE_TYPE_WITH_CODE (WpImplNode, wp_impl_node, WP_TYPE_PROXY,
+    G_IMPLEMENT_INTERFACE (WP_TYPE_PIPEWIRE_OBJECT,
+        wp_pw_object_mixin_object_interface_init)
+    G_IMPLEMENT_INTERFACE (WP_TYPE_PW_OBJECT_MIXIN_PRIV,
+        wp_impl_node_pw_object_mixin_priv_interface_init))
+
+static void
+wp_impl_node_init (WpImplNode * self)
+{
+}
+
+static void
+wp_impl_node_constructed (GObject * object)
+{
+  WpImplNode * self = WP_IMPL_NODE (object);
+  WpPwObjectMixinData * data = wp_pw_object_mixin_get_data (self);
+
+  data->info = (gpointer) pw_impl_node_get_info (self->pw_impl_node);
+  data->iface = pw_impl_node_get_implementation (self->pw_impl_node);
+
+  /* TODO handle the actual node properties */
+  data->properties = wp_properties_new_empty();
+
+  WpObjectFeatures ft =
+      wp_pw_object_mixin_get_supported_features (WP_OBJECT (self))
+      & ~WP_PROXY_FEATURE_BOUND;
+  wp_object_update_features (WP_OBJECT (self), ft, 0);
+
+  G_OBJECT_CLASS (wp_impl_node_parent_class)->constructed (object);
+}
+
+static void
+wp_impl_node_dispose (GObject * object)
+{
+  WpImplNode *self = WP_IMPL_NODE (object);
+
+  WpObjectFeatures ft =
+      wp_pw_object_mixin_get_supported_features (WP_OBJECT (self))
+      & ~WP_PROXY_FEATURE_BOUND;
+  wp_object_update_features (WP_OBJECT (self), 0, ft);
+
+  G_OBJECT_CLASS (wp_impl_node_parent_class)->dispose (object);
+}
+
+static void
+wp_impl_node_finalize (GObject * object)
+{
+  WpImplNode *self = WP_IMPL_NODE (object);
+
+  wp_impl_node_lock (self);
+  g_clear_pointer (&self->pw_impl_node, pw_impl_node_destroy);
+  wp_impl_node_unlock (self);
+
+  G_OBJECT_CLASS (wp_impl_node_parent_class)->finalize (object);
+}
+
+static void
+wp_impl_node_set_property (GObject * object, guint property_id,
+    const GValue * value, GParamSpec * pspec)
+{
+  WpImplNode *self = WP_IMPL_NODE (object);
+
+  switch (property_id) {
+  case PROP_PW_IMPL_NODE:
+    self->pw_impl_node = g_value_get_pointer (value);
+    break;
+  default:
+    G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+    break;
+  }
+}
+
+static void
+wp_impl_node_get_property (GObject * object, guint property_id, GValue * value,
+    GParamSpec * pspec)
+{
+  WpImplNode *self = WP_IMPL_NODE (object);
+
+  switch (property_id) {
+  case PROP_PW_IMPL_NODE:
+    g_value_set_pointer (value, self->pw_impl_node);
+    break;
+  default:
+    wp_pw_object_mixin_get_property (object, property_id, value, pspec);
+    break;
+  }
+}
+
+enum {
+  STEP_EXPORT = WP_TRANSITION_STEP_CUSTOM_START,
+};
+
+static guint
+wp_impl_node_activate_get_next_step (WpObject * object,
+    WpFeatureActivationTransition * transition, guint step,
+    WpObjectFeatures missing)
+{
+  /* BOUND is the only feature that can be in @em missing */
+  g_return_val_if_fail (missing == WP_PROXY_FEATURE_BOUND,
+      WP_TRANSITION_STEP_ERROR);
+
+  return STEP_EXPORT;
+}
+
+static void
+wp_impl_node_activate_execute_step (WpObject * object,
+      WpFeatureActivationTransition * transition, guint step,
+      WpObjectFeatures missing)
+{
+  WpImplNode *self = WP_IMPL_NODE (object);
+
+  switch (step) {
+  case STEP_EXPORT: {
+    g_autoptr (WpCore) core = wp_object_get_core (object);
+    WpClientContext *ctx = wp_proxy_get_client_context (WP_PROXY (self));
+    /* the node must be exported on the connection of the context it lives in;
+       pw_core_export() binds the exported node's context and data loop to it */
+    struct pw_core *pw_core = ctx ?
+        wp_client_context_get_pw_core (ctx) : wp_core_get_pw_core (core);
+    g_return_if_fail (pw_core);
+
+    /* export and start listening in one locked section, so that the loop
+       thread cannot deliver the "bound" event before we are listening */
+    wp_impl_node_lock (self);
+    wp_proxy_set_pw_proxy (WP_PROXY (self),
+        pw_core_export (pw_core, PW_TYPE_INTERFACE_Node, NULL,
+            self->pw_impl_node, 0));
+    wp_impl_node_unlock (self);
+    break;
+  }
+  default:
+    g_assert_not_reached ();
+  }
+}
+
+/*!
+ * \struct WpImplNode
+ *
+ * A WpImplNode allows running a node implementation (`struct pw_impl_node`)
+ * locally, loading the implementation from factory or wrapping a manually
+ * constructed `pw_impl_node`. This object can then be exported to PipeWire
+ * by requesting WP_PROXY_FEATURE_BOUND.
+ *
+ * \remarks When the "client-context" component is loaded, which is the case in
+ * the default daemon configuration, wp_impl_node_new_from_pw_factory() creates
+ * the node in a secondary `pw_context` that runs on its own thread, so that the
+ * node is not affected by anything that blocks WirePlumber's main loop, and
+ * exports it on that context's connection. The WpImplNode itself stays on the
+ * thread that created it: its features, signals and the rest of its API are
+ * unchanged. Nodes wrapped with wp_impl_node_new_wrap() belong to whichever
+ * context the given `pw_impl_node` was created in, which is the core's own
+ * `pw_context` in most cases, and are exported on the core's connection.
+ *
+ * \gproperties
+ *
+ * \gproperty{pw-impl-node, gpointer, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY,
+ *   The actual node implementation\, `struct pw_impl_node *`}
+ */
+static void
+wp_impl_node_class_init (WpImplNodeClass * klass)
+{
+  GObjectClass *object_class = (GObjectClass *) klass;
+  WpObjectClass *wpobject_class = (WpObjectClass *) klass;
+
+  object_class->constructed = wp_impl_node_constructed;
+  object_class->dispose = wp_impl_node_dispose;
+  object_class->finalize = wp_impl_node_finalize;
+  object_class->set_property = wp_impl_node_set_property;
+  object_class->get_property = wp_impl_node_get_property;
+
+  wpobject_class->get_supported_features =
+      wp_pw_object_mixin_get_supported_features;
+  wpobject_class->activate_get_next_step = wp_impl_node_activate_get_next_step;
+  wpobject_class->activate_execute_step = wp_impl_node_activate_execute_step;
+
+  wp_pw_object_mixin_class_override_properties (object_class);
+
+  g_object_class_install_property (object_class, PROP_PW_IMPL_NODE,
+      g_param_spec_pointer ("pw-impl-node", "pw-impl-node",
+          "The actual node implementation, struct pw_impl_node *",
+          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
+}
+
+static int
+impl_node_collect_params (void *data, int seq,
+    uint32_t id, uint32_t index, uint32_t next, struct spa_pod *param)
+{
+  GPtrArray *result = data;
+  g_ptr_array_add (result, wp_spa_pod_new_wrap_const (param));
+  return 0;
+}
+
+static GPtrArray *
+wp_impl_node_enum_params_sync (gpointer instance, guint32 id,
+      guint32 start, guint32 num, WpSpaPod *filter)
+{
+  WpImplNode *self = WP_IMPL_NODE (instance);
+  GPtrArray *result =
+      g_ptr_array_new_with_free_func ((GDestroyNotify) wp_spa_pod_unref);
+
+  /* the params are collected in this call stack, so this stays synchronous
+     even though the node runs on the client context's thread */
+  wp_impl_node_lock (self);
+  pw_impl_node_for_each_param (self->pw_impl_node, 1, id, start, num,
+      filter ? wp_spa_pod_get_spa_pod (filter) : NULL,
+      impl_node_collect_params, result);
+  wp_impl_node_unlock (self);
+  return result;
+}
+
+static gint
+wp_impl_node_set_param (gpointer instance, guint32 id, guint32 flags,
+    WpSpaPod * param)
+{
+  WpImplNode *self = WP_IMPL_NODE (instance);
+  WpPwObjectMixinData *d = wp_pw_object_mixin_get_data (instance);
+  g_autoptr (WpSpaPod) p = param;
+  gint res;
+
+  wp_impl_node_lock (self);
+  res = spa_node_set_param (d->iface, id, flags, wp_spa_pod_get_spa_pod (p));
+  wp_impl_node_unlock (self);
+  return res;
+}
+
+static void
+wp_impl_node_pw_object_mixin_priv_interface_init (
+    WpPwObjectMixinPrivInterface * iface)
+{
+  wp_pw_object_mixin_priv_interface_info_init (iface, node, NODE);
+  iface->flags = WP_PW_OBJECT_MIXIN_PRIV_NO_PARAM_CACHE;
+  iface->enum_params_sync = wp_impl_node_enum_params_sync;
+  iface->set_param = wp_impl_node_set_param;
+}
+
+/*!
+ * \brief Constructs a node object from an existing `pw_impl_node`.
+ * \ingroup wpimplnode
+ * \param core the wireplumber core
+ * \param node an existing `pw_impl_node` to wrap
+ * \returns (transfer full): A new WpImplNode wrapping \a node
+ */
+WpImplNode *
+wp_impl_node_new_wrap (WpCore * core, struct pw_impl_node * node)
+{
+  return g_object_new (WP_TYPE_IMPL_NODE,
+      "core", core,
+      "pw-impl-node", node,
+      NULL);
+}
+
+/*!
+ * \brief Constructs a new node, locally on this process, using the specified
+ * \a factory_name.
+ *
+ * To export this node to the PipeWire server, you need to call
+ * wp_object_activate() requesting WP_PROXY_FEATURE_BOUND and
+ * wait for the operation to complete.
+ *
+ * \ingroup wpimplnode
+ * \param core the wireplumber core
+ * \param factory_name the name of the pipewire factory
+ * \param properties (nullable) (transfer full): properties to be passed to node
+ *    constructor
+ * \returns (nullable) (transfer full): A new WpImplNode wrapping the
+ *   node that was constructed by the factory, or %NULL if the factory
+ *   does not exist or was unable to construct the node
+ */
+WpImplNode *
+wp_impl_node_new_from_pw_factory (WpCore * core,
+    const gchar * factory_name, WpProperties * properties)
+{
+  g_autoptr (WpProperties) props = properties;
+  /* the node is created in the client context, so that it runs on its own
+     thread; pw_core_export() later ties it to that context's connection */
+  g_autoptr (WpClientContext) ctx = wp_client_context_find (core);
+  struct pw_context *pw_context = ctx ?
+      wp_client_context_get_pw_context (ctx) : wp_core_get_pw_context (core);
+  struct pw_impl_factory *factory = NULL;
+  struct pw_impl_node *node = NULL;
+  WpImplNode *self = NULL;
+
+  g_return_val_if_fail (pw_context != NULL, NULL);
+
+  if (ctx)
+    wp_client_context_lock (ctx);
+
+  factory = pw_context_find_factory (pw_context, factory_name);
+  if (!factory) {
+    wp_warning ("pipewire factory '%s' not found", factory_name);
+    goto out;
+  }
+
+  node = pw_impl_factory_create_object (factory,
+      NULL, PW_TYPE_INTERFACE_Node, PW_VERSION_NODE,
+      props ? wp_properties_to_pw_properties (props) : NULL, 0);
+  if (!node) {
+    wp_warning ("failed to create node from factory '%s'", factory_name);
+    goto out;
+  }
+
+  /* construct while still holding the lock: wp_impl_node_constructed() reads
+     from the node, which the loop thread may otherwise be running already */
+  self = wp_impl_node_new_wrap (core, node);
+  if (self)
+    wp_proxy_set_client_context (WP_PROXY (self), ctx);
+
+out:
+  if (ctx)
+    wp_client_context_unlock (ctx);
+
+  return self;
+}

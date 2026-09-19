@@ -1,0 +1,91 @@
+/*
+   SPDX-FileCopyrightText: 2010 Marco Mentasti <marcomentasti@gmail.com>
+
+   SPDX-License-Identifier: LGPL-2.0-only
+*/
+
+#pragma once
+
+class SQLManager;
+class QMouseEvent;
+class QKeyEvent;
+
+#include <QMap>
+#include <QSqlDriver>
+#include <QString>
+#include <QStringList>
+#include <QTreeWidget>
+#include <QTreeWidgetItem>
+
+#include "helpers/foreignkeyhelper.h"
+
+class SchemaWidget : public QTreeWidget
+{
+public:
+    enum CustomUIType {
+        TableType = QTreeWidgetItem::UserType + 1,
+        SystemTableType = QTreeWidgetItem::UserType + 2,
+        ViewType = QTreeWidgetItem::UserType + 3,
+        FieldType = QTreeWidgetItem::UserType + 4,
+        TablesFolderType = QTreeWidgetItem::UserType + 101,
+        SystemTablesFolderType = QTreeWidgetItem::UserType + 102,
+        ViewsFolderType = QTreeWidgetItem::UserType + 103,
+    };
+
+    SchemaWidget(QWidget *parent, SQLManager *manager);
+    ~SchemaWidget() override;
+
+    void buildDatabase(QTreeWidgetItem *databaseItem);
+    void buildTables(QTreeWidgetItem *tablesItem);
+    void buildViews(QTreeWidgetItem *viewsItem);
+    void buildFields(QTreeWidgetItem *tableItem);
+
+public:
+    void buildTree(const QString &connection);
+    void rebuildTreeWithFilter(const QString &filter);
+    void refresh();
+    void reloadDisplayColumnMap(const QString &tableName, const QString &columnName);
+
+    void generateSelectIntoView();
+    void generateUpdateIntoView();
+    void generateInsertIntoView();
+    void generateDeleteIntoView();
+    void browseData();
+    QString generateStatement(QSqlDriver::StatementType statementType);
+    static void pasteStatementIntoActiveView(const QString &statement);
+    void generateAndPasteStatement(QSqlDriver::StatementType statementType);
+    void executeStatement(QSqlDriver::StatementType statement);
+
+private:
+    static inline constexpr QLatin1String SqlTableIcon = QLatin1String(":/katesql/pics/16-actions-sql-table.png");
+
+    void slotCustomContextMenuRequested(const QPoint &pos);
+    void slotItemExpanded(QTreeWidgetItem *item);
+
+private:
+    static void deleteChildren(QTreeWidgetItem *item);
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
+    bool isConnectionValidAndOpen() const;
+    void loadForeignKeys();
+    void fillTableToColumnMap();
+    bool canUseRelationalModel(const QString &tableName) const;
+    bool isRelationalTablesEnabled() const;
+
+    QString m_connectionName;
+    QString m_searchFilter;
+    QStringList m_systemTablesCache;
+    QStringList m_tablesCache;
+    QStringList m_viewsCache;
+    QPoint m_dragStartPosition;
+
+    bool m_tablesLoaded;
+    bool m_viewsLoaded;
+
+    SQLManager *m_manager;
+
+    DatabaseForeignKeys m_columnToForeignKeysMap;
+    QMap<QString, QString> m_tableToDisplayColumnMap;
+};

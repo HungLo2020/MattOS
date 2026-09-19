@@ -1,0 +1,366 @@
+# Copyright (C) 2025 This file is copyright:
+# This file is distributed under the same license as the plasma-nm package.
+#
+# SPDX-FileCopyrightText: 2021, 2022, 2023, 2025 Kishore G <kishore96@gmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma-nm\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-04-25 02:45+0000\n"
+"PO-Revision-Date: 2025-11-30 11:28+0530\n"
+"Last-Translator: Kishore G <kishore96@gmail.com>\n"
+"Language-Team: Tamil <kde-l10n-ta@kde.org>\n"
+"Language: ta\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 25.08.3\n"
+
+#: ConnectionItem.qml:62
+#, kde-format
+msgid "Connect"
+msgstr "இணை "
+
+#: ConnectionItem.qml:62
+#, kde-format
+msgid "Disconnect"
+msgstr "இணைப்பை துண்டி"
+
+#: ConnectionItem.qml:90
+#, kde-format
+msgctxt "Share Wi-Fi network's password or QR code"
+msgid "Share"
+msgstr "பகிர்"
+
+#: ConnectionItem.qml:96
+#, kde-format
+msgid "Configure…"
+msgstr "அமை..."
+
+#: ConnectionItem.qml:136
+#, kde-format
+msgid "Speed"
+msgstr "வேகம்"
+
+#: ConnectionItem.qml:141
+#, kde-format
+msgid "Details"
+msgstr "விவரங்கள்"
+
+#: ConnectionItem.qml:188
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Current download speed is %1 kibibytes per second; current upload speed is "
+"%2 kibibytes per second"
+msgstr ""
+"தற்போதைய பதிவிறக்க வேகம் நொடிக்கு %1 கிபிபைட்டுகள் ஆகும்; தற்போதைய பதிவேற்ற வேகம் "
+"நொடிக்கு %2 கிபிபைட்டுகள் ஆகும்"
+
+#: ConnectionItem.qml:302
+#, kde-format
+msgctxt "Download and upload rates in some unit per second"
+msgid "↓ %1/s, ↑ %2/s"
+msgstr "↓%1/s, ↑ %2/s"
+
+#: ConnectionListPage.qml:33
+#, kde-format
+msgid "You need to log in to this network"
+msgstr "இப்பிணையத்தில் நுழைவுப்பதிவிட வேண்டும்"
+
+#: ConnectionListPage.qml:37
+#, kde-format
+msgctxt "@action:button"
+msgid "Log in"
+msgstr "நுழை"
+
+#: ConnectionListPage.qml:118
+#, kde-format
+msgid "Airplane mode is enabled"
+msgstr "விமான பயன்முறை இயங்குகிறது"
+
+#: ConnectionListPage.qml:122
+#, kde-format
+msgid "Wi-Fi and mobile data are deactivated"
+msgstr "அருகலை மற்றும் கைபேசி இணையப்பிணையங்கள் முடங்கியுள்ளன"
+
+#: ConnectionListPage.qml:124
+#, kde-format
+msgid "Wi-Fi is deactivated"
+msgstr "அருகலை முடங்கியுள்ளது"
+
+#: ConnectionListPage.qml:127
+#, kde-format
+msgid "Looking for Wi-Fi networks"
+msgstr "அருகலை பிணையங்கள் கண்டுபிடிக்கப்படுகின்றன"
+
+#: ConnectionListPage.qml:130
+#, kde-format
+msgid "Mobile data is deactivated"
+msgstr "கைபேசி இணையப்பிணையம் முடங்கியுள்ளது"
+
+#: ConnectionListPage.qml:133
+#, kde-format
+msgid "No matches"
+msgstr "பொருத்தங்கள் இல்லை"
+
+#: ConnectionListPage.qml:136
+#, kde-format
+msgid "No available connections"
+msgstr "பிணையங்கள் எதுவும் இல்லை"
+
+#: ConnectionListPage.qml:145
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn off airplane mode to search for networks"
+msgstr "பிணையங்களைத் தேட விமானப் பயன்முறையை முடக்கவும்"
+
+#: ConnectionListPage.qml:149
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on Wi-Fi or mobile data to search for networks"
+msgstr "பிணையங்களைத் தேட அருகலையையோ கைபேசி இணையத்தையோ இயக்கவும்"
+
+#: ConnectionListPage.qml:151
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on Wi-Fi to search for networks"
+msgstr "பிணையங்களைத் தேட அருகலையை இயக்கவும்"
+
+#: ConnectionListPage.qml:154
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on mobile data to search for networks"
+msgstr "பிணையங்களைத் தேட கைபேசி இணையத்தை இயக்கவும்"
+
+#: DetailsText.qml:40
+#, kde-format
+msgid "Copy"
+msgstr "நகலெடு"
+
+#: main.qml:32
+#, kde-format
+msgid "Networks"
+msgstr "பிணையங்கள்"
+
+#: main.qml:41
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Middle-click to turn off Airplane Mode"
+msgstr "விமானப் பயன்முறையை முடக்க நடு-கிளிக் செய்யுங்கள்"
+
+#: main.qml:43
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Middle-click to turn on Airplane Mode"
+msgstr "விமானப் பயன்முறையை இயக்க நடு-கிளிக் செய்யுங்கள்"
+
+#: main.qml:71 Toolbar.qml:74
+#, kde-format
+msgid "Enable Wi-Fi"
+msgstr "அருகலையை இயக்கு"
+
+#: main.qml:82
+#, kde-format
+msgid "Enable Mobile Data"
+msgstr "கைபேசி இணையத்தை இயக்கு"
+
+#: main.qml:94
+#, kde-format
+msgid "Enable Airplane Mode"
+msgstr "விமான பயன்முறையை இயக்கு"
+
+#: main.qml:106
+#, kde-format
+msgid "Open Network Login Page…"
+msgstr "பிணைய நுழைவு பக்கத்தை திற..."
+
+#: main.qml:116
+#, kde-format
+msgid "&Configure Network Connections…"
+msgstr "பிணைய இணைப்புகளை &அமை…"
+
+#: PopupDialog.qml:51
+#, kde-format
+msgctxt "@action:button"
+msgid "Return to Network Connections"
+msgstr "பிணைய இணைப்புகளுக்கு திரும்பசெல்"
+
+#: ShareNetworkQrCodePage.qml:33
+#, kde-format
+msgid "Scan this QR code with another device to connect to the \"%1\" network."
+msgstr "\"%1\" பிணையத்தில் இன்னொரு சாதனத்தை இணைக்க இப்படத்தை அச்சாதனத்தில் வருடவும்."
+
+#: ShareNetworkQrCodePage.qml:108
+#, kde-format
+msgid "Wi-Fi password:"
+msgstr "அருகலை கடவுச்சொல்:"
+
+#: Toolbar.qml:124
+#, kde-format
+msgid "Enable mobile data"
+msgstr "கைபேசி இணையத்தை இயக்கு"
+
+#: Toolbar.qml:147
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Disable airplane mode<nl/><nl/>This will enable Wi-Fi and Bluetooth"
+msgstr "விமான பயன்முறையை முடக்கு<nl/><nl/>இது Bluetooth மற்றும் அருகலையை இயக்கும்"
+
+#: Toolbar.qml:148
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Enable airplane mode<nl/><nl/>This will disable Wi-Fi and Bluetooth"
+msgstr "விமான பயன்முறையை இயக்கு<nl/><nl/>இது Bluetooth மற்றும் அருகலையை முடக்கும்"
+
+#: Toolbar.qml:176
+#, kde-format
+msgid "Hotspot"
+msgstr "ஹாட்ஸ்பாட்"
+
+#: Toolbar.qml:193
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot create a hotspot because Wi-Fi is disabled."
+msgstr "அருகலை முடக்கப்பட்டுள்ளதால் ஹாட்ஸ்பாட்டை உருவாக்க முடியாது."
+
+#: Toolbar.qml:195
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Cannot create a hotspot because all wireless radios are in use. Disconnect "
+"from the current Wi-Fi network or connect another wireless radio."
+msgstr ""
+"அனைத்து அருகலை வானொலிச்சாதனங்களும் பயனில் உள்ளதால் ஹாட்ஸ்பாட்டை உருவாக்க முடியாது. "
+"தற்போதைய அருகலை பிணையத்திலிருந்து வெளியேறவும், அல்லது இன்னோரு வானொலிச்சாதனத்தை "
+"இணைக்கவும்."
+
+#: Toolbar.qml:197
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Disable Hotspot"
+msgstr "ஹாட்ஸ்பாட்டை முடக்கு"
+
+#: Toolbar.qml:199
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Create Hotspot"
+msgstr "ஹாட்ஸ்பாட்டை உருவாக்கு"
+
+#: Toolbar.qml:227
+#, kde-format
+msgctxt "@action:button"
+msgid "Scan Wi-Fi QR Code"
+msgstr "அருகலைக்கான QR குறியை வருடு"
+
+#: Toolbar.qml:232
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Scan QR Code to connect to a Wi-Fi network"
+msgstr "ஓர் QR குறியை வருடி அதற்குரிய அருகலை பிணையத்தில் இணையலாம்"
+
+#: Toolbar.qml:234
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Install QRCA Barcode Scanner to scan for a QR Code that connects to a Wi-Fi "
+"network"
+msgstr ""
+"ஓர் QR குறியை வருடி அதற்குரிய அருகலை பிணையத்தில் இணையும் அம்சத்தைப் பயன்படுத்த Qrca "
+"எனும் செயலியை நிறுவவும்."
+
+#: Toolbar.qml:253
+#, kde-format
+msgid "Configure network connections…"
+msgstr "பிணைய இணைப்புகளை அமை..."
+
+#~ msgid "/s"
+#~ msgstr "/s"
+
+#~ msgid "Upload"
+#~ msgstr "பதிவேற்றம்"
+
+#~ msgid "Download"
+#~ msgstr "பதிவிறக்கம்"
+
+#~ msgid "Show Network's QR Code"
+#~ msgstr "பிணையத்தின் QR குறிமுறையைக் காட்டு"
+
+#~ msgid "Connected"
+#~ msgstr "இணைந்துள்ளது"
+
+#~ msgid "Password…"
+#~ msgstr "கடவுச்சொல்..."
+
+#~ msgctxt "@title:window"
+#~ msgid "QR Code for %1"
+#~ msgstr "%1 என்பதன் QR குறிமுறை"
+
+#~ msgctxt "@info:tooltip %1 is the name of a network connection"
+#~ msgid "Connect to %1"
+#~ msgstr "%1 என்பதற்கு இணை"
+
+#~ msgctxt "@info:tooltip %1 is the name of a network connection"
+#~ msgid "Disconnect from %1"
+#~ msgstr "%1 என்பதற்கான இணைப்பைத் துண்டி"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is ADSL"
+#~ msgstr "இது ADSL இணைப்பாகும்"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Bluetooth"
+#~ msgstr "இது ஊடலை இணைப்பாகும்"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Bridge"
+#~ msgstr "இது Bridge இணைப்பாகும்"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is CDMA"
+#~ msgstr "இது CDMA இணைப்பாகும்"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is GSM"
+#~ msgstr "இது GSM இணைப்பாகும்"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Infiniband"
+#~ msgstr "இது Infiniband இணைப்பாகும்"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is OLPC Mesh"
+#~ msgstr "இது OLPC Mesh இணைப்பாகும்"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is PPOPE"
+#~ msgstr "இது PPOPE இணைப்பாகும்"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is VLAN"
+#~ msgstr "இது VLAN இணைப்பாகும்"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is VPN"
+#~ msgstr "இது VPN இணைப்பாகும்"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Wimax"
+#~ msgstr "இது Wimax இணைப்பாகும்"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Wired"
+#~ msgstr "இது கம்பி இணைப்பாகும்"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Wireless"
+#~ msgstr "இது அருகலை இணைப்பாகும்"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Unknown"
+#~ msgstr "இது தெரியாத வகையான இணைப்பாகும்"
+
+#~ msgctxt "text field placeholder text"
+#~ msgid "Search…"
+#~ msgstr "தேடு..."

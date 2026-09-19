@@ -1,0 +1,34 @@
+Installation
+============
+
+1) Generate custom makefiles.
+
+   Run the 'configure' script from the top directory.
+
+   On system with udevd use: --enable-udev_sync
+
+   To build with dmeventd: --enable-cmdlib --enable-dmeventd
+
+   For DBus support: --enable-dbus-service --enable-notify-dbus
+
+   For lvmpolld usage: --enable-lvmpolld
+
+   For lvmlockd support: --enable-lvmlockd-sanlock --enable-lvmlockd-dlm --enable-lvmlockd-dlmcontrol
+
+   Use ./configure --help to see other options.
+
+2) Build and install.
+
+   Run 'make' from the top directory to build everything you configured.
+   Run 'make install' to build and install everything you configured.
+
+   If you only want the device-mapper libraries and tools use
+   'make device-mapper' or 'make install_device-mapper'.
+
+3) If using LVM2, create a configuration file.
+
+   The tools will work fine without a configuration file being
+   present, but you ought to review the example file in conf/example.conf.
+
+Please also refer to the WHATS_NEW file and the manual pages for the
+individual commands.

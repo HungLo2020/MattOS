@@ -1,0 +1,136 @@
+.TH LVMPOLLD 8 "LVM TOOLS #VERSION#" "Red Hat, Inc." \" -*- nroff -*-
+.
+.de NSY
+.  ie t .SY \\$1
+.  el \{\
+.    ie \\n(.$>1 \{\
+.      PD 0
+.      TP \\w'\\$1\ 'u
+.    \}
+.    el .TP
+.    B \\$1
+.    na
+.    nh
+.  \}
+..
+.
+.SH NAME
+.
+lvmpolld \(em LVM poll daemon
+.
+.SH SYNOPSIS
+.
+.NSY lvmpolld 1
+.RB [ -B | --binary\ \c
+.IR lvm_bi\%nary_path ]
+.RB [ -f | --foreground ]
+.RB [ -h | --help ]
+.RB [ -l | --log\ \c
+.BR all |\: wire | debug ]
+.RB [ -p | --pidfile\ \c
+.IR pidfile_path ]
+.RB [ -s | --socket\ \c
+.IR socket_path ]
+.RB [ -t | --timeout\ \c
+.IR timeout_value ]
+.RB [ -V | --version ]
+.sp
+.NSY lvmpolld
+.RB [ --dump ]
+.ad
+.hy
+.PD
+.
+.SH DESCRIPTION
+.
+lvmpolld is polling daemon for LVM. The daemon receives requests for polling
+of already initialised operations originating in LVM2 command line tool.
+The requests for polling originate in the \fBlvconvert\fP, \fBpvmove\fP,
+\fBlvchange\fP or \fBvgchange\fP LVM2 commands.
+.P
+The purpose of lvmpolld is to reduce the number of spawned background processes
+per otherwise unique polling operation. There should be only one. It also
+eliminates the possibility of unsolicited termination of background process by
+external factors.
+.P
+lvmpolld is used by LVM only if it is enabled in \fBlvm.conf\fP(5) by
+specifying the \fBglobal/use_lvmpolld\fP setting. If this is not defined in the
+LVM configuration explicitly then default setting is used instead (see the
+output of \fBlvmconfig --type default global/use_lvmpolld\fP command).
+.
+.SH OPTIONS
+.
+To run the daemon in a test environment both the pidfile_path and the
+socket_path should be changed from the defaults.
+.
+.TP
+\fB-B\fP|\fB--binary\fP \fIlvm_binary_path\fP
+Optional path to alternative LVM binary
+(default: \fI#LVM_PATH#\fP).
+Use for testing purposes only.
+.
+.TP
+.B --dump
+Contact the running lvmpolld daemon to obtain the complete state
+and print it out in a raw format.
+.
+.TP
+.BR -f | --foreground
+Don't fork, but run in the foreground.
+.
+.TP
+.BR -h | --help
+Show help information.
+.
+.TP
+.BR -l | --log " " all | wire | debug
+Select the type of log messages to generate.
+Messages are logged by syslog.
+Additionally, when \fB-f\fP is given they are also sent to standard error.
+There are two classes of messages: wire and debug.
+Selecting '\fBall\fP' supplies both
+and is equivalent to a comma-separated list \fB-l wire,debug\fP.
+.
+.TP
+\fB-p\fP|\fB--pidfile\fP \fIpidfile_path\fP
+Path to the pidfile. This overrides both the built-in default
+(\fI#DEFAULT_PID_DIR#/lvmpolld.pid\fP)
+and the environment variable
+\fBLVM_LVMPOLLD_PIDFILE\fP.
+This file is used to prevent more than one instance
+of the daemon running simultaneously.
+.
+.TP
+\fB-s\fP|\fB--socket\fP \fIsocket_path\fP
+Path to the socket file. This overrides both the built-in default
+(\fI#DEFAULT_RUN_DIR#/lvmpolld.socket\fP) and the environment variable
+\fBLVM_LVMPOLLD_SOCKET\fP.
+.
+.TP
+\fB-t\fP|\fB--timeout\fP \fItimeout_value\fP
+The daemon may shutdown after being idle for the given time (in seconds).
+When the option is omitted or the value given is zero
+the daemon never shutdowns on idle.
+.
+.TP
+.BR -V | --version
+Display the version of lvmpolld daemon.
+.
+.SH ENVIRONMENT VARIABLES
+.
+.TP
+.B LVM_LVMPOLLD_PIDFILE
+Path for the pid file.
+.
+.TP
+.B LVM_LVMPOLLD_SOCKET
+Path for the socket file.
+.
+.SH SEE ALSO
+.
+.BR lvm (8),
+.BR lvm.conf (5),
+.BR lvchange (8),
+.BR lvconvert (8),
+.BR pvmove (8),
+.BR vgchange (8)

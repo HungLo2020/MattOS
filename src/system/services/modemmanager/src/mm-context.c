@@ -1,0 +1,487 @@
+/* -*- Mode: C; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details:
+ *
+ * Copyright (C) 2012 Aleksander Morgado <aleksander@gnu.org>
+ */
+
+#include <config.h>
+#include <stdlib.h>
+
+#include <ModemManager.h>
+#define _LIBMM_INSIDE_MM
+#include <libmm-glib.h>
+
+#include "mm-context.h"
+
+/*****************************************************************************/
+/* Application context */
+
+#if defined WITH_UDEV || defined WITH_QRTR
+# define NO_AUTO_SCAN_OPTION_FLAG 0
+# define NO_AUTO_SCAN_DEFAULT     FALSE
+#else
+/* Keep the option when udev and QRTR disabled, just so that the unit test
+ * setup can unconditionally use --no-auto-scan */
+# define NO_AUTO_SCAN_OPTION_FLAG G_OPTION_FLAG_HIDDEN
+# define NO_AUTO_SCAN_DEFAULT     TRUE
+#endif
+
+static gboolean      help_flag;
+static gboolean      version_flag;
+static gboolean      debug;
+static MMFilterRule  filter_policy = MM_FILTER_POLICY_STRICT;
+static gboolean      no_auto_scan = NO_AUTO_SCAN_DEFAULT;
+static const gchar  *initial_kernel_events;
+
+static gboolean
+filter_policy_option_arg (const gchar  *option_name,
+                          const gchar  *value,
+                          gpointer      data,
+                          GError      **error)
+{
+    if (!g_ascii_strcasecmp (value, "allowlist-only")
+#ifndef MM_DISABLE_DEPRECATED
+        || !g_ascii_strcasecmp (value, "whitelist-only")
+#endif
+        ) {
+        filter_policy = MM_FILTER_POLICY_ALLOWLIST_ONLY;
+        return TRUE;
+    }
+
+    if (!g_ascii_strcasecmp (value, "strict")) {
+        filter_policy = MM_FILTER_POLICY_STRICT;
+        return TRUE;
+    }
+
+    g_set_error (error, MM_CORE_ERROR, MM_CORE_ERROR_FAILED,
+                 "Invalid filter policy value given: %s",
+                 value);
+    return FALSE;
+}
+
+static const GOptionEntry entries[] = {
+    {
+        "filter-policy", 0, 0, G_OPTION_ARG_CALLBACK, filter_policy_option_arg,
+        "Filter policy: one of ALLOWLIST-ONLY, STRICT",
+        "[POLICY]"
+    },
+    {
+        "no-auto-scan", 0, NO_AUTO_SCAN_OPTION_FLAG, G_OPTION_ARG_NONE, &no_auto_scan,
+        "Don't auto-scan looking for devices",
+        NULL
+    },
+    {
+        "initial-kernel-events", 0, 0, G_OPTION_ARG_FILENAME, &initial_kernel_events,
+        "Path to initial kernel events file",
+        "[PATH]"
+    },
+    {
+        "debug", 0, 0, G_OPTION_ARG_NONE, &debug,
+        "Run with extended debugging capabilities",
+        NULL
+    },
+    {
+        "version", 'V', 0, G_OPTION_ARG_NONE, &version_flag,
+        "Print version",
+        NULL
+    },
+    {
+        "help", 'h', 0, G_OPTION_ARG_NONE, &help_flag,
+        "Show help",
+        NULL
+    },
+    { NULL }
+};
+
+gboolean
+mm_context_get_debug (void)
+{
+    return debug;
+}
+
+const gchar *
+mm_context_get_initial_kernel_events (void)
+{
+    return initial_kernel_events;
+}
+
+gboolean
+mm_context_get_no_auto_scan (void)
+{
+    return no_auto_scan;
+}
+
+MMFilterRule
+mm_context_get_filter_policy (void)
+{
+    return filter_policy;
+}
+
+/*****************************************************************************/
+/* Log context */
+
+static const gchar *log_level;
+static const gchar *log_file;
+static gboolean     log_journal;
+static gboolean     log_show_ts;
+static gboolean     log_rel_ts;
+static gboolean     log_personal_info;
+
+static const GOptionEntry log_entries[] = {
+    {
+        "log-level", 0, 0, G_OPTION_ARG_STRING, &log_level,
+        "Log level: one of ERR, WARN, MSG, INFO, DEBUG",
+        "[LEVEL]"
+    },
+    {
+        "log-file", 0, 0, G_OPTION_ARG_FILENAME, &log_file,
+        "Path to log file",
+        "[PATH]"
+    },
+#if defined WITH_SYSTEMD_JOURNAL
+    {
+        "log-journal", 0, 0, G_OPTION_ARG_NONE, &log_journal,
+        "Log to systemd journal",
+        NULL
+    },
+#endif
+    {
+        "log-timestamps", 0, 0, G_OPTION_ARG_NONE, &log_show_ts,
+        "Show timestamps in log output",
+        NULL
+    },
+    {
+        "log-relative-timestamps", 0, 0, G_OPTION_ARG_NONE, &log_rel_ts,
+        "Use relative timestamps (from MM start)",
+        NULL
+    },
+    {
+        "log-personal-info", 0, 0, G_OPTION_ARG_NONE, &log_personal_info,
+        "Show personal info in logs",
+        NULL
+    },
+    { NULL }
+};
+
+static GOptionGroup *
+log_get_option_group (void)
+{
+    GOptionGroup *group;
+
+    group = g_option_group_new ("log",
+                                "Logging options:",
+                                "Show logging options",
+                                NULL,
+                                NULL);
+    g_option_group_add_entries (group, log_entries);
+    return group;
+}
+
+const gchar *
+mm_context_get_log_level (void)
+{
+    return log_level;
+}
+
+const gchar *
+mm_context_get_log_file (void)
+{
+    return log_file;
+}
+
+gboolean
+mm_context_get_log_journal (void)
+{
+    return log_journal;
+}
+
+gboolean
+mm_context_get_log_timestamps (void)
+{
+    return log_show_ts;
+}
+
+gboolean
+mm_context_get_log_relative_timestamps (void)
+{
+    return log_rel_ts;
+}
+
+gboolean
+mm_context_get_log_personal_info (void)
+{
+    return log_personal_info;
+}
+
+/*****************************************************************************/
+/* Test context */
+
+static gboolean  test_session;
+#if defined WITH_TESTS
+static gboolean  test_enable;
+#endif
+#if !defined WITH_BUILTIN_PLUGINS
+static gchar    *test_plugin_dir;
+#endif
+#if defined WITH_UDEV
+static gboolean  test_no_udev;
+#endif
+#if defined WITH_SUSPEND_RESUME
+static gboolean  test_no_suspend_resume;
+static gboolean  test_quick_suspend_resume;
+static gboolean  test_low_power_suspend_resume;
+#endif
+#if defined WITH_QRTR
+static gboolean  test_no_qrtr;
+#endif
+static gboolean  test_multiplex_requested;
+#if defined WITH_MBIM
+static gboolean  test_mbimex_profile_management;
+#endif
+
+static const GOptionEntry test_entries[] = {
+    {
+        "test-session", 0, 0, G_OPTION_ARG_NONE, &test_session,
+        "Run in session DBus",
+        NULL
+    },
+#if defined WITH_TESTS
+    {
+        "test-enable", 0, 0, G_OPTION_ARG_NONE, &test_enable,
+        "Enable the Test interface in the daemon",
+        NULL
+    },
+#endif
+#if !defined WITH_BUILTIN_PLUGINS
+    {
+        "test-plugin-dir", 0, 0, G_OPTION_ARG_FILENAME, &test_plugin_dir,
+        "Path to look for plugins",
+        "[PATH]"
+    },
+#endif
+#if defined WITH_UDEV
+    {
+        "test-no-udev", 0, 0, G_OPTION_ARG_NONE, &test_no_udev,
+        "Run without udev support even if available",
+        NULL
+    },
+#endif
+#if defined WITH_SUSPEND_RESUME
+    {
+        "test-no-suspend-resume", 0, 0, G_OPTION_ARG_NONE, &test_no_suspend_resume,
+        "Disable suspend/resume support at runtime even if available",
+        NULL
+    },
+    {
+        "test-quick-suspend-resume", 0, 0, G_OPTION_ARG_NONE, &test_quick_suspend_resume,
+        "Enable quick suspend/resume support for modems which stay on during host suspension",
+        NULL
+    },
+    {
+        "test-low-power-suspend-resume", 0, 0, G_OPTION_ARG_NONE, &test_low_power_suspend_resume,
+        "Enable support to put the modem in low power mode during suspend/resume",
+        NULL
+    },
+#endif
+#if defined WITH_QRTR
+    {
+        "test-no-qrtr", 0, 0, G_OPTION_ARG_NONE, &test_no_qrtr,
+        "Run without qrtr support even if available",
+        NULL
+    },
+#endif
+    {
+        "test-multiplex-requested", 0, 0, G_OPTION_ARG_NONE, &test_multiplex_requested,
+        "Default to request multiplex support if no explicitly given",
+        NULL
+    },
+#if defined WITH_MBIM
+    {
+        "test-mbimex-profile-management", 0, 0, G_OPTION_ARG_NONE, &test_mbimex_profile_management,
+        "Default to use profile management MBIM extensions",
+        NULL
+    },
+#endif
+    { NULL }
+};
+
+static GOptionGroup *
+test_get_option_group (void)
+{
+    GOptionGroup *group;
+
+    group = g_option_group_new ("test",
+                                "Test options:",
+                                "Show Test options",
+                                NULL,
+                                NULL);
+    g_option_group_add_entries (group, test_entries);
+    return group;
+}
+
+gboolean
+mm_context_get_test_session (void)
+{
+    return test_session;
+}
+
+#if defined WITH_TESTS
+gboolean
+mm_context_get_test_enable (void)
+{
+    return test_enable;
+}
+#endif
+
+#if !defined WITH_BUILTIN_PLUGINS
+const gchar *
+mm_context_get_test_plugin_dir (void)
+{
+    return test_plugin_dir ? test_plugin_dir : PLUGINDIR;
+}
+#endif
+
+#if defined WITH_UDEV
+gboolean
+mm_context_get_test_no_udev (void)
+{
+    return test_no_udev;
+}
+#endif
+
+#if defined WITH_SUSPEND_RESUME
+gboolean
+mm_context_get_test_no_suspend_resume (void)
+{
+    return test_no_suspend_resume;
+}
+
+gboolean
+mm_context_get_test_quick_suspend_resume (void)
+{
+    return test_quick_suspend_resume;
+}
+
+gboolean
+mm_context_get_test_low_power_suspend_resume (void)
+{
+    return test_low_power_suspend_resume;
+}
+#endif
+
+#if defined WITH_QRTR
+gboolean
+mm_context_get_test_no_qrtr (void)
+{
+    return test_no_qrtr;
+}
+#endif
+
+gboolean
+mm_context_get_test_multiplex_requested (void)
+{
+    return test_multiplex_requested;
+}
+
+#if defined WITH_MBIM
+gboolean
+mm_context_get_test_mbimex_profile_management (void)
+{
+    return test_mbimex_profile_management;
+}
+#endif
+
+/*****************************************************************************/
+
+static void
+print_version (void)
+{
+    g_print ("ModemManager " MM_DIST_VERSION "\n"
+             "Copyright (C) 2008-2023 The ModemManager authors\n"
+             "License GPLv2+: GNU GPL version 2 or later <http://gnu.org/licenses/gpl-2.0.html>\n"
+             "This is free software: you are free to change and redistribute it.\n"
+             "There is NO WARRANTY, to the extent permitted by law.\n"
+             "\n");
+}
+
+static void
+print_help (GOptionContext *context)
+{
+    gchar *str;
+
+    /* Always print --help-all */
+    str = g_option_context_get_help (context, FALSE, NULL);
+    g_print ("%s", str);
+    g_free (str);
+}
+
+void
+mm_context_init (gint argc,
+                 gchar **argv)
+{
+    GError *error = NULL;
+    GOptionContext *ctx;
+
+    ctx = g_option_context_new (NULL);
+    g_option_context_set_summary (ctx, "DBus system service to control mobile broadband modems.");
+    g_option_context_add_main_entries (ctx, entries, NULL);
+    g_option_context_add_group (ctx, log_get_option_group ());
+    g_option_context_add_group (ctx, test_get_option_group ());
+    g_option_context_set_help_enabled (ctx, FALSE);
+
+    if (!g_option_context_parse (ctx, &argc, &argv, &error)) {
+        g_printerr ("error: %s\n", error->message);
+        g_error_free (error);
+        exit (1);
+    }
+
+    if (version_flag) {
+        print_version ();
+        g_option_context_free (ctx);
+        exit (EXIT_SUCCESS);
+    }
+
+    if (help_flag) {
+        print_help (ctx);
+        g_option_context_free (ctx);
+        exit (EXIT_SUCCESS);
+    }
+
+    g_option_context_free (ctx);
+
+    /* Additional setup to be done on debug mode */
+    if (debug) {
+        log_level = "DEBUG";
+        if (!log_show_ts && !log_rel_ts)
+            log_show_ts = TRUE;
+    }
+
+    /* Initial kernel events processing may only be used if autoscan is disabled */
+#if defined WITH_UDEV || defined WITH_QRTR
+    if (!no_auto_scan && initial_kernel_events) {
+        g_printerr ("error: --initial-kernel-events must be used only if --no-auto-scan is also used\n");
+        exit (1);
+    }
+# if defined WITH_UDEV
+    /* Force skipping autoscan if running test without udev */
+    if (test_no_udev)
+        no_auto_scan = TRUE;
+# endif
+# if defined WITH_QRTR
+    /* Force skipping autoscan if running test without qrtr */
+    if (test_no_qrtr)
+        no_auto_scan = TRUE;
+# endif
+#endif
+
+
+}

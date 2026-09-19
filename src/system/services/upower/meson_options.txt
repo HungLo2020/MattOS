@@ -1,0 +1,50 @@
+option('man',
+       type : 'boolean',
+       value : true,
+       description : 'Build manpages')
+option('gtk-doc',
+       type : 'boolean',
+       value : true,
+       description : 'Build developer documentation')
+option('introspection',
+       type : 'feature',
+       value : 'auto',
+       description : 'Build GObject Introspection data')
+option('udevrulesdir',
+       type : 'string',
+       value: 'auto',
+       description : 'Directory for udev rules')
+option('udevhwdbdir',
+       type : 'string',
+       value: 'auto',
+       description : 'Directory for udev hwdb')
+option('historydir',
+       type : 'string',
+       description : 'Directory for upower history files will be stored')
+option('statedir',
+       type : 'string',
+       description : 'Directory for upower status files will be stored')
+option('systemdsystemunitdir',
+       type : 'string',
+       description : 'Directory for systemd service files ("no" to disable)')
+option('os_backend',
+       type : 'combo',
+       choices : [ 'auto', 'linux', 'freebsd', 'openbsd', 'dummy'],
+       value : 'auto',
+       description : 'Directory for systemd service files')
+option('idevice',
+       type : 'feature',
+       value : 'auto',
+       description : 'Build with libimobiledevice')
+option('polkit',
+       type: 'feature',
+       value: 'auto',
+       description: 'PolKit support in daemon')
+option('zshcompletiondir',
+       type: 'string',
+       value: '',
+       description: 'Directory for zsh completion scripts ["no" disables]')
+option('installed_tests',
+       type : 'boolean',
+       value : true,
+       description : 'Install integration tests')

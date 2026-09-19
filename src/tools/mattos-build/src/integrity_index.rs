@@ -190,7 +190,16 @@ fn parse_binary(body: &[u8]) -> Option<BTreeMap<String, PersistentFileDigest>> {
         };
         let digest_length = take_u32(payload, &mut offset)? as usize;
         let sha256 = String::from_utf8(take(payload, &mut offset, digest_length)?.to_vec()).ok()?;
-        if entries.insert(path, PersistentFileDigest { fingerprint, sha256 }).is_some() {
+        if entries
+            .insert(
+                path,
+                PersistentFileDigest {
+                    fingerprint,
+                    sha256,
+                },
+            )
+            .is_some()
+        {
             return None;
         }
     }

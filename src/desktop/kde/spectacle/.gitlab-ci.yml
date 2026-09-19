@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: None
+# SPDX-License-Identifier: CC0-1.0
+
+include:
+  - project: sysadmin/ci-utilities
+    file:
+      - /gitlab-templates/linux-qt6.yml
+      - /gitlab-templates/freebsd-qt6.yml
+  # Disable until flatpak CI supports Qt 6.
+  #     - /gitlab-templates/flatpak.yml
+      - /gitlab-templates/xml-lint.yml
+      - /gitlab-templates/yaml-lint.yml
+      - /gitlab-templates/qml-lint.yml
+      - /gitlab-templates/linux-qt6-next.yml

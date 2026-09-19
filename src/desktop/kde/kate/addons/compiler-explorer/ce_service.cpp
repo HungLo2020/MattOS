@@ -1,0 +1,155 @@
+#include "ce_service.h"
+
+#include <QtNetwork/QNetworkReply>
+
+#include <KConfigGroup>
+#include <KSharedConfig>
+#include <QJsonDocument>
+#include <QJsonObject>
+
+// static const char url[] = "http://localhost:10240/api/";
+
+CompilerExplorerSvc *CompilerExplorerSvc::instance()
+{
+    static CompilerExplorerSvc s_instance;
+    return &s_instance;
+}
+
+void CompilerExplorerSvc::changeUrl(const QString &newUrl)
+{
+    bool initializing = url.isEmpty();
+    url = newUrl;
+
+    if (url.endsWith(u'/')) {
+        url.chop(1);
+    }
+
+    if (!url.endsWith(QLatin1String("/api"))) {
+        url.append(QLatin1String("/api/"));
+    }
+
+    // Since the url has changed, we must refresh compilers/languages
+    if (!initializing) {
+        sendRequest(CompilerExplorer::Languages);
+        sendRequest(CompilerExplorer::Compilers);
+    }
+}
+
+void CompilerExplorerSvc::sendRequest(CompilerExplorer::Endpoints endpoint, const QString &additional)
+{
+    QString endp = CompilerExplorer::endpointsToString().value(endpoint);
+    QString requestUrl = url + endp + additional;
+    QNetworkRequest req{QUrl{requestUrl}};
+    req.setRawHeader("ACCEPT", "application/json");
+    req.setRawHeader("Content-Type", "application/json");
+
+    mgr->get(req);
+}
+
+void CompilerExplorerSvc::compileRequest(const QString &endpoint, const QByteArray &obj)
+{
+    QString requestUrl = url + endpoint;
+    QNetworkRequest req{QUrl{requestUrl}};
+    req.setRawHeader("ACCEPT", "application/json");
+    req.setRawHeader("Content-Type", "application/json");
+    mgr->post(req, obj);
+}
+
+QNetworkReply *CompilerExplorerSvc::tooltipRequest(const QString &asmWord)
+{
+    QNetworkRequest request;
+    QString urlString = url;
+    urlString += QStringLiteral("asm/") + asmWord;
+    request.setRawHeader("ACCEPT", "application/json");
+    request.setRawHeader("Content-Type", "application/json");
+    request.setUrl(QUrl(urlString));
+    return mgr->get(request);
+}
+
+CompilerExplorerSvc::~CompilerExplorerSvc()
+{
+    delete mgr;
+}
+
+CompilerExplorerSvc::CompilerExplorerSvc(QObject *parent)
+    : QObject(parent)
+{
+    mgr = new QNetworkAccessManager(this);
+    connect(mgr, &QNetworkAccessManager::finished, this, &CompilerExplorerSvc::slotNetworkReply);
+
+    KConfigGroup cg(KSharedConfig::openConfig(), QStringLiteral("kate_compilerexplorer"));
+    changeUrl(cg.readEntry("kate_compilerexplorer_url", QStringLiteral("http://localhost:10240")));
+}
+
+void CompilerExplorerSvc::slotNetworkReply(QNetworkReply *reply)
+{
+    const QString path = reply->url().path().split(u'/').at(2);
+    CompilerExplorer::Endpoints endpoint;
+    if (path.startsWith(QLatin1String("compilers"))) {
+        endpoint = CompilerExplorer::stringToEndpoint().value(QStringLiteral("compilers"));
+    } else if (path.startsWith(QLatin1String("compiler"))) {
+        endpoint = CompilerExplorer::stringToEndpoint().value(QStringLiteral("compiler"));
+    } else if (path.startsWith(QLatin1String("asm"))) {
+        return;
+    } else {
+        endpoint = CompilerExplorer::stringToEndpoint().value(path);
+    }
+    const QByteArray data = reply->readAll();
+
+    switch (endpoint) {
+    case CompilerExplorer::Languages: {
+        Q_EMIT languages(data);
+        break;
+    }
+    case CompilerExplorer::Compilers:
+        Q_EMIT compilers(data);
+        break;
+    case CompilerExplorer::CompilerCompile:
+        Q_EMIT asmResult(data);
+        break;
+    }
+}
+
+QJsonDocument CompilerExplorerSvc::getCompilationOptions(const QString &source,
+                                                         const QString &userArgs,
+                                                         bool isIntel,
+                                                         bool demangle,
+                                                         bool stripUnusedLabels,
+                                                         bool stripComments,
+                                                         bool stripLibFuncs)
+{
+    // opt obj
+    QJsonObject optObj;
+    optObj[QLatin1String("userArguments")] = userArgs;
+
+    // compiler options obj
+    QJsonObject compilerObj;
+    compilerObj[QLatin1String("skipAsm")] = false;
+    compilerObj[QLatin1String("executorRequest")] = false;
+
+    // add compileropts to opt obj
+    optObj[QLatin1String("compilerOptions")] = compilerObj;
+
+    // filters
+    QJsonObject filterObj;
+    filterObj[QLatin1String("binary")] = false;
+    filterObj[QLatin1String("commentOnly")] = stripComments;
+    filterObj[QLatin1String("demangle")] = demangle;
+    filterObj[QLatin1String("directives")] = true;
+    filterObj[QLatin1String("intel")] = isIntel;
+    filterObj[QLatin1String("labels")] = stripUnusedLabels;
+    filterObj[QLatin1String("execute")] = false;
+    filterObj[QLatin1String("libraryCode")] = stripLibFuncs;
+
+    optObj[QLatin1String("filters")] = filterObj;
+
+    QJsonObject main;
+    //    main["source"] = "int sum(){ return 2 + 2; }";
+    main[QLatin1String("source")] = source;
+    main[QLatin1String("options")] = optObj;
+
+    QJsonDocument doc{main};
+    return doc;
+}
+
+#include "moc_ce_service.cpp"

@@ -4,52 +4,45 @@ use filetime::{FileTime, set_file_times, set_symlink_file_times};
 
 mod cache;
 pub(crate) use cache::{
-    ensure_package_facts, ensure_package_set, explain_package_cache,
-    invalidate_package_cache, invalidate_package_facts, package_cache_input,
-    package_cache_manifest_path, package_facts_status,
-    print_package_cache_status, validate_package_cache, write_package_set_manifest,
-    PackageCacheInput, PackageCacheManifest,
+    PackageCacheInput, PackageCacheManifest, ensure_package_facts, ensure_package_set,
+    explain_package_cache, invalidate_package_cache, invalidate_package_facts, package_cache_input,
+    package_cache_manifest_path, package_facts_status, print_package_cache_status,
+    validate_package_cache, write_package_set_manifest,
 };
 
 mod audit;
-pub(crate) use audit::{
-    detect_staging_collisions, generate_bootstrap_audit, runtime_libraries_for_spec,
-    validate_no_mutable_package_state, validate_staged_runtime_ownership,
-};
 #[cfg(test)]
 pub(crate) use audit::{
     bootstrap_consumers, bootstrap_source_attribution, confirmed_host_package,
     validate_migrated_bootstrap_absent,
 };
+pub(crate) use audit::{
+    detect_staging_collisions, generate_bootstrap_audit, runtime_libraries_for_spec,
+    validate_no_mutable_package_state, validate_staged_runtime_ownership,
+};
 
 mod staging;
+#[cfg(test)]
+pub(crate) use cache::{
+    PACKAGE_SET_SCHEMA_VERSION, PackageSetManifest, package_definition_digest,
+    package_payload_source_digests, package_recipe_revision, package_set_policy,
+    package_stage_dependency_digest,
+};
+#[cfg(test)]
+pub(crate) use staging::{
+    GLIBC_RUNTIME_LIBRARIES, copy_path_preserving, copy_preserving, copy_tree_preserving,
+    stage_brush, stage_ca_certificates, stage_cargo, stage_flatpak_system_remote,
+    stage_gcc_development, stage_iso_codes, stage_rustc, stage_wireless_regdb,
+    stage_xdg_desktop_portal, validate_no_mutable_system_state, validate_vulkan_icd_manifests,
+};
 pub(crate) use staging::{
     apply_live_apt_policy, component_install, stage_package, validate_udev_hwdb_payload,
 };
-#[cfg(test)]
-pub(crate) use staging::{
-    copy_path_preserving, copy_preserving, copy_tree_preserving, stage_brush,
-    stage_ca_certificates, stage_cargo, stage_flatpak_system_remote, stage_gcc_development,
-    stage_iso_codes, stage_rustc, stage_wireless_regdb,
-    stage_xdg_desktop_portal,
-    validate_no_mutable_system_state, validate_vulkan_icd_manifests,
-    GLIBC_RUNTIME_LIBRARIES,
-};
-#[cfg(test)]
-pub(crate) use cache::{
-    package_definition_digest,
-    package_recipe_revision, package_set_policy,
-    package_stage_dependency_digest, package_payload_source_digests,
-    PACKAGE_SET_SCHEMA_VERSION,
-    PackageSetManifest,
-};
 
 mod registry;
-pub(crate) use registry::{
-    package_install_order, package_specs, PackageSpec, PACKAGE_NAMES,
-};
 #[cfg(test)]
 pub(crate) use registry::package_install_order_for;
+pub(crate) use registry::{PACKAGE_NAMES, PackageSpec, package_install_order, package_specs};
 
 const ARCH: &str = "amd64";
 const REVISION: &str = "1mattos1";
@@ -313,7 +306,6 @@ struct PackageAuditManifest {
     policy: String,
 }
 
-
 #[derive(Debug, Deserialize)]
 struct DebianCompatibilityManifest {
     schema_version: u32,
@@ -413,7 +405,6 @@ pub(crate) struct BootstrapConsumer {
     package: String,
     path: String,
 }
-
 
 pub(crate) fn run_package_command(repo_root: &Path, command: PackageCommands) -> Result<()> {
     match command {
@@ -723,7 +714,11 @@ fn print_publish_plan(repo_root: &Path, artifacts: &[PathBuf]) -> Result<()> {
 fn format_publish_command(publisher: &Path, approved: &[PathBuf]) -> Result<String> {
     Ok(std::iter::once("python3".to_string())
         .chain(std::iter::once(shell_escape(path_str(publisher)?)))
-        .chain(["--repo".to_string(), "mattos".to_string(), "upload".to_string()])
+        .chain([
+            "--repo".to_string(),
+            "mattos".to_string(),
+            "upload".to_string(),
+        ])
         .chain(
             approved
                 .iter()
@@ -973,9 +968,6 @@ fn build_packages(repo_root: &Path, names: &[String]) -> Result<()> {
     write_package_set_manifest(repo_root)
 }
 
-
-
-
 fn package_stage_dependencies(source_component: &str) -> &'static [&'static str] {
     match source_component {
         "MattOS" | "ca-certificates" | "test" => &[],
@@ -989,7 +981,9 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
         // Linux bzImage used by installed systems. Keep the filesystem-tool
         // packages tied only to their shared build stage.
         "installer" => &["installer", "linux"],
-        "btrfs-progs" | "dosfstools" | "e2fsprogs" => &["installer"],
+        "greetd" => &["greetd"],
+        "btrfs-progs" | "dosfstools" => &["installer"],
+        "e2fsprogs" => &["e2fsprogs"],
         "procps-ng" => &["procps-ng"],
         "linux-pam" => &["linux-pam"],
         "sudo-rs" => &["sudo-rs"],
@@ -1011,6 +1005,9 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "dav1d" => &["dav1d"],
             "glib" => &["glib"],
             "pipewire" => &["pipewire"],
+            "ffmpeg" => &["ffmpeg"],
+            "libva" => &["libva"],
+            "opencv" => &["opencv"],
             "util-linux" => &["util-linux"],
             "iproute2" => &["iproute2"],
             "iputils" => &["iputils"],
@@ -1027,16 +1024,17 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "kdeclarative" => &["kdeclarative"],
             "kirigami-addons" => &["kirigami-addons"],
             "kquickcharts" => &["kquickcharts"],
-        "qtbase" => &["qtbase"],
-        "qtshadertools" => &["qtshadertools"],
-        "qtdeclarative" => &["qtdeclarative"],
-        "qtsvg" => &["qtsvg"],
-        "qtwayland" => &["qtwayland"],
-        "qttools" => &["qttools"],
-        "qtmultimedia" => &["qtmultimedia"],
-        "qtspeech" => &["qtspeech"],
-        "qt5compat" => &["qt5compat"],
-        "qca" => &["qca"],
+            "qtbase" => &["qtbase"],
+            "qtshadertools" => &["qtshadertools"],
+            "qtdeclarative" => &["qtdeclarative"],
+            "qtsvg" => &["qtsvg"],
+            "qtwayland" => &["qtwayland"],
+            "qttools" => &["qttools"],
+            "qtmultimedia" => &["qtmultimedia"],
+            "qtspeech" => &["qtspeech"],
+            "qt5compat" => &["qt5compat"],
+            "qca" => &["qca"],
+            "qcoro" => &["qcoro"],
             "kwin" => &["kwin"],
             "plasma-framework" => &["plasma-framework"],
             "krunner" => &["krunner"],
@@ -1051,6 +1049,57 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "plasma-desktop" => &["plasma-desktop"],
             "breeze" => &["breeze"],
             "breeze-icons" => &["breeze-icons"],
+            "lm-sensors" => &["lm-sensors"],
+            "highway" => &["highway"],
+            "kfilemetadata" => &["kfilemetadata"],
+            "kpty" => &["kpty"],
+            "networkmanager-qt" => &["networkmanager-qt"],
+            "purpose" => &["purpose"],
+            "milou" => &["milou"],
+            "systemsettings" => &["systemsettings"],
+            "ksystemstats" => &["ksystemstats"],
+            "plasma-systemmonitor" => &["plasma-systemmonitor"],
+            "polkit-kde-agent-1" => &["polkit-kde-agent-1"],
+            "kquickimageeditor" => &["kquickimageeditor"],
+            "kpipewire" => &["kpipewire"],
+            "spectacle" => &["spectacle"],
+            "pulseaudio-qt" => &["pulseaudio-qt"],
+            "plasma-pa" => &["plasma-pa"],
+            "plasma-nm" => &["plasma-nm"],
+            "powerdevil" => &["powerdevil"],
+            "xdg-desktop-portal-kde" => &["xdg-desktop-portal-kde"],
+            "dolphin" => &["dolphin"],
+            "konsole" => &["konsole"],
+            "kate" => &["kate"],
+            "ark" => &["ark"],
+            "kparts" => &["kparts"],
+            "ktextwidgets" => &["ktextwidgets"],
+            "ktexteditor" => &["ktexteditor"],
+            "qrencode" => &["qrencode"],
+            "zxing-cpp" => &["zxing-cpp"],
+            "prison" => &["prison"],
+            "libkscreen" => &["libkscreen"],
+            "modemmanager" => &["modemmanager"],
+            "modemmanager-qt" => &["modemmanager-qt"],
+            "libarchive" => &["libarchive"],
+            "libsndfile" => &["libsndfile"],
+            "pulseaudio" => &["pulseaudio"],
+            "libgudev" => &["libgudev"],
+            "gmp" => &["gmp"],
+            "mpfr" => &["mpfr"],
+            "libbytesize" => &["libbytesize"],
+            "keyutils" => &["keyutils"],
+            "libnvme" => &["libnvme"],
+            "popt" => &["popt"],
+            "json-c" => &["json-c"],
+            "lvm2" => &["lvm2"],
+            "cryptsetup" => &["cryptsetup"],
+            "libblockdev" => &["libblockdev"],
+            "wireplumber" => &["wireplumber"],
+            "upower" => &["upower"],
+            "udisks2" => &["udisks2"],
+            "bluez" => &["bluez"],
+            "power-profiles-daemon" => &["power-profiles-daemon"],
             "kcoreaddons" => &["kcoreaddons"],
             "ki18n" => &["ki18n"],
             "kwidgetsaddons" => &["kwidgetsaddons"],
@@ -1065,6 +1114,7 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "kunitconversion" => &["kunitconversion"],
             "ksvg" => &["ksvg"],
             "knotifications" => &["knotifications"],
+            "knotifyconfig" => &["knotifyconfig"],
             "kguiaddons" => &["kguiaddons"],
             "kitemmodels" => &["kitemmodels"],
             "kglobalaccel" => &["kglobalaccel"],
@@ -1093,7 +1143,6 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "vulkan-tools" => &["vulkan-tools"],
             "mesa" => &["mesa"],
             "nvidia-driver" => &["nvidia-driver"],
-            "cosmic-comp" => &["cosmic-comp"],
             // These stage outputs form Flatpak's runtime closure. They are
             // intentionally owned by the flatpak package until MattOS splits
             // them into separately installable library packages.
@@ -1108,7 +1157,6 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
                 "libfyaml",
                 "fuse3",
                 "libxml2",
-                "libarchive",
                 "libpng",
                 "bubblewrap",
                 "xdg-dbus-proxy",
@@ -1124,9 +1172,6 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
                 "xkbcomp",
             ],
             "xdg-desktop-portal" => &["xdg-desktop-portal", "gstreamer", "gstreamer-base"],
-            "cosmic-desktop" => &["cosmic-desktop"],
-            "cosmic-edit" => &["cosmic-edit"],
-            "cosmic-initial-setup" => &["cosmic-initial-setup"],
             "polkit" => &["polkit"],
             "networkmanager" => &["networkmanager"],
             "libnl" => &["libnl"],
@@ -1186,9 +1231,28 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
             "src/system/storage/dosfstools",
             "src/system/storage/e2fsprogs",
         ],
+        "greetd" => &["src/system/session/greetd"],
         "btrfs-progs" => &["src/system/storage/btrfs-progs"],
         "dosfstools" => &["src/system/storage/dosfstools"],
         "e2fsprogs" => &["src/system/storage/e2fsprogs"],
+        "libsndfile" => &["src/system/multimedia/libsndfile"],
+        "pulseaudio" => &["src/system/multimedia/pulseaudio"],
+        "libgudev" => &["src/system/libraries/libgudev"],
+        "gmp" => &["src/system/libraries/gmp"],
+        "mpfr" => &["src/system/libraries/mpfr"],
+        "libbytesize" => &["src/system/libraries/libbytesize"],
+        "keyutils" => &["src/system/security/keyutils"],
+        "libnvme" => &["src/system/libraries/libnvme"],
+        "popt" => &["src/system/libraries/popt"],
+        "json-c" => &["src/system/libraries/json-c"],
+        "lvm2" => &["src/system/storage/lvm2"],
+        "cryptsetup" => &["src/system/storage/cryptsetup"],
+        "libblockdev" => &["src/system/libraries/libblockdev"],
+        "wireplumber" => &["src/system/multimedia/wireplumber"],
+        "upower" => &["src/system/services/upower"],
+        "udisks2" => &["src/system/services/udisks2"],
+        "bluez" => &["src/system/services/bluez"],
+        "power-profiles-daemon" => &["src/system/services/power-profiles-daemon"],
         "brush" => &["src/userland/brush"],
         "coreutils" => &["src/userland/coreutils"],
         "curl" => &["src/userland/curl"],
@@ -1232,6 +1296,9 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
             "src/system/multimedia/pipewire",
             "src/tools/mattos-build/src/packaging/staging.rs",
         ],
+        "ffmpeg" => &["src/system/multimedia/ffmpeg"],
+        "libva" => &["src/system/graphics/libva"],
+        "opencv" => &["src/system/multimedia/opencv"],
         "linux-pam" => &["src/system/auth/linux-pam"],
         "shadow" => &["src/system/auth/shadow"],
         "sudo-rs" => &["src/system/auth/sudo-rs"],
@@ -1289,12 +1356,34 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
             "src/system/security/qca",
             "src/tools/mattos-build/src/stages/kde_foundation.rs",
         ],
-        "kcoreaddons" => &["src/desktop/kde/kcoreaddons", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
-        "ki18n" => &["src/desktop/kde/ki18n", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
-        "kwidgetsaddons" => &["src/desktop/kde/kwidgetsaddons", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
-        "kconfig" => &["src/desktop/kde/kconfig", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
-        "kdbusaddons" => &["src/desktop/kde/kdbusaddons", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
-        "kauth" => &["src/desktop/kde/kauth", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        "qcoro" => &[
+            "src/desktop/kde/qcoro",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+        ],
+        "kcoreaddons" => &[
+            "src/desktop/kde/kcoreaddons",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+        ],
+        "ki18n" => &[
+            "src/desktop/kde/ki18n",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+        ],
+        "kwidgetsaddons" => &[
+            "src/desktop/kde/kwidgetsaddons",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+        ],
+        "kconfig" => &[
+            "src/desktop/kde/kconfig",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+        ],
+        "kdbusaddons" => &[
+            "src/desktop/kde/kdbusaddons",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+        ],
+        "kauth" => &[
+            "src/desktop/kde/kauth",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+        ],
         "kwin" => &[
             "src/desktop/kde/kwin",
             "upstream/patches/kwin",
@@ -1316,6 +1405,7 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         ],
         "plasma-desktop" => &[
             "src/desktop/kde/plasma-desktop",
+            "src/system/session/plasma",
             "src/tools/mattos-build/src/stages/plasma.rs",
             "src/tools/mattos-build/src/stages/kde_foundation.rs",
             "src/tools/mattos-build/src/packaging/staging.rs",
@@ -1374,6 +1464,11 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         ],
         "kf6-knotifications" => &[
             "src/desktop/kde/knotifications",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kf6-knotifyconfig" => &[
+            "src/desktop/kde/knotifyconfig",
             "src/tools/mattos-build/src/stages/kde_foundation.rs",
             "src/tools/mattos-build/src/packaging/staging.rs",
         ],
@@ -1560,9 +1655,20 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
             "src/tools/mattos-build/src/stages/plasma.rs",
             "src/tools/mattos-build/src/packaging/staging.rs",
         ],
-        "polkit-qt-1" => &["src/system/security/polkit-qt-1", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
-        "yaml-cpp" => &["src/system/libraries/yaml-cpp", "upstream/patches/yaml-cpp", "upstream/state/yaml-cpp.toml", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
-        "kpmcore" => &["src/system/storage/kpmcore", "src/tools/mattos-build/src/stages/kde_foundation.rs"],
+        "polkit-qt-1" => &[
+            "src/system/security/polkit-qt-1",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+        ],
+        "yaml-cpp" => &[
+            "src/system/libraries/yaml-cpp",
+            "upstream/patches/yaml-cpp",
+            "upstream/state/yaml-cpp.toml",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+        ],
+        "kpmcore" => &[
+            "src/system/storage/kpmcore",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+        ],
         "wayland" => &["src/system/libraries/wayland"],
         "xkbcommon" => &["src/system/libraries/xkbcommon"],
         "xkeyboard-config" => &["src/system/data/xkeyboard-config"],
@@ -1645,22 +1751,6 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
             "src/system/packages/xdg-desktop-portal-libglnx",
             "src/system/multimedia/gstreamer",
         ],
-        "cosmic-comp" => &["src/desktop/cosmic/cosmic-comp"],
-        "cosmic-desktop" => &[
-            "src/desktop/cosmic",
-            "src/desktop/themes/pop-icon-theme",
-            "src/system/session/greetd",
-            "src/system/session/cosmic",
-            "src/system/session/plasma",
-            "src/tools/mattos-build/src/main.rs",
-        ],
-        "cosmic-edit" => &["src/desktop/cosmic/cosmic-edit"],
-        "cosmic-initial-setup" => &[
-            "src/desktop/cosmic/cosmic-initial-setup",
-            "resources/COSMIC/layouts",
-            "resources/COSMIC/themes",
-            "src/tools/mattos-build/src/main.rs",
-        ],
         "duktape" => &[
             "src/system/security/duktape",
             "src/tools/mattos-build/src/main.rs",
@@ -1673,7 +1763,10 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         ],
         "networkmanager" => &["src/system/network/NetworkManager"],
         "libnl" => &["src/system/network/libnl"],
-        "wpa-supplicant" => &["src/system/network/hostap", "src/system/network/wpa-supplicant"],
+        "wpa-supplicant" => &[
+            "src/system/network/hostap",
+            "src/system/network/wpa-supplicant",
+        ],
         "grub" => &["src/boot/grub/upstream", "src/build-support/grub-gnulib"],
         "cozy" => &["src/userland/cozy"],
         "cpython" => &["src/development/python/cpython"],
@@ -1725,9 +1818,6 @@ fn package_configuration_roots(package: &str) -> &'static [&'static str] {
             "src/system/installer/PROVENANCE.md",
             "src/system/units/mattos-install-cli.service",
             "src/system/units/mattos-install-cli.target",
-            "src/system/units/mattos-install-graphical.service",
-            "src/system/units/mattos-install-graphical.target",
-            "src/system/units/mattos-cosmic-installer-session.service",
         ],
         _ => &[],
     }
@@ -1872,6 +1962,7 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "qt6-speech" => component_snapshot_version(repo_root, "qtspeech")?,
         "qt6-core5compat" => component_snapshot_version(repo_root, "qt5compat")?,
         "qca-qt6" => component_snapshot_version(repo_root, "qca")?,
+        "qcoro-qt6" => component_snapshot_version(repo_root, "qcoro")?,
         "kf6-kwallet" => component_snapshot_version(repo_root, "kwallet")?,
         "kf6-kcoreaddons" => component_snapshot_version(repo_root, "kcoreaddons")?,
         "kf6-ki18n" => component_snapshot_version(repo_root, "ki18n")?,
@@ -1886,6 +1977,7 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "kf6-kunitconversion" => component_snapshot_version(repo_root, "kunitconversion")?,
         "kf6-ksvg" => component_snapshot_version(repo_root, "ksvg")?,
         "kf6-knotifications" => component_snapshot_version(repo_root, "knotifications")?,
+        "kf6-knotifyconfig" => component_snapshot_version(repo_root, "knotifyconfig")?,
         "kf6-kguiaddons" => component_snapshot_version(repo_root, "kguiaddons")?,
         "kf6-kitemmodels" => component_snapshot_version(repo_root, "kitemmodels")?,
         "kf6-kglobalaccel" => component_snapshot_version(repo_root, "kglobalaccel")?,
@@ -1910,12 +2002,15 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "kf6-kbookmarks" => component_snapshot_version(repo_root, "kbookmarks")?,
         "qt6-positioning" => component_snapshot_version(repo_root, "qtpositioning")?,
         "kf6-kirigami" => component_snapshot_version(repo_root, "kirigami")?,
+        "kf6-qqc2-desktop-style" => component_snapshot_version(repo_root, "qqc2-desktop-style")?,
         "kf6-kirigami-addons" => component_snapshot_version(repo_root, "kirigami-addons")?,
         "kf6-kquickcharts" => component_snapshot_version(repo_root, "kquickcharts")?,
         "libcanberra0" => component_snapshot_version(repo_root, "libcanberra")?,
         "breeze-icons" => component_snapshot_version(repo_root, "breeze-icons")?,
         "plasma-activities" => component_snapshot_version(repo_root, "plasma-activities")?,
-        "plasma-activities-stats" => component_snapshot_version(repo_root, "plasma-activities-stats")?,
+        "plasma-activities-stats" => {
+            component_snapshot_version(repo_root, "plasma-activities-stats")?
+        }
         "plasma5support" => component_snapshot_version(repo_root, "plasma5support")?,
         "kf6-kcmutils" => component_snapshot_version(repo_root, "kcmutils")?,
         "libprocesscore10" => component_snapshot_version(repo_root, "ksysguard")?,
@@ -1930,6 +2025,8 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
             component_snapshot_version(repo_root, "wayland")?
         }
         "libxkbcommon0" => component_snapshot_version(repo_root, "xkbcommon")?,
+        "libxml2-16" => component_snapshot_version(repo_root, "libxml2")?,
+        "libxkbfile1" => component_snapshot_version(repo_root, "libxkbfile")?,
         "xkb-data" => component_snapshot_version(repo_root, "xkeyboard-config")?,
         "tzdata" => component_snapshot_version(repo_root, "tzdata")?,
         "linux-firmware" => component_snapshot_version(repo_root, "linux-firmware")?,
@@ -1948,10 +2045,8 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "libx11-6" => component_snapshot_version(repo_root, "libx11")?,
         "libxext6" => component_snapshot_version(repo_root, "libxext")?,
         "libxfixes3" => component_snapshot_version(repo_root, "libxfixes")?,
-        "libglvnd0" | "libglvnd-dev" | "libglx0" | "libgl1" | "libopengl0" | "libegl1" | "libgles1"
-        | "libgles2" => {
-            component_snapshot_version(repo_root, "libglvnd")?
-        }
+        "libglvnd0" | "libglvnd-dev" | "libglx0" | "libgl1" | "libopengl0" | "libegl1"
+        | "libgles1" | "libgles2" => component_snapshot_version(repo_root, "libglvnd")?,
         "libgbm1" | "libegl-mesa0" | "libgl1-mesa-dri" | "mesa-vulkan-drivers" => {
             component_snapshot_version(repo_root, "mesa")?
         }
@@ -1964,24 +2059,19 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         | "libnvidia-decode-595"
         | "nvidia-utils-595"
         | "nvidia-driver-595-open" => "595.84".to_string(),
-        "cosmic-comp" => component_snapshot_version(repo_root, "cosmic-comp")?,
         "flatpak" => component_snapshot_version(repo_root, "flatpak")?,
         "xwayland" => component_snapshot_version(repo_root, "xwayland")?,
         "xdg-desktop-portal" => component_snapshot_version(repo_root, "xdg-desktop-portal")?,
-        "cosmic-edit" => {
-            cargo_package_version(&repo_root.join("src/desktop/cosmic/cosmic-edit/Cargo.toml"))?
-        }
-        "cosmic-initial-setup" => cargo_package_version(
-            &repo_root.join("src/desktop/cosmic/cosmic-initial-setup/Cargo.toml"),
-        )?,
         "libduktape207" => component_snapshot_version(repo_root, "duktape")?,
         "polkit" => component_snapshot_version(repo_root, "polkit")?,
         "network-manager" => component_snapshot_version(repo_root, "networkmanager")?,
-        "libnl-3-200" | "libnl-genl-3-200" => component_snapshot_version(repo_root, "libnl")?,
+        "libnl-3-200" | "libnl-genl-3-200" | "libnl-route-3-200" => {
+            component_snapshot_version(repo_root, "libnl")?
+        }
         "wpasupplicant" => component_snapshot_version(repo_root, "wpa-supplicant")?,
         "grub-efi-amd64" => component_snapshot_version(repo_root, "grub")?,
         "mattos-cozy" => cargo_package_version(&repo_root.join("src/userland/cozy/Cargo.toml"))?,
-        "cosmic-desktop" => component_snapshot_version(repo_root, "cosmic-session")?,
+        "greetd" => component_snapshot_version(repo_root, "greetd")?,
         "kwin" => component_snapshot_version(repo_root, "kwin")?,
         "layer-shell-qt" => component_snapshot_version(repo_root, "layer-shell-qt")?,
         "plasma-framework" => component_snapshot_version(repo_root, "plasma-framework")?,
@@ -1991,6 +2081,62 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "plasma-workspace" => component_snapshot_version(repo_root, "plasma-workspace")?,
         "plasma-desktop" => component_snapshot_version(repo_root, "plasma-desktop")?,
         "breeze" => component_snapshot_version(repo_root, "breeze")?,
+        "lm-sensors" => component_snapshot_version(repo_root, "lm-sensors")?,
+        "libhwy1" => component_snapshot_version(repo_root, "highway")?,
+        "kf6-kfilemetadata" => component_snapshot_version(repo_root, "kfilemetadata")?,
+        "kf6-kpty" => component_snapshot_version(repo_root, "kpty")?,
+        "kf6-networkmanager-qt" => component_snapshot_version(repo_root, "networkmanager-qt")?,
+        "kf6-purpose" => component_snapshot_version(repo_root, "purpose")?,
+        "milou" => component_snapshot_version(repo_root, "milou")?,
+        "systemsettings" => component_snapshot_version(repo_root, "systemsettings")?,
+        "ksystemstats" => component_snapshot_version(repo_root, "ksystemstats")?,
+        "plasma-systemmonitor" => component_snapshot_version(repo_root, "plasma-systemmonitor")?,
+        "polkit-kde-agent-1" => component_snapshot_version(repo_root, "polkit-kde-agent-1")?,
+        "kquickimageeditor" => component_snapshot_version(repo_root, "kquickimageeditor")?,
+        "ffmpeg-libs" => component_snapshot_version(repo_root, "ffmpeg")?,
+        "libva2" => component_snapshot_version(repo_root, "libva")?,
+        "libopencv4" => component_snapshot_version(repo_root, "opencv")?,
+        "kpipewire" => component_snapshot_version(repo_root, "kpipewire")?,
+        "spectacle" => component_snapshot_version(repo_root, "spectacle")?,
+        "pulseaudio-qt" => component_snapshot_version(repo_root, "pulseaudio-qt")?,
+        "plasma-pa" => component_snapshot_version(repo_root, "plasma-pa")?,
+        "plasma-nm" => component_snapshot_version(repo_root, "plasma-nm")?,
+        "powerdevil" => component_snapshot_version(repo_root, "powerdevil")?,
+        "xdg-desktop-portal-kde" => {
+            component_snapshot_version(repo_root, "xdg-desktop-portal-kde")?
+        }
+        "dolphin" => component_snapshot_version(repo_root, "dolphin")?,
+        "konsole" => component_snapshot_version(repo_root, "konsole")?,
+        "kate" => component_snapshot_version(repo_root, "kate")?,
+        "ark" => component_snapshot_version(repo_root, "ark")?,
+        "kf6-kparts" => component_snapshot_version(repo_root, "kparts")?,
+        "kf6-ktextwidgets" => component_snapshot_version(repo_root, "ktextwidgets")?,
+        "kf6-ktexteditor" => component_snapshot_version(repo_root, "ktexteditor")?,
+        "libqrencode4" => component_snapshot_version(repo_root, "qrencode")?,
+        "libzxing4" => component_snapshot_version(repo_root, "zxing-cpp")?,
+        "kf6-prison" => component_snapshot_version(repo_root, "prison")?,
+        "kf6-libkscreen" => component_snapshot_version(repo_root, "libkscreen")?,
+        "modemmanager" => component_snapshot_version(repo_root, "modemmanager")?,
+        "kf6-modemmanager-qt" => component_snapshot_version(repo_root, "modemmanager-qt")?,
+        "libarchive13" => component_snapshot_version(repo_root, "libarchive")?,
+        "libsndfile1" => component_snapshot_version(repo_root, "libsndfile")?,
+        "libpulse0" => component_snapshot_version(repo_root, "pulseaudio")?,
+        "libgudev-1.0-0" => component_snapshot_version(repo_root, "libgudev")?,
+        "libgmp10" => component_snapshot_version(repo_root, "gmp")?,
+        "libmpfr6" => component_snapshot_version(repo_root, "mpfr")?,
+        "libbytesize1" => component_snapshot_version(repo_root, "libbytesize")?,
+        "libkeyutils1" => component_snapshot_version(repo_root, "keyutils")?,
+        "libnvme1" => component_snapshot_version(repo_root, "libnvme")?,
+        "libpopt0" => component_snapshot_version(repo_root, "popt")?,
+        "libjson-c5" => component_snapshot_version(repo_root, "json-c")?,
+        "libdevmapper1.02.1" => component_snapshot_version(repo_root, "lvm2")?,
+        "libcryptsetup12" => component_snapshot_version(repo_root, "cryptsetup")?,
+        "libblockdev3" => component_snapshot_version(repo_root, "libblockdev")?,
+        "wireplumber" => component_snapshot_version(repo_root, "wireplumber")?,
+        "upower" => component_snapshot_version(repo_root, "upower")?,
+        "udisks2" => component_snapshot_version(repo_root, "udisks2")?,
+        "bluez" => component_snapshot_version(repo_root, "bluez")?,
+        "power-profiles-daemon" => component_snapshot_version(repo_root, "power-profiles-daemon")?,
         "libdbus-1-3" => component_snapshot_version(repo_root, "dbus")?,
         "libdav1d7" => component_snapshot_version(repo_root, "dav1d")?,
         "libglib2.0-0t64" => component_snapshot_version(repo_root, "glib")?,
@@ -2360,7 +2506,7 @@ fn write_provenance(
         | "libgpg-error" | "libgcrypt" | "libassuan" | "libksba" | "npth"
         | "gnupg" | "less" | "git" | "openssh" | "libffi" | "wayland"
         | "xkbcommon" | "libglvnd" | "xkeyboard-config" | "cpython" | "llvm"
-        | "rust" | "libnl" | "wpa-supplicant" | "grub") => {
+        | "rust" | "libnl" | "wpa-supplicant" | "grub" | "greetd") => {
             let state = read_sync_state(repo_root, component)?
                 .ok_or_else(|| anyhow!("upstream state missing for {component}"))?;
             (
@@ -2419,7 +2565,6 @@ fn component_provenance(
     ))
 }
 
-
 fn installed_size_kib(root: &Path) -> Result<u64> {
     let mut bytes = 0u64;
     #[cfg(unix)]
@@ -2470,7 +2615,6 @@ fn walk_tree(
     }
     Ok(())
 }
-
 
 fn normalize_tree_timestamps(root: &Path) -> Result<()> {
     let time = FileTime::from_unix_time(SOURCE_DATE_EPOCH, 0);
@@ -2735,13 +2879,14 @@ fn inspect_package(repo_root: &Path, name: &str) -> Result<()> {
 }
 
 mod repository;
-pub(crate) use repository::{
-    generate_repository, repository_stage_spec,
-};
+pub(crate) use repository::{generate_repository, repository_stage_spec};
 
 pub(crate) fn install_prototype_packages(repo_root: &Path, rootfs: &Path) -> Result<()> {
     let inventory = read_inventory(repo_root)?;
-    repository::validate_repository_against_inventory(&repo_root.join("out/repository"), &inventory)?;
+    repository::validate_repository_against_inventory(
+        &repo_root.join("out/repository"),
+        &inventory,
+    )?;
     let admindir = rootfs.join("var/lib/dpkg");
     for rel in ["info", "updates", "triggers", "parts"] {
         fs::create_dir_all(admindir.join(rel))?;
@@ -2837,7 +2982,10 @@ pub(crate) fn validate_dpkg_database(rootfs: &Path) -> Result<()> {
         ),
         ("/usr/lib/x86_64-linux-gnu/libexpat.so.1", "libexpat1"),
         ("/usr/lib/x86_64-linux-gnu/libfreetype.so.6", "libfreetype6"),
-        ("/usr/lib/x86_64-linux-gnu/libfontconfig.so.1", "libfontconfig1"),
+        (
+            "/usr/lib/x86_64-linux-gnu/libfontconfig.so.1",
+            "libfontconfig1",
+        ),
         ("/usr/bin/fc-match", "fontconfig"),
         ("/usr/lib/x86_64-linux-gnu/libcap.so.2", "libcap2"),
         ("/usr/lib/x86_64-linux-gnu/libattr.so.1", "libattr1"),
@@ -3612,9 +3760,12 @@ fn relative_display(root: &Path, path: &Path) -> Result<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::cache::PackageSetEntry;
-    use super::repository::{dependency_name, exact_dependency_version, validate_release_sha256, validate_repository, validate_repository_packages};
+    use super::repository::{
+        dependency_name, exact_dependency_version, validate_release_sha256, validate_repository,
+        validate_repository_packages,
+    };
+    use super::*;
     use std::os::unix::fs::{PermissionsExt, symlink};
 
     #[test]
@@ -3625,7 +3776,7 @@ mod tests {
         );
         assert_eq!(package_stage_dependencies("btrfs-progs"), ["installer"]);
         assert_eq!(package_stage_dependencies("dosfstools"), ["installer"]);
-        assert_eq!(package_stage_dependencies("e2fsprogs"), ["installer"]);
+        assert_eq!(package_stage_dependencies("e2fsprogs"), ["e2fsprogs"]);
     }
 
     #[test]
@@ -3649,7 +3800,6 @@ mod tests {
                 "libfyaml",
                 "fuse3",
                 "libxml2",
-                "libarchive",
                 "libpng",
                 "bubblewrap",
                 "xdg-dbus-proxy",
@@ -3664,10 +3814,12 @@ mod tests {
                 .contains(&"src/system/installer/flatpak-target-install.c")
         );
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
-        assert!(!root
-            .join("src/system/packages/config/flatpak")
-            .join("firefox.toml")
-            .exists());
+        assert!(
+            !root
+                .join("src/system/packages/config/flatpak")
+                .join("firefox.toml")
+                .exists()
+        );
     }
 
     #[test]
@@ -3676,8 +3828,15 @@ mod tests {
             package_configuration_roots("apt"),
             ["src/system/packages/config/apt"]
         );
-        assert_eq!(package_configuration_roots("flatpak"), ["src/system/packages/config/flatpak"]);
-        assert!(!crate::stage_inputs::source_inputs(crate::BuildStage::Flatpak).iter().any(|p| p.starts_with("src/system/packages/config/flatpak")));
+        assert_eq!(
+            package_configuration_roots("flatpak"),
+            ["src/system/packages/config/flatpak"]
+        );
+        assert!(
+            !crate::stage_inputs::source_inputs(crate::BuildStage::Flatpak)
+                .iter()
+                .any(|p| p.starts_with("src/system/packages/config/flatpak"))
+        );
     }
 
     #[test]
@@ -3705,8 +3864,9 @@ mod tests {
             package_stage_dependencies("xdg-desktop-portal"),
             ["xdg-desktop-portal", "gstreamer", "gstreamer-base"]
         );
-        assert!(!package_source_roots("xdg-desktop-portal")
-            .contains(&"src/system/security/bubblewrap"));
+        assert!(
+            !package_source_roots("xdg-desktop-portal").contains(&"src/system/security/bubblewrap")
+        );
 
         let root = tempfile::tempdir().unwrap();
         for (component, relative) in [
@@ -3715,7 +3875,12 @@ mod tests {
             ("gstreamer-base", "usr/lib/libgstpbutils-1.0.so.0"),
             ("xdg-desktop-portal", "usr/libexec/xdg-desktop-portal"),
         ] {
-            let path = root.path().join("out/build").join(component).join("install").join(relative);
+            let path = root
+                .path()
+                .join("out/build")
+                .join(component)
+                .join("install")
+                .join(relative);
             fs::create_dir_all(path.parent().unwrap()).unwrap();
             fs::write(path, component).unwrap();
         }
@@ -3765,9 +3930,7 @@ mod tests {
                 "xkbcomp",
             ]
         );
-        assert!(
-            package_source_roots("xwayland").contains(&"src/system/graphics/xkbcomp")
-        );
+        assert!(package_source_roots("xwayland").contains(&"src/system/graphics/xkbcomp"));
         assert!(xwayland.depends.contains(&"xkb-data"));
         assert_eq!(
             crate::stage_graph::direct_dependencies(crate::stage_graph::BuildStage::Xwayland),
@@ -3792,10 +3955,15 @@ mod tests {
                 "mesa",
             ]
         );
-        assert!(!package_source_roots("xwayland")
-            .contains(&"src/system/libraries/freetype"));
-        assert_eq!(package_source_roots("freetype"), ["src/system/libraries/freetype"]);
-        assert_eq!(package_source_roots("fontconfig"), ["src/system/libraries/fontconfig"]);
+        assert!(!package_source_roots("xwayland").contains(&"src/system/libraries/freetype"));
+        assert_eq!(
+            package_source_roots("freetype"),
+            ["src/system/libraries/freetype"]
+        );
+        assert_eq!(
+            package_source_roots("fontconfig"),
+            ["src/system/libraries/fontconfig"]
+        );
     }
 
     #[test]
@@ -3834,117 +4002,6 @@ mod tests {
                 .join("usr/lib/firmware/regulatory.db.p7s")
                 .is_file()
         );
-    }
-
-    #[test]
-    fn graphical_installer_waits_for_modular_drm_and_input_coldplug() {
-        let unit = include_str!("../../../system/units/mattos-cosmic-installer-session.service");
-        assert!(unit.contains("After=systemd-udev-trigger.service systemd-udev-settle.service"));
-        assert!(unit.contains("/dev/dri/card[0-9]*"));
-        assert!(unit.contains("/dev/input/event[0-9]*"));
-        assert!(unit.contains(
-            "dbus-run-session --config-file=/usr/share/dbus-1/mattos-private-session.conf"
-        ));
-        assert!(unit.contains("XCURSOR_THEME=Pop"));
-        assert!(!unit.contains("modprobe virtio_gpu"));
-    }
-
-    #[test]
-    fn cosmic_runtime_packaging_owns_session_bus_tools_and_desktop_defaults() {
-        let source = include_str!("packaging.rs");
-        for required in [
-            "usr/bin/dbus-daemon",
-            "usr/bin/dbus-run-session",
-            "usr/bin/dbus-update-activation-environment",
-            "usr/share/dbus-1/mattos-private-session.conf",
-            "usr/share/icons/hicolor/index.theme",
-            "com.system76.CosmicSettings.Shortcuts/v1/defaults",
-            "com.system76.CosmicSettings.WindowRules/v1/tiling_exception_defaults",
-        ] {
-            assert!(
-                source.contains(required),
-                "runtime packaging omits {required}"
-            );
-        }
-        for required in [
-            "flatpak_user_exports",
-            "flatpak_system_exports",
-            "flatpak/exports/share",
-            "XDG_SESSION_TYPE XDG_CURRENT_DESKTOP DCONF_PROFILE XDG_DATA_DIRS SSH_AUTH_SOCK",
-            "export DCONF_PROFILE=cosmic",
-        ] {
-            assert!(
-                source.contains(required),
-                "COSMIC session packaging must expose Flatpak exports through XDG_DATA_DIRS: {required}"
-            );
-        }
-
-        let launcher = include_str!("../../../system/session/cosmic/cosmic-greeter-start");
-        assert!(launcher.contains("LIBSEAT_BACKEND=logind"));
-        assert!(launcher.contains("XDG_SESSION_TYPE=wayland"));
-        assert!(launcher.contains("cosmic-comp --no-xwayland"));
-        let unit = include_str!("../../../system/session/cosmic/cosmic-greeter.service");
-        assert!(unit.contains("Restart=always"));
-        assert!(unit.contains("TimeoutStopSec=10s"));
-        assert!(unit.contains("After=systemd-user-sessions.service systemd-logind.service"));
-        assert!(unit.contains("cosmic-greeter-daemon.service"));
-        assert!(!source.contains("wants.join(\"cosmic-greeter-daemon.service\")"));
-
-        let specs = package_specs();
-        let libseat = specs
-            .iter()
-            .find(|spec| spec.name == "libseat1")
-            .expect("libseat package");
-        assert!(libseat.depends.contains(&"libsystemd0"));
-
-        let package_roots = package_source_roots("cosmic-desktop");
-        assert!(package_roots.contains(&"src/system/session/cosmic"));
-        assert!(package_roots.contains(&"src/desktop/cosmic"));
-    }
-
-    #[test]
-    fn cosmic_policy_resources_are_first_class_and_user_overridable() {
-        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
-        let resources = root.join("resources/COSMIC");
-        assert!(resources.join("PROVENANCE.md").is_file());
-        assert!(
-            resources
-                .join("defaults/com.system76.CosmicPanel/v1/entries")
-                .is_file()
-        );
-        assert!(
-            resources
-                .join("layouts/top-panel-and-bottom-dock/layout.kdl")
-                .is_file()
-        );
-        assert!(resources.join("themes/nebula-dark.ron").is_file());
-
-        let source = format!(
-            "{}\n{}\n{}\n{}",
-            include_str!("main.rs"),
-            include_str!("stages/image.rs"),
-            include_str!("stages/registry.rs"),
-            include_str!("stages/desktop.rs")
-        );
-        for path in [
-            "resources/COSMIC/defaults",
-            "resources/COSMIC/layouts",
-            "resources/COSMIC/themes",
-            "/usr/share/cosmic",
-            "/usr/share/cosmic-layouts",
-            "/usr/share/cosmic-themes",
-        ] {
-            assert!(
-                source.contains(path),
-                "COSMIC resource contract omits {path}"
-            );
-        }
-
-        let libcosmic =
-            fs::read_to_string(root.join("src/desktop/cosmic/libcosmic/cosmic-config/src/lib.rs"))
-                .unwrap();
-        assert!(libcosmic.contains("~/.config/cosmic") || libcosmic.contains("config_dir"));
-        assert!(libcosmic.contains("find_data_file"));
     }
 
     #[test]
@@ -4202,14 +4259,17 @@ mod tests {
     }
 
     #[test]
-    fn native_cosmic_installer_has_an_owned_xkbcommon_runtime() {
+    fn installer_has_an_owned_xkbcommon_runtime() {
         let specs = package_specs();
         let xkbcommon = specs
             .iter()
             .find(|spec| spec.name == "libxkbcommon0")
             .expect("xkbcommon runtime package must exist");
         assert_eq!(xkbcommon.source_component, "xkbcommon");
-        assert_eq!(xkbcommon.depends, &["libc6", "xkb-data", "libxcb1"]);
+        assert_eq!(
+            xkbcommon.depends,
+            &["libc6", "xkb-data", "libxcb1", "libxml2-16"]
+        );
 
         let xkb_data = specs
             .iter()
@@ -4224,7 +4284,7 @@ mod tests {
             .expect("installer package must exist");
         assert!(installer.depends.contains(&"libxkbcommon0"));
         assert!(installer.depends.contains(&"e2fsprogs"));
-        assert!(installer.provides.contains(&"mattos-installer-cosmic"));
+        assert!(installer.provides.contains(&"mattos-installer-cli"));
     }
 
     #[test]
@@ -4395,7 +4455,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 255);
+        assert_eq!(PACKAGE_NAMES.len(), 312);
     }
 
     #[test]
@@ -4443,7 +4503,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 255);
+        assert_eq!(PACKAGE_NAMES.len(), 312);
         assert_eq!(
             UTIL_LINUX_BASE_PATHS,
             &[
@@ -4524,7 +4584,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 255);
+        assert_eq!(PACKAGE_NAMES.len(), 312);
         let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
         for dependency in [
             "libffi8",
@@ -5458,9 +5518,14 @@ mod tests {
         for dependency in ["libpam0g", "libpam-modules", "libpam-runtime"] {
             assert!(polkit.depends.contains(&dependency));
         }
-        assert!(package_configuration_roots("libpam-runtime").contains(&"src/system/auth/config/pam.d"));
+        assert!(
+            package_configuration_roots("libpam-runtime").contains(&"src/system/auth/config/pam.d")
+        );
         let network_recipe = include_str!("stages/system_services.rs");
-        assert!(network_recipe.contains("-Dpolkit_agent_helper_1=/usr/lib/polkit-1/polkit-agent-helper-1"));
+        assert!(
+            network_recipe
+                .contains("-Dpolkit_agent_helper_1=/usr/lib/polkit-1/polkit-agent-helper-1")
+        );
     }
 
     #[test]
@@ -6108,7 +6173,10 @@ mod tests {
             "tmp",
             "extensions",
         ] {
-            assert!(repo.join(directory).is_dir(), "missing OSTree {directory} directory");
+            assert!(
+                repo.join(directory).is_dir(),
+                "missing OSTree {directory} directory"
+            );
         }
         assert!(
             fs::metadata(repo.join("flathub.trustedkeys.gpg"))

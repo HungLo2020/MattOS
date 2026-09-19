@@ -1,0 +1,25 @@
+cifuzz:
+  image: ubuntu:noble
+  tags:
+    - gitlab-org-docker
+  stage: test
+  interruptible: true
+  rules:
+    - if: $CI_PROJECT_PATH != "cryptsetup/cryptsetup"
+      when: never
+    - if: $BUILD_AND_RUN_FUZZERS != null
+  before_script:
+    - apt-get -y update
+    - >
+      apt-get -y install -y -qq git clang make autoconf automake autopoint
+      pkgconf libtool libtool-bin gettext libssl-dev libdevmapper-dev
+      libpopt-dev uuid-dev libsepol-dev libjson-c-dev libssh-dev libblkid-dev
+      flex bison cmake ninja-build
+  parallel:
+    matrix:
+      # memory does not work for now
+      - SANITIZER: [address, undefined]
+  script:
+    - cd tests/fuzz
+    - ./oss-fuzz-build.sh
+    - ls -l out

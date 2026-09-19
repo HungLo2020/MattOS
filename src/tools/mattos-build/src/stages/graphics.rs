@@ -1841,5 +1841,3 @@ fn build_mesa(repo_root: &Path) -> Result<()> {
         ],
     )
 }
-
-include!("desktop_aggregation.rs");

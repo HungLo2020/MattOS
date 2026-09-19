@@ -1,0 +1,928 @@
+# Finnish messages for kategdbplugin.
+# Copyright © 2011, 2012 This_file_is_part_of_KDE
+# This file is distributed under the same license as the kdebase package.
+# Jorma Karvonen <karvonen.jorma@gmail.com>, 2011-2012.
+# Lasse Liehu <lasse.liehu@gmail.com>, 2012, 2013, 2014, 2015, 2016.
+# SPDX-FileCopyrightText: 2020, 2022, 2023, 2024, 2025, 2026 Tommi Nieminen <translator@legisign.org>
+#
+# KDE Finnish translation sprint participants:
+# Author: Lliehu
+# Author: Niklas Laxström
+msgid ""
+msgstr ""
+"Project-Id-Version: kategdbplugin\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-06-25 00:47+0000\n"
+"PO-Revision-Date: 2026-01-05 15:54+0200\n"
+"Last-Translator: Tommi Nieminen <translator@legisign.org>\n"
+"Language-Team: Finnish <kde-i18n-doc@kde.org>\n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 25.04.0\n"
+
+#: backend.cpp:48 dapbackend.cpp:175
+#, kde-format
+msgid ""
+"A debugging session is on course. Please, use re-run or stop the current "
+"session."
+msgstr ""
+"Virheenpaikannusistunto on käynnissä. Suorita uudelleen tai pysäytä nykyinen "
+"istunto."
+
+#: breakpointview.cpp:354
+#, kde-format
+msgid "Line Breakpoints"
+msgstr "Rivikeskeytyskohdat"
+
+#: breakpointview.cpp:356
+#, kde-format
+msgid "Function Breakpoints"
+msgstr "Funktiokeskeytyskohdat"
+
+#: breakpointview.cpp:358
+#, kde-format
+msgid "Exception Breakpoints"
+msgstr "Poikkeuskeskeytyskohdat"
+
+#: breakpointview.cpp:417
+#, kde-format
+msgid "verified"
+msgstr "varmistettu"
+
+#: breakpointview.cpp:417 breakpointview.cpp:422
+#, kde-format
+msgid "pending"
+msgstr "odottaa"
+
+#: breakpointview.cpp:965
+#, kde-format
+msgid "Add Function Breakpoint…"
+msgstr "Lisää funktiokeskeytyskohta…"
+
+#: breakpointview.cpp:969
+#, kde-format
+msgid "Clear All Function Breakpoints"
+msgstr "Tyhjennä kaikki funktiokeskeytyskohdat"
+
+#: breakpointview.cpp:976
+#, kde-format
+msgid "Remove Breakpoint"
+msgstr "Poista keskeytyskohta"
+
+#: breakpointview.cpp:1493
+#, kde-format
+msgid "Breakpoint"
+msgstr "Keskeytyskohta"
+
+#: breakpointview.cpp:1556
+#, kde-format
+msgid "line %1 already has a breakpoint"
+msgstr "rivillä %1 on jo keskeytyskohta"
+
+#: breakpointview.cpp:1565
+#, kde-format
+msgid "No breakpoints set"
+msgstr "Ei asetettuja keskeytyskohtia"
+
+#: breakpointview.cpp:1624
+#, kde-format
+msgid "Add Function Breakpoint"
+msgstr "Lisää funktiokeskeytyskohta"
+
+#: breakpointview.cpp:1625
+#, kde-format
+msgid "Function name:"
+msgstr "Funktion nimi:"
+
+#: configview.cpp:92
+#, kde-format
+msgid "Add new target"
+msgstr "Lisää uusi kohde"
+
+#: configview.cpp:96
+#, kde-format
+msgid "Copy target"
+msgstr "Kopioi kohde"
+
+#: configview.cpp:100
+#, kde-format
+msgid "Delete target"
+msgstr "Poista kohde"
+
+#: configview.cpp:104
+#, kde-format
+msgid "Reload launch.json targets"
+msgstr "Virkistä launch.json-kohteet"
+
+#: configview.cpp:109
+#, kde-format
+msgid "Executable:"
+msgstr "Ohjelmatiedosto:"
+
+#: configview.cpp:129
+#, kde-format
+msgid "Working Directory:"
+msgstr "Työkansio:"
+
+#: configview.cpp:137
+#, kde-format
+msgid "Process Id:"
+msgstr "Prosessitunniste:"
+
+#: configview.cpp:142
+#, kde-format
+msgctxt "Program argument list"
+msgid "Arguments:"
+msgstr "Argumentit:"
+
+#: configview.cpp:145
+#, kde-format
+msgctxt "Checkbox to for keeping focus on the command line"
+msgid "Keep focus"
+msgstr "Pidä kohdistus"
+
+#: configview.cpp:146
+#, kde-format
+msgid "Keep the focus on the command line"
+msgstr "Pidä kohdistus komentorivillä"
+
+#: configview.cpp:148
+#, kde-format
+msgid "Redirect IO"
+msgstr "Uudelleen ohjattu siirräntä"
+
+#: configview.cpp:149
+#, kde-format
+msgid "Redirect the debugged programs IO to a separate tab"
+msgstr ""
+"Ohjaa virheenpaikannuksessa olevien ohjelmien siirräntä uudelleen erilliseen "
+"välilehteen"
+
+#: configview.cpp:397
+#, kde-format
+msgctxt "Error message"
+msgid "No executable target set"
+msgstr "Kohdeohjelmatiedostoa ei ole asetettu"
+
+#: configview.cpp:407
+#, kde-format
+msgctxt "Error message"
+msgid "Invalid process id"
+msgstr "Virheellinen prosessitunniste"
+
+#: configview.cpp:529 configview.cpp:542
+#, kde-format
+msgid "Target %1"
+msgstr "Kohde %1"
+
+#: configview.cpp:765
+#, kde-format
+msgid "Select Executable"
+msgstr "Valitse ohjelmatiedosto"
+
+#: configview.cpp:778
+#, kde-format
+msgid "Select Working Directory"
+msgstr "Valitse työkansio"
+
+#: dapbackend.cpp:187
+#, kde-format
+msgid "DAP backend '%1' failed"
+msgstr "DAP-taustajärjestelmä ”%1” epäonnistui"
+
+#: dapbackend.cpp:238
+#, kde-format
+msgid "program terminated"
+msgstr "ohjelma päätettiin"
+
+#: dapbackend.cpp:243
+#, kde-format
+msgid "Failed to terminate. Forcing shutdown..."
+msgstr "Päättäminen epäonnistui. Pakotetaan sulkeminen…"
+
+#: dapbackend.cpp:254
+#, kde-format
+msgid "requesting disconnection"
+msgstr "pyydetään yhteyden katkaisua"
+
+#: dapbackend.cpp:269
+#, kde-format
+msgid "requesting shutdown"
+msgstr "pyydetään sammutusta"
+
+#: dapbackend.cpp:294
+#, kde-format
+msgid "DAP backend: %1"
+msgstr "DAP-taustajärjestelmä: %1"
+
+#: dapbackend.cpp:303
+#, kde-format
+msgid "stopped (%1)."
+msgstr "pysäytetty (%1)."
+
+#: dapbackend.cpp:311
+#, kde-format
+msgid "Active thread: %1 (all threads stopped)."
+msgstr "Aktiivinen säie: %1 (kaikki säikeet pysäytetty)."
+
+#: dapbackend.cpp:313
+#, kde-format
+msgid "Active thread: %1."
+msgstr "Aktiivinen säie: %1."
+
+#: dapbackend.cpp:318
+#, kde-format
+msgid "Breakpoint(s) reached:"
+msgstr "Keskeytyskohdat saavutettu:"
+
+#: dapbackend.cpp:344
+#, kde-format
+msgid "(continued) thread %1"
+msgstr "(jatkettiin) säie %1"
+
+#: dapbackend.cpp:346
+#, kde-format
+msgid "all threads continued"
+msgstr "jatkettiin kaikkia säikeitä"
+
+#: dapbackend.cpp:353
+#, kde-format
+msgid "(running)"
+msgstr "(käynnissä)"
+
+#: dapbackend.cpp:404
+#, kde-format
+msgid "*** connection with server closed ***"
+msgstr "*** palvelinyhteys sulkeutui ***"
+
+#: dapbackend.cpp:411
+#, kde-format
+msgid "program exited with code %1"
+msgstr "ohjelma päättyi koodilla %1"
+
+#: dapbackend.cpp:433
+#, kde-format
+msgid "*** waiting for user actions ***"
+msgstr "*** odotetaan käyttäjän toimia ***"
+
+#: dapbackend.cpp:438
+#, kde-format
+msgid "error on response: %1"
+msgstr "virhe vastauksessa: %1"
+
+#: dapbackend.cpp:454
+#, kde-format
+msgid "important"
+msgstr "tärkeä"
+
+#: dapbackend.cpp:457
+#, kde-format
+msgid "telemetry"
+msgstr "telemetria"
+
+#: dapbackend.cpp:476
+#, kde-format
+msgid "debugging process [%1] %2"
+msgstr "virheenpaikannusprosessi [%1] %2"
+
+#: dapbackend.cpp:478
+#, kde-format
+msgid "debugging process %1"
+msgstr "virheenpaikannusprosessi %1"
+
+#: dapbackend.cpp:481
+#, kde-format
+msgid "Start method: %1"
+msgstr "Aloitustapa: %1"
+
+#: dapbackend.cpp:496
+#, kde-format
+msgid "thread %1"
+msgstr "säie %1"
+
+#: dapbackend.cpp:577
+#, kde-format
+msgid "breakpoint set"
+msgstr "keskeytyskohta asetettu"
+
+#: dapbackend.cpp:611
+#, kde-format
+msgid "(%1) breakpoint"
+msgstr "(%1) keskeytyskohta"
+
+#: dapbackend.cpp:629
+#, kde-format
+msgid "<not evaluated>"
+msgstr "<ei suoritettu>"
+
+#: dapbackend.cpp:651
+#, kde-format
+msgid "server capabilities"
+msgstr "palvelimen ominaisuudet"
+
+#: dapbackend.cpp:653
+#, kde-format
+msgid "supported"
+msgstr "tuettu"
+
+#: dapbackend.cpp:653
+#, kde-format
+msgid "unsupported"
+msgstr "ei tuettu"
+
+#: dapbackend.cpp:656
+#, kde-format
+msgid "conditional breakpoints"
+msgstr "ehdolliset keskeytyskohdat"
+
+#: dapbackend.cpp:657
+#, kde-format
+msgid "function breakpoints"
+msgstr "funktion keskeytyskohdat"
+
+# *** TARKISTA: Ei aavistustakaan, mitä ”hit” tässä on, mutta conditional ≠ hit conditional, joten jotakin pitää keksiä.
+#: dapbackend.cpp:658
+#, kde-format
+msgid "hit conditional breakpoints"
+msgstr "osumaehtoiset keskeytyskohdat"
+
+#: dapbackend.cpp:659
+#, kde-format
+msgid "log points"
+msgstr "lokipisteet"
+
+#: dapbackend.cpp:659
+#, kde-format
+msgid "modules request"
+msgstr "moduulipyyntö"
+
+#: dapbackend.cpp:660
+#, kde-format
+msgid "goto targets request"
+msgstr "goto-määränpääpyyntö"
+
+#: dapbackend.cpp:661
+#, kde-format
+msgid "terminate request"
+msgstr "lopeta pyyntö"
+
+#: dapbackend.cpp:662
+#, kde-format
+msgid "terminate debuggee"
+msgstr "lopeta jäljitettävä"
+
+#: dapbackend.cpp:665
+#, kde-format
+msgid "exception breakpoint filters"
+msgstr "poikkeuskeskeytyskohtasuodattimet"
+
+#: dapbackend.cpp:812
+#, kde-format
+msgid "syntax error: expression not found"
+msgstr "syntaksivirhe: lauseketta ei löytynyt"
+
+#: dapbackend.cpp:831 dapbackend.cpp:867 dapbackend.cpp:907 dapbackend.cpp:942
+#: dapbackend.cpp:979 dapbackend.cpp:1016 dapbackend.cpp:1053
+#: dapbackend.cpp:1144 dapbackend.cpp:1198
+#, kde-format
+msgid "syntax error: %1"
+msgstr "syntaksivirhe: %1"
+
+#: dapbackend.cpp:839 dapbackend.cpp:875 dapbackend.cpp:1151
+#: dapbackend.cpp:1206
+#, kde-format
+msgid "invalid line: %1"
+msgstr "virheellinen rivi: %1"
+
+#: dapbackend.cpp:847 dapbackend.cpp:852 dapbackend.cpp:883 dapbackend.cpp:888
+#: dapbackend.cpp:1176 dapbackend.cpp:1181 dapbackend.cpp:1214
+#: dapbackend.cpp:1219
+#, kde-format
+msgid "file not specified: %1"
+msgstr "tiedostoa ei määritetty: %1"
+
+#: dapbackend.cpp:919 dapbackend.cpp:954 dapbackend.cpp:991 dapbackend.cpp:1028
+#: dapbackend.cpp:1065
+#, kde-format
+msgid "invalid thread id: %1"
+msgstr "virheellinen säikeen tunniste: %1"
+
+#: dapbackend.cpp:925 dapbackend.cpp:960 dapbackend.cpp:997 dapbackend.cpp:1034
+#: dapbackend.cpp:1071
+#, kde-format
+msgid "thread id not specified: %1"
+msgstr "säikeen tunnistetta ei annettu: %1"
+
+#: dapbackend.cpp:1082
+#, kde-format
+msgid "Available commands:"
+msgstr "Käytettävissä olevat komennot:"
+
+#: dapbackend.cpp:1161
+#, kde-format
+msgid "conditional breakpoints are not supported by the server"
+msgstr "palvelin ei tue ehdollisia keskeytyskohtia"
+
+#: dapbackend.cpp:1169
+#, kde-format
+msgid "hit conditional breakpoints are not supported by the server"
+msgstr "palvelin ei tue osumaehtoisia keskeytyskohtia"
+
+#: dapbackend.cpp:1231
+#, kde-format
+msgid "Current thread: "
+msgstr "Nykyinen säie:"
+
+#: dapbackend.cpp:1236 dapbackend.cpp:1243 dapbackend.cpp:1264
+#, kde-format
+msgid "none"
+msgstr "ei mitään"
+
+#: dapbackend.cpp:1239
+#, kde-format
+msgid "Current frame: "
+msgstr "Nykyinen kehys:"
+
+#: dapbackend.cpp:1246
+#, kde-format
+msgid "Session state: "
+msgstr "Istunnon tila:"
+
+#: dapbackend.cpp:1249
+#, kde-format
+msgid "initializing"
+msgstr "Alustetaan"
+
+#: dapbackend.cpp:1252
+#, kde-format
+msgid "running"
+msgstr "käynnissä"
+
+#: dapbackend.cpp:1255
+#, kde-format
+msgid "stopped"
+msgstr "pysäytetty"
+
+#: dapbackend.cpp:1258
+#, kde-format
+msgid "terminated"
+msgstr "päätetty"
+
+#: dapbackend.cpp:1261
+#, kde-format
+msgid "disconnected"
+msgstr "yhteys katkaistu"
+
+#: dapbackend.cpp:1319
+#, kde-format
+msgid "command not found"
+msgstr "komentoa ei löydy"
+
+#: dapbackend.cpp:1354
+#, kde-format
+msgid "missing thread id"
+msgstr "puuttuva säietunniste"
+
+#: dapbackend.cpp:1507
+#, kde-format
+msgid "Current frame [%3]: %1:%2 (%4)"
+msgstr "Nykyinen kehys [%3]: %1:%2 (%4)"
+
+#: debugconfigpage.cpp:57 debugconfigpage.cpp:62
+#, kde-format
+msgid "Debugger"
+msgstr "Virheenpaikannin"
+
+#: launch_json_reader.cpp:40
+#, kde-format
+msgctxt "%1 refers to filepath"
+msgid "Failed to parse .vscode/launch.json at %1. "
+msgstr "Ei voitu jäsentää tiedostoa .vscode/launch.json kohdassa %1. "
+
+#: launch_json_reader.cpp:51
+#, kde-format
+msgctxt "at line no:column no"
+msgid " at %1:%2"
+msgstr " kohdassa %1:%2"
+
+#: localsview.cpp:39
+#, kde-format
+msgid "type"
+msgstr "tyyppi"
+
+#: localsview.cpp:48
+#, kde-format
+msgid "indexed items"
+msgstr "indeksoidut kohteet"
+
+#: localsview.cpp:51
+#, kde-format
+msgid "named items"
+msgstr "nimetyt kohteet"
+
+#: localsview.cpp:67 localsview.cpp:68
+#, kde-format
+msgid "Loading..."
+msgstr "Ladataan…"
+
+#: localsview.cpp:116
+#, kde-format
+msgid "Symbol"
+msgstr "Symboli"
+
+#: localsview.cpp:117
+#, kde-format
+msgid "Type"
+msgstr "Tyyppi"
+
+#: localsview.cpp:118
+#, kde-format
+msgid "Value"
+msgstr "Arvo"
+
+#: localsview.cpp:300
+#, kde-format
+msgid "Copy Symbol"
+msgstr "Kopioi symboli"
+
+#: localsview.cpp:315
+#, kde-format
+msgid "Copy Value"
+msgstr "Kopioi arvo"
+
+#: plugin_kategdb.cpp:112
+#, kde-format
+msgid "Kate Debug"
+msgstr "Kate-virheenpaikannin"
+
+#: plugin_kategdb.cpp:116
+#, kde-format
+msgid "Debug View"
+msgstr "Virheenpaikannusnäkymä"
+
+#: plugin_kategdb.cpp:116 plugin_kategdb.cpp:347
+#, kde-format
+msgid "Debug"
+msgstr "Virheenpaikannus"
+
+#: plugin_kategdb.cpp:119 plugin_kategdb.cpp:122
+#, kde-format
+msgid "Locals and Stack"
+msgstr "Paikalliset muuttujat ja pino"
+
+#: plugin_kategdb.cpp:128
+#, kde-format
+msgid "Breakpoints"
+msgstr "Keskeytyskohdat"
+
+#: plugin_kategdb.cpp:215
+#, kde-kuit-format
+msgctxt "@info"
+msgid "<title>Could not open file:</title><nl/>%1"
+msgstr "<title>Ei voitu avata tiedostoa:</title><nl/>%1"
+
+#: plugin_kategdb.cpp:229
+#, kde-format
+msgid "Targets"
+msgstr "Kohteet"
+
+#: plugin_kategdb.cpp:234
+#, kde-format
+msgid "Start Debugging"
+msgstr "Aloita virheenpaikannus"
+
+#: plugin_kategdb.cpp:244
+#, kde-format
+msgid "Kill / Stop Debugging"
+msgstr "Tapa / pysäytä virheenpaikannus"
+
+#: plugin_kategdb.cpp:251
+#, kde-format
+msgid "Continue"
+msgstr "Jatka"
+
+#: plugin_kategdb.cpp:257
+#, kde-format
+msgid "Toggle Breakpoint / Break"
+msgstr "Vaihda keskeytyskohtaa / keskeytystä"
+
+#: plugin_kategdb.cpp:264
+#, kde-format
+msgid "Clear All Breakpoints"
+msgstr "Tyhjennä kaikki keskeytyskohdat"
+
+#: plugin_kategdb.cpp:269
+#, kde-format
+msgid "Step In"
+msgstr "Astu sisään"
+
+#: plugin_kategdb.cpp:276
+#, kde-format
+msgid "Step Over"
+msgstr "Astu yli"
+
+#: plugin_kategdb.cpp:283
+#, kde-format
+msgid "Step Out"
+msgstr "Astu ulos"
+
+#: plugin_kategdb.cpp:290 plugin_kategdb.cpp:354
+#, kde-format
+msgid "Run To Cursor"
+msgstr "Suorita kohdistimeen"
+
+#: plugin_kategdb.cpp:297
+#, kde-format
+msgid "Restart Debugging"
+msgstr "Käynnistä virheenpaikannus uudelleen"
+
+#: plugin_kategdb.cpp:304
+#, kde-format
+msgid "Clear Output"
+msgstr "Tyhjennä tuloste"
+
+#: plugin_kategdb.cpp:312
+#, kde-format
+msgid "Hot Reload"
+msgstr "Kuuma uudelleenlataus"
+
+#: plugin_kategdb.cpp:319
+#, kde-format
+msgid "Hot Restart"
+msgstr "Kuuma uudelleenkäynnistys"
+
+#: plugin_kategdb.cpp:328
+#, kde-format
+msgid "Enable Hot Reload on Save"
+msgstr "Käytä tallennettaessa kuumaa uudelleenlatausta"
+
+#: plugin_kategdb.cpp:337 plugin_kategdb.cpp:356
+#, kde-format
+msgctxt "Move Program Counter (next execution)"
+msgid "Move PC"
+msgstr "Siirrä ohjelmalaskuri"
+
+#: plugin_kategdb.cpp:342
+#, kde-format
+msgid "Print Value"
+msgstr "Tulosta arvo"
+
+#: plugin_kategdb.cpp:407
+#, kde-format
+msgid "Error: %1"
+msgstr "Virhe: %1"
+
+#: plugin_kategdb.cpp:438
+#, kde-format
+msgid "Insert breakpoint"
+msgstr "Lisää keskeytyskohta"
+
+#: plugin_kategdb.cpp:444
+#, kde-format
+msgid "Toggle breakpoint"
+msgstr "Aseta tai poista keskeytyskohta"
+
+#: plugin_kategdb.cpp:559
+#, kde-format
+msgid "Execution point"
+msgstr "Suorituspiste"
+
+#: plugin_kategdb.cpp:668
+#, kde-format
+msgctxt "Tab label"
+msgid "Debug Output"
+msgstr "Virheenpaikannustuloste"
+
+#: plugin_kategdb.cpp:669
+#, kde-format
+msgctxt "Tab label"
+msgid "Settings"
+msgstr "Asetukset"
+
+#: plugin_kategdb.cpp:704
+#, kde-format
+msgid "IO"
+msgstr "Siirräntä"
+
+#: stackframe_model.cpp:95
+#, kde-format
+msgctxt "Column label (frame number)"
+msgid "Nr"
+msgstr "Nro"
+
+#: stackframe_model.cpp:97
+#, kde-format
+msgctxt "Column label"
+msgid "Function"
+msgstr "Funktio"
+
+#: stackframe_model.cpp:99
+#, kde-format
+msgctxt "Column label"
+msgid "Location"
+msgstr "Sijainti"
+
+#: stackview.cpp:96 stackview.cpp:128
+#, kde-format
+msgid "Thread %1"
+msgstr "Säie %1"
+
+#: stackview.cpp:167
+#, kde-format
+msgid "Copy Stack Trace"
+msgstr "Kopioi pinolistaus"
+
+#: stackview.cpp:186
+#, kde-format
+msgid "Open Location"
+msgstr "Avaa sijainti"
+
+#: stackview.cpp:193
+#, kde-format
+msgid "Copy Location"
+msgstr "Kopioi sijainti"
+
+#. i18n: ectx: Menu (debug)
+#: ui.rc:6
+#, kde-format
+msgid "&Debug"
+msgstr "&Virheenpaikannus"
+
+#. i18n: ectx: ToolBar (gdbplugin)
+#: ui.rc:33
+#, kde-format
+msgid "Debug Plugin"
+msgstr "Virheenpaikannusliitännäinen"
+
+#~ msgid "User Debug Adapter Settings"
+#~ msgstr "Virheenpaikannussovittimen käyttäjäasetukset"
+
+#~ msgid "Settings File:"
+#~ msgstr "Asetustiedosto:"
+
+#~ msgid "Default Debug Adapter Settings"
+#~ msgstr "Virheenpaikannussovittimen oletusasetukset"
+
+#~ msgid "Failed to open file: %1"
+#~ msgstr "Ei voitu avata tiedostoa: %1"
+
+#~ msgid "No JSON data to validate."
+#~ msgstr "Ei validoitavaa JSON-dataa."
+
+#~ msgid "JSON data is valid."
+#~ msgstr "JSON-data on kelvollista."
+
+#~ msgid "JSON data is invalid: no JSON object"
+#~ msgstr "JSON-data on kelvotonta: ei JSON-oliota"
+
+#~ msgid "JSON data is invalid: %1"
+#~ msgstr "JSON-data on kelvotonta: %1"
+
+#~ msgid "breakpoint cleared"
+#~ msgstr "keskeytyskohta poistettu"
+
+#~ msgid "breakpoint not found (%1:%2)"
+#~ msgstr "keskeytyskohtaa ei löydy (%1:%2)"
+
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "<title>Could not open file:</title><nl/>%1<br/>Try adding a search path "
+#~ "to Advanced Settings -> Source file search paths"
+#~ msgstr ""
+#~ "<title>Tiedostoa ei voitu avata:</title><nl/>%1<br/>Kokeile lisätä "
+#~ "hakupolku kohdassa Lisäasetukset → Lähdetiedostojen hakupolut"
+
+#~ msgctxt "Column label"
+#~ msgid "Frame"
+#~ msgstr "Kehys"
+
+#~ msgid "killing backend"
+#~ msgstr "tapetaan taustajärjestelmää"
+
+#~ msgid "GDB command"
+#~ msgstr "Komento"
+
+#~ msgid "..."
+#~ msgstr "…"
+
+#~ msgid "Source file search paths"
+#~ msgstr "Lähdetiedostojen hakupolut"
+
+#~ msgid "Remote TCP"
+#~ msgstr "Etä-TCP"
+
+#~ msgid "Remote Serial Port"
+#~ msgstr "Etäsarjaportti"
+
+#~ msgid "Host"
+#~ msgstr "Verkkonimi"
+
+#~ msgid "Port"
+#~ msgstr "Portti"
+
+#~ msgid "Baud"
+#~ msgstr "Baudi"
+
+#~ msgid "solib-absolute-prefix"
+#~ msgstr "solib-absoluuttinen-etuliite"
+
+#~ msgid "solib-search-path"
+#~ msgstr "solib-hakupolku"
+
+#~ msgid "Custom Init Commands"
+#~ msgstr "Mukautetut alustuskomennot"
+
+#~ msgid "Advanced Settings"
+#~ msgstr "Lisäasetukset"
+
+#~ msgid "Locals"
+#~ msgstr "Paikalliset"
+
+#~ msgid "CPU registers"
+#~ msgstr "Suoritinrekisterit"
+
+#~ msgid ""
+#~ "Please set the executable in the 'Settings' tab in the 'Debug' panel."
+#~ msgstr ""
+#~ "Aseta ohjelmatiedosto Virheenpaikannus-paneelin Asetukset-välilehdellä."
+
+#~ msgid ""
+#~ "No debugger selected. Please select one in the 'Settings' tab in the "
+#~ "'Debug' panel."
+#~ msgstr ""
+#~ "Virheenjäljitintä ei ole valittu. Valitse se Virheenpaikannus-paneelin "
+#~ "Asetukset-välilehdeltä."
+
+#~ msgid ""
+#~ "Debugger not found. Please make sure you have it installed in your "
+#~ "system. The selected debugger is '%1'"
+#~ msgstr ""
+#~ "Virheenjäljitintä ei löydy. Varmista, että se on järjestelmään asennettu. "
+#~ "Valittu vianjäljitin on ”%1”"
+
+#~ msgid "Could not start debugger process"
+#~ msgstr "Ei voitu käynnistää virheenpaikanninprosessia"
+
+#~ msgid "*** gdb exited normally ***"
+#~ msgstr "*** gdb päättyi normaalisti ***"
+
+#~ msgid "all threads running"
+#~ msgstr "kaikki säikeet käynnissä"
+
+#~ msgid "thread(s) running: %1"
+#~ msgstr "säikeitä käynnissä: %1"
+
+#~ msgid "Current frame: %1:%2"
+#~ msgstr "Nykyinen kehys: %1:%2"
+
+#~ msgid "Host: %1. Target: %1"
+#~ msgstr "Kone: %1. Kohde: %1"
+
+#~ msgid ""
+#~ "gdb-mi: Could not parse last response: %1. Too many consecutive errors. "
+#~ "Shutting down."
+#~ msgstr ""
+#~ "gdb-mi: Ei voitu jäsentää viimeisintä vastausta: %1. Liian monta "
+#~ "peräkkäistä virhettä. Lopetetaan."
+
+#~ msgid "gdb-mi: Could not parse last response: %1"
+#~ msgstr "gdb-mi: Ei voitu jäsentää viimeisintä vastausta: %1"
+
+#~ msgid "post mortem"
+#~ msgstr "ruumiinavaus"
+
+#~ msgid "popup_breakpoint"
+#~ msgstr "popup_breakpoint"
+
+#~ msgid "popup_run_to_cursor"
+#~ msgstr "popup_run_to_cursor"
+
+#~ msgctxt "NAME OF TRANSLATORS"
+#~ msgid "Your names"
+#~ msgstr "Tommi Nieminen"
+
+#~ msgctxt "EMAIL OF TRANSLATORS"
+#~ msgid "Your emails"
+#~ msgstr "translator@legisign.org"
+
+#~ msgid "GDB Integration"
+#~ msgstr "GDB-integraatio"
+
+#~ msgid "Kate GDB Integration"
+#~ msgstr "Kate GDB -integraatio"
+
+#~ msgid "&Target:"
+#~ msgstr "&Kohde:"
+
+#~ msgctxt "Program argument list"
+#~ msgid "&Arg List:"
+#~ msgstr "&Argumenttiluettelo:"
+
+#~ msgid "Remove Argument List"
+#~ msgstr "Poista argumenttiluettelo"
+
+#~ msgid "Arg Lists"
+#~ msgstr "Argumenttiluettelot"

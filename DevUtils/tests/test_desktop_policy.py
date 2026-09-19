@@ -1,10 +1,6 @@
 """Contracts for pinned desktop schemas and MattOS-owned integration policy."""
 from pathlib import Path
-import hashlib
 import importlib.util
-import re
-import subprocess
-import tempfile
 import tomllib
 import unittest
 
@@ -12,29 +8,6 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class DesktopPolicyTests(unittest.TestCase):
-    def test_store_patch_supports_normal_forward_and_reverse_verification(self):
-        catalog = tomllib.loads((ROOT / "upstream/sources.toml").read_text())
-        component = next(c for c in catalog["component"] if c["name"] == "cosmic-store")
-        manifest = ROOT / component["patch_manifest"]
-        self.assertEqual(hashlib.sha256(manifest.read_bytes()).hexdigest(), component["patch_manifest_sha256"])
-        patch = tomllib.loads(manifest.read_text())["patch"][0]
-        patch_path = ROOT / patch["path"]
-        self.assertEqual(hashlib.sha256(patch_path.read_bytes()).hexdigest(), patch["sha256"])
-        with tempfile.TemporaryDirectory() as temporary:
-            target = Path(temporary) / "src/backend/flatpak.rs"
-            target.parent.mkdir(parents=True)
-            original = (ROOT / "src/desktop/cosmic/cosmic-store/src/backend/flatpak.rs").read_bytes()
-            target.write_bytes(original)
-            def apply(*options):
-                subprocess.run(["git", "apply", "--whitespace=error-all", *options, str(patch_path)],
-                               cwd=temporary, check=True, capture_output=True)
-            apply("--check")
-            apply()
-            self.assertIn("update_appstream_sync(&remote_name,", target.read_text())
-            apply("--reverse", "--check")
-            apply("--reverse")
-            self.assertEqual(target.read_bytes(), original)
-
     def test_provenance_exceptions_are_exact_and_child_imports_remain_validated(self):
         path = ROOT / "DevUtils/audits/test_vendored_source_provenance.py"
         spec = importlib.util.spec_from_file_location("polish_provenance", path)
@@ -55,51 +28,6 @@ class DesktopPolicyTests(unittest.TestCase):
         self.assertEqual(audit.verify_gitlink_replacements(policies, components), [])
         components.pop("libglnx")
         self.assertTrue(any("libglnx" in error for error in audit.verify_gitlink_replacements(policies, components)))
-
-    def test_theme_defaults_cover_current_models_and_boolean_types(self):
-        source = (ROOT / "src/desktop/cosmic/libcosmic/cosmic-theme/src/model/theme.rs").read_text()
-        for model, suffix in [("Theme", ""), ("ThemeBuilder", ".Builder")]:
-            body = source.split(f"pub struct {model} {{", 1)[1].split("\n}", 1)[0]
-            fields = re.findall(r"pub(?:\(crate\))? (\w+): ([^,\n]+)", body)
-            self.assertGreater(len(fields), 20)
-            for theme in ["Dark", "Light"]:
-                name = f"com.system76.CosmicTheme.{theme}{suffix}"
-                base = ROOT / "src/desktop/cosmic/cosmic-settings/resources/default_schema" / name
-                overlay = ROOT / "resources/COSMIC/defaults" / name / "v2"
-                for key, ty in fields:
-                    path = overlay / key if (overlay / key).exists() else base / "v2" / key
-                    if key == "list_button" and not path.exists():
-                        # Explicit v1 -> v2 staging adaptation.
-                        path = base / "v1" / key
-                    self.assertTrue(path.is_file(), f"{model}: missing {path}")
-                    if ty == "bool":
-                        self.assertIn(path.read_text().strip(), ("true", "false"), str(path))
-
-    def test_all_panel_layouts_cover_current_schema(self):
-        source = (ROOT / "src/desktop/cosmic/cosmic-panel/cosmic-panel-config/src/panel_config.rs").read_text()
-        body = source.split("pub struct CosmicPanelConfig {", 1)[1].split("\n}", 1)[0]
-        fields = re.findall(r"pub (\w+): ([^,\n]+)", body)
-        self.assertGreater(len(fields), 20)
-        for directory in (ROOT / "resources/COSMIC").rglob("v1"):
-            if directory.parent.name not in ("com.system76.CosmicPanel.Panel", "com.system76.CosmicPanel.Dock"):
-                continue
-            for key, ty in fields:
-                path = directory / key
-                self.assertTrue(path.is_file(), f"missing {path}")
-                if ty == "bool":
-                    self.assertIn(path.read_text().strip(), ("true", "false"), str(path))
-
-    def test_initial_setup_patch_is_declared_and_does_not_change_dbus_policy(self):
-        catalog = tomllib.loads((ROOT / "upstream/sources.toml").read_text())
-        component = next(c for c in catalog["component"] if c["name"] == "cosmic-initial-setup")
-        manifest = ROOT / component["patch_manifest"]
-        self.assertEqual(hashlib.sha256(manifest.read_bytes()).hexdigest(), component["patch_manifest_sha256"])
-        data = tomllib.loads(manifest.read_text())
-        for patch in data["patch"]:
-            content = (ROOT / patch["path"]).read_bytes()
-            self.assertEqual(hashlib.sha256(content).hexdigest(), patch["sha256"])
-            self.assertIn(b"-        _ = settings.load_connections(&[]).await;", content)
-        self.assertEqual(data["application"], "output-mirror-only")
 
     def test_distro_resources_are_not_in_upstream_trees(self):
         for component in ("apt", "flatpak"):

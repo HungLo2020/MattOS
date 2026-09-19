@@ -1,0 +1,67 @@
+# SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
+# SPDX-FileCopyrightText: 2025 Arjen Hiemstra <ahiemstra@heimr.nl>
+
+[Face-98672843668518][Appearance]
+chartFace=org.kde.ksysguard.linechart
+title=Test
+
+[Face-98672843668518][Sensors]
+highPrioritySensorIds=["cpu/all/usage"]
+
+[page]
+Title=Old Base Page
+Title[ar]=صفحة أساس قديمة
+Title[bg]=Стара основна страница
+Title[ca]=Pàgina base antiga
+Title[ca@valencia]=Pàgina base antiga
+Title[cs]=Stará základní stránka
+Title[de]=Alte Basisseite
+Title[es]=Página base anterior
+Title[eu]=Oinarri-orri zaharra
+Title[fi]=Vanha pohjasivu
+Title[fr]=Ancienne page de base
+Title[gl]=Páxina base anterior
+Title[he]=עמוד בסיס ישן
+Title[hu]=Régi alapoldal
+Title[ia]=Vetere Pagina Base
+Title[is]=Gömul grunnsíða
+Title[it]=Vecchia pagina di base
+Title[ka]=ძველი საბაზისო გვერდი
+Title[ko]=이전 기본 페이지
+Title[lt]=Senas pagrindinis puslapis
+Title[lv]=Vecā pārbaudes lapa
+Title[nl]=Oude basispagina
+Title[pa]=ਪੁਰਾਣਾ ਮੂਲ ਸਫ਼ਾ
+Title[pl]=Stara strona podstawowa
+Title[pt_BR]=Página base antiga
+Title[ro]=Pagină de bază veche
+Title[ru]=Старая базовая страница
+Title[sk]=Old Base Page
+Title[sl]=Stara osnovna stran
+Title[sv]=Gammal bassida
+Title[tr]=Eski Taban Sayfa
+Title[uk]=Стара основна сторінка
+Title[zh_CN]=旧基本页面
+Title[zh_TW]=舊的基本頁面
+actionsFace=
+icon=ksysguardd
+loadType=onstart
+margin=2
+
+[page][row-0]
+Title=
+heightMode=balanced
+isTitle=false
+name=row-0
+
+[page][row-0][column-0]
+name=column-0
+noMargins=
+showBackground=true
+
+[page][row-0][column-0][section-0]
+face=Face-98672843668518
+isSeparator=false
+name=section-0
+
+

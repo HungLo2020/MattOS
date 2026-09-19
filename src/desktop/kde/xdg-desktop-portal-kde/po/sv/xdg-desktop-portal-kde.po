@@ -1,0 +1,1088 @@
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+#
+# SPDX-FileCopyrightText: 2017, 2018, 2019, 2020, 2021, 2022, 2024, 2025, 2026 Stefan Asserhäll <stefan.asserhall@gmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-05-09 02:42+0000\n"
+"PO-Revision-Date: 2026-01-18 15:51+0100\n"
+"Last-Translator: Stefan Asserhäll <stefan.asserhall@gmail.com>\n"
+"Language-Team: Swedish <kde-i18n-doc@kde.org>\n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 25.12.1\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Stefan Asserhäll"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "stefan.asserhall@gmail.com"
+
+#: src/accessdialog.cpp:27
+#, kde-format
+msgid "Request device access"
+msgstr "Begär enhetsåtkomst"
+
+#: src/appchooser.cpp:98
+#, kde-format
+msgctxt "count of files to open"
+msgid "%1 files"
+msgstr "%1 filer"
+
+#: src/appchooserdialog.cpp:43
+#, kde-format
+msgctxt "@title:window"
+msgid "Choose Application"
+msgstr "Välj program"
+
+#: src/appchooserdialog.cpp:46
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Choose an application to open <filename>%1</filename>"
+msgstr "Välj ett program för att öppna <filename>%1</filename>"
+
+#: src/AppChooserDialog.qml:35
+#, kde-format
+msgctxt ""
+"Find some more apps that can open this content using the Discover app store"
+msgid "Find More in Discover…"
+msgstr "Hitta fler i Discover…"
+
+#: src/AppChooserDialog.qml:40
+#, kde-format
+msgctxt "@action:button"
+msgid "Open"
+msgstr "Öppna"
+
+#: src/AppChooserDialog.qml:48
+#, kde-format
+msgctxt "@option:check %1 is description of a file type, like 'PNG image'"
+msgid "Set as default app to open %1 files"
+msgstr "Ställ in som standardprogram för att öppna %1 filer"
+
+#: src/AppChooserDialog.qml:122
+#, kde-format
+msgid "Show All Installed Applications"
+msgstr "Visa alla installerade program"
+
+#: src/AppChooserDialog.qml:135
+#, kde-format
+msgctxt "@action:button"
+msgid "Choose Other…"
+msgstr "Använd annat…"
+
+#: src/AppChooserDialog.qml:194
+#, kde-kuit-format
+msgctxt "@info"
+msgid "%1<nl/><emphasis>Default app for this file type</emphasis>"
+msgstr "%1<nl/><emphasis>Standardprogram för den här filtypen</emphasis>"
+
+#: src/AppChooserDialog.qml:196
+#, kde-kuit-format
+msgctxt "@info"
+msgid "%1<nl/><emphasis>Last used app for this file type</emphasis>"
+msgstr ""
+"%1<nl/><emphasis>Senast använda program för den här filtypen</emphasis>"
+
+#: src/AppChooserDialog.qml:218
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Open with <command>%1</command>?"
+msgstr "Öppna med <command>%1</command>?"
+
+#: src/AppChooserDialog.qml:220
+#, kde-format
+msgid "No matches"
+msgstr "Inga träffar"
+
+#: src/AppChooserDialog.qml:222
+#, kde-kuit-format
+msgctxt "@info"
+msgid "No installed applications can open <filename>%1</filename>"
+msgstr "Inget installerat program kan öppna <filename>%1</filename>"
+
+#: src/AppChooserDialog.qml:241
+#, kde-format
+msgctxt "@option:check"
+msgid "Run in terminal"
+msgstr "Kör i terminal"
+
+#: src/AppChooserDialog.qml:249
+#, kde-format
+msgctxt "@option:check"
+msgid "Do not close when command exits"
+msgstr "Stäng inte när kommandot avslutas"
+
+#: src/background.cpp:132
+#, kde-format
+msgid "Background Activity"
+msgstr "Bakgrundsaktivitet"
+
+#: src/background.cpp:135
+#, kde-format
+msgctxt "@info %1 is the name of an application"
+msgid ""
+"%1 wants to remain running when it has no visible windows. If you forbid "
+"this, the application will quit when its last window is closed."
+msgstr ""
+"%1 vill fortsätta att köra när det inte har några synliga fönster. Om du "
+"förbjuder det, avslutas programmet när dess sista fönster stängs."
+
+#: src/background.cpp:141 src/background.cpp:158
+#, kde-format
+msgctxt "@action:button Allow the app to keep running with no open windows"
+msgid "Allow"
+msgstr "Tillåt"
+
+#: src/background.cpp:148
+#, kde-format
+msgctxt ""
+"@action:button Don't allow the app to keep running without any open windows"
+msgid "Forbid"
+msgstr "Förbjud"
+
+#: src/background.cpp:152
+#, kde-format
+msgctxt ""
+"@title title of a dialog to confirm whether to allow an app to remain "
+"running with no visible windows"
+msgid "Background App Usage"
+msgstr "Användning av bakgrundsprogram"
+
+#: src/background.cpp:154
+#, kde-format
+msgctxt "%1 is the name of an application"
+msgid ""
+"Note that this will force %1 to quit when its last window is closed. This "
+"could cause data loss if the application has any unsaved changes when it "
+"happens."
+msgstr ""
+"Observera att det tvingar %1 att avslutas när dess sista fönster stängs. Det "
+"kan orsaka dataförlust om programmet har några osparade ändringar när det "
+"sker."
+
+#: src/background.cpp:159
+#, kde-format
+msgctxt ""
+"@action:button Don't allow the app to keep running without any open windows"
+msgid "Forbid Anyway"
+msgstr "Förbjud ändå"
+
+#: src/dynamiclauncher.cpp:78
+#, kde-format
+msgctxt "@title"
+msgid "Add Web Application…"
+msgstr "Välj webbprogram…"
+
+#: src/dynamiclauncher.cpp:83
+#, kde-format
+msgctxt "@title"
+msgid "Add Application…"
+msgstr "Välj program…"
+
+#: src/DynamicLauncherDialog.qml:70
+#, kde-format
+msgctxt "@label name of a launcher/application"
+msgid "Name"
+msgstr "Namn"
+
+#: src/DynamicLauncherDialog.qml:94
+#, kde-format
+msgctxt "@action edit launcher name/icon"
+msgid "Edit Info…"
+msgstr "Redigera information…"
+
+#: src/DynamicLauncherDialog.qml:100
+#, kde-format
+msgctxt "@action accept dialog and create launcher"
+msgid "Accept"
+msgstr "Acceptera"
+
+#: src/DynamicLauncherDialog.qml:105
+#, kde-format
+msgctxt "@action"
+msgid "Cancel"
+msgstr "Avbryt"
+
+#: src/filechooser.cpp:477
+#, kde-format
+msgid "Open"
+msgstr "Öppna"
+
+#: src/globalshortcuts.cpp:107
+#, kde-kuit-format
+msgctxt "@info:tooltip"
+msgid ""
+"The shortcut is already assigned to the action <interface>%1</interface> of "
+"<application>%2</application>. Re-enter it here to override that action."
+msgstr ""
+"Genvägen är redan tilldelad till åtgärden <interface>%1</interface> i "
+"<application>%2</application>. Mata in den igen här för att överskrida "
+"åtgärden"
+
+#: src/globalshortcuts.cpp:114
+#, kde-kuit-format
+msgctxt "@info:tooltip"
+msgid ""
+"The shortcut is already assigned to the <interface>%1</interface> standard "
+"action."
+msgstr ""
+"Genvägen är redan tilldelad till standardgenvägen <interface>%1</interface>."
+
+#: src/globalshortcuts.cpp:127
+#, kde-kuit-format
+msgctxt "@info:tooltip %1 is a list of actions"
+msgid ""
+"The shortcut is assigned to multiple actions (<interface>%1</interface>)"
+msgstr "Genvägen är tilldelad till flera åtgärder (<interface>%1</interface>)"
+
+#: src/globalshortcuts.cpp:507
+#, kde-format
+msgid ", "
+msgstr ", "
+
+#: src/GlobalShortcutsDialog.qml:24
+#, kde-format
+msgctxt "@title:window"
+msgid "Global Shortcuts Requested"
+msgstr "Globala genvägar begärda"
+
+#: src/GlobalShortcutsDialog.qml:28
+#, kde-format
+msgctxt "The application is unknown"
+msgid "An application wants to register the following shortcut:"
+msgid_plural "An application wants to register the following %1 shortcuts:"
+msgstr[0] "Ett program vill registrera följande genväg:"
+msgstr[1] "Ett program vill registrera följande %1 genvägar:"
+
+#: src/GlobalShortcutsDialog.qml:30
+#, kde-format
+msgctxt "%2 is the name of the application"
+msgid "%2 wants to register the following shortcut:"
+msgid_plural "%2 wants to register the following %1 shortcuts:"
+msgstr[0] "%2 vill registrera följande genväg:"
+msgstr[1] "%2 vill registrera följande %1 genvägar:"
+
+#: src/GlobalShortcutsDialog.qml:87
+#, kde-format
+msgctxt "@action:button"
+msgid "See Other Shortcuts…"
+msgstr "Se andra genvägar…"
+
+#: src/GlobalShortcutsDialog.qml:88
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "View other shortcuts registered by this application"
+msgstr "Visa andra genvägar registrerade av programmet"
+
+#: src/inputcapture.cpp:115
+#, kde-format
+msgctxt "@title:notification"
+msgid "Input Capture started"
+msgstr "Inmatningshämtning startad"
+
+#: src/inputcapture.cpp:118
+#, kde-kuit-format
+msgctxt "@info %1 is the name of the application"
+msgid "Input is being managed by %1. Press <shortcut>%2</shortcut> to disable."
+msgstr ""
+"Inmatning hanteras av %1. Tryck på <shortcut>%2</shortcut> för att "
+"inaktivera."
+
+#: src/inputcapture.cpp:123
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Input is being managed by an application. Press <shortcut>%1</shortcut> to "
+"disable."
+msgstr ""
+"Inmatning hanteras av ett program. Tryck på <shortcut>%1</shortcut> för att "
+"inaktivera."
+
+#: src/InputCaptureDialog.qml:15
+#, kde-format
+msgctxt "@title:window"
+msgid "Input Capture Requested"
+msgstr "Inmatningshämtning begärd"
+
+#: src/InputCaptureDialog.qml:16
+#, kde-format
+msgctxt "The application is unknown"
+msgid "An application requested to capture input events"
+msgstr "Ett program begärde att få hämta inmatningshändelser"
+
+#: src/InputCaptureDialog.qml:16
+#, kde-format
+msgctxt "%1 is the name of the application"
+msgid "%1 requested to capture input events"
+msgstr "%1 begärde att få hämta inmatningshändelser"
+
+#: src/InputCaptureDialog.qml:21
+#, kde-format
+msgctxt "@action:button"
+msgid "Allow"
+msgstr "Tillåt"
+
+#: src/kirigami-filepicker/api/mobilefiledialog.cpp:113
+#, kde-format
+msgid "Select Folder"
+msgstr "Välj katalog"
+
+#: src/kirigami-filepicker/api/mobilefiledialog.cpp:116
+#, kde-format
+msgid "Open File"
+msgstr "Öppna fil"
+
+#: src/kirigami-filepicker/api/mobilefiledialog.cpp:118
+#, kde-format
+msgid "Save File"
+msgstr "Spara fil"
+
+#: src/kirigami-filepicker/declarative/CreateDirectorySheet.qml:17
+#, kde-format
+msgid "Create New Folder"
+msgstr "Skapa ny katalog"
+
+#: src/kirigami-filepicker/declarative/CreateDirectorySheet.qml:32
+#, kde-format
+msgid "Folder name"
+msgstr "Katalognamn"
+
+#: src/kirigami-filepicker/declarative/FilePicker.qml:101
+#, kde-format
+msgid "File name"
+msgstr "Filnamn"
+
+#: src/kirigami-filepicker/declarative/FilePicker.qml:117
+#, kde-format
+msgid "Create Folder"
+msgstr "Skapa katalog"
+
+#: src/kirigami-filepicker/declarative/FilePicker.qml:127
+#, kde-format
+msgid "Filter Filetype"
+msgstr "Filtrera filtyp"
+
+#: src/kirigami-filepicker/declarative/FilePicker.qml:131
+#, kde-format
+msgid "Show Hidden Files"
+msgstr "Visa dolda filer"
+
+#: src/kirigami-filepicker/declarative/FilePicker.qml:139
+#, kde-format
+msgid "Select"
+msgstr "Markera"
+
+#: src/outputsmodel.cpp:21
+#, kde-format
+msgid "Share virtual screen"
+msgstr "Dela virtuell skärm"
+
+#: src/outputsmodel.cpp:25
+#, kde-format
+msgid "Share region"
+msgstr "Dela område"
+
+#: src/outputsmodel.cpp:36
+#, kde-format
+msgid "Share full Workspace"
+msgstr "Dela hela arbetsytan"
+
+#: src/outputsmodel.cpp:76
+#, kde-format
+msgid "Laptop screen"
+msgstr "Bildskärm på bärbar dator"
+
+#: src/outputsmodel.cpp:250
+#, kde-format
+msgctxt "@info"
+msgid "Share the entire workspace across all screens"
+msgstr "Dela hela arbetsytan över alla skärmar"
+
+#: src/outputsmodel.cpp:252
+#, kde-format
+msgctxt "@info"
+msgid "Creates a screen inside a window, then share"
+msgstr "Skapar en skärm inne i ett fönster, och delar den sedan"
+
+#: src/outputsmodel.cpp:254
+#, kde-format
+msgctxt "@info"
+msgid "Crops a specific area of your screens"
+msgstr "Beskär ett specifikt område på dina skärmar"
+
+#: src/region-select/RegionSelectOverlay.qml:147
+#, kde-format
+msgid "Start streaming:"
+msgstr "Börja strömma:"
+
+#: src/region-select/RegionSelectOverlay.qml:151
+#, kde-format
+msgid "Clear selection:"
+msgstr "Rensa markering:"
+
+#: src/region-select/RegionSelectOverlay.qml:155
+#: src/region-select/RegionSelectOverlay.qml:199
+#, kde-format
+msgid "Cancel:"
+msgstr "Avbryt:"
+
+#: src/region-select/RegionSelectOverlay.qml:161
+#, kde-format
+msgctxt "Mouse action"
+msgid "Release left-click"
+msgstr "Släpp vänsterklick"
+
+#: src/region-select/RegionSelectOverlay.qml:165
+#, kde-format
+msgctxt "Mouse action"
+msgid "Right-click"
+msgstr "Högerklick"
+
+#: src/region-select/RegionSelectOverlay.qml:169
+#: src/region-select/RegionSelectOverlay.qml:209
+#, kde-format
+msgctxt "Keyboard action"
+msgid "Escape"
+msgstr "Esc"
+
+#: src/region-select/RegionSelectOverlay.qml:195
+#, kde-format
+msgid "Create selection:"
+msgstr "Skapa markering:"
+
+#: src/region-select/RegionSelectOverlay.qml:205
+#, kde-format
+msgctxt "Mouse action"
+msgid "Left-click and drag"
+msgstr "Vänsterklicka och dra"
+
+#: src/remotedesktop.cpp:182 src/screencast.cpp:224
+#, kde-format
+msgid "Virtual Output"
+msgstr "Virtuell utmatning"
+
+#: src/remotedesktop.cpp:183 src/screencast.cpp:225
+#, kde-format
+msgctxt "%1 is the application name"
+msgid "Virtual Output (shared with %1)"
+msgstr "Virtuell utmatning (delad med %1)"
+
+#: src/remotedesktop.cpp:291
+#, kde-format
+msgctxt "title of notification about input systems taken over"
+msgid "Remote control session started"
+msgstr "Fjärrkontrollsession startad"
+
+#: src/remotedesktop.cpp:580
+#, kde-format
+msgctxt ""
+"SNI title that indicates there's a process remotely controlling the system"
+msgid "Remote Control"
+msgstr "Fjärrkontroll"
+
+#: src/remotedesktopdialog.cpp:26
+#, kde-format
+msgctxt "Title of the dialog that requests remote input privileges"
+msgid "Remote Control"
+msgstr "Fjärrkontroll"
+
+#: src/remotedesktopdialog.cpp:41
+#, kde-format
+msgctxt "@info"
+msgid "An application is asking for special privileges:\n"
+msgstr "Ett program ber om särskilda privilegier:\n"
+
+#: src/remotedesktopdialog.cpp:42
+#, kde-format
+msgctxt "@info"
+msgid "%1 is asking for special privileges:"
+msgstr "%1 ber om särskilda privilegier:"
+
+#: src/remotedesktopdialog.cpp:50
+#, kde-format
+msgctxt ""
+"@info As in, 'an application requested access to see what’s on the screen'. "
+"'-' is Markdown, do not translate"
+msgid ""
+"\n"
+" - See what’s on the screen"
+msgstr ""
+"\n"
+" - See what’s on the screen"
+
+#: src/remotedesktopdialog.cpp:54
+#, kde-format
+msgctxt ""
+"@info As in, 'an application requested access to control input devices'. '-' "
+"is Markdown, do not translate"
+msgid ""
+"\n"
+" - Control input devices"
+msgstr ""
+"\n"
+" - Control input devices"
+
+#: src/remotedesktopdialog.cpp:62
+#, kde-format
+msgctxt "@info"
+msgid "An application is exercising special permissions:\n"
+msgstr "Ett program utnyttjar särskilda rättigheter:\n"
+
+#: src/remotedesktopdialog.cpp:63
+#, kde-format
+msgctxt "@info"
+msgid "%1 is exercising special privileges:"
+msgstr "%1 utnyttjar särskilda rättigheter:"
+
+#: src/remotedesktopdialog.cpp:67
+#, kde-format
+msgctxt ""
+"@info As in, 'an application is exercising privileges to access to see "
+"what’s on the screen'. '-' is Markdown, do not translate"
+msgid ""
+"\n"
+" - See what’s on the screen"
+msgstr ""
+"\n"
+" - See what’s on the screen"
+
+#: src/remotedesktopdialog.cpp:71
+#, kde-format
+msgctxt ""
+"@info As in, 'an application is exercising privileges to control input "
+"devices'. '-' is Markdown, do not translate"
+msgid ""
+"\n"
+" - Control input devices"
+msgstr ""
+"\n"
+" - Control input devices"
+
+#: src/RemoteDesktopDialog.qml:31 src/ScreenChooserDialog.qml:189
+#, kde-format
+msgid "Allow restoring on future sessions"
+msgstr "Tillåt att återställa vid framtida sessioner"
+
+#: src/RemoteDesktopDialog.qml:36
+#, kde-format
+msgctxt "@action:button Approve the application gaining extra privileges"
+msgid "Approve"
+msgstr "Godkänn"
+
+#: src/RemoteDesktopDialog.qml:37
+#, kde-format
+msgctxt "@action:button Deny the application gaining extra privileges"
+msgid "Deny"
+msgstr "Neka"
+
+#: src/screencast.cpp:284
+#, kde-format
+msgctxt "Do not disturb mode is enabled because..."
+msgid "Screen sharing in progress"
+msgstr "Skärmdelning pågår"
+
+#: src/screencast.cpp:392
+#, kde-format
+msgctxt "@action:inmenu stops screen/window sharing"
+msgid "End"
+msgstr "Slut"
+
+#: src/screencast.cpp:445
+#, kde-format
+msgctxt "%1 number of screens, %2 the app that receives them"
+msgid "Sharing contents to %2"
+msgid_plural "%1 video streams to %2"
+msgstr[0] "Delar innehåll med %2"
+msgstr[1] "%1 videoströmmar till %2"
+
+#: src/screencast.cpp:449
+#, kde-format
+msgctxt ""
+"SNI title that indicates there's a process seeing our windows or screens"
+msgid "Screen casting"
+msgstr "Skärmsändning"
+
+#: src/screenchooserdialog.cpp:158
+#, kde-format
+msgctxt "@title:window %1 is an application name (e.g. Falkon)"
+msgid "Share screen with %1"
+msgstr "Dela skärm med %1"
+
+#: src/screenchooserdialog.cpp:205
+#, kde-format
+msgid "Share this screen with the requesting application?"
+msgstr "Dela den här skärmen med det begärande programmet?"
+
+#: src/screenchooserdialog.cpp:207
+#, kde-format
+msgid "Share this screen with %1?"
+msgstr "Dela den här skärmen med %1?"
+
+#: src/screenchooserdialog.cpp:212
+#, kde-format
+msgid "Choose screens to share with the requesting application:"
+msgstr "Välj skärmar att dela med det begärande programmet:"
+
+#: src/screenchooserdialog.cpp:214
+#, kde-format
+msgid "Choose screens to share with %1:"
+msgstr "Välj skärmar att dela med %1:"
+
+#: src/screenchooserdialog.cpp:218
+#, kde-format
+msgid "Choose which screen to share with the requesting application:"
+msgstr "Välj vilken skärm som ska delas med det begärande programmet:"
+
+#: src/screenchooserdialog.cpp:220
+#, kde-format
+msgid "Choose which screen to share with %1:"
+msgstr "Välj vilken skärm som ska delas med %1:"
+
+#: src/screenchooserdialog.cpp:229
+#, kde-format
+msgid "Share this window with the requesting application?"
+msgstr "Dela det här fönstret med det begärande programmet?"
+
+#: src/screenchooserdialog.cpp:231
+#, kde-format
+msgid "Share this window with %1?"
+msgstr "Dela det här fönstret med %1?"
+
+#: src/screenchooserdialog.cpp:236
+#, kde-format
+msgid "Choose windows to share with the requesting application:"
+msgstr "Välj fönster att dela med det begärande programmet:"
+
+#: src/screenchooserdialog.cpp:238
+#, kde-format
+msgid "Choose windows to share with %1:"
+msgstr "Välj fönster att dela med %1:"
+
+#: src/screenchooserdialog.cpp:242
+#, kde-format
+msgid "Choose which window to share with the requesting application:"
+msgstr "Välj vilket fönster som ska delas med det begärande programmet:"
+
+#: src/screenchooserdialog.cpp:244
+#, kde-format
+msgid "Choose which window to share with %1:"
+msgstr "Välj vilket fönster som ska delas med %1:"
+
+#: src/screenchooserdialog.cpp:251
+#, kde-format
+msgid "Create a new virtual display to share with the requesting application:"
+msgstr "Skapa en ny virtuell skärm att dela med det begärande programmet:"
+
+#: src/screenchooserdialog.cpp:253
+#, kde-format
+msgid "Create a new virtual display to share with %1:"
+msgstr "Välj en ny virtuell skärm att dela med %1:"
+
+#: src/screenchooserdialog.cpp:259
+#, kde-format
+msgid "Choose what to share with the requesting application:"
+msgstr "Välj vad som ska delas med det begärande programmet:"
+
+#: src/screenchooserdialog.cpp:261
+#, kde-format
+msgid "Choose what to share with %1:"
+msgstr "Välj vad som ska delas med %1:"
+
+#: src/ScreenChooserDialog.qml:166
+#, kde-format
+msgctxt ""
+"@label separator line label between screen selection and window selection"
+msgid "Windows"
+msgstr "Fönster"
+
+#: src/ScreenChooserDialog.qml:194
+#, kde-format
+msgid "Share"
+msgstr "Dela"
+
+#: src/screenshotdialog.cpp:117
+#, kde-format
+msgid "Full Screen"
+msgstr "Fullskärm"
+
+#: src/screenshotdialog.cpp:118
+#, kde-format
+msgid "Current Screen"
+msgstr "Aktuell skärm"
+
+#: src/screenshotdialog.cpp:119
+#, kde-format
+msgid "Active Window"
+msgstr "Aktivt fönster"
+
+#: src/ScreenshotDialog.qml:22
+#, kde-format
+msgid "Request Screenshot"
+msgstr "Begär skärmbild"
+
+#: src/ScreenshotDialog.qml:34
+#, kde-format
+msgid "Capture Mode"
+msgstr "Tagningsmetod"
+
+#: src/ScreenshotDialog.qml:38
+#, kde-format
+msgid "Area:"
+msgstr "Område:"
+
+#: src/ScreenshotDialog.qml:43
+#, kde-format
+msgid "Delay:"
+msgstr "Fördröjning:"
+
+#: src/ScreenshotDialog.qml:47
+#, kde-format
+msgid "%1 second"
+msgid_plural "%1 seconds"
+msgstr[0] "%1 sekund"
+msgstr[1] "%1 sekunder"
+
+#: src/ScreenshotDialog.qml:52
+#, kde-format
+msgid "Content Options"
+msgstr "Innehållsalternativ"
+
+#: src/ScreenshotDialog.qml:56
+#, kde-format
+msgid "Include cursor pointer"
+msgstr "Inkludera muspekare"
+
+#: src/ScreenshotDialog.qml:61
+#, kde-format
+msgid "Include window borders"
+msgstr "Inkludera fönsterkanter"
+
+#: src/ScreenshotDialog.qml:75
+#, kde-format
+msgid "Save"
+msgstr "Spara"
+
+#: src/ScreenshotDialog.qml:85
+#, kde-format
+msgid "Take"
+msgstr "Ta"
+
+#: src/UsbDialog.qml:20
+#, kde-format
+msgctxt "@title:window"
+msgid "Access to USB Devices Requested"
+msgstr "Åtkomst till USB-enhet begärd"
+
+#: src/UsbDialog.qml:23
+#, kde-format
+msgctxt "The application is unknown"
+msgid "An application wants to access the following device:"
+msgid_plural "An application wants to access the following devices:"
+msgstr[0] "Ett program vill komma åt följande enhet:"
+msgstr[1] "Ett program vill komma åt följande enheter:"
+
+#: src/UsbDialog.qml:25
+#, kde-format
+msgctxt "%2 is the name of the application"
+msgid "%2 wants to access the following device:"
+msgid_plural "%2 wants to access the following devices:"
+msgstr[0] "%2 vill komma åt följande enhet:"
+msgstr[1] "%2 vill komma åt följande enheter:"
+
+#: src/userinfodialog.cpp:52
+#, kde-format
+msgctxt "@title"
+msgid "Share user info with %1"
+msgstr "Dela användarinformation med %1"
+
+#: src/userinfodialog.cpp:54
+#, kde-format
+msgctxt "@info:usagetip"
+msgid ""
+"Allows your username, full name, and profile picture to be used by the "
+"application."
+msgstr ""
+"Tillåter att ditt användarnamn, fullständiga namn och profilbild används av "
+"programmet."
+
+#: src/UserInfoDialog.qml:18
+#, kde-format
+msgctxt "@action:button"
+msgid "Share user info"
+msgstr "Dela användarinformation"
+
+#: src/UserInfoDialog.qml:74
+#, kde-format
+msgctxt "@action:button"
+msgid "Share"
+msgstr "Dela"
+
+#: src/WallpaperDialog.qml:20
+#, kde-format
+msgctxt "@title:window"
+msgid "Set Wallpaper"
+msgstr "Ange skrivbordsunderlägg"
+
+#: src/WallpaperDialog.qml:25
+#, kde-format
+msgctxt "the app is unknown"
+msgid "Allow an application to set the desktop background?"
+msgstr "Tillåt ett program att ställa in skrivbordets bakgrund?"
+
+#: src/WallpaperDialog.qml:27
+#, kde-format
+msgctxt "the app is unknown"
+msgid "Allow an application to set the lock screen background?"
+msgstr "Tillåt ett program att ställa in låsskärmens bakgrund?"
+
+#: src/WallpaperDialog.qml:29
+#, kde-format
+msgctxt "the app is unknown"
+msgid "Allow an application to set desktop and lock screen backgrounds?"
+msgstr ""
+"Tillåt ett program att ställa in skrivbordets och på låsskärmens bakgrund?"
+
+#: src/WallpaperDialog.qml:34
+#, kde-format
+msgctxt "%1 is the application name"
+msgid "Allow %1 to set the desktop background?"
+msgstr "Tillåt %1 att ställa in skrivbordets bakgrund?"
+
+#: src/WallpaperDialog.qml:36
+#, kde-format
+msgctxt "%1 is the application name"
+msgid "Allow %1 to set the lock screen background?"
+msgstr "Tillåt %1 att ställa in låsskärmens bakgrund?"
+
+#: src/WallpaperDialog.qml:38
+#, kde-format
+msgctxt "%1 is the application name"
+msgid "Allow %1 to set desktop and lock screen backgrounds?"
+msgstr "Tillåt %1 att ställa in skrivbordets och låsskärmens bakgrunder?"
+
+#: src/waylandintegration.cpp:268 src/waylandintegration.cpp:326
+#, kde-format
+msgid "Failed to start screencasting"
+msgstr "Misslyckades starta skärmutsändning"
+
+#: src/waylandintegration.cpp:477
+#, kde-format
+msgid "Remote desktop"
+msgstr "Fjärrskrivbord"
+
+#~ msgid "Screen Sharing"
+#~ msgstr "Skärmdelning"
+
+#~ msgid "Screens"
+#~ msgstr "Skärmar"
+
+#~ msgctxt "@title:group"
+#~ msgid "Terminal Options"
+#~ msgstr "Terminalalternativ"
+
+#~ msgctxt "@title:group"
+#~ msgid "Discover More Applications"
+#~ msgstr "Upptäck fler program"
+
+#~ msgctxt "@info"
+#~ msgid "Don't see the right app? Find more in <link>Discover</link>."
+#~ msgstr "Syns inte rätt program? Hitta fler i <link>Discover</link>."
+
+#~ msgctxt ""
+#~ "SNI title that indicates there's a process remotely controlling the system"
+#~ msgid "Remote Desktop"
+#~ msgstr "Fjärrskrivbord"
+
+#~ msgctxt "Unordered list with privileges granted to an external process"
+#~ msgid "An application requested access to remotely control:\n"
+#~ msgstr "Ett program begärde åtkomst för att fjärrkontrollera:\n"
+
+#~ msgctxt ""
+#~ "Unordered list with privileges granted to an external process, included "
+#~ "the app's name"
+#~ msgid "%1 requested access to remotely control:\n"
+#~ msgstr "%1 begärde åtkomst för att fjärrkontrollera:\n"
+
+#~ msgctxt "Will allow the app to see what's on the outputs, in markdown"
+#~ msgid " - Screens\n"
+#~ msgstr " - Skärmar\n"
+
+#~ msgid "New Virtual Output"
+#~ msgstr "Ny virtuell utmatning"
+
+#~ msgid "Rectangular Region"
+#~ msgstr "Rektangulärt område"
+
+#~ msgid "%1 wants access to your user info."
+#~ msgstr "%1 vill komma åt din användarinformation."
+
+#~ msgid "This app will be given access to your avatar and name."
+#~ msgstr "Programmet ges åtkomst till din avatar och ditt namn."
+
+#~ msgctxt "@option:check %1 is description of a file type, like 'PNG image'"
+#~ msgid "Always open %1 files with the chosen app"
+#~ msgstr "Öppna alltid %1-filer med det valda programmet"
+
+#~ msgid "Share your personal information with the requesting application?"
+#~ msgstr "Dela din personliga information med programmet som begär det?"
+
+#~ msgid "Create new folder in %1"
+#~ msgstr "Skapa ny katalog i %1"
+
+#~ msgid "OK"
+#~ msgstr "Ok"
+
+#~ msgid "Cancel"
+#~ msgstr "Avbryt"
+
+#~ msgctxt "Virtual Output (shared with %1)"
+#~ msgid "%1 is the application name"
+#~ msgstr "%1 är programnamnet"
+
+#~ msgid ""
+#~ "Laptop screen\n"
+#~ "Model: %1"
+#~ msgstr ""
+#~ "Bildskärm på bärbar dator\n"
+#~ "Modell: %1"
+
+#~ msgid ""
+#~ "Manufacturer: %1\n"
+#~ "Model: %2"
+#~ msgstr ""
+#~ "Tillverkare: %1\n"
+#~ "Modell: %2"
+
+#~ msgid "%1 is running in the background."
+#~ msgstr "%1 kör i bakgrunden."
+
+#~ msgid "Find out more"
+#~ msgstr "Ta reda på mer"
+
+#~ msgid "%1 is running in the background"
+#~ msgstr "%1 kör i bakgrunden"
+
+#~ msgid ""
+#~ "This might be for a legitimate reason, but the application has not "
+#~ "provided one.\n"
+#~ "\n"
+#~ "Note that forcing an application to quit might cause data loss."
+#~ msgstr ""
+#~ "Det kan vara av ett legitimt skäl, men programmet har inte angivit "
+#~ "något.\n"
+#~ "\n"
+#~ "Observera att om man tvingar ett program att avslutas kan det orsaka "
+#~ "dataförlust."
+
+#~ msgid "Force quit"
+#~ msgstr "Tvinga avslutning"
+
+#~ msgid "Portal"
+#~ msgstr "Portal"
+
+#, fuzzy
+#~| msgid "Full Screen"
+#~ msgctxt "Will allow the app to see what's on the outputs"
+#~ msgid ""
+#~ " <li>Screens\n"
+#~ "</li>"
+#~ msgstr "Fullskärm"
+
+#~ msgid "Select what to share with the requesting application"
+#~ msgstr "Välj vad som ska delas med det begärande programmet"
+
+#~ msgid "Select what to share with %1"
+#~ msgstr "Välj vad som ska delas med %1"
+
+#~ msgid "Recording window \"%1\"..."
+#~ msgstr "Spelar in fönster \"%1\"..."
+
+#~ msgid "Recording screen \"%1\"..."
+#~ msgstr "Spelar in skärm \"%1\"..."
+
+#~ msgid "Recording workspace..."
+#~ msgstr "Spelar in arbetsrymd..."
+
+#~ msgid "Recording virtual output '%1'..."
+#~ msgstr "Spelar in virtuell utmatning \"%1\"..."
+
+#~ msgctxt "@action:inmenu stops screen/window recording"
+#~ msgid "Stop Recording"
+#~ msgstr "Stoppa inspelning"
+
+#~ msgid "Dialog"
+#~ msgstr "Dialogruta"
+
+#~ msgid "Allow access to:"
+#~ msgstr "Tillåt åtkomst till:"
+
+#~ msgid "Pointer"
+#~ msgstr "Pekare"
+
+#~ msgid "Keyboard"
+#~ msgstr "Tangentbord"
+
+#~ msgid "Touch screen"
+#~ msgstr "Pekskärm"
+
+#~ msgid "Press to cancel"
+#~ msgstr "Tryck för att avbryta"
+
+#~ msgid "xdg-desktop-portals-kde"
+#~ msgstr "xdg-desktop-portals-kde"
+
+#~ msgid "Open with..."
+#~ msgstr "Öppna med..."
+
+#~ msgid "Icon"
+#~ msgstr "Ikon"
+
+#~ msgid "TextLabel"
+#~ msgstr "Textetikett"
+
+#~ msgid "Full Screen (All Monitors)"
+#~ msgstr "Fullskärm (alla bildskärmar)"
+
+#~ msgid "No Delay"
+#~ msgstr "Ingen fördröjning"
+
+#~ msgid "Take screenshot"
+#~ msgstr "Ta skärmbild"
+
+#~ msgid "Failed to create PipeWire context"
+#~ msgstr "Misslyckades skapa PipeWire-sammanhang"
+
+#~ msgid "Failed to connect PipeWire context"
+#~ msgstr "Misslyckades ansluta till PipeWire-sammanhang"
+
+#~ msgid "Failed to create PipeWire stream"
+#~ msgstr "Misslyckades skapa PipeWire-ström"
+
+#~ msgid "Failed to start main PipeWire loop"
+#~ msgstr "Misslyckades starta PipeWire-huvudsnurra"
+
+#~ msgctxt "Introduces an error message"
+#~ msgid "Error: %1"
+#~ msgstr "Fel: %1"
+
+#~ msgid ""
+#~ "Select application to open \"%1\". Other applications are available in <a "
+#~ "href=#discover><span style=\"text-decoration: underline\">Discover</"
+#~ "span></a>."
+#~ msgstr ""
+#~ "Välj program att öppna \"%1\" med. Andra program är tillgängliga via <a "
+#~ "href=#discover><span style=\"text-decoration: underline\">Discover</"
+#~ "span></a>."
+
+#~ msgid "Search"
+#~ msgstr "Sök"

@@ -1,0 +1,694 @@
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Diego Iastrubni <elcuco@kde.org>, 2014.
+# Elkana Bardugo <ttv200@gmail.com>, 2017. #zanata
+# SPDX-FileCopyrightText: 2024, 2025 Yaron Shahrabani <sh.yaron@gmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: katebuild-plugin\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-06-27 00:47+0000\n"
+"PO-Revision-Date: 2025-09-17 10:44+0300\n"
+"Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
+"Language-Team: צוות התרגום של KDE ישראל\n"
+"Language: he\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
+"n % 10 == 0) ? 2 : 3));\n"
+"X-Generator: Lokalize 25.08.0\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "צוות התרגום של KDE ישראל"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "kde-l10n-he@kde.org"
+
+#. i18n: ectx: attribute (title), widget (QWidget, buildOutput)
+#: build.ui:36
+#, kde-format
+msgid "Output"
+msgstr "פלט"
+
+#. i18n: ectx: property (text), widget (QPushButton, buildAgainButton)
+#: build.ui:56
+#, kde-format
+msgid "Build Again"
+msgstr "בנייה חוזרת"
+
+#. i18n: ectx: property (text), widget (QPushButton, cancelBuildButton)
+#: build.ui:66
+#, kde-format
+msgid "Cancel"
+msgstr "ביטול"
+
+#: buildconfig.cpp:48
+#, kde-format
+msgid "Build & Run"
+msgstr "בנייה והרצה"
+
+#: buildconfig.cpp:54
+#, kde-format
+msgid "Build & Run Settings"
+msgstr "הגדרות בנייה והרצה"
+
+#: buildconfig.cpp:107
+#, kde-format
+msgid "Delete selected entries"
+msgstr "מחיקת הרשומות הנבחרות"
+
+#: buildconfig.cpp:112
+#, kde-format
+msgid "Delete all entries"
+msgstr "מחיקת כל הרשומות"
+
+#. i18n: ectx: attribute (title), widget (QWidget, tab)
+#: buildconfigwidget.ui:33
+#, kde-format
+msgid "General Settings"
+msgstr "הגדרות כלליות"
+
+#. i18n: ectx: property (text), widget (QCheckBox, useDiagnosticsCB)
+#: buildconfigwidget.ui:50
+#, kde-format
+msgid "Add errors and warnings to Diagnostics"
+msgstr "להוסיף שגיאות ואזהרות לאבחון"
+
+#. i18n: ectx: property (text), widget (QCheckBox, autoSwitchToOutput)
+#: buildconfigwidget.ui:57
+#, kde-format
+msgid "Automatically switch to output pane on executing the selected target"
+msgstr "להחליף ללוח הפלט בעת הרצה על היעד הנבחר"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, u_showProgressCB)
+#: buildconfigwidget.ui:77
+#, no-c-format, kde-format
+msgid ""
+"If the output lines start with [ # / ## ] or [ ## % ], display the latest as "
+"a message."
+msgstr ""
+"אם שורת הפלט נפתחת ב־[ # / ## ] או ב־ [ ## % ], להציג את האחרונה מביניהן "
+"כהודעה."
+
+#. i18n: ectx: property (text), widget (QCheckBox, u_showProgressCB)
+#: buildconfigwidget.ui:80
+#, kde-format
+msgid "Show build progress as a message when the output pane is hidden"
+msgstr "להציג את תהליך הבנייה כהודעה כשלוח הפלט מוסתר"
+
+#. i18n: ectx: attribute (title), widget (QWidget, tab_4)
+#: buildconfigwidget.ui:106
+#, kde-format
+msgid "Allowed && Blocked Commands"
+msgstr "פקודות מורשות וחסומות"
+
+#: plugin_katebuild.cpp:268 plugin_katebuild.cpp:275 plugin_katebuild.cpp:759
+#: plugin_katebuild.cpp:1000 plugin_katebuild.cpp:1013
+#, kde-format
+msgid "Build"
+msgstr "בנייה"
+
+#: plugin_katebuild.cpp:278
+#, kde-format
+msgid "Select Target..."
+msgstr "בחירת יעד…"
+
+#: plugin_katebuild.cpp:283
+#, kde-format
+msgid "Build Selected Target"
+msgstr "בניית היעד הנבחר"
+
+#: plugin_katebuild.cpp:288
+#, kde-format
+msgid "Build and Run Selected Target"
+msgstr "בנייה והרצה של היעד הנבחר"
+
+#: plugin_katebuild.cpp:293
+#, kde-format
+msgid "Compile Current File"
+msgstr "הידור הקובץ הנוכחי"
+
+#: plugin_katebuild.cpp:294
+#, kde-format
+msgid "Try to compile the current file by searching a compile_commands.json"
+msgstr "לנסות להדר את הקובץ הנוכחי על ידי חיפוש compile_commands.json"
+
+#: plugin_katebuild.cpp:299
+#, kde-format
+msgid "Stop"
+msgstr "עצירה"
+
+#: plugin_katebuild.cpp:304
+#, kde-format
+msgid "Load targets from CMake Build Dir"
+msgstr "טעינת יעדים מתיקיית בנייה של CMake"
+
+#: plugin_katebuild.cpp:308
+#, kde-format
+msgctxt "Left is also left in RTL mode"
+msgid "Focus Next Tab to the Left"
+msgstr "העברת המיקוד ללשונית הבאה משמאל"
+
+#: plugin_katebuild.cpp:328
+#, kde-format
+msgctxt "Right is right also in RTL mode"
+msgid "Focus Next Tab to the Right"
+msgstr "העברת המיקוד ללשונית הבאה מימין"
+
+#: plugin_katebuild.cpp:361
+#, kde-format
+msgctxt "Tab label"
+msgid "Target Settings"
+msgstr "הגדרות של מטרות"
+
+#: plugin_katebuild.cpp:410
+#, kde-format
+msgid ""
+"<b>File not found:</b> %1<br><b>Search paths:</b><br>%2<br>Try adding a "
+"search path to the \"Working Directory\""
+msgstr ""
+"<b>הקובץ לא נמצא:</b> %1<br><b>נתיבי חיפוש:</b><br>%2<br>כדאי לנסותלהוסיף "
+"נתיב חיפוש ל„תיקיית העבודה”"
+
+#: plugin_katebuild.cpp:507
+#, kde-format
+msgid "Build Information"
+msgstr "פרטי בנייה"
+
+#: plugin_katebuild.cpp:766
+#, kde-format
+msgid "There is no file or directory specified for building."
+msgstr "אין קובץ או ספרייה מוגדרת עבור בנייה"
+
+#: plugin_katebuild.cpp:770
+#, kde-format
+msgid ""
+"The file \"%1\" is not a local file. Non-local files cannot be compiled."
+msgstr "הקובץ „%1” הוא לא קובץ מקומי. אי אפשר להדר קבצים שאינם מקומיים."
+
+#: plugin_katebuild.cpp:841
+#, kde-format
+msgid "Create directory"
+msgstr "יצירת תיקייה"
+
+#: plugin_katebuild.cpp:844
+#, kde-format
+msgid ""
+"The configured working directory <b>%1</b> for the targetset <b>%2</b> does "
+"not exist.<br><br>Create the directory?"
+msgstr ""
+"תיקיית העבודה המוגדרת <b>%1</b> לערכת היעדים <b>%2</b> לא קיימת."
+"<br><br>ליצור את התיקייה?"
+
+#: plugin_katebuild.cpp:852
+#, kde-format
+msgid "Failed to create the directory <b>%1</b>"
+msgstr "יצירת התיקייה <b>%1</b> נכשלה"
+
+#: plugin_katebuild.cpp:877
+#, kde-format
+msgid "Failed to run \"%1\". exitStatus = %2"
+msgstr "אי אפשר להפעיל את „%1”. מצב סיום = %2"
+
+#: plugin_katebuild.cpp:893
+#, kde-format
+msgid "Building <b>%1: %2</b> cancelled"
+msgstr "הבנייה של <b>%1: %2</b> בוטלה"
+
+#: plugin_katebuild.cpp:999
+#, kde-format
+msgid "Did not find a compile_commands.json for file \"%1\". "
+msgstr "לא נמצא compile_commands.json לקובץ „%1”."
+
+#: plugin_katebuild.cpp:1012
+#, kde-format
+msgid "Did not find a compile command for file \"%1\" in \"%2\". "
+msgstr "לא נמצאה פקודת הידור לקובץ „%1” תחת „%2”."
+
+#: plugin_katebuild.cpp:1031
+#, kde-format
+msgid ""
+"Cannot make \"%f\" substitution. No open file or the current file is "
+"untitled!"
+msgstr "לא ניתן לבצע החלפה של „‎%f”. אין קבצים פתוחים או שהקובץ הפתוח נטול שם!"
+
+#: plugin_katebuild.cpp:1035
+#, kde-format
+msgid ""
+"Cannot make \"%d\" substitution. No open file or the current file is "
+"untitled!"
+msgstr "לא ניתן לבצע החלפה של „‎%d”. אין קבצים פתוחים או שהקובץ הפתוח נטול שם!"
+
+#: plugin_katebuild.cpp:1039
+#, kde-format
+msgid ""
+"Cannot make \"%n\" substitution. No open file or the current file is "
+"untitled!"
+msgstr "לא ניתן לבצע החלפה של „‎%n”. אין קבצים פתוחים או שהקובץ הפתוח נטול שם."
+
+#: plugin_katebuild.cpp:1050
+#, kde-format
+msgid "Cannot make project substitution (%B). No open project!"
+msgstr "לא ניתן ליצור החלפת מיזם (‎%B). אין מיזם פתוח!"
+
+#: plugin_katebuild.cpp:1063
+#, kde-format
+msgid "Already building..."
+msgstr "כבר מתבצעת בנייה…"
+
+#: plugin_katebuild.cpp:1101
+#, kde-format
+msgid ""
+"Cannot execute: %1: %2 No working directory set.\n"
+"There is no local file or directory specified for building."
+msgstr ""
+"לא ניתן להריץ: %1: %2 לא הוגדרה תיקיית עבודה.\n"
+"אין קובץ או תיקייה מקומיים שצוינו לבנייה."
+
+#: plugin_katebuild.cpp:1222
+#, kde-format
+msgid "Building target <b>%1: %2</b> ..."
+msgstr "היעד<b>%1: %2</b> נבנה…"
+
+#: plugin_katebuild.cpp:1259
+#, kde-format
+msgid ""
+"Cannot load targets, the file %1 does not contain a proper CMAKE_COMMAND "
+"entry !"
+msgstr "לא ניתן לטעון יעדים, הקובץ %1 לא מכיל רשומת CMAKE_COMMAND הולמת!"
+
+#: plugin_katebuild.cpp:1272
+#, kde-format
+msgid "Could not write CMake File API query files for build directory %1 !"
+msgstr "לא ניתן לכתובת קובצי שאילתת API לקובץ CMake לתיקיית הבנייה %1!"
+
+#: plugin_katebuild.cpp:1278
+#, kde-format
+msgid "Could not run CMake (%2) for build directory %1 !"
+msgstr "לא ניתן להריץ את CMake (%2) לתיקיית הבנייה %1!"
+
+#: plugin_katebuild.cpp:1287
+#, kde-format
+msgid ""
+"Generating CMake File API reply files for build directory %1 failed (using "
+"%2) !"
+msgstr "יצירת קובצי תגובת API לקובץ CMake לתיקיית הבנייה %1 נכשלה (דרך %2)!"
+
+#: plugin_katebuild.cpp:1412
+#, kde-format
+msgid "Build plugin wants to execute program"
+msgstr "תוסף הבנייה רוצה להריץ תוכנית"
+
+#: plugin_katebuild.cpp:1415
+#, kde-format
+msgid ""
+"The Kate build plugin needs to execute an external command to read the "
+"targets from the build tree.<br><br>The full command line is:<br><br><b>%1</"
+"b><br><br>Proceed and allow to run this command ?<br><br>The choice can be "
+"altered via the config page of the plugin."
+msgstr ""
+"תוסף הבנייה של Kate צריך להפעיל פקודה חיצונית כדי ליצור יעדים מעץ הבנייה."
+"<br><br> שורת הפקודות המלאה היא:<br><br><b>%1</b><br><br>להמשיך ולהתיר את "
+"הרצת הפקודה הזאת?<br><br>אפשר לשנות את הבחירה הזאת דרך עמוד ההגדרות של התוסף."
+
+#: plugin_katebuild.cpp:1447
+#, kde-kuit-format
+msgctxt "@info"
+msgid "<title>Build Finished:</title>%1"
+msgstr "<title>הבנייה הסתיימה:</title>%1"
+
+#: plugin_katebuild.cpp:1510
+#, kde-format
+msgid "Build <b>%1: %2</b> completed. %3 error(s), %4 warning(s), %5 note(s)"
+msgstr "בניית <b>%1: %2</b> הושלמה. %3 שגיאות, %4 אזהרות, %5 הערות"
+
+#: plugin_katebuild.cpp:1522
+#, kde-format
+msgid "Found one error."
+msgid_plural "Found %1 errors."
+msgstr[0] "נמצאה שגיאה אחת."
+msgstr[1] "נמצאו שתי שגיאות."
+msgstr[2] "נמצאו %1 שגיאות."
+msgstr[3] "נמצאו %1 שגיאות."
+
+#: plugin_katebuild.cpp:1526
+#, kde-format
+msgid "Found one warning."
+msgid_plural "Found %1 warnings."
+msgstr[0] "נמצאה אזהרה אחת."
+msgstr[1] "נמצאו שתי אזהרות."
+msgstr[2] "נמצאו %1 אזהרות."
+msgstr[3] "נמצאו %1 אזהרות."
+
+#: plugin_katebuild.cpp:1529
+#, kde-format
+msgid "Found one note."
+msgid_plural "Found %1 notes."
+msgstr[0] "נמצאה הערה אחת."
+msgstr[1] "נמצאו שתי הערות."
+msgstr[2] "נמצאו %1 הערות."
+msgstr[3] "נמצאו %1 הערות."
+
+#: plugin_katebuild.cpp:1533
+#, kde-format
+msgid "Build canceled."
+msgstr "הבנייה בוטלה."
+
+#: plugin_katebuild.cpp:1537
+#, kde-format
+msgid "Build failed."
+msgstr "הבנייה נכשלה"
+
+#: plugin_katebuild.cpp:1539
+#, kde-format
+msgid "Build completed without problems."
+msgstr "הבנייה הסתיימה ללא בעיות"
+
+#: plugin_katebuild.cpp:1543
+#, kde-format
+msgid "Build <b>%1: %2 canceled</b>. %3 error(s), %4 warning(s), %5 note(s)"
+msgstr "בניית <b>%1: %2 נכשלה</b>. %3 שגיאות, %4 אזהרות %5 הערות"
+
+#: plugin_katebuild.cpp:1828
+#, kde-format
+msgctxt "The same word as 'gcc' uses for an error."
+msgid "error"
+msgstr "error"
+
+#: plugin_katebuild.cpp:1831
+#, kde-format
+msgctxt "The same word as 'gcc' uses for a warning."
+msgid "warning"
+msgstr "warning"
+
+#: plugin_katebuild.cpp:1834
+#, kde-format
+msgctxt "The same words as 'gcc' uses for note or info."
+msgid "note|info"
+msgstr "note|info"
+
+#: plugin_katebuild.cpp:1837
+#, kde-format
+msgctxt "The same word as 'ld' uses to mark an ..."
+msgid "undefined reference"
+msgstr "undefined reference"
+
+#: plugin_katebuild.cpp:2141
+#, kde-format
+msgid "Cannot save build targets in: %1"
+msgstr "לא ניתן לשמור את יעדי הבנייה תחת: %1"
+
+#: TargetHtmlDelegate.cpp:48
+#, kde-format
+msgctxt "T as in Target set"
+msgid "<B>T:</B> %1"
+msgstr "<B>י:</B> %1"
+
+#: TargetHtmlDelegate.cpp:50
+#, kde-format
+msgctxt "Dir as in working Directory"
+msgid "<B>Dir:</B> %1"
+msgstr "<B>תיקייה:</B> %1"
+
+#: TargetHtmlDelegate.cpp:95
+#, kde-format
+msgid ""
+"Leave empty to use the directory of the current document.\n"
+"Add search directories by adding paths separated by ';'"
+msgstr ""
+"להשאיר ריק כדי שייעשה שימוש בתיקיית המסמך הנוכחי.\n"
+"אפשר להוסיף תיקיות חיפוש על ידי הוספת נתיבים עם ‚;’ ביניהם."
+
+#: TargetHtmlDelegate.cpp:102
+#, kde-format
+msgid ""
+"Use:\n"
+"\"%B\" for project base directory\n"
+"\"%b\" for name of project base directory"
+msgstr ""
+"שימוש:\n"
+"„%B” לייצוג תיקיית הבסיס של המיזם\n"
+"„%b” לייצוג שם תיקיית הבסיס של המיזם"
+
+#: TargetHtmlDelegate.cpp:106
+#, kde-format
+msgid ""
+"Use:\n"
+"\"%f\" for current file\n"
+"\"%d\" for directory of current file\n"
+"\"%n\" for current file name without suffix\n"
+"\"%B\" for current project's base directory\n"
+"\"%w\" for the working directory of the target"
+msgstr ""
+"שימוש:\n"
+"‏„‎%f” לייצוג הקובץ הנוכחי\n"
+"‏„‎%d” לתיקיית הקובץ הנוכחי\n"
+"‏„‎%n” לשם הקובץ הנוכחי בלי סיומת\n"
+"‏„‎%B” לתיקיית הבסיס של המיזם הנוכחי\n"
+"‏„‎%w” לתיקיית העבודה של היעד"
+
+#: TargetModel.cpp:315 TargetModel.cpp:327 targets.cpp:254
+#, kde-format
+msgid "Target Set"
+msgstr "קבוצת יעדים"
+
+#: TargetModel.cpp:566
+#, kde-format
+msgid "Projects"
+msgstr "מיזמים"
+
+#: TargetModel.cpp:566
+#, kde-format
+msgid "Session"
+msgstr "הפעלה"
+
+#: TargetModel.cpp:678
+#, kde-format
+msgid "Command/Target-set Name"
+msgstr "שם פקודה/קבוצת יעדים"
+
+#: TargetModel.cpp:681
+#, kde-format
+msgid "Build Command / Working Directory"
+msgstr "פקודת בנייה / תיקיית עבודה"
+
+#: TargetModel.cpp:684
+#, kde-format
+msgid "Run Command"
+msgstr "הרצת פקודות"
+
+#: targets.cpp:28
+#, kde-format
+msgid "Filter targets, use arrow keys to select, Enter to execute"
+msgstr "סינון יעדים, יש להשתמש במקשי החיצים כדי לבחור, להיכנס או להריץ"
+
+#: targets.cpp:32
+#, kde-format
+msgid "Create new set of targets"
+msgstr "יצירת קבוצת מטרות חדשה"
+
+#: targets.cpp:36
+#, kde-format
+msgid "Clone command or target set"
+msgstr "פקודת שיבוט או סדרת יעד"
+
+#: targets.cpp:40
+#, kde-format
+msgid "Delete current target or current set of targets"
+msgstr "מחיקת היעד או את קבוצת היעדים"
+
+#: targets.cpp:45
+#, kde-format
+msgid "Add new target"
+msgstr "הוספת מטרה חדשה"
+
+#: targets.cpp:49
+#, kde-format
+msgid "Build selected target"
+msgstr "בניית המטרה הנבחרת"
+
+#: targets.cpp:53
+#, kde-format
+msgid "Build and run selected target"
+msgstr "בנייה והרצה של היעד הנבחר"
+
+#: targets.cpp:57
+#, kde-format
+msgid "Move selected target up"
+msgstr "העלאת היעד הנבחר למעלה"
+
+#: targets.cpp:61
+#, kde-format
+msgid "Move selected target down"
+msgstr "הורדת היעד הנבחר למטה"
+
+#: targets.cpp:203
+#, kde-format
+msgid "Copy"
+msgstr "העתקה"
+
+#: targets.cpp:207
+#, kde-format
+msgid "Cut"
+msgstr "גזירה"
+
+#: targets.cpp:211
+#, kde-format
+msgid "Paste after"
+msgstr "הדבקה אחרי"
+
+#: targets.cpp:229 targets.cpp:256
+#, kde-format
+msgctxt "Name/Label for a compilation or build command"
+msgid "Build Command"
+msgstr "פקודת בנייה"
+
+#: targets.cpp:255
+#, kde-format
+msgctxt "Name/Label for a command to configure a build"
+msgid "Configure"
+msgstr "הגדרה"
+
+#. i18n: ectx: Menu (Build Menubar)
+#: ui.rc:6
+#, kde-format
+msgid "&Build"
+msgstr "&בנייה"
+
+#. i18n: ectx: ToolBar (mainToolBar)
+#: ui.rc:23
+#, kde-format
+msgid "Build Plugin Toolbar"
+msgstr "סרגל כלי תוסף בנייה"
+
+#: UrlInserter.cpp:31
+#, kde-format
+msgid "Insert path"
+msgstr "הוספת נתיב"
+
+#: UrlInserter.cpp:50
+#, kde-format
+msgid "Select directory to insert"
+msgstr "בחירת תיקייה להוספה"
+
+#~ msgid "No target available for building."
+#~ msgstr "אין יעד זמין לבנייה."
+
+#~ msgid "Cannot execute: %1 No working directory set."
+#~ msgstr "לא ניתן להריץ: %1 לא הוגדרה תיקיית עבודה."
+
+#~ msgid "Working Directory / Command"
+#~ msgstr "תיקיית עבודה / פקודה"
+
+#~ msgid ""
+#~ "Cannot run command: %1\n"
+#~ "Work path does not exist: %2"
+#~ msgstr ""
+#~ "לא ניתן להריץ את הפקודה: %1\n"
+#~ "נתיב העבודה לא קיים: %2"
+
+#~ msgid "Clean"
+#~ msgstr "ניקוי"
+
+#~ msgid "ConfigClean"
+#~ msgstr "ניקוי הגדרות (ConfigClean)"
+
+#~ msgid "Project Plugin Targets"
+#~ msgstr "מטרות תוסף פרוייקטים"
+
+#, fuzzy
+#~ msgid "build"
+#~ msgstr "&בנה"
+
+#, fuzzy
+#~ msgid "clean"
+#~ msgstr "נקה"
+
+#~ msgid "Building <b>%1</b> completed."
+#~ msgstr "בניית המטרה <b>%1</b> הושלמה."
+
+#~ msgid "Building <b>%1</b> had errors."
+#~ msgstr "לבנייה של <b>%1</b> היו שגיאות."
+
+#, fuzzy
+#~ msgid "Building <b>%1</b> had warnings."
+#~ msgstr "לבנייה של <b>%1</b> היו שגיאות."
+
+#~ msgid "Show:"
+#~ msgstr "ה&צג:"
+
+#~ msgctxt "Header for the file name column"
+#~ msgid "File"
+#~ msgstr "קובץ"
+
+#~ msgctxt "Header for the line number column"
+#~ msgid "Line"
+#~ msgstr "קו"
+
+#~ msgctxt "Header for the error message column"
+#~ msgid "Message"
+#~ msgstr "הודעה"
+
+#~ msgid "Next Error"
+#~ msgstr "שגיאה הבאה"
+
+#~ msgid "Previous Error"
+#~ msgstr "שגיאה קודמת"
+
+#, fuzzy
+#~| msgctxt "The same word as 'make' uses to mark an error."
+#~| msgid "error"
+#~ msgid "Error"
+#~ msgstr "שגיאה"
+
+#, fuzzy
+#~| msgctxt "The same word as 'make' uses to mark a warning."
+#~| msgid "warning"
+#~ msgid "Warning"
+#~ msgstr "הזהרה"
+
+#~ msgid "Only Errors"
+#~ msgstr "שגיאות בלבד"
+
+#~ msgid "Errors and Warnings"
+#~ msgstr "שגיאות והזהרות"
+
+#~ msgid "Parsed Output"
+#~ msgstr "הפלט המנותח"
+
+#~ msgid "Full Output"
+#~ msgstr "הפלט המלא"
+
+#, fuzzy
+#~ msgid "Select active target set"
+#~ msgstr "מחק את המטרה הנבחרת"
+
+#, fuzzy
+#~| msgid "Build selected target"
+#~ msgid "Filter targets"
+#~ msgstr "בנה את המטרה הנבחרת"
+
+#~ msgid "Build Default Target"
+#~ msgstr "בנה את מטרת ברירת מחדל"
+
+#, fuzzy
+#~| msgid "Build Default Target"
+#~ msgid "Build and Run Default Target"
+#~ msgstr "בנה את מטרת ברירת מחדל"
+
+#, fuzzy
+#~ msgid "Build Previous Target"
+#~ msgstr "בנה את המטרה הקודמת שוב"
+
+#, fuzzy
+#~ msgid "Select build target"
+#~ msgstr "מחק את המטרה הנבחרת"
+
+#~ msgid "Build Output"
+#~ msgstr "פלט של בנייה"

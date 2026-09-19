@@ -1,0 +1,231 @@
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+# SPDX-FileCopyrightText: 2015, 2016, 2017, 2018, 2019, 2020, 2024, 2025, 2026 Vít Pelčák <vit@pelcak.org>
+# Vit Pelcak <vit@pelcak.org>, 2021, 2022, 2023.
+# SPDX-FileCopyrightText: 2026 Libor Filípek <filipek.libor@protonmail.com>
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-12-19 00:45+0000\n"
+"PO-Revision-Date: 2026-03-13 13:01+0100\n"
+"Last-Translator:  Vít Pelčák <vit@pelcak.org>\n"
+"Language-Team: \n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Generator: Lokalize 25.12.3\n"
+
+#: ListItemBase.qml:72
+#, kde-format
+msgid "Currently not recording"
+msgstr "Právě se nenahrává"
+
+#: ListItemBase.qml:73
+#, kde-format
+msgid "Currently not playing"
+msgstr "Právě se nepřehrává"
+
+#: ListItemBase.qml:204
+#, kde-format
+msgctxt "@action:button"
+msgid "Additional Options"
+msgstr "Další volby"
+
+#: ListItemBase.qml:206
+#, kde-format
+msgid "Show additional options for %1"
+msgstr "Zobrazit další možnosti pro %1"
+
+#: ListItemBase.qml:228
+#, kde-format
+msgctxt "@action:button"
+msgid "Unmute"
+msgstr "Povolit zvuk"
+
+#: ListItemBase.qml:228
+#, kde-format
+msgctxt "@action:button"
+msgid "Mute"
+msgstr "Ztlumit"
+
+#: ListItemBase.qml:230
+#, kde-format
+msgid "Unmute %1"
+msgstr "Povolit zvuk %1"
+
+#: ListItemBase.qml:230
+#, kde-format
+msgid "Mute %1"
+msgstr "Ztišit %1"
+
+#: ListItemBase.qml:253
+#, kde-format
+msgctxt "Accessibility data on volume slider"
+msgid "Adjust volume for %1"
+msgstr "Upravit hlasitost pro %1"
+
+#: ListItemBase.qml:317
+#, kde-format
+msgctxt "volume percentage"
+msgid "%1%"
+msgstr "%1%"
+
+#: ListItemBase.qml:338
+#, kde-format
+msgctxt "only used for sizing, should be widest possible string"
+msgid "100%"
+msgstr "100%"
+
+#: main.qml:36
+#, kde-format
+msgid "Audio Volume"
+msgstr "Hlasitost zvuku"
+
+#: main.qml:53 main.qml:55
+#, kde-format
+msgctxt "@label"
+msgid "Connection to the Sound Service Lost"
+msgstr "Spojení se zvukovým zařízením bylo ztraceno"
+
+#: main.qml:57
+#, kde-format
+msgid "No output or input devices found"
+msgstr "Nenalezena žádná vstupní ani výstupní zařízení"
+
+#: main.qml:61
+#, kde-format
+msgctxt "@info reconnecting to pulseaudio"
+msgid "Trying to reconnect…"
+msgstr "Pokouším se znovu připojit…"
+
+#: main.qml:79
+#, kde-format
+msgid "Audio Muted"
+msgstr "Zvuk ztlumen"
+
+#: main.qml:81
+#, kde-format
+msgid "Volume at %1%"
+msgstr "Hlasitost na %1%"
+
+#: main.qml:92
+#, kde-format
+msgid "Middle-click to unmute"
+msgstr "Kliknutí prostředním tlačítkem myši zrušíte ztlumení všech zvuků"
+
+#: main.qml:93
+#, kde-format
+msgid "Middle-click to mute all audio"
+msgstr "Kliknutí prostředním tlačítkem myši ztlumíte veškeré zvuky"
+
+#: main.qml:94
+#, kde-format
+msgid "Scroll to adjust volume"
+msgstr "Rolujte kolečkem pro upravení hlasitosti"
+
+#: main.qml:110
+#, kde-format
+msgid "Device name not found"
+msgstr "Název zařízení nenalezen"
+
+#: main.qml:338
+#, kde-format
+msgid "Devices"
+msgstr "Zařízení"
+
+#: main.qml:345
+#, kde-format
+msgid "Applications"
+msgstr "Aplikace"
+
+#: main.qml:369
+#, kde-format
+msgctxt "@action:button"
+msgid "More actions"
+msgstr "Další činnosti"
+
+#: main.qml:411
+#, kde-format
+msgctxt ""
+"@action:button keep this widget's pop-up open until explicitly dismissed"
+msgid "Keep open"
+msgstr "Ponechat otevřené"
+
+#: main.qml:443
+#, kde-format
+msgctxt "@action retry connecting to pulseaudio"
+msgid "Retry"
+msgstr "Zkusit znovu"
+
+#: main.qml:470
+#, kde-format
+msgid "No applications playing or recording audio"
+msgstr "Žádné aplikace přehrávající nebo nahrávající audio"
+
+#: main.qml:555
+#, kde-format
+msgctxt "@title:group listview section header"
+msgid "Output Devices"
+msgstr "Výstupní zařízení"
+
+#: main.qml:557
+#, kde-format
+msgctxt "@title:group listview section header"
+msgid "Output Streams"
+msgstr "Výstupní proudy"
+
+#: main.qml:615
+#, kde-format
+msgctxt "@title:group listview section header"
+msgid "Input Devices"
+msgstr "Vstupní zařízení"
+
+#: main.qml:617
+#, kde-format
+msgctxt "@title:group listview section header"
+msgid "Input Streams"
+msgstr "Vstupní proudy"
+
+#: main.qml:681
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Prolonged use of this feature will damage the device's speakers. Only use it "
+"temporarily to make quiet media audible."
+msgstr ""
+"Dlouhodobé používání této funkce může poškodit reproduktory zařízení. "
+"Používejte ji pouze dočasně, abyste zvýšili hlasitost tichých médií."
+
+#: main.qml:697
+#, kde-format
+msgid "Raise maximum volume"
+msgstr "Zvýšit maximální hlasitost"
+
+#: main.qml:711
+#, kde-format
+msgid "Force mute all playback devices"
+msgstr "Vynutit ztlumení všech přehrávacích zařízení"
+
+#: main.qml:720
+#, kde-format
+msgid "Force mute all input devices"
+msgstr "Vynutit ztlumení všech vstupních zařízení"
+
+#: main.qml:729
+#, kde-format
+msgid "Show virtual devices"
+msgstr "Zobrazit virtuální zařízení"
+
+#: main.qml:739
+#, kde-format
+msgid "&Configure Audio Devices…"
+msgstr "Nastavit a&udio zařízení…"
+
+#: StreamListItem.qml:36
+#, kde-format
+msgid "Stream name not found"
+msgstr "Název proudu nenalezen"

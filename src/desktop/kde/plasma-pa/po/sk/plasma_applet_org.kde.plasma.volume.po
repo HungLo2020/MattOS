@@ -1,0 +1,424 @@
+# translation of plasma_applet_org.kde.plasma.volume.po to Slovak
+# SPDX-FileCopyrightText: 2015, 2016, 2017, 2019, 2022, 2023 Roman Paholik <wizzardsk@gmail.com>
+# Mthw <jari_45@hotmail.com>, 2018.
+# Matej Mrenica <matejm98mthw@gmail.com>, 2019, 2020, 2021, 2022.
+# Dušan Kazik <prescott66@gmail.com>, 2020.
+# Ferdinand Galko <galko.ferdinand@gmail.com>, 2023.
+# SPDX-FileCopyrightText: 2026 Lucia Mrenica <lucia.mrenica@gmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma_applet_org.kde.plasma.volume\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-12-19 00:45+0000\n"
+"PO-Revision-Date: 2026-01-14 18:47+0100\n"
+"Last-Translator: Lucia Mrenica <lucia.mrenica@gmail.com>\n"
+"Language-Team: Slovak <kde-i18n-doc@kde.org>\n"
+"Language: sk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Generator: Lokalize 25.12.1\n"
+
+#: ListItemBase.qml:72
+#, kde-format
+msgid "Currently not recording"
+msgstr "Práve sa nenahráva"
+
+#: ListItemBase.qml:73
+#, kde-format
+msgid "Currently not playing"
+msgstr "Práve sa neprehráva"
+
+#: ListItemBase.qml:204
+#, kde-format
+msgctxt "@action:button"
+msgid "Additional Options"
+msgstr "Ďalšie možnosti"
+
+#: ListItemBase.qml:206
+#, kde-format
+msgid "Show additional options for %1"
+msgstr "Zobraziť dodatočné voľby pre %1"
+
+#: ListItemBase.qml:228
+#, kde-format
+msgctxt "@action:button"
+msgid "Unmute"
+msgstr "Zrušiť stlmenie"
+
+#: ListItemBase.qml:228
+#, kde-format
+msgctxt "@action:button"
+msgid "Mute"
+msgstr "Stlmiť"
+
+#: ListItemBase.qml:230
+#, kde-format
+msgid "Unmute %1"
+msgstr "Zrušiť stlmenie %1"
+
+#: ListItemBase.qml:230
+#, kde-format
+msgid "Mute %1"
+msgstr "Stlmiť %1"
+
+#: ListItemBase.qml:253
+#, kde-format
+msgctxt "Accessibility data on volume slider"
+msgid "Adjust volume for %1"
+msgstr "Upraviť hlasitosť pre %1"
+
+#: ListItemBase.qml:317
+#, kde-format
+msgctxt "volume percentage"
+msgid "%1%"
+msgstr "%1%"
+
+#: ListItemBase.qml:338
+#, kde-format
+msgctxt "only used for sizing, should be widest possible string"
+msgid "100%"
+msgstr "100%"
+
+#: main.qml:36
+#, kde-format
+msgid "Audio Volume"
+msgstr "Hlasitosti zvuku"
+
+#: main.qml:53 main.qml:55
+#, kde-format
+msgctxt "@label"
+msgid "Connection to the Sound Service Lost"
+msgstr "Strata pripojenia k zvukovej službe"
+
+#: main.qml:57
+#, kde-format
+msgid "No output or input devices found"
+msgstr "Nenašli sa žiadne výstupné alebo vstupné zariadenia"
+
+#: main.qml:61
+#, kde-format
+msgctxt "@info reconnecting to pulseaudio"
+msgid "Trying to reconnect…"
+msgstr "Skúšam sa znovu spojiť..."
+
+#: main.qml:79
+#, kde-format
+msgid "Audio Muted"
+msgstr "Zvuk je stlmený"
+
+#: main.qml:81
+#, kde-format
+msgid "Volume at %1%"
+msgstr "Hlasitosť na %1%"
+
+#: main.qml:92
+#, kde-format
+msgid "Middle-click to unmute"
+msgstr "Kliknutím stredného tlačidla myši zrušiť stlmenie zvuku"
+
+#: main.qml:93
+#, kde-format
+msgid "Middle-click to mute all audio"
+msgstr "Kliknutím stredného tlačidla myši stlmiť všetok zvuk"
+
+#: main.qml:94
+#, kde-format
+msgid "Scroll to adjust volume"
+msgstr "Posúvaním upraviť hlasitosť"
+
+#: main.qml:110
+#, kde-format
+msgid "Device name not found"
+msgstr "Názov zariadenia nebol nájdený"
+
+#: main.qml:338
+#, kde-format
+msgid "Devices"
+msgstr "Zariadenia"
+
+#: main.qml:345
+#, kde-format
+msgid "Applications"
+msgstr "Aplikácie"
+
+#: main.qml:369
+#, kde-format
+msgctxt "@action:button"
+msgid "More actions"
+msgstr "Viac akcií"
+
+#: main.qml:411
+#, kde-format
+msgctxt ""
+"@action:button keep this widget's pop-up open until explicitly dismissed"
+msgid "Keep open"
+msgstr "Ponechať otvorené"
+
+#: main.qml:443
+#, kde-format
+msgctxt "@action retry connecting to pulseaudio"
+msgid "Retry"
+msgstr "Znovu"
+
+#: main.qml:470
+#, kde-format
+msgid "No applications playing or recording audio"
+msgstr "Žiadne aplikácie neprehrávajú ani nenahrávajú zvuk"
+
+#: main.qml:555
+#, kde-format
+msgctxt "@title:group listview section header"
+msgid "Output Devices"
+msgstr "Výstupné zariadenia"
+
+#: main.qml:557
+#, kde-format
+msgctxt "@title:group listview section header"
+msgid "Output Streams"
+msgstr "Výstupné prúdy"
+
+#: main.qml:615
+#, kde-format
+msgctxt "@title:group listview section header"
+msgid "Input Devices"
+msgstr "Vstupné zariadenia"
+
+#: main.qml:617
+#, kde-format
+msgctxt "@title:group listview section header"
+msgid "Input Streams"
+msgstr "Vstupné prúdy"
+
+#: main.qml:681
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Prolonged use of this feature will damage the device's speakers. Only use it "
+"temporarily to make quiet media audible."
+msgstr ""
+"Dlhodobé používanie tejto funkcie poškodí reproduktory zariadenia. "
+"Používajte ju iba dočasne, aby bolo tiché médium počuteľné."
+
+#: main.qml:697
+#, kde-format
+msgid "Raise maximum volume"
+msgstr "Zvýšiť maximálnu hlasitosť"
+
+#: main.qml:711
+#, kde-format
+msgid "Force mute all playback devices"
+msgstr "Vynútiť stlmenie všetkých prehrávacích zariadení"
+
+#: main.qml:720
+#, kde-format
+msgid "Force mute all input devices"
+msgstr "Vynútiť stlmenie všetkých prehrávacích zariadení"
+
+#: main.qml:729
+#, kde-format
+msgid "Show virtual devices"
+msgstr "Zobraziť virtuálne zariadenia"
+
+#: main.qml:739
+#, kde-format
+msgid "&Configure Audio Devices…"
+msgstr "&Nastaviť zvukové zariadenia..."
+
+#: StreamListItem.qml:36
+#, kde-format
+msgid "Stream name not found"
+msgstr "Názov prúdu nebol nájdený"
+
+#~ msgctxt "Device name (Battery percent)"
+#~ msgid "%1 (%2% Battery)"
+#~ msgstr "%1 (%2% batéria)"
+
+#~ msgid "Increase Volume"
+#~ msgstr "Zvýšiť hlasitosť"
+
+#~ msgctxt "@action shortcut"
+#~ msgid "Increase Volume by 1%"
+#~ msgstr "Zvýšiť hlasitosť o 1%"
+
+#~ msgid "Decrease Volume"
+#~ msgstr "Znížiť hlasitosť"
+
+#~ msgctxt "@action shortcut"
+#~ msgid "Decrease Volume by 1%"
+#~ msgstr "Znížiť hlasitosť o 1%"
+
+#~ msgid "Mute"
+#~ msgstr "Stlmiť"
+
+#~ msgid "Increase Microphone Volume"
+#~ msgstr "Zvýšiť hlasitosť mikrofónu"
+
+#~ msgid "Decrease Microphone Volume"
+#~ msgstr "Znížiť hlasitosť mikrofónu"
+
+#~ msgid "Mute Microphone"
+#~ msgstr "Stlmiť mikrofón"
+
+#~ msgctxt "label of device items"
+#~ msgid "%1 (%2)"
+#~ msgstr "%1 (%2)"
+
+#~ msgid "General"
+#~ msgstr "Všeobecné"
+
+#~ msgid "Volume step:"
+#~ msgstr "Krok hlasitosti:"
+
+#~ msgid "Play audio feedback for changes to:"
+#~ msgstr "Prehrať zvukovú spätnú väzbu pri zmene:"
+
+#~ msgid "Audio volume"
+#~ msgstr "Hlasitosť zvuku"
+
+#~ msgid "Show visual feedback for changes to:"
+#~ msgstr "Zobraziť vizuálnu spätnú väzbu pri zmene:"
+
+#~ msgid "Microphone sensitivity"
+#~ msgstr "Citlivosti mikrofónu"
+
+#~ msgid "Mute state"
+#~ msgstr "Stavu stlmenia"
+
+#~ msgid "Default output device"
+#~ msgstr "Predvoleného výstupného zariadenia"
+
+#~ msgctxt "@title"
+#~ msgid "Display:"
+#~ msgstr "Zobrazenie:"
+
+#~ msgid "Record all audio via this device"
+#~ msgstr "Nahrávať všetok zvuk cez toto zariadenie"
+
+#~ msgid "Play all audio via this device"
+#~ msgstr "Prehrávať všetok zvuk cez toto zariadenie"
+
+#~ msgctxt ""
+#~ "Heading for a list of ports of a device (for example built-in laptop "
+#~ "speakers or a plug for headphones)"
+#~ msgid "Ports"
+#~ msgstr "Porty"
+
+#~ msgctxt "Port is unavailable"
+#~ msgid "%1 (unavailable)"
+#~ msgstr "%1 (nedostupný)"
+
+#~ msgctxt "Port is unplugged"
+#~ msgid "%1 (unplugged)"
+#~ msgstr "%1 (odpojený)"
+
+#~ msgctxt ""
+#~ "Heading for a list of possible output devices (speakers, headphones, ...) "
+#~ "to choose"
+#~ msgid "Play audio using"
+#~ msgstr "Prehrať zvuk pomocou"
+
+#~ msgctxt ""
+#~ "Heading for a list of possible input devices (built-in microphone, "
+#~ "headset, ...) to choose"
+#~ msgid "Record audio using"
+#~ msgstr "Nahrať zvuk pomocou"
+
+#~ msgid "show hidden devices"
+#~ msgstr "zobraziť skryté zariadenia"
+
+#~ msgid "Feedback:"
+#~ msgstr "Odozva:"
+
+#~ msgid "Play sound when volume changes"
+#~ msgstr "Prehrať zvuk, keď sa zmení hlasitosť"
+
+#~ msgid "Display notification when default output device changes"
+#~ msgstr "Zobraziť oznámenie, keď sa zmení predvolené zariadenie výstupu"
+
+#~ msgid "Maximum volume:"
+#~ msgstr "Maximálna hlasitosť:"
+
+#~ msgid "Default Device"
+#~ msgstr "Štandardné zariadenie"
+
+#~ msgid "Playback Streams"
+#~ msgstr "Prúdy prehrávania"
+
+#~ msgid "Recording Streams"
+#~ msgstr "Záznamové toky"
+
+#~ msgid "Playback Devices"
+#~ msgstr "Prehrávacie zariadenia"
+
+#~ msgid "Recording Devices"
+#~ msgstr "Záznamové zariadenia"
+
+#~ msgctxt "label of stream items"
+#~ msgid "%1 (%2)"
+#~ msgstr "%1 (%2)"
+
+#~ msgctxt "Checkable switch for (un-)muting sound output."
+#~ msgid "Mute"
+#~ msgstr "Stlmiť"
+
+#~ msgctxt "Checkable switch to change the current default output."
+#~ msgid "Default"
+#~ msgstr "Predvolené"
+
+#~ msgid "Volume"
+#~ msgstr "Hlasitosť"
+
+#~ msgid "%"
+#~ msgstr "%"
+
+#~ msgid "Behavior"
+#~ msgstr "Správanie"
+
+#~ msgid "Volume feedback"
+#~ msgstr "Odozva hlasitosti"
+
+#, fuzzy
+#~ msgid "Device Profiles"
+#~ msgstr "Zariadenia"
+
+#, fuzzy
+#~ msgid "Playback"
+#~ msgstr "Prúdy prehrávania"
+
+#, fuzzy
+#~ msgctxt "@label"
+#~ msgid "No Applications Playing Audio"
+#~ msgstr "Žiadne aplikácie neprehrávajú a nenahrávajú zvuk"
+
+#, fuzzy
+#~ msgid "Capture"
+#~ msgstr "Prúdy zachytávania"
+
+#, fuzzy
+#~ msgctxt "@label"
+#~ msgid "No Applications Recording Audio"
+#~ msgstr "Žiadne aplikácie neprehrávajú a nenahrávajú zvuk"
+
+#, fuzzy
+#~ msgid "Port"
+#~ msgstr "Porty"
+
+#, fuzzy
+#~ msgctxt "@title:tab"
+#~ msgid "Devices"
+#~ msgstr "Zariadenia"
+
+#, fuzzy
+#~ msgctxt "@title:tab"
+#~ msgid "Applications"
+#~ msgstr "Aplikácie"
+
+#~ msgctxt "label of stream items"
+#~ msgid "%1: %2"
+#~ msgstr "%1: %2"
+
+#, fuzzy
+#~ msgid "100%"
+#~ msgstr "100%"

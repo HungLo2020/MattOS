@@ -247,18 +247,6 @@ path = "src/infrastructure/LinuxScripts"
 sync = "copy"
 
 [[component]]
-name = "cosmic-initial-setup"
-repo = "https://github.com/pop-os/cosmic-initial-setup.git"
-branch = "master"
-revision = "b5ac4182bb00bc774ca86febadf0369e362bc031"
-path = "src/desktop/cosmic/cosmic-initial-setup"
-sync = "copy"
-patch_manifest = "upstream/patches/cosmic-initial-setup/manifest.toml"
-patch_manifest_sha256 = "c76951cf93e53497c43c3d24249b48f1abbe7208aede674024ee939b6aea3ff1"
-lfs_policy = "upstream/policies/cosmic-initial-setup-lfs.toml"
-lfs_policy_sha256 = "c3bd66a6537ce37e87bfa766a4abbbd7327f1fb6029a9b17bd05d4f10f04eacf"
-
-[[component]]
 name = "wpa-supplicant"
 repo = "https://git.w1.fi/hostap.git"
 branch = "hostap_2_12"
@@ -496,195 +484,6 @@ path = "src/system/security/duktape"
 sync = "copy"
 
 [[component]]
-name = "libcosmic"
-repo = "https://github.com/pop-os/libcosmic.git"
-branch = "master"
-revision = "1f8d8786940cc6db59d412153c5a03f69a20375c"
-path = "src/desktop/cosmic/libcosmic"
-sync = "copy"
-intentional_omission_policy = "upstream/policies/gitlinks.toml#libcosmic"
-gitlink_policy = "upstream/policies/gitlinks.toml#libcosmic"
-
-[[component]]
-name = "cosmic-iced"
-repo = "https://github.com/pop-os/iced.git"
-branch = "master"
-revision = "7918b2826ec8ad4f9e0032f6a21286bac431e482"
-path = "src/desktop/cosmic/iced"
-sync = "copy"
-
-[[component]]
-name = "cosmic-protocols"
-repo = "https://github.com/pop-os/cosmic-protocols.git"
-branch = "main"
-revision = "32283d76a8d0342da74c4cc022a533c52dcf378f"
-path = "src/desktop/cosmic/cosmic-protocols"
-sync = "copy"
-
-[[component]]
-name = "cosmic-comp"
-repo = "https://github.com/pop-os/cosmic-comp.git"
-branch = "master"
-revision = "693d1ad775193deb95a33810b5eac59684ca2ac0"
-path = "src/desktop/cosmic/cosmic-comp"
-sync = "copy"
-patch_manifest = "upstream/patches/cosmic-comp/manifest.toml"
-patch_manifest_sha256 = "831cf64ff55315b36a52512e331b86327fe7710f39409e68b100522ad2320716"
-
-# COSMIC Epoch desktop closure.  These revisions are the gitlinks from
-# pop-os/cosmic-epoch 0ce7ec30ac05416e9a85465404be548ced89cba6 so the
-# session, shell, settings, applications and portal are updated coherently.
-[[component]]
-name = "cosmic-session"
-repo = "https://github.com/pop-os/cosmic-session.git"
-branch = "master"
-revision = "b5ef6c0c0d68762b2991e4f5906cc70599e2f1fc"
-path = "src/desktop/cosmic/cosmic-session"
-sync = "copy"
-
-[[component]]
-name = "cosmic-greeter"
-repo = "https://github.com/pop-os/cosmic-greeter.git"
-branch = "master"
-revision = "d39915ae2381424d406cd511a2310ef928144f4c"
-path = "src/desktop/cosmic/cosmic-greeter"
-sync = "copy"
-lfs_policy = "upstream/policies/cosmic-greeter-lfs.toml"
-lfs_policy_sha256 = "e7b10150ff1bbdec3a6518580589b96d3e406908b66939530fb9aa293a0c1b4a"
-
-[[component]]
-name = "cosmic-panel"
-repo = "https://github.com/pop-os/cosmic-panel.git"
-branch = "master"
-revision = "d6699ffc423a3830bf4cab7e2c7f08a173e998f0"
-path = "src/desktop/cosmic/cosmic-panel"
-sync = "copy"
-
-[[component]]
-name = "cosmic-applets"
-repo = "https://github.com/pop-os/cosmic-applets.git"
-branch = "master"
-revision = "ec8ffdc85d1f316b387cf89672609933064e6e88"
-path = "src/desktop/cosmic/cosmic-applets"
-sync = "copy"
-
-[[component]]
-name = "cosmic-applibrary"
-repo = "https://github.com/pop-os/cosmic-applibrary.git"
-branch = "master"
-revision = "172acdae07aeb78a554813a566c0f8b942dcc831"
-path = "src/desktop/cosmic/cosmic-applibrary"
-sync = "copy"
-
-[[component]]
-name = "cosmic-launcher"
-repo = "https://github.com/pop-os/cosmic-launcher.git"
-branch = "master"
-revision = "8799503120d28383b3548f19a50880cbe83701c5"
-path = "src/desktop/cosmic/cosmic-launcher"
-sync = "copy"
-
-[[component]]
-name = "cosmic-settings"
-repo = "https://github.com/pop-os/cosmic-settings.git"
-branch = "master"
-revision = "7287257ec9f2ca301642bd4800f391ad9079d3e9"
-path = "src/desktop/cosmic/cosmic-settings"
-sync = "copy"
-
-[[component]]
-name = "cosmic-settings-daemon"
-repo = "https://github.com/pop-os/cosmic-settings-daemon.git"
-branch = "master"
-revision = "21a9692b53fcbffa0f18f7d0a12bf0f9d5bd0590"
-path = "src/desktop/cosmic/cosmic-settings-daemon"
-sync = "copy"
-
-[[component]]
-name = "cosmic-notifications"
-repo = "https://github.com/pop-os/cosmic-notifications.git"
-branch = "master"
-revision = "7c723b7705ec77b1ad5396a1baa9ae1c0cb5a0da"
-path = "src/desktop/cosmic/cosmic-notifications"
-sync = "copy"
-
-[[component]]
-name = "cosmic-osd"
-repo = "https://github.com/pop-os/cosmic-osd.git"
-branch = "master"
-revision = "20a2055dfc0eed78b417f0ecd38cc15807df3285"
-path = "src/desktop/cosmic/cosmic-osd"
-sync = "copy"
-
-[[component]]
-name = "cosmic-bg"
-repo = "https://github.com/pop-os/cosmic-bg.git"
-branch = "master"
-revision = "76e89e6aff4224e3a820cbe71c74ee91adb60d03"
-path = "src/desktop/cosmic/cosmic-bg"
-sync = "copy"
-
-[[component]]
-name = "cosmic-idle"
-repo = "https://github.com/pop-os/cosmic-idle.git"
-branch = "master"
-revision = "c95d066b5b640509a6369634b669ca60dc50e168"
-path = "src/desktop/cosmic/cosmic-idle"
-sync = "copy"
-
-[[component]]
-name = "cosmic-workspaces"
-repo = "https://github.com/pop-os/cosmic-workspaces-epoch.git"
-branch = "master"
-revision = "8faab4c2a92f438a704d072e3c5aa9526d2acc88"
-path = "src/desktop/cosmic/cosmic-workspaces"
-sync = "copy"
-
-[[component]]
-name = "cosmic-files"
-repo = "https://github.com/pop-os/cosmic-files.git"
-branch = "master"
-revision = "24e34eaa0f0acf4e24ea1338ad4bbde3a138e1f3"
-path = "src/desktop/cosmic/cosmic-files"
-sync = "copy"
-patch_manifest = "upstream/patches/cosmic-files/manifest.toml"
-patch_manifest_sha256 = "f64cab9e771de868b01fcd12883694182140b0eb84ae1d9dea80b27438ff2d6e"
-
-[[component]]
-name = "cosmic-edit"
-repo = "https://github.com/pop-os/cosmic-edit.git"
-branch = "master"
-revision = "4ac0da3af97207fb3807375928812f23ec04161f"
-path = "src/desktop/cosmic/cosmic-edit"
-sync = "copy"
-lfs_policy = "upstream/policies/cosmic-edit-lfs.toml"
-lfs_policy_sha256 = "f783daa1c93ea9058d38d4e4b3ee97d696ccac0a829caf54ad544464941a9e4f"
-
-[[component]]
-name = "cosmic-calculator"
-repo = "https://github.com/cosmic-utils/calculator.git"
-branch = "main"
-revision = "1b614b95036e41333219b5c0d91853550b2439af"
-path = "src/desktop/cosmic/cosmic-calculator"
-sync = "copy"
-
-[[component]]
-name = "cosmic-storage"
-repo = "https://github.com/cosmic-utils/cosmic-ext-storage.git"
-branch = "main"
-revision = "0ba27cc2caac19acb7a8d98747f8b65058dab877"
-path = "src/desktop/cosmic/cosmic-storage"
-sync = "copy"
-
-[[component]]
-name = "cosmic-monitor"
-repo = "https://github.com/pop-os/cosmic-monitor.git"
-branch = "master"
-revision = "ee634d59b97022f091cdb64f4519886e2c72bf80"
-path = "src/desktop/cosmic/cosmic-monitor"
-sync = "copy"
-
-[[component]]
 name = "flatpak"
 repo = "https://github.com/flatpak/flatpak.git"
 branch = "main"
@@ -777,64 +576,6 @@ repo = "https://github.com/mendsley/bsdiff.git"
 branch = "master"
 revision = "b817e9491cf7b8699c8462ef9e2657ca4ccd7667"
 path = "src/system/packages/ostree/bsdiff"
-sync = "copy"
-
-[[component]]
-name = "cosmic-store"
-repo = "https://github.com/pop-os/cosmic-store.git"
-branch = "master"
-revision = "ca4615b22889bbecb83c614e1b52d8af97ef4aca"
-path = "src/desktop/cosmic/cosmic-store"
-sync = "copy"
-patch_manifest = "upstream/patches/cosmic-store/manifest.toml"
-patch_manifest_sha256 = "98a1e655ababfa9826ae23962aa65cbce2f91b6074ce54280f7982e61fafc94a"
-
-[[component]]
-name = "cosmic-term"
-repo = "https://github.com/pop-os/cosmic-term.git"
-branch = "master"
-revision = "543cbb0cb818e1ef724d7f917ca562af44340e47"
-path = "src/desktop/cosmic/cosmic-term"
-sync = "copy"
-
-[[component]]
-name = "cosmic-icons"
-repo = "https://github.com/pop-os/cosmic-icons.git"
-branch = "master"
-revision = "b78b059636ed967ad7c6f120709c7d29b2bafac1"
-path = "src/desktop/cosmic/cosmic-icons"
-sync = "copy"
-
-[[component]]
-name = "cosmic-randr"
-repo = "https://github.com/pop-os/cosmic-randr.git"
-branch = "master"
-revision = "6e8e795970fa06d434af22775e415b517f7552d3"
-path = "src/desktop/cosmic/cosmic-randr"
-sync = "copy"
-
-[[component]]
-name = "cosmic-screenshot"
-repo = "https://github.com/pop-os/cosmic-screenshot.git"
-branch = "master"
-revision = "fc778df20fd9b3f2b266b090da89c09ce625e0a4"
-path = "src/desktop/cosmic/cosmic-screenshot"
-sync = "copy"
-
-[[component]]
-name = "pop-launcher"
-repo = "https://github.com/pop-os/launcher.git"
-branch = "master"
-revision = "a332a3a73316a3595816dd02fe426a1d3543167a"
-path = "src/desktop/cosmic/pop-launcher"
-sync = "copy"
-
-[[component]]
-name = "xdg-desktop-portal-cosmic"
-repo = "https://github.com/pop-os/xdg-desktop-portal-cosmic.git"
-branch = "master"
-revision = "f211aa37d45e443c9060b08c725d6fa73431565f"
-path = "src/desktop/cosmic/xdg-desktop-portal-cosmic"
 sync = "copy"
 
 [[component]]
@@ -1759,16 +1500,6 @@ path = "src/build-support/gnulib"
 sync = "copy"
 
 [[component]]
-name = "cosmic-tweaks"
-repo = "https://github.com/cosmic-utils/tweaks.git"
-branch = "main"
-revision = "069c31b7b1beffddf744b28f8f056ace972830bc"
-path = "src/desktop/cosmic/cosmic-tweaks"
-sync = "copy"
-patch_manifest = "upstream/patches/cosmic-tweaks/manifest.toml"
-patch_manifest_sha256 = "aad3b0f4f0a9fe35aab78e4abbf420a3d67322c2010bcaf05929fae9a035915d"
-
-[[component]]
 name = "json-glib"
 repo = "https://gitlab.gnome.org/GNOME/json-glib.git"
 branch = "1.10.8"
@@ -1832,9 +1563,7 @@ revision = "abebcdb4964aa1f9ca01b97d793ed57d305d2a66"
 path = "src/desktop/qt/qt5compat"
 sync = "copy"
 
-# Initial source-owned Plasma runtime components.  These remain separate from
-# the COSMIC fallback until their dependency stages and profile integration
-# are complete.
+# Source-owned Plasma runtime components.
 [[component]]
 name = "kwin"
 repo = "https://invent.kde.org/plasma/kwin.git"
@@ -1878,6 +1607,206 @@ path = "src/desktop/kde/plasma-desktop"
 sync = "copy"
 
 [[component]]
+name = "milou"
+repo = "https://invent.kde.org/plasma/milou.git"
+branch = "v6.6.5"
+revision = "03565a0e603168d21d7e7a6db9861b28d484d99b"
+path = "src/desktop/kde/milou"
+sync = "copy"
+
+[[component]]
+name = "systemsettings"
+repo = "https://invent.kde.org/plasma/systemsettings.git"
+branch = "v6.6.5"
+revision = "0944561eedafb1ffe2fde51105b31b5ba0c28d18"
+path = "src/desktop/kde/systemsettings"
+sync = "copy"
+
+[[component]]
+name = "plasma-systemmonitor"
+repo = "https://invent.kde.org/plasma/plasma-systemmonitor.git"
+branch = "v6.6.5"
+revision = "ec32a4e2ecd9f43486bc679ad586b691e4bdcb29"
+path = "src/desktop/kde/plasma-systemmonitor"
+sync = "copy"
+
+[[component]]
+name = "ksystemstats"
+repo = "https://invent.kde.org/plasma/ksystemstats.git"
+branch = "v6.6.5"
+revision = "43527713b7b1ea2ba8412ab44f8beb2f16a2a28e"
+path = "src/desktop/kde/ksystemstats"
+sync = "copy"
+
+[[component]]
+name = "plasma-nm"
+repo = "https://invent.kde.org/plasma/plasma-nm.git"
+branch = "v6.6.5"
+revision = "079adc75038c66170f46b02c6c9fba846ecf8085"
+path = "src/desktop/kde/plasma-nm"
+sync = "copy"
+
+[[component]]
+name = "plasma-pa"
+repo = "https://invent.kde.org/plasma/plasma-pa.git"
+branch = "v6.6.5"
+revision = "a6c6c75885b004f81a24d1fc58c5bd793be05266"
+path = "src/desktop/kde/plasma-pa"
+sync = "copy"
+
+[[component]]
+name = "powerdevil"
+repo = "https://invent.kde.org/plasma/powerdevil.git"
+branch = "v6.6.5"
+revision = "bed48f9eec30f7589ceac608f634abcb46b8fd90"
+path = "src/desktop/kde/powerdevil"
+sync = "copy"
+
+[[component]]
+name = "polkit-kde-agent-1"
+repo = "https://invent.kde.org/plasma/polkit-kde-agent-1.git"
+branch = "v6.6.5"
+revision = "cc47555bf1b989903a8421ad666fd0270feb4d78"
+path = "src/desktop/kde/polkit-kde-agent-1"
+sync = "copy"
+
+[[component]]
+name = "xdg-desktop-portal-kde"
+repo = "https://invent.kde.org/plasma/xdg-desktop-portal-kde.git"
+branch = "v6.6.5"
+revision = "e83c8c953700168b01b5884120a71879babeba81"
+path = "src/desktop/kde/xdg-desktop-portal-kde"
+sync = "copy"
+
+[[component]]
+name = "kpipewire"
+repo = "https://invent.kde.org/plasma/kpipewire.git"
+branch = "v6.6.5"
+revision = "f8ba977dbc4f223aea8372bbe7e73071cd4c2e21"
+path = "src/desktop/kde/kpipewire"
+sync = "copy"
+
+[[component]]
+name = "ffmpeg"
+repo = "https://github.com/FFmpeg/FFmpeg.git"
+branch = "n8.1.2"
+revision = "38b88335f99e76ed89ff3c93f877fdefce736c13"
+path = "src/system/multimedia/ffmpeg"
+sync = "copy"
+
+[[component]]
+name = "libva"
+repo = "https://github.com/intel/libva.git"
+branch = "2.24.1"
+revision = "710eb465c6277ee2cac3e6948767b01eebe7e77a"
+path = "src/system/graphics/libva"
+sync = "copy"
+
+[[component]]
+name = "opencv"
+repo = "https://github.com/opencv/opencv.git"
+branch = "4.14.0"
+revision = "0654a42e19215ef25b1d367d822f3c630447e7c7"
+path = "src/system/multimedia/opencv"
+sync = "copy"
+
+[[component]]
+name = "dolphin"
+repo = "https://invent.kde.org/system/dolphin.git"
+branch = "v26.08.1"
+revision = "da98e98d3e806c1ea57edc8e39988173a6dfdef7"
+path = "src/desktop/kde/dolphin"
+sync = "copy"
+
+[[component]]
+name = "konsole"
+repo = "https://invent.kde.org/utilities/konsole.git"
+branch = "v26.08.1"
+revision = "ed922221cbe0da81017f4de28e483e1777e6cd67"
+path = "src/desktop/kde/konsole"
+sync = "copy"
+
+[[component]]
+name = "kate"
+repo = "https://invent.kde.org/utilities/kate.git"
+branch = "v26.08.1"
+revision = "b219b9435490f2a9e26af72aecded08e36dfc774"
+path = "src/desktop/kde/kate"
+sync = "copy"
+
+[[component]]
+name = "ark"
+repo = "https://invent.kde.org/utilities/ark.git"
+branch = "v26.08.1"
+revision = "ce842bc2046c8718d7559d9f88ce1fc4c0fbde9d"
+path = "src/desktop/kde/ark"
+sync = "copy"
+
+[[component]]
+name = "spectacle"
+repo = "https://invent.kde.org/graphics/spectacle.git"
+branch = "v6.6.5"
+revision = "37b33707dc5b5eb3c82c477d6afee13e606b2c19"
+path = "src/desktop/kde/spectacle"
+sync = "copy"
+
+[[component]]
+name = "kfilemetadata"
+repo = "https://invent.kde.org/frameworks/kfilemetadata.git"
+branch = "v6.26.0"
+revision = "18349cefb4afcff2714f093408dfdd845e974267"
+path = "src/desktop/kde/kfilemetadata"
+sync = "copy"
+
+[[component]]
+name = "kpty"
+repo = "https://invent.kde.org/frameworks/kpty.git"
+branch = "v6.26.0"
+revision = "a88ed97bede73ed6dd7239a29d6f9a23b5f1fd9d"
+path = "src/desktop/kde/kpty"
+sync = "copy"
+
+[[component]]
+name = "networkmanager-qt"
+repo = "https://invent.kde.org/frameworks/networkmanager-qt.git"
+branch = "v6.26.0"
+revision = "03cb7b0ef1ae8cb24b3e418b6ca8938dfe47be92"
+path = "src/desktop/kde/networkmanager-qt"
+sync = "copy"
+
+[[component]]
+name = "modemmanager-qt"
+repo = "https://invent.kde.org/frameworks/modemmanager-qt.git"
+branch = "v6.26.0"
+revision = "9cada7952c158c5571619cc709475a3bdbe52c98"
+path = "src/desktop/kde/modemmanager-qt"
+sync = "copy"
+
+[[component]]
+name = "purpose"
+repo = "https://invent.kde.org/frameworks/purpose.git"
+branch = "v6.26.0"
+revision = "2976526a14272a45409d7562465f00f58a215d89"
+path = "src/desktop/kde/purpose"
+sync = "copy"
+
+[[component]]
+name = "pulseaudio-qt"
+repo = "https://invent.kde.org/libraries/pulseaudio-qt.git"
+branch = "v1.9.0"
+revision = "7ec54e778fcaefadb4c62da142e536d1d7346803"
+path = "src/desktop/kde/pulseaudio-qt"
+sync = "copy"
+
+[[component]]
+name = "kquickimageeditor"
+repo = "https://invent.kde.org/libraries/kquickimageeditor.git"
+branch = "v0.7.0.1"
+revision = "ac7568044defc89c494b0d6edb60073cb0ad8b25"
+path = "src/desktop/kde/kquickimageeditor"
+sync = "copy"
+
+[[component]]
 name = "breeze"
 repo = "https://invent.kde.org/plasma/breeze.git"
 branch = "v6.6.5"
@@ -1899,6 +1828,14 @@ repo = "https://invent.kde.org/frameworks/kirigami.git"
 branch = "v6.26.0"
 revision = "12a3cf2a6ef624da37956f4c117958e1a2fe4945"
 path = "src/desktop/kde/kirigami"
+sync = "copy"
+
+[[component]]
+name = "qqc2-desktop-style"
+repo = "https://invent.kde.org/frameworks/qqc2-desktop-style.git"
+branch = "v6.26.0"
+revision = "a63714aa1b59d8c1b0639bab3da5063eabcfcaf8"
+path = "src/desktop/kde/qqc2-desktop-style"
 sync = "copy"
 
 [[component]]
@@ -2035,6 +1972,14 @@ repo = "https://github.com/KDE/knotifications.git"
 branch = "v6.26.0"
 revision = "9c3cb2911c88006f844780efda67f5507128491d"
 path = "src/desktop/kde/knotifications"
+sync = "copy"
+
+[[component]]
+name = "knotifyconfig"
+repo = "https://github.com/KDE/knotifyconfig.git"
+branch = "v6.26.0"
+revision = "3e15f6ffb17232d85d05198e13443325462c7755"
+path = "src/desktop/kde/knotifyconfig"
 sync = "copy"
 
 [[component]]
@@ -2253,4 +2198,180 @@ repo = "https://gitlab.freedesktop.org/fontconfig/fontconfig.git"
 branch = "2.17.1"
 revision = "6d0a98982ec351c165c9224c8b7dbdfca3010e47"
 path = "src/system/libraries/fontconfig"
+sync = "copy"
+
+[[component]]
+name = "lm-sensors"
+repo = "https://github.com/lm-sensors/lm-sensors.git"
+branch = "V3-6-2"
+revision = "5c3ba50f806dea27c3b1e368966191c735459111"
+path = "src/system/libraries/lm-sensors"
+sync = "copy"
+
+[[component]]
+name = "highway"
+repo = "https://github.com/google/highway.git"
+branch = "1.3.0"
+revision = "ac0d5d297b13ab1b89f48484fc7911082d76a93f"
+path = "src/system/libraries/highway"
+sync = "copy"
+
+[[component]]
+name = "modemmanager"
+repo = "https://gitlab.freedesktop.org/mobile-broadband/ModemManager.git"
+branch = "1.24.2"
+revision = "f2b9ab1ad78d322f32134a444b5b54c6e8160e19"
+path = "src/system/services/modemmanager"
+sync = "copy"
+
+[[component]]
+name = "zxing-cpp"
+repo = "https://github.com/zxing-cpp/zxing-cpp.git"
+branch = "v3.1.1"
+revision = "287c85df6f961c8efbfb5ffd736cd9457b8b890e"
+path = "src/system/libraries/zxing-cpp"
+sync = "copy"
+
+[[component]]
+name = "pulseaudio"
+repo = "https://gitlab.freedesktop.org/pulseaudio/pulseaudio.git"
+branch = "v17.0"
+revision = "1f020889c9aa44ea0f63d7222e8c2b62c3f45f68"
+path = "src/system/multimedia/pulseaudio"
+sync = "copy"
+
+[[component]]
+name = "libsndfile"
+repo = "https://github.com/libsndfile/libsndfile.git"
+branch = "1.2.2"
+revision = "72f6af15e8f85157bd622ed45b979025828b7001"
+path = "src/system/multimedia/libsndfile"
+sync = "copy"
+
+[[component]]
+name = "wireplumber"
+repo = "https://gitlab.freedesktop.org/pipewire/wireplumber.git"
+branch = "0.5.17"
+revision = "11e501181fb87dc8e72e55156d672109fbad2434"
+path = "src/system/multimedia/wireplumber"
+sync = "copy"
+
+[[component]]
+name = "upower"
+repo = "https://gitlab.freedesktop.org/upower/upower.git"
+branch = "v1.91.4"
+revision = "af22b0bb6a97fff89b0e11101de9fc4937832864"
+path = "src/system/services/upower"
+sync = "copy"
+
+[[component]]
+name = "udisks2"
+repo = "https://github.com/storaged-project/udisks.git"
+branch = "udisks-2.11.2"
+revision = "caffebe56d8208365cf0d62e0d05d31260d91156"
+path = "src/system/services/udisks2"
+sync = "copy"
+
+[[component]]
+name = "bluez"
+repo = "https://github.com/bluez/bluez.git"
+branch = "5.87"
+revision = "65d11edee469c24dcc8d075b8be9c040cebaaf98"
+path = "src/system/services/bluez"
+sync = "copy"
+
+[[component]]
+name = "power-profiles-daemon"
+repo = "https://gitlab.freedesktop.org/upower/power-profiles-daemon.git"
+branch = "0.30"
+revision = "5b4994c8a91290481bef87a5bae95391d0ec677f"
+path = "src/system/services/power-profiles-daemon"
+sync = "copy"
+
+[[component]]
+name = "libgudev"
+repo = "https://gitlab.gnome.org/GNOME/libgudev.git"
+branch = "238"
+revision = "df7c9c9940160307aaeb31347f4776a46f8736a9"
+path = "src/system/libraries/libgudev"
+sync = "copy"
+
+[[component]]
+name = "libblockdev"
+repo = "https://github.com/storaged-project/libblockdev.git"
+branch = "3.5.0"
+revision = "065d6910a0e915dbe633356da7bad9c4b3a2e2b9"
+path = "src/system/libraries/libblockdev"
+sync = "copy"
+
+[[component]]
+name = "libbytesize"
+repo = "https://github.com/storaged-project/libbytesize.git"
+branch = "2.12"
+revision = "518fd4a0a863e896675a7f5ef0164a36eb4d7b03"
+path = "src/system/libraries/libbytesize"
+sync = "copy"
+
+[[component]]
+name = "gmp"
+repo = "https://github.com/gmp-mirror/gmp.git"
+branch = "master"
+revision = "4b3b66d3328e390af894b97e0438aed90c3305be"
+path = "src/system/libraries/gmp"
+sync = "copy"
+
+[[component]]
+name = "mpfr"
+repo = "https://gitlab.inria.fr/mpfr/mpfr.git"
+branch = "4.2.2"
+revision = "eaa57b856d814af32f97d5e5eb129fb986235323"
+path = "src/system/libraries/mpfr"
+sync = "copy"
+
+[[component]]
+name = "keyutils"
+repo = "https://git.kernel.org/pub/scm/linux/kernel/git/dhowells/keyutils.git"
+branch = "v1.6.3"
+revision = "cb3bb194cca88211cbfcdde2f10c0f43c3fb8ec3"
+path = "src/system/security/keyutils"
+sync = "copy"
+
+[[component]]
+name = "cryptsetup"
+repo = "https://gitlab.com/cryptsetup/cryptsetup.git"
+branch = "v2.8.8"
+revision = "f1dbcce190719c9e177e8fbaf3df0b908f87d920"
+path = "src/system/storage/cryptsetup"
+sync = "copy"
+
+[[component]]
+name = "popt"
+repo = "https://github.com/rpm-software-management/popt.git"
+branch = "popt-1.19-release"
+revision = "916e61045d268f7e37ade5ec047eb77e8299e6ad"
+path = "src/system/libraries/popt"
+sync = "copy"
+
+[[component]]
+name = "json-c"
+repo = "https://github.com/json-c/json-c.git"
+branch = "json-c-0.19-20260627"
+revision = "aa716cd8d663c976b99b0f30f102ee1d8ef63146"
+path = "src/system/libraries/json-c"
+sync = "copy"
+
+[[component]]
+name = "lvm2"
+repo = "https://gitlab.com/lvmteam/lvm2.git"
+branch = "v2_03_42"
+revision = "56bef2d3430fcc5d5b00f64c099251ea824ad16f"
+path = "src/system/storage/lvm2"
+sync = "copy"
+
+[[component]]
+name = "libnvme"
+repo = "https://github.com/linux-nvme/libnvme.git"
+branch = "v1.16.2"
+revision = "07d6c32c10fd63fad141cd0120314a055695de32"
+path = "src/system/libraries/libnvme"
 sync = "copy"

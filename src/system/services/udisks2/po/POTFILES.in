@@ -1,0 +1,37 @@
+# List of source files containing translatable strings.
+# Please keep this file sorted alphabetically.
+data/org.freedesktop.UDisks2.policy.in
+modules/btrfs/data/org.freedesktop.UDisks2.btrfs.policy.in
+modules/btrfs/udiskslinuxfilesystembtrfs.c
+modules/btrfs/udiskslinuxmanagerbtrfs.c
+modules/iscsi/data/org.freedesktop.UDisks2.iscsi.policy.in
+modules/iscsi/udiskslinuxiscsisession.c
+modules/iscsi/udiskslinuxmanageriscsiinitiator.c
+modules/lsm/data/org.freedesktop.UDisks2.lsm.policy.in
+modules/lsm/lsm_linux_drive.c
+modules/lsm/lsm_linux_drive_local.c
+modules/lvm2/data/org.freedesktop.UDisks2.lvm2.policy.in
+modules/lvm2/udiskslinuxlogicalvolume.c
+modules/lvm2/udiskslinuxmanagerlvm2.c
+modules/lvm2/udiskslinuxphysicalvolume.c
+modules/lvm2/udiskslinuxvdovolume.c
+modules/lvm2/udiskslinuxvolumegroup.c
+src/udisksbasejob.c
+src/udiskslinuxblock.c
+src/udiskslinuxdrive.c
+src/udiskslinuxdriveata.c
+src/udiskslinuxencrypted.c
+src/udiskslinuxfilesystem.c
+src/udiskslinuxloop.c
+src/udiskslinuxmanager.c
+src/udiskslinuxmanagernvme.c
+src/udiskslinuxmdraid.c
+src/udiskslinuxmountoptions.c
+src/udiskslinuxnvmecontroller.c
+src/udiskslinuxnvmefabrics.c
+src/udiskslinuxnvmenamespace.c
+src/udiskslinuxpartition.c
+src/udiskslinuxpartitiontable.c
+src/udiskslinuxswapspace.c
+udisks/udisksclient.c
+udisks/udisksobjectinfo.c

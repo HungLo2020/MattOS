@@ -1,0 +1,365 @@
+# Translation of powerdevil into Japanese.
+# SPDX-FileCopyrightText: 2023, 2025 Ryuichi Yamada <ryuichi_ya220@outlook.jp>
+# Yukiko Bando <ybando@k6.dion.ne.jp>, 2008, 2009.
+# Taiki Komoda <kom@kde.gr.jp>, 2010.
+# TAKANO Yuji <takachan@running-dog.net>, 2015.
+# Fuminobu Takeyama <ftake@geeko.jp>, 2018.
+# Tomohiro Hyakutake <tomhioo@outlook.jp>, 2019.
+# Fumiaki Okushi <fumiaki.okushi@gmail.com>, 2010, 2015, 2018, 2019.
+# SPDX-FileCopyrightText: 2026 Mint <5602mint@gmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: powerdevil\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-02-10 02:38+0000\n"
+"PO-Revision-Date: 2026-02-23 13:19+0900\n"
+"Last-Translator: Mint <5602mint@gmail.com>\n"
+"Language-Team: Japanese <kde-i18n-doc@kde.org>\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Accelerator-Marker: &\n"
+"X-Text-Markup: kde4\n"
+"X-Generator: Lokalize 25.12.2\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Yukiko Bando,Fuminobu Takeyama,Ryuichi Yamada"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "ybando@k6.dion.ne.jp,ftake@geeko.jp,ryuichi_ya220@outlook.jp"
+
+#: actions/bundled/dpms.cpp:73 actions/bundled/handlebuttonevents.cpp:46
+#: actions/bundled/keyboardbrightnesscontrol.cpp:47
+#: actions/bundled/powerprofile.cpp:67 powerdevilscreenbrightnessagent.cpp:138
+#, kde-format
+msgctxt "Name for powerdevil shortcuts category"
+msgid "Power Management"
+msgstr "電源管理"
+
+#: actions/bundled/dpms.cpp:76
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Turn Off Screen"
+msgstr "スクリーンの電源を切る"
+
+#: actions/bundled/handlebuttonevents.cpp:51
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Suspend"
+msgstr "サスペンド"
+
+#: actions/bundled/handlebuttonevents.cpp:56
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Hibernate"
+msgstr "ハイバネート"
+
+#: actions/bundled/handlebuttonevents.cpp:61
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Power Off"
+msgstr "電源を切る"
+
+#: actions/bundled/handlebuttonevents.cpp:75
+#, kde-format
+msgctxt ""
+"@action:inmenu Global shortcut, used for long presses of the power button"
+msgid "Power Down"
+msgstr "強制的に電源を切る"
+
+#: actions/bundled/keyboardbrightnesscontrol.cpp:51
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Increase Keyboard Brightness"
+msgstr "キーボードの明るさを上げる"
+
+#: actions/bundled/keyboardbrightnesscontrol.cpp:56
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Decrease Keyboard Brightness"
+msgstr "キーボードの明るさを下げる"
+
+#: actions/bundled/keyboardbrightnesscontrol.cpp:61
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Toggle Keyboard Backlight"
+msgstr "キーボードのバックライトをオン/オフ"
+
+#: actions/bundled/powerprofile.cpp:70
+#, kde-format
+msgid "Switch Power Profile"
+msgstr "電源プロファイルを切り替え"
+
+#: controllers/backlightbrightness.cpp:190 controllers/kwinbrightness.cpp:51
+#, kde-format
+msgctxt "Display label"
+msgid "Built-in Screen"
+msgstr "内蔵スクリーン"
+
+#: controllers/kwinbrightness.cpp:55
+#, kde-format
+msgctxt "Display label: vendor + product name"
+msgid "%1 %2"
+msgstr "%1 %2"
+
+#: powerdevilapp.cpp:102
+#, kde-format
+msgid "KDE Power Management System"
+msgstr "KDE 電源管理システム"
+
+#: powerdevilapp.cpp:104
+#, kde-format
+msgctxt "@title"
+msgid ""
+"PowerDevil, an advanced, modular and lightweight power management daemon"
+msgstr "PowerDevil - 高度でモジュラー、そして軽量な電源管理デーモン"
+
+#: powerdevilapp.cpp:106
+#, kde-format
+msgctxt "@info:credit"
+msgid "© 2015–2019 Kai Uwe Broulik"
+msgstr "© 2015-2019 Kai Uwe Broulik"
+
+#: powerdevilapp.cpp:107
+#, kde-format
+msgctxt "@info:credit"
+msgid "Kai Uwe Broulik"
+msgstr "Kai Uwe Broulik"
+
+#: powerdevilapp.cpp:107
+#, kde-format
+msgctxt "@info:credit"
+msgid "Maintainer"
+msgstr "メンテナ"
+
+#: powerdevilapp.cpp:108
+#, kde-format
+msgctxt "@info:credit"
+msgid "Dario Freddi"
+msgstr "Dario Freddi"
+
+#: powerdevilapp.cpp:108
+#, kde-format
+msgctxt "@info:credit"
+msgid "Previous maintainer"
+msgstr "以前のメンテナ"
+
+#: powerdevilapp.cpp:116
+#, kde-format
+msgid "Replace an existing instance"
+msgstr "既存のインスタンスを置換"
+
+#: powerdevilcore.cpp:403 powerdevilcore.cpp:414
+#, kde-format
+msgid "Activity Manager"
+msgstr "アクティビティマネージャ"
+
+#: powerdevilcore.cpp:404
+#, kde-format
+msgid "This activity's policies prevent the system from going to sleep"
+msgstr "このアクティビティポリシーはシステムのスリープを妨げます"
+
+#: powerdevilcore.cpp:415
+#, kde-format
+msgid "This activity's policies prevent screen power management"
+msgstr "このアクティビティポリシーはスクリーンの電源管理を妨げます"
+
+#: powerdevilcore.cpp:480
+#, kde-format
+msgid "Extra Battery Added"
+msgstr "追加のバッテリが接続されました"
+
+#: powerdevilcore.cpp:481
+#, kde-format
+msgid "The system will no longer go to sleep."
+msgstr "システムはスリープしなくなります。"
+
+#: powerdevilcore.cpp:545
+#, kde-format
+msgctxt "%1 is vendor name, %2 is product name"
+msgid "%1 %2"
+msgstr "%1 %2"
+
+#: powerdevilcore.cpp:548
+#, kde-format
+msgctxt "The battery in an external device"
+msgid "Device Battery Low (%1% Remaining)"
+msgstr "デバイスのバッテリ低下 (残り %1%)"
+
+#: powerdevilcore.cpp:550
+#, kde-format
+msgctxt "Placeholder is device name"
+msgid ""
+"The battery in \"%1\" is running low, and the device may turn off at any "
+"time. Please recharge or replace the battery."
+msgstr ""
+"デバイス \"%1\" のバッテリ残量が低下しており、デバイスの電源が突然切れるおそ"
+"れがあります。できるだけ早くバッテリを交換するか充電してください。"
+
+#: powerdevilcore.cpp:557
+#, kde-format
+msgid "Mouse Battery Low (%1% Remaining)"
+msgstr "マウスのバッテリ低下 (残り %1%)"
+
+#: powerdevilcore.cpp:561
+#, kde-format
+msgid "Keyboard Battery Low (%1% Remaining)"
+msgstr "キーボードのバッテリ低下 (残り %1%)"
+
+#: powerdevilcore.cpp:571
+#, kde-format
+msgid "Bluetooth Device Battery Low (%1% Remaining)"
+msgstr "Bluetooth デバイスのバッテリ低下 (残り %1%)"
+
+#: powerdevilcore.cpp:573
+#, kde-format
+msgctxt "Placeholder is device name"
+msgid ""
+"The battery in Bluetooth device \"%1\" is running low, and the device may "
+"turn off at any time. Please recharge or replace the battery."
+msgstr ""
+"Bluetooth デバイス \"%1\" のバッテリ残量が低下しており、デバイスの電源が突然"
+"切れるおそれがあります。できるだけ早くバッテリを交換するか充電してください。"
+
+#: powerdevilcore.cpp:615
+#, kde-format
+msgid ""
+"Ensure that the power cord is plugged in all the way and provides enough "
+"power."
+msgstr ""
+"電源コードが完全に接続され、十分な電力を供給していることを確認してください。"
+
+#: powerdevilcore.cpp:617
+#, kde-format
+msgid "Plug in the power cord."
+msgstr "電源を接続してください。"
+
+#: powerdevilcore.cpp:637
+#, kde-format
+msgid "The system will shut down in 60 seconds."
+msgstr "60秒後にシステムを停止します。"
+
+#: powerdevilcore.cpp:639
+#, kde-format
+msgctxt ""
+"@action:button Shut down without waiting for the battery critical timer"
+msgid "Shut Down Now"
+msgstr "今すぐシャットダウン"
+
+#: powerdevilcore.cpp:645
+#, kde-format
+msgid "The system will hibernate in 60 seconds."
+msgstr "60秒後にシステムをハイバネートします。"
+
+#: powerdevilcore.cpp:647
+#, kde-format
+msgctxt ""
+"@action:button Enter hibernation mode without waiting for the battery "
+"critical timer"
+msgid "Hibernate Now"
+msgstr "今すぐハイバネート"
+
+#: powerdevilcore.cpp:653
+#, kde-format
+msgid "The system will go to sleep in 60 seconds."
+msgstr "60秒後にシステムをスリープします。"
+
+#: powerdevilcore.cpp:655
+#, kde-format
+msgctxt ""
+"@action:button Suspend to ram without waiting for the battery critical timer"
+msgid "Sleep Now"
+msgstr "今すぐスリープ"
+
+#: powerdevilcore.cpp:661
+#, kde-format
+msgid "Please save your work."
+msgstr "作業を保存してください。"
+
+#: powerdevilcore.cpp:667
+#, kde-format
+msgctxt ""
+"Cancel timeout that will automatically put system to sleep because of low "
+"battery"
+msgid "Cancel"
+msgstr "キャンセル"
+
+#: powerdevilcore.cpp:682
+#, kde-format
+msgid "Battery Low (%1% Remaining)"
+msgstr "バッテリ残量低下 (残り %1%)"
+
+#: powerdevilcore.cpp:686
+#, kde-format
+msgid "Battery Critical (%1% Remaining)"
+msgstr "バッテリ危険レベル (残り%1%)"
+
+#: powerdevilcore.cpp:720
+#, kde-format
+msgid "Power Cord Plugged In"
+msgstr "電源コード接続"
+
+#: powerdevilcore.cpp:721
+#, kde-format
+msgid "The computer will no longer go to sleep."
+msgstr "コンピュータはスリープしなくなります。"
+
+#: powerdevilcore.cpp:723
+#, kde-format
+msgid "Running on AC Power"
+msgstr "AC 電源で動作中"
+
+#: powerdevilcore.cpp:724
+#, kde-format
+msgid "The power cord has been plugged in."
+msgstr "電源コードが接続されました。"
+
+#: powerdevilcore.cpp:736
+#, kde-format
+msgid "Running on Battery Power"
+msgstr "バッテリ電源で動作中"
+
+#: powerdevilcore.cpp:737
+#, kde-format
+msgid "The power cord has been unplugged."
+msgstr "電源コードが取り外されました。"
+
+#: powerdevilcore.cpp:800
+#, kde-format
+msgid "Charging Complete"
+msgstr "充電完了"
+
+#: powerdevilcore.cpp:800
+#, kde-format
+msgid "Battery now fully charged."
+msgstr "バッテリは完全に充電されました。"
+
+#: powerdevilscreenbrightnessagent.cpp:141
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Increase Screen Brightness"
+msgstr "スクリーンの明るさを上げる"
+
+#: powerdevilscreenbrightnessagent.cpp:148
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Increase Screen Brightness by 1%"
+msgstr "1% ずつスクリーンの明るさを上げる"
+
+#: powerdevilscreenbrightnessagent.cpp:155
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Decrease Screen Brightness"
+msgstr "スクリーンの明るさを下げる"
+
+#: powerdevilscreenbrightnessagent.cpp:162
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Decrease Screen Brightness by 1%"
+msgstr "1% ずつスクリーンの明るさを下げる"

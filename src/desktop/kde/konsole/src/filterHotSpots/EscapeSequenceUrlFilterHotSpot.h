@@ -1,0 +1,40 @@
+/*
+    SPDX-FileCopyrightText: 2007-2008 Robert Knight <robertknight@gmail.com>
+    SPDX-FileCopyrightText: 2020 Tomaz Canabrava <tcanabrava@gmail.com>
+
+    SPDX-License-Identifier: GPL-2.0-or-later
+*/
+
+#ifndef ESCAPE_SEQUENCE_URL_HOTSPOT
+#define ESCAPE_SEQUENCE_URL_HOTSPOT
+
+#include "HotSpot.h"
+
+class QMimeData;
+
+namespace Konsole
+{
+class KONSOLEPRIVATE_EXPORT EscapeSequenceUrlHotSpot : public HotSpot
+{
+public:
+    EscapeSequenceUrlHotSpot(int startLine, int startColumn, int endLine, int endColumn, const QString &text, const QString &url);
+
+    QList<QAction *> actions() override;
+    void activate(QObject *obj = nullptr) override;
+
+    bool hasDragOperation() const override;
+    void startDrag() override;
+
+    void mouseEnterEvent(TerminalDisplay *td, QMouseEvent *ev) override;
+    void mouseLeaveEvent(TerminalDisplay *td, QMouseEvent *ev) override;
+
+private:
+    QMimeData *createMimeData() const;
+
+private:
+    QString _text;
+    QString _url;
+};
+
+}
+#endif

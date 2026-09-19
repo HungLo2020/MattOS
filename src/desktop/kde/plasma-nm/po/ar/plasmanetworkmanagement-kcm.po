@@ -1,0 +1,249 @@
+# Copyright (C) 2024 This file is copyright:
+# This file is distributed under the same license as the plasma-nm package.
+# SPDX-FileCopyrightText: 2024, 2025, 2026 Zayed Al-Saidi <zayed.alsaidi@gmail.com>
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma-nm\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-29 03:06+0000\n"
+"PO-Revision-Date: 2025-11-19 20:26+0400\n"
+"Last-Translator: Zayed Al-Saidi <zayed.alsaidi@gmail.com>\n"
+"Language-Team: ar\n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
+"&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
+"X-Generator: Lokalize 23.08.5\n"
+
+#: kcm.cpp:269
+#, kde-format
+msgid "Import the VPN configuration from \"%1\"?"
+msgstr "هل استورد اتصال في بي ان من \"%1\"؟"
+
+#: kcm.cpp:270
+#, kde-format
+msgctxt "@title:window"
+msgid "Import VPN Configuration"
+msgstr "استورد اتصال في بي ان"
+
+#: kcm.cpp:271
+#, kde-format
+msgid "Import"
+msgstr "استورد"
+
+#: kcm.cpp:278 kcm.cpp:351
+#, kde-format
+msgid "Failed to import VPN connection: %1"
+msgstr "فشل في استيراد اتصال في بي ان: %1"
+
+#: kcm.cpp:281 kcm.cpp:354
+#, kde-format
+msgid "Connection imported."
+msgstr "استورد الاتصال"
+
+#: kcm.cpp:423
+#, kde-format
+msgid "my_shared_connection"
+msgstr "اتصالي_المشترك"
+
+#: kcm.cpp:495
+#, kde-format
+msgid "Export VPN Connection"
+msgstr "صدر الاتصال في بي ان"
+
+#: kcm.cpp:515
+#, kde-format
+msgid "Do you want to save changes made to the connection '%1'?"
+msgstr "أتريد حفظ التّغييرات على اتصال '%1'؟"
+
+#: kcm.cpp:516
+#, kde-format
+msgctxt "@title:window"
+msgid "Save Changes"
+msgstr "احفظ التّغييرات"
+
+#: kcm.cpp:611
+#, kde-format
+msgid "Import VPN Connection"
+msgstr "استورد اتصال في بي ان"
+
+#: kcm.cpp:613
+#, kde-format
+msgid "VPN connections (%1)"
+msgstr "اتصالات في بي ان (%1)"
+
+#: kcm.cpp:616
+#, kde-format
+msgid "No file was provided"
+msgstr "لا يوجد ملف"
+
+#: kcm.cpp:684
+#, kde-format
+msgid "Unknown VPN type"
+msgstr "نوع في بي ان مجهول"
+
+#: qml/AddConnectionDialog.qml:18
+msgctxt "@title:window"
+msgid "Choose a Connection Type"
+msgstr "اختر نوع الاتصال"
+
+#: qml/ConfigurationDialog.qml:20
+msgctxt "@title:window"
+msgid "Configuration"
+msgstr "الضّبط"
+
+#: qml/ConfigurationDialog.qml:35
+msgid "General"
+msgstr "عامّ"
+
+#: qml/ConfigurationDialog.qml:43
+msgid "Ask for PIN on modem detection"
+msgstr "اسأل عن رمز السري عند اكتشاف مودم"
+
+#: qml/ConfigurationDialog.qml:50
+msgid "Show virtual connections"
+msgstr "اعرض الاتصالات الافتراضية"
+
+#: qml/ConfigurationDialog.qml:57
+msgid "Create new connections as system connections"
+msgstr "أنشئ اتصالات جديدة كاتصالات للنظام"
+
+#: qml/ConfigurationDialog.qml:62
+msgid "Hotspot"
+msgstr "نقطة اتصال"
+
+#: qml/ConfigurationDialog.qml:70
+msgctxt "@label Hotspot name"
+msgid "Name:"
+msgstr "الاسم:"
+
+#: qml/ConfigurationDialog.qml:76
+msgctxt "@label Hotspot password"
+msgid "Password:"
+msgstr "كلمة السر:"
+
+#: qml/ConfigurationDialog.qml:95
+msgid "Hotspot name must not be empty"
+msgstr "يجب ألا يكون اسم نقطة الاتصال فارغ"
+
+#: qml/ConfigurationDialog.qml:105
+msgid ""
+"Hotspot password must either be empty or consist of anywhere from 8 up to 64 "
+"characters"
+msgstr ""
+"يجب أن تكون كلمة سر نقطة الاتصال فارغة أو تحوي على 8 محارف أو أكثر حتى 64 "
+"محرف"
+
+#: qml/ConfigurationDialog.qml:106
+msgid ""
+"Hotspot password must either be empty or consist of one of the following:"
+"<ul><li>Exactly 5 or 13 any characters</li><li>Exactly 10 or 26 hexadecimal "
+"characters:<br/>abcdef, ABCDEF or 0-9</li></ul>"
+msgstr ""
+"يجب أن تكون كلمة سر نقطة الاتصال فارغة أو تحوي على أحد الأشياء التالية: "
+"<ul><li>5 محارف أو 13 بالضبط</li><li> 10 أو 26 بالضبط محرف سداسي عشر:<br/"
+">abcdef أو ABCDEF أو 0-9</li></ul>"
+
+#. i18n is a way to use something pre-exposed to QML.
+#: qml/ConnectionItem.qml:29
+msgctxt "@label/rich"
+msgid "%1"
+msgstr "%1"
+
+#: qml/ConnectionItem.qml:85
+msgid "Connect"
+msgstr "اتّصل"
+
+#: qml/ConnectionItem.qml:85
+msgid "Disconnect"
+msgstr "اقطع الاتصال"
+
+#: qml/ConnectionItem.qml:90
+msgctxt "@info:tooltip"
+msgid "Cannot connect to this network because it was not detected."
+msgstr "يتعذر الاتصال بهذه الشبكة لأنه لم يجدها."
+
+#: qml/ConnectionItem.qml:95
+msgid "Delete"
+msgstr "احذف"
+
+#: qml/ConnectionItem.qml:106
+msgid "Export"
+msgstr "صدّر"
+
+#: qml/ConnectionItem.qml:120
+msgid "Connected"
+msgstr "متّصل"
+
+#: qml/ConnectionItem.qml:122
+msgid "Connecting"
+msgstr "يتّصل"
+
+#: qml/ConnectionItem.qml:124
+msgctxt "@title:column Available networks"
+msgid "Available"
+msgstr "متوفّرة"
+
+#: qml/main.qml:151
+msgid "Add new connection"
+msgstr "أضف اتصالاً جديداً"
+
+#: qml/main.qml:169
+msgid "Remove selected connection"
+msgstr "أزل الاتصال المحدد"
+
+#: qml/main.qml:187
+msgid "Export selected connection"
+msgstr "صدر الاتصال المحدد"
+
+#: qml/main.qml:212
+msgid "Configuration"
+msgstr "الضّبط"
+
+#: qml/main.qml:239
+msgctxt "@title:window"
+msgid "Remove Connection"
+msgstr "أزل الاتصال"
+
+#: qml/main.qml:240
+msgid "Do you want to remove the connection '%1'?"
+msgstr "أتريد إزالة الاتصال '%1'؟"
+
+#: qml/main.qml:262
+msgctxt "@action:button Connect to network"
+msgid "Connect"
+msgstr "اتّصل"
+
+#: qml/main.qml:268
+msgctxt "@action:button Cancel connecting to network"
+msgid "Cancel"
+msgstr "ألغِ"
+
+#: qml/main.qml:274
+msgctxt "@title:window"
+msgid "Enter Password"
+msgstr "أدخِل كلمة السر"
+
+#: qml/main.qml:280
+msgctxt "@label %1 is the name of the network the user is connecting to"
+msgid "Network: %1"
+msgstr "الشبكة: %1"
+
+#: qml/main.qml:301
+msgctxt "@label key is a passcode"
+msgid "Password must be a valid WEP key"
+msgstr "يجب أن تكون كلمة السر مفتاح WEP صالحًا"
+
+#: qml/main.qml:302
+msgctxt "@label password invalid length message"
+msgid "Password must be between 8 and 64 characters"
+msgstr "يجب أن تتكون كلمة السر من 8 إلى 64 حرفًا"
+
+#~ msgid "Create"
+#~ msgstr "أنشئ"
+
+#~ msgid "Cancel"
+#~ msgstr "ألغِ"

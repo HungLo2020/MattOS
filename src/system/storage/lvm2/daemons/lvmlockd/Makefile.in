@@ -1,0 +1,76 @@
+#
+# Copyright (C) 2014-2015 Red Hat, Inc.
+#
+# This file is part of LVM2.
+#
+# This copyrighted material is made available to anyone wishing to use,
+# modify, copy, or redistribute it subject to the terms and conditions
+# of the GNU Lesser General Public License v.2.1.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+top_builddir = @top_builddir@
+
+SOURCES = lvmlockd-core.c lvmlockd-helper.c
+SOURCES2 = lvmlockctl.c
+
+TARGETS = lvmlockd lvmlockctl
+
+include $(top_builddir)/make.tmpl
+
+ifeq ("@BUILD_LOCKDSANLOCK@", "yes")
+  SOURCES += lvmlockd-sanlock.c
+  CFLAGS += $(LIBSANLOCKCLIENT_CFLAGS)
+  LOCK_LIBS += $(LIBSANLOCKCLIENT_LIBS)
+endif
+
+ifeq ("@BUILD_LOCKDDLM@", "yes")
+  SOURCES += lvmlockd-dlm.c
+  CFLAGS += $(LIBDLM) $(LIBDLMCONTROL_CFLAGS)
+#  LOCK_LIBS += $(LIBDLM_LIBS) $(LIBDLMCONTROL_LIBS)
+  LOCK_LIBS += -ldlm_lt $(LIBDLMCONTROL_LIBS)
+endif
+
+ifeq ("@BUILD_LOCKDIDM@", "yes")
+  SOURCES += lvmlockd-idm.c
+  LOCK_LIBS += $(LIBSEAGATEILM_LIBS) $(BLKID_LIBS)
+endif
+
+CFLOW_SOURCES = $(addprefix $(srcdir)/, $(SOURCES))
+CFLOW_TARGET = lvmlockd
+
+.PHONY: install_lvmlockd install_lvmlockctl
+
+CFLAGS += $(EXTRA_EXEC_CFLAGS)
+INCLUDES += -I$(top_srcdir)/libdaemon/server
+LDFLAGS += -L$(top_builddir)/libdaemon/server $(EXTRA_EXEC_LDFLAGS) $(ELDFLAGS)
+LIBS += $(DAEMON_LIBS) $(PTHREAD_LIBS)
+
+ifeq ("@SD_NOTIFY_SUPPORT@", "yes")
+	CFLAGS += $(LIBSYSTEMD_CFLAGS)
+	LIBS += $(LIBSYSTEMD_LIBS)
+endif
+
+lvmlockd: $(OBJECTS) $(top_builddir)/libdaemon/server/libdaemonserver.a $(INTERNAL_LIBS)
+	$(SHOW) "    [CC] $@"
+	$(Q) $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $+ $(LOCK_LIBS) $(LIBS)
+
+lvmlockctl: lvmlockctl.o $(INTERNAL_LIBS)
+	$(SHOW) "    [CC] $@"
+	$(Q) $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $+ $(LIBS)
+
+install_lvmlockd: lvmlockd
+	$(SHOW) "    [INSTALL] $<"
+	$(Q) $(INSTALL_PROGRAM) -D $< $(sbindir)/$(<F)
+
+install_lvmlockctl: lvmlockctl
+	$(SHOW) "    [INSTALL] $<"
+	$(Q) $(INSTALL_PROGRAM) -D $< $(sbindir)/$(<F)
+
+install_lvm2: install_lvmlockd install_lvmlockctl
+
+install: install_lvm2

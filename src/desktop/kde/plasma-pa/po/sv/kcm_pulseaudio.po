@@ -1,0 +1,672 @@
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+#
+# SPDX-FileCopyrightText: 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2024, 2025 Stefan Asserhäll <stefan.asserhall@gmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-04-30 02:40+0000\n"
+"PO-Revision-Date: 2025-05-31 12:50+0200\n"
+"Last-Translator: Stefan Asserhäll <stefan.asserhall@gmail.com>\n"
+"Language-Team: Swedish <kde-i18n-doc@kde.org>\n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 25.04.1\n"
+
+#: devicerenamesaver.cpp:115
+#, kde-kuit-format
+msgctxt "@info:status error message"
+msgid ""
+"Changes have not been applied.<nl/>Failed to restart wireplumber.service. "
+"The command crashed."
+msgstr ""
+"Ändringar har inte tillämpats.<nl/>Det gick inte att starta om wireplumber."
+"service. Kommandot kraschade."
+
+#: devicerenamesaver.cpp:125
+#, kde-kuit-format
+msgctxt "@info:status error message %1 is an integer exit code"
+msgid ""
+"Changes have not been applied.<nl/>Failed to restart wireplumber.service. "
+"The command terminated with code: %1."
+msgstr ""
+"Ändringar har inte tillämpats.<nl/>Det gick inte att starta om wireplumber."
+"service. Kommandot avslutades med koden: %1."
+
+#: devicerenamesaver.cpp:237
+#, kde-format
+msgctxt "@info error %1 is a list of device identifiers"
+msgid "Failed to handle devices: %1."
+msgstr "Misslyckades hantera enheter: %1."
+
+#: devicerenamesaver.cpp:250
+#, kde-format
+msgctxt "@info error %1 is a path"
+msgid "Failed to create directory: %1."
+msgstr "Misslyckades skapa katalog '%1."
+
+#: devicerenamesaver.cpp:258
+#, kde-format
+msgctxt "@info error %1 is a path"
+msgid "Failed to open file for writing: %1."
+msgstr "Misslyckades öppna fil för skrivning: %1."
+
+#: kcm/ui/CardListItem.qml:52 kcm/ui/DeviceListItem.qml:151
+#, kde-format
+msgctxt "@label"
+msgid "Profile:"
+msgstr "Profil:"
+
+#: kcm/ui/ContextBrokenOverlay.qml:25
+#, kde-format
+msgctxt "@label"
+msgid "Connection to the Sound Service Lost"
+msgstr "Anslutning till ljudtjänsten har gått förlorad"
+
+#: kcm/ui/ContextBrokenOverlay.qml:28
+#, kde-format
+msgctxt "@info reconnecting to pulseaudio"
+msgid "Trying to reconnect…"
+msgstr "Försöker ansluta igen…"
+
+#: kcm/ui/ContextBrokenOverlay.qml:36
+#, kde-format
+msgctxt "@action retry connecting to pulseaudio"
+msgid "Retry"
+msgstr "Försök igen"
+
+#: kcm/ui/DeviceListItem.qml:57 kded/audioshortcutsservice.cpp:224
+#, kde-format
+msgid "Device name not found"
+msgstr "Enhetsnamn hittades inte"
+
+#: kcm/ui/DeviceListItem.qml:105
+#, kde-format
+msgid "Port:"
+msgstr "Port:"
+
+#: kcm/ui/DeviceListItem.qml:128 qml/listitemmenu.cpp:371
+#, kde-format
+msgctxt "Port is unavailable"
+msgid "%1 (unavailable)"
+msgstr "%1 (ej tillgänglig)"
+
+#: kcm/ui/DeviceListItem.qml:130 qml/listitemmenu.cpp:373
+#, kde-format
+msgctxt "Port is unplugged"
+msgid "%1 (unplugged)"
+msgstr "%1 (urkopplad)"
+
+#: kcm/ui/DeviceListItem.qml:205
+#, kde-format
+msgctxt "Placeholder is channel name"
+msgid "%1:"
+msgstr "%1:"
+
+#: kcm/ui/DeviceListItem.qml:230
+#, kde-format
+msgctxt "Perform an audio test of the device"
+msgid "Test"
+msgstr "Prova"
+
+#: kcm/ui/DeviceListItem.qml:239
+#, kde-format
+msgctxt "Show audio channels (e.g. to control left/right audio balance"
+msgid "Show Channels"
+msgstr "Visa kanaler"
+
+#: kcm/ui/main.qml:74
+#, kde-format
+msgid "Show Inactive Devices"
+msgstr "Visa inaktiva enheter"
+
+#: kcm/ui/main.qml:81
+#, kde-format
+msgid "Rename Devices…"
+msgstr "Byt namn på enheter…"
+
+#: kcm/ui/main.qml:87
+#, kde-format
+msgid "Configure Volume Controls…"
+msgstr "Anpassa volymkontroller…"
+
+#: kcm/ui/main.qml:94
+#, kde-format
+msgid "Configure…"
+msgstr "Anpassa…"
+
+#: kcm/ui/main.qml:97
+#, kde-format
+msgid "Requires %1 PulseAudio module"
+msgstr "Kräver PulseAudio-modul %1"
+
+#: kcm/ui/main.qml:100
+#, kde-format
+msgid ""
+"Add virtual output device for simultaneous output on all local sound cards"
+msgstr ""
+"Lägg till virtuell utenhet för samtidig utmatning på alla lokala ljudkort"
+
+#: kcm/ui/main.qml:106
+#, kde-format
+msgid ""
+"Automatically switch all running streams when a new output becomes available"
+msgstr ""
+"Byt automatiskt alla pågående strömmar när en ny utgång blir tillgänglig"
+
+#: kcm/ui/main.qml:143 kcm/ui/RenameDevices.qml:205
+#, kde-format
+msgid "Playback Devices"
+msgstr "Uppspelningsenheter"
+
+#: kcm/ui/main.qml:167 kcm/ui/RenameDevices.qml:229
+#, kde-format
+msgid "Recording Devices"
+msgstr "Inspelningsenheter"
+
+#: kcm/ui/main.qml:191
+#, kde-format
+msgid "Inactive Cards"
+msgstr "Inaktiva kort"
+
+#: kcm/ui/main.qml:226
+#, kde-format
+msgid "Playback Streams"
+msgstr "Uppspelningsströmmar"
+
+#: kcm/ui/main.qml:278
+#, kde-format
+msgid "Recording Streams"
+msgstr "Inspelningsströmmar"
+
+#: kcm/ui/main.qml:312
+#, kde-format
+msgctxt ""
+"%1 is an error string produced by an external component, and probably "
+"untranslated"
+msgid ""
+"Error trying to play a test sound. \n"
+"The system said: \"%1\""
+msgstr ""
+"Fel vid försök att spela upp ett testljud.\n"
+"Systemet rapporterade: \"%1\""
+
+#: kcm/ui/main.qml:416
+#, kde-format
+msgid "Front Left"
+msgstr "Vänster fram"
+
+#: kcm/ui/main.qml:417
+#, kde-format
+msgid "Front Center"
+msgstr "Center fram"
+
+#: kcm/ui/main.qml:418
+#, kde-format
+msgid "Front Right"
+msgstr "Höger fram"
+
+#: kcm/ui/main.qml:419
+#, kde-format
+msgid "Side Left"
+msgstr "Vänster sida"
+
+#: kcm/ui/main.qml:420
+#, kde-format
+msgid "Side Right"
+msgstr "Höger sida"
+
+#: kcm/ui/main.qml:421
+#, kde-format
+msgid "Rear Left"
+msgstr "Vänster bak"
+
+#: kcm/ui/main.qml:422
+#, kde-format
+msgid "Subwoofer"
+msgstr "Subwoofer"
+
+#: kcm/ui/main.qml:423
+#, kde-format
+msgid "Rear Right"
+msgstr "Höger bak"
+
+#: kcm/ui/main.qml:424
+#, kde-format
+msgid "Mono"
+msgstr "Mono"
+
+#: kcm/ui/main.qml:492
+#, kde-format
+msgid "Click on any speaker to test sound"
+msgstr "Klicka på en högtalare för att prova ljudet"
+
+#: kcm/ui/MuteButton.qml:24
+#, kde-format
+msgctxt "Unmute audio stream"
+msgid "Unmute %1"
+msgstr "Tysta inte %1"
+
+#: kcm/ui/MuteButton.qml:24
+#, kde-format
+msgctxt "Mute audio stream"
+msgid "Mute %1"
+msgstr "Tysta %1"
+
+#: kcm/ui/RenameDevices.qml:31
+#, kde-format
+msgctxt "@title rename audio devices"
+msgid "Rename Devices"
+msgstr "Byt namn på enheter"
+
+#: kcm/ui/RenameDevices.qml:38
+#, kde-format
+msgctxt "@action save changes"
+msgid "Save"
+msgstr "Spara"
+
+#: kcm/ui/RenameDevices.qml:68
+#, kde-format
+msgctxt "@info"
+msgid ""
+"Saving changes will restart audio services. Apps playing audio will "
+"experience interruptions and may need to be restarted."
+msgstr ""
+"Att spara ändringarna startar om ljudtjänsterna. Program som spelar ljud "
+"upplever avbrott och kan behöva startas om."
+
+#: kcm/ui/RenameDevices.qml:80
+#, kde-format
+msgctxt "@action"
+msgid "Report Bug"
+msgstr "Rapportera fel"
+
+#: kcm/ui/RenameDevices.qml:92
+#, kde-format
+msgctxt "@info:status reloading the backing data"
+msgid "Reloading"
+msgstr "Läser in igen"
+
+#: kcm/ui/RenameDevices.qml:130
+#, kde-format
+msgctxt "place holder text, %1 is a device name"
+msgid "%1 (click 'Save' to apply)"
+msgstr "%1 (klicka på 'Spara' för att verkställa)"
+
+#: kcm/ui/RenameDevices.qml:153
+#, kde-format
+msgctxt "@action apply currently editing test"
+msgid "Apply"
+msgstr "Verkställ"
+
+#: kcm/ui/RenameDevices.qml:159
+#, kde-format
+msgctxt "@action reset device name to default"
+msgid "Reset"
+msgstr "Återställ"
+
+#: kcm/ui/RenameDevices.qml:166
+#, kde-format
+msgctxt ""
+"@label placeholder text when we don't know the default value of a device yet"
+msgid "DEFAULT"
+msgstr "FÖRVAL"
+
+#: kcm/ui/StreamListItem.qml:59
+#, kde-format
+msgid "Notification Sounds"
+msgstr "Underrättelseljud"
+
+#: kcm/ui/StreamListItem.qml:65
+#, kde-format
+msgctxt "label of stream items"
+msgid "%1: %2"
+msgstr "%1: %2"
+
+#: kcm/ui/VolumeControlsConfig.qml:15
+#, kde-format
+msgid "Volume Controls"
+msgstr "Volymkontroller"
+
+#: kcm/ui/VolumeControlsConfig.qml:30
+#, kde-format
+msgid "Raise maximum volume"
+msgstr "Höj maximal volym"
+
+#: kcm/ui/VolumeControlsConfig.qml:38
+#, kde-format
+msgid "Volume change step:"
+msgstr "Volymändringssteg:"
+
+#: kcm/ui/VolumeControlsConfig.qml:67
+#, kde-format
+msgid "Play audio feedback for changes to:"
+msgstr "Spela ljud som återmatning för ändringar av:"
+
+#: kcm/ui/VolumeControlsConfig.qml:68 kcm/ui/VolumeControlsConfig.qml:77
+#, kde-format
+msgid "Audio volume"
+msgstr "Ljudvolym"
+
+#: kcm/ui/VolumeControlsConfig.qml:76
+#, kde-format
+msgid "Show OSD popups for changes to:"
+msgstr "Visa skärmmeddelanden vid ändringar av:"
+
+#: kcm/ui/VolumeControlsConfig.qml:84
+#, kde-format
+msgid "Microphone sensitivity"
+msgstr "Mikrofonkänslighet"
+
+#: kcm/ui/VolumeControlsConfig.qml:91
+#, kde-format
+msgid "Mute state"
+msgstr "Tyst tillstånd"
+
+#: kcm/ui/VolumeControlsConfig.qml:97
+#, kde-format
+msgctxt "Show OSD when"
+msgid "Application starts using muted microphone"
+msgstr "Program startar med mikrofonen tystad"
+
+#: kcm/ui/VolumeControlsConfig.qml:104
+#, kde-format
+msgid "Default output device"
+msgstr "Standardutenhet"
+
+#: kcm/ui/VolumeSlider.qml:68
+#, kde-format
+msgctxt "volume percentage"
+msgid "%1%"
+msgstr "%1 %"
+
+#: kcm/ui/VolumeSlider.qml:89
+#, kde-format
+msgctxt "only used for sizing, should be widest possible string"
+msgid "100%"
+msgstr "100 %"
+
+#: kded/audioshortcutsservice.cpp:82
+#, kde-format
+msgid "Increase Volume"
+msgstr "Öka volym"
+
+#: kded/audioshortcutsservice.cpp:97
+#, kde-format
+msgid "Decrease Volume"
+msgstr "Minska volym"
+
+#: kded/audioshortcutsservice.cpp:112
+#, kde-format
+msgid "Increase Volume by 1%"
+msgstr "Öka volym med 1 %"
+
+#: kded/audioshortcutsservice.cpp:127
+#, kde-format
+msgid "Decrease Volume by 1%"
+msgstr "Minska volym med 1 %"
+
+#: kded/audioshortcutsservice.cpp:142
+#, kde-format
+msgid "Increase Microphone Volume"
+msgstr "Öka mikrofonvolym"
+
+#: kded/audioshortcutsservice.cpp:156
+#, kde-format
+msgid "Decrease Microphone Volume"
+msgstr "Minska mikrofonvolym"
+
+#: kded/audioshortcutsservice.cpp:170 qml/microphoneindicator.cpp:109
+#, kde-format
+msgid "Mute"
+msgstr "Tyst"
+
+#: kded/audioshortcutsservice.cpp:183
+#, kde-format
+msgid "Mute Microphone"
+msgstr "Tysta mikrofon"
+
+#: kded/audioshortcutsservice.cpp:195
+#, kde-format
+msgid "Audio Volume"
+msgstr "Ljudvolym"
+
+#: kded/audioshortcutsservice.cpp:213
+#, kde-format
+msgid "No such device"
+msgstr "Ingen sådan enhet"
+
+#: kded/audioshortcutsservice.cpp:259
+#, kde-format
+msgid "No output device"
+msgstr "Ingen utenhet"
+
+#: kded/audioshortcutsservice.cpp:280 kded/audioshortcutsservice.cpp:300
+#, kde-format
+msgctxt "Device name (Battery percent)"
+msgid "%1 (%2% Battery)"
+msgstr "%1 (%2 % batteri)"
+
+#: kded/mutedmicrophonereminder.cpp:131
+#, kde-format
+msgctxt "Microphone name: is currently muted (osd, keep short)"
+msgid "%1: Muted"
+msgstr "%1: tystad"
+
+#: qml/listitemmenu.cpp:323
+#, kde-format
+msgid "Play all audio via this device"
+msgstr "Spela upp allt ljud via den här enheten"
+
+#: qml/listitemmenu.cpp:330
+#, kde-format
+msgid "Record all audio via this device"
+msgstr "Spela in allt ljud via den här enheten"
+
+#: qml/listitemmenu.cpp:359
+#, kde-format
+msgctxt ""
+"Heading for a list of ports of a device (for example built-in laptop "
+"speakers or a plug for headphones)"
+msgid "Ports"
+msgstr "Portar"
+
+#: qml/listitemmenu.cpp:429
+#, kde-format
+msgctxt ""
+"Heading for a list of device profiles (5.1 surround sound, stereo, speakers "
+"only, ...)"
+msgid "Profiles"
+msgstr "Profiler"
+
+#: qml/listitemmenu.cpp:463
+#, kde-format
+msgctxt ""
+"Heading for a list of possible output devices (speakers, headphones, ...) to "
+"choose"
+msgid "Play audio using"
+msgstr "Spela upp ljud med"
+
+#: qml/listitemmenu.cpp:465
+#, kde-format
+msgctxt ""
+"Heading for a list of possible input devices (built-in microphone, "
+"headset, ...) to choose"
+msgid "Record audio using"
+msgstr "Spela in ljud med"
+
+#: qml/microphoneindicator.cpp:143 qml/microphoneindicator.cpp:145
+#, kde-format
+msgid "Microphone"
+msgstr "Mikrofon"
+
+#: qml/microphoneindicator.cpp:145
+#, kde-format
+msgid "Microphone Muted"
+msgstr "Mikrofon tystad"
+
+#: qml/microphoneindicator.cpp:291
+#, kde-format
+msgctxt "list separator"
+msgid ", "
+msgstr ", "
+
+#: qml/microphoneindicator.cpp:291
+#, kde-format
+msgctxt "List of apps is using mic"
+msgid "%1 are using the microphone"
+msgstr "%1 använder mikrofonen"
+
+#: qml/microphoneindicator.cpp:317
+#, kde-format
+msgctxt "App %1 is using mic with name %2"
+msgid "%1 is using the microphone (%2)"
+msgstr "%1 använder mikrofonen (%2)"
+
+#: qml/microphoneindicator.cpp:324
+#, kde-format
+msgctxt "App is using mic"
+msgid "%1 is using the microphone"
+msgstr "%1 använder mikrofonen"
+
+#~ msgctxt "@item:inlistbox a type of name source"
+#~ msgid "Device Nickname"
+#~ msgstr "Enhetens smeknamn"
+
+#~ msgctxt "@item:inlistbox a type of name source"
+#~ msgid "Device Description"
+#~ msgstr "Enhetens beskrivning"
+
+#~ msgctxt "@item:inlistbox a type of name source"
+#~ msgid "ALSA Card Name"
+#~ msgstr "ALSA-kortnamn"
+
+#~ msgctxt "@item:inlistbox a type of name source"
+#~ msgid "ALSA Long Card Name"
+#~ msgstr "Långt ALSA-kortnamn"
+
+#~ msgctxt "@label:listbox the default naming scheme for audio devices"
+#~ msgid "Standard naming scheme:"
+#~ msgstr "Standardnamngivningsmetod:"
+
+#~ msgctxt "label of device items"
+#~ msgid "%1 (%2)"
+#~ msgstr "%1 (%2)"
+
+#~ msgctxt "Audio balance (e.g. control left/right volume individually"
+#~ msgid "Balance"
+#~ msgstr "Balans"
+
+#~ msgctxt "Name shown in debug pulseaudio tools"
+#~ msgid "Plasma PA"
+#~ msgstr "Plasma PA"
+
+#~ msgid "This module allows configuring the Pulseaudio sound subsystem."
+#~ msgstr "Moduler gör det möjligt att anpassa Pulseaudio ljuddelsystemet."
+
+#~ msgid "100%"
+#~ msgstr "100 %"
+
+#~ msgctxt "NAME OF TRANSLATORS"
+#~ msgid "Your names"
+#~ msgstr "Stefan Asserhäll"
+
+#~ msgctxt "EMAIL OF TRANSLATORS"
+#~ msgid "Your emails"
+#~ msgstr "stefan.asserhall@gmail.com"
+
+#~ msgctxt "@title"
+#~ msgid "Audio"
+#~ msgstr "Ljud"
+
+#~ msgctxt "@info:credit"
+#~ msgid "Copyright 2015 Harald Sitter"
+#~ msgstr "Copyright 2015 Harald Sitter"
+
+#~ msgctxt "@info:credit"
+#~ msgid "Harald Sitter"
+#~ msgstr "Harald Sitter"
+
+#~ msgctxt "@info:credit"
+#~ msgid "Author"
+#~ msgstr "Upphovsman"
+
+#~ msgid "Configure"
+#~ msgstr "Anpassa"
+
+#~ msgid "Device Profiles"
+#~ msgstr "Enhetsprofiler"
+
+#~ msgid "Advanced Output Configuration"
+#~ msgstr "Avancerad utgångsinställning"
+
+#~ msgid "Speaker Placement and Testing"
+#~ msgstr "Högtalarplacering och provning"
+
+#~ msgctxt "@label"
+#~ msgid "Output:"
+#~ msgstr "Utgång:"
+
+#~ msgctxt "Port is unavailable"
+#~ msgid " (unavailable)"
+#~ msgstr " (ej tillgänglig)"
+
+#~ msgctxt "Port is unplugged"
+#~ msgid " (unplugged)"
+#~ msgstr " (urkopplad)"
+
+#~ msgid "Configure..."
+#~ msgstr "Anpassa..."
+
+#~ msgctxt "@label"
+#~ msgid "No Device Profiles Available"
+#~ msgstr "Inga enhetsprofiler tillgängliga"
+
+#~ msgctxt "@label"
+#~ msgid "No Playback Devices Available"
+#~ msgstr "Inga uppspelningsenheter tillgängliga"
+
+#~ msgctxt "@label"
+#~ msgid "No Recording Devices Available"
+#~ msgstr "Inga inspelningsenheter tillgängliga"
+
+#~ msgctxt "@label"
+#~ msgid "No Applications Playing Audio"
+#~ msgstr "Inga program spelar ljud"
+
+#~ msgctxt "@label"
+#~ msgid "No Applications Recording Audio"
+#~ msgstr "Inga program spelar in ljud"
+
+#~ msgctxt "@title:tab"
+#~ msgid "Devices"
+#~ msgstr "Enheter"
+
+#~ msgctxt "@title:tab"
+#~ msgid "Applications"
+#~ msgstr "Program"
+
+#~ msgctxt "@title:tab"
+#~ msgid "Advanced"
+#~ msgstr "Avancerat"
+
+#~ msgid "Outputs"
+#~ msgstr "Utgångar"
+
+#~ msgctxt "@label"
+#~ msgid "No Output Devices Available"
+#~ msgstr "Inga utenheter tillgängliga"
+
+#~ msgid "Inputs"
+#~ msgstr "Ingångar"
+
+#~ msgid "Capture"
+#~ msgstr "Inspelning"
+
+#~ msgctxt "@label"
+#~ msgid "No Additional Configuration Available"
+#~ msgstr "Inga ytterligare inställningar tillgängliga"

@@ -1,0 +1,35 @@
+# This file is part of upower.
+#
+# The lookup keys are composed in:
+#   60-upower-battery.rules
+#
+# Match string format:
+# battery:<kernel>:<model_name>:dmi:<dmi pattern>
+#
+# The kernel is the name of battery in /sys/class/power_supply for
+# differentiating between multiple batteries.
+#
+# The model_name is battery model name in for example
+# /sys/class/power_supply/BAT0/model_name.
+#
+# The full DMI string of the running machine can be read from
+#   /sys/class/dmi/id/modalias
+# That requires a kernel built with CONFIG_DMIID set, which is common.
+# The full DMI string is not needed here and the meaning of individual parts
+# can be seen in the source of the DMIID kernel module
+#   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/drivers/firmware/dmi-id.c
+#
+# To add local overrides, create a new file
+# /etc/udev/hwdb.d/61-battery-local.hwdb
+# and add your rules there. To load the new rules execute (as root):
+# systemd-hwdb  update
+# udevadm trigger -v -p /sys/class/power_supply/BAT
+# where BAT is the battery in question.
+#
+# CHARGE_LIMIT is in tuple format and each of the variables can be disabled by "_" character.
+# For example:
+# CHARGE_LIMIT=60,80 (charge_control_start_threshold is 60 and charge_control_end_threshold is 80.)
+# CHARGE_LIMIT=_,80 (charge_control_start_threshold will be skipped and charge_control_end_threshold is 80.)
+
+battery:*:*:dmi:*
+ CHARGE_LIMIT=75,80

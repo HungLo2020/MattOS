@@ -1,0 +1,67 @@
+# Spanish translations for knotifyconfig6.po package.
+# Copyright (C) 2000-2025 This file is copyright:
+# This file is distributed under the same license as the knotifyconfig package.
+#
+# SPDX-FileCopyrightText: 2000-2004 Pablo de Vicente <vicente@oan.es>
+# SPDX-FileCopyrightText: 2004, 2005 Pablo de Vicente <p.devicente@wanadoo.es>
+# SPDX-FileCopyrightText: 2005, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2015, 2025 Eloy Cuadra <ecuadra@eloihr.net>
+# SPDX-FileCopyrightText: 2005, 2006, 2007 Pablo de Vicente <pablo.devicente@gmail.com>
+# SPDX-FileCopyrightText: 2007 Enrique Matias Sanchez (aka Quique) <cronopios@gmail.com>
+# SPDX-FileCopyrightText: 2007 Jaime Robles <jaime@kde.org>
+# SPDX-FileCopyrightText: 2013 Javier Viñal <fjvinal@gmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: knotifyconfig6\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-11-17 11:49+0000\n"
+"PO-Revision-Date: 2025-05-18 13:06+0100\n"
+"Last-Translator: Eloy Cuadra <ecuadra@eloihr.net>\n"
+"Language-Team: Spanish <kde-l10n-es@kde.org>\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"First-Translator: Boris Wesslowski <Boris@Wesslowski.com>\n"
+"X-Generator: Lokalize 1.5\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+#. i18n: ectx: property (toolTip), widget (KUrlRequester, Sound_select)
+#: knotifyconfigactionswidgetbase.ui:48
+#, kde-format
+msgid "Select the sound to play"
+msgstr "Seleccione el sonido a reproducir"
+
+#. i18n: ectx: property (text), widget (QCheckBox, Sound_check)
+#: knotifyconfigactionswidgetbase.ui:55
+#, kde-format
+msgid "Play a &sound"
+msgstr "Reproducir un &sonido"
+
+#. i18n: ectx: property (text), widget (QCheckBox, Popup_check)
+#: knotifyconfigactionswidgetbase.ui:62
+#, kde-format
+msgid "Show a message in a &popup"
+msgstr "Mostrar un mensaje en una &ventana emergente"
+
+#: knotifyconfigwidget.cpp:117
+#, kde-format
+msgid "Configure Notifications"
+msgstr "Configurar las notificaciones"
+
+#: knotifyeventlist.cpp:76
+#, kde-format
+msgctxt "State of the notified event"
+msgid "State"
+msgstr "Estado"
+
+#: knotifyeventlist.cpp:76
+#, kde-format
+msgctxt "Title of the notified event"
+msgid "Title"
+msgstr "Título"
+
+#: knotifyeventlist.cpp:77
+#, kde-format
+msgctxt "Description of the notified event"
+msgid "Description"
+msgstr "Descripción"

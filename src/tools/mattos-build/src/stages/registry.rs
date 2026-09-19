@@ -6,35 +6,18 @@ fn stage_resource_profile(stage: BuildStage) -> scheduler::StageResourceProfile 
         stage,
         BuildStage::Llvm
             | BuildStage::Mesa
-            | BuildStage::CosmicComp
-            | BuildStage::CosmicSession
-            | BuildStage::CosmicGreeter
-            | BuildStage::CosmicPanel
-            | BuildStage::CosmicApplets
-            | BuildStage::CosmicAppLibrary
-            | BuildStage::CosmicLauncher
-            | BuildStage::CosmicSettings
-            | BuildStage::CosmicSettingsDaemon
-            | BuildStage::CosmicNotifications
-            | BuildStage::CosmicOsd
-            | BuildStage::CosmicBg
-            | BuildStage::CosmicIdle
-            | BuildStage::CosmicWorkspaces
-            | BuildStage::CosmicFiles
-            | BuildStage::CosmicTerm
-            | BuildStage::CosmicTweaks
-            | BuildStage::CosmicUtilities
-            | BuildStage::CosmicRandr
-            | BuildStage::CosmicScreenshot
-            | BuildStage::PopLauncher
-            | BuildStage::CosmicCalculator
-            | BuildStage::CosmicStorage
-            | BuildStage::CosmicMonitor
-            | BuildStage::CosmicStore
+            | BuildStage::QtBase
+            | BuildStage::QtSvg
+            | BuildStage::QtWayland
+            | BuildStage::QtDeclarative
+            | BuildStage::QtPositioning
+            | BuildStage::QtLocation
+            | BuildStage::QtShaderTools
+            | BuildStage::QtTools
+            | BuildStage::QtMultimedia
+            | BuildStage::QtSpeech
+            | BuildStage::QtCore5Compat
             | BuildStage::Flatpak
-            | BuildStage::CosmicPortal
-            | BuildStage::CosmicEdit
-            | BuildStage::CosmicInitialSetup
             | BuildStage::Greetd
     ) {
         return scheduler::StageResourceProfile::high_memory_parallel();
@@ -163,6 +146,7 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::Libcanberra => vec!["out/build/libcanberra/install".into()],
         BuildStage::Libqrencode => vec!["out/build/qrencode/install".into()],
         BuildStage::KirigamiPlatform => vec!["out/build/kirigami/install".into()],
+        BuildStage::Qqc2DesktopStyle => vec!["out/build/qqc2-desktop-style/install".into()],
         BuildStage::KirigamiAddons => vec!["out/build/kirigami-addons/install".into()],
         BuildStage::KQuickCharts => vec!["out/build/kquickcharts/install".into()],
         BuildStage::PolkitQt6 => vec!["out/build/polkit-qt-1/install".into()],
@@ -195,6 +179,7 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::KNewStuff => vec!["out/build/knewstuff/install".into()],
         BuildStage::KAttica => vec!["out/build/attica/install/usr/lib/x86_64-linux-gnu/libKF6Attica.so".into()],
         BuildStage::KNotifications => vec!["out/build/knotifications/install".into()],
+        BuildStage::KNotifyConfig => vec!["out/build/knotifyconfig/install".into()],
         BuildStage::KParts => vec!["out/build/kparts/install".into()],
         BuildStage::KXmlGui => vec!["out/build/kxmlgui/install/usr/lib/x86_64-linux-gnu/libKF6XmlGui.so".into()],
         BuildStage::KPrison => vec!["out/build/prison/install".into()],
@@ -208,7 +193,8 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::KWindowSystem => vec!["out/build/kwindowsystem/install".into()],
         BuildStage::PlasmaWaylandProtocols => vec!["out/build/plasma-wayland-protocols/install".into()],
         BuildStage::WaylandProtocols => vec!["out/build/wayland-protocols/install".into()],
-        BuildStage::PlasmaKWin | BuildStage::PlasmaFramework | BuildStage::PlasmaActivities | BuildStage::KActivityManagerd | BuildStage::KGlobalAccelD | BuildStage::PlasmaActivitiesStats | BuildStage::Plasma5Support | BuildStage::LibKScreen | BuildStage::LayerShellQt | BuildStage::KScreenLocker | BuildStage::KSysGuard | BuildStage::PlasmaWorkspace | BuildStage::PlasmaDesktop | BuildStage::Breeze | BuildStage::Icu => vec![format!("out/build/{}/install", build_stage_id(stage)).into()],
+        BuildStage::PlasmaKWin | BuildStage::PlasmaFramework | BuildStage::PlasmaActivities | BuildStage::KActivityManagerd | BuildStage::KGlobalAccelD | BuildStage::PlasmaActivitiesStats | BuildStage::Plasma5Support | BuildStage::LibKScreen | BuildStage::LayerShellQt | BuildStage::KScreenLocker | BuildStage::KSysGuard | BuildStage::PlasmaWorkspace | BuildStage::PlasmaDesktop | BuildStage::Breeze | BuildStage::Icu | BuildStage::LmSensors | BuildStage::Highway
+        | BuildStage::KFileMetadata | BuildStage::KPty | BuildStage::NetworkManagerQt | BuildStage::ModemManager | BuildStage::ModemManagerQt | BuildStage::KPurpose | BuildStage::Milou | BuildStage::SystemSettings | BuildStage::KSystemStats | BuildStage::PlasmaSystemMonitor | BuildStage::PolkitKdeAgent | BuildStage::KQuickImageEditor | BuildStage::Ffmpeg | BuildStage::Libva | BuildStage::OpenCv | BuildStage::ZxingCpp | BuildStage::SndFile | BuildStage::PulseAudioClient | BuildStage::LibGudev | BuildStage::Gmp | BuildStage::Mpfr | BuildStage::LibBytesize | BuildStage::Keyutils | BuildStage::LibNvme | BuildStage::Popt | BuildStage::JsonC | BuildStage::E2fsprogs | BuildStage::DeviceMapper | BuildStage::Cryptsetup | BuildStage::LibBlockdev | BuildStage::WirePlumber | BuildStage::UPower | BuildStage::UDisks2 | BuildStage::BlueZ | BuildStage::PowerProfilesDaemon | BuildStage::KPipeWire | BuildStage::Spectacle | BuildStage::PulseAudioQt | BuildStage::PlasmaPa | BuildStage::PlasmaNm | BuildStage::PowerDevil | BuildStage::XdgDesktopPortalKde | BuildStage::Dolphin | BuildStage::Konsole | BuildStage::Kate | BuildStage::Ark => vec![format!("out/build/{}/install", build_stage_id(stage)).into()],
         BuildStage::Wayland => vec!["out/build/wayland/install".into()],
         BuildStage::Xkbcommon => vec!["out/build/xkbcommon/install".into()],
         BuildStage::Libseat => vec!["out/build/seatd/install".into()],
@@ -239,79 +225,12 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
             "out/build/nvidia-driver/source/LICENSE".into(),
             "out/build/nvidia-driver/runfile.sha256".into(),
         ],
-        BuildStage::CosmicComp => vec!["out/build/cosmic-comp/install/usr/bin/cosmic-comp".into()],
-        BuildStage::CosmicSession => {
-            vec!["out/build/cosmic-session/install/usr/bin/cosmic-session".into()]
-        }
-        BuildStage::CosmicGreeter => {
-            vec!["out/build/cosmic-greeter/install/usr/bin/cosmic-greeter".into()]
-        }
-        BuildStage::CosmicPanel => {
-            vec!["out/build/cosmic-panel/install/usr/bin/cosmic-panel".into()]
-        }
-        BuildStage::CosmicApplets => {
-            vec!["out/build/cosmic-applets/install/usr/bin/cosmic-applets".into()]
-        }
-        BuildStage::CosmicAppLibrary => {
-            vec!["out/build/cosmic-applibrary/install/usr/bin/cosmic-app-library".into()]
-        }
-        BuildStage::CosmicLauncher => {
-            vec!["out/build/cosmic-launcher/install/usr/bin/cosmic-launcher".into()]
-        }
-        BuildStage::CosmicSettings => {
-            vec!["out/build/cosmic-settings/install/usr/bin/cosmic-settings".into()]
-        }
-        BuildStage::CosmicSettingsDaemon => {
-            vec!["out/build/cosmic-settings-daemon/install/usr/bin/cosmic-settings-daemon".into()]
-        }
-        BuildStage::CosmicNotifications => {
-            vec!["out/build/cosmic-notifications/install/usr/bin/cosmic-notifications".into()]
-        }
-        BuildStage::CosmicOsd => {
-            vec!["out/build/cosmic-osd/install/usr/bin/cosmic-osd".into()]
-        }
-        BuildStage::CosmicBg => {
-            vec!["out/build/cosmic-bg/install/usr/bin/cosmic-bg".into()]
-        }
-        BuildStage::CosmicIdle => {
-            vec!["out/build/cosmic-idle/install/usr/bin/cosmic-idle".into()]
-        }
-        BuildStage::CosmicWorkspaces => {
-            vec!["out/build/cosmic-workspaces/install/usr/bin/cosmic-workspaces".into()]
-        }
-        BuildStage::CosmicFiles => {
-            vec!["out/build/cosmic-files/install/usr/bin/cosmic-files".into()]
-        }
-        BuildStage::CosmicEdit => vec![
-            "out/build/cosmic-edit/install/usr/bin/cosmic-edit".into(),
-            "out/build/cosmic-edit/install/usr/share/applications/com.system76.CosmicEdit.desktop".into(),
-        ],
-        BuildStage::CosmicInitialSetup => vec![
-            "out/build/cosmic-initial-setup/install/usr/bin/cosmic-initial-setup".into(),
-            "out/build/cosmic-initial-setup/install/usr/share/applications/com.system76.CosmicInitialSetup.desktop".into(),
-            "out/build/cosmic-initial-setup/install/usr/share/cosmic-layouts/top-panel-and-bottom-dock/layout.kdl".into(),
-            "out/build/cosmic-initial-setup/install/usr/share/cosmic-themes/nebula-dark.ron".into(),
-        ],
         // Publish the complete target Duktape install, not only its SONAME
         // symlink.  The generated shared object and headers are the actual
         // ABI consumed by Polkit; omitting them from the inventory let a
         // corrupted library retain the old stage output digest and prevented
         // dependency-output propagation into Polkit.
         BuildStage::Duktape => vec!["out/build/duktape/install".into()],
-        BuildStage::CosmicTerm => {
-            vec!["out/build/cosmic-term/install/usr/bin/cosmic-term".into()]
-        }
-        BuildStage::CosmicTweaks => {
-            vec!["out/build/cosmic-tweaks/install/usr/bin/cosmic-ext-tweaks".into()]
-        }
-        BuildStage::CosmicUtilities => vec!["out/build/cosmic-utilities/install".into()],
-        BuildStage::CosmicRandr => vec!["out/build/cosmic-randr/install/usr/bin/cosmic-randr".into()],
-        BuildStage::CosmicScreenshot => vec!["out/build/cosmic-screenshot/install/usr/bin/cosmic-screenshot".into()],
-        BuildStage::PopLauncher => vec!["out/build/pop-launcher/install/usr/bin/pop-launcher".into()],
-        BuildStage::CosmicCalculator => vec!["out/build/cosmic-calculator/install/usr/bin/cosmic-ext-calculator".into()],
-        BuildStage::CosmicStorage => vec!["out/build/cosmic-storage/install/usr/bin/cosmic-ext-storage".into()],
-        BuildStage::CosmicMonitor => vec!["out/build/cosmic-monitor/install/usr/bin/cosmic-monitor".into()],
-        BuildStage::CosmicStore => vec!["out/build/cosmic-store/install/usr/bin/cosmic-store".into()],
         BuildStage::Flatpak => vec![
             "out/build/flatpak/install/usr/bin/flatpak".into(),
             "out/build/flatpak/install/usr/lib/x86_64-linux-gnu/libflatpak.so.0".into(),
@@ -345,22 +264,7 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::GdkPixbuf => vec!["out/build/gdk-pixbuf/install/usr/lib/x86_64-linux-gnu/libgdk_pixbuf-2.0.so.0".into()],
         BuildStage::Gpgme => vec!["out/build/gpgme/install/usr/lib/x86_64-linux-gnu/libgpgme.so.45".into()],
         BuildStage::Ostree => vec!["out/build/ostree/install/usr/lib/x86_64-linux-gnu/libostree-1.so.1".into()],
-        BuildStage::CosmicPortal => {
-            vec!["out/build/cosmic-portal/install/usr/libexec/xdg-desktop-portal-cosmic".into()]
-        }
-        BuildStage::CosmicAssets => {
-            vec![
-                "out/build/cosmic-assets/install/usr/share/icons/Cosmic/index.theme".into(),
-                "out/build/cosmic-assets/install/usr/share/cosmic/com.system76.CosmicPanel/v1/entries".into(),
-            ]
-        }
         BuildStage::Greetd => vec!["out/build/greetd/install/usr/bin/greetd".into()],
-        BuildStage::CosmicDesktop => vec![
-            "out/build/cosmic-desktop/install/usr/bin/cosmic-session".into(),
-            "out/build/cosmic-desktop/install/usr/bin/cosmic-panel".into(),
-            "out/build/cosmic-desktop/install/usr/bin/cosmic-term".into(),
-            "out/build/cosmic-desktop/install/usr/bin/greetd".into(),
-        ],
         BuildStage::Cozy => vec!["out/build/cozy/install/usr/bin/cozy".into()],
         BuildStage::Python => vec!["out/build/cpython/install".into()],
         BuildStage::Llvm => vec!["out/build/llvm/install".into()],
@@ -369,7 +273,6 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::Init => vec!["target/release/mattos-init".into()],
         BuildStage::Installer => vec![
             "out/build/installer/cargo-target/release/mattos-install".into(),
-            "out/build/installer/cosmic-target/release/mattos-install-cosmic".into(),
             "out/build/btrfs-progs/install/usr/bin/btrfs".into(),
             "out/build/btrfs-progs/install/usr/include/btrfsutil.h".into(),
             "out/build/btrfs-progs/install/usr/lib/x86_64-linux-gnu/libbtrfsutil.so".into(),
@@ -662,6 +565,7 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::Libcanberra => build_libcanberra(repo_root),
         BuildStage::Libqrencode => build_libqrencode(repo_root),
         BuildStage::KirigamiPlatform => build_kirigami_platform(repo_root),
+        BuildStage::Qqc2DesktopStyle => build_qqc2_desktop_style(repo_root),
         BuildStage::KirigamiAddons => build_kirigami_addons(repo_root),
         BuildStage::KQuickCharts => build_kquickcharts(repo_root),
         BuildStage::PolkitQt6 => build_polkit_qt6(repo_root),
@@ -694,6 +598,7 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::KNewStuff => build_knewstuff(repo_root),
         BuildStage::KAttica => build_kattica(repo_root),
         BuildStage::KNotifications => build_knotifications(repo_root),
+        BuildStage::KNotifyConfig => build_knotifyconfig(repo_root),
         BuildStage::KParts => build_kparts(repo_root),
         BuildStage::KXmlGui => build_kxmlgui(repo_root),
         BuildStage::KPrison => build_prison(repo_root),
@@ -719,9 +624,57 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::KScreenLocker => build_kscreen_locker(repo_root),
         BuildStage::KSysGuard => build_ksysguard(repo_root),
         BuildStage::Icu => build_icu(repo_root),
+        BuildStage::LmSensors => build_lm_sensors(repo_root),
+        BuildStage::Highway => build_highway(repo_root),
         BuildStage::PlasmaWorkspace => build_plasma_workspace(repo_root),
         BuildStage::PlasmaDesktop => build_plasma_desktop(repo_root),
         BuildStage::Breeze => build_breeze(repo_root),
+        BuildStage::KFileMetadata => build_kfilemetadata(repo_root),
+        BuildStage::KPty => build_kpty(repo_root),
+        BuildStage::NetworkManagerQt => build_networkmanager_qt(repo_root),
+        BuildStage::ModemManager => build_modemmanager(repo_root),
+        BuildStage::ModemManagerQt => build_modemmanager_qt(repo_root),
+        BuildStage::KPurpose => build_purpose(repo_root),
+        BuildStage::Milou => build_milou(repo_root),
+        BuildStage::SystemSettings => build_systemsettings(repo_root),
+        BuildStage::KSystemStats => build_ksystemstats(repo_root),
+        BuildStage::PlasmaSystemMonitor => build_plasma_systemmonitor(repo_root),
+        BuildStage::PolkitKdeAgent => build_polkit_kde_agent(repo_root),
+        BuildStage::KQuickImageEditor => build_kquickimageeditor(repo_root),
+        BuildStage::Ffmpeg => build_ffmpeg(repo_root),
+        BuildStage::Libva => build_libva(repo_root),
+        BuildStage::OpenCv => build_opencv(repo_root),
+        BuildStage::ZxingCpp => build_zxing_cpp(repo_root),
+        BuildStage::SndFile => build_libsndfile(repo_root),
+        BuildStage::PulseAudioClient => build_pulseaudio_client(repo_root),
+        BuildStage::LibGudev => build_libgudev(repo_root),
+        BuildStage::Gmp => build_gmp(repo_root),
+        BuildStage::Mpfr => build_mpfr(repo_root),
+        BuildStage::LibBytesize => build_libbytesize(repo_root),
+        BuildStage::Keyutils => build_keyutils(repo_root),
+        BuildStage::LibNvme => build_libnvme(repo_root),
+        BuildStage::Popt => build_popt(repo_root),
+        BuildStage::JsonC => build_json_c(repo_root),
+        BuildStage::E2fsprogs => build_e2fsprogs(repo_root),
+        BuildStage::DeviceMapper => build_device_mapper(repo_root),
+        BuildStage::Cryptsetup => build_cryptsetup(repo_root),
+        BuildStage::LibBlockdev => build_libblockdev(repo_root),
+        BuildStage::WirePlumber => build_wireplumber(repo_root),
+        BuildStage::UPower => build_upower(repo_root),
+        BuildStage::UDisks2 => build_udisks2(repo_root),
+        BuildStage::BlueZ => build_bluez(repo_root),
+        BuildStage::PowerProfilesDaemon => build_power_profiles_daemon(repo_root),
+        BuildStage::KPipeWire => build_kpipewire(repo_root),
+        BuildStage::Spectacle => build_spectacle(repo_root),
+        BuildStage::PulseAudioQt => build_pulseaudio_qt(repo_root),
+        BuildStage::PlasmaPa => build_plasma_pa(repo_root),
+        BuildStage::PlasmaNm => build_plasma_nm(repo_root),
+        BuildStage::PowerDevil => build_powerdevil(repo_root),
+        BuildStage::XdgDesktopPortalKde => build_xdg_desktop_portal_kde(repo_root),
+        BuildStage::Dolphin => build_dolphin(repo_root),
+        BuildStage::Konsole => build_konsole(repo_root),
+        BuildStage::Kate => build_kate(repo_root),
+        BuildStage::Ark => build_ark(repo_root),
         BuildStage::Wayland => build_wayland(repo_root),
         BuildStage::Xkbcommon => build_xkbcommon(repo_root),
         BuildStage::Libseat => build_libseat(repo_root),
@@ -765,37 +718,7 @@ fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::GdkPixbuf => build_gdk_pixbuf(repo_root),
         BuildStage::Gpgme => build_gpgme(repo_root),
         BuildStage::Ostree => build_ostree(repo_root),
-        BuildStage::CosmicComp => build_cosmic_comp(repo_root),
-        BuildStage::CosmicSession
-        | BuildStage::CosmicGreeter
-        | BuildStage::CosmicPanel
-        | BuildStage::CosmicApplets
-        | BuildStage::CosmicAppLibrary
-        | BuildStage::CosmicLauncher
-        | BuildStage::CosmicSettings
-        | BuildStage::CosmicSettingsDaemon
-        | BuildStage::CosmicNotifications
-        | BuildStage::CosmicOsd
-        | BuildStage::CosmicBg
-        | BuildStage::CosmicIdle
-        | BuildStage::CosmicWorkspaces
-        | BuildStage::CosmicFiles
-        | BuildStage::CosmicTerm
-        | BuildStage::CosmicTweaks
-        | BuildStage::CosmicUtilities
-        | BuildStage::CosmicRandr
-        | BuildStage::CosmicScreenshot
-        | BuildStage::PopLauncher
-        | BuildStage::CosmicCalculator
-        | BuildStage::CosmicStorage
-        | BuildStage::CosmicMonitor
-        | BuildStage::CosmicStore
-        | BuildStage::CosmicPortal
-        | BuildStage::CosmicAssets
-        | BuildStage::Greetd => build_cosmic_desktop_component(repo_root, stage),
-        BuildStage::CosmicEdit => build_cosmic_edit(repo_root),
-        BuildStage::CosmicInitialSetup => build_cosmic_initial_setup(repo_root),
-        BuildStage::CosmicDesktop => build_cosmic_desktop(repo_root),
+        BuildStage::Greetd => build_greetd(repo_root),
         BuildStage::Cozy => build_cozy(repo_root),
         BuildStage::Python => build_cpython(repo_root),
         BuildStage::Llvm => build_llvm(repo_root),

@@ -1159,7 +1159,11 @@ mod tests {
             };
 
             run().unwrap();
-            fs::write(root.path().join(&spec.outputs[0]), "modified outside manifest").unwrap();
+            fs::write(
+                root.path().join(&spec.outputs[0]),
+                "modified outside manifest",
+            )
+            .unwrap();
 
             let impact = explain_stage_impact(root.path(), &spec).unwrap();
             assert_eq!(impact.status, "MISS", "{helper}");

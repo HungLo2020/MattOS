@@ -1,0 +1,15 @@
+[
+    {
+        "fullPath": "a.txt"
+    },
+    {
+        "fullPath": "aDir/",
+        "isDirectory": true
+    },
+    {
+        "fullPath": "aDir/b.txt"
+    },
+    {
+        "fullPath": "c.txt"
+    }
+]

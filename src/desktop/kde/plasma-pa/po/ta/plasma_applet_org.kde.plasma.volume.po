@@ -1,0 +1,291 @@
+# Copyright (C) 2024 This file is copyright:
+# This file is distributed under the same license as the plasma-pa package.
+#
+# SPDX-FileCopyrightText: 2021, 2022, 2023, 2024, 2025 Kishore G <kishore96@gmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma-pa\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-12-19 00:45+0000\n"
+"PO-Revision-Date: 2025-11-30 11:16+0530\n"
+"Last-Translator: Kishore G <kishore96@gmail.com>\n"
+"Language-Team: Tamil <kde-l10n-ta@kde.org>\n"
+"Language: ta\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 25.08.3\n"
+
+#: ListItemBase.qml:72
+#, kde-format
+msgid "Currently not recording"
+msgstr "இப்போது பதிவு செய்யவில்லை"
+
+#: ListItemBase.qml:73
+#, kde-format
+msgid "Currently not playing"
+msgstr "இப்போது இயங்கவில்லை"
+
+#: ListItemBase.qml:204
+#, kde-format
+msgctxt "@action:button"
+msgid "Additional Options"
+msgstr "மேம்பட்ட அமைப்புகள்"
+
+#: ListItemBase.qml:206
+#, kde-format
+msgid "Show additional options for %1"
+msgstr "%1 என்பதற்கு கூடுதல் விருப்பங்களை காட்டு"
+
+#: ListItemBase.qml:228
+#, kde-format
+msgctxt "@action:button"
+msgid "Unmute"
+msgstr "ஒலிமுடக்கத்தை நீக்கு"
+
+#: ListItemBase.qml:228
+#, kde-format
+msgctxt "@action:button"
+msgid "Mute"
+msgstr "ஒலியை அடக்கு"
+
+#: ListItemBase.qml:230
+#, kde-format
+msgid "Unmute %1"
+msgstr "%1-இன் ஒலியை அனுமதி"
+
+#: ListItemBase.qml:230
+#, kde-format
+msgid "Mute %1"
+msgstr "%1-இன் ஒலியை அடக்கு"
+
+#: ListItemBase.qml:253
+#, kde-format
+msgctxt "Accessibility data on volume slider"
+msgid "Adjust volume for %1"
+msgstr "%1-க்கு ஒலியின் அளவை மாற்று"
+
+#: ListItemBase.qml:317
+#, kde-format
+msgctxt "volume percentage"
+msgid "%1%"
+msgstr "%1%"
+
+#: ListItemBase.qml:338
+#, kde-format
+msgctxt "only used for sizing, should be widest possible string"
+msgid "100%"
+msgstr "100%"
+
+#: main.qml:36
+#, kde-format
+msgid "Audio Volume"
+msgstr "ஒலி அளவு"
+
+#: main.qml:53 main.qml:55
+#, kde-format
+msgctxt "@label"
+msgid "Connection to the Sound Service Lost"
+msgstr "ஒலிக்கான பின்னணி நிரலுடனான இணைப்பு முறிவடைந்தது"
+
+#: main.qml:57
+#, kde-format
+msgid "No output or input devices found"
+msgstr "எந்த உள்ளீட்டு அல்லது வெளியீட்டு சாதனங்களும் கண்டுபிடிக்கப்படவில்லை"
+
+#: main.qml:61
+#, kde-format
+msgctxt "@info reconnecting to pulseaudio"
+msgid "Trying to reconnect…"
+msgstr "திரும்ப இணைக்க முயற்சிக்கிறது…"
+
+#: main.qml:79
+#, kde-format
+msgid "Audio Muted"
+msgstr "ஒலி அடக்கப்பட்டுள்ளது"
+
+#: main.qml:81
+#, kde-format
+msgid "Volume at %1%"
+msgstr "ஒலி %1% ஆக உள்ளது"
+
+#: main.qml:92
+#, kde-format
+msgid "Middle-click to unmute"
+msgstr "ஒலியை அனுமதிக்க நடு-கிளிக் செய்யவும்"
+
+#: main.qml:93
+#, kde-format
+msgid "Middle-click to mute all audio"
+msgstr "அனைத்து ஒலிகளையும் அடக்க நடு-கிளிக் செய்யவும்"
+
+#: main.qml:94
+#, kde-format
+msgid "Scroll to adjust volume"
+msgstr "ஒலி அளவை மாற்ற உருளவும்"
+
+#: main.qml:110
+#, kde-format
+msgid "Device name not found"
+msgstr "சாதனத்தின் பெயர் தெரியாது"
+
+#: main.qml:338
+#, kde-format
+msgid "Devices"
+msgstr "சாதனங்கள்"
+
+#: main.qml:345
+#, kde-format
+msgid "Applications"
+msgstr "செயலிகள்"
+
+#: main.qml:369
+#, kde-format
+msgctxt "@action:button"
+msgid "More actions"
+msgstr "மேலும் செயல்கள்"
+
+#: main.qml:411
+#, kde-format
+msgctxt ""
+"@action:button keep this widget's pop-up open until explicitly dismissed"
+msgid "Keep open"
+msgstr "திறந்தே வைத்திரு"
+
+#: main.qml:443
+#, kde-format
+msgctxt "@action retry connecting to pulseaudio"
+msgid "Retry"
+msgstr "மீண்டும் முயற்சி"
+
+#: main.qml:470
+#, kde-format
+msgid "No applications playing or recording audio"
+msgstr "எந்த செயலிகளும் ஒலியை இயக்கவோ பதிவு செய்யவோ இல்லை"
+
+#: main.qml:555
+#, kde-format
+msgctxt "@title:group listview section header"
+msgid "Output Devices"
+msgstr "வெளியீடு சாதனங்கள்"
+
+#: main.qml:557
+#, kde-format
+msgctxt "@title:group listview section header"
+msgid "Output Streams"
+msgstr "வெளியீடு ஒலித்தடங்கள்"
+
+#: main.qml:615
+#, kde-format
+msgctxt "@title:group listview section header"
+msgid "Input Devices"
+msgstr "உள்ளீடு கருவிகள்"
+
+#: main.qml:617
+#, kde-format
+msgctxt "@title:group listview section header"
+msgid "Input Streams"
+msgstr "உள்ளீடு ஒலித்தடங்கள்"
+
+#: main.qml:681
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Prolonged use of this feature will damage the device's speakers. Only use it "
+"temporarily to make quiet media audible."
+msgstr ""
+"இதை தொடர்ந்து பயன்படுத்துவது ஒலிக்கருவிகளை சேதப்படுத்தலாம். குறிப்பிட்ட கோப்பின் ஒலியளவு "
+"குறைவாக இருந்தால் அவ்வப்போது இதைப் பயன்படுத்தலாம்."
+
+#: main.qml:697
+#, kde-format
+msgid "Raise maximum volume"
+msgstr "அதிகபட்ச ஒலியை உயர்த்து"
+
+#: main.qml:711
+#, kde-format
+msgid "Force mute all playback devices"
+msgstr "அனைத்து வெளியீட்டு சாதனங்களையும் கட்டாயமாக அடக்கு"
+
+#: main.qml:720
+#, kde-format
+msgid "Force mute all input devices"
+msgstr "அனைத்து உள்ளீட்டு சாதனங்களையும் கட்டாயமாக அடக்கு"
+
+#: main.qml:729
+#, kde-format
+msgid "Show virtual devices"
+msgstr "மெய்நிகர் சாதனங்களைக் காட்டு"
+
+#: main.qml:739
+#, kde-format
+msgid "&Configure Audio Devices…"
+msgstr "ஒலி சாதனங்களை &அமை…"
+
+#: StreamListItem.qml:36
+#, kde-format
+msgid "Stream name not found"
+msgstr "அப்பெயரையுடைய ஒலித்தடத்தை (stream-ஐ) கண்டுபிடிக்க முடியவில்லை"
+
+#~ msgctxt "Device name (Battery percent)"
+#~ msgid "%1 (%2% Battery)"
+#~ msgstr "%1 (மின்கலம் %2%)"
+
+#~ msgid "Increase Volume"
+#~ msgstr "ஒலியை கூட்டு"
+
+#~ msgctxt "@action shortcut"
+#~ msgid "Increase Volume by 1%"
+#~ msgstr "ஒலியை 1% கூட்டு"
+
+#~ msgid "Decrease Volume"
+#~ msgstr "ஒலியை குறை"
+
+#~ msgctxt "@action shortcut"
+#~ msgid "Decrease Volume by 1%"
+#~ msgstr "ஒலியை 1% குறை"
+
+#~ msgid "Mute"
+#~ msgstr "ஒலியை அடக்கு"
+
+#~ msgid "Increase Microphone Volume"
+#~ msgstr "ஒலிவாங்கியின் ஒலியை கூட்டு"
+
+#~ msgid "Decrease Microphone Volume"
+#~ msgstr "ஒலிவாங்கியின் ஒலியை குறை"
+
+#~ msgid "Mute Microphone"
+#~ msgstr "ஒலிவாங்கியின் ஒலியை அடக்கு"
+
+#~ msgctxt "label of device items"
+#~ msgid "%1 (%2)"
+#~ msgstr "%1 (%2)"
+
+#~ msgid "General"
+#~ msgstr "பொது"
+
+#~ msgid "Volume step:"
+#~ msgstr "ஒலியின் அளவை மாற்றுவதற்கான படி:"
+
+#~ msgid "Play audio feedback for changes to:"
+#~ msgstr "இம்மாற்றங்களுக்கு ஒலியாக பின்னூட்டம் தா:"
+
+#~ msgid "Audio volume"
+#~ msgstr "ஒலியின் அளவு"
+
+#~ msgid "Show visual feedback for changes to:"
+#~ msgstr "இம்மாற்றங்களுக்கு காட்சிமுறையாக பின்னூட்டம் தா:"
+
+#~ msgid "Microphone sensitivity"
+#~ msgstr "ஒலிவாங்கியின் உணர்வுத்திறன்"
+
+#~ msgid "Mute state"
+#~ msgstr "ஒலியடக்க நிலை"
+
+#~ msgid "Default output device"
+#~ msgstr "இயல்பிருப்பு வெளியீடு சாதனம்"
+
+#~ msgctxt "@title"
+#~ msgid "Display:"
+#~ msgstr "காட்டப்படுபவை:"

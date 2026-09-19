@@ -289,44 +289,9 @@ fn build_installer(repo_root: &Path) -> Result<()> {
         bail!("dosfstools installer build did not produce usr/sbin/mkfs.fat");
     }
 
-    let e2fs_root = repo_root.join("out/build/e2fsprogs");
-    let e2fs_source = e2fs_root.join("source");
-    let e2fs_build = e2fs_root.join("build");
-    let e2fs_install = e2fs_root.join("install");
-    sync_build_source(
-        &repo_root.join("src/system/storage/e2fsprogs"),
-        &e2fs_source,
-    )?;
-    remove_path_if_exists(&e2fs_build)?;
-    fs::create_dir_all(&e2fs_build)?;
-    let e2fs_env = staged_library_environment(repo_root, &["util-linux"])?;
-    if !e2fs_build.join("Makefile").is_file() {
-        run_cmd_with_env_overrides(
-            &e2fs_build,
-            path_str(&e2fs_source.join("configure"))?,
-            &[
-                "--prefix=/usr",
-                "--sbindir=/usr/sbin",
-                "--libdir=/usr/lib/x86_64-linux-gnu",
-                "--sysconfdir=/etc",
-                "--disable-nls",
-                "--disable-uuidd",
-                "--disable-fuse2fs",
-                "--disable-fsck",
-            ],
-            &e2fs_env,
-        )?;
-    }
-    run_cmd_with_env_overrides(&e2fs_build, "make", &[], &e2fs_env)?;
-    remove_path_if_exists(&e2fs_install)?;
-    run_cmd_with_env_overrides(
-        &e2fs_build,
-        "make",
-        &["install", &format!("DESTDIR={}", e2fs_install.display())],
-        &e2fs_env,
-    )?;
+    let e2fs_install = repo_root.join("out/build/e2fsprogs/install");
     if !e2fs_install.join("usr/sbin/mkfs.ext4").is_file() {
-        bail!("e2fsprogs installer build did not produce usr/sbin/mkfs.ext4");
+        bail!("e2fsprogs stage did not produce usr/sbin/mkfs.ext4");
     }
     let util_linux_lib = repo_root.join("out/build/util-linux/install/usr/lib/x86_64-linux-gnu");
     validate_dependency_resolves_from(
@@ -357,8 +322,6 @@ fn build_installer(repo_root: &Path) -> Result<()> {
         ],
         &[("CARGO_TARGET_DIR", cargo_target.display().to_string())],
     )?;
-
-    build_cosmic_installer_frontend(repo_root, &installer_out)?;
 
     let source = repo_root.join("src/system/installer/engine/installed-init.c");
     let compiler = repo_root.join("out/build/gcc-toolchain/install/usr/bin/gcc");
@@ -449,166 +412,6 @@ fn build_installer(repo_root: &Path) -> Result<()> {
     Ok(())
 }
 
-fn build_cosmic_installer_frontend(repo_root: &Path, installer_out: &Path) -> Result<()> {
-    let source_root = installer_out.join("cosmic-source");
-    // This is an output-owned assembly mirror, not a cache. Recreate it so a
-    // dependency demoted from first-class source cannot survive as stale
-    // apparent vendored input. The separate cosmic-target retains Cargo's
-    // incremental build products.
-    remove_path_if_exists(&source_root)?;
-    fs::create_dir_all(&source_root)?;
-    let libcosmic = source_root.join("libcosmic");
-    let iced = libcosmic.join("iced");
-    let protocols = source_root.join("cosmic-protocols");
-    let application = source_root.join("mattos-installer-cosmic");
-
-    sync_build_source(&repo_root.join("src/desktop/cosmic/libcosmic"), &libcosmic)?;
-    sync_build_source(&repo_root.join("src/desktop/cosmic/iced"), &iced)?;
-    sync_build_source(
-        &repo_root.join("src/desktop/cosmic/cosmic-protocols"),
-        &protocols,
-    )?;
-    remove_path_if_exists(&application)?;
-    fs::create_dir_all(application.join("src"))?;
-    fs::copy(
-        repo_root.join("src/system/installer/gui/cosmic/main.rs"),
-        application.join("src/main.rs"),
-    )?;
-    let lock = repo_root.join("src/system/installer/gui/cosmic/Cargo.lock");
-    validate_cosmic_installer_lock(&lock)?;
-    fs::copy(&lock, application.join("Cargo.lock"))?;
-
-    let template =
-        fs::read_to_string(repo_root.join("src/system/installer/gui/cosmic/Cargo.toml.in"))?;
-    let installer_manifest = repo_root.join("src/system/installer").canonicalize()?;
-    let mut manifest = template
-        .replace("@MATTOS_INSTALLER_PATH@", path_str(&installer_manifest)?)
-        .replace("@LIBCOSMIC_PATH@", path_str(&libcosmic.canonicalize()?)?);
-    manifest.push_str(&format!(
-        "\n[patch.\"https://github.com/pop-os/cosmic-protocols\"]\ncosmic-client-toolkit = {{ path = {:?} }}\ncosmic-protocols = {{ path = {:?} }}\n",
-        protocols.join("client-toolkit"), protocols
-    ));
-    fs::write(application.join("Cargo.toml"), manifest)?;
-
-    let target = installer_out.join("cosmic-target");
-    let xkbcommon = repo_root.join("out/build/xkbcommon/install/usr");
-    let xkbcommon_lib = xkbcommon.join("lib/x86_64-linux-gnu");
-    let xkbcommon_pc = xkbcommon_lib.join("pkgconfig");
-    if !xkbcommon_lib.join("libxkbcommon.so.0").is_file()
-        || !xkbcommon_pc.join("xkbcommon.pc").is_file()
-    {
-        bail!(
-            "MattOS-built xkbcommon runtime/development metadata is missing; run build xkbcommon first"
-        );
-    }
-    run_cmd_with_env_overrides(
-        &application,
-        "cargo",
-        &[
-            "build",
-            "--locked",
-            "--release",
-            "--manifest-path",
-            "Cargo.toml",
-        ],
-        &[
-            ("CARGO_TARGET_DIR", target.display().to_string()),
-            ("PKG_CONFIG_PATH", xkbcommon_pc.display().to_string()),
-            ("PKG_CONFIG_LIBDIR", xkbcommon_pc.display().to_string()),
-            // The .pc file has prefix=/usr.  Its sysroot is the DESTDIR root,
-            // not `/usr`, otherwise pkg-config invents `/usr/usr/lib` and
-            // Cargo silently falls back to a host xkbcommon.
-            (
-                "PKG_CONFIG_SYSROOT_DIR",
-                xkbcommon
-                    .parent()
-                    .expect("xkbcommon install root")
-                    .display()
-                    .to_string(),
-            ),
-            ("LIBRARY_PATH", xkbcommon_lib.display().to_string()),
-            ("LD_LIBRARY_PATH", xkbcommon_lib.display().to_string()),
-        ],
-    )?;
-    let binary = target.join("release/mattos-install-cosmic");
-    if !binary.is_file() {
-        bail!(
-            "native COSMIC installer build did not produce {}",
-            binary.display()
-        );
-    }
-    validate_dependency_resolves_from(
-        &binary,
-        "libxkbcommon.so.0",
-        &xkbcommon_lib,
-        &[&xkbcommon_lib],
-    )?;
-    Ok(())
-}
-
-const COSMIC_INSTALLER_LOCKED_GIT_SOURCES: &[&str] = &[
-    "git+https://github.com/iced-rs/cryoglyph.git?rev=e429a025df36ab8145708acb309080ae3deec17a#e429a025df36ab8145708acb309080ae3deec17a",
-    "git+https://github.com/jackpot51/rust-atomicwrites#043ab4859d53ffd3d55334685303d8df39c9f768",
-    "git+https://github.com/pop-os/dbus-settings-bindings#eed01dd3609e90e3c8cd043656734c500956c793",
-    "git+https://github.com/pop-os/freedesktop-icons#ab4c57b8e416c6af9297cb04d101889896fd9a92",
-    "git+https://github.com/pop-os/smithay-clipboard?tag=sctk-0.20#859b02c88f45c554049a67c6ddeec1692ce0e20b",
-    "git+https://github.com/pop-os/softbuffer?tag=cosmic-4.0#c2b2c19ddb38ff17495643699f97cb1f2064a1be",
-    "git+https://github.com/pop-os/window_clipboard.git?tag=sctk-0.20#f68595ee0e62fbd6589f4709b5aaa5c3c7ea5f6c",
-    "git+https://github.com/pop-os/winit.git?tag=cosmic-0.14#71ce08c043814514a8fd92d9d0599f115ae854e8",
-    "git+https://github.com/wash2/accesskit?tag=cosmic-0.14#f0599eed5f18111228266fe3f28991cc48b5964f",
-];
-
-fn validate_cosmic_installer_lock(path: &Path) -> Result<()> {
-    let contents = fs::read_to_string(path)
-        .with_context(|| format!("failed to read native COSMIC lock {}", path.display()))?;
-    let document: toml::Value = toml::from_str(&contents)
-        .with_context(|| format!("failed to parse native COSMIC lock {}", path.display()))?;
-    let packages = document
-        .get("package")
-        .and_then(toml::Value::as_array)
-        .ok_or_else(|| anyhow!("native COSMIC lock has no package records"))?;
-    let mut git_sources = BTreeSet::new();
-    for package in packages {
-        let name = package
-            .get("name")
-            .and_then(toml::Value::as_str)
-            .unwrap_or("<unnamed>");
-        let Some(source) = package.get("source").and_then(toml::Value::as_str) else {
-            continue;
-        };
-        if source.starts_with("registry+") {
-            let checksum = package
-                .get("checksum")
-                .and_then(toml::Value::as_str)
-                .unwrap_or("");
-            if checksum.len() != 64 || !checksum.bytes().all(|byte| byte.is_ascii_hexdigit()) {
-                bail!("native COSMIC registry package {name} lacks a SHA-256 checksum");
-            }
-        } else if source.starts_with("git+") {
-            let revision = source
-                .rsplit_once('#')
-                .map(|(_, revision)| revision)
-                .unwrap_or("");
-            if revision.len() != 40 || !revision.bytes().all(|byte| byte.is_ascii_hexdigit()) {
-                bail!(
-                    "native COSMIC Git package {name} is not pinned to an exact commit: {source}"
-                );
-            }
-            git_sources.insert(source.to_string());
-        }
-    }
-    let expected = COSMIC_INSTALLER_LOCKED_GIT_SOURCES
-        .iter()
-        .map(|source| (*source).to_string())
-        .collect::<BTreeSet<_>>();
-    if git_sources != expected {
-        bail!(
-            "native COSMIC Git source set differs from the reviewed lock policy\nexpected: {expected:#?}\nactual: {git_sources:#?}"
-        );
-    }
-    Ok(())
-}
-
 fn build_rootfs_atomic(repo_root: &Path) -> Result<()> {
     let destination = repo_root.join("out/build/rootfs");
     let temp = performance::temporary_sibling(&destination, "building")?;
@@ -694,27 +497,18 @@ fn validate_live_desktop_boot_contract(rootfs: &Path) -> Result<()> {
         "usr/lib/systemd/system/graphical.target",
         "usr/lib/systemd/system/plasma-greeter.service",
         "etc/systemd/system/display-manager.service",
-        "etc/systemd/system/cosmic-greeter.service.d/live.conf",
         "etc/systemd/system/plasma-greeter.service.d/live.conf",
-        "etc/greetd/cosmic-live.toml",
         "etc/greetd/plasma-live.toml",
         "etc/greetd/plasma.toml",
-        "etc/pam.d/cosmic-greeter",
         "etc/pam.d/plasma-greeter",
         "usr/lib/environment.d/90-plasma-desktop.conf",
         "usr/bin/greetd",
-        "usr/bin/start-cosmic",
         "usr/bin/start-plasma",
         "usr/bin/mattos-graphics-report",
         "usr/bin/mattos-graphics-startup",
         "usr/lib/systemd/system/mattos-graphics-watchdog.service",
         "usr/lib/systemd/system/mattos-graphics-recovery.service",
         "usr/lib/systemd/system/mattos-graphics-capture.service",
-        "usr/bin/cosmic-randr",
-        "usr/bin/cosmic-session",
-        "usr/bin/cosmic-panel",
-        "usr/bin/cosmic-launcher",
-        "usr/bin/cosmic-term",
         "home/mattos",
     ] {
         if !path_entry_exists(&rootfs.join(rel)) {
@@ -776,20 +570,12 @@ fn validate_live_desktop_boot_contract(rootfs: &Path) -> Result<()> {
             bail!("Plasma environment is missing {required}");
         }
     }
-    if path_entry_exists(&rootfs.join("usr/lib/environment.d/90-cosmic-desktop.conf")) {
-        bail!("COSMIC fallback environment must not leak into the global Plasma session");
-    }
     let display_manager =
         fs::read_to_string(rootfs.join("usr/lib/systemd/system/plasma-greeter.service"))?;
     if !display_manager.contains("Wants=systemd-logind.service systemd-udev-trigger.service")
         || !display_manager.contains("ExecStart=/usr/bin/greetd --config /etc/greetd/plasma-live.toml")
     {
         bail!("Plasma display manager does not pull in logind/udev or its live configuration")
-    }
-    if path_entry_exists(
-        &rootfs.join("etc/systemd/system/multi-user.target.wants/cosmic-greeter-daemon.service"),
-    ) {
-        bail!("CLI boot must not start the COSMIC greeter daemon through multi-user.target")
     }
     #[cfg(unix)]
     {
@@ -1260,6 +1046,11 @@ fn validate_glibc_rootfs(repo_root: &Path, rootfs: &Path) -> Result<()> {
     let mut elf_files = Vec::new();
     let mut provided = BTreeSet::new();
     let mut soname_providers: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    let mut target_library_dirs = BTreeSet::from([
+        rootfs.join("usr/lib/x86_64-linux-gnu"),
+        rootfs.join("usr/lib/x86_64-linux-gnu/systemd"),
+        rootfs.join("usr/lib"),
+    ]);
     for path in files {
         let relative = path.strip_prefix(rootfs)?;
         // Firmware may itself use ELF as a container for code executed by an
@@ -1303,6 +1094,14 @@ fn validate_glibc_rootfs(repo_root: &Path, rootfs: &Path) -> Result<()> {
         }
         if let Some(value) = &facts.soname {
             provided.insert(value.clone());
+            if let Some(parent) = path.parent() {
+                // Some upstream runtimes deliberately keep private DSOs in a
+                // package-owned subdirectory (for example PulseAudio's
+                // libpulsecommon).  Model the installed target namespace when
+                // invoking the target loader so an absolute target RUNPATH
+                // cannot accidentally resolve through the build host.
+                target_library_dirs.insert(parent.to_path_buf());
+            }
             soname_providers
                 .entry(value.clone())
                 .or_default()
@@ -1337,11 +1136,7 @@ fn validate_glibc_rootfs(repo_root: &Path, rootfs: &Path) -> Result<()> {
         }
     }
 
-    let library_path = std::env::join_paths([
-        rootfs.join("usr/lib/x86_64-linux-gnu"),
-        rootfs.join("usr/lib/x86_64-linux-gnu/systemd"),
-        rootfs.join("usr/lib"),
-    ])?;
+    let library_path = std::env::join_paths(target_library_dirs)?;
     let mut rows = Vec::new();
     let mut gcc_runtime_consumers = Vec::new();
     let mut executable_count = 0usize;
@@ -1899,15 +1694,6 @@ fn validate_user_session_configuration(rootfs: &Path) -> Result<()> {
             bail!("PAM stack {stack} must contain exactly one optional pam_systemd session hook");
         }
     }
-    let greeter_stack = rootfs.join("etc/pam.d/cosmic-greeter");
-    if greeter_stack.is_file() {
-        let body = fs::read_to_string(&greeter_stack)?;
-        if body.matches(expected_hook).count() != 1 {
-            bail!(
-                "PAM stack cosmic-greeter must contain exactly one optional pam_systemd session hook"
-            );
-        }
-    }
     if fs::read_to_string(rootfs.join("usr/share/pam/security/pam_env.conf"))?
         .trim()
         .is_empty()
@@ -1926,7 +1712,6 @@ fn validate_user_session_configuration(rootfs: &Path) -> Result<()> {
                 | "su-l"
                 | "systemd-user"
                 | "sshd"
-                | "cosmic-greeter"
                 | "plasma-greeter"
         ) {
             continue;

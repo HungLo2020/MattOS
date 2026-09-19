@@ -1,0 +1,1138 @@
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Kristóf Kiszel <ulysses@kubuntu.org>, 2010, 2011, 2012, 2020.
+# SPDX-FileCopyrightText: 2024, 2025 Kristof Kiszel <ulysses@fsf.hu>
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-02-07 02:37+0000\n"
+"PO-Revision-Date: 2025-05-27 22:00+0200\n"
+"Last-Translator: Kristof Kiszel <ulysses@fsf.hu>\n"
+"Language-Team: Hungarian <kde-l10n-hu@kde.org>\n"
+"Language: hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 25.04.1\n"
+
+#: PowerButtonActionModel.cpp:31
+#, kde-format
+msgid "Do nothing"
+msgstr "Ne tegyen semmit"
+
+#: PowerButtonActionModel.cpp:40
+#, kde-format
+msgctxt "Suspend to RAM"
+msgid "Sleep"
+msgstr "Alvó állapot"
+
+#: PowerButtonActionModel.cpp:50
+#, kde-format
+msgid "Hibernate"
+msgstr "Hibernálás"
+
+#: PowerButtonActionModel.cpp:59
+#, kde-format
+msgctxt "Power down the computer"
+msgid "Shut down"
+msgstr "Leállítás"
+
+#: PowerButtonActionModel.cpp:67
+#, kde-format
+msgid "Lock screen"
+msgstr "Képernyő zárolása"
+
+#: PowerButtonActionModel.cpp:75
+#, kde-format
+msgid "Show logout screen"
+msgstr "Kijelentkező képernyő megjelenítése"
+
+#: PowerButtonActionModel.cpp:83
+#, kde-format
+msgid "Turn off screen"
+msgstr "Képernyő kikapcsolása"
+
+#: PowerButtonActionModel.cpp:91
+#, kde-format
+msgid "Toggle screen on/off"
+msgstr "Képernyő be/kikapcsolás átváltása"
+
+#: PowerKCM.cpp:460
+#, kde-format
+msgid "The Power Management Service appears not to be running."
+msgstr "Az energiakezelő szolgáltatás úgy tűnik, nem fut."
+
+#: PowerProfileModel.cpp:42
+#, kde-format
+msgctxt "@option:combobox Power profile"
+msgid "Power Save"
+msgstr "Energiatakarékos"
+
+#: PowerProfileModel.cpp:43
+#, kde-format
+msgctxt "@option:combobox Power profile"
+msgid "Balanced"
+msgstr "Kiegyensúlyozott"
+
+#: PowerProfileModel.cpp:44
+#, kde-format
+msgctxt "@option:combobox Power profile"
+msgid "Performance"
+msgstr "Teljesítmény"
+
+#: PowerProfileModel.cpp:48
+#, kde-format
+msgid "Leave unchanged"
+msgstr "Ne változzon"
+
+#: SleepModeModel.cpp:20
+#, kde-format
+msgctxt "Suspend to RAM"
+msgid "Standby"
+msgstr "Készenlét"
+
+#: SleepModeModel.cpp:21
+#, kde-format
+msgctxt "Subtitle description for 'Standby' sleep option"
+msgid "Save session to memory"
+msgstr "Munkamenet mentése a memóriába"
+
+#: SleepModeModel.cpp:28
+#, kde-format
+msgid "Hybrid sleep"
+msgstr "Hibrid alvás"
+
+#: SleepModeModel.cpp:29
+#, kde-format
+msgctxt "Subtitle description for 'Hybrid sleep' sleep option"
+msgid "Save session to both memory and disk"
+msgstr "Munkamenet mentése a memóriába és a lemezre"
+
+#: SleepModeModel.cpp:36
+#, kde-format
+msgid "Standby, then hibernate"
+msgstr "Készenlét, majd hibernálás"
+
+#: SleepModeModel.cpp:38
+#, kde-format
+msgctxt "Subtitle description for 'Standby, then hibernate' sleep option"
+msgid "Switch to hibernation when battery runs low"
+msgstr "Váltás hibernálásra, ha az akkumulátor lemerül"
+
+#: SleepModeModel.cpp:39
+#, kde-format
+msgctxt "Subtitle description for 'Standby, then hibernate' sleep option"
+msgid "Switch to hibernation after a period of inactivity"
+msgstr "Váltás hibernálásra egy inaktív időszak után"
+
+#: ui/DurationPromptDialog.qml:130
+#, kde-format
+msgctxt "The unit of the time input field"
+msgid "millisecond"
+msgid_plural "milliseconds"
+msgstr[0] "ezredmásodperc"
+msgstr[1] "ezredmásodperc"
+
+#: ui/DurationPromptDialog.qml:132
+#, kde-format
+msgctxt "The unit of the time input field"
+msgid "second"
+msgid_plural "seconds"
+msgstr[0] "másodperc"
+msgstr[1] "másodperc"
+
+#: ui/DurationPromptDialog.qml:134
+#, kde-format
+msgctxt "The unit of the time input field"
+msgid "minute"
+msgid_plural "minutes"
+msgstr[0] "perc"
+msgstr[1] "perc"
+
+#: ui/DurationPromptDialog.qml:136
+#, kde-format
+msgctxt "The unit of the time input field"
+msgid "hour"
+msgid_plural "hours"
+msgstr[0] "óra"
+msgstr[1] "óra"
+
+#: ui/DurationPromptDialog.qml:138
+#, kde-format
+msgctxt "The unit of the time input field"
+msgid "day"
+msgid_plural "days"
+msgstr[0] "nap"
+msgstr[1] "nap"
+
+#: ui/DurationPromptDialog.qml:140
+#, kde-format
+msgctxt "The unit of the time input field"
+msgid "week"
+msgid_plural "weeks"
+msgstr[0] "hét"
+msgstr[1] "hét"
+
+#: ui/DurationPromptDialog.qml:142
+#, kde-format
+msgctxt "The unit of the time input field"
+msgid "month"
+msgid_plural "months"
+msgstr[0] "hónap"
+msgstr[1] "hónap"
+
+#: ui/DurationPromptDialog.qml:144
+#, kde-format
+msgctxt "The unit of the time input field"
+msgid "year"
+msgid_plural "years"
+msgstr[0] "év"
+msgstr[1] "év"
+
+#: ui/DurationPromptDialog.qml:168
+#, kde-format
+msgctxt "@text:radiobutton Unit of the time input field"
+msgid "milliseconds"
+msgstr "ezredmásodperc"
+
+#: ui/DurationPromptDialog.qml:170
+#, kde-format
+msgctxt "@text:radiobutton Unit of the time input field"
+msgid "seconds"
+msgstr "másodperc"
+
+#: ui/DurationPromptDialog.qml:172
+#, kde-format
+msgctxt "@text:radiobutton Unit of the time input field"
+msgid "minutes"
+msgstr "perc"
+
+#: ui/DurationPromptDialog.qml:174
+#, kde-format
+msgctxt "@text:radiobutton Unit of the time input field"
+msgid "hours"
+msgstr "óra"
+
+#: ui/DurationPromptDialog.qml:176
+#, kde-format
+msgctxt "@text:radiobutton Unit of the time input field"
+msgid "days"
+msgstr "nap"
+
+#: ui/DurationPromptDialog.qml:178
+#, kde-format
+msgctxt "@text:radiobutton Unit of the time input field"
+msgid "weeks"
+msgstr "hét"
+
+#: ui/DurationPromptDialog.qml:180
+#, kde-format
+msgctxt "@text:radiobutton Unit of the time input field"
+msgid "months"
+msgstr "hónap"
+
+#: ui/DurationPromptDialog.qml:182
+#, kde-format
+msgctxt "@text:radiobutton Unit of the time input field"
+msgid "years"
+msgstr "év"
+
+#: ui/GlobalConfig.qml:16
+#, kde-format
+msgctxt "@title"
+msgid "Advanced Power Settings"
+msgstr "Speciális energiakezelési beállítások"
+
+#: ui/GlobalConfig.qml:21
+#, kde-format
+msgctxt ""
+"Percentage value example, used for formatting battery levels in the power "
+"management settings"
+msgid "10%"
+msgstr "10%"
+
+#: ui/GlobalConfig.qml:57
+#, kde-format
+msgctxt "@title:group"
+msgid "Battery Levels"
+msgstr "Akkumulátorszintek"
+
+#: ui/GlobalConfig.qml:65
+#, kde-format
+msgctxt ""
+"@label:spinbox Low battery level percentage for the main power supply battery"
+msgid "&Low level:"
+msgstr "A&lacsony szint:"
+
+#: ui/GlobalConfig.qml:73
+#, kde-format
+msgctxt "@accessible:name:spinbox"
+msgid "Low battery level"
+msgstr "Alacsony akkumulátorszint"
+
+#: ui/GlobalConfig.qml:98
+#, kde-format
+msgctxt "@info:whatsthis"
+msgid ""
+"The battery charge will be considered low when it drops to this level. "
+"Settings for low battery will be used instead of regular battery settings."
+msgstr ""
+"Az akkumulátor töltöttségi szintje akkor tekinthető alacsonynak, ha erre a "
+"szintre csökken. Az alacsony töltöttségű akkumulátorra vonatkozó beállítások "
+"a normál akkumulátor-beállítások helyett kerülnek alkalmazásra."
+
+#: ui/GlobalConfig.qml:105
+#, kde-format
+msgctxt ""
+"@label:spinbox Critical battery level percentage for the main power supply "
+"battery"
+msgid "Cr&itical level:"
+msgstr "Kr&itikus szint:"
+
+#: ui/GlobalConfig.qml:113
+#, kde-format
+msgctxt "@accessible:name:spinbox"
+msgid "Critical battery level"
+msgstr "Kritikus akkumulátorszint"
+
+#: ui/GlobalConfig.qml:138
+#, kde-format
+msgctxt "@info:whatsthis"
+msgid ""
+"The battery charge will be considered critical when it drops to this level. "
+"After a brief warning, the system will automatically suspend or shut down, "
+"according to the configured critical battery level action."
+msgstr ""
+"Az akkumulátor töltöttsége kritikusnak minősül, ha erre a szintre csökken. "
+"Egy rövid figyelmeztetés után a rendszer automatikusan felfüggeszti magát "
+"vagy leáll, a beállított műveletnek megfelelően."
+
+#: ui/GlobalConfig.qml:147
+#, kde-format
+msgctxt "@info:status"
+msgid ""
+"The action you had previously configured for reaching the critical battery "
+"level is now unsupported on your system. Please select a different one."
+msgstr ""
+"A kritikus akkumulátor eléréséhez korábban beállított művelet már nem "
+"támogatott az Ön rendszerén. Kérjük, válasszon egy másikat."
+
+#: ui/GlobalConfig.qml:154
+#, kde-format
+msgctxt ""
+"@label:combobox Power action such as sleep/hibernate that will be executed "
+"when the critical battery level is reached"
+msgid "A&t critical level:"
+msgstr "Kri&tikus szinten:"
+
+#: ui/GlobalConfig.qml:156
+#, kde-format
+msgctxt "@accessible:name:combobox"
+msgid "Action performed at critical battery level"
+msgstr "Kritikus akkumulátorszinten végrehajtandó művelet"
+
+#: ui/GlobalConfig.qml:181
+#, kde-format
+msgctxt "@label:spinbox Low battery level percentage for peripheral devices"
+msgid "Low level for peripheral d&evices:"
+msgstr "Csatlakoztatott &eszközök alacsony szintjénél:"
+
+#: ui/GlobalConfig.qml:189
+#, kde-format
+msgctxt "@accessible:name:spinbox"
+msgid "Low battery level for peripheral devices"
+msgstr "Csatlakoztatott eszközök alacsony akkumulátorszintje"
+
+#: ui/GlobalConfig.qml:214
+#, kde-format
+msgctxt "@info:whatsthis"
+msgid ""
+"The battery charge for peripheral devices will be considered low when it "
+"reaches this level."
+msgstr ""
+"A csatlakoztatott eszközök akkumulátorának töltöttségi szintje akkor "
+"tekinthető alacsonynak, ha eléri ezt a szintet."
+
+#: ui/GlobalConfig.qml:222
+#, kde-format
+msgctxt "@title:group"
+msgid "Charge Limit"
+msgstr "Töltési korlát"
+
+#: ui/GlobalConfig.qml:233
+#, kde-format
+msgctxt "@label:checkbox"
+msgid "&Battery protection:"
+msgstr "&Akkumulátorvédelem:"
+
+#: ui/GlobalConfig.qml:234
+#, kde-format
+msgctxt "@text:checkbox"
+msgid "Limit the maximum battery charge"
+msgstr "Maximális akkumulátortöltöttség korlátozása"
+
+#: ui/GlobalConfig.qml:242
+#, kde-format
+msgctxt ""
+"@label:spinbox Battery will stop charging when this charge percentage is "
+"reached"
+msgid "&Stop charging at:"
+msgstr "Töltés leállítá&sa:"
+
+#: ui/GlobalConfig.qml:268
+#, kde-format
+msgctxt ""
+"@label:spinbox Battery will start charging again when this charge percentage "
+"is reached, after having hit the stop-charging threshold earlier"
+msgid "Start charging once &below:"
+msgstr "Töltés akkor, ha ez &alá esik:"
+
+#: ui/GlobalConfig.qml:325
+#, kde-format
+msgctxt "@info:status"
+msgid ""
+"You might have to disconnect and re-connect the power source to start "
+"charging the battery again."
+msgstr ""
+"Előfordulhat, hogy ki kell húznia és újra csatlakoztatnia az áramforrást az "
+"akkumulátor töltésének elindításához."
+
+#: ui/GlobalConfig.qml:336
+#, kde-format
+msgctxt "@info"
+msgid ""
+"Regularly charging the battery close to 100%, or fully discharging it, may "
+"accelerate deterioration of battery health. By limiting the maximum battery "
+"charge, you can help extend the battery lifespan."
+msgstr ""
+"Az akkumulátor rendszeres, 100% közeli töltése vagy teljes lemerülése "
+"felgyorsíthatja az akkumulátor állapotának romlását. Az akkumulátor "
+"maximális töltöttségének korlátozásával hozzájárulhat az akkumulátor "
+"élettartamának meghosszabbításához."
+
+#: ui/GlobalConfig.qml:344
+#, kde-format
+msgctxt ""
+"@title:group Miscellaneous power management settings that didn't fit "
+"elsewhere"
+msgid "Other Settings"
+msgstr "Egyéb beállítások"
+
+#: ui/GlobalConfig.qml:352
+#, kde-format
+msgctxt "@label:checkbox"
+msgid "&Media playback:"
+msgstr "&Médialejátszás:"
+
+#: ui/GlobalConfig.qml:353
+#, kde-format
+msgctxt "@text:checkbox"
+msgid "Pause media players when suspending"
+msgstr "Médialejátszók leállítása felfüggesztéskor"
+
+#: ui/GlobalConfig.qml:366
+#, kde-format
+msgctxt "@label:button"
+msgid "Related pages:"
+msgstr "Kapcsolódó oldalak:"
+
+#: ui/GlobalConfig.qml:383
+#, kde-format
+msgctxt "@text:button Name of KCM, plus Power Management notification category"
+msgid "Notifications: Power Management"
+msgstr "Értesítések: Energiakezelés"
+
+#: ui/GlobalConfig.qml:385
+#, kde-format
+msgid "Open \"Notifications\" settings page, \"Power Management\" section"
+msgstr ""
+"Az „Értesítések” beállítóoldal „Energiakezelés” szekciójának megnyitása"
+
+#: ui/GlobalConfig.qml:394
+#, kde-format
+msgctxt "@text:button Name of KCM, plus Power Management shortcut category"
+msgid "Shortcuts: Power Management"
+msgstr "Billentyűparancsok: Energiakezelés"
+
+#: ui/GlobalConfig.qml:396
+#, kde-format
+msgid "Open \"Shortcuts\" settings page, \"Power Management\" section"
+msgstr ""
+"A „Billentyűparancsok” beállítóoldal „Energiakezelés” szekciójának megnyitása"
+
+#: ui/GlobalConfig.qml:403
+#, kde-format
+msgctxt "@text:button Name of KCM"
+msgid "Screen Locking"
+msgstr "Képernyőzárolás"
+
+#: ui/GlobalConfig.qml:404
+#, kde-format
+msgid "Open \"Screen Locking\" settings page"
+msgstr "A „Képernyőzárolás” beállítóoldal megnyitása"
+
+#: ui/GlobalConfig.qml:411
+#, kde-format
+msgctxt "@text:button Name of KCM"
+msgid "Desktop Session"
+msgstr "Asztali munkamenet"
+
+#: ui/GlobalConfig.qml:412
+#, kde-format
+msgid "Open \"Desktop Session\" settings page"
+msgstr "Az „Asztali munkamenet” beállítóoldal megnyitása"
+
+#: ui/GlobalConfig.qml:419
+#, kde-format
+msgctxt "@text:button Name of KCM"
+msgid "Activities"
+msgstr "Aktivitások"
+
+#: ui/GlobalConfig.qml:420
+#, kde-format
+msgid "Open \"Activities\" settings page"
+msgstr "Az „Aktivitások” beállítóoldal megnyitása"
+
+#: ui/main.qml:19
+#, fuzzy, kde-format
+#| msgctxt "@action:button"
+#| msgid "Advanced Power &Settings…"
+msgctxt "@action:button"
+msgid "Configure Advanced &Settings…"
+msgstr "Speciális energiakezelési beállítá&sok…"
+
+#: ui/main.qml:44
+#, kde-format
+msgctxt "@text:placeholdermessage"
+msgid "Power Management settings could not be loaded"
+msgstr "Az energiakezelési beállítások betöltése nem sikerült"
+
+#: ui/main.qml:66
+#, kde-format
+msgid "On AC Power"
+msgstr "Hálózati áramról"
+
+#: ui/main.qml:67
+#, kde-format
+msgid "On Battery"
+msgstr "Akkumulátorról"
+
+#: ui/main.qml:68
+#, kde-format
+msgid "On Low Battery"
+msgstr "Alacsony töltöttségű akkumulátorról"
+
+#: ui/ProfileConfig.qml:24
+#, kde-format
+msgctxt ""
+"Percentage value example, used for formatting brightness levels in the power "
+"management settings"
+msgid "10%"
+msgstr "10%"
+
+#: ui/ProfileConfig.qml:43
+#, kde-format
+msgctxt "@title:group"
+msgid "Suspend Session"
+msgstr "Munkamenet felfüggesztése"
+
+#: ui/ProfileConfig.qml:58
+#, kde-format
+msgctxt "@info:status"
+msgid ""
+"The action you had previously configured to happen when inactive is now "
+"unsupported on your system. Please select a different one."
+msgstr ""
+"Az inaktivitáshoz korábban beállított művelet már nem támogatott az Ön "
+"rendszerén. Kérjük, válasszon egy másikat."
+
+#: ui/ProfileConfig.qml:65
+#, kde-format
+msgctxt ""
+"@label:combobox Suspend action such as sleep/hibernate to perform when the "
+"system is idle"
+msgid "When &inactive:"
+msgstr "&Inaktivitáskor:"
+
+#: ui/ProfileConfig.qml:74
+#, kde-format
+msgctxt "@accessible:name:combobox"
+msgid "Action to perform when the system is idle"
+msgstr "A rendszer üresjáratában végrehajtandó művelet"
+
+#: ui/ProfileConfig.qml:105
+#, kde-format
+msgctxt "@option:combobox"
+msgid "After %1 second"
+msgid_plural "After %1 seconds"
+msgstr[0] "%1 másodperc után"
+msgstr[1] "%1 másodperc után"
+
+#: ui/ProfileConfig.qml:107
+#, kde-format
+msgctxt "@option:combobox"
+msgid "After %1 minute"
+msgid_plural "After %1 minutes"
+msgstr[0] "%1 perc után"
+msgstr[1] "%1 perc után"
+
+#: ui/ProfileConfig.qml:120 ui/ProfileConfig.qml:415 ui/ProfileConfig.qml:556
+#: ui/ProfileConfig.qml:865
+#, kde-format
+msgctxt ""
+"@option:combobox Choose a custom value outside the list of preset values"
+msgid "Custom…"
+msgstr "Egyéni…"
+
+#: ui/ProfileConfig.qml:166
+#, kde-format
+msgctxt "@info:status"
+msgid "Disabling automatic suspend will result in higher energy consumption."
+msgstr ""
+"Az automatikus felfüggesztés kikapcsolása magasabb energiafogyasztást "
+"eredményez."
+
+#: ui/ProfileConfig.qml:168
+#, kde-format
+msgctxt "@info:status A long duration until suspend/shutdown"
+msgid "A long duration will result in higher energy consumption."
+msgstr "A hosszú időtartam nagyobb energiafogyasztást eredményez."
+
+#: ui/ProfileConfig.qml:180
+#, kde-format
+msgctxt "@info:status"
+msgid ""
+"The action you had previously configured for when the power button is "
+"pressed is now unsupported on your system. Please select a different one."
+msgstr ""
+"A bekapcsoló gomb lenyomásához korábban beállított művelet már nem "
+"támogatott az Ön rendszerén. Kérjük, válasszon egy másikat."
+
+#: ui/ProfileConfig.qml:187
+#, kde-format
+msgctxt ""
+"@label:combobox Suspend action such as sleep/hibernate to perform when the "
+"power button is pressed"
+msgid "When &power button pressed:"
+msgstr "A beka&pcsológomb megnyomásakor:"
+
+#: ui/ProfileConfig.qml:189
+#, kde-format
+msgctxt "@accessible:name:combobox"
+msgid "Action to perform when the power button is pressed"
+msgstr "A bekapcsológomb megnyomásakor végrehajtandó művelet"
+
+#: ui/ProfileConfig.qml:219
+#, kde-format
+msgctxt "@info:status"
+msgid ""
+"The action you had previously configured for when the lid is closed is now "
+"unsupported on your system. Please select a different one."
+msgstr ""
+"A fedél lezárásához korábban beállított művelet már nem támogatott az Ön "
+"rendszerén. Kérjük, válasszon egy másikat."
+
+#: ui/ProfileConfig.qml:226
+#, kde-format
+msgctxt ""
+"@label:combobox Suspend action such as sleep/hibernate to perform when the "
+"power button is pressed"
+msgid "When laptop &lid closed:"
+msgstr "A laptopfedé&l lecsukásakor:"
+
+#: ui/ProfileConfig.qml:228
+#, kde-format
+msgctxt "@accessible:name:combobox"
+msgid "Action to perform when the laptop lid is closed"
+msgstr "A laptop fedelének lecsukásakor végrehajtandó művelet"
+
+#: ui/ProfileConfig.qml:257
+#, kde-format
+msgctxt ""
+"@text:checkbox Trigger laptop lid action even when an external monitor is "
+"connected"
+msgid "Even when an external monitor is connected"
+msgstr "Még akkor is, ha külső monitor is csatlakoztatva van"
+
+#: ui/ProfileConfig.qml:259
+#, kde-format
+msgid "Perform laptop lid action even when an external monitor is connected"
+msgstr ""
+"A laptopfedél művelet végrehajtása még akkor is, ha külső monitor is "
+"csatlakoztatva van"
+
+#: ui/ProfileConfig.qml:277
+#, kde-format
+msgctxt "@info:status"
+msgid ""
+"The sleep mode you had previously configured is now unsupported on your "
+"system. Please select a different one."
+msgstr ""
+"A korábban beállított alvó mód már nem támogatott az Ön rendszerén. Kérjük, "
+"válasszon egy másikat."
+
+#: ui/ProfileConfig.qml:284
+#, kde-format
+msgctxt ""
+"@label:combobox Sleep mode selection - suspend to memory, disk or both"
+msgid "When sleeping, enter:"
+msgstr "Alvó állapot módja:"
+
+#: ui/ProfileConfig.qml:286
+#, kde-format
+msgctxt "@accessible:name:combobox"
+msgid "When sleeping, enter this power-save mode"
+msgstr "Altatáskor belépés ebbe az energiatakarékossági módba"
+
+#: ui/ProfileConfig.qml:335
+#, kde-format
+msgctxt "@title:group"
+msgid "Display and Brightness"
+msgstr "Képernyő és fényerő"
+
+#: ui/ProfileConfig.qml:345
+#, kde-format
+msgctxt "@label:slider Brightness level"
+msgid "Change scr&een brightness:"
+msgstr "&Képernyő fényerejének beállítása:"
+
+#: ui/ProfileConfig.qml:392
+#, kde-format
+msgctxt "@label:combobox Dim screen after X minutes"
+msgid "Di&m automatically:"
+msgstr "Automatikus el&sötétítés:"
+
+#: ui/ProfileConfig.qml:394
+#, kde-format
+msgctxt "@label:spinbox Dim screen after X minutes"
+msgid "Di&m automatically after:"
+msgstr "Automatikus el&sötétítés:"
+
+#: ui/ProfileConfig.qml:399
+#, kde-format
+msgctxt "@option:combobox"
+msgid "%1 second"
+msgid_plural "%1 seconds"
+msgstr[0] "%1 másodperc után"
+msgstr[1] "%1 másodperc után"
+
+#: ui/ProfileConfig.qml:401
+#, kde-format
+msgctxt "@option:combobox"
+msgid "%1 minute"
+msgid_plural "%1 minutes"
+msgstr[0] "%1 perc után"
+msgstr[1] "%1 perc után"
+
+#: ui/ProfileConfig.qml:408
+#, kde-format
+msgctxt "@option:combobox Dim screen automatically"
+msgid "Never"
+msgstr "Soha"
+
+#: ui/ProfileConfig.qml:460
+#, kde-format
+msgctxt "@info:status"
+msgid ""
+"The screen will not be dimmed because it is configured to turn off sooner."
+msgstr ""
+"A képernyő nem sötétedik el, mert úgy van beállítva, hogy hamarabb "
+"kikapcsoljon."
+
+#: ui/ProfileConfig.qml:465
+#, kde-format
+msgctxt "@label:combobox After X minutes"
+msgid "&Turn off screen:"
+msgstr "&Képernyő kikapcsolása:"
+
+#: ui/ProfileConfig.qml:477
+#, kde-format
+msgctxt "@label:spinbox After X minutes"
+msgid "Turn off screen after:"
+msgstr "Képernyő kikapcsolása:"
+
+#: ui/ProfileConfig.qml:481
+#, kde-format
+msgctxt "@option:combobox Turn off screen (caution: watch for string length)"
+msgid "%1 second"
+msgid_plural "%1 seconds"
+msgstr[0] "%1 másodperc után"
+msgstr[1] "%1 másodperc után"
+
+#: ui/ProfileConfig.qml:483
+#, kde-format
+msgctxt "@option:combobox Turn off screen (caution: watch for string length)"
+msgid "%1 minute"
+msgid_plural "%1 minutes"
+msgstr[0] "%1 perc után"
+msgstr[1] "%1 perc után"
+
+#: ui/ProfileConfig.qml:490
+#, kde-format
+msgctxt "@option:combobox Turn off screen (caution: watch for string length)"
+msgid "Never"
+msgstr "Soha"
+
+#: ui/ProfileConfig.qml:497
+#, kde-format
+msgctxt ""
+"@option:combobox Choose a custom value outside the list of preset values "
+"(caution: watch for string length)"
+msgid "Custom…"
+msgstr "Egyéni…"
+
+#: ui/ProfileConfig.qml:536
+#, kde-format
+msgctxt "@label:spinbox After X minutes"
+msgid "When locked, turn off screen after:"
+msgstr "Zároláskor kijelző kikapcsolása:"
+
+#: ui/ProfileConfig.qml:540
+#, kde-format
+msgctxt "@option:combobox Turn off screen (caution: watch for string length)"
+msgid "When locked: %1 second"
+msgid_plural "When locked: %1 seconds"
+msgstr[0] "Zároláskor: %1 másodperc után"
+msgstr[1] "Zároláskor: %1 másodperc után"
+
+#: ui/ProfileConfig.qml:542
+#, kde-format
+msgctxt "@option:combobox Turn off screen (caution: watch for string length)"
+msgid "When locked: %1 minute"
+msgid_plural "When locked: %1 minutes"
+msgstr[0] "Zároláskor: %1 perc után"
+msgstr[1] "Zároláskor: %1 perc után"
+
+#: ui/ProfileConfig.qml:549
+#, kde-format
+msgctxt ""
+"@option:combobox Turn off screen after X minutes regardless of lock screen "
+"(caution: watch for string length)"
+msgid "When locked and unlocked"
+msgstr "Zároláskor és feloldáskor"
+
+#: ui/ProfileConfig.qml:551
+#, kde-format
+msgctxt "@option:combobox Turn off screen (caution: watch for string length)"
+msgid "When locked: Immediately"
+msgstr "Zároláskor: azonnal"
+
+#: ui/ProfileConfig.qml:590
+#, kde-format
+msgctxt "@label:slider Brightness level"
+msgid "Change key&board brightness:"
+msgstr "&Billentyűzet fényerejének beállítása:"
+
+#: ui/ProfileConfig.qml:638
+#, kde-format
+msgctxt "@title:group"
+msgid "Other Settings"
+msgstr "Egyéb beállítások"
+
+#: ui/ProfileConfig.qml:646
+#, kde-format
+msgctxt ""
+"@label:combobox Power Save, Balanced or Performance profile - same options "
+"as in the Battery applet"
+msgid "Switch to po&wer profile:"
+msgstr "Váltás erre a p&rofilra:"
+
+#: ui/ProfileConfig.qml:650
+#, kde-format
+msgctxt ""
+"@accessible:name:combobox Power Save, Balanced or Performance profile - same "
+"options as in the Battery applet"
+msgid "Switch to power profile"
+msgstr "Váltás erre az energiatakarékossági profilra"
+
+#: ui/ProfileConfig.qml:677
+#, kde-format
+msgctxt "@label:button"
+msgid "Run command or script:"
+msgstr "Parancs vagy parancsfájl futtatása:"
+
+#: ui/ProfileConfig.qml:687
+#, kde-format
+msgctxt ""
+"@text:button Determine what will trigger a command or script to run in this "
+"power state"
+msgid "Choose run conditions"
+msgstr "Futtatási feltételek"
+
+#: ui/ProfileConfig.qml:689
+#, kde-format
+msgctxt "@accessible:name:button"
+msgid "Choose run conditions for command or script"
+msgstr "Válassza ki a parancs vagy parancsfájl futásának feltételeit"
+
+#: ui/ProfileConfig.qml:709
+#, kde-format
+msgctxt ""
+"@text:action:menu Command or script to run for power state (On AC Power, On "
+"Battery, ...)"
+msgid "When entering \"%1\" state"
+msgstr "A(z) „%1” állapotba &belépéskor"
+
+#: ui/ProfileConfig.qml:727
+#, kde-format
+msgctxt ""
+"@text:action:menu Command or script to run for power state (On AC Power, On "
+"Battery, ...)"
+msgid "When exiting \"%1\" state"
+msgstr "A(z) „%1” állapotból &kilépéskor"
+
+#: ui/ProfileConfig.qml:745
+#, kde-format
+msgctxt "@text:action:menu Command or script to run"
+msgid "When inactive"
+msgstr "Inaktivitáskor"
+
+#: ui/ProfileConfig.qml:768
+#, kde-format
+msgctxt ""
+"@label:textfield Command or script to run for power state (On AC Power, On "
+"Battery, ...)"
+msgid "When e&ntering \"%1\" state:"
+msgstr "A(z) „%1” állapotba &belépéskor:"
+
+#: ui/ProfileConfig.qml:772
+#, kde-format
+msgctxt "@label:textfield for power state (On AC Power, On Battery, ...)"
+msgid "Command or script when entering \"%1\" state"
+msgstr "Parancs vagy parancsfájl a(z) „%1” állapotba belépéskor"
+
+#: ui/ProfileConfig.qml:803
+#, kde-format
+msgctxt ""
+"@label:textfield Command or script to run for power state (On AC Power, On "
+"Battery, ...)"
+msgid "When e&xiting \"%1\" state:"
+msgstr "A(z) „%1” állapotból &kilépéskor:"
+
+#: ui/ProfileConfig.qml:807
+#, kde-format
+msgctxt "@label:textfield for power state (On AC Power, On Battery, ...)"
+msgid "Command or script when exiting \"%1\" state"
+msgstr "Parancs vagy parancsfájl a(z) „%1” állapotból kilépéskor"
+
+#: ui/ProfileConfig.qml:836
+#, kde-format
+msgctxt "@accessible:name:spinbox"
+msgid "Duration of inactivity before the command or script runs"
+msgstr "Inaktív időszak a parancs vagy parancsfájl végrehajtásáig"
+
+#: ui/ProfileConfig.qml:842
+#, kde-format
+msgctxt "@label:textfield Command or script to run"
+msgid "When i&nactive:"
+msgstr "I&naktivitáskor:"
+
+#: ui/ProfileConfig.qml:845
+#, kde-format
+msgctxt "@label:spinbox After X minutes"
+msgid "Run command or script after:"
+msgstr "Parancs vagy parancsfájl futtatása:"
+
+#: ui/ProfileConfig.qml:850
+#, kde-format
+msgctxt "@option:combobox"
+msgid "Run after %1 second"
+msgid_plural "Run after %1 seconds"
+msgstr[0] "Futtatás %1 másodperc után"
+msgstr[1] "Futtatás %1 másodperc után"
+
+#: ui/ProfileConfig.qml:852
+#, kde-format
+msgctxt "@option:combobox"
+msgid "Run after %1 minute"
+msgid_plural "Run after %1 minutes"
+msgstr[0] "Futtatás %1 perc után"
+msgstr[1] "Futtatás %1 perc után"
+
+#: ui/ProfileConfig.qml:894
+#, kde-format
+msgctxt "@accessible:name:textfield"
+msgid "Command or script when inactive"
+msgstr "Parancs vagy parancsfájl inaktivitáskor"
+
+#: ui/RunScriptEdit.qml:34
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Enter command or script file"
+msgstr "Adja meg a parancsot vagy parancsfájlt"
+
+#: ui/RunScriptEdit.qml:35
+#, kde-format
+msgctxt "@label:textbox accessible"
+msgid "Enter command or choose script file"
+msgstr "Adja meg a parancsot vagy válasszon parancsfájlt"
+
+#: ui/RunScriptEdit.qml:53
+#, kde-format
+msgctxt "@action:button opens file picker"
+msgid "Choose…"
+msgstr "Kiválasztás…"
+
+#: ui/RunScriptEdit.qml:54
+#, kde-format
+msgctxt "@action:button opens file picker"
+msgid "Choose script file"
+msgstr "Parancsfájl kiválasztása"
+
+#: ui/RunScriptEdit.qml:67
+#, kde-format
+msgctxt "@title:window"
+msgid "Choose script file"
+msgstr "Parancsfájl kiválasztása"
+
+#: ui/TimeDurationComboBox.qml:21
+#, kde-format
+msgctxt "@title:window"
+msgid "Custom Duration"
+msgstr "Egyéni időtartam"
+
+#~ msgctxt "@info:status"
+#~ msgid ""
+#~ "The action you had previously configured for after a period of inactivity "
+#~ "is now unsupported on your system. Please select a different one."
+#~ msgstr ""
+#~ "Az inaktív időszak utánhoz korábban beállított művelet már nem támogatott "
+#~ "az Ön rendszerén. Kérjük, válasszon egy másikat."
+
+#~ msgctxt ""
+#~ "@label:combobox Suspend action such as sleep/hibernate to perform when "
+#~ "the system is idle"
+#~ msgid "A&fter a period of inactivity:"
+#~ msgstr "Inaktív időszak &után:"
+
+#~ msgctxt "@text:action:menu Script command to execute"
+#~ msgid "After a period of inactivity"
+#~ msgstr "Inaktív időszak után"
+
+#~ msgctxt "@label:textfield Script command to execute"
+#~ msgid "After a period of inacti&vity:"
+#~ msgstr "Inaktív időszak &után:"
+
+#~ msgctxt "@label:spinbox After X minutes"
+#~ msgid "Execute script after:"
+#~ msgstr "Parancsfájl végrehajtása:"
+
+#~ msgid "Select executable file…"
+#~ msgstr "Végrehajtható fájl kiválasztása…"
+
+#~ msgid "Select executable file"
+#~ msgstr "Válassza ki a végrehajtható fájlt"
+
+#~ msgctxt ""
+#~ "List of recognized strings for 'minutes' in a time delay expression such "
+#~ "as 'after 10 min'"
+#~ msgid "m|min|mins|minutes"
+#~ msgstr "p|perc"
+
+#~ msgctxt ""
+#~ "List of recognized strings for 'seconds' in a time delay expression such "
+#~ "as 'after 10 sec'"
+#~ msgid "s|sec|secs|seconds"
+#~ msgstr "s|másodperc"
+
+#~ msgctxt ""
+#~ "Validator/extractor regular expression for a time delay number and unit, "
+#~ "from e.g. 'after 10 min'. Uses recognized strings for minutes and seconds "
+#~ "as %1 and %2."
+#~ msgid "[^\\d]*(\\d+)\\s*(%1|%2)\\s*"
+#~ msgstr "[^\\d]*(\\d+)\\s*(%1|%2)\\s*"
+
+#~ msgctxt "NAME OF TRANSLATORS"
+#~ msgid "Your names"
+#~ msgstr "Kiszel Kristóf"
+
+#~ msgctxt "EMAIL OF TRANSLATORS"
+#~ msgid "Your emails"
+#~ msgstr "kiszel.kristof@gmail.com"
+
+#~ msgid ""
+#~ "The KDE Power Management System will now generate a set of defaults based "
+#~ "on your computer's capabilities. This will also erase all existing "
+#~ "modifications you made. Are you sure you want to continue?"
+#~ msgstr ""
+#~ "A KDE Energiakezelő most létrehoz egy alapértelmezett profilkészletet a "
+#~ "számítógép képességei alapján. Ez törli az összes meglévő módosítását. "
+#~ "Biztosan folytatja?"
+
+#~ msgid "Restore Default Profiles"
+#~ msgstr "Alapértelmezett profilok visszaállítása"
+
+#~ msgid ""
+#~ "The Power Management Service appears not to be running.\n"
+#~ "This can be solved by starting or scheduling it inside \"Startup and "
+#~ "Shutdown\""
+#~ msgstr ""
+#~ "Úgy tűnik, hogy az energiakezelő szolgáltatás nem fut.\n"
+#~ "Ez megoldható a szolgáltatás elindításával vagy ütemezésével a "
+#~ "Rendszerbeállítások „Indulás és leállítás” moduljában."
+
+#~ msgid "Power Profiles Configuration"
+#~ msgstr "Energiakezelési profilok beállítása"
+
+#~ msgid "A profile configurator for KDE Power Management System"
+#~ msgstr "Profilkészítő a KDE Energiakezelő rendszeréhez"
+
+#~ msgid "(c), 2010 Dario Freddi"
+#~ msgstr "(C) Dario Freddi, 2010."
+
+#~ msgid ""
+#~ "From this module, you can manage KDE Power Management System's power "
+#~ "profiles, by tweaking existing ones or creating new ones."
+#~ msgstr ""
+#~ "Ebben a modulban kezelheti a KDE Energiakezelő rendszerének "
+#~ "energiakezelési profiljait, szerkesztve a meglévőket vagy újakat "
+#~ "létrehozva."
+
+#~ msgid "Dario Freddi"
+#~ msgstr "Dario Freddi"
+
+#~ msgid "Maintainer"
+#~ msgstr "Karbantartó"
+
+#~ msgid "Please enter a name for the new profile:"
+#~ msgstr "Adjon egy nevet az új profilnak:"
+
+#~ msgid "The name for the new profile"
+#~ msgstr "Az új profil neve"
+
+#~ msgid "Enter here the name for the profile you are creating"
+#~ msgstr "Itt adja meg a létrehozandó profil nevét"
+
+#~ msgid "Please enter a name for this profile:"
+#~ msgstr "Adjon egy nevet az új profilnak:"
+
+#~ msgid "Export Power Management Profiles"
+#~ msgstr "Energiakezelési profilok exportálása"
+
+#~ msgid ""
+#~ "The current profile has not been saved.\n"
+#~ "Do you want to save it?"
+#~ msgstr ""
+#~ "A jelenlegi profil nincs elmentve.\n"
+#~ "El szeretné menteni?"
+
+#~ msgid "Save Profile"
+#~ msgstr "Profil mentése"
+
+#~ msgid "New Profile"
+#~ msgstr "Új profil"
+
+#~ msgid "Delete Profile"
+#~ msgstr "Profil törlése"
+
+#~ msgid "Import Profiles"
+#~ msgstr "Profilok importálása"
+
+#~ msgid "Export Profiles"
+#~ msgstr "Profilok exportálása"
+
+#~ msgid "Edit Profile"
+#~ msgstr "Profil szerkesztése"

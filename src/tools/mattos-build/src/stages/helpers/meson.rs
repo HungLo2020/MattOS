@@ -36,6 +36,8 @@ fn build_meson_runtime(
         "polkit" => "output-duktape-link-adaptation-v2",
         "appstream" => "output-source-closure-adaptation-v2",
         "xdg-desktop-portal" => "output-owned-subproject-closure-v2",
+        "pulseaudio" => "release-tarball-version-v1",
+        "upower" => "output-policy-install-adaptation-v1",
         // gst-plugins-base asks GLib's staged gio-2.0.pc for variables that
         // describe GIO's *runtime* locations.  The descriptor deliberately
         // uses output-owned staging paths so native consumers can find the
@@ -71,6 +73,13 @@ fn build_meson_runtime(
     }
     fs::create_dir_all(&out_root)?;
     sync_build_source(&source, &source_copy)?;
+    if component == "pulseaudio" {
+        // The immutable source importer intentionally strips Git metadata.
+        // PulseAudio's Meson project obtains its release version from either
+        // Git or the release-tarball marker, so materialize the latter only
+        // in the disposable build mirror.
+        fs::write(source_copy.join(".tarball-version"), "17.0\n")?;
+    }
     if component == "xdg-desktop-portal" {
         // The pinned portal release declares exact gvdb and libglnx Meson
         // wraps. Materialize those independently pinned MattOS imports in the
@@ -137,6 +146,15 @@ fn build_meson_runtime(
             bail!("Flatpak system-helper policy layout changed unexpectedly");
         }
         fs::write(helper_meson, body.replace(old, replacement))?;
+    }
+    if component == "upower" {
+        // Polkit's target runtime does not ship host gettext ITS rules.
+        // The upstream policy is valid untranslated XML, so install it
+        // directly from this disposable mirror.
+        fs::write(
+            source_copy.join("policy/meson.build"),
+            "if polkit.found()\n  install_data('org.freedesktop.upower.rules', install_tag: 'runtime', install_dir: join_paths(datadir, 'polkit-1', 'rules.d'))\n  install_data('org.freedesktop.upower.policy.in', rename: 'org.freedesktop.upower.policy', install_dir: join_paths(datadir, 'polkit-1', 'actions'))\nendif\n",
+        )?;
     }
     if component == "networkmanager" {
         let data_meson = source_copy.join("data/meson.build");

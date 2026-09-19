@@ -1,0 +1,1233 @@
+# Irish translation of kateproject
+# Copyright (C) 2012 This_file_is_part_of_KDE
+# This file is distributed under the same license as the kateproject package.
+# Kevin Scannell <kscanne@gmail.com>, 2012.
+# Aindriú Mac Giolla Eoin <aindriu80@gmail.com>, 2025.
+# SPDX-FileCopyrightText: 2025 Charlotte <altronic25@protonmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: kateproject\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-07-17 02:43+0000\n"
+"PO-Revision-Date: 2025-12-01 12:43+0000\n"
+"Last-Translator: Aindriú Mac Giolla Eoin <aindriu80@gmail.com>\n"
+"Language-Team: Irish\n"
+"Language: ga\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=5; plural=n==1 ? 0 : n==2 ? 1 : n<7 ? 2 : n < 11 ? "
+"3 : 4\n"
+
+#: branchcheckoutdialog.cpp:29
+#, kde-format
+msgid "Select branch to checkout. Press 'Esc' to cancel."
+msgstr "Roghnaigh brainse le seiceáil amach. Brúigh 'Esc' le cealú."
+
+#: branchcheckoutdialog.cpp:62
+#, kde-format
+msgid "Branch %1 checked out"
+msgstr "Seiceáilte amach brainse %1"
+
+#: branchcheckoutdialog.cpp:65
+#, kde-format
+msgid "Failed to checkout to branch %1, Error: %2"
+msgstr "Theip ar an tseiceáil amach chuig brainse %1, Earráid: %2"
+
+#: branchcheckoutdialog.cpp:93 branchcheckoutdialog.cpp:105
+#, kde-format
+msgid "Enter new branch name. Press 'Esc' to cancel."
+msgstr "Cuir isteach ainm nua na brainse. Brúigh 'Esc' le cealú."
+
+#: branchcheckoutdialog.cpp:110
+#, kde-format
+msgid "Select branch to checkout from. Press 'Esc' to cancel."
+msgstr "Roghnaigh brainse le seiceáil amach uaidh. Brúigh 'Esc' le cealú."
+
+#: branchcheckoutdialog.cpp:133
+#, kde-format
+msgid "Checked out to new branch: %1"
+msgstr "Seiceáilte amach chuig brainse nua: %1"
+
+#: branchcheckoutdialog.cpp:135
+#, kde-format
+msgid "Failed to create new branch. Error \"%1\""
+msgstr "Theip ar bhrainse nua a chruthú. Earráid \"%1\""
+
+#: branchdeletedialog.cpp:124
+#, kde-format
+msgid "Branch"
+msgstr "Brainse"
+
+#: branchdeletedialog.cpp:124
+#, kde-format
+msgid "Last Activity"
+msgstr "Gníomhaíocht Dheiridh"
+
+#: branchdeletedialog.cpp:124
+#, kde-format
+msgid "Last Commit"
+msgstr "Tiomantas Deiridh"
+
+#: branchdeletedialog.cpp:137 kateprojecttreeviewcontextmenu.cpp:133
+#, kde-format
+msgid "Delete"
+msgstr "Scrios"
+
+#: branchdeletedialog.cpp:142
+#, kde-format
+msgid "Are you sure you want to delete the selected branch?"
+msgid_plural "Are you sure you want to delete the selected branches?"
+msgstr[0] ""
+"An bhfuil tú cinnte gur mian leat an brainse roghnaithe a scriosadh?"
+msgstr[1] ""
+"An bhfuil tú cinnte gur mian leat na brainsí roghnaithe a scriosadh?"
+msgstr[2] ""
+"An bhfuil tú cinnte gur mian leat na brainsí roghnaithe a scriosadh?"
+msgstr[3] ""
+"An bhfuil tú cinnte gur mian leat na brainsí roghnaithe a scriosadh?"
+msgstr[4] ""
+"An bhfuil tú cinnte gur mian leat na brainsí roghnaithe a scriosadh?"
+
+#: branchesdialog.cpp:96
+#, kde-format
+msgid "Select Branch..."
+msgstr "Roghnaigh Brainse..."
+
+#: branchesdialog.cpp:108 gitwidget.cpp:551 kateprojectpluginview.cpp:72
+#, kde-format
+msgid "Git"
+msgstr "Git"
+
+#: branchesdialogmodel.cpp:102
+#, kde-format
+msgid "Create New Branch"
+msgstr "Cruthaigh Brainse Nua"
+
+#: branchesdialogmodel.cpp:108
+#, kde-format
+msgid "Create New Branch From..."
+msgstr "Cruthaigh Brainse Nua Ó..."
+
+#: comparebranchesview.cpp:131
+#, kde-format
+msgid "Back"
+msgstr "Ar ais"
+
+#: currentgitbranchbutton.cpp:122
+#, kde-format
+msgctxt "Tooltip text, describing that '%1' commit is checked out"
+msgid "HEAD at commit %1"
+msgstr "CEANN ag tiomnú %1"
+
+#: currentgitbranchbutton.cpp:124
+#, kde-format
+msgctxt "Tooltip text, describing that '%1' tag is checked out"
+msgid "HEAD is at this tag %1"
+msgstr "Tá HEAD ag an gclib seo %1"
+
+#: currentgitbranchbutton.cpp:126
+#, kde-format
+msgctxt "Tooltip text, describing that '%1' branch is checked out"
+msgid "Active branch: %1"
+msgstr "Brainse gníomhach: %1"
+
+#: gitcommitdialog.cpp:70 gitcommitdialog.cpp:121
+#, kde-format
+msgid "Commit Changes"
+msgstr "Athruithe a Thiomnú"
+
+#: gitcommitdialog.cpp:74 gitcommitdialog.cpp:120 gitwidget.cpp:265
+#: gitwidget.cpp:1090
+#, kde-format
+msgid "Commit"
+msgstr "Tiomantas"
+
+#: gitcommitdialog.cpp:75
+#, kde-format
+msgid "Cancel"
+msgstr "Cealaigh"
+
+#: gitcommitdialog.cpp:77
+#, kde-format
+msgid "Write commit message..."
+msgstr "Scríobh teachtaireacht tiomnaithe..."
+
+#: gitcommitdialog.cpp:84
+#, kde-format
+msgid "Extended commit description..."
+msgstr "Cur síos sínte ar an tiomantas..."
+
+#: gitcommitdialog.cpp:108
+#, kde-format
+msgid "Sign off"
+msgstr "Sínigh amach"
+
+#: gitcommitdialog.cpp:112 gitcommitdialog.cpp:125
+#, kde-format
+msgid "Amend"
+msgstr "Leasaigh"
+
+#: gitcommitdialog.cpp:113 gitwidget.cpp:1043
+#, kde-format
+msgid "Amend Last Commit"
+msgstr "Leasaigh an Tiomantas Deiridh"
+
+#: gitcommitdialog.cpp:124
+#, kde-format
+msgid "Amending Commit"
+msgstr "Tiomantas Leasaitheach"
+
+#: gitcommitdialog.cpp:207
+#, kde-format
+msgctxt "Number of characters"
+msgid "%1 / 52"
+msgstr "%1 / 52"
+
+#: gitcommitdialog.cpp:211
+#, kde-format
+msgctxt "Number of characters"
+msgid "<span style=\"color:%1;\">%2</span> / 52"
+msgstr "<span style=\"color:%1;\">%2</span> / 52"
+
+#: gitstatusmodel.cpp:97
+#, kde-format
+msgid "Staged"
+msgstr "Ar stáitse"
+
+#: gitstatusmodel.cpp:99
+#, kde-format
+msgid "Untracked"
+msgstr "Gan Rianú"
+
+#: gitstatusmodel.cpp:101
+#, kde-format
+msgid "Conflict"
+msgstr "Coimhlint"
+
+#: gitstatusmodel.cpp:103
+#, kde-format
+msgid "Modified"
+msgstr "Modhnaithe"
+
+#: gitwidget.cpp:273
+#, kde-format
+msgid "Git Push"
+msgstr "Git Push"
+
+#: gitwidget.cpp:286
+#, kde-format
+msgid "Git Pull"
+msgstr "Tarraingt Git"
+
+#: gitwidget.cpp:299
+#, kde-format
+msgid "Cancel Operation"
+msgstr "Cealaigh an Oibríocht"
+
+#: gitwidget.cpp:307
+#, kde-format
+msgid " canceled."
+msgstr " curtha ar ceal."
+
+#: gitwidget.cpp:315
+#, kde-format
+msgid "Refresh git status"
+msgstr "Athnuachan stádas git"
+
+#: gitwidget.cpp:337 kateprojectview.cpp:61
+#, kde-format
+msgid "Filter…"
+msgstr "Scagaire…"
+
+#: gitwidget.cpp:428
+#, kde-format
+msgid "Failed to find .git directory for '%1', things may not work correctly"
+msgstr ""
+"Theip ar eolaire .git a aimsiú le haghaidh '%1', b'fhéidir nach n-oibreoidh "
+"rudaí i gceart"
+
+#: gitwidget.cpp:640
+#, kde-format
+msgid " error: %1"
+msgstr " earráid: %1"
+
+#: gitwidget.cpp:646
+#, kde-format
+msgid "\"%1\" executed successfully: %2"
+msgstr "\"%1\" curtha i gcrích go rathúil: %2"
+
+#: gitwidget.cpp:666
+#, kde-format
+msgid "Failed to stage file. Error:"
+msgstr "Theip ar an gcomhad a chur ar stáitse. Earráid:"
+
+#: gitwidget.cpp:679
+#, kde-format
+msgid "Failed to unstage file. Error:"
+msgstr "Theip ar an gcomhad a dhí-stáisiún. Earráid:"
+
+#: gitwidget.cpp:690
+#, kde-format
+msgid "Failed to discard changes. Error:"
+msgstr "Theip ar athruithe a dhíscríobh. Earráid:"
+
+#: gitwidget.cpp:701
+#, kde-format
+msgid "Failed to remove. Error:"
+msgstr "Theip ar bhaint. Earráid:"
+
+#: gitwidget.cpp:717
+#, kde-format
+msgid "Failed to open file at HEAD: %1"
+msgstr "Theip ar chomhad a oscailt ag HEAD: %1"
+
+#: gitwidget.cpp:751
+#, kde-format
+msgid "Failed to get Diff of file: %1"
+msgstr "Theip ar an difríocht den chomhad a fháil: %1"
+
+#: gitwidget.cpp:820
+#, kde-format
+msgid "Failed to commit: %1"
+msgstr "Theip ar an tiomnú: %1"
+
+#: gitwidget.cpp:824
+#, kde-format
+msgid "Changes committed successfully."
+msgstr "Rinneadh na hathruithe go rathúil."
+
+#: gitwidget.cpp:834
+#, kde-format
+msgid "Nothing to commit. Please stage your changes first."
+msgstr ""
+"Ní gá gealltanas a thabhairt. Déan do chuid athruithe a chur i bhfeidhm ar "
+"dtús, le do thoil."
+
+#: gitwidget.cpp:848
+#, kde-format
+msgid "Commit message cannot be empty."
+msgstr "Ní féidir an teachtaireacht tiomantais a bheith folamh."
+
+#: gitwidget.cpp:979
+#, kde-format
+msgid "No diff for %1...%2"
+msgstr "Gan aon difríocht do %1...%2"
+
+#: gitwidget.cpp:985
+#, kde-format
+msgid "Failed to compare %1...%2"
+msgstr "Theip ar %1...%2 a chur i gcomparáid"
+
+#: gitwidget.cpp:1000
+#, kde-format
+msgid "Failed to get numstat when diffing %1...%2"
+msgstr "Theip ar numstat a fháil agus difríocht %1...%2 á déanamh"
+
+#: gitwidget.cpp:1035
+#, kde-format
+msgid "Refresh"
+msgstr "Athnuachan"
+
+#: gitwidget.cpp:1052
+#, kde-format
+msgid "Checkout Branch"
+msgstr "Brainse Seiceála"
+
+#: gitwidget.cpp:1064
+#, kde-format
+msgid "Delete Branch"
+msgstr "Scrios Brainse"
+
+#: gitwidget.cpp:1078
+#, kde-format
+msgid "Compare Branch with..."
+msgstr "Déan comparáid idir Branch agus..."
+
+#: gitwidget.cpp:1084
+#, kde-format
+msgid "Show Commit"
+msgstr "Taispeáin Tiomantas"
+
+#: gitwidget.cpp:1102
+#, kde-format
+msgid "Show Last Commit"
+msgstr "Taispeáin an Tiomantas Deireanach"
+
+#: gitwidget.cpp:1120
+#, kde-format
+msgid "Open Commit..."
+msgstr "Oscail Tiomantas..."
+
+#: gitwidget.cpp:1123 gitwidget.cpp:1171
+#, kde-format
+msgid "Stash"
+msgstr "Taisce"
+
+#: gitwidget.cpp:1127
+#, kde-format
+msgid "Show history"
+msgstr "Taispeáin stair"
+
+#: gitwidget.cpp:1139
+#, kde-format
+msgid "Diff - stash"
+msgstr "Difríocht - taisce"
+
+#: gitwidget.cpp:1175
+#, kde-format
+msgid "Pop Last Stash"
+msgstr "Pop an Taisce Deiridh"
+
+#: gitwidget.cpp:1179
+#, kde-format
+msgid "Pop Stash"
+msgstr "Stáis Pop"
+
+#: gitwidget.cpp:1183
+#, kde-format
+msgid "Apply Last Stash"
+msgstr "Cuir an Stoc Deireanach i bhFeidhm"
+
+#: gitwidget.cpp:1185
+#, kde-format
+msgid "Stash (Keep Staged)"
+msgstr "Taisce (Coinnigh ar an Stáitse)"
+
+#: gitwidget.cpp:1189
+#, kde-format
+msgid "Stash (Include Untracked)"
+msgstr "Stór (Cuir san áireamh Gan Rianú)"
+
+#: gitwidget.cpp:1193
+#, kde-format
+msgid "Apply Stash"
+msgstr "Cuir Taisce i bhFeidhm"
+
+#: gitwidget.cpp:1194
+#, kde-format
+msgid "Drop Stash"
+msgstr "Buail Taisce"
+
+#: gitwidget.cpp:1198
+#, fuzzy, kde-format
+#| msgid "Pop Stash"
+msgid "Show Stash"
+msgstr "Stáis Pop"
+
+#: gitwidget.cpp:1202
+#, fuzzy, kde-format
+#| msgid "Show Diff"
+msgid "Show Stash Diff"
+msgstr "Taispeáin Difríocht"
+
+#: gitwidget.cpp:1240
+#, kde-format
+msgid "Stage All"
+msgstr "Céim Uile"
+
+#: gitwidget.cpp:1242
+#, kde-format
+msgid "Remove All"
+msgstr "Bain Gach Rud"
+
+#: gitwidget.cpp:1242
+#, kde-format
+msgid "Discard All"
+msgstr "Scrios Gach Rud"
+
+#: gitwidget.cpp:1245
+#, kde-format
+msgid "Open .gitignore"
+msgstr "Oscail .gitignore"
+
+#: gitwidget.cpp:1246 gitwidget.cpp:1295 gitwidget.cpp:1346
+#: kateprojectconfigpage.cpp:111 kateprojectconfigpage.cpp:123
+#, kde-format
+msgid "Show Diff"
+msgstr "Taispeáin Difríocht"
+
+#: gitwidget.cpp:1263
+#, kde-format
+msgid "Are you sure you want to remove these files?"
+msgstr "An bhfuil tú cinnte gur mian leat na comhaid seo a bhaint?"
+
+#: gitwidget.cpp:1268
+#, kde-format
+msgid "Are you sure you want to discard all changes?"
+msgstr ""
+"An bhfuil tú cinnte gur mian leat na hathruithe go léir a chaitheamh amach?"
+
+#: gitwidget.cpp:1286
+#, kde-format
+msgid "Open File"
+msgstr "Oscail Comhad"
+
+#: gitwidget.cpp:1287
+#, kde-format
+msgid "Unstage File"
+msgstr "Comhad Dí-stáisiúin"
+
+#: gitwidget.cpp:1287
+#, kde-format
+msgid "Stage File"
+msgstr "Comhad Céime"
+
+#: gitwidget.cpp:1288
+#, kde-format
+msgid "Remove"
+msgstr "Bain"
+
+#: gitwidget.cpp:1288
+#, kde-format
+msgid "Discard"
+msgstr "Scrios"
+
+#: gitwidget.cpp:1296
+#, kde-format
+msgid "Show in External Git Diff Tool"
+msgstr "Taispeáin in Uirlis Sheachtrach Git Diff"
+
+#: gitwidget.cpp:1297
+#, kde-format
+msgid "Open at HEAD"
+msgstr "Oscail ag HEAD"
+
+#: gitwidget.cpp:1301
+#, kde-format
+msgid "Show History"
+msgstr "Taispeáin Stair"
+
+#: gitwidget.cpp:1317
+#, kde-format
+msgid "Are you sure you want to discard the changes in this file?"
+msgstr ""
+"An bhfuil tú cinnte gur mian leat na hathruithe sa chomhad seo a chaitheamh "
+"amach?"
+
+#: gitwidget.cpp:1328
+#, kde-format
+msgid "Are you sure you want to remove this file?"
+msgstr "An bhfuil tú cinnte gur mian leat an comhad seo a bhaint?"
+
+#: gitwidget.cpp:1345
+#, kde-format
+msgid "Unstage All"
+msgstr "Dí-stáblaigh Gach Rud"
+
+#: gitwidget.cpp:1412
+#, kde-format
+msgid "Unstage Selected Files"
+msgstr "Dí-stáisiú Comhaid Roghnaithe"
+
+#: gitwidget.cpp:1412
+#, kde-format
+msgid "Stage Selected Files"
+msgstr "Céim ar Chomhaid Roghnaithe"
+
+#: gitwidget.cpp:1413
+#, kde-format
+msgid "Discard Selected Files"
+msgstr "Scrios Comhaid Roghnaithe"
+
+#: gitwidget.cpp:1417
+#, kde-format
+msgid "Remove Selected Files"
+msgstr "Bain Comhaid Roghnaithe"
+
+#: gitwidget.cpp:1430
+#, kde-format
+msgid "Are you sure you want to discard the changes?"
+msgstr "An bhfuil tú cinnte gur mian leat na hathruithe a chaitheamh amach?"
+
+#: gitwidget.cpp:1435
+#, kde-format
+msgid "Are you sure you want to remove these untracked changes?"
+msgstr ""
+"An bhfuil tú cinnte gur mian leat na hathruithe neamhrianaithe seo a bhaint?"
+
+#: kateproject.cpp:233
+#, kde-format
+msgid "(Modified)"
+msgstr ""
+
+#: kateproject.cpp:235
+#, kde-format
+msgid "(Staged)"
+msgstr ""
+
+#: kateproject.cpp:357
+#, kde-format
+msgid "Malformed JSON file '%1': %2"
+msgstr "Comhad JSON mífhoirmithe '%1': %2"
+
+#: kateproject.cpp:424 kateprojectplugin.cpp:826 kateprojectpluginview.cpp:77
+#: kateprojectpluginview.cpp:233 kateprojectviewtree.cpp:367
+#: kateprojectviewtree.cpp:378 kateprojectviewtree.cpp:408
+#: kateprojectviewtree.cpp:415
+#, kde-format
+msgid "Project"
+msgstr "Tionscadal"
+
+#: kateproject.cpp:725
+#, kde-format
+msgid "<untracked>"
+msgstr "<gan rianú>"
+
+#: kateprojectcompletion.cpp:52
+#, kde-format
+msgid "Project Completion"
+msgstr "Críochnú Tionscadail"
+
+#: kateprojectconfigpage.cpp:24
+#, kde-format
+msgctxt "Groupbox title"
+msgid "Autoload Repositories && Build Trees"
+msgstr "Uathluchtaigh Stórais && Tóg Crainn"
+
+#: kateprojectconfigpage.cpp:26
+#, kde-format
+msgid ""
+"Project plugin is able to autoload repository working copies and build trees "
+"when there is no .kateproject file defined yet."
+msgstr ""
+"Tá breiseán an tionscadail in ann cóipeanna oibre den stórlann a uathlódáil "
+"agus crainn a thógáil nuair nach bhfuil comhad .kateproject sainmhínithe fós."
+
+#: kateprojectconfigpage.cpp:29
+#, kde-format
+msgid "&Git"
+msgstr "&Git"
+
+#: kateprojectconfigpage.cpp:32
+#, kde-format
+msgid "&Subversion"
+msgstr "&Fo-iompar"
+
+#: kateprojectconfigpage.cpp:34
+#, kde-format
+msgid "&Mercurial"
+msgstr "&Mercurial"
+
+#: kateprojectconfigpage.cpp:36
+#, kde-format
+msgid "&Fossil"
+msgstr "&Fossil"
+
+#: kateprojectconfigpage.cpp:38
+#, kde-format
+msgid "&CMake"
+msgstr "&CMake"
+
+#: kateprojectconfigpage.cpp:47
+#, kde-format
+msgctxt "Groupbox title"
+msgid "Directory Listing"
+msgstr ""
+
+#: kateprojectconfigpage.cpp:49
+#, kde-format
+msgid ""
+"When directory listing is enabled, autoloaded repository projects show all "
+"files instead of only VCS-tracked files."
+msgstr ""
+
+#: kateprojectconfigpage.cpp:52
+#, kde-format
+msgid "Include files untracked by repository"
+msgstr ""
+
+#: kateprojectconfigpage.cpp:54
+#, kde-format
+msgid ""
+"Show all files in the project directory including files not tracked by the "
+"version control system, such as those excluded via .gitignore."
+msgstr ""
+
+#: kateprojectconfigpage.cpp:58
+#, kde-format
+msgid "Show hidden files in non-VCS projects"
+msgstr ""
+
+#: kateprojectconfigpage.cpp:59
+#, kde-format
+msgid ""
+"Show hidden files (dotfiles) in the project file tree for projects not "
+"loaded using version control."
+msgstr ""
+
+#: kateprojectconfigpage.cpp:68
+#, kde-format
+msgctxt "Groupbox title"
+msgid "Session Behavior"
+msgstr "Iompar Seisiúin"
+
+#: kateprojectconfigpage.cpp:69
+#, kde-format
+msgid "Session settings for projects"
+msgstr "Socruithe seisiúin do thionscadail"
+
+#: kateprojectconfigpage.cpp:70
+#, kde-format
+msgid "Restore Open Projects"
+msgstr "Athchóirigh Tionscadail Oscailte"
+
+#: kateprojectconfigpage.cpp:77
+#, kde-format
+msgctxt "Groupbox title"
+msgid "Project Index"
+msgstr "Innéacs an Tionscadail"
+
+#: kateprojectconfigpage.cpp:78
+#, kde-format
+msgid "Project ctags index settings"
+msgstr "Socruithe innéacs ctags tionscadail"
+
+#: kateprojectconfigpage.cpp:79 kateprojectinfoviewindex.cpp:208
+#, kde-format
+msgid "Enable indexing"
+msgstr "Cumasaigh innéacsú"
+
+#: kateprojectconfigpage.cpp:82
+#, kde-format
+msgid "Directory for index files"
+msgstr "Eolaire do chomhaid innéacs"
+
+#: kateprojectconfigpage.cpp:86
+#, kde-format
+msgid ""
+"The system temporary directory is used if not specified, which may overflow "
+"for very large repositories"
+msgstr ""
+"Úsáidtear an t-eolaire sealadach córais mura sonraítear é, rud a d'fhéadfadh "
+"ró-shreabhadh a dhéanamh i gcás stórtha an-mhóra"
+
+#: kateprojectconfigpage.cpp:93
+#, kde-format
+msgctxt "Groupbox title"
+msgid "Cross-Project Functionality"
+msgstr "Feidhmiúlacht Tras-Thionscadail"
+
+#: kateprojectconfigpage.cpp:94
+#, kde-format
+msgid ""
+"Project plugin is able to perform some operations across multiple projects"
+msgstr ""
+"Tá an breiseán tionscadail in ann roinnt oibríochtaí a dhéanamh ar fud "
+"ilthionscadail"
+
+#: kateprojectconfigpage.cpp:95
+#, kde-format
+msgid "Cross-Project Completion"
+msgstr "Críochnú Tras-Thionscadail"
+
+#: kateprojectconfigpage.cpp:97
+#, kde-format
+msgid "Cross-Project Goto Symbol"
+msgstr "Siombail Gote Tras-Thionscadail"
+
+#: kateprojectconfigpage.cpp:105
+#, kde-format
+msgctxt "Groupbox title"
+msgid "Git"
+msgstr "Git"
+
+#: kateprojectconfigpage.cpp:108
+#, kde-format
+msgid "Single click action in the git status view"
+msgstr "Gníomh cliceáil aonair sa radharc stádais git"
+
+#: kateprojectconfigpage.cpp:110 kateprojectconfigpage.cpp:122
+#, kde-format
+msgid "No Action"
+msgstr "Gan Ghníomh"
+
+#: kateprojectconfigpage.cpp:112 kateprojectconfigpage.cpp:124
+#, kde-format
+msgid "Open file"
+msgstr "Oscail comhad"
+
+#: kateprojectconfigpage.cpp:113 kateprojectconfigpage.cpp:125
+#, kde-format
+msgid "Stage / Unstage"
+msgstr "Stáitse / Gan stáitse"
+
+#: kateprojectconfigpage.cpp:120
+#, kde-format
+msgid "Double click action in the git status view"
+msgstr "Gníomh cliceáil faoi dhó sa radharc stádais git"
+
+#: kateprojectconfigpage.cpp:165 kateprojectpluginview.cpp:71
+#, kde-format
+msgid "Projects"
+msgstr "Tionscadail"
+
+#: kateprojectconfigpage.cpp:170
+#, kde-format
+msgctxt "Groupbox title"
+msgid "Projects Properties"
+msgstr "Airíonna Tionscadal"
+
+#: kateprojectinfoview.cpp:84
+#, kde-format
+msgctxt "@title:tab"
+msgid "Terminal"
+msgstr "Teirminéal"
+
+#: kateprojectinfoview.cpp:93
+#, kde-format
+msgctxt "@title:tab"
+msgid "Terminal (Project)"
+msgstr "Teirminéal (Tionscadal)"
+
+#: kateprojectinfoview.cpp:102
+#, kde-format
+msgctxt "@title:tab"
+msgid "Terminal (Base)"
+msgstr "Teirminéal (Bonn)"
+
+#: kateprojectinfoview.cpp:111
+#, kde-format
+msgctxt "@title:tab"
+msgid "Terminal (Build)"
+msgstr "Teirminéal (Tógáil)"
+
+#: kateprojectinfoview.cpp:118
+#, kde-format
+msgid "Code Index"
+msgstr "Innéacs an Chóid"
+
+#: kateprojectinfoview.cpp:123
+#, kde-format
+msgid "Code Analysis"
+msgstr "Anailís Cód"
+
+#: kateprojectinfoview.cpp:128
+#, kde-format
+msgid "Notes"
+msgstr "Nótaí"
+
+#: kateprojectinfoviewcodeanalysis.cpp:34
+#, kde-format
+msgid "Start Analysis..."
+msgstr "Tosaigh Anailís..."
+
+#: kateprojectinfoviewcodeanalysis.cpp:42
+#, kde-format
+msgctxt "'%1' refers to project name, e.g,. Code Analysis - MyProject"
+msgid "Code Analysis - %1"
+msgstr "Anailís Chóid - %1"
+
+#: kateprojectinfoviewcodeanalysis.cpp:99
+#, kde-format
+msgid ""
+"'%1' is not installed on your system, %2.<br/><br/>%3. The tool will be run "
+"on all project files which match this list of file extensions:<br/><b>%4</b>"
+msgstr ""
+"Níl '%1' suiteáilte ar do chóras, %2.<br/><br/>%3. Rithfear an uirlis ar "
+"gach comhad tionscadail a mheaitseálann an liosta síntí comhaid seo:<br/><b>"
+"%4</b>"
+
+#: kateprojectinfoviewcodeanalysis.cpp:109
+#, kde-format
+msgid ""
+"Using %1 installed at: %2.<br/><br/>%3. The tool will be run on all project "
+"files which match this list of file extensions:<br/><b>%4</b>"
+msgstr ""
+"Ag baint úsáide as %1 suiteáilte ag: %2.<br/><br/>%3. Rithfear an uirlis ar "
+"gach comhad tionscadail a mheaitseálann an liosta síntí comhaid seo:<br/><b>"
+"%4</b>"
+
+#: kateprojectinfoviewcodeanalysis.cpp:151
+#: kateprojectinfoviewcodeanalysis.cpp:211
+#: kateprojectinfoviewcodeanalysis.cpp:215
+#, kde-format
+msgid "CodeAnalysis"
+msgstr "Anailís Chóid"
+
+#: kateprojectinfoviewcodeanalysis.cpp:206
+#, kde-format
+msgctxt ""
+"Message to the user that analysis finished. %1 is the name of the program "
+"that did the analysis, %2 is a number. e.g., [clang-tidy]Analysis on 5 files "
+"finished"
+msgid "[%1]Analysis on %2 file finished."
+msgid_plural "[%1]Analysis on %2 files finished."
+msgstr[0] "[%1]Anailís ar %2 comhad críochnaithe."
+msgstr[1] "[%1]Anailís ar %2 comhaid críochnaithe."
+msgstr[2] "[%1]Anailís ar %2 comhaid críochnaithe."
+msgstr[3] "[%1]Anailís ar %2 comhaid críochnaithe."
+msgstr[4] "[%1]Anailís ar %2 comhaid críochnaithe."
+
+#: kateprojectinfoviewcodeanalysis.cpp:214
+#, kde-format
+msgid "Analysis failed with exit code %1, Error: %2"
+msgstr "Theip ar an anailís le cód scoir %1, Earráid: %2"
+
+#: kateprojectinfoviewindex.cpp:36
+#, kde-format
+msgid "Name"
+msgstr "Ainm"
+
+#: kateprojectinfoviewindex.cpp:36
+#, kde-format
+msgid "Kind"
+msgstr "Cineál"
+
+#: kateprojectinfoviewindex.cpp:36
+#, kde-format
+msgid "File"
+msgstr "Comhad"
+
+#: kateprojectinfoviewindex.cpp:36
+#, kde-format
+msgid "Line"
+msgstr "Líne"
+
+#: kateprojectinfoviewindex.cpp:37
+#, kde-format
+msgid "Search"
+msgstr "Cuardaigh"
+
+#: kateprojectinfoviewindex.cpp:197
+#, kde-format
+msgid "The index could not be created. Please install 'ctags'."
+msgstr "Níorbh fhéidir an t-innéacs a chruthú. Suiteáil 'ctags' le do thoil."
+
+#: kateprojectinfoviewindex.cpp:207
+#, kde-format
+msgid "Indexing is not enabled"
+msgstr "Níl innéacsú cumasaithe"
+
+#: kateprojectitem.cpp:181
+#, kde-format
+msgid "Error"
+msgstr "Earráid"
+
+#: kateprojectitem.cpp:181
+#, kde-format
+msgid "File name already exists"
+msgstr "Tá ainm comhaid ann cheana féin"
+
+#: kateprojectplugin.cpp:270
+#, kde-format
+msgid "Confirm project closing: %1"
+msgstr "Deimhnigh dúnadh tionscadail: %1"
+
+#: kateprojectplugin.cpp:271
+#, kde-format
+msgid "Do you want to close the project %1 and the related %2 open documents?"
+msgstr ""
+"Ar mhaith leat an tionscadal %1 agus na %2 doiciméid oscailte gaolmhara a "
+"dhúnadh?"
+
+#: kateprojectplugin.cpp:691
+#, kde-format
+msgid "Full path to current project excluding the file name."
+msgstr ""
+"Cosán iomlán chuig an tionscadal reatha gan ainm an chomhaid a áireamh."
+
+#: kateprojectplugin.cpp:708
+#, kde-format
+msgid ""
+"Full path to current project excluding the file name, with native path "
+"separator (backslash on Windows)."
+msgstr ""
+"Cosán iomlán chuig an tionscadal reatha gan ainm an chomhaid a áireamh, le "
+"deighilteoir cosáin dúchasach (cúl-slais ar Windows)."
+
+#: kateprojectpluginview.cpp:61
+#, kde-format
+msgid "Project Manager"
+msgstr "Bainisteoir Tionscadail"
+
+#: kateprojectpluginview.cpp:82
+#, fuzzy, kde-format
+#| msgid "Close Project"
+msgid "Current Project"
+msgstr "Close Project"
+
+#: kateprojectpluginview.cpp:84
+#, kde-format
+msgid "Open projects list"
+msgstr "Liosta tionscadal oscailte"
+
+#: kateprojectpluginview.cpp:92
+#, kde-format
+msgid "Reload project"
+msgstr "Athlódáil an tionscadal"
+
+#: kateprojectpluginview.cpp:95
+#, kde-format
+msgid "Close project"
+msgstr "Dún an tionscadal"
+
+#: kateprojectpluginview.cpp:171
+#, kde-format
+msgid "Open &Folder..."
+msgstr "Oscail &Fillteán..."
+
+#: kateprojectpluginview.cpp:177
+#, kde-format
+msgid "Project TODOs"
+msgstr "Tionscadail Na nObair Le Déanamh"
+
+#: kateprojectpluginview.cpp:182
+#, kde-format
+msgid "Activate Previous Project"
+msgstr "Gníomhachtaigh an Tionscadal Roimhe Seo"
+
+#: kateprojectpluginview.cpp:188
+#, kde-format
+msgid "Activate Next Project"
+msgstr "Gníomhachtaigh an Chéad Tionscadal Eile"
+
+#: kateprojectpluginview.cpp:194
+#, kde-format
+msgid "Lookup"
+msgstr "Féach suas"
+
+#: kateprojectpluginview.cpp:199
+#, kde-format
+msgid "Close Project"
+msgstr "Close Project"
+
+#: kateprojectpluginview.cpp:204
+#, kde-format
+msgid "Close All Projects"
+msgstr "Dún Gach Tionscadal"
+
+#: kateprojectpluginview.cpp:209
+#, kde-format
+msgid "Close Orphaned Projects"
+msgstr "Dún Tionscadail Dílleachta"
+
+#: kateprojectpluginview.cpp:214
+#, kde-format
+msgid "Reload Project"
+msgstr "Athlódáil an Tionscadal"
+
+#: kateprojectpluginview.cpp:219
+#, fuzzy, kde-format
+#| msgid "Reload Project"
+msgid "Reload All Projects"
+msgstr "Athlódáil an Tionscadal"
+
+#: kateprojectpluginview.cpp:230
+#, kde-format
+msgid "Checkout Git Branch"
+msgstr "Brainse Git Seiceáil Amach"
+
+#: kateprojectpluginview.cpp:236 kateprojectpluginview.cpp:845
+#, kde-format
+msgid "Lookup: %1"
+msgstr "Cuardach: %1"
+
+#: kateprojectpluginview.cpp:237 kateprojectpluginview.cpp:846
+#, kde-format
+msgid "Goto: %1"
+msgstr "Téigh go: %1"
+
+#: kateprojectpluginview.cpp:316
+#, kde-format
+msgid "Projects Index"
+msgstr "Innéacs na dTionscadal"
+
+#: kateprojectpluginview.cpp:890
+#, kde-format
+msgid "Choose a directory"
+msgstr "Roghnaigh eolaire"
+
+#: kateprojecttreeviewcontextmenu.cpp:48
+#, kde-format
+msgid "Enter name:"
+msgstr "Cuir isteach ainm:"
+
+#: kateprojecttreeviewcontextmenu.cpp:113
+#, kde-format
+msgid "Copy Location"
+msgstr "Cóipeáil Suíomh"
+
+#: kateprojecttreeviewcontextmenu.cpp:120
+#, kde-format
+msgid "New File…"
+msgstr "Comhad Nua…"
+
+#: kateprojecttreeviewcontextmenu.cpp:121
+#, kde-format
+msgid "New Folder…"
+msgstr "Fillteán Nua…"
+
+#: kateprojecttreeviewcontextmenu.cpp:128
+#, kde-format
+msgid "&Rename"
+msgstr "&Athainmnigh"
+
+#: kateprojecttreeviewcontextmenu.cpp:139
+#, kde-format
+msgid "Properties"
+msgstr "Airíonna"
+
+#: kateprojecttreeviewcontextmenu.cpp:143
+#, kde-format
+msgid "Open With"
+msgstr "Oscail Le"
+
+#: kateprojecttreeviewcontextmenu.cpp:151
+#, kde-format
+msgid "Open Internal Terminal Here"
+msgstr "Oscail an Teirminéal Inmheánach Anseo"
+
+#: kateprojecttreeviewcontextmenu.cpp:163
+#, kde-format
+msgid "Open External Terminal Here"
+msgstr "Oscail an Teirminéal Seachtrach Anseo"
+
+#: kateprojecttreeviewcontextmenu.cpp:169
+#, kde-format
+msgid "&Open Containing Folder"
+msgstr "&Oscail an Fillteán ina bhfuil"
+
+#: kateprojecttreeviewcontextmenu.cpp:178
+#, kde-format
+msgid "Show Git History"
+msgstr "Taispeáin Stair Git"
+
+#: kateprojecttreeviewcontextmenu.cpp:242
+#, kde-format
+msgid "New File"
+msgstr "Comhad Nua"
+
+#: kateprojecttreeviewcontextmenu.cpp:247
+#, kde-format
+msgid "New Folder"
+msgstr "Fillteán Nua"
+
+#: kateprojectviewtree.cpp:367
+#, kde-format
+msgid "The file already exists"
+msgstr "Tá an comhad ann cheana féin"
+
+#: kateprojectviewtree.cpp:378
+#, kde-format
+msgid "Failed to create file: %1, Error: %2"
+msgstr "Theip ar chruthú comhaid: %1, Earráid: %2"
+
+#: kateprojectviewtree.cpp:408
+#, kde-format
+msgid "The directory already exists"
+msgstr "Tá an t-eolaire ann cheana féin"
+
+#: kateprojectviewtree.cpp:415
+#, kde-format
+msgid "Failed to create dir: %1"
+msgstr "Theip ar chruthú an eolaire: %1"
+
+#: kateprojectworker.cpp:215
+#, kde-format
+msgid "Unable to find directory: %1"
+msgstr "Ní féidir an t-eolaire a aimsiú: %1"
+
+#: kateprojectworker.cpp:753
+#, kde-format
+msgid ""
+"Unable to load %1 based project because either %1 is not installed or it "
+"wasn't found in PATH environment variable. Please install %1 or "
+"alternatively disable the option 'Autoload Repositories && Build Trees' in "
+"project settings."
+msgstr ""
+"Ní féidir tionscadal bunaithe ar %1 a luchtú mar níl %1 suiteáilte nó níor "
+"aimsíodh é san athróg timpeallachta PATH. Suiteáil %1 nó díchumasaigh an "
+"rogha 'Autoload Repositories && Build Trees' i socruithe an tionscadail."
+
+#: project_commands.cpp:35
+#, kde-format
+msgid "Execute a command in the active project's terminal."
+msgstr "Cuir ordú i gcrích i dteirminéal an tionscadail ghníomhaigh."
+
+#: project_commands.cpp:47
+#, kde-format
+msgid "No cmd provided"
+msgstr "Níor soláthraíodh cmd"
+
+#: project_commands.cpp:60
+#, kde-format
+msgid "Project Command"
+msgstr "Ordú Tionscadail"
+
+#: stashdialog.cpp:36
+#, kde-format
+msgid "Stash message (optional). Enter to confirm, Esc to leave."
+msgstr ""
+"Teachtaireacht stóráilte (roghnach). Iontráil le deimhniú, Esc le himeacht."
+
+#: stashdialog.cpp:44
+#, kde-format
+msgid "Type to filter, Enter to pop stash, Esc to leave."
+msgstr "Clóscríobh le scagadh, Iontráil le stóráil a oscailt, Esc le himeacht."
+
+#: stashdialog.cpp:147
+#, kde-format
+msgid "Failed to stash changes %1"
+msgstr "Theip ar athruithe %1 a stóráil"
+
+#: stashdialog.cpp:149
+#, kde-format
+msgid "Changes stashed successfully."
+msgstr "Athruithe curtha i stóráil go rathúil."
+
+#: stashdialog.cpp:168
+#, kde-format
+msgid "Failed to get stash list. Error: "
+msgstr "Theip ar an liosta stórála a fháil. Earráid: "
+
+#: stashdialog.cpp:184
+#, kde-format
+msgid "Failed to apply stash. Error: "
+msgstr "Theip ar an taisce a chur i bhfeidhm. Earráid: "
+
+#: stashdialog.cpp:186
+#, kde-format
+msgid "Failed to drop stash. Error: "
+msgstr "Theip ar an taisce a scaoileadh. Earráid: "
+
+#: stashdialog.cpp:188
+#, kde-format
+msgid "Failed to pop stash. Error: "
+msgstr "Theip ar an taisce a oscailt. Earráid: "
+
+#: stashdialog.cpp:192
+#, kde-format
+msgid "Stash applied successfully."
+msgstr "Cuireadh an stash i bhfeidhm go rathúil."
+
+#: stashdialog.cpp:194
+#, kde-format
+msgid "Stash dropped successfully."
+msgstr "Scaoileadh an stash go rathúil."
+
+#: stashdialog.cpp:196
+#, kde-format
+msgid "Stash popped successfully."
+msgstr "Phléasc Stash go rathúil."
+
+#: stashdialog.cpp:225
+#, kde-format
+msgid "Show stash failed. Error: "
+msgstr "Theip ar an taisce a thaispeáint. Earráid: "
+
+#. i18n: ectx: Menu (projects)
+#: ui.rc:9
+#, kde-format
+msgid "&Projects"
+msgstr "&Tionscadail"
+
+#. i18n: ectx: ToolBar (projectplugin)
+#: ui.rc:29
+#, fuzzy, kde-format
+#| msgid "Project Completion"
+msgid "Project Plugin"
+msgstr "Críochnú Tionscadail"
+
+#~ msgid "Show Stash Content"
+#~ msgstr "Taispeáin Ábhar an Stáisiúin"

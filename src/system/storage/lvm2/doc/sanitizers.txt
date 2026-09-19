@@ -1,0 +1,211 @@
+Sanitizer Builds
+================
+
+LVM2 supports building with compiler sanitizers for detecting memory
+errors, undefined behavior, and data races.  Two modes are available:
+
+  --enable-asan   AddressSanitizer + UndefinedBehaviorSanitizer
+  --enable-tsan   ThreadSanitizer
+
+These are mutually exclusive -- ASAN and TSAN cannot coexist in the
+same binary.
+
+
+Build
+-----
+
+  ./configure --enable-asan    # or --enable-tsan
+  make
+
+The sanitized build produces libdevmapper-san.so instead of the normal
+libdevmapper.so.  All tools (lvm, dmsetup, daemons) are linked against
+the sanitized library.
+
+Compiler flags used:
+
+  ASAN:  -fsanitize=address -fsanitize=undefined
+         -fsanitize=bounds-strict -fno-omit-frame-pointer
+  TSAN:  -fsanitize=thread -fno-omit-frame-pointer
+
+The configure variable SANITIZER is set to "asan", "tsan", or "no".
+SAN_CFLAGS and SAN_LDFLAGS carry the actual compiler/linker flags.
+
+Non-sanitized object files (.o) use the same compile flags except
+for the -fsanitize= options.  The -san.o variant adds sanitizer
+instrumentation.  Both share identical preprocessor defines.
+
+
+Running
+-------
+
+Sanitized binaries accept runtime configuration through environment
+variables.  Each sanitizer has its own variable plus a set of common
+flags shared by all sanitizers.
+
+  ASAN_OPTIONS    AddressSanitizer
+  LSAN_OPTIONS    LeakSanitizer (subset of ASAN, controls leak detection)
+  TSAN_OPTIONS    ThreadSanitizer
+  UBSAN_OPTIONS   UndefinedBehaviorSanitizer
+
+Use help=1 to print the complete list of supported flags for your
+compiler version:
+
+  ASAN_OPTIONS=help=1 ./tools/lvm version
+  TSAN_OPTIONS=help=1 ./tools/lvm version
+
+
+Common flags (all sanitizers)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+These work in any of the *_OPTIONS variables:
+
+  symbolize=1                  Use runtime symbolizer for stack traces
+  external_symbolizer_path=P   Path to llvm-symbolizer
+  log_path=FILE                Write reports to FILE.pid (default: stderr)
+  verbosity=N                  0=silent, 1=some, 2+=more
+  halt_on_error=0              Continue after first error (default for UBSAN)
+  print_stacktrace=1           Show full stack traces
+  suppressions=FILE            Path to suppression file
+  allocator_may_return_null=1  Return NULL on OOM instead of crashing
+  disable_coredump=0           Allow core dumps (default: disabled on 64-bit)
+  detect_leaks=0               Disable leak detection (ASAN only)
+  fast_unwind_on_fatal=0       Use slow but reliable unwinder on crashes
+
+
+ASAN_OPTIONS (AddressSanitizer)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Key flags:
+
+  detect_leaks=0               Disable LeakSanitizer (also via LSAN_OPTIONS)
+  halt_on_error=0              Continue past first error
+  quarantine_size_mb=N         Size of freed-memory quarantine (use-after-free)
+  redzone=N                    Min redzone size around heap objects (>=16, power of 2)
+  detect_stack_use_after_return=1  Detect stack-use-after-return
+  check_initialization_order=1    Detect C++ init-order issues
+  strict_string_checks=1       Check null termination of string args
+  alloc_dealloc_mismatch=1     Report malloc/delete mismatches
+  sleep_before_dying=N         Seconds to wait before abort (attach debugger)
+  print_stats=1                Print allocator statistics
+  verify_asan_link_order=0     Disable link-order check (needed when preloading)
+  start_deactivated=1          Reduce memory until first instrumented module loads
+
+Aggressive diagnostics:
+
+  ASAN_OPTIONS=strict_string_checks=1:detect_stack_use_after_return=1:\
+    check_initialization_order=1:strict_init_order=1
+
+
+LSAN_OPTIONS (LeakSanitizer)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+LSAN is the leak-detection component of ASAN.  It is NOT part of TSAN.
+Setting LSAN_OPTIONS has no effect on TSAN builds.
+
+  detect_leaks=0               Disable leak checking entirely
+  suppressions=FILE            Suppress known leaks by pattern
+  max_leaks=N                  Report at most N leaks
+  use_stacks=1                 Scan thread stacks for pointers (default: 1)
+  use_registers=1              Scan registers for pointers (default: 1)
+  use_globals=1                Scan global variables for pointers (default: 1)
+  use_tls=1                    Scan thread-local storage (default: 1)
+
+
+TSAN_OPTIONS (ThreadSanitizer)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  report_bugs=0                Suppress all race reports (useful for benchmarks)
+  halt_on_error=0              Continue past first race
+  history_size=N               Per-thread history depth, 0-7 (0=32K, each +1 doubles)
+  io_sync=N                    IO synchronization level (0=none, 1=fd-level, 2=global)
+  force_seq_cst_atomics=1      Treat all atomics as seq_cst
+  flush_memory_ms=N            Flush shadow memory every N ms (saves RAM, may add noise)
+  memory_limit_mb=N            RSS target for shadow memory
+  halt_on_start=1              Pause at startup (attach with gdb, call tsan_resume())
+
+TSAN cannot be disabled at runtime.  The instrumentation is compiled
+into the binary and always active.  report_bugs=0 silences reports but
+the runtime still intercepts signals and memory operations.
+
+
+UBSAN_OPTIONS (UndefinedBehaviorSanitizer)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+UBSAN is included in --enable-asan builds.  By default it is
+recoverable (does not abort on first error).
+
+  halt_on_error=1              Abort on first UB (default: 0)
+  print_stacktrace=1           Print stack trace on each UB report
+  suppressions=FILE            Suppress known UB by pattern
+  silence_unsigned_overflow=1  Suppress unsigned overflow reports
+
+
+Test suite
+----------
+
+When running the LVM2 test suite with a sanitized build, some tests
+need to be skipped because their tools are incompatible with sanitizer
+instrumentation.
+
+Tools that use ptrace (strace, gcore, gdb attach) do not work with
+either ASAN or TSAN builds.  The sanitizer runtimes intercept signals
+and manage shadow memory regions that conflict with ptrace operations.
+This cannot be worked around with environment variables -- the
+instrumentation is compiled in.
+
+Tests that need ptrace-based tools should use:
+
+  aux no_san || skip
+
+This checks "lvm version" output for --enable-asan or --enable-tsan
+in the configure string and skips the test when any sanitizer is active.
+Works with shell wrappers and installed testsuite RPMs alike.
+
+The LSAN_OPTIONS=detect_leaks=0 workaround only suppresses leak
+reports in ASAN builds.  It does nothing for TSAN.  For tests that
+truly cannot run under any sanitizer, use "aux no_san" instead.
+
+
+Suppression files
+-----------------
+
+Each sanitizer supports suppression files to silence known issues:
+
+  ASAN_OPTIONS=suppressions=asan.supp
+  LSAN_OPTIONS=suppressions=lsan.supp
+  TSAN_OPTIONS=suppressions=tsan.supp
+
+Suppression file format (one entry per block):
+
+  # LSAN example -- suppress known libc leak
+  leak:__nss_module_allocate
+
+  # TSAN example -- suppress known benign race
+  race:some_function_name
+
+  # ASAN example -- suppress known global buffer overflow
+  global-buffer-overflow:some_symbol
+
+
+Checking the build configuration
+---------------------------------
+
+  lvm version
+
+The output includes the configure command line showing whether
+--enable-asan or --enable-tsan was used.
+
+At the source level, ENABLE_ASAN is defined (via config.h) when
+--enable-asan is active.  The SANITIZER make variable is "asan",
+"tsan", or "no".
+
+
+References
+----------
+
+  Common flags:  https://github.com/google/sanitizers/wiki/SanitizerCommonFlags
+  ASAN flags:    https://github.com/google/sanitizers/wiki/AddressSanitizerFlags
+  TSAN flags:    https://github.com/google/sanitizers/wiki/ThreadSanitizerFlags
+  Clang ASAN:    https://clang.llvm.org/docs/AddressSanitizer.html
+  Clang UBSAN:   https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html
+  GCC options:   https://gcc.gnu.org/onlinedocs/gcc/Instrumentation-Options.html

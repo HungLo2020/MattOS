@@ -1,0 +1,62 @@
+# Georgian translation for upower.
+# Copyright (C) 2022 Free Software Foundation, Inc.
+# This file is distributed under the same license as the upower package.
+# Temuri Doghonadze  <temuri.doghonadze@gmail.com>, 2022
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: upower\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-05-17 10:52+0200\n"
+"PO-Revision-Date: 2022-07-17 08:03+0200\n"
+"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
+"Language-Team: Georgian <(nothing)>.\n"
+"Language: ka\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.1.1\n"
+
+#. TRANSLATORS: exit after we've started up, used for user profiling
+#: src/up-main.c:190
+msgid "Exit after a small delay"
+msgstr "მცირე დაყოვნება გასვლამდე"
+
+#. TRANSLATORS: exit straight away, used for automatic profiling
+#: src/up-main.c:193
+msgid "Exit after the engine has loaded"
+msgstr "გასვლა ძრავის ჩატვირთვის შემდეგ"
+
+#: src/up-main.c:195
+msgid "Replace the old daemon"
+msgstr "ძველი დემონის ჩანაცვლება"
+
+#: src/up-main.c:197
+msgid "Show extra debugging information"
+msgstr "გამართვის დამატებითი ინფორმაციის ჩვენება"
+
+#: src/up-main.c:199
+msgid "Enable debugging (implies --verbose)"
+msgstr "დამატებითი შეტყობინებების ჩართვა(ასევე შეიცავს  --verbose)"
+
+#: tools/up-tool.c:206
+msgid "Enumerate objects paths for devices"
+msgstr "ობიექტების ბილიკების ჩამონათვალი მოწყობილობებისთვის"
+
+#: tools/up-tool.c:207
+msgid "Dump all parameters for all objects"
+msgstr "ყველა ობიექტის ყველა პარამეტრის გამოტანა"
+
+#: tools/up-tool.c:208
+msgid "Monitor activity from the power daemon"
+msgstr "აქტივობის მონიტორინგი კვების მართვის დემონიდიდან"
+
+#: tools/up-tool.c:209
+msgid "Monitor with detail"
+msgstr "მონიტორინგი დეტალებით"
+
+#: tools/up-tool.c:210
+msgid "Show information about object path"
+msgstr "ობიექტის ბილიკის ინფორმაციის ჩვენება"
+

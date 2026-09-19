@@ -1,0 +1,334 @@
+{
+    "id": "org.kde.dolphin",
+    "branch": "master",
+    "runtime": "org.kde.Platform",
+    "runtime-version": "6.10",
+    "sdk": "org.kde.Sdk",
+    "command": "dolphin",
+    "tags": [
+        "nightly"
+    ],
+    "desktop-file-name-suffix": " (Nightly)",
+    "finish-args": [
+        "--device=dri",
+        "--share=ipc",
+        "--share=network",
+        "--socket=fallback-x11",
+        "--socket=wayland",
+        "--socket=pulseaudio",
+        "--filesystem=host",
+        "--filesystem=~/.var/app/",
+        "--talk-name=org.freedesktop.Flatpak",
+        "--talk-name=org.kde.kded6",
+        "--talk-name=org.kde.kiod6",
+        "--talk-name=org.kde.JobViewServer",
+        "--talk-name=org.kde.kpasswdserver",
+        "--talk-name=org.kde.kpasswdserver6",
+        "--talk-name=org.kde.kuiserver",
+        "--system-talk-name=org.freedesktop.UDisks2"
+    ],
+    "modules": [
+        {
+            "name": "kde-cli-tools",
+            "buildsystem": "cmake-ninja",
+            "sources": [
+                {
+                    "type": "git",
+                    "url": "https://invent.kde.org/plasma/kde-cli-tools.git"
+                }
+            ]
+        },
+        {
+            "name": "zstd",
+            "buildsystem": "simple",
+            "build-commands": [
+                "make",
+                "make PREFIX=/ DESTDIR=\"${FLATPAK_DEST}\" install"
+            ],
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://github.com/facebook/zstd/releases/download/v1.4.5/zstd-1.4.5.tar.gz",
+                    "sha256": "98e91c7c6bf162bf90e4e70fdbc41a8188b9fa8de5ad840c401198014406ce9e"
+                }
+            ]
+        },
+        {
+            "name": "lz4",
+            "buildsystem": "simple",
+            "build-commands": [
+                "make -C lib PREFIX=/",
+                "make -C programs PREFIX=/usr lz4 lz4",
+                "make install PREFIX=/ DESTDIR=\"${FLATPAK_DEST}\" install"
+            ],
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://github.com/lz4/lz4/archive/v1.9.2.tar.gz",
+                    "sha256": "658ba6191fa44c92280d4aa2c271b0f4fbc0e34d249578dd05e50e76d0e5efcc"
+                }
+            ]
+        },
+        {
+            "name": "libarchive",
+            "config-opts": [
+                "--without-xml2"
+            ],
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://github.com/libarchive/libarchive/releases/download/v3.8.5/libarchive-3.8.5.tar.xz",
+                    "sha256": "d68068e74beee3a0ec0dd04aee9037d5757fcc651591a6dcf1b6d542fb15a703"
+                }
+            ]
+        },
+        {
+            "name": "libzip",
+            "buildsystem": "cmake-ninja",
+            "config-opts": [
+                "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+            ],
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://libzip.org/download/libzip-1.6.1.tar.xz",
+                    "sha256": "705dac7a671b3f440181481e607b0908129a9cf1ddfcba75d66436c0e7d33641"
+                }
+            ]
+        },
+        {
+            "name": "lzo",
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://www.oberhumer.com/opensource/lzo/download/lzo-2.10.tar.gz",
+                    "sha256": "c0f892943208266f9b6543b3ae308fab6284c5c90e627931446fb49b4221a072"
+                }
+            ]
+        },
+        {
+            "name": "lzop",
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://www.lzop.org/download/lzop-1.04.tar.gz",
+                    "sha256": "7e72b62a8a60aff5200a047eea0773a8fb205caf7acbe1774d95147f305a2f41"
+                }
+            ]
+        },
+        {
+            "name": "lrzip",
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://github.com/ckolivas/lrzip/archive/v0.631.tar.gz",
+                    "sha256": "10315c20d5a47590e7220c210735ba169677824d5672509266682eccec84d952"
+                }
+            ]
+        },
+        {
+            "name": "ark",
+            "buildsystem": "cmake-ninja",
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://download.kde.org/stable/release-service/26.04.2/src/ark-26.04.2.tar.xz",
+                    "sha256": "b81c4055486c99f4f21ff228bf12485bc73e8e6b0064edee1043a11ad5d1e555",
+                    "x-checker-data": {
+                        "type": "anitya",
+                        "project-id": 8763,
+                        "stable-only": true,
+                        "url-template": "https://download.kde.org/stable/release-service/$version/src/ark-$version.tar.xz"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "lmdb",
+            "sources": [
+                {
+                    "type": "git",
+                    "url": "https://github.com/LMDB/lmdb.git",
+                    "tag": "LMDB_0.9.35",
+                    "x-checker-data": {
+                        "type": "git",
+                        "tag-pattern": "^LMDB_([\\d.]+)$"
+                    },
+                    "commit": "69087ced3cb6082f7dcfb4fc2dcaa3b68a7e2e8c"
+                }
+            ],
+            "no-autogen": true,
+            "make-install-args": [
+                "prefix=/app"
+            ],
+            "subdir": "libraries/liblmdb"
+        },
+        {
+            "config-opts": [
+                "-DENABLE_TESTING=OFF",
+                "-DLMDB_DIR=/app"
+            ],
+            "name": "baloo",
+            "buildsystem": "cmake-ninja",
+            "builddir": true,
+            "sources": [
+                {
+                    "type": "git",
+                    "url": "https://invent.kde.org/frameworks/baloo.git",
+                    "tag": "v6.4.0"
+                }
+            ]
+        },
+        {
+            "config-opts": [
+                "-DENABLE_TESTING=OFF",
+                "-DQT_MAJOR_VERSION=6",
+                "-DLMDB_DIR=/app"
+            ],
+            "name": "baloo-widgets",
+            "buildsystem": "cmake-ninja",
+            "builddir": true,
+            "sources": [
+                {
+                    "type": "git",
+                    "url": "https://invent.kde.org/libraries/baloo-widgets.git",
+                    "branch": "master"
+                }
+            ]
+        },
+        {
+            "name": "phonon-vlc",
+            "buildsystem": "cmake-ninja",
+            "config-opts": [
+                "-DPHONON_BUILD_QT5=OFF"
+            ],
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://download.kde.org/stable/phonon/phonon-backend-vlc/0.12.0/phonon-backend-vlc-0.12.0.tar.xz",
+                    "sha256": "338479dc451e4b94b3ca5b578def741dcf82f5c626a2807d36235be2dce7c9a5",
+                    "x-checker-data": {
+                        "type": "anitya",
+                        "project-id": 229046,
+                        "stable-only": true,
+                        "url-template": "https://download.kde.org/stable/phonon/phonon-backend-vlc/$version/phonon-backend-vlc-$version.tar.xz"
+                    }
+                }
+            ],
+            "modules": [
+                {
+                    "name": "phonon",
+                    "config-opts": [
+                        "-DBUILD_TESTING=OFF",
+                        "-DPHONON_BUILD_QT5=OFF",
+                        "-DPHONON_BUILD_QT6=ON"
+                    ],
+                    "buildsystem": "cmake-ninja",
+                    "sources": [
+                        {
+                            "type": "archive",
+                            "url": "https://download.kde.org/stable/phonon/4.12.0/phonon-4.12.0.tar.xz",
+                            "sha256": "3287ffe0fbcc2d4aa1363f9e15747302d0b080090fe76e5f211d809ecb43f39a",
+                            "x-checker-data": {
+                                "type": "anitya",
+                                "project-id": 229047,
+                                "stable-only": true,
+                                "url-template": "https://download.kde.org/stable/phonon/$version/phonon-$version.tar.xz"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "libvlc",
+                    "config-opts": [
+                        "BUILDCC=gcc",
+                        "--disable-lua",
+                        "--disable-a52",
+                        "--disable-qt",
+                        "--disable-ncurses",
+                        "--disable-udev"
+                    ],
+                    "sources": [
+                        {
+                            "type": "archive",
+                            "url": "https://get.videolan.org/vlc/3.0.23/vlc-3.0.23.tar.xz",
+                            "sha256": "e891cae6aa3ccda69bf94173d5105cbc55c7a7d9b1d21b9b21666e69eff3e7e0",
+                            "x-checker-data": {
+                                "type": "anitya",
+                                "project-id": 6504,
+                                "stable-only": true,
+                                "url-template": "https://get.videolan.org/vlc/$version/vlc-$version.tar.xz"
+                            }
+                        },
+                        {
+                            "type": "patch",
+                            "path": ".flatpak-vlc-ignore-time-for-cache.patch"
+                        }
+                    ],
+                    "modules": [
+                        {
+                            "name": "ffmpeg",
+                            "config-opts": [
+                                "--enable-pic",
+                                "--enable-shared",
+                                "--disable-doc",
+                                "--disable-static",
+                                "--enable-gpl",
+                                "--enable-libvpx",
+                                "--enable-libmp3lame",
+                                "--enable-libvorbis",
+                                "--enable-libopus"
+                            ],
+                            "sources": [
+                                {
+                                    "type": "archive",
+                                    "url": "https://ffmpeg.org/releases/ffmpeg-4.4.5.tar.xz",
+                                    "sha256": "f9514e0d3515aee5a271283df71636e1d1ff7274b15853bcd84e144be416ab07"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "konsole",
+            "buildsystem": "cmake-ninja",
+            "config-opts": [
+                "-DWITH_LIBSSH=OFF"
+            ],
+            "sources": [
+                {
+                    "type": "git",
+                    "url": "https://invent.kde.org/utilities/konsole.git",
+                    "branch": "master"
+                }
+            ]
+        },
+        {
+            "config-opts": [
+                "-DFLATPAK=ON"
+            ],
+            "name": "dolphin",
+            "buildsystem": "cmake-ninja",
+            "builddir": true,
+            "sources": [
+                {
+                    "type": "dir",
+                    "path": "."
+                }
+            ]
+        },
+        {
+            "name": "dolphin-plugins",
+            "buildsystem": "cmake-ninja",
+            "builddir": true,
+            "sources": [
+                {
+                    "type": "git",
+                    "url": "https://invent.kde.org/sdk/dolphin-plugins.git"
+                }
+            ]
+        }
+    ]
+}

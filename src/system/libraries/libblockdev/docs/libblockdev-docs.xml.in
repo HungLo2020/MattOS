@@ -1,0 +1,203 @@
+<?xml version="1.0"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+               "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[
+  <!ENTITY % local.common.attrib "xmlns:xi  CDATA  #FIXED 'http://www.w3.org/2003/XInclude'">
+]>
+<book id="index">
+  <bookinfo>
+    <title>libblockdev Reference Manual for libblockdev @VERSION@.</title>
+    <releaseinfo>
+      <para>
+      The latest version of this documentation can be found on-line at
+      <ulink role="online-location"
+             url="http://storaged.org/libblockdev/">http://storaged.org/libblockdev/</ulink>.
+      </para>
+      <para>
+      The latest version of the code can be found at
+      <ulink role="online-location"
+             url="https://github.com/storaged-project/libblockdev">https://github.com/storaged-project/libblockdev</ulink>
+      </para>
+      <para>
+      Documentation for Python bindings is available <ulink type="http" url="BlockDev-3.0/index.html">here</ulink>
+      </para>
+    </releaseinfo>
+  </bookinfo>
+
+  <chapter>
+    <title>libblockdev Reference Manual</title>
+    <xi:include href="xml/blockdev.xml"/>
+    <xi:include href="xml/btrfs.xml"/>
+    <xi:include href="xml/crypto.xml"/>
+    <xi:include href="xml/dm.xml"/>
+    <xi:include href="xml/fs.xml"/>
+    <xi:include href="xml/loop.xml"/>
+    <xi:include href="xml/lvm.xml"/>
+    <xi:include href="xml/mdraid.xml"/>
+    <xi:include href="xml/mpath.xml"/>
+    <xi:include href="xml/nvdimm.xml"/>
+    <xi:include href="xml/nvme.xml"/>
+    <xi:include href="xml/plugins.xml"/>
+    <xi:include href="xml/part.xml"/>
+    <xi:include href="xml/smart.xml"/>
+    <xi:include href="xml/swap.xml"/>
+    <xi:include href="xml/s390.xml"/>
+    <xi:include href="xml/utils.xml"/>
+  </chapter>
+
+  <chapter>
+    <title>GI Overrides</title>
+    <para>
+      The libblockdev library supports <emphasis>GObject introspection</emphasis> and thus
+      can be used from a variety of languages. To make such use even easier and to make
+      the code using libblockdev from different languages than C feel more natural the
+      library also provides so-called <emphasis>overrides</emphasis> &mdash; pieces of
+      code that usually wrap the original libblockdev functions with language-native
+      objects (usually functions) that provide language-specific features like default
+      values for parameters etc.
+    </para>
+    <para>
+      The overrides are not documented here (yet), but it should be easy to directly check
+      the sources for anybody who understands their language of choice. The overrides are
+      located in the <filename class="directory">src/LANG_NAME</filename> directory in the
+      source tree. The only language that libblockdev provides overrides for right now is
+      Python (under the <filename class="directory">src/python</filename> directory).
+    </para>
+  </chapter>
+
+  <chapter>
+    <title>Testing libblockdev</title>
+    <para>
+      libblockdev's test suite is written using the standard unittest.TestCase framework
+      in Python. Tests are separated in modules, usually one per libblockdev plugin - e.g.
+      BTRFS, LVM, Crypto. There are one or more base classes in each module used to
+      setup the environment and perform some testing. More specific test scenarios
+      inherit from these base classes.
+    </para>
+
+    <para>
+      Before running the tests you have to prepare your system so that libblockdev
+      can be built from source.
+    </para>
+
+    <para>
+      Install all build requirements. On Fedora this can be done with
+      <screen><userinput>
+cat dist/libblockdev.spec.in | grep BuildRequires: | cut -f2 -d: | cut -f2 -d' ' | xargs dnf -y install
+      </userinput></screen>
+
+      Configure the build scripts
+
+      <screen><userinput>./autogen.sh
+./configure</userinput></screen>
+    </para>
+
+    <para>
+      To execute the Pylint code analysis tool run:
+
+      <screen><userinput>make check</userinput></screen>
+
+      The check target is a dependency of all test targets and you don't have to
+      execute it explicitly when testing.
+    </para>
+
+    <para>
+      To execute the test suite from inside the source directory run one of these
+      commands:
+
+      <screen><userinput>make test</userinput></screen>
+
+      executes all safe tests or
+
+      <screen><userinput>make fast-test</userinput></screen>
+
+      executes all fast tests or
+
+      <screen><userinput>make test-all</userinput></screen>
+
+      executes all tests, including ones which may result in kernel panic or
+      take more time to complete or
+
+      <screen><userinput>make test-plugin-NAME</userinput></screen>
+
+      executes only tests for given plugin and similarly
+
+      <screen><userinput>make fast-test-plugin-NAME</userinput></screen>
+
+      executes only fast tests for given plugin.
+    </para>
+
+    <para>
+      It is also possible to run only subset of available tests or only one test
+      using the `run_tests.py` script:
+
+      <screen><userinput># python3 tests/run_tests.py fs_test.GenericResize</userinput></screen>
+
+      executes all tests from the <emphasis>GenericResize</emphasis> test class
+      from filesystem plugin test cases and
+
+      <screen><userinput># python3 tests/run_tests.py fs_test.GenericResize.test_ext2_generic_resize</userinput></screen>
+
+      executes only <emphasis>test_ext2_generic_resize</emphasis> from this class.
+
+      This script also allows skipping slow tests or running potentially dangerous
+      tests. Use:
+
+      <screen><userinput>$ python3 tests/run_tests.py --help</userinput></screen>
+
+      to see all available options.
+
+    </para>
+
+    <para>
+      It is also possible to generate test coverage reports using the Python coverage
+      tool:
+
+      <screen><userinput>make coverage</userinput></screen>
+
+      is equivalent to `make test'.
+
+      <screen><userinput>make coverage-all</userinput></screen>
+
+      is equivalent to `make test-all'.
+    </para>
+
+    <para>
+      To get full coverage report for the C code the LCOV tool can be used:
+
+      <screen><userinput>./autogen.sh</userinput></screen>
+      <screen><userinput>./configure CFLAGS="-O0 -g --coverage" LDFLAGS="--coverage" --prefix=/usr</userinput></screen>
+      <screen><userinput>make -j</userinput></screen>
+
+      to configure and build the project with coverage enabled, run
+
+      <screen><userinput>lcov --directory . --zerocounters</userinput></screen>
+      <screen><userinput>lcov --directory . --capture --initial --output-file coverage-base.info</userinput></screen>
+
+      to configure lcov, run tests as usual with
+
+      <screen><userinput>sudo python3 tests/run_tests.py --include-tags all</userinput></screen>
+
+      and produce the HTML report using
+
+      <screen><userinput>lcov --directory . --capture --output-file coverage-test.info</userinput></screen>
+      <screen><userinput>lcov --remove coverage-test.info  '/usr/*'  --output-file coverage-filtered.info</userinput></screen>
+      <screen><userinput>genhtml coverage-filtered.info --output-directory coverage-report --title "libblockdev Coverage Report" --show-details --legend</userinput></screen>
+
+    </para>
+
+  </chapter>
+
+  <xi:include href="3.0-api-changes.xml"><xi:fallback /></xi:include>
+
+  <index id="api-index-full">
+    <title>API Index</title>
+    <xi:include href="xml/api-index-full.xml"><xi:fallback /></xi:include>
+  </index>
+  <index id="deprecated-api-index" role="deprecated">
+    <title>Index of deprecated API</title>
+    <xi:include href="xml/api-index-deprecated.xml"><xi:fallback /></xi:include>
+  </index>
+
+  <xi:include href="xml/annotation-glossary.xml"><xi:fallback /></xi:include>
+</book>

@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Cluster-adapted aux wrapper
+# Sources aux_t_defs.sh (function definitions only, no dispatch),
+# then aux-overrides.sh to shadow DM-specific functions, then dispatches.
+
+. lib/utils
+
+[[ -n "$BASH" ]] && set -euE -o pipefail
+
+. lib/aux_t_defs.sh
+. lib/aux-overrides.sh
+
+[[ "${LVM_TEST_AUX_TRACE-0}" = "0" ]] || set -x
+
+[[ -f DEVICES ]] && devs=$(< DEVICES)
+
+unset LVM_VALGRIND
+
+if [[ "${1-}" = "dmsetup" ]]; then
+    shift
+    dmsetup_wrapped "$@"
+else
+    "$@"
+fi

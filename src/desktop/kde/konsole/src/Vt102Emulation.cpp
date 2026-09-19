@@ -1,0 +1,4525 @@
+/*
+    SPDX-FileCopyrightText: 2007-2008 Robert Knight <robert.knight@gmail.com>
+    SPDX-FileCopyrightText: 1997, 1998 Lars Doelle <lars.doelle@on-line.de>
+
+    SPDX-License-Identifier: GPL-2.0-or-later
+*/
+// Own
+#include "Vt102Emulation.h"
+#include "config-konsole.h"
+
+// Standard
+#include <cstdio>
+
+// Qt
+#include <QApplication>
+#include <QAudioOutput>
+#include <QBuffer>
+#include <QClipboard>
+#include <QEvent>
+#include <QKeyEvent>
+#include <QTimer>
+#include <QtEndian>
+
+// KDE
+#include <KLocalizedString>
+#include <KNotification>
+
+// Konsole
+#include "EscapeSequenceUrlExtractor.h"
+#include "session/Session.h"
+#include "session/SessionController.h"
+#include "session/SessionManager.h"
+#include "terminalDisplay/TerminalColor.h"
+#include "terminalDisplay/TerminalDisplay.h"
+#include "terminalDisplay/TerminalFonts.h"
+
+// win32-input-mode
+#include "WinKeys.h"
+
+// Kitty keyboard protocol
+#include "KittyKeyMap.h"
+
+#ifdef HAVE_XKBCOMMON
+#include <xkbcommon/xkbcommon.h>
+#endif
+
+#include <konsoledebug.h>
+
+using Konsole::Vt102Emulation;
+
+/*
+   The VT100 has 32 special graphical characters. The usual vt100 extended
+   xterm fonts have these at 0x00..0x1f.
+
+   QT's iso mapping leaves 0x00..0x7f without any changes. But the graphicals
+   come in here as proper unicode characters.
+
+   We treat non-iso10646 fonts as VT100 extended and do the required mapping
+   from unicode to 0x00..0x1f. The remaining translation is then left to the
+   QCodec.
+*/
+
+// assert for i in [0..31] : vt100extended(vt100_graphics[i]) == i.
+
+/* clang-format off */
+static const quint16 vt100_graphics[32] = {
+    // 0/8     1/9    2/10    3/11    4/12    5/13    6/14    7/15
+    0x0020, 0x25C6, 0x2592, 0x2409, 0x240c, 0x240d, 0x240a, 0x00b0,
+    0x00b1, 0x2424, 0x240b, 0x2518, 0x2510, 0x250c, 0x2514, 0x253c,
+    0x23ba, 0x23bb, 0x2500, 0x23bc, 0x23bd, 0x251c, 0x2524, 0x2534,
+    0x252c, 0x2502, 0x2264, 0x2265, 0x03C0, 0x2260, 0x00A3, 0x00b7
+};
+/* clang-format on */
+
+enum XTERM_EXTENDED {
+    URL_LINK = '8',
+};
+
+Vt102Emulation::Vt102Emulation()
+    : Emulation()
+    , tokenBuffer(256)
+    , _currentModes(TerminalState())
+    , _savedModes(TerminalState())
+    , _pendingSessionAttributesUpdates(QHash<int, QString>())
+    , _sessionAttributesUpdateTimer(new QTimer(this))
+    , _reportFocusEvents(false)
+    , player(nullptr)
+{
+    _sessionAttributesUpdateTimer->setSingleShot(true);
+    QObject::connect(_sessionAttributesUpdateTimer, &QTimer::timeout, this, &Konsole::Vt102Emulation::updateSessionAttributes);
+
+    initTokenizer();
+    imageId = 0;
+    savedKeys = QMap<char, qint64>();
+    tokenData = QByteArray();
+    m_currentImage = QImage();
+
+    for (int i = 0; i < 256; i++) {
+        colorTable[i] = QColor();
+    }
+
+#ifdef HAVE_XKBCOMMON
+    _xkbData.context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
+    if (!_xkbData.context) {
+        qCDebug(KonsoleDebug) << "win32-input-mode: FAILED to create xkb_context.";
+        _win32InputModeAvailable = false;
+    } else {
+        struct xkb_rule_names rules = { nullptr, nullptr, "us", nullptr, nullptr };
+        _xkbData.keymap_us = xkb_keymap_new_from_names(_xkbData.context, &rules, XKB_KEYMAP_COMPILE_NO_FLAGS);
+        if (!_xkbData.keymap_us) {
+            qCDebug(KonsoleDebug) << "win32-input-mode: FAILED to create US keymap.";
+            _win32InputModeAvailable = false;
+        } else {
+            _xkbData.state_us = xkb_state_new(_xkbData.keymap_us);
+            if (!_xkbData.state_us) {
+                qCDebug(KonsoleDebug) << "win32-input-mode: FAILED to create xkb_state.";
+                _win32InputModeAvailable = false;
+            }
+        }
+    }
+#endif
+}
+
+Vt102Emulation::~Vt102Emulation()
+{
+#ifdef HAVE_XKBCOMMON
+    if (_xkbData.state_us) {
+        xkb_state_unref(_xkbData.state_us);
+    }
+    if (_xkbData.keymap_us) {
+        xkb_keymap_unref(_xkbData.keymap_us);
+    }
+    if (_xkbData.context) {
+        xkb_context_unref(_xkbData.context);
+    }
+#endif
+}
+
+void Vt102Emulation::clearEntireScreen()
+{
+    _currentScreen->clearEntireScreen();
+    bufferedUpdate();
+}
+
+void Vt102Emulation::clearHistory()
+{
+    _graphicsImages.clear();
+
+    Emulation::clearHistory();
+}
+
+void Vt102Emulation::setKittyKeyboardEnabled(bool enabled)
+{
+    _kittyKeyboardEnabled = enabled;
+}
+
+void Vt102Emulation::reset(bool softReset, bool preservePrompt)
+{
+    Q_EMIT updateDroppedLines(_currentScreen->getLines());
+
+    // Save the current codec so we can set it later.
+    // Ideally we would want to use the profile setting
+    const QByteArray currentCodec(encoder().name());
+
+    resetTokenizer();
+    if (softReset) {
+        resetMode(MODE_AppCuKeys);
+        saveMode(MODE_AppCuKeys);
+        resetMode(MODE_AppKeyPad);
+        saveMode(MODE_AppKeyPad);
+    } else {
+        resetModes();
+    }
+
+    // Clear kitty keyboard flag stacks for both screens
+    _kittyKeyboardFlagsStack[0].clear();
+    _kittyKeyboardFlagsStack[1].clear();
+
+    resetCharset(0);
+    _screen[0]->reset(softReset, preservePrompt);
+    resetCharset(1);
+    _screen[1]->reset(softReset, preservePrompt);
+
+    if (currentCodec != nullptr) {
+        setCodec(currentCodec);
+    } else {
+#if defined(Q_OS_WIN)
+        setCodec(Utf8Codec);
+#else
+        setCodec(LocaleCodec);
+#endif
+    }
+
+    Q_EMIT resetCursorStyleRequest();
+
+    bufferedUpdate();
+}
+
+/* ------------------------------------------------------------------------- */
+/*                                                                           */
+/*                     Processing the incoming byte stream                   */
+/*                                                                           */
+/* ------------------------------------------------------------------------- */
+
+/* Incoming Bytes Event pipeline
+
+   This section deals with decoding the incoming character stream.
+   Decoding means here, that the stream is first separated into `tokens'
+   which are then mapped to a `meaning' provided as operations by the
+   `Screen' class or by the emulation class itself.
+
+   The pipeline proceeds as follows:
+
+   - Tokenizing the ESC codes (onReceiveChar)
+   - VT100 code page translation of plain characters (applyCharset)
+   - Interpretation of ESC codes (processToken)
+
+   The escape codes and their meaning are described in the
+   technical reference of this program.
+*/
+
+// Tokens ------------------------------------------------------------------ --
+
+/*
+   Since the tokens are the central notion if this section, we've put them
+   in front. They provide the syntactical elements used to represent the
+   terminals operations as byte sequences.
+
+   They are encodes here into a single machine word, so that we can later
+   switch over them easily. Depending on the token itself, additional
+   argument variables are filled with parameter values.
+
+   The tokens are defined below:
+
+   - CHR        - Printable characters     (32..255 but DEL (=127))
+   - CTL        - Control characters       (0..31 but ESC (= 27), DEL)
+   - ESC        - Escape codes of the form <ESC><CHR but `[]()+*#'>
+   - ESC_DE     - Escape codes of the form <ESC><any of `()+*#%'> C
+   - CSI_PN     - Escape codes of the form <ESC>'['     {Pn} ';' {Pn} C
+   - CSI_PS     - Escape codes of the form <ESC>'['     {Pn} ';' ...  C
+   - CSI_PR     - Escape codes of the form <ESC>'[' '?' {Pn} ';' ...  C
+   - CSI_PE     - Escape codes of the form <ESC>'[' '!' {Pn} ';' ...  C
+   - CSI_SP     - Escape codes of the form <ESC>'[' ' ' C
+                  (3rd field is a space)
+   - CSI_PSP    - Escape codes of the form <ESC>'[' '{Pn}' ' ' C
+                  (4th field is a space)
+   - VT52       - VT52 escape codes
+                  - <ESC><Chr>
+                  - <ESC>'Y'{Pc}{Pc}
+   - XTE_HA     - Xterm window/terminal attribute commands
+                  of the form <ESC>`]' {Pn} `;' {Text} <BEL>
+                  (Note that these are handled differently to the other formats)
+
+   The last two forms allow list of arguments. Since the elements of
+   the lists are treated individually the same way, they are passed
+   as individual tokens to the interpretation. Further, because the
+   meaning of the parameters are names (although represented as numbers),
+   they are includes within the token ('N').
+
+*/
+constexpr int token_construct(int t, int a, int n)
+{
+    return (((n & 0xffff) << 16) | ((a & 0xff) << 8) | (t & 0xff));
+}
+constexpr int token_chr()
+{
+    return token_construct(0, 0, 0);
+}
+constexpr int token_ctl(int a)
+{
+    return token_construct(1, a, 0);
+}
+constexpr int token_esc(int a)
+{
+    return token_construct(2, a, 0);
+}
+constexpr int token_esc_cs(int a, int b)
+{
+    return token_construct(3, a, b);
+}
+constexpr int token_esc_de(int a)
+{
+    return token_construct(4, a, 0);
+}
+constexpr int token_csi_ps(int a, int n)
+{
+    return token_construct(5, a, n);
+}
+constexpr int token_csi_pn(int a)
+{
+    return token_construct(6, a, 0);
+}
+constexpr int token_csi_pr(int a, int n)
+{
+    return token_construct(7, a, n);
+}
+constexpr int token_vt52(int a)
+{
+    return token_construct(8, a, 0);
+}
+constexpr int token_csi_pg(int a)
+{
+    return token_construct(9, a, 0);
+}
+constexpr int token_csi_pe(int a)
+{
+    return token_construct(10, a, 0);
+}
+constexpr int token_csi_sp(int a)
+{
+    return token_construct(11, a, 0);
+}
+constexpr int token_csi_psp(int a, int n)
+{
+    return token_construct(12, a, n);
+}
+constexpr int token_csi_pq(int a)
+{
+    return token_construct(13, a, 0);
+}
+constexpr int token_osc(int a)
+{
+    return token_construct(14, a, 0);
+}
+constexpr int token_apc(int a)
+{
+    return token_construct(15, a, 0);
+}
+constexpr int token_csi_pl(int a)
+{
+    return token_construct(16, a, 0);
+}
+
+const int MAX_ARGUMENT = 40960;
+
+// Tokenizer --------------------------------------------------------------- --
+
+/* The tokenizer's state
+
+   The state is represented by the buffer (tokenBuffer, tokenBufferPos),
+   and accompanied by decoded arguments kept in params.
+   Note that they are kept internal in the tokenizer.
+*/
+
+void Vt102Emulation::resetTokenizer()
+{
+    tokenBufferPos = 0;
+    params.count = 0;
+    params.value[0] = 0;
+    params.value[1] = 0;
+    params.sub[0].value[0] = 0;
+    params.sub[0].count = 0;
+    params.hasSubParams = false;
+    tokenState = -1;
+}
+
+void Vt102Emulation::addDigit(int digit)
+{
+    if (params.sub[params.count].count == 0) {
+        params.value[params.count] = qMin(10 * params.value[params.count] + digit, MAX_ARGUMENT);
+    } else {
+        struct subParam *sub = &params.sub[params.count];
+        sub->value[sub->count] = qMin(10 * sub->value[sub->count] + digit, MAX_ARGUMENT);
+    }
+}
+
+void Vt102Emulation::addArgument()
+{
+    params.count = qMin(params.count + 1, MAXARGS - 1);
+    params.value[params.count] = 0;
+    params.sub[params.count].value[0] = 0;
+    params.sub[params.count].count = 0;
+}
+
+void Vt102Emulation::addSub()
+{
+    struct subParam *sub = &params.sub[params.count];
+    sub->count = qMin(sub->count + 1, MAXARGS - 1);
+    sub->value[sub->count] = 0;
+    params.hasSubParams = true;
+}
+
+void Vt102Emulation::addToCurrentToken(uint cc)
+{
+    if (tokenBuffer.size() <= tokenBufferPos) {
+        tokenBuffer.resize(tokenBufferPos + 1);
+    }
+    tokenBuffer[tokenBufferPos] = cc;
+    tokenBufferPos++;
+}
+
+// Character Class flags used while decoding
+const int CTL = 1; // Control character
+const int CHR = 2; // Printable character
+const int CPN = 4; // TODO: Document me
+const int DIG = 8; // Digit
+const int SCS = 16; // Select Character Set
+const int GRP = 32; // TODO: Document me
+const int CPS = 64; // Character which indicates end of window resize
+const int INT = 128; // Intermediate Byte (ECMA 48 5.4 -> CSI P..P I..I F)
+
+void Vt102Emulation::initTokenizer()
+{
+    int i;
+    quint8 *s;
+    for (i = 0; i < 256; ++i) {
+        charClass[i] = 0;
+    }
+    for (i = 0; i < 32; ++i) {
+        charClass[i] |= CTL;
+    }
+    for (i = 32; i < 256; ++i) {
+        charClass[i] |= CHR;
+    }
+    for (i = 0x20; i < 0x30; ++i) {
+        charClass[i] |= INT;
+    }
+    for (s = (quint8 *)"`@ABCDEFGHILMPSTXZabcdefry"; *s != 0U; ++s) {
+        charClass[*s] |= CPN;
+    }
+    // resize = \e[8;<row>;<col>t
+    for (s = (quint8 *)"t"; *s != 0U; ++s) {
+        charClass[*s] |= CPS;
+    }
+    for (s = (quint8 *)"0123456789"; *s != 0U; ++s) {
+        charClass[*s] |= DIG;
+    }
+    for (s = (quint8 *)"()+*%"; *s != 0U; ++s) {
+        charClass[*s] |= SCS;
+    }
+    for (s = (quint8 *)"()+*#[]%"; *s != 0U; ++s) {
+        charClass[*s] |= GRP;
+    }
+
+    resetTokenizer();
+}
+
+/* Ok, here comes the nasty part of the decoder.
+
+   Instead of keeping an explicit state, we deduce it from the
+   token scanned so far. It is then immediately combined with
+   the current character to form a scanning decision.
+
+   This is done by the following defines.
+
+   - P is the length of the token scanned so far.
+   - L (often P-1) is the position on which contents we base a decision.
+   - C is a character or a group of characters (taken from 'charClass').
+
+   - 'cc' is the current character
+   - 's' is a pointer to the start of the token buffer
+   - 'p' is the current position within the token buffer
+
+   Note that they need to applied in proper order.
+*/
+
+/* clang-format off */
+#define lec(P,L,C) (p == (P) && s[(L)] == (C))
+#define les(P,L,C) (p == (P) && s[L] < 256 && (charClass[s[(L)]] & (C)) == (C))
+#define eec(C)     (p >=  3  && cc == (C))
+#define ccc(C)     (cc < 256 && (charClass[cc] & (C)) == (C))
+#define ees(C)     (p >=  3  && cc < 256 && (charClass[cc] & (C)) == (C))
+#define eps(C)     (p >=  3  && s[2] != '?' && s[2] != '!' && s[2] != '=' && s[2] != '>' && cc < 256 && (charClass[cc] & (C)) == (C) && (charClass[s[p-2]] & (INT)) != (INT) )
+#define epp( )     (p >=  3  && s[2] == '?')
+#define epe( )     (p >=  3  && s[2] == '!')
+#define eeq( )     (p >=  3  && s[2] == '=')
+#define egt( )     (p >=  3  && s[2] == '>')
+#define esp( )     (p >=  4  && s[2] == SP )
+#define epsp( )    (p >=  5  && s[3] == SP )
+#define osc        (tokenBufferPos >= 2 && tokenBuffer[1] == ']')
+//#define apc(C)     (p >= 3 && s[1] == '_' && s[2] == C)
+#define pm         (tokenBufferPos >= 2 && tokenBuffer[1] == '^')
+#define apc        (tokenBufferPos >= 2 && tokenBuffer[1] == '_')
+#define ces(C)     (cc < 256 && (charClass[cc] & (C)) == (C))
+#define dcs        (p >= 2   && s[0] == ESC && s[1] == 'P')
+#define sixel( )   (p == 1 && cc >= '?' && cc <= '~')
+
+/* clang-format on */
+
+#define CNTL(c) ((c) - '@')
+/* Not used ATM
+const int ESC = 27;
+const int DEL = 127;
+const int SP = 32; */
+
+// process an incoming unicode character
+//
+// Parser based on the vt100.net diagram:
+// Williams, Paul Flo. “A parser for DEC’s ANSI-compatible video
+// terminals.” VT100.net. https://vt100.net/emu/dec_ansi_parser
+
+void Vt102Emulation::switchState(const ParserStates newState, const uint cc)
+{
+    switch (_state) {
+    case DcsPassthrough:
+        unhook();
+        break;
+    case OscString:
+        osc_end(cc);
+        break;
+    case SosPmApcString:
+        apc_end();
+        break;
+    default:
+        break;
+    }
+
+    _state = newState;
+}
+
+void Vt102Emulation::esc_dispatch(const uint cc)
+{
+    if (_ignore)
+        return;
+    if (_nIntermediate == 0) {
+        processToken(token_esc(cc), 0, 0);
+    } else if (_nIntermediate == 1) {
+        const uint intermediate = _intermediate[0];
+        if ((charClass[intermediate] & SCS) == SCS) {
+            processToken(token_esc_cs(intermediate, cc), 0, 0);
+        } else if (intermediate == '#') {
+            processToken(token_esc_de(cc), 0, 0);
+        }
+    }
+}
+
+void Vt102Emulation::clear()
+{
+    _nIntermediate = 0;
+    _ignore = false;
+    resetTokenizer();
+}
+
+#define MAX_INTERMEDIATES 1
+void Vt102Emulation::collect(const uint cc)
+{
+    addToCurrentToken(cc);
+    if (cc > 0x30)
+        return;
+    if (_nIntermediate >= MAX_INTERMEDIATES) {
+        _ignore = true;
+        return;
+    }
+    _intermediate[_nIntermediate++] = cc;
+}
+
+void Vt102Emulation::param(const uint cc)
+{
+    addToCurrentToken(cc);
+    if ((charClass[cc] & DIG) == DIG) {
+        addDigit(cc - '0');
+    } else if (cc == ';') {
+        addArgument();
+    } else if (cc == ':') {
+        addSub();
+    }
+}
+
+void Vt102Emulation::csi_dispatch(const uint cc)
+{
+    if (_ignore || (params.hasSubParams && cc != 'm' && cc != 'u')) // Be conservative for now
+        return;
+
+    if ((tokenBufferPos == 0 || (tokenBuffer[0] != '?' && tokenBuffer[0] != '!' && tokenBuffer[0] != '=' && tokenBuffer[0] != '>')) && cc < 256
+        && (charClass[cc] & CPN) == CPN && _nIntermediate == 0) {
+        processToken(token_csi_pn(cc), params.value[0], params.value[1]);
+    } else if ((tokenBufferPos == 0 || (tokenBuffer[0] != '?' && tokenBuffer[0] != '!' && tokenBuffer[0] != '=' && tokenBuffer[0] != '>')) && cc < 256
+               && (charClass[cc] & CPS) == CPS && _nIntermediate == 0) {
+        processToken(token_csi_ps(cc, params.value[0]), params.value[1], params.value[2]);
+    } else if (tokenBufferPos != 0 && tokenBuffer[0] == '!') {
+        processToken(token_csi_pe(cc), 0, 0);
+    } else if (_nIntermediate == 1 && _intermediate[0] == ' ') {
+        if (tokenBufferPos == 1) {
+            processToken(token_csi_sp(cc), 0, 0);
+        } else {
+            processToken(token_csi_psp(cc, params.value[0]), 0, 0);
+        }
+    } else if (cc == 'y' && _nIntermediate == 1 && _intermediate[0] == '*') {
+        processChecksumRequest(params.count, params.value);
+    } else {
+        for (int i = 0; i <= params.count; i++) {
+            if (tokenBufferPos != 0 && tokenBuffer[0] == '?') {
+                processToken(token_csi_pr(cc, params.value[i]), i, 0);
+            } else if (tokenBufferPos != 0 && tokenBuffer[0] == '<') {
+                processToken(token_csi_pl(cc), params.value[0], params.value[1]);
+                break;
+            } else if (tokenBufferPos != 0 && tokenBuffer[0] == '=') {
+                processToken(token_csi_pq(cc), params.value[0], params.value[1]);
+                break;
+            } else if (tokenBufferPos != 0 && tokenBuffer[0] == '>') {
+                processToken(token_csi_pg(cc), params.value[0], params.value[1]);
+                break;
+            } else if (cc == 'm' && !params.sub[i].count && params.count - i >= 4 && (params.value[i] == 38 || params.value[i] == 48 || params.value[i] == 58)
+                       && params.value[i + 1] == 2) {
+                // ESC[ ... 48;2;<red>;<green>;<blue> ... m -or- ESC[ ... 38;2;<red>;<green>;<blue> ... m
+                i += 2;
+                processToken(token_csi_ps(cc, params.value[i - 2]),
+                             COLOR_SPACE_RGB,
+                             (params.value[i] << 16) | (params.value[i + 1] << 8) | params.value[i + 2]);
+                i += 2;
+            } else if (cc == 'm' && params.sub[i].count >= 5 && (params.value[i] == 38 || params.value[i] == 48 || params.value[i] == 58)
+                       && params.sub[i].value[1] == 2) {
+                // ESC[ ... 48:2:<id>:<red>:<green>:<blue> ... m -or- ESC[ ... 38:2:<id>:<red>:<green>:<blue> ... m
+                processToken(token_csi_ps(cc, params.value[i]),
+                             COLOR_SPACE_RGB,
+                             (params.sub[i].value[3] << 16) | (params.sub[i].value[4] << 8) | params.sub[i].value[5]);
+            } else if (cc == 'm' && params.sub[i].count == 4 && (params.value[i] == 38 || params.value[i] == 48 || params.value[i] == 58)
+                       && params.sub[i].value[1] == 2) {
+                // ESC[ ... 48:2:<red>:<green>:<blue> ... m -or- ESC[ ... 38:2:<red>:<green>:<blue> ... m
+                processToken(token_csi_ps(cc, params.value[i]),
+                             COLOR_SPACE_RGB,
+                             (params.sub[i].value[2] << 16) | (params.sub[i].value[3] << 8) | params.sub[i].value[4]);
+            } else if (cc == 'm' && params.sub[i].count == 1 && params.value[i] == 4) {
+                processToken(token_csi_ps(cc, params.value[i]), params.sub[i].value[1], 1);
+            } else if (cc == 'm' && !params.sub[i].count && params.count - i >= 2 && (params.value[i] == 38 || params.value[i] == 48 || params.value[i] == 58)
+                       && params.value[i + 1] == 5) {
+                // ESC[ ... 48;5;<index> ... m -or- ESC[ ... 38;5;<index> ... m
+                i += 2;
+                processToken(token_csi_ps(cc, params.value[i - 2]), COLOR_SPACE_256, params.value[i]);
+            } else if (cc == 'm' && params.sub[i].count >= 2 && (params.value[i] == 38 || params.value[i] == 48 || params.value[i] == 58)
+                       && params.sub[i].value[1] == 5) {
+                // ESC[ ... 48:5:<index> ... m -or- ESC[ ... 38:5:<index> ... m
+                processToken(token_csi_ps(cc, params.value[i]), COLOR_SPACE_256, params.sub[i].value[2]);
+            } else if (_nIntermediate == 0) {
+                processToken(token_csi_ps(cc, params.value[i]), 0, 0);
+            }
+        }
+    }
+}
+
+void Vt102Emulation::osc_start()
+{
+    tokenBufferPos = 0;
+}
+
+void Vt102Emulation::osc_put(const uint cc)
+{
+    addToCurrentToken(cc);
+
+    // Special case: iterm file protocol is a long escape sequence
+    if (tokenState == -1) {
+        tokenStateChange = "1337;File=:";
+        tokenState = 0;
+    }
+    if (tokenState >= 0) {
+        if ((uint)tokenStateChange[tokenState] == tokenBuffer[tokenBufferPos - 1]) {
+            tokenState++;
+            tokenPos = tokenBufferPos;
+            if ((uint)tokenState == strlen(tokenStateChange) - 1
+                && QString::fromUcs4(&tokenBuffer[0], tokenBufferPos).startsWith(QLatin1String("1337;FilePart="))) {
+                // State machine shortcut
+                tokenState = -2;
+            }
+            if ((uint)tokenState == strlen(tokenStateChange)) {
+                tokenState = -2;
+                tokenData.clear();
+            }
+            return;
+        }
+    } else if (tokenState == -2) {
+        if (tokenBufferPos - tokenPos == 4) {
+            tokenData.append(QByteArray::fromBase64(QString::fromUcs4(&tokenBuffer[tokenPos], 4).toLocal8Bit()));
+            tokenBufferPos -= 4;
+            return;
+        }
+    }
+}
+
+void Vt102Emulation::osc_end(const uint cc)
+{
+    // This runs two times per link, the first prepares the link to be read,
+    // the second finalizes it. The escape sequence is in two parts
+    //  start: '\e ] 8 ; <id-path> ; <url-part> \e \\'
+    //  end:   '\e ] 8 ; ; \e \\'
+    // GNU libtextstyle inserts the IDs, for instance; many examples
+    // do not.
+    if (tokenBuffer[0] == XTERM_EXTENDED::URL_LINK) {
+        // printf '\e]8;;https://example.com\e\\This is a link\e]8;;\e\\\n'
+        if (auto extractor = _currentScreen->urlExtractor()) {
+            // OSC 8 is per-screen; do not broadcast to all screens.
+            extractor->toggleUrlInput();
+        }
+    }
+
+    processSessionAttributeRequest(tokenBufferPos, cc);
+}
+
+void Vt102Emulation::put(const uint cc)
+{
+    if (m_SixelPictureDefinition && cc >= 0x21) {
+        addToCurrentToken(cc);
+        processSixel(cc);
+    }
+}
+
+void Vt102Emulation::hook(const uint cc)
+{
+    if (cc == 'q' && _nIntermediate == 0) {
+        m_SixelPictureDefinition = true;
+        resetTokenizer();
+    }
+}
+
+void Vt102Emulation::unhook()
+{
+    m_SixelPictureDefinition = false;
+    SixelModeDisable();
+    resetTokenizer();
+}
+
+void Vt102Emulation::apc_start(const uint cc)
+{
+    tokenBufferPos = 0;
+    if (cc == 0x9F || cc == 0x5F) {
+        _sosPmApc = Apc;
+    } else if (cc == 0x9E || cc == 0x5E) {
+        _sosPmApc = Pm;
+    } else {
+        // 0x98, 0x58
+        _sosPmApc = Sos;
+    }
+}
+
+void Vt102Emulation::apc_put(const uint cc)
+{
+    if (_sosPmApc != Apc) {
+        return;
+    }
+
+    addToCurrentToken(cc);
+
+    // <ESC> '_' ... <ESC> '\'
+    if (tokenBufferPos > 1 && tokenBuffer[0] == 'G') {
+        if (tokenState == -1) {
+            tokenStateChange = ";";
+            tokenState = 0;
+        } else if (tokenState >= 0) {
+            if ((uint)tokenStateChange[tokenState] == tokenBuffer[tokenBufferPos - 1]) {
+                tokenState++;
+                tokenPos = tokenBufferPos;
+                if ((uint)tokenState == strlen(tokenStateChange)) {
+                    tokenState = -2;
+                    tokenData.clear();
+                }
+            }
+        } else if (tokenState == -2) {
+            if (tokenBufferPos - tokenPos == 4) {
+                tokenData.append(QByteArray::fromBase64(QString::fromUcs4(&tokenBuffer[tokenPos], 4).toLocal8Bit()));
+                tokenBufferPos -= 4;
+            }
+        }
+    }
+}
+
+void Vt102Emulation::apc_end()
+{
+    if (_sosPmApc == Apc && tokenBuffer[0] == 'G') {
+        // Graphics command
+        processGraphicsToken(tokenBufferPos);
+        resetTokenizer();
+    }
+}
+
+void Vt102Emulation::receiveChars(const QVector<uint> &chars)
+{
+    for (uint cc : chars) {
+        // early out for displayable characters
+        if (_state == Ground && ((cc >= 0x20 && cc <= 0x7E) || cc >= 0xA0)) {
+            _currentScreen->displayCharacter(applyCharset(cc));
+            continue;
+        }
+
+        if (getMode(MODE_Ansi)) {
+            // First, process characters that act the same on all states, i.e.
+            // coming from "anywhere" in the VT100.net diagram.
+            if (cc == 0x1B) {
+                switchState(Escape, cc);
+                clear();
+            } else if (cc == 0x9B) {
+                switchState(CsiEntry, cc);
+                clear();
+            } else if (cc == 0x90) {
+                switchState(DcsEntry, cc);
+                clear();
+            } else if (cc == 0x9D) {
+                osc_start();
+                switchState(OscString, cc);
+            } else if (cc == 0x98 || cc == 0x9E || cc == 0x9F) {
+                apc_start(cc);
+                switchState(SosPmApcString, cc);
+            } else if (cc == 0x18 || cc == 0x1A || (cc >= 0x80 && cc <= 0x9A)) { // 0x90, 0x98 taken care of just above.
+                // konsole has always ignored CAN and SUB in OSC, extend the behavior a bit
+                // this differs from VT240, where 7-bit ST, 8-bit ST, ESC + chr, ***CAN, SUB, C1*** terminate and show SIXEL
+                if (_state != OscString && _state != SosPmApcString && _state != DcsPassthrough) {
+                    processToken(token_ctl(cc + '@'), 0, 0);
+                    switchState(Ground, cc);
+                }
+            } else if (cc == 0x9C) {
+                // no action
+                switchState(Ground, cc);
+
+            } else {
+                // Now take the current state into account
+                switch (_state) {
+                case Ground:
+                    if (cc <= 0x1F) { // 0x18, 0x1A, 0x1B already taken care of.
+                        processToken(token_ctl(cc + '@'), 0, 0);
+                    } else {
+                        // 0x7F is ignored by displayCharacter(), since its Character::width() is -1
+                        _currentScreen->displayCharacter(applyCharset(cc));
+                    }
+                    break;
+                case Escape:
+                    if (cc == 0x5B) {
+                        switchState(CsiEntry, cc);
+                        clear();
+                    } else if ((cc >= 0x30 && cc <= 0x4F) || (cc >= 0x51 && cc <= 0x57) || (cc >= 0x59 && cc <= 0x5A) || cc == 0x5C
+                               || (cc >= 0x60 && cc <= 0x7E)) {
+                        esc_dispatch(cc);
+                        switchState(Ground, cc);
+                    } else if (cc >= 0x20 && cc <= 0x2F) {
+                        collect(cc);
+                        switchState(EscapeIntermediate, cc);
+                    } else if (cc == 0x5D) {
+                        osc_start();
+                        switchState(OscString, cc);
+                    } else if (cc == 0x50) {
+                        switchState(DcsEntry, cc);
+                        clear();
+                    } else if (cc == 0x58 || cc == 0x5E || cc == 0x5F) {
+                        apc_start(cc);
+                        switchState(SosPmApcString, cc);
+                    } else if (cc <= 0x1F) { // 0x18, 0x1A, 0x1B already taken care of.
+                        processToken(token_ctl(cc + '@'), 0, 0);
+                    } else if (cc == 0x7F) {
+                        // ignore
+                    }
+                    break;
+                case EscapeIntermediate:
+                    if (cc >= 0x30 && cc <= 0x7E) {
+                        esc_dispatch(cc);
+                        switchState(Ground, cc);
+                    } else if (cc >= 0x20 && cc <= 0x2F) {
+                        collect(cc);
+                    } else if (cc <= 0x1F) { // 0x18, 0x1A, 0x1B already taken care of.
+                        processToken(token_ctl(cc + '@'), 0, 0);
+                    } else if (cc == 0x7F) {
+                        // ignore
+                    }
+                    break;
+                case CsiEntry:
+                    if (cc >= 0x40 && cc <= 0x7E) {
+                        csi_dispatch(cc);
+                        switchState(Ground, cc);
+                    } else if (cc >= 0x30 && cc <= 0x3B) { // recognize 0x3A as part of params
+                        param(cc);
+                        switchState(CsiParam, cc);
+                    } else if (cc >= 0x3C && cc <= 0x3F) {
+                        collect(cc);
+                        switchState(CsiParam, cc);
+                    } else if (cc >= 0x20 && cc <= 0x2F) {
+                        collect(cc);
+                        switchState(CsiIntermediate, cc);
+                    } else if (cc <= 0x1F) { // 0x18, 0x1A, 0x1B already taken care of.
+                        processToken(token_ctl(cc + '@'), 0, 0);
+                    } else if (cc == 0x7F) {
+                        // ignore
+                    }
+                    break;
+                case CsiParam:
+                    if (cc >= 0x40 && cc <= 0x7E) {
+                        csi_dispatch(cc);
+                        switchState(Ground, cc);
+                    } else if (cc >= 0x30 && cc <= 0x3B) { // recognize 0x3A as part of params
+                        param(cc);
+                    } else if (cc >= 0x3C && cc <= 0x3F) {
+                        switchState(CsiIgnore, cc);
+                    } else if (cc >= 0x20 && cc <= 0x2F) {
+                        collect(cc);
+                        switchState(CsiIntermediate, cc);
+                    } else if (cc <= 0x1F) { // 0x18, 0x1A, 0x1B already taken care of.
+                        processToken(token_ctl(cc + '@'), 0, 0);
+                    } else if (cc == 0x7F) {
+                        // ignore
+                    }
+                    break;
+                case CsiIntermediate:
+                    if (cc >= 0x40 && cc <= 0x7E) {
+                        csi_dispatch(cc);
+                        switchState(Ground, cc);
+                    } else if (cc >= 0x20 && cc <= 0x2F) {
+                        collect(cc);
+                    } else if (cc >= 0x30 && cc <= 0x3F) {
+                        switchState(CsiIgnore, cc);
+                    } else if (cc <= 0x1F) { // 0x18, 0x1A, 0x1B already taken care of.
+                        processToken(token_ctl(cc + '@'), 0, 0);
+                    } else if (cc == 0x7F) {
+                        // ignore
+                    }
+                    break;
+                case CsiIgnore:
+                    if (cc >= 0x40 && cc <= 0x7E) {
+                        switchState(Ground, cc);
+                    } else if (cc <= 0x1F) { // 0x18, 0x1A, 0x1B already taken care of.
+                        processToken(token_ctl(cc + '@'), 0, 0);
+                    } else if ((/*cc >= 0x20 && */ cc <= 0x3F) || cc == 0x7F) { // cc <= 0x1F taking care of just above
+                        // ignore
+                    }
+                    break;
+                case DcsEntry:
+                    if (cc >= 0x40 && cc <= 0x7E) {
+                        hook(cc);
+                        switchState(DcsPassthrough, cc);
+                    } else if (cc >= 0x30 && cc <= 0x3B) { // recognize 0x3A as part of params
+                        param(cc);
+                        switchState(DcsParam, cc);
+                    } else if (cc >= 0x3C && cc <= 0x3F) {
+                        collect(cc);
+                        switchState(DcsParam, cc);
+                    } else if (cc >= 0x20 && cc <= 0x2F) {
+                        collect(cc);
+                        switchState(DcsIntermediate, cc);
+                    } else if (cc <= 0x1F) { // 0x18, 0x1A, 0x1B already taken care of.
+                        processToken(token_ctl(cc + '@'), 0, 0);
+                    } else if (cc == 0x7F) {
+                        // ignore
+                    }
+                    break;
+                case DcsParam:
+                    if (cc >= 0x40 && cc <= 0x7E) {
+                        hook(cc);
+                        switchState(DcsPassthrough, cc);
+                    } else if (cc >= 0x30 && cc <= 0x3B) { // recognize 0x3A as part of params
+                        param(cc);
+                    } else if (cc >= 0x3C && cc <= 0x3F) {
+                        switchState(DcsIgnore, cc);
+                    } else if (cc >= 0x20 && cc <= 0x2F) {
+                        collect(cc);
+                        switchState(DcsIntermediate, cc);
+                    } else if (cc <= 0x1F) { // 0x18, 0x1A, 0x1B already taken care of.
+                        processToken(token_ctl(cc + '@'), 0, 0);
+                    } else if (cc == 0x7F) {
+                        // ignore
+                    }
+                    break;
+                case DcsIntermediate:
+                    if (cc >= 0x40 && cc <= 0x7E) {
+                        hook(cc);
+                        switchState(DcsPassthrough, cc);
+                    } else if (cc >= 0x20 && cc <= 0x2F) {
+                        collect(cc);
+                    } else if (cc >= 0x30 && cc <= 0x3F) {
+                        switchState(DcsIgnore, cc);
+                    } else if (cc <= 0x1F) { // 0x18, 0x1A, 0x1B already taken care of.
+                        processToken(token_ctl(cc + '@'), 0, 0);
+                    } else if (cc == 0x7F) {
+                        // ignore
+                    }
+                    break;
+                case DcsPassthrough:
+                    if (cc <= 0x7E || cc >= 0xA0) { // 0x18, 0x1A, 0x1B already taken care of
+                        put(cc);
+                        // 0x9C already taken care of.
+                    } else if (cc == 0x7F) {
+                        // ignore
+                    }
+                    break;
+                case DcsIgnore:
+                    // 0x9C already taken care of.
+                    if (cc <= 0x7F) {
+                        // ignore
+                    }
+                    break;
+                case OscString:
+                    if ((cc >= 0x20 && cc <= 0x7F) || cc >= 0xA0) {
+                        osc_put(cc);
+                    } else if (cc == 0x07 // recognize BEL as OSC terminator
+                               || cc == 0x9C) {
+                        switchState(Ground, cc);
+                    } else if (cc <= 0x1F) { // 0x18, 0x1A, 0x1B already taken care of. 0x07 taken care of just above.
+                        // ignore
+                    }
+                    break;
+                case SosPmApcString:
+                    if (cc <= 0x7F || cc >= 0xA0) { // 0x18, 0x1A, 0x1B already taken care of.
+                        apc_put(cc); // while the vt100.net diagram has ignore here, konsole does process some APCs (kitty images).
+                    }
+                    // 0x9C already taken care of.
+                    break;
+                default:
+                    break;
+                }
+            }
+        } else {
+            // VT52 Mode
+
+            // First, process characters that act the same on all states
+            if (cc == 0x18 || cc == 0x1A) {
+                processToken(token_ctl(cc + '@'), 0, 0);
+                switchState(Ground, cc);
+            } else if (cc == 0x1B) {
+                switchState(Vt52Escape, cc);
+            } else if (cc <= 0x1F) { // 0x18, 0x1A, 0x1B taken care of just above
+                processToken(token_ctl(cc + '@'), 0, 0);
+            } else {
+                // Now take the current state into account
+                switch (_state) {
+                case Ground:
+                    _currentScreen->displayCharacter(applyCharset(cc));
+                    break;
+                case Vt52Escape:
+                    if (cc == 'Y') {
+                        switchState(Vt52CupRow, cc);
+                    } else if ((cc >= 0x20 && cc <= 'X') || (cc >= 'Z' && cc <= 0x7F)) {
+                        processToken(token_vt52(cc), 0, 0);
+                        switchState(Ground, cc);
+                    }
+                    break;
+                case Vt52CupRow:
+                    tokenBuffer[0] = cc;
+                    switchState(Vt52CupColumn, cc);
+                    break;
+                case Vt52CupColumn:
+                    processToken(token_vt52('Y'), tokenBuffer[0], cc);
+                    switchState(Ground, cc);
+                    break;
+                default:
+                    break;
+                }
+            }
+        }
+    }
+}
+
+static QString resolveIcon(QList<QString> icons)
+{
+    if (icons.isEmpty())
+        return QString();
+    for (QString iconName : icons) {
+        if (iconName == QLatin1String("error"))
+            return QLatin1String("dialog-error");
+        if (iconName == QLatin1String("warn") || iconName == QLatin1String("warning"))
+            return QLatin1String("dialog-warning");
+        if (iconName == QLatin1String("info"))
+            return QLatin1String("dialog-info");
+        if (iconName == QLatin1String("question"))
+            return QLatin1String("dialog-question");
+        if (iconName == QLatin1String("help"))
+            return QLatin1String("help-about");
+        if (iconName == QLatin1String("file-manager"))
+            return QLatin1String("system-file-manager");
+        if (iconName == QLatin1String("system-monitor"))
+            return QLatin1String("utilities-system-monitor");
+        if (iconName == QLatin1String("text-editor"))
+            return QLatin1String("accessories-text-editor");
+    }
+    return icons[0];
+}
+
+void Vt102Emulation::processChecksumRequest([[maybe_unused]] int crargc, int crargv[])
+{
+    int checksum = 0;
+
+#if ENABLE_DECRQCRA
+    int top, left, bottom, right;
+
+    /* DEC STD-070 5-179 "If Pp is 0 or omitted, subsequent parameters are ignored
+     *  and a checksum for all page memory will be reported."
+     */
+    if (crargv[1] == 0) {
+        crargc = 1;
+    }
+    /* clang-format off */
+    if (crargc >= 2) { top    = crargv[2]; } else { top    = 1; }
+    if (crargc >= 3) { left   = crargv[3]; } else { left   = 1; }
+    if (crargc >= 4) { bottom = crargv[4]; } else { bottom = _currentScreen->getLines();   }
+    if (crargc >= 5) { right  = crargv[5]; } else { right  = _currentScreen->getColumns(); }
+    /* clang-format on */
+
+    if (top > bottom || left > right) {
+        return;
+    }
+
+    if (_currentScreen->getMode(MODE_Origin)) {
+        top += _currentScreen->topMargin();
+        bottom += _currentScreen->topMargin();
+    }
+
+    top = qBound(1, top, _currentScreen->getLines());
+    bottom = qBound(1, bottom, _currentScreen->getLines());
+
+    int imgsize = sizeof(Character) * _currentScreen->getLines() * _currentScreen->getColumns();
+    Character *image = (Character *)malloc(imgsize);
+    if (image == nullptr) {
+        fprintf(stderr, "couldn't alloc mem\n");
+        return;
+    }
+    _currentScreen->getImage(image, imgsize, _currentScreen->getHistLines(), _currentScreen->getHistLines() + _currentScreen->getLines() - 1);
+
+    for (int y = top - 1; y <= bottom - 1; y++) {
+        for (int x = left - 1; x <= right - 1; x++) {
+            // XXX: Apparently, VT520 uses 0x00 for uninitialized cells, konsole can't tell uninitialized cells from spaces
+            Character c = image[y * _currentScreen->getColumns() + x];
+
+            if (c.rendition.f.conceal) {
+                checksum += 0x20; // don't reveal secrets
+            } else {
+                checksum += c.character;
+            }
+
+            checksum += c.rendition.f.bold * 0x80;
+            checksum += c.rendition.f.blink * 0x40;
+            checksum += c.rendition.f.reverse * 0x20;
+            checksum += !!(c.rendition.all & RE_UNDERLINE_MASK) * 0x10;
+        }
+    }
+
+    free(image);
+#endif
+
+    char tmp[30];
+    checksum = -checksum;
+    checksum &= 0xffff;
+    snprintf(tmp, sizeof(tmp), "\033P%d!~%04X\033\\", crargv[0], checksum);
+    sendString(tmp);
+}
+
+static bool isIdentifier(QString const &value)
+{
+    static const QRegularExpression IDENTIFIER_RE = QRegularExpression(QStringLiteral("^[-a-zA-Z0-9_+.]*$"));
+    return IDENTIFIER_RE.match(value).hasMatch();
+}
+
+void Vt102Emulation::processSessionAttributeRequest(const int tokenSize, const uint terminator)
+{
+    // Describes the window or terminal session attribute to change
+    // See Session::SessionAttributes for possible values
+    int attribute = 0;
+    int i;
+
+    /* clang-format off */
+    for (i = 0; i < tokenSize &&
+                tokenBuffer[i] >= '0'  &&
+                tokenBuffer[i] <= '9'; i++)
+    {
+        attribute = 10 * attribute + (tokenBuffer[i]-'0');
+    }
+    /* clang-format on */
+
+    if (tokenBuffer[i] != ';') {
+        // No arguments
+        switch (attribute) {
+        case 104: // 104 without any argument means clear entire color table
+            for (int i = 0; i < 256; i++) {
+                colorTable[i] = QColor();
+            }
+            break;
+        case ResetCursorColor: // 112 clears the cursor color and has no arguments.
+            _currentScreen->currentTerminalDisplay()->terminalColor()->setCursorColor(QColor());
+            break;
+        default:
+            reportDecodingError(token_osc(terminator));
+            break;
+        }
+
+        return;
+    }
+    // skip initial ';'
+    ++i;
+
+    QString value = QString::fromUcs4(&tokenBuffer[i], tokenSize - i);
+    if (_currentScreen->urlExtractor() && _currentScreen->urlExtractor()->reading()) {
+        // To handle '\e ] 8 ; <id-part> ; <url-part>' we discard
+        // the <id-part>. Often it is empty, but GNU libtextstyle
+        // may output an id here, see e.g.
+        // https://www.gnu.org/software/gettext/libtextstyle/manual/libtextstyle.html#index-styled_005fostream_005fset_005fhyperlink
+        value.remove(0, value.indexOf(QLatin1Char(';')) + 1);
+        _currentScreen->urlExtractor()->setUrl(value);
+        return;
+    }
+
+    if (attribute == CursorColor) {
+        int j = i;
+        while (j < tokenSize && tokenBuffer[j] != ';') {
+            j++;
+        }
+        QColor color = QColor::fromString(QString::fromUcs4(&tokenBuffer[i], j - i));
+        if (color.isValid()) {
+            _currentScreen->currentTerminalDisplay()->terminalColor()->setCursorColor(color);
+        }
+        return;
+    }
+    if (attribute == SemanticPrompts) {
+        if (value[0] == QLatin1Char('A') || value[0] == QLatin1Char('N') || value[0] == QLatin1Char('P')) {
+            _currentScreen->setReplMode(REPL_PROMPT);
+        }
+        if (value[0] == QLatin1Char('L') && _currentScreen->getCursorX() > 0) {
+            _currentScreen->nextLine();
+        }
+        if (value[0] == QLatin1Char('B')) {
+            _currentScreen->setReplMode(REPL_INPUT);
+        }
+        if (value[0] == QLatin1Char('C')) {
+            _currentScreen->setReplMode(REPL_OUTPUT);
+        }
+        if (value[0] == QLatin1Char('D')) {
+            _currentScreen->setReplMode(REPL_None);
+        }
+        QMap<QString, QString> params;
+        auto list = value.split(QLatin1Char(';'));
+        for (int i = 1; i < list.size(); i++) {
+            int eq = list.at(i).indexOf(QLatin1Char('='));
+            if (i == 1 && value[0] == QLatin1Char('D')) {
+                // Special case - exit code without '='
+                params[QLatin1String("exit_code")] = list.at(1);
+                int exitCode = list.at(1).toInt();
+                if (exitCode) {
+                    _currentScreen->setExitCode(exitCode);
+                }
+            } else if (eq > 0) {
+                params[list.at(i).mid(0, eq)] = list.at(i).mid(eq + 1);
+            }
+        }
+    }
+    if (attribute == ReportColors) {
+        // RGB colors
+        QStringList params = value.split(QLatin1Char(';'));
+        for (int j = 0; j < params.length(); j += 2) {
+            if (params.length() == j + 1) {
+                return;
+            }
+            int c = params[j].toInt();
+            if (c > 255 || c < 0) {
+                continue;
+            }
+            if (params[j + 1] == QLatin1String("?")) {
+                QColor color = colorTable[c];
+                if (!color.isValid()) {
+                    color = CharacterColor(COLOR_SPACE_256, c).color(ColorScheme::defaultTable);
+                }
+                reportColor(c, color);
+                return;
+            }
+            QColor col(params[1]);
+            colorTable[c] = col;
+        }
+        return;
+    }
+    if (attribute == ResetColors) {
+        // RGB colors
+        QStringList params = value.split(QLatin1Char(';'));
+        for (int k = 0; k < params.length(); k++) {
+            int c = params[k].toInt();
+            if (c > 255 || c < 0) {
+                continue;
+            }
+            colorTable[c] = QColor();
+        }
+    }
+    if (attribute == Notification) {
+        // OSC 777 - Emit generic signal first for external handlers
+        auto params = value.split(QLatin1Char(';'));
+        Q_EMIT osc777Received(params);
+
+        // Handle "notify" command internally for backward compatibility
+        if (params.length() < 1 || params[0] != QLatin1String("notify")) {
+            return;
+        }
+
+        const auto hasFocus = _currentScreen->currentTerminalDisplay()->hasFocus();
+        KNotification *notification = nullptr;
+        if (params.length() >= 3) {
+            notification = KNotification::event(hasFocus ? QStringLiteral("ProcessNotification") : QStringLiteral("ProcessNotificationHidden"),
+                                                params[1],
+                                                params[2].toHtmlEscaped());
+        } else {
+            notification = KNotification::event(hasFocus ? QStringLiteral("ProcessNotification") : QStringLiteral("ProcessNotificationHidden"), params[1]);
+        }
+
+        auto action = notification->addDefaultAction(i18n("Show session"));
+        connect(action, &KNotificationAction::activated, this, [this, notification]() {
+            _currentScreen->currentTerminalDisplay()->notificationClicked(notification->xdgActivationToken());
+        });
+    }
+    if (attribute == Clipboard) {
+        // Clipboard
+        QStringList params = value.split(QLatin1Char(';'));
+        if (params.length() == 0) {
+            return;
+        }
+
+        bool clipboard = false;
+        bool selection = false;
+        if (params[0].isEmpty() || params[0].contains(QLatin1Char('c')) || params[0].contains(QLatin1Char('s'))) {
+            clipboard = true;
+        }
+        if (params[0].contains(QLatin1Char('p'))) {
+            selection = true;
+        }
+
+        if (params.length() == 2) {
+            // Copy to clipboard
+            if (clipboard) {
+                QApplication::clipboard()->setText(QString::fromUtf8(QByteArray::fromBase64(params[1].toUtf8())), QClipboard::Clipboard);
+            }
+            if (selection) {
+                QApplication::clipboard()->setText(QString::fromUtf8(QByteArray::fromBase64(params[1].toUtf8())), QClipboard::Selection);
+            }
+        } else {
+            // Clear clipboard
+            if (clipboard) {
+                QApplication::clipboard()->clear(QClipboard::Clipboard);
+            }
+            if (selection) {
+                QApplication::clipboard()->clear(QClipboard::Selection);
+            }
+        }
+
+        return;
+    }
+
+    // See https://sw.kovidgoyal.net/kitty/desktop-notifications/
+    // Example: "\x1b]99;i=1:d=0;TITLE\x1b\\\x1b]99;i=1:d=1:p=body;BODY\x1b\\"
+    if (attribute == KittyNotification) {
+        int pos = value.indexOf(QLatin1Char(';'));
+        if (pos == -1)
+            return;
+        QString notificationId = QString::fromLatin1("0");
+        int complete = 1;
+        int encoding = 0;
+        enum PayloadType {
+            Unknown,
+            Title,
+            Body,
+            Query,
+            Buttons,
+        } payloadType = PayloadType::Title;
+        QString payload = value.mid(pos + 1);
+        QStringList params = value.mid(0, pos).split(u':');
+        KittyNotificationOption option = KittyNotificationOption::None;
+        int addedActions = NotificationActionNone;
+        int removedActions = NotificationActionNone;
+        QList<QString> iconNames;
+        int urgency = -1;
+        int closeSignal = -1;
+        QString applicationName;
+
+        for (QString param: std::as_const(params)) {
+            if (param.startsWith(QString::fromLatin1("i="))) {
+                // Notification ID:
+                QString payloadValue = param.mid(2);
+                if (isIdentifier(payloadValue))
+                    notificationId = payloadValue;
+            } else if (param.startsWith(QString::fromLatin1("c="))) {
+                // Whether the notification is complete:
+                bool parseOk;
+                int parsedCloseSignal = param.mid(2).toInt(&parseOk);
+                if (parseOk && parsedCloseSignal >= 0 && parsedCloseSignal < 2)
+                    closeSignal = parsedCloseSignal;
+            } else if (param.startsWith(QString::fromLatin1("d="))) {
+                // Whether the notification is complete:
+                bool parseOk;
+                int parsedComplete = param.mid(2).toInt(&parseOk);
+                if (parseOk && parsedComplete >=0 && parsedComplete < 2)
+                    complete = parsedComplete;
+            } else if (param.startsWith(QString::fromLatin1("e="))) {
+                // Escape (whether the paylaod is Base64 encoded):
+                bool parseOk;
+                int parsedEncoding = param.mid(2).toInt(&parseOk);
+                if (parseOk && parsedEncoding >=0 && parsedEncoding < 2)
+                    encoding = parsedEncoding;
+            } else if (param.startsWith(QString::fromLatin1("a="))) {
+                // Parse a comma-separated of actions with optional "-" (eg. "-focus,report"):
+                QString payloadValue = param.mid(2);
+                QStringList tokens = payloadValue.split(u',');
+                for (QString token : std::as_const(tokens)) {
+                    int tokenValue = NotificationActionNone;
+                    bool removed = false;
+                    if (token.startsWith(QString::fromLatin1("-"))) {
+                        removed = true;
+                        token = token.mid(1);
+                    }
+                    if (token == QString::fromLatin1("report")) {
+                        tokenValue = NotificationActionReport;
+                    } else if (token == QString::fromLatin1("focus")) {
+                        tokenValue = NotificationActionFocus;
+                    }
+                    if (removed) {
+                        removedActions |= tokenValue;
+                    } else {
+                        addedActions |= tokenValue;
+                    }
+                }
+            } else if (param.startsWith(QString::fromLatin1("p="))) {
+                // Whether the payload is the notification title or body:
+                QString payloadValue = param.mid(2);
+                if (payloadValue == QString::fromLatin1("title")) {
+                    payloadType = PayloadType::Title;
+                } else if (payloadValue == QString::fromLatin1("body")) {
+                    payloadType = PayloadType::Body;
+                } else if (payloadValue == QString::fromLatin1("buttons")) {
+                    payloadType = PayloadType::Buttons;
+                } else if (payloadValue == QString::fromLatin1("?")) {
+                    payloadType = PayloadType::Query;
+                } else {
+                    payloadType = PayloadType::Unknown;
+                }
+            } else if (param.startsWith(QString::fromLatin1("o="))) {
+                QString payloadValue = param.mid(2);
+                if (payloadValue == QString::fromLatin1("always")) {
+                    option = KittyNotificationOption::Always;
+                } else if (payloadValue == QString::fromLatin1("unfocused")) {
+                    option = KittyNotificationOption::Unfocused;
+                } else if (payloadValue == QString::fromLatin1("invisible")) {
+                    option = KittyNotificationOption::Invisible;
+                }
+            } else if (param.startsWith(QString::fromLatin1("n="))) {
+                QString payloadValue = param.mid(2);
+                iconNames.append(QString::fromUtf8(QByteArray::fromBase64(payloadValue.toUtf8())));
+            } else if (param.startsWith(QString::fromLatin1("f="))) {
+                QString payloadValue = param.mid(2);
+                applicationName = QString::fromUtf8(QByteArray::fromBase64(payloadValue.toUtf8()));
+            } else if (param.startsWith(QString::fromLatin1("u="))) {
+                QString payloadValue = param.mid(2);
+                bool parseOk;
+                int parsedUrgency = param.mid(2).toInt(&parseOk);
+                if (parseOk && parsedUrgency >= 0 && parsedUrgency < 3) {
+                    urgency = parsedUrgency;
+                }
+            }
+        }
+
+        KittyNotificationState* notificationState = nullptr;
+        KittyNotificationState notificationValue;
+        auto notificationIterator = _kittyNotifications.find(notificationId);
+        if (notificationIterator != _kittyNotifications.end()) {
+            notificationState = &*notificationIterator;
+        } else if (complete) {
+            notificationState = &notificationValue;
+        } else {
+            notificationState = &_kittyNotifications[notificationId];
+            notificationState->serial = _kittyNotificationSerial++;
+        }
+        if (closeSignal >= 0) {
+            notificationState->closeSignal = closeSignal;
+        }
+
+        if (option != KittyNotificationOption::None) {
+            notificationState->option = option;
+        }
+        notificationState->action = (notificationState->action | addedActions) & (~removedActions);
+        for (QString iconName : iconNames) {
+            if (notificationState->iconNames.length() >= 10)
+                continue;
+            notificationState->iconNames.append(iconName);
+        }
+        if (urgency >= 0)
+            notificationState->urgency = urgency;
+        if (!applicationName.isEmpty())
+            notificationState->applicationName = applicationName;
+
+        if (encoding == 1) {
+            payload = QString::fromUtf8(QByteArray::fromBase64(payload.toUtf8()));
+        }
+        constexpr qsizetype max_notification_size = 1024;
+        switch (payloadType) {
+            case Unknown:
+                break;
+            case Query:
+                _kittyNotifications.remove(notificationId);
+                sendString((QStringLiteral("\033]99;i=") + notificationId
+                            + QStringLiteral(";p=?;p=title,body,buttons:a=report,focus:o=always,unfocus,invisible:u=0,1,2:c=1\033\\"))
+                               .toLatin1());
+                return;
+            case Title:
+                notificationState->title += payload.left(max_notification_size - notificationState->title.size());
+                break;
+            case Body:
+                notificationState->body += payload.left(max_notification_size - notificationState->body.size());
+                break;
+            case Buttons:
+                notificationState->buttons = payload.split(QString::fromUtf8(u8"\u2028"));
+                break;
+        }
+
+        if (complete) {
+            const auto hasFocus = _currentScreen->currentTerminalDisplay()->hasFocus();
+
+            bool enabled;
+            switch (notificationState->option) {
+            default:
+            case KittyNotificationOption::None:
+            case KittyNotificationOption::Always:
+                    enabled = true;
+                    break;
+            case KittyNotificationOption::Unfocused:
+                    enabled = !hasFocus;
+                    break;
+            case KittyNotificationOption::Invisible:
+                    // We might want to check if the tab is active, the window visible, etc.
+                    enabled = !hasFocus;
+                    break;
+            }
+
+            if (enabled) {
+                    KNotification *notification;
+                    QString iconName = resolveIcon(notificationState->iconNames);
+
+                    // KNotification does not support application name, add it to the title instead:
+                    QString fullTitle = notificationState->applicationName;
+                    if (!notificationState->title.isEmpty()) {
+                    if (!fullTitle.isEmpty())
+                        fullTitle += QStringLiteral(": ");
+                    fullTitle += notificationState->title;
+                    }
+
+                    notification = KNotification::event(hasFocus ? QStringLiteral("ProcessNotification") : QStringLiteral("ProcessNotificationHidden"),
+                                                        fullTitle,
+                                                        notificationState->body.toHtmlEscaped(),
+                                                        iconName);
+
+                    KNotification::Urgency resultUrgency = KNotification::Urgency::NormalUrgency;
+                    switch (notificationState->urgency) {
+                    case 0:
+                    resultUrgency = KNotification::Urgency::LowUrgency;
+                    break;
+                    case 1:
+                    resultUrgency = KNotification::Urgency::NormalUrgency;
+                    break;
+                    case 2:
+                    resultUrgency = KNotification::Urgency::CriticalUrgency;
+                    break;
+                    }
+                    notification->setUrgency(resultUrgency);
+                    auto action = notification->addDefaultAction(i18n("Show session"));
+
+                    if (notificationState->closeSignal) {
+                    connect(notification, &KNotification::closed, this, [this, notificationId]() {
+                        sendString((QStringLiteral("\033]99;i=") + notificationId + QStringLiteral(":p=close;\033\\")).toLatin1());
+                    });
+                    }
+
+                    int notificationAction = notificationState->action;
+                    if (notificationAction != 0) {
+                    connect(action, &KNotificationAction::activated, this, [this, notification, notificationAction, notificationId]() {
+                        if (notificationAction & NotificationActionReport) {
+                            sendString((QStringLiteral("\033]99;i=") + notificationId + QStringLiteral(";\033\\")).toLatin1());
+                        }
+                        if (notificationAction & NotificationActionFocus) {
+                            _currentScreen->currentTerminalDisplay()->notificationClicked(notification->xdgActivationToken());
+                        }
+                    });
+                    }
+
+                    for (int i = 0; i < notificationState->buttons.size(); ++i) {
+                    KNotificationAction *action = notification->addAction(notificationState->buttons[i]);
+                    connect(action, &KNotificationAction::activated, this, [this, notificationId, i]() {
+                        sendString((QStringLiteral("\033]99;i=") + notificationId + QStringLiteral(";") + QString::number(i + 1) + QStringLiteral("\033\\"))
+                                       .toLatin1());
+                    });
+                    }
+            }
+
+            _kittyNotifications.remove(notificationId);
+        }
+
+        if (_kittyNotifications.size() >= 10) {
+            auto toRemote = std::min_element(
+                _kittyNotifications.begin(), _kittyNotifications.end(),
+                [](KittyNotificationState const& first, KittyNotificationState const& second) {
+                    return first.serial < second.serial;
+                });
+            _kittyNotifications.erase(toRemote);
+        }
+
+        return;
+    }
+
+    if (value == QLatin1String("?")) {
+        // pass terminator type indication here, because OSC response terminator
+        // should match the terminator of OSC request.
+        Q_EMIT sessionAttributeRequest(attribute, terminator);
+        return;
+    }
+
+    if (attribute == Session::ProfileChange) {
+        bool styleChanged = false;
+        bool isBlinking = false;
+        bool isAnimating = false;
+        Enum::CursorShapeEnum shape = Enum::BlockCursor;
+        QColor customColor;
+
+        if (TerminalDisplay *currentView = _currentScreen->currentTerminalDisplay()) {
+            if (SessionController *sessionController = currentView->sessionController()) {
+                Session *session = sessionController->session();
+                SessionManager *manager = SessionManager::instance();
+                Profile::Ptr currentProfile = manager->sessionProfile(session);
+                shape = currentProfile->cursorShape();
+                isBlinking = currentProfile->blinkingCursorEnabled();
+                customColor = currentProfile->customCursorColor();
+            }
+        }
+
+        const QLatin1String cursorShapeStr("CursorShape=");
+        const QLatin1String blinkingCursorStr("BlinkingCursorEnabled=");
+        const QLatin1String animatingCursorStr("AnimatingCursorEnabled=");
+        const QLatin1String customCursorColorStr("CustomCursorColor=");
+
+        QString newValue;
+        const auto items = QStringView(value).split(QLatin1Char(';'));
+        for (const auto &item : items) {
+            if (item.startsWith(cursorShapeStr)) {
+                const int s = item.at(cursorShapeStr.size()).digitValue();
+                shape = static_cast<Enum::CursorShapeEnum>(s != -1 ? s : 0);
+                styleChanged = true;
+
+            } else if (item.startsWith(blinkingCursorStr)) {
+                const auto str = item.mid(blinkingCursorStr.size());
+                if (str.compare(QString::fromLatin1("true"), Qt::CaseInsensitive) == 0) {
+                    isBlinking = true;
+                    styleChanged = true;
+                } else if (str.compare(QString::fromLatin1("false"), Qt::CaseInsensitive) == 0) {
+                    isBlinking = false;
+                    styleChanged = true;
+                } else {
+                    bool ok = false;
+                    bool newIsBlinking = str.toInt(&ok);
+                    if (ok) {
+                        isBlinking = newIsBlinking;
+                        styleChanged = true;
+                    }
+                }
+            } else if (item.startsWith(animatingCursorStr)) {
+                const auto str = item.mid(animatingCursorStr.size());
+                if (str.compare(QString::fromLatin1("true"), Qt::CaseInsensitive) == 0) {
+                    isAnimating = true;
+                    styleChanged = true;
+                } else if (str.compare(QString::fromLatin1("false"), Qt::CaseInsensitive) == 0) {
+                    isAnimating = false;
+                    styleChanged = true;
+                } else {
+                    bool ok = false;
+                    bool newIsAnimating = str.toInt(&ok);
+                    if (ok) {
+                        isAnimating = newIsAnimating;
+                        styleChanged = true;
+                    }
+                }
+            } else if (item.startsWith(customCursorColorStr)) {
+                const auto colorStr = item.mid(customCursorColorStr.size());
+                customColor = QColor(colorStr);
+                styleChanged = true;
+
+            } else {
+                if (!newValue.isEmpty())
+                    newValue.append(QChar::fromLatin1(';'));
+                newValue.append(item);
+            }
+        }
+
+        if (styleChanged) {
+            Q_EMIT setCursorStyleRequest(shape, isBlinking, isAnimating, customColor);
+        }
+
+        if (newValue.isEmpty()) {
+            return;
+        }
+
+        value = newValue;
+    }
+
+    if (attribute == Image) {
+        bool inlineImage = false;
+        bool inlineMedia = false;
+        if (value.startsWith(QLatin1String("ReportCellSize"))) {
+            iTermReportCellSize();
+            return;
+        }
+        if (value.startsWith(QLatin1String("MultipartFile="))) {
+            savedValue = value;
+            tokenData.clear();
+        }
+        if (!value.startsWith(QLatin1String("File=")) && !value.startsWith(QLatin1String("FileEnd"))) {
+            return;
+        }
+        if (value.startsWith(QLatin1String("FileEnd"))) {
+            value = savedValue;
+        }
+        int pos;
+        int start;
+        if (value.startsWith(QLatin1String("File="))) {
+            pos = value.indexOf(QLatin1Char(':'));
+            start = 5;
+        } else {
+            pos = value.length();
+            start = 14;
+        }
+        QStringList params = value.mid(start, pos - start).split(QLatin1Char(';'));
+        bool keepAspect = true;
+        int scaledWidth = 0;
+        int scaledHeight = 0;
+        bool moveCursor = true;
+        for (const auto &p : std::as_const(params)) {
+            int eq = p.indexOf(QLatin1Char('='));
+            if (eq > 0) {
+                QString var = p.mid(0, eq);
+                QString val = p.mid(eq + 1);
+                if (var == QLatin1String("inline")) {
+                    inlineImage = val == QLatin1String("1");
+                }
+                if (var == QLatin1String("inlineMedia")) {
+                    inlineMedia = val == QLatin1String("1");
+                }
+                if (var == QLatin1String("preserveAspectRatio")) {
+                    keepAspect = val == QLatin1String("0");
+                }
+                if (var == QLatin1String("doNotMoveCursor")) {
+                    moveCursor = val != QLatin1String("1");
+                }
+                if (var == QLatin1String("width")) {
+                    int unitPos = val.toStdString().find_first_not_of("0123456789");
+                    scaledWidth = QStringView(val).mid(0, unitPos).toInt();
+                    if (unitPos == -1) {
+                        scaledWidth *= _currentScreen->currentTerminalDisplay()->terminalFont()->fontWidth();
+                    } else {
+                        if (val.mid(unitPos) == QLatin1String("%")) {
+                            scaledWidth *= _currentScreen->currentTerminalDisplay()->terminalFont()->fontWidth() * _currentScreen->getColumns() / 100;
+                        }
+                    }
+                }
+                if (var == QLatin1String("height")) {
+                    int unitPos = val.toStdString().find_first_not_of("0123456789");
+                    scaledHeight = QStringView(val).mid(0, unitPos).toInt();
+                    if (unitPos == -1) {
+                        scaledHeight *= _currentScreen->currentTerminalDisplay()->terminalFont()->fontHeight();
+                    } else {
+                        if (val.mid(unitPos) == QLatin1String("%")) {
+                            scaledHeight *= _currentScreen->currentTerminalDisplay()->terminalFont()->fontHeight() * _currentScreen->getLines() / 100;
+                        }
+                    }
+                }
+            }
+        }
+        if (inlineMedia) {
+            if (player == nullptr) {
+                player = new QMediaPlayer(this);
+                player->setAudioOutput(new QAudioOutput(player));
+                connect(player, &QMediaPlayer::mediaStatusChanged, this, &Vt102Emulation::deletePlayer);
+            }
+            QBuffer *buffer = new QBuffer(player);
+            buffer->setData(tokenData);
+            buffer->open(QIODevice::ReadOnly);
+            delete (QIODevice *)(player->sourceDevice());
+            player->setSourceDevice(buffer);
+            player->play();
+            return;
+        }
+        if (!inlineImage) {
+            return;
+        }
+        QPixmap pixmap;
+        pixmap.loadFromData(tokenData);
+        tokenData.clear();
+        if (pixmap.isNull()) {
+            return;
+        }
+        if (scaledWidth && scaledHeight) {
+            pixmap = pixmap.scaled(scaledWidth, scaledHeight, (Qt::AspectRatioMode)keepAspect);
+        } else {
+            if (keepAspect && scaledWidth) {
+                pixmap = pixmap.scaledToWidth(scaledWidth);
+            } else if (keepAspect && scaledHeight) {
+                pixmap = pixmap.scaledToHeight(scaledHeight);
+            }
+        }
+        int rows = -1, cols = -1;
+        _currentScreen->addPlacement(pixmap, rows, cols, -1, -1, TerminalGraphicsPlacement_t::iTerm, true, moveCursor);
+    }
+
+    if (attribute == PointerShape) {
+        static QMap<QString, Qt::CursorShape> cursorShapes = {
+            // CSS shapes
+            {QLatin1String("default"), Qt::ArrowCursor},
+
+            {QLatin1String("context-menu"), Qt::ArrowCursor}, // no exact match
+            {QLatin1String("help"), Qt::WhatsThisCursor},
+            {QLatin1String("pointer"), Qt::PointingHandCursor},
+            {QLatin1String("progress"), Qt::BusyCursor},
+            {QLatin1String("wait"), Qt::WaitCursor},
+
+            {QLatin1String("cell"), Qt::ArrowCursor}, // no exact match
+            {QLatin1String("crosshair"), Qt::CrossCursor},
+            {QLatin1String("text"), Qt::IBeamCursor},
+            {QLatin1String("vertical-text"), Qt::IBeamCursor}, // no exact match
+
+            {QLatin1String("alias"), Qt::DragLinkCursor},
+            {QLatin1String("copy"), Qt::DragCopyCursor},
+            {QLatin1String("move"), Qt::DragMoveCursor},
+            {QLatin1String("no-drop"), Qt::ForbiddenCursor}, // no exact match
+            {QLatin1String("not-allowed"), Qt::ForbiddenCursor},
+            {QLatin1String("grab"), Qt::OpenHandCursor},
+            {QLatin1String("grabbing"), Qt::ClosedHandCursor},
+
+            {QLatin1String("all-scroll"), Qt::ArrowCursor}, // no exact match
+            {QLatin1String("col-resize"), Qt::SplitHCursor},
+            {QLatin1String("row-resize"), Qt::SplitVCursor},
+
+            {QLatin1String("n-resize"), Qt::SizeVerCursor}, // no exact match
+            {QLatin1String("e-resize"), Qt::SizeHorCursor}, // no exact match
+            {QLatin1String("s-resize"), Qt::SizeVerCursor}, // no exact match
+            {QLatin1String("w-resize"), Qt::SizeHorCursor}, // no exact match
+            {QLatin1String("ne-resize"), Qt::SizeBDiagCursor}, // no exact match
+            {QLatin1String("nw-resize"), Qt::SizeFDiagCursor}, // no exact match
+            {QLatin1String("se-resize"), Qt::SizeFDiagCursor}, // no exact match
+            {QLatin1String("sw-resize"), Qt::SizeBDiagCursor}, // no exact match
+
+            {QLatin1String("ew-resize"), Qt::SizeHorCursor},
+            {QLatin1String("ns-resize"), Qt::SizeVerCursor},
+            {QLatin1String("nesw-resize"), Qt::SizeBDiagCursor},
+            {QLatin1String("nwse-resize"), Qt::SizeFDiagCursor},
+
+            {QLatin1String("zoom-in"), Qt::ArrowCursor}, // no exact match
+            {QLatin1String("zoom-out"), Qt::ArrowCursor}, // no exact match
+
+            // XCursor shapes, taken from the Qt docs
+            {QLatin1String("left_ptr"), Qt::ArrowCursor},
+            {QLatin1String("up_arrow"), Qt::UpArrowCursor},
+            {QLatin1String("cross"), Qt::CrossCursor},
+            {QLatin1String("ibeam"), Qt::IBeamCursor},
+            {QLatin1String("wait"), Qt::WaitCursor},
+            {QLatin1String("left_ptr_watch"), Qt::BusyCursor},
+            {QLatin1String("forbidden"), Qt::ForbiddenCursor},
+            {QLatin1String("pointing_hand"), Qt::PointingHandCursor},
+            {QLatin1String("whats_this"), Qt::WhatsThisCursor},
+            {QLatin1String("dnd-move"), Qt::DragMoveCursor},
+            {QLatin1String("move"), Qt::DragMoveCursor},
+            {QLatin1String("dnd-link"), Qt::DragLinkCursor},
+            {QLatin1String("link"), Qt::DragLinkCursor},
+            {QLatin1String("size_ver"), Qt::SizeVerCursor},
+            {QLatin1String("size_hor"), Qt::SizeHorCursor},
+            {QLatin1String("size_bdiag"), Qt::SizeBDiagCursor},
+            {QLatin1String("size_fdiag"), Qt::SizeFDiagCursor},
+            {QLatin1String("size_all"), Qt::SizeAllCursor},
+            {QLatin1String("split_v"), Qt::SplitVCursor},
+            {QLatin1String("split_h"), Qt::SplitHCursor},
+            {QLatin1String("openhand"), Qt::OpenHandCursor},
+            {QLatin1String("closedhand"), Qt::ClosedHandCursor},
+            {QLatin1String("dnd-copy"), Qt::DragCopyCursor},
+            {QLatin1String("copy"), Qt::DragCopyCursor},
+        };
+
+        if (!cursorShapes.contains(value)) {
+            _currentScreen->currentTerminalDisplay()->resetCursor();
+        } else {
+            _currentScreen->currentTerminalDisplay()->setPointerShape(cursorShapes[value]);
+        }
+
+        return;
+    }
+
+    if (attribute == ConEmu) {
+        const auto list = QStringView(value).split(QLatin1Char(';'));
+        if (list.size() >= 2) {
+            // Progress indicator.
+            if (list.at(0) == QLatin1Char('4')) {
+                bool ok;
+                const int st = list.at(1).toInt(&ok);
+                if (ok) {
+                    switch (st) {
+                    case 0:
+                        Q_EMIT progressHidden();
+                        break;
+                    case 1:
+                        if (list.size() >= 3) {
+                            const int pr = list.at(2).toInt(&ok);
+                            if (ok && pr >= 0 && pr <= 100) {
+                                Q_EMIT progressChanged(pr);
+                            }
+                        }
+                        break;
+                    case 2:
+                        // TODO error state.
+                        break;
+                    case 3:
+                        // TODO indeterminate state.
+                        Q_EMIT progressHidden();
+                        break;
+                    case 4:
+                        // TODO paused state.
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    _pendingSessionAttributesUpdates[attribute] = value;
+    _sessionAttributesUpdateTimer->start(20);
+}
+
+void Vt102Emulation::deletePlayer(QMediaPlayer::MediaStatus mediaStatus)
+{
+    if (mediaStatus == QMediaPlayer::EndOfMedia || mediaStatus == QMediaPlayer::InvalidMedia) {
+        QIODevice *buffer = (QIODevice *)(player->sourceDevice());
+        buffer->deleteLater();
+        player->deleteLater();
+        player = nullptr;
+    }
+}
+
+void Vt102Emulation::updateSessionAttributes()
+{
+    QListIterator<int> iter(_pendingSessionAttributesUpdates.keys());
+    while (iter.hasNext()) {
+        int arg = iter.next();
+        Q_EMIT sessionAttributeChanged(arg, _pendingSessionAttributesUpdates[arg]);
+    }
+    _pendingSessionAttributesUpdates.clear();
+}
+
+// Interpreting Codes ---------------------------------------------------------
+
+/*
+   Now that the incoming character stream is properly tokenized,
+   meaning is assigned to them. These are either operations of
+   the current _screen, or of the emulation class itself.
+
+   The token to be interpreted comes in as a machine word
+   possibly accompanied by two parameters.
+
+   Likewise, the operations assigned to, come with up to two
+   arguments. One could consider to make up a proper table
+   from the function below.
+
+   The technical reference manual provides more information
+   about this mapping.
+*/
+
+void Vt102Emulation::processToken(int token, int p, int q)
+{
+    /* clang-format off */
+    switch (token) {
+    case token_chr(         ) :
+        _currentScreen->displayCharacter     (p         ); break; //UTF16
+
+    //             127 DEL    : ignored on input
+
+    case token_ctl('@'      ) : /* NUL: ignored                      */ break;
+    case token_ctl('A'      ) : /* SOH: ignored                      */ break;
+    case token_ctl('B'      ) : /* STX: ignored                      */ break;
+    case token_ctl('C'      ) : /* ETX: ignored                      */ break;
+    case token_ctl('D'      ) : /* EOT: ignored                      */ break;
+    case token_ctl('E'      ) :      reportAnswerBack     (          ); break; //VT100
+    case token_ctl('F'      ) : /* ACK: ignored                      */ break;
+    case token_ctl('G'      ) : Q_EMIT bell();
+                                break; //VT100
+    case token_ctl('H'      ) : _currentScreen->backspace            (          ); break; //VT100
+    case token_ctl('I'      ) : _currentScreen->tab                  (          ); break; //VT100
+    case token_ctl('J'      ) : _currentScreen->newLine              (          ); break; //VT100
+    case token_ctl('K'      ) : _currentScreen->newLine              (          ); break; //VT100
+    case token_ctl('L'      ) : _currentScreen->newLine              (          ); break; //VT100
+    case token_ctl('M'      ) : _currentScreen->toStartOfLine        (          ); break; //VT100
+
+    case token_ctl('N'      ) :      useCharset           (         1); break; //VT100
+    case token_ctl('O'      ) :      useCharset           (         0); break; //VT100
+
+    case token_ctl('P'      ) : /* DLE: ignored                      */ break;
+    case token_ctl('Q'      ) : /* DC1: XON continue                 */ break; //VT100
+    case token_ctl('R'      ) : /* DC2: ignored                      */ break;
+    case token_ctl('S'      ) : /* DC3: XOFF halt                    */ break; //VT100
+    case token_ctl('T'      ) : /* DC4: ignored                      */ break;
+    case token_ctl('U'      ) : /* NAK: ignored                      */ break;
+    case token_ctl('V'      ) : /* SYN: ignored                      */ break;
+    case token_ctl('W'      ) : /* ETB: ignored                      */ break;
+    case token_ctl('X'      ) : _currentScreen->displayCharacter     (    0x2592); break; //VT100
+    case token_ctl('Y'      ) : /* EM : ignored                      */ break;
+    case token_ctl('Z'      ) : _currentScreen->displayCharacter     (    0x2592); break; //VT100
+    case token_ctl('['      ) : /* ESC: cannot be seen here.         */ break;
+    case token_ctl('\\'     ) : /* FS : ignored                      */ break;
+    case token_ctl(']'      ) : /* GS : ignored                      */ break;
+    case token_ctl('^'      ) : /* RS : ignored                      */ break;
+    case token_ctl('_'      ) : /* US : ignored                      */ break;
+
+    case token_esc('D'      ) : _currentScreen->index                (          ); break; //VT100
+    case token_esc('E'      ) : _currentScreen->nextLine             (          ); break; //VT100
+    case token_esc('H'      ) : _currentScreen->changeTabStop        (true      ); break; //VT100
+    case token_esc('M'      ) : _currentScreen->reverseIndex         (          ); break; //VT100
+    case token_esc('Z'      ) :      reportTerminalType   (          ); break;
+    case token_esc('c'      ) :      reset                (          ); break;
+
+    case token_esc('n'      ) :      useCharset           (         2); break;
+    case token_esc('o'      ) :      useCharset           (         3); break;
+    case token_esc('7'      ) :      saveCursor           (          ); break;
+    case token_esc('8'      ) :      restoreCursor        (          ); break;
+
+    case token_esc('='      ) :          setMode      (MODE_AppKeyPad); break;
+    case token_esc('>'      ) :        resetMode      (MODE_AppKeyPad); break;
+    case token_esc('<'      ) :          setMode      (MODE_Ansi     ); break; //VT100
+
+    case token_esc('\\'      ) :       resetMode      (MODE_Sixel    ); break;
+
+    case token_esc_cs('(', '0') :      setCharset           (0,    '0'); break; //VT100
+    case token_esc_cs('(', 'A') :      setCharset           (0,    'A'); break; //VT100
+    case token_esc_cs('(', 'B') :      setCharset           (0,    'B'); break; //VT100
+
+    case token_esc_cs(')', '0') :      setCharset           (1,    '0'); break; //VT100
+    case token_esc_cs(')', 'A') :      setCharset           (1,    'A'); break; //VT100
+    case token_esc_cs(')', 'B') :      setCharset           (1,    'B'); break; //VT100
+
+    case token_esc_cs('*', '0') :      setCharset           (2,    '0'); break; //VT100
+    case token_esc_cs('*', 'A') :      setCharset           (2,    'A'); break; //VT100
+    case token_esc_cs('*', 'B') :      setCharset           (2,    'B'); break; //VT100
+
+    case token_esc_cs('+', '0') :      setCharset           (3,    '0'); break; //VT100
+    case token_esc_cs('+', 'A') :      setCharset           (3,    'A'); break; //VT100
+    case token_esc_cs('+', 'B') :      setCharset           (3,    'B'); break; //VT100
+
+    case token_esc_cs('%', 'G') :      setCodec             (Utf8Codec   ); break; //LINUX
+    case token_esc_cs('%', '@') :      setCodec             (LocaleCodec ); break; //LINUX
+
+    case token_esc_de('3'      ) : /* Double height line, top half    */
+                                _currentScreen->setLineProperty( LINE_DOUBLEWIDTH , true );
+                                _currentScreen->setLineProperty( LINE_DOUBLEHEIGHT_TOP , true );
+                                _currentScreen->setLineProperty( LINE_DOUBLEHEIGHT_BOTTOM , false );
+                                    break;
+    case token_esc_de('4'      ) : /* Double height line, bottom half */
+                                _currentScreen->setLineProperty( LINE_DOUBLEWIDTH , true );
+                                _currentScreen->setLineProperty( LINE_DOUBLEHEIGHT_TOP , false );
+                                _currentScreen->setLineProperty( LINE_DOUBLEHEIGHT_BOTTOM , true );
+                                    break;
+    case token_esc_de('5'      ) : /* Single width, single height line*/
+                                _currentScreen->setLineProperty( LINE_DOUBLEWIDTH , false);
+                                _currentScreen->setLineProperty( LINE_DOUBLEHEIGHT_TOP , false);
+                                _currentScreen->setLineProperty( LINE_DOUBLEHEIGHT_BOTTOM , false);
+                                break;
+    case token_esc_de('6'      ) : /* Double width, single height line*/
+                                _currentScreen->setLineProperty( LINE_DOUBLEWIDTH , true);
+                                _currentScreen->setLineProperty( LINE_DOUBLEHEIGHT_TOP , false);
+                                _currentScreen->setLineProperty( LINE_DOUBLEHEIGHT_BOTTOM , false);
+                                break;
+    case token_esc_de('8'      ) : _currentScreen->helpAlign            (          ); break;
+
+    // resize = \e[8;<rows>;<cols>t
+    case token_csi_ps('t',   8) : setImageSize( p /* rows */, q /* columns */ );
+                               Q_EMIT imageResizeRequest(QSize(q, p)); // Note columns (x), rows (y) in QSize
+                               break;
+
+    case token_csi_ps('t',   14) : reportPixelSize();          break;
+    case token_csi_ps('t',   16) : reportCellSize();           break;
+    case token_csi_ps('t',   18) : reportSize();               break;
+    // change tab text color : \e[28;<color>t  color: 0-16,777,215
+    case token_csi_ps('t',   28) : /* IGNORED: konsole-specific KDE3-era extension, not implemented */ break;
+
+    case token_csi_ps('t',  22) : /* IGNORED: Save icon and window title on stack */      break; //XTERM
+    case token_csi_ps('t',  23) : /* IGNORED: Restore icon and window title from stack */ break; //XTERM
+
+    case token_csi_ps('K',   0) : _currentScreen->clearToEndOfLine     (          ); break;
+    case token_csi_ps('K',   1) : _currentScreen->clearToBeginOfLine   (          ); break;
+    case token_csi_ps('K',   2) : _currentScreen->clearEntireLine      (          ); break;
+    case token_csi_ps('J',   0) : _currentScreen->clearToEndOfScreen   (          ); break;
+    case token_csi_ps('J',   1) : _currentScreen->clearToBeginOfScreen (          ); break;
+    case token_csi_ps('J',   2) : _currentScreen->clearEntireScreen    (          ); break;
+    case token_csi_ps('J',      3) : clearHistory();                            break;
+    case token_csi_ps('g',   0) : _currentScreen->changeTabStop        (false     ); break; //VT100
+    case token_csi_ps('g',   3) : _currentScreen->clearTabStops        (          ); break; //VT100
+    case token_csi_ps('h',   4) : _currentScreen->    setMode      (MODE_Insert   ); break;
+    case token_csi_ps('h',  20) :          setMode      (MODE_NewLine  ); break;
+    case token_csi_ps('i',   0) : /* IGNORE: attached printer          */ break; //VT100
+    case token_csi_ps('l',   4) : _currentScreen->  resetMode      (MODE_Insert   ); break;
+    case token_csi_ps('l',  20) :        resetMode      (MODE_NewLine  ); break;
+    case token_csi_ps('s',   0) :      saveCursor           (          ); break;
+    case token_csi_ps('u',   0) :      restoreCursor        (          ); break;
+
+    case token_csi_ps('m',   0) : _currentScreen->setDefaultRendition  (          ); break;
+    case token_csi_ps('m',   1) : _currentScreen->  setRendition     (RE_BOLD     ); break; //VT100
+    case token_csi_ps('m',   2) : _currentScreen->  setRendition     (RE_FAINT    ); break;
+    case token_csi_ps('m',   3) : _currentScreen->  setRendition     (RE_ITALIC   ); break; //VT100
+    case token_csi_ps('m',   4) :
+        if (q == 1) {
+            _currentScreen->setUnderlineType(p);
+        } else {
+            _currentScreen->setUnderlineType(RE_UNDERLINE);
+        }
+        break; //VT100
+    case token_csi_ps('m',   5) : _currentScreen->  setRendition     (RE_BLINK    ); break; //VT100
+    case token_csi_ps('m',   7) : _currentScreen->  setRendition     (RE_REVERSE  ); break;
+    case token_csi_ps('m',   8) : _currentScreen->  setRendition     (RE_CONCEAL  ); break;
+    case token_csi_ps('m',   9) : _currentScreen->  setRendition     (RE_STRIKEOUT); break;
+    case token_csi_ps('m',  53) : _currentScreen->  setRendition     (RE_OVERLINE ); break;
+    case token_csi_ps('m',  10) : /* IGNORED: mapping related          */ break; //LINUX
+    case token_csi_ps('m',  11) : /* IGNORED: mapping related          */ break; //LINUX
+    case token_csi_ps('m',  12) : /* IGNORED: mapping related          */ break; //LINUX
+    case token_csi_ps('m',  21) : _currentScreen->setUnderlineType(RE_UNDERLINE_DOUBLE); break;
+    case token_csi_ps('m',  22) : _currentScreen->resetRendition     (RE_BOLD     );
+                               _currentScreen->resetRendition     (RE_FAINT    ); break;
+    case token_csi_ps('m',  23) : _currentScreen->resetRendition     (RE_ITALIC   ); break; //VT100
+    case token_csi_ps('m',  24) : _currentScreen->resetRendition     (RE_UNDERLINE_MASK); break;
+    case token_csi_ps('m',  25) : _currentScreen->resetRendition     (RE_BLINK    ); break;
+    case token_csi_ps('m',  27) : _currentScreen->resetRendition     (RE_REVERSE  ); break;
+    case token_csi_ps('m',  28) : _currentScreen->resetRendition     (RE_CONCEAL  ); break;
+    case token_csi_ps('m',  29) : _currentScreen->resetRendition     (RE_STRIKEOUT); break;
+    case token_csi_ps('m',  55) : _currentScreen->resetRendition     (RE_OVERLINE ); break;
+
+    case token_csi_ps('m',   30) : _currentScreen->setForeColor         (COLOR_SPACE_SYSTEM,  0); break;
+    case token_csi_ps('m',   31) : _currentScreen->setForeColor         (COLOR_SPACE_SYSTEM,  1); break;
+    case token_csi_ps('m',   32) : _currentScreen->setForeColor         (COLOR_SPACE_SYSTEM,  2); break;
+    case token_csi_ps('m',   33) : _currentScreen->setForeColor         (COLOR_SPACE_SYSTEM,  3); break;
+    case token_csi_ps('m',   34) : _currentScreen->setForeColor         (COLOR_SPACE_SYSTEM,  4); break;
+    case token_csi_ps('m',   35) : _currentScreen->setForeColor         (COLOR_SPACE_SYSTEM,  5); break;
+    case token_csi_ps('m',   36) : _currentScreen->setForeColor         (COLOR_SPACE_SYSTEM,  6); break;
+    case token_csi_ps('m',   37) : _currentScreen->setForeColor         (COLOR_SPACE_SYSTEM,  7); break;
+
+    case token_csi_ps('m',   38) : _currentScreen->setForeColor         (p,       q); break;
+
+    case token_csi_ps('m',   39) : _currentScreen->setForeColor         (COLOR_SPACE_DEFAULT,  0); break;
+
+    case token_csi_ps('m',   40) : _currentScreen->setBackColor         (COLOR_SPACE_SYSTEM,  0); break;
+    case token_csi_ps('m',   41) : _currentScreen->setBackColor         (COLOR_SPACE_SYSTEM,  1); break;
+    case token_csi_ps('m',   42) : _currentScreen->setBackColor         (COLOR_SPACE_SYSTEM,  2); break;
+    case token_csi_ps('m',   43) : _currentScreen->setBackColor         (COLOR_SPACE_SYSTEM,  3); break;
+    case token_csi_ps('m',   44) : _currentScreen->setBackColor         (COLOR_SPACE_SYSTEM,  4); break;
+    case token_csi_ps('m',   45) : _currentScreen->setBackColor         (COLOR_SPACE_SYSTEM,  5); break;
+    case token_csi_ps('m',   46) : _currentScreen->setBackColor         (COLOR_SPACE_SYSTEM,  6); break;
+    case token_csi_ps('m',   47) : _currentScreen->setBackColor         (COLOR_SPACE_SYSTEM,  7); break;
+
+    case token_csi_ps('m',   48) : _currentScreen->setBackColor         (p,       q); break;
+
+    case token_csi_ps('m',   49) : _currentScreen->setBackColor         (COLOR_SPACE_DEFAULT,  1); break;
+
+    case token_csi_ps('m',   58) : _currentScreen->setULColor           (p,       q); break;
+
+    case token_csi_ps('m',   59) : _currentScreen->setULColor           (COLOR_SPACE_UNDEFINED,  0); break;
+
+    case token_csi_ps('m',   90) : _currentScreen->setForeColor         (COLOR_SPACE_SYSTEM,  8); break;
+    case token_csi_ps('m',   91) : _currentScreen->setForeColor         (COLOR_SPACE_SYSTEM,  9); break;
+    case token_csi_ps('m',   92) : _currentScreen->setForeColor         (COLOR_SPACE_SYSTEM, 10); break;
+    case token_csi_ps('m',   93) : _currentScreen->setForeColor         (COLOR_SPACE_SYSTEM, 11); break;
+    case token_csi_ps('m',   94) : _currentScreen->setForeColor         (COLOR_SPACE_SYSTEM, 12); break;
+    case token_csi_ps('m',   95) : _currentScreen->setForeColor         (COLOR_SPACE_SYSTEM, 13); break;
+    case token_csi_ps('m',   96) : _currentScreen->setForeColor         (COLOR_SPACE_SYSTEM, 14); break;
+    case token_csi_ps('m',   97) : _currentScreen->setForeColor         (COLOR_SPACE_SYSTEM, 15); break;
+
+    case token_csi_ps('m',  100) : _currentScreen->setBackColor         (COLOR_SPACE_SYSTEM,  8); break;
+    case token_csi_ps('m',  101) : _currentScreen->setBackColor         (COLOR_SPACE_SYSTEM,  9); break;
+    case token_csi_ps('m',  102) : _currentScreen->setBackColor         (COLOR_SPACE_SYSTEM, 10); break;
+    case token_csi_ps('m',  103) : _currentScreen->setBackColor         (COLOR_SPACE_SYSTEM, 11); break;
+    case token_csi_ps('m',  104) : _currentScreen->setBackColor         (COLOR_SPACE_SYSTEM, 12); break;
+    case token_csi_ps('m',  105) : _currentScreen->setBackColor         (COLOR_SPACE_SYSTEM, 13); break;
+    case token_csi_ps('m',  106) : _currentScreen->setBackColor         (COLOR_SPACE_SYSTEM, 14); break;
+    case token_csi_ps('m',  107) : _currentScreen->setBackColor         (COLOR_SPACE_SYSTEM, 15); break;
+
+    case token_csi_ps('n',   5) :      reportStatus         (          ); break;
+    case token_csi_ps('n',   6) :      reportCursorPosition (          ); break;
+    case token_csi_ps('q',   0) : /* IGNORED: LEDs off                 */ break; //VT100
+    case token_csi_ps('q',   1) : /* IGNORED: LED1 on                  */ break; //VT100
+    case token_csi_ps('q',   2) : /* IGNORED: LED2 on                  */ break; //VT100
+    case token_csi_ps('q',   3) : /* IGNORED: LED3 on                  */ break; //VT100
+    case token_csi_ps('q',   4) : /* IGNORED: LED4 on                  */ break; //VT100
+    case token_csi_ps('x',   0) :      reportTerminalParms  (         2); break; //VT100
+    case token_csi_ps('x',   1) :      reportTerminalParms  (         3); break; //VT100
+
+    case token_csi_pn('`'      ) : _currentScreen->setCursorX           (p         ); break;
+    case token_csi_pn('@'      ) : _currentScreen->insertChars          (p         ); break;
+    case token_csi_pn('A'      ) : _currentScreen->cursorUp             (p         ); break; //VT100
+    case token_csi_pn('B'      ) : _currentScreen->cursorDown           (p         ); break; //VT100
+    case token_csi_pn('C'      ) : _currentScreen->cursorRight          (p         ); break; //VT100
+    case token_csi_pn('D'      ) : _currentScreen->cursorLeft           (p         ); break; //VT100
+    case token_csi_pn('E'      ) : _currentScreen->cursorNextLine       (p         ); break; //VT100
+    case token_csi_pn('F'      ) : _currentScreen->cursorPreviousLine   (p         ); break; //VT100
+    case token_csi_pn('G'      ) : _currentScreen->setCursorX           (p         ); break; //LINUX
+    case token_csi_pn('H'      ) : _currentScreen->setCursorYX          (p,      q); break; //VT100
+    case token_csi_pn('I'      ) : _currentScreen->tab                  (p         ); break;
+    case token_csi_pn('L'      ) : _currentScreen->insertLines          (p         ); break;
+    case token_csi_pn('M'      ) : _currentScreen->deleteLines          (p         ); break;
+    case token_csi_pn('P'      ) : _currentScreen->deleteChars          (p         ); break;
+    case token_csi_pn('S'      ) : _currentScreen->scrollUp             (p         ); break;
+    case token_csi_pn('T'      ) : _currentScreen->scrollDown           (p         ); break;
+    case token_csi_pn('X'      ) : _currentScreen->eraseChars           (p         ); break;
+    case token_csi_pn('Z'      ) : _currentScreen->backtab              (p         ); break;
+    case token_csi_pn('a'      ) :
+        if (p == 0) {
+            ++p;
+        }
+        _currentScreen->setCursorX(_currentScreen->getCursorX()+1+p);
+        break;
+    case token_csi_pn('b'      ) : _currentScreen->repeatChars          (p         ); break;
+    case token_csi_pn('c'      ) :      reportTerminalType   (          ); break; //VT100
+    case token_csi_pn('d'      ) : _currentScreen->setCursorY           (p         ); break; //LINUX
+    case token_csi_pn('e'      ) :
+        if (p == 0) {
+            ++p;
+        }
+        _currentScreen->setCursorY(_currentScreen->getCursorY()+1+p);
+        break;
+    case token_csi_pn('f'      ) : _currentScreen->setCursorYX          (p,      q); break; //VT100
+    case token_csi_pn('r'      ) :      setMargins           (p,      q); break; //VT100
+    case token_csi_pn('y'      ) : /* IGNORED: Confidence test          */ break; //VT100
+
+    case token_csi_pr('h',   1) :          setMode      (MODE_AppCuKeys); break; //VT100
+    case token_csi_pr('l',   1) :        resetMode      (MODE_AppCuKeys); break; //VT100
+    case token_csi_pr('s',   1) :         saveMode      (MODE_AppCuKeys); break; //FIXME
+    case token_csi_pr('r',   1) :      restoreMode      (MODE_AppCuKeys); break; //FIXME
+
+    case token_csi_pr('l',   2) :        resetMode      (MODE_Ansi     ); break; //VT100
+
+    case token_csi_pr('h',   3) :          setMode      (MODE_132Columns); break; //VT100
+    case token_csi_pr('l',   3) :        resetMode      (MODE_132Columns); break; //VT100
+
+    case token_csi_pr('h',   4) : /* IGNORED: soft scrolling           */ break; //VT100
+    case token_csi_pr('l',   4) : /* IGNORED: soft scrolling           */ break; //VT100
+
+    case token_csi_pr('h',   5) : _currentScreen->    setMode      (MODE_Screen   ); break; //VT100
+    case token_csi_pr('l',   5) : _currentScreen->  resetMode      (MODE_Screen   ); break; //VT100
+
+    case token_csi_pr('h',   6) : _currentScreen->    setMode      (MODE_Origin   ); break; //VT100
+    case token_csi_pr('l',   6) : _currentScreen->  resetMode      (MODE_Origin   ); break; //VT100
+    case token_csi_pr('s',   6) : _currentScreen->   saveMode      (MODE_Origin   ); break; //FIXME
+    case token_csi_pr('r',   6) : _currentScreen->restoreMode      (MODE_Origin   ); break; //FIXME
+
+    case token_csi_pr('h',   7) : _currentScreen->    setMode      (MODE_Wrap     ); break; //VT100
+    case token_csi_pr('l',   7) : _currentScreen->  resetMode      (MODE_Wrap     ); break; //VT100
+    case token_csi_pr('s',   7) : _currentScreen->   saveMode      (MODE_Wrap     ); break; //FIXME
+    case token_csi_pr('r',   7) : _currentScreen->restoreMode      (MODE_Wrap     ); break; //FIXME
+
+    case token_csi_pr('h',   8) : /* IGNORED: autorepeat on            */ break; //VT100
+    case token_csi_pr('l',   8) : /* IGNORED: autorepeat off           */ break; //VT100
+    case token_csi_pr('s',   8) : /* IGNORED: autorepeat on            */ break; //VT100
+    case token_csi_pr('r',   8) : /* IGNORED: autorepeat off           */ break; //VT100
+
+    case token_csi_pr('h',   9) : /* IGNORED: interlace                */ break; //VT100
+    case token_csi_pr('l',   9) : /* IGNORED: interlace                */ break; //VT100
+    case token_csi_pr('s',   9) : /* IGNORED: interlace                */ break; //VT100
+    case token_csi_pr('r',   9) : /* IGNORED: interlace                */ break; //VT100
+
+    case token_csi_pr('h',  12) : /* IGNORED: Cursor blink             */ break; //att610
+    case token_csi_pr('l',  12) : /* IGNORED: Cursor blink             */ break; //att610
+    case token_csi_pr('s',  12) : /* IGNORED: Cursor blink             */ break; //att610
+    case token_csi_pr('r',  12) : /* IGNORED: Cursor blink             */ break; //att610
+
+    case token_csi_pr('h',  25) :          setMode      (MODE_Cursor   ); break; //VT100
+    case token_csi_pr('l',  25) :        resetMode      (MODE_Cursor   ); break; //VT100
+    case token_csi_pr('s',  25) :         saveMode      (MODE_Cursor   ); break; //VT100
+    case token_csi_pr('r',  25) :      restoreMode      (MODE_Cursor   ); break; //VT100
+
+    case token_csi_pr('h',  40) :         setMode(MODE_Allow132Columns ); break; // XTERM
+    case token_csi_pr('l',  40) :       resetMode(MODE_Allow132Columns ); break; // XTERM
+
+    case token_csi_pr('h',  41) : /* IGNORED: obsolete more(1) fix     */ break; //XTERM
+    case token_csi_pr('l',  41) : /* IGNORED: obsolete more(1) fix     */ break; //XTERM
+    case token_csi_pr('s',  41) : /* IGNORED: obsolete more(1) fix     */ break; //XTERM
+    case token_csi_pr('r',  41) : /* IGNORED: obsolete more(1) fix     */ break; //XTERM
+
+    case token_csi_pr('h',  47) :          setMode      (MODE_AppScreen); break; //VT100
+    case token_csi_pr('l',  47) :        resetMode      (MODE_AppScreen); break; //VT100
+    case token_csi_pr('s',  47) :         saveMode      (MODE_AppScreen); break; //XTERM
+    case token_csi_pr('r',  47) :      restoreMode      (MODE_AppScreen); break; //XTERM
+
+    case token_csi_pr('h',  67) : /* IGNORED: DECBKM                   */ break; //XTERM
+    case token_csi_pr('l',  67) : /* IGNORED: DECBKM                   */ break; //XTERM
+    case token_csi_pr('s',  67) : /* IGNORED: DECBKM                   */ break; //XTERM
+    case token_csi_pr('r',  67) : /* IGNORED: DECBKM                   */ break; //XTERM
+
+    case token_csi_pr('h',  80) : m_SixelScrolling = false;               break;
+    case token_csi_pr('l',  80) : m_SixelScrolling = true;                break;
+
+    // XTerm defines the following modes:
+    // SET_VT200_MOUSE             1000
+    // SET_VT200_HIGHLIGHT_MOUSE   1001
+    // SET_BTN_EVENT_MOUSE         1002
+    // SET_ANY_EVENT_MOUSE         1003
+    //
+
+    //Note about mouse modes:
+    //There are four mouse modes which xterm-compatible terminals can support - 1000,1001,1002,1003
+    //Konsole currently supports mode 1000 (basic mouse press and release),  mode 1002 (dragging the mouse)
+    //and mode 1003 (moving the mouse).
+    //TODO:  Implementation of mouse mode 1001 (something called highlight tracking).
+    //
+
+    case token_csi_pr('h', 1000) :          setMode      (MODE_Mouse1000); break; //XTERM
+    case token_csi_pr('l', 1000) :        resetMode      (MODE_Mouse1000); break; //XTERM
+    case token_csi_pr('s', 1000) :         saveMode      (MODE_Mouse1000); break; //XTERM
+    case token_csi_pr('r', 1000) :      restoreMode      (MODE_Mouse1000); break; //XTERM
+
+    case token_csi_pr('h', 1001) : /* IGNORED: hilite mouse tracking    */ break; //XTERM
+    case token_csi_pr('l', 1001) :        resetMode      (MODE_Mouse1001); break; //XTERM
+    case token_csi_pr('s', 1001) : /* IGNORED: hilite mouse tracking    */ break; //XTERM
+    case token_csi_pr('r', 1001) : /* IGNORED: hilite mouse tracking    */ break; //XTERM
+
+    case token_csi_pr('h', 1002) :          setMode      (MODE_Mouse1002); break; //XTERM
+    case token_csi_pr('l', 1002) :        resetMode      (MODE_Mouse1002); break; //XTERM
+    case token_csi_pr('s', 1002) :         saveMode      (MODE_Mouse1002); break; //XTERM
+    case token_csi_pr('r', 1002) :      restoreMode      (MODE_Mouse1002); break; //XTERM
+
+    case token_csi_pr('h', 1003) :          setMode      (MODE_Mouse1003); break; //XTERM
+    case token_csi_pr('l', 1003) :        resetMode      (MODE_Mouse1003); break; //XTERM
+    case token_csi_pr('s', 1003) :         saveMode      (MODE_Mouse1003); break; //XTERM
+    case token_csi_pr('r', 1003) :      restoreMode      (MODE_Mouse1003); break; //XTERM
+
+    case token_csi_pr('h',  1004) : _reportFocusEvents = true; break;
+    case token_csi_pr('l',  1004) : _reportFocusEvents = false; break;
+
+    case token_csi_pr('h', 1005) :          setMode      (MODE_Mouse1005); break; //XTERM
+    case token_csi_pr('l', 1005) :        resetMode      (MODE_Mouse1005); break; //XTERM
+    case token_csi_pr('s', 1005) :         saveMode      (MODE_Mouse1005); break; //XTERM
+    case token_csi_pr('r', 1005) :      restoreMode      (MODE_Mouse1005); break; //XTERM
+
+    case token_csi_pr('h', 1006) :          setMode      (MODE_Mouse1006); break; //XTERM
+    case token_csi_pr('l', 1006) :        resetMode      (MODE_Mouse1006); break; //XTERM
+    case token_csi_pr('s', 1006) :         saveMode      (MODE_Mouse1006); break; //XTERM
+    case token_csi_pr('r', 1006) :      restoreMode      (MODE_Mouse1006); break; //XTERM
+
+    case token_csi_pr('h', 1007) :          setMode      (MODE_Mouse1007); break; //XTERM
+    case token_csi_pr('l', 1007) :        resetMode      (MODE_Mouse1007); break; //XTERM
+    case token_csi_pr('s', 1007) :         saveMode      (MODE_Mouse1007); break; //XTERM
+    case token_csi_pr('r', 1007) :      restoreMode      (MODE_Mouse1007); break; //XTERM
+
+    case token_csi_pr('h', 1015) :          setMode      (MODE_Mouse1015); break; //URXVT
+    case token_csi_pr('l', 1015) :        resetMode      (MODE_Mouse1015); break; //URXVT
+    case token_csi_pr('s', 1015) :         saveMode      (MODE_Mouse1015); break; //URXVT
+    case token_csi_pr('r', 1015) :      restoreMode      (MODE_Mouse1015); break; //URXVT
+
+    case token_csi_pr('h', 1016) :          setMode      (MODE_Mouse1016); break; //XTERM
+    case token_csi_pr('l', 1016) :        resetMode      (MODE_Mouse1016); break; //XTERM
+    case token_csi_pr('s', 1016) :         saveMode      (MODE_Mouse1016); break; //XTERM
+    case token_csi_pr('r', 1016) :      restoreMode      (MODE_Mouse1016); break; //XTERM
+
+    case token_csi_pr('h', 1034) : /* IGNORED: 8bitinput activation     */ break; //XTERM
+
+    case token_csi_pr('h', 1047) :          setMode      (MODE_AppScreen); break; //XTERM
+    case token_csi_pr('l', 1047) : _screen[1]->clearEntireScreen(); resetMode(MODE_AppScreen); break; //XTERM
+    case token_csi_pr('s', 1047) :         saveMode      (MODE_AppScreen); break; //XTERM
+    case token_csi_pr('r', 1047) :      restoreMode      (MODE_AppScreen); break; //XTERM
+
+    //FIXME: Unitoken: save translations
+    case token_csi_pr('h', 1048) :      saveCursor           (          ); break; //XTERM
+    case token_csi_pr('l', 1048) :      restoreCursor        (          ); break; //XTERM
+    case token_csi_pr('s', 1048) :      saveCursor           (          ); break; //XTERM
+    case token_csi_pr('r', 1048) :      restoreCursor        (          ); break; //XTERM
+
+    //FIXME: every once new sequences like this pop up in xterm.
+    //       Here's a guess of what they could mean.
+    case token_csi_pr('h', 1049) : saveCursor(); _screen[1]->clearEntireScreen(); setMode(MODE_AppScreen); break; //XTERM
+    case token_csi_pr('l', 1049) : resetMode(MODE_AppScreen); restoreCursor(); break; //XTERM
+
+    case token_csi_pr('h', 2004) :          setMode      (MODE_BracketedPaste); break; //XTERM
+    case token_csi_pr('l', 2004) :        resetMode      (MODE_BracketedPaste); break; //XTERM
+    case token_csi_pr('s', 2004) :         saveMode      (MODE_BracketedPaste); break; //XTERM
+    case token_csi_pr('r', 2004) :      restoreMode      (MODE_BracketedPaste); break; //XTERM
+
+    case token_csi_pr('h', 9001) :          setMode      (MODE_Win32Input); break; // win32-input-mode
+    case token_csi_pr('l', 9001) :        resetMode      (MODE_Win32Input); break; // win32-input-mode
+
+    case token_csi_pr('h', 2026):           setMode      (MODE_SynchronizedUpdate); break; //ITERM2
+    case token_csi_pr('l', 2026):         resetMode      (MODE_SynchronizedUpdate); break; //ITERM2
+
+    case token_csi_pr('S',    1) : if(!p) sixelQuery        (1          ); break;
+    case token_csi_pr('S',    2) : if(!p) sixelQuery        (2          ); break;
+    // Set Cursor Style (DECSCUSR), VT520, with the extra xterm sequences
+    // the first one is a special case, 'ESC[ q', which mimics 'ESC[1 q'
+    // Using 0 to reset to default is matching VTE, but not any official standard.
+    case token_csi_sp ('q'    ) : Q_EMIT setCursorStyleRequest(Enum::BlockCursor,     true);  break;
+    case token_csi_psp('q',  0) : Q_EMIT resetCursorStyleRequest();                           break;
+    case token_csi_psp('q',  1) : Q_EMIT setCursorStyleRequest(Enum::BlockCursor,     true);  break;
+    case token_csi_psp('q',  2) : Q_EMIT setCursorStyleRequest(Enum::BlockCursor,     false); break;
+    case token_csi_psp('q',  3) : Q_EMIT setCursorStyleRequest(Enum::UnderlineCursor, true);  break;
+    case token_csi_psp('q',  4) : Q_EMIT setCursorStyleRequest(Enum::UnderlineCursor, false); break;
+    case token_csi_psp('q',  5) : Q_EMIT setCursorStyleRequest(Enum::IBeamCursor,     true);  break;
+    case token_csi_psp('q',  6) : Q_EMIT setCursorStyleRequest(Enum::IBeamCursor,     false); break;
+
+    // DECSTR (Soft Terminal Reset)
+    case token_csi_pe('p'      ) : reset(true); break; //VT220
+
+    case token_csi_pq('c'      ) :  reportTertiaryAttributes(          ); break; //VT420
+    case token_csi_pg('c'      ) :  reportSecondaryAttributes(          ); break; //VT100
+    case token_csi_pg('q'      ) :  reportVersion(          ); break;
+
+    // Kitty keyboard protocol — final char 'u' with prefix
+    case token_csi_pr('u',   0 ) :  handleKittyKeyboardQuery(                          ); break;
+    case token_csi_pg('u'      ) :  handleKittyKeyboardPush(p                          ); break;
+    case token_csi_pl('u'      ) :  handleKittyKeyboardPop(p ? p : 1                   ); break;
+    case token_csi_pq('u'      ) :  handleKittyKeyboardSet(p, q ? q : 1                ); break;
+
+    //FIXME: when changing between vt52 and ansi mode evtl do some resetting.
+    case token_vt52('A'      ) : _currentScreen->cursorUp             (         1); break; //VT52
+    case token_vt52('B'      ) : _currentScreen->cursorDown           (         1); break; //VT52
+    case token_vt52('C'      ) : _currentScreen->cursorRight          (         1); break; //VT52
+    case token_vt52('D'      ) : _currentScreen->cursorLeft           (         1); break; //VT52
+
+    case token_vt52('F'      ) :      setAndUseCharset     (0,    '0'); break; //VT52
+    case token_vt52('G'      ) :      setAndUseCharset     (0,    'B'); break; //VT52
+
+    case token_vt52('H'      ) : _currentScreen->setCursorYX          (1,1       ); break; //VT52
+    case token_vt52('I'      ) : _currentScreen->reverseIndex         (          ); break; //VT52
+    case token_vt52('J'      ) : _currentScreen->clearToEndOfScreen   (          ); break; //VT52
+    case token_vt52('K'      ) : _currentScreen->clearToEndOfLine     (          ); break; //VT52
+    case token_vt52('Y'      ) : _currentScreen->setCursorYX          (p-31,q-31 ); break; //VT52
+    case token_vt52('Z'      ) :      reportTerminalType   (           ); break; //VT52
+    case token_vt52('<'      ) :          setMode      (MODE_Ansi     ); break; //VT52
+    case token_vt52('='      ) :          setMode      (MODE_AppKeyPad); break; //VT52
+    case token_vt52('>'      ) :        resetMode      (MODE_AppKeyPad); break; //VT52
+
+    default:
+        reportDecodingError(token);
+        break;
+    }
+    /* clang-format on */
+}
+
+void delete_func(void *p)
+{
+    delete (QByteArray *)p;
+}
+
+void Vt102Emulation::processGraphicsToken(int tokenSize)
+{
+    QString value = QString::fromUcs4(&tokenBuffer[1], tokenSize - 1);
+    QStringList list;
+    QPixmap pixmap;
+
+    int dataPos = value.indexOf(QLatin1Char(';'));
+    if (dataPos == -1) {
+        dataPos = value.size();
+    }
+    if (dataPos > 1024) {
+        reportDecodingError(token_apc('G'));
+        return;
+    }
+    list = value.mid(0, dataPos).split(QLatin1Char(','));
+
+    QMap<char, qint64> keys; // Keys may be signed or unsigned 32 bit integers
+
+    if (savedKeys.empty()) {
+        keys['a'] = 't';
+        keys['t'] = 'd';
+        keys['q'] = 0;
+        keys['m'] = 0;
+        keys['f'] = 32;
+        keys['i'] = 0;
+        keys['o'] = 0;
+        keys['X'] = 0;
+        keys['Y'] = 0;
+        keys['x'] = 0;
+        keys['y'] = 0;
+        keys['z'] = 0;
+        keys['C'] = 0;
+        keys['c'] = 0;
+        keys['r'] = 0;
+        keys['A'] = 255;
+        keys['I'] = 0;
+        keys['d'] = 'a';
+        keys['p'] = -1;
+    } else {
+        keys = QMap<char, qint64>(savedKeys);
+    }
+
+    for (int i = 0; i < list.size(); i++) {
+        if (list.at(i).at(1).toLatin1() != '=') {
+            reportDecodingError(token_apc('G'));
+            return;
+        }
+        if (list.at(i).at(2).isNumber() || list.at(i).at(2).toLatin1() == '-') {
+            keys[list.at(i).at(0).toLatin1()] = QStringView(list.at(i)).mid(2).toInt();
+        } else {
+            keys[list.at(i).at(0).toLatin1()] = list.at(i).at(2).toLatin1();
+        }
+    }
+
+    if (keys['a'] == 't' || keys['a'] == 'T' || keys['a'] == 'q') {
+        if (keys['q'] < 2 && keys['t'] != 'd') {
+            QString params = QStringLiteral("i=") + QString::number(keys['i']);
+            QString error = QStringLiteral("ENOTSUPPORTED:");
+            sendGraphicsReply(params, error);
+            return;
+        }
+        if (keys['I']) {
+            keys['i'] = getFreeGraphicsImageId();
+        }
+        if (imageId != keys['i']) {
+            imageId = keys['i'];
+            imageData.clear();
+        }
+        imageData.append(tokenData);
+        tokenData.clear();
+        imageData.append(QByteArray::fromBase64(value.mid(dataPos + 1).toLocal8Bit()));
+        if (keys['m'] == 0) {
+            imageId = 0;
+            savedKeys = QMap<char, qint64>();
+            QByteArray out;
+
+            uint32_t byteCount = 0;
+            if (keys['f'] == 24 || keys['f'] == 32) {
+                int bpp = keys['f'] / 8;
+                qint64 bc = bpp * keys['s'] * keys['v'];
+                if (bc < 0 || bc > 0xFFFFFFFFu) {
+                    qCWarning(KonsoleDebug) << "image byteCount overflow:" << bc;
+                    imageData.clear();
+                    return;
+                }
+                byteCount = uint32_t(bc);
+            } else {
+                byteCount = 8 * 1024 * 1024;
+            }
+
+            if (keys['o'] == 'z') {
+                char header[sizeof byteCount];
+                qToBigEndian(byteCount, header);
+                imageData.prepend(header, sizeof header);
+                out = qUncompress(imageData);
+
+                if (keys['f'] != 24 && keys['f'] != 32) {
+                    imageData = out;
+                }
+            }
+            if (out.isEmpty()) {
+                out = imageData;
+            }
+
+            if (keys['f'] == 24 || keys['f'] == 32) {
+                if (unsigned(out.size()) < byteCount) {
+                    qCWarning(KonsoleDebug) << "Not enough image data" << out.size() << "require" << byteCount;
+                    imageData.clear();
+                    return;
+                }
+                QImage::Format format = keys['f'] == 24 ? QImage::Format_RGB888 : QImage::Format_RGBA8888;
+                pixmap = QPixmap::fromImage(QImage((const uchar *)out.constData(), 0 + keys['s'], 0 + keys['v'], 0 + keys['s'] * keys['f'] / 8, format));
+                pixmap.detach();
+            } else {
+                pixmap.loadFromData(out);
+            }
+
+            if (keys['a'] == 'q') {
+                QString params = QStringLiteral("i=") + QString::number(keys['i']);
+                sendGraphicsReply(params, QString());
+            } else {
+                if (keys['i']) {
+                    _graphicsImages[keys['i']] = pixmap;
+                }
+                if (keys['q'] == 0 && keys['a'] == 't') {
+                    QString params = QStringLiteral("i=") + QString::number(keys['i']);
+                    if (keys['I']) {
+                        params = params + QStringLiteral(",I=") + QString::number(keys['I']);
+                    }
+                    sendGraphicsReply(params, QString());
+                }
+            }
+            imageData.clear();
+        } else {
+            if (savedKeys.empty()) {
+                savedKeys = QMap<char, qint64>(keys);
+                savedKeys.remove('m');
+            }
+        }
+    }
+    if (keys['a'] == 'p' || (keys['a'] == 'T' && keys['m'] == 0)) {
+        if (keys['a'] == 'p') {
+            pixmap = _graphicsImages[keys['i']];
+        }
+        if (!pixmap.isNull()) {
+            if (keys['x'] || keys['y'] || keys['w'] || keys['h']) {
+                int w = keys['w'] ? keys['w'] : pixmap.width() - keys['x'];
+                int h = keys['h'] ? keys['h'] : pixmap.height() - keys['y'];
+                pixmap = pixmap.copy(keys['x'], keys['y'], w, h);
+            }
+            if (keys['c'] && keys['r']) {
+                pixmap = pixmap.scaled(keys['c'] * _currentScreen->currentTerminalDisplay()->terminalFont()->fontWidth(),
+                                       keys['r'] * _currentScreen->currentTerminalDisplay()->terminalFont()->fontHeight());
+            }
+            int rows = -1, cols = -1;
+            _currentScreen->addPlacement(pixmap,
+                                         rows,
+                                         cols,
+                                         -1,
+                                         -1,
+                                         TerminalGraphicsPlacement_t::Kitty,
+                                         true,
+                                         keys['C'] == 0,
+                                         true,
+                                         keys['z'],
+                                         keys['i'],
+                                         keys['p'],
+                                         keys['A'] / 255.0,
+                                         keys['X'],
+                                         keys['Y']);
+            if (keys['q'] == 0 && keys['i']) {
+                QString params = QStringLiteral("i=") + QString::number(keys['i']);
+                if (keys['I']) {
+                    params = params + QStringLiteral(",I=") + QString::number(keys['I']);
+                }
+                if (keys['p'] >= 0) {
+                    params = params + QStringLiteral(",p=") + QString::number(keys['p']);
+                }
+                sendGraphicsReply(params, QString());
+            }
+        } else {
+            if (keys['q'] < 2) {
+                QString params = QStringLiteral("i=") + QString::number(keys['i']);
+                sendGraphicsReply(params, QStringLiteral("ENOENT:No such image"));
+            }
+        }
+    }
+    if (keys['a'] == 'd') {
+        int action = keys['d'] | 0x20;
+        int id = keys['i'];
+        int pid = keys['p'];
+        int x = keys['x'];
+        int y = keys['y'];
+        if (action == 'n') {
+        } else if (action == 'c') {
+            action = 'p';
+            x = _currentScreen->getCursorX();
+            y = _currentScreen->getCursorY();
+        }
+        _currentScreen->delPlacements(action, id, pid, x, y, keys['z']);
+    }
+}
+
+void Vt102Emulation::clearScreenAndSetColumns(int columnCount)
+{
+    setImageSize(_currentScreen->getLines(), columnCount);
+    clearEntireScreen();
+    setDefaultMargins();
+    _currentScreen->setCursorYX(0, 0);
+}
+
+void Vt102Emulation::sendString(const QByteArray &s)
+{
+    Q_EMIT sendData(s);
+}
+
+void Vt102Emulation::sendGraphicsReply(const QString &params, const QString &error)
+{
+    sendString(
+        (QStringLiteral("\033_G") + params + QStringLiteral(";") + (error.isEmpty() ? QStringLiteral("OK") : error) + QStringLiteral("\033\\")).toLatin1());
+}
+
+void Vt102Emulation::reportCursorPosition()
+{
+    char tmp[30];
+    int y = _currentScreen->getCursorY() + 1;
+    int x = _currentScreen->getCursorX() + 1;
+    if (_currentScreen->getMode(MODE_Origin)) {
+        y -= _currentScreen->topMargin();
+    }
+    snprintf(tmp, sizeof(tmp), "\033[%d;%dR", y, x);
+    sendString(tmp);
+}
+
+void Vt102Emulation::reportPixelSize()
+{
+    char tmp[30];
+    snprintf(tmp,
+             sizeof(tmp),
+             "\033[4;%d;%dt",
+             _currentScreen->currentTerminalDisplay()->terminalFont()->fontHeight() * _currentScreen->getLines(),
+             _currentScreen->currentTerminalDisplay()->terminalFont()->fontWidth() * _currentScreen->getColumns());
+    sendString(tmp);
+}
+
+void Vt102Emulation::iTermReportCellSize()
+{
+    char tmp[50];
+    snprintf(tmp,
+             sizeof(tmp),
+             "\033]1337;ReportCellSize=%d.0;%d.0;1.0\007",
+             _currentScreen->currentTerminalDisplay()->terminalFont()->fontHeight(),
+             _currentScreen->currentTerminalDisplay()->terminalFont()->fontWidth());
+    sendString(tmp);
+}
+
+void Vt102Emulation::reportCellSize()
+{
+    char tmp[30];
+    snprintf(tmp,
+             sizeof(tmp),
+             "\033[6;%d;%dt",
+             _currentScreen->currentTerminalDisplay()->terminalFont()->fontHeight(),
+             _currentScreen->currentTerminalDisplay()->terminalFont()->fontWidth());
+    sendString(tmp);
+}
+
+void Vt102Emulation::reportColor(int c, QColor color)
+{
+    char tmp[60];
+    snprintf(tmp,
+             sizeof(tmp),
+             "\033]4;%i;rgb:%02x%02x/%02x%02x/%02x%02x\007",
+             c,
+             color.red(),
+             color.red(),
+             color.green(),
+             color.green(),
+             color.blue(),
+             color.blue());
+    sendString(tmp);
+}
+
+void Vt102Emulation::reportSize()
+{
+    char tmp[30];
+    snprintf(tmp, sizeof(tmp), "\033[8;%d;%dt", _currentScreen->getLines(), _currentScreen->getColumns());
+    sendString(tmp);
+}
+
+void Vt102Emulation::reportTerminalType()
+{
+    // Primary device attribute response (Request was: ^[[0c or ^[[c (from TT321 Users Guide))
+    // VT220:  ^[[?63;1;2;3;6;7;8c   (list deps on emul. capabilities)
+    // VT100:  ^[[?1;2c
+    // VT101:  ^[[?1;0c
+    // VT102:  ^[[?6v
+    if (getMode(MODE_Ansi)) {
+        sendString("\033[?62;1;4c"); // I'm a VT2xx with 132 columns and Sixel
+    } else {
+        sendString("\033/Z"); // I'm a VT52
+    }
+}
+
+void Vt102Emulation::reportTertiaryAttributes()
+{
+    // Tertiary device attribute response DECRPTUI (Request was: ^[[=0c or ^[[=c)
+    // 7E4B4445 is hex for ASCII "~KDE"
+    sendString("\033P!|7E4B4445\033\\");
+}
+
+void Vt102Emulation::reportSecondaryAttributes()
+{
+    // Secondary device attribute response (Request was: ^[[>0c or ^[[>c)
+    if (getMode(MODE_Ansi)) {
+        sendString("\033[>1;115;0c"); // Why 115?  ;)
+    } else {
+        sendString("\033/Z"); // FIXME I don't think VT52 knows about it but kept for
+    }
+    // konsoles backward compatibility.
+}
+
+void Vt102Emulation::reportVersion()
+{
+    sendString("\033P>|Konsole " KONSOLE_VERSION "\033\\");
+}
+
+/* DECREPTPARM – Report Terminal Parameters
+    ESC [ <sol>; <par>; <nbits>; <xspeed>; <rspeed>; <clkmul>; <flags> x
+
+    https://vt100.net/docs/vt100-ug/chapter3.html
+*/
+void Vt102Emulation::reportTerminalParms(int p)
+{
+    char tmp[100];
+    /*
+       sol=1: This message is a request; report in response to a request.
+       par=1: No parity set
+       nbits=1: 8 bits per character
+       xspeed=112: 9600
+       rspeed=112: 9600
+       clkmul=1: The bit rate multiplier is 16.
+       flags=0: None
+    */
+    snprintf(tmp, sizeof(tmp), "\033[%d;1;1;112;112;1;0x", p); // not really true.
+    sendString(tmp);
+}
+
+void Vt102Emulation::reportStatus()
+{
+    sendString("\033[0n"); // VT100. Device status report. 0 = Ready.
+}
+
+void Vt102Emulation::reportAnswerBack()
+{
+    // FIXME - Test this with VTTEST
+    // This is really obsolete VT100 stuff.
+    const char *ANSWER_BACK = "";
+    sendString(ANSWER_BACK);
+}
+
+/*!
+    `cx',`cy' are 1-based.
+    `cb' indicates the button pressed or released (0-2) or scroll event (64-65) plus key modifiers (Alt=8, Control=16).
+
+    eventType represents the kind of mouse action that occurred:
+        0 = Mouse button press
+        1 = Mouse drag
+        2 = Mouse button release
+        3 = Mouse click to move cursor in input field
+*/
+
+void Vt102Emulation::sendMouseEvent(int cb, int cx, int cy, int eventType)
+{
+    if (getMode(MODE_Mouse1016)) {
+        return;
+    }
+
+    if (cx < 1 || cy < 1) {
+        return;
+    }
+
+    if (eventType == 3) {
+        // (cx, cy) are 1-based indices following the convention of the
+        // terminal control sequences for mouse reports.  We want to convert
+        // them to 0-based indices to make it consistent with our internal
+        // representation.
+        int px = cx - 1;
+        int py = cy - 1;
+
+        // We know we are in input mode
+        TerminalDisplay *currentView = _currentScreen->currentTerminalDisplay();
+        bool isReadOnly = false;
+        if (currentView != nullptr) {
+            isReadOnly = currentView->getReadOnly();
+        }
+        auto point = std::make_pair(py, px);
+        if (!isReadOnly && _currentScreen->replModeStart() <= point && point <= _currentScreen->replModeEnd()) {
+            KeyboardTranslator::States states = KeyboardTranslator::NoState;
+
+            // get current states
+            if (getMode(MODE_NewLine)) {
+                states |= KeyboardTranslator::NewLineState;
+            }
+            if (getMode(MODE_Ansi)) {
+                states |= KeyboardTranslator::AnsiState;
+            }
+            if (getMode(MODE_AppCuKeys)) {
+                states |= KeyboardTranslator::CursorKeysState;
+            }
+            if (getMode(MODE_AppScreen)) {
+                states |= KeyboardTranslator::AlternateScreenState;
+            }
+            KeyboardTranslator::Entry LRKeys[2] = {_keyTranslator->findEntry(Qt::Key_Left, Qt::NoModifier, states),
+                                                   _keyTranslator->findEntry(Qt::Key_Right, Qt::NoModifier, states)};
+            QVector<LineProperty> lineProperties = _currentScreen->getLineProperties(py + _currentScreen->getHistLines(), py + _currentScreen->getHistLines());
+            px = qMin(px, (int)lineProperties[0].length);
+            int cuX = _currentScreen->getCursorX();
+            int cuY = _currentScreen->getCursorY();
+            QByteArray textToSend;
+            if (cuY != py) {
+                emulateUpDown(cuY - py, LRKeys[py > cuY], textToSend, px);
+            } else {
+                if (cuX < px) {
+                    for (int i = 0; i < px - cuX; i++) {
+                        textToSend += LRKeys[1].text();
+                    }
+                } else {
+                    for (int i = 0; i < cuX - px; i++) {
+                        textToSend += LRKeys[0].text();
+                    }
+                }
+            }
+            Q_EMIT sendData(textToSend);
+        }
+        return;
+    }
+
+    // Don't send move/drag events if only press and release requested
+    if (eventType == 1 && getMode(MODE_Mouse1000)) {
+        return;
+    }
+
+    // Don't send move with no button pressed if button-motion requested
+    if ((cb & 3) == 3 && getMode(MODE_Mouse1002)) {
+        return;
+    }
+
+    // With the exception of the 1006 mode, button release is encoded in cb.
+    // Note that if multiple extensions are enabled, the 1006 is used, so it's okay to check for only that.
+    if (eventType == 2 && !getMode(MODE_Mouse1006)) {
+        cb &= ~3;
+        cb |= 3;
+    }
+
+    // Mouse motion handling
+    if ((getMode(MODE_Mouse1002) || getMode(MODE_Mouse1003)) && eventType == 1) {
+        cb += 0x20; // add 32 to signify motion event
+    }
+    char command[40];
+    command[0] = '\0';
+    // Check the extensions in decreasing order of preference. Encoding the release event above assumes that 1006 comes first.
+    if (getMode(MODE_Mouse1006)) {
+        snprintf(command, sizeof(command), "\033[<%d;%d;%d%c", cb, cx, cy, eventType == 2 ? 'm' : 'M');
+    } else if (getMode(MODE_Mouse1015)) {
+        snprintf(command, sizeof(command), "\033[%d;%d;%dM", cb + 0x20, cx, cy);
+    } else if (getMode(MODE_Mouse1005)) {
+        if (cx <= 2015 && cy <= 2015) {
+            // The xterm extension uses UTF-8 (up to 2 bytes) to encode
+            // coordinate+32, no matter what the locale is. We could easily
+            // convert manually, but QString can also do it for us.
+            QChar coords[2];
+            coords[0] = QChar(cx + 0x20);
+            coords[1] = QChar(cy + 0x20);
+            QString coordsStr = QString(coords, 2);
+            QByteArray utf8 = coordsStr.toUtf8();
+            snprintf(command, sizeof(command), "\033[M%c%s", cb + 0x20, utf8.constData());
+        }
+    } else if (cx <= 223 && cy <= 223) {
+        snprintf(command, sizeof(command), "\033[M%c%c%c", cb + 0x20, cx + 0x20, cy + 0x20);
+    }
+
+    sendString(command);
+}
+
+void Vt102Emulation::sendExactMouseEvent(int cb, int x, int y, int eventType)
+{
+    if (!getMode(MODE_Mouse1016))
+        return;
+
+    // Don't send move/drag events if only press and release requested
+    if (eventType == 1 && getMode(MODE_Mouse1000)) {
+        return;
+    }
+
+    // Don't send move with no button pressed if button-motion requested
+    if ((cb & 3) == 3 && getMode(MODE_Mouse1002)) {
+        return;
+    }
+
+    // With the exception of the 1006 mode, button release is encoded in cb.
+    // Note that if multiple extensions are enabled, the 1006 is used, so it's okay to check for only that.
+    if (eventType == 2 && !getMode(MODE_Mouse1006)) {
+        cb &= ~3;
+        cb |= 3;
+    }
+
+    // Mouse motion handling
+    if ((getMode(MODE_Mouse1002) || getMode(MODE_Mouse1003)) && eventType == 1) {
+        cb += 0x20; // add 32 to signify motion event
+    }
+    char command[40];
+    command[0] = '\0';
+    snprintf(command, sizeof(command), "\033[<%d;%d;%d%c", cb, x, y, eventType == 2 ? 'm' : 'M');
+
+    sendString(command);
+}
+
+void Vt102Emulation::emulateUpDown(int up, KeyboardTranslator::Entry entry, QByteArray &textToSend, int toCol)
+{
+    if (up == 0)
+        return;
+    int cuX = _currentScreen->getCursorX();
+    int cuY = _currentScreen->getCursorY();
+    int firstLine, lastLine, targetLine;
+    int targetCol;
+    if (up > 0) {
+        firstLine = cuY - up + _currentScreen->getHistLines();
+        lastLine = cuY - 1 + _currentScreen->getHistLines();
+        targetLine = 0;
+    } else {
+        firstLine = cuY + _currentScreen->getHistLines();
+        lastLine = cuY - up + _currentScreen->getHistLines();
+        targetLine = lastLine - firstLine;
+    }
+    if (firstLine < 0 || lastLine >= _currentScreen->getLines() + _currentScreen->getHistLines()) {
+        return;
+    }
+
+    QVector<LineProperty> lineProperties = _currentScreen->getLineProperties(firstLine, lastLine);
+
+    targetCol = qMin(toCol == -1 ? cuX : toCol, lineProperties[targetLine].length - 1);
+
+    if (up < 0) {
+        lineProperties.removeLast();
+    }
+    int num = up > 0 ? cuX - targetCol : targetCol - cuX;
+    for (LineProperty i : std::as_const(lineProperties)) {
+        num += i.length + 1 - i.flags.f.wrapped;
+    }
+    for (int i = 0; i < num; i++) {
+        textToSend += entry.text();
+    }
+}
+
+/**
+ * The focus change event can be used by Vim (or other terminal applications)
+ * to recognize that the konsole window has changed focus.
+ * The escape sequence is also used by iTerm2.
+ * Vim needs the following plugin to be installed to convert the escape
+ * sequence into the FocusLost/FocusGained autocmd:
+ * https://github.com/sjl/vitality.vim
+ */
+void Vt102Emulation::focusChanged(bool focused)
+{
+    if (_reportFocusEvents) {
+        sendString(focused ? "\033[I" : "\033[O");
+    }
+}
+
+void Vt102Emulation::sendText(const QString &text)
+{
+    if (!text.isEmpty()) {
+        QKeyEvent event(QEvent::KeyPress, 0, Qt::NoModifier, text);
+        sendKeyEvent(&event); // expose as a big fat keypress event
+    }
+}
+
+void Vt102Emulation::sendKeyEvent(QKeyEvent *event)
+{
+    TerminalDisplay *currentView = _currentScreen->currentTerminalDisplay();
+    bool isReadOnly = false;
+    if (currentView != nullptr) {
+        isReadOnly = currentView->getReadOnly();
+    }
+
+#ifdef HAVE_XKBCOMMON
+    if (getMode(MODE_Win32Input) && _win32InputModeAvailable &&
+        event->nativeScanCode() && !isReadOnly && (event->text().length() <= 1)) {
+
+        bool is_key_down = (event->type() == QEvent::KeyPress);
+
+        // Qt's nativeScanCode() returns an XKB-compatible keycode
+        // (evdev + 8) on all Linux platforms, including X11 and Wayland,
+        // so we do not need to add 8 on our side.
+        const xkb_keycode_t keycode = event->nativeScanCode();
+
+        /* To correctly determine the Virtual Key Code (which represents a physical key,
+         * e.g. VK_1 regardless of whether '1' or '!' is produced), we need the base keysym.
+         * We achieve this by checking the keysym first, and if it is a Shift key,
+         * we do NOT update the US state. This keeps the state "Shift-less", so subsequent
+         * lookups for '1' return '1' instead of '!'. CapsLock etc. are still updated. */
+        xkb_keysym_t keysym_us = xkb_state_key_get_one_sym(_xkbData.state_us, keycode);
+
+        if (keysym_us != XKB_KEY_Shift_L && keysym_us != XKB_KEY_Shift_R) {
+            xkb_state_update_key(_xkbData.state_us, keycode,
+                                 is_key_down ? XKB_KEY_DOWN : XKB_KEY_UP);
+            /* Re-fetch in case a modifier (like CapsLock) changed the result */
+            keysym_us = xkb_state_key_get_one_sym(_xkbData.state_us, keycode);
+        }
+
+        quint16 virtualKeyCode = 0;
+        quint16 scanCode = 0;
+        quint32 controlKeyState = 0;
+        bool modifier = false;
+
+        switch (keysym_us) {
+            case XKB_KEY_BackSpace:   virtualKeyCode = VK_BACK;   break;
+            case XKB_KEY_Tab:         virtualKeyCode = VK_TAB;    break;
+            case XKB_KEY_Return:      virtualKeyCode = VK_RETURN; break;
+            case XKB_KEY_Pause:       virtualKeyCode = VK_PAUSE;  break;
+            case XKB_KEY_Scroll_Lock: virtualKeyCode = VK_SCROLL; break;
+            case XKB_KEY_Escape:      virtualKeyCode = VK_ESCAPE; break;
+            case XKB_KEY_Shift_L:
+                virtualKeyCode = VK_SHIFT;
+                scanCode = LEFT_SHIFT_SCAN_CODE;
+                if (is_key_down) controlKeyState |= SHIFT_PRESSED;
+                modifier = true;
+                break;
+            case XKB_KEY_Shift_R:
+                virtualKeyCode = VK_SHIFT;
+                scanCode = RIGHT_SHIFT_SCAN_CODE;
+                if (is_key_down) controlKeyState |= SHIFT_PRESSED;
+                modifier = true;
+                break;
+            case XKB_KEY_Control_L:
+                virtualKeyCode = VK_CONTROL;
+                if (is_key_down) controlKeyState |= LEFT_CTRL_PRESSED;
+                modifier = true;
+                break;
+            case XKB_KEY_Control_R:
+                virtualKeyCode = VK_CONTROL;
+                _isRightCtrlPressed = is_key_down;
+                if (is_key_down) controlKeyState |= RIGHT_CTRL_PRESSED;
+                controlKeyState |= ENHANCED_KEY;
+                modifier = true;
+                break;
+            case XKB_KEY_Alt_L:
+                virtualKeyCode = VK_MENU;
+                if (is_key_down) controlKeyState |= LEFT_ALT_PRESSED;
+                modifier = true;
+                break;
+            case XKB_KEY_Alt_R:
+                virtualKeyCode = VK_MENU;
+                _isRightAltPressed = is_key_down;
+                if (is_key_down) controlKeyState |= RIGHT_ALT_PRESSED;
+                controlKeyState |= ENHANCED_KEY;
+                modifier = true;
+                break;
+            case XKB_KEY_Caps_Lock:    virtualKeyCode = VK_CAPITAL; break;
+            case XKB_KEY_Num_Lock:     virtualKeyCode = VK_NUMLOCK; break;
+            case XKB_KEY_Meta_L:       virtualKeyCode = VK_LWIN;    break;
+            case XKB_KEY_Meta_R:       virtualKeyCode = VK_RWIN;    break;
+            case XKB_KEY_Page_Up:      virtualKeyCode = VK_PRIOR;   controlKeyState |= ENHANCED_KEY; break;
+            case XKB_KEY_Page_Down:    virtualKeyCode = VK_NEXT;    controlKeyState |= ENHANCED_KEY; break;
+            case XKB_KEY_End:          virtualKeyCode = VK_END;     controlKeyState |= ENHANCED_KEY; break;
+            case XKB_KEY_Home:         virtualKeyCode = VK_HOME;    controlKeyState |= ENHANCED_KEY; break;
+            case XKB_KEY_Left:         virtualKeyCode = VK_LEFT;    controlKeyState |= ENHANCED_KEY; break;
+            case XKB_KEY_Up:           virtualKeyCode = VK_UP;      controlKeyState |= ENHANCED_KEY; break;
+            case XKB_KEY_Right:        virtualKeyCode = VK_RIGHT;   controlKeyState |= ENHANCED_KEY; break;
+            case XKB_KEY_Down:         virtualKeyCode = VK_DOWN;    controlKeyState |= ENHANCED_KEY; break;
+            case XKB_KEY_Insert:       virtualKeyCode = VK_INSERT;  controlKeyState |= ENHANCED_KEY; break;
+            case XKB_KEY_Delete:       virtualKeyCode = VK_DELETE;  controlKeyState |= ENHANCED_KEY; break;
+            case XKB_KEY_Print:        virtualKeyCode = VK_PRINT;   break;
+            case XKB_KEY_KP_Page_Up:   virtualKeyCode = VK_PRIOR;   break;
+            case XKB_KEY_KP_Page_Down: virtualKeyCode = VK_NEXT;    break;
+            case XKB_KEY_KP_End:       virtualKeyCode = VK_END;     break;
+            case XKB_KEY_KP_Home:      virtualKeyCode = VK_HOME;    break;
+            case XKB_KEY_KP_Left:      virtualKeyCode = VK_LEFT;    break;
+            case XKB_KEY_KP_Up:        virtualKeyCode = VK_UP;      break;
+            case XKB_KEY_KP_Right:     virtualKeyCode = VK_RIGHT;   break;
+            case XKB_KEY_KP_Down:      virtualKeyCode = VK_DOWN;    break;
+            case XKB_KEY_KP_Insert:    virtualKeyCode = VK_INSERT;  break;
+            case XKB_KEY_KP_Delete:    virtualKeyCode = VK_DELETE;  break;
+            case XKB_KEY_KP_Begin:     virtualKeyCode = VK_NUMPAD5; break;
+            case XKB_KEY_KP_0:         virtualKeyCode = VK_NUMPAD0; break;
+            case XKB_KEY_KP_1:         virtualKeyCode = VK_NUMPAD1; break;
+            case XKB_KEY_KP_2:         virtualKeyCode = VK_NUMPAD2; break;
+            case XKB_KEY_KP_3:         virtualKeyCode = VK_NUMPAD3; break;
+            case XKB_KEY_KP_4:         virtualKeyCode = VK_NUMPAD4; break;
+            case XKB_KEY_KP_5:         virtualKeyCode = VK_NUMPAD5; break;
+            case XKB_KEY_KP_6:         virtualKeyCode = VK_NUMPAD6; break;
+            case XKB_KEY_KP_7:         virtualKeyCode = VK_NUMPAD7; break;
+            case XKB_KEY_KP_8:         virtualKeyCode = VK_NUMPAD8; break;
+            case XKB_KEY_KP_9:         virtualKeyCode = VK_NUMPAD9; break;
+            case XKB_KEY_KP_Decimal:   virtualKeyCode = VK_DECIMAL; break;
+            case XKB_KEY_KP_Add:       virtualKeyCode = VK_ADD;     break;
+            case XKB_KEY_KP_Subtract:  virtualKeyCode = VK_SUBTRACT;    break;
+            case XKB_KEY_KP_Multiply:  virtualKeyCode = VK_MULTIPLY;    break;
+            case XKB_KEY_KP_Divide:    virtualKeyCode = VK_DIVIDE;      controlKeyState |= ENHANCED_KEY; break;
+            case XKB_KEY_KP_Enter:     virtualKeyCode = VK_RETURN;      controlKeyState |= ENHANCED_KEY; break;
+            case XKB_KEY_a: case XKB_KEY_A: virtualKeyCode = 'A'; break;
+            case XKB_KEY_b: case XKB_KEY_B: virtualKeyCode = 'B'; break;
+            case XKB_KEY_c: case XKB_KEY_C: virtualKeyCode = 'C'; break;
+            case XKB_KEY_d: case XKB_KEY_D: virtualKeyCode = 'D'; break;
+            case XKB_KEY_e: case XKB_KEY_E: virtualKeyCode = 'E'; break;
+            case XKB_KEY_f: case XKB_KEY_F: virtualKeyCode = 'F'; break;
+            case XKB_KEY_g: case XKB_KEY_G: virtualKeyCode = 'G'; break;
+            case XKB_KEY_h: case XKB_KEY_H: virtualKeyCode = 'H'; break;
+            case XKB_KEY_i: case XKB_KEY_I: virtualKeyCode = 'I'; break;
+            case XKB_KEY_j: case XKB_KEY_J: virtualKeyCode = 'J'; break;
+            case XKB_KEY_k: case XKB_KEY_K: virtualKeyCode = 'K'; break;
+            case XKB_KEY_l: case XKB_KEY_L: virtualKeyCode = 'L'; break;
+            case XKB_KEY_m: case XKB_KEY_M: virtualKeyCode = 'M'; break;
+            case XKB_KEY_n: case XKB_KEY_N: virtualKeyCode = 'N'; break;
+            case XKB_KEY_o: case XKB_KEY_O: virtualKeyCode = 'O'; break;
+            case XKB_KEY_p: case XKB_KEY_P: virtualKeyCode = 'P'; break;
+            case XKB_KEY_q: case XKB_KEY_Q: virtualKeyCode = 'Q'; break;
+            case XKB_KEY_r: case XKB_KEY_R: virtualKeyCode = 'R'; break;
+            case XKB_KEY_s: case XKB_KEY_S: virtualKeyCode = 'S'; break;
+            case XKB_KEY_t: case XKB_KEY_T: virtualKeyCode = 'T'; break;
+            case XKB_KEY_u: case XKB_KEY_U: virtualKeyCode = 'U'; break;
+            case XKB_KEY_v: case XKB_KEY_V: virtualKeyCode = 'V'; break;
+            case XKB_KEY_w: case XKB_KEY_W: virtualKeyCode = 'W'; break;
+            case XKB_KEY_x: case XKB_KEY_X: virtualKeyCode = 'X'; break;
+            case XKB_KEY_y: case XKB_KEY_Y: virtualKeyCode = 'Y'; break;
+            case XKB_KEY_z: case XKB_KEY_Z: virtualKeyCode = 'Z'; break;
+            case XKB_KEY_0: virtualKeyCode = '0'; break;
+            case XKB_KEY_1: virtualKeyCode = '1'; break;
+            case XKB_KEY_2: virtualKeyCode = '2'; break;
+            case XKB_KEY_3: virtualKeyCode = '3'; break;
+            case XKB_KEY_4: virtualKeyCode = '4'; break;
+            case XKB_KEY_5: virtualKeyCode = '5'; break;
+            case XKB_KEY_6: virtualKeyCode = '6'; break;
+            case XKB_KEY_7: virtualKeyCode = '7'; break;
+            case XKB_KEY_8: virtualKeyCode = '8'; break;
+            case XKB_KEY_9: virtualKeyCode = '9'; break;
+            case XKB_KEY_F1:  virtualKeyCode = VK_F1;  break;
+            case XKB_KEY_F2:  virtualKeyCode = VK_F2;  break;
+            case XKB_KEY_F3:  virtualKeyCode = VK_F3;  break;
+            case XKB_KEY_F4:  virtualKeyCode = VK_F4;  break;
+            case XKB_KEY_F5:  virtualKeyCode = VK_F5;  break;
+            case XKB_KEY_F6:  virtualKeyCode = VK_F6;  break;
+            case XKB_KEY_F7:  virtualKeyCode = VK_F7;  break;
+            case XKB_KEY_F8:  virtualKeyCode = VK_F8;  break;
+            case XKB_KEY_F9:  virtualKeyCode = VK_F9;  break;
+            case XKB_KEY_F10: virtualKeyCode = VK_F10; break;
+            case XKB_KEY_F11: virtualKeyCode = VK_F11; break;
+            case XKB_KEY_F12: virtualKeyCode = VK_F12; break;
+            case XKB_KEY_space:        virtualKeyCode = VK_SPACE;      break;
+            case XKB_KEY_grave:        virtualKeyCode = VK_OEM_3;      break;
+            case XKB_KEY_minus:        virtualKeyCode = VK_OEM_MINUS;  break;
+            case XKB_KEY_equal:        virtualKeyCode = VK_OEM_PLUS;   break;
+            case XKB_KEY_bracketleft:  virtualKeyCode = VK_OEM_4;      break;
+            case XKB_KEY_bracketright: virtualKeyCode = VK_OEM_6;      break;
+            case XKB_KEY_semicolon:    virtualKeyCode = VK_OEM_1;      break;
+            case XKB_KEY_apostrophe:   virtualKeyCode = VK_OEM_7;      break;
+            case XKB_KEY_backslash:    virtualKeyCode = VK_OEM_5;      break;
+            case XKB_KEY_comma:        virtualKeyCode = VK_OEM_COMMA;  break;
+            case XKB_KEY_period:       virtualKeyCode = VK_OEM_PERIOD; break;
+            case XKB_KEY_slash:        virtualKeyCode = VK_OEM_2;      break;
+        }
+
+        if (!modifier) {
+            if (event->modifiers() & Qt::ShiftModifier)   { controlKeyState |= SHIFT_PRESSED; }
+            if (event->modifiers() & Qt::ControlModifier) { controlKeyState |= _isRightCtrlPressed ? RIGHT_CTRL_PRESSED : LEFT_CTRL_PRESSED; }
+            if (event->modifiers() & Qt::AltModifier)     { controlKeyState |= _isRightAltPressed ? RIGHT_ALT_PRESSED : LEFT_ALT_PRESSED; }
+        }
+
+        if (xkb_state_mod_name_is_active(_xkbData.state_us, XKB_MOD_NAME_CAPS, XKB_STATE_MODS_EFFECTIVE)) { controlKeyState |= CAPSLOCK_ON; }
+        if (xkb_state_mod_name_is_active(_xkbData.state_us, XKB_MOD_NAME_NUM, XKB_STATE_MODS_EFFECTIVE)) { controlKeyState |= NUMLOCK_ON; }
+        if (xkb_state_led_name_is_active(_xkbData.state_us, XKB_LED_NAME_SCROLL)) { controlKeyState |= SCROLLLOCK_ON; }
+
+        uint uchar = 0;
+        if (!event->text().isEmpty())
+            uchar = event->text().at(0).unicode();
+
+        char seq_buffer[128];
+
+        if (uchar > 0xFFFF) {
+            quint32 u_prime = uchar - 0x10000;
+            quint16 high_surrogate = (u_prime >> 10) + 0xD800;
+            quint16 low_surrogate = (u_prime & 0x3FF) + 0xDC00;
+
+            int len1 = snprintf(seq_buffer, sizeof(seq_buffer), "\x1B[%d;%d;%d;%d;%d;%d_",
+                            0, 0, high_surrogate, is_key_down, controlKeyState, 1);
+            sendString(QByteArray(seq_buffer, len1));
+
+            int len2 = snprintf(seq_buffer, sizeof(seq_buffer), "\x1B[%d;%d;%d;%d;%d;%d_",
+                            0, 0, low_surrogate, is_key_down, controlKeyState, 1);
+            sendString(QByteArray(seq_buffer, len2));
+
+        } else {
+            int len = snprintf(seq_buffer, sizeof(seq_buffer), "\x1B[%d;%d;%d;%d;%d;%d_",
+                            virtualKeyCode, scanCode, uchar, is_key_down, controlKeyState, 1);
+            sendString(QByteArray(seq_buffer, len));
+        }
+        return;
+    }
+#endif
+
+    // Kitty keyboard protocol — must be checked before the KeyPress-only gate
+    // because flag 2 (report event types) needs release/repeat events too.
+    if (_kittyKeyboardEnabled && currentKittyKeyboardFlags() != 0 && !isReadOnly) {
+        if (handleKittyKeyEvent(event)) {
+            return;
+        }
+    }
+
+    if (event->type() != QEvent::KeyPress) return;
+
+    const Qt::KeyboardModifiers modifiers = event->modifiers();
+    KeyboardTranslator::States states = KeyboardTranslator::NoState;
+
+    // get current states
+    if (getMode(MODE_NewLine)) {
+        states |= KeyboardTranslator::NewLineState;
+    }
+    if (getMode(MODE_Ansi)) {
+        states |= KeyboardTranslator::AnsiState;
+    }
+    if (getMode(MODE_AppCuKeys)) {
+        states |= KeyboardTranslator::CursorKeysState;
+    }
+    if (getMode(MODE_AppScreen)) {
+        states |= KeyboardTranslator::AlternateScreenState;
+    }
+    if (getMode(MODE_AppKeyPad) && ((modifiers & Qt::KeypadModifier) != 0U)) {
+        states |= KeyboardTranslator::ApplicationKeypadState;
+    }
+
+    if (!isReadOnly) {
+        // check flow control state
+        if ((modifiers & Qt::ControlModifier) != 0U) {
+            switch (event->key()) {
+            case Qt::Key_S:
+                Q_EMIT flowControlKeyPressed(true);
+                break;
+            case Qt::Key_C:
+                if (m_SixelStarted) {
+                    SixelModeAbort();
+                }
+
+                // Allow the user to take back control
+                resetTokenizer();
+                Q_EMIT flowControlKeyPressed(false);
+                break;
+            case Qt::Key_Q: // cancel flow control
+                Q_EMIT flowControlKeyPressed(false);
+                break;
+            }
+        }
+    }
+    // look up key binding
+    if (_keyTranslator != nullptr) {
+        KeyboardTranslator::Entry entry = _keyTranslator->findEntry(event->key(), modifiers, states);
+        // send result to terminal
+        QByteArray textToSend;
+
+        int cuX = _currentScreen->getCursorX();
+        int cuY = _currentScreen->getCursorY();
+        bool up = event->key() == Qt::Key_Up;
+        if (((up || event->key() == Qt::Key_Down) && _currentScreen->replMode() == REPL_INPUT && _currentScreen->currentTerminalDisplay()->semanticUpDown())
+            && ((up && _currentScreen->replModeStart() <= std::make_pair(cuY - 1, cuX))
+                || (!up && std::make_pair(cuY + 1, cuX) <= _currentScreen->replModeEnd()))) {
+            entry = _keyTranslator->findEntry(up ? Qt::Key_Left : Qt::Key_Right, Qt::NoModifier, states);
+            if (_targetCol == -1) {
+                _targetCol = cuX;
+            }
+            emulateUpDown(up ? 1 : -1, entry, textToSend, _targetCol);
+        } else {
+            _targetCol = -1; // Any non Up/Down key clears the target column for emulated movement.
+
+            // special handling for the Alt (aka. Meta) modifier.  pressing
+            // Alt+[Character] results in Esc+[Character] being sent
+            // (unless there is an entry defined for this particular combination
+            //  in the keyboard modifier)
+            const bool wantsAltModifier = ((entry.modifiers() & entry.modifierMask() & Qt::AltModifier) != 0U);
+            const bool wantsMetaModifier = ((entry.modifiers() & entry.modifierMask() & Qt::MetaModifier) != 0U);
+            const bool wantsAnyModifier = ((entry.state() & entry.stateMask() & KeyboardTranslator::AnyModifierState) != 0);
+
+            if (((modifiers & Qt::AltModifier) != 0U) && !(wantsAltModifier || wantsAnyModifier) && !event->text().isEmpty()) {
+                textToSend.prepend("\033");
+            }
+            if (((modifiers & Qt::MetaModifier) != 0U) && !(wantsMetaModifier || wantsAnyModifier) && !event->text().isEmpty()) {
+                textToSend.prepend("\030@s");
+            }
+
+            if (entry.command() != KeyboardTranslator::NoCommand) {
+                if ((entry.command() & KeyboardTranslator::EraseCommand) != 0) {
+                    textToSend += eraseChar();
+                }
+                if (currentView != nullptr) {
+                    if ((entry.command() & KeyboardTranslator::ScrollPageUpCommand) != 0) {
+                        currentView->scrollScreenWindow(ScreenWindow::ScrollPages, -1);
+                    } else if ((entry.command() & KeyboardTranslator::ScrollPageDownCommand) != 0) {
+                        currentView->scrollScreenWindow(ScreenWindow::ScrollPages, 1);
+                    } else if ((entry.command() & KeyboardTranslator::ScrollLineUpCommand) != 0) {
+                        currentView->scrollScreenWindow(ScreenWindow::ScrollLines, -1);
+                    } else if ((entry.command() & KeyboardTranslator::ScrollLineDownCommand) != 0) {
+                        currentView->scrollScreenWindow(ScreenWindow::ScrollLines, 1);
+                    } else if ((entry.command() & KeyboardTranslator::ScrollUpToTopCommand) != 0) {
+                        currentView->scrollScreenWindow(ScreenWindow::ScrollLines, -currentView->screenWindow()->currentLine());
+                    } else if ((entry.command() & KeyboardTranslator::ScrollDownToBottomCommand) != 0) {
+                        currentView->scrollScreenWindow(ScreenWindow::ScrollLines, lineCount());
+                    } else if ((entry.command() & KeyboardTranslator::ScrollPromptUpCommand) != 0) {
+                        currentView->scrollScreenWindow(ScreenWindow::ScrollPrompts, -1);
+                    } else if ((entry.command() & KeyboardTranslator::ScrollPromptDownCommand) != 0) {
+                        currentView->scrollScreenWindow(ScreenWindow::ScrollPrompts, 1);
+                    }
+                }
+            } else if (!entry.text().isEmpty()) {
+                textToSend += entry.text(true, modifiers);
+            } else {
+                Q_ASSERT(_encoder.isValid());
+                textToSend += _encoder.encode(event->text());
+            }
+        }
+
+        if (!isReadOnly) {
+            Q_EMIT sendData(textToSend);
+        }
+    } else {
+        if (!isReadOnly) {
+            // print an error message to the terminal if no key translator has been
+            // set
+            QString translatorError = i18n(
+                "No keyboard translator available.  "
+                "The information needed to convert key presses "
+                "into characters to send to the terminal "
+                "is missing.");
+            reset();
+            receiveData(translatorError.toLatin1().constData(), translatorError.length());
+        }
+    }
+}
+
+/* ------------------------------------------------------------------------- */
+/*                                                                           */
+/*                                VT100 Charsets                             */
+/*                                                                           */
+/* ------------------------------------------------------------------------- */
+
+// Character Set Conversion ------------------------------------------------ --
+
+/*
+   The processing contains a VT100 specific code translation layer.
+   It's still in use and mainly responsible for the line drawing graphics.
+
+   These and some other glyphs are assigned to codes (0x5f-0xfe)
+   normally occupied by the latin letters. Since this codes also
+   appear within control sequences, the extra code conversion
+   does not permute with the tokenizer and is placed behind it
+   in the pipeline. It only applies to tokens, which represent
+   plain characters.
+
+   This conversion it eventually continued in TerminalDisplay.C, since
+   it might involve VT100 enhanced fonts, which have these
+   particular glyphs allocated in (0x00-0x1f) in their code page.
+*/
+
+#define CHARSET _charset[_currentScreen == _screen[1]]
+
+// Apply current character map.
+
+unsigned int Vt102Emulation::applyCharset(uint c)
+{
+    if (CHARSET.graphic && 0x5f <= c && c <= 0x7e) {
+        return vt100_graphics[c - 0x5f];
+    }
+    if (CHARSET.pound && c == '#') {
+        return 0xa3; // This mode is obsolete
+    }
+    return c;
+}
+
+/*
+   "Charset" related part of the emulation state.
+   This configures the VT100 charset filter.
+
+   While most operation work on the current _screen,
+   the following two are different.
+*/
+
+void Vt102Emulation::resetCharset(int scrno)
+{
+    _charset[scrno].cu_cs = 0;
+    qstrncpy(_charset[scrno].charset, "BBBB", 4);
+    _charset[scrno].sa_graphic = false;
+    _charset[scrno].sa_pound = false;
+    _charset[scrno].graphic = false;
+    _charset[scrno].pound = false;
+}
+
+void Vt102Emulation::setCharset(int n, int cs) // on both screens.
+{
+    _charset[0].charset[n & 3] = cs;
+    useCharset(_charset[0].cu_cs);
+    _charset[1].charset[n & 3] = cs;
+    useCharset(_charset[1].cu_cs);
+}
+
+void Vt102Emulation::setAndUseCharset(int n, int cs)
+{
+    CHARSET.charset[n & 3] = cs;
+    useCharset(n & 3);
+}
+
+void Vt102Emulation::useCharset(int n)
+{
+    CHARSET.cu_cs = n & 3;
+    CHARSET.graphic = (CHARSET.charset[n & 3] == '0');
+    CHARSET.pound = (CHARSET.charset[n & 3] == 'A'); // This mode is obsolete
+}
+
+void Vt102Emulation::setDefaultMargins()
+{
+    _screen[0]->setDefaultMargins();
+    _screen[1]->setDefaultMargins();
+}
+
+void Vt102Emulation::setMargins(int t, int b)
+{
+    _screen[0]->setMargins(t, b);
+    _screen[1]->setMargins(t, b);
+}
+
+void Vt102Emulation::saveCursor()
+{
+    CHARSET.sa_graphic = CHARSET.graphic;
+    CHARSET.sa_pound = CHARSET.pound; // This mode is obsolete
+    // we are not clear about these
+    // sa_charset = charsets[cScreen->_charset];
+    // sa_charset_num = cScreen->_charset;
+    _currentScreen->saveCursor();
+}
+
+void Vt102Emulation::restoreCursor()
+{
+    CHARSET.graphic = CHARSET.sa_graphic;
+    CHARSET.pound = CHARSET.sa_pound; // This mode is obsolete
+    _currentScreen->restoreCursor();
+}
+
+/* ------------------------------------------------------------------------- */
+/*                                                                           */
+/*                                Mode Operations                            */
+/*                                                                           */
+/* ------------------------------------------------------------------------- */
+
+/*
+   Some of the emulations state is either added to the state of the screens.
+
+   This causes some scoping problems, since different emulations choose to
+   located the mode either to the current _screen or to both.
+
+   For strange reasons, the extend of the rendition attributes ranges over
+   all screens and not over the actual _screen.
+
+   We decided on the precise precise extend, somehow.
+*/
+
+// "Mode" related part of the state. These are all booleans.
+
+void Vt102Emulation::resetModes()
+{
+    // MODE_Allow132Columns is not reset here
+    // to match Xterm's behavior (see Xterm's VTReset() function)
+
+    // MODE_Mouse1007 (Alternate Scrolling) is not reset here, to maintain
+    // the profile alternate scrolling property after reset() is called, which
+    // makes more sense; also this matches XTerm behavior.
+
+    // Clear kitty keyboard flag stacks for both screens
+    _kittyKeyboardFlagsStack[0].clear();
+    _kittyKeyboardFlagsStack[1].clear();
+
+    resetMode(MODE_132Columns);
+    saveMode(MODE_132Columns);
+    resetMode(MODE_Mouse1000);
+    saveMode(MODE_Mouse1000);
+    resetMode(MODE_Mouse1001);
+    saveMode(MODE_Mouse1001);
+    resetMode(MODE_Mouse1002);
+    saveMode(MODE_Mouse1002);
+    resetMode(MODE_Mouse1003);
+    saveMode(MODE_Mouse1003);
+    resetMode(MODE_Mouse1005);
+    saveMode(MODE_Mouse1005);
+    resetMode(MODE_Mouse1006);
+    saveMode(MODE_Mouse1006);
+    resetMode(MODE_Mouse1015);
+    saveMode(MODE_Mouse1015);
+    resetMode(MODE_Mouse1016);
+    saveMode(MODE_Mouse1016);
+    resetMode(MODE_BracketedPaste);
+    saveMode(MODE_BracketedPaste);
+
+    resetMode(MODE_AppScreen);
+    saveMode(MODE_AppScreen);
+    resetMode(MODE_AppCuKeys);
+    saveMode(MODE_AppCuKeys);
+    resetMode(MODE_AppKeyPad);
+    saveMode(MODE_AppKeyPad);
+    resetMode(MODE_NewLine);
+    setMode(MODE_Ansi);
+}
+
+void Vt102Emulation::setMode(int m)
+{
+    _currentModes.mode[m] = true;
+    switch (m) {
+    case MODE_132Columns:
+        if (getMode(MODE_Allow132Columns)) {
+            clearScreenAndSetColumns(132);
+        } else {
+            _currentModes.mode[m] = false;
+        }
+        break;
+    case MODE_Mouse1000:
+    case MODE_Mouse1001:
+    case MODE_Mouse1002:
+    case MODE_Mouse1003:
+        _currentModes.mode[MODE_Mouse1000] = false;
+        _currentModes.mode[MODE_Mouse1001] = false;
+        _currentModes.mode[MODE_Mouse1002] = false;
+        _currentModes.mode[MODE_Mouse1003] = false;
+        _currentModes.mode[m] = true;
+        Q_EMIT programRequestsMouseTracking(true);
+        break;
+    case MODE_Mouse1007:
+        Q_EMIT enableAlternateScrolling(true);
+        break;
+    case MODE_Mouse1005:
+    case MODE_Mouse1006:
+    case MODE_Mouse1015:
+    case MODE_Mouse1016:
+        _currentModes.mode[MODE_Mouse1005] = false;
+        _currentModes.mode[MODE_Mouse1006] = false;
+        _currentModes.mode[MODE_Mouse1015] = false;
+        _currentModes.mode[MODE_Mouse1016] = false;
+        _currentModes.mode[m] = true;
+        break;
+
+    case MODE_BracketedPaste:
+        Q_EMIT programBracketedPasteModeChanged(true);
+        break;
+
+    case MODE_SynchronizedUpdate:
+        Q_EMIT programRequestedSynchronizedUpdate(true);
+        break;
+
+    case MODE_AppScreen:
+        _screen[1]->setDefaultRendition();
+        _screen[1]->clearSelection();
+        setScreen(1);
+        if (_currentScreen && _currentScreen->currentTerminalDisplay()) {
+            _currentScreen->delPlacements(1);
+            _currentScreen->currentTerminalDisplay()->update();
+        }
+        break;
+    }
+    // FIXME: Currently this has a redundant condition as MODES_SCREEN is 6
+    // and MODE_NewLine is 5
+    if (m < MODES_SCREEN || m == MODE_NewLine) {
+        _screen[0]->setMode(m);
+        _screen[1]->setMode(m);
+    }
+}
+
+void Vt102Emulation::resetMode(int m)
+{
+    _currentModes.mode[m] = false;
+    switch (m) {
+    case MODE_132Columns:
+        if (getMode(MODE_Allow132Columns)) {
+            clearScreenAndSetColumns(80);
+        }
+        break;
+    case MODE_Mouse1000:
+    case MODE_Mouse1001:
+    case MODE_Mouse1002:
+    case MODE_Mouse1003:
+        // Same behavior as xterm, these modes are mutually exclusive,
+        // and disabling any disables mouse tracking.
+        _currentModes.mode[MODE_Mouse1000] = false;
+        _currentModes.mode[MODE_Mouse1001] = false;
+        _currentModes.mode[MODE_Mouse1002] = false;
+        _currentModes.mode[MODE_Mouse1003] = false;
+        Q_EMIT programRequestsMouseTracking(false);
+        break;
+    case MODE_Mouse1007:
+        Q_EMIT enableAlternateScrolling(false);
+        break;
+
+    case MODE_BracketedPaste:
+        Q_EMIT programBracketedPasteModeChanged(false);
+        break;
+
+    case MODE_SynchronizedUpdate:
+        Q_EMIT programRequestedSynchronizedUpdate(false);
+        break;
+
+    case MODE_AppScreen:
+        _screen[0]->clearSelection();
+        setScreen(0);
+        if (_currentScreen && _currentScreen->currentTerminalDisplay()) {
+            _currentScreen->currentTerminalDisplay()->update();
+        }
+        break;
+    }
+    // FIXME: Currently this has a redundant condition as MODES_SCREEN is 7
+    // MODE_AppScreen is 6 and MODE_NewLine is 5
+    if (m < MODES_SCREEN || m == MODE_NewLine) {
+        _screen[0]->resetMode(m);
+        _screen[1]->resetMode(m);
+    }
+}
+
+void Vt102Emulation::saveMode(int m)
+{
+    _savedModes.mode[m] = _currentModes.mode[m];
+}
+
+void Vt102Emulation::restoreMode(int m)
+{
+    if (_savedModes.mode[m]) {
+        setMode(m);
+    } else {
+        resetMode(m);
+    }
+}
+
+bool Vt102Emulation::getMode(int m)
+{
+    return _currentModes.mode[m];
+}
+
+char Vt102Emulation::eraseChar() const
+{
+    KeyboardTranslator::Entry entry = _keyTranslator->findEntry(Qt::Key_Backspace, Qt::NoModifier, KeyboardTranslator::NoState);
+    if (!entry.text().isEmpty()) {
+        return entry.text().at(0);
+    } else {
+        return '\b';
+    }
+}
+
+// return contents of the scan buffer
+static QString hexdump2(const QList<char32_t> &s, int len)
+{
+    int i;
+    char dump[128];
+    QString returnDump;
+
+    for (i = 0; i < len; i++) {
+        if (s[i] == '\\') {
+            snprintf(dump, sizeof(dump), "%s", "\\\\");
+        } else if ((s[i]) > 32 && s[i] < 127) {
+            snprintf(dump, sizeof(dump), "%c", s[i]);
+        } else if (s[i] == 0x1b) {
+            snprintf(dump, sizeof(dump), "ESC");
+        } else {
+            snprintf(dump, sizeof(dump), "\\%04x(hex)", s[i]);
+        }
+        returnDump.append(QLatin1String(dump));
+    }
+    return returnDump;
+}
+
+void Vt102Emulation::reportDecodingError(int token)
+{
+    QString outputError = QStringLiteral("Undecodable sequence: ");
+
+    switch (token & 0xff) {
+    case 2:
+    case 3:
+    case 4:
+        outputError.append(QStringLiteral("ESC "));
+        break;
+    case 5:
+    case 6:
+    case 7:
+    case 9:
+    case 10:
+    case 11:
+    case 12:
+    case 13:
+        outputError.append(QStringLiteral("CSI "));
+        break;
+    case 14:
+        outputError.append(QStringLiteral("OSC "));
+        break;
+    case 15:
+        outputError.append(QStringLiteral("APC "));
+        break;
+    }
+    if ((token & 0xff) != 8) { // VT52
+        outputError.append(hexdump2(tokenBuffer, tokenBufferPos));
+    } else {
+        outputError.append(QStringLiteral("(VT52) ESC"));
+    }
+
+    if ((token & 0xff) != 3) { // SCS
+        outputError.append(QLatin1Char((token >> 8) & 0xff));
+    } else {
+        outputError.append(QLatin1Char((token >> 16) & 0xff));
+    }
+
+    qCDebug(KonsoleDebug).noquote() << outputError;
+
+    resetTokenizer();
+
+    if (m_SixelStarted) {
+        SixelModeAbort();
+    }
+}
+
+void Vt102Emulation::sixelQuery(int q)
+{
+    char tmp[30];
+    if (q == 1) {
+        if (params.value[1] == 1 || params.value[1] == 4) {
+            snprintf(tmp, sizeof(tmp), "\033[?1;0;%dS", MAX_SIXEL_COLORS);
+            sendString(tmp);
+        }
+    }
+    if (q == 2) {
+        if (params.value[1] == 1 || params.value[1] == 4) {
+            snprintf(tmp, sizeof(tmp), "\033[?2;0;%d;%dS", MAX_IMAGE_DIM, MAX_IMAGE_DIM);
+            sendString(tmp);
+        }
+    }
+}
+
+void Vt102Emulation::SixelModeEnable(int width, int height)
+{
+    if (width <= 0 || height <= 0) {
+        return;
+    }
+    if (width > MAX_IMAGE_DIM) {
+        width = MAX_IMAGE_DIM;
+    }
+    if (height > MAX_IMAGE_DIM) {
+        height = MAX_IMAGE_DIM;
+    }
+    m_actualSize = QSize(width, height);
+
+    // We assume square pixels because I'm lazy and didn't implement the stuff in vt102emulation.
+    int charactersHeight = height / 6 + 1;
+
+    m_currentImage = QImage(width, charactersHeight * 6 + 1, QImage::Format_Indexed8);
+    m_currentColor = 3;
+    m_currentX = 0;
+    m_verticalPosition = 0;
+    if (!m_currentImage.isNull()) {
+        m_SixelStarted = true;
+    }
+    m_currentImage.fill(0);
+    std::string initial_colors[16] = {"#000000",
+                                      "#3333CC",
+                                      "#CC2323",
+                                      "#33CC33",
+                                      "#CC33CC",
+                                      "#33CCCC",
+                                      "#CCCC33",
+                                      "#777777",
+                                      "#444444",
+                                      "#565699",
+                                      "#994444",
+                                      "#569956",
+                                      "#995699",
+                                      "#569999",
+                                      "#999956",
+                                      "#CCCCCC"};
+    for (int i = 0; i < 16; i++) {
+        m_currentImage.setColor(i, QColor(initial_colors[i].c_str()).rgb());
+    }
+}
+
+void Vt102Emulation::SixelModeAbort()
+{
+    if (!m_SixelStarted) {
+        return;
+    }
+    resetMode(MODE_Sixel);
+    resetTokenizer();
+    m_SixelStarted = false;
+    m_currentImage = QImage();
+}
+
+void Vt102Emulation::SixelModeDisable()
+{
+    if (!m_SixelStarted) {
+        return;
+    }
+    m_SixelStarted = false;
+    int col, row;
+    if (m_SixelScrolling) {
+        col = _currentScreen->getCursorX();
+        row = _currentScreen->getCursorY();
+    } else {
+        col = 0;
+        row = 0;
+    }
+    QPixmap pixmap = QPixmap::fromImage(m_currentImage.copy(QRect(0, 0, m_actualSize.width(), m_actualSize.height())));
+    if (m_aspect.first != m_aspect.second) {
+        pixmap = pixmap.scaled(pixmap.width(), m_aspect.first * pixmap.height() / m_aspect.second);
+    }
+    int rows = -1, cols = -1;
+    _currentScreen->addPlacement(pixmap, rows, cols, row, col, TerminalGraphicsPlacement_t::Sixel, m_SixelScrolling, m_SixelScrolling * 2, false);
+}
+
+void Vt102Emulation::SixelColorChangeRGB(const int index, int red, int green, int blue)
+{
+    if (index < 0 || index >= MAX_SIXEL_COLORS) {
+        return;
+    }
+
+    red = red * 255 / 100;
+    green = green * 255 / 100;
+    blue = blue * 255 / 100;
+
+    // QImage automatically handles the size of the color table
+    m_currentImage.setColor(index, qRgb(red, green, blue));
+    m_currentColor = index;
+}
+
+void Vt102Emulation::SixelColorChangeHSL(const int index, int hue, int saturation, int value)
+{
+    if (index < 0 || index >= MAX_SIXEL_COLORS) {
+        return;
+    }
+
+    hue = qBound(0, hue, 360);
+    saturation = qBound(0, saturation, 100);
+    value = qBound(0, value, 100);
+
+    // libsixel is offset by 240 degrees, so we assume that is correct
+    hue = (hue + 240) % 360;
+
+    saturation = saturation * 255 / 100;
+    value = value * 255 / 100;
+
+    m_currentImage.setColor(index, QColor::fromHsl(hue, saturation, value).rgb());
+    m_currentColor = index;
+}
+
+void Vt102Emulation::SixelCharacterAdd(uint8_t character, int repeat)
+{
+    if (!m_SixelStarted) {
+        return;
+    }
+
+    switch (character) {
+    case '\r':
+        m_currentX = 0;
+        return;
+    case '\n':
+        m_verticalPosition++;
+        return;
+    default:
+        break;
+    }
+    character -= '?';
+    const int top = m_verticalPosition * 6;
+    const int bottom = (m_verticalPosition + 1) * 6;
+    if (bottom > MAX_IMAGE_DIM) { // Ignore lines below MAX_IMAGE_DIM
+        return;
+    }
+    repeat = std::clamp(repeat, 1, MAX_IMAGE_DIM - m_currentX); // Won't repeat beyond MAX_IMAGE_DIM
+
+    if (bottom >= m_currentImage.height() - 1 || m_currentX + repeat >= m_currentImage.width()) {
+        // If we copy out of bounds it gets filled with 0
+        int extraWidth = 255 + repeat; // Increase size by at least 256, to avoid increasing for every pixel
+        int newWidth = qMax(m_currentX + extraWidth, m_currentImage.width() + extraWidth);
+        int newHeight = (qMax(bottom + 256, m_currentImage.height() + 256) / 6 + 1) * 6;
+        newWidth = qMin(newWidth, MAX_IMAGE_DIM);
+        newHeight = qMin(newHeight, MAX_IMAGE_DIM);
+        if (newWidth != m_currentImage.width() || newHeight != m_currentImage.height()) {
+            m_currentImage = m_currentImage.copy(0, 0, newWidth, newHeight);
+        }
+        if (m_currentImage.isNull()) {
+            m_SixelStarted = false;
+            return;
+        }
+    }
+
+    const ptrdiff_t bpl = m_currentImage.bytesPerLine();
+    uchar *data = m_currentImage.bits() + top * bpl + m_currentX;
+
+    if (repeat == 1) {
+        if (m_preserveBackground) {
+            // Konsole is built without _any_ optimizations by default, so a little
+            // manual unrolling to avoid calling shift for every loop iteration.
+            if (character & (1 << 0)) {
+                data[0 * bpl] = m_currentColor;
+            }
+            if (character & (1 << 1)) {
+                data[1 * bpl] = m_currentColor;
+            }
+            if (character & (1 << 2)) {
+                data[2 * bpl] = m_currentColor;
+            }
+            if (character & (1 << 3)) {
+                data[3 * bpl] = m_currentColor;
+            }
+            if (character & (1 << 4)) {
+                data[4 * bpl] = m_currentColor;
+            }
+            if (character & (1 << 5)) {
+                data[5 * bpl] = m_currentColor;
+            }
+        } else {
+            for (int i = 0; i < 6; i++, data += bpl) {
+                *data = (character & (1 << i)) * m_currentColor;
+            }
+        }
+        m_currentX++;
+    } else {
+        if (m_preserveBackground) {
+            // Konsole is built without _any_ optimizations by default, so a little
+            // manual unrolling to avoid calling shift for every loop iteration.
+            if (character & (1 << 0)) {
+                memset(&data[0 * bpl], m_currentColor, repeat);
+            }
+            if (character & (1 << 1)) {
+                memset(&data[1 * bpl], m_currentColor, repeat);
+            }
+            if (character & (1 << 2)) {
+                memset(&data[2 * bpl], m_currentColor, repeat);
+            }
+            if (character & (1 << 3)) {
+                memset(&data[3 * bpl], m_currentColor, repeat);
+            }
+            if (character & (1 << 4)) {
+                memset(&data[4 * bpl], m_currentColor, repeat);
+            }
+            if (character & (1 << 5)) {
+                memset(&data[5 * bpl], m_currentColor, repeat);
+            }
+        } else {
+            for (int i = 0; i < 6; i++, data += bpl) {
+                memset(data, (character & (1 << i)) * m_currentColor, repeat);
+            }
+        }
+        m_currentX += repeat;
+    }
+    if (m_currentX > m_actualSize.width()) {
+        m_actualSize.setWidth(m_currentX);
+    }
+    if (bottom > m_actualSize.height()) {
+        m_actualSize.setHeight(bottom);
+    }
+}
+
+bool Vt102Emulation::processSixel(uint cc)
+{
+    switch (cc) {
+    case '$':
+        SixelCharacterAdd('\r');
+        resetTokenizer();
+        return true;
+    case '-':
+        SixelCharacterAdd('\r');
+        SixelCharacterAdd('\n');
+        resetTokenizer();
+        return true;
+    default:
+        break;
+    }
+    QList<char32_t>& s = tokenBuffer;
+    const int p = tokenBufferPos;
+
+    if (!m_SixelStarted && (sixel() || s[0] == '!' || s[0] == '#')) {
+        m_aspect = qMakePair(1, 1);
+        SixelModeEnable(30, 6);
+    }
+    if (sixel()) {
+        SixelCharacterAdd(uint8_t(cc));
+        resetTokenizer();
+        return true;
+    }
+    if (ccc(DIG)) {
+        addDigit(cc - '0');
+        return true;
+    }
+    if (cc == ';') {
+        addArgument();
+        return true;
+    }
+
+    if (s[0] == '"') {
+        if (p < 3) {
+            return true;
+        }
+        addArgument();
+
+        if (params.count == 4 || params.count == 2) {
+            // We just ignore the pixel aspect ratio, it's dumb
+            // const int pixelWidth = params.value[0];
+            // const int pixelHeight = params.value[1];
+
+            if (!m_SixelStarted) {
+                if (params.value[1] == 0 || params.value[0] == 0) {
+                    m_aspect = qMakePair(1, 1);
+                } else {
+                    m_aspect = qMakePair(params.value[0], params.value[1]);
+                }
+                int width;
+                int height;
+                if (params.count == 4) {
+                    width = params.value[2];
+                    height = params.value[3];
+                } else {
+                    // Default size
+                    width = 8;
+                    height = 6;
+                }
+                SixelModeEnable(width, height);
+            }
+            resetTokenizer();
+            receiveChars(QVector<uint>{cc}); // re-send the actual character
+            return true;
+        }
+        return false;
+    }
+
+    // Repeat character
+    if (s[0] == '!') {
+        if (p < 2) {
+            return true;
+        }
+        if (ces(DIG)) {
+            addDigit(cc - '0');
+            return true;
+        }
+
+        SixelCharacterAdd(cc, params.value[0]);
+        resetTokenizer();
+        return true;
+    }
+
+    if (s[0] == '#') {
+        if (p < 2) {
+            return true;
+        }
+        addArgument();
+        if (params.count < 1) {
+            return false;
+        }
+        const int index = params.value[0];
+        if (params.count == 5) {
+            const int colorspace = params.value[1];
+            switch (colorspace) {
+            case 1:
+                // Confusingly it is in HLS order...
+                SixelColorChangeHSL(index, params.value[2], params.value[4], params.value[3]);
+                break;
+            case 2:
+                SixelColorChangeRGB(index, params.value[2], params.value[3], params.value[4]);
+                break;
+            default:
+                return false;
+            }
+        } else if (params.count == 1 && index >= 0) { // Negative index is an error. Too large index is ignored
+            if (index < MAX_SIXEL_COLORS) {
+                m_currentColor = index;
+            }
+        } else {
+            return false;
+        }
+        resetTokenizer();
+        receiveChars(QVector<uint>{cc}); // re-send the actual character
+        return true;
+    }
+    return false;
+}
+
+int Vt102Emulation::getFreeGraphicsImageId()
+{
+    int i = 1;
+    while (1) {
+        if (!_graphicsImages.count(i)) {
+            return i;
+        }
+        i++;
+    }
+}
+
+/* ------------------------------------------------------------------------- */
+/*                                                                           */
+/*                     Kitty Keyboard Protocol                               */
+/*                                                                           */
+/* ------------------------------------------------------------------------- */
+
+int Vt102Emulation::currentScreenIndex() const
+{
+    return (_currentScreen == _screen[1]) ? 1 : 0;
+}
+
+int Vt102Emulation::currentKittyKeyboardFlags() const
+{
+    const auto &stack = _kittyKeyboardFlagsStack[currentScreenIndex()];
+    return stack.isEmpty() ? 0 : stack.last();
+}
+
+void Vt102Emulation::handleKittyKeyboardQuery()
+{
+    // Respond with CSI ? flags u
+    int flags = currentKittyKeyboardFlags();
+    char buf[32];
+    int len = snprintf(buf, sizeof(buf), "\033[?%du", flags);
+    sendString(QByteArray(buf, len));
+}
+
+void Vt102Emulation::handleKittyKeyboardPush(int flags)
+{
+    auto &stack = _kittyKeyboardFlagsStack[currentScreenIndex()];
+    stack.append(flags);
+}
+
+void Vt102Emulation::handleKittyKeyboardPop(int count)
+{
+    auto &stack = _kittyKeyboardFlagsStack[currentScreenIndex()];
+    for (int i = 0; i < count && !stack.isEmpty(); ++i) {
+        stack.removeLast();
+    }
+}
+
+void Vt102Emulation::handleKittyKeyboardSet(int flags, int mode)
+{
+    auto &stack = _kittyKeyboardFlagsStack[currentScreenIndex()];
+    if (stack.isEmpty()) {
+        stack.append(0);
+    }
+
+    switch (mode) {
+    case 1: // replace
+        stack.last() = flags;
+        break;
+    case 2: // OR
+        stack.last() |= flags;
+        break;
+    case 3: // AND-NOT
+        stack.last() &= ~flags;
+        break;
+    default:
+        stack.last() = flags;
+        break;
+    }
+}
+
+bool Vt102Emulation::handleKittyKeyEvent(QKeyEvent *event)
+{
+    const int flags = currentKittyKeyboardFlags();
+    if (flags == 0) {
+        return false;
+    }
+
+    // Synthetic events from sendText() have key()==0 — fall through to legacy
+    if (event->key() == 0) {
+        return false;
+    }
+
+    // Determine event type: 1=press, 2=repeat, 3=release
+    int eventType = 1;
+    if (event->type() == QEvent::KeyRelease) {
+        eventType = 3;
+    } else if (event->isAutoRepeat()) {
+        eventType = 2;
+    }
+
+    // Flag 2 (report event types): if not set, only handle press events
+    const bool reportEventTypes = (flags & 2) != 0;
+    if (!reportEventTypes && eventType != 1) {
+        return false;
+    }
+
+    // Look up the key in the mapping
+    KittyKeyInfo info = qtKeyToKittyKey(event->key());
+
+    // Modifier-only keys: only reported when flag 8 (report all keys) is active
+    if (info.type != KittyKeyType::Unknown && info.isModifier) {
+        if (!(flags & 8)) {
+            return false;
+        }
+    }
+
+    // Determine the key code
+    int keyCode = 0;
+    bool isFunctionalKey = false;
+
+    if (info.type == KittyKeyType::Legacy || info.type == KittyKeyType::CSI_u) {
+        keyCode = info.keyCode;
+        isFunctionalKey = true;
+    } else if (info.type == KittyKeyType::Plain) {
+        // Should not happen — Plain keys use their codepoint
+        keyCode = info.keyCode;
+    } else {
+        // Unknown key — derive keycode from Qt key value or text
+        int qtKey = event->key();
+        if (qtKey >= Qt::Key_A && qtKey <= Qt::Key_Z) {
+            keyCode = 'a' + (qtKey - Qt::Key_A);
+        } else if (qtKey >= Qt::Key_0 && qtKey <= Qt::Key_9) {
+            keyCode = '0' + (qtKey - Qt::Key_0);
+        } else if (qtKey == Qt::Key_Space) {
+            keyCode = ' ';
+        } else if (qtKey == Qt::Key_BracketLeft) {
+            keyCode = '[';
+        } else if (qtKey == Qt::Key_Backslash) {
+            keyCode = '\\';
+        } else if (qtKey == Qt::Key_BracketRight) {
+            keyCode = ']';
+        } else if (qtKey == Qt::Key_AsciiCircum) {
+            keyCode = '^';
+        } else if (qtKey == Qt::Key_Underscore) {
+            keyCode = '_';
+        } else if (qtKey == Qt::Key_QuoteLeft) {
+            keyCode = '`';
+        } else if (qtKey == Qt::Key_Exclam) {
+            keyCode = '!';
+        } else if (qtKey == Qt::Key_At) {
+            keyCode = '@';
+        } else if (qtKey == Qt::Key_NumberSign) {
+            keyCode = '#';
+        } else if (qtKey == Qt::Key_Dollar) {
+            keyCode = '$';
+        } else if (qtKey == Qt::Key_Percent) {
+            keyCode = '%';
+        } else if (qtKey == Qt::Key_AsciiTilde) {
+            keyCode = '~';
+        } else if (qtKey == Qt::Key_Ampersand) {
+            keyCode = '&';
+        } else if (qtKey == Qt::Key_Asterisk) {
+            keyCode = '*';
+        } else if (qtKey == Qt::Key_ParenLeft) {
+            keyCode = '(';
+        } else if (qtKey == Qt::Key_ParenRight) {
+            keyCode = ')';
+        } else if (qtKey == Qt::Key_Minus) {
+            keyCode = '-';
+        } else if (qtKey == Qt::Key_Equal) {
+            keyCode = '=';
+        } else if (qtKey == Qt::Key_Plus) {
+            keyCode = '+';
+        } else if (qtKey == Qt::Key_BraceLeft) {
+            keyCode = '{';
+        } else if (qtKey == Qt::Key_BraceRight) {
+            keyCode = '}';
+        } else if (qtKey == Qt::Key_Bar) {
+            keyCode = '|';
+        } else if (qtKey == Qt::Key_Semicolon) {
+            keyCode = ';';
+        } else if (qtKey == Qt::Key_Colon) {
+            keyCode = ':';
+        } else if (qtKey == Qt::Key_Apostrophe) {
+            keyCode = '\'';
+        } else if (qtKey == Qt::Key_QuoteDbl) {
+            keyCode = '"';
+        } else if (qtKey == Qt::Key_Comma) {
+            keyCode = ',';
+        } else if (qtKey == Qt::Key_Period) {
+            keyCode = '.';
+        } else if (qtKey == Qt::Key_Less) {
+            keyCode = '<';
+        } else if (qtKey == Qt::Key_Greater) {
+            keyCode = '>';
+        } else if (qtKey == Qt::Key_Slash) {
+            keyCode = '/';
+        } else if (qtKey == Qt::Key_Question) {
+            keyCode = '?';
+        } else if (!event->text().isEmpty()) {
+            // Fallback: use text codepoint for remaining keys
+            uint cp = event->text().at(0).unicode();
+            if (cp >= 0x20) {
+                keyCode = cp;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+
+        if (keyCode != 0) {
+            if (!(flags & 8)) {
+                // Without flag 8, text-producing keys fall through to legacy
+                // unless they have non-shift modifiers (Ctrl, Alt, etc.)
+                // Shift alone is already represented in the text character.
+                Qt::KeyboardModifiers mods = event->modifiers();
+                mods &= ~Qt::ShiftModifier;
+                if (mods == Qt::NoModifier) {
+                    // With flag 1 (disambiguate) + flag 2 (event types),
+                    // release/repeat events must still be reported via CSI u
+                    if ((flags & 3) == 3 && event->type() != QEvent::KeyPress) {
+                        // continue to CSI u encoding for non-press events
+                    } else {
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+
+    // For CSI_u keys (Escape, Enter, Tab, Backspace) with flag 1 (disambiguate):
+    // When no modifiers, send legacy byte *unless* flag 8 is set
+    if (info.type == KittyKeyType::CSI_u && !info.isModifier && eventType == 1) {
+        Qt::KeyboardModifiers mods = event->modifiers();
+
+        // For Backspace/Enter/Tab/Escape: check if we should use legacy encoding
+        if (keyCode == 27 || keyCode == 13 || keyCode == 9 || keyCode == 127) {
+            bool hasMods = false;
+#ifdef HAVE_XKBCOMMON
+            bool capsLock = xkb_state_mod_name_is_active(_xkbData.state_us, XKB_MOD_NAME_CAPS, XKB_STATE_MODS_EFFECTIVE);
+            bool numLock = xkb_state_mod_name_is_active(_xkbData.state_us, XKB_MOD_NAME_NUM, XKB_STATE_MODS_EFFECTIVE);
+            int modBits = kittyModifierBits(mods, capsLock, numLock);
+#else
+            int modBits = kittyModifierBits(mods, false, false);
+#endif
+            hasMods = (modBits != 1);
+
+            if (!hasMods && !(flags & 8)) {
+                // No modifiers — send legacy byte
+                return false;
+            }
+        }
+    }
+
+    // Calculate modifier bits
+    Qt::KeyboardModifiers mods = event->modifiers();
+#ifdef HAVE_XKBCOMMON
+    bool capsLock = xkb_state_mod_name_is_active(_xkbData.state_us, XKB_MOD_NAME_CAPS, XKB_STATE_MODS_EFFECTIVE);
+    bool numLock = xkb_state_mod_name_is_active(_xkbData.state_us, XKB_MOD_NAME_NUM, XKB_STATE_MODS_EFFECTIVE);
+#else
+    bool capsLock = false;
+    bool numLock = false;
+#endif
+    int modBits = kittyModifierBits(mods, capsLock, numLock);
+
+    // Build the escape sequence
+    char buf[128];
+    int len = 0;
+
+    // For modifier keys, use left/right specific codepoints based on native scan code
+    if (info.isModifier && info.type == KittyKeyType::CSI_u) {
+#ifdef HAVE_XKBCOMMON
+        if (event->nativeScanCode()) {
+            const xkb_keycode_t xkbKeycode = event->nativeScanCode() + (QGuiApplication::platformName() == QLatin1String("xcb") ? 8 : 0);
+            xkb_keysym_t keysym = xkb_state_key_get_one_sym(_xkbData.state_us, xkbKeycode);
+            switch (keysym) {
+            case XKB_KEY_Shift_L:
+                keyCode = 57441;
+                break;
+            case XKB_KEY_Shift_R:
+                keyCode = 57447;
+                break;
+            case XKB_KEY_Control_L:
+                keyCode = 57442;
+                break;
+            case XKB_KEY_Control_R:
+                keyCode = 57448;
+                break;
+            case XKB_KEY_Alt_L:
+                keyCode = 57443;
+                break;
+            case XKB_KEY_Alt_R:
+                keyCode = 57449;
+                break;
+            case XKB_KEY_Meta_L:
+                keyCode = 57444;
+                break;
+            case XKB_KEY_Meta_R:
+                keyCode = 57450;
+                break;
+            case XKB_KEY_Hyper_L:
+                keyCode = 57445;
+                break;
+            case XKB_KEY_Hyper_R:
+                keyCode = 57451;
+                break;
+            default:
+                break;
+            }
+        }
+#endif
+    }
+
+    // Determine shifted and base key for alternate key reporting (flag 4)
+    int shiftedKey = 0;
+    int baseKey = 0;
+#ifdef HAVE_XKBCOMMON
+    if ((flags & 4) && !info.isModifier && isFunctionalKey == false && event->nativeScanCode()) {
+        const xkb_keycode_t xkbKeycode = event->nativeScanCode() + (QGuiApplication::platformName() == QLatin1String("xcb") ? 8 : 0);
+        xkb_keysym_t baseSym = xkb_state_key_get_one_sym(_xkbData.state_us, xkbKeycode);
+        uint32_t baseChar = xkb_keysym_to_utf32(baseSym);
+        if (baseChar > 0 && baseChar != (uint32_t)keyCode) {
+            baseKey = baseChar;
+        }
+        // The shifted key is the character actually produced when shift is active
+        if ((mods & Qt::ShiftModifier) && !event->text().isEmpty()) {
+            uint shiftedCp = event->text().at(0).unicode();
+            if (shiftedCp >= 0x20 && shiftedCp != (uint)keyCode) {
+                shiftedKey = shiftedCp;
+            }
+        }
+    }
+#endif
+
+    // Text-as-codepoints reporting (flag 16)
+    QByteArray textField;
+    if ((flags & 16) && !event->text().isEmpty() && !info.isModifier) {
+        bool first = true;
+        for (int i = 0; i < event->text().length(); ++i) {
+            uint cp = event->text().at(i).unicode();
+            // Skip control characters except Tab(9), Enter(13), LF(10)
+            if (cp < 0x20 && cp != 9 && cp != 13 && cp != 10) {
+                continue;
+            }
+            if (!first) {
+                textField.append(':');
+            }
+            textField.append(QByteArray::number(cp));
+            first = false;
+        }
+    }
+
+    // Now encode the sequence based on key type
+    if (info.type == KittyKeyType::Legacy) {
+        // Legacy keys keep their traditional encoding format
+        if (info.legacySuffix != 0) {
+            // Letter-type legacy keys: CSI 1;mods[:event] X
+            if (modBits == 1 && eventType == 1) {
+                // No modifiers, press event — use basic form
+                if (info.legacySuffix == 'P' || info.legacySuffix == 'Q' || info.legacySuffix == 'R' || info.legacySuffix == 'S') {
+                    // F1-F4: SS3 encoding when no modifiers
+                    len = snprintf(buf, sizeof(buf), "\033O%c", info.legacySuffix);
+                } else {
+                    len = snprintf(buf, sizeof(buf), "\033[%c", info.legacySuffix);
+                }
+            } else if (eventType == 1) {
+                len = snprintf(buf, sizeof(buf), "\033[1;%d%c", modBits, info.legacySuffix);
+            } else {
+                len = snprintf(buf, sizeof(buf), "\033[1;%d:%d%c", modBits, eventType, info.legacySuffix);
+            }
+        } else {
+            // Tilde-type legacy keys: CSI N;mods[:event] ~
+            if (modBits == 1 && eventType == 1) {
+                len = snprintf(buf, sizeof(buf), "\033[%d~", info.legacyNumber);
+            } else if (eventType == 1) {
+                len = snprintf(buf, sizeof(buf), "\033[%d;%d~", info.legacyNumber, modBits);
+            } else {
+                len = snprintf(buf, sizeof(buf), "\033[%d;%d:%d~", info.legacyNumber, modBits, eventType);
+            }
+        }
+        sendString(QByteArray(buf, len));
+    } else {
+        // CSI_u and plain keys: CSI keycode[:shifted[:base]] ; mods[:event] [; text] u
+        // Use lowercase codepoint for plain text keys when flag 8 is active
+        if (!isFunctionalKey && (flags & 8) && keyCode >= 'A' && keyCode <= 'Z') {
+            keyCode = keyCode + 32; // lowercase
+        } else if (!isFunctionalKey && keyCode >= 'A' && keyCode <= 'Z') {
+            keyCode = keyCode + 32; // lowercase for CSI u
+        }
+
+        // Build keycode field: keycode[:shifted[:base]]
+        QByteArray keycodeField = QByteArray::number(keyCode);
+        if (shiftedKey > 0 || baseKey > 0) {
+            keycodeField.append(':');
+            if (shiftedKey > 0) {
+                keycodeField.append(QByteArray::number(shiftedKey));
+            }
+            if (baseKey > 0) {
+                keycodeField.append(':');
+                keycodeField.append(QByteArray::number(baseKey));
+            }
+        }
+
+        // Build modifier field: mods[:event]
+        bool needMods = (modBits != 1) || (eventType != 1) || !textField.isEmpty();
+        QByteArray modField;
+        if (needMods) {
+            modField = QByteArray::number(modBits);
+            if (eventType != 1) {
+                modField.append(':');
+                modField.append(QByteArray::number(eventType));
+            }
+        }
+
+        // Assemble: ESC [ keycode [; mods [; text]] u
+        QByteArray seq;
+        seq.append("\033[");
+        seq.append(keycodeField);
+        if (needMods) {
+            seq.append(';');
+            seq.append(modField);
+        }
+        if (!textField.isEmpty()) {
+            if (!needMods) {
+                seq.append(';'); // empty modifier field
+            }
+            seq.append(';');
+            seq.append(textField);
+        }
+        seq.append('u');
+        sendString(seq);
+    }
+
+    return true;
+}
+
+#include "moc_Vt102Emulation.cpp"

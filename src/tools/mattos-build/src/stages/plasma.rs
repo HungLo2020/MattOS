@@ -13,7 +13,7 @@ fn build_plasma_component(repo_root: &Path, stage: &str, source: &str, component
         build_components.extend(["polkit", "glib"]);
     }
     if stage == "plasma-desktop" {
-        build_components.extend(["kbookmarks", "kcompletion", "kitemviews", "kitemmodels", "kjobwidgets", "kservice", "kparts", "solid", "kirigami", "kded", "plasma-framework", "plasma-activities", "plasma-activities-stats", "plasma5support", "kwin", "ksysguard", "libxcb", "libx11", "xkeyboard-config", "qtshadertools"]);
+        build_components.extend(["kbookmarks", "kcompletion", "kitemviews", "kitemmodels", "kjobwidgets", "kservice", "kparts", "solid", "kirigami", "kded", "plasma-framework", "plasma-activities", "plasma-activities-stats", "plasma5support", "kwin", "ksysguard", "xorgproto", "libxcb", "libxau", "libxdmcp", "libx11", "x11-compat", "xkeyboard-config", "qtshadertools"]);
     }
     if stage == "kscreenlocker" {
         build_components.push("libkscreen");
@@ -30,6 +30,17 @@ fn build_plasma_component(repo_root: &Path, stage: &str, source: &str, component
 
 fn build_plasma_framework(repo_root: &Path) -> Result<()> {
     build_plasma_component(repo_root, "plasma-framework", "src/desktop/kde/plasma-framework", &["qtbase", "qtdeclarative", "qttools", "kconfig", "kcoreaddons", "ki18n", "kguiaddons", "kwidgetsaddons", "kiconthemes", "kirigami", "ksvg", "kpackage", "kglobalaccel", "kwindowsystem", "kwayland", "kio", "kbookmarks", "kcompletion", "solid", "kservice", "kcodecs", "kitemmodels", "kitemviews", "kjobwidgets", "karchive", "kauth", "kcrash", "kdbusaddons", "knotifications", "kcolorscheme", "plasma-wayland-protocols", "plasma-activities", "gzip", "x11-compat"], &["-DBUILD_TESTING=OFF", "-DWITHOUT_X11=ON"], "usr/lib/x86_64-linux-gnu/cmake/Plasma/PlasmaConfig.cmake")
+}
+
+fn build_qqc2_desktop_style(repo_root: &Path) -> Result<()> {
+    build_kde_cmake(
+        repo_root,
+        "qqc2-desktop-style",
+        "src/desktop/kde/qqc2-desktop-style",
+        &["qtdeclarative", "kconfig", "kirigami", "kiconthemes", "kcolorscheme", "sonnet", "x11-compat"],
+        &["-DBUILD_TESTING=OFF"],
+        "usr/lib/x86_64-linux-gnu/cmake/KF6QQC2DesktopStyle/KF6QQC2DesktopStyleConfig.cmake",
+    )
 }
 
 fn build_plasma_activities(repo_root: &Path) -> Result<()> {
@@ -57,7 +68,10 @@ fn build_plasma5support(repo_root: &Path) -> Result<()> {
 }
 
 fn build_kscreen(repo_root: &Path) -> Result<()> {
-    build_plasma_component(repo_root, "libkscreen", "src/desktop/kde/libkscreen", &["qtbase", "qtdeclarative", "qtwayland", "kconfig", "kcoreaddons", "ki18n", "kwidgetsaddons", "kwayland", "plasma-wayland-protocols", "wayland", "libdrm"], &["-DBUILD_TESTING=OFF", "-DWITH_X11=OFF"], "usr/lib/x86_64-linux-gnu/cmake/KF6Screen/KF6ScreenConfig.cmake")
+    // ScreenDpms includes both Wayland and XCB backends in this upstream
+    // release.  Building the XCB helper does not add an X11 Plasma session;
+    // it supplies the complete library ABI consumed by PowerDevil.
+    build_plasma_component(repo_root, "libkscreen", "src/desktop/kde/libkscreen", &["qtbase", "qtdeclarative", "qtwayland", "kconfig", "kcoreaddons", "ki18n", "kwidgetsaddons", "kwayland", "plasma-wayland-protocols", "wayland", "libffi", "libdrm", "x11-compat"], &["-DBUILD_TESTING=OFF"], "usr/lib/x86_64-linux-gnu/cmake/KF6Screen/KF6ScreenConfig.cmake")
 }
 
 fn build_layer_shell_qt(repo_root: &Path) -> Result<()> {
@@ -69,7 +83,7 @@ fn build_kscreen_locker(repo_root: &Path) -> Result<()> {
 }
 
 fn build_ksysguard(repo_root: &Path) -> Result<()> {
-    build_plasma_component(repo_root, "ksysguard", "src/desktop/kde/ksysguard", &["qtbase", "qtdeclarative", "kcoreaddons", "kconfig", "ki18n", "kdbusaddons", "kio", "kpackage", "kconfigwidgets", "kglobalaccel", "kiconthemes", "kwidgetsaddons", "kxmlgui", "kservice", "kitemmodels", "kitemviews", "knotifications", "kjobwidgets", "kauth", "knewstuff", "solid", "attica", "zlib", "libdrm", "libcap", "procps", "libnl"], &["-DBUILD_TESTING=OFF", "-DWITH_X11=OFF"], "usr/lib/x86_64-linux-gnu/cmake/KSysGuard/KSysGuardConfig.cmake")
+    build_plasma_component(repo_root, "ksysguard", "src/desktop/kde/ksysguard", &["qtbase", "qtdeclarative", "kcoreaddons", "kconfig", "ki18n", "kdbusaddons", "kio", "kpackage", "kconfigwidgets", "kglobalaccel", "kiconthemes", "kwidgetsaddons", "kxmlgui", "kservice", "kitemmodels", "kitemviews", "knotifications", "kjobwidgets", "kauth", "knewstuff", "solid", "attica", "zlib", "libdrm", "libcap", "procps", "libnl", "lm-sensors"], &["-DBUILD_TESTING=OFF", "-DWITH_X11=OFF"], "usr/lib/x86_64-linux-gnu/cmake/KSysGuard/KSysGuardConfig.cmake")
 }
 
 fn build_kwin(repo_root: &Path) -> Result<()> {
@@ -104,12 +118,27 @@ fn build_plasma_desktop(repo_root: &Path) -> Result<()> {
         repo_root,
         "plasma-desktop",
         "src/desktop/kde/plasma-desktop",
-        &["qtbase", "qtdeclarative", "kconfig", "kconfigwidgets", "kcolorscheme", "kwindowsystem", "kcoreaddons", "ki18n", "kwidgetsaddons", "kauth", "kcrash", "kcmutils", "knewstuff", "kio", "knotifications", "attica", "krunner", "kglobalaccel", "kguiaddons", "kdbusaddons", "kcodecs", "sonnet", "kpackage", "kiconthemes", "kxmlgui", "ksvg", "kbookmarks", "kcompletion", "kjobwidgets", "kservice", "kparts", "solid", "kirigami-addons", "plasma-workspace"],
-        &["-DBUILD_TESTING=OFF", "-DBUILD_DOC=OFF", "-DWITH_X11=OFF", "-DBUILD_KCM_TABLET=OFF", "-DBUILD_KCM_MOUSE_X11=OFF", "-DBUILD_KCM_TOUCHPAD_X11=OFF"],
+        &["qtbase", "qtdeclarative", "kconfig", "kconfigwidgets", "kcolorscheme", "kwindowsystem", "kcoreaddons", "ki18n", "kwidgetsaddons", "kauth", "kcrash", "kcmutils", "knewstuff", "kio", "knotifications", "attica", "krunner", "kglobalaccel", "kguiaddons", "kdbusaddons", "kcodecs", "sonnet", "kpackage", "kiconthemes", "kxmlgui", "ksvg", "kbookmarks", "kcompletion", "kjobwidgets", "kservice", "kparts", "solid", "qqc2-desktop-style", "kirigami-addons", "plasma-workspace", "xkbcommon", "libxml2", "libxkbfile", "xorgproto", "libxcb", "libxau", "libxdmcp", "libx11", "x11-compat", "xkeyboard-config", "qtshadertools"],
+        // Plasma is a Wayland-only session, but plasma-desktop still builds its
+        // keyboard-layout applet's private QML backend behind WITH_X11.  Keep
+        // that XKB/XCB integration enabled for Xwayland/keyboard management;
+        // the individual X11 mouse/touchpad backends and any X11 session stay
+        // disabled explicitly.
+        &["-DBUILD_TESTING=OFF", "-DBUILD_DOC=OFF", "-DWITH_X11=ON", "-DBUILD_KCM_TABLET=OFF", "-DBUILD_KCM_MOUSE_X11=OFF", "-DBUILD_KCM_TOUCHPAD_X11=OFF"],
         // plasmashell is owned by plasma-workspace; this stage's own
         // executable provides a stable output proof without claiming it.
         "usr/bin/plasma-emojier",
-    )
+    )?;
+    let keyboard_qml = repo_root.join(
+        "out/build/plasma-desktop/install/usr/lib/x86_64-linux-gnu/qml/org/kde/plasma/private/kcm_keyboard/qmldir",
+    );
+    if !keyboard_qml.is_file() {
+        bail!(
+            "plasma-desktop completed without the keyboard applet's required QML module {}",
+            keyboard_qml.display()
+        );
+    }
+    Ok(())
 }
 
 fn build_breeze(repo_root: &Path) -> Result<()> {

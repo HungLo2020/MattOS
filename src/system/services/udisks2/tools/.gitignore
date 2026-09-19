@@ -1,0 +1,11 @@
+.deps
+Makefile
+Makefile.in
+*.o
+udisks
+udisks-daemon-glue.h
+udisks-device-glue.h
+udisks-marshal.c
+udisks-marshal.h
+udisks-tcp-bridge
+umount.udisks

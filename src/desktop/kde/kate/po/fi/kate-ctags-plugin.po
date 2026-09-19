@@ -1,0 +1,483 @@
+# Finnish messages for kate-ctags-plugin.
+# Copyright © 2011 This_file_is_part_of_KDE
+# This file is distributed under the same license as the kde-baseapps package.
+# Jorma Karvonen <karvonen.jorma@gmail.com>, 2011.
+# Lasse Liehu <lasse.liehu@gmail.com>, 2012, 2013, 2014, 2015.
+# Tommi Nieminen <translator@legisign.org>, 2019, 2020, 2021, 2022, 2023.
+#
+# KDE Finnish translation sprint participants:
+# Author: Artnay
+# Author: Lliehu
+msgid ""
+msgstr ""
+"Project-Id-Version: kate-ctags-plugin\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-04-07 00:47+0000\n"
+"PO-Revision-Date: 2023-03-14 21:47+0200\n"
+"Last-Translator: Tommi Nieminen <translator@legisign.org>\n"
+"Language-Team: Finnish <kde-i18n-doc@kde.org>\n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. i18n: ectx: property (title), widget (QGroupBox, groupBox)
+#: CTagsGlobalConfig.ui:9
+#, kde-format
+msgid "Session-global index targets"
+msgstr "Istunto-yleisindeksikohteet"
+
+#. i18n: ectx: property (text), widget (QPushButton, addButton)
+#: CTagsGlobalConfig.ui:33 kate_ctags.ui:119
+#, kde-format
+msgid "Add"
+msgstr "Lisää"
+
+#. i18n: ectx: property (text), widget (QPushButton, delButton)
+#: CTagsGlobalConfig.ui:40 kate_ctags.ui:126
+#, kde-format
+msgid "Remove"
+msgstr "Poista"
+
+#. i18n: ectx: property (text), widget (QPushButton, updateDB)
+#: CTagsGlobalConfig.ui:54
+#, kde-format
+msgid "Update"
+msgstr "Päivitä"
+
+#. i18n: ectx: property (text), widget (QLabel, cmdLabel)
+#. i18n: ectx: property (title), widget (QGroupBox, groupBox_2)
+#: CTagsGlobalConfig.ui:66 kate_ctags.ui:182
+#, kde-format
+msgid "CTags command"
+msgstr "CTags-komento"
+
+#: ctagskinds.cpp:24
+msgctxt "Tag Type"
+msgid "define"
+msgstr "määritä"
+
+#: ctagskinds.cpp:25 ctagskinds.cpp:67
+msgctxt "Tag Type"
+msgid "label"
+msgstr "nimiö"
+
+#: ctagskinds.cpp:26 ctagskinds.cpp:40 ctagskinds.cpp:86
+msgctxt "Tag Type"
+msgid "macro"
+msgstr "makro"
+
+#: ctagskinds.cpp:29 ctagskinds.cpp:31 ctagskinds.cpp:42 ctagskinds.cpp:64
+#: ctagskinds.cpp:84 ctagskinds.cpp:88 ctagskinds.cpp:92 ctagskinds.cpp:94
+#: ctagskinds.cpp:99 ctagskinds.cpp:103 ctagskinds.cpp:105 ctagskinds.cpp:107
+#: ctagskinds.cpp:111
+msgctxt "Tag Type"
+msgid "function"
+msgstr "funktio"
+
+#: ctagskinds.cpp:29 ctagskinds.cpp:72 ctagskinds.cpp:90 ctagskinds.cpp:96
+msgctxt "Tag Type"
+msgid "subroutine"
+msgstr "alirutiini"
+
+#: ctagskinds.cpp:33
+msgctxt "Tag Type"
+msgid "fragment definition"
+msgstr "fragmenttimäärittely"
+
+#: ctagskinds.cpp:34
+msgctxt "Tag Type"
+msgid "any pattern"
+msgstr "mikä tahansa malli"
+
+#: ctagskinds.cpp:35
+msgctxt "Tag Type"
+msgid "slot"
+msgstr "väli"
+
+#: ctagskinds.cpp:36
+msgctxt "Tag Type"
+msgid "pattern"
+msgstr "malli"
+
+#: ctagskinds.cpp:39 ctagskinds.cpp:56 ctagskinds.cpp:77 ctagskinds.cpp:92
+#: ctagskinds.cpp:94 ctagskinds.cpp:98
+msgctxt "Tag Type"
+msgid "class"
+msgstr "luokka"
+
+#: ctagskinds.cpp:41
+msgctxt "Tag Type"
+msgid "enumerator"
+msgstr "enumeraattori"
+
+#: ctagskinds.cpp:43
+msgctxt "Tag Type"
+msgid "enumeration"
+msgstr "enumeraatio"
+
+#: ctagskinds.cpp:44
+msgctxt "Tag Type"
+msgid "member"
+msgstr "jäsen"
+
+#: ctagskinds.cpp:45 ctagskinds.cpp:107
+msgctxt "Tag Type"
+msgid "namespace"
+msgstr "nimiavaruus"
+
+#: ctagskinds.cpp:46
+msgctxt "Tag Type"
+msgid "prototype"
+msgstr "prototyyppi"
+
+#: ctagskinds.cpp:47
+msgctxt "Tag Type"
+msgid "struct"
+msgstr "struct-rakenne"
+
+#: ctagskinds.cpp:48
+msgctxt "Tag Type"
+msgid "typedef"
+msgstr "typedef-määrittely"
+
+#: ctagskinds.cpp:49
+msgctxt "Tag Type"
+msgid "union"
+msgstr "union-rakenne"
+
+#: ctagskinds.cpp:50 ctagskinds.cpp:74
+msgctxt "Tag Type"
+msgid "variable"
+msgstr "muuttuja"
+
+#: ctagskinds.cpp:51
+msgctxt "Tag Type"
+msgid "external variable"
+msgstr "ulkoinen muuttuja"
+
+#: ctagskinds.cpp:54
+msgctxt "Tag Type"
+msgid "paragraph"
+msgstr "kappale"
+
+#: ctagskinds.cpp:57
+msgctxt "Tag Type"
+msgid "feature"
+msgstr "ominaisuus"
+
+#: ctagskinds.cpp:58
+msgctxt "Tag Type"
+msgid "local entity"
+msgstr "paikallinen entiteetti"
+
+#: ctagskinds.cpp:61
+msgctxt "Tag Type"
+msgid "block"
+msgstr "lohko"
+
+#: ctagskinds.cpp:62
+msgctxt "Tag Type"
+msgid "common"
+msgstr "yhteinen"
+
+#: ctagskinds.cpp:63
+msgctxt "Tag Type"
+msgid "entry"
+msgstr "hakusana"
+
+#: ctagskinds.cpp:65 ctagskinds.cpp:79
+msgctxt "Tag Type"
+msgid "interface"
+msgstr "rajapinta"
+
+#: ctagskinds.cpp:66
+msgctxt "Tag Type"
+msgid "type component"
+msgstr "tyyppikomponentti"
+
+#: ctagskinds.cpp:68
+msgctxt "Tag Type"
+msgid "local"
+msgstr "paikallinen"
+
+#: ctagskinds.cpp:69
+msgctxt "Tag Type"
+msgid "module"
+msgstr "moduuli"
+
+#: ctagskinds.cpp:70
+msgctxt "Tag Type"
+msgid "namelist"
+msgstr "nimiluettelo"
+
+#: ctagskinds.cpp:71
+msgctxt "Tag Type"
+msgid "program"
+msgstr "ohjelma"
+
+#: ctagskinds.cpp:73
+msgctxt "Tag Type"
+msgid "type"
+msgstr "tyyppi"
+
+#: ctagskinds.cpp:78
+msgctxt "Tag Type"
+msgid "field"
+msgstr "kenttä"
+
+#: ctagskinds.cpp:80
+msgctxt "Tag Type"
+msgid "method"
+msgstr "metodi"
+
+#: ctagskinds.cpp:81
+msgctxt "Tag Type"
+msgid "package"
+msgstr "pakkaus"
+
+#: ctagskinds.cpp:88 ctagskinds.cpp:109
+msgctxt "Tag Type"
+msgid "procedure"
+msgstr "proseduuri"
+
+#: ctagskinds.cpp:100
+msgctxt "Tag Type"
+msgid "mixin"
+msgstr "mixin"
+
+#: ctagskinds.cpp:103
+msgctxt "Tag Type"
+msgid "set"
+msgstr "aseta"
+
+#: gotosymbolmodel.cpp:67
+#, kde-format
+msgid "CTags executable not found."
+msgstr "CTags-ohjelmatiedostoa ei löytynyt."
+
+#: gotosymbolmodel.cpp:80
+#, kde-format
+msgid "CTags executable failed to execute."
+msgstr "CTags-ohjelmatiedoston suorittaminen epäonnistui."
+
+#: gotosymbolmodel.cpp:148
+#, kde-format
+msgid "CTags was unable to parse this file."
+msgstr "CTags ei kyennyt jäsentämään tiedostoa."
+
+#: gotosymbolwidget.cpp:252
+#, kde-format
+msgid ""
+"Tags file not found. Please generate one manually or using the CTags plugin"
+msgstr ""
+"Tags-tiedostoa ei löytynyt. Luo se itse tai käyttäen CTags-liitännäistä"
+
+#: gotosymbolwidget.cpp:321
+#, kde-format
+msgid "File for '%1' not found."
+msgstr "Tiedostoa ei löytynyt: ”%1”."
+
+#. i18n: ectx: attribute (title), widget (QWidget, widget)
+#: kate_ctags.ui:36
+#, kde-format
+msgid "Lookup"
+msgstr "Haku"
+
+#. i18n: ectx: property (text), widget (QPushButton, updateButton)
+#. i18n: ectx: property (text), widget (QPushButton, updateButton2)
+#: kate_ctags.ui:61 kate_ctags.ui:146
+#, kde-format
+msgid "Update Index"
+msgstr "Päivitysindeksi"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, tagTreeWidget)
+#: kate_ctags.ui:75
+#, kde-format
+msgid "Tag"
+msgstr "Tunniste"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, tagTreeWidget)
+#: kate_ctags.ui:80
+#, kde-format
+msgid "Type"
+msgstr "Tyyppi"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, tagTreeWidget)
+#: kate_ctags.ui:85
+#, kde-format
+msgid "File"
+msgstr "Tiedosto"
+
+#. i18n: ectx: attribute (title), widget (QWidget, targets)
+#: kate_ctags.ui:94
+#, kde-format
+msgid "Index Targets"
+msgstr "Indeksikohteet"
+
+#. i18n: ectx: attribute (title), widget (QWidget, database)
+#: kate_ctags.ui:154
+#, kde-format
+msgid "Database"
+msgstr "Tietokanta"
+
+#. i18n: ectx: property (text), widget (QLabel, fileLabel)
+#: kate_ctags.ui:172
+#, kde-format
+msgid "CTags database file"
+msgstr "CTags-tietokantatiedosto"
+
+#. i18n: ectx: property (toolTip), widget (QToolButton, resetCMD)
+#: kate_ctags.ui:215
+#, kde-format
+msgid "Revert to the default command"
+msgstr "Palauta oletuskomento"
+
+#. i18n: ectx: property (text), widget (QToolButton, resetCMD)
+#: kate_ctags.ui:218
+#, kde-format
+msgid "..."
+msgstr "…"
+
+#: kate_ctags_plugin.cpp:75 kate_ctags_view.cpp:117
+#, kde-format
+msgid "Add a directory to index."
+msgstr "Lisää hakemisto indeksiin."
+
+#: kate_ctags_plugin.cpp:78 kate_ctags_view.cpp:120
+#, kde-format
+msgid "Remove a directory."
+msgstr "Poista hakemisto."
+
+#: kate_ctags_plugin.cpp:81
+#, kde-format
+msgid "(Re-)generate the common CTags database."
+msgstr "Tuota (uudelleen) yhteinen CTags-tietokanta."
+
+#: kate_ctags_plugin.cpp:99 kate_ctags_view.cpp:54 kate_ctags_view.cpp:61
+#: kate_ctags_view.cpp:104 kate_ctags_view.cpp:142 kate_ctags_view.cpp:550
+#: kate_ctags_view.cpp:563 kate_ctags_view.cpp:576 kate_ctags_view.cpp:580
+#, kde-format
+msgid "CTags"
+msgstr "CTags"
+
+#: kate_ctags_plugin.cpp:105
+#, kde-format
+msgid "CTags Settings"
+msgstr "CTags-asetukset"
+
+#: kate_ctags_plugin.cpp:228 kate_ctags_view.cpp:561
+#, kde-format
+msgid "Failed to run. Error: %1, exit code: %2"
+msgstr "Suoritus epäonnistui. Virhe: %1, paluukoodi: %2"
+
+#: kate_ctags_plugin.cpp:239
+#, kde-format
+msgid "The CTags executable crashed."
+msgstr "CTags-suoritettava tiedosto kaatui."
+
+#: kate_ctags_plugin.cpp:241
+#, kde-format
+msgid "The CTags command exited with code %1"
+msgstr "CTags-komento päättyi arvolla %1"
+
+#: kate_ctags_view.cpp:65
+#, kde-format
+msgid "Jump back one step"
+msgstr "Hyppää takaisinpäin yksi askel"
+
+#: kate_ctags_view.cpp:69
+#, kde-format
+msgid "Go to Declaration"
+msgstr "Siirry esittelyyn"
+
+#: kate_ctags_view.cpp:73
+#, kde-format
+msgid "Go to Definition"
+msgstr "Siirry määrittelyyn"
+
+#: kate_ctags_view.cpp:77
+#, kde-format
+msgid "Lookup Current Text"
+msgstr "Hae nykyistä tekstiä"
+
+#: kate_ctags_view.cpp:81
+#, kde-format
+msgid "Configure ..."
+msgstr "Asetukset …"
+
+#: kate_ctags_view.cpp:96
+#, kde-format
+msgctxt "@title:window"
+msgid "Configure CTags Plugin"
+msgstr "CTags-liitännäisen asetukset"
+
+#: kate_ctags_view.cpp:107 kate_ctags_view.cpp:196
+#, kde-format
+msgid "Go to Declaration: %1"
+msgstr "Siirry esittelyyn: %1"
+
+#: kate_ctags_view.cpp:108 kate_ctags_view.cpp:197
+#, kde-format
+msgid "Go to Definition: %1"
+msgstr "Siirry määrittelyyn: %1"
+
+#: kate_ctags_view.cpp:109 kate_ctags_view.cpp:198
+#, kde-format
+msgid "Lookup: %1"
+msgstr "Haku: %1"
+
+#: kate_ctags_view.cpp:123 kate_ctags_view.cpp:126
+#, kde-format
+msgid "(Re-)generate the session specific CTags database."
+msgstr "Tuota (uudelleen) istuntokohtainen CTags-tietokanta."
+
+#: kate_ctags_view.cpp:131
+#, kde-format
+msgid "Select new or existing database file."
+msgstr "Valitse uusi tai olemassa oleva tietokantatiedosto."
+
+#: kate_ctags_view.cpp:147
+#, kde-format
+msgid "Go To Local Symbol"
+msgstr "Siirry paikalliseen symboliin"
+
+#: kate_ctags_view.cpp:152
+#, kde-format
+msgid "Go To Global Symbol"
+msgstr "Siirry globaaliin symboliin"
+
+#: kate_ctags_view.cpp:325 kate_ctags_view.cpp:358
+#, kde-format
+msgid "No hits found"
+msgstr "Osumia ei löytynyt"
+
+#: kate_ctags_view.cpp:550
+#, kde-format
+msgid "No folders or files to index"
+msgstr "Ei indeksoitavia kansioita tai tiedostoja"
+
+#: kate_ctags_view.cpp:576
+#, kde-format
+msgid "The CTags executable crashed"
+msgstr "CTags-ohjelmatiedosto kaatui"
+
+#: kate_ctags_view.cpp:578
+#, kde-format
+msgid "The CTags program exited with code %2: %1"
+msgstr "CTags-ohjelma päättyi arvoon %2: %1"
+
+#~ msgid "Failed to run \"%1\". exitStatus = %2"
+#~ msgstr "Komennon ”%1” suorittaminen epäonnistui. exitStatus = %2"
+
+#~ msgctxt "NAME OF TRANSLATORS"
+#~ msgid "Your names"
+#~ msgstr "Tommi Nieminen"
+
+#~ msgctxt "EMAIL OF TRANSLATORS"
+#~ msgid "Your emails"
+#~ msgstr "translator@legisign.org"
+
+#~ msgid "Kate CTags"
+#~ msgstr "Kate CTags"

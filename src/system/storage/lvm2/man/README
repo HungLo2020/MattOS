@@ -1,0 +1,102 @@
+Man Page Source Files
+=====================
+
+This directory contains the source files used to build LVM2 and
+device-mapper man pages.  The final installable man pages (e.g.
+lvcreate.8, lvm.conf.5) are generated at build time and are not
+stored in the repository.
+
+File suffixes
+-------------
+
+*_main
+    Hand-written, complete man page source in nroff format.
+    Used for pages whose content is entirely static: conceptual
+    topics (lvmraid.7_main, lvmcache.7_main, ...), configuration
+    files (lvm.conf.5_main), daemons (dmeventd.8_main, ...),
+    and tools whose option set is not auto-generated (dmsetup.8_main,
+    fsadm.8_main, ...).
+
+*_des
+    Short description text for commands whose man page is partially
+    auto-generated.  Contains an introductory paragraph that appears
+    after the auto-generated SYNOPSIS section.  Every _des file has
+    a matching _end file.
+
+*_end
+    Trailing content (typically an EXAMPLES section) appended after
+    the auto-generated option descriptions.  Paired 1:1 with _des
+    files.
+
+see_also.end
+    Common "SEE ALSO" section shared by all auto-generated command
+    pages.  Appended after the _end content.
+
+*_meta
+    Metadata about a man page used for index and category generation.
+    Contains key=value pairs:
+      category = <name>    Category for the categorized index.
+      conditional = yes    Optional.  Marks the entry as conditional.
+                           When pregenerated pages are used (cross-
+                           compilation), entries for man pages not
+                           enabled by the current configure are
+                           filtered out.
+    Every man page has a _meta file, including builtin commands that
+    have no dedicated man page of their own (e.g. config.8_meta,
+    help.8_meta).
+
+*_gen
+    Intermediate generated files produced during the build.  Created
+    by the man-generator tool (or copied from _pregen fallbacks).
+    Not stored in the repository.
+
+*_pregen
+    Pre-generated fallback content committed to the repository.
+    Used when the man-generator tool cannot be built or fails to
+    run (the Makefile checks for this via the test.gen probe).
+    Regenerated with "make generate" and should be kept in sync
+    with any source changes.
+
+test.gen
+    Build-time probe file.  The Makefile runs man-generator once
+    at the start and writes the output to test.gen.  If the file
+    has content, the generator is functional and is used to produce
+    _gen files.  If it is empty, the build falls back to the
+    committed _pregen files instead.  Not stored in the repository.
+
+.5, .7, .8
+    Final installable man pages.  Built from _main or _gen files
+    by substituting version/path placeholders (SUBSTVARS) and
+    escaping hyphens (ESCAPEHYPHENS).  These are build artifacts,
+    listed in CLEAN_TARGETS, and not stored in the repository.
+
+Build pipeline
+--------------
+
+Static pages (_main based):
+
+    *_main  -->  SUBSTVARS  -->  ESCAPEHYPHENS  -->  *.5 / *.7 / *.8
+
+Auto-generated command pages (_des + _end based):
+
+    *_des + *_end + see_also.end
+        --> man-generator --primary / --secondary
+        --> *_gen
+        --> SUBSTVARS  -->  ESCAPEHYPHENS  -->  *.8
+
+    If the generator is unavailable, *_pregen is used in place
+    of the generation step.
+
+Index and category pages (_meta based):
+
+    *_meta files
+        --> man-generator --index / --categories
+        --> *_gen
+        --> SUBSTVARS  -->  ESCAPEHYPHENS  -->  *.7
+
+    If the generator is unavailable, *_pregen is used in place
+    of the generation step.  The pregenerated index and category
+    files contain all possible entries (full configuration) with
+    condition markers around optional entries.  At build time,
+    entries for man pages not enabled by configure are filtered
+    out.

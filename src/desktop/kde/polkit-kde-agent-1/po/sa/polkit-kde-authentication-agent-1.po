@@ -1,0 +1,137 @@
+# Copyright (C) 2024 This file is copyright:
+# This file is distributed under the same license as the polkit-kde-agent-1 package.
+#
+# SPDX-FileCopyrightText: 2024 kali <skkalwar999@gmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: polkit-kde-agent-1\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-11-17 11:54+0000\n"
+"PO-Revision-Date: 2024-12-24 20:39+0530\n"
+"Last-Translator: kali <shreekantkalwar@gmail.com>\n"
+"Language-Team: Sanskrit <kde-i18n-doc@kde.org>\n"
+"Language: sa\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n>2);\n"
+"X-Generator: Lokalize 24.08.2\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "श्रीकान्त् कलवार्"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "skkalwar999@gmail.com"
+
+#: IdentitiesModel.cpp:27
+#, kde-format
+msgid "Select User"
+msgstr "उपयोक्तारं चिनोतु"
+
+#: IdentitiesModel.cpp:45
+#, kde-format
+msgctxt "%1 is the full user name, %2 is the user login name"
+msgid "%1 (%2)"
+msgstr "%1 (%2)"
+
+#: main.cpp:48
+#, kde-format
+msgid "(c) 2009 Red Hat, Inc."
+msgstr "(c) २००९ Red Hat, Inc."
+
+#: main.cpp:49
+#, kde-format
+msgid "Lukáš Tinkl"
+msgstr "लुकाश टिङ्क्ल्"
+
+#: main.cpp:49
+#, kde-format
+msgid "Maintainer"
+msgstr "परिपालकः"
+
+#: main.cpp:50
+#, kde-format
+msgid "Jaroslav Reznik"
+msgstr "जारोस्लाव रेज्निक"
+
+#: main.cpp:50
+#, kde-format
+msgid "Former maintainer"
+msgstr "पूर्व परिपालनकर्ता"
+
+#: policykitlistener.cpp:90
+#, kde-format
+msgid "Another client is already authenticating, please try again later."
+msgstr "अन्यः ग्राहकः पूर्वमेव प्रमाणीकरणं कुर्वन् अस्ति, कृपया पश्चात् पुनः प्रयासं कुर्वन्तु ।."
+
+#: policykitlistener.cpp:97
+#, kde-format
+msgctxt "Error response when polkit calls us with an empty list of identities"
+msgid "No user to authenticate as. Please check your system configuration."
+msgstr "यथा प्रमाणीकरणं कर्तुं कोऽपि उपयोक्ता नास्ति। कृपया स्वस्य प्रणालीविन्यासं पश्यन्तु ।"
+
+#: qml/MobileQuickAuthDialog.qml:16 qml/MobileQuickAuthDialog.qml:108
+#: qml/QuickAuthDialog.qml:16 QuickAuthDialog.cpp:110
+#, kde-format
+msgid "Authentication Required"
+msgstr "प्रमाणीकरणम् आवश्यकम्"
+
+#: qml/MobileQuickAuthDialog.qml:57 qml/QuickAuthDialog.qml:72
+#, kde-format
+msgid "Authentication failure, please try again."
+msgstr "प्रमाणीकरणविफलता, कृपया पुनः प्रयासं कुर्वन्तु ।"
+
+#: qml/MobileQuickAuthDialog.qml:141
+#, kde-format
+msgid "User: %1"
+msgstr "उपयोक्ता: %1"
+
+#: qml/MobileQuickAuthDialog.qml:146 qml/QuickAuthDialog.qml:181
+#, kde-format
+msgid "Switch…"
+msgstr "नुदति…"
+
+#: qml/MobileQuickAuthDialog.qml:167 qml/QuickAuthDialog.qml:201
+#, kde-format
+msgid "Password…"
+msgstr "समाभाष्…"
+
+#: qml/MobileQuickAuthDialog.qml:175 qml/QuickAuthDialog.qml:210
+#, kde-format
+msgid "Details"
+msgstr "वर्णन"
+
+#: qml/MobileQuickAuthDialog.qml:185 qml/QuickAuthDialog.qml:222
+#, kde-format
+msgid "OK"
+msgstr "अस्तु"
+
+#: qml/MobileQuickAuthDialog.qml:191 qml/QuickAuthDialog.qml:228
+#, kde-format
+msgid "Cancel"
+msgstr "निरसयतु"
+
+#: qml/MobileQuickAuthDialog.qml:201 qml/QuickAuthDialog.qml:240
+#, kde-format
+msgid "Action:"
+msgstr "नामपत्र:"
+
+#: qml/MobileQuickAuthDialog.qml:205 qml/QuickAuthDialog.qml:244
+#, kde-format
+msgid "ID:"
+msgstr "आईडी :"
+
+#: qml/MobileQuickAuthDialog.qml:209 qml/QuickAuthDialog.qml:248
+#, kde-format
+msgid "Vendor:"
+msgstr "व:"
+
+#: qml/QuickAuthDialog.qml:175
+#, kde-format
+msgid "Authenticating as %1"
+msgstr "%1 इति प्रमाणीकरणम्"

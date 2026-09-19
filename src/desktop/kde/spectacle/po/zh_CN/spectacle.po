@@ -1,0 +1,2384 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: kdeorg\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-04-25 02:46+0000\n"
+"PO-Revision-Date: 2024-04-22 15:58\n"
+"Last-Translator: \n"
+"Language-Team: Chinese Simplified\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Crowdin-Project: kdeorg\n"
+"X-Crowdin-Project-ID: 269464\n"
+"X-Crowdin-Language: zh-CN\n"
+"X-Crowdin-File: /kf6-stable/messages/spectacle/spectacle.pot\n"
+"X-Crowdin-File-ID: 51636\n"
+
+#, kde-format
+msgctxt "translatable folder name"
+msgid "Screenshots"
+msgstr "屏幕截图"
+
+#, kde-format
+msgctxt "part of default image filename template"
+msgid "Screenshot"
+msgstr "屏幕截图"
+
+#, kde-format
+msgctxt "translatable folder name"
+msgid "Screencasts"
+msgstr "屏幕录像"
+
+#, kde-format
+msgctxt "part of default video filename template"
+msgid "Screencast"
+msgstr "屏幕录像"
+
+#: src/CaptureModeModel.cpp:162
+#, kde-format
+msgctxt "@action in capture mode section"
+msgid "Rectangular Region"
+msgstr "绘制矩形区域"
+
+#: src/CaptureModeModel.cpp:164
+#, kde-format
+msgctxt "@action in capture mode section"
+msgid "All Screens (Scaled to same size)"
+msgstr "所有屏幕 (缩放到相同大小)"
+
+#: src/CaptureModeModel.cpp:166
+#, kde-format
+msgctxt "@action in capture mode section"
+msgid "Current Screen"
+msgstr "当前屏幕"
+
+#: src/CaptureModeModel.cpp:168
+#, kde-format
+msgctxt "@action in capture mode section"
+msgid "Active Window"
+msgstr "活动窗口"
+
+#: src/CaptureModeModel.cpp:171
+#, kde-format
+msgctxt "@action in capture mode section"
+msgid "Select Window"
+msgstr "选择窗口"
+
+#: src/CaptureModeModel.cpp:171
+#, kde-format
+msgctxt "@action in capture mode section"
+msgid "Window Under Cursor"
+msgstr "光标所在窗口"
+
+#: src/CaptureModeModel.cpp:174
+#, kde-format
+msgctxt "@action in capture mode section"
+msgid "All Screens"
+msgstr "所有屏幕"
+
+#: src/CaptureModeModel.cpp:176
+#, kde-format
+msgctxt "@action in capture mode section"
+msgid "Full Screen"
+msgstr "全屏"
+
+#: src/CommandLineOptions.h:22
+#, kde-format
+msgid "Capture the entire desktop (default)"
+msgstr "截取整个桌面 (默认)"
+
+#: src/CommandLineOptions.h:26
+#, kde-format
+msgid "Capture the current monitor"
+msgstr "截取当前屏幕"
+
+#: src/CommandLineOptions.h:30
+#, kde-format
+msgid "Capture the active window"
+msgstr "截取活动窗口"
+
+#: src/CommandLineOptions.h:34
+#, kde-format
+msgid ""
+"Capture the window currently under the cursor, including parents of pop-up "
+"menus"
+msgstr "截取鼠标光标所在的窗口，包括弹出菜单的父窗口元素"
+
+#: src/CommandLineOptions.h:38
+#, kde-format
+msgid ""
+"Capture the window currently under the cursor, excluding parents of pop-up "
+"menus"
+msgstr "截取鼠标光标所在的窗口，不包括父窗口的弹出菜单"
+
+#: src/CommandLineOptions.h:42
+#, kde-format
+msgid "Capture a rectangular region of the screen"
+msgstr "截取屏幕中的一个矩形区域"
+
+#: src/CommandLineOptions.h:46
+#, kde-format
+msgid ""
+"Record the screen using the given mode. Modes:\n"
+"- r, region\n"
+"- s, screen\n"
+"- w, window"
+msgstr ""
+"录制屏幕显示内容。可以选择以下录制模式：\n"
+"- r, region\n"
+"- s, screen\n"
+"- w, window"
+
+#: src/CommandLineOptions.h:54
+#, kde-format
+msgid "Launch Spectacle without taking a screenshot"
+msgstr "启动 Spectacle，但不截图"
+
+#: src/CommandLineOptions.h:58
+#, kde-format
+msgid "Start in GUI mode (default)"
+msgstr "启动到图形界面模式 (默认)"
+
+#: src/CommandLineOptions.h:62
+#, kde-format
+msgid "Take a screenshot and exit without showing the GUI"
+msgstr "截图后自动退出，不显示图形界面"
+
+#: src/CommandLineOptions.h:66
+#, kde-format
+msgid "Start in DBus-Activation mode"
+msgstr "启动到 DBus 激活模式"
+
+#: src/CommandLineOptions.h:70
+#, kde-format
+msgid ""
+"In background mode, do not pop up a notification when the screenshot is taken"
+msgstr "在后台模式下，截图时不弹出通知"
+
+#: src/CommandLineOptions.h:74
+#, kde-format
+msgid "In background mode, save image to specified file"
+msgstr "在后台模式下，将图像保存到指定的文件"
+
+#: src/CommandLineOptions.h:79
+#, kde-format
+msgid "In background mode, delay before taking the shot (in milliseconds)"
+msgstr "在后台模式下，截图前的延迟时间 (毫秒)"
+
+#: src/CommandLineOptions.h:84
+#, kde-format
+msgid ""
+"In background mode, copy screenshot image to clipboard, unless -o is also "
+"used."
+msgstr ""
+"在后台模式下，在后台模式下，将截图复制到剪贴板，除非同时使用了 -o 参数。"
+
+#: src/CommandLineOptions.h:88
+#, kde-format
+msgid "In background mode, copy screenshot file path to clipboard"
+msgstr "在后台模式下，将截图文件路径复制到剪贴板"
+
+#: src/CommandLineOptions.h:92
+#, kde-format
+msgid "Wait for a click before taking screenshot. Invalidates delay"
+msgstr "截图前等待鼠标点击。延迟设置将被忽略"
+
+#: src/CommandLineOptions.h:96
+#, kde-format
+msgid "Starts a new GUI instance of spectacle without registering to DBus"
+msgstr "启动一个新的 Spectacle 图形界面实例，但不在 DBus 中注册。"
+
+#: src/CommandLineOptions.h:100
+#, kde-format
+msgid "In background mode, include pointer in the screenshot"
+msgstr "在后台模式下，屏幕截图中包含指针"
+
+#: src/CommandLineOptions.h:104
+#, kde-format
+msgid "In background mode, exclude decorations in the screenshot"
+msgstr "在后台模式下，屏幕截图中不包含窗口装饰"
+
+#: src/CommandLineOptions.h:106
+#, kde-format
+msgid "In background mode, exclude shadows in the screenshot"
+msgstr "在后台模式下，屏幕截图中不包含窗口阴影"
+
+#: src/CommandLineOptions.h:109
+#, kde-format
+msgid "Open and edit existing screenshot file"
+msgstr "打开并编辑已有截图文件"
+
+#: src/ExportManager.cpp:460
+#, kde-format
+msgctxt "%1 is an error message"
+msgid "QImageWriter cannot write image: %1"
+msgstr "QImageWriter 无法写入图像：%1"
+
+#: src/ExportManager.cpp:476
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Cannot save screenshot because creating the directory failed:<nl/><filename>"
+"%1</filename>"
+msgstr ""
+"无法保存截图，因为无法创建目录：\n"
+"<nl/><filename>%1</filename>"
+
+#: src/ExportManager.cpp:486
+#, kde-format
+msgid "Cannot save screenshot. Error while writing file."
+msgstr "无法保存屏幕截图。写入文件时出错。"
+
+#: src/ExportManager.cpp:506
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Cannot save screenshot because creating the remote directory failed:<nl/"
+"><filename>%1</filename>"
+msgstr ""
+"无法保存截图，因为无法创建远程目录：\n"
+"<nl/><filename>%1</filename>"
+
+#: src/ExportManager.cpp:517 src/ExportManager.cpp:566
+#, kde-format
+msgid "Cannot save screenshot. Error while writing temporary local file."
+msgstr "无法保存屏幕截图。写入本地临时文件时出错。"
+
+#: src/ExportManager.cpp:525
+#, kde-format
+msgid "Unable to save image. Could not upload file to remote location."
+msgstr "无法保存图像。无法上传至远程地址。"
+
+#: src/ExportManager.cpp:573
+#, kde-format
+msgid "Cannot save screenshot. The save filename is invalid."
+msgstr "无法保存屏幕截图。该文件名无效。"
+
+#: src/ExportManager.cpp:617
+#, kde-format
+msgid "Cannot save an empty screenshot image."
+msgstr "无法保存空白截屏图像。"
+
+#: src/ExportManager.cpp:780
+#, kde-format
+msgctxt "@info:shell"
+msgid ""
+"Failed to export video: Temporary file URL must be an existing local file"
+msgstr "导出视频失败：临时文件 URL 必须是现有的本地文件"
+
+#: src/ExportManager.cpp:787
+#, kde-format
+msgctxt "@info:shell"
+msgid ""
+"Failed to export video: Output file URL must be a valid URL with a file name"
+msgstr "导出视频失败：输出文件 URL 必须是一个具有文件名的有效 URL"
+
+#: src/ExportManager.cpp:873
+#, kde-format
+msgctxt "@info, %1 is a file path"
+msgid "Unable to save recording. Could not move file to location: %1"
+msgstr "无法保存录像。无法移动文件到位置：%1"
+
+#: src/ExportManager.cpp:901
+#, kde-format
+msgid "Printing failed. The printer failed to initialize."
+msgstr "无法打印。打印机初始化失败。"
+
+#: src/ExportManager.cpp:918
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Day (1–31)"
+msgstr "日 (1–31)"
+
+#: src/ExportManager.cpp:919
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Day (01–31)"
+msgstr "日 (01–31)"
+
+#: src/ExportManager.cpp:920
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Day (short name)"
+msgstr "日 (简称)"
+
+#: src/ExportManager.cpp:921
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Day (long name)"
+msgstr "日 (全称)"
+
+#: src/ExportManager.cpp:922
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Month (1–12)"
+msgstr "月 (1–12)"
+
+#: src/ExportManager.cpp:923
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Month (01–12)"
+msgstr "月 (01–12)"
+
+#: src/ExportManager.cpp:924
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Month (short name)"
+msgstr "月 (简称)"
+
+#: src/ExportManager.cpp:925
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Month (long name)"
+msgstr "月 (全称)"
+
+#: src/ExportManager.cpp:926
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Year (2 digit)"
+msgstr "年 (两位数)"
+
+#: src/ExportManager.cpp:927
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Year (4 digit)"
+msgstr "年 (四位数)"
+
+#: src/ExportManager.cpp:928
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Hour (0–23)"
+msgstr "时 (0–23)"
+
+#: src/ExportManager.cpp:929
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Hour (00–23)"
+msgstr "时 (00–23)"
+
+#: src/ExportManager.cpp:930
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Hour (1–12)"
+msgstr "时 (1–12)"
+
+#: src/ExportManager.cpp:931
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Hour (01–12)"
+msgstr "时 (01–12)"
+
+#: src/ExportManager.cpp:932
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Minute (0–59)"
+msgstr "分 (0–59)"
+
+#: src/ExportManager.cpp:933
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Minute (00–59)"
+msgstr "分 (00–59)"
+
+#: src/ExportManager.cpp:934
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Second (0–59)"
+msgstr "秒 (0–59)"
+
+#: src/ExportManager.cpp:935
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Second (00–59)"
+msgstr "秒 (00–59)"
+
+#: src/ExportManager.cpp:936
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Millisecond (0–999)"
+msgstr "毫秒 (0–999)"
+
+#: src/ExportManager.cpp:938
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Millisecond (000–999)"
+msgstr "毫秒 (000–999)"
+
+#: src/ExportManager.cpp:939
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "AM/PM"
+msgstr "AM/PM"
+
+#: src/ExportManager.cpp:941
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "am/pm"
+msgstr "am/pm"
+
+#: src/ExportManager.cpp:943
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "AM/PM or am/pm (localized)"
+msgstr "AM/PM 或 am/pm (本地化)"
+
+#: src/ExportManager.cpp:945
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Timezone (short name)"
+msgstr "时区 (简称)"
+
+#: src/ExportManager.cpp:946
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Timezone offset (±0000)"
+msgstr "时区偏移 (±0000)"
+
+#: src/ExportManager.cpp:947
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Timezone offset (±00:00)"
+msgstr "时区偏移 (±00:00)"
+
+#: src/ExportManager.cpp:948
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Timezone (long name)"
+msgstr "时区 (全称)"
+
+#: src/ExportManager.cpp:949
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Seconds since the Unix epoch"
+msgstr "Unix 时间戳起计的秒数"
+
+#: src/ExportManager.cpp:950
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Window Title"
+msgstr "窗口标题"
+
+#: src/ExportManager.cpp:951
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Sequential numbering, padded by inserting additional '#' characters"
+msgstr "序列式编号，插入额外的“#”字符可增加位数。"
+
+#: src/Gui/AcceptAction.qml:9
+#, kde-format
+msgctxt "@action accept selection"
+msgid "Accept"
+msgstr "接受"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:56
+#, kde-format
+msgid "Stroke:"
+msgstr "线条："
+
+#. i18n uses so it doesn't matter that much
+#. unless someone decides to set the locale for a specific
+#. part of spectacle in the future.
+#: src/Gui/AnnotationOptionsToolBarContents.qml:88
+#, kde-format
+msgctxt "px: pixels"
+msgid "%1px"
+msgid_plural "%1px"
+msgstr[0] "%1 像素"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:93
+#, kde-format
+msgid "Stroke Width"
+msgstr "线条宽度"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:126
+#, kde-format
+msgid "Stroke Color"
+msgstr "线条颜色"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:162
+#, kde-format
+msgid "Fill:"
+msgstr "填充："
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:174
+#, kde-format
+msgid "Fill Color"
+msgstr "填充颜色"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:213
+#, kde-format
+msgctxt "@label:slider strength of effect"
+msgid "Strength:"
+msgstr "强度："
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:232
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "The strength of the effect."
+msgstr "效果的强度。"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:259
+#, kde-format
+msgid "Font:"
+msgstr "字体："
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:273
+#, kde-format
+msgctxt "%2 font family, %3 font style name, %1 font point size"
+msgid "%2 %3 %1pt"
+msgid_plural "%2 %3 %1pts"
+msgstr[0] "%2 %3 %1 点"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:274
+#, kde-format
+msgctxt "%2 font family %1 font point size"
+msgid "%2 %1pt"
+msgid_plural "%2 %1pts"
+msgstr[0] "%2 %1 点"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:286
+#, kde-format
+msgid "Font Color"
+msgstr "字体颜色"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:325
+#, kde-format
+msgid "Number:"
+msgstr "数字："
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:344
+#, kde-format
+msgid "Number for number annotations"
+msgstr "数字标注的数字"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:372
+#, kde-format
+msgid "Shadow"
+msgstr "投影"
+
+#: src/Gui/AnnotationsToolBarContents.qml:108
+#, kde-format
+msgctxt "@action:intoolbar no tool, to allow dragging"
+msgid "None"
+msgstr "无"
+
+#: src/Gui/AnnotationsToolBarContents.qml:120
+#, kde-format
+msgctxt "@action:intoolbar crop image tool"
+msgid "Crop"
+msgstr "裁剪"
+
+#: src/Gui/AnnotationsToolBarContents.qml:127
+#, kde-format
+msgctxt "@action:intoolbar select annotation tool"
+msgid "Select"
+msgstr "选择"
+
+#: src/Gui/AnnotationsToolBarContents.qml:136
+#, kde-format
+msgctxt "@action:intoolbar freehand line tool"
+msgid "Freehand"
+msgstr "手绘"
+
+#: src/Gui/AnnotationsToolBarContents.qml:137
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Shift: Snap to straight lines"
+msgstr "Shift：吸附到直线"
+
+#: src/Gui/AnnotationsToolBarContents.qml:144
+#, kde-format
+msgctxt "@action:intoolbar highlighter line tool"
+msgid "Highlighter"
+msgstr "高亮笔"
+
+#: src/Gui/AnnotationsToolBarContents.qml:153
+#, kde-format
+msgctxt "@action:intoolbar straight line tool"
+msgid "Line"
+msgstr "直线"
+
+#: src/Gui/AnnotationsToolBarContents.qml:154
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Shift: Snap to 45 degree increments"
+msgstr "Shift：吸附到 45 度增量"
+
+#: src/Gui/AnnotationsToolBarContents.qml:161
+#, kde-format
+msgctxt "@action:intoolbar arrow line tool"
+msgid "Arrow"
+msgstr "箭头"
+
+#: src/Gui/AnnotationsToolBarContents.qml:170
+#, kde-format
+msgctxt "@action:intoolbar rectangle tool"
+msgid "Rectangle"
+msgstr "矩形"
+
+#: src/Gui/AnnotationsToolBarContents.qml:172
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Shift: Snap to diagonal movements\n"
+"Control: Resize from center"
+msgstr ""
+"按住 Shift 键：吸附到对角线方向\n"
+"按住 Ctrl 键：以中心为参照点调整大小"
+
+#: src/Gui/AnnotationsToolBarContents.qml:179
+#, kde-format
+msgctxt "@action:intoolbar ellipse tool"
+msgid "Ellipse"
+msgstr "椭圆形"
+
+#: src/Gui/AnnotationsToolBarContents.qml:187
+#, kde-format
+msgctxt "@action:intoolbar pixelate tool"
+msgid "Pixelate"
+msgstr "马赛克"
+
+#: src/Gui/AnnotationsToolBarContents.qml:195
+#, kde-format
+msgctxt "@action:intoolbar blur tool"
+msgid "Blur"
+msgstr "模糊"
+
+#: src/Gui/AnnotationsToolBarContents.qml:203
+#, kde-format
+msgctxt "@action:intoolbar text tool"
+msgid "Text"
+msgstr "文本"
+
+#: src/Gui/AnnotationsToolBarContents.qml:210
+#, kde-format
+msgctxt "@action:intoolbar number stamp tool"
+msgid "Number"
+msgstr "数字"
+
+#: src/Gui/CancelAction.qml:9
+#, kde-format
+msgctxt "@action cancel selection"
+msgid "Cancel"
+msgstr "取消"
+
+#: src/Gui/CaptureModeButtonsColumn.qml:31
+#: src/Gui/NewScreenshotToolButton.qml:15
+#, kde-format
+msgid "Cancel (%1 second)"
+msgid_plural "Cancel (%1 seconds)"
+msgstr[0] "取消 (%1 秒)"
+
+#: src/Gui/CaptureOptions.qml:17
+#, kde-format
+msgid "Take a new screenshot"
+msgstr "进行截图"
+
+#: src/Gui/CaptureOptions.qml:39
+#, kde-format
+msgctxt "@title:group"
+msgid "Screenshot Settings"
+msgstr "截图设置"
+
+#: src/Gui/CaptureOverlay.qml:148
+#, kde-format
+msgctxt "@info basic crop tool explanation"
+msgid "Click and drag to make a selection."
+msgstr "点击并拖拽以建立选区。"
+
+#: src/Gui/CaptureSettingsColumn.qml:16 src/Gui/RecordingSettingsColumn.qml:16
+#, kde-format
+msgid "Include mouse pointer"
+msgstr "包含鼠标指针"
+
+#: src/Gui/CaptureSettingsColumn.qml:17
+#, kde-format
+msgid "Show the mouse cursor in the screenshot image."
+msgstr "屏幕截图包含鼠标光标。"
+
+#: src/Gui/CaptureSettingsColumn.qml:25
+#, kde-format
+msgid "Include window titlebar and borders"
+msgstr "包含窗口标题栏和边框"
+
+#: src/Gui/CaptureSettingsColumn.qml:26
+#, kde-format
+msgid ""
+"Show the window title bar and border when taking a screenshot of a window."
+msgstr "窗口模式截图包含标题栏和边框。"
+
+#: src/Gui/CaptureSettingsColumn.qml:34
+#, kde-format
+msgid "Include window shadow"
+msgstr "包含窗口阴影"
+
+#: src/Gui/CaptureSettingsColumn.qml:35
+#, kde-format
+msgid "Show the window shadow when taking a screenshot of a window."
+msgstr "窗口模式截图包含窗口阴影。"
+
+#: src/Gui/CaptureSettingsColumn.qml:44
+#, kde-format
+msgid "Capture the current pop-up only"
+msgstr "仅截取当前弹出窗口"
+
+#: src/Gui/CaptureSettingsColumn.qml:46
+#, kde-format
+msgid ""
+"Capture only the current pop-up window (like a menu, tooltip etc) when "
+"taking a screenshot of a window. If disabled, the pop-up is captured along "
+"with the parent window."
+msgstr ""
+"窗口模式截图只截取当前弹出窗口 (如菜单，工具提示等)。如果禁用，将同时截取弹出"
+"窗口与它的父窗口。"
+
+#: src/Gui/CaptureSettingsColumn.qml:54
+#, kde-format
+msgid "Quit after manual Save or Copy"
+msgstr "手动保存或复制后退出"
+
+#: src/Gui/CaptureSettingsColumn.qml:55
+#, kde-format
+msgid "Quit Spectacle after manually saving or copying the image."
+msgstr "在手动保存或复制截图之后退出 Spectacle。"
+
+#: src/Gui/CaptureSettingsColumn.qml:64
+#, kde-format
+msgid "Capture on click"
+msgstr "点击时截图"
+
+#: src/Gui/CaptureSettingsColumn.qml:66
+#, kde-format
+msgid "Wait for a mouse click before capturing the screenshot image."
+msgstr "在鼠标点击时截取屏幕。"
+
+#: src/Gui/CaptureSettingsColumn.qml:76
+#, kde-format
+msgid "Delay:"
+msgstr "延迟："
+
+#: src/Gui/CopyImageAction.qml:13
+#, kde-format
+msgctxt "@action"
+msgid "Copy"
+msgstr "复制"
+
+#: src/Gui/CopyLocationAction.qml:9
+#, kde-format
+msgctxt "@action"
+msgid "Copy Location"
+msgstr "复制位置"
+
+#: src/Gui/DelaySpinBox.qml:15
+#, kde-format
+msgctxt "0 second delay"
+msgid "No Delay"
+msgstr "无延迟"
+
+#: src/Gui/DelaySpinBox.qml:24
+#, kde-format
+msgctxt "Integer number of seconds"
+msgid "%2 second"
+msgid_plural "%2 seconds"
+msgstr[0] "%2 秒"
+
+#: src/Gui/DelaySpinBox.qml:26
+#, kde-format
+msgctxt "Decimal number of seconds"
+msgid "%1 seconds"
+msgstr "%1 秒"
+
+#: src/Gui/DialogPage.qml:53
+#, kde-format
+msgid "Configure Spectacle…"
+msgstr "配置 Spectacle…"
+
+#: src/Gui/DialogPage.qml:61
+#, kde-format
+msgid "Help"
+msgstr "帮助"
+
+#: src/Gui/DialogPage.qml:80
+#, kde-format
+msgctxt "@title:group"
+msgid "Take a Screenshot:"
+msgstr "截图："
+
+#: src/Gui/DialogPage.qml:95 src/Gui/DialogPage.qml:136
+#, kde-format
+msgctxt "@title:group"
+msgid "Options"
+msgstr "选项"
+
+#: src/Gui/DialogPage.qml:121
+#, kde-format
+msgctxt "@title:group"
+msgid "Make a Recording:"
+msgstr "录屏："
+
+#: src/Gui/DialogPage.qml:163
+#, kde-format
+msgctxt "@title:tab"
+msgid "Screenshot"
+msgstr "屏幕截图"
+
+#: src/Gui/DialogPage.qml:168
+#, kde-format
+msgctxt "@title:tab"
+msgid "Recording"
+msgstr "屏幕录像"
+
+#: src/Gui/EditAction.qml:11
+#, kde-format
+msgctxt "@action edit screenshot"
+msgid "Edit…"
+msgstr "编辑…"
+
+#: src/Gui/ExportMenu.cpp:45
+#, kde-format
+msgctxt "@title:menu"
+msgid "Export"
+msgstr "导出"
+
+#: src/Gui/ExportMenu.cpp:48
+#, kde-format
+msgid "Open Default Screenshots Folder"
+msgstr "打开默认截图文件夹"
+
+#: src/Gui/ExportMenu.cpp:134
+#, kde-format
+msgctxt "@action:button open screenshot in other application"
+msgid "Other Application…"
+msgstr "其他应用程序…"
+
+#: src/Gui/ExportMenu.cpp:166
+#, kde-format
+msgid "Share"
+msgstr "分享"
+
+#: src/Gui/ExportMenu.cpp:259
+#, kde-format
+msgctxt "@action:menu"
+msgid "Extract Text by Language"
+msgstr "按语言提取文本"
+
+#: src/Gui/ExportMenu.cpp:295
+#, kde-format
+msgid "OCR engine is not available."
+msgstr "OCR 引擎不可用。"
+
+#: src/Gui/ExportMenu.cpp:303
+#, kde-format
+msgid "OCR is not available. Please install Tesseract OCR."
+msgstr "OCR 不可用。请安装 Tesseract OCR 。"
+
+#: src/Gui/ExportMenu.cpp:304
+#, kde-format
+msgid "OCR engine is initializing…"
+msgstr "OCR 引擎正在初始化…"
+
+#: src/Gui/ExportMenu.cpp:314
+#, kde-format
+msgid "No OCR language data available."
+msgstr "没有可用的 OCR 语言数据。"
+
+#: src/Gui/ExportMenuButton.qml:13
+#, kde-format
+msgctxt "@action"
+msgid "Export"
+msgstr "导出"
+
+#: src/Gui/HelpMenu.cpp:40
+#, kde-format
+msgctxt "@title:menu"
+msgid "Help"
+msgstr "帮助"
+
+#: src/Gui/HelpMenuButton.qml:10
+#, kde-format
+msgctxt "@action"
+msgid "Help"
+msgstr "帮助"
+
+#: src/Gui/InlineMessageList.qml:129
+#, kde-format
+msgctxt "@action:button"
+msgid "Open Containing Folder"
+msgstr "打开所在文件夹"
+
+#: src/Gui/InlineMessageList.qml:139
+#, kde-format
+msgctxt "@action:button"
+msgid "Copy to Clipboard"
+msgstr "复制到剪贴板"
+
+#: src/Gui/InlineMessageList.qml:149
+#, kde-format
+msgctxt "@action:button close inline notification"
+msgid "Close"
+msgstr "关闭"
+
+#: src/Gui/NewScreenshotToolButton.qml:27
+#, kde-format
+msgid "New Screenshot"
+msgstr "新建截图..."
+
+#: src/Gui/OcrAction.qml:15
+#, kde-format
+msgctxt "@action"
+msgid "Extract Text"
+msgstr "提取文本"
+
+#: src/Gui/OptionsMenu.cpp:38
+#, kde-format
+msgctxt "@title:menu"
+msgid "Screenshot Settings"
+msgstr "截图设置"
+
+#: src/Gui/OptionsMenu.cpp:40
+#, kde-format
+msgctxt "@option:check for screenshots"
+msgid "Include mouse pointer"
+msgstr "包含鼠标指针"
+
+#: src/Gui/OptionsMenu.cpp:41
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Show the mouse cursor in the screenshot image"
+msgstr "屏幕截图包含鼠标光标"
+
+#: src/Gui/OptionsMenu.cpp:49
+#, kde-format
+msgctxt "@option:check"
+msgid "Include window titlebar and borders"
+msgstr "包含窗口标题栏和边框"
+
+#: src/Gui/OptionsMenu.cpp:50
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Show the window title bar, the minimize/maximize/close buttons, and the "
+"window border"
+msgstr "显示窗口标题栏、最小化/最大化/关闭按钮、窗口边框等"
+
+#: src/Gui/OptionsMenu.cpp:58
+#, kde-format
+msgctxt "@option:check"
+msgid "Include window shadow"
+msgstr "包含窗口阴影"
+
+#: src/Gui/OptionsMenu.cpp:59
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Show the window shadow"
+msgstr "显示窗口阴影"
+
+#: src/Gui/OptionsMenu.cpp:69
+#, kde-format
+msgctxt "@option:check"
+msgid "Capture the current pop-up only"
+msgstr "仅截取当前弹出窗口"
+
+#: src/Gui/OptionsMenu.cpp:71
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Capture only the current pop-up window (like a menu, tooltip etc).\n"
+"If disabled, the pop-up is captured along with the parent window"
+msgstr ""
+"只截取当前弹出窗口 (如菜单，工具提示等)。\n"
+"如果禁用，弹出窗口将与父窗口一起截取。"
+
+#: src/Gui/OptionsMenu.cpp:81
+#, kde-format
+msgctxt "@option:check"
+msgid "Quit after manual Save or Copy"
+msgstr "手动保存或复制后退出"
+
+#: src/Gui/OptionsMenu.cpp:82
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Quit Spectacle after manually saving or copying the image"
+msgstr "在手动保存或复制图像之后退出 Spectacle"
+
+#: src/Gui/OptionsMenu.cpp:94
+#, kde-format
+msgctxt "@option:check"
+msgid "Capture On Click"
+msgstr "点击时截图"
+
+#: src/Gui/OptionsMenu.cpp:109
+#, kde-format
+msgctxt "@label:spinbox"
+msgid "Delay:"
+msgstr "延迟："
+
+#: src/Gui/OptionsMenu.cpp:114
+#, kde-format
+msgctxt "@item 0 delay special value"
+msgid "No Delay"
+msgstr "无延迟"
+
+#: src/Gui/OptionsMenu.cpp:133
+#, kde-format
+msgctxt "@title:menu"
+msgid "Recording Settings"
+msgstr "屏幕录像设置"
+
+#: src/Gui/OptionsMenu.cpp:135
+#, kde-format
+msgctxt "@option:check for recordings"
+msgid "Include mouse pointer"
+msgstr "包含鼠标指针"
+
+#: src/Gui/OptionsMenu.cpp:136
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Show the mouse cursor in the recording"
+msgstr "屏幕录像显示鼠标光标。"
+
+#: src/Gui/OptionsMenuButton.qml:10
+#, kde-format
+msgctxt "@action"
+msgid "Options"
+msgstr "选项"
+
+#: src/Gui/RecordAction.qml:11
+#, kde-format
+msgctxt "@action start recording"
+msgid "Record"
+msgstr "录制"
+
+#: src/Gui/RecordingModeMenu.cpp:16
+#, kde-format
+msgctxt "@title:menu"
+msgid "Recording Modes"
+msgstr "录制模式"
+
+#: src/Gui/RecordingModeMenuButton.qml:11
+#, kde-format
+msgctxt "@action select new recording mode"
+msgid "New Recording"
+msgstr "新建录屏"
+
+#: src/Gui/RecordingSettingsColumn.qml:17
+#, kde-format
+msgid "Show the mouse cursor in the screen recording."
+msgstr "屏幕录像包含鼠标光标。"
+
+#: src/Gui/RecordingView.qml:85
+#, kde-format
+msgctxt "Recording in progress, %1 is the length of the recording so far"
+msgid ""
+"Recording:\n"
+"%1"
+msgstr ""
+"正在录制：\n"
+"%1"
+
+#: src/Gui/RecordingView.qml:124
+#, kde-format
+msgid "Pause"
+msgstr "暂停"
+
+#: src/Gui/RecordingView.qml:124
+#, kde-format
+msgid "Play"
+msgstr "播放"
+
+#: src/Gui/RecordOptions.qml:23
+#, kde-format
+msgid "Recording Settings"
+msgstr "屏幕录像设置"
+
+#: src/Gui/RecordOptions.qml:37
+#, kde-format
+msgid "Finish recording"
+msgstr "结束录像"
+
+#: src/Gui/SaveAction.qml:13
+#, kde-format
+msgctxt "@action"
+msgid "Save"
+msgstr "保存"
+
+#: src/Gui/SaveAsAction.qml:9
+#, kde-format
+msgctxt "@action"
+msgid "Save As…"
+msgstr "另存为…"
+
+#: src/Gui/ScreenshotModeMenu.cpp:16
+#, kde-format
+msgctxt "@title:menu"
+msgid "Screenshot Modes"
+msgstr "截图模式"
+
+#: src/Gui/ScreenshotModeMenuButton.qml:11
+#, kde-format
+msgctxt "@action select new screenshot mode"
+msgid "New Screenshot"
+msgstr "新建截图..."
+
+#: src/Gui/ScreenshotView.qml:196
+#, kde-format
+msgctxt "@info crop tool explanation"
+msgid ""
+"Click and drag to make a selection.\n"
+"Double click the selection to accept and crop.\n"
+"Right click to clear the selection."
+msgstr ""
+"单击并拖动以建立选区。\n"
+"双击接受选区并进行剪切。\n"
+"右键单击以清除选区。"
+
+#. i18n: ectx: property (text), widget (QLabel, launchActionSpectacleLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:17
+#, kde-format
+msgid "When launching Spectacle:"
+msgstr "Spectacle 启动时："
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_launchAction)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:25
+#, kde-format
+msgid "Take rectangular screenshot"
+msgstr "对矩形区域截图"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_launchAction)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:30
+#, kde-format
+msgid "Take full screen screenshot"
+msgstr "全屏截图"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_launchAction)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:35
+#, kde-format
+msgid "Use last-used capture mode"
+msgstr "使用上次使用的模式截图"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_launchAction)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:40
+#, kde-format
+msgid "Do not take a screenshot automatically"
+msgstr "不自动截图"
+
+#. i18n: ectx: property (text), widget (QLabel, afterScreenshotLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:64
+#, kde-format
+msgid "After taking a screenshot:"
+msgstr "截图之后："
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_autoSaveImage)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:71
+#, kde-format
+msgid "Save file to default folder"
+msgstr "保存文件到默认文件夹"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_clipboardGroup)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:82
+#, kde-format
+msgid "Do not copy anything"
+msgstr "不复制截图"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_clipboardGroup)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:87
+#, kde-format
+msgid "Copy image to clipboard"
+msgstr "复制截图到剪贴板"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_clipboardGroup)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:92
+#, kde-format
+msgid "Copy file location to clipboard"
+msgstr "复制截图文件位置到剪贴板"
+
+#. i18n: ectx: property (text), widget (KTitleWidget, runningTitle)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:116
+#, kde-format
+msgid "While Spectacle is running"
+msgstr "Spectacle 运行时"
+
+#. i18n: ectx: property (text), widget (QLabel, printKeyActionLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:123
+#, kde-format
+msgid "Press screenshot key to:"
+msgstr "PrintScreen 键功能："
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_printKeyRunningAction)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:131
+#, kde-format
+msgid "Take a new Screenshot"
+msgstr "进行截图"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_printKeyRunningAction)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:136
+#, kde-format
+msgid "Open a new Spectacle window"
+msgstr "打开新的 Spectacle 窗口"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_printKeyRunningAction)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:141
+#, kde-format
+msgid "Return focus to Spectacle"
+msgstr "切换到 Spectacle 窗口"
+
+#. i18n: ectx: property (text), widget (KTitleWidget, regionTitle)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:165
+#, kde-format
+msgid "Rectangular Region Selection"
+msgstr "绘制矩形区域"
+
+#. i18n: ectx: property (text), widget (QLabel, generalLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:172
+#, kde-format
+msgid "General:"
+msgstr "常规设置："
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_useLightMaskColor)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:179
+#, kde-format
+msgid "Use light background"
+msgstr "使用浅色背景"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_useReleaseToCapture)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:186
+#, kde-format
+msgid "Accept on click-and-release"
+msgstr "拖动并松开后立即截图"
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:193
+#, kde-format
+msgid "Show magnifier:"
+msgstr "显示放大镜："
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_showMagnifier)
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_rememberSelectionRect)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:201
+#: src/Gui/SettingsDialog/GeneralOptions.ui:227
+#, kde-format
+msgid "Never"
+msgstr "从不"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_showMagnifier)
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_rememberSelectionRect)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:206
+#: src/Gui/SettingsDialog/GeneralOptions.ui:232
+#, kde-format
+msgid "Always"
+msgstr "总是"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_showMagnifier)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:211
+#, kde-format
+msgid "While holding Shift"
+msgstr "按住 Shift 时"
+
+#. i18n: ectx: property (text), widget (QLabel, rememberLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:219
+#, kde-format
+msgid "Remember selected area:"
+msgstr "记住所选区域："
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_rememberSelectionRect)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:237
+#, kde-format
+msgid "Until Spectacle is closed"
+msgstr "直到 Spectacle 关闭"
+
+#. i18n: ectx: property (text), widget (KTitleWidget, ocrTitle)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:261
+#, kde-format
+msgid "Text Recognition (OCR)"
+msgstr "文本识别 (OCR)"
+
+#. i18n: ectx: property (text), widget (QLabel, ocrLanguageLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:268
+#, kde-format
+msgid "Languages for OCR:"
+msgstr "OCR 语言："
+
+#. i18n: ectx: property (text), widget (QLabel, closeAfterOcrLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:306
+#, kde-format
+msgid "Text extraction:"
+msgstr "文本提取："
+
+#. i18n: ectx: label, entry (closeAfterOcr), group (General)
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_closeAfterOcr)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:327
+#: src/Gui/SettingsDialog/spectacle.kcfg:38
+#, kde-format
+msgid "Close after extraction (skips auto-save)"
+msgstr "提取后关闭 (跳过自动保存)"
+
+#. i18n: ectx: property (toolTip), widget (QLabel, closeAfterOcrInfo)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:334
+#, kde-format
+msgid ""
+"Spectacle will close after text extraction and automatic saving will be "
+"skipped."
+msgstr "Spectacle 将在文本提取后关闭且跳过自动保存。"
+
+#. i18n: ectx: property (text), widget (QLabel, ocrUnavailableLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:395
+#, kde-format
+msgid "OCR functionality is not available"
+msgstr "OCR 功能不可用"
+
+#. i18n: ectx: property (toolTip), widget (QLabel, ocrInfoIcon)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:413
+#, kde-format
+msgid ""
+"Please install the required packages:\n"
+"• tesseract\n"
+"• tesseract language data (e.g., tesseract-ocr-eng for English)"
+msgstr ""
+"请安装所需的软件包：\n"
+"• tesseract\n"
+"• tesseract 语言数据 (例如英语数据是 tesseract-ocr-eng)"
+
+#. i18n: ectx: property (text), widget (QLabel, saveLocationLabel)
+#: src/Gui/SettingsDialog/ImageSaveOptions.ui:9
+#, kde-format
+msgid "Save Location:"
+msgstr "保存位置："
+
+#. i18n: ectx: property (text), widget (QLabel, qualityLabel)
+#: src/Gui/SettingsDialog/ImageSaveOptions.ui:26
+#, kde-format
+msgid "Compression Quality:"
+msgstr "图像画质："
+
+#. i18n: ectx: property (text), widget (QLabel, imageCompressionQualityHelpLable)
+#: src/Gui/SettingsDialog/ImageSaveOptions.ui:53
+#, kde-format
+msgid "For lossy image formats like JPEG"
+msgstr "针对 JPEG 等有损图像格式"
+
+#. i18n: ectx: property (suffix), widget (QSpinBox, qualitySpinner)
+#: src/Gui/SettingsDialog/ImageSaveOptions.ui:62
+#, no-c-format, kde-format
+msgid "%"
+msgstr "%"
+
+#. i18n: ectx: property (text), widget (QLabel, filenameLabel)
+#: src/Gui/SettingsDialog/ImageSaveOptions.ui:74
+#: src/Gui/SettingsDialog/VideoSaveOptions.ui:26
+#, kde-format
+msgid "Filename:"
+msgstr "文件名："
+
+#. i18n: ectx: property (text), widget (QLabel, PreviewLabel)
+#. i18n: ectx: property (text), widget (QLabel, previewLabel)
+#: src/Gui/SettingsDialog/ImageSaveOptions.ui:103
+#: src/Gui/SettingsDialog/VideoSaveOptions.ui:47
+#, kde-format
+msgctxt "Preview of the user configured filename"
+msgid "Preview:"
+msgstr "预览："
+
+#: src/Gui/SettingsDialog/SaveOptionsUtils.h:40
+#, kde-kuit-format
+msgctxt "@info"
+msgid "<filename>%1</filename>"
+msgstr "<filename>%1</filename>"
+
+#: src/Gui/SettingsDialog/SaveOptionsUtils.h:72
+#, kde-format
+msgid ""
+"You can use the following placeholders in the filename, which will be "
+"replaced with actual text when the file is saved:"
+msgstr "文件名中可以使用下列占位符，它们会在保存文件时被替换为实际的文本："
+
+#: src/Gui/SettingsDialog/SaveOptionsUtils.h:87
+#, kde-format
+msgid "To save to a sub-folder"
+msgstr "用于保存到子文件夹"
+
+#: src/Gui/SettingsDialog/SaveOptionsUtils.h:90
+#, kde-format
+msgctxt "show fewer filename placeholder templates"
+msgid "Show Fewer"
+msgstr "显示更少"
+
+#: src/Gui/SettingsDialog/SaveOptionsUtils.h:92
+#, kde-format
+msgctxt "show more filename placeholder templates"
+msgid "Show More"
+msgstr "显示更多"
+
+#: src/Gui/SettingsDialog/SettingsDialog.cpp:37
+#, kde-format
+msgctxt "Settings category"
+msgid "General"
+msgstr "常规"
+
+#: src/Gui/SettingsDialog/SettingsDialog.cpp:38
+#, kde-format
+msgctxt "Settings category"
+msgid "Image Saving"
+msgstr "图像保存"
+
+#: src/Gui/SettingsDialog/SettingsDialog.cpp:39
+#, kde-format
+msgctxt "Settings category"
+msgid "Video Saving"
+msgstr "视频保存"
+
+#: src/Gui/SettingsDialog/SettingsDialog.cpp:40
+#, kde-format
+msgctxt "Settings category"
+msgid "Shortcuts"
+msgstr "快捷键"
+
+#: src/Gui/SettingsDialog/SettingsDialog.cpp:104
+#, kde-format
+msgid "Shortcuts"
+msgstr "快捷键"
+
+#. i18n: ectx: label, entry (launchAction), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:15
+#, kde-format
+msgid "What to do when Spectacle is launched"
+msgstr "Spectacle 启动时的操作"
+
+#. i18n: ectx: label, entry (printKeyRunningAction), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:25
+#, kde-format
+msgid ""
+"What should happen if print key is pressed when Spectacle is already running"
+msgstr "在 Spectable 已在运行时，按下 print 键的作用"
+
+#. i18n: ectx: label, entry (autoSaveImage), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:34
+#, kde-format
+msgid "Save screenshot automatically after it is taken"
+msgstr "截图后自动保存图像"
+
+#. i18n: ectx: label, entry (clipboardGroup), group (General)
+#. i18n: ectx: label, entry (showMagnifier), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:42
+#: src/Gui/SettingsDialog/spectacle.kcfg:55
+#, kde-format
+msgid "Clipboard action which should be executed after the screenshot is taken"
+msgstr "屏幕截图后应执行的剪贴板操作"
+
+#. i18n: ectx: label, entry (useLightMaskColor), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:51
+#, kde-format
+msgid "Whether to use a light color mask in the region selection dialog"
+msgstr "是否在截图选区对话框使用浅色蒙版"
+
+#. i18n: ectx: label, entry (useReleaseToCapture), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:64
+#, kde-format
+msgid ""
+"Whether the screenshot should be captured after selecting the region and "
+"releasing the mouse"
+msgstr "是否在鼠标点击选定区域并松开按钮时截图"
+
+#. i18n: ectx: label, entry (rememberSelectionRect), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:68
+#, kde-format
+msgid "Remember the last rectangular region"
+msgstr "记住最后一个矩形截图区域"
+
+#. i18n: ectx: label, entry (ocrLanguages), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:77
+#, kde-format
+msgid "Default languages for OCR text recognition"
+msgstr "OCR 文本识别的默认语言"
+
+#. i18n: ectx: label, entry (selectionRect), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:83
+#, kde-format
+msgid "The last used region the user selected"
+msgstr "用户选中的最后一个截图区域"
+
+#. i18n: ectx: label, entry (captureOnClick), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:87
+#, kde-format
+msgid "Take screenshot on click"
+msgstr "点击时截图"
+
+#. i18n: ectx: label, entry (includePointer), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:91
+#, kde-format
+msgid "Whether the mouse cursor is included in the screenshot"
+msgstr "是否在截图中包含鼠标光标"
+
+#. i18n: ectx: label, entry (videoIncludePointer), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:95
+#, kde-format
+msgid "Whether the mouse cursor is included in the video"
+msgstr "是否在视频中包含鼠标光标"
+
+#. i18n: ectx: label, entry (includeDecorations), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:99
+#, kde-format
+msgid "Whether the window decorations are included in the screenshot"
+msgstr "是否在截图中包含窗口装饰"
+
+#. i18n: ectx: label, entry (includeShadow), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:103
+#, kde-format
+msgid "Whether the window shadow is included in the screenshot"
+msgstr "是否在截图中包含窗口阴影"
+
+#. i18n: ectx: label, entry (transientOnly), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:107
+#, kde-format
+msgid "Only capture the current pop up menu"
+msgstr "仅截取当前弹出菜单"
+
+#. i18n: ectx: label, entry (quitAfterSaveCopyExport), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:111
+#, kde-format
+msgid "Quit after saving or copying an image"
+msgstr "保存或复制图像后退出"
+
+#. i18n: ectx: label, entry (captureDelay), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:115
+#, kde-format
+msgid "Delay"
+msgstr "延迟"
+
+#. i18n: ectx: label, entry (imageSaveLocation), group (ImageSave)
+#. i18n: ectx: label, entry (videoSaveLocation), group (VideoSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:126
+#: src/Gui/SettingsDialog/spectacle.kcfg:172
+#, kde-format
+msgid "Default filename"
+msgstr "默认文件名"
+
+#. i18n: ectx: label, entry (imageCompressionQuality), group (ImageSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:143
+#, kde-format
+msgid "Compression quality for lossy file formats"
+msgstr "有损压缩文件格式的画质"
+
+#. i18n: ectx: label, entry (preferredImageFormat), group (ImageSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:151
+#, kde-format
+msgid "Default save image format"
+msgstr "默认图像保存格式"
+
+#. i18n: ectx: label, entry (imageFilenameTemplate), group (ImageSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:155
+#, kde-format
+msgid "The filename template used when saving screenshots"
+msgstr "保存屏幕截图时使用的文件名模板"
+
+#. i18n: ectx: label, entry (lastImageSaveLocation), group (ImageSave)
+#. i18n: ectx: label, entry (lastVideoSaveLocation), group (VideoSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:162
+#: src/Gui/SettingsDialog/spectacle.kcfg:201
+#, kde-format
+msgid "The path of the file saved last"
+msgstr "最近一次保存文件的路径"
+
+#. i18n: ectx: label, entry (lastImageSaveAsLocation), group (ImageSave)
+#. i18n: ectx: label, entry (lastVideoSaveAsLocation), group (VideoSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:166
+#: src/Gui/SettingsDialog/spectacle.kcfg:205
+#, kde-format
+msgid "Last path used for \"save as\" action"
+msgstr "最近一次“另存为”操作所用的路径"
+
+#. i18n: ectx: label, entry (preferredVideoFormat), group (VideoSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:189
+#, kde-format
+msgid "Default video format"
+msgstr "默认视频格式"
+
+#. i18n: ectx: label, entry (videoFilenameTemplate), group (VideoSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:194
+#, kde-format
+msgid "The filename template used when saving screencasts"
+msgstr "保存屏幕录像时使用的文件名模板"
+
+#. i18n: ectx: property (text), widget (QLabel, saveLocationLabel)
+#: src/Gui/SettingsDialog/VideoSaveOptions.ui:9
+#, kde-format
+msgid "Save &Location:"
+msgstr "保存位置(&L)："
+
+#: src/Gui/ShortcutsTextBox.qml:13
+#, kde-format
+msgid "Take Screenshot:"
+msgstr "截取屏幕："
+
+#: src/Gui/ShortcutsTextBox.qml:15
+#, kde-format
+msgid "Create new selection rectangle:"
+msgstr "新建矩形选区："
+
+#: src/Gui/ShortcutsTextBox.qml:20
+#, kde-format
+msgid "Move selection rectangle:"
+msgstr "移动矩形选区："
+
+#: src/Gui/ShortcutsTextBox.qml:23
+#, kde-format
+msgid "Resize selection rectangle:"
+msgstr "调整矩形选区大小："
+
+#: src/Gui/ShortcutsTextBox.qml:26
+#, kde-format
+msgid "Reset selection:"
+msgstr "重置选区："
+
+#: src/Gui/ShortcutsTextBox.qml:28
+#, kde-format
+msgid "Cancel:"
+msgstr "取消："
+
+#: src/Gui/ShortcutsTextBox.qml:33
+#, kde-format
+msgctxt "Mouse action"
+msgid "Release left-click"
+msgstr "松开鼠标左键"
+
+#: src/Gui/ShortcutsTextBox.qml:33
+#, kde-format
+msgctxt "Mouse action"
+msgid "Double-click"
+msgstr "双击"
+
+#: src/Gui/ShortcutsTextBox.qml:34
+#, kde-format
+msgctxt "Keyboard action"
+msgid "Enter"
+msgstr "输入"
+
+#: src/Gui/ShortcutsTextBox.qml:35
+#, kde-format
+msgctxt "Mouse action"
+msgid "Drag outside selection rectangle"
+msgstr "在矩形选区外面拖拽"
+
+#: src/Gui/ShortcutsTextBox.qml:37
+#, kde-format
+msgctxt "Keyboard action"
+msgid "+ Shift: Magnifier"
+msgstr "+ Shift：放大镜"
+
+#: src/Gui/ShortcutsTextBox.qml:40
+#, kde-format
+msgctxt "Mouse action"
+msgid "Drag inside selection rectangle"
+msgstr "在矩形选区内部拖拽"
+
+#: src/Gui/ShortcutsTextBox.qml:41
+#, kde-format
+msgctxt "Keyboard action"
+msgid "Arrow keys"
+msgstr "方向键"
+
+#: src/Gui/ShortcutsTextBox.qml:42
+#, kde-format
+msgctxt "Keyboard action"
+msgid "+ Shift: Move in 1 pixel steps"
+msgstr "+ Shift：以 1 像素/每步移动选区"
+
+#: src/Gui/ShortcutsTextBox.qml:43
+#, kde-format
+msgctxt "Mouse action"
+msgid "Drag handles"
+msgstr "拖拽手柄"
+
+#: src/Gui/ShortcutsTextBox.qml:44
+#, kde-format
+msgctxt "Keyboard action"
+msgid "Arrow keys + Alt"
+msgstr "方向键 + Alt"
+
+#: src/Gui/ShortcutsTextBox.qml:45
+#, kde-format
+msgctxt "Keyboard action"
+msgid "+ Shift: Resize in 1 pixel steps"
+msgstr "+ Shift：以 1 像素/每步调整选区大小"
+
+#: src/Gui/ShortcutsTextBox.qml:46
+#, kde-format
+msgctxt "Mouse action"
+msgid "Right-click"
+msgstr "右键单击"
+
+#: src/Gui/ShortcutsTextBox.qml:48
+#, kde-format
+msgctxt "Keyboard action"
+msgid "Escape"
+msgstr "ESC 键"
+
+#: src/Gui/SizeLabel.qml:13
+#, kde-format
+msgctxt "Size, width×height"
+msgid "%1×%2"
+msgstr "%1×%2"
+
+#: src/Gui/SmartSpinBox.cpp:30
+#, kde-format
+msgctxt "Integer number of seconds"
+msgid " second"
+msgid_plural " seconds"
+msgstr[0] " 秒"
+
+#: src/Gui/SmartSpinBox.cpp:32
+#, kde-format
+msgctxt "Decimal number of seconds"
+msgid " seconds"
+msgstr " 秒"
+
+#: src/Gui/SpectacleWindow.cpp:173
+#, kde-format
+msgctxt "@title:window"
+msgid "%1 second"
+msgid_plural "%1 seconds"
+msgstr[0] "%1 秒"
+
+#: src/Gui/SpectacleWindow.cpp:176
+#, kde-format
+msgctxt "@title:window Unsaved Screenshot"
+msgid "Unsaved"
+msgstr "未保存"
+
+#: src/Gui/UndoRedoGroup.qml:31
+#, kde-format
+msgid "Undo"
+msgstr "撤销"
+
+#: src/Gui/UndoRedoGroup.qml:42
+#, kde-format
+msgid "Redo"
+msgstr "重做"
+
+#: src/Gui/ViewerPage.qml:188
+#, kde-format
+msgid "Zoom:"
+msgstr "缩放："
+
+#: src/Gui/ViewerPage.qml:202
+#, kde-format
+msgid "Image Zoom"
+msgstr "图像缩放"
+
+#: src/Gui/ViewerWindow.cpp:53
+#, kde-format
+msgctxt "@info, %1 is the error message"
+msgid "There was a problem sharing the image: %1"
+msgstr "分享图像时出错：%1"
+
+#: src/Gui/ViewerWindow.cpp:56
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The shared image link (<a href=\"%1\">%1</a>) has been copied to the "
+"clipboard."
+msgstr "该图像的分享链接 (<a href=\"%1\">%1</a>) 已复制到剪贴板。"
+
+#: src/Main.cpp:44
+#, kde-format
+msgid "Spectacle"
+msgstr "Spectacle 截图工具"
+
+#: src/Main.cpp:46
+#, kde-format
+msgid "KDE Screenshot Utility"
+msgstr "KDE 屏幕截图工具"
+
+#: src/Main.cpp:48
+#, kde-format
+msgid "© 2015 Boudhayan Gupta"
+msgstr "© 2015 Boudhayan Gupta"
+
+#: src/Main.cpp:52
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr ""
+"KDE China, cjacker, Feng Chao, Guo Yunhe, Henry Hu, Honghao Li, Luna X, "
+"Tyson Tan, Weng Xuetian"
+
+#: src/Main.cpp:52
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr ""
+"kde-china@kde.org, cjacker@gmail.com, chaofeng111@gmail.com, i@guoyunhe.me, "
+"henry.hu.sh@gmail.com, hh.li99@outlook.com, tangtianbei06@gmail.com, "
+"tysontanx@gmail.com, wengxt@gmail.com"
+
+#: src/Main.cpp:70
+#, kde-format
+msgid ""
+"On Wayland, Spectacle requires KDE Plasma's KWin compositor, which does not "
+"seem to be available. Use Spectacle on KDE Plasma, or use a different "
+"screenshot tool."
+msgstr ""
+"在 Wayland 环境下，Spectacle 需要调用 KDE Plasma 的 KWin 显示特效混合器，但它"
+"并不可用。请在 KDE Plasma 中使用 Spectacle，或者换用另一个截图工具。"
+
+#: src/OcrManager.cpp:609
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Orientation and Script Detection"
+msgstr "方向和书写检测"
+
+#: src/OcrManager.cpp:650
+#, kde-format
+msgid "Math/Equation Detection"
+msgstr "数学/方程检测"
+
+#: src/OcrManager.cpp:653
+#, kde-format
+msgid "Orientation and Script Detection"
+msgstr "方向和书写检测"
+
+#: src/Platforms/ImagePlatformKWin.cpp:143
+#, kde-format
+msgctxt "@info, %1 is the width"
+msgid "Bad width for KWin screenshot: %1"
+msgstr "KWin 屏幕截图宽度错误：%1"
+
+#: src/Platforms/ImagePlatformKWin.cpp:148
+#, kde-format
+msgctxt "@info, %1 is the height"
+msgid "Bad height for KWin screenshot: %1"
+msgstr "KWin 屏幕截图高度错误：%1"
+
+#: src/Platforms/ImagePlatformKWin.cpp:159
+#, kde-format
+msgctxt "@info, %1 is a file format like 'png', 'jpg'"
+msgid "Bad format for KWin screenshot: %1"
+msgstr "KWin 屏幕截图格式错误：%1"
+
+#: src/Platforms/ImagePlatformKWin.cpp:177
+#, kde-format
+msgctxt "@info"
+msgid "Could not open file descriptor for reading KWin screenshot."
+msgstr "无法为读取 KWin 屏幕截图打开文件描述符。"
+
+#: src/Platforms/ImagePlatformKWin.cpp:245
+#, kde-format
+msgctxt "@info, %1 is an error code"
+msgid "pipe2() failed for KWin screenshot: %1"
+msgstr "KWin 屏幕截图的 pipe2() 执行失败：%1"
+
+#: src/Platforms/ImagePlatformKWin.cpp:301
+#, kde-format
+msgctxt "@info, %1 is an error message"
+msgid ""
+"KWin screenshot request failed:\n"
+"%1"
+msgstr ""
+"KWin 屏幕截图请求失败：\n"
+"%1"
+
+#: src/Platforms/ImagePlatformKWin.cpp:303
+#, kde-format
+msgctxt "@info"
+msgid ""
+"Potentially relevant information:\n"
+"%1"
+msgstr ""
+"可能相关的信息：\n"
+"%1"
+
+#: src/Platforms/ImagePlatformKWin.cpp:311
+#, kde-format
+msgctxt "@info"
+msgid "Unsupported KWin screenshot type metadata: %1"
+msgstr "不支持的 KWin 屏幕截图类型元数据：%1"
+
+#: src/Platforms/PlatformLoader.cpp:97
+#, kde-format
+msgctxt "@info"
+msgid "Screen recording is not available on X11."
+msgstr "屏幕录像在 X11 环境下不可用。"
+
+#: src/Platforms/VideoPlatformWayland.cpp:160
+#, kde-format
+msgctxt "@info"
+msgid "KWin Screencasting is not available."
+msgstr "KWin 屏幕录像不可用。"
+
+#: src/Platforms/VideoPlatformWayland.cpp:173
+#, kde-format
+msgctxt "@info:shell"
+msgid "Failed to record: File URL is not a local file"
+msgstr "录制失败：文件 URL 不是本地文件"
+
+#: src/Platforms/VideoPlatformWayland.cpp:264
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The stream closed because the target screen changed in a way that disrupted "
+"the recording."
+msgstr "视频流已关闭，因为目标屏幕发生的更改干扰了屏幕录像。"
+
+#: src/Platforms/VideoPlatformWayland.cpp:266
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The stream closed because the target window changed in a way that disrupted "
+"the recording."
+msgstr "视频流已关闭，因为目标窗口发生的更改干扰了屏幕录像。"
+
+#: src/Platforms/VideoPlatformWayland.cpp:268
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The stream closed because a screen containing the target region changed in a "
+"way that disrupted the recording."
+msgstr "视频流已关闭，因为目标区域所在屏幕发生的更改中断了屏幕录像。"
+
+#: src/Platforms/VideoPlatformWayland.cpp:282
+#, kde-format
+msgctxt "@info:shell, %1 is the temporary URL"
+msgid "Failed to record: Temporary file URL is not a local file (%1)"
+msgstr "录制失败：临时文件 URL 不是本地文件 (%1)"
+
+#: src/Platforms/VideoPlatformWayland.cpp:292
+#, kde-format
+msgctxt "@info:shell, %1 is the output file URL"
+msgid "Failed to record: Output file URL is not a local file (%1)"
+msgstr "录制失败：输出文件 URL 不是本地文件 (%1)"
+
+#: src/Platforms/VideoPlatformWayland.cpp:346
+#, kde-format
+msgctxt "@info:shell, %1 is a directory path"
+msgid "Failed to record: Unable to create folder (%1)"
+msgstr "录制失败：无法创建文件夹 (%1)"
+
+#: src/Platforms/VideoPlatformWayland.cpp:374
+#, kde-format
+msgctxt "@info:shell"
+msgid "Screen recording canceled"
+msgstr "屏幕录像已取消"
+
+#: src/Platforms/VideoPlatformWayland.cpp:376
+#, kde-format
+msgctxt "@info:shell"
+msgid "Window recording canceled"
+msgstr "窗口录像已取消"
+
+#: src/Platforms/VideoPlatformWayland.cpp:382
+#, kde-format
+msgctxt "@info:shell, %1 is an error message"
+msgid "Failed to select screen: %1"
+msgstr "选择屏幕失败：%1"
+
+#: src/Platforms/VideoPlatformWayland.cpp:384
+#, kde-format
+msgctxt "@info:shell, %1 is an error message"
+msgid "Failed to select window: %1"
+msgstr "选择窗口失败：%1"
+
+#: src/Platforms/VideoPlatformWayland.cpp:412
+#, kde-format
+msgctxt "@info:shell"
+msgid "Failed to select screen: No screen contained the mouse cursor position"
+msgstr "选择屏幕失败：没有包含鼠标光标位置的屏幕"
+
+#: src/Platforms/VideoPlatformWayland.cpp:419
+#, kde-format
+msgctxt "@info:shell"
+msgid "Failed to select window: No window found"
+msgstr "选择窗口失败：找不到窗口"
+
+#: src/RecordingModeModel.cpp:105
+#, kde-format
+msgctxt "@item recording mode"
+msgid "Rectangular Region"
+msgstr "绘制矩形区域"
+
+#: src/RecordingModeModel.cpp:107
+#, kde-format
+msgctxt "@item recording mode"
+msgid "Window"
+msgstr "窗口"
+
+#: src/RecordingModeModel.cpp:109
+#, kde-format
+msgctxt "@item recording mode"
+msgid "Full Screen"
+msgstr "全屏"
+
+#: src/ShortcutActions.cpp:38
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Launch Spectacle"
+msgstr "启动 Spectacle"
+
+#: src/ShortcutActions.cpp:44
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Capture Entire Desktop"
+msgstr "截取整个桌面"
+
+#: src/ShortcutActions.cpp:50
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Capture Current Monitor"
+msgstr "截取当前显示器"
+
+#: src/ShortcutActions.cpp:56
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Capture Active Window"
+msgstr "截取活动窗口"
+
+#: src/ShortcutActions.cpp:62
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Capture Rectangular Region"
+msgstr "截取矩形区域"
+
+#: src/ShortcutActions.cpp:69
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Capture Selected Window"
+msgstr "截取选中的窗口"
+
+#: src/ShortcutActions.cpp:69
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Capture Window Under Cursor"
+msgstr "截取光标所在窗口"
+
+#: src/ShortcutActions.cpp:76
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Start/Stop Screen Recording"
+msgstr "开始/停止屏幕录制"
+
+#: src/ShortcutActions.cpp:82
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Start/Stop Window Recording"
+msgstr "开始/停止窗口录制"
+
+#: src/ShortcutActions.cpp:88
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Start/Stop Region Recording"
+msgstr "开始/停止区域录制"
+
+#: src/ShortcutActions.cpp:94
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Launch Spectacle without capturing"
+msgstr "启动 Spectacle，但不截图"
+
+#: src/SpectacleCore.cpp:264
+#, kde-format
+msgctxt "@info"
+msgid "An error occurred while taking a screenshot."
+msgstr "尝试进行屏幕截图时发生错误。"
+
+#: src/SpectacleCore.cpp:293
+#, kde-format
+msgctxt "@info:tooltip title for recording tray icon"
+msgid "Spectacle is Recording"
+msgstr "Spectacle 正在录像"
+
+#: src/SpectacleCore.cpp:298
+#, kde-format
+msgctxt "recording notification title"
+msgid "Spectacle is Recording"
+msgstr "Spectacle 正在录像"
+
+#: src/SpectacleCore.cpp:324
+#, kde-format
+msgctxt "recording notification message without shortcut"
+msgid "To finish the recording, click the pulsing red System Tray icon."
+msgstr "要结束录制，请点击正在闪烁的红色系统托盘图标。"
+
+#: src/SpectacleCore.cpp:325
+#, kde-kuit-format
+msgctxt "recording notification message with shortcut"
+msgid ""
+"To finish the recording, click the pulsing red System Tray icon or press "
+"<shortcut>%1</shortcut>."
+msgstr ""
+"要结束录制，请点击正在闪烁的红色系统托盘图标或按 <shortcut>%1</shortcut>。"
+
+#: src/SpectacleCore.cpp:342
+#, kde-format
+msgctxt "missing webp support notification title"
+msgid "WebP support is missing."
+msgstr "缺少 WebP 支持。"
+
+#: src/SpectacleCore.cpp:343
+#, kde-format
+msgctxt "missing webp support notification message"
+msgid ""
+"Please install Qt Image Formats to get animated system tray icons for "
+"Spectacle, and then report this packaging issue to your distributor."
+msgstr ""
+"请安装 Qt Image Formats 软件包以启用 Spectacle 的动画系统托盘图标，然后将此打"
+"包问题报告给本机系统的发行机构。"
+
+#: src/SpectacleCore.cpp:379
+#, kde-format
+msgctxt "recording notification title"
+msgid "Spectacle is Finishing the Recording"
+msgstr "Spectacle 正在完成录制"
+
+#: src/SpectacleCore.cpp:380
+#, kde-format
+msgctxt "recording notification message"
+msgid "Please wait"
+msgstr "请稍候"
+
+#: src/SpectacleCore.cpp:382
+#, kde-format
+msgctxt "@info:tooltip title for rendering tray icon"
+msgid "Spectacle is Finishing the Recording"
+msgstr "Spectacle 正在完成录制"
+
+#: src/SpectacleCore.cpp:384
+#, kde-format
+msgctxt "@info:tooltip subtitle for rendering tray icon"
+msgid ""
+"Time recorded: %1\n"
+"Click to stop rendering early (this will lose data)"
+msgstr ""
+"已录制时间：%1\n"
+"点击提前停止导出 (这将丢失数据)"
+
+#: src/SpectacleCore.cpp:410
+#, kde-format
+msgctxt "@info:tooltip subtitle for recording tray icon"
+msgid ""
+"Time recorded: %1\n"
+"Click to finish recording"
+msgstr ""
+"已录制时间：%1\n"
+"点击以结束录像"
+
+#: src/SpectacleCore.cpp:435
+#, kde-format
+msgctxt "@info"
+msgid "An error occurred while attempting to record the screen."
+msgstr "尝试进行屏幕录像时发生错误。"
+
+#: src/SpectacleCore.cpp:479
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The screenshot was copied to the clipboard and saved as <link url=\"%1\">%2</"
+"link>"
+msgstr "屏幕截图已复制到剪贴板并保存为 <link url=\"%1\">%2</link>"
+
+#: src/SpectacleCore.cpp:482
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The screenshot has been saved as <link url=\"%1\">%2</link> and its location "
+"has been copied to clipboard"
+msgstr "屏幕截图已保存为 <link url=\"%1\">%2</link>，且该位置已复制到剪贴板"
+
+#: src/SpectacleCore.cpp:485
+#, kde-kuit-format
+msgctxt "@info"
+msgid "The screenshot was saved as <link url=\"%1\">%2</link>"
+msgstr "屏幕截图已保存为 <link url=\"%1\">%2</link>"
+
+#: src/SpectacleCore.cpp:489
+#, kde-format
+msgctxt "@info"
+msgid "The screenshot has been copied to the clipboard."
+msgstr "截图已复制到剪贴板。"
+
+#: src/SpectacleCore.cpp:520
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The video has been saved as <link url=\"%1\">%2</link> and its location has "
+"been copied to clipboard"
+msgstr "视频已保存为 <link url=\"%1\">%2</link>，且该位置已被复制到剪贴板"
+
+#: src/SpectacleCore.cpp:523
+#, kde-kuit-format
+msgctxt "@info"
+msgid "The video was saved as <link url=\"%1\">%2</link>"
+msgstr "视频已保存为 <link url=\"%1\">%2</link>"
+
+#: src/SpectacleCore.cpp:527
+#, kde-format
+msgctxt "@info"
+msgid "The video location has been copied to the clipboard."
+msgstr "视频的位置已复制到剪贴板。"
+
+#. i18nc because it doesn't work with the link replacement logic.
+#. Also see https://invent.kde.org/graphics/spectacle/-/merge_requests/432#note_1111125
+#.
+#: src/SpectacleCore.cpp:547
+#, kde-format
+msgctxt "@info"
+msgid "Code found: %1"
+msgstr "识别到二维码：%1"
+
+#: src/SpectacleCore.cpp:551
+#, kde-format
+msgctxt "@info"
+msgid "Found QR code with binary content."
+msgstr "识别到包含二进制内容的二维码。"
+
+#: src/SpectacleCore.cpp:560
+#, kde-format
+msgctxt "@info"
+msgid "Text extraction failed"
+msgstr "文本提取失败"
+
+#: src/SpectacleCore.cpp:566
+#, kde-format
+msgctxt "@info"
+msgid "No text found in the image"
+msgstr "图像中没有识别到文本"
+
+#: src/SpectacleCore.cpp:571
+#, kde-format
+msgctxt "@info"
+msgid "Text extraction completed"
+msgstr "文本提取完成"
+
+#: src/SpectacleCore.cpp:579
+#, kde-format
+msgctxt "@info:notification title"
+msgid "Text Extracted"
+msgstr "文本已提取"
+
+#: src/SpectacleCore.cpp:598
+#, kde-format
+msgctxt "@info The variables are language names, e.g. 'English and German'"
+msgid "%1 and %2"
+msgstr "%1 和 %2"
+
+#: src/SpectacleCore.cpp:603
+#, kde-kuit-format
+msgctxt "@info:notification"
+msgid "Text copied to clipboard.<nl/>Languages used: %1"
+msgstr "文本已复制到剪贴板。<nl/>使用的语言：%1"
+
+#: src/SpectacleCore.cpp:608
+#, kde-format
+msgctxt "@action:button"
+msgid "Open in Text Editor"
+msgstr "用文本编辑器打开"
+
+#: src/SpectacleCore.cpp:749
+#, kde-format
+msgctxt "@info"
+msgid "Please select a region before extracting text"
+msgstr "请先选择要提取文本的区域"
+
+#: src/SpectacleCore.cpp:771
+#, kde-format
+msgctxt "@info"
+msgid "OCR is not available."
+msgstr "OCR 不可用。"
+
+#: src/SpectacleCore.cpp:777
+#, kde-format
+msgctxt "@info"
+msgid "No screenshot available."
+msgstr "没有可用的屏幕截图。"
+
+#: src/SpectacleCore.cpp:781
+#, kde-format
+msgctxt "@info"
+msgid "Extracting text from image..."
+msgstr "正在从图像中提取文本..."
+
+#: src/SpectacleCore.cpp:1045
+#, kde-format
+msgctxt "@info:shell"
+msgid "%1 is not a valid mode for --record"
+msgstr "%1 不是 --record 参数的有效模式"
+
+#: src/SpectacleCore.cpp:1279
+#, kde-format
+msgctxt "%1 is the filename, %2 the path to the save location"
+msgid ""
+"A screenshot was saved as '%1' to '%2' and the file path of the screenshot "
+"has been saved to your clipboard."
+msgstr "屏幕截图已经使用名称“%1”保存到了“%2”，该截图的文件路径已保存到剪贴板。"
+
+#: src/SpectacleCore.cpp:1283
+#, kde-format
+msgctxt "%1 is the filename"
+msgid "A screenshot was saved as '%1' to your Pictures folder."
+msgstr "屏幕截图已保存到你的图片文件夹，文件名为“%1”。"
+
+#: src/SpectacleCore.cpp:1286
+#, kde-format
+msgctxt "%1 is the filename, %2 the path to the save location"
+msgid "A screenshot was saved as '%1' to '%2'."
+msgstr "屏幕截图已保存到文件夹“%2”，文件名为“%1”。"
+
+#: src/SpectacleCore.cpp:1290
+#, kde-format
+msgid "A screenshot was saved to your clipboard."
+msgstr "屏幕截图已保存到剪贴板。"
+
+#: src/SpectacleCore.cpp:1295
+#, kde-format
+msgctxt "%1 is the filename, %2 the path to the save location"
+msgid ""
+"A recording was saved as '%1' to '%2' and the file path of the recording has "
+"been saved to your clipboard."
+msgstr "屏幕录像已经使用名称“%1”保存到了“%2”，该录像的文件路径已保存到剪贴板。"
+
+#: src/SpectacleCore.cpp:1297
+#, kde-format
+msgctxt "%1 is the filename"
+msgid "A recording was saved as '%1' to your Videos folder."
+msgstr "屏幕录像已保存到你的视频文件夹，文件名为“%1”。"
+
+#: src/SpectacleCore.cpp:1299
+#, kde-format
+msgctxt "%1 is the filename, %2 the path to the save location"
+msgid "A recording was saved as '%1' to '%2'."
+msgstr "屏幕录像已保存到文件夹“%2”，文件名为“%1”。"
+
+#: src/SpectacleCore.cpp:1310
+#, kde-format
+msgctxt "Open the screenshot we just saved"
+msgid "Open"
+msgstr "打开"
+
+#: src/SpectacleCore.cpp:1324
+#, kde-format
+msgid "Annotate"
+msgstr "标注"
+
+#: src/VideoFormatModel.cpp:31
+#, kde-format
+msgctxt "@item:inlistbox Container/encoder"
+msgid "WebM/VP9"
+msgstr "WebM/VP9"
+
+#: src/VideoFormatModel.cpp:38
+#, kde-format
+msgctxt "@item:inlistbox Container/encoder"
+msgid "MP4/H.264"
+msgstr "MP4/H.264"
+
+#: src/VideoFormatModel.cpp:45
+#, kde-format
+msgctxt "@item:inlistbox Container/encoder"
+msgid "Animated WebP (better than GIF)"
+msgstr "动态 WebP (优于 GIF)"
+
+#: src/VideoFormatModel.cpp:52
+#, kde-format
+msgctxt "@item:inlistbox Container/encoder"
+msgid "GIF (compatible, but inefficient)"
+msgstr "GIF (兼容性好但低效)"

@@ -1,0 +1,1025 @@
+<!DOCTYPE node PUBLIC
+"-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
+"http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+
+<!--
+ Copyright (C) 2013 Marius Vollmer <marius.vollmer@gmail.com>
+ Copyright (C) 2014 Tomas Bzatek <tbzatek@redhat.com>
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General
+ Public License along with this library; if not, write to the
+ Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ Boston, MA 02111-1307, USA.
+-->
+
+  <!-- ********************************************************************** -->
+
+  <!--
+      org.freedesktop.UDisks2.Manager.LVM2:
+      @short_description: LVM2 add-on to the manager singleton
+      @since: 2.0.0
+
+      Additional interface with LVM2 specifics for top-level manager singleton object
+      located at the object path <literal>/org/freedesktop/UDisks2/Manager</literal>.
+  -->
+  <interface name="org.freedesktop.UDisks2.Manager.LVM2">
+    <!-- prereq: org.freedesktop.UDisks2.Manager -->
+
+    <!--
+        VolumeGroupCreate:
+        @name: The name for the volume group.
+        @blocks: The block devices to use as physical volumes, as UDisks2 object paths.
+        @options: Additional options.
+        @result: The object path of the new volume group object.
+        @since: 2.0.0
+
+        Creates a new volume group, using @blocks as the initial
+        physical volumes.  Each block device will be wiped and all
+        data on them will be lost.
+
+        You must specify at least one block device to be used as a
+        physical volume.
+
+        No additional options are currently defined.
+    -->
+    <method name="VolumeGroupCreate">
+      <arg name="name" direction="in" type="s"/>
+      <arg name="blocks" direction="in" type="ao"/>
+      <arg name="options" direction="in" type="a{sv}"/>
+      <arg name="result" direction="out" type="o"/>
+    </method>
+
+  </interface>
+
+  <!-- ********************************************************************** -->
+
+  <!--
+      org.freedesktop.UDisks2.Block.LVM2:
+      @short_description: LVM2 add-on to the block device
+      @since: 2.0.0
+
+      Additional interface with LVM2 specifics for a block device.
+  -->
+  <interface name="org.freedesktop.UDisks2.Block.LVM2">
+    <!-- prereq: org.freedesktop.UDisks2.Block -->
+
+    <!-- LogicalVolume:
+         @since: 2.0.0
+         If the block device is a logical volume in a volume group,
+         this is set to the #org.freedesktop.UDisks2.LogicalVolume
+         object that it corresponds to.  It is '/' otherwise.
+      -->
+    <property name="LogicalVolume" type="o" access="read"/>
+
+  </interface>
+
+  <!-- ********************************************************************** -->
+
+  <!--
+      org.freedesktop.UDisks2.PhysicalVolume:
+      @short_description: Block device that is a physical volume
+      @since: 2.0.0
+
+      This interface is used for #org.freedesktop.UDisks2.Block
+      devices that are physical volumes in a volume group.
+  -->
+  <interface name="org.freedesktop.UDisks2.PhysicalVolume">
+    <!-- prereq: org.freedesktop.UDisks2.Block -->
+    <property name="VolumeGroup" type="o" access="read"/>
+    <property name="Size" type="t" access="read"/>
+    <property name="FreeSize" type="t" access="read"/>
+  </interface>
+
+  <!-- ********************************************************************** -->
+  <!--
+      org.freedesktop.UDisks2.VolumeGroup:
+      @short_description: A volume group
+      @since: 2.0.0
+
+      Objects implementing this interface represent LVM2 volume
+      groups.  They appear under /org/freedesktop/UDisks2/lvm/.
+
+      The logical volume objects of a volume group are the children of
+      the volume group objects in the D-Bus object hierarchy.  See the
+      #org.freedesktop.UDisks2.LogicalVolume interface.
+
+      The physical volume objects of a volume group can be found by
+      looking for block devices with a
+      #org.freedesktop.UDisks2.PhysicalVolume.VolumeGroup property
+      that points to the volume group object.
+    -->
+  <interface name="org.freedesktop.UDisks2.VolumeGroup">
+    <!-- Name:
+
+         The name of this volume group, as known to LVM2.
+    -->
+    <property name="Name" type="s" access="read"/>
+
+    <!-- UUID:
+
+         The UUID this volume group.  It is guaranteed to be unique,
+         but it might change over time.
+    -->
+    <property name="UUID" type="s" access="read"/>
+
+    <!-- Size:
+
+         The total capacity of this volume group, in bytes.
+    -->
+    <property name="Size" type="t" access="read"/>
+
+    <!-- FreeSize:
+
+         The unused capacity of this volume group, in bytes.
+    -->
+    <property name="FreeSize" type="t" access="read"/>
+
+    <!-- ExtentSize:
+
+         The size of extents.  When creating and resizing logical
+         volumes, sizes are rounded up to multiples of the extent
+         size.
+    -->
+    <property name="ExtentSize" type="t" access="read"/>
+
+    <!-- NeedsPolling:
+
+         Whether or not this volume group needs to be periodically
+         polled to guarantee updates.
+    -->
+    <property name="NeedsPolling" type="b" access="read"/>
+
+    <!-- MissingPhysicalVolumes:
+         @since: 2.10.0
+
+         A list of the UUIDs of missing physical volumes.
+    -->
+    <property name="MissingPhysicalVolumes" type="as" access="read"/>
+
+    <!-- Poll:
+
+         Make sure that all properties of this volume group and of all
+         their logical and physical volumes are up-to-date.
+
+         The properties are not guaranteed to be up-to-date yet when
+         this method returns.
+    -->
+    <method name="Poll">
+    </method>
+
+    <!-- Delete:
+         @wipe: Whether to wipe the volume group.
+         @options: Additional options.
+
+         Delete this volume group.  All its logical volumes will be
+         deleted, too.
+
+         If the option <parameter>tear-down</parameter> is set to
+         %TRUE, then all logical volumes will be cleaned up before
+         deletion.  This cleanup consists of removing entries from
+         /etc/fstab and /etc/crypttab, and locking of encrypted block
+         devices.  Entries in /etc/fstab and /etc/crypttab that have
+         been created with the 'track-parents' options to
+         AddConfigurationItem will be removed even if their block
+         device is currently unavailable.
+    -->
+    <method name="Delete">
+      <arg name="wipe" type="b" direction="in"/>
+      <arg name="options" direction="in" type="a{sv}"/>
+    </method>
+
+    <!-- Rename:
+         @new_name: The new name.
+         @options: Additional options.
+         @result: The new object path.
+
+         Rename this volume group.  This might cause the volume group
+         object to disappear from D-Bus and reappear with a different
+         path.
+
+         No additional options are currently defined.
+    -->
+    <method name="Rename">
+      <arg name="new_name" type="s" direction="in"/>
+      <arg name="options" direction="in" type="a{sv}"/>
+      <arg name="result" type="o" direction="out"/>
+    </method>
+
+    <!-- AddDevice:
+         @block: The block device to add, as a UDisks2 object path.
+         @options: Additional options.
+
+         Add a new physical volume to the volume group.  The block
+         device will be wiped and all data on it will be lost.
+    -->
+    <method name="AddDevice">
+      <arg name="block" type="o" direction="in"/>
+      <arg name="options" direction="in" type="a{sv}"/>
+    </method>
+
+    <!-- EmptyDevice:
+         @block: The block device to empty, as a UDisks2 object path.
+         @options: Additional options.
+
+         Move all data on the given block device somewhere else so
+         that the block device might be removed.
+
+         No additional options are currently defined.
+    -->
+    <method name="EmptyDevice">
+      <arg name="block" type="o" direction="in"/>
+      <arg name="options" direction="in" type="a{sv}"/>
+    </method>
+
+    <!-- RemoveDevice:
+         @block: The block device to remove, as a UDisks2 object path.
+         @wipe: Whether to wipe the physical volume.
+         @options: Additional options.
+
+         Remove the indicated physical volume from the volume group.
+         The physical device must be unused.
+
+         No additional options are currently defined.
+    -->
+    <method name="RemoveDevice">
+      <arg name="block" type="o" direction="in"/>
+      <arg name="wipe" type="b" direction="in"/>
+      <arg name="options" direction="in" type="a{sv}"/>
+    </method>
+
+    <!-- RemoveMissingPhysicalVolumes:
+         @since: 2.10.0
+
+         Forget about all physical volumes that went missing.
+
+         No additional options are currently defined.
+    -->
+    <method name="RemoveMissingPhysicalVolumes">
+      <arg name="options" direction="in" type="a{sv}"/>
+    </method>
+
+    <!-- CreatePlainVolume:
+         @name: The name of the new logical volume.
+         @size: The size.
+         @options: Additional options.
+         @result: The object path of the new logical volume.
+
+         Create a 'normal' new logical volume.  Calling this method is
+         equivalent to calling CreatePlainVolumeWithLayout with
+         "linear" as the layout type and an empty array of physical
+         volumes.
+
+         No additional options are currently defined.
+    -->
+    <method name="CreatePlainVolume">
+      <arg name="name" type="s" direction="in"/>
+      <arg name="size" type="t" direction="in"/>
+      <arg name="options" type="a{sv}" direction="in"/>
+      <arg name="result" type="o" direction="out"/>
+    </method>
+
+    <!-- CreatePlainVolumeWithLayout:
+         @name: The name of the new logical volume.
+         @size: The size.
+         @layout: The layout type, like "linear", "raid5"
+         @pvs: The physical volumes to use
+         @options: Additional options.
+         @result: The object path of the new logical volume.
+         @since: 2.10.0
+
+         Create a 'normal' new logical volume with the given layout
+         type on the given physical volumes.  It is okay to leave
+         "pvs" empty; LVM2 will then choose suitable ones on its own.
+
+         If "pvs" is not empty and the given "layout" uses subvolumes
+         (like all the raid variants), then this method will create
+         exactly one subvolume for each given physical volume.
+
+         For example, when "layout" is "raid5" and "pvs" contains four
+         entries, then this method will have the same effect as
+         "lvcreate &#45;-type raid5 &#45;-stripes 3 ...": The resulting logical volume
+         will have four subvolumes.
+
+         The "subvolumes" (i) option can be used to override the
+         number of subvolumes.  The consequences of this are hard to
+         predict and might also lead to creation of logical volumes
+         that have less redundancy than expected, so it is best to
+         always create exactly one subvolume per physical volume.
+
+         Note again that this only happens when "pvs" is not empty.
+         When "pvs" is empty, LVM2 will decide how many subvolumes to
+         create.
+    -->
+    <method name="CreatePlainVolumeWithLayout">
+      <arg name="name" type="s" direction="in"/>
+      <arg name="size" type="t" direction="in"/>
+      <arg name="layout" type="s" direction="in"/>
+      <arg name="pvs" type="ao" direction="in"/>
+      <arg name="options" type="a{sv}" direction="in"/>
+      <arg name="result" type="o" direction="out"/>
+    </method>
+
+    <!-- CreateThinPoolVolume:
+         @name: The name of the new logical volume.
+         @size: The total size.
+         @options: Additional options.
+         @result: The object path of the new logical volume.
+
+         Create a new logical volume that can be used to back
+         thinly-provisioned logical volumes.  The @size parameter is
+         the total amount of space taken out of the volume group.
+         That space will be used for data and metadata.  The actual
+         amount of data that can be stored in the pool will be
+         slightly smaller.
+
+         No additional options are currently defined.
+    -->
+    <method name="CreateThinPoolVolume">
+      <arg name="name" type="s" direction="in"/>
+      <arg name="size" type="t" direction="in"/>
+      <arg name="options" type="a{sv}" direction="in"/>
+      <arg name="result" type="o" direction="out"/>
+    </method>
+
+    <!-- CreateThinVolume:
+         @name: The name of the new logical volume.
+         @size: The virtual size.
+         @pool: The thin pool to use.
+         @options: Additional options.
+         @result: The object path of the new logical volume.
+
+         Create a new thinly provisioned logical volume in the given
+         pool.
+
+         No additional options are currently defined.
+    -->
+    <method name="CreateThinVolume">
+      <arg name="name" type="s" direction="in"/>
+      <arg name="size" type="t" direction="in"/>
+      <arg name="pool" type="o" direction="in"/>
+      <arg name="options" type="a{sv}" direction="in"/>
+      <arg name="result" type="o" direction="out"/>
+    </method>
+
+     <!-- CreateVDOVolume:
+         @lv_name: The name of the to-be-created VDO LV.
+         @pool_name: The name of the to-be-created VDO pool LV or an empty string for a default name.
+         @data_size: The size of the data VDO LV (physical size of the @pool_name VDO pool LV).
+         @virtual_size: The virtual_size of the @lv_name VDO LV or 0 for default (@data_size minus metadata).
+         @index_memory: Amount of index memory in bytes or 0 for default.
+         @compression: Enables or disables compression when creating the VDO volume.
+         @deduplication: Enables or disables deduplication when creating the VDO volume.
+         @write_policy: Specifies the write policy.
+         @options: Additional options.
+         @result: The object path of the new VDO logical volume.
+         @since: 2.9.0
+
+         Create a new VDO logical volume that is backed by a newly created
+         VDO pool. The VDO data logical volume and VDO pool logical volume
+         are created together, VDO pool supports only a single VDO LV.
+         The @data_size parameter is the total amount of space
+         taken out of the volume group and it's the size of the @pool_name
+         VDO pool logical volume.
+         The @virtual_size is the size of the @lv_name VDO logical volume
+         and represents expected amount of the data that can be stored
+         after deduplication and compression.
+
+         No additional options are currently defined.
+
+         Known @write_policy values include:
+         <variablelist>
+           <varlistentry><term>sync</term><listitem><para>Writes are acknowledged only after data is on stable storage. 'sync' policy is not supported if the underlying storage is not also synchronous.</para></listitem></varlistentry>
+           <varlistentry><term>async</term><listitem><para>Writes are acknowledged when data has been cached for writing to stable storage; data which has not been flushed is not guaranteed to persist in this mode.</para></listitem></varlistentry>
+           <varlistentry><term>auto</term><listitem><para>VDO will check the storage device and determine whether it supports flushes. If it does, VDO will run in async mode, otherwise it will run in sync mode.</para></listitem></varlistentry>
+         </variablelist>
+    -->
+    <method name="CreateVDOVolume">
+      <arg name="lv_name" type="s" direction="in"/>
+      <arg name="pool_name" type="s" direction="in"/>
+      <arg name="data_size" type="t" direction="in"/>
+      <arg name="virtual_size" type="t" direction="in"/>
+      <arg name="index_memory" type="t" direction="in" />
+      <arg name="compression" type="b" direction="in" />
+      <arg name="deduplication" type="b" direction="in" />
+      <arg name="write_policy" type="s" direction="in" />
+      <arg name="options" type="a{sv}" direction="in"/>
+      <arg name="result" type="o" direction="out"/>
+      <annotation name="org.gtk.GDBus.C.Name" value="Create_VDO_Volume"/>
+    </method>
+
+  </interface>
+
+  <!-- ********************************************************************** -->
+
+  <!--
+      org.freedesktop.UDisks2.LogicalVolume:
+      @short_description: A logical volume
+      @since: 2.0.0
+
+      Objects with this interface represent logical volumes in a
+      volume group.  Active logical volumes are associated with a
+      block device, which link back to the logical volume object via
+      their #org.freedesktop.UDisks2.Block.LVM2:LogicalVolume property.
+
+      Logical volume objects are children of their volume group
+      object, and also link to it via the #VolumeGroup property.
+  -->
+  <interface name="org.freedesktop.UDisks2.LogicalVolume">
+
+    <!-- VolumeGroup:
+
+         The path of the volume group object that this logical volume
+         belongs to.
+    -->
+    <property name="VolumeGroup" type="o" access="read"/>
+
+    <!-- Name:
+
+         The name of this logical volume, as it is known to LVM2.
+    -->
+    <property name="Name" type="s" access="read"/>
+
+    <!-- Active:
+
+         Whether or not this volume is active.
+    -->
+    <property name="Active" type="b" access="read"/>
+
+    <!-- UUID:
+
+         The UUID of this logical volume.  It is guaranteed to be
+         unique within the group, but it might change over time.
+    -->
+    <property name="UUID" type="s" access="read"/>
+
+    <!-- Size:
+
+         The total size of this logical volume in bytes, including the
+         size of the metadata.
+    -->
+    <property name="Size" type="t" access="read"/>
+
+    <!-- DataAllocatedRatio:
+
+         For a thin pool or a non-thin snapshot, indicates how full
+         the area for storing data is.  A value of 1.0 corresponds to
+         100%.
+    -->
+    <property name="DataAllocatedRatio" type="d" access="read"/>
+
+    <!-- MetadataAllocatedRatio:
+
+         For a thin pool or a non-thin snapshot, indicates how full
+         the area for storing meta data is.  A value of 1.0
+         corresponds to 100%.
+    -->
+    <property name="MetadataAllocatedRatio" type="d" access="read"/>
+
+    <!-- Type:
+
+         The general type of a logical volume. One of "block", "pool"
+         or "vdopool". More types might be defined in the future.
+
+         A volume of type "block" can be used as a block device. A
+         volume of type "pool" can be used to create thin volumes.
+         A volume of type "vdopool" is the internal pool for the
+         VDO logical volume device.
+    -->
+    <property name="Type" type="s" access="read"/>
+
+    <!-- Layout:
+         @since: 2.10.0
+
+         The layout of this logical volume, such as "linear", "raid5",
+         etc.
+    -->
+    <property name="Layout" type="s" access="read"/>
+
+    <!-- Structure:
+         @since: 2.10.0
+
+         The detailed structure of how this logical volume is stored on physical volumes.
+
+         The following fields are present:
+
+         - name (s): The name of the logical volume.
+         - type (s): The layout type of the logical volume.
+         - size (t): The size in bytes of the logical volume.
+
+         If the logical volume is stored directly on physical volumes,
+         this field is present as well:
+
+         - segs (a(tto)): Information about the segments of the logical volume (see below).
+
+         A segment is represented by a "(tto)" tuple, where the fields
+         have these meanings:
+
+         - (t): The start of this segement on the physical volume, in bytes.
+         - (t): The size of the segment, in bytes.
+         - (o): The path of the org.freedesktop.UDisks.Block object of the physical volume.
+
+         For a healthy logical volume, the sizes of its segments will
+         add up exactly to its own size.  If a volume group has lost
+         some physical volumes, a affected logical volume will have a
+         list of segments here that do not add up to its full size.
+
+         If the logical volume is stored on other logical volumes,
+         these fields are present in the "Structure" value instead of
+         "segs":
+
+         - data (aa{sv}): The list of "Structure" objects for the data sub-volumes.
+         - metadata (aa{sv}): The list of "Structure" objects for the metadata sub-volumes.
+
+         For example, a minimal "raid5" layout will have three "data"
+         sub-volumes (and three parallel "metadata" sub-volumes),
+         which are the three stripes of the RAID configuration.  Each
+         of those sub-volume will be stored directly on physical
+         volumes and one can inspect the "segs" field of those to
+         figure out how many are damaged.  From that, one can deduce
+         whether the RAID is degraded (exactly one damaged), or has
+         lost data (more than one damaged).
+    -->
+    <property name="Structure" type="a{sv}" access="read"/>
+
+    <!-- SyncRatio:
+         @since: 2.10.0
+
+         How far along the logical volume is with resynchronizing.  A
+         value of 1.0 corresponds to fully synchronized and indicates
+         that no operation is in progress.  This is only relevant for
+         logical volumes with some redundancy, like "raid1" or
+         "raid5".
+    -->
+    <property name="SyncRatio" type="d" access="read"/>
+
+    <!-- ThinPool:
+
+         For a thin volume, the object path of its pool.
+    -->
+    <property name="ThinPool" type="o" access="read"/>
+
+    <!-- Origin:
+
+         For a snapshot, the object path of its origin.
+    -->
+    <property name="Origin" type="o" access="read"/>
+
+    <!-- ChildConfiguration: Configuration items belonging to the
+         block device of this logical volume and its children.  This
+         is also valid when this logical volume is not currently
+         active and there is no block device for it.  It works via the
+         'track-parents' options of
+         org.freedesktop.UDisks2.Block.AddConfigurationItem(), which
+         see.
+    -->
+    <property name="ChildConfiguration" type="a(sa{sv})" access="read"/>
+
+    <!-- BlockDevice:
+         @since: 2.7.1
+
+         For an active LV, the object path of its block device.
+    -->
+    <property name="BlockDevice" type="o" access="read"/>
+
+    <!-- Activate:
+         @options: Additional options.
+         @result: The UDisks2 object path of the block device.
+
+         Activate this logical volume, which makes it appear as a
+         block device in the system.
+
+         Non-thin snapshots are always activated and deactivated
+         together with their origins.
+
+         No additional options are currently defined.
+    -->
+    <method name="Activate">
+      <arg name="options" direction="in" type="a{sv}"/>
+      <arg name="result" type="o" direction="out"/>
+    </method>
+
+    <!-- Deactivate:
+         @options: Additional options.
+
+         Deactivate this logical volume, which makes its block device
+         disappear.
+
+         Non-thin snapshots are always activated and deactivated
+         together with their origins.
+
+         No additional options are currently defined.
+    -->
+    <method name="Deactivate">
+      <arg name="options" direction="in" type="a{sv}"/>
+    </method>
+
+    <!-- Delete:
+         @options: Additional options.
+
+         Delete this logical volume.
+
+         If there are any non-thin snapshots of this logical volume,
+         they will be deleted as well.
+
+         If this is a thin pool, all its contained thin volumes will
+         be deleted as well.
+
+         If the option <parameter>tear-down</parameter> is set to
+         %TRUE, then the logical volume and all its children will be
+         cleaned up before deletion.  This cleanup consists of
+         removing entries from /etc/fstab and /etc/crypttab, and
+         locking of encrypted block devices.  Entries in /etc/fstab
+         and /etc/crypttab that have been created with the
+         'track-parents' options to AddConfigurationItem will be
+         removed even if their block device is currently unavailable.
+    -->
+    <method name="Delete">
+      <arg name="options" direction="in" type="a{sv}"/>
+    </method>
+
+    <!-- Rename:
+         @new_name: The new name.
+         @options: Additional options.
+         @result: The new object path.
+
+         Rename this logical volume.  This might cause the logical
+         volume object to disappear from D-Bus and reappear with a
+         different path.
+
+         No additional options are currently defined.
+    -->
+    <method name="Rename">
+      <arg name="new_name" type="s" direction="in"/>
+      <arg name="options" direction="in" type="a{sv}"/>
+      <arg name="result" type="o" direction="out"/>
+    </method>
+
+    <!-- Resize:
+         @new_size: The new size, in bytes.
+         @options: Additional options.
+
+         Resize this logical volume.
+
+         Additional options:
+
+         resize_fsys (b):  Whether to resize the filesystem on the
+                           logical volume as well. Default to 'false'.
+
+         force (b):        Whether to force the resize even if it might
+                           destroy data.
+
+         pvs (ao):         A list of physical volumes to allocate more space
+                           from.
+    -->
+    <method name="Resize">
+      <arg name="new_size" type="t" direction="in"/>
+      <arg name="options" type="a{sv}" direction="in"/>
+    </method>
+
+    <!-- Repair:
+         @pvs: A list of physical volumes to use for the repair.
+         @options: Additional options.
+         @since: 2.10.0
+
+         Attempt a repair of this logical volume after it has lost
+         some physical volumes.  Space is allocated from the given
+         physical volumes as needed.  A empty list means to allocate
+         from all physical volumes.
+
+         No additional options are currently defined.
+    -->
+    <method name="Repair">
+      <arg name="pvs" type="ao" direction="in"/>
+      <arg name="options" direction="in" type="a{sv}"/>
+    </method>
+
+    <!-- CreateSnapshot:
+         @name: The name of the snapshot.
+         @size: The size of the backing store for the snapshot, in bytes.
+         @options: Additional options.
+
+         Create a snapshot of this logical volume.
+
+         When creating a snapshot of a non-thin volume, a non-zero
+         size must be specified.  A non-thin snapshot is created in
+         this case.
+
+         When creating a snapshot of a thin volume, specifying a @size
+         of zero will create a thin snapshot in the same pool.
+
+         When creating a snapshot of a thin volume, specifying a
+         non-zero @size will create a non-thin snapshot.
+
+         No additional options are currently defined.
+    -->
+    <method name="CreateSnapshot">
+      <arg name="name" type="s" direction="in"/>
+      <arg name="size" type="t" direction="in"/>
+      <arg name="options" type="a{sv}" direction="in"/>
+      <arg name="result" type="o" direction="out"/>
+    </method>
+
+    <!-- CacheAttach:
+         @cache_name: The name of an existing volume.
+         @options: Additional options.
+         @since: 2.3.0
+
+         Creates cache LV. Logical volume which name is provided, will be formatted, converted to cache type
+         and attached to origin logical volume as a cache pool LV. Logical volumes must be in the same volume group.
+
+         No additional options are currently defined.
+    -->
+    <method name="CacheAttach">
+      <arg name="cache_name" type="s" direction="in"/>
+      <arg name="options" type= "a{sv}" direction="in"/>
+    </method>
+
+    <!-- CacheSplit:
+         @options: Additional options.
+         @since: 2.3.0
+
+         Splits Cache LV to Cache pool LV and Origin LV, not afeecting its content.
+
+         No additional options are currently defined.
+    -->
+    <method name="CacheSplit">
+      <arg name="options" type= "a{sv}" direction="in"/>
+    </method>
+
+    <!-- CacheDetach:
+         @options: Additional options.
+         @since: 2.6.3
+
+         Detaches the cached LV from its cache.
+
+         No additional options are currently defined.
+    -->
+    <method name="CacheDetach">
+        <arg name="options" type= "a{sv}" direction="in"/>
+    </method>
+
+  </interface>
+
+  <!-- ********************************************************************** -->
+
+  <!--
+      org.freedesktop.UDisks2.VDOVolume:
+      @short_description: A VDO logical volume
+      @since: 2.9.0
+
+      Objects with this interface represent VDO logical volumes in a
+      volume group.
+
+      VDO logical volume objects are children of their VDO pool
+      object, and also link to it via the #VDOPool property.
+  -->
+  <interface name="org.freedesktop.UDisks2.VDOVolume">
+     <annotation name="org.gtk.GDBus.C.Name" value="VDO_Volume"/>
+
+     <!-- VDOPool:
+
+         Object path of the VDO pool for this volume.
+    -->
+
+    <property name="VDOPool" type="o" access="read">
+        <annotation name="org.gtk.GDBus.C.Name" value="VDO_Pool"/>
+    </property>
+
+    <!-- OperatingMode:
+
+         Operating mode of the VDO volume.
+
+         One of "normal", "read-only" or "recovering".
+    -->
+    <property name="OperatingMode" type="s" access="read"/>
+
+    <!-- CompressionState:
+
+         Compression state of the VDO volume.
+
+         One of "online" or "offline".
+    -->
+    <property name="CompressionState" type="s" access="read"/>
+
+    <!-- IndexState:
+
+         State of the VDO index of the volume.
+
+         One of "online", "offline", "opening", "closing", "closed"
+         or "error".
+    -->
+    <property name="IndexState" type="s" access="read"/>
+
+    <!-- UsedSize:
+
+         The total physical size used by this VDO volume.
+    -->
+    <property name="UsedSize" type="t" access="read"/>
+
+    <!-- Compression:
+
+         Indicates whether compression is enabled.
+    -->
+    <property name="Compression" type="b" access="read" />
+
+    <!-- Deduplication:
+
+         Indicates whether deduplication is enabled.
+    -->
+    <property name="Deduplication" type="b" access="read" />
+
+    <!--
+        EnableCompression:
+        @enable: A boolean value indicating whether compression should be enabled.
+        @options: Additional options (currently unused except for <link linkend="udisks-std-options">standard options</link>).
+
+        Enables or disables compression on the VDO volume. If the VDO volume
+        is running, takes effect immediately.
+    -->
+    <method name="EnableCompression">
+      <arg name="enable" direction="in" type="b" />
+      <arg name="options" direction="in" type="a{sv}" />
+    </method>
+
+    <!--
+        EnableDeduplication:
+        @enable: A boolean value indicating whether deduplication should be enabled.
+        @options: Additional options (currently unused except for <link linkend="udisks-std-options">standard options</link>).
+
+        Enables or disables deduplication on the VDO volume. If the VDO volume
+        is running, takes effect immediately.
+    -->
+    <method name="EnableDeduplication">
+      <arg name="enable" direction="in" type="b" />
+      <arg name="options" direction="in" type="a{sv}" />
+    </method>
+
+     <!--
+        ResizeLogical:
+        @size: The new logical size for the VDO volume in bytes.
+        @options: Additional options (currently unused except for <link linkend="udisks-std-options">standard options</link>).
+
+        Resizes the logical size of a VDO volume to the size specified by the @size argument.
+        This is only a convenience method and it's equivalent to using the
+        #org.freedesktop.UDisks2.LogicalVolume:Resize method.
+    -->
+    <method name="ResizeLogical">
+      <arg name="size" direction="in" type="t" />
+      <arg name="options" direction="in" type="a{sv}" />
+    </method>
+
+    <!--
+        ResizePhysical:
+        @size: The new physical size for the VDO volume in bytes.
+        @options: Additional options (currently unused except for <link linkend="udisks-std-options">standard options</link>).
+
+        Resizes the physical size of a VDO volume to the size specified by the @size argument.
+        This is only a convenience method and it's equivalent to using the
+        #org.freedesktop.UDisks2.LogicalVolume:Resize method on the #VDOPool.
+    -->
+    <method name="ResizePhysical">
+      <arg name="size" direction="in" type="t" />
+      <arg name="options" direction="in" type="a{sv}" />
+    </method>
+
+    <!--
+        GetStatistics:
+        @options: Additional options (currently unused except for <link linkend="udisks-std-options">standard options</link>).
+        @stats: Array of key-value string pairs
+
+        Retrieves statistics for the specified VDO volume. Statistics are collected from the values exposed by the kernel <literal>dm-vdo</literal> module.
+
+        Note: This function will work with the old out-of-tree <literal>kvdo</literal> module, but the resulting keys will differ in that case.
+
+        List of known keys:
+        <variablelist>
+        <varlistentry><term>writeAmplificationRatio</term><listitem><para>The average number of block writes to the underlying storage per block written to the VDO device.</para></listitem></varlistentry>
+        <varlistentry><term>oneKBlocks</term><listitem><para>The total number of 1K blocks allocated for a VDO volume (= physical volume size * block size / 1024).</para></listitem></varlistentry>
+        <varlistentry><term>oneKBlocksUsed</term><listitem><para>The total number of 1K blocks used on a VDO volume (= physical blocks used * block size / 1024).</para></listitem></varlistentry>
+        <varlistentry><term>oneKBlocksAvailable</term><listitem><para>The total number of 1K blocks available on a VDO volume (= physical blocks free * block size / 1024).</para></listitem></varlistentry>
+        <varlistentry><term>usedPercent</term><listitem><para>The percentage of physical blocks used on a VDO volume (= used blocks / allocated blocks * 100).</para></listitem></varlistentry>
+        <varlistentry><term>savings, savingPercent</term><listitem><para>The percentage of physical blocks saved on a VDO volume (= [logical blocks used - physical blocks used] / logical blocks used).</para></listitem></varlistentry>
+        <varlistentry><term>fiveTwelveByteEmulation</term><listitem><para>Indicates whether 512 byte emulation is on or off for the volume.</para></listitem></varlistentry>
+        <varlistentry><term>allocatorSlabCount</term><listitem><para>The total number of slabs.</para></listitem></varlistentry>
+        <varlistentry><term>allocatorSlabsOpened</term><listitem><para> The total number of slabs from which blocks have ever been allocated.</para></listitem></varlistentry>
+        <varlistentry><term>allocatorSlabsReopened</term><listitem><para>The number of times slabs have been re-opened since the VDO was started.</para></listitem></varlistentry>
+        <varlistentry><term>biosAcknowledgedDiscard, biosAcknowledgedFlush, biosAcknowledgedFua, biosAcknowledgedRead, biosAcknowledgedWrite</term><listitem><para>The number of block I/O requests acknowledged by VDO.</para></listitem></varlistentry>
+        <varlistentry><term>biosAcknowledgedPartialDiscard, biosAcknowledgedPartialFlush, biosAcknowledgedPartialFua, biosAcknowledgedPartialRead, biosAcknowledgedPartialWrite</term><listitem><para>The number of partial block I/O requests acknowledged by VDO. Applies only to 512-byte emulation mode.</para></listitem></varlistentry>
+        <varlistentry><term>biosInDiscard, biosInFlush, biosInFua, biosInRead, biosInWsrite</term><listitem><para>The number of block I/O requests received by VDO.</para></listitem></varlistentry>
+        <varlistentry><term>biosInPartialDiscard, biosInPartialFlush, biosInPartialFua, biosInPartialRead, biosInPartialWrite</term><listitem><para>The number of partial block I/O requests received by VDO. Applies only to 512-byte emulation mode.</para></listitem></varlistentry>
+        <varlistentry><term>biosInProgressDiscard, biosInProgressFlush, biosInProgressFua, biosInProgressRead, biosInProgressWrite</term><listitem><para>The number of bios submitted to the VDO which have not yet been acknowledged.</para></listitem></varlistentry>
+        <varlistentry><term>biosJournalCompletedDiscard, biosJournalCompletedFlush, biosJournalCompletedFua, biosJournalCompletedRead, biosJournalCompletedWrite</term><listitem><para>The number of recovery journal block I/O requests completed by the storage device.</para></listitem></varlistentry>
+        <varlistentry><term>biosJournalDiscard, biosJournalFlush, biosJournalFua, biosJournalRead, biosJournalWrite</term><listitem><para>The number of recovery journal block I/O requests submitted by VDO to the storage device.</para></listitem></varlistentry>
+        <varlistentry><term>biosMetaCompletedDiscard, biosMetaCompletedFlush, biosMetaCompletedFua, biosMetaCompletedRead, biosMetaCompletedWrite</term><listitem><para>The number of metadata block I/O requests completed by the storage device.</para></listitem></varlistentry>
+        <varlistentry><term>biosMetaDiscard, biosMetaFlush, biosMetaFua, biosMetaRead", biosMetaWrite</term><listitem><para>The number of metadata block I/O requests submitted by VDO to the storage device.</para></listitem></varlistentry>
+        <varlistentry><term>biosOutCompletedDiscard, biosOutCompletedFlush, biosOutCompletedFua, biosOutCompletedRead, biosOutCompletedWrite</term><listitem><para>The number of non-metadata block I/O requests completed by the storage device.</para></listitem></varlistentry>
+        <varlistentry><term>biosOutDiscard, biosOutFlush, biosOutFua, biosOutRead, biosOutWrite</term><listitem><para>The number of non-metadata block I/O requests submitted by VDO to the storage device.</para></listitem></varlistentry>
+        <varlistentry><term>biosPageCacheCompletedDiscard, biosPageCacheCompletedFlush, biosPageCacheCompletedFua, biosPageCacheCompletedRead, biosPageCacheCompletedWrite</term><listitem><para>The number of block map I/O requests completed by the storage device.</para></listitem></varlistentry>
+        <varlistentry><term>biosPageCachdeDiscard, biosPageCacheFlush, biosPageCacheFua, biosPageCacheRead, biosPageCacheWrite</term><listitem><para>The number of block map I/O requests submitted by VDO to the storage device.</para></listitem></varlistentry>
+        <varlistentry><term>blockMapCachePressure</term><listitem><para>The number of times a free page was not available when needed.</para></listitem></varlistentry>
+        <varlistentry><term>blockMapCacheSize</term><listitem><para>The size of the block map cache, in bytes.</para></listitem></varlistentry>
+        <varlistentry><term>blockMapCleanPages</term><listitem><para>The number of clean pages in the block map cache.</para></listitem></varlistentry>
+        <varlistentry><term>blockMapDirtyPages</term><listitem><para>The number of dirty pages in the block map cache.</para></listitem></varlistentry>
+        <varlistentry><term>blockMapDiscardRequired</term><listitem><para>The total number of block map requests that required a page to be discarded.</para></listitem></varlistentry>
+        <varlistentry><term>blockMapFailedPages</term><listitem><para>The number of block map cache pages that have write errors.</para></listitem></varlistentry>
+        <varlistentry><term>blockMapFailedReads</term><listitem><para>The total number of block map read errors.</para></listitem></varlistentry>
+        <varlistentry><term>blockMapFailedWrites</term><listitem><para>The total number of block map write errors.</para></listitem></varlistentry>
+        <varlistentry><term>blockMapFetchRequired</term><listitem><para>The total number of requests that required a page fetch.</para></listitem></varlistentry>
+        <varlistentry><term>blockMapFlushCount</term><listitem><para>The total number of flushes issued by the block map.</para></listitem></varlistentry>
+        <varlistentry><term>blockMapFoundInCache</term><listitem><para>The total number of block map cache hits.</para></listitem></varlistentry>
+        <varlistentry><term>blockMapFreePages</term><listitem><para>The number of free pages in the block map cache.</para></listitem></varlistentry>
+        <varlistentry><term>blockMapIncomingPages</term><listitem><para>The number of block map cache pages that are being read into the cache.</para></listitem></varlistentry>
+        <varlistentry><term>blockMapOutgoingPages</term><listitem><para>The number of block map cache pages that are being written.</para></listitem></varlistentry>
+        <varlistentry><term>blockMapPagesLoaded</term><listitem><para>The total number of page fetches.</para></listitem></varlistentry>
+        <varlistentry><term>blockMapPagesSaved</term><listitem><para>The total number of page saves.</para></listitem></varlistentry>
+        <varlistentry><term>blockMapReadCount</term><listitem><para>The total number of block map page reads.</para></listitem></varlistentry>
+        <varlistentry><term>blockMapReadOutgoing</term><listitem><para>The total number of block map reads for pages that were being written.</para></listitem></varlistentry>
+        <varlistentry><term>blockMapReclaimed</term><listitem><para>The total number of block map pages that were reclaimed.</para></listitem></varlistentry>
+        <varlistentry><term>blockMapWaitForPage</term><listitem><para>The total number of requests that had to wait for a page.</para></listitem></varlistentry>
+        <varlistentry><term>blockMapWriteCount</term><listitem><para>The total number of block map page writes.</para></listitem></varlistentry>
+        <varlistentry><term>blockSize</term><listitem><para>The block size of a VDO volume, in bytes.</para></listitem></varlistentry>
+        <varlistentry><term>completeRecoveries</term><listitem><para>The number of times a VDO volume has recovered from an unclean shutdown.</para></listitem></varlistentry>
+        <varlistentry><term>currentVIOsInProgress</term><listitem><para>The number of I/O requests the VDO is current processing.</para></listitem></varlistentry>
+        <varlistentry><term>dataBlocksUsed</term><listitem><para>The number of physical blocks currently in use by a VDO volume to store data.</para></listitem></varlistentry>
+        <varlistentry><term>dedupeAdviceTimeouts</term><listitem><para>The number of times deduplication queries timed out.</para></listitem></varlistentry>
+        <varlistentry><term>errorsInvalidAdvicePBNCount</term><listitem><para>The number of times the index returned invalid advice.</para></listitem></varlistentry>
+        <varlistentry><term>errorsNoSpaceErrorCount</term><listitem><para>The number of write requests which failed due to the VDO volume being out of space.</para></listitem></varlistentry>
+        <varlistentry><term>errorsReadOnlyErrorCount</term><listitem><para>The number of write requests which failed due to the VDO volume being in read-only mode.</para></listitem></varlistentry>
+        <varlistentry><term>flushOut</term><listitem><para>The number of flush requests submitted by VDO to the underlying storage.</para></listitem></varlistentry>
+        <varlistentry><term>hashLockConcurrentDataMatches</term><listitem><para></para></listitem></varlistentry>
+        <varlistentry><term>hashLockConcurrentHashCollisions</term><listitem><para></para></listitem></varlistentry>
+        <varlistentry><term>hashLockDedupeAdviceStale</term><listitem><para>The number of times deduplication advice was incorrect.</para></listitem></varlistentry>
+        <varlistentry><term>hashLockDedupeAdviceValid</term><listitem><para>The number of times deduplication advice was correct.</para></listitem></varlistentry>
+        <varlistentry><term>indexCurrDedupeQueries</term><listitem><para>The number of deduplication queries currently in flight.</para></listitem></varlistentry>
+        <varlistentry><term>indexEntriesIndexed</term><listitem><para></para></listitem></varlistentry>
+        <varlistentry><term>indexMaxDedupeQueries</term><listitem><para>The maximum number of in-flight deduplication queries.</para></listitem></varlistentry>
+        <varlistentry><term>indexPostsFound</term><listitem><para></para></listitem></varlistentry>
+        <varlistentry><term>indexPostsNotFound</term><listitem><para></para></listitem></varlistentry>
+        <varlistentry><term>indexQueriesFound</term><listitem><para></para></listitem></varlistentry>
+        <varlistentry><term>indexQueriesNotFound</term><listitem><para></para></listitem></varlistentry>
+        <varlistentry><term>indexUpdatesFound</term><listitem><para></para></listitem></varlistentry>
+        <varlistentry><term>indexUpdatesNotFound</term><listitem><para></para></listitem></varlistentry>
+        <varlistentry><term>inRecoveryMode</term><listitem><para></para></listitem></varlistentry>
+        <varlistentry><term>instance</term><listitem><para>The VDO instance.</para></listitem></varlistentry>
+        <varlistentry><term>journalBlocksBatching</term><listitem><para>The number of journal block writes started minus the number of journal blocks written.</para></listitem></varlistentry>
+        <varlistentry><term>journalBlocksCommitted</term><listitem><para>The number of journal blocks written to storage.</para></listitem></varlistentry>
+        <varlistentry><term>journalBlocksStarted</term><listitem><para>The number of journal blocks which have been touched in memory.</para></listitem></varlistentry>
+        <varlistentry><term>journalBlocksWriting</term><listitem><para>The number of journal blocks written (with metadatata in active memory) minus the number of journal blocks committed.</para></listitem></varlistentry>
+        <varlistentry><term>journalBlocksWritten</term><listitem><para>The total number of journal blocks for which a write has been issued.</para></listitem></varlistentry>
+        <varlistentry><term>journalDiskFull</term><listitem><para>The number of times a request could not make a recovery journal entry because the recovery journal was full.</para></listitem></varlistentry>
+        <varlistentry><term>journalEntriesBatching</term><listitem><para>The number of journal entry writes started minus the number of journal entries written.</para></listitem></varlistentry>
+        <varlistentry><term>journalEntriesCommitted</term><listitem><para>The number of journal entries written to storage.</para></listitem></varlistentry>
+        <varlistentry><term>journalEntriesStarted</term><listitem><para>The number of journal entries which have been made in memory.</para></listitem></varlistentry>
+        <varlistentry><term>journalEntriesWriting</term><listitem><para>The number of journal entries in submitted writes minus the number of journal entries committed to storage.</para></listitem></varlistentry>
+        <varlistentry><term>journalEntriesWritten</term><listitem><para>The total number of journal entries for which a write has been issued.</para></listitem></varlistentry>
+        <varlistentry><term>journalSlabJournalCommitsRequested</term><listitem><para>The number of times the recovery journal requested slab journal commits.</para></listitem></varlistentry>
+        <varlistentry><term>logicalBlocks</term><listitem><para>The maximum number of logical blocks that can be mapped by a VDO volume.</para></listitem></varlistentry>
+        <varlistentry><term>logicalBlockSize</term><listitem><para></para></listitem></varlistentry>
+        <varlistentry><term>logicalBlocksUsed</term><listitem><para>The number of logical blocks currently mapped.</para></listitem></varlistentry>
+        <varlistentry><term>maxVIOs</term><listitem><para>The maximum number of simultaneous I/O requests the VDO has processed.</para></listitem></varlistentry>
+        <varlistentry><term>memoryUsageBiosUsed</term><listitem><para>KVDO module bios use.</para></listitem></varlistentry>
+        <varlistentry><term>memoryUsageBytesUsed</term><listitem><para>KVDO module bytes use.</para></listitem></varlistentry>
+        <varlistentry><term>memoryUsagePeakBioCount</term><listitem><para>KVDO module peak bio coun.</para></listitem></varlistentry>
+        <varlistentry><term>memoryUsagePeakBytesUsed</term><listitem><para>KVDO module peak bytes use.</para></listitem></varlistentry>
+        <varlistentry><term>mode</term><listitem><para>Indicates whether a VDO volume is operating normally, is in recovery mode, or is in read-only mode.</para></listitem></varlistentry>
+        <varlistentry><term>overheadBlocksUsed</term><listitem><para>The number of physical blocks currently in use by a VDO volume to store VDO metadata.</para></listitem></varlistentry>
+        <varlistentry><term>packerCompressedBlocksWritten</term><listitem><para>The number of physical blocks of compressed data that have been written since the VDO volume was last restarted. The remaining fields are primarily intended for software support and are subject to change in future releases; management tools should not rely upon them.</para></listitem></varlistentry>
+        <varlistentry><term>packerCompressedFragmentsInPacker</term><listitem><para>The number of compressed fragments being processed that have not yet been written.</para></listitem></varlistentry>
+        <varlistentry><term>packerCompressedFragmentsWritten</term><listitem><para>The number of compressed fragments that have been written since the VDO volume was last restarted.</para></listitem></varlistentry>
+        <varlistentry><term>physicalBlocks</term><listitem><para>The total number of physical blocks allocated for a VDO volume.</para></listitem></varlistentry>
+        <varlistentry><term>readCacheAccesses</term><listitem><para>The number of times VDO searched the read cache.</para></listitem></varlistentry>
+        <varlistentry><term>readCachdeDataHits</term><listitem><para>The number of times VDO found an entry in the read cache for the desired data block, where the block's contents had been read into memory.</para></listitem></varlistentry>
+        <varlistentry><term>readCacheHits</term><listitem><para>The number of times VDO found an entry in the read cache for the desired data block, whether or not the block's contents had yet been read into memory.</para></listitem></varlistentry>
+        <varlistentry><term>readOnlyRecoveries</term><listitem><para>The number of times a VDO volume has been recovered from read-only mode.</para></listitem></varlistentry>
+        <varlistentry><term>recoveryPercentage</term><listitem><para>Indicates online recovery progress (\%), or N/A if the volume is not in recovery mode.</para></listitem></varlistentry>
+        <varlistentry><term>refCountsBlocksWritten</term><listitem><para>The number of reference block writes issued.</para></listitem></varlistentry>
+        <varlistentry><term>slabJournalBlockedCount</term><listitem><para>The number of times an entry was added to a slab journal that was over the blocking threshold.</para></listitem></varlistentry>
+        <varlistentry><term>slabJournalBlocksWritten</term><listitem><para>The number of slab journal block writes issued.</para></listitem></varlistentry>
+        <varlistentry><term>slabJournalDiskFullCount</term><listitem><para>The number of times an on-disk slab journal was full.</para></listitem></varlistentry>
+        <varlistentry><term>slabJournalFlushCount</term><listitem><para>The number of times an entry was added to a slab journal that was over the flush threshold.</para></listitem></varlistentry>
+        <varlistentry><term>slabJournalTailBusyCount</term><listitem><para>The number of times write requests blocked waiting for a slab journal write.</para></listitem></varlistentry>
+        <varlistentry><term>slabSummaryBlocksWritten</term><listitem><para>The number of slab summary block writes issued.</para></listitem></varlistentry>
+        <varlistentry><term>writePolicy</term><listitem><para>The write policy (sync or async).</para></listitem></varlistentry>
+        </variablelist>
+    -->
+    <method name="GetStatistics">
+      <arg name="options" direction="in" type="a{sv}" />
+      <arg name="stats" direction="out" type="a{ss}" />
+    </method>
+
+  </interface>
+
+  <!-- ********************************************************************** -->
+
+</node>

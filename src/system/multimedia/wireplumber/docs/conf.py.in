@@ -1,0 +1,59 @@
+# -- Project information -----------------------------------------------------
+
+project = 'WirePlumber'
+copyright = '2020-2025, Collabora & contributors'
+author = 'The WirePlumber Developers'
+release = '@VERSION@'
+version = '@VERSION@'
+
+# -- General configuration ---------------------------------------------------
+
+smartquotes = False
+
+# -- Breathe configuration ---------------------------------------------------
+
+extensions = [
+  'breathe',
+  'sphinx_rtd_theme',
+  'sphinx.ext.graphviz',
+]
+
+breathe_projects = {
+  "WirePlumber": "@OUTDIR@/wp/xml",
+}
+breathe_default_project = "WirePlumber"
+breathe_default_members = ('members', 'undoc-members')
+
+breathe_domain_by_extension = {
+    "h" : "c",
+    "c" : "c",
+}
+breathe_show_define_initializer = True
+breathe_show_enumvalue_initializer = True
+
+# -- Options for HTML output -------------------------------------------------
+
+html_theme = "sphinx_rtd_theme"
+
+html_theme_options = {
+  "display_version": True,
+  "prev_next_buttons_location": "both",
+  "style_external_links": True,
+}
+
+html_static_path = ['@SRCDIR@/_static']
+html_css_files = ['custom.css']
+
+graphviz_output_format = "svg"
+
+pygments_style = "friendly"
+
+# -- Options for manual page output -----------------------------------------
+
+# NOTE: keep this list in sync with the 'output' list of the 'manpages'
+# custom_target in docs/meson.build; meson errors out if they disagree
+man_pages = [
+    ('man/wireplumber', 'wireplumber', 'PipeWire Session Manager', ['The WirePlumber Developers'], 1),
+    ('man/wpctl', 'wpctl', 'WirePlumber Control CLI', ['The WirePlumber Developers'], 1),
+    ('man/wpexec', 'wpexec', 'WirePlumber Script Interpreter', ['The WirePlumber Developers'], 1),
+]

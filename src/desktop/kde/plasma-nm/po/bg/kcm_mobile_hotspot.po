@@ -1,0 +1,63 @@
+# Copyright (C) 2025 This file is copyright:
+# This file is distributed under the same license as the plasma-nm package.
+#
+# SPDX-FileCopyrightText: 2023, 2025 Mincho Kondarev <mkondarev@yahoo.de>
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma-nm\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-29 03:06+0000\n"
+"PO-Revision-Date: 2025-09-03 19:57+0200\n"
+"Last-Translator: Mincho Kondarev <mkondarev@yahoo.de>\n"
+"Language-Team: Bulgarian <kde-i18n-doc@kde.org>\n"
+"Language: bg\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 25.07.70\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+#: ui/main.qml:33
+#, kde-format
+msgid "Configure Hotspot"
+msgstr "Настройване на активна точка"
+
+#: ui/main.qml:52
+#, kde-format
+msgid "Hotspot SSID:"
+msgstr "SSID на точка за достъп:"
+
+#: ui/main.qml:60
+#, kde-format
+msgid "Hotspot Password:"
+msgstr "Парола на точка на достъп:"
+
+#: ui/main.qml:79
+#, kde-format
+msgid "Hotspot"
+msgstr "Точка за достъп"
+
+#: ui/main.qml:80
+#, kde-format
+msgid "Share your internet connection with other devices as a Wi-Fi network."
+msgstr "Споделете вашата интернет връзка с други устройства като Wi-Fi мрежа."
+
+#: ui/main.qml:95
+#, kde-format
+msgid "Settings"
+msgstr "Настройки"
+
+#: ui/main.qml:102
+#, kde-format
+msgid "Hotspot SSID"
+msgstr "SSID на точка за достъп"
+
+#: ui/main.qml:111
+#, kde-format
+msgid "Hotspot Password"
+msgstr "Парола на точка на достъп"
+
+#: ui/main.qml:119
+#, kde-format
+msgid "Configure"
+msgstr "Настройване"

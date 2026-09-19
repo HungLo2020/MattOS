@@ -1,0 +1,334 @@
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+#
+# SPDX-FileCopyrightText: 2014, 2020, 2021, 2022, 2023, 2024, 2025, 2026 Giovanni Sora <g.sora@tiscali.it>
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-04-25 02:45+0000\n"
+"PO-Revision-Date: 2026-02-05 16:48+0100\n"
+"Last-Translator: giovanni <g.sora@tiscali.it>\n"
+"Language-Team: Interlingua <kde-i18n-doc@kde.org>\n"
+"Language: ia\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 23.08.5\n"
+
+#: ConnectionItem.qml:62
+#, kde-format
+msgid "Connect"
+msgstr "Connecte"
+
+#: ConnectionItem.qml:62
+#, kde-format
+msgid "Disconnect"
+msgstr "Disconnecte"
+
+#: ConnectionItem.qml:90
+#, kde-format
+msgctxt "Share Wi-Fi network's password or QR code"
+msgid "Share"
+msgstr "Comparti"
+
+#: ConnectionItem.qml:96
+#, kde-format
+msgid "Configure…"
+msgstr "Configura..."
+
+#: ConnectionItem.qml:136
+#, kde-format
+msgid "Speed"
+msgstr "Velocitate"
+
+#: ConnectionItem.qml:141
+#, kde-format
+msgid "Details"
+msgstr "Detalios"
+
+#: ConnectionItem.qml:188
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Current download speed is %1 kibibytes per second; current upload speed is "
+"%2 kibibytes per second"
+msgstr ""
+"Velocitate currente de discargamento es %1 kibibytes per secunda; velocitate "
+"currente de incargar es %2 kibibytes per seccunda"
+
+#: ConnectionItem.qml:302
+#, kde-format
+msgctxt "Download and upload rates in some unit per second"
+msgid "↓ %1/s, ↑ %2/s"
+msgstr "↓ %1/s, ↑ %2/s"
+
+#: ConnectionListPage.qml:33
+#, kde-format
+msgid "You need to log in to this network"
+msgstr "Tu necessita authenticar a iste rete"
+
+#: ConnectionListPage.qml:37
+#, kde-format
+msgctxt "@action:button"
+msgid "Log in"
+msgstr "Accede"
+
+#: ConnectionListPage.qml:118
+#, kde-format
+msgid "Airplane mode is enabled"
+msgstr "Modo aeroplano es activate"
+
+#: ConnectionListPage.qml:122
+#, kde-format
+msgid "Wi-Fi and mobile data are deactivated"
+msgstr "Datos de Wii-Fi e mobile es deactivate"
+
+#: ConnectionListPage.qml:124
+#, kde-format
+msgid "Wi-Fi is deactivated"
+msgstr "Wi-Fi es deactivate"
+
+#: ConnectionListPage.qml:127
+#, kde-format
+msgid "Looking for Wi-Fi networks"
+msgstr "Cercante retes WiFi"
+
+#: ConnectionListPage.qml:130
+#, kde-format
+msgid "Mobile data is deactivated"
+msgstr "Datos mobile es deactivate"
+
+#: ConnectionListPage.qml:133
+#, kde-format
+msgid "No matches"
+msgstr "Nulle correspondentias"
+
+#: ConnectionListPage.qml:136
+#, kde-format
+msgid "No available connections"
+msgstr "Nulle connexiones disponibile"
+
+#: ConnectionListPage.qml:145
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn off airplane mode to search for networks"
+msgstr "Deactiva modode aereoplano per cercar retes"
+
+#: ConnectionListPage.qml:149
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on Wi-Fi or mobile data to search for networks"
+msgstr "Activa Wi-Fi o datos de mobile per cercar retes"
+
+#: ConnectionListPage.qml:151
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on Wi-Fi to search for networks"
+msgstr "Activa Wi-Fi  per cercar retes"
+
+#: ConnectionListPage.qml:154
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on mobile data to search for networks"
+msgstr "Activa datos de mobile per cercar retes"
+
+#: DetailsText.qml:40
+#, kde-format
+msgid "Copy"
+msgstr "Copia"
+
+#: main.qml:32
+#, kde-format
+msgid "Networks"
+msgstr "Retes"
+
+#: main.qml:41
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Middle-click to turn off Airplane Mode"
+msgstr "Pulsa in le medie per stoppar Modo de Aereoplano"
+
+#: main.qml:43
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Middle-click to turn on Airplane Mode"
+msgstr "Pulsa in le medie per activar Modo de Aereoplano"
+
+#: main.qml:71 Toolbar.qml:74
+#, kde-format
+msgid "Enable Wi-Fi"
+msgstr "Activar Wi-Fi"
+
+#: main.qml:82
+#, kde-format
+msgid "Enable Mobile Data"
+msgstr "Habilita datos de mobile"
+
+#: main.qml:94
+#, kde-format
+msgid "Enable Airplane Mode"
+msgstr "HAbilita Modo de Aeroplano"
+
+#: main.qml:106
+#, kde-format
+msgid "Open Network Login Page…"
+msgstr "Aperi pagina de accesso de rete..."
+
+#: main.qml:116
+#, kde-format
+msgid "&Configure Network Connections…"
+msgstr "&Configura Connexiones de Rete..."
+
+#: PopupDialog.qml:51
+#, kde-format
+msgctxt "@action:button"
+msgid "Return to Network Connections"
+msgstr "Retorna a Connexiones de Rete"
+
+#: ShareNetworkQrCodePage.qml:33
+#, kde-format
+msgid "Scan this QR code with another device to connect to the \"%1\" network."
+msgstr ""
+"Scande iste codice QR con un altere dispositivo per connecter al rete \"%1\"."
+
+#: ShareNetworkQrCodePage.qml:108
+#, kde-format
+msgid "Wi-Fi password:"
+msgstr "Contrasigno de Wi-Fi:"
+
+#: Toolbar.qml:124
+#, kde-format
+msgid "Enable mobile data"
+msgstr "Habilita datos de mobile"
+
+#: Toolbar.qml:147
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Disable airplane mode<nl/><nl/>This will enable Wi-Fi and Bluetooth"
+msgstr "Deactiva modo aeroplano<nl/><nl/>Isto activara Wi-Fi e Bluetooth"
+
+#: Toolbar.qml:148
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Enable airplane mode<nl/><nl/>This will disable Wi-Fi and Bluetooth"
+msgstr "Activa modo aeroplano<nl/><nl/>Isto deactivara Wi-Fi e Bluetooth"
+
+#: Toolbar.qml:176
+#, kde-format
+msgid "Hotspot"
+msgstr "Hotspot"
+
+#: Toolbar.qml:193
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot create a hotspot because Wi-Fi is disabled."
+msgstr "Non pote crear un hotspotproque Wi-Fi es dishabilitate."
+
+#: Toolbar.qml:195
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Cannot create a hotspot because all wireless radios are in use. Disconnect "
+"from the current Wi-Fi network or connect another wireless radio."
+msgstr ""
+"Non pote crear un hotspot proque omne radios sin filo es in uso. Disconnecte "
+"ex rete de Wi-Fi currente o connecte a un altere radio sin filo."
+
+#: Toolbar.qml:197
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Disable Hotspot"
+msgstr "Deactivar Hotspot"
+
+#: Toolbar.qml:199
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Create Hotspot"
+msgstr "Crear Hotspot"
+
+#: Toolbar.qml:227
+#, kde-format
+msgctxt "@action:button"
+msgid "Scan Wi-Fi QR Code"
+msgstr "Scande Codice QR de Wi-Fi"
+
+#: Toolbar.qml:232
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Scan QR Code to connect to a Wi-Fi network"
+msgstr "Scande codice QR per connecter al rete Wi-Fi"
+
+#: Toolbar.qml:234
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Install QRCA Barcode Scanner to scan for a QR Code that connects to a Wi-Fi "
+"network"
+msgstr ""
+"Installa QRCA Barcode Scanner per scander un codice QR quer connecte a un "
+"rete Wi-Fi."
+
+#: Toolbar.qml:253
+#, kde-format
+msgid "Configure network connections…"
+msgstr "Configura Connexiones de Rete..."
+
+#~ msgid "/s"
+#~ msgstr "/s"
+
+#~ msgid "Upload"
+#~ msgstr "Incarga"
+
+#~ msgid "Download"
+#~ msgstr "Discarga"
+
+#~ msgid "Show Network's QR Code"
+#~ msgstr "Monstra codice QR de rete"
+
+#~ msgid "Connected"
+#~ msgstr "Connectite"
+
+#~ msgid "Password…"
+#~ msgstr "Contrasigno…"
+
+#~ msgctxt "@title:window"
+#~ msgid "QR Code for %1"
+#~ msgstr "QR Code (Codice QR) per %1"
+
+#, fuzzy
+#~| msgid "Connect"
+#~ msgctxt "@info:tooltip %1 is the name of a network connection"
+#~ msgid "Connect to %1"
+#~ msgstr "Connecte"
+
+#, fuzzy
+#~| msgid "Disconnect"
+#~ msgctxt "@info:tooltip %1 is the name of a network connection"
+#~ msgid "Disconnect from %1"
+#~ msgstr "Disconnecte"
+
+#~ msgctxt "text field placeholder text"
+#~ msgid "Search…"
+#~ msgstr "Cerca..."
+
+#~ msgctxt "button tooltip"
+#~ msgid "Search the connections"
+#~ msgstr "Cerca le connexiones"
+
+#~ msgid ""
+#~ "Connected, <font color='%1'>⬇</font> %2/s, <font color='%3'>⬆</font> %4/s"
+#~ msgstr ""
+#~ "Connectite, <font color='%1'>⬇</font> %2/s, <font color='%3'>⬆</font> %4/s"
+
+#~ msgid "Enable wireless"
+#~ msgstr "Habilita Wireless (Sin Cablos)"
+
+#~ msgid "Available connections"
+#~ msgstr "Connexiones disponibile"
+
+#, fuzzy
+#~| msgid "Available connections"
+#~ msgid "Show virtual connections"
+#~ msgstr "Connexiones disponibile"

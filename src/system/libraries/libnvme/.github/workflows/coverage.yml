@@ -1,0 +1,24 @@
+---
+name: coverage
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  code-coverage:
+    if: github.repository == 'linux-nvme/libnvme'
+    name: code coverage
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    container:
+      image: ghcr.io/linux-nvme/debian.python:latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: build
+        run: |
+          scripts/build.sh coverage
+      - uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true

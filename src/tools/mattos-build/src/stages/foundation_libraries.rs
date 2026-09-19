@@ -209,6 +209,57 @@ fn build_attr(repo_root: &Path) -> Result<()> {
     Ok(())
 }
 
+fn build_lm_sensors(repo_root: &Path) -> Result<()> {
+    let source = repo_root.join("src/system/libraries/lm-sensors");
+    if !source.join("Makefile").is_file() {
+        bail!("lm-sensors source not found in {}; run upstream import lm-sensors first", source.display());
+    }
+    let root = repo_root.join("out/build/lm-sensors");
+    let source_copy = root.join("source");
+    let install = root.join("install");
+    sync_build_source(&source, &source_copy)?;
+    remove_path_if_exists(&install)?;
+    fs::create_dir_all(&install)?;
+    let libdir = "LIBDIR=/usr/lib/x86_64-linux-gnu";
+    let prefix = "PREFIX=/usr";
+    let etcdir = "ETCDIR=/etc";
+    run_cmd(&source_copy, "make", &["-j1", prefix, libdir, etcdir])?;
+    let destdir = format!("DESTDIR={}", install.display());
+    run_cmd(&source_copy, "make", &["install", prefix, libdir, etcdir, &destdir])?;
+    let library = install.join("usr/lib/x86_64-linux-gnu/libsensors.so.5");
+    if !library.exists() { bail!("lm-sensors did not install {}", library.display()); }
+    Ok(())
+}
+
+fn build_highway(repo_root: &Path) -> Result<()> {
+    let source = repo_root.join("src/system/libraries/highway");
+    if !source.join("CMakeLists.txt").is_file() {
+        bail!("Highway source not found in {}; run upstream import highway first", source.display());
+    }
+    let root = repo_root.join("out/build/highway");
+    let build = root.join("build");
+    let install = root.join("install");
+    remove_path_if_exists(&build)?;
+    remove_path_if_exists(&install)?;
+    fs::create_dir_all(&build)?;
+    fs::create_dir_all(&install)?;
+    run_cmd(repo_root, "cmake", &[
+        "-S", path_str(&source)?, "-B", path_str(&build)?, "-G", "Ninja",
+        "-DCMAKE_BUILD_TYPE=Release", "-DCMAKE_INSTALL_PREFIX=/usr",
+        "-DCMAKE_INSTALL_LIBDIR=lib/x86_64-linux-gnu", "-DBUILD_SHARED_LIBS=ON",
+        "-DHWY_ENABLE_INSTALL=ON", "-DHWY_ENABLE_TESTS=OFF",
+        "-DHWY_ENABLE_EXAMPLES=OFF", "-DHWY_ENABLE_CONTRIB=OFF",
+    ])?;
+    run_cmd(repo_root, "cmake", &["--build", path_str(&build)?, "--parallel", "4"])?;
+    run_cmd_with_env_overrides(repo_root, "cmake", &["--install", path_str(&build)?], &[("DESTDIR", install.display().to_string())])?;
+    let library = install.join("usr/lib/x86_64-linux-gnu/libhwy.so.1");
+    let config = install.join("usr/lib/x86_64-linux-gnu/cmake/hwy/hwy-config.cmake");
+    if !library.exists() || !config.is_file() {
+        bail!("Highway install is incomplete: expected {} and {}", library.display(), config.display());
+    }
+    Ok(())
+}
+
 /// Obtains the official Attr v2.6.0 distribution archive in the Attr output
 /// directory.  The archive is accepted only when its published SHA-256
 /// matches, so an interrupted or substituted download cannot supply build
@@ -569,4 +620,3 @@ fn build_patch(repo_root: &Path) -> Result<()> {
         &["usr/bin/patch"],
     )
 }
-

@@ -1,0 +1,15 @@
+.deps
+.libs
+marshal.c
+marshal.h
+Makefile
+Makefile.in
+*.o
+*.lo
+*.la
+udisks-daemon
+*-glue.h
+generated-*.c
+generated-*.h
+generated-*.list
+generated-*.stamp

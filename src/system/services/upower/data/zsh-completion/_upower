@@ -1,0 +1,22 @@
+#compdef upower
+_enumerate_objects() {
+	local expl
+	local -a objects
+	objects=( ${(f)"$(
+		_call_program upower-enumerate-objects \
+		upower -e
+		)"} )
+	_wanted objects expl "object path" \
+		compadd -a objects -d objects
+}
+
+_arguments \
+	"(--battery -b)"{--battery,-b}"[Dump all parameters for battery objects]" \
+	"(--enumerate -e)"{--enumerate,-e}"[Enumerate objects paths for devices]" \
+	"(--dump -d)"{--dump,-d}"[Dump all parameters for all objects]" \
+	"(--monitor -m)"{--monitor,-m}"[Monitor activity from the power daemon]" \
+	"--monitor-detail""[Monitor with detail]" \
+	"(--show-info -i)"{--show-info,-i}"[Show information about object path]"":::_enumerate_objects" \
+	"(--version -v)"{--version,-v}"[Print version of client and daemon"] \
+
+compdef _upower upower

@@ -1,0 +1,2446 @@
+# Copyright (C) 2023 This file is copyright:
+# This file is distributed under the same license as the ark package.
+#
+# SPDX-FileCopyrightText: 2020, 2021, 2022, 2023, 2025 Kheyyam Gojayev <xxmn77@gmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: ark\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-08-24 02:42+0000\n"
+"PO-Revision-Date: 2025-05-28 16:35+0400\n"
+"Last-Translator: linux <xxmn77@gmail.com>\n"
+"Language-Team: Azerbaijani <kde-i18n-doc@kde.org>\n"
+"Language: az\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 25.04.1\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Xəyyam Qocayev"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "xxmn77@gmail.com"
+
+#. i18n: ectx: Menu (archive)
+#: app/arkui.rc:5
+#, kde-format
+msgctxt "Noun, not a verb. Top level menu item, i.e. like File"
+msgid "&Archive"
+msgstr "&Arxiv"
+
+#: app/batchextract.cpp:103 app/batchextract.cpp:174
+#, kde-format
+msgid "Extracting Files"
+msgstr "Faylların Çıxarılması"
+
+#: app/batchextract.cpp:104 app/batchextract.cpp:175
+#, kde-format
+msgid "Source archive"
+msgstr "Mənbə arxivi"
+
+#: app/batchextract.cpp:105 app/batchextract.cpp:176
+#, kde-format
+msgid "Destination"
+msgstr "Təyinat"
+
+#: app/batchextract.cpp:117
+#, kde-format
+msgid "The following files could not be extracted:"
+msgstr "Aşağıdakı fayllar çıxarıla bilmədi:"
+
+#: app/batchextract.cpp:137
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"There was an error while extracting <filename>%1</filename>. Any further "
+"archive will not be extracted."
+msgstr ""
+"<filename>%1</filename> çıxarılması zamanı xəta baş verdi. Bundan sonrakı "
+"arxivlər çıxarılmayacaq."
+
+#: app/batchextract.cpp:139
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"There was an error while extracting <filename>%1</filename>:<nl/><message>"
+"%2</message><nl/>Any further archive will not be extracted."
+msgstr ""
+"<filename>%1</filename> çıxarılması zamanı xəta baş verdi:<nl/><message>%2</"
+"message><nl/> Bundan sonrakı arxivlər çıxarılmayacaq."
+
+#: app/batchextract.cpp:146
+#, kde-kuit-format
+msgctxt "@info"
+msgid "There was an error while extracting <filename>%1</filename>."
+msgstr "<filename>%1</filename> çıxarılması zamanı xəta baş verdi."
+
+#: app/batchextract.cpp:148
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"There was an error while extracting <filename>%1</filename>:<nl/><message>"
+"%2</message>"
+msgstr ""
+"<filename>%1</filename> çıxarılması zamanı xəta bş verdi:<nl/><message>%2</"
+"message>"
+
+#: app/batchextract.cpp:301
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The archive could not be extracted to <filename>%1</filename> because Ark "
+"can only extract to local destinations."
+msgstr ""
+"Arxiv <filename>%1</filename> qovluğuna çıxarıla bilməz, çünki Ark yalnız "
+"yerli təyin edilmiş qovluqlara çıxara bilir."
+
+#: app/compressfileitemaction.cpp:74
+#, kde-format
+msgctxt "@action:inmenu Compress submenu in Dolphin context menu"
+msgid "Compress"
+msgstr "Sıxmaq"
+
+#: app/compressfileitemaction.cpp:102
+#, fuzzy, kde-format
+#| msgctxt "@action:inmenu Part of Compress submenu in Dolphin context menu"
+#| msgid "Compress to..."
+msgctxt "@action:inmenu Part of Compress submenu in Dolphin context menu"
+msgid "Compress to…"
+msgstr "Bu arxivdə sıxmaq..."
+
+#: app/compressfileitemaction.cpp:105 app/compressfileitemaction.cpp:119
+#, kde-format
+msgctxt ""
+"@action:inmenu Part of Compress submenu in Dolphin context menu, %1 filename"
+msgid "Compress to \"%1\""
+msgstr "%1 arxivinə yerləşdirmək"
+
+#: app/compressfileitemaction.cpp:111 kerfuffle/addtoarchive.cpp:269
+#, kde-format
+msgctxt "Default name of a newly-created multi-file archive"
+msgid "Archive"
+msgstr "Arxiv"
+
+#: app/extractfileitemaction.cpp:66
+#, kde-format
+msgctxt "@action:inmenu Part of Extract submenu in Dolphin context menu"
+msgid "Extract to…"
+msgstr "Çıxardılacaq yer..."
+
+#: app/extractfileitemaction.cpp:78
+#, kde-format
+msgctxt "@action:inmenu Part of Extract submenu in Dolphin context menu"
+msgid "Extract here"
+msgstr "Buraya çıxartmaq"
+
+#: app/extractfileitemaction.cpp:84
+#, fuzzy, kde-format
+#| msgctxt "@action:inmenu Part of Extract submenu in Dolphin context menu"
+#| msgid "Extract here and delete archive"
+msgctxt "@action:inmenu Part of Extract submenu in Dolphin context menu"
+msgid "Extract and trash archive"
+msgstr "Buraya çıxarmaq və arxivi silmək"
+
+#: app/extractfileitemaction.cpp:91
+#, kde-format
+msgctxt "@action:inmenu Extract submenu in Dolphin context menu"
+msgid "Extract"
+msgstr "Çıxartmaq"
+
+#: app/extractHereDndPlugin.cpp:54
+#, kde-format
+msgctxt ""
+"@action:inmenu Context menu shown when an archive is being drag'n'dropped"
+msgid "Extract here"
+msgstr "Buraya çıxartmaq"
+
+#: app/main.cpp:76
+#, kde-format
+msgid "Ark"
+msgstr "Ark"
+
+#: app/main.cpp:78
+#, kde-format
+msgid "KDE Archiving tool"
+msgstr "KDE Arxivləmə Aləti"
+
+#: app/main.cpp:80
+#, fuzzy, kde-format
+#| msgid "(c) 1997-2019, The Ark Developers"
+msgid "© 1997–2025 The Ark Developers"
+msgstr "(c) 1997-2019, Ark Tərtibatçıları"
+
+#: app/main.cpp:86
+#, kde-format
+msgid "Elvis Angelaccio"
+msgstr "Elvis Angelaccio"
+
+#: app/main.cpp:86
+#, kde-format
+msgid "Maintainer"
+msgstr "Himayəçi"
+
+#: app/main.cpp:87
+#, kde-format
+msgid "Ragnar Thomsen"
+msgstr "Ragnar Thomsen"
+
+#: app/main.cpp:87
+#, kde-format
+msgid "Maintainer, KF5 port"
+msgstr "Himayəçi, KF5 port"
+
+#: app/main.cpp:88
+#, kde-format
+msgid "Raphael Kubo da Costa"
+msgstr "Raphael Kubo da Costa"
+
+#: app/main.cpp:88 app/main.cpp:89 app/main.cpp:90
+#, kde-format
+msgid "Former Maintainer"
+msgstr "Əvvəlki Himayəçi"
+
+#: app/main.cpp:89
+#, kde-format
+msgid "Harald Hvaal"
+msgstr "Harald Hvaal"
+
+#: app/main.cpp:90
+#, kde-format
+msgid "Henrique Pinto"
+msgstr "Henrique Pinto"
+
+#: app/main.cpp:91
+#, kde-format
+msgid "Helio Chissini de Castro"
+msgstr "Helio Chissini de Castro"
+
+#: app/main.cpp:91
+#, kde-format
+msgid "Former maintainer"
+msgstr "Əvvəlki Himayəçi"
+
+#: app/main.cpp:92
+#, kde-format
+msgid "Georg Robbers"
+msgstr "Georg Robbers"
+
+#: app/main.cpp:93
+#, kde-format
+msgid "Roberto Selbach Teixeira"
+msgstr "Roberto Selbach Teixeira"
+
+#: app/main.cpp:94
+#, kde-format
+msgid "Francois-Xavier Duranceau"
+msgstr "Francois-Xavier Duranceau"
+
+#: app/main.cpp:95
+#, kde-format
+msgid "Emily Ezust (Corel Corporation)"
+msgstr "Emily Ezust (Corel Corporation)"
+
+#: app/main.cpp:96
+#, kde-format
+msgid "Michael Jarrett (Corel Corporation)"
+msgstr "Michael Jarrett (Corel Corporation)"
+
+#: app/main.cpp:97
+#, kde-format
+msgid "Robert Palmbos"
+msgstr "Robert Palmbos"
+
+#: app/main.cpp:99
+#, kde-format
+msgid "Vladyslav Batyrenko"
+msgstr "Vladyslav Batyrenko"
+
+#: app/main.cpp:100
+#, kde-format
+msgid "Advanced editing functionalities"
+msgstr "Qabaqcıl redaktə funksiyaları"
+
+#: app/main.cpp:103
+#, kde-format
+msgid "Bryce Corkins"
+msgstr "Bryce Corkins"
+
+#: app/main.cpp:103
+#, kde-format
+msgid "Icons"
+msgstr "Nişanlar"
+
+#: app/main.cpp:104
+#, kde-format
+msgid "Liam Smit"
+msgstr "Liam Smit"
+
+#: app/main.cpp:104
+#, kde-format
+msgid "Ideas, help with the icons"
+msgstr "İdeyalar, nişanlar üçün kömək"
+
+#: app/main.cpp:105
+#, kde-format
+msgid "Andrew Smith"
+msgstr "Andrew Smith"
+
+#: app/main.cpp:105
+#, kde-format
+msgid "bkisofs code"
+msgstr "bkisofs kodu"
+
+#: app/main.cpp:114
+#, kde-format
+msgid "URLs to open."
+msgstr "Açılacaq URL-lar."
+
+#: app/main.cpp:117
+#, kde-format
+msgid ""
+"Show a dialog for specifying the options for the operation (extract/add)"
+msgstr ""
+"Əməliyyatın parametrlərini dəqiqləşdirmək üçün dialoqu göstərmək (çıxartmaq/"
+"əlavə etmək)"
+
+#: app/main.cpp:120
+#, kde-format
+msgid ""
+"Destination folder to extract to. Defaults to current path if not specified."
+msgstr ""
+"Çıxarılacaq təyinat qovluğu. Əgər göstərilməyibsə standart olaraq cari "
+"qovluq istifadə olunur."
+
+#. i18n: ectx: label, entry (openDestinationFolderAfterExtraction), group (Extraction)
+#: app/main.cpp:124 kerfuffle/ark.kcfg:23
+#, kde-format
+msgid "Open destination folder after extraction."
+msgstr "Çıxarıldıqdan sonra təyinat qovluğunu açmaq."
+
+#: app/main.cpp:127
+#, kde-format
+msgid ""
+"Query the user for an archive filename and add specified files to it. Quit "
+"when finished."
+msgstr ""
+"Arxivin adını soruşmaq, ona göstərilmiş faylları əlavə etmək. Bitirdikdən "
+"sonra çıxmaq."
+
+#: app/main.cpp:130
+#, kde-format
+msgid ""
+"Add the specified files to 'filename'. Create archive if it does not exist. "
+"Quit when finished."
+msgstr ""
+"Göstərilmiş faylları 'fayl_adı'na əlavə etmək. Əgər mövcud deyilsə arxiv "
+"yaratmaq. Bitirdikdən sonra çıxmaq."
+
+#: app/main.cpp:134
+#, kde-format
+msgid ""
+"Change the current dir to the first entry and add all other entries relative "
+"to this one."
+msgstr "Hədəf faylının yerləşdiyi qovluğu dəyişdirmək."
+
+#: app/main.cpp:138
+#, kde-format
+msgid ""
+"Automatically choose a filename, with the selected suffix (for example rar, "
+"tar.gz, zip or any other supported types)"
+msgstr ""
+"Seçilmiş sonluqla fayl_adını avtomatik seçmək (məs,. rar, tar.gz, zip və ya "
+"başqa dəstəklənən növlər)"
+
+#: app/main.cpp:143
+#, kde-format
+msgid ""
+"Use the batch interface instead of the usual dialog. This option is implied "
+"if more than one url is specified."
+msgstr ""
+"Dialoq əvəzinə paket rejimini istifadə etmək. Bu seçim birdən artıq url "
+"göstərildiyi halda nəzərdə tutulur."
+
+#: app/main.cpp:146
+#, kde-format
+msgid ""
+"The destination argument will be set to the path of the first file supplied."
+msgstr "Təyina arqumenti ilk verilən sənədin yoluna qurulacaqdır."
+
+#: app/main.cpp:149
+#, kde-format
+msgid ""
+"Archive contents will be read, and if detected to not be a single folder or "
+"a single file archive, a subfolder with the name of the archive will be "
+"created."
+msgstr ""
+"Arxivin tərkibi oxunacaq və əgər bir qovluq və ya bir fayl arxivi olmadığı "
+"aşkar edilərsə, arxiv adı ilə bir alt qovluq yaradılacaqdır."
+
+#: app/main.cpp:152
+#, kde-format
+msgid "List supported MIME types."
+msgstr "Dəstəklənən MİME növlərinin siyahısı."
+
+#: app/mainwindow.cpp:167
+#, kde-format
+msgid "Unable to find Ark's KPart component, please check your installation."
+msgstr ""
+"Ark'ın KPart tərkiblərinin tapılması mümkün olmadı, düzgün quraşdırılıb, "
+"quraşdırılmadığını yoxlayın."
+
+#: app/mainwindow.cpp:182
+#, kde-format
+msgid "Sidebar"
+msgstr "Yan panel"
+
+#: app/mainwindow.cpp:285
+#, kde-format
+msgid "Welcome Page"
+msgstr "Salamlama səhifəsi"
+
+#: app/mainwindow.cpp:287
+#, kde-format
+msgid "Show the welcome page"
+msgstr "Salamlama səhifəsi göstərilsin"
+
+#: app/mainwindow.cpp:295
+#, kde-kuit-format
+msgctxt "@info:whatsthis"
+msgid ""
+"This switches between having a <emphasis>Menubar</emphasis> and having a "
+"<interface>Hamburger Menu</interface> button. Both contain mostly the same "
+"commands and configuration options."
+msgstr ""
+"Bu, istifadə edəcəyiniz <emphasis>Menyu sətri</emphasis> və "
+"<interface>Qamburger menyu</interface> düymələri arasında seçim edir. Hər "
+"iki variant eyni əmrlər toplusu və tənzimləmə parametrlərindən ibarətdir."
+
+#: app/mainwindow.cpp:315
+#, kde-format
+msgid "Lock Sidebar"
+msgstr "Yan paneli kilidləyin"
+
+#: app/mainwindow.cpp:371
+#, kde-format
+msgctxt "to open an archive"
+msgid "Open Archive"
+msgstr "Arxivi açın"
+
+#: app/mainwindow.cpp:484
+#, kde-format
+msgid "Create New Archive"
+msgstr "Yeni arxiv yaradın"
+
+#: app/welcomeview/welcomeview.cpp:50
+#, kde-format
+msgid "Welcome to %1"
+msgstr "%1 sizi salamlayır"
+
+#: app/welcomeview/welcomeview.cpp:55
+#, kde-format
+msgid "No recent files"
+msgstr "Sonuncu fayllar yoxdur"
+
+#: app/welcomeview/welcomeview.cpp:143
+#, kde-format
+msgid "Copy &Location"
+msgstr "&Yerini kopyalayın"
+
+#: app/welcomeview/welcomeview.cpp:149
+#, kde-format
+msgid "&Open Containing Folder"
+msgstr "&Bu tərkibli qovluğu açın"
+
+#: app/welcomeview/welcomeview.cpp:156
+#, kde-format
+msgid "&Remove"
+msgstr "&Silin"
+
+#. i18n: ectx: property (windowTitle), widget (QScrollArea, WelcomeView)
+#: app/welcomeview/welcomeview.ui:17
+#, kde-format
+msgid "Welcome"
+msgstr "Xoş Gəldiniz"
+
+#. i18n: ectx: property (text), widget (QPushButton, buttonOpenArchive)
+#: app/welcomeview/welcomeview.ui:179
+#, fuzzy, kde-format
+#| msgctxt "to open an archive"
+#| msgid "Open Archive"
+msgid "Open Archive…"
+msgstr "Arxivi açın"
+
+#. i18n: ectx: property (text), widget (QPushButton, buttonNewArchive)
+#: app/welcomeview/welcomeview.ui:186
+#, kde-format
+msgid "New Archive"
+msgstr "Yeni arxiv"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, buttonClearRecentFiles)
+#: app/welcomeview/welcomeview.ui:193
+#, kde-format
+msgid "Clear Recent Files"
+msgstr "Sonuncu faylları təmizləyin"
+
+#. i18n: ectx: property (text), widget (QLabel, labelRecentFiles)
+#: app/welcomeview/welcomeview.ui:222
+#, kde-format
+msgid "Recent Files"
+msgstr "Sonuncu fayllar"
+
+#. i18n: ectx: property (text), widget (QLabel, labelHelp)
+#: app/welcomeview/welcomeview.ui:263
+#, kde-format
+msgid "Help"
+msgstr "Kömək"
+
+#. i18n: ectx: property (text), widget (KUrlLabel, labelHomepage)
+#: app/welcomeview/welcomeview.ui:273
+#, kde-format
+msgid "Visit homepage"
+msgstr "Ev səhifəsinə baxın"
+
+#. i18n: ectx: property (text), widget (KUrlLabel, labelHandbook)
+#: app/welcomeview/welcomeview.ui:286
+#, kde-format
+msgid "Read handbook"
+msgstr "Sorğu kitabını oxuyun"
+
+#. i18n: ectx: property (text), widget (QCheckBox, checkBoxShowOnStartup)
+#: app/welcomeview/welcomeview.ui:345
+#, kde-format
+msgid "Show on startup"
+msgstr "Açılışda göstərilsin"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, buttonClose)
+#: app/welcomeview/welcomeview.ui:400
+#, kde-format
+msgid "Close Welcome Page"
+msgstr "Salamlama səhifəsini bağlayın"
+
+#: kerfuffle/adddialog.cpp:32 kerfuffle/adddialog.cpp:70
+#, kde-format
+msgid "Advanced Options"
+msgstr "Əlavə seçimlər"
+
+#: kerfuffle/adddialog.cpp:41
+#, kde-format
+msgctxt "@action:button"
+msgid "Add"
+msgstr "Əlavə edin"
+
+#. i18n: ectx: property (title), widget (QGroupBox, groupCompressFiles)
+#: kerfuffle/adddialog.ui:35
+#, kde-format
+msgid "Files/Folders to Compress"
+msgstr "Sıxılacaq fayllar/qovluqlar"
+
+#: kerfuffle/addtoarchive.cpp:78
+#, kde-format
+msgid "Compress to Archive"
+msgstr "Arxivdə sıxın"
+
+#: kerfuffle/addtoarchive.cpp:132
+#, kde-format
+msgid "No input files were given."
+msgstr "Giriş faylı göstərilməyib."
+
+#: kerfuffle/addtoarchive.cpp:140
+#, kde-kuit-format
+msgid ""
+"You need to either supply a filename for the archive or a suffix (such as "
+"rar, tar.gz) with the <command>--autofilename</command> argument."
+msgstr ""
+"Arxiv üçün bir qovluq və ya <command>--autofilename</command> arqumenti ilə "
+"bir fayl genişlənməsi (rar, tar.gz) göstərməlisiniz."
+
+#: kerfuffle/addtoarchive.cpp:206 part/part.cpp:830
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The archive <filename>%1</filename> already exists. Do you wish to overwrite "
+"it?"
+msgstr ""
+"<filename>%1</filename> arxivi artıq mövcuddur. Üzərinə yazmaq istəyirsiniz?"
+
+#: kerfuffle/addtoarchive.cpp:207 part/part.cpp:831
+#, kde-format
+msgctxt "@title:window"
+msgid "File Exists"
+msgstr "Fayl mövcuddur"
+
+#. i18n: ectx: label, entry (showEncryptionWarning), group (General)
+#: kerfuffle/ark.kcfg:9
+#, kde-format
+msgid ""
+"Whether to show a warning when creating zip archives with AES encryption."
+msgstr ""
+"AES şifrələnməsi ilə ZİP arxiv yaradılması zamanı xəbərdarlığın göstərilib, "
+"göstərilməməsi."
+
+#. i18n: ectx: label, entry (defaultOpenAction), group (General)
+#: kerfuffle/ark.kcfg:13
+#, kde-format
+msgid "Default action when opening archive entries."
+msgstr "Arxivdəki obyektlərin açılması zaman standart fəaliyyət."
+
+#. i18n: ectx: label, entry (closeAfterExtraction), group (Extraction)
+#: kerfuffle/ark.kcfg:27
+#, kde-format
+msgid "Close Ark after extraction."
+msgstr "Çıxarıldıqdan sonra Ark-ı bağlamaq"
+
+#. i18n: ectx: label, entry (preservePaths), group (Extraction)
+#: kerfuffle/ark.kcfg:31
+#, kde-format
+msgid "Preserve paths when extracting."
+msgstr "Çıxardarkən yolları saxlamaq."
+
+#. i18n: ectx: label, entry (extractToSubfolder), group (Extraction)
+#: kerfuffle/ark.kcfg:35
+#, kde-format
+msgid ""
+"Extract to a subfolder if the archive has more than one top-level entry."
+msgstr ""
+"Arxivdə birdən çox yuxarı səviyyəli obyekt varsa, onları alt qovluğa "
+"çıxartmaq."
+
+#. i18n: ectx: label, entry (splitterSizes), group (MainWindow)
+#: kerfuffle/ark.kcfg:41
+#, kde-format
+msgid "How the main window is divided."
+msgstr "Əsas pəncərənin bölünməsi qaydası."
+
+#. i18n: ectx: label, entry (showInfoPanel), group (MainWindow)
+#: kerfuffle/ark.kcfg:45
+#, kde-format
+msgid "Whether to show the information panel."
+msgstr "Məlumat panelinin göstərilib, göstərilməməsi."
+
+#. i18n: ectx: label, entry (limitPreviewFileSize), group (Preview)
+#: kerfuffle/ark.kcfg:55
+#, kde-format
+msgid "Whether to limit the preview according to file size."
+msgstr "Faylın ölçüsünə gösrə önizləmənin məhdudlaşdırılması."
+
+#. i18n: ectx: label, entry (previewFileSizeLimit), group (Preview)
+#: kerfuffle/ark.kcfg:59
+#, kde-format
+msgid "Preview file size limit in megabytes."
+msgstr "Önizləmə faylının ölçüsü, meqabaytlarla."
+
+#: kerfuffle/cliinterface.cpp:236
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Failed to locate program <filename>%1</filename> on disk."
+msgstr "Diskdə <filename>%1</filename> proqramı tapılmadı."
+
+#: kerfuffle/cliinterface.cpp:346
+#, kde-format
+msgid "Extraction failed. Make sure that enough space is available."
+msgstr "Çıxarmaq mümkün olmadı. Diskdə kifayət qədər yer olduğuna əmin olun."
+
+#: kerfuffle/cliinterface.cpp:349
+#, kde-format
+msgid ""
+"Extraction failed. Make sure you provided the correct password and that "
+"enough space is available."
+msgstr ""
+"Çıxarmaq mümkün olmadı. Düzgün şifrəni daxil etdiyinizə və diskdə kifayət "
+"qədər yer olduğuna əmin olun."
+
+#: kerfuffle/cliinterface.cpp:360 kerfuffle/cliinterface.cpp:481
+#, kde-format
+msgctxt "@info"
+msgid "Could not move the extracted file to the destination directory."
+msgid_plural "Could not move the extracted files to the destination directory."
+msgstr[0] "Çıxarılan faylı təyinat qovluğuna köçürmək mümkün olmadı."
+msgstr[1] "Çıxarılan faylları təyinat qovluğuna köçürmək mümkün olmadı."
+
+#: kerfuffle/cliinterface.cpp:836
+#, kde-format
+msgctxt "@info"
+msgid "Extraction failed because the disk is full."
+msgstr "Çıxarmaq mümkün olmadı, çünki disk doludur."
+
+#: kerfuffle/cliinterface.cpp:843 plugins/cliarjplugin/cliplugin.cpp:145
+#, kde-format
+msgctxt "@info"
+msgid "Extraction failed: Incorrect password"
+msgstr "Çıxartmaq mümkün olmadı: Şifrə səhvdir"
+
+#: kerfuffle/cliinterface.cpp:877
+#, kde-format
+msgid "Incorrect password."
+msgstr "Şifrə səhvdir."
+
+#: kerfuffle/cliinterface.cpp:899
+#, kde-format
+msgid "Ark does not currently support testing this archive."
+msgstr "Ark hal-hazırda bu arxivin sınaqdan keçirilməsini dəstəkləmir."
+
+#: kerfuffle/compressionoptionswidget.cpp:133
+#, kde-format
+msgid "Protection of the list of files is not possible with the %1 format."
+msgstr "Faylların siyahısının %1 formatı ilə qorunması mümkün deyil."
+
+#: kerfuffle/compressionoptionswidget.cpp:141
+#, kde-format
+msgid ""
+"Protection of the archive with password is not possible with the %1 format."
+msgstr "Şifrəli arxivləri %1 formatı ilə qorunması mümkün deyil."
+
+#: kerfuffle/compressionoptionswidget.cpp:155
+#, kde-format
+msgid "It is not possible to set compression level for the %1 format."
+msgstr "%1 formatı üçün sıxlaşdırma səviyyəsini təyin etmək mümkün deyil."
+
+#: kerfuffle/compressionoptionswidget.cpp:174
+#, kde-format
+msgid "It is not possible to set compression method for the %1 format."
+msgstr "%1 formatı üçün sıxlaşdırma metodunu təyin etmək mümkün deyil."
+
+#: kerfuffle/compressionoptionswidget.cpp:195
+#, kde-format
+msgid "The %1 format does not support multi-volume archives."
+msgstr "%1 formatı çox cildli arxivləri dəstəkləmir."
+
+#. i18n: ectx: property (title), widget (KCollapsibleGroupBox, collapsibleCompression)
+#: kerfuffle/compressionoptionswidget.ui:20
+#, kde-format
+msgid "Compression"
+msgstr "Sıxlaşdırmaq"
+
+#. i18n: ectx: property (text), widget (QLabel, lblCompLevel1)
+#: kerfuffle/compressionoptionswidget.ui:35
+#, kde-format
+msgid "Level:"
+msgstr "Səviyyə:"
+
+#. i18n: ectx: property (text), widget (QLabel, lblCompLevel2)
+#: kerfuffle/compressionoptionswidget.ui:45
+#, kde-format
+msgid "Min"
+msgstr "Min"
+
+#. i18n: ectx: property (text), widget (QLabel, lblCompMethod)
+#: kerfuffle/compressionoptionswidget.ui:83
+#, kde-format
+msgid "Method:"
+msgstr "Metod:"
+
+#. i18n: ectx: property (text), widget (QLabel, lblCompLevel3)
+#: kerfuffle/compressionoptionswidget.ui:93
+#, kde-format
+msgid "Max"
+msgstr "Maks"
+
+#. i18n: ectx: property (title), widget (KCollapsibleGroupBox, collapsibleEncryption)
+#: kerfuffle/compressionoptionswidget.ui:118
+#, kde-format
+msgid "Password Protection"
+msgstr "Şifrəli Qoruma"
+
+#. i18n: ectx: property (text), widget (QLabel, lblEncMethod)
+#: kerfuffle/compressionoptionswidget.ui:130
+#, kde-format
+msgid "Encryption method:"
+msgstr "Şifrələmə metodu:"
+
+#. i18n: ectx: property (text), widget (QCheckBox, encryptHeaderCheckBox)
+#: kerfuffle/compressionoptionswidget.ui:160
+#, kde-format
+msgid "Ask for password before showing the list of files in the archive"
+msgstr "Arxivdəki faylların siyahısını göstərmədən öncə şifrəni soruşmaq"
+
+#. i18n: ectx: property (text), widget (KMessageWidget, warningMsgWidget)
+#: kerfuffle/compressionoptionswidget.ui:170
+#, kde-format
+msgid ""
+"This encryption method may not be supported by older archiving software."
+msgstr ""
+"Bu şifrələmə metodu köhnə arxivləmə proqram təminatını dəstəkləməyə bilər."
+
+#. i18n: ectx: property (title), widget (KCollapsibleGroupBox, collapsibleMultiVolume)
+#: kerfuffle/compressionoptionswidget.ui:183
+#, kde-format
+msgid "Multi-volume Archive"
+msgstr "Çox-cildli Arxiv"
+
+#. i18n: ectx: property (text), widget (QCheckBox, multiVolumeCheckbox)
+#: kerfuffle/compressionoptionswidget.ui:192
+#, kde-format
+msgid "Create multi-volume archive"
+msgstr "Çox-cildli arxiv yaratmaq"
+
+#. i18n: ectx: property (text), widget (QLabel, lblVolumeSize)
+#: kerfuffle/compressionoptionswidget.ui:210
+#, kde-format
+msgid "Volume size:"
+msgstr "Ölçüsü:"
+
+#. i18n: ectx: property (suffix), widget (QSpinBox, kcfg_previewFileSizeLimit)
+#. i18n: ectx: property (suffix), widget (QDoubleSpinBox, volumeSizeSpinbox)
+#: kerfuffle/compressionoptionswidget.ui:223
+#: kerfuffle/previewsettingspage.ui:32
+#, kde-format
+msgid " megabytes"
+msgstr " meqabytlarla"
+
+#: kerfuffle/createdialog.cpp:117
+#, kde-format
+msgctxt "the argument is a file extension (the period is not a typo)"
+msgid "Automatically add .%1"
+msgstr "%1 avtomatik əlavə etmək"
+
+#: kerfuffle/createdialog.cpp:204
+#, kde-format
+msgid "The chosen password does not match the given verification password."
+msgstr "Seçilən şifrə göstərilən doğrulama şifrəsi ilə eyni deyil."
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: kerfuffle/createdialog.ui:30
+#, kde-format
+msgid "Folder:"
+msgstr "Qovluq:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_3)
+#: kerfuffle/createdialog.ui:47
+#, kde-format
+msgid "Filename:"
+msgstr "Fayl-adı:"
+
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, filenameLineEdit)
+#: kerfuffle/createdialog.ui:54
+#, fuzzy, kde-format
+#| msgid "Type archive name..."
+msgid "Type archive name…"
+msgstr "Arxiv adının növü..."
+
+#. i18n: ectx: property (text), widget (QLabel, label_2)
+#. i18n: ectx: property (text), widget (QLabel, m_typeLabel)
+#: kerfuffle/createdialog.ui:61 part/infopanel.ui:93
+#, kde-format
+msgid "Type:"
+msgstr "Növü:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_4)
+#: kerfuffle/createdialog.ui:78
+#, kde-format
+msgid "Extension:"
+msgstr "Genilşlənmə:"
+
+#: kerfuffle/extractiondialog.cpp:40
+#, kde-format
+msgctxt "@title:window"
+msgid "Extract"
+msgstr "Çıxartmaq"
+
+#: kerfuffle/extractiondialog.cpp:57
+#, kde-format
+msgid "Extract"
+msgstr "Çıxartmaq"
+
+#: kerfuffle/extractiondialog.cpp:91
+#, kde-format
+msgid "The subfolder name may not contain the character '/'."
+msgstr "Alt qovluğunun adında '/' simvolu ola bilməz."
+
+#: kerfuffle/extractiondialog.cpp:111
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The folder <filename>%1</filename> already exists. Are you sure you want to "
+"extract here?"
+msgstr ""
+"<filename>%1</filename> qovluğu artıq mövcuddur. Buraya çıxartmaq "
+"istədiyinizə əminsiniz?"
+
+#: kerfuffle/extractiondialog.cpp:112
+#, kde-format
+msgid "Folder exists"
+msgstr "Qovluq movcuddur"
+
+#: kerfuffle/extractiondialog.cpp:113
+#, kde-format
+msgid "Extract here"
+msgstr "Buraya çıxartmaq"
+
+#: kerfuffle/extractiondialog.cpp:114
+#, kde-format
+msgid "Retry"
+msgstr "Təkrarlamaq"
+
+#: kerfuffle/extractiondialog.cpp:124 kerfuffle/extractiondialog.cpp:130
+#, kde-kuit-format
+msgctxt "@info"
+msgid "The folder <filename>%1</filename> could not be created."
+msgstr "<filename>%1</filename> qovluğu yaradıla bilmədi."
+
+#: kerfuffle/extractiondialog.cpp:125
+#, kde-kuit-format
+msgctxt "@info"
+msgid "<filename>%1</filename> already exists, but is not a folder."
+msgstr "<filename>%1</filename> artıq mövcuddur, lakin, qovluq deyil."
+
+#: kerfuffle/extractiondialog.cpp:131
+#, kde-format
+msgid "Please check your permissions to create it."
+msgstr "Lütfən, bunu yaratmağa icəznizin olduğunu yoxlayın."
+
+#: kerfuffle/extractiondialog.cpp:173
+#, kde-format
+msgid "Extract multiple archives"
+msgstr "Çoxsaylı arxivləri çıxartmaq"
+
+#. i18n: ectx: property (windowTitle), widget (QWidget, ExtractionDialog)
+#: kerfuffle/extractiondialog.ui:21
+#, kde-format
+msgid "Extraction Dialog"
+msgstr "Çıxartma Dialoqu"
+
+#. i18n: ectx: property (text), widget (QLabel, extractAllLabel)
+#: kerfuffle/extractiondialog.ui:70
+#, kde-format
+msgid "Extract All Files"
+msgstr "Bütün faylları çıxartmaq"
+
+#. i18n: ectx: property (title), widget (QGroupBox, singleFolderGroup)
+#: kerfuffle/extractiondialog.ui:79
+#, kde-format
+msgid "E&xtraction into subfolder:"
+msgstr "Bu alt qovluğa çı&xartmaq:"
+
+#. i18n: ectx: property (title), widget (QGroupBox, groupBox)
+#: kerfuffle/extractiondialog.ui:116
+#, kde-format
+msgid "Options"
+msgstr "Seçimlər"
+
+#. i18n: ectx: property (text), widget (QCheckBox, openFolderCheckBox)
+#: kerfuffle/extractiondialog.ui:125
+#, kde-format
+msgid "Open &destination folder after extraction"
+msgstr "Çıxardıqdan sonra təyinat qovluğunu açmaq"
+
+#. i18n: ectx: property (text), widget (QCheckBox, closeAfterExtraction)
+#: kerfuffle/extractiondialog.ui:132
+#, kde-format
+msgid "Close &Ark after extraction"
+msgstr "Çıxardıqdan sonra Ark'ı bağlamaq"
+
+#. i18n: ectx: property (text), widget (QCheckBox, preservePaths)
+#: kerfuffle/extractiondialog.ui:139
+#, kde-format
+msgid "&Preserve paths when extracting"
+msgstr "Çıxarılma zamanı yolları &saxlamaq"
+
+#. i18n: ectx: property (text), widget (QCheckBox, autoSubfolders)
+#: kerfuffle/extractiondialog.ui:146
+#, kde-format
+msgid "&Automatically create subfolders"
+msgstr "&Avtomatik alt qovluqlar yaratmaq"
+
+#. i18n: ectx: property (title), widget (QGroupBox, filesToExtractGroupBox)
+#: kerfuffle/extractiondialog.ui:175
+#, kde-format
+msgctxt "@title:group"
+msgid "Extract"
+msgstr "Çıxartmaq"
+
+#. i18n: ectx: property (text), widget (QRadioButton, selectedFilesButton)
+#: kerfuffle/extractiondialog.ui:193
+#, kde-format
+msgid "Sele&cted files only"
+msgstr "Yalnız se&çilmiş fayllar"
+
+#. i18n: ectx: property (text), widget (QRadioButton, allFilesButton)
+#: kerfuffle/extractiondialog.ui:209
+#, kde-format
+msgid "All &files"
+msgstr "Bütün &fayllar"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_openDestinationFolderAfterExtraction)
+#: kerfuffle/extractionsettingspage.ui:17
+#, kde-format
+msgid "Open destination folder after extraction"
+msgstr "Çıxardıqdan sonra təyinat qovluğunu açmaq"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_closeAfterExtraction)
+#: kerfuffle/extractionsettingspage.ui:24
+#, kde-format
+msgid "Close Ark after extraction"
+msgstr "Çıxardıqdan sonra Ark'ı bağlamaq"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_preservePaths)
+#: kerfuffle/extractionsettingspage.ui:31
+#, kde-format
+msgid "Preserve paths when extracting"
+msgstr "Çıxarılma zamanı yolları saxlamaq"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, kcfg_extractToSubfolder)
+#: kerfuffle/extractionsettingspage.ui:41
+#, kde-format
+msgid ""
+"Whether to check by default the extraction into subfolder checkbox in the "
+"Extraction Dialog, when the archive has more than one top-level entry."
+msgstr ""
+"Arxivdə birdən artıq yuxarı səviyyəli obyek olduqda Çıxartma Dialoqundakı "
+"alt qovluğa çıxartmanın standart kimi qeyd olunduğu yoxlanılsın ya yox."
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_extractToSubfolder)
+#: kerfuffle/extractionsettingspage.ui:44
+#, kde-format
+msgid "Extract to a subfolder if the archive has more than one top-level entry"
+msgstr ""
+"Arxivdə birdən artıq yuxarı səviyyəli obyekt olduğunda alt qovluğa çıxartmaq"
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: kerfuffle/generalsettingspage.ui:17
+#, kde-format
+msgid "When clicking a file in an archive or pressing the Return key:"
+msgstr "Arxivdəki fayla vurduqda və ya Enter düyməsini basdıqda:"
+
+#. i18n: ectx: property (text), widget (QRadioButton, radioButton)
+#: kerfuffle/generalsettingspage.ui:33
+#, kde-format
+msgid "Pre&view the file with internal previewer"
+msgstr "Daxili öncədən baxış &vasitəsi ilə göstərmək"
+
+#. i18n: ectx: property (text), widget (QRadioButton, radioButton_2)
+#: kerfuffle/generalsettingspage.ui:43
+#, kde-format
+msgid "Open the fi&le with associated application"
+msgstr "Fay&lı əlaqəli tətbiqlərlə açmaq"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_showEncryptionWarning)
+#: kerfuffle/generalsettingspage.ui:60
+#, kde-format
+msgid "Show a warning when creating zip archives with AES encryption"
+msgstr "AES şifrələməsi ilə arxiv yaratdıqda xəbardarlığı göstərmək"
+
+#: kerfuffle/jobs.cpp:100
+#, kde-format
+msgid "No suitable plugin found. Ark does not seem to support this file type."
+msgstr ""
+"Fayllarla işləmək üçün uyğun qoşma tapılmadı. Ark bu növ faylları "
+"dəstəkləmir."
+
+#: kerfuffle/jobs.cpp:104
+#, kde-format
+msgid ""
+"Failed to load a suitable plugin. Make sure any executables needed to handle "
+"the archive type are installed."
+msgstr ""
+"Uyğun qoşmanın yüklənməsu baş tutmadı. Bu növ arxivlərlə işləmək üçün "
+"proqramın quraşdırıldığına əmin olun."
+
+#: kerfuffle/jobs.cpp:169
+#, kde-format
+msgid ""
+"Could not load the archive because it contains ill-formed entries and might "
+"be a malicious archive."
+msgstr ""
+"Arxivin açılması təhlükəlidir, belə ki, o obyekktlər haqqında korlanmış "
+"məlumatlardan ibarətdir."
+
+#: kerfuffle/jobs.cpp:257
+#, kde-format
+msgid "Loading archive"
+msgstr "Arxivin yüklənməsi"
+
+#: kerfuffle/jobs.cpp:257 kerfuffle/jobs.cpp:560 kerfuffle/jobs.cpp:742
+#: kerfuffle/jobs.cpp:794 kerfuffle/jobs.cpp:831 kerfuffle/jobs.cpp:862
+#: kerfuffle/jobs.cpp:908
+#, kde-format
+msgid "Archive"
+msgstr "Arxiv"
+
+#: kerfuffle/jobs.cpp:409 kerfuffle/jobs.cpp:591
+#, kde-kuit-format
+msgid "No space available on device <filename>%1</filename>"
+msgstr "<filename>%1</filename> cihazında boş yer yoxdur"
+
+#: kerfuffle/jobs.cpp:554
+#, kde-format
+msgid "Extracting all files"
+msgstr "Bütün faylların çıxarılması"
+
+#. i18np on purpose so this translation may properly be reused.
+#: kerfuffle/jobs.cpp:556 kerfuffle/jobs.cpp:665
+#, kde-format
+msgid "Extracting one file"
+msgid_plural "Extracting %1 files"
+msgstr[0] "Bir faylın çıxarılması"
+msgstr[1] "%1 faylların çıxarılması"
+
+#: kerfuffle/jobs.cpp:561
+#, kde-format
+msgctxt "extraction folder"
+msgid "Destination"
+msgstr "Təyinat"
+
+#: kerfuffle/jobs.cpp:565
+#, kde-kuit-format
+msgid ""
+"Could not write to destination <filename>%1</filename>.<nl/>Check whether "
+"you have sufficient permissions."
+msgstr ""
+"<filename>%1</filename> qovluğuna yazmaq mümkün olmadı. Bunu yazmaq "
+"imtiyazınızın olduğunu yoxlayın."
+
+#: kerfuffle/jobs.cpp:741
+#, kde-format
+msgid "Compressing a file"
+msgid_plural "Compressing %1 files"
+msgstr[0] "Fayl sıxılır"
+msgstr[1] "%1 fayl sıxılır"
+
+#: kerfuffle/jobs.cpp:793
+#, kde-format
+msgid "Moving a file"
+msgid_plural "Moving %1 files"
+msgstr[0] "Fayl köçürülür"
+msgstr[1] "%1 fayl köçürülür"
+
+#: kerfuffle/jobs.cpp:830
+#, kde-format
+msgid "Copying a file"
+msgid_plural "Copying %1 files"
+msgstr[0] "Fayl kopyalanır"
+msgstr[1] "%1 fayl kopyalanır"
+
+#: kerfuffle/jobs.cpp:861
+#, kde-format
+msgid "Deleting a file from the archive"
+msgid_plural "Deleting %1 files"
+msgstr[0] "Faylın arxivdən silinməsi"
+msgstr[1] "%1 fayl silinir"
+
+#: kerfuffle/jobs.cpp:884
+#, kde-format
+msgid "Adding comment"
+msgstr "Şərh əlavə ediməsi"
+
+#: kerfuffle/jobs.cpp:908
+#, kde-format
+msgid "Testing archive"
+msgstr "Arxivin test edilir"
+
+#: kerfuffle/pluginsettingspage.cpp:33
+#, kde-format
+msgid ""
+"The plugin cannot be used because one or more required executables are "
+"missing. Check your installation."
+msgstr ""
+"Bu qoşmanı istifadə etmək mümkün deyil, çünki, bir və ya bir neçə icra faylı "
+"çatışmır. Quraşdırılmanın düzgün olduğunu yoxlayın."
+
+#. i18n: @title:column
+#. i18n: ectx: property (text), widget (QTreeWidget, kcfg_disabledPlugins)
+#: kerfuffle/pluginsettingspage.ui:36
+#, kde-format
+msgid "Name"
+msgstr "Adı"
+
+#. i18n: @title:column
+#. i18n: ectx: property (text), widget (QTreeWidget, kcfg_disabledPlugins)
+#: kerfuffle/pluginsettingspage.ui:41
+#, kde-format
+msgid "Description"
+msgstr "Təsviri"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_limitPreviewFileSize)
+#: kerfuffle/previewsettingspage.ui:22
+#, kde-format
+msgid "Disable preview for files larger than:"
+msgstr "Bu ölçüdən böyük olan faylların öncədən baxışını göstərməmək:"
+
+#: kerfuffle/propertiesdialog.cpp:41
+#, kde-format
+msgctxt "@title:window"
+msgid "Properties for %1"
+msgstr "%1 xüsusiyyətləri"
+
+#. i18n: ectx: property (text), widget (KSqueezedTextLabel, m_passwordValueLabel)
+#: kerfuffle/propertiesdialog.cpp:49 kerfuffle/propertiesdialog.cpp:51
+#: part/infopanel.ui:195
+#, kde-format
+msgid "yes"
+msgstr "bəli"
+
+#: kerfuffle/propertiesdialog.cpp:49 kerfuffle/propertiesdialog.cpp:50
+#: kerfuffle/propertiesdialog.cpp:51 kerfuffle/propertiesdialog.cpp:63
+#, kde-format
+msgid "no"
+msgstr "xeyr"
+
+#: kerfuffle/propertiesdialog.cpp:50
+#, kde-format
+msgid "yes (%1 volumes)"
+msgstr "bəli (%1 cild)"
+
+#: kerfuffle/propertiesdialog.cpp:52
+#, kde-format
+msgid "%1 file"
+msgid_plural "%1 files"
+msgstr[0] "%1 fayl"
+msgstr[1] "%1 fayl"
+
+#: kerfuffle/propertiesdialog.cpp:52
+#, kde-format
+msgid ", %1 folder"
+msgid_plural ", %1 folders"
+msgstr[0] ", %1 qovluq"
+msgstr[1] ", %1 qovluq"
+
+#: kerfuffle/propertiesdialog.cpp:66
+#, kde-format
+msgid "only file contents (%1)"
+msgstr "yalnız fayl tərkibləri (%1)"
+
+#: kerfuffle/propertiesdialog.cpp:69
+#, kde-format
+msgid "yes (%1)"
+msgstr "bəli (%1)"
+
+#: kerfuffle/propertiesdialog.cpp:86 kerfuffle/propertiesdialog.cpp:87
+#: kerfuffle/propertiesdialog.cpp:88
+#, fuzzy, kde-format
+#| msgid "Calculating..."
+msgid "Calculating…"
+msgstr "Hesablanır..."
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: kerfuffle/propertiesdialog.ui:37
+#, kde-format
+msgid "Archive name:"
+msgstr "Arxivin adı:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_4)
+#: kerfuffle/propertiesdialog.ui:54
+#, kde-format
+msgid "Archive type:"
+msgstr "Arxivin növü:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_11)
+#: kerfuffle/propertiesdialog.ui:71
+#, kde-format
+msgid "Mime-type:"
+msgstr "MİME növü:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_8)
+#: kerfuffle/propertiesdialog.ui:88
+#, kde-format
+msgid "Opened read-only:"
+msgstr "Yalnız oxumaq üçün açmaq:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_2)
+#. i18n: ectx: property (text), widget (QLabel, m_passwordLabel)
+#: kerfuffle/propertiesdialog.ui:105 part/infopanel.ui:179
+#, kde-format
+msgid "Password-protected:"
+msgstr "Şifrəli qoruma:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_10)
+#: kerfuffle/propertiesdialog.ui:122
+#, kde-format
+msgid "Has comment:"
+msgstr "Şərh daxil:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_3)
+#: kerfuffle/propertiesdialog.ui:139
+#, kde-format
+msgid "Number of entries:"
+msgstr "Obyektlərin sayı:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_5)
+#: kerfuffle/propertiesdialog.ui:156
+#, kde-format
+msgid "Unpacked size:"
+msgstr "Çıxarılanların ölçüsü:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_7)
+#: kerfuffle/propertiesdialog.ui:173
+#, kde-format
+msgid "Packed size:"
+msgstr "Sıxılanların ölçüsü:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_9)
+#: kerfuffle/propertiesdialog.ui:190
+#, kde-format
+msgid "Compression ratio:"
+msgstr "Sıxılma səviyyəsi:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_6)
+#: kerfuffle/propertiesdialog.ui:207
+#, kde-format
+msgid "Last modified:"
+msgstr "Son dəyişiklik:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_12)
+#: kerfuffle/propertiesdialog.ui:224
+#, kde-format
+msgid "MD5 hash:"
+msgstr "MD5 nəzarət cəmi:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_13)
+#: kerfuffle/propertiesdialog.ui:244
+#, kde-format
+msgid "SHA-1 hash:"
+msgstr "SHA-1 nəzarət cəmi:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_14)
+#: kerfuffle/propertiesdialog.ui:261
+#, kde-format
+msgid "SHA-256 hash:"
+msgstr "SHA-256 nəzarət cəmi:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_15)
+#: kerfuffle/propertiesdialog.ui:278
+#, kde-format
+msgid "Multi-volume:"
+msgstr "Çoxsaylı cild:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_16)
+#: kerfuffle/propertiesdialog.ui:295
+#, kde-format
+msgid "Compression method(s):"
+msgstr "Sıxma qaydası:"
+
+#: kerfuffle/queries.cpp:88
+#, kde-format
+msgctxt "@title:window"
+msgid "File Already Exists"
+msgstr "Fayl artıq mövcuddur"
+
+#: kerfuffle/queries.cpp:199
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The archive <filename>%1</filename> is password protected. Please enter the "
+"password."
+msgstr ""
+"<filename>%1</filename> arxivi şifrə ilə qorunur. Lütfən şifrəni daxil edin."
+
+#: kerfuffle/queries.cpp:203
+#, kde-format
+msgid "Incorrect password, please try again."
+msgstr "Şifrə səhvdir, yenidən cəhd edin."
+
+#: kerfuffle/queries.cpp:239
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The archive you're trying to open is corrupt.<nl/>Some files may be missing "
+"or damaged."
+msgstr ""
+"Açmaq istədiyiniz arxiv korlanıb.<nl/>Ola bilsin ki, bəzi fayllar çatışmır "
+"və zədələnmişdir."
+
+#: kerfuffle/queries.cpp:241
+#, kde-format
+msgctxt "@title:window"
+msgid "Corrupt archive"
+msgstr "Korlanmış arxiv"
+
+#: kerfuffle/queries.cpp:242
+#, kde-format
+msgctxt "@action:button"
+msgid "Open as Read-Only"
+msgstr "Yalnız oxumaq üçün açmaq"
+
+#: kerfuffle/queries.cpp:243
+#, kde-format
+msgctxt "@action:button"
+msgid "Don't Open"
+msgstr "Açmamaq"
+
+#: kerfuffle/queries.cpp:253
+#, kde-format
+msgid "Don't ask again."
+msgstr "Yenidən soruşmamaq."
+
+#: kerfuffle/queries.cpp:265
+#, kde-format
+msgid "Error during extraction"
+msgstr "Çıxarılma zamanı xəta"
+
+#: kerfuffle/queries.cpp:266
+#, kde-kuit-format
+msgid ""
+"Extraction of the entry:<nl/>    <filename>%1</filename><nl/>failed with the "
+"error message:<nl/>    %2<nl/><nl/>Do you want to continue extraction?<nl/>"
+msgstr ""
+"Obyektlərin çıxarılması:<nl/>    <filename>%1</filename><nl/>xəta bildirişi "
+"ilə baş tutmadı:<nl/>    %2<nl/><nl/>Çıxarılmanı davam etdirmək istəyirsiniz?"
+"<nl/>"
+
+#: part/archivemodel.cpp:154
+#, kde-format
+msgctxt "Name of a file inside an archive"
+msgid "Name"
+msgstr "Adı"
+
+#: part/archivemodel.cpp:156
+#, kde-format
+msgctxt "Uncompressed size of a file inside an archive"
+msgid "Original Size"
+msgstr "Orijinal ölçüsü"
+
+#: part/archivemodel.cpp:158
+#, kde-format
+msgctxt "Compressed size of a file inside an archive"
+msgid "Compressed Size"
+msgstr "Sıxılmış ölçüsü"
+
+#: part/archivemodel.cpp:160
+#, kde-format
+msgctxt "Compression rate of file"
+msgid "Rate"
+msgstr "Dərəcəsi"
+
+#: part/archivemodel.cpp:162
+#, kde-format
+msgctxt "File's owner username"
+msgid "Owner"
+msgstr "Sahibi"
+
+#: part/archivemodel.cpp:164
+#, kde-format
+msgctxt "File's group"
+msgid "Group"
+msgstr "Qrup"
+
+#: part/archivemodel.cpp:166
+#, kde-format
+msgctxt "File permissions"
+msgid "Mode"
+msgstr "Rejim"
+
+#: part/archivemodel.cpp:168
+#, kde-format
+msgctxt "CRC hash code"
+msgid "CRC checksum"
+msgstr "CRC yoxlama cəmi"
+
+#: part/archivemodel.cpp:170
+#, kde-format
+msgctxt "BLAKE2 hash code"
+msgid "BLAKE2 checksum"
+msgstr "BLAKE2 yoxlama cəmi"
+
+#: part/archivemodel.cpp:172
+#, kde-format
+msgctxt "Compression method"
+msgid "Method"
+msgstr "Metod"
+
+#: part/archivemodel.cpp:175
+#, kde-format
+msgctxt "File version"
+msgid "Version"
+msgstr "Versiya"
+
+#: part/archivemodel.cpp:177
+#, kde-format
+msgctxt "Timestamp"
+msgid "Date"
+msgstr "Tarix"
+
+#: part/archivemodel.cpp:179
+#, kde-format
+msgctxt "Unnamed column"
+msgid "??"
+msgstr "??"
+
+#: part/archivemodel.cpp:279
+#, kde-format
+msgid "Adding files is not supported for this archive."
+msgstr "Əlavə edilən fayllar bu arxiv üçün dəstəklənmir."
+
+#: part/archivemodel.cpp:287
+#, kde-format
+msgid "You can only add local files to an archive."
+msgstr "Yalnız yerli faylları arxivə əlavə edə bilərsiniz."
+
+#. i18n: ectx: Menu (archive)
+#: part/ark_part.rc:5
+#, kde-format
+msgid "&Archive"
+msgstr "&Arxiv"
+
+#. i18n: ectx: Menu (ark_file)
+#: part/ark_part.rc:15
+#, kde-format
+msgid "&File"
+msgstr "&Fayl"
+
+#. i18n: ectx: Menu (settings)
+#: part/ark_part.rc:29
+#, kde-format
+msgid "&Settings"
+msgstr "&Ayarlar"
+
+#. i18n: ectx: ToolBar (mainToolBar)
+#: part/ark_part.rc:34
+#, kde-format
+msgid "Main Toolbar"
+msgstr "Əsas Alətlər Paneli"
+
+#. i18n: ectx: Menu (help)
+#: part/ark_viewer.rc:5
+#, kde-format
+msgid "&Help"
+msgstr "&Kömək"
+
+#: part/arkviewer.cpp:52
+#, kde-format
+msgid "Closing preview"
+msgstr "Önbaxışı bağlamaq"
+
+#: part/arkviewer.cpp:53
+#, fuzzy, kde-format
+#| msgid "Please wait while the preview is being closed..."
+msgid "Please wait while the preview is being closed…"
+msgstr "Lütfən, önbaxışın bağlanmasını gözləyin..."
+
+#: part/arkviewer.cpp:99
+#, kde-format
+msgid "The internal viewer cannot preview this file."
+msgstr "Daxili baxış vasitəsi bu faylı öncədən göstərə bilmir."
+
+#: part/arkviewer.cpp:116
+#, kde-kuit-format
+msgid ""
+"The internal viewer cannot preview this type of file<nl/>(%1).<nl/><nl/>Do "
+"you want to try to view it as plain text?"
+msgstr ""
+"Daxili önbaxış bu növ faylı dəstəkləmir<nl/>(%1).<nl/><nl/>Buna adi mətn "
+"kimi baxmaq istəyirsiniz?"
+
+#: part/arkviewer.cpp:117 part/arkviewer.cpp:129
+#, kde-format
+msgctxt "@title:window"
+msgid "Cannot Preview File"
+msgstr "Fayla öngöstərmək mümkün deyil"
+
+#: part/arkviewer.cpp:118 part/arkviewer.cpp:130
+#, kde-format
+msgctxt "@action:button"
+msgid "Preview as Text"
+msgstr "Mətn kimi baxmaq"
+
+#: part/arkviewer.cpp:128
+#, kde-kuit-format
+msgid ""
+"The internal viewer cannot preview this unknown type of file.<nl/><nl/>Do "
+"you want to try to view it as plain text?"
+msgstr ""
+"Daxili baxış vasitəsi naməlum fayl növünü öncədən göstərə bilmir.<nl/><nl/"
+">Buna mətn kimi baxmaq istəyirsiniz?"
+
+#: part/arkviewer.cpp:201
+#, kde-format
+msgctxt "@action"
+msgid "About Viewer Component"
+msgstr "İzləyici komponenti haqqında"
+
+#: part/infopanel.cpp:53
+#, kde-format
+msgid "No archive loaded"
+msgstr "Arxiv yüklənmədi"
+
+#: part/infopanel.cpp:104
+#, kde-format
+msgid "Symbolic Link"
+msgstr "Simvolik keçid"
+
+#: part/infopanel.cpp:109
+#, kde-format
+msgid "Unknown size"
+msgstr "Naməlum ölçü"
+
+#: part/infopanel.cpp:126
+#, kde-format
+msgid "One file selected"
+msgid_plural "%1 files selected"
+msgstr[0] "Bir fayl seçildi"
+msgstr[1] "%1 fayl seçildi"
+
+#. i18n: ectx: property (windowTitle), widget (QWidget, InformationPanel)
+#: part/infopanel.ui:20
+#, kde-format
+msgid "Information Panel"
+msgstr "Məlumat Paneli"
+
+#. i18n: ectx: property (text), widget (QLabel, additionalInfo)
+#: part/infopanel.ui:64
+#, kde-format
+msgid "Unknown file type"
+msgstr "Naməlum fayl növü"
+
+#. i18n: ectx: property (text), widget (QLabel, m_ownerLabel)
+#: part/infopanel.ui:113
+#, kde-format
+msgid "Owner:"
+msgstr "Sahibi:"
+
+#. i18n: ectx: property (text), widget (QLabel, m_groupLabel)
+#: part/infopanel.ui:133
+#, kde-format
+msgid "Group:"
+msgstr "Qrup:"
+
+#. i18n: ectx: property (text), widget (QLabel, m_targetLabel)
+#: part/infopanel.ui:153
+#, kde-format
+msgid "Target:"
+msgstr "Hədəf:"
+
+#. i18n: ectx: property (windowTitle), widget (QWidget, JobTrackerWidget)
+#: part/jobtracker.ui:14
+#, kde-format
+msgid "Job Tracker"
+msgstr "İşin izlənməsi"
+
+#. i18n: ectx: property (text), widget (QLabel, descriptionLabel)
+#: part/jobtracker.ui:44
+#, kde-format
+msgid "<b>Job Description</b>"
+msgstr "<b>İşin təfsilatı</b>"
+
+#. i18n: ectx: property (text), widget (QLabel, informationLabel)
+#: part/jobtracker.ui:63
+#, kde-format
+msgid "Some Information about the job"
+msgstr "Bu iş haqqında bəzi məlumatlar"
+
+#. i18n: ectx: property (format), widget (QProgressBar, progressBar)
+#: part/jobtracker.ui:88
+#, no-c-format, kde-format
+msgid "%p%"
+msgstr "%p%"
+
+#: part/overwritedialog.cpp:26
+#, kde-format
+msgid ""
+"Files with the following paths already exist. Remove them if you really want "
+"to overwrite."
+msgstr ""
+"Aşağıdakı yolarla birgə fayllar artıq mövcuddur. Yenidən yazmaq "
+"istəyirsinizsə onları silin."
+
+#: part/overwritedialog.cpp:28
+#, kde-format
+msgid ""
+"Files with the following paths already exist. Do you want to continue "
+"overwriting them?"
+msgstr ""
+"Aşağıdakı yollarla fayllar artıq mövcuddur. Siz onları yenidən yazmaq "
+"istəyirsiniz?"
+
+#: part/part.cpp:112
+#, kde-format
+msgid "Comment"
+msgstr "Şərh"
+
+#: part/part.cpp:125
+#, kde-format
+msgid "Comment has been modified."
+msgstr "Şərh dəyişdirilidi."
+
+#: part/part.cpp:130
+#, kde-format
+msgid "Save"
+msgstr "Saxlayın"
+
+#: part/part.cpp:153
+#, fuzzy, kde-format
+#| msgid "Type to search..."
+msgid "Type to search…"
+msgstr "Axtarış sözünü yazın..."
+
+#: part/part.cpp:303
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Ark can extract archives to local destinations only."
+msgstr "Ark arxivləri yalnız yerli qovluğa çıxara bilər."
+
+#: part/part.cpp:355
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Show Information Panel"
+msgstr "Məlumat panelini göstərmək"
+
+#: part/part.cpp:361
+#, fuzzy, kde-format
+#| msgctxt "@title:window"
+#| msgid "Save Copy As"
+msgctxt "@action:inmenu"
+msgid "Save Copy As…"
+msgstr "Kopyanı belə saxla"
+
+#: part/part.cpp:365
+#, kde-format
+msgctxt "open a file with external program"
+msgid "&Open in External Application"
+msgstr "Xarici tətbiqdə &açın"
+
+#: part/part.cpp:372
+#, fuzzy, kde-format
+#| msgctxt "open a file with external program"
+#| msgid "Open &With..."
+msgctxt "open a file with external program"
+msgid "Open &With…"
+msgstr "Bununla açı&n..."
+
+#: part/part.cpp:374
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Click to open the selected file with an external program"
+msgstr "Seçilmiş faylı xarici tətbiqdə açmaq üçün vurun"
+
+#: part/part.cpp:380
+#, kde-format
+msgctxt "to preview a file inside an archive"
+msgid "Pre&view"
+msgstr "Ö&nbaxış"
+
+#: part/part.cpp:382
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Click to preview the selected file"
+msgstr "Seçilmiş faylı göstərmək üçün vurun"
+
+#: part/part.cpp:389
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "E&xtract All"
+msgstr "Hamısını çı&xartmaq"
+
+#: part/part.cpp:391
+#, kde-format
+msgid ""
+"Click to open an extraction dialog, where you can choose how to extract all "
+"the files in the archive"
+msgstr ""
+"Çıxarma dialoqunu açmaq üçün vurun, burada arxivdəki bütün faylları necə "
+"çıxara biləcəyinizi seçə bilərsiniz"
+
+#: part/part.cpp:396
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "&Extract"
+msgstr "&Çıxartmaq"
+
+#: part/part.cpp:399
+#, kde-format
+msgid ""
+"Click to open an extraction dialog, where you can choose to extract either "
+"all files or just the selected ones"
+msgstr ""
+"Çıxarma dialoqunu açmaq üçün vurun, burada arxivdəki bütün faylları və ya "
+"hər hansı bir faylı necə çıxara biləcəyinizi seçə bilərsiniz"
+
+#: part/part.cpp:404
+#, fuzzy, kde-format
+#| msgctxt "@title:window"
+#| msgid "Add Files"
+msgid "Add &Files…"
+msgstr "Fayllar əlavə etmək"
+
+#: part/part.cpp:405 part/part.cpp:466
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Click to add files to the archive"
+msgstr "Faylları arxivə əlavə etmək üçün vurun"
+
+#: part/part.cpp:412
+#, kde-format
+msgctxt "@action"
+msgid "Remove from Archive"
+msgstr "Arxivdən silin"
+
+#: part/part.cpp:422
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "&Properties"
+msgstr "&Xüsusiyyətlər"
+
+#: part/part.cpp:424
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Click to see properties for archive"
+msgstr "Arxivin xüsusiyyətlərini görmək üçün vurun"
+
+#: part/part.cpp:430
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Click to add or edit comment"
+msgstr "Şərhlər əlavə etmək və ya onlara düzəliş üçün vurun"
+
+#: part/part.cpp:435
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "&Test Integrity"
+msgstr "Bü&tövlüyünü yoxlamaq"
+
+#: part/part.cpp:437 part/part.cpp:467
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Click to test the archive for integrity"
+msgstr "Srxivin bütövlüyünü yoxlamaq üçün vurun"
+
+#: part/part.cpp:462
+#, kde-kuit-format
+msgctxt "@info:tooltip"
+msgid ""
+"Adding files to existing password-protected archives with no header-"
+"encryption is currently not supported.<nl/><nl/>Extract the files and create "
+"a new archive if you want to add files."
+msgstr ""
+"Mövcud şifrə ilə qorunan arxivlərə başlıqları şifrələnmədən, fayllar əlavə "
+"etmək dəstəklənmir.<nl/><nl/>Əgər fayllar əlavə etmək istəyirsinizsə "
+"faylları şıxardın və yeni arxiv yaradın."
+
+#: part/part.cpp:464
+#, kde-kuit-format
+msgctxt "@info:tooltip"
+msgid ""
+"Testing password-protected archives with no header-encryption is currently "
+"not supported."
+msgstr ""
+"Başlığı şifrələnməmiş, şifrə ilə qorunan arxivlərin test edilməsi hal-"
+"hazırda dəstəklənmir."
+
+#: part/part.cpp:505
+#, kde-format
+msgctxt "@action:inmenu mutually exclusive with Add &Comment"
+msgid "Edit &Comment"
+msgstr "Şərhə &düzəliş"
+
+#: part/part.cpp:506 part/part.cpp:512
+#, kde-format
+msgctxt "@action:inmenu mutually exclusive with Edit &Comment"
+msgid "Add &Comment"
+msgstr "Şərh əlavə e&tmək"
+
+#: part/part.cpp:612
+#, kde-format
+msgid "The archive passed the integrity test."
+msgstr "Arxiv bütövlüyün yoxlanılması testindən keçdi."
+
+#: part/part.cpp:612 part/part.cpp:614
+#, kde-format
+msgid "Test Results"
+msgstr "Testin nəticələri"
+
+#: part/part.cpp:614
+#, kde-format
+msgid "The archive failed the integrity test."
+msgstr "Arxivin bütövlük yoxlaması baş tutmadı."
+
+#: part/part.cpp:634
+#, fuzzy, kde-format
+#| msgctxt "@action:inmenu Part of Extract submenu in Dolphin context menu"
+#| msgid "Extract to…"
+msgid "Extract To…"
+msgstr "Çıxardılacaq yer..."
+
+#: part/part.cpp:646
+#, fuzzy, kde-format
+#| msgid "Quick Extract To..."
+msgid "Quick Extract To…"
+msgstr "Cəld çıxartma hədəfi..."
+
+#: part/part.cpp:775
+#, kde-format
+msgctxt "@title:tab"
+msgid "General"
+msgstr "Əsas"
+
+#: part/part.cpp:776
+#, kde-format
+msgctxt "@title:tab"
+msgid "Extraction"
+msgstr "Çıxarılma"
+
+#: part/part.cpp:777
+#, kde-format
+msgctxt "@title:tab"
+msgid "Plugins"
+msgstr "Qoşmalar"
+
+#: part/part.cpp:778
+#, kde-format
+msgctxt "@title:tab"
+msgid "Previews"
+msgstr "Miniatürlər"
+
+#: part/part.cpp:794
+#, kde-kuit-format
+msgctxt "@info"
+msgid "<filename>%1</filename> is a directory."
+msgstr "<filename>%1</filename> qovluqdur."
+
+#: part/part.cpp:802
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Could not overwrite <filename>%1</filename>. Check whether you have write "
+"permission."
+msgstr ""
+"<filename>%1</filename> üzərinə yazmaq mümkün olmadı. Bunu yazmağa "
+"imtiyazınızın olmasını yoxlayın."
+
+#: part/part.cpp:808
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The archive <filename>%1</filename> will be created as soon as you add a "
+"file."
+msgstr ""
+"<filename>%1</filename> arxivi, fayl əlavə etdiyinizdə dərhal yaradılacaqdır."
+
+#: part/part.cpp:811
+#, kde-kuit-format
+msgctxt "@info"
+msgid "The archive <filename>%1</filename> was not found."
+msgstr "<filename>%1</filename> arxivi tapılmadı."
+
+#: part/part.cpp:817
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The archive <filename>%1</filename> could not be loaded, as it was not "
+"possible to read from it."
+msgstr ""
+"<filename>%1</filename> arxivini yükləmək mümkün olmadı, ona görə arxiv "
+"açılmadı."
+
+#: part/part.cpp:868
+#, kde-kuit-format
+msgctxt "@info"
+msgid "The archive is empty or Ark could not open its content."
+msgstr "Arxiv boşdur və ya Ark onun tərkiblərini aça bilmir."
+
+#: part/part.cpp:875
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Ark does not currently support ISO files with UDF filesystem."
+msgstr "Ark hal-hazırda UDF fayl sistemli İSO fayllarını dəstəkləmir."
+
+#: part/part.cpp:907
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Loading the archive <filename>%1</filename> failed with the following error:"
+"<nl/><message>%2</message>"
+msgstr ""
+"<filename>%1</filename> arxivinin yüklənməsi aşağıdakı xəta ilə baş tutmadı:"
+"<nl/><message>%2</message>"
+
+#: part/part.cpp:967
+#, kde-format
+msgid "Ark cannot open symlinks."
+msgstr "Ark simvolik keçidləri aça bilmir."
+
+#: part/part.cpp:1094
+#, kde-kuit-format
+msgid ""
+"The file <filename>%1</filename> was modified. Do you want to update the "
+"archive?"
+msgstr ""
+"<filename>%1</filename> faylı dəyişdirildi. Arxivi yeniləmək istəyirsiniz?"
+
+#: part/part.cpp:1095
+#, kde-format
+msgctxt "@title:window"
+msgid "File Modified"
+msgstr "Fayl dəyişdirildi"
+
+#: part/part.cpp:1096
+#, kde-format
+msgctxt "@action:button"
+msgid "Update"
+msgstr "Yenilə"
+
+#: part/part.cpp:1097
+#, kde-format
+msgctxt "@action:button"
+msgid "Ignore"
+msgstr "Ötürün"
+
+#: part/part.cpp:1371
+#, kde-format
+msgctxt "@title:window"
+msgid "Add Files"
+msgstr "Fayllar əlavə etmək"
+
+#: part/part.cpp:1376
+#, kde-format
+msgctxt "@title:window"
+msgid "Add Files to %1"
+msgstr "Faylları %1 arxivinə əlavə etmək"
+
+#: part/part.cpp:1436
+#, kde-format
+msgid "Filename can't contain slashes and can't be equal to \".\" or \"..\""
+msgstr "Fayl-adı kəsir və \".\" və ya \"..\" işarələrindən ibarət ola bilməz"
+
+#: part/part.cpp:1480
+#, kde-format
+msgid "Folders can't be moved into themselves."
+msgstr "Qovluq öz daxilinə köçürülə bilməz."
+
+#: part/part.cpp:1480
+#, kde-format
+msgid "Moving a folder into itself"
+msgstr "Qovluğu öz daxilinə köçürmək"
+
+#: part/part.cpp:1508
+#, kde-format
+msgid "Entries with the same names can't be pasted to the same destination."
+msgstr "Eyni adlı obyektlər eyni təyinat yerinə yerləşdirilə bilməz."
+
+#: part/part.cpp:1607
+#, kde-format
+msgctxt "@info"
+msgid "Deleting this file is not undoable. Are you sure you want to do this?"
+msgid_plural ""
+"Deleting these files is not undoable. Are you sure you want to do this?"
+msgstr[0] ""
+"Bu faylın silinməsini ləğv etmək olmaz. Silmək istədiyinizə əminsiniz?"
+msgstr[1] ""
+"Bu faylların silinməsini ləğv etmək olmaz. Silmək istədiyinizə əminsiniz?"
+
+#: part/part.cpp:1610
+#, kde-format
+msgctxt "@title:window"
+msgid "Delete File"
+msgid_plural "Delete Files"
+msgstr[0] "Faylı silmək"
+msgstr[1] "Faylları silmək"
+
+#: part/part.cpp:1649
+#, kde-format
+msgctxt "@title:window"
+msgid "Save Copy As"
+msgstr "Kopyanı belə saxla"
+
+#: part/part.cpp:1664
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The archive could not be saved as <filename>%1</filename>. Try saving it to "
+"another location."
+msgstr ""
+"Arxiv <filename>%1</filename> kimi saxlanıla bilməz. Başqa yerdə saxlamağa "
+"cəhd edin."
+
+#: part/part.cpp:1669
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The archive <filename>%1</filename> does not exist anymore, therefore it "
+"cannot be copied to the specified location."
+msgstr ""
+"<filename>%1</filename> arxivi artıq mövcud deyil, ona görə də göstərilən "
+"yerə kopyalana bilməz."
+
+#: plugins/cli7zplugin/cliplugin.cpp:132
+#: plugins/cliunarchiverplugin/cliplugin.cpp:88
+#, kde-format
+msgid "Listing the archive failed."
+msgstr "Arxivlər siyahılana bilmədi"
+
+#: plugins/cli7zplugin/cliplugin.cpp:304
+#, kde-format
+msgid "Extraction failed due to an unknown error."
+msgstr "Naməlum xəta səbəbindən çıxarılma baş tutmadı"
+
+#: plugins/cli7zplugin/cliplugin.cpp:309 plugins/clizipplugin/cliplugin.cpp:191
+#, kde-format
+msgid ""
+"Extraction failed due to one or more corrupt files. Any extracted files may "
+"be damaged."
+msgstr ""
+"Bir və ya birdən çox korlanmış fayllar səbəbindən çıxarılma alınmadı. "
+"Çıxarılan istənilən fayl zədələnə bilər."
+
+#: plugins/cli7zplugin/cliplugin.cpp:319
+#, kde-format
+msgid ""
+"Delete operation failed. Try upgrading 7z or disabling the 7z plugin in the "
+"configuration dialog."
+msgstr ""
+"Silinmə baş tutmadı. Tənzimləmə dialoqunda 7z-i ən son versiyaya yeniləməyə "
+"və ya 7z-i söndürməyə cəhd edin."
+
+#: plugins/cliarjplugin/cliplugin.cpp:321
+#, kde-format
+msgid "ARJ old"
+msgstr "Köhnə ARJ"
+
+#: plugins/cliarjplugin/cliplugin.cpp:322
+#, kde-format
+msgid "ARJ"
+msgstr "ARJ"
+
+#: plugins/cliarjplugin/cliplugin.cpp:323
+#, kde-format
+msgid "GOST256"
+msgstr "GOST256"
+
+#: plugins/cliarjplugin/cliplugin.cpp:324
+#, kde-format
+msgid "GOST256L"
+msgstr "GOST256L"
+
+#: plugins/cliarjplugin/cliplugin.cpp:325
+#, kde-format
+msgid "GOST 40-bit"
+msgstr "40 bitlik GOST"
+
+#: plugins/cliarjplugin/cliplugin.cpp:327
+#, kde-format
+msgid "unknown"
+msgstr "naməlum"
+
+#: plugins/clirarplugin/cliplugin.cpp:153
+#: plugins/clirarplugin/cliplugin.cpp:293
+#: plugins/clirarplugin/cliplugin.cpp:540
+#, kde-format
+msgid "Failed to find all archive volumes."
+msgstr "Bütün arxiv cildlərinin tapılması baş tutmadı."
+
+#: plugins/clirarplugin/cliplugin.cpp:314
+#, kde-format
+msgid ""
+"Your unrar executable is version %1, which is too old to handle this "
+"archive. Please update to a more recent version."
+msgstr ""
+"Sizin unrar icra faylınızın %1 versiyası bu arxivi işləmək üçün çox "
+"köhnədir. Lütfən daha yeni versiyaya yeniləyin."
+
+#: plugins/clirarplugin/cliplugin.cpp:320
+#, kde-format
+msgid ""
+"Unrar reported a non-RAR archive. The installed unrar version (%1) is old. "
+"Try updating your unrar."
+msgstr ""
+"Unrar xəbər verdi ki, bu fayl RAR arxivi deyil. Quraşdırılmış unrar "
+"versiyası (%1) köhnədir. Unrur'ı yeniləməyə cəhd edin."
+
+#: plugins/clirarplugin/cliplugin.cpp:535
+#, kde-format
+msgid "One or more wrong checksums"
+msgstr "Bir və ya birdən çox yoxlama cəmləri"
+
+#: plugins/cliunarchiverplugin/cliplugin.cpp:100
+#, kde-format
+msgid "Extraction failed."
+msgstr "Çıxarılma baş tutmadı."
+
+#: plugins/cliunarchiverplugin/cliplugin.cpp:134
+#, kde-format
+msgid "Not enough memory for loading the archive."
+msgstr "Arxivin yüklənməsi üçün yaddaş kifayət etmir."
+
+#: plugins/cliunarchiverplugin/cliplugin.cpp:185
+#, kde-format
+msgid "Wrong password."
+msgstr "Şifrə səhvdir."
+
+#: plugins/clizipplugin/cliplugin.cpp:181
+#, kde-format
+msgid "Extraction failed due to unsupported compression method (%1)."
+msgstr "Dəstəklənməyən sıxılma metodu (%1) səbəbindın çıxarılma baş tutmadı."
+
+#: plugins/clizipplugin/cliplugin.cpp:186
+#, kde-format
+msgid "Extraction failed due to unsupported encryption method."
+msgstr "Dəstəklənməyən şifrələmə metodu səbəbindən çıxarılma baş tutmadı."
+
+#: plugins/clizipplugin/cliplugin.cpp:315
+#, kde-format
+msgctxt "referred to compression method"
+msgid "unknown"
+msgstr "naməlum"
+
+#: plugins/libarchive/libarchiveplugin.cpp:123
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The archive may be corrupt or has header-encryption, which is currently not "
+"supported."
+msgstr ""
+"Ola bilsin ki, arxiv korlanıb və ya hazırda dəstəklənməyən şifrələmə "
+"başlığından ibarətdir."
+
+#: plugins/libarchive/libarchiveplugin.cpp:526
+#, kde-format
+msgctxt "@info"
+msgid "Fatal error, extraction aborted."
+msgstr "Ciddi xəta, çıxarılma ləğv edilidi."
+
+#: plugins/libarchive/libarchiveplugin.cpp:552
+#, kde-format
+msgctxt "@info"
+msgid "Extraction of encrypted 7-zip entries is currently not supported."
+msgstr ""
+"Şifrələnmiş faylların 7-zip arxivindən çıxarılması hazırda dəstəklənmir."
+
+#: plugins/libarchive/libarchiveplugin.cpp:566
+#, kde-format
+msgid "The archive reader could not be initialized."
+msgstr "Arxiv oxuyucusu başladıla bilmədi."
+
+#: plugins/libarchive/libarchiveplugin.cpp:588
+#, kde-format
+msgctxt "@info"
+msgid "Archive corrupted or insufficient permissions."
+msgstr "Arxiv korlanmış və ya icazələr yetərli deyil."
+
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:217
+#, kde-format
+msgctxt "@info"
+msgid "Failed to create a temporary file for writing data."
+msgstr "Müvəqqəti faylın yaradılması və məlumatın yazılması baş tutmadı."
+
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:223
+#, kde-format
+msgid "The archive writer could not be initialized."
+msgstr "Arxiv yazıcı başladıla bilmədi."
+
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:240
+#, kde-format
+msgctxt "@info"
+msgid "Could not open the archive for writing entries."
+msgstr "Qeydləri yazmaq üçün arxivi açmaq mümkün olmadı."
+
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:287
+#, kde-format
+msgid "The compression type '%1' is not supported by Ark."
+msgstr "'%1' sıxılma növü Ark tərəfindən dəstəklənmir."
+
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:294
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:364
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:376
+#, kde-format
+msgctxt "@info"
+msgid "Could not set the compression method."
+msgstr "Sıxılma metodunu təyin etmək mümkün olmadı."
+
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:399
+#, kde-format
+msgctxt "@info"
+msgid "Could not set the compression level."
+msgstr "Sıxılma sıviyyəsini təyin etmək mümkün olmadı."
+
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:516
+#, kde-format
+msgctxt "@info"
+msgid "Could not compress entry, operation aborted."
+msgstr "Obyekti sıxmaq mümkün olmadı, əməliyyat ləğv edildi."
+
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:559
+#, kde-format
+msgctxt "@info Error in a message box"
+msgid "Could not compress entry."
+msgstr "Obyekti sıxmaq mümkün olmadı."
+
+#: plugins/libzipplugin/libzipplugin.cpp:198
+#: plugins/libzipplugin/libzipplugin.cpp:297
+#: plugins/libzipplugin/libzipplugin.cpp:589
+#: plugins/libzipplugin/libzipplugin.cpp:637
+#: plugins/libzipplugin/libzipplugin.cpp:1004
+#: plugins/libzipplugin/libzipplugin.cpp:1058
+#, kde-kuit-format
+msgid "Failed to open archive: %1"
+msgstr "Açılması baş tutmayan arxiv: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:350
+#: plugins/libzipplugin/libzipplugin.cpp:621
+#: plugins/libzipplugin/libzipplugin.cpp:653
+#: plugins/libzipplugin/libzipplugin.cpp:1038
+#: plugins/libzipplugin/libzipplugin.cpp:1127
+#, kde-kuit-format
+msgid "Failed to write archive."
+msgstr "Arxivə yazmaq baş tutmadı."
+
+#: plugins/libzipplugin/libzipplugin.cpp:399
+#: plugins/libzipplugin/libzipplugin.cpp:1094
+#, kde-kuit-format
+msgid "Failed to add entry: %1"
+msgstr "Əlavə edilməsi baş tutmayan obyekt: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:454
+#, kde-kuit-format
+msgid "Failed to set compression options for entry: %1"
+msgstr "Obyektin sıxılması seçimlərini təyin etmək mümkün olmadı: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:559
+#: plugins/libzipplugin/libzipplugin.cpp:938
+#: plugins/libzipplugin/libzipplugin.cpp:1103
+#, kde-kuit-format
+msgid "Failed to read metadata for entry: %1"
+msgstr "Obyektin meta məlumatları oxunması baş tutmadı: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:602
+#: plugins/libzipplugin/libzipplugin.cpp:607
+#, kde-kuit-format
+msgid "Failed to delete entry: %1"
+msgstr "Obyekt silinə bilmədi: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:820
+#, kde-kuit-format
+msgid "Failed to create directory: %1"
+msgstr "Qovluq yaradıla bilmədi: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:894
+#, kde-kuit-format
+msgid "Failed to open '%1':<nl/>%2"
+msgstr "'%1' açıla bilmədi:<nl/>%2"
+
+#: plugins/libzipplugin/libzipplugin.cpp:902
+#, kde-kuit-format
+msgid "Failed to open file for writing: %1"
+msgstr "Yazmaq üçün faylı açmaq mümkün olmadı: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:915
+#, kde-kuit-format
+msgid "Failed to read data for entry: %1"
+msgstr "Obyektin məlumatları oxuna bilmədi: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:920
+#, kde-kuit-format
+msgid "Failed to write data for entry: %1"
+msgstr "Obyektin məlumatları yazıla bilmədi: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:930
+#, kde-kuit-format
+msgid "Failed to locate entry: %1"
+msgstr "Obyekti yerləşdirmək mümkün olmadı: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:1017
+#: plugins/libzipplugin/libzipplugin.cpp:1023
+#, kde-kuit-format
+msgid "Failed to move entry: %1"
+msgstr "Obyekti köçürmək mümkün olmadı: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:1080
+#, kde-kuit-format
+msgid "Failed to copy entry: %1"
+msgstr "Obyekti kopyalamaq mümkün olmadı: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:1110
+#, kde-kuit-format
+msgid "Failed to set metadata for entry: %1"
+msgstr "Obyektin meta məlumatlarını təyin etmək mümkün olmadı: %1"
+
+#~ msgid "Open Archive..."
+#~ msgstr "Arxivi açın..."
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "Save Copy As..."
+#~ msgstr "&Kopyanı belə saxla..."
+
+#~ msgid "Add &Files..."
+#~ msgstr "&Fayllar əlavə etmək..."
+
+#~ msgid "Extract To..."
+#~ msgstr "Buraya çıxartmaq..."
+
+#~ msgctxt ""
+#~ "@action:inmenu Part of Compress submenu in Dolphin context menu, %1 "
+#~ "filename"
+#~ msgid "Here as \"%1\""
+#~ msgstr "Burada \"%1\" kimi"
+
+#~ msgctxt "@action:inmenu Part of Extract submenu in Dolphin context menu"
+#~ msgid "Extract archive to..."
+#~ msgstr "Bu qovluğa çıxartmaq..."
+
+#~ msgctxt "@action:inmenu Part of Extract submenu in Dolphin context menu"
+#~ msgid "Extract archive here"
+#~ msgstr "Seçilmiş qovluğa çıxartmaq"
+
+#~ msgctxt "@action:inmenu Part of Extract submenu in Dolphin context menu"
+#~ msgid "Extract archive here, autodetect subfolder"
+#~ msgstr "Yaradılan qovluğa çıxartmaq"
+
+#~ msgid "Form"
+#~ msgstr "Forma"
+
+#~ msgid "Create New Archive..."
+#~ msgstr "Yeni arxiv yaradın..."
+
+#~ msgctxt "@info"
+#~ msgid "Ark could not extract <filename>%1</filename>."
+#~ msgstr "Ark, <filename>%1</filename> faylını çıxara bilmədi."
+
+#~ msgctxt "@info"
+#~ msgid "Ark could not open <filename>%1</filename> for extraction."
+#~ msgstr "Ark, çıxartmaq üçün <filename>%1</filename> aça bilmədi."
+
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "There was an error while reading <filename>%1</filename> during "
+#~ "extraction."
+#~ msgstr ""
+#~ "Çıxarılarkən <filename>%1</filename> oxunması zamanı xəta baş verdi."
+
+#~ msgctxt "open a file with external program"
+#~ msgid "&Open"
+#~ msgstr "&Açmaq"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "Click to open the selected file with the associated application"
+#~ msgstr "Seçilmiş faylı əlaqəli tətbiqdə açmaq üçün vurun"
+
+#~ msgctxt "Uncompressed size of a file inside an archive"
+#~ msgid "Size"
+#~ msgstr "Ölçü"
+
+#~ msgctxt "@action:inmenu Part of Compress submenu in Dolphin context menu"
+#~ msgid "Here (as TAR.GZ)"
+#~ msgstr "Buraya (TAR.GZ kimi)"
+
+#~ msgctxt ""
+#~ "@action:inmenu Part of Compress submenu in Dolphin context menu, %1 "
+#~ "filename"
+#~ msgid "Here (to \"%1.tar.gz\")"
+#~ msgstr "Buraya (\"%1.tar.gz\" arxivinə)"
+
+#~ msgctxt "@action:inmenu Part of Compress submenu in Dolphin context menu"
+#~ msgid "Here (as ZIP)"
+#~ msgstr "Buraya (ZİP kimi)"
+
+#~ msgid ""
+#~ "This archive contains archive entries with absolute paths, which are not "
+#~ "supported by Ark."
+#~ msgstr ""
+#~ "Bu arxivdə Ark tərəfindən dəstəklənməyən mütləq yolları olan arxiv "
+#~ "qeydləri var."
+
+#~ msgctxt "action, to open an archive"
+#~ msgid "Open"
+#~ msgstr "açmaq"
+
+#~ msgid "Open an archive"
+#~ msgstr "Arxivi açmaq"
+
+#~ msgid "ArkPart"
+#~ msgstr "ArkPart"
+
+#~ msgctxt "@title:window"
+#~ msgid "Save Archive As"
+#~ msgstr "Arxivləri belə saxlamaq"

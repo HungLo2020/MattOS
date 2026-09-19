@@ -1,0 +1,791 @@
+# Translation of katebuild-plugin.po to Ukrainian
+# Copyright (C) 2008-2021 This_file_is_part_of_KDE
+# This file is distributed under the license LGPL version 2.1 or
+# version 3 or later versions approved by the membership of KDE e.V.
+#
+# Yuri Chornoivan <yurchor@ukr.net>, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025.
+msgid ""
+msgstr ""
+"Project-Id-Version: katebuild-plugin\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-06-27 00:47+0000\n"
+"PO-Revision-Date: 2025-08-26 09:50+0300\n"
+"Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
+"Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 23.04.3\n"
+"Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n"
+"%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Юрій Чорноіван"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "yurchor@ukr.net"
+
+#. i18n: ectx: attribute (title), widget (QWidget, buildOutput)
+#: build.ui:36
+#, kde-format
+msgid "Output"
+msgstr "Вивід"
+
+#. i18n: ectx: property (text), widget (QPushButton, buildAgainButton)
+#: build.ui:56
+#, kde-format
+msgid "Build Again"
+msgstr "Зібрати знову"
+
+#. i18n: ectx: property (text), widget (QPushButton, cancelBuildButton)
+#: build.ui:66
+#, kde-format
+msgid "Cancel"
+msgstr "Скасувати"
+
+#: buildconfig.cpp:48
+#, kde-format
+msgid "Build & Run"
+msgstr "Зібрати і запустити"
+
+#: buildconfig.cpp:54
+#, kde-format
+msgid "Build & Run Settings"
+msgstr "Параметри збирання і запуску"
+
+#: buildconfig.cpp:107
+#, kde-format
+msgid "Delete selected entries"
+msgstr "Вилучити позначені записи"
+
+#: buildconfig.cpp:112
+#, kde-format
+msgid "Delete all entries"
+msgstr "Вилучити усі записи"
+
+#. i18n: ectx: attribute (title), widget (QWidget, tab)
+#: buildconfigwidget.ui:33
+#, kde-format
+msgid "General Settings"
+msgstr "Загальні параметри"
+
+#. i18n: ectx: property (text), widget (QCheckBox, useDiagnosticsCB)
+#: buildconfigwidget.ui:50
+#, kde-format
+msgid "Add errors and warnings to Diagnostics"
+msgstr "Додати помилки і попередження до «Діагностики»"
+
+#. i18n: ectx: property (text), widget (QCheckBox, autoSwitchToOutput)
+#: buildconfigwidget.ui:57
+#, kde-format
+msgid "Automatically switch to output pane on executing the selected target"
+msgstr ""
+"Автоматично перемикатися на панель виведення при виконанні вибраної цілі"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, u_showProgressCB)
+#: buildconfigwidget.ui:77
+#, no-c-format, kde-format
+msgid ""
+"If the output lines start with [ # / ## ] or [ ## % ], display the latest as "
+"a message."
+msgstr ""
+"Якщо рядки виведення починаються з [ # / ## ] або [ ## % ], показувати "
+"найсвіжіший як повідомлення."
+
+#. i18n: ectx: property (text), widget (QCheckBox, u_showProgressCB)
+#: buildconfigwidget.ui:80
+#, kde-format
+msgid "Show build progress as a message when the output pane is hidden"
+msgstr ""
+"Показувати поступ збирання як повідомлення, якщо панель виведення приховано"
+
+#. i18n: ectx: attribute (title), widget (QWidget, tab_4)
+#: buildconfigwidget.ui:106
+#, kde-format
+msgid "Allowed && Blocked Commands"
+msgstr "Дозволені і заблоковані команди"
+
+#: plugin_katebuild.cpp:268 plugin_katebuild.cpp:275 plugin_katebuild.cpp:759
+#: plugin_katebuild.cpp:1000 plugin_katebuild.cpp:1013
+#, kde-format
+msgid "Build"
+msgstr "Зібрати"
+
+#: plugin_katebuild.cpp:278
+#, kde-format
+msgid "Select Target..."
+msgstr "Вибрати ціль…"
+
+#: plugin_katebuild.cpp:283
+#, kde-format
+msgid "Build Selected Target"
+msgstr "Зібрати позначену ціль"
+
+#: plugin_katebuild.cpp:288
+#, kde-format
+msgid "Build and Run Selected Target"
+msgstr "Зібрати і запустити позначену ціль"
+
+#: plugin_katebuild.cpp:293
+#, kde-format
+msgid "Compile Current File"
+msgstr "Компілювати поточний файл"
+
+#: plugin_katebuild.cpp:294
+#, kde-format
+msgid "Try to compile the current file by searching a compile_commands.json"
+msgstr ""
+"Спробувати скомпілювати поточний файл шляхом пошуку compile_commands.json"
+
+#: plugin_katebuild.cpp:299
+#, kde-format
+msgid "Stop"
+msgstr "Зупинити"
+
+#: plugin_katebuild.cpp:304
+#, kde-format
+msgid "Load targets from CMake Build Dir"
+msgstr "Завантажити цілі з каталогу збирання CMake"
+
+#: plugin_katebuild.cpp:308
+#, kde-format
+msgctxt "Left is also left in RTL mode"
+msgid "Focus Next Tab to the Left"
+msgstr "Фокус на наступну вкладку ліворуч"
+
+#: plugin_katebuild.cpp:328
+#, kde-format
+msgctxt "Right is right also in RTL mode"
+msgid "Focus Next Tab to the Right"
+msgstr "Фокус на наступну вкладку праворуч"
+
+#: plugin_katebuild.cpp:361
+#, kde-format
+msgctxt "Tab label"
+msgid "Target Settings"
+msgstr "Параметри цілі"
+
+#: plugin_katebuild.cpp:410
+#, kde-format
+msgid ""
+"<b>File not found:</b> %1<br><b>Search paths:</b><br>%2<br>Try adding a "
+"search path to the \"Working Directory\""
+msgstr ""
+"<b>Файл не знайдено:</b> %1<br><b>Шляхи для пошуку:</b><br>%2<br>Спробуйте "
+"додати шлях для пошуку у пункті «Робочий каталог»"
+
+#: plugin_katebuild.cpp:507
+#, kde-format
+msgid "Build Information"
+msgstr "Інформація про випуск"
+
+#: plugin_katebuild.cpp:766
+#, kde-format
+msgid "There is no file or directory specified for building."
+msgstr "Не було вказано файла або каталогу для збирання."
+
+#: plugin_katebuild.cpp:770
+#, kde-format
+msgid ""
+"The file \"%1\" is not a local file. Non-local files cannot be compiled."
+msgstr "Файл «%1» не є локальним. Нелокальні файли не можна компілювати."
+
+#: plugin_katebuild.cpp:841
+#, kde-format
+msgid "Create directory"
+msgstr "Створити каталог"
+
+#: plugin_katebuild.cpp:844
+#, kde-format
+msgid ""
+"The configured working directory <b>%1</b> for the targetset <b>%2</b> does "
+"not exist.<br><br>Create the directory?"
+msgstr ""
+"Налаштованого робочого каталогу <b>%1</b> для набору цілей <b>%2</b> не "
+"існує.<br><br>Створити каталог?"
+
+#: plugin_katebuild.cpp:852
+#, kde-format
+msgid "Failed to create the directory <b>%1</b>"
+msgstr "Не вдалося створити каталог <b>%1</b>"
+
+#: plugin_katebuild.cpp:877
+#, kde-format
+msgid "Failed to run \"%1\". exitStatus = %2"
+msgstr "Не вдалося запустити «%1». exitStatus = %2"
+
+#: plugin_katebuild.cpp:893
+#, kde-format
+msgid "Building <b>%1: %2</b> cancelled"
+msgstr "Збирання <b>%1: %2</b> скасовано"
+
+#: plugin_katebuild.cpp:999
+#, kde-format
+msgid "Did not find a compile_commands.json for file \"%1\". "
+msgstr "Не знайдено compile_commands.json для файла «%1». "
+
+#: plugin_katebuild.cpp:1012
+#, kde-format
+msgid "Did not find a compile command for file \"%1\" in \"%2\". "
+msgstr "Не вдалося знайти команду компіляції для файла «%1» у «%2». "
+
+#: plugin_katebuild.cpp:1031
+#, kde-format
+msgid ""
+"Cannot make \"%f\" substitution. No open file or the current file is "
+"untitled!"
+msgstr ""
+"Не вдалося зробити заміну «%f». Немає відкритих файлів або поточний файл не "
+"має назви!"
+
+#: plugin_katebuild.cpp:1035
+#, kde-format
+msgid ""
+"Cannot make \"%d\" substitution. No open file or the current file is "
+"untitled!"
+msgstr ""
+"Не вдалося зробити заміну «%d». Немає відкритих файлів або поточний файл не "
+"має назви!"
+
+#: plugin_katebuild.cpp:1039
+#, kde-format
+msgid ""
+"Cannot make \"%n\" substitution. No open file or the current file is "
+"untitled!"
+msgstr ""
+"Не вдалося зробити заміну «%n». Немає відкритих файлів або поточний файл не "
+"має назви!"
+
+#: plugin_katebuild.cpp:1050
+#, kde-format
+msgid "Cannot make project substitution (%B). No open project!"
+msgstr "Не вдалося зробити заміну у проєкті (%B). Немає відкритих проєктів!"
+
+#: plugin_katebuild.cpp:1063
+#, kde-format
+msgid "Already building..."
+msgstr "Вже збирається…"
+
+#: plugin_katebuild.cpp:1101
+#, kde-format
+msgid ""
+"Cannot execute: %1: %2 No working directory set.\n"
+"There is no local file or directory specified for building."
+msgstr ""
+"Не вдалося виконати: %1: %2 Не встановлено робочого каталогу.\n"
+"Не вказано локального файла або каталогу для збирання."
+
+#: plugin_katebuild.cpp:1222
+#, kde-format
+msgid "Building target <b>%1: %2</b> ..."
+msgstr "Збираємо ціль <b>%1: %2</b>…"
+
+#: plugin_katebuild.cpp:1259
+#, kde-format
+msgid ""
+"Cannot load targets, the file %1 does not contain a proper CMAKE_COMMAND "
+"entry !"
+msgstr ""
+"Не вдалося завантажити цілі — у файлі %1 не міститься належного запису "
+"CMAKE_COMMAND!"
+
+#: plugin_katebuild.cpp:1272
+#, kde-format
+msgid "Could not write CMake File API query files for build directory %1 !"
+msgstr ""
+"Не вдалося записати файли запиту програмного інтерфейсу роботи з файлами "
+"CMake для каталогу збирання %1!"
+
+#: plugin_katebuild.cpp:1278
+#, kde-format
+msgid "Could not run CMake (%2) for build directory %1 !"
+msgstr "Не вдалося запустити CMake (%2) для каталогу збирання %1!"
+
+#: plugin_katebuild.cpp:1287
+#, kde-format
+msgid ""
+"Generating CMake File API reply files for build directory %1 failed (using "
+"%2) !"
+msgstr ""
+"Не вдалося створити файли відповідей програмного інтерфейсу для роботи з "
+"файлами CMake для каталогу збирання %1 (за допомогою %2)!"
+
+#: plugin_katebuild.cpp:1412
+#, kde-format
+msgid "Build plugin wants to execute program"
+msgstr "Додатку збирання потрібно виконати програму"
+
+#: plugin_katebuild.cpp:1415
+#, kde-format
+msgid ""
+"The Kate build plugin needs to execute an external command to read the "
+"targets from the build tree.<br><br>The full command line is:<br><br><b>%1</"
+"b><br><br>Proceed and allow to run this command ?<br><br>The choice can be "
+"altered via the config page of the plugin."
+msgstr ""
+"Додатку збирання Kate потрібно виконати зовнішню програму для читання цілей "
+"для ієрархії збирання.<br><br>Рядок команди повністю:<br><br><b>%1</"
+"b><br><br>Продовжити і дозволити виконання цієї команди?<br><br>Вибір можна "
+"змінити за допомогою сторінки налаштовування додатка."
+
+#: plugin_katebuild.cpp:1447
+#, kde-kuit-format
+msgctxt "@info"
+msgid "<title>Build Finished:</title>%1"
+msgstr "<title>Збирання завершено:</title>%1"
+
+#: plugin_katebuild.cpp:1510
+#, kde-format
+msgid "Build <b>%1: %2</b> completed. %3 error(s), %4 warning(s), %5 note(s)"
+msgstr ""
+"Збирання <b>%1: %2</b> завершено. %3 помилок, %4 попереджень, %5 зауважень"
+
+#: plugin_katebuild.cpp:1522
+#, kde-format
+msgid "Found one error."
+msgid_plural "Found %1 errors."
+msgstr[0] "Виявлено %1 помилку."
+msgstr[1] "Виявлено %1 помилки."
+msgstr[2] "Виявлено %1 помилок."
+msgstr[3] "Виявлено одну помилку."
+
+#: plugin_katebuild.cpp:1526
+#, kde-format
+msgid "Found one warning."
+msgid_plural "Found %1 warnings."
+msgstr[0] "Виявлено %1 попередження."
+msgstr[1] "Виявлено %1 попередження."
+msgstr[2] "Виявлено %1 попереджень."
+msgstr[3] "Виявлено одне попередження."
+
+#: plugin_katebuild.cpp:1529
+#, kde-format
+msgid "Found one note."
+msgid_plural "Found %1 notes."
+msgstr[0] "Виявлено %1 зауваження."
+msgstr[1] "Виявлено %1 зауважень."
+msgstr[2] "Виявлено %1 зауважеь."
+msgstr[3] "Виявлено одне зауваження."
+
+#: plugin_katebuild.cpp:1533
+#, kde-format
+msgid "Build canceled."
+msgstr "Спробу збирання скасовано."
+
+#: plugin_katebuild.cpp:1537
+#, kde-format
+msgid "Build failed."
+msgstr "Спроба збирання завершилася невдало."
+
+#: plugin_katebuild.cpp:1539
+#, kde-format
+msgid "Build completed without problems."
+msgstr "Збирання виконано без проблем."
+
+#: plugin_katebuild.cpp:1543
+#, kde-format
+msgid "Build <b>%1: %2 canceled</b>. %3 error(s), %4 warning(s), %5 note(s)"
+msgstr ""
+"Збирання <b>%1: %2 скасовано</b>. %3 помилок, %4 попереджень, %5 зауважень"
+
+#: plugin_katebuild.cpp:1828
+#, kde-format
+msgctxt "The same word as 'gcc' uses for an error."
+msgid "error"
+msgstr "error|помилка"
+
+#: plugin_katebuild.cpp:1831
+#, kde-format
+msgctxt "The same word as 'gcc' uses for a warning."
+msgid "warning"
+msgstr "warning|попередження"
+
+#: plugin_katebuild.cpp:1834
+#, kde-format
+msgctxt "The same words as 'gcc' uses for note or info."
+msgid "note|info"
+msgstr "note|info|нотатка|примітка|зауваження"
+
+#: plugin_katebuild.cpp:1837
+#, kde-format
+msgctxt "The same word as 'ld' uses to mark an ..."
+msgid "undefined reference"
+msgstr "невизначене посилання"
+
+#: plugin_katebuild.cpp:2141
+#, kde-format
+msgid "Cannot save build targets in: %1"
+msgstr "Не вдалося зберегти цілі збирання у %1"
+
+#: TargetHtmlDelegate.cpp:48
+#, kde-format
+msgctxt "T as in Target set"
+msgid "<B>T:</B> %1"
+msgstr "<B>НЦ:</B> %1"
+
+#: TargetHtmlDelegate.cpp:50
+#, kde-format
+msgctxt "Dir as in working Directory"
+msgid "<B>Dir:</B> %1"
+msgstr "<B>Каталог:</B> %1"
+
+#: TargetHtmlDelegate.cpp:95
+#, kde-format
+msgid ""
+"Leave empty to use the directory of the current document.\n"
+"Add search directories by adding paths separated by ';'"
+msgstr ""
+"Не заповнюйте, якщо бажаєте, щоб програма використовувала поточний "
+"документ.\n"
+"Додайте каталоги для пошуку, відокремивши їхні записи символом «;»"
+
+#: TargetHtmlDelegate.cpp:102
+#, kde-format
+msgid ""
+"Use:\n"
+"\"%B\" for project base directory\n"
+"\"%b\" for name of project base directory"
+msgstr ""
+"Користування:\n"
+"«%B» — базовий каталог проєкту\n"
+"«%b» — назва базового каталогу проєкту"
+
+#: TargetHtmlDelegate.cpp:106
+#, kde-format
+msgid ""
+"Use:\n"
+"\"%f\" for current file\n"
+"\"%d\" for directory of current file\n"
+"\"%n\" for current file name without suffix\n"
+"\"%B\" for current project's base directory\n"
+"\"%w\" for the working directory of the target"
+msgstr ""
+"Скористайтеся\n"
+"«%f» для позначення поточного файла,\n"
+"«%d» для позначення каталогу, де зберігається поточний файл,\n"
+"«%n» для позначення назви поточного файла без суфікса.\n"
+"«%B» для позначення основного каталогу поточного проєкту\n"
+"«%w» для позначення робочого каталогу цілі"
+
+#: TargetModel.cpp:315 TargetModel.cpp:327 targets.cpp:254
+#, kde-format
+msgid "Target Set"
+msgstr "Набір цілей"
+
+#: TargetModel.cpp:566
+#, kde-format
+msgid "Projects"
+msgstr "Проєкти"
+
+#: TargetModel.cpp:566
+#, kde-format
+msgid "Session"
+msgstr "Сеанс"
+
+#: TargetModel.cpp:678
+#, kde-format
+msgid "Command/Target-set Name"
+msgstr "Назва команди або набору цілей"
+
+#: TargetModel.cpp:681
+#, kde-format
+msgid "Build Command / Working Directory"
+msgstr "Команда збирання/Робочий каталог"
+
+#: TargetModel.cpp:684
+#, kde-format
+msgid "Run Command"
+msgstr "Виконати команду"
+
+#: targets.cpp:28
+#, kde-format
+msgid "Filter targets, use arrow keys to select, Enter to execute"
+msgstr ""
+"Фільтрування цілей. Скористайтеся клавішами зі стрілками для вибору і "
+"клавішею Enter для виконання"
+
+#: targets.cpp:32
+#, kde-format
+msgid "Create new set of targets"
+msgstr "Створити новий набір цілей"
+
+#: targets.cpp:36
+#, kde-format
+msgid "Clone command or target set"
+msgstr "Клонувати команду або набір цілей"
+
+#: targets.cpp:40
+#, kde-format
+msgid "Delete current target or current set of targets"
+msgstr "Вилучити поточну ціль або поточний набір цілей"
+
+#: targets.cpp:45
+#, kde-format
+msgid "Add new target"
+msgstr "Додати нову ціль"
+
+#: targets.cpp:49
+#, kde-format
+msgid "Build selected target"
+msgstr "Зібрати позначену ціль"
+
+#: targets.cpp:53
+#, kde-format
+msgid "Build and run selected target"
+msgstr "Зібрати і запустити позначену ціль"
+
+#: targets.cpp:57
+#, kde-format
+msgid "Move selected target up"
+msgstr "Пересунути позначену ціль вище"
+
+#: targets.cpp:61
+#, kde-format
+msgid "Move selected target down"
+msgstr "Пересунути позначену ціль нижче"
+
+#: targets.cpp:203
+#, kde-format
+msgid "Copy"
+msgstr "Копіювати"
+
+#: targets.cpp:207
+#, kde-format
+msgid "Cut"
+msgstr "Вирізати"
+
+#: targets.cpp:211
+#, kde-format
+msgid "Paste after"
+msgstr "Вставити після"
+
+#: targets.cpp:229 targets.cpp:256
+#, kde-format
+msgctxt "Name/Label for a compilation or build command"
+msgid "Build Command"
+msgstr "Команда збирання"
+
+#: targets.cpp:255
+#, kde-format
+msgctxt "Name/Label for a command to configure a build"
+msgid "Configure"
+msgstr "Налаштувати"
+
+#. i18n: ectx: Menu (Build Menubar)
+#: ui.rc:6
+#, kde-format
+msgid "&Build"
+msgstr "&Збирання"
+
+#. i18n: ectx: ToolBar (mainToolBar)
+#: ui.rc:23
+#, kde-format
+msgid "Build Plugin Toolbar"
+msgstr "Панель інструментів додатка збирання"
+
+#: UrlInserter.cpp:31
+#, kde-format
+msgid "Insert path"
+msgstr "Шлях вставки"
+
+#: UrlInserter.cpp:50
+#, kde-format
+msgid "Select directory to insert"
+msgstr "Виберіть каталог для вставляння"
+
+#~ msgid "No target available for building."
+#~ msgstr "Немає доступних цілей для збирання"
+
+#~ msgid "Cannot execute: %1 No working directory set."
+#~ msgstr "Не вдалося виконати %1. Не встановлено робочого каталогу."
+
+#~ msgctxt "@info"
+#~ msgid "<title>Make Results:</title><nl/>%1"
+#~ msgstr "<title>Результати збирання:</title><nl/>%1"
+
+#~ msgid "Working Directory / Command"
+#~ msgstr "Робочий каталог або команда"
+
+#~ msgid ""
+#~ "Cannot run command: %1\n"
+#~ "Work path does not exist: %2"
+#~ msgstr ""
+#~ "Не вдалося виконати команду: %1\n"
+#~ "Не існує робочого каталогу: %2"
+
+#~ msgid "Clean"
+#~ msgstr "Очистити"
+
+#~ msgid "ConfigClean"
+#~ msgstr "Очистити налаштування"
+
+#~ msgid "Project Plugin Targets"
+#~ msgstr "Цілі додатка проєкту"
+
+#~ msgid "build"
+#~ msgstr "Збирання"
+
+#~ msgid "clean"
+#~ msgstr "clean"
+
+#~ msgid "quick"
+#~ msgstr "quick"
+
+#~ msgid "Building <b>%1</b> completed."
+#~ msgstr "Збирання <b>%1</b> завершено."
+
+#~ msgid "Building <b>%1</b> had errors."
+#~ msgstr "Під час збирання <b>%1</b> сталися помилки."
+
+#~ msgid "Building <b>%1</b> had warnings."
+#~ msgstr "Під час збирання <b>%1</b> було виявлено недоліки."
+
+#~ msgid "Show:"
+#~ msgstr "Показати:"
+
+#~ msgctxt "Header for the file name column"
+#~ msgid "File"
+#~ msgstr "Файл"
+
+#~ msgctxt "Header for the line number column"
+#~ msgid "Line"
+#~ msgstr "Рядок"
+
+#~ msgctxt "Header for the error message column"
+#~ msgid "Message"
+#~ msgstr "Повідомлення"
+
+#~ msgid "Next Error"
+#~ msgstr "Наступна помилка"
+
+#~ msgid "Previous Error"
+#~ msgstr "Попередня помилка"
+
+#~ msgid "Show Marks"
+#~ msgstr "Показувати позначки"
+
+#~ msgid "Error"
+#~ msgstr "Помилка"
+
+#~ msgid "Warning"
+#~ msgstr "Попередження"
+
+#~ msgid "Only Errors"
+#~ msgstr "лише помилки"
+
+#~ msgid "Errors and Warnings"
+#~ msgstr "помилки і попередження"
+
+#~ msgid "Parsed Output"
+#~ msgstr "оброблені виведені дані"
+
+#~ msgid "Full Output"
+#~ msgstr "виведені дані повністю"
+
+#~ msgid ""
+#~ "Check the check-box to make the command the default for the target-set."
+#~ msgstr "Позначте пункт, щоб зробити команду типовою для набору цілей."
+
+#~ msgid "Select active target set"
+#~ msgstr "Виберіть активний набір цілей"
+
+#~ msgid "Filter targets"
+#~ msgstr "Фільтрувати цілі"
+
+#~ msgid "Build Default Target"
+#~ msgstr "Зібрати типову ціль"
+
+#~ msgid "Build and Run Default Target"
+#~ msgstr "Зібрати і запустити типову ціль"
+
+#~ msgid "Build Previous Target"
+#~ msgstr "Зібрати попередню ціль"
+
+#~ msgid "Active target-set:"
+#~ msgstr "Активний набір цілей:"
+
+#~ msgid "config"
+#~ msgstr "config"
+
+#~ msgid "Select build target"
+#~ msgstr "Виберіть ціль збирання"
+
+#~ msgid "Filter"
+#~ msgstr "Фільтр"
+
+#~ msgid "Build Output"
+#~ msgstr "Вивід збирання"
+
+#~ msgid "Next Set of Targets"
+#~ msgstr "Наступний набір цілей"
+
+#~ msgid "No previous target to build."
+#~ msgstr "Немає попередньої цілі для збирання."
+
+#~ msgid "No target set as default target."
+#~ msgstr "Немає цілі, яку визначено як типову."
+
+#~ msgid "No target set as clean target."
+#~ msgstr "Немає цілі, визначеної як ціль спорожнення."
+
+#~ msgid "Target \"%1\" not found for building."
+#~ msgstr "Не знайдено цілі «%1» для збирання."
+
+#~ msgid "Really delete target %1?"
+#~ msgstr "Справді вилучити ціль %1?"
+
+#~ msgid "Nothing built yet."
+#~ msgstr "Нічого ще не зібрано."
+
+#~ msgid "Target Set %1"
+#~ msgstr "Набір цілей %1"
+
+#~ msgid "Target"
+#~ msgstr "Ціль"
+
+#~ msgid "Target:"
+#~ msgstr "Ціль:"
+
+#~ msgid "from"
+#~ msgstr "з"
+
+#~ msgid "Sets of Targets"
+#~ msgstr "Набори цілей"
+
+#~ msgid "Make Results"
+#~ msgstr "Результат make"
+
+#~ msgid "Others"
+#~ msgstr "Інше"
+
+#~ msgid "Quick Compile"
+#~ msgstr "Швидка компіляція"
+
+#~ msgid "The custom command is empty."
+#~ msgstr "Вказано порожню нетипову команду."
+
+#~ msgid "New"
+#~ msgstr "Створити"
+
+#~ msgid "Delete"
+#~ msgstr "Вилучити"
+
+#~ msgid "Quick compile"
+#~ msgstr "Швидка компіляція"
+
+#~ msgid "Run make"
+#~ msgstr "Запустити make"
+
+#~ msgid "..."
+#~ msgstr "..."
+
+#~ msgid "Break"
+#~ msgstr "Зупинка"
+
+#~ msgid "There is no file to compile."
+#~ msgstr "Не було вказано файла для збирання."

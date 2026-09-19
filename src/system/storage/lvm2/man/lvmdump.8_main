@@ -1,0 +1,165 @@
+.TH LVMDUMP 8 "LVM TOOLS #VERSION#" "Red Hat, Inc."
+.
+.de NSY
+.  ie t .SY \\$1
+.  el \{\
+.    ie \\n(.$>1 \{\
+.      PD 0
+.      TP \\w'\\$1\ 'u
+.    \}
+.    el .TP
+.    B \\$1
+.    nh
+.    na
+.  \}
+..
+.
+.SH NAME
+.
+lvmdump \(em Create lvm2 information dumps for diagnostic purposes
+.
+.SH SYNOPSIS
+.
+.NSY lvmdump 1
+.RB [ -a ]
+.RB [ -c ]
+.RB [ -d
+.IR directory ]
+.RB [ -h ]
+.RB [ -l ]
+.RB [ -m ]
+.RB [ -p ]
+.RB [ -s ]
+.RB [ -u ]
+.
+.PD
+.ad
+.hy
+.
+.SH DESCRIPTION
+.
+lvmdump is a tool to dump various information concerning LVM2.
+By default, it creates a tarball suitable for submission along
+with a problem report.
+.P
+The content of the tarball is as follows:
+.
+.PD 0
+.IP \[bu] 2
+dmsetup info
+.IP \[bu]
+table of currently running processes
+.IP \[bu]
+recent entries from \fI/var/log/messages\fP (containing system messages)
+.IP \[bu]
+complete lvm configuration and cache (content of \fI#DEFAULT_SYS_DIR#\fP)
+.IP \[bu]
+list of device nodes present under \fI/dev\fP
+.IP \[bu]
+list of files present \fI/sys/block\fP
+.IP \[bu]
+list of files present \fI/sys/devices/virtual/block\fP
+.IP \[bu]
+if enabled with -m, metadata dump will be also included
+.IP \[bu]
+if enabled with -a, debug output of vgscan,
+pvscan and list of all available volume groups,
+physical volumes and logical volumes will be included
+.IP \[bu]
+if enabled with -l, lvmetad state if running
+.IP \[bu]
+if enabled with -p, lvmpolld state if running
+.IP \[bu]
+if enabled with -s, system info and context
+.IP \[bu]
+if enabled with -u, udev info and context
+.PD
+.
+.SH OPTIONS
+.
+.TP
+.B -a
+Advanced collection.
+.br
+\fBWARNING\fP: if lvm is already hung, then this script may hang as well
+if \fB-a\fP is used.
+.
+.TP
+\fB-d\fP \fIdirectory\fP
+Dump into a directory instead of tarball
+By default, lvmdump will produce a single compressed tarball containing
+all the information. Using this option, it can be instructed to only
+produce the raw dump tree, rooted in \fIdirectory\fP.
+.
+.TP
+.B -h
+Print help message
+.
+.TP
+.B -l
+Include \fBlvmetad\fP(8) daemon dump if it is running. The dump contains
+cached information that is currently stored in lvmetad: VG metadata,
+PV metadata and various mappings in between these metadata for quick
+access.
+.
+.TP
+.B -m
+Gather LVM metadata from the PVs
+This option generates a 1:1 dump of the metadata area from all PVs visible
+to the system, which can cause the dump to increase in size considerably.
+However, the metadata dump may represent a valuable diagnostic resource.
+.
+.TP
+.B -p
+Include
+.BR lvmpolld (8)
+daemon dump if it is running.
+The dump contains all in-progress operation currently monitored
+by the daemon and partial history for all yet uncollected results
+of polling operations already finished including reason.
+.
+.TP
+.B -s
+Gather system info and context. Currently, this encompasses info gathered
+by calling lsblk command and various systemd info and context: overall state
+of systemd units present in the system, more detailed status of units
+controlling LVM functionality and the content of systemd journal for
+current boot.
+.
+.TP
+.B -u
+Gather udev info and context: \fI/etc/udev/udev.conf\fP file,
+udev daemon version (output of 'udevadm info --version' command),
+udev rules currently used in the system
+(content of
+.I /lib/udev/rules.d
+and
+.I /etc/udev/rules.d
+directory),
+list of files in /lib/udev directory and dump of current udev
+database content (the output of 'udevadm info --export-db' command).
+.
+.SH ENVIRONMENT VARIABLES
+.
+.TP
+.B LVM_BINARY
+The LVM2 binary to use.
+Defaults to "\fBlvm\fP".
+Sometimes you might need to set this to "\fI#LVM_PATH#.static\fP",
+for example.
+.
+.TP
+.B DMSETUP_BINARY
+The dmsetup binary to use.
+Defaults to "\fBdmsetup\fP".
+.
+.SH SEE ALSO
+.
+.na
+.nh
+.BR lvm (8),
+.BR lvmpolld (8),
+.BR dmsetup (8),
+.P
+.BR udev (8),
+.BR udevadm (8)

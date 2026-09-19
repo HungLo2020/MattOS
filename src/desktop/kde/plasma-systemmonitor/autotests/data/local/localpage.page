@@ -1,0 +1,67 @@
+# SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
+# SPDX-FileCopyrightText: 2025 Arjen Hiemstra <ahiemstra@heimr.nl>
+
+[Face-50866175098334][Appearance]
+chartFace=org.kde.ksysguard.linechart
+title=Test
+
+[Face-50866175098334][Sensors]
+highPrioritySensorIds=["cpu/all/usage"]
+
+[page]
+Title=Local Page
+Title[ar]=الصفحة المحلية
+Title[bg]=Локална страница
+Title[ca]=Pàgina local
+Title[ca@valencia]=Pàgina local
+Title[cs]=Místní stránka
+Title[de]=Lokale Seite
+Title[es]=Página local
+Title[eu]=Orri lokala
+Title[fi]=Paikallinen sivu
+Title[fr]=Page locale
+Title[gl]=Páxina local
+Title[he]=עמוד מקומי
+Title[hu]=Helyi oldal
+Title[ia]=Pagina Local
+Title[is]=Staðbundin síða
+Title[it]=Pagina locale
+Title[ka]=ლოკალური გვერდი
+Title[ko]=로컬 페이지
+Title[lt]=Vietinis puslapis
+Title[lv]=Lokāla lapa
+Title[nl]=Lokale pagina
+Title[pa]=ਲੋਕਲ ਸਫ਼ਾ
+Title[pl]=Strona lokalna
+Title[pt_BR]=Página local
+Title[ro]=Pagină locală
+Title[ru]=Локальная страница
+Title[sk]=Local Page
+Title[sl]=Lokalna stran
+Title[sv]=Lokal sida
+Title[tr]=Yerel Sayfa
+Title[uk]=Локальна сторінка
+Title[zh_CN]=本地页面
+Title[zh_TW]=本地頁面
+actionsFace=
+icon=ksysguardd
+loadType=onstart
+margin=2
+version=1
+
+[page][row-0]
+Title=
+heightMode=balanced
+isTitle=false
+name=row-0
+
+[page][row-0][column-0]
+name=column-0
+noMargins=
+showBackground=true
+
+[page][row-0][column-0][section-0]
+face=Face-50866175098334
+isSeparator=false
+name=section-0
+

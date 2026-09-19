@@ -28,13 +28,13 @@ def main():
         report = root / "out/logs/graphics-recovery.log"
         output = serial_command(paths[1],
             "for i in $(seq 1 100); do sudo mattos-graphics-startup --check && break; sleep 1; done; "
-            "sudo mattos-graphics-startup --check && sudo test -s /run/mattos-graphics/before-cosmic.txt", 240)
+            "sudo mattos-graphics-startup --check && sudo test -s /run/mattos-graphics/before-plasma.txt", 240)
         report.write_text(output)
         # Runtime-only fault in the disposable guest. Deliberately no persistent
         # mask/configuration or kernel arguments, and no impact on serial getty.
         output += serial_command(paths[1],
-            "export SYSTEMD_PAGER=cat TERM=xterm; sudo systemctl stop cosmic-greeter.service; "
-            "sudo pkill -TERM -x cosmic-comp || true; "
+            "export SYSTEMD_PAGER=cat TERM=xterm; sudo systemctl stop plasma-greeter.service; "
+            "sudo pkill -TERM -x kwin_wayland || true; "
             "sudo systemctl restart --no-block mattos-graphics-watchdog.service; "
             "for i in $(seq 1 240); do "
             "systemctl is-active --quiet getty@tty1.service && "
@@ -44,7 +44,7 @@ def main():
             "sudo journalctl -b -u mattos-graphics-watchdog.service -u mattos-graphics-recovery.service --no-pager; "
             "systemctl show mattos-graphics-watchdog.service mattos-graphics-recovery.service "
             "-p ActiveState -p Result -p ExecMainStatus; "
-            "cat /sys/class/tty/tty0/active; pgrep -a cosmic-comp || true", 300)
+            "cat /sys/class/tty/tty0/active; pgrep -a kwin_wayland || true", 300)
         report.write_text(output)
         if "graphical startup did not establish" not in output:
             raise RuntimeError("watchdog failure/recovery was not observed")

@@ -1,0 +1,351 @@
+# Lithuanian translations for libknetworkmanager package.
+# Copyright (C) 2009 This_file_is_part_of_KDE
+# This file is distributed under the same license as the libknetworkmanager package.
+#
+# Tomas Straupis <tomasstraupis@gmail.com>, 2011.
+# Remigijus Jarmalavičius <remigijus@jarmalavicius.lt>, 2011, 2012.
+# Liudas Ališauskas <liudas.alisauskas@gmail.com>, 2011, 2013, 2014.
+# Liudas Alisauskas <liudas@akmc.lt>, 2013, 2015.
+# Mindaugas Baranauskas <opensuse.lietuviu.kalba@gmail.com>, 2017.
+msgid ""
+msgstr ""
+"Project-Id-Version: libknetworkmanager\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-04-25 02:45+0000\n"
+"PO-Revision-Date: 2025-11-19 20:20+0200\n"
+"Last-Translator: Moo <<>>\n"
+"Language-Team: Lithuanian <kde-i18n-lt@kde.org>\n"
+"Language: lt\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n==1 ? 0 : n%10>=2 && (n%100<10 || n"
+"%100>=20) ? 1 : n%10==0 || (n%100>10 && n%100<20) ? 2 : 3);\n"
+"X-Generator: Poedit 3.8\n"
+
+#: ConnectionItem.qml:62
+#, kde-format
+msgid "Connect"
+msgstr "Prisijungti"
+
+#: ConnectionItem.qml:62
+#, kde-format
+msgid "Disconnect"
+msgstr "Atsijungti"
+
+#: ConnectionItem.qml:90
+#, kde-format
+msgctxt "Share Wi-Fi network's password or QR code"
+msgid "Share"
+msgstr "Bendrinti"
+
+#: ConnectionItem.qml:96
+#, kde-format
+msgid "Configure…"
+msgstr "Konfigūruoti…"
+
+#: ConnectionItem.qml:136
+#, kde-format
+msgid "Speed"
+msgstr "Greitis"
+
+#: ConnectionItem.qml:141
+#, kde-format
+msgid "Details"
+msgstr "Išsamiau"
+
+#: ConnectionItem.qml:188
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Current download speed is %1 kibibytes per second; current upload speed is "
+"%2 kibibytes per second"
+msgstr ""
+"Dabartinis atsiuntimo greitis yra %1 kibibaitų per sekundę; dabartinis "
+"išsiuntimo greitis yra %2 kibibaitų per sekundę"
+
+#: ConnectionItem.qml:302
+#, kde-format
+msgctxt "Download and upload rates in some unit per second"
+msgid "↓ %1/s, ↑ %2/s"
+msgstr "↓ %1/sek., ↑ %2/sek."
+
+#: ConnectionListPage.qml:33
+#, kde-format
+msgid "You need to log in to this network"
+msgstr "Prie šio tinklo turite prisiregistruoti"
+
+#: ConnectionListPage.qml:37
+#, kde-format
+msgctxt "@action:button"
+msgid "Log in"
+msgstr "Prisiregistruoti"
+
+#: ConnectionListPage.qml:118
+#, kde-format
+msgid "Airplane mode is enabled"
+msgstr "Lėktuvo veiksena yra įjungta"
+
+#: ConnectionListPage.qml:122
+#, kde-format
+msgid "Wi-Fi and mobile data are deactivated"
+msgstr "Belaidis ryšys (Wi-Fi) ir mobilieji duomenys yra pasyvinti"
+
+#: ConnectionListPage.qml:124
+#, kde-format
+msgid "Wi-Fi is deactivated"
+msgstr "Belaidis ryšys (Wi-Fi) yra pasyvintas"
+
+#: ConnectionListPage.qml:127
+#, kde-format
+msgid "Looking for Wi-Fi networks"
+msgstr "Ieškoma belaidžių (Wi-Fi) tinklų"
+
+#: ConnectionListPage.qml:130
+#, kde-format
+msgid "Mobile data is deactivated"
+msgstr "Mobilieji duomenys yra pasyvinti"
+
+#: ConnectionListPage.qml:133
+#, kde-format
+msgid "No matches"
+msgstr "Nėra atitikmenų"
+
+#: ConnectionListPage.qml:136
+#, kde-format
+msgid "No available connections"
+msgstr "Nėra prieinamų ryšių"
+
+#: ConnectionListPage.qml:145
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn off airplane mode to search for networks"
+msgstr "Norėdami ieškoti tinklų išjunkite lėktuvo veikseną"
+
+#: ConnectionListPage.qml:149
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on Wi-Fi or mobile data to search for networks"
+msgstr ""
+"Norėdami ieškoti tinklų įjunkite belaidį ryšį (Wi-Fi) ar mobiliuosius "
+"duomenis"
+
+#: ConnectionListPage.qml:151
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on Wi-Fi to search for networks"
+msgstr "Norėdami ieškoti tinklų įjunkite belaidį ryšį (Wi-Fi)"
+
+#: ConnectionListPage.qml:154
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on mobile data to search for networks"
+msgstr "Norėdami ieškoti tinklų įjunkite mobiliuosius duomenis"
+
+#: DetailsText.qml:40
+#, kde-format
+msgid "Copy"
+msgstr "Kopijuoti"
+
+#: main.qml:32
+#, kde-format
+msgid "Networks"
+msgstr "Tinklai"
+
+#: main.qml:41
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Middle-click to turn off Airplane Mode"
+msgstr ""
+"Spustelėkite viduriniuoju pelės mygtuku, kad išjungtumėte lėktuvo veikseną"
+
+#: main.qml:43
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Middle-click to turn on Airplane Mode"
+msgstr ""
+"Spustelėkite viduriniuoju pelės mygtuku, kad įjungtumėte lėktuvo veikseną"
+
+#: main.qml:71 Toolbar.qml:74
+#, kde-format
+msgid "Enable Wi-Fi"
+msgstr "Įjungti belaidį (Wi-Fi)"
+
+#: main.qml:82
+#, kde-format
+msgid "Enable Mobile Data"
+msgstr "Įjungti mobiliuosius duomenis"
+
+#: main.qml:94
+#, kde-format
+msgid "Enable Airplane Mode"
+msgstr "Įjungti lėktuvo veikseną"
+
+#: main.qml:106
+#, kde-format
+msgid "Open Network Login Page…"
+msgstr "Atverti prisijungimo prie tinklo puslapį…"
+
+#: main.qml:116
+#, kde-format
+msgid "&Configure Network Connections…"
+msgstr "&Konfigūruoti tinklo ryšius…"
+
+#: PopupDialog.qml:51
+#, kde-format
+msgctxt "@action:button"
+msgid "Return to Network Connections"
+msgstr "Grįžti į tinklo ryšius"
+
+#: ShareNetworkQrCodePage.qml:33
+#, kde-format
+msgid "Scan this QR code with another device to connect to the \"%1\" network."
+msgstr ""
+"Nuskenuokite šį QR kodą naudodami kitą įrenginį, kad prisijungtumėte prie "
+"„%1“ tinklo."
+
+#: ShareNetworkQrCodePage.qml:108
+#, kde-format
+msgid "Wi-Fi password:"
+msgstr "Belaidžio tinklo (Wi-Fi) slaptažodis:"
+
+#: Toolbar.qml:124
+#, kde-format
+msgid "Enable mobile data"
+msgstr "Įjungti mobiliuosius duomenis"
+
+#: Toolbar.qml:147
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Disable airplane mode<nl/><nl/>This will enable Wi-Fi and Bluetooth"
+msgstr ""
+"Išjungti lėktuvo veikseną<nl/><nl/>Tai įjungs belaidį (Wi-Fi) ir Bluetooth"
+
+#: Toolbar.qml:148
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Enable airplane mode<nl/><nl/>This will disable Wi-Fi and Bluetooth"
+msgstr ""
+"Įjungti lėktuvo veikseną<nl/><nl/>Tai išjungs belaidį (Wi-Fi) ir Bluetooth"
+
+#: Toolbar.qml:176
+#, kde-format
+msgid "Hotspot"
+msgstr "Viešosios prieigos taškas"
+
+#: Toolbar.qml:193
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot create a hotspot because Wi-Fi is disabled."
+msgstr ""
+"Nepavyksta sukurti viešosios prieigos tašką, nes išjungtas belaidis ryšys "
+"(Wi-Fi)."
+
+#: Toolbar.qml:195
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Cannot create a hotspot because all wireless radios are in use. Disconnect "
+"from the current Wi-Fi network or connect another wireless radio."
+msgstr ""
+"Nepavyksta sukurti viešosios prieigos tašką, nes yra naudojami visi radijo "
+"imtuvai. Atsijunkite nuo dabartinio belaidžio tinklo (Wi-Fi) arba prijunkite "
+"kitą belaidį radijo imtuvą."
+
+#: Toolbar.qml:197
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Disable Hotspot"
+msgstr "Išjungti viešosios prieigos tašką"
+
+#: Toolbar.qml:199
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Create Hotspot"
+msgstr "Sukurti viešosios prieigos tašką"
+
+#: Toolbar.qml:227
+#, kde-format
+msgctxt "@action:button"
+msgid "Scan Wi-Fi QR Code"
+msgstr "Skenuoti belaidžio tinklo (Wi-Fi) QR kodą"
+
+#: Toolbar.qml:232
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Scan QR Code to connect to a Wi-Fi network"
+msgstr "Skenuoti QR kodą, kad būtų prisijungta prie belaidžio (Wi-Fi) tinklo"
+
+#: Toolbar.qml:234
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Install QRCA Barcode Scanner to scan for a QR Code that connects to a Wi-Fi "
+"network"
+msgstr ""
+"Įsidiekite QRCA brūkšninių kodų skaitytuvą, kad nuskenuotumėte QR kodą, "
+"kuris prijungia prie belaidžio (Wi-Fi) tinklo"
+
+#: Toolbar.qml:253
+#, kde-format
+msgid "Configure network connections…"
+msgstr "Konfigūruoti tinklo ryšius…"
+
+#~ msgid "/s"
+#~ msgstr "/sek."
+
+#~ msgid "Upload"
+#~ msgstr "Išsiuntimas"
+
+#~ msgid "Download"
+#~ msgstr "Atsiuntimas"
+
+#~ msgid "Show Network's QR Code"
+#~ msgstr "Rodyti tinklo QR kodą"
+
+#~ msgid "Connected"
+#~ msgstr "Prisijungta"
+
+#~ msgid "Password…"
+#~ msgstr "Slaptažodis…"
+
+#~ msgctxt "@title:window"
+#~ msgid "QR Code for %1"
+#~ msgstr "„%1“ QR kodas"
+
+#~ msgctxt "@info:tooltip %1 is the name of a network connection"
+#~ msgid "Connect to %1"
+#~ msgstr "Prisijungti prie %1"
+
+#~ msgctxt "@info:tooltip %1 is the name of a network connection"
+#~ msgid "Disconnect from %1"
+#~ msgstr "Atsijungti nuo %1"
+
+#~ msgctxt "text field placeholder text"
+#~ msgid "Search…"
+#~ msgstr "Ieškoti…"
+
+#~ msgctxt "button tooltip"
+#~ msgid "Search the connections"
+#~ msgstr "Ieškoti ryšių"
+
+#~ msgid ""
+#~ "Connected, <font color='%1'>⬇</font> %2/s, <font color='%3'>⬆</font> %4/s"
+#~ msgstr ""
+#~ "Prisijungta, <font color='%1'>⬇</font> %2/sek., <font color='%3'>⬆</font> "
+#~ "%4/sek."
+
+#~ msgid "Enable wireless"
+#~ msgstr "Įjungti belaidį"
+
+#~ msgid "Available connections"
+#~ msgstr "Prieinami ryšiai"
+
+#~ msgid "General"
+#~ msgstr "Bendra"
+
+#~ msgid "Ask for PIN on modem detection"
+#~ msgstr "Aptikus modemą, klausti PIN"
+
+#~ msgid "Show virtual connections"
+#~ msgstr "Rodyti virtualius ryšius"

@@ -764,26 +764,6 @@ def main() -> int:
             f"sources.toml declares {len(component_list)} component entries but only "
             f"{len(components)} unique component names"
         )
-    required_cosmic_closure = {
-        "cosmic-initial-setup", "libcosmic", "cosmic-iced", "cosmic-protocols",
-    }
-    missing_cosmic = required_cosmic_closure.difference(components)
-    if missing_cosmic:
-        failures.append(
-            "sources.toml is missing the native installer COSMIC closure: "
-            + ", ".join(sorted(missing_cosmic))
-        )
-    demoted_cosmic_dependencies = {
-        "cosmic-dbus-settings-bindings", "cosmic-freedesktop-icons", "cosmic-winit",
-        "cosmic-window-clipboard", "cosmic-softbuffer", "cosmic-smithay-clipboard",
-        "cosmic-accesskit", "cosmic-cryoglyph", "cosmic-rust-atomicwrites",
-    }
-    unexpectedly_promoted = demoted_cosmic_dependencies.intersection(components)
-    if unexpectedly_promoted:
-        failures.append(
-            "ordinary Cargo dependencies were promoted into authoritative COSMIC source: "
-            + ", ".join(sorted(unexpectedly_promoted))
-        )
     for component in component_list:
         revision = component.get("revision", "")
         if not REVISION_RE.fullmatch(revision):

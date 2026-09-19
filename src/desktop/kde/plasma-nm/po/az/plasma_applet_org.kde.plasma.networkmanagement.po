@@ -1,0 +1,376 @@
+# Copyright (C) 2024 This file is copyright:
+# This file is distributed under the same license as the plasma-nm package.
+#
+# SPDX-FileCopyrightText: 2020, 2021, 2022, 2023, 2024, 2025 Kheyyam Gojayev <xxmn77@gmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma-nm\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-04-25 02:45+0000\n"
+"PO-Revision-Date: 2025-05-28 16:44+0400\n"
+"Last-Translator: linux <xxmn77@gmail.com>\n"
+"Language-Team: Azerbaijani <kde-i18n-doc@kde.org>\n"
+"Language: az\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 25.04.1\n"
+
+#: ConnectionItem.qml:62
+#, kde-format
+msgid "Connect"
+msgstr "Qoşulun"
+
+#: ConnectionItem.qml:62
+#, kde-format
+msgid "Disconnect"
+msgstr "Ayırmaq"
+
+#: ConnectionItem.qml:90
+#, kde-format
+msgctxt "Share Wi-Fi network's password or QR code"
+msgid "Share"
+msgstr ""
+
+#: ConnectionItem.qml:96
+#, kde-format
+msgid "Configure…"
+msgstr "Tənzimləyin..."
+
+#: ConnectionItem.qml:136
+#, kde-format
+msgid "Speed"
+msgstr "Sürət"
+
+#: ConnectionItem.qml:141
+#, kde-format
+msgid "Details"
+msgstr "Təfərrüatlar"
+
+#: ConnectionItem.qml:188
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Current download speed is %1 kibibytes per second; current upload speed is "
+"%2 kibibytes per second"
+msgstr ""
+"Cari endirmə sürəti saniyədə %1 kilobaytdır; cari göndərmə sürəti saniyədə "
+"%2 kilobaytdır"
+
+#: ConnectionItem.qml:302
+#, fuzzy, kde-format
+#| msgid "Connected, ↓ %1/s, ↑ %2/s"
+msgctxt "Download and upload rates in some unit per second"
+msgid "↓ %1/s, ↑ %2/s"
+msgstr "Qoşulub, ↓ %1/s, ↑ %2/s"
+
+#: ConnectionListPage.qml:33
+#, kde-format
+msgid "You need to log in to this network"
+msgstr "Bu şəbəkəyə daxil olmanız lazımdır"
+
+#: ConnectionListPage.qml:37
+#, kde-format
+msgctxt "@action:button"
+msgid "Log in"
+msgstr "Daxil olun"
+
+#: ConnectionListPage.qml:118
+#, kde-format
+msgid "Airplane mode is enabled"
+msgstr "Təyyarə rejimi aktivdir"
+
+#: ConnectionListPage.qml:122
+#, fuzzy, kde-format
+#| msgid "Wireless and mobile networks are deactivated"
+msgid "Wi-Fi and mobile data are deactivated"
+msgstr "Naqilsiz və mobil şəbəkələr söndürülüb"
+
+#: ConnectionListPage.qml:124
+#, fuzzy, kde-format
+#| msgid "Wireless is deactivated"
+msgid "Wi-Fi is deactivated"
+msgstr "Naqilsiz şəbəkə söndürülüb"
+
+#: ConnectionListPage.qml:127
+#, kde-format
+msgid "Looking for Wi-Fi networks"
+msgstr ""
+
+#: ConnectionListPage.qml:130
+#, fuzzy, kde-format
+#| msgid "Mobile network is deactivated"
+msgid "Mobile data is deactivated"
+msgstr "Mobil şəbəkə söndürülüb"
+
+#: ConnectionListPage.qml:133
+#, kde-format
+msgid "No matches"
+msgstr "Uyğun gələn yoxdur"
+
+#: ConnectionListPage.qml:136
+#, kde-format
+msgid "No available connections"
+msgstr "Əlçatan bağlantılar yoxdur"
+
+#: ConnectionListPage.qml:145
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn off airplane mode to search for networks"
+msgstr ""
+
+#: ConnectionListPage.qml:149
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on Wi-Fi or mobile data to search for networks"
+msgstr ""
+
+#: ConnectionListPage.qml:151
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on Wi-Fi to search for networks"
+msgstr ""
+
+#: ConnectionListPage.qml:154
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on mobile data to search for networks"
+msgstr ""
+
+#: DetailsText.qml:40
+#, kde-format
+msgid "Copy"
+msgstr "Kopyalamaq"
+
+#: main.qml:32
+#, kde-format
+msgid "Networks"
+msgstr "Şəbəkələr"
+
+#: main.qml:41
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Middle-click to turn off Airplane Mode"
+msgstr "Təyyarə rejimini sönürmək üçün orta düyməyə vur"
+
+#: main.qml:43
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Middle-click to turn on Airplane Mode"
+msgstr "Təyyarə rejimini işə salmaq üçün orta düyməyə vur"
+
+#: main.qml:71 Toolbar.qml:74
+#, kde-format
+msgid "Enable Wi-Fi"
+msgstr "Wi-Fi açmaq"
+
+#: main.qml:82
+#, fuzzy, kde-format
+#| msgid "Enable Mobile Network"
+msgid "Enable Mobile Data"
+msgstr "Mobil şəbəkəni açın"
+
+#: main.qml:94
+#, kde-format
+msgid "Enable Airplane Mode"
+msgstr "Təyyarə rejimini açın"
+
+#: main.qml:106
+#, kde-format
+msgid "Open Network Login Page…"
+msgstr "Şəbəkəyə giriş səhifəsini açın..."
+
+#: main.qml:116
+#, kde-format
+msgid "&Configure Network Connections…"
+msgstr "&Şəbəkə bağlantılarını tənzimləyin..."
+
+#: PopupDialog.qml:51
+#, kde-format
+msgctxt "@action:button"
+msgid "Return to Network Connections"
+msgstr "Şəbəkə ayarlarına qayıtmaq"
+
+#: ShareNetworkQrCodePage.qml:33
+#, kde-format
+msgid "Scan this QR code with another device to connect to the \"%1\" network."
+msgstr "\"%1\" şəbəkəsinə qoşulmaq üçün başqa cihaz ilə QR kodu oxudun."
+
+#: ShareNetworkQrCodePage.qml:108
+#, kde-format
+msgid "Wi-Fi password:"
+msgstr ""
+
+#: Toolbar.qml:124
+#, fuzzy, kde-format
+#| msgid "Enable mobile network"
+msgid "Enable mobile data"
+msgstr "Mobil şəbəkəni açmaq"
+
+#: Toolbar.qml:147
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Disable airplane mode<nl/><nl/>This will enable Wi-Fi and Bluetooth"
+msgstr ""
+"Təyyarə rejimini söndürmək<nl/><nl/>Bu Wi-Fi və Bluetooth-u aktiv edəcək"
+
+#: Toolbar.qml:148
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Enable airplane mode<nl/><nl/>This will disable Wi-Fi and Bluetooth"
+msgstr ""
+"Təyyarə rejimini aktiv etmək<nl/><nl/>Bu Wi-Fi və Bluetooth-u söndürəcək"
+
+#: Toolbar.qml:176
+#, kde-format
+msgid "Hotspot"
+msgstr "Qoşulma nöqtəsi"
+
+#: Toolbar.qml:193
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot create a hotspot because Wi-Fi is disabled."
+msgstr ""
+
+#: Toolbar.qml:195
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Cannot create a hotspot because all wireless radios are in use. Disconnect "
+"from the current Wi-Fi network or connect another wireless radio."
+msgstr ""
+"Qoşulma nöqtəsi yaratmaq mümkün deyil, çünki bütün simsiz radio "
+"uzlaşdırıcısı artıq istifadə olunur. Hazırkı Wi-Fi şəbəkəsini ayırın və ya "
+"başqa simsiz uzlaşdırıcını qoşun."
+
+#: Toolbar.qml:197
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Disable Hotspot"
+msgstr "Qoşulma nöqtəsini söndürmək"
+
+#: Toolbar.qml:199
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Create Hotspot"
+msgstr "Qoşulma nöqtəsi yaratmaq"
+
+#: Toolbar.qml:227
+#, kde-format
+msgctxt "@action:button"
+msgid "Scan Wi-Fi QR Code"
+msgstr ""
+
+#: Toolbar.qml:232
+#, fuzzy, kde-format
+#| msgid ""
+#| "Scan this QR code with another device to connect to the \"%1\" network."
+msgctxt "@info:tooltip"
+msgid "Scan QR Code to connect to a Wi-Fi network"
+msgstr "\"%1\" şəbəkəsinə qoşulmaq üçün başqa cihaz ilə QR kodu oxudun."
+
+#: Toolbar.qml:234
+#, fuzzy, kde-format
+#| msgid ""
+#| "Scan this QR code with another device to connect to the \"%1\" network."
+msgctxt "@info:tooltip"
+msgid ""
+"Install QRCA Barcode Scanner to scan for a QR Code that connects to a Wi-Fi "
+"network"
+msgstr "\"%1\" şəbəkəsinə qoşulmaq üçün başqa cihaz ilə QR kodu oxudun."
+
+#: Toolbar.qml:253
+#, kde-format
+msgid "Configure network connections…"
+msgstr "Şəbəkə bağlantılarını tənzimləyin..."
+
+#~ msgid "/s"
+#~ msgstr "/san"
+
+#~ msgid "Upload"
+#~ msgstr "Göndərmə"
+
+#~ msgid "Download"
+#~ msgstr "Yükləmə"
+
+#~ msgid "Show Network's QR Code"
+#~ msgstr "Şəbəkə QR kodu göstərilsin"
+
+#~ msgid "Connected"
+#~ msgstr "Qoşuldu"
+
+#~ msgid "Password…"
+#~ msgstr "Şifrə..."
+
+#~ msgctxt "@title:window"
+#~ msgid "QR Code for %1"
+#~ msgstr "%1 üçün QR-kod"
+
+#~ msgctxt "@info:tooltip %1 is the name of a network connection"
+#~ msgid "Connect to %1"
+#~ msgstr "%1 ilə bağlantı hyaradın"
+
+#~ msgctxt "@info:tooltip %1 is the name of a network connection"
+#~ msgid "Disconnect from %1"
+#~ msgstr "%1 ilə bağlantını kəsin"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is ADSL"
+#~ msgstr "Bağlantı növü: ADSL"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Bluetooth"
+#~ msgstr "Bağlantı növü: Bluetooth"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Bridge"
+#~ msgstr "Bağlantı növü: Körpü (Bridge)"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is CDMA"
+#~ msgstr "Bağlantı növü: CDMA"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is GSM"
+#~ msgstr "Bağlantı növü: GSM"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Infiniband"
+#~ msgstr "Bağlantı növü: Infiniband"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is OLPC Mesh"
+#~ msgstr "Bağlantı növü: OLPC şəbəkəsi"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is PPOPE"
+#~ msgstr "Bağlantı növü: PPOPE"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is VLAN"
+#~ msgstr "Bağlantı növü: VLAN"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is VPN"
+#~ msgstr "Bağlantı növü: VPN"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Wimax"
+#~ msgstr "Bağlantı növü: Wimax"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Wired"
+#~ msgstr "Bağlantı növü: Simli"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Wireless"
+#~ msgstr "Bağlantı növü: Simsiz"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Unknown"
+#~ msgstr "Bağlantı növü: Naməlum"
+
+#~ msgctxt "text field placeholder text"
+#~ msgid "Search…"
+#~ msgstr "Axtarış..."

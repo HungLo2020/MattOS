@@ -1,0 +1,438 @@
+# Translation for plasma_applet_org.kde.plasma.volume.po to Euskara/Basque (eu).
+# Copyright (C) 2017-2025 This file is copyright:
+# This file is distributed under the same license as the plasma-pa package.
+# SPDX-FileCopyrightText: 2024, 2025 KDE euskaratzeko proiektuaren arduraduna <xalba@ni.eus>
+#
+# Translators:
+# Iñigo Salvador Azurmendi <xalba@ni.eus>, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025.
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma-pa\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-12-19 00:45+0000\n"
+"PO-Revision-Date: 2025-12-07 18:53+0100\n"
+"Last-Translator: Iñigo Salvador Azurmendi <xalba@ni.eus>\n"
+"Language-Team: Basque <kde-i18n-eu@kde.org>\n"
+"Language: eu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 25.08.3\n"
+
+#: ListItemBase.qml:72
+#, kde-format
+msgid "Currently not recording"
+msgstr "Une honetan ez da grabatzen ari"
+
+#: ListItemBase.qml:73
+#, kde-format
+msgid "Currently not playing"
+msgstr "Une honetan ez da jotzen ari"
+
+#: ListItemBase.qml:204
+#, kde-format
+msgctxt "@action:button"
+msgid "Additional Options"
+msgstr "Aukera osagarriak"
+
+#: ListItemBase.qml:206
+#, kde-format
+msgid "Show additional options for %1"
+msgstr "Erakutsi honen aukera osagarriak: %1"
+
+#: ListItemBase.qml:228
+#, kde-format
+msgctxt "@action:button"
+msgid "Unmute"
+msgstr "Ozendu"
+
+#: ListItemBase.qml:228
+#, kde-format
+msgctxt "@action:button"
+msgid "Mute"
+msgstr "Isilarazi"
+
+#: ListItemBase.qml:230
+#, kde-format
+msgid "Unmute %1"
+msgstr "Ozendu %1"
+
+#: ListItemBase.qml:230
+#, kde-format
+msgid "Mute %1"
+msgstr "Isilarazi %1"
+
+#: ListItemBase.qml:253
+#, kde-format
+msgctxt "Accessibility data on volume slider"
+msgid "Adjust volume for %1"
+msgstr "Doitu honen bolumena: %1"
+
+#: ListItemBase.qml:317
+#, kde-format
+msgctxt "volume percentage"
+msgid "%1%"
+msgstr "% %1"
+
+#: ListItemBase.qml:338
+#, kde-format
+msgctxt "only used for sizing, should be widest possible string"
+msgid "100%"
+msgstr "% 100"
+
+#: main.qml:36
+#, kde-format
+msgid "Audio Volume"
+msgstr "Audioaren bolumena"
+
+#: main.qml:53 main.qml:55
+#, kde-format
+msgctxt "@label"
+msgid "Connection to the Sound Service Lost"
+msgstr "Soinu zerbitzurako konexioa galdu da"
+
+#: main.qml:57
+#, kde-format
+msgid "No output or input devices found"
+msgstr "Ez da aurkitu sarrerako edo irteerako gailurik"
+
+#: main.qml:61
+#, kde-format
+msgctxt "@info reconnecting to pulseaudio"
+msgid "Trying to reconnect…"
+msgstr "Berriz konektatzen saiatzen..."
+
+#: main.qml:79
+#, kde-format
+msgid "Audio Muted"
+msgstr "Audioa isilarazi da"
+
+#: main.qml:81
+#, kde-format
+msgid "Volume at %1%"
+msgstr "Bolumena % %1(e)an"
+
+#: main.qml:92
+#, kde-format
+msgid "Middle-click to unmute"
+msgstr "Erdiko-klik ozentzeko"
+
+#: main.qml:93
+#, kde-format
+msgid "Middle-click to mute all audio"
+msgstr "Erdiko-klik audio guztia isilarazteko"
+
+#: main.qml:94
+#, kde-format
+msgid "Scroll to adjust volume"
+msgstr "Kiribildu bolumena doitzeko"
+
+#: main.qml:110
+#, kde-format
+msgid "Device name not found"
+msgstr "Gailu izena ez da aurkitu"
+
+#: main.qml:338
+#, kde-format
+msgid "Devices"
+msgstr "Gailuak"
+
+#: main.qml:345
+#, kde-format
+msgid "Applications"
+msgstr "Aplikazioak"
+
+#: main.qml:369
+#, kde-format
+msgctxt "@action:button"
+msgid "More actions"
+msgstr "Ekintza gehiago"
+
+#: main.qml:411
+#, kde-format
+msgctxt ""
+"@action:button keep this widget's pop-up open until explicitly dismissed"
+msgid "Keep open"
+msgstr "Mantendu irekita"
+
+#: main.qml:443
+#, kde-format
+msgctxt "@action retry connecting to pulseaudio"
+msgid "Retry"
+msgstr "Berriz saiatu"
+
+#: main.qml:470
+#, kde-format
+msgid "No applications playing or recording audio"
+msgstr "Ez dago audioa jotzen edo grabatzen ari den aplikaziorik"
+
+#: main.qml:555
+#, kde-format
+msgctxt "@title:group listview section header"
+msgid "Output Devices"
+msgstr "Irteerako gailuak"
+
+#: main.qml:557
+#, kde-format
+msgctxt "@title:group listview section header"
+msgid "Output Streams"
+msgstr "Irteerako korronteak"
+
+#: main.qml:615
+#, kde-format
+msgctxt "@title:group listview section header"
+msgid "Input Devices"
+msgstr "Sarrerako gailuak"
+
+#: main.qml:617
+#, kde-format
+msgctxt "@title:group listview section header"
+msgid "Input Streams"
+msgstr "Sarrerako korronteak"
+
+#: main.qml:681
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Prolonged use of this feature will damage the device's speakers. Only use it "
+"temporarily to make quiet media audible."
+msgstr ""
+"Ezaugarri hau denbora luzez erabiltzea gailuaren bozgorailuak kaltetuko "
+"ditu. Aldian behin bakarrik erabili, hedabide isilak entzunarazteko."
+
+#: main.qml:697
+#, kde-format
+msgid "Raise maximum volume"
+msgstr "Altxatu bolumen muga"
+
+#: main.qml:711
+#, kde-format
+msgid "Force mute all playback devices"
+msgstr "Atzera-jotzeko gailu guztiak isilaraztea behartu"
+
+#: main.qml:720
+#, kde-format
+msgid "Force mute all input devices"
+msgstr "Sarrerako gailu guztiak isilaraztea behartu"
+
+#: main.qml:729
+#, kde-format
+msgid "Show virtual devices"
+msgstr "Erakutsi alegiazko gailuak"
+
+#: main.qml:739
+#, kde-format
+msgid "&Configure Audio Devices…"
+msgstr "&Konfiguratu audio gailuak..."
+
+#: StreamListItem.qml:36
+#, kde-format
+msgid "Stream name not found"
+msgstr "Korronte izena ez da aurkitu"
+
+#~ msgctxt "Device name (Battery percent)"
+#~ msgid "%1 (%2% Battery)"
+#~ msgstr "%1 (Bateria %%2)"
+
+#~ msgid "Increase Volume"
+#~ msgstr "Igo bolumena"
+
+#~ msgctxt "@action shortcut"
+#~ msgid "Increase Volume by 1%"
+#~ msgstr "Igo bolumena % 1"
+
+#~ msgid "Decrease Volume"
+#~ msgstr "Jaitsi bolumena"
+
+#~ msgctxt "@action shortcut"
+#~ msgid "Decrease Volume by 1%"
+#~ msgstr "Jaitsi bolumena % 1"
+
+#~ msgid "Mute"
+#~ msgstr "Isilarazi"
+
+#~ msgid "Increase Microphone Volume"
+#~ msgstr "Igo mikrofonoaren bolumena"
+
+#~ msgid "Decrease Microphone Volume"
+#~ msgstr "Jaitsi mikrofonoaren bolumena"
+
+#~ msgid "Mute Microphone"
+#~ msgstr "Isilarazi mikrofonoa"
+
+#~ msgctxt "label of device items"
+#~ msgid "%1 (%2)"
+#~ msgstr "%1 (%2)"
+
+#~ msgid "General"
+#~ msgstr "Orokorra"
+
+#~ msgid "Volume step:"
+#~ msgstr "Bolumen urratsa:"
+
+#~ msgid "Play audio feedback for changes to:"
+#~ msgstr "Jo audio-berrelikatzea hau aldatzen denean:"
+
+#~ msgid "Audio volume"
+#~ msgstr "Audioaren bolumena"
+
+#~ msgid "Show visual feedback for changes to:"
+#~ msgstr "Erakutsi ikus-berrelikatzea hau aldatzen denean:"
+
+#~ msgid "Microphone sensitivity"
+#~ msgstr "Mikrofonoaren sentikortasuna"
+
+#~ msgid "Mute state"
+#~ msgstr "Isilarazte egoera"
+
+#~ msgid "Default output device"
+#~ msgstr "Irteerako gailu lehenetsia"
+
+#~ msgctxt "@title"
+#~ msgid "Display:"
+#~ msgstr "Azaldu:"
+
+#~ msgid "Record all audio via this device"
+#~ msgstr "Grabatu audio guztia gailu honen bidez"
+
+#~ msgid "Play all audio via this device"
+#~ msgstr "Jo audio guztia gailu honen bidez"
+
+#~ msgctxt ""
+#~ "Heading for a list of ports of a device (for example built-in laptop "
+#~ "speakers or a plug for headphones)"
+#~ msgid "Ports"
+#~ msgstr "Atakak"
+
+#~ msgctxt "Port is unavailable"
+#~ msgid "%1 (unavailable)"
+#~ msgstr "%1 (eskuraezina)"
+
+#~ msgctxt "Port is unplugged"
+#~ msgid "%1 (unplugged)"
+#~ msgstr "%1 (entxufatu gabe)"
+
+#~ msgctxt ""
+#~ "Heading for a list of possible output devices (speakers, headphones, ...) "
+#~ "to choose"
+#~ msgid "Play audio using"
+#~ msgstr "Audioa jo hau erabiliz"
+
+#~ msgctxt ""
+#~ "Heading for a list of possible input devices (built-in microphone, "
+#~ "headset, ...) to choose"
+#~ msgid "Record audio using"
+#~ msgstr "Audioa grabatu hau erabiliz"
+
+#~ msgid "show hidden devices"
+#~ msgstr "erakutsi ezkutuko gailuak"
+
+#~ msgid "Feedback:"
+#~ msgstr "Berrelikatzea:"
+
+#~ msgid "Play sound when volume changes"
+#~ msgstr "Soinua jo bolumena aldatzen denean"
+
+#~ msgid "Display notification when default output device changes"
+#~ msgstr ""
+#~ "Azaldu jakinarazpen bat lehenetsitako irteera-gailua aldatzen denean"
+
+#~ msgid "Maximum volume:"
+#~ msgstr "Bolumen handiena:"
+
+#~ msgid "Default Device"
+#~ msgstr "Gailu lehenetsia"
+
+#~ msgid "Playback Streams"
+#~ msgstr "Atzera jotako korronteak"
+
+#~ msgid "Recording Streams"
+#~ msgstr "Korronteak grabatzea"
+
+#~ msgid "Playback Devices"
+#~ msgstr "Atzera jotzeko gailuak"
+
+#~ msgid "Recording Devices"
+#~ msgstr "Grabatzeko gailuak"
+
+#~ msgctxt "label of stream items"
+#~ msgid "%1 (%2)"
+#~ msgstr "%1 (%2)"
+
+#~ msgctxt "Checkable switch for (un-)muting sound output."
+#~ msgid "Mute"
+#~ msgstr "Isilarazi"
+
+#~ msgctxt "Checkable switch to change the current default output."
+#~ msgid "Default"
+#~ msgstr "Lehenetsia"
+
+#~ msgid "Volume"
+#~ msgstr "Bolumena"
+
+#~ msgid "%"
+#~ msgstr "%"
+
+#~ msgid "Behavior"
+#~ msgstr "Jokabidea"
+
+#~ msgid "Volume feedback"
+#~ msgstr "Bolumenaren berrelikadura"
+
+#, fuzzy
+#~| msgid "Devices"
+#~ msgid "Device Profiles"
+#~ msgstr "Gailuak"
+
+#, fuzzy
+#~| msgid "Playback Streams"
+#~ msgid "Playback"
+#~ msgstr "Atzera jotako korronteak"
+
+#, fuzzy
+#~| msgid "No applications playing or recording audio"
+#~ msgctxt "@label"
+#~ msgid "No Applications Playing Audio"
+#~ msgstr "Ez dago audioa jotzen edo grabatzen ari den aplikaziorik"
+
+#, fuzzy
+#~| msgid "Capture Streams"
+#~ msgid "Capture"
+#~ msgstr "Atzemandako korronteak"
+
+#, fuzzy
+#~| msgid "No applications playing or recording audio"
+#~ msgctxt "@label"
+#~ msgid "No Applications Recording Audio"
+#~ msgstr "Ez dago audioa jotzen edo grabatzen ari den aplikaziorik"
+
+#, fuzzy
+#~| msgctxt ""
+#~| "Heading for a list of ports of a device (for example built-in laptop "
+#~| "speakers or a plug for headphones)"
+#~| msgid "Ports"
+#~ msgid "Port"
+#~ msgstr "Atakak"
+
+#, fuzzy
+#~| msgid "Devices"
+#~ msgctxt "@title:tab"
+#~ msgid "Devices"
+#~ msgstr "Gailuak"
+
+#, fuzzy
+#~| msgid "Applications"
+#~ msgctxt "@title:tab"
+#~ msgid "Applications"
+#~ msgstr "Aplikazioak"
+
+#~ msgctxt "label of stream items"
+#~ msgid "%1: %2"
+#~ msgstr "%1: %2"
+
+#, fuzzy
+#~| msgctxt "only used for sizing, should be widest possible string"
+#~| msgid "100%"
+#~ msgid "100%"
+#~ msgstr "% 100"

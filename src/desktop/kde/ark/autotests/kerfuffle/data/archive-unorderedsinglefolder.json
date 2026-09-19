@@ -1,0 +1,16 @@
+[
+    {
+        "fullPath": "aDir/anotherDir/bar.txt"
+    },
+    {
+        "fullPath": "aDir/foo.txt"
+    },
+    {
+        "fullPath": "aDir/anotherDir/",
+        "isDirectory": true
+    },
+    {
+        "fullPath": "aDir/",
+        "isDirectory": true
+    }
+]

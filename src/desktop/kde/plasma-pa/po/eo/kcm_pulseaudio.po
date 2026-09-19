@@ -1,0 +1,537 @@
+# translation of kcm_pulseaudio.pot to Esperanto
+# Copyright (C) 2021 Free Software Foundation, Inc.
+# This file is distributed under the same license as the plasma-pa package.
+# Oliver Kellogg <olivermkellogg@gmail.com>, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma-pa\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-04-30 02:40+0000\n"
+"PO-Revision-Date: 2025-03-22 22:36+0100\n"
+"Last-Translator: Oliver Kellogg <olivermkellogg@gmail.com>\n"
+"Language-Team: Esperanto <kde-i18n-eo@kde.org>\n"
+"Language: eo\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: translate-po (https://github.com/zcribe/translate-po)\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+#: devicerenamesaver.cpp:115
+#, kde-kuit-format
+msgctxt "@info:status error message"
+msgid ""
+"Changes have not been applied.<nl/>Failed to restart wireplumber.service. "
+"The command crashed."
+msgstr ""
+"Ŝanĝoj ne estis aplikitaj.<nl/>Malsukcesis rekomenci wireplumber.service. La "
+"komando paneis."
+
+#: devicerenamesaver.cpp:125
+#, kde-kuit-format
+msgctxt "@info:status error message %1 is an integer exit code"
+msgid ""
+"Changes have not been applied.<nl/>Failed to restart wireplumber.service. "
+"The command terminated with code: %1."
+msgstr ""
+"Ŝanĝoj ne estis aplikitaj.<nl/>Malsukcesis rekomenci wireplumber.service. La "
+"komando finiĝis kun kodo: %1."
+
+#: devicerenamesaver.cpp:237
+#, kde-format
+msgctxt "@info error %1 is a list of device identifiers"
+msgid "Failed to handle devices: %1."
+msgstr "Malsukcesis pritrakti aparatojn: %1."
+
+#: devicerenamesaver.cpp:250
+#, kde-format
+msgctxt "@info error %1 is a path"
+msgid "Failed to create directory: %1."
+msgstr "Malsukcesis krei disierujon: %1."
+
+#: devicerenamesaver.cpp:258
+#, kde-format
+msgctxt "@info error %1 is a path"
+msgid "Failed to open file for writing: %1."
+msgstr "Malsukcesis malfermi por skribado: %1."
+
+#: kcm/ui/CardListItem.qml:52 kcm/ui/DeviceListItem.qml:151
+#, kde-format
+msgctxt "@label"
+msgid "Profile:"
+msgstr "Profilo:"
+
+#: kcm/ui/ContextBrokenOverlay.qml:25
+#, kde-format
+msgctxt "@label"
+msgid "Connection to the Sound Service Lost"
+msgstr "Konekto al la Sonservo Perdiĝis"
+
+#: kcm/ui/ContextBrokenOverlay.qml:28
+#, kde-format
+msgctxt "@info reconnecting to pulseaudio"
+msgid "Trying to reconnect…"
+msgstr "Provante rekonekti…"
+
+#: kcm/ui/ContextBrokenOverlay.qml:36
+#, kde-format
+msgctxt "@action retry connecting to pulseaudio"
+msgid "Retry"
+msgstr "Reprovi"
+
+#: kcm/ui/DeviceListItem.qml:57 kded/audioshortcutsservice.cpp:224
+#, kde-format
+msgid "Device name not found"
+msgstr "Aparatnomo ne troviĝis"
+
+#: kcm/ui/DeviceListItem.qml:105
+#, kde-format
+msgid "Port:"
+msgstr "Pordo:"
+
+#: kcm/ui/DeviceListItem.qml:128 qml/listitemmenu.cpp:371
+#, kde-format
+msgctxt "Port is unavailable"
+msgid "%1 (unavailable)"
+msgstr "%1 (nehavebla)"
+
+#: kcm/ui/DeviceListItem.qml:130 qml/listitemmenu.cpp:373
+#, kde-format
+msgctxt "Port is unplugged"
+msgid "%1 (unplugged)"
+msgstr "%1 (malkonektita)"
+
+#: kcm/ui/DeviceListItem.qml:205
+#, kde-format
+msgctxt "Placeholder is channel name"
+msgid "%1:"
+msgstr "%1:"
+
+#: kcm/ui/DeviceListItem.qml:230
+#, kde-format
+msgctxt "Perform an audio test of the device"
+msgid "Test"
+msgstr "Testo"
+
+#: kcm/ui/DeviceListItem.qml:239
+#, kde-format
+msgctxt "Show audio channels (e.g. to control left/right audio balance"
+msgid "Show Channels"
+msgstr "Montri Kanalojn"
+
+#: kcm/ui/main.qml:74
+#, kde-format
+msgid "Show Inactive Devices"
+msgstr "Montri neaktivajn aparatojn"
+
+#: kcm/ui/main.qml:81
+#, kde-format
+msgid "Rename Devices…"
+msgstr "Alinomi Aparatojn…"
+
+#: kcm/ui/main.qml:87
+#, kde-format
+msgid "Configure Volume Controls…"
+msgstr "Agordi regilojn de laŭteco…"
+
+#: kcm/ui/main.qml:94
+#, kde-format
+msgid "Configure…"
+msgstr "Agordi…"
+
+#: kcm/ui/main.qml:97
+#, kde-format
+msgid "Requires %1 PulseAudio module"
+msgstr "Postulas %1 PulseAudio-modulon"
+
+#: kcm/ui/main.qml:100
+#, kde-format
+msgid ""
+"Add virtual output device for simultaneous output on all local sound cards"
+msgstr ""
+"Aldonu virtualan eligan aparaton por samtempa eligo sur ĉiuj lokaj sonkartoj"
+
+#: kcm/ui/main.qml:106
+#, kde-format
+msgid ""
+"Automatically switch all running streams when a new output becomes available"
+msgstr "Aŭtomate ŝanĝi ĉiujn rulantajn fluojn kiam nova eligo disponeblas"
+
+#: kcm/ui/main.qml:143 kcm/ui/RenameDevices.qml:205
+#, kde-format
+msgid "Playback Devices"
+msgstr "Reproduktaj aparatoj"
+
+#: kcm/ui/main.qml:167 kcm/ui/RenameDevices.qml:229
+#, kde-format
+msgid "Recording Devices"
+msgstr "Registrado-Aparatoj"
+
+#: kcm/ui/main.qml:191
+#, kde-format
+msgid "Inactive Cards"
+msgstr "Neaktivaj Kartoj"
+
+#: kcm/ui/main.qml:226
+#, kde-format
+msgid "Playback Streams"
+msgstr "Reproduktaj Rojoj"
+
+#: kcm/ui/main.qml:278
+#, kde-format
+msgid "Recording Streams"
+msgstr "Registrado de Rojoj"
+
+#: kcm/ui/main.qml:312
+#, kde-format
+msgctxt ""
+"%1 is an error string produced by an external component, and probably "
+"untranslated"
+msgid ""
+"Error trying to play a test sound. \n"
+"The system said: \"%1\""
+msgstr ""
+"Eraro dum provado ludi testan sonon. \n"
+"La sistemo diris: \"%1\""
+
+#: kcm/ui/main.qml:416
+#, kde-format
+msgid "Front Left"
+msgstr "Antaŭ Maldekstre"
+
+#: kcm/ui/main.qml:417
+#, kde-format
+msgid "Front Center"
+msgstr "Antaŭa Centro"
+
+#: kcm/ui/main.qml:418
+#, kde-format
+msgid "Front Right"
+msgstr "Antaŭ Dekstra"
+
+#: kcm/ui/main.qml:419
+#, kde-format
+msgid "Side Left"
+msgstr "Flanko Maldekstre"
+
+#: kcm/ui/main.qml:420
+#, kde-format
+msgid "Side Right"
+msgstr "Flanko Dekstre"
+
+#: kcm/ui/main.qml:421
+#, kde-format
+msgid "Rear Left"
+msgstr "Malantaŭa Maldekstre"
+
+#: kcm/ui/main.qml:422
+#, kde-format
+msgid "Subwoofer"
+msgstr "Subwoofer"
+
+#: kcm/ui/main.qml:423
+#, kde-format
+msgid "Rear Right"
+msgstr "Malantaŭa Dekstra"
+
+#: kcm/ui/main.qml:424
+#, kde-format
+msgid "Mono"
+msgstr "Mono"
+
+#: kcm/ui/main.qml:492
+#, kde-format
+msgid "Click on any speaker to test sound"
+msgstr "Alklaku iun ajn laŭtparolilon por testi sonon"
+
+#: kcm/ui/MuteButton.qml:24
+#, kde-format
+msgctxt "Unmute audio stream"
+msgid "Unmute %1"
+msgstr "Malŝalti %1"
+
+#: kcm/ui/MuteButton.qml:24
+#, kde-format
+msgctxt "Mute audio stream"
+msgid "Mute %1"
+msgstr "Muti %1"
+
+#: kcm/ui/RenameDevices.qml:31
+#, kde-format
+msgctxt "@title rename audio devices"
+msgid "Rename Devices"
+msgstr "Alinomi Aparatojn"
+
+#: kcm/ui/RenameDevices.qml:38
+#, kde-format
+msgctxt "@action save changes"
+msgid "Save"
+msgstr "Konservi"
+
+#: kcm/ui/RenameDevices.qml:68
+#, kde-format
+msgctxt "@info"
+msgid ""
+"Saving changes will restart audio services. Apps playing audio will "
+"experience interruptions and may need to be restarted."
+msgstr ""
+"Konservado de ŝanĝoj rekomencos sonservojn. Aplikoj ludantaj aŭdon spertos "
+"interrompojn kaj eble bezonos esti rekomencitaj."
+
+#: kcm/ui/RenameDevices.qml:80
+#, kde-format
+msgctxt "@action"
+msgid "Report Bug"
+msgstr "Raporti Cimon"
+
+#: kcm/ui/RenameDevices.qml:92
+#, kde-format
+msgctxt "@info:status reloading the backing data"
+msgid "Reloading"
+msgstr "Reŝargante"
+
+#: kcm/ui/RenameDevices.qml:130
+#, kde-format
+msgctxt "place holder text, %1 is a device name"
+msgid "%1 (click 'Save' to apply)"
+msgstr "%1 (klaku 'Konservi' por apliki)"
+
+#: kcm/ui/RenameDevices.qml:153
+#, kde-format
+msgctxt "@action apply currently editing test"
+msgid "Apply"
+msgstr "Apliki"
+
+#: kcm/ui/RenameDevices.qml:159
+#, kde-format
+msgctxt "@action reset device name to default"
+msgid "Reset"
+msgstr "Restarigi"
+
+#: kcm/ui/RenameDevices.qml:166
+#, kde-format
+msgctxt ""
+"@label placeholder text when we don't know the default value of a device yet"
+msgid "DEFAULT"
+msgstr "DEFAŬLTO"
+
+#: kcm/ui/StreamListItem.qml:59
+#, kde-format
+msgid "Notification Sounds"
+msgstr "Sciigaj sonoj"
+
+#: kcm/ui/StreamListItem.qml:65
+#, kde-format
+msgctxt "label of stream items"
+msgid "%1: %2"
+msgstr "%1: %2"
+
+#: kcm/ui/VolumeControlsConfig.qml:15
+#, kde-format
+msgid "Volume Controls"
+msgstr "Regiloj de laŭteco"
+
+#: kcm/ui/VolumeControlsConfig.qml:30
+#, kde-format
+msgid "Raise maximum volume"
+msgstr "Altigi maksimuman laŭteco"
+
+#: kcm/ui/VolumeControlsConfig.qml:38
+#, kde-format
+msgid "Volume change step:"
+msgstr "Ŝanĝo de laŭteco:"
+
+#: kcm/ui/VolumeControlsConfig.qml:67
+#, kde-format
+msgid "Play audio feedback for changes to:"
+msgstr "Ludi sonajn rimarkojn por ŝanĝoj al:"
+
+#: kcm/ui/VolumeControlsConfig.qml:68 kcm/ui/VolumeControlsConfig.qml:77
+#, kde-format
+msgid "Audio volume"
+msgstr "Sona laŭteco"
+
+#: kcm/ui/VolumeControlsConfig.qml:76
+#, kde-format
+msgid "Show OSD popups for changes to:"
+msgstr "Montri OSD-ŝprucfenestron por ŝanĝoj al:"
+
+#: kcm/ui/VolumeControlsConfig.qml:84
+#, kde-format
+msgid "Microphone sensitivity"
+msgstr "Mikrofona sentemo"
+
+#: kcm/ui/VolumeControlsConfig.qml:91
+#, kde-format
+msgid "Mute state"
+msgstr "Muta stato"
+
+#: kcm/ui/VolumeControlsConfig.qml:97
+#, fuzzy, kde-format
+#| msgctxt "List of apps is using mic"
+#| msgid "%1 are using the microphone"
+msgctxt "Show OSD when"
+msgid "Application starts using muted microphone"
+msgstr "%1 uzas la mikrofonon"
+
+#: kcm/ui/VolumeControlsConfig.qml:104
+#, kde-format
+msgid "Default output device"
+msgstr "Defaŭlta eliga aparato"
+
+#: kcm/ui/VolumeSlider.qml:68
+#, kde-format
+msgctxt "volume percentage"
+msgid "%1%"
+msgstr "%1%"
+
+#: kcm/ui/VolumeSlider.qml:89
+#, kde-format
+msgctxt "only used for sizing, should be widest possible string"
+msgid "100%"
+msgstr "100%"
+
+#: kded/audioshortcutsservice.cpp:82
+#, kde-format
+msgid "Increase Volume"
+msgstr "Pliigi Laŭtecon"
+
+#: kded/audioshortcutsservice.cpp:97
+#, kde-format
+msgid "Decrease Volume"
+msgstr "Malpliigi Laŭtecon"
+
+#: kded/audioshortcutsservice.cpp:112
+#, kde-format
+msgid "Increase Volume by 1%"
+msgstr "Pliigi Laŭtecon je 1%"
+
+#: kded/audioshortcutsservice.cpp:127
+#, kde-format
+msgid "Decrease Volume by 1%"
+msgstr "Malpliigi Laŭtecon je 1%"
+
+#: kded/audioshortcutsservice.cpp:142
+#, kde-format
+msgid "Increase Microphone Volume"
+msgstr "Pliigi Mikrofonan Lauutecon"
+
+#: kded/audioshortcutsservice.cpp:156
+#, kde-format
+msgid "Decrease Microphone Volume"
+msgstr "Malpliigi Mikrofonan Lauutecon"
+
+#: kded/audioshortcutsservice.cpp:170 qml/microphoneindicator.cpp:109
+#, kde-format
+msgid "Mute"
+msgstr "Silentigi"
+
+#: kded/audioshortcutsservice.cpp:183
+#, kde-format
+msgid "Mute Microphone"
+msgstr "Mutigi Mikrofonon"
+
+#: kded/audioshortcutsservice.cpp:195
+#, kde-format
+msgid "Audio Volume"
+msgstr "Sona Laŭteco"
+
+#: kded/audioshortcutsservice.cpp:213
+#, kde-format
+msgid "No such device"
+msgstr "Neniu tia aparato"
+
+#: kded/audioshortcutsservice.cpp:259
+#, kde-format
+msgid "No output device"
+msgstr "Defaŭlta eliga aparato"
+
+#: kded/audioshortcutsservice.cpp:280 kded/audioshortcutsservice.cpp:300
+#, kde-format
+msgctxt "Device name (Battery percent)"
+msgid "%1 (%2% Battery)"
+msgstr "%1 (%2% Baterio)"
+
+#: kded/mutedmicrophonereminder.cpp:131
+#, fuzzy, kde-format
+#| msgid "Mute"
+msgctxt "Microphone name: is currently muted (osd, keep short)"
+msgid "%1: Muted"
+msgstr "Silentigi"
+
+#: qml/listitemmenu.cpp:323
+#, kde-format
+msgid "Play all audio via this device"
+msgstr "Ludi ĉiujn sonojn per ĉi tiu aparato"
+
+#: qml/listitemmenu.cpp:330
+#, kde-format
+msgid "Record all audio via this device"
+msgstr "Registri ĉiujn sonojn per ĉi tiu aparato"
+
+#: qml/listitemmenu.cpp:359
+#, kde-format
+msgctxt ""
+"Heading for a list of ports of a device (for example built-in laptop "
+"speakers or a plug for headphones)"
+msgid "Ports"
+msgstr "Pordoj"
+
+#: qml/listitemmenu.cpp:429
+#, kde-format
+msgctxt ""
+"Heading for a list of device profiles (5.1 surround sound, stereo, speakers "
+"only, ...)"
+msgid "Profiles"
+msgstr "Profiloj"
+
+#: qml/listitemmenu.cpp:463
+#, kde-format
+msgctxt ""
+"Heading for a list of possible output devices (speakers, headphones, ...) to "
+"choose"
+msgid "Play audio using"
+msgstr "Ludi audio uzante"
+
+#: qml/listitemmenu.cpp:465
+#, kde-format
+msgctxt ""
+"Heading for a list of possible input devices (built-in microphone, "
+"headset, ...) to choose"
+msgid "Record audio using"
+msgstr "Registra audio uzante"
+
+#: qml/microphoneindicator.cpp:143 qml/microphoneindicator.cpp:145
+#, kde-format
+msgid "Microphone"
+msgstr "Mikrofono"
+
+#: qml/microphoneindicator.cpp:145
+#, kde-format
+msgid "Microphone Muted"
+msgstr "Mikrofono silentigita"
+
+#: qml/microphoneindicator.cpp:291
+#, kde-format
+msgctxt "list separator"
+msgid ", "
+msgstr ", "
+
+#: qml/microphoneindicator.cpp:291
+#, kde-format
+msgctxt "List of apps is using mic"
+msgid "%1 are using the microphone"
+msgstr "%1 uzas la mikrofonon"
+
+#: qml/microphoneindicator.cpp:317
+#, kde-format
+msgctxt "App %1 is using mic with name %2"
+msgid "%1 is using the microphone (%2)"
+msgstr "%1 uzas la mikrofonon (%2)"
+
+#: qml/microphoneindicator.cpp:324
+#, kde-format
+msgctxt "App is using mic"
+msgid "%1 is using the microphone"
+msgstr "%1 uzas la mikrofonon"

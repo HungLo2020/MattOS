@@ -1,0 +1,113 @@
+---
+name: build
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+  workflow_dispatch:
+
+jobs:
+  default:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compiler: [gcc, clang]
+        buildtype: [debug, release]
+    container:
+      image: ghcr.io/linux-nvme/debian.python:latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: build
+        run: |
+          scripts/build.sh -b ${{ matrix.buildtype }} -c ${{ matrix.compiler }} -x
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        name: upload logs
+        if: failure()
+        with:
+          name: logs files
+          path: |
+            .build-ci/meson-logs/*.txt
+
+  cross:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - arch: armhf
+          - arch: s390x
+          - arch: ppc64le
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: enable foreign arch
+        uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: compile and run unit tests
+        run: |
+          docker run --rm \
+            --platform linux/amd64 \
+            -v "${{ github.workspace }}:/build" \
+            -w /build \
+            ghcr.io/linux-nvme/ubuntu-cross-${{ matrix.arch }}:latest \
+            sh -c "git config --global --add safe.directory /build && scripts/build.sh -b release -c gcc -t ${{ matrix.arch }} cross"
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        name: upload logs
+        if: failure()
+        with:
+          name: log files
+          path: |
+            .build-ci/meson-logs/*.txt
+
+  libdbus:
+    name: libdbus
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/linux-nvme/debian:latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: build
+        run: |
+          scripts/build.sh -b release -c gcc libdbus
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        name: upload logs
+        if: failure()
+        with:
+          name: log files
+          path: |
+            .build-ci/meson-logs/*.txt
+
+  fallback-shared-libraries:
+    name: fallback shared libraries
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/linux-nvme/debian:latest
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: build
+        run: |
+          scripts/build.sh -b release -c gcc fallback
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        if: failure()
+        with:
+          name: log files
+          path: |
+            .build-ci/meson-logs/*.txt
+
+  build-muon:
+    name: muon minimal static
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/linux-nvme/debian:latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: build
+        run: |
+          scripts/build.sh -m muon

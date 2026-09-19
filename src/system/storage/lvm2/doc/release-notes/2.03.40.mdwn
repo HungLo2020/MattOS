@@ -1,0 +1,17 @@
+<!-- Page title -->
+[[!meta title="Version 2.03.40 - Mostly Bug Fix Release"]]
+
+Version 2.03.40
+===============
+
+* Add a `vdostats` command to dmsetup to display VDO stats and `dmvdostats` alias.
+* Fix large portion of static analysis issues.
+* Many small fixes in all areas of code.
+
+<!-- remove the pending tag on release, remove draft tag once editing is complete -->
+[[!tag]]
+<!--
+For old releases add Release Timestamp like this, date from git show $COMMIT is fine.
+[[!meta date="Tue Apr 28 12:00:00 2026 +0100"]]
+-->
+

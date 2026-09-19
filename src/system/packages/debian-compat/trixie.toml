@@ -314,7 +314,7 @@ protected = false
 current_mattos_version = "4.20.1-1mattos1"
 expected_debian_role = "ISO language and territory metadata"
 classification = "debian-compatible"
-known_gaps = ["Only the JSON registries consumed by COSMIC Initial Setup are shipped"]
+known_gaps = ["Only the JSON registries consumed by MattOS locale selection are shipped"]
 
 [[package]]
 debian_name = "tzdata"
@@ -1467,7 +1467,7 @@ protected = false
 current_mattos_version = "0.1-1mattos1"
 expected_debian_role = "live-media installer"
 classification = "mattos-specific"
-known_gaps = ["The graphical frontend requires the minimal COSMIC compositor runtime on graphical live media"]
+known_gaps = ["The graphical frontend is not currently shipped; the Rust CLI installer remains available"]
 
 [[package]]
 debian_name = "btrfs-progs"
@@ -1710,30 +1710,6 @@ classification = "debian-compatible"
 known_gaps = ["X11 cube targets are intentionally absent"]
 
 [[package]]
-debian_name = "cosmic-comp"
-mattos_name = "cosmic-comp"
-source_component = "COSMIC compositor pinned source"
-owned_paths = ["/usr/bin/cosmic-comp"]
-provided_abi_or_commands = ["COSMIC Wayland compositor"]
-protected = false
-current_mattos_version = "0~git.693d1ad77519-1mattos1"
-expected_debian_role = "Wayland compositor for the MattOS installer session"
-classification = "debian-compatible"
-known_gaps = ["Legacy Xorg and Xephyr servers are intentionally not built"]
-
-[[package]]
-debian_name = "cosmic-session"
-mattos_name = "cosmic-desktop"
-source_component = "COSMIC Epoch 1.5 coherent source closure"
-owned_paths = ["/usr/bin/cosmic-session", "/usr/bin/start-cosmic", "/usr/bin/cosmic-panel", "/usr/bin/cosmic-launcher", "/usr/bin/cosmic-settings", "/usr/bin/cosmic-settings-daemon", "/usr/bin/cosmic-notifications", "/usr/bin/cosmic-osd", "/usr/bin/cosmic-bg", "/usr/bin/cosmic-workspaces", "/usr/bin/cosmic-files", "/usr/bin/cosmic-term", "/usr/bin/greetd", "/usr/bin/cosmic-greeter", "/usr/bin/cosmic-greeter-start", "/usr/share/wayland-sessions/cosmic.desktop", "/usr/share/icons/hicolor/index.theme", "/etc/greetd/cosmic-greeter.toml", "/etc/pam.d/cosmic-greeter"]
-provided_abi_or_commands = ["COSMIC desktop session, shell, core applications, and graphical login"]
-protected = true
-current_mattos_version = "0~git.b5ef6c0c0d68-1mattos1"
-expected_debian_role = "Complete COSMIC desktop session"
-classification = "mattos-alternative"
-known_gaps = ["GNOME-specific compatibility services remain outside the MattOS session closure"]
-
-[[package]]
 debian_name = "libdbus-1-3"
 mattos_name = "libdbus-1-3"
 source_component = "D-Bus 1.16.2"
@@ -1774,7 +1750,7 @@ debian_name = "xwayland"
 mattos_name = "xwayland"
 source_component = "X.Org xserver Xwayland 24.1.13"
 owned_paths = ["/usr/bin/Xwayland", "/usr/lib/x86_64-linux-gnu/libXfont2.so.2", "/usr/lib/x86_64-linux-gnu/libepoxy.so.0"]
-provided_abi_or_commands = ["Xwayland server for X11 applications in the COSMIC Wayland session"]
+provided_abi_or_commands = ["Xwayland server for legacy X11 applications in the Plasma Wayland session"]
 protected = false
 current_mattos_version = "24.1.13-1mattos1"
 expected_debian_role = "X11 compatibility server"
@@ -2248,22 +2224,6 @@ classification = "mattos-alternative"
 known_gaps = ["Turing and newer only"]
 
 [[package]]
-debian_name = "cosmic-edit"
-mattos_name = "cosmic-edit"
-source_component = "cosmic-edit"
-owned_paths = [
-    "/usr/bin/cosmic-edit",
-    "/usr/share/applications/com.system76.CosmicEdit.desktop",
-    "/usr/share/metainfo/com.system76.CosmicEdit.metainfo.xml",
-]
-provided_abi_or_commands = ["COSMIC Text Editor desktop application"]
-protected = false
-current_mattos_version = "1.5.0-1mattos1"
-expected_debian_role = "MattOS COSMIC graphical text editor"
-classification = "mattos-alternative"
-known_gaps = ["Does not claim a Debian editor package identity"]
-
-[[package]]
 debian_name = "mattos-cozy"
 mattos_name = "mattos-cozy"
 source_component = "cozy"
@@ -2360,18 +2320,6 @@ classification = "debian-compatible"
 known_gaps = ["Smartcard and keyserver services require separately configured external hardware or services"]
 
 [[package]]
-debian_name = "cosmic-initial-setup"
-mattos_name = "cosmic-initial-setup"
-source_component = "cosmic-initial-setup"
-owned_paths = ["/usr/bin/cosmic-initial-setup", "/etc/xdg/autostart/com.system76.CosmicInitialSetup.Autostart.desktop", "/usr/share/icons/hicolor/scalable/apps/com.system76.CosmicInitialSetup.svg", "/usr/share/polkit-1/rules.d/20-cosmic-initial-setup.rules", "/usr/share/cosmic-layouts", "/usr/share/cosmic-themes"]
-provided_abi_or_commands = ["COSMIC first-login setup wizard"]
-protected = false
-current_mattos_version = "1.0.0-1mattos1"
-expected_debian_role = "COSMIC initial setup"
-classification = "mattos-alternative"
-known_gaps = ["No Debian package is claimed"]
-
-[[package]]
 debian_name = "libduktape207"
 mattos_name = "libduktape207"
 source_component = "duktape"
@@ -2428,6 +2376,18 @@ provided_abi_or_commands = ["libnl-genl-3.so.200"]
 protected = false
 current_mattos_version = "0~git.43878680c994-1mattos1"
 expected_debian_role = "Generic Netlink runtime"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
+debian_name = "libnl-route-3-200"
+mattos_name = "libnl-route-3-200"
+source_component = "libnl"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libnl-route-3.so.200"]
+provided_abi_or_commands = ["libnl-route-3.so.200"]
+protected = false
+current_mattos_version = "0~git.43878680c994-1mattos1"
+expected_debian_role = "Netlink route protocol runtime"
 classification = "debian-compatible"
 known_gaps = ["None"]
 
@@ -2987,6 +2947,18 @@ classification = "mattos-extension"
 known_gaps = ["MattOS Plasma foundation package"]
 
 [[package]]
+debian_name = "greetd"
+mattos_name = "greetd"
+source_component = "greetd"
+owned_paths = ["/usr/bin/greetd", "/usr/bin/agreety"]
+provided_abi_or_commands = ["greetd", "agreety"]
+protected = false
+current_mattos_version = "0~git.d6733e983ff7-1mattos1"
+expected_debian_role = "Minimal login and session daemon"
+classification = "mattos-extension"
+known_gaps = ["MattOS packages the source-owned daemon for its Plasma Wayland session"]
+
+[[package]]
 debian_name = "plasma-workspace"
 mattos_name = "plasma-workspace"
 source_component = "plasma-workspace"
@@ -3083,6 +3055,18 @@ classification = "mattos-extension"
 known_gaps = ["MattOS KDE foundation package"]
 
 [[package]]
+debian_name = "qcoro-qt6"
+mattos_name = "qcoro-qt6"
+source_component = "qcoro"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libQCoro6Core.so.0", "/usr/lib/x86_64-linux-gnu/libQCoro6DBus.so.0"]
+provided_abi_or_commands = ["QCoro Qt 6 Core and D-Bus coroutine runtimes"]
+protected = false
+current_mattos_version = "0.13.0-1mattos1"
+expected_debian_role = "Qt 6 coroutine runtime"
+classification = "mattos-extension"
+known_gaps = ["MattOS KDE foundation package"]
+
+[[package]]
 debian_name = "kf6-ksyntaxhighlighting"
 mattos_name = "kf6-ksyntaxhighlighting"
 source_component = "ksyntaxhighlighting"
@@ -3105,3 +3089,699 @@ current_mattos_version = "6.26.0-1mattos1"
 expected_debian_role = "KDE wallet API runtime"
 classification = "mattos-extension"
 known_gaps = ["Daemon backends are intentionally disabled for the Plasma shell foundation"]
+
+[[package]]
+debian_name = "lm-sensors"
+mattos_name = "lm-sensors"
+source_component = "lm-sensors"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["lm-sensors runtime payload"]
+protected = false
+current_mattos_version = "3.6.2-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "libhwy1"
+mattos_name = "libhwy1"
+source_component = "highway"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["libhwy1 runtime payload"]
+protected = false
+current_mattos_version = "1.3.0-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "kf6-kfilemetadata"
+mattos_name = "kf6-kfilemetadata"
+source_component = "kfilemetadata"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["kf6-kfilemetadata runtime payload"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "kf6-kpty"
+mattos_name = "kf6-kpty"
+source_component = "kpty"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["kf6-kpty runtime payload"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "kf6-networkmanager-qt"
+mattos_name = "kf6-networkmanager-qt"
+source_component = "networkmanager-qt"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["kf6-networkmanager-qt runtime payload"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "kf6-purpose"
+mattos_name = "kf6-purpose"
+source_component = "purpose"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["kf6-purpose runtime payload"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "milou"
+mattos_name = "milou"
+source_component = "milou"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["milou runtime payload"]
+protected = false
+current_mattos_version = "6.6.5-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "systemsettings"
+mattos_name = "systemsettings"
+source_component = "systemsettings"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["systemsettings runtime payload"]
+protected = false
+current_mattos_version = "6.6.5-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "ksystemstats"
+mattos_name = "ksystemstats"
+source_component = "ksystemstats"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["ksystemstats runtime payload"]
+protected = false
+current_mattos_version = "6.6.5-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "plasma-systemmonitor"
+mattos_name = "plasma-systemmonitor"
+source_component = "plasma-systemmonitor"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["plasma-systemmonitor runtime payload"]
+protected = false
+current_mattos_version = "6.6.5-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "polkit-kde-agent-1"
+mattos_name = "polkit-kde-agent-1"
+source_component = "polkit-kde-agent-1"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["polkit-kde-agent-1 runtime payload"]
+protected = false
+current_mattos_version = "6.6.5-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "kquickimageeditor"
+mattos_name = "kquickimageeditor"
+source_component = "kquickimageeditor"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["kquickimageeditor runtime payload"]
+protected = false
+current_mattos_version = "0.7.0.1-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "ffmpeg-libs"
+mattos_name = "ffmpeg-libs"
+source_component = "ffmpeg"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["ffmpeg-libs runtime payload"]
+protected = false
+current_mattos_version = "8.1.2-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "libva2"
+mattos_name = "libva2"
+source_component = "libva"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["libva2 runtime payload"]
+protected = false
+current_mattos_version = "2.24.1-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "libopencv4"
+mattos_name = "libopencv4"
+source_component = "opencv"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["libopencv4 runtime payload"]
+protected = false
+current_mattos_version = "4.14.0-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "kpipewire"
+mattos_name = "kpipewire"
+source_component = "kpipewire"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["kpipewire runtime payload"]
+protected = false
+current_mattos_version = "6.6.5-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "spectacle"
+mattos_name = "spectacle"
+source_component = "spectacle"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["spectacle runtime payload"]
+protected = false
+current_mattos_version = "6.6.5-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "pulseaudio-qt"
+mattos_name = "pulseaudio-qt"
+source_component = "pulseaudio-qt"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["pulseaudio-qt runtime payload"]
+protected = false
+current_mattos_version = "1.9.0-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "plasma-pa"
+mattos_name = "plasma-pa"
+source_component = "plasma-pa"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["plasma-pa runtime payload"]
+protected = false
+current_mattos_version = "6.6.5-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "plasma-nm"
+mattos_name = "plasma-nm"
+source_component = "plasma-nm"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["plasma-nm runtime payload"]
+protected = false
+current_mattos_version = "6.6.5-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "powerdevil"
+mattos_name = "powerdevil"
+source_component = "powerdevil"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["powerdevil runtime payload"]
+protected = false
+current_mattos_version = "6.6.5-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "xdg-desktop-portal-kde"
+mattos_name = "xdg-desktop-portal-kde"
+source_component = "xdg-desktop-portal-kde"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["xdg-desktop-portal-kde runtime payload"]
+protected = false
+current_mattos_version = "6.6.5-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "dolphin"
+mattos_name = "dolphin"
+source_component = "dolphin"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["dolphin runtime payload"]
+protected = false
+current_mattos_version = "26.08.1-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "konsole"
+mattos_name = "konsole"
+source_component = "konsole"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["konsole runtime payload"]
+protected = false
+current_mattos_version = "26.08.1-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "kate"
+mattos_name = "kate"
+source_component = "kate"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["kate runtime payload"]
+protected = false
+current_mattos_version = "26.08.1-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "ark"
+mattos_name = "ark"
+source_component = "ark"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["ark runtime payload"]
+protected = false
+current_mattos_version = "26.08.1-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "libsndfile1"
+mattos_name = "libsndfile1"
+source_component = "libsndfile"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["libsndfile1 runtime payload"]
+protected = false
+current_mattos_version = "1.2.2-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "libpulse0"
+mattos_name = "libpulse0"
+source_component = "pulseaudio"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["libpulse0 runtime payload"]
+protected = false
+current_mattos_version = "17.0-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "libgudev-1.0-0"
+mattos_name = "libgudev-1.0-0"
+source_component = "libgudev"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["libgudev-1.0-0 runtime payload"]
+protected = false
+current_mattos_version = "238-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "libgmp10"
+mattos_name = "libgmp10"
+source_component = "gmp"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["libgmp10 runtime payload"]
+protected = false
+current_mattos_version = "6.3.0-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "libmpfr6"
+mattos_name = "libmpfr6"
+source_component = "mpfr"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["libmpfr6 runtime payload"]
+protected = false
+current_mattos_version = "4.2.2-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "libbytesize1"
+mattos_name = "libbytesize1"
+source_component = "libbytesize"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["libbytesize1 runtime payload"]
+protected = false
+current_mattos_version = "2.12-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "libkeyutils1"
+mattos_name = "libkeyutils1"
+source_component = "keyutils"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["libkeyutils1 runtime payload"]
+protected = false
+current_mattos_version = "1.6.3-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "libnvme1"
+mattos_name = "libnvme1"
+source_component = "libnvme"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["libnvme1 runtime payload"]
+protected = false
+current_mattos_version = "1.16.2-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "libpopt0"
+mattos_name = "libpopt0"
+source_component = "popt"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["libpopt0 runtime payload"]
+protected = false
+current_mattos_version = "1.19-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "libjson-c5"
+mattos_name = "libjson-c5"
+source_component = "json-c"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["libjson-c5 runtime payload"]
+protected = false
+current_mattos_version = "0.19-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "libdevmapper1.02.1"
+mattos_name = "libdevmapper1.02.1"
+source_component = "lvm2"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["libdevmapper1.02.1 runtime payload"]
+protected = false
+current_mattos_version = "2.03.42-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "libcryptsetup12"
+mattos_name = "libcryptsetup12"
+source_component = "cryptsetup"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["libcryptsetup12 runtime payload"]
+protected = false
+current_mattos_version = "2.8.8-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "libblockdev3"
+mattos_name = "libblockdev3"
+source_component = "libblockdev"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["libblockdev3 runtime payload"]
+protected = false
+current_mattos_version = "3.5.0-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "wireplumber"
+mattos_name = "wireplumber"
+source_component = "wireplumber"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["wireplumber runtime payload"]
+protected = false
+current_mattos_version = "0.5.17-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "upower"
+mattos_name = "upower"
+source_component = "upower"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["upower runtime payload"]
+protected = false
+current_mattos_version = "1.91.4-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "udisks2"
+mattos_name = "udisks2"
+source_component = "udisks2"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["udisks2 runtime payload"]
+protected = false
+current_mattos_version = "2.11.2-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "bluez"
+mattos_name = "bluez"
+source_component = "bluez"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["bluez runtime payload"]
+protected = false
+current_mattos_version = "5.87-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "power-profiles-daemon"
+mattos_name = "power-profiles-daemon"
+source_component = "power-profiles-daemon"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["power-profiles-daemon runtime payload"]
+protected = false
+current_mattos_version = "0.30-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "kf6-knotifyconfig"
+mattos_name = "kf6-knotifyconfig"
+source_component = "knotifyconfig"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["kf6-knotifyconfig runtime payload"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "kf6-kparts"
+mattos_name = "kf6-kparts"
+source_component = "kparts"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["kf6-kparts runtime payload"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "kf6-ktexteditor"
+mattos_name = "kf6-ktexteditor"
+source_component = "ktexteditor"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["kf6-ktexteditor runtime payload"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "kf6-ktextwidgets"
+mattos_name = "kf6-ktextwidgets"
+source_component = "ktextwidgets"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["kf6-ktextwidgets runtime payload"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "libarchive13"
+mattos_name = "libarchive13"
+source_component = "libarchive"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["libarchive13 runtime payload"]
+protected = false
+current_mattos_version = "3.8.2-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "libqrencode4"
+mattos_name = "libqrencode4"
+source_component = "qrencode"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["libqrencode4 runtime payload"]
+protected = false
+current_mattos_version = "4.1.1-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "libzxing4"
+mattos_name = "libzxing4"
+source_component = "zxing-cpp"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["libzxing4 runtime payload"]
+protected = false
+current_mattos_version = "3.1.1-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "libxml2-16"
+mattos_name = "libxml2-16"
+source_component = "libxml2"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libxml2.so.16"]
+provided_abi_or_commands = ["libxml2.so.16"]
+protected = false
+current_mattos_version = "2.14.6-1mattos1"
+expected_debian_role = "XML parser runtime library"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "libxkbfile1"
+mattos_name = "libxkbfile1"
+source_component = "libxkbfile"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libxkbfile.so.1"]
+provided_abi_or_commands = ["libxkbfile.so.1"]
+protected = false
+current_mattos_version = "1.2.0-1mattos1"
+expected_debian_role = "XKB file handling runtime library"
+classification = "debian-compatible"
+known_gaps = ["Source-owned MattOS package; Debian ABI compatibility validated by package audits"]
+
+[[package]]
+debian_name = "kf6-qqc2-desktop-style"
+mattos_name = "kf6-qqc2-desktop-style"
+source_component = "qqc2-desktop-style"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/qml/org/kde/desktop", "/usr/lib/x86_64-linux-gnu/qml/org/kde/qqc2desktopstyle"]
+provided_abi_or_commands = ["KDE Qt Quick Controls desktop style"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "KDE desktop Qt Quick Controls style runtime"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "kf6-prison"
+mattos_name = "kf6-prison"
+source_component = "prison"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["kf6-prison runtime payload"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "kf6-libkscreen"
+mattos_name = "kf6-libkscreen"
+source_component = "libkscreen"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["kf6-libkscreen runtime payload"]
+protected = false
+current_mattos_version = "6.6.5-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "modemmanager"
+mattos_name = "modemmanager"
+source_component = "modemmanager"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["ModemManager", "libmm-glib0"]
+protected = false
+current_mattos_version = "1.24.2-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "kf6-modemmanager-qt"
+mattos_name = "kf6-modemmanager-qt"
+source_component = "modemmanager-qt"
+owned_paths = ["/usr"]
+provided_abi_or_commands = ["kf6-modemmanager-qt runtime payload"]
+protected = false
+current_mattos_version = "6.26.0-1mattos1"
+expected_debian_role = "MattOS source-owned runtime package"
+classification = "mattos-extension"
+known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]

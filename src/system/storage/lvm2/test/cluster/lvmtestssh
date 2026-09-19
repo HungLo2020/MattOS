@@ -1,0 +1,250 @@
+#!/bin/bash
+#
+# lvmtestssh - SSH into a cluster test node or execute commands on all nodes
+#
+# Usage: lvmtestssh [-i cluster_id] <node_number> [command...]
+#        lvmtestssh [-i cluster_id] -a <command...>
+#        lvmtestssh [-i cluster_id] -p <command...>
+#
+# Examples:
+#        lvmtestssh 1                          # SSH to node 1
+#        lvmtestssh -i lvmtest-foo 1           # SSH to node 1 in cluster lvmtest-foo
+#        lvmtestssh -a "lvs"                   # Execute lvs on all nodes serially
+#        lvmtestssh -p "vgs"                   # Execute vgs on all nodes in parallel
+#
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Source cluster library for cluster_validate_cluster_id
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/cluster-test-lib.sh"
+
+cluster_init_privileges
+SSH_KEY="${HOME}/.ssh/cluster_test_rsa"
+SSH_USER="${CLUSTER_SSH_USER:-root}"
+
+usage() {
+    cat <<EOF
+Usage: $0 [-i cluster_id] <node_number> [command...]
+       $0 [-i cluster_id] -a <command...>
+       $0 [-i cluster_id] -p <command...>
+
+SSH into a cluster test node or execute commands on all nodes.
+
+Options:
+  -i cluster_id  Cluster ID (default: auto-detect most recent)
+                 Simple names auto-expand: "foo" -> "lvmtest-foo"
+  -a             Execute command on all test nodes serially (all nodes)
+  -p             Execute command on all test nodes in parallel
+
+Arguments (without -a/-p):
+  node_number    Node number to connect to (0, 1, 2, ...)
+                 Node 0 = storage exporter
+                 Nodes 1..N = test nodes
+  command        Optional command to execute on the node
+
+Arguments (with -a or -p):
+  command        Command to execute on all test nodes
+
+Examples:
+  # SSH to specific nodes
+  $0 1                              # SSH to node 1 (auto-detect cluster)
+  $0 -i foo 1                       # SSH to node 1 in lvmtest-foo cluster
+  $0 -i lvmtest-bar 0               # SSH to node 0 in lvmtest-bar cluster
+  $0 1 "systemctl status sanlock"  # Run command on node 1
+
+  # Execute on all nodes
+  $0 -a "lvs"                       # Execute lvs on all test nodes serially
+  $0 -p "vgs"                       # Execute vgs on all test nodes in parallel
+  $0 -i foo -a "hostname"           # Execute hostname on all nodes in cluster foo
+
+EOF
+    exit 1
+}
+
+# Parse options
+CLUSTER_ID=""
+EXEC_ALL_SERIAL=0
+EXEC_ALL_PARALLEL=0
+while getopts "i:aph" opt; do
+    case $opt in
+        i)
+            CLUSTER_ID="$OPTARG"
+            ;;
+        a)
+            EXEC_ALL_SERIAL=1
+            ;;
+        p)
+            EXEC_ALL_PARALLEL=1
+            ;;
+        h)
+            usage
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+
+shift $((OPTIND - 1))
+
+# Check for conflicting flags
+if [ $EXEC_ALL_SERIAL -eq 1 ] && [ $EXEC_ALL_PARALLEL -eq 1 ]; then
+    echo "Error: Cannot use both -a and -p flags together" >&2
+    usage
+fi
+
+# Parse arguments based on mode
+if [ $EXEC_ALL_SERIAL -eq 1 ] || [ $EXEC_ALL_PARALLEL -eq 1 ]; then
+    # Mode: Execute on all nodes
+    if [ $# -lt 1 ]; then
+        echo "Error: Command is required when using -a or -p" >&2
+        usage
+    fi
+    # All remaining arguments are the command
+    COMMAND="$*"
+else
+    # Mode: SSH to specific node
+    if [ $# -lt 1 ]; then
+        usage
+    fi
+
+    NODE_NUM="$1"
+    shift  # Remove node number from arguments
+fi
+
+# Validate node number (only in single-node mode)
+if [ $EXEC_ALL_SERIAL -eq 0 ] && [ $EXEC_ALL_PARALLEL -eq 0 ]; then
+    if ! [[ "$NODE_NUM" =~ ^[0-9]+$ ]]; then
+        echo "Error: Node number must be a number" >&2
+        usage
+    fi
+fi
+
+# Normalize cluster ID if specified (foo -> lvmtest-foo)
+if [ -n "$CLUSTER_ID" ]; then
+    normalized_id=$(cluster_validate_cluster_id "$CLUSTER_ID" 0 2>&1)  # 0 = don't check if exists
+    if [ $? -ne 0 ]; then
+        echo "Error: Invalid cluster ID: $CLUSTER_ID" >&2
+        exit 1
+    fi
+    CLUSTER_ID="$normalized_id"
+fi
+
+# Check if -i option appears in remaining arguments (common mistake)
+for arg in "$@"; do
+    if [ "$arg" = "-i" ]; then
+        echo "Error: The -i option must come before the node number" >&2
+        echo "Correct usage: $0 -i cluster_id node_number [command...]" >&2
+        exit 1
+    fi
+done
+
+# Find cluster ID
+if [ -z "${CLUSTER_ID:-}" ]; then
+    # Auto-detect most recent cluster
+    if [ ! -d "$CLUSTER_STATE_DIR" ]; then
+        echo "Error: No cluster state directory found: $CLUSTER_STATE_DIR" >&2
+        echo "Have you created a cluster yet?" >&2
+        exit 1
+    fi
+
+    # Find most recently modified state file
+    CLUSTER_ID=$(ls -t "$CLUSTER_STATE_DIR"/*.state 2>/dev/null | head -1 | xargs -r basename -s .state)
+
+    if [ -z "$CLUSTER_ID" ]; then
+        echo "Error: No cluster state files found in $CLUSTER_STATE_DIR" >&2
+        echo "Please create a cluster first with: ./cluster-test-main.sh create" >&2
+        exit 1
+    fi
+
+    echo "Auto-detected cluster: $CLUSTER_ID" >&2
+fi
+
+# Load cluster state
+STATE_FILE="${CLUSTER_STATE_DIR}/${CLUSTER_ID}.state"
+if [ ! -f "$STATE_FILE" ]; then
+    echo "Error: Cluster state file not found: $STATE_FILE" >&2
+    exit 1
+fi
+
+# Source the state file to get node IPs
+# shellcheck disable=SC1090
+source "$STATE_FILE"
+
+# Check if CLUSTER_NODE_IPS is set
+if [ "${#CLUSTER_NODE_IPS[@]}" -eq 0 ]; then
+    echo "Error: No node IPs found in cluster state" >&2
+    exit 1
+fi
+
+# Check if CLUSTER_NUM_NODES is set (needed for -a/-p mode)
+if [ -z "${CLUSTER_NUM_NODES:-}" ]; then
+    # Try to infer from array size (subtract 1 for node 0)
+    CLUSTER_NUM_NODES=$((${#CLUSTER_NODE_IPS[@]} - 1))
+    if [ $CLUSTER_NUM_NODES -lt 1 ]; then
+        echo "Error: Invalid cluster configuration - no test nodes found" >&2
+        exit 1
+    fi
+fi
+
+# Check if SSH key exists
+if [ ! -f "$SSH_KEY" ]; then
+    echo "Error: SSH key not found: $SSH_KEY" >&2
+    exit 1
+fi
+
+# Execute on all nodes (serial or parallel mode)
+if [ $EXEC_ALL_SERIAL -eq 1 ] || [ $EXEC_ALL_PARALLEL -eq 1 ]; then
+    # Source cluster-executor.sh to get cluster_all_exec and cluster_nodes_exec
+    # shellcheck disable=SC1091
+    source "$SCRIPT_DIR/cluster-executor.sh" || {
+        echo "Error: Failed to load cluster-executor.sh" >&2
+        exit 1
+    }
+    # Source cluster-vm-manager.sh for SSH helper functions
+    # shellcheck disable=SC1091
+    source "$SCRIPT_DIR/cluster-vm-manager.sh" || {
+        echo "Error: Failed to load cluster-vm-manager.sh" >&2
+        exit 1
+    }
+
+    # Export required variables for executor functions
+    export CLUSTER_ID
+    export CLUSTER_NUM_NODES
+    export CLUSTER_NODE_IPS
+    export CLUSTER_SSH_USER
+    export CLUSTER_SSH_KEY_DIR="${HOME}/.ssh"
+
+    if [ $EXEC_ALL_SERIAL -eq 1 ]; then
+        echo "Executing command on all test nodes (serially)..." >&2
+        cluster_all_exec "$COMMAND"
+        exit $?
+    else
+        echo "Executing command on all test nodes (in parallel)..." >&2
+        cluster_nodes_exec "$COMMAND"
+        exit $?
+    fi
+fi
+
+# Single node mode: Get the IP for the requested node
+NODE_IP=""
+if [ "$NODE_NUM" -lt "${#CLUSTER_NODE_IPS[@]}" ]; then
+    NODE_IP="${CLUSTER_NODE_IPS[$NODE_NUM]}"
+else
+    echo "Error: Node $NODE_NUM does not exist in cluster $CLUSTER_ID" >&2
+    echo "Available nodes: 0 to $((${#CLUSTER_NODE_IPS[@]} - 1))" >&2
+    exit 1
+fi
+
+if [ -z "$NODE_IP" ]; then
+    echo "Error: No IP address found for node $NODE_NUM" >&2
+    exit 1
+fi
+
+# SSH to the node
+echo "Connecting to node $NODE_NUM ($NODE_IP) in cluster $CLUSTER_ID..." >&2
+exec ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR \
+    -i "$SSH_KEY" "${SSH_USER}@${NODE_IP}" "$@"

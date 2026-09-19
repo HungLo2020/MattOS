@@ -1,0 +1,190 @@
+/*
+    SPDX-FileCopyrightText: 2022 Héctor Mesa Jiménez <wmj.py@gmx.com>
+
+    SPDX-License-Identifier: LGPL-2.0-or-later
+*/
+#pragma once
+
+#include "backendinterface.h"
+#include "dap/entities.h"
+#include "dap/settings.h"
+
+#include <QObject>
+#include <QTimer>
+
+#include <optional>
+
+namespace dap
+{
+class Client;
+}
+
+struct DAPTargetConf;
+
+class DapBackend final : public BackendInterface
+{
+    Q_OBJECT
+public:
+    DapBackend(QObject *parent);
+    ~DapBackend() override;
+
+    void runDebugger(const DAPTargetConf &conf);
+    [[nodiscard]] bool debuggerRunning() const override;
+    [[nodiscard]] bool debuggerBusy() const override;
+
+    [[nodiscard]] bool supportsMovePC() const override;
+    [[nodiscard]] bool supportsRunToCursor() const override;
+    [[nodiscard]] bool supportsFunctionBreakpoints() const override;
+    [[nodiscard]] bool canSetBreakpoints() const override;
+    [[nodiscard]] bool canMove() const override;
+    [[nodiscard]] bool canContinue() const override;
+    [[nodiscard]] bool canHotReload() const;
+    [[nodiscard]] bool canHotRestart() const;
+    [[nodiscard]] QList<dap::ExceptionBreakpointsFilter> exceptionBreakpointFilters() const override;
+
+    void setFunctionBreakpoints(const QList<dap::FunctionBreakpoint> &breakpoints) override;
+    void setBreakpoints(const QUrl &url, const QList<dap::SourceBreakpoint> &breakpoints) override;
+    void setExceptionBreakpoints(const QStringList &filters) override;
+    void movePC(QUrl const &url, int line) override;
+
+    void issueCommand(QString const &cmd) override;
+
+    [[nodiscard]] QString targetName() const override;
+    void setFileSearchPaths(const QStringList &paths) override;
+
+    void setPendingBreakpoints(std::map<QUrl, QList<dap::SourceBreakpoint>>, QList<dap::FunctionBreakpoint>);
+
+    QList<dap::Module> modules();
+
+public Q_SLOTS:
+    void slotInterrupt() override;
+    void slotStepInto() override;
+    void slotStepOver() override;
+    void slotStepOut() override;
+    void slotContinue() override;
+    void slotKill() override;
+    void slotReRun() override;
+    QString slotPrintVariable(const QString &variable) override;
+    void slotHotReload();
+    void slotHotRestart();
+
+    void slotQueryLocals(bool display) override;
+    void changeStackFrame(int index) override;
+    void changeThread(int index) override;
+    void requestVariables(int variablesReference) override;
+
+private:
+    enum State {
+        None,
+        Initializing,
+        Running,
+        Stopped,
+        Terminated,
+        Disconnected
+    };
+    enum Task {
+        Idle,
+        Busy
+    };
+
+    void unsetClient();
+
+    void onError(const QString &message);
+    void onTerminated(bool success);
+    void onStopped(const dap::StoppedEvent &info);
+    void onThreads(const QList<dap::Thread> &threads, bool isError);
+    void onStackTrace(int, const dap::StackTraceInfo &info);
+    void onProgramEnded(int exitCode);
+    void onRunning();
+    void onContinuedEvent(const dap::ContinuedEvent &info);
+    void onInitialized();
+    void onErrorResponse(const QString &summary, const std::optional<dap::Message> &message);
+    void onOutputProduced(const dap::Output &output);
+    void onDebuggingProcess(const dap::ProcessInfo &info);
+    void onThreadEvent(const dap::ThreadEvent &info);
+    void onModuleEvent(const dap::ModuleEvent &info);
+    void onScopes(int frameId, const QList<dap::Scope> &scopes);
+    void onVariables(int variablesReference, const QList<dap::Variable> &variables);
+    void onModules(const dap::ModulesInfo &modules);
+    void onSourceBreakpoints(const QUrl &path, int reference, const std::optional<QList<dap::Breakpoint>> &breakpoints);
+    void onBreakpointEvent(const dap::BreakpointEvent &info);
+    void onExpressionEvaluated(const QString &expression, const std::optional<dap::EvaluateInfo> &info);
+    void onGotoTargets(const dap::Source &, int, const QList<dap::GotoTarget> &targets);
+    void onCapabilitiesReceived(const dap::Capabilities &capabilities);
+    void onServerDisconnected();
+    void onServerFinished();
+
+    bool tryTerminate();
+    bool tryDisconnect();
+    void cmdShutdown();
+    void cmdHelp(const QString &cmd);
+    void cmdEval(const QString &cmd);
+    void cmdJump(const QString &cmd);
+    void cmdRunToCursor(const QString &cmd);
+    void cmdListModules(const QString &cmd);
+    void cmdListBreakpoints(const QString &cmd);
+    void cmdBreakpointOn(const QString &cmd);
+    void cmdBreakpointOff(const QString &cmd);
+    void cmdPause(const QString &cmd);
+    void cmdContinue(const QString &cmd);
+    void cmdNext(const QString &cmd);
+    void cmdStepIn(const QString &cmd);
+    void cmdStepOut(const QString &cmd);
+    void cmdWhereami(const QString &cmd);
+
+    void resetState(State state = State::Running);
+    void setState(State state);
+    void setTaskState(Task state);
+
+    [[nodiscard]] bool isConnectedState() const;
+    [[nodiscard]] bool isAttachedState() const;
+    [[nodiscard]] bool isRunningState() const;
+
+    void pushRequest();
+    void popRequest();
+
+    QUrl resolveOrWarn(const QUrl &filename);
+    [[nodiscard]] std::optional<QUrl> resolveFilename(const QUrl &filename, bool fallback = true) const;
+    dap::settings::ClientSettings &target2dap(const DAPTargetConf &target);
+
+    // return false if nothing found
+    void informBreakpointAdded(const QUrl &path, const dap::Breakpoint &bpoint);
+    void informStackFrame();
+
+    QString m_targetName;
+    QString m_debuggerName;
+
+    void start();
+
+    dap::Client *m_client = nullptr;
+    std::optional<dap::settings::ClientSettings> m_settings;
+    Utils::PathMappingPtr m_pathMap;
+
+    State m_state = State::None;
+    Task m_task = Task::Idle;
+
+    QString m_file;
+    QString m_workDir;
+    std::optional<int> m_currentThread;
+    std::optional<int> m_currentFrame;
+    bool m_restart = false;
+
+    struct {
+        std::optional<State> target = std::nullopt;
+    } m_shutdown;
+
+    void shutdownUntil(std::optional<State> state = std::nullopt);
+    [[nodiscard]] bool continueShutdown() const;
+
+    int m_requests = 0;
+
+    QStringList m_commandQueue;
+    dap::Capabilities m_capabilities;
+
+    std::map<QUrl, QList<dap::SourceBreakpoint>> m_wantedBreakpoints;
+    QList<dap::FunctionBreakpoint> m_wantedFunctionBreakpoints;
+
+    QList<dap::StackFrame> m_frames;
+    QList<dap::Module> m_modules;
+    QTimer m_requestThreadsTimer;
+};

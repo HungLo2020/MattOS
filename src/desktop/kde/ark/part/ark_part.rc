@@ -1,0 +1,63 @@
+<!DOCTYPE gui SYSTEM "kpartgui.dtd">
+<gui name="ark_part" version="25" translationDomain="ark">
+<MenuBar>
+	<Menu name="archive">
+		<text>&amp;Archive</text>
+		<Action name="ark_file_save_as" group="file_save"/>
+		<Action name="add" group="archive_edit"/>
+		<Action name="edit_comment" group="archive_edit"/>
+		<Action name="extract_all" group="archive_extract"/>
+		<Action name="edit_find" group="archive_props"/>
+		<Action name="test_archive" group="archive_props"/>
+		<Action name="properties" group="archive_props"/>
+	</Menu>
+	<Menu name="ark_file">
+		<text>&amp;File</text>
+		<Action name="preview"/>
+		<Action name="openfile"/>
+		<Action name="openfilewith"/>
+		<Separator/>
+		<Action name="renamefile"/>
+		<Action name="deletefile"/>
+		<Action name="extract"/>
+		<Separator/>
+		<Action name="edit_cut"/>
+		<Action name="edit_copy"/>
+		<Action name="edit_paste"/>
+	</Menu>
+	<Menu name="settings">
+		<text>&amp;Settings</text>
+		<Action name="show-infopanel" group="settings_show"/>
+	</Menu>
+</MenuBar>
+<ToolBar name="mainToolBar">
+	<text>Main Toolbar</text>
+	<Action name="extract"/>
+	<Action name="add"/>
+	<Action name="edit_find"/>
+	<Separator/>
+	<Action name="preview"/>
+	<Action name="openfile"/>
+	<Action name="deletefile"/>
+        <Spacer/>
+        <Action name="hamburger_menu" />
+</ToolBar>
+<Menu name="context_menu">
+	<Action name="preview"/>
+	<Action name="openfile"/>
+	<Action name="openfilewith"/>
+	<Separator/>
+	<Action name="renamefile"/>
+	<Action name="deletefile"/>
+	<Action name="extract"/>
+	<Separator/>
+	<Action name="edit_cut"/>
+	<Action name="edit_copy"/>
+	<Action name="edit_paste"/>
+	<Separator/>
+	<Action name="add"/>
+</Menu>
+<ActionProperties scheme="Default">
+	<Action priority="0" name="show-infopanel"/>
+</ActionProperties>
+</gui>

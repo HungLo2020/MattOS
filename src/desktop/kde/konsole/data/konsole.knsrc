@@ -1,0 +1,6 @@
+[KNewStuff3]
+ProvidersUrl=https://autoconfig.kde.org/ocs/providers.xml
+Categories=Konsole Color Schemes
+TargetDir=konsole
+Uncompress=archive
+RemoveDeadEntries=true

@@ -1,0 +1,41 @@
+# translation of kpipewire to Esperanto
+# Copyright (C) 2017 Free Software Foundation, Inc.
+# Oliver Kellogg <olivermkellogg@gmail.com>, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: kpipewire\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-11-17 11:53+0000\n"
+"PO-Revision-Date: 2024-12-28 17:41+0100\n"
+"Last-Translator: Oliver Kellogg <olivermkellogg@gmail.com>\n"
+"Language-Team: Esperanto <kde-i18n-eo@kde.org>\n"
+"Language: eo\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+#: pipewirecore.cpp:90
+#, kde-format
+msgid ""
+"Invalid PipeWire installation. See https://gitlab.freedesktop.org/pipewire/"
+"pipewire/-/issues/3296 for more details."
+msgstr ""
+"Nevalida instalo de PipeWire. Vidu https://gitlab.freedesktop.org/pipewire/"
+"pipewire/-/issues/3296 pri detaloj."
+
+#: pipewirecore.cpp:107
+#, kde-format
+msgid "Failed to create PipeWire context"
+msgstr "Malsukcesis krei PipeWire-kuntekston"
+
+#: pipewirecore.cpp:124
+#, kde-format
+msgid "Failed to connect to PipeWire"
+msgstr "Malsukcesis konekti al PipeWire"
+
+#: pipewirecore.cpp:131
+#, kde-format
+msgid "Failed to start main PipeWire loop"
+msgstr "Malsukcesis startigi ĉefan PipeWire-buklon"

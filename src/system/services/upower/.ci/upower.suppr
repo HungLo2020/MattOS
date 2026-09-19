@@ -1,0 +1,11 @@
+[suppress_type]
+type_kind = enum
+changed_enumerators = UP_DEVICE_KIND_BLUETOOTH_GENERIC, UP_DEVICE_KIND_LAST
+
+[suppress_function]
+type_kind = function
+name_regexp = up_exported_kbd_backlight_*
+
+[suppress_function]
+type_kind = function
+symbol_name_regexp = up_exported_kbd_backlight_*

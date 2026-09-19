@@ -1,0 +1,32 @@
+# This file contains custom mount options for udisks 2.x
+# Typically placed at /etc/udisks2/mount_options.conf
+#
+# The simplified syntax is 'fs_signature[:fs_driver]_key=value1,value2,...'
+# where 'fs_signature' is the on-disk superblock identifier as exposed by blkid/udev
+# and 'fs_driver' is (optionally) the filesystem type (a kernel driver) passed
+# to the mount call. The 'key' is either "defaults", "allow" or "drivers".
+#
+# Refer to https://storaged.org/udisks/docs/mount_options.html
+#
+
+### Simple global overrides
+# [defaults]
+# # common options, applied to any filesystem, always merged with specific filesystem type options
+# defaults=ro
+# allow=exec,noexec,nodev,nosuid,atime,noatime,nodiratime,ro,rw,sync,dirsync,noload
+
+### Specific filesystem type options
+# vfat_defaults=uid=$UID,gid=$GID,shortname=mixed,utf8=1,showexec,flush
+# vfat_allow=uid=$UID,gid=$GID,flush,utf8,shortname,umask,dmask,fmask,codepage,iocharset,usefree,showexec
+# ntfs_defaults=uid=$UID,gid=$GID,windows_names
+# ntfs_allow=uid=$UID,gid=$GID,umask,dmask,fmask,locale,norecover,ignore_case,windows_names,compression,nocompression,big_writes
+
+### Matching single block device by its UUID
+# [/dev/disk/by-uuid/18afd8f0-0d86-4d96-8de0-5f92d2ee9800]
+# vfat_defaults=uid=$UID,gid=$GID,noexec
+#
+# [/dev/disk/by-label/EFI]
+# vfat_defaults=uid=$UID,gid=$GID,noexec,umask=111,dmask=000
+
+
+### For the reference, these are the builtin mount options:

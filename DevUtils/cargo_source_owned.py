@@ -37,12 +37,6 @@ def load_graph_module(root: pathlib.Path):
 def component_for_cwd(root: pathlib.Path, cwd: pathlib.Path, index: dict) -> str | None:
     resolved = cwd.resolve()
     parts = resolved.parts
-    marker = ('out', 'build', 'cosmic-desktop', 'sources')
-    for i in range(len(parts) - len(marker)):
-        if tuple(parts[i:i+len(marker)]) == marker and i + len(marker) < len(parts):
-            candidate = parts[i + len(marker)]
-            if candidate in index.get('components', {}):
-                return candidate
     for i in range(len(parts) - 2):
         if tuple(parts[i:i+2]) == ('out', 'build'):
             candidate = parts[i+2]
@@ -83,14 +77,6 @@ def component_mirror(root: pathlib.Path, component: str, index: dict) -> pathlib
     the subdirectory instead of the component root.
     """
     metadata = index.get('components', {}).get(component, {})
-    source_path = metadata.get('source_path', '')
-    # These two COSMIC components have dedicated native builders and their
-    # Cargo root lives in out/build/<component>/source.  The other COSMIC
-    # applications use the shared cosmic-desktop source mirror.
-    if component in {'cosmic-comp', 'cosmic-edit'}:
-        return root / 'out' / 'build' / component / 'source'
-    if source_path.startswith('src/desktop/cosmic/'):
-        return root / 'out' / 'build' / 'cosmic-desktop' / 'sources' / component
     return root / 'out' / 'build' / component / 'source'
 
 
@@ -374,7 +360,7 @@ def inject_locked_transitive_owned_patches(
         # Cargo patch keys may be aliases. The effective package identity is
         # ``spec.package`` when present, otherwise the table key. Replacing by
         # the literal package name would create a second entry for manifests
-        # such as ``cctk = { package = "cosmic-client-toolkit", ... }``.
+        # where a dependency key differs from its registry package name.
         matching_package_keys: list[str] = []
         for entry_key, entry_spec in table.items():
             effective_package = entry_key

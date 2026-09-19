@@ -126,7 +126,7 @@ fn build_gpgme(repo_root: &Path) -> Result<()> {
 
 fn build_flatpak(repo_root: &Path) -> Result<()> {
     // Flatpak is a native target package-manager runtime.  Keep its build
-    // isolated from the COSMIC aggregate so its pkg-config and ELF closure
+    // isolated from desktop aggregation so its pkg-config and ELF closure
     // can be audited independently.
     build_meson_runtime(
         repo_root,
@@ -188,7 +188,7 @@ fn build_flatpak(repo_root: &Path) -> Result<()> {
             // MattOS grants ordinary administrative users membership in
             // `sudo`, not Debian/Fedora's `wheel`.  Flatpak's generated
             // system-helper polkit rule must follow that distro policy so
-            // COSMIC Store can authorize system installs without making the
+            // Desktop software centers can authorize system installs without making the
             // installation tree writable or running Store as root.
             "-Dprivileged_group=sudo",
             "-Dseccomp=disabled",

@@ -1,0 +1,100 @@
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Luiz Fernando Ranghetti <elchevive@opensuse.org>, 2016, 2017, 2022.
+# SPDX-FileCopyrightText: 2024 Igor Moreira Padua <igorpadua@discente.ufg.br>
+# SPDX-FileCopyrightText: 2025 Guilherme Marçal Silva <guimarcalsilva@gmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-12-18 00:46+0000\n"
+"PO-Revision-Date: 2025-02-20 01:51-0300\n"
+"Last-Translator: Guilherme Marçal Silva <guimarcalsilva@gmail.com>\n"
+"Language-Team: Brazilian Portuguese <kde-i18n-pt_BR@kde.org>\n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Lokalize 24.12.2\n"
+
+#: plugin_katexmlcheck.cpp:90
+#, kde-format
+msgid "XML Check"
+msgstr "Verificar XML"
+
+#: plugin_katexmlcheck.cpp:95
+#, kde-format
+msgid "Validate XML"
+msgstr "Validar XML"
+
+#: plugin_katexmlcheck.cpp:125
+#, kde-format
+msgid "Validate process crashed"
+msgstr "Validar processo falhou"
+
+#: plugin_katexmlcheck.cpp:125 plugin_katexmlcheck.cpp:143
+#: plugin_katexmlcheck.cpp:203 plugin_katexmlcheck.cpp:228
+#: plugin_katexmlcheck.cpp:248 plugin_katexmlcheck.cpp:331
+#, kde-format
+msgid "XMLCheck"
+msgstr "VerificarXML"
+
+#: plugin_katexmlcheck.cpp:139
+#, kde-format
+msgid "No DOCTYPE found, will only check well-formedness."
+msgstr "Não foi encontrado nenhum DOCTYPE, apenas verificará a boa forma."
+
+#: plugin_katexmlcheck.cpp:141
+#, kde-format
+msgctxt "%1 refers to the XML DTD"
+msgid "'%1' not found, will only check well-formedness."
+msgstr "'%1' não encontrado, apenas verificará a boa forma."
+
+#: plugin_katexmlcheck.cpp:227
+#, kde-format
+msgid "<b>Error:</b> Could not create temporary file '%1'."
+msgstr "<b>Erro:</b> Não foi possível criar o arquivo temporário '%1'."
+
+#: plugin_katexmlcheck.cpp:246
+#, kde-format
+msgid ""
+"<b>Error:</b> Failed to find xmllint. Please make sure that xmllint is "
+"installed. It is part of libxml2."
+msgstr ""
+"<b>Erro:</b> Falha ao encontrar o xmllint. Certifique-se de que o programa "
+"está instalado. Ele é parte do libxml2."
+
+#: plugin_katexmlcheck.cpp:329
+#, kde-format
+msgid ""
+"<b>Error:</b> Failed to execute xmllint. Please make sure that xmllint is "
+"installed. It is part of libxml2."
+msgstr ""
+"<b>Erro:</b> Falha ao executar o xmllint. Certifique-se de que o programa "
+"está instalado. Ele é parte do libxml2."
+
+#. i18n: ectx: Menu (xml)
+#: ui.rc:6
+#, kde-format
+msgid "&XML"
+msgstr "&XML"
+
+#~ msgid "XML Checker"
+#~ msgstr "Verificador XML"
+
+#~ msgid "#"
+#~ msgstr "#"
+
+#~ msgid "Line"
+#~ msgstr "Linha"
+
+#~ msgid "Column"
+#~ msgstr "Coluna"
+
+#~ msgid "Message"
+#~ msgstr "Mensagem"
+
+#~ msgid "Kate XML check"
+#~ msgstr "Verificador XML do Kate"

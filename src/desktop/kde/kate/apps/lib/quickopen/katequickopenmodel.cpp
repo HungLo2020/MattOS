@@ -1,0 +1,183 @@
+/*
+    SPDX-FileCopyrightText: 2018 Tomaz Canabrava <tcanabrava@kde.org>
+    SPDX-FileCopyrightText: 2021 Waqar Ahmed <waqar.17a@gmail.com>
+
+    SPDX-License-Identifier: LGPL-2.0-or-later
+*/
+
+#include "katequickopenmodel.h"
+
+#include "kateapp.h"
+#include "katemainwindow.h"
+
+#include <KLocalizedString>
+#include <KTextEditor/Document>
+#include <KTextEditor/View>
+
+#include <QFileInfo>
+#include <QIcon>
+#include <QMimeDatabase>
+
+#include <memory_resource>
+#include <unordered_set>
+
+KateQuickOpenModel::KateQuickOpenModel(QObject *parent)
+    : QAbstractTableModel(parent)
+{
+}
+
+int KateQuickOpenModel::rowCount(const QModelIndex &parent) const
+{
+    if (parent.isValid()) {
+        return 0;
+    }
+    return (int)m_modelEntries.size();
+}
+
+int KateQuickOpenModel::columnCount(const QModelIndex &parent) const
+{
+    Q_UNUSED(parent);
+    return 1;
+}
+
+QVariant KateQuickOpenModel::data(const QModelIndex &idx, int role) const
+{
+    if (!idx.isValid()) {
+        return {};
+    }
+
+    const ModelEntry &entry = m_modelEntries.at(idx.row());
+    switch (role) {
+    case Qt::DisplayRole:
+    case Role::FileName:
+        return QString::fromRawData(entry.fileName.data(), entry.fileName.size());
+    case Role::FilePath: {
+        // no .remove since that might remove all occurrence in rare cases
+        const auto &path = entry.filePath;
+        return path.startsWith(m_projectBase) ? path.mid(m_projectBase.size()) : path;
+    }
+    case Qt::FontRole: {
+        if (entry.document) {
+            QFont font;
+            font.setBold(true);
+            return font;
+        }
+        return {};
+    }
+    case Qt::DecorationRole: {
+        if (auto it = m_icons.constFind(entry.filePath); it != m_icons.cend()) {
+            return it.value();
+        }
+        auto &icon = m_icons[entry.filePath];
+        icon = QIcon::fromTheme(QMimeDatabase().mimeTypeForFile(entry.filePath, QMimeDatabase::MatchExtension).iconName());
+        return icon;
+    }
+    case Qt::UserRole:
+        return !entry.document ? QUrl::fromLocalFile(entry.filePath) : entry.document->url();
+    case Role::Score:
+        return entry.score;
+    case Role::Document:
+        return QVariant::fromValue(entry.document);
+    default:
+        return {};
+    }
+
+    return {};
+}
+
+void KateQuickOpenModel::refresh(KateMainWindow *mainWindow)
+{
+    QObject *projectView = mainWindow->pluginView(QStringLiteral("kateprojectplugin"));
+    const auto sortedViews = mainWindow->views();
+    const QList<KTextEditor::Document *> openDocs = KateApp::self()->documentManager()->documentList();
+    const QStringList projectDocs = projectView
+        ? (m_listMode == CurrentProject ? projectView->property("projectFiles") : projectView->property("allProjectsFiles")).toStringList()
+        : QStringList();
+    const auto projects = projectView ? projectView->property("allProjects").value<QMap<QString, QString>>() : QMap<QString, QString>();
+    const QString projectBase = [projectView]() -> QString {
+        if (!projectView) {
+            return {};
+        }
+        QString ret;
+        // open files are always included in the listing, even if list mode == CurrentProject
+        // those open files may belong to another project than the current one
+        // so we should always consistently strip the common base
+        // otherwise it will be confusing and the opened files of anther project
+        // end up with an unstripped complete file path
+        ret = projectView->property("allProjectsCommonBaseDir").toString();
+        if (!ret.endsWith(u'/')) {
+            ret.append(u'/');
+        }
+        // avoid strip of a single leading /
+        if (ret == QLatin1String("/")) {
+            ret.clear();
+        }
+        return ret;
+    }();
+
+    m_projectBase = projectBase;
+
+    std::vector<ModelEntry> allDocuments;
+    std::vector<QString> strings;
+    allDocuments.reserve(sortedViews.size() + projectDocs.size());
+
+    std::byte tempBuffer[256 * 1000];
+    std::pmr::monotonic_buffer_resource memory(tempBuffer, sizeof(tempBuffer));
+
+    std::pmr::unordered_set<QString> openedDocUrls(&memory);
+    std::pmr::unordered_set<KTextEditor::Document *> seenDocuments(&memory);
+    openedDocUrls.reserve(sortedViews.size());
+
+    const auto collectDoc = [&openedDocUrls, &seenDocuments, &allDocuments, &strings](KTextEditor::Document *doc) {
+        // we don't want nullptr (bug 497150) or any duplicates, beside for untitled documents
+        if (!doc || !seenDocuments.insert(doc).second) {
+            return;
+        }
+
+        // document with set url => use the url for displaying
+        if (!doc->url().isEmpty()) {
+            auto path = doc->url().toString(QUrl::NormalizePathSegments | QUrl::PreferLocalFile);
+            openedDocUrls.insert(path);
+            strings.push_back(QFileInfo(path).fileName());
+            allDocuments.push_back({strings.back(), path, doc, -1});
+            return;
+        }
+
+        // untitled document
+        strings.push_back(doc->documentName());
+        allDocuments.push_back({strings.back(), QString(), doc, -1});
+    };
+
+    for (auto *view : sortedViews) {
+        collectDoc(view->document());
+    }
+
+    for (auto *doc : openDocs) {
+        collectDoc(doc);
+    }
+
+    for (const QString &filePath : projectDocs) {
+        // No duplicates
+        if (openedDocUrls.count(filePath) != 0) {
+            continue;
+        }
+
+        // QFileInfo is too expensive just for fileName computation
+        const int slashIndex = filePath.lastIndexOf(u'/');
+        QStringView fileName = QStringView(filePath).mid(slashIndex + 1);
+        allDocuments.push_back({fileName, filePath, nullptr, -1});
+    }
+
+    // Add projects to the docunents list, and the filepath is their base directory
+    if (projects.count() > 1) {
+        for (const auto &[projectBaseDir, projectName] : projects.asKeyValueRange()) {
+            strings.push_back(i18n("Project: %1", projectName));
+            allDocuments.push_back({strings.back(), projectBaseDir, nullptr, -1});
+        }
+    }
+
+    beginResetModel();
+    m_modelEntries = std::move(allDocuments);
+    m_strings = std::move(strings);
+    endResetModel();
+}

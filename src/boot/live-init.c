@@ -35,7 +35,6 @@
 #define RESCUE_INIT_PATH "/usr/libexec/mattos/rescue-init"
 #define LIVE_GUI_TARGET "mattos-live-graphical.target"
 #define LIVE_CLI_TARGET "mattos.target"
-#define INSTALL_GUI_TARGET "mattos-install-graphical.target"
 #define INSTALL_CLI_TARGET "mattos-install-cli.target"
 
 static void message(const char *format, ...)
@@ -335,9 +334,7 @@ int main(void)
     const char *real_init = rescue_mode ? RESCUE_INIT_PATH : SYSTEMD_PATH;
     const char *systemd_target = NULL;
     if (!rescue_mode) {
-        if (command_line_has_token("mattos.mode=install-gui"))
-            systemd_target = INSTALL_GUI_TARGET;
-        else if (command_line_has_token("mattos.mode=install-cli"))
+        if (command_line_has_token("mattos.mode=install-cli"))
             systemd_target = INSTALL_CLI_TARGET;
         else if (command_line_has_token("mattos.mode=live"))
             systemd_target = LIVE_GUI_TARGET;

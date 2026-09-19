@@ -1,0 +1,28 @@
+.
+.SH NOTES
+.
+The vg_attr bits are:
+.
+.IP 1 3
+Permissions: (\fBw\fP)riteable, (\fBr\fP)ead-only
+.
+.IP 2
+Resi(\fBz\fP)eable
+.
+.IP 3
+E(\fBx\fP)ported
+.
+.IP 4
+(\fBp\fP)artial: one or more physical volumes belonging to the volume group
+are missing from the system
+.
+.IP 5
+Allocation policy: (\fBc\fP)ontiguous, c(\fBl\fP)ing,
+(\fBn\fP)ormal, (\fBa\fP)nywhere
+.
+.IP 6
+(\fBc\fP)lustered, (\fBs\fP)hared
+.
+.IP 7
+(\fBP\fP)ersistent reservation is required but is not started,
+(\fBp\fP)ersistent reservation is required and is started.

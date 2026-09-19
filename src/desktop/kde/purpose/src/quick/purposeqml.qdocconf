@@ -1,0 +1,36 @@
+include($KDE_DOCS/global/qt-module-defaults.qdocconf)
+
+project = PurposeQml
+description = Framework for providing abstractions to get the developer's purposes fulfilled.
+
+documentationinheaders = true
+
+headerdirs += .
+sourcedirs += .
+
+outputformats = HTML
+
+navigation.landingpage = "Purpose"
+
+depends += \
+    kde \
+    qtcore \
+    qtqml \
+    qtquickcontrols \
+    purpose
+
+qhp.projects            = PurposeQml
+
+qhp.PurposeQml.file                = purposeqml.qhp
+qhp.PurposeQml.namespace           = org.kde.purposeqml.$QT_VERSION_TAG
+qhp.PurposeQml.virtualFolder       = purposeqml
+qhp.PurposeQml.indexTitle          = Purpose QML
+qhp.PurposeQml.indexRoot           =
+
+qhp.PurposeQml.subprojects         = qmltypes
+qhp.PurposeQml.subprojects.qmltypes.title = QML Types
+qhp.PurposeQml.subprojects.qmltypes.indexTitle = Purpose QML Types
+qhp.PurposeQml.subprojects.qmltypes.selectors = qmltype
+qhp.PurposeQml.subprojects.qmltypes.sortPages = true
+
+tagfile = purposeqml.tags

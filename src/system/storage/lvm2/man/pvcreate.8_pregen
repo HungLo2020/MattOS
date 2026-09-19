@@ -1,0 +1,673 @@
+.TH PVCREATE 8 "LVM TOOLS #VERSION#" "Red Hat, Inc."
+.
+.ie t \{\
+.\" PostScript/PDF with tabs
+. ds TT \t
+. ds DTT \t\t
+.\}
+.el \{\
+. ds TT \&
+. ds DTT \0\0\0
+.\}
+.
+.de OPT
+.ie \\n(.$>1 \\*[TT]\fB-\\$1\fP|\\*[TT]\fB--\\$2\fP\c
+.el \\*[DTT]\fB--\\$1\fP\c
+..
+.
+.de OPA
+.OPT \\$*
+\ \c
+..
+.de OPS
+.OPT \\$*
+\&
+..
+.
+.
+.\"List of all options as O_string.
+.
+.de O_bootloaderareasize
+.OPA bootloaderareasize
+\fISize\fP[m|\:UNIT]
+..
+.de O_commandprofile
+.OPA commandprofile
+\fIString\fP
+..
+.de O_config
+.OPA config
+\fIString\fP
+..
+.de O_dataalignment
+.OPA dataalignment
+\fISize\fP[k|\:UNIT]
+..
+.de O_dataalignmentoffset
+.OPA dataalignmentoffset
+\fISize\fP[k|\:UNIT]
+..
+.de O_debug
+.OPA d debug
+\&\.\|.\|.\&
+..
+.de O_devices
+.OPA devices
+\fIPV\fP
+..
+.de O_devicesfile
+.OPA devicesfile
+\fIString\fP
+..
+.de O_driverloaded
+.OPA driverloaded
+\fBy\fP|\fBn\fP
+..
+.de O_force
+.OPA f force
+\&\.\|.\|.\&
+..
+.de O_help
+.OPS h help
+..
+.de O_journal
+.OPA journal
+\fIString\fP
+..
+.de O_labelsector
+.OPA labelsector
+\fINumber\fP
+..
+.de O_lockopt
+.OPA lockopt
+\fIString\fP
+..
+.de O_longhelp
+.OPS longhelp
+..
+.de O_metadataignore
+.OPA metadataignore
+\fBy\fP|\fBn\fP
+..
+.de O_metadatasize
+.OPA metadatasize
+\fISize\fP[m|\:UNIT]
+..
+.de O_metadatatype
+.OPA M metadatatype
+\fBlvm2\fP
+..
+.de O_nohints
+.OPS nohints
+..
+.de O_nolocking
+.OPS nolocking
+..
+.de O_norestorefile
+.OPS norestorefile
+..
+.de O_profile
+.OPA profile
+\fIString\fP
+..
+.de O_pvmetadatacopies
+.OPA \fP[\fBpv\fP]\fBmetadatacopies
+\fB0\fP|\fB1\fP|\fB2\fP
+..
+.de O_quiet
+.OPA q quiet
+\&\.\|.\|.\&
+..
+.de O_reportformat
+.OPA reportformat
+\%\fBbasic\fP|\:\
+\fBjson\fP|\:\
+\fBjson_std\fP
+..
+.de O_restorefile
+.OPA restorefile
+\fIString\fP
+..
+.de O_setphysicalvolumesize
+.OPA setphysicalvolumesize
+\fISize\fP[m|\:UNIT]
+..
+.de O_test
+.OPS t test
+..
+.de O_uuid
+.OPA u uuid
+\fIString\fP
+..
+.de O_verbose
+.OPA v verbose
+\&\.\|.\|.\&
+..
+.de O_version
+.OPS version
+..
+.de O_yes
+.OPS y yes
+..
+.de O_zero
+.OPA Z zero
+\fBy\fP|\fBn\fP
+..
+.
+.SH NAME
+.
+pvcreate \(em Initialize physical volume(s) for use by LVM
+.
+.SH SYNOPSIS
+.
+.nh
+.TP
+\fBpvcreate\fP \fIposition_args\fP
+[ \fIoption_args\fP ]
+.hy
+.
+.ds TT \&
+.ds DTT \&
+.
+.
+.SH DESCRIPTION
+.
+pvcreate initializes a Physical Volume (PV) on a device so the device is
+recognized as belonging to LVM.  This allows the PV to be used in a Volume
+Group (VG).  An LVM disk label is written to the device, and LVM metadata
+areas are initialized.  A PV can be placed on a whole device or partition.
+.P
+Use \fBvgcreate\fP(8) to create a new VG on the PV, or \fBvgextend\fP(8)
+to add the PV to an existing VG.  Use \fBpvremove\fP(8) to remove the LVM
+disk label from the device.
+.P
+The force option will create a PV without confirmation.  Repeating the
+force option (\fB-ff\fP) will forcibly create a PV, overriding checks that
+normally prevent it, e.g. if the PV is already in a VG.
+.P
+.B Metadata location, size, and alignment
+.P
+The LVM disk label begins 512 bytes from the start of the device, and is
+512 bytes in size.
+.P
+The LVM metadata area begins at an offset (from the start of the device)
+equal to the page size of the machine creating the PV (often 4\~KiB.) The
+metadata area contains a 512 byte header and a multi-KiB circular buffer
+that holds text copies of the VG metadata.
+.P
+With default settings, the first physical extent (PE), which contains LV
+data, is 1\~MiB from the start of the device.  This location is controlled
+by \fBdefault_data_alignment\fP in lvm.conf, which is set to 1 (MiB) by
+default.  The pe_start will be a multiple of this many MiB.  This location
+can be checked with:
+.br
+.B pvs -o pe_start
+.I PV
+.P
+The size of the LVM metadata area is the space between the start of
+the metadata area and the first PE.  When metadata begins at 4\~KiB and the
+first PE is at 1024\~KiB, the metadata area size is 1020\~KiB.  This can be
+checked with:
+.br
+.B pvs -o mda_size
+.I PV
+.P
+The mda_size cannot be increased after pvcreate, so if larger metadata is
+needed, it must be set during pvcreate.  Two copies of the VG metadata
+must always fit within the metadata area, so the maximum VG metadata size
+is around half the mda_size.  This can be checked with:
+.br
+.B vgs -o mda_free
+.I VG
+.P
+A larger metadata area can be set with --metadatasize.  The resulting
+mda_size may be larger than specified due to default_data_alignment
+placing pe_start on a MiB boundary, and the fact that the metadata area
+extends to the first PE.  With metadata starting at 4\~KiB and
+default_data_alignment 1 (MiB), setting --metadatasize 2048k results in
+pe_start of 3\~MiB and mda_size of 3068\~KiB.
+Alternatively, --metadatasize 2044k results in pe_start at 2\~MiB
+and mda_size of 2044\~KiB.
+.P
+The alignment of pe_start described above may be automatically overridden
+based on md device properties or device i/o properties reported in sysfs.
+These automatic adjustments can be enabled/disabled using lvm.conf
+settings md_chunk_alignment and data_alignment_offset_detection.
+.P
+To use a different pe_start alignment, use the --dataalignment option.
+The --metadatasize option would also typically be used in this case
+because the metadata area size also determines the location of pe_start.
+When using these two options together, pe_start is calculated as:
+metadata area start (page size), plus the specified --metadatasize,
+rounded up to the next multiple of --dataalignment.
+With metadata starting at 4\~KiB, --metadatasize 2048k,
+and --dataalignment 128k, pe_start is 2176\~KiB and mda_size is 2172\~KiB.
+The pe_start of 2176\~KiB is the nearest even multiple of 128\~KiB that
+provides at least 2048\~KiB of metadata space.
+Always check the resulting alignment and metadata size when using
+these options.
+.P
+To shift an aligned pe_start value, use the --dataalignmentoffset option.
+The pe_start alignment is calculated as described above, and then the
+value specified with --dataalignmentoffset is added to produce the final
+pe_start value.
+.
+.SH USAGE
+.
+.nh
+.na
+.B pvcreate
+\fIPV\fP\ .\|.\|.\&
+.RS
+[
+.O_force
+]
+.br
+[
+.O_metadatatype
+]
+.br
+[
+.O_uuid
+]
+.br
+[
+.O_zero
+]
+.br
+[
+.O_bootloaderareasize
+]
+.br
+[
+.O_dataalignment
+]
+.br
+[
+.O_dataalignmentoffset
+]
+.br
+[
+.O_labelsector
+]
+.br
+[
+.O_metadataignore
+]
+.br
+[
+.O_metadatasize
+]
+.br
+[
+.O_norestorefile
+]
+.br
+[
+.O_pvmetadatacopies
+]
+.br
+[
+.O_reportformat
+]
+.br
+[
+.O_restorefile
+]
+.br
+[
+.O_setphysicalvolumesize
+]
+.br
+[ COMMON_OPTIONS ]
+.RE
+.P
+\(em
+.P
+Common options for lvm:
+.RS
+[
+.O_debug
+]
+.br
+[
+.O_help
+]
+.br
+[
+.O_quiet
+]
+.br
+[
+.O_test
+]
+.br
+[
+.O_verbose
+]
+.br
+[
+.O_yes
+]
+.br
+[
+.O_commandprofile
+]
+.br
+[
+.O_config
+]
+.br
+[
+.O_devices
+]
+.br
+[
+.O_devicesfile
+]
+.br
+[
+.O_driverloaded
+]
+.br
+[
+.O_journal
+]
+.br
+[
+.O_lockopt
+]
+.br
+[
+.O_longhelp
+]
+.br
+[
+.O_nohints
+]
+.br
+[
+.O_nolocking
+]
+.br
+[
+.O_profile
+]
+.br
+[
+.O_version
+]
+.RE
+.hy
+.ad
+.
+.SH OPTIONS
+.
+.TP
+.O_bootloaderareasize
+Reserve space for the bootloader between the LVM metadata area and the first PE.
+The bootloader area is reserved for bootloaders to embed their own data or
+metadata; LVM will not use it.
+The bootloader area begins where the first PE would otherwise be located.
+The first PE is moved out by the size of the bootloader area, and then moved
+out further if necessary to match the data alignment.
+The start of the bootloader area is always aligned, see also --dataalignment
+and --dataalignmentoffset. The bootloader area may be larger than requested
+due to the alignment, but it's never less than the requested size.
+To see the bootloader area start and size of
+an existing PV use pvs -o +pv_ba_start,pv_ba_size.
+.
+.TP
+.O_commandprofile
+The command profile to use for command configuration.
+See \fBlvm.conf\fP(5) for more information about profiles.
+.
+.TP
+.O_config
+Config settings for the command. These override \fBlvm.conf\fP(5) settings.
+The String arg uses the same format as \fBlvm.conf\fP(5),
+or may use section/field syntax.
+See \fBlvm.conf\fP(5) for more information about config.
+.
+.TP
+.O_dataalignment
+Align the start of a PV data area with a multiple of this number.
+To see the location of the first Physical Extent (PE) of an existing PV,
+use pvs -o +pe_start. In addition, it may be shifted by an alignment offset,
+see --dataalignmentoffset.
+Also specify an appropriate PE size when creating a VG.
+.
+.TP
+.O_dataalignmentoffset
+Shift the start of the PV data area by this additional offset.
+.
+.TP
+.O_debug
+Set debug level. Repeat from 1 to 6 times to increase the detail of
+messages sent to the log file and/or syslog (if configured).
+.
+.TP
+.O_devices
+Restricts the devices that are visible and accessible to the command.
+Devices not listed will appear to be missing. This option can be
+repeated, or accepts a comma separated list of devices. This overrides
+the devices file.
+.
+.TP
+.O_devicesfile
+A file listing devices that LVM should use.
+The file must exist in \fI#DEFAULT_SYS_DIR#/devices/\fP and is managed
+with the \fBlvmdevices\fP(8) command.
+This overrides the \fBlvm.conf\fP(5) \fBdevices/devicesfile\fP and
+\fBdevices/use_devicesfile\fP settings.
+.
+.TP
+.O_driverloaded
+If set to no, the command will not attempt to use device-mapper.
+For testing and debugging.
+.
+.TP
+.O_force
+Override various checks, confirmations and protections.
+Use with extreme caution.
+.
+.TP
+.O_help
+Display help text.
+.
+.TP
+.O_journal
+Record information in the systemd journal.
+This information is in addition to information
+enabled by the lvm.conf log/journal setting.
+command: record information about the command.
+output: record the default command output.
+debug: record full command debugging.
+.
+.TP
+.O_labelsector
+By default the PV is labelled with an LVM2 identifier in its second
+sector (sector 1). This lets you use a different sector near the
+start of the disk (between 0 and 3 inclusive - see LABEL_SCAN_SECTORS
+in the source). Use with care.
+.
+.TP
+.O_lockopt
+Used to pass options for special cases to lvmlockd.
+See \fBlvmlockd\fP(8) for more information.
+.
+.TP
+.O_longhelp
+Display long help text.
+.
+.TP
+.O_metadataignore
+Specifies the metadataignore property of a PV.
+If yes, metadata areas on the PV are ignored, and lvm will
+not store metadata in the metadata areas of the PV.
+If no, lvm will store metadata on the PV.
+.
+.TP
+.O_metadatasize
+The approximate amount of space used for each VG metadata area.
+The size may be rounded.
+.
+.TP
+.O_metadatatype
+Specifies the type of on-disk metadata to use.
+\fBlvm2\fP (or just \fB2\fP) is the current, standard format.
+\fBlvm1\fP (or just \fB1\fP) is no longer used.
+.
+.TP
+.O_nohints
+Do not use the hints file to locate devices for PVs. A command may read
+more devices to find PVs when hints are not used. The command will still
+perform standard hint file invalidation where appropriate.
+.
+.TP
+.O_nolocking
+Disable locking. Use with caution, concurrent commands may produce
+incorrect results.
+.
+.TP
+.O_norestorefile
+In conjunction with --uuid, this allows a uuid to be specified
+without also requiring that a backup of the metadata be provided.
+.
+.TP
+.O_profile
+An alias for --commandprofile or --metadataprofile, depending
+on the command.
+.
+.TP
+.O_pvmetadatacopies
+The number of metadata areas to set aside on a PV for storing VG metadata.
+When 2, one copy of the VG metadata is stored at the front of the PV
+and a second copy is stored at the end.
+When 1, one copy of the VG metadata is stored at the front of the PV.
+When 0, no copies of the VG metadata are stored on the given PV.
+This may be useful in VGs containing many PVs (this places limitations
+on the ability to use vgsplit later.)
+.
+.TP
+.O_quiet
+Suppress output and log messages. Overrides --debug and --verbose.
+Repeat once to also suppress any prompts with answer 'no'.
+.
+.TP
+.O_reportformat
+Overrides current output format for reports which is defined globally by
+the report/output_format setting in \fBlvm.conf\fP(5).
+\fBbasic\fP is the original format with columns and rows.
+If there is more than one report per command, each report is prefixed
+with the report name for identification. \fBjson\fP produces report
+output in JSON format. \fBjson_std\fP produces report output in
+JSON format which is more compliant with JSON standard.
+See \fBlvmreport\fP(7) for more information.
+.
+.TP
+.O_restorefile
+In conjunction with --uuid, this reads the file (produced by
+vgcfgbackup), extracts the location and size of the data on the PV,
+and ensures that the metadata produced by the program is consistent
+with the contents of the file, i.e. the physical extents will be in
+the same place and not be overwritten by new metadata. This provides
+a mechanism to upgrade the metadata format or to add/remove metadata
+areas. Use with care.
+.
+.TP
+.O_setphysicalvolumesize
+Overrides the automatically detected size of the PV.
+Use with care, or prior to reducing the physical size of the device.
+.
+.TP
+.O_test
+Run in test mode. Commands will not update metadata.
+This is implemented by disabling all metadata writing but nevertheless
+returning success to the calling function. This may lead to unusual
+error messages in multi-stage operations if a tool relies on reading
+back metadata it believes has changed but hasn't.
+.
+.TP
+.O_uuid
+Specify a UUID for the device.
+Without this option, a random UUID is generated.
+This option is needed before restoring a backup of LVM metadata
+onto a replacement device; see \fBvgcfgrestore\fP(8). As such, use of
+--restorefile is compulsory unless the --norestorefile is used.
+All PVs must have unique UUIDs, and LVM will prevent certain operations
+if multiple devices are seen with the same UUID.
+See \fBvgimportclone\fP(8) for more information.
+.
+.TP
+.O_verbose
+Set verbose level. Repeat from 1 to 4 times to increase the detail
+of messages sent to stdout and stderr.
+.
+.TP
+.O_version
+Display version information.
+.
+.TP
+.O_yes
+Do not prompt for confirmation interactively but always assume the
+answer yes. Use with extreme caution.
+(For automatic no, see -qq.)
+.
+.TP
+.O_zero
+Controls if the first 4 sectors (2048 bytes) of the device are wiped.
+The default is to wipe these sectors unless either or both of
+--restorefile or --uuid are specified.
+.
+.SH VARIABLES
+.
+.TP
+.I PV
+Physical Volume name, a device path under /dev.
+For commands managing physical extents, a PV positional arg
+generally accepts a suffix indicating a range (or multiple ranges)
+of physical extents (PEs). When the first PE is omitted, it defaults
+to the start of the device, and when the last PE is omitted it defaults to end.
+.br
+Start and end range (inclusive):
+\fIPV\fP[\fB:\fP\fIPE\fP\fB-\fP\fIPE\fP]\ .\|.\|.\&
+.br
+Start and length range (counting from 0):
+\fIPV\fP[\fB:\fP\fIPE\fP\fB+\fP\fIPE\fP]\ .\|.\|.\&
+.
+.TP
+.I String
+See the option description for information about the string content.
+.
+.TP
+.IR Size [UNIT]
+Size is an input number that accepts an optional unit.
+Input units are always treated as base two values, regardless of
+capitalization, e.g. 'k' and 'K' both refer to 1024.
+The default input unit is specified by letter, followed by |UNIT.
+UNIT represents other possible input units:
+.BR b | B
+is bytes,
+.BR s | S
+is sectors of 512 bytes,
+.BR k | K
+is KiB,
+.BR m | M
+is MiB,
+.BR g | G
+is GiB,
+.BR t | T
+is TiB,
+.BR p | P
+is PiB,
+.BR e | E
+is EiB.
+(This should not be confused with the output control --units,
+where capital letters mean multiple of 1000.)
+.
+.SH ENVIRONMENT VARIABLES
+.
+See \fBlvm\fP(8) for information about environment variables used by lvm.
+For example, \fBLVM_VG_NAME\fP can generally be substituted
+for a required VG parameter.

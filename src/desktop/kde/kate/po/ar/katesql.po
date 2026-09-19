@@ -1,0 +1,748 @@
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+# Safa Alfulaij <safaalfulaij@hotmail.con>, 2013, 2016.
+# SPDX-FileCopyrightText: 2021, 2022, 2025, 2026 Zayed Al-Saidi <zayed.alsaidi@gmail.com>
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-06-24 01:27+0000\n"
+"PO-Revision-Date: 2026-06-05 14:06+0400\n"
+"Last-Translator: Zayed Al-Saidi <zayed.alsaidi@gmail.com>\n"
+"Language-Team: ar\n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
+"&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
+"X-Generator: Lokalize 23.08.5\n"
+
+#: connectionwizard.cpp:30
+#, kde-format
+msgctxt "@title:window"
+msgid "Connection Wizard"
+msgstr "مُرشد الاتّصالات"
+
+#: connectionwizard.cpp:45
+#, kde-format
+msgctxt "@title Wizard page title"
+msgid "Database Driver"
+msgstr "محرّك قاعدة البيانات"
+
+#: connectionwizard.cpp:46
+#, kde-format
+msgctxt "@title Wizard page subtitle"
+msgid "Select the database driver"
+msgstr "اختر محرّك قاعدة البيانات"
+
+#: connectionwizard.cpp:53
+#, kde-format
+msgctxt "@label:listbox"
+msgid "Database driver:"
+msgstr "محرّك قاعدة البيانات:"
+
+#: connectionwizard.cpp:82 connectionwizard.cpp:168
+#, kde-format
+msgctxt "@title Wizard page title"
+msgid "Connection Parameters"
+msgstr "معاملات الاتّصال"
+
+#: connectionwizard.cpp:83
+#, kde-format
+msgctxt "@title Wizard page subtitle"
+msgid "Please enter connection parameters"
+msgstr "فضلًا أدخل معاملات الاتّصال"
+
+#: connectionwizard.cpp:95
+#, kde-format
+msgctxt "@item Spinbox special value"
+msgid "Default"
+msgstr "المبدئيّ"
+
+#: connectionwizard.cpp:98
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Hostname:"
+msgstr "اسم المضيف:"
+
+#: connectionwizard.cpp:99
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Username:"
+msgstr "اسم المستخدم:"
+
+#: connectionwizard.cpp:100
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Password:"
+msgstr "كلمة السر:"
+
+#: connectionwizard.cpp:101
+#, kde-format
+msgctxt "@label:spinbox"
+msgid "Port:"
+msgstr "المنفذ:"
+
+#: connectionwizard.cpp:102
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Database name:"
+msgstr "اسم قاعدة البيانات:"
+
+#: connectionwizard.cpp:103 connectionwizard.cpp:180
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Connection options:"
+msgstr "خيارات الاتّصال:"
+
+#: connectionwizard.cpp:153
+#, kde-format
+msgid "Unable to connect to database."
+msgstr "تعذّر الاتّصال بقاعدة البيانات."
+
+#: connectionwizard.cpp:170
+#, kde-format
+msgctxt "@title Wizard page subtitle"
+msgid ""
+"Please enter the SQLite database file path.\n"
+"If the file does not exist, a new database will be created."
+msgstr ""
+"فضلًا أدخل مسار ملفّ قاعدة بيانات SQLite.\n"
+"إن لم يكن الملفّ موجودًا، ستُنشأ قاعدة بيانات جديدة."
+
+#: connectionwizard.cpp:178
+#, kde-format
+msgid "Database files"
+msgstr "ملفّات قواعد البيانات"
+
+#: connectionwizard.cpp:178 exportwizard.cpp:54
+#, kde-format
+msgid "All files"
+msgstr "كلّ الملفّات"
+
+#: connectionwizard.cpp:179
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Path:"
+msgstr "المسار:"
+
+#: connectionwizard.cpp:212
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Unable to connect to database.<nl/><message>%1</message>"
+msgstr "تعذّر الاتّصال بقاعدة البيانات.<nl/><message>%1</message>"
+
+#: connectionwizard.cpp:227
+#, kde-format
+msgctxt "@title Wizard page title"
+msgid "Connection Name"
+msgstr "اسم الاتّصال"
+
+#: connectionwizard.cpp:228
+#, kde-format
+msgctxt "@title Wizard page subtitle"
+msgid "Enter a unique connection name"
+msgstr "أدخل اسم اتّصال فريد"
+
+#: connectionwizard.cpp:234
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Connection name:"
+msgstr "اسم الاتّصال:"
+
+#: dataoutputwidget.cpp:93 katesqlview.cpp:52
+#, kde-format
+msgid "SQL"
+msgstr "SQL"
+
+#: dataoutputwidget.cpp:117
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Refresh"
+msgstr "حدّث"
+
+#: dataoutputwidget.cpp:128
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Resize columns to contents"
+msgstr "غيّر حجم الأعمدة لتناسب المحتوى"
+
+#: dataoutputwidget.cpp:134
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Resize rows to contents"
+msgstr "غيّر حجم الصّفوف لتناسب المحتوى"
+
+#: dataoutputwidget.cpp:140
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Export..."
+msgstr "صدّر..."
+
+#: dataoutputwidget.cpp:147
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Copy"
+msgstr "انسخ"
+
+#: dataoutputwidget.cpp:157 textoutputwidget.cpp:47
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Clear"
+msgstr "امح"
+
+#: dataoutputwidget.cpp:165
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Use system locale"
+msgstr "استخدم محليّة النّظام"
+
+#: dataoutputwidget.cpp:181
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Paste"
+msgstr "ألصق"
+
+#: dataoutputwidget.cpp:191
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Set Null"
+msgstr "اضبط فارغ"
+
+#: dataoutputwidget.cpp:201
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Insert Row"
+msgstr "أدرِج صفًا"
+
+#: dataoutputwidget.cpp:211
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Remove Selected Rows"
+msgstr "أزِل الصفوف المحددة"
+
+#: dataoutputwidget.cpp:221
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Duplicate Selected Rows"
+msgstr "ضاعِف القناع المختار"
+
+#: dataoutputwidget.cpp:231
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Undo"
+msgstr "تراجع"
+
+#: dataoutputwidget.cpp:241
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Save"
+msgstr "احفظ"
+
+#: dataoutputwidget.cpp:251
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Make this column presentable for related tables"
+msgstr "اجعل هذا العمود قابلًا للعرض في الجداول ذات الصلة"
+
+#: dataoutputwidget.cpp:254
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid ""
+"Warning! For columns without a unique constraint we cannot guarantee a "
+"correct copy-pasting (when the column is shown instead of the foreign key)"
+msgstr ""
+"تحذير! بالنسبة للأعمدة التي لا تحتوي على قيد فريد، لا يمكننا ضمان نسخ-لصق "
+"صحيح (عندما يُعرض العمود بدلًا من المفتاح الخارجي)."
+
+#: dataoutputwidget.cpp:265
+#, kde-format
+msgctxt "@label"
+msgid "Where:"
+msgstr "Where:"
+
+#: dataoutputwidget.cpp:273
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "id > 0"
+msgstr "id > 0"
+
+#: dataoutputwidget.cpp:274
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Enter SQL WHERE clause to filter data"
+msgstr "أدخل جملة WHERE في SQL لتصفية البيانات"
+
+#: dataoutputwidget.cpp:730
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Unable to open file <filename>%1</filename>"
+msgstr "تعذّر فتح الملفّ <filename>%1</filename>"
+
+#: dataoutputwidget.cpp:750
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Failed to save changes: <message>%1</message>"
+msgstr "فشل حفظ التغييرات: <message>%1</message>"
+
+#: exportwizard.cpp:27
+#, kde-format
+msgctxt "@title:window"
+msgid "Export Wizard"
+msgstr "مُرشد التّصدير"
+
+#: exportwizard.cpp:40
+#, kde-format
+msgctxt "@title Wizard page title"
+msgid "Output Target"
+msgstr "هدف الخرج"
+
+#: exportwizard.cpp:41
+#, kde-format
+msgctxt "@title Wizard page subtitle"
+msgid "Select the output target."
+msgstr "اختر هدف الخرج."
+
+#: exportwizard.cpp:45
+#, kde-format
+msgctxt "@option:radio Output target"
+msgid "Current document"
+msgstr "المستند الحاليّ"
+
+#: exportwizard.cpp:46
+#, kde-format
+msgctxt "@option:radio Output target"
+msgid "Clipboard"
+msgstr "الحافظة"
+
+#: exportwizard.cpp:47
+#, kde-format
+msgctxt "@option:radio Output target"
+msgid "File"
+msgstr "ملفّ"
+
+#: exportwizard.cpp:54
+#, kde-format
+msgid "Comma Separated Values"
+msgstr "قيم مفصولة بفواصل"
+
+#: exportwizard.cpp:96
+#, kde-format
+msgctxt "@title Wizard page title"
+msgid "Fields Format"
+msgstr "نسق الحقول"
+
+#: exportwizard.cpp:97
+#, kde-format
+msgctxt "@title Wizard page subtitle"
+msgid ""
+"Select fields format.\n"
+"Click on \"Finish\" button to export data."
+msgstr "اختر نسق الحقول.انقر زر \"أنهِ\" لتصدير البيانات."
+
+#: exportwizard.cpp:101
+#, kde-format
+msgctxt "@title:group"
+msgid "Headers"
+msgstr "التّرويسات"
+
+#: exportwizard.cpp:104
+#, kde-format
+msgctxt "@option:check"
+msgid "Export column names"
+msgstr "صدّر أسماء الأعمدة"
+
+#: exportwizard.cpp:105
+#, kde-format
+msgctxt "@option:check"
+msgid "Export line numbers"
+msgstr "صدّر أرقام الأسطر"
+
+#: exportwizard.cpp:112
+#, kde-format
+msgctxt "@title:group"
+msgid "Quotes"
+msgstr "علامات الاقتباس"
+
+#: exportwizard.cpp:115
+#, kde-format
+msgctxt "@option:check"
+msgid "Quote strings"
+msgstr "ضع السّلاسل بين علامتيّ اقتباس"
+
+#: exportwizard.cpp:116
+#, kde-format
+msgctxt "@option:check"
+msgid "Quote numbers"
+msgstr "ضع الأرقام بين علامتيّ اقتباس"
+
+#: exportwizard.cpp:124 exportwizard.cpp:127
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Character:"
+msgstr "المحرف:"
+
+#: exportwizard.cpp:133
+#, kde-format
+msgctxt "@title:group"
+msgid "Delimiters"
+msgstr "الفواصل"
+
+#: exportwizard.cpp:139
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Field delimiter:"
+msgstr "فاصل الحقول:"
+
+#: katesqlconfigpage.cpp:28
+#, kde-format
+msgctxt "@option:check"
+msgid "Save and restore connections in Kate session"
+msgstr "احفظ الاتّصالات في جلسة «كيت» واستعدها"
+
+#: katesqlconfigpage.cpp:29
+#, kde-format
+msgctxt "@option:check"
+msgid "Enable editable table for Browse Data"
+msgstr "مكّن الجدول القابل للتحرير في ”تصفح البيانات“"
+
+#: katesqlconfigpage.cpp:31
+#, kde-format
+msgctxt "@option:check"
+msgid "Enable editable relational tables"
+msgstr "مكّن الجداول العلائقية القابلة للتحرير"
+
+#: katesqlconfigpage.cpp:32
+#, kde-format
+msgctxt "@option:check"
+msgid "Experimental"
+msgstr "تجريبي"
+
+#: katesqlconfigpage.cpp:38
+#, kde-format
+msgctxt "@option:check"
+msgid "Allow running queries in non-SQL files"
+msgstr "اسمح بتشغيل الاستعلامات في ملفات غير SQL"
+
+#: katesqlconfigpage.cpp:40
+#, kde-format
+msgctxt "@option:check"
+msgid "Enable auto query selection"
+msgstr "مكّن اختيار الاستعلام آليًا."
+
+#: katesqlconfigpage.cpp:41
+#, kde-format
+msgctxt "@option:check"
+msgid "Treat a blank line as a statement break"
+msgstr "عامل السطر الفارغ كفاصل بين العبارات."
+
+#: katesqlconfigpage.cpp:42
+#, kde-format
+msgctxt "@option:check"
+msgid "Always show query selector popup"
+msgstr "أظهر دومًا منبثقة منتقي الاستعلام"
+
+#: katesqlconfigpage.cpp:44
+#, kde-format
+msgctxt "@title:group"
+msgid "Output Customization"
+msgstr "تخصيص الخرج"
+
+#: katesqlconfigpage.cpp:51
+#, kde-format
+msgctxt "@option:check"
+msgid "Use system defaults"
+msgstr "استخدم مبدئيات النظام"
+
+#: katesqlconfigpage.cpp:52
+#, kde-format
+msgctxt "@action:button"
+msgid "Reset to System Defaults"
+msgstr "صفّر إلى مبدئيّات النظام"
+
+#: katesqlconfigpage.cpp:113
+#, kde-format
+msgctxt "@title"
+msgid "SQL"
+msgstr "SQL"
+
+#: katesqlconfigpage.cpp:118
+#, kde-format
+msgctxt "@title:window"
+msgid "SQL ConfigPage Settings"
+msgstr "إعدادات صفحة ضبط SQL"
+
+#: katesqlview.cpp:59
+#, kde-format
+msgctxt "@title:window"
+msgid "SQL"
+msgstr "SQL"
+
+#: katesqlview.cpp:65
+#, kde-format
+msgctxt "@title:window"
+msgid "SQL Schema"
+msgstr "مخطّط SQL"
+
+#: katesqlview.cpp:159
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Add Connection..."
+msgstr "أضف اتّصالًا..."
+
+#: katesqlview.cpp:164
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Remove Connection"
+msgstr "أزل الاتّصال"
+
+#: katesqlview.cpp:169
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Edit Connection..."
+msgstr "حرّر الاتّصال..."
+
+#: katesqlview.cpp:174
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Reconnect"
+msgstr "أعد الاتّصال"
+
+#: katesqlview.cpp:180
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Connection"
+msgstr "الاتّصال"
+
+#: katesqlview.cpp:184
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Run Query"
+msgstr "نفّذ الاستعلام"
+
+#: outputstylewidget.cpp:38
+#, kde-format
+msgctxt "@title:column"
+msgid "Context"
+msgstr "السّياق"
+
+#: outputstylewidget.cpp:38
+#, kde-format
+msgctxt "@title:column"
+msgid "Text Color"
+msgstr "لون النّصّ"
+
+#: outputstylewidget.cpp:39
+#, kde-format
+msgctxt "@title:column"
+msgid "Background Color"
+msgstr "لون الخلفيّة"
+
+#: outputstylewidget.cpp:39
+#, kde-format
+msgctxt "@title:column"
+msgid "Changed Text Color"
+msgstr "لون النص المُعدل"
+
+#: outputstylewidget.cpp:40
+#, kde-format
+msgctxt "@title:column"
+msgid "Changed Background Color"
+msgstr "لون الخلفيّة المُعدل"
+
+#: outputstylewidget.cpp:49
+#, kde-format
+msgctxt "@item:intable"
+msgid "Text"
+msgstr "النّصّوص"
+
+#: outputstylewidget.cpp:50
+#, kde-format
+msgctxt "@item:intable"
+msgid "Number"
+msgstr "الأرقام"
+
+#: outputstylewidget.cpp:51
+#, kde-format
+msgctxt "@item:intable"
+msgid "Bool"
+msgstr "القيم المنطقيّة"
+
+#: outputstylewidget.cpp:52
+#, kde-format
+msgctxt "@item:intable"
+msgid "Date & Time"
+msgstr "التّاريخ والوقت"
+
+#: outputstylewidget.cpp:53
+#, kde-format
+msgctxt "@item:intable"
+msgid "NULL"
+msgstr "العدم"
+
+#: outputstylewidget.cpp:54
+#, kde-format
+msgctxt "@item:intable"
+msgid "BLOB"
+msgstr "القيم الثّنائيّة"
+
+#: outputwidget.cpp:20
+#, kde-format
+msgctxt "@title:window"
+msgid "SQL Text Output"
+msgstr "خرج نصّ SQL"
+
+#: outputwidget.cpp:23
+#, kde-format
+msgctxt "@title:window"
+msgid "SQL Data Output"
+msgstr "خرج بيانات SQL"
+
+#: schemabrowserwidget.cpp:26
+#, kde-format
+msgid "Filter tables and views..."
+msgstr "رشّح الجداول وطرق العرض..."
+
+#: schemawidget.cpp:45
+#, kde-format
+msgctxt "@title:column"
+msgid "Database schema"
+msgstr "مخطّط قاعدة البيانات"
+
+#: schemawidget.cpp:137
+#, kde-format
+msgctxt "@title Folder name"
+msgid "Tables"
+msgstr "الجداول"
+
+#: schemawidget.cpp:142
+#, kde-format
+msgctxt "@title Folder name"
+msgid "Views"
+msgstr "العروض"
+
+#: schemawidget.cpp:156
+#, kde-format
+msgctxt "@title Folder name"
+msgid "System Tables"
+msgstr "جداول النّظام"
+
+#: schemawidget.cpp:356
+#, kde-format
+msgctxt "@action:inmenu Context menu"
+msgid "Select Data"
+msgstr "حدد البيانات"
+
+#: schemawidget.cpp:360
+#, kde-format
+msgctxt "@action:inmenu Submenu title"
+msgid "Generate"
+msgstr "ولّد"
+
+#: schemawidget.cpp:361
+#, kde-format
+msgid "SELECT"
+msgstr "SELECT"
+
+#: schemawidget.cpp:362
+#, kde-format
+msgid "UPDATE"
+msgstr "UPDATE"
+
+#: schemawidget.cpp:363
+#, kde-format
+msgid "INSERT"
+msgstr "INSERT"
+
+#: schemawidget.cpp:364
+#, kde-format
+msgid "DELETE"
+msgstr "DELETE"
+
+#: schemawidget.cpp:368
+#, kde-format
+msgctxt "@action:inmenu Context menu"
+msgid "Refresh"
+msgstr "حدّث"
+
+#: sqlmanager.cpp:320
+#, kde-format
+msgid "Prepare Statement Failure"
+msgstr "إعداد بيان الفشل"
+
+#: sqlmanager.cpp:321
+#, kde-format
+msgid ""
+"<p>Preparing the query failed with the following error: %1</p><p>Do you want "
+"to continue without preparing the query?</p>"
+msgstr ""
+"<p>فشل إعداد الاستعلام مع الخطأ التالي: %1</p><p>هل تريد المتابعة دون إعداد "
+"الاستعلام؟ </p>"
+
+#: sqlmanager.cpp:351
+#, kde-format
+msgctxt "@info"
+msgid "Query completed successfully"
+msgstr "انتهى الاستعلام بنجاح"
+
+#: sqlmanager.cpp:354 sqlmanager.cpp:392 sqlmanager.cpp:453
+#, kde-format
+msgctxt "@info"
+msgid "%1 record selected"
+msgid_plural "%1 records selected"
+msgstr[0] "لا سجّلات محدّدة"
+msgstr[1] "سجلّ واحد محدّد"
+msgstr[2] "سجلّان محدّدان"
+msgstr[3] "%1 سجلّات محدّدة"
+msgstr[4] "%1 سجلًّا محدّدًا"
+msgstr[5] "%1 سجلّ محدّد"
+
+#: sqlmanager.cpp:358
+#, kde-format
+msgctxt "@info"
+msgid "%1 row affected"
+msgid_plural "%1 rows affected"
+msgstr[0] "لا صفوف متأثّرة"
+msgstr[1] "صفّ واحد متأثّر"
+msgstr[2] "صفّان متأثّران"
+msgstr[3] "%1 صفوف متأثّرة"
+msgstr[4] "%1 صفًّا متأثّرًا"
+msgstr[5] "%1 صفّ متأثّر"
+
+#. i18n: ectx: Menu (SQL)
+#: ui.rc:6
+#, kde-format
+msgid "&SQL"
+msgstr "&SQL"
+
+#. i18n: ectx: ToolBar (SQLConnectionsToolBar)
+#: ui.rc:17
+#, kde-format
+msgid "SQL Connections Toolbar"
+msgstr "شريط أدوات اتّصالات SQL"
+
+#. i18n: ectx: ToolBar (SQLToolBar)
+#: ui.rc:25
+#, kde-format
+msgid "SQL Toolbar"
+msgstr "شريط أدوات SQL"
+
+#~ msgctxt "NAME OF TRANSLATORS"
+#~ msgid "Your names"
+#~ msgstr "صفا الفليج"
+
+#~ msgctxt "EMAIL OF TRANSLATORS"
+#~ msgid "Your emails"
+#~ msgstr "safaalfulaij@hotmail.com"
+
+#~ msgid "Kate SQL Plugin"
+#~ msgstr "ملحقة SQL لكيت"
+
+#~ msgctxt "@title:window"
+#~ msgid "SQL Results"
+#~ msgstr "نتائج SQL"
+
+#~ msgid "Execute query on SQL databases"
+#~ msgstr "نفّذ الاستعلام في قواعد بيانات SQL"

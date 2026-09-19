@@ -1,0 +1,181 @@
+# SPDX-FileCopyrightText: 2024-2026 Scarlett Moore <sgmoore@kde.org>
+#
+# SPDX-License-Identifier: CC0-1.0
+---
+name: kate
+confinement: classic
+grade: stable
+base: core24
+adopt-info: kate
+apps:
+  kate:
+    command: usr/bin/kate
+    common-id: org.kde.kate.desktop
+    desktop: usr/share/applications/org.kde.kate.desktop
+assumes:
+  - snapd2.58.3
+compression: lzo
+environment:
+  QTWEBENGINEPROCESS_PATH: "$SNAP/usr/lib/qt6/libexec/QtWebEngineProcess"
+  LD_LIBRARY_PATH: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/pulseaudio:$SNAP/usr/lib${LD_LIBRARY_PATH}
+  XDG_DATA_DIRS: "$XDG_DATA_DIRS:$SNAP/usr/share"
+  XDG_CONFIG_DIRS: "$XDG_CONFIG_DIRS:$SNAP/etc/xdg"
+  __EGL_VENDOR_LIBRARY_DIRS: "$SNAP/etc/glvnd/egl_vendor.d:$SNAP/usr/share/glvnd/egl_vendor.d"
+  LIBGL_DRIVERS_PATH: "$SNAP/usr/lib/${CRAFT_ARCH_TRIPLET}/dri"
+  QT_PLUGIN_PATH: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/qt6/plugins
+layout:
+  /usr/share/X11:
+    symlink: $SNAP/usr/share/X11
+  /usr/share/qt6:
+    bind: $SNAP/usr/share/qt6
+package-repositories:
+  - type: apt
+    components:
+      - main
+    suites:
+      - noble
+    key-id: 444DABCF3667D0283F894EDDE6D4736255751E5D
+    url: http://origin.archive.neon.kde.org/user
+    key-server: keyserver.ubuntu.com
+parts:
+  qtconf:
+    plugin: nil
+    override-build: |
+      mkdir -p $CRAFT_PART_INSTALL/usr/bin
+      cat <<EOF > $CRAFT_PART_INSTALL/usr/bin/qt.conf
+      [Paths]
+      Prefix = ../../
+      LibraryExecutables = usr/lib/$CRAFT_ARCH_TRIPLET/qt6/libexec
+      Plugins = usr/lib/$CRAFT_ARCH_TRIPLET/qt6/plugins
+      Qml2Imports = usr/lib/$CRAFT_ARCH_TRIPLET/qt6/qml
+      Translations = usr/share/qt6/translations
+      Data = usr/share/qt6
+      EOF
+  kate:
+    after:
+      - qtconf
+    parse-info:
+      - usr/share/metainfo/org.kde.kate.appdata.xml
+    plugin: cmake
+    build-packages:
+      - gettext
+      - doxygen
+      - graphviz
+      - libxml2-utils
+      - docbook-xml
+      - docbook-xsl
+      - libxkbcommon-dev
+      - cmake
+      - kf6-extra-cmake-modules
+      - kf6-kconfig-dev
+      - kf6-kcrash-dev
+      - kf6-kdbusaddons-dev
+      - kf6-kcolorscheme-dev
+      - kf6-kdoctools-dev
+      - kf6-kguiaddons-dev
+      - kf6-ki18n-dev
+      - kf6-kiconthemes-dev
+      - kf6-kitemmodels-dev
+      - kf6-kjobwidgets-dev
+      - kf6-kio-dev
+      - kf6-knewstuff-dev
+      - kf6-kparts-dev
+      - kf6-kpty-dev
+      - kf6-syntax-highlighting-dev
+      - kf6-ktexteditor-dev
+      - kf6-threadweaver-dev
+      - kf6-kwallet-dev
+      - kf6-kwindowsystem-dev
+      - kf6-kuserfeedback-dev
+      - kf6-kxmlgui-dev
+      - libplasma-dev
+      - pkgconf
+      - plasma-activities-dev
+      - qt6-base-dev
+      - libpulse0
+      - python3
+    stage-packages:
+      - kf6-kdeclarative
+      - kf6-ktexteditor
+      - libaudio2
+      - libpulse0
+      - libplasma6
+      - qt6-declarative
+      - kf6-kbookmarks
+      - kf6-kcolorscheme
+      - kf6-kcompletion
+      - kf6-kconfig
+      - kf6-kconfigwidgets
+      - kf6-kcoreaddons
+      - kf6-kcrash
+      - kf6-kdbusaddons
+      - kf6-kguiaddons
+      - kf6-ki18n
+      - kf6-kiconthemes
+      - kf6-kio
+      - kf6-knewstuff
+      - kf6-kparts
+      - kf6-kservice
+      - kf6-ktextwidgets
+      - kf6-kuserfeedback
+      - kf6-kwidgetsaddons
+      - kf6-kwindowsystem
+      - kf6-kxmlgui
+      - kf6-syntax-highlighting
+      - qt6-base
+      - qt6-base-dev
+      - qt6-wayland
+      - kf6-sonnet
+      - exuberant-ctags
+      - git
+      - khelpcenter
+      - konsole-kpart
+      - mercurial
+      - subversion
+      - python3
+      - libsecret-1-0
+      - patchelf
+      - libffi8
+    stage-snaps:
+      - gtk-theme-breeze
+      - icon-theme-breeze
+    source: .
+    source-type: local
+    build-attributes:
+      - enable-patchelf
+    cmake-parameters:
+      - -DCMAKE_INSTALL_PREFIX=/usr
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DQT_MAJOR_VERSION=6
+      - -DBUILD_WITH_QT6=ON
+      - -DBUILD_TESTING=OFF
+    build-environment:
+    -   PATH: $CRAFT_STAGE/usr/bin:usr/bin${PATH:+:$PATH}
+    -   XDG_DATA_DIRS: $CRAFT_STAGE/usr/share:/usr/share${XDG_DATA_DIRS:+:$XDG_DATA_DIRS}
+    -   XDG_CONFIG_HOME: $CRAFT_STAGE/etc/xdg:/etc/xdg${XDG_CONFIG_HOME:+:$XDG_CONFIG_HOME}
+    -   LD_LIBRARY_PATH: $CRAFT_STAGE/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$CRAFT_STAGE/usr/lib:$CRAFT_STAGE/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+    -   CMAKE_PREFIX_PATH: $CRAFT_STAGE;/usr${CMAKE_PREFIX_PATH:+;$CMAKE_PREFIX_PATH}
+    -   CMAKE_FIND_ROOT_PATH: $CRAFT_STAGE;/usr${CMAKE_FIND_ROOT_PATH:+;$CMAKE_FIND_ROOT_PATH}
+    stage:
+      - -usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/dri
+    prime:
+      - "-usr/lib/*/cmake/*"
+      - "-usr/include/*"
+      - "-usr/share/ECM/*"
+      - "-usr/share/man/*"
+      - "-usr/bin/X11"
+      - "-usr/lib/gcc/$CRAFT_ARCH_TRIPLET_BUILD_FOR/6.0.0"
+      - "-usr/lib/aspell/*"
+      - "-usr/lib/*/dri/*"
+      - "-usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/libsvn_auth_kwallet-1.so.1.0.0"
+      - -usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/libglapi.so.0.0.0
+      - -usr/share/doc/libglapi-mesa/changelog.Debian.gz
+  gpu-2404:
+    after: [kate]
+    source: https://github.com/canonical/gpu-snap.git
+    plugin: dump
+    override-prime: |
+      craftctl default
+      ${CRAFT_PART_SRC}/bin/gpu-2404-cleanup mesa-2404
+    prime:
+      - bin/gpu-2404-wrapper

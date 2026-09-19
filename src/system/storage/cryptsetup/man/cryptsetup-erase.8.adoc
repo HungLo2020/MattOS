@@ -1,0 +1,36 @@
+= cryptsetup-erase(8)
+:doctype: manpage
+:manmanual: Maintenance Commands
+:mansource: cryptsetup {release-version}
+:man-linkstyle: pass:[blue R < >]
+:COMMON_OPTIONS:
+:ACTION_ERASE:
+
+== Name
+
+cryptsetup-erase, cryptsetup-luksErase - erase all keyslots
+
+== SYNOPSIS
+
+*cryptsetup  _erase_ [<options>] <device>* +
+*cryptsetup _luksErase_ [<options>] <device>*
+
+== DESCRIPTION
+
+Erase all keyslots, removing the volume key.
+Unless the device is configured with OPAL self-encrypting drive support, you do not need to provide any password for this operation.
+
+This operation is irreversible.
+Unless you have a header backup, all old encrypted data in the container will be permanently irretrievable.
+Header backup cannot be used to recover data from OPAL self-encrypting drives, as the keys are permanently removed from hardware.
+
+The *erase* does not wipe or overwrite the data area.
+It only removes all active keyslots from the LUKS device.
+See the cryptsetup FAQ for more information on how to wipe the whole device, including encrypted data.
+
+Note that the --hw-opal-factory-reset option for OPAL self-encrypting drive will erase ALL data on the drive, regardless of the partition it is run on.
+
+*<options>* can be [--header, --disable-locks, --hw-opal-factory-reset, --key-file].
+
+include::man/common_options.adoc[]
+include::man/common_footer.adoc[]

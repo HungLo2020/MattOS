@@ -141,206 +141,6 @@ fn real_stage_specs_invalidate_only_representative_input_owners() {
 }
 
 #[test]
-fn cosmic_greeter_environment_exposes_systemd_libudev_metadata_only_through_its_edge() {
-    let tmp = tempfile::tempdir().unwrap();
-    let root = tmp.path();
-    for component in [
-        "glibc",
-        "gcc-runtime",
-        "xkbcommon",
-        "linux-pam",
-        "systemd",
-        "libinput",
-    ] {
-        let usr = root.join("out/build").join(component).join("install/usr");
-        fs::create_dir_all(usr.join("include")).unwrap();
-        fs::create_dir_all(usr.join("lib/x86_64-linux-gnu/pkgconfig")).unwrap();
-    }
-    let systemd_usr = root.join("out/build/systemd/install/usr");
-    write_file(
-        &systemd_usr.join("include/libudev.h"),
-        "#define UDEV_TEST 1\n",
-    );
-    write_file(
-        &systemd_usr.join("lib/x86_64-linux-gnu/pkgconfig/libudev.pc"),
-        "prefix=/usr\nName: libudev\nLibs: -ludev\nCflags: -I${prefix}/include\n",
-    );
-
-    let components = cosmic_native_components(BuildStage::CosmicGreeter);
-    assert!(components.contains(&"systemd"));
-    assert!(components.contains(&"libinput"));
-    assert!(!components.contains(&"mesa"));
-    assert!(!components.contains(&"pipewire"));
-
-    let env = staged_library_environment(root, &components).unwrap();
-    let pkgconfig = env
-        .iter()
-        .find(|(key, _)| *key == "PKG_CONFIG_PATH")
-        .map(|(_, value)| value)
-        .unwrap();
-    let pkgconfig_dirs = std::env::split_paths(pkgconfig).collect::<Vec<_>>();
-    let libudev_overlay = pkgconfig_dirs
-        .iter()
-        .find(|path| path.ends_with("systemd/lib"))
-        .expect("systemd libudev metadata must be exposed through its private consumer overlay");
-    assert!(fs::read_to_string(libudev_overlay.join("libudev.pc"))
-        .unwrap()
-        .contains(&format!("prefix={}", systemd_usr.display())));
-    assert!(
-        systemd_usr
-            .join("lib/x86_64-linux-gnu/pkgconfig/libudev.pc")
-            .is_file()
-    );
-    assert!(
-        !pkgconfig_dirs
-            .iter()
-            .any(|path| path.to_string_lossy().contains("mesa"))
-    );
-}
-
-#[test]
-fn cosmic_workspaces_environment_exposes_declared_udev_inputs_without_runtime_only_libraries() {
-    let tmp = tempfile::tempdir().unwrap();
-    let root = tmp.path();
-    for component in [
-        "glibc",
-        "gcc-runtime",
-        "mesa",
-        "xkbcommon",
-        "systemd",
-        "libinput",
-    ] {
-        let usr = root.join("out/build").join(component).join("install/usr");
-        fs::create_dir_all(usr.join("include")).unwrap();
-        fs::create_dir_all(usr.join("lib/x86_64-linux-gnu/pkgconfig")).unwrap();
-    }
-    let systemd_usr = root.join("out/build/systemd/install/usr");
-    write_file(
-        &systemd_usr.join("include/libudev.h"),
-        "#define UDEV_TEST 1\n",
-    );
-    write_file(
-        &systemd_usr.join("lib/x86_64-linux-gnu/pkgconfig/libudev.pc"),
-        "prefix=/usr\nName: libudev\nLibs: -ludev\nCflags: -I${prefix}/include\n",
-    );
-
-    let components = cosmic_native_components(BuildStage::CosmicWorkspaces);
-    assert!(components.contains(&"systemd"));
-    assert!(components.contains(&"libinput"));
-    assert!(!components.contains(&"pipewire"));
-    assert!(!components.contains(&"dbus"));
-
-    let env = staged_library_environment(root, &components).unwrap();
-    let pkgconfig = env
-        .iter()
-        .find(|(key, _)| *key == "PKG_CONFIG_PATH")
-        .map(|(_, value)| value)
-        .unwrap();
-    let pkgconfig_dirs = std::env::split_paths(pkgconfig).collect::<Vec<_>>();
-    let libudev_overlay = pkgconfig_dirs
-        .iter()
-        .find(|path| path.ends_with("systemd/lib"))
-        .expect("systemd libudev metadata must be exposed through its private consumer overlay");
-    assert!(fs::read_to_string(libudev_overlay.join("libudev.pc"))
-        .unwrap()
-        .contains(&format!("prefix={}", systemd_usr.display())));
-    assert!(
-        !pkgconfig_dirs
-            .iter()
-            .any(|path| path.to_string_lossy().contains("pipewire"))
-    );
-}
-
-#[test]
-fn cosmic_initial_setup_environment_exposes_declared_udev_inputs_without_runtime_only_libraries() {
-    let tmp = tempfile::tempdir().unwrap();
-    let root = tmp.path();
-    for component in ["glibc", "gcc-runtime", "systemd", "xkbcommon", "libinput"] {
-        let usr = root.join("out/build").join(component).join("install/usr");
-        fs::create_dir_all(usr.join("include")).unwrap();
-        fs::create_dir_all(usr.join("lib/x86_64-linux-gnu/pkgconfig")).unwrap();
-    }
-    let systemd_usr = root.join("out/build/systemd/install/usr");
-    write_file(
-        &systemd_usr.join("include/libudev.h"),
-        "#define UDEV_TEST 1\n",
-    );
-    write_file(
-        &systemd_usr.join("lib/x86_64-linux-gnu/pkgconfig/libudev.pc"),
-        "prefix=/usr\nName: libudev\nLibs: -ludev\nCflags: -I${prefix}/include\n",
-    );
-
-    let components = cosmic_native_components(BuildStage::CosmicInitialSetup);
-    assert!(components.contains(&"systemd"));
-    assert!(components.contains(&"libinput"));
-    assert!(!components.contains(&"mesa"));
-    assert!(!components.contains(&"pipewire"));
-
-    let env = staged_library_environment(root, &components).unwrap();
-    let pkgconfig = env
-        .iter()
-        .find(|(key, _)| *key == "PKG_CONFIG_PATH")
-        .map(|(_, value)| value)
-        .unwrap();
-    let pkgconfig_dirs = std::env::split_paths(pkgconfig).collect::<Vec<_>>();
-    let libudev_overlay = pkgconfig_dirs
-        .iter()
-        .find(|path| path.ends_with("systemd/lib"))
-        .expect("systemd libudev metadata must be exposed through its private consumer overlay");
-    assert!(fs::read_to_string(libudev_overlay.join("libudev.pc"))
-        .unwrap()
-        .contains(&format!("prefix={}", systemd_usr.display())));
-    assert!(
-        systemd_usr
-            .join("lib/x86_64-linux-gnu/pkgconfig/libudev.pc")
-            .is_file()
-    );
-}
-
-#[test]
-fn synthetic_unrelated_first_class_source_does_not_change_compile_stage_keys() {
-    let tmp = tempfile::tempdir().unwrap();
-    let mut specs = cacheable_stage_specs(tmp.path()).unwrap();
-    for spec in &mut specs {
-        spec.tools.clear();
-        spec.dependencies.clear();
-    }
-    for spec in &specs {
-        for path in spec.source_inputs.iter().chain(&spec.configuration_inputs) {
-            fs::create_dir_all(tmp.path().join(path)).unwrap();
-        }
-    }
-    let before = specs
-        .iter()
-        .map(|spec| {
-            (
-                spec.id.clone(),
-                performance::compute_stage_inputs(tmp.path(), spec)
-                    .unwrap()
-                    .full_digest,
-            )
-        })
-        .collect::<BTreeMap<_, _>>();
-    write_file(
-        &tmp.path()
-            .join("src/desktop/cosmic/synthetic-unrelated/Cargo.toml"),
-        "[package]\nname = \"synthetic-unrelated\"\nversion = \"0.1.0\"\n",
-    );
-    let after = specs
-        .iter()
-        .map(|spec| {
-            (
-                spec.id.clone(),
-                performance::compute_stage_inputs(tmp.path(), spec)
-                    .unwrap()
-                    .full_digest,
-            )
-        })
-        .collect::<BTreeMap<_, _>>();
-    assert_eq!(before, after);
-}
-
-#[test]
 fn real_stage_specs_track_tool_recipe_and_dependency_output_identity() {
     let tmp = tempfile::tempdir().unwrap();
     let root = tmp.path();
@@ -502,7 +302,9 @@ fn cold_build_concurrency_groups_preserve_barriers_and_output_ownership() {
     );
     assert_eq!(
         graph["iso"],
-        ["grub", "initramfs", "linux", "live-root"].into_iter().collect()
+        ["grub", "initramfs", "linux", "live-root"]
+            .into_iter()
+            .collect()
     );
 
     let independent_after_sysroot = [
@@ -620,7 +422,10 @@ fn gstreamer_base_declares_glibs_pcre2_link_requirement() {
     assert!(stage.dependencies.contains(&"pcre2".to_string()));
     let source = include_str!("stages/graphics.rs");
     let start = source.find("fn build_gstreamer_base(").unwrap();
-    let end = start + source[start..].find("\nfn build_").unwrap_or(source[start..].len());
+    let end = start
+        + source[start..]
+            .find("\nfn build_")
+            .unwrap_or(source[start..].len());
     assert!(source[start..end].contains("\"pcre2\""));
 }
 

@@ -1,0 +1,738 @@
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+# SPDX-FileCopyrightText: 2011, 2012, 2013, 2014, 2020, 2021, 2022, 2023, 2025, 2026 Shinjo Park <kde@peremen.name>
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-06-24 01:27+0000\n"
+"PO-Revision-Date: 2026-06-06 12:13+0200\n"
+"Last-Translator: Shinjo Park <kde@peremen.name>\n"
+"Language-Team: Korean <kde-kr@kde.org>\n"
+"Language: ko\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Lokalize 25.12.3\n"
+
+#: connectionwizard.cpp:30
+#, kde-format
+msgctxt "@title:window"
+msgid "Connection Wizard"
+msgstr "연결 마법사"
+
+#: connectionwizard.cpp:45
+#, kde-format
+msgctxt "@title Wizard page title"
+msgid "Database Driver"
+msgstr "데이터베이스 드라이버"
+
+#: connectionwizard.cpp:46
+#, kde-format
+msgctxt "@title Wizard page subtitle"
+msgid "Select the database driver"
+msgstr "데이터베이스 드라이버를 선택하십시오"
+
+#: connectionwizard.cpp:53
+#, kde-format
+msgctxt "@label:listbox"
+msgid "Database driver:"
+msgstr "데이터베이스 드라이버:"
+
+#: connectionwizard.cpp:82 connectionwizard.cpp:168
+#, kde-format
+msgctxt "@title Wizard page title"
+msgid "Connection Parameters"
+msgstr "연결 인자"
+
+#: connectionwizard.cpp:83
+#, kde-format
+msgctxt "@title Wizard page subtitle"
+msgid "Please enter connection parameters"
+msgstr "연결 인자를 입력하십시오"
+
+#: connectionwizard.cpp:95
+#, kde-format
+msgctxt "@item Spinbox special value"
+msgid "Default"
+msgstr "기본값"
+
+#: connectionwizard.cpp:98
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Hostname:"
+msgstr "호스트 이름:"
+
+#: connectionwizard.cpp:99
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Username:"
+msgstr "사용자 이름:"
+
+#: connectionwizard.cpp:100
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Password:"
+msgstr "암호:"
+
+#: connectionwizard.cpp:101
+#, kde-format
+msgctxt "@label:spinbox"
+msgid "Port:"
+msgstr "포트:"
+
+#: connectionwizard.cpp:102
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Database name:"
+msgstr "데이터베이스 이름:"
+
+#: connectionwizard.cpp:103 connectionwizard.cpp:180
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Connection options:"
+msgstr "연결 옵션:"
+
+#: connectionwizard.cpp:153
+#, kde-format
+msgid "Unable to connect to database."
+msgstr "데이터베이스에 연결할 수 없습니다."
+
+#: connectionwizard.cpp:170
+#, kde-format
+msgctxt "@title Wizard page subtitle"
+msgid ""
+"Please enter the SQLite database file path.\n"
+"If the file does not exist, a new database will be created."
+msgstr ""
+"SQLite 데이터베이스 파일 경로를 입력하십시오.\n"
+"파일이 없으면 새 데이터베이스를 만듭니다."
+
+#: connectionwizard.cpp:178
+#, kde-format
+msgid "Database files"
+msgstr "데이터베이스 파일"
+
+#: connectionwizard.cpp:178 exportwizard.cpp:54
+#, kde-format
+msgid "All files"
+msgstr "모든 파일"
+
+#: connectionwizard.cpp:179
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Path:"
+msgstr "경로:"
+
+#: connectionwizard.cpp:212
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Unable to connect to database.<nl/><message>%1</message>"
+msgstr "데이터베이스에 연결할 수 없습니다.<nl/><message>%1</message>"
+
+#: connectionwizard.cpp:227
+#, kde-format
+msgctxt "@title Wizard page title"
+msgid "Connection Name"
+msgstr "연결 이름"
+
+#: connectionwizard.cpp:228
+#, kde-format
+msgctxt "@title Wizard page subtitle"
+msgid "Enter a unique connection name"
+msgstr "유일한 연결 이름을 입력하십시오"
+
+#: connectionwizard.cpp:234
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Connection name:"
+msgstr "연결 이름:"
+
+#: dataoutputwidget.cpp:93 katesqlview.cpp:52
+#, kde-format
+msgid "SQL"
+msgstr "SQL"
+
+#: dataoutputwidget.cpp:117
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Refresh"
+msgstr "새로 고침"
+
+#: dataoutputwidget.cpp:128
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Resize columns to contents"
+msgstr "내용에 맞게 열 조정 조정"
+
+#: dataoutputwidget.cpp:134
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Resize rows to contents"
+msgstr "내용에 맞게 행 조정"
+
+#: dataoutputwidget.cpp:140
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Export..."
+msgstr "내보내기..."
+
+#: dataoutputwidget.cpp:147
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Copy"
+msgstr "복사"
+
+#: dataoutputwidget.cpp:157 textoutputwidget.cpp:47
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Clear"
+msgstr "지우기"
+
+#: dataoutputwidget.cpp:165
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Use system locale"
+msgstr "시스템 로캘 사용하기"
+
+#: dataoutputwidget.cpp:181
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Paste"
+msgstr "붙여넣기"
+
+#: dataoutputwidget.cpp:191
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Set Null"
+msgstr "Null 설정"
+
+#: dataoutputwidget.cpp:201
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Insert Row"
+msgstr "행 삽입"
+
+#: dataoutputwidget.cpp:211
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Remove Selected Rows"
+msgstr "선택한 행 삭제"
+
+#: dataoutputwidget.cpp:221
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Duplicate Selected Rows"
+msgstr "선택한 행 복제"
+
+#: dataoutputwidget.cpp:231
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Undo"
+msgstr "실행 취소"
+
+#: dataoutputwidget.cpp:241
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Save"
+msgstr "저장"
+
+#: dataoutputwidget.cpp:251
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Make this column presentable for related tables"
+msgstr "이 열을 관계된 테이블에 표시 가능한 것으로 표시"
+
+#: dataoutputwidget.cpp:254
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid ""
+"Warning! For columns without a unique constraint we cannot guarantee a "
+"correct copy-pasting (when the column is shown instead of the foreign key)"
+msgstr ""
+"경고! 유일 제약 사항이 없는 열에 대해서는 올바르게 복사 붙여넣기를 진행하지 "
+"못할 수 있습니다(외부 키 대신 열이 표시되었을 때)"
+
+#: dataoutputwidget.cpp:265
+#, kde-format
+msgctxt "@label"
+msgid "Where:"
+msgstr "Where:"
+
+#: dataoutputwidget.cpp:273
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "id > 0"
+msgstr "id > 0"
+
+#: dataoutputwidget.cpp:274
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Enter SQL WHERE clause to filter data"
+msgstr "데이터를 필터할 때 사용할 SQL WHERE 절 입력"
+
+#: dataoutputwidget.cpp:730
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Unable to open file <filename>%1</filename>"
+msgstr "파일 <filename>%1</filename>을(를) 열 수 없음"
+
+#: dataoutputwidget.cpp:750
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Failed to save changes: <message>%1</message>"
+msgstr "변경 사항을 저장할 수 없음: <message>%1</message>"
+
+#: exportwizard.cpp:27
+#, kde-format
+msgctxt "@title:window"
+msgid "Export Wizard"
+msgstr "내보내기 마법사"
+
+#: exportwizard.cpp:40
+#, kde-format
+msgctxt "@title Wizard page title"
+msgid "Output Target"
+msgstr "내보낼 대상"
+
+#: exportwizard.cpp:41
+#, kde-format
+msgctxt "@title Wizard page subtitle"
+msgid "Select the output target."
+msgstr "내보낼 대상을 선택하십시오."
+
+#: exportwizard.cpp:45
+#, kde-format
+msgctxt "@option:radio Output target"
+msgid "Current document"
+msgstr "현재 문서"
+
+#: exportwizard.cpp:46
+#, kde-format
+msgctxt "@option:radio Output target"
+msgid "Clipboard"
+msgstr "클립보드"
+
+#: exportwizard.cpp:47
+#, kde-format
+msgctxt "@option:radio Output target"
+msgid "File"
+msgstr "파일"
+
+#: exportwizard.cpp:54
+#, kde-format
+msgid "Comma Separated Values"
+msgstr "쉼표로 구분된 값"
+
+#: exportwizard.cpp:96
+#, kde-format
+msgctxt "@title Wizard page title"
+msgid "Fields Format"
+msgstr "필드 형식"
+
+#: exportwizard.cpp:97
+#, kde-format
+msgctxt "@title Wizard page subtitle"
+msgid ""
+"Select fields format.\n"
+"Click on \"Finish\" button to export data."
+msgstr ""
+"필드 형식을 선택하십시오.\n"
+"\"완료\" 단추를 클릭하면 데이터를 내보냅니다."
+
+#: exportwizard.cpp:101
+#, kde-format
+msgctxt "@title:group"
+msgid "Headers"
+msgstr "헤더"
+
+#: exportwizard.cpp:104
+#, kde-format
+msgctxt "@option:check"
+msgid "Export column names"
+msgstr "열 이름 내보내기"
+
+#: exportwizard.cpp:105
+#, kde-format
+msgctxt "@option:check"
+msgid "Export line numbers"
+msgstr "줄 번호 내보내기"
+
+#: exportwizard.cpp:112
+#, kde-format
+msgctxt "@title:group"
+msgid "Quotes"
+msgstr "인용문"
+
+#: exportwizard.cpp:115
+#, kde-format
+msgctxt "@option:check"
+msgid "Quote strings"
+msgstr "문자열에 인용 부호 추가"
+
+#: exportwizard.cpp:116
+#, kde-format
+msgctxt "@option:check"
+msgid "Quote numbers"
+msgstr "숫자에 인용 부호 추가"
+
+#: exportwizard.cpp:124 exportwizard.cpp:127
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Character:"
+msgstr "글자:"
+
+#: exportwizard.cpp:133
+#, kde-format
+msgctxt "@title:group"
+msgid "Delimiters"
+msgstr "구분자"
+
+#: exportwizard.cpp:139
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Field delimiter:"
+msgstr "필드 구분자:"
+
+#: katesqlconfigpage.cpp:28
+#, kde-format
+msgctxt "@option:check"
+msgid "Save and restore connections in Kate session"
+msgstr "Kate 세션에 연결을 저장하고 복원하기"
+
+#: katesqlconfigpage.cpp:29
+#, kde-format
+msgctxt "@option:check"
+msgid "Enable editable table for Browse Data"
+msgstr "데이터 탐색 시 편집 가능한 테이블 활성화"
+
+#: katesqlconfigpage.cpp:31
+#, kde-format
+msgctxt "@option:check"
+msgid "Enable editable relational tables"
+msgstr "편집 가능한 관계 테이블 활성화"
+
+#: katesqlconfigpage.cpp:32
+#, kde-format
+msgctxt "@option:check"
+msgid "Experimental"
+msgstr "실험적"
+
+#: katesqlconfigpage.cpp:38
+#, kde-format
+msgctxt "@option:check"
+msgid "Allow running queries in non-SQL files"
+msgstr "SQL이 아닌 파일에서 쿼리 실행 허용"
+
+#: katesqlconfigpage.cpp:40
+#, kde-format
+msgctxt "@option:check"
+msgid "Enable auto query selection"
+msgstr "자동 질의 선택 활성화"
+
+#: katesqlconfigpage.cpp:41
+#, kde-format
+msgctxt "@option:check"
+msgid "Treat a blank line as a statement break"
+msgstr "빈 줄을 구문 구분으로 취급"
+
+#: katesqlconfigpage.cpp:42
+#, kde-format
+msgctxt "@option:check"
+msgid "Always show query selector popup"
+msgstr "항상 질의 선택기 팝업 표시"
+
+#: katesqlconfigpage.cpp:44
+#, kde-format
+msgctxt "@title:group"
+msgid "Output Customization"
+msgstr "출력 사용자 정의"
+
+#: katesqlconfigpage.cpp:51
+#, kde-format
+msgctxt "@option:check"
+msgid "Use system defaults"
+msgstr "시스템 기본값 사용"
+
+#: katesqlconfigpage.cpp:52
+#, kde-format
+msgctxt "@action:button"
+msgid "Reset to System Defaults"
+msgstr "시스템 기본값으로 복원"
+
+#: katesqlconfigpage.cpp:113
+#, kde-format
+msgctxt "@title"
+msgid "SQL"
+msgstr "SQL"
+
+#: katesqlconfigpage.cpp:118
+#, kde-format
+msgctxt "@title:window"
+msgid "SQL ConfigPage Settings"
+msgstr "SQL 설정 페이지 설정"
+
+#: katesqlview.cpp:59
+#, kde-format
+msgctxt "@title:window"
+msgid "SQL"
+msgstr "SQL"
+
+#: katesqlview.cpp:65
+#, kde-format
+msgctxt "@title:window"
+msgid "SQL Schema"
+msgstr "SQL 스키마"
+
+#: katesqlview.cpp:159
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Add Connection..."
+msgstr "연결 추가..."
+
+#: katesqlview.cpp:164
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Remove Connection"
+msgstr "연결 삭제"
+
+#: katesqlview.cpp:169
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Edit Connection..."
+msgstr "연결 편집..."
+
+#: katesqlview.cpp:174
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Reconnect"
+msgstr "다시 연결"
+
+#: katesqlview.cpp:180
+#, kde-format
+msgctxt "@action:intoolbar"
+msgid "Connection"
+msgstr "연결"
+
+#: katesqlview.cpp:184
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Run Query"
+msgstr "질의 실행"
+
+#: outputstylewidget.cpp:38
+#, kde-format
+msgctxt "@title:column"
+msgid "Context"
+msgstr "Context"
+
+#: outputstylewidget.cpp:38
+#, kde-format
+msgctxt "@title:column"
+msgid "Text Color"
+msgstr "텍스트 색상"
+
+#: outputstylewidget.cpp:39
+#, kde-format
+msgctxt "@title:column"
+msgid "Background Color"
+msgstr "배경 색상"
+
+#: outputstylewidget.cpp:39
+#, kde-format
+msgctxt "@title:column"
+msgid "Changed Text Color"
+msgstr "변경된 텍스트 색상"
+
+#: outputstylewidget.cpp:40
+#, kde-format
+msgctxt "@title:column"
+msgid "Changed Background Color"
+msgstr "변경된 배경 색상"
+
+#: outputstylewidget.cpp:49
+#, kde-format
+msgctxt "@item:intable"
+msgid "Text"
+msgstr "텍스트"
+
+#: outputstylewidget.cpp:50
+#, kde-format
+msgctxt "@item:intable"
+msgid "Number"
+msgstr "숫자"
+
+#: outputstylewidget.cpp:51
+#, kde-format
+msgctxt "@item:intable"
+msgid "Bool"
+msgstr "참/거짓"
+
+#: outputstylewidget.cpp:52
+#, kde-format
+msgctxt "@item:intable"
+msgid "Date & Time"
+msgstr "날짜와 시간"
+
+#: outputstylewidget.cpp:53
+#, kde-format
+msgctxt "@item:intable"
+msgid "NULL"
+msgstr "NULL"
+
+#: outputstylewidget.cpp:54
+#, kde-format
+msgctxt "@item:intable"
+msgid "BLOB"
+msgstr "BLOB"
+
+#: outputwidget.cpp:20
+#, kde-format
+msgctxt "@title:window"
+msgid "SQL Text Output"
+msgstr "SQL 텍스트 출력"
+
+#: outputwidget.cpp:23
+#, kde-format
+msgctxt "@title:window"
+msgid "SQL Data Output"
+msgstr "SQL 데이터 출력"
+
+#: schemabrowserwidget.cpp:26
+#, kde-format
+msgid "Filter tables and views..."
+msgstr "테이블과 보기 필터..."
+
+#: schemawidget.cpp:45
+#, kde-format
+msgctxt "@title:column"
+msgid "Database schema"
+msgstr "데이터베이스 스키마"
+
+#: schemawidget.cpp:137
+#, kde-format
+msgctxt "@title Folder name"
+msgid "Tables"
+msgstr "테이블"
+
+#: schemawidget.cpp:142
+#, kde-format
+msgctxt "@title Folder name"
+msgid "Views"
+msgstr "보기"
+
+#: schemawidget.cpp:156
+#, kde-format
+msgctxt "@title Folder name"
+msgid "System Tables"
+msgstr "시스템 테이블"
+
+#: schemawidget.cpp:356
+#, kde-format
+msgctxt "@action:inmenu Context menu"
+msgid "Select Data"
+msgstr "데이터 선택"
+
+#: schemawidget.cpp:360
+#, kde-format
+msgctxt "@action:inmenu Submenu title"
+msgid "Generate"
+msgstr "생성"
+
+#: schemawidget.cpp:361
+#, kde-format
+msgid "SELECT"
+msgstr "SELECT"
+
+#: schemawidget.cpp:362
+#, kde-format
+msgid "UPDATE"
+msgstr "UPDATE"
+
+#: schemawidget.cpp:363
+#, kde-format
+msgid "INSERT"
+msgstr "INSERT"
+
+#: schemawidget.cpp:364
+#, kde-format
+msgid "DELETE"
+msgstr "DELETE"
+
+#: schemawidget.cpp:368
+#, kde-format
+msgctxt "@action:inmenu Context menu"
+msgid "Refresh"
+msgstr "새로 고침"
+
+#: sqlmanager.cpp:320
+#, kde-format
+msgid "Prepare Statement Failure"
+msgstr "질의 준비 실패"
+
+#: sqlmanager.cpp:321
+#, kde-format
+msgid ""
+"<p>Preparing the query failed with the following error: %1</p><p>Do you want "
+"to continue without preparing the query?</p>"
+msgstr ""
+"<p>질의 준비에 실패했고 다음 오류를 반환했습니다: %1.</p><p>질의 준비 없이 계"
+"속 진행하시겠습니까?</p>"
+
+#: sqlmanager.cpp:351
+#, kde-format
+msgctxt "@info"
+msgid "Query completed successfully"
+msgstr "질의가 성공적으로 수행되었습니다"
+
+#: sqlmanager.cpp:354 sqlmanager.cpp:392 sqlmanager.cpp:453
+#, kde-format
+msgctxt "@info"
+msgid "%1 record selected"
+msgid_plural "%1 records selected"
+msgstr[0] "레코드 %1개 선택됨"
+
+#: sqlmanager.cpp:358
+#, kde-format
+msgctxt "@info"
+msgid "%1 row affected"
+msgid_plural "%1 rows affected"
+msgstr[0] "열 %1개가 영향 받음"
+
+#. i18n: ectx: Menu (SQL)
+#: ui.rc:6
+#, kde-format
+msgid "&SQL"
+msgstr "SQL(&S)"
+
+#. i18n: ectx: ToolBar (SQLConnectionsToolBar)
+#: ui.rc:17
+#, kde-format
+msgid "SQL Connections Toolbar"
+msgstr "SQL 연결 도구 모음"
+
+#. i18n: ectx: ToolBar (SQLToolBar)
+#: ui.rc:25
+#, kde-format
+msgid "SQL Toolbar"
+msgstr "SQL 도구 모음"
+
+#~ msgctxt "NAME OF TRANSLATORS"
+#~ msgid "Your names"
+#~ msgstr "박신조"
+
+#~ msgctxt "EMAIL OF TRANSLATORS"
+#~ msgid "Your emails"
+#~ msgstr "kde@peremen.name"
+
+#~ msgid "Kate SQL Plugin"
+#~ msgstr "Kate SQL 플러그인"
+
+#~ msgctxt "@title:window"
+#~ msgid "SQL Results"
+#~ msgstr "SQL 결과"
+
+#~ msgid "Execute query on SQL databases"
+#~ msgstr "SQL 데이터베이스에 질의 수행"

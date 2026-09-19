@@ -1,0 +1,573 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>EditProfileMousePage</class>
+ <widget class="QWidget" name="EditProfileMousePage">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>993</width>
+    <height>632</height>
+   </rect>
+  </property>
+  <layout class="QVBoxLayout">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <property name="documentMode">
+      <bool>true</bool>
+     </property>
+     <widget class="QWidget" name="tab">
+      <attribute name="title">
+       <string>Text interaction</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <item>
+        <layout class="QGridLayout">
+         <property name="spacing">
+          <number>6</number>
+         </property>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_11">
+           <property name="toolTip">
+            <string comment="@info:tooltip">Characters which are considered part of a word when double-clicking to select whole words in the terminal.</string>
+           </property>
+           <property name="text">
+            <string>Word characters:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+           </property>
+           <property name="buddy">
+            <cstring>wordCharacterEdit</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="wordCharacterEdit">
+           <property name="font">
+            <font>
+             <family>Monospace</family>
+            </font>
+           </property>
+           <property name="toolTip">
+            <string comment="@info:tooltip">Characters which are considered part of a word when double-clicking to select whole words in the terminal.</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <spacer>
+           <property name="orientation">
+            <enum>Qt::Orientation::Vertical</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Policy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>16</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_17">
+           <property name="text">
+            <string>Triple-click selects:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QRadioButton" name="tripleClickSelectsTheWholeLine">
+           <property name="text">
+            <string>&amp;The whole line</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">tripleClickMode</string>
+           </attribute>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QRadioButton" name="tripleClickSelectsFromMousePosition">
+           <property name="text">
+            <string>From mouse position to the end of &amp;line</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">tripleClickMode</string>
+           </attribute>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <spacer>
+           <property name="orientation">
+            <enum>Qt::Orientation::Vertical</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Policy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>16</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="label_13">
+           <property name="text">
+            <string>Middle-click pastes:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="QRadioButton" name="pasteFromClipboardButton">
+           <property name="text">
+            <string>From clipboard</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">pasteFrom</string>
+           </attribute>
+          </widget>
+         </item>
+         <item row="6" column="1">
+          <widget class="QRadioButton" name="pasteFromX11SelectionButton">
+           <property name="text">
+            <string>From selection</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">pasteFrom</string>
+           </attribute>
+          </widget>
+         </item>
+         <item row="7" column="1">
+          <spacer>
+           <property name="orientation">
+            <enum>Qt::Orientation::Vertical</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Policy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>16</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="8" column="0">
+          <widget class="QLabel" name="rightClickPasteLabel">
+           <property name="text">
+            <string>Right-click:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="8" column="1">
+          <widget class="QRadioButton" name="rightClickPasteDisabledButton">
+           <property name="text">
+            <string>Opens context menu</string>
+           </property>
+           <property name="toolTip">
+            <string comment="@info:tooltip">Right-click shows context menu</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">rightClickPasteFrom</string>
+           </attribute>
+          </widget>
+         </item>
+         <item row="9" column="1">
+          <widget class="QRadioButton" name="rightClickPasteFromClipboardButton">
+           <property name="text">
+            <string>Pastes from clipboard</string>
+           </property>
+           <property name="toolTip">
+            <string comment="@info:tooltip">Control+right-click shows context menu</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">rightClickPasteFrom</string>
+           </attribute>
+          </widget>
+         </item>
+         <item row="10" column="1">
+          <widget class="QRadioButton" name="rightClickPasteFromX11SelectionButton">
+           <property name="text">
+            <string>Pastes from selection</string>
+           </property>
+           <property name="toolTip">
+            <string comment="@info:tooltip">Control+right-click shows context menu</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">rightClickPasteFrom</string>
+           </attribute>
+          </widget>
+         </item>
+         <item row="11" column="1">
+          <spacer>
+           <property name="orientation">
+            <enum>Qt::Orientation::Vertical</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Policy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>16</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="12" column="0">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Copy options:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="12" column="1">
+          <widget class="QCheckBox" name="copyTextToClipboardButton">
+           <property name="toolTip">
+            <string>Automatically copy selected text into clipboard</string>
+           </property>
+           <property name="text">
+            <string>Copy on select</string>
+           </property>
+          </widget>
+         </item>
+         <item row="13" column="1">
+          <widget class="QCheckBox" name="copyTextAsHTMLButton">
+           <property name="toolTip">
+            <string>Copy text as HTML (including formatting, font faces, colors... etc)</string>
+           </property>
+           <property name="text">
+            <string>Copy text as HTML</string>
+           </property>
+          </widget>
+         </item>
+         <item row="14" column="1">
+          <widget class="QCheckBox" name="trimLeadingSpacesButton">
+           <property name="toolTip">
+            <string>Trim leading spaces in selected text, useful in some instances</string>
+           </property>
+           <property name="text">
+            <string>Trim leading spaces</string>
+           </property>
+          </widget>
+         </item>
+         <item row="15" column="1">
+          <widget class="QCheckBox" name="trimTrailingSpacesButton">
+           <property name="toolTip">
+            <string>Trim trailing spaces in selected text, useful in some instances</string>
+           </property>
+           <property name="text">
+            <string>Trim trailing spaces</string>
+           </property>
+          </widget>
+         </item>
+         <item row="16" column="1">
+          <widget class="QCheckBox" name="clearSelectionButton">
+           <property name="toolTip">
+            <string>Clear selection after copying</string>
+           </property>
+           <property name="text">
+            <string>Clear selection</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <spacer>
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_2">
+      <attribute name="title">
+       <string comment="Items that do not fit in other categories">Miscellaneous</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <property name="spacing">
+        <number>10</number>
+       </property>
+       <item>
+        <layout class="QVBoxLayout" name="underlineURILayout">
+         <property name="spacing">
+          <number>10</number>
+         </property>
+         <item>
+          <widget class="QCheckBox" name="underlineLinksButton">
+           <property name="toolTip">
+            <string>Text recognized as a link or an email address will be underlined when hovered by the mouse pointer.</string>
+           </property>
+           <property name="text">
+            <string>Underline links</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="underlineFilesButton">
+           <property name="toolTip">
+            <string>Text recognized as a file will be underlined when hovered by the mouse pointer.</string>
+           </property>
+           <property name="text">
+            <string>Underline files</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout">
+           <item>
+            <widget class="QLabel" name="textEditorCommandLabel">
+             <property name="toolTip">
+              <string comment="@info:tooltip">Text editor to use when opening text file URLs at a given line/column.</string>
+             </property>
+             <property name="text">
+              <string>Text Editor Command: </string>
+             </property>
+             <property name="buddy">
+              <cstring>textEditorCombo</cstring>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="textEditorCombo">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>1</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string comment="@info:tooltip">Text editor to use when opening text file URLs at a given line/column.</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="textEditorCustomBtn">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Edit...</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="openLinksByDirectClickButton">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>Text recognized as a file, link or an email address can be opened by direct mouse click.</string>
+           </property>
+           <property name="text">
+            <string>Open underlined files/links by direct click</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QVBoxLayout">
+         <item>
+          <widget class="QCheckBox" name="allowLinkEscapeSequenceButton">
+           <property name="text">
+            <string>Allow escape sequences for links</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="allowLinkEscapeSequenceButtonWarning">
+           <property name="text">
+            <string>&lt;b&gt;WARNING&lt;/b&gt;: This has security implications as it allows malicious URLs to be shown as another URL or hidden.&lt;br&gt;Make sure you understand the implications before turning this on.</string>
+           </property>
+           <property name="textFormat">
+            <enum>Qt::TextFormat::RichText</enum>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+           <property name="indent">
+            <number>30</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout">
+           <item>
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>Allowed link formats: </string>
+             </property>
+             <property name="indent">
+              <number>30</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="linkEscapeSequenceTexts">
+             <property name="toolTip">
+              <string>The formats of possible links, like http://, https:// and file://</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="ctrlRequiredForDragButton">
+         <property name="toolTip">
+          <string>Selected text will require control key plus click to drag.</string>
+         </property>
+         <property name="text">
+          <string>Require Ctrl key for drag &amp;&amp; drop</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="enableAlternateScrollingButton">
+         <property name="toolTip">
+          <string>Mouse scroll wheel will emulate up/down key presses in programs that use the Alternate Screen buffer (e.g. less)</string>
+         </property>
+         <property name="text">
+          <string>Enable Alternate Screen buffer scrolling</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="dropUrlsAsText">
+         <property name="toolTip">
+          <string>Always paste dropped files and URLs as text without offering move, copy and link actions.</string>
+         </property>
+         <property name="text">
+          <string>Disable drag &amp;&amp; drop menu for files &amp;&amp; URLs</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="enableMouseWheelZoomButton">
+         <property name="toolTip">
+          <string>Pressing Ctrl+scrollwheel will increase/decrease the text size.</string>
+         </property>
+         <property name="text">
+          <string>Allow Ctrl+scrollwheel to zoom text size</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="allowColorFilters">
+         <property name="toolTip">
+          <string>When positioning the mouse over a hexadecimal color it will be displayed in a frame next to the mouse pointer</string>
+         </property>
+         <property name="text">
+          <string>Preview Colors on hover</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer>
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="allowMouseTrackingButton">
+         <property name="toolTip">
+          <string>Some terminal applications have mouse support, this allows them to get it by default. It can be toggled on/off while running as well.</string>
+         </property>
+         <property name="text">
+          <string>Allow terminal applications to handle clicks and drags</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+ </tabstops>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>allowLinkEscapeSequenceButton</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>linkEscapeSequenceTexts</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>193</x>
+     <y>109</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>218</x>
+     <y>151</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <buttongroups>
+  <buttongroup name="tripleClickMode"/>
+  <buttongroup name="pasteFrom"/>
+  <buttongroup name="rightClickPasteFrom"/>
+ </buttongroups>
+</ui>

@@ -1,0 +1,1004 @@
+/*
+ * SPDX-FileCopyrightText: 2008 David Faure <faure@kde.org>
+ * SPDX-FileCopyrightText: 2012 Peter Penz <peter.penz19@gmail.com>
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
+
+#include "dolphinviewactionhandler.h"
+
+#include "kitemviews/kfileitemlisttostring.h"
+#include "kitemviews/kfileitemmodel.h"
+#include "selectionmode/actiontexthelper.h"
+#include "settings/viewpropertiesdialog.h"
+#include "views/zoomlevelinfo.h"
+#include "views/zoomwidgetaction.h"
+
+#if HAVE_BALOO
+#include <Baloo/IndexerConfig>
+#endif
+#include <KActionCategory>
+#include <KActionCollection>
+#include <KActionMenu>
+#include <KFileItemListProperties>
+#include <KLocalizedString>
+#include <KNewFileMenu>
+#include <KPropertiesDialog>
+#include <KProtocolManager>
+
+#include <QActionGroup>
+#include <QApplication>
+#include <QMenu>
+#include <QPointer>
+
+DolphinViewActionHandler::DolphinViewActionHandler(KActionCollection *collection, SelectionMode::ActionTextHelper *actionTextHelper, QObject *parent)
+    : QObject(parent)
+    , m_actionCollection(collection)
+    , m_currentView(nullptr)
+    , m_sortByActions()
+    , m_visibleRoles()
+{
+    Q_ASSERT(m_actionCollection);
+    createActions(actionTextHelper);
+}
+
+void DolphinViewActionHandler::setCurrentView(DolphinView *view)
+{
+    Q_ASSERT(view);
+
+    if (m_currentView) {
+        disconnect(m_currentView, nullptr, this, nullptr);
+    }
+
+    m_currentView = view;
+
+    connect(view, &DolphinView::modeChanged, this, &DolphinViewActionHandler::updateViewActions);
+    connect(view, &DolphinView::previewsShownChanged, this, &DolphinViewActionHandler::slotPreviewsShownChanged);
+    connect(view, &DolphinView::sortOrderChanged, this, &DolphinViewActionHandler::slotSortOrderChanged);
+    connect(view, &DolphinView::sortFoldersFirstChanged, this, &DolphinViewActionHandler::slotSortFoldersFirstChanged);
+    connect(view, &DolphinView::sortHiddenLastChanged, this, &DolphinViewActionHandler::slotSortHiddenLastChanged);
+    connect(view, &DolphinView::visibleRolesChanged, this, &DolphinViewActionHandler::slotVisibleRolesChanged);
+    connect(view, &DolphinView::groupedSortingChanged, this, &DolphinViewActionHandler::slotGroupedSortingChanged);
+    connect(view, &DolphinView::groupRoleChanged, this, &DolphinViewActionHandler::slotGroupRoleChanged);
+    connect(view, &DolphinView::hiddenFilesShownChanged, this, &DolphinViewActionHandler::slotHiddenFilesShownChanged);
+    connect(view, &DolphinView::sortRoleChanged, this, &DolphinViewActionHandler::slotSortRoleChanged);
+    connect(view, &DolphinView::zoomLevelChanged, this, &DolphinViewActionHandler::slotZoomLevelChanged);
+    connect(view, &DolphinView::writeStateChanged, this, &DolphinViewActionHandler::slotWriteStateChanged);
+    connect(view, &DolphinView::requestPropertyDialog, this, &DolphinViewActionHandler::slotProperties);
+    slotWriteStateChanged(view->isFolderWritable());
+    connect(view, &DolphinView::selectionModeChangeRequested, this, [this](bool enabled) {
+        Q_EMIT selectionModeChangeTriggered(enabled);
+    });
+    connect(view, &DolphinView::selectionChanged, this, &DolphinViewActionHandler::slotSelectionChanged);
+    slotSelectionChanged(m_currentView->selectedItems());
+}
+
+DolphinView *DolphinViewActionHandler::currentView()
+{
+    return m_currentView;
+}
+
+void DolphinViewActionHandler::createActions(SelectionMode::ActionTextHelper *actionTextHelper)
+{
+    // This action doesn't appear in the GUI, it's for the shortcut only.
+    // KNewFileMenu takes care of the GUI stuff.
+    QAction *newDirAction = m_actionCollection->addAction(QStringLiteral("create_dir"));
+    newDirAction->setText(i18nc("@action", "Create Folder…"));
+    m_actionCollection->setDefaultShortcuts(newDirAction, KStandardShortcut::createFolder());
+    newDirAction->setIcon(QIcon::fromTheme(QStringLiteral("folder-new")));
+    newDirAction->setEnabled(false); // Will be enabled in slotWriteStateChanged(bool) if the current URL is writable
+    connect(newDirAction, &QAction::triggered, this, [this] {
+        Q_EMIT createDirectoryTriggered(m_currentView->url());
+    });
+
+    QAction *newSubdirAction = m_actionCollection->addAction(QStringLiteral("create_subdir"));
+    newSubdirAction->setText(i18nc("@action", "Create Subfolder…"));
+    newSubdirAction->setIcon(QIcon::fromTheme(QStringLiteral("folder-new")));
+    newSubdirAction->setEnabled(false);
+    connect(newSubdirAction, &QAction::triggered, this, [this] {
+        Q_EMIT createDirectoryTriggered(subdirectoryParent());
+    });
+
+    QAction *newFileAction = m_actionCollection->addAction(QStringLiteral("create_file"));
+    newFileAction->setText(i18nc("@action", "Create File…"));
+    newFileAction->setIcon(QIcon::fromTheme(QStringLiteral("document-new")));
+    newFileAction->setEnabled(false); // Will be enabled in slotWriteStateChanged(bool) if the current URL is writable
+    connect(newFileAction, &QAction::triggered, this, &DolphinViewActionHandler::createFileTriggered);
+
+    // File menu
+
+    auto renameAction = KStandardAction::renameFile(this, &DolphinViewActionHandler::slotRename, m_actionCollection);
+    renameAction->setWhatsThis(xi18nc("@info:whatsthis",
+                                      "This renames the "
+                                      "items in your current selection.<nl/>Renaming multiple items "
+                                      "at once results in their new names differing only in a number."));
+
+    auto trashAction = KStandardAction::moveToTrash(this, &DolphinViewActionHandler::slotTrashActivated, m_actionCollection);
+    auto trashShortcuts = trashAction->shortcuts();
+    trashAction->setAutoRepeat(false);
+    if (!trashShortcuts.contains(QKeySequence::Delete)) {
+        trashShortcuts.append(QKeySequence::Delete);
+        m_actionCollection->setDefaultShortcuts(trashAction, trashShortcuts);
+    }
+    trashAction->setWhatsThis(xi18nc("@info:whatsthis",
+                                     "This moves the "
+                                     "items in your current selection to the <filename>Trash"
+                                     "</filename>.<nl/>The trash is a temporary storage location where "
+                                     "items can be deleted later if disk space is needed."));
+
+    auto deleteAction = KStandardAction::deleteFile(this, &DolphinViewActionHandler::slotDeleteItems, m_actionCollection);
+    auto deleteShortcuts = deleteAction->shortcuts();
+    deleteAction->setAutoRepeat(false);
+    if (!deleteShortcuts.contains(Qt::SHIFT | Qt::Key_Delete)) {
+        deleteShortcuts.append(Qt::SHIFT | Qt::Key_Delete);
+        m_actionCollection->setDefaultShortcuts(deleteAction, deleteShortcuts);
+    }
+    deleteAction->setWhatsThis(xi18nc("@info:whatsthis",
+                                      "This deletes "
+                                      "the items in your current selection permanently. They "
+                                      "cannot be recovered by normal means."));
+
+    // This action is useful for being enabled when KStandardAction::MoveToTrash should be
+    // disabled and KStandardAction::DeleteFile is enabled (e.g. non-local files), so that Key_Del
+    // can be used for deleting the file (#76016). It needs to be a separate action
+    // so that the Edit menu isn't affected.
+    QAction *deleteWithTrashShortcut = m_actionCollection->addAction(QStringLiteral("delete_shortcut"));
+    // The descriptive text is just for the shortcuts editor.
+    deleteWithTrashShortcut->setText(i18nc("@action \"Move to Trash\" for non-local files, etc.", "Delete (using shortcut for Trash)"));
+    m_actionCollection->setDefaultShortcuts(deleteWithTrashShortcut, KStandardShortcut::moveToTrash());
+    deleteWithTrashShortcut->setEnabled(false);
+    connect(deleteWithTrashShortcut, &QAction::triggered, this, &DolphinViewActionHandler::slotDeleteItems);
+
+    QAction *duplicateAction = m_actionCollection->addAction(QStringLiteral("duplicate"));
+    duplicateAction->setText(i18nc("@action:inmenu File", "Duplicate Here"));
+    duplicateAction->setIcon(QIcon::fromTheme(QStringLiteral("edit-duplicate")));
+    m_actionCollection->setDefaultShortcut(duplicateAction, Qt::CTRL | Qt::Key_D);
+    duplicateAction->setEnabled(false);
+    connect(duplicateAction, &QAction::triggered, this, &DolphinViewActionHandler::slotDuplicate);
+
+    QAction *propertiesAction = m_actionCollection->addAction(QStringLiteral("properties"));
+    // Well, it's the File menu in dolphinmainwindow and the Edit menu in dolphinpart... :)
+    propertiesAction->setText(i18nc("@action:inmenu File", "Properties"));
+    propertiesAction->setWhatsThis(xi18nc("@info:whatsthis properties",
+                                          "This shows a complete list of properties of the currently "
+                                          "selected items in a new window.<nl/>If nothing is selected the "
+                                          "window will be about the currently viewed folder instead.<nl/>"
+                                          "You can configure advanced options there like managing "
+                                          "read- and write-permissions."));
+    propertiesAction->setIcon(QIcon::fromTheme(QStringLiteral("document-properties")));
+    m_actionCollection->setDefaultShortcuts(propertiesAction, {Qt::ALT | Qt::Key_Return, Qt::ALT | Qt::Key_Enter});
+    connect(propertiesAction, &QAction::triggered, this, &DolphinViewActionHandler::slotProperties);
+
+    QAction *copyPathAction = m_actionCollection->addAction(QStringLiteral("copy_location"));
+    copyPathAction->setText(i18nc("@action:incontextmenu", "Copy Location"));
+    copyPathAction->setWhatsThis(i18nc("@info:whatsthis copy_location", "This will copy the path of the first selected item into the clipboard."));
+
+    copyPathAction->setIcon(QIcon::fromTheme(QStringLiteral("edit-copy-path")));
+    m_actionCollection->setDefaultShortcuts(copyPathAction, {Qt::CTRL | Qt::ALT | Qt::Key_C});
+    connect(copyPathAction, &QAction::triggered, this, &DolphinViewActionHandler::slotCopyPath);
+
+    if (actionTextHelper) {
+        // The "…" at the end make clear that they won't trigger their respective actions directly.
+        actionTextHelper->registerTextWhenNothingIsSelected(trashAction, i18nc("@action:inmenu File", "Move to Trash…"));
+        actionTextHelper->registerTextWhenNothingIsSelected(deleteAction, i18nc("@action:inmenu File", "Delete…"));
+        actionTextHelper->registerTextWhenNothingIsSelected(duplicateAction, i18nc("@action:inmenu File", "Duplicate Here…"));
+        actionTextHelper->registerTextWhenNothingIsSelected(copyPathAction, i18nc("@action:incontextmenu", "Copy Location…"));
+    }
+
+    // This menu makes sure that users who don't know how to open a context menu and haven't
+    // figured out how to enable the menu bar can still perform basic file manipulation.
+    // This only works if they know how to select a file.
+    // The text when nothing is selected at least implies that a selection can /somehow/ be made.
+    // This menu is by default only used in the hamburger menu but created here so users can put
+    // it on their toolbar.
+    KActionMenu *basicActionsMenu = m_actionCollection->add<KActionMenu>(QStringLiteral("basic_actions"), this);
+    // The text is set later depending on the selection in the currently active view.
+    basicActionsMenu->setPopupMode(QToolButton::InstantPopup);
+    basicActionsMenu->addAction(m_actionCollection->action(KStandardAction::name(KStandardAction::Cut)));
+    basicActionsMenu->addAction(m_actionCollection->action(KStandardAction::name(KStandardAction::Copy)));
+    basicActionsMenu->addAction(m_actionCollection->action(KStandardAction::name(KStandardAction::Paste)));
+    basicActionsMenu->addSeparator();
+    basicActionsMenu->addAction(m_actionCollection->action(KStandardAction::name(KStandardAction::RenameFile)));
+    basicActionsMenu->addAction(m_actionCollection->action(KStandardAction::name(KStandardAction::MoveToTrash)));
+    basicActionsMenu->addSeparator();
+    basicActionsMenu->addAction(m_actionCollection->action(QStringLiteral("properties")));
+    basicActionsMenu->addSeparator(); // We add one more separator because we sometimes add contextual
+                                      // actions in slotSelectionChanged() after the static ones above.
+
+    // View menu
+    KToggleAction *iconsAction = iconsModeAction();
+    KToggleAction *compactAction = compactModeAction();
+    KToggleAction *detailsAction = detailsModeAction();
+
+    iconsAction->setWhatsThis(xi18nc("@info:whatsthis Icons view mode",
+                                     "<para>This switches to a view mode that focuses on the folder "
+                                     "and file icons. This mode makes it easy to distinguish folders "
+                                     "from files and to detect items with distinctive <emphasis>"
+                                     "file types</emphasis>.</para><para> This mode is handy to "
+                                     "browse through pictures when the <interface>Preview"
+                                     "</interface> option is enabled.</para>"));
+    compactAction->setWhatsThis(xi18nc("@info:whatsthis Compact view mode",
+                                       "<para>This switches to a compact view mode that lists the folders "
+                                       "and files in columns with the names beside the icons.</para><para>"
+                                       "This helps to give you an overview in folders with many items.</para>"));
+    detailsAction->setWhatsThis(xi18nc("@info:whatsthis Details view mode",
+                                       "<para>This switches to a list view mode that focuses on folder "
+                                       "and file details.</para><para>Click on a detail in the column "
+                                       "header to sort the items by it. Click again to sort the other "
+                                       "way around. To select which details should be displayed click "
+                                       "the header with the right mouse button.</para><para>You can "
+                                       "view the contents of a folder without leaving the current "
+                                       "location by clicking the region to the left of it. This way you can "
+                                       "view the contents of multiple folders in the same list.</para>"));
+
+    KSelectAction *viewModeActions = m_actionCollection->add<KSelectAction>(QStringLiteral("view_mode"));
+    viewModeActions->setText(i18nc("@action:intoolbar", "Change View Mode"));
+    viewModeActions->setWhatsThis(xi18nc("@info:whatsthis View Mode Toolbutton", "This cycles through all view modes."));
+    viewModeActions->addAction(iconsAction);
+    viewModeActions->addAction(compactAction);
+    viewModeActions->addAction(detailsAction);
+    viewModeActions->setToolBarMode(KSelectAction::MenuMode);
+    viewModeActions->setToolButtonPopupMode(QToolButton::ToolButtonPopupMode::MenuButtonPopup);
+    connect(viewModeActions, &KSelectAction::actionTriggered, this, &DolphinViewActionHandler::slotViewModeActionTriggered);
+    connect(viewModeActions, &KSelectAction::triggered, this, [this, viewModeActions, iconsAction, compactAction, detailsAction]() {
+        // Loop through the actions when button is clicked
+        const auto currentAction = viewModeActions->currentAction();
+        if (currentAction == iconsAction) {
+            slotViewModeActionTriggered(compactAction);
+        } else if (currentAction == compactAction) {
+            slotViewModeActionTriggered(detailsAction);
+        } else if (currentAction == detailsAction) {
+            slotViewModeActionTriggered(iconsAction);
+        }
+    });
+
+    QAction *zoomInAction = KStandardAction::zoomIn(this, &DolphinViewActionHandler::zoomIn, m_actionCollection);
+    zoomInAction->setWhatsThis(i18nc("@info:whatsthis zoom in", "This increases the icon size."));
+
+    QAction *zoomResetAction = m_actionCollection->addAction(QStringLiteral("view_zoom_reset"));
+    zoomResetAction->setText(i18nc("@action:inmenu View", "Reset Zoom Level"));
+    zoomResetAction->setToolTip(i18n("Zoom To Default"));
+    zoomResetAction->setWhatsThis(i18nc("@info:whatsthis zoom reset", "This resets the icon size to default."));
+    zoomResetAction->setIcon(QIcon::fromTheme(QStringLiteral("zoom-original")));
+    m_actionCollection->setDefaultShortcuts(zoomResetAction, {Qt::CTRL | Qt::Key_0});
+    connect(zoomResetAction, &QAction::triggered, this, &DolphinViewActionHandler::zoomReset);
+
+    QAction *zoomOutAction = KStandardAction::zoomOut(this, &DolphinViewActionHandler::zoomOut, m_actionCollection);
+    zoomOutAction->setWhatsThis(i18nc("@info:whatsthis zoom out", "This reduces the icon size."));
+
+    ZoomWidgetAction *zoomWidgetAction = new ZoomWidgetAction(zoomInAction, zoomResetAction, zoomOutAction, m_actionCollection);
+    m_actionCollection->addAction(QStringLiteral("zoom"), zoomWidgetAction);
+
+    KToggleAction *showPreview = m_actionCollection->add<KToggleAction>(QStringLiteral("show_preview"));
+    showPreview->setText(i18nc("@action:intoolbar", "Show Previews"));
+    showPreview->setToolTip(i18nc("@info", "Show preview of files and folders"));
+    showPreview->setWhatsThis(xi18nc("@info:whatsthis",
+                                     "When this is "
+                                     "enabled, the icons are based on the actual file or folder "
+                                     "contents.<nl/>For example the icons of images become scaled "
+                                     "down versions of the images."));
+    showPreview->setIcon(QIcon::fromTheme(QStringLiteral("view-preview")));
+    m_actionCollection->setDefaultShortcut(showPreview, QKeySequence(Qt::Key_F12));
+    connect(showPreview, &KToggleAction::triggered, this, &DolphinViewActionHandler::togglePreview);
+
+    KToggleAction *sortFoldersFirst = m_actionCollection->add<KToggleAction>(QStringLiteral("folders_first"));
+    sortFoldersFirst->setText(i18nc("@action:inmenu Sort", "Folders First"));
+    connect(sortFoldersFirst, &KToggleAction::triggered, this, &DolphinViewActionHandler::toggleSortFoldersFirst);
+
+    KToggleAction *sortHiddenLast = m_actionCollection->add<KToggleAction>(QStringLiteral("hidden_last"));
+    sortHiddenLast->setText(i18nc("@action:inmenu Sort", "Hidden Files Last"));
+    connect(sortHiddenLast, &KToggleAction::triggered, this, &DolphinViewActionHandler::toggleSortHiddenLast);
+
+    // View -> Sort By
+    QActionGroup *sortByActionGroup = createFileItemRolesActionGroup(QStringLiteral("sort_by_"));
+
+    KActionMenu *sortByActionMenu = m_actionCollection->add<KActionMenu>(QStringLiteral("sort"));
+    sortByActionMenu->setIcon(QIcon::fromTheme(QStringLiteral("view-sort")));
+    sortByActionMenu->setText(i18nc("@action:inmenu View", "Sort By"));
+    sortByActionMenu->setPopupMode(QToolButton::InstantPopup);
+
+    const auto sortByActionGroupActions = sortByActionGroup->actions();
+    for (QAction *action : sortByActionGroupActions) {
+        sortByActionMenu->addAction(action);
+    }
+
+    sortByActionMenu->addSeparator();
+
+    QActionGroup *group = new QActionGroup(sortByActionMenu);
+    group->setExclusive(true);
+
+    KToggleAction *ascendingAction = m_actionCollection->add<KToggleAction>(QStringLiteral("ascending"));
+    ascendingAction->setActionGroup(group);
+    connect(ascendingAction, &QAction::triggered, this, [this] {
+        m_currentView->setSortOrder(Qt::AscendingOrder);
+    });
+
+    KToggleAction *descendingAction = m_actionCollection->add<KToggleAction>(QStringLiteral("descending"));
+    descendingAction->setActionGroup(group);
+    connect(descendingAction, &QAction::triggered, this, [this] {
+        m_currentView->setSortOrder(Qt::DescendingOrder);
+    });
+
+    sortByActionMenu->addAction(ascendingAction);
+    sortByActionMenu->addAction(descendingAction);
+    sortByActionMenu->addSeparator();
+    sortByActionMenu->addAction(sortFoldersFirst);
+    sortByActionMenu->addAction(sortHiddenLast);
+
+    // View -> Additional Information
+    QActionGroup *visibleRolesGroup = createFileItemRolesActionGroup(QStringLiteral("show_"));
+
+    KActionMenu *visibleRolesMenu = m_actionCollection->add<KActionMenu>(QStringLiteral("additional_info"));
+    visibleRolesMenu->setText(i18nc("@action:inmenu View", "Show Additional Information"));
+    visibleRolesMenu->setIcon(QIcon::fromTheme(QStringLiteral("documentinfo")));
+    visibleRolesMenu->setPopupMode(QToolButton::InstantPopup);
+
+    const auto visibleRolesGroupActions = visibleRolesGroup->actions();
+    for (QAction *action : visibleRolesGroupActions) {
+        visibleRolesMenu->addAction(action);
+    }
+
+    KActionMenu *groupByActionMenu = m_actionCollection->add<KActionMenu>(QStringLiteral("group_by"));
+    groupByActionMenu->setIcon(QIcon::fromTheme(QStringLiteral("view-group")));
+    groupByActionMenu->setText(i18nc("@action:inmenu View", "Group By"));
+    groupByActionMenu->setWhatsThis(i18nc("@info:whatsthis",
+                                          "This groups files and folders by a chosen attribute. "
+                                          "\"None\" disables grouping. "
+                                          "\"Same as Sort\" groups by the active sort criterion."));
+    groupByActionMenu->setPopupMode(QToolButton::InstantPopup);
+
+    QActionGroup *groupByActionGroup = new QActionGroup(m_actionCollection);
+    groupByActionGroup->setExclusive(true);
+    connect(groupByActionGroup, &QActionGroup::triggered, this, &DolphinViewActionHandler::slotGroupByTriggered);
+
+    KToggleAction *groupByNone = m_actionCollection->add<KToggleAction>(QStringLiteral("group_by_none"));
+    groupByNone->setActionGroup(groupByActionGroup);
+    groupByNone->setText(i18nc("@action:inmenu Group By", "None"));
+    groupByNone->setData(QByteArray());
+    m_groupByActions.insert(QByteArray(), groupByNone);
+    groupByActionMenu->addAction(groupByNone);
+
+    KToggleAction *groupBySameAsSort = m_actionCollection->add<KToggleAction>(QStringLiteral("group_by_same_as_sort"));
+    groupBySameAsSort->setActionGroup(groupByActionGroup);
+    groupBySameAsSort->setText(i18nc("@action:inmenu Group By", "Same as Sort"));
+    groupBySameAsSort->setData(QByteArray("same_as_sort"));
+    m_groupByActions.insert(QByteArray("same_as_sort"), groupBySameAsSort);
+    groupByActionMenu->addAction(groupBySameAsSort);
+
+    groupByActionMenu->addSeparator();
+
+    QActionGroup *groupRolesGroup = createFileItemRolesActionGroup(QStringLiteral("group_"));
+    const auto groupRolesGroupActions = groupRolesGroup->actions();
+    for (QAction *action : groupRolesGroupActions) {
+        groupByActionMenu->addAction(action);
+    }
+
+    KToggleAction *showHiddenFiles = m_actionCollection->add<KToggleAction>(QStringLiteral("show_hidden_files"));
+    showHiddenFiles->setIcon(QIcon::fromTheme(QStringLiteral("view-visible")));
+    showHiddenFiles->setText(i18nc("@action:inmenu View", "Show Hidden Files"));
+    showHiddenFiles->setWhatsThis(xi18nc("@info:whatsthis",
+                                         "<para>When "
+                                         "this is enabled, <emphasis>hidden</emphasis> files and folders "
+                                         "are visible. They will be displayed semi-transparent.</para>"
+                                         "<para>Hidden items only differ from normal ones in that their "
+                                         "name starts with a dot (\".\"). Typically, there is no need for "
+                                         "users to access them, which is why they are hidden.</para>"
+                                         "<para>Items can also be hidden if their names are listed in a text file "
+                                         "named \".hidden\". Files with the \"application/x-trash\" MIME type, "
+                                         "such as backup files, can also be hidden by enabling that setting in "
+                                         "Configure Dolphin > View > General.</para>"));
+    m_actionCollection->setDefaultShortcuts(showHiddenFiles, KStandardShortcut::showHideHiddenFiles());
+    connect(showHiddenFiles, &KToggleAction::triggered, this, &DolphinViewActionHandler::toggleShowHiddenFiles);
+
+    QAction *adjustViewProps = m_actionCollection->addAction(QStringLiteral("view_properties"));
+    adjustViewProps->setText(i18nc("@action:inmenu View", "Adjust View Display Style…"));
+    adjustViewProps->setIcon(QIcon::fromTheme(QStringLiteral("view-choose")));
+    adjustViewProps->setWhatsThis(i18nc("@info:whatsthis",
+                                        "This opens a window "
+                                        "in which all folder view properties can be adjusted."));
+    connect(adjustViewProps, &QAction::triggered, this, &DolphinViewActionHandler::slotAdjustViewProperties);
+
+    QAction *restoreViewSettingsToDefault = actionCollection()->addAction(QStringLiteral("restore_view_settings_default"));
+    restoreViewSettingsToDefault->setIcon(QIcon::fromTheme(QStringLiteral("view-restore")));
+    restoreViewSettingsToDefault->setText(i18nc("@action:inmenu", "Restore to Defaults"));
+    restoreViewSettingsToDefault->setToolTip(i18nc("info:tooltip", "Restore View Settings to Defaults Value"));
+    connect(restoreViewSettingsToDefault, &QAction::triggered, this, &DolphinViewActionHandler::restoreViewSettingsToDefaults);
+
+    // View settings: the dropdown menu contains various view-related actions
+    KActionMenu *viewSettings = m_actionCollection->add<KActionMenu>(QStringLiteral("view_settings"));
+    viewSettings->setText(i18nc("@action:intoolbar", "View Settings"));
+    viewSettings->setWhatsThis(
+        xi18nc("@info:whatsthis View Settings Toolbutton", "This cycles through all view modes. The dropdown menu contains various view-related actions."));
+    const auto actions = viewModeActions->actions();
+    for (QAction *action : actions) {
+        viewSettings->addAction(action);
+    }
+    viewSettings->addSeparator();
+    viewSettings->addAction(zoomWidgetAction);
+    viewSettings->addAction(sortByActionMenu);
+    viewSettings->addAction(groupByActionMenu);
+    viewSettings->addAction(visibleRolesMenu);
+    viewSettings->addAction(showPreview);
+    viewSettings->addAction(showHiddenFiles);
+    viewSettings->addSeparator();
+    viewSettings->addAction(restoreViewSettingsToDefault);
+    viewSettings->addAction(adjustViewProps);
+    viewSettings->setPopupMode(QToolButton::ToolButtonPopupMode::MenuButtonPopup);
+    connect(viewSettings, &KActionMenu::triggered, viewModeActions, &KSelectAction::triggered);
+    // HACK KActionMenu doesn't set a parent for its menu() causing accessibility traversal issues
+    viewSettings->menu()->setParent(QApplication::activeWindow());
+}
+
+QActionGroup *DolphinViewActionHandler::createFileItemRolesActionGroup(const QString &groupPrefix)
+{
+    const bool isSortGroup = (groupPrefix == QLatin1String("sort_by_"));
+    const bool isGroupGroup = (groupPrefix == QLatin1String("group_"));
+    Q_ASSERT(isSortGroup || isGroupGroup || groupPrefix == QLatin1String("show_"));
+
+    QActionGroup *rolesActionGroup = new QActionGroup(m_actionCollection);
+    rolesActionGroup->setExclusive(isSortGroup || isGroupGroup);
+    KActionCategory *category;
+    if (isSortGroup) {
+        connect(rolesActionGroup, &QActionGroup::triggered, this, &DolphinViewActionHandler::slotSortTriggered);
+        category = new KActionCategory(i18nc("@item:intable, Heading of a list of fields", "Sort by Field"), m_actionCollection);
+    } else if (isGroupGroup) {
+        connect(rolesActionGroup, &QActionGroup::triggered, this, &DolphinViewActionHandler::slotGroupByTriggered);
+        category = new KActionCategory(i18nc("@item:intable, Heading of a list of fields", "Group by Field"), m_actionCollection);
+    } else {
+        connect(rolesActionGroup, &QActionGroup::triggered, this, &DolphinViewActionHandler::toggleVisibleRole);
+        category = new KActionCategory(i18nc("@item:intable, Heading of a list of fields", "Show Field"), m_actionCollection);
+    }
+
+    QString groupName;
+    KActionMenu *groupMenu = nullptr;
+    QActionGroup *groupMenuGroup = nullptr;
+
+    bool indexingEnabled = false;
+#if HAVE_BALOO
+    Baloo::IndexerConfig config;
+    indexingEnabled = config.fileIndexingEnabled();
+#endif
+
+    const QList<KFileItemModel::RoleInfo> rolesInfo = KFileItemModel::rolesInformation();
+    for (const KFileItemModel::RoleInfo &info : rolesInfo) {
+        if (!isSortGroup && !isGroupGroup && info.role == "text") {
+            // It should not be possible to hide the "text" role
+            continue;
+        }
+
+        KToggleAction *action = nullptr;
+        const QString name = groupPrefix + info.role;
+        if (info.group.isEmpty()) {
+            action = category->add<KToggleAction>(name);
+            action->setActionGroup(rolesActionGroup);
+        } else {
+            if (!groupMenu || info.group != groupName) {
+                groupName = info.group;
+                groupMenu = category->add<KActionMenu>(groupName);
+                groupMenu->setText(groupName);
+                groupMenu->setActionGroup(rolesActionGroup);
+
+                groupMenuGroup = new QActionGroup(groupMenu);
+                groupMenuGroup->setExclusive(isSortGroup || isGroupGroup);
+                if (isSortGroup) {
+                    connect(groupMenuGroup, &QActionGroup::triggered, this, &DolphinViewActionHandler::slotSortTriggered);
+                } else if (isGroupGroup) {
+                    connect(groupMenuGroup, &QActionGroup::triggered, this, &DolphinViewActionHandler::slotGroupByTriggered);
+                } else {
+                    connect(groupMenuGroup, &QActionGroup::triggered, this, &DolphinViewActionHandler::toggleVisibleRole);
+                }
+            }
+
+            action = new KToggleAction(groupMenu);
+            action->setActionGroup(groupMenuGroup);
+            groupMenu->addAction(action);
+        }
+        action->setText(info.translation);
+        action->setData(info.role);
+
+        const bool enable = (!info.requiresBaloo && !info.requiresIndexer) || (info.requiresBaloo) || (info.requiresIndexer && indexingEnabled);
+        action->setEnabled(enable);
+
+        if (isSortGroup) {
+            m_sortByActions.insert(info.role, action);
+        } else if (isGroupGroup) {
+            m_groupByActions.insert(info.role, action);
+        } else {
+            m_visibleRoles.insert(info.role, action);
+        }
+    }
+
+    return rolesActionGroup;
+}
+
+void DolphinViewActionHandler::slotViewModeActionTriggered(QAction *action)
+{
+    const DolphinView::Mode mode = action->data().value<DolphinView::Mode>();
+    m_currentView->setViewMode(mode);
+
+    QAction *viewModeMenu = m_actionCollection->action(QStringLiteral("view_mode"));
+    viewModeMenu->setIcon(action->icon());
+
+    QAction *viewSettingsAction = m_actionCollection->action(QStringLiteral("view_settings"));
+    viewSettingsAction->setIcon(action->icon());
+}
+
+void DolphinViewActionHandler::slotRename()
+{
+    if (m_currentView->selectedItemsCount() == 0) {
+        Q_EMIT selectionModeChangeTriggered(true, SelectionMode::BottomBar::Contents::RenameContents);
+    } else {
+        Q_EMIT actionBeingHandled();
+        m_currentView->renameSelectedItems();
+        // We don't exit selectionMode here because users might want to rename more items.
+    }
+}
+
+void DolphinViewActionHandler::slotTrashActivated()
+{
+    if (m_currentView->selectedItemsCount() == 0) {
+        Q_EMIT selectionModeChangeTriggered(true, SelectionMode::BottomBar::Contents::MoveToTrashContents);
+    } else {
+        Q_EMIT actionBeingHandled();
+        m_currentView->trashSelectedItems();
+        Q_EMIT selectionModeChangeTriggered(false);
+    }
+}
+
+void DolphinViewActionHandler::slotDeleteItems()
+{
+    if (m_currentView->selectedItemsCount() == 0) {
+        Q_EMIT selectionModeChangeTriggered(true, SelectionMode::BottomBar::Contents::DeleteContents);
+    } else {
+        Q_EMIT actionBeingHandled();
+        m_currentView->deleteSelectedItems();
+        Q_EMIT selectionModeChangeTriggered(false);
+    }
+}
+
+void DolphinViewActionHandler::togglePreview(bool show)
+{
+    Q_EMIT actionBeingHandled();
+    m_currentView->setPreviewsShown(show);
+}
+
+void DolphinViewActionHandler::slotPreviewsShownChanged(bool shown)
+{
+    Q_UNUSED(shown)
+    // It is not enough to update the 'Show Preview' action, also
+    // the 'Zoom In', 'Zoom Out' and 'Zoom Reset' actions must be adapted.
+    updateViewActions();
+}
+
+QString DolphinViewActionHandler::currentViewModeActionName() const
+{
+    switch (m_currentView->viewMode()) {
+    case DolphinView::IconsView:
+        return QStringLiteral("icons");
+    case DolphinView::DetailsView:
+        return QStringLiteral("details");
+    case DolphinView::CompactView:
+        return QStringLiteral("compact");
+    default:
+        Q_ASSERT(false);
+        break;
+    }
+    return QString(); // can't happen
+}
+
+KActionCollection *DolphinViewActionHandler::actionCollection()
+{
+    return m_actionCollection;
+}
+
+void DolphinViewActionHandler::updateViewActions()
+{
+    QAction *viewModeAction = m_actionCollection->action(currentViewModeActionName());
+    if (viewModeAction) {
+        viewModeAction->setChecked(true);
+
+        QAction *viewModeMenu = m_actionCollection->action(QStringLiteral("view_mode"));
+        viewModeMenu->setIcon(viewModeAction->icon());
+
+        QAction *viewSettingsAction = m_actionCollection->action(QStringLiteral("view_settings"));
+        viewSettingsAction->setIcon(viewModeAction->icon());
+    }
+
+    QAction *showPreviewAction = m_actionCollection->action(QStringLiteral("show_preview"));
+    showPreviewAction->setChecked(m_currentView->previewsShown());
+
+    slotSortOrderChanged(m_currentView->sortOrder());
+    slotSortFoldersFirstChanged(m_currentView->sortFoldersFirst());
+    slotSortHiddenLastChanged(m_currentView->sortHiddenLast());
+    slotVisibleRolesChanged(m_currentView->visibleRoles(), QList<QByteArray>());
+    updateGroupByActions();
+    slotSortRoleChanged(m_currentView->sortRole());
+    slotZoomLevelChanged(m_currentView->zoomLevel(), -1);
+
+    // Updates the "show_hidden_files" action state and icon
+    slotHiddenFilesShownChanged(m_currentView->hiddenFilesShown());
+}
+
+void DolphinViewActionHandler::zoomIn()
+{
+    const int level = m_currentView->zoomLevel();
+    m_currentView->setZoomLevel(level + 1);
+    updateViewActions();
+}
+
+void DolphinViewActionHandler::zoomOut()
+{
+    const int level = m_currentView->zoomLevel();
+    m_currentView->setZoomLevel(level - 1);
+    updateViewActions();
+}
+
+void DolphinViewActionHandler::zoomReset()
+{
+    m_currentView->resetZoomLevel();
+    updateViewActions();
+}
+
+void DolphinViewActionHandler::toggleSortFoldersFirst()
+{
+    const bool sortFirst = m_currentView->sortFoldersFirst();
+    m_currentView->setSortFoldersFirst(!sortFirst);
+}
+
+void DolphinViewActionHandler::toggleSortHiddenLast()
+{
+    const bool sortHiddenLast = m_currentView->sortHiddenLast();
+    m_currentView->setSortHiddenLast(!sortHiddenLast);
+}
+
+void DolphinViewActionHandler::slotSortOrderChanged(Qt::SortOrder order)
+{
+    QAction *descending = m_actionCollection->action(QStringLiteral("descending"));
+    QAction *ascending = m_actionCollection->action(QStringLiteral("ascending"));
+    const bool sortDescending = (order == Qt::DescendingOrder);
+    descending->setChecked(sortDescending);
+    ascending->setChecked(!sortDescending);
+    const QByteArray currentRole = m_currentView->sortRole();
+    m_currentView->setPreferredSortOrder(currentRole, order);
+}
+
+void DolphinViewActionHandler::slotSortFoldersFirstChanged(bool foldersFirst)
+{
+    m_actionCollection->action(QStringLiteral("folders_first"))->setChecked(foldersFirst);
+}
+
+void DolphinViewActionHandler::slotSortHiddenLastChanged(bool hiddenLast)
+{
+    m_actionCollection->action(QStringLiteral("hidden_last"))->setChecked(hiddenLast);
+}
+
+void DolphinViewActionHandler::toggleVisibleRole(QAction *action)
+{
+    Q_EMIT actionBeingHandled();
+
+    const QByteArray toggledRole = action->data().toByteArray();
+
+    QList<QByteArray> roles = m_currentView->visibleRoles();
+
+    const bool show = action->isChecked();
+
+    const int index = roles.indexOf(toggledRole);
+    const bool containsInfo = (index >= 0);
+    if (show && !containsInfo) {
+        roles.append(toggledRole);
+        m_currentView->setVisibleRoles(roles);
+    } else if (!show && containsInfo) {
+        roles.removeAt(index);
+        m_currentView->setVisibleRoles(roles);
+        Q_ASSERT(roles.indexOf(toggledRole) < 0);
+    }
+}
+
+void DolphinViewActionHandler::slotVisibleRolesChanged(const QList<QByteArray> &current, const QList<QByteArray> &previous)
+{
+    Q_UNUSED(previous)
+
+    const auto checkedRoles = QSet<QByteArray>(current.constBegin(), current.constEnd());
+    QHashIterator<QByteArray, KToggleAction *> it(m_visibleRoles);
+    while (it.hasNext()) {
+        it.next();
+        const QByteArray &role = it.key();
+        KToggleAction *action = it.value();
+        action->setChecked(checkedRoles.contains(role));
+    }
+}
+
+void DolphinViewActionHandler::slotGroupByTriggered(QAction *action)
+{
+    const QByteArray data = action->data().toByteArray();
+    if (data.isEmpty()) {
+        m_currentView->setGroupedSorting(false);
+    } else if (data == "same_as_sort") {
+        m_currentView->setGroupedSorting(true);
+        m_currentView->setGroupRole(QByteArray());
+    } else {
+        m_currentView->setGroupedSorting(true);
+        m_currentView->setGroupRole(data);
+    }
+}
+
+void DolphinViewActionHandler::slotGroupedSortingChanged(bool /*groupedSorting*/)
+{
+    updateGroupByActions();
+}
+
+void DolphinViewActionHandler::slotGroupRoleChanged(const QByteArray & /*role*/)
+{
+    updateGroupByActions();
+}
+
+void DolphinViewActionHandler::updateGroupByActions()
+{
+    if (!m_currentView) {
+        return;
+    }
+
+    const bool grouped = m_currentView->groupedSorting();
+    const QByteArray rawRole = m_currentView->rawGroupRole();
+
+    QByteArray checkedKey;
+    if (!grouped) {
+        checkedKey = QByteArray();
+    } else if (rawRole.isEmpty()) {
+        checkedKey = "same_as_sort";
+    } else {
+        checkedKey = rawRole;
+    }
+
+    for (const auto &[key, action] : m_groupByActions.asKeyValueRange()) {
+        action->setChecked(key == checkedKey);
+    }
+}
+
+void DolphinViewActionHandler::toggleShowHiddenFiles(bool show)
+{
+    Q_EMIT actionBeingHandled();
+    m_currentView->setHiddenFilesShown(show);
+}
+
+void DolphinViewActionHandler::slotHiddenFilesShownChanged(bool shown)
+{
+    QAction *showHiddenFilesAction = m_actionCollection->action(QStringLiteral("show_hidden_files"));
+    showHiddenFilesAction->setChecked(shown);
+}
+
+void DolphinViewActionHandler::slotWriteStateChanged(bool isFolderWritable)
+{
+    const bool supportsMakeDir = KProtocolManager::supportsMakeDir(currentView()->url());
+    m_actionCollection->action(QStringLiteral("create_dir"))->setEnabled(isFolderWritable && supportsMakeDir);
+    m_actionCollection->action(QStringLiteral("create_file"))->setEnabled(isFolderWritable);
+    updateCreateSubdirectoryAction();
+}
+
+KToggleAction *DolphinViewActionHandler::iconsModeAction()
+{
+    KToggleAction *iconsView = m_actionCollection->add<KToggleAction>(QStringLiteral("icons"));
+    iconsView->setText(i18nc("@action:inmenu View Mode", "Icons"));
+    iconsView->setToolTip(i18nc("@info", "Icons view mode"));
+    m_actionCollection->setDefaultShortcut(iconsView, Qt::CTRL | Qt::Key_1);
+    iconsView->setIcon(QIcon::fromTheme(QStringLiteral("view-list-icons")));
+    iconsView->setData(QVariant::fromValue(DolphinView::IconsView));
+    return iconsView;
+}
+
+KToggleAction *DolphinViewActionHandler::compactModeAction()
+{
+    KToggleAction *iconsView = m_actionCollection->add<KToggleAction>(QStringLiteral("compact"));
+    iconsView->setText(i18nc("@action:inmenu View Mode", "Compact"));
+    iconsView->setToolTip(i18nc("@info", "Compact view mode"));
+    m_actionCollection->setDefaultShortcut(iconsView, Qt::CTRL | Qt::Key_2);
+    iconsView->setIcon(QIcon::fromTheme(QStringLiteral("view-list-details"))); // TODO: discuss with Oxygen-team the wrong (?) name
+    iconsView->setData(QVariant::fromValue(DolphinView::CompactView));
+    return iconsView;
+}
+
+KToggleAction *DolphinViewActionHandler::detailsModeAction()
+{
+    KToggleAction *detailsView = m_actionCollection->add<KToggleAction>(QStringLiteral("details"));
+    detailsView->setText(i18nc("@action:inmenu View Mode", "Details"));
+    detailsView->setToolTip(i18nc("@info", "Details view mode"));
+    m_actionCollection->setDefaultShortcut(detailsView, Qt::CTRL | Qt::Key_3);
+    detailsView->setIcon(QIcon::fromTheme(QStringLiteral("view-list-tree")));
+    detailsView->setData(QVariant::fromValue(DolphinView::DetailsView));
+    return detailsView;
+}
+
+void DolphinViewActionHandler::slotSortRoleChanged(const QByteArray &role)
+{
+    KToggleAction *action = m_sortByActions.value(role);
+    if (action) {
+        action->setChecked(true);
+
+        if (!action->icon().isNull()) {
+            QAction *sortByMenu = m_actionCollection->action(QStringLiteral("sort"));
+            sortByMenu->setIcon(action->icon());
+        }
+    }
+
+    QAction *descending = m_actionCollection->action(QStringLiteral("descending"));
+    QAction *ascending = m_actionCollection->action(QStringLiteral("ascending"));
+
+    if (role == "text" || role == "type" || role == "extension" || role == "tags" || role == "comment") {
+        descending->setText(i18nc("Sort descending", "Z-A"));
+        ascending->setText(i18nc("Sort ascending", "A-Z"));
+    } else if (role == "size" || role == "width" || role == "height" || role == "pageCount" || role == "wordCount" || role == "lineCount") {
+        descending->setText(i18nc("Sort descending", "Largest First"));
+        ascending->setText(i18nc("Sort ascending", "Smallest First"));
+    } else if (role == "modificationtime" || role == "creationtime" || role == "accesstime" || role == "imageDateTime" || role == "releaseYear") {
+        descending->setText(i18nc("Sort descending", "Newest First"));
+        ascending->setText(i18nc("Sort ascending", "Oldest First"));
+    } else if (role == "rating" || role == "bitrate" || role == "frameRate") {
+        descending->setText(i18nc("Sort descending", "Highest First"));
+        ascending->setText(i18nc("Sort ascending", "Lowest First"));
+    } else {
+        descending->setText(i18nc("Sort descending", "Descending"));
+        ascending->setText(i18nc("Sort ascending", "Ascending"));
+    }
+
+    slotSortOrderChanged(m_currentView->sortOrder());
+}
+
+void DolphinViewActionHandler::slotZoomLevelChanged(int current, int previous)
+{
+    Q_UNUSED(previous)
+
+    QAction *zoomInAction = m_actionCollection->action(KStandardAction::name(KStandardAction::ZoomIn));
+    if (zoomInAction) {
+        zoomInAction->setEnabled(current < ZoomLevelInfo::maximumLevel());
+    }
+
+    QAction *zoomOutAction = m_actionCollection->action(KStandardAction::name(KStandardAction::ZoomOut));
+    if (zoomOutAction) {
+        zoomOutAction->setEnabled(current > ZoomLevelInfo::minimumLevel());
+    }
+}
+
+void DolphinViewActionHandler::slotSortTriggered(QAction *action)
+{
+    // The radiobuttons of the "Sort By"-menu are split between the main-menu
+    // and several sub-menus. Because of this they don't have a common
+    // action-group that assures an exclusive toggle-state between the main-menu
+    // actions and the sub-menu-actions. If an action gets checked, it must
+    // be assured that all other actions get unchecked, except the ascending/
+    // descending actions
+    for (QAction *groupAction : std::as_const(m_sortByActions)) {
+        KActionMenu *actionMenu = qobject_cast<KActionMenu *>(groupAction);
+        if (actionMenu) {
+            const auto actions = actionMenu->menu()->actions();
+            for (QAction *subAction : actions) {
+                subAction->setChecked(false);
+            }
+        } else if (groupAction->actionGroup()) {
+            groupAction->setChecked(false);
+        }
+    }
+    action->setChecked(true);
+
+    // Apply the activated sort-role to the view
+    const QByteArray role = action->data().toByteArray();
+    m_currentView->setSortRole(role);
+}
+
+void DolphinViewActionHandler::slotAdjustViewProperties()
+{
+    Q_EMIT actionBeingHandled();
+    QPointer<ViewPropertiesDialog> dialog = new ViewPropertiesDialog(m_currentView);
+    dialog->exec();
+    delete dialog;
+}
+
+void DolphinViewActionHandler::slotDuplicate()
+{
+    if (m_currentView->selectedItemsCount() == 0) {
+        Q_EMIT selectionModeChangeTriggered(true, SelectionMode::BottomBar::Contents::DuplicateContents);
+    } else {
+        Q_EMIT actionBeingHandled();
+        m_currentView->duplicateSelectedItems();
+        Q_EMIT selectionModeChangeTriggered(false);
+    }
+}
+
+void DolphinViewActionHandler::slotProperties()
+{
+    KPropertiesDialog *dialog = nullptr;
+    const KFileItemList list = m_currentView->selectedItems();
+    if (list.isEmpty()) {
+        const QUrl url = m_currentView->url();
+        dialog = new KPropertiesDialog(url, m_currentView);
+    } else {
+        dialog = new KPropertiesDialog(list, m_currentView);
+    }
+
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    dialog->show();
+    dialog->raise();
+    dialog->activateWindow();
+}
+
+void DolphinViewActionHandler::slotCopyPath()
+{
+    if (m_currentView->selectedItemsCount() == 0) {
+        Q_EMIT selectionModeChangeTriggered(true, SelectionMode::BottomBar::Contents::CopyLocationContents);
+    } else {
+        m_currentView->copyPathToClipboard();
+        Q_EMIT selectionModeChangeTriggered(false);
+    }
+}
+
+void DolphinViewActionHandler::slotSelectionChanged(const KFileItemList &selection)
+{
+    QString basicActionsMenuText;
+    if (selection.isEmpty()) {
+        basicActionsMenuText = i18nc("@action:inmenu menu with actions like copy, paste, rename. The user's selection is empty when this text is shown.",
+                                     "Actions for Current View");
+    } else {
+        // clang-format off
+        QFontMetrics fontMetrics = QMenu().fontMetrics();
+        // i18n: @action:inmenu menu with actions like copy, paste, rename.
+        // %1 is a textual representation of the currently selected files or folders. This can be the name of
+        // the file/files like "file1" or "file1, file2 and file3" or an aggregate like "8 Selected Folders".
+        // If this sort of word puzzle can not be correctly translated in your language, translate it as "NULL" (without the quotes)
+        // and a fallback will be used.
+        basicActionsMenuText = i18n("Actions for %1", fileItemListToString(selection, fontMetrics.averageCharWidth() * 40, fontMetrics, ItemsState::Selected));
+        // clang-format on
+    }
+
+    if (basicActionsMenuText == QStringLiteral("NULL")) {
+        const KFileItemListProperties properties(selection);
+        basicActionsMenuText = i18ncp("@action:inmenu menu with actions like copy, paste, rename. %1 is the amount of selected files/folders.",
+                                      "Actions for One Selected Item",
+                                      "Actions for %1 Selected Items",
+                                      selection.count());
+    }
+
+    QAction *basicActionsMenu = m_actionCollection->action(QStringLiteral("basic_actions"));
+    basicActionsMenu->setText(basicActionsMenuText);
+
+    // Add or remove contextual actions
+    while (!basicActionsMenu->menu()->actions().constLast()->isSeparator()) {
+        basicActionsMenu->menu()->removeAction(basicActionsMenu->menu()->actions().last());
+    }
+    if (selection.count() == 1) {
+        if (selection.first().isLink()) {
+            basicActionsMenu->menu()->addAction(m_actionCollection->action(QStringLiteral("show_target")));
+        }
+        if (selection.first().isDir()) {
+            basicActionsMenu->menu()->addAction(m_actionCollection->action(QStringLiteral("add_to_places")));
+        }
+    }
+
+    updateCreateSubdirectoryAction();
+}
+
+QUrl DolphinViewActionHandler::subdirectoryParent() const
+{
+    const KFileItemList selection = m_currentView->selectedItems();
+    if (selection.count() == 1 && selection.first().isDir()) {
+        return selection.first().url();
+    }
+    return m_currentView->url();
+}
+
+void DolphinViewActionHandler::updateCreateSubdirectoryAction()
+{
+    const KFileItemList selection = m_currentView->selectedItems();
+    bool enabled;
+    if (selection.isEmpty()) {
+        enabled = m_actionCollection->action(QStringLiteral("create_dir"))->isEnabled();
+    } else {
+        enabled = selection.count() == 1 && selection.first().isDir() && KFileItemListProperties(selection).supportsWriting();
+    }
+    m_actionCollection->action(QStringLiteral("create_subdir"))->setEnabled(enabled);
+}
+
+void DolphinViewActionHandler::restoreViewSettingsToDefaults()
+{
+    m_currentView->restoreViewSettingsToDefaults();
+}
+
+#include "moc_dolphinviewactionhandler.cpp"

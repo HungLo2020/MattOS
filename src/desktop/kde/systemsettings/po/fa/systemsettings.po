@@ -1,0 +1,364 @@
+# translation of systemsettings.po to Persian
+# Saied Taghavi <s.taghavi@gmail.com>, 2008.
+# Mohamad Reza Mirdamadi <mohi@linuxshop.ir>, 2010, 2011.
+# Mohi Mirdamadi <mohi@ubuntu.ir>, 2015.
+# SPDX-FileCopyrightText: 2025 Sohrab Behdani <behdanisohrab@proton.me>
+msgid ""
+msgstr ""
+"Project-Id-Version: systemsettings\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-04-23 02:40+0000\n"
+"PO-Revision-Date: 2025-09-26 13:59+0330\n"
+"Last-Translator: Sohrab Behdani <behdanisohrab@proton.me>\n"
+"Language-Team: fa\n"
+"Language: fa\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Lokalize 25.08.1\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "محمدرضا میردامادی , محمد ابراهیم محمدی‌پناه , سهراب بهدانی"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "mohi@linuxshop.ir , mebrahim@gmail.com , behdanisohrab@gmail.com"
+
+#: app/ExternalAppModule.cpp:26
+#, kde-format
+msgid "%1 is an external application and has been automatically launched"
+msgstr "%1 یک برنامه خارجی است که به صورت خودکار اجرا شده است"
+
+#: app/ExternalAppModule.cpp:27
+#, kde-format
+msgid "Relaunch %1"
+msgstr "اجرای مجدد %1"
+
+#. i18n: ectx: property (windowTitle), widget (QWidget, ExternalModule)
+#: app/externalModule.ui:14
+#, kde-format
+msgid "Dialog"
+msgstr "محاوره"
+
+#: app/main.cpp:54 app/SettingsBase.cpp:53
+#, kde-format
+msgid "Info Center"
+msgstr "مرکز اطلاعات"
+
+#: app/main.cpp:56
+#, kde-format
+msgid "Centralized and convenient overview of system information."
+msgstr "نمای متمرکز و راحت از اطلاعات سامانه."
+
+#: app/main.cpp:58 app/main.cpp:69
+#, kde-format
+msgid "(c) 2009, Ben Cooksley"
+msgstr "(c) 2009, Ben Cooksley"
+
+#: app/main.cpp:65 app/qml/IntroPage.qml:51 app/SettingsBase.cpp:56
+#: runner/systemsettingsrunner.cpp:114
+#, kde-format
+msgid "System Settings"
+msgstr "تنظیمات سامانه"
+
+#: app/main.cpp:67
+#, kde-format
+msgid "Central configuration center by KDE."
+msgstr "سامانه تنظیمات مرکزی برای کی‌دی‌ای"
+
+#: app/main.cpp:80
+#, kde-format
+msgid "Ben Cooksley"
+msgstr "Ben Cooksley"
+
+#: app/main.cpp:80
+#, kde-format
+msgid "Maintainer"
+msgstr "نگهدارنده"
+
+#: app/main.cpp:81
+#, kde-format
+msgid "Marco Martin"
+msgstr "Marco Martin"
+
+#: app/main.cpp:81
+#, kde-format
+msgid "Author"
+msgstr "مولف"
+
+#: app/main.cpp:82
+#, kde-format
+msgid "Mathias Soeken"
+msgstr "Mathias Soeken"
+
+#: app/main.cpp:82
+#, kde-format
+msgid "Developer"
+msgstr "توسعه دهنده"
+
+#: app/main.cpp:83
+#, kde-format
+msgid "Will Stephenson"
+msgstr "Will Stephenson"
+
+#: app/main.cpp:83
+#, kde-format
+msgid "Internal module representation, internal module model"
+msgstr "نمایش درونی ماژول، مدل درونی ماژول"
+
+#: app/main.cpp:91
+#, kde-format
+msgid "List all possible modules"
+msgstr "تمامی ماژول‌های ممکن را فهرست کن"
+
+#: app/main.cpp:92 app/main.cpp:153
+#, kde-format
+msgid "Configuration module to open"
+msgstr "بازگشایی پیکربندی ماژول"
+
+#: app/main.cpp:93 app/main.cpp:154
+#, kde-format
+msgid "Arguments for the module"
+msgstr "آرگومان‌ها برای ماژول"
+
+#: app/main.cpp:101
+#, kde-format
+msgid "The following modules are available:"
+msgstr "ماژول‌های زیر در دسترسند:"
+
+#: app/main.cpp:119
+#, kde-format
+msgid "No description available"
+msgstr "هیچ توضیحاتی موجود نیست"
+
+#: app/ModuleView.cpp:185
+#, kde-format
+msgid "Reset all current changes to previous values"
+msgstr "بازگردانی تمامی مقادیر به پیشفرض"
+
+#: app/ModuleView.cpp:278
+#, kde-format
+msgctxt "@info:whatsthis"
+msgid "Scrollable area"
+msgstr "محل قابل اسکرول"
+
+#: app/ModuleView.cpp:368
+#, kde-format
+msgid ""
+"The current page has unsaved changes.\n"
+"Apply the changes or discard them?"
+msgstr ""
+"صفحه فعلی تنظیمات ذخیره نشده دارد\n"
+"تنظیمات را اعمال یا صرف نظر می‌کنید؟"
+
+#: app/ModuleView.cpp:373
+#, kde-format
+msgid "Apply Settings"
+msgstr "اعمال تنظیمات"
+
+#: app/qml/CategoriesPage.qml:106
+#, kde-format
+msgctxt "A search yielded no results"
+msgid "No items matching your search"
+msgstr "هیچ موردی با جست‌وجوی شما مطابقت نداشت"
+
+#: app/qml/HamburgerMenuButton.qml:25
+#, kde-format
+msgid "Show menu"
+msgstr "نمایش فهرست"
+
+#: app/qml/IntroPage.qml:44
+#, kde-format
+msgid "Plasma"
+msgstr "پلاسما"
+
+#: app/SettingsBase.cpp:144
+#, kde-format
+msgid "Highlight Changed Settings"
+msgstr "تنظیمات تغییریافته را برجسته کن"
+
+#: app/SettingsBase.cpp:152
+#, kde-format
+msgctxt ""
+"@option:check the pages being referred to here are System Settings KCMs"
+msgid "Show Inapplicable Pages"
+msgstr "نمایش صفحات نامرتبط"
+
+#: app/SettingsBase.cpp:163
+#, kde-format
+msgid "Report a Bug in the Current Page…"
+msgstr "یک مشکل را در صفحه فعلی گزارش کنید...."
+
+#: app/SidebarMode.cpp:598
+#, kde-format
+msgid "Sidebar"
+msgstr "نوار کناری"
+
+#: app/SidebarMode.cpp:667
+#, kde-format
+msgid "Most Used"
+msgstr "پراستفاده"
+
+#: runner/systemsettingsrunner.cpp:32
+#, kde-format
+msgid "Finds system settings modules whose names or descriptions match :q:"
+msgstr ""
+"ماژول‌های تنظیمات سیستم را که نام یا توضیحاتشان با ‎:q:‎ مطابقت دارد پیدا می‌کند."
+
+#: runner/systemsettingsrunner.cpp:112
+#, kde-format
+msgid "System Information"
+msgstr "اطلاعات سامانه"
+
+#~ msgid "Help"
+#~ msgstr "کمک"
+
+#~ msgid "About System Settings"
+#~ msgstr "درباره تنظیمات سامانه"
+
+#, fuzzy
+#~| msgid "<i>Contains 1 item</i>"
+#~| msgid_plural "<i>Contains %1 items</i>"
+#~ msgid "Contains 1 item"
+#~ msgid_plural "Contains %1 items"
+#~ msgstr[0] "<i>شامل %1 مورد</i>"
+#~ msgstr[1] ""
+
+#~ msgctxt "Search through a list of control modules"
+#~ msgid "Search"
+#~ msgstr "جستجو"
+
+#~ msgid "About Active View"
+#~ msgstr "درباره‌ی نمای جاری"
+
+#~ msgid "About %1"
+#~ msgstr "درباره‌ی %1"
+
+#~ msgid "No views found"
+#~ msgstr "هیچ نمایی یافت نشد"
+
+#, fuzzy
+#~| msgid "Icon View"
+#~ msgid "Switch to Icon View"
+#~ msgstr "نمای شمایل"
+
+#~ msgid "Icon View"
+#~ msgstr "نمای شمایل"
+
+#, fuzzy
+#~| msgid "Apply Settings"
+#~ msgid "All Settings"
+#~ msgstr "اعمال تنظیمات"
+
+#~ msgid "Keyboard Shortcut: %1"
+#~ msgstr "میانبر صفحه‌کلید: %1"
+
+#~ msgid "<i>Contains 1 item</i>"
+#~ msgid_plural "<i>Contains %1 items</i>"
+#~ msgstr[0] "<i>شامل %1 مورد</i>"
+
+#, fuzzy
+#~| msgid "Configure"
+#~ msgid "Configure…"
+#~ msgstr "پیکربندی"
+
+#~ msgctxt "General config for System Settings"
+#~ msgid "General"
+#~ msgstr "عمومی"
+
+#, fuzzy
+#~| msgid "About Current Module"
+#~ msgid "About Active Module"
+#~ msgstr "دربارهٔ پیمانهٔ جاری"
+
+#~ msgid "Configure your system"
+#~ msgstr "سامانه خود را پیکربندی کنید"
+
+#~ msgid ""
+#~ "Welcome to \"System Settings\", a central place to configure your "
+#~ "computer system."
+#~ msgstr "به «تنطیمات سامانه»  مکان مرکزی پیکربندی رابانه خود خوش آمدید."
+
+#~ msgid "Tree View"
+#~ msgstr "نمایش درختی"
+
+#, fuzzy
+#~| msgctxt "Search through a list of control modules"
+#~| msgid "Search"
+#~ msgid "Search..."
+#~ msgstr "جستجو"
+
+#, fuzzy
+#~| msgid "System Settings"
+#~ msgid "System Settings Handbook"
+#~ msgstr "تنظیمات سامانه"
+
+#, fuzzy
+#~| msgid "About %1"
+#~ msgid "About KDE"
+#~ msgstr "درباره‌ی %1"
+
+#~ msgid "Overview"
+#~ msgstr "کلی"
+
+#, fuzzy
+#~| msgid "About Current Module"
+#~ msgid "About current module"
+#~ msgstr "دربارهٔ پیمانهٔ جاری"
+
+#~ msgid "(c) 2005, Benjamin C. Meyer; (c) 2007, Canonical Ltd"
+#~ msgstr "(ح) ۲۰۰۵، Benjamin C. Meyer؛ (ح) ۲۰۰۷، شرکت Canonical"
+
+#~ msgid "Benjamin C. Meyer"
+#~ msgstr "Benjamin C. Meyer"
+
+#~ msgid "Jonathan Riddell"
+#~ msgstr "Jonathan Riddell"
+
+#~ msgid "Contributor"
+#~ msgstr "کمک‌کننده"
+
+#~ msgid "Michael D. Stemle"
+#~ msgstr "Michael D. Stemle"
+
+#~ msgid "Simon Edwards"
+#~ msgstr "Simon Edwards"
+
+#~ msgid "Ellen Reitmayr"
+#~ msgstr "Ellen Reitmayr"
+
+#~ msgid "Usability"
+#~ msgstr "به‌کارخوری"
+
+#~ msgid "Search Bar<p>Enter a search term.</p>"
+#~ msgstr "میلهٔ جستجو<p>عبارتی برای جستجو وارد کنید.</p>"
+
+#~ msgid "%1 hit in General"
+#~ msgid_plural "%1 hits in General"
+#~ msgstr[0] "%1 اصابت در عمومی"
+
+#~ msgid "%1 hit in Advanced"
+#~ msgid_plural "%1 hits in Advanced"
+#~ msgstr[0] "%1 اصابت در پیش‌رفته"
+
+#~ msgid "Unsaved Changes"
+#~ msgstr "تغییرات ذخیره‌نشده"
+
+#~ msgid "Undo Changes"
+#~ msgstr "واگرد تغییرات"
+
+#~ msgid "Reset to Defaults"
+#~ msgstr "بازنشانی به پیش‌گزیده‌ها"
+
+#~ msgid "Ctrl+O"
+#~ msgstr "Ctrl+O"
+
+#~ msgid "&File"
+#~ msgstr "&پرونده"
+
+#~ msgid "&View"
+#~ msgstr "&نما"

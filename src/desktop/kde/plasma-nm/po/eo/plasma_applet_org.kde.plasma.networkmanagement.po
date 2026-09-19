@@ -1,0 +1,301 @@
+# Translation of plasma_applet_org.kde.plasma.networkmanagement to esperanto.
+# e-aj mesaĝoj de plasma-nm
+# Copyright (C) 2009 Free Software Foundation, Inc.
+# This file is distributed under the same license as the plasma-nm package.
+# Axel Rousseau <axel@esperanto-jeunes.org>, 2009.
+# Oliver Kellogg <olivermkellogg@gmail.com>, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma-nm\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-04-25 02:45+0000\n"
+"PO-Revision-Date: 2024-12-27 10:42+0100\n"
+"Last-Translator: Oliver Kellogg <olivermkellogg@gmail.com>\n"
+"Language-Team: Esperanto <kde-i18n-eo@kde.org>\n"
+"Language: eo\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 1.0\n"
+
+#: ConnectionItem.qml:62
+#, kde-format
+msgid "Connect"
+msgstr "Konekti"
+
+#: ConnectionItem.qml:62
+#, kde-format
+msgid "Disconnect"
+msgstr "Malkonekti"
+
+#: ConnectionItem.qml:90
+#, kde-format
+msgctxt "Share Wi-Fi network's password or QR code"
+msgid "Share"
+msgstr ""
+
+#: ConnectionItem.qml:96
+#, kde-format
+msgid "Configure…"
+msgstr "Agordi…"
+
+#: ConnectionItem.qml:136
+#, kde-format
+msgid "Speed"
+msgstr "Rapido"
+
+#: ConnectionItem.qml:141
+#, kde-format
+msgid "Details"
+msgstr "Detaloj"
+
+#: ConnectionItem.qml:188
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Current download speed is %1 kibibytes per second; current upload speed is "
+"%2 kibibytes per second"
+msgstr ""
+"Aktuala elŝutrapido estas %1 kibibajtoj sekunde; aktuala alŝutrapido estas "
+"%2 kibibajtoj sekunde"
+
+#: ConnectionItem.qml:302
+#, fuzzy, kde-format
+#| msgid "Connected, ↓ %1/s, ↑ %2/s"
+msgctxt "Download and upload rates in some unit per second"
+msgid "↓ %1/s, ↑ %2/s"
+msgstr "Konektita, ↓ %1/s, ↑ %2/s"
+
+#: ConnectionListPage.qml:33
+#, kde-format
+msgid "You need to log in to this network"
+msgstr "Necesas ke vi ensalutas ĉi tiun reton"
+
+#: ConnectionListPage.qml:37
+#, kde-format
+msgctxt "@action:button"
+msgid "Log in"
+msgstr "Ensaluti"
+
+#: ConnectionListPage.qml:118
+#, kde-format
+msgid "Airplane mode is enabled"
+msgstr "Aviadila reĝimo estas ebligata"
+
+#: ConnectionListPage.qml:122
+#, fuzzy, kde-format
+#| msgid "Wireless and mobile networks are deactivated"
+msgid "Wi-Fi and mobile data are deactivated"
+msgstr "Sendrato kaj mobilretoj estas malaktivigitaj"
+
+#: ConnectionListPage.qml:124
+#, fuzzy, kde-format
+#| msgid "Wireless is deactivated"
+msgid "Wi-Fi is deactivated"
+msgstr "Sendrato estas malaktivigita"
+
+#: ConnectionListPage.qml:127
+#, kde-format
+msgid "Looking for Wi-Fi networks"
+msgstr ""
+
+#: ConnectionListPage.qml:130
+#, fuzzy, kde-format
+#| msgid "Mobile network is deactivated"
+msgid "Mobile data is deactivated"
+msgstr "Mobilreto estas malaktivigita"
+
+#: ConnectionListPage.qml:133
+#, kde-format
+msgid "No matches"
+msgstr "Neniuj kongruoj"
+
+#: ConnectionListPage.qml:136
+#, kde-format
+msgid "No available connections"
+msgstr "Neniuj konektoj je dispono"
+
+#: ConnectionListPage.qml:145
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn off airplane mode to search for networks"
+msgstr ""
+
+#: ConnectionListPage.qml:149
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on Wi-Fi or mobile data to search for networks"
+msgstr ""
+
+#: ConnectionListPage.qml:151
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on Wi-Fi to search for networks"
+msgstr ""
+
+#: ConnectionListPage.qml:154
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on mobile data to search for networks"
+msgstr ""
+
+#: DetailsText.qml:40
+#, kde-format
+msgid "Copy"
+msgstr "Kopii"
+
+#: main.qml:32
+#, kde-format
+msgid "Networks"
+msgstr "Retoj"
+
+#: main.qml:41
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Middle-click to turn off Airplane Mode"
+msgstr "Mezklaku por malŝalti Aviadilan Reĝimon"
+
+#: main.qml:43
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Middle-click to turn on Airplane Mode"
+msgstr "Mezklaku por enŝalti Aviadilan Reĝimon"
+
+#: main.qml:71 Toolbar.qml:74
+#, kde-format
+msgid "Enable Wi-Fi"
+msgstr "Ebligi Wi-Fi"
+
+#: main.qml:82
+#, fuzzy, kde-format
+#| msgid "Enable Mobile Network"
+msgid "Enable Mobile Data"
+msgstr "Ebligi Mobilan Reton"
+
+#: main.qml:94
+#, kde-format
+msgid "Enable Airplane Mode"
+msgstr "Ebigi Aviadilan Reĝimon"
+
+#: main.qml:106
+#, kde-format
+msgid "Open Network Login Page…"
+msgstr "Malfermi Retan Ensalutpaĝon…"
+
+#: main.qml:116
+#, kde-format
+msgid "&Configure Network Connections…"
+msgstr "&Agordi Retajn Konektojn…"
+
+#: PopupDialog.qml:51
+#, kde-format
+msgctxt "@action:button"
+msgid "Return to Network Connections"
+msgstr "Reiri al Retaj Konektoj"
+
+#: ShareNetworkQrCodePage.qml:33
+#, kde-format
+msgid "Scan this QR code with another device to connect to the \"%1\" network."
+msgstr "Skani ĉi tiun QR-kodon per alia aparato por konekti al la reto \"%1\"."
+
+#: ShareNetworkQrCodePage.qml:108
+#, kde-format
+msgid "Wi-Fi password:"
+msgstr ""
+
+#: Toolbar.qml:124
+#, fuzzy, kde-format
+#| msgid "Enable mobile network"
+msgid "Enable mobile data"
+msgstr "Ebligi poŝtelefonan reton"
+
+#: Toolbar.qml:147
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Disable airplane mode<nl/><nl/>This will enable Wi-Fi and Bluetooth"
+msgstr "Malebligi aviadilreĝimon<nl/><nl/>Tiu ŝaltos Vifion kaj Bludenton"
+
+#: Toolbar.qml:148
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Enable airplane mode<nl/><nl/>This will disable Wi-Fi and Bluetooth"
+msgstr "Ebligi aviadilreĝimon<nl/><nl/>Tiu malŝaltos Vifion kaj Bludenton"
+
+#: Toolbar.qml:176
+#, kde-format
+msgid "Hotspot"
+msgstr "Retkaptejo (hotspot)"
+
+#: Toolbar.qml:193
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot create a hotspot because Wi-Fi is disabled."
+msgstr ""
+
+#: Toolbar.qml:195
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Cannot create a hotspot because all wireless radios are in use. Disconnect "
+"from the current Wi-Fi network or connect another wireless radio."
+msgstr ""
+
+#: Toolbar.qml:197
+#, fuzzy, kde-format
+#| msgid "Disable Hotspot"
+msgctxt "@info:tooltip"
+msgid "Disable Hotspot"
+msgstr "Malŝalti Hotspot"
+
+#: Toolbar.qml:199
+#, fuzzy, kde-format
+#| msgid "Create Hotspot"
+msgctxt "@info:tooltip"
+msgid "Create Hotspot"
+msgstr "Krei Hotspot"
+
+#: Toolbar.qml:227
+#, kde-format
+msgctxt "@action:button"
+msgid "Scan Wi-Fi QR Code"
+msgstr ""
+
+#: Toolbar.qml:232
+#, fuzzy, kde-format
+#| msgid ""
+#| "Scan this QR code with another device to connect to the \"%1\" network."
+msgctxt "@info:tooltip"
+msgid "Scan QR Code to connect to a Wi-Fi network"
+msgstr "Skani ĉi tiun QR-kodon per alia aparato por konekti al la reto \"%1\"."
+
+#: Toolbar.qml:234
+#, fuzzy, kde-format
+#| msgid ""
+#| "Scan this QR code with another device to connect to the \"%1\" network."
+msgctxt "@info:tooltip"
+msgid ""
+"Install QRCA Barcode Scanner to scan for a QR Code that connects to a Wi-Fi "
+"network"
+msgstr "Skani ĉi tiun QR-kodon per alia aparato por konekti al la reto \"%1\"."
+
+#: Toolbar.qml:253
+#, kde-format
+msgid "Configure network connections…"
+msgstr "Agordi retajn konektojn…"
+
+#~ msgid "/s"
+#~ msgstr "/s"
+
+#~ msgid "Upload"
+#~ msgstr "Alŝuti"
+
+#~ msgid "Download"
+#~ msgstr "Elŝuti"
+
+#~ msgid "Show Network's QR Code"
+#~ msgstr "Montri QR-Kodon de la Reto"
+
+#~ msgid "Connected"
+#~ msgstr "Konektita"

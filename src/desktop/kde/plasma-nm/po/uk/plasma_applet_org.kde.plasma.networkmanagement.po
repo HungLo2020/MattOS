@@ -1,0 +1,397 @@
+# Translation of plasma_applet_org.kde.plasma.networkmanagement.po to Ukrainian
+# Copyright (C) 2013-2020 This_file_is_part_of_KDE
+# This file is distributed under the license LGPL version 2.1 or
+# version 3 or later versions approved by the membership of KDE e.V.
+#
+# Yuri Chornoivan <yurchor@ukr.net>, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025.
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma_applet_org.kde.plasma.networkmanagement\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-04-25 02:45+0000\n"
+"PO-Revision-Date: 2025-11-09 18:10+0200\n"
+"Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
+"Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n"
+"%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Lokalize 23.04.3\n"
+
+#: ConnectionItem.qml:62
+#, kde-format
+msgid "Connect"
+msgstr "З'єднатися"
+
+#: ConnectionItem.qml:62
+#, kde-format
+msgid "Disconnect"
+msgstr "Від'єднатися"
+
+#: ConnectionItem.qml:90
+#, kde-format
+msgctxt "Share Wi-Fi network's password or QR code"
+msgid "Share"
+msgstr "Оприлюднити"
+
+#: ConnectionItem.qml:96
+#, kde-format
+msgid "Configure…"
+msgstr "Налаштувати…"
+
+#: ConnectionItem.qml:136
+#, kde-format
+msgid "Speed"
+msgstr "Швидкість"
+
+#: ConnectionItem.qml:141
+#, kde-format
+msgid "Details"
+msgstr "Параметри"
+
+#: ConnectionItem.qml:188
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Current download speed is %1 kibibytes per second; current upload speed is "
+"%2 kibibytes per second"
+msgstr ""
+"Поточна швидкість отримання даних — %1 кібібайтів за секунду; поточна "
+"швидкість вивантаження даних — %2 кібібайтів за секунду"
+
+#: ConnectionItem.qml:302
+#, kde-format
+msgctxt "Download and upload rates in some unit per second"
+msgid "↓ %1/s, ↑ %2/s"
+msgstr "↓ %1/с, ↑ %2/с"
+
+#: ConnectionListPage.qml:33
+#, kde-format
+msgid "You need to log in to this network"
+msgstr "Вам слід пройти процедуру входу до цієї мережі"
+
+#: ConnectionListPage.qml:37
+#, kde-format
+msgctxt "@action:button"
+msgid "Log in"
+msgstr "Увійти"
+
+#: ConnectionListPage.qml:118
+#, kde-format
+msgid "Airplane mode is enabled"
+msgstr "Увімкнено режим польоту"
+
+#: ConnectionListPage.qml:122
+#, kde-format
+msgid "Wi-Fi and mobile data are deactivated"
+msgstr "Wi-Fi і передавання даних мобільним вимкнено"
+
+#: ConnectionListPage.qml:124
+#, kde-format
+msgid "Wi-Fi is deactivated"
+msgstr "Wi-Fi вимкнено"
+
+#: ConnectionListPage.qml:127
+#, kde-format
+msgid "Looking for Wi-Fi networks"
+msgstr "Шукаємо мережі Wi-Fi"
+
+#: ConnectionListPage.qml:130
+#, kde-format
+msgid "Mobile data is deactivated"
+msgstr "Передавання даних мобільним вимкнено"
+
+#: ConnectionListPage.qml:133
+#, kde-format
+msgid "No matches"
+msgstr "Немає відповідників"
+
+#: ConnectionListPage.qml:136
+#, kde-format
+msgid "No available connections"
+msgstr "Немає доступних з'єднань"
+
+#: ConnectionListPage.qml:145
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn off airplane mode to search for networks"
+msgstr "Вимкнути режим польоту для пошуку мереж"
+
+#: ConnectionListPage.qml:149
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on Wi-Fi or mobile data to search for networks"
+msgstr ""
+"Увімкнути Wi-Fi або передавання даних мобільним зв'язком для пошуку мереж"
+
+#: ConnectionListPage.qml:151
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on Wi-Fi to search for networks"
+msgstr "Увімкнути Wi-Fi для пошуку мереж"
+
+#: ConnectionListPage.qml:154
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on mobile data to search for networks"
+msgstr "Увімкнути передавання даних мобільним зв'язком для пошуку мереж"
+
+#: DetailsText.qml:40
+#, kde-format
+msgid "Copy"
+msgstr "Копіювати"
+
+#: main.qml:32
+#, kde-format
+msgid "Networks"
+msgstr "Мережі"
+
+#: main.qml:41
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Middle-click to turn off Airplane Mode"
+msgstr "Клацніть середньою кнопкою для вимикання режиму польоту"
+
+#: main.qml:43
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Middle-click to turn on Airplane Mode"
+msgstr "Клацніть середньою кнопкою, щоб увімкнути режим польоту"
+
+#: main.qml:71 Toolbar.qml:74
+#, kde-format
+msgid "Enable Wi-Fi"
+msgstr "Увімкнути Wi-Fi"
+
+#: main.qml:82
+#, kde-format
+msgid "Enable Mobile Data"
+msgstr "Увімкнути передавання мобільним"
+
+#: main.qml:94
+#, kde-format
+msgid "Enable Airplane Mode"
+msgstr "Увімкнути режим польоту"
+
+#: main.qml:106
+#, kde-format
+msgid "Open Network Login Page…"
+msgstr "Відкрити сторінку входу у мережі…"
+
+#: main.qml:116
+#, kde-format
+msgid "&Configure Network Connections…"
+msgstr "&Налаштувати з'єднання мережі…"
+
+#: PopupDialog.qml:51
+#, kde-format
+msgctxt "@action:button"
+msgid "Return to Network Connections"
+msgstr "Повернутися до з'єднань мережі"
+
+#: ShareNetworkQrCodePage.qml:33
+#, kde-format
+msgid "Scan this QR code with another device to connect to the \"%1\" network."
+msgstr ""
+"Виконайте сканування цього QR-коду на іншому пристрої, щоб встановити "
+"з'єднання з мережею «%1»."
+
+#: ShareNetworkQrCodePage.qml:108
+#, kde-format
+msgid "Wi-Fi password:"
+msgstr "Пароль до Wi-Fi:"
+
+#: Toolbar.qml:124
+#, kde-format
+msgid "Enable mobile data"
+msgstr "Увімкнути передавання мобільним"
+
+#: Toolbar.qml:147
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Disable airplane mode<nl/><nl/>This will enable Wi-Fi and Bluetooth"
+msgstr "Вимкнути режим польоту<nl/><nl/>Цим буде увімкнено Wi-Fi і Bluetooth"
+
+#: Toolbar.qml:148
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Enable airplane mode<nl/><nl/>This will disable Wi-Fi and Bluetooth"
+msgstr "Увімкнути режим польоту<nl/><nl/>Цим буде вимкнено Wi-Fi і Bluetooth"
+
+#: Toolbar.qml:176
+#, kde-format
+msgid "Hotspot"
+msgstr "Хот-спот"
+
+#: Toolbar.qml:193
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot create a hotspot because Wi-Fi is disabled."
+msgstr "Неможливо створити точку доступу, оскільки Wi-Fi вимкнено."
+
+#: Toolbar.qml:195
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Cannot create a hotspot because all wireless radios are in use. Disconnect "
+"from the current Wi-Fi network or connect another wireless radio."
+msgstr ""
+"Не вдалося створити хот-спот, оскільки використано усі бездротові "
+"радіопристрої. Від'єднайтеся від поточної мережі Wi-Fi або з'єднайте з "
+"комп'ютером ще один бездротовий радіопристрій."
+
+#: Toolbar.qml:197
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Disable Hotspot"
+msgstr "Вимкнути хот-спот"
+
+#: Toolbar.qml:199
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Create Hotspot"
+msgstr "Створити хот-спот"
+
+#: Toolbar.qml:227
+#, kde-format
+msgctxt "@action:button"
+msgid "Scan Wi-Fi QR Code"
+msgstr "Сканувати QR-код Wi-Fi"
+
+#: Toolbar.qml:232
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Scan QR Code to connect to a Wi-Fi network"
+msgstr ""
+"Виконайте сканування цього QR-коду, щоб встановити з'єднання з мережею Wi-Fi"
+
+#: Toolbar.qml:234
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Install QRCA Barcode Scanner to scan for a QR Code that connects to a Wi-Fi "
+"network"
+msgstr ""
+"Встановіть програму для сканування штрих-кодів QRCA для сканування QR-коду, "
+"за допомогою якого ви зможете встановити з'єднання з мережею Wi-Fi"
+
+#: Toolbar.qml:253
+#, kde-format
+msgid "Configure network connections…"
+msgstr "Налаштувати з'єднання мережі…"
+
+#~ msgid "/s"
+#~ msgstr "/с"
+
+#~ msgid "Upload"
+#~ msgstr "Вивантаження"
+
+#~ msgid "Download"
+#~ msgstr "Отримання"
+
+#~ msgid "Show Network's QR Code"
+#~ msgstr "Показувати код QR мережі"
+
+#~ msgid "Connected"
+#~ msgstr "З'єднано"
+
+#~ msgid "Password…"
+#~ msgstr "Пароль…"
+
+#~ msgctxt "@title:window"
+#~ msgid "QR Code for %1"
+#~ msgstr "QR-код для %1"
+
+#~ msgctxt "@info:tooltip %1 is the name of a network connection"
+#~ msgid "Connect to %1"
+#~ msgstr "З'єднатися з %1"
+
+#~ msgctxt "@info:tooltip %1 is the name of a network connection"
+#~ msgid "Disconnect from %1"
+#~ msgstr "Від'єднатися від %1"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is ADSL"
+#~ msgstr "Тип з'єднання – ADSL"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Bluetooth"
+#~ msgstr "Тип з'єднання — Bluetooth"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Bridge"
+#~ msgstr "Тип з'єднання — місток"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is CDMA"
+#~ msgstr "Тип з'єднання — CDMA"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is GSM"
+#~ msgstr "Тип з'єднання – GSM"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Infiniband"
+#~ msgstr "Тип з'єднання – Infiniband"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is OLPC Mesh"
+#~ msgstr "Тип з'єднання – сітка OLPC"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is PPOPE"
+#~ msgstr "Тип з'єднання – PPOPE"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is VLAN"
+#~ msgstr "Тип з'єднання — VLAN"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is VPN"
+#~ msgstr "Тип з'єднання — VPN"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Wimax"
+#~ msgstr "Тип з'єднання — Wimax"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Wired"
+#~ msgstr "Тип з'єднання — дротове"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Wireless"
+#~ msgstr "Тип з'єднання — бездротове"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Unknown"
+#~ msgstr "Тип з'єднання — невідомий"
+
+#~ msgctxt "text field placeholder text"
+#~ msgid "Search…"
+#~ msgstr "Шукати…"
+
+#~ msgctxt "button tooltip"
+#~ msgid "Search the connections"
+#~ msgstr "Шукати з'єднання"
+
+#~ msgid ""
+#~ "Connected, <font color='%1'>⬇</font> %2/s, <font color='%3'>⬆</font> %4/s"
+#~ msgstr ""
+#~ "З’єднано, <font color='%1'>⬇</font> %2/с, <font color='%3'>⬆</font> %4/с"
+
+#~ msgid "Enable wireless"
+#~ msgstr "Увімкнути бездротову мережу"
+
+#~ msgid "Available connections"
+#~ msgstr "Доступні з’єднання"
+
+#~ msgid "General"
+#~ msgstr "Загальне"
+
+#~ msgid "Ask for PIN on modem detection"
+#~ msgstr "Питати PIN-код, якщо виявлено модем"
+
+#~ msgid "Show virtual connections"
+#~ msgstr "Показувати віртуальні з'єднання"

@@ -1,0 +1,64 @@
+# Copyright (C) 2025 This file is copyright:
+# This file is distributed under the same license as the plasma-mobile package.
+# SPDX-FileCopyrightText: 2023, 2025 Zayed Al-Saidi <zayed.alsaidi@gmail.com>
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma-mobile\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-29 03:06+0000\n"
+"PO-Revision-Date: 2025-08-20 18:41+0400\n"
+"Last-Translator: Zayed Al-Saidi <zayed.alsaidi@gmail.com>\n"
+"Language-Team: ar\n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
+"&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
+"X-Generator: Lokalize 23.08.5\n"
+
+#: ui/main.qml:33
+#, kde-format
+msgid "Configure Hotspot"
+msgstr "اضبط نقطة الاتصال"
+
+#: ui/main.qml:52
+#, kde-format
+msgid "Hotspot SSID:"
+msgstr "معرف نقطة الاتصال SSID:"
+
+#: ui/main.qml:60
+#, kde-format
+msgid "Hotspot Password:"
+msgstr "كلمة سر نقطة الاتصال:"
+
+#: ui/main.qml:79
+#, kde-format
+msgid "Hotspot"
+msgstr "نقطة اتصال"
+
+#: ui/main.qml:80
+#, kde-format
+msgid "Share your internet connection with other devices as a Wi-Fi network."
+msgstr "شارك اتصالك بالإنترنت مع الأجهزة الأخرى كشبكة واي فاي."
+
+#: ui/main.qml:95
+#, kde-format
+msgid "Settings"
+msgstr "إعدادات"
+
+#: ui/main.qml:102
+#, kde-format
+msgid "Hotspot SSID"
+msgstr "معرف نقطة الاتصال SSID"
+
+#: ui/main.qml:111
+#, kde-format
+msgid "Hotspot Password"
+msgstr "كلمة سر نقطة الاتصال"
+
+#: ui/main.qml:119
+#, kde-format
+msgid "Configure"
+msgstr "اضبط"

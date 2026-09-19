@@ -1,0 +1,664 @@
+# SPDX-FileCopyrightText: 2015-2016, 2021-2023 Frederik Schwarzer <schwarzer@kde.org>
+# SPDX-FileCopyrightText: 2015-2021 Burkhard Lück <lueck@hube-lueck.de>
+# SPDX-FileCopyrightText: 2023 Jannick Kuhr <opensource@kuhr.org>
+# SPDX-FileCopyrightText: 2024-2025 Flori G <Renner03@protonmail.com>
+# SPDX-FileCopyrightText: 2025-2026 Philipp Kiemle <l10n.daphipz@fastmail.de>
+msgid ""
+msgstr ""
+"Project-Id-Version: kcm_pulseaudio\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-04-30 02:40+0000\n"
+"PO-Revision-Date: 2026-01-26 17:32+0100\n"
+"Last-Translator: Philipp Kiemle <l10n.daphipz@fastmail.de>\n"
+"Language-Team: German <kde-i18n-de@kde.org>\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 25.12.3\n"
+
+#: devicerenamesaver.cpp:115
+#, kde-kuit-format
+msgctxt "@info:status error message"
+msgid ""
+"Changes have not been applied.<nl/>Failed to restart wireplumber.service. "
+"The command crashed."
+msgstr ""
+"Die Änderungen wurden nicht übernommen.<nl/>Neustart von wireplumber.service "
+"fehlgeschlagen. Der Befehl ist abgestürzt."
+
+#: devicerenamesaver.cpp:125
+#, kde-kuit-format
+msgctxt "@info:status error message %1 is an integer exit code"
+msgid ""
+"Changes have not been applied.<nl/>Failed to restart wireplumber.service. "
+"The command terminated with code: %1."
+msgstr ""
+"Die Änderungen wurden nicht übernommen.<nl/>Neustart von wireplumber.service "
+"fehlgeschlagen. Der Befehl hat sich mit folgender Fehlernummer beendet: %1."
+
+#: devicerenamesaver.cpp:237
+#, kde-format
+msgctxt "@info error %1 is a list of device identifiers"
+msgid "Failed to handle devices: %1."
+msgstr "Fehler beim Behandeln der Geräte: %1."
+
+#: devicerenamesaver.cpp:250
+#, kde-format
+msgctxt "@info error %1 is a path"
+msgid "Failed to create directory: %1."
+msgstr "Der Ordner „%1“ kann nicht erstellt werden."
+
+#: devicerenamesaver.cpp:258
+#, kde-format
+msgctxt "@info error %1 is a path"
+msgid "Failed to open file for writing: %1."
+msgstr "Die Datei „%1“ lässt sich nicht zum Schreiben öffnen."
+
+#: kcm/ui/CardListItem.qml:52 kcm/ui/DeviceListItem.qml:151
+#, kde-format
+msgctxt "@label"
+msgid "Profile:"
+msgstr "Profil:"
+
+#: kcm/ui/ContextBrokenOverlay.qml:25
+#, kde-format
+msgctxt "@label"
+msgid "Connection to the Sound Service Lost"
+msgstr "Verbindung zum Sound-Dienst verloren"
+
+#: kcm/ui/ContextBrokenOverlay.qml:28
+#, kde-format
+msgctxt "@info reconnecting to pulseaudio"
+msgid "Trying to reconnect…"
+msgstr "Wiederherstellen der Verbindung wird versucht …"
+
+#: kcm/ui/ContextBrokenOverlay.qml:36
+#, kde-format
+msgctxt "@action retry connecting to pulseaudio"
+msgid "Retry"
+msgstr "Erneut versuchen"
+
+#: kcm/ui/DeviceListItem.qml:57 kded/audioshortcutsservice.cpp:224
+#, kde-format
+msgid "Device name not found"
+msgstr "Gerätename nicht gefunden"
+
+#: kcm/ui/DeviceListItem.qml:105
+#, kde-format
+msgid "Port:"
+msgstr "Port:"
+
+#: kcm/ui/DeviceListItem.qml:128 qml/listitemmenu.cpp:371
+#, kde-format
+msgctxt "Port is unavailable"
+msgid "%1 (unavailable)"
+msgstr "%1 (Nicht verfügbar)"
+
+#: kcm/ui/DeviceListItem.qml:130 qml/listitemmenu.cpp:373
+#, kde-format
+msgctxt "Port is unplugged"
+msgid "%1 (unplugged)"
+msgstr "%1 (Nicht angeschlossen)"
+
+#: kcm/ui/DeviceListItem.qml:205
+#, kde-format
+msgctxt "Placeholder is channel name"
+msgid "%1:"
+msgstr "%1:"
+
+#: kcm/ui/DeviceListItem.qml:230
+#, kde-format
+msgctxt "Perform an audio test of the device"
+msgid "Test"
+msgstr "Test"
+
+#: kcm/ui/DeviceListItem.qml:239
+#, kde-format
+msgctxt "Show audio channels (e.g. to control left/right audio balance"
+msgid "Show Channels"
+msgstr "Kanäle anzeigen"
+
+#: kcm/ui/main.qml:74
+#, kde-format
+msgid "Show Inactive Devices"
+msgstr "Inaktive Geräte anzeigen"
+
+#: kcm/ui/main.qml:81
+#, kde-format
+msgid "Rename Devices…"
+msgstr "Geräte umbenennen …"
+
+#: kcm/ui/main.qml:87
+#, kde-format
+msgid "Configure Volume Controls…"
+msgstr "Lautstärkeregler einrichten …"
+
+#: kcm/ui/main.qml:94
+#, kde-format
+msgid "Configure…"
+msgstr "Einrichten …"
+
+#: kcm/ui/main.qml:97
+#, kde-format
+msgid "Requires %1 PulseAudio module"
+msgstr "Benötigt das PulseAudio-Modul „%1“"
+
+#: kcm/ui/main.qml:100
+#, kde-format
+msgid ""
+"Add virtual output device for simultaneous output on all local sound cards"
+msgstr ""
+"Virtuelles Ausgabegerät für gleichzeitige Ausgabe auf allen lokalen "
+"Soundkarten hinzufügen"
+
+#: kcm/ui/main.qml:106
+#, kde-format
+msgid ""
+"Automatically switch all running streams when a new output becomes available"
+msgstr ""
+"Automatisch alle laufenden Streams zur neuen Ausgabe wechseln, wenn sie "
+"verfügbar wird"
+
+#: kcm/ui/main.qml:143 kcm/ui/RenameDevices.qml:205
+#, kde-format
+msgid "Playback Devices"
+msgstr "Wiedergabegeräte"
+
+#: kcm/ui/main.qml:167 kcm/ui/RenameDevices.qml:229
+#, kde-format
+msgid "Recording Devices"
+msgstr "Aufnahmegeräte"
+
+#: kcm/ui/main.qml:191
+#, kde-format
+msgid "Inactive Cards"
+msgstr "Inaktive Karten"
+
+#: kcm/ui/main.qml:226
+#, kde-format
+msgid "Playback Streams"
+msgstr "Wiedergabestreams"
+
+#: kcm/ui/main.qml:278
+#, kde-format
+msgid "Recording Streams"
+msgstr "Aufnahmestreams"
+
+#: kcm/ui/main.qml:312
+#, kde-format
+msgctxt ""
+"%1 is an error string produced by an external component, and probably "
+"untranslated"
+msgid ""
+"Error trying to play a test sound. \n"
+"The system said: \"%1\""
+msgstr ""
+"Fehler beim Versuch einen Test-Ton abzuspielen.\n"
+"Systemmeldung: „%1“"
+
+#: kcm/ui/main.qml:416
+#, kde-format
+msgid "Front Left"
+msgstr "Vorne links"
+
+#: kcm/ui/main.qml:417
+#, kde-format
+msgid "Front Center"
+msgstr "Vorne Mitte"
+
+#: kcm/ui/main.qml:418
+#, kde-format
+msgid "Front Right"
+msgstr "Vorne rechts"
+
+#: kcm/ui/main.qml:419
+#, kde-format
+msgid "Side Left"
+msgstr "Linke Seite"
+
+#: kcm/ui/main.qml:420
+#, kde-format
+msgid "Side Right"
+msgstr "Rechte Seite"
+
+#: kcm/ui/main.qml:421
+#, kde-format
+msgid "Rear Left"
+msgstr "Hinten links"
+
+#: kcm/ui/main.qml:422
+#, kde-format
+msgid "Subwoofer"
+msgstr "Subwoofer"
+
+#: kcm/ui/main.qml:423
+#, kde-format
+msgid "Rear Right"
+msgstr "Hinten rechts"
+
+#: kcm/ui/main.qml:424
+#, kde-format
+msgid "Mono"
+msgstr "Mono"
+
+#: kcm/ui/main.qml:492
+#, kde-format
+msgid "Click on any speaker to test sound"
+msgstr "Klicken Sie auf einen Lautsprecher, um die Klangwiedergabe zu testen"
+
+#: kcm/ui/MuteButton.qml:24
+#, kde-format
+msgctxt "Unmute audio stream"
+msgid "Unmute %1"
+msgstr "Stummschaltung von %1 aufheben"
+
+#: kcm/ui/MuteButton.qml:24
+#, kde-format
+msgctxt "Mute audio stream"
+msgid "Mute %1"
+msgstr "%1 stummschalten"
+
+#: kcm/ui/RenameDevices.qml:31
+#, kde-format
+msgctxt "@title rename audio devices"
+msgid "Rename Devices"
+msgstr "Geräte umbenennen"
+
+#: kcm/ui/RenameDevices.qml:38
+#, kde-format
+msgctxt "@action save changes"
+msgid "Save"
+msgstr "Speichern"
+
+#: kcm/ui/RenameDevices.qml:68
+#, kde-format
+msgctxt "@info"
+msgid ""
+"Saving changes will restart audio services. Apps playing audio will "
+"experience interruptions and may need to be restarted."
+msgstr ""
+"Durch das Speichern der Änderungen werden Audio-Dienste neu gestartet. Bei "
+"Anwendungen, die Audio abspielen, kommt es zu Unterbrechungen und sie müssen "
+"möglicherweise neu gestartet werden."
+
+#: kcm/ui/RenameDevices.qml:80
+#, kde-format
+msgctxt "@action"
+msgid "Report Bug"
+msgstr "Problem melden"
+
+#: kcm/ui/RenameDevices.qml:92
+#, kde-format
+msgctxt "@info:status reloading the backing data"
+msgid "Reloading"
+msgstr "Erneut laden"
+
+#: kcm/ui/RenameDevices.qml:130
+#, kde-format
+msgctxt "place holder text, %1 is a device name"
+msgid "%1 (click 'Save' to apply)"
+msgstr "%1 (zum Übernehmen „Speichern“ anklicken)"
+
+#: kcm/ui/RenameDevices.qml:153
+#, kde-format
+msgctxt "@action apply currently editing test"
+msgid "Apply"
+msgstr "Anwenden"
+
+#: kcm/ui/RenameDevices.qml:159
+#, kde-format
+msgctxt "@action reset device name to default"
+msgid "Reset"
+msgstr "Zurücksetzen"
+
+#: kcm/ui/RenameDevices.qml:166
+#, kde-format
+msgctxt ""
+"@label placeholder text when we don't know the default value of a device yet"
+msgid "DEFAULT"
+msgstr "STANDARD"
+
+#: kcm/ui/StreamListItem.qml:59
+#, kde-format
+msgid "Notification Sounds"
+msgstr "Benachrichtigungsklänge"
+
+#: kcm/ui/StreamListItem.qml:65
+#, kde-format
+msgctxt "label of stream items"
+msgid "%1: %2"
+msgstr "%1: %2"
+
+#: kcm/ui/VolumeControlsConfig.qml:15
+#, kde-format
+msgid "Volume Controls"
+msgstr "Lautstärkeregler"
+
+#: kcm/ui/VolumeControlsConfig.qml:30
+#, kde-format
+msgid "Raise maximum volume"
+msgstr "Maximale Lautstärke erhöhen"
+
+#: kcm/ui/VolumeControlsConfig.qml:38
+#, kde-format
+msgid "Volume change step:"
+msgstr "Schrittweite der Lautstärkeänderung:"
+
+#: kcm/ui/VolumeControlsConfig.qml:67
+#, kde-format
+msgid "Play audio feedback for changes to:"
+msgstr "Akustische Rückmeldung bei Änderung an:"
+
+#: kcm/ui/VolumeControlsConfig.qml:68 kcm/ui/VolumeControlsConfig.qml:77
+#, kde-format
+msgid "Audio volume"
+msgstr "Lautstärke"
+
+#: kcm/ui/VolumeControlsConfig.qml:76
+#, kde-format
+msgid "Show OSD popups for changes to:"
+msgstr "OSD anzeigen bei Änderung an:"
+
+#: kcm/ui/VolumeControlsConfig.qml:84
+#, kde-format
+msgid "Microphone sensitivity"
+msgstr "Mikrofon-Empfindlichkeit"
+
+#: kcm/ui/VolumeControlsConfig.qml:91
+#, kde-format
+msgid "Mute state"
+msgstr "Stummschaltung"
+
+#: kcm/ui/VolumeControlsConfig.qml:97
+#, kde-format
+msgctxt "Show OSD when"
+msgid "Application starts using muted microphone"
+msgstr "Anwendung ein stummgeschaltetes Mikrofon verwendet"
+
+#: kcm/ui/VolumeControlsConfig.qml:104
+#, kde-format
+msgid "Default output device"
+msgstr "Standard-Ausgabegerät"
+
+#: kcm/ui/VolumeSlider.qml:68
+#, kde-format
+msgctxt "volume percentage"
+msgid "%1%"
+msgstr "%1 %"
+
+#: kcm/ui/VolumeSlider.qml:89
+#, kde-format
+msgctxt "only used for sizing, should be widest possible string"
+msgid "100%"
+msgstr "100 %"
+
+#: kded/audioshortcutsservice.cpp:82
+#, kde-format
+msgid "Increase Volume"
+msgstr "Lautstärke erhöhen"
+
+#: kded/audioshortcutsservice.cpp:97
+#, kde-format
+msgid "Decrease Volume"
+msgstr "Lautstärke verringern"
+
+#: kded/audioshortcutsservice.cpp:112
+#, kde-format
+msgid "Increase Volume by 1%"
+msgstr "Lautstärke um 1 % erhöhen"
+
+#: kded/audioshortcutsservice.cpp:127
+#, kde-format
+msgid "Decrease Volume by 1%"
+msgstr "Lautstärke um 1 % verringern"
+
+#: kded/audioshortcutsservice.cpp:142
+#, kde-format
+msgid "Increase Microphone Volume"
+msgstr "Mikrofonlautstärke erhöhen"
+
+#: kded/audioshortcutsservice.cpp:156
+#, kde-format
+msgid "Decrease Microphone Volume"
+msgstr "Mikrofonlautstärke verringern"
+
+#: kded/audioshortcutsservice.cpp:170 qml/microphoneindicator.cpp:109
+#, kde-format
+msgid "Mute"
+msgstr "Stummschalten"
+
+#: kded/audioshortcutsservice.cpp:183
+#, kde-format
+msgid "Mute Microphone"
+msgstr "Mikrofon stummschalten"
+
+#: kded/audioshortcutsservice.cpp:195
+#, kde-format
+msgid "Audio Volume"
+msgstr "Lautstärke"
+
+#: kded/audioshortcutsservice.cpp:213
+#, kde-format
+msgid "No such device"
+msgstr "Kein solches Gerät"
+
+#: kded/audioshortcutsservice.cpp:259
+#, kde-format
+msgid "No output device"
+msgstr "Kein Ausgabegerät"
+
+#: kded/audioshortcutsservice.cpp:280 kded/audioshortcutsservice.cpp:300
+#, kde-format
+msgctxt "Device name (Battery percent)"
+msgid "%1 (%2% Battery)"
+msgstr "%1 (%2 % Akku)"
+
+#: kded/mutedmicrophonereminder.cpp:131
+#, kde-format
+msgctxt "Microphone name: is currently muted (osd, keep short)"
+msgid "%1: Muted"
+msgstr "%1: Stummgeschaltet"
+
+#: qml/listitemmenu.cpp:323
+#, kde-format
+msgid "Play all audio via this device"
+msgstr "Alle Audio-Ausgaben über dieses Gerät"
+
+#: qml/listitemmenu.cpp:330
+#, kde-format
+msgid "Record all audio via this device"
+msgstr "Alle Audio-Aufnahmen über dieses Gerät"
+
+#: qml/listitemmenu.cpp:359
+#, kde-format
+msgctxt ""
+"Heading for a list of ports of a device (for example built-in laptop "
+"speakers or a plug for headphones)"
+msgid "Ports"
+msgstr "Ports"
+
+#: qml/listitemmenu.cpp:429
+#, kde-format
+msgctxt ""
+"Heading for a list of device profiles (5.1 surround sound, stereo, speakers "
+"only, ...)"
+msgid "Profiles"
+msgstr "Profile"
+
+#: qml/listitemmenu.cpp:463
+#, kde-format
+msgctxt ""
+"Heading for a list of possible output devices (speakers, headphones, ...) to "
+"choose"
+msgid "Play audio using"
+msgstr "Audio abspielen mit"
+
+#: qml/listitemmenu.cpp:465
+#, kde-format
+msgctxt ""
+"Heading for a list of possible input devices (built-in microphone, "
+"headset, ...) to choose"
+msgid "Record audio using"
+msgstr "Audio aufnehmen mit"
+
+#: qml/microphoneindicator.cpp:143 qml/microphoneindicator.cpp:145
+#, kde-format
+msgid "Microphone"
+msgstr "Mikrofon"
+
+#: qml/microphoneindicator.cpp:145
+#, kde-format
+msgid "Microphone Muted"
+msgstr "Mikrofon stummgeschaltet"
+
+#: qml/microphoneindicator.cpp:291
+#, kde-format
+msgctxt "list separator"
+msgid ", "
+msgstr ", "
+
+#: qml/microphoneindicator.cpp:291
+#, kde-format
+msgctxt "List of apps is using mic"
+msgid "%1 are using the microphone"
+msgstr "%1 verwenden das Mikrofon"
+
+#: qml/microphoneindicator.cpp:317
+#, kde-format
+msgctxt "App %1 is using mic with name %2"
+msgid "%1 is using the microphone (%2)"
+msgstr "%1 verwendet das Mikrofon (%2)"
+
+#: qml/microphoneindicator.cpp:324
+#, kde-format
+msgctxt "App is using mic"
+msgid "%1 is using the microphone"
+msgstr "%1 verwendet das Mikrofon"
+
+#, fuzzy
+#~| msgid "Device Profiles"
+#~ msgctxt "@item:inlistbox a type of name source"
+#~ msgid "Device Nickname"
+#~ msgstr "Geräteprofile"
+
+#~ msgctxt "label of device items"
+#~ msgid "%1 (%2)"
+#~ msgstr "%1 (%2)"
+
+#~ msgctxt "Audio balance (e.g. control left/right volume individually"
+#~ msgid "Balance"
+#~ msgstr "Balance"
+
+#~ msgctxt "Name shown in debug pulseaudio tools"
+#~ msgid "Plasma PA"
+#~ msgstr "Plasma-PulseAudio"
+
+#~ msgid "This module allows configuring the Pulseaudio sound subsystem."
+#~ msgstr ""
+#~ "Dieses Modul ermöglicht die Einrichtung des PulseAudio-Sound-Subsystems."
+
+#~ msgid "100%"
+#~ msgstr "100 %"
+
+#~ msgctxt "NAME OF TRANSLATORS"
+#~ msgid "Your names"
+#~ msgstr "Burkhard Lück"
+
+#~ msgctxt "EMAIL OF TRANSLATORS"
+#~ msgid "Your emails"
+#~ msgstr "lueck@hube-lueck.de"
+
+#~ msgctxt "@title"
+#~ msgid "Audio"
+#~ msgstr "Audio"
+
+#~ msgctxt "@info:credit"
+#~ msgid "Copyright 2015 Harald Sitter"
+#~ msgstr "Copyright 2015 Harald Sitter"
+
+#~ msgctxt "@info:credit"
+#~ msgid "Harald Sitter"
+#~ msgstr "Harald Sitter"
+
+#~ msgctxt "@info:credit"
+#~ msgid "Author"
+#~ msgstr "Autor"
+
+#~ msgid "Configure"
+#~ msgstr "Einrichten"
+
+#~ msgid "Advanced Output Configuration"
+#~ msgstr "Erweiterte Ausgabe-Einrichtung"
+
+#~ msgid "Speaker Placement and Testing"
+#~ msgstr "Lautsprecheraufstellung und Probehören"
+
+#~ msgctxt "@label"
+#~ msgid "Output:"
+#~ msgstr "Ausgabe:"
+
+#~ msgctxt "Port is unavailable"
+#~ msgid " (unavailable)"
+#~ msgstr " (Nicht verfügbar)"
+
+#~ msgctxt "Port is unplugged"
+#~ msgid " (unplugged)"
+#~ msgstr "(Nicht angeschlossen)"
+
+#~ msgid "Configure..."
+#~ msgstr "Einrichten ..."
+
+#~ msgctxt "@label"
+#~ msgid "No Device Profiles Available"
+#~ msgstr "Keine Geräteprofile verfügbar"
+
+#~ msgctxt "@label"
+#~ msgid "No Playback Devices Available"
+#~ msgstr "Keine Wiedergabegeräte verfügbar"
+
+#~ msgctxt "@label"
+#~ msgid "No Recording Devices Available"
+#~ msgstr "Keine Aufnahmegeräte verfügbar"
+
+#~ msgctxt "@label"
+#~ msgid "No Applications Playing Audio"
+#~ msgstr "Keine Anwendung spielt Audio"
+
+#~ msgctxt "@label"
+#~ msgid "No Applications Recording Audio"
+#~ msgstr "Keine Anwendung nimmt Audio auf"
+
+#~ msgctxt "@title:tab"
+#~ msgid "Devices"
+#~ msgstr "Geräte"
+
+#~ msgctxt "@title:tab"
+#~ msgid "Applications"
+#~ msgstr "Anwendungen"
+
+#~ msgctxt "@title:tab"
+#~ msgid "Advanced"
+#~ msgstr "Erweitert"
+
+#~ msgid "Outputs"
+#~ msgstr "Ausgaben"
+
+#~ msgctxt "@label"
+#~ msgid "No Output Devices Available"
+#~ msgstr "Keine Ausgabegeräte verfügbar"
+
+#~ msgid "Inputs"
+#~ msgstr "Eingänge"
+
+#~ msgctxt "@title"
+#~ msgid "Configure the Audio Volume"
+#~ msgstr "Einstellung der Lautstärke"
+
+#~ msgid "Capture"
+#~ msgstr "Aufnahme"
+
+#~ msgctxt "@label"
+#~ msgid "No Additional Configuration Available"
+#~ msgstr "Keine zusätzlichen Einstellungen verfügbar"

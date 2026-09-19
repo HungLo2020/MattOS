@@ -1,0 +1,1536 @@
+#include <glib.h>
+#include <blockdev/utils.h>
+
+#ifndef BD_CRYPTO_API
+#define BD_CRYPTO_API
+
+GQuark bd_crypto_error_quark (void) {
+    return g_quark_from_static_string ("g-bd-crypto-error-quark");
+}
+
+#define BD_CRYPTO_ERROR bd_crypto_error_quark ()
+typedef enum {
+    BD_CRYPTO_ERROR_TECH_UNAVAIL,
+    BD_CRYPTO_ERROR_DEVICE,
+    BD_CRYPTO_ERROR_STATE,
+    BD_CRYPTO_ERROR_INVALID_SPEC,
+    BD_CRYPTO_ERROR_FORMAT_FAILED,
+    BD_CRYPTO_ERROR_RESIZE_FAILED,
+    BD_CRYPTO_ERROR_RESIZE_PERM,
+    BD_CRYPTO_ERROR_ADD_KEY,
+    BD_CRYPTO_ERROR_REMOVE_KEY,
+    BD_CRYPTO_ERROR_NO_KEY,
+    BD_CRYPTO_ERROR_KEY_SLOT,
+    BD_CRYPTO_ERROR_NSS_INIT_FAILED,
+    BD_CRYPTO_ERROR_CERT_DECODE,
+    BD_CRYPTO_ERROR_ESCROW_FAILED,
+    BD_CRYPTO_ERROR_INVALID_PARAMS,
+    BD_CRYPTO_ERROR_KEYRING,
+    BD_CRYPTO_ERROR_KEYFILE_FAILED,
+    BD_CRYPTO_ERROR_INVALID_CONTEXT,
+} BDCryptoError;
+
+typedef enum {
+    BD_CRYPTO_TECH_LUKS = 0,
+    BD_CRYPTO_TECH_TRUECRYPT,
+    BD_CRYPTO_TECH_ESCROW,
+    BD_CRYPTO_TECH_INTEGRITY,
+    BD_CRYPTO_TECH_BITLK,
+    BD_CRYPTO_TECH_KEYRING,
+    BD_CRYPTO_TECH_FVAULT2,
+    BD_CRYPTO_TECH_SED_OPAL,
+} BDCryptoTech;
+
+typedef enum {
+    BD_CRYPTO_TECH_MODE_CREATE         = 1 << 0,
+    BD_CRYPTO_TECH_MODE_OPEN_CLOSE     = 1 << 1,
+    BD_CRYPTO_TECH_MODE_QUERY          = 1 << 2,
+    BD_CRYPTO_TECH_MODE_ADD_KEY        = 1 << 3,
+    BD_CRYPTO_TECH_MODE_REMOVE_KEY     = 1 << 4,
+    BD_CRYPTO_TECH_MODE_RESIZE         = 1 << 5,
+    BD_CRYPTO_TECH_MODE_SUSPEND_RESUME = 1 << 6,
+    BD_CRYPTO_TECH_MODE_BACKUP_RESTORE = 1 << 7,
+    BD_CRYPTO_TECH_MODE_MODIFY         = 1 << 8,
+} BDCryptoTechMode;
+
+typedef enum {
+    BD_CRYPTO_LUKS_VERSION_LUKS1 = 0,
+    BD_CRYPTO_LUKS_VERSION_LUKS2,
+} BDCryptoLUKSVersion;
+
+#define BD_CRYPTO_TYPE_LUKS_PBKDF (bd_crypto_luks_pbkdf_get_type ())
+GType bd_crypto_luks_pbkdf_get_type();
+
+/**
+ * BDCryptoLUKSPBKDF
+ * @type: PBKDF algorithm
+ * @hash: hash for LUKS header or NULL
+ * @max_memory_kb: requested memory cost (in KiB) or 0 for default (benchmark)
+ * @iterations: requested iterations or 0 for default (benchmark)
+ * @time_ms: requested time cost or 0 for default (benchmark)
+ * @parallel_threads: requested parallel cost (threads) or 0 for default (benchmark)
+*/
+typedef struct BDCryptoLUKSPBKDF {
+    gchar *type;
+    gchar *hash;
+    guint32 max_memory_kb;
+    guint32 iterations;
+    guint32 time_ms;
+    guint32 parallel_threads;
+} BDCryptoLUKSPBKDF;
+
+/**
+ * bd_crypto_luks_pbkdf_copy: (skip)
+ * @pbkdf: (nullable): %BDCryptoLUKSPBKDF to copy
+ *
+ * Creates a new copy of @pbkdf.
+ */
+BDCryptoLUKSPBKDF* bd_crypto_luks_pbkdf_copy (BDCryptoLUKSPBKDF *pbkdf) {
+    if (pbkdf == NULL)
+        return NULL;
+
+    BDCryptoLUKSPBKDF *new_pbkdf = g_new0 (BDCryptoLUKSPBKDF, 1);
+    new_pbkdf->type = g_strdup (pbkdf->type);
+    new_pbkdf->hash = g_strdup (pbkdf->hash);
+    new_pbkdf->max_memory_kb = pbkdf->max_memory_kb;
+    new_pbkdf->iterations = pbkdf->iterations;
+    new_pbkdf->time_ms = pbkdf->time_ms;
+    new_pbkdf->parallel_threads = pbkdf->parallel_threads;
+
+    return new_pbkdf;
+}
+
+/**
+ * bd_crypto_luks_pbkdf_free: (skip)
+ * @pbkdf: (nullable): %BDCryptoLUKSPBKDF to free
+ *
+ * Frees @pbkdf.
+ */
+void bd_crypto_luks_pbkdf_free (BDCryptoLUKSPBKDF *pbkdf) {
+    if (pbkdf == NULL)
+        return;
+
+    g_free (pbkdf->type);
+    g_free (pbkdf->hash);
+    g_free (pbkdf);
+}
+
+/**
+ * bd_crypto_luks_pbkdf_new: (constructor)
+ * @type: (nullable): PBKDF algorithm
+ * @hash: (nullable): hash for LUKS header or NULL for default
+ * @max_memory_kb: requested memory cost (in KiB) or 0 for default (benchmark)
+ * @iterations: requested iterations or 0 for default (benchmark)
+ * @time_ms: requested time cost or 0 for default (benchmark)
+ * @parallel_threads: requested parallel cost (threads) or 0 for default (benchmark)
+ *
+ * Returns: (transfer full): a new pbkdf argument
+ */
+BDCryptoLUKSPBKDF* bd_crypto_luks_pbkdf_new (const gchar *type, const gchar *hash, guint32 max_memory_kb, guint32 iterations, guint32 time_ms, guint32 parallel_threads) {
+    BDCryptoLUKSPBKDF *ret = g_new0 (BDCryptoLUKSPBKDF, 1);
+    ret->type = g_strdup (type);
+    ret->hash = g_strdup (hash);
+    ret->max_memory_kb = max_memory_kb;
+    ret->iterations = iterations;
+    ret->time_ms = time_ms;
+    ret->parallel_threads = parallel_threads;
+
+    return ret;
+}
+
+GType bd_crypto_luks_pbkdf_get_type () {
+    static GType type = 0;
+
+    if (G_UNLIKELY(type == 0)) {
+        type = g_boxed_type_register_static("BDCryptoLUKSPBKDF",
+                                            (GBoxedCopyFunc) bd_crypto_luks_pbkdf_copy,
+                                            (GBoxedFreeFunc) bd_crypto_luks_pbkdf_free);
+    }
+
+    return type;
+}
+
+#define BD_CRYPTO_TYPE_LUKS_EXTRA (bd_crypto_luks_extra_get_type ())
+GType bd_crypto_luks_extra_get_type();
+
+/**
+ * BDCryptoLUKSExtra:
+ * @data_alignment: data alignment in sectors, 0 for default/auto detection
+ * @data_device: detached encrypted data device or NULL
+ * @integrity: integrity algorithm (e.g. "hmac-sha256") or NULL for no integrity support
+ *             Note: this field is valid only for LUKS 2
+ * @sector_size: encryption sector size, 0 for default (512)
+ *               Note: this field is valid only for LUKS 2
+ * @label: LUKS header label or NULL
+ *         Note: this field is valid only for LUKS 2
+ * @subsystem: LUKS header subsystem or NULL
+ *             Note: this field is valid only for LUKS 2
+ * @pbkdf: key derivation function specification or NULL for default
+ *         Note: this field is valid only for LUKS 2
+ */
+typedef struct BDCryptoLUKSExtra {
+    guint64 data_alignment;
+    gchar *data_device;
+    gchar *integrity;
+    guint32 sector_size;
+    gchar *label;
+    gchar *subsystem;
+    BDCryptoLUKSPBKDF *pbkdf;
+} BDCryptoLUKSExtra;
+
+/**
+ * bd_crypto_luks_extra_copy: (skip)
+ * @extra: (nullable): %BDCryptoLUKSExtra to copy
+ *
+ * Creates a new copy of @extra.
+ */
+BDCryptoLUKSExtra* bd_crypto_luks_extra_copy (BDCryptoLUKSExtra *extra) {
+    if (extra == NULL)
+        return NULL;
+
+    BDCryptoLUKSExtra *new_extra = g_new0 (BDCryptoLUKSExtra, 1);
+
+    new_extra->integrity = g_strdup (extra->integrity);
+    new_extra->data_alignment = extra->data_alignment;
+    new_extra->data_device = g_strdup (extra->data_device);
+    new_extra->sector_size = extra->sector_size;
+    new_extra->label = g_strdup (extra->label);
+    new_extra->subsystem = g_strdup (extra->subsystem);
+    new_extra->pbkdf = bd_crypto_luks_pbkdf_copy (extra->pbkdf);
+
+    return new_extra;
+}
+
+/**
+ * bd_crypto_luks_extra_free: (skip)
+ * @extra: (nullable): %BDCryptoLUKSExtra to free
+ *
+ * Frees @extra.
+ */
+void bd_crypto_luks_extra_free (BDCryptoLUKSExtra *extra) {
+    if (extra == NULL)
+        return;
+
+    g_free (extra->integrity);
+    g_free (extra->data_device);
+    g_free (extra->label);
+    g_free (extra->subsystem);
+    bd_crypto_luks_pbkdf_free (extra->pbkdf);
+    g_free (extra);
+}
+
+/**
+ * bd_crypto_luks_extra_new: (constructor)
+ * @data_alignment: data alignment in sectors, 0 for default/auto detection
+ * @data_device: (nullable): detached encrypted data device or NULL
+ * @integrity: (nullable): integrity algorithm (e.g. "hmac-sha256") or NULL for no integrity support
+ * @sector_size: encryption sector size, 0 for default (512)
+ * @label: (nullable): LUKS header label or NULL
+ * @subsystem: (nullable): LUKS header subsystem or NULL
+ * @pbkdf: (nullable): key derivation function specification or NULL for default
+ *
+ * Returns: (transfer full): a new LUKS extra argument
+ */
+BDCryptoLUKSExtra* bd_crypto_luks_extra_new (guint64 data_alignment, const gchar *data_device, const gchar *integrity, guint32 sector_size, const gchar *label, const gchar *subsystem, BDCryptoLUKSPBKDF *pbkdf) {
+    BDCryptoLUKSExtra *ret = g_new0 (BDCryptoLUKSExtra, 1);
+    ret->integrity = g_strdup (integrity);
+    ret->data_alignment = data_alignment;
+    ret->data_device = g_strdup (data_device);
+    ret->sector_size = sector_size;
+    ret->label = g_strdup (label);
+    ret->subsystem = g_strdup (subsystem);
+    ret->pbkdf = bd_crypto_luks_pbkdf_copy (pbkdf);
+
+    return ret;
+}
+
+GType bd_crypto_luks_extra_get_type () {
+    static GType type = 0;
+
+    if (G_UNLIKELY(type == 0)) {
+        type = g_boxed_type_register_static("BDCryptoLUKSExtra",
+                                            (GBoxedCopyFunc) bd_crypto_luks_extra_copy,
+                                            (GBoxedFreeFunc) bd_crypto_luks_extra_free);
+    }
+
+    return type;
+}
+
+#define BD_CRYPTO_TYPE_INTEGRITY_EXTRA (bd_crypto_integrity_extra_get_type ())
+GType bd_crypto_integrity_extra_get_type();
+
+/**
+ * BDCryptoIntegrityExtra:
+ * @sector_size: integrity sector size
+ * @journal_size: size of journal in bytes
+ * @journal_watermark: journal flush watermark in percents; in bitmap mode sectors-per-bit
+ * @journal_commit_time: journal commit time (or bitmap flush time) in ms
+ * @interleave_sectors: number of interleave sectors (power of two)
+ * @tag_size: tag size per-sector in bytes
+ * @buffer_sectors: number of sectors in one buffer
+ */
+typedef struct BDCryptoIntegrityExtra {
+    guint32 sector_size;
+    guint64 journal_size;
+    guint journal_watermark;
+    guint journal_commit_time;
+    guint32 interleave_sectors;
+    guint32 tag_size;
+    guint32 buffer_sectors;
+} BDCryptoIntegrityExtra;
+
+/**
+ * bd_crypto_integrity_extra_copy: (skip)
+ * @extra: (nullable): %BDCryptoIntegrityExtra to copy
+ *
+ * Creates a new copy of @extra.
+ */
+BDCryptoIntegrityExtra* bd_crypto_integrity_extra_copy (BDCryptoIntegrityExtra *extra) {
+    if (extra == NULL)
+        return NULL;
+
+    BDCryptoIntegrityExtra *new_extra = g_new0 (BDCryptoIntegrityExtra, 1);
+
+    new_extra->sector_size = extra->sector_size;
+    new_extra->journal_size = extra->journal_size;
+    new_extra->journal_watermark = extra->journal_watermark;
+    new_extra->journal_commit_time = extra->journal_commit_time;
+    new_extra->interleave_sectors = extra->interleave_sectors;
+    new_extra->tag_size = extra->tag_size;
+    new_extra->buffer_sectors = extra->buffer_sectors;
+
+    return new_extra;
+}
+
+/**
+ * bd_crypto_integrity_extra_free: (skip)
+ * @extra: (nullable): %BDCryptoIntegrityExtra to free
+ *
+ * Frees @extra.
+ */
+void bd_crypto_integrity_extra_free (BDCryptoIntegrityExtra *extra) {
+    if (extra == NULL)
+        return;
+
+    g_free (extra);
+}
+
+/**
+ * bd_crypto_integrity_extra_new: (constructor)
+ * @sector_size: integrity sector size, 0 for default (512)
+ * @journal_size: size of journal in bytes
+ * @journal_watermark: journal flush watermark in percents; in bitmap mode sectors-per-bit
+ * @journal_commit_time: journal commit time (or bitmap flush time) in ms
+ * @interleave_sectors: number of interleave sectors (power of two)
+ * @tag_size: tag size per-sector in bytes
+ * @buffer_sectors: number of sectors in one buffer
+ *
+ * Returns: (transfer full): a new Integrity extra argument
+ */
+BDCryptoIntegrityExtra* bd_crypto_integrity_extra_new (guint32 sector_size, guint64 journal_size, guint journal_watermark, guint journal_commit_time, guint64 interleave_sectors, guint64 tag_size, guint64 buffer_sectors) {
+    BDCryptoIntegrityExtra *ret = g_new0 (BDCryptoIntegrityExtra, 1);
+    ret->sector_size = sector_size;
+    ret->journal_size = journal_size;
+    ret->journal_watermark = journal_watermark;
+    ret->journal_commit_time = journal_commit_time;
+    ret->interleave_sectors = interleave_sectors;
+    ret->tag_size = tag_size;
+    ret->buffer_sectors = buffer_sectors;
+
+    return ret;
+}
+
+GType bd_crypto_integrity_extra_get_type () {
+    static GType type = 0;
+
+    if (G_UNLIKELY(type == 0)) {
+        type = g_boxed_type_register_static("BDCryptoIntegrityExtra",
+                                            (GBoxedCopyFunc) bd_crypto_integrity_extra_copy,
+                                            (GBoxedFreeFunc) bd_crypto_integrity_extra_free);
+    }
+
+    return type;
+}
+
+typedef enum {
+    BD_CRYPTO_INTEGRITY_OPEN_NO_JOURNAL         = 1 << 0,
+    BD_CRYPTO_INTEGRITY_OPEN_RECOVERY           = 1 << 1,
+    BD_CRYPTO_INTEGRITY_OPEN_NO_JOURNAL_BITMAP  = 1 << 2,
+    BD_CRYPTO_INTEGRITY_OPEN_RECALCULATE        = 1 << 3,
+    BD_CRYPTO_INTEGRITY_OPEN_RECALCULATE_RESET  = 1 << 4,
+    BD_CRYPTO_INTEGRITY_OPEN_ALLOW_DISCARDS     = 1 << 5,
+} BDCryptoIntegrityOpenFlags;
+
+typedef enum {
+    BD_CRYPTO_OPEN_ALLOW_DISCARDS  = 1 << 0,
+    BD_CRYPTO_OPEN_READONLY        = 1 << 1,
+} BDCryptoOpenFlags;
+
+#define BD_CRYPTO_TYPE_LUKS_INFO (bd_crypto_luks_info_get_type ())
+GType bd_crypto_luks_info_get_type();
+
+/**
+ * BDCryptoLUKSHWEncryptionType:
+ * @BD_CRYPTO_LUKS_HW_ENCRYPTION_UNKNOWN: used for unknown/unsupported hardware encryption or when
+ *                                        error was detected when getting the information
+ * @BD_CRYPTO_LUKS_HW_ENCRYPTION_SW_ONLY: hardware encryption is not configured on this device
+ * @BD_CRYPTO_LUKS_HW_ENCRYPTION_OPAL_HW_ONLY: only OPAL hardware encryption is configured on this device
+ * @BD_CRYPTO_LUKS_HW_ENCRYPTION_OPAL_HW_AND_SW: both OPAL hardware encryption and software encryption
+ *                                               (using LUKS/dm-crypt) is configured on this device
+ */
+typedef enum {
+    BD_CRYPTO_LUKS_HW_ENCRYPTION_UNKNOWN = 0,
+    BD_CRYPTO_LUKS_HW_ENCRYPTION_SW_ONLY,
+    BD_CRYPTO_LUKS_HW_ENCRYPTION_OPAL_HW_ONLY,
+    BD_CRYPTO_LUKS_HW_ENCRYPTION_OPAL_HW_AND_SW,
+} BDCryptoLUKSHWEncryptionType;
+
+typedef enum {
+    BD_CRYPTO_LUKS_ACTIVATE_ALLOW_DISCARDS          = 1 << 0,
+    BD_CRYPTO_LUKS_ACTIVATE_SAME_CPU_CRYPT          = 1 << 1,
+    BD_CRYPTO_LUKS_ACTIVATE_SUBMIT_FROM_CRYPT_CPUS  = 1 << 2,
+    BD_CRYPTO_LUKS_ACTIVATE_NO_JOURNAL              = 1 << 3,
+    BD_CRYPTO_LUKS_ACTIVATE_NO_READ_WORKQUEUE       = 1 << 4,
+    BD_CRYPTO_LUKS_ACTIVATE_NO_WRITE_WORKQUEUE      = 1 << 5,
+    BD_CRYPTO_LUKS_ACTIVATE_HIGH_PRIORITY           = 1 << 6,
+} BDCryptoLUKSPersistentFlags;
+
+/**
+ * BDCryptoLUKSInfo:
+ * @version: LUKS version
+ * @cipher: used cipher (e.g. "aes")
+ * @mode: used cipher mode (e.g. "xts-plain")
+ * @uuid: UUID of the LUKS device
+ * @backing_device: name of the underlying block device
+ * @sector_size: size (in bytes) of encryption sector
+ *               Note: sector size is valid only for LUKS 2
+ * @metadata_size: LUKS metadata size
+ * @label: label of the LUKS device (valid only for LUKS 2)
+ * @subsystem: subsystem of the LUKS device (valid only for LUKS 2)
+ * @hw_encryption: hardware encryption type
+ */
+typedef struct BDCryptoLUKSInfo {
+    BDCryptoLUKSVersion version;
+    gchar *cipher;
+    gchar *mode;
+    gchar *uuid;
+    gchar *backing_device;
+    guint32 sector_size;
+    guint64 metadata_size;
+    gchar *label;
+    gchar *subsystem;
+    BDCryptoLUKSHWEncryptionType hw_encryption;
+} BDCryptoLUKSInfo;
+
+/**
+ * bd_crypto_luks_info_free: (skip)
+ * @info: (nullable): %BDCryptoLUKSInfo to free
+ *
+ * Frees @info.
+ */
+void bd_crypto_luks_info_free (BDCryptoLUKSInfo *info) {
+    if (info == NULL)
+        return;
+
+    g_free (info->cipher);
+    g_free (info->mode);
+    g_free (info->uuid);
+    g_free (info->backing_device);
+    g_free (info->label);
+    g_free (info->subsystem);
+    g_free (info);
+}
+
+/**
+ * bd_crypto_luks_info_copy: (skip)
+ * @info: (nullable): %BDCryptoLUKSInfo to copy
+ *
+ * Creates a new copy of @info.
+ */
+BDCryptoLUKSInfo* bd_crypto_luks_info_copy (BDCryptoLUKSInfo *info) {
+    if (info == NULL)
+        return NULL;
+
+    BDCryptoLUKSInfo *new_info = g_new0 (BDCryptoLUKSInfo, 1);
+
+    new_info->version = info->version;
+    new_info->cipher = g_strdup (info->cipher);
+    new_info->mode = g_strdup (info->mode);
+    new_info->uuid = g_strdup (info->uuid);
+    new_info->backing_device = g_strdup (info->backing_device);
+    new_info->sector_size = info->sector_size;
+    new_info->metadata_size = info->metadata_size;
+    new_info->label = g_strdup (info->label);
+    new_info->subsystem = g_strdup (info->subsystem);
+    new_info->hw_encryption = info->hw_encryption;
+
+    return new_info;
+}
+
+GType bd_crypto_luks_info_get_type () {
+    static GType type = 0;
+
+    if (G_UNLIKELY(type == 0)) {
+        type = g_boxed_type_register_static("BDCryptoLUKSInfo",
+                                            (GBoxedCopyFunc) bd_crypto_luks_info_copy,
+                                            (GBoxedFreeFunc) bd_crypto_luks_info_free);
+    }
+
+    return type;
+}
+
+#define BD_CRYPTO_TYPE_BITLK_INFO (bd_crypto_bitlk_info_get_type ())
+GType bd_crypto_bitlk_info_get_type();
+
+/**
+ * BDCryptoBITLKInfo:
+ * @cipher: used cipher (e.g. "aes")
+ * @mode: used cipher mode (e.g. "xts-plain")
+ * @uuid: UUID of the BITLK device
+ * @backing_device: name of the underlying block device
+ * @sector_size: size (in bytes) of encryption sector
+ */
+typedef struct BDCryptoBITLKInfo {
+    gchar *cipher;
+    gchar *mode;
+    gchar *uuid;
+    gchar *backing_device;
+    guint32 sector_size;
+} BDCryptoBITLKInfo;
+
+/**
+ * bd_crypto_bitlk_info_free: (skip)
+ * @info: (nullable): %BDCryptoBITLKInfo to free
+ *
+ * Frees @info.
+ */
+void bd_crypto_bitlk_info_free (BDCryptoBITLKInfo *info) {
+    if (info == NULL)
+        return;
+
+    g_free (info->cipher);
+    g_free (info->mode);
+    g_free (info->uuid);
+    g_free (info->backing_device);
+    g_free (info);
+}
+
+/**
+ * bd_crypto_bitlk_info_copy: (skip)
+ * @info: (nullable): %BDCryptoBITLKInfo to copy
+ *
+ * Creates a new copy of @info.
+ */
+BDCryptoBITLKInfo* bd_crypto_bitlk_info_copy (BDCryptoBITLKInfo *info) {
+    if (info == NULL)
+        return NULL;
+
+    BDCryptoBITLKInfo *new_info = g_new0 (BDCryptoBITLKInfo, 1);
+
+    new_info->cipher = g_strdup (info->cipher);
+    new_info->mode = g_strdup (info->mode);
+    new_info->uuid = g_strdup (info->uuid);
+    new_info->backing_device = g_strdup (info->backing_device);
+    new_info->sector_size = info->sector_size;
+
+    return new_info;
+}
+
+GType bd_crypto_bitlk_info_get_type () {
+    static GType type = 0;
+
+    if (G_UNLIKELY(type == 0)) {
+        type = g_boxed_type_register_static("BDCryptoBITLKInfo",
+                                            (GBoxedCopyFunc) bd_crypto_bitlk_info_copy,
+                                            (GBoxedFreeFunc) bd_crypto_bitlk_info_free);
+    }
+
+    return type;
+}
+
+#define BD_CRYPTO_TYPE_INTEGRITY_INFO (bd_crypto_integrity_info_get_type ())
+GType bd_crypto_integrity_info_get_type();
+
+/**
+ * BDCryptoIntegrityInfo:
+ * @algorithm: integrity algorithm
+ * @key_size: integrity key size in bytes
+ * @sector_size: sector size in bytes
+ * @tag_size: tag size per-sector in bytes
+ * @interleave_sectors: number of interleave sectors
+ * @journal_size: size of journal in bytes
+ * @journal_crypt: journal encryption algorithm
+ * @journal_integrity: journal integrity algorithm
+ */
+typedef struct BDCryptoIntegrityInfo {
+    gchar *algorithm;
+    guint32 key_size;
+    guint32 sector_size;
+    guint32 tag_size;
+    guint32 interleave_sectors;
+    guint64 journal_size;
+    gchar *journal_crypt;
+    gchar *journal_integrity;
+} BDCryptoIntegrityInfo;
+
+/**
+ * bd_crypto_integrity_info_free: (skip)
+ * @info: (nullable): %BDCryptoIntegrityInfo to free
+ *
+ * Frees @info.
+ */
+void bd_crypto_integrity_info_free (BDCryptoIntegrityInfo *info) {
+    if (info == NULL)
+        return;
+
+    g_free (info->algorithm);
+    g_free (info->journal_crypt);
+    g_free (info->journal_integrity);
+    g_free (info);
+}
+
+/**
+ * bd_crypto_integrity_info_copy: (skip)
+ * @info: (nullable): %BDCryptoIntegrityInfo to copy
+ *
+ * Creates a new copy of @info.
+ */
+BDCryptoIntegrityInfo* bd_crypto_integrity_info_copy (BDCryptoIntegrityInfo *info) {
+    if (info == NULL)
+        return NULL;
+
+    BDCryptoIntegrityInfo *new_info = g_new0 (BDCryptoIntegrityInfo, 1);
+
+    new_info->algorithm = g_strdup (info->algorithm);
+    new_info->key_size = info->key_size;
+    new_info->sector_size = info->sector_size;
+    new_info->tag_size = info->tag_size;
+    new_info->interleave_sectors = info->interleave_sectors;
+    new_info->journal_size = info->journal_size;
+    new_info->journal_crypt = g_strdup (info->journal_crypt);
+    new_info->journal_integrity = g_strdup (info->journal_integrity);
+
+    return new_info;
+}
+
+GType bd_crypto_integrity_info_get_type () {
+    static GType type = 0;
+
+    if (G_UNLIKELY(type == 0)) {
+        type = g_boxed_type_register_static("BDCryptoIntegrityInfo",
+                                            (GBoxedCopyFunc) bd_crypto_integrity_info_copy,
+                                            (GBoxedFreeFunc) bd_crypto_integrity_info_free);
+    }
+
+    return type;
+}
+
+#define BD_CRYPTO_TYPE_LUKS_TOKEN_INFO (bd_crypto_luks_token_info_get_type ())
+GType bd_crypto_luks_token_info_get_type();
+
+/**
+ * BDCryptoLUKSTokenInfo:
+ * @id: ID of the token
+ * @type: type of the token
+ * @keyslot: keyslot this token is assigned to or -1 for inactive/unassigned tokens
+ */
+typedef struct BDCryptoLUKSTokenInfo {
+    guint id;
+    gchar *type;
+    gint keyslot;
+} BDCryptoLUKSTokenInfo;
+
+/**
+ * bd_crypto_luks_token_info_free: (skip)
+ * @info: (nullable): %BDCryptoLUKSTokenInfo to free
+ *
+ * Frees @info.
+ */
+void bd_crypto_luks_token_info_free (BDCryptoLUKSTokenInfo *info) {
+    if (info == NULL)
+        return;
+
+    g_free (info->type);
+    g_free (info);
+}
+
+/**
+ * bd_crypto_luks_token_info_copy: (skip)
+ * @info: (nullable): %BDCryptoLUKSTokenInfo to copy
+ *
+ * Creates a new copy of @info.
+ */
+BDCryptoLUKSTokenInfo* bd_crypto_luks_token_info_copy (BDCryptoLUKSTokenInfo *info) {
+    if (info == NULL)
+        return NULL;
+
+    BDCryptoLUKSTokenInfo *new_info = g_new0 (BDCryptoLUKSTokenInfo, 1);
+
+    new_info->id = info->id;
+    new_info->type = g_strdup (info->type);
+    new_info->keyslot = info->keyslot;
+
+    return new_info;
+}
+
+GType bd_crypto_luks_token_info_get_type () {
+    static GType type = 0;
+
+    if (G_UNLIKELY(type == 0)) {
+        type = g_boxed_type_register_static("BDCryptoLUKSTokenInfo",
+                                            (GBoxedCopyFunc) bd_crypto_luks_token_info_copy,
+                                            (GBoxedFreeFunc) bd_crypto_luks_token_info_free);
+    }
+
+    return type;
+}
+
+/**
+ * bd_crypto_is_tech_avail:
+ * @tech: the queried tech
+ * @mode: a bit mask of queried modes of operation (#BDCryptoTechMode) for @tech
+ * @error: (out) (optional): place to store error (details about why the @tech-@mode combination is not available)
+ *
+ * Returns: whether the @tech-@mode combination is available -- supported by the
+ *          plugin implementation and having all the runtime dependencies available
+ */
+gboolean bd_crypto_is_tech_avail (BDCryptoTech tech, guint64 mode, GError **error);
+
+/**
+ * bd_crypto_generate_backup_passphrase:
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: A newly generated %BD_CRYPTO_BACKUP_PASSPHRASE_LENGTH-long passphrase.
+ *
+ * See %BD_CRYPTO_BACKUP_PASSPHRASE_CHARSET for the definition of the charset used for the passphrase.
+ *
+ * Tech category: always available
+ */
+gchar* bd_crypto_generate_backup_passphrase(GError **error);
+
+/**
+ * bd_crypto_device_is_luks:
+ * @device: the queried device
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: %TRUE if the given @device is a LUKS device or %FALSE if not or
+ * failed to determine (the @error) is populated with the error in such
+ * cases)
+ *
+ * Tech category: %BD_CRYPTO_TECH_LUKS-%BD_CRYPTO_TECH_MODE_QUERY
+ */
+gboolean bd_crypto_device_is_luks (const gchar *device, GError **error);
+
+/**
+ * bd_crypto_luks_status:
+ * @luks_device: the queried LUKS device
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: (transfer none): one of "invalid", "inactive", "active" or "busy" or
+ * %NULL if failed to determine (@error is populated with the error in
+ * such cases)
+ *
+ * Tech category: %BD_CRYPTO_TECH_LUKS-%BD_CRYPTO_TECH_MODE_QUERY
+ */
+const gchar* bd_crypto_luks_status (const gchar *luks_device, GError **error);
+
+
+typedef enum {
+    BD_CRYPTO_KEYSLOT_CONTEXT_TYPE_NONE = 0,
+    BD_CRYPTO_KEYSLOT_CONTEXT_TYPE_PASSPHRASE,
+    BD_CRYPTO_KEYSLOT_CONTEXT_TYPE_KEYFILE,
+    BD_CRYPTO_KEYSLOT_CONTEXT_TYPE_KEYRING,
+    BD_CRYPTO_KEYSLOT_CONTEXT_TYPE_VOLUME_KEY,
+} BDCryptoKeyslotContextType;
+
+struct _BDCryptoKeyslotContext {
+    BDCryptoKeyslotContextType type;
+
+    union {
+        struct {
+            guint8 *pass_data;
+            gsize data_len;
+        } passphrase;
+
+        struct {
+            gchar *keyfile;
+            guint64 keyfile_offset;
+            gsize key_size;
+        } keyfile;
+
+        struct {
+            gchar *key_desc;
+        } keyring;
+
+        struct {
+            guint8 *volume_key;
+            gsize volume_key_size;
+        } volume_key;
+    } u;
+};
+typedef struct _BDCryptoKeyslotContext BDCryptoKeyslotContext;
+
+#define BD_CRYPTO_TYPE_KEYSLOT_CONTEXT (bd_crypto_keyslot_context_get_type ())
+GType bd_crypto_keyslot_context_get_type();
+
+/**
+ * bd_crypto_keyslot_context_free: (skip)
+ * @context: (nullable): %BDCryptoKeyslotContext to free
+ *
+ * Frees @context.
+ */
+void bd_crypto_keyslot_context_free (BDCryptoKeyslotContext *context) {
+    if (context == NULL)
+        return;
+
+    if (context->type == BD_CRYPTO_KEYSLOT_CONTEXT_TYPE_PASSPHRASE)
+        g_free (context->u.passphrase.pass_data);
+    else if (context->type == BD_CRYPTO_KEYSLOT_CONTEXT_TYPE_KEYFILE)
+        g_free (context->u.keyfile.keyfile);
+    else if (context->type == BD_CRYPTO_KEYSLOT_CONTEXT_TYPE_KEYRING)
+        g_free (context->u.keyring.key_desc);
+    else if (context->type == BD_CRYPTO_KEYSLOT_CONTEXT_TYPE_VOLUME_KEY)
+        g_free (context->u.volume_key.volume_key);
+
+    g_free (context);
+}
+
+/**
+ * bd_crypto_keyslot_context_copy: (skip)
+ * @context: (nullable): %BDCryptoKeyslotContext to copy
+ *
+ * Creates a new copy of @context.
+ */
+BDCryptoKeyslotContext* bd_crypto_keyslot_context_copy (BDCryptoKeyslotContext *context) {
+    if (context == NULL)
+        return NULL;
+
+    BDCryptoKeyslotContext *new_context = g_new0 (BDCryptoKeyslotContext, 1);
+    new_context->type = context->type;
+
+    if (context->type == BD_CRYPTO_KEYSLOT_CONTEXT_TYPE_PASSPHRASE) {
+        new_context->u.passphrase.pass_data = g_new0 (guint8, context->u.passphrase.data_len);
+        memcpy (new_context->u.passphrase.pass_data, context->u.passphrase.pass_data, context->u.passphrase.data_len);
+        new_context->u.passphrase.data_len = context->u.passphrase.data_len;
+    } else if (context->type == BD_CRYPTO_KEYSLOT_CONTEXT_TYPE_KEYFILE) {
+        new_context->u.keyfile.keyfile = g_strdup (context->u.keyfile.keyfile);
+        new_context->u.keyfile.keyfile_offset = context->u.keyfile.keyfile_offset;
+        new_context->u.keyfile.key_size = context->u.keyfile.key_size;
+    } else if (context->type == BD_CRYPTO_KEYSLOT_CONTEXT_TYPE_KEYRING)
+        new_context->u.keyring.key_desc = g_strdup (context->u.keyring.key_desc);
+    else if (context->type == BD_CRYPTO_KEYSLOT_CONTEXT_TYPE_VOLUME_KEY) {
+        new_context->u.volume_key.volume_key = g_new0 (guint8, context->u.volume_key.volume_key_size);
+        memcpy (new_context->u.volume_key.volume_key, context->u.volume_key.volume_key, context->u.volume_key.volume_key_size);
+        new_context->u.volume_key.volume_key_size = context->u.volume_key.volume_key_size;
+    }
+
+    return new_context;
+}
+
+GType bd_crypto_keyslot_context_get_type () {
+    static GType type = 0;
+
+    if (G_UNLIKELY(type == 0)) {
+        type = g_boxed_type_register_static("BDCryptoKeyslotContext",
+                                            (GBoxedCopyFunc) bd_crypto_keyslot_context_copy,
+                                            (GBoxedFreeFunc) bd_crypto_keyslot_context_free);
+    }
+
+    return type;
+}
+
+/**
+ * bd_crypto_keyslot_context_new_passphrase:
+ * @pass_data: (array length=data_len): a passphrase for the new context (may contain arbitrary binary data)
+ * @data_len: length of the @pass_data buffer
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns (transfer full): new %BDCryptoKeyslotContext initialized by passphrase or
+ *                          %NULL in case of error
+ *
+ * Tech category: always available
+ */
+BDCryptoKeyslotContext* bd_crypto_keyslot_context_new_passphrase (const guint8 *pass_data, gsize data_len, GError **error);
+
+/**
+ * bd_crypto_keyslot_context_new_keyfile:
+ * @keyfile: a key file for the new context
+ * @keyfile_offset: number of bytes to skip at start of @keyfile
+ * @key_size: number of bytes to read from @keyfile or 0 for unlimited
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns (transfer full): new %BDCryptoKeyslotContext initialized by key file or
+ *                          %NULL in case of error
+ *
+ * Tech category: always available
+ */
+BDCryptoKeyslotContext* bd_crypto_keyslot_context_new_keyfile (const gchar *keyfile, guint64 keyfile_offset, gsize key_size, GError **error);
+
+/**
+ * bd_crypto_keyslot_context_new_keyring:
+ * @key_desc: kernel keyring key description
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns (transfer full): new %BDCryptoKeyslotContext initialized by @key_desc or
+ *                          %NULL in case of error
+ *
+ * Note: Keyslot passphrase must be stored in 'user' key type and the key has to be reachable
+ *       by process context on behalf of which this function is called.
+ *
+ * Tech category: always available
+ */
+BDCryptoKeyslotContext* bd_crypto_keyslot_context_new_keyring (const gchar *key_desc, GError **error);
+
+/**
+ * bd_crypto_keyslot_context_new_volume_key:
+ * @volume_key: (array length=volume_key_size): a volume key for the new context (may contain arbitrary binary data)
+ * @volume_key_size: length of the @volume_key_size buffer
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns (transfer full): new %BDCryptoKeyslotContext initialized by volume key or
+ *                          %NULL in case of error
+ *
+ * Tech category: always available
+ */
+BDCryptoKeyslotContext* bd_crypto_keyslot_context_new_volume_key (const guint8 *volume_key, gsize volume_key_size, GError **error);
+
+/**
+ * bd_crypto_luks_format:
+ * @device: a device to format as LUKS
+ * @cipher: (nullable): cipher specification (type-mode, e.g. "aes-xts-plain64") or %NULL to use the default
+ * @key_size: size of the volume key in bits or 0 to use the default
+ * @context: key slot context (passphrase/keyfile/token...) for this LUKS device
+ * @min_entropy: minimum random data entropy (in bits) required to format @device as LUKS
+ * @luks_version: whether to use LUKS v1 or LUKS v2
+ * @extra: (nullable): extra arguments for LUKS format creation
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Formats the given @device as LUKS according to the other parameters given. If
+ * @min_entropy is specified (greater than 0), the function waits for enough
+ * entropy to be available in the random data pool (WHICH MAY POTENTIALLY TAKE
+ * FOREVER).
+ *
+ * Supported @context types for this function: passphrase, key file
+ *
+ * Returns: whether the given @device was successfully formatted as LUKS or not
+ * (the @error) contains the error in such cases)
+ *
+ * Tech category: %BD_CRYPTO_TECH_LUKS-%BD_CRYPTO_TECH_MODE_CREATE
+ */
+gboolean bd_crypto_luks_format (const gchar *device, const gchar *cipher, guint64 key_size, BDCryptoKeyslotContext *context, guint64 min_entropy, BDCryptoLUKSVersion luks_version, BDCryptoLUKSExtra *extra,GError **error);
+
+/**
+ * bd_crypto_luks_open:
+ * @device: the device to open
+ * @name: name for the LUKS device
+ * @context: key slot context (passphrase/keyfile/token...) to open this LUKS @device
+ * @read_only: whether to open as read-only or not (meaning read-write)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Supported @context types for this function: passphrase, key file, keyring
+ *
+ * Returns: whether the @device was successfully opened or not
+ *
+ * Tech category: %BD_CRYPTO_TECH_LUKS-%BD_CRYPTO_TECH_MODE_OPEN_CLOSE
+ *
+ * Example of using %bd_crypto_luks_open with %BDCryptoKeyslotContext:
+ *
+ * |[<!-- language="C" -->
+ * BDCryptoKeyslotContext *context = NULL;
+ *
+ * context = bd_crypto_keyslot_context_new_passphrase ("passphrase", 10, NULL);
+ * bd_crypto_luks_open ("/dev/vda1", "luks-device", context, FALSE, NULL);
+ * ]|
+ */
+gboolean bd_crypto_luks_open (const gchar *device, const gchar *name, BDCryptoKeyslotContext *context, gboolean read_only, GError **error);
+
+/**
+ * bd_crypto_luks_open_flags:
+ * @device: the device to open
+ * @name: name for the LUKS device
+ * @context: key slot context (passphrase/keyfile/token...) to open this LUKS @device
+ * @flags: activation flags for the LUKS device
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Supported @context types for this function: passphrase, key file, keyring
+ *
+ * Returns: whether the @device was successfully opened or not
+ *
+ * Tech category: %BD_CRYPTO_TECH_LUKS-%BD_CRYPTO_TECH_MODE_OPEN_CLOSE
+ *
+ * Example of using %bd_crypto_luks_open_flags with %BDCryptoKeyslotContext:
+ *
+ * |[<!-- language="C" -->
+ * BDCryptoKeyslotContext *context = NULL;
+ *
+ * context = bd_crypto_keyslot_context_new_passphrase ("passphrase", 10, NULL);
+ * bd_crypto_luks_open_flags ("/dev/vda1", "luks-device", context, 0, NULL);
+ * ]|
+ */
+gboolean bd_crypto_luks_open_flags (const gchar *device, const gchar *name, BDCryptoKeyslotContext *context, BDCryptoOpenFlags flags, GError **error);
+
+/**
+ * bd_crypto_luks_close:
+ * @luks_device: LUKS device to close
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the given @luks_device was successfully closed or not
+ *
+ * Tech category: %BD_CRYPTO_TECH_LUKS-%BD_CRYPTO_TECH_MODE_OPEN_CLOSE
+ */
+gboolean bd_crypto_luks_close (const gchar *luks_device, GError **error);
+
+/**
+ * bd_crypto_luks_add_key:
+ * @device: device to add new key to
+ * @context: key slot context (passphrase/keyfile/token...) to for this LUKS @device
+ * @ncontext: new key slot context (passphrase/keyfile/token...) to add to this LUKS @device
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Supported @context types for this function: passphrase, key file
+ *
+ * Returns: whether the @ncontext was successfully added to @device
+ * or not
+ *
+ * Tech category: %BD_CRYPTO_TECH_LUKS-%BD_CRYPTO_TECH_MODE_ADD_KEY
+ */
+gboolean bd_crypto_luks_add_key (const gchar *device, BDCryptoKeyslotContext *context, BDCryptoKeyslotContext *ncontext, GError **error);
+
+/**
+ * bd_crypto_luks_remove_key:
+ * @device: device to add new key to
+ * @context: key slot context (passphrase/keyfile/token...) to remove from this LUKS @device
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Supported @context types for this function: passphrase, key file
+ *
+ * Returns: whether the key was successfully removed or not
+ *
+ * Tech category: %BD_CRYPTO_TECH_LUKS-%BD_CRYPTO_TECH_MODE_REMOVE_KEY
+ */
+gboolean bd_crypto_luks_remove_key (const gchar *device, BDCryptoKeyslotContext *context, GError **error);
+
+/**
+ * bd_crypto_luks_change_key:
+ * @device: device to change key of
+ * @context: key slot context (passphrase/keyfile/token...) for this LUKS @device
+ * @ncontext: new key slot context (passphrase/keyfile/token...) to add to this LUKS @device
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Supported @context types for this function: passphrase, key file
+ *
+ * Returns: whether the key was successfully changed or not
+ *
+ * Tech category: %BD_CRYPTO_TECH_LUKS-%BD_CRYPTO_TECH_MODE_ADD_KEY&%BD_CRYPTO_TECH_MODE_REMOVE_KEY
+ */
+gboolean bd_crypto_luks_change_key (const gchar *device, BDCryptoKeyslotContext *context, BDCryptoKeyslotContext *ncontext, GError **error);
+
+/**
+ * bd_crypto_luks_resize:
+ * @luks_device: opened LUKS device to resize
+ * @size: requested size in sectors or 0 to adapt to the backing device
+ * @context: (nullable): key slot context (passphrase/keyfile/token...) for this LUKS @device
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Supported @context types for this function: passphrase, key file
+ *
+ * Returns: whether the @luks_device was successfully resized or not
+ *
+ * You need to specify either @context for LUKS 2 devices that
+ * don't have verified key loaded in kernel.
+ * For LUKS 1 devices you can set @context %NULL.
+ *
+ * Tech category: %BD_CRYPTO_TECH_LUKS-%BD_CRYPTO_TECH_MODE_RESIZE
+ */
+gboolean bd_crypto_luks_resize (const gchar *luks_device, guint64 size, BDCryptoKeyslotContext *context, GError **error);
+
+/**
+ * bd_crypto_luks_suspend:
+ * @luks_device: LUKS device to suspend
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the given @luks_device was successfully suspended or not
+ *
+ * Tech category: %BD_CRYPTO_TECH_LUKS-%BD_CRYPTO_TECH_MODE_SUSPEND_RESUME
+ */
+gboolean bd_crypto_luks_suspend (const gchar *luks_device, GError **error);
+
+/**
+ * bd_crypto_luks_resume:
+ * @luks_device: LUKS device to resume
+ * @context: key slot context (passphrase/keyfile/token...) for @luks_device
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Supported @context types for this function: passphrase, key file
+ *
+ * Returns: whether the given @luks_device was successfully resumed or not
+ *
+ * Tech category: %BD_CRYPTO_TECH_LUKS-%BD_CRYPTO_TECH_MODE_SUSPEND_RESUME
+ */
+gboolean bd_crypto_luks_resume (const gchar *luks_device, BDCryptoKeyslotContext *context, GError **error);
+
+/**
+ * bd_crypto_luks_kill_slot:
+ * @device: device to kill slot on
+ * @slot: keyslot to destroy
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Note: This can destroy last remaining keyslot without confirmation making
+ *       the LUKS device permanently inaccessible.
+ *
+ * Returns: whether the given @slot was successfully destroyed or not
+ *
+ * Tech category: %BD_CRYPTO_TECH_LUKS-%BD_CRYPTO_TECH_MODE_REMOVE_KEY
+ */
+gboolean bd_crypto_luks_kill_slot (const gchar *device, gint slot, GError **error);
+
+/**
+ * bd_crypto_luks_header_backup:
+ * @device: device to backup the LUKS header
+ * @backup_file: file to save the header backup to
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the given backup of @device was successfully written to
+ *          @backup_file or not
+ *
+ * Tech category: %BD_CRYPTO_TECH_LUKS-%BD_CRYPTO_TECH_MODE_BACKUP_RESTORE
+ */
+gboolean bd_crypto_luks_header_backup (const gchar *device, const gchar *backup_file, GError **error);
+
+/**
+ * bd_crypto_luks_header_restore:
+ * @device: device to restore the LUKS header to
+ * @backup_file: existing file with a LUKS header backup
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the given @device LUKS header was successfully restored
+ *          from @backup_file
+ *
+ *
+ * Tech category: %BD_CRYPTO_TECH_LUKS-%BD_CRYPTO_TECH_MODE_BACKUP_RESTORE
+ */
+gboolean bd_crypto_luks_header_restore (const gchar *device, const gchar *backup_file, GError **error);
+
+/**
+ * bd_crypto_luks_set_label:
+ * @device: device to set label on
+ * @label: (nullable): label to set
+ * @subsystem: (nullable): subsystem to set
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the given @label and @subsystem were successfully set or not
+ *
+ * Tech category: %BD_CRYPTO_TECH_LUKS-%BD_CRYPTO_TECH_MODE_MODIFY
+ */
+gboolean bd_crypto_luks_set_label (const gchar *device, const gchar *label, const gchar *subsystem, GError **error);
+
+/**
+ * bd_crypto_luks_check_label:
+ * @label: (nullable): label to check
+ * @subsystem: (nullable): subsystem to check
+ * @error: (out) (optional): place to store error
+ *
+ * Returns: whether @label and @subsystem are valid for LUKS2 or not
+ *          (reason is provided in @error)
+ *
+ * Tech category: always available
+ */
+gboolean bd_crypto_luks_check_label (const gchar *label, const gchar *subsystem, GError **error);
+
+/**
+ * bd_crypto_luks_set_uuid:
+ * @device: device to set UUID on
+ * @uuid: (nullable): UUID to set or %NULL to generate a new one
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the given @uuid was successfully set or not
+ *
+ * Tech category: %BD_CRYPTO_TECH_LUKS-%BD_CRYPTO_TECH_MODE_MODIFY
+ */
+gboolean bd_crypto_luks_set_uuid (const gchar *device, const gchar *uuid, GError **error);
+
+/**
+ * bd_crypto_luks_convert:
+ * @device:  a LUKS device to convert to a different version of LUKS
+ * @target_version: the LUKS version to convert to
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the @device was converted to @target_version.
+ *          False, if the @device is already in the @target_version format.
+ *
+ * Warning: LUKS header loss is possible. See bd_crypto_luks_header_backup() and bd_crypto_luks_header_restore()
+ *
+ * Tech category: %BD_CRYPTO_TECH_LUKS-%BD_CRYPTO_TECH_MODE_MODIFY
+ */
+gboolean bd_crypto_luks_convert (const gchar *device, BDCryptoLUKSVersion target_version, GError **error);
+
+/**
+ * bd_crypto_luks_set_persistent_flags:
+ * @device: a LUKS device to set the persistent flags on
+ * @flags: flags to set
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Note: This function is valid only for LUKS2.
+ *
+ * Returns: whether the given @flags were successfully set or not
+ *
+ * Tech category: %BD_CRYPTO_TECH_LUKS-%BD_CRYPTO_TECH_MODE_MODIFY
+ */
+gboolean bd_crypto_luks_set_persistent_flags (const gchar *device, BDCryptoLUKSPersistentFlags flags, GError **error);
+
+/**
+ * bd_crypto_luks_info:
+ * @device: a device to get information about
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: (transfer full): information about the @device or %NULL in case of error
+ *
+ * Tech category: %BD_CRYPTO_TECH_LUKS-%BD_CRYPTO_TECH_MODE_QUERY
+ */
+BDCryptoLUKSInfo* bd_crypto_luks_info (const gchar *device, GError **error);
+
+/**
+ * bd_crypto_bitlk_info:
+ * @device: a device to get information about
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns (transfer full): information about the @device or %NULL in case of error
+ *
+ * Tech category: %BD_CRYPTO_TECH_BITLK-%BD_CRYPTO_TECH_MODE_QUERY
+ */
+BDCryptoBITLKInfo* bd_crypto_bitlk_info (const gchar *device, GError **error);
+
+/**
+ * bd_crypto_integrity_info:
+ * @device: a device to get information about
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: (transfer full): information about the @device or %NULL in case of error
+ *
+ * Tech category: %BD_CRYPTO_TECH_INTEGRITY-%BD_CRYPTO_TECH_MODE_QUERY
+ */
+BDCryptoIntegrityInfo* bd_crypto_integrity_info (const gchar *device, GError **error);
+
+/**
+ * bd_crypto_luks_token_info:
+ * @device: a device to get LUKS2 token information about
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: (array zero-terminated=1) (transfer full): information about tokens on @device
+ *
+ * Tech category: %BD_CRYPTO_TECH_LUKS-%BD_CRYPTO_TECH_MODE_QUERY
+ */
+BDCryptoLUKSTokenInfo** bd_crypto_luks_token_info (const gchar *device, GError **error);
+
+/**
+ * bd_crypto_integrity_format:
+ * @device: a device to format as integrity
+ * @algorithm: integrity algorithm specification (e.g. "crc32c" or "sha256")
+ * @wipe: whether to wipe the device after format; a device that is not initially wiped will contain invalid checksums
+ * @context: (nullable): key slot context (passphrase/keyfile/token...) for this device
+ * @extra: (nullable): extra arguments for integrity format creation
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Formats the given @device as integrity according to the other parameters given.
+ *
+ * Supported @context types for this function: volume key
+ *
+ * Returns: whether the given @device was successfully formatted as integrity or not
+ * (the @error) contains the error in such cases)
+ *
+ * Tech category: %BD_CRYPTO_TECH_INTEGRITY-%BD_CRYPTO_TECH_MODE_CREATE
+ */
+gboolean bd_crypto_integrity_format (const gchar *device, const gchar *algorithm, gboolean wipe, BDCryptoKeyslotContext *context, BDCryptoIntegrityExtra *extra, GError **error);
+
+/**
+ * bd_crypto_integrity_open:
+ * @device: integrity device to open
+ * @name: name for the opened @device
+ * @algorithm: integrity algorithm specification (e.g. "crc32c" or "sha256")
+ * @context: (nullable): key slot context (passphrase/keyfile/token...) for this device
+ * @flags: flags for the integrity device activation
+ * @extra: (nullable): extra arguments for integrity open
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Supported @context types for this function: volume key
+ *
+ * Returns: whether the @device was successfully opened or not
+ *
+ * Tech category: %BD_CRYPTO_TECH_INTEGRITY-%BD_CRYPTO_TECH_MODE_OPEN_CLOSE
+ */
+gboolean bd_crypto_integrity_open (const gchar *device, const gchar *name, const gchar *algorithm, BDCryptoKeyslotContext *context, BDCryptoIntegrityOpenFlags flags, BDCryptoIntegrityExtra *extra, GError **error);
+
+/**
+ * bd_crypto_integrity_close:
+ * @integrity_device: integrity device to close
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the given @integrity_device was successfully closed or not
+ *
+ * Tech category: %BD_CRYPTO_TECH_INTEGRITY-%BD_CRYPTO_TECH_MODE_OPEN_CLOSE
+ */
+gboolean bd_crypto_integrity_close (const gchar *integrity_device, GError **error);
+
+/**
+ * bd_crypto_keyring_add_key:
+ * @key_desc: kernel keyring key description
+ * @key_data: (array length=data_len): a key to add to kernel keyring (may contain arbitrary binary data)
+ * @data_len: length of the @key_data buffer
+ * @error: (out) (optional): place to store error (if any)
+ * *
+ * Returns: whether the given key was successfully saved to kernel keyring or not
+ *
+ * Tech category: %BD_CRYPTO_TECH_KEYRING-%BD_CRYPTO_TECH_MODE_ADD_KEY
+ */
+gboolean bd_crypto_keyring_add_key (const gchar *key_desc, const guint8 *key_data, gsize data_len, GError **error);
+
+/**
+ * bd_crypto_device_seems_encrypted:
+ * @device: the queried device
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Determines whether a block device seems to be encrypted.
+ *
+ * TCRYPT volumes are not easily identifiable, because they have no
+ * cleartext header, but are completely encrypted. This function is
+ * used to determine whether a block device is a candidate for being
+ * TCRYPT encrypted.
+ *
+ * To achieve this, we calculate the chi square value of the first
+ * 512 Bytes and treat devices with a chi square value between 136
+ * and 426 as candidates for being encrypted.
+ * For the reasoning, see: https://gitlab.tails.boum.org/tails/blueprints/-/wikis/veracrypt/#detecting-veracrypt-volumes
+ *
+ * Returns: %TRUE if the given @device seems to be encrypted or %FALSE if not or
+ * failed to determine (the @error) is populated with the error in such
+ * cases)
+ *
+ * Tech category: %BD_CRYPTO_TECH_TRUECRYPT-%BD_CRYPTO_TECH_MODE_QUERY
+ */
+gboolean bd_crypto_device_seems_encrypted (const gchar *device, GError **error);
+
+/**
+ * bd_crypto_tc_open:
+ * @device: the device to open
+ * @name: name for the TrueCrypt/VeraCrypt device
+ * @context: (nullable): passphrase key slot context for this TrueCrypt/VeraCrypt volume
+ * @read_only: whether to open as read-only or not (meaning read-write)
+ * @keyfiles: (nullable) (array zero-terminated=1): paths to the keyfiles for the TrueCrypt/VeraCrypt volume
+ * @hidden: whether a hidden volume inside the volume should be opened
+ * @system: whether to try opening as an encrypted system (with boot loader)
+ * @veracrypt: whether to try VeraCrypt modes (TrueCrypt modes are tried anyway)
+ * @veracrypt_pim: VeraCrypt PIM value (only used if @veracrypt is %TRUE)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Supported @context types for this function: passphrase
+ *
+ * Returns: whether the @device was successfully opened or not
+ *
+ * Tech category: %BD_CRYPTO_TECH_TRUECRYPT-%BD_CRYPTO_TECH_MODE_OPEN_CLOSE
+ */
+gboolean bd_crypto_tc_open (const gchar *device, const gchar *name, BDCryptoKeyslotContext *context, const gchar **keyfiles, gboolean hidden, gboolean system, gboolean veracrypt, guint32 veracrypt_pim, gboolean read_only, GError **error);
+
+/**
+ * bd_crypto_tc_open_flags:
+ * @device: the device to open
+ * @name: name for the TrueCrypt/VeraCrypt device
+ * @context: (nullable): passphrase key slot context for this TrueCrypt/VeraCrypt volume
+ * @flags: activation flags for the TrueCrypt/VeraCrypt device
+ * @keyfiles: (nullable) (array zero-terminated=1): paths to the keyfiles for the TrueCrypt/VeraCrypt volume
+ * @hidden: whether a hidden volume inside the volume should be opened
+ * @system: whether to try opening as an encrypted system (with boot loader)
+ * @veracrypt: whether to try VeraCrypt modes (TrueCrypt modes are tried anyway)
+ * @veracrypt_pim: VeraCrypt PIM value (only used if @veracrypt is %TRUE)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Supported @context types for this function: passphrase
+ *
+ * Returns: whether the @device was successfully opened or not
+ *
+ * Tech category: %BD_CRYPTO_TECH_TRUECRYPT-%BD_CRYPTO_TECH_MODE_OPEN_CLOSE
+ */
+gboolean bd_crypto_tc_open_flags (const gchar *device, const gchar *name, BDCryptoKeyslotContext *context, const gchar **keyfiles, gboolean hidden, gboolean system, gboolean veracrypt, guint32 veracrypt_pim, BDCryptoOpenFlags flags, GError **error);
+
+/**
+ * bd_crypto_tc_close:
+ * @tc_device: TrueCrypt/VeraCrypt device to close
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the given @tc_device was successfully closed or not
+ *
+ * Tech category: %BD_CRYPTO_TECH_TRUECRYPT-%BD_CRYPTO_TECH_MODE_OPEN_CLOSE
+ */
+gboolean bd_crypto_tc_close (const gchar *tc_device, GError **error);
+
+/**
+ * bd_crypto_escrow_device:
+ * @device: path of the device to create escrow data for
+ * @passphrase: passphrase used for the device
+ * @cert_data: (array zero-terminated=1) (element-type gchar): certificate data to use for escrow
+ * @directory: directory to put escrow data into
+ * @backup_passphrase: (nullable): backup passphrase for the device or %NULL
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the escrow data was successfully created for @device or not
+ *
+ * Tech category: %BD_CRYPTO_TECH_ESCROW-%BD_CRYPTO_TECH_MODE_CREATE
+ */
+gboolean bd_crypto_escrow_device (const gchar *device, const gchar *passphrase, const gchar *cert_data, const gchar *directory, const gchar *backup_passphrase, GError **error);
+
+/**
+ * bd_crypto_bitlk_open:
+ * @device: the device to open
+ * @name: name for the BITLK device
+ * @context: key slot context (passphrase/keyfile/token...) for this BITLK device
+ * @read_only: whether to open as read-only or not (meaning read-write)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Supported @context types for this function: passphrase, key file
+ *
+ * Returns: whether the @device was successfully opened or not
+ *
+ * Tech category: %BD_CRYPTO_TECH_BITLK-%BD_CRYPTO_TECH_MODE_OPEN_CLOSE
+ */
+gboolean bd_crypto_bitlk_open (const gchar *device, const gchar *name, BDCryptoKeyslotContext *context, gboolean read_only, GError **error);
+
+/**
+ * bd_crypto_bitlk_open_flags:
+ * @device: the device to open
+ * @name: name for the BITLK device
+ * @context: key slot context (passphrase/keyfile/token...) for this BITLK device
+ * @flags: activation flags for the BITLK device
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Supported @context types for this function: passphrase, key file
+ *
+ * Returns: whether the @device was successfully opened or not
+ *
+ * Tech category: %BD_CRYPTO_TECH_BITLK-%BD_CRYPTO_TECH_MODE_OPEN_CLOSE
+ */
+gboolean bd_crypto_bitlk_open_flags (const gchar *device, const gchar *name, BDCryptoKeyslotContext *context, BDCryptoOpenFlags flags, GError **error);
+
+/**
+ * bd_crypto_bitlk_close:
+ * @bitlk_device: BITLK device to close
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the given @bitlk_device was successfully closed or not
+ *
+ * Tech category: %BD_CRYPTO_TECH_BITLK-%BD_CRYPTO_TECH_MODE_OPEN_CLOSE
+ */
+gboolean bd_crypto_bitlk_close (const gchar *bitlk_device, GError **error);
+
+/**
+ * bd_crypto_fvault2_open:
+ * @device: the device to open
+ * @name: name for the FVAULT2 device
+ * @context: key slot context (passphrase/keyfile/token...) for this FVAULT2 volume
+ * @read_only: whether to open as read-only or not (meaning read-write)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Supported @context types for this function: passphrase, key file
+ *
+ * Returns: whether the @device was successfully opened or not
+ *
+ * Tech category: %BD_CRYPTO_TECH_FVAULT2-%BD_CRYPTO_TECH_MODE_OPEN_CLOSE
+ */
+gboolean bd_crypto_fvault2_open (const gchar *device, const gchar *name, BDCryptoKeyslotContext *context, gboolean read_only, GError **error);
+
+/**
+ * bd_crypto_fvault2_open_flags:
+ * @device: the device to open
+ * @name: name for the FVAULT2 device
+ * @context: key slot context (passphrase/keyfile/token...) for this FVAULT2 volume
+ * @flags: activation flags for the FVAULT2 device
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Supported @context types for this function: passphrase, key file
+ *
+ * Returns: whether the @device was successfully opened or not
+ *
+ * Tech category: %BD_CRYPTO_TECH_FVAULT2-%BD_CRYPTO_TECH_MODE_OPEN_CLOSE
+ */
+gboolean bd_crypto_fvault2_open_flags (const gchar *device, const gchar *name, BDCryptoKeyslotContext *context, BDCryptoOpenFlags flags, GError **error);
+
+/**
+ * bd_crypto_fvault2_close:
+ * @fvault2_device: FVAULT2 device to close
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the given @fvault2_device was successfully closed or not
+ *
+ * Tech category: %BD_CRYPTO_TECH_FVAULT2-%BD_CRYPTO_TECH_MODE_OPEN_CLOSE
+ */
+gboolean bd_crypto_fvault2_close (const gchar *fvault2_device, GError **error);
+
+/**
+ * bd_crypto_opal_is_supported:
+ * @device: device to check for OPAL support
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: %TRUE if the given @device supports OPAL or %FALSE if not or
+ * failed to determine (the @error is populated with the error in such
+ * cases).
+ *
+ * Tech category: %BD_CRYPTO_TECH_SED_OPAL-%BD_CRYPTO_TECH_MODE_QUERY
+ */
+gboolean bd_crypto_opal_is_supported (const gchar *device, GError **error);
+
+/**
+ * bd_crypto_opal_wipe_device:
+ * @device: LUKS HW-OPAL device to wipe
+ * @context: OPAL admin passphrase context
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether @device was successfully wiped or not.
+ *
+ * Supported @context types for this function: passphrase
+ *
+ * Tech category: %BD_CRYPTO_TECH_SED_OPAL-%BD_CRYPTO_TECH_MODE_MODIFY
+ */
+gboolean bd_crypto_opal_wipe_device (const gchar *device, BDCryptoKeyslotContext *context, GError **error);
+
+/**
+ * bd_crypto_opal_format:
+ * @device: a device to format as LUKS HW-OPAL
+ * @cipher: (nullable): cipher specification (type-mode, e.g. "aes-xts-plain64") or %NULL to use the default
+ * @key_size: size of the volume key in bits or 0 to use the default
+ * @context: key slot context (passphrase/keyfile/token...) for this LUKS device
+ * @min_entropy: minimum random data entropy (in bits) required to format @device as LUKS
+ * @hw_encryption: type of hardware encryption (SW+HW or HW only)
+ * @opal_context: OPAL admin passphrase
+ * @extra: (nullable): extra arguments for LUKS format creation
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Formats the given @device as LUKS HW-OPAL according to the other parameters given. If
+ * @min_entropy is specified (greater than 0), the function waits for enough
+ * entropy to be available in the random data pool (WHICH MAY POTENTIALLY TAKE
+ * FOREVER).
+ *
+ * Supported @context types for this function: passphrase, key file
+ * Supported @opal_context types for this function: passphrase
+ *
+ * Returns: whether the given @device was successfully formatted as LUKS HW-OPAL or not
+ * (the @error contains the error in such cases)
+ *
+ * Tech category: %BD_CRYPTO_TECH_LUKS-%BD_CRYPTO_TECH_MODE_CREATE
+ */
+gboolean bd_crypto_opal_format (const gchar *device, const gchar *cipher, guint64 key_size, BDCryptoKeyslotContext *context, guint64 min_entropy, BDCryptoLUKSHWEncryptionType hw_encryption, BDCryptoKeyslotContext *opal_context, BDCryptoLUKSExtra *extra, GError **error);
+
+/**
+ * bd_crypto_opal_reset_device:
+ * @device: LUKS HW-OPAL device to run PSID reset on
+ * @context: PSID context
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether PSI reset on @device was successful or not.
+ *
+ * Warning: PSID reset will remove all data from @device!
+ *
+ * Supported @context types for this function: passphrase, key file
+ *
+ * Tech category: %BD_CRYPTO_TECH_SED_OPAL-%BD_CRYPTO_TECH_MODE_MODIFY
+ */
+gboolean bd_crypto_opal_reset_device (const gchar *device, BDCryptoKeyslotContext *context, GError **error);
+
+#endif  /* BD_CRYPTO_API */

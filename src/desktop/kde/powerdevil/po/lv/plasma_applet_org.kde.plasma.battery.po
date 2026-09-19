@@ -1,0 +1,820 @@
+# translation of plasma_applet_battery.po to Latvian
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Maris Nartiss <maris.kde@gmail.com>, 2007, 2008, 2010, 2011, 2012, 2016, 2023.
+# Viesturs Zarins <viesturs.zarins@mii.lu.lv>, 2008, 2009, 2010.
+# Viesturs Zariņš <viesturs.zarins@mii.lu.lv>, 2009.
+# Rūdofls Mazurs <rudolfs.mazurs@gmail.com>, 2011.
+# SPDX-FileCopyrightText: 2024, 2025 Toms Trasuns <toms.trasuns@posteo.net>
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma_applet_battery\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-03-17 02:42+0000\n"
+"PO-Revision-Date: 2025-09-24 16:39+0300\n"
+"Last-Translator: Toms Trasuns <toms.trasuns@posteo.net>\n"
+"Language-Team: Latvian <kde-i18n-doc@kde.org>\n"
+"Language: lv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 25.08.0\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : "
+"2);\n"
+
+#: BatteryItem.qml:99
+#, kde-format
+msgid "Charging"
+msgstr "Uzlādējas"
+
+#: BatteryItem.qml:101
+#, kde-format
+msgid "Discharging"
+msgstr "Izlādējas"
+
+#: BatteryItem.qml:103 main.qml:122
+#, kde-format
+msgid "Fully Charged"
+msgstr "Pilnībā uzlādēta"
+
+#: BatteryItem.qml:105
+#, kde-format
+msgid "Not Charging"
+msgstr "Nelādē"
+
+#: BatteryItem.qml:108
+#, kde-format
+msgctxt "Battery is currently not present in the bay"
+msgid "Not present"
+msgstr "Nav"
+
+#: BatteryItem.qml:120
+#, kde-format
+msgctxt "Placeholder is battery percentage"
+msgid "%1%"
+msgstr "%1 %"
+
+#: BatteryItem.qml:184
+#, kde-format
+msgid ""
+"This battery's health is at only %1% and it should be replaced. Contact the "
+"manufacturer."
+msgstr ""
+"Baterijas veselība ir vairs tikai %1 %, tāpēc to vajadzētu nomainīt. "
+"Sazinieties ar ražotāju."
+
+#: BatteryItem.qml:203
+#, kde-format
+msgid "Time To Full:"
+msgstr "Laiks līdz pilnai:"
+
+#: BatteryItem.qml:204
+#, kde-format
+msgid "Remaining Time:"
+msgstr "Atlikušais laiks:"
+
+#: BatteryItem.qml:210
+#, kde-format
+msgctxt "@info"
+msgid "Estimating…"
+msgstr "Aprēķina..."
+
+#: BatteryItem.qml:220
+#, kde-format
+msgid "Battery Health:"
+msgstr "Baterijas veselība:"
+
+#: BatteryItem.qml:226
+#, kde-format
+msgctxt "Placeholder is battery health percentage"
+msgid "%1%"
+msgstr "%1 %"
+
+#: BatteryItem.qml:238
+#, kde-format
+msgid "Battery is configured to charge up to approximately %1%."
+msgstr "Baterija ir konfigurēta uzlādēties līdz aptuveni %1%."
+
+#: CompactRepresentation.qml:101 CompactRepresentation.qml:150
+#, kde-format
+msgctxt "battery percentage below battery icon"
+msgid "%1%"
+msgstr "%1 %"
+
+#: InhibitionItem.qml:53
+#, kde-format
+msgctxt "@title:group"
+msgid "Sleep and Screen Locking after Inactivity"
+msgstr "Iesnaudināšana un ekrāna slēgšana pēc neaktivitātes perioda"
+
+#: InhibitionItem.qml:60 main.qml:97 PowerProfileItem.qml:76
+#, kde-format
+msgid "Power Management"
+msgstr "Jaudas pārvaldība"
+
+#: InhibitionItem.qml:65
+#, fuzzy, kde-format
+#| msgid ""
+#| "Automatic sleep and screen locking are disabled; middle-click to re-enable"
+msgctxt "accessible-only status text"
+msgid "Automatic sleep and screen locking are currently blocked."
+msgstr ""
+"Automātiskā ekrāna slēgšana un iesnaudināšana ir izslēgta. Ieslēdziet ar "
+"peles vidējo pogu."
+
+#: InhibitionItem.qml:67
+#, kde-format
+msgctxt "accessible-only status text"
+msgid ""
+"Screen locking is currently blocked. Sleep is automatic after inactivity."
+msgstr ""
+
+#: InhibitionItem.qml:69
+#, fuzzy, kde-format
+#| msgctxt "@title:group"
+#| msgid "Sleep and Screen Locking after Inactivity"
+msgctxt "accessible-only status text"
+msgid ""
+"Sleep is currently blocked. Screen locking is automatic after inactivity."
+msgstr "Iesnaudināšana un ekrāna slēgšana pēc neaktivitātes perioda"
+
+#: InhibitionItem.qml:71
+#, fuzzy, kde-format
+#| msgctxt "@title:group"
+#| msgid "Sleep and Screen Locking after Inactivity"
+msgctxt "accessible-only status text"
+msgid "Sleep and screen locking are automatic after inactivity."
+msgstr "Iesnaudināšana un ekrāna slēgšana pēc neaktivitātes perioda"
+
+#: InhibitionItem.qml:95
+#, fuzzy, kde-format
+#| msgid "Failed to block automatic sleep and screen locking"
+msgctxt "@action:button Block sleep and screen locking after inactivity"
+msgid "Manually Block Sleep and Screen Locking"
+msgstr "Neizdevās bloķēt automātisku iesnaudināšanu un ekrāna slēgšanu"
+
+#: InhibitionItem.qml:118
+#, kde-format
+msgid "Failed to unblock automatic sleep and screen locking"
+msgstr "Neizdevās atbloķēt automātisko iesnaudināšanu un ekrāna slēgšanu"
+
+#: InhibitionItem.qml:121
+#, kde-format
+msgid "Failed to block automatic sleep and screen locking"
+msgstr "Neizdevās bloķēt automātisku iesnaudināšanu un ekrāna slēgšanu"
+
+#: InhibitionItem.qml:135
+#, fuzzy, kde-format
+#| msgctxt ""
+#| "Minimize the length of this string as much as possible but the sentence "
+#| "about higher energy consumption must be included (EU regulations)"
+#| msgid ""
+#| "You have manually blocked sleep and screen locking. This will result in "
+#| "higher energy consumption."
+msgctxt ""
+"@label corresponding to Manually Block Sleep and Screen Locking toggle"
+msgid "This will result in higher energy consumption."
+msgstr ""
+"Jūs manuāli bloķējāt iesnaudināšanu un ekrāna slēgšanu. Tas ilgtermiņā "
+"palielinās elektroenerģijas patēriņu."
+
+#: InhibitionItem.qml:136
+#, fuzzy, kde-format
+#| msgctxt ""
+#| "Minimize the length of this string as much as possible but the sentence "
+#| "about higher energy consumption must be included (EU regulations)"
+#| msgid ""
+#| "You have manually blocked sleep and screen locking. This will result in "
+#| "higher energy consumption."
+msgctxt ""
+"@label accessible - the sentence about higher energy consumption must be "
+"included (EU regulations)"
+msgid ""
+"You have manually blocked automatic sleep and screen locking. This will "
+"result in higher energy consumption."
+msgstr ""
+"Jūs manuāli bloķējāt iesnaudināšanu un ekrāna slēgšanu. Tas ilgtermiņā "
+"palielinās elektroenerģijas patēriņu."
+
+#: InhibitionItem.qml:143
+#, kde-format
+msgctxt "Minimize the length of this string as much as possible"
+msgid ""
+"Your laptop is configured not to sleep when closing the lid while an "
+"external monitor is connected."
+msgstr ""
+"Jūsu portatīvais dators ir iestatīts neaizmigt, ja aizver tā vāku kamēr ir "
+"pieslēgts ārējais monitors."
+
+#: InhibitionItem.qml:162
+#, fuzzy, kde-format
+#| msgctxt "Application name: reason for preventing sleep and screen locking"
+#| msgid "%1: unknown reason"
+msgctxt "An application's reason for inhibiting sleep and/or screen locking"
+msgid "Unknown reason."
+msgstr "%1: nezināms iemesls"
+
+#: InhibitionItem.qml:169
+#, fuzzy, kde-format
+#| msgid "%1 is currently blocking sleep and screen locking (%2)"
+msgctxt ""
+"Application (1) with reason (2) has been prevented from blocking this "
+"inactivity behavior. The user can choose to allow it again."
+msgid "%1 wants to block sleep and screen locking. (%2)"
+msgstr "„%1“ šobrīd bloķē iesnaudināšanu un ekrāna slēgšanu (%2)"
+
+#: InhibitionItem.qml:171
+#, fuzzy, kde-format
+#| msgid "%1 is currently blocking sleep and screen locking (%2)"
+msgctxt ""
+"Application (1) with reason (2) has been prevented from blocking this "
+"inactivity behavior. The user can choose to allow it again."
+msgid "%1 wants to block screen locking. (%2)"
+msgstr "„%1“ šobrīd bloķē iesnaudināšanu un ekrāna slēgšanu (%2)"
+
+#: InhibitionItem.qml:173
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) has been prevented from blocking this "
+"inactivity behavior. The user can choose to allow it again."
+msgid "%1 wants to block sleep. (%2)"
+msgstr ""
+
+#: InhibitionItem.qml:177
+#, fuzzy, kde-format
+#| msgid "%1 is currently blocking sleep and screen locking (%2)"
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, in addition to the user's manual block switch."
+msgid "%1 is also blocking sleep and screen locking. (%2)"
+msgstr "„%1“ šobrīd bloķē iesnaudināšanu un ekrāna slēgšanu (%2)"
+
+#: InhibitionItem.qml:179
+#, fuzzy, kde-format
+#| msgid "%1 is currently blocking sleep and screen locking (%2)"
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, in addition to the user's manual block switch."
+msgid "%1 is also blocking screen locking. (%2)"
+msgstr "„%1“ šobrīd bloķē iesnaudināšanu un ekrāna slēgšanu (%2)"
+
+#: InhibitionItem.qml:181
+#, fuzzy, kde-format
+#| msgid "%1 is currently blocking sleep and screen locking (%2)"
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, in addition to the user's manual block switch."
+msgid "%1 is also blocking sleep. (%2)"
+msgstr "„%1“ šobrīd bloķē iesnaudināšanu un ekrāna slēgšanu (%2)"
+
+#: InhibitionItem.qml:185
+#, fuzzy, kde-format
+#| msgid "%1 is currently blocking sleep and screen locking (%2)"
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, the user can choose to unblock it."
+msgid "%1 is blocking sleep and screen locking. (%2)"
+msgstr "„%1“ šobrīd bloķē iesnaudināšanu un ekrāna slēgšanu (%2)"
+
+#: InhibitionItem.qml:187
+#, fuzzy, kde-format
+#| msgid "%1 is currently blocking sleep and screen locking (%2)"
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, the user can choose to unblock it."
+msgid "%1 is blocking screen locking. (%2)"
+msgstr "„%1“ šobrīd bloķē iesnaudināšanu un ekrāna slēgšanu (%2)"
+
+#: InhibitionItem.qml:189
+#, fuzzy, kde-format
+#| msgid "%1 is currently blocking sleep and screen locking (%2)"
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, the user can choose to unblock it."
+msgid "%1 is blocking sleep. (%2)"
+msgstr "„%1“ šobrīd bloķē iesnaudināšanu un ekrāna slēgšanu (%2)"
+
+#: InhibitionItem.qml:197
+#, kde-format
+msgctxt ""
+"@action:button Prevent an app from blocking automatic sleep and screen "
+"locking after inactivity"
+msgid "Unblock"
+msgstr "Atbloķēt"
+
+#: InhibitionItem.qml:205
+#, kde-format
+msgctxt ""
+"@action:button Undo preventing an app from blocking automatic sleep and "
+"screen locking after inactivity"
+msgid "Allow"
+msgstr ""
+
+#: main.qml:76
+#, kde-format
+msgid "The battery applet has enabled suppressing sleep and screen locking"
+msgstr ""
+"Baterijas sīklietotne ir ieslēgusi sistēmas iesnaudināšanas un slēgšanas "
+"bloķēšanu"
+
+#: main.qml:97
+#, kde-format
+msgid "Power and Battery"
+msgstr "Jauda un baterija"
+
+#: main.qml:116
+#, kde-format
+msgid "Battery is not present in the bay"
+msgstr "Baterijas ligzdā nav baterijas"
+
+#: main.qml:129
+#, kde-format
+msgid "Battery at %1%, not Charging"
+msgstr "Baterijas līmenis ir %1 %, nelādē"
+
+#: main.qml:131
+#, kde-format
+msgid "Battery at %1%, plugged in but still discharging"
+msgstr ""
+"Baterijas līmenis ir %1 %, pievienota elektrotīklam, bet joprojām izlādējas"
+
+#: main.qml:133
+#, kde-format
+msgid "Battery at %1%, Charging"
+msgstr "Baterijas līmenis ir %1 %, lādē"
+
+#: main.qml:136
+#, kde-format
+msgid "Battery at %1%"
+msgstr "Baterijas līmenis ir %1 %"
+
+#: main.qml:144
+#, kde-format
+msgid "The power supply is not powerful enough to charge the battery"
+msgstr "Barošanas avots nav gana jaudīgs, lai lādētu bateriju"
+
+#: main.qml:148
+#, kde-format
+msgid "No Batteries Available"
+msgstr "Baterijas nav pieejamas"
+
+#: main.qml:155
+#, kde-format
+msgctxt "time until fully charged - HH:MM"
+msgid "%1 until fully charged"
+msgstr "%1 līdz pilnai uzlādei"
+
+#: main.qml:157
+#, kde-format
+msgctxt "remaining time left of battery usage - HH:MM"
+msgid "%1 remaining"
+msgstr "%1 atlicis"
+
+#: main.qml:160
+#, kde-format
+msgid "Not charging"
+msgstr "Nelādē"
+
+#: main.qml:165
+#, kde-format
+msgid ""
+"Automatic sleep and screen locking are disabled; middle-click to re-enable"
+msgstr ""
+"Automātiskā ekrāna slēgšana un iesnaudināšana ir izslēgta. Ieslēdziet ar "
+"peles vidējo pogu."
+
+#: main.qml:167
+#, kde-format
+msgid "Middle-click to disable automatic sleep and screen locking"
+msgstr ""
+"Izslēdziet automātisko iesnaudināšanu un ekrāna slēgšanu ar peles vidējo pogu"
+
+#: main.qml:172
+#, kde-format
+msgid "An application has requested activating Performance mode"
+msgid_plural "%1 applications have requested activating Performance mode"
+msgstr[0] "%1 programma ir pieprasījusi aktivizēt jaudas režīmu"
+msgstr[1] "%1 programmas ir pieprasījušas aktivizēt jaudas režīmu"
+msgstr[2] "%1 programmu ir pieprasījušas aktivizēt jaudas režīmu"
+
+#: main.qml:176
+#, kde-format
+msgid "System is in Performance mode; scroll to change"
+msgstr "Sistēma atrodas jaudas režīmā. Ritiniet, lai mainītu."
+
+#: main.qml:180
+#, kde-format
+msgid "An application has requested activating Power Save mode"
+msgid_plural "%1 applications have requested activating Power Save mode"
+msgstr[0] "%1 programma ir pieprasījusi aktivizēt energotaupības režīmu"
+msgstr[1] "%1 programmas ir pieprasījušas aktivizēt energotaupības režīmu"
+msgstr[2] "%1 programmu ir pieprasījušas aktivizēt energotaupības režīmu"
+
+#: main.qml:184
+#, kde-format
+msgid "System is in Power Save mode; scroll to change"
+msgstr "Sistēma atrodas energotaupības režīmā. Ritiniet, lai mainītu"
+
+#: main.qml:187
+#, kde-format
+msgid "System is in Balanced Power mode; scroll to change"
+msgstr "Sistēma atrodas līdzsvara režīmā. Ritiniet, lai mainītu"
+
+#: main.qml:301
+#, kde-format
+msgid "&Show Energy Information…"
+msgstr "&Rādīt energopatēriņa informāciju..."
+
+#: main.qml:307
+#, kde-format
+msgid "Show Battery Percentage on Icon When Not Fully Charged"
+msgstr "Rādīt baterijas atlikumu procentos uz ikonas, kad nav pilnībā uzlādēta"
+
+#: main.qml:320
+#, kde-format
+msgid "&Configure Power Management…"
+msgstr "&Konfigurēt jaudas pārvaldību..."
+
+#: PowerProfileItem.qml:41
+#, kde-format
+msgid "Power Save"
+msgstr "Energotaupība"
+
+#: PowerProfileItem.qml:45
+#, kde-format
+msgid "Balanced"
+msgstr "Balansēta"
+
+#: PowerProfileItem.qml:49
+#, kde-format
+msgid "Performance"
+msgstr "Jauda"
+
+#: PowerProfileItem.qml:66
+#, kde-format
+msgid "Power Profile"
+msgstr "Jaudas profils"
+
+#: PowerProfileItem.qml:110
+#, kde-format
+msgctxt "Power profile"
+msgid "Automatic"
+msgstr "Automātisks"
+
+#: PowerProfileItem.qml:111
+#, kde-format
+msgctxt "Power profile"
+msgid "Not available"
+msgstr "Nav pieejams"
+
+#: PowerProfileItem.qml:151
+#, kde-format
+msgid "Failed to activate %1 mode"
+msgstr "Neizdevās aktivizēt %1 režīmu"
+
+#: PowerProfileItem.qml:228
+#, kde-format
+msgid ""
+"Performance mode has been disabled to reduce heat generation because the "
+"computer has detected that it may be sitting on your lap."
+msgstr ""
+"Jaudas režīms ir izslēgts, lai samazinātu karstuma ģenerēšanu, jo ierīce ir "
+"konstatējusi, ka jūs, iespējams, to turat klēpī."
+
+#: PowerProfileItem.qml:230
+#, kde-format
+msgid ""
+"Performance mode is unavailable because the computer is running too hot."
+msgstr "Jaudas režīms nav pieejams, jo dators ir pārāk karsts."
+
+#: PowerProfileItem.qml:232
+#, kde-format
+msgid "Performance mode is unavailable."
+msgstr "Jaudas režīms nav pieejams."
+
+#: PowerProfileItem.qml:248
+#, kde-format
+msgid ""
+"Performance may be lowered to reduce heat generation because the computer "
+"has detected that it may be sitting on your lap."
+msgstr ""
+"Veiktspēja var tikt samazināta, lai dators nesakarstu, jo tas ir "
+"konstatējis, ka jūs, iespējams, to lietojat klēpī."
+
+#: PowerProfileItem.qml:250
+#, kde-format
+msgid "Performance may be reduced because the computer is running too hot."
+msgstr "Veiktspēja var tikt samazināta, jo dators ir pārāk karsts."
+
+#: PowerProfileItem.qml:252
+#, kde-format
+msgid "Performance may be reduced."
+msgstr "Veiktspēja var būt samazināta."
+
+#: PowerProfileItem.qml:265
+#, kde-format
+msgid "One application has requested activating %2:"
+msgid_plural "%1 applications have requested activating %2:"
+msgstr[0] "%1 programma pieprasa aktivēt %2:"
+msgstr[1] "%1 programmas pieprasa aktivēt %2:"
+msgstr[2] "%1 programmu pieprasa aktivēt %2:"
+
+#: PowerProfileItem.qml:284
+#, kde-format
+msgctxt ""
+"%1 is the name of the application, %2 is the reason provided by it for "
+"activating performance mode"
+msgid "%1: %2"
+msgstr "%1: %2"
+
+#: PowerProfileItem.qml:302
+#, kde-format
+msgid "The TLP service automatically controls power profiles"
+msgstr "TLP serviss automātiski kontrolē jaudas profilus"
+
+#: PowerProfileItem.qml:304
+#, kde-format
+msgid "Power profiles are not supported on your device."
+msgstr "Jūsu ierīce neatbalsta jaudas profilus."
+
+#: PowerProfileItem.qml:305
+#, kde-kuit-format
+msgid ""
+"Power profiles may be supported on your device.<nl/>Try installing the "
+"<command>power-profiles-daemon</command> package using your distribution's "
+"package manager and restarting the system."
+msgstr ""
+"Jūsu ierīce varētu atbalstīt jaudas profilus.<nl/>Mēģiniet instalēt "
+"<command>power-profiles-daemon</command> pakotni no savas operētājsistēmas "
+"pakotņu pārvaldnieka un pārstartējiet sistēmu."
+
+#~ msgctxt "Sleep and Screen Locking after Inactivity"
+#~ msgid "Blocked"
+#~ msgstr "Bloķēts"
+
+#~ msgctxt "Sleep and Screen Locking after Inactivity"
+#~ msgid "Automatic"
+#~ msgstr "Automātisks"
+
+#~ msgid "%1 application currently wants to block sleep and screen locking:"
+#~ msgid_plural ""
+#~ "%1 applications currently want to block sleep and screen locking:"
+#~ msgstr[0] ""
+#~ "%1 programma šobrīd vēlas bloķēt iesnaudināšanu un ekrāna slēgšanu:"
+#~ msgstr[1] ""
+#~ "%1 programmas šobrīd vēlas bloķēt iesnaudināšanu un ekrāna slēgšanu:"
+#~ msgstr[2] ""
+#~ "%1 programmu šobrīd vēlas bloķēt iesnaudināšanu un ekrāna slēgšanu:"
+
+#~ msgctxt "Application name; reason"
+#~ msgid "%1 has been prevented from blocking sleep and screen locking for %2"
+#~ msgstr "„%1“ ir liegts bloķēt iesnaudināšanu un ekrāna slēgšanu, jo %2"
+
+#~ msgid "%1 is currently blocking sleep and screen locking (unknown reason)"
+#~ msgstr ""
+#~ "„%1“ šobrīd bloķē iesnaudināšanu un ekrāna slēgšanu (iemesls nezināms)"
+
+#~ msgid "An application is currently blocking sleep and screen locking (%1)"
+#~ msgstr "Programma šobrīd bloķē iesnaudināšanu un ekrāna slēgšanu (%1)"
+
+#~ msgid ""
+#~ "An application is currently blocking sleep and screen locking (unknown "
+#~ "reason)"
+#~ msgstr ""
+#~ "Programma šobrīd bloķē iesnaudināšanu un ekrāna slēgšanu (iemesls "
+#~ "nezināms)"
+
+#~ msgctxt "Application name: reason for preventing sleep and screen locking"
+#~ msgid "%1: %2"
+#~ msgstr "%1: %2"
+
+#~ msgctxt "Application name: reason for preventing sleep and screen locking"
+#~ msgid "Unknown application: %1"
+#~ msgstr "Nezināma programma: %1"
+
+#~ msgctxt "Application name: reason for preventing sleep and screen locking"
+#~ msgid "Unknown application: unknown reason"
+#~ msgstr "Nezināma programma: nezināms iemesls"
+
+#~ msgctxt ""
+#~ "@action:button Undo preventing an app from blocking automatic sleep and "
+#~ "screen locking after inactivity"
+#~ msgid "Block Again"
+#~ msgstr "Bloķēt atkal"
+
+#~ msgctxt ""
+#~ "@action:button Undo blocking sleep and screen locking after inactivity"
+#~ msgid "Unblock"
+#~ msgstr "Atbloķēt"
+
+#~ msgctxt "@action:button Block sleep and screen locking after inactivity"
+#~ msgid "Manually Block"
+#~ msgstr "Manuāli bloķēt"
+
+#~ msgctxt ""
+#~ "@action:button Prevent an app from blocking automatic sleep and screen "
+#~ "locking after inactivity"
+#~ msgid "Only this time"
+#~ msgstr "Tikai šoreiz"
+
+#~ msgctxt ""
+#~ "@action:button Prevent an app from blocking automatic sleep and screen "
+#~ "locking after inactivity"
+#~ msgid "Every time for this app and reason"
+#~ msgstr "Katru reizi šai programmai un iemeslam"
+
+#~ msgid ""
+#~ "%1 application has been prevented from blocking sleep and screen locking:"
+#~ msgid_plural ""
+#~ "%1 applications have been prevented from blocking sleep and screen "
+#~ "locking:"
+#~ msgstr[0] ""
+#~ "%1 programmai ir liegts bloķēt iesnaudināšanu un ekrāna slēgšanu:"
+#~ msgstr[1] ""
+#~ "%1 programmām ir liegts bloķēt iesnaudināšanu un ekrāna slēgšanu:"
+#~ msgstr[2] ""
+#~ "%1 programmām ir liegts bloķēt iesnaudināšanu un ekrāna slēgšanu:"
+
+#~ msgctxt "Placeholder is the battery number"
+#~ msgid "Battery %1"
+#~ msgstr "Baterija %1 %"
+
+#~ msgid "Battery"
+#~ msgstr "Baterija"
+
+#, fuzzy
+#~| msgctxt "overlay on the battery, needs to be really tiny"
+#~| msgid "%1%"
+#~ msgctxt "Placeholder is brightness percentage"
+#~ msgid "%1%"
+#~ msgstr "%1%"
+
+#~ msgid "Battery and Brightness"
+#~ msgstr "Baterija un spilgtums"
+
+#, fuzzy
+#~| msgid "Display Brightness"
+#~ msgid "Brightness"
+#~ msgstr "Ekrāna spilgtums"
+
+#~ msgid "Display Brightness"
+#~ msgstr "Ekrāna spilgtums"
+
+#~ msgid "Keyboard Brightness"
+#~ msgstr "Tastatūras spilgtums"
+
+#, fuzzy
+#~| msgid "Power management is disabled"
+#~ msgid "Performance mode has been manually enabled"
+#~ msgstr "Energokontrole ir izslēgta"
+
+#~ msgid "General"
+#~ msgstr "Pamata"
+
+#~ msgid "Configure Power Saving..."
+#~ msgstr "Konfigurēt energotaupību..."
+
+#~ msgid "Time To Empty:"
+#~ msgstr "Laiks līdz tukšai:"
+
+#~ msgctxt "Used for measurement"
+#~ msgid "100%"
+#~ msgstr "100%"
+
+#, fuzzy
+#~| msgid "%1%. Charging"
+#~ msgid "%1% Charging"
+#~ msgstr "%1% Uzlādējas"
+
+#, fuzzy
+#~| msgid "%1%. Plugged in"
+#~ msgid "%1% Plugged in"
+#~ msgstr "%1% Iesprausts"
+
+#~ msgid "%1% Battery Remaining"
+#~ msgstr "%1% no baterijas atlikuši"
+
+#, fuzzy
+#~| msgid "Capacity:"
+#~ msgctxt "The degradation in the battery's energy capacity"
+#~ msgid "Capacity degradation:"
+#~ msgstr "Kapacitāte:"
+
+#, fuzzy
+#~| msgctxt "Placeholder is battery percentage"
+#~| msgid "%1%"
+#~ msgctxt "Placeholder is battery's capacity degradation"
+#~ msgid "%1%"
+#~ msgstr "%1%"
+
+#~ msgctxt "Placeholder is battery capacity"
+#~ msgid "%1%"
+#~ msgstr "%1%"
+
+#~ msgid "Vendor:"
+#~ msgstr "Ražotājs:"
+
+#~ msgid "Model:"
+#~ msgstr "Modelis:"
+
+#, fuzzy
+#~| msgctxt "overlay on the battery, needs to be really tiny"
+#~| msgid "%1%"
+#~ msgctxt "Placeholder is battery name"
+#~ msgid "%1:"
+#~ msgstr "%1%"
+
+#, fuzzy
+#~| msgid "AC Adapter:"
+#~ msgid "AC Adapter"
+#~ msgstr "Strāvas adapteris:"
+
+#, fuzzy
+#~| msgctxt "tooltip"
+#~| msgid "Plugged in"
+#~ msgid "Plugged In"
+#~ msgstr "Iesprausts"
+
+#, fuzzy
+#~| msgctxt "tooltip"
+#~| msgid "Not plugged in"
+#~ msgid "Not Plugged In"
+#~ msgstr "Nav pieslēgta"
+
+#, fuzzy
+#~| msgctxt "Label for remaining time"
+#~| msgid "Time Remaining:"
+#~ msgid "Time remaining until full: %1"
+#~ msgstr "Atlikušais laiks:"
+
+#, fuzzy
+#~| msgctxt "Label for remaining time"
+#~| msgid "Time Remaining:"
+#~ msgid "Time remaining until empty: %1"
+#~ msgstr "Atlikušais laiks:"
+
+#, fuzzy
+#~| msgid "%1% (charged)"
+#~ msgid "%1% (charged)"
+#~ msgstr "%1% (uzlādēta)"
+
+#, fuzzy
+#~| msgid "AC Adapter:"
+#~ msgctxt "tooltip"
+#~ msgid "AC Adapter:"
+#~ msgstr "Strāvas adapteris:"
+
+#, fuzzy
+#~| msgid "<b>Plugged in</b>"
+#~ msgctxt "tooltip"
+#~ msgid "<b>Plugged in</b>"
+#~ msgstr "<b>Iesprausts</b>"
+
+#, fuzzy
+#~| msgid "<b>Not plugged in</b>"
+#~ msgctxt "tooltip"
+#~ msgid "<b>Not plugged in</b>"
+#~ msgstr "<b>Nav pieslēgta</b>"
+
+#~ msgctxt "overlay on the battery, needs to be really tiny"
+#~ msgid "%1%"
+#~ msgstr "%1%"
+
+#~ msgid "Configure Battery Monitor"
+#~ msgstr "Konfigurēt baterijas novērotāju"
+
+#~ msgctxt "Suspend the computer to RAM; translation should be short"
+#~ msgid "Sleep"
+#~ msgstr "Iemidzināt"
+
+#~ msgctxt "Suspend the computer to disk; translation should be short"
+#~ msgid "Hibernate"
+#~ msgstr "Hibernēt"
+
+#~ msgctxt "Battery is not plugged in"
+#~ msgid "<b>Not present</b>"
+#~ msgstr "<b>Nav</b>"
+
+#~ msgid "Show the state for &each battery present"
+#~ msgstr "Rādīt katras pi&eejamās baterijas statusu"
+
+#~ msgid "<b>Battery:</b>"
+#~ msgstr "<b>Baterija:</b> "
+
+#~ msgctxt "tooltip"
+#~ msgid "<b>AC Adapter:</b>"
+#~ msgstr "<b>Ārējā barošana:</b>"
+
+#~ msgctxt "tooltip"
+#~ msgid "Not plugged in"
+#~ msgstr "Nav pieslēgta"
+
+#, fuzzy
+#~| msgid "Show the state for &each battery present"
+#~ msgid "Show remaining time for the battery"
+#~ msgstr "Rādīt katras pi&eejamās baterijas statusu"
+
+#~ msgctxt "tooltip: placeholder is the battery ID"
+#~ msgid "<b>Battery %1:</b>"
+#~ msgstr "<b>Baterija %1:</b> "

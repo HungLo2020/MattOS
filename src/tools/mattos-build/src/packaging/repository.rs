@@ -377,7 +377,10 @@ pub(super) fn parse_control_paragraphs(body: &str) -> Result<Vec<BTreeMap<String
     Ok(paragraphs)
 }
 
-pub(super) fn control_field<'a>(paragraph: &'a BTreeMap<String, String>, field: &str) -> Result<&'a str> {
+pub(super) fn control_field<'a>(
+    paragraph: &'a BTreeMap<String, String>,
+    field: &str,
+) -> Result<&'a str> {
     paragraph
         .get(field)
         .map(String::as_str)

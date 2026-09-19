@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>GeneralOptions</class>
+ <widget class="QWidget" name="GeneralOptions">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>463</width>
+    <height>542</height>
+   </rect>
+  </property>
+  <layout class="QFormLayout">
+   <item row="0" column="0">
+    <widget class="QLabel" name="launchActionSpectacleLabel">
+     <property name="text">
+      <string>When launching Spectacle:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QComboBox" name="kcfg_launchAction">
+     <item>
+      <property name="text">
+       <string>Take rectangular screenshot</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Take full screen screenshot</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Use last-used capture mode</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Do not take a screenshot automatically</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="2">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Fixed</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>0</width>
+       <height>18</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="afterScreenshotLabel">
+     <property name="text">
+      <string>After taking a screenshot:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QCheckBox" name="kcfg_autoSaveImage">
+     <property name="text">
+      <string>Save file to default folder</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QComboBox" name="kcfg_clipboardGroup">
+     <property name="leftMargin" stdset="0">
+      <number>0</number>
+     </property>
+     <item>
+      <property name="text">
+       <string>Do not copy anything</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Copy image to clipboard</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Copy file location to clipboard</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="4" column="0" colspan="2">
+    <spacer name="verticalSpacer_1">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Fixed</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>0</width>
+       <height>18</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="5" column="0" colspan="2">
+    <widget class="KTitleWidget" name="runningTitle">
+     <property name="text">
+      <string>While Spectacle is running</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="printKeyActionLabel">
+     <property name="text">
+      <string>Press screenshot key to:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="1">
+    <widget class="QComboBox" name="kcfg_printKeyRunningAction">
+     <item>
+      <property name="text">
+       <string>Take a new Screenshot</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Open a new Spectacle window</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Return focus to Spectacle</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="7" column="0" colspan="2">
+    <spacer name="verticalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Fixed</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>0</width>
+       <height>18</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="8" column="0" colspan="2">
+    <widget class="KTitleWidget" name="regionTitle">
+     <property name="text">
+      <string>Rectangular Region Selection</string>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="0">
+    <widget class="QLabel" name="generalLabel">
+     <property name="text">
+      <string>General:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="1">
+    <widget class="QCheckBox" name="kcfg_useLightMaskColor">
+     <property name="text">
+      <string>Use light background</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="1">
+    <widget class="QCheckBox" name="kcfg_useReleaseToCapture">
+     <property name="text">
+      <string>Accept on click-and-release</string>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Show magnifier:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="1">
+    <widget class="QComboBox" name="kcfg_showMagnifier">
+     <item>
+      <property name="text">
+       <string>Never</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Always</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>While holding Shift</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="12" column="0">
+    <widget class="QLabel" name="rememberLabel">
+     <property name="text">
+      <string>Remember selected area:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="1">
+    <widget class="QComboBox" name="kcfg_rememberSelectionRect">
+     <item>
+      <property name="text">
+       <string>Never</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Always</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Until Spectacle is closed</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="14" column="0" colspan="2">
+    <spacer name="verticalSpacer_3">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Fixed</enum>
+     </property>
+     <property name="sizeHint">
+      <size>
+       <width>10</width>
+       <height>10</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="15" column="0" colspan="2">
+    <widget class="KTitleWidget" name="ocrTitle">
+     <property name="text">
+      <string>Text Recognition (OCR)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="16" column="0">
+    <widget class="QLabel" name="ocrLanguageLabel">
+     <property name="text">
+      <string>Languages for OCR:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="16" column="1">
+    <widget class="QScrollArea" name="ocrLanguageScrollArea">
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="maximumHeight">
+      <number>120</number>
+     </property>
+     <property name="minimumHeight">
+      <number>60</number>
+     </property>
+     <property name="horizontalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOff</enum>
+     </property>
+     <widget class="QWidget" name="ocrLanguageContainer">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>69</width>
+        <height>69</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="ocrLanguageLayout">
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item row="17" column="0">
+    <widget class="QLabel" name="closeAfterOcrLabel">
+     <property name="text">
+      <string>Text extraction:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="17" column="1">
+    <layout class="QHBoxLayout" name="closeAfterOcrLayout">
+     <property name="leftMargin">
+      <number>0</number>
+     </property>
+     <property name="topMargin">
+      <number>0</number>
+     </property>
+     <property name="rightMargin">
+      <number>0</number>
+     </property>
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="QCheckBox" name="kcfg_closeAfterOcr">
+       <property name="text">
+        <string>Close after extraction (skips auto-save)</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="closeAfterOcrInfo">
+       <property name="toolTip">
+        <string>Spectacle will close after text extraction and automatic saving will be skipped.</string>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
+       <property name="scaledContents">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_close_ocr">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item row="18" column="0" colspan="2">
+    <widget class="QWidget" name="ocrUnavailableWidget">
+     <property name="visible">
+      <bool>false</bool>
+     </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <layout class="QHBoxLayout" name="ocrUnavailableLayout">
+      <property name="margin">
+       <number>0</number>
+      </property>
+      <property name="spacing">
+       <number>6</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="ocrUnavailableLabel">
+        <property name="text">
+         <string>OCR functionality is not available</string>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="wordWrap">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="ocrInfoIcon">
+        <property name="toolTip">
+         <string>Please install the required packages:
+• tesseract
+• tesseract language data (e.g., tesseract-ocr-eng for English)</string>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>16</width>
+          <height>16</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16</width>
+          <height>16</height>
+         </size>
+        </property>
+        <property name="scaledContents">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>KTitleWidget</class>
+   <extends>QWidget</extends>
+   <header>ktitlewidget.h</header>
+  </customwidget>
+ </customwidgets>
+ <tabstops>
+  <tabstop>kcfg_launchAction</tabstop>
+  <tabstop>kcfg_autoSaveImage</tabstop>
+  <tabstop>kcfg_clipboardGroup</tabstop>
+  <tabstop>kcfg_printKeyRunningAction</tabstop>
+  <tabstop>kcfg_useLightMaskColor</tabstop>
+  <tabstop>kcfg_useReleaseToCapture</tabstop>
+  <tabstop>kcfg_showCaptureInstructions</tabstop>
+  <tabstop>kcfg_rememberSelectionRect</tabstop>
+  <tabstop>ocrLanguageScrollArea</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

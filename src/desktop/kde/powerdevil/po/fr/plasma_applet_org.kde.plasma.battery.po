@@ -1,0 +1,938 @@
+# translation of plasma_applet_battery.po to
+# Copyright (C) 2007 This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+# Bruno Patri <bruno.patri@gmail.com>, 2007, 2008, 2009, 2010, 2012, 2013.
+# Guillaume Pujol <guill.p@gmail.com>, 2010, 2011.
+# SPDX-FileCopyrightText: 2013, 2024, 2025, 2026 Xavier Besnard <xavier.besnard@kde.org>
+# Vincent PINON <vincent.pinon@laposte.net>, 2014.
+# Thomas Vergnaud <thomas.vergnaud@gmx.fr>, 2014, 2015, 2016.
+# Vincent Pinon <vpinon@kde.org>, 2017.
+# Maxime Corteel <mcorteel@gmail.com>, 2017.
+# Yoann Laissus <yoann.laissus@gmail.com>, 2018.
+# Simon Depiets <sdepiets@gmail.com>, 2019, 2020.
+# William Oprandi <william.oprandi@gmail.com>, 2020.
+# SPDX-FileCopyrightText: 2020, 2021, 2022, 2023 Xavier Besnard <xavier.besnard@kde.org>
+# Xavier Besnard <xavier.besnard@kde.org>, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma_applet_battery\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-03-17 02:42+0000\n"
+"PO-Revision-Date: 2026-01-12 10:48+0100\n"
+"Last-Translator: Xavier Besnard <xavier.besnard@kde.org>\n"
+"Language-Team: \n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Accelerator-Marker: &\n"
+"X-Environment: kde\n"
+"X-Generator: Lokalize 25.12.1\n"
+"X-Text-Markup: kde4\n"
+
+#: BatteryItem.qml:99
+#, kde-format
+msgid "Charging"
+msgstr "En charge"
+
+#: BatteryItem.qml:101
+#, kde-format
+msgid "Discharging"
+msgstr "En décharge"
+
+#: BatteryItem.qml:103 main.qml:122
+#, kde-format
+msgid "Fully Charged"
+msgstr "Totalement chargée"
+
+#: BatteryItem.qml:105
+#, kde-format
+msgid "Not Charging"
+msgstr "N'est pas en charge"
+
+#: BatteryItem.qml:108
+#, kde-format
+msgctxt "Battery is currently not present in the bay"
+msgid "Not present"
+msgstr "Absente"
+
+#: BatteryItem.qml:120
+#, kde-format
+msgctxt "Placeholder is battery percentage"
+msgid "%1%"
+msgstr "%1 %"
+
+#: BatteryItem.qml:184
+#, kde-format
+msgid ""
+"This battery's health is at only %1% and it should be replaced. Contact the "
+"manufacturer."
+msgstr ""
+"La santé de la batterie est dégradée à %1 % et la batterie devrait être "
+"remplacée. Veuillez contacter le fabricant."
+
+#: BatteryItem.qml:203
+#, kde-format
+msgid "Time To Full:"
+msgstr "Temps restant avant la charge complète :"
+
+#: BatteryItem.qml:204
+#, kde-format
+msgid "Remaining Time:"
+msgstr "Temps restant :"
+
+#: BatteryItem.qml:210
+#, kde-format
+msgctxt "@info"
+msgid "Estimating…"
+msgstr "Estimation en cours..."
+
+#: BatteryItem.qml:220
+#, kde-format
+msgid "Battery Health:"
+msgstr "Santé de la batterie :"
+
+#: BatteryItem.qml:226
+#, kde-format
+msgctxt "Placeholder is battery health percentage"
+msgid "%1%"
+msgstr "%1 %"
+
+#: BatteryItem.qml:238
+#, kde-format
+msgid "Battery is configured to charge up to approximately %1%."
+msgstr "Votre batterie est configurée pour ne se charger que jusqu'à %1 %."
+
+#: CompactRepresentation.qml:101 CompactRepresentation.qml:150
+#, kde-format
+msgctxt "battery percentage below battery icon"
+msgid "%1%"
+msgstr "%1 %"
+
+#: InhibitionItem.qml:53
+#, kde-format
+msgctxt "@title:group"
+msgid "Sleep and Screen Locking after Inactivity"
+msgstr "Mise en veille et verrouillage d'écran après une période d'inactivité"
+
+#: InhibitionItem.qml:60 main.qml:97 PowerProfileItem.qml:76
+#, kde-format
+msgid "Power Management"
+msgstr "Gestion de l'énergie"
+
+#: InhibitionItem.qml:65
+#, kde-format
+msgctxt "accessible-only status text"
+msgid "Automatic sleep and screen locking are currently blocked."
+msgstr ""
+"La veille automatique et le verrouillage d'écran sont actuellement bloqués."
+
+#: InhibitionItem.qml:67
+#, kde-format
+msgctxt "accessible-only status text"
+msgid ""
+"Screen locking is currently blocked. Sleep is automatic after inactivity."
+msgstr ""
+"Le verrouillage de l'écran est actuellement bloqué. La mise en veille sera "
+"automatique après une période d'inactivité."
+
+#: InhibitionItem.qml:69
+#, kde-format
+msgctxt "accessible-only status text"
+msgid ""
+"Sleep is currently blocked. Screen locking is automatic after inactivity."
+msgstr ""
+"La mise en veille est bloquée. L'écran sera verrouillé automatiquement après "
+"une période d'inactivité."
+
+#: InhibitionItem.qml:71
+#, kde-format
+msgctxt "accessible-only status text"
+msgid "Sleep and screen locking are automatic after inactivity."
+msgstr ""
+"La mise en veille et verrouillage d'écran sont automatiques après une "
+"période d'inactivité."
+
+#: InhibitionItem.qml:95
+#, kde-format
+msgctxt "@action:button Block sleep and screen locking after inactivity"
+msgid "Manually Block Sleep and Screen Locking"
+msgstr "Bloquer manuellement la veille automatique et le verrouillage d'écran"
+
+#: InhibitionItem.qml:118
+#, kde-format
+msgid "Failed to unblock automatic sleep and screen locking"
+msgstr ""
+"Impossible de débloquer la veille automatique et le verrouillage d'écran."
+
+#: InhibitionItem.qml:121
+#, kde-format
+msgid "Failed to block automatic sleep and screen locking"
+msgstr ""
+"Impossible de bloquer la veille automatique et le verrouillage d'écran."
+
+#: InhibitionItem.qml:135
+#, kde-format
+msgctxt ""
+"@label corresponding to Manually Block Sleep and Screen Locking toggle"
+msgid "This will result in higher energy consumption."
+msgstr "Ce réglage conduira à une consommation d'énergie plus importante."
+
+#: InhibitionItem.qml:136
+#, kde-format
+msgctxt ""
+"@label accessible - the sentence about higher energy consumption must be "
+"included (EU regulations)"
+msgid ""
+"You have manually blocked automatic sleep and screen locking. This will "
+"result in higher energy consumption."
+msgstr ""
+"Vous avez manuellement bloqué la mise en veille et le verrouillage d'écran. "
+"Ce réglage conduira à une consommation d'énergie plus importante."
+
+#: InhibitionItem.qml:143
+#, kde-format
+msgctxt "Minimize the length of this string as much as possible"
+msgid ""
+"Your laptop is configured not to sleep when closing the lid while an "
+"external monitor is connected."
+msgstr ""
+"Votre ordinateur portable est configuré pour ne pas se mettre en veille "
+"lorsque vous rabattez l'écran et qu'un écran externe est branché."
+
+#: InhibitionItem.qml:162
+#, kde-format
+msgctxt "An application's reason for inhibiting sleep and/or screen locking"
+msgid "Unknown reason."
+msgstr "Raison inconnue."
+
+#: InhibitionItem.qml:169
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) has been prevented from blocking this "
+"inactivity behavior. The user can choose to allow it again."
+msgid "%1 wants to block sleep and screen locking. (%2)"
+msgstr "%1 souhaite bloquer la mise en veille et le verrouillage d'écran. (%2)"
+
+#: InhibitionItem.qml:171
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) has been prevented from blocking this "
+"inactivity behavior. The user can choose to allow it again."
+msgid "%1 wants to block screen locking. (%2)"
+msgstr "%1 souhaite bloquer le verrouillage d'écran. (%2)"
+
+#: InhibitionItem.qml:173
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) has been prevented from blocking this "
+"inactivity behavior. The user can choose to allow it again."
+msgid "%1 wants to block sleep. (%2)"
+msgstr "%1 souhaite bloquer la mise en veille. (%2)"
+
+#: InhibitionItem.qml:177
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, in addition to the user's manual block switch."
+msgid "%1 is also blocking sleep and screen locking. (%2)"
+msgstr ""
+"%1 empêche actuellement la mise en veille et le verrouillage d'écran (%2)."
+
+#: InhibitionItem.qml:179
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, in addition to the user's manual block switch."
+msgid "%1 is also blocking screen locking. (%2)"
+msgstr "%1 bloque aussi le verrouillage d'écran. (%2)"
+
+#: InhibitionItem.qml:181
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, in addition to the user's manual block switch."
+msgid "%1 is also blocking sleep. (%2)"
+msgstr "%1 bloque aussi la mise en veille de l'écran. (%2)"
+
+#: InhibitionItem.qml:185
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, the user can choose to unblock it."
+msgid "%1 is blocking sleep and screen locking. (%2)"
+msgstr ""
+"%1 empêche actuellement la mise en veille et le verrouillage d'écran. (%2)"
+
+#: InhibitionItem.qml:187
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, the user can choose to unblock it."
+msgid "%1 is blocking screen locking. (%2)"
+msgstr "%1 bloque le verrouillage d'écran. (%2)."
+
+#: InhibitionItem.qml:189
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, the user can choose to unblock it."
+msgid "%1 is blocking sleep. (%2)"
+msgstr "%1 bloque la mise en veille de l'écran. (%2)"
+
+#: InhibitionItem.qml:197
+#, kde-format
+msgctxt ""
+"@action:button Prevent an app from blocking automatic sleep and screen "
+"locking after inactivity"
+msgid "Unblock"
+msgstr "Débloquer"
+
+#: InhibitionItem.qml:205
+#, kde-format
+msgctxt ""
+"@action:button Undo preventing an app from blocking automatic sleep and "
+"screen locking after inactivity"
+msgid "Allow"
+msgstr "Autoriser"
+
+#: main.qml:76
+#, kde-format
+msgid "The battery applet has enabled suppressing sleep and screen locking"
+msgstr ""
+"L'applet de batterie a activé la suppression de la veille et du verrouillage "
+"d'écran"
+
+#: main.qml:97
+#, kde-format
+msgid "Power and Battery"
+msgstr "Énergie et batterie"
+
+#: main.qml:116
+#, kde-format
+msgid "Battery is not present in the bay"
+msgstr "La batterie est absente de son logement."
+
+#: main.qml:129
+#, kde-format
+msgid "Battery at %1%, not Charging"
+msgstr "Batterie à %1 %, pas en charge"
+
+#: main.qml:131
+#, kde-format
+msgid "Battery at %1%, plugged in but still discharging"
+msgstr "Batterie à %1 %, connectée mais toujours en décharge"
+
+#: main.qml:133
+#, kde-format
+msgid "Battery at %1%, Charging"
+msgstr "Batterie à %1 %, en charge"
+
+#: main.qml:136
+#, kde-format
+msgid "Battery at %1%"
+msgstr "Batterie à %1 %"
+
+#: main.qml:144
+#, kde-format
+msgid "The power supply is not powerful enough to charge the battery"
+msgstr ""
+"L'alimentation électrique n'est pas assez puissante pour charger la batterie"
+
+#: main.qml:148
+#, kde-format
+msgid "No Batteries Available"
+msgstr "Aucune batterie disponible"
+
+#: main.qml:155
+#, kde-format
+msgctxt "time until fully charged - HH:MM"
+msgid "%1 until fully charged"
+msgstr "%1 jusqu'à pleine charge"
+
+#: main.qml:157
+#, kde-format
+msgctxt "remaining time left of battery usage - HH:MM"
+msgid "%1 remaining"
+msgstr "%1 restant"
+
+#: main.qml:160
+#, kde-format
+msgid "Not charging"
+msgstr "N'est pas en charge"
+
+#: main.qml:165
+#, kde-format
+msgid ""
+"Automatic sleep and screen locking are disabled; middle-click to re-enable"
+msgstr ""
+"La veille automatique et le verrouillage d'écran sont désactivés. Faites un "
+"clic central pour leurs réactivations."
+
+#: main.qml:167
+#, kde-format
+msgid "Middle-click to disable automatic sleep and screen locking"
+msgstr ""
+"Faites un clic central pour la désactivation de la veille automatique et du "
+"verrouillage d'écran."
+
+#: main.qml:172
+#, kde-format
+msgid "An application has requested activating Performance mode"
+msgid_plural "%1 applications have requested activating Performance mode"
+msgstr[0] "Une application a demandé l'activation du mode « Performance »"
+msgstr[1] "%1 applications ont demandé l'activation du mode « Performance »"
+
+#: main.qml:176
+#, kde-format
+msgid "System is in Performance mode; scroll to change"
+msgstr ""
+"Le système est en mode « Performance ». Veuillez faire défiler pour modifier "
+"le mode."
+
+#: main.qml:180
+#, kde-format
+msgid "An application has requested activating Power Save mode"
+msgid_plural "%1 applications have requested activating Power Save mode"
+msgstr[0] ""
+"Une application a demandé l'activation du mode « Économie d'énergie »"
+msgstr[1] ""
+"%1 applications ont demandé l'activation du mode « Économie d'énergie »"
+
+#: main.qml:184
+#, kde-format
+msgid "System is in Power Save mode; scroll to change"
+msgstr ""
+"Le système est en mode « Économie d'énergie ». Veuillez faire défiler pour "
+"modifier le mode."
+
+#: main.qml:187
+#, kde-format
+msgid "System is in Balanced Power mode; scroll to change"
+msgstr ""
+"Le système est en mode « Puissance équilibrée ». Veuillez faire défiler pour "
+"modifier le mode."
+
+#: main.qml:301
+#, kde-format
+msgid "&Show Energy Information…"
+msgstr "Afficher les informations &sur l'énergie..."
+
+#: main.qml:307
+#, kde-format
+msgid "Show Battery Percentage on Icon When Not Fully Charged"
+msgstr ""
+"Afficher le pourcentage de batterie sur l'icône lorsque non totalement "
+"chargée"
+
+#: main.qml:320
+#, kde-format
+msgid "&Configure Power Management…"
+msgstr "&Configurer la gestion de l'énergie..."
+
+#: PowerProfileItem.qml:41
+#, kde-format
+msgid "Power Save"
+msgstr "Économie d'énergie"
+
+#: PowerProfileItem.qml:45
+#, kde-format
+msgid "Balanced"
+msgstr "Équilibré"
+
+#: PowerProfileItem.qml:49
+#, kde-format
+msgid "Performance"
+msgstr "Performance"
+
+#: PowerProfileItem.qml:66
+#, kde-format
+msgid "Power Profile"
+msgstr "Profil de gestion de l'énergie"
+
+#: PowerProfileItem.qml:110
+#, kde-format
+msgctxt "Power profile"
+msgid "Automatic"
+msgstr "Automatique"
+
+#: PowerProfileItem.qml:111
+#, kde-format
+msgctxt "Power profile"
+msgid "Not available"
+msgstr "Non disponible"
+
+#: PowerProfileItem.qml:151
+#, kde-format
+msgid "Failed to activate %1 mode"
+msgstr "Impossible d'activer le mode %1"
+
+#: PowerProfileItem.qml:228
+#, kde-format
+msgid ""
+"Performance mode has been disabled to reduce heat generation because the "
+"computer has detected that it may be sitting on your lap."
+msgstr ""
+"Le mode « Performance » a été désactivé pour réduire la production de "
+"chaleur car l'ordinateur a détecté que vous le teniez sur vos genoux."
+
+#: PowerProfileItem.qml:230
+#, kde-format
+msgid ""
+"Performance mode is unavailable because the computer is running too hot."
+msgstr ""
+"Le mode « Performance » est indisponible car l'ordinateur fonctionne à une "
+"température trop élevée."
+
+#: PowerProfileItem.qml:232
+#, kde-format
+msgid "Performance mode is unavailable."
+msgstr "Le mode « Performance » est indisponible."
+
+#: PowerProfileItem.qml:248
+#, kde-format
+msgid ""
+"Performance may be lowered to reduce heat generation because the computer "
+"has detected that it may be sitting on your lap."
+msgstr ""
+"Le mode « Performance » pourrait être limité pour réduire la production de "
+"chaleur car l'ordinateur a détecté que vous le teniez sur vos genoux."
+
+#: PowerProfileItem.qml:250
+#, kde-format
+msgid "Performance may be reduced because the computer is running too hot."
+msgstr ""
+"Le mode « Performance » pourrait être limité car l'ordinateur fonctionne à "
+"une température trop élevée."
+
+#: PowerProfileItem.qml:252
+#, kde-format
+msgid "Performance may be reduced."
+msgstr "Les performances pourraient être réduites."
+
+#: PowerProfileItem.qml:265
+#, kde-format
+msgid "One application has requested activating %2:"
+msgid_plural "%1 applications have requested activating %2:"
+msgstr[0] "Une application a demandé l'activation de %2 :"
+msgstr[1] "%1 applications ont demandé l'activation de %2 :"
+
+#: PowerProfileItem.qml:284
+#, kde-format
+msgctxt ""
+"%1 is the name of the application, %2 is the reason provided by it for "
+"activating performance mode"
+msgid "%1: %2"
+msgstr "%1 : %2"
+
+#: PowerProfileItem.qml:302
+#, kde-format
+msgid "The TLP service automatically controls power profiles"
+msgstr "Le service « TLP » contrôle automatiquement les profils d'énergie"
+
+#: PowerProfileItem.qml:304
+#, kde-format
+msgid "Power profiles are not supported on your device."
+msgstr ""
+"Les profils d'alimentation ne sont pas pris en charge sur votre périphérique."
+
+#: PowerProfileItem.qml:305
+#, kde-kuit-format
+msgid ""
+"Power profiles may be supported on your device.<nl/>Try installing the "
+"<command>power-profiles-daemon</command> package using your distribution's "
+"package manager and restarting the system."
+msgstr ""
+"Les profils d'énergie peuvent être pris en charge sur votre périphérique. "
+"<nl/>Veuillez tenter d'installer le paquet <command>power-profiles-daemon</"
+"command> à l'aide du gestionnaire de paquets de votre distribution, puis "
+"redémarrez le système."
+
+#~ msgctxt "Sleep and Screen Locking after Inactivity"
+#~ msgid "Blocked"
+#~ msgstr "Bloqué"
+
+#~ msgctxt "Sleep and Screen Locking after Inactivity"
+#~ msgid "Automatic"
+#~ msgstr "Automatique"
+
+#~ msgid "%1 application currently wants to block sleep and screen locking:"
+#~ msgid_plural ""
+#~ "%1 applications currently want to block sleep and screen locking:"
+#~ msgstr[0] ""
+#~ "L'application %1 souhaite bloquer la mise en veille et le verrouillage "
+#~ "d'écran :"
+#~ msgstr[1] ""
+#~ "%1 applications souhaitent bloquer la mise en veille et le verrouillage "
+#~ "d'écran :"
+
+#~ msgctxt "Application name; reason"
+#~ msgid "%1 has been prevented from blocking sleep and screen locking for %2"
+#~ msgstr ""
+#~ "%1 a été empêché de bloquer la veille et le verrouillage de l'écran pour "
+#~ "%2"
+
+#~ msgid "%1 is currently blocking sleep and screen locking (unknown reason)"
+#~ msgstr ""
+#~ "%1 empêche actuellement la mise en veille et le verrouillage d'écran "
+#~ "(Raison inconnue)."
+
+#~ msgid "An application is currently blocking sleep and screen locking (%1)"
+#~ msgstr ""
+#~ "Une application empêche actuellement la mise en veille et le verrouillage "
+#~ "d'écran (%1)"
+
+#~ msgid ""
+#~ "An application is currently blocking sleep and screen locking (unknown "
+#~ "reason)"
+#~ msgstr ""
+#~ "Une application empêche actuellement la mise en veille et le verrouillage "
+#~ "d'écran (Raison inconnue)"
+
+#~ msgctxt "Application name: reason for preventing sleep and screen locking"
+#~ msgid "%1: %2"
+#~ msgstr "%1 : %2"
+
+#~ msgctxt "Application name: reason for preventing sleep and screen locking"
+#~ msgid "Unknown application: %1"
+#~ msgstr "Application inconnue : %1"
+
+#~ msgctxt "Application name: reason for preventing sleep and screen locking"
+#~ msgid "Unknown application: unknown reason"
+#~ msgstr "Application inconnue : raison inconnue"
+
+#~ msgctxt ""
+#~ "@action:button Undo preventing an app from blocking automatic sleep and "
+#~ "screen locking after inactivity"
+#~ msgid "Block Again"
+#~ msgstr "Bloquer à nouveau"
+
+#~ msgctxt ""
+#~ "@action:button Undo blocking sleep and screen locking after inactivity"
+#~ msgid "Unblock"
+#~ msgstr "Débloquer"
+
+#~ msgctxt "@action:button Block sleep and screen locking after inactivity"
+#~ msgid "Manually Block"
+#~ msgstr "Bloquer manuellement"
+
+#~ msgctxt ""
+#~ "@action:button Prevent an app from blocking automatic sleep and screen "
+#~ "locking after inactivity"
+#~ msgid "Only this time"
+#~ msgstr "Uniquement cette fois"
+
+#~ msgctxt ""
+#~ "@action:button Prevent an app from blocking automatic sleep and screen "
+#~ "locking after inactivity"
+#~ msgid "Every time for this app and reason"
+#~ msgstr "À chaque fois pour cette application et pour la raison"
+
+#~ msgid ""
+#~ "%1 application has been prevented from blocking sleep and screen locking:"
+#~ msgid_plural ""
+#~ "%1 applications have been prevented from blocking sleep and screen "
+#~ "locking:"
+#~ msgstr[0] ""
+#~ "%1 application a été empêchée de bloquer la veille et le verrouillage de "
+#~ "l'écran :"
+#~ msgstr[1] ""
+#~ "Les %1 applications ont été empêchées de bloquer la veille et le "
+#~ "verrouillage de l'écran :"
+
+#~ msgctxt "Placeholder is the battery number"
+#~ msgid "Battery %1"
+#~ msgstr "Batterie %1"
+
+#~ msgid "Battery"
+#~ msgstr "Batterie"
+
+#~ msgid "The battery applet has enabled system-wide inhibition"
+#~ msgstr "La gestion de l'énergie a été inhibée au niveau du système"
+
+#~ msgctxt "Placeholder is brightness percentage"
+#~ msgid "%1%"
+#~ msgstr "%1 %"
+
+#~ msgid "Battery and Brightness"
+#~ msgstr "Batterie et luminosité"
+
+#~ msgid "Brightness"
+#~ msgstr "Luminosité"
+
+#~ msgid "Scroll to adjust screen brightness"
+#~ msgstr "Faire défiler pour ajuster la luminosité de l'écran"
+
+#~ msgid "Display Brightness"
+#~ msgstr "Luminosité de l'écran"
+
+#~ msgid "Keyboard Brightness"
+#~ msgstr "Luminosité du clavier"
+
+#~ msgid "Performance mode has been manually enabled"
+#~ msgstr "Le mode « Performance » a été activé manuellement."
+
+#~ msgid ""
+#~ "Performance mode is unavailable because the computer has detected it is "
+#~ "sitting on your lap."
+#~ msgstr ""
+#~ "Le mode « Performance » est indisponible car l'ordinateur a détecté que "
+#~ "vous le tenez sur vos genoux."
+
+#~ msgid "General"
+#~ msgstr "Général"
+
+#~ msgctxt "short symbol to signal there is no battery currently available"
+#~ msgid "-"
+#~ msgstr "-"
+
+#~ msgid "Configure Power Saving..."
+#~ msgstr "Configurer l'économie d'énergie…"
+
+#~ msgid "Time To Empty:"
+#~ msgstr "Temps restant avant la décharge complète :"
+
+#~ msgid "Power management is disabled"
+#~ msgstr "La gestion de l'énergie est désactivée"
+
+#~ msgid ""
+#~ "Disabling power management will prevent your screen and computer from "
+#~ "turning off automatically.\n"
+#~ "\n"
+#~ "Most applications will automatically suppress power management when they "
+#~ "don't want to have you interrupted."
+#~ msgstr ""
+#~ "La désactivation de la gestion de l'énergie empêchera l'écran et "
+#~ "l'ordinateur de s'éteindre automatiquement.\n"
+#~ "\n"
+#~ "La plupart des applications désactivent automatiquement la gestion de "
+#~ "l'énergie lorsqu'elles ne veulent pas être interrompues."
+
+#~ msgctxt "Some Application and n others are currently suppressing PM"
+#~ msgid ""
+#~ "%2 and %1 other application are currently suppressing power management."
+#~ msgid_plural ""
+#~ "%2 and %1 other applications are currently suppressing power management."
+#~ msgstr[0] ""
+#~ "%2 et %1 autre application empêchent actuellement l'économie d'énergie."
+#~ msgstr[1] ""
+#~ "%2 et %1 autres applications empêchent actuellement l'économie d'énergie."
+
+#~ msgctxt "Some Application is suppressing PM"
+#~ msgid "%1 is currently suppressing power management."
+#~ msgstr "%1 empêche actuellement l'économie d'énergie."
+
+#~ msgctxt "Some Application is suppressing PM: Reason provided by the app"
+#~ msgid "%1 is currently suppressing power management: %2"
+#~ msgstr "%1 empêche actuellement l'économie d'énergie : %2"
+
+#~ msgctxt "Used for measurement"
+#~ msgid "100%"
+#~ msgstr "100 %"
+
+#~ msgid "%1% Charging"
+#~ msgstr "%1 % En charge"
+
+#~ msgid "%1% Plugged in"
+#~ msgstr "%1 % Branché"
+
+#~ msgid "%1% Battery Remaining"
+#~ msgstr "Niveau de batterie : %1 %"
+
+#~ msgctxt "The degradation in the battery's energy capacity"
+#~ msgid "Capacity degradation:"
+#~ msgstr "Dégradation de la capacité :"
+
+#~ msgctxt "Placeholder is battery's capacity degradation"
+#~ msgid "%1%"
+#~ msgstr "%1 %"
+
+#~ msgctxt "Placeholder is battery capacity"
+#~ msgid "%1%"
+#~ msgstr "%1 %"
+
+#~ msgid "Vendor:"
+#~ msgstr "Fabricant :"
+
+#~ msgid "Model:"
+#~ msgstr "Modèle :"
+
+#~ msgid "No screen or keyboard brightness controls available"
+#~ msgstr "Aucun contrôle de la luminosité de l'écran ou du clavier disponible"
+
+#~ msgctxt "Placeholders are current and maximum brightness step"
+#~ msgid "%1/%2"
+#~ msgstr "%1/%2"
+
+#~ msgctxt "Placeholder is battery name"
+#~ msgid "%1:"
+#~ msgstr "%1 :"
+
+#~ msgid "N/A"
+#~ msgstr "n/d"
+
+#~ msgid "1 hour "
+#~ msgid_plural "%1 hours "
+#~ msgstr[0] "1 heure"
+#~ msgstr[1] "%1 heures"
+
+#~ msgid "1 minute"
+#~ msgid_plural "%1 minutes"
+#~ msgstr[0] "1 minute"
+#~ msgstr[1] "%1 minutes"
+
+#, fuzzy
+#~| msgid "AC Adapter:"
+#~ msgid "AC Adapter"
+#~ msgstr "Adaptateur secteur : "
+
+#, fuzzy
+#~| msgid "Plugged in"
+#~ msgid "Plugged In"
+#~ msgstr "branché"
+
+#, fuzzy
+#~| msgid "Not plugged in"
+#~ msgid "Not Plugged In"
+#~ msgstr "non branché"
+
+#, fuzzy
+#~| msgctxt "Label for remaining time"
+#~| msgid "Time Remaining:"
+#~ msgid "Time remaining until full: %1"
+#~ msgstr "Temps restant :"
+
+#, fuzzy
+#~| msgctxt "Label for remaining time"
+#~| msgid "Time Remaining:"
+#~ msgid "Time remaining until empty: %1"
+#~ msgstr "Temps restant :"
+
+#, fuzzy
+#~| msgid "%1% (charged)"
+#~ msgid "%1% (charged)"
+#~ msgstr "%1 % (chargée)"
+
+#~ msgctxt "tooltip"
+#~ msgid "AC Adapter:"
+#~ msgstr "Adaptateur secteur : "
+
+#~ msgctxt "tooltip"
+#~ msgid "<b>Plugged in</b>"
+#~ msgstr "<b>branché</b>"
+
+#~ msgctxt "tooltip"
+#~ msgid "<b>Not plugged in</b>"
+#~ msgstr "<b>non branché</b>"
+
+#~ msgctxt "overlay on the battery, needs to be really tiny"
+#~ msgid "%1%"
+#~ msgstr "%1 %"
+
+#~ msgid "Configure Battery Monitor"
+#~ msgstr "Configurer la surveillance de la batterie"
+
+#~ msgctxt "Suspend the computer to RAM; translation should be short"
+#~ msgid "Sleep"
+#~ msgstr "Veille"
+
+#~ msgctxt "Suspend the computer to disk; translation should be short"
+#~ msgid "Hibernate"
+#~ msgstr "Veille prolongée"
+
+#~ msgid "<b>%1% (charged)</b>"
+#~ msgstr "<b>%1 % (chargée)</b>"
+
+#~ msgid "<b>%1% (discharging)</b>"
+#~ msgstr "<b>%1 % (déchargée)</b>"
+
+#~ msgid "<b>%1% (charging)</b>"
+#~ msgstr "<b>%1 % (en charge)</b>"
+
+#~ msgctxt "Battery is not plugged in"
+#~ msgid "<b>Not present</b>"
+#~ msgstr "<b>Absente</b>"
+
+#~ msgid "Show the state for &each battery present"
+#~ msgstr "Affiche l'état de chaqu&e batterie présente"
+
+#~ msgid "<b>Battery:</b>"
+#~ msgstr "<b>Batterie :</b>"
+
+#~ msgctxt "tooltip"
+#~ msgid "<b>AC Adapter:</b>"
+#~ msgstr "<b>Adaptateur secteur : </b>"
+
+#~ msgctxt "tooltip"
+#~ msgid "Not plugged in"
+#~ msgstr "non branché"
+
+#, fuzzy
+#~| msgid "Show remaining &time"
+#~ msgid "Show remaining time for the battery"
+#~ msgstr "Afficher le &temps restant"
+
+#~ msgctxt "tooltip: placeholder is the battery ID"
+#~ msgid "<b>Battery %1:</b>"
+#~ msgstr "<b>Batterie %1 :</b> "
+
+#~ msgid "AC Adapter: "
+#~ msgstr "Adaptateur secteur : "
+
+#~ msgid "<b>Battery:</b> "
+#~ msgstr "<b>Batterie :</b> "
+
+#, fuzzy
+#~| msgctxt "Shown when a time estimate is not available"
+#~| msgid "%1% (discharging)"
+#~ msgctxt "state of battery"
+#~ msgid "%1% (discharging)"
+#~ msgstr "%1 % (en décharge)"
+
+#~ msgid "%2% (discharging)"
+#~ msgstr "%2 % (en décharge)"
+
+#~ msgid "%2% (charging)"
+#~ msgstr "%2 % (en charge)"
+
+#~ msgid "Actions"
+#~ msgstr "Actions"
+
+#~ msgid "<b>Battery:</b> %1% (charging)<br />"
+#~ msgstr "<b>Batterie : </b>%1 % (en charge)<br />"
+
+#~ msgid "<b>Battery %1:</b> %2% (fully charged)<br />"
+#~ msgstr "<b>Batterie %1 : </b>%2 % (pleine charge)<br />"
+
+#~ msgid "<b>Battery %1:</b> %2% (discharging)<br />"
+#~ msgstr "<b>Batterie %1 : </b>%2 % (en décharge)<br />"
+
+#~ msgid "<b>AC Adapter:</b> Not plugged in"
+#~ msgstr "<b>Adaptateur secteur : </b>débranché"
+
+#~ msgid "Oxygen theme"
+#~ msgstr "Thème Oxygen"
+
+#~ msgid "Classic theme"
+#~ msgstr "Thème classique"
+
+#~ msgid "sources"
+#~ msgstr "sources"
+
+#~ msgid "Percent"
+#~ msgstr "Pourcentage"
+
+#~ msgid "n/a"
+#~ msgstr "n/d"
+
+#, fuzzy
+#~| msgid "Battery"
+#~ msgid ""
+#~ "Battery:\n"
+#~ "CPU:"
+#~ msgstr "Batterie"
+
+#~ msgid "Always show &background"
+#~ msgstr "Toujours afficher l'arrière-&plan"

@@ -1,0 +1,274 @@
+.templates_sha: &templates_sha e195d80f35b45cc73668be3767b923fd76c70ed5
+
+include:
+  - project: 'freedesktop/ci-templates'
+    ref: *templates_sha
+    file: '/templates/ubuntu.yml'
+
+stages:
+  - prep
+  - pre-commit
+  - test
+  - deploy
+
+.ppd.ubuntu:
+  variables:
+    FDO_UPSTREAM_REPO: upower/power-profiles-daemon
+    FDO_DISTRIBUTION_VERSION: '24.10'
+    FDO_DISTRIBUTION_TAG: '2025-01-01.2'
+
+.ppd.ubuntu.build:
+  extends:
+  - .fdo.container-build@ubuntu
+  - .ppd.ubuntu
+  stage: prep
+  variables:
+    FDO_DISTRIBUTION_PACKAGES: bash-completion
+                               clang-tools
+                               gcovr
+                               gcc
+                               git
+                               gtk-doc-tools
+                               libglib2.0-dev
+                               libgudev-1.0-dev
+                               libpolkit-gobject-1-dev
+                               libudev-dev
+                               libumockdev-dev
+                               libupower-glib-dev
+                               libxml2-utils
+                               lsb-release
+                               meson
+                               pylint
+                               python3-argparse-manpage
+                               python3-coverage
+                               python3-dbus
+                               python3-dbusmock
+                               python3-gi
+                               python3-shtab
+                               python3-pip
+                               systemd-dev
+                               ubuntu-dbgsym-keyring
+                               umockdev
+                               valgrind
+    DEBUG_DEPS: libglib2.0-0t64-dbgsym
+                libc6-dbg
+                libgudev-1.0-0-dbgsym
+                libupower-glib3-dbgsym
+                libpolkit-gobject-1-0-dbgsym
+    FDO_DISTRIBUTION_EXEC: |
+      echo "deb http://ddebs.ubuntu.com $(lsb_release -cs) main restricted universe multiverse
+        deb http://ddebs.ubuntu.com $(lsb_release -cs)-updates main restricted universe multiverse
+        deb http://ddebs.ubuntu.com $(lsb_release -cs)-proposed main restricted universe multiverse" | \
+        tee -a /etc/apt/sources.list.d/ddebs.list
+      apt update -y
+      apt install -y $DEBUG_DEPS
+
+      pip3 install --break-system-packages pre-commit
+
+build-ubuntu-container:
+  extends:
+    - .ppd.ubuntu.build
+  only:
+    variables:
+      - $CI_PIPELINE_SOURCE != "schedule" &&
+        $PPD_CI_ACTION != "build-image"
+
+.ppd.ubuntu.force-rebuild:
+  variables:
+    FDO_FORCE_REBUILD: 1
+
+build-ubuntu-container-schedule:
+  extends:
+    - .ppd.ubuntu.force-rebuild
+    - .ppd.ubuntu.build
+  only:
+    variables:
+      - $CI_PIPELINE_SOURCE == "schedule" && $CRON_TASK == "BUILD_CI_IMAGES"
+
+build-ubuntu-container-manual:
+  extends:
+    - .ppd.ubuntu.force-rebuild
+    - .ppd.ubuntu.build
+  only:
+    variables:
+      - $PPD_CI_ACTION == "build-image"
+
+.ppd.ubuntu.base:
+  extends:
+    - .ppd.ubuntu
+    - .fdo.distribution-image@ubuntu
+
+.ppd.ubuntu.test:
+  extends:
+    - .ppd.ubuntu.base
+  before_script:
+    - echo 8096000 > /proc/sys/fs/inotify/max_user_instances
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_PIPELINE_SOURCE == 'push'
+    - if: $CI_PIPELINE_SOURCE == 'schedule'
+    - if: $CI_PIPELINE_SOURCE == 'web'
+
+pre_commit:
+  stage: pre-commit
+  extends:
+    - .ppd.ubuntu.base
+  script:
+    - pre-commit run --all-files
+
+build_and_test:
+  extends:
+    - .ppd.ubuntu.test
+  script:
+    - meson setup
+        --werror
+        --fatal-meson-warnings
+        --warnlevel 2
+        -Dpylint=enabled
+        -Db_coverage=true
+        _build
+    - meson test -C _build --print-errorlogs -v
+    - .ci/fail_skipped_tests.py _build/meson-logs/testlog.junit.xml
+    - ninja -C _build coverage
+    - python_coverage_data=_build/meson-logs/python.coverage
+    - python3-coverage combine --data-file=$python_coverage_data
+        _build/python-coverage/*
+    - python3-coverage xml --data-file=$python_coverage_data
+        -o $python_coverage_data.xml
+    - sed "s,_build/src/,src/,g" -i $python_coverage_data.xml
+    - python3-coverage report --data-file=$python_coverage_data
+    - python3-coverage html --data-file=$python_coverage_data
+        -d _build/meson-logs/python-coverage-html
+    - cat _build/meson-logs/coverage.txt || true
+  artifacts:
+    when: always
+    paths:
+    - _build/meson-logs/*.txt
+    - _build/meson-logs/*.xml
+    - _build/meson-dist/*
+    - _build/meson-logs/coveragereport/*
+    - _build/meson-logs/python-coverage-html/*
+    reports:
+      junit:
+        - _build/meson-logs/testlog.junit.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: _build/meson-logs/*coverage.xml
+  coverage: '/^TOTAL.*\s+(\d+\%)$/'
+
+dist_install:
+  extends:
+    - .ppd.ubuntu.test
+  script:
+    - meson setup
+        --werror
+        --fatal-meson-warnings
+        --warnlevel 2
+        -Dmanpage=enabled
+        -Dbashcomp=enabled
+        -Dzshcomp=share/zsh/site-functions
+        -Dtests=false
+        -Dprefix=`pwd`/dist
+        _build
+    - meson install -C _build
+    - ninja -C _build uninstall -v
+    - meson dist -C _build
+  artifacts:
+    when: always
+    paths:
+    - _build/meson-logs/*.txt
+  rules:
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" ||
+           $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH)
+
+address_sanitizer:
+  extends:
+    - .ppd.ubuntu.test
+  script:
+    - meson setup
+        --werror
+        --buildtype=debug
+        _build
+        -Db_sanitize=address,undefined
+    - meson test -C _build --print-errorlogs -t 3
+  artifacts:
+    when: on_failure
+    paths:
+    - _build/meson-logs/*.txt
+
+valgrind:
+  extends:
+    - .ppd.ubuntu.test
+  script:
+    - meson setup
+        --werror
+        --buildtype=debug
+        _build
+    - meson test -C _build --print-errorlogs --setup=valgrind
+  # FIXME: Valgrind job fails in CI, but not locally.
+  allow_failure: true
+  artifacts:
+    when: on_failure
+    paths:
+    - _build/meson-logs/*.txt
+
+scan_build:
+  extends:
+    - .ppd.ubuntu.base
+  script:
+    - meson setup _build -Dtests=false
+    - env SCANBUILD=$(which scan-build) ninja -C _build scan-build
+  artifacts:
+    when: on_failure
+    paths:
+      - _build/meson-logs
+
+docs:
+  extends:
+    - .ppd.ubuntu.base
+  script:
+    - meson setup
+        -Dgtk_doc=true
+        -Dtests=false
+        _build-docs
+    - ninja -C _build-docs power-profiles-daemon-doc
+  artifacts:
+    expose_as: "HTML Documentation"
+    paths:
+    - _build-docs/docs/html
+    - _build-docs/docs/html/index.html
+    expire_in: 1 week
+  rules:
+    - if: ($CI_PIPELINE_SOURCE == "merge_request_event" ||
+           $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH)
+
+pages:
+  image: alpine:latest
+  stage: deploy
+  needs:
+    - job: build_and_test
+      artifacts: true
+    - job: docs
+      artifacts: true
+  script:
+    - mv _build-docs/docs/html public
+    - mkdir public/coverage
+    - mv _build/meson-logs/coveragereport public/coverage/daemon
+    - mv _build/meson-logs/python-coverage-html public/coverage/tool
+    - echo '
+        <html>
+          <head><title>Power Profiles Daemon Coverage</title></head>
+          <body>
+            <ul>
+              <li><a href="daemon">Daemon</a></li>
+              <li><a href="tool"><code>powerprofilesctl</code> tool</a></li>
+            </ul>
+          </body>
+        </html>' > public/coverage/index.html
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH

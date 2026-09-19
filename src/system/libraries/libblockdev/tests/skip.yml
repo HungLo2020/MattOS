@@ -1,0 +1,62 @@
+# List of tests to be skipped
+#
+# Example:
+# This will skip the 'test_mount_ntfs' test case on Debian 10
+# and on all 32bit machines
+#
+###################################
+# - test: fs_test.MountTest.test_mount_ntfs
+#   skip_on:
+#     - distro: "debian"
+#       version: "10"
+#       reason: "NTFS mounting is broken on Debian testing"
+#
+#     - arch: "i686"
+#       reason: "testing skipping from config file"
+###################################
+#
+# Notes:
+# - multiple combinations of reasons are supported.
+# - 'reason' and at least one of 'distro', 'version' and 'arch' is required
+# - 'test' (ID of the test case) can be specified as a regular expression
+#   for example 'mpath_test.MpathUnloadTest.*' to skip all mpath unload tests
+# - all "skips" can specified as a list, for example 'version: [10, 11]'
+
+---
+
+- test: mdraid_test.MDTestAddRemove.test_add_remove
+  skip_on:
+    - distro: "debian"
+      reason: "Removing spare disks from an array is broken on Debian"
+
+- test: fs_tests.mount_test.MountTestCase.test_mount_ntfs
+  skip_on:
+    - distro: "debian"
+      reason: "mount.ntfs-3g randomly hangs on Debian testing"
+
+- test: (lvm_test|lvm_dbus_tests).LvmTestCache.test_writecache_attach_detach
+  skip_on:
+    - arch: "i686"
+      reason: "Cache attach/detach fails with ENOMEM on 32bit systems"
+
+- test: (lvm_test|lvm_dbus_tests).LvmVDOTest
+  skip_on:
+    - distro: "debian"
+      arch: "i686"
+      reason: "vdo userspace tools are not available on 32bit Debian"
+
+- test: lvm_dbus_tests.LvmTestPartialLVs
+  skip_on:
+    - distro: ["centos", "debian"]
+      reason: "LVM DBus doesn't support LV repair yet"
+
+- test: nvdimm_test
+  skip_on:
+    - distro: ["fedora", "centos", "debian"]
+      reason: "NVDIMM plugin is deprecated"
+
+- test: mdraid_test.MDTestActivateDeactivate
+  skip_on:
+    - distro: "centos"
+      version: "9"
+      reason: "Race condition in activate-deactivate test with latest kernel. RHEL-126233"

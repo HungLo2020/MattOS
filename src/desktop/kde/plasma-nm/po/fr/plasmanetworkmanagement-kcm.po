@@ -1,0 +1,270 @@
+# SPDX-FileCopyrightText: 2021, 2022, 2023, 2024, 2025, 2026 Xavier Besnard <xavier.besnard@kde.org>
+# Vincent Pinon <vpinon@kde.org>, 2017.
+# Simon Depiets <sdepiets@gmail.com>, 2019, 2020.
+# Xavier Besnard <xavier.besnard@kde.org>, 2023.
+msgid ""
+msgstr ""
+"Project-Id-Version: plasmanetworkmanagement-kcm\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-29 03:06+0000\n"
+"PO-Revision-Date: 2026-01-03 17:58+0100\n"
+"Last-Translator: Xavier Besnard <xavier.besnard@kde.org>\n"
+"Language-Team: fr\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Accelerator-Marker: &\n"
+"X-Environment: kde\n"
+"X-Generator: Lokalize 25.12.3\n"
+"X-Text-Markup: kde4\n"
+
+#: kcm.cpp:269
+#, kde-format
+msgid "Import the VPN configuration from \"%1\"?"
+msgstr "Importer la configuration VPN à partir de « %1 » ?"
+
+#: kcm.cpp:270
+#, kde-format
+msgctxt "@title:window"
+msgid "Import VPN Configuration"
+msgstr "Importer une configuration VPN"
+
+#: kcm.cpp:271
+#, kde-format
+msgid "Import"
+msgstr "Importer"
+
+#: kcm.cpp:278 kcm.cpp:351
+#, kde-format
+msgid "Failed to import VPN connection: %1"
+msgstr "Impossible d'importer une connexion « VPN » : %1"
+
+#: kcm.cpp:281 kcm.cpp:354
+#, kde-format
+msgid "Connection imported."
+msgstr "Connexion importée."
+
+#: kcm.cpp:423
+#, kde-format
+msgid "my_shared_connection"
+msgstr "ma_connexion_partagée"
+
+#: kcm.cpp:495
+#, kde-format
+msgid "Export VPN Connection"
+msgstr "Exporter une connexion VPN"
+
+#: kcm.cpp:515
+#, kde-format
+msgid "Do you want to save changes made to the connection '%1'?"
+msgstr "Voulez-vous enregistrer les changements pour la connexion « %1 » ?"
+
+#: kcm.cpp:516
+#, kde-format
+msgctxt "@title:window"
+msgid "Save Changes"
+msgstr "Enregistrer les changements"
+
+#: kcm.cpp:611
+#, kde-format
+msgid "Import VPN Connection"
+msgstr "Importer une connexion VPN"
+
+#: kcm.cpp:613
+#, kde-format
+msgid "VPN connections (%1)"
+msgstr "Connexions « VPN » (%1)"
+
+#: kcm.cpp:616
+#, kde-format
+msgid "No file was provided"
+msgstr "Aucun fichier n'a été fourni."
+
+#: kcm.cpp:684
+#, kde-format
+msgid "Unknown VPN type"
+msgstr "Type « VPN » inconnu"
+
+#: qml/AddConnectionDialog.qml:18
+msgctxt "@title:window"
+msgid "Choose a Connection Type"
+msgstr "Choisir un type de connexion"
+
+#: qml/ConfigurationDialog.qml:20
+msgctxt "@title:window"
+msgid "Configuration"
+msgstr "Configuration"
+
+#: qml/ConfigurationDialog.qml:35
+msgid "General"
+msgstr "Général"
+
+#: qml/ConfigurationDialog.qml:43
+msgid "Ask for PIN on modem detection"
+msgstr "Demander le code PIN lors de la détection du modem"
+
+#: qml/ConfigurationDialog.qml:50
+msgid "Show virtual connections"
+msgstr "Afficher les connexions virtuelles"
+
+#: qml/ConfigurationDialog.qml:57
+msgid "Create new connections as system connections"
+msgstr "Créer de nouvelles connexions en tant que connexions système"
+
+#: qml/ConfigurationDialog.qml:62
+msgid "Hotspot"
+msgstr "Point d'accès"
+
+#: qml/ConfigurationDialog.qml:70
+msgctxt "@label Hotspot name"
+msgid "Name:"
+msgstr "Nom :"
+
+#: qml/ConfigurationDialog.qml:76
+msgctxt "@label Hotspot password"
+msgid "Password:"
+msgstr "Mot de passe :"
+
+#: qml/ConfigurationDialog.qml:95
+msgid "Hotspot name must not be empty"
+msgstr "Le nom du point d'accès Wifi ne doit pas être vide"
+
+#: qml/ConfigurationDialog.qml:105
+msgid ""
+"Hotspot password must either be empty or consist of anywhere from 8 up to 64 "
+"characters"
+msgstr ""
+"Le mot de passe du point d'accès Wifi doit soit être vide soit comporter de "
+"8 à 64 caractères"
+
+#: qml/ConfigurationDialog.qml:106
+msgid ""
+"Hotspot password must either be empty or consist of one of the following:"
+"<ul><li>Exactly 5 or 13 any characters</li><li>Exactly 10 or 26 hexadecimal "
+"characters:<br/>abcdef, ABCDEF or 0-9</li></ul>"
+msgstr ""
+"Le mot de passe du point d'accès Wifi doit soit être vide soit être parmi "
+"les formats suivants : <ul><li>Exactement de 5 ou 13 caractères de tout type,"
+"</li><li>Exactement de 10 ou 26 caractères hexadécimaux :<br/>abcdef, ABCDEF "
+"ou 0 - 9.</li></ul>"
+
+#. i18n is a way to use something pre-exposed to QML.
+#: qml/ConnectionItem.qml:29
+msgctxt "@label/rich"
+msgid "%1"
+msgstr "%1"
+
+#: qml/ConnectionItem.qml:85
+msgid "Connect"
+msgstr "Connecter"
+
+#: qml/ConnectionItem.qml:85
+msgid "Disconnect"
+msgstr "Déconnecter"
+
+#: qml/ConnectionItem.qml:90
+msgctxt "@info:tooltip"
+msgid "Cannot connect to this network because it was not detected."
+msgstr "Impossible de se connecter à ce réseau car il n'a pas été détecté."
+
+#: qml/ConnectionItem.qml:95
+msgid "Delete"
+msgstr "Supprimer"
+
+#: qml/ConnectionItem.qml:106
+msgid "Export"
+msgstr "Exporter"
+
+#: qml/ConnectionItem.qml:120
+msgid "Connected"
+msgstr "Connecté"
+
+#: qml/ConnectionItem.qml:122
+msgid "Connecting"
+msgstr "Connexion en cours"
+
+#: qml/ConnectionItem.qml:124
+msgctxt "@title:column Available networks"
+msgid "Available"
+msgstr "Disponible"
+
+#: qml/main.qml:151
+msgid "Add new connection"
+msgstr "Ajouter une nouvelle connexion"
+
+#: qml/main.qml:169
+msgid "Remove selected connection"
+msgstr "Supprimer la connexion sélectionnée"
+
+#: qml/main.qml:187
+msgid "Export selected connection"
+msgstr "Exporter la connexion sélectionnée"
+
+#: qml/main.qml:212
+msgid "Configuration"
+msgstr "Configuration"
+
+#: qml/main.qml:239
+msgctxt "@title:window"
+msgid "Remove Connection"
+msgstr "Supprimer la connexion"
+
+#: qml/main.qml:240
+msgid "Do you want to remove the connection '%1'?"
+msgstr "Voulez-vous supprimer la connexion « %1 » ?"
+
+#: qml/main.qml:262
+msgctxt "@action:button Connect to network"
+msgid "Connect"
+msgstr "Se connecter"
+
+#: qml/main.qml:268
+msgctxt "@action:button Cancel connecting to network"
+msgid "Cancel"
+msgstr "Annuler"
+
+#: qml/main.qml:274
+msgctxt "@title:window"
+msgid "Enter Password"
+msgstr "Veuillez saisir le mot de passe"
+
+#: qml/main.qml:280
+msgctxt "@label %1 is the name of the network the user is connecting to"
+msgid "Network: %1"
+msgstr "Réseau : %1"
+
+#: qml/main.qml:301
+msgctxt "@label key is a passcode"
+msgid "Password must be a valid WEP key"
+msgstr "Le mot de passe doit être une clé « WEP » valable"
+
+#: qml/main.qml:302
+msgctxt "@label password invalid length message"
+msgid "Password must be between 8 and 64 characters"
+msgstr "Le mot de passe doit comporter entre 8 et 64 caractères."
+
+#~ msgid "Create"
+#~ msgstr "Créer"
+
+#~ msgid "Cancel"
+#~ msgstr "Annuler"
+
+#~ msgid "Hotspot name:"
+#~ msgstr "Nom du point d'accès :"
+
+#~ msgid "OK"
+#~ msgstr "Ok"
+
+#~ msgid "Ok"
+#~ msgstr "Ok"
+
+#~ msgid "Search…"
+#~ msgstr "Rechercher…"
+
+#~ msgid "Type here to search connections..."
+#~ msgstr "Tapez ici pour rechercher des connexions…"
+
+#~ msgid "Close"
+#~ msgstr "Fermer"

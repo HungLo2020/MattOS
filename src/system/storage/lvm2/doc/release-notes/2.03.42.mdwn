@@ -1,0 +1,40 @@
+<!-- Page title -->
+[[!meta title="Version 2.03.42 - Feature and Bug Fix Release"]]
+
+Version 2.03.42
+===============
+
+* Fix autoactivation on top of MD and loop devices if udev db records incomplete.
+* Many fixes especially in pvmove, lvmlockd, persistent reservations.
+* And [[!toggle text="more"]]
+
+[[!toggleable text="""
+Features
+-----------------------
+
+* Make libdm thread safe.
+* Add support for pvmove in a shared VG.
+* Enable using VDO format from kernel. Requires dm-vdo target 9.2 or newer.
+* Make MD device ready state check in udev to be in sync with MD udev rules.
+* Add `--lockopt retries=N` to lvmlockd.
+* Add `--lockopt removeretry=SECONDS` to lvmlockd to retry vgremove.
+
+Changes in lvm.conf
+-------------------
+
+* Add `allocation/vdo_use_kernel_format` to enable/disable kernel VDO format, enabled by default.
+
+./configure options
+-------------------
+
+* Add `--enable-asan/--enable-tsan` to build with sanitizer options.
+
+"""]]
+
+<!-- remove the pending tag on release, remove draft tag once editing is complete -->
+[[!tag]]
+<!--
+For old releases add Release Timestamp like this, date from git show $COMMIT is fine.
+[[!meta date="Thu Aug 06 14:40:00 2026 +0200"]]
+-->
+

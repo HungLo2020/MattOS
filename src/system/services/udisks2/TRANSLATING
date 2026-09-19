@@ -1,0 +1,16 @@
+LOCALIZATION
+============
+
+Historically, UDisks has always had close ties with the GNOME Project, with
+gvfs-udisks2-volume-monitor providing additional logic and facing the UI.
+It is therefore beneficial to have both projects translated in a central
+location for consistency.
+
+UDisks leverages the GNOME Project Translation Platform. The udisks l10n module
+is linked to our GitHub repository, and translations are automatically
+synchronized both ways.
+
+  https://l10n.gnome.org/module/udisks/
+
+To contribute translations, please use the GNOME translation platform
+linked above.

@@ -1,0 +1,44 @@
+# Hindi translations for purpose package.
+# Copyright (C) 2024 This file is copyright:
+# This file is distributed under the same license as the purpose package.
+# Kali <EMAIL@ADDRESS>, 2024.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: purpose\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-21 00:41+0000\n"
+"PO-Revision-Date: 2024-12-15 17:35+0530\n"
+"Last-Translator: Kali <EMAIL@ADDRESS>\n"
+"Language-Team: Hindi <fedora-trans-hi@redhat.com>\n"
+"Language: hi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: AlternativesView.qml:74
+#, kde-format
+msgid "Use"
+msgstr "उपयोग"
+
+#: JobView.qml:130
+#, kde-format
+msgid ""
+"Failed to load the configuration page for this action:\n"
+"\n"
+"%1"
+msgstr ""
+"इस कार्रवाई के लिए कॉन्फ़िगरेशन पेज लोड करने में विफल:\n"
+"\n"
+"%1"
+
+#: JobView.qml:143
+#, kde-format
+msgid "Send"
+msgstr "भेजना"
+
+#: JobView.qml:151
+#, kde-format
+msgid "Cancel"
+msgstr "रद्द करना"

@@ -1,0 +1,12 @@
+VARIOUS USE-CASES/FEATURES WORTH IMPLEMENTING
+=============================================
+
+Note: Following list isn't sorted in any way.  It just contains several items
+mentioned during a brainstorming.
+
+Add support for:
+
+- raid in lvm2
+- raid tests
+- glusterfs
+- ceph

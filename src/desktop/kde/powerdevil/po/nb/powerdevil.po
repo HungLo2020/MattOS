@@ -1,0 +1,368 @@
+# Translation of powerdevil to Norwegian Bokmål
+#
+# Bjørn Steensrud <bjornst@skogkatt.homelinux.org>, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015.
+# Øystein Steffensen-Alværvik <oysteins.omsetting@protonmail.com>, 2018.
+msgid ""
+msgstr ""
+"Project-Id-Version: powerdevil\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-02-10 02:38+0000\n"
+"PO-Revision-Date: 2025-03-29 10:25+0100\n"
+"Last-Translator: Martin Hansen <mh306602@gmail.com>\n"
+"Language-Team: Norwegian Bokmål <l10n-no@lister.huftis.org>\n"
+"Language: nb\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 24.12.3\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Environment: kde\n"
+"X-Accelerator-Marker: &\n"
+"X-Text-Markup: kde4\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr ""
+"Knut Yrvin,Gunnhild Lurås,Børre Gaup,Bjørn Steensrud,Axel Bojer,Øyvind A. "
+"Holm,Martin Hansen"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr ""
+"knut.yrvin@gmail.com,gluras@c2i.net,boerre@skolelinux.no,bjornst@skogkatt."
+"homelinux.org,fri_programvare@bojer.no,sunny@sunbase.org,mh306602@gmail.com"
+
+#: actions/bundled/dpms.cpp:73 actions/bundled/handlebuttonevents.cpp:46
+#: actions/bundled/keyboardbrightnesscontrol.cpp:47
+#: actions/bundled/powerprofile.cpp:67 powerdevilscreenbrightnessagent.cpp:138
+#, kde-format
+msgctxt "Name for powerdevil shortcuts category"
+msgid "Power Management"
+msgstr "Strømstyring"
+
+#: actions/bundled/dpms.cpp:76
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Turn Off Screen"
+msgstr "Slå av skjermen"
+
+#: actions/bundled/handlebuttonevents.cpp:51
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Suspend"
+msgstr "Hvilemodus"
+
+#: actions/bundled/handlebuttonevents.cpp:56
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Hibernate"
+msgstr "Dvalemodus"
+
+#: actions/bundled/handlebuttonevents.cpp:61
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Power Off"
+msgstr "Slå av maskinen"
+
+#: actions/bundled/handlebuttonevents.cpp:75
+#, kde-format
+msgctxt ""
+"@action:inmenu Global shortcut, used for long presses of the power button"
+msgid "Power Down"
+msgstr "Slå av"
+
+#: actions/bundled/keyboardbrightnesscontrol.cpp:51
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Increase Keyboard Brightness"
+msgstr "Øk lysstyrken på tastaturet"
+
+#: actions/bundled/keyboardbrightnesscontrol.cpp:56
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Decrease Keyboard Brightness"
+msgstr "Senk lysstyrken på tastaturet"
+
+#: actions/bundled/keyboardbrightnesscontrol.cpp:61
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Toggle Keyboard Backlight"
+msgstr "Slå av/på tastaturbaklys"
+
+#: actions/bundled/powerprofile.cpp:70
+#, kde-format
+msgid "Switch Power Profile"
+msgstr "Bytt strømprofil"
+
+#: controllers/backlightbrightness.cpp:190 controllers/kwinbrightness.cpp:51
+#, kde-format
+msgctxt "Display label"
+msgid "Built-in Screen"
+msgstr "Innebygd skjerm"
+
+#: controllers/kwinbrightness.cpp:55
+#, kde-format
+msgctxt "Display label: vendor + product name"
+msgid "%1 %2"
+msgstr "%1 %2"
+
+#: powerdevilapp.cpp:102
+#, kde-format
+msgid "KDE Power Management System"
+msgstr "KDE-strømstyring"
+
+#: powerdevilapp.cpp:104
+#, kde-format
+msgctxt "@title"
+msgid ""
+"PowerDevil, an advanced, modular and lightweight power management daemon"
+msgstr "PowerDevil – en avansert, modulbasert strømstyringstjeneste"
+
+#: powerdevilapp.cpp:106
+#, fuzzy, kde-format
+#| msgctxt "@info:credit"
+#| msgid "(c) 2015-2019 Kai Uwe Broulik"
+msgctxt "@info:credit"
+msgid "© 2015–2019 Kai Uwe Broulik"
+msgstr "© 2015–2019 Kai Uwe Broulik"
+
+#: powerdevilapp.cpp:107
+#, kde-format
+msgctxt "@info:credit"
+msgid "Kai Uwe Broulik"
+msgstr "Kai Uwe Broulik"
+
+#: powerdevilapp.cpp:107
+#, kde-format
+msgctxt "@info:credit"
+msgid "Maintainer"
+msgstr "Vedlikeholder"
+
+#: powerdevilapp.cpp:108
+#, kde-format
+msgctxt "@info:credit"
+msgid "Dario Freddi"
+msgstr "Dario Freddi"
+
+#: powerdevilapp.cpp:108
+#, kde-format
+msgctxt "@info:credit"
+msgid "Previous maintainer"
+msgstr "Forrige vedlikeholder"
+
+#: powerdevilapp.cpp:116
+#, kde-format
+msgid "Replace an existing instance"
+msgstr "Erstatt en instans som finnes fra før"
+
+#: powerdevilcore.cpp:403 powerdevilcore.cpp:414
+#, kde-format
+msgid "Activity Manager"
+msgstr "Aktivitetsbehandler"
+
+#: powerdevilcore.cpp:404
+#, kde-format
+msgid "This activity's policies prevent the system from going to sleep"
+msgstr "Regler for denne aktiviteten hindrer at systemet går i hvile"
+
+#: powerdevilcore.cpp:415
+#, kde-format
+msgid "This activity's policies prevent screen power management"
+msgstr "Regler for denne aktiviteten hindrer strømstyring for skjerm"
+
+#: powerdevilcore.cpp:480
+#, kde-format
+msgid "Extra Battery Added"
+msgstr "Et ekstra batteri er koblet til"
+
+#: powerdevilcore.cpp:481
+#, kde-format
+msgid "The system will no longer go to sleep."
+msgstr "Datamaskinen vil ikke lenger gå i hvilemodus."
+
+#: powerdevilcore.cpp:545
+#, kde-format
+msgctxt "%1 is vendor name, %2 is product name"
+msgid "%1 %2"
+msgstr "%1 %2"
+
+#: powerdevilcore.cpp:548
+#, kde-format
+msgctxt "The battery in an external device"
+msgid "Device Battery Low (%1% Remaining)"
+msgstr "Lavt batterinivå til enhet (%1 % gjenstår)"
+
+#: powerdevilcore.cpp:550
+#, kde-format
+msgctxt "Placeholder is device name"
+msgid ""
+"The battery in \"%1\" is running low, and the device may turn off at any "
+"time. Please recharge or replace the battery."
+msgstr ""
+"Batterinivået til musa «%1» er lavt, og den kan derfor slutte å fungere når "
+"som helst. Du bør lade eller bytte ut batteriet så snart som mulig."
+
+#: powerdevilcore.cpp:557
+#, kde-format
+msgid "Mouse Battery Low (%1% Remaining)"
+msgstr "Lavt batterinivå til mus (%1 % gjenstår)"
+
+#: powerdevilcore.cpp:561
+#, kde-format
+msgid "Keyboard Battery Low (%1% Remaining)"
+msgstr "Lavt batterinivå til tastatur (%1 % gjenstår)"
+
+#: powerdevilcore.cpp:571
+#, kde-format
+msgid "Bluetooth Device Battery Low (%1% Remaining)"
+msgstr "Lavt batterinivå til Bluetooth-enhet (%1 % gjenstår)"
+
+#: powerdevilcore.cpp:573
+#, kde-format
+msgctxt "Placeholder is device name"
+msgid ""
+"The battery in Bluetooth device \"%1\" is running low, and the device may "
+"turn off at any time. Please recharge or replace the battery."
+msgstr ""
+"Batterinivået til Bluetooth-enheten «%1» er lavt, og den kan derfor slutte å "
+"fungere når som helst. Du bør lade eller bytte ut batteriet så snart som "
+"mulig."
+
+#: powerdevilcore.cpp:615
+#, kde-format
+msgid ""
+"Ensure that the power cord is plugged in all the way and provides enough "
+"power."
+msgstr "Se til at strømkabelen er koblet skikkelig til og gir nok strøm."
+
+#: powerdevilcore.cpp:617
+#, kde-format
+msgid "Plug in the power cord."
+msgstr "Koble til strømkabelen."
+
+#: powerdevilcore.cpp:637
+#, kde-format
+msgid "The system will shut down in 60 seconds."
+msgstr "Maskinen blir automatisk slått av om 60 sekund."
+
+#: powerdevilcore.cpp:639
+#, kde-format
+msgctxt ""
+"@action:button Shut down without waiting for the battery critical timer"
+msgid "Shut Down Now"
+msgstr "Slå av nå"
+
+#: powerdevilcore.cpp:645
+#, kde-format
+msgid "The system will hibernate in 60 seconds."
+msgstr "Maskinen går i dvalemodus om 60 sekund."
+
+#: powerdevilcore.cpp:647
+#, kde-format
+msgctxt ""
+"@action:button Enter hibernation mode without waiting for the battery "
+"critical timer"
+msgid "Hibernate Now"
+msgstr "Gå i dvalemodus nå"
+
+#: powerdevilcore.cpp:653
+#, kde-format
+msgid "The system will go to sleep in 60 seconds."
+msgstr "Maskinen går i hvilemodus om 60 sekund."
+
+#: powerdevilcore.cpp:655
+#, kde-format
+msgctxt ""
+"@action:button Suspend to ram without waiting for the battery critical timer"
+msgid "Sleep Now"
+msgstr "Gå i hvilemodus nå"
+
+#: powerdevilcore.cpp:661
+#, kde-format
+msgid "Please save your work."
+msgstr "Lagre arbeidet ditt."
+
+#: powerdevilcore.cpp:667
+#, kde-format
+msgctxt ""
+"Cancel timeout that will automatically put system to sleep because of low "
+"battery"
+msgid "Cancel"
+msgstr "Avbryt"
+
+#: powerdevilcore.cpp:682
+#, kde-format
+msgid "Battery Low (%1% Remaining)"
+msgstr "Lavt batterinivå (%1 % gjenstår)"
+
+#: powerdevilcore.cpp:686
+#, kde-format
+msgid "Battery Critical (%1% Remaining)"
+msgstr "Batteri på kritisk nivå (%1 % gjenstår)"
+
+#: powerdevilcore.cpp:720
+#, kde-format
+msgid "Power Cord Plugged In"
+msgstr "Strømkabel koblet til"
+
+#: powerdevilcore.cpp:721
+#, kde-format
+msgid "The computer will no longer go to sleep."
+msgstr "Datamaskinen vil ikke lenger gå i hvilemodus."
+
+#: powerdevilcore.cpp:723
+#, fuzzy, kde-format
+#| msgid "Running on AC power"
+msgid "Running on AC Power"
+msgstr "Kjører på nettstrøm"
+
+#: powerdevilcore.cpp:724
+#, kde-format
+msgid "The power cord has been plugged in."
+msgstr "Strømkabelen er koblet til."
+
+#: powerdevilcore.cpp:736
+#, kde-format
+msgid "Running on Battery Power"
+msgstr "Kjører på batteri"
+
+#: powerdevilcore.cpp:737
+#, kde-format
+msgid "The power cord has been unplugged."
+msgstr "Strømkabelen er koblet fra."
+
+#: powerdevilcore.cpp:800
+#, kde-format
+msgid "Charging Complete"
+msgstr "Fullført lading"
+
+#: powerdevilcore.cpp:800
+#, kde-format
+msgid "Battery now fully charged."
+msgstr "Batteriet er nå fulladet."
+
+#: powerdevilscreenbrightnessagent.cpp:141
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Increase Screen Brightness"
+msgstr "Øk lysstyrke på skjermen"
+
+#: powerdevilscreenbrightnessagent.cpp:148
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Increase Screen Brightness by 1%"
+msgstr "Øk lysstyrke på skjermen med 1 %"
+
+#: powerdevilscreenbrightnessagent.cpp:155
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Decrease Screen Brightness"
+msgstr "Reduser lysstyrke på skjermen"
+
+#: powerdevilscreenbrightnessagent.cpp:162
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Decrease Screen Brightness by 1%"
+msgstr "Reduser lysstyrke på skjermen med 1 %"

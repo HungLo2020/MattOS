@@ -1,0 +1,22 @@
+[Unit]
+Description=Initialize hardware monitoring sensors
+
+[Service]
+# added automatically, for details please see
+# https://en.opensuse.org/openSUSE:Security_Features#Systemd_hardening_effort
+ProtectSystem=full
+ProtectHome=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+RestrictRealtime=true
+# end of automatic additions
+EnvironmentFile=/etc/sysconfig/lm_sensors
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=-/sbin/modprobe -qab $BUS_MODULES $HWMON_MODULES
+ExecStart=/usr/bin/sensors -s
+ExecStop=-/sbin/modprobe -qabr $BUS_MODULES $HWMON_MODULES
+
+[Install]
+WantedBy=multi-user.target

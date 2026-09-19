@@ -151,11 +151,17 @@ fn pressure_candidate(
     // Keep Critical for conditions that mean the scheduler has no safe memory
     // budget left, or the host is actively writing pages to swap at a sustained
     // rate.  `some` PSI still constrains parallelism to one heavy job.
-    if budget.build_memory_bytes == 0 || swap_out_rate >= 8.0 {
+    // vmstat rates are pages/second.  A handful of background swap writes is
+    // not actionable pressure; on a 4 KiB-page machine the old threshold of
+    // eight meant only 32 KiB/s and throttled healthy builds for minutes.
+    const CONSTRAINED_SWAP_OUT_PAGES_PER_SECOND: f64 = 256.0;
+    const CRITICAL_SWAP_OUT_PAGES_PER_SECOND: f64 = 4096.0;
+    const CONSTRAINED_PSI_SOME_PERCENT: f64 = 5.0;
+    if budget.build_memory_bytes == 0 || swap_out_rate >= CRITICAL_SWAP_OUT_PAGES_PER_SECOND {
         PressureLevel::Critical
-    } else if budget.available_memory_bytes <= budget.reserved_memory_bytes.saturating_mul(2)
-        || swap_out_rate > 0.0
-        || psi_some_avg10.is_some_and(|value| value >= 0.05)
+    } else if budget.build_memory_bytes <= 512 * MIB
+        || swap_out_rate >= CONSTRAINED_SWAP_OUT_PAGES_PER_SECOND
+        || psi_some_avg10.is_some_and(|value| value >= CONSTRAINED_PSI_SOME_PERCENT)
     {
         PressureLevel::Constrained
     } else {
@@ -595,12 +601,14 @@ mod tests {
     fn active_swap_out_escalates_and_recovery_is_hysteretic() {
         let mut tracker = PressureTracker::new();
         tracker.observe(pressure_snapshot(12 * GIB, 0, 0), Duration::from_secs(1));
-        let critical = tracker.observe(pressure_snapshot(12 * GIB, 0, 32), Duration::from_secs(1));
+        let critical =
+            tracker.observe(pressure_snapshot(12 * GIB, 0, 8192), Duration::from_secs(1));
         assert_eq!(critical.pressure, PressureLevel::Critical);
         let first_recovery =
-            tracker.observe(pressure_snapshot(12 * GIB, 0, 32), Duration::from_secs(1));
+            tracker.observe(pressure_snapshot(12 * GIB, 0, 8192), Duration::from_secs(1));
         assert_eq!(first_recovery.pressure, PressureLevel::Critical);
-        let recovered = tracker.observe(pressure_snapshot(12 * GIB, 0, 32), Duration::from_secs(1));
+        let recovered =
+            tracker.observe(pressure_snapshot(12 * GIB, 0, 8192), Duration::from_secs(1));
         assert_eq!(recovered.pressure, PressureLevel::Healthy);
     }
 }
@@ -619,7 +627,7 @@ mod pressure_starvation_regression_tests {
     }
 
     #[test]
-    fn low_single_digit_some_psi_is_constrained_not_critical() {
+    fn low_single_digit_some_psi_with_a_safe_build_budget_is_healthy() {
         let budget = ResourceBudget {
             cpu_tokens: 12,
             // Mirrors the stalled laptop trace closely: about 1.4 GiB remains
@@ -630,7 +638,7 @@ mod pressure_starvation_regression_tests {
         };
         assert_eq!(
             pressure_candidate(&budget, 0.0, 0.0, Some(1.40)),
-            PressureLevel::Constrained
+            PressureLevel::Healthy
         );
     }
 
@@ -645,8 +653,16 @@ mod pressure_starvation_regression_tests {
     #[test]
     fn sustained_swap_out_remains_critical() {
         assert_eq!(
-            pressure_candidate(&roomy_budget(), 0.0, 8.0, Some(0.0)),
+            pressure_candidate(&roomy_budget(), 0.0, 4096.0, Some(0.0)),
             PressureLevel::Critical
+        );
+    }
+
+    #[test]
+    fn background_swap_and_sub_five_percent_psi_do_not_throttle_builds() {
+        assert_eq!(
+            pressure_candidate(&roomy_budget(), 0.0, 128.0, Some(4.99)),
+            PressureLevel::Healthy
         );
     }
 

@@ -1,0 +1,2323 @@
+#!/bin/bash
+#
+# lvmtest - Main orchestration script for LVM cluster testing
+#
+# Usage:
+#   lvmtest [-c config] [-i cluster_id] [-o os_image] [-R] <command>
+#
+# Commands:
+#   makeconfig      - Create configuration file interactively
+#   create          - Create a new cluster
+#   destroy         - Destroy an existing cluster
+#   stop            - Stop cluster (hibernate VMs to disk)
+#   start           - Start stopped cluster
+#   snapshot        - Create cluster snapshot
+#   restart         - Restart cluster from snapshot (repeatable, clean slate)
+#   delete          - Delete cluster snapshot
+#   status          - Show cluster status
+#   list            - List all clusters
+#   run             - Run a test script on the cluster
+#   cleanup-storage - Remove orphaned storage files
+#   destroy-all     - Destroy all cluster VMs
+#
+# Examples:
+#   # Create configuration file interactively
+#   ./lvmtest makeconfig
+#   ./lvmtest -c my-cluster makeconfig  # Expands to configs/my-cluster.conf
+#
+#   # Create cluster with default config
+#   ./lvmtest create
+#
+#   # Create cluster with custom config
+#   ./lvmtest -c my-cluster create  # Expands to configs/my-cluster.conf
+#
+#   # Create cluster with custom ID (auto-expands to lvmtest-mycustom)
+#   ./lvmtest -i mycustom -c my-cluster create
+#
+#   # Stop and start cluster
+#   ./lvmtest stop
+#   ./lvmtest start
+#
+#   # Snapshot and restart (repeatable clean slate)
+#   ./lvmtest snapshot
+#   ./lvmtest restart  # Run tests
+#   ./lvmtest restart  # Restart from same snapshot again
+#
+#   # Destroy specific cluster
+#   ./lvmtest -i lvmtest-12345-67890 destroy
+#
+#   # Show cluster status
+#   ./lvmtest -i lvmtest-12345-67890 status
+#
+
+set -e
+
+# Get script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Source required libraries
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/cluster-test-lib.sh"
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/cluster-vm-manager.sh"
+
+#
+# Usage and help
+#
+
+usage() {
+    cat <<EOF
+Usage: $0 [-c config] [-i cluster_id] [-o os_image] [-R] <command>
+
+Commands:
+  makeconfig         - Create configuration file interactively
+  create             - Create a new cluster (auto-creates 'new' snapshot)
+  destroy            - Destroy an existing cluster
+  pause              - Pause cluster (save VMs to disk)
+  resume             - Resume paused cluster
+  revert             - Revert cluster to 'new' snapshot (clean slate for testing)
+  snapshot -n <name> - Create named snapshot
+  snapshot-delete -n <name>
+                     - Delete a named snapshot
+  snapshot-revert -n <name>
+                     - Revert cluster to a named snapshot
+  status             - Show cluster status
+  list               - List all clusters
+  run -t <test>      - Run a test script on the cluster
+  group -g <pattern> - Execute test group(s)
+  cleanup-storage    - Remove orphaned storage files
+  destroy-all        - Destroy all cluster VMs (use with caution!)
+
+Global Options:
+  -c config      Configuration file for create command
+                 (default: configs/default-cluster.conf)
+                 Names without directory auto-expand to configs/:
+                   "foo" -> "configs/foo.conf"
+                   "foo.conf" -> "configs/foo.conf"
+  -i cluster_id  Cluster ID for operations (optional if only one cluster exists)
+                 Simple names auto-expand: "foo" -> "lvmtest-foo"
+  -o os_image    OS image path (overrides CLUSTER_NODE_OS_IMAGE in config)
+  -R             Revert only after a failed test (default: revert between every test)
+  -h             Show this help message
+
+Command-Specific Options:
+  makeconfig [-c output_file]
+                 -c: Output file (default: configs/generated-cluster.conf)
+                     Names auto-expand like global -c option
+  snapshot -n snapshot_name
+                 -n: Snapshot name (required)
+  snapshot-delete -n snapshot_name
+                 -n: Snapshot name to delete (required)
+  snapshot-revert -n snapshot_name
+                 -n: Snapshot name to revert to (required)
+  run -t test_file
+                 -t: Test script to run (required)
+  group -g group_dir_or_file [-g ...]
+                 -g: Group directory or file (required, repeatable)
+                     Examples: groups/basic, groups/basic -g groups/standard
+
+EOF
+    exit 1
+}
+
+#
+# Helper functions
+#
+
+run_single_group() {
+    local group_file="$1"
+    local use_existing_cluster=0
+
+    # Enable pipefail to catch errors in pipelines
+    set -o pipefail
+
+    cluster_log "=========================================="
+    cluster_log "Executing test group: $(basename "$group_file")"
+    cluster_log "=========================================="
+    echo ""
+
+    # Parse group file
+    if ! cluster_parse_group_file "$group_file"; then
+        cluster_error "Failed to parse group file: $group_file"
+        set +o pipefail
+        return 1
+    fi
+
+    local config_name="$GROUP_CONFIG_NAME"
+    local -a test_files=("${GROUP_TEST_FILES[@]}")
+
+    # Determine whether to use an existing cluster or create a new one.
+    # If CLUSTER_ID was provided via -i and a running cluster with that ID
+    # exists, run tests on that cluster even if the group file has a config line.
+    # If no -i was given, or the cluster doesn't exist, fall through to create.
+    if [ -n "${CLUSTER_ID:-}" ]; then
+        if cluster_state_load "$CLUSTER_ID" 2>/dev/null; then
+            use_existing_cluster=1
+        elif [ -z "$config_name" ]; then
+            cluster_die "Cluster '$CLUSTER_ID' not found and no config in group file to create one"
+        fi
+    fi
+
+    if [ $use_existing_cluster -eq 1 ]; then
+        cluster_log "Using existing cluster: $CLUSTER_ID"
+    else
+        cluster_log "Config: $config_name"
+    fi
+    cluster_log "Tests: ${#test_files[@]}"
+    echo ""
+
+    # Normalize and validate test paths
+    local -a normalized_tests=()
+    for test_name in "${test_files[@]}"; do
+        local test_file="$test_name"
+
+        # Normalize path
+        if [[ ! "$test_file" = /* ]]; then
+            if [[ "$test_file" = test/shell/* ]]; then
+                # Paths like "test/shell/foo.sh" are relative to repo root
+                test_file="$SCRIPT_DIR/../../$test_file"
+            elif [[ ! "$test_file" = */* ]]; then
+                if [[ ! "$test_file" = *.sh ]]; then
+                    test_file="$SCRIPT_DIR/shell/${test_file}.sh"
+                else
+                    test_file="$SCRIPT_DIR/shell/${test_file}"
+                fi
+            else
+                test_file="$SCRIPT_DIR/$test_file"
+            fi
+        fi
+
+        # Validate exists
+        if [ ! -f "$test_file" ]; then
+            cluster_error "Test file not found: $test_file"
+            set +o pipefail
+            return 1
+        fi
+
+        normalized_tests+=("$test_file")
+    done
+
+    local cluster_id
+    local results_dir="$SCRIPT_DIR/results"
+    local timestamp="$(date +%m%d%H%M%S)"
+
+    # Create results directory if needed
+    mkdir -p "$results_dir" 2>/dev/null || true
+    chmod 777 "$results_dir" 2>/dev/null || true
+
+    if [ $use_existing_cluster -eq 1 ]; then
+        # --- Existing cluster mode ---
+        cluster_id="$CLUSTER_ID"
+
+        if ! cluster_state_load "$cluster_id"; then
+            cluster_die "Failed to load cluster state for: $cluster_id"
+        fi
+
+        if cluster_state_is_paused "$cluster_id"; then
+            cluster_error "Cannot run tests on a paused cluster"
+            echo "Resume the cluster first with: $0 -i $cluster_id resume"
+            set +o pipefail
+            return 1
+        fi
+
+        export CLUSTER_GROUP_FILE="$group_file"
+        export CLUSTER_NUM_NODES
+        export CLUSTER_SSH_KEY_DIR
+        export CLUSTER_SSH_USER
+        export CLUSTER_NUM_SCSI
+        export CLUSTER_NUM_NVME
+        export CLUSTER_NUM_MULTIPATH
+        export CLUSTER_MULTIPATH_ENABLE
+
+        # Source executor and shell bridge
+        source "$SCRIPT_DIR/cluster-executor.sh" || {
+            cluster_error "Failed to load cluster-executor.sh"
+            set +o pipefail
+            return 1
+        }
+        source "$SCRIPT_DIR/cluster-shell-bridge.sh" || {
+            cluster_error "Failed to load cluster-shell-bridge.sh"
+            set +o pipefail
+            return 1
+        }
+    else
+        # --- New cluster mode (original behavior) ---
+
+        if [ -z "$config_name" ]; then
+            cluster_error "No 'config' line in group file and no -i <cluster_id> specified"
+            set +o pipefail
+            return 1
+        fi
+
+        # Normalize config path
+        local config_file="$config_name"
+        if [[ ! "$config_file" = /* ]]; then
+            if [[ ! "$config_file" = configs/* ]]; then
+                if [[ ! "$config_file" = *.conf ]]; then
+                    config_file="configs/${config_file}.conf"
+                else
+                    config_file="configs/${config_file}"
+                fi
+            fi
+        fi
+
+        # Make config path absolute
+        if [[ ! "$config_file" = /* ]]; then
+            config_file="$SCRIPT_DIR/$config_file"
+        fi
+
+        # Validate config file exists
+        if [ ! -f "$config_file" ]; then
+            cluster_error "Config file not found: $config_file"
+            set +o pipefail
+            return 1
+        fi
+
+        # Extract config basename for cluster ID generation
+        local config_basename="$(basename "$config_file" .conf)"
+
+        # Generate cluster ID based on config name (not group name)
+        cluster_id=$(cluster_generate_id "$config_basename")
+        export CLUSTER_ID="$cluster_id"
+
+        # Export config and group file paths for test execution
+        export CLUSTER_CONFIG_FILE="$config_file"
+        export CLUSTER_GROUP_FILE="$group_file"
+
+        cluster_log "Creating cluster: $cluster_id"
+
+        # Load config
+        cluster_load_config "$config_file"
+
+        if [ -n "${CLUSTER_CMD_OS_IMAGE:-}" ]; then
+            export CLUSTER_NODE_OS_IMAGE="$CLUSTER_CMD_OS_IMAGE"
+        fi
+
+        # Prepare error log file
+        local cluster_log_dir="$results_dir/cluster"
+        mkdir -p "$cluster_log_dir" 2>/dev/null || true
+        chmod 777 "$cluster_log_dir" 2>/dev/null || true
+        local error_log="$cluster_log_dir/log_create_${config_basename}_${timestamp}.txt"
+
+        # Create cluster (with error logging and live terminal output)
+        if cluster_vms_create_all "$cluster_id" > >(tee "$error_log") 2>&1; then
+            wait
+        else
+            wait
+            cluster_error "Failed to create cluster"
+            cluster_error "Error log saved to: $error_log"
+            set +o pipefail
+            return 1
+        fi
+
+        # Save state
+        cluster_state_save "$cluster_id"
+
+        cluster_log "Cluster created successfully"
+
+        # Collect software versions from node1
+        local _node1_vm _node1_ip _ver
+        _node1_vm=$(cluster_vm_get_name "$cluster_id" 1)
+        _node1_ip=$(cluster_vm_get_ip "$_node1_vm" 2>/dev/null)
+        if [ -n "$_node1_ip" ]; then
+            cluster_log "Software versions on node1:"
+            {
+                _ver=$(cluster_vm_ssh "$_node1_ip" "uname -r" 2>/dev/null | head -1)
+                _ver="${_ver%%-*}"
+                echo "VERSION kernel $_ver"
+                _ver=$(cluster_vm_ssh "$_node1_ip" "lvm version 2>/dev/null | awk '/LVM version/{print \$3}'" 2>/dev/null | head -1)
+                echo "VERSION lvm $_ver"
+                _ver=$(cluster_vm_ssh "$_node1_ip" "sanlock version 2>/dev/null | awk '{print \$2; exit}'" 2>/dev/null | head -1)
+                echo "VERSION sanlock $_ver"
+                _ver=$(cluster_vm_ssh "$_node1_ip" "dlm_controld -V 2>/dev/null | awk '{print \$2; exit}'" 2>/dev/null | head -1)
+                echo "VERSION dlm $_ver"
+                _ver=$(cluster_vm_ssh "$_node1_ip" "mdadm --version 2>&1 | awk -F'[ -]' '/^mdadm/{for(i=1;i<=NF;i++) if(\$i~/^v?[0-9]/) {gsub(/^v/,\"\",\$i); print \$i; exit}}'" 2>/dev/null | head -1)
+                echo "VERSION mdadm $_ver"
+            } | tee -a "$error_log"
+        fi
+
+        echo ""
+
+        # Create 'new' snapshot for reverts
+        cluster_log "Creating 'new' snapshot"
+        if cluster_vms_snapshot_all "$cluster_id" "new"; then
+            local snap_timestamp=$(date +%s)
+            cluster_state_add_snapshot "$cluster_id" "new" "$snap_timestamp" 0
+            cluster_log "'new' snapshot created"
+        else
+            cluster_error "Failed to create 'new' snapshot"
+            cluster_log "Cleaning up cluster"
+            cluster_vms_destroy_all "$cluster_id"
+            cluster_state_delete "$cluster_id" 2>/dev/null || true
+            set +o pipefail
+            return 1
+        fi
+        echo ""
+
+        # Load cluster state for test execution
+        cluster_state_load "$cluster_id"
+
+        # Export variables needed by executor
+        export CLUSTER_NUM_NODES
+        export CLUSTER_SSH_KEY_DIR
+        export CLUSTER_SSH_USER
+        export CLUSTER_NUM_SCSI
+        export CLUSTER_NUM_NVME
+        export CLUSTER_NUM_MULTIPATH
+        export CLUSTER_MULTIPATH_ENABLE
+
+        # Source executor and shell bridge
+        source "$SCRIPT_DIR/cluster-executor.sh" || {
+            cluster_error "Failed to load cluster-executor.sh"
+            cluster_vms_destroy_all "$cluster_id"
+            cluster_state_delete "$cluster_id" 2>/dev/null || true
+            set +o pipefail
+            return 1
+        }
+        source "$SCRIPT_DIR/cluster-shell-bridge.sh" || {
+            cluster_error "Failed to load cluster-shell-bridge.sh"
+            cluster_vms_destroy_all "$cluster_id"
+            cluster_state_delete "$cluster_id" 2>/dev/null || true
+            set +o pipefail
+            return 1
+        }
+    fi
+
+    # Load known failures and version info
+    cluster_load_known_failures "$SCRIPT_DIR" "$results_dir"
+
+    # Run tests
+    local passed=0
+    local failed=0
+    local skipped=0
+    local known=0
+    local test_num=0
+    local total_tests=${#normalized_tests[@]}
+
+    # Array to track test results for group results file
+    local -a test_results=()
+
+    for test_file in "${normalized_tests[@]}"; do
+        test_num=$((test_num + 1))
+        local test_basename="$(basename "$test_file" .sh)"
+
+        cluster_log "[$test_num/$total_tests] Running: $(basename "$test_file")"
+        echo ""
+
+        # Track test start time
+        local test_start=$(date +%s)
+
+        # Run test and capture result -- dispatch test/shell/ scripts
+        # to the shell bridge
+        local test_exit=0
+        local resolved_test
+        resolved_test=$(realpath "$test_file" 2>/dev/null || echo "$test_file")
+
+        if [[ "$resolved_test" == */test/shell/* ]]; then
+            cluster_run_shell_test "$test_file" || test_exit=$?
+        else
+            cluster_run_test "$test_file" || test_exit=$?
+        fi
+
+        local test_status=""
+        if [ $test_exit -eq 0 ]; then
+            # Check most recent log file for skip indication
+            local latest_log=$(ls -t "$results_dir"/log_${test_basename}_*.txt "$results_dir"/skipped/log_${test_basename}_*.txt "$results_dir"/passed/log_${test_basename}_*.txt 2>/dev/null | head -1)
+
+            if [ -n "$latest_log" ] && grep -q "SKIPPED" "$latest_log" 2>/dev/null; then
+                cluster_log "[$test_num/$total_tests] SKIPPED: $(basename "$test_file")"
+                skipped=$((skipped + 1))
+                test_status="skipped"
+            else
+                cluster_log "[$test_num/$total_tests] PASSED: $(basename "$test_file")"
+                passed=$((passed + 1))
+                test_status="success"
+            fi
+        else
+            if ls "$results_dir"/KNOWN_${test_basename}_*.txt 1>/dev/null 2>&1; then
+                cluster_warn "[$test_num/$total_tests] KNOWN: $(basename "$test_file")"
+                known=$((known + 1))
+                test_status="known"
+            else
+                cluster_error "[$test_num/$total_tests] FAILED: $(basename "$test_file")"
+                failed=$((failed + 1))
+                test_status="failed"
+            fi
+        fi
+
+        # Track test end time and calculate runtime
+        local test_end=$(date +%s)
+        local test_runtime=$((test_end - test_start))
+
+        # Store result for summary file
+        test_results+=("$test_basename $test_runtime $test_status")
+
+        echo ""
+
+        # Revert cluster for next test (except after last test)
+        # With -R, only revert after a failed test
+        if [ $test_num -lt $total_tests ]; then
+            if [ "${CLUSTER_REVERT_ON_FAIL:-0}" = "1" ] && [ "$test_status" != "failed" ] && [ "$test_status" != "known" ]; then
+                cluster_log "Skipping revert (test passed, -R mode)"
+            else
+                cluster_log "Reverting cluster to 'new' snapshot"
+
+                local revert_log="/tmp/cluster_revert_$$.log"
+                if ! cluster_vms_restart_from_snapshot "$cluster_id" "new" > "$revert_log" 2>&1; then
+                    cat "$revert_log" >&2
+                    rm -f "$revert_log"
+                    cluster_error "Failed to revert cluster - cannot continue safely"
+                    break
+                fi
+
+                cluster_state_set_paused "$cluster_id" 0
+                cluster_log "Cluster reverted"
+                export CLUSTER_REVERT_LOG="$revert_log"
+            fi
+            echo ""
+        fi
+    done
+
+    # Write group results file
+    local group_basename="$(basename "$group_file" .txt)"
+    local group_timestamp="$(date +%m%d%H%M%S)"
+    local groups_dir="$results_dir/groups"
+    mkdir -p "$groups_dir" 2>/dev/null || true
+    chmod 777 "$groups_dir" 2>/dev/null || true
+    local group_results_file="$groups_dir/group_result_${group_basename}_${group_timestamp}.txt"
+
+    cluster_log "Writing group results"
+    {
+        echo "# Group Results: $(basename "$group_file")"
+        echo "# Cluster: $cluster_id"
+        echo "# Date: $(date)"
+        echo "# Total: $total_tests, Passed: $passed, Failed: $failed, Known: $known, Skipped: $skipped"
+        echo "#"
+        echo "# Format: <testname> <runtime> <status>"
+        echo "#"
+        for result in "${test_results[@]}"; do
+            echo "$result"
+        done
+    } > "$group_results_file"
+    chmod 666 "$group_results_file" 2>/dev/null || true
+
+    # Rename group results file based on pass/fail
+    local final_group_results_file=""
+    if [ $failed -eq 0 ]; then
+        final_group_results_file="$groups_dir/group_${group_basename}_${group_timestamp}.txt"
+        mv "$group_results_file" "$final_group_results_file" 2>/dev/null || final_group_results_file="$group_results_file"
+    else
+        final_group_results_file="$groups_dir/FAILED_group_${group_basename}_${group_timestamp}.txt"
+        mv "$group_results_file" "$final_group_results_file" 2>/dev/null || final_group_results_file="$group_results_file"
+        chmod 666 "$final_group_results_file" 2>/dev/null || true
+    fi
+
+    # Destroy cluster only if we created it
+    if [ $use_existing_cluster -eq 0 ]; then
+        cluster_log "Destroying cluster: $cluster_id"
+        cluster_vms_destroy_all "$cluster_id"
+        cluster_state_delete "$cluster_id" 2>/dev/null || true
+    fi
+    echo ""
+
+    # Report summary
+    echo "=========================================="
+    echo "Group Summary: $(basename "$group_file")"
+    echo "=========================================="
+    echo "Total:   $total_tests"
+    echo "Passed:  $passed"
+    echo "Failed:  $failed"
+    echo "Known:   $known"
+    echo "Skipped: $skipped"
+    echo "=========================================="
+    echo ""
+    echo "Group results saved to: $final_group_results_file"
+    echo ""
+
+    # Restore pipefail setting
+    set +o pipefail
+
+    if [ $failed -gt 0 ]; then
+        return 1
+    fi
+
+    return 0
+}
+
+cluster_auto_detect_id() {
+    local command="$1"
+
+    # Get list of available clusters
+    local clusters=($(cluster_state_list))
+
+    if [ ${#clusters[@]} -eq 0 ]; then
+        # Check for orphaned VMs
+        local orphaned_vms=$(cluster_virsh list --all 2>/dev/null | grep lvmtest | awk '{print $2}' || true)
+        if [ -n "$orphaned_vms" ]; then
+            # Extract unique cluster IDs from orphaned VM names
+            # VM name format: ${cluster_id}-node${N}
+            local orphan_ids=($(echo "$orphaned_vms" | sed 's/-node[0-9]*$//' | sort -u))
+
+            if [ "$command" = "destroy" ]; then
+                if [ ${#orphan_ids[@]} -eq 1 ]; then
+                    cluster_warn "No cluster state file, destroying orphaned VMs for: ${orphan_ids[0]}"
+                    echo "${orphan_ids[0]}"
+                    return
+                else
+                    cluster_error "Multiple orphaned clusters found. Please specify cluster ID with -i option:"
+                    for oid in "${orphan_ids[@]}"; do
+                        cluster_error "  $oid"
+                    done
+                    cluster_die "Use: $0 -i <cluster-id> $command"
+                fi
+            fi
+
+            cluster_error "No cluster state files found, but found VMs without state (orphaned):"
+            echo "$orphaned_vms" | while read -r vm_name; do
+                cluster_error "  $vm_name"
+            done
+            cluster_error ""
+            cluster_error "These VMs can be listed with: $0 list"
+            cluster_error "Or manually destroyed with virsh destroy/undefine commands"
+            cluster_die "Cannot proceed without cluster state file"
+        else
+            cluster_die "No clusters found. Please create a cluster first with: $0 create"
+        fi
+    elif [ ${#clusters[@]} -eq 1 ]; then
+        # Only one cluster exists, use it
+        local detected_id="${clusters[0]}"
+        cluster_log "Auto-detected cluster: $detected_id"
+        echo "$detected_id"
+    else
+        # Multiple clusters exist, require explicit selection
+        cluster_error "Multiple clusters found. Please specify cluster ID with -i option:"
+        for cluster_id in "${clusters[@]}"; do
+            cluster_error "  $cluster_id"
+        done
+        cluster_die "Use: $0 -i <cluster-id> $command"
+    fi
+}
+
+#
+# Command implementations
+#
+
+cmd_create() {
+    cluster_log "Creating new cluster"
+
+    local cluster_id=""
+
+    # Check if cluster ID was specified with -i flag
+    if [ -n "${CLUSTER_ID:-}" ]; then
+        cluster_log "Using cluster ID: $CLUSTER_ID"
+        cluster_id="$CLUSTER_ID"
+    else
+        # Extract config basename for cluster ID generation
+        local config_basename=""
+        if [ -n "${CLUSTER_CONFIG_FILE:-}" ]; then
+            config_basename="$(basename "$CLUSTER_CONFIG_FILE" .conf)"
+        fi
+
+        # Generate cluster ID with config name
+        cluster_id=$(cluster_generate_id "$config_basename")
+        export CLUSTER_ID="$cluster_id"
+        cluster_log "Generated cluster ID: $cluster_id"
+    fi
+
+    # Prepare error log file
+    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local results_dir="$script_dir/results"
+    local config_basename="$(basename "${CLUSTER_CONFIG_FILE:-config}" .conf)"
+    local timestamp="$(date +%m%d%H%M%S)"
+    local cluster_log_dir="$results_dir/cluster"
+
+    # Create results directories if needed
+    mkdir -p "$results_dir" 2>/dev/null || true
+    chmod 777 "$results_dir" 2>/dev/null || true
+    mkdir -p "$cluster_log_dir" 2>/dev/null || true
+    chmod 777 "$cluster_log_dir" 2>/dev/null || true
+
+    local error_log="$cluster_log_dir/log_create_${config_basename}_${timestamp}.txt"
+
+    # Create all VMs (with error logging and live terminal output)
+    # Process substitution keeps cluster_vms_create_all in the current shell,
+    # preserving exports (e.g. CLUSTER_NODE_IPS), while tee runs in a subshell.
+    if cluster_vms_create_all "$cluster_id" > >(tee "$error_log") 2>&1; then
+        wait
+    else
+        wait
+        cluster_error "Cluster creation failed. Error log saved to: $error_log"
+        return 1
+    fi
+
+    # Save state
+    cluster_state_save "$cluster_id"
+
+    cluster_log ""
+    cluster_log "Cluster created successfully!"
+    cluster_log "Cluster ID: $cluster_id"
+    cluster_log ""
+    cluster_log "Node IPs:"
+    for i in "${!CLUSTER_NODE_IPS[@]}"; do
+        cluster_log "  Node $i: ${CLUSTER_NODE_IPS[$i]}"
+    done
+    echo ""
+
+    # Auto-create 'new' snapshot for clean slate testing
+    cluster_log "Creating automatic 'new' snapshot (clean slate for testing)"
+    if cluster_vms_snapshot_all "$cluster_id" "new"; then
+        local timestamp=$(date +%s)
+        cluster_state_add_snapshot "$cluster_id" "new" "$timestamp" 0  # 0 = running
+        cluster_log "'new' snapshot created successfully"
+        echo ""
+        echo "The 'new' snapshot has been created automatically."
+        echo "Use it to revert the cluster to a clean state for testing:"
+        echo "  $0 -i $cluster_id revert"
+    else
+        cluster_warn "Failed to create automatic 'new' snapshot"
+        echo "You can manually create it later with:"
+        echo "  $0 -i $cluster_id snapshot -n new"
+    fi
+    echo ""
+    echo "To destroy this cluster, run:"
+    echo "  $0 -i $cluster_id destroy"
+    echo ""
+}
+
+cmd_destroy() {
+    # Auto-detect cluster ID if not provided
+    if [ -z "${CLUSTER_ID:-}" ]; then
+        CLUSTER_ID=$(cluster_auto_detect_id "destroy")
+    fi
+
+    cluster_log "Destroying cluster: $CLUSTER_ID"
+
+    # Try to load cluster state (best effort - continue if it fails)
+    if cluster_state_load "$CLUSTER_ID" 2>/dev/null; then
+        cluster_debug "Loaded cluster state"
+    else
+        cluster_warn "Could not load cluster state - will attempt to find VMs by pattern"
+        cluster_warn "This may happen if cluster creation failed or state was corrupted"
+    fi
+
+    # Destroy all VMs (this will discover VMs even if state is missing)
+    cluster_vms_destroy_all "$CLUSTER_ID"
+
+    # Delete state if it exists
+    cluster_state_delete "$CLUSTER_ID" 2>/dev/null || true
+
+    cluster_log "Cluster destroyed successfully: $CLUSTER_ID"
+}
+
+cmd_status() {
+    # Auto-detect cluster ID if not provided
+    if [ -z "${CLUSTER_ID:-}" ]; then
+        CLUSTER_ID=$(cluster_auto_detect_id "status")
+    fi
+
+    cluster_log "Cluster status: $CLUSTER_ID"
+
+    # Load cluster state
+    if ! cluster_state_load "$CLUSTER_ID"; then
+        cluster_die "Failed to load cluster state for: $CLUSTER_ID"
+    fi
+
+    echo ""
+    echo "Cluster ID: $CLUSTER_ID"
+    echo "Number of test nodes: ${CLUSTER_NUM_NODES:-unknown}"
+    echo "Lock type: ${CLUSTER_LOCK_TYPE:-unknown}"
+    echo ""
+
+    if [ "${#CLUSTER_NODE_IPS[@]}" -gt 0 ]; then
+        echo "Node IPs:"
+        for i in "${!CLUSTER_NODE_IPS[@]}"; do
+            local vm_name=$(cluster_vm_get_name "$CLUSTER_ID" "$i")
+            local state="unknown"
+
+            if cluster_virsh dominfo "$vm_name" &>/dev/null; then
+                state=$(cluster_virsh domstate "$vm_name" 2>/dev/null || echo "unknown")
+            else
+                state="not found"
+            fi
+
+            printf "  Node %d: %-15s (%s)\n" "$i" "${CLUSTER_NODE_IPS[$i]}" "$state"
+        done
+    else
+        echo "No node IPs found in state"
+    fi
+
+    echo ""
+}
+
+cmd_list() {
+    cluster_log "Listing all clusters"
+    echo ""
+
+    local clusters=($(cluster_state_list))
+
+    if [ ${#clusters[@]} -eq 0 ]; then
+        echo "No clusters found"
+
+        # Check for orphaned VMs (running without state files)
+        local orphaned_vms=$(cluster_virsh list --all 2>/dev/null | grep lvmtest | awk '{print $2}' || true)
+        if [ -n "$orphaned_vms" ]; then
+            echo ""
+            echo "WARNING: Found VMs without cluster state files (orphaned):"
+            echo "$orphaned_vms" | while read -r vm_name; do
+                echo "  $vm_name"
+            done
+            echo ""
+            echo "To clean up all orphaned VMs, run:"
+            echo "  $0 cleanup-all"
+            echo ""
+            echo "Or manually destroy each VM with:"
+            echo "  virsh destroy <vm-name>"
+            echo "  virsh undefine <vm-name> --remove-all-storage"
+        fi
+
+        echo ""
+        return
+    fi
+
+    echo "Available clusters:"
+    for cluster_id in "${clusters[@]}"; do
+        # Load state to get info
+        CLUSTER_ID="$cluster_id"
+        cluster_state_load "$cluster_id" 2>/dev/null || continue
+
+        local num_nodes="${CLUSTER_NUM_NODES:-?}"
+        local lock="${CLUSTER_LOCK_TYPE:-?}"
+
+        printf "  %-30s  nodes=%s  lock=%s\n" \
+            "$cluster_id" "$num_nodes" "$lock"
+    done
+    echo ""
+}
+
+cmd_run() {
+    local test_script=""
+
+    # Parse command-specific options
+    local OPTIND=2  # Start after command name
+    while getopts "t:" opt; do
+        case $opt in
+            t)
+                test_script="$OPTARG"
+                ;;
+            *)
+                cluster_error "Invalid option for run command"
+                usage
+                ;;
+        esac
+    done
+
+    if [ -z "$test_script" ]; then
+        cluster_error "No test script specified. Use: -t <test-script>"
+        echo ""
+        echo "Usage: $0 -i <cluster-id> run -t <test-script>"
+        echo ""
+        echo "Example:"
+        echo "  $0 -i lvmtest-12345-67890 run -t test/cluster/shell/my_test.sh"
+        echo ""
+        return 1
+    fi
+
+    if [ ! -f "$test_script" ]; then
+        cluster_error "Test script not found: $test_script"
+        return 1
+    fi
+
+    # Auto-detect cluster ID if not provided
+    if [ -z "${CLUSTER_ID:-}" ]; then
+        CLUSTER_ID=$(cluster_auto_detect_id "run")
+    fi
+
+    # Load cluster state
+    if ! cluster_state_load "$CLUSTER_ID"; then
+        cluster_die "Failed to load cluster state for: $CLUSTER_ID"
+    fi
+
+    # Check if cluster is paused
+    if cluster_state_is_paused "$CLUSTER_ID"; then
+        cluster_error "Cannot run tests on a paused cluster"
+        echo "Resume the cluster first with: $0 -i $CLUSTER_ID resume"
+        return 1
+    fi
+
+    # Export CLUSTER_ID so executor functions can access it
+    export CLUSTER_ID
+
+    cluster_log "Running test on cluster: $CLUSTER_ID"
+
+    # Load cluster state
+    if ! cluster_state_load "$CLUSTER_ID"; then
+        cluster_die "Failed to load cluster state for: $CLUSTER_ID"
+    fi
+
+    # Export variables needed by executor and SSH functions
+    export CLUSTER_NUM_NODES
+    export CLUSTER_SSH_KEY_DIR
+    export CLUSTER_SSH_USER
+    export CLUSTER_NUM_SCSI
+    export CLUSTER_NUM_NVME
+    export CLUSTER_NUM_MULTIPATH
+    export CLUSTER_MULTIPATH_ENABLE
+
+    # Source the executor library
+    # shellcheck disable=SC1091
+    source "$SCRIPT_DIR/cluster-executor.sh" || {
+        cluster_die "Failed to load cluster-executor.sh"
+    }
+
+    # Source the shell bridge for test/shell/ scripts
+    # shellcheck disable=SC1091
+    source "$SCRIPT_DIR/cluster-shell-bridge.sh" || {
+        cluster_die "Failed to load cluster-shell-bridge.sh"
+    }
+
+    # Load known failures and version info
+    cluster_load_known_failures "$SCRIPT_DIR" "$SCRIPT_DIR/results"
+
+    # Dispatch based on test location (resolve relative paths like ../shell/)
+    local resolved_script
+    resolved_script=$(realpath "$test_script" 2>/dev/null || echo "$test_script")
+    local exit_code
+    if [[ "$resolved_script" == */test/shell/* ]]; then
+        cluster_run_shell_test "$test_script"
+        exit_code=$?
+    else
+        cluster_run_test "$test_script"
+        exit_code=$?
+    fi
+
+    if [ $exit_code -eq 0 ]; then
+        cluster_log "Test completed successfully"
+    else
+        cluster_error "Test failed with exit code: $exit_code"
+    fi
+
+    return $exit_code
+}
+
+cmd_pause() {
+    # Auto-detect cluster ID if not provided
+    if [ -z "${CLUSTER_ID:-}" ]; then
+        CLUSTER_ID=$(cluster_auto_detect_id "pause")
+    fi
+
+    cluster_log "Pausing cluster: $CLUSTER_ID"
+
+    # Load cluster state
+    if ! cluster_state_load "$CLUSTER_ID"; then
+        cluster_die "Failed to load cluster state for: $CLUSTER_ID"
+    fi
+
+    # Check if cluster is already paused
+    if cluster_state_is_paused "$CLUSTER_ID"; then
+        cluster_error "Cluster is already paused: $CLUSTER_ID"
+        return 1
+    fi
+
+    # Pause all VMs
+    if ! cluster_vms_pause_all "$CLUSTER_ID"; then
+        cluster_error "Failed to pause cluster: $CLUSTER_ID"
+        return 1
+    fi
+
+    # Update state file
+    cluster_state_set_paused "$CLUSTER_ID" 1
+
+    cluster_log "Cluster paused successfully: $CLUSTER_ID"
+    echo ""
+    echo "To resume the cluster, run:"
+    echo "  $0 -i $CLUSTER_ID resume"
+    echo ""
+}
+
+cmd_resume() {
+    # Auto-detect cluster ID if not provided
+    if [ -z "${CLUSTER_ID:-}" ]; then
+        CLUSTER_ID=$(cluster_auto_detect_id "resume")
+    fi
+
+    cluster_log "Resuming cluster: $CLUSTER_ID"
+
+    # Load cluster state
+    if ! cluster_state_load "$CLUSTER_ID"; then
+        cluster_die "Failed to load cluster state for: $CLUSTER_ID"
+    fi
+
+    # Check if cluster is paused
+    if ! cluster_state_is_paused "$CLUSTER_ID"; then
+        cluster_error "Cluster is not paused: $CLUSTER_ID"
+        echo "Current state: running"
+        return 1
+    fi
+
+    # Resume all VMs
+    if ! cluster_vms_resume_all "$CLUSTER_ID"; then
+        cluster_error "Failed to resume cluster: $CLUSTER_ID"
+        return 1
+    fi
+
+    # Update state file
+    cluster_state_set_paused "$CLUSTER_ID" 0
+
+    cluster_log "Cluster resumed successfully: $CLUSTER_ID"
+    echo ""
+    echo "Node IPs:"
+    for i in "${!CLUSTER_NODE_IPS[@]}"; do
+        echo "  Node $i: ${CLUSTER_NODE_IPS[$i]}"
+    done
+    echo ""
+}
+
+cmd_snapshot() {
+    local snapshot_name=""
+
+    # Parse command-specific options
+    local OPTIND=2  # Start after command name
+    while getopts "n:" opt; do
+        case $opt in
+            n)
+                snapshot_name="$OPTARG"
+                ;;
+            *)
+                cluster_error "Invalid option for snapshot command"
+                usage
+                ;;
+        esac
+    done
+
+    if [ -z "$snapshot_name" ]; then
+        cluster_error "Snapshot name is required. Use: -n <snapshot_name>"
+        usage
+    fi
+
+    # Auto-detect cluster ID if not provided
+    if [ -z "${CLUSTER_ID:-}" ]; then
+        CLUSTER_ID=$(cluster_auto_detect_id "snapshot")
+    fi
+
+    cluster_log "Creating snapshot '$snapshot_name' for cluster: $CLUSTER_ID"
+
+    # Load cluster state
+    if ! cluster_state_load "$CLUSTER_ID"; then
+        cluster_die "Failed to load cluster state for: $CLUSTER_ID"
+    fi
+
+    # Check if snapshot with this name already exists
+    if cluster_state_snapshot_exists "$CLUSTER_ID" "$snapshot_name"; then
+        cluster_error "Snapshot '$snapshot_name' already exists for cluster: $CLUSTER_ID"
+        echo "Delete it first with: $0 -i $CLUSTER_ID snapshot-delete -n $snapshot_name"
+        return 1
+    fi
+
+    # Create snapshot
+    if ! cluster_vms_snapshot_all "$CLUSTER_ID" "$snapshot_name"; then
+        cluster_error "Failed to create snapshot for cluster: $CLUSTER_ID"
+        return 1
+    fi
+
+    # Get current paused state
+    local is_paused=0
+    if cluster_state_is_paused "$CLUSTER_ID"; then
+        is_paused=1
+    fi
+
+    # Update state file
+    local timestamp=$(date +%s)
+    cluster_state_add_snapshot "$CLUSTER_ID" "$snapshot_name" "$timestamp" "$is_paused"
+
+    cluster_log "Snapshot '$snapshot_name' created successfully"
+    echo ""
+    echo "To revert to this snapshot, run:"
+    echo "  $0 -i $CLUSTER_ID snapshot-revert -n $snapshot_name"
+    echo ""
+    echo "To delete this snapshot, run:"
+    echo "  $0 -i $CLUSTER_ID snapshot-delete -n $snapshot_name"
+    echo ""
+}
+
+cmd_revert() {
+    # Auto-detect cluster ID if not provided
+    if [ -z "${CLUSTER_ID:-}" ]; then
+        CLUSTER_ID=$(cluster_auto_detect_id "revert")
+    fi
+
+    cluster_log "Reverting cluster to 'new' snapshot: $CLUSTER_ID"
+
+    # Load cluster state
+    if ! cluster_state_load "$CLUSTER_ID"; then
+        cluster_die "Failed to load cluster state for: $CLUSTER_ID"
+    fi
+
+    # Check if 'new' snapshot exists
+    if ! cluster_state_snapshot_exists "$CLUSTER_ID" "new"; then
+        cluster_error "No 'new' snapshot found for cluster: $CLUSTER_ID"
+        echo ""
+        echo "The 'new' snapshot is automatically created when the cluster is created."
+        echo "If it's missing, you may need to recreate the cluster or create a new snapshot:"
+        echo "  $0 -i $CLUSTER_ID snapshot -n new"
+        echo ""
+        return 1
+    fi
+
+    # Info message about what will happen
+    echo ""
+    echo "This will revert the cluster to the 'new' snapshot (clean slate)."
+    echo "Current VM state will be destroyed and replaced with the 'new' snapshot."
+    echo "The snapshot will be preserved for future reverts."
+    echo ""
+
+    # Revert to 'new' snapshot
+    if ! cluster_vms_restart_from_snapshot "$CLUSTER_ID" "new"; then
+        cluster_error "Failed to revert cluster to 'new' snapshot: $CLUSTER_ID"
+        return 1
+    fi
+
+    # Set paused state to running (new snapshots are always running)
+    cluster_state_set_paused "$CLUSTER_ID" 0
+
+    cluster_log "Cluster reverted successfully to 'new' snapshot"
+    echo ""
+    echo "Node IPs:"
+    for i in "${!CLUSTER_NODE_IPS[@]}"; do
+        echo "  Node $i: ${CLUSTER_NODE_IPS[$i]}"
+    done
+    echo ""
+    echo "The 'new' snapshot is preserved. You can revert again with:"
+    echo "  $0 -i $CLUSTER_ID revert"
+    echo ""
+}
+
+cmd_snapshot_delete() {
+    local snapshot_name=""
+
+    # Parse command-specific options
+    local OPTIND=2  # Start after command name
+    while getopts "n:" opt; do
+        case $opt in
+            n)
+                snapshot_name="$OPTARG"
+                ;;
+            *)
+                cluster_error "Invalid option for snapshot-delete command"
+                usage
+                ;;
+        esac
+    done
+
+    if [ -z "$snapshot_name" ]; then
+        cluster_error "Snapshot name is required. Use: -n <snapshot_name>"
+        usage
+    fi
+
+    # Auto-detect cluster ID if not provided
+    if [ -z "${CLUSTER_ID:-}" ]; then
+        CLUSTER_ID=$(cluster_auto_detect_id "snapshot-delete")
+    fi
+
+    cluster_log "Deleting snapshot '$snapshot_name' for cluster: $CLUSTER_ID"
+
+    # Load cluster state
+    if ! cluster_state_load "$CLUSTER_ID"; then
+        cluster_die "Failed to load cluster state for: $CLUSTER_ID"
+    fi
+
+    # Check if snapshot exists
+    if ! cluster_state_snapshot_exists "$CLUSTER_ID" "$snapshot_name"; then
+        cluster_error "Snapshot '$snapshot_name' not found for cluster: $CLUSTER_ID"
+        return 1
+    fi
+
+    # Confirm with user
+    if [ -t 0 ]; then
+        # Interactive - ask for confirmation
+        read -p "Delete snapshot '$snapshot_name' for cluster $CLUSTER_ID? (yes/no): " confirm
+        if [ "$confirm" != "yes" ]; then
+            echo "Aborted"
+            return 1
+        fi
+    fi
+
+    # Delete snapshot files
+    if ! cluster_snapshot_delete "$CLUSTER_ID" "$snapshot_name"; then
+        cluster_error "Failed to delete snapshot '$snapshot_name' for cluster: $CLUSTER_ID"
+        return 1
+    fi
+
+    # Remove snapshot metadata from state file
+    cluster_state_remove_snapshot "$CLUSTER_ID" "$snapshot_name"
+
+    cluster_log "Snapshot '$snapshot_name' deleted successfully"
+    echo ""
+}
+
+cmd_snapshot_revert() {
+    local snapshot_name=""
+
+    # Parse command-specific options
+    local OPTIND=2  # Start after command name
+    while getopts "n:" opt; do
+        case $opt in
+            n)
+                snapshot_name="$OPTARG"
+                ;;
+            *)
+                cluster_error "Invalid option for snapshot-revert command"
+                usage
+                ;;
+        esac
+    done
+
+    if [ -z "$snapshot_name" ]; then
+        cluster_error "Snapshot name is required. Use: -n <snapshot_name>"
+        usage
+    fi
+
+    # Auto-detect cluster ID if not provided
+    if [ -z "${CLUSTER_ID:-}" ]; then
+        CLUSTER_ID=$(cluster_auto_detect_id "snapshot-revert")
+    fi
+
+    cluster_log "Reverting cluster to snapshot '$snapshot_name': $CLUSTER_ID"
+
+    # Load cluster state
+    if ! cluster_state_load "$CLUSTER_ID"; then
+        cluster_die "Failed to load cluster state for: $CLUSTER_ID"
+    fi
+
+    # Check if snapshot exists
+    if ! cluster_state_snapshot_exists "$CLUSTER_ID" "$snapshot_name"; then
+        cluster_error "Snapshot '$snapshot_name' not found for cluster: $CLUSTER_ID"
+        echo ""
+        echo "Available snapshots:"
+        cluster_state_list_snapshots "$CLUSTER_ID" || echo "  (none)"
+        echo ""
+        return 1
+    fi
+
+    # Get the paused state from the snapshot
+    local snapshot_was_paused=$(cluster_state_get_snapshot_paused_state "$CLUSTER_ID" "$snapshot_name")
+
+    # Info message about what will happen
+    echo ""
+    echo "This will revert the cluster to snapshot '$snapshot_name'."
+    echo "Current VM state will be destroyed and replaced with the snapshot."
+    if [ "$snapshot_was_paused" -eq 1 ]; then
+        echo "The cluster will be in PAUSED state after revert (as it was when snapshotted)."
+    else
+        echo "The cluster will be in RUNNING state after revert (as it was when snapshotted)."
+    fi
+    echo "The snapshot will be preserved for future reverts."
+    echo ""
+
+    # Revert to snapshot
+    if ! cluster_vms_restart_from_snapshot "$CLUSTER_ID" "$snapshot_name"; then
+        cluster_error "Failed to revert cluster to snapshot '$snapshot_name': $CLUSTER_ID"
+        return 1
+    fi
+
+    # Set paused state to match the snapshot
+    cluster_state_set_paused "$CLUSTER_ID" "$snapshot_was_paused"
+
+    if [ "$snapshot_was_paused" -eq 1 ]; then
+        cluster_log "Cluster reverted successfully to snapshot '$snapshot_name' (paused)"
+        echo ""
+        echo "Cluster is now in PAUSED state (as it was when the snapshot was created)."
+        echo "To resume the cluster, run:"
+        echo "  $0 -i $CLUSTER_ID resume"
+    else
+        cluster_log "Cluster reverted successfully to snapshot '$snapshot_name' (running)"
+        echo ""
+        echo "Node IPs:"
+        for i in "${!CLUSTER_NODE_IPS[@]}"; do
+            echo "  Node $i: ${CLUSTER_NODE_IPS[$i]}"
+        done
+    fi
+    echo ""
+    echo "Snapshot '$snapshot_name' is preserved. You can revert again with:"
+    echo "  $0 -i $CLUSTER_ID snapshot-revert -n $snapshot_name"
+    echo ""
+}
+
+cmd_makeconfig() {
+    local output_file="configs/generated-cluster.conf"
+
+    # Parse command-specific options
+    local OPTIND=2  # Start after command name
+    while getopts "c:" opt; do
+        case $opt in
+            c)
+                output_file="$OPTARG"
+                ;;
+            *)
+                cluster_error "Invalid option for makeconfig command"
+                usage
+                ;;
+        esac
+    done
+
+    # Apply normalization to output file (same rules as main)
+    if [ -n "$output_file" ]; then
+        # If it's an absolute path, use as-is
+        if [[ "$output_file" = /* ]]; then
+            : # Keep as-is
+        # If it has no directory component (no slash), add configs/ prefix
+        elif [[ ! "$output_file" = */* ]]; then
+            # Also add .conf extension if not present
+            if [[ ! "$output_file" = *.conf ]]; then
+                output_file="configs/${output_file}.conf"
+            else
+                output_file="configs/${output_file}"
+            fi
+        fi
+    fi
+
+    # Make path absolute if relative
+    if [[ ! "$output_file" = /* ]]; then
+        output_file="$SCRIPT_DIR/$output_file"
+    fi
+
+    echo ""
+    echo "============================================"
+    echo "  LVM Cluster Configuration Generator"
+    echo "============================================"
+    echo ""
+    echo "This wizard will help you create a cluster configuration file."
+    echo "Press Ctrl+C at any time to abort."
+    echo ""
+
+    # Check if running interactively
+    if [ ! -t 0 ]; then
+        cluster_error "makeconfig must be run interactively"
+        return 1
+    fi
+
+    # Source default config to get default values
+    local default_config="$SCRIPT_DIR/configs/default-cluster.conf"
+    if [ -f "$default_config" ]; then
+        # shellcheck disable=SC1090
+        source "$default_config" 2>/dev/null || true
+    fi
+
+    # Required prompts
+    local os_image=""
+    local num_nodes=""
+    local lock_type=""
+    local num_scsi=""
+    local num_nvme=""
+
+    # Optional configuration
+    local use_advanced="n"
+
+    # Prompt 1: OS Image Path (required)
+    while true; do
+        echo "1. OS Image Path"
+        echo "   This should be a cloud-ready image (cloud-init enabled)"
+        echo ""
+
+        # List available qcow2 images (exclude lvmtest VM images)
+        local images_dir
+        images_dir=$(cluster_get_image_dir)
+        if [ -d "$images_dir" ]; then
+            local available_images=()
+            shopt -s nullglob
+            for img in "$images_dir"/*.qcow2; do
+                if [ -f "$img" ]; then
+                    local basename=$(basename "$img")
+                    # Skip images that start with lvmtest (cluster VM images)
+                    if [[ ! "$basename" =~ ^lvmtest- ]]; then
+                        available_images+=("$img")
+                    fi
+                fi
+            done
+            shopt -u nullglob
+
+            if [ ${#available_images[@]} -gt 0 ]; then
+                echo "   Available images:"
+                for img in "${available_images[@]}"; do
+                    echo "     $img"
+                done
+                echo ""
+            fi
+        fi
+
+        read -p "   Path to OS image: " os_image
+
+        if [ -z "$os_image" ]; then
+            echo "   ERROR: OS image path is required"
+            continue
+        fi
+
+        if [ ! -f "$os_image" ]; then
+            echo "   ERROR: File not found: $os_image"
+            read -p "   Continue anyway? (y/n): " continue_anyway
+            if [ "$continue_anyway" != "y" ]; then
+                continue
+            fi
+        fi
+
+        break
+    done
+    echo ""
+
+    # Prompt 2: Number of test nodes (required)
+    while true; do
+        read -p "2. Number of test nodes [${CLUSTER_NUM_NODES:-3}]: " num_nodes
+        num_nodes="${num_nodes:-${CLUSTER_NUM_NODES:-3}}"
+
+        if ! [[ "$num_nodes" =~ ^[0-9]+$ ]]; then
+            echo "   ERROR: Must be a number"
+            continue
+        fi
+
+        if [ "$num_nodes" -lt 1 ]; then
+            echo "   ERROR: Must be at least 1"
+            continue
+        fi
+
+        break
+    done
+    echo ""
+
+    # Prompt 3: Lock manager type (required)
+    while true; do
+        echo "3. Lock manager type"
+        echo "   sanlock - Recommended for most use cases"
+        echo "   dlm     - Distributed lock manager (requires corosync)"
+        echo "   none    - Install packages but don't configure lock manager"
+        read -p "   Lock type (sanlock/dlm/none) [${CLUSTER_LOCK_TYPE:-sanlock}]: " lock_type
+        lock_type="${lock_type:-${CLUSTER_LOCK_TYPE:-sanlock}}"
+
+        if [ "$lock_type" != "sanlock" ] && [ "$lock_type" != "dlm" ] && [ "$lock_type" != "none" ]; then
+            echo "   ERROR: Must be 'sanlock', 'dlm', or 'none'"
+            continue
+        fi
+
+        break
+    done
+    echo ""
+
+    # Prompt 4: Number of iSCSI devices (required)
+    while true; do
+        read -p "4. Number of iSCSI devices [3]: " num_scsi
+        num_scsi="${num_scsi:-3}"
+
+        if ! [[ "$num_scsi" =~ ^[0-9]+$ ]]; then
+            echo "   ERROR: Must be a number"
+            continue
+        fi
+
+        break
+    done
+    echo ""
+
+    # Prompt 5: Number of NVMe devices (required)
+    while true; do
+        read -p "5. Number of NVMe devices [0]: " num_nvme
+        num_nvme="${num_nvme:-0}"
+
+        if ! [[ "$num_nvme" =~ ^[0-9]+$ ]]; then
+            echo "   ERROR: Must be a number"
+            continue
+        fi
+
+        break
+    done
+    echo ""
+
+    # Prompt 6: Number of multipath devices (optional)
+    local num_multipath="0"
+    while true; do
+        read -p "6. Number of multipath devices [0]: " num_multipath
+        num_multipath="${num_multipath:-0}"
+
+        if ! [[ "$num_multipath" =~ ^[0-9]+$ ]]; then
+            echo "   ERROR: Must be a number"
+            continue
+        fi
+
+        break
+    done
+    echo ""
+
+    # Validate that at least one storage type is configured
+    if [ "$num_scsi" -eq 0 ] && [ "$num_nvme" -eq 0 ] && [ "$num_multipath" -eq 0 ]; then
+        echo "   ERROR: At least one of iSCSI, NVMe, or multipath devices must be greater than 0"
+        return 1
+    fi
+
+    # Prompt 8: Use LVM from source? (optional)
+    local use_source="n"
+    local source_dir=""
+    read -p "8. Use LVM from source? (y/n) [n]: " use_source
+    use_source="${use_source:-n}"
+    echo ""
+
+    if [ "$use_source" = "y" ]; then
+        echo "   LVM source directory"
+        read -p "   Path [auto-detect]: " source_dir
+        echo ""
+    fi
+
+    # Prompt 9: Use sanlock from source? (optional)
+    local use_sanlock_source="n"
+    local sanlock_source_dir=""
+    read -p "9. Use sanlock from source? (y/n) [n]: " use_sanlock_source
+    use_sanlock_source="${use_sanlock_source:-n}"
+    echo ""
+
+    if [ "$use_sanlock_source" = "y" ]; then
+        echo "   Sanlock source directory"
+        read -p "   Path: " sanlock_source_dir
+        echo ""
+    fi
+
+    # Prompt 10: Advanced configuration? (optional)
+    read -p "10. Configure advanced options? (y/n) [n]: " use_advanced
+    use_advanced="${use_advanced:-n}"
+    echo ""
+
+    # Advanced prompts
+    local node_memory="${CLUSTER_NODE_MEMORY:-2048}"
+    local node_vcpus="${CLUSTER_NODE_VCPUS:-2}"
+    local node_disk_size="${CLUSTER_NODE_DISK_SIZE:-20}"
+    local scsi_size="${CLUSTER_SCSI_SIZE:-1024}"
+    local scsi_sector_size="${CLUSTER_SCSI_SECTOR_SIZE:-512}"
+    local scsi_backing_type="${CLUSTER_SCSI_BACKING_TYPE:-loop_sparse}"
+    local scsi_optimal_io_size="${CLUSTER_SCSI_OPTIMAL_IO_SIZE:-1024}"
+    local nvme_size="${CLUSTER_NVME_SIZE:-1024}"
+    local nvme_sector_size="${CLUSTER_NVME_SECTOR_SIZE:-512}"
+    local nvme_backing_type="${CLUSTER_NVME_BACKING_TYPE:-loop_sparse}"
+    local multipath_paths="${CLUSTER_MULTIPATH_PATHS:-2}"
+    local multipath_size="${CLUSTER_MULTIPATH_SIZE:-1024}"
+    local multipath_sector_size="${CLUSTER_MULTIPATH_SECTOR_SIZE:-512}"
+    local multipath_backing_type="${CLUSTER_MULTIPATH_BACKING_TYPE:-loop_sparse}"
+    local multipath_optimal_io_size="${CLUSTER_MULTIPATH_OPTIMAL_IO_SIZE:-1024}"
+    local debug="${CLUSTER_DEBUG:-0}"
+    local sanlock_conf_settings=""
+
+    if [ "$use_advanced" = "y" ]; then
+        echo "Advanced Configuration:"
+        echo ""
+
+        read -p "  VM Memory (MB) [$node_memory]: " input
+        node_memory="${input:-$node_memory}"
+
+        read -p "  VM CPUs [$node_vcpus]: " input
+        node_vcpus="${input:-$node_vcpus}"
+
+        read -p "  VM Disk Size (GB) [$node_disk_size]: " input
+        node_disk_size="${input:-$node_disk_size}"
+
+        if [ "$num_scsi" -gt 0 ]; then
+            echo ""
+            echo "  iSCSI Configuration:"
+            read -p "    Device size (MB) [$scsi_size]: " input
+            scsi_size="${input:-$scsi_size}"
+
+            read -p "    Sector size (512/4096) [$scsi_sector_size]: " input
+            scsi_sector_size="${input:-$scsi_sector_size}"
+
+            echo ""
+            echo "    Backing store options:"
+            echo "      file_prealloc: targetcli/backstores/fileio uses preallocated file (dd)"
+            echo "      file_sparse:   targetcli/backstores/fileio uses sparse file (truncate)"
+            echo "      loop_prealloc: targetcli/backstores/block uses loopdev on preallocated file (dd)"
+            echo "      loop_sparse:   targetcli/backstores/block uses loopdev on sparse file (truncate)"
+            echo "      memory:        targetcli/backstores/ramdisk (no external file or device)"
+            read -p "    Backing type [$scsi_backing_type]: " input
+            scsi_backing_type="${input:-$scsi_backing_type}"
+
+            echo ""
+            echo "    Optimal IO size reported by iSCSI target (KB)."
+            echo "    Controls PE alignment on initiator (0=no preference, 1024=1MB)."
+            read -p "    Optimal IO size (KB) [$scsi_optimal_io_size]: " input
+            scsi_optimal_io_size="${input:-$scsi_optimal_io_size}"
+        fi
+
+        if [ "$num_nvme" -gt 0 ]; then
+            echo ""
+            echo "  NVMe Configuration:"
+            read -p "    Device size (MB) [$nvme_size]: " input
+            nvme_size="${input:-$nvme_size}"
+
+            read -p "    Sector size (512/4096) [$nvme_sector_size]: " input
+            nvme_sector_size="${input:-$nvme_sector_size}"
+
+            echo ""
+            echo "    Backing store options:"
+            echo "      loop_prealloc: ns/device_path uses loopdev on preallocated file (dd)"
+            echo "      loop_sparse:   ns/device_path uses loopdev on sparse file (truncate)"
+            echo "      loop_memory:   ns/device_path uses loopdev on tmpfs file (dd)"
+            read -p "    Backing type [$nvme_backing_type]: " input
+            nvme_backing_type="${input:-$nvme_backing_type}"
+        fi
+
+        if [ "$num_multipath" -gt 0 ]; then
+            echo ""
+            echo "  Multipath Configuration:"
+            read -p "    Paths per device [$multipath_paths]: " input
+            multipath_paths="${input:-$multipath_paths}"
+
+            read -p "    Device size (MB) [$multipath_size]: " input
+            multipath_size="${input:-$multipath_size}"
+
+            read -p "    Sector size (512/4096) [$multipath_sector_size]: " input
+            multipath_sector_size="${input:-$multipath_sector_size}"
+
+            echo ""
+            echo "    Backing store options:"
+            echo "      file_prealloc: targetcli/backstores/fileio uses preallocated file (dd)"
+            echo "      file_sparse:   targetcli/backstores/fileio uses sparse file (truncate)"
+            echo "      loop_prealloc: targetcli/backstores/block uses loopdev on preallocated file (dd)"
+            echo "      loop_sparse:   targetcli/backstores/block uses loopdev on sparse file (truncate)"
+            echo "      memory:        targetcli/backstores/ramdisk (no external file or device)"
+            read -p "    Backing type [$multipath_backing_type]: " input
+            multipath_backing_type="${input:-$multipath_backing_type}"
+
+            echo ""
+            echo "    Optimal IO size reported by iSCSI target (KB)."
+            echo "    Controls PE alignment on initiator (0=no preference, 1024=1MB)."
+            read -p "    Optimal IO size (KB) [$multipath_optimal_io_size]: " input
+            multipath_optimal_io_size="${input:-$multipath_optimal_io_size}"
+        fi
+
+        echo ""
+        read -p "  Enable debug mode? (0/1) [$debug]: " input
+        debug="${input:-$debug}"
+
+        echo ""
+        local add_sanlock_conf="n"
+        read -p "  Add sanlock.conf options? (y/n) [n]: " add_sanlock_conf
+        add_sanlock_conf="${add_sanlock_conf:-n}"
+
+        if [ "$add_sanlock_conf" = "y" ]; then
+            echo ""
+            echo "  Sanlock Configuration:"
+            echo "  Custom settings for /etc/sanlock/sanlock.conf"
+            echo "  Enter settings one per line, blank line to finish"
+            echo "  Example: our_host_name=0"
+            while true; do
+                read -p "    " input
+                if [ -z "$input" ]; then
+                    break
+                fi
+                if [ -z "$sanlock_conf_settings" ]; then
+                    sanlock_conf_settings="$input"
+                else
+                    sanlock_conf_settings="$sanlock_conf_settings"$'\n'"$input"
+                fi
+            done
+        fi
+
+        echo ""
+    fi
+
+    # Calculate storage requirements for preallocated backing types
+    local total_storage_mb=0
+    local uses_prealloc=0
+
+    # SCSI storage
+    if [ "$num_scsi" -gt 0 ]; then
+        if [ "$scsi_backing_type" = "file_prealloc" ] || [ "$scsi_backing_type" = "loop_prealloc" ]; then
+            total_storage_mb=$((total_storage_mb + (num_scsi * scsi_size)))
+            uses_prealloc=1
+        fi
+    fi
+
+    # NVMe storage
+    if [ "$num_nvme" -gt 0 ]; then
+        if [ "$nvme_backing_type" = "loop_prealloc" ]; then
+            total_storage_mb=$((total_storage_mb + (num_nvme * nvme_size)))
+            uses_prealloc=1
+        fi
+    fi
+
+    # Multipath storage
+    if [ "$num_multipath" -gt 0 ]; then
+        if [ "$multipath_backing_type" = "file_prealloc" ] || [ "$multipath_backing_type" = "loop_prealloc" ]; then
+            total_storage_mb=$((total_storage_mb + (num_multipath * multipath_size)))
+            uses_prealloc=1
+        fi
+    fi
+
+    # Check if preallocated storage exceeds node disk size
+    if [ $uses_prealloc -eq 1 ]; then
+        local node_disk_size_mb=$((node_disk_size * 1024))
+        local total_storage_gb=$((total_storage_mb / 1024))
+
+        # Leave at least 5GB for OS and overhead
+        local available_storage_mb=$((node_disk_size_mb - 5120))
+
+        if [ $total_storage_mb -gt $available_storage_mb ]; then
+            echo ""
+            echo "WARNING: Preallocated storage requirements may exceed node 0 disk capacity!"
+            echo "  Node 0 disk size: ${node_disk_size} GB"
+            echo "  Required storage (preallocated): ${total_storage_gb} GB"
+            echo "  Available for storage (after OS): $((available_storage_mb / 1024)) GB"
+            echo ""
+            echo "Preallocated backing types (file_prealloc, loop_prealloc) use dd to"
+            echo "allocate the full size immediately. Node 0 stores these backing files."
+            echo ""
+
+            local recommended_disk_size=$((total_storage_gb + 10))
+            echo "Recommendation: Increase CLUSTER_NODE_DISK_SIZE to at least ${recommended_disk_size} GB"
+            echo "                or use sparse backing types (file_sparse, loop_sparse)"
+            echo ""
+
+            if [ -t 0 ]; then
+                read -p "Continue anyway? (y/n): " continue_anyway
+                if [ "$continue_anyway" != "y" ]; then
+                    echo "Aborted. Adjust your configuration and try again."
+                    return 1
+                fi
+            else
+                echo "Running in non-interactive mode - continuing with current settings"
+            fi
+            echo ""
+        fi
+    fi
+
+    # Generate configuration file
+    echo "Generating configuration file: $output_file"
+
+    # Create parent directory if needed
+    local output_dir=$(dirname "$output_file")
+    mkdir -p "$output_dir" 2>/dev/null || true
+    chmod 777 "$output_dir" 2>/dev/null || true
+
+    cat > "$output_file" <<EOF
+# Generated cluster configuration
+# Created: $(date)
+# Generator: lvmtest makeconfig
+
+# Number of test nodes
+CLUSTER_NUM_NODES=$num_nodes
+
+# VM specifications
+CLUSTER_NODE_MEMORY=$node_memory          # MB
+CLUSTER_NODE_VCPUS=$node_vcpus
+CLUSTER_NODE_DISK_SIZE=$node_disk_size         # GB
+
+# Base OS image for VMs
+CLUSTER_NODE_OS_IMAGE="$os_image"
+
+# OS variant for virt-install
+CLUSTER_NODE_OS_VARIANT="${CLUSTER_NODE_OS_VARIANT:-linux2024}"
+
+# Storage Export Configuration
+CLUSTER_NUM_SCSI=$num_scsi       # Number of iSCSI devices
+CLUSTER_NUM_NVME=$num_nvme       # Number of NVMe devices
+
+# iSCSI device configuration
+CLUSTER_SCSI_SIZE=$scsi_size              # MB per iSCSI device
+CLUSTER_SCSI_SECTOR_SIZE=$scsi_sector_size # 512 or 4096
+CLUSTER_SCSI_BACKING_TYPE="$scsi_backing_type"
+CLUSTER_SCSI_OPTIMAL_IO_SIZE=$scsi_optimal_io_size # KB (0=no preference, 1024=1MB)
+
+# NVMe device configuration
+CLUSTER_NVME_SIZE=$nvme_size              # MB per NVMe device
+CLUSTER_NVME_SECTOR_SIZE=$nvme_sector_size # 512 or 4096
+CLUSTER_NVME_BACKING_TYPE="$nvme_backing_type"
+
+# Multipath device configuration
+CLUSTER_NUM_MULTIPATH=$num_multipath    # Number of multipath devices
+CLUSTER_MULTIPATH_PATHS=$multipath_paths         # Paths per multipath device
+CLUSTER_MULTIPATH_SIZE=$multipath_size            # MB per multipath device
+CLUSTER_MULTIPATH_SECTOR_SIZE=$multipath_sector_size # 512 or 4096
+CLUSTER_MULTIPATH_BACKING_TYPE="$multipath_backing_type"
+CLUSTER_MULTIPATH_OPTIMAL_IO_SIZE=$multipath_optimal_io_size # KB (0=no preference, 1024=1MB)
+
+# Lock manager configuration
+CLUSTER_LOCK_TYPE="$lock_type"         # sanlock or dlm
+
+EOF
+
+    # Add source configuration if requested
+    if [ "$use_source" = "y" ] && [ -n "$source_dir" ]; then
+        cat >> "$output_file" <<EOF
+# Source tree deployment
+LVM_SOURCE_DIR="$source_dir"
+LVM_BUILD_OPTS="${LVM_BUILD_OPTS:-}"
+
+EOF
+    fi
+
+    # Add sanlock source configuration if requested
+    if [ "$use_sanlock_source" = "y" ] && [ -n "$sanlock_source_dir" ]; then
+        cat >> "$output_file" <<EOF
+# Sanlock source deployment
+SANLOCK_SOURCE_DIR="$sanlock_source_dir"
+SANLOCK_BUILD_OPTS="${SANLOCK_BUILD_OPTS:-}"
+
+EOF
+    fi
+
+    # Add sanlock configuration if specified
+    if [ -n "$sanlock_conf_settings" ]; then
+        cat >> "$output_file" <<EOF
+# Sanlock configuration (deployed to /etc/sanlock/sanlock.conf)
+EOF
+        # Write each setting as a separate array element
+        while IFS= read -r line; do
+            if [ -n "$line" ]; then
+                cat >> "$output_file" <<EOF
+SANLOCK_CONF_SETTINGS+=("$line")
+EOF
+            fi
+        done <<< "$sanlock_conf_settings"
+
+        cat >> "$output_file" <<EOF
+
+EOF
+    fi
+
+    # Add remaining defaults
+    cat >> "$output_file" <<EOF
+# Package installation
+CLUSTER_BASE_PACKAGES="${CLUSTER_BASE_PACKAGES:-sg3_utils}"
+
+# Network configuration
+CLUSTER_NETWORK_NAME="${CLUSTER_NETWORK_NAME:-default}"
+
+# SSH configuration
+CLUSTER_SSH_USER="${CLUSTER_SSH_USER:-root}"
+CLUSTER_SSH_KEY_DIR="\$HOME/.ssh"
+
+# Timeouts (seconds)
+CLUSTER_VM_BOOT_TIMEOUT=${CLUSTER_VM_BOOT_TIMEOUT:-300}
+CLUSTER_SSH_READY_TIMEOUT=${CLUSTER_SSH_READY_TIMEOUT:-180}
+CLUSTER_STORAGE_READY_TIMEOUT=${CLUSTER_STORAGE_READY_TIMEOUT:-60}
+
+# Debug mode
+CLUSTER_DEBUG=$debug
+EOF
+
+    # Make config file readable and writable by everyone
+    chmod 666 "$output_file" 2>/dev/null || true
+
+    echo ""
+    echo "Configuration file created successfully!"
+    echo ""
+    echo "File: $output_file"
+    echo ""
+    echo "Summary:"
+    echo "  OS Image:       $os_image"
+    echo "  Test Nodes:     $num_nodes"
+    echo "  Lock Type:      $lock_type"
+    echo "  iSCSI Devs:     $num_scsi"
+    echo "  NVMe Devs:      $num_nvme"
+    echo "  LVM Source:     $use_source"
+    echo "  Sanlock Source: $use_sanlock_source"
+    echo ""
+    echo "To create a cluster with this configuration:"
+    echo "  $0 -c $output_file create"
+    echo ""
+}
+
+cmd_cleanup_storage() {
+    cluster_log "Cleaning up orphaned storage files"
+    echo ""
+    local storage_dir
+    storage_dir=$(cluster_get_image_dir)
+
+    echo "This will remove storage files in $storage_dir/ that"
+    echo "start with 'lvmtest-' but are not associated with any existing cluster."
+    echo ""
+    if [ ! -d "$storage_dir" ]; then
+        cluster_error "Storage directory not found: $storage_dir"
+        return 1
+    fi
+
+    # Get list of existing cluster IDs
+    local existing_clusters=($(cluster_state_list))
+
+    cluster_log "Found ${#existing_clusters[@]} existing cluster(s)"
+    for cluster_id in "${existing_clusters[@]}"; do
+        cluster_debug "  Active cluster: $cluster_id"
+    done
+    echo ""
+
+    # Find all lvmtest-* files in storage directory
+    local all_files=()
+
+    # Use globbing to find files
+    shopt -s nullglob
+    for file in "$storage_dir"/lvmtest-*; do
+        if [ -f "$file" ]; then
+            all_files+=("$file")
+            cluster_debug "Found storage file: $file"
+        fi
+    done
+    shopt -u nullglob
+
+    if [ ${#all_files[@]} -eq 0 ]; then
+        echo "No lvmtest storage files found in $storage_dir"
+        return 0
+    fi
+
+    cluster_log "Found ${#all_files[@]} lvmtest storage file(s)"
+    echo ""
+
+    # Check each file to see if it belongs to an existing cluster
+    local orphaned_files=()
+
+    # If no clusters exist, all files are orphaned
+    if [ ${#existing_clusters[@]} -eq 0 ]; then
+        cluster_log "No active clusters - all storage files are orphaned"
+        orphaned_files=("${all_files[@]}")
+    else
+        # Check each file against existing clusters
+        for file in "${all_files[@]}"; do
+            local basename=$(basename "$file")
+            local is_orphaned=1
+
+            # Check if this file belongs to any existing cluster
+            for cluster_id in "${existing_clusters[@]}"; do
+                # Files belonging to a cluster start with the cluster ID
+                if [[ "$basename" =~ ^${cluster_id}- ]]; then
+                    cluster_debug "  $basename -> belongs to $cluster_id"
+                    is_orphaned=0
+                    break
+                fi
+            done
+
+            if [ $is_orphaned -eq 1 ]; then
+                cluster_debug "  $basename -> orphaned"
+                orphaned_files+=("$file")
+            fi
+        done
+    fi
+
+    if [ ${#orphaned_files[@]} -eq 0 ]; then
+        echo "No orphaned storage files found"
+        echo ""
+        return 0
+    fi
+
+    # Show orphaned files
+    echo "Found ${#orphaned_files[@]} orphaned storage file(s):"
+    local total_size=0
+    for file in "${orphaned_files[@]}"; do
+        local size=$(du -h "$file" 2>/dev/null | cut -f1)
+        local size_bytes=$(stat -c%s "$file" 2>/dev/null || echo 0)
+        total_size=$((total_size + size_bytes))
+        echo "  $file ($size)"
+    done
+
+    # Convert total size to human readable
+    local total_human=""
+    if [ $total_size -gt 1073741824 ]; then
+        total_human=$(echo "scale=2; $total_size / 1073741824" | bc)G
+    elif [ $total_size -gt 1048576 ]; then
+        total_human=$(echo "scale=2; $total_size / 1048576" | bc)M
+    else
+        total_human=$(echo "scale=2; $total_size / 1024" | bc)K
+    fi
+
+    echo ""
+    echo "Total size: $total_human"
+    echo ""
+
+    # Confirm deletion
+    if [ -t 0 ]; then
+        # Interactive - ask for confirmation
+        read -p "Delete these files? (yes/no): " confirm
+        if [ "$confirm" != "yes" ]; then
+            echo "Aborted"
+            return 1
+        fi
+    else
+        # Non-interactive - require explicit flag
+        cluster_warn "Running in non-interactive mode - skipping cleanup"
+        return 1
+    fi
+
+    # Delete orphaned files
+    local deleted_count=0
+    for file in "${orphaned_files[@]}"; do
+        cluster_log "Deleting: $file"
+        if rm -f "$file" 2>/dev/null; then
+            deleted_count=$((deleted_count + 1))
+        else
+            cluster_warn "Failed to delete: $file"
+        fi
+    done
+
+    echo ""
+    cluster_log "Deleted $deleted_count file(s)"
+    echo ""
+}
+
+cmd_destroy_all() {
+    cluster_log "Destroying ALL cluster VMs"
+    echo ""
+    echo "WARNING: This will destroy ALL VMs starting with 'lvmtest-'"
+    echo ""
+
+    # Find all cluster VMs
+    local all_vms=()
+    while IFS= read -r vm_name; do
+        if [ -n "$vm_name" ]; then
+            all_vms+=("$vm_name")
+        fi
+    done < <(cluster_virsh list --all --name 2>/dev/null | grep "^lvmtest-" || true)
+
+    if [ ${#all_vms[@]} -eq 0 ]; then
+        echo "No cluster VMs found"
+        return 0
+    fi
+
+    echo "Found ${#all_vms[@]} cluster VM(s):"
+    for vm_name in "${all_vms[@]}"; do
+        echo "  $vm_name"
+    done
+    echo ""
+
+    # Confirm
+    if [ -t 0 ]; then
+        # Interactive - ask for confirmation
+        read -p "Do you want to destroy these VMs? (yes/no): " confirm
+        if [ "$confirm" != "yes" ]; then
+            echo "Aborted"
+            return 1
+        fi
+    else
+        # Non-interactive - require explicit flag
+        cluster_warn "Running in non-interactive mode - skipping destroy"
+        cluster_warn "To manually destroy VMs, run: virsh list --all | grep lvmtest"
+        return 1
+    fi
+
+    # Destroy all VMs
+    for vm_name in "${all_vms[@]}"; do
+        cluster_log "Destroying VM: $vm_name"
+
+        # Force stop if running
+        local vm_state=$(cluster_virsh domstate "$vm_name" 2>/dev/null || echo "unknown")
+        if [ "$vm_state" = "running" ]; then
+            cluster_virsh destroy "$vm_name" 2>/dev/null || true
+        fi
+
+        # Undefine and remove storage
+        cluster_virsh undefine "$vm_name" --remove-all-storage 2>/dev/null || \
+        cluster_virsh undefine "$vm_name" --storage vda 2>/dev/null || \
+        cluster_virsh undefine "$vm_name" 2>/dev/null || \
+        cluster_warn "Failed to undefine $vm_name"
+    done
+
+    # Clean up any orphaned state files
+    cluster_log "Removing state files"
+    local state_dir="${CLUSTER_STATE_DIR}"
+    if [ -d "$state_dir" ]; then
+        rm -f "$state_dir"/*.state 2>/dev/null || true
+    fi
+
+    cluster_log "All VMs destroyed"
+    echo ""
+}
+
+cmd_group() {
+    local -a group_patterns=()
+
+    # Parse command-specific options
+    local OPTIND=2
+    while getopts "g:" opt; do
+        case $opt in
+            g)
+                group_patterns+=("$OPTARG")
+                ;;
+            *)
+                cluster_error "Invalid option for group command"
+                usage
+                ;;
+        esac
+    done
+
+    if [ ${#group_patterns[@]} -eq 0 ]; then
+        cluster_error "No group file pattern specified. Use: -g <pattern>"
+        echo ""
+        echo "Usage: $0 group -g <group-dir-or-file> [-g ...]"
+        echo ""
+        echo "Examples:"
+        echo "  $0 group -g groups/basic"
+        echo "  $0 group -g groups/basic -g groups/standard"
+        echo "  $0 group -g groups/standard/shared-vg-3node-4scsi-caw-io2-512.txt"
+        echo ""
+        return 1
+    fi
+
+    # Expand patterns: directories auto-glob to *.txt
+    local -a group_files=()
+    shopt -s nullglob
+    for pattern in "${group_patterns[@]}"; do
+        if [[ ! "$pattern" = /* ]]; then
+            pattern="$SCRIPT_DIR/$pattern"
+        fi
+        if [ -d "$pattern" ]; then
+            pattern="$pattern/*.txt"
+        fi
+        for file in $pattern; do
+            [ -f "$file" ] && group_files+=("$file")
+        done
+    done
+    shopt -u nullglob
+
+    if [ ${#group_files[@]} -eq 0 ]; then
+        cluster_error "No group files found matching: ${group_patterns[*]}"
+        return 1
+    fi
+
+    cluster_log "Found ${#group_files[@]} group file(s) to execute"
+    echo ""
+
+    # Execute each group
+    local groups_passed=0
+    local groups_failed=0
+    local group_num=0
+
+    for group_file in "${group_files[@]}"; do
+        group_num=$((group_num + 1))
+
+        cluster_log "=========================================="
+        cluster_log "Group [$group_num/${#group_files[@]}]: $(basename "$group_file")"
+        cluster_log "=========================================="
+        echo ""
+
+        if run_single_group "$group_file"; then
+            cluster_log "Group PASSED: $(basename "$group_file")"
+            groups_passed=$((groups_passed + 1))
+        else
+            cluster_error "Group FAILED: $(basename "$group_file")"
+            groups_failed=$((groups_failed + 1))
+        fi
+
+        echo ""
+    done
+
+    # Overall summary
+    if [ ${#group_files[@]} -gt 1 ]; then
+        echo "=========================================="
+        echo "Overall Summary"
+        echo "=========================================="
+        echo "Total Groups:  ${#group_files[@]}"
+        echo "Passed:        $groups_passed"
+        echo "Failed:        $groups_failed"
+        echo "=========================================="
+        echo ""
+    fi
+
+    if [ $groups_failed -gt 0 ]; then
+        return 1
+    fi
+
+    return 0
+}
+
+#
+# Main
+#
+
+main() {
+    local config_file=""
+    local cluster_id=""
+    local os_image=""
+    local command=""
+
+    # Select system or session libvirt based on privileges
+    cluster_init_privileges
+    cluster_log "Libvirt mode: $CLUSTER_PRIVILEGE_MODE ($LIBVIRT_DEFAULT_URI)"
+
+    # Check dependencies
+    cluster_check_deps
+
+    # Ensure state directory exists
+    mkdir -p "$CLUSTER_STATE_DIR" 2>/dev/null || true
+
+    # Parse options
+    while getopts "c:i:o:Rh" opt; do
+        case $opt in
+            c)
+                config_file="$OPTARG"
+                ;;
+            i)
+                cluster_id="$OPTARG"
+                export CLUSTER_ID="$cluster_id"
+                ;;
+            o)
+                os_image="$OPTARG"
+                ;;
+            R)
+                export CLUSTER_REVERT_ON_FAIL=1
+                ;;
+            h)
+                usage
+                ;;
+            *)
+                usage
+                ;;
+        esac
+    done
+
+    shift $((OPTIND - 1))
+
+    # Get command
+    command="${1:-}"
+
+    if [ -z "$command" ]; then
+        cluster_error "No command specified"
+        usage
+    fi
+
+    shift
+
+    # Extract -i and -c from post-command args, passing the rest through
+    # to subcommands (which have their own options like -g, -t, -n).
+    local -a remaining=()
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -i) cluster_id="$2"; export CLUSTER_ID="$cluster_id"; shift 2 ;;
+            -c) config_file="$2"; shift 2 ;;
+            -o) os_image="$2"; shift 2 ;;
+            -R) export CLUSTER_REVERT_ON_FAIL=1; shift ;;
+            *)  remaining+=("$1"); shift ;;
+        esac
+    done
+    set -- "$command" "${remaining[@]}"
+
+    # Normalize config file path if specified
+    # Expands simple names to configs/ directory
+    if [ -n "$config_file" ]; then
+        # If it's an absolute path, use as-is
+        if [[ "$config_file" = /* ]]; then
+            : # Keep as-is
+        # If path doesn't already start with configs/, add configs/ prefix
+        elif [[ ! "$config_file" = configs/* ]]; then
+            # Also add .conf extension if not present
+            if [[ ! "$config_file" = *.conf ]]; then
+                config_file="configs/${config_file}.conf"
+            else
+                config_file="configs/${config_file}"
+            fi
+        fi
+    fi
+
+    # Normalize cluster ID if specified
+    # Adds "lvmtest-" prefix if not already present
+    if [ -n "$cluster_id" ]; then
+        local normalized_id
+        local check_exists=0  # Default: don't check if cluster exists (for destroy, stop, etc.)
+
+        # Only check for existing cluster when creating a new one
+        if [ "$command" = "create" ]; then
+            check_exists=1
+        fi
+
+        normalized_id=$(cluster_validate_cluster_id "$cluster_id" "$check_exists")
+        if [ $? -ne 0 ]; then
+            cluster_die "Invalid cluster ID: $cluster_id"
+        fi
+
+        if [ "$cluster_id" != "$normalized_id" ]; then
+            cluster_debug "Normalized cluster ID: $cluster_id -> $normalized_id"
+        fi
+
+        cluster_id="$normalized_id"
+        export CLUSTER_ID="$cluster_id"
+    fi
+
+    if [ -n "$os_image" ]; then
+        export CLUSTER_CMD_OS_IMAGE="$os_image"
+    fi
+
+    # Load configuration for create command
+    if [ "$command" = "create" ]; then
+        if [ -z "$config_file" ]; then
+            config_file="$SCRIPT_DIR/configs/default-cluster.conf"
+        fi
+
+        # Make config file path absolute
+        if [[ ! "$config_file" = /* ]]; then
+            config_file="$SCRIPT_DIR/$config_file"
+        fi
+
+        # Export config file path for use by commands
+        export CLUSTER_CONFIG_FILE="$config_file"
+
+        cluster_load_config "$config_file"
+
+        if [ -n "${CLUSTER_CMD_OS_IMAGE:-}" ]; then
+            export CLUSTER_NODE_OS_IMAGE="$CLUSTER_CMD_OS_IMAGE"
+        fi
+
+        # DEBUG: Show loaded configuration
+        cluster_log "DEBUG: Configuration loaded:"
+        cluster_log "  CLUSTER_NUM_SCSI='${CLUSTER_NUM_SCSI}'"
+        cluster_log "  CLUSTER_SCSI_SIZE='${CLUSTER_SCSI_SIZE}'"
+        cluster_log "  CLUSTER_SCSI_SECTOR_SIZE='${CLUSTER_SCSI_SECTOR_SIZE}'"
+        cluster_log "  CLUSTER_SCSI_BACKING_TYPE='${CLUSTER_SCSI_BACKING_TYPE}'"
+    fi
+
+    # Execute command
+    case "$command" in
+        makeconfig)
+            if [ -n "$config_file" ]; then
+                cmd_makeconfig makeconfig -c "$config_file"
+            else
+                cmd_makeconfig "$@"
+            fi
+            ;;
+        create)
+            cmd_create
+            ;;
+        destroy)
+            cmd_destroy
+            ;;
+        pause)
+            cmd_pause
+            ;;
+        resume)
+            cmd_resume
+            ;;
+        revert)
+            cmd_revert
+            ;;
+        snapshot)
+            cmd_snapshot "$@"
+            ;;
+        snapshot-delete)
+            cmd_snapshot_delete "$@"
+            ;;
+        snapshot-revert)
+            cmd_snapshot_revert "$@"
+            ;;
+        status)
+            cmd_status
+            ;;
+        list)
+            cmd_list
+            ;;
+        run)
+            cmd_run "$@"
+            ;;
+        group)
+            cmd_group "$@"
+            ;;
+        cleanup-storage)
+            cmd_cleanup_storage
+            ;;
+        destroy-all)
+            cmd_destroy_all
+            ;;
+        *)
+            cluster_error "Unknown command: $command"
+            usage
+            ;;
+    esac
+}
+
+# Run main
+main "$@"

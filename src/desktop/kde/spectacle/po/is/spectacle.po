@@ -1,0 +1,2741 @@
+# Copyright (C) 2023 This file is copyright:
+# This file is distributed under the same license as the spectacle package.
+#
+# SPDX-FileCopyrightText: 2023, 2024, 2025 Guðmundur Erlingsson <gudmundure@gmail.com>
+# SPDX-FileCopyrightText: 2022, 2024, 2025, 2026 Sveinn í Felli <sv1@fellsnet.is>
+msgid ""
+msgstr ""
+"Project-Id-Version: spectacle\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-04-25 02:46+0000\n"
+"PO-Revision-Date: 2026-03-13 11:58+0000\n"
+"Last-Translator: Sveinn í Felli <sv1@fellsnet.is>\n"
+"Language-Team: Icelandic\n"
+"Language: is\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 23.08.5\n"
+
+#, kde-format
+msgctxt "translatable folder name"
+msgid "Screenshots"
+msgstr "Skjámyndir"
+
+#, kde-format
+msgctxt "part of default image filename template"
+msgid "Screenshot"
+msgstr "Skjámynd"
+
+#, kde-format
+msgctxt "translatable folder name"
+msgid "Screencasts"
+msgstr "Skjáupptökur"
+
+#, kde-format
+msgctxt "part of default video filename template"
+msgid "Screencast"
+msgstr "Skjáupptaka"
+
+#: src/CaptureModeModel.cpp:162
+#, kde-format
+msgctxt "@action in capture mode section"
+msgid "Rectangular Region"
+msgstr "Rétthyrnt svæði"
+
+#: src/CaptureModeModel.cpp:164
+#, kde-format
+msgctxt "@action in capture mode section"
+msgid "All Screens (Scaled to same size)"
+msgstr "Allir skjáir (kvarðaðir í sömu stærð)"
+
+#: src/CaptureModeModel.cpp:166
+#, kde-format
+msgctxt "@action in capture mode section"
+msgid "Current Screen"
+msgstr "Núverandi skjár"
+
+#: src/CaptureModeModel.cpp:168
+#, kde-format
+msgctxt "@action in capture mode section"
+msgid "Active Window"
+msgstr "Virkur gluggi"
+
+#: src/CaptureModeModel.cpp:171
+#, kde-format
+msgctxt "@action in capture mode section"
+msgid "Select Window"
+msgstr "Velja glugga"
+
+#: src/CaptureModeModel.cpp:171
+#, kde-format
+msgctxt "@action in capture mode section"
+msgid "Window Under Cursor"
+msgstr "Gluggi undir bendli"
+
+#: src/CaptureModeModel.cpp:174
+#, kde-format
+msgctxt "@action in capture mode section"
+msgid "All Screens"
+msgstr "Allir skjáir"
+
+#: src/CaptureModeModel.cpp:176
+#, kde-format
+msgctxt "@action in capture mode section"
+msgid "Full Screen"
+msgstr "Allur skjárinn"
+
+#: src/CommandLineOptions.h:22
+#, kde-format
+msgid "Capture the entire desktop (default)"
+msgstr "Taka mynd af öllu skjáborðinu (sjálfgefið)"
+
+#: src/CommandLineOptions.h:26
+#, kde-format
+msgid "Capture the current monitor"
+msgstr "Taka mynd af þessum skjá"
+
+#: src/CommandLineOptions.h:30
+#, kde-format
+msgid "Capture the active window"
+msgstr "Taka mynd af virka glugganum"
+
+#: src/CommandLineOptions.h:34
+#, kde-format
+msgid ""
+"Capture the window currently under the cursor, including parents of pop-up "
+"menus"
+msgstr ""
+"Taka mynd af glugga sem er undir bendlinum, að meðtöldum upprunagluggum "
+"sprettivalmynda"
+
+#: src/CommandLineOptions.h:38
+#, kde-format
+msgid ""
+"Capture the window currently under the cursor, excluding parents of pop-up "
+"menus"
+msgstr ""
+"Taka mynd af glugga sem er undir bendlinum, án upprunaglugga sprettivalmynda"
+
+#: src/CommandLineOptions.h:42
+#, kde-format
+msgid "Capture a rectangular region of the screen"
+msgstr "Taka mynd af rétthyrndu svæði á skjánum"
+
+#: src/CommandLineOptions.h:46
+#, kde-format
+msgid ""
+"Record the screen using the given mode. Modes:\n"
+"- r, region\n"
+"- s, screen\n"
+"- w, window"
+msgstr ""
+"Taka upp skjá með sniðum sem gefin eru. Snið:\n"
+"- r, svæði\n"
+"- s, skjár\n"
+"- w, gluggi"
+
+#: src/CommandLineOptions.h:54
+#, kde-format
+msgid "Launch Spectacle without taking a screenshot"
+msgstr "Keyra Spectacle án þess að taka skjámynd"
+
+#: src/CommandLineOptions.h:58
+#, kde-format
+msgid "Start in GUI mode (default)"
+msgstr "Byrja í myndrænu viðmóti (sjálfgefið)"
+
+#: src/CommandLineOptions.h:62
+#, kde-format
+msgid "Take a screenshot and exit without showing the GUI"
+msgstr "Taka skjámynd og hætta án þess að sýna myndrænt viðmót"
+
+#: src/CommandLineOptions.h:66
+#, kde-format
+msgid "Start in DBus-Activation mode"
+msgstr "Byrja í DBus-Activation sniði"
+
+#: src/CommandLineOptions.h:70
+#, kde-format
+msgid ""
+"In background mode, do not pop up a notification when the screenshot is taken"
+msgstr "Í bakgrunni, ekki birta tilkynningu þegar skjámyndin er tekin"
+
+#: src/CommandLineOptions.h:74
+#, kde-format
+msgid "In background mode, save image to specified file"
+msgstr "Keyra í bakgrunni, vista mynd í tilgreindri skrá"
+
+#: src/CommandLineOptions.h:79
+#, kde-format
+msgid "In background mode, delay before taking the shot (in milliseconds)"
+msgstr "Keyra í bakgrunni, töf áður en mynd er tekin (í millisekúndum)"
+
+#: src/CommandLineOptions.h:84
+#, kde-format
+msgid ""
+"In background mode, copy screenshot image to clipboard, unless -o is also "
+"used."
+msgstr ""
+"Keyra í bakgrunni, afrita skjámynd á klippispjald, nema -o sé einnig notað."
+
+#: src/CommandLineOptions.h:88
+#, kde-format
+msgid "In background mode, copy screenshot file path to clipboard"
+msgstr "Keyra í bakgrunni, afrita slóð á skjámynd á klippispjald"
+
+#: src/CommandLineOptions.h:92
+#, kde-format
+msgid "Wait for a click before taking screenshot. Invalidates delay"
+msgstr ""
+"Bíða eftir músarsmelli áður en skjámynd er tekin. Gerir skilgreinda töf "
+"óvirka"
+
+#: src/CommandLineOptions.h:96
+#, kde-format
+msgid "Starts a new GUI instance of spectacle without registering to DBus"
+msgstr "Opnar nýtt tilvik af Spectacle-viðmótinu án þess að skrá það í DBus"
+
+#: src/CommandLineOptions.h:100
+#, kde-format
+msgid "In background mode, include pointer in the screenshot"
+msgstr "Keyra í bakgrunni, láta músarbendilinn sjást á myndinni"
+
+#: src/CommandLineOptions.h:104
+#, kde-format
+msgid "In background mode, exclude decorations in the screenshot"
+msgstr "Keyra í bakgrunni, undanskilja gluggaskreytingar í skjámyndinni"
+
+#: src/CommandLineOptions.h:106
+#, kde-format
+msgid "In background mode, exclude shadows in the screenshot"
+msgstr "Keyra í bakgrunni, undanskilja skugga í skjámyndinni"
+
+#: src/CommandLineOptions.h:109
+#, kde-format
+msgid "Open and edit existing screenshot file"
+msgstr "Opna og breyta fyrirliggjandi skjámyndarskrá"
+
+#: src/ExportManager.cpp:460
+#, kde-format
+msgctxt "%1 is an error message"
+msgid "QImageWriter cannot write image: %1"
+msgstr "QImageWriter getur ekki skrifað mynd: %1"
+
+#: src/ExportManager.cpp:476
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Cannot save screenshot because creating the directory failed:<nl/><filename>"
+"%1</filename>"
+msgstr ""
+"Get ekki vistað skjámyndina því ekki tókst að búa til möppuna:<nl/><filename>"
+"%1</filename>"
+
+#: src/ExportManager.cpp:486
+#, kde-format
+msgid "Cannot save screenshot. Error while writing file."
+msgstr "Get ekki vistað skjámyndina. Villa við að skrifa skrána."
+
+#: src/ExportManager.cpp:506
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Cannot save screenshot because creating the remote directory failed:<nl/"
+"><filename>%1</filename>"
+msgstr ""
+"Get ekki vistað skjámyndina því ekki tókst að búa til fjartengda möppu:<nl/"
+"><filename>%1</filename>"
+
+#: src/ExportManager.cpp:517 src/ExportManager.cpp:566
+#, kde-format
+msgid "Cannot save screenshot. Error while writing temporary local file."
+msgstr "Get ekki vistað skjámyndina. Villa við að skrifa bráðabirgðaskrá."
+
+#: src/ExportManager.cpp:525
+#, kde-format
+msgid "Unable to save image. Could not upload file to remote location."
+msgstr "Gat ekki vistað myndina. Gat ekki hlaðið skránni á fjartengdan stað."
+
+#: src/ExportManager.cpp:573
+#, kde-format
+msgid "Cannot save screenshot. The save filename is invalid."
+msgstr "Get ekki vistað skjámyndina. Skráarheitið sem á að vista er ógilt."
+
+#: src/ExportManager.cpp:617
+#, kde-format
+msgid "Cannot save an empty screenshot image."
+msgstr "Ekki er hægt að vista tóma skjámynd."
+
+#: src/ExportManager.cpp:780
+#, kde-format
+msgctxt "@info:shell"
+msgid ""
+"Failed to export video: Temporary file URL must be an existing local file"
+msgstr ""
+"Mistókst að flytja út myndskeið: Slóð á bráðabirgðaskrá verður að vera "
+"staðbundin skrá sem er til"
+
+#: src/ExportManager.cpp:787
+#, kde-format
+msgctxt "@info:shell"
+msgid ""
+"Failed to export video: Output file URL must be a valid URL with a file name"
+msgstr ""
+"Mistókst að flytja út myndskeið: Slóð á úttaksskrá verður að vera gild slóð "
+"með skráarheiti"
+
+#: src/ExportManager.cpp:873
+#, kde-format
+msgctxt "@info, %1 is a file path"
+msgid "Unable to save recording. Could not move file to location: %1"
+msgstr "Gat ekki vistað upptökuna. Gat ekki fært skrána á staðinn: %1"
+
+#: src/ExportManager.cpp:901
+#, kde-format
+msgid "Printing failed. The printer failed to initialize."
+msgstr "Prentun mistókst. Mistókst að frumstilla prentarann."
+
+#: src/ExportManager.cpp:918
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Day (1–31)"
+msgstr "Dagur (1–31)"
+
+#: src/ExportManager.cpp:919
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Day (01–31)"
+msgstr "Dagur (01–31)"
+
+#: src/ExportManager.cpp:920
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Day (short name)"
+msgstr "Dagur (stutt heiti)"
+
+#: src/ExportManager.cpp:921
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Day (long name)"
+msgstr "Dagur (langt heiti)"
+
+#: src/ExportManager.cpp:922
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Month (1–12)"
+msgstr "Mánuður (1–12)"
+
+#: src/ExportManager.cpp:923
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Month (01–12)"
+msgstr "Mánuður (01–12)"
+
+#: src/ExportManager.cpp:924
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Month (short name)"
+msgstr "Mánuður (stutt heiti)"
+
+#: src/ExportManager.cpp:925
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Month (long name)"
+msgstr "Mánuður (langt heiti)"
+
+#: src/ExportManager.cpp:926
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Year (2 digit)"
+msgstr "Ár (2 stafir)"
+
+#: src/ExportManager.cpp:927
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Year (4 digit)"
+msgstr "Ár (4 stafir)"
+
+#: src/ExportManager.cpp:928
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Hour (0–23)"
+msgstr "Klukkustund (0–23)"
+
+#: src/ExportManager.cpp:929
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Hour (00–23)"
+msgstr "Klukkustund (00–23)"
+
+#: src/ExportManager.cpp:930
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Hour (1–12)"
+msgstr "Klukkustund (1–12)"
+
+#: src/ExportManager.cpp:931
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Hour (01–12)"
+msgstr "Klukkustund (01–12)"
+
+#: src/ExportManager.cpp:932
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Minute (0–59)"
+msgstr "Mínúta (0–59)"
+
+#: src/ExportManager.cpp:933
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Minute (00–59)"
+msgstr "Mínúta (00–59)"
+
+#: src/ExportManager.cpp:934
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Second (0–59)"
+msgstr "Sekúnda (0–59)"
+
+#: src/ExportManager.cpp:935
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Second (00–59)"
+msgstr "Sekúnda (00–59)"
+
+#: src/ExportManager.cpp:936
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Millisecond (0–999)"
+msgstr "Millisekúnda (0–999)"
+
+#: src/ExportManager.cpp:938
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Millisecond (000–999)"
+msgstr "Millisekúnda (000–999)"
+
+#: src/ExportManager.cpp:939
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "AM/PM"
+msgstr "AM/PM"
+
+#: src/ExportManager.cpp:941
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "am/pm"
+msgstr "am/pm"
+
+#: src/ExportManager.cpp:943
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "AM/PM or am/pm (localized)"
+msgstr "AM/PM eða am/pm (staðbundið)"
+
+#: src/ExportManager.cpp:945
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Timezone (short name)"
+msgstr "Tímabelti (stutt heiti)"
+
+#: src/ExportManager.cpp:946
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Timezone offset (±0000)"
+msgstr "Hliðrun tímabeltis (±0000)"
+
+#: src/ExportManager.cpp:947
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Timezone offset (±00:00)"
+msgstr "Hliðrun tímabeltis (±00:00)"
+
+#: src/ExportManager.cpp:948
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Timezone (long name)"
+msgstr "Tímabelti (langt heiti)"
+
+#: src/ExportManager.cpp:949
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Seconds since the Unix epoch"
+msgstr "Sekúndur frá upphafi Unix-aldar"
+
+#: src/ExportManager.cpp:950
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Window Title"
+msgstr "Gluggatitill"
+
+#: src/ExportManager.cpp:951
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Sequential numbering, padded by inserting additional '#' characters"
+msgstr "Númeraröð, fyllt upp í með því bæta við '#'-stöfum til viðbótar"
+
+#: src/Gui/AcceptAction.qml:9
+#, kde-format
+msgctxt "@action accept selection"
+msgid "Accept"
+msgstr "Samþykkja"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:56
+#, kde-format
+msgid "Stroke:"
+msgstr "Útlína:"
+
+#. i18n uses so it doesn't matter that much
+#. unless someone decides to set the locale for a specific
+#. part of spectacle in the future.
+#: src/Gui/AnnotationOptionsToolBarContents.qml:88
+#, kde-format
+msgctxt "px: pixels"
+msgid "%1px"
+msgid_plural "%1px"
+msgstr[0] "%1px"
+msgstr[1] "%1px"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:93
+#, kde-format
+msgid "Stroke Width"
+msgstr "Breidd útlínu"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:126
+#, kde-format
+msgid "Stroke Color"
+msgstr "Litur útlínu"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:162
+#, kde-format
+msgid "Fill:"
+msgstr "Fylling:"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:174
+#, kde-format
+msgid "Fill Color"
+msgstr "Litur fyllingar"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:213
+#, kde-format
+msgctxt "@label:slider strength of effect"
+msgid "Strength:"
+msgstr "Styrkur:"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:232
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "The strength of the effect."
+msgstr "Styrkur áhrifanna."
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:259
+#, kde-format
+msgid "Font:"
+msgstr "Letur:"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:273
+#, kde-format
+msgctxt "%2 font family, %3 font style name, %1 font point size"
+msgid "%2 %3 %1pt"
+msgid_plural "%2 %3 %1pts"
+msgstr[0] "%2 %3 %1pt"
+msgstr[1] "%2 %3 %1pts"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:274
+#, kde-format
+msgctxt "%2 font family %1 font point size"
+msgid "%2 %1pt"
+msgid_plural "%2 %1pts"
+msgstr[0] "%2 %1pt"
+msgstr[1] "%2 %1pts"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:286
+#, kde-format
+msgid "Font Color"
+msgstr "Litur á letri"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:325
+#, kde-format
+msgid "Number:"
+msgstr "Númer:"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:344
+#, kde-format
+msgid "Number for number annotations"
+msgstr "Númeraðar glósur"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:372
+#, kde-format
+msgid "Shadow"
+msgstr "Skuggi"
+
+#: src/Gui/AnnotationsToolBarContents.qml:108
+#, kde-format
+msgctxt "@action:intoolbar no tool, to allow dragging"
+msgid "None"
+msgstr "Ekkert"
+
+#: src/Gui/AnnotationsToolBarContents.qml:120
+#, kde-format
+msgctxt "@action:intoolbar crop image tool"
+msgid "Crop"
+msgstr "Skera"
+
+#: src/Gui/AnnotationsToolBarContents.qml:127
+#, kde-format
+msgctxt "@action:intoolbar select annotation tool"
+msgid "Select"
+msgstr "Velja"
+
+#: src/Gui/AnnotationsToolBarContents.qml:136
+#, kde-format
+msgctxt "@action:intoolbar freehand line tool"
+msgid "Freehand"
+msgstr "Fríhendis"
+
+#: src/Gui/AnnotationsToolBarContents.qml:137
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Shift: Snap to straight lines"
+msgstr "Shift: Smella í beinar línur"
+
+#: src/Gui/AnnotationsToolBarContents.qml:144
+#, kde-format
+msgctxt "@action:intoolbar highlighter line tool"
+msgid "Highlighter"
+msgstr "Áherslulitun"
+
+#: src/Gui/AnnotationsToolBarContents.qml:153
+#, kde-format
+msgctxt "@action:intoolbar straight line tool"
+msgid "Line"
+msgstr "Lína"
+
+#: src/Gui/AnnotationsToolBarContents.qml:154
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Shift: Snap to 45 degree increments"
+msgstr "Shift: Smella í 45 gráðu þrepum"
+
+#: src/Gui/AnnotationsToolBarContents.qml:161
+#, kde-format
+msgctxt "@action:intoolbar arrow line tool"
+msgid "Arrow"
+msgstr "Ör"
+
+#: src/Gui/AnnotationsToolBarContents.qml:170
+#, kde-format
+msgctxt "@action:intoolbar rectangle tool"
+msgid "Rectangle"
+msgstr "Rétthyrningur"
+
+#: src/Gui/AnnotationsToolBarContents.qml:172
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Shift: Snap to diagonal movements\n"
+"Control: Resize from center"
+msgstr ""
+"Shift: Smella í skáhreyfingar\n"
+"Control: Endurstilla stærð frá miðju"
+
+#: src/Gui/AnnotationsToolBarContents.qml:179
+#, kde-format
+msgctxt "@action:intoolbar ellipse tool"
+msgid "Ellipse"
+msgstr "Sporbaugur"
+
+#: src/Gui/AnnotationsToolBarContents.qml:187
+#, kde-format
+msgctxt "@action:intoolbar pixelate tool"
+msgid "Pixelate"
+msgstr "Pixla"
+
+#: src/Gui/AnnotationsToolBarContents.qml:195
+#, kde-format
+msgctxt "@action:intoolbar blur tool"
+msgid "Blur"
+msgstr "Móða"
+
+#: src/Gui/AnnotationsToolBarContents.qml:203
+#, kde-format
+msgctxt "@action:intoolbar text tool"
+msgid "Text"
+msgstr "Texti"
+
+#: src/Gui/AnnotationsToolBarContents.qml:210
+#, kde-format
+msgctxt "@action:intoolbar number stamp tool"
+msgid "Number"
+msgstr "Tala"
+
+#: src/Gui/CancelAction.qml:9
+#, kde-format
+msgctxt "@action cancel selection"
+msgid "Cancel"
+msgstr "Hætta við"
+
+#: src/Gui/CaptureModeButtonsColumn.qml:31
+#: src/Gui/NewScreenshotToolButton.qml:15
+#, kde-format
+msgid "Cancel (%1 second)"
+msgid_plural "Cancel (%1 seconds)"
+msgstr[0] "Hætta við (%1 sekúnda)"
+msgstr[1] "Hætta við (%1 sekúndur)"
+
+#: src/Gui/CaptureOptions.qml:17
+#, kde-format
+msgid "Take a new screenshot"
+msgstr "Taka nýja skjámynd"
+
+#: src/Gui/CaptureOptions.qml:39
+#, kde-format
+msgctxt "@title:group"
+msgid "Screenshot Settings"
+msgstr "Skjámyndastillingar"
+
+#: src/Gui/CaptureOverlay.qml:148
+#, kde-format
+msgctxt "@info basic crop tool explanation"
+msgid "Click and drag to make a selection."
+msgstr "Smella og draga til að velja."
+
+#: src/Gui/CaptureSettingsColumn.qml:16 src/Gui/RecordingSettingsColumn.qml:16
+#, kde-format
+msgid "Include mouse pointer"
+msgstr "Hafa músarbendil með"
+
+#: src/Gui/CaptureSettingsColumn.qml:17
+#, kde-format
+msgid "Show the mouse cursor in the screenshot image."
+msgstr "Sýna músarbendilinn á skjámyndinni."
+
+#: src/Gui/CaptureSettingsColumn.qml:25
+#, kde-format
+msgid "Include window titlebar and borders"
+msgstr "Hafa titilstiku og gluggaramma"
+
+#: src/Gui/CaptureSettingsColumn.qml:26
+#, kde-format
+msgid ""
+"Show the window title bar and border when taking a screenshot of a window."
+msgstr ""
+"Sýna titilstiku gluggans og rammann utan um hann þegar tekin er mynd af "
+"glugga."
+
+#: src/Gui/CaptureSettingsColumn.qml:34
+#, kde-format
+msgid "Include window shadow"
+msgstr "Hafa með skugga við glugga"
+
+#: src/Gui/CaptureSettingsColumn.qml:35
+#, kde-format
+msgid "Show the window shadow when taking a screenshot of a window."
+msgstr "Sýna skugga við glugga þegar skjámynd er tekin af glugganum."
+
+#: src/Gui/CaptureSettingsColumn.qml:44
+#, kde-format
+msgid "Capture the current pop-up only"
+msgstr "Taka bara mynd af þessum sprettiglugga"
+
+#: src/Gui/CaptureSettingsColumn.qml:46
+#, kde-format
+msgid ""
+"Capture only the current pop-up window (like a menu, tooltip etc) when "
+"taking a screenshot of a window. If disabled, the pop-up is captured along "
+"with the parent window."
+msgstr ""
+"Taka bara mynd af þessum sprettiglugga (eins og valmynd, ábendingu o.s.frv.) "
+"þegar tekin er mynd af glugga. Ef þetta er óvirkt verður tekin mynd af "
+"sprettiglugganum ásamt glugganum sem hann tilheyrir."
+
+#: src/Gui/CaptureSettingsColumn.qml:54
+#, kde-format
+msgid "Quit after manual Save or Copy"
+msgstr "Hætta eftir handvirka vistun eða afritun"
+
+#: src/Gui/CaptureSettingsColumn.qml:55
+#, kde-format
+msgid "Quit Spectacle after manually saving or copying the image."
+msgstr "Hætta í Spectacle eftir að hafa vistað eða afritað myndina handvirkt."
+
+#: src/Gui/CaptureSettingsColumn.qml:64
+#, kde-format
+msgid "Capture on click"
+msgstr "Taka mynd við smell"
+
+#: src/Gui/CaptureSettingsColumn.qml:66
+#, kde-format
+msgid "Wait for a mouse click before capturing the screenshot image."
+msgstr "Bíða eftir músarsmelli áður en skjámynd er tekin."
+
+#: src/Gui/CaptureSettingsColumn.qml:76
+#, kde-format
+msgid "Delay:"
+msgstr "Töf:"
+
+#: src/Gui/CopyImageAction.qml:13
+#, kde-format
+msgctxt "@action"
+msgid "Copy"
+msgstr "Afrita"
+
+#: src/Gui/CopyLocationAction.qml:9
+#, kde-format
+msgctxt "@action"
+msgid "Copy Location"
+msgstr "Afrita staðsetningu"
+
+#: src/Gui/DelaySpinBox.qml:15
+#, kde-format
+msgctxt "0 second delay"
+msgid "No Delay"
+msgstr "Engin töf"
+
+#: src/Gui/DelaySpinBox.qml:24
+#, kde-format
+msgctxt "Integer number of seconds"
+msgid "%2 second"
+msgid_plural "%2 seconds"
+msgstr[0] "%2 sekúnda"
+msgstr[1] "%2 sekúndur"
+
+#: src/Gui/DelaySpinBox.qml:26
+#, kde-format
+msgctxt "Decimal number of seconds"
+msgid "%1 seconds"
+msgstr "%1 sekúndur"
+
+#: src/Gui/DialogPage.qml:53
+#, kde-format
+msgid "Configure Spectacle…"
+msgstr "Grunnstilla Spectacle..."
+
+#: src/Gui/DialogPage.qml:61
+#, kde-format
+msgid "Help"
+msgstr "Hjálp"
+
+#: src/Gui/DialogPage.qml:80
+#, kde-format
+msgctxt "@title:group"
+msgid "Take a Screenshot:"
+msgstr "Taka skjámynd:"
+
+#: src/Gui/DialogPage.qml:95 src/Gui/DialogPage.qml:136
+#, kde-format
+msgctxt "@title:group"
+msgid "Options"
+msgstr "Valkostir"
+
+#: src/Gui/DialogPage.qml:121
+#, kde-format
+msgctxt "@title:group"
+msgid "Make a Recording:"
+msgstr "Gera upptöku:"
+
+#: src/Gui/DialogPage.qml:163
+#, kde-format
+msgctxt "@title:tab"
+msgid "Screenshot"
+msgstr "Skjámynd"
+
+#: src/Gui/DialogPage.qml:168
+#, kde-format
+msgctxt "@title:tab"
+msgid "Recording"
+msgstr "Upptaka"
+
+#: src/Gui/EditAction.qml:11
+#, kde-format
+msgctxt "@action edit screenshot"
+msgid "Edit…"
+msgstr "Breyta…"
+
+#: src/Gui/ExportMenu.cpp:45
+#, kde-format
+msgctxt "@title:menu"
+msgid "Export"
+msgstr "Flytja út"
+
+#: src/Gui/ExportMenu.cpp:48
+#, kde-format
+msgid "Open Default Screenshots Folder"
+msgstr "Opna sjálfgefna möppu fyrir skjámyndir"
+
+#: src/Gui/ExportMenu.cpp:134
+#, kde-format
+msgctxt "@action:button open screenshot in other application"
+msgid "Other Application…"
+msgstr "Annað forrit…"
+
+#: src/Gui/ExportMenu.cpp:166
+#, kde-format
+msgid "Share"
+msgstr "Deila"
+
+#: src/Gui/ExportMenu.cpp:259
+#, kde-format
+msgctxt "@action:menu"
+msgid "Extract Text by Language"
+msgstr "Ná í texta eftir tungumálum"
+
+#: src/Gui/ExportMenu.cpp:295
+#, kde-format
+msgid "OCR engine is not available."
+msgstr "OCR-ljóslestrarkerfið er ekki tiltækt."
+
+#: src/Gui/ExportMenu.cpp:303
+#, kde-format
+msgid "OCR is not available. Please install Tesseract OCR."
+msgstr "OCR-ljóslestur er ekki tiltækur. Settu upp Tesseract OCR."
+
+#: src/Gui/ExportMenu.cpp:304
+#, kde-format
+msgid "OCR engine is initializing…"
+msgstr "OCR-ljóslestrarkerfið er að frumstillast…"
+
+#: src/Gui/ExportMenu.cpp:314
+#, kde-format
+msgid "No OCR language data available."
+msgstr "Engin OCR-tungumálagögn tiltæk."
+
+#: src/Gui/ExportMenuButton.qml:13
+#, kde-format
+msgctxt "@action"
+msgid "Export"
+msgstr "Flytja út"
+
+#: src/Gui/HelpMenu.cpp:40
+#, kde-format
+msgctxt "@title:menu"
+msgid "Help"
+msgstr "Hjálp"
+
+#: src/Gui/HelpMenuButton.qml:10
+#, kde-format
+msgctxt "@action"
+msgid "Help"
+msgstr "Hjálp"
+
+#: src/Gui/InlineMessageList.qml:129
+#, kde-format
+msgctxt "@action:button"
+msgid "Open Containing Folder"
+msgstr "Opna umlykjandi möppu"
+
+#: src/Gui/InlineMessageList.qml:139
+#, kde-format
+msgctxt "@action:button"
+msgid "Copy to Clipboard"
+msgstr "Afrita á klippispjald"
+
+#: src/Gui/InlineMessageList.qml:149
+#, kde-format
+msgctxt "@action:button close inline notification"
+msgid "Close"
+msgstr "Loka"
+
+#: src/Gui/NewScreenshotToolButton.qml:27
+#, kde-format
+msgid "New Screenshot"
+msgstr "Ný skjámynd"
+
+#: src/Gui/OcrAction.qml:15
+#, kde-format
+msgctxt "@action"
+msgid "Extract Text"
+msgstr "Ná í texta"
+
+#: src/Gui/OptionsMenu.cpp:38
+#, kde-format
+msgctxt "@title:menu"
+msgid "Screenshot Settings"
+msgstr "Skjámyndastillingar"
+
+#: src/Gui/OptionsMenu.cpp:40
+#, kde-format
+msgctxt "@option:check for screenshots"
+msgid "Include mouse pointer"
+msgstr "Hafa músarbendil með"
+
+#: src/Gui/OptionsMenu.cpp:41
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Show the mouse cursor in the screenshot image"
+msgstr "Sýna músarbendilinn á skjámyndinni"
+
+#: src/Gui/OptionsMenu.cpp:49
+#, kde-format
+msgctxt "@option:check"
+msgid "Include window titlebar and borders"
+msgstr "Hafa titilstiku og gluggajaðra með"
+
+#: src/Gui/OptionsMenu.cpp:50
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Show the window title bar, the minimize/maximize/close buttons, and the "
+"window border"
+msgstr ""
+"Sýna titilstiku gluggans, hnappana til að fela, fullstækka og loka og "
+"gluggarammann"
+
+#: src/Gui/OptionsMenu.cpp:58
+#, kde-format
+msgctxt "@option:check"
+msgid "Include window shadow"
+msgstr "Hafa með skugga við glugga"
+
+#: src/Gui/OptionsMenu.cpp:59
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Show the window shadow"
+msgstr "Sýna skugga við glugga"
+
+#: src/Gui/OptionsMenu.cpp:69
+#, kde-format
+msgctxt "@option:check"
+msgid "Capture the current pop-up only"
+msgstr "Taka bara mynd af þessum sprettiglugga"
+
+#: src/Gui/OptionsMenu.cpp:71
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Capture only the current pop-up window (like a menu, tooltip etc).\n"
+"If disabled, the pop-up is captured along with the parent window"
+msgstr ""
+"Taka bara mynd af þessum sprettiglugga (eins og valmynd, ábendingu o.s."
+"frv.).\n"
+"Ef þetta er óvirkt verður tekin mynd af sprettiglugganum ásamt upprunaglugga "
+"hans"
+
+#: src/Gui/OptionsMenu.cpp:81
+#, kde-format
+msgctxt "@option:check"
+msgid "Quit after manual Save or Copy"
+msgstr "Hætta eftir handvirka vistun eða afritun"
+
+#: src/Gui/OptionsMenu.cpp:82
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Quit Spectacle after manually saving or copying the image"
+msgstr "Hætta í Spectacle eftir að hafa vistað eða afritað myndina handvirkt"
+
+#: src/Gui/OptionsMenu.cpp:94
+#, kde-format
+msgctxt "@option:check"
+msgid "Capture On Click"
+msgstr "Taka mynd við smell"
+
+#: src/Gui/OptionsMenu.cpp:109
+#, kde-format
+msgctxt "@label:spinbox"
+msgid "Delay:"
+msgstr "Töf:"
+
+#: src/Gui/OptionsMenu.cpp:114
+#, kde-format
+msgctxt "@item 0 delay special value"
+msgid "No Delay"
+msgstr "Engin töf"
+
+#: src/Gui/OptionsMenu.cpp:133
+#, kde-format
+msgctxt "@title:menu"
+msgid "Recording Settings"
+msgstr "Upptökustillingar"
+
+#: src/Gui/OptionsMenu.cpp:135
+#, kde-format
+msgctxt "@option:check for recordings"
+msgid "Include mouse pointer"
+msgstr "Hafa músarbendil með"
+
+#: src/Gui/OptionsMenu.cpp:136
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Show the mouse cursor in the recording"
+msgstr "Sýna músarbendilinn í upptökunni"
+
+#: src/Gui/OptionsMenuButton.qml:10
+#, kde-format
+msgctxt "@action"
+msgid "Options"
+msgstr "Valkostir"
+
+#: src/Gui/RecordAction.qml:11
+#, kde-format
+msgctxt "@action start recording"
+msgid "Record"
+msgstr "Taka upp"
+
+#: src/Gui/RecordingModeMenu.cpp:16
+#, kde-format
+msgctxt "@title:menu"
+msgid "Recording Modes"
+msgstr "Upptökusnið"
+
+#: src/Gui/RecordingModeMenuButton.qml:11
+#, kde-format
+msgctxt "@action select new recording mode"
+msgid "New Recording"
+msgstr "Ný upptaka"
+
+#: src/Gui/RecordingSettingsColumn.qml:17
+#, kde-format
+msgid "Show the mouse cursor in the screen recording."
+msgstr "Sýna músarbendilinn í skjáupptökunni"
+
+#: src/Gui/RecordingView.qml:85
+#, kde-format
+msgctxt "Recording in progress, %1 is the length of the recording so far"
+msgid ""
+"Recording:\n"
+"%1"
+msgstr ""
+"Upptaka:\n"
+"%1"
+
+#: src/Gui/RecordingView.qml:124
+#, kde-format
+msgid "Pause"
+msgstr "Á pásu"
+
+#: src/Gui/RecordingView.qml:124
+#, kde-format
+msgid "Play"
+msgstr "Spila"
+
+#: src/Gui/RecordOptions.qml:23
+#, kde-format
+msgid "Recording Settings"
+msgstr "Upptökustillingar"
+
+#: src/Gui/RecordOptions.qml:37
+#, kde-format
+msgid "Finish recording"
+msgstr "Hætta upptöku"
+
+#: src/Gui/SaveAction.qml:13
+#, kde-format
+msgctxt "@action"
+msgid "Save"
+msgstr "Vista"
+
+#: src/Gui/SaveAsAction.qml:9
+#, kde-format
+msgctxt "@action"
+msgid "Save As…"
+msgstr "Vista sem…"
+
+#: src/Gui/ScreenshotModeMenu.cpp:16
+#, kde-format
+msgctxt "@title:menu"
+msgid "Screenshot Modes"
+msgstr "Skjámyndasnið"
+
+#: src/Gui/ScreenshotModeMenuButton.qml:11
+#, kde-format
+msgctxt "@action select new screenshot mode"
+msgid "New Screenshot"
+msgstr "Ný skjámynd"
+
+#: src/Gui/ScreenshotView.qml:196
+#, kde-format
+msgctxt "@info crop tool explanation"
+msgid ""
+"Click and drag to make a selection.\n"
+"Double click the selection to accept and crop.\n"
+"Right click to clear the selection."
+msgstr ""
+"Smelltu og dragðu til að velja.\n"
+"Tvísmelltu á valið til að samþykkja og skera af.\n"
+"Hægrismelltu til að hreinsa valið."
+
+#. i18n: ectx: property (text), widget (QLabel, launchActionSpectacleLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:17
+#, kde-format
+msgid "When launching Spectacle:"
+msgstr "Þegar Spectacle er opnað:"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_launchAction)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:25
+#, kde-format
+msgid "Take rectangular screenshot"
+msgstr "taka rétthyrnda skjámynd"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_launchAction)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:30
+#, kde-format
+msgid "Take full screen screenshot"
+msgstr "taka skjámynd af öllum skjánum"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_launchAction)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:35
+#, kde-format
+msgid "Use last-used capture mode"
+msgstr "nota síðustu tökustillingu"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_launchAction)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:40
+#, kde-format
+msgid "Do not take a screenshot automatically"
+msgstr "ekki taka skjámynd sjálfkrafa"
+
+#. i18n: ectx: property (text), widget (QLabel, afterScreenshotLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:64
+#, kde-format
+msgid "After taking a screenshot:"
+msgstr "Eftir að skjámynd er tekin:"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_autoSaveImage)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:71
+#, kde-format
+msgid "Save file to default folder"
+msgstr "vista skrá í sjálfgefinni möppu"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_clipboardGroup)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:82
+#, kde-format
+msgid "Do not copy anything"
+msgstr "ekki afrita neitt"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_clipboardGroup)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:87
+#, kde-format
+msgid "Copy image to clipboard"
+msgstr "afrita mynd á klippispjald"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_clipboardGroup)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:92
+#, kde-format
+msgid "Copy file location to clipboard"
+msgstr "afrita staðsetningu skráar á klippispjaldið"
+
+#. i18n: ectx: property (text), widget (KTitleWidget, runningTitle)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:116
+#, kde-format
+msgid "While Spectacle is running"
+msgstr "Þegar Spectacle er í gangi"
+
+#. i18n: ectx: property (text), widget (QLabel, printKeyActionLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:123
+#, kde-format
+msgid "Press screenshot key to:"
+msgstr "Ýttu á tökuhnappinn til að:"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_printKeyRunningAction)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:131
+#, kde-format
+msgid "Take a new Screenshot"
+msgstr "taka nýja skjámynd"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_printKeyRunningAction)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:136
+#, kde-format
+msgid "Open a new Spectacle window"
+msgstr "opna nýjan Spectacle-glugga"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_printKeyRunningAction)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:141
+#, kde-format
+msgid "Return focus to Spectacle"
+msgstr "Setja Spectacle aftur í fókus"
+
+#. i18n: ectx: property (text), widget (KTitleWidget, regionTitle)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:165
+#, kde-format
+msgid "Rectangular Region Selection"
+msgstr "Val á rétthyrndu svæði"
+
+#. i18n: ectx: property (text), widget (QLabel, generalLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:172
+#, kde-format
+msgid "General:"
+msgstr "Almennt:"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_useLightMaskColor)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:179
+#, kde-format
+msgid "Use light background"
+msgstr "Nota ljósan bakgrunn"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_useReleaseToCapture)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:186
+#, kde-format
+msgid "Accept on click-and-release"
+msgstr "Samþykkja þegar músarhnappi er sleppt"
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:193
+#, kde-format
+msgid "Show magnifier:"
+msgstr "Sýna stækkunargler:"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_showMagnifier)
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_rememberSelectionRect)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:201
+#: src/Gui/SettingsDialog/GeneralOptions.ui:227
+#, kde-format
+msgid "Never"
+msgstr "aldrei"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_showMagnifier)
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_rememberSelectionRect)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:206
+#: src/Gui/SettingsDialog/GeneralOptions.ui:232
+#, kde-format
+msgid "Always"
+msgstr "alltaf"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_showMagnifier)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:211
+#, kde-format
+msgid "While holding Shift"
+msgstr "þegar Shift er haldið niðri"
+
+#. i18n: ectx: property (text), widget (QLabel, rememberLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:219
+#, kde-format
+msgid "Remember selected area:"
+msgstr "Muna valið svæði:"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_rememberSelectionRect)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:237
+#, kde-format
+msgid "Until Spectacle is closed"
+msgstr "þar til Spectacle er lokað"
+
+#. i18n: ectx: property (text), widget (KTitleWidget, ocrTitle)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:261
+#, kde-format
+msgid "Text Recognition (OCR)"
+msgstr "Textakennsl (OCR)"
+
+#. i18n: ectx: property (text), widget (QLabel, ocrLanguageLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:268
+#, kde-format
+msgid "Languages for OCR:"
+msgstr "Tungumál fyrir OCR-ljóslestur:"
+
+#. i18n: ectx: property (text), widget (QLabel, closeAfterOcrLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:306
+#, kde-format
+msgid "Text extraction:"
+msgstr "Útdráttur texta:"
+
+#. i18n: ectx: label, entry (closeAfterOcr), group (General)
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_closeAfterOcr)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:327
+#: src/Gui/SettingsDialog/spectacle.kcfg:38
+#, kde-format
+msgid "Close after extraction (skips auto-save)"
+msgstr "Loka eftir útdrátt texta (sleppir sjálfvirkri vistun)"
+
+#. i18n: ectx: property (toolTip), widget (QLabel, closeAfterOcrInfo)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:334
+#, kde-format
+msgid ""
+"Spectacle will close after text extraction and automatic saving will be "
+"skipped."
+msgstr ""
+"Spectacle mun lokast eftir útdrátt texta og sjálfvirkri vistun verður sleppt."
+
+#. i18n: ectx: property (text), widget (QLabel, ocrUnavailableLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:395
+#, kde-format
+msgid "OCR functionality is not available"
+msgstr "Aðgerðir OCR-ljóslestrar eru ekki tiltækar"
+
+#. i18n: ectx: property (toolTip), widget (QLabel, ocrInfoIcon)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:413
+#, kde-format
+msgid ""
+"Please install the required packages:\n"
+"• tesseract\n"
+"• tesseract language data (e.g., tesseract-ocr-eng for English)"
+msgstr ""
+"Settu upp nauðsynlega pakka:\n"
+"• tesseract\n"
+"• tesseract tungumálagögn (t.d. tesseract-ocr-eng fyrir ensku)"
+
+#. i18n: ectx: property (text), widget (QLabel, saveLocationLabel)
+#: src/Gui/SettingsDialog/ImageSaveOptions.ui:9
+#, kde-format
+msgid "Save Location:"
+msgstr "Vistunarstaður:"
+
+#. i18n: ectx: property (text), widget (QLabel, qualityLabel)
+#: src/Gui/SettingsDialog/ImageSaveOptions.ui:26
+#, kde-format
+msgid "Compression Quality:"
+msgstr "Þjöppunargæði:"
+
+#. i18n: ectx: property (text), widget (QLabel, imageCompressionQualityHelpLable)
+#: src/Gui/SettingsDialog/ImageSaveOptions.ui:53
+#, kde-format
+msgid "For lossy image formats like JPEG"
+msgstr "Fyrir myndsnið með gagnatapi á borð við JPEG"
+
+#. i18n: ectx: property (suffix), widget (QSpinBox, qualitySpinner)
+#: src/Gui/SettingsDialog/ImageSaveOptions.ui:62
+#, no-c-format, kde-format
+msgid "%"
+msgstr "%"
+
+#. i18n: ectx: property (text), widget (QLabel, filenameLabel)
+#: src/Gui/SettingsDialog/ImageSaveOptions.ui:74
+#: src/Gui/SettingsDialog/VideoSaveOptions.ui:26
+#, kde-format
+msgid "Filename:"
+msgstr "Skráarheiti:"
+
+#. i18n: ectx: property (text), widget (QLabel, PreviewLabel)
+#. i18n: ectx: property (text), widget (QLabel, previewLabel)
+#: src/Gui/SettingsDialog/ImageSaveOptions.ui:103
+#: src/Gui/SettingsDialog/VideoSaveOptions.ui:47
+#, kde-format
+msgctxt "Preview of the user configured filename"
+msgid "Preview:"
+msgstr "Forskoðun:"
+
+#: src/Gui/SettingsDialog/SaveOptionsUtils.h:40
+#, kde-kuit-format
+msgctxt "@info"
+msgid "<filename>%1</filename>"
+msgstr "<filename>%1</filename>"
+
+#: src/Gui/SettingsDialog/SaveOptionsUtils.h:72
+#, kde-format
+msgid ""
+"You can use the following placeholders in the filename, which will be "
+"replaced with actual text when the file is saved:"
+msgstr ""
+"Þú getur notað eftirfarandi staðgengla í skráarheitinu sem verður skipt út "
+"fyrir raunverulegan texta þegar skráin er vistuð:"
+
+#: src/Gui/SettingsDialog/SaveOptionsUtils.h:87
+#, kde-format
+msgid "To save to a sub-folder"
+msgstr "Til að vista í undirmöppu"
+
+#: src/Gui/SettingsDialog/SaveOptionsUtils.h:90
+#, kde-format
+msgctxt "show fewer filename placeholder templates"
+msgid "Show Fewer"
+msgstr "Sýna færri"
+
+#: src/Gui/SettingsDialog/SaveOptionsUtils.h:92
+#, kde-format
+msgctxt "show more filename placeholder templates"
+msgid "Show More"
+msgstr "Sýna fleiri"
+
+#: src/Gui/SettingsDialog/SettingsDialog.cpp:37
+#, kde-format
+msgctxt "Settings category"
+msgid "General"
+msgstr "Almennt"
+
+#: src/Gui/SettingsDialog/SettingsDialog.cpp:38
+#, kde-format
+msgctxt "Settings category"
+msgid "Image Saving"
+msgstr "Vistun mynda"
+
+#: src/Gui/SettingsDialog/SettingsDialog.cpp:39
+#, kde-format
+msgctxt "Settings category"
+msgid "Video Saving"
+msgstr "Vistun myndskeiða"
+
+#: src/Gui/SettingsDialog/SettingsDialog.cpp:40
+#, kde-format
+msgctxt "Settings category"
+msgid "Shortcuts"
+msgstr "Flýtilyklar"
+
+#: src/Gui/SettingsDialog/SettingsDialog.cpp:104
+#, kde-format
+msgid "Shortcuts"
+msgstr "Flýtilyklar"
+
+#. i18n: ectx: label, entry (launchAction), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:15
+#, kde-format
+msgid "What to do when Spectacle is launched"
+msgstr "Hvað á að gera þegar Spectacle er opnað"
+
+#. i18n: ectx: label, entry (printKeyRunningAction), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:25
+#, kde-format
+msgid ""
+"What should happen if print key is pressed when Spectacle is already running"
+msgstr ""
+"Hvað ætti að gerast ef ýtt er á Print-lykilinn þegar Spectacle er þegar í "
+"gangi"
+
+#. i18n: ectx: label, entry (autoSaveImage), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:34
+#, kde-format
+msgid "Save screenshot automatically after it is taken"
+msgstr "Vista skjámynd sjálfkrafa eftir að hún er tekin"
+
+#. i18n: ectx: label, entry (clipboardGroup), group (General)
+#. i18n: ectx: label, entry (showMagnifier), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:42
+#: src/Gui/SettingsDialog/spectacle.kcfg:55
+#, kde-format
+msgid "Clipboard action which should be executed after the screenshot is taken"
+msgstr "Klippispjaldsaðgerð sem á að framkvæma eftir að er skjámyndin er tekin"
+
+#. i18n: ectx: label, entry (useLightMaskColor), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:51
+#, kde-format
+msgid "Whether to use a light color mask in the region selection dialog"
+msgstr "Hvort eigi að nota ljósa hulu í svæðisvalinu"
+
+#. i18n: ectx: label, entry (useReleaseToCapture), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:64
+#, kde-format
+msgid ""
+"Whether the screenshot should be captured after selecting the region and "
+"releasing the mouse"
+msgstr ""
+"Hvort taka eigi skjámyndina eftir að svæði hefur verið valið og "
+"músarhnappinum sleppt"
+
+#. i18n: ectx: label, entry (rememberSelectionRect), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:68
+#, kde-format
+msgid "Remember the last rectangular region"
+msgstr "Muna síðasta rétthyrnda svæðið"
+
+#. i18n: ectx: label, entry (ocrLanguages), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:77
+#, kde-format
+msgid "Default languages for OCR text recognition"
+msgstr "Sjálfgefið tungumál OCR-textakennsla"
+
+#. i18n: ectx: label, entry (selectionRect), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:83
+#, kde-format
+msgid "The last used region the user selected"
+msgstr "Síðast notaða svæðið sem notandinn valdi"
+
+#. i18n: ectx: label, entry (captureOnClick), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:87
+#, kde-format
+msgid "Take screenshot on click"
+msgstr "Taka skjámynd við smell"
+
+#. i18n: ectx: label, entry (includePointer), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:91
+#, kde-format
+msgid "Whether the mouse cursor is included in the screenshot"
+msgstr "Hvort músarbendilinn eigi að vera með á skjámyndinni"
+
+#. i18n: ectx: label, entry (videoIncludePointer), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:95
+#, kde-format
+msgid "Whether the mouse cursor is included in the video"
+msgstr "Hvort músarbendilinn eigi að vera með í myndskeiðinu"
+
+#. i18n: ectx: label, entry (includeDecorations), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:99
+#, kde-format
+msgid "Whether the window decorations are included in the screenshot"
+msgstr "Hvort gluggaskreytingar eigi að vera með á skjámyndinni"
+
+#. i18n: ectx: label, entry (includeShadow), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:103
+#, kde-format
+msgid "Whether the window shadow is included in the screenshot"
+msgstr "Hvort skuggi við glugga eigi að vera með á skjámyndinni"
+
+#. i18n: ectx: label, entry (transientOnly), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:107
+#, kde-format
+msgid "Only capture the current pop up menu"
+msgstr "Taka bara mynd af þessari sprettvalmynd"
+
+#. i18n: ectx: label, entry (quitAfterSaveCopyExport), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:111
+#, kde-format
+msgid "Quit after saving or copying an image"
+msgstr "Hætta eftir vistun eða afritun á mynd"
+
+#. i18n: ectx: label, entry (captureDelay), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:115
+#, kde-format
+msgid "Delay"
+msgstr "Töf"
+
+#. i18n: ectx: label, entry (imageSaveLocation), group (ImageSave)
+#. i18n: ectx: label, entry (videoSaveLocation), group (VideoSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:126
+#: src/Gui/SettingsDialog/spectacle.kcfg:172
+#, kde-format
+msgid "Default filename"
+msgstr "Sjálfgefið skráarheiti"
+
+#. i18n: ectx: label, entry (imageCompressionQuality), group (ImageSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:143
+#, kde-format
+msgid "Compression quality for lossy file formats"
+msgstr "Þjöppunargæði myndsniða með gagnatapi"
+
+#. i18n: ectx: label, entry (preferredImageFormat), group (ImageSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:151
+#, kde-format
+msgid "Default save image format"
+msgstr "Sjálfgefið myndsnið við vistun"
+
+#. i18n: ectx: label, entry (imageFilenameTemplate), group (ImageSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:155
+#, kde-format
+msgid "The filename template used when saving screenshots"
+msgstr "Skráarheiti sniðmáts fyrir vistun skjámynda"
+
+#. i18n: ectx: label, entry (lastImageSaveLocation), group (ImageSave)
+#. i18n: ectx: label, entry (lastVideoSaveLocation), group (VideoSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:162
+#: src/Gui/SettingsDialog/spectacle.kcfg:201
+#, kde-format
+msgid "The path of the file saved last"
+msgstr "Slóð að skránni sem síðast var vistuð"
+
+#. i18n: ectx: label, entry (lastImageSaveAsLocation), group (ImageSave)
+#. i18n: ectx: label, entry (lastVideoSaveAsLocation), group (VideoSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:166
+#: src/Gui/SettingsDialog/spectacle.kcfg:205
+#, kde-format
+msgid "Last path used for \"save as\" action"
+msgstr "Síðasta slóð sem var notuð í aðgerðinni \"vista sem\""
+
+#. i18n: ectx: label, entry (preferredVideoFormat), group (VideoSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:189
+#, kde-format
+msgid "Default video format"
+msgstr "Sjálfgefið myndskeiðssnið"
+
+#. i18n: ectx: label, entry (videoFilenameTemplate), group (VideoSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:194
+#, kde-format
+msgid "The filename template used when saving screencasts"
+msgstr "Skráarheiti sniðmáts þegar skjáupptaka er vistuð"
+
+#. i18n: ectx: property (text), widget (QLabel, saveLocationLabel)
+#: src/Gui/SettingsDialog/VideoSaveOptions.ui:9
+#, kde-format
+msgid "Save &Location:"
+msgstr "Vistunar&staður:"
+
+#: src/Gui/ShortcutsTextBox.qml:13
+#, kde-format
+msgid "Take Screenshot:"
+msgstr "Taka skjámynd:"
+
+#: src/Gui/ShortcutsTextBox.qml:15
+#, kde-format
+msgid "Create new selection rectangle:"
+msgstr "Búa til nýjan valrétthyrning:"
+
+#: src/Gui/ShortcutsTextBox.qml:20
+#, kde-format
+msgid "Move selection rectangle:"
+msgstr "Færa valrétthyrning:"
+
+#: src/Gui/ShortcutsTextBox.qml:23
+#, kde-format
+msgid "Resize selection rectangle:"
+msgstr "Breyta stærð valrétthyrnings:"
+
+#: src/Gui/ShortcutsTextBox.qml:26
+#, kde-format
+msgid "Reset selection:"
+msgstr "Endurstilla valið:"
+
+#: src/Gui/ShortcutsTextBox.qml:28
+#, kde-format
+msgid "Cancel:"
+msgstr "Hætta við:"
+
+#: src/Gui/ShortcutsTextBox.qml:33
+#, kde-format
+msgctxt "Mouse action"
+msgid "Release left-click"
+msgstr "Vinstrismella og sleppa"
+
+#: src/Gui/ShortcutsTextBox.qml:33
+#, kde-format
+msgctxt "Mouse action"
+msgid "Double-click"
+msgstr "Tvísmella"
+
+#: src/Gui/ShortcutsTextBox.qml:34
+#, kde-format
+msgctxt "Keyboard action"
+msgid "Enter"
+msgstr "Enter"
+
+#: src/Gui/ShortcutsTextBox.qml:35
+#, kde-format
+msgctxt "Mouse action"
+msgid "Drag outside selection rectangle"
+msgstr "Draga fyrir utan valrétthyrninginn"
+
+#: src/Gui/ShortcutsTextBox.qml:37
+#, kde-format
+msgctxt "Keyboard action"
+msgid "+ Shift: Magnifier"
+msgstr "+ Shift: Skjástækkun"
+
+#: src/Gui/ShortcutsTextBox.qml:40
+#, kde-format
+msgctxt "Mouse action"
+msgid "Drag inside selection rectangle"
+msgstr "Draga fyrir innan valrétthyrninginn"
+
+#: src/Gui/ShortcutsTextBox.qml:41
+#, kde-format
+msgctxt "Keyboard action"
+msgid "Arrow keys"
+msgstr "Örvalyklar"
+
+#: src/Gui/ShortcutsTextBox.qml:42
+#, kde-format
+msgctxt "Keyboard action"
+msgid "+ Shift: Move in 1 pixel steps"
+msgstr "+ Shift: færa til í 1 mynddíls skrefum"
+
+#: src/Gui/ShortcutsTextBox.qml:43
+#, kde-format
+msgctxt "Mouse action"
+msgid "Drag handles"
+msgstr "Draga haldföng"
+
+#: src/Gui/ShortcutsTextBox.qml:44
+#, kde-format
+msgctxt "Keyboard action"
+msgid "Arrow keys + Alt"
+msgstr "Örvalyklar + Alt"
+
+#: src/Gui/ShortcutsTextBox.qml:45
+#, kde-format
+msgctxt "Keyboard action"
+msgid "+ Shift: Resize in 1 pixel steps"
+msgstr "+ Shift: breyta stærð í 1 mynddíls skrefum"
+
+#: src/Gui/ShortcutsTextBox.qml:46
+#, kde-format
+msgctxt "Mouse action"
+msgid "Right-click"
+msgstr "Hægri músarsmellur"
+
+#: src/Gui/ShortcutsTextBox.qml:48
+#, kde-format
+msgctxt "Keyboard action"
+msgid "Escape"
+msgstr "Escape"
+
+#: src/Gui/SizeLabel.qml:13
+#, kde-format
+msgctxt "Size, width×height"
+msgid "%1×%2"
+msgstr "%1×%2"
+
+#: src/Gui/SmartSpinBox.cpp:30
+#, kde-format
+msgctxt "Integer number of seconds"
+msgid " second"
+msgid_plural " seconds"
+msgstr[0] " sekúnda"
+msgstr[1] " sekúndur"
+
+#: src/Gui/SmartSpinBox.cpp:32
+#, kde-format
+msgctxt "Decimal number of seconds"
+msgid " seconds"
+msgstr " sekúndur"
+
+#: src/Gui/SpectacleWindow.cpp:173
+#, kde-format
+msgctxt "@title:window"
+msgid "%1 second"
+msgid_plural "%1 seconds"
+msgstr[0] "sekúnda"
+msgstr[1] "%1 sekúndur"
+
+#: src/Gui/SpectacleWindow.cpp:176
+#, kde-format
+msgctxt "@title:window Unsaved Screenshot"
+msgid "Unsaved"
+msgstr "Óvistað"
+
+#: src/Gui/UndoRedoGroup.qml:31
+#, kde-format
+msgid "Undo"
+msgstr "Hætta við"
+
+#: src/Gui/UndoRedoGroup.qml:42
+#, kde-format
+msgid "Redo"
+msgstr "Endurtaka"
+
+#: src/Gui/ViewerPage.qml:188
+#, kde-format
+msgid "Zoom:"
+msgstr "Aðdráttur:"
+
+#: src/Gui/ViewerPage.qml:202
+#, kde-format
+msgid "Image Zoom"
+msgstr "Aðdráttur mynda"
+
+#: src/Gui/ViewerWindow.cpp:53
+#, kde-format
+msgctxt "@info, %1 is the error message"
+msgid "There was a problem sharing the image: %1"
+msgstr "Villa kom upp við að deila myndinni: %1"
+
+#: src/Gui/ViewerWindow.cpp:56
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The shared image link (<a href=\"%1\">%1</a>) has been copied to the "
+"clipboard."
+msgstr ""
+"Slóð myndarinnar sem var deilt (<a href=\"%1\">%1</a>) var afrituð á "
+"klippispjaldið."
+
+#: src/Main.cpp:44
+#, kde-format
+msgid "Spectacle"
+msgstr "Spectacle"
+
+#: src/Main.cpp:46
+#, kde-format
+msgid "KDE Screenshot Utility"
+msgstr "KDE skjámyndaforrit"
+
+#: src/Main.cpp:48
+#, kde-format
+msgid "© 2015 Boudhayan Gupta"
+msgstr "© 2015 Boudhayan Gupta"
+
+#: src/Main.cpp:52
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Sveinn í Felli, Guðmundur Erlingsson"
+
+#: src/Main.cpp:52
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "sv1@fellsnet.is, gudmundure@gmail.com"
+
+#: src/Main.cpp:70
+#, kde-format
+msgid ""
+"On Wayland, Spectacle requires KDE Plasma's KWin compositor, which does not "
+"seem to be available. Use Spectacle on KDE Plasma, or use a different "
+"screenshot tool."
+msgstr ""
+"Í Wayland krefst Spectacle KWin-myndsmiðs frá KDE Plasma, sem virðist ekki "
+"vera tiltækur. Notaðu Spectacle í KDE Plasma eða notaðu annað "
+"skjámyndaforrit."
+
+#: src/OcrManager.cpp:609
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Orientation and Script Detection"
+msgstr "Greining á stefnu og stafrófi"
+
+#: src/OcrManager.cpp:650
+#, kde-format
+msgid "Math/Equation Detection"
+msgstr "Greining á stærðfræði/jöfnum"
+
+#: src/OcrManager.cpp:653
+#, kde-format
+msgid "Orientation and Script Detection"
+msgstr "Greining á stefnu og stafrófi"
+
+#: src/Platforms/ImagePlatformKWin.cpp:143
+#, kde-format
+msgctxt "@info, %1 is the width"
+msgid "Bad width for KWin screenshot: %1"
+msgstr "Slæm breidd fyrir KWin-skjámynd: %1"
+
+#: src/Platforms/ImagePlatformKWin.cpp:148
+#, kde-format
+msgctxt "@info, %1 is the height"
+msgid "Bad height for KWin screenshot: %1"
+msgstr "Slæm hæð fyrir KWin-skjámynd: %1"
+
+#: src/Platforms/ImagePlatformKWin.cpp:159
+#, kde-format
+msgctxt "@info, %1 is a file format like 'png', 'jpg'"
+msgid "Bad format for KWin screenshot: %1"
+msgstr "Slæmt snið fyrir KWin-skjámynd: %1"
+
+#: src/Platforms/ImagePlatformKWin.cpp:177
+#, kde-format
+msgctxt "@info"
+msgid "Could not open file descriptor for reading KWin screenshot."
+msgstr "Gat ekki opnað skráalýsi fyrir lestur á KWin-skjámynd."
+
+#: src/Platforms/ImagePlatformKWin.cpp:245
+#, kde-format
+msgctxt "@info, %1 is an error code"
+msgid "pipe2() failed for KWin screenshot: %1"
+msgstr "pipe2() mistókst fyrir KWin-skjámynd: %1"
+
+#: src/Platforms/ImagePlatformKWin.cpp:301
+#, kde-format
+msgctxt "@info, %1 is an error message"
+msgid ""
+"KWin screenshot request failed:\n"
+"%1"
+msgstr ""
+"KWin-skjámyndabeiðni mistókst:\n"
+"%1"
+
+#: src/Platforms/ImagePlatformKWin.cpp:303
+#, kde-format
+msgctxt "@info"
+msgid ""
+"Potentially relevant information:\n"
+"%1"
+msgstr ""
+"Hugsanlega viðeigandi upplýsingar:\n"
+"%1"
+
+#: src/Platforms/ImagePlatformKWin.cpp:311
+#, kde-format
+msgctxt "@info"
+msgid "Unsupported KWin screenshot type metadata: %1"
+msgstr "Óstudd lýsigögn KWin-skjámyndategundar: %1"
+
+#: src/Platforms/PlatformLoader.cpp:97
+#, kde-format
+msgctxt "@info"
+msgid "Screen recording is not available on X11."
+msgstr "Skjáupptaka er ekki í boði í X11."
+
+#: src/Platforms/VideoPlatformWayland.cpp:160
+#, kde-format
+msgctxt "@info"
+msgid "KWin Screencasting is not available."
+msgstr "KWin skjáupptaka er ekki í boði."
+
+#: src/Platforms/VideoPlatformWayland.cpp:173
+#, kde-format
+msgctxt "@info:shell"
+msgid "Failed to record: File URL is not a local file"
+msgstr "Upptaka mistókst: Skráarslóð er ekki staðbundin skrá"
+
+#: src/Platforms/VideoPlatformWayland.cpp:264
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The stream closed because the target screen changed in a way that disrupted "
+"the recording."
+msgstr ""
+"Straumurinn lokaðist vegna þess að markskjárinn breyttist á þann hátt að það "
+"truflaði upptökuna."
+
+#: src/Platforms/VideoPlatformWayland.cpp:266
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The stream closed because the target window changed in a way that disrupted "
+"the recording."
+msgstr ""
+"Straumurinn lokaðist vegna þess að markglugginn breyttist á þann hátt að það "
+"truflaði upptökuna."
+
+#: src/Platforms/VideoPlatformWayland.cpp:268
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The stream closed because a screen containing the target region changed in a "
+"way that disrupted the recording."
+msgstr ""
+"Straumurinn lokaðist vegna þess að skjárinn sem innihélt marksvæðið "
+"breyttist á þann hátt að það truflaði upptökuna."
+
+#: src/Platforms/VideoPlatformWayland.cpp:282
+#, kde-format
+msgctxt "@info:shell, %1 is the temporary URL"
+msgid "Failed to record: Temporary file URL is not a local file (%1)"
+msgstr "Upptaka mistókst: Bráðabirgðaskráarslóð er ekki staðbundin skrá (%1)"
+
+#: src/Platforms/VideoPlatformWayland.cpp:292
+#, kde-format
+msgctxt "@info:shell, %1 is the output file URL"
+msgid "Failed to record: Output file URL is not a local file (%1)"
+msgstr "Upptaka mistókst: Úttaksskrárslóð er ekki staðbundin skrá (%1)"
+
+#: src/Platforms/VideoPlatformWayland.cpp:346
+#, kde-format
+msgctxt "@info:shell, %1 is a directory path"
+msgid "Failed to record: Unable to create folder (%1)"
+msgstr "Upptaka mistókst: Mistókst að búa til möppu (%1)"
+
+#: src/Platforms/VideoPlatformWayland.cpp:374
+#, kde-format
+msgctxt "@info:shell"
+msgid "Screen recording canceled"
+msgstr "Hætt við skjáupptöku"
+
+#: src/Platforms/VideoPlatformWayland.cpp:376
+#, kde-format
+msgctxt "@info:shell"
+msgid "Window recording canceled"
+msgstr "Hætt við gluggaupptöku"
+
+#: src/Platforms/VideoPlatformWayland.cpp:382
+#, kde-format
+msgctxt "@info:shell, %1 is an error message"
+msgid "Failed to select screen: %1"
+msgstr "Mistókst að velja glugga: %1"
+
+#: src/Platforms/VideoPlatformWayland.cpp:384
+#, kde-format
+msgctxt "@info:shell, %1 is an error message"
+msgid "Failed to select window: %1"
+msgstr "Mistókst að velja glugga: %1"
+
+#: src/Platforms/VideoPlatformWayland.cpp:412
+#, kde-format
+msgctxt "@info:shell"
+msgid "Failed to select screen: No screen contained the mouse cursor position"
+msgstr "Mistókst að velja skjá: Enginn skjár innihélt stöðu músarbendils"
+
+#: src/Platforms/VideoPlatformWayland.cpp:419
+#, kde-format
+msgctxt "@info:shell"
+msgid "Failed to select window: No window found"
+msgstr "Mistókst að velja glugga: Enginn gluggi fannst"
+
+#: src/RecordingModeModel.cpp:105
+#, kde-format
+msgctxt "@item recording mode"
+msgid "Rectangular Region"
+msgstr "Rétthyrnt svæði"
+
+#: src/RecordingModeModel.cpp:107
+#, kde-format
+msgctxt "@item recording mode"
+msgid "Window"
+msgstr "Gluggi"
+
+#: src/RecordingModeModel.cpp:109
+#, kde-format
+msgctxt "@item recording mode"
+msgid "Full Screen"
+msgstr "Allur skjárinn"
+
+#: src/ShortcutActions.cpp:38
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Launch Spectacle"
+msgstr "Ræsa Spectacle"
+
+#: src/ShortcutActions.cpp:44
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Capture Entire Desktop"
+msgstr "Taka mynd af öllu skjáborðinu"
+
+#: src/ShortcutActions.cpp:50
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Capture Current Monitor"
+msgstr "Taka mynd af þessum skjá"
+
+#: src/ShortcutActions.cpp:56
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Capture Active Window"
+msgstr "Taka mynd af virkum glugga"
+
+#: src/ShortcutActions.cpp:62
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Capture Rectangular Region"
+msgstr "Taka mynd af ferhyrndu svæði"
+
+#: src/ShortcutActions.cpp:69
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Capture Selected Window"
+msgstr "Taka mynd af völdum glugga"
+
+#: src/ShortcutActions.cpp:69
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Capture Window Under Cursor"
+msgstr "Taka mynd af glugga undir bendli"
+
+#: src/ShortcutActions.cpp:76
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Start/Stop Screen Recording"
+msgstr "Hefja/Stöðva upptöku á skjá"
+
+#: src/ShortcutActions.cpp:82
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Start/Stop Window Recording"
+msgstr "Hefja/Stöðva upptöku á glugga"
+
+#: src/ShortcutActions.cpp:88
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Start/Stop Region Recording"
+msgstr "Hefja/Stöðva upptöku á svæði"
+
+#: src/ShortcutActions.cpp:94
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Launch Spectacle without capturing"
+msgstr "Ræsa Spectacle án þess að taka mynd"
+
+#: src/SpectacleCore.cpp:264
+#, kde-format
+msgctxt "@info"
+msgid "An error occurred while taking a screenshot."
+msgstr "Villa kom upp við að taka skjámynd."
+
+#: src/SpectacleCore.cpp:293
+#, kde-format
+msgctxt "@info:tooltip title for recording tray icon"
+msgid "Spectacle is Recording"
+msgstr "Spectacle er að taka upp"
+
+#: src/SpectacleCore.cpp:298
+#, kde-format
+msgctxt "recording notification title"
+msgid "Spectacle is Recording"
+msgstr "Spectacle er að taka upp"
+
+#: src/SpectacleCore.cpp:324
+#, kde-format
+msgctxt "recording notification message without shortcut"
+msgid "To finish the recording, click the pulsing red System Tray icon."
+msgstr ""
+"Til að ljúka upptökunni skaltu smella á rauðu blikkandi táknmyndina í "
+"kerfisbakkanum."
+
+#: src/SpectacleCore.cpp:325
+#, kde-kuit-format
+msgctxt "recording notification message with shortcut"
+msgid ""
+"To finish the recording, click the pulsing red System Tray icon or press "
+"<shortcut>%1</shortcut>."
+msgstr ""
+"Til að ljúka upptökunni skaltu smella á rauðu blikkandi táknmyndina í "
+"kerfisbakkanum eða ýta á <shortcut>%1</shortcut>."
+
+#: src/SpectacleCore.cpp:342
+#, kde-format
+msgctxt "missing webp support notification title"
+msgid "WebP support is missing."
+msgstr "WebP-stuðningur ekki til staðar."
+
+#: src/SpectacleCore.cpp:343
+#, kde-format
+msgctxt "missing webp support notification message"
+msgid ""
+"Please install Qt Image Formats to get animated system tray icons for "
+"Spectacle, and then report this packaging issue to your distributor."
+msgstr ""
+"Settu upp Qt Image Formats til að fá kerfisbakkatákn með hreyfiáhrifum fyrir "
+"Spectacle og tilkynntu svo þetta vandamál til dreifingaraðila þíns."
+
+#: src/SpectacleCore.cpp:379
+#, kde-format
+msgctxt "recording notification title"
+msgid "Spectacle is Finishing the Recording"
+msgstr "Spectacle er að ljúka upptökunni"
+
+#: src/SpectacleCore.cpp:380
+#, kde-format
+msgctxt "recording notification message"
+msgid "Please wait"
+msgstr "Bíddu aðeins"
+
+#: src/SpectacleCore.cpp:382
+#, kde-format
+msgctxt "@info:tooltip title for rendering tray icon"
+msgid "Spectacle is Finishing the Recording"
+msgstr "Spectacle er að ljúka upptökunni"
+
+#: src/SpectacleCore.cpp:384
+#, kde-format
+msgctxt "@info:tooltip subtitle for rendering tray icon"
+msgid ""
+"Time recorded: %1\n"
+"Click to stop rendering early (this will lose data)"
+msgstr ""
+"Tími upptöku: %1\n"
+"Smelltu til að ljúka upptöku snemma (sem þýðir tap gagna)"
+
+#: src/SpectacleCore.cpp:410
+#, kde-format
+msgctxt "@info:tooltip subtitle for recording tray icon"
+msgid ""
+"Time recorded: %1\n"
+"Click to finish recording"
+msgstr ""
+"Tími upptöku: %1\n"
+"Smelltu til að ljúka upptöku"
+
+#: src/SpectacleCore.cpp:435
+#, kde-format
+msgctxt "@info"
+msgid "An error occurred while attempting to record the screen."
+msgstr "Villa kom upp þegar reynt var að taka upp skjáinn."
+
+#: src/SpectacleCore.cpp:479
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The screenshot was copied to the clipboard and saved as <link url=\"%1\">%2</"
+"link>"
+msgstr ""
+"Skjámyndin var afrituð á klippispjaldið og vistuð sem <link url=\"%1\">%2</"
+"link>"
+
+#: src/SpectacleCore.cpp:482
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The screenshot has been saved as <link url=\"%1\">%2</link> and its location "
+"has been copied to clipboard"
+msgstr ""
+"Skjámyndin var vistuð sem <link url=\"%1\">%2</link> og staðsetning hennar "
+"hefur verið vistuð á klippispjaldið"
+
+#: src/SpectacleCore.cpp:485
+#, kde-kuit-format
+msgctxt "@info"
+msgid "The screenshot was saved as <link url=\"%1\">%2</link>"
+msgstr "Skjámyndin var vistuð sem <link url=\"%1\">%2</link>"
+
+#: src/SpectacleCore.cpp:489
+#, kde-format
+msgctxt "@info"
+msgid "The screenshot has been copied to the clipboard."
+msgstr "Skjámyndin var afrituð á klippispjaldið."
+
+#: src/SpectacleCore.cpp:520
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The video has been saved as <link url=\"%1\">%2</link> and its location has "
+"been copied to clipboard"
+msgstr ""
+"Myndskeiðið var vistað sem <link url=\"%1\">%2</link> og staðsetning þess "
+"hefur verið vistuð á klippispjaldið"
+
+#: src/SpectacleCore.cpp:523
+#, kde-kuit-format
+msgctxt "@info"
+msgid "The video was saved as <link url=\"%1\">%2</link>"
+msgstr "Myndskeiðið var vistað sem <link url=\"%1\">%2</link>"
+
+#: src/SpectacleCore.cpp:527
+#, kde-format
+msgctxt "@info"
+msgid "The video location has been copied to the clipboard."
+msgstr "Staðsetning myndskeiðsins var afritað á klippispjaldið."
+
+#. i18nc because it doesn't work with the link replacement logic.
+#. Also see https://invent.kde.org/graphics/spectacle/-/merge_requests/432#note_1111125
+#.
+#: src/SpectacleCore.cpp:547
+#, kde-format
+msgctxt "@info"
+msgid "Code found: %1"
+msgstr "Kóði fannst: %1"
+
+#: src/SpectacleCore.cpp:551
+#, kde-format
+msgctxt "@info"
+msgid "Found QR code with binary content."
+msgstr "Fann QR-kóða með tvíundarkerfisefni."
+
+#: src/SpectacleCore.cpp:560
+#, kde-format
+msgctxt "@info"
+msgid "Text extraction failed"
+msgstr "Útdráttur texta mistókst"
+
+#: src/SpectacleCore.cpp:566
+#, kde-format
+msgctxt "@info"
+msgid "No text found in the image"
+msgstr "Enginn texti fannst í myndinni"
+
+#: src/SpectacleCore.cpp:571
+#, kde-format
+msgctxt "@info"
+msgid "Text extraction completed"
+msgstr "Útdrætti texta er lokið"
+
+#: src/SpectacleCore.cpp:579
+#, kde-format
+msgctxt "@info:notification title"
+msgid "Text Extracted"
+msgstr "Sótti texta"
+
+#: src/SpectacleCore.cpp:598
+#, kde-format
+msgctxt "@info The variables are language names, e.g. 'English and German'"
+msgid "%1 and %2"
+msgstr "%1 og %2"
+
+#: src/SpectacleCore.cpp:603
+#, kde-kuit-format
+msgctxt "@info:notification"
+msgid "Text copied to clipboard.<nl/>Languages used: %1"
+msgstr "Texti afritaður á klippispjaldið.<nl/>Tungumál notuð: %1"
+
+#: src/SpectacleCore.cpp:608
+#, kde-format
+msgctxt "@action:button"
+msgid "Open in Text Editor"
+msgstr "Opna í textaritli"
+
+#: src/SpectacleCore.cpp:749
+#, kde-format
+msgctxt "@info"
+msgid "Please select a region before extracting text"
+msgstr "Veldu svæði áður en texti er sóttur úr mynd"
+
+#: src/SpectacleCore.cpp:771
+#, kde-format
+msgctxt "@info"
+msgid "OCR is not available."
+msgstr "OCR-ljóslestur er ekki tiltækur."
+
+#: src/SpectacleCore.cpp:777
+#, kde-format
+msgctxt "@info"
+msgid "No screenshot available."
+msgstr "Engin skjámynd tiltæk."
+
+#: src/SpectacleCore.cpp:781
+#, kde-format
+msgctxt "@info"
+msgid "Extracting text from image..."
+msgstr "Sæki texta úr mynd..."
+
+#: src/SpectacleCore.cpp:1045
+#, kde-format
+msgctxt "@info:shell"
+msgid "%1 is not a valid mode for --record"
+msgstr "%1 er ekki gilt snið fyrir --record"
+
+#: src/SpectacleCore.cpp:1279
+#, kde-format
+msgctxt "%1 is the filename, %2 the path to the save location"
+msgid ""
+"A screenshot was saved as '%1' to '%2' and the file path of the screenshot "
+"has been saved to your clipboard."
+msgstr ""
+"Skjámynd var vistuð sem '%1' í '%2' og slóð hennar var afrituð á "
+"klippispjaldið."
+
+#: src/SpectacleCore.cpp:1283
+#, kde-format
+msgctxt "%1 is the filename"
+msgid "A screenshot was saved as '%1' to your Pictures folder."
+msgstr "Skjámynd var vistuð sem '%1' í myndamöppuna þína."
+
+#: src/SpectacleCore.cpp:1286
+#, kde-format
+msgctxt "%1 is the filename, %2 the path to the save location"
+msgid "A screenshot was saved as '%1' to '%2'."
+msgstr "Skjámynd var vistuð sem '%1' í '%2'."
+
+#: src/SpectacleCore.cpp:1290
+#, kde-format
+msgid "A screenshot was saved to your clipboard."
+msgstr "Skjámynd var vistuð á klippispjaldið þitt."
+
+#: src/SpectacleCore.cpp:1295
+#, kde-format
+msgctxt "%1 is the filename, %2 the path to the save location"
+msgid ""
+"A recording was saved as '%1' to '%2' and the file path of the recording has "
+"been saved to your clipboard."
+msgstr ""
+"Upptaka var vistuð sem '%1' í '%2' og slóð hennar var afrituð á "
+"klippispjaldið."
+
+#: src/SpectacleCore.cpp:1297
+#, kde-format
+msgctxt "%1 is the filename"
+msgid "A recording was saved as '%1' to your Videos folder."
+msgstr "Upptaka var vistuð sem '%1' í myndskeiðamöppuna þína."
+
+#: src/SpectacleCore.cpp:1299
+#, kde-format
+msgctxt "%1 is the filename, %2 the path to the save location"
+msgid "A recording was saved as '%1' to '%2'."
+msgstr "Upptaka var vistuð sem '%1'  í '%2'."
+
+#: src/SpectacleCore.cpp:1310
+#, kde-format
+msgctxt "Open the screenshot we just saved"
+msgid "Open"
+msgstr "Opna"
+
+#: src/SpectacleCore.cpp:1324
+#, kde-format
+msgid "Annotate"
+msgstr "Glósa"
+
+#: src/VideoFormatModel.cpp:31
+#, kde-format
+msgctxt "@item:inlistbox Container/encoder"
+msgid "WebM/VP9"
+msgstr "WebM/VP9"
+
+#: src/VideoFormatModel.cpp:38
+#, kde-format
+msgctxt "@item:inlistbox Container/encoder"
+msgid "MP4/H.264"
+msgstr "MP4/H.264"
+
+#: src/VideoFormatModel.cpp:45
+#, kde-format
+msgctxt "@item:inlistbox Container/encoder"
+msgid "Animated WebP (better than GIF)"
+msgstr "WebP-hreyfimyndir (betra en GIF)"
+
+#: src/VideoFormatModel.cpp:52
+#, kde-format
+msgctxt "@item:inlistbox Container/encoder"
+msgid "GIF (compatible, but inefficient)"
+msgstr "GIF (samhæft en óhagkvæmt)"
+
+#, fuzzy
+#~| msgctxt "@action:button"
+#~| msgid "Open Containing Folder"
+#~ msgctxt "@action"
+#~ msgid "Open Containing Folder"
+#~ msgstr "Opna umlykjandi möppu"
+
+#~ msgid "The last used annotation tool type"
+#~ msgstr "Glósuverkfærið sem var notað síðast"
+
+#~ msgid "Stroke width for freehand annotation tool"
+#~ msgstr "Línubreidd fyrir fríhendisverkfæri"
+
+#~ msgid "Stroke width for highlighter annotation tool"
+#~ msgstr "Línubreidd fyrir áherslulitunarverkfæri"
+
+#~ msgid "Stroke width for line annotation tool"
+#~ msgstr "Línubreidd fyrir línuverkfæri"
+
+#~ msgid "Stroke width for arrow annotation tool"
+#~ msgstr "Línubreidd fyrir örvaverkfæri"
+
+#~ msgid "Stroke width for rectangle annotation tool"
+#~ msgstr "Línubreidd fyrir rétthyrningsverkfæri"
+
+#~ msgid "Stroke width for ellipse annotation tool"
+#~ msgstr "Línubreidd fyrir sporöskjuverkfæri"
+
+#~ msgid "Stroke color for freehand annotation tool"
+#~ msgstr "Línulitur fyrir fríhendisverkfæri"
+
+#~ msgid "Stroke color for highlighter annotation tool"
+#~ msgstr "Línulitur fyrir áherslulitunarverkfæri"
+
+#~ msgid "Stroke color for line annotation tool"
+#~ msgstr "Línulitur fyrir línuverkfæri"
+
+#~ msgid "Stroke color for arrow annotation tool"
+#~ msgstr "Línulitur fyrir örvaverkfæri"
+
+#~ msgid "Stroke color for rectangle annotation tool"
+#~ msgstr "Línulitur fyrir rétthyrningsverkfæri"
+
+#~ msgid "Stroke color for ellipse annotation tool"
+#~ msgstr "Línulitur fyrir sporöskjuverkfæri"
+
+#~ msgid "Fill color for rectangle annotation tool"
+#~ msgstr "Fyllilitur fyrir rétthyrningsverkfæri "
+
+#~ msgid "Fill color for ellipse annotation tool"
+#~ msgstr "Fyllilitur fyrir sporöskjuverkfæri"
+
+#~ msgid "Fill color for number annotation tool"
+#~ msgstr "Fyllilitur fyrir glósuverkfæri talna"
+
+#~ msgid "The strength of the blur effect."
+#~ msgstr "Styrkur móðuáhrifanna."
+
+#~ msgid "The strength of the pixelate effect."
+#~ msgstr "Styrkur pixlunaráhrifanna."
+
+#~ msgid "Font for text annotations"
+#~ msgstr "Letur fyrir textaglósur"
+
+#~ msgid "Font for number annotations"
+#~ msgstr "Letur fyrir númeraglósur"
+
+#~ msgid "Font color for annotations"
+#~ msgstr "Leturlitur fyrir glósur"
+
+#~ msgid "Whether freehand annotation tool has a drop shadow"
+#~ msgstr "Hvort fríhendisglósur séu með skugga"
+
+#~ msgid "Whether line annotation tool has a drop shadow"
+#~ msgstr "Hvort línuglósur séu með skugga"
+
+#~ msgid "Whether arrow annotation tool has a drop shadow"
+#~ msgstr "Hvort örvaglósur séu með skugga"
+
+#~ msgid "Whether rectangle annotation tool has a drop shadow"
+#~ msgstr "Hvort rétthyrningsglósur séu með skugga"
+
+#~ msgid "Whether ellipse annotation tool has a drop shadow"
+#~ msgstr "Hvort sporöskuglósur séu með skugga"
+
+#~ msgid "Whether text annotation tool has a drop shadow"
+#~ msgstr "Hvort textaglósur séu með skugga"
+
+#~ msgid "Whether number annotation tool has a drop shadow"
+#~ msgstr "Hvort númeraglósur séu með skugga"
+
+#~ msgid "Show capture instructions"
+#~ msgstr "Sýna leiðbeiningar fyrir myndatöku"
+
+#~ msgid "Whether to show capture instructions in the region selection"
+#~ msgstr ""
+#~ "Hvort eigi að birta leiðbeiningar fyrir skjámyndatöku í svæðisvalinu"
+
+#~ msgctxt "@action global shortcut"
+#~ msgid "Record Screen"
+#~ msgstr "Taka upp skjá"
+
+#~ msgctxt "@action global shortcut"
+#~ msgid "Record Window"
+#~ msgstr "Taka upp glugga"
+
+#~ msgctxt "@action global shortcut"
+#~ msgid "Record Rectangular Region"
+#~ msgstr "Taka upp rétthyrnt svæði"
+
+#~ msgctxt "recording notification message"
+#~ msgid "Click the system tray icon to finish recording"
+#~ msgstr "Smelltu á tákn í kerfisbakkatil að ljúka upptöku"
+
+#~ msgctxt "@info"
+#~ msgid "The screenshot location has been copied to the clipboard."
+#~ msgstr "Staðsetning skjámyndarinnar var afrituð á klippispjaldið."
+
+#~ msgctxt "@info"
+#~ msgid "Video shared"
+#~ msgstr "Myndskeiði deilt"
+
+#~ msgctxt "@info"
+#~ msgid "Image shared"
+#~ msgstr "Mynd deilt"
+
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "The shared video link (<a href=\"%1\">%1</a>) has been copied to the "
+#~ "clipboard."
+#~ msgstr ""
+#~ "Slóð myndskeiðsins sem var deilt (<a href=\"%1\">%1</a>) var afrituð á "
+#~ "klippispjaldið."
+
+#~ msgctxt "@info"
+#~ msgid "There was a problem sharing the video: %1"
+#~ msgstr "Villa kom upp við að deila myndskeiðinu: %1"
+
+#~ msgid "Screenshot"
+#~ msgstr "Skjámynd"
+
+#~ msgid "Configure..."
+#~ msgstr "Grunnstilla..."
+
+#~ msgid "Capture Mode"
+#~ msgstr "Tökustilling"
+
+#~ msgid "Capture Settings"
+#~ msgstr "Tökustillingar"
+
+#~ msgctxt "@title:group"
+#~ msgid "Recording Settings"
+#~ msgstr "Upptökustillingar"
+
+#~ msgid ""
+#~ "Could not take a screenshot. Please report this bug here: <a href="
+#~ "\"https://bugs.kde.org/enter_bug.cgi?product=Spectacle\">create a "
+#~ "spectacle bug</a>"
+#~ msgstr ""
+#~ "Gat ekki tekið skjámynd. Tilkynntu þetta sem villu hér: <a href=\"https://"
+#~ "bugs.kde.org/enter_bug.cgi?product=Spectacle\">tilkynna spectacle-villu</"
+#~ "a>"
+
+#~ msgid "Screenshot capture canceled or failed"
+#~ msgstr "Hætt við töku skjámyndar eða hún mistókst"
+
+#~ msgid "Show Annotation Tools"
+#~ msgstr " Sýna glósuverkfæri"
+
+#~ msgid "Whether to show a magnifier in the region selection"
+#~ msgstr "Hvort eigi að sýna skjástækkun í svæðisvalinu"
+
+#~ msgid "Capture Modes"
+#~ msgstr "Tökustillingar"
+
+#, fuzzy
+#~| msgctxt "Decimal number of seconds"
+#~| msgid " seconds"
+#~ msgctxt "Decimal number of seconds"
+#~ msgid "%2 seconds"
+#~ msgstr " sekúndur"
+
+#~ msgctxt ""
+#~ "A placeholder in the user configurable filename will replaced by the "
+#~ "specified value"
+#~ msgid "Day"
+#~ msgstr "Dagur"
+
+#~ msgctxt ""
+#~ "A placeholder in the user configurable filename will replaced by the "
+#~ "specified value"
+#~ msgid "Month"
+#~ msgstr "Mánuður"
+
+#~ msgctxt ""
+#~ "A placeholder in the user configurable filename will replaced by the "
+#~ "specified value"
+#~ msgid "Hour"
+#~ msgstr "Klukkustund"
+
+#~ msgctxt ""
+#~ "A placeholder in the user configurable filename will replaced by the "
+#~ "specified value"
+#~ msgid "Minute"
+#~ msgstr "Mínúta"
+
+#~ msgctxt ""
+#~ "A placeholder in the user configurable filename will replaced by the "
+#~ "specified value"
+#~ msgid "Second"
+#~ msgstr "Sekúnda"
+
+#~ msgctxt ""
+#~ "A placeholder in the user configurable filename will replaced by the "
+#~ "specified value"
+#~ msgid "Timezone"
+#~ msgstr "Tímabelti"
+
+#~ msgctxt ""
+#~ "A placeholder in the user configurable filename will replaced by the "
+#~ "specified value"
+#~ msgid "Sequential numbering"
+#~ msgstr "Númeraröð"
+
+#~ msgid "The default filename used when recording a video"
+#~ msgstr "Sjálfgefið skrárheiti þegar myndskeið er tekið upp"
+
+#~ msgctxt "@item recording mode"
+#~ msgid "Region"
+#~ msgstr "Svæði"
+
+#~ msgctxt "@item recording mode"
+#~ msgid "Screen"
+#~ msgstr "Skjár"
+
+#, fuzzy
+#~| msgid "Save"
+#~ msgctxt "Settings category"
+#~ msgid "Save"
+#~ msgstr "Vista"
+
+#~ msgid "On Click"
+#~ msgstr "Við smell"
+
+#~ msgid "Take a New Screenshot"
+#~ msgstr "Taka nýja skjámynd"
+
+#, fuzzy
+#~| msgid ""
+#~| "Capture only the current pop-up window (like a menu, tooltip etc).\n"
+#~| "If disabled, the pop-up is captured along with the parent window"
+#~ msgid "Capture only the current pop-up window (like a menu, tooltip etc).\n"
+#~ msgstr ""
+#~ "Taka einungis mynd af þessum sprettglugga (eins og valmynd, ábendingu, o."
+#~ "s.frv.)\n"
+#~ "Ef þetta er óvirkt, verður sprettglugginn tekinn ásamt undirliggjandi "
+#~ "glugganum sem hann tilheyrir"
+
+#~ msgid "Full Screen (All Monitors)"
+#~ msgstr "Skjáfylli (allir skjáir)"
+
+#~ msgid "Full Screen (All Monitors, scaled)"
+#~ msgstr "Skjáfylli (allir skjáir, kvarðað)"
+
+#~ msgid "Image Size: %1x%2 pixels"
+#~ msgstr "Stærð myndar: %1x%2 mynddílar"
+
+#~ msgid "Change Spectacle's settings."
+#~ msgstr "Breyta stillingum Spectacle."
+
+#~ msgid "Add annotation to the screenshot"
+#~ msgstr "Bæta glósu við skjámyndina"
+
+#~ msgid "Tools"
+#~ msgstr "Verkfæri"
+
+#~ msgid "Ready to take a screenshot"
+#~ msgstr "Tilbúið að taka skjámynd"
+
+#~ msgctxt "@action:button"
+#~ msgid "Annotate"
+#~ msgstr "Glósa"
+
+#~ msgid "Area:"
+#~ msgstr "Svæði:"
+
+#~ msgid "The last used copy mode"
+#~ msgstr "Síðast notaði afritunarhamur"
+
+#~ msgctxt "The entire screen area was captured, heading"
+#~ msgid "Full Screen Captured"
+#~ msgstr "Tók mynd af öllum skjánum"
+
+#~ msgctxt "The current screen was captured, heading"
+#~ msgid "Current Screen Captured"
+#~ msgstr "Tók mynd af þessum skjá"
+
+#~ msgctxt "The active window was captured, heading"
+#~ msgid "Active Window Captured"
+#~ msgstr "Tók mynd af virkum glugga"
+
+#~ msgctxt "The window under the mouse was captured, heading"
+#~ msgid "Window Under Cursor Captured"
+#~ msgstr "Tók mynd af glugga undir bendli"
+
+#~ msgctxt "A rectangular region was captured, heading"
+#~ msgid "Rectangular Region Captured"
+#~ msgstr "Tók mynd af ferhyrndu svæði"

@@ -107,7 +107,7 @@ def repo_component_closure(index: dict[str, Any], git: str) -> list[str]:
 def choose_owned_git_target(index: dict[str, Any], package: str, git: str) -> dict[str, str] | None:
     """Resolve an owned Git edge by repository identity first, then package identity.
 
-    Package-name equality alone is never enough for Git dependencies. COSMIC has
+    Package-name equality alone is never enough for Git dependencies. Cargo has
     unrelated repositories that expose crates with colliding names, so falling
     back to root_packages here can silently redirect one upstream project into a
     different MattOS-owned project and even create dependency cycles.
@@ -333,7 +333,7 @@ def apply_component_patches(root: pathlib.Path, metadata: dict[str, Any], destin
     Patch manifests contain `diff --git` patches. Use the same `git apply`
     semantics as MattOS's existing output-patch regression tests instead of GNU
     `patch`: GNU patch interprets an all-zero Git index as file creation and
-    rejects cosmic-comp's existing-file modification even though `git apply`
+    rejects an existing-file modification even though `git apply`
     correctly validates and applies it.
     """
     manifest_rel = metadata.get('patch_manifest')

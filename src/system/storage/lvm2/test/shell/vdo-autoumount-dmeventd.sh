@@ -1,0 +1,133 @@
+#!/usr/bin/env bash
+
+# Copyright (C) 2019-2025 Red Hat, Inc. All rights reserved.
+#
+# This copyrighted material is made available to anyone wishing to use,
+# modify, copy, or redistribute it subject to the terms and conditions
+# of the GNU General Public License v.2.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+# no automatic extensions, just umount
+
+
+. lib/inittest --skip-with-lvmpolld
+
+mntdir="${PREFIX}mnt with space"
+PERCENT=70
+
+_cleanup_mounted_and_teardown()
+{
+	[[ -z "${PID_SLEEP=}" ]] || { kill "$PID_SLEEP" || true ; }
+	umount "$mntdir" 2>/dev/null || true
+	vgremove -ff $vg
+	aux teardown
+}
+
+_is_lv_opened()
+{
+	[[ $(get lv_field "$1" lv_device_open --binary) = 1 ]]
+}
+
+#
+# Main
+#
+which mkfs.ext4 || skip
+export MKE2FS_CONFIG="$TESTDIR/lib/mke2fs.conf"
+
+aux have_vdo 6 2 0 || skip
+
+# Simple implementation of umount when lvextend fails
+# Script enforces failing exit, so dmeventd tries several times
+# repeatedly to invoke this for given percentage
+cat <<- EOF >testcmd.sh
+#!/bin/sh
+
+echo "VDO Pool: \${DMEVENTD_VDO_POOL-raised_event}"
+
+lvm lvextend --use-policies "\$1" || {
+	umount "$mntdir" && exit 0
+	touch "$PWD/TRIED_UMOUNT"
+}
+
+p=\$(lvm lvs -o selected -S "data_percent>=$PERCENT" --noheadings "\$1")
+
+test "\$p" -eq 0 || exit 1
+
+echo "No volume with percentage above $PERCENT%."
+exit 0
+EOF
+chmod +x testcmd.sh
+# Show prepared script
+cat testcmd.sh
+
+# Use autoextend percent 0 - so extension fails and triggers umount...
+aux lvmconf "activation/vdo_pool_autoextend_percent = 0" \
+	    "activation/vdo_pool_autoextend_threshold = $PERCENT" \
+	    "dmeventd/vdo_command = \"$PWD/testcmd.sh\"" \
+            "allocation/vdo_slab_size_mb = 128"
+
+aux prepare_dmeventd
+
+aux prepare_vg 1 9000
+
+lvcreate --vdo -L4G -V2G -n $lv1 $vg/vpool
+
+mkfs.ext4 -E nodiscard "$DM_DEV_DIR/$vg/$lv1"
+
+lvchange --monitor y $vg/vpool
+
+mkdir "$mntdir"
+trap '_cleanup_mounted_and_teardown' EXIT
+mount "$DM_DEV_DIR/$vg/$lv1" "$mntdir"
+
+# Check both LV is opened (~mounted)
+_is_lv_opened "$vg/$lv1"
+
+touch "$mntdir/file$$"
+sync
+
+# Running 'keeper' process sleep holds the block device still in use
+sleep 60 < "$mntdir/file$$" >/dev/null 2>&1 &
+PID_SLEEP=$!
+
+lvs -a $vg
+# Fill pool above 95%  (to cause 'forced lazy umount)
+dd if=/dev/urandom of="$mntdir/file$$" bs=256K count=200 oflag=direct
+
+lvs -a $vg
+
+# Could loop here for a few secs so dmeventd can do some work
+# In the worst case check only happens every 10 seconds :(
+for i in {1..12}; do
+	_is_lv_opened "$vg/$lv1" || break
+	test -f "TRIED_UMOUNT" && break # finish loop quickly
+	sleep 1
+	echo "$i"
+done
+
+rm -f "TRIED_UMOUNT"
+[[ $i -lt 12 ]] || die "$mntdir should NOT have been unmounted by dmeventd!"
+
+lvs -a $vg
+
+# Kill device holding process - umount should work now
+kill "$PID_SLEEP"
+wait "$PID_SLEEP" || true
+PID_SLEEP=
+
+# Could loop here for a few secs so dmeventd can do some work
+# In the worst case check only happens every 10 seconds :(
+# We may wait upto 2 rounds.
+for i in {1..22} ; do
+	_is_lv_opened "$vg/$lv1" || break
+	sleep 1
+	echo "$i"
+done
+
+[[ $i -lt 22 ]] || die "$mntdir should have been unmounted by dmeventd!"
+
+# vgremove is managed through _cleanup_mounted_and_teardown()
+exit 0

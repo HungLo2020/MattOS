@@ -1,0 +1,398 @@
+#
+# Copyright (C) 2001-2004 Sistina Software, Inc. All rights reserved.
+# Copyright (C) 2004-2017 Red Hat, Inc. All rights reserved.
+#
+# This file is part of LVM2.
+#
+# This copyrighted material is made available to anyone wishing to use,
+# modify, copy, or redistribute it subject to the terms and conditions
+# of the GNU General Public License v.2.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+top_builddir = @top_builddir@
+
+ifeq ($(V),1)
+	Q=
+else
+	Q=@
+endif
+
+FSADMMAN = fsadm.8
+LVMIMPORTVDOMAN = lvm_import_vdo.8
+BLKDEACTIVATEMAN = blkdeactivate.8
+DMEVENTDMAN = dmeventd.8
+DMFILEMAPDMAN = dmfilemapd.8
+LVMPOLLDMAN = lvmpolld.8
+LVMLOCKDMAN = lvmlockd.8 lvmlockctl.8
+CMIRRORDMAN = cmirrord.8
+LVMDBUSDMAN = lvmdbusd.8
+
+MAN5=lvm.conf.5
+MAN7=lvmsystemid.7 lvmreport.7 lvmraid.7 lvmautoactivation.7
+MAN7INDEX=lvm-index.7
+MAN7CATEGORIES=lvm-categories.7
+MAN7ARGS=lvm-args.7
+# Builtin commands with no dedicated man page (no _des or _main files).
+# These have only _meta files and are included in index/categories generation.
+MANBUILTIN=config.8 devtypes.8 dumpconfig.8 formats.8 fullreport.8 help.8 lastlog.8 lvpoll.8 segtypes.8 systemid.8 tags.8 version.8
+
+MAN8=lvm.8 lvmdump.8 lvm-fullreport.8 lvm-lvpoll.8 \
+     lvcreate.8 lvchange.8 lvmconfig.8 lvconvert.8 lvdisplay.8 \
+     lvextend.8 lvreduce.8 lvremove.8 lvrename.8 lvresize.8 lvs.8 \
+     lvscan.8 pvchange.8 pvck.8 pvcreate.8 pvdisplay.8 pvmove.8 pvremove.8 \
+     pvresize.8 pvs.8 pvscan.8 vgcfgbackup.8 vgcfgrestore.8 vgchange.8 \
+     vgck.8 vgcreate.8 vgconvert.8 vgdisplay.8 vgexport.8 vgextend.8 \
+     vgimport.8 vgimportclone.8 vgmerge.8 vgmknodes.8 vgreduce.8 vgremove.8 \
+     vgrename.8 vgs.8 vgscan.8 vgsplit.8 \
+     lvmsar.8 lvmsadc.8 lvmdiskscan.8 lvmdevices.8 vgimportdevices.8 \
+     lvmpersist.8
+MAN8SO=lvm-config.8 lvm-dumpconfig.8
+MAN8DM=dmsetup.8 dmstats.8 dmvdostats.8
+MAN8CLUSTER=
+
+MANALL = $(MAN5) $(MAN7) $(MAN8) $(MAN8SO) $(MAN8DM) $(MAN8CLUSTER) $(MANBUILTIN)
+# Build list of existing _meta files: append _meta suffix, prepend $(srcdir)/,
+# then filter to paths that exist on disk (e.g. lvm-config.8_meta doesn't).
+# Uses = (not :=) so expansion is deferred until use, after conditional += appends.
+MANALL_META = $(wildcard $(addprefix $(srcdir)/,$(addsuffix _meta,$(MANALL))))
+
+MAN_ALL_GOALS := distclean all_man install_all_man pregenerated_man generate
+ifneq (,$(filter $(MAN_ALL_GOALS),$(MAKECMDGOALS)))
+  MAN7 += lvmcache.7 lvmthin.7 lvmvdo.7
+  MAN8+=$(FSADMMAN) $(LVMPOLLDMAN) $(LVMLOCKDMAN) $(LVMDBUSDMAN) $(LVMIMPORTVDOMAN)
+  MAN8DM+=$(BLKDEACTIVATEMAN) $(DMEVENTDMAN) $(DMFILEMAPDMAN)
+  MAN8CLUSTER+=$(CMIRRORDMAN)
+else
+  ifeq ("@FSADM@", "yes")
+    MAN8+=$(FSADMMAN)
+  endif
+
+  ifeq ("@LVMIMPORTVDO@", "yes")
+    MAN8+=$(LVMIMPORTVDOMAN)
+  endif
+
+  ifeq ("@BUILD_LVMDBUSD@", "yes")
+    MAN8+=$(LVMDBUSDMAN)
+  endif
+
+  ifeq ("@BUILD_LVMPOLLD@", "yes")
+    MAN8+=$(LVMPOLLDMAN)
+  endif
+
+  ifeq ("@BUILD_LVMLOCKD@", "yes")
+    MAN8+=$(LVMLOCKDMAN)
+  endif
+
+  ifeq ("@BLKDEACTIVATE@", "yes")
+    MAN8DM+=$(BLKDEACTIVATEMAN)
+  endif
+
+  ifeq ("@BUILD_DMEVENTD@", "yes")
+    MAN8DM+=$(DMEVENTDMAN)
+  endif
+
+  ifeq ("@BUILD_DMFILEMAPD@", "yes")
+    MAN8DM+=$(DMFILEMAPDMAN)
+  endif
+
+  ifeq ("@BUILD_CMIRRORD@", "yes")
+    MAN8CLUSTER+=$(CMIRRORDMAN)
+  endif
+
+  ifeq ("@CACHE@", "internal")
+    MAN7 += lvmcache.7
+  else
+    ifeq ("@WRITECACHE@", "internal")
+      MAN7 += lvmcache.7
+    endif
+  endif
+
+  ifeq ("@THIN@", "internal")
+    MAN7 += lvmthin.7
+  endif
+
+  ifeq ("@VDO@", "internal")
+    MAN7 += lvmvdo.7
+  endif
+
+endif
+
+MAN5DIR=$(mandir)/man5
+MAN7DIR=$(mandir)/man7
+MAN8DIR=$(mandir)/man8
+
+MANGENERATOR=$(top_builddir)/tools/man-generator
+TESTMAN=test.gen
+
+include $(top_builddir)/make.tmpl
+
+CLEAN_TARGETS+=$(MAN5) $(MAN7) \
+	$(MAN7INDEX) $(MAN7INDEX:%.7=%.7_gen) \
+	$(MAN7CATEGORIES) $(MAN7CATEGORIES:%.7=%.7_gen) \
+	$(MAN7ARGS) $(MAN7ARGS:%.7=%.7_gen) \
+	$(MAN8) $(MAN8SO) \
+	$(MAN8:%.8=%.8_gen) $(MAN8CLUSTER) $(MAN8DM) $(TESTMAN)
+
+all: man device-mapper
+
+.PHONY: man install_man5 install_man7 install_man8 pregenerated_man
+
+device-mapper: $(MAN8DM)
+
+man: $(MAN5) $(MAN7) $(MAN7INDEX) $(MAN7CATEGORIES) $(MAN7ARGS) $(MAN8) $(MAN8SO) $(MAN8CLUSTER)
+
+all_man: man
+
+$(MAN5) $(MAN7) $(MAN7INDEX) $(MAN7CATEGORIES) $(MAN7ARGS) $(MAN8) $(MAN8SO) $(MAN8DM) $(MAN8CLUSTER): Makefile
+
+$(MANGENERATOR):
+	$(SHOW) "    [MAKE] $<"
+	$(Q) $(MAKE) -C $(top_builddir) tools
+
+# Test whether or not the man page generator works
+$(TESTMAN): $(MANGENERATOR) Makefile
+	$(SHOW) "    [TSTMAN] $@"
+	$(Q) - $(MANGENERATOR) --primary lvmconfig > $@
+
+SEE_ALSO=$(srcdir)/see_also.end
+
+.PRECIOUS: %.8_gen
+
+%.8_gen: $(srcdir)/%.8_des $(srcdir)/%.8_end $(MANGENERATOR) $(TESTMAN) $(SEE_ALSO)
+	$(Q)set -e ; ( \
+	    if [ ! -s $(TESTMAN) ] ; then \
+		cat $(srcdir)/$(@:%.8_gen=%.8_pregen) \
+		    $(srcdir)/$(basename $@).8_end $(SEE_ALSO) ; \
+	    else \
+		MANCMD=$(basename $@) && \
+		$(MANGENERATOR) --primary $$MANCMD $< && \
+		$(MANGENERATOR) --secondary $$MANCMD && \
+		cat $(srcdir)/$(basename $@).8_end $(SEE_ALSO) ; \
+	    fi \
+	) > $@
+
+#
+# When EDITLINE_LIBS is defined, we are compiling with libedit
+#
+ifneq ("$(EDITLINE_LIBS)", "")
+DEFAULT_LIBLINE=editline
+else
+DEFAULT_LIBLINE=readline
+endif
+
+define SUBSTVARS
+$(SED) -e "s+#VERSION#+$(LVM_VERSION)+" \
+	-e "s+#DEFAULT_SYS_DIR#+$(DEFAULT_SYS_DIR)+" \
+	-e "s+#DEFAULT_ARCHIVE_DIR#+$(DEFAULT_ARCHIVE_DIR)+" \
+	-e "s+#DEFAULT_BACKUP_DIR#+$(DEFAULT_BACKUP_DIR)+" \
+	-e "s+#DEFAULT_PROFILE_DIR#+$(DEFAULT_PROFILE_DIR)+" \
+	-e "s+#DEFAULT_CACHE_DIR#+$(DEFAULT_CACHE_DIR)+" \
+	-e "s+#DEFAULT_LOCK_DIR#+$(DEFAULT_LOCK_DIR)+" \
+	-e "s+#LVM_PATH#+@bindir@/lvm+" \
+	-e "s+#DEFAULT_RUN_DIR#+$(DEFAULT_RUN_DIR)+" \
+	-e "s+#DEFAULT_PID_DIR#+$(DEFAULT_PID_DIR)+" \
+	-e "s+#SYSTEMD_GENERATOR_DIR#+$(SYSTEMD_GENERATOR_DIR)+" \
+	-e "s+#DEFAULT_LIBLINE#+$(DEFAULT_LIBLINE)+" \
+	-e "s+#DEFAULT_DMEVENTD_EXIT_ON_PATH#+$(DEFAULT_DMEVENTD_EXIT_ON_PATH)+" \
+	-e "s+#DEFAULT_MANGLING#+$(DEFAULT_MANGLING)+" $< > $@
+endef
+
+# Escape any '-' to '\-'  (except ^.TH line)
+# and fix unwanted changes:
+#    '\\-'  back to '\-'
+#    words like 'device\-mapper' back to 'device-mapper',
+#    \[\->] \[<\-] back to \[->], \[<-]
+#    however for some words i.e. '*-pool' we want '*\-pool'
+#    also 'vg-lv,[systemd-]machine-id,lvm-full,lvm-lvpoll' should go with \-
+#
+define ESCAPEHYPHENS
+$(SED) -i -e "/^.TH/ !s+-+\\\-+g" \
+	  -e "s+\\\[\]-+\\\-+g" \
+	  -e "s+\(^\|[^[:alnum:]\-]\)\([[:alpha:]]\{1,\}\)\\\-\((\|[([:alpha:]]\{2,\}\)+\1\2-\3+g" \
+	  -e "s+\([[:alpha:]]\)-\(pool\)+\1\\\-\2+g" \
+	  -e "s+[\][[]\(<\{0,1\}\)\\\-+\\\[\1-+g" \
+	  -e "s+\(vg.\{1,\}[^\]\)-lv+\1\\\-lv+g" \
+	  -e "s+systemd-machine+systemd\\\-machine+g" \
+	  -e "s+machine-id+machine\\\-id+g" \
+	  -e "s+lvm-full+lvm\\\-full+g" \
+	  -e "s+lvm-lvpoll+lvm\\\-lvpoll+g" \
+	  -e "s+lvm-index+lvm\\\-index+g" \
+	  -e "s+lvm-categories+lvm\\\-categories+g" \
+	  -e "s+\([[:digit:]]\)\s\([KMGTPE]iB\)+\1\\\ \2+g" \
+	  $@
+endef
+
+.PHONY: checksed
+checksed:
+	$(Q) echo "cmd -a -b retry -c ret --use-policy -d" > $@
+	$(Q) echo "cmd \fI-u\fB -d retry \fI--use-pol --use-poli 4.0 --use \"-L|--size\"" >> $@
+	$(Q) echo "cmd --use-pol" >> $@
+	$(Q) echo "cmd --[raid]use device-mapper thin-pool \fB-\fP sdb1:1000-1999 \fB-t\fP|\fB--test\fP -? -o-field3" >> $@
+	$(Q) echo "cmd -dd---- \[->] \[<-] -*- -o#field5 -o-field3 -d" >> $@
+	$(Q) echo "-d" >> $@
+	$(Q) echo ".TH 2.03.12(2)-git" >> $@
+	$(Q) echo "--verbose" >> $@
+	$(Q) echo ".BR -- [ raid ] most  -- [ raid ] most" >> $@
+	$(Q) echo ".BR | --verbose|--verb  --verbose  --verbose --verbose --verbose" >> $@
+	$(Q) echo "skip - unint --aa-dd- --aa-dd-- ---aa-dd 4.0 \-a\-b" >> $@
+	$(Q) echo "cmd \-a \-b retry \-c ret \-\-use\-policy \-d" > $@-e
+	$(Q) echo "cmd \fI\-u\fB \-d retry \fI\-\-use\-pol \-\-use\-poli 4.0 \-\-use \"\-L|\-\-size\"" >> $@-e
+	$(Q) echo "cmd \-\-use\-pol" >> $@-e
+	$(Q) echo "cmd \-\-[raid]use device-mapper thin\-pool \fB\-\fP sdb1:1000\-1999 \fB\-t\fP|\fB\-\-test\fP \-? \-o\-field3" >> $@-e
+	$(Q) echo "cmd \-dd\-\-\-\- \[->] \[<-] \-*\- \-o#field5 \-o\-field3 \-d" >> $@-e
+	$(Q) echo "\-d" >> $@-e
+	$(Q) echo ".TH 2.03.12(2)-git" >> $@-e
+	$(Q) echo "\-\-verbose" >> $@-e
+	$(Q) echo ".BR \-\- [ raid ] most  \-\- [ raid ] most" >> $@-e
+	$(Q) echo ".BR | \-\-verbose|\-\-verb  \-\-verbose  \-\-verbose \-\-verbose \-\-verbose" >> $@-e
+	$(Q) echo "skip \- unint \-\-aa\-dd\- \-\-aa\-dd\-\- \-\-\-aa\-dd 4.0 \-a\-b" >> $@-e
+	$(Q) $(ESCAPEHYPHENS)
+	$(Q) echo "--- H Y P H E N A T E D ---"
+	$(Q) cat $@
+	$(Q) diff -u $@-e $@
+	$(Q) $(RM) $@ $@-e
+
+%.5: $(srcdir)/%.5_main
+	$(SHOW) "    [MAN] $@"
+	$(Q) $(SUBSTVARS)
+	$(Q) $(ESCAPEHYPHENS)
+
+%.7: $(srcdir)/%.7_main
+	$(SHOW) "    [MAN] $@"
+	$(Q) $(SUBSTVARS)
+	$(Q) $(ESCAPEHYPHENS)
+
+%.8: $(srcdir)/%.8_main
+	$(SHOW) "    [MAN] $@"
+	$(Q) $(SUBSTVARS)
+	$(Q) $(ESCAPEHYPHENS)
+
+%.8: %.8_gen
+	$(SHOW) "    [MAN] $@"
+	$(Q) $(SUBSTVARS)
+	$(Q) $(ESCAPEHYPHENS)
+
+$(MAN7INDEX): $(srcdir)/$(MAN7INDEX)_gen
+	$(SHOW) "    [INDEX] $@"
+	$(Q) $(SUBSTVARS)
+	$(Q) $(ESCAPEHYPHENS)
+
+$(MAN7CATEGORIES): $(srcdir)/$(MAN7CATEGORIES)_gen
+	$(SHOW) "    [INDEX] $@"
+	$(Q) $(SUBSTVARS)
+	$(Q) $(ESCAPEHYPHENS)
+
+$(MAN7ARGS): $(srcdir)/$(MAN7ARGS)_gen
+	$(SHOW) "    [ARGS] $@"
+	$(Q) $(SUBSTVARS)
+	$(Q) $(ESCAPEHYPHENS)
+
+$(MAN8SO): lvmconfig.8
+	$(SHOW) "    [MAN] $@"
+	$(Q) echo ".so $<" > $@
+
+install_man5: $(MAN5)
+	$(SHOW) "    [INSTALL] $^"
+	$(Q) $(INSTALL) -d $(MAN5DIR)
+	$(Q) $(INSTALL_DATA) $^ $(MAN5DIR)/
+
+install_man7: $(MAN7) $(MAN7INDEX) $(MAN7CATEGORIES) $(MAN7ARGS)
+	$(SHOW) "    [INSTALL] $^"
+	$(Q) $(INSTALL) -d $(MAN7DIR)
+	$(Q) $(INSTALL_DATA) $^ $(MAN7DIR)/
+
+install_man8: $(MAN8) $(MAN8SO)
+	$(SHOW) "    [INSTALL] $^"
+	$(Q) $(INSTALL) -d $(MAN8DIR)
+	$(Q) $(INSTALL_DATA) $^ $(MAN8DIR)/
+
+install_lvm2: install_man5 install_man7 install_man8
+
+install_cluster: $(MAN8CLUSTER)
+ifneq ($(MAN8CLUSTER),)
+	$(SHOW) "    [INSTALL] $^"
+	$(Q) $(INSTALL) -d $(MAN8DIR)
+	$(Q) $(INSTALL_DATA) $^ $(MAN8DIR)/
+endif
+
+install_device-mapper: $(MAN8DM)
+	$(SHOW) "    [INSTALL] $^"
+	$(Q) $(INSTALL) -d $(MAN8DIR)
+	$(Q) $(INSTALL_DATA) $^ $(MAN8DIR)/
+
+install: install_lvm2 install_device-mapper install_cluster
+
+install_all_man: install install_systemd_generators
+
+# Copy generated man pages back to source tree as fallback for machines where generator doesn't work
+pregenerated_man: $(MANGENERATOR) $(TESTMAN)
+	$(SHOW) "    [GENERATE] $^"
+	$(Q) set -e ; test -s $(TESTMAN) && for i in $(srcdir)/*.8_des; do \
+		CMD=`basename $$i .8_des`; \
+		( $(MANGENERATOR) --primary $$CMD $$i && \
+		$(MANGENERATOR) --secondary $$CMD )  \
+		> $(srcdir)/$$CMD.8_pregen ; \
+	done && \
+	$(MANGENERATOR) --index --with-condition-markers $(MANALL_META) > $(srcdir)/$(MAN7INDEX)_pregen && \
+	$(MANGENERATOR) --categories --with-condition-markers $(MANALL_META) > $(srcdir)/$(MAN7CATEGORIES)_pregen && \
+	$(MANGENERATOR) --args > $(srcdir)/$(MAN7ARGS)_pregen
+
+# Filter pregenerated index/categories pages so they only contain entries
+# for man pages enabled by the current configure (listed in MANALL).
+#
+# Pregenerated files contain CONDITION_BEGIN/END markers around optional
+# entries (e.g. .\" CONDITION_BEGIN fsadm.8 ... .\" CONDITION_END fsadm.8).
+# The awk script below:
+#
+#   1. Builds an associative array 'inc' from MANALL (the enabled pages).
+#   2. On CONDITION_BEGIN: if the tagged page is NOT in inc, sets 'skip'
+#      to suppress all lines until the matching CONDITION_END.
+#   3. Buffers .SH headers (and the following .PD 0) so they are only
+#      printed when at least one real entry follows.  If all entries in
+#      a section were conditional and got skipped, the section header
+#      and its .PD 0 / .PD / separator lines are dropped entirely.
+#   4. Passes all other non-skipped lines through unchanged.
+#
+FILTER_PREGEN = $(AWK) -v incl="$(MANALL)" \
+  'BEGIN{n=split(incl,a," ");for(i=1;i<=n;i++)inc[a[i]]=1} \
+   /^\.\\" CONDITION_BEGIN/{split($$0,f);if(!(f[3] in inc)){skip=f[3]};next} \
+   /^\.\\" CONDITION_END/{split($$0,f);if(f[3]==skip){skip=""};next} \
+   skip!=""{next} \
+   /^\.SH /{if(hdr!="")hdr="";hdr=$$0"\n";has=0;next} \
+   /^\.PD 0$$/{if(hdr!=""){hdr=hdr $$0"\n";next}} \
+   /^\.PD$$/{if(!has){hdr="";next}hdr=""} \
+   {if(hdr!=""){printf "%s",hdr;hdr="";has=1}if(!has&&/^\.$$/)next;has=1;print}'
+
+$(MAN7INDEX)_gen: $(MANGENERATOR) $(TESTMAN) $(MANALL_META)
+	$(Q) set -e ; ( \
+	    if [ ! -s $(TESTMAN) ] ; then \
+		$(FILTER_PREGEN) $(srcdir)/$(@:%.7_gen=%.7_pregen) ; \
+	    else \
+		$(MANGENERATOR) --index $(MANALL_META) ; \
+	    fi \
+	) > $@
+
+$(MAN7CATEGORIES)_gen: $(MANGENERATOR) $(TESTMAN) $(MANALL_META)
+	$(Q) set -e ; ( \
+	    if [ ! -s $(TESTMAN) ] ; then \
+		$(FILTER_PREGEN) $(srcdir)/$(@:%.7_gen=%.7_pregen) ; \
+	    else \
+		$(MANGENERATOR) --categories $(MANALL_META) ; \
+	    fi \
+	) > $@
+
+$(MAN7ARGS)_gen: $(MANGENERATOR) $(TESTMAN)
+	$(Q) set -e ; ( \
+	    if [ ! -s $(TESTMAN) ] ; then \
+		cat $(srcdir)/$(@:%.7_gen=%.7_pregen) ; \
+	    else \
+		$(MANGENERATOR) --args ; \
+	    fi \
+	) > $@
+
+generate: pregenerated_man

@@ -1,0 +1,290 @@
+#!/bin/bash
+
+# check tcrypt images parsing
+
+[ -z "$CRYPTSETUP_PATH" ] && CRYPTSETUP_PATH=".."
+CRYPTSETUP=$CRYPTSETUP_PATH/cryptsetup
+TST_DIR=tcrypt-images
+MAP=tctst
+PASSWORD="aaaaaaaaaaaa"
+PASSWORD_HIDDEN="bbbbbbbbbbbb"
+PASSWORD_72C="aaaaaaaaaaaabbbbbbbbbbbbccccccccccccddddddddddddeeeeeeeeeeeeffffffffffff"
+PIM=1234
+LOOP_SYS=""
+PART_IMG=tctst-part-img
+
+CRYPTOCHECK=./crypto-check
+
+if [ -n "$CRYPTSETUP_TESTS_RUN_IN_MESON" ]; then
+	CRYPTSETUP_VALGRIND=$CRYPTSETUP
+else
+	CRYPTSETUP_VALGRIND=../.libs/cryptsetup
+	CRYPTSETUP_LIB_VALGRIND=../.libs
+fi
+
+[ -z "$srcdir" ] && srcdir="."
+
+remove_mapping()
+{
+	[ -b /dev/mapper/$MAP ] && dmsetup remove --retry $MAP
+	[ -b /dev/mapper/"$MAP"_1 ] && dmsetup remove --retry "$MAP"_1
+	[ -b /dev/mapper/"$MAP"_2 ] && dmsetup remove --retry "$MAP"_2
+	[ -n "$LOOP_SYS" ] && losetup -d $LOOP_SYS
+	rm -rf $TST_DIR $PART_IMG
+}
+
+fail()
+{
+	[ -n "$1" ] && echo "$1"
+	echo " [FAILED]"
+	echo "FAILED backtrace:"
+	while caller $frame; do ((frame++)); done
+	remove_mapping
+	exit 2
+}
+
+_sigchld() { local c=$?; [ $c -eq 139 ] && fail "Segfault"; [ $c -eq 134 ] && fail "Aborted"; }
+trap _sigchld CHLD
+
+skip()
+{
+	[ -n "$1" ] && echo "$1"
+	remove_mapping
+	exit 77
+}
+
+test_one() # cipher mode keysize rm_pattern
+{
+	$CRYPTOCHECK cipher $1 $2 $3
+	if [ $? -ne 0 ] ; then
+		echo "$1-$2 [N/A]"
+		IMGS=$(ls $TST_DIR/[tv]c* | grep "$4")
+		[ -n "$IMGS" ] && rm $IMGS
+	else
+		echo "$1-$2 [OK]"
+	fi
+}
+
+test_kdf() # hash img_hash
+{
+	$CRYPTOCHECK hash $1
+	if [ $? -ne 0 ] ; then
+		echo "pbkdf2-$1 [N/A]"
+		IMGS=$(ls $TST_DIR/[tv]c* | grep "$2")
+		[ -n "$IMGS" ] && rm $IMGS
+	else
+		echo "pbkdf2-$1 [OK]"
+	fi
+}
+
+get_HASH_CIPHER() # filename
+{
+	# speed up the test by limiting options for hash and (first) cipher
+	HASH=$(echo $file | cut -d'-' -f3)
+	CIPHER=$(echo $file | cut -d'-' -f5)
+}
+
+test_required()
+{
+	command -v blkid >/dev/null || skip "blkid tool required, test skipped."
+	[ ! -x "$CRYPTOCHECK" ] && skip "Cannot find $CRYPTOCHECK, test skipped."
+
+	echo "REQUIRED KDF TEST"
+	test_kdf sha256      sha256
+	test_kdf sha512      sha512
+	test_kdf blake2s-256 blake2
+	test_kdf ripemd160   ripemd160
+	test_kdf whirlpool   whirlpool
+	test_kdf stribog512  stribog
+
+	echo "REQUIRED CIPHERS TEST"
+	test_one aes cbc 256 cbc-aes
+	test_one aes lrw 384 lrw-aes
+	test_one aes xts 512 xts-aes
+
+	test_one twofish ecb 256 twofish
+	test_one twofish cbc 256 cbc-twofish
+	test_one twofish lrw 384 lrw-twofish
+	test_one twofish xts 512 xts-twofish
+
+	test_one serpent ecb 256 serpent
+	test_one serpent cbc 256 cbc-serpent
+	test_one serpent lrw 384 lrw-serpent
+	test_one serpent xts 512 xts-serpent
+
+	test_one blowfish cbc 256 blowfish
+
+	test_one des3_ede cbc 192 des3_ede
+	test_one cast5 cbc 128 cast5
+
+	test_one camellia xts 512 camellia
+	test_one kuznyechik xts 512 kuznyechik
+
+	ls $TST_DIR/[tv]c* >/dev/null 2>&1 || skip "No remaining images, test skipped."
+}
+
+check_uuid()
+{
+	UUID=$(blkid -p -o value -s UUID /dev/mapper/$MAP)
+	[ "$UUID" != "$1" ] && fail "UUID check failed."
+}
+
+valgrind_setup()
+{
+	command -v valgrind >/dev/null || fail "Cannot find valgrind."
+	[ ! -f $CRYPTSETUP_VALGRIND ] && fail "Unable to get location of cryptsetup executable."
+	[ ! -f valg.sh ] && fail "Unable to get location of valg runner script."
+	if [ -z "$CRYPTSETUP_TESTS_RUN_IN_MESON" ]; then
+		export LD_LIBRARY_PATH="$CRYPTSETUP_LIB_VALGRIND:$LD_LIBRARY_PATH"
+	fi
+}
+
+valgrind_run()
+{
+	INFOSTRING="$(basename ${BASH_SOURCE[1]})-line-${BASH_LINENO[0]}" ./valg.sh ${CRYPTSETUP_VALGRIND} "$@"
+}
+
+export LANG=C
+[ ! -x "$CRYPTSETUP" ] && skip "Cannot find $CRYPTSETUP, test skipped."
+[ ! -d $TST_DIR ] && tar xJf $srcdir/tcrypt-images.tar.xz --no-same-owner
+
+[ -n "$VALG" ] && valgrind_setup && CRYPTSETUP=valgrind_run
+
+test_required
+
+echo "HEADER CHECK"
+for file in $(ls $TST_DIR/[tv]c_* $TST_DIR/vcpim_* $TST_DIR/sys_[tv]c_*) ; do
+	echo -n " $file"
+	PIM_OPT=""
+	[[ $file =~ vcpim.* ]] && PIM_OPT="--veracrypt-pim $PIM"
+	SYS_OPT=""
+	[[ $file =~ sys_.* ]] && SYS_OPT="--tcrypt-system"
+	get_HASH_CIPHER $file
+	echo $PASSWORD | $CRYPTSETUP tcryptDump $SYS_OPT $PIM_OPT -h $HASH -c $CIPHER $file >/dev/null || fail
+	if [[ $file =~ .*-sha512-xts-aes$ ]] ; then
+		echo $PASSWORD | $CRYPTSETUP tcryptDump $SYS_OPT $PIM_OPT -h sha512 -c aes $file >/dev/null || fail
+		echo $PASSWORD | $CRYPTSETUP tcryptDump $SYS_OPT $PIM_OPT -h xxxx $file 2>/dev/null && fail
+		echo $PASSWORD | $CRYPTSETUP tcryptDump $SYS_OPT $PIM_OPT -h sha512 -c xxx $file 2>/dev/null && fail
+	fi
+	echo " [OK]"
+done
+
+echo "HEADER CHECK (TCRYPT only)"
+for file in $(ls $TST_DIR/vc_* $TST_DIR/vcpim_*) ; do
+	echo -n " $file"
+	PIM_OPT=""
+	[[ $file =~ vcpim.* ]] && PIM_OPT="--veracrypt-pim $PIM"
+	get_HASH_CIPHER $file
+	echo $PASSWORD | $CRYPTSETUP tcryptDump --disable-veracrypt $PIM_OPT -h $HASH -c $CIPHER $file >/dev/null 2>&1 && fail
+	echo " [OK]"
+done
+
+echo "HEADER CHECK (HIDDEN)"
+for file in $(ls $TST_DIR/[tv]c_*-hidden) ; do
+	echo -n " $file (hidden)"
+	get_HASH_CIPHER $file
+	echo $PASSWORD_HIDDEN | $CRYPTSETUP tcryptDump --tcrypt-hidden -h $HASH -c $CIPHER $file >/dev/null || fail
+	echo " [OK]"
+done
+
+echo "HEADER KEYFILES CHECK"
+for file in $(ls $TST_DIR/[tv]ck_*) ; do
+	echo -n " $file"
+	PWD=$PASSWORD
+	[[ $file =~ vck_1_nopw.* ]] && PWD=""
+	[[ $file =~ vck_1_pw72.* ]] && PWD=$PASSWORD_72C
+	get_HASH_CIPHER $file
+	echo $PWD | $CRYPTSETUP tcryptDump -d $TST_DIR/keyfile1 -d $TST_DIR/keyfile2 -h $HASH -c $CIPHER $file >/dev/null || fail
+	echo " [OK]"
+done
+
+if [ $(id -u) != 0 ]; then
+	echo "WARNING: You must be root to run activation part of test, test skipped."
+	remove_mapping
+	exit 0
+fi
+
+echo "ACTIVATION FS UUID CHECK"
+for file in $(ls $TST_DIR/[tv]c_* $TST_DIR/vcpim_*) ; do
+	echo -n " $file"
+	PIM_OPT=""
+	[[ $file =~ vcpim.* ]] && PIM_OPT="--veracrypt-pim $PIM"
+	get_HASH_CIPHER $file
+	out=$(echo $PASSWORD | $CRYPTSETUP tcryptOpen $PIM_OPT -r -h $HASH -c $CIPHER $file $MAP 2>&1)
+	ret=$?
+	[ $ret -eq 1 ] && ( echo "$out" | grep -q -e "TCRYPT legacy mode" ) && echo " [N/A]" && continue
+	[ $ret -eq 1 ] && ( echo "$out" | grep -q -e "TCRYPT compatible mapping" ) && echo " [N/A]" && continue
+	[ $ret -ne 0 ] && fail
+	$CRYPTSETUP status $MAP >/dev/null || fail
+	$CRYPTSETUP status /dev/mapper/$MAP >/dev/null || fail
+	check_uuid DEAD-BABE
+	$CRYPTSETUP close $MAP || fail
+	echo " [OK]"
+done
+
+echo "ACTIVATION SYSTEM FS UUID CHECK"
+for file in $(ls $TST_DIR/sys_[tv]c_*) ; do
+	echo -n " $file"
+	LOOP_SYS=$(losetup -r -f --show -P $file)
+	if [ -z "$LOOP_SYS" ]; then
+		echo " [N/A]"
+		continue
+	fi
+	if [[ $file =~ _gpt_ ]]; then
+		LOOP_PART="$LOOP_SYS"p3
+	else
+		LOOP_PART="$LOOP_SYS"p1
+	fi
+	if [ ! -b "$LOOP_PART" ]; then
+		echo " [N/A]"
+		losetup -d $LOOP_SYS
+		LOOP_SYS=""
+		continue
+	fi
+	get_HASH_CIPHER $file
+	# map through partition name
+	echo -n " [PART]"
+	echo $PASSWORD | $CRYPTSETUP tcryptOpen --tcrypt-system -r -h $HASH -c $CIPHER $LOOP_PART $MAP || fail
+	check_uuid DEAD-BABE
+	$CRYPTSETUP close $MAP || fail
+	if [[ $file =~ _part ]]; then
+		# map through image only (TCRYPT hdr contains partition offset and size)
+		echo -n "[IMG]"
+		echo $PASSWORD | $CRYPTSETUP tcryptOpen --tcrypt-system -r -h $HASH -c $CIPHER $file $MAP 2>/dev/null || fail
+		check_uuid DEAD-BABE
+		$CRYPTSETUP close $MAP || fail
+		# map through full device (TCRYPT hdr contains partition offset and size)
+		echo -n "[DRIVE]"
+		echo $PASSWORD | $CRYPTSETUP tcryptOpen --tcrypt-system -r -h $HASH -c $CIPHER $LOOP_SYS $MAP || fail
+		check_uuid DEAD-BABE
+		$CRYPTSETUP close $MAP || fail
+	elif [[ $file =~ _full ]]; then
+		# map through image + header in real partition (whole system)
+		dd if=$LOOP_PART of=$PART_IMG bs=1M >/dev/null 2>&1
+		echo -n "[PART+IMG]"
+		echo $PASSWORD | $CRYPTSETUP tcryptOpen --tcrypt-system -r -h $HASH -c $CIPHER --header $LOOP_PART $PART_IMG $MAP || fail
+		check_uuid DEAD-BABE
+		$CRYPTSETUP close $MAP || fail
+		rm $PART_IMG
+	fi
+	losetup -d $LOOP_SYS
+	LOOP_SYS=""
+	echo " [OK]"
+done
+
+echo "ACTIVATION FS UUID (HIDDEN) CHECK"
+for file in $(ls $TST_DIR/[tv]c_*-hidden) ; do
+	echo -n " $file"
+	get_HASH_CIPHER $file
+	out=$(echo $PASSWORD_HIDDEN | $CRYPTSETUP tcryptOpen -r -h $HASH -c $CIPHER $file $MAP --tcrypt-hidden 2>&1)
+	ret=$?
+	[ $ret -eq 1 ] && ( echo "$out" | grep -q -e "TCRYPT legacy mode" ) && echo " [N/A]" && continue
+	[ $ret -eq 1 ] && ( echo "$out" | grep -q -e "TCRYPT compatible mapping" ) && echo " [N/A]" && continue
+	[ $ret -ne 0 ] && fail
+	check_uuid CAFE-BABE
+	$CRYPTSETUP close $MAP || fail
+	echo " [OK]"
+done
+
+remove_mapping
+exit 0

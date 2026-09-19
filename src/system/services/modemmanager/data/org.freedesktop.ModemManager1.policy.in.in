@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1.0/policyconfig.dtd">
+
+<policyconfig>
+
+  <vendor>ModemManager</vendor>
+  <vendor_url>http://www.freedesktop.org/wiki/ModemManager</vendor_url>
+  <icon_name>ModemManager</icon_name>
+
+  <action id="org.freedesktop.ModemManager1.CellBroadcast">
+    <description>Enable and view Cell Broadcast messages</description>
+    <message>System policy prevents enabling or viewing this device's text messages.</message>
+    <defaults>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>@MM_DEFAULT_USER_POLICY@</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.freedesktop.ModemManager1.Control">
+    <description>Control the Modem Manager daemon</description>
+    <message>System policy prevents controlling the Modem Manager.</message>
+    <defaults>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>auth_admin</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.freedesktop.ModemManager1.Device.Control">
+    <description>Unlock and control a mobile broadband device</description>
+    <message>System policy prevents unlocking or controlling the mobile broadband device.</message>
+    <defaults>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>@MM_DEFAULT_USER_POLICY@</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.freedesktop.ModemManager1.Contacts">
+    <description>Add, modify, and delete mobile broadband contacts</description>
+    <message>System policy prevents adding, modifying, or deleting this device's contacts.</message>
+    <defaults>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>@MM_DEFAULT_USER_POLICY@</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.freedesktop.ModemManager1.Messaging">
+    <description>Send, save, modify, and delete text messages</description>
+    <message>System policy prevents sending or manipulating this device's text messages.</message>
+    <defaults>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>@MM_DEFAULT_USER_POLICY@</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.freedesktop.ModemManager1.Voice">
+    <description>Accept incoming voice calls or start outgoing voice calls.</description>
+    <message>System policy prevents voice calls.</message>
+    <defaults>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>@MM_DEFAULT_USER_POLICY@</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.freedesktop.ModemManager1.Time">
+    <description>Query network time and timezone information</description>
+    <message>System policy prevents querying network time information.</message>
+    <defaults>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>@MM_DEFAULT_USER_POLICY@</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.freedesktop.ModemManager1.Location">
+    <description>Enable and view geographic location and positioning information</description>
+    <message>System policy prevents enabling or viewing geographic location information.</message>
+    <defaults>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>@MM_DEFAULT_USER_POLICY@</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.freedesktop.ModemManager1.USSD">
+    <description>Query and utilize network information and services</description>
+    <message>System policy prevents querying or utilizing network information and services.</message>
+    <defaults>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>@MM_DEFAULT_USER_POLICY@</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.freedesktop.ModemManager1.Firmware">
+    <description>Query and manage firmware on a mobile broadband device</description>
+    <message>System policy prevents querying or managing this device's firmware.</message>
+    <defaults>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>auth_admin</allow_active>
+    </defaults>
+  </action>
+
+</policyconfig>

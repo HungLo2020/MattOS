@@ -1,0 +1,47 @@
+# Copyright (C) 2024 This file is copyright:
+# This file is distributed under the same license as the purpose package.
+#
+# SPDX-FileCopyrightText: 2024 Yaron Shahrabani <sh.yaron@gmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: purpose\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-11-17 11:49+0000\n"
+"PO-Revision-Date: 2024-11-26 07:58+0200\n"
+"Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
+"Language-Team: צוות התרגום של KDE ישראל\n"
+"Language: he\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
+"n % 10 == 0) ? 2 : 3));\n"
+"X-Generator: Lokalize 24.08.3\n"
+
+#: imgurplugin.cpp:68 imgurplugin.cpp:70
+#, kde-format
+msgid "Upload failed: %1"
+msgstr "ההעלאה נכשלה: %1"
+
+#: imgurplugin.cpp:91
+#, kde-format
+msgid "Uploading files to imgur..."
+msgstr "קבצים נשלחים ל־imgur…"
+
+#: imgurplugin.cpp:143
+#, kde-format
+msgid "Imgur Upload"
+msgstr "העלאה ל־Imgur"
+
+#: imgurplugin.cpp:144
+#, kde-format
+msgid ""
+"The shared image link (<a href=\"%1\">%1</a>) has been copied to the "
+"clipboard.<br><br>If you would like to remove the uploaded image, visit <a "
+"href=\"%2\">%2</a>"
+msgstr ""
+"הקישור לתמונה ששותפה (<a href=\"%1\">%1</a>) הועתק ללוח הגזירים. <br><br>כדי "
+"להסיר את התמונה שהועלתה, נא לבקר בכתובת <a href=\"%2\">%2</a>"
+
+#~ msgid "Error page returned"
+#~ msgstr "הוחזר עמוד שגיאה"

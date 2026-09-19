@@ -1,0 +1,234 @@
+{
+    "dap": {
+        "delve": {
+            "url": "https://github.com/go-delve/delve",
+            "run": {
+                "command": ["dlv", "dap", "--listen", "${#run.host}:${#run.port}"],
+                "port": 0,
+                "redirectStderr": true,
+                "redirectStdout": true,
+                "supportsSourceRequest": false
+            },
+            "configurations": {
+                "launch (debug)": {
+                    "request": {
+                        "command": "launch",
+                        "mode": "debug",
+                        "program": "${file}",
+                        "args": "${args|list}"
+                    }
+                },
+                "launch (test)": {
+                    "request": {
+                        "command": "launch",
+                        "mode": "test",
+                        "program": "${file}",
+                        "args": "${args|list}"
+                    }
+                },
+                "launch (exec)": {
+                    "request": {
+                        "command": "launch",
+                        "mode": "exec",
+                        "program": "${file}",
+                        "args": "${args|list}"
+                    }
+                },
+                "launch (core)": {
+                    "request": {
+                        "command": "launch",
+                        "mode": "core",
+                        "coreFilePath": "${corefilePath}"
+                    }
+                },
+                "launch (replay)": {
+                    "request": {
+                        "command": "launch",
+                        "mode": "replay",
+                        "traceDirPath": "${traceDirPath}"
+                    }
+                },
+                "attach (local)": {
+                    "request": {
+                        "command": "attach",
+                        "mode": "local",
+                        "processId": "${pid|int}"
+                    }
+                }
+            }
+        },
+        "debugpy": {
+            "url": "https://github.com/microsoft/debugpy",
+            "run": {
+                "command": ["python3", "-m", "debugpy", "--listen", "${#run.host}:${#run.port}", "--wait-for-client"],
+                "port": 0,
+                "supportsSourceRequest": false
+            },
+            "configurations": {
+                "launch": {
+                    "commandArgs": ["${file}", "${args|list}"],
+                    "request": {
+                        "command": "attach",
+                        "stopOnEntry": true,
+                        "redirectOutput": true
+                    }
+                },
+                "launch module": {
+                    "commandArgs": ["-m", "${module}"],
+                    "request": {
+                        "command": "attach",
+                        "stopOnEntry": true,
+                        "redirectOutput": true
+                    }
+                },
+                "attach": {
+                    "commandArgs": ["--pid", "${pid}"],
+                    "request": {
+                        "command": "attach",
+                        "stopOnEntry": true,
+                        "redirectOutput": true
+                    }
+                },
+                "launch (venv)": {
+                    "commandArgs": ["${file}", "${args|list}"],
+                    "request": {
+                        "command": "attach",
+                        "python": "${python}",
+                        "stopOnEntry": true,
+                        "redirectOutput": true
+                    }
+                }
+            }
+        },
+        "perl-ls": {
+            "url": "https://github.com/richterger/Perl-LanguageServer",
+            "run": {
+                "command": ["perl", "-MPerl::LanguageServer", "-e", "Perl::LanguageServer::run", "--", "--port", "${#run.port}"],
+                "port": 0,
+                "redirectStderr": false,
+                "redirectStdout": true,
+                "supportsSourceRequest": false
+            },
+            "configurations": {
+                "launch": {
+                    "request": {
+                        "command": "launch",
+                        "program": "${file}",
+                        "args": "${args|list}",
+                        "stopOnEntry": true
+                    }
+                },
+                "launch locallib": {
+                    "request": {
+                        "command": "launch",
+                        "program": "${file}",
+                        "args": "${args|list}",
+                        "stopOnEntry": true,
+                        "env": {
+                            "PERL5LIB": "${locallib}"
+                        }
+                    }
+                }
+            }
+        },
+        "dart": {
+            "url": "https://github.com/dart-lang/sdk/blob/main/pkg/dds/tool/dap/README.md",
+            "run": {
+                "command": ["dart", "debug_adapter"]
+            },
+            "configurations": {
+                "launch (debug)": {
+                    "request": {
+                        "command": "launch",
+                        "program": "${file}",
+                        "args": "${args|list}",
+                        "cwd": "${workdir}"
+                    }
+                }
+            }
+        },
+        "flutter": {
+            "url": "https://github.com/flutter/flutter/pull/91802",
+            "run": {
+                "command": ["flutter", "debug_adapter"]
+            },
+            "configurations": {
+                "launch (debug)": {
+                    "request": {
+                        "command": "launch",
+                        "program": "${file}",
+                        "args": "${args|list}",
+                        "cwd": "${workdir}"
+                    }
+                }
+            }
+        },
+        "gdb": {
+            "url": "gdb",
+            "run": {
+                "command": [
+                    "gdb",
+                    "-i",
+                    "dap"
+                ],
+                "redirectStderr": true,
+                "redirectStdout": true,
+                "supportsSourceRequest": true
+            },
+            "configurations": {
+                "launch (debug)": {
+                    "request": {
+                        "command": "launch",
+                        "mode": "debug",
+                        "program": "${file}",
+                        "args": "${args|list}",
+                        "cwd": "${workdir}"
+                    }
+                }
+            }
+        },
+        "lldb-dap": {
+            "url": "lldb",
+            "run": {
+                "command": ["lldb-dap"],
+                "redirectStderr": true,
+                "redirectStdout": true
+            },
+            "configurations": {
+                "launch (debug)": {
+                    "request": {
+                        "command": "launch",
+                        "mode": "debug",
+                        "program": "${file}",
+                        "args": "${args|list}",
+                        "cwd": "${workdir}"
+                    }
+                }
+            }
+        },
+        "netcoredbg": {
+            "url": "https://github.com/Samsung/netcoredbg",
+            "run": {
+                "command": ["netcoredbg", "--interpreter=vscode"],
+                "redirectStderr": true,
+                "redirectStdout": true
+            },
+            "configurations": {
+                "launch": {
+                    "request": {
+                        "command": "launch",
+                        "program": "${file}",
+                        "args": "${args|list}",
+                        "cwd": "${workdir}"
+                    }
+                },
+                "attach": {
+                    "request": {
+                        "command": "attach",
+                        "processId": "${pid|int}"
+                    }
+                }
+            }
+        }
+    }
+}

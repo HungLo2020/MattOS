@@ -22,8 +22,8 @@ pub const BTRFS_SUBVOLUMES: &[(&str, &str)] = &[
 ];
 
 /// Stable, presentation-neutral installation phases.  Frontends must not
-/// infer progress from command output: both the CLI and COSMIC installer
-/// consume these events from the one policy implementation.
+/// infer progress from command output: every installer frontend consumes
+/// these events from the one policy implementation.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum InstallStage {
     Preparing,
@@ -169,7 +169,9 @@ pub fn optional_package_defaults(profile: InstalledProfile) -> Vec<String> {
 }
 
 pub fn optional_package(id: &str) -> Option<&'static OptionalPackage> {
-    OPTIONAL_PACKAGE_CATALOG.iter().find(|package| package.id == id)
+    OPTIONAL_PACKAGE_CATALOG
+        .iter()
+        .find(|package| package.id == id)
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -1465,11 +1467,7 @@ where
 /// deployed target has its normal Flatpak remote and installed-system policy.
 /// Each catalog entry is isolated: a network or transaction failure is logged
 /// for the user but never invalidates the completed MattOS installation.
-fn provision_optional_packages<F>(
-    plan: &InstallPlan,
-    target: &Path,
-    progress: &mut F,
-) -> Result<()>
+fn provision_optional_packages<F>(plan: &InstallPlan, target: &Path, progress: &mut F) -> Result<()>
 where
     F: FnMut(InstallProgress),
 {
@@ -1494,7 +1492,11 @@ where
     let results = provision_optional_packages_with(plan, |package| {
         let output = match package.backend {
             OptionalPackageBackend::Flatpak => Command::new("/usr/bin/timeout")
-                .args(["--signal=TERM", "12m", "/usr/libexec/mattos-flatpak-target-install"])
+                .args([
+                    "--signal=TERM",
+                    "12m",
+                    "/usr/libexec/mattos-flatpak-target-install",
+                ])
                 .args(flatpak_target_install_arguments(target, package)?)
                 .output()
                 .context("run target-rooted Flatpak install from live environment"),
@@ -1514,11 +1516,17 @@ where
     for result in results {
         match &result.outcome {
             OptionalPackageProvisionOutcome::Installed => {
-                log.push_str(&format!("installed {} ({})\n", result.package.id, result.package.flatpak_app_id));
+                log.push_str(&format!(
+                    "installed {} ({})\n",
+                    result.package.id, result.package.flatpak_app_id
+                ));
                 progress(InstallProgress::new(
                     InstallStage::ConfiguringSystem,
                     7,
-                    format!("Installed optional application {}", result.package.display_name),
+                    format!(
+                        "Installed optional application {}",
+                        result.package.display_name
+                    ),
                 ));
             }
             OptionalPackageProvisionOutcome::Failed(error) => {
@@ -1588,7 +1596,10 @@ where
 /// Arguments for the target-rooted Flatpak helper. The helper runs in the
 /// booted live environment, but opens only the mounted target's system
 /// installation, preserving a normal `flathub` origin on the deployed app.
-fn flatpak_target_install_arguments(target: &Path, package: &OptionalPackage) -> Result<Vec<String>> {
+fn flatpak_target_install_arguments(
+    target: &Path,
+    package: &OptionalPackage,
+) -> Result<Vec<String>> {
     let target = target
         .to_str()
         .context("optional Flatpak target path is not valid UTF-8")?;
@@ -1669,9 +1680,7 @@ fn remove_live_only_state(target: &Path) -> Result<()> {
     for relative in [
         "etc/systemd/system/getty@tty1.service.d/autologin.conf",
         "etc/systemd/system/serial-getty@ttyS0.service.d/autologin.conf",
-        "etc/systemd/system/cosmic-greeter.service.d/live.conf",
         "etc/systemd/system/plasma-greeter.service.d/live.conf",
-        "etc/greetd/cosmic-live.toml",
         "etc/greetd/plasma-live.toml",
         "etc/sudoers.d/00-mattos-live",
         "etc/tmpfiles.d/mattos-live.conf",
@@ -1765,7 +1774,10 @@ fn configure_installed_apt(target: &Path) -> Result<()> {
         let unit = format!("/usr/lib/systemd/system/{name}");
         let timer = target.join(unit.trim_start_matches('/'));
         if !timer.is_file() {
-            bail!("installed APT metadata refresh timer is missing: {}", timer.display());
+            bail!(
+                "installed APT metadata refresh timer is missing: {}",
+                timer.display()
+            );
         }
         let wants = target.join("etc/systemd/system/timers.target.wants");
         fs::create_dir_all(&wants)?;
@@ -1991,7 +2003,10 @@ fn install_boot_files(identity: &StorageIdentity, target: &Path) -> Result<()> {
     let release = fs::read_to_string("/usr/lib/mattos/installer/kernel-release")?;
     let release = validate_kernel_release(&release)?;
     for (source, destination) in [
-        ("/usr/lib/mattos/installer/vmlinuz", format!("boot/vmlinuz-{release}")),
+        (
+            "/usr/lib/mattos/installer/vmlinuz",
+            format!("boot/vmlinuz-{release}"),
+        ),
         (
             "/usr/lib/mattos/installer/installed-initramfs.cpio.xz",
             format!("boot/initrd.img-{release}"),
@@ -2003,12 +2018,23 @@ fn install_boot_files(identity: &StorageIdentity, target: &Path) -> Result<()> {
     }
     // Compatibility links are not additional kernels. Upstream 10_linux
     // enumerates the versioned files and pairs each with its own initramfs.
-    for (link, value) in [("vmlinuz", format!("vmlinuz-{release}")),
-        ("installed-initramfs.cpio.xz", format!("initrd.img-{release}"))] {
+    for (link, value) in [
+        ("vmlinuz", format!("vmlinuz-{release}")),
+        (
+            "installed-initramfs.cpio.xz",
+            format!("initrd.img-{release}"),
+        ),
+    ] {
         std::os::unix::fs::symlink(value, target.join("boot").join(link))?;
     }
     fs::create_dir_all(target.join("etc/default"))?;
-    fs::write(target.join("etc/default/grub"), render_installed_grub_defaults(identity, usable_pc_serial_console(Path::new("/sys/class/tty/ttyS0/type"))))?;
+    fs::write(
+        target.join("etc/default/grub"),
+        render_installed_grub_defaults(
+            identity,
+            usable_pc_serial_console(Path::new("/sys/class/tty/ttyS0/type")),
+        ),
+    )?;
     fs::create_dir_all(target.join("boot/grub"))?;
     // grub-probe needs real block nodes and mountinfo for the target, rather
     // than the live overlay. Track only our temporary nonrecursive mounts.
@@ -2016,21 +2042,52 @@ fn install_boot_files(identity: &StorageIdentity, target: &Path) -> Result<()> {
     for name in ["dev", "sys"] {
         let destination = target.join(name);
         fs::create_dir_all(&destination)?;
-        mounts.mount(&["--bind".as_ref(), Path::new("/").join(name).as_os_str(), destination.as_os_str()], &destination)?;
+        mounts.mount(
+            &[
+                "--bind".as_ref(),
+                Path::new("/").join(name).as_os_str(),
+                destination.as_os_str(),
+            ],
+            &destination,
+        )?;
     }
     let proc = target.join("proc");
     fs::create_dir_all(&proc)?;
-    mounts.mount(&["-t".as_ref(), "proc".as_ref(), "proc".as_ref(), proc.as_os_str()], &proc)?;
-    engine::run("chroot", &[target.as_os_str(), "/usr/sbin/grub-install".as_ref(),
-        "--target=x86_64-efi".as_ref(), "--efi-directory=/boot/efi".as_ref(),
-        "--bootloader-id=MattOS".as_ref(), "--removable".as_ref(), "--no-nvram".as_ref()])?;
-    engine::run("chroot", &[target.as_os_str(), "/usr/sbin/update-grub".as_ref()])?;
+    mounts.mount(
+        &[
+            "-t".as_ref(),
+            "proc".as_ref(),
+            "proc".as_ref(),
+            proc.as_os_str(),
+        ],
+        &proc,
+    )?;
+    engine::run(
+        "chroot",
+        &[
+            target.as_os_str(),
+            "/usr/sbin/grub-install".as_ref(),
+            "--target=x86_64-efi".as_ref(),
+            "--efi-directory=/boot/efi".as_ref(),
+            "--bootloader-id=MattOS".as_ref(),
+            "--removable".as_ref(),
+            "--no-nvram".as_ref(),
+        ],
+    )?;
+    engine::run(
+        "chroot",
+        &[target.as_os_str(), "/usr/sbin/update-grub".as_ref()],
+    )?;
     mounts.unmount_all()
 }
 
 fn validate_kernel_release(release: &str) -> Result<&str> {
     let release = release.trim();
-    if release.is_empty() || !release.bytes().all(|c| c.is_ascii_alphanumeric() || b".-_+".contains(&c)) {
+    if release.is_empty()
+        || !release
+            .bytes()
+            .all(|c| c.is_ascii_alphanumeric() || b".-_+".contains(&c))
+    {
         bail!("invalid installer kernel-release asset");
     }
     Ok(release)
@@ -2039,7 +2096,8 @@ fn validate_kernel_release(release: &str) -> Result<&str> {
 fn usable_pc_serial_console(uart_type: &Path) -> bool {
     // serial8250 creates placeholder ttyS nodes even on machines without a
     // UART. Type 0 is PORT_UNKNOWN, not evidence of an available console.
-    fs::read_to_string(uart_type).ok()
+    fs::read_to_string(uart_type)
+        .ok()
         .and_then(|value| value.trim().parse::<u32>().ok())
         .is_some_and(|value| value != 0)
 }
@@ -2053,7 +2111,11 @@ fn render_installed_grub_defaults(identity: &StorageIdentity, serial: bool) -> S
         Filesystem::Ext4 => (String::new(), "ext4"),
         Filesystem::Fat32 => unreachable!(),
     };
-    let terminal = if serial { "GRUB_TERMINAL=\"console serial\"\nGRUB_SERIAL_COMMAND=\"serial --speed=115200 --unit=0 --word=8 --parity=no --stop=1\"" } else { "GRUB_TERMINAL=console" };
+    let terminal = if serial {
+        "GRUB_TERMINAL=\"console serial\"\nGRUB_SERIAL_COMMAND=\"serial --speed=115200 --unit=0 --word=8 --parity=no --stop=1\""
+    } else {
+        "GRUB_TERMINAL=console"
+    };
     let serial_console = if serial { " console=ttyS0,115200" } else { "" };
     format!(
         "# MattOS installed-system policy; menu generation belongs to grub-mkconfig.\nGRUB_DEFAULT=0\nGRUB_TIMEOUT_STYLE=menu\nGRUB_TIMEOUT=5\nGRUB_DISTRIBUTOR=MattOS\nGRUB_DISABLE_OS_PROBER=true\n{terminal}\nGRUB_CMDLINE_LINUX=\"mattos.root_uuid={} mattos.root_fstype={filesystem} rootfstype={filesystem}{root_flags} rw console=tty0{serial_console}\"\n",
@@ -2245,14 +2307,13 @@ mod tests {
         ] {
             fs::copy(source_root.join(name), template_root.join(name)).unwrap();
         }
-        for name in [
-            "mattos-archive-keyring.asc",
-            "debian-archive-keyring.asc",
-        ] {
+        for name in ["mattos-archive-keyring.asc", "debian-archive-keyring.asc"] {
             let destination = target.join("usr/share/keyrings").join(name);
             fs::create_dir_all(destination.parent().unwrap()).unwrap();
             fs::copy(
-                repo_root.join("src/system/packages/config/apt/keys").join(name),
+                repo_root
+                    .join("src/system/packages/config/apt/keys")
+                    .join(name),
                 destination,
             )
             .unwrap();
@@ -2260,11 +2321,15 @@ mod tests {
         let timer = target.join("usr/lib/systemd/system/mattos-apt-daily.timer");
         fs::create_dir_all(timer.parent().unwrap()).unwrap();
         fs::write(&timer, "[Timer]\\n").unwrap();
-        fs::write(timer.with_file_name("mattos-apt-bootstrap.timer"), "[Timer]\n").unwrap();
+        fs::write(
+            timer.with_file_name("mattos-apt-bootstrap.timer"),
+            "[Timer]\n",
+        )
+        .unwrap();
 
         configure_installed_apt(target).unwrap();
-        let local = fs::read_to_string(target.join("etc/apt/sources.list.d/mattos.sources"))
-            .unwrap();
+        let local =
+            fs::read_to_string(target.join("etc/apt/sources.list.d/mattos.sources")).unwrap();
         let hosted =
             fs::read_to_string(target.join("etc/apt/sources.list.d/mattos-hosted.sources"))
                 .unwrap();
@@ -2275,8 +2340,17 @@ mod tests {
         assert!(hosted.contains("Enabled: yes"));
         assert!(debian.contains("Enabled: no"));
         let enabled = target.join("etc/systemd/system/timers.target.wants/mattos-apt-daily.timer");
-        assert_eq!(fs::read_link(enabled).unwrap(), Path::new("/usr/lib/systemd/system/mattos-apt-daily.timer"));
-        assert_eq!(fs::read_link(target.join("etc/systemd/system/timers.target.wants/mattos-apt-bootstrap.timer")).unwrap(), Path::new("/usr/lib/systemd/system/mattos-apt-bootstrap.timer"));
+        assert_eq!(
+            fs::read_link(enabled).unwrap(),
+            Path::new("/usr/lib/systemd/system/mattos-apt-daily.timer")
+        );
+        assert_eq!(
+            fs::read_link(
+                target.join("etc/systemd/system/timers.target.wants/mattos-apt-bootstrap.timer")
+            )
+            .unwrap(),
+            Path::new("/usr/lib/systemd/system/mattos-apt-bootstrap.timer")
+        );
         assert!(
             fs::read_to_string(target.join("etc/apt/apt.conf.d/01mattos"))
                 .unwrap()
@@ -2410,7 +2484,10 @@ mod tests {
         assert!(source.contains("/usr/sbin/update-grub"));
         assert!(source.contains("--removable"));
         assert!(source.contains("--no-nvram"));
-        assert_eq!(validate_kernel_release("7.2.0-rc5-mattos\n").unwrap(), "7.2.0-rc5-mattos");
+        assert_eq!(
+            validate_kernel_release("7.2.0-rc5-mattos\n").unwrap(),
+            "7.2.0-rc5-mattos"
+        );
         for invalid in ["", "../x", "kernel;reboot", "a b", "a\nb"] {
             assert!(validate_kernel_release(invalid).is_err());
         }
@@ -2660,9 +2737,7 @@ mod tests {
         for relative in [
             "etc/systemd/system/getty@tty1.service.d/autologin.conf",
             "etc/systemd/system/serial-getty@ttyS0.service.d/autologin.conf",
-            "etc/systemd/system/cosmic-greeter.service.d/live.conf",
             "etc/systemd/system/plasma-greeter.service.d/live.conf",
-            "etc/greetd/cosmic-live.toml",
             "etc/greetd/plasma-live.toml",
             "etc/sudoers.d/00-mattos-live",
             "etc/tmpfiles.d/mattos-live.conf",
@@ -2690,13 +2765,7 @@ mod tests {
         assert!(
             !directory
                 .path()
-                .join("etc/systemd/system/cosmic-greeter.service.d/live.conf")
-                .exists()
-        );
-        assert!(
-            !directory
-                .path()
-                .join("etc/greetd/cosmic-live.toml")
+                .join("etc/greetd/plasma-live.toml")
                 .exists()
         );
         assert!(!directory.path().join("home/mattos").exists());
@@ -2715,7 +2784,7 @@ mod tests {
         fs::create_dir_all(&system).unwrap();
         fs::create_dir_all(&user).unwrap();
         let system_unit = system.join("graphical.target");
-        let user_unit = user.join("cosmic-session.target");
+        let user_unit = user.join("plasma-workspace.target");
         fs::write(&system_unit, "[Unit]\n").unwrap();
         fs::write(&user_unit, "[Unit]\n").unwrap();
         fs::set_permissions(&system_unit, fs::Permissions::from_mode(0o755)).unwrap();
@@ -2789,8 +2858,7 @@ mod tests {
         let mut candidate = plan("/dev/vda", InstalledProfile::Desktop);
         candidate.automatic_login = true;
         configure_installed_profile(&candidate, directory.path()).unwrap();
-        let config =
-            fs::read_to_string(directory.path().join("etc/greetd/plasma.toml")).unwrap();
+        let config = fs::read_to_string(directory.path().join("etc/greetd/plasma.toml")).unwrap();
         assert!(config.contains("[initial_session]"));
         assert!(config.contains("command = \"/usr/bin/start-plasma\""));
         assert!(config.contains(&format!("user = \"{}\"", candidate.username)));
@@ -2804,7 +2872,10 @@ mod tests {
         assert_eq!(firefox.flatpak_remote, "flathub");
         assert_eq!(firefox.flatpak_app_id, "org.mozilla.firefox");
         assert!(firefox.failure_is_nonfatal);
-        assert_eq!(optional_package_defaults(InstalledProfile::Desktop), ["firefox"]);
+        assert_eq!(
+            optional_package_defaults(InstalledProfile::Desktop),
+            ["firefox"]
+        );
         assert!(optional_package_defaults(InstalledProfile::Cli).is_empty());
     }
 
@@ -2815,18 +2886,22 @@ mod tests {
         candidate.validate_policy().unwrap();
 
         candidate.optional_packages = vec!["not-in-catalog".into()];
-        assert!(candidate
-            .validate_policy()
-            .unwrap_err()
-            .to_string()
-            .contains("unknown optional package"));
+        assert!(
+            candidate
+                .validate_policy()
+                .unwrap_err()
+                .to_string()
+                .contains("unknown optional package")
+        );
 
         candidate.optional_packages = vec!["firefox".into(), "firefox".into()];
-        assert!(candidate
-            .validate_policy()
-            .unwrap_err()
-            .to_string()
-            .contains("selected more than once"));
+        assert!(
+            candidate
+                .validate_policy()
+                .unwrap_err()
+                .to_string()
+                .contains("selected more than once")
+        );
     }
 
     #[test]
@@ -2850,7 +2925,10 @@ mod tests {
             results[0].outcome,
             OptionalPackageProvisionOutcome::Failed(ref error) if error.contains("unreachable remote")
         ));
-        assert_eq!(results[1].outcome, OptionalPackageProvisionOutcome::Installed);
+        assert_eq!(
+            results[1].outcome,
+            OptionalPackageProvisionOutcome::Installed
+        );
     }
 
     #[test]
@@ -2877,7 +2955,11 @@ mod tests {
             optional_package("firefox").unwrap(),
         )
         .unwrap();
-        assert!(!args.iter().any(|arg| arg == "chroot" || arg.contains("resolv.conf")));
+        assert!(
+            !args
+                .iter()
+                .any(|arg| arg == "chroot" || arg.contains("resolv.conf"))
+        );
         assert!(args.iter().any(|arg| arg == "--target-root"));
     }
 }

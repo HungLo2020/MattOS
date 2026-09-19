@@ -1,0 +1,33 @@
+UPower Release Notes
+
+1. Write NEWS entries for UPower in the same format as usual.
+
+git shortlog v0.99.14.. | grep -i -v trivial | grep -v Merge > NEWS.new
+
+Version 0.99.8
+--------------
+Released: 2017-xx-xx
+
+New Features:
+Bugfixes:
+
+2. Commit changes to git (bump version in meson.build if needed):
+
+git branch -b <user>/v0.99.14
+git commit -a -m "Release 0.99.14"
+
+3. Run tests and try building a tarball
+
+meson dist
+
+4. Create an MR and merge it
+5. Tag the release
+
+git fetch origin
+git check master
+git evtag sign v0.99.14
+git push --tags
+
+4. Paste the release notes into the tag information
+
+5. Optional: Do a post-release version bump

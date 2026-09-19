@@ -1,0 +1,787 @@
+# translation of katebuild-plugin.po to Italian
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+# Nicola Ruggero <nicola@nxnt.org>, 2009, 2010, 2011, 2012, 2013.
+# Federico Zenith <federico.zenith@member.fsf.org>, 2012.
+# Vincenzo Reale <smart2128vr@gmail.com>, 2014.
+# SPDX-FileCopyrightText: 2016, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025 Paolo Zamponi <feus73@gmail.com>
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: katebuild-plugin\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-06-27 00:47+0000\n"
+"PO-Revision-Date: 2025-08-27 17:43+0200\n"
+"Last-Translator: Paolo Zamponi <feus73@gmail.com>\n"
+"Language-Team: Italian <kde-i18n-it@kde.org>\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 25.08.0\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Nicola Ruggero"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "nicola@nxnt.org"
+
+#. i18n: ectx: attribute (title), widget (QWidget, buildOutput)
+#: build.ui:36
+#, kde-format
+msgid "Output"
+msgstr "Output"
+
+#. i18n: ectx: property (text), widget (QPushButton, buildAgainButton)
+#: build.ui:56
+#, kde-format
+msgid "Build Again"
+msgstr "Compila di nuovo"
+
+#. i18n: ectx: property (text), widget (QPushButton, cancelBuildButton)
+#: build.ui:66
+#, kde-format
+msgid "Cancel"
+msgstr "Annulla"
+
+#: buildconfig.cpp:48
+#, kde-format
+msgid "Build & Run"
+msgstr "Compila ed esegui"
+
+#: buildconfig.cpp:54
+#, kde-format
+msgid "Build & Run Settings"
+msgstr "Impostazioni di Compila ed esegui"
+
+#: buildconfig.cpp:107
+#, kde-format
+msgid "Delete selected entries"
+msgstr "Elimina le voci selezionate"
+
+#: buildconfig.cpp:112
+#, kde-format
+msgid "Delete all entries"
+msgstr "Elimina tutte le voci"
+
+#. i18n: ectx: attribute (title), widget (QWidget, tab)
+#: buildconfigwidget.ui:33
+#, kde-format
+msgid "General Settings"
+msgstr "Impostazioni generali"
+
+#. i18n: ectx: property (text), widget (QCheckBox, useDiagnosticsCB)
+#: buildconfigwidget.ui:50
+#, kde-format
+msgid "Add errors and warnings to Diagnostics"
+msgstr "Aggiungi errori ed avvisi alla diagnostica"
+
+#. i18n: ectx: property (text), widget (QCheckBox, autoSwitchToOutput)
+#: buildconfigwidget.ui:57
+#, kde-format
+msgid "Automatically switch to output pane on executing the selected target"
+msgstr ""
+"Passa automaticamente al pannello di output nell'esecuzione dell'obiettivo "
+"selezionato"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, u_showProgressCB)
+#: buildconfigwidget.ui:77
+#, no-c-format, kde-format
+msgid ""
+"If the output lines start with [ # / ## ] or [ ## % ], display the latest as "
+"a message."
+msgstr ""
+"Se le righe di output iniziano con [ # / ## ] o [ ## % ], visualizza "
+"l'ultima come messaggio."
+
+#. i18n: ectx: property (text), widget (QCheckBox, u_showProgressCB)
+#: buildconfigwidget.ui:80
+#, kde-format
+msgid "Show build progress as a message when the output pane is hidden"
+msgstr ""
+"Mostra il progresso della compilazione quando il pannello di output è "
+"nascosto"
+
+#. i18n: ectx: attribute (title), widget (QWidget, tab_4)
+#: buildconfigwidget.ui:106
+#, kde-format
+msgid "Allowed && Blocked Commands"
+msgstr "Comandi permessi e bloccati"
+
+#: plugin_katebuild.cpp:268 plugin_katebuild.cpp:275 plugin_katebuild.cpp:759
+#: plugin_katebuild.cpp:1000 plugin_katebuild.cpp:1013
+#, kde-format
+msgid "Build"
+msgstr "Compila"
+
+#: plugin_katebuild.cpp:278
+#, kde-format
+msgid "Select Target..."
+msgstr "Seleziona obiettivo..."
+
+#: plugin_katebuild.cpp:283
+#, kde-format
+msgid "Build Selected Target"
+msgstr "Compila l'obiettivo selezionato"
+
+#: plugin_katebuild.cpp:288
+#, kde-format
+msgid "Build and Run Selected Target"
+msgstr "Compila ed esegui l'obiettivo selezionato"
+
+#: plugin_katebuild.cpp:293
+#, kde-format
+msgid "Compile Current File"
+msgstr "Compila il file corrente"
+
+#: plugin_katebuild.cpp:294
+#, kde-format
+msgid "Try to compile the current file by searching a compile_commands.json"
+msgstr "Prova a compilare il file corrente cercando un compile_commands.json"
+
+#: plugin_katebuild.cpp:299
+#, kde-format
+msgid "Stop"
+msgstr "Ferma"
+
+#: plugin_katebuild.cpp:304
+#, kde-format
+msgid "Load targets from CMake Build Dir"
+msgstr "Carica gli obiettivi dalla cartella di compilazione di CMake"
+
+#: plugin_katebuild.cpp:308
+#, kde-format
+msgctxt "Left is also left in RTL mode"
+msgid "Focus Next Tab to the Left"
+msgstr "Attiva la scheda successiva sulla sinistra"
+
+#: plugin_katebuild.cpp:328
+#, kde-format
+msgctxt "Right is right also in RTL mode"
+msgid "Focus Next Tab to the Right"
+msgstr "Attiva la scheda successiva sulla destra"
+
+#: plugin_katebuild.cpp:361
+#, kde-format
+msgctxt "Tab label"
+msgid "Target Settings"
+msgstr "Impostazioni obiettivo"
+
+#: plugin_katebuild.cpp:410
+#, kde-format
+msgid ""
+"<b>File not found:</b> %1<br><b>Search paths:</b><br>%2<br>Try adding a "
+"search path to the \"Working Directory\""
+msgstr ""
+"<b>File non trovato:</b> %1<br><b>Percorsi di ricerca:</b><br>%2<br>Prova ad "
+"aggiungere un percorso di ricerca alla «Cartella di lavoro»"
+
+#: plugin_katebuild.cpp:507
+#, kde-format
+msgid "Build Information"
+msgstr "Informazioni di compilazione"
+
+#: plugin_katebuild.cpp:766
+#, kde-format
+msgid "There is no file or directory specified for building."
+msgstr "Non ci sono file o cartelle specificate per la compilazione."
+
+#: plugin_katebuild.cpp:770
+#, kde-format
+msgid ""
+"The file \"%1\" is not a local file. Non-local files cannot be compiled."
+msgstr ""
+"Il file «%1» non è un file locale. Impossibile compilare file non-locali."
+
+#: plugin_katebuild.cpp:841
+#, kde-format
+msgid "Create directory"
+msgstr "Crea cartella"
+
+#: plugin_katebuild.cpp:844
+#, kde-format
+msgid ""
+"The configured working directory <b>%1</b> for the targetset <b>%2</b> does "
+"not exist.<br><br>Create the directory?"
+msgstr ""
+"La cartella di lavoro configurata <b>%1</b> per l'insieme di obiettivi <b>"
+"%2</b> non esiste.<br><br>Vuoi crearla?"
+
+#: plugin_katebuild.cpp:852
+#, kde-format
+msgid "Failed to create the directory <b>%1</b>"
+msgstr "Impossibile creare la cartella <b>%1</b>"
+
+#: plugin_katebuild.cpp:877
+#, kde-format
+msgid "Failed to run \"%1\". exitStatus = %2"
+msgstr "Impossibile avviare «%1». Stato di uscita = %2"
+
+#: plugin_katebuild.cpp:893
+#, kde-format
+msgid "Building <b>%1: %2</b> cancelled"
+msgstr "Compilazione di <b>%1: %2</b> annullata"
+
+#: plugin_katebuild.cpp:999
+#, kde-format
+msgid "Did not find a compile_commands.json for file \"%1\". "
+msgstr "Non è stato trovato un compile_commands.json per il file «%1». "
+
+#: plugin_katebuild.cpp:1012
+#, kde-format
+msgid "Did not find a compile command for file \"%1\" in \"%2\". "
+msgstr ""
+"Non è stato trovato un comando di compilazione per il file «%1» in «%2». "
+
+#: plugin_katebuild.cpp:1031
+#, kde-format
+msgid ""
+"Cannot make \"%f\" substitution. No open file or the current file is "
+"untitled!"
+msgstr ""
+"Impossibile effettuare la sostituzione «%f»: nessun file aperto, oppure "
+"quello corrente è senza titolo."
+
+#: plugin_katebuild.cpp:1035
+#, kde-format
+msgid ""
+"Cannot make \"%d\" substitution. No open file or the current file is "
+"untitled!"
+msgstr ""
+"Impossibile effettuare la sostituzione «%d»: nessun file aperto, oppure "
+"quello corrente è senza titolo."
+
+#: plugin_katebuild.cpp:1039
+#, kde-format
+msgid ""
+"Cannot make \"%n\" substitution. No open file or the current file is "
+"untitled!"
+msgstr ""
+"Impossibile effettuare la sostituzione «%n»: nessun file aperto, oppure "
+"quello corrente è senza titolo."
+
+#: plugin_katebuild.cpp:1050
+#, kde-format
+msgid "Cannot make project substitution (%B). No open project!"
+msgstr ""
+"Impossibile effettuare la sostituzione del progetto (%B)»: nessun progetto "
+"aperto."
+
+#: plugin_katebuild.cpp:1063
+#, kde-format
+msgid "Already building..."
+msgstr "Compilazione già in corso..."
+
+#: plugin_katebuild.cpp:1101
+#, kde-format
+msgid ""
+"Cannot execute: %1: %2 No working directory set.\n"
+"There is no local file or directory specified for building."
+msgstr ""
+"Impossibile eseguire: %1: %2 nessuna cartella di lavoro impostata.\n"
+"Non ci sono cartelle locali o file specificati per la compilazione."
+
+#: plugin_katebuild.cpp:1222
+#, kde-format
+msgid "Building target <b>%1: %2</b> ..."
+msgstr "Compilazione obiettivo <b>%1: %2</b> ..."
+
+#: plugin_katebuild.cpp:1259
+#, kde-format
+msgid ""
+"Cannot load targets, the file %1 does not contain a proper CMAKE_COMMAND "
+"entry !"
+msgstr ""
+"Impossibile caricare gli obiettivi, il file %1 non contiene una voce "
+"appropriata per CMAKE_COMMAND."
+
+#: plugin_katebuild.cpp:1272
+#, kde-format
+msgid "Could not write CMake File API query files for build directory %1 !"
+msgstr ""
+"Impossibile scrivere CMake per i file di risposta dell'API della cartella di "
+"compilazione %1."
+
+#: plugin_katebuild.cpp:1278
+#, kde-format
+msgid "Could not run CMake (%2) for build directory %1 !"
+msgstr "Impossibile eseguire CMake (%2) per la cartella di compilazione %1."
+
+#: plugin_katebuild.cpp:1287
+#, kde-format
+msgid ""
+"Generating CMake File API reply files for build directory %1 failed (using "
+"%2) !"
+msgstr ""
+"Generazione dei file di risposta dell'API del file CMake per la cartella di "
+"compilazione %1 non riuscita (utilizzando %2)."
+
+#: plugin_katebuild.cpp:1412
+#, kde-format
+msgid "Build plugin wants to execute program"
+msgstr "L'estensione di compilazione vuole eseguire un programma"
+
+#: plugin_katebuild.cpp:1415
+#, kde-format
+msgid ""
+"The Kate build plugin needs to execute an external command to read the "
+"targets from the build tree.<br><br>The full command line is:<br><br><b>%1</"
+"b><br><br>Proceed and allow to run this command ?<br><br>The choice can be "
+"altered via the config page of the plugin."
+msgstr ""
+"L'estensione di compilazione di Kate deve eseguire un comando esterno per "
+"leggere gli obiettivi e gli alberi di compilazione.<br><br>Il comando "
+"completo è:<br><br><b>%1</b><br><br>Procedere e permettere l'esecuzione di "
+"questo comando?<br><br>La scelta può essere modificata dalla pagina di "
+"configurazione dell'estensione."
+
+#: plugin_katebuild.cpp:1447
+#, kde-kuit-format
+msgctxt "@info"
+msgid "<title>Build Finished:</title>%1"
+msgstr "<title>Compilazione terminata :</title>%1"
+
+#: plugin_katebuild.cpp:1510
+#, kde-format
+msgid "Build <b>%1: %2</b> completed. %3 error(s), %4 warning(s), %5 note(s)"
+msgstr "Compilazione di <b>%1: %2</b> terminata. %3 errori, %4 avvisi, %5 note"
+
+#: plugin_katebuild.cpp:1522
+#, kde-format
+msgid "Found one error."
+msgid_plural "Found %1 errors."
+msgstr[0] "Trovato un errore."
+msgstr[1] "Trovato %1 errori."
+
+#: plugin_katebuild.cpp:1526
+#, kde-format
+msgid "Found one warning."
+msgid_plural "Found %1 warnings."
+msgstr[0] "Trovato un avviso."
+msgstr[1] "Trovato %1 avvisi."
+
+#: plugin_katebuild.cpp:1529
+#, kde-format
+msgid "Found one note."
+msgid_plural "Found %1 notes."
+msgstr[0] "Trovata una nota."
+msgstr[1] "Trovate %1 note."
+
+#: plugin_katebuild.cpp:1533
+#, kde-format
+msgid "Build canceled."
+msgstr "Compilazione annullata."
+
+#: plugin_katebuild.cpp:1537
+#, kde-format
+msgid "Build failed."
+msgstr "Compilazione non riuscita."
+
+#: plugin_katebuild.cpp:1539
+#, kde-format
+msgid "Build completed without problems."
+msgstr "Compilazione conclusa senza problemi."
+
+#: plugin_katebuild.cpp:1543
+#, kde-format
+msgid "Build <b>%1: %2 canceled</b>. %3 error(s), %4 warning(s), %5 note(s)"
+msgstr "Compilazione di <b>%1: %2</b> annullata. %3 errori, %4 avvisi, %5 note"
+
+#: plugin_katebuild.cpp:1828
+#, kde-format
+msgctxt "The same word as 'gcc' uses for an error."
+msgid "error"
+msgstr "errore"
+
+#: plugin_katebuild.cpp:1831
+#, kde-format
+msgctxt "The same word as 'gcc' uses for a warning."
+msgid "warning"
+msgstr "avviso"
+
+#: plugin_katebuild.cpp:1834
+#, kde-format
+msgctxt "The same words as 'gcc' uses for note or info."
+msgid "note|info"
+msgstr "nota|informazione"
+
+#: plugin_katebuild.cpp:1837
+#, kde-format
+msgctxt "The same word as 'ld' uses to mark an ..."
+msgid "undefined reference"
+msgstr "riferimento non definito"
+
+#: plugin_katebuild.cpp:2141
+#, kde-format
+msgid "Cannot save build targets in: %1"
+msgstr "Impossibile salvare gli obiettivi di compilazione in %1"
+
+#: TargetHtmlDelegate.cpp:48
+#, kde-format
+msgctxt "T as in Target set"
+msgid "<B>T:</B> %1"
+msgstr "<B>T:</B> %1"
+
+#: TargetHtmlDelegate.cpp:50
+#, kde-format
+msgctxt "Dir as in working Directory"
+msgid "<B>Dir:</B> %1"
+msgstr "<B>Dir:</B> %1"
+
+#: TargetHtmlDelegate.cpp:95
+#, kde-format
+msgid ""
+"Leave empty to use the directory of the current document.\n"
+"Add search directories by adding paths separated by ';'"
+msgstr ""
+"Lascia vuoto per usare la cartella del documento attuale.\n"
+"Aggiungi le cartelle di ricerca aggiungendo i percorsi separati da «;»"
+
+#: TargetHtmlDelegate.cpp:102
+#, kde-format
+msgid ""
+"Use:\n"
+"\"%B\" for project base directory\n"
+"\"%b\" for name of project base directory"
+msgstr ""
+"Uso:\n"
+"«%B» per la cartella base del progetto\n"
+"«%b» per la cartella base del nome del progetto"
+
+#: TargetHtmlDelegate.cpp:106
+#, kde-format
+msgid ""
+"Use:\n"
+"\"%f\" for current file\n"
+"\"%d\" for directory of current file\n"
+"\"%n\" for current file name without suffix\n"
+"\"%B\" for current project's base directory\n"
+"\"%w\" for the working directory of the target"
+msgstr ""
+"Utilizzo:\n"
+"«%f» per il file attuale\n"
+"«%d» per la cartella del file attuale\n"
+"«%n» pere attuale senza suffisso\n"
+"«%B» per la cartella base del progetto corrente\n"
+"«%w» per la cartella di lavoro della destinazione"
+
+#: TargetModel.cpp:315 TargetModel.cpp:327 targets.cpp:254
+#, kde-format
+msgid "Target Set"
+msgstr "Insieme di obiettivi"
+
+#: TargetModel.cpp:566
+#, kde-format
+msgid "Projects"
+msgstr "Progetti"
+
+#: TargetModel.cpp:566
+#, kde-format
+msgid "Session"
+msgstr "Sessione"
+
+#: TargetModel.cpp:678
+#, kde-format
+msgid "Command/Target-set Name"
+msgstr "Nome comando/insieme di obiettivi"
+
+#: TargetModel.cpp:681
+#, kde-format
+msgid "Build Command / Working Directory"
+msgstr "Comando di compilazione / cartella di lavoro"
+
+#: TargetModel.cpp:684
+#, kde-format
+msgid "Run Command"
+msgstr "Esegui comando"
+
+#: targets.cpp:28
+#, kde-format
+msgid "Filter targets, use arrow keys to select, Enter to execute"
+msgstr ""
+"Filtra gli obiettivi, usa i tasti freccia per selezionare e Invio per "
+"eseguire"
+
+#: targets.cpp:32
+#, kde-format
+msgid "Create new set of targets"
+msgstr "Crea nuovo insieme di obiettivi"
+
+#: targets.cpp:36
+#, kde-format
+msgid "Clone command or target set"
+msgstr "Clona comando o insieme di obiettivi"
+
+#: targets.cpp:40
+#, kde-format
+msgid "Delete current target or current set of targets"
+msgstr "Elimina l'obiettivo attuale o l'insieme attuale degli obiettivi"
+
+#: targets.cpp:45
+#, kde-format
+msgid "Add new target"
+msgstr "Aggiungi un nuovo obiettivo"
+
+#: targets.cpp:49
+#, kde-format
+msgid "Build selected target"
+msgstr "Compila l'obiettivo selezionato"
+
+#: targets.cpp:53
+#, kde-format
+msgid "Build and run selected target"
+msgstr "Compila ed esegui l'obiettivo selezionato"
+
+#: targets.cpp:57
+#, kde-format
+msgid "Move selected target up"
+msgstr "Sposta l'obiettivo selezionato in alto"
+
+#: targets.cpp:61
+#, kde-format
+msgid "Move selected target down"
+msgstr "Sposta l'obiettivo selezionato in basso"
+
+#: targets.cpp:203
+#, kde-format
+msgid "Copy"
+msgstr "Copia"
+
+#: targets.cpp:207
+#, kde-format
+msgid "Cut"
+msgstr "Taglia"
+
+#: targets.cpp:211
+#, kde-format
+msgid "Paste after"
+msgstr "Incolla dopo"
+
+#: targets.cpp:229 targets.cpp:256
+#, kde-format
+msgctxt "Name/Label for a compilation or build command"
+msgid "Build Command"
+msgstr "Comando di compilazione"
+
+#: targets.cpp:255
+#, kde-format
+msgctxt "Name/Label for a command to configure a build"
+msgid "Configure"
+msgstr "Configura"
+
+#. i18n: ectx: Menu (Build Menubar)
+#: ui.rc:6
+#, kde-format
+msgid "&Build"
+msgstr "&Compila"
+
+#. i18n: ectx: ToolBar (mainToolBar)
+#: ui.rc:23
+#, kde-format
+msgid "Build Plugin Toolbar"
+msgstr "Barra degli strumenti dell'estensione di compilazione"
+
+#: UrlInserter.cpp:31
+#, kde-format
+msgid "Insert path"
+msgstr "Inserisci percorso"
+
+#: UrlInserter.cpp:50
+#, kde-format
+msgid "Select directory to insert"
+msgstr "Seleziona la cartella da inserire"
+
+#~ msgid "No target available for building."
+#~ msgstr "Nessun obiettivo disponibile per la compilazione."
+
+#~ msgid "Cannot execute: %1 No working directory set."
+#~ msgstr "Impossibile eseguire: %1 Nessuna cartella di lavoro impostata."
+
+#~ msgctxt "@info"
+#~ msgid "<title>Make Results:</title><nl/>%1"
+#~ msgstr "<title>Risultati Make:</title><nl/>%1"
+
+#~ msgid "Working Directory / Command"
+#~ msgstr "Cartella di lavoro / Comando"
+
+#~ msgid ""
+#~ "Cannot run command: %1\n"
+#~ "Work path does not exist: %2"
+#~ msgstr ""
+#~ "Impossibile eseguire il comando: %1\n"
+#~ "Il percorso di lavoro non esiste: %2"
+
+#~ msgid "Clean"
+#~ msgstr "Pulisci"
+
+#~ msgid "ConfigClean"
+#~ msgstr "ConfigClean"
+
+#~ msgid "Project Plugin Targets"
+#~ msgstr "Obiettivi dell'estensione di progetto"
+
+#~ msgid "build"
+#~ msgstr "compila"
+
+#~ msgid "clean"
+#~ msgstr "pulisci"
+
+#~ msgid "quick"
+#~ msgstr "rapido"
+
+#~ msgid "Building <b>%1</b> completed."
+#~ msgstr "Compilazione di <b>%1</b> completata."
+
+#~ msgid "Building <b>%1</b> had errors."
+#~ msgstr "Compilazione di <b>%1</b> con errori."
+
+#~ msgid "Building <b>%1</b> had warnings."
+#~ msgstr "Compilazione di <b>%1</b> con avvisi."
+
+#~ msgid "Show:"
+#~ msgstr "Mostra:"
+
+#~ msgctxt "Header for the file name column"
+#~ msgid "File"
+#~ msgstr "File"
+
+#~ msgctxt "Header for the line number column"
+#~ msgid "Line"
+#~ msgstr "Riga"
+
+#~ msgctxt "Header for the error message column"
+#~ msgid "Message"
+#~ msgstr "Messaggio"
+
+#~ msgid "Next Error"
+#~ msgstr "Errore successivo"
+
+#~ msgid "Previous Error"
+#~ msgstr "Errore precedente"
+
+#~ msgid "Show Marks"
+#~ msgstr "Mostra segni"
+
+#~ msgid "Error"
+#~ msgstr "Errore"
+
+#~ msgid "Warning"
+#~ msgstr "Avviso"
+
+#~ msgid "Only Errors"
+#~ msgstr "Solo errori"
+
+#~ msgid "Errors and Warnings"
+#~ msgstr "Errori ed avvisi"
+
+#~ msgid "Parsed Output"
+#~ msgstr "Output compilazione ottimizzato"
+
+#~ msgid "Full Output"
+#~ msgstr "Output compilazione completo"
+
+#~ msgid ""
+#~ "Check the check-box to make the command the default for the target-set."
+#~ msgstr ""
+#~ "Marca la casella di selezione per rendere il comando predefinito per "
+#~ "l'insieme degli obiettivi."
+
+#~ msgid "Select active target set"
+#~ msgstr "Seleziona l'insieme di obiettivi attivo"
+
+#~ msgid "Filter targets"
+#~ msgstr "Filtra obiettivi"
+
+#~ msgid "Build Default Target"
+#~ msgstr "Compila l'obiettivo predefinito"
+
+#~ msgid "Build and Run Default Target"
+#~ msgstr "Compila ed esegui l'obiettivo predefinito"
+
+#~ msgid "Build Previous Target"
+#~ msgstr "Compila l'obiettivo precedente"
+
+#~ msgid "Active target-set:"
+#~ msgstr "Insieme di obiettivi attivo:"
+
+#~ msgid "config"
+#~ msgstr "configura"
+
+#~ msgid "Select build target"
+#~ msgstr "Seleziona un obiettivo della compilazione"
+
+#~ msgid "Filter"
+#~ msgstr "Filtro"
+
+#~ msgid "Build Output"
+#~ msgstr "Output della compilazione"
+
+#~ msgid "Next Set of Targets"
+#~ msgstr "Insieme di target successivo"
+
+#~ msgid "No previous target to build."
+#~ msgstr "Nessun target precedente da compilare."
+
+#~ msgid "No target set as default target."
+#~ msgstr "Nessun target impostato come predefinito."
+
+#~ msgid "No target set as clean target."
+#~ msgstr "Nessun target impostato come target di pulizia"
+
+#~ msgid "Target \"%1\" not found for building."
+#~ msgstr "Target \"%1\" non trovato per la compilazione"
+
+#~ msgid "Really delete target %1?"
+#~ msgstr "Elimino veramente il target %1?"
+
+#~ msgid "Nothing built yet."
+#~ msgstr "Nessuna compilazione eseguita."
+
+#~ msgid "Target Set %1"
+#~ msgstr "Insieme di target %1"
+
+#~ msgid "Target"
+#~ msgstr "Target"
+
+#~ msgid "Target:"
+#~ msgstr "Target:"
+
+#~ msgid "from"
+#~ msgstr "da"
+
+#, fuzzy
+#~| msgid "Next Target"
+#~ msgid "Sets of Targets"
+#~ msgstr "Destinazione successiva"
+
+#~ msgid "Make Results"
+#~ msgstr "Risultati di Make"
+
+#~ msgid "Others"
+#~ msgstr "Altro"
+
+#~ msgid "Quick Compile"
+#~ msgstr "Compilazione rapida"
+
+#~ msgid "The custom command is empty."
+#~ msgstr "Il comando personalizzato è vuoto."
+
+#~ msgid "New"
+#~ msgstr "Nuovo"
+
+#~ msgid "Delete"
+#~ msgstr "Elimina"
+
+#~ msgid "Quick compile"
+#~ msgstr "Compilazione rapida"
+
+#~ msgid "Run make"
+#~ msgstr "Avvia make"
+
+#~ msgid "Break"
+#~ msgstr "Interrompi"

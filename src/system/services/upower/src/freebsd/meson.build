@@ -1,0 +1,18 @@
+upshared += { 'freebsd': static_library('upshared',
+    sources: [
+        'up-acpi-native.c',
+        'up-acpi-native.h',
+        'up-backend-acpi.h',
+        'up-backend.c',
+        'up-devd.c',
+        'up-devd.h',
+        'up-device-supply.c',
+        'up-device-supply.h',
+        'up-native.c',
+        'up-util.c',
+        'up-util.h',
+    ],
+    c_args: [ '-DG_LOG_DOMAIN="UPower-Freebsd"' ],
+    dependencies: [ gudev_dep, upowerd_deps, upshared_common_dep ],
+    build_by_default: false,
+)}

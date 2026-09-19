@@ -1,0 +1,119 @@
+/*
+    SPDX-FileCopyrightText: 2023 Aleix Pol Gonzalez <aleixpol@kde.org>
+    SPDX-FileCopyrightText: 2023 Marco Martin <mart@kde.org>
+    SPDX-FileCopyrightText: 2023 Arjen Hiemstra <ahiemstra@heimr.nl>
+
+    SPDX-License-Identifier: LGPL-2.1-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
+*/
+
+#include "libx264encoder_p.h"
+
+#include <QSize>
+#include <QThread>
+
+extern "C" {
+#include <libavcodec/avcodec.h>
+#include <libavfilter/buffersink.h>
+#include <libavfilter/buffersrc.h>
+#include <libavutil/pixfmt.h>
+}
+
+#include "logging_record.h"
+
+#ifndef AV_PROFILE_H264_BASELINE // ffmpeg before 8.0
+#define AV_PROFILE_H264_BASELINE FF_PROFILE_H264_BASELINE
+#define AV_PROFILE_H264_MAIN FF_PROFILE_H264_MAIN
+#define AV_PROFILE_H264_HIGH FF_PROFILE_H264_HIGH
+#endif
+
+using namespace Qt::StringLiterals;
+
+LibX264Encoder::LibX264Encoder(H264Profile profile, PipeWireProduce *produce)
+    : SoftwareEncoder(produce)
+    , m_profile(profile)
+{
+    auto colorRange = m_colorRange == PipeWireBaseEncodedStream::ColorRange::Full ? u"full"_s : u"limited"_s;
+
+    // Adjust the filter graph to ensure we are using an even frame size using a
+    // pad filter. Otherwise the size adjustment below will insert a row/column
+    // of garbage instead of black.
+    m_filterGraphToParse = u"format=yuv420p,pad=ceil(iw/2)*2:ceil(ih/2)*2,scale=out_range=%1"_s.arg(colorRange);
+}
+
+bool LibX264Encoder::initialize(const QSize &size)
+{
+    createFilterGraph(size);
+
+    auto codec = avcodec_find_encoder_by_name("libx264");
+    if (!codec) {
+        qCWarning(PIPEWIRERECORD_LOGGING) << "libx264 codec not found";
+        return false;
+    }
+
+    m_avCodecContext = avcodec_alloc_context3(codec);
+    if (!m_avCodecContext) {
+        qCWarning(PIPEWIRERECORD_LOGGING) << "Could not allocate video codec context";
+        return false;
+    }
+
+    Q_ASSERT(!size.isEmpty());
+    // Important: libx264 rejects streams with sizes that are not even. So to
+    // ensure we don't get errors, we need to ensure the size we set here is
+    // even. We also insert a pad filter into the filter chain above to ensure
+    // we don't end up padding with garbage.
+    m_avCodecContext->width = std::ceil(size.width() / 2) * 2;
+    m_avCodecContext->height = std::ceil(size.height() / 2) * 2;
+    m_avCodecContext->max_b_frames = 0;
+    m_avCodecContext->gop_size = 100;
+    m_avCodecContext->pix_fmt = AV_PIX_FMT_YUV420P;
+    m_avCodecContext->time_base = AVRational{1, 1000};
+
+    switch (m_profile) {
+    case H264Profile::Baseline:
+        m_avCodecContext->profile = AV_PROFILE_H264_BASELINE;
+        break;
+    case H264Profile::Main:
+        m_avCodecContext->profile = AV_PROFILE_H264_MAIN;
+        break;
+    case H264Profile::High:
+        m_avCodecContext->profile = AV_PROFILE_H264_HIGH;
+        break;
+    }
+
+    AVDictionary *options = buildEncodingOptions();
+    maybeLogOptions(options);
+
+    if (int result = avcodec_open2(m_avCodecContext, codec, &options); result < 0) {
+        qCWarning(PIPEWIRERECORD_LOGGING) << "Could not open codec" << av_err2str(result);
+        return false;
+    }
+
+    return true;
+}
+
+int LibX264Encoder::percentageToAbsoluteQuality(const std::optional<quint8> &quality)
+{
+    if (!quality) {
+        return -1;
+    }
+
+    constexpr int MinQuality = 51 + 6 * 6;
+    return std::max(1, int(MinQuality - (m_quality.value() / 100.0) * MinQuality));
+}
+
+AVDictionary *LibX264Encoder::buildEncodingOptions()
+{
+    AVDictionary *options = SoftwareEncoder::buildEncodingOptions();
+
+    // libx264 ignores the AVCodecContext global_quality / qscale fields and
+    // requires CRF to be passed as a private option for constant-quality mode.
+    const int crf = m_quality ? percentageToAbsoluteQuality(m_quality) : 35;
+    av_dict_set_int(&options, "crf", crf, 0);
+
+    // Disable motion estimation, not great while dragging windows but speeds up encoding by an order of magnitude
+    av_dict_set(&options, "flags", "+mv4", 0);
+    // Disable in-loop filtering
+    av_dict_set(&options, "-flags", "+loop", 0);
+
+    return options;
+}

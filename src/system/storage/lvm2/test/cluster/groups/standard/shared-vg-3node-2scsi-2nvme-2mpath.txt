@@ -1,0 +1,2 @@
+config shared-sanlock-3node-2scsi-2nvme-2mpath.conf
+run shell/shared-vg-pr.sh

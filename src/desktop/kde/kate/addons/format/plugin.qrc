@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/formatting">
+        <file>FormatterSettings.json</file>
+    </qresource>
+    <qresource prefix="/kxmlgui5/formatplugin">
+        <file>ui.rc</file>
+    </qresource>
+</RCC>

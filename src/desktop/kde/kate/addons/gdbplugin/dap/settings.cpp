@@ -1,0 +1,334 @@
+/*
+    SPDX-FileCopyrightText: 2022 Héctor Mesa Jiménez <wmj.py@gmx.com>
+
+    SPDX-License-Identifier: LGPL-2.0-or-later
+*/
+#include "dapclient_debug.h"
+
+#include <QJsonArray>
+#include <QLocale>
+#include <QProcess>
+#include <QString>
+#include <random>
+
+#include "settings.h"
+
+namespace dap
+{
+#include <json_utils.h>
+}
+
+namespace dap::settings
+{
+static constexpr QLatin1String COMMAND_ARGS("commandArgs");
+static constexpr QLatin1String PORT("port");
+static constexpr QLatin1String HOST("host");
+static constexpr QLatin1String REDIRECT_STDERR("redirectStderr");
+static constexpr QLatin1String REDIRECT_STDOUT("redirectStdout");
+
+static int randomPort()
+{
+    static std::random_device rd;
+    static std::default_random_engine rng(rd());
+    static std::uniform_int_distribution<> randomPort(40000, 65535);
+    return randomPort(rng);
+}
+
+static bool checkSection(const QJsonObject &data, const QString &key)
+{
+    if (!data.contains(key)) {
+        qCWarning(DAPCLIENT, "required section '%ls' not found ", qUtf16Printable(key));
+        return false;
+    }
+    if (!data[key].isObject()) {
+        qCWarning(DAPCLIENT, "section '%ls' is not an object", qUtf16Printable(key));
+        return false;
+    }
+    return true;
+}
+
+static bool checkArray(const QJsonObject &data, QLatin1String key)
+{
+    return data.contains(key) && data[key].isArray();
+}
+
+std::optional<QJsonObject> expandConfiguration(const QJsonObject &adapterSettings, const QJsonObject &configuration, bool resolvePort)
+{
+    auto out = json::merge(adapterSettings[RUN].toObject(), configuration);
+
+    // check request
+    if (!checkSection(out, REQUEST)) {
+        return std::nullopt;
+    }
+
+    const bool withProcess = checkArray(out, COMMAND);
+    const bool withSocket = out.contains(PORT) && out[PORT].isDouble();
+
+    if (!withProcess && !withSocket) {
+        qCWarning(DAPCLIENT, "'run' requires 'command: string[]' or 'port: number'");
+        return std::nullopt;
+    }
+
+    // check command
+    if (withProcess && checkArray(out, COMMAND_ARGS)) {
+        auto command = out[COMMAND].toArray();
+        const auto commandArgs = out[COMMAND_ARGS].toArray();
+        for (const auto &item : commandArgs) {
+            command << item;
+        }
+        out[COMMAND] = command;
+        out.remove(COMMAND_ARGS);
+    }
+
+    // check port
+    if (withSocket) {
+        int port = out[PORT].toInt(-1);
+        if ((port == 0) && resolvePort) {
+            port = randomPort();
+            out[PORT] = port;
+        }
+        if (port < 0) {
+            qCWarning(DAPCLIENT, "'port' must be a positive integer or 0");
+            return std::nullopt;
+        }
+    }
+
+    return out;
+}
+
+std::optional<QJsonObject> expandConfigurations(const QJsonObject &adapterSettings, bool resolvePort)
+{
+    if (!checkSection(adapterSettings, RUN)) {
+        return std::nullopt;
+    }
+    if (!checkSection(adapterSettings, CONFIGURATIONS)) {
+        return std::nullopt;
+    }
+
+    const auto &confs = adapterSettings[CONFIGURATIONS].toObject();
+
+    QJsonObject out;
+
+    for (auto it = confs.constBegin(); it != confs.constEnd(); ++it) {
+        const auto profile = expandConfiguration(adapterSettings, it.value().toObject(), resolvePort);
+        if (profile) {
+            out[it.key()] = *profile;
+        }
+    }
+
+    return out;
+}
+
+std::optional<QJsonObject> findConfiguration(const QJsonObject &adapterSettings, const QString &configurationKey, bool resolvePort)
+{
+    if (!checkSection(adapterSettings, RUN)) {
+        return std::nullopt;
+    }
+    if (!checkSection(adapterSettings, CONFIGURATIONS)) {
+        return std::nullopt;
+    }
+
+    const auto &confs = adapterSettings[CONFIGURATIONS].toObject();
+
+    if (!checkSection(confs, configurationKey)) {
+        return std::nullopt;
+    }
+
+    return expandConfiguration(adapterSettings, confs[configurationKey].toObject(), resolvePort);
+}
+
+QHash<QString, QJsonValue> findReferences(const QJsonObject &configuration)
+{
+    QHash<QString, QJsonValue> variables;
+
+    if (configuration.contains(PORT)) {
+        variables[QStringLiteral("#run.port")] = QString::number(configuration[PORT].toInt(-1));
+    }
+    variables[QStringLiteral("#run.host")] = configuration.value(HOST).toString(QStringLiteral("127.0.0.1"));
+
+    return variables;
+}
+
+std::optional<QJsonObject> resolveClientPort(const QJsonObject &configuration)
+{
+    int port = configuration[PORT].toInt(-1);
+
+    if (port == 0) {
+        QJsonObject out(configuration);
+        out[PORT] = randomPort();
+        return out;
+    }
+    return std::nullopt;
+}
+
+static std::optional<QStringList> toStringList(const QJsonObject &configuration, const QString &key)
+{
+    const auto &field = configuration[key];
+    if (field.isNull() || field.isUndefined() || !field.isArray()) {
+        return std::nullopt;
+    }
+    const auto &array = field.toArray();
+
+    QStringList parts;
+
+    for (const auto &value : array) {
+        if (!value.isString()) {
+            return std::nullopt;
+        }
+        parts << value.toString();
+    }
+
+    return parts;
+}
+
+static std::optional<QHash<QString, QString>> toStringHash(const QJsonObject &configuration, const QString &key)
+{
+    const auto &field = configuration[key];
+    if (field.isNull() || field.isUndefined() || !field.isObject()) {
+        return std::nullopt;
+    }
+    const auto &object = field.toObject();
+    if (object.isEmpty()) {
+        return QHash<QString, QString>();
+    }
+
+    QHash<QString, QString> map;
+
+    for (auto it = object.begin(); it != object.end(); ++it) {
+        if (!it.value().isString()) {
+            return std::nullopt;
+        }
+        map[it.key()] = it.value().toString();
+    }
+
+    return map;
+}
+
+/*
+ * Command
+ */
+bool Command::isValid() const
+{
+    return !command.isEmpty();
+}
+
+void Command::start(QProcess &process) const
+{
+    if (environment) {
+        QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+        for (auto it = environment->begin(); it != environment->end(); ++it) {
+            env.insert(it.key(), it.value());
+        }
+        process.setProcessEnvironment(env);
+    }
+    qCDebug(DAPCLIENT) << "environment" << process.environment();
+    qCDebug(DAPCLIENT) << "start" << command << arguments;
+    process.start(command, arguments);
+}
+
+Command::Command(const QJsonObject &configuration)
+    : environment(toStringHash(configuration, QStringLiteral("environment")))
+{
+    auto cmdParts = toStringList(configuration, COMMAND);
+
+    if (cmdParts && !cmdParts->isEmpty()) {
+        command = cmdParts->at(0);
+        cmdParts->removeFirst();
+        if (!cmdParts->isEmpty()) {
+            arguments = *cmdParts;
+        }
+    }
+}
+
+/*
+ * Connection
+ */
+bool Connection::isValid() const
+{
+    return (port > 0) && !host.isEmpty();
+}
+
+Connection::Connection()
+    : port(-1)
+    , host(QStringLiteral("127.0.0.1"))
+{
+}
+
+Connection::Connection(const QJsonObject &configuration)
+    : port(configuration[PORT].toInt(-1))
+    , host(QStringLiteral("127.0.0.1"))
+{
+}
+
+/*
+ * BusSettings
+ */
+bool BusSettings::isValid() const
+{
+    return hasCommand() || hasConnection();
+}
+
+bool BusSettings::hasCommand() const
+{
+    return command && command->isValid();
+}
+
+bool BusSettings::hasConnection() const
+{
+    return connection && connection->isValid();
+}
+
+BusSettings::BusSettings(const QJsonObject &configuration)
+    : command(Command(configuration))
+    , connection(Connection(configuration))
+{
+}
+
+/*
+ * ProtocolSettings
+ */
+ProtocolSettings::ProtocolSettings()
+    : linesStartAt1(true)
+    , columnsStartAt1(true)
+    , pathFormatURI(false)
+    , redirectStderr(false)
+    , redirectStdout(false)
+    , supportsSourceRequest(true)
+    , runInTerminal(false)
+    , locale(QLocale::system().name())
+{
+}
+
+ProtocolSettings::ProtocolSettings(const QJsonObject &configuration)
+    : linesStartAt1(true)
+    , columnsStartAt1(true)
+    , pathFormatURI(false)
+    , redirectStderr(configuration[REDIRECT_STDERR].toBool(false))
+    , redirectStdout(configuration[REDIRECT_STDOUT].toBool(false))
+    , supportsSourceRequest(configuration[QLatin1String("supportsSourceRequest")].toBool(true))
+    , runInTerminal(configuration[RUN_IN_TERMINAL].toBool(false))
+    , launchRequest(configuration[REQUEST].toObject())
+    , locale(QLocale::system().name())
+{
+}
+
+/*
+ * ClientSettings
+ */
+ClientSettings::ClientSettings(const QJsonObject &configuration)
+    : busSettings(configuration)
+    , protocolSettings(configuration)
+{
+}
+
+std::optional<ClientSettings> ClientSettings::extractFromAdapter(const QJsonObject &adapterSettings, const QString &configurationKey)
+{
+    const auto configuration = findConfiguration(adapterSettings, configurationKey);
+    if (!configuration) {
+        return std::nullopt;
+    }
+
+    return ClientSettings(*configuration);
+}
+
+} // dap::settings

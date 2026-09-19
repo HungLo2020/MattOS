@@ -1,0 +1,155 @@
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Balázs Úr <urbalazs@gmail.com>, 2014.
+# Kristóf Kiszel <ulysses@kubuntu.org>, 2019.
+# SPDX-FileCopyrightText: 2024 Kristof Kiszel <ulysses@fsf.hu>
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-12-06 00:44+0000\n"
+"PO-Revision-Date: 2024-01-03 11:59+0100\n"
+"Last-Translator: Kristof Kiszel <ulysses@fsf.hu>\n"
+"Language-Team: Hungarian <kde-l10n-hu@kde.org>\n"
+"Language: hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 23.08.4\n"
+
+#: SearchField.qml:34
+#, kde-format
+msgid "Search…"
+msgstr "Keresés…"
+
+#~ msgid "Search Results"
+#~ msgstr "Keresési eredmények"
+
+#~ msgid "Only the selected components are shown in the search results"
+#~ msgstr "Csak a kiválasztott komponensek láthatók a keresési eredményekben"
+
+#~ msgid "Drag categories to change the order in which results appear"
+#~ msgstr ""
+#~ "A kategóriák húzásával megváltoztatható az eredmények megjelenési "
+#~ "sorrendje"
+
+#~ msgid "Artist:"
+#~ msgstr "Előadó:"
+
+#~ msgid "Album:"
+#~ msgstr "Album:"
+
+#~ msgid "Duration:"
+#~ msgstr "Időtartam:"
+
+#~ msgid "From:"
+#~ msgstr "Feladó:"
+
+#~ msgid "To:"
+#~ msgstr "Címzett:"
+
+#~ msgid "Date:"
+#~ msgstr "Dátum:"
+
+#~ msgid "Subject:"
+#~ msgstr "Tárgy:"
+
+#~ msgid ""
+#~ "\n"
+#~ "Attachments:\n"
+#~ "\n"
+#~ msgstr ""
+#~ "\n"
+#~ "Mellékletek:\n"
+#~ "\n"
+
+#~ msgid "Modified:"
+#~ msgstr "Módosítva:"
+
+#~ msgid "Size:"
+#~ msgstr "Méret:"
+
+#~ msgid "Applications"
+#~ msgstr "Alkalmazások"
+
+#~ msgid "System Settings"
+#~ msgstr "Rendszerbeállítások"
+
+#~ msgid "Audio"
+#~ msgstr "Hang"
+
+#~ msgid "Videos"
+#~ msgstr "Videók"
+
+#~ msgid "Images"
+#~ msgstr "Képek"
+
+#~ msgid "Documents"
+#~ msgstr "Dokumentumok"
+
+#~ msgid "Folders"
+#~ msgstr "Mappák"
+
+#~ msgid "Emails"
+#~ msgstr "E-mailek"
+
+#~ msgid "Calculator"
+#~ msgstr "Számológép"
+
+#~ msgid "Bookmarks"
+#~ msgstr "Könyvjelzők"
+
+#~ msgid "modeltest"
+#~ msgstr "modellteszt"
+
+#~ msgctxt "NAME OF TRANSLATORS"
+#~ msgid "Your names"
+#~ msgstr "Úr Balázs"
+
+#~ msgctxt "EMAIL OF TRANSLATORS"
+#~ msgid "Your emails"
+#~ msgstr "urbalazs@gmail.com"
+
+#~ msgid "Milou"
+#~ msgstr "Milou"
+
+#~ msgid "Milou is an application for finding stuff"
+#~ msgstr "A Milou egy alkalmazás dolgok megtalálásához"
+
+#~ msgid "(C) 2013, Vishesh Handa"
+#~ msgstr "© Vishesh Handa, 2013."
+
+#~ msgid "Vishesh Handa"
+#~ msgstr "Vishesh Handa"
+
+#~ msgid "Maintainer"
+#~ msgstr "Karbantartó"
+
+#~ msgid "Sort By"
+#~ msgstr "Rendezés"
+
+#~ msgid "Filter By"
+#~ msgstr "Szűrés"
+
+#~ msgid "Relevance"
+#~ msgstr "Relevancia"
+
+#~ msgid "Modified"
+#~ msgstr "Módosítva"
+
+#~ msgid "Created"
+#~ msgstr "Létrehozva"
+
+#~ msgid "Any time"
+#~ msgstr "Bármikor"
+
+#~ msgid "Last 7 days"
+#~ msgstr "Elmúlt 7 nap"
+
+#~ msgid "Last 30 days"
+#~ msgstr "Elmúlt 30 nap"
+
+#~ msgid "Last year"
+#~ msgstr "Múlt évben"

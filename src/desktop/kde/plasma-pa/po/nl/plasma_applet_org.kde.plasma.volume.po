@@ -1,0 +1,496 @@
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+#
+# SPDX-FileCopyrightText: 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025 Freek de Kruijf <freekdekruijf@kde.nl>
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-12-19 00:45+0000\n"
+"PO-Revision-Date: 2025-11-29 11:57+0100\n"
+"Last-Translator: Freek de Kruijf <freekdekruijf@kde.nl>\n"
+"Language-Team: \n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 25.08.3\n"
+
+#: ListItemBase.qml:72
+#, kde-format
+msgid "Currently not recording"
+msgstr "Geen opname op dit moment"
+
+#: ListItemBase.qml:73
+#, kde-format
+msgid "Currently not playing"
+msgstr "Geen afspelen op dit moment"
+
+#: ListItemBase.qml:204
+#, kde-format
+msgctxt "@action:button"
+msgid "Additional Options"
+msgstr "Aanvullende opties"
+
+#: ListItemBase.qml:206
+#, kde-format
+msgid "Show additional options for %1"
+msgstr "Additionele opties voor %1 tonen"
+
+#: ListItemBase.qml:228
+#, kde-format
+msgctxt "@action:button"
+msgid "Unmute"
+msgstr "Dempen opheffen"
+
+#: ListItemBase.qml:228
+#, kde-format
+msgctxt "@action:button"
+msgid "Mute"
+msgstr "Dempen"
+
+#: ListItemBase.qml:230
+#, kde-format
+msgid "Unmute %1"
+msgstr "Van %1 dempen opheffen"
+
+#: ListItemBase.qml:230
+#, kde-format
+msgid "Mute %1"
+msgstr "%1 dempen"
+
+#: ListItemBase.qml:253
+#, kde-format
+msgctxt "Accessibility data on volume slider"
+msgid "Adjust volume for %1"
+msgstr "Volume voor %1 aanpassen"
+
+#: ListItemBase.qml:317
+#, kde-format
+msgctxt "volume percentage"
+msgid "%1%"
+msgstr "%1%"
+
+#: ListItemBase.qml:338
+#, kde-format
+msgctxt "only used for sizing, should be widest possible string"
+msgid "100%"
+msgstr "100%"
+
+#: main.qml:36
+#, kde-format
+msgid "Audio Volume"
+msgstr "Geluidsvolume"
+
+#: main.qml:53 main.qml:55
+#, kde-format
+msgctxt "@label"
+msgid "Connection to the Sound Service Lost"
+msgstr "Verbinding met de geluidsservice is verbroken"
+
+#: main.qml:57
+#, kde-format
+msgid "No output or input devices found"
+msgstr "Geen in- of uitvoerapparaten gevonden"
+
+#: main.qml:61
+#, kde-format
+msgctxt "@info reconnecting to pulseaudio"
+msgid "Trying to reconnect…"
+msgstr "Proberen opnieuw te verbinden…"
+
+#: main.qml:79
+#, kde-format
+msgid "Audio Muted"
+msgstr "Geluid gedempt"
+
+#: main.qml:81
+#, kde-format
+msgid "Volume at %1%"
+msgstr "Volume op %1%"
+
+#: main.qml:92
+#, kde-format
+msgid "Middle-click to unmute"
+msgstr "Midden-klik om dempen op te heffen"
+
+#: main.qml:93
+#, kde-format
+msgid "Middle-click to mute all audio"
+msgstr "Midden-klik om alle audio te dempen"
+
+#: main.qml:94
+#, kde-format
+msgid "Scroll to adjust volume"
+msgstr "Scrollen om geluidsvolume aan te passen"
+
+#: main.qml:110
+#, kde-format
+msgid "Device name not found"
+msgstr "Apparaatnaam niet gevonden"
+
+#: main.qml:338
+#, kde-format
+msgid "Devices"
+msgstr "Apparaten"
+
+#: main.qml:345
+#, kde-format
+msgid "Applications"
+msgstr "Toepassingen"
+
+#: main.qml:369
+#, kde-format
+msgctxt "@action:button"
+msgid "More actions"
+msgstr "Meer acties"
+
+#: main.qml:411
+#, kde-format
+msgctxt ""
+"@action:button keep this widget's pop-up open until explicitly dismissed"
+msgid "Keep open"
+msgstr "Open houden"
+
+#: main.qml:443
+#, kde-format
+msgctxt "@action retry connecting to pulseaudio"
+msgid "Retry"
+msgstr "Opnieuw proberen"
+
+#: main.qml:470
+#, kde-format
+msgid "No applications playing or recording audio"
+msgstr "Geen toepassingen die geluid afspelen of opnemen"
+
+#: main.qml:555
+#, kde-format
+msgctxt "@title:group listview section header"
+msgid "Output Devices"
+msgstr "Uitvoerapparaten"
+
+#: main.qml:557
+#, kde-format
+msgctxt "@title:group listview section header"
+msgid "Output Streams"
+msgstr "Uitvoerstreams"
+
+#: main.qml:615
+#, kde-format
+msgctxt "@title:group listview section header"
+msgid "Input Devices"
+msgstr "Invoerapparaten"
+
+#: main.qml:617
+#, kde-format
+msgctxt "@title:group listview section header"
+msgid "Input Streams"
+msgstr "Invoerstreams"
+
+#: main.qml:681
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Prolonged use of this feature will damage the device's speakers. Only use it "
+"temporarily to make quiet media audible."
+msgstr ""
+"Verlengd gebruik van deze mogelijkheid zal de speakers van het apparaat "
+"beschadigen. Gebruik het alleen tijdelijk om zachte media hoorbaar te maken."
+
+#: main.qml:697
+#, kde-format
+msgid "Raise maximum volume"
+msgstr "Maximum volume vergroten:"
+
+#: main.qml:711
+#, kde-format
+msgid "Force mute all playback devices"
+msgstr "Alle afspeelapparaten afdwingen te dempen"
+
+#: main.qml:720
+#, kde-format
+msgid "Force mute all input devices"
+msgstr "Alle invoerapparaten afdwingen te dempen"
+
+#: main.qml:729
+#, kde-format
+msgid "Show virtual devices"
+msgstr "Virtuele apparaten tonen"
+
+#: main.qml:739
+#, kde-format
+msgid "&Configure Audio Devices…"
+msgstr "Audio-apparaten &configureren…"
+
+#: StreamListItem.qml:36
+#, kde-format
+msgid "Stream name not found"
+msgstr "Streamnaam niet gevonden"
+
+#~ msgctxt "Device name (Battery percent)"
+#~ msgid "%1 (%2% Battery)"
+#~ msgstr "%1 (%2% batterij)"
+
+#~ msgid "Increase Volume"
+#~ msgstr "Volume verhogen"
+
+#~ msgctxt "@action shortcut"
+#~ msgid "Increase Volume by 1%"
+#~ msgstr "Volume met 1% verhogen"
+
+#~ msgid "Decrease Volume"
+#~ msgstr "Volume verlagen"
+
+#~ msgctxt "@action shortcut"
+#~ msgid "Decrease Volume by 1%"
+#~ msgstr "Volume met 1% verlagen"
+
+#~ msgid "Mute"
+#~ msgstr "Dempen"
+
+#~ msgid "Increase Microphone Volume"
+#~ msgstr "Microfoonvolume verhogen"
+
+#~ msgid "Decrease Microphone Volume"
+#~ msgstr "Microfoonvolume verlagen"
+
+#~ msgid "Mute Microphone"
+#~ msgstr "Microfoon dempen"
+
+#~ msgctxt "label of device items"
+#~ msgid "%1 (%2)"
+#~ msgstr "%1 (%2)"
+
+#~ msgid "General"
+#~ msgstr "Algemeen"
+
+#~ msgid "Volume step:"
+#~ msgstr "Volumestap:"
+
+#~ msgid "Play audio feedback for changes to:"
+#~ msgstr "Audio-terugkoppeling afspelen voor wijzigingen naar:"
+
+#~ msgid "Audio volume"
+#~ msgstr "Audio volume"
+
+#~ msgid "Show visual feedback for changes to:"
+#~ msgstr "Visuele terugkoppeling tonen voor wijzigingen naar:"
+
+#~ msgid "Microphone sensitivity"
+#~ msgstr "Microfoongevoeligheid"
+
+#~ msgid "Mute state"
+#~ msgstr "Dempstatus"
+
+#~ msgid "Default output device"
+#~ msgstr "Standaard uitvoerapparaat"
+
+#~ msgctxt "@title"
+#~ msgid "Display:"
+#~ msgstr "Weergave:"
+
+#~ msgid "Record all audio via this device"
+#~ msgstr "Alle geluid via dit apparaat opnemen"
+
+#~ msgid "Play all audio via this device"
+#~ msgstr "Alle geluid afspelen via dit apparaat"
+
+#~ msgctxt ""
+#~ "Heading for a list of ports of a device (for example built-in laptop "
+#~ "speakers or a plug for headphones)"
+#~ msgid "Ports"
+#~ msgstr "Poorten"
+
+#~ msgctxt "Port is unavailable"
+#~ msgid "%1 (unavailable)"
+#~ msgstr "%1 (niet beschikbaar)"
+
+#~ msgctxt "Port is unplugged"
+#~ msgid "%1 (unplugged)"
+#~ msgstr "%1 (losgekoppeld)"
+
+#~ msgctxt ""
+#~ "Heading for a list of possible output devices (speakers, headphones, ...) "
+#~ "to choose"
+#~ msgid "Play audio using"
+#~ msgstr "Geluid afspelen met"
+
+#~ msgctxt ""
+#~ "Heading for a list of possible input devices (built-in microphone, "
+#~ "headset, ...) to choose"
+#~ msgid "Record audio using"
+#~ msgstr "Geluid opnemen met"
+
+#~ msgid "show hidden devices"
+#~ msgstr "verborgen apparaten tonen"
+
+#~ msgid "Feedback:"
+#~ msgstr "Terugkoppeling:"
+
+#~ msgid "Play sound when volume changes"
+#~ msgstr "Geluid afspelen wanneer volume wijzigt"
+
+#~ msgid "Display notification when default output device changes"
+#~ msgstr "Melding tonen wanneer standaard uitvoerapparaat wijzigt"
+
+#~ msgid "Maximum volume:"
+#~ msgstr "Maximum volume:"
+
+#~ msgid "Default Device"
+#~ msgstr "Standaard apparaat"
+
+#~ msgid "Playback Streams"
+#~ msgstr "Streams om af te spelen"
+
+#~ msgid "Recording Streams"
+#~ msgstr "Streams worden opgenomen"
+
+#~ msgid "Playback Devices"
+#~ msgstr "Afspeelapparaten"
+
+#~ msgid "Recording Devices"
+#~ msgstr "Apparaten worden opgenomen"
+
+#~ msgctxt "label of stream items"
+#~ msgid "%1 (%2)"
+#~ msgstr "%1 (%2)"
+
+#~ msgctxt "Checkable switch for (un-)muting sound output."
+#~ msgid "Mute"
+#~ msgstr "Dempen"
+
+#~ msgctxt "Checkable switch to change the current default output."
+#~ msgid "Default"
+#~ msgstr "Standaard"
+
+#~ msgid "Volume"
+#~ msgstr "Volume"
+
+#~ msgid "%"
+#~ msgstr "%"
+
+#~ msgid "Behavior"
+#~ msgstr "Gedrag"
+
+#~ msgid "Volume feedback"
+#~ msgstr "Volume van feedback"
+
+#~ msgid "Device Profiles"
+#~ msgstr "Apparaatprofielen"
+
+#~ msgctxt "@label"
+#~ msgid "No Device Profiles Available"
+#~ msgstr "Geen apparaatprofielen beschikbaar"
+
+#~ msgid "Advanced Output Configuration"
+#~ msgstr "Geavanceerde uitvoerconfiguratie"
+
+#~ msgid ""
+#~ "Add virtual output device for simultaneous output on all local sound cards"
+#~ msgstr ""
+#~ "Virtueel uitvoerapparaat toevoegen voor gezamenlijke uitvoer op alle "
+#~ "lokale geluidskaarten"
+
+#~ msgid ""
+#~ "Automatically switch all running streams when a new output becomes "
+#~ "available"
+#~ msgstr ""
+#~ "Automatisch alle actieve streams omschakelen wanneer een nieuwe uitvoer "
+#~ "beschikbaar komt"
+
+#~ msgid "Requires 'module-gconf' PulseAudio module"
+#~ msgstr "Vereist PulseAudio module 'module-gconf'"
+
+#~ msgid "Speaker Placement and Testing"
+#~ msgstr "Luidsprekeropstelling en testen"
+
+#~ msgctxt "@label"
+#~ msgid "Output:"
+#~ msgstr "Uitvoer:"
+
+#~ msgid "Front Left"
+#~ msgstr "Vooraan links"
+
+#~ msgid "Front Center"
+#~ msgstr "Vooraan midden"
+
+#~ msgid "Front Right"
+#~ msgstr "Vooraan rechts"
+
+#~ msgid "Side Left"
+#~ msgstr "Opzij links"
+
+#~ msgid "Side Right"
+#~ msgstr "Opzij rechts"
+
+#~ msgid "Rear Left"
+#~ msgstr "Achter links"
+
+#~ msgid "Subwoofer"
+#~ msgstr "Subwoofer"
+
+#~ msgid "Rear Right"
+#~ msgstr "Achter rechts"
+
+#~ msgid "Playback"
+#~ msgstr "Afspelen"
+
+#~ msgctxt "@label"
+#~ msgid "No Applications Playing Audio"
+#~ msgstr "Geen toepassingen die geluid afspelen"
+
+#~ msgid "Capture"
+#~ msgstr "Opnemen"
+
+#~ msgctxt "@label"
+#~ msgid "No Applications Recording Audio"
+#~ msgstr "Geen toepassingen die geluid opnemen"
+
+#~ msgctxt "@label"
+#~ msgid "Profile:"
+#~ msgstr "Profiel:"
+
+#~ msgid "Port"
+#~ msgstr "Poort"
+
+#~ msgid "Outputs"
+#~ msgstr "Uitvoer"
+
+#~ msgctxt "@label"
+#~ msgid "No Output Devices Available"
+#~ msgstr "Geen uitvoerapparaten beschikbaar"
+
+#~ msgid "Inputs"
+#~ msgstr "Invoer"
+
+#~ msgctxt "@label"
+#~ msgid "No Input Devices Available"
+#~ msgstr "Geen invoerapparaten beschikbaar"
+
+#~ msgid "This module allows configuring the Pulseaudio sound subsystem."
+#~ msgstr ""
+#~ "Deze module stelt u in staat het Pulseaudio geluidssubsysteem te "
+#~ "configureren."
+
+#~ msgctxt "@title:tab"
+#~ msgid "Devices"
+#~ msgstr "Apparaten"
+
+#~ msgctxt "@title:tab"
+#~ msgid "Applications"
+#~ msgstr "Toepassingen"
+
+#~ msgctxt "@title:tab"
+#~ msgid "Advanced"
+#~ msgstr "Geavanceerd"
+
+#~ msgid "Notification Sounds"
+#~ msgstr "Meldingsgeluiden"
+
+#~ msgctxt "label of stream items"
+#~ msgid "%1: %2"
+#~ msgstr "%1: %2"
+
+#~ msgid "100%"
+#~ msgstr "100%"

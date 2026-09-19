@@ -448,10 +448,7 @@ mod tests {
         )
         .unwrap();
         let query_a = SourceQuery::new(&[PathBuf::from("root")], false);
-        let query_b = SourceQuery::new(
-            &[PathBuf::from("root"), PathBuf::from("other")],
-            false,
-        );
+        let query_b = SourceQuery::new(&[PathBuf::from("root"), PathBuf::from("other")], false);
         let mut working_calls = 0;
         let mut digest = |_: &Path| {
             working_calls += 1;

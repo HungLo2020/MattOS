@@ -1,0 +1,66 @@
+# SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
+# SPDX-FileCopyrightText: 2025 Arjen Hiemstra <ahiemstra@heimr.nl>
+
+[Face-79499253032633][Appearance]
+chartFace=org.kde.ksysguard.linechart
+title=Test
+
+[Face-79499253032633][Sensors]
+highPrioritySensorIds=["cpu/all/usage"]
+
+[page]
+Title=New Base Page
+Title[ar]=صفحة أساس جديدة
+Title[bg]=Нова основна страница
+Title[ca]=Pàgina base nova
+Title[ca@valencia]=Pàgina base nova
+Title[cs]=Nová základní stránka
+Title[de]=Neue Basisseite
+Title[es]=Nueva página base
+Title[eu]=Oinarri-orri berria
+Title[fi]=Uusi pohjasivu
+Title[fr]=Nouvelle page de base
+Title[gl]=Nova páxina base
+Title[he]=עמוד בסיס חדש
+Title[hu]=Új alapoldal
+Title[ia]=Nove Pagina Base
+Title[is]=Ný grunnsíða
+Title[it]=Nuova pagina di base
+Title[ka]=ახალი საბაზისო გვერდი
+Title[ko]=새 기본 페이지
+Title[lt]=Naujas pagrindinis puslapis
+Title[lv]=Jaunā pamata lapa
+Title[nl]=Nieuwe basispagina
+Title[pa]=ਨਵਾਂ ਮੂਲ ਸਫ਼ਾ
+Title[pl]=Nowa strona podstawowa
+Title[pt_BR]=Página base nova
+Title[ro]=Pagină de bază nouă
+Title[ru]=Новая базовая страница
+Title[sk]=New Base Page
+Title[sl]=Nova osnovna stran
+Title[sv]=Ny bassida
+Title[tr]=Yeni Taban Sayfa
+Title[uk]=Нова основна сторінка
+Title[zh_CN]=新基本页面
+Title[zh_TW]=新的基本頁面
+actionsFace=
+icon=ksysguardd
+loadType=onstart
+margin=2
+version=1
+
+[page][row-0]
+Title=
+heightMode=balanced
+isTitle=false
+name=row-0
+
+[page][row-0][column-0]
+name=column-0
+noMargins=
+showBackground=true
+
+[page][row-0][column-0][section-0]
+face=Face-79499253032633
+isSeparator=false
+name=section-0

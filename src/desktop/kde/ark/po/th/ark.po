@@ -1,0 +1,2920 @@
+# translation of ark.po to Thai
+# Copyright (C) 2003, 2005, 2006, 2008 Free Software Foundation, Inc.
+# Thanomsub Noppaburana <donga_n@yahoo.com>, 2003, 2005.
+# Sahachart Anukulkitch <drrider@gmail.com>, 2005, 2006.
+# Thanomsub Noppaburana <donga.nb@gmail.com>, 2008, 2010.
+# SPDX-FileCopyrightText: 2025 Satakun Utama <linesofcodes@dailitation.xyz>
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: ark\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-08-24 02:42+0000\n"
+"PO-Revision-Date: 2025-12-18 23:53+0700\n"
+"Last-Translator: Satakun Utama <linesofcodes@dailitation.xyz>\n"
+"Language-Team: Thai\n"
+"Language: th\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Lokalize 25.12.0\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "ถนอมทรัพย์ นพบูรณ์, ศตคุณ อุตมะ"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "donga.nb@gmail.com, linesofcodes@dailitation.xyz"
+
+#. i18n: ectx: Menu (archive)
+#: app/arkui.rc:5
+#, kde-format
+msgctxt "Noun, not a verb. Top level menu item, i.e. like File"
+msgid "&Archive"
+msgstr "&อาร์ไคฟ์"
+
+#: app/batchextract.cpp:103 app/batchextract.cpp:174
+#, kde-format
+msgid "Extracting Files"
+msgstr "กำลังแตกไฟล์"
+
+#: app/batchextract.cpp:104 app/batchextract.cpp:175
+#, kde-format
+msgid "Source archive"
+msgstr "แฟ้มจัดเก็บต้นทาง"
+
+#: app/batchextract.cpp:105 app/batchextract.cpp:176
+#, kde-format
+msgid "Destination"
+msgstr "ปลายทาง"
+
+#: app/batchextract.cpp:117
+#, kde-format
+msgid "The following files could not be extracted:"
+msgstr "ไม่สามารถทำการคลายแฟ้มต่าง ๆ ต่อไปนี้ได้:"
+
+#: app/batchextract.cpp:137
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"There was an error while extracting <filename>%1</filename>. Any further "
+"archive will not be extracted."
+msgstr ""
+"เกิดข้อผิดพลาดระหว่างทำการแตกไฟล์ <filename>%1</filename> "
+"การแตกไฟล์จะไม่ถูกดำเนินการต่อ"
+
+#: app/batchextract.cpp:139
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"There was an error while extracting <filename>%1</filename>:<nl/><message>"
+"%2</message><nl/>Any further archive will not be extracted."
+msgstr ""
+"เกิดข้อผิดพลาดระหว่างทำการแตกไฟล์ <filename>%1</filename>:<nl/><message>%2</"
+"message><nl/>จะไม่มีการแตกไฟล์อาร์ไคฟ์อื่น ๆ"
+
+#: app/batchextract.cpp:146
+#, kde-kuit-format
+msgctxt "@info"
+msgid "There was an error while extracting <filename>%1</filename>."
+msgstr "เกิดข้อผิดพลาดระหว่างการแตกไฟล์ <filename>%1</filename>"
+
+#: app/batchextract.cpp:148
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"There was an error while extracting <filename>%1</filename>:<nl/><message>"
+"%2</message>"
+msgstr ""
+"เกิดข้อผิดพลาดระหว่างการแตกไฟล์ <filename>%1</filename>:<nl/><message>%2</message>"
+
+#: app/batchextract.cpp:301
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The archive could not be extracted to <filename>%1</filename> because Ark "
+"can only extract to local destinations."
+msgstr ""
+"ไม่สามารถแตกไฟล์ไปยัง <filename>%1</filename> ได้ เนื่องจาก Ark "
+"สามารถแตกไฟล์ไปยังสถานที่ภายในเครื่องเท่านั้น"
+
+#: app/compressfileitemaction.cpp:74
+#, kde-format
+msgctxt "@action:inmenu Compress submenu in Dolphin context menu"
+msgid "Compress"
+msgstr "บีบอัด"
+
+#: app/compressfileitemaction.cpp:102
+#, kde-format
+msgctxt "@action:inmenu Part of Compress submenu in Dolphin context menu"
+msgid "Compress to…"
+msgstr "บีบอัดไปยัง..."
+
+#: app/compressfileitemaction.cpp:105 app/compressfileitemaction.cpp:119
+#, kde-format
+msgctxt ""
+"@action:inmenu Part of Compress submenu in Dolphin context menu, %1 filename"
+msgid "Compress to \"%1\""
+msgstr "บีบอัดเป็น \"%1\""
+
+#: app/compressfileitemaction.cpp:111 kerfuffle/addtoarchive.cpp:269
+#, kde-format
+msgctxt "Default name of a newly-created multi-file archive"
+msgid "Archive"
+msgstr "อาร์ไคฟ์"
+
+#: app/extractfileitemaction.cpp:66
+#, kde-format
+msgctxt "@action:inmenu Part of Extract submenu in Dolphin context menu"
+msgid "Extract to…"
+msgstr "แตกไฟล์ไปยัง..."
+
+#: app/extractfileitemaction.cpp:78
+#, kde-format
+msgctxt "@action:inmenu Part of Extract submenu in Dolphin context menu"
+msgid "Extract here"
+msgstr "แตกไฟล์ที่นี่"
+
+#: app/extractfileitemaction.cpp:84
+#, fuzzy, kde-format
+#| msgctxt "@action:inmenu Part of Extract submenu in Dolphin context menu"
+#| msgid "Extract here and delete archive"
+msgctxt "@action:inmenu Part of Extract submenu in Dolphin context menu"
+msgid "Extract and trash archive"
+msgstr "แตกไฟล์ที่นี่และลบอาร์ไคฟ์"
+
+#: app/extractfileitemaction.cpp:91
+#, kde-format
+msgctxt "@action:inmenu Extract submenu in Dolphin context menu"
+msgid "Extract"
+msgstr "แตกไฟล์"
+
+#: app/extractHereDndPlugin.cpp:54
+#, kde-format
+msgctxt ""
+"@action:inmenu Context menu shown when an archive is being drag'n'dropped"
+msgid "Extract here"
+msgstr "แตกไฟล์ที่นี่"
+
+#: app/main.cpp:76
+#, kde-format
+msgid "Ark"
+msgstr "Ark"
+
+#: app/main.cpp:78
+#, kde-format
+msgid "KDE Archiving tool"
+msgstr "เครื่องมือจัดการแฟ้มจัดเก็บของ KDE"
+
+#: app/main.cpp:80
+#, kde-format
+msgid "© 1997–2025 The Ark Developers"
+msgstr "สงวนลิขสิทธิ์ © 1997-2010 กลุ่มผู้พัฒนา Ark"
+
+#: app/main.cpp:86
+#, kde-format
+msgid "Elvis Angelaccio"
+msgstr "Elvis Angelaccio"
+
+#: app/main.cpp:86
+#, kde-format
+msgid "Maintainer"
+msgstr "ผู้ดูแล"
+
+#: app/main.cpp:87
+#, kde-format
+msgid "Ragnar Thomsen"
+msgstr "Ragnar Thomsen"
+
+#: app/main.cpp:87
+#, kde-format
+msgid "Maintainer, KF5 port"
+msgstr "ผู้ดูแล, พอร์ต KF5"
+
+#: app/main.cpp:88
+#, kde-format
+msgid "Raphael Kubo da Costa"
+msgstr "Raphael Kubo da Costa"
+
+#: app/main.cpp:88 app/main.cpp:89 app/main.cpp:90
+#, kde-format
+msgid "Former Maintainer"
+msgstr "ผู้ดูแลก่อนหน้านี้"
+
+#: app/main.cpp:89
+#, kde-format
+msgid "Harald Hvaal"
+msgstr "Harald Hvaal"
+
+#: app/main.cpp:90
+#, kde-format
+msgid "Henrique Pinto"
+msgstr "Henrique Pinto"
+
+#: app/main.cpp:91
+#, kde-format
+msgid "Helio Chissini de Castro"
+msgstr "Helio Chissini de Castro"
+
+#: app/main.cpp:91
+#, kde-format
+msgid "Former maintainer"
+msgstr "ผู้ดูแลก่อนหน้านี้"
+
+#: app/main.cpp:92
+#, kde-format
+msgid "Georg Robbers"
+msgstr "Georg Robbers"
+
+#: app/main.cpp:93
+#, kde-format
+msgid "Roberto Selbach Teixeira"
+msgstr "Roberto Selbach Teixeira"
+
+#: app/main.cpp:94
+#, kde-format
+msgid "Francois-Xavier Duranceau"
+msgstr "Francois-Xavier Duranceau"
+
+#: app/main.cpp:95
+#, kde-format
+msgid "Emily Ezust (Corel Corporation)"
+msgstr "Emily Ezust (Corel Corporation)"
+
+#: app/main.cpp:96
+#, kde-format
+msgid "Michael Jarrett (Corel Corporation)"
+msgstr "Michael Jarrett (Corel Corporation)"
+
+#: app/main.cpp:97
+#, kde-format
+msgid "Robert Palmbos"
+msgstr "Robert Palmbos"
+
+#: app/main.cpp:99
+#, kde-format
+msgid "Vladyslav Batyrenko"
+msgstr "Vladyslav Batyrenko"
+
+#: app/main.cpp:100
+#, kde-format
+msgid "Advanced editing functionalities"
+msgstr "ฟังก์ชันการแก้ไขขั้นสูง"
+
+#: app/main.cpp:103
+#, kde-format
+msgid "Bryce Corkins"
+msgstr "Bryce Corkins"
+
+#: app/main.cpp:103
+#, kde-format
+msgid "Icons"
+msgstr "ไอคอน"
+
+#: app/main.cpp:104
+#, kde-format
+msgid "Liam Smit"
+msgstr "Liam Smit"
+
+#: app/main.cpp:104
+#, kde-format
+msgid "Ideas, help with the icons"
+msgstr "แนวคิด, ความช่วยเหลือกับไอคอนชุดนี้"
+
+#: app/main.cpp:105
+#, kde-format
+msgid "Andrew Smith"
+msgstr "Andrew Smith"
+
+#: app/main.cpp:105
+#, kde-format
+msgid "bkisofs code"
+msgstr "โค้ดส่วน bkisofs"
+
+#: app/main.cpp:114
+#, kde-format
+msgid "URLs to open."
+msgstr "URL ที่ต้องการเปิด"
+
+#: app/main.cpp:117
+#, kde-format
+msgid ""
+"Show a dialog for specifying the options for the operation (extract/add)"
+msgstr "แสดงกล่องระบุค่าตัวเลือกของปฏิบัติการนี้ (คลายแฟ้ม/เพิ่มแฟ้ม)"
+
+#: app/main.cpp:120
+#, kde-format
+msgid ""
+"Destination folder to extract to. Defaults to current path if not specified."
+msgstr ""
+"โฟลเดอร์ปลายทางที่จะทำการคลายแฟ้มไปเก็บไว้ หากไม่มีการระบุจะใช้ค่าพาธที่ใช้งานอยู่ในปัจจุบัน"
+
+#. i18n: ectx: label, entry (openDestinationFolderAfterExtraction), group (Extraction)
+#: app/main.cpp:124 kerfuffle/ark.kcfg:23
+#, kde-format
+msgid "Open destination folder after extraction."
+msgstr "เปิดโฟลเดอร์ปลายทางหลังจากทำการแตกไฟล์"
+
+#: app/main.cpp:127
+#, kde-format
+msgid ""
+"Query the user for an archive filename and add specified files to it. Quit "
+"when finished."
+msgstr "ให้ผู้ใช้ค้นหาชื่อแฟ้มของแฟ้มจัดเก็บ และเพิ่มแฟ้มที่ระบุไปยังแฟ้มที่พบ แล้วออกเมื่อเสร็จสิ้นแล้ว"
+
+#: app/main.cpp:130
+#, kde-format
+msgid ""
+"Add the specified files to 'filename'. Create archive if it does not exist. "
+"Quit when finished."
+msgstr ""
+"เพิ่มแฟ้มต่าง ๆ ที่ระบุไปยัง 'ชื่อแฟ้ม' โดยสร้างแฟ้มจัดเก็บให้หากมันยังไม่มีอยู่ และออกเมื่อเสร็จสิ้นแล้ว"
+
+#: app/main.cpp:134
+#, kde-format
+msgid ""
+"Change the current dir to the first entry and add all other entries relative "
+"to this one."
+msgstr ""
+"เปลี่ยนไดเรกทอรีปัจจุบันไปยังรายการแรกแล้วเพิ่มรายการอื่นทั้งหมดที่เหลือ ให้สัมพันธ์กับตัวดังกล่าว"
+
+#: app/main.cpp:138
+#, kde-format
+msgid ""
+"Automatically choose a filename, with the selected suffix (for example rar, "
+"tar.gz, zip or any other supported types)"
+msgstr ""
+"เลือกชื่อแฟ้มให้โดยอัตโนมัติ และใช้ส่วนต่อท้ายตามที่เลือกไว้ (ตัวอย่างเช่น rar, tar.gz, zip "
+"หรือชนิดแฟ้มใด ๆ ที่รองรับ)"
+
+#: app/main.cpp:143
+#, kde-format
+msgid ""
+"Use the batch interface instead of the usual dialog. This option is implied "
+"if more than one url is specified."
+msgstr ""
+"ใช้ส่วนติดต่อแบบกลุ่มแทนกล่องโต้ตอบปกติ ตัวเลือกนี้จะมีผลปรับใช้ หากมีการระบุค่าที่อยู่ url "
+"มาให้มากกว่าหนึ่งที่อยู่"
+
+#: app/main.cpp:146
+#, kde-format
+msgid ""
+"The destination argument will be set to the path of the first file supplied."
+msgstr "อาร์กิวเมนต์ของปลายทางจะถูกตั้งค่าเป็นพาธของแฟ้มตัวแรกที่จัดหามาให้"
+
+#: app/main.cpp:149
+#, kde-format
+msgid ""
+"Archive contents will be read, and if detected to not be a single folder or "
+"a single file archive, a subfolder with the name of the archive will be "
+"created."
+msgstr ""
+"เนื้อหาของอาร์ไคฟ์จะถูกอ่าน และหากพบว่าไม่มีเพียงแค่โฟลเดอร์เดียวหรือไฟล์อาร์ไคฟ์เดียว "
+"โฟลเดอร์ย่อยจะถูกสร้างขึ้นด้วยชื่อของอาร์ไคฟ์"
+
+#: app/main.cpp:152
+#, kde-format
+msgid "List supported MIME types."
+msgstr "รายการประเภท MIME ที่รองรับ"
+
+#: app/mainwindow.cpp:167
+#, kde-format
+msgid "Unable to find Ark's KPart component, please check your installation."
+msgstr "ไม่สามารถค้นพบคอมโพเนนต์ KPart ของ Ark โปรดตรวจสอบการติดตั้งของคุณ"
+
+#: app/mainwindow.cpp:182
+#, kde-format
+msgid "Sidebar"
+msgstr "แถบด้านข้าง"
+
+#: app/mainwindow.cpp:285
+#, kde-format
+msgid "Welcome Page"
+msgstr "หน้ายินดีต้อนรับ"
+
+#: app/mainwindow.cpp:287
+#, kde-format
+msgid "Show the welcome page"
+msgstr "แสดงหน้ายินดีต้อนรับ"
+
+#: app/mainwindow.cpp:295
+#, kde-kuit-format
+msgctxt "@info:whatsthis"
+msgid ""
+"This switches between having a <emphasis>Menubar</emphasis> and having a "
+"<interface>Hamburger Menu</interface> button. Both contain mostly the same "
+"commands and configuration options."
+msgstr ""
+"ตัวเลือกนี้สลับระหว่างการมี<emphasis>แถบเมนู</emphasis> "
+"และการมีปุ่ม<interface>เมนูสามขีด</interface> โดยทั้งคู่มีคำสั่งและตัวเลือกในการตั้งค่าเหมือนกัน"
+
+#: app/mainwindow.cpp:315
+#, kde-format
+msgid "Lock Sidebar"
+msgstr "ล็อกแถบด้านข้าง"
+
+#: app/mainwindow.cpp:371
+#, kde-format
+msgctxt "to open an archive"
+msgid "Open Archive"
+msgstr "เปิดอาร์ไคฟ์"
+
+#: app/mainwindow.cpp:484
+#, kde-format
+msgid "Create New Archive"
+msgstr "สร้างอาร์ไคฟ์ใหม่"
+
+#: app/welcomeview/welcomeview.cpp:50
+#, kde-format
+msgid "Welcome to %1"
+msgstr "ยินดีต้อนรับสู่ %1"
+
+#: app/welcomeview/welcomeview.cpp:55
+#, kde-format
+msgid "No recent files"
+msgstr "ไม่มีไฟล์ล่าสุด"
+
+#: app/welcomeview/welcomeview.cpp:143
+#, kde-format
+msgid "Copy &Location"
+msgstr "คัดลอก&ตำแหน่งไฟล์"
+
+#: app/welcomeview/welcomeview.cpp:149
+#, kde-format
+msgid "&Open Containing Folder"
+msgstr "&เปิดโฟลเดอร์ที่บรรจุ"
+
+#: app/welcomeview/welcomeview.cpp:156
+#, kde-format
+msgid "&Remove"
+msgstr "&ลบ"
+
+#. i18n: ectx: property (windowTitle), widget (QScrollArea, WelcomeView)
+#: app/welcomeview/welcomeview.ui:17
+#, kde-format
+msgid "Welcome"
+msgstr "ยินดีต้อนรับ"
+
+#. i18n: ectx: property (text), widget (QPushButton, buttonOpenArchive)
+#: app/welcomeview/welcomeview.ui:179
+#, kde-format
+msgid "Open Archive…"
+msgstr "เปิดอาร์ไคฟ์..."
+
+#. i18n: ectx: property (text), widget (QPushButton, buttonNewArchive)
+#: app/welcomeview/welcomeview.ui:186
+#, kde-format
+msgid "New Archive"
+msgstr "อาร์ไคฟ์ใหม่"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, buttonClearRecentFiles)
+#: app/welcomeview/welcomeview.ui:193
+#, kde-format
+msgid "Clear Recent Files"
+msgstr "ล้างรายการไฟล์ล่าสุด"
+
+#. i18n: ectx: property (text), widget (QLabel, labelRecentFiles)
+#: app/welcomeview/welcomeview.ui:222
+#, kde-format
+msgid "Recent Files"
+msgstr "ไฟล์ที่ใช้ล่าสุด"
+
+#. i18n: ectx: property (text), widget (QLabel, labelHelp)
+#: app/welcomeview/welcomeview.ui:263
+#, kde-format
+msgid "Help"
+msgstr "ช่วยเหลือ"
+
+#. i18n: ectx: property (text), widget (KUrlLabel, labelHomepage)
+#: app/welcomeview/welcomeview.ui:273
+#, kde-format
+msgid "Visit homepage"
+msgstr "เยี่ยมชมหน้าแรก"
+
+#. i18n: ectx: property (text), widget (KUrlLabel, labelHandbook)
+#: app/welcomeview/welcomeview.ui:286
+#, kde-format
+msgid "Read handbook"
+msgstr "อ่านคู่มือ"
+
+#. i18n: ectx: property (text), widget (QCheckBox, checkBoxShowOnStartup)
+#: app/welcomeview/welcomeview.ui:345
+#, kde-format
+msgid "Show on startup"
+msgstr "แสดงเมื่อเปิดโปรแกรม"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, buttonClose)
+#: app/welcomeview/welcomeview.ui:400
+#, kde-format
+msgid "Close Welcome Page"
+msgstr "ปิดหน้าต้อนรับ"
+
+#: kerfuffle/adddialog.cpp:32 kerfuffle/adddialog.cpp:70
+#, kde-format
+msgid "Advanced Options"
+msgstr "ตัวเลือกขั้นสูง"
+
+#: kerfuffle/adddialog.cpp:41
+#, kde-format
+msgctxt "@action:button"
+msgid "Add"
+msgstr "เพิ่ม"
+
+#. i18n: ectx: property (title), widget (QGroupBox, groupCompressFiles)
+#: kerfuffle/adddialog.ui:35
+#, kde-format
+msgid "Files/Folders to Compress"
+msgstr "แฟ้ม/โฟลเดอร์ต่าง ๆ ที่จะทำการบีบอัด"
+
+#: kerfuffle/addtoarchive.cpp:78
+#, kde-format
+msgid "Compress to Archive"
+msgstr "บีบข้อมูลไปยังแฟ้มจัดเก็บ"
+
+#: kerfuffle/addtoarchive.cpp:132
+#, kde-format
+msgid "No input files were given."
+msgstr "ยังไม่ได้ให้แฟ้มข้อมูลเข้ามา"
+
+#: kerfuffle/addtoarchive.cpp:140
+#, kde-kuit-format
+msgid ""
+"You need to either supply a filename for the archive or a suffix (such as "
+"rar, tar.gz) with the <command>--autofilename</command> argument."
+msgstr ""
+"คุณต้องกำหนดชื่อแฟ้มของแฟ้มจัดเก็บหรือส่วนขยายต่อท้ายแฟ้ม (เช่น  rar, tar.tz) "
+"ร่วมกับอาร์กิวเมนต์ <command>--autofilename</command> ด้วย"
+
+#: kerfuffle/addtoarchive.cpp:206 part/part.cpp:830
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The archive <filename>%1</filename> already exists. Do you wish to overwrite "
+"it?"
+msgstr "มีอาร์ไคฟ์ <filename>%1</filename> อยู่ก่อนแล้ว คุณต้องการที่จะเขียนทับหรือไม่"
+
+#: kerfuffle/addtoarchive.cpp:207 part/part.cpp:831
+#, kde-format
+msgctxt "@title:window"
+msgid "File Exists"
+msgstr "มีแฟ้มอยู่ก่อนแล้ว"
+
+#. i18n: ectx: label, entry (showEncryptionWarning), group (General)
+#: kerfuffle/ark.kcfg:9
+#, kde-format
+msgid ""
+"Whether to show a warning when creating zip archives with AES encryption."
+msgstr "เลือกว่าจะแสดงคำเตือนเมื่อสร้างไฟล์ zip ที่มีการเข้ารหัส AES หรือไม่"
+
+#. i18n: ectx: label, entry (defaultOpenAction), group (General)
+#: kerfuffle/ark.kcfg:13
+#, kde-format
+msgid "Default action when opening archive entries."
+msgstr "การกระทำเริ่มต้นเมื่อเปิดรายการไฟล์เก็บถาวร"
+
+#. i18n: ectx: label, entry (closeAfterExtraction), group (Extraction)
+#: kerfuffle/ark.kcfg:27
+#, kde-format
+msgid "Close Ark after extraction."
+msgstr "ปิด Ark หลังจากทำการแตกไฟล์แล้ว"
+
+#. i18n: ectx: label, entry (preservePaths), group (Extraction)
+#: kerfuffle/ark.kcfg:31
+#, kde-format
+msgid "Preserve paths when extracting."
+msgstr "คงค่าพาธไว้เมื่อทำการแตกไฟล์"
+
+#. i18n: ectx: label, entry (extractToSubfolder), group (Extraction)
+#: kerfuffle/ark.kcfg:35
+#, kde-format
+msgid ""
+"Extract to a subfolder if the archive has more than one top-level entry."
+msgstr "แตกไฟล์ไปยังโฟลเดอร์ย่อยหากไฟล์อาร์ไคฟ์มีรายการไฟล์บนสุดมากกว่าหนึ่งรายการ"
+
+#. i18n: ectx: label, entry (splitterSizes), group (MainWindow)
+#: kerfuffle/ark.kcfg:41
+#, kde-format
+msgid "How the main window is divided."
+msgstr "หน้าต่างหลักถูกแบ่งอย่างไร"
+
+#. i18n: ectx: label, entry (showInfoPanel), group (MainWindow)
+#: kerfuffle/ark.kcfg:45
+#, kde-format
+msgid "Whether to show the information panel."
+msgstr "แสดงแผงรายละเอียดหรือไม่"
+
+#. i18n: ectx: label, entry (limitPreviewFileSize), group (Preview)
+#: kerfuffle/ark.kcfg:55
+#, kde-format
+msgid "Whether to limit the preview according to file size."
+msgstr "จำกัดการพรีวิวขึ้นอยู่กับขนาดไฟล์หรือไม่"
+
+#. i18n: ectx: label, entry (previewFileSizeLimit), group (Preview)
+#: kerfuffle/ark.kcfg:59
+#, kde-format
+msgid "Preview file size limit in megabytes."
+msgstr "การจำกัดขนาดไฟล์ในการพรีวิวเป็นเมกะไบต์"
+
+#: kerfuffle/cliinterface.cpp:236
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Failed to locate program <filename>%1</filename> on disk."
+msgstr "ล้มเหลวในการค้นหาโปรแกรม <filename>%1</filename> บนดิสก์"
+
+#: kerfuffle/cliinterface.cpp:346
+#, kde-format
+msgid "Extraction failed. Make sure that enough space is available."
+msgstr "การแตกไฟล์ล้มเหลว โปรดตรวจสอบว่าคุณมีพื้นที่เพียงพอ"
+
+#: kerfuffle/cliinterface.cpp:349
+#, kde-format
+msgid ""
+"Extraction failed. Make sure you provided the correct password and that "
+"enough space is available."
+msgstr "การแตกไฟล์ล้มเหลว โปรดตรวจสอบให้แน่ใจว่าคุณใส่รหัสผ่านที่ถูกต้องและมีพื้นที่มากพอ"
+
+#: kerfuffle/cliinterface.cpp:360 kerfuffle/cliinterface.cpp:481
+#, kde-format
+msgctxt "@info"
+msgid "Could not move the extracted file to the destination directory."
+msgid_plural "Could not move the extracted files to the destination directory."
+msgstr[0] "ไม่สามารถย้ายไฟล์ที่ถูกแตกออกแล้วไปยังโฟลเดอร์ที่หมายได้"
+
+#: kerfuffle/cliinterface.cpp:836
+#, kde-format
+msgctxt "@info"
+msgid "Extraction failed because the disk is full."
+msgstr "การแตกไฟล์ล้มเหลวเนื่องจากดิสก์เต็ม"
+
+#: kerfuffle/cliinterface.cpp:843 plugins/cliarjplugin/cliplugin.cpp:145
+#, kde-format
+msgctxt "@info"
+msgid "Extraction failed: Incorrect password"
+msgstr "การแตกไฟล์ล้มเหลว: รหัสผ่านไม่ถูกต้อง"
+
+#: kerfuffle/cliinterface.cpp:877
+#, kde-format
+msgid "Incorrect password."
+msgstr "รหัสผ่านไม่ถูกต้อง"
+
+#: kerfuffle/cliinterface.cpp:899
+#, kde-format
+msgid "Ark does not currently support testing this archive."
+msgstr "Ark ไม่รองรับการทดสอบอาร์ไคฟ์นี้"
+
+#: kerfuffle/compressionoptionswidget.cpp:133
+#, kde-format
+msgid "Protection of the list of files is not possible with the %1 format."
+msgstr "การปกป้องรายการไฟล์นั้นเป็นไปไม่ได้ด้วยฟอร์แมต %1"
+
+#: kerfuffle/compressionoptionswidget.cpp:141
+#, kde-format
+msgid ""
+"Protection of the archive with password is not possible with the %1 format."
+msgstr "การปกป้องอาร์ไคฟ์นี้ด้วยรหัสผ่านนั้นเป็นไปไม่ได้ด้วยฟอร์แมต %1"
+
+#: kerfuffle/compressionoptionswidget.cpp:155
+#, kde-format
+msgid "It is not possible to set compression level for the %1 format."
+msgstr "ไม่สามารถตั้งระดับการบีบอัดสำหรับฟอร์แมต %1 ได้"
+
+#: kerfuffle/compressionoptionswidget.cpp:174
+#, kde-format
+msgid "It is not possible to set compression method for the %1 format."
+msgstr "ไม่สามารถตั้งวิธีการบีบอัดสำหรับฟอร์แมต %1 ได้"
+
+#: kerfuffle/compressionoptionswidget.cpp:195
+#, kde-format
+msgid "The %1 format does not support multi-volume archives."
+msgstr "ฟอร์แมต %1 นั้นไม่รองรับอาร์ไคฟ์หลายวอลูม"
+
+#. i18n: ectx: property (title), widget (KCollapsibleGroupBox, collapsibleCompression)
+#: kerfuffle/compressionoptionswidget.ui:20
+#, kde-format
+msgid "Compression"
+msgstr "การบีบอัด"
+
+#. i18n: ectx: property (text), widget (QLabel, lblCompLevel1)
+#: kerfuffle/compressionoptionswidget.ui:35
+#, kde-format
+msgid "Level:"
+msgstr "ระดับ:"
+
+#. i18n: ectx: property (text), widget (QLabel, lblCompLevel2)
+#: kerfuffle/compressionoptionswidget.ui:45
+#, kde-format
+msgid "Min"
+msgstr "น้อย"
+
+#. i18n: ectx: property (text), widget (QLabel, lblCompMethod)
+#: kerfuffle/compressionoptionswidget.ui:83
+#, kde-format
+msgid "Method:"
+msgstr "วิธีการ:"
+
+#. i18n: ectx: property (text), widget (QLabel, lblCompLevel3)
+#: kerfuffle/compressionoptionswidget.ui:93
+#, kde-format
+msgid "Max"
+msgstr "มาก"
+
+#. i18n: ectx: property (title), widget (KCollapsibleGroupBox, collapsibleEncryption)
+#: kerfuffle/compressionoptionswidget.ui:118
+#, kde-format
+msgid "Password Protection"
+msgstr "การป้องกันด้วยรหัสผ่าน"
+
+#. i18n: ectx: property (text), widget (QLabel, lblEncMethod)
+#: kerfuffle/compressionoptionswidget.ui:130
+#, kde-format
+msgid "Encryption method:"
+msgstr "วิธีการเข้ารหัส:"
+
+#. i18n: ectx: property (text), widget (QCheckBox, encryptHeaderCheckBox)
+#: kerfuffle/compressionoptionswidget.ui:160
+#, kde-format
+msgid "Ask for password before showing the list of files in the archive"
+msgstr "ถามรหัสผ่านก่อนแสดงรายการไฟล์ในอาร์ไคฟ์"
+
+#. i18n: ectx: property (text), widget (KMessageWidget, warningMsgWidget)
+#: kerfuffle/compressionoptionswidget.ui:170
+#, kde-format
+msgid ""
+"This encryption method may not be supported by older archiving software."
+msgstr "วิธีเข้ารหัสนี้อาจไม่รองรับโดยซอฟต์แวร์อาร์ไคฟ์รุ่นเก่า"
+
+#. i18n: ectx: property (title), widget (KCollapsibleGroupBox, collapsibleMultiVolume)
+#: kerfuffle/compressionoptionswidget.ui:183
+#, kde-format
+msgid "Multi-volume Archive"
+msgstr "การอาร์ไคฟ์หลายวอลุ่ม"
+
+#. i18n: ectx: property (text), widget (QCheckBox, multiVolumeCheckbox)
+#: kerfuffle/compressionoptionswidget.ui:192
+#, kde-format
+msgid "Create multi-volume archive"
+msgstr "สร้างอาร์ไคฟ์หลายวอลุ่ม"
+
+#. i18n: ectx: property (text), widget (QLabel, lblVolumeSize)
+#: kerfuffle/compressionoptionswidget.ui:210
+#, kde-format
+msgid "Volume size:"
+msgstr "ขนาดวอลุ่ม"
+
+#. i18n: ectx: property (suffix), widget (QSpinBox, kcfg_previewFileSizeLimit)
+#. i18n: ectx: property (suffix), widget (QDoubleSpinBox, volumeSizeSpinbox)
+#: kerfuffle/compressionoptionswidget.ui:223
+#: kerfuffle/previewsettingspage.ui:32
+#, kde-format
+msgid " megabytes"
+msgstr " เมกะไบต์"
+
+#: kerfuffle/createdialog.cpp:117
+#, kde-format
+msgctxt "the argument is a file extension (the period is not a typo)"
+msgid "Automatically add .%1"
+msgstr "เพิ่ม .%1 โดยอัตโนมัติ"
+
+#: kerfuffle/createdialog.cpp:204
+#, kde-format
+msgid "The chosen password does not match the given verification password."
+msgstr "รหัสผ่านที่เลือกนั้นไม่ตรงกับรหัสผ่านยืนยันที่ใส่"
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: kerfuffle/createdialog.ui:30
+#, kde-format
+msgid "Folder:"
+msgstr "โฟลเดอร์:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_3)
+#: kerfuffle/createdialog.ui:47
+#, kde-format
+msgid "Filename:"
+msgstr "ชื่อไฟล์:"
+
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, filenameLineEdit)
+#: kerfuffle/createdialog.ui:54
+#, kde-format
+msgid "Type archive name…"
+msgstr "พิมพ์ชื่ออาร์ไคฟ์..."
+
+#. i18n: ectx: property (text), widget (QLabel, label_2)
+#. i18n: ectx: property (text), widget (QLabel, m_typeLabel)
+#: kerfuffle/createdialog.ui:61 part/infopanel.ui:93
+#, kde-format
+msgid "Type:"
+msgstr "ประเภท:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_4)
+#: kerfuffle/createdialog.ui:78
+#, kde-format
+msgid "Extension:"
+msgstr "ส่วนขยาย:"
+
+#: kerfuffle/extractiondialog.cpp:40
+#, kde-format
+msgctxt "@title:window"
+msgid "Extract"
+msgstr "คลายแฟ้ม"
+
+#: kerfuffle/extractiondialog.cpp:57
+#, kde-format
+msgid "Extract"
+msgstr "แตกไฟล์"
+
+#: kerfuffle/extractiondialog.cpp:91
+#, kde-format
+msgid "The subfolder name may not contain the character '/'."
+msgstr "ชื่อของโฟลเดอร์ย่อยจะต้องไม่มีตัวอักษร '/' อยู่ด้วย"
+
+#: kerfuffle/extractiondialog.cpp:111
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The folder <filename>%1</filename> already exists. Are you sure you want to "
+"extract here?"
+msgstr "มีโฟลเดอร์ <filename>%1</filename> อยู่แล้ว คุณแน่ใจหรือไม่ว่าจะทำการแตกไฟล์ไว้ที่นี่"
+
+#: kerfuffle/extractiondialog.cpp:112
+#, kde-format
+msgid "Folder exists"
+msgstr "มีโฟลเดอร์อยู่ก่อนแล้ว"
+
+#: kerfuffle/extractiondialog.cpp:113
+#, kde-format
+msgid "Extract here"
+msgstr "คลายแฟ้มไว้ที่นี่"
+
+#: kerfuffle/extractiondialog.cpp:114
+#, kde-format
+msgid "Retry"
+msgstr "ลองอีกครั้ง"
+
+#: kerfuffle/extractiondialog.cpp:124 kerfuffle/extractiondialog.cpp:130
+#, kde-kuit-format
+msgctxt "@info"
+msgid "The folder <filename>%1</filename> could not be created."
+msgstr "ไม่สามารถสร้างโฟลเดอร์ <filename>%1</filename> ได้"
+
+#: kerfuffle/extractiondialog.cpp:125
+#, kde-kuit-format
+msgctxt "@info"
+msgid "<filename>%1</filename> already exists, but is not a folder."
+msgstr "มี <filename>%1</filename> อยู่ก่อนแล้ว แต่มันไม่ใช่โฟลเดอร์"
+
+#: kerfuffle/extractiondialog.cpp:131
+#, kde-format
+msgid "Please check your permissions to create it."
+msgstr "โปรดตรวจสอบสิทธ์ที่อนุญาตของคุณว่ามีสิทธิ์สร้างมันหรือไม่"
+
+#: kerfuffle/extractiondialog.cpp:173
+#, kde-format
+msgid "Extract multiple archives"
+msgstr "คลายแฟ้มจัดเก็บหลายแฟ้ม"
+
+#. i18n: ectx: property (windowTitle), widget (QWidget, ExtractionDialog)
+#: kerfuffle/extractiondialog.ui:21
+#, kde-format
+msgid "Extraction Dialog"
+msgstr "กล่องการคลายแฟ้ม"
+
+#. i18n: ectx: property (text), widget (QLabel, extractAllLabel)
+#: kerfuffle/extractiondialog.ui:70
+#, kde-format
+msgid "Extract All Files"
+msgstr "คลายแฟ้มทั้งหมด"
+
+#. i18n: ectx: property (title), widget (QGroupBox, singleFolderGroup)
+#: kerfuffle/extractiondialog.ui:79
+#, kde-format
+msgid "E&xtraction into subfolder:"
+msgstr "&แตกไฟล์ไปยังโฟลเดอร์ย่อย:"
+
+#. i18n: ectx: property (title), widget (QGroupBox, groupBox)
+#: kerfuffle/extractiondialog.ui:116
+#, kde-format
+msgid "Options"
+msgstr "ตัวเลือกต่าง ๆ"
+
+#. i18n: ectx: property (text), widget (QCheckBox, openFolderCheckBox)
+#: kerfuffle/extractiondialog.ui:125
+#, kde-format
+msgid "Open &destination folder after extraction"
+msgstr "เปิดโฟลเดอร์&ปลายทางหลังจากทำการคลายแฟ้มแล้ว"
+
+#. i18n: ectx: property (text), widget (QCheckBox, closeAfterExtraction)
+#: kerfuffle/extractiondialog.ui:132
+#, kde-format
+msgid "Close &Ark after extraction"
+msgstr "ปิดโปรแกรม&อาร์กหลังจากทำการคลายแฟ้มแล้ว"
+
+#. i18n: ectx: property (text), widget (QCheckBox, preservePaths)
+#: kerfuffle/extractiondialog.ui:139
+#, kde-format
+msgid "&Preserve paths when extracting"
+msgstr "&คงค่าพาธไว้เมื่อทำการคลายแฟ้ม"
+
+#. i18n: ectx: property (text), widget (QCheckBox, autoSubfolders)
+#: kerfuffle/extractiondialog.ui:146
+#, kde-format
+msgid "&Automatically create subfolders"
+msgstr "ทำการสร้างโฟลเดอร์ย่อยให้โดย&อัตโนมัติ"
+
+#. i18n: ectx: property (title), widget (QGroupBox, filesToExtractGroupBox)
+#: kerfuffle/extractiondialog.ui:175
+#, kde-format
+msgctxt "@title:group"
+msgid "Extract"
+msgstr "คลายแฟ้ม"
+
+#. i18n: ectx: property (text), widget (QRadioButton, selectedFilesButton)
+#: kerfuffle/extractiondialog.ui:193
+#, kde-format
+msgid "Sele&cted files only"
+msgstr "ไฟล์ที่เ&ลือกไว้เท่านั้น"
+
+#. i18n: ectx: property (text), widget (QRadioButton, allFilesButton)
+#: kerfuffle/extractiondialog.ui:209
+#, kde-format
+msgid "All &files"
+msgstr "ไ&ฟล์ทั้งหมด"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_openDestinationFolderAfterExtraction)
+#: kerfuffle/extractionsettingspage.ui:17
+#, kde-format
+msgid "Open destination folder after extraction"
+msgstr "เปิดโฟลเดอร์ปลายทางหลังจากการแตกไฟล์"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_closeAfterExtraction)
+#: kerfuffle/extractionsettingspage.ui:24
+#, kde-format
+msgid "Close Ark after extraction"
+msgstr "ปิด Ark หลังจากการแตกไฟล์"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_preservePaths)
+#: kerfuffle/extractionsettingspage.ui:31
+#, kde-format
+msgid "Preserve paths when extracting"
+msgstr "คงค่าพาธไว้เมื่อทำการแตกไฟล์"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, kcfg_extractToSubfolder)
+#: kerfuffle/extractionsettingspage.ui:41
+#, kde-format
+msgid ""
+"Whether to check by default the extraction into subfolder checkbox in the "
+"Extraction Dialog, when the archive has more than one top-level entry."
+msgstr ""
+"เมื่ออาร์ไคฟ์มีรายการไฟล์ระดับบนสุดมากกว่าหนึ่ง "
+"เลือกว่าจะแตกไฟล์ไปในโฟลเดอร์ย่อยเป็นค่าเริ่มต้นหรือไม่"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_extractToSubfolder)
+#: kerfuffle/extractionsettingspage.ui:44
+#, kde-format
+msgid "Extract to a subfolder if the archive has more than one top-level entry"
+msgstr "แตกไฟล์ไปยังโฟลเดอร์ย่อยหากไฟล์อาร์ไคฟ์มีรายการไฟล์บนสุดมากกว่าหนึ่งรายการ"
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: kerfuffle/generalsettingspage.ui:17
+#, kde-format
+msgid "When clicking a file in an archive or pressing the Return key:"
+msgstr "เมื่อคลิกไฟล์ในอาร์ไคฟ์หรือกดปุ่ม Return:"
+
+#. i18n: ectx: property (text), widget (QRadioButton, radioButton)
+#: kerfuffle/generalsettingspage.ui:33
+#, kde-format
+msgid "Pre&view the file with internal previewer"
+msgstr "พรี&วิวไฟล์ด้วยตัวพรีวิวภายใน"
+
+#. i18n: ectx: property (text), widget (QRadioButton, radioButton_2)
+#: kerfuffle/generalsettingspage.ui:43
+#, kde-format
+msgid "Open the fi&le with associated application"
+msgstr "เปิดไฟ&ล์ด้วยแอพลิเคชันที่เกี่ยวข้อง"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_showEncryptionWarning)
+#: kerfuffle/generalsettingspage.ui:60
+#, kde-format
+msgid "Show a warning when creating zip archives with AES encryption"
+msgstr "แสดงคำเตือนเมื่อสร้างไฟล์ zip ที่มีการเข้ารหัส AES"
+
+#: kerfuffle/jobs.cpp:100
+#, kde-format
+msgid "No suitable plugin found. Ark does not seem to support this file type."
+msgstr "ไม่พบปลั๊กอินที่เหมาะสม Ark เหมือนจะไม่รองรับไฟล์ประเภทนี้"
+
+#: kerfuffle/jobs.cpp:104
+#, kde-format
+msgid ""
+"Failed to load a suitable plugin. Make sure any executables needed to handle "
+"the archive type are installed."
+msgstr ""
+"ไม่พบปลั๊กอินที่เหมาะสม "
+"โปรดตรวจสอบว่าไฟล์ปฏิบัติการที่จำเป็นสำหรับไฟล์อาร์ไคฟ์ประเภทนี้นั้นถูกติดตั้งแล้ว"
+
+#: kerfuffle/jobs.cpp:169
+#, kde-format
+msgid ""
+"Could not load the archive because it contains ill-formed entries and might "
+"be a malicious archive."
+msgstr "ไม่สามารถโหลดอาร์ไคฟ์ได้เนื่องจากมันมีรายการไฟล์ที่ไม่พึงประสงค์และอาจเป็นอาร์ไคฟ์ที่อันตราย"
+
+#: kerfuffle/jobs.cpp:257
+#, kde-format
+msgid "Loading archive"
+msgstr "กำลังโหลดอาร์ไคฟ์..."
+
+#: kerfuffle/jobs.cpp:257 kerfuffle/jobs.cpp:560 kerfuffle/jobs.cpp:742
+#: kerfuffle/jobs.cpp:794 kerfuffle/jobs.cpp:831 kerfuffle/jobs.cpp:862
+#: kerfuffle/jobs.cpp:908
+#, kde-format
+msgid "Archive"
+msgstr "อาร์ไคฟ์"
+
+#: kerfuffle/jobs.cpp:409 kerfuffle/jobs.cpp:591
+#, kde-kuit-format
+msgid "No space available on device <filename>%1</filename>"
+msgstr "ไม่เหลือพื้นที่บนอุปกรณ์ <filename>%1</filename>"
+
+#: kerfuffle/jobs.cpp:554
+#, kde-format
+msgid "Extracting all files"
+msgstr "คลายแฟ้มทั้งหมด"
+
+#. i18np on purpose so this translation may properly be reused.
+#: kerfuffle/jobs.cpp:556 kerfuffle/jobs.cpp:665
+#, kde-format
+msgid "Extracting one file"
+msgid_plural "Extracting %1 files"
+msgstr[0] "คลาย %1 แฟ้ม"
+
+#: kerfuffle/jobs.cpp:561
+#, kde-format
+msgctxt "extraction folder"
+msgid "Destination"
+msgstr "โฟลเดอร์ปลายทาง"
+
+#: kerfuffle/jobs.cpp:565
+#, kde-kuit-format
+msgid ""
+"Could not write to destination <filename>%1</filename>.<nl/>Check whether "
+"you have sufficient permissions."
+msgstr ""
+"ไม่สามารถเขียนไปยังปลายทาง <filename>%1</filename> ได้<nl/"
+">โปรดตรวจสอบว่าคุณมีการอนุญาตที่เพียงพอ"
+
+#: kerfuffle/jobs.cpp:741
+#, kde-format
+msgid "Compressing a file"
+msgid_plural "Compressing %1 files"
+msgstr[0] "กำลังบีบอัด %1 ไฟล์"
+
+#: kerfuffle/jobs.cpp:793
+#, kde-format
+msgid "Moving a file"
+msgid_plural "Moving %1 files"
+msgstr[0] "กำลังย้าย %1 ไฟล์"
+
+#: kerfuffle/jobs.cpp:830
+#, kde-format
+msgid "Copying a file"
+msgid_plural "Copying %1 files"
+msgstr[0] "กำลังคัดลอก %1 ไฟล์"
+
+#: kerfuffle/jobs.cpp:861
+#, kde-format
+msgid "Deleting a file from the archive"
+msgid_plural "Deleting %1 files"
+msgstr[0] "ทำการลบแฟ้ม %1 แฟ้มออกจากแฟ้มจัดเก็บ"
+
+#: kerfuffle/jobs.cpp:884
+#, kde-format
+msgid "Adding comment"
+msgstr "กำลังเพิ่มหมายเหตุ"
+
+#: kerfuffle/jobs.cpp:908
+#, kde-format
+msgid "Testing archive"
+msgstr "กำลังทดสอบอาร์ไคฟ์"
+
+#: kerfuffle/pluginsettingspage.cpp:33
+#, kde-format
+msgid ""
+"The plugin cannot be used because one or more required executables are "
+"missing. Check your installation."
+msgstr "ปลั๊กอินนี้ไม่สามารถใช้งานได้เนื่องจากไฟล์ปฏิบัติการหายไป โปรดตรวจสอบการติดตั้งของคุณ"
+
+#. i18n: @title:column
+#. i18n: ectx: property (text), widget (QTreeWidget, kcfg_disabledPlugins)
+#: kerfuffle/pluginsettingspage.ui:36
+#, kde-format
+msgid "Name"
+msgstr "ชื่อ"
+
+#. i18n: @title:column
+#. i18n: ectx: property (text), widget (QTreeWidget, kcfg_disabledPlugins)
+#: kerfuffle/pluginsettingspage.ui:41
+#, kde-format
+msgid "Description"
+msgstr "คำอธิบาย"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_limitPreviewFileSize)
+#: kerfuffle/previewsettingspage.ui:22
+#, kde-format
+msgid "Disable preview for files larger than:"
+msgstr "ปิดพรีวิวสำหรับไฟล์ที่ใหญ่กว่า:"
+
+#: kerfuffle/propertiesdialog.cpp:41
+#, kde-format
+msgctxt "@title:window"
+msgid "Properties for %1"
+msgstr "คุณสมบัติสำหรับ %1"
+
+#. i18n: ectx: property (text), widget (KSqueezedTextLabel, m_passwordValueLabel)
+#: kerfuffle/propertiesdialog.cpp:49 kerfuffle/propertiesdialog.cpp:51
+#: part/infopanel.ui:195
+#, kde-format
+msgid "yes"
+msgstr "ใช่"
+
+#: kerfuffle/propertiesdialog.cpp:49 kerfuffle/propertiesdialog.cpp:50
+#: kerfuffle/propertiesdialog.cpp:51 kerfuffle/propertiesdialog.cpp:63
+#, kde-format
+msgid "no"
+msgstr "ไม่"
+
+#: kerfuffle/propertiesdialog.cpp:50
+#, kde-format
+msgid "yes (%1 volumes)"
+msgstr "ใช่ (%1 วอลุ่ม)"
+
+#: kerfuffle/propertiesdialog.cpp:52
+#, kde-format
+msgid "%1 file"
+msgid_plural "%1 files"
+msgstr[0] "%1 ไฟล์"
+
+#: kerfuffle/propertiesdialog.cpp:52
+#, kde-format
+msgid ", %1 folder"
+msgid_plural ", %1 folders"
+msgstr[0] " %1 โฟลเดอร์"
+
+#: kerfuffle/propertiesdialog.cpp:66
+#, kde-format
+msgid "only file contents (%1)"
+msgstr "เนื้อหาไฟล์เท่านั้น (%1)"
+
+#: kerfuffle/propertiesdialog.cpp:69
+#, kde-format
+msgid "yes (%1)"
+msgstr "ใช่ (%1)"
+
+#: kerfuffle/propertiesdialog.cpp:86 kerfuffle/propertiesdialog.cpp:87
+#: kerfuffle/propertiesdialog.cpp:88
+#, kde-format
+msgid "Calculating…"
+msgstr "กำลังคำนวณ..."
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: kerfuffle/propertiesdialog.ui:37
+#, kde-format
+msgid "Archive name:"
+msgstr "ชื่ออาร์ไคฟ์:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_4)
+#: kerfuffle/propertiesdialog.ui:54
+#, kde-format
+msgid "Archive type:"
+msgstr "ประเภทอาร์ไคฟ์:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_11)
+#: kerfuffle/propertiesdialog.ui:71
+#, kde-format
+msgid "Mime-type:"
+msgstr "ประเภท MIME:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_8)
+#: kerfuffle/propertiesdialog.ui:88
+#, kde-format
+msgid "Opened read-only:"
+msgstr "เปิดแบบอ่านเท่านั้น:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_2)
+#. i18n: ectx: property (text), widget (QLabel, m_passwordLabel)
+#: kerfuffle/propertiesdialog.ui:105 part/infopanel.ui:179
+#, kde-format
+msgid "Password-protected:"
+msgstr "ป้องกันด้วยรหัสผ่าน:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_10)
+#: kerfuffle/propertiesdialog.ui:122
+#, kde-format
+msgid "Has comment:"
+msgstr "มีหมายเหตุ:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_3)
+#: kerfuffle/propertiesdialog.ui:139
+#, kde-format
+msgid "Number of entries:"
+msgstr "จำนวนรายการ:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_5)
+#: kerfuffle/propertiesdialog.ui:156
+#, kde-format
+msgid "Unpacked size:"
+msgstr "ขนาดเมื่อแตกไฟล์:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_7)
+#: kerfuffle/propertiesdialog.ui:173
+#, kde-format
+msgid "Packed size:"
+msgstr "ขนาดเมื่อบีบอัด:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_9)
+#: kerfuffle/propertiesdialog.ui:190
+#, kde-format
+msgid "Compression ratio:"
+msgstr "อัตราส่วนการบีบอัด:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_6)
+#: kerfuffle/propertiesdialog.ui:207
+#, kde-format
+msgid "Last modified:"
+msgstr "แก้ไขล่าสุด:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_12)
+#: kerfuffle/propertiesdialog.ui:224
+#, kde-format
+msgid "MD5 hash:"
+msgstr "แฮช MD5:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_13)
+#: kerfuffle/propertiesdialog.ui:244
+#, kde-format
+msgid "SHA-1 hash:"
+msgstr "แฮช SHA-1:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_14)
+#: kerfuffle/propertiesdialog.ui:261
+#, kde-format
+msgid "SHA-256 hash:"
+msgstr "แฮช SHA-256:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_15)
+#: kerfuffle/propertiesdialog.ui:278
+#, kde-format
+msgid "Multi-volume:"
+msgstr "หลายวอลุ่ม:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_16)
+#: kerfuffle/propertiesdialog.ui:295
+#, kde-format
+msgid "Compression method(s):"
+msgstr "วิธีการบีบอัด:"
+
+#: kerfuffle/queries.cpp:88
+#, kde-format
+msgctxt "@title:window"
+msgid "File Already Exists"
+msgstr "มีไฟล์อยู่ก่อนแล้ว"
+
+#: kerfuffle/queries.cpp:199
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The archive <filename>%1</filename> is password protected. Please enter the "
+"password."
+msgstr "อาร์ไคฟ์ <filename>%1</filename> มีการป้องกันด้วยรหัสผ่าน โปรดใส่รหัสผ่าน"
+
+#: kerfuffle/queries.cpp:203
+#, kde-format
+msgid "Incorrect password, please try again."
+msgstr "รหัสผ่านไม่ถูกต้อง โปรดลองใหม่อีกครั้ง"
+
+#: kerfuffle/queries.cpp:239
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The archive you're trying to open is corrupt.<nl/>Some files may be missing "
+"or damaged."
+msgstr "อาร์ไคฟ์ที่คุณพยายามเปิดมีความเสียหาย<nl/>ไฟล์บางไฟล์อาจหายไปหรือเนื้อหาไม่ถูกต้อง"
+
+#: kerfuffle/queries.cpp:241
+#, kde-format
+msgctxt "@title:window"
+msgid "Corrupt archive"
+msgstr "อาร์ไคฟ์เสียหาย"
+
+#: kerfuffle/queries.cpp:242
+#, kde-format
+msgctxt "@action:button"
+msgid "Open as Read-Only"
+msgstr "เปิดแบบอ่านเท่านั้น"
+
+#: kerfuffle/queries.cpp:243
+#, kde-format
+msgctxt "@action:button"
+msgid "Don't Open"
+msgstr "อย่าเปิด"
+
+#: kerfuffle/queries.cpp:253
+#, kde-format
+msgid "Don't ask again."
+msgstr "ไม่ต้องถามอีก"
+
+#: kerfuffle/queries.cpp:265
+#, kde-format
+msgid "Error during extraction"
+msgstr "เกิดข้อผิดพลาดระหว่างการแตกไฟล์"
+
+#: kerfuffle/queries.cpp:266
+#, kde-kuit-format
+msgid ""
+"Extraction of the entry:<nl/>    <filename>%1</filename><nl/>failed with the "
+"error message:<nl/>    %2<nl/><nl/>Do you want to continue extraction?<nl/>"
+msgstr ""
+"การแตกไฟล์ของรายการ:<nl/>    <filename>%1</filename><nl/"
+">ล้มเหลวด้วยข้อความผิดพลาด:<nl/>    %2<nl/><nl/>คุณต้องการแตกไฟล์ต่อหรือไม่<nl/>"
+
+#: part/archivemodel.cpp:154
+#, kde-format
+msgctxt "Name of a file inside an archive"
+msgid "Name"
+msgstr " ชื่อ "
+
+#: part/archivemodel.cpp:156
+#, kde-format
+msgctxt "Uncompressed size of a file inside an archive"
+msgid "Original Size"
+msgstr "ขนาดต้นฉบับ"
+
+#: part/archivemodel.cpp:158
+#, kde-format
+msgctxt "Compressed size of a file inside an archive"
+msgid "Compressed Size"
+msgstr "ขนาดเมื่อบีบอัด"
+
+#: part/archivemodel.cpp:160
+#, kde-format
+msgctxt "Compression rate of file"
+msgid "Rate"
+msgstr "อัตราการบีบอัด"
+
+#: part/archivemodel.cpp:162
+#, kde-format
+msgctxt "File's owner username"
+msgid "Owner"
+msgstr "เจ้าของ"
+
+#: part/archivemodel.cpp:164
+#, kde-format
+msgctxt "File's group"
+msgid "Group"
+msgstr "กลุ่ม"
+
+#: part/archivemodel.cpp:166
+#, kde-format
+msgctxt "File permissions"
+msgid "Mode"
+msgstr "โหมด"
+
+#: part/archivemodel.cpp:168
+#, kde-format
+msgctxt "CRC hash code"
+msgid "CRC checksum"
+msgstr "CRC checksum"
+
+#: part/archivemodel.cpp:170
+#, kde-format
+msgctxt "BLAKE2 hash code"
+msgid "BLAKE2 checksum"
+msgstr "BLAKE2 checksum"
+
+#: part/archivemodel.cpp:172
+#, kde-format
+msgctxt "Compression method"
+msgid "Method"
+msgstr "วิธีการ"
+
+#: part/archivemodel.cpp:175
+#, kde-format
+msgctxt "File version"
+msgid "Version"
+msgstr "รุ่น"
+
+#: part/archivemodel.cpp:177
+#, kde-format
+msgctxt "Timestamp"
+msgid "Date"
+msgstr "วันที่"
+
+#: part/archivemodel.cpp:179
+#, kde-format
+msgctxt "Unnamed column"
+msgid "??"
+msgstr "??"
+
+#: part/archivemodel.cpp:279
+#, kde-format
+msgid "Adding files is not supported for this archive."
+msgstr "การเพิ่มไฟล์ไม่ถูกรองรับโดยอาร์ไคฟ์นี้"
+
+#: part/archivemodel.cpp:287
+#, kde-format
+msgid "You can only add local files to an archive."
+msgstr "คุณสามารถเพิ่มไฟล์ภายในเครื่องในอาร์ไคฟ์ได้เท่านั้น"
+
+#. i18n: ectx: Menu (archive)
+#: part/ark_part.rc:5
+#, kde-format
+msgid "&Archive"
+msgstr "&อาร์ไคฟ์"
+
+#. i18n: ectx: Menu (ark_file)
+#: part/ark_part.rc:15
+#, kde-format
+msgid "&File"
+msgstr "แ&ฟ้ม"
+
+#. i18n: ectx: Menu (settings)
+#: part/ark_part.rc:29
+#, kde-format
+msgid "&Settings"
+msgstr "&ตั้งค่า"
+
+#. i18n: ectx: ToolBar (mainToolBar)
+#: part/ark_part.rc:34
+#, kde-format
+msgid "Main Toolbar"
+msgstr "แถบเครื่องมือหลัก"
+
+#. i18n: ectx: Menu (help)
+#: part/ark_viewer.rc:5
+#, kde-format
+msgid "&Help"
+msgstr "&ช่วยเหลือ"
+
+#: part/arkviewer.cpp:52
+#, kde-format
+msgid "Closing preview"
+msgstr "ทำการปิดการแสดงตัวอย่าง"
+
+#: part/arkviewer.cpp:53
+#, kde-format
+msgid "Please wait while the preview is being closed…"
+msgstr "โปรดรอสักครู่ในระหว่างการปิดพรีวิว..."
+
+#: part/arkviewer.cpp:99
+#, kde-format
+msgid "The internal viewer cannot preview this file."
+msgstr "ตัวแสดงตัวอย่างภายใน ไม่สามารถแสดงตัวอย่างแฟ้มนี้ได้"
+
+#: part/arkviewer.cpp:116
+#, kde-kuit-format
+msgid ""
+"The internal viewer cannot preview this type of file<nl/>(%1).<nl/><nl/>Do "
+"you want to try to view it as plain text?"
+msgstr ""
+"ตัวพรีวิวภายในไม่สามารถพรีวิวไฟล์ประเภทนี้ได้<nl/>(%1)<nl/><nl/"
+">คุณต้องการดูไฟล์นี้เป็นข้อความธรรมดาหรือไม่"
+
+#: part/arkviewer.cpp:117 part/arkviewer.cpp:129
+#, kde-format
+msgctxt "@title:window"
+msgid "Cannot Preview File"
+msgstr "ไม่สามารถพรีวิวไฟล์ได้"
+
+#: part/arkviewer.cpp:118 part/arkviewer.cpp:130
+#, kde-format
+msgctxt "@action:button"
+msgid "Preview as Text"
+msgstr "พรีวิวเป็นข้อความ"
+
+#: part/arkviewer.cpp:128
+#, kde-kuit-format
+msgid ""
+"The internal viewer cannot preview this unknown type of file.<nl/><nl/>Do "
+"you want to try to view it as plain text?"
+msgstr ""
+"ตัวพรีวิวภายในไม่สามารถพรีวิวประเภทไฟล์ที่ไม่รู้จักนี้ได้<nl/><nl/"
+">คุณต้องการดูไฟล์นี้เป็นข้อความธรรมดาหรือไม่"
+
+#: part/arkviewer.cpp:201
+#, kde-format
+msgctxt "@action"
+msgid "About Viewer Component"
+msgstr "เกี่ยวกับส่วนประกอบตัวพรีวิว"
+
+#: part/infopanel.cpp:53
+#, kde-format
+msgid "No archive loaded"
+msgstr "ยังไม่มีการโหลดแฟ้มจัดเก็บใด ๆ"
+
+#: part/infopanel.cpp:104
+#, kde-format
+msgid "Symbolic Link"
+msgstr "แฟ้มเชื่อมโยงแบบสัญลักษณ์"
+
+#: part/infopanel.cpp:109
+#, kde-format
+msgid "Unknown size"
+msgstr "ไม่ทราบขนาด"
+
+#: part/infopanel.cpp:126
+#, kde-format
+msgid "One file selected"
+msgid_plural "%1 files selected"
+msgstr[0] "เลือกไว้ %1 แฟ้ม"
+
+#. i18n: ectx: property (windowTitle), widget (QWidget, InformationPanel)
+#: part/infopanel.ui:20
+#, kde-format
+msgid "Information Panel"
+msgstr "แถบข้อมูลรายละเอียด"
+
+#. i18n: ectx: property (text), widget (QLabel, additionalInfo)
+#: part/infopanel.ui:64
+#, kde-format
+msgid "Unknown file type"
+msgstr "ประเภทแฟ้มที่ไม่รู้จัก"
+
+#. i18n: ectx: property (text), widget (QLabel, m_ownerLabel)
+#: part/infopanel.ui:113
+#, kde-format
+msgid "Owner:"
+msgstr "เจ้าของ:"
+
+#. i18n: ectx: property (text), widget (QLabel, m_groupLabel)
+#: part/infopanel.ui:133
+#, kde-format
+msgid "Group:"
+msgstr "กลุ่ม:"
+
+#. i18n: ectx: property (text), widget (QLabel, m_targetLabel)
+#: part/infopanel.ui:153
+#, kde-format
+msgid "Target:"
+msgstr "เป้าหมาย:"
+
+#. i18n: ectx: property (windowTitle), widget (QWidget, JobTrackerWidget)
+#: part/jobtracker.ui:14
+#, kde-format
+msgid "Job Tracker"
+msgstr "ตัวติดตามงาน"
+
+#. i18n: ectx: property (text), widget (QLabel, descriptionLabel)
+#: part/jobtracker.ui:44
+#, kde-format
+msgid "<b>Job Description</b>"
+msgstr "<b>รายละเอียดงาน</b>"
+
+#. i18n: ectx: property (text), widget (QLabel, informationLabel)
+#: part/jobtracker.ui:63
+#, kde-format
+msgid "Some Information about the job"
+msgstr "ข้อมูลรายละเอียดบางอย่างเกี่ยวกับงาน"
+
+#. i18n: ectx: property (format), widget (QProgressBar, progressBar)
+#: part/jobtracker.ui:88
+#, no-c-format, kde-format
+msgid "%p%"
+msgstr "%p%"
+
+#: part/overwritedialog.cpp:26
+#, kde-format
+msgid ""
+"Files with the following paths already exist. Remove them if you really want "
+"to overwrite."
+msgstr "ไฟล์พาธต่อไปนี้มีอยู่แล้ว โปรดลบมันหากคุณต้องการที่จะเขียนทับ"
+
+#: part/overwritedialog.cpp:28
+#, kde-format
+msgid ""
+"Files with the following paths already exist. Do you want to continue "
+"overwriting them?"
+msgstr "ไฟล์พาธต่อไปนี้มีอยู่แล้ว คุณต้องการที่จะเขียนทับพวกมันหรือไม่"
+
+#: part/part.cpp:112
+#, kde-format
+msgid "Comment"
+msgstr "หมายเหตุ"
+
+#: part/part.cpp:125
+#, kde-format
+msgid "Comment has been modified."
+msgstr "หมายเหตุถูกดัดแปลง"
+
+#: part/part.cpp:130
+#, kde-format
+msgid "Save"
+msgstr "บันทึก"
+
+#: part/part.cpp:153
+#, kde-format
+msgid "Type to search…"
+msgstr "พิมพ์เพื่อค้นหา..."
+
+#: part/part.cpp:303
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Ark can extract archives to local destinations only."
+msgstr "Ark สามารถแตกไฟล์ไปยังสถานที่ภายในเครื่องเท่านั้น"
+
+#: part/part.cpp:355
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Show Information Panel"
+msgstr "แสดงแผงรายละเอียด"
+
+#: part/part.cpp:361
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Save Copy As…"
+msgstr "บันทึกสำเนาเป็น..."
+
+#: part/part.cpp:365
+#, kde-format
+msgctxt "open a file with external program"
+msgid "&Open in External Application"
+msgstr "&เปิดในแอพลิเคชันภายนอก"
+
+#: part/part.cpp:372
+#, kde-format
+msgctxt "open a file with external program"
+msgid "Open &With…"
+msgstr "เปิด&ด้วย..."
+
+#: part/part.cpp:374
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Click to open the selected file with an external program"
+msgstr "คลิกเพื่อเปิดไฟล์ที่เลือกด้วยโปรแกรมภายนอก"
+
+#: part/part.cpp:380
+#, kde-format
+msgctxt "to preview a file inside an archive"
+msgid "Pre&view"
+msgstr "แสดง&ตัวอย่าง"
+
+#: part/part.cpp:382
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Click to preview the selected file"
+msgstr "คลิกเพื่อแสดงตัวอย่างของไฟล์ที่เลือก"
+
+#: part/part.cpp:389
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "E&xtract All"
+msgstr "แ&ตกไฟล์ทั้งหมด"
+
+#: part/part.cpp:391
+#, kde-format
+msgid ""
+"Click to open an extraction dialog, where you can choose how to extract all "
+"the files in the archive"
+msgstr "คลิกเพื่อเปิดไดอะล็อกแตกไฟล์ ซึ่งคุณจะสามารถเลือกได้ว่าจะแตกไฟล์ทั้งหมดในอาร์ไคฟ์อย่างไร"
+
+#: part/part.cpp:396
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "&Extract"
+msgstr "&แตกไฟล์"
+
+#: part/part.cpp:399
+#, kde-format
+msgid ""
+"Click to open an extraction dialog, where you can choose to extract either "
+"all files or just the selected ones"
+msgstr ""
+"คลิกเพื่อเปิดกล่องการคลายแฟ้ม ซึ่งคุณจะสามารถเลือกได้ว่า จะทำการคลายแฟ้มทั้งหมด "
+"หรือคลายเฉพาะแฟ้มที่เลือก"
+
+#: part/part.cpp:404
+#, kde-format
+msgid "Add &Files…"
+msgstr "เพิ่มไ&ฟล์..."
+
+#: part/part.cpp:405 part/part.cpp:466
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Click to add files to the archive"
+msgstr "คลิกเพื่อเพิ่มไฟล์เข้าไปยังอาร์ไคฟ์"
+
+#: part/part.cpp:412
+#, kde-format
+msgctxt "@action"
+msgid "Remove from Archive"
+msgstr "ลบจากอาร์ไคฟ์"
+
+#: part/part.cpp:422
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "&Properties"
+msgstr "&คุณสมบัติ"
+
+#: part/part.cpp:424
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Click to see properties for archive"
+msgstr "คลิกเพื่อดูคุณสมบัติของอาร์ไคฟ์"
+
+#: part/part.cpp:430
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Click to add or edit comment"
+msgstr "คลิกเพื่อเพิ่มหรือแก้ไขหมายเหตุ"
+
+#: part/part.cpp:435
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "&Test Integrity"
+msgstr "&ทดสอบความถูกต้อง"
+
+#: part/part.cpp:437 part/part.cpp:467
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Click to test the archive for integrity"
+msgstr "คลิกเพื่อทดสอบความถูกต้องของอาร์ไคฟ์"
+
+#: part/part.cpp:462
+#, kde-kuit-format
+msgctxt "@info:tooltip"
+msgid ""
+"Adding files to existing password-protected archives with no header-"
+"encryption is currently not supported.<nl/><nl/>Extract the files and create "
+"a new archive if you want to add files."
+msgstr ""
+"การเพิ่มไฟล์ไปยังอาร์ไคฟ์ที่ถูกปกป้องด้วยรหัสผ่านที่ไม่มีการเข้ารหัสส่วนหัวนั้นยังไม่ถูกรองรับ<nl/><nl/"
+">แตกไฟล์ออกแล้วสร้างอาร์ไคฟ์ใหม่หากคุณต้องการที่จะเพิ่มไฟล์"
+
+#: part/part.cpp:464
+#, kde-kuit-format
+msgctxt "@info:tooltip"
+msgid ""
+"Testing password-protected archives with no header-encryption is currently "
+"not supported."
+msgstr "การทดสอบไฟล์อาร์ไคฟ์ที่ถูกปกป้องด้วยรหัสผ่านที่ไม่มีการเข้ารหัสส่วนหัวนั้นยังไม่ถูกรองรับ"
+
+#: part/part.cpp:505
+#, kde-format
+msgctxt "@action:inmenu mutually exclusive with Add &Comment"
+msgid "Edit &Comment"
+msgstr "แก้ไข&หมายเหตุ"
+
+#: part/part.cpp:506 part/part.cpp:512
+#, kde-format
+msgctxt "@action:inmenu mutually exclusive with Edit &Comment"
+msgid "Add &Comment"
+msgstr "เพิ่ม&หมายเหตุ"
+
+#: part/part.cpp:612
+#, kde-format
+msgid "The archive passed the integrity test."
+msgstr "อาร์ไคฟ์ผ่านการทดสอบความถูกต้อง"
+
+#: part/part.cpp:612 part/part.cpp:614
+#, kde-format
+msgid "Test Results"
+msgstr "ผลการทดสอบ"
+
+#: part/part.cpp:614
+#, kde-format
+msgid "The archive failed the integrity test."
+msgstr "ไฟล์อาร์ไคฟ์ไม่ผ่านการทดสอบความถูกต้อง"
+
+#: part/part.cpp:634
+#, kde-format
+msgid "Extract To…"
+msgstr "แตกไฟล์ไปที่..."
+
+#: part/part.cpp:646
+#, kde-format
+msgid "Quick Extract To…"
+msgstr "แตกไฟล์อย่างรวดเร็วไปยัง..."
+
+#: part/part.cpp:775
+#, kde-format
+msgctxt "@title:tab"
+msgid "General"
+msgstr "ทั่วไป"
+
+#: part/part.cpp:776
+#, kde-format
+msgctxt "@title:tab"
+msgid "Extraction"
+msgstr "การแตกไฟล์"
+
+#: part/part.cpp:777
+#, kde-format
+msgctxt "@title:tab"
+msgid "Plugins"
+msgstr "ปลั๊กอิน"
+
+#: part/part.cpp:778
+#, kde-format
+msgctxt "@title:tab"
+msgid "Previews"
+msgstr "พรีวิว"
+
+#: part/part.cpp:794
+#, kde-kuit-format
+msgctxt "@info"
+msgid "<filename>%1</filename> is a directory."
+msgstr "<filename>%1</filename> เป็นไดเรกทอรี"
+
+#: part/part.cpp:802
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Could not overwrite <filename>%1</filename>. Check whether you have write "
+"permission."
+msgstr ""
+"ไม่สามารถเขียนทับ <filename>%1</filename> ได้ โปรดตรวจสอบว่าคุณมีความอนุญาตในการเขียน"
+
+#: part/part.cpp:808
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The archive <filename>%1</filename> will be created as soon as you add a "
+"file."
+msgstr "อาร์ไคฟ์ <filename>%1</filename> จะถูกสร้างขึ้นเมื่อคุณเพิ่มไฟล์"
+
+#: part/part.cpp:811
+#, kde-kuit-format
+msgctxt "@info"
+msgid "The archive <filename>%1</filename> was not found."
+msgstr "ไม่พบอาร์ไคฟ์ <filename>%1</filename>"
+
+#: part/part.cpp:817
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The archive <filename>%1</filename> could not be loaded, as it was not "
+"possible to read from it."
+msgstr ""
+"อาร์ไคฟ์ <filename>%1</filename> ไม่สามารถโหลดได้ เนื่องจากเป็นไปไม่ได้ที่จะอ่านจากมัน"
+
+#: part/part.cpp:868
+#, kde-kuit-format
+msgctxt "@info"
+msgid "The archive is empty or Ark could not open its content."
+msgstr "อาร์ไคฟ์ว่างปล่าวหรือ Ark ไม่สามารถเปิดเนื้อหาของมันได้"
+
+#: part/part.cpp:875
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Ark does not currently support ISO files with UDF filesystem."
+msgstr "Ark นั้นยังไม่รองรับไฟล์ ISO ที่มีระบบไฟล์ UDF"
+
+#: part/part.cpp:907
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Loading the archive <filename>%1</filename> failed with the following error:"
+"<nl/><message>%2</message>"
+msgstr ""
+"การโหลดอาร์ไคฟ์ <filename>%1</filename> ล้มเหลวด้วยข้อผิดพลาด:<nl/><message>%2</"
+"message>"
+
+#: part/part.cpp:967
+#, kde-format
+msgid "Ark cannot open symlinks."
+msgstr "Ark ไม่สามารถเปิด symlink ได้"
+
+#: part/part.cpp:1094
+#, kde-kuit-format
+msgid ""
+"The file <filename>%1</filename> was modified. Do you want to update the "
+"archive?"
+msgstr "ไฟล์ <filename>%1</filename> ถูกแก้ไข คุณต้องการที่จะอัพเดทอาร์ไคฟ์หรือไม่"
+
+#: part/part.cpp:1095
+#, kde-format
+msgctxt "@title:window"
+msgid "File Modified"
+msgstr "ไฟล์ถูกแก้ไข"
+
+#: part/part.cpp:1096
+#, kde-format
+msgctxt "@action:button"
+msgid "Update"
+msgstr "อัพเดท"
+
+#: part/part.cpp:1097
+#, kde-format
+msgctxt "@action:button"
+msgid "Ignore"
+msgstr "ไม่สนใจ"
+
+#: part/part.cpp:1371
+#, kde-format
+msgctxt "@title:window"
+msgid "Add Files"
+msgstr "เพิ่มแฟ้มต่างๆ"
+
+#: part/part.cpp:1376
+#, kde-format
+msgctxt "@title:window"
+msgid "Add Files to %1"
+msgstr "เพิ่มไฟล์ไปยัง %1"
+
+#: part/part.cpp:1436
+#, kde-format
+msgid "Filename can't contain slashes and can't be equal to \".\" or \"..\""
+msgstr "ชื่อไฟล์ไม่สามารถมีทับและไม่สามารถเท่ากับ \".\" หรือ \"..\" ได้"
+
+#: part/part.cpp:1480
+#, kde-format
+msgid "Folders can't be moved into themselves."
+msgstr "โฟลเดอร์ไม่สามารถถูกย้ายเข้าไปยังตัวมันเองได้"
+
+#: part/part.cpp:1480
+#, kde-format
+msgid "Moving a folder into itself"
+msgstr "การย้ายโฟลเดอร์เข้าไปในตัวมันเอง"
+
+#: part/part.cpp:1508
+#, kde-format
+msgid "Entries with the same names can't be pasted to the same destination."
+msgstr "รายการที่มีชื่อเดียวกันไม่สามารถถูกวางไว้ในที่หมายเดียวกันได้"
+
+#: part/part.cpp:1607
+#, kde-format
+msgctxt "@info"
+msgid "Deleting this file is not undoable. Are you sure you want to do this?"
+msgid_plural ""
+"Deleting these files is not undoable. Are you sure you want to do this?"
+msgstr[0] "การลบไฟล์เหล่านี้ไม่สามารถย้อนกลับได้ คุณแน่ใจหรือว่าคุณจะทำสิ่งนี้"
+
+#: part/part.cpp:1610
+#, kde-format
+msgctxt "@title:window"
+msgid "Delete File"
+msgid_plural "Delete Files"
+msgstr[0] "ลบไฟล์"
+
+#: part/part.cpp:1649
+#, kde-format
+msgctxt "@title:window"
+msgid "Save Copy As"
+msgstr "บันทึกสำเนาเป็น"
+
+#: part/part.cpp:1664
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The archive could not be saved as <filename>%1</filename>. Try saving it to "
+"another location."
+msgstr ""
+"ไม่สามารถบันทึกอาร์ไคฟ์เป็น <filename>%1</filename> ได้ โปรดลองทำการบันทึกไปยังตำแหน่งอื่น"
+
+#: part/part.cpp:1669
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The archive <filename>%1</filename> does not exist anymore, therefore it "
+"cannot be copied to the specified location."
+msgstr ""
+"อาร์ไคฟ์ <filename>%1</filename> ไม่มีอยู่อีกต่อไปแล้ว "
+"ดังนั้นมันจึงไม่สามารถถูกคัดลอกไปยังที่หมายได้"
+
+#: plugins/cli7zplugin/cliplugin.cpp:132
+#: plugins/cliunarchiverplugin/cliplugin.cpp:88
+#, kde-format
+msgid "Listing the archive failed."
+msgstr "ล้มเหลวในการแสดงรายการในอาร์ไคฟ์"
+
+#: plugins/cli7zplugin/cliplugin.cpp:304
+#, kde-format
+msgid "Extraction failed due to an unknown error."
+msgstr "การแตกไฟล์ล้มเหลวเนื่องจากข้อผิดพลาดที่ไม่อาจทราบได้"
+
+#: plugins/cli7zplugin/cliplugin.cpp:309 plugins/clizipplugin/cliplugin.cpp:191
+#, kde-format
+msgid ""
+"Extraction failed due to one or more corrupt files. Any extracted files may "
+"be damaged."
+msgstr "การแตกไฟล์ล้มเหลวเนื่องจากไฟล์เสียหาย ไฟล์ที่ถูกแตกออกไปอาจมีความเสียหาย"
+
+#: plugins/cli7zplugin/cliplugin.cpp:319
+#, kde-format
+msgid ""
+"Delete operation failed. Try upgrading 7z or disabling the 7z plugin in the "
+"configuration dialog."
+msgstr "กระบวนการลบล้มเหลว โปรดลองอัพเกรด 7z หรือปิดปลั๊กอิน 7z ในไดอะล็อกการตั้งค่า"
+
+#: plugins/cliarjplugin/cliplugin.cpp:321
+#, kde-format
+msgid "ARJ old"
+msgstr "ARJ แบบเก่า"
+
+#: plugins/cliarjplugin/cliplugin.cpp:322
+#, kde-format
+msgid "ARJ"
+msgstr "ARJ"
+
+#: plugins/cliarjplugin/cliplugin.cpp:323
+#, kde-format
+msgid "GOST256"
+msgstr "GOST256"
+
+#: plugins/cliarjplugin/cliplugin.cpp:324
+#, kde-format
+msgid "GOST256L"
+msgstr "GOST256L"
+
+#: plugins/cliarjplugin/cliplugin.cpp:325
+#, kde-format
+msgid "GOST 40-bit"
+msgstr "GOST 40 บิต"
+
+#: plugins/cliarjplugin/cliplugin.cpp:327
+#, kde-format
+msgid "unknown"
+msgstr "ไม่ทราบวิธี"
+
+#: plugins/clirarplugin/cliplugin.cpp:153
+#: plugins/clirarplugin/cliplugin.cpp:293
+#: plugins/clirarplugin/cliplugin.cpp:540
+#, kde-format
+msgid "Failed to find all archive volumes."
+msgstr "ล้มเหลวในการหาวอลุ่มอาร์ไคฟ์ทั้งหมด"
+
+#: plugins/clirarplugin/cliplugin.cpp:314
+#, kde-format
+msgid ""
+"Your unrar executable is version %1, which is too old to handle this "
+"archive. Please update to a more recent version."
+msgstr ""
+"ไฟล์ปฏิบัติการ unrar ของคุณเวอร์ชัน %1 ซึ่งเก่าเกินกว่าที่จะเปิดอาร์ไคฟ์นี้ได้ "
+"โปรดอัพเดทเป็นเวอร์ชันที่ใหม่กว่า"
+
+#: plugins/clirarplugin/cliplugin.cpp:320
+#, kde-format
+msgid ""
+"Unrar reported a non-RAR archive. The installed unrar version (%1) is old. "
+"Try updating your unrar."
+msgstr ""
+"Unrar แจ้งว่าเป็นอาร์ไคฟ์ที่ไม่ใช่ไฟล์ RAR เวอร์ชัน unrar ที่ติดตั้งอยู่ (%1) นั้นเก่า "
+"โปรดลองอัพเดท unrar ของคุณ"
+
+#: plugins/clirarplugin/cliplugin.cpp:535
+#, kde-format
+msgid "One or more wrong checksums"
+msgstr "Checksum ไม่ถูกต้อง"
+
+#: plugins/cliunarchiverplugin/cliplugin.cpp:100
+#, kde-format
+msgid "Extraction failed."
+msgstr "การแตกไฟล์ล้มเหลว"
+
+#: plugins/cliunarchiverplugin/cliplugin.cpp:134
+#, kde-format
+msgid "Not enough memory for loading the archive."
+msgstr "หน่วยความจำไม่เพียงพอในการโหลดไฟล์อาร์ไคฟ์"
+
+#: plugins/cliunarchiverplugin/cliplugin.cpp:185
+#, kde-format
+msgid "Wrong password."
+msgstr "รหัสผ่านไม่ถูกต้อง"
+
+#: plugins/clizipplugin/cliplugin.cpp:181
+#, kde-format
+msgid "Extraction failed due to unsupported compression method (%1)."
+msgstr "การแตกไฟล์ล้มเหลวเนื่องจากวิธีการบีบอัดที่ไม่รองรับ (%1)"
+
+#: plugins/clizipplugin/cliplugin.cpp:186
+#, kde-format
+msgid "Extraction failed due to unsupported encryption method."
+msgstr "การแตกไฟล์ล้มเหลวเนื่องจากวิธีการเข้ารหัสที่ไม่รองรับ"
+
+#: plugins/clizipplugin/cliplugin.cpp:315
+#, kde-format
+msgctxt "referred to compression method"
+msgid "unknown"
+msgstr "ไม่ทราบวิธี"
+
+#: plugins/libarchive/libarchiveplugin.cpp:123
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The archive may be corrupt or has header-encryption, which is currently not "
+"supported."
+msgstr "ไฟล์อาร์ไคฟ์อาจเสียหายหรือมีการเข้ารหัสส่วนหัว ซึ่งยังไม่รองรับในขณะนี้"
+
+#: plugins/libarchive/libarchiveplugin.cpp:526
+#, kde-format
+msgctxt "@info"
+msgid "Fatal error, extraction aborted."
+msgstr "ข้อผิดพลาดร้ายแรง การแตกไฟล์ถูกยกเลิก"
+
+#: plugins/libarchive/libarchiveplugin.cpp:552
+#, kde-format
+msgctxt "@info"
+msgid "Extraction of encrypted 7-zip entries is currently not supported."
+msgstr "การแตกไฟล์ 7-zip รายการที่เข้ารหัสนั้นยังไม่รองรับในขณะนี้"
+
+#: plugins/libarchive/libarchiveplugin.cpp:566
+#, kde-format
+msgid "The archive reader could not be initialized."
+msgstr "ไม่สามารถเตรียมการทำงานของตัวอ่านแฟ้มจัดเก็บได้"
+
+#: plugins/libarchive/libarchiveplugin.cpp:588
+#, kde-format
+msgctxt "@info"
+msgid "Archive corrupted or insufficient permissions."
+msgstr "อาร์ไคฟ์เสียหายหรือมีการอนุญาตไม่เพียงพอ"
+
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:217
+#, kde-format
+msgctxt "@info"
+msgid "Failed to create a temporary file for writing data."
+msgstr "ล้มเหลวในการสร้างไฟล์ชั่วคราวสำหรับการเขียนข้อมูล"
+
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:223
+#, kde-format
+msgid "The archive writer could not be initialized."
+msgstr "ไม่สามารถเตรียมการทำงานของตัวเขียนแฟ้มจัดเก็บได้"
+
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:240
+#, kde-format
+msgctxt "@info"
+msgid "Could not open the archive for writing entries."
+msgstr "ไม่สามารถเปิดอาร์ไคฟ์สำหรับการเขียนรายการได้"
+
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:287
+#, kde-format
+msgid "The compression type '%1' is not supported by Ark."
+msgstr "อาร์กยังไม่รองรับการบีบอัดข้อมูลประเภท '%1'"
+
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:294
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:364
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:376
+#, kde-format
+msgctxt "@info"
+msgid "Could not set the compression method."
+msgstr "ไม่สามารถตั้งวิธีการบีบอัดได้"
+
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:399
+#, kde-format
+msgctxt "@info"
+msgid "Could not set the compression level."
+msgstr "ไม่สามารถตั้งระดับการบีบอัดได้"
+
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:516
+#, kde-format
+msgctxt "@info"
+msgid "Could not compress entry, operation aborted."
+msgstr "ไม่สามารถบีบอัดรายการนี้ได้ การกระทำถูกยกเลิก"
+
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:559
+#, kde-format
+msgctxt "@info Error in a message box"
+msgid "Could not compress entry."
+msgstr "ไม่สามารถบีบอัดรายการได้"
+
+#: plugins/libzipplugin/libzipplugin.cpp:198
+#: plugins/libzipplugin/libzipplugin.cpp:297
+#: plugins/libzipplugin/libzipplugin.cpp:589
+#: plugins/libzipplugin/libzipplugin.cpp:637
+#: plugins/libzipplugin/libzipplugin.cpp:1004
+#: plugins/libzipplugin/libzipplugin.cpp:1058
+#, kde-kuit-format
+msgid "Failed to open archive: %1"
+msgstr "ล้มเหลวในการเปิดอาร์ไคฟ์: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:350
+#: plugins/libzipplugin/libzipplugin.cpp:621
+#: plugins/libzipplugin/libzipplugin.cpp:653
+#: plugins/libzipplugin/libzipplugin.cpp:1038
+#: plugins/libzipplugin/libzipplugin.cpp:1127
+#, kde-kuit-format
+msgid "Failed to write archive."
+msgstr "ล้มเหลวในการเขียนอาร์ไคฟ์"
+
+#: plugins/libzipplugin/libzipplugin.cpp:399
+#: plugins/libzipplugin/libzipplugin.cpp:1094
+#, kde-kuit-format
+msgid "Failed to add entry: %1"
+msgstr "ล้มเหลวในการเพิ่มรายการ: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:454
+#, kde-kuit-format
+msgid "Failed to set compression options for entry: %1"
+msgstr "ล้มเหลวในการตั้งค่าการบีบอัดสำหรับรายการ: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:559
+#: plugins/libzipplugin/libzipplugin.cpp:938
+#: plugins/libzipplugin/libzipplugin.cpp:1103
+#, kde-kuit-format
+msgid "Failed to read metadata for entry: %1"
+msgstr "ล้มเหลวในการอ่านเมตาดาตาสำหรับรายการ: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:602
+#: plugins/libzipplugin/libzipplugin.cpp:607
+#, kde-kuit-format
+msgid "Failed to delete entry: %1"
+msgstr "ล้มเหลวในการลบรายการ: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:820
+#, kde-kuit-format
+msgid "Failed to create directory: %1"
+msgstr "ล้มเหลวในการสร้างโฟลเดอร์: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:894
+#, kde-kuit-format
+msgid "Failed to open '%1':<nl/>%2"
+msgstr "ล้มเหลวในการเปิด '%1':<nl/>%2"
+
+#: plugins/libzipplugin/libzipplugin.cpp:902
+#, kde-kuit-format
+msgid "Failed to open file for writing: %1"
+msgstr "ล้มเหลวในการเปิดไฟล์สำหรับเขียน: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:915
+#, kde-kuit-format
+msgid "Failed to read data for entry: %1"
+msgstr "ล้มเหลวในการอ่านข้อมูลสำหรับรายการ: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:920
+#, kde-kuit-format
+msgid "Failed to write data for entry: %1"
+msgstr "ล้มเหลวในการเขียนข้อมูลสำหรับรายการ: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:930
+#, kde-kuit-format
+msgid "Failed to locate entry: %1"
+msgstr "ล้มเหลวในการหารายการ: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:1017
+#: plugins/libzipplugin/libzipplugin.cpp:1023
+#, kde-kuit-format
+msgid "Failed to move entry: %1"
+msgstr "ล้มเหลวในการย้ายรายการ: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:1080
+#, kde-kuit-format
+msgid "Failed to copy entry: %1"
+msgstr "ล้มเหลวในการคัดลอกรายการ: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:1110
+#, kde-kuit-format
+msgid "Failed to set metadata for entry: %1"
+msgstr "ล้มเหลวในการตั้งเมตาดาตาสำหรับรายการ: %1"
+
+#, fuzzy
+#~| msgid "Open an archive"
+#~ msgid "Open Archive..."
+#~ msgstr "เปิดแฟ้มจัดเก็บ"
+
+#, fuzzy
+#~| msgid "Add &File..."
+#~ msgid "Add &Files..."
+#~ msgstr "เพิ่มแ&ฟ้ม..."
+
+#~ msgid "Extract To..."
+#~ msgstr "คลายแฟ้มไปยัง..."
+
+#, fuzzy
+#~| msgid "Extract To..."
+#~ msgctxt "@action:inmenu Part of Extract submenu in Dolphin context menu"
+#~ msgid "Extract archive to..."
+#~ msgstr "คลายแฟ้มไปยัง..."
+
+#, fuzzy
+#~| msgid "Extract here"
+#~ msgctxt "@action:inmenu Part of Extract submenu in Dolphin context menu"
+#~ msgid "Extract archive here"
+#~ msgstr "คลายแฟ้มไว้ที่นี่"
+
+#, fuzzy
+#~| msgid "&Extraction into subfolder:"
+#~ msgctxt "@action:inmenu Part of Extract submenu in Dolphin context menu"
+#~ msgid "Extract archive here, autodetect subfolder"
+#~ msgstr "ทำการ&คลายแฟ้มไปยังโฟลเดอร์ย่อย:"
+
+#, fuzzy
+#~| msgid "Open an archive"
+#~ msgid "Create New Archive..."
+#~ msgstr "เปิดแฟ้มจัดเก็บ"
+
+#, fuzzy
+#~| msgid "Ark could not extract <filename>%1</filename>."
+#~ msgctxt "@info"
+#~ msgid "Ark could not extract <filename>%1</filename>."
+#~ msgstr "อาร์กไม่สามารถคลายแฟ้ม <filename>%1</filename> ได้"
+
+#, fuzzy
+#~| msgid "Ark could not open <filename>%1</filename> for extraction."
+#~ msgctxt "@info"
+#~ msgid "Ark could not open <filename>%1</filename> for extraction."
+#~ msgstr "อาร์กไม่สามารถเปิด <filename>%1</filename> เพื่อทำการคลายแฟ้มได้"
+
+#, fuzzy
+#~| msgid ""
+#~| "There was an error while reading <filename>%1</filename> during "
+#~| "extraction."
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "There was an error while reading <filename>%1</filename> during "
+#~ "extraction."
+#~ msgstr ""
+#~ "เกิดข้อผิดพลาดระหว่างทำการอ่าน <filename>%1</filename> ในระหว่างทำการคลายแฟ้ม"
+
+#, fuzzy
+#~| msgctxt "action, to open an archive"
+#~| msgid "Open"
+#~ msgctxt "open a file with external program"
+#~ msgid "&Open"
+#~ msgstr "เปิด"
+
+#, fuzzy
+#~| msgid "Click to preview the selected file"
+#~ msgctxt "@info:tooltip"
+#~ msgid "Click to open the selected file with the associated application"
+#~ msgstr "คลิกเพื่อแสดงตัวอย่างของแฟ้มที่เลือก"
+
+#~ msgctxt "Uncompressed size of a file inside an archive"
+#~ msgid "Size"
+#~ msgstr "ขนาด"
+
+#, fuzzy
+#~| msgid ""
+#~| "This archive contains archive entries with absolute paths, which are not "
+#~| "yet supported by ark."
+#~ msgid ""
+#~ "This archive contains archive entries with absolute paths, which are not "
+#~ "supported by Ark."
+#~ msgstr ""
+#~ "แฟ้มจัดเก็บนี้บรรจุรายการเอกสารต่าง ๆ โดยใช้พาธแบบสมบูรณ์ ซึ่งอาร์กยังไม่รองรับการใช้งาน"
+
+#~ msgctxt "action, to open an archive"
+#~ msgid "Open"
+#~ msgstr "เปิด"
+
+#~ msgid "Open an archive"
+#~ msgstr "เปิดแฟ้มจัดเก็บ"
+
+#~ msgid "ArkPart"
+#~ msgstr "ArkPart"
+
+#, fuzzy
+#~| msgid "Source archive"
+#~ msgctxt "@title:window"
+#~ msgid "Save Archive As"
+#~ msgstr "แฟ้มจัดเก็บต้นทาง"
+
+#, fuzzy
+#~| msgid ""
+#~| "An archive named <filename>%1</filename> already exists. Are you sure "
+#~| "you want to overwrite it?"
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "An archive named <filename>%1</filename> already exists. Are you sure you "
+#~ "want to overwrite it?"
+#~ msgstr ""
+#~ "มีแฟ้มจัดเก็บแบบบีบอัด <filename>%1</filename> อยู่ก่อนแล้ว "
+#~ "คุณแน่ใจหรือไม่ว่าจะทำการเขียนทับมัน ?"
+
+#, fuzzy
+#~| msgid "Extraction Dialog"
+#~ msgctxt "@title:tab"
+#~ msgid "Extraction Settings"
+#~ msgstr "กล่องการคลายแฟ้ม"
+
+#, fuzzy
+#~| msgctxt "to preview a file inside an archive"
+#~| msgid "Pre&view"
+#~ msgctxt "@title:tab"
+#~ msgid "Preview Settings"
+#~ msgstr "แสดง&ตัวอย่าง"
+
+#~ msgctxt "CRC hash code"
+#~ msgid "CRC"
+#~ msgstr "ค่า CRC"
+
+#~ msgid "There was an error during extraction."
+#~ msgstr "เกิดข้อผิดพลาดระหว่างปฏิบัติการคลายแฟ้ม"
+
+#, fuzzy
+#~| msgid "Open an archive"
+#~ msgid "&Rename"
+#~ msgstr "เปิดแฟ้มจัดเก็บ"
+
+#, fuzzy
+#~| msgid "Click to preview the selected file"
+#~ msgctxt "@info:tooltip"
+#~ msgid "Click to rename the selected file"
+#~ msgstr "คลิกเพื่อแสดงตัวอย่างของแฟ้มที่เลือก"
+
+#~ msgid "De&lete"
+#~ msgstr "ล&บแฟ้ม"
+
+#, fuzzy
+#~| msgid "Click to delete the selected files"
+#~ msgctxt "@info:tooltip"
+#~ msgid "Click to delete the selected files"
+#~ msgstr "คลิกเพื่อลบแฟ้มที่เลือกไว้"
+
+#, fuzzy
+#~| msgid "Click to delete the selected files"
+#~ msgctxt "@info:tooltip"
+#~ msgid "Click to cut the selected files"
+#~ msgstr "คลิกเพื่อลบแฟ้มที่เลือกไว้"
+
+#, fuzzy
+#~| msgid "Click to delete the selected files"
+#~ msgctxt "@info:tooltip"
+#~ msgid "Click to copy the selected files"
+#~ msgstr "คลิกเพื่อลบแฟ้มที่เลือกไว้"
+
+#, fuzzy
+#~| msgid "Click to add files to the archive"
+#~ msgctxt "@info:tooltip"
+#~ msgid "Click to paste the files here"
+#~ msgstr "คลิกเพื่อเพิ่มแฟ้มเข้าไปยังแฟ้มจัดเก็บ"
+
+#, fuzzy
+#~| msgctxt "@title:window"
+#~| msgid "Add Files"
+#~ msgctxt "@action:inmenu"
+#~ msgid "&Find Files"
+#~ msgstr "เพิ่มแฟ้มต่างๆ"
+
+#, fuzzy
+#~| msgid "Click to add files to the archive"
+#~ msgctxt "@info:tooltip"
+#~ msgid "Click to search in archive"
+#~ msgstr "คลิกเพื่อเพิ่มแฟ้มเข้าไปยังแฟ้มจัดเก็บ"
+
+#~ msgid "Adding a file"
+#~ msgid_plural "Adding %1 files"
+#~ msgstr[0] "ทำการเพิ่มแฟ้ม %1 แฟ้ม"
+
+#, fuzzy
+#~| msgid "<b>Type:</b> %1<br/>"
+#~ msgid "<b>Type:</b> %1"
+#~ msgstr "<b>ประเภท:</b> %1<br/>"
+
+#, fuzzy
+#~| msgid "<b>Owner:</b> %1<br/>"
+#~ msgid "<b>Owner:</b> %1"
+#~ msgstr "<b>เจ้าของ:</b> %1<br/>"
+
+#, fuzzy
+#~| msgid "<b>Group:</b> %1<br/>"
+#~ msgid "<b>Group:</b> %1"
+#~ msgstr "<b>กลุ่ม:</b> %1<br/>"
+
+#, fuzzy
+#~| msgid "<b>Target:</b> %1<br/>"
+#~ msgid "<b>Target:</b> %1"
+#~ msgstr "<b>เป้าหมาย:</b> %1<br/>"
+
+#, fuzzy
+#~| msgid "<b>Password protected:</b> Yes<br/>"
+#~ msgid "<b>Password protected:</b> Yes"
+#~ msgstr "<b>มีการป้องกันด้วยรหัสผ่าน:</b> ใช่<br/>"
+
+#~ msgid "Cancel"
+#~ msgstr "ยกเลิก"
+
+#, fuzzy
+#~| msgid "Overwrite"
+#~ msgctxt "@action:button"
+#~ msgid "Overwrite"
+#~ msgstr "เขียนทับ"
+
+#, fuzzy
+#~| msgid "Ark could not extract <filename>%1</filename>."
+#~ msgctxt "@info"
+#~ msgid "Extraction failed at:<nl/><filename>%1</filename>"
+#~ msgstr "อาร์กไม่สามารถคลายแฟ้ม <filename>%1</filename> ได้"
+
+#, fuzzy
+#~| msgid "Could not open the archive <filename>%1</filename> for reading"
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "Could not open the archive <filename>%1</filename>.<nl/>Check whether you "
+#~ "have sufficient permissions."
+#~ msgstr "ไม่สามารถเปิดแฟ้มจัดเก็บแบบบีบอัด <filename>%1</filename> เพื่อทำการอ่านได้"
+
+#, fuzzy
+#~| msgid "Failed to locate program <filename>%1</filename> in PATH."
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "Failed to create a temporary file to compress <filename>%1</filename>."
+#~ msgstr "ล้มเหลวในการค้นหาโปรแกรม <filename>%1</filename> ในพาธตามค่าตัวแปร PATH"
+
+#, fuzzy
+#~| msgid ""
+#~| "Opening the archive for writing failed with the following error: "
+#~| "<message>%1</message>"
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "Opening the archive for writing failed with the following error:<nl/"
+#~ "><message>%1</message>"
+#~ msgstr ""
+#~ "ล้มเหลวในการเปิดแฟ้มจัดเก็บเพื่อทำการเขียน โดยมีข้อความผิดพลาดคือ: <message>%1</"
+#~ "message>"
+
+#, fuzzy
+#~| msgid ""
+#~| "Setting the compression method failed with the following error: <message>"
+#~| "%1</message>"
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "Setting the compression method failed with the following error:<nl/"
+#~ "><message>%1</message>"
+#~ msgstr "ล้มเหลวในการตั้งค่าวิธีการบีบอัดข้อมูล โดยข้อผิดพลาดคือ: <message>%1</message>"
+
+#, fuzzy
+#~| msgid ""
+#~| "Setting the compression method failed with the following error: <message>"
+#~| "%1</message>"
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "Setting the compression level failed with the following error:<nl/"
+#~ "><message>%1</message>"
+#~ msgstr "ล้มเหลวในการตั้งค่าวิธีการบีบอัดข้อมูล โดยข้อผิดพลาดคือ: <message>%1</message>"
+
+#~ msgctxt "@info Error in a message box"
+#~ msgid "Ark could not compress <filename>%1</filename>:<nl/>%2"
+#~ msgstr "อาร์กไม่สามารถทำการบีบข้อมูล <filename>%1</filename> ได้:<nl/>%2"
+
+#, fuzzy
+#~| msgid ""
+#~| "Failed to create the new archive. Permissions might not be sufficient."
+#~ msgid "Failed to create the new archive. No suitable plugin found."
+#~ msgstr "ล้มเหลวในการสร้างแฟ้มจัดเก็บตัวใหม่ สิทธิ์ที่ได้รับอนุญาตอาจจะไม่เพียงพอ"
+
+#, fuzzy
+#~| msgid ""
+#~| "Failed to create the new archive. Permissions might not be sufficient."
+#~ msgid "Failed to create the new archive. Could not load a suitable plugin."
+#~ msgstr "ล้มเหลวในการสร้างแฟ้มจัดเก็บตัวใหม่ สิทธิ์ที่ได้รับอนุญาตอาจจะไม่เพียงพอ"
+
+#~ msgid "It is not possible to create archives of this type."
+#~ msgstr "เป็นไปไม่ได้ที่จะทำการสร้างแฟ้มจัดเก็บที่เป็นประเภทนี้"
+
+#~ msgctxt "File comment"
+#~ msgid "Comment"
+#~ msgstr "หมายเหตุ"
+
+#, fuzzy
+#~| msgid "Could not locate file #%1 in the archive"
+#~ msgctxt "@info"
+#~ msgid "Could not read until the end of the archive"
+#~ msgstr "ไม่สามารถหาตำแหน่งของแฟ้ม #%1 ในแฟ้มจัดเก็บได้"
+
+#~ msgid "The source file could not be read."
+#~ msgstr "ไม่สามารถอ่านแฟ้มต้นทางได้"
+
+#~ msgid "Add Fo&lder..."
+#~ msgstr "เพิ่มโฟ&ลเดอร์..."
+
+#, fuzzy
+#~| msgid "Click to add a folder to the archive"
+#~ msgctxt "@info:tooltip"
+#~ msgid "Click to add a folder to the archive"
+#~ msgstr "คลิกเพื่อเพิ่มโฟลเดอร์เข้าไปยังแฟ้มจัดเก็บ"
+
+#~ msgctxt "@title:window"
+#~ msgid "Add Folder"
+#~ msgstr "เพิ่มโฟลเดอร์"
+
+#~ msgid "Metadata Label"
+#~ msgstr "ป้ายข้อมูลกำกับ"
+
+#~ msgid "ActionsLabel"
+#~ msgstr "ป้ายการกระทำ"
+
+#, fuzzy
+#~| msgctxt "File comment"
+#~| msgid "Comment"
+#~ msgctxt "@action:inmenu"
+#~ msgid "&Edit Comment"
+#~ msgstr "หมายเหตุ"
+
+#, fuzzy
+#~| msgid "Deleting a file from the archive"
+#~| msgid_plural "Deleting %1 files"
+#~ msgid "Please select a filename for the archive."
+#~ msgstr "ทำการลบแฟ้ม %1 แฟ้มออกจากแฟ้มจัดเก็บ"
+
+#, fuzzy
+#~| msgid "One file selected"
+#~| msgid_plural "%1 files selected"
+#~ msgid "No file selected"
+#~ msgstr "เลือกไว้ %1 แฟ้ม"
+
+#~ msgid "Open File"
+#~ msgstr "เปิดแฟ้ม"
+
+#, fuzzy
+#~| msgid ""
+#~| "Click to open an extraction dialog, where you can choose to extract "
+#~| "either all files or just the selected ones"
+#~ msgid ""
+#~ "Click to open an extraction dialog, where you can choose how to extract "
+#~ "the selected files"
+#~ msgstr ""
+#~ "คลิกเพื่อเปิดกล่องการคลายแฟ้ม ซึ่งคุณจะสามารถเลือกได้ว่า จะทำการคลายแฟ้มทั้งหมด "
+#~ "หรือคลายเฉพาะแฟ้มที่เลือก"
+
+#, fuzzy
+#~| msgid "E&xtract"
+#~ msgctxt "@action:intoolbar"
+#~ msgid "E&xtract"
+#~ msgstr "ค&ลายแฟ้ม"
+
+#~ msgctxt "@title:window"
+#~ msgid "Error Opening Archive"
+#~ msgstr "ข้อผิดพลาดในการเปิดแฟ้มจัดเก็บ"
+
+#, fuzzy
+#~| msgid "Open an archive"
+#~ msgid "lblArchiveNamed"
+#~ msgstr "เปิดแฟ้มจัดเก็บ"
+
+#, fuzzy
+#~| msgctxt "@title:window"
+#~| msgid "Invalid Archive Type"
+#~ msgid "lblArchiveType"
+#~ msgstr "ชนิดของแฟ้มจัดเก็บใช้งานไม่ได้"
+
+#, fuzzy
+#~| msgctxt "File comment"
+#~| msgid "Comment"
+#~ msgid "lblHasComment"
+#~ msgstr "หมายเหตุ"
+
+#, fuzzy
+#~| msgid "Icons"
+#~ msgid "lblIcon"
+#~ msgstr "ไอคอน"
+
+#, fuzzy
+#~| msgid "Could not open the archive <filename>%1</filename> for reading"
+#~ msgctxt "@info"
+#~ msgid "Could not open the archive <filename>%1</filename> for reading"
+#~ msgstr "ไม่สามารถเปิดแฟ้มจัดเก็บแบบบีบอัด <filename>%1</filename> เพื่อทำการอ่านได้"
+
+#, fuzzy
+#~| msgid "File <filename>%1</filename> not found in the archive"
+#~ msgctxt "@info"
+#~ msgid "File <filename>%1</filename> not found in the archive"
+#~ msgstr "ไม่พบแฟ้ม <filename>%1</filename> ในแฟ้มจัดเก็บแบบบีบอัด"
+
+#, fuzzy
+#~| msgid "Could not open the archive <filename>%1</filename> for writing."
+#~ msgctxt "@info"
+#~ msgid "Could not open the archive <filename>%1</filename> for writing."
+#~ msgstr "ไม่สามารถเปิดแฟ้มจัดเก็บแบบบีบอัด <filename>%1</filename> เพื่อทำการเขียนได้"
+
+#, fuzzy
+#~| msgid "Could not add the directory <filename>%1</filename> to the archive"
+#~ msgctxt "@info"
+#~ msgid "Could not add the directory <filename>%1</filename> to the archive"
+#~ msgstr "ไม่สามารถเพิ่มไดเรกทอรี <filename>%1</filename> ไปยังแฟ้มจัดเก็บแบบบีบอัดได้"
+
+#, fuzzy
+#~| msgid "Could not open the archive <filename>%1</filename> for reading"
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "Could not open the archive <filename>%1</filename> after adding file."
+#~ msgstr "ไม่สามารถเปิดแฟ้มจัดเก็บแบบบีบอัด <filename>%1</filename> เพื่อทำการอ่านได้"
+
+#, fuzzy
+#~| msgid "Could not add the file <filename>%1</filename> to the archive."
+#~ msgctxt "@info"
+#~ msgid "Could not add the file <filename>%1</filename> to the archive."
+#~ msgstr "ไม่สามารถเพิ่มแฟ้ม <filename>%1</filename> ไปยังแฟ้มจัดเก็บแบบบีบอัดได้"
+
+#~ msgid ""
+#~ "Click to open an archive, click and hold to open a recently-opened archive"
+#~ msgstr "คลิกเพื่อเปิดแฟ้มจัดเก็บแบบบีบอัด คลิกค้างไว้เพื่อเปิดแฟ้มจัดเก็บแบบบีบอัดที่เคยเรียกใช้"
+
+#, fuzzy
+#~| msgid "Incorrect password."
+#~ msgid "Confirm password:"
+#~ msgstr "รหัสผ่านไม่ถูกต้อง"
+
+#~ msgid "&Action"
+#~ msgstr "&การกระทำ"
+
+#, fuzzy
+#~| msgid "Open File"
+#~ msgctxt "open a file with external program"
+#~ msgid "&Open File"
+#~ msgstr "เปิดแฟ้ม"
+
+#, fuzzy
+#~| msgid ""
+#~| "Could not open the archive <filename>%1</filename>, libarchive cannot "
+#~| "handle it."
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "Could not open the archive <filename>%1</filename>, libarchive cannot "
+#~ "handle it."
+#~ msgstr ""
+#~ "ไม่สามารถเปิดแฟ้ม <filename>%1</filename> ได้ เนื่องจากไลบรารี libarchive "
+#~ "ไม่สามารถจัดการมันได้"
+
+#, fuzzy
+#~| msgid ""
+#~| "The archive reading failed with the following error: <message>%1</"
+#~| "message>"
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "The archive reading failed with the following error: <message>%1</message>"
+#~ msgstr "ล้มเหลวในการอ่านแฟ้มจัดเก็บ ข้อผิดพลาดคือ: <message>%1</message>"
+
+#, fuzzy
+#~| msgid ""
+#~| "Ark cannot create archives of the type you have chosen.<nl/><nl/>Please "
+#~| "choose another archive type below."
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "Ark cannot create archives of the type you have chosen.<br />Please "
+#~ "choose another archive type below."
+#~ msgstr ""
+#~ "อาร์กไม่สามารถสร้างแฟ้มจัดเก็บแบบบีบอัดเป็นแฟ้มจัดเก็บประเภทที่คุณเลือกไว้ได้<nl/><nl/"
+#~ ">โปรดเลือกเป็นประเภทแฟ้มจัดเก็บประเภทอื่นทางด้านล่างนี้"
+
+#~ msgctxt "@title:window"
+#~ msgid "Unable to Determine Archive Type"
+#~ msgstr "ไม่สามารถจำแนกได้ว่าเป็นแฟ้มจัดเก็บบีบอัดชนิดใด"
+
+#, fuzzy
+#~| msgid ""
+#~| "Ark was unable to determine the archive type of the filename.<nl/><nl/"
+#~| ">Please choose the correct archive type below."
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "Ark was unable to determine the archive type of the filename.<br />Please "
+#~ "choose the correct archive type below."
+#~ msgstr ""
+#~ "อาร์กไม่สามารถจำแนกโดยอัตโนมัติจากชื่อแฟ้มได้ว่าเป็นแฟ้มจัดเก็บแบบบีบอัดประเภทใด<nl/><nl/"
+#~ ">โปรดเลือกประเภทแฟ้มจัดเก็บแบบบีบอัดที่ถูกต้องทางด้านล่างนี้"
+
+#~ msgid ""
+#~ "Easter egg for the developers:\n"
+#~ "This is where future versions will have extra compression options for the "
+#~ "various compression interfaces."
+#~ msgstr ""
+#~ "ไข่อีสเตอร์ของผู้พัฒนา:\n"
+#~ "ส่วนนี้คือที่ของรุ่นที่จะมีในอนาคตซึ่งจะมีตัวเลือกการบีบอัดแบบพิเศษสำหรับ "
+#~ "ส่วนเชื่อมต่อการบีบอัดข้อมูลแบบต่าง ๆ"
+
+#~ msgid "URL of an archive to be opened"
+#~ msgstr "ที่อยู่ URL ของแฟ้มจัดเก็บที่จะเปิด"
+
+#~ msgid "Options for adding files"
+#~ msgstr "ตัวเลือกต่าง ๆ ของการเพิ่มแฟ้มต่าง ๆ"
+
+#~ msgid "Options for batch extraction:"
+#~ msgstr "ตัวเลือกต่าง ๆ ของการคลายแฟ้มจัดเก็บเป็นกลุ่ม:"
+
+#, fuzzy
+#~| msgid ""
+#~| "Found program <filename>%1</filename>, but failed to initialize the "
+#~| "process."
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "Found program <filename>%1</filename>, but failed to initialize the "
+#~ "process."
+#~ msgstr ""
+#~ "ค้นพบโปรแกรม <filename>%1</filename> "
+#~ "แต่เกิดความล้มเหลวในการเริ่มการทำงานของโพรเซส"
+
+#~ msgid "One item"
+#~ msgid_plural "%1 items"
+#~ msgstr[0] "%1 รายการ"
+
+#~ msgid "Delete files"
+#~ msgstr "ลบแฟ้มต่าง ๆ"
+
+#~ msgid "Unable to open the file '%1', libarchive cannot handle it."
+#~ msgstr "ไม่สามารถเปิดแฟ้ม '%1' ได้ เนื่องจากไลบรารี libarchive ไม่สามารถจัดการมันได้"
+
+#~ msgid "Operation finished."
+#~ msgstr "ปฏิบัติการเสร็จสิ้นแล้ว"
+
+#~ msgid "Setting format failed with the error '%1'"
+#~ msgstr "การตั้งค่ารูปแบบล้มเหลว ด้วยข้อผิดพลาด '%1'"
+
+#, fuzzy
+#~| msgid "Could not open the archive '%1'"
+#~ msgid "Could not extract '%1'"
+#~ msgstr "ไม่สามารถเปิดแฟ้มจัดเก็บ '%1' ได้"
+
+#~ msgid "<font size=\"+2\"><b>Filename</b></font>"
+#~ msgstr "<font size=\"+2\"><b>ชื่อแฟ้ม</b></font>"
+
+#~ msgid "Missing Folder"
+#~ msgstr "ไม่มีโฟลเดอร์"
+
+#~ msgid "Create Folder"
+#~ msgstr "สร้างโฟลเดอร์"
+
+#~ msgid "Do Not Create"
+#~ msgstr "ไม่ต้องสร้าง"
+
+#~ msgid "The folder could not be created. Please check permissions."
+#~ msgstr "ไม่สามารถสร้างโฟลเดอร์ได้ โปรดตรวจสอบสิทธิ์ที่ได้รับอนุญาต"
+
+#, fuzzy
+#~| msgid "An error occurred while trying to read entry #%1 of the archive"
+#~ msgid "An error occurred while performing the operation."
+#~ msgstr "เกิดข้อผิดพลาดขณะพยายามอ่านรายการ #%1 ของแฟ้มจัดเก็บ"
+
+#~ msgid "The folder '%1' could not be created. Please check permissions."
+#~ msgstr "ไม่สามารถสร้างโฟลเดอร์ '%1' ได้ โปรดตรวจสอบสิทธิ์ที่ได้รับอนุญาต"
+
+#~ msgid "Create a subfolder under the destination directory and extract here."
+#~ msgstr "สร้างโฟลเดอร์ย่อยภายใต้ไดเรกทอรีปลายทางแล้วคลายแฟ้มไว้ที่นี่"
+
+#~ msgid "Unable to find 7zr, 7za or 7z"
+#~ msgstr "ค้นไม่พบคำสั่ง 7zr, 7za หรือ 7z"
+
+#~ msgid "Unknown error when extracting files"
+#~ msgstr "เกิดข้อผิดพลาดที่ไม่ทราบขึ้นระหว่างทำการคลายแฟ้ม"
+
+#~ msgid "An error occurred while trying to read entry #%1 of the archive"
+#~ msgstr "เกิดข้อผิดพลาดขณะพยายามอ่านรายการ #%1 ของแฟ้มจัดเก็บ"
+
+#~ msgid "Could not create path"
+#~ msgstr "ไม่สามารถสร้างพาธได้"
+
+#~ msgid "Could not locate file '%1' in the archive"
+#~ msgstr "ไม่สามารถหาตำแหน่งของแฟ้ม %1 ในแฟ้มจัดเก็บได้"
+
+#~ msgid "Could not read from the input file '%1'"
+#~ msgstr "ไม่สามารถอ่านจากแฟ้มนำเข้า '%1' ได้"
+
+#~ msgid "Could not find a file named %1 in the archive."
+#~ msgstr "ค้นไม่พบแฟ้มที่มีชื่อ %1 ในแฟ้มจัดเก็บ"
+
+#~ msgid "Neither rar or unrar are available in your PATH."
+#~ msgstr "ไม่พบทั้งโปรแกรม rar หรือ unrar บนพาธการใช้งานของคุณ"
+
+#~ msgid ""
+#~ "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/"
+#~ "REC-html40/strict.dtd\">\n"
+#~ "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/"
+#~ "css\">\n"
+#~ "p, li { white-space: pre-wrap; }\n"
+#~ "</style></head><body style=\" font-family:'Bitstream Vera Sans'; font-"
+#~ "size:10pt; font-weight:400; font-style:normal;\">\n"
+#~ "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-"
+#~ "right:0px; -qt-block-indent:0; text-indent:0px;\">Note: the archive has "
+#~ "been detected as a <span style=\" font-weight:600;\">single-folder "
+#~ "archive</span>, so this option has been automatically unchecked...</p></"
+#~ "body></html>"
+#~ msgstr ""
+#~ "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/"
+#~ "REC-html40/strict.dtd\">\n"
+#~ "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/"
+#~ "css\">\n"
+#~ "p, li { white-space: pre-wrap; }\n"
+#~ "</style></head><body style=\" font-family:'Bitstream Vera Sans'; font-"
+#~ "size:10pt; font-weight:400; font-style:normal;\">\n"
+#~ "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-"
+#~ "right:0px; -qt-block-indent:0; text-indent:0px;\">โปรดทราบ: "
+#~ "ตรวจพบว่าแฟ้มจัดเก็บเป็นแบบ <span style=\" font-weight:600;"
+#~ "\">แฟ้มจัดเก็บโฟลเดอร์เดี่ยว</span>, ดังนั้น ตัวเลือกนี้จะถูกยกเลิกการกาเลือกโดยอัตโนมัติ..."
+#~ "</p></body></html>"
+
+#~ msgid ""
+#~ "Ark was unable to automatically determine the archive type of the "
+#~ "filename. Please use a standard file extension (such as zip, rar or tar."
+#~ "gz), or manually choose one from the following mimetypes."
+#~ msgstr ""
+#~ "อาร์กไม่สามารถตรวจหาว่าแฟ้มจัดเก็บเป็นแฟ้มจัดเก็บประเภทใดจากชื่อแฟ้มได้โดยอัตโนมัติ "
+#~ "โปรดใช้ส่วนขยายชื่อแฟ้มมาตรฐาน (เช่น zip, rar หรือ tar.gz เป็นต้น), หรือเลือกประเภท "
+#~ "MIME ของแฟ้มตัวใดตัวหนึ่งต่อไปนี้"
+
+#~ msgctxt "Timestamp"
+#~ msgid "Time"
+#~ msgstr "เวลา"
+
+#~ msgid "Couldn't open the file '%1', libarchive can't handle it."
+#~ msgstr "ไม่สามารถเปิดแฟ้ม '%1' ได้, ไลบรารี libarchive ไม่สามารถจัดการมันได้"
+
+#~ msgid "Password input cancelled by user."
+#~ msgstr "การป้อนรหัสผ่านถูกยกเลิกโดยผู้ใช้"
+
+#~ msgid "Setting format %2 failed with the error '%1'"
+#~ msgstr "การตั้งค่ารูปแบบ %2 ล้มเหลวด้วยข้อผิดพลาด '%1'"
+
+#~ msgid "Adding directories is not supported yet, sorry."
+#~ msgstr "ขออภัย ยังไม่รองรับการเพิ่มไดเรกทอรี"
+
+#~ msgid "Listing entries"
+#~ msgstr "กำลังสร้างรายการ"

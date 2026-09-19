@@ -5,8 +5,8 @@ use clap::{Parser, Subcommand};
 use mattos_installer::{
     Choice, EncryptionPolicy, Filesystem, GuidedEfi, InstallPlan, InstalledProfile, PLAN_VERSION,
     PartitionAction, PartitionOperation, RootCredentialPolicy, RootFilesystem, StoragePlan,
-    optional_package_catalog, optional_package_defaults,
-    discover_keyboard_layouts, discover_locales, discover_timezones, engine, execute, render_plan,
+    discover_keyboard_layouts, discover_locales, discover_timezones, engine, execute,
+    optional_package_catalog, optional_package_defaults, render_plan,
 };
 use std::io::{self, Write};
 use std::path::PathBuf;

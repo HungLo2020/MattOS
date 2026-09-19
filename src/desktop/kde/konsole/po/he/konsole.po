@@ -1,0 +1,6394 @@
+# translation of konsole.po to hebrew
+# translation of konsole.po to
+# KDE Hebrew Localization Project
+#
+# In addition to the copyright owners of the program
+# which this translation accompanies, this translation is
+# Copyright (C) 1999-2003 Meni Livne <livne@kde.org>
+#
+# This translation is subject to the same Open Source
+# license as the program which it accompanies.
+#
+# Dror Levin <spatz@012.net.il>, 2003.
+# Shlomi Loubaton <shlomil@hotmail.com>, 2003.
+# Diego Iastrubni <elcuco@kde.org>, 2005, 2006, 2008.
+# Assaf Gillat <gillata@gmail.com>, 2005.
+# דיאגו יסטרובני <elcuco@kde.org>, 2005, 2012, 2013, 2014.
+# tahmar1900 <tahmar1900@gmail.com>, 2008.
+# elkana bardugo <ttv200@gmail.com>, 2016.
+# Elkana Bardugo <ttv200@gmail.com>, 2017. #zanata
+# SPDX-FileCopyrightText: 2023-2026 Yaron Shahrabani <sh.yaron@gmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: konsole\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-08-11 02:56+0000\n"
+"PO-Revision-Date: 2026-07-17 12:13+0300\n"
+"Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
+"Language-Team: צוות התרגום של KDE ישראל\n"
+"Language: he\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
+"n % 10 == 0) ? 2 : 3));\n"
+"X-Generator: Lokalize 26.04.1\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "דרור לוין, מארק קרפיבנר,צוות התרגום של KDE ישראל"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "spatz@012.net.il,mark125@gmail.com,kde-l10n-he@kde.org"
+
+#. i18n: ectx: Menu (file)
+#: ../desktop/konsoleui.rc:6
+#, kde-format
+msgid "File"
+msgstr "קובץ"
+
+#. i18n: ectx: property (text), widget (QPushButton, btnEdit)
+#. i18n: ectx: Menu (edit)
+#: ../desktop/konsoleui.rc:16 plugins/QuickCommands/quickcommandswidget.cpp:296
+#: plugins/SSHManager/sshwidget.ui:300
+#, kde-format
+msgid "Edit"
+msgstr "עריכה"
+
+#. i18n: ectx: Menu (view)
+#: ../desktop/konsoleui.rc:19
+#, kde-format
+msgid "View"
+msgstr "תצוגה"
+
+#. i18n: ectx: Menu (view-split)
+#: ../desktop/konsoleui.rc:20 ../desktop/partui.rc:12
+#: ../desktop/sessionui.rc:64
+#, kde-format
+msgid "Split View"
+msgstr "תצוגה מפוצלת"
+
+#. i18n: ectx: Menu (settings)
+#: ../desktop/konsoleui.rc:41
+#, kde-format
+msgid "Settings"
+msgstr "הגדרות"
+
+#. i18n: ectx: Menu (plugins)
+#: ../desktop/konsoleui.rc:54
+#, kde-format
+msgid "Plugins"
+msgstr "תוספים"
+
+#. i18n: ectx: Menu (help)
+#: ../desktop/konsoleui.rc:57
+#, kde-format
+msgid "Help"
+msgstr "עזרה"
+
+#. i18n: ectx: ToolBar (mainToolBar)
+#: ../desktop/konsoleui.rc:61
+#, kde-format
+msgid "Main Toolbar"
+msgstr "סרגל כלים ראשי"
+
+#. i18n: ectx: Menu (history)
+#: ../desktop/partui.rc:20
+#, kde-format
+msgid "S&crollback"
+msgstr "היסטוריה נ&גללת"
+
+#. i18n: ectx: ToolBar (sessionToolbar)
+#: ../desktop/sessionui.rc:80
+#, kde-format
+msgid "Session Toolbar"
+msgstr "סרגל כלי הפעלה"
+
+#: Application.cpp:53
+#, kde-format
+msgctxt "@info:shell"
+msgid "Name of profile to use for new Konsole instance"
+msgstr "שם הפרופיל לשימוש במופע חדש של Konsole"
+
+#: Application.cpp:54
+#, kde-format
+msgctxt "@info:shell"
+msgid "json layoutfile to be loaded to use for new Konsole instance"
+msgstr "קובץ json של פריסה לטעינה ושימוש בעותק חדש של Konsole"
+
+#: Application.cpp:55
+#, kde-format
+msgctxt "@info:shell"
+msgid "Use the built-in profile instead of the default profile"
+msgstr "להשתמש בפרופיל המובנה במקום בפרופיל ברירת המחדל"
+
+#: Application.cpp:56
+#, kde-format
+msgctxt "@info:shell"
+msgid "Set the initial working directory of the new tab or window to 'dir'"
+msgstr "הגדרת תיקיית העבודה הראשונית של הלשונית או החלון החדשים ל־‚dir’"
+
+#: Application.cpp:57
+#, kde-format
+msgctxt "@info:shell"
+msgid "Do not close the initial session automatically when it ends."
+msgstr "לא לסגור את ההפעלה הראשונית אוטומטית עם סגירתה."
+
+#: Application.cpp:61
+#, kde-format
+msgctxt "@info:shell"
+msgid ""
+"Create a new tab in an existing window rather than creating a new window "
+"('Run all Konsole windows in a single process' must be enabled)"
+msgstr ""
+"ליצור לשונית חדשה בחלון קיים במקום ליצור חלון חדש (יש לוודא שהאפשרות ‚הרצת "
+"כל חלונות Konsole כתהליך בודד’ פעילה)"
+
+#: Application.cpp:62
+#, kde-format
+msgctxt "@info:shell"
+msgid "Create tabs as specified in given tabs configuration file"
+msgstr "יצירת לשוניות כפי שצוין בקובץ הגדרות הלשוניות שסופק"
+
+#: Application.cpp:64
+#, kde-format
+msgctxt "@info:shell"
+msgid ""
+"Start Konsole in the background and bring to the front when Ctrl+Shift+F12 "
+"(by default) is pressed"
+msgstr ""
+"להפעיל את Konsole ברקע ולהביא לחזית בלחיצה על Ctrl+Shift+F12 (כברירת מחדל)"
+
+#: Application.cpp:65
+#, kde-format
+msgctxt "@info:shell"
+msgid "Run in a separate process"
+msgstr "הרצה בתהליך נפרד"
+
+#: Application.cpp:66
+#, kde-format
+msgctxt "@info:shell"
+msgid "Show the menubar, overriding the default setting"
+msgstr "הצגת התפריט, התעלמות מברירת המחדל"
+
+#: Application.cpp:67
+#, kde-format
+msgctxt "@info:shell"
+msgid "Hide the menubar, overriding the default setting"
+msgstr "הסתרת התפריט, התעלמות מברירת המחדל"
+
+#: Application.cpp:68
+#, kde-format
+msgctxt "@info:shell"
+msgid "Show all the toolbars, overriding the default setting"
+msgstr "להציג את כל סרגלי הכלים, התעלמות מברירת המחדל"
+
+#: Application.cpp:69
+#, kde-format
+msgctxt "@info:shell"
+msgid "Hide all the toolbars, overriding the default setting"
+msgstr "להסתיר את כל סרגלי הכלים, התעלמות מברירת המחדל"
+
+#: Application.cpp:70
+#, kde-format
+msgctxt "@info:shell"
+msgid "Show the tabbar, overriding the default setting"
+msgstr "הצגת סרגל הכלים, התעלמות מברירת המחדל"
+
+#: Application.cpp:71
+#, kde-format
+msgctxt "@info:shell"
+msgid "Hide the tabbar, overriding the default setting"
+msgstr "הסתרת סרגל הכלים, התעלמות מברירת המחדל"
+
+#: Application.cpp:72
+#, kde-format
+msgctxt "@info:shell"
+msgid "Start Konsole in fullscreen mode"
+msgstr "הפעלת Konsole במסך מלא"
+
+#: Application.cpp:73
+#, kde-format
+msgctxt "@info:shell"
+msgid "Disable transparent backgrounds, even if the system supports them."
+msgstr "משבית את השימוש ברקעים שקופים, גם אם המערכת תומכת בהם."
+
+#: Application.cpp:74
+#, kde-format
+msgctxt "@info:shell"
+msgid "List the available profiles"
+msgstr "הצגת הפרופילים הזמינים"
+
+#: Application.cpp:75
+#, kde-format
+msgctxt "@info:shell"
+msgid "List all the profile properties names and their type (for use with -p)"
+msgstr "הצגת כל שמות הפרופילים והסוגים שלהם (לשימוש עם ‎-p)"
+
+#: Application.cpp:76
+#, kde-format
+msgctxt "@info:shell"
+msgid "Change the value of a profile property."
+msgstr "שינוי ערך מאפיין של פרופיל."
+
+#: Application.cpp:78
+#, kde-format
+msgctxt "@info:shell"
+msgid ""
+"Command to execute. This option will catch all following arguments, so use "
+"it as the last option."
+msgstr ""
+"פקודה להפעלה. אפשרות זו תלכוד את כל הארגומנטים, כך שכדאי להשתמש בה בתור "
+"המוצא האחרון."
+
+#: Application.cpp:81
+#, kde-format
+msgctxt "@info:shell"
+msgid ""
+"Force re-using the existing instance even if it breaks functionality, e. g. "
+"--new-tab. Mostly for debugging."
+msgstr ""
+"לאלץ שימוש חוזר במופע קיים גם אם זה יפגע ביכולות, למשל: ‎--new-tab. מיועד "
+"בעיקר לניפוי תקלות."
+
+#: Application.cpp:88
+#, kde-format
+msgctxt "@info:shell"
+msgid "Arguments passed to command"
+msgstr "ארגומנטים המועברים לפקודה"
+
+#: Application.cpp:546
+#, kde-format
+msgctxt "@item"
+msgid "Toggle Background Window"
+msgstr "החלפת מצב חלון רקע"
+
+#: BookmarkHandler.cpp:107
+#, kde-format
+msgctxt "@item:inmenu The user's name and host they are connected to via ssh"
+msgid "%1 on %2"
+msgstr "%1 על %2"
+
+#: BookmarkHandler.cpp:109
+#, kde-format
+msgctxt "@item:inmenu The host the user is connected to via ssh"
+msgid "%1"
+msgstr "%1"
+
+#: colorscheme/ColorScheme.cpp:124
+msgctxt "@item:intable palette"
+msgid "Foreground"
+msgstr "קדמה"
+
+#: colorscheme/ColorScheme.cpp:125
+msgctxt "@item:intable palette"
+msgid "Background"
+msgstr "רקע"
+
+#: colorscheme/ColorScheme.cpp:126
+msgctxt "@item:intable palette"
+msgid "Color 1"
+msgstr "צבע 1"
+
+#: colorscheme/ColorScheme.cpp:127
+msgctxt "@item:intable palette"
+msgid "Color 2"
+msgstr "צבע 2"
+
+#: colorscheme/ColorScheme.cpp:128
+msgctxt "@item:intable palette"
+msgid "Color 3"
+msgstr "צבע 3"
+
+#: colorscheme/ColorScheme.cpp:129
+msgctxt "@item:intable palette"
+msgid "Color 4"
+msgstr "צבע 4"
+
+#: colorscheme/ColorScheme.cpp:130
+msgctxt "@item:intable palette"
+msgid "Color 5"
+msgstr "צבע 5"
+
+#: colorscheme/ColorScheme.cpp:131
+msgctxt "@item:intable palette"
+msgid "Color 6"
+msgstr "צבע 6"
+
+#: colorscheme/ColorScheme.cpp:132
+msgctxt "@item:intable palette"
+msgid "Color 7"
+msgstr "צבע 7"
+
+#: colorscheme/ColorScheme.cpp:133
+msgctxt "@item:intable palette"
+msgid "Color 8"
+msgstr "צבע 8"
+
+#: colorscheme/ColorScheme.cpp:134
+msgctxt "@item:intable palette"
+msgid "Foreground (Intense)"
+msgstr "חזית (עז)"
+
+#: colorscheme/ColorScheme.cpp:135
+msgctxt "@item:intable palette"
+msgid "Background (Intense)"
+msgstr "רקע (עז)"
+
+#: colorscheme/ColorScheme.cpp:136
+msgctxt "@item:intable palette"
+msgid "Color 1 (Intense)"
+msgstr "צבע 1 (עז)"
+
+#: colorscheme/ColorScheme.cpp:137
+msgctxt "@item:intable palette"
+msgid "Color 2 (Intense)"
+msgstr "צבע 2 (עז)"
+
+#: colorscheme/ColorScheme.cpp:138
+msgctxt "@item:intable palette"
+msgid "Color 3 (Intense)"
+msgstr "צבע 3 (עז)"
+
+#: colorscheme/ColorScheme.cpp:139
+msgctxt "@item:intable palette"
+msgid "Color 4 (Intense)"
+msgstr "צבע 4 (עז)"
+
+#: colorscheme/ColorScheme.cpp:140
+msgctxt "@item:intable palette"
+msgid "Color 5 (Intense)"
+msgstr "צבע 5 (עז)"
+
+#: colorscheme/ColorScheme.cpp:141
+msgctxt "@item:intable palette"
+msgid "Color 6 (Intense)"
+msgstr "צבע 6 (עז)"
+
+#: colorscheme/ColorScheme.cpp:142
+msgctxt "@item:intable palette"
+msgid "Color 7 (Intense)"
+msgstr "צבע 7 (עז)"
+
+#: colorscheme/ColorScheme.cpp:143
+msgctxt "@item:intable palette"
+msgid "Color 8 (Intense)"
+msgstr "צבע 8 (עז)"
+
+#: colorscheme/ColorScheme.cpp:144
+msgctxt "@item:intable palette"
+msgid "Foreground (Faint)"
+msgstr "חזית (חלש)"
+
+#: colorscheme/ColorScheme.cpp:145
+msgctxt "@item:intable palette"
+msgid "Background (Faint)"
+msgstr "רקע (חלש)"
+
+#: colorscheme/ColorScheme.cpp:146
+msgctxt "@item:intable palette"
+msgid "Color 1 (Faint)"
+msgstr "צבע 1 (חלש)"
+
+#: colorscheme/ColorScheme.cpp:147
+msgctxt "@item:intable palette"
+msgid "Color 2 (Faint)"
+msgstr "צבע 2 (חלש)"
+
+#: colorscheme/ColorScheme.cpp:148
+msgctxt "@item:intable palette"
+msgid "Color 3 (Faint)"
+msgstr "צבע 3 (חלש)"
+
+#: colorscheme/ColorScheme.cpp:149
+msgctxt "@item:intable palette"
+msgid "Color 4 (Faint)"
+msgstr "צבע 4 (חלש)"
+
+#: colorscheme/ColorScheme.cpp:150
+msgctxt "@item:intable palette"
+msgid "Color 5 (Faint)"
+msgstr "צבע 5 (חלש)"
+
+#: colorscheme/ColorScheme.cpp:151
+msgctxt "@item:intable palette"
+msgid "Color 6 (Faint)"
+msgstr "צבע 6 (חלש)"
+
+#: colorscheme/ColorScheme.cpp:152
+msgctxt "@item:intable palette"
+msgid "Color 7 (Faint)"
+msgstr "צבע 7 (חלש)"
+
+#: colorscheme/ColorScheme.cpp:153
+msgctxt "@item:intable palette"
+msgid "Color 8 (Faint)"
+msgstr "צבע 8 (חלש)"
+
+#: colorscheme/ColorScheme.cpp:452
+#, kde-format
+msgctxt "@item"
+msgid "Un-named Color Scheme"
+msgstr "ערכת צבעים ללא שם"
+
+#: colorscheme/ColorSchemeEditor.cpp:110
+#, kde-format
+msgctxt "@label:listbox Column header text for color names"
+msgid "Name"
+msgstr "שם"
+
+#: colorscheme/ColorSchemeEditor.cpp:110
+#, kde-format
+msgctxt "@label:listbox Column header text for the actual colors"
+msgid "Color"
+msgstr "צבע"
+
+#: colorscheme/ColorSchemeEditor.cpp:111
+#, kde-format
+msgctxt "@label:listbox Column header text for the actual intense colors"
+msgid "Intense color"
+msgstr "צבע עז"
+
+#: colorscheme/ColorSchemeEditor.cpp:112
+#, kde-format
+msgctxt "@label:listbox Column header text for the actual faint colors"
+msgid "Faint color"
+msgstr "צבע חלש"
+
+#: colorscheme/ColorSchemeEditor.cpp:137
+#, kde-format
+msgctxt "@info:status"
+msgid ""
+"The background transparency setting will not be used because your desktop "
+"does not appear to support transparent windows."
+msgstr ""
+"אפשרות השקיפות של הרקע לא תהיה בשימוש, כי נראה ששולחן העבודה שלך לא תומך "
+"בחלונות שקופים."
+
+#: colorscheme/ColorSchemeEditor.cpp:188
+#, kde-format
+msgctxt "@title:window"
+msgid "Select wallpaper image file"
+msgstr "בחירת קובץ תמונת רקע"
+
+#: colorscheme/ColorSchemeEditor.cpp:190
+#, kde-format
+msgctxt "@label:textbox Filter in file open dialog"
+msgid "Supported Images"
+msgstr "תמונות נתמכות"
+
+#: colorscheme/ColorSchemeEditor.cpp:334
+#, kde-format
+msgctxt "@title:window"
+msgid "New Color Scheme"
+msgstr "ערכת צבעים חדשה"
+
+#: colorscheme/ColorSchemeEditor.cpp:337
+#, kde-format
+msgctxt "@title:window"
+msgid "Edit Color Scheme"
+msgstr "עריכת ערכת צבעים"
+
+#: colorscheme/ColorSchemeEditor.cpp:383
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Click to choose color"
+msgstr "ללחוץ לבחירת צבע"
+
+#: colorscheme/ColorSchemeEditor.cpp:388
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Click to choose intense color"
+msgstr "ללחוץ כדי לבחור צבע עז"
+
+#: colorscheme/ColorSchemeEditor.cpp:393
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Click to choose Faint color"
+msgstr "ללחוץ כדי לבחור צבע חלש"
+
+#. i18n: ectx: property (text), widget (QLabel, descriptionLabel)
+#. i18n: ectx: property (text), widget (QLabel, discriptionLabel)
+#: colorscheme/ColorSchemeEditor.ui:31 KeyBindingEditor.ui:31
+#, kde-format
+msgid "Description:"
+msgstr "תיאור:"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, randomizedBackgroundCheck)
+#: colorscheme/ColorSchemeEditor.ui:50
+#, kde-format
+msgid ""
+"Hue and saturation values of default foreground and background colors are "
+"randomized by default. Some color schemes might use different randomization "
+"settings.\n"
+"To see any effect, set colors with saturation value greater than 0."
+msgstr ""
+"ערכי הגוון והרוויה של צבעי החזית והרקע נבחרים באקראי כברירת מחדל. חלק מסכמות "
+"הצבעים עשויות להשתמש בהגדרות אקראיות שונות.\n"
+"כדי שתהיה איזושהי השפעה, יש להגדיר צבעים עם ערך רוויה גדול מ־0."
+
+#. i18n: ectx: property (text), widget (QCheckBox, randomizedBackgroundCheck)
+#: colorscheme/ColorSchemeEditor.ui:53
+#, kde-format
+msgid "Randomly adjust colors for each session"
+msgstr "להתאים צבעים אקראית לכל הפעלה"
+
+#. i18n: ectx: property (text), widget (QCheckBox, blurCheckBox)
+#: colorscheme/ColorSchemeEditor.ui:60
+#, kde-format
+msgid "Blur background"
+msgstr "טשטוש הרקע"
+
+#. i18n: ectx: property (text), widget (QLabel, transparencyLabel)
+#: colorscheme/ColorSchemeEditor.ui:69
+#, kde-format
+msgid "Background color transparency:"
+msgstr "שקיפות צבע רקע:"
+
+#. i18n: ectx: property (text), widget (QLabel, transparencyPercentLabel)
+#. i18n: ectx: property (text), widget (QLabel, wallpaperTransparencyPercentLabel)
+#: colorscheme/ColorSchemeEditor.ui:89 colorscheme/ColorSchemeEditor.ui:123
+#, kde-format
+msgid "Percent"
+msgstr "אחוזים"
+
+#. i18n: ectx: property (text), widget (QLabel, wallpaperTransparencyLabel)
+#: colorscheme/ColorSchemeEditor.ui:103
+#, kde-format
+msgid "Wallpaper transparency:"
+msgstr "שקיפות טפט:"
+
+#. i18n: ectx: property (text), widget (QLabel, wallpaperLabel)
+#: colorscheme/ColorSchemeEditor.ui:137
+#, kde-format
+msgid "Background image:"
+msgstr "תמונת רקע:"
+
+#. i18n: ectx: property (toolTip), widget (QLineEdit, wallpaperPath)
+#: colorscheme/ColorSchemeEditor.ui:144
+#, kde-format
+msgid "Edit the path of the background image"
+msgstr "עריכת נתיב תמונת הרקע"
+
+#. i18n: ectx: property (toolTip), widget (QToolButton, wallpaperSelectButton)
+#: colorscheme/ColorSchemeEditor.ui:151
+#, kde-format
+msgid "Choose the background image"
+msgstr "בחירת תמונת רקע"
+
+#. i18n: ectx: property (text), widget (QToolButton, wallpaperSelectButton)
+#. i18n: ectx: property (text), widget (QToolButton, dirSelectButton)
+#. i18n: ectx: property (text), widget (QToolButton, btnFindSshKey)
+#: colorscheme/ColorSchemeEditor.ui:154 plugins/SSHManager/sshwidget.ui:155
+#: widgets/EditProfileGeneralPage.ui:186
+#, kde-format
+msgid "..."
+msgstr "…"
+
+#. i18n: ectx: property (text), widget (QLabel, wallpaperScalingLabel)
+#: colorscheme/ColorSchemeEditor.ui:165
+#, kde-format
+msgid "Wallpaper scaling:"
+msgstr "כיסוי טפט:"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, wallpaperScalingType)
+#: colorscheme/ColorSchemeEditor.ui:173
+#, kde-format
+msgid "Tile"
+msgstr "ריצוף"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, wallpaperScalingType)
+#: colorscheme/ColorSchemeEditor.ui:178
+#, kde-format
+msgid "Stretch"
+msgstr "מתיחה"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, wallpaperScalingType)
+#: colorscheme/ColorSchemeEditor.ui:183
+#, kde-format
+msgid "Crop"
+msgstr "חיתוך"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, wallpaperScalingType)
+#: colorscheme/ColorSchemeEditor.ui:188
+#, kde-format
+msgid "Adapt"
+msgstr "התאמה"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, wallpaperScalingType)
+#: colorscheme/ColorSchemeEditor.ui:193
+#, kde-format
+msgid "NoScaling"
+msgstr "בלי מתיחה"
+
+#. i18n: ectx: property (text), widget (QLabel, wallpaperFlipLabel)
+#: colorscheme/ColorSchemeEditor.ui:205
+#, kde-format
+msgid "Wallpaper flip:"
+msgstr "היפוך טפט:"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, wallpaperFlipType)
+#: colorscheme/ColorSchemeEditor.ui:213
+#, kde-format
+msgid "NoFlip"
+msgstr "ללא היפוך"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, wallpaperFlipType)
+#: colorscheme/ColorSchemeEditor.ui:218
+#, kde-format
+msgid "Horizontal"
+msgstr "אופקי"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, wallpaperFlipType)
+#: colorscheme/ColorSchemeEditor.ui:223
+#, kde-format
+msgid "Vertical"
+msgstr "אנכי"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, wallpaperFlipType)
+#: colorscheme/ColorSchemeEditor.ui:228
+#, kde-format
+msgid "Both"
+msgstr "שניהם"
+
+#. i18n: ectx: property (text), widget (QLabel, wallpaperHorizontalAnchorLabel)
+#: colorscheme/ColorSchemeEditor.ui:240
+#, kde-format
+msgid "Horizontal Anchor:"
+msgstr "עוגן אופקי:"
+
+#. i18n: ectx: property (text), widget (QLabel, wallpaperHorizontalAnchorPosition)
+#: colorscheme/ColorSchemeEditor.ui:266
+#, kde-format
+msgid "Left"
+msgstr "שמאל"
+
+#. i18n: ectx: property (text), widget (QLabel, wallpaperVerticalAnchorLabel)
+#: colorscheme/ColorSchemeEditor.ui:277
+#, kde-format
+msgid "Vertical Anchor:"
+msgstr "עוגן אנכי:"
+
+#. i18n: ectx: property (text), widget (QLabel, wallpaperVerticalAnchorPosition)
+#: colorscheme/ColorSchemeEditor.ui:303
+#, kde-format
+msgid "Top"
+msgstr "למעלה"
+
+#: colorscheme/ColorSchemeViewDelegate.cpp:52
+#, kde-format
+msgid "AaZz09..."
+msgstr "AaZz09…"
+
+#: containers/ContainerList.cpp:78
+#, kde-format
+msgctxt "@title:group section header in new-tab menu"
+msgid "Host"
+msgstr "מארח"
+
+#: containers/ContainerRegistry.cpp:43
+#, kde-format
+msgid ""
+"Container support is not available when Konsole is running inside Flatpak."
+msgstr "אין תמיכה במכולות כש־Konsole רץ מתוך Flatpak."
+
+#: containers/DistroboxDetector.cpp:124
+#, kde-format
+msgid "Distrobox"
+msgstr "Distrobox"
+
+#: containers/KapsuleDetector.cpp:36
+#, kde-format
+msgid "Kapsule"
+msgstr "Kapsule"
+
+#: containers/KapsuleDetector.cpp:61 containers/KapsuleDetector.cpp:64
+#, kde-format
+msgid "Kapsule Container"
+msgstr "מכולת Kapsule"
+
+#: containers/KapsuleDetector.cpp:99
+#, kde-format
+msgid " [default]"
+msgstr " [ברירת מחדל]"
+
+#: containers/ToolboxDetector.cpp:89
+#, kde-format
+msgid "Toolbox"
+msgstr "Toolbox"
+
+#: CopyInputDialog.cpp:30
+#, kde-format
+msgid "Copy Input"
+msgstr "העתקת קלט"
+
+#. i18n: ectx: property (text), widget (QLabel, filterLabel)
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: CopyInputDialog.ui:19 KeyBindingEditor.ui:41
+#, kde-format
+msgid "Filter:"
+msgstr "מסנן:"
+
+#. i18n: ectx: property (text), widget (QPushButton, selectAllButton)
+#: CopyInputDialog.ui:46
+#, kde-format
+msgid "Select All"
+msgstr "בחירה בהכול"
+
+#. i18n: ectx: property (text), widget (QPushButton, deselectAllButton)
+#: CopyInputDialog.ui:53
+#, kde-format
+msgid "Deselect All"
+msgstr "ביטול בחירה"
+
+#: filterHotSpots/ColorFilterHotSpot.cpp:85
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Copy Color"
+msgstr "העתקת צבע"
+
+#: filterHotSpots/ColorFilterHotSpot.cpp:148
+#, kde-format
+msgctxt "Caption of hover tooltip"
+msgid "Color Preview"
+msgstr "תצוגת צבע מקדימה"
+
+#: filterHotSpots/EscapeSequenceUrlFilterHotSpot.cpp:63
+#: filterHotSpots/UrlFilterHotspot.cpp:92
+#, kde-format
+msgid "Open Link"
+msgstr "פתיחת קישור"
+
+#: filterHotSpots/EscapeSequenceUrlFilterHotSpot.cpp:65
+#: filterHotSpots/UrlFilterHotspot.cpp:94
+#, kde-format
+msgid "Copy Link Address"
+msgstr "העתקת כתובת קישור"
+
+#: filterHotSpots/FileFilterHotspot.cpp:158
+#, kde-format
+msgid ""
+"Could not open file with the text editor specified in the profile settings;\n"
+"it will be opened with the system default editor."
+msgstr ""
+"לא ניתן לפתוח קובץ עם עורך הטקסט שצוין בהגדרות הפרופיל,\n"
+"אפשר לפתוח אותו עם עורך ברירת המחדל של המערכת."
+
+#: filterHotSpots/FileFilterHotspot.cpp:172
+#, kde-format
+msgid "Copy Location"
+msgstr "העתקת מקום"
+
+#: filterHotSpots/FileFilterHotspot.cpp:282
+#, kde-format
+msgid "Generating Thumbnail"
+msgstr "התמונה הממוזערת נוצרת"
+
+#: filterHotSpots/UrlFilterHotspot.cpp:97
+#, kde-format
+msgid "Send Email To..."
+msgstr "שליחת דוא״ל אל…"
+
+#: filterHotSpots/UrlFilterHotspot.cpp:99
+#, kde-format
+msgid "Copy Email Address"
+msgstr "העתקת כתובת דוא״ל"
+
+#: FontDialog.cpp:26
+#, kde-format
+msgctxt "@title:window"
+msgid "Select font"
+msgstr "בחירת גופן"
+
+#: FontDialog.cpp:37
+#, kde-format
+msgctxt "@action:button"
+msgid "Show all fonts"
+msgstr "הצגת כל הגופנים"
+
+#: FontDialog.cpp:66
+#, kde-format
+msgctxt "@info:status"
+msgid ""
+"By its very nature, a terminal program requires font characters that are "
+"equal width (monospace). Any non monospaced font may cause display issues. "
+"This should not be necessary except in rare cases."
+msgstr ""
+"תוכנית מסוף מטבעה דורשת גופנים ברוחב אחיד (monospace). גופן ברוחב משתנה יכול "
+"לגרום לבעיות תצוגה. זה לא אמור להיות הכרחי למעט מקרים מאוד נדירים."
+
+#: HistorySizeDialog.cpp:25
+#, kde-format
+msgctxt "@title:window"
+msgid "Adjust Scrollback"
+msgstr "כיוון היסטוריית גלילה"
+
+#: HistorySizeDialog.cpp:46
+#, kde-format
+msgctxt "@info:status"
+msgid "Any adjustments are only temporary to this session."
+msgstr "כל הכיוונים הם זמניים להפעלה זו."
+
+#: KeyBindingEditor.cpp:54
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Enter descriptive label"
+msgstr "נא לספק תווית מפורטת"
+
+#: KeyBindingEditor.cpp:63
+#, kde-format
+msgid "Key Combination"
+msgstr "צירוף מקשים"
+
+#: KeyBindingEditor.cpp:63
+#, kde-format
+msgid "Output"
+msgstr "פלט"
+
+#: KeyBindingEditor.cpp:220 KeyBindingEditor.cpp:221
+#, kde-format
+msgid "New Key Binding List"
+msgstr "רשימת מיפוי תווים חדשה"
+
+#: KeyBindingEditor.cpp:224
+#, kde-format
+msgid "Edit Key Binding List"
+msgstr "עריכת רשימת צירופי מקשים"
+
+#: KeyBindingEditor.cpp:287
+#, kde-format
+msgid "A key bindings scheme cannot be saved with an empty description."
+msgstr "אי אפשר לשמור סכמת צירופי מקשים עם תיאור ריק."
+
+#. i18n: ectx: property (text), widget (QPushButton, addEntryButton)
+#. i18n: ectx: property (text), widget (QPushButton, btnAdd)
+#: KeyBindingEditor.ui:65 plugins/QuickCommands/qcwidget.ui:246
+#: plugins/SSHManager/sshmanagerpluginwidget.cpp:342
+#: plugins/SSHManager/sshwidget.ui:310
+#, kde-format
+msgid "Add"
+msgstr "הוספה"
+
+#. i18n: ectx: property (text), widget (QPushButton, removeEntryButton)
+#. i18n: ectx: property (text), widget (QPushButton, removeKeyBindingsButton)
+#. i18n: ectx: property (text), widget (QPushButton, removeColorSchemeButton)
+#: KeyBindingEditor.ui:72 widgets/EditProfileAppearancePage.ui:92
+#: widgets/EditProfileKeyboardPage.ui:83
+#, kde-format
+msgid "Remove"
+msgstr "הסרה"
+
+#. i18n: ectx: property (title), widget (QGroupBox, groupBox)
+#: KeyBindingEditor.ui:94
+#, kde-format
+msgctxt "Title of the area where you test your keys are properly configured"
+msgid "Test Area"
+msgstr "אזור בדיקה"
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: KeyBindingEditor.ui:115
+#, kde-format
+msgid "Input:"
+msgstr "קלט:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_2)
+#: KeyBindingEditor.ui:128
+#, kde-format
+msgid "Output:"
+msgstr "פלט:"
+
+#: main.cpp:189
+#, kde-format
+msgctxt "@title"
+msgid "Konsole"
+msgstr "Konsole"
+
+#: main.cpp:191
+#, kde-format
+msgctxt "@title"
+msgid "Terminal emulator"
+msgstr "מדמה מסוף"
+
+#: main.cpp:193
+#, kde-format
+msgctxt "@info:credit"
+msgid "(c) 1997-2022, The Konsole Developers"
+msgstr "(c) 1997‏-2022, מפתחי Konsole"
+
+#: main.cpp:369
+#, kde-format
+msgctxt "@info:credit"
+msgid "Kurt Hindenburg"
+msgstr "קרט הינדנבורג"
+
+#: main.cpp:371
+#, kde-format
+msgctxt "@info:credit"
+msgid "General maintainer, bug fixes and general improvements"
+msgstr "מתחזק ראשי, תיקוני תקלות ושיפורים כללים"
+
+#: main.cpp:374
+#, kde-format
+msgctxt "@info:credit"
+msgid "Robert Knight"
+msgstr "רוברט נייט"
+
+#: main.cpp:375
+#, kde-format
+msgctxt "@info:credit"
+msgid "Previous maintainer, ported to KDE4"
+msgstr "מתחזק קודם, הסבה אל KDE4"
+
+#: main.cpp:377
+#, kde-format
+msgctxt "@info:credit"
+msgid "Lars Doelle"
+msgstr "לארס דואל"
+
+#: main.cpp:377
+#, kde-format
+msgctxt "@info:credit"
+msgid "Original author"
+msgstr "יוצר מקורי"
+
+#: main.cpp:378
+#, kde-format
+msgctxt "@info:credit"
+msgid "Ahmad Samir"
+msgstr "אחמד סמיר"
+
+#: main.cpp:379 main.cpp:382 main.cpp:385 main.cpp:388
+#, kde-format
+msgctxt "@info:credit"
+msgid "Major refactoring, bug fixes and major improvements"
+msgstr "כתיבה מחדש משמעותית, תיקוני תקלות ושיפורים משמעותיים"
+
+#: main.cpp:381
+#, kde-format
+msgctxt "@info:credit"
+msgid "Carlos Alves"
+msgstr "קרלוס אלביס"
+
+#: main.cpp:384
+#, kde-format
+msgctxt "@info:credit"
+msgid "Tomaz Canabrava"
+msgstr "טומאש קנאבראווה"
+
+#: main.cpp:387
+#, kde-format
+msgctxt "@info:credit"
+msgid "Gustavo Carneiro"
+msgstr "גוסטבו קרניירו"
+
+#: main.cpp:390
+#, kde-format
+msgctxt "@info:credit"
+msgid "Edwin Pujols"
+msgstr "אדווין פוחוס"
+
+#: main.cpp:391 main.cpp:394 main.cpp:396 main.cpp:401 main.cpp:403
+#: main.cpp:404 main.cpp:405
+#, kde-format
+msgctxt "@info:credit"
+msgid "Bug fixes and general improvements"
+msgstr "תיקוני תקלות ושיפורים כלליים"
+
+#: main.cpp:393
+#, kde-format
+msgctxt "@info:credit"
+msgid "Martin T. H. Sandsmark"
+msgstr "מרטין ט. ה. זנדסמרק"
+
+#: main.cpp:396
+#, kde-format
+msgctxt "@info:credit"
+msgid "Nate Graham"
+msgstr "נייט גרהם"
+
+#: main.cpp:397
+#, kde-format
+msgctxt "@info:credit"
+msgid "Mariusz Glebocki"
+msgstr "מריוש גלבוצ׳קי"
+
+#: main.cpp:398
+#, kde-format
+msgctxt "@info:credit"
+msgid "Bug fixes and major improvements"
+msgstr "תיקוני תקלות ושיפורים משמעותיים"
+
+#: main.cpp:400
+#, kde-format
+msgctxt "@info:credit"
+msgid "Thomas Surrel"
+msgstr "תומס סורל"
+
+#: main.cpp:403
+#, kde-format
+msgctxt "@info:credit"
+msgid "Jekyll Wu"
+msgstr "ג׳קיל וו"
+
+#: main.cpp:404
+#, kde-format
+msgctxt "@info:credit"
+msgid "Waldo Bastian"
+msgstr "ולדו בסטיאן"
+
+#: main.cpp:405
+#, kde-format
+msgctxt "@info:credit"
+msgid "Stephan Binner"
+msgstr "סטפן בינר"
+
+#: main.cpp:406
+#, kde-format
+msgctxt "@info:credit"
+msgid "Thomas Dreibholz"
+msgstr "תומס דרייבהולץ"
+
+#: main.cpp:406
+#, kde-format
+msgctxt "@info:credit"
+msgid "General improvements"
+msgstr "שיפורים כלליים"
+
+#: main.cpp:407
+#, kde-format
+msgctxt "@info:credit"
+msgid "Chris Machemer"
+msgstr "Chris Machemer"
+
+#: main.cpp:407 main.cpp:408 main.cpp:435 main.cpp:436 main.cpp:437
+#: main.cpp:438
+#, kde-format
+msgctxt "@info:credit"
+msgid "Bug fixes"
+msgstr "תיקוני תקלות"
+
+#: main.cpp:408
+#, kde-format
+msgctxt "@info:credit"
+msgid "Francesco Cecconi"
+msgstr "Francesco Cecconi"
+
+#: main.cpp:409
+#, kde-format
+msgctxt "@info:credit"
+msgid "Stephan Kulow"
+msgstr "Stephan Kulow"
+
+#: main.cpp:409
+#, kde-format
+msgctxt "@info:credit"
+msgid "Solaris support and history"
+msgstr "תמיכה בסולאריס והיסטוריה"
+
+#: main.cpp:410
+#, kde-format
+msgctxt "@info:credit"
+msgid "Alexander Neundorf"
+msgstr "אלכסנדר נוינדורף"
+
+#: main.cpp:411
+#, kde-format
+msgctxt "@info:credit"
+msgid "Bug fixes and improved startup performance"
+msgstr "תיקוני תקלות ושיפור בביצועי ההפעלה"
+
+#: main.cpp:413
+#, kde-format
+msgctxt "@info:credit"
+msgid "Peter Silva"
+msgstr "פיטר סילבה"
+
+#: main.cpp:413
+#, kde-format
+msgctxt "@info:credit"
+msgid "Marking improvements"
+msgstr "שיפורים בסימניות"
+
+#: main.cpp:414
+#, kde-format
+msgctxt "@info:credit"
+msgid "Lotzi Boloni"
+msgstr "לוצי בולוני"
+
+#: main.cpp:416
+#, kde-format
+msgctxt "@info:credit"
+msgid ""
+"Embedded Konsole\n"
+"Toolbar and session names"
+msgstr ""
+"מסוף מוטמע\n"
+"סרגלי כלים ושמות הפעלות"
+
+#: main.cpp:419
+#, kde-format
+msgctxt "@info:credit"
+msgid "David Faure"
+msgstr "דיויד פור"
+
+#: main.cpp:421
+#, kde-format
+msgctxt "@info:credit"
+msgid ""
+"Embedded Konsole\n"
+"General improvements"
+msgstr ""
+"מסוף מוטמע\n"
+"שיפורים כלליים"
+
+#: main.cpp:424
+#, kde-format
+msgctxt "@info:credit"
+msgid "Antonio Larrosa"
+msgstr "אנטוניו לרוסה"
+
+#: main.cpp:424
+#, kde-format
+msgctxt "@info:credit"
+msgid "Visual effects"
+msgstr "אפקטים חזותיים"
+
+#: main.cpp:425
+#, kde-format
+msgctxt "@info:credit"
+msgid "Matthias Ettrich"
+msgstr "מתיאס אטריק"
+
+#: main.cpp:427
+#, kde-format
+msgctxt "@info:credit"
+msgid ""
+"Code from the kvt project\n"
+"General improvements"
+msgstr ""
+"לקח קוד ממיזם kvt\n"
+"שיפורים כלליים"
+
+#: main.cpp:430
+#, kde-format
+msgctxt "@info:credit"
+msgid "Warwick Allison"
+msgstr "וורוויק אליסון"
+
+#: main.cpp:431
+#, kde-format
+msgctxt "@info:credit"
+msgid "Schema and text selection improvements"
+msgstr "שיפורי ערכות צבע ובחירת טקסט"
+
+#: main.cpp:433
+#, kde-format
+msgctxt "@info:credit"
+msgid "Dan Pilone"
+msgstr "דן פיילון"
+
+#: main.cpp:433
+#, kde-format
+msgctxt "@info:credit"
+msgid "SGI port"
+msgstr "הסבה ל־SGI"
+
+#: main.cpp:434
+#, kde-format
+msgctxt "@info:credit"
+msgid "Kevin Street"
+msgstr "קווין סטריט"
+
+#: main.cpp:434
+#, kde-format
+msgctxt "@info:credit"
+msgid "FreeBSD port"
+msgstr "הסבה ל־FreeBSD"
+
+#: main.cpp:435
+#, kde-format
+msgctxt "@info:credit"
+msgid "Sven Fischer"
+msgstr "סוון פישר"
+
+#: main.cpp:436
+#, kde-format
+msgctxt "@info:credit"
+msgid "Dale M. Flaven"
+msgstr "Dale M. Flaven"
+
+#: main.cpp:437
+#, kde-format
+msgctxt "@info:credit"
+msgid "Martin Jones"
+msgstr "מרטין ג׳ונס"
+
+#: main.cpp:438
+#, kde-format
+msgctxt "@info:credit"
+msgid "Lars Knoll"
+msgstr "Lars Knoll"
+
+#: main.cpp:439
+#, kde-format
+msgctxt "@info:credit"
+msgid "Thanks to many others.\n"
+msgstr "תודה לרבים אחרים.\n"
+
+#: MainWindow.cpp:433
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "&New Tab"
+msgstr "&לשונית חדשה"
+
+#: MainWindow.cpp:443
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "&Clone Tab"
+msgstr "&שכפול לשונית"
+
+#: MainWindow.cpp:450
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "New &Window"
+msgstr "&חלון חדש"
+
+#: MainWindow.cpp:457
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Close Window"
+msgstr "סגירת חלון"
+
+#: MainWindow.cpp:462
+#, kde-format
+msgctxt "@title:menu"
+msgid "&Bookmarks"
+msgstr "&סימניות"
+
+#: MainWindow.cpp:489
+#, kde-format
+msgid "&Window Color Scheme"
+msgstr "&סכמת צבע חלון"
+
+#: MainWindow.cpp:501
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Manage Profiles..."
+msgstr "ניהול פרופילים…"
+
+#: MainWindow.cpp:507
+#, kde-format
+msgctxt "@item"
+msgid "Activate Menu"
+msgstr "הפעלת תפריט"
+
+#: MainWindow.cpp:513
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Save Tab Layout..."
+msgstr "שמירת פריסת הלשוניות…"
+
+#: MainWindow.cpp:522
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Load Tab Layout..."
+msgstr "טעינת פריסת לשוניות…"
+
+#: MainWindow.cpp:874 MainWindow.cpp:891
+#, kde-format
+msgctxt "@info"
+msgid "There is a process running in this window. Do you still want to quit?"
+msgid_plural ""
+"There are %1 processes running in this window. Do you still want to quit?"
+msgstr[0] "יש תהליך רץ בחלון זה. לצאת בכל זאת?"
+msgstr[1] "יש שני תהליכים רצים בחלון זה. לצאת בכל זאת?"
+msgstr[2] "יש %1 תהליכים רצים בחלון זה. לצאת בכל זאת?"
+msgstr[3] "יש %1 תהליכים רצים בחלון זה. לצאת בכל זאת?"
+
+#: MainWindow.cpp:880 MainWindow.cpp:897 MainWindow.cpp:911
+#, kde-format
+msgctxt "@title"
+msgid "Confirm Close"
+msgstr "אישור יציאה"
+
+#: MainWindow.cpp:881 MainWindow.cpp:898 MainWindow.cpp:912
+#, kde-format
+msgctxt "@action:button"
+msgid "Close &Window"
+msgstr "סגירת החלון"
+
+#: MainWindow.cpp:899 MainWindow.cpp:913
+#, kde-format
+msgctxt "@action:button"
+msgid "Close Current &Tab"
+msgstr "סגירת ה&לשונית הנוכחית"
+
+#: MainWindow.cpp:908
+#, kde-format
+msgctxt "@info"
+msgid "There are %1 open terminals in this window. Do you still want to quit?"
+msgstr "יש עוד %1 מסופים פתוחים בחלון הזה. לצאת בכל זאת?"
+
+#: MainWindow.cpp:1062 Part.cpp:317
+#, kde-format
+msgctxt "@title Preferences page name"
+msgid "Profiles"
+msgstr "פרופילים"
+
+#: MainWindow.cpp:1080
+#, kde-format
+msgctxt "@title Preferences page name"
+msgid "General"
+msgstr "כללי"
+
+#: MainWindow.cpp:1092
+#, kde-format
+msgctxt "@title Preferences page name"
+msgid "Memory"
+msgstr "זיכרון"
+
+#: MainWindow.cpp:1098
+#, kde-format
+msgctxt "@title Preferences page name"
+msgid "Tab Bar / Splitters"
+msgstr "סרגל לשוניות / מפצלים"
+
+#: MainWindow.cpp:1103
+#, kde-format
+msgctxt "@title Preferences page name"
+msgid "Temporary Files"
+msgstr "קבצים זמניים"
+
+#: MainWindow.cpp:1108
+#, kde-format
+msgctxt "@title Preferences page name"
+msgid "Thumbnails"
+msgstr "תמונות ממוזערות"
+
+#: Part.cpp:320
+#, kde-format
+msgctxt "@title Preferences page name"
+msgid "Part Info"
+msgstr "מידע על חלוקה"
+
+#. i18n: ectx: property (windowTitle), widget (QWidget, QuickCommandsWidget)
+#: plugins/QuickCommands/qcwidget.ui:14
+#, kde-format
+msgid "Form"
+msgstr "טופס"
+
+#. i18n: ectx: property (text), widget (QLabel, label_2)
+#: plugins/QuickCommands/qcwidget.ui:22
+#, kde-format
+msgid "Shortcut:"
+msgstr "קיצור דרך:"
+
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, filterLine)
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, filterText)
+#: plugins/QuickCommands/qcwidget.ui:52 plugins/SSHManager/sshwidget.ui:33
+#, kde-format
+msgid "Filter..."
+msgstr "סינון…"
+
+#. i18n: ectx: property (text), widget (QCheckBox, invertFilter)
+#. i18n: ectx: property (text), widget (QCheckBox, btnInvertFilter)
+#: plugins/QuickCommands/qcwidget.ui:59 plugins/SSHManager/sshwidget.ui:46
+#, kde-format
+msgid "Invert"
+msgstr "היפוך"
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: plugins/QuickCommands/qcwidget.ui:97
+#, kde-format
+msgid "Title"
+msgstr "כותרת"
+
+#. i18n: ectx: property (text), widget (QLabel, label_3)
+#: plugins/QuickCommands/qcwidget.ui:107
+#, kde-format
+msgid "Tooltip"
+msgstr "חלונית עצה"
+
+#. i18n: ectx: property (text), widget (QLabel, labelGroup)
+#: plugins/QuickCommands/qcwidget.ui:117
+#, kde-format
+msgid "Group"
+msgstr "קבוצה"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, group)
+#. i18n: ectx: property (currentText), widget (QComboBox, folder)
+#: plugins/QuickCommands/qcwidget.ui:128 plugins/SSHManager/sshwidget.ui:213
+#, kde-format
+msgid "Default"
+msgstr "ברירת מחדל"
+
+#. i18n: ectx: attribute (title), widget (QWidget, tab)
+#: plugins/QuickCommands/qcwidget.ui:143
+#, kde-format
+msgid "Command"
+msgstr "פקודה"
+
+#. i18n: ectx: attribute (title), widget (QWidget, tab_2)
+#: plugins/QuickCommands/qcwidget.ui:193
+#: plugins/QuickCommands/quickcommandswidget.cpp:336
+#, kde-format
+msgid "Warnings"
+msgstr "אזהרות"
+
+#. i18n: ectx: property (text), widget (QPushButton, btnRun)
+#: plugins/QuickCommands/qcwidget.ui:236
+#, kde-format
+msgid "Run"
+msgstr "הרצה"
+
+#. i18n: ectx: property (text), widget (QPushButton, btnSave)
+#: plugins/QuickCommands/qcwidget.ui:256
+#, kde-format
+msgid "Save"
+msgstr "שמירה"
+
+#. i18n: ectx: property (text), widget (QPushButton, btnUpdate)
+#: plugins/QuickCommands/qcwidget.ui:266
+#: plugins/SSHManager/sshmanagerpluginwidget.cpp:273
+#, kde-format
+msgid "Update"
+msgstr "עדכון"
+
+#. i18n: ectx: property (text), widget (QPushButton, btnCancel)
+#: plugins/QuickCommands/qcwidget.ui:276 plugins/SSHManager/sshwidget.ui:320
+#, kde-format
+msgid "Cancel"
+msgstr "ביטול"
+
+#: plugins/QuickCommands/quickcommandsplugin.cpp:46
+#: plugins/QuickCommands/quickcommandsplugin.cpp:130
+#, kde-format
+msgid "Quick Commands"
+msgstr "פקודות מהירות"
+
+#: plugins/QuickCommands/quickcommandsplugin.cpp:75
+#, kde-format
+msgid "Show Quick Access"
+msgstr "הצגת גישה מהירה"
+
+#: plugins/QuickCommands/quickcommandsplugin.cpp:123
+#, kde-format
+msgid "No quick commands found. You can add one on Plugins -> Quick Commands"
+msgstr "לא נמצאו פקודות מהירות. ניתן להוסיף תחת תוספים -> פקודות מהירות"
+
+#: plugins/QuickCommands/quickcommandsplugin.cpp:124
+#, kde-format
+msgid "Plugins - Quick Commands"
+msgstr "תוספים - פקודות מהירות"
+
+#: plugins/QuickCommands/quickcommandsplugin.cpp:140
+#, kde-format
+msgid "Show Quick Commands"
+msgstr "הצגת פקודות מהירות"
+
+#: plugins/QuickCommands/quickcommandswidget.cpp:166
+#: plugins/QuickCommands/quickcommandswidget.cpp:177
+#, kde-format
+msgid "A duplicate item exists"
+msgstr "יש פריט כפול"
+
+#: plugins/QuickCommands/quickcommandswidget.cpp:183
+#, kde-format
+msgid "Please fix all the warnings before trying to run this script"
+msgstr "נא לתקן את כל האזהרה בטרם הרצת הסקריפט הזה"
+
+#: plugins/QuickCommands/quickcommandswidget.cpp:215
+#, kde-format
+msgid "There are some errors on the script, do you really want to run it?"
+msgstr "יש מספר שגיאות בסקריפט, להריץ אותו בכל זאת?"
+
+#: plugins/QuickCommands/quickcommandswidget.cpp:216
+#, kde-format
+msgid "Shell Errors"
+msgstr "שגיאות מעטפת"
+
+#: plugins/QuickCommands/quickcommandswidget.cpp:217
+#, kde-format
+msgctxt "@action:button"
+msgid "Run"
+msgstr "הרצה"
+
+#: plugins/QuickCommands/quickcommandswidget.cpp:242
+#, kde-format
+msgid ""
+"You are about to delete the group %1,\n"
+" with multiple configurations, are you sure?"
+msgstr ""
+"פעולה זו תמחק את הקבוצה %1,\n"
+" על מגוון ההגדרות שלה, להמשיך?"
+
+#: plugins/QuickCommands/quickcommandswidget.cpp:243
+#: plugins/SSHManager/sshmanagerpluginwidget.cpp:223
+#, kde-format
+msgid "You are about to delete %1, are you sure?"
+msgstr "פעולה זו תמחק את %1, להמשיך?"
+
+#: plugins/QuickCommands/quickcommandswidget.cpp:246
+#, kde-format
+msgid "Delete Quick Commands Configurations"
+msgstr "מחיקת הגדרות פעולות מהירות"
+
+#: plugins/QuickCommands/quickcommandswidget.cpp:276
+#, kde-format
+msgid "Title can not be empty or blank"
+msgstr "הכותרת לא יכולה להיות ריקה או נטולת תוכן"
+
+#: plugins/QuickCommands/quickcommandswidget.cpp:280
+#, kde-format
+msgid "Command can not be empty"
+msgstr "הפקודה לא יכולה להיות ריקה"
+
+#: plugins/QuickCommands/quickcommandswidget.cpp:300
+#, kde-format
+msgid "Rename"
+msgstr "שינוי שם"
+
+#: plugins/QuickCommands/quickcommandswidget.cpp:304
+#, kde-format
+msgid "Delete"
+msgstr "מחיקה"
+
+#: plugins/QuickCommands/quickcommandswidget.cpp:338
+#, kde-format
+msgid "Warnings (*)"
+msgstr "אזהרות (*)"
+
+#: plugins/SSHManager/sshmanagermodel.cpp:46
+#, kde-format
+msgctxt "@item:inlistbox Hosts from ssh/config file"
+msgid "SSH Config"
+msgstr "הגדרות SSH"
+
+#: plugins/SSHManager/sshmanagermodel.cpp:49
+#, kde-format
+msgctxt "@item:inlistbox The default list of ssh hosts"
+msgid "Default"
+msgstr "ברירת מחדל"
+
+#: plugins/SSHManager/sshmanagermodel.cpp:75
+#, kde-format
+msgid "%1 is a folder for SSH entries"
+msgstr "%1 היא תיקייה לרשומות SSH"
+
+#: plugins/SSHManager/sshmanagermodel.cpp:79
+#: plugins/SSHManager/sshmanagermodel.cpp:322
+#: plugins/SSHManager/sshmanagermodel.cpp:391
+#: plugins/SSHManager/sshmanagermodel.cpp:424
+#: plugins/SSHManager/sshmanagerpluginwidget.cpp:94
+#: plugins/SSHManager/sshmanagerpluginwidget.cpp:429
+#, kde-format
+msgid "SSH Config"
+msgstr "הגדרות SSH"
+
+#: plugins/SSHManager/sshmanagermodel.cpp:103
+#, kde-format
+msgid "Host: %1"
+msgstr "מארח: ‎‎%1"
+
+#: plugins/SSHManager/sshmanagerplugin.cpp:66
+#, kde-format
+msgid "SSH Manager"
+msgstr "מנהל SSH"
+
+#: plugins/SSHManager/sshmanagerplugin.cpp:96
+#, kde-format
+msgid "Show SSH Manager"
+msgstr "הצגת מנהל SSH"
+
+#: plugins/SSHManager/sshmanagerplugin.cpp:115
+#, kde-format
+msgid "Show Quick Access for SSH Actions"
+msgstr "הצגת גישה מהירה לפעולות SSH"
+
+#: plugins/SSHManager/sshmanagerplugin.cpp:146
+#, kde-format
+msgid "No saved SSH config found. You can add one on Plugins -> SSH Manager"
+msgstr "לא נמצאו הגדרות SSH שמורות. אפשר להוסיף כאלה תחת תוספים -> מנהל SSH"
+
+#: plugins/SSHManager/sshmanagerplugin.cpp:147
+#, kde-format
+msgid "Plugins - SSH Manager"
+msgstr "תוספים - מנהל SSH"
+
+#: plugins/SSHManager/sshmanagerplugin.cpp:153
+#, kde-format
+msgid "SSH Entries"
+msgstr "רשומות SSH"
+
+#: plugins/SSHManager/sshmanagerplugin.cpp:182
+#, kde-format
+msgid ""
+"Could not get the process name, assume that we can't request a connection"
+msgstr "לא ניתן לאתר את קובץ התהליך, אפשר להניח שאי אפשר לבקש חיבור"
+
+#: plugins/SSHManager/sshmanagerplugin.cpp:182
+#: plugins/SSHManager/sshmanagerplugin.cpp:194
+#, kde-format
+msgid "Error issuing SSH Command"
+msgstr "שגיאה בהרצת פקודת SSH"
+
+#: plugins/SSHManager/sshmanagerplugin.cpp:194
+#, kde-format
+msgid ""
+"Can't issue SSH command outside the shell application (eg, bash, zsh, sh)"
+msgstr "אי אפשר להריץ פקודות SSH מחוץ ליישומי מסוף (למשל: bash,‏ zsh,‏ sh)"
+
+#. i18n: ectx: property (text), widget (QLabel, label_4)
+#: plugins/SSHManager/sshmanagerpluginwidget.cpp:70
+#: plugins/SSHManager/sshwidget.ui:133
+#, kde-format
+msgid "SSH Key"
+msgstr "מפתח SSH"
+
+#: plugins/SSHManager/sshmanagerpluginwidget.cpp:109
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Delete"
+msgstr "מחיקה"
+
+#: plugins/SSHManager/sshmanagerpluginwidget.cpp:151
+#, kde-format
+msgid "Don't Change"
+msgstr "לא לשנות"
+
+#: plugins/SSHManager/sshmanagerpluginwidget.cpp:222
+#, kde-format
+msgid ""
+"You are about to delete the folder %1,\n"
+" with multiple SSH Configurations, are you sure?"
+msgstr ""
+"פעולה זו תמחק את התיקייה %1,\n"
+" על מגוון הגדרות ה־SSH שבה, להמשיך?"
+
+#: plugins/SSHManager/sshmanagerpluginwidget.cpp:230
+#, kde-format
+msgctxt "@title:window"
+msgid "Delete SSH Configurations"
+msgstr "מחיקת הגדרות SSH"
+
+#: plugins/SSHManager/sshmanagerpluginwidget.cpp:284
+#, kde-format
+msgid "Imported SSH Profile <br/> Some settings are read only."
+msgstr "יובא פרופיל SSH <br/> חלק מההגדרות הן לקריאה בלבד."
+
+#: plugins/SSHManager/sshmanagerpluginwidget.cpp:379
+#, kde-format
+msgid "Missing Hostname"
+msgstr "שם מארח חסר"
+
+#: plugins/SSHManager/sshmanagerpluginwidget.cpp:384
+#, kde-format
+msgid "Missing Name"
+msgstr "שם חסר"
+
+#: plugins/SSHManager/sshmanagerpluginwidget.cpp:391
+#, kde-format
+msgid "If Use Ssh Config is set, do not specify sshkey or username."
+msgstr "אם הוגדר שימוש בהגדרות Ssh, לא לציין מפתח ssh או שם משתמש."
+
+#: plugins/SSHManager/sshmanagerpluginwidget.cpp:396
+#, kde-format
+msgid "At least Username or SSHKey must be set"
+msgstr "יש להגדיר לפחות שם משתמש או מפתח SSH"
+
+#: plugins/SSHManager/sshmanagerpluginwidget.cpp:402
+#, kde-format
+msgid "Missing Folder"
+msgstr "תיקייה חסרה"
+
+#: plugins/SSHManager/sshmanagerpluginwidget.cpp:407
+#, kde-format
+msgid "An SSH session must have a profile"
+msgstr "להפעלת SSH חייב להיות פרופיל"
+
+#: plugins/SSHManager/sshmanagerpluginwidget.cpp:431
+#, kde-format
+msgid "Cannot delete this folder"
+msgstr "אי אפשר למחוק את התיקייה הזאת"
+
+#: plugins/SSHManager/sshmanagerpluginwidget.cpp:434
+#, kde-format
+msgid "Delete folder and all of its contents"
+msgstr "מחיקת התיקייה על תוכנה"
+
+#: plugins/SSHManager/sshmanagerpluginwidget.cpp:438
+#, kde-format
+msgid "Double click to change the folder name."
+msgstr "לחיצה כפולה תשנה את שם התיקייה."
+
+#: plugins/SSHManager/sshmanagerpluginwidget.cpp:445
+#, kde-format
+msgid "You can't delete an automatically added entry."
+msgstr "אי אפשר למחוק רשומה שנוספה אוטומטית."
+
+#: plugins/SSHManager/sshmanagerpluginwidget.cpp:445
+#, kde-format
+msgid "Delete selected entry"
+msgstr "מחיקת הרשומה הנבחרת"
+
+#. i18n: ectx: property (text), widget (QLabel, label_6)
+#: plugins/SSHManager/sshwidget.ui:19
+#, kde-format
+msgid "Shortcut"
+msgstr "קיצור דרך"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, btnInvertFilter)
+#: plugins/SSHManager/sshwidget.ui:43
+#, kde-format
+msgid "Show entries that don't match the filter"
+msgstr "הצגת רשומות שאינן תואמות למסנן"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, btnManageProfile)
+#: plugins/SSHManager/sshwidget.ui:57
+#, kde-format
+msgid "Change profile on connect/disconnect"
+msgstr "החלפת פרופיל עם חיבור/ניתוק"
+
+#. i18n: ectx: property (text), widget (QCheckBox, btnManageProfile)
+#: plugins/SSHManager/sshwidget.ui:60
+#, kde-format
+msgid "Manage profile"
+msgstr "ניהול פרופיל"
+
+#. i18n: ectx: property (text), widget (QLabel, label_2)
+#: plugins/SSHManager/sshwidget.ui:82
+#, kde-format
+msgid "Identifier"
+msgstr "מזהה"
+
+#. i18n: ectx: property (toolTip), widget (QLineEdit, name)
+#: plugins/SSHManager/sshwidget.ui:89
+#, kde-format
+msgid "A name for this ssh entry"
+msgstr "שם לרשומת ה־ssh הזאת"
+
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, name)
+#: plugins/SSHManager/sshwidget.ui:92
+#, kde-format
+msgid "The name of this entry on the list"
+msgstr "שם הרשומה הזאת ברשימה"
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: plugins/SSHManager/sshwidget.ui:99
+#, kde-format
+msgid "SSH Hostname"
+msgstr "שם מארח SSH"
+
+#. i18n: ectx: property (toolTip), widget (QLineEdit, hostname)
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, hostname)
+#: plugins/SSHManager/sshwidget.ui:106 plugins/SSHManager/sshwidget.ui:109
+#, kde-format
+msgid "The hostname of the server"
+msgstr "שם המארח של השרת"
+
+#. i18n: ectx: property (text), widget (QLabel, label_3)
+#: plugins/SSHManager/sshwidget.ui:116
+#, kde-format
+msgid "Port"
+msgstr "פתחה"
+
+#. i18n: ectx: property (toolTip), widget (QLineEdit, port)
+#: plugins/SSHManager/sshwidget.ui:123
+#, kde-format
+msgid "The port of the server, 22 is the default for ssh connections"
+msgstr "הפתחה של השרת, ברירת המחדל לחיבורי ssh היא 22"
+
+#. i18n: ectx: property (text), widget (QLineEdit, port)
+#: plugins/SSHManager/sshwidget.ui:126
+#, kde-format
+msgid "22"
+msgstr "22"
+
+#. i18n: ectx: property (toolTip), widget (QLineEdit, sshkey)
+#: plugins/SSHManager/sshwidget.ui:142
+#, kde-format
+msgid "The private key to be used for this connection"
+msgstr "המפתח הפרטי לשימוש לחיבור הזה"
+
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, sshkey)
+#: plugins/SSHManager/sshwidget.ui:148
+#, kde-format
+msgid "The private key"
+msgstr "המפתח הפרטי"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, useSshConfig)
+#: plugins/SSHManager/sshwidget.ui:167
+#, kde-format
+msgid ""
+"If this is set, we don't rely on the SSH key set above, but on the "
+"configuration on ~/.ssh/config"
+msgstr ""
+"אם זה מוגדר, לא נסמוך על מפתח ה־SSH שמוגדר להלן אלא על ההגדרה שב־‎~/.ssh/"
+"config"
+
+#. i18n: ectx: property (text), widget (QCheckBox, useSshConfig)
+#: plugins/SSHManager/sshwidget.ui:170
+#, kde-format
+msgid "Use ~/.ssh/config for key"
+msgstr "להשתמש ב־‎~/.ssh/config לאיתור מפתח"
+
+#. i18n: ectx: property (text), widget (QLabel, label_7)
+#: plugins/SSHManager/sshwidget.ui:177
+#, kde-format
+msgid "Username"
+msgstr "שם משתמש"
+
+#. i18n: ectx: property (toolTip), widget (QLineEdit, username)
+#: plugins/SSHManager/sshwidget.ui:184
+#, kde-format
+msgid "The username for the connection"
+msgstr "שם המשתמש של החיבור"
+
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, username)
+#: plugins/SSHManager/sshwidget.ui:187
+#, kde-format
+msgid "Your username"
+msgstr "שם המשתמש שלך"
+
+#. i18n: ectx: property (text), widget (QLabel, folderLabel)
+#: plugins/SSHManager/sshwidget.ui:194
+#, kde-format
+msgid "Folder"
+msgstr "תיקייה"
+
+#. i18n: ectx: property (toolTip), widget (QComboBox, folder)
+#: plugins/SSHManager/sshwidget.ui:207
+#, kde-format
+msgid "For organizational purposes, this entry will be inside of this folder."
+msgstr "מטעמי סדר וארגון, הרשומה הזאת תהיה בתוך התיקייה הזאת."
+
+#. i18n: ectx: property (text), widget (QLabel, label_5)
+#: plugins/SSHManager/sshwidget.ui:220
+#, kde-format
+msgid "Profile"
+msgstr "פרופיל"
+
+#. i18n: ectx: property (toolTip), widget (QComboBox, profile)
+#: plugins/SSHManager/sshwidget.ui:233
+#, kde-format
+msgid "The profile to be active when the ssh session starts"
+msgstr "הפרופיל צריך להיות פעיל כאשר הפעלת ה־ssh מתחילה"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, newSSHConfig)
+#: plugins/SSHManager/sshwidget.ui:271
+#, kde-format
+msgid "Add a new SSH Entry"
+msgstr "הוספת רשומת SSH חדשה"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, btnDelete)
+#: plugins/SSHManager/sshwidget.ui:284
+#, kde-format
+msgid "Delete selected SSH entry"
+msgstr "מחיקת רשומת ה־SSH הנבחרת"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, btnEdit)
+#: plugins/SSHManager/sshwidget.ui:297
+#, kde-format
+msgid "Edit selected entry"
+msgstr "עריכת הרשומה הנבחרת"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, btnAdd)
+#: plugins/SSHManager/sshwidget.ui:307
+#, kde-format
+msgid "Add new SSH Configuration"
+msgstr "הוספת הגדרת SSH חדשה"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, btnCancel)
+#: plugins/SSHManager/sshwidget.ui:317
+#, kde-format
+msgid "Cancel Add or Edit"
+msgstr "ביטול הוספה או עריכה"
+
+#: pluginsystem/PluginManager.cpp:70
+#, kde-format
+msgid "No plugins available"
+msgstr "אין תוספים זמינים"
+
+#. i18n: ectx: property (windowTitle), widget (QWidget, PrintOptions)
+#. i18n: ectx: property (title), widget (QGroupBox, OutputOptions)
+#: PrintOptions.ui:14 PrintOptions.ui:20
+#, kde-format
+msgid "Output Options"
+msgstr "אפשרויות פלט"
+
+#. i18n: ectx: property (text), widget (QCheckBox, printerFriendly)
+#. i18n: ectx: label, entry (PrinterFriendly), group (PrintOptions)
+#: PrintOptions.ui:39 settings/konsole.kcfg:210
+#, kde-format
+msgid "Printer &friendly mode (black text, no background)"
+msgstr "הדפסה י&דידותית (טקסט שחור, ללא רקע)"
+
+#. i18n: ectx: property (text), widget (QCheckBox, scaleOutput)
+#. i18n: ectx: label, entry (ScaleOutput), group (PrintOptions)
+#: PrintOptions.ui:46 settings/konsole.kcfg:214
+#, kde-format
+msgid "&Scale output"
+msgstr "התאמת פלט ל&קנה מידה"
+
+#: profile/Profile.cpp:287
+#, kde-format
+msgctxt "Name of the built-in profile"
+msgid "Built-in"
+msgstr "מובנה"
+
+#: profile/ProfileList.cpp:37 widgets/EditProfileDialog.cpp:579
+#, kde-format
+msgid "Default profile"
+msgstr "פרופיל ברירת־המחדל"
+
+#: profile/ProfileManager.cpp:349
+#, kde-format
+msgctxt "New profile name, %1 is a number"
+msgid "Profile %1"
+msgstr "פרופיל %1"
+
+#: profile/ProfileManager.cpp:363
+#, kde-format
+msgid "Konsole does not have permission to save this profile to %1"
+msgstr "ל־Konsole אין הרשאה לשמור את הפרופיל הזה אל %1"
+
+#: profile/ProfileModel.cpp:57
+#, kde-format
+msgctxt "@title:column Profile name"
+msgid "Name"
+msgstr "שם"
+
+#: profile/ProfileModel.cpp:59
+#, kde-format
+msgctxt "@title:column Profile keyboard shortcut"
+msgid "Shortcut"
+msgstr "קיצור דרך"
+
+#: profile/ProfileModel.cpp:82
+#, kde-format
+msgctxt ""
+"@label:textbox added to the name of the built-in profile, to point out it's "
+"read-only"
+msgid " [Read-only]"
+msgstr " [לקריאה בלבד]"
+
+#: profile/ProfileModel.cpp:86
+#, kde-format
+msgctxt "@label:textbox added to the name of the current default profile"
+msgid " [Default]"
+msgstr " [ברירת מחדל]"
+
+#: profile/ProfileModel.cpp:91
+#, kde-format
+msgctxt "@label:textbox added to profile name when used for light system theme"
+msgid " [Light]"
+msgstr " [בהיר]"
+
+#: profile/ProfileModel.cpp:94
+#, kde-format
+msgctxt "@label:textbox added to profile name when used for dark system theme"
+msgid " [Dark]"
+msgstr " [כהה]"
+
+#: profile/ProfileModel.cpp:110
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Built-in profile is always available"
+msgstr "הפרופיל המובנה תמיד זמין"
+
+#: profile/ProfileModel.cpp:122
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Double click to change shortcut"
+msgstr "לחיצה כפולה כדי לשנות את הקיצור"
+
+#: RenameTabDialog.cpp:25
+#, kde-format
+msgid "Tab Properties"
+msgstr "מאפייני לשונית"
+
+#: SaveHistoryAutoTask.cpp:63 SaveHistoryTask.cpp:71
+#, kde-format
+msgid "Save Output From %1"
+msgstr "שמירת הפלט של %1"
+
+#: SaveHistoryAutoTask.cpp:75 SaveHistoryTask.cpp:83
+#, kde-format
+msgid "%1 is an invalid URL, the output could not be saved."
+msgstr "הכתובת %1 שגויה, אי אפשר לשמור את הפלט."
+
+#: SaveHistoryAutoTask.cpp:88
+#, kde-format
+msgid "Failed to create autosave file at %1."
+msgstr "יצירת קובץ שמירה אוטומטית ב־%1 נכשלה."
+
+#: SaveHistoryAutoTask.cpp:102
+#, kde-format
+msgid "Stopping autosave due to switching of screens."
+msgstr "שמירה אוטומטית נעצרת עקב החלפת מסכים."
+
+#: SaveHistoryAutoTask.cpp:116
+#, kde-format
+msgid ""
+"Autosave file has been modified externally, preventing further autosaves."
+msgstr "קובץ השמירה האוטומטית השתנה מבחוץ, מה שמונע שמירות אוטומטיות נוספות"
+
+#: SaveHistoryAutoTask.cpp:173
+#, kde-format
+msgid "Failed to update autosave state on output changes."
+msgstr "עדכון מצב השמירה האוטומטית עם שינויי הפלט נכשל."
+
+#: SaveHistoryTask.cpp:174
+#, kde-format
+msgid ""
+"A problem occurred when saving the output.\n"
+"%1"
+msgstr ""
+"אירעה שגיאה בשמירת הפלט.\n"
+"%1"
+
+#: schemas.cpp:1
+#, kde-format
+msgid "Black on Light Yellow"
+msgstr "שחור על גבי צהוב בהיר"
+
+#: schemas.cpp:2
+#, kde-format
+msgid "Black on Random Light"
+msgstr "שחור על גבי צבע בהיר אקראי"
+
+#: schemas.cpp:3
+#, kde-format
+msgid "Black on White"
+msgstr "שחור על גבי לבן"
+
+#: schemas.cpp:4
+#, kde-format
+msgid "Blue on Black"
+msgstr "כחול על גבי שחור"
+
+#: schemas.cpp:5
+#, kde-format
+msgid "Breeze"
+msgstr "בריזה"
+
+#: schemas.cpp:6
+#, kde-format
+msgid "Campbell"
+msgstr "קמפבל"
+
+#: schemas.cpp:7
+#, kde-format
+msgid "Dark Pastels"
+msgstr "פסטלים כהים"
+
+#: schemas.cpp:8
+#, kde-format
+msgid "Green on Black"
+msgstr "ירוק על גבי שחור"
+
+#: schemas.cpp:9
+#, kde-format
+msgid "Linux Colors"
+msgstr "צבעי לינוקס"
+
+#: schemas.cpp:10
+#, kde-format
+msgid "Red on Black"
+msgstr "אדום על גבי שחור"
+
+#: schemas.cpp:11
+#, kde-format
+msgid "Solarized"
+msgstr "זורח"
+
+#: schemas.cpp:12
+#, kde-format
+msgid "Solarized Light"
+msgstr "זורח בהיר"
+
+#: schemas.cpp:13
+#, kde-format
+msgid "White on Black"
+msgstr "לבן על גבי שחור"
+
+#: schemas.cpp:14
+#, kde-format
+msgid "Default (XFree 4)"
+msgstr "ברירת מחדל (XFree 4)"
+
+#: schemas.cpp:15
+#, kde-format
+msgid "Linux console"
+msgstr "מסוף לינוקס"
+
+#: schemas.cpp:16
+#, kde-format
+msgid "macOS"
+msgstr "macOS"
+
+#: schemas.cpp:17
+#, kde-format
+msgid "Solaris console"
+msgstr "מסוף Solaris"
+
+#: searchtabs/SearchTabs.cpp:127
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Search..."
+msgstr "חיפוש…"
+
+#: searchtabs/SearchTabs.cpp:128
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Enter a tab name to search for here"
+msgstr "נא למלא כאן שם לשונית לחיפוש"
+
+#: session/Session.cpp:133
+#, kde-format
+msgid "Bell in '%1' (Session '%2')"
+msgstr "פעמון אצל ‚%1’ (הפעלה ‚%2’)"
+
+#: session/Session.cpp:436
+#, kde-format
+msgid "Could not find binary: "
+msgstr "אי אפשר למצוא את קובץ ההפעלה: "
+
+#: session/Session.cpp:445
+#, kde-format
+msgctxt "@info:shell Alert the user with red color text"
+msgid "Warning: "
+msgstr "אזהרה: "
+
+#: session/Session.cpp:540
+#, kde-format
+msgid "Could not find an interactive shell to start."
+msgstr "אי אפשר למצוא מעטפת אינטראקטיבית להפעלה."
+
+#: session/Session.cpp:546 session/Session.cpp:549
+#, kde-format
+msgid ""
+"Could not find '%1', starting '%2' instead.  Please check your profile "
+"settings."
+msgstr ""
+"אי אפשר למצוא את ‚%1’,‏ ‚%2’ מופעל במקום. נא לבדוק את הגדרות הפרופיל שלך."
+
+#: session/Session.cpp:642
+#, kde-format
+msgid "Could not start program '%1' with arguments '%2'."
+msgstr "אי אפשר להפעיל את התוכנית ‚%1’ עם הארגונמטים ‚%2’."
+
+#: session/Session.cpp:818
+#, kde-format
+msgid "Silence in '%1' (Session '%2')"
+msgstr "שקט אצל ‚%1’ (הפעלה ‚%2’)"
+
+#: session/Session.cpp:819 session/Session.cpp:2355
+#: session/SessionController.cpp:381 session/SessionController.cpp:1927
+#: terminalDisplay/TerminalBell.cpp:44 Vt102Emulation.cpp:1280
+#: Vt102Emulation.cpp:1535
+#, kde-format
+msgid "Show session"
+msgstr "הצגת הפעלה"
+
+#: session/Session.cpp:1135
+#, kde-format
+msgctxt "@info:shell This session is done"
+msgid "Finished"
+msgstr "הסתיים"
+
+#: session/Session.cpp:1149 session/Session.cpp:1165
+#, kde-format
+msgid "Program '%1' crashed."
+msgstr "התוכנית ‚%1’ קרסה."
+
+#: session/Session.cpp:1151
+#, kde-format
+msgid "Program '%1' exited with status %2."
+msgstr "התוכנית ‚%1’ נסגרה עם מצב %2."
+
+#: session/Session.cpp:1714
+#, kde-format
+msgid "ZModem Progress"
+msgstr "תהליך ZModem"
+
+#: session/Session.cpp:2354
+#, kde-format
+msgid "Activity in '%1' (Session '%2')"
+msgstr "פעילות אצל ‚%1’ (הפעלה ‚%2’)"
+
+#: session/Session.cpp:2637
+#, kde-format
+msgid "Security sensitive DBus API is disabled in the settings."
+msgstr "ה־API של D-Bus שרגיש מבחינת אבטחת מידע מושבת בהגדרות."
+
+#: session/SessionController.cpp:143
+#, kde-format
+msgid "Konsole"
+msgstr "Konsole"
+
+#: session/SessionController.cpp:380
+#, kde-format
+msgid "The process '%1' has finished running in session '%2'"
+msgstr "התהליך ‚%1’ סיים לרוץ בהפעלה ‚%2’"
+
+#: session/SessionController.cpp:463
+#, kde-format
+msgid "Konsole does not know how to open the bookmark: "
+msgstr "Konsole לא יודע איך לפתוח את הסימנייה: "
+
+#: session/SessionController.cpp:541
+#, kde-format
+msgid "Search for '%1' with"
+msgstr "חיפוש אחר ‚%1’ בעזרת"
+
+#: session/SessionController.cpp:557
+#, kde-format
+msgid "Configure Web Shortcuts..."
+msgstr "הגדרת קיצורי רשת…"
+
+#: session/SessionController.cpp:668
+#, kde-format
+msgid "&Close Session"
+msgstr "&סגירת הפעלה"
+
+#: session/SessionController.cpp:675
+#, kde-format
+msgid "Open File Manager"
+msgstr "פתיחת מנהל הקבצים"
+
+#: session/SessionController.cpp:690
+#, kde-format
+msgid "Copy"
+msgstr "העתקה"
+
+#: session/SessionController.cpp:698
+#, kde-format
+msgid "Split View Left-Right"
+msgstr "פיצול התצוגה ימין/שמאל"
+
+#: session/SessionController.cpp:703
+#, kde-format
+msgid "Split View Top-Bottom"
+msgstr "פיצול התצוגה מעלה/מטה"
+
+#: session/SessionController.cpp:707
+#, kde-format
+msgid "Copy except prompts"
+msgstr "העתקה בלי הקידומות"
+
+#: session/SessionController.cpp:713
+#, kde-format
+msgid "Copy user input"
+msgstr "העתק קלט משתמש"
+
+#: session/SessionController.cpp:719
+#, kde-format
+msgid "Copy command output"
+msgstr "העתקת פלט פקודה"
+
+#: session/SessionController.cpp:734
+#, kde-format
+msgid "Paste Selection"
+msgstr "הדבקת בחירה"
+
+#: session/SessionController.cpp:741
+#, kde-format
+msgid "Web Search"
+msgstr "חיפוש ברשת"
+
+#: session/SessionController.cpp:747
+#, kde-format
+msgid "&Select All"
+msgstr "בחירה בה&כול"
+
+#: session/SessionController.cpp:751
+#, kde-format
+msgid "Select &Mode"
+msgstr "מצב &בחירה"
+
+#: session/SessionController.cpp:756
+#, kde-format
+msgid "Select &Line"
+msgstr "בחירה ב&שורה"
+
+#: session/SessionController.cpp:759
+#, kde-format
+msgid "Save Output &As..."
+msgstr "שמירת הפלט &בתור…"
+
+#: session/SessionController.cpp:765
+#, kde-format
+msgid "Auto Save Output As..."
+msgstr "שמירת הפלט אוטומטית בתור…"
+
+#: session/SessionController.cpp:769
+#, kde-format
+msgid "Stop Auto Save"
+msgstr "עצירת שמירה אוטומטית"
+
+#: session/SessionController.cpp:773
+#, kde-format
+msgid "&Print Screen..."
+msgstr "ה&דפסת מסך…"
+
+#: session/SessionController.cpp:777
+#, kde-format
+msgid "Adjust Scrollback..."
+msgstr "כיוון היסטוריית גלילה…"
+
+#: session/SessionController.cpp:781
+#, kde-format
+msgid "Clear Scrollback"
+msgstr "פינוי היסטוריית גלילה"
+
+#: session/SessionController.cpp:785
+#, kde-format
+msgid "Clear Scrollback and Reset"
+msgstr "פינוי היסטוריית הגלילה ואיפוס"
+
+#: session/SessionController.cpp:796
+#, kde-format
+msgid "Next Profile"
+msgstr "הפרופיל הבא"
+
+#: session/SessionController.cpp:801
+#, kde-format
+msgid "Previous Profile"
+msgstr "הפרופיל הקודם"
+
+#: session/SessionController.cpp:804
+#, kde-format
+msgid "Switch Profile"
+msgstr "החלפת פרופיל"
+
+#: session/SessionController.cpp:829
+#, kde-format
+msgid "Set &Encoding"
+msgstr "הגדרת &קידוד"
+
+#: session/SessionController.cpp:849
+#, kde-format
+msgctxt "@item:inmenu Allows terminal applications to request mouse tracking"
+msgid "Allow Mouse Tracking"
+msgstr "לאפשר מעקב אחרי העכבר"
+
+#: session/SessionController.cpp:858
+#, kde-format
+msgctxt "@item:inmenu A read only (locked) session"
+msgid "Read-Only"
+msgstr "קריאה בלבד"
+
+#: session/SessionController.cpp:869
+#, kde-format
+msgid "&Configure or Rename Tab..."
+msgstr "ה&גדרה או שינוי שם לשונית…"
+
+#: session/SessionController.cpp:875
+#, kde-format
+msgid "&All Tabs in Current Window"
+msgstr "&כל הלשוניות בחלון הנוכחי"
+
+#: session/SessionController.cpp:882
+#, kde-format
+msgid "&Select Tabs..."
+msgstr "&בחירת לשוניות…"
+
+#: session/SessionController.cpp:888
+#, kde-format
+msgctxt "@action:inmenu Do not select any tabs"
+msgid "&None"
+msgstr "&כלום"
+
+#: session/SessionController.cpp:896
+#, kde-format
+msgid "Copy Input To"
+msgstr "העתקת קלט אל"
+
+#: session/SessionController.cpp:904
+#, kde-format
+msgid "&ZModem Upload..."
+msgstr "ה&עלאת ZModem…"
+
+#: session/SessionController.cpp:909
+#, kde-format
+msgid "One-Shot Monitors"
+msgstr "צגים להתראה חד־פעמית"
+
+#: session/SessionController.cpp:914
+#, kde-format
+msgid "Monitor for &Prompt"
+msgstr "מעקב אחר המ&תנה לקלט"
+
+#: session/SessionController.cpp:921
+#, kde-format
+msgid "Monitor for &Activity"
+msgstr "מ&עקב אחר פעילות"
+
+#: session/SessionController.cpp:927
+#, kde-format
+msgid "Monitor for &Silence"
+msgstr "מעקב אחר &חוסר פעילות"
+
+#: session/SessionController.cpp:933
+#, kde-format
+msgid "Monitor for Process Finishing"
+msgstr "מעקב אחר סיום תהליך"
+
+#: session/SessionController.cpp:940
+#, kde-format
+msgid "Enlarge Font"
+msgstr "הגדלת כתב"
+
+#: session/SessionController.cpp:948
+#, kde-format
+msgid "Shrink Font"
+msgstr "הקטנת כתב"
+
+#: session/SessionController.cpp:953
+#, kde-format
+msgid "Reset Font Size"
+msgstr "איפוס גודל כתב"
+
+#: session/SessionController.cpp:959
+#, kde-format
+msgid "Send Signal"
+msgstr "שליחת אות"
+
+#: session/SessionController.cpp:963
+#, kde-format
+msgid "&Suspend Task"
+msgstr "ה&שהיית משימה"
+
+#: session/SessionController.cpp:968
+#, kde-format
+msgid "&Continue Task"
+msgstr "ה&משך משימה"
+
+#: session/SessionController.cpp:973
+#, kde-format
+msgid "&Hangup"
+msgstr "&ניתוק"
+
+#: session/SessionController.cpp:978
+#, kde-format
+msgid "&Interrupt Task"
+msgstr "&עצירת משימה"
+
+#: session/SessionController.cpp:983
+#, kde-format
+msgid "&Terminate Task"
+msgstr "&סיום משימה"
+
+#: session/SessionController.cpp:988
+#, kde-format
+msgid "&Kill Task"
+msgstr "&חיסול משימה"
+
+#: session/SessionController.cpp:993
+#, kde-format
+msgid "User Signal &1"
+msgstr "איתות משתמש &1"
+
+#: session/SessionController.cpp:998
+#, kde-format
+msgid "User Signal &2"
+msgstr "איתות משתמש &2"
+
+#: session/SessionController.cpp:1016
+#, kde-format
+msgid "Create New Profile..."
+msgstr "יצירת פרופיל חדש…"
+
+#: session/SessionController.cpp:1018
+#, kde-format
+msgid "Edit Current Profile..."
+msgstr "עריכת פרופיל נוכחי…"
+
+#: session/SessionController.cpp:1158
+#, kde-format
+msgid ""
+"A program is currently running in this session.  Are you sure you want to "
+"close it?"
+msgstr "יש תוכנית שרצה בהפעלה הזאת. לסגור אותה?"
+
+#: session/SessionController.cpp:1162
+#, kde-format
+msgid ""
+"The program '%1' is currently running in this session.  Are you sure you "
+"want to close it?"
+msgstr "התוכנית ‚%1’ רצה בהפעלה הזאת. לסגור אותה?"
+
+#: session/SessionController.cpp:1169 session/SessionController.cpp:1204
+#, kde-format
+msgid "Confirm Close"
+msgstr "אישור יציאה"
+
+#: session/SessionController.cpp:1170
+#, kde-format
+msgctxt "@action:button"
+msgid "Close Program"
+msgstr "סגירת התוכנית"
+
+#: session/SessionController.cpp:1193
+#, kde-format
+msgid ""
+"A program in this session would not die.  Are you sure you want to kill it "
+"by force?"
+msgstr "התוכנית שרצה בהפעלה הזאת לא נסגרת. לחסל אותה בכוח?"
+
+#: session/SessionController.cpp:1197
+#, kde-format
+msgid ""
+"The program '%1' in this session would not die.  Are you sure you want to "
+"kill it by force?"
+msgstr "התוכנית ‚%1’ שרצה בהפעלה הזאת לא נסגרת. לחסל אותה בכוח?"
+
+#: session/SessionController.cpp:1205
+#, kde-format
+msgctxt "@action:button"
+msgid "Kill Program"
+msgstr "חיסול תוכנית"
+
+#: session/SessionController.cpp:1926
+#, kde-format
+msgid "The shell prompt is displayed in session '%1'"
+msgstr "שורת הפקודה מופיעה בהפעלה ‚%1’"
+
+#: session/SessionController.cpp:2156
+#, kde-format
+msgid "Open Current Folder With"
+msgstr "פתיחת התיקייה הנוכחית עם"
+
+#: session/SessionController.cpp:2226
+#, kde-format
+msgid "Save ZModem Download to..."
+msgstr "שמירת הורדת ZModem אל…"
+
+#: session/SessionController.cpp:2236
+#, kde-format
+msgid ""
+"<p>A ZModem file transfer attempt has been detected, but no suitable ZModem "
+"software was found on this system.</p><p>You may wish to install the 'rzsz' "
+"or 'lrzsz' package.</p>"
+msgstr ""
+"<p> זוהה ניסיון העברה של קובץ בעזרת ZModem, אך לא נמצא יישום מתאים עבור "
+"ZModem במערכת.</p><p> עליך להתקין את חבילה rzsz או lrzsz. </p>"
+
+#: session/SessionController.cpp:2246
+#, kde-format
+msgid ""
+"<p>The current session already has a ZModem file transfer in progress.</p>"
+msgstr "<p> ההפעלה הנוכחית כבר מכילה העברה של קובץ בעזרת ZModem. </p>"
+
+#: session/SessionController.cpp:2259
+#, kde-format
+msgid ""
+"<p>No suitable ZModem software was found on this system.</p><p>You may wish "
+"to install the 'rzsz' or 'lrzsz' package.</p>"
+msgstr ""
+"<p> לא נמצא יישום מתאים עבור ZModem במערכת.</p><p> עליך להתקין את חבילה rzsz "
+"או lrzsz. </p>"
+
+#: session/SessionController.cpp:2264
+#, kde-format
+msgid "Select Files for ZModem Upload"
+msgstr "בחירת קבצים להעלאת ZModem"
+
+#: session/SessionListModel.cpp:89
+#, kde-format
+msgctxt "@item:intable The session index"
+msgid "Number"
+msgstr "מספר"
+
+#: session/SessionListModel.cpp:91
+#, kde-format
+msgctxt "@item:intable The session title"
+msgid "Title"
+msgstr "כותרת"
+
+#: settings/ConfigurationDialog.cpp:31
+#, kde-format
+msgctxt "@title:window"
+msgid "Configure"
+msgstr "הגדרה"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, kcfg_UseSingleInstance)
+#. i18n: ectx: tooltip, entry (UseSingleInstance), group (KonsoleWindow)
+#: settings/GeneralSettings.ui:49 settings/konsole.kcfg:33
+#, kde-format
+msgid "When launching Konsole re-use existing process if possible"
+msgstr "בעת טעינת Konsole להשתמש בתהליך קיים מחדש אם ניתן"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_UseSingleInstance)
+#. i18n: ectx: label, entry (UseSingleInstance), group (KonsoleWindow)
+#: settings/GeneralSettings.ui:52 settings/konsole.kcfg:32
+#, kde-format
+msgid "Run all Konsole windows in a single process"
+msgstr "להפעיל את כל חלונות Konsole בתהליך יחיד"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, kcfg_RememberWindowSize)
+#: settings/GeneralSettings.ui:81
+#, kde-format
+msgid "If enabled, profile settings will be ignored"
+msgstr "אם מאופשר, התעלם מהגדרות הפרופיל"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_RememberWindowSize)
+#: settings/GeneralSettings.ui:84
+#, kde-format
+msgid "Remember window size"
+msgstr "שימור גודל החלון"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_ForceNewTabs)
+#. i18n: ectx: label, entry (ForceNewTabs), group (KonsoleWindow)
+#: settings/GeneralSettings.ui:91 settings/konsole.kcfg:37
+#, kde-format
+msgid "Force new tabs"
+msgstr "אכיפת לשוניות חדשות"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_ListenForZModemTerminalCodes)
+#: settings/GeneralSettings.ui:98
+#, kde-format
+msgid "Listen for ZModem terminal codes"
+msgstr "האזנה לקודים של מסוף ZModem"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_ShowProgressInTaskBar)
+#: settings/GeneralSettings.ui:105
+#, kde-format
+msgid "Show progress in taskbar"
+msgstr "הצגת התקדמות בשורת המשימות"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_SyncProfileWithSystemTheme)
+#: settings/GeneralSettings.ui:112
+#, kde-format
+msgid "Automatically switch profile based on system theme"
+msgstr "תמיד להחליף פרופילים לפי ערכת העיצוב של המערכת"
+
+#. i18n: ectx: property (text), widget (QLabel, label_3)
+#: settings/GeneralSettings.ui:119
+#, kde-format
+msgid "Notifications:"
+msgstr "התראות:"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, kcfg_SearchReverseSearch)
+#. i18n: ectx: tooltip, entry (SearchReverseSearch), group (SearchSettings)
+#: settings/GeneralSettings.ui:132 settings/konsole.kcfg:99
+#, kde-format
+msgid "Sets whether search should start from the bottom"
+msgstr "מגדיר האם החיפוש יתחיל מהסוף"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_SearchReverseSearch)
+#. i18n: ectx: label, entry (SearchReverseSearch), group (SearchSettings)
+#: settings/GeneralSettings.ui:135 settings/konsole.kcfg:98
+#, kde-format
+msgid "Search backwards"
+msgstr "חיפוש לאחור"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, kcfg_SearchCaseSensitive)
+#. i18n: ectx: tooltip, entry (SearchCaseSensitive), group (SearchSettings)
+#: settings/GeneralSettings.ui:148 settings/konsole.kcfg:85
+#, kde-format
+msgid "Sets whether the search is case sensitive"
+msgstr "קובע אם החיפוש הוא תלוי רישיות"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_SearchCaseSensitive)
+#: settings/GeneralSettings.ui:151
+#, kde-format
+msgid "Case sensitive"
+msgstr "תלוי רישיות"
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: settings/GeneralSettings.ui:158
+#, kde-format
+msgid "Process and window:"
+msgstr "תהליך וחלון:"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_SearchHighlightMatches)
+#: settings/GeneralSettings.ui:174
+#, kde-format
+msgid "Highlight all matches"
+msgstr "הדגשת כל ההתאמות"
+
+#. i18n: ectx: property (text), widget (QLabel, label_2)
+#: settings/GeneralSettings.ui:181
+#, kde-format
+msgctxt "@item:intext Search options"
+msgid "Search:"
+msgstr "חיפוש:"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, kcfg_SearchNoWrap)
+#. i18n: ectx: tooltip, entry (SearchNoWrap), group (SearchSettings)
+#: settings/GeneralSettings.ui:210 settings/konsole.kcfg:104
+#, kde-format
+msgid "Sets whether search should stop instead of wrapping"
+msgstr "מגדיר האם החיפוש ייעצר במקום לגלוש"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_SearchNoWrap)
+#: settings/GeneralSettings.ui:213
+#, kde-format
+msgid "No wrap"
+msgstr "ללא גלישה"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_AllowMenuAccelerators)
+#. i18n: ectx: label, entry (AllowMenuAccelerators), group (KonsoleWindow)
+#: settings/GeneralSettings.ui:226 settings/konsole.kcfg:22
+#, kde-format
+msgid "Enable menu accelerators"
+msgstr "הפעלת מקשי האצה בתפריטים"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_FocusFollowsMouse)
+#. i18n: ectx: label, entry (FocusFollowsMouse), group (KonsoleWindow)
+#: settings/GeneralSettings.ui:233 settings/konsole.kcfg:13
+#, kde-format
+msgid "Focus terminals when the mouse pointer is moved over them"
+msgstr "העברת המיקוד למסופים כאשר סמן העכבר עובר מעליהם"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, enableAllMessagesButton)
+#: settings/GeneralSettings.ui:251
+#, kde-format
+msgid "All dialogs will be shown again"
+msgstr "כל החלוניות יוצגו שוב"
+
+#. i18n: ectx: property (text), widget (QPushButton, enableAllMessagesButton)
+#: settings/GeneralSettings.ui:254
+#, kde-format
+msgid "Enable all \"Don't Ask Again\" messages"
+msgstr "לאפשר את כל ההודעות שסומנו ב„לא לשאול שוב”"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_ShowWindowTitleOnTitleBar)
+#. i18n: ectx: label, entry (ShowWindowTitleOnTitleBar), group (KonsoleWindow)
+#: settings/GeneralSettings.ui:282 settings/konsole.kcfg:17
+#, kde-format
+msgid "Show window title on the titlebar"
+msgstr "הצגת שם החלון בכרטיסייה"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_EnableSecuritySensitiveDBusAPI)
+#. i18n: ectx: label, entry (EnableSecuritySensitiveDBusAPI), group (KonsoleWindow)
+#: settings/GeneralSettings.ui:289 settings/konsole.kcfg:47
+#, kde-format
+msgid "Enable the security sensitive parts of the DBus API"
+msgstr "הפעלת החלקים הרגישים מבחינת אבטחת מידע של ה־API של D-Bus"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_RemoveWindowTitleBarAndFrame)
+#. i18n: ectx: label, entry (RemoveWindowTitleBarAndFrame), group (KonsoleWindow)
+#: settings/GeneralSettings.ui:296 settings/konsole.kcfg:9
+#, kde-format
+msgid "Remove window titlebar and frame"
+msgstr "הסרת שורת הכותרת והמסגרת של החלון"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_SearchRegExpression)
+#. i18n: ectx: label, entry (SearchRegExpression), group (SearchSettings)
+#: settings/GeneralSettings.ui:309 settings/konsole.kcfg:89
+#, kde-format
+msgid "Match using regular expressions"
+msgstr "להשתמש בביטויים רגולריים"
+
+#. i18n: ectx: tooltip, entry (ShowWindowTitleOnTitleBar), group (KonsoleWindow)
+#: settings/konsole.kcfg:18
+#, kde-format
+msgid "Show window title set by escape sequence on the titlebar"
+msgstr "הצגת כותרת החלון כפי שהוגדרה על ידי תו מילוט בשורת הכותרת"
+
+#. i18n: ectx: tooltip, entry (AllowMenuAccelerators), group (KonsoleWindow)
+#: settings/konsole.kcfg:23
+#, kde-format
+msgid "Allow users to access top menu through Alt+Key combination"
+msgstr "לאפשר למשתמשים לגשת לתפריט העליון באמצעות צירוף של Alt+מקש"
+
+#. i18n: ectx: label, entry (RememberWindowSize), group (KonsoleWindow)
+#: settings/konsole.kcfg:27
+#, kde-format
+msgid "Use current window size on next startup"
+msgstr "להשתמש בגודל החלון הנוכחי בהפעלה הבאה"
+
+#. i18n: ectx: tooltip, entry (RememberWindowSize), group (KonsoleWindow)
+#: settings/konsole.kcfg:28
+#, kde-format
+msgid "The window size will be saved upon exiting Konsole"
+msgstr "גודל החלון יישמר עם היציאה מ־Konsole"
+
+#. i18n: ectx: tooltip, entry (ForceNewTabs), group (KonsoleWindow)
+#: settings/konsole.kcfg:38
+#, kde-format
+msgid ""
+"When launching Konsole create a new tab instead of creating new windows if "
+"possible"
+msgstr "בעת טעינת Konsole ליצור לשונית חדשה במקום חלונות חדשים אם ניתן"
+
+#. i18n: ectx: label, entry (ShowProgressInTaskBar), group (KonsoleWindow)
+#: settings/konsole.kcfg:42
+#, kde-format
+msgid "Show progress in task bar"
+msgstr "הצגת התקדמות בשורת המשימות"
+
+#. i18n: ectx: tooltip, entry (ShowProgressInTaskBar), group (KonsoleWindow)
+#: settings/konsole.kcfg:43
+#, kde-format
+msgid "When a script reports its progress, it will be shown in the task bar"
+msgstr "כאשר סקריפט מדווח על ההתקדמות שלו, היא תופיע בשורת המשימות"
+
+#. i18n: ectx: tooltip, entry (EnableSecuritySensitiveDBusAPI), group (KonsoleWindow)
+#: settings/konsole.kcfg:48
+#, kde-format
+msgid "DBus API like runCommand will be enabled"
+msgstr "תופעל runCommand דמויית API של D-Bus"
+
+#. i18n: ectx: label, entry (ListenForZModemTerminalCodes), group (KonsoleWindow)
+#: settings/konsole.kcfg:52
+#, kde-format
+msgid "Listen for ZModem Terminal codes"
+msgstr "האזנה לקודים של מסוף ZModem"
+
+#. i18n: ectx: tooltip, entry (ListenForZModemTerminalCodes), group (KonsoleWindow)
+#: settings/konsole.kcfg:53
+#, kde-format
+msgid "Automatic send/receive files over serial connections"
+msgstr "שליחה/קבלה של קבצים דרך חיבור טורי אוטומטית"
+
+#. i18n: ectx: label, entry (ThumbnailSize), group (ThumbnailsSettings)
+#: settings/konsole.kcfg:62
+#, kde-format
+msgid "Thumbnail Width"
+msgstr "רוחב תמונה ממוזערת"
+
+#. i18n: ectx: tooltip, entry (ThumbnailSize), group (ThumbnailsSettings)
+#: settings/konsole.kcfg:63
+#, kde-format
+msgid "Sets the width of the thumbnail"
+msgstr "הגדרת רוחב התמונה הממוזערת"
+
+#. i18n: ectx: label, entry (ThumbnailShift), group (ThumbnailsSettings)
+#. i18n: ectx: tooltip, entry (ThumbnailShift), group (ThumbnailsSettings)
+#: settings/konsole.kcfg:67 settings/konsole.kcfg:68
+#, kde-format
+msgid "Use Shift to display a thumbnail"
+msgstr "להשתמש ב־Shift כדי להציג תמונה ממוזערת"
+
+#. i18n: ectx: label, entry (ThumbnailAlt), group (ThumbnailsSettings)
+#. i18n: ectx: tooltip, entry (ThumbnailAlt), group (ThumbnailsSettings)
+#: settings/konsole.kcfg:72 settings/konsole.kcfg:73
+#, kde-format
+msgid "Use Alt to display a thumbnail"
+msgstr "להשתמש ב־Alt כדי להציג תמונה ממוזערת"
+
+#. i18n: ectx: label, entry (ThumbnailCtrl), group (ThumbnailsSettings)
+#. i18n: ectx: tooltip, entry (ThumbnailCtrl), group (ThumbnailsSettings)
+#: settings/konsole.kcfg:77 settings/konsole.kcfg:78
+#, kde-format
+msgid "Use Ctrl to display a thumbnail"
+msgstr "להשתמש ב־Ctrl כדי להציג תמונה ממוזערת"
+
+#. i18n: ectx: label, entry (SearchCaseSensitive), group (SearchSettings)
+#: settings/konsole.kcfg:84
+#, kde-format
+msgid "Search is case sensitive"
+msgstr "החיפוש תלוי רישיות"
+
+#. i18n: ectx: label, entry (SearchHighlightMatches), group (SearchSettings)
+#: settings/konsole.kcfg:93
+#, kde-format
+msgid "Highlight all search matches"
+msgstr "הדגשת כל התוצאות"
+
+#. i18n: ectx: tooltip, entry (SearchHighlightMatches), group (SearchSettings)
+#: settings/konsole.kcfg:94
+#, kde-format
+msgid "Sets whether matching text should be highlighted"
+msgstr "מגדיר האם להדגיש את הטקסט שנמצא"
+
+#. i18n: ectx: label, entry (SearchNoWrap), group (SearchSettings)
+#: settings/konsole.kcfg:103
+#, kde-format
+msgid "Search stops instead of wrapping"
+msgstr "החיפוש נעצר במקום לגלוש"
+
+#. i18n: ectx: label, entry (EnableMemoryMonitoring), group (MemorySettings)
+#: settings/konsole.kcfg:110
+#, kde-format
+msgid "Control whether child cgroups are created for individual tabs"
+msgstr "שליטה האם תיווצרנה cgroups צאצאיות עבור כל לשונית בנפרד"
+
+#. i18n: ectx: label, entry (MemoryLimitValue), group (MemorySettings)
+#: settings/konsole.kcfg:114
+#, kde-format
+msgid ""
+"Determines the memory consumption level above which throttling will start"
+msgstr "קביעת רמת צריכת הזיכרון שמעבר לה תתחיל האטה מבוקרת"
+
+#. i18n: ectx: label, entry (SplitViewVisibility), group (SplitView)
+#. i18n: ectx: label, entry (TabBarVisibility), group (TabBar)
+#: settings/konsole.kcfg:120 settings/konsole.kcfg:140
+#, kde-format
+msgid "Control the visibility of the whole tab bar"
+msgstr "שליטה במצב התצוגה של כל שורת הכרטיסיות"
+
+#. i18n: ectx: label, entry (SplitDragHandleSize), group (SplitView)
+#: settings/konsole.kcfg:129
+#, kde-format
+msgid "Control the size of the handle between panels"
+msgstr "שליטה בגודל הידית בין שני הלוחות"
+
+#. i18n: ectx: label, entry (TabBarPosition), group (TabBar)
+#: settings/konsole.kcfg:149
+#, kde-format
+msgid "Control the position of the tab bar"
+msgstr "שליטה במיקום של שורת הכרטיסיות"
+
+#. i18n: ectx: label, entry (TabBarStyleSheet), group (TabBar)
+#: settings/konsole.kcfg:159
+#, kde-format
+msgid "Control the visual style of the tab bar"
+msgstr "שולט בעיצוב הנראה של סרגל הכרטיסיות"
+
+#. i18n: ectx: label, entry (TabBarUseUserStyleSheet), group (TabBar)
+#: settings/konsole.kcfg:163
+#, kde-format
+msgid "Use a user-defined .css file for the tab bar"
+msgstr "השתמש בקובץ CSS המודר על ידי המשתמש לשורת הכרטיסיות"
+
+#. i18n: ectx: label, entry (TabBarUserStyleSheetFile), group (TabBar)
+#: settings/konsole.kcfg:167
+#, kde-format
+msgid "The .css file to use for the tab bar style"
+msgstr "קובץ ה־‎.css‏ לשימוש בעיצוב סרגל הכרטיסיות"
+
+#. i18n: ectx: label, entry (CloseTabOnMiddleMouseButton), group (TabBar)
+#: settings/konsole.kcfg:171
+#, kde-format
+msgid "Allow middle-clicking on open tabs to close them"
+msgstr "לאפשר פתיחת וסגירת לשוניות בלחיצה כפולה"
+
+#. i18n: ectx: label, entry (NewTabButton), group (TabBar)
+#: settings/konsole.kcfg:175
+#, kde-format
+msgid "Control the visibility of 'New Tab' button on the tab bar"
+msgstr "שליטה בחשיפת כפתור ‚לשונית חדשה’ בסרגל הלשוניות"
+
+#. i18n: ectx: label, entry (SearchTabsButton), group (TabBar)
+#: settings/konsole.kcfg:179
+#, kde-format
+msgid "Control the visibility of 'Search Tabs' button on the tab bar"
+msgstr "שליטה בחשיפת כפתור ‚חיפוש לשוניות’ בסרגל הלשוניות"
+
+#. i18n: ectx: label, entry (CloseTabButton), group (TabBar)
+#: settings/konsole.kcfg:187
+#, kde-format
+msgid "Control where the \"Close tab\" button will be displayed"
+msgstr "לשלוט איפה מופיע כפתור „סגירת לשונית”"
+
+#. i18n: ectx: label, entry (NewTabBehavior), group (TabBar)
+#: settings/konsole.kcfg:196
+#, kde-format
+msgid "Control where to put the new tab"
+msgstr "קבע איפה לשים את הכרטיסייה החדשה"
+
+#. i18n: ectx: label, entry (ExpandTabWidth), group (TabBar)
+#: settings/konsole.kcfg:204
+#, kde-format
+msgid "Expand the tab widths"
+msgstr "הרחבת הלשוניות"
+
+#. i18n: ectx: label, entry (scrollbackUseSystemLocation), group (FileLocation)
+#: settings/konsole.kcfg:220
+#, kde-format
+msgid "For scrollback files, use system-wide folder location"
+msgstr "לקובצי היסטוריה נגללת, להשתמש בתיקייה הכלל־מערכתית"
+
+#. i18n: ectx: label, entry (scrollbackUseCacheLocation), group (FileLocation)
+#: settings/konsole.kcfg:224
+#, kde-format
+msgid "For scrollback files, use user's specific folder location"
+msgstr "לקובצי היסטוריה נגללת, להשתמש בתיקייה המסוימת למשתמש"
+
+#. i18n: ectx: label, entry (scrollbackUseSpecifiedLocation), group (FileLocation)
+#: settings/konsole.kcfg:228
+#, kde-format
+msgid "For scrollback files, use specified folder location"
+msgstr "לקובצי היסטוריה נגללת, להשתמש במיקום של תיקייה מסוימת"
+
+#. i18n: ectx: label, entry (scrollbackUseSpecifiedLocationDirectory), group (FileLocation)
+#: settings/konsole.kcfg:232
+#, kde-format
+msgid "For scrollback files, use this folder"
+msgstr "לקובצי היסטוריה נגללת, להשתמש בתיקייה הזאת"
+
+#. i18n: ectx: label, entry (SyncProfileWithSystemTheme), group (LightDarkTheme)
+#: settings/konsole.kcfg:238
+#, kde-format
+msgid "Sync profile with system theme"
+msgstr "סנכרון הפרופיל עם ערכת המערכת"
+
+#. i18n: ectx: label, entry (LightThemeProfile), group (LightDarkTheme)
+#: settings/konsole.kcfg:242
+#, kde-format
+msgid "Profile to use for light system theme"
+msgstr "פרופיל לשימוש לערכת עיצוב בהירה של המערכת"
+
+#. i18n: ectx: label, entry (DarkThemeProfile), group (LightDarkTheme)
+#: settings/konsole.kcfg:246
+#, kde-format
+msgid "Profile to use for dark system theme"
+msgstr "פרופיל לשימוש לערכת עיצוב כהה של המערכת"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_EnableMemoryMonitoring)
+#: settings/MemorySettings.ui:17
+#, kde-format
+msgid "Enable memory monitoring:"
+msgstr "הפעלת מעקב זיכרון:"
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: settings/MemorySettings.ui:24
+#, kde-format
+msgid ""
+"Changes will take effect upon restart. If enabled, sustained memory "
+"consumption by Konsole exceeding the specified value will cause systemd-oomd "
+"to eliminate the tab(s) containing the memory-intensive process(es). Note: "
+"enabling might cause greater slowdowns during high memory consumption and "
+"specifying excessively low values might still cause Konsole to be killed."
+msgstr ""
+"השינויים יחולו לאחר הפעלה מחדש. אם האפשרות פעילה, צריכת זיכרון ממושכת על ידי "
+"Konsole שחורגת מהערך שצוין תגרום ל־systemd-oomd לסלק את הלשוניות שמכילות את "
+"התהליכים שמעמיסים על הזיכרון. לתשומת ליבך: הפעלה עלולה לגרום להאטות בעת "
+"שימוש מוגזם בזיכרון וציון של ערכים נמוכים במיוחד עלולים לגרום לסגירה של "
+"Konsole."
+
+#. i18n: ectx: property (text), widget (QLabel, label_2)
+#: settings/MemorySettings.ui:37
+#, kde-format
+msgid "Memory limit:"
+msgstr "מגבלת זיכרון:"
+
+#. i18n: ectx: property (suffix), widget (QSpinBox, kcfg_MemoryLimitValue)
+#: settings/MemorySettings.ui:44
+#, kde-format
+msgid " MB"
+msgstr " מ״ב"
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: settings/PartInfo.ui:17
+#, kde-format
+msgid ""
+"<html><head/><body><p>Applications that use KonsolePart share profiles.</"
+"p><p>They do not share with Konsole or other applications:<ul><li>default "
+"profile</li><li>show in menu</li><li>shortcuts</li></ul></p><p>Feel free to "
+"open a Konsole <a href=\"https://bugs.kde.org/enter_bug.cgi?"
+"format=guided&product=konsole&component=kpart\">bug report</a> if you desire "
+"a change to how these are handled.</body></html>"
+msgstr ""
+"<html><head/><body dir=\"rtl\"><p>יישומים שמשתמשים ב־KonsolePart חולקים "
+"פרופילים.</p><p>הם לא חולקים עם Konsole או יישומים אחרים:<ul><li>פרופיל "
+"ברירת מחדל</li><li>הצגה בתפריט</li><li>קיצורי דרך</li></ul></p><p>אפשר <a "
+"href=\"https://bugs.kde.org/enter_bug.cgi?"
+"format=guided&product=konsole&component=kpart\">לפתוח תקלה</a> ב־Konsole כדי "
+"לשנות את אופן הטיפול בהם.</body></html>"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, newProfileButton)
+#: settings/ProfileSettings.ui:51
+#, kde-format
+msgid "Create a new profile based on the selected profile"
+msgstr "יצירת פרופיל חדש על בסיס הפרופיל הנבחר"
+
+#. i18n: ectx: property (text), widget (QPushButton, newProfileButton)
+#: settings/ProfileSettings.ui:54
+#, kde-format
+msgid "&New..."
+msgstr "&חדש…"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, editProfileButton)
+#: settings/ProfileSettings.ui:64
+#, kde-format
+msgid ""
+"Edit the selected profile (this button is disabled for read-only profiles)"
+msgstr "עריכת הפרופיל הנבחר (הכפתור הזה מושבת בפרופילים לקריאה בלבד)"
+
+#. i18n: ectx: property (text), widget (QPushButton, editProfileButton)
+#: settings/ProfileSettings.ui:67
+#, kde-format
+msgid "&Edit..."
+msgstr "&עריכה…"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, deleteProfileButton)
+#: settings/ProfileSettings.ui:77
+#, kde-format
+msgid "Delete the selected profile"
+msgstr "מחיקת הפרופיל הנבחר"
+
+#. i18n: ectx: property (text), widget (QPushButton, deleteProfileButton)
+#: settings/ProfileSettings.ui:80
+#, kde-format
+msgid "&Remove"
+msgstr "ה&סרה"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, setAsDefaultButton)
+#: settings/ProfileSettings.ui:90
+#, kde-format
+msgid "Set the selected profile as the default for new terminal sessions"
+msgstr "קבע את הפרופיל הנבחר בתור פרופיל ברירת מחדל עבור הפעלות חדשות"
+
+#. i18n: ectx: property (text), widget (QPushButton, setAsDefaultButton)
+#: settings/ProfileSettings.ui:93
+#, kde-format
+msgid "&Set as Default"
+msgstr "ה&גדרה כברירת מחדל"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, setLightProfileButton)
+#: settings/ProfileSettings.ui:103
+#, kde-format
+msgid "Set the selected profile as the light theme profile"
+msgstr "הגדרת הפרופיל הנבחר כפרופיל ערכת העיצוב הבהיר"
+
+#. i18n: ectx: property (text), widget (QPushButton, setLightProfileButton)
+#: settings/ProfileSettings.ui:106
+#, kde-format
+msgid "&Set as Light"
+msgstr "הגדרה כ&בהיר"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, setDarkProfileButton)
+#: settings/ProfileSettings.ui:116
+#, kde-format
+msgid "Set the selected profile as the dark theme profile"
+msgstr "הגדרת הפרופיל הנבחר כפרופיל ערכת העיצוב הכהה"
+
+#. i18n: ectx: property (text), widget (QPushButton, setDarkProfileButton)
+#: settings/ProfileSettings.ui:119
+#, kde-format
+msgid "&Set as Dark"
+msgstr "הגדרה כ&כהה"
+
+#. i18n: ectx: attribute (title), widget (QWidget, appearanceTab)
+#: settings/TabBarSettings.ui:39
+#, kde-format
+msgctxt "@title:tab Tab bar settings"
+msgid "Appearance"
+msgstr "מראה"
+
+#. i18n: ectx: property (text), widget (QLabel, showTabBarLabel)
+#: settings/TabBarSettings.ui:53
+#, kde-format
+msgid "Show:"
+msgstr "הצגה:"
+
+#. i18n: ectx: property (text), widget (QRadioButton, ShowTabBarWhenNeeded)
+#: settings/TabBarSettings.ui:63
+#, kde-format
+msgid "When needed"
+msgstr "בעת הצורך"
+
+#. i18n: ectx: property (text), widget (QRadioButton, AlwaysShowTabBar)
+#: settings/TabBarSettings.ui:73
+#, kde-format
+msgid "Alwa&ys"
+msgstr "&תמיד"
+
+#. i18n: ectx: property (text), widget (QRadioButton, AlwaysHideTabBar)
+#: settings/TabBarSettings.ui:83
+#, kde-format
+msgid "&Never"
+msgstr "&אף פעם לא"
+
+#. i18n: ectx: property (text), widget (QLabel, positionLabel)
+#: settings/TabBarSettings.ui:109
+#, kde-format
+msgid "Position:"
+msgstr "מקום:"
+
+#. i18n: ectx: property (text), widget (QRadioButton, Top)
+#: settings/TabBarSettings.ui:119
+#, kde-format
+msgid "Above terminal area"
+msgstr "מעל אזור המסוף"
+
+#. i18n: ectx: property (text), widget (QRadioButton, Bottom)
+#: settings/TabBarSettings.ui:129
+#, kde-format
+msgid "Be&low terminal area"
+msgstr "מת&חת לאזור המסוף"
+
+#. i18n: ectx: property (text), widget (QRadioButton, Left)
+#: settings/TabBarSettings.ui:139
+#, kde-format
+msgid "To the left of terminal area"
+msgstr "מ&שמאל לאזור המסוף"
+
+#. i18n: ectx: property (text), widget (QRadioButton, Right)
+#: settings/TabBarSettings.ui:149
+#, kde-format
+msgid "To the &right of terminal area"
+msgstr "מימי&ן לאזור המסוף"
+
+#. i18n: ectx: property (text), widget (QLabel, showCloseTabButtonLabel)
+#: settings/TabBarSettings.ui:175
+#, kde-format
+msgid "Show Close Tab button:"
+msgstr "הצגת כפתור סגירת לשונית:"
+
+#. i18n: ectx: property (text), widget (QRadioButton, OnEachTab)
+#: settings/TabBarSettings.ui:185
+#, kde-format
+msgid "On ea&ch tab"
+msgstr "ב&כל לשונית"
+
+#. i18n: ectx: property (text), widget (QRadioButton, OnTabBar)
+#: settings/TabBarSettings.ui:195
+#, kde-format
+msgid "On &the tab bar"
+msgstr "ב&סרגל הלשוניות"
+
+#. i18n: ectx: property (text), widget (QRadioButton, None)
+#: settings/TabBarSettings.ui:205
+#, kde-format
+msgctxt "Do not show a close button"
+msgid "None"
+msgstr "לא"
+
+#. i18n: ectx: property (text), widget (QLabel, showSearchTabsButtonLabel)
+#: settings/TabBarSettings.ui:231
+#, kde-format
+msgid "Show Search Tabs button:"
+msgstr "הצגת כפתור חיפוש לשוניות:"
+
+#. i18n: ectx: property (text), widget (QRadioButton, ShowSearchTabsButton)
+#: settings/TabBarSettings.ui:241
+#, kde-format
+msgid "Always"
+msgstr "תמיד"
+
+#. i18n: ectx: property (text), widget (QRadioButton, HideSearchTabsButton)
+#: settings/TabBarSettings.ui:251
+#, kde-format
+msgid "Never"
+msgstr "אף פעם לא"
+
+#. i18n: ectx: property (text), widget (QLabel, miscellaneousAppearanceLabel)
+#. i18n: ectx: property (text), widget (QLabel, miscellaneousBehaviorLabel)
+#: settings/TabBarSettings.ui:277 settings/TabBarSettings.ui:410
+#, kde-format
+msgctxt "@item:intext Miscellaneous Options"
+msgid "Miscellaneous:"
+msgstr "שונות:"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_NewTabButton)
+#: settings/TabBarSettings.ui:287
+#, kde-format
+msgid "Show 'New Tab' button"
+msgstr "הצגת כפתור ‚לשונית חדשה’"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_ExpandTabWidth)
+#: settings/TabBarSettings.ui:294
+#, kde-format
+msgid "Expand individual tab widths to full window"
+msgstr "הרחבת רוחבי לשוניות בודדות לחלון מלא"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_TabBarUseUserStyleSheet)
+#: settings/TabBarSettings.ui:301
+#, kde-format
+msgid "Use user-defined stylesheet:"
+msgstr "להשתמש בגיליונות סגנון של המשתמש:"
+
+#. i18n: ectx: property (placeholderText), widget (KUrlRequester, kcfg_TabBarUserStyleSheetFile)
+#: settings/TabBarSettings.ui:327
+#, kde-format
+msgctxt "@item:intext Optional file path is empty"
+msgid "(none)"
+msgstr "(אין)"
+
+#. i18n: ectx: attribute (title), widget (QWidget, behaviorTab)
+#: settings/TabBarSettings.ui:350
+#, kde-format
+msgctxt "@title:tab Tab bar settings"
+msgid "Behavior"
+msgstr "התנהגות"
+
+#. i18n: ectx: property (text), widget (QLabel, putNewTabsLabel)
+#: settings/TabBarSettings.ui:364
+#, kde-format
+msgid "Put new tabs:"
+msgstr "הצבת לשוניות חדשות:"
+
+#. i18n: ectx: property (text), widget (QRadioButton, PutNewTabAtTheEnd)
+#: settings/TabBarSettings.ui:374
+#, kde-format
+msgid "At &the end"
+msgstr "ב&סוף"
+
+#. i18n: ectx: property (text), widget (QRadioButton, PutNewTabAfterCurrentTab)
+#: settings/TabBarSettings.ui:384
+#, kde-format
+msgid "After current &tab"
+msgstr "אחרי הלשונית ה&נוכחית"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_CloseTabOnMiddleMouseButton)
+#: settings/TabBarSettings.ui:420
+#, kde-format
+msgid "Close tab on middle-click"
+msgstr "סגירת לשונית בלחיצה אמצעית"
+
+#. i18n: ectx: attribute (title), widget (QWidget, splitTab)
+#: settings/TabBarSettings.ui:443
+#, kde-format
+msgid "Splits"
+msgstr "פיצולים"
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: settings/TabBarSettings.ui:449
+#, kde-format
+msgid "Show Header:"
+msgstr "הצגת כותרת:"
+
+#. i18n: ectx: property (text), widget (QRadioButton, ShowSplitHeaderWhenNeeded)
+#: settings/TabBarSettings.ui:456
+#, kde-format
+msgctxt "@option:radio When needed show the split header"
+msgid "When needed"
+msgstr "בעת הצורך"
+
+#. i18n: ectx: property (text), widget (QRadioButton, AlwaysHideSplitHeader)
+#: settings/TabBarSettings.ui:466
+#, kde-format
+msgctxt "@option:radio Never show the split header"
+msgid "Never"
+msgstr "אף פעם לא"
+
+#. i18n: ectx: property (text), widget (QLabel, label_2)
+#: settings/TabBarSettings.ui:492
+#, kde-format
+msgid "Drag Handle Size:"
+msgstr "גודל ידית גרירה:"
+
+#. i18n: ectx: property (text), widget (QRadioButton, SplitDragHandleSmall)
+#: settings/TabBarSettings.ui:502
+#, kde-format
+msgctxt "@option:radio Small height/width of splitter widget"
+msgid "Small"
+msgstr "קטן"
+
+#. i18n: ectx: property (text), widget (QRadioButton, SplitDragHandleMedium)
+#: settings/TabBarSettings.ui:512
+#, kde-format
+msgctxt "@option:radio Medium height/width of splitter widget"
+msgid "Medium"
+msgstr "בינוני"
+
+#. i18n: ectx: property (text), widget (QRadioButton, SplitDragHandleLarge)
+#: settings/TabBarSettings.ui:522
+#, kde-format
+msgctxt "@option:radio Large height/width of splitter widget"
+msgid "Large"
+msgstr "גדול"
+
+#. i18n: ectx: property (text), widget (QRadioButton, AlwaysShowSplitHeader)
+#: settings/TabBarSettings.ui:545
+#, kde-format
+msgctxt "@option:radio Always show the split header"
+msgid "Always"
+msgstr "תמיד"
+
+#: settings/TemporaryFilesSettings.cpp:31
+#, kde-format
+msgctxt ""
+"@option:radio File location; <filename>%1</filename>: path to directory "
+"placeholder"
+msgid "System temporary directory (%1)"
+msgstr "תיקיית מערכת זמנית (‎‎%1‎)"
+
+#: settings/TemporaryFilesSettings.cpp:33
+#, kde-format
+msgctxt ""
+"@option:radio File location; <filename>%1</filename>: path to directory "
+"placeholder"
+msgid "User cache directory (%1)"
+msgstr "תיקיית מטמון המשתמש (‎‎%1‎)"
+
+#. i18n: ectx: property (text), widget (QLabel, label_4)
+#: settings/TemporaryFilesSettings.ui:25
+#, kde-format
+msgid "Scrollback file location:"
+msgstr "מקום קובץ היסטוריה נגללת:"
+
+#. i18n: ectx: property (text), widget (QRadioButton, kcfg_scrollbackUseSpecifiedLocation)
+#: settings/TemporaryFilesSettings.ui:64
+#, kde-format
+msgctxt "@option:radio Custom (file location); followed by text entry field"
+msgid "Custom:"
+msgstr "התאמה אישית:"
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: settings/ThumbnailsSettings.ui:17
+#, kde-format
+msgid "Size:"
+msgstr "גודל:"
+
+#. i18n: ectx: property (suffix), widget (QSpinBox, kcfg_ThumbnailSize)
+#: settings/ThumbnailsSettings.ui:24
+#, kde-format
+msgid "px"
+msgstr "פיקסלים"
+
+#. i18n: ectx: property (text), widget (QLabel, label_3)
+#: settings/ThumbnailsSettings.ui:37
+#, kde-format
+msgid ""
+"<html><head/><body><p>To use this feature, enable <span style=\" font-"
+"weight:600;\">Mouse-&gt;Miscellaneous-&gt;Underline files</span> in your "
+"profile settings.</p></body></html>"
+msgstr ""
+"<html><head/><body dir=\"rtl\"><p>כדי להשתמש ביכולת הזאת, יש להפעיל את <span "
+"style=\" font-weight:600;\">עכבר-&gt;שונות-&gt;קו תחתי לקבצים</span> בהגדרות "
+"הפרופיל שלך</p></body></html>"
+
+#. i18n: ectx: property (text), widget (QLabel, label_2)
+#: settings/ThumbnailsSettings.ui:53
+#, kde-format
+msgid "Activation:"
+msgstr "הפעלה:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_5)
+#: settings/ThumbnailsSettings.ui:63
+#, kde-format
+msgid "Mouse hover plus"
+msgstr "מעבר עכבר עם"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_ThumbnailShift)
+#: settings/ThumbnailsSettings.ui:70
+#, kde-format
+msgid "Shift"
+msgstr "Shift"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_ThumbnailAlt)
+#: settings/ThumbnailsSettings.ui:77
+#, kde-format
+msgid "Alt"
+msgstr "Alt"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_ThumbnailCtrl)
+#: settings/ThumbnailsSettings.ui:84
+#, kde-format
+msgid "Ctrl"
+msgstr "Ctrl"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_EnableThumbnails)
+#: settings/ThumbnailsSettings.ui:93
+#, kde-format
+msgid "Enable thumbnails generation"
+msgstr "הפעלת יצירת תמונות ממוזערות"
+
+#: terminalDisplay/TerminalDisplay.cpp:704
+#, kde-format
+msgid "Size: %1 x %2"
+msgstr "גודל: %1 על %2"
+
+#: terminalDisplay/TerminalDisplay.cpp:2432
+#, kde-format
+msgid "Are you sure you want to paste %1 character?"
+msgid_plural "Are you sure you want to paste %1 characters?"
+msgstr[0] "להדביק תו?"
+msgstr[1] "להדביק שני תווים?"
+msgstr[2] "להדביק %1 תווים?"
+msgstr[3] "להדביק %1 תווים?"
+
+#: terminalDisplay/TerminalDisplay.cpp:2433
+#, kde-format
+msgid "Confirm Paste"
+msgstr "אישור הדבקה"
+
+#: terminalDisplay/TerminalDisplay.cpp:2466
+#, kde-format
+msgid "End Of Text/Interrupt: may exit the current process"
+msgstr "סוף הטקסט/הפרעה: עשוי לצאת מהתהליך הנוכחי"
+
+#: terminalDisplay/TerminalDisplay.cpp:2467
+#, kde-format
+msgid "End Of Transmission: may exit the current process"
+msgstr "סוף ההעברה: עשוי לצאת מהתהליך הנוכחי"
+
+#: terminalDisplay/TerminalDisplay.cpp:2468
+#, kde-format
+msgid "Bell: will try to emit an audible warning"
+msgstr "פעמון: ינסה להזהיר באמצעות שמע"
+
+#: terminalDisplay/TerminalDisplay.cpp:2469
+#, kde-format
+msgid "Backspace"
+msgstr "Backspace"
+
+#: terminalDisplay/TerminalDisplay.cpp:2470
+#, kde-format
+msgid "Device Control Three/XOFF: suspends output"
+msgstr "בקרת מכשיר שלוש/XOFF: משהה את הפלט"
+
+#: terminalDisplay/TerminalDisplay.cpp:2471
+#, kde-format
+msgid "Substitute/Suspend: may suspend current process"
+msgstr "החלפה/השהיה: עשוי להשהות את התהליך הנוכחי"
+
+#: terminalDisplay/TerminalDisplay.cpp:2472
+#, kde-format
+msgid "Escape: used for manipulating terminal state"
+msgstr "Escape: משמש לתפעול מצב המסוף"
+
+#: terminalDisplay/TerminalDisplay.cpp:2473
+#, kde-format
+msgid "File Separator/Quit: may abort the current process"
+msgstr "מפריד קובץ/יציאה: עשוי להשבית את התהליך הנוכחי"
+
+#: terminalDisplay/TerminalDisplay.cpp:2496
+#, kde-format
+msgid ""
+"The text you're trying to paste contains hidden control characters, do you "
+"want to filter them out?"
+msgstr "הטקסט שמיועד להדבקה מכיל תווי בקרה מוסתרים, לסנן אותם החוצה?"
+
+#: terminalDisplay/TerminalDisplay.cpp:2499
+#, kde-format
+msgctxt "@title"
+msgid "Confirm Paste"
+msgstr "אישור הדבקה"
+
+#: terminalDisplay/TerminalDisplay.cpp:2500
+#, kde-format
+msgctxt "@action:button"
+msgid "Paste &without control characters"
+msgstr "הדבקה &בלי תווי בקרה"
+
+#: terminalDisplay/TerminalDisplay.cpp:2501
+#, kde-format
+msgctxt "@action:button"
+msgid "&Paste everything"
+msgstr "הדבקה של ה&כול"
+
+#: terminalDisplay/TerminalDisplay.cpp:2502
+#, kde-format
+msgctxt "@action:button"
+msgid "&Cancel"
+msgstr "&ביטול"
+
+#: terminalDisplay/TerminalDisplay.cpp:2745
+#, kde-format
+msgid ""
+"<qt>Output has been <a href=\"https://en.wikipedia.org/wiki/"
+"Software_flow_control\">suspended</a> by pressing Ctrl+S. Press <b>Ctrl+Q</"
+"b> to resume.</qt>"
+msgstr ""
+"<qt>הפלט <a href=\"https://en.wikipedia.org/wiki/Software_flow_control"
+"\">הושעה</a> על ידי לחיצה על Ctrl+S. יש ללחוץ על <b>Ctrl+Q</b> כדי להמשיך.</"
+"qt>"
+
+#: terminalDisplay/TerminalDisplay.cpp:2800
+#, kde-format
+msgid "This terminal is read-only."
+msgstr "המסוף הזה הוא לקריאה בלבד."
+
+#: terminalDisplay/TerminalDisplay.cpp:3206
+#, kde-format
+msgid "Change &Directory To"
+msgstr "מעבר ל&תיקייה"
+
+#: terminalDisplay/TerminalDisplay.cpp:3241
+#, kde-format
+msgid "&Paste Location"
+msgstr "ה&דבקת מיקום"
+
+#: ViewManager.cpp:125
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Split View"
+msgstr "פיצול התצוגה"
+
+#: ViewManager.cpp:132
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Split View Left/Right"
+msgstr "פיצול תצוגה ימינה/שמאלה"
+
+#: ViewManager.cpp:140
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Split View Top/Bottom"
+msgstr "פיצול תצוגה מעלה/מטה"
+
+#: ViewManager.cpp:148
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Split View Automatically"
+msgstr "פיצול התצוגה אוטומטית"
+
+#: ViewManager.cpp:158
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Split View Left/Right from next tab"
+msgstr "פיצול התצוגה לשמאל/ימין מהלשונית הבאה"
+
+#: ViewManager.cpp:166
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Split View Top/Bottom from next tab"
+msgstr "פיצול התצוגה למעלה/מטה מהלשונית הבאה"
+
+#: ViewManager.cpp:174
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Split View Automatically from next tab"
+msgstr "פיצול התצוגה אוטומטית מהלשונית הבאה"
+
+#: ViewManager.cpp:184
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Load a new tab with layout 2x2 terminals"
+msgstr "טעינת לשונית חדשה עם מסופים בפריסת 2×2"
+
+#: ViewManager.cpp:193
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Load a new tab with layout 2x1 terminals"
+msgstr "טעינת לשונית חדשה עם מסופים בפריסת 1×2"
+
+#: ViewManager.cpp:202
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Load a new tab with layout 1x2 terminals"
+msgstr "טעינת לשונית חדשה עם מסופים בפריסת 2×1"
+
+#: ViewManager.cpp:210
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Expand View"
+msgstr "הרחבת תצוגה"
+
+#: ViewManager.cpp:218
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Shrink View"
+msgstr "צמצום תצוגה"
+
+#: ViewManager.cpp:228
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Detach Current &View"
+msgstr "ניתוק הת&צוגה הנוכחית"
+
+#: ViewManager.cpp:240
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Detach Current &Tab"
+msgstr "ניתוק ה&לשונית הנוכחית"
+
+#: ViewManager.cpp:245
+#, kde-format
+msgctxt "@action Shortcut entry"
+msgid "Next Tab"
+msgstr "הלשונית הבאה"
+
+#: ViewManager.cpp:253
+#, kde-format
+msgctxt "@action Shortcut entry"
+msgid "Previous Tab"
+msgstr "הלשונית הקודמת"
+
+#: ViewManager.cpp:261
+#, kde-format
+msgctxt "@action Shortcut entry"
+msgid "Focus Above Terminal"
+msgstr "מיקוד מעל המסוף"
+
+#: ViewManager.cpp:268
+#, kde-format
+msgctxt "@action Shortcut entry"
+msgid "Focus Below Terminal"
+msgstr "מיקוד מתחת למסוף"
+
+#: ViewManager.cpp:275
+#, kde-format
+msgctxt "@action Shortcut entry"
+msgid "Focus Left Terminal"
+msgstr "התמקדות במסוף השמאלי"
+
+#: ViewManager.cpp:281
+#, kde-format
+msgctxt "@action Shortcut entry"
+msgid "Focus Right Terminal"
+msgstr "התמקדות במסוף הימני"
+
+#: ViewManager.cpp:287
+#, kde-format
+msgctxt "@action Shortcut entry"
+msgid "Focus Next Terminal"
+msgstr "התמקדות במסוף הבא"
+
+#: ViewManager.cpp:293
+#, kde-format
+msgctxt "@action Shortcut entry"
+msgid "Focus Previous Terminal"
+msgstr "התמקדות במסוף הקודמת"
+
+#: ViewManager.cpp:299
+#, kde-format
+msgctxt "@action Shortcut entry"
+msgid "Switch to Last Tab"
+msgstr "מעבר ללשונית האחרונה"
+
+#: ViewManager.cpp:304
+#, kde-format
+msgctxt "@action Shortcut entry"
+msgid "Last Used Tabs"
+msgstr "הלשוניות האחרונות שהיו בשימוש"
+
+#: ViewManager.cpp:309
+#, kde-format
+msgctxt "@action Shortcut entry"
+msgid "Toggle Between Two Tabs"
+msgstr "מעבר בין שתי לשוניות"
+
+#: ViewManager.cpp:314
+#, kde-format
+msgctxt "@action Shortcut entry"
+msgid "Last Used Tabs (Reverse)"
+msgstr "הלשוניות האחרונות שהיו בשימוש (אחורה)"
+
+#: ViewManager.cpp:319
+#, kde-format
+msgctxt "@action Shortcut entry"
+msgid "Toggle maximize current view"
+msgstr "החלפת מצב הגדלת התצוגה הנוכחית"
+
+#: ViewManager.cpp:320
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Toggle maximize current view"
+msgstr "החלפת מצב הגדלת התצוגה הנוכחית"
+
+#: ViewManager.cpp:328
+#, kde-format
+msgctxt "@action Shortcut entry"
+msgid "Toggle zoom-maximize current view"
+msgstr "החלפת מצב הגדלת-תקריב התצוגה הנוכחית"
+
+#: ViewManager.cpp:329
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Toggle zoom-maximize current view"
+msgstr "החלפת מצב הגדלת-תקריב התצוגה הנוכחית"
+
+#: ViewManager.cpp:337
+#, kde-format
+msgctxt "@action Shortcut entry"
+msgid "Move tab to the right"
+msgstr "העברת לשונית ימינה"
+
+#: ViewManager.cpp:344
+#, kde-format
+msgctxt "@action Shortcut entry"
+msgid "Move tab to the left"
+msgstr "העברת לשונית שמאלה"
+
+#: ViewManager.cpp:351
+#, kde-format
+msgctxt "@action Shortcut entry"
+msgid "Setup semantic integration (bash)"
+msgstr "הגדרת שילוב סמנטי (bash)"
+
+#: ViewManager.cpp:357
+#, kde-format
+msgctxt "@action Shortcut entry"
+msgid "Toggle semantic hints display"
+msgstr "החלפת מצב תצוגת עצות סמנטיות"
+
+#: ViewManager.cpp:363
+#, kde-format
+msgctxt "@action Shortcut entry"
+msgid "Toggle line numbers display"
+msgstr "החלפת מצב תצוגת מספרי שורות"
+
+#: ViewManager.cpp:370
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Equal size to all views"
+msgstr "גודל שווה לכל התצוגות"
+
+#: ViewManager.cpp:380
+#, kde-format
+msgctxt "@action Shortcut entry"
+msgid "Switch to Tab %1"
+msgstr "מעבר ללשונית %1"
+
+#: ViewManager.cpp:603
+#, kde-format
+msgid "Semantic hints "
+msgstr "רמזים סמנטיים "
+
+#: ViewManager.cpp:619
+#, kde-format
+msgid "Line numbers "
+msgstr "מספרי שורות "
+
+#: ViewManager.cpp:1289
+#, kde-format
+msgctxt "@title:window"
+msgid "Save Tab Layout"
+msgstr "שמירת פריסת לשוניות"
+
+#: ViewManager.cpp:1291 ViewManager.cpp:1412
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Konsole View Layout (*.json)"
+msgstr "פריסת תצוגת Konsole‏ (‎*.json)"
+
+#: ViewManager.cpp:1307
+#, kde-format
+msgctxt "@label:textbox"
+msgid ""
+"A problem occurred when saving the Layout.\n"
+"%1"
+msgstr ""
+"אירעה שגיאה בשמירת הפריסה.\n"
+"%1"
+
+#: ViewManager.cpp:1399
+#, kde-format
+msgctxt "@label:textbox"
+msgid ""
+"A problem occurred when loading the Layout.\n"
+"%1"
+msgstr ""
+"אירעה שגיאה בטעינת הפריסה.\n"
+"%1"
+
+#: ViewManager.cpp:1410
+#, kde-format
+msgctxt "@title:window"
+msgid "Load Tab Layout"
+msgstr "טעינת פריסת לשוניות"
+
+#: Vt102Emulation.cpp:3342
+#, kde-format
+msgid ""
+"No keyboard translator available.  The information needed to convert key "
+"presses into characters to send to the terminal is missing."
+msgstr ""
+"לא נמצא מתרגם מקלדת. המידע הנחוץ להמרת לחיצות מקשים אל תווים לשליחה למסוף "
+"חסר."
+
+#. i18n: ectx: property (text), widget (QLabel, urlHintsLabel)
+#: widgets/EditProfileAdvancedPage.ui:19
+#, kde-format
+msgid "Key combination to show URL hints:"
+msgstr "צירוף מקשים להציע רמזי כתובות:"
+
+#. i18n: ectx: property (text), widget (QToolButton, urlHintsModifierShift)
+#: widgets/EditProfileAdvancedPage.ui:51
+#, kde-format
+msgctxt "key on keyboard"
+msgid "Shift"
+msgstr "Shift"
+
+#. i18n: ectx: property (text), widget (QToolButton, urlHintsModifierCtrl)
+#: widgets/EditProfileAdvancedPage.ui:70
+#, kde-format
+msgctxt "key on keyboard"
+msgid "Ctrl"
+msgstr "Ctrl"
+
+#. i18n: ectx: property (text), widget (QToolButton, urlHintsModifierAlt)
+#: widgets/EditProfileAdvancedPage.ui:89
+#, kde-format
+msgctxt "key on keyboard"
+msgid "Alt"
+msgstr "Alt"
+
+#. i18n: ectx: property (text), widget (QToolButton, urlHintsModifierMeta)
+#: widgets/EditProfileAdvancedPage.ui:108
+#, kde-format
+msgctxt "key on keyboard"
+msgid "Meta"
+msgstr "מטא"
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: widgets/EditProfileAdvancedPage.ui:154
+#, kde-format
+msgctxt "Items that do not fit in other categories"
+msgid "Miscellaneous:"
+msgstr "שונות:"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, enableReverseUrlHints)
+#: widgets/EditProfileAdvancedPage.ui:164
+#, kde-format
+msgid "Number URL hints in reverse, starting from the bottom"
+msgstr "מספור רמזי כתובות בהיפוך, מהסוף"
+
+#. i18n: ectx: property (text), widget (QCheckBox, enableReverseUrlHints)
+#: widgets/EditProfileAdvancedPage.ui:167
+#, kde-format
+msgid "Reverse URL hint numbering"
+msgstr "היפוך מספור רמזי כתובת"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, enableBlinkingTextButton)
+#: widgets/EditProfileAdvancedPage.ui:180
+#, kde-format
+msgid "Allow terminal programs to create blinking sections of text"
+msgstr "אפשר לתוכניות מסוף ליצור חלקי טקסט מהבהבים"
+
+#. i18n: ectx: property (text), widget (QCheckBox, enableBlinkingTextButton)
+#: widgets/EditProfileAdvancedPage.ui:183
+#, kde-format
+msgid "Allow blinking text"
+msgstr "לאפשר טקסט מהבהב"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, enableFlowControlButton)
+#: widgets/EditProfileAdvancedPage.ui:196
+#, kde-format
+msgid "Allow the output to be suspended by pressing Ctrl+S"
+msgstr "אפשר הפסקת פלט על ידי לחיצה על Control+S"
+
+#. i18n: ectx: property (text), widget (QCheckBox, enableFlowControlButton)
+#: widgets/EditProfileAdvancedPage.ui:199
+#, kde-format
+msgid "Flow control"
+msgstr "בקרת זרימה"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, enableKittyKeyboardButton)
+#: widgets/EditProfileAdvancedPage.ui:212
+#, kde-format
+msgid ""
+"Allow terminal programs to use the Kitty keyboard protocol for enhanced "
+"keyboard input"
+msgstr ""
+"לאפשר לתוכניות מסוף להשתמש בפרוטוקול המקלדת של Kitty לשיפור קלט המקלדת."
+
+#. i18n: ectx: property (text), widget (QCheckBox, enableKittyKeyboardButton)
+#: widgets/EditProfileAdvancedPage.ui:215
+#, kde-format
+msgid "Kitty keyboard protocol"
+msgstr "פרוטוקול מקלדת של Kitty"
+
+#. i18n: ectx: property (text), widget (QLabel, label_14)
+#: widgets/EditProfileAdvancedPage.ui:238
+#, kde-format
+msgid "&Default character encoding:"
+msgstr "קידוד &ברירת מחדל:"
+
+#. i18n: ectx: property (text), widget (QLabel, peekPrimaryLabel)
+#: widgets/EditProfileAdvancedPage.ui:258
+#, kde-format
+msgid "Shortcut for peeking the primary screen:"
+msgstr "קיצור דרך להצצה במסך העיקרי:"
+
+#. i18n: ectx: property (text), widget (QLabel, autoSaveIntervalLabel)
+#: widgets/EditProfileAdvancedPage.ui:271
+#, kde-format
+msgid "Set interval between autosaves:"
+msgstr "הגדרת מרווח בין שמירות אוטומטיות:"
+
+#. i18n: ectx: property (suffix), widget (QSpinBox, autoSaveIntervalWidget)
+#: widgets/EditProfileAdvancedPage.ui:278
+#, kde-format
+msgid " ms"
+msgstr " מ״ש"
+
+#. i18n: ectx: property (text), widget (QLabel, label_linenums)
+#: widgets/EditProfileAdvancedPage.ui:291
+#, kde-format
+msgid "Line Numbers:"
+msgstr "מספרי שורות:"
+
+#. i18n: ectx: property (text), widget (QRadioButton, lineNumsNever)
+#: widgets/EditProfileAdvancedPage.ui:301
+#, kde-format
+msgctxt "Never"
+msgid "&Never"
+msgstr "&אף פעם לא"
+
+#. i18n: ectx: property (text), widget (QRadioButton, lineNumsURL)
+#: widgets/EditProfileAdvancedPage.ui:311
+#, kde-format
+msgctxt "When showing URL hints"
+msgid "When &URL hints show"
+msgstr "כאשר מופיעים &רמזים לכתובת"
+
+#. i18n: ectx: property (text), widget (QRadioButton, lineNumsAlways)
+#: widgets/EditProfileAdvancedPage.ui:321
+#, kde-format
+msgctxt "Always"
+msgid "A&lways"
+msgstr "&תמיד"
+
+#. i18n: ectx: attribute (title), widget (QWidget, colorSchemeTab)
+#: widgets/EditProfileAppearancePage.ui:36
+#, kde-format
+msgid "Color scheme && font"
+msgstr "סכמת צבעים וגופן"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, newColorSchemeButton)
+#: widgets/EditProfileAppearancePage.ui:69
+#, kde-format
+msgid "Create a new color scheme based upon the selected scheme"
+msgstr "צור ערכת נושא חדשה מבוססת על הנוכחית"
+
+#. i18n: ectx: property (text), widget (QPushButton, newColorSchemeButton)
+#: widgets/EditProfileAppearancePage.ui:72
+#, kde-format
+msgctxt "@action:button Create an alternate color scheme"
+msgid "New..."
+msgstr "חדשה…"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, editColorSchemeButton)
+#: widgets/EditProfileAppearancePage.ui:79
+#, kde-format
+msgid "Edit the selected color scheme"
+msgstr "עריכת ערכת העיצוב הנבחרת"
+
+#. i18n: ectx: property (text), widget (QPushButton, editKeyBindingsButton)
+#. i18n: ectx: property (text), widget (QPushButton, environmentEditButton)
+#. i18n: ectx: property (text), widget (QPushButton, textEditorCustomBtn)
+#. i18n: ectx: property (text), widget (QPushButton, editColorSchemeButton)
+#: widgets/EditProfileAppearancePage.ui:82
+#: widgets/EditProfileGeneralPage.ui:276 widgets/EditProfileKeyboardPage.ui:73
+#: widgets/EditProfileMousePage.ui:395
+#, kde-format
+msgid "Edit..."
+msgstr "עריכה…"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, removeColorSchemeButton)
+#: widgets/EditProfileAppearancePage.ui:89
+#, kde-format
+msgid "Delete the selected color scheme"
+msgstr "מחיקת ערכת העיצוב הנבחרת"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, resetColorSchemeButton)
+#: widgets/EditProfileAppearancePage.ui:99
+#, kde-format
+msgid "Reset the selected color scheme settings to the default values"
+msgstr "איפוס הגדרות סכמת הצבעים הנבחרות לערכי ברירת המחדל"
+
+#. i18n: ectx: property (text), widget (QPushButton, resetKeyBindingsButton)
+#. i18n: ectx: property (text), widget (QPushButton, resetColorSchemeButton)
+#: widgets/EditProfileAppearancePage.ui:102
+#: widgets/EditProfileKeyboardPage.ui:93
+#, kde-format
+msgid "Defaults"
+msgstr "ברירות מחדל"
+
+#. i18n: ectx: property (text), widget (QLabel, label_7)
+#: widgets/EditProfileAppearancePage.ui:135
+#, kde-format
+msgid "Font:"
+msgstr "גופן:"
+
+#. i18n: ectx: property (text), widget (QPushButton, chooseFontButton)
+#: widgets/EditProfileAppearancePage.ui:167
+#, kde-format
+msgctxt "@action:button open a dialog with list of fonts"
+msgid "Choose..."
+msgstr "בחירה…"
+
+#. i18n: ectx: property (text), widget (QCheckBox, antialiasTextButton)
+#: widgets/EditProfileAppearancePage.ui:174
+#, kde-format
+msgid "Smooth fonts"
+msgstr "החלקת גופנים"
+
+#. i18n: ectx: property (text), widget (QCheckBox, boldIntenseButton)
+#: widgets/EditProfileAppearancePage.ui:181
+#, kde-format
+msgid "Draw intense colors in bold font"
+msgstr "צביעת גופנים מודגשים בצבעים עזים"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, useFontLineCharactersButton)
+#: widgets/EditProfileAppearancePage.ui:188
+#, kde-format
+msgctxt ""
+"Characters for drawing lines for a frame or box in TUI programs. Not a row "
+"of characters."
+msgid "Use the selected font for line characters instead of the builtin code"
+msgstr "להשתמש בגופן הנבחר עבור מספרי שורות במקום בגופן המובנה"
+
+#. i18n: ectx: property (text), widget (QCheckBox, useFontLineCharactersButton)
+#: widgets/EditProfileAppearancePage.ui:191
+#, kde-format
+msgctxt ""
+"Characters for drawing lines for a frame or box in TUI programs. Not a row "
+"of characters."
+msgid "Use line characters contained in font"
+msgstr "להשתמש בתווי שורה הכלולים בגופן"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, useFontBrailleCharactersButton)
+#: widgets/EditProfileAppearancePage.ui:198
+#, kde-format
+msgid ""
+"Use the selected font for unicode Braille characters instead of the builtin "
+"code"
+msgstr "להשתמש בגופן הנבחר לתווי ברייל ביוניקוד במקום בקוד המובנה"
+
+#. i18n: ectx: property (text), widget (QCheckBox, useFontBrailleCharactersButton)
+#: widgets/EditProfileAppearancePage.ui:201
+#, kde-format
+msgid "Use unicode Braille characters contained in font"
+msgstr "להשתמש בתווי ברייל ביוניקוד כחלק מהגופן"
+
+#. i18n: ectx: attribute (title), widget (QWidget, cursorTab)
+#: widgets/EditProfileAppearancePage.ui:209
+#, kde-format
+msgid "Cursor"
+msgstr "סמן"
+
+#. i18n: ectx: property (text), widget (QLabel, label_8)
+#: widgets/EditProfileAppearancePage.ui:229
+#, kde-format
+msgid "Shape:"
+msgstr "צורה:"
+
+#. i18n: ectx: property (text), widget (QRadioButton, cursorShapeBlock)
+#: widgets/EditProfileAppearancePage.ui:239
+#, kde-format
+msgctxt "A solid rectangular"
+msgid "Block"
+msgstr "לבנה"
+
+#. i18n: ectx: property (text), widget (QRadioButton, cursorShapeIBeam)
+#: widgets/EditProfileAppearancePage.ui:249
+#, kde-format
+msgctxt "A vertical line on the left edge"
+msgid "I-Beam"
+msgstr "קורה בצורת I"
+
+#. i18n: ectx: property (text), widget (QRadioButton, cursorShapeUnderline)
+#: widgets/EditProfileAppearancePage.ui:259
+#, kde-format
+msgctxt "A hortizonal line on the bottom edge"
+msgid "Underline"
+msgstr "קו &תחתי"
+
+#. i18n: ectx: property (text), widget (QLabel, label_3)
+#: widgets/EditProfileAppearancePage.ui:291
+#, kde-format
+msgctxt "Cursor color options"
+msgid "Color:"
+msgstr "צבע:"
+
+#. i18n: ectx: property (toolTip), widget (QRadioButton, autoCursorColorButton)
+#: widgets/EditProfileAppearancePage.ui:307
+#, kde-format
+msgid "Set the cursor to match the color of the character underneath it."
+msgstr "קבע את צבע הסמן שיתאים לצבע התו מתחתיו."
+
+#. i18n: ectx: property (text), widget (QRadioButton, autoCursorColorButton)
+#: widgets/EditProfileAppearancePage.ui:310
+#, kde-format
+msgid "Match current character"
+msgstr "התאמה לצבע הנוכחי"
+
+#. i18n: ectx: property (toolTip), widget (QRadioButton, customCursorColorButton)
+#: widgets/EditProfileAppearancePage.ui:326
+#, kde-format
+msgid "Use a custom, fixed color for the cursor"
+msgstr "השתמש בצבע מתואם אישית, צבע קבוע עבור הסמן"
+
+#. i18n: ectx: property (text), widget (QRadioButton, customCursorColorButton)
+#: widgets/EditProfileAppearancePage.ui:329
+#, kde-format
+msgid "Custom cursor color"
+msgstr "צבע סמן מותאם אישית"
+
+#. i18n: ectx: property (text), widget (QLabel, customCursorColorLabel)
+#: widgets/EditProfileAppearancePage.ui:360
+#, kde-format
+msgid "Cursor:"
+msgstr "סמן:"
+
+#. i18n: ectx: property (toolTip), widget (KColorButton, customColorSelectButton)
+#: widgets/EditProfileAppearancePage.ui:373
+#, kde-format
+msgid "Select the color used to draw the cursor"
+msgstr "בחר את הצבע שיש להשתמש בו כדי לצייר את הסמן"
+
+#. i18n: ectx: property (text), widget (QLabel, customCursorTextColorLabel)
+#: widgets/EditProfileAppearancePage.ui:393
+#, kde-format
+msgid "Text:"
+msgstr "טקסט:"
+
+#. i18n: ectx: property (toolTip), widget (KColorButton, customTextColorSelectButton)
+#: widgets/EditProfileAppearancePage.ui:406
+#, kde-format
+msgid "Select the color used to draw the character underneath the cursor"
+msgstr "בחירת צבע לציור התו שמתחת לסמן"
+
+#. i18n: ectx: property (text), widget (QLabel, label_2)
+#: widgets/EditProfileAppearancePage.ui:431
+#, kde-format
+msgid "Blinking:"
+msgstr "הבהוב:"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, enableBlinkingCursorButton)
+#: widgets/EditProfileAppearancePage.ui:447
+#, kde-format
+msgid "Make the cursor blink regularly"
+msgstr "סמן מהבהב באופן קבוע"
+
+#. i18n: ectx: property (text), widget (QCheckBox, enableBlinkingCursorButton)
+#. i18n: ectx: property (text), widget (QCheckBox, enableAnimatingCursorButton)
+#. i18n: ectx: property (text), widget (QCheckBox, alignToCenterButton)
+#: widgets/EditProfileAppearancePage.ui:450
+#: widgets/EditProfileAppearancePage.ui:476
+#: widgets/EditProfileAppearancePage.ui:759
+#, kde-format
+msgid "Enabled"
+msgstr "מופעל"
+
+#. i18n: ectx: property (text), widget (QLabel, label_12)
+#: widgets/EditProfileAppearancePage.ui:457
+#, kde-format
+msgid "Animation:"
+msgstr "הנפשה:"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, enableAnimatingCursorButton)
+#: widgets/EditProfileAppearancePage.ui:473
+#, kde-format
+msgid "Make the cursor animate smoothly"
+msgstr "הנפשה חלקה של הסמן"
+
+#. i18n: ectx: attribute (title), widget (QWidget, tab_2)
+#. i18n: ectx: attribute (title), widget (QWidget, miscTab)
+#: widgets/EditProfileAppearancePage.ui:499 widgets/EditProfileMousePage.ui:327
+#, kde-format
+msgctxt "Items that do not fit in other categories"
+msgid "Miscellaneous"
+msgstr "שונות"
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: widgets/EditProfileAppearancePage.ui:510
+#, kde-format
+msgid "Window:"
+msgstr "חלון:"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, showTerminalSizeHintButton)
+#: widgets/EditProfileAppearancePage.ui:517
+#, kde-format
+msgid ""
+"Show terminal size in columns and lines in the center of window after "
+"resizing"
+msgstr "הצגת גודל המסוף בשורות ועמודות במרכז החלון לאחר שינוי הגודל"
+
+#. i18n: ectx: property (text), widget (QCheckBox, showTerminalSizeHintButton)
+#: widgets/EditProfileAppearancePage.ui:520
+#, kde-format
+msgid "Show hint for terminal size after resizing"
+msgstr "הצגת רמז לגודל המסוף לאחר שינוי הגודל"
+
+#. i18n: ectx: property (text), widget (QCheckBox, invertSelectionColorsCheckbox)
+#: widgets/EditProfileAppearancePage.ui:527
+#, kde-format
+msgid "Always invert the colors of selected text"
+msgstr "תמיד להפוך את הצבעים של הטקסט הנבחר"
+
+#. i18n: ectx: property (text), widget (QLabel, dimLabel)
+#: widgets/EditProfileAppearancePage.ui:536
+#, kde-format
+msgid "Darkening strength:"
+msgstr "עוצמת הכהיה:"
+
+#. i18n: ectx: property (text), widget (QLabel, borderLabel)
+#: widgets/EditProfileAppearancePage.ui:569
+#, kde-format
+msgctxt "Border color options"
+msgid "Color:"
+msgstr "צבע:"
+
+#. i18n: ectx: property (toolTip), widget (KColorButton, focusBorderColor)
+#: widgets/EditProfileAppearancePage.ui:585
+#, kde-format
+msgid "Select the color used to draw the border"
+msgstr "בחירת הצבע לציור המסגרת"
+
+#. i18n: ectx: property (text), widget (QLabel, label_10)
+#: widgets/EditProfileAppearancePage.ui:607
+#, kde-format
+msgid "Inactive Terminals:"
+msgstr "מסופים לא פעילים:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_11)
+#: widgets/EditProfileAppearancePage.ui:617
+#, kde-format
+msgid "Active Terminals:"
+msgstr "מסופים פעילים:"
+
+#. i18n: ectx: property (title), widget (QGroupBox, contentsGroup)
+#: widgets/EditProfileAppearancePage.ui:627
+#, kde-format
+msgctxt "@title:group"
+msgid "Terminal contents"
+msgstr "תוכני מסוף"
+
+#. i18n: ectx: property (text), widget (QLabel, lineSpacingLabel)
+#: widgets/EditProfileAppearancePage.ui:639
+#, kde-format
+msgid "Line spacing:"
+msgstr "ריווח בין שורות:"
+
+#. i18n: ectx: property (toolTip), widget (QSpinBox, lineSpacingSpinner)
+#: widgets/EditProfileAppearancePage.ui:657
+#, kde-format
+msgid "The number of pixels between two lines"
+msgstr "מספר הפיקסלים בין שתי שורות"
+
+#. i18n: ectx: property (suffix), widget (QSpinBox, lineSpacingSpinner)
+#. i18n: ectx: property (suffix), widget (QSpinBox, marginsSpinner)
+#. i18n: ectx: property (suffix), widget (QSpinBox, badgeFontSizeSpinner)
+#: widgets/EditProfileAppearancePage.ui:660
+#: widgets/EditProfileAppearancePage.ui:712
+#: widgets/EditProfileAppearancePage.ui:1239
+#, kde-format
+msgctxt "(pixels) visual size unit"
+msgid " px"
+msgstr " פיקסלים"
+
+#. i18n: ectx: property (text), widget (QLabel, label_4)
+#: widgets/EditProfileAppearancePage.ui:694
+#, kde-format
+msgid "Margins:"
+msgstr "גבולות:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_5)
+#: widgets/EditProfileAppearancePage.ui:746
+#, kde-format
+msgid "Align to center:"
+msgstr "יישור למרכז:"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, dimWhenInactiveCheckbox)
+#: widgets/EditProfileAppearancePage.ui:769
+#, kde-format
+msgid "Indicate whether the window is active by dimming the colors"
+msgstr "ציון האם החלון פעיל על ידי עמעום הצבעים"
+
+#. i18n: ectx: property (text), widget (QCheckBox, dimWhenInactiveCheckbox)
+#: widgets/EditProfileAppearancePage.ui:772
+#, kde-format
+msgid "Darken"
+msgstr "הכהיה"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, borderWhenActiveCheckbox)
+#: widgets/EditProfileAppearancePage.ui:779
+#, kde-format
+msgid "Indicate whether the window is active by drawing a border"
+msgstr "ציון האם החלון פעיל על ידי ציור מסגרת"
+
+#. i18n: ectx: property (text), widget (QCheckBox, borderWhenActiveCheckbox)
+#: widgets/EditProfileAppearancePage.ui:782
+#, kde-format
+msgid "Border"
+msgstr "מסגרת"
+
+#. i18n: ectx: property (text), widget (QCheckBox, displayVerticalLine)
+#: widgets/EditProfileAppearancePage.ui:824
+#, kde-format
+msgid "Display Vertical line at column:"
+msgstr "הצגת קו אנכי בעמודה:"
+
+#. i18n: ectx: property (toolTip), widget (QWidget, CTLtab)
+#: widgets/EditProfileAppearancePage.ui:869
+#, kde-format
+msgid "<html><head/><body><p>Complex Text Layout</p></body></html>"
+msgstr "<html><head/><body dir=\"rtl\"><p>פריסת טקסט מורכבת</p></body></html>"
+
+#. i18n: ectx: attribute (title), widget (QWidget, CTLtab)
+#: widgets/EditProfileAppearancePage.ui:872
+#, kde-format
+msgid "Complex Text Layout"
+msgstr "פריסת טקסט מורכבת"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, wordMode)
+#: widgets/EditProfileAppearancePage.ui:887
+#, kde-format
+msgid "Enable word mode text rendering"
+msgstr "הפעלת עיבוד טקסט במצב מילים"
+
+#. i18n: ectx: property (text), widget (QCheckBox, wordMode)
+#: widgets/EditProfileAppearancePage.ui:890
+#, kde-format
+msgid "Word mode"
+msgstr "מצב מילים"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, wordModeAttr)
+#: widgets/EditProfileAppearancePage.ui:903
+#, kde-format
+msgid ""
+"Ignore attribute changes mid-word (otherwise, attribute changes break word "
+"when rendering)"
+msgstr ""
+"התעלמות משינוי מאפיינים באמצע מילה (אחרת, שינויי מאפיינים יפגעו במילים בעת "
+"העיבוד)"
+
+#. i18n: ectx: property (text), widget (QCheckBox, wordModeAttr)
+#: widgets/EditProfileAppearancePage.ui:906
+#, kde-format
+msgid "Use the same attributes for whole word"
+msgstr "להשתמש באותם המאפיינים לכל המילה"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, wordModeAscii)
+#: widgets/EditProfileAppearancePage.ui:919
+#, kde-format
+msgid "Render words of ASCII characters together"
+msgstr "עיבוד מילים של תווי ASCII יחד"
+
+#. i18n: ectx: property (text), widget (QCheckBox, wordModeAscii)
+#: widgets/EditProfileAppearancePage.ui:922
+#, kde-format
+msgid "ASCII characters "
+msgstr "תווי ASCII "
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, wordModeCoding)
+#: widgets/EditProfileAppearancePage.ui:935
+#, kde-format
+msgid ""
+"Render words made of characters that usually appear in coding ligatures "
+"together."
+msgstr ""
+"לתצג מילים שמורכבות מתווים שבדרך כלל מופיעות בליגטורות (אותיות מחוברות) "
+"שקשורות בקוד יחד."
+
+#. i18n: ectx: property (text), widget (QCheckBox, wordModeCoding)
+#: widgets/EditProfileAppearancePage.ui:938
+#, kde-format
+msgid "Coding ligatures characters"
+msgstr "תווי ליגטורת קוד"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, wordModeBrahmic)
+#: widgets/EditProfileAppearancePage.ui:951
+#, kde-format
+msgid "Render words of Brahmic scripts characters together"
+msgstr "עיבוד מילים עם תווים בסוגי כתב בראהמיים יחד"
+
+#. i18n: ectx: property (text), widget (QCheckBox, wordModeBrahmic)
+#: widgets/EditProfileAppearancePage.ui:954
+#, kde-format
+msgid "Brahmic scripts characters"
+msgstr "תווים של סוגי כתב בראהמיים"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, fontHinting)
+#: widgets/EditProfileAppearancePage.ui:967
+#, kde-format
+msgid ""
+"Apply hinting to glyphs when rendering, which may improve the legibility of "
+"certain fonts with some displays"
+msgstr ""
+"החלת רימוז על גליפים בעת התיצוג, מה שעשוי לשפר את נוחות הקריאה של גופנים "
+"מסוימים בתצוגות מסוימות"
+
+#. i18n: ectx: property (text), widget (QCheckBox, fontHinting)
+#: widgets/EditProfileAppearancePage.ui:970
+#, kde-format
+msgid "Font hinting"
+msgstr "רימוז גופנים"
+
+#. i18n: ectx: property (text), widget (QLabel, label_17)
+#: widgets/EditProfileAppearancePage.ui:983
+#, kde-format
+msgid "Emoji Font:"
+msgstr "גופן אמוג׳י:"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, enableBidiRenderingButton)
+#: widgets/EditProfileAppearancePage.ui:1009
+#, kde-format
+msgid ""
+"Enable Bi-Directional display on terminals (valid for Arabic, Farsi or "
+"Hebrew only)"
+msgstr "הפעל תצוגה דו־כיוונית במסופים (פועל על ערבית, פרסית ועברית בלבד)"
+
+#. i18n: ectx: property (text), widget (QCheckBox, enableBidiRenderingButton)
+#: widgets/EditProfileAppearancePage.ui:1012
+#, kde-format
+msgid "Bi-Directional text rendering"
+msgstr "עיבוד טקסט דו־כיווני"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, bidiLineLTR)
+#: widgets/EditProfileAppearancePage.ui:1025
+#, kde-format
+msgid "Lines are always LTR, rather than determined by first strong character"
+msgstr "השורות הן תמיד משמאל לימין, במקום החלטה לפי התו החזק הראשון"
+
+#. i18n: ectx: property (text), widget (QCheckBox, bidiLineLTR)
+#: widgets/EditProfileAppearancePage.ui:1028
+#, kde-format
+msgid "force LTR line direction"
+msgstr "אילוץ כיוון שורה משמאל לימין"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, enableBidiTableDirOverrideButton)
+#: widgets/EditProfileAppearancePage.ui:1041
+#, kde-format
+msgid "Treat table drawing characters as strong LTR."
+msgstr "התייחסות לתווי ציור טבלה כשמאל לימין חזק."
+
+#. i18n: ectx: property (text), widget (QCheckBox, enableBidiTableDirOverrideButton)
+#: widgets/EditProfileAppearancePage.ui:1044
+#, kde-format
+msgid "Table characters BiDi mode override"
+msgstr "דריסת מצב דו־כיווניות לתווי טבלה"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, ignoreWcWidth)
+#: widgets/EditProfileAppearancePage.ui:1057
+#, kde-format
+msgid "Ignore wcwidth of problematic characters"
+msgstr "התעלמות מתווים בעייתיים של wcwidth"
+
+#. i18n: ectx: property (text), widget (QCheckBox, ignoreWcWidth)
+#: widgets/EditProfileAppearancePage.ui:1060
+#, kde-format
+msgid "Override wcwidth"
+msgstr "דריסת wcwidth"
+
+#. i18n: ectx: property (toolTip), widget (QWidget, badgeTab)
+#: widgets/EditProfileAppearancePage.ui:1081
+#, kde-format
+msgid "<html><head/><body><p>Badge overlay options</p></body></html>"
+msgstr ""
+"<html><head/><body dir=\"rtl\"><p>אפשרויות שכבת על של עיטור</p></body></html>"
+
+#. i18n: ectx: attribute (title), widget (QWidget, badgeTab)
+#. i18n: ectx: property (text), widget (QCheckBox, badgeEnabled)
+#: widgets/EditProfileAppearancePage.ui:1084
+#: widgets/EditProfileAppearancePage.ui:1114
+#, kde-format
+msgid "Badge Overlay"
+msgstr "שכבת על של עיטור"
+
+#. i18n: ectx: property (text), widget (QLabel, badgeOverlayLabel)
+#: widgets/EditProfileAppearancePage.ui:1094
+#, kde-format
+msgid "Badge Overlay Options"
+msgstr "אפשרויות שכבת על של עיטור"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, badgeEnabled)
+#: widgets/EditProfileAppearancePage.ui:1111
+#, kde-format
+msgid "Enable badge overlay rendering"
+msgstr "הפעלת עיבוד שכתב על של עיטור"
+
+#. i18n: ectx: property (toolTip), widget (QLabel, badge_label_1)
+#. i18n: ectx: property (toolTip), widget (QLineEdit, badgeTextEdit)
+#: widgets/EditProfileAppearancePage.ui:1121
+#: widgets/EditProfileAppearancePage.ui:1142
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Default text of badge."
+msgstr "כיתוב העיטור כברירת מחדל."
+
+#. i18n: ectx: property (text), widget (QLabel, badge_label_1)
+#: widgets/EditProfileAppearancePage.ui:1124
+#, kde-format
+msgid "Badge text:"
+msgstr "כיתוב עיטור:"
+
+#. i18n: ectx: property (text), widget (QLabel, badgeVariablesHelpLabel)
+#: widgets/EditProfileAppearancePage.ui:1150
+#, kde-format
+msgid ""
+"<html><head/><body><p><small><b>Available variables:</b> \\(session.title), "
+"\\(session.name), \\(session.id), \\(session.directory), \\(session."
+"hostname), \\(session.process), \\(env.VARIABLE_NAME)</small></p></body></"
+"html>"
+msgstr ""
+"<html><head/><body><p><small><b>משתנים זמינים:</b> \\(session.title),‏ "
+"\\(session.name),‏ \\(session.id),‏ \\(session.directory),‏ \\(session."
+"hostname),‏ \\(session.process),‏ \\(env.VARIABLE_NAME)</small></p></body></"
+"html>"
+
+#. i18n: ectx: property (text), widget (QLabel, badgeEscapeSequenceHelpLabel)
+#: widgets/EditProfileAppearancePage.ui:1170
+#, kde-format
+msgid ""
+"<html><head/><body><p><small><b>Badge configuration:</b><br/>Use profile "
+"settings on this page to configure badge text, color, font, text-only mode "
+"and transparency.</small></p></body></html>"
+msgstr ""
+"<html><head/><body><p><small><b>הגדרות עיטור:</b><br/>אפשר להשתמש בהגדרות "
+"הפרופיל בעמוד הזה כדי להגדיר את הכיתוב, הצבע, הגופן, מצב כיתוב בלבד והשקיפות "
+"של העיטור.</small></p></body></html>"
+
+#. i18n: ectx: property (toolTip), widget (QLabel, badge_label_2)
+#. i18n: ectx: property (toolTip), widget (QLineEdit, badgeFontEdit)
+#: widgets/EditProfileAppearancePage.ui:1190
+#: widgets/EditProfileAppearancePage.ui:1211
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Badge font family."
+msgstr "משפחת גופן עיטור."
+
+#. i18n: ectx: property (text), widget (QLabel, badge_label_2)
+#: widgets/EditProfileAppearancePage.ui:1193
+#, kde-format
+msgid "Badge font family:"
+msgstr "משפחת גופן עיטור:"
+
+#. i18n: ectx: property (text), widget (QLabel, badgeFontSizeLabel)
+#: widgets/EditProfileAppearancePage.ui:1226
+#, kde-format
+msgid "Badge font size:"
+msgstr "גודל כתב עיטור:"
+
+#. i18n: ectx: property (text), widget (QLabel, badgeColorLabel)
+#: widgets/EditProfileAppearancePage.ui:1256
+#, kde-format
+msgid "Badge color:"
+msgstr "צבע עיטור:"
+
+#. i18n: ectx: property (toolTip), widget (KColorButton, badgeColorSelectButton)
+#: widgets/EditProfileAppearancePage.ui:1269
+#, kde-format
+msgid "Select the color used to draw the badge"
+msgstr "בחירת הצבע לציור העיטור"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, badgeTextOnlyCheckBox)
+#: widgets/EditProfileAppearancePage.ui:1283
+#, kde-format
+msgid "Display badge as text only without background rectangle"
+msgstr "להציג עיטור ככיתוב בלבד ללא מרובע כרקע"
+
+#. i18n: ectx: property (text), widget (QCheckBox, badgeTextOnlyCheckBox)
+#: widgets/EditProfileAppearancePage.ui:1286
+#, kde-format
+msgid "Text only (no background)"
+msgstr "כיתוב בלבד (ללא רקע)"
+
+#. i18n: ectx: property (text), widget (QLabel, badgeTransparencyLabel)
+#: widgets/EditProfileAppearancePage.ui:1300
+#, kde-format
+msgid "Transparency:"
+msgstr "שקיפות:"
+
+#. i18n: ectx: property (toolTip), widget (QSlider, badgeTransparencySlider)
+#: widgets/EditProfileAppearancePage.ui:1327
+#, kde-format
+msgid "Set badge transparency (0 = fully transparent, 255 = opaque)"
+msgstr "הגדרת שקיפות עיטור (0 = שקוף לגמרי, 255 = אטום)"
+
+#. i18n: ectx: property (text), widget (QLabel, badgeTransparencyValueLabel)
+#: widgets/EditProfileAppearancePage.ui:1334
+#, kde-format
+msgid "180"
+msgstr "180"
+
+#: widgets/EditProfileDialog.cpp:71
+#, kde-format
+msgid "Edit Profile"
+msgstr "ערוך פרופיל"
+
+#: widgets/EditProfileDialog.cpp:98
+#, kde-format
+msgctxt "@title:tab Generic, common options"
+msgid "General"
+msgstr "כללי"
+
+#: widgets/EditProfileDialog.cpp:111
+#, kde-format
+msgid "Tabs"
+msgstr "כרטיסיות"
+
+#: widgets/EditProfileDialog.cpp:128
+#, kde-format
+msgid "Appearance"
+msgstr "מראה"
+
+#: widgets/EditProfileDialog.cpp:146
+#, kde-format
+msgid "Scrolling"
+msgstr "גלילה"
+
+#: widgets/EditProfileDialog.cpp:160
+#, kde-format
+msgid "Keyboard"
+msgstr "מקלדת"
+
+#: widgets/EditProfileDialog.cpp:161
+#, kde-format
+msgid "Key bindings"
+msgstr "צירופי תווים"
+
+#: widgets/EditProfileDialog.cpp:172
+#, kde-format
+msgid "Mouse"
+msgstr "עכבר"
+
+#: widgets/EditProfileDialog.cpp:190
+#, kde-format
+msgctxt "@title:tab Complex options"
+msgid "Advanced"
+msgstr "מתקדם"
+
+#: widgets/EditProfileDialog.cpp:298
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Insufficient permissions to save settings to: <filename>%1</filename>.<nl/"
+">Either change the permissions of that file or set a different name to save "
+"the settings to a new profile."
+msgstr ""
+"אין מספיק הרשאות כדי לשמור הגדרות אל: <filename>%1</filename>.<nl/>כדאי "
+"לשנות את ההרשאות של הקובץ הזה או להגדיר שם שונה כדי לשמור את ההגדרות לפרופיל "
+"חדש."
+
+#: widgets/EditProfileDialog.cpp:315
+#, kde-format
+msgctxt "@info"
+msgid "Profile Name was empty; please set a name to be able to save settings."
+msgstr "שם הפרופיל היה ריק, נא להגדיר שם כדי שאפשר יהיה לשמור את ההגדרות."
+
+#: widgets/EditProfileDialog.cpp:323
+#, kde-format
+msgctxt "@info"
+msgid "A profile with the name \"%1\" already exists."
+msgstr "כבר קיים פרופיל בשם „%1”."
+
+#: widgets/EditProfileDialog.cpp:353
+#, kde-format
+msgctxt "@info"
+msgid "Profile name exceeded maximum allowed length (%1)."
+msgstr "שם הפרופיל חורג מהאורך המותר (%1)."
+
+#: widgets/EditProfileDialog.cpp:391
+#, kde-format
+msgctxt "@info"
+msgid "The highlighted characters are invalid in profile names: %1."
+msgstr "התווים המודגשים שגויים לשמות פרופילים: %1."
+
+#: widgets/EditProfileDialog.cpp:427
+#, kde-format
+msgid "Editing profile: %2"
+msgid_plural "Editing %1 profiles: %2"
+msgstr[0] "עריכת פרופיל: %2"
+msgstr[1] "עריכת שני פרופילים: %2"
+msgstr[2] "עריכת %1 פרופילים: %2"
+msgstr[3] "עריכת %1 פרופילים: %2"
+
+#: widgets/EditProfileDialog.cpp:431
+#, kde-format
+msgid "Create New Profile"
+msgstr "יצירת פרופיל חדש"
+
+#: widgets/EditProfileDialog.cpp:434
+#, kde-format
+msgid "Edit Profile \"%1\""
+msgstr "ערוך את הפרופיל \"%1\""
+
+#: widgets/EditProfileDialog.cpp:536
+#, kde-format
+msgid "None"
+msgstr "ללא"
+
+#: widgets/EditProfileDialog.cpp:556
+#, kde-format
+msgctxt ""
+"Suffix of the number of columns (N columns). The leading space is needed to "
+"separate it from the number value."
+msgid " column"
+msgid_plural " columns"
+msgstr[0] " עמודה"
+msgstr[1] " עמודות"
+msgstr[2] " עמודות"
+msgstr[3] " עמודות"
+
+#: widgets/EditProfileDialog.cpp:558
+#, kde-format
+msgctxt ""
+"Suffix of the number of rows (N rows). The leading space is needed to "
+"separate it from the number value."
+msgid " row"
+msgid_plural " rows"
+msgstr[0] " שורה"
+msgstr[1] " שורות"
+msgstr[2] " שורות"
+msgstr[3] " שורות"
+
+#: widgets/EditProfileDialog.cpp:568
+#, kde-format
+msgid "System Bell"
+msgstr "פעמון מערכת"
+
+#: widgets/EditProfileDialog.cpp:568
+#, kde-format
+msgid "System Notifications"
+msgstr "התראות מערכת"
+
+#: widgets/EditProfileDialog.cpp:568
+#, kde-format
+msgid "Visual Bell"
+msgstr "פעמון חזותי"
+
+#: widgets/EditProfileDialog.cpp:568
+#, kde-format
+msgid "Ignore Bell Events"
+msgstr "התעלמות מאירועי פעמון"
+
+#: widgets/EditProfileDialog.cpp:577
+#, kde-format
+msgid "Default profile for new terminal sessions in %1"
+msgstr "פרופיל ברירת מחדל להפעלות מסוף חדשות ב־%1"
+
+#: widgets/EditProfileDialog.cpp:684
+#, kde-format
+msgid "Edit Environment"
+msgstr "עריכת הסביבה"
+
+#: widgets/EditProfileDialog.cpp:685
+#, kde-format
+msgid "One environment variable per line"
+msgstr "משתנה סביבה אחד בשורה"
+
+#: widgets/EditProfileDialog.cpp:718
+#, kde-format
+msgctxt "Unit of time"
+msgid " second"
+msgid_plural " seconds"
+msgstr[0] " שנייה"
+msgstr[1] " שניות"
+msgstr[2] " שניות"
+msgstr[3] " שניות"
+
+#: widgets/EditProfileDialog.cpp:848
+#, kde-format
+msgid "Select Initial Directory"
+msgstr "בחירת ספרייה התחלתית"
+
+#: widgets/EditProfileDialog.cpp:1010
+#, kde-format
+msgid "Get New..."
+msgstr "הורדת חדשה…"
+
+#: widgets/EditProfileDialog.cpp:1459
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Scheme <resource>%1</resource> failed to load."
+msgstr "טעינת הסכמה <resource>%1</resource> נכשלה."
+
+#: widgets/EditProfileDialog.cpp:1641
+#, kde-format
+msgid ""
+"This color scheme uses a transparent background which does not appear to be "
+"supported on your desktop"
+msgstr "ערכת נושא זו משתמשת ברקע שקוף שלא נתמך בשולחן העבודה שלך"
+
+#: widgets/EditProfileDialog.cpp:1647
+#, kde-format
+msgid ""
+"Konsole was started before desktop effects were enabled. You need to restart "
+"Konsole to see transparent background."
+msgstr ""
+"היישום Konsole הופעל לפני שהאפקטים של שולחן העבודה הופעלה. עליך להפעיל את "
+"Konsole בכדי לראות רקע שקוף."
+
+#: widgets/EditProfileDialog.cpp:2059
+#, kde-format
+msgid "Default for file type"
+msgstr "ברירת המחדל לסוג הקובץ"
+
+#: widgets/EditProfileDialog.cpp:2085
+#, kde-format
+msgid ""
+"The format is e.g. 'editorExec PATH:LINE:COLUMN'\n"
+"\n"
+"PATH    will be replaced by the path to the text file\n"
+"LINE    will be replaced by the line number\n"
+"COLUMN  (optional) will be replaced by the column number\n"
+"Note: you will need to replace 'PATH:LINE:COLUMN' by the actual\n"
+"syntax the editor you want to use supports; e.g.:\n"
+"gedit +LINE:COLUMN PATH\n"
+"\n"
+"If PATH or LINE aren't present in the command, this setting\n"
+"will be ignored and the file will be opened by the default text\n"
+"editor."
+msgstr ""
+"התבנית היא למשל: ‚editorExec PATH:LINE:COLUMN’\n"
+"\n"
+"PATH    יוחלף בנתיב לקובץ הטקסט\n"
+"LINE    יוחלף במספר השורה\n"
+"COLUMN  (רשות) יוחלף במספר העמודה\n"
+"לתשומת לבך: צריך להחליף את ‚PATH:LINE:COLUMN’ בתחביר\n"
+"שנתמך על ידי העורך שבחרת, למשל:\n"
+"gedit +LINE:COLUMN PATH\n"
+"\n"
+"אם PATH או LINE לא קיימים בפקודה, להגדרה הזאת\n"
+"לא תהיה השפעה והקובץ הזה ייפתח על ידי עורך\n"
+"הטקסט שמוגדר כברירת המחדל."
+
+#: widgets/EditProfileDialog.cpp:2098
+#, kde-format
+msgid "Text Editor Custom Command"
+msgstr "פקודה מותאמת אישית לעורך טקסט"
+
+#. i18n: ectx: attribute (title), widget (QWidget, general)
+#: widgets/EditProfileGeneralPage.ui:42
+#, kde-format
+msgid "General Settings"
+msgstr "הגדרות כלליות"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, iconSelectButton)
+#: widgets/EditProfileGeneralPage.ui:66
+#, kde-format
+msgid "Select the icon displayed on tabs using this profile"
+msgstr "סחר את הסמל לשימוש בלשוניות כאשר משתמשים בפרופיל זה"
+
+#. i18n: ectx: property (toolTip), widget (QLineEdit, profileNameEdit)
+#: widgets/EditProfileGeneralPage.ui:84
+#, kde-format
+msgid "A descriptive name for the profile"
+msgstr "שם תיאורי עבור הפרופיל"
+
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, profileNameEdit)
+#: widgets/EditProfileGeneralPage.ui:87
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Profile name"
+msgstr "שם הפרופיל"
+
+#. i18n: ectx: property (text), widget (QCheckBox, setAsDefaultButton)
+#: widgets/EditProfileGeneralPage.ui:94
+#, kde-format
+msgid "Default Profile"
+msgstr "פרופיל ברירת מחדל"
+
+#. i18n: ectx: property (text), widget (QLabel, label_3)
+#: widgets/EditProfileGeneralPage.ui:125
+#, kde-format
+msgid "Command:"
+msgstr "פקודה:"
+
+#. i18n: ectx: property (toolTip), widget (QLineEdit, commandEdit)
+#: widgets/EditProfileGeneralPage.ui:138
+#, kde-format
+msgid ""
+"The command to execute when new terminal sessions are created using this "
+"profile"
+msgstr "הפקודה להפעלה כאשר הפעלות של מספוים נוצרות באמצעות פרופיל זה"
+
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, commandEdit)
+#: widgets/EditProfileGeneralPage.ui:144
+#, kde-format
+msgid "/bin/sh"
+msgstr "‎/bin/sh"
+
+#. i18n: ectx: property (text), widget (QLabel, label_9)
+#: widgets/EditProfileGeneralPage.ui:157
+#, kde-format
+msgid "I&nitial directory:"
+msgstr "&תיקייה התחלתית:"
+
+#. i18n: ectx: property (toolTip), widget (QLineEdit, initialDirEdit)
+#: widgets/EditProfileGeneralPage.ui:170
+#, kde-format
+msgid ""
+"The initial working directory for new terminal sessions using this profile"
+msgstr "ספריית ההפעלה הראשונית עבור הפעלות מסוף חדשות שמשתמשות בפרופיל זה"
+
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, initialDirEdit)
+#: widgets/EditProfileGeneralPage.ui:176
+#, kde-format
+msgid "/home/username"
+msgstr "‎/home/username"
+
+#. i18n: ectx: property (toolTip), widget (QToolButton, dirSelectButton)
+#: widgets/EditProfileGeneralPage.ui:183
+#, kde-format
+msgid "Choose the initial directory"
+msgstr "בחר את הספרייה ההתחלתית"
+
+#. i18n: ectx: property (text), widget (QCheckBox, startInSameDirButton)
+#: widgets/EditProfileGeneralPage.ui:193
+#, kde-format
+msgid "Start in same directory as current session"
+msgstr "התחלה באותה התיקייה כמו ההפעלה הנוכחית"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, inheritContainerButton)
+#: widgets/EditProfileGeneralPage.ui:200
+#, kde-format
+msgid ""
+"When opening a new tab or split, automatically enter the same container "
+"(Toolbox, Distrobox) as the current session"
+msgstr ""
+"בעת פתיחת לשונית חדשה או פיצול, להיכנס אוטומטית לאותה המכולה (Distrobox,‏ "
+"Toolbox) כמו ההפעלה הנוכחית"
+
+#. i18n: ectx: property (text), widget (QCheckBox, inheritContainerButton)
+#: widgets/EditProfileGeneralPage.ui:203
+#, kde-format
+msgid "Enter same container as current session"
+msgstr "להיכנס לאותה המכולה כמו ההפעלה הנוכחית"
+
+#. i18n: ectx: property (text), widget (QLabel, containerLabel)
+#: widgets/EditProfileGeneralPage.ui:229
+#, kde-format
+msgid "Always start in container:"
+msgstr "תמיד להתחיל במכולה:"
+
+#. i18n: ectx: property (toolTip), widget (QComboBox, containerCombo)
+#: widgets/EditProfileGeneralPage.ui:242
+#, kde-format
+msgid ""
+"Always start new sessions using this profile inside the selected container"
+msgstr "תמיד להקים הפעלות חדשות באמצעות הפרופיל הזה בתוך המכולה הנבחרת"
+
+#. i18n: ectx: property (text), widget (QLabel, label_4)
+#: widgets/EditProfileGeneralPage.ui:255
+#, kde-format
+msgid "Environment:"
+msgstr "סביבה:"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, environmentEditButton)
+#: widgets/EditProfileGeneralPage.ui:273
+#, kde-format
+msgid "Edit the list of environment variables and associated values"
+msgstr "ערוך את רשימת משתני הסביבה והערכים המשוייכים"
+
+#. i18n: ectx: property (text), widget (QLabel, label_5)
+#: widgets/EditProfileGeneralPage.ui:320
+#, kde-format
+msgid "Initial terminal si&ze:"
+msgstr "&גודל מסוף התחלתי:"
+
+#. i18n: ectx: property (text), widget (QLabel, useCurrentWindowSizeNote)
+#: widgets/EditProfileGeneralPage.ui:395
+#, kde-format
+msgctxt "@info"
+msgid ""
+"<html><head/><body><p><span style=\" font-style:italic;\">Settings → "
+"Configure Konsole → General → Remember window size</span> must be disabled "
+"for these entries to work.</p></body></html>"
+msgstr ""
+"<html><head/><body dir=\"rtl\"><p><span style=\" font-style:italic;\">הגדרות "
+"← הגדרת Konsole ← כללי ← שימור גודל החלון</span> חייב להיות מושבת כדי "
+"שהרשומות האלו תעבודנה.</p></body></html>"
+
+#. i18n: ectx: property (text), widget (QLabel, terminalBellLabel)
+#: widgets/EditProfileGeneralPage.ui:411
+#, kde-format
+msgid "&Terminal bell mode:"
+msgstr "מצב &פעמון מסוף:"
+
+#. i18n: ectx: attribute (title), widget (QWidget, semantic)
+#: widgets/EditProfileGeneralPage.ui:429
+#, kde-format
+msgid "Semantic Integration"
+msgstr "שילוב סמנטי"
+
+#. i18n: ectx: property (text), widget (QCheckBox, semanticUpDown)
+#: widgets/EditProfileGeneralPage.ui:435
+#, kde-format
+msgid "Up/Down Arrows emulation"
+msgstr "הדמיה של חיצי מעלה/מטה"
+
+#. i18n: ectx: property (text), widget (QCheckBox, semanticInputClick)
+#: widgets/EditProfileGeneralPage.ui:442
+#, kde-format
+msgid "Mouse click in input line moves cursor"
+msgstr "לחיצת עכבר בשורת הקלט מזיזה את הסמן"
+
+#. i18n: ectx: property (text), widget (QLabel, label_8)
+#: widgets/EditProfileGeneralPage.ui:455
+#, kde-format
+msgid "Semantic hints:"
+msgstr "רמיזות סמנטיות:"
+
+#. i18n: ectx: property (text), widget (QRadioButton, semanticHintsNever)
+#. i18n: ectx: property (text), widget (QRadioButton, errorBarsNever)
+#. i18n: ectx: property (text), widget (QRadioButton, errorBackgroundNever)
+#. i18n: ectx: property (text), widget (QRadioButton, alternatingBarsNever)
+#. i18n: ectx: property (text), widget (QRadioButton, alternatingBackgroundNever)
+#: widgets/EditProfileGeneralPage.ui:465 widgets/EditProfileGeneralPage.ui:511
+#: widgets/EditProfileGeneralPage.ui:557 widgets/EditProfileGeneralPage.ui:603
+#: widgets/EditProfileGeneralPage.ui:649
+#, kde-format
+msgctxt "Never"
+msgid "Never"
+msgstr "אף פעם לא"
+
+#. i18n: ectx: property (text), widget (QRadioButton, semanticHintsURL)
+#. i18n: ectx: property (text), widget (QRadioButton, errorBarsURL)
+#. i18n: ectx: property (text), widget (QRadioButton, errorBackgroundURL)
+#. i18n: ectx: property (text), widget (QRadioButton, alternatingBarsURL)
+#. i18n: ectx: property (text), widget (QRadioButton, alternatingBackgroundURL)
+#: widgets/EditProfileGeneralPage.ui:475 widgets/EditProfileGeneralPage.ui:521
+#: widgets/EditProfileGeneralPage.ui:567 widgets/EditProfileGeneralPage.ui:613
+#: widgets/EditProfileGeneralPage.ui:659
+#, kde-format
+msgctxt "When showing URL hints"
+msgid "When URL hints show"
+msgstr "כאשר מופיע רמז לכתובת"
+
+#. i18n: ectx: property (text), widget (QRadioButton, semanticHintsAlways)
+#. i18n: ectx: property (text), widget (QRadioButton, errorBarsAlways)
+#. i18n: ectx: property (text), widget (QRadioButton, errorBackgroundAlways)
+#. i18n: ectx: property (text), widget (QRadioButton, alternatingBarsAlways)
+#. i18n: ectx: property (text), widget (QRadioButton, alternatingBackgroundAlways)
+#: widgets/EditProfileGeneralPage.ui:485 widgets/EditProfileGeneralPage.ui:531
+#: widgets/EditProfileGeneralPage.ui:577 widgets/EditProfileGeneralPage.ui:623
+#: widgets/EditProfileGeneralPage.ui:669
+#, kde-format
+msgctxt "Always"
+msgid "Always"
+msgstr "תמיד"
+
+#. i18n: ectx: property (text), widget (QLabel, label_20)
+#: widgets/EditProfileGeneralPage.ui:501
+#, kde-format
+msgid "Red error bars:"
+msgstr "פסי שגיאה אדומים:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_30)
+#: widgets/EditProfileGeneralPage.ui:547
+#, kde-format
+msgid "Red error background:"
+msgstr "רקע שגיאה אדום:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_40)
+#: widgets/EditProfileGeneralPage.ui:593
+#, kde-format
+msgid "Alternating bars:"
+msgstr "פסים מתחלפים:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_50)
+#: widgets/EditProfileGeneralPage.ui:639
+#, kde-format
+msgid "Alternating background:"
+msgstr "רקע מתחלף:"
+
+#. i18n: ectx: property (text), widget (QLabel, note)
+#: widgets/EditProfileKeyboardPage.ui:17
+#, kde-format
+msgctxt "@info"
+msgid ""
+"Key bindings control how combinations of keystrokes in the terminal window "
+"are converted into the stream of characters that is then sent to the current "
+"terminal program. For more information on how to customize the key bindings "
+"check the Konsole Handbook."
+msgstr ""
+"צירופי מקשים שולטים באופן בו צירופים של הקשות על מקשים החלון המסוף מומרת "
+"לתזרים של תווים שנשלחים לתוכנית המסוף הנוכחית. למידע נוסף על התאמת צירופי "
+"מקשים כדאי לעיין בספרון ההדרכה של Konsole."
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, newKeyBindingsButton)
+#: widgets/EditProfileKeyboardPage.ui:60
+#, kde-format
+msgid "Create a new key bindings scheme based upon the selected bindings"
+msgstr "יצירת סכמת צירופי מקשים חדשה המבוססת על צירופי המקשים הקיימים"
+
+#. i18n: ectx: property (text), widget (QPushButton, newKeyBindingsButton)
+#: widgets/EditProfileKeyboardPage.ui:63
+#, kde-format
+msgctxt "@action:button Create an alternate key binding"
+msgid "New..."
+msgstr "חדשה…"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, editKeyBindingsButton)
+#: widgets/EditProfileKeyboardPage.ui:70
+#, kde-format
+msgid "Edit the selected key bindings scheme"
+msgstr "עריכת סכמת צירופי המקשים הנבחרת"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, removeKeyBindingsButton)
+#: widgets/EditProfileKeyboardPage.ui:80
+#, kde-format
+msgid "Delete the selected key bindings scheme"
+msgstr "מחיקת ערכת צירופי המקשים הנבחרת"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, resetKeyBindingsButton)
+#: widgets/EditProfileKeyboardPage.ui:90
+#, kde-format
+msgid "Reset the selected key bindings scheme to its default values"
+msgstr "איפוס סכמת צירופי המקשרים הנבחרת לערכי ברירת המחדל שלה"
+
+#. i18n: ectx: attribute (title), widget (QWidget, tab)
+#: widgets/EditProfileMousePage.ui:36
+#, kde-format
+msgid "Text interaction"
+msgstr "תפעול בטקסט"
+
+#. i18n: ectx: property (toolTip), widget (QLabel, label_11)
+#. i18n: ectx: property (toolTip), widget (QLineEdit, wordCharacterEdit)
+#: widgets/EditProfileMousePage.ui:50 widgets/EditProfileMousePage.ui:71
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Characters which are considered part of a word when double-clicking to "
+"select whole words in the terminal."
+msgstr "תווים שנחשבים לחלק ממילה בלחיצה כפולה כדי לבחור מילים שלמות במסוף."
+
+#. i18n: ectx: property (text), widget (QLabel, label_11)
+#: widgets/EditProfileMousePage.ui:53
+#, kde-format
+msgid "Word characters:"
+msgstr "תווי מילים:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_17)
+#: widgets/EditProfileMousePage.ui:94
+#, kde-format
+msgid "Triple-click selects:"
+msgstr "לחיצה משולשת בוחרת:"
+
+#. i18n: ectx: property (text), widget (QRadioButton, tripleClickSelectsTheWholeLine)
+#: widgets/EditProfileMousePage.ui:104
+#, kde-format
+msgid "&The whole line"
+msgstr "את &כל השורה"
+
+#. i18n: ectx: property (text), widget (QRadioButton, tripleClickSelectsFromMousePosition)
+#: widgets/EditProfileMousePage.ui:114
+#, kde-format
+msgid "From mouse position to the end of &line"
+msgstr "ממיקום העכבר ועד &סוף השורה"
+
+#. i18n: ectx: property (text), widget (QLabel, label_13)
+#: widgets/EditProfileMousePage.ui:140
+#, kde-format
+msgid "Middle-click pastes:"
+msgstr "לחיצה אמצעית מדביקה:"
+
+#. i18n: ectx: property (text), widget (QRadioButton, pasteFromClipboardButton)
+#: widgets/EditProfileMousePage.ui:150
+#, kde-format
+msgid "From clipboard"
+msgstr "מלוח הגזירים"
+
+#. i18n: ectx: property (text), widget (QRadioButton, pasteFromX11SelectionButton)
+#: widgets/EditProfileMousePage.ui:160
+#, kde-format
+msgid "From selection"
+msgstr "מהבחירה"
+
+#. i18n: ectx: property (text), widget (QLabel, rightClickPasteLabel)
+#: widgets/EditProfileMousePage.ui:186
+#, kde-format
+msgid "Right-click:"
+msgstr "לחיצה ימנית:"
+
+#. i18n: ectx: property (text), widget (QRadioButton, rightClickPasteDisabledButton)
+#: widgets/EditProfileMousePage.ui:196
+#, kde-format
+msgid "Opens context menu"
+msgstr "פותחת תפריט הקשר"
+
+#. i18n: ectx: property (toolTip), widget (QRadioButton, rightClickPasteDisabledButton)
+#: widgets/EditProfileMousePage.ui:199
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Right-click shows context menu"
+msgstr "לחיצה ימנית מציגה תפריט הקשר"
+
+#. i18n: ectx: property (text), widget (QRadioButton, rightClickPasteFromClipboardButton)
+#: widgets/EditProfileMousePage.ui:209
+#, kde-format
+msgid "Pastes from clipboard"
+msgstr "מדביקה מלוח הגזירים"
+
+#. i18n: ectx: property (toolTip), widget (QRadioButton, rightClickPasteFromClipboardButton)
+#. i18n: ectx: property (toolTip), widget (QRadioButton, rightClickPasteFromX11SelectionButton)
+#: widgets/EditProfileMousePage.ui:212 widgets/EditProfileMousePage.ui:225
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Control+right-click shows context menu"
+msgstr "‏Ctrl+לחיצה ימנית מציגה תפריט הקשר"
+
+#. i18n: ectx: property (text), widget (QRadioButton, rightClickPasteFromX11SelectionButton)
+#: widgets/EditProfileMousePage.ui:222
+#, kde-format
+msgid "Pastes from selection"
+msgstr "מדביקה מהבחירה"
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: widgets/EditProfileMousePage.ui:251
+#, kde-format
+msgid "Copy options:"
+msgstr "אפשרויות העתקה:"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, copyTextToClipboardButton)
+#: widgets/EditProfileMousePage.ui:261
+#, kde-format
+msgid "Automatically copy selected text into clipboard"
+msgstr "העתקת הטקסט הנבחר אל לוח הגזירים אוטומטית"
+
+#. i18n: ectx: property (text), widget (QCheckBox, copyTextToClipboardButton)
+#: widgets/EditProfileMousePage.ui:264
+#, kde-format
+msgid "Copy on select"
+msgstr "העתקה בעת בחירה"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, copyTextAsHTMLButton)
+#: widgets/EditProfileMousePage.ui:271
+#, kde-format
+msgid "Copy text as HTML (including formatting, font faces, colors... etc)"
+msgstr "העתקת טקסט כ־HTML (כולל עיצוב, גופנים, צבעים… וכו׳)"
+
+#. i18n: ectx: property (text), widget (QCheckBox, copyTextAsHTMLButton)
+#: widgets/EditProfileMousePage.ui:274
+#, kde-format
+msgid "Copy text as HTML"
+msgstr "העתקת טקסט כ־HTML"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, trimLeadingSpacesButton)
+#: widgets/EditProfileMousePage.ui:281
+#, kde-format
+msgid "Trim leading spaces in selected text, useful in some instances"
+msgstr "הסרת רווחים פותחים בטקסט הנבחר, מועיל במצבים מסוימים"
+
+#. i18n: ectx: property (text), widget (QCheckBox, trimLeadingSpacesButton)
+#: widgets/EditProfileMousePage.ui:284
+#, kde-format
+msgid "Trim leading spaces"
+msgstr "הסרת רווחים פותחים"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, trimTrailingSpacesButton)
+#: widgets/EditProfileMousePage.ui:291
+#, kde-format
+msgid "Trim trailing spaces in selected text, useful in some instances"
+msgstr "הסרת רווחים עודפים בטקסט הנבחר, מועיל במצבים מסוימים"
+
+#. i18n: ectx: property (text), widget (QCheckBox, trimTrailingSpacesButton)
+#: widgets/EditProfileMousePage.ui:294
+#, kde-format
+msgid "Trim trailing spaces"
+msgstr "הסרת רווחים עודפים"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, clearSelectionButton)
+#: widgets/EditProfileMousePage.ui:301
+#, kde-format
+msgid "Clear selection after copying"
+msgstr "איפוס הבחירה לאחר העתקה"
+
+#. i18n: ectx: property (text), widget (QCheckBox, clearSelectionButton)
+#: widgets/EditProfileMousePage.ui:304
+#, kde-format
+msgid "Clear selection"
+msgstr "איפוס הבחירה"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, underlineLinksButton)
+#: widgets/EditProfileMousePage.ui:341
+#, kde-format
+msgid ""
+"Text recognized as a link or an email address will be underlined when "
+"hovered by the mouse pointer."
+msgstr ""
+"טקסט שמזוהה בתור קישור או כתובת דוא״ל יודגש בקו תחתי כאשר העכבר עובר מעליו."
+
+#. i18n: ectx: property (text), widget (QCheckBox, underlineLinksButton)
+#: widgets/EditProfileMousePage.ui:344
+#, kde-format
+msgid "Underline links"
+msgstr "קו תחתי לקישורים"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, underlineFilesButton)
+#: widgets/EditProfileMousePage.ui:351
+#, kde-format
+msgid ""
+"Text recognized as a file will be underlined when hovered by the mouse "
+"pointer."
+msgstr "טקסט שמזוהה בתור קובץ יודגש בקו תחתי כאשר העכבר עובר מעליו."
+
+#. i18n: ectx: property (text), widget (QCheckBox, underlineFilesButton)
+#: widgets/EditProfileMousePage.ui:354
+#, kde-format
+msgid "Underline files"
+msgstr "קו תחתי לקבצים"
+
+#. i18n: ectx: property (toolTip), widget (QLabel, textEditorCommandLabel)
+#. i18n: ectx: property (toolTip), widget (QComboBox, textEditorCombo)
+#: widgets/EditProfileMousePage.ui:363 widgets/EditProfileMousePage.ui:382
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Text editor to use when opening text file URLs at a given line/column."
+msgstr "עורך טקסט שישמש לפתיחתה כתובות קובצי טקסט בשורה/עמודה מסוימים."
+
+#. i18n: ectx: property (text), widget (QLabel, textEditorCommandLabel)
+#: widgets/EditProfileMousePage.ui:366
+#, kde-format
+msgid "Text Editor Command: "
+msgstr "פקודת עורך טקסט: "
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, openLinksByDirectClickButton)
+#: widgets/EditProfileMousePage.ui:410
+#, kde-format
+msgid ""
+"Text recognized as a file, link or an email address can be opened by direct "
+"mouse click."
+msgstr ""
+"אפשר לפתוח טקסט שמזוהה כקובץ, קישור או כתובת דוא״ל בלחיצה ישירה עם העכבר."
+
+#. i18n: ectx: property (text), widget (QCheckBox, openLinksByDirectClickButton)
+#: widgets/EditProfileMousePage.ui:413
+#, kde-format
+msgid "Open underlined files/links by direct click"
+msgstr "פתיחת קבצים/קישורים עם קווים תחתיים בלחיצה ישירה"
+
+#. i18n: ectx: property (text), widget (QCheckBox, allowLinkEscapeSequenceButton)
+#: widgets/EditProfileMousePage.ui:424
+#, kde-format
+msgid "Allow escape sequences for links"
+msgstr "לאפשר רצפי מילוט לקישורים"
+
+#. i18n: ectx: property (text), widget (QLabel, allowLinkEscapeSequenceButtonWarning)
+#: widgets/EditProfileMousePage.ui:431
+#, kde-format
+msgid ""
+"<b>WARNING</b>: This has security implications as it allows malicious URLs "
+"to be shown as another URL or hidden.<br>Make sure you understand the "
+"implications before turning this on."
+msgstr ""
+"<b>אזהרה</b>: יש לזה השלכות בהיבט אבטחת המידע כיוון שזה מאפשר לכתובות "
+"זדוניות להופיע ככתובת אחרת או להתחבא.<br>נא לוודא שההשלכות ברורות לך בטרם "
+"הפעלת האפשרות."
+
+#. i18n: ectx: property (text), widget (QLabel, label_2)
+#: widgets/EditProfileMousePage.ui:449
+#, kde-format
+msgid "Allowed link formats: "
+msgstr "תסדירי קישורים מורשים: "
+
+#. i18n: ectx: property (toolTip), widget (QLineEdit, linkEscapeSequenceTexts)
+#: widgets/EditProfileMousePage.ui:459
+#, kde-format
+msgid "The formats of possible links, like http://, https:// and file://"
+msgstr "תבניות של קישורים אפשריים, כגון http://‎,‏ https://‎ ו־file://‎"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, ctrlRequiredForDragButton)
+#: widgets/EditProfileMousePage.ui:470
+#, kde-format
+msgid "Selected text will require control key plus click to drag."
+msgstr "בכדי לגרור טקסט מסומן יש צורך ללחוץ גם על מקש Control."
+
+#. i18n: ectx: property (text), widget (QCheckBox, ctrlRequiredForDragButton)
+#: widgets/EditProfileMousePage.ui:473
+#, kde-format
+msgid "Require Ctrl key for drag && drop"
+msgstr "לדרוש Ctrl לגרירה והשלכה"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, enableAlternateScrollingButton)
+#: widgets/EditProfileMousePage.ui:480
+#, kde-format
+msgid ""
+"Mouse scroll wheel will emulate up/down key presses in programs that use the "
+"Alternate Screen buffer (e.g. less)"
+msgstr ""
+"גלגלת העכבר תדמה לחיצות מקשים למעלה/למטה בתוכניות שמשתמשות בזיכרון מסך חלופי "
+"(למשל: less)"
+
+#. i18n: ectx: property (text), widget (QCheckBox, enableAlternateScrollingButton)
+#: widgets/EditProfileMousePage.ui:483
+#, kde-format
+msgid "Enable Alternate Screen buffer scrolling"
+msgstr "הפעלת גלילת זיכרון מסך חלופי"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, dropUrlsAsText)
+#: widgets/EditProfileMousePage.ui:490
+#, kde-format
+msgid ""
+"Always paste dropped files and URLs as text without offering move, copy and "
+"link actions."
+msgstr ""
+"תמיד להדביק קבצים שנגררו לכאן כטקסט מבלי להציע פעולות כגון להעביר, להעתיק או "
+"לקשר."
+
+#. i18n: ectx: property (text), widget (QCheckBox, dropUrlsAsText)
+#: widgets/EditProfileMousePage.ui:493
+#, kde-format
+msgid "Disable drag && drop menu for files && URLs"
+msgstr "השבתת תפריט גרירה לקבצים וכתובות"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, enableMouseWheelZoomButton)
+#: widgets/EditProfileMousePage.ui:500
+#, kde-format
+msgid "Pressing Ctrl+scrollwheel will increase/decrease the text size."
+msgstr "לחיצה על Control+גלגלת העכבר תגדיל/תקטין את הכתב."
+
+#. i18n: ectx: property (text), widget (QCheckBox, enableMouseWheelZoomButton)
+#: widgets/EditProfileMousePage.ui:503
+#, kde-format
+msgid "Allow Ctrl+scrollwheel to zoom text size"
+msgstr "אפשר לשנות גודל טקסט בעזרת Control+גלגלת של העכבר"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, allowColorFilters)
+#: widgets/EditProfileMousePage.ui:510
+#, kde-format
+msgid ""
+"When positioning the mouse over a hexadecimal color it will be displayed in "
+"a frame next to the mouse pointer"
+msgstr "בעת הצבת הסמן מעל צבע הקסדצימלי הוא יוצג במסגרת ליד סמן העכבר"
+
+#. i18n: ectx: property (text), widget (QCheckBox, allowColorFilters)
+#: widgets/EditProfileMousePage.ui:513
+#, kde-format
+msgid "Preview Colors on hover"
+msgstr "הצגה מקדימה של צבעים בעת ריחוף"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, allowMouseTrackingButton)
+#: widgets/EditProfileMousePage.ui:533
+#, kde-format
+msgid ""
+"Some terminal applications have mouse support, this allows them to get it by "
+"default. It can be toggled on/off while running as well."
+msgstr ""
+"לחלק מיישומי המסוף יש תמיכה בעכבר, מה שמאפשר להם לקבל אותו כברירת מחדל. אפשר "
+"גם להפעיל/לכבות את זה בזמן ההפעלה."
+
+#. i18n: ectx: property (text), widget (QCheckBox, allowMouseTrackingButton)
+#: widgets/EditProfileMousePage.ui:536
+#, kde-format
+msgid "Allow terminal applications to handle clicks and drags"
+msgstr "לאפשר ליישומי מסוף לטפל בלחיצות ובגרירות"
+
+#. i18n: ectx: property (text), widget (QLabel, historySizeLabel)
+#: widgets/EditProfileScrollingPage.ui:25
+#, kde-format
+msgid "Scrollback:"
+msgstr "היסטוריה נגללת:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_2)
+#: widgets/EditProfileScrollingPage.ui:41
+#, kde-format
+msgid "Scroll Page Up/Down:"
+msgstr "גלילה של עמוד למעלה/למטה:"
+
+#. i18n: ectx: property (text), widget (QCheckBox, highlightScrolledLinesButton)
+#: widgets/EditProfileScrollingPage.ui:51
+#, kde-format
+msgid "Highlight the lines coming into view"
+msgstr "הדגשת השורות שנכנסות לתצוגה"
+
+#. i18n: ectx: property (suffix), widget (QDoubleSpinBox, markerSizeWidget)
+#: widgets/EditProfileScrollingPage.ui:58
+#, no-c-format, kde-format
+msgid " %"
+msgstr " %"
+
+#. i18n: ectx: property (text), widget (QRadioButton, scrollBarHiddenButton)
+#: widgets/EditProfileScrollingPage.ui:74
+#, kde-format
+msgctxt "@option:radio Hide the scroll bar"
+msgid "Hidden"
+msgstr "מוסתר"
+
+#. i18n: ectx: property (text), widget (QLabel, labelMarkerSize)
+#: widgets/EditProfileScrollingPage.ui:84
+#, kde-format
+msgid "Size of each marker (as a percentage of scrollbar length):"
+msgstr "הגודל של כל סמן (כאחוז מאורך פס הגלילה):"
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: widgets/EditProfileScrollingPage.ui:97
+#, kde-format
+msgid "Highlighting:"
+msgstr "הדגשה:"
+
+#. i18n: ectx: property (toolTip), widget (QRadioButton, scrollHalfPage)
+#: widgets/EditProfileScrollingPage.ui:129
+#, kde-format
+msgid "Scroll the page the half height of window"
+msgstr "גלול את העמוד בחצי מגודל החלון"
+
+#. i18n: ectx: property (text), widget (QRadioButton, scrollHalfPage)
+#: widgets/EditProfileScrollingPage.ui:132
+#, kde-format
+msgid "Half screen heigh&t"
+msgstr "גובה מ&חצית חלון"
+
+#. i18n: ectx: property (text), widget (QLabel, labelMarkerColor)
+#: widgets/EditProfileScrollingPage.ui:142
+#, kde-format
+msgid "Color of scrollbar markers:"
+msgstr "צבע סמני פסי הגלילה:"
+
+#. i18n: ectx: property (text), widget (QLabel, labelSearhcHighlighterColor)
+#: widgets/EditProfileScrollingPage.ui:168
+#, kde-format
+msgid "Color of scrollbar search highlighting lines:"
+msgstr "צבע שורות מודגשות בחיפוש בפסי הגלילה:"
+
+#. i18n: ectx: property (text), widget (QLabel, labelReflowLines)
+#: widgets/EditProfileScrollingPage.ui:181
+#, kde-format
+msgid "Reflow Lines:"
+msgstr "יישור שורות מחדש:"
+
+#. i18n: ectx: property (toolTip), widget (QRadioButton, scrollFullPage)
+#: widgets/EditProfileScrollingPage.ui:191
+#, kde-format
+msgid "Scroll the page the full height of window"
+msgstr "גלול את העמוד בגודל החלון"
+
+#. i18n: ectx: property (text), widget (QRadioButton, scrollFullPage)
+#: widgets/EditProfileScrollingPage.ui:194
+#, kde-format
+msgid "F&ull screen height"
+msgstr "גובה חלון &מלא"
+
+#. i18n: ectx: property (toolTip), widget (QRadioButton, scrollBarRightButton)
+#: widgets/EditProfileScrollingPage.ui:215
+#, kde-format
+msgid "Show the scroll bar on the right side of the terminal window"
+msgstr "הצגת פס הגלילה בצד ימין של חלון המסוף"
+
+#. i18n: ectx: property (text), widget (QRadioButton, scrollBarRightButton)
+#: widgets/EditProfileScrollingPage.ui:218
+#, kde-format
+msgctxt "@option:radio Show scrollbar on the right side"
+msgid "Ri&ght side"
+msgstr "צד &ימין"
+
+#. i18n: ectx: property (toolTip), widget (QRadioButton, scrollBarLeftButton)
+#: widgets/EditProfileScrollingPage.ui:238
+#, kde-format
+msgid "Show the scroll bar on the left side of the terminal window"
+msgstr "הצגת פס הגלילה בצד שמאל של חלון המסוף"
+
+#. i18n: ectx: property (text), widget (QRadioButton, scrollBarLeftButton)
+#: widgets/EditProfileScrollingPage.ui:241
+#, kde-format
+msgctxt "@option:radio Show scrollbar on the left side"
+msgid "&Left side"
+msgstr "צד &שמאל"
+
+#. i18n: ectx: property (text), widget (QCheckBox, reflowLinesButton)
+#: widgets/EditProfileScrollingPage.ui:251
+#, kde-format
+msgid "Reflow lines when terminal resizes"
+msgstr "יישור שורות מחדש לאחר שינוי גודל המסוף"
+
+#. i18n: ectx: property (text), widget (QLabel, labelSize)
+#: widgets/EditProfileScrollingPage.ui:280
+#, kde-format
+msgid "Scrollbar position:"
+msgstr "מיקום פס גלילה:"
+
+#. i18n: ectx: property (text), widget (QLabel, lableSearchHighlighterOpacity)
+#: widgets/EditProfileScrollingPage.ui:290
+#, kde-format
+msgid "Search highlighting line opacity:"
+msgstr "אטימות הדגשת שורה בחיפוש:"
+
+#. i18n: ectx: property (title), widget (QGroupBox, groupBox_5)
+#: widgets/EditProfileTabsPage.ui:43
+#, kde-format
+msgid "Tab Titles"
+msgstr "שמות הכרטיסיות"
+
+#. i18n: ectx: property (title), widget (QGroupBox, tabMonitoringGroup)
+#: widgets/EditProfileTabsPage.ui:65
+#, kde-format
+msgid "Tab Monitoring"
+msgstr "מעקב אחר כרטיסיות"
+
+#. i18n: ectx: property (text), widget (QLabel, silenceSecondsLabel)
+#: widgets/EditProfileTabsPage.ui:80
+#, kde-format
+msgid "Threshold for continuous silence:"
+msgstr "סף לשקט ממושך:"
+
+#. i18n: ectx: property (toolTip), widget (KPluralHandlingSpinBox, silenceSecondsSpinner)
+#: widgets/EditProfileTabsPage.ui:93
+#, kde-format
+msgid "The threshold for continuous silence to be detected by Konsole"
+msgstr "סף הזמן ללא תגובה שאחריו Konsole תזהה בתור שקט"
+
+#: widgets/HistorySizeWidget.cpp:40
+#, kde-format
+msgctxt "@label:textbox Unit of scrollback"
+msgid " line"
+msgid_plural " lines"
+msgstr[0] " שורה"
+msgstr[1] " שורות"
+msgstr[2] " שורות"
+msgstr[3] " שורות"
+
+#: widgets/HistorySizeWidget.cpp:57
+#, kde-format
+msgctxt "@info:whatsthis"
+msgid ""
+"When using this option, the scrollback data will be saved to RAM. If you "
+"choose a huge value, your system may run out of free RAM and cause serious "
+"issues with your system."
+msgstr ""
+"שימוש באפשרות זו גורם לשמירת נתוני ההיסטוריה הנגללת לזיכרון (RAM). בחירה "
+"בערך גדול עשוי לגמור את הזיכרון הפנוי ולבעיות חמורות במערכת שלך."
+
+#: widgets/HistorySizeWidget.cpp:69
+#, kde-kuit-format
+msgctxt "@info:tooltip"
+msgid ""
+"When using this option, the scrollback data will be written unencrypted to "
+"temporary files. Those temporary files will be deleted automatically when "
+"Konsole is closed in a normal manner.<nl/>Use <emphasis>Settings → Configure "
+"Konsole → Temporary Files</emphasis> to select the location of the temporary "
+"files."
+msgstr ""
+"שימוש באפשרות זו גורם לשמירת נתוני ההיסטוריה הנגללת לקבצים זמניים בלתי "
+"מוצפנים. הקבצים הזמניים האלו יימחקו אוטומטית עם סגירת Konsole במצב רגיל.<nl/"
+">אפשר להשתמש ב<emphasis>הגדרות ← הגדרת Konsole ← קבצים זמניים</emphasis> כדי "
+"לבחור את מקום הקבצים הזמניים."
+
+#. i18n: ectx: property (toolTip), widget (QRadioButton, fixedSizeHistoryButton)
+#: widgets/HistorySizeWidget.ui:60
+#, kde-format
+msgid "Limit the remembered output to a fixed number of lines"
+msgstr "הגבל את מספר השורות של פלט בזיכרון למספר קבוע"
+
+#. i18n: ectx: property (text), widget (QRadioButton, fixedSizeHistoryButton)
+#: widgets/HistorySizeWidget.ui:63
+#, kde-format
+msgid "Fi&xed size:"
+msgstr "גודל &קבוע:"
+
+#. i18n: ectx: property (toolTip), widget (KPluralHandlingSpinBox, historyLineSpinner)
+#: widgets/HistorySizeWidget.ui:73
+#, kde-format
+msgid "Number of lines of output to remember"
+msgstr "מספר השורות שיש לזכור"
+
+#. i18n: ectx: property (toolTip), widget (QRadioButton, unlimitedHistoryButton)
+#: widgets/HistorySizeWidget.ui:134
+#, kde-format
+msgid "Remember all output produced by the terminal"
+msgstr "זכור את כל הפלט המיוצר על ידי המסוף"
+
+#. i18n: ectx: property (text), widget (QRadioButton, unlimitedHistoryButton)
+#: widgets/HistorySizeWidget.ui:137
+#, kde-format
+msgctxt "Save all lines to the scrollback history"
+msgid "&Unlimited"
+msgstr "ללא ה&גבלה"
+
+#. i18n: ectx: property (toolTip), widget (QRadioButton, noHistoryButton)
+#: widgets/HistorySizeWidget.ui:172
+#, kde-format
+msgid "Do not remember previous output"
+msgstr "אל תזכור את הפלט הקודם"
+
+#. i18n: ectx: property (text), widget (QRadioButton, noHistoryButton)
+#: widgets/HistorySizeWidget.ui:175
+#, kde-format
+msgctxt "Do not save any lines to the scrollback history"
+msgid "&None"
+msgstr "&כלום"
+
+#: widgets/IncrementalSearchBar.cpp:50
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Find..."
+msgstr "איתור…"
+
+#: widgets/IncrementalSearchBar.cpp:52
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Enter the text to search for here"
+msgstr "הכנס כאן את הטקסט לחיפוש"
+
+#: widgets/IncrementalSearchBar.cpp:74
+#, kde-format
+msgctxt "@action:button Go to the next phrase"
+msgid "Next"
+msgstr "הבא"
+
+#: widgets/IncrementalSearchBar.cpp:77
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Find the next match for the current search phrase"
+msgstr "מצא את המופע הבא של מחרוזת החיפוש הנוכחית"
+
+#: widgets/IncrementalSearchBar.cpp:84
+#, kde-format
+msgctxt "@action:button Go to the previous phrase"
+msgid "Previous"
+msgstr "הקודם"
+
+#: widgets/IncrementalSearchBar.cpp:86
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Find the previous match for the current search phrase"
+msgstr "מצא את המופע הקודם של מחרוזת החיפוש הנוכחית"
+
+#: widgets/IncrementalSearchBar.cpp:102
+#, kde-format
+msgctxt "@action:button"
+msgid "Case sensitive"
+msgstr "תלוי רישיות"
+
+#: widgets/IncrementalSearchBar.cpp:103
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Sets whether the search is case sensitive"
+msgstr "הגדרה האם החיפוש הוא תלוי רישיות"
+
+#: widgets/IncrementalSearchBar.cpp:114
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Display the options menu"
+msgstr "הצגת תפריט האפשרויות"
+
+#: widgets/IncrementalSearchBar.cpp:121
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Close the search bar"
+msgstr "סגור את סרגל החיפוש"
+
+#: widgets/IncrementalSearchBar.cpp:131
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Match regular expression"
+msgstr "התאם ביטוי רגולרי"
+
+#: widgets/IncrementalSearchBar.cpp:135
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Highlight all matches"
+msgstr "הדגש את כל ההתאמות"
+
+#: widgets/IncrementalSearchBar.cpp:137
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Sets whether matching text should be highlighted"
+msgstr "הגדרה האם להדגיש את הטקסט שאותר"
+
+#: widgets/IncrementalSearchBar.cpp:140
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Search backwards"
+msgstr "חיפוש לאחור"
+
+#: widgets/IncrementalSearchBar.cpp:142
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Sets whether search should start from the bottom"
+msgstr "הגדרה האם החיפוש יתחיל מהסוף"
+
+#: widgets/IncrementalSearchBar.cpp:147
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "No wrap"
+msgstr "ללא גלישה"
+
+#: widgets/IncrementalSearchBar.cpp:149
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Sets whether search should stop instead of wrapping"
+msgstr "מגדיר האם החיפוש ייעצר במקום לגלוש"
+
+#: widgets/IncrementalSearchBar.cpp:184
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Search for the current search phrase from the bottom"
+msgstr "חיפוש אחר ביטוי החיפוש הנוכחי מהסוף"
+
+#: widgets/IncrementalSearchBar.cpp:189
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Search for the current search phrase from the top"
+msgstr "חיפוש אחר ביטוי החיפוש הנוכחי מההתחלה"
+
+#: widgets/KonsolePrintManager.cpp:50
+#, kde-format
+msgid "Print Shell"
+msgstr "הדפס מעטפת"
+
+#: widgets/RenameTabWidget.cpp:37 widgets/RenameTabWidget.cpp:40
+#, kde-format
+msgctxt "@label:listbox No color selected"
+msgid "None"
+msgstr "ללא"
+
+#. i18n: ectx: property (toolTip), widget (QLineEdit, remoteTabTitleEdit)
+#: widgets/RenameTabWidget.ui:41
+#, kde-format
+msgid ""
+"Tab title format used when a remote command (e.g. connection to another "
+"computer via SSH) is being executed"
+msgstr ""
+"תסדיר שם הכרטיסייה שיש להשתמש בה כאשר מפעילים פקודה מרוחקת (כגון חיבור אל "
+"מחשב אחר באמצעות SSH)"
+
+#. i18n: ectx: property (text), widget (QLabel, label_2)
+#: widgets/RenameTabWidget.ui:60
+#, kde-format
+msgid "Remote tab title format:"
+msgstr "תסדיר שם כרטיסייה מרוחקת:"
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: widgets/RenameTabWidget.ui:79
+#, kde-format
+msgid "&Tab title format:"
+msgstr "תסדיר &שמות הלשוניות:"
+
+#. i18n: ectx: property (toolTip), widget (QLineEdit, tabTitleEdit)
+#: widgets/RenameTabWidget.ui:98
+#, kde-format
+msgid "Normal tab title format"
+msgstr "תסדיר כותרת הכרטיסיות"
+
+#. i18n: ectx: property (text), widget (QLabel, label_3)
+#: widgets/RenameTabWidget.ui:105
+#, kde-format
+msgid "Tab Co&lor:"
+msgstr "&צבע לשונית:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_4)
+#: widgets/RenameTabWidget.ui:128
+#, kde-format
+msgid "&Activity Tab Color:"
+msgstr "&צבע לשונית פעילות:"
+
+#: widgets/TabTitleFormatButton.cpp:21
+#, c-format
+msgid "Program Name: %n"
+msgstr "שם התוכנית: ‎%n"
+
+#: widgets/TabTitleFormatButton.cpp:22
+#, c-format
+msgid "Current Directory (Short): %d"
+msgstr "ספרייה הנוכחית (קצר): ‎%d"
+
+#: widgets/TabTitleFormatButton.cpp:23
+msgid "Current Directory (Long): %D"
+msgstr "ספרייה נוכחית (ארוך): ‎%D"
+
+#: widgets/TabTitleFormatButton.cpp:24 widgets/TabTitleFormatButton.cpp:39
+msgid "Window Title Set by Shell: %w"
+msgstr "כותרת החלון נקבעת על ידי המעטפת: ‎%w"
+
+#: widgets/TabTitleFormatButton.cpp:25 widgets/TabTitleFormatButton.cpp:40
+msgid "Session Number: %#"
+msgstr "מספר ההפעלה: ‎%#‎"
+
+#: widgets/TabTitleFormatButton.cpp:26 widgets/TabTitleFormatButton.cpp:34
+#, c-format
+msgid "User Name: %u"
+msgstr "שם משתמש: ‎‎%u"
+
+#: widgets/TabTitleFormatButton.cpp:27
+msgid "Local Host: %h"
+msgstr "מארח מקומי: ‎‎%h"
+
+#: widgets/TabTitleFormatButton.cpp:28
+msgid "User's Bourne prompt sigil: %B"
+msgstr "חותם שורת פקודה של המשתמש ב־Bourne:‏ ‎%B"
+
+#: widgets/TabTitleFormatButton.cpp:35
+msgid "User Name@ (if given): %U"
+msgstr "שם משתמש (אם ניתן): ‎‎%U"
+
+#: widgets/TabTitleFormatButton.cpp:36
+msgid "Remote Host (Short): %h"
+msgstr "מארח מרוחק (קצר): ‎%h"
+
+#: widgets/TabTitleFormatButton.cpp:37
+msgid "Remote Host (Long): %H"
+msgstr "מארח מרוחק (ארוך): ‎%H"
+
+#: widgets/TabTitleFormatButton.cpp:38
+#, c-format
+msgid "Command and arguments: %c"
+msgstr "פקודה וארגומנטים: %c"
+
+#: widgets/TabTitleFormatButton.cpp:48
+#, kde-format
+msgid "Insert"
+msgstr "הוספה"
+
+#: widgets/TabTitleFormatButton.cpp:73
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Insert title format"
+msgstr "תסדיר הכנסת כותרת"
+
+#: widgets/TabTitleFormatButton.cpp:77
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Insert remote title format"
+msgstr "הכנס את תסדיר כותרת המרוחקת"
+
+#: widgets/TerminalHeaderBar.cpp:80 widgets/TerminalHeaderBar.cpp:188
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Maximize terminal"
+msgstr "הגדלת מסוף"
+
+#: widgets/TerminalHeaderBar.cpp:91
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Move terminal to new tab"
+msgstr "העברת מסוף ללשונית חדשה"
+
+#: widgets/TerminalHeaderBar.cpp:101
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Close terminal"
+msgstr "סגירת מסוף"
+
+#: widgets/TerminalHeaderBar.cpp:186
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Restore terminal"
+msgstr "שחזור מסוף"
+
+#: widgets/ViewContainer.cpp:86
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Open a new tab"
+msgstr "פתיחת לשונית חדשה"
+
+#: widgets/ViewContainer.cpp:91
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Search Tabs"
+msgstr "חיפוש לשוניות"
+
+#: widgets/ViewContainer.cpp:96
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Close this tab"
+msgstr "סגירת הלשונית הזאת"
+
+#: widgets/ViewContainer.cpp:132
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "&Detach Tab"
+msgstr "&ניתוק לשונית"
+
+#: widgets/ViewContainer.cpp:138
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "&Configure or Rename Tab..."
+msgstr "ה&גדרה או שינוי שם לשונית…"
+
+#: widgets/ViewContainer.cpp:143
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Close Tab"
+msgstr "סגירת לשונית"
+
+#: widgets/ViewContainer.cpp:968 widgets/ViewContainer.cpp:977
+#, kde-format
+msgctxt "As in Distrobox, Toolbox, Kapsule etc."
+msgid "Container"
+msgstr "מכולה"
+
+#: widgets/ViewContainer.cpp:987
+#, kde-format
+msgctxt ""
+"%1 is the type of container (e.g. Distrobox, Toolbox, Kapsule etc.), %2 its "
+"name"
+msgid "%1: %2"
+msgstr "%1: %2"
+
+#~ msgid "Distrobox: %1"
+#~ msgstr "Distrobox: %1"
+
+#~ msgid "Toolbox: %1"
+#~ msgstr "Toolbox: %1"
+
+#~ msgid ""
+#~ "The D-Bus methods sendText/runCommand were just used.  There are security "
+#~ "concerns about allowing these methods to be public.  If desired, these "
+#~ "methods can be changed to internal use only by re-compiling Konsole. "
+#~ "<p>This warning will only show once for this Konsole instance.</p>"
+#~ msgstr ""
+#~ "נעשה כרגע שימוש במתודות  sendText/runCommand של D-Bus.  יש כל מיני חששות "
+#~ "אבטחת מידע שנוגעים לאישור ההנגשה של המתודות האלו לציבור.  אם יש צורך בכך, "
+#~ "אפשר לשנות את המתודות האלו לשימוש פנימי בלבד על ידי הידור של Konsole "
+#~ "מחדש. <p>אזהרה זו תופיע רק פעם אחת בעותק זה של Konsole.</p>"
+
+#~ msgctxt "@item:inmenu"
+#~ msgid "Case sensitive"
+#~ msgstr "תלוי רישיות"
+
+#~ msgctxt "Do not save any lines to the scrollback history"
+#~ msgid "None"
+#~ msgstr "ללא"
+
+#~ msgid "text/css"
+#~ msgstr "text/css"
+
+#, fuzzy
+#~ msgctxt "@title:window"
+#~ msgid "Save File"
+#~ msgstr "פתח את מנהל הקבצים"
+
+#, fuzzy
+#~ msgctxt "@title:window"
+#~ msgid "Open File"
+#~ msgstr "פתח את מנהל הקבצים"
+
+#~ msgid "Size: XXX x XXX"
+#~ msgstr "גודל: XXX על XXX"
+
+#~ msgctxt "@info:shell"
+#~ msgid "Use the internal FALLBACK profile"
+#~ msgstr "השתמש בפרופיל FALLBACK המובנה"
+
+#~ msgctxt "Name of the default/builtin profile"
+#~ msgid "Default"
+#~ msgstr "ברירת מחדל"
+
+#, fuzzy
+#~| msgctxt "Name of the default/builtin profile"
+#~| msgid "Default"
+#~ msgctxt "@label:textbox added to the name of the current default profile"
+#~ msgid " (default)"
+#~ msgstr "ברירת מחדל"
+
+#, fuzzy
+#~| msgctxt "@info:credit"
+#~| msgid "SGI port"
+#~ msgid "Import"
+#~ msgstr "הסבה אל SGI"
+
+#, fuzzy
+#~| msgid "Show menubar by default"
+#~ msgid "Show menubar"
+#~ msgstr "הצג את סרגל התפריט כברירת מחדל"
+
+#~ msgid "Show menubar by default"
+#~ msgstr "הצג את סרגל התפריט כברירת מחדל"
+
+#~ msgid "Show menubar by default in each Konsole window"
+#~ msgstr "הצג את סרגל התפריטים בחלונות חדשים"
+
+#~ msgid ""
+#~ "<p>Each profile must have a name before it can be saved into disk.</p>"
+#~ msgstr "<p> כל פרופיל חייב להכיל שם לפני שאפשר לשמור אותו. </p>"
+
+#, fuzzy
+#~| msgctxt "Name of the default/builtin profile"
+#~| msgid "Default"
+#~ msgctxt "@label:textbox Name of the current default profile"
+#~ msgid " (Default)"
+#~ msgstr "ברירת מחדל"
+
+#, fuzzy
+#~| msgctxt "@title:window"
+#~| msgid "New Color Scheme"
+#~ msgid "Color from theme"
+#~ msgstr "ערכת צבעים חדשה"
+
+#, fuzzy
+#~| msgctxt "@title:column Display profile in file menu"
+#~| msgid "Show in Menu"
+#~ msgctxt ""
+#~ "@info:tooltip List item's checkbox for making item (profile) visible in a "
+#~ "menu"
+#~ msgid "Show profile in menu"
+#~ msgstr "הצג בתפריט"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "&Rename Tab..."
+#~ msgstr "&שנה שם של כרטיסייה..."
+
+#, fuzzy
+#~| msgid "Confirm Paste"
+#~ msgctxt "@action:button"
+#~ msgid "Confirm &paste"
+#~ msgstr "אשר הדבקה"
+
+#~ msgid "Vary the background color for each tab"
+#~ msgstr "שנה את הרקע עבור כל לשונית"
+
+#~ msgctxt "@title Preferences page name"
+#~ msgid "TabBar"
+#~ msgstr "סרגל כלים"
+
+#~ msgctxt "@title Preferences page name"
+#~ msgid "File Location"
+#~ msgstr "מיקומי קבצים"
+
+#~ msgid ""
+#~ "These settings only apply when Profile->Scrolling->Unlimited scrollback "
+#~ "is selected."
+#~ msgstr ""
+#~ "הגדרה זו תעבוד רק מתי ש 'פרופילים -> גלילה -> גלילה אין סופית' מופעלת"
+
+#~ msgid "Use system &location"
+#~ msgstr "השתמש במיקום מערכת"
+
+#~ msgid "Use user specific location"
+#~ msgstr "השתמש במיקום משתמש ספציפי"
+
+#, fuzzy
+#~ msgid "Use specified loca&tion"
+#~ msgstr "השתמש במיקום משתמש ספציפי"
+
+#~ msgid "For any changes to take effect, quit Konsole and restart."
+#~ msgstr "בשביל שהשינויים יחולו, צא מהתוכנה והפעל אותה מחדש."
+
+#~ msgid "Konsole Window"
+#~ msgstr "חלון Konsole"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "Click to toggle status"
+#~ msgstr "לחץ לשנות את הסטאטוס"
+
+#~ msgctxt "@title:column Profile label"
+#~ msgid "Name"
+#~ msgstr "שם"
+
+#~ msgid "&New Profile..."
+#~ msgstr "&פרופיל חדש..."
+
+#~ msgid "&Edit Profile..."
+#~ msgstr "&ערוך פרופיל..."
+
+#~ msgid "&Delete Profile"
+#~ msgstr "&מחק פרופיל"
+
+#~ msgid "Tab bar position:"
+#~ msgstr "מיקום שורת לשוניות:"
+
+#~ msgid "Always Show Tab Bar"
+#~ msgstr "הצג תמיד את סרגל הלשוניות"
+
+#~ msgid "Show Tab Bar When Needed"
+#~ msgstr "הצג את סרגל הלשוניות בעת הצורך"
+
+#~ msgid "Always Hide Tab Bar"
+#~ msgstr "הסתר תמיד את סרגל הלשוניות"
+
+#~ msgid "Tab bar visibility:"
+#~ msgstr "תצוגת שורת לשוניות:"
+
+#~ msgid "New tab behavior:"
+#~ msgstr "התנהגות של כרטיסייה חדשה:"
+
+#~ msgid "Put New Tab At The End"
+#~ msgstr "שים כרטיסייה חדשה בסוף"
+
+#~ msgid "&Close Tab"
+#~ msgstr "&סגור לשונית"
+
+#~ msgctxt "@action:inmenu Close Active View"
+#~ msgid "Close Active"
+#~ msgstr "סגור את הפעילה"
+
+#~ msgctxt "@action:inmenu Close Other Views"
+#~ msgid "Close Others"
+#~ msgstr "סגור אחרות"
+
+#~ msgid "%1"
+#~ msgstr "%1"
+
+#~ msgid "Select Any Font"
+#~ msgstr "בחר כל גופן"
+
+#~ msgid "Select Fixed Width Font"
+#~ msgstr "בחר גופן בעל רוחב קבוע"
+
+#~ msgctxt "@title:group Generic, common options"
+#~ msgid "General"
+#~ msgstr "כללי"
+
+#~ msgid "Rows"
+#~ msgstr "שורות"
+
+#~ msgid "This will not alter any open windows."
+#~ msgstr "השינויים לא יחולו על חלונות פתוחים."
+
+#~ msgid "Select the font used in this profile"
+#~ msgstr "בחר את הגופן שבשימוש בפרופיל זה"
+
+#~ msgid "Show all fonts instead of the monospaced fonts"
+#~ msgstr "הצג את כל הגופנים במקום רק גופני רוחב אחיד"
+
+#~ msgid "Scroll Bar"
+#~ msgstr "פס־גלילה"
+
+#~ msgid "Hide the scroll bar"
+#~ msgstr "הסתר את פס הגלילה"
+
+#~ msgctxt "@option:radio Hide the scroll bar"
+#~ msgid "Hide"
+#~ msgstr "הסתר"
+
+#~ msgid "Show on left side"
+#~ msgstr "הצג בצד שמאל"
+
+#~ msgid "Select Text"
+#~ msgstr "בחר טקסט"
+
+#~ msgid "Characters considered part of a word when double clicking:"
+#~ msgstr "תווים שאינם שאינם נחשבים חלק ממילה בעת לחיצה כפולה:"
+
+#~ msgid "Which part of current line should be selected with triple click ."
+#~ msgstr "איזה חלק מהשורה הנוכחית צריכה להיבחר בעת לחיצה משולשת."
+
+#~ msgid "Copy && Paste"
+#~ msgstr "העתקה והדבקה"
+
+#~ msgid "Mouse middle button:"
+#~ msgstr "לחצן אמצעי של העכבר:"
+
+#~ msgid "Enable flow control using Ctrl+S, Ctrl+Q"
+#~ msgstr "אפשר בקרת זרימה על ידי שימוש ב־Control+S, Control+Q"
+
+#~ msgid "Cursor shape:"
+#~ msgstr "צורת הסמן:"
+
+#~ msgid "Encoding"
+#~ msgstr "קידוד"
+
+#~ msgctxt "@action:button Pick an encoding"
+#~ msgid "Select"
+#~ msgstr "בחר"
+
+#~ msgid "No scrollback"
+#~ msgstr "אל תציג פס גלילה"
+
+#~ msgid "Show application name on the titlebar"
+#~ msgstr "הצג את שם היישום בשורת הכותרת"
+
+#~ msgid "Show \"- Konsole\" on the titlebar"
+#~ msgstr "‏הראה \"- Konsole\" בשורת הכותרת"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "&Close Tab"
+#~ msgstr "&סגור כרטיסייה"
+
+#~ msgctxt "@info:whatsthis"
+#~ msgid "Create a new tab. Press and hold to select profile from menu"
+#~ msgstr "צור כרטיסייה חדשה. לחץ והחזק לבחירה מתוך התפריט"
+
+#~ msgctxt "@info:whatsthis"
+#~ msgid ""
+#~ "<title>Tab Bar</title><para>The tab bar allows you to switch and move "
+#~ "tabs. You can double-click a tab to change its name.</para>"
+#~ msgstr ""
+#~ "<title>סרגלי הכרטיסיות</title> <para> סרגל הכרטיסיות מאפשר לך להזיז "
+#~ "ולעבור בין כרטיסיות. באפשרותך ללחוץ לחיצה כפולה על כרטיסייה כדי לשנות את "
+#~ "השם שלה. </para>"
+
+#~ msgctxt "@action:button Display options menu"
+#~ msgid "Options"
+#~ msgstr "אפשרויות"
+
+#~ msgctxt "@action:button Search from bottom"
+#~ msgid "From bottom"
+#~ msgstr "מלמטה"
+
+#~ msgctxt "@action:button Search from top"
+#~ msgid "From top"
+#~ msgstr "מלמעלה"
+
+#~ msgid "Profile name is empty."
+#~ msgstr "שם הפרופיל ריק"
+
+#~ msgid "&Stop"
+#~ msgstr "&עצור"
+
+#~ msgid "Icon:"
+#~ msgstr "סמל:"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "Click to rename profile"
+#~ msgstr "לחץ לשנות את שם הפרופיל"
+
+#, fuzzy
+#~| msgctxt "@title"
+#~| msgid "Konsole"
+#~ msgctxt "@title"
+#~ msgid "Demo KonsolePart"
+#~ msgstr "Konsole"
+
+#, fuzzy
+#~ msgctxt "@info:credit"
+#~ msgid "(c) 2017, The Konsole Developers"
+#~ msgstr "מפתחי Konsole ‏‎(c) 1997-2015"

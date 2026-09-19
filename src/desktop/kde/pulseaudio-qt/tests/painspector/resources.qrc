@@ -1,0 +1,13 @@
+<RCC>
+  <qresource prefix="/">
+      <file>main.qml</file>
+      <file>CardDelegate.qml</file>
+      <file>DeviceDelegate.qml</file>
+      <file>StreamDelegate.qml</file>
+      <file>ModuleDelegate.qml</file>
+      <file>Header.qml</file>
+      <file>PropertiesItem.qml</file>
+      <file>PortsItem.qml</file>
+      <file>PAPage.qml</file>
+  </qresource>
+</RCC>

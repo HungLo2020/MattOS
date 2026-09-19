@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component type="desktop-application">
+  <id>org.kde.systemsettings</id>
+  <launchable type="desktop-id">systemsettings.desktop</launchable>
+  <provides>
+    <id>systemsettings.desktop</id>
+    <id>kdesystemsettings.desktop</id>
+  </provides>
+  <project_group>KDE</project_group>
+  <compulsory_for_desktop>KDE</compulsory_for_desktop>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-2.0+</project_license>
+  <content_rating type="oars-1.0"/>
+  <categories>
+    <category>KDE</category>
+    <category>Qt</category>
+    <category>Settings</category>
+  </categories>
+  <name>System Settings</name>
+  <name xml:lang="ar">إعدادات النظام</name>
+  <name xml:lang="ast">Configuración del sistema</name>
+  <name xml:lang="az">Sistem ayarları</name>
+  <name xml:lang="be">Налады сістэмы</name>
+  <name xml:lang="bg">Системни настройки</name>
+  <name xml:lang="ca">Arranjament del sistema</name>
+  <name xml:lang="ca-valencia">Configuració del sistema</name>
+  <name xml:lang="cs">Nastavení systému</name>
+  <name xml:lang="da">Systemindstillinger</name>
+  <name xml:lang="de">Systemeinstellungen</name>
+  <name xml:lang="el">Ρυθμίσεις συστήματος</name>
+  <name xml:lang="en-GB">System Settings</name>
+  <name xml:lang="eo">Sistema Agordo</name>
+  <name xml:lang="es">Preferencias del sistema</name>
+  <name xml:lang="et">Süsteemi seadistused</name>
+  <name xml:lang="eu">Sistemaren Ezarpenak</name>
+  <name xml:lang="fa">تنظیمات سامانه</name>
+  <name xml:lang="fi">Järjestelmäasetukset</name>
+  <name xml:lang="fr">Configuration du système</name>
+  <name xml:lang="ga">Socruithe an Chórais</name>
+  <name xml:lang="gl">Configuración do sistema</name>
+  <name xml:lang="he">הגדרות המערכת</name>
+  <name xml:lang="hi">तंत्र विन्यास</name>
+  <name xml:lang="hu">Rendszerbeállítások</name>
+  <name xml:lang="ia">Preferentias de systema</name>
+  <name xml:lang="id">System Settings</name>
+  <name xml:lang="ie">Parametres del sistema</name>
+  <name xml:lang="is">Kerfisstillingar</name>
+  <name xml:lang="it">Impostazioni di sistema</name>
+  <name xml:lang="ja">システム設定</name>
+  <name xml:lang="ka">სისტემის მორგება</name>
+  <name xml:lang="ko">시스템 설정</name>
+  <name xml:lang="lt">Sistemos nuostatos</name>
+  <name xml:lang="lv">Sistēmas iestatījumi</name>
+  <name xml:lang="ml">സിസ്റ്റം സജ്ജീകരണങ്ങൾ</name>
+  <name xml:lang="my">စစ်စတမ်ဆက်တင်များ</name>
+  <name xml:lang="nb">Systeminnstillinger</name>
+  <name xml:lang="nl">Systeeminstellingen</name>
+  <name xml:lang="nn">Systeminnstillingar</name>
+  <name xml:lang="pa">ਸਿਸਟਮ ਸੈਟਿੰਗਾਂ</name>
+  <name xml:lang="pl">Ustawienia systemowe</name>
+  <name xml:lang="pt">Configuração do Sistema</name>
+  <name xml:lang="pt-BR">Configurações do sistema</name>
+  <name xml:lang="ro">Configurări de sistem</name>
+  <name xml:lang="ru">Параметры системы</name>
+  <name xml:lang="sa">सङ्गणकतन्त्रस्य समायोजनानि</name>
+  <name xml:lang="sk">Systémové nastavenia</name>
+  <name xml:lang="sl">Nastavitve sistema</name>
+  <name xml:lang="sv">Systeminställningar</name>
+  <name xml:lang="ta">கணினி அமைப்புகள்</name>
+  <name xml:lang="tg">Танзимоти низом</name>
+  <name xml:lang="th">Settings</name>
+  <name xml:lang="tr">Sistem Ayarları</name>
+  <name xml:lang="uk">Системні параметри</name>
+  <name xml:lang="vi">Thiết lập hệ thống</name>
+  <name xml:lang="zh-CN">系统设置</name>
+  <name xml:lang="zh-TW">系統設定</name>
+  <summary>Configure the system’s behavior and appearance</summary>
+  <summary xml:lang="ar">اضبط سلوك النظام ومظهره</summary>
+  <summary xml:lang="az">Sistem davranışlarını və xarici görünüşünü ayarlamaq</summary>
+  <summary xml:lang="bg">Настройване на външния вид и поведение на системата</summary>
+  <summary xml:lang="ca">Configura el comportament i l'aparença del sistema</summary>
+  <summary xml:lang="ca-valencia">Configura el comportament i l'aparença del sistema</summary>
+  <summary xml:lang="cs">Nastavte chování a vzhled systému</summary>
+  <summary xml:lang="de">Verhalten und Erscheinungsbild des Systems einrichten</summary>
+  <summary xml:lang="es">Configurar el comportamiento y el aspecto del sistema</summary>
+  <summary xml:lang="eu">Konfiguratu sistemaren jokabidea eta itxura</summary>
+  <summary xml:lang="fa">رفتار و ظاهر سامانه را پیکربندی کنید</summary>
+  <summary xml:lang="fi">Aseta järjestelmän toiminta ja ulkoasu</summary>
+  <summary xml:lang="fr">Configurer le comportement et l'apparence du système</summary>
+  <summary xml:lang="gl">Configurar o comportamento e aparencia do sistema</summary>
+  <summary xml:lang="he">הגדרת התנהגות ומראה המערכת</summary>
+  <summary xml:lang="hu">A rendszer működésének és megjelenésének beállítása</summary>
+  <summary xml:lang="ia">Configura comportamento e apparentia del systema</summary>
+  <summary xml:lang="is">Grunnstilla hegðun og útlit tölvunnar</summary>
+  <summary xml:lang="it">Configura il comportamento e l'aspetto del sistema</summary>
+  <summary xml:lang="ja">システムの挙動と外観を設定</summary>
+  <summary xml:lang="ka">მოირგეთ სისტემის ქცევა და გარეგნობა</summary>
+  <summary xml:lang="ko">시스템의 행동과 모양 설정</summary>
+  <summary xml:lang="lt">Konfigūruoti sistemos elgseną ir išvaizdą</summary>
+  <summary xml:lang="lv">Konfigurējiet sistēmas uzvedību un izskatu</summary>
+  <summary xml:lang="nb">Sett opp systemets oppførsel og utseende</summary>
+  <summary xml:lang="nl">Het gedrag en uiterlijk van het systeem configureren</summary>
+  <summary xml:lang="nn">Set opp utsjånad og åtferd for systemet</summary>
+  <summary xml:lang="pa">ਸਿਸਟਮ ਦੇ ਰਵੱਈਏ ਅਤੇ ਦਿੱਖ ਦੀ ਸੰਰਚਨਾ ਕਰੋ</summary>
+  <summary xml:lang="pl">Ustawienia zachowania i wyglądu systemu</summary>
+  <summary xml:lang="pt-BR">Configurar o comportamento e a aparência do sistema</summary>
+  <summary xml:lang="ro">Configurează comportamentul și aspectul sistemului</summary>
+  <summary xml:lang="ru">Параметры поведения системы и оформления</summary>
+  <summary xml:lang="sk">Nastaviť the system’s behavior and appearance</summary>
+  <summary xml:lang="sl">Konfigurirajte delovanje in videz sistema</summary>
+  <summary xml:lang="sv">Anpassa systemets beteende och utseende</summary>
+  <summary xml:lang="ta">கணினியின் நடத்தையையும் தோற்றத்தையும் அமைக்கலாம்</summary>
+  <summary xml:lang="tr">Sistem davranışını ve görünüşünü yapılandırın</summary>
+  <summary xml:lang="uk">Налаштовування поведінки і вигляду системи</summary>
+  <summary xml:lang="zh-CN">配置系统的行为和外观</summary>
+  <summary xml:lang="zh-TW">設定系統的外觀與行為</summary>
+  <icon type="stock">systemsettings</icon>
+  <description>
+    <p>System Settings allows you to configure and tweak your KDE Plasma desktop to make it better meet your needs.</p>
+    <p xml:lang="ar">تسمح لك إعدادات النظام بضبط وتعديل سطح مكتب كِيدِي بلازما ليلبي احتياجاتك بشكل أفضل.</p>
+    <p xml:lang="az">Sistem ayarları KDE Plasma İş Masanızın ehtiyaclarını daha yaxşı qarşılayacaq şəkildə ayarlamağa və qurmağa imkan verir.</p>
+    <p xml:lang="be">Сістэмныя налады дазваляюць вам наладжваць KDE Plasma па вашых патрэбах.</p>
+    <p xml:lang="bg">Системните настройки ви позволяват да конфигурирате и променяте вашия KDE Plasma работен плот, за да отговаря по-добре на вашите нужди.</p>
+    <p xml:lang="ca">L'Arranjament del sistema permet configurar i ajustar el vostre escriptori Plasma del KDE perquè satisfaci millor les vostres necessitats.</p>
+    <p xml:lang="ca-valencia">Configuració del sistema permet configurar i ajustar el vostre escriptori Plasma de KDE perquè satisfaça millor les vostres necessitats.</p>
+    <p xml:lang="cs">Nastavení systému vám umožňuje nastavit a ladit vaše pracovní prostředí KDE Plasma aby lépe vyhovovalo vašim potřebám.</p>
+    <p xml:lang="da">Systemindstillinger lader dig indstille og tilpasse dit KDE Plasma-skrivebord så det passer bedre til netop dine behov.</p>
+    <p xml:lang="de">Mit den Systemeinstellungen können Sie Ihre KDE-Plasma-Arbeitsfläche einrichten und optimieren, um sie besser an Ihre Bedürfnisse anzupassen.</p>
+    <p xml:lang="el">Με τις ρυθμίσεις συστήματος διαμορφώνετε και μαστορεύετε την επιφάνεια εργασίας KDE Plasma για να την προσαρμόσετε καλύτερα στις ανάγκες σας.</p>
+    <p xml:lang="en-GB">System Settings allows you to configure and tweak your KDE Plasma desktop to make it better meet your needs.</p>
+    <p xml:lang="eo">Sistemagordo permesas al vi agordi kaj ĝustigi vian KDE Plasma-labortablon por plibonigi ĝin laŭ viaj bezonoj.</p>
+    <p xml:lang="es">Las preferencias del sistema le permiten configurar y afinar el escritorio Plasma para que se ajuste a sus necesidades.</p>
+    <p xml:lang="et">Süsteemi seadistused võimaldavad seadistada ja täppishäälestada KDE Plasma töölauda, et see vastaks just sinu vajadustele.</p>
+    <p xml:lang="eu">Sistemaren Ezarpenek zure KDE Plasma mahaigaina zure beharretara hobeto egokitzeko konfiguratzen eta doitzen uzten dizute.</p>
+    <p xml:lang="fa">تنظیمات سامانه به شما امکان می‌دهد میزکار کی‌دی‌ای پلاسما خود را پیکربندی و سفارشی کنید تا بهتر با نیازهای شما سازگار شود.</p>
+    <p xml:lang="fi">Järjestelmäasetuksilla voit asettaa ja säätää KDE Plasma -työpöytääsi vastaamaan paremmin tarpeitasi.</p>
+    <p xml:lang="fr">La configuration du système vous permet de configurer et d'ajuster votre environnement de bureau KDE Plasma pour l'adapter à vos besoins.</p>
+    <p xml:lang="gl">A configuración do sistema permítelle configurar o escritorio KDE Plasma para adaptalo ás súas necesidades.</p>
+    <p xml:lang="he">הגדרות המערכת מאפשרות לך להגדיר ולשפר את שולחן העבודה שלך מסוג פלזמה מבית KDE כדי שיתאים טוב יותר לצרכים שלך.</p>
+    <p xml:lang="hi">तंत्र विन्यास आपको अपने केडीई प्लाज़्मा डेस्कटॉप को बेहतर ढंग से अपनी आवश्यकताओं को पूरा करने के लिए विन्यस्त और सुधार करने में काम आता है।</p>
+    <p xml:lang="hu">A Rendszerbeállítások lehetővé teszi a KDE Plasma beállítását és finomhangolását, hogy jobban illeszkedjen az igényeihez.</p>
+    <p xml:lang="ia">Preferentias de systema  te pemitte configurar e pinciar tu scriptorio de Plasma KDE pro facer que illo incontra meliormente tu necessitates.</p>
+    <p xml:lang="id">System Settings memungkinkan kamu untuk mengkonfigurasi dan menguprek desktop KDE Plasma kamu untuk membuatnya lebih baik sesuai kebutuhanmu.</p>
+    <p xml:lang="ie">Parametres del sistema permisse vos configurar e adjustar vor ambientie KDE Plasma por far it plu convenent.</p>
+    <p xml:lang="is">Kerfisstillingar gera þér kleift að stilla og aðlaga KDE Plasma skjáborðið að þínum þörfum.</p>
+    <p xml:lang="it">Impostazioni di sistema ti permette di configurare e di regolare il tuo desktop KDE Plasma, in modo che possa soddisfare meglio le tue esigenze.</p>
+    <p xml:lang="ja">システム設定では、KDE Plasma デスクトップをよりニーズに合ったものにするために、設定や調整を行うことができます。</p>
+    <p xml:lang="ka">სისტემის პარამეტრებში თქვენ შეგიძლიათ მოირგოთ KDE-ის Plasma სამუშაო მაგიდა ისე, რომ ის თქვენთვის უფრო მოსახერხებელი გახდეს.</p>
+    <p xml:lang="ko">시스템 설정에서 KDE Plasma 데스크톱을 설정할 수 있습니다.</p>
+    <p xml:lang="lt">Sistemos nuostatos leidžia jums konfigūruoti ir derinti savo KDE Plasma darbalaukį taip, kad jis geriau atitiktų jūsų poreikius.</p>
+    <p xml:lang="lv">Sistēmas iestatījumi ļauj konfigurēt un pielāgot jūsu KDE „Plasma“ darbvirsmu, lai tā labāk atbilstu jūsu vajadzībām.</p>
+    <p xml:lang="ml">നിങ്ങളുടെ പ്ലാസ്മ ഡെസ്ക്ടോപ് നിങ്ങളുടെ ഇഷ്ടങ്ങൾക്കനുസരിച്ച് ക്രമീകരിക്കാൻ സിസ്റ്റം സജ്ജീകരണങ്ങൾ സഹായിക്കുന്നു.</p>
+    <p xml:lang="nb">Med systeminnstillingene kan du sette opp og skreddersy KDE Plasma-skrivebordet etter egne ønsker og behov.</p>
+    <p xml:lang="nl">Systeeminstellingen biedt u het configureren en aanpassen van uw KDE Plasma bureaublad om het aan uw behoeften aan te passen.</p>
+    <p xml:lang="nn">Med systeminnstillingane kan du setja opp og skreddarsy KDE Plasma-skrivebordet etter eigne ønskjer og behov.</p>
+    <p xml:lang="pa">ਸਿਸਟਮ ਸੈਟਿੰਗਾਂ ਤੁਹਾਨੂੰ ਤੁਹਾਡੇ ਕੇਡੀਈ (KDE) ਪਲਾਜ਼ਮਾ ਡੈਸਕਟਾਪ ਨੂੰ ਤੁਹਾਡੀਆਂ ਲੋੜਾਂ ਮੁਤਾਬਕ ਵਧੀਆ ਢੰਗ ਨਾਲ ਸੰਰਚਨਾ ਕਰਨ ਤੇ ਢਾਲਣ ਲਈ ਸਹਾਇਕ ਹੈ।</p>
+    <p xml:lang="pl">Ustawienia systemu umożliwiają dostosowanie pulpitu KDE Plazma, tak aby lepiej spełniał twoje potrzeby.</p>
+    <p xml:lang="pt">A Configuração do Sistema permite-lhe configurar e ajustar a sua área de trabalho Plasma do KDE para satisfazer melhor as suas necessidades.</p>
+    <p xml:lang="pt-BR">As configurações do sistema permitem a você configurar e alterar seu ambiente de trabalho Plasma para torná-lo mais adequado às suas necessidades.</p>
+    <p xml:lang="ro">„Configurări de sistem” vă permite să personalizați biroul Plasma KDE pentru a-l face potrivit nevoilor dumneavoastră.</p>
+    <p xml:lang="ru">Приложение «Параметры системы» позволяет настроить рабочую среду Plasma для удобного использования.</p>
+    <p xml:lang="sa">सङ्गणकतन्त्रसमायोजनानि भवन्तं स्वस्य KDE Plasma कार्यमुख विन्यस्तुं अनुकूलितुं च शक्नोति यत् तत् भवतः आवश्यकतानां पूर्तये उत्तमरीत्या भवति ।.</p>
+    <p xml:lang="sk">Systémové nastavenia vám umožnia nastaviť a prispôsobiť vašu pracovnú plochu Plasma, aby lepšie vyhovovala vašim potrebám.</p>
+    <p xml:lang="sl">Sistemske nastavitve omogočajo nastavitve in prilagajanje namizja KDE Plasma z namenom boljšega izpolnjevanja vaših potreb.</p>
+    <p xml:lang="sv">Systeminställningarna låter dig anpassa och justera KDE Plasma-skrivbordet för att det bättre ska passa dina behov.</p>
+    <p xml:lang="ta">கே.டீ.யீ. பிளாஸ்மா பணிமேடையை உங்கள் தேவைக்கேற்ப மாற்றியமைக்க கணினி அமைப்புகள் உதவும்.</p>
+    <p xml:lang="tg">Танзимоти низом ба шумо имкон медиҳад, то тавонед мизи кории KDE Plasma-ро ба талаботи шахсии худ танзим ва тасҳеҳ карда, беҳтар намоед.</p>
+    <p xml:lang="th">การตั้งค่าระบบช่วยให้คุณสามารถกําหนดค่าและปรับแต่งเดสก์ท็อป KDE Plasma เพื่อให้ตรงกับความต้องการของคุณได้ดียิ่งขึ้น</p>
+    <p xml:lang="tr">Sistem Ayarları, gereksinimlerinizi daha iyi karşılaması için KDE Plasma masaüstünüzü yapılandırmanıza ve ince ayarlar yapmanıza olanak tanır.</p>
+    <p xml:lang="uk">За допомогою програми «Системні параметри» ви можете налаштувати та скоригувати поведінку вашої стільниці Плазми так, щоб вона відповідала вашим уподобанням.</p>
+    <p xml:lang="vi">"Thiết lập hệ thống" cho phép bạn cấu hình và điều chỉnh bàn làm việc Plasma KDE phù hợp hơn với nhu cầu của bạn.</p>
+    <p xml:lang="zh-CN">系统设置工具让您可以按需配置和调整 KDE Plasma 桌面环境。</p>
+    <p xml:lang="zh-TW">《系統設定》讓你能設定及調整您的 KDE Plasma 桌面，以讓其更符合您的需求。</p>
+  </description>
+  <url type="bugtracker">https://bugs.kde.org/enter_bug.cgi?product=systemsettings</url>
+  <url type="help">https://userbase.kde.org/System_Settings</url>
+  <url type="homepage">https://kde.org/plasma-desktop</url>
+  <url type="donation">https://www.kde.org/donate.php?app=org.kde.systemsettings</url>
+  <releases>
+    <release version="6.6.5" date="2026-05-12"/>
+    <release version="6.6.4" date="2026-04-06"/>
+    <release version="6.6.3" date="2026-03-17"/>
+    <release version="6.6.2" date="2026-03-03"/>
+  </releases>
+</component>

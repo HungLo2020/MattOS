@@ -1,0 +1,14 @@
+[Unit]
+Description=LVM lock daemon
+Documentation=man:lvmlockd(8)
+
+[Service]
+Type=notify
+EnvironmentFile=-/etc/sysconfig/lvmlockd
+ExecStart=@SBINDIR@/lvmlockd --foreground $OPTIONS
+PIDFile=@LVMLOCKD_PIDFILE@
+SendSIGKILL=no
+
+[Install]
+WantedBy=multi-user.target
+

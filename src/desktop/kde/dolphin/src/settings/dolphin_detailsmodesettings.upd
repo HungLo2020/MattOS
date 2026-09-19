@@ -1,0 +1,23 @@
+#Configuration update for Dolphin
+Version=6
+
+#Rename LeadingPadding to SidePadding
+Id=rename-leading-padding
+File=dolphinrc
+Group=DetailsMode
+Key=LeadingPadding,SidePadding
+
+#Rename SidePadding to LeftPadding
+Id=rename-side-padding
+File=dolphinrc
+Group=DetailsMode
+Key=SidePadding,LeftPadding
+
+#Rename Move content-display from detailsMode
+Id=move-content-display
+File=dolphinrc
+Group=DetailsMode,ContentDisplay
+Key=DirectorySizeCount
+Key=RecursiveDirectorySizeLimit
+Key=UseShortRelativeDates
+Key=UsePermissionsFormat

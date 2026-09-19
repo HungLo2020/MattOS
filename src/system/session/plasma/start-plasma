@@ -16,7 +16,7 @@ export QT_QPA_FONTDIR=/usr/share/fonts
 # startplasma-wayland assigns the client platform to applications it launches.
 # greetd's PAM session has already created the per-user systemd/D-Bus bus.  Use
 # that bus when it is available so Plasma can start its systemd user target and
-# its D-Bus-activated shell services.  The private COSMIC bus is intentionally
+# its D-Bus-activated shell services.  A private fallback bus is intentionally
 # not used for Plasma: it hides org.freedesktop.systemd1 and forces Plasma's
 # legacy fallback, which has no systemd-managed plasmashell service.
 unset QT_QPA_PLATFORM QT_WAYLAND_DISABLE_WINDOWDECORATION

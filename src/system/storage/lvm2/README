@@ -1,0 +1,60 @@
+This tree contains the LVM2 and device-mapper tools and libraries.
+
+For more information about LVM2 read the changelog in the WHATS_NEW file.
+Installation instructions are in INSTALL.
+
+There is no warranty - see COPYING and COPYING.LIB.
+
+Tarballs are available from:
+  https://sourceware.org/pub/lvm2/releases/
+  ftp://sourceware.org/pub/lvm2/
+
+The source code is stored in git:
+  https://gitlab.com/lvmteam/lvm2
+Clone:
+  git clone git@gitlab.com:lvmteam/lvm2.git
+Anonymous access:
+  git clone https://gitlab.com/lvmteam/lvm2.git
+Mirrored to:
+* https://github.com/lvmteam/lvm2
+  git clone https://github.com/lvmteam/lvm2.git
+  git clone git@github.com:lvmteam/lvm2.git
+* https://sourceware.org/git/?p=lvm2.git
+  git clone https://sourceware.org/git/lvm2.git
+  git clone git://sourceware.org/git/lvm2.git
+
+Mailing list for general discussion related to LVM2:
+  linux-lvm@lists.linux.dev
+  Subscribe via email to: linux-lvm+subscribe@lists.linux.dev
+  Archive https://lore.kernel.org/linux-lvm/
+  Older archive https://listman.redhat.com/archives/linux-lvm/
+
+Mailing lists for LVM2 development, patches and commits:
+  lvm-devel@lists.linux.dev
+  Subscribe via email to: lvm-devel+subscribe@lists.linux.dev
+  Archive https://lore.kernel.org/lvm-devel/
+  Older archive https://listman.redhat.com/archives/lvm-devel/
+
+  lvm2-commits@lists.fedorahosted.org (Read-only archive of commits)
+  Subscribe from https://fedorahosted.org/mailman/listinfo/lvm2-commits
+
+Mailing list for device-mapper development, including kernel patches
+and multipath-tools:
+  dm-devel@redhat.com
+  Subscribe from https://www.redhat.com/mailman/listinfo/dm-devel
+
+Website:
+  https://sourceware.org/lvm2/
+
+Report upstream bugs at:
+  https://bugzilla.redhat.com/enter_bug.cgi?product=LVM%20and%20device-mapper
+or open issues at:
+  https://gitlab.com/groups/lvmteam/-/issues
+  https://github.com/lvmteam/lvm2/issues
+
+The source code repository used until 7th June 2012 is accessible using CVS:
+
+  cvs -d :pserver:cvs@sourceware.org:/cvs/lvm2 login cvs
+  cvs -d :pserver:cvs@sourceware.org:/cvs/lvm2 checkout LVM2
+
+The password is cvs.

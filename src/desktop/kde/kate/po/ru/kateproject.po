@@ -1,0 +1,1346 @@
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Yuri Efremov <yur.arh@gmail.com>, 2013.
+# Alexander Lakhin <exclusion@gmail.com>, 2013.
+# Alexander Potashev <aspotashev@gmail.com>, 2015, 2016.
+# SPDX-FileCopyrightText: 2019-2020, 2022-2024, 2026 Alexander Yavorsky <kekcuha@gmail.com>
+# SPDX-FileCopyrightText: 2021, 2022, 2024, 2025 Olesya Gerasimenko <translation-team@basealt.ru>
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-07-17 02:43+0000\n"
+"PO-Revision-Date: 2026-06-25 13:44+0200\n"
+"Last-Translator: Alexander Yavorskiy <kekcuha@gmail.com>\n"
+"Language-Team: Russian <kde-russian@lists.kde.ru>\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 26.04.2\n"
+"Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n"
+"%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Environment: kde\n"
+"X-Accelerator-Marker: &\n"
+"X-Text-Markup: kde4\n"
+
+#: branchcheckoutdialog.cpp:29
+#, kde-format
+msgid "Select branch to checkout. Press 'Esc' to cancel."
+msgstr "Выберите ветвь для извлечения. Нажмите клавишу «Esc» для отмены."
+
+#: branchcheckoutdialog.cpp:62
+#, kde-format
+msgid "Branch %1 checked out"
+msgstr "Ветвь %1 извлечена"
+
+#: branchcheckoutdialog.cpp:65
+#, kde-format
+msgid "Failed to checkout to branch %1, Error: %2"
+msgstr "Не удалось извлечь в ветвь %1. Ошибка: %2"
+
+#: branchcheckoutdialog.cpp:93 branchcheckoutdialog.cpp:105
+#, kde-format
+msgid "Enter new branch name. Press 'Esc' to cancel."
+msgstr "Введите имя новой ветви. Для отмены нажмите клавишу «Esc»."
+
+#: branchcheckoutdialog.cpp:110
+#, kde-format
+msgid "Select branch to checkout from. Press 'Esc' to cancel."
+msgstr ""
+"Выберите ветвь, из которой следует выполнить извлечение. Для отмены нажмите "
+"клавишу «Esc»."
+
+#: branchcheckoutdialog.cpp:133
+#, kde-format
+msgid "Checked out to new branch: %1"
+msgstr "Извлечено в новую ветвь: %1"
+
+#: branchcheckoutdialog.cpp:135
+#, kde-format
+msgid "Failed to create new branch. Error \"%1\""
+msgstr "Не удалось создать ветвь. Ошибка «%1»"
+
+#: branchdeletedialog.cpp:124
+#, kde-format
+msgid "Branch"
+msgstr "Ветвь"
+
+#: branchdeletedialog.cpp:124
+#, kde-format
+msgid "Last Activity"
+msgstr "Последняя активность"
+
+#: branchdeletedialog.cpp:124
+#, kde-format
+msgid "Last Commit"
+msgstr "Последняя фиксация"
+
+#: branchdeletedialog.cpp:137 kateprojecttreeviewcontextmenu.cpp:133
+#, kde-format
+msgid "Delete"
+msgstr "Удалить"
+
+#: branchdeletedialog.cpp:142
+#, kde-format
+msgid "Are you sure you want to delete the selected branch?"
+msgid_plural "Are you sure you want to delete the selected branches?"
+msgstr[0] "Удалить выбранные ветви?"
+msgstr[1] "Удалить выбранные ветви?"
+msgstr[2] "Удалить выбранные ветви?"
+msgstr[3] "Удалить выбранную ветвь?"
+
+#: branchesdialog.cpp:96
+#, kde-format
+msgid "Select Branch..."
+msgstr "Выберите ветвь…"
+
+#: branchesdialog.cpp:108 gitwidget.cpp:551 kateprojectpluginview.cpp:72
+#, kde-format
+msgid "Git"
+msgstr "Git"
+
+#: branchesdialogmodel.cpp:102
+#, kde-format
+msgid "Create New Branch"
+msgstr "Создать ветвь"
+
+#: branchesdialogmodel.cpp:108
+#, kde-format
+msgid "Create New Branch From..."
+msgstr "Создать ветвь из…"
+
+#: comparebranchesview.cpp:131
+#, kde-format
+msgid "Back"
+msgstr "Назад"
+
+#: currentgitbranchbutton.cpp:122
+#, kde-format
+msgctxt "Tooltip text, describing that '%1' commit is checked out"
+msgid "HEAD at commit %1"
+msgstr "HEAD на фиксации %1"
+
+#: currentgitbranchbutton.cpp:124
+#, kde-format
+msgctxt "Tooltip text, describing that '%1' tag is checked out"
+msgid "HEAD is at this tag %1"
+msgstr "HEAD на метке %1"
+
+#: currentgitbranchbutton.cpp:126
+#, kde-format
+msgctxt "Tooltip text, describing that '%1' branch is checked out"
+msgid "Active branch: %1"
+msgstr "Активная ветвь: %1"
+
+#: gitcommitdialog.cpp:70 gitcommitdialog.cpp:121
+#, kde-format
+msgid "Commit Changes"
+msgstr "Зафиксировать изменения"
+
+#: gitcommitdialog.cpp:74 gitcommitdialog.cpp:120 gitwidget.cpp:265
+#: gitwidget.cpp:1090
+#, kde-format
+msgid "Commit"
+msgstr "Зафиксировать"
+
+#: gitcommitdialog.cpp:75
+#, kde-format
+msgid "Cancel"
+msgstr "Отмена"
+
+#: gitcommitdialog.cpp:77
+#, kde-format
+msgid "Write commit message..."
+msgstr "Написать сообщение фиксации…"
+
+#: gitcommitdialog.cpp:84
+#, kde-format
+msgid "Extended commit description..."
+msgstr "Расширенное описание фиксации…"
+
+#: gitcommitdialog.cpp:108
+#, kde-format
+msgid "Sign off"
+msgstr "Подпись"
+
+#: gitcommitdialog.cpp:112 gitcommitdialog.cpp:125
+#, kde-format
+msgid "Amend"
+msgstr "Исправить"
+
+#: gitcommitdialog.cpp:113 gitwidget.cpp:1043
+#, kde-format
+msgid "Amend Last Commit"
+msgstr "Исправить последнюю фиксацию"
+
+#: gitcommitdialog.cpp:124
+#, kde-format
+msgid "Amending Commit"
+msgstr "Исправление фиксации"
+
+#: gitcommitdialog.cpp:207
+#, kde-format
+msgctxt "Number of characters"
+msgid "%1 / 52"
+msgstr "%1 / 52"
+
+#: gitcommitdialog.cpp:211
+#, kde-format
+msgctxt "Number of characters"
+msgid "<span style=\"color:%1;\">%2</span> / 52"
+msgstr "<span style=\"color:%1;\">%2</span> / 52"
+
+#: gitstatusmodel.cpp:97
+#, kde-format
+msgid "Staged"
+msgstr "Промежуточно сохранённые"
+
+#: gitstatusmodel.cpp:99
+#, kde-format
+msgid "Untracked"
+msgstr "Неотслеживаемые"
+
+#: gitstatusmodel.cpp:101
+#, kde-format
+msgid "Conflict"
+msgstr "Конфликтующие"
+
+#: gitstatusmodel.cpp:103
+#, kde-format
+msgid "Modified"
+msgstr "Изменённые"
+
+#: gitwidget.cpp:273
+#, kde-format
+msgid "Git Push"
+msgstr "Отправить в Git"
+
+#: gitwidget.cpp:286
+#, kde-format
+msgid "Git Pull"
+msgstr "Получить из Git"
+
+#: gitwidget.cpp:299
+#, kde-format
+msgid "Cancel Operation"
+msgstr "Отмена операции"
+
+#: gitwidget.cpp:307
+#, kde-format
+msgid " canceled."
+msgstr " отменено."
+
+#: gitwidget.cpp:315
+#, kde-format
+msgid "Refresh git status"
+msgstr "Обновить состояние Git"
+
+#: gitwidget.cpp:337 kateprojectview.cpp:61
+#, kde-format
+msgid "Filter…"
+msgstr "Фильтр…"
+
+#: gitwidget.cpp:428
+#, kde-format
+msgid "Failed to find .git directory for '%1', things may not work correctly"
+msgstr ""
+"Не удалось найти каталог .git для «%1», программа может работать неправильно"
+
+#: gitwidget.cpp:640
+#, kde-format
+msgid " error: %1"
+msgstr " ошибка: %1"
+
+#: gitwidget.cpp:646
+#, kde-format
+msgid "\"%1\" executed successfully: %2"
+msgstr "«%1» выполнено успешно: %2"
+
+#: gitwidget.cpp:666
+#, kde-format
+msgid "Failed to stage file. Error:"
+msgstr "Не удалось применить промежуточное сохранение файла. Ошибка:"
+
+#: gitwidget.cpp:679
+#, kde-format
+msgid "Failed to unstage file. Error:"
+msgstr "Не удалось отменить промежуточное сохранение файла. Ошибка:"
+
+#: gitwidget.cpp:690
+#, kde-format
+msgid "Failed to discard changes. Error:"
+msgstr "Не удалось отменить изменения. Ошибка:"
+
+#: gitwidget.cpp:701
+#, kde-format
+msgid "Failed to remove. Error:"
+msgstr "Не удалось удалить. Ошибка:"
+
+#: gitwidget.cpp:717
+#, kde-format
+msgid "Failed to open file at HEAD: %1"
+msgstr "Не удалось открыть файл в HEAD: %1"
+
+#: gitwidget.cpp:751
+#, kde-format
+msgid "Failed to get Diff of file: %1"
+msgstr "Не удалось получить различия для файла: %1"
+
+#: gitwidget.cpp:820
+#, kde-format
+msgid "Failed to commit: %1"
+msgstr "Не удалось выполнить фиксацию: %1"
+
+#: gitwidget.cpp:824
+#, kde-format
+msgid "Changes committed successfully."
+msgstr "Изменения успешно зафиксированы."
+
+#: gitwidget.cpp:834
+#, kde-format
+msgid "Nothing to commit. Please stage your changes first."
+msgstr ""
+"Нечего фиксировать. Сначала примените промежуточное сохранение изменений."
+
+#: gitwidget.cpp:848
+#, kde-format
+msgid "Commit message cannot be empty."
+msgstr "Сообщение фиксации не может быть пустым."
+
+#: gitwidget.cpp:979
+#, kde-format
+msgid "No diff for %1...%2"
+msgstr "Нет различий %1...%2"
+
+#: gitwidget.cpp:985
+#, kde-format
+msgid "Failed to compare %1...%2"
+msgstr "Не удалось сравнить %1...%2"
+
+#: gitwidget.cpp:1000
+#, kde-format
+msgid "Failed to get numstat when diffing %1...%2"
+msgstr ""
+"Не удалось получить числовые статистические данные при сравнении %1...%2"
+
+#: gitwidget.cpp:1035
+#, kde-format
+msgid "Refresh"
+msgstr "Обновить"
+
+#: gitwidget.cpp:1052
+#, kde-format
+msgid "Checkout Branch"
+msgstr "Извлечь ветвь"
+
+#: gitwidget.cpp:1064
+#, kde-format
+msgid "Delete Branch"
+msgstr "Удалить ветвь"
+
+#: gitwidget.cpp:1078
+#, kde-format
+msgid "Compare Branch with..."
+msgstr "Сравнить ветвь с…"
+
+#: gitwidget.cpp:1084
+#, kde-format
+msgid "Show Commit"
+msgstr "Показать фиксацию"
+
+#: gitwidget.cpp:1102
+#, kde-format
+msgid "Show Last Commit"
+msgstr "Показать последнюю фиксацию"
+
+#: gitwidget.cpp:1120
+#, kde-format
+msgid "Open Commit..."
+msgstr "Открыть фиксацию…"
+
+#: gitwidget.cpp:1123 gitwidget.cpp:1171
+#, kde-format
+msgid "Stash"
+msgstr "Поместить в запасник"
+
+#: gitwidget.cpp:1127
+#, kde-format
+msgid "Show history"
+msgstr "Показать журнал"
+
+#: gitwidget.cpp:1139
+#, kde-format
+msgid "Diff - stash"
+msgstr "Различия с запасником"
+
+#: gitwidget.cpp:1175
+#, kde-format
+msgid "Pop Last Stash"
+msgstr "Использовать последний запасник"
+
+#: gitwidget.cpp:1179
+#, kde-format
+msgid "Pop Stash"
+msgstr "Использовать запасник"
+
+#: gitwidget.cpp:1183
+#, kde-format
+msgid "Apply Last Stash"
+msgstr "Применить последний запасник"
+
+#: gitwidget.cpp:1185
+#, kde-format
+msgid "Stash (Keep Staged)"
+msgstr "Запасник (сохранить промежуточно сохранённые)"
+
+#: gitwidget.cpp:1189
+#, kde-format
+msgid "Stash (Include Untracked)"
+msgstr "Запасник (включить неотслеживаемые)"
+
+#: gitwidget.cpp:1193
+#, kde-format
+msgid "Apply Stash"
+msgstr "Применить запасник"
+
+#: gitwidget.cpp:1194
+#, kde-format
+msgid "Drop Stash"
+msgstr "Сбросить запасник"
+
+#: gitwidget.cpp:1198
+#, kde-format
+msgid "Show Stash"
+msgstr "Показать запасник"
+
+#: gitwidget.cpp:1202
+#, kde-format
+msgid "Show Stash Diff"
+msgstr "Показать различия с запасником"
+
+#: gitwidget.cpp:1240
+#, kde-format
+msgid "Stage All"
+msgstr "Применить промежуточное сохранение всех файлов"
+
+#: gitwidget.cpp:1242
+#, kde-format
+msgid "Remove All"
+msgstr "Удалить все"
+
+#: gitwidget.cpp:1242
+#, kde-format
+msgid "Discard All"
+msgstr "Отменить все"
+
+#: gitwidget.cpp:1245
+#, kde-format
+msgid "Open .gitignore"
+msgstr "Открыть .gitignore"
+
+#: gitwidget.cpp:1246 gitwidget.cpp:1295 gitwidget.cpp:1346
+#: kateprojectconfigpage.cpp:111 kateprojectconfigpage.cpp:123
+#, kde-format
+msgid "Show Diff"
+msgstr "Показать различия"
+
+#: gitwidget.cpp:1263
+#, kde-format
+msgid "Are you sure you want to remove these files?"
+msgstr "Действительно удалить эти файлы?"
+
+#: gitwidget.cpp:1268
+#, kde-format
+msgid "Are you sure you want to discard all changes?"
+msgstr "Действительно отменить все изменения?"
+
+#: gitwidget.cpp:1286
+#, kde-format
+msgid "Open File"
+msgstr "Открыть файл"
+
+#: gitwidget.cpp:1287
+#, kde-format
+msgid "Unstage File"
+msgstr "Отменить промежуточное сохранение файла"
+
+#: gitwidget.cpp:1287
+#, kde-format
+msgid "Stage File"
+msgstr "Применить промежуточное сохранение файла"
+
+#: gitwidget.cpp:1288
+#, kde-format
+msgid "Remove"
+msgstr "Удалить"
+
+#: gitwidget.cpp:1288
+#, kde-format
+msgid "Discard"
+msgstr "Отменить"
+
+#: gitwidget.cpp:1296
+#, kde-format
+msgid "Show in External Git Diff Tool"
+msgstr "Показать во внешнем приложении для показа различий git"
+
+#: gitwidget.cpp:1297
+#, kde-format
+msgid "Open at HEAD"
+msgstr "Открыть HEAD"
+
+#: gitwidget.cpp:1301
+#, kde-format
+msgid "Show History"
+msgstr "Показать журнал"
+
+#: gitwidget.cpp:1317
+#, kde-format
+msgid "Are you sure you want to discard the changes in this file?"
+msgstr "Действительно отменить все изменения в этом файле?"
+
+#: gitwidget.cpp:1328
+#, kde-format
+msgid "Are you sure you want to remove this file?"
+msgstr "Действительно удалить этот файл?"
+
+#: gitwidget.cpp:1345
+#, kde-format
+msgid "Unstage All"
+msgstr "Отменить промежуточное сохранение всех файлов"
+
+#: gitwidget.cpp:1412
+#, kde-format
+msgid "Unstage Selected Files"
+msgstr "Отменить промежуточное сохранение выбранных файлов"
+
+#: gitwidget.cpp:1412
+#, kde-format
+msgid "Stage Selected Files"
+msgstr "Применить промежуточное сохранение выбранных файлов"
+
+#: gitwidget.cpp:1413
+#, kde-format
+msgid "Discard Selected Files"
+msgstr "Отменить выбранные файлы"
+
+#: gitwidget.cpp:1417
+#, kde-format
+msgid "Remove Selected Files"
+msgstr "Удалить выбранные файлы"
+
+#: gitwidget.cpp:1430
+#, kde-format
+msgid "Are you sure you want to discard the changes?"
+msgstr "Действительно отменить изменения?"
+
+#: gitwidget.cpp:1435
+#, kde-format
+msgid "Are you sure you want to remove these untracked changes?"
+msgstr "Действительно удалить эти неотслеживаемые изменения?"
+
+#: kateproject.cpp:233
+#, kde-format
+msgid "(Modified)"
+msgstr "(Изменённые)"
+
+#: kateproject.cpp:235
+#, kde-format
+msgid "(Staged)"
+msgstr "(Промежуточно сохранённые)"
+
+#: kateproject.cpp:357
+#, kde-format
+msgid "Malformed JSON file '%1': %2"
+msgstr "Некорректный файл в формате JSON «%1»: %2"
+
+#: kateproject.cpp:424 kateprojectplugin.cpp:826 kateprojectpluginview.cpp:77
+#: kateprojectpluginview.cpp:233 kateprojectviewtree.cpp:367
+#: kateprojectviewtree.cpp:378 kateprojectviewtree.cpp:408
+#: kateprojectviewtree.cpp:415
+#, kde-format
+msgid "Project"
+msgstr "Проект"
+
+#: kateproject.cpp:725
+#, kde-format
+msgid "<untracked>"
+msgstr "<неотслеживаемые>"
+
+#: kateprojectcompletion.cpp:52
+#, kde-format
+msgid "Project Completion"
+msgstr "Завершение проекта"
+
+#: kateprojectconfigpage.cpp:24
+#, kde-format
+msgctxt "Groupbox title"
+msgid "Autoload Repositories && Build Trees"
+msgstr "Автоматическая загрузка репозиториев и деревьев сборки"
+
+#: kateprojectconfigpage.cpp:26
+#, kde-format
+msgid ""
+"Project plugin is able to autoload repository working copies and build trees "
+"when there is no .kateproject file defined yet."
+msgstr ""
+"Модуль проектов позволяет загружать рабочие копии репозиториев и деревья "
+"сборки в случае, если файл .kateproject не был найден."
+
+#: kateprojectconfigpage.cpp:29
+#, kde-format
+msgid "&Git"
+msgstr "&Git"
+
+#: kateprojectconfigpage.cpp:32
+#, kde-format
+msgid "&Subversion"
+msgstr "&Subversion"
+
+#: kateprojectconfigpage.cpp:34
+#, kde-format
+msgid "&Mercurial"
+msgstr "&Mercurial"
+
+#: kateprojectconfigpage.cpp:36
+#, kde-format
+msgid "&Fossil"
+msgstr "&Fossil"
+
+#: kateprojectconfigpage.cpp:38
+#, kde-format
+msgid "&CMake"
+msgstr "&CMake"
+
+#: kateprojectconfigpage.cpp:47
+#, kde-format
+msgctxt "Groupbox title"
+msgid "Directory Listing"
+msgstr "Содержимое каталога"
+
+#: kateprojectconfigpage.cpp:49
+#, kde-format
+msgid ""
+"When directory listing is enabled, autoloaded repository projects show all "
+"files instead of only VCS-tracked files."
+msgstr ""
+"При включённом отображении содержимого каталогов в автозагружаемых проектах "
+"репозиториев показываются все файлы, а не только отслеживаемые системой "
+"контроля версий."
+
+#: kateprojectconfigpage.cpp:52
+#, kde-format
+msgid "Include files untracked by repository"
+msgstr "Включить неотслеживаемые репозиторием файлы"
+
+#: kateprojectconfigpage.cpp:54
+#, kde-format
+msgid ""
+"Show all files in the project directory including files not tracked by the "
+"version control system, such as those excluded via .gitignore."
+msgstr ""
+"Показывать все файлы в каталоге проекта, включая не отслеживаемые системой "
+"управления версиями, например, исключённые с помощью .gitignore."
+
+#: kateprojectconfigpage.cpp:58
+#, kde-format
+msgid "Show hidden files in non-VCS projects"
+msgstr "Показывать скрытые файлы в проектах без VCS"
+
+#: kateprojectconfigpage.cpp:59
+#, kde-format
+msgid ""
+"Show hidden files (dotfiles) in the project file tree for projects not "
+"loaded using version control."
+msgstr ""
+"Показывать скрытые файлы (имена которых начинаются с точки) в дереве файлов "
+"проектов, не загруженных с помощью системы управления версиями."
+
+#: kateprojectconfigpage.cpp:68
+#, kde-format
+msgctxt "Groupbox title"
+msgid "Session Behavior"
+msgstr "Поведение сеанса"
+
+#: kateprojectconfigpage.cpp:69
+#, kde-format
+msgid "Session settings for projects"
+msgstr "Параметры сеанса для проектов"
+
+#: kateprojectconfigpage.cpp:70
+#, kde-format
+msgid "Restore Open Projects"
+msgstr "Восстанавливать открытые проекты"
+
+#: kateprojectconfigpage.cpp:77
+#, kde-format
+msgctxt "Groupbox title"
+msgid "Project Index"
+msgstr "Индексирование проекта"
+
+#: kateprojectconfigpage.cpp:78
+#, kde-format
+msgid "Project ctags index settings"
+msgstr "Параметры индекса ctags проекта"
+
+#: kateprojectconfigpage.cpp:79 kateprojectinfoviewindex.cpp:208
+#, kde-format
+msgid "Enable indexing"
+msgstr "Включить индексирование"
+
+#: kateprojectconfigpage.cpp:82
+#, kde-format
+msgid "Directory for index files"
+msgstr "Каталог файлов индекса"
+
+#: kateprojectconfigpage.cpp:86
+#, kde-format
+msgid ""
+"The system temporary directory is used if not specified, which may overflow "
+"for very large repositories"
+msgstr ""
+"Если значение параметра не задано, используется системный каталог временных "
+"файлов, что может привести к исчерпанию его свободного объёма в случае "
+"индексирования репозитория большого размера"
+
+#: kateprojectconfigpage.cpp:93
+#, kde-format
+msgctxt "Groupbox title"
+msgid "Cross-Project Functionality"
+msgstr "Межпроектная функциональность"
+
+#: kateprojectconfigpage.cpp:94
+#, kde-format
+msgid ""
+"Project plugin is able to perform some operations across multiple projects"
+msgstr ""
+"Модуль проектов позволяет выполнять некоторые действия над несколькими "
+"проектами"
+
+#: kateprojectconfigpage.cpp:95
+#, kde-format
+msgid "Cross-Project Completion"
+msgstr "Межпроектное завершение"
+
+#: kateprojectconfigpage.cpp:97
+#, kde-format
+msgid "Cross-Project Goto Symbol"
+msgstr "Символ перехода между проектами"
+
+#: kateprojectconfigpage.cpp:105
+#, kde-format
+msgctxt "Groupbox title"
+msgid "Git"
+msgstr "Git"
+
+#: kateprojectconfigpage.cpp:108
+#, kde-format
+msgid "Single click action in the git status view"
+msgstr "Действие по одиночному щелчку в представлении состояния git"
+
+#: kateprojectconfigpage.cpp:110 kateprojectconfigpage.cpp:122
+#, kde-format
+msgid "No Action"
+msgstr "Ничего не делать"
+
+#: kateprojectconfigpage.cpp:112 kateprojectconfigpage.cpp:124
+#, kde-format
+msgid "Open file"
+msgstr "Открыть файл"
+
+#: kateprojectconfigpage.cpp:113 kateprojectconfigpage.cpp:125
+#, kde-format
+msgid "Stage / Unstage"
+msgstr "Применить или отменить промежуточное сохранение"
+
+#: kateprojectconfigpage.cpp:120
+#, kde-format
+msgid "Double click action in the git status view"
+msgstr "Действие по двойному щелчку в представлении состояния git"
+
+#: kateprojectconfigpage.cpp:165 kateprojectpluginview.cpp:71
+#, kde-format
+msgid "Projects"
+msgstr "Проекты"
+
+#: kateprojectconfigpage.cpp:170
+#, kde-format
+msgctxt "Groupbox title"
+msgid "Projects Properties"
+msgstr "Управление проектами"
+
+#: kateprojectinfoview.cpp:84
+#, kde-format
+msgctxt "@title:tab"
+msgid "Terminal"
+msgstr "Терминал"
+
+#: kateprojectinfoview.cpp:93
+#, kde-format
+msgctxt "@title:tab"
+msgid "Terminal (Project)"
+msgstr "Терминал (проект)"
+
+#: kateprojectinfoview.cpp:102
+#, kde-format
+msgctxt "@title:tab"
+msgid "Terminal (Base)"
+msgstr "Терминал (основной)"
+
+#: kateprojectinfoview.cpp:111
+#, kde-format
+msgctxt "@title:tab"
+msgid "Terminal (Build)"
+msgstr "Терминал (сборка)"
+
+#: kateprojectinfoview.cpp:118
+#, kde-format
+msgid "Code Index"
+msgstr "Индекс кода"
+
+#: kateprojectinfoview.cpp:123
+#, kde-format
+msgid "Code Analysis"
+msgstr "Анализ кода"
+
+#: kateprojectinfoview.cpp:128
+#, kde-format
+msgid "Notes"
+msgstr "Примечания"
+
+#: kateprojectinfoviewcodeanalysis.cpp:34
+#, kde-format
+msgid "Start Analysis..."
+msgstr "Начать анализ…"
+
+#: kateprojectinfoviewcodeanalysis.cpp:42
+#, kde-format
+msgctxt "'%1' refers to project name, e.g,. Code Analysis - MyProject"
+msgid "Code Analysis - %1"
+msgstr "Анализ кода — %1"
+
+#: kateprojectinfoviewcodeanalysis.cpp:99
+#, kde-format
+msgid ""
+"'%1' is not installed on your system, %2.<br/><br/>%3. The tool will be run "
+"on all project files which match this list of file extensions:<br/><b>%4</b>"
+msgstr ""
+"Программа «%1» не установлена, %2. <br/><br/>%3 Инструмент будет применён ко "
+"всем файлам проекта, расширения которых присутствуют в списке:<br/><b>%4</b>"
+
+#: kateprojectinfoviewcodeanalysis.cpp:109
+#, kde-format
+msgid ""
+"Using %1 installed at: %2.<br/><br/>%3. The tool will be run on all project "
+"files which match this list of file extensions:<br/><b>%4</b>"
+msgstr ""
+"Используется программа «%1», установленная в расположение «%2».<br/><br/>%3. "
+"Инструмент будет применён ко всем файлам проекта, расширения которых "
+"присутствуют в списке:<br/><b>%4</b>"
+
+#: kateprojectinfoviewcodeanalysis.cpp:151
+#: kateprojectinfoviewcodeanalysis.cpp:211
+#: kateprojectinfoviewcodeanalysis.cpp:215
+#, kde-format
+msgid "CodeAnalysis"
+msgstr "Анализ кода"
+
+#: kateprojectinfoviewcodeanalysis.cpp:206
+#, kde-format
+msgctxt ""
+"Message to the user that analysis finished. %1 is the name of the program "
+"that did the analysis, %2 is a number. e.g., [clang-tidy]Analysis on 5 files "
+"finished"
+msgid "[%1]Analysis on %2 file finished."
+msgid_plural "[%1]Analysis on %2 files finished."
+msgstr[0] "[%1] Анализ %2 файла завершён."
+msgstr[1] "[%1] Анализ %2 файлов завершён."
+msgstr[2] "[%1] Анализ %2 файлов завершён."
+msgstr[3] "[%1] Анализ %2 файла завершён."
+
+#: kateprojectinfoviewcodeanalysis.cpp:214
+#, kde-format
+msgid "Analysis failed with exit code %1, Error: %2"
+msgstr ""
+"Ошибка при выполнении анализа файла, код завершения: %1, сообщение об "
+"ошибке: %2."
+
+#: kateprojectinfoviewindex.cpp:36
+#, kde-format
+msgid "Name"
+msgstr "Имя"
+
+#: kateprojectinfoviewindex.cpp:36
+#, kde-format
+msgid "Kind"
+msgstr "Тип"
+
+#: kateprojectinfoviewindex.cpp:36
+#, kde-format
+msgid "File"
+msgstr "Файл"
+
+#: kateprojectinfoviewindex.cpp:36
+#, kde-format
+msgid "Line"
+msgstr "Строка"
+
+#: kateprojectinfoviewindex.cpp:37
+#, kde-format
+msgid "Search"
+msgstr "Поиск"
+
+#: kateprojectinfoviewindex.cpp:197
+#, kde-format
+msgid "The index could not be created. Please install 'ctags'."
+msgstr "Не удалось создать индекс, установите «ctags»."
+
+#: kateprojectinfoviewindex.cpp:207
+#, kde-format
+msgid "Indexing is not enabled"
+msgstr "Индексирование отключено"
+
+#: kateprojectitem.cpp:181
+#, kde-format
+msgid "Error"
+msgstr "Ошибка"
+
+#: kateprojectitem.cpp:181
+#, kde-format
+msgid "File name already exists"
+msgstr "Файл с таким именем уже существует"
+
+#: kateprojectplugin.cpp:270
+#, kde-format
+msgid "Confirm project closing: %1"
+msgstr "Подтвердите закрытие проекта: %1"
+
+#: kateprojectplugin.cpp:271
+#, kde-format
+msgid "Do you want to close the project %1 and the related %2 open documents?"
+msgstr "Закрыть проект «%1» и связанные с ним открытые документы (%2)?"
+
+#: kateprojectplugin.cpp:691
+#, kde-format
+msgid "Full path to current project excluding the file name."
+msgstr "Полный путь к текущему проекту, исключая имя файла."
+
+#: kateprojectplugin.cpp:708
+#, kde-format
+msgid ""
+"Full path to current project excluding the file name, with native path "
+"separator (backslash on Windows)."
+msgstr ""
+"Полный путь к текущему проекту, исключая имя файла, со стандартными для ОС "
+"разделителями (обратная косая черта в Windows)."
+
+#: kateprojectpluginview.cpp:61
+#, kde-format
+msgid "Project Manager"
+msgstr "Управление проектами"
+
+#: kateprojectpluginview.cpp:82
+#, kde-format
+msgid "Current Project"
+msgstr "Текущий проект"
+
+#: kateprojectpluginview.cpp:84
+#, kde-format
+msgid "Open projects list"
+msgstr "Открыть список проектов"
+
+#: kateprojectpluginview.cpp:92
+#, kde-format
+msgid "Reload project"
+msgstr "Перечитать проект"
+
+#: kateprojectpluginview.cpp:95
+#, kde-format
+msgid "Close project"
+msgstr "Закрыть проект"
+
+#: kateprojectpluginview.cpp:171
+#, kde-format
+msgid "Open &Folder..."
+msgstr "Открыть &папку…"
+
+#: kateprojectpluginview.cpp:177
+#, kde-format
+msgid "Project TODOs"
+msgstr "Задачи проекта"
+
+#: kateprojectpluginview.cpp:182
+#, kde-format
+msgid "Activate Previous Project"
+msgstr "Активировать предыдущий проект"
+
+#: kateprojectpluginview.cpp:188
+#, kde-format
+msgid "Activate Next Project"
+msgstr "Активировать следующий проект"
+
+#: kateprojectpluginview.cpp:194
+#, kde-format
+msgid "Lookup"
+msgstr "Поиск"
+
+#: kateprojectpluginview.cpp:199
+#, kde-format
+msgid "Close Project"
+msgstr "Закрыть проект"
+
+#: kateprojectpluginview.cpp:204
+#, kde-format
+msgid "Close All Projects"
+msgstr "Закрыть все проекты"
+
+#: kateprojectpluginview.cpp:209
+#, kde-format
+msgid "Close Orphaned Projects"
+msgstr "Закрыть потерянные проекты"
+
+#: kateprojectpluginview.cpp:214
+#, kde-format
+msgid "Reload Project"
+msgstr "Перечитать проект"
+
+#: kateprojectpluginview.cpp:219
+#, kde-format
+msgid "Reload All Projects"
+msgstr "Перечитать все проекты"
+
+#: kateprojectpluginview.cpp:230
+#, kde-format
+msgid "Checkout Git Branch"
+msgstr "Извлечь ветвь Git"
+
+#: kateprojectpluginview.cpp:236 kateprojectpluginview.cpp:845
+#, kde-format
+msgid "Lookup: %1"
+msgstr "Поиск: %1"
+
+#: kateprojectpluginview.cpp:237 kateprojectpluginview.cpp:846
+#, kde-format
+msgid "Goto: %1"
+msgstr "Переход: %1"
+
+#: kateprojectpluginview.cpp:316
+#, kde-format
+msgid "Projects Index"
+msgstr "Индекс проекта"
+
+#: kateprojectpluginview.cpp:890
+#, kde-format
+msgid "Choose a directory"
+msgstr "Выбор каталога"
+
+#: kateprojecttreeviewcontextmenu.cpp:48
+#, kde-format
+msgid "Enter name:"
+msgstr "Введите имя:"
+
+#: kateprojecttreeviewcontextmenu.cpp:113
+#, kde-format
+msgid "Copy Location"
+msgstr "Копировать расположение"
+
+#: kateprojecttreeviewcontextmenu.cpp:120
+#, kde-format
+msgid "New File…"
+msgstr "Создать файл…"
+
+#: kateprojecttreeviewcontextmenu.cpp:121
+#, kde-format
+msgid "New Folder…"
+msgstr "Создать папку…"
+
+#: kateprojecttreeviewcontextmenu.cpp:128
+#, kde-format
+msgid "&Rename"
+msgstr "&Переименовать"
+
+#: kateprojecttreeviewcontextmenu.cpp:139
+#, kde-format
+msgid "Properties"
+msgstr "Свойства"
+
+#: kateprojecttreeviewcontextmenu.cpp:143
+#, kde-format
+msgid "Open With"
+msgstr "Открыть с помощью..."
+
+#: kateprojecttreeviewcontextmenu.cpp:151
+#, kde-format
+msgid "Open Internal Terminal Here"
+msgstr "Открыть встроенный терминал в этой папке"
+
+#: kateprojecttreeviewcontextmenu.cpp:163
+#, kde-format
+msgid "Open External Terminal Here"
+msgstr "Открыть внешний терминал в этой папке"
+
+#: kateprojecttreeviewcontextmenu.cpp:169
+#, kde-format
+msgid "&Open Containing Folder"
+msgstr "&Открыть содержащую папку"
+
+#: kateprojecttreeviewcontextmenu.cpp:178
+#, kde-format
+msgid "Show Git History"
+msgstr "Показать журнал Git"
+
+#: kateprojecttreeviewcontextmenu.cpp:242
+#, kde-format
+msgid "New File"
+msgstr "Создать файл"
+
+#: kateprojecttreeviewcontextmenu.cpp:247
+#, kde-format
+msgid "New Folder"
+msgstr "Создать папку"
+
+#: kateprojectviewtree.cpp:367
+#, kde-format
+msgid "The file already exists"
+msgstr "Файл уже существует"
+
+#: kateprojectviewtree.cpp:378
+#, kde-format
+msgid "Failed to create file: %1, Error: %2"
+msgstr "Не удалось создать файл: %1. Ошибка: %2"
+
+#: kateprojectviewtree.cpp:408
+#, kde-format
+msgid "The directory already exists"
+msgstr "Каталог уже существует"
+
+#: kateprojectviewtree.cpp:415
+#, kde-format
+msgid "Failed to create dir: %1"
+msgstr "Не удалось создать каталог: %1"
+
+#: kateprojectworker.cpp:215
+#, kde-format
+msgid "Unable to find directory: %1"
+msgstr "Не удалось найти каталог: %1"
+
+#: kateprojectworker.cpp:753
+#, kde-format
+msgid ""
+"Unable to load %1 based project because either %1 is not installed or it "
+"wasn't found in PATH environment variable. Please install %1 or "
+"alternatively disable the option 'Autoload Repositories && Build Trees' in "
+"project settings."
+msgstr ""
+"Не удалось загрузить проект на основе %1; либо не выполнена установка %1, "
+"либо программа не найдена в переменной среды PATH. Выполните установку %1 "
+"или отключите параметр «Автоматическая загрузка репозиториев и деревьев "
+"сборки» в разделе настройки проекта."
+
+#: project_commands.cpp:35
+#, kde-format
+msgid "Execute a command in the active project's terminal."
+msgstr "Выполнить команду в терминале активного проекта."
+
+#: project_commands.cpp:47
+#, kde-format
+msgid "No cmd provided"
+msgstr "Не указана команда"
+
+#: project_commands.cpp:60
+#, kde-format
+msgid "Project Command"
+msgstr "Команда в проекте"
+
+#: stashdialog.cpp:36
+#, kde-format
+msgid "Stash message (optional). Enter to confirm, Esc to leave."
+msgstr ""
+"Сообщение запасника (необязательно). Нажмите клавишу «Enter» для "
+"подтверждения или клавишу «Esc» для отмены."
+
+#: stashdialog.cpp:44
+#, kde-format
+msgid "Type to filter, Enter to pop stash, Esc to leave."
+msgstr ""
+"Введите текст для применения фильтра, нажмите клавишу «Enter» для "
+"использования запасника, нажмите клавишу «Esc» для выхода."
+
+#: stashdialog.cpp:147
+#, kde-format
+msgid "Failed to stash changes %1"
+msgstr "Не удалось поместить в запасник изменения %1"
+
+#: stashdialog.cpp:149
+#, kde-format
+msgid "Changes stashed successfully."
+msgstr "Изменения успешно помещены в запасник."
+
+#: stashdialog.cpp:168
+#, kde-format
+msgid "Failed to get stash list. Error: "
+msgstr "Не удалось получить список запасника. Ошибка: "
+
+#: stashdialog.cpp:184
+#, kde-format
+msgid "Failed to apply stash. Error: "
+msgstr "Не удалось применить запасник. Ошибка: "
+
+#: stashdialog.cpp:186
+#, kde-format
+msgid "Failed to drop stash. Error: "
+msgstr "Не удалось сбросить запасник. Ошибка: "
+
+#: stashdialog.cpp:188
+#, kde-format
+msgid "Failed to pop stash. Error: "
+msgstr "Не удалось использовать запасник. Ошибка: "
+
+#: stashdialog.cpp:192
+#, kde-format
+msgid "Stash applied successfully."
+msgstr "Запасник успешно применён."
+
+#: stashdialog.cpp:194
+#, kde-format
+msgid "Stash dropped successfully."
+msgstr "Запасник успешно сброшен."
+
+#: stashdialog.cpp:196
+#, kde-format
+msgid "Stash popped successfully."
+msgstr "Запасник успешно использован."
+
+#: stashdialog.cpp:225
+#, kde-format
+msgid "Show stash failed. Error: "
+msgstr "Не удалось показать запасник. Ошибка: "
+
+#. i18n: ectx: Menu (projects)
+#: ui.rc:9
+#, kde-format
+msgid "&Projects"
+msgstr "&Проекты"
+
+#. i18n: ectx: ToolBar (projectplugin)
+#: ui.rc:29
+#, kde-format
+msgid "Project Plugin"
+msgstr "Модуль проектов"
+
+#~ msgid "Show Stash Content"
+#~ msgstr "Показать содержимое запасника"
+
+#~ msgid "Delete File"
+#~ msgstr "Удалить файл"
+
+#~ msgid "Do you want to delete the file '%1'?"
+#~ msgstr "Удалить файл «%1»?"
+
+#~ msgid "Add"
+#~ msgstr "Добавить"
+
+#~ msgid "Add File"
+#~ msgstr "Добавить файл"
+
+#~ msgid "Commit hash"
+#~ msgstr "Хеш фиксации"
+
+#~ msgid "Show number of changed lines in git status"
+#~ msgstr ""
+#~ "Показывать количество изменённых строк в представлении состояния git"
+
+#~ msgid "Checkout branch"
+#~ msgstr "Извлечь ветвь"
+
+#~ msgid "Severity"
+#~ msgstr "Важность"
+
+#~ msgid "Message"
+#~ msgstr "Сообщение"
+
+#~ msgctxt "NAME OF TRANSLATORS"
+#~ msgid "Your names"
+#~ msgstr "Юрий Ефремов, Олеся Герасименко"
+
+#~ msgctxt "EMAIL OF TRANSLATORS"
+#~ msgid "Your emails"
+#~ msgstr "yur.arh@gmail.com, translation-team@basealt.ru"
+
+#~ msgid "Failed to get file history: git executable not found in PATH"
+#~ msgstr ""
+#~ "Не удалось получить журнал файла: исполняемый файл git не найден в PATH"
+
+#, fuzzy
+#~ msgid "Show File Git History"
+#~ msgstr "Показать журнал Git"
+
+#~ msgid "Stage Hunk"
+#~ msgstr "Применить промежуточное сохранение блока"
+
+#~ msgid "Stage Lines"
+#~ msgstr "Применить промежуточное сохранение строк"
+
+#, fuzzy
+#~ msgid "Discard Lines"
+#~ msgstr "Отменить"
+
+#~ msgid "Unstage Hunk"
+#~ msgstr "Отменить промежуточное сохранение блока"
+
+#~ msgid "Unstage Lines"
+#~ msgstr "Отменить промежуточное сохранение строк"
+
+#~ msgid "Failed to stage selection"
+#~ msgstr "Не удалось применить промежуточное сохранение выбранного"
+
+#~ msgid "Failed to stage: %1"
+#~ msgstr "Не удалось применить промежуточное сохранение: %1"
+
+#~ msgid "Show diff"
+#~ msgstr "Показать различия"
+
+#~ msgid "Copy File Path"
+#~ msgstr "Копировать путь к файлу"
+
+#~ msgid "Type to filter..."
+#~ msgstr "Введите текст для фильтрации..."
+
+#~ msgid "Git:"
+#~ msgstr "Git:"
+
+#, fuzzy
+#~ msgid "Untracked (%1)"
+#~ msgstr "<неотслеживаемые>"
+
+#~ msgid ""
+#~ "The index is not enabled. Please add '\"index\": true' to your ."
+#~ "kateproject file."
+#~ msgstr ""
+#~ "Индексирование не включено, добавьте «\"index\": true» в файл kateproject."
+
+#~ msgid "Analysis failed!"
+#~ msgstr "Не удалось завершить анализ."
+
+#~ msgid "Please install 'cppcheck'."
+#~ msgstr "Для анализа кода необходимо установить программу «cppcheck»."
+
+#~ msgid "Git Tools"
+#~ msgstr "Инструменты Git"
+
+#~ msgid "Launch gitk"
+#~ msgstr "Запустить gitk"
+
+#~ msgid "Launch qgit"
+#~ msgstr "Запустить qgit"
+
+#~ msgid "Launch git-cola"
+#~ msgstr "Запустить git-cola"
+
+#~ msgid "Hello World"
+#~ msgstr "Привет, мир"
+
+#~ msgid "Example kate plugin"
+#~ msgstr "Пример модуля Kate"

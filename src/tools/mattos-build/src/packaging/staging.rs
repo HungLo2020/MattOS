@@ -10,9 +10,7 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         "libgcc-s1" => {
             stage_gcc_runtime_library(repo_root, &staging, "libgcc_s.so.1", "libgcc-s1")?
         }
-        "libgomp1" => {
-            stage_gcc_runtime_library(repo_root, &staging, "libgomp.so.1", "libgomp1")?
-        }
+        "libgomp1" => stage_gcc_runtime_library(repo_root, &staging, "libgomp.so.1", "libgomp1")?,
         "libstdc++6" => {
             stage_gcc_runtime_library(repo_root, &staging, "libstdc++.so.6", "libstdc++6")?
         }
@@ -487,14 +485,27 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             // optional development payload.
             let data = component_install(repo_root, "icu").join("usr/share/icu");
             if !data.join("78.3/icudt78l.dat").is_file() {
-                bail!("ICU runtime data archive is missing from {}", data.display());
+                bail!(
+                    "ICU runtime data archive is missing from {}",
+                    data.display()
+                );
             }
             copy_tree_preserving(&data, &staging.join("usr/share/icu"))?;
         }
-        "kf6-kdeclarative" => stage_kde_module(repo_root, &staging, "kdeclarative", "kf6-kdeclarative")?,
+        "kf6-kdeclarative" => {
+            stage_kde_module(repo_root, &staging, "kdeclarative", "kf6-kdeclarative")?
+        }
+        "greetd" => copy_tree_preserving(
+            &repo_root.join("out/build/greetd/install/usr"),
+            &staging.join("usr"),
+        )?,
         "qt6-base" => stage_qt_module(repo_root, &staging, "qtbase", "qt6-base")?,
-        "qt6-shadertools" => stage_qt_module(repo_root, &staging, "qtshadertools", "qt6-shadertools")?,
-        "qt6-declarative" => stage_qt_module(repo_root, &staging, "qtdeclarative", "qt6-declarative")?,
+        "qt6-shadertools" => {
+            stage_qt_module(repo_root, &staging, "qtshadertools", "qt6-shadertools")?
+        }
+        "qt6-declarative" => {
+            stage_qt_module(repo_root, &staging, "qtdeclarative", "qt6-declarative")?
+        }
         "qt6-svg" => stage_qt_module(repo_root, &staging, "qtsvg", "qt6-svg")?,
         "qt6-wayland" => stage_qt_module(repo_root, &staging, "qtwayland", "qt6-wayland")?,
         "qt6-tools" => stage_qt_module(repo_root, &staging, "qttools", "qt6-tools")?,
@@ -502,44 +513,352 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         "qt6-speech" => stage_qt_module(repo_root, &staging, "qtspeech", "qt6-speech")?,
         "qt6-core5compat" => stage_qt_module(repo_root, &staging, "qt5compat", "qt6-core5compat")?,
         "qca-qt6" => stage_kde_module(repo_root, &staging, "qca", "qca-qt6")?,
+        "qcoro-qt6" => stage_kde_module(repo_root, &staging, "qcoro", "qcoro-qt6")?,
         "kwin" => stage_kde_module(repo_root, &staging, "kwin", "kwin")?,
-        "layer-shell-qt" => stage_kde_module(repo_root, &staging, "layer-shell-qt", "layer-shell-qt")?,
-        "plasma-workspace" => stage_kde_module(repo_root, &staging, "plasma-workspace", "plasma-workspace")?,
-        "plasma-framework" => stage_kde_module(repo_root, &staging, "plasma-framework", "plasma-framework")?,
-        "plasma5support" => stage_kde_module(repo_root, &staging, "plasma5support", "plasma5support")?,
+        "layer-shell-qt" => {
+            stage_kde_module(repo_root, &staging, "layer-shell-qt", "layer-shell-qt")?
+        }
+        "plasma-workspace" => {
+            stage_kde_module(repo_root, &staging, "plasma-workspace", "plasma-workspace")?
+        }
+        "plasma-framework" => {
+            stage_kde_module(repo_root, &staging, "plasma-framework", "plasma-framework")?
+        }
+        "plasma5support" => {
+            stage_kde_module(repo_root, &staging, "plasma5support", "plasma5support")?
+        }
         "krunner" => stage_kde_module(repo_root, &staging, "krunner", "krunner")?,
-        "plasma-desktop" => stage_kde_module(repo_root, &staging, "plasma-desktop", "plasma-desktop")?,
+        "plasma-desktop" => {
+            stage_kde_module(repo_root, &staging, "plasma-desktop", "plasma-desktop")?;
+            stage_plasma_session_integration(repo_root, &staging)?;
+        }
         "breeze" => stage_kde_module(repo_root, &staging, "breeze", "breeze")?,
         "breeze-icons" => stage_kde_module(repo_root, &staging, "breeze-icons", "breeze-icons")?,
-        "kf6-kcoreaddons" => stage_kde_module(repo_root, &staging, "kcoreaddons", "kf6-kcoreaddons")?,
+        "lm-sensors" => stage_multimedia_sdk(
+            repo_root,
+            &staging,
+            "lm-sensors",
+            "lm-sensors",
+            "src/system/libraries/lm-sensors/COPYING",
+        )?,
+        "libhwy1" => stage_multimedia_sdk(
+            repo_root,
+            &staging,
+            "highway",
+            "libhwy1",
+            "src/system/libraries/highway/LICENSE",
+        )?,
+        "kf6-kfilemetadata" => {
+            stage_kde_module(repo_root, &staging, "kfilemetadata", "kf6-kfilemetadata")?
+        }
+        "kf6-kpty" => stage_kde_module(repo_root, &staging, "kpty", "kf6-kpty")?,
+        "kf6-networkmanager-qt" => stage_kde_module(
+            repo_root,
+            &staging,
+            "networkmanager-qt",
+            "kf6-networkmanager-qt",
+        )?,
+        "kf6-purpose" => stage_kde_module(repo_root, &staging, "purpose", "kf6-purpose")?,
+        "milou" => stage_kde_module(repo_root, &staging, "milou", "milou")?,
+        "systemsettings" => {
+            stage_kde_module(repo_root, &staging, "systemsettings", "systemsettings")?
+        }
+        "ksystemstats" => stage_kde_module(repo_root, &staging, "ksystemstats", "ksystemstats")?,
+        "plasma-systemmonitor" => stage_kde_module(
+            repo_root,
+            &staging,
+            "plasma-systemmonitor",
+            "plasma-systemmonitor",
+        )?,
+        "polkit-kde-agent-1" => stage_kde_module(
+            repo_root,
+            &staging,
+            "polkit-kde-agent-1",
+            "polkit-kde-agent-1",
+        )?,
+        "kquickimageeditor" => stage_kde_module(
+            repo_root,
+            &staging,
+            "kquickimageeditor",
+            "kquickimageeditor",
+        )?,
+        "ffmpeg-libs" => stage_multimedia_sdk(
+            repo_root,
+            &staging,
+            "ffmpeg",
+            "ffmpeg-libs",
+            "src/system/multimedia/ffmpeg/LICENSE.md",
+        )?,
+        "libva2" => stage_multimedia_sdk(
+            repo_root,
+            &staging,
+            "libva",
+            "libva2",
+            "src/system/graphics/libva/COPYING",
+        )?,
+        "libopencv4" => stage_multimedia_sdk(
+            repo_root,
+            &staging,
+            "opencv",
+            "libopencv4",
+            "src/system/multimedia/opencv/LICENSE",
+        )?,
+        "kpipewire" => stage_kde_module(repo_root, &staging, "kpipewire", "kpipewire")?,
+        "spectacle" => stage_kde_module(repo_root, &staging, "spectacle", "spectacle")?,
+        "pulseaudio-qt" => stage_kde_module(repo_root, &staging, "pulseaudio-qt", "pulseaudio-qt")?,
+        "plasma-pa" => stage_kde_module(repo_root, &staging, "plasma-pa", "plasma-pa")?,
+        "plasma-nm" => stage_kde_module(repo_root, &staging, "plasma-nm", "plasma-nm")?,
+        "powerdevil" => stage_kde_module(repo_root, &staging, "powerdevil", "powerdevil")?,
+        "xdg-desktop-portal-kde" => stage_kde_module(
+            repo_root,
+            &staging,
+            "xdg-desktop-portal-kde",
+            "xdg-desktop-portal-kde",
+        )?,
+        "dolphin" => stage_kde_module(repo_root, &staging, "dolphin", "dolphin")?,
+        "konsole" => stage_kde_module(repo_root, &staging, "konsole", "konsole")?,
+        "kate" => stage_kde_module(repo_root, &staging, "kate", "kate")?,
+        "ark" => stage_kde_module(repo_root, &staging, "ark", "ark")?,
+        "kf6-kparts" => stage_kde_module(repo_root, &staging, "kparts", "kf6-kparts")?,
+        "kf6-ktextwidgets" => {
+            stage_kde_module(repo_root, &staging, "ktextwidgets", "kf6-ktextwidgets")?
+        }
+        "kf6-ktexteditor" => {
+            stage_kde_module(repo_root, &staging, "ktexteditor", "kf6-ktexteditor")?
+        }
+        "libqrencode4" => {
+            stage_multimedia_sdk(
+                repo_root,
+                &staging,
+                "qrencode",
+                "libqrencode4",
+                "src/system/libraries/qrencode/COPYING",
+            )?;
+            remove_path_if_exists(&staging.join("usr/lib/x86_64-linux-gnu/libqrencode.la"))?;
+        }
+        "libzxing4" => stage_multimedia_sdk(
+            repo_root,
+            &staging,
+            "zxing-cpp",
+            "libzxing4",
+            "src/system/libraries/zxing-cpp/LICENSE",
+        )?,
+        "kf6-prison" => stage_kde_module(repo_root, &staging, "prison", "kf6-prison")?,
+        "kf6-libkscreen" => stage_kde_module(repo_root, &staging, "libkscreen", "kf6-libkscreen")?,
+        "modemmanager" => stage_multimedia_sdk(
+            repo_root,
+            &staging,
+            "modemmanager",
+            "modemmanager",
+            "src/system/services/modemmanager/COPYING",
+        )?,
+        "kf6-modemmanager-qt" => stage_kde_module(
+            repo_root,
+            &staging,
+            "modemmanager-qt",
+            "kf6-modemmanager-qt",
+        )?,
+        "libarchive13" => stage_multimedia_sdk(
+            repo_root,
+            &staging,
+            "libarchive",
+            "libarchive13",
+            "src/system/libraries/libarchive/COPYING",
+        )?,
+        "libsndfile1" => stage_multimedia_sdk(
+            repo_root,
+            &staging,
+            "libsndfile",
+            "libsndfile1",
+            "src/system/multimedia/libsndfile/COPYING",
+        )?,
+        "libpulse0" => stage_multimedia_sdk(
+            repo_root,
+            &staging,
+            "pulseaudio",
+            "libpulse0",
+            "src/system/multimedia/pulseaudio/LICENSE",
+        )?,
+        "libgudev-1.0-0" => stage_multimedia_sdk(
+            repo_root,
+            &staging,
+            "libgudev",
+            "libgudev-1.0-0",
+            "src/system/libraries/libgudev/COPYING",
+        )?,
+        "libgmp10" => stage_multimedia_sdk(
+            repo_root,
+            &staging,
+            "gmp",
+            "libgmp10",
+            "src/system/libraries/gmp/COPYING.LESSERv3",
+        )?,
+        "libmpfr6" => stage_multimedia_sdk(
+            repo_root,
+            &staging,
+            "mpfr",
+            "libmpfr6",
+            "src/system/libraries/mpfr/COPYING.LESSER",
+        )?,
+        "libbytesize1" => stage_multimedia_sdk(
+            repo_root,
+            &staging,
+            "libbytesize",
+            "libbytesize1",
+            "src/system/libraries/libbytesize/LICENSE",
+        )?,
+        "libkeyutils1" => stage_multimedia_sdk(
+            repo_root,
+            &staging,
+            "keyutils",
+            "libkeyutils1",
+            "src/system/security/keyutils/LICENCE.LGPL",
+        )?,
+        "libnvme1" => stage_multimedia_sdk(
+            repo_root,
+            &staging,
+            "libnvme",
+            "libnvme1",
+            "src/system/libraries/libnvme/COPYING",
+        )?,
+        "libpopt0" => stage_multimedia_sdk(
+            repo_root,
+            &staging,
+            "popt",
+            "libpopt0",
+            "src/system/libraries/popt/COPYING",
+        )?,
+        "libjson-c5" => stage_multimedia_sdk(
+            repo_root,
+            &staging,
+            "json-c",
+            "libjson-c5",
+            "src/system/libraries/json-c/COPYING",
+        )?,
+        "libdevmapper1.02.1" => stage_multimedia_sdk(
+            repo_root,
+            &staging,
+            "lvm2",
+            "libdevmapper1.02.1",
+            "src/system/storage/lvm2/COPYING",
+        )?,
+        "libcryptsetup12" => stage_multimedia_sdk(
+            repo_root,
+            &staging,
+            "cryptsetup",
+            "libcryptsetup12",
+            "src/system/storage/cryptsetup/COPYING",
+        )?,
+        "libblockdev3" => stage_multimedia_sdk(
+            repo_root,
+            &staging,
+            "libblockdev",
+            "libblockdev3",
+            "src/system/libraries/libblockdev/LICENSE",
+        )?,
+        "wireplumber" => stage_multimedia_sdk(
+            repo_root,
+            &staging,
+            "wireplumber",
+            "wireplumber",
+            "src/system/multimedia/wireplumber/LICENSE",
+        )?,
+        "upower" => stage_multimedia_sdk(
+            repo_root,
+            &staging,
+            "upower",
+            "upower",
+            "src/system/services/upower/COPYING",
+        )?,
+        "udisks2" => stage_multimedia_sdk(
+            repo_root,
+            &staging,
+            "udisks2",
+            "udisks2",
+            "src/system/services/udisks2/COPYING",
+        )?,
+        "bluez" => stage_multimedia_sdk(
+            repo_root,
+            &staging,
+            "bluez",
+            "bluez",
+            "src/system/services/bluez/COPYING",
+        )?,
+        "power-profiles-daemon" => stage_multimedia_sdk(
+            repo_root,
+            &staging,
+            "power-profiles-daemon",
+            "power-profiles-daemon",
+            "src/system/services/power-profiles-daemon/COPYING",
+        )?,
+        "kf6-kcoreaddons" => {
+            stage_kde_module(repo_root, &staging, "kcoreaddons", "kf6-kcoreaddons")?
+        }
         "kf6-ki18n" => stage_kde_module(repo_root, &staging, "ki18n", "kf6-ki18n")?,
-        "kf6-kwidgetsaddons" => stage_kde_module(repo_root, &staging, "kwidgetsaddons", "kf6-kwidgetsaddons")?,
+        "kf6-kwidgetsaddons" => {
+            stage_kde_module(repo_root, &staging, "kwidgetsaddons", "kf6-kwidgetsaddons")?
+        }
         "kf6-kconfig" => stage_kde_module(repo_root, &staging, "kconfig", "kf6-kconfig")?,
         "kf6-kcmutils" => stage_kde_module(repo_root, &staging, "kcmutils", "kf6-kcmutils")?,
-        "kf6-knewstuffcore" => stage_kde_module(repo_root, &staging, "knewstuff", "kf6-knewstuffcore")?,
+        "kf6-knewstuffcore" => {
+            stage_kde_module(repo_root, &staging, "knewstuff", "kf6-knewstuffcore")?
+        }
         "kf6-attica" => stage_kde_module(repo_root, &staging, "attica", "kf6-attica")?,
         "kf6-sonnet" => stage_kde_module(repo_root, &staging, "sonnet", "kf6-sonnet")?,
-        "kf6-kdbusaddons" => stage_kde_module(repo_root, &staging, "kdbusaddons", "kf6-kdbusaddons")?,
+        "kf6-kdbusaddons" => {
+            stage_kde_module(repo_root, &staging, "kdbusaddons", "kf6-kdbusaddons")?
+        }
         "kf6-kcrash" => stage_kde_module(repo_root, &staging, "kcrash", "kf6-kcrash")?,
-        "kf6-kwindowsystem" => stage_kde_module(repo_root, &staging, "kwindowsystem", "kf6-kwindowsystem")?,
+        "kf6-kwindowsystem" => {
+            stage_kde_module(repo_root, &staging, "kwindowsystem", "kf6-kwindowsystem")?
+        }
         "kf6-kpackage" => stage_kde_module(repo_root, &staging, "kpackage", "kf6-kpackage")?,
         "kf6-karchive" => stage_kde_module(repo_root, &staging, "karchive", "kf6-karchive")?,
         "kf6-kio" => stage_kde_module(repo_root, &staging, "kio", "kf6-kio")?,
-        "kf6-kunitconversion" => stage_kde_module(repo_root, &staging, "kunitconversion", "kf6-kunitconversion")?,
+        "kf6-kunitconversion" => stage_kde_module(
+            repo_root,
+            &staging,
+            "kunitconversion",
+            "kf6-kunitconversion",
+        )?,
         "kf6-ksvg" => stage_kde_module(repo_root, &staging, "ksvg", "kf6-ksvg")?,
-        "kf6-knotifications" => stage_kde_module(repo_root, &staging, "knotifications", "kf6-knotifications")?,
+        "kf6-knotifications" => {
+            stage_kde_module(repo_root, &staging, "knotifications", "kf6-knotifications")?
+        }
+        "kf6-knotifyconfig" => {
+            stage_kde_module(repo_root, &staging, "knotifyconfig", "kf6-knotifyconfig")?
+        }
         "kf6-kguiaddons" => stage_kde_module(repo_root, &staging, "kguiaddons", "kf6-kguiaddons")?,
-        "kf6-kitemmodels" => stage_kde_module(repo_root, &staging, "kitemmodels", "kf6-kitemmodels")?,
-        "kf6-kglobalaccel" => stage_kde_module(repo_root, &staging, "kglobalaccel", "kf6-kglobalaccel")?,
-        "kf6-kiconthemes" => stage_kde_module(repo_root, &staging, "kiconthemes", "kf6-kiconthemes")?,
-        "kf6-kcolorscheme" => stage_kde_module(repo_root, &staging, "kcolorscheme", "kf6-kcolorscheme")?,
-        "kf6-ksyntaxhighlighting" => stage_kde_module(repo_root, &staging, "ksyntaxhighlighting", "kf6-ksyntaxhighlighting")?,
-        "kf6-kjobwidgets" => stage_kde_module(repo_root, &staging, "kjobwidgets", "kf6-kjobwidgets")?,
-        "kf6-kcompletion" => stage_kde_module(repo_root, &staging, "kcompletion", "kf6-kcompletion")?,
+        "kf6-kitemmodels" => {
+            stage_kde_module(repo_root, &staging, "kitemmodels", "kf6-kitemmodels")?
+        }
+        "kf6-kglobalaccel" => {
+            stage_kde_module(repo_root, &staging, "kglobalaccel", "kf6-kglobalaccel")?
+        }
+        "kf6-kiconthemes" => {
+            stage_kde_module(repo_root, &staging, "kiconthemes", "kf6-kiconthemes")?
+        }
+        "kf6-kcolorscheme" => {
+            stage_kde_module(repo_root, &staging, "kcolorscheme", "kf6-kcolorscheme")?
+        }
+        "kf6-ksyntaxhighlighting" => stage_kde_module(
+            repo_root,
+            &staging,
+            "ksyntaxhighlighting",
+            "kf6-ksyntaxhighlighting",
+        )?,
+        "kf6-kjobwidgets" => {
+            stage_kde_module(repo_root, &staging, "kjobwidgets", "kf6-kjobwidgets")?
+        }
+        "kf6-kcompletion" => {
+            stage_kde_module(repo_root, &staging, "kcompletion", "kf6-kcompletion")?
+        }
         "kf6-kservice" => stage_kde_module(repo_root, &staging, "kservice", "kf6-kservice")?,
         "kf6-solid" => stage_kde_module(repo_root, &staging, "solid", "kf6-solid")?,
         "kf6-kcodecs" => stage_kde_module(repo_root, &staging, "kcodecs", "kf6-kcodecs")?,
-        "kf6-kdecoration" => stage_kde_module(repo_root, &staging, "kdecoration", "kf6-kdecoration")?,
+        "kf6-kdecoration" => {
+            stage_kde_module(repo_root, &staging, "kdecoration", "kf6-kdecoration")?
+        }
         "kf6-kidletime" => stage_kde_module(repo_root, &staging, "kidletime", "kf6-kidletime")?,
         "liblcms2-2" => stage_imported_soname_library(
             repo_root,
@@ -553,15 +872,37 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         "kf6-knighttime" => stage_kde_module(repo_root, &staging, "knighttime", "kf6-knighttime")?,
         "kf6-kwallet" => stage_kde_module(repo_root, &staging, "kwallet", "kf6-kwallet")?,
         "kf6-kholidays" => stage_kde_module(repo_root, &staging, "kholidays", "kf6-kholidays")?,
-        "kf6-kstatusnotifieritem" => stage_kde_module(repo_root, &staging, "kstatusnotifieritem", "kf6-kstatusnotifieritem")?,
+        "kf6-kstatusnotifieritem" => stage_kde_module(
+            repo_root,
+            &staging,
+            "kstatusnotifieritem",
+            "kf6-kstatusnotifieritem",
+        )?,
         "kf6-kxmlgui" => stage_kde_module(repo_root, &staging, "kxmlgui", "kf6-kxmlgui")?,
-        "kf6-kconfigwidgets" => stage_kde_module(repo_root, &staging, "kconfigwidgets", "kf6-kconfigwidgets")?,
+        "kf6-kconfigwidgets" => {
+            stage_kde_module(repo_root, &staging, "kconfigwidgets", "kf6-kconfigwidgets")?
+        }
         "kf6-kitemviews" => stage_kde_module(repo_root, &staging, "kitemviews", "kf6-kitemviews")?,
         "kf6-kbookmarks" => stage_kde_module(repo_root, &staging, "kbookmarks", "kf6-kbookmarks")?,
-        "qt6-positioning" => stage_qt_module(repo_root, &staging, "qtpositioning", "qt6-positioning")?,
+        "qt6-positioning" => {
+            stage_qt_module(repo_root, &staging, "qtpositioning", "qt6-positioning")?
+        }
         "kf6-kirigami" => stage_kde_module(repo_root, &staging, "kirigami", "kf6-kirigami")?,
-        "kf6-kirigami-addons" => stage_kde_module(repo_root, &staging, "kirigami-addons", "kf6-kirigami-addons")?,
-        "kf6-kquickcharts" => stage_kde_module(repo_root, &staging, "kquickcharts", "kf6-kquickcharts")?,
+        "kf6-qqc2-desktop-style" => stage_kde_module(
+            repo_root,
+            &staging,
+            "qqc2-desktop-style",
+            "kf6-qqc2-desktop-style",
+        )?,
+        "kf6-kirigami-addons" => stage_kde_module(
+            repo_root,
+            &staging,
+            "kirigami-addons",
+            "kf6-kirigami-addons",
+        )?,
+        "kf6-kquickcharts" => {
+            stage_kde_module(repo_root, &staging, "kquickcharts", "kf6-kquickcharts")?
+        }
         "libcanberra0" => stage_imported_soname_library(
             repo_root,
             &staging,
@@ -570,17 +911,38 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             "src/system/libraries/libcanberra/LGPL",
             "libcanberra0",
         )?,
-        "plasma-activities" => stage_kde_module(repo_root, &staging, "plasma-activities", "plasma-activities")?,
-        "kactivitymanagerd" => stage_kde_module(repo_root, &staging, "kactivitymanagerd", "kactivitymanagerd")?,
+        "plasma-activities" => stage_kde_module(
+            repo_root,
+            &staging,
+            "plasma-activities",
+            "plasma-activities",
+        )?,
+        "kactivitymanagerd" => stage_kde_module(
+            repo_root,
+            &staging,
+            "kactivitymanagerd",
+            "kactivitymanagerd",
+        )?,
         "kglobalacceld" => stage_kde_module(repo_root, &staging, "kglobalacceld", "kglobalacceld")?,
-        "plasma-activities-stats" => stage_kde_module(repo_root, &staging, "plasma-activities-stats", "plasma-activities-stats")?,
-        "libprocesscore10" => stage_kde_module(repo_root, &staging, "ksysguard", "libprocesscore10")?,
+        "plasma-activities-stats" => stage_kde_module(
+            repo_root,
+            &staging,
+            "plasma-activities-stats",
+            "plasma-activities-stats",
+        )?,
+        "libprocesscore10" => {
+            stage_kde_module(repo_root, &staging, "ksysguard", "libprocesscore10")?
+        }
         "kf6-kauth" => stage_kde_module(repo_root, &staging, "kauth", "kf6-kauth")?,
         "polkit-qt6-1" => stage_kde_module(repo_root, &staging, "polkit-qt-1", "polkit-qt6-1")?,
         "libyaml-cpp0.8" => stage_kde_module(repo_root, &staging, "yaml-cpp", "libyaml-cpp0.8")?,
         "libkpmcore13" => stage_kde_module(repo_root, &staging, "kpmcore", "libkpmcore13")?,
         "libxkbcommon0" => {
-            for soname in ["libxkbcommon.so.0", "libxkbcommon-x11.so.0"] {
+            for soname in [
+                "libxkbcommon.so.0",
+                "libxkbcommon-x11.so.0",
+                "libxkbregistry.so.0",
+            ] {
                 stage_imported_soname_library(
                     repo_root,
                     &staging,
@@ -591,6 +953,22 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
                 )?;
             }
         }
+        "libxml2-16" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "libxml2",
+            "libxml2.so.16",
+            "src/system/libraries/libxml2/Copyright",
+            "libxml2-16",
+        )?,
+        "libxkbfile1" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "libxkbfile",
+            "libxkbfile.so.1",
+            "src/system/graphics/libxkbfile/COPYING",
+            "libxkbfile1",
+        )?,
         "libwayland-client0" => stage_imported_soname_library(
             repo_root,
             &staging,
@@ -680,15 +1058,15 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         )?,
         "libdrm-amdgpu1" => {
             stage_imported_soname_library(
-            repo_root,
-            &staging,
-            "libdrm",
-            "libdrm_amdgpu.so.1",
-            "src/system/libraries/libdrm/README.rst",
-            "libdrm-amdgpu1",
+                repo_root,
+                &staging,
+                "libdrm",
+                "libdrm_amdgpu.so.1",
+                "src/system/libraries/libdrm/README.rst",
+                "libdrm-amdgpu1",
             )?;
             stage_amdgpu_ids(&component_install(repo_root, "libdrm"), &staging)?;
-        },
+        }
         "libdrm-nouveau2" => stage_imported_soname_library(
             repo_root,
             &staging,
@@ -719,6 +1097,7 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
                 ("x11-compat", "libxcb-xkb.so.1"),
                 ("x11-compat", "libxcb-composite.so.0"),
                 ("x11-compat", "libxcb-dri3.so.0"),
+                ("x11-compat", "libxcb-dpms.so.0"),
                 ("x11-compat", "libxcb-glx.so.0"),
                 ("x11-compat", "libxcb-present.so.0"),
                 ("x11-compat", "libxcb-randr.so.0"),
@@ -869,27 +1248,9 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         | "libnvidia-decode-595"
         | "nvidia-utils-595"
         | "nvidia-driver-595-open" => stage_nvidia_package(repo_root, &staging, spec.name)?,
-        "cosmic-comp" => {
-            stage_runtime_paths(repo_root, &staging, "cosmic-comp", &["usr/bin/cosmic-comp"])?;
-            for (source, destination) in [
-                (
-                    "src/desktop/cosmic/cosmic-comp/data/keybindings.ron",
-                    "usr/share/cosmic/com.system76.CosmicSettings.Shortcuts/v1/defaults",
-                ),
-                (
-                    "src/desktop/cosmic/cosmic-comp/data/tiling-exceptions.ron",
-                    "usr/share/cosmic/com.system76.CosmicSettings.WindowRules/v1/tiling_exception_defaults",
-                ),
-            ] {
-                copy_preserving(&repo_root.join(source), &staging.join(destination))?;
-            }
-        }
         "flatpak" => stage_flatpak(repo_root, &staging)?,
         "xwayland" => stage_xwayland(repo_root, &staging)?,
         "xdg-desktop-portal" => stage_xdg_desktop_portal(repo_root, &staging)?,
-        "cosmic-desktop" => stage_cosmic_desktop(repo_root, &staging)?,
-        "cosmic-edit" => stage_cosmic_edit(repo_root, &staging)?,
-        "cosmic-initial-setup" => stage_cosmic_initial_setup(repo_root, &staging)?,
         "libduktape207" => stage_runtime_paths(
             repo_root,
             &staging,
@@ -930,11 +1291,36 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             // Flatpak's system AppStream transaction authenticates through
             // polkit-agent-helper-1. Preserve its upstream setuid-root
             // contract when copying the runtime subset into the package.
-            set_mode(staging.join("usr/lib/polkit-1/polkit-agent-helper-1"), 0o4755)
+            set_mode(
+                staging.join("usr/lib/polkit-1/polkit-agent-helper-1"),
+                0o4755,
+            )
         })?,
         "network-manager" => stage_network_manager(repo_root, &staging)?,
-        "libnl-3-200" => stage_imported_soname_library(repo_root, &staging, "libnl", "libnl-3.so.200", "src/system/network/libnl/COPYING", "libnl-3-200")?,
-        "libnl-genl-3-200" => stage_imported_soname_library(repo_root, &staging, "libnl", "libnl-genl-3.so.200", "src/system/network/libnl/COPYING", "libnl-genl-3-200")?,
+        "libnl-3-200" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "libnl",
+            "libnl-3.so.200",
+            "src/system/network/libnl/COPYING",
+            "libnl-3-200",
+        )?,
+        "libnl-genl-3-200" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "libnl",
+            "libnl-genl-3.so.200",
+            "src/system/network/libnl/COPYING",
+            "libnl-genl-3-200",
+        )?,
+        "libnl-route-3-200" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "libnl",
+            "libnl-route-3.so.200",
+            "src/system/network/libnl/COPYING",
+            "libnl-route-3-200",
+        )?,
         "wpasupplicant" => stage_wpa_supplicant(repo_root, &staging)?,
         "grub-efi-amd64" => stage_grub_package(repo_root, &staging)?,
         "mattos-cozy" => stage_cozy(repo_root, &staging)?,
@@ -947,10 +1333,9 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
                 "src/system/dbus/dbus/COPYING",
                 "libdbus-1-3",
             )?;
-            // COSMIC's upstream session launcher uses a private reference bus
-            // when a login manager has not supplied a user bus (including the
-            // live installer compositor). dbus-broker remains the sole
-            // systemd-managed system/user daemon.
+            // Retain the reference bus utilities for standalone sessions and
+            // diagnostics. dbus-broker remains the sole systemd-managed
+            // system/user daemon.
             stage_runtime_paths(
                 repo_root,
                 &staging,
@@ -1102,8 +1487,23 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         )?,
         "e2fsprogs" => {
             let install = repo_root.join("out/build/e2fsprogs/install");
-            for relative in ["usr/bin", "usr/sbin", "usr/libexec", "usr/share/man", "etc"] {
+            for relative in [
+                "usr/bin",
+                "usr/sbin",
+                "usr/libexec",
+                "usr/lib/x86_64-linux-gnu",
+                "usr/share/man",
+                "etc",
+            ] {
                 copy_tree_preserving(&install.join(relative), &staging.join(relative))?;
+            }
+            let libdir = staging.join("usr/lib/x86_64-linux-gnu");
+            for entry in fs::read_dir(&libdir)? {
+                let path = entry?.path();
+                let name = path.file_name().and_then(OsStr::to_str).unwrap_or_default();
+                if name.ends_with(".a") || name.ends_with(".so") {
+                    fs::remove_file(path)?;
+                }
             }
         }
         _ => bail!("no staging implementation for {}", spec.name),
@@ -1230,8 +1630,13 @@ fn stage_libglvnd_dev(repo_root: &Path, staging: &Path) -> Result<()> {
     copy_tree_preserving(&install.join("include"), &staging.join("usr/include"))?;
     let libdir = "lib/x86_64-linux-gnu";
     for relative in [
-        "libGL.so", "libGLX.so", "libOpenGL.so", "libEGL.so",
-        "libGLESv1_CM.so", "libGLESv2.so", "libGLdispatch.so",
+        "libGL.so",
+        "libGLX.so",
+        "libOpenGL.so",
+        "libEGL.so",
+        "libGLESv1_CM.so",
+        "libGLESv2.so",
+        "libGLdispatch.so",
     ] {
         copy_path_preserving(
             &install.join(libdir).join(relative),
@@ -1269,9 +1674,11 @@ fn normalize_staged_pkgconfig_paths(repo_root: &Path, staging: &Path) -> Result<
             return Ok(());
         }
         let original = fs::read_to_string(path)?;
-        let normalized = install_prefixes.iter().fold(original.clone(), |contents, prefix| {
-            contents.replace(prefix, "/usr")
-        });
+        let normalized = install_prefixes
+            .iter()
+            .fold(original.clone(), |contents, prefix| {
+                contents.replace(prefix, "/usr")
+            });
         if normalized.contains(&build_root_text) {
             bail!(
                 "package pkg-config metadata /{} embeds the host build root",
@@ -1313,9 +1720,11 @@ fn normalize_staged_cmake_paths(repo_root: &Path, staging: &Path) -> Result<()> 
             Err(error) if error.kind() == std::io::ErrorKind::InvalidData => return Ok(()),
             Err(error) => return Err(error.into()),
         };
-        let mut normalized = install_prefixes.iter().fold(original.clone(), |contents, prefix| {
-            contents.replace(prefix, "/usr")
-        });
+        let mut normalized = install_prefixes
+            .iter()
+            .fold(original.clone(), |contents, prefix| {
+                contents.replace(prefix, "/usr")
+            });
         // LLVM exposes this build-tree helper in LLVMConfig.cmake. It is a
         // development-time convenience, but publishing the disposable host
         // path would make the target package non-reproducible and unusable.
@@ -1440,15 +1849,13 @@ mod rust_package_metadata_tests {
 /// tools and imported CMake targets reference sibling paths below that prefix,
 /// so an arbitrary runtime/development split would make later KF6 consumers
 /// fragile without reducing the required Qt foundation closure.
-fn stage_qt_module(
-    repo_root: &Path,
-    staging: &Path,
-    component: &str,
-    package: &str,
-) -> Result<()> {
+fn stage_qt_module(repo_root: &Path, staging: &Path, component: &str, package: &str) -> Result<()> {
     let install = component_install(repo_root, component).join("usr");
     if !install.is_dir() {
-        bail!("Qt package {package} requires staged {component} output at {}", install.display());
+        bail!(
+            "Qt package {package} requires staged {component} output at {}",
+            install.display()
+        );
     }
     // A Qt module's install prefix is normally self-contained.  The Qt
     // module build can, however, leave absolute links to sibling module
@@ -1491,7 +1898,10 @@ fn stage_qt_module(
     let source = repo_root.join("src/desktop/qt").join(component);
     let licenses = source.join("LICENSES");
     if !licenses.is_dir() {
-        bail!("Qt package {package} is missing retained upstream licenses at {}", licenses.display());
+        bail!(
+            "Qt package {package} is missing retained upstream licenses at {}",
+            licenses.display()
+        );
     }
     copy_tree_preserving(
         &licenses,
@@ -1499,7 +1909,10 @@ fn stage_qt_module(
     )?;
     copy_preserving(
         &source.join("licenseRule.json"),
-        &staging.join("usr/share/doc").join(package).join("licenseRule.json"),
+        &staging
+            .join("usr/share/doc")
+            .join(package)
+            .join("licenseRule.json"),
     )
 }
 
@@ -1516,7 +1929,10 @@ fn copy_qt_prefix_inner(
     hardlinks: &mut HardlinkMap,
 ) -> Result<()> {
     if !source.is_dir() {
-        bail!("required package input directory missing at {}", source.display());
+        bail!(
+            "required package input directory missing at {}",
+            source.display()
+        );
     }
     fs::create_dir_all(destination)?;
     let mut entries = fs::read_dir(source)?.collect::<std::io::Result<Vec<_>>>()?;
@@ -1545,13 +1961,103 @@ fn copy_qt_prefix_inner(
     Ok(())
 }
 
-fn stage_kde_module(repo_root: &Path, staging: &Path, component: &str, package: &str) -> Result<()> {
+fn stage_plasma_session_integration(repo_root: &Path, staging: &Path) -> Result<()> {
+    let integration = repo_root.join("src/system/session/plasma");
+    for (source, destination) in [
+        ("plasma-live.toml", "etc/greetd/plasma-live.toml"),
+        ("plasma.toml", "etc/greetd/plasma.toml"),
+        ("plasma-greeter.pam", "etc/pam.d/plasma-greeter"),
+        (
+            "plasma-desktop.conf",
+            "usr/lib/environment.d/90-plasma-desktop.conf",
+        ),
+        (
+            "plasma-greeter.service",
+            "usr/lib/systemd/system/plasma-greeter.service",
+        ),
+        (
+            "mattos-graphics-watchdog.service",
+            "usr/lib/systemd/system/mattos-graphics-watchdog.service",
+        ),
+        (
+            "mattos-graphics-recovery.service",
+            "usr/lib/systemd/system/mattos-graphics-recovery.service",
+        ),
+        (
+            "mattos-graphics-capture.service",
+            "usr/lib/systemd/system/mattos-graphics-capture.service",
+        ),
+    ] {
+        copy_preserving(&integration.join(source), &staging.join(destination))?;
+    }
+    for name in [
+        "start-plasma",
+        "mattos-graphics-report",
+        "mattos-graphics-startup",
+    ] {
+        copy_preserving(&integration.join(name), &staging.join("usr/bin").join(name))?;
+        set_mode(staging.join("usr/bin").join(name), 0o755)?;
+    }
+
+    let display_manager = staging.join("etc/systemd/system/display-manager.service");
+    fs::create_dir_all(display_manager.parent().expect("display-manager parent"))?;
+    #[cfg(unix)]
+    std::os::unix::fs::symlink(
+        "/usr/lib/systemd/system/plasma-greeter.service",
+        &display_manager,
+    )?;
+    let wants = staging.join("etc/systemd/system/multi-user.target.wants");
+    fs::create_dir_all(&wants)?;
+    #[cfg(unix)]
+    std::os::unix::fs::symlink(
+        "/usr/lib/systemd/system/mattos-graphics-capture.service",
+        wants.join("mattos-graphics-capture.service"),
+    )?;
+
+    for required in [
+        "etc/greetd/plasma-live.toml",
+        "etc/greetd/plasma.toml",
+        "etc/pam.d/plasma-greeter",
+        "etc/systemd/system/display-manager.service",
+        "usr/bin/start-plasma",
+        "usr/bin/mattos-graphics-report",
+        "usr/bin/mattos-graphics-startup",
+        "usr/lib/systemd/system/plasma-greeter.service",
+        "usr/lib/systemd/system/mattos-graphics-watchdog.service",
+        "usr/lib/environment.d/90-plasma-desktop.conf",
+    ] {
+        if fs::symlink_metadata(staging.join(required)).is_err() {
+            bail!("plasma-desktop package is missing /{required}");
+        }
+    }
+    Ok(())
+}
+
+fn stage_kde_module(
+    repo_root: &Path,
+    staging: &Path,
+    component: &str,
+    package: &str,
+) -> Result<()> {
     let install_root = component_install(repo_root, component);
     let install = install_root.join("usr");
     if !install.is_dir() {
-        bail!("KDE package {package} requires staged {component} output at {}", install.display());
+        bail!(
+            "KDE package {package} requires staged {component} output at {}",
+            install.display()
+        );
     }
     copy_tree_preserving(&install, &staging.join("usr"))?;
+    // ModemManagerQt's disposable SDK prefix is hydrated with the underlying
+    // ModemManager C headers so isolated downstream CMake probes can resolve
+    // its exported private include contract.  Those headers remain owned by
+    // the modemmanager package and must not be duplicated in the Qt wrapper.
+    if component == "modemmanager-qt" {
+        let dependency_headers = staging.join("usr/include/ModemManager");
+        if dependency_headers.exists() {
+            fs::remove_dir_all(&dependency_headers)?;
+        }
+    }
     // Plasma's shell autostart desktop file is installed by KDE's
     // KDE_INSTALL_AUTOSTARTDIR, which is /etc/xdg/autostart in this target.
     // Keep it with the workspace package; omitting it leaves the classic
@@ -1563,6 +2069,15 @@ fn stage_kde_module(repo_root: &Path, staging: &Path, component: &str, package: 
         if autostart.is_dir() {
             copy_tree_preserving(&autostart, &staging.join("etc/xdg/autostart"))?;
         }
+        // KService resolves the desktop application catalog through the
+        // freedesktop menu definition selected by XDG_MENU_PREFIX=plasma-.
+        // Without this non-/usr payload kbuildsycoca6 creates an effectively
+        // empty cache and Kicker cannot discover installed applications.
+        let menus = install_root.join("etc/xdg/menus");
+        if !menus.join("plasma-applications.menu").is_file() {
+            bail!("Plasma workspace output lacks etc/xdg/menus/plasma-applications.menu");
+        }
+        copy_tree_preserving(&menus, &staging.join("etc/xdg/menus"))?;
         // ECM's QtBinariesDir query is evaluated against the build prefix.
         // Normalize generated user units to the installed target path before
         // publication; a runtime unit must never retain a developer checkout
@@ -1591,7 +2106,9 @@ fn stage_kde_module(repo_root: &Path, staging: &Path, component: &str, package: 
     // the current shell closure; omit the complete optional family rather
     // than shipping an unusable ELF with an absent dependency.
     if matches!(component, "plasma-workspace" | "plasma-desktop") {
-        remove_path_if_exists(&staging.join("usr/lib/x86_64-linux-gnu/plugins/plasmacalendarplugins"))?;
+        remove_path_if_exists(
+            &staging.join("usr/lib/x86_64-linux-gnu/plugins/plasmacalendarplugins"),
+        )?;
     }
     if component == "breeze" {
         // The optional Breeze settings helper is a KDE Control Module host;
@@ -1600,14 +2117,63 @@ fn stage_kde_module(repo_root: &Path, staging: &Path, component: &str, package: 
         // style/window-decoration payload while leaving that unrelated
         // utility out of the first-class Breeze runtime package.
         let settings = staging.join("usr/bin/breeze-settings6");
-        if settings.exists() { fs::remove_file(settings)?; }
+        if settings.exists() {
+            fs::remove_file(settings)?;
+        }
     }
     let source = match component {
-        "kcoreaddons" | "ki18n" | "kwidgetsaddons" | "kconfig" | "kdbusaddons" | "kauth"
-        | "layer-shell-qt" | "plasma-framework" | "krunner" | "kcrash" | "kwindowsystem" | "kpackage" | "karchive" | "kio" | "ksvg" | "knotifications" | "kguiaddons" | "kitemmodels" | "kglobalaccel" | "kiconthemes" | "kcolorscheme" | "kcompletion" | "kjobwidgets" | "kservice" | "solid" | "kcodecs" | "kdecoration" | "kidletime" | "kwayland" | "knighttime" | "kholidays" | "kstatusnotifieritem" | "kxmlgui" | "kconfigwidgets" | "kitemviews" | "kbookmarks" | "kirigami" | "breeze-icons" | "plasma-activities"
-        | "kwin" | "plasma-workspace" | "plasma-desktop" | "breeze" | "plasma-activities-stats" | "kcmutils" | "ksysguard" | "knewstuff" | "attica" | "sonnet" | "kglobalacceld" | "kirigami-addons" | "kquickcharts" => {
-            repo_root.join("src/desktop/kde").join(component)
-        }
+        "kcoreaddons"
+        | "ki18n"
+        | "kwidgetsaddons"
+        | "kconfig"
+        | "kdbusaddons"
+        | "kauth"
+        | "layer-shell-qt"
+        | "plasma-framework"
+        | "krunner"
+        | "kcrash"
+        | "kwindowsystem"
+        | "kpackage"
+        | "karchive"
+        | "kio"
+        | "ksvg"
+        | "knotifications"
+        | "kguiaddons"
+        | "kitemmodels"
+        | "kglobalaccel"
+        | "kiconthemes"
+        | "kcolorscheme"
+        | "kcompletion"
+        | "kjobwidgets"
+        | "kservice"
+        | "solid"
+        | "kcodecs"
+        | "kdecoration"
+        | "kidletime"
+        | "kwayland"
+        | "knighttime"
+        | "kholidays"
+        | "kstatusnotifieritem"
+        | "kxmlgui"
+        | "kconfigwidgets"
+        | "kitemviews"
+        | "kbookmarks"
+        | "kirigami"
+        | "breeze-icons"
+        | "plasma-activities"
+        | "kwin"
+        | "plasma-workspace"
+        | "plasma-desktop"
+        | "breeze"
+        | "plasma-activities-stats"
+        | "kcmutils"
+        | "ksysguard"
+        | "knewstuff"
+        | "attica"
+        | "sonnet"
+        | "kglobalacceld"
+        | "kirigami-addons"
+        | "kquickcharts" => repo_root.join("src/desktop/kde").join(component),
         "polkit-qt-1" => repo_root.join("src/system/security/polkit-qt-1"),
         "qca" => repo_root.join("src/system/security/qca"),
         "yaml-cpp" => repo_root.join("src/system/libraries/yaml-cpp"),
@@ -1621,14 +2187,61 @@ fn stage_kde_module(repo_root: &Path, staging: &Path, component: &str, package: 
         }
         _ => bail!("unknown KDE module source component {component}"),
     };
-    let license = ["LICENSES", "LICENSE", "COPYING", "COPYING-ICONS", "COPYING.LIB"]
-        .iter()
-        .map(|name| source.join(name))
-        .find(|path| path.exists())
-        .ok_or_else(|| anyhow!("KDE package {package} lacks a retained upstream license"))?;
+    let license = [
+        "LICENSES",
+        "LICENSE",
+        "COPYING",
+        "COPYING-ICONS",
+        "COPYING.LIB",
+    ]
+    .iter()
+    .map(|name| source.join(name))
+    .find(|path| path.exists())
+    .ok_or_else(|| anyhow!("KDE package {package} lacks a retained upstream license"))?;
     let destination = staging.join("usr/share/doc").join(package);
-    if license.is_dir() { copy_tree_preserving(&license, &destination.join("licenses"))?; }
-    else { copy_preserving(&license, &destination.join("copyright"))?; }
+    if license.is_dir() {
+        copy_tree_preserving(&license, &destination.join("licenses"))?;
+    } else {
+        copy_preserving(&license, &destination.join("copyright"))?;
+    }
+    Ok(())
+}
+
+fn stage_multimedia_sdk(
+    repo_root: &Path,
+    staging: &Path,
+    component: &str,
+    package: &str,
+    license: &str,
+) -> Result<()> {
+    let install = component_install(repo_root, component).join("usr");
+    if !install.is_dir() {
+        bail!("package {package} requires staged {component} output");
+    }
+    copy_tree_preserving(&install, &staging.join("usr"))?;
+    // GNU install-info maintains this aggregate index on the installed
+    // system.  It is not owned by any individual binary package and would
+    // otherwise collide whenever two source builds install Info manuals.
+    remove_path_if_exists(&staging.join("usr/share/info/dir"))?;
+    copy_preserving(
+        &repo_root.join(license),
+        &staging
+            .join("usr/share/doc")
+            .join(package)
+            .join("copyright"),
+    )?;
+    #[cfg(unix)]
+    if component == "wireplumber" {
+        let wants = staging.join("usr/lib/systemd/user/pipewire.service.wants");
+        fs::create_dir_all(&wants)?;
+        std::os::unix::fs::symlink("../wireplumber.service", wants.join("wireplumber.service"))?;
+    }
+    #[cfg(unix)]
+    if component == "bluez" {
+        let wants = staging.join("usr/lib/systemd/system/multi-user.target.wants");
+        fs::create_dir_all(&wants)?;
+        std::os::unix::fs::symlink("../bluetooth.service", wants.join("bluetooth.service"))?;
+    }
     Ok(())
 }
 
@@ -1637,11 +2250,6 @@ fn stage_mattos_installer(repo_root: &Path, staging: &Path) -> Result<()> {
     stage_executable(
         &installer.join("cargo-target/release/mattos-install"),
         &staging.join("usr/bin/mattos-install"),
-        0o755,
-    )?;
-    stage_executable(
-        &installer.join("cosmic-target/release/mattos-install-cosmic"),
-        &staging.join("usr/bin/mattos-install-cosmic"),
         0o755,
     )?;
     let assets = staging.join("usr/lib/mattos/installer");
@@ -1656,7 +2264,10 @@ fn stage_mattos_installer(repo_root: &Path, staging: &Path) -> Result<()> {
             "installed-initramfs.cpio.xz",
         ),
         (installer.join("BOOTX64.EFI"), "BOOTX64.EFI"),
-        (repo_root.join("out/build/linux/kernel-release"), "kernel-release"),
+        (
+            repo_root.join("out/build/linux/kernel-release"),
+            "kernel-release",
+        ),
     ] {
         copy_preserving(&source, &assets.join(name))?;
     }
@@ -1668,13 +2279,7 @@ fn stage_mattos_installer(repo_root: &Path, staging: &Path) -> Result<()> {
         &repo_root.join("src/system/installer/PROVENANCE.md"),
         &staging.join("usr/share/doc/mattos-installer/PROVENANCE.md"),
     )?;
-    for name in [
-        "mattos-install-cli.service",
-        "mattos-install-cli.target",
-        "mattos-install-graphical.service",
-        "mattos-install-graphical.target",
-        "mattos-cosmic-installer-session.service",
-    ] {
+    for name in ["mattos-install-cli.service", "mattos-install-cli.target"] {
         copy_preserving(
             &repo_root.join("src/system/units").join(name),
             &staging.join("usr/lib/systemd/system").join(name),
@@ -1725,10 +2330,7 @@ fn stage_cpython_venv(repo_root: &Path, staging: &Path) -> Result<()> {
     for relative in ["bin/pip3", "bin/pip3.14"] {
         copy_path_preserving(&install.join(relative), &staging.join("usr").join(relative))?;
     }
-    for relative in [
-        "lib/python3.14/ensurepip",
-        "lib/python3.14/venv",
-    ] {
+    for relative in ["lib/python3.14/ensurepip", "lib/python3.14/venv"] {
         copy_tree_filtered(
             &install.join(relative),
             &staging.join("usr").join(relative),
@@ -1827,7 +2429,10 @@ fn normalize_cpython_package_metadata(repo_root: &Path, staging: &Path) -> Resul
         // publish those host paths.  Keep the selection explicit so binary
         // runtime files are not treated as text metadata.
         let is_python_metadata = path.starts_with(&python_stdlib)
-            && matches!(path.extension().and_then(OsStr::to_str), Some("json" | "py"));
+            && matches!(
+                path.extension().and_then(OsStr::to_str),
+                Some("json" | "py")
+            );
         let is_python_config_file = path
             .strip_prefix(&python_stdlib)
             .ok()
@@ -2074,9 +2679,7 @@ pub(crate) fn stage_rustc(repo_root: &Path, staging: &Path) -> Result<()> {
     copy_tree_filtered(
         &install.join("lib"),
         &staging.join("usr/lib"),
-        &|relative, metadata| {
-            metadata.is_dir() || relative != Path::new("rustlib/install.log")
-        },
+        &|relative, metadata| metadata.is_dir() || relative != Path::new("rustlib/install.log"),
     )?;
     copy_tree_preserving(
         &install.join("share/doc/rustc"),
@@ -2256,7 +2859,7 @@ fn stage_glibc_locales(repo_root: &Path, staging: &Path) -> Result<()> {
 
 /// Ship the pinned ISO-codes JSON contract required by locales-rs.  This is
 /// source data, not a host locale database and is intentionally limited to
-/// the three registries consumed by COSMIC Initial Setup.
+/// the three registries consumed by MattOS locale selection.
 pub(crate) fn stage_iso_codes(repo_root: &Path, staging: &Path) -> Result<()> {
     let source = repo_root.join("src/system/data/iso-codes");
     let destination = staging.join("usr/share/iso-codes/json");
@@ -2626,7 +3229,12 @@ fn stage_apt(repo_root: &Path, staging: &Path) -> Result<()> {
         )?;
     }
     let resources = repo_root.join("src/system/packages/config/apt/units");
-    for unit in ["mattos-apt-daily.service", "mattos-apt-daily.timer", "mattos-apt-bootstrap.service", "mattos-apt-bootstrap.timer"] {
+    for unit in [
+        "mattos-apt-daily.service",
+        "mattos-apt-daily.timer",
+        "mattos-apt-bootstrap.service",
+        "mattos-apt-bootstrap.timer",
+    ] {
         copy_preserving(
             &resources.join(unit),
             &staging.join("usr/lib/systemd/system").join(unit),
@@ -2861,8 +3469,6 @@ pub(crate) fn stage_flatpak(repo_root: &Path, staging: &Path) -> Result<()> {
         "libxmlb",
         "libfyaml",
         "fuse3",
-        "libxml2",
-        "libarchive",
         "libpng",
         "bubblewrap",
         "xdg-dbus-proxy",
@@ -2963,8 +3569,12 @@ fn remove_staged_libtool_archives_from_package(staging: &Path) -> Result<()> {
 /// layout, remote configuration, and public verification key derived from the
 /// packaged descriptor. Application and runtime content remains user data.
 pub(crate) fn stage_flatpak_system_remote(descriptor: &Path, staging: &Path) -> Result<()> {
-    let policy = fs::read_to_string(descriptor)
-        .with_context(|| format!("failed to read Flatpak remote policy {}", descriptor.display()))?;
+    let policy = fs::read_to_string(descriptor).with_context(|| {
+        format!(
+            "failed to read Flatpak remote policy {}",
+            descriptor.display()
+        )
+    })?;
     let value = |key: &str| -> Result<String> {
         policy
             .lines()
@@ -3067,7 +3677,6 @@ fn stage_xwayland(repo_root: &Path, staging: &Path) -> Result<()> {
         "libxfont",
         "libxcvt",
         "libxshmfence",
-        "libxkbfile",
         "xkbcomp",
         "xwayland",
     ] {
@@ -3094,7 +3703,11 @@ fn stage_fontconfig(repo_root: &Path, staging: &Path) -> Result<()> {
             "usr/bin/fc-validate",
         ],
     )?;
-    for relative in ["etc/fonts", "usr/share/fontconfig", "usr/share/xml/fontconfig"] {
+    for relative in [
+        "etc/fonts",
+        "usr/share/fontconfig",
+        "usr/share/xml/fontconfig",
+    ] {
         copy_tree_preserving(&install.join(relative), &staging.join(relative))?;
     }
     copy_preserving(
@@ -3118,8 +3731,8 @@ pub(crate) fn stage_xdg_desktop_portal(repo_root: &Path, staging: &Path) -> Resu
     // portal executes Bubblewrap at /usr/bin/bwrap, but Flatpak owns that
     // target-built executable and is the portal package's declared runtime
     // dependency. Copying it here would create two Debian package owners for
-    // the same path. The COSMIC backend remains in cosmic-desktop because it
-    // is a separate first-class upstream source.
+    // the same path. Desktop-specific portal backends are packaged by their
+    // own first-class stages.
     for component in ["gstreamer", "gstreamer-base", "xdg-desktop-portal"] {
         copy_component_usr_and_etc(repo_root, staging, component)?;
     }
@@ -3180,9 +3793,17 @@ mod desktop_data_tests {
             fs::read(staging.join("etc/fonts/fonts.conf")).unwrap(),
             b"etc/fonts/fonts.conf"
         );
-        assert!(staging.join("usr/share/fontconfig/conf.avail/45-generic.conf").is_file());
+        assert!(
+            staging
+                .join("usr/share/fontconfig/conf.avail/45-generic.conf")
+                .is_file()
+        );
         assert!(staging.join("usr/share/xml/fontconfig/fonts.dtd").is_file());
-        assert!(staging.join("etc/fonts/conf.d/45-generic.conf").is_symlink());
+        assert!(
+            staging
+                .join("etc/fonts/conf.d/45-generic.conf")
+                .is_symlink()
+        );
         assert_eq!(
             fs::read(staging.join("usr/share/doc/fontconfig/copyright")).unwrap(),
             b"fontconfig license"
@@ -3201,7 +3822,10 @@ mod desktop_data_tests {
         assert!(stage_amdgpu_ids(source.path(), target.path()).is_err());
         fs::write(&file, "# AMD device names\n164E, C1, AMD Radeon Graphics\n").unwrap();
         stage_amdgpu_ids(source.path(), target.path()).unwrap();
-        assert_eq!(fs::read(file).unwrap(), fs::read(target.path().join(relative)).unwrap());
+        assert_eq!(
+            fs::read(file).unwrap(),
+            fs::read(target.path().join(relative)).unwrap()
+        );
     }
 
     #[test]
@@ -3229,11 +3853,45 @@ mod desktop_data_tests {
             "usr/share/icons/breeze-dark/index.theme",
             "usr/share/icons/breeze/actions/22/go-next.svg",
         ] {
-            assert!(staging.join(relative).is_file(), "missing staged /{relative}");
+            assert!(
+                staging.join(relative).is_file(),
+                "missing staged /{relative}"
+            );
         }
         assert_eq!(
             fs::read(staging.join("usr/share/doc/breeze-icons/copyright")).unwrap(),
             b"breeze license"
+        );
+    }
+
+    #[test]
+    fn plasma_workspace_staging_preserves_application_menu_contract() {
+        let fixture = tempfile::tempdir().unwrap();
+        let install_root = fixture.path().join("out/build/plasma-workspace/install");
+        let executable = install_root.join("usr/bin/plasmashell");
+        fs::create_dir_all(executable.parent().unwrap()).unwrap();
+        fs::write(&executable, b"plasmashell").unwrap();
+        let menu = install_root.join("etc/xdg/menus/plasma-applications.menu");
+        fs::create_dir_all(menu.parent().unwrap()).unwrap();
+        fs::write(&menu, b"<Menu><Name>Applications</Name></Menu>\n").unwrap();
+        let license = fixture
+            .path()
+            .join("src/desktop/kde/plasma-workspace/LICENSES/GPL-2.0-only.txt");
+        fs::create_dir_all(license.parent().unwrap()).unwrap();
+        fs::write(&license, b"license").unwrap();
+
+        let staging = fixture.path().join("staged");
+        stage_kde_module(
+            fixture.path(),
+            &staging,
+            "plasma-workspace",
+            "plasma-workspace",
+        )
+        .unwrap();
+
+        assert_eq!(
+            fs::read(staging.join("etc/xdg/menus/plasma-applications.menu")).unwrap(),
+            b"<Menu><Name>Applications</Name></Menu>\n"
         );
     }
 
@@ -3257,297 +3915,30 @@ mod desktop_data_tests {
         let staging = fixture.path().join("staged");
         stage_qt_module(fixture.path(), &staging, "qtdeclarative", "qt6-declarative").unwrap();
 
-        assert!(staging.join("usr/lib/x86_64-linux-gnu/qml/QtQuick/qmldir").is_file());
-        assert!(staging
-            .join("usr/lib/x86_64-linux-gnu/qml/QtQuick/libqtquick2plugin.so")
-            .is_file());
-        assert!(staging
-            .join("usr/share/doc/qt6-declarative/licenses/Qt-LICENSE")
-            .is_file());
-    }
-}
-
-fn stage_cosmic_desktop(repo_root: &Path, staging: &Path) -> Result<()> {
-    let install = component_install(repo_root, "cosmic-desktop");
-    copy_tree_preserving(&install.join("usr"), &staging.join("usr"))?;
-    // The pinned settings schema carries the complete v1 component styling,
-    // while the matching libcosmic v2 model still requires list_button. Keep
-    // this MattOS integration in package staging so an integration-only change
-    // does not invalidate and rebuild every upstream COSMIC workspace.
-    for theme in ["Dark", "Light"] {
-        let theme_root = staging.join(format!("usr/share/cosmic/com.system76.CosmicTheme.{theme}"));
-        let source = theme_root.join("v1/list_button");
-        let destination = theme_root.join("v2/list_button");
-        if !source.is_file() || !destination.parent().is_some_and(Path::is_dir) {
-            bail!("COSMIC {theme} theme lacks the expected v1/v2 schemas");
-        }
-        fs::copy(source, destination)?;
-    }
-    fs::write(
-        staging.join("usr/share/cosmic/com.system76.CosmicSettings.Shortcuts/v1/custom"),
-        "{}\n",
-    )?;
-    let start_cosmic = staging.join("usr/bin/start-cosmic");
-    let wayland_session = fs::read_to_string(&start_cosmic)?
-        // The Plasma primary session is loaded through systemd's environment
-        // generator. COSMIC remains an explicit fallback, so it must not
-        // inherit KDE values when selected after a Plasma login.
-        .replace(
-            "export XDG_CURRENT_DESKTOP=\"${XDG_CURRENT_DESKTOP:=COSMIC}\"",
-            "export XDG_CURRENT_DESKTOP=COSMIC",
-        )
-        .replace(
-            "export XDG_SESSION_DESKTOP=\"${XDG_SESSION_DESKTOP:=COSMIC}\"",
-            "export XDG_SESSION_DESKTOP=COSMIC",
-        )
-        .replace(
-            "export XDG_SESSION_TYPE=\"${XDG_SESSION_TYPE:=wayland}\"",
-            "export XDG_SESSION_TYPE=wayland",
-        )
-        .replace("GDK_BACKEND=wayland,x11", "GDK_BACKEND=wayland")
-        .replace("QT_QPA_PLATFORM=\"wayland;xcb\"", "QT_QPA_PLATFORM=wayland")
-        .replace(
-            "XDG_SESSION_TYPE XDG_CURRENT_DESKTOP DCONF_PROFILE SSH_AUTH_SOCK",
-            "XDG_SESSION_TYPE XDG_CURRENT_DESKTOP DCONF_PROFILE XDG_DATA_DIRS SSH_AUTH_SOCK",
-        )
-        .replace(
-            "exec /usr/bin/dbus-run-session -- /usr/bin/cosmic-session",
-            "exec /usr/bin/dbus-run-session --config-file=/usr/share/dbus-1/mattos-private-session.conf -- /usr/bin/cosmic-session",
+        assert!(
+            staging
+                .join("usr/lib/x86_64-linux-gnu/qml/QtQuick/qmldir")
+                .is_file()
         );
-    let flatpak_environment = "# Flatpak exports desktop entries and themed icons outside the standard XDG\n# locations. Make them visible to COSMIC, its launcher, and session helpers.\nflatpak_user_exports=\"${XDG_DATA_HOME:-$HOME/.local/share}/flatpak/exports/share\"\nflatpak_system_exports=\"/var/lib/flatpak/exports/share\"\nexport XDG_DATA_DIRS=\"${flatpak_user_exports}:${flatpak_system_exports}:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}\"";
-    let dconf_anchor = [
-        "export DCONF_PROFILE=/usr/share/dconf/profile/cosmic",
-        "export DCONF_PROFILE=cosmic",
-    ]
-    .into_iter()
-    .find(|anchor| wayland_session.contains(anchor))
-    .ok_or_else(|| anyhow::anyhow!("pinned start-cosmic is missing its DCONF_PROFILE export"))?;
-    let wayland_session = wayland_session.replace(
-        dconf_anchor,
-        &format!("{dconf_anchor}\n\n{flatpak_environment}"),
-    );
-    let rewritten = &wayland_session;
-    for required in [
-        "export XDG_DATA_DIRS=",
-        "flatpak_user_exports=",
-        "flatpak_system_exports=",
-        "systemctl --user import-environment XDG_SESSION_TYPE XDG_CURRENT_DESKTOP DCONF_PROFILE XDG_DATA_DIRS SSH_AUTH_SOCK",
-    ] {
-        if !rewritten.contains(required) {
-            bail!("packaged start-cosmic is missing Flatpak desktop/icon environment: {required}");
-        }
-    }
-    fs::write(&start_cosmic, wayland_session)?;
-
-    let integration = repo_root.join("src/system/session/cosmic");
-    copy_preserving(
-        &integration.join("mattos-graphics-report"),
-        &staging.join("usr/bin/mattos-graphics-report"),
-    )?;
-    set_mode(staging.join("usr/bin/mattos-graphics-report"), 0o755)?;
-    copy_preserving(
-        &integration.join("mattos-graphics-startup"),
-        &staging.join("usr/bin/mattos-graphics-startup"),
-    )?;
-    set_mode(staging.join("usr/bin/mattos-graphics-startup"), 0o755)?;
-    copy_preserving(
-        &integration.join("cosmic-greeter.toml"),
-        &staging.join("etc/greetd/cosmic-greeter.toml"),
-    )?;
-    copy_preserving(
-        &integration.join("cosmic-greeter.pam"),
-        &staging.join("etc/pam.d/cosmic-greeter"),
-    )?;
-    copy_preserving(
-        &integration.join("cosmic-greeter-start"),
-        &staging.join("usr/bin/cosmic-greeter-start"),
-    )?;
-    set_mode(staging.join("usr/bin/cosmic-greeter-start"), 0o755)?;
-    for unit in [
-        "cosmic-greeter.service",
-        "cosmic-greeter-daemon.service",
-        "mattos-graphics-watchdog.service",
-        "mattos-graphics-recovery.service",
-        "mattos-graphics-capture.service",
-    ] {
-        copy_preserving(
-            &integration.join(unit),
-            &staging.join("usr/lib/systemd/system").join(unit),
-        )?;
-    }
-    let wants = staging.join("etc/systemd/system/multi-user.target.wants");
-    fs::create_dir_all(&wants)?;
-    #[cfg(unix)]
-    std::os::unix::fs::symlink(
-        "/usr/lib/systemd/system/mattos-graphics-capture.service",
-        wants.join("mattos-graphics-capture.service"),
-    )?;
-    // COSMIC is retained as a fallback, but its defaults must not be installed
-    // as global environment.d state: systemd-user would inject them into the
-    // primary Plasma session before start-plasma can establish KDE values.
-    fs::create_dir_all(staging.join("usr/share/mattos/cosmic"))?;
-    copy_preserving(
-        &integration.join("cosmic-desktop.conf"),
-        &staging.join("usr/share/mattos/cosmic/cosmic-desktop.conf"),
-    )?;
-    copy_preserving(
-        &integration.join("README.md"),
-        &staging.join("usr/share/doc/cosmic-desktop/README.md"),
-    )?;
-    copy_preserving(
-        &integration.join("hicolor-index.theme"),
-        &staging.join("usr/share/icons/hicolor/index.theme"),
-    )?;
-
-    let display_manager = staging.join("etc/systemd/system/display-manager.service");
-    fs::create_dir_all(display_manager.parent().expect("display-manager parent"))?;
-    #[cfg(unix)]
-    std::os::unix::fs::symlink(
-        "/usr/lib/systemd/system/plasma-greeter.service",
-        &display_manager,
-    )?;
-    // Plasma is the primary graphical session. Keep the COSMIC payload and
-    // unit available as an explicit fallback, but make the display-manager
-    // choice a source-owned profile decision rather than relying on host
-    // defaults or an already-running compositor.
-    let plasma = repo_root.join("src/system/session/plasma");
-    copy_preserving(&plasma.join("plasma-live.toml"), &staging.join("etc/greetd/plasma-live.toml"))?;
-    copy_preserving(&plasma.join("plasma.toml"), &staging.join("etc/greetd/plasma.toml"))?;
-    copy_preserving(&plasma.join("start-plasma"), &staging.join("usr/bin/start-plasma"))?;
-    set_mode(staging.join("usr/bin/start-plasma"), 0o755)?;
-    copy_preserving(
-        &plasma.join("plasma-greeter.service"),
-        &staging.join("usr/lib/systemd/system/plasma-greeter.service"),
-    )?;
-    copy_preserving(
-        &plasma.join("plasma-greeter.pam"),
-        &staging.join("etc/pam.d/plasma-greeter"),
-    )?;
-    copy_preserving(
-        &plasma.join("plasma-desktop.conf"),
-        &staging.join("usr/lib/environment.d/90-plasma-desktop.conf"),
-    )?;
-    for required in [
-        "usr/bin/cosmic-session",
-        "usr/bin/cosmic-panel",
-        "usr/bin/cosmic-launcher",
-        "usr/bin/cosmic-term",
-        "usr/bin/cosmic-ext-tweaks",
-        "usr/bin/cosmic-ext-calculator",
-        "usr/bin/cosmic-ext-storage",
-        "usr/bin/cosmic-monitor",
-        "usr/bin/cosmic-store",
-        "usr/bin/greetd",
-        "usr/bin/cosmic-greeter-start",
-        "usr/share/wayland-sessions/cosmic.desktop",
-        "usr/share/icons/Pop/cursors/default",
-        "usr/share/icons/hicolor/index.theme",
-        "usr/share/fonts/truetype/open-sans/OpenSans-Regular.ttf",
-        "usr/share/fonts/truetype/noto/NotoSansMono[wdth,wght].ttf",
-        "etc/pam.d/cosmic-greeter",
-        "etc/pam.d/plasma-greeter",
-        "etc/systemd/system/display-manager.service",
-        "etc/greetd/plasma-live.toml",
-        "etc/greetd/plasma.toml",
-        "usr/bin/start-plasma",
-        "usr/lib/systemd/system/plasma-greeter.service",
-        "usr/lib/environment.d/90-plasma-desktop.conf",
-    ] {
-        if fs::symlink_metadata(staging.join(required)).is_err() {
-            bail!("cosmic-desktop package is missing /{required}");
-        }
-    }
-    let launcher = fs::read_to_string(staging.join("usr/bin/cosmic-greeter-start"))?;
-    for contract in [
-        "LIBSEAT_BACKEND=logind",
-        "XDG_SESSION_TYPE=wayland",
-        "cosmic-comp --no-xwayland /usr/bin/cosmic-greeter",
-    ] {
-        if !launcher.contains(contract) {
-            bail!("COSMIC greeter launcher is missing runtime contract: {contract}");
-        }
-    }
-    let greeter_unit =
-        fs::read_to_string(staging.join("usr/lib/systemd/system/cosmic-greeter.service"))?;
-    if !greeter_unit.contains("Restart=always")
-        || !greeter_unit.contains("After=systemd-user-sessions.service systemd-logind.service")
-        || !greeter_unit.contains("TimeoutStopSec=10s")
-    {
-        bail!(
-            "COSMIC display manager lacks logind ordering, bounded shutdown, or restart recovery"
+        assert!(
+            staging
+                .join("usr/lib/x86_64-linux-gnu/qml/QtQuick/libqtquick2plugin.so")
+                .is_file()
+        );
+        assert!(
+            staging
+                .join("usr/share/doc/qt6-declarative/licenses/Qt-LICENSE")
+                .is_file()
         );
     }
-    Ok(())
-}
-
-fn stage_cosmic_edit(repo_root: &Path, staging: &Path) -> Result<()> {
-    let install = component_install(repo_root, "cosmic-edit");
-    copy_tree_preserving(&install.join("usr"), &staging.join("usr"))?;
-    copy_preserving(
-        &repo_root.join("src/desktop/cosmic/cosmic-edit/LICENSE"),
-        &staging.join("usr/share/doc/cosmic-edit/copyright"),
-    )?;
-    for required in [
-        "usr/bin/cosmic-edit",
-        "usr/share/applications/com.system76.CosmicEdit.desktop",
-        "usr/share/metainfo/com.system76.CosmicEdit.metainfo.xml",
-    ] {
-        if !staging.join(required).is_file() {
-            bail!("cosmic-edit package is missing /{required}");
-        }
-    }
-    let desktop =
-        fs::read_to_string(staging.join("usr/share/applications/com.system76.CosmicEdit.desktop"))?;
-    if !desktop.contains("Exec=cosmic-edit %F") || !desktop.contains("MimeType=text/plain;") {
-        bail!("cosmic-edit desktop entry does not advertise the expected editor contract");
-    }
-    Ok(())
-}
-
-fn stage_cosmic_initial_setup(repo_root: &Path, staging: &Path) -> Result<()> {
-    let install = component_install(repo_root, "cosmic-initial-setup");
-    copy_tree_preserving(&install.join("usr"), &staging.join("usr"))?;
-    copy_tree_preserving(&install.join("etc"), &staging.join("etc"))?;
-    let launcher = staging.join("usr/libexec/mattos/cosmic-initial-setup-autostart");
-    if let Some(parent) = launcher.parent() {
-        fs::create_dir_all(parent)?;
-    }
-    fs::write(
-        &launcher,
-        "#!/bin/sh\n# Live media starts COSMIC without running the installed-user wizard.\n[ ! -e /run/mattos-live ] || exit 0\nexec /usr/bin/cosmic-initial-setup\n",
-    )?;
-    set_mode(launcher, 0o755)?;
-    let desktop =
-        staging.join("etc/xdg/autostart/com.system76.CosmicInitialSetup.Autostart.desktop");
-    let body = fs::read_to_string(&desktop)?.replace(
-        "Exec=cosmic-initial-setup",
-        "Exec=/usr/libexec/mattos/cosmic-initial-setup-autostart",
-    );
-    fs::write(desktop, body)?;
-    copy_preserving(
-        &repo_root.join("src/desktop/cosmic/cosmic-initial-setup/LICENSE"),
-        &staging.join("usr/share/doc/cosmic-initial-setup/copyright"),
-    )?;
-    for rel in [
-        "usr/bin/cosmic-initial-setup",
-        "usr/share/applications/com.system76.CosmicInitialSetup.desktop",
-        "etc/xdg/autostart/com.system76.CosmicInitialSetup.Autostart.desktop",
-        "usr/share/icons/hicolor/scalable/apps/com.system76.CosmicInitialSetup.svg",
-        "usr/share/polkit-1/rules.d/20-cosmic-initial-setup.rules",
-        "usr/share/cosmic-layouts/top-panel-and-bottom-dock/layout.kdl",
-        "usr/share/cosmic-layouts/top-panel-and-bottom-dock/icon.png",
-        "usr/share/cosmic-themes/nebula-dark.ron",
-    ] {
-        if !staging.join(rel).is_file() {
-            bail!("cosmic-initial-setup package is missing /{rel}");
-        }
-    }
-    Ok(())
 }
 
 fn stage_grub_package(repo_root: &Path, staging: &Path) -> Result<()> {
     for directory in ["usr", "etc"] {
-        copy_tree_preserving(&component_install(repo_root, "grub").join(directory), &staging.join(directory))?;
+        copy_tree_preserving(
+            &component_install(repo_root, "grub").join(directory),
+            &staging.join(directory),
+        )?;
     }
     // GRUB's installed modinfo.sh is used by grub-install/mkimage, but its
     // generated build flags otherwise retain the disposable sysroot and
@@ -3561,10 +3952,16 @@ fn stage_grub_package(repo_root: &Path, staging: &Path) -> Result<()> {
     // installed x86_64 UEFI package. Do not exempt BIOS objects from ELF audit.
     remove_path_if_exists(&staging.join("usr/share/info/dir"))?;
     remove_path_if_exists(&staging.join("usr/lib/grub/i386-pc"))?;
-    copy_preserving(&repo_root.join("src/boot/grub/upstream/COPYING"),
-        &staging.join("usr/share/doc/grub-efi-amd64/copyright"))?;
+    copy_preserving(
+        &repo_root.join("src/boot/grub/upstream/COPYING"),
+        &staging.join("usr/share/doc/grub-efi-amd64/copyright"),
+    )?;
     let policy = repo_root.join("src/boot/grub/config");
-    stage_executable(&policy.join("update-grub"), &staging.join("usr/sbin/update-grub"), 0o755)?;
+    stage_executable(
+        &policy.join("update-grub"),
+        &staging.join("usr/sbin/update-grub"),
+        0o755,
+    )?;
     let mut conffiles = Vec::new();
     for entry in fs::read_dir(staging.join("etc/grub.d"))? {
         let path = entry?.path();
@@ -3581,7 +3978,10 @@ fn stage_grub_package(repo_root: &Path, staging: &Path) -> Result<()> {
     // /etc/default/grub and generated /boot/grub/grub.cfg are installer/user
     // state and intentionally are not shipped or overwritten by this package.
     conffiles.sort();
-    fs::write(staging.join("DEBIAN/conffiles"), format!("{}\n", conffiles.join("\n")))?;
+    fs::write(
+        staging.join("DEBIAN/conffiles"),
+        format!("{}\n", conffiles.join("\n")),
+    )?;
     Ok(())
 }
 
@@ -3599,10 +3999,7 @@ fn normalize_staged_grub_modinfo(repo_root: &Path, path: &Path) -> Result<()> {
             let install_prefix = entry?.path().join("install/usr");
             if install_prefix.is_dir() {
                 let install_prefix_text = install_prefix.to_string_lossy().into_owned();
-                contents = contents.replace(
-                    &install_prefix_text,
-                    "/usr",
-                );
+                contents = contents.replace(&install_prefix_text, "/usr");
             }
         }
     }
@@ -3618,10 +4015,15 @@ fn normalize_staged_grub_modinfo(repo_root: &Path, path: &Path) -> Result<()> {
 }
 
 fn stage_wpa_supplicant(repo_root: &Path, staging: &Path) -> Result<()> {
-    copy_tree_preserving(&component_install(repo_root, "wpa-supplicant").join("usr"), &staging.join("usr"))?;
+    copy_tree_preserving(
+        &component_install(repo_root, "wpa-supplicant").join("usr"),
+        &staging.join("usr"),
+    )?;
     // Upstream COPYING refers to README for the current BSD license terms.
-    copy_preserving(&repo_root.join("src/system/network/hostap/wpa_supplicant/README"),
-        &staging.join("usr/share/doc/wpasupplicant/copyright"))?;
+    copy_preserving(
+        &repo_root.join("src/system/network/hostap/wpa_supplicant/README"),
+        &staging.join("usr/share/doc/wpasupplicant/copyright"),
+    )?;
     for relative in WPA_RUNTIME_FILES {
         if !staging.join(relative).is_file() {
             bail!("wpasupplicant package is missing /{relative}");
@@ -3631,7 +4033,9 @@ fn stage_wpa_supplicant(repo_root: &Path, staging: &Path) -> Result<()> {
 }
 
 const WPA_RUNTIME_FILES: &[&str] = &[
-    "usr/sbin/wpa_supplicant", "usr/sbin/wpa_cli", "usr/sbin/wpa_passphrase",
+    "usr/sbin/wpa_supplicant",
+    "usr/sbin/wpa_cli",
+    "usr/sbin/wpa_passphrase",
     "usr/share/dbus-1/system-services/fi.w1.wpa_supplicant1.service",
     "usr/share/dbus-1/system.d/wpa_supplicant.conf",
     "usr/lib/systemd/system/wpa_supplicant.service",
@@ -3644,13 +4048,23 @@ mod wifi_payload_tests {
     fn grub_preserves_custom_configuration_and_keeps_bios_objects_out_of_efi_package() {
         let fixture = tempfile::tempdir().unwrap();
         let install = fixture.path().join("out/build/grub/install");
-        for relative in ["usr/lib/grub/i386-pc/linux.mod", "usr/lib/grub/x86_64-efi/linux.mod",
-            "usr/share/info/dir", "etc/grub.d/00_header", "etc/grub.d/40_custom", "etc/grub.d/README"] {
+        for relative in [
+            "usr/lib/grub/i386-pc/linux.mod",
+            "usr/lib/grub/x86_64-efi/linux.mod",
+            "usr/share/info/dir",
+            "etc/grub.d/00_header",
+            "etc/grub.d/40_custom",
+            "etc/grub.d/README",
+        ] {
             let path = install.join(relative);
             fs::create_dir_all(path.parent().unwrap()).unwrap();
             fs::write(path, relative).unwrap();
         }
-        for relative in ["src/boot/grub/upstream/COPYING", "src/boot/grub/config/update-grub", "src/boot/grub/config/kernel-hook"] {
+        for relative in [
+            "src/boot/grub/upstream/COPYING",
+            "src/boot/grub/config/update-grub",
+            "src/boot/grub/config/kernel-hook",
+        ] {
             let path = fixture.path().join(relative);
             fs::create_dir_all(path.parent().unwrap()).unwrap();
             fs::write(path, "fixture").unwrap();
@@ -3662,16 +4076,25 @@ mod wifi_payload_tests {
         assert!(!staging.join("usr/share/info/dir").exists());
         assert!(staging.join("usr/lib/grub/x86_64-efi/linux.mod").is_file());
         let files = fs::read_to_string(staging.join("DEBIAN/conffiles")).unwrap();
-        assert_eq!(files, "/etc/grub.d/00_header\n/etc/grub.d/40_custom\n/etc/kernel/postinst.d/zz-update-grub\n/etc/kernel/postrm.d/zz-update-grub\n");
+        assert_eq!(
+            files,
+            "/etc/grub.d/00_header\n/etc/grub.d/40_custom\n/etc/kernel/postinst.d/zz-update-grub\n/etc/kernel/postrm.d/zz-update-grub\n"
+        );
         assert!(!staging.join("etc/default/grub").exists());
         assert!(!staging.join("boot/grub/grub.cfg").exists());
-        assert!(staging.join("usr/share/doc/grub-efi-amd64/copyright").is_file());
+        assert!(
+            staging
+                .join("usr/share/doc/grub-efi-amd64/copyright")
+                .is_file()
+        );
     }
     #[test]
     fn stages_the_complete_directory_tree_and_rejects_missing_activation_files() {
         let fixture = tempfile::tempdir().unwrap();
         let install = fixture.path().join("out/build/wpa-supplicant/install");
-        let license = fixture.path().join("src/system/network/hostap/wpa_supplicant/README");
+        let license = fixture
+            .path()
+            .join("src/system/network/hostap/wpa_supplicant/README");
         fs::create_dir_all(license.parent().unwrap()).unwrap();
         fs::write(&license, "upstream license").unwrap();
         for relative in WPA_RUNTIME_FILES {
@@ -3681,9 +4104,15 @@ mod wifi_payload_tests {
         }
         let staging = fixture.path().join("payload");
         stage_wpa_supplicant(fixture.path(), &staging).unwrap();
-        assert_eq!(fs::read_to_string(staging.join("usr/share/doc/wpasupplicant/copyright")).unwrap(), "upstream license");
+        assert_eq!(
+            fs::read_to_string(staging.join("usr/share/doc/wpasupplicant/copyright")).unwrap(),
+            "upstream license"
+        );
         for relative in WPA_RUNTIME_FILES {
-            assert_eq!(fs::read_to_string(staging.join(relative)).unwrap(), *relative);
+            assert_eq!(
+                fs::read_to_string(staging.join(relative)).unwrap(),
+                *relative
+            );
         }
         fs::remove_file(install.join(WPA_RUNTIME_FILES[3])).unwrap();
         let fresh = fixture.path().join("missing-activation");
@@ -4643,10 +5072,24 @@ fn strip_staged_debug(repo_root: &Path, staging: &Path) -> Result<()> {
         Ok(())
     })?;
     for object in objects {
+        #[cfg(unix)]
+        let original_mode = {
+            use std::os::unix::fs::PermissionsExt;
+            let mode = fs::metadata(&object)?.permissions().mode();
+            if mode & 0o200 == 0 {
+                fs::set_permissions(&object, fs::Permissions::from_mode(mode | 0o200))?;
+            }
+            mode
+        };
         let status = Command::new(&strip)
             .arg("--strip-debug")
             .arg(&object)
             .status()?;
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            fs::set_permissions(&object, fs::Permissions::from_mode(original_mode))?;
+        }
         if !status.success() {
             bail!("source-built strip failed for {}", object.display())
         }

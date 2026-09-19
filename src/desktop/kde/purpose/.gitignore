@@ -1,0 +1,31 @@
+# general
+apidocs
+.kdev4
+*~
+*.bak
+doxygen.log
+build
+*.patch
+*.diff
+*.orig
+*.rej
+*.swp
+massif.out.*
+callgrind.out.*
+.*kate-swp
+CMakeLists.txt.user
+
+# from kdiff3
+*.BACKUP.*
+*.BASE.*
+*.LOCAL.*
+*.REMOTE.*
+.cmake/
+/.clang-format
+/compile_commands.json
+.clangd
+.idea
+.vscode
+/cmake-build*
+.cache
+/build*/

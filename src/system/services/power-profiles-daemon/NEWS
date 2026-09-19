@@ -1,0 +1,174 @@
+0.30
+----
+
+Add support for configuring actions to be enabled or disabled over dbus:
+  - Actions can be listed via `powerprofilesctl list-actions`
+  - These can be controlled via `powerprofilesctl configure-action`
+Add support for configuring whether PPD reacts to battery/AC charger events:
+  - It can be queried and controlled via:
+    `powerprofilesctl query-battery-aware` and
+    `powerprofilesctl configure-battery-aware`
+Add better better compatibility with kernel 6.14.
+
+0.23
+----
+
+Bugfix release for a performance regression with users who manually
+adjusted AMD dGPU settings using other software.
+
+0.22
+----
+
+Since this release power-profiles-daemon is also battery-level aware and
+some drivers use this value to be smarter at tuning their optimizations.
+In particular both the AMD panel power action now uses a progressive approach,
+changing the the ABM based on the battery percentage.
+
+AMD p-state received various features and improvements:
+ - it supports core performance boost when not in power-saver mode.
+ - uses minimum frequency to lowest non-linear frequency
+ - it is more impervious to faulty firmware and kernel bugs
+
+Added support for changing DPM clocks on amdgpu, to explicitly set the DPM
+clocks down to "low" when in power-saver mode.
+
+The daemon command line interface now allows to disable logind and upower
+integration.
+
+Fixes handling of turbo_pct (now assumed as not present by default).
+
+The systemd service lockdown settings have been restricted even more.
+
+The systemd service starts later in the boot to avoid conflicts with
+module loading.
+
+0.21
+----
+
+Since this release power-profiles-daemon is battery-state aware and some drivers
+use a more power efficient state when using the balanced profile on battery.
+In particular both the AMD and Intel P-State drivers will use the
+balance_power EPP profile, while for Intel one we also set the energy
+performance bias to 8 (instead of 6).
+
+This release also contains various fixes for the powerprofilesctl command line
+tool when using the launch or version commands.
+The tool is now better documented as we generate a manual page for it (if
+python3-argparse is installed) and bash completions. We're even generating the
+ZSH completions, but the install path must be provided.
+
+The daemon command line interface has been improved for debugging, so use
+--help-debug for further information.
+
+The systemd service lockdown settings have been restricted even more.
+
+Various code optimizations.
+
+0.20
+----
+
+The project has moved under the freedesktop 'Upower' group. The service is
+now advertised as 'org.freedesktop.UPower.PowerProfiles' in addition to the
+previous 'net.hadess.PowerProfiles' for compatibility reasons.
+
+This release adds support for:
+
+* Multiple power-profiles-daemon drivers to load simultaneously.  This notably
+  allows both CPU based control with amd-pstate or intel-pstate as well as
+  ACPI platform profile based control.
+
+* amdgpu panel power savings which uses dedicated hardware in systems with
+  integrated Radeon graphics to decrease panel power consumption when the
+  system is on battery.
+
+This release also enables the test suite by default, so distribution vendors
+should update packaging accordingly.
+
+0.13
+----
+
+This release adds support for the AMD P-State driver that's been added to the
+6.3 Linux kernel. This release also fixes mismatched profiles on some HP
+laptops and some miscellaneous bug fixes.
+
+0.12
+----
+
+This release adds support for the Intel "Energy Performance Bias" feature, which
+can be used on hardware that doesn't have a platform_profile or doesn't support
+HWP. It will also be used to eke out a bit more performance, or power, on systems
+which already supported HWP.
+
+More information is available in the README.
+
+0.11.1
+------
+
+This release stops power-profiles-daemon from modifying the cpufreq driver when
+driver when the user/administrator has chosen to disable the Intel P-State scaling
+governor (eg. forcing a passive operation mode).
+
+More information is available in the README.
+
+0.11
+----
+
+This release fixes problems on Intel machines when the CPUs didn't support turbo at
+all, or the performance scaling governor was built as default in the kernel.
+
+It also adds better end-user documentation, fixes in the command-line tool to not
+cause bug report tools to popup on not-uncommon errors, and a bug fix for running
+on some systems with controllable charge speeds.
+
+0.10.1
+------
+
+This release fixes a bug in the authorization codepath added in 0.10.0, where holding
+a profile could still succeed despite having sent a denial to the calling process.
+
+This release also makes the pylint test optional. It should not be used unless the goal
+is to contribute patches to assuage it.
+
+0.10.0
+------
+
+This release adds authorization checks for the profile holds and profile switching
+features of the backend daemon, through polkit. It is recommended that all
+distributions upgrade to this version as soon as possible.
+
+This release also adds support for the "quiet" kernel platform profile used
+in some systems.
+
+0.9.0
+-----
+
+This release adds support for "holding" a power profile while running a task
+or application, making it possible to switch to a performance profile during
+a compilation, or to a power-saver profile when low on battery, reverting to
+the original profile when done.
+
+This release also removes the "inhibited" property for the performance profile,
+which made it impossible to switch to that profile, and replaces it with the
+"degraded" property which lists why performance is degraded.
+
+Finally, the last used profile is now remembered across reboots.
+
+0.8.1
+-----
+
+This release works-around a cosmetic issue in gnome-shell animations when
+on battery and using the intel-pstate driver.
+
+0.8
+---
+
+This release adds support for the new generic `platform_profile` kernel
+API to replace the Lenovo specific `dytc_perfmode`, meaning it should also
+support profile selection on a number of HP and Microsoft Surface devices.
+
+This release also add the `powerprofilesctl` command-line application.
+
+0.1
+---
+
+This is the first version of power-profiles-daemon.

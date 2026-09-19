@@ -1,0 +1,8 @@
+# Fix spelling issues with codespell check
+bab81e5e44a13275b93a3e08ace2c2b7a00bef33
+
+# Reformat python code style with black
+17e5903670801ec8a38ecb2808e43d28706a10b0
+
+# Fix trailing white space and end of file
+2678cb00d4cb5426c4e5b714338065d9d3323f7b

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Boot the built ISO using each transport, validate COSMIC, and shut down.
+"""Boot the built ISO using each transport, validate Plasma, and shut down.
 
 Run from the repository root. This integration test starts only one VM at a
 time and uses run_qemu's normal process/socket cleanup. No ISO rebuilds.
@@ -44,13 +44,12 @@ def main():
                 "cat /proc/modules; sudo dmesg | tail -120; "
                 "systemctl --failed --no-pager; ip address; sudo mattos-graphics-report; "
                 "for attempt in $(seq 1 120); do "
-                "pgrep -x cosmic-panel >/dev/null && pgrep -x cosmic-bg >/dev/null && break; sleep 1; done; "
+                "pgrep -x kwin_wayland >/dev/null && pgrep -x plasmashell >/dev/null && break; sleep 1; done; "
                 "test -e /run/mattos-live && "
                 "systemctl is-active NetworkManager && "
                 "systemctl is-active mattos-live-graphical.target && "
-                "pgrep -x cosmic-comp && pgrep -x cosmic-session && "
-                "pgrep -x cosmic-panel && pgrep -x cosmic-bg && "
-                "sudo test -s /run/mattos-graphics/before-cosmic.txt && "
+                "pgrep -x kwin_wayland && pgrep -x plasmashell && "
+                "sudo test -s /run/mattos-graphics/before-plasma.txt && "
                 "sudo mattos-graphics-startup --check && "
                 "systemctl is-active mattos-graphics-watchdog.service && "
                 "modinfo -F firmware amdgpu >/tmp/amdgpu-firmware && test -s /tmp/amdgpu-firmware", 240)
@@ -62,11 +61,11 @@ def main():
                 send_key(qmp, "meta_l-t")
             output += serial_command(paths[1],
                 "for attempt in $(seq 1 60); do "
-                "pgrep -P \"$(pgrep -x cosmic-term | head -1)\" >/dev/null 2>&1 && break; sleep 1; done; "
-                "pgrep -a cosmic-term && pgrep -P \"$(pgrep -x cosmic-term | head -1)\"", 120)
+                "pgrep -x konsole >/dev/null 2>&1 && break; sleep 1; done; "
+                "pgrep -a konsole", 120)
             # A shell child can precede surface mapping/focus. Establish GUI
             # readiness by an actual, harmless input acknowledgement, not a
-            # sleep or merely the existence of cosmic-term's process.
+            # sleep or merely the existence of Konsole's process.
             for attempt in range(30):
                 with QmpClient(paths[0], 10) as qmp:
                     send_key(qmp, "ctrl-c")
@@ -87,9 +86,8 @@ def main():
                 "(set -e; test -s /usr/share/libdrm/amdgpu.ids; "
                 "dpkg-query -S /usr/share/libdrm/amdgpu.ids; "
                 "test ! -e /etc/systemd/system/timers.target.wants/mattos-apt-bootstrap.timer; "
-                "for theme in Dark Light; do for suffix in '' .Builder; do "
-                "grep -qx false /usr/share/cosmic/com.system76.CosmicTheme.$theme$suffix/v2/frosted_maximized_apps || exit 1; "
-                "done; done; "
+                "test -d /usr/share/icons/breeze; "
+                "fc-match sans-serif | grep -q .; "
                 "sudo journalctl -b --no-pager -o cat > /tmp/mattos-desktop-policy-journal; "
                 "if grep -E 'GetKey.*(frosted_maximized_apps|padding_overlap|keep_style_on_maximize)' /tmp/mattos-desktop-policy-journal; "
                 "then exit 1; fi; echo DESKTOP_POLICY_RUNTIME_OK)", 60)

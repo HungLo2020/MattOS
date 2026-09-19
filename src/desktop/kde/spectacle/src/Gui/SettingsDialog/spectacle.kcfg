@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0
+                          http://www.kde.org/standards/kcfg/1.0/kcfg.xsd" >
+<include>QStandardPaths</include>
+<include>CaptureModeModel.h</include>
+<include>Platforms/VideoPlatform.h</include>
+<include>Gui/SettingsDialog/SettingsUtils.h</include>
+<include>KLocalizedString</include>
+<kcfgfile />
+<group name="General">
+    <entry name="launchAction" type="Enum">
+        <label>What to do when Spectacle is launched</label>
+        <choices>
+        <choice name="TakeRectangularScreenshot"></choice>
+        <choice name="TakeFullscreenScreenshot"></choice>
+        <choice name="UseLastUsedCapturemode"></choice>
+        <choice name="DoNotTakeScreenshot"></choice>
+        </choices>
+        <default>TakeRectangularScreenshot</default>
+    </entry>
+    <entry name="printKeyRunningAction" type="Enum">
+        <label>What should happen if print key is pressed when Spectacle is already running</label>
+        <choices>
+        <choice name="TakeNewScreenshot"></choice>
+        <choice name="StartNewInstance"></choice>
+        <choice name="FocusWindow"></choice>
+        </choices>
+        <default>TakeNewScreenshot</default>
+    </entry>
+    <entry name="autoSaveImage" type="Bool">
+        <label>Save screenshot automatically after it is taken</label>
+        <default>false</default>
+    </entry>
+    <entry name="closeAfterOcr" type="Bool">
+        <label>Close after extraction (skips auto-save)</label>
+        <default>false</default>
+    </entry>
+    <entry name="clipboardGroup" type="Enum">
+        <label>Clipboard action which should be executed after the screenshot is taken</label>
+        <choices>
+        <choice name="PostScreenshotDoNothing"></choice>
+        <choice name="PostScreenshotCopyImage"></choice>
+        <choice name="PostScreenshotCopyLocation"></choice>
+        </choices>
+        <default>PostScreenshotDoNothing</default>
+    </entry>
+    <entry name="useLightMaskColor" type="Bool">
+        <label>Whether to use a light color mask in the region selection dialog</label>
+        <default>false</default>
+    </entry>
+    <entry name="showMagnifier" type="Enum">
+        <label>Clipboard action which should be executed after the screenshot is taken</label>
+        <choices>
+        <choice name="ShowMagnifierNever"></choice>
+        <choice name="ShowMagnifierAlways"></choice>
+        <choice name="ShowMagnifierShiftHeld"></choice>
+        </choices>
+        <default>ShowMagnifierShiftHeld</default>
+    </entry>
+    <entry name="useReleaseToCapture" type="Bool">
+        <label>Whether the screenshot should be captured after selecting the region and releasing the mouse</label>
+        <default>false</default>
+    </entry>
+    <entry name="rememberSelectionRect" type="Enum">
+        <label>Remember the last rectangular region</label>
+        <choices>
+        <choice name="Never"></choice>
+        <choice name="Always"></choice>
+        <choice name="UntilClosed"></choice>
+        </choices>
+        <default>UntilClosed</default>
+    </entry>
+    <entry name="ocrLanguages" type="StringList">
+        <label>Default languages for OCR text recognition</label>
+        <default>eng</default>
+    </entry>
+</group>
+<group name="GuiConfig">
+    <entry name="selectionRect" type="RectF">
+        <label>The last used region the user selected</label>
+        <default>QRectF(0,0,0,0)</default>
+    </entry>
+    <entry name="captureOnClick" type="Bool">
+        <label>Take screenshot on click</label>
+        <default>false</default>
+    </entry>
+    <entry name="includePointer" type="Bool">
+        <label>Whether the mouse cursor is included in the screenshot</label>
+        <default>false</default>
+    </entry>
+    <entry name="videoIncludePointer" type="Bool">
+        <label>Whether the mouse cursor is included in the video</label>
+        <default>true</default>
+    </entry>
+    <entry name="includeDecorations" type="Bool">
+        <label>Whether the window decorations are included in the screenshot</label>
+        <default>true</default>
+    </entry>
+    <entry name="includeShadow" type="Bool">
+        <label>Whether the window shadow is included in the screenshot</label>
+        <default>true</default>
+    </entry>
+    <entry name="transientOnly" type="Bool">
+        <label>Only capture the current pop up menu</label>
+        <default>false</default>
+    </entry>
+    <entry name="quitAfterSaveCopyExport" type="Bool">
+        <label>Quit after saving or copying an image</label>
+        <default>false</default>
+    </entry>
+    <entry name="captureDelay" type="Double">
+        <label>Delay</label>
+        <default>0</default>
+        <min>0</min>
+    </entry>
+    <entry name="captureMode" type="Enum">
+        <choices name="CaptureModeModel::CaptureMode"></choices>
+        <default>CaptureModeModel::CaptureMode::AllScreens</default>
+    </entry>
+</group>
+<group name="ImageSave">
+    <entry name="imageSaveLocation" type="Url">
+        <label>Default filename</label>
+        <code>
+            QUrl defaultImageSaveLocation;
+            // This is inserted as is, so we enclose it in a scope to prevent name conflicts.
+            {
+                // We only want to set the translated folder name once so the user doesn't end up
+                // with a bunch of different folders when they temporarily change languages.
+                auto pictures = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
+                auto subFolder = onceTranslatedString(Settings::self(), Settings::self()->currentGroup(),
+                                                      "translatedScreenshotsFolder",
+                                                      i18nc("translatable folder name", "Screenshots"));
+                defaultImageSaveLocation = QUrl::fromLocalFile(pictures + u'/' + subFolder + u'/');
+            }
+        </code>
+        <default code="true">defaultImageSaveLocation</default>
+    </entry>
+    <entry name="imageCompressionQuality" type="UInt">
+        <label>Compression quality for lossy file formats</label>
+        <default>90</default>
+        <min>0</min>
+        <max>100</max>
+    </entry>
+    <entry name="preferredImageFormat" type="String">
+        <!--This is a string because the available formats
+        come from QImageWriter::supportedImageFormats()-->
+        <label>Default save image format</label>
+        <default>PNG</default>
+    </entry>
+    <entry name="imageFilenameTemplate" type="String">
+        <label>The filename template used when saving screenshots</label>
+        <default code="true">
+            i18nc("part of default image filename template", "Screenshot")
+            + u"_&lt;yyyy&gt;&lt;MM&gt;&lt;dd&gt;_&lt;HH&gt;&lt;mm&gt;&lt;ss&gt;"
+        </default>
+    </entry>
+    <entry name="lastImageSaveLocation" type="Url">
+        <label>The path of the file saved last</label>
+        <default code="true">imageSaveLocation()</default>
+    </entry>
+    <entry name="lastImageSaveAsLocation" type="Url">
+        <label>Last path used for "save as" action</label>
+        <default code="true">imageSaveLocation()</default>
+    </entry>
+</group>
+<group name="VideoSave">
+    <entry name="videoSaveLocation" type="Url">
+        <label>Default filename</label>
+        <code>
+            QUrl defaultVideoSaveLocation;
+            // This is inserted as is, so we enclose it in a scope to prevent name conflicts.
+            {
+                // We only want to set the translated folder name once so the user doesn't end up
+                // with a bunch of different folders when they temporarily change languages.
+                auto videos = QStandardPaths::writableLocation(QStandardPaths::MoviesLocation);
+                auto subFolder = onceTranslatedString(Settings::self(), Settings::self()->currentGroup(),
+                                                      "translatedScreencastsFolder",
+                                                      i18nc("translatable folder name", "Screencasts"));
+                defaultVideoSaveLocation = QUrl::fromLocalFile(videos + u'/' + subFolder + u'/');
+            }
+        </code>
+        <default code="true">defaultVideoSaveLocation</default>
+    </entry>
+    <entry name="preferredVideoFormat" type="Enum">
+        <label>Default video format</label>
+        <choices name="VideoPlatform::Format"></choices>
+        <default>VideoPlatform::Format::DefaultFormat</default>
+    </entry>
+    <entry name="videoFilenameTemplate" type="String">
+        <label>The filename template used when saving screencasts</label>
+        <default code="true">
+            i18nc("part of default video filename template", "Screencast")
+            + u"_&lt;yyyy&gt;&lt;MM&gt;&lt;dd&gt;_&lt;HH&gt;&lt;mm&gt;&lt;ss&gt;"
+        </default>
+    </entry>
+    <entry name="lastVideoSaveLocation" type="Url">
+        <label>The path of the file saved last</label>
+        <default code="true">videoSaveLocation()</default>
+    </entry>
+    <entry name="lastVideoSaveAsLocation" type="Url">
+        <label>Last path used for "save as" action</label>
+        <default code="true">videoSaveLocation()</default>
+    </entry>
+</group>
+</kcfg>

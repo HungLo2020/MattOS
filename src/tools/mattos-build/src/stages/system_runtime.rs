@@ -266,7 +266,7 @@ fn systemd_meson_options() -> Vec<String> {
         "-Dpstore=false".to_string(),
         "-Dmachined=false".to_string(),
         "-Dhostnamed=false".to_string(),
-        // COSMIC Initial Setup uses the standard org.freedesktop.locale1 API
+        // Desktop setup tools use the standard org.freedesktop.locale1 API
         // to read and apply the selected system locale.
         "-Dlocaled=true".to_string(),
         "-Dtimedated=true".to_string(),
@@ -542,4 +542,3 @@ fn build_dbus_broker(repo_root: &Path) -> Result<()> {
         .with_context(|| format!("failed to write {}", stamp_path.display()))?;
     Ok(())
 }
-

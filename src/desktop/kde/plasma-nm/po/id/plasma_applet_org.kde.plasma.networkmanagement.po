@@ -1,0 +1,342 @@
+# Copyright (C) YEAR This file is copyright:
+# This file is distributed under the same license as the plasma-nm package.
+# Lorenz Adam Damara <lorenzrenz@gmail.com>, 2018.
+# Wantoyo <wantoyek@gmail.com>, 2018, 2019, 2020, 2021, 2022.
+# Linerly <linerly@protonmail.com>, 2022, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma-nm\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-04-25 02:45+0000\n"
+"PO-Revision-Date: 2023-03-03 09:54+0700\n"
+"Last-Translator: Linerly <linerly@protonmail.com>\n"
+"Language-Team: Indonesian <kde-i18n-doc@kde.org>\n"
+"Language: id\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 22.12.3\n"
+
+#: ConnectionItem.qml:62
+#, kde-format
+msgid "Connect"
+msgstr "Hubungkan"
+
+#: ConnectionItem.qml:62
+#, kde-format
+msgid "Disconnect"
+msgstr "Putuskan"
+
+#: ConnectionItem.qml:90
+#, kde-format
+msgctxt "Share Wi-Fi network's password or QR code"
+msgid "Share"
+msgstr ""
+
+#: ConnectionItem.qml:96
+#, kde-format
+msgid "Configure…"
+msgstr "Konfigurasikan..."
+
+#: ConnectionItem.qml:136
+#, kde-format
+msgid "Speed"
+msgstr "Kecepatan"
+
+#: ConnectionItem.qml:141
+#, kde-format
+msgid "Details"
+msgstr "Detail"
+
+#: ConnectionItem.qml:188
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Current download speed is %1 kibibytes per second; current upload speed is "
+"%2 kibibytes per second"
+msgstr ""
+"Kecepatan unduhan saat ini %1 kibibita per detik; kecepatan unggahan saat "
+"ini %2 kibibita per detik"
+
+#: ConnectionItem.qml:302
+#, fuzzy, kde-format
+#| msgid "Connected, ⬇ %1/s, ⬆ %2/s"
+msgctxt "Download and upload rates in some unit per second"
+msgid "↓ %1/s, ↑ %2/s"
+msgstr "Terhubung, ⬇ %1/dt,  ⬆ %2/dt"
+
+#: ConnectionListPage.qml:33
+#, kde-format
+msgid "You need to log in to this network"
+msgstr ""
+
+#: ConnectionListPage.qml:37
+#, kde-format
+msgctxt "@action:button"
+msgid "Log in"
+msgstr ""
+
+#: ConnectionListPage.qml:118
+#, kde-format
+msgid "Airplane mode is enabled"
+msgstr "Mode pesawat diaktifkan"
+
+#: ConnectionListPage.qml:122
+#, fuzzy, kde-format
+#| msgid "Wireless and mobile networks are deactivated"
+msgid "Wi-Fi and mobile data are deactivated"
+msgstr "Nirkabel dan jaringan seluler dinonaktifkan"
+
+#: ConnectionListPage.qml:124
+#, fuzzy, kde-format
+#| msgid "Wireless is deactivated"
+msgid "Wi-Fi is deactivated"
+msgstr "Nirkabel dinonaktifkan"
+
+#: ConnectionListPage.qml:127
+#, kde-format
+msgid "Looking for Wi-Fi networks"
+msgstr ""
+
+#: ConnectionListPage.qml:130
+#, fuzzy, kde-format
+#| msgid "Mobile network is deactivated"
+msgid "Mobile data is deactivated"
+msgstr "Jaringan seluler dinonaktifkan"
+
+#: ConnectionListPage.qml:133
+#, kde-format
+msgid "No matches"
+msgstr "Tidak ada yang cocok"
+
+#: ConnectionListPage.qml:136
+#, kde-format
+msgid "No available connections"
+msgstr "Tidak ada koneksi yang tersedia"
+
+#: ConnectionListPage.qml:145
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn off airplane mode to search for networks"
+msgstr ""
+
+#: ConnectionListPage.qml:149
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on Wi-Fi or mobile data to search for networks"
+msgstr ""
+
+#: ConnectionListPage.qml:151
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on Wi-Fi to search for networks"
+msgstr ""
+
+#: ConnectionListPage.qml:154
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on mobile data to search for networks"
+msgstr ""
+
+#: DetailsText.qml:40
+#, kde-format
+msgid "Copy"
+msgstr "Salin"
+
+#: main.qml:32
+#, kde-format
+msgid "Networks"
+msgstr "Jaringan"
+
+#: main.qml:41
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Middle-click to turn off Airplane Mode"
+msgstr "Klik tengah untuk mematikan Mode Pesawat"
+
+#: main.qml:43
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Middle-click to turn on Airplane Mode"
+msgstr "Klik tengah untuk menyalakan Mode Pesawat"
+
+#: main.qml:71 Toolbar.qml:74
+#, kde-format
+msgid "Enable Wi-Fi"
+msgstr "Aktifkan Wi-Fi"
+
+#: main.qml:82
+#, fuzzy, kde-format
+#| msgid "Enable Mobile Network"
+msgid "Enable Mobile Data"
+msgstr "Aktifkan Jaringan Seluler"
+
+#: main.qml:94
+#, kde-format
+msgid "Enable Airplane Mode"
+msgstr "Aktifkan Mode Pesawat"
+
+#: main.qml:106
+#, kde-format
+msgid "Open Network Login Page…"
+msgstr "Buka Halaman Masuk Jaringan..."
+
+#: main.qml:116
+#, kde-format
+msgid "&Configure Network Connections…"
+msgstr "&Konfigurasikan Koneksi Jaringan..."
+
+#: PopupDialog.qml:51
+#, fuzzy, kde-format
+#| msgid "&Configure Network Connections…"
+msgctxt "@action:button"
+msgid "Return to Network Connections"
+msgstr "&Konfigurasikan Koneksi Jaringan..."
+
+#: ShareNetworkQrCodePage.qml:33
+#, kde-format
+msgid "Scan this QR code with another device to connect to the \"%1\" network."
+msgstr ""
+
+#: ShareNetworkQrCodePage.qml:108
+#, kde-format
+msgid "Wi-Fi password:"
+msgstr ""
+
+#: Toolbar.qml:124
+#, fuzzy, kde-format
+#| msgid "Enable mobile network"
+msgid "Enable mobile data"
+msgstr "Aktifkan jaringan seluler"
+
+#: Toolbar.qml:147
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Disable airplane mode<nl/><nl/>This will enable Wi-Fi and Bluetooth"
+msgstr ""
+"Nonaktifkan mode pesawat<nl/><nl/>Ini akan mengaktifkan Wi-Fi dan Bluetooth"
+
+#: Toolbar.qml:148
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Enable airplane mode<nl/><nl/>This will disable Wi-Fi and Bluetooth"
+msgstr ""
+"Aktifkan mode pesawat<nl/><nl/>Ini akan menonaktifkan Wi-Fi dan Bluetooth"
+
+#: Toolbar.qml:176
+#, kde-format
+msgid "Hotspot"
+msgstr "Hotspot"
+
+#: Toolbar.qml:193
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot create a hotspot because Wi-Fi is disabled."
+msgstr ""
+
+#: Toolbar.qml:195
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Cannot create a hotspot because all wireless radios are in use. Disconnect "
+"from the current Wi-Fi network or connect another wireless radio."
+msgstr ""
+
+#: Toolbar.qml:197
+#, fuzzy, kde-format
+#| msgid "Disable Hotspot"
+msgctxt "@info:tooltip"
+msgid "Disable Hotspot"
+msgstr "Nonaktifkan Hotspot"
+
+#: Toolbar.qml:199
+#, fuzzy, kde-format
+#| msgid "Create Hotspot"
+msgctxt "@info:tooltip"
+msgid "Create Hotspot"
+msgstr "Buat Hotspot"
+
+#: Toolbar.qml:227
+#, kde-format
+msgctxt "@action:button"
+msgid "Scan Wi-Fi QR Code"
+msgstr ""
+
+#: Toolbar.qml:232
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Scan QR Code to connect to a Wi-Fi network"
+msgstr ""
+
+#: Toolbar.qml:234
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Install QRCA Barcode Scanner to scan for a QR Code that connects to a Wi-Fi "
+"network"
+msgstr ""
+
+#: Toolbar.qml:253
+#, kde-format
+msgid "Configure network connections…"
+msgstr "Konfigurasikan koneksi jaringan..."
+
+#~ msgid "/s"
+#~ msgstr "/dtk"
+
+#~ msgid "Upload"
+#~ msgstr "Unggah"
+
+#~ msgid "Download"
+#~ msgstr "Unduh"
+
+#~ msgid "Show Network's QR Code"
+#~ msgstr "Tampilkan Kode QR Jaringan"
+
+#~ msgid "Connected"
+#~ msgstr "Terhubung"
+
+#~ msgid "Password…"
+#~ msgstr "Kata Sandi..."
+
+#~ msgctxt "@title:window"
+#~ msgid "QR Code for %1"
+#~ msgstr "Kode QR untuk %1"
+
+#~ msgctxt "@info:tooltip %1 is the name of a network connection"
+#~ msgid "Connect to %1"
+#~ msgstr "Hubungkan ke %1"
+
+#~ msgctxt "@info:tooltip %1 is the name of a network connection"
+#~ msgid "Disconnect from %1"
+#~ msgstr "Putuskan dari %1"
+
+#~ msgctxt "text field placeholder text"
+#~ msgid "Search…"
+#~ msgstr "Cari..."
+
+#~ msgctxt "button tooltip"
+#~ msgid "Search the connections"
+#~ msgstr "Cari koneksi"
+
+#~ msgid ""
+#~ "Connected, <font color='%1'>⬇</font> %2/s, <font color='%3'>⬆</font> %4/s"
+#~ msgstr ""
+#~ "Terkoneksi, <font color='%1'>⬇</font> %2/s, <font color='%3'>⬆</font> %4/s"
+
+#~ msgid "Enable wireless"
+#~ msgstr "Fungsikan nirkabel"
+
+#~ msgid "Available connections"
+#~ msgstr "Koneksi yang tersedia"
+
+#~ msgid "General"
+#~ msgstr "Umum"
+
+#~ msgid "Ask for PIN on modem detection"
+#~ msgstr "Tanya PIN saat deteksi modem"
+
+#~ msgid "Show virtual connections"
+#~ msgstr "Tampilkan koneksi virtual"

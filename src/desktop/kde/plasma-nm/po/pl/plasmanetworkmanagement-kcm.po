@@ -1,0 +1,266 @@
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+# SPDX-FileCopyrightText: 2017, 2019, 2020, 2021, 2023, 2024, 2025 Łukasz Wojniłowicz <lukasz.wojnilowicz@gmail.com>
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-29 03:06+0000\n"
+"PO-Revision-Date: 2025-11-22 21:18+0100\n"
+"Last-Translator: Łukasz Wojniłowicz <lukasz.wojnilowicz@gmail.com>\n"
+"Language-Team: pl\n"
+"Language: pl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
+"|| n%100>=20) ? 1 : 2);\n"
+"X-Generator: Lokalize 25.08.2\n"
+
+#: kcm.cpp:269
+#, kde-format
+msgid "Import the VPN configuration from \"%1\"?"
+msgstr "Czy zaimportować ustawienia VPN z \"%1\"?"
+
+#: kcm.cpp:270
+#, kde-format
+msgctxt "@title:window"
+msgid "Import VPN Configuration"
+msgstr "Zaimportuj ustawienia VPN"
+
+#: kcm.cpp:271
+#, kde-format
+msgid "Import"
+msgstr "Zaimportuj"
+
+#: kcm.cpp:278 kcm.cpp:351
+#, kde-format
+msgid "Failed to import VPN connection: %1"
+msgstr "Nie udało się zaimportować połączenia VPN: %1"
+
+#: kcm.cpp:281 kcm.cpp:354
+#, kde-format
+msgid "Connection imported."
+msgstr "Zaimportowano połączenie."
+
+#: kcm.cpp:423
+#, kde-format
+msgid "my_shared_connection"
+msgstr "moje_wspoldzielone_polaczenie"
+
+#: kcm.cpp:495
+#, kde-format
+msgid "Export VPN Connection"
+msgstr "Wyeksportuj połączenie VPN"
+
+#: kcm.cpp:515
+#, kde-format
+msgid "Do you want to save changes made to the connection '%1'?"
+msgstr "Czy chcesz zachować zmiany dokonane w połączeniu '%1'?"
+
+#: kcm.cpp:516
+#, kde-format
+msgctxt "@title:window"
+msgid "Save Changes"
+msgstr "Zapisz zmiany"
+
+#: kcm.cpp:611
+#, kde-format
+msgid "Import VPN Connection"
+msgstr "Zaimportuj połączenie VPN"
+
+#: kcm.cpp:613
+#, kde-format
+msgid "VPN connections (%1)"
+msgstr "Połączenia VPN (%1)"
+
+#: kcm.cpp:616
+#, kde-format
+msgid "No file was provided"
+msgstr "Nie podano żadnego pliku"
+
+#: kcm.cpp:684
+#, kde-format
+msgid "Unknown VPN type"
+msgstr "Nieznany rodzaj VPNu"
+
+#: qml/AddConnectionDialog.qml:18
+msgctxt "@title:window"
+msgid "Choose a Connection Type"
+msgstr "Wybierz rodzaj połączenia"
+
+#: qml/ConfigurationDialog.qml:20
+msgctxt "@title:window"
+msgid "Configuration"
+msgstr "Ustawienia"
+
+#: qml/ConfigurationDialog.qml:35
+msgid "General"
+msgstr "Ogólne"
+
+#: qml/ConfigurationDialog.qml:43
+msgid "Ask for PIN on modem detection"
+msgstr "Zapytaj o numer PIN po wykryciu modemu"
+
+#: qml/ConfigurationDialog.qml:50
+msgid "Show virtual connections"
+msgstr "Pokaż połączenia wirtualne"
+
+#: qml/ConfigurationDialog.qml:57
+msgid "Create new connections as system connections"
+msgstr "Twórz nowe połączenia jako połączenia systemowe"
+
+#: qml/ConfigurationDialog.qml:62
+msgid "Hotspot"
+msgstr "Hotspot"
+
+#: qml/ConfigurationDialog.qml:70
+msgctxt "@label Hotspot name"
+msgid "Name:"
+msgstr "Nazwa:"
+
+#: qml/ConfigurationDialog.qml:76
+msgctxt "@label Hotspot password"
+msgid "Password:"
+msgstr "Hasło:"
+
+#: qml/ConfigurationDialog.qml:95
+msgid "Hotspot name must not be empty"
+msgstr "Nazwa hotspotu nie może być pusta"
+
+#: qml/ConfigurationDialog.qml:105
+msgid ""
+"Hotspot password must either be empty or consist of anywhere from 8 up to 64 "
+"characters"
+msgstr ""
+"Hasło hotspotu musi być albo puste albo składać się z od 8 do 64 znaków"
+
+#: qml/ConfigurationDialog.qml:106
+msgid ""
+"Hotspot password must either be empty or consist of one of the following:"
+"<ul><li>Exactly 5 or 13 any characters</li><li>Exactly 10 or 26 hexadecimal "
+"characters:<br/>abcdef, ABCDEF or 0-9</li></ul>"
+msgstr ""
+"Hasło hotspotu musi być albo puste albo wyglądać jak jedno z poniższych:"
+"<ul><li>Dokładnie 5 lub 13 dowolnych znaków</li><li>Dokładnie 10 lub 26 "
+"szesnastkowych znaków:<br/>abcdef, ABCDEF lub 0-9</li></ul>"
+
+#. i18n is a way to use something pre-exposed to QML.
+#: qml/ConnectionItem.qml:29
+msgctxt "@label/rich"
+msgid "%1"
+msgstr "%1"
+
+#: qml/ConnectionItem.qml:85
+msgid "Connect"
+msgstr "Połącz"
+
+#: qml/ConnectionItem.qml:85
+msgid "Disconnect"
+msgstr "Rozłącz"
+
+#: qml/ConnectionItem.qml:90
+msgctxt "@info:tooltip"
+msgid "Cannot connect to this network because it was not detected."
+msgstr "Nie można podłączyć się do tej sieci sieci, bo nie została wykryta."
+
+#: qml/ConnectionItem.qml:95
+msgid "Delete"
+msgstr "Usuń"
+
+#: qml/ConnectionItem.qml:106
+msgid "Export"
+msgstr "Wyeksportuj"
+
+#: qml/ConnectionItem.qml:120
+msgid "Connected"
+msgstr "Połączony"
+
+#: qml/ConnectionItem.qml:122
+msgid "Connecting"
+msgstr "Łączenie"
+
+#: qml/ConnectionItem.qml:124
+msgctxt "@title:column Available networks"
+msgid "Available"
+msgstr "Dostępne"
+
+#: qml/main.qml:151
+msgid "Add new connection"
+msgstr "Dodaj nowe połączenie"
+
+#: qml/main.qml:169
+msgid "Remove selected connection"
+msgstr "Usuń wybrane połączenie"
+
+#: qml/main.qml:187
+msgid "Export selected connection"
+msgstr "Wyeksportuj wybrane połączenie"
+
+#: qml/main.qml:212
+msgid "Configuration"
+msgstr "Ustawienia"
+
+#: qml/main.qml:239
+msgctxt "@title:window"
+msgid "Remove Connection"
+msgstr "Usuń połączenie"
+
+#: qml/main.qml:240
+msgid "Do you want to remove the connection '%1'?"
+msgstr "Czy chcesz usunąć połączenie '%1?"
+
+#: qml/main.qml:262
+msgctxt "@action:button Connect to network"
+msgid "Connect"
+msgstr "Połącz"
+
+#: qml/main.qml:268
+msgctxt "@action:button Cancel connecting to network"
+msgid "Cancel"
+msgstr "Anuluj"
+
+#: qml/main.qml:274
+msgctxt "@title:window"
+msgid "Enter Password"
+msgstr "Wpisz hasło"
+
+#: qml/main.qml:280
+msgctxt "@label %1 is the name of the network the user is connecting to"
+msgid "Network: %1"
+msgstr "Sieć: %1"
+
+#: qml/main.qml:301
+msgctxt "@label key is a passcode"
+msgid "Password must be a valid WEP key"
+msgstr "Hasło musi być prawidłowym kluczem WEP"
+
+#: qml/main.qml:302
+msgctxt "@label password invalid length message"
+msgid "Password must be between 8 and 64 characters"
+msgstr "Hasło musi zawierać od 8 do 64 znaków"
+
+#~ msgid "Create"
+#~ msgstr "Utwórz"
+
+#~ msgid "Cancel"
+#~ msgstr "Anuluj"
+
+#~ msgid "Hotspot name:"
+#~ msgstr "Nazwa hotspotu:"
+
+#~ msgid "OK"
+#~ msgstr "OK"
+
+#~ msgid "Ok"
+#~ msgstr "Ok"
+
+#~ msgid "Search…"
+#~ msgstr "Szukaj..."
+
+#~ msgid "Type here to search connections..."
+#~ msgstr "Wpisz tutaj, aby znaleźć połączenia..."
+
+#~ msgid "Close"
+#~ msgstr "Zamknij"

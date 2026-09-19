@@ -1,0 +1,13 @@
+CRYPTSETUP_TOKEN_1.0 {
+	global:
+		/* Mandatory functions */
+		cryptsetup_token_open;
+		cryptsetup_token_version;
+
+		/* Optional functions */
+		cryptsetup_token_open_pin;
+		cryptsetup_token_buffer_free;
+		cryptsetup_token_validate;
+		cryptsetup_token_dump;
+	local: *;
+};

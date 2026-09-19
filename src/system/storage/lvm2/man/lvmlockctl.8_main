@@ -1,0 +1,123 @@
+.TH "LVMLOCKCTL" "8" "LVM TOOLS #VERSION#" "Red Hat, Inc." \" -*- nroff -*-
+.
+.SH NAME
+.
+lvmlockctl \(em Control for lvmlockd
+.
+.SH SYNOPSIS
+.
+.B lvmlockctl
+.RI [ options ]
+.
+.SH DESCRIPTION
+.
+This command interacts with
+.BR lvmlockd (8).
+.
+.SH OPTIONS
+.
+.TP
+.BR -h | --help
+Show this help information.
+.
+.TP
+.BR -q | --quit
+Tell lvmlockd to quit.
+.
+.TP
+.BR -i | --info
+Print lock state information from lvmlockd.
+.
+.TP
+.BR -d | --dump
+Print log buffer from lvmlockd.
+.
+.TP
+.BR -w | --wait\ 0 | 1
+Wait option for other commands.
+.
+.TP
+.BR -f | --force\ 0 | 1
+Force option for other commands.
+.
+.TP
+\fB-k\fP|\fB--kill\fP \fIvgname\fP
+Kill access to the VG when sanlock cannot renew lease.
+.
+.TP
+\fB-r\fP|\fB--drop\fP \fIvgname\fP
+Clear locks for the VG when it is unused after kill (-k).
+.
+.TP
+\fB-E\fP|\fB--gl-enable\fP \fIvgname\fP
+Tell lvmlockd to enable the global lock in a sanlock VG.
+.
+.TP
+\fB-D\fP|\fB--gl-disable\fP \fIvgname\fP
+Tell lvmlockd to disable the global lock in a sanlock VG.
+.
+.TP
+.BR -S | --stop-lockspaces
+Stop all lockspaces.
+.
+.SH USAGE
+.
+.TP
+.B --info
+This collects and displays lock state from lvmlockd.  The display is
+primitive, incomplete and may change in future versions.  To print the raw
+info lines from lvmlockd, combine this option with --dump|-d.
+Each VG lockspace may include lines with prefixes:
+"VG" for volume group info, "LS" for lockspace info, "PR" for persistent
+reservation fencing info, "LK" for lock info, "LW" for waiting lock info.
+.
+.TP
+.B --dump
+This collects the circular log buffer of debug statements from lvmlockd
+and prints it.
+.
+.TP
+.B --kill
+This is run by sanlock when it loses access to the storage holding leases
+for a VG.  It runs the command specified in lvm.conf
+lvmlockctl_kill_command to deactivate LVs in the VG.  If the specified
+command is successful, locks will be dropped for the VG in lvmlockd
+(the equivalent of \fBlvmlockctl --drop\fP will be run.)  If no command
+is specified, or the command fails, then the user must intervene
+to forcefully deactivate LVs in the VG, and if successful, run
+\fBlvmlockctl --drop\fP.  For more, see
+.BR lvmlockd (8).
+.
+.TP
+.B --drop
+This should only be run after a VG has been successfully deactivated
+following an lvmlockctl --kill command.  It clears the stale lockspace
+from lvmlockd.  When lvmlockctl_kill_command is used, the --kill
+command may run drop automatically.  For more, see
+.BR lvmlockd (8).
+.
+.TP
+.B --gl-enable
+This enables the global lock in a sanlock VG.  This is necessary if the VG
+that previously held the global lock is removed.  For more, see
+.BR lvmlockd (8).
+.
+.TP
+.B --gl-disable
+This disables the global lock in a sanlock VG.  This is necessary if the
+global lock has mistakenly been enabled in more than one VG.  The global
+lock should be disabled in all but one sanlock VG.  For more, see
+.BR lvmlockd (8).
+.
+.TP
+.B --stop-lockspaces
+This tells lvmlockd to stop all lockspaces.  It can be useful to stop
+lockspaces for VGs that the \fBvgchange --lock-stop\fP command can no longer
+see, or to stop the dlm global lockspace which is not directly stopped by
+the vgchange command.  The wait and force options can be used with this
+command.
+.
+.SH SEE ALSO
+.
+.BR lvm (8),
+.BR lvmlockd (8)

@@ -1,0 +1,3038 @@
+# Translation of spectacle.po to Ukrainian
+# Copyright (C) 2015-2020 This_file_is_part_of_KDE
+# This file is distributed under the license LGPL version 2.1 or
+# version 3 or later versions approved by the membership of KDE e.V.
+#
+# Yuri Chornoivan <yurchor@ukr.net>, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026.
+msgid ""
+msgstr ""
+"Project-Id-Version: spectacle\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-04-25 02:46+0000\n"
+"PO-Revision-Date: 2026-01-13 06:47+0200\n"
+"Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
+"Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n"
+"%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Lokalize 23.04.3\n"
+
+#, kde-format
+msgctxt "translatable folder name"
+msgid "Screenshots"
+msgstr "Знімки вікон"
+
+#, kde-format
+msgctxt "part of default image filename template"
+msgid "Screenshot"
+msgstr "Знімок"
+
+#, kde-format
+msgctxt "translatable folder name"
+msgid "Screencasts"
+msgstr "Трансляції з екрана"
+
+#, kde-format
+msgctxt "part of default video filename template"
+msgid "Screencast"
+msgstr "Трансляція"
+
+#: src/CaptureModeModel.cpp:162
+#, kde-format
+msgctxt "@action in capture mode section"
+msgid "Rectangular Region"
+msgstr "Прямокутна ділянка"
+
+#: src/CaptureModeModel.cpp:164
+#, kde-format
+msgctxt "@action in capture mode section"
+msgid "All Screens (Scaled to same size)"
+msgstr "Усі екрани (масштабовані до одного розміру)"
+
+#: src/CaptureModeModel.cpp:166
+#, kde-format
+msgctxt "@action in capture mode section"
+msgid "Current Screen"
+msgstr "Поточний екран"
+
+#: src/CaptureModeModel.cpp:168
+#, kde-format
+msgctxt "@action in capture mode section"
+msgid "Active Window"
+msgstr "Активне вікно"
+
+#: src/CaptureModeModel.cpp:171
+#, kde-format
+msgctxt "@action in capture mode section"
+msgid "Select Window"
+msgstr "Вибране вікно"
+
+#: src/CaptureModeModel.cpp:171
+#, kde-format
+msgctxt "@action in capture mode section"
+msgid "Window Under Cursor"
+msgstr "Вікно під вказівником"
+
+#: src/CaptureModeModel.cpp:174
+#, kde-format
+msgctxt "@action in capture mode section"
+msgid "All Screens"
+msgstr "Усі екрани"
+
+#: src/CaptureModeModel.cpp:176
+#, kde-format
+msgctxt "@action in capture mode section"
+msgid "Full Screen"
+msgstr "Весь екран"
+
+#: src/CommandLineOptions.h:22
+#, kde-format
+msgid "Capture the entire desktop (default)"
+msgstr "Захопити зображення усієї стільниці (типове)"
+
+#: src/CommandLineOptions.h:26
+#, kde-format
+msgid "Capture the current monitor"
+msgstr "Захопити зображення на моніторі"
+
+#: src/CommandLineOptions.h:30
+#, kde-format
+msgid "Capture the active window"
+msgstr "Захопити зображення активного вікна"
+
+#: src/CommandLineOptions.h:34
+#, kde-format
+msgid ""
+"Capture the window currently under the cursor, including parents of pop-up "
+"menus"
+msgstr ""
+"Захопити поточне вікно під вказівником, включно з батьківськими вікнами "
+"контекстних меню"
+
+#: src/CommandLineOptions.h:38
+#, kde-format
+msgid ""
+"Capture the window currently under the cursor, excluding parents of pop-up "
+"menus"
+msgstr ""
+"Захопити поточне вікно під вказівником без батьківського вікна контекстних "
+"меню"
+
+#: src/CommandLineOptions.h:42
+#, kde-format
+msgid "Capture a rectangular region of the screen"
+msgstr "Захопити прямокутну область екрана"
+
+#: src/CommandLineOptions.h:46
+#, kde-format
+msgid ""
+"Record the screen using the given mode. Modes:\n"
+"- r, region\n"
+"- s, screen\n"
+"- w, window"
+msgstr ""
+"Записати зображення з екрана з використанням вказаного режиму. Режими:\n"
+"- r, область\n"
+"- s, екран\n"
+"- w, вікно"
+
+#: src/CommandLineOptions.h:54
+#, kde-format
+msgid "Launch Spectacle without taking a screenshot"
+msgstr "Запустити Spectacle без створення знімка"
+
+#: src/CommandLineOptions.h:58
+#, kde-format
+msgid "Start in GUI mode (default)"
+msgstr "Запустити у графічному режимі (типовий режим)"
+
+#: src/CommandLineOptions.h:62
+#, kde-format
+msgid "Take a screenshot and exit without showing the GUI"
+msgstr "Зробити знімок і вийти без показу графічного інтерфейсу"
+
+#: src/CommandLineOptions.h:66
+#, kde-format
+msgid "Start in DBus-Activation mode"
+msgstr "Запустити у режимі активації DBus"
+
+#: src/CommandLineOptions.h:70
+#, kde-format
+msgid ""
+"In background mode, do not pop up a notification when the screenshot is taken"
+msgstr "У фоновому режимі, не показувати сповіщення, якщо створено знімок"
+
+#: src/CommandLineOptions.h:74
+#, kde-format
+msgid "In background mode, save image to specified file"
+msgstr "У фоновому режимі, зберегти зображення до вказаного файла"
+
+#: src/CommandLineOptions.h:79
+#, kde-format
+msgid "In background mode, delay before taking the shot (in milliseconds)"
+msgstr "У фоновому режимі, затримка до створення знімка (у мілісекундах)"
+
+#: src/CommandLineOptions.h:84
+#, kde-format
+msgid ""
+"In background mode, copy screenshot image to clipboard, unless -o is also "
+"used."
+msgstr ""
+"У фоновому режимі, копіювати зображення знімка до буфера обміну, якщо не "
+"використано також -o."
+
+#: src/CommandLineOptions.h:88
+#, kde-format
+msgid "In background mode, copy screenshot file path to clipboard"
+msgstr "У фоновому режимі, копіювати шлях до файла знімка до буфера обміну"
+
+#: src/CommandLineOptions.h:92
+#, kde-format
+msgid "Wait for a click before taking screenshot. Invalidates delay"
+msgstr ""
+"Зачекати зі створенням знімка на клацання кнопкою миші. Скасовує затримку."
+
+#: src/CommandLineOptions.h:96
+#, kde-format
+msgid "Starts a new GUI instance of spectacle without registering to DBus"
+msgstr ""
+"Запускає екземпляр графічного інтерфейсу Spectacle без реєстрації у DBus"
+
+#: src/CommandLineOptions.h:100
+#, kde-format
+msgid "In background mode, include pointer in the screenshot"
+msgstr "У фоновому режимі, включати вказівник миші до знімка"
+
+#: src/CommandLineOptions.h:104
+#, kde-format
+msgid "In background mode, exclude decorations in the screenshot"
+msgstr "У фоновому режимі, виключити обрамлення вікна зі знімку"
+
+#: src/CommandLineOptions.h:106
+#, kde-format
+msgid "In background mode, exclude shadows in the screenshot"
+msgstr "У фоновому режимі, виключити тіні вікон зі знімку"
+
+#: src/CommandLineOptions.h:109
+#, kde-format
+msgid "Open and edit existing screenshot file"
+msgstr "Відкрити і редагувати наявний файл знімка вікна"
+
+#: src/ExportManager.cpp:460
+#, kde-format
+msgctxt "%1 is an error message"
+msgid "QImageWriter cannot write image: %1"
+msgstr "QImageWriter не вдалося записати зображення: %1"
+
+#: src/ExportManager.cpp:476
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Cannot save screenshot because creating the directory failed:<nl/><filename>"
+"%1</filename>"
+msgstr ""
+"Не вдалося зберегти знімок вікна, оскільки не вдалося створити каталог:<nl/"
+"><filename>%1</filename>"
+
+#: src/ExportManager.cpp:486
+#, kde-format
+msgid "Cannot save screenshot. Error while writing file."
+msgstr "Не вдалося зберегти знімок. Помилка під час спроби записати файл."
+
+#: src/ExportManager.cpp:506
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Cannot save screenshot because creating the remote directory failed:<nl/"
+"><filename>%1</filename>"
+msgstr ""
+"Не вдалося зберегти знімок вікна, оскільки не вдалося створити віддалений "
+"каталог:<nl/><filename>%1</filename>"
+
+#: src/ExportManager.cpp:517 src/ExportManager.cpp:566
+#, kde-format
+msgid "Cannot save screenshot. Error while writing temporary local file."
+msgstr ""
+"Не вдалося зберегти знімок. Помилка під час спроби записати тимчасовий "
+"локальний файл."
+
+#: src/ExportManager.cpp:525
+#, kde-format
+msgid "Unable to save image. Could not upload file to remote location."
+msgstr ""
+"Не вдалося зберегти зображення. Не вдалося вивантажити файл на віддалений "
+"сервер."
+
+#: src/ExportManager.cpp:573
+#, kde-format
+msgid "Cannot save screenshot. The save filename is invalid."
+msgstr "Не вдалося зберегти знімок. Назва файла є некоректною."
+
+#: src/ExportManager.cpp:617
+#, kde-format
+msgid "Cannot save an empty screenshot image."
+msgstr "Неможливо зберегти порожнє зображення знімка."
+
+#: src/ExportManager.cpp:780
+#, kde-format
+msgctxt "@info:shell"
+msgid ""
+"Failed to export video: Temporary file URL must be an existing local file"
+msgstr ""
+"Не вдалося експортувати відео: має бути вказано адресу наявного локального "
+"файла для тимчасового файла"
+
+#: src/ExportManager.cpp:787
+#, kde-format
+msgctxt "@info:shell"
+msgid ""
+"Failed to export video: Output file URL must be a valid URL with a file name"
+msgstr ""
+"Не вдалося експортувати відео: адреса файла виведення даних має бути "
+"коректною адресою з назвою файла"
+
+#: src/ExportManager.cpp:873
+#, kde-format
+msgctxt "@info, %1 is a file path"
+msgid "Unable to save recording. Could not move file to location: %1"
+msgstr ""
+"Не вдалося зберегти запис. Не вдалося пересунути файл до вказаного місця: %1"
+
+#: src/ExportManager.cpp:901
+#, kde-format
+msgid "Printing failed. The printer failed to initialize."
+msgstr "Не вдалося надрукувати. Спроба ініціалізувати принтер зазнала невдачі."
+
+#: src/ExportManager.cpp:918
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Day (1–31)"
+msgstr "День (1–31)"
+
+#: src/ExportManager.cpp:919
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Day (01–31)"
+msgstr "День (01–31)"
+
+#: src/ExportManager.cpp:920
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Day (short name)"
+msgstr "День (скорочена назва)"
+
+#: src/ExportManager.cpp:921
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Day (long name)"
+msgstr "День (назва повністю)"
+
+#: src/ExportManager.cpp:922
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Month (1–12)"
+msgstr "Місяць (1–12)"
+
+#: src/ExportManager.cpp:923
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Month (01–12)"
+msgstr "Місяць (01–12)"
+
+#: src/ExportManager.cpp:924
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Month (short name)"
+msgstr "Місяць (скорочена назва)"
+
+#: src/ExportManager.cpp:925
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Month (long name)"
+msgstr "Місяць (назва повністю)"
+
+#: src/ExportManager.cpp:926
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Year (2 digit)"
+msgstr "Рік (2 цифри)"
+
+#: src/ExportManager.cpp:927
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Year (4 digit)"
+msgstr "Рік (4 цифри)"
+
+#: src/ExportManager.cpp:928
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Hour (0–23)"
+msgstr "Година (0–23)"
+
+#: src/ExportManager.cpp:929
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Hour (00–23)"
+msgstr "Година (00–23)"
+
+#: src/ExportManager.cpp:930
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Hour (1–12)"
+msgstr "Година (1–12)"
+
+#: src/ExportManager.cpp:931
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Hour (01–12)"
+msgstr "Година (01–12)"
+
+#: src/ExportManager.cpp:932
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Minute (0–59)"
+msgstr "Хвилина (0–59)"
+
+#: src/ExportManager.cpp:933
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Minute (00–59)"
+msgstr "Хвилина (00–59)"
+
+#: src/ExportManager.cpp:934
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Second (0–59)"
+msgstr "Секунда (0–59)"
+
+#: src/ExportManager.cpp:935
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Second (00–59)"
+msgstr "Секунда (00–59)"
+
+#: src/ExportManager.cpp:936
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Millisecond (0–999)"
+msgstr "Мілісекунда (0–999)"
+
+#: src/ExportManager.cpp:938
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Millisecond (000–999)"
+msgstr "Мілісекунда (000–999)"
+
+#: src/ExportManager.cpp:939
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "AM/PM"
+msgstr "AM/PM"
+
+#: src/ExportManager.cpp:941
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "am/pm"
+msgstr "am/pm"
+
+#: src/ExportManager.cpp:943
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "AM/PM or am/pm (localized)"
+msgstr "AM/PM або am/pm (локалізовані)"
+
+#: src/ExportManager.cpp:945
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Timezone (short name)"
+msgstr "Часовий пояс (скорочена назва)"
+
+#: src/ExportManager.cpp:946
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Timezone offset (±0000)"
+msgstr "Часовий зсув (±00:00)"
+
+#: src/ExportManager.cpp:947
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Timezone offset (±00:00)"
+msgstr "Часовий зсув (±00:00)"
+
+#: src/ExportManager.cpp:948
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Timezone (long name)"
+msgstr "Часовий пояс (назва повністю)"
+
+#: src/ExportManager.cpp:949
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Seconds since the Unix epoch"
+msgstr "Секунди з початку епохи Unix"
+
+#: src/ExportManager.cpp:950
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Window Title"
+msgstr "Заголовок вікна"
+
+#: src/ExportManager.cpp:951
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Sequential numbering, padded by inserting additional '#' characters"
+msgstr "Послідовна нумерація із доповненням нулями за символами «#»"
+
+#: src/Gui/AcceptAction.qml:9
+#, kde-format
+msgctxt "@action accept selection"
+msgid "Accept"
+msgstr "Прийняти"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:56
+#, kde-format
+msgid "Stroke:"
+msgstr "Штрих:"
+
+#. i18n uses so it doesn't matter that much
+#. unless someone decides to set the locale for a specific
+#. part of spectacle in the future.
+#: src/Gui/AnnotationOptionsToolBarContents.qml:88
+#, kde-format
+msgctxt "px: pixels"
+msgid "%1px"
+msgid_plural "%1px"
+msgstr[0] "%1пк"
+msgstr[1] "%1пк"
+msgstr[2] "%1пк"
+msgstr[3] "%1пк"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:93
+#, kde-format
+msgid "Stroke Width"
+msgstr "Товщина штриха"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:126
+#, kde-format
+msgid "Stroke Color"
+msgstr "Колір штриха"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:162
+#, kde-format
+msgid "Fill:"
+msgstr "Заповнення:"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:174
+#, kde-format
+msgid "Fill Color"
+msgstr "Колір заповнення"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:213
+#, kde-format
+msgctxt "@label:slider strength of effect"
+msgid "Strength:"
+msgstr "Потужність:"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:232
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "The strength of the effect."
+msgstr "Потужність ефекту."
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:259
+#, kde-format
+msgid "Font:"
+msgstr "Шрифт:"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:273
+#, kde-format
+msgctxt "%2 font family, %3 font style name, %1 font point size"
+msgid "%2 %3 %1pt"
+msgid_plural "%2 %3 %1pts"
+msgstr[0] "%2 %3 %1пт"
+msgstr[1] "%2 %3 %1пт"
+msgstr[2] "%2 %3 %1пт"
+msgstr[3] "%2 %3 %1пт"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:274
+#, kde-format
+msgctxt "%2 font family %1 font point size"
+msgid "%2 %1pt"
+msgid_plural "%2 %1pts"
+msgstr[0] "%2 %1пт"
+msgstr[1] "%2 %1пт"
+msgstr[2] "%2 %1пт"
+msgstr[3] "%2 %1пт"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:286
+#, kde-format
+msgid "Font Color"
+msgstr "Колір шрифту"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:325
+#, kde-format
+msgid "Number:"
+msgstr "Номер:"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:344
+#, kde-format
+msgid "Number for number annotations"
+msgstr "Кількість нумерованих анотацій"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:372
+#, kde-format
+msgid "Shadow"
+msgstr "Тінь"
+
+#: src/Gui/AnnotationsToolBarContents.qml:108
+#, kde-format
+msgctxt "@action:intoolbar no tool, to allow dragging"
+msgid "None"
+msgstr "Немає"
+
+#: src/Gui/AnnotationsToolBarContents.qml:120
+#, kde-format
+msgctxt "@action:intoolbar crop image tool"
+msgid "Crop"
+msgstr "Обрізання"
+
+#: src/Gui/AnnotationsToolBarContents.qml:127
+#, kde-format
+msgctxt "@action:intoolbar select annotation tool"
+msgid "Select"
+msgstr "Позначення"
+
+#: src/Gui/AnnotationsToolBarContents.qml:136
+#, kde-format
+msgctxt "@action:intoolbar freehand line tool"
+msgid "Freehand"
+msgstr "Довільний контур"
+
+#: src/Gui/AnnotationsToolBarContents.qml:137
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Shift: Snap to straight lines"
+msgstr "Shift: прилипання до прямих"
+
+#: src/Gui/AnnotationsToolBarContents.qml:144
+#, kde-format
+msgctxt "@action:intoolbar highlighter line tool"
+msgid "Highlighter"
+msgstr "Підсвічування"
+
+#: src/Gui/AnnotationsToolBarContents.qml:153
+#, kde-format
+msgctxt "@action:intoolbar straight line tool"
+msgid "Line"
+msgstr "Пряма"
+
+#: src/Gui/AnnotationsToolBarContents.qml:154
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Shift: Snap to 45 degree increments"
+msgstr "Shift: прилипання до напрямків з кроком у 45 градусів"
+
+#: src/Gui/AnnotationsToolBarContents.qml:161
+#, kde-format
+msgctxt "@action:intoolbar arrow line tool"
+msgid "Arrow"
+msgstr "Стрілка"
+
+#: src/Gui/AnnotationsToolBarContents.qml:170
+#, kde-format
+msgctxt "@action:intoolbar rectangle tool"
+msgid "Rectangle"
+msgstr "Прямокутник"
+
+#: src/Gui/AnnotationsToolBarContents.qml:172
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Shift: Snap to diagonal movements\n"
+"Control: Resize from center"
+msgstr ""
+"Shift: прилипання до діагональних пересувань\n"
+"\n"
+"Ctrl: змінити розміри від центра"
+
+#: src/Gui/AnnotationsToolBarContents.qml:179
+#, kde-format
+msgctxt "@action:intoolbar ellipse tool"
+msgid "Ellipse"
+msgstr "Еліпс"
+
+#: src/Gui/AnnotationsToolBarContents.qml:187
+#, kde-format
+msgctxt "@action:intoolbar pixelate tool"
+msgid "Pixelate"
+msgstr "Пікселізація"
+
+#: src/Gui/AnnotationsToolBarContents.qml:195
+#, kde-format
+msgctxt "@action:intoolbar blur tool"
+msgid "Blur"
+msgstr "Розмивання"
+
+#: src/Gui/AnnotationsToolBarContents.qml:203
+#, kde-format
+msgctxt "@action:intoolbar text tool"
+msgid "Text"
+msgstr "Текст"
+
+#: src/Gui/AnnotationsToolBarContents.qml:210
+#, kde-format
+msgctxt "@action:intoolbar number stamp tool"
+msgid "Number"
+msgstr "Номер"
+
+#: src/Gui/CancelAction.qml:9
+#, kde-format
+msgctxt "@action cancel selection"
+msgid "Cancel"
+msgstr "Скасувати"
+
+#: src/Gui/CaptureModeButtonsColumn.qml:31
+#: src/Gui/NewScreenshotToolButton.qml:15
+#, kde-format
+msgid "Cancel (%1 second)"
+msgid_plural "Cancel (%1 seconds)"
+msgstr[0] "Скасувати (%1 секунда)"
+msgstr[1] "Скасувати (%1 секунди)"
+msgstr[2] "Скасувати (%1 секунд)"
+msgstr[3] "Скасувати (%1 секунда)"
+
+#: src/Gui/CaptureOptions.qml:17
+#, kde-format
+msgid "Take a new screenshot"
+msgstr "Зробити новий знімок"
+
+#: src/Gui/CaptureOptions.qml:39
+#, kde-format
+msgctxt "@title:group"
+msgid "Screenshot Settings"
+msgstr "Параметри знімків вікон"
+
+#: src/Gui/CaptureOverlay.qml:148
+#, kde-format
+msgctxt "@info basic crop tool explanation"
+msgid "Click and drag to make a selection."
+msgstr "Натисніть кнопку миші і перетягніть вказівник, щоб щось позначити."
+
+#: src/Gui/CaptureSettingsColumn.qml:16 src/Gui/RecordingSettingsColumn.qml:16
+#, kde-format
+msgid "Include mouse pointer"
+msgstr "Включити вказівник миші"
+
+#: src/Gui/CaptureSettingsColumn.qml:17
+#, kde-format
+msgid "Show the mouse cursor in the screenshot image."
+msgstr "Показувати вказівник миші на знімку."
+
+#: src/Gui/CaptureSettingsColumn.qml:25
+#, kde-format
+msgid "Include window titlebar and borders"
+msgstr "Включити заголовок і рамку вікна"
+
+#: src/Gui/CaptureSettingsColumn.qml:26
+#, kde-format
+msgid ""
+"Show the window title bar and border when taking a screenshot of a window."
+msgstr "Показувати смужку заголовка вікна і рамку при створенні знімка вікна."
+
+#: src/Gui/CaptureSettingsColumn.qml:34
+#, kde-format
+msgid "Include window shadow"
+msgstr "Включити тінь вікна"
+
+#: src/Gui/CaptureSettingsColumn.qml:35
+#, kde-format
+msgid "Show the window shadow when taking a screenshot of a window."
+msgstr "Показувати тінь вікна при створенні знімка вікна."
+
+#: src/Gui/CaptureSettingsColumn.qml:44
+#, kde-format
+msgid "Capture the current pop-up only"
+msgstr "Захопити лише поточне контекстне вікно"
+
+#: src/Gui/CaptureSettingsColumn.qml:46
+#, kde-format
+msgid ""
+"Capture only the current pop-up window (like a menu, tooltip etc) when "
+"taking a screenshot of a window. If disabled, the pop-up is captured along "
+"with the parent window."
+msgstr ""
+"Захопити лише поточне контекстне вікно (меню, панель підказки тощо) при "
+"створенні знімка вікна. Якщо не позначено, контекстне вікно буде захоплено "
+"разом із батьківським вікном."
+
+#: src/Gui/CaptureSettingsColumn.qml:54
+#, kde-format
+msgid "Quit after manual Save or Copy"
+msgstr "Вийти після збереження або копіювання вручну"
+
+#: src/Gui/CaptureSettingsColumn.qml:55
+#, kde-format
+msgid "Quit Spectacle after manually saving or copying the image."
+msgstr "Вийти зі Spectacle після збереження або копіювання зображення вручну."
+
+#: src/Gui/CaptureSettingsColumn.qml:64
+#, kde-format
+msgid "Capture on click"
+msgstr "Захопити після клацання"
+
+#: src/Gui/CaptureSettingsColumn.qml:66
+#, kde-format
+msgid "Wait for a mouse click before capturing the screenshot image."
+msgstr "Зачекати зі створенням знімка на клацання кнопкою миші."
+
+#: src/Gui/CaptureSettingsColumn.qml:76
+#, kde-format
+msgid "Delay:"
+msgstr "Затримка:"
+
+#: src/Gui/CopyImageAction.qml:13
+#, kde-format
+msgctxt "@action"
+msgid "Copy"
+msgstr "Копіювати"
+
+#: src/Gui/CopyLocationAction.qml:9
+#, kde-format
+msgctxt "@action"
+msgid "Copy Location"
+msgstr "Копіювати адресу"
+
+#: src/Gui/DelaySpinBox.qml:15
+#, kde-format
+msgctxt "0 second delay"
+msgid "No Delay"
+msgstr "Без затримки"
+
+#: src/Gui/DelaySpinBox.qml:24
+#, kde-format
+msgctxt "Integer number of seconds"
+msgid "%2 second"
+msgid_plural "%2 seconds"
+msgstr[0] "%2 секунда"
+msgstr[1] "%2 секунди"
+msgstr[2] "%2 секунд"
+msgstr[3] "%2 секунда"
+
+#: src/Gui/DelaySpinBox.qml:26
+#, kde-format
+msgctxt "Decimal number of seconds"
+msgid "%1 seconds"
+msgstr "%1 секунд"
+
+#: src/Gui/DialogPage.qml:53
+#, kde-format
+msgid "Configure Spectacle…"
+msgstr "Налаштувати Spectacle…"
+
+#: src/Gui/DialogPage.qml:61
+#, kde-format
+msgid "Help"
+msgstr "Довідка"
+
+#: src/Gui/DialogPage.qml:80
+#, kde-format
+msgctxt "@title:group"
+msgid "Take a Screenshot:"
+msgstr "Створення знімка вікна:"
+
+#: src/Gui/DialogPage.qml:95 src/Gui/DialogPage.qml:136
+#, kde-format
+msgctxt "@title:group"
+msgid "Options"
+msgstr "Параметри"
+
+#: src/Gui/DialogPage.qml:121
+#, kde-format
+msgctxt "@title:group"
+msgid "Make a Recording:"
+msgstr "Запис відео:"
+
+#: src/Gui/DialogPage.qml:163
+#, kde-format
+msgctxt "@title:tab"
+msgid "Screenshot"
+msgstr "Знімок вікна"
+
+#: src/Gui/DialogPage.qml:168
+#, kde-format
+msgctxt "@title:tab"
+msgid "Recording"
+msgstr "Запис з екрана"
+
+#: src/Gui/EditAction.qml:11
+#, kde-format
+msgctxt "@action edit screenshot"
+msgid "Edit…"
+msgstr "Змінити…"
+
+#: src/Gui/ExportMenu.cpp:45
+#, kde-format
+msgctxt "@title:menu"
+msgid "Export"
+msgstr "Експорт"
+
+#: src/Gui/ExportMenu.cpp:48
+#, kde-format
+msgid "Open Default Screenshots Folder"
+msgstr "Відкрити типову теку зі знімками"
+
+#: src/Gui/ExportMenu.cpp:134
+#, kde-format
+msgctxt "@action:button open screenshot in other application"
+msgid "Other Application…"
+msgstr "Інша програма…"
+
+#: src/Gui/ExportMenu.cpp:166
+#, kde-format
+msgid "Share"
+msgstr "Оприлюднити"
+
+#: src/Gui/ExportMenu.cpp:259
+#, kde-format
+msgctxt "@action:menu"
+msgid "Extract Text by Language"
+msgstr "Видобування тексту за мовою"
+
+#: src/Gui/ExportMenu.cpp:295
+#, kde-format
+msgid "OCR engine is not available."
+msgstr "Немає доступу до рушія розпізнавання тексту."
+
+#: src/Gui/ExportMenu.cpp:303
+#, kde-format
+msgid "OCR is not available. Please install Tesseract OCR."
+msgstr ""
+"Немає доступу до засобу розпізнавання тексту. Будь ласка, встановіть систему "
+"розпізнавання тексту Tesseract."
+
+#: src/Gui/ExportMenu.cpp:304
+#, kde-format
+msgid "OCR engine is initializing…"
+msgstr "Ініціалізація рушія розпізнавання тексту…"
+
+#: src/Gui/ExportMenu.cpp:314
+#, kde-format
+msgid "No OCR language data available."
+msgstr "Немає доступних даних для розпізнавання тексту певною мовою."
+
+#: src/Gui/ExportMenuButton.qml:13
+#, kde-format
+msgctxt "@action"
+msgid "Export"
+msgstr "Експорт"
+
+#: src/Gui/HelpMenu.cpp:40
+#, kde-format
+msgctxt "@title:menu"
+msgid "Help"
+msgstr "Довідка"
+
+#: src/Gui/HelpMenuButton.qml:10
+#, kde-format
+msgctxt "@action"
+msgid "Help"
+msgstr "Довідка"
+
+#: src/Gui/InlineMessageList.qml:129
+#, kde-format
+msgctxt "@action:button"
+msgid "Open Containing Folder"
+msgstr "Відкрити теку з даними"
+
+#: src/Gui/InlineMessageList.qml:139
+#, kde-format
+msgctxt "@action:button"
+msgid "Copy to Clipboard"
+msgstr "Скопіювати до буфера"
+
+#: src/Gui/InlineMessageList.qml:149
+#, kde-format
+msgctxt "@action:button close inline notification"
+msgid "Close"
+msgstr "Закрити"
+
+#: src/Gui/NewScreenshotToolButton.qml:27
+#, kde-format
+msgid "New Screenshot"
+msgstr "Новий знімок вікна"
+
+#: src/Gui/OcrAction.qml:15
+#, kde-format
+msgctxt "@action"
+msgid "Extract Text"
+msgstr "Видобути текст"
+
+#: src/Gui/OptionsMenu.cpp:38
+#, kde-format
+msgctxt "@title:menu"
+msgid "Screenshot Settings"
+msgstr "Параметри знімків вікон"
+
+#: src/Gui/OptionsMenu.cpp:40
+#, kde-format
+msgctxt "@option:check for screenshots"
+msgid "Include mouse pointer"
+msgstr "Включити вказівник миші"
+
+#: src/Gui/OptionsMenu.cpp:41
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Show the mouse cursor in the screenshot image"
+msgstr "Показувати вказівник миші на знімку"
+
+#: src/Gui/OptionsMenu.cpp:49
+#, kde-format
+msgctxt "@option:check"
+msgid "Include window titlebar and borders"
+msgstr "Включити заголовок і рамку вікна"
+
+#: src/Gui/OptionsMenu.cpp:50
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Show the window title bar, the minimize/maximize/close buttons, and the "
+"window border"
+msgstr ""
+"Показувати смужку заголовка вікна, кнопки мінімізації, максимізації та "
+"закриття, а також обрамлення вікна"
+
+#: src/Gui/OptionsMenu.cpp:58
+#, kde-format
+msgctxt "@option:check"
+msgid "Include window shadow"
+msgstr "Включити тінь вікна"
+
+#: src/Gui/OptionsMenu.cpp:59
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Show the window shadow"
+msgstr "Показувати тінь вікна"
+
+#: src/Gui/OptionsMenu.cpp:69
+#, kde-format
+msgctxt "@option:check"
+msgid "Capture the current pop-up only"
+msgstr "Захопити лише поточне контекстне вікно"
+
+#: src/Gui/OptionsMenu.cpp:71
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Capture only the current pop-up window (like a menu, tooltip etc).\n"
+"If disabled, the pop-up is captured along with the parent window"
+msgstr ""
+"Захопити лише поточне контекстне вікно (меню, панель підказки тощо).\n"
+"Якщо не позначено, контекстне вікно буде захоплено разом із батьківським "
+"вікном."
+
+#: src/Gui/OptionsMenu.cpp:81
+#, kde-format
+msgctxt "@option:check"
+msgid "Quit after manual Save or Copy"
+msgstr "Вийти після збереження або копіювання вручну"
+
+#: src/Gui/OptionsMenu.cpp:82
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Quit Spectacle after manually saving or copying the image"
+msgstr "Вийти зі Spectacle після збереження або копіювання зображення вручну"
+
+#: src/Gui/OptionsMenu.cpp:94
+#, kde-format
+msgctxt "@option:check"
+msgid "Capture On Click"
+msgstr "Захопити після клацання"
+
+#: src/Gui/OptionsMenu.cpp:109
+#, kde-format
+msgctxt "@label:spinbox"
+msgid "Delay:"
+msgstr "Затримка:"
+
+#: src/Gui/OptionsMenu.cpp:114
+#, kde-format
+msgctxt "@item 0 delay special value"
+msgid "No Delay"
+msgstr "Без затримки"
+
+#: src/Gui/OptionsMenu.cpp:133
+#, kde-format
+msgctxt "@title:menu"
+msgid "Recording Settings"
+msgstr "Параметри запису"
+
+#: src/Gui/OptionsMenu.cpp:135
+#, kde-format
+msgctxt "@option:check for recordings"
+msgid "Include mouse pointer"
+msgstr "Включити вказівник миші"
+
+#: src/Gui/OptionsMenu.cpp:136
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Show the mouse cursor in the recording"
+msgstr "Показувати вказівник миші на записі"
+
+#: src/Gui/OptionsMenuButton.qml:10
+#, kde-format
+msgctxt "@action"
+msgid "Options"
+msgstr "Параметри"
+
+#: src/Gui/RecordAction.qml:11
+#, kde-format
+msgctxt "@action start recording"
+msgid "Record"
+msgstr "Записати"
+
+#: src/Gui/RecordingModeMenu.cpp:16
+#, kde-format
+msgctxt "@title:menu"
+msgid "Recording Modes"
+msgstr "Режими запису з екрана"
+
+#: src/Gui/RecordingModeMenuButton.qml:11
+#, kde-format
+msgctxt "@action select new recording mode"
+msgid "New Recording"
+msgstr "Новий запис"
+
+#: src/Gui/RecordingSettingsColumn.qml:17
+#, kde-format
+msgid "Show the mouse cursor in the screen recording."
+msgstr "Показувати вказівник миші на записі з екрана."
+
+#: src/Gui/RecordingView.qml:85
+#, kde-format
+msgctxt "Recording in progress, %1 is the length of the recording so far"
+msgid ""
+"Recording:\n"
+"%1"
+msgstr ""
+"Запис:\n"
+"%1"
+
+#: src/Gui/RecordingView.qml:124
+#, kde-format
+msgid "Pause"
+msgstr "Пауза"
+
+#: src/Gui/RecordingView.qml:124
+#, kde-format
+msgid "Play"
+msgstr "Пуск"
+
+#: src/Gui/RecordOptions.qml:23
+#, kde-format
+msgid "Recording Settings"
+msgstr "Параметри запису"
+
+#: src/Gui/RecordOptions.qml:37
+#, kde-format
+msgid "Finish recording"
+msgstr "Завершити записування"
+
+#: src/Gui/SaveAction.qml:13
+#, kde-format
+msgctxt "@action"
+msgid "Save"
+msgstr "Зберегти"
+
+#: src/Gui/SaveAsAction.qml:9
+#, kde-format
+msgctxt "@action"
+msgid "Save As…"
+msgstr "Зберегти як…"
+
+#: src/Gui/ScreenshotModeMenu.cpp:16
+#, kde-format
+msgctxt "@title:menu"
+msgid "Screenshot Modes"
+msgstr "Режими знімків вікон"
+
+#: src/Gui/ScreenshotModeMenuButton.qml:11
+#, kde-format
+msgctxt "@action select new screenshot mode"
+msgid "New Screenshot"
+msgstr "Новий знімок вікна"
+
+#: src/Gui/ScreenshotView.qml:196
+#, kde-format
+msgctxt "@info crop tool explanation"
+msgid ""
+"Click and drag to make a selection.\n"
+"Double click the selection to accept and crop.\n"
+"Right click to clear the selection."
+msgstr ""
+"Натисніть ліву кнопку миші і перетягніть вказівник для позначення.\n"
+"Двічі клацніть на позначеному, щоб підтвердити і обрізати.\n"
+"Клацніть правою кнопкою, щоб зняти позначення."
+
+#. i18n: ectx: property (text), widget (QLabel, launchActionSpectacleLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:17
+#, kde-format
+msgid "When launching Spectacle:"
+msgstr "При запуску Spectacle:"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_launchAction)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:25
+#, kde-format
+msgid "Take rectangular screenshot"
+msgstr "Зробити прямокутний знімок"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_launchAction)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:30
+#, kde-format
+msgid "Take full screen screenshot"
+msgstr "Зробити знімок усього екрана"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_launchAction)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:35
+#, kde-format
+msgid "Use last-used capture mode"
+msgstr "Використати останній режим знімання"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_launchAction)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:40
+#, kde-format
+msgid "Do not take a screenshot automatically"
+msgstr "Не створювати знімок автоматично"
+
+#. i18n: ectx: property (text), widget (QLabel, afterScreenshotLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:64
+#, kde-format
+msgid "After taking a screenshot:"
+msgstr "Після створення знімка:"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_autoSaveImage)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:71
+#, kde-format
+msgid "Save file to default folder"
+msgstr "Зберігати зображення до типової теки"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_clipboardGroup)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:82
+#, kde-format
+msgid "Do not copy anything"
+msgstr "Нічого не копіювати"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_clipboardGroup)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:87
+#, kde-format
+msgid "Copy image to clipboard"
+msgstr "Копіювати зображення до буфера"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_clipboardGroup)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:92
+#, kde-format
+msgid "Copy file location to clipboard"
+msgstr "Копіювати розташування файла до буфера обміну даними"
+
+#. i18n: ectx: property (text), widget (KTitleWidget, runningTitle)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:116
+#, kde-format
+msgid "While Spectacle is running"
+msgstr "Якщо Spectacle запущено"
+
+#. i18n: ectx: property (text), widget (QLabel, printKeyActionLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:123
+#, kde-format
+msgid "Press screenshot key to:"
+msgstr "Натискання клавіші знімків вікна:"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_printKeyRunningAction)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:131
+#, kde-format
+msgid "Take a new Screenshot"
+msgstr "Зробити новий знімок"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_printKeyRunningAction)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:136
+#, kde-format
+msgid "Open a new Spectacle window"
+msgstr "Відкриває нове вікно Spectacle"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_printKeyRunningAction)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:141
+#, kde-format
+msgid "Return focus to Spectacle"
+msgstr "Повертає фокус до Spectacle"
+
+#. i18n: ectx: property (text), widget (KTitleWidget, regionTitle)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:165
+#, kde-format
+msgid "Rectangular Region Selection"
+msgstr "Позначення прямокутної ділянки"
+
+#. i18n: ectx: property (text), widget (QLabel, generalLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:172
+#, kde-format
+msgid "General:"
+msgstr "Загальне:"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_useLightMaskColor)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:179
+#, kde-format
+msgid "Use light background"
+msgstr "Використовувати світле тло"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_useReleaseToCapture)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:186
+#, kde-format
+msgid "Accept on click-and-release"
+msgstr "Знімати клацанням і відпусканням"
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:193
+#, kde-format
+msgid "Show magnifier:"
+msgstr "Показати збільшувальне скло:"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_showMagnifier)
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_rememberSelectionRect)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:201
+#: src/Gui/SettingsDialog/GeneralOptions.ui:227
+#, kde-format
+msgid "Never"
+msgstr "Ніколи"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_showMagnifier)
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_rememberSelectionRect)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:206
+#: src/Gui/SettingsDialog/GeneralOptions.ui:232
+#, kde-format
+msgid "Always"
+msgstr "Завжди"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_showMagnifier)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:211
+#, kde-format
+msgid "While holding Shift"
+msgstr "При утриманні натиснутою Shift"
+
+#. i18n: ectx: property (text), widget (QLabel, rememberLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:219
+#, kde-format
+msgid "Remember selected area:"
+msgstr "Пам’ятати позначену ділянку:"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_rememberSelectionRect)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:237
+#, kde-format
+msgid "Until Spectacle is closed"
+msgstr "Доки Spectacle не буде закрито"
+
+#. i18n: ectx: property (text), widget (KTitleWidget, ocrTitle)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:261
+#, kde-format
+msgid "Text Recognition (OCR)"
+msgstr "Розпізнавання тексту"
+
+#. i18n: ectx: property (text), widget (QLabel, ocrLanguageLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:268
+#, kde-format
+msgid "Languages for OCR:"
+msgstr "Мови для розпізнавання:"
+
+#. i18n: ectx: property (text), widget (QLabel, closeAfterOcrLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:306
+#, kde-format
+msgid "Text extraction:"
+msgstr "Видобування тексту:"
+
+#. i18n: ectx: label, entry (closeAfterOcr), group (General)
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_closeAfterOcr)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:327
+#: src/Gui/SettingsDialog/spectacle.kcfg:38
+#, kde-format
+msgid "Close after extraction (skips auto-save)"
+msgstr "Закрити після видобування (пропустити автозбереження)"
+
+#. i18n: ectx: property (toolTip), widget (QLabel, closeAfterOcrInfo)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:334
+#, kde-format
+msgid ""
+"Spectacle will close after text extraction and automatic saving will be "
+"skipped."
+msgstr ""
+"Spectacle завершить роботу після видобування тексту, а автоматичне "
+"збереження буде пропущено."
+
+#. i18n: ectx: property (text), widget (QLabel, ocrUnavailableLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:395
+#, kde-format
+msgid "OCR functionality is not available"
+msgstr "Функціональні можливості розпізнавання тексту недоступні"
+
+#. i18n: ectx: property (toolTip), widget (QLabel, ocrInfoIcon)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:413
+#, kde-format
+msgid ""
+"Please install the required packages:\n"
+"• tesseract\n"
+"• tesseract language data (e.g., tesseract-ocr-eng for English)"
+msgstr ""
+"Будь ласка, встановіть потрібні програмі пакунки:\n"
+"• tesseract\n"
+"• мовні дані tesseract (наприклад, tesseract-ocr-ukr для української)"
+
+#. i18n: ectx: property (text), widget (QLabel, saveLocationLabel)
+#: src/Gui/SettingsDialog/ImageSaveOptions.ui:9
+#, kde-format
+msgid "Save Location:"
+msgstr "Місце зберігання:"
+
+#. i18n: ectx: property (text), widget (QLabel, qualityLabel)
+#: src/Gui/SettingsDialog/ImageSaveOptions.ui:26
+#, kde-format
+msgid "Compression Quality:"
+msgstr "Якість стискання:"
+
+#. i18n: ectx: property (text), widget (QLabel, imageCompressionQualityHelpLable)
+#: src/Gui/SettingsDialog/ImageSaveOptions.ui:53
+#, kde-format
+msgid "For lossy image formats like JPEG"
+msgstr "Для форматів зберігання зображень із втратами, подібних до JPEG"
+
+#. i18n: ectx: property (suffix), widget (QSpinBox, qualitySpinner)
+#: src/Gui/SettingsDialog/ImageSaveOptions.ui:62
+#, no-c-format, kde-format
+msgid "%"
+msgstr "%"
+
+#. i18n: ectx: property (text), widget (QLabel, filenameLabel)
+#: src/Gui/SettingsDialog/ImageSaveOptions.ui:74
+#: src/Gui/SettingsDialog/VideoSaveOptions.ui:26
+#, kde-format
+msgid "Filename:"
+msgstr "Назва файла:"
+
+#. i18n: ectx: property (text), widget (QLabel, PreviewLabel)
+#. i18n: ectx: property (text), widget (QLabel, previewLabel)
+#: src/Gui/SettingsDialog/ImageSaveOptions.ui:103
+#: src/Gui/SettingsDialog/VideoSaveOptions.ui:47
+#, kde-format
+msgctxt "Preview of the user configured filename"
+msgid "Preview:"
+msgstr "Перегляд:"
+
+#: src/Gui/SettingsDialog/SaveOptionsUtils.h:40
+#, kde-kuit-format
+msgctxt "@info"
+msgid "<filename>%1</filename>"
+msgstr "<filename>%1</filename>"
+
+#: src/Gui/SettingsDialog/SaveOptionsUtils.h:72
+#, kde-format
+msgid ""
+"You can use the following placeholders in the filename, which will be "
+"replaced with actual text when the file is saved:"
+msgstr ""
+"У назвах файлів ви можете використовувати вказані нижче замінники, які буде "
+"замінено текстом під час збереження файлів:"
+
+#: src/Gui/SettingsDialog/SaveOptionsUtils.h:87
+#, kde-format
+msgid "To save to a sub-folder"
+msgstr "Для збереження до підтеки"
+
+#: src/Gui/SettingsDialog/SaveOptionsUtils.h:90
+#, kde-format
+msgctxt "show fewer filename placeholder templates"
+msgid "Show Fewer"
+msgstr "Стисліше"
+
+#: src/Gui/SettingsDialog/SaveOptionsUtils.h:92
+#, kde-format
+msgctxt "show more filename placeholder templates"
+msgid "Show More"
+msgstr "Докладніше"
+
+#: src/Gui/SettingsDialog/SettingsDialog.cpp:37
+#, kde-format
+msgctxt "Settings category"
+msgid "General"
+msgstr "Загальне"
+
+#: src/Gui/SettingsDialog/SettingsDialog.cpp:38
+#, kde-format
+msgctxt "Settings category"
+msgid "Image Saving"
+msgstr "Збереження зображення"
+
+#: src/Gui/SettingsDialog/SettingsDialog.cpp:39
+#, kde-format
+msgctxt "Settings category"
+msgid "Video Saving"
+msgstr "Збереження відео"
+
+#: src/Gui/SettingsDialog/SettingsDialog.cpp:40
+#, kde-format
+msgctxt "Settings category"
+msgid "Shortcuts"
+msgstr "Скорочення"
+
+#: src/Gui/SettingsDialog/SettingsDialog.cpp:104
+#, kde-format
+msgid "Shortcuts"
+msgstr "Скорочення"
+
+#. i18n: ectx: label, entry (launchAction), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:15
+#, kde-format
+msgid "What to do when Spectacle is launched"
+msgstr "Дія, яку слід виконати після запуску Spectacle"
+
+#. i18n: ectx: label, entry (printKeyRunningAction), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:25
+#, kde-format
+msgid ""
+"What should happen if print key is pressed when Spectacle is already running"
+msgstr ""
+"Визначає дію, яку має бути виконано при натисканні кнопки друку, якщо "
+"Spectacle вже запущено"
+
+#. i18n: ectx: label, entry (autoSaveImage), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:34
+#, kde-format
+msgid "Save screenshot automatically after it is taken"
+msgstr "Автоматичне збереження знімка після його створення"
+
+#. i18n: ectx: label, entry (clipboardGroup), group (General)
+#. i18n: ectx: label, entry (showMagnifier), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:42
+#: src/Gui/SettingsDialog/spectacle.kcfg:55
+#, kde-format
+msgid "Clipboard action which should be executed after the screenshot is taken"
+msgstr "Дія з буфером обміну, яку слід виконати після створення знімка"
+
+#. i18n: ectx: label, entry (useLightMaskColor), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:51
+#, kde-format
+msgid "Whether to use a light color mask in the region selection dialog"
+msgstr ""
+"Визначає, чи слід використовувати світлу маску кольорів у вікні вибору "
+"ділянки"
+
+#. i18n: ectx: label, entry (useReleaseToCapture), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:64
+#, kde-format
+msgid ""
+"Whether the screenshot should be captured after selecting the region and "
+"releasing the mouse"
+msgstr ""
+"Визначає, чи має бути захоплено знімок екрана після позначення ділянки і "
+"відпускання кнопки миші"
+
+#. i18n: ectx: label, entry (rememberSelectionRect), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:68
+#, kde-format
+msgid "Remember the last rectangular region"
+msgstr "Чи слід запам'ятовувати останню прямокутну ділянку"
+
+#. i18n: ectx: label, entry (ocrLanguages), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:77
+#, kde-format
+msgid "Default languages for OCR text recognition"
+msgstr "Типова мова для розпізнавання тексту"
+
+#. i18n: ectx: label, entry (selectionRect), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:83
+#, kde-format
+msgid "The last used region the user selected"
+msgstr "Остання використаний користувачем ділянка"
+
+#. i18n: ectx: label, entry (captureOnClick), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:87
+#, kde-format
+msgid "Take screenshot on click"
+msgstr "Чи слід робити знімок вікна у відповідь на клацання кнопкою миші"
+
+#. i18n: ectx: label, entry (includePointer), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:91
+#, kde-format
+msgid "Whether the mouse cursor is included in the screenshot"
+msgstr "Чи слід включати вказівник миші до знімка"
+
+#. i18n: ectx: label, entry (videoIncludePointer), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:95
+#, kde-format
+msgid "Whether the mouse cursor is included in the video"
+msgstr "Чи слід включати вказівник миші до відео"
+
+#. i18n: ectx: label, entry (includeDecorations), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:99
+#, kde-format
+msgid "Whether the window decorations are included in the screenshot"
+msgstr "Визначає, чи слід включати до знімка вікна його обрамлення"
+
+#. i18n: ectx: label, entry (includeShadow), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:103
+#, kde-format
+msgid "Whether the window shadow is included in the screenshot"
+msgstr "Визначає, чи слід включати до знімка вікна його тінь"
+
+#. i18n: ectx: label, entry (transientOnly), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:107
+#, kde-format
+msgid "Only capture the current pop up menu"
+msgstr "Чи слід захоплювати лише поточне контекстне вікно"
+
+#. i18n: ectx: label, entry (quitAfterSaveCopyExport), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:111
+#, kde-format
+msgid "Quit after saving or copying an image"
+msgstr ""
+"Чи слід виходити зі Spectacle після збереження або копіювання зображення"
+
+#. i18n: ectx: label, entry (captureDelay), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:115
+#, kde-format
+msgid "Delay"
+msgstr "Затримка"
+
+#. i18n: ectx: label, entry (imageSaveLocation), group (ImageSave)
+#. i18n: ectx: label, entry (videoSaveLocation), group (VideoSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:126
+#: src/Gui/SettingsDialog/spectacle.kcfg:172
+#, kde-format
+msgid "Default filename"
+msgstr "Типова назва файла"
+
+#. i18n: ectx: label, entry (imageCompressionQuality), group (ImageSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:143
+#, kde-format
+msgid "Compression quality for lossy file formats"
+msgstr "Якість стискання файлів у форматах із втратою даних"
+
+#. i18n: ectx: label, entry (preferredImageFormat), group (ImageSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:151
+#, kde-format
+msgid "Default save image format"
+msgstr "Типовий формат зберігання зображень"
+
+#. i18n: ectx: label, entry (imageFilenameTemplate), group (ImageSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:155
+#, kde-format
+msgid "The filename template used when saving screenshots"
+msgstr "Шаблон назви файла, який буде використано під час зберігання знімків"
+
+#. i18n: ectx: label, entry (lastImageSaveLocation), group (ImageSave)
+#. i18n: ectx: label, entry (lastVideoSaveLocation), group (VideoSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:162
+#: src/Gui/SettingsDialog/spectacle.kcfg:201
+#, kde-format
+msgid "The path of the file saved last"
+msgstr "Шлях до останнього збереженого файла"
+
+#. i18n: ectx: label, entry (lastImageSaveAsLocation), group (ImageSave)
+#. i18n: ectx: label, entry (lastVideoSaveAsLocation), group (VideoSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:166
+#: src/Gui/SettingsDialog/spectacle.kcfg:205
+#, kde-format
+msgid "Last path used for \"save as\" action"
+msgstr "Останній шлях, який було використано для дії «Зберегти як»"
+
+#. i18n: ectx: label, entry (preferredVideoFormat), group (VideoSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:189
+#, kde-format
+msgid "Default video format"
+msgstr "Типовий формат відео"
+
+#. i18n: ectx: label, entry (videoFilenameTemplate), group (VideoSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:194
+#, kde-format
+msgid "The filename template used when saving screencasts"
+msgstr ""
+"Шаблон назви файла, який буде використано під час зберігання записі з екрана"
+
+#. i18n: ectx: property (text), widget (QLabel, saveLocationLabel)
+#: src/Gui/SettingsDialog/VideoSaveOptions.ui:9
+#, kde-format
+msgid "Save &Location:"
+msgstr "Місце з&берігання:"
+
+#: src/Gui/ShortcutsTextBox.qml:13
+#, kde-format
+msgid "Take Screenshot:"
+msgstr "Створення знімка вікна:"
+
+#: src/Gui/ShortcutsTextBox.qml:15
+#, kde-format
+msgid "Create new selection rectangle:"
+msgstr "Створення прямокутника позначення:"
+
+#: src/Gui/ShortcutsTextBox.qml:20
+#, kde-format
+msgid "Move selection rectangle:"
+msgstr "Пересування прямокутника позначення:"
+
+#: src/Gui/ShortcutsTextBox.qml:23
+#, kde-format
+msgid "Resize selection rectangle:"
+msgstr "Зміна розмірів прямокутника позначення:"
+
+#: src/Gui/ShortcutsTextBox.qml:26
+#, kde-format
+msgid "Reset selection:"
+msgstr "Скидання позначеного:"
+
+#: src/Gui/ShortcutsTextBox.qml:28
+#, kde-format
+msgid "Cancel:"
+msgstr "Скасовування:"
+
+#: src/Gui/ShortcutsTextBox.qml:33
+#, kde-format
+msgctxt "Mouse action"
+msgid "Release left-click"
+msgstr "Відпускання лівої кнопки після клацання"
+
+#: src/Gui/ShortcutsTextBox.qml:33
+#, kde-format
+msgctxt "Mouse action"
+msgid "Double-click"
+msgstr "Подвійне клацання"
+
+#: src/Gui/ShortcutsTextBox.qml:34
+#, kde-format
+msgctxt "Keyboard action"
+msgid "Enter"
+msgstr "Enter"
+
+#: src/Gui/ShortcutsTextBox.qml:35
+#, kde-format
+msgctxt "Mouse action"
+msgid "Drag outside selection rectangle"
+msgstr "Перетягування за межами прямокутника позначення"
+
+#: src/Gui/ShortcutsTextBox.qml:37
+#, kde-format
+msgctxt "Keyboard action"
+msgid "+ Shift: Magnifier"
+msgstr "+ Shift: збільшувальне скло"
+
+#: src/Gui/ShortcutsTextBox.qml:40
+#, kde-format
+msgctxt "Mouse action"
+msgid "Drag inside selection rectangle"
+msgstr "Перетягування всередині прямокутника позначення"
+
+#: src/Gui/ShortcutsTextBox.qml:41
+#, kde-format
+msgctxt "Keyboard action"
+msgid "Arrow keys"
+msgstr "Клавіші зі стрілками"
+
+#: src/Gui/ShortcutsTextBox.qml:42
+#, kde-format
+msgctxt "Keyboard action"
+msgid "+ Shift: Move in 1 pixel steps"
+msgstr "+ Shift: пересування кроками в 1 піксель"
+
+#: src/Gui/ShortcutsTextBox.qml:43
+#, kde-format
+msgctxt "Mouse action"
+msgid "Drag handles"
+msgstr "Перетягування елементів керування"
+
+#: src/Gui/ShortcutsTextBox.qml:44
+#, kde-format
+msgctxt "Keyboard action"
+msgid "Arrow keys + Alt"
+msgstr "Клавіші зі стрілками + Alt"
+
+#: src/Gui/ShortcutsTextBox.qml:45
+#, kde-format
+msgctxt "Keyboard action"
+msgid "+ Shift: Resize in 1 pixel steps"
+msgstr "+ Shift: змінити розмір кроками в 1 піксель"
+
+#: src/Gui/ShortcutsTextBox.qml:46
+#, kde-format
+msgctxt "Mouse action"
+msgid "Right-click"
+msgstr "Клацання правою"
+
+#: src/Gui/ShortcutsTextBox.qml:48
+#, kde-format
+msgctxt "Keyboard action"
+msgid "Escape"
+msgstr "Escape"
+
+#: src/Gui/SizeLabel.qml:13
+#, kde-format
+msgctxt "Size, width×height"
+msgid "%1×%2"
+msgstr "%1×%2"
+
+#: src/Gui/SmartSpinBox.cpp:30
+#, kde-format
+msgctxt "Integer number of seconds"
+msgid " second"
+msgid_plural " seconds"
+msgstr[0] " секунда"
+msgstr[1] " секунди"
+msgstr[2] " секунд"
+msgstr[3] " секунда"
+
+#: src/Gui/SmartSpinBox.cpp:32
+#, kde-format
+msgctxt "Decimal number of seconds"
+msgid " seconds"
+msgstr " секунд"
+
+#: src/Gui/SpectacleWindow.cpp:173
+#, kde-format
+msgctxt "@title:window"
+msgid "%1 second"
+msgid_plural "%1 seconds"
+msgstr[0] "%1 секунда"
+msgstr[1] "%1 секунди"
+msgstr[2] "%1 секунд"
+msgstr[3] "%1 секунда"
+
+#: src/Gui/SpectacleWindow.cpp:176
+#, kde-format
+msgctxt "@title:window Unsaved Screenshot"
+msgid "Unsaved"
+msgstr "Не збережено"
+
+#: src/Gui/UndoRedoGroup.qml:31
+#, kde-format
+msgid "Undo"
+msgstr "Скасувати"
+
+#: src/Gui/UndoRedoGroup.qml:42
+#, kde-format
+msgid "Redo"
+msgstr "Повторити"
+
+#: src/Gui/ViewerPage.qml:188
+#, kde-format
+msgid "Zoom:"
+msgstr "Масштаб:"
+
+#: src/Gui/ViewerPage.qml:202
+#, kde-format
+msgid "Image Zoom"
+msgstr "Масштаб зображення"
+
+#: src/Gui/ViewerWindow.cpp:53
+#, kde-format
+msgctxt "@info, %1 is the error message"
+msgid "There was a problem sharing the image: %1"
+msgstr "Під час спроби оприлюднити зображення виникли проблеми: %1"
+
+#: src/Gui/ViewerWindow.cpp:56
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The shared image link (<a href=\"%1\">%1</a>) has been copied to the "
+"clipboard."
+msgstr ""
+"Посилання на зображення (<a href=\"%1\">%1</a>) було скопійовано до буфера "
+"обміну даними."
+
+#: src/Main.cpp:44
+#, kde-format
+msgid "Spectacle"
+msgstr "Spectacle"
+
+#: src/Main.cpp:46
+#, kde-format
+msgid "KDE Screenshot Utility"
+msgstr "Утиліта знімків екрана KDE"
+
+#: src/Main.cpp:48
+#, kde-format
+msgid "© 2015 Boudhayan Gupta"
+msgstr "© Boudhayan Gupta, 2015"
+
+#: src/Main.cpp:52
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Юрій Чорноіван"
+
+#: src/Main.cpp:52
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "yurchor@ukr.net"
+
+#: src/Main.cpp:70
+#, kde-format
+msgid ""
+"On Wayland, Spectacle requires KDE Plasma's KWin compositor, which does not "
+"seem to be available. Use Spectacle on KDE Plasma, or use a different "
+"screenshot tool."
+msgstr ""
+"У Wayland для роботи Spectacle потрібен засіб композиції Плазми KDE, KWin, "
+"якого, здається, немає у вашій системі. Скористайтеся Spectacle у Плазмі KDE "
+"або використайте іншу програму для створення знімків."
+
+#: src/OcrManager.cpp:609
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Orientation and Script Detection"
+msgstr "Виявлення орієнтації та писемності"
+
+#: src/OcrManager.cpp:650
+#, kde-format
+msgid "Math/Equation Detection"
+msgstr "Виявлення формул"
+
+#: src/OcrManager.cpp:653
+#, kde-format
+msgid "Orientation and Script Detection"
+msgstr "Виявлення орієнтації та писемності"
+
+#: src/Platforms/ImagePlatformKWin.cpp:143
+#, kde-format
+msgctxt "@info, %1 is the width"
+msgid "Bad width for KWin screenshot: %1"
+msgstr "Помилкова ширина знімка KWin: %1"
+
+#: src/Platforms/ImagePlatformKWin.cpp:148
+#, kde-format
+msgctxt "@info, %1 is the height"
+msgid "Bad height for KWin screenshot: %1"
+msgstr "Помилкова висота знімка KWin: %1"
+
+#: src/Platforms/ImagePlatformKWin.cpp:159
+#, kde-format
+msgctxt "@info, %1 is a file format like 'png', 'jpg'"
+msgid "Bad format for KWin screenshot: %1"
+msgstr "Помилковий формат знімка KWin: %1"
+
+#: src/Platforms/ImagePlatformKWin.cpp:177
+#, kde-format
+msgctxt "@info"
+msgid "Could not open file descriptor for reading KWin screenshot."
+msgstr "Не вдалося відкрити дескриптор файла для читання знімка KWin."
+
+#: src/Platforms/ImagePlatformKWin.cpp:245
+#, kde-format
+msgctxt "@info, %1 is an error code"
+msgid "pipe2() failed for KWin screenshot: %1"
+msgstr "Помилка pipe2() для знімка KWin: %1"
+
+#: src/Platforms/ImagePlatformKWin.cpp:301
+#, kde-format
+msgctxt "@info, %1 is an error message"
+msgid ""
+"KWin screenshot request failed:\n"
+"%1"
+msgstr ""
+"Спроба запиту щодо знімка KWin зазнала невдачі:\n"
+"%1"
+
+#: src/Platforms/ImagePlatformKWin.cpp:303
+#, kde-format
+msgctxt "@info"
+msgid ""
+"Potentially relevant information:\n"
+"%1"
+msgstr ""
+"Потенційно пов'язані дані:\n"
+"%1"
+
+#: src/Platforms/ImagePlatformKWin.cpp:311
+#, kde-format
+msgctxt "@info"
+msgid "Unsupported KWin screenshot type metadata: %1"
+msgstr "Непідтримувані метадані типу знімка KWin: %1"
+
+#: src/Platforms/PlatformLoader.cpp:97
+#, kde-format
+msgctxt "@info"
+msgid "Screen recording is not available on X11."
+msgstr "Запис з екрана є недоступним у X11."
+
+#: src/Platforms/VideoPlatformWayland.cpp:160
+#, kde-format
+msgctxt "@info"
+msgid "KWin Screencasting is not available."
+msgstr "Запис з екрана у KWin є недоступним."
+
+#: src/Platforms/VideoPlatformWayland.cpp:173
+#, kde-format
+msgctxt "@info:shell"
+msgid "Failed to record: File URL is not a local file"
+msgstr "Не вдалося записати: адреса файла не є локальною"
+
+#: src/Platforms/VideoPlatformWayland.cpp:264
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The stream closed because the target screen changed in a way that disrupted "
+"the recording."
+msgstr ""
+"Потік даних закрито, оскільки екран призначення було змінено у спосіб, який "
+"призводить до переривання запису."
+
+#: src/Platforms/VideoPlatformWayland.cpp:266
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The stream closed because the target window changed in a way that disrupted "
+"the recording."
+msgstr ""
+"Потік даних закрито, оскільки вікно призначення було змінено у спосіб, який "
+"призводить до переривання запису."
+
+#: src/Platforms/VideoPlatformWayland.cpp:268
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The stream closed because a screen containing the target region changed in a "
+"way that disrupted the recording."
+msgstr ""
+"Потік даних закрито, оскільки екран, на якому міститься область призначення "
+"було змінено у спосіб, який призводить до переривання запису."
+
+#: src/Platforms/VideoPlatformWayland.cpp:282
+#, kde-format
+msgctxt "@info:shell, %1 is the temporary URL"
+msgid "Failed to record: Temporary file URL is not a local file (%1)"
+msgstr "Не вдалося записати: адреса тимчасового файла не є локальною (%1)"
+
+#: src/Platforms/VideoPlatformWayland.cpp:292
+#, kde-format
+msgctxt "@info:shell, %1 is the output file URL"
+msgid "Failed to record: Output file URL is not a local file (%1)"
+msgstr "Не вдалося записати: адреса файла виведення даних не є локальною (%1)"
+
+#: src/Platforms/VideoPlatformWayland.cpp:346
+#, kde-format
+msgctxt "@info:shell, %1 is a directory path"
+msgid "Failed to record: Unable to create folder (%1)"
+msgstr "Не вдалося записати: не вдалося створити теку (%1)"
+
+#: src/Platforms/VideoPlatformWayland.cpp:374
+#, kde-format
+msgctxt "@info:shell"
+msgid "Screen recording canceled"
+msgstr "Запис з екрана скасовано"
+
+#: src/Platforms/VideoPlatformWayland.cpp:376
+#, kde-format
+msgctxt "@info:shell"
+msgid "Window recording canceled"
+msgstr "Запис з вікна скасовано"
+
+#: src/Platforms/VideoPlatformWayland.cpp:382
+#, kde-format
+msgctxt "@info:shell, %1 is an error message"
+msgid "Failed to select screen: %1"
+msgstr "Не вдалося вибрати екран: %1"
+
+#: src/Platforms/VideoPlatformWayland.cpp:384
+#, kde-format
+msgctxt "@info:shell, %1 is an error message"
+msgid "Failed to select window: %1"
+msgstr "Не вдалося вибрати вікно: %1"
+
+#: src/Platforms/VideoPlatformWayland.cpp:412
+#, kde-format
+msgctxt "@info:shell"
+msgid "Failed to select screen: No screen contained the mouse cursor position"
+msgstr ""
+"Не вдалося вибрати екран: немає екрана, що містить позицію вказівника миші"
+
+#: src/Platforms/VideoPlatformWayland.cpp:419
+#, kde-format
+msgctxt "@info:shell"
+msgid "Failed to select window: No window found"
+msgstr "Не вдалося вибрати вікно: не знайдено вікна"
+
+#: src/RecordingModeModel.cpp:105
+#, kde-format
+msgctxt "@item recording mode"
+msgid "Rectangular Region"
+msgstr "Прямокутна ділянка"
+
+#: src/RecordingModeModel.cpp:107
+#, kde-format
+msgctxt "@item recording mode"
+msgid "Window"
+msgstr "Вікно"
+
+#: src/RecordingModeModel.cpp:109
+#, kde-format
+msgctxt "@item recording mode"
+msgid "Full Screen"
+msgstr "Весь екран"
+
+#: src/ShortcutActions.cpp:38
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Launch Spectacle"
+msgstr "Запустити Spectacle"
+
+#: src/ShortcutActions.cpp:44
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Capture Entire Desktop"
+msgstr "Захопити зображення усієї стільниці"
+
+#: src/ShortcutActions.cpp:50
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Capture Current Monitor"
+msgstr "Захопити зображення на поточному моніторі"
+
+#: src/ShortcutActions.cpp:56
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Capture Active Window"
+msgstr "Захопити зображення активного вікна"
+
+#: src/ShortcutActions.cpp:62
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Capture Rectangular Region"
+msgstr "Захопити прямокутну ділянку"
+
+#: src/ShortcutActions.cpp:69
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Capture Selected Window"
+msgstr "Захопити зображення вибраного вікна"
+
+#: src/ShortcutActions.cpp:69
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Capture Window Under Cursor"
+msgstr "Захопити зображення вікна під вказівником миші"
+
+#: src/ShortcutActions.cpp:76
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Start/Stop Screen Recording"
+msgstr "Почати або зупинити записування з екрана"
+
+#: src/ShortcutActions.cpp:82
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Start/Stop Window Recording"
+msgstr "Почати або зупинити записування з вікна"
+
+#: src/ShortcutActions.cpp:88
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Start/Stop Region Recording"
+msgstr "Почати або зупинити записування ділянки"
+
+#: src/ShortcutActions.cpp:94
+#, kde-format
+msgctxt "@action global shortcut"
+msgid "Launch Spectacle without capturing"
+msgstr "Запустити Spectacle без створення знімка"
+
+#: src/SpectacleCore.cpp:264
+#, kde-format
+msgctxt "@info"
+msgid "An error occurred while taking a screenshot."
+msgstr "Під час спроби створення знімка сталася помилка."
+
+#: src/SpectacleCore.cpp:293
+#, kde-format
+msgctxt "@info:tooltip title for recording tray icon"
+msgid "Spectacle is Recording"
+msgstr "Spectacle записує відео"
+
+#: src/SpectacleCore.cpp:298
+#, kde-format
+msgctxt "recording notification title"
+msgid "Spectacle is Recording"
+msgstr "Spectacle записує відео"
+
+#: src/SpectacleCore.cpp:324
+#, kde-format
+msgctxt "recording notification message without shortcut"
+msgid "To finish the recording, click the pulsing red System Tray icon."
+msgstr ""
+"Щоб завершити записування, натисніть у системному лотку червону піктограму, "
+"що блимає"
+
+#: src/SpectacleCore.cpp:325
+#, kde-kuit-format
+msgctxt "recording notification message with shortcut"
+msgid ""
+"To finish the recording, click the pulsing red System Tray icon or press "
+"<shortcut>%1</shortcut>."
+msgstr ""
+"Щоб завершити записування, натисніть у системному лотку червону піктограму, "
+"що блимає, або натисніть <shortcut>%1</shortcut>."
+
+#: src/SpectacleCore.cpp:342
+#, kde-format
+msgctxt "missing webp support notification title"
+msgid "WebP support is missing."
+msgstr "Немає підтримки WebP."
+
+#: src/SpectacleCore.cpp:343
+#, kde-format
+msgctxt "missing webp support notification message"
+msgid ""
+"Please install Qt Image Formats to get animated system tray icons for "
+"Spectacle, and then report this packaging issue to your distributor."
+msgstr ""
+"Будь ласка, встановіть бібліотеки форматів зображень Qt, щоб отримати "
+"анімовані піктограми у системному лотку для Spectacle, а потім повідомте про "
+"цю проблему пакування авторам вашого дистрибутива."
+
+#: src/SpectacleCore.cpp:379
+#, kde-format
+msgctxt "recording notification title"
+msgid "Spectacle is Finishing the Recording"
+msgstr "Spectacle завершує записування відео"
+
+#: src/SpectacleCore.cpp:380
+#, kde-format
+msgctxt "recording notification message"
+msgid "Please wait"
+msgstr "Будь ласка, зачекайте"
+
+#: src/SpectacleCore.cpp:382
+#, kde-format
+msgctxt "@info:tooltip title for rendering tray icon"
+msgid "Spectacle is Finishing the Recording"
+msgstr "Spectacle завершує записування відео"
+
+#: src/SpectacleCore.cpp:384
+#, kde-format
+msgctxt "@info:tooltip subtitle for rendering tray icon"
+msgid ""
+"Time recorded: %1\n"
+"Click to stop rendering early (this will lose data)"
+msgstr ""
+"Тривалість запису: %1\n"
+"Клацніть, щоб завершити обробку передчасно (із втратою даних)"
+
+#: src/SpectacleCore.cpp:410
+#, kde-format
+msgctxt "@info:tooltip subtitle for recording tray icon"
+msgid ""
+"Time recorded: %1\n"
+"Click to finish recording"
+msgstr ""
+"Тривалість запису: %1\n"
+"Клацніть, щоб завершити записування"
+
+#: src/SpectacleCore.cpp:435
+#, kde-format
+msgctxt "@info"
+msgid "An error occurred while attempting to record the screen."
+msgstr "Під час спроби запису з екрана сталася помилка."
+
+#: src/SpectacleCore.cpp:479
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The screenshot was copied to the clipboard and saved as <link url=\"%1\">%2</"
+"link>"
+msgstr ""
+"Знімок було скопійовано до буфера обміну даними і збережено як <link url="
+"\"%1\">%2</link>"
+
+#: src/SpectacleCore.cpp:482
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The screenshot has been saved as <link url=\"%1\">%2</link> and its location "
+"has been copied to clipboard"
+msgstr ""
+"Знімок вікна було збережено як <link url=\"%1\">%2</link>, а адресу файла "
+"було ск and its location has been copied to clipboard"
+
+#: src/SpectacleCore.cpp:485
+#, kde-kuit-format
+msgctxt "@info"
+msgid "The screenshot was saved as <link url=\"%1\">%2</link>"
+msgstr "Знімок було збережено як <link url=\"%1\">%2</link>"
+
+#: src/SpectacleCore.cpp:489
+#, kde-format
+msgctxt "@info"
+msgid "The screenshot has been copied to the clipboard."
+msgstr "Знімок вікна було скопійовано до буфера обміну даними."
+
+#: src/SpectacleCore.cpp:520
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The video has been saved as <link url=\"%1\">%2</link> and its location has "
+"been copied to clipboard"
+msgstr ""
+"Відео було збережено як <link url=\"%1\">%2</link>, а адресу файла було ск "
+"and its location has been copied to clipboard"
+
+#: src/SpectacleCore.cpp:523
+#, kde-kuit-format
+msgctxt "@info"
+msgid "The video was saved as <link url=\"%1\">%2</link>"
+msgstr "Відео було збережено як <link url=\"%1\">%2</link>"
+
+#: src/SpectacleCore.cpp:527
+#, kde-format
+msgctxt "@info"
+msgid "The video location has been copied to the clipboard."
+msgstr "Розташування відео було скопійовано до буфера обміну даними."
+
+#. i18nc because it doesn't work with the link replacement logic.
+#. Also see https://invent.kde.org/graphics/spectacle/-/merge_requests/432#note_1111125
+#.
+#: src/SpectacleCore.cpp:547
+#, kde-format
+msgctxt "@info"
+msgid "Code found: %1"
+msgstr "Знайдено код: %1"
+
+#: src/SpectacleCore.cpp:551
+#, kde-format
+msgctxt "@info"
+msgid "Found QR code with binary content."
+msgstr "Виявлено QR-код із двійковим вмістом."
+
+#: src/SpectacleCore.cpp:560
+#, kde-format
+msgctxt "@info"
+msgid "Text extraction failed"
+msgstr "Не вдалося видобути текст"
+
+#: src/SpectacleCore.cpp:566
+#, kde-format
+msgctxt "@info"
+msgid "No text found in the image"
+msgstr "На зображенні не знайдено тексту"
+
+#: src/SpectacleCore.cpp:571
+#, kde-format
+msgctxt "@info"
+msgid "Text extraction completed"
+msgstr "Видобування тексту завершено"
+
+#: src/SpectacleCore.cpp:579
+#, kde-format
+msgctxt "@info:notification title"
+msgid "Text Extracted"
+msgstr "Текст видобуто"
+
+#: src/SpectacleCore.cpp:598
+#, kde-format
+msgctxt "@info The variables are language names, e.g. 'English and German'"
+msgid "%1 and %2"
+msgstr "%1 і %2"
+
+#: src/SpectacleCore.cpp:603
+#, kde-kuit-format
+msgctxt "@info:notification"
+msgid "Text copied to clipboard.<nl/>Languages used: %1"
+msgstr "Текст скопійовано до буфера обміну.<nl/>Використані мови: %1"
+
+#: src/SpectacleCore.cpp:608
+#, kde-format
+msgctxt "@action:button"
+msgid "Open in Text Editor"
+msgstr "Відкрити у текстовому редакторі"
+
+#: src/SpectacleCore.cpp:749
+#, kde-format
+msgctxt "@info"
+msgid "Please select a region before extracting text"
+msgstr "Будь ласка, позначте ділянку, перш ніж видобувати текстові дані"
+
+#: src/SpectacleCore.cpp:771
+#, kde-format
+msgctxt "@info"
+msgid "OCR is not available."
+msgstr "Розпізнавання тексту недоступне."
+
+#: src/SpectacleCore.cpp:777
+#, kde-format
+msgctxt "@info"
+msgid "No screenshot available."
+msgstr "Немає знімка екрана."
+
+#: src/SpectacleCore.cpp:781
+#, kde-format
+msgctxt "@info"
+msgid "Extracting text from image..."
+msgstr "Видобування тексту з зображення…"
+
+#: src/SpectacleCore.cpp:1045
+#, kde-format
+msgctxt "@info:shell"
+msgid "%1 is not a valid mode for --record"
+msgstr "%1 не є коректним режимом для --record"
+
+#: src/SpectacleCore.cpp:1279
+#, kde-format
+msgctxt "%1 is the filename, %2 the path to the save location"
+msgid ""
+"A screenshot was saved as '%1' to '%2' and the file path of the screenshot "
+"has been saved to your clipboard."
+msgstr ""
+"Знімок вікна було збережено як «%1» до «%2», а шлях до файла знімка вікна "
+"було збережено у буфері обміну даними системи."
+
+#: src/SpectacleCore.cpp:1283
+#, kde-format
+msgctxt "%1 is the filename"
+msgid "A screenshot was saved as '%1' to your Pictures folder."
+msgstr "Знімок було збережено як «%1» до вашої теки «Картинки»."
+
+#: src/SpectacleCore.cpp:1286
+#, kde-format
+msgctxt "%1 is the filename, %2 the path to the save location"
+msgid "A screenshot was saved as '%1' to '%2'."
+msgstr "Знімок було збережено як «%1» до «%2»."
+
+#: src/SpectacleCore.cpp:1290
+#, kde-format
+msgid "A screenshot was saved to your clipboard."
+msgstr "Знімок було збережено до буфера обміну даними."
+
+#: src/SpectacleCore.cpp:1295
+#, kde-format
+msgctxt "%1 is the filename, %2 the path to the save location"
+msgid ""
+"A recording was saved as '%1' to '%2' and the file path of the recording has "
+"been saved to your clipboard."
+msgstr ""
+"Запис було збережено як «%1» до «%2», а шлях до файла запису було збережено "
+"у буфері обміну даними системи."
+
+#: src/SpectacleCore.cpp:1297
+#, kde-format
+msgctxt "%1 is the filename"
+msgid "A recording was saved as '%1' to your Videos folder."
+msgstr "Запис було збережено як «%1» до вашої теки «Відео»."
+
+#: src/SpectacleCore.cpp:1299
+#, kde-format
+msgctxt "%1 is the filename, %2 the path to the save location"
+msgid "A recording was saved as '%1' to '%2'."
+msgstr "Запис було збережено як «%1» до «%2»."
+
+#: src/SpectacleCore.cpp:1310
+#, kde-format
+msgctxt "Open the screenshot we just saved"
+msgid "Open"
+msgstr "Відкрити"
+
+#: src/SpectacleCore.cpp:1324
+#, kde-format
+msgid "Annotate"
+msgstr "Анотувати"
+
+#: src/VideoFormatModel.cpp:31
+#, kde-format
+msgctxt "@item:inlistbox Container/encoder"
+msgid "WebM/VP9"
+msgstr "WebM/VP9"
+
+#: src/VideoFormatModel.cpp:38
+#, kde-format
+msgctxt "@item:inlistbox Container/encoder"
+msgid "MP4/H.264"
+msgstr "MP4/H.264"
+
+#: src/VideoFormatModel.cpp:45
+#, kde-format
+msgctxt "@item:inlistbox Container/encoder"
+msgid "Animated WebP (better than GIF)"
+msgstr "анімований WebP (краще за GIF)"
+
+#: src/VideoFormatModel.cpp:52
+#, kde-format
+msgctxt "@item:inlistbox Container/encoder"
+msgid "GIF (compatible, but inefficient)"
+msgstr "GIF (сумісний, але неефективний)"
+
+#~ msgctxt "@action"
+#~ msgid "Open Containing Folder"
+#~ msgstr "Відкрити теку з даними"
+
+#~ msgid "The last used annotation tool type"
+#~ msgstr "Тип останнього використаного засобу анотування"
+
+#~ msgid "Stroke width for freehand annotation tool"
+#~ msgstr "Товщина штриха для засобу анотування довільною лінією"
+
+#~ msgid "Stroke width for highlighter annotation tool"
+#~ msgstr "Товщина штриха для засобу анотування підсвічуванням"
+
+#~ msgid "Stroke width for line annotation tool"
+#~ msgstr "Товщина штриха для засобу анотування прямою лінією"
+
+#~ msgid "Stroke width for arrow annotation tool"
+#~ msgstr "Товщина штриха для засобу анотування стрілочкою"
+
+#~ msgid "Stroke width for rectangle annotation tool"
+#~ msgstr "Товщина штриха для засобу анотування прямокутником"
+
+#~ msgid "Stroke width for ellipse annotation tool"
+#~ msgstr "Товщина штриха для засобу анотування еліпсом"
+
+#~ msgid "Stroke color for freehand annotation tool"
+#~ msgstr "Колір штриха для засобу анотування довільною лінією"
+
+#~ msgid "Stroke color for highlighter annotation tool"
+#~ msgstr "Колір штриха для засобу анотування підсвічуванням"
+
+#~ msgid "Stroke color for line annotation tool"
+#~ msgstr "Колір штриха для засобу анотування прямою лінією"
+
+#~ msgid "Stroke color for arrow annotation tool"
+#~ msgstr "Колір штриха для засобу анотування стрілочкою"
+
+#~ msgid "Stroke color for rectangle annotation tool"
+#~ msgstr "Колір штриха для засобу анотування прямокутником"
+
+#~ msgid "Stroke color for ellipse annotation tool"
+#~ msgstr "Колір штриха для засобу анотування еліпсом"
+
+#~ msgid "Fill color for rectangle annotation tool"
+#~ msgstr "Колір заповнення для засобу анотування прямокутником"
+
+#~ msgid "Fill color for ellipse annotation tool"
+#~ msgstr "Колір заповнення для засобу анотування еліпсом"
+
+#~ msgid "Fill color for number annotation tool"
+#~ msgstr "Колір заповнення для засобу анотування числами"
+
+#~ msgid "The strength of the blur effect."
+#~ msgstr "Потужність ефекту розмивання."
+
+#~ msgid "The strength of the pixelate effect."
+#~ msgstr "Потужність ефекту пікселізації."
+
+#~ msgid "Font for text annotations"
+#~ msgstr "Шрифт для текстових анотацій"
+
+#~ msgid "Font for number annotations"
+#~ msgstr "Шрифт для числових анотацій"
+
+#~ msgid "Font color for annotations"
+#~ msgstr "Колір шрифту для анотацій"
+
+#~ msgid "Whether freehand annotation tool has a drop shadow"
+#~ msgstr "Чи слід використовувати у засобі анотування довільною лінією тіні"
+
+#~ msgid "Whether line annotation tool has a drop shadow"
+#~ msgstr "Чи слід використовувати у засобі анотування прямою тіні"
+
+#~ msgid "Whether arrow annotation tool has a drop shadow"
+#~ msgstr "Чи слід використовувати у засобі анотування стрілкою тіні"
+
+#~ msgid "Whether rectangle annotation tool has a drop shadow"
+#~ msgstr "Чи слід використовувати у засобі анотування прямокутником тіні"
+
+#~ msgid "Whether ellipse annotation tool has a drop shadow"
+#~ msgstr "Чи слід використовувати у засобі анотування еліпсом тіні"
+
+#~ msgid "Whether text annotation tool has a drop shadow"
+#~ msgstr ""
+#~ "Чи слід використовувати у засобі анотування текстом тіні від символів"
+
+#~ msgid "Whether number annotation tool has a drop shadow"
+#~ msgstr "Чи слід використовувати у засобі анотування номерами тіні"
+
+#~ msgid "Show capture instructions"
+#~ msgstr "Показувати настанови щодо створення знімків"
+
+#~ msgid "Whether to show capture instructions in the region selection"
+#~ msgstr ""
+#~ "Визначає, чи слід показувати настанови щодо створення знімків у вікні "
+#~ "вибору ділянки"
+
+#~ msgctxt "@action global shortcut"
+#~ msgid "Record Screen"
+#~ msgstr "Записати відео з екрана"
+
+#~ msgctxt "@action global shortcut"
+#~ msgid "Record Window"
+#~ msgstr "Записати з вікна"
+
+#~ msgctxt "@action global shortcut"
+#~ msgid "Record Rectangular Region"
+#~ msgstr "Записати прямокутну область"
+
+#~ msgctxt "recording notification message"
+#~ msgid "Click the system tray icon to finish recording"
+#~ msgstr "Клацніть на піктограмі системного лотка, щоб завершити записування"
+
+#~ msgctxt "@info"
+#~ msgid "The screenshot location has been copied to the clipboard."
+#~ msgstr "Розташування знімка вікна було скопійовано до буфера обміну даними."
+
+#~ msgctxt "@info"
+#~ msgid "Video shared"
+#~ msgstr "Відео оприлюднено"
+
+#~ msgctxt "@info"
+#~ msgid "Image shared"
+#~ msgstr "Зображення оприлюднено"
+
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "The shared video link (<a href=\"%1\">%1</a>) has been copied to the "
+#~ "clipboard."
+#~ msgstr ""
+#~ "Посилання на відео (<a href=\"%1\">%1</a>) було скопійовано до буфера "
+#~ "обміну даними."
+
+#~ msgctxt "@info"
+#~ msgid "There was a problem sharing the video: %1"
+#~ msgstr "Під час спроби оприлюднити відео виникли проблеми: %1"
+
+#~ msgid "Screenshot"
+#~ msgstr "Знімок вікна"
+
+#~ msgid "Configure..."
+#~ msgstr "Налаштувати…"
+
+#~ msgid "Capture Mode"
+#~ msgstr "Режим захоплення"
+
+#~ msgid "Capture Settings"
+#~ msgstr "Параметри зйомки"
+
+#~ msgctxt "@title:group"
+#~ msgid "Recording Settings"
+#~ msgstr "Параметри запису з екрана"
+
+#~ msgid ""
+#~ "Could not take a screenshot. Please report this bug here: <a href="
+#~ "\"https://bugs.kde.org/enter_bug.cgi?product=Spectacle\">create a "
+#~ "spectacle bug</a>"
+#~ msgstr ""
+#~ "Не вдалося зробити знімок екрана. Будь ласка, повідомте про цю ваду <a "
+#~ "href=\"https://bugs.kde.org/enter_bug.cgi?product=Spectacle\">у системі "
+#~ "стеження за вадами у Spectacle</a>"
+
+#~ msgid "Screenshot capture canceled or failed"
+#~ msgstr "Захоплення знімка екрана скасовано або його не вдалося виконати"
+
+#~ msgid "Show Annotation Tools"
+#~ msgstr "Показати засоби анотування"
+
+#~ msgid "Whether to show a magnifier in the region selection"
+#~ msgstr ""
+#~ "Визначає, чи слід показувати інструмент «Збільшувальне скло» у вікні "
+#~ "вибору ділянки"
+
+#~ msgid "Capture Modes"
+#~ msgstr "Режими захоплення"
+
+#~ msgctxt "Decimal number of seconds"
+#~ msgid "%2 seconds"
+#~ msgstr "%2 секунд"
+
+#~ msgctxt ""
+#~ "A placeholder in the user configurable filename will replaced by the "
+#~ "specified value"
+#~ msgid "Day"
+#~ msgstr "День"
+
+#~ msgctxt ""
+#~ "A placeholder in the user configurable filename will replaced by the "
+#~ "specified value"
+#~ msgid "Month"
+#~ msgstr "Місяць"
+
+#~ msgctxt ""
+#~ "A placeholder in the user configurable filename will replaced by the "
+#~ "specified value"
+#~ msgid "Hour"
+#~ msgstr "Година"
+
+#~ msgctxt ""
+#~ "A placeholder in the user configurable filename will replaced by the "
+#~ "specified value"
+#~ msgid "Minute"
+#~ msgstr "Хвилина"
+
+#~ msgctxt ""
+#~ "A placeholder in the user configurable filename will replaced by the "
+#~ "specified value"
+#~ msgid "Second"
+#~ msgstr "Секунда"
+
+#~ msgctxt ""
+#~ "A placeholder in the user configurable filename will replaced by the "
+#~ "specified value"
+#~ msgid "Timezone"
+#~ msgstr "Часовий пояс"
+
+#~ msgctxt ""
+#~ "A placeholder in the user configurable filename will replaced by the "
+#~ "specified value"
+#~ msgid "Sequential numbering"
+#~ msgstr "Послідовна нумерація"
+
+#~ msgid "The default filename used when recording a video"
+#~ msgstr "Типова назва файла, яку буде використано під час записування відео"
+
+#~ msgctxt "@item recording mode"
+#~ msgid "Region"
+#~ msgstr "Область"
+
+#~ msgctxt "@item recording mode"
+#~ msgid "Screen"
+#~ msgstr "Екран"
+
+#~ msgid "Workspace"
+#~ msgstr "Робочий простір"
+
+#~ msgid "Failed to select output"
+#~ msgstr "Не вдалося вибрати виведення"
+
+#~ msgctxt "@label:listbox"
+#~ msgid "Video format:"
+#~ msgstr "Формат відео:"
+
+#~| msgid "Save"
+#~ msgctxt "Settings category"
+#~ msgid "Save"
+#~ msgstr "Збереження"
+
+#~ msgid "File format for saved screen recordings"
+#~ msgstr "Формат файлів для збережених записів з екрана"
+
+#~ msgid "On Click"
+#~ msgstr "Після клацання"
+
+#~ msgid "Take a New Screenshot"
+#~ msgstr "Зробити новий знімок"
+
+#~ msgid "Capture only the current pop-up window (like a menu, tooltip etc).\n"
+#~ msgstr ""
+#~ "Захопити лише поточне контекстне вікно (меню, панель підказки тощо).\n"
+
+#~ msgid "Full Screen (All Monitors)"
+#~ msgstr "Увесь екран (усі монітори)"
+
+#~ msgid "Full Screen (All Monitors, scaled)"
+#~ msgstr "Увесь екран (усі монітори, масштабовано)"
+
+#~ msgid "Image Size: %1x%2 pixels"
+#~ msgstr "Розмір зображення: %1⨯%2 пікселів"
+
+#~ msgid "Change Spectacle's settings."
+#~ msgstr "Змінити параметри роботи Spectacle."
+
+#~ msgid "Add annotation to the screenshot"
+#~ msgstr "Додати до знімка вікна анотацію"
+
+#~ msgid "Tools"
+#~ msgstr "Інструменти"
+
+#~ msgid "Copy Image to Clipboard"
+#~ msgstr "Копіювати зображення до буфера"
+
+#~ msgid "Ready to take a screenshot"
+#~ msgstr "Готова до створення знімка"
+
+#~ msgctxt "@action:button"
+#~ msgid "Annotate"
+#~ msgstr "Анотувати"
+
+#~ msgid "Area:"
+#~ msgstr "Область:"
+
+#~ msgid "<b>Options</b>"
+#~ msgstr "<b>Параметри</b>"
+
+#~ msgid "The last used copy mode"
+#~ msgstr "Останній використаний режим копіювання"
+
+#~ msgctxt "The entire screen area was captured, heading"
+#~ msgid "Full Screen Captured"
+#~ msgstr "Захоплено зображення усієї стільниці"
+
+#~ msgctxt "The current screen was captured, heading"
+#~ msgid "Current Screen Captured"
+#~ msgstr "Захоплено зображення на поточному екрані"
+
+#~ msgctxt "The active window was captured, heading"
+#~ msgid "Active Window Captured"
+#~ msgstr "Захоплено зображення активного вікна"
+
+#~ msgctxt "The window under the mouse was captured, heading"
+#~ msgid "Window Under Cursor Captured"
+#~ msgstr "Захоплено зображення вікна під вказівником"
+
+#~ msgctxt "A rectangular region was captured, heading"
+#~ msgid "Rectangular Region Captured"
+#~ msgstr "Захоплено зображення прямокутної ділянки"
+
+#~ msgid "More Online Services"
+#~ msgstr "Інші інтернет-служби"
+
+#~ msgid "KIPI plugin from library %1 failed to load"
+#~ msgstr "Не вдалося завантажити додаток KIPI з бібліотеки %1"
+
+#~ msgctxt "%1 is collection name, %2 is image count in collection"
+#~ msgid "%1 (%2 image)"
+#~ msgid_plural "%1 (%2 images)"
+#~ msgstr[0] "%1 (%2 зображення)"
+#~ msgstr[1] "%1 (%2 зображення)"
+#~ msgstr[2] "%1 (%2 зображень)"
+#~ msgstr[3] "%1 (%2 зображення)"
+
+#~ msgid "Taken with Spectacle"
+#~ msgstr "Створено за допомогою Spectacle"
+
+#~ msgid "Remember the region across restarts"
+#~ msgstr "Чи слід програмі пам'ятати ділянку між сеансами роботи"
+
+#~ msgid ""
+#~ "Choose the image quality when saving with lossy image formats like JPEG"
+#~ msgstr ""
+#~ "Виберіть якість зображення при збереженні до форматів зберігання з "
+#~ "втратами, наприклад JPEG"
+
+#~ msgid "Copy file location to clipboard after saving"
+#~ msgstr "Копіювати адресу файла до буфера обміну даними після зберігання"
+
+#~ msgid "Copy screenshot automatically to the clipboard after it is taken"
+#~ msgstr ""
+#~ "Чи слід автоматично копіювати знімок до буфера обміну даними після його "
+#~ "створення"
+
+#~ msgid "Whether to copy the file path after saving to the clipboard"
+#~ msgstr ""
+#~ "Визначає, чи слід копіювати до буфера обміну даними шлях до файла знімка "
+#~ "після його створення"
+
+#~ msgid "Copy the current screenshot image to the clipboard."
+#~ msgstr "Копіювати поточний знімок вікна до буфера обміну інформацією"
+
+#~ msgid "currentText"
+#~ msgstr "Поточний текст"
+
+#~ msgid "Include pointer in the screenshot"
+#~ msgstr "Включити вказівник до знімка вікна"
+
+#~ msgid "Do not include window decorations in the screenshot"
+#~ msgstr "Не включати обрамлення вікна до знімка"
+
+#~ msgctxt "The entire desktop was captured, heading"
+#~ msgid "Entire Desktop Captured"
+#~ msgstr "Захоплено усю стільницю"
+
+#~ msgctxt "@title:window"
+#~ msgid "Configure"
+#~ msgstr "Налаштовування"
+
+#~ msgid "Apply Unsaved Changes"
+#~ msgstr "Застосування незбережених змін"
+
+#~ msgid ""
+#~ "You have made changes to the settings in this tab. Do you want to apply "
+#~ "those changes?"
+#~ msgstr ""
+#~ "На цій вкладці до параметрів було внесено зміни. Хочете застосувати ці "
+#~ "зміни?"
+
+#~ msgctxt "Mouse action"
+#~ msgid "Click and drag,"
+#~ msgstr "Клацання з перетягуванням,"
+
+#~ msgid " "
+#~ msgstr " "
+
+#~ msgctxt "Keyboard action"
+#~ msgid "Shift:"
+#~ msgstr "Shift:"
+
+#~ msgctxt "Shift key action first half"
+#~ msgid "Hold to toggle magnifier"
+#~ msgstr "Утримуйте натиснутою, щоб увімкнути/вимкнути збільшувальне скло"
+
+#~ msgctxt "Shift key action second half"
+#~ msgid "while dragging selection handles"
+#~ msgstr "і перетягуйте точки керування позначенням"
+
+#~ msgctxt "Shift key action second line"
+#~ msgid "Hold Alt to resize, Shift to fine‑tune"
+#~ msgstr "Утримуйте Alt, щоб змінити розміри, Shift — виконати коригування"
+
+#~ msgctxt "Keyboard action"
+#~ msgid "Esc:"
+#~ msgstr "Esc:"
+
+#~ msgctxt "%1 is the default filename of a screenshot"
+#~ msgid ""
+#~ "<p>You can use the following placeholders in the filename, which will be "
+#~ "replaced with actual text when the file is saved:</p><blockquote><b>%Y</"
+#~ "b>: Year (4 digit)<br /><b>%y</b>: Year (2 digit)<br /><b>%M</b>: "
+#~ "Month<br /><b>%D</b>: Day<br /><b>%H</b>: Hour<br /><b>%m</b>: Minute<br /"
+#~ "><b>%S</b>: Second<br /><b>%T</b>: Window title<br /><b>%d</b>: "
+#~ "Sequential numbering<br /><b>%Nd</b>: Sequential numbering, padded out to "
+#~ "N digits</blockquote><p>To save to a sub-folder, use slashes, e.g.:</"
+#~ "p><blockquote><b>%Y</b>/<b>%M</b>/%1</blockquote>"
+#~ msgstr ""
+#~ "<p>У назвах файлів ви можете використовувати вказані нижче замінники, які "
+#~ "буде замінено текстом під час збереження файлів:</p><blockquote><b>%Y</"
+#~ "b>: рік (чотирицифрове значення)<br /><b>%y</b>: рік (двоцифрове "
+#~ "значення)<br /><b>%M</b>: місяць<br /><b>%D</b>: день<br /><b>%H</b>: "
+#~ "години<br /><b>%m</b>: хвилини<br /><b>%S</b>: секунди<br /><b>%T</b>: "
+#~ "заголовок вікна<br /><b>%d</b>: номер у послідовності<br /><b>%Nd</b>: "
+#~ "номер у послідовності із доповненням нулями до N цифр</blockquote><p>Щоб "
+#~ "зберегти знімки до підтеки, скористайтеся символами похилої риски. "
+#~ "Приклад:</p><blockquote><b>%Y</b>/<b>%M</b>/%1</blockquote>"
+
+#~ msgid "Rectangular Region:"
+#~ msgstr "Прямокутна ділянка:"
+
+#~ msgid "Default Save Location"
+#~ msgstr "Типове місце збереження"
+
+#~ msgid "You can find the shared image at: <a href=\"%1\">%1</a>"
+#~ msgstr "Оприлюднене зображення можна знайти тут: <a href=\"%1\">%1</a>"
+
+#~ msgid ""
+#~ "To take the screenshot, double-click or press Enter. Right-click to reset "
+#~ "the selection, or press Esc to quit"
+#~ msgstr ""
+#~ "Для створення знімка екрана двічі клацніть лівою кнопкою миші або "
+#~ "натисніть клавішу Enter. Клацанням правою кнопкою миші можна зняти "
+#~ "позначення. Щоб скасувати створення знімка, натисніть клавішу Esc."
+
+#~ msgid "Save &&& Exit"
+#~ msgstr "Зберегти і вийти"
+
+#~ msgid "Save screenshot in your Pictures directory and exit"
+#~ msgstr "Зберегти знімок до каталогу «Картинки» і завершити роботу"
+
+#~ msgid "Export Image..."
+#~ msgstr "Експортувати зображення…"
+
+#~ msgid "Preferences"
+#~ msgstr "Налаштування"
+
+#~ msgid "Dynamic Save Button"
+#~ msgstr "Динамічна кнопка збереження"
+
+#~ msgid ""
+#~ "The default behavior of the save button is to <b>Save & Exit</b>. Enable "
+#~ "this option to change the save button to either <b>Save</b>, <b>Save As</"
+#~ "b> or <b>Save & Exit</b>, according to the save action you perform, every "
+#~ "time you save an image."
+#~ msgstr ""
+#~ "Типовою дією у відповідь на натискання кнопки збереження буде <b>Зберегти "
+#~ "і вийти</b>. Позначте цей пункт, щоб змінити дію для кнопки збереження на "
+#~ "<b>Зберегти</b>, <b>Зберегти як</b> чи <b>Зберегти і вийти</b>, "
+#~ "відповідно до вибраної вами під час збереження дії, кожного разу, коли ви "
+#~ "зберігатимете зображення."
+
+#~ msgid "Set save button action to last used save method"
+#~ msgstr "Встановити для кнопки збереження останній використаний спосіб"
+
+#~ msgid ""
+#~ "When a screenshot is saved, copy the location at which the file was saved "
+#~ "to the clipboard. You can then paste it anywhere that accepts text input. "
+#~ "Note that you must be running a clipboard manager in order to keep the "
+#~ "path in the clipboard after Spectacle quits."
+#~ msgstr ""
+#~ "Під час збереження знімка екрана скопіювати адресу теки, до якої було "
+#~ "збережено файл до буфера обміну даними. Надалі, її можна буде вставити "
+#~ "будь-куди, куди можна вставити текстові дані. Зауважте, що для збереження "
+#~ "шляху до теки після завершення роботи Spectacle у системі має бути "
+#~ "запущено програму для керування буфером обміну даними."
+
+#~ msgid "Light Background For Rectangular Region"
+#~ msgstr "Світле тло для прямокутної ділянки"
+
+#~ msgid ""
+#~ "Use a light background color to mask the cropped-out area in the "
+#~ "rectangular region selector. This may make dark cursors easier to see."
+#~ msgstr ""
+#~ "Використовувати світлий колір тла для маскування обрізаних під час вибору "
+#~ "прямокутної ділянки областей. Це може зробити темні кольори помітнішими."
+
+#~ msgid ""
+#~ "By default, Spectacle does not show an initial selection when you take a "
+#~ "screenshot of a rectangular region. Enable this option to remember the "
+#~ "last selected region of the screen, and set it as the initial selection "
+#~ "when you use the rectangular region selector the next time."
+#~ msgstr ""
+#~ "Типово, Spectacle не показує ніякої початкової позначеної ділянки, коли "
+#~ "ви створюєте знімок прямокутної ділянки. Позначте цей пункт, щоб програма "
+#~ "запам’ятовувала останню позначену ділянку на екрані і робила її "
+#~ "початковою ділянкою, коли ви спробуєте створити знімок прямокутної "
+#~ "ділянки наступного разу."
+
+#~ msgid ""
+#~ "Set the directory where you'd like to save your screenshots when you "
+#~ "press <b>Save</b> or <b>Save & Exit</b>."
+#~ msgstr ""
+#~ "Вкажіть каталог, у якому слід зберігати знімки вікон, коли ви натискаєте "
+#~ "кнопку <b>Зберегти</b> або <b>Зберегти і вийти</b>."
+
+#~ msgid ""
+#~ "<p>Set a default filename for saved screenshots.</p><p>You can use the "
+#~ "following placeholders in the filename, which will be replaced with "
+#~ "actual text when the file is saved:</p><blockquote><b>%Y</b>: Year (4 "
+#~ "digit)<br /><b>%y</b>: Year (2 digit)<br /><b>%M</b>: Month<br /><b>%D</"
+#~ "b>: Day<br /><b>%H</b>: Hour<br /><b>%m</b>: Minute<br /><b>%S</b>: "
+#~ "Second</blockquote><p>If a file with this name already exists, a serial "
+#~ "number will be appended to the filename. For example, if the filename is "
+#~ "\"Screenshot\", and \"Screenshot.png\" already exists, the image will be "
+#~ "saved as \"Screenshot-1.png\".</p><p>Typing an extension into the "
+#~ "filename will automatically set the image format correctly and remove the "
+#~ "extension from the filename field.</p>"
+#~ msgstr ""
+#~ "<p>Встановити типову назву файла для збережених знімків вікон.</p><p>У "
+#~ "назві файла ви можете скористатися вказаними нижче символами-замінниками, "
+#~ "які під час збереження буде заміщено відповідними фрагментами тексту:</"
+#~ "p><blockquote><b>%Y</b>: рік (4 цифри)<br /><b>%y</b>: рік (2 цифри)<br /"
+#~ "><b>%M</b>: місяць<br /><b>%D</b>: день<br /><b>%H</b>: години<br /><b>"
+#~ "%m</b>: хвилини<br /><b>%S</b>: секунди</blockquote><p>Якщо файл із такою "
+#~ "назвою вже існує, до назви файла буде дописано відповідний номер. "
+#~ "Наприклад, якщо слід зберегти файл із назвою «Знімок», а файл «Знімок."
+#~ "png» вже існує, дані буде збережено до файла «Знімок-1.png».</"
+#~ "p><p>Введення суфікса назви файла автоматично призведе до вибору "
+#~ "відповідного формату і вилучення запису суфікса з поля назви файла.</p>"
+
+#~ msgid "Application Preferences"
+#~ msgstr "Налаштування програми"
+
+#~ msgid "Open With..."
+#~ msgstr "Відкрити за допомогою…"
+
+#~ msgid "Cannot send screenshot to the application"
+#~ msgstr "Не вдалося надіслати знімок до програми"
+
+#~ msgid "Cannot save screenshot. The file already exists."
+#~ msgstr "Не вдалося зберегти знімок. Файл вже існує."
+
+#~ msgid "Kapture"
+#~ msgstr "Kapture"
+
+#~ msgid "KScreenGenie"
+#~ msgstr "KScreenGenie"
+
+#~ msgid "Popup With Parent Window"
+#~ msgstr "Контекстне вікно з батьківським вікном"
+
+#~ msgid "Send To..."
+#~ msgstr "Надіслати…"
+
+#~ msgctxt "Untitled Screenshot"
+#~ msgid "Untitled"
+#~ msgstr "Без назви"

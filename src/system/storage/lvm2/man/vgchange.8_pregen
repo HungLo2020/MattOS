@@ -1,0 +1,1424 @@
+.TH VGCHANGE 8 "LVM TOOLS #VERSION#" "Red Hat, Inc."
+.
+.ie t \{\
+.\" PostScript/PDF with tabs
+. ds TT \t
+. ds DTT \t\t
+.\}
+.el \{\
+. ds TT \&
+. ds DTT \0\0\0
+.\}
+.
+.de OPT
+.ie \\n(.$>1 \\*[TT]\fB-\\$1\fP|\\*[TT]\fB--\\$2\fP\c
+.el \\*[DTT]\fB--\\$1\fP\c
+..
+.
+.de OPA
+.OPT \\$*
+\ \c
+..
+.de OPS
+.OPT \\$*
+\&
+..
+.
+.
+.\"List of all options as O_string.
+.
+.de O_activate
+.OPA a activate
+\fBy\fP|\fBn\fP|\fBay\fP
+..
+.de O_activationmode
+.OPA activationmode
+\%\fBpartial\fP|\:\
+\fBdegraded\fP|\:\
+\fBcomplete\fP
+..
+.de O_addtag
+.OPA addtag
+\fITag\fP
+..
+.de O_alloc
+.OPA alloc
+\%\fBcontiguous\fP|\:\
+\fBcling\fP|\:\
+\fBcling_by_tags\fP|\:\
+\fBnormal\fP|\:\
+\fBanywhere\fP|\:\
+\fBinherit\fP
+..
+.de O_autoactivation
+.OPA autoactivation
+\fIString\fP
+..
+.de O_autobackup
+.OPA A autobackup
+\fBy\fP|\fBn\fP
+..
+.de O_commandprofile
+.OPA commandprofile
+\fIString\fP
+..
+.de O_config
+.OPA config
+\fIString\fP
+..
+.de O_debug
+.OPA d debug
+\&\.\|.\|.\&
+..
+.de O_deltag
+.OPA deltag
+\fITag\fP
+..
+.de O_detachprofile
+.OPS detachprofile
+..
+.de O_devices
+.OPA devices
+\fIPV\fP
+..
+.de O_devicesfile
+.OPA devicesfile
+\fIString\fP
+..
+.de O_driverloaded
+.OPA driverloaded
+\fBy\fP|\fBn\fP
+..
+.de O_force
+.OPA f force
+\&\.\|.\|.\&
+..
+.de O_help
+.OPS h help
+..
+.de O_ignoreactivationskip
+.OPS K ignoreactivationskip
+..
+.de O_ignorelockingfailure
+.OPS ignorelockingfailure
+..
+.de O_ignoremonitoring
+.OPS ignoremonitoring
+..
+.de O_journal
+.OPA journal
+\fIString\fP
+..
+.de O_lockopt
+.OPA lockopt
+\fIString\fP
+..
+.de O_lockstart
+.OPS lockstart
+..
+.de O_lockstop
+.OPS lockstop
+..
+.de O_locktype
+.OPA locktype
+\%\fBsanlock\fP|\:\
+\fBdlm\fP|\:\
+\fBnone\fP
+..
+.de O_logicalvolume
+.OPA l logicalvolume
+\fINumber\fP
+..
+.de O_longhelp
+.OPS longhelp
+..
+.de O_majoritypvs
+.OPS majoritypvs
+..
+.de O_maxphysicalvolumes
+.OPA p maxphysicalvolumes
+\fINumber\fP
+..
+.de O_metadataprofile
+.OPA metadataprofile
+\fIString\fP
+..
+.de O_monitor
+.OPA monitor
+\fBy\fP|\fBn\fP
+..
+.de O_nohints
+.OPS nohints
+..
+.de O_nolocking
+.OPS nolocking
+..
+.de O_noudevsync
+.OPS noudevsync
+..
+.de O_partial
+.OPS P partial
+..
+.de O_persist
+.OPA persist
+\fIString\fP
+..
+.de O_physicalextentsize
+.OPA s physicalextentsize
+\fISize\fP[m|\:UNIT]
+..
+.de O_poll
+.OPA poll
+\fBy\fP|\fBn\fP
+..
+.de O_profile
+.OPA profile
+\fIString\fP
+..
+.de O_pvmetadatacopies
+.OPA pvmetadatacopies
+\fB0\fP|\fB1\fP|\fB2\fP
+..
+.de O_quiet
+.OPA q quiet
+\&\.\|.\|.\&
+..
+.de O_readonly
+.OPS readonly
+..
+.de O_refresh
+.OPS refresh
+..
+.de O_removekey
+.OPA removekey
+\fIString\fP
+..
+.de O_reportformat
+.OPA reportformat
+\%\fBbasic\fP|\:\
+\fBjson\fP|\:\
+\fBjson_std\fP
+..
+.de O_resizeable
+.OPA x resizeable
+\fBy\fP|\fBn\fP
+..
+.de O_select
+.OPA S select
+\fIString\fP
+..
+.de O_setautoactivation
+.OPA setautoactivation
+\fBy\fP|\fBn\fP
+..
+.de O_setlockargs
+.OPA setlockargs
+\fIString\fP
+..
+.de O_setpersist
+.OPA setpersist
+\fIString\fP
+..
+.de O_sysinit
+.OPS sysinit
+..
+.de O_systemid
+.OPA systemid
+\fIString\fP
+..
+.de O_test
+.OPS t test
+..
+.de O_uuid
+.OPS u uuid
+..
+.de O_verbose
+.OPA v verbose
+\&\.\|.\|.\&
+..
+.de O_version
+.OPS version
+..
+.de O_vgmetadatacopies
+.OPA \fP[\fBvg\fP]\fBmetadatacopies
+\%\fBall\fP|\:\
+\fBunmanaged\fP|\:\
+\fINumber\fP
+..
+.de O_yes
+.OPS y yes
+..
+.
+.SH NAME
+.
+vgchange \(em Change volume group attributes
+.
+.SH SYNOPSIS
+.
+.nh
+.TP
+\fBvgchange\fP \fIoption_args\fP \fIposition_args\fP
+[ \fIoption_args\fP ]
+.br
+[ \fIposition_args\fP ]
+.P
+.na
+.RS 5
+.if t .ta 3nR +1uL \" PostScript/PDF
+.PD 0
+.O_activate
+.br
+.O_activationmode
+.br
+.O_addtag
+.br
+.O_alloc
+.br
+.O_autoactivation
+.br
+.O_autobackup
+.br
+.O_commandprofile
+.br
+.O_config
+.br
+.O_debug
+.br
+.O_deltag
+.br
+.O_detachprofile
+.br
+.O_devices
+.br
+.O_devicesfile
+.br
+.O_driverloaded
+.br
+.O_force
+.br
+.O_help
+.br
+.O_ignoreactivationskip
+.br
+.O_ignorelockingfailure
+.br
+.O_ignoremonitoring
+.br
+.O_journal
+.br
+.O_lockopt
+.br
+.O_lockstart
+.br
+.O_lockstop
+.br
+.O_locktype
+.br
+.O_logicalvolume
+.br
+.O_longhelp
+.br
+.O_majoritypvs
+.br
+.O_maxphysicalvolumes
+.br
+.O_metadataprofile
+.br
+.O_monitor
+.br
+.O_nohints
+.br
+.O_nolocking
+.br
+.O_noudevsync
+.br
+.O_partial
+.br
+.O_persist
+.br
+.O_physicalextentsize
+.br
+.O_poll
+.br
+.O_profile
+.br
+.O_pvmetadatacopies
+.br
+.O_quiet
+.br
+.O_readonly
+.br
+.O_refresh
+.br
+.O_removekey
+.br
+.O_reportformat
+.br
+.O_resizeable
+.br
+.O_select
+.br
+.O_setautoactivation
+.br
+.O_setlockargs
+.br
+.O_setpersist
+.br
+.O_sysinit
+.br
+.O_systemid
+.br
+.O_test
+.br
+.O_uuid
+.br
+.O_verbose
+.br
+.O_version
+.br
+.O_vgmetadatacopies
+.br
+.O_yes
+.PD
+.if t .ta
+.RE
+.ad
+.hy
+.
+.ds TT \&
+.ds DTT \&
+.
+.
+.SH DESCRIPTION
+.
+vgchange changes VG attributes, changes LV activation in the kernel, and
+includes other utilities for VG maintenance.
+.
+.SH USAGE
+.
+.nh
+.na
+Change a general VG attribute.
+For options listed in parentheses, any one is
+required, after which the others are optional.
+.P
+.B vgchange
+.RS
+(
+.O_logicalvolume
+.in +2n
+.O_maxphysicalvolumes
+.br
+.O_physicalextentsize
+.br
+.O_uuid
+.br
+.O_resizeable
+.br
+.O_addtag
+.br
+.O_alloc
+.br
+.O_deltag
+.br
+.O_detachprofile
+.br
+.O_metadataprofile
+.br
+.O_pvmetadatacopies
+.br
+.O_setautoactivation
+.br
+.O_vgmetadatacopies
+)
+.in
+[
+.O_autobackup
+]
+.br
+[
+.O_force
+]
+.br
+[
+.O_select
+]
+.br
+[
+.O_ignoremonitoring
+]
+.br
+[
+.O_noudevsync
+]
+.br
+[
+.O_poll
+]
+.br
+[
+.O_reportformat
+]
+.br
+[ COMMON_OPTIONS ]
+.br
+[ \fIVG\fP|\fITag\fP|\fISelect\fP\ .\|.\|.\& ]
+.RE
+.
+.P
+\(em
+.P
+.
+Start or stop monitoring LVs from dmeventd.
+.P
+.B vgchange
+.O_monitor
+.RS
+[
+.O_autobackup
+]
+.br
+[
+.O_force
+]
+.br
+[
+.O_select
+]
+.br
+[
+.O_ignorelockingfailure
+]
+.br
+[
+.O_ignoremonitoring
+]
+.br
+[
+.O_noudevsync
+]
+.br
+[
+.O_poll
+]
+.br
+[
+.O_reportformat
+]
+.br
+[
+.O_sysinit
+]
+.br
+[ COMMON_OPTIONS ]
+.br
+[ \fIVG\fP|\fITag\fP|\fISelect\fP\ .\|.\|.\& ]
+.RE
+.
+.P
+\(em
+.P
+.
+Start or stop processing LV conversions.
+.P
+.B vgchange
+.O_poll
+.RS
+[
+.O_autobackup
+]
+.br
+[
+.O_force
+]
+.br
+[
+.O_select
+]
+.br
+[
+.O_ignorelockingfailure
+]
+.br
+[
+.O_ignoremonitoring
+]
+.br
+[
+.O_noudevsync
+]
+.br
+[
+.O_reportformat
+]
+.br
+[ COMMON_OPTIONS ]
+.br
+[ \fIVG\fP|\fITag\fP|\fISelect\fP\ .\|.\|.\& ]
+.RE
+.
+.P
+\(em
+.P
+.
+Activate or deactivate LVs.
+.P
+.B vgchange
+.O_activate
+.RS
+[
+.O_autobackup
+]
+.br
+[
+.O_force
+]
+.br
+[
+.O_ignoreactivationskip
+]
+.br
+[
+.O_partial
+]
+.br
+[
+.O_select
+]
+.br
+[
+.O_activationmode
+]
+.br
+[
+.O_autoactivation
+]
+.br
+[
+.O_ignorelockingfailure
+]
+.br
+[
+.O_ignoremonitoring
+]
+.br
+[
+.O_monitor
+]
+.br
+[
+.O_noudevsync
+]
+.br
+[
+\fB--persist\fP \fIString\fP
+]
+.br
+[
+.O_poll
+]
+.br
+[
+.O_readonly
+]
+.br
+[
+.O_reportformat
+]
+.br
+[
+.O_sysinit
+]
+.br
+[ COMMON_OPTIONS ]
+.br
+[ \fIVG\fP|\fITag\fP|\fISelect\fP\ .\|.\|.\& ]
+.RE
+.
+.P
+\(em
+.P
+.
+Reactivate LVs using the latest metadata.
+.P
+.B vgchange
+.O_refresh
+.RS
+[
+.O_autobackup
+]
+.br
+[
+.O_force
+]
+.br
+[
+.O_select
+]
+.br
+[
+.O_ignorelockingfailure
+]
+.br
+[
+.O_ignoremonitoring
+]
+.br
+[
+.O_noudevsync
+]
+.br
+[
+.O_poll
+]
+.br
+[
+.O_reportformat
+]
+.br
+[
+.O_sysinit
+]
+.br
+[ COMMON_OPTIONS ]
+.br
+[ \fIVG\fP|\fITag\fP|\fISelect\fP\ .\|.\|.\& ]
+.RE
+.
+.P
+\(em
+.P
+.
+Change the system ID of a VG.
+.P
+.B vgchange
+.O_systemid
+\fIVG\fP|\fITag\fP|\fISelect\fP
+.RS
+[
+.O_select
+]
+.br
+[
+.O_majoritypvs
+]
+.br
+[
+\fB--persist\fP \fIString\fP
+]
+.br
+[
+.O_removekey
+]
+.br
+[ COMMON_OPTIONS ]
+.RE
+.
+.P
+\(em
+.P
+.
+Set or clear flags to control persistent reservation behavior.
+.P
+.B vgchange
+.O_setpersist
+\fIVG\fP|\fITag\fP|\fISelect\fP
+.RS
+[
+.O_select
+]
+.br
+[
+\fB--persist\fP \fBstart\fP
+]
+.br
+[ COMMON_OPTIONS ]
+.RE
+.
+.P
+\(em
+.P
+.
+Perform persistent reservation commands on devices.
+.P
+.B vgchange
+.O_persist
+\fIVG\fP|\fITag\fP|\fISelect\fP
+.RS
+[
+.O_force
+]
+.br
+[
+.O_select
+]
+.br
+[
+.O_majoritypvs
+]
+.br
+[
+.O_removekey
+]
+.br
+[ COMMON_OPTIONS ]
+.RE
+.
+.P
+\(em
+.P
+.
+Set or clear lock_args flags to control lock manager behavior.
+.P
+.B vgchange
+.O_setlockargs
+\fIVG\fP|\fITag\fP|\fISelect\fP
+.RS
+[
+.O_select
+]
+.br
+[ COMMON_OPTIONS ]
+.RE
+.
+.P
+\(em
+.P
+.
+Start the lockspace of a shared VG in lvmlockd.
+.P
+.B vgchange
+.O_lockstart
+.RS
+[
+.O_select
+]
+.br
+[
+\fB--persist\fP \fBstart\fP
+]
+.br
+[ COMMON_OPTIONS ]
+.br
+[ \fIVG\fP|\fITag\fP|\fISelect\fP\ .\|.\|.\& ]
+.RE
+.
+.P
+\(em
+.P
+.
+Stop the lockspace of a shared VG in lvmlockd.
+.P
+.B vgchange
+.O_lockstop
+.RS
+[
+.O_select
+]
+.br
+[
+\fB--persist\fP \fBstop\fP
+]
+.br
+[ COMMON_OPTIONS ]
+.br
+[ \fIVG\fP|\fITag\fP|\fISelect\fP\ .\|.\|.\& ]
+.RE
+.
+.P
+\(em
+.P
+.
+Change the lock type for a shared VG.
+.P
+.B vgchange
+.O_locktype
+\fIVG\fP
+.RS
+[
+.O_setlockargs
+]
+.br
+[ COMMON_OPTIONS ]
+.RE
+.P
+\(em
+.P
+Common options for lvm:
+.RS
+[
+.O_debug
+]
+.br
+[
+.O_help
+]
+.br
+[
+.O_quiet
+]
+.br
+[
+.O_test
+]
+.br
+[
+.O_verbose
+]
+.br
+[
+.O_yes
+]
+.br
+[
+.O_commandprofile
+]
+.br
+[
+.O_config
+]
+.br
+[
+.O_devices
+]
+.br
+[
+.O_devicesfile
+]
+.br
+[
+.O_driverloaded
+]
+.br
+[
+.O_journal
+]
+.br
+[
+.O_lockopt
+]
+.br
+[
+.O_longhelp
+]
+.br
+[
+.O_nohints
+]
+.br
+[
+.O_nolocking
+]
+.br
+[
+.O_profile
+]
+.br
+[
+.O_version
+]
+.RE
+.hy
+.ad
+.
+.SH OPTIONS
+.
+.TP
+.O_activate
+Change the active state of LVs.
+An active LV can be used through a block device,
+allowing data on the LV to be accessed.
+\fBy\fP makes LVs active, or available.
+\fBn\fP makes LVs inactive, or unavailable.
+The block device for the LV is added or removed from the system
+using device-mapper in the kernel.
+A symbolic link /dev/VGName/LVName pointing to the device node
+is also added/removed.
+All software and scripts should access the device through the symbolic
+link and present this as the name of the device.
+The location and name of the underlying device node may depend on
+the distribution, configuration (e.g. udev), or release version.
+\fBay\fP specifies autoactivation, which is used by system-generated
+activation commands. By default, LVs are autoactivated.
+An autoactivation property can be set on a VG or LV to disable autoactivation,
+see --setautoactivation y|n in vgchange, lvchange, vgcreate, and lvcreate.
+Display the property with vgs or lvs "-o autoactivation".
+The \fBlvm.conf\fP(5) auto_activation_volume_list includes names of VGs or LVs
+that should be autoactivated, and anything not listed is not autoactivated.
+When auto_activation_volume_list is undefined (the default), it has no effect.
+If auto_activation_volume_list is defined and empty, no LVs are autoactivated.
+Items included by auto_activation_volume_list will not be autoactivated if
+the autoactivation property has been disabled.
+See \fBlvmlockd\fP(8) for more information about activation options
+\fBey\fP and \fBsy\fP for shared VGs.
+.
+.TP
+.O_activationmode
+Determines if LV activation is allowed when PVs are missing,
+e.g. because of a device failure.
+\fBcomplete\fP only allows LVs with no missing PVs to be activated,
+and is the most restrictive mode.
+\fBdegraded\fP allows RAID LVs with missing PVs to be activated.
+(This does not include the "mirror" type, see "raid1" instead.)
+\fBpartial\fP allows any LV with missing PVs to be activated, and
+should only be used for recovery or repair.
+For default, see \fBlvm.conf\fP(5) activation_mode.
+See \fBlvmraid\fP(7) for more information.
+.
+.TP
+.O_addtag
+Adds a tag to a PV, VG or LV. This option can be repeated to add
+multiple tags at once. See \fBlvm\fP(8) for information about tags.
+.
+.TP
+.O_alloc
+Determines the allocation policy when a command needs to allocate
+Physical Extents (PEs) from the VG. Each VG and LV has an allocation policy
+which can be changed with vgchange/lvchange, or overridden on the
+command line.
+\fBnormal\fP applies common sense rules such as not placing parallel stripes
+on the same PV.
+\fBinherit\fP applies the VG policy to an LV.
+\fBcontiguous\fP requires new PEs to be placed adjacent to existing PEs.
+\fBcling\fP places new PEs on the same PV as existing PEs in the same
+stripe of the LV.
+If there are sufficient PEs for an allocation, but normal does not
+use them, \fBanywhere\fP will use them even if it reduces performance,
+e.g. by placing two stripes on the same PV.
+Optional positional PV args on the command line can also be used to limit
+which PVs the command will use for allocation.
+See \fBlvm\fP(8) for more information about allocation.
+.
+.TP
+.O_autoactivation
+Specify if autoactivation is being used from an event.
+This allows the command to apply settings that are specific
+to event activation, such as device scanning optimizations
+using pvs_online files created by event-based pvscans.
+.
+.TP
+.O_autobackup
+Specifies if metadata should be backed up automatically after a change.
+Enabling this is strongly advised!
+See \fBvgcfgbackup\fP(8) for more information.
+.
+.TP
+.O_commandprofile
+The command profile to use for command configuration.
+See \fBlvm.conf\fP(5) for more information about profiles.
+.
+.TP
+.O_config
+Config settings for the command. These override \fBlvm.conf\fP(5) settings.
+The String arg uses the same format as \fBlvm.conf\fP(5),
+or may use section/field syntax.
+See \fBlvm.conf\fP(5) for more information about config.
+.
+.TP
+.O_debug
+Set debug level. Repeat from 1 to 6 times to increase the detail of
+messages sent to the log file and/or syslog (if configured).
+.
+.TP
+.O_deltag
+Deletes a tag from a PV, VG or LV. This option can be repeated to delete
+multiple tags at once. See \fBlvm\fP(8) for information about tags.
+.
+.TP
+.O_detachprofile
+Detaches a metadata profile from a VG or LV.
+See \fBlvm.conf\fP(5) for more information about profiles.
+.
+.TP
+.O_devices
+Restricts the devices that are visible and accessible to the command.
+Devices not listed will appear to be missing. This option can be
+repeated, or accepts a comma separated list of devices. This overrides
+the devices file.
+.
+.TP
+.O_devicesfile
+A file listing devices that LVM should use.
+The file must exist in \fI#DEFAULT_SYS_DIR#/devices/\fP and is managed
+with the \fBlvmdevices\fP(8) command.
+This overrides the \fBlvm.conf\fP(5) \fBdevices/devicesfile\fP and
+\fBdevices/use_devicesfile\fP settings.
+.
+.TP
+.O_driverloaded
+If set to no, the command will not attempt to use device-mapper.
+For testing and debugging.
+.
+.TP
+.O_force
+Override various checks, confirmations and protections.
+Use with extreme caution.
+.
+.TP
+.O_help
+Display help text.
+.
+.TP
+.O_ignoreactivationskip
+Ignore the "activation skip" LV flag during activation
+to allow LVs with the flag set to be activated.
+.
+.TP
+.O_ignorelockingfailure
+Allows a command to continue with read-only metadata
+operations after locking failures.
+.
+.TP
+.O_ignoremonitoring
+Do not interact with dmeventd unless --monitor is specified.
+Do not use this if dmeventd is already monitoring a device.
+.
+.TP
+.O_journal
+Record information in the systemd journal.
+This information is in addition to information
+enabled by the lvm.conf log/journal setting.
+command: record information about the command.
+output: record the default command output.
+debug: record full command debugging.
+.
+.TP
+.O_lockopt
+Used to pass options for special cases to lvmlockd.
+See \fBlvmlockd\fP(8) for more information.
+.
+.TP
+.O_lockstart
+Start the lockspace of a shared VG in lvmlockd.
+lvmlockd locks become available for the VG, allowing LVM to use the VG.
+See \fBlvmlockd\fP(8) for more information.
+.
+.TP
+.O_lockstop
+Stop the lockspace of a shared VG in lvmlockd.
+lvmlockd locks become unavailable for the VG, preventing LVM from using the VG.
+See \fBlvmlockd\fP(8) for more information.
+.
+.TP
+.O_locktype
+Change the VG lock type to or from a shared lock type used with lvmlockd.
+See \fBlvmlockd\fP(8) for more information.
+.
+.TP
+.O_logicalvolume
+Sets the maximum number of LVs allowed in a VG.
+.
+.TP
+.O_longhelp
+Display long help text.
+.
+.TP
+.O_majoritypvs
+Change the VG system ID if the majority of PVs in the VG
+are present (one more than half).
+.
+.TP
+.O_maxphysicalvolumes
+Sets the maximum number of PVs that can belong to the VG.
+The value 0 removes any limitation.
+For large numbers of PVs, also see options --pvmetadatacopies,
+and --vgmetadatacopies for improving performance.
+.
+.TP
+.O_metadataprofile
+The metadata profile to use for command configuration.
+See \fBlvm.conf\fP(5) for more information about profiles.
+.
+.TP
+.O_monitor
+Start (yes) or stop (no) monitoring an LV with dmeventd.
+dmeventd monitors kernel events for an LV, and performs
+automated maintenance for the LV in response to specific events.
+See \fBdmeventd\fP(8) for more information.
+.
+.TP
+.O_nohints
+Do not use the hints file to locate devices for PVs. A command may read
+more devices to find PVs when hints are not used. The command will still
+perform standard hint file invalidation where appropriate.
+.
+.TP
+.O_nolocking
+Disable locking. Use with caution, concurrent commands may produce
+incorrect results.
+.
+.TP
+.O_noudevsync
+Disables udev synchronization. The process will not wait for notification
+from udev. It will continue irrespective of any possible udev processing
+in the background. Only use this if udev is not running or has rules that
+ignore the devices LVM creates.
+.
+.TP
+.O_partial
+Commands will do their best to activate LVs with missing PV extents.
+Missing extents may be replaced with error or zero segments
+according to the  missing_stripe_filler setting.
+Metadata may not be changed with this option.
+.
+.TP
+.O_persist
+Persistent Reservation operation.
+start: register local key and acquire reservation.
+stop: unregister local key, releasing reservation.
+remove: preempt and abort another key.
+clear: remove reservation and keys.
+check: check if started.
+autostart: start if the VG autostart flag is set.
+lvmlocal.conf pr_key or host_id must be configured to use PR.
+For local VGs, Write Exclusive (WE) is used, and for shared VGs
+Write Exclusive, all registrants (WEAR) is used.
+Use --setpersist to automate and/or require PR.
+.
+.TP
+.O_physicalextentsize
+Sets the physical extent size of PVs in the VG.
+The value must be either a power of 2 of at least 1 sector
+(where the sector size is the largest sector size of the PVs
+currently used in the VG), or at least 128 KiB.
+Once this value has been set, it is difficult to change
+without recreating the VG, unless no extents need moving.
+Before increasing the physical extent size, you might need to use lvresize,
+pvresize and/or pvmove so that everything fits. For example, every
+contiguous range of extents used in a LV must start
+and end on an extent boundary.
+.
+.TP
+.O_poll
+When yes, start the background transformation of an LV.
+An incomplete transformation, e.g. pvmove or lvconvert interrupted
+by reboot or crash, can be restarted from the last checkpoint with --poll y.
+When no, background transformation of an LV will not occur, and the
+transformation will not complete. It may not be appropriate to immediately
+poll an LV after activation, in which case --poll n can be used to defer
+polling until a later --poll y command.
+.
+.TP
+.O_profile
+An alias for --commandprofile or --metadataprofile, depending
+on the command.
+.
+.TP
+.O_pvmetadatacopies
+The number of metadata areas to set aside on a PV for storing VG metadata.
+When 2, one copy of the VG metadata is stored at the front of the PV
+and a second copy is stored at the end.
+When 1, one copy of the VG metadata is stored at the front of the PV.
+When 0, no copies of the VG metadata are stored on the given PV.
+This may be useful in VGs containing many PVs (this places limitations
+on the ability to use vgsplit later.)
+.
+.TP
+.O_quiet
+Suppress output and log messages. Overrides --debug and --verbose.
+Repeat once to also suppress any prompts with answer 'no'.
+.
+.TP
+.O_readonly
+Prevent the command from making changes, including activation and
+metadata updates.  (See --permission r for read only LVs.)
+.
+.TP
+.O_refresh
+If the LV is active, reload its metadata.
+In an environment where udev is used to manage the /dev content,
+usage of this option is highly recommended. This is because refresh
+also regenerates udev events for an LV based on which existing udev
+rules are applied to set the /dev content and permissions.
+Also, this operation may be useful if something has gone wrong,
+or if some form of manual LV sharing is being used.
+.
+.TP
+.O_removekey
+A persistent reservation key to remove.
+.
+.TP
+.O_reportformat
+Overrides current output format for reports which is defined globally by
+the report/output_format setting in \fBlvm.conf\fP(5).
+\fBbasic\fP is the original format with columns and rows.
+If there is more than one report per command, each report is prefixed
+with the report name for identification. \fBjson\fP produces report
+output in JSON format. \fBjson_std\fP produces report output in
+JSON format which is more compliant with JSON standard.
+See \fBlvmreport\fP(7) for more information.
+.
+.TP
+.O_resizeable
+Enables or disables the addition or removal of PVs to/from a VG
+(by vgextend/vgreduce).
+.
+.TP
+.O_select
+Select objects for processing and reporting based on specified criteria.
+The criteria syntax is described by \fB--select help\fP
+and \fBlvmreport\fP(7).
+For reporting commands, one row is displayed
+for each object matching the criteria.
+See \fB--options help\fP for selectable object fields.
+Rows can be displayed with an additional "selected" field (-o selected)
+showing 1 if the row matches the selection and 0 otherwise.
+For non-reporting commands which process LVM entities, the selection is
+used to choose items to process.
+.
+.TP
+.O_setautoactivation
+Set the autoactivation property on a VG or LV.
+Display the property with vgs or lvs "-o autoactivation".
+When the autoactivation property is disabled, the VG or LV
+will not be activated by a command doing autoactivation
+(vgchange, lvchange, or pvscan using -aay.)
+If autoactivation is disabled on a VG, no LVs will be autoactivated
+in that VG, and the LV autoactivation property has no effect.
+If autoactivation is enabled on a VG, autoactivation can be disabled
+for individual LVs.
+.
+.TP
+.O_setlockargs
+Add or remove lock_args settings for a shared VG.
+The lock_args determine lock manager behavior for the VG.
+These settings are only allowed for lock_type sanlock.
+persist: use persistent reservations for lock recovery.
+lvmlockd will preempt-abort the persistent reservation of a failed
+lock owner so that the lock can be acquired.
+notimeout: use locks that do not time out when the owner fails.
+In this case, a lock owned by a failed host can only be acquired
+using the persist feature.
+nopersist: do not use the persist feature.
+timeout: do not use the notimeout feature.
+The default behavior with no settings configured is: nopersist and timeout.
+.
+.TP
+.O_setpersist
+Set or clear flags to control persistent reservation behavior.
+y: set require and autostart flags.
+n: clear require and autostart flags.
+require: set flag, PR will be required to write or activate VG.
+norequire: clear require flag.
+autostart: set flag, PR will be automatically started.
+noautostart: clear autostart flag.
+ptpl: set flag, use persist through power loss on devices.
+noptpl: clear ptpl flag.
+When autostart is enabled, autoactivation and auto-lockstart
+commands will first start PR.
+lvmlocal.conf pr_key or host_id must be configured to use PR.
+For local VGs, enabling system_id is also recommended.
+.
+.TP
+.O_sysinit
+Indicates that vgchange/lvchange is being invoked
+from early system initialisation
+scripts (e.g. rc.sysinit or an initrd), before writable filesystems are
+available. As such, some functionality needs to be disabled and this option
+acts as a shortcut which selects an appropriate set of options. Currently,
+this is equivalent to using --ignorelockingfailure, --ignoremonitoring,
+--poll n, and setting env var LVM_SUPPRESS_LOCKING_FAILURE_MESSAGES.
+vgchange/lvchange skip autoactivation, and defer to pvscan autoactivation.
+.
+.TP
+.O_systemid
+Changes the system ID of the VG. Using this option requires caution
+because the VG may become foreign to the host running the command,
+leaving the host unable to access it.
+See \fBlvmsystemid\fP(7) for more information.
+.
+.TP
+.O_test
+Run in test mode. Commands will not update metadata.
+This is implemented by disabling all metadata writing but nevertheless
+returning success to the calling function. This may lead to unusual
+error messages in multi-stage operations if a tool relies on reading
+back metadata it believes has changed but hasn't.
+.
+.TP
+.O_uuid
+Generate new random UUID for specified VGs.
+.
+.TP
+.O_verbose
+Set verbose level. Repeat from 1 to 4 times to increase the detail
+of messages sent to stdout and stderr.
+.
+.TP
+.O_version
+Display version information.
+.
+.TP
+.O_vgmetadatacopies
+Number of copies of the VG metadata that are kept.
+VG metadata is kept in VG metadata areas on PVs in the VG,
+i.e. reserved space at the start and/or end of the PVs.
+Keeping a copy of the VG metadata on every PV can reduce performance
+in VGs containing a large number of PVs.
+When this number is set to a non-zero value, LVM will automatically
+choose PVs on which to store metadata, using the metadataignore flags
+on PVs to achieve the specified number.
+The number can also be replaced with special string values:
+\fBunmanaged\fP causes LVM to not automatically manage the PV
+metadataignore flags.
+\fBall\fP causes LVM to first clear the metadataignore flags on
+all PVs, and then to become unmanaged.
+.
+.TP
+.O_yes
+Do not prompt for confirmation interactively but always assume the
+answer yes. Use with extreme caution.
+(For automatic no, see -qq.)
+.
+.SH VARIABLES
+.
+.TP
+.I VG
+Volume Group name.  See \fBlvm\fP(8) for valid names.
+.
+.TP
+.I Tag
+Tag name.  See \fBlvm\fP(8) for information about tag names and using tags
+in place of a VG, LV or PV.
+.
+.TP
+.I Select
+Select indicates that a required positional parameter can
+be omitted if the \fB--select\fP option is used.
+No arg appears in this position.
+.
+.TP
+.I String
+See the option description for information about the string content.
+.
+.TP
+.IR Size [UNIT]
+Size is an input number that accepts an optional unit.
+Input units are always treated as base two values, regardless of
+capitalization, e.g. 'k' and 'K' both refer to 1024.
+The default input unit is specified by letter, followed by |UNIT.
+UNIT represents other possible input units:
+.BR b | B
+is bytes,
+.BR s | S
+is sectors of 512 bytes,
+.BR k | K
+is KiB,
+.BR m | M
+is MiB,
+.BR g | G
+is GiB,
+.BR t | T
+is TiB,
+.BR p | P
+is PiB,
+.BR e | E
+is EiB.
+(This should not be confused with the output control --units,
+where capital letters mean multiple of 1000.)
+.
+.SH ENVIRONMENT VARIABLES
+.
+See \fBlvm\fP(8) for information about environment variables used by lvm.
+For example, \fBLVM_VG_NAME\fP can generally be substituted
+for a required VG parameter.

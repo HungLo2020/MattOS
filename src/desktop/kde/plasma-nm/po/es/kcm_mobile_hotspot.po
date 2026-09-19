@@ -1,0 +1,66 @@
+# Spanish translations for kcm_mobile_hotspot.po package.
+# Copyright (C) 2020-2025 This file is copyright:
+# This file is distributed under the same license as the plasma-nm package.
+# Automatically generated, 2020.
+#
+# SPDX-FileCopyrightText: 2020, 2023, 2025 Eloy Cuadra <ecuadra@eloihr.net>
+msgid ""
+msgstr ""
+"Project-Id-Version: kcm_mobile_hotspot\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-29 03:06+0000\n"
+"PO-Revision-Date: 2025-08-19 00:10+0100\n"
+"Last-Translator: Eloy Cuadra <ecuadra@eloihr.net>\n"
+"Language-Team: Spanish <kde-l10n-es@kde.org>\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 25.04.3\n"
+
+#: ui/main.qml:33
+#, kde-format
+msgid "Configure Hotspot"
+msgstr "Configurar punto de acceso"
+
+#: ui/main.qml:52
+#, kde-format
+msgid "Hotspot SSID:"
+msgstr "SSID del punto de acceso:"
+
+#: ui/main.qml:60
+#, kde-format
+msgid "Hotspot Password:"
+msgstr "Contraseña del punto de acceso:"
+
+#: ui/main.qml:79
+#, kde-format
+msgid "Hotspot"
+msgstr "Punto de acceso"
+
+#: ui/main.qml:80
+#, kde-format
+msgid "Share your internet connection with other devices as a Wi-Fi network."
+msgstr ""
+"Compartir la conexión a internet con otros dispositivos, como una red wifi."
+
+#: ui/main.qml:95
+#, kde-format
+msgid "Settings"
+msgstr "Preferencias"
+
+#: ui/main.qml:102
+#, kde-format
+msgid "Hotspot SSID"
+msgstr "SSID del punto de acceso"
+
+#: ui/main.qml:111
+#, kde-format
+msgid "Hotspot Password"
+msgstr "Contraseña del punto de acceso"
+
+#: ui/main.qml:119
+#, kde-format
+msgid "Configure"
+msgstr "Configurar"

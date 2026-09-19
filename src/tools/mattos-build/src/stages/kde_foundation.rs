@@ -1,8 +1,8 @@
 /// KDE Frameworks and KPMCore are configured as native target consumers, not
 /// as generic host CMake projects.  ECM is deliberately the one exception:
 /// it supplies build-time CMake macros only and is checked explicitly below.
-const KDE_ECM_MIN_VERSION: (u32, u32, u32) = (6, 26, 0);
-const KDE_ECM_HOST_COMMIT: &str = "a1dac86d6c848473d840b748b82694ef6916a3ca";
+const KDE_ECM_MIN_VERSION: (u32, u32, u32) = (6, 27, 0);
+const KDE_ECM_HOST_COMMIT: &str = "fa262097a48f0f84529498741afcc7040e93b271";
 const KDE_ECM_HOST_REPOSITORY: &str = "https://invent.kde.org/frameworks/extra-cmake-modules.git";
 const KDE_BOOST_HOST_VERSION: &str = "1.89.0";
 const KDE_BOOST_HOST_URL: &str = "https://archives.boost.io/release/1.89.0/source/boost_1_89_0.tar.bz2";
@@ -88,7 +88,7 @@ fn kde_host_boost_include_dir(repo_root: &Path) -> Result<PathBuf> {
 fn kde_host_ecm_dir(repo_root: &Path) -> Result<PathBuf> {
     let configured = std::env::var_os("MATTOS_HOST_ECM_DIR").map(PathBuf::from);
     let candidates = configured.into_iter().chain([
-        repo_root.join("out/host-tools/ecm-6.26.0/share/ECM/cmake"),
+        repo_root.join("out/host-tools/ecm-6.27.0/share/ECM/cmake"),
         PathBuf::from("/usr/share/ECM/cmake"),
         PathBuf::from("/usr/lib/x86_64-linux-gnu/cmake/ECM"),
     ]);
@@ -112,9 +112,9 @@ fn kde_host_ecm_dir(repo_root: &Path) -> Result<PathBuf> {
         return Ok(directory);
     }
     let tools = repo_root.join("out/host-tools");
-    let source = tools.join("ecm-6.26.0-source");
-    let build = tools.join("ecm-6.26.0-build");
-    let install = tools.join("ecm-6.26.0");
+    let source = tools.join("ecm-6.27.0-source");
+    let build = tools.join("ecm-6.27.0-build");
+    let install = tools.join("ecm-6.27.0");
     fs::create_dir_all(&tools)?;
     let run = |cwd: &Path, program: &str, args: &[&str]| -> Result<()> {
         let status = std::process::Command::new(program).args(args).current_dir(cwd).status()
@@ -532,6 +532,23 @@ fn build_kde_cmake(
     let build = root.join("build");
     let install = root.join("install");
     sync_build_source(&repo_root.join(source), &source_copy)?;
+    if component == "kfilemetadata" {
+        // Upstream's legacy FindXattr module hard-codes host /usr paths and
+        // ignores pkg-config. Point it at the two source-owned target roots
+        // in the disposable mirror so strict CMake isolation cannot either
+        // miss libattr or silently accept the host copy.
+        let finder = source_copy.join("cmake/FindXattr.cmake");
+        let contents = fs::read_to_string(&finder)?;
+        let adjusted = contents.replace(
+            "# Already in cache?",
+            &format!(
+                "set(XATTR_INCLUDE_DIRS \"{}\")\nset(XATTR_LIBRARIES \"{}\")\n# Already in cache?",
+                repo_root.join("out/sysroot/formal/usr/include").display(),
+                repo_root.join("out/build/attr/install/usr/lib/x86_64-linux-gnu/libattr.so").display(),
+            ),
+        );
+        if adjusted != contents { fs::write(finder, adjusted)?; }
+    }
     if component == "kholidays" {
         // KDE's current mirror has already advanced its ECM floor beyond the
         // selected KF 6.26 tool baseline.  The v6.24 API is compatible with
@@ -543,6 +560,88 @@ fn build_kde_cmake(
         if adjusted != contents {
             fs::write(cmake_lists, adjusted)?;
         }
+    }
+    if component == "xdg-desktop-portal-kde" {
+        // Qt only installs qcups_p.h when QtBase was built with the optional
+        // CUPS backend.  The portal's generic QPrinter path is still useful
+        // without a print server, but upstream includes that private header
+        // unconditionally solely for CUPS job-option setters.  Keep the
+        // portal available in the source-owned no-CUPS target and make those
+        // optional setters no-ops; do not satisfy the private include from
+        // the host Qt installation.
+        let print = source_copy.join("src/print.cpp");
+        let contents = fs::read_to_string(&print)?;
+        let needle = "#include <QtPrintSupport/private/qcups_p.h>";
+        let replacement = r#"#include <QDateTime>
+#include <QtPrintSupport/private/qtprintsupport-config_p.h>
+#if QT_CONFIG(cups)
+#include <QtPrintSupport/private/qcups_p.h>
+#else
+#define PPK_CupsOptions QPrintEngine::PrintEnginePropertyKey(0xfe00)
+class QCUPSSupport
+{
+public:
+    enum PageSet { AllPages, OddPages, EvenPages };
+    enum PagesPerSheet { OnePagePerSheet, TwoPagesPerSheet, FourPagesPerSheet, SixPagesPerSheet, NinePagesPerSheet, SixteenPagesPerSheet };
+    enum PagesPerSheetLayout { LeftToRightTopToBottom, LeftToRightBottomToTop, RightToLeftTopToBottom, RightToLeftBottomToTop, BottomToTopLeftToRight, BottomToTopRightToLeft, TopToBottomLeftToRight, TopToBottomRightToLeft };
+    static void setPageSet(QPrinter *, PageSet) {}
+    static void setPagesPerSheetLayout(QPrinter *, PagesPerSheet, PagesPerSheetLayout) {}
+};
+#endif"#;
+        if !contents.contains(needle) {
+            bail!("xdg-desktop-portal-kde print backend no longer has the expected qcups include");
+        }
+        fs::write(print, contents.replace(needle, replacement))?;
+    }
+    if component == "kpipewire" {
+        // KPipeWireRecord includes VA-API headers directly, but 6.6.5 only
+        // links the imported libva targets to the sibling KPipeWire target as
+        // PRIVATE dependencies. That neither propagates the include path nor
+        // expresses KPipeWireRecord's own link requirements. Apply the
+        // upstream-compatible target dependency in the disposable mirror.
+        let cmake = source_copy.join("src/CMakeLists.txt");
+        let contents = fs::read_to_string(&cmake)?;
+        let needle = "target_link_libraries(KPipeWireRecord PUBLIC KPipeWire Qt6::QmlIntegration\n    PRIVATE Qt::Core Qt::Gui KF6::CoreAddons KPipeWireDmaBuf\n    PkgConfig::AVCodec PkgConfig::AVUtil PkgConfig::AVFormat PkgConfig::AVFilter PkgConfig::GBM PkgConfig::SWScale\n    epoxy::epoxy Libdrm::Libdrm\n)";
+        let replacement = "target_link_libraries(KPipeWireRecord PUBLIC KPipeWire Qt6::QmlIntegration\n    PRIVATE Qt::Core Qt::Gui KF6::CoreAddons KPipeWireDmaBuf\n    PkgConfig::AVCodec PkgConfig::AVUtil PkgConfig::AVFormat PkgConfig::AVFilter PkgConfig::GBM PkgConfig::SWScale\n    epoxy::epoxy Libdrm::Libdrm PkgConfig::LIBVA PkgConfig::LIBVA-drm\n)";
+        if !contents.contains(needle) {
+            bail!("kpipewire target linkage no longer matches the expected 6.6.5 layout");
+        }
+        let adjusted = contents.replacen(needle, replacement, 1).replace(
+            "PUBLIC \"$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>\" ${PipeWire_INCLUDE_DIRS}",
+            "PUBLIC \"$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>\" \"$<BUILD_INTERFACE:${PipeWire_INCLUDE_DIRS}>\"",
+        );
+        fs::write(cmake, adjusted)?;
+    }
+    if component == "spectacle" {
+        // Spectacle 6.6.5 adds its test directory unconditionally, so even a
+        // release build with BUILD_TESTING=OFF requires Prison's optional
+        // scanner target. Keep tests out of the runtime build as requested
+        // instead of expanding the image with barcode-scanner dependencies.
+        let cmake = source_copy.join("CMakeLists.txt");
+        let contents = fs::read_to_string(&cmake)?;
+        let needle = "add_subdirectory(tests)";
+        if !contents.contains(needle) {
+            bail!("spectacle test-directory layout changed unexpectedly");
+        }
+        fs::write(
+            cmake,
+            contents.replace(needle, "if(BUILD_TESTING)\n    add_subdirectory(tests)\nendif()"),
+        )?;
+    }
+    if component == "plasma-pa" {
+        // The kded audio-shortcut plugin includes volumefeedback.h, whose
+        // public interface includes canberra.h.  plasma-volume links Canberra
+        // privately, so that include requirement does not propagate to the
+        // sibling plugin. Express the plugin's direct compile/link dependency
+        // in the disposable source mirror.
+        let cmake = source_copy.join("src/kded/CMakeLists.txt");
+        let contents = fs::read_to_string(&cmake)?;
+        let needle = "                        KF6::PulseAudioQt\n                        PkgConfig::LIBPULSE";
+        let replacement = "                        KF6::PulseAudioQt\n                        Canberra::Canberra\n                        PkgConfig::LIBPULSE";
+        if !contents.contains(needle) {
+            bail!("plasma-pa kded linkage no longer matches the expected 6.6.5 layout");
+        }
+        fs::write(cmake, contents.replacen(needle, replacement, 1))?;
     }
     apply_component_patches(repo_root, component, &source_copy)?;
     if component == "ksysguard" {
@@ -557,6 +656,33 @@ fn build_kde_cmake(
                 .replace("        TYPE REQUIRED\n        PURPOSE \"Used for gathering socket info via the sock_diag netlink subsystem.\"", "        TYPE OPTIONAL\n        PURPOSE \"Used for gathering socket info via the sock_diag netlink subsystem.\"")
                 .replace("        TYPE REQUIRED\n        PURPOSE \"Used for reading hardware sensors\"", "        TYPE OPTIONAL\n        PURPOSE \"Used for reading hardware sensors\"");
             if adjusted != contents { fs::write(&cmake_lists, adjusted)?; }
+        }
+        let systemstats = source_copy.join("systemstats/CMakeLists.txt");
+        if systemstats.is_file() {
+            let contents = fs::read_to_string(&systemstats)?;
+            let adjusted = contents.replace(
+                "target_link_libraries(SystemStats PUBLIC ${SENSORS_LIBRARIES} KF6::I18n)",
+                "target_link_libraries(SystemStats PRIVATE ${SENSORS_LIBRARIES} PUBLIC KF6::I18n)",
+            );
+            if adjusted != contents { fs::write(systemstats, adjusted)?; }
+        }
+    }
+    if component == "ksystemstats" {
+        // Upstream's Linux daemon initializes libsensors directly, but the
+        // current CMake files only find Sensors and never attach its include
+        // directory/library to the daemon or plugin targets. Keep this
+        // source-owned dependency fix in the disposable mirror.
+        for (relative, target) in [
+            ("src/CMakeLists.txt", "ksystemstats_core"),
+            ("plugins/lmsensors/CMakeLists.txt", "ksystemstats_plugin_lmsensors"),
+            ("plugins/cpu/CMakeLists.txt", "ksystemstats_plugin_cpu"),
+            ("plugins/gpu/CMakeLists.txt", "ksystemstats_plugin_gpu"),
+        ] {
+            let path = source_copy.join(relative);
+            let contents = fs::read_to_string(&path)?;
+            let link_scope = if matches!(target, "ksystemstats_plugin_cpu" | "ksystemstats_plugin_gpu") { "" } else { "PRIVATE " };
+            let adjusted = format!("{contents}\ntarget_include_directories({target} PRIVATE ${{SENSORS_INCLUDE_DIR}})\ntarget_link_libraries({target} {link_scope}${{SENSORS_LIBRARIES}})\n");
+            fs::write(path, adjusted)?;
         }
     }
     if component == "kscreenlocker" {
@@ -616,7 +742,11 @@ fn build_kde_cmake(
                 .replace("    NotifyConfig\n", "")
                 .replace("find_package(Plasma5Support ${PROJECT_DEP_VERSION} REQUIRED)\n", "find_package(Plasma5Support ${PROJECT_DEP_VERSION} REQUIRED)\n");
             let adjusted = adjusted
-                .replace("find_package(KSMServerDBusInterface CONFIG REQUIRED)", "if(WITH_X11)\nfind_package(KSMServerDBusInterface CONFIG REQUIRED)\nendif()")
+                // The Wayland session intentionally does not build ksmserver.
+                // Plasma Desktop's XKB keyboard backend needs WITH_X11, but
+                // KSMServerDBusInterface is only an X11-session interface and
+                // is not referenced by this source tree beyond this probe.
+                .replace("find_package(KSMServerDBusInterface CONFIG REQUIRED)\n", "")
                 .replace("find_package(KSysGuard CONFIG REQUIRED)", "find_package(KSysGuard CONFIG)")
                 .replace("find_package(XCB\n    REQUIRED COMPONENTS\n        XCB SHM IMAGE\n    OPTIONAL_COMPONENTS\n        XKB XINPUT ATOM RECORD\n)", "if(WITH_X11)\nfind_package(XCB\n    REQUIRED COMPONENTS\n        XCB SHM IMAGE\n    OPTIONAL_COMPONENTS\n        XKB XINPUT ATOM RECORD\n)\nendif()")
                 .replace("pkg_check_modules(XKBREGISTRY xkbregistry REQUIRED IMPORTED_TARGET)", "if(WITH_X11)\npkg_check_modules(XKBREGISTRY xkbregistry REQUIRED IMPORTED_TARGET)\nendif()");
@@ -632,6 +762,10 @@ fn build_kde_cmake(
                     "find_package(X11)\nset_package_properties(X11 PROPERTIES\n    DESCRIPTION \"X11 libraries\"\n    URL \"https://www.x.org\"\n    PURPOSE \"Required for building the X11 based workspace\"\n    TYPE REQUIRED\n)\n\nif(X11_FOUND)\n  set(HAVE_X11 1)\nendif()\n",
                     "if(WITH_X11)\nfind_package(X11)\nset_package_properties(X11 PROPERTIES\n    DESCRIPTION \"X11 libraries\"\n    URL \"https://www.x.org\"\n    PURPOSE \"Required for building the X11 based workspace\"\n    TYPE OPTIONAL\n)\n\nif(X11_FOUND)\n  set(HAVE_X11 1)\nendif()\nendif()\n",
                 )
+                // kaccess shares generated settings code with the omitted
+                // NotifyConfig accessibility KCM.  It is an X11-only daemon,
+                // not the Wayland keyboard-layout backend being enabled.
+                .replace("if(X11_Xkb_FOUND AND XCB_XKB_FOUND)\n    add_subdirectory(kaccess)\nendif()", "# MattOS: X11-only kaccess daemon omitted from the Wayland session")
                 .replace("    PURPOSE \"Required for building the X11 based workspace\"\n    TYPE REQUIRED", "    PURPOSE \"Required for building the X11 based workspace\"\n    TYPE OPTIONAL")
                 .replace("    PURPOSE \"Support audible bell in kaccess\"\n    TYPE REQUIRED", "    PURPOSE \"Support audible bell in kaccess\"\n    TYPE OPTIONAL")
                 .replace("-DBUILD_KCM_TOUCHPAD_X11=OFF", "-DBUILD_KCM_TOUCHPAD_X11=OFF");
@@ -640,9 +774,44 @@ fn build_kde_cmake(
             if applets.is_file() {
                 let contents = fs::read_to_string(&applets)?;
                 let adjusted = contents
-                    .replace("add_subdirectory(window-list)", "if(WITH_X11)\nadd_subdirectory(window-list)\nendif()")
-                    .replace("add_subdirectory(pager)", "if(WITH_X11)\nadd_subdirectory(pager)\nendif()");
+                    .replace("add_subdirectory(window-list)", "if(WITH_X11)\nadd_subdirectory(window-list)\nendif()");
                 if adjusted != contents { fs::write(applets, adjusted)?; }
+            }
+            // Plasma's pager supports Wayland, but this release includes the
+            // X11 drag-and-drop model header unconditionally.  Keep the real
+            // pager in the Wayland desktop and compile only the backend that
+            // the selected session can use; Xwayland applications are still
+            // represented by KWin's Wayland task-management protocol.
+            let pager = source_copy.join("applets/pager/pagermodel.cpp");
+            if pager.is_file() {
+                let contents = fs::read_to_string(&pager)?;
+                let mut adjusted = contents
+                    .replace("#if HAVE_X11\n#include <xwindowtasksmodel.h>\n#endif", "#if defined(HAVE_X11) && HAVE_X11\n#include <xwindowtasksmodel.h>\n#endif")
+                    .replace("#ifdef HAVE_X11\n#include <xwindowtasksmodel.h>\n#endif", "#if defined(HAVE_X11) && HAVE_X11\n#include <xwindowtasksmodel.h>\n#endif")
+                    .replace(
+                        "    if (KWindowSystem::isPlatformX11()) {\n        indices = findWindows(TaskManager::XWindowTasksModel::winIdsFromMimeData(mimeData, &ok));\n    } else if (KWindowSystem::isPlatformWayland()) {",
+                        "#if defined(HAVE_X11) && HAVE_X11\n    if (KWindowSystem::isPlatformX11()) {\n        indices = findWindows(TaskManager::XWindowTasksModel::winIdsFromMimeData(mimeData, &ok));\n    } else\n#endif\n    if (KWindowSystem::isPlatformWayland()) {",
+                    );
+                if !adjusted.contains("#if defined(HAVE_X11) && HAVE_X11\n#include <xwindowtasksmodel.h>\n#endif") {
+                    adjusted = adjusted.replace("#include <xwindowtasksmodel.h>", "#if defined(HAVE_X11) && HAVE_X11\n#include <xwindowtasksmodel.h>\n#endif");
+                }
+                // WITH_X11 is enabled solely to build the XKB keyboard
+                // backend.  LibTaskManager remains Wayland-only, so the
+                // pager must not compile its X11 drag/drop branch merely
+                // because config-X11.h reports that X11 headers exist.
+                adjusted = adjusted
+                    .replace("#if defined(HAVE_X11) && HAVE_X11\n#include <xwindowtasksmodel.h>", "#if 0 // MattOS: no Plasma X11 session/task model\n#include <xwindowtasksmodel.h>")
+                    .replace("#if defined(HAVE_X11) && HAVE_X11\n    if (KWindowSystem::isPlatformX11())", "#if 0 // MattOS: no Plasma X11 session/task model\n    if (KWindowSystem::isPlatformX11())")
+                    .replace("#if HAVE_X11\n    if (KWindowSystem::isPlatformX11()", "#if 0 // MattOS: no Plasma X11 session/task model\n    if (KWindowSystem::isPlatformX11()");
+                if !adjusted.contains("#include <QMimeData>") {
+                    adjusted = adjusted.replace("#include <QDBusConnection>", "#include <QDBusConnection>\n#include <QMimeData>");
+                }
+                if !adjusted.contains("#if 0 // MattOS: no Plasma X11 session/task model\n#include <xwindowtasksmodel.h>\n#endif")
+                    || !adjusted.contains("#include <QMimeData>")
+                {
+                    bail!("plasma-desktop pager Wayland adaptation no longer matches upstream source");
+                }
+                if adjusted != contents { fs::write(pager, adjusted)?; }
             }
         }
         let kcms = source_copy.join("kcms/CMakeLists.txt");
@@ -679,6 +848,11 @@ fn build_kde_cmake(
                     "    if (KWindowSystem::isPlatformX11()) {\n        return TaskManager::XWindowTasksModel::winIdsFromMimeData(mimeData).count();\n    }\n",
                     "#if HAVE_X11\n    if (KWindowSystem::isPlatformX11()) {\n        return TaskManager::XWindowTasksModel::winIdsFromMimeData(mimeData).count();\n    }\n#endif\n",
                 );
+            // As with the pager, HAVE_X11 now means only that the keyboard
+            // backend can use XKB.  The Plasma session and LibTaskManager are
+            // still Wayland-only, so every X11 activity-switcher branch must
+            // remain excluded.
+            let adjusted = adjusted.replace("#if HAVE_X11", "#if 0 // MattOS: no Plasma X11 session/task model");
             if adjusted != contents { fs::write(activity_manager, adjusted)?; }
         }
     }
@@ -896,18 +1070,11 @@ fn build_kde_cmake(
         }
     }
     if component == "libkscreen" {
-        // The Wayland-only target does not ship the optional XRandR/DPMS
-        // backend.  Upstream's DPMS source currently unconditionally links
-        // XCB targets even when XCB is absent, so omit that backend in the
-        // disposable mirror rather than allowing host XCB to leak in.
-        let cmake_lists = source_copy.join("src/CMakeLists.txt");
-        if cmake_lists.is_file() {
-            let contents = fs::read_to_string(&cmake_lists)?;
-            let adjusted = contents
-                .replace("add_subdirectory(doctor)", "# MattOS: CLI doctor requires the omitted X11 DPMS ABI")
-                .replace("add_subdirectory(libdpms)", "# MattOS: X11 DPMS backend omitted from Wayland-only target");
-            if adjusted != contents { fs::write(cmake_lists, adjusted)?; }
-        }
+        // The target-owned XCB aggregate is now present, so retain
+        // ScreenDpms: PowerDevil consumes that public ABI even in a native
+        // Wayland session.  Only avoid Qt's non-installed qtx11extras private
+        // header in backend selection; XRandR remains a compatibility backend,
+        // not a separately advertised Plasma X11 session.
         let backend_manager = source_copy.join("src/backendmanager.cpp");
         if backend_manager.is_file() {
             let contents = fs::read_to_string(&backend_manager)?;
@@ -1020,6 +1187,12 @@ fn build_kde_cmake(
         // miss the module.
         prefixes.insert(0, build.join("mattos-qml"));
     }
+    if components.contains(&"kirigami-addons") {
+        command.push(format!(
+            "-DKirigamiAddons_DIR={}/lib/x86_64-linux-gnu/cmake/KF6KirigamiAddons",
+            repo_root.join("out/build/kirigami-addons/install/usr").display()
+        ));
+    }
     command.extend(qt_target_cmake_args(repo_root, &prefixes)?);
     if components.contains(&"qtbase") {
         let qtbase = repo_root.join("out/build/qtbase/install/usr");
@@ -1042,6 +1215,9 @@ fn build_kde_cmake(
         ("ktexteditor", "TextEditor"), ("ktextwidgets", "TextWidgets"), ("kwallet", "Wallet"),
         ("kwidgetsaddons", "WidgetsAddons"), ("kwindowsystem", "WindowSystem"),
         ("kio", "KIO"), ("solid", "Solid"), ("attica", "Attica"), ("knotifications", "Notifications"),
+        ("kcmutils", "KCMUtils"), ("kdoctools", "DocTools"), ("krunner", "Runner"),
+        ("kfilemetadata", "FileMetaData"), ("kpty", "Pty"), ("purpose", "Purpose"),
+        ("networkmanager-qt", "NetworkManagerQt"),
         ("kirigami-addons", "KirigamiAddons"), ("kquickcharts", "QuickCharts"),
     ];
     for (component_name, framework_name) in framework_names {
@@ -1175,6 +1351,12 @@ fn build_kde_cmake(
         let x11_root = repo_root.join("out/build/x11-compat/install/usr");
         command.push(format!("-DX11_X11_INCLUDE_PATH={}/include", x11_root.display()));
         command.push(format!("-DX11_X11_LIB={}/lib/x86_64-linux-gnu/libX11.so", x11_root.display()));
+        // FindX11/FindXCB can locate the aggregate libraries through the
+        // isolated pkg-config view, but several upstream targets consume the
+        // raw XCB headers without propagating the discovered include path.
+        // Keep that include target-owned and tied to the declared aggregate.
+        append_cmake_flag(&mut command, "-DCMAKE_C_FLAGS", &format!("-I{}/include", x11_root.display()));
+        append_cmake_flag(&mut command, "-DCMAKE_CXX_FLAGS", &format!("-I{}/include", x11_root.display()));
     }
     if components.contains(&"qt5compat") {
         command.push(format!("-DQt6Core5Compat_DIR={}/lib/x86_64-linux-gnu/cmake/Qt6Core5Compat", repo_root.join("out/build/qt5compat/install/usr").display()));
@@ -1247,6 +1429,9 @@ fn build_kde_cmake(
         for (component, module) in [
             ("kirigami-addons", "kirigamiaddons"),
             ("kquickcharts", "quickcharts"),
+            ("prison", "prison"),
+            ("kitemmodels", "kitemmodels"),
+            ("kcmutils", "kcmutils"),
         ] {
             if !components.contains(&component) {
                 continue;
@@ -1360,6 +1545,19 @@ fn build_kde_cmake(
         append_cmake_flag(&mut command, "-DCMAKE_C_FLAGS", &format!("-I{}", util_linux_include.display()));
         append_cmake_flag(&mut command, "-DCMAKE_CXX_FLAGS", &format!("-I{}", util_linux_include.display()));
     }
+    if components.contains(&"networkmanager") {
+        // libnm.pc intentionally exposes include/libnm for its conventional
+        // <NetworkManager.h> API, while NetworkManagerQt's public headers use
+        // <libnm/NetworkManager.h>. Add the source-owned include parent too.
+        let nm_include = repo_root.join("out/build/networkmanager/install/usr/include");
+        append_cmake_flag(&mut command, "-DCMAKE_C_FLAGS", &format!("-I{}", nm_include.display()));
+        append_cmake_flag(&mut command, "-DCMAKE_CXX_FLAGS", &format!("-I{}", nm_include.display()));
+    }
+    if components.contains(&"lm-sensors") {
+        let sensors = repo_root.join("out/build/lm-sensors/install/usr");
+        command.push(format!("-DSENSORS_INCLUDE_DIR={}/include", sensors.display()));
+        command.push(format!("-DSENSORS_LIBRARIES={}/lib/x86_64-linux-gnu/libsensors.so", sensors.display()));
+    }
     if components.contains(&"qtdeclarative") {
         let qtbase_cmake = repo_root.join("out/build/qtbase/install/usr/lib/x86_64-linux-gnu/cmake");
         let qml_cmake = repo_root.join("out/build/qtdeclarative/install/usr/lib/x86_64-linux-gnu/cmake");
@@ -1413,7 +1611,20 @@ fn build_kde_cmake(
     // than replacing their include paths or optimization settings.
     let source_prefix = source_copy.display();
     let target_source = format!("/usr/src/mattos/{component}");
-    let prefix_map = format!("-ffile-prefix-map={source_prefix}={target_source} -fdebug-prefix-map={source_prefix}={target_source} -fmacro-prefix-map={source_prefix}={target_source}");
+    let mut prefix_map = format!("-ffile-prefix-map={source_prefix}={target_source} -fdebug-prefix-map={source_prefix}={target_source} -fmacro-prefix-map={source_prefix}={target_source}");
+    // Public target headers may legitimately expand __FILE__ in inline code
+    // (Highway does this for diagnostics).  They live under output-owned
+    // staged prefixes while building, but installed binaries must describe
+    // the target filesystem rather than retain those checkout paths.
+    for dependency in components {
+        let staged_prefix = repo_root.join("out/build").join(dependency).join("install/usr");
+        if staged_prefix.is_dir() {
+            let staged_prefix = staged_prefix.display();
+            prefix_map.push_str(&format!(
+                " -ffile-prefix-map={staged_prefix}=/usr -fdebug-prefix-map={staged_prefix}=/usr -fmacro-prefix-map={staged_prefix}=/usr"
+            ));
+        }
+    }
     for key in ["-DCMAKE_C_FLAGS=", "-DCMAKE_CXX_FLAGS="] {
         if let Some(argument) = command.iter_mut().find(|argument| argument.starts_with(key)) {
             argument.push_str(&format!(" {prefix_map}"));
@@ -1759,7 +1970,10 @@ fn build_qcoro(repo_root: &Path) -> Result<()> {
             "-DBUILD_SHARED_LIBS=ON",
             "-DQCORO_BUILD_EXAMPLES=OFF",
             "-DQCORO_BUILD_TESTING=OFF",
-            "-DQCORO_WITH_QTDBUS=OFF",
+            // Plasma NetworkManagement consumes QCoro's DBus coroutine
+            // wrappers.  Keep this target-owned instead of allowing a host
+            // QCoro component to satisfy the downstream CMake lookup.
+            "-DQCORO_WITH_QTDBUS=ON",
             "-DQCORO_WITH_QTNETWORK=OFF",
             "-DQCORO_WITH_QTWEBSOCKETS=OFF",
             "-DQCORO_WITH_QTQUICK=OFF",
@@ -1852,6 +2066,10 @@ fn build_knotifications(repo_root: &Path) -> Result<()> {
     build_kde_cmake(repo_root, "knotifications", "src/desktop/kde/knotifications", &["qtbase", "qtdeclarative", "kcoreaddons", "kconfig", "kdbusaddons", "ki18n", "libcanberra"], &["-DBUILD_TESTING=OFF", "-DBUILD_PYTHON_BINDINGS=OFF"], "usr/lib/x86_64-linux-gnu/libKF6Notifications.so")
 }
 
+fn build_knotifyconfig(repo_root: &Path) -> Result<()> {
+    build_kde_cmake(repo_root, "knotifyconfig", "src/desktop/kde/knotifyconfig", &["qtbase", "qtdeclarative", "karchive", "kauth", "kbookmarks", "kcolorscheme", "kcompletion", "kconfig", "kcoreaddons", "kcrash", "kdbusaddons", "kguiaddons", "ki18n", "kiconthemes", "kitemmodels", "kitemviews", "kjobwidgets", "kio", "kservice", "solid", "kwidgetsaddons", "kwindowsystem", "libcanberra", "libffi", "util-linux"], &["-DBUILD_TESTING=OFF", "-DBUILD_QCH=OFF"], "usr/lib/x86_64-linux-gnu/libKF6NotifyConfig.so")
+}
+
 fn build_kparts(repo_root: &Path) -> Result<()> {
     build_kde_cmake(repo_root, "kparts", "src/desktop/kde/kparts", &["qtbase", "qtdeclarative", "kconfig", "kcoreaddons", "ki18n", "kservice", "kwidgetsaddons", "kio", "kwindowsystem", "kbookmarks", "kcompletion", "kitemviews", "karchive", "kauth", "kcolorscheme", "kcrash", "kdbusaddons", "kguiaddons", "kiconthemes", "kitemmodels", "kjobwidgets", "solid", "util-linux", "kconfigwidgets", "kxmlgui", "kcodecs"], &["-DBUILD_TESTING=OFF"], "usr/lib/x86_64-linux-gnu/libKF6Parts.so")
 }
@@ -1863,7 +2081,7 @@ fn build_kxmlgui(repo_root: &Path) -> Result<()> {
 }
 
 fn build_prison(repo_root: &Path) -> Result<()> {
-    build_kde_cmake(repo_root, "prison", "src/desktop/kde/prison", &["qtbase", "qtdeclarative", "kcoreaddons", "ki18n", "kwidgetsaddons", "qrencode"], &["-DBUILD_TESTING=OFF", "-DWITH_DMTX=OFF", "-DWITH_ZXING=OFF", "-DWITH_MULTIMEDIA=OFF"], "usr/lib/x86_64-linux-gnu/libKF6Prison.so")
+    build_kde_cmake(repo_root, "prison", "src/desktop/kde/prison", &["qtbase", "qtdeclarative", "qtmultimedia", "kcoreaddons", "ki18n", "kwidgetsaddons", "qrencode", "zxing-cpp"], &["-DBUILD_TESTING=OFF", "-DWITH_DMTX=OFF", "-DWITH_ZXING=ON", "-DWITH_MULTIMEDIA=ON"], "usr/lib/x86_64-linux-gnu/libKF6Prison.so")
 }
 
 fn build_krunner(repo_root: &Path) -> Result<()> {

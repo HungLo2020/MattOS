@@ -1,0 +1,2851 @@
+# Copyright (C) 2023 This file is copyright:
+# This file is distributed under the same license as the spectacle package.
+#
+# SPDX-FileCopyrightText: 2021, 2023, 2024 A S Alam <aalam@satluj.org>
+msgid ""
+msgstr ""
+"Project-Id-Version: spectacle\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-04-25 02:46+0000\n"
+"PO-Revision-Date: 2024-07-21 21:34-0500\n"
+"Last-Translator: aalam <aalam@punlinux.org>\n"
+"Language-Team: Punjabi <kde-i18n-doc@kde.org>\n"
+"Language: pa\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 24.05.2\n"
+
+#, kde-format
+msgctxt "translatable folder name"
+msgid "Screenshots"
+msgstr "ਸਕਰੀਨਸ਼ਾਟ"
+
+#, kde-format
+msgctxt "part of default image filename template"
+msgid "Screenshot"
+msgstr "ਸਕਰੀਨਸ਼ਾਟ"
+
+#, kde-format
+msgctxt "translatable folder name"
+msgid "Screencasts"
+msgstr "ਸਕਰੀਨ-ਕਾਸਟ"
+
+#, kde-format
+msgctxt "part of default video filename template"
+msgid "Screencast"
+msgstr "ਸਕਰੀਨ-ਕਾਸਟ"
+
+#: src/CaptureModeModel.cpp:162
+#, fuzzy, kde-format
+#| msgid "Rectangular Region"
+msgctxt "@action in capture mode section"
+msgid "Rectangular Region"
+msgstr "ਆਇਤਾਕਾਰ ਖੇਤਰ"
+
+#: src/CaptureModeModel.cpp:164
+#, fuzzy, kde-format
+#| msgid "All Screens (Scaled to same size)"
+msgctxt "@action in capture mode section"
+msgid "All Screens (Scaled to same size)"
+msgstr "ਸਭ ਸਕਰੀਨਾਂ (ਸਭ ਇੱਕੋ ਆਕਾਰ ਲਈ ਸਕੇਲ ਕੀਤੀਆਂ)"
+
+#: src/CaptureModeModel.cpp:166
+#, fuzzy, kde-format
+#| msgid "Current Screen"
+msgctxt "@action in capture mode section"
+msgid "Current Screen"
+msgstr "ਮੌਜੂਦਾ ਸਕਰੀਨ"
+
+#: src/CaptureModeModel.cpp:168
+#, fuzzy, kde-format
+#| msgid "Active Window"
+msgctxt "@action in capture mode section"
+msgid "Active Window"
+msgstr "ਸਰਗਰਮ ਵਿੰਡੋ"
+
+#: src/CaptureModeModel.cpp:171
+#, fuzzy, kde-format
+#| msgid "Selected Window"
+msgctxt "@action in capture mode section"
+msgid "Select Window"
+msgstr "ਚੁਣੀ ਵਿੰਡੋ"
+
+#: src/CaptureModeModel.cpp:171
+#, fuzzy, kde-format
+#| msgid "Window Under Cursor"
+msgctxt "@action in capture mode section"
+msgid "Window Under Cursor"
+msgstr "ਕਰਸਰ ਹੇਠਲੀ ਵਿੰਡੋ"
+
+#: src/CaptureModeModel.cpp:174
+#, fuzzy, kde-format
+#| msgid "All Screens"
+msgctxt "@action in capture mode section"
+msgid "All Screens"
+msgstr "ਸਭ ਸਕਰੀਨਾਂ"
+
+#: src/CaptureModeModel.cpp:176
+#, fuzzy, kde-format
+#| msgid "Full Screen"
+msgctxt "@action in capture mode section"
+msgid "Full Screen"
+msgstr "ਪੂਰੀ ਸਕਰੀਨ"
+
+#: src/CommandLineOptions.h:22
+#, kde-format
+msgid "Capture the entire desktop (default)"
+msgstr "ਪੂਰੇ ਡੈਸਕਟਾਪ ਦੀ ਤਸਵੀਰ ਲਵੋ (ਮੂਲ)"
+
+#: src/CommandLineOptions.h:26
+#, kde-format
+msgid "Capture the current monitor"
+msgstr "ਮੌਜੂਦਾ ਮਾਨੀਟਰ ਦੀ ਤਸਵੀਰ ਲਵੋ"
+
+#: src/CommandLineOptions.h:30
+#, kde-format
+msgid "Capture the active window"
+msgstr "ਸਰਗਰਮ ਵਿੰਡੋ ਦੀ ਤਸਵੀਰ ਲਵੋ"
+
+#: src/CommandLineOptions.h:34
+#, kde-format
+msgid ""
+"Capture the window currently under the cursor, including parents of pop-up "
+"menus"
+msgstr "ਮੌਜੂਦਾ ਕਰਸਰ ਹੇਠਲੀ ਵਿੰਡੋ ਦੀ ਤਸਵੀਰ ਖਿੱਚੋ, ਜਿਸ ਵਿੱਚ ਪੋਪ-ਅੱਪ ਮੇਨੂ ਦੇ ਮੂਲ ਹਿੱਸੇ ਸ਼ਾਮਲ ਹੋਣ।"
+
+#: src/CommandLineOptions.h:38
+#, kde-format
+msgid ""
+"Capture the window currently under the cursor, excluding parents of pop-up "
+"menus"
+msgstr "ਮੌਜੂਦਾ ਕਰਸਰ ਹੇਠਲੀ ਵਿੰਡੋ ਦੀ ਤਸਵੀਰ ਲਵੋ, ਜਿਸ ਵਿੱਚ ਪੋਪ-ਅੱਪ ਮੇਨੂ ਦੇ ਮੂਲ ਹਿੱਸੇ ਸ਼ਾਮਲ ਨਾ ਹੋਣ।"
+
+#: src/CommandLineOptions.h:42
+#, kde-format
+msgid "Capture a rectangular region of the screen"
+msgstr "ਸਕਰੀਨ ਦੀ ਆਇਤਾਕਾਰ ਖੇਤਰ ਦੀ ਤਸਵੀਰ ਖਿੱਚੋ"
+
+#: src/CommandLineOptions.h:46
+#, kde-format
+msgid ""
+"Record the screen using the given mode. Modes:\n"
+"- r, region\n"
+"- s, screen\n"
+"- w, window"
+msgstr ""
+
+#: src/CommandLineOptions.h:54
+#, kde-format
+msgid "Launch Spectacle without taking a screenshot"
+msgstr "ਸਕਰੀਨਸ਼ਾਟ ਲੈਣ ਤੋਂ ਬਿਨਾਂ ਸਪੈਕਟਾਕਲ ਚਲਾਓ"
+
+#: src/CommandLineOptions.h:58
+#, kde-format
+msgid "Start in GUI mode (default)"
+msgstr "GUI ਮੋਡ ਵਿੱਚ ਸ਼ੁਰੂ ਕਰੋ (ਮੂਲ)"
+
+#: src/CommandLineOptions.h:62
+#, kde-format
+msgid "Take a screenshot and exit without showing the GUI"
+msgstr "GUI ਦਿਖਾਏ ਬਿਨਾਂ ਸਕਰੀਨਸ਼ਾਟ ਲਵੋ ਤੇ ਬੰਦ ਕਰੋ"
+
+#: src/CommandLineOptions.h:66
+#, kde-format
+msgid "Start in DBus-Activation mode"
+msgstr ""
+
+#: src/CommandLineOptions.h:70
+#, kde-format
+msgid ""
+"In background mode, do not pop up a notification when the screenshot is taken"
+msgstr "ਬੈਕਗਰਾਊਂਡ ਮੋਡ ਵਿੱਚ, ਸਕਰੀਨਸ਼ਾਟ ਲੈਣ ਦੇ ਦੌਰਾਨ ਨੋਟੀਫ਼ਿਕੇਸ਼ਨ ਪੌਪ-ਅੱਪ ਨਾ ਦਿਖਾਓ"
+
+#: src/CommandLineOptions.h:74
+#, kde-format
+msgid "In background mode, save image to specified file"
+msgstr "ਬੈਕਗਰਾਊਂਡ ਮੋਡ ਵਿੱਚ ਚਿੱਤਰਾਂ ਨੂੰ ਖਾਸ ਫਾਇਲ ਵਿੱਚ ਸੰਭਾਲੋ"
+
+#: src/CommandLineOptions.h:79
+#, kde-format
+msgid "In background mode, delay before taking the shot (in milliseconds)"
+msgstr "ਬੈਕਗਰਾਊਂਡ ਮੋਡ ਵਿੱਚ ਸ਼ਾਟ ਲੈਣ ਤੋਂ ਪਹਿਲਾਂ ਦੇਰੀ (ਮਿਲੀਸਕਿੰਟਾਂ ਵਿੱਚ)"
+
+#: src/CommandLineOptions.h:84
+#, kde-format
+msgid ""
+"In background mode, copy screenshot image to clipboard, unless -o is also "
+"used."
+msgstr ""
+"ਬੈਕਗਰਾਊਂਡ ਮੋਡ ਵਿੱਚ ਸਕਰੀਨਸ਼ਾਟ ਲਏ ਚਿੱਤਰ ਨੂੰ ਕਲਿੱਪਬੋਰਡ ਵਿੱਚ ਕਾਪੀ ਕੋ, ਜਦ ਤੱਕ ਕਿ -o ਨਾ ਵਰਤਿਆ "
+"ਗਿਆ ਹੋਵੇ।"
+
+#: src/CommandLineOptions.h:88
+#, kde-format
+msgid "In background mode, copy screenshot file path to clipboard"
+msgstr "ਬੈਕਗਰਾਊਂਡ ਮੋਡ ਵਿੱਚ ਸਕਰੀਨਸ਼ਾਟ ਫ਼ਾਈਲ ਮਾਰਗ ਨੂੰ ਕਲਿੱਪਬੋਰਡ ਵਿੱਚ ਕਾਪੀ ਕਰੋ"
+
+#: src/CommandLineOptions.h:92
+#, kde-format
+msgid "Wait for a click before taking screenshot. Invalidates delay"
+msgstr "ਸਕਰੀਨਸ਼ਾਟ ਲੈਣ ਤੋਂ ਪਹਿਲਾਂ ਕਲਿੱਕ ਕਰਨ ਦੀ ਉਡੀਕ ਕਰੋ। ਦੇਰੀ ਨੂੰ ਅਣਡਿੱਠਾ ਕਰੋ"
+
+#: src/CommandLineOptions.h:96
+#, kde-format
+msgid "Starts a new GUI instance of spectacle without registering to DBus"
+msgstr "ਡੀ-ਬੱਸ ਨਾਲ ਰਜਿਸਟਰ ਕੀਤੇ ਬਿਨਾਂ ਸਪੈਕਟਾਕਲ ਦਾ ਨਵਾਂ GUI ਸ਼ੁਰੂ ਕਰਦਾ ਹੈ"
+
+#: src/CommandLineOptions.h:100
+#, kde-format
+msgid "In background mode, include pointer in the screenshot"
+msgstr "ਬੈਕਗਰਾਊਂਡ ਮੋਡ ਵਿੱਚ, ਸਕਰੀਨਸ਼ਾਟ ਵਿੱਚ ਪੁਆਇੰਟਰ ਸ਼ਾਮਲ ਕਰੋ"
+
+#: src/CommandLineOptions.h:104
+#, kde-format
+msgid "In background mode, exclude decorations in the screenshot"
+msgstr "ਬੈਕਗਰਾਊਂਡ ਮੋਡ ਵਿੱਚ, ਸਕਰੀਨਸ਼ਾਟ ਵਿੱਚ ਸਜਾਵਟਾਂ ਨੂੰ ਓਹਲੇ ਕਰੋ"
+
+#: src/CommandLineOptions.h:106
+#, kde-format
+msgid "In background mode, exclude shadows in the screenshot"
+msgstr "ਬੈਕਗਰਾਊਂਡ ਮੋਡ ਵਿੱਚ, ਸਕਰੀਨਸ਼ਾਟ ਲੈਣ ਦੇ ਦੌਰਾਨ ਸ਼ੈਡੋ ਨੂੰ ਅਲਹਿਦਾ ਰੱਖੋ"
+
+#: src/CommandLineOptions.h:109
+#, kde-format
+msgid "Open and edit existing screenshot file"
+msgstr "ਮੌਜੂਦਾ ਸਕਰੀਨਸ਼ਾਟ ਫ਼ਾਇਲ ਖੋਲ੍ਹੋ ਅਤੇ ਸੋਧੋ"
+
+#: src/ExportManager.cpp:460
+#, fuzzy, kde-format
+#| msgid "QImageWriter cannot write image: %1"
+msgctxt "%1 is an error message"
+msgid "QImageWriter cannot write image: %1"
+msgstr "QImageWriter ਚਿੱਤਰ ਨੂੰ ਲਿਖ ਨਹੀਂ ਸਕਦਾ ਹੈ: %1"
+
+#: src/ExportManager.cpp:476
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Cannot save screenshot because creating the directory failed:<nl/><filename>"
+"%1</filename>"
+msgstr ""
+"ਡਾਇਰੈਕਟਰੀ ਬਣਾਉਣ ਲਈ ਅਸਫ਼ਲ ਰਹਿਣ ਕਰਕੇ ਸਕਰੀਨਸ਼ਾਟ ਸੰਭਾਲਿਆ ਨਹੀਂ ਜਾ ਸਕਦਾ:<nl/><filename>"
+"%1</filename>"
+
+#: src/ExportManager.cpp:486
+#, kde-format
+msgid "Cannot save screenshot. Error while writing file."
+msgstr "ਸਕਰੀਨਸ਼ਾਟ ਸੰਭਾਲਿਆ ਨਹੀਂ ਜਾ ਸਕਦਾ। ਫ਼ਾਇਲ ਲਿਖਣ ਵਾਲੇ ਗ਼ਲਤੀ ਹੈ।"
+
+#: src/ExportManager.cpp:506
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Cannot save screenshot because creating the remote directory failed:<nl/"
+"><filename>%1</filename>"
+msgstr ""
+"ਰਿਮੋਟ ਡਾਇਰੈਕਟਰੀ ਬਣਾਉਣ ਲਈ ਅਸਫ਼ਲ ਰਹਿਣ ਕਰਕੇ ਸਕਰੀਨਸ਼ਾਟ ਸੰਭਾਲਿਆ ਨਹੀਂ ਜਾ ਸਕਦਾ:<nl/"
+"><filename>%1</filename>"
+
+#: src/ExportManager.cpp:517 src/ExportManager.cpp:566
+#, kde-format
+msgid "Cannot save screenshot. Error while writing temporary local file."
+msgstr "ਸਕਰੀਨਸ਼ਾਟ ਸੰਭਾਲਿਆ ਨਹੀਂ ਜਾ ਸਕਦਾ। ਆਰਜ਼ੀ ਲੋਕਲ ਫ਼ਾਇਲ ਲਿਖਣ ਵਾਲੇ ਗ਼ਲਤੀ ਹੈ।"
+
+#: src/ExportManager.cpp:525
+#, kde-format
+msgid "Unable to save image. Could not upload file to remote location."
+msgstr "ਚਿੱਤਰ ਸੰਭਾਲਣ ਲਈ ਅਸਮਰੱਥ ਹੈ। ਰਿਮੋਟ ਟਿਕਾਣੇ ਉੱਤੇ ਫ਼ਾਇਲ ਅੱਪਲੋਡ ਨਹੀਂ ਕੀਤੀ ਜਾ ਸਕੀ।"
+
+#: src/ExportManager.cpp:573
+#, kde-format
+msgid "Cannot save screenshot. The save filename is invalid."
+msgstr "ਸਕਰੀਨਸ਼ਾਟ ਸੰਭਾਲਿਆ ਨਹੀਂ ਜਾ ਸਕਦਾ। ਸੰਭਾਲਣ ਲਈ ਫ਼ਾਇਲ ਦਾ ਨਾਂ ਗ਼ੈਰ-ਵਾਜਬ ਹੈ।"
+
+#: src/ExportManager.cpp:617
+#, kde-format
+msgid "Cannot save an empty screenshot image."
+msgstr "ਖ਼ਾਲੀ ਸਕਰੀਨਸ਼ਾਟ ਚਿੱਤਰ ਸੰਭਾਲਿਆ ਨਹੀਂ ਜਾ ਸਕਦਾ ਹੈ।"
+
+#: src/ExportManager.cpp:780
+#, kde-format
+msgctxt "@info:shell"
+msgid ""
+"Failed to export video: Temporary file URL must be an existing local file"
+msgstr "ਵੀਡੀਓ ਐਕਸਪੋਰਟ ਕਰਨ ਲਈ ਫੇਲ੍ਹ: ਆਰਜ਼ੀ ਫਾਇਲ ਦਾ URL ਮੌਜੂਦ ਲੋਕਲ ਫਾਇਲ ਨਹੀਂ ਹੈ "
+
+#: src/ExportManager.cpp:787
+#, kde-format
+msgctxt "@info:shell"
+msgid ""
+"Failed to export video: Output file URL must be a valid URL with a file name"
+msgstr ""
+"ਵੀਡੀਓ ਐਕਸਪੋਰਟ ਕਰਨ ਲਈ ਫੇਲ੍ਹ: ਆਉਟਪੁੱਟ ਫਾਇਲ ਦਾ URL ਫਾਇਲ ਨਾਂ ਨਾਲ ਵਾਜਬ URL ਚਾਹੀਦਾ ਹੈ"
+
+#: src/ExportManager.cpp:873
+#, fuzzy, kde-format
+#| msgctxt "@info"
+#| msgid "Unable to save recording. Could not move file to location: %1"
+msgctxt "@info, %1 is a file path"
+msgid "Unable to save recording. Could not move file to location: %1"
+msgstr "ਰਿਕਾਰਡਿੰਗ ਸੰਭਾਲਣ ਲਈ ਅਸਮਰੱਥ ਹੈ। ਫ਼ਾਇਲ ਨੂੰ ਟਿਕਾਣੇ ਉੱਤੇ ਭੇਜਿਆ ਨਹੀਂ ਜਾ ਸਕਿਆ: %1"
+
+#: src/ExportManager.cpp:901
+#, kde-format
+msgid "Printing failed. The printer failed to initialize."
+msgstr "ਪਰਿੰਟ ਕਰਨਾ ਅਸਫ਼ਲ ਹੈ। ਪਰਿੰਟਰ ਸ਼ੁਰੂ ਕਰਨ ਲਈ ਅਸਫ਼ਲ ਹੈ।"
+
+#: src/ExportManager.cpp:918
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Day (1–31)"
+msgstr ""
+
+#: src/ExportManager.cpp:919
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Day (01–31)"
+msgstr ""
+
+#: src/ExportManager.cpp:920
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Day (short name)"
+msgstr ""
+
+#: src/ExportManager.cpp:921
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Day (long name)"
+msgstr ""
+
+#: src/ExportManager.cpp:922
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Month (1–12)"
+msgstr ""
+
+#: src/ExportManager.cpp:923
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Month (01–12)"
+msgstr ""
+
+#: src/ExportManager.cpp:924
+#, fuzzy, kde-format
+#| msgctxt ""
+#| "A placeholder in the user configurable filename will replaced by the "
+#| "specified value"
+#| msgid "Month (localized short name)"
+msgctxt "filename placeholder description"
+msgid "Month (short name)"
+msgstr "ਮਹੀਨਾ (ਇਲਾਕਾਈਕਰਨ ਕੀਤਾ ਛੋਟਾ ਨਾਂ)"
+
+#: src/ExportManager.cpp:925
+#, fuzzy, kde-format
+#| msgctxt ""
+#| "A placeholder in the user configurable filename will replaced by the "
+#| "specified value"
+#| msgid "Month (localized long name)"
+msgctxt "filename placeholder description"
+msgid "Month (long name)"
+msgstr "ਮਹੀਨਾ (ਇਲਾਕਾਈਕਰਨ ਕੀਤਾ ਲੰਮਾ ਨਾਂ)"
+
+#: src/ExportManager.cpp:926
+#, fuzzy, kde-format
+#| msgctxt ""
+#| "A placeholder in the user configurable filename will replaced by the "
+#| "specified value"
+#| msgid "Year (2 digit)"
+msgctxt "filename placeholder description"
+msgid "Year (2 digit)"
+msgstr "ਸਾਲ (2 ਅੰਕ)"
+
+#: src/ExportManager.cpp:927
+#, fuzzy, kde-format
+#| msgctxt ""
+#| "A placeholder in the user configurable filename will replaced by the "
+#| "specified value"
+#| msgid "Year (4 digit)"
+msgctxt "filename placeholder description"
+msgid "Year (4 digit)"
+msgstr "ਸਾਲ (4 ਅੰਕ)"
+
+#: src/ExportManager.cpp:928
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Hour (0–23)"
+msgstr ""
+
+#: src/ExportManager.cpp:929
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Hour (00–23)"
+msgstr ""
+
+#: src/ExportManager.cpp:930
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Hour (1–12)"
+msgstr ""
+
+#: src/ExportManager.cpp:931
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Hour (01–12)"
+msgstr ""
+
+#: src/ExportManager.cpp:932
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Minute (0–59)"
+msgstr ""
+
+#: src/ExportManager.cpp:933
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Minute (00–59)"
+msgstr ""
+
+#: src/ExportManager.cpp:934
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Second (0–59)"
+msgstr ""
+
+#: src/ExportManager.cpp:935
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Second (00–59)"
+msgstr ""
+
+#: src/ExportManager.cpp:936
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Millisecond (0–999)"
+msgstr ""
+
+#: src/ExportManager.cpp:938
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Millisecond (000–999)"
+msgstr ""
+
+#: src/ExportManager.cpp:939
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "AM/PM"
+msgstr ""
+
+#: src/ExportManager.cpp:941
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "am/pm"
+msgstr ""
+
+#: src/ExportManager.cpp:943
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "AM/PM or am/pm (localized)"
+msgstr ""
+
+#: src/ExportManager.cpp:945
+#, fuzzy, kde-format
+#| msgctxt ""
+#| "A placeholder in the user configurable filename will replaced by the "
+#| "specified value"
+#| msgid "Month (localized short name)"
+msgctxt "filename placeholder description"
+msgid "Timezone (short name)"
+msgstr "ਮਹੀਨਾ (ਇਲਾਕਾਈਕਰਨ ਕੀਤਾ ਛੋਟਾ ਨਾਂ)"
+
+#: src/ExportManager.cpp:946
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Timezone offset (±0000)"
+msgstr ""
+
+#: src/ExportManager.cpp:947
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Timezone offset (±00:00)"
+msgstr ""
+
+#: src/ExportManager.cpp:948
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Timezone (long name)"
+msgstr ""
+
+#: src/ExportManager.cpp:949
+#, kde-format
+msgctxt "filename placeholder description"
+msgid "Seconds since the Unix epoch"
+msgstr ""
+
+#: src/ExportManager.cpp:950
+#, fuzzy, kde-format
+#| msgctxt ""
+#| "A placeholder in the user configurable filename will replaced by the "
+#| "specified value"
+#| msgid "Window Title"
+msgctxt "filename placeholder description"
+msgid "Window Title"
+msgstr "ਵਿੰਡੋ ਟਾਇਟਲ"
+
+#: src/ExportManager.cpp:951
+#, fuzzy, kde-format
+#| msgctxt ""
+#| "A placeholder in the user configurable filename will replaced by the "
+#| "specified value"
+#| msgid "Sequential numbering, padded by inserting additional '#' characters"
+msgctxt "filename placeholder description"
+msgid "Sequential numbering, padded by inserting additional '#' characters"
+msgstr "ਲੜੀ ਨੰਬਰ, ਵਾਧੂ '#' ਅੱਖਰ ਸ਼ਾਮਲ ਕਰਕੇ ਅੱਗੇ ਅੱਖਰ ਪਾ ਕੇ "
+
+#: src/Gui/AcceptAction.qml:9
+#, kde-format
+msgctxt "@action accept selection"
+msgid "Accept"
+msgstr ""
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:56
+#, kde-format
+msgid "Stroke:"
+msgstr "ਸਟਰੋਕ:"
+
+#. i18n uses so it doesn't matter that much
+#. unless someone decides to set the locale for a specific
+#. part of spectacle in the future.
+#: src/Gui/AnnotationOptionsToolBarContents.qml:88
+#, kde-format
+msgctxt "px: pixels"
+msgid "%1px"
+msgid_plural "%1px"
+msgstr[0] "%1px"
+msgstr[1] "%1px"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:93
+#, kde-format
+msgid "Stroke Width"
+msgstr "ਸਟਰੋਕ ਦੀ ਚੌੜਾਈ"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:126
+#, kde-format
+msgid "Stroke Color"
+msgstr "ਸਟਰੋਕ ਦਾ ਰੰਗ"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:162
+#, kde-format
+msgid "Fill:"
+msgstr "ਭਰੋ:"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:174
+#, kde-format
+msgid "Fill Color"
+msgstr "ਭਰਨ ਵਾਲੇ ਰੰਗ"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:213
+#, kde-format
+msgctxt "@label:slider strength of effect"
+msgid "Strength:"
+msgstr "ਮਜ਼ਬੂਤ:"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:232
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "The strength of the effect."
+msgstr "ਪ੍ਰਭਾਵ ਦੀ ਮਜ਼ਬੂਤ ਹੈ।"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:259
+#, kde-format
+msgid "Font:"
+msgstr "ਫੋਂਟ:"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:273
+#, kde-format
+msgctxt "%2 font family, %3 font style name, %1 font point size"
+msgid "%2 %3 %1pt"
+msgid_plural "%2 %3 %1pts"
+msgstr[0] "%2 %3 %1pt"
+msgstr[1] "%2 %3 %1pts"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:274
+#, kde-format
+msgctxt "%2 font family %1 font point size"
+msgid "%2 %1pt"
+msgid_plural "%2 %1pts"
+msgstr[0] "%2 %1pt"
+msgstr[1] "%2 %1pts"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:286
+#, kde-format
+msgid "Font Color"
+msgstr "ਫੋਂਟ ਰੰਗ: "
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:325
+#, kde-format
+msgid "Number:"
+msgstr "ਨੰਬਰ:"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:344
+#, kde-format
+msgid "Number for number annotations"
+msgstr "ਨੰਬਰ ਟਿਪੱਣੀਆਂ ਲਈ ਨੰਬਰ"
+
+#: src/Gui/AnnotationOptionsToolBarContents.qml:372
+#, kde-format
+msgid "Shadow"
+msgstr "ਸ਼ੈਡੋ"
+
+#: src/Gui/AnnotationsToolBarContents.qml:108
+#, fuzzy, kde-format
+#| msgid "None"
+msgctxt "@action:intoolbar no tool, to allow dragging"
+msgid "None"
+msgstr "ਕੋਈ ਨਹੀਂ"
+
+#: src/Gui/AnnotationsToolBarContents.qml:120
+#, fuzzy, kde-format
+#| msgid "Crop"
+msgctxt "@action:intoolbar crop image tool"
+msgid "Crop"
+msgstr "ਕਰੋਪ"
+
+#: src/Gui/AnnotationsToolBarContents.qml:127
+#, fuzzy, kde-format
+#| msgid "Select"
+msgctxt "@action:intoolbar select annotation tool"
+msgid "Select"
+msgstr "ਚੁਣੋ"
+
+#: src/Gui/AnnotationsToolBarContents.qml:136
+#, fuzzy, kde-format
+#| msgid "Freehand"
+msgctxt "@action:intoolbar freehand line tool"
+msgid "Freehand"
+msgstr "ਹੱਥ ਨਾਲ ਵਾਹਉਣਾ"
+
+#: src/Gui/AnnotationsToolBarContents.qml:137
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Shift: Snap to straight lines"
+msgstr ""
+
+#: src/Gui/AnnotationsToolBarContents.qml:144
+#, fuzzy, kde-format
+#| msgid "Highlighter"
+msgctxt "@action:intoolbar highlighter line tool"
+msgid "Highlighter"
+msgstr "ਹਾਈਲਾਈਟਰ"
+
+#: src/Gui/AnnotationsToolBarContents.qml:153
+#, fuzzy, kde-format
+#| msgid "Line"
+msgctxt "@action:intoolbar straight line tool"
+msgid "Line"
+msgstr "ਰੇਖਾ"
+
+#: src/Gui/AnnotationsToolBarContents.qml:154
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Shift: Snap to 45 degree increments"
+msgstr ""
+
+#: src/Gui/AnnotationsToolBarContents.qml:161
+#, fuzzy, kde-format
+#| msgid "Arrow"
+msgctxt "@action:intoolbar arrow line tool"
+msgid "Arrow"
+msgstr "ਤੀਰ"
+
+#: src/Gui/AnnotationsToolBarContents.qml:170
+#, fuzzy, kde-format
+#| msgid "Rectangle"
+msgctxt "@action:intoolbar rectangle tool"
+msgid "Rectangle"
+msgstr "ਆਇਤਾਕਾਰ"
+
+#: src/Gui/AnnotationsToolBarContents.qml:172
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Shift: Snap to diagonal movements\n"
+"Control: Resize from center"
+msgstr ""
+
+#: src/Gui/AnnotationsToolBarContents.qml:179
+#, fuzzy, kde-format
+#| msgid "Ellipse"
+msgctxt "@action:intoolbar ellipse tool"
+msgid "Ellipse"
+msgstr "ਅੰਡਾਕਾਰ"
+
+#: src/Gui/AnnotationsToolBarContents.qml:187
+#, fuzzy, kde-format
+#| msgid "Pixelate"
+msgctxt "@action:intoolbar pixelate tool"
+msgid "Pixelate"
+msgstr "ਪਿਕਸਲੇਟ"
+
+#: src/Gui/AnnotationsToolBarContents.qml:195
+#, fuzzy, kde-format
+#| msgid "Blur"
+msgctxt "@action:intoolbar blur tool"
+msgid "Blur"
+msgstr "ਧੁੰਦਲਾ"
+
+#: src/Gui/AnnotationsToolBarContents.qml:203
+#, fuzzy, kde-format
+#| msgid "Text"
+msgctxt "@action:intoolbar text tool"
+msgid "Text"
+msgstr "ਲਿਖਤ"
+
+#: src/Gui/AnnotationsToolBarContents.qml:210
+#, fuzzy, kde-format
+#| msgid "Number"
+msgctxt "@action:intoolbar number stamp tool"
+msgid "Number"
+msgstr "ਨੰਬਰ"
+
+#: src/Gui/CancelAction.qml:9
+#, fuzzy, kde-format
+#| msgid "Cancel"
+msgctxt "@action cancel selection"
+msgid "Cancel"
+msgstr "ਰੱਦ ਕਰੋ"
+
+#: src/Gui/CaptureModeButtonsColumn.qml:31
+#: src/Gui/NewScreenshotToolButton.qml:15
+#, kde-format
+msgid "Cancel (%1 second)"
+msgid_plural "Cancel (%1 seconds)"
+msgstr[0] "ਰੱਦ ਕਰੋ (%1 ਸਕਿੰਟ)"
+msgstr[1] "ਰੱਦ ਕਰੋ (%1 ਸਕਿੰਟ)"
+
+#: src/Gui/CaptureOptions.qml:17
+#, kde-format
+msgid "Take a new screenshot"
+msgstr "ਨਵਾਂ ਸਕਰੀਨਸ਼ਾਟ ਲਵੋ"
+
+#: src/Gui/CaptureOptions.qml:39
+#, kde-format
+msgctxt "@title:group"
+msgid "Screenshot Settings"
+msgstr "ਸਕਰੀਨਸ਼ਾਟ ਦੀਆਂ ਸੈਟਿੰਗਾਂ"
+
+#: src/Gui/CaptureOverlay.qml:148
+#, fuzzy, kde-format
+#| msgid ""
+#| "Click and drag to draw a selection rectangle,\n"
+#| "or press Esc to quit"
+msgctxt "@info basic crop tool explanation"
+msgid "Click and drag to make a selection."
+msgstr ""
+"ਚੋਣ ਆਇਤ ਬਣਾਉਣ ਲਈ ਕਲਿੱਕ ਕਰਕੇ ਖਿੱਚੋ,\n"
+"ਜਾਂ ਬਾਹਰ ਜਾਣ ਲਈ Esc ਦਬਾਓ"
+
+#: src/Gui/CaptureSettingsColumn.qml:16 src/Gui/RecordingSettingsColumn.qml:16
+#, kde-format
+msgid "Include mouse pointer"
+msgstr "ਮਾਊਸ ਪੁਆਇੰਟਰ ਸਮੇਤ"
+
+#: src/Gui/CaptureSettingsColumn.qml:17
+#, kde-format
+msgid "Show the mouse cursor in the screenshot image."
+msgstr "ਸਕਰੀਨਸ਼ਾਟ ਚਿੱਤਰ ਵਿੱਚ ਮਾਊਸ ਕਰਸਰ ਵੇਖਾਉ।"
+
+#: src/Gui/CaptureSettingsColumn.qml:25
+#, kde-format
+msgid "Include window titlebar and borders"
+msgstr "ਵਿੰਡੋ ਟਾਈਟਲ-ਪੱਟੀ ਤੇ ਹਾਸ਼ੀਏ ਸਮੇਤ"
+
+#: src/Gui/CaptureSettingsColumn.qml:26
+#, kde-format
+msgid ""
+"Show the window title bar and border when taking a screenshot of a window."
+msgstr "ਵਿੰਡੋ ਦਾ ਸਕਰੀਨਸ਼ਾਟ ਲੈਣ ਦੌਰਾਨ ਵਿੰਡੋ ਦੀ ਟਾਈਟਲ-ਪੱਟੀ ਅਤੇ ਹਾਸ਼ੀਏ ਨੂੰ ਵੇਖਾਓ।"
+
+#: src/Gui/CaptureSettingsColumn.qml:34
+#, kde-format
+msgid "Include window shadow"
+msgstr "ਵਿੰਡੋ ਸ਼ੈਡੋ ਸਮੇਤ"
+
+#: src/Gui/CaptureSettingsColumn.qml:35
+#, kde-format
+msgid "Show the window shadow when taking a screenshot of a window."
+msgstr "ਵਿੰਡੋ ਦਾ ਸਕਰੀਨਸ਼ਾਟ ਲੈਣ ਦੌਰਾਨ ਵਿੰਡੋ ਦੀ ਸ਼ੈਡੋ ਨੂੰ ਵੇਖਾਓ।"
+
+#: src/Gui/CaptureSettingsColumn.qml:44
+#, kde-format
+msgid "Capture the current pop-up only"
+msgstr "ਸਿਰਫ਼ ਮੌਜੂਦਾ ਪੌਪ-ਅੱਪ ਲਈ ਹੀ ਤਸਵੀਰ ਲਵੋ"
+
+#: src/Gui/CaptureSettingsColumn.qml:46
+#, kde-format
+msgid ""
+"Capture only the current pop-up window (like a menu, tooltip etc) when "
+"taking a screenshot of a window. If disabled, the pop-up is captured along "
+"with the parent window."
+msgstr ""
+
+#: src/Gui/CaptureSettingsColumn.qml:54
+#, kde-format
+msgid "Quit after manual Save or Copy"
+msgstr "ਖੁਦ ਸੰਭਾਲਣ ਜਾਂ ਕਾਪੀ ਕਰਨ ਦੇ ਬਾਅਦ ਬਾਹਰ ਜਾਓ"
+
+#: src/Gui/CaptureSettingsColumn.qml:55
+#, kde-format
+msgid "Quit Spectacle after manually saving or copying the image."
+msgstr "ਚਿੱਤਰ ਨੂੰ ਖੁਦ ਸੰਭਾਲਣ ਜਾਂ ਕਾਪੀ ਕਰਨ ਦੇ ਬਾਅਦ ਸਪੈਕਟਾਕਲ ਨੂੰ ਬੰਦ ਕਰੋ।"
+
+#: src/Gui/CaptureSettingsColumn.qml:64
+#, kde-format
+msgid "Capture on click"
+msgstr "ਕਲਿੱਕ ਕਰਨ ਉੱਤੇ ਕੈਪਚਰ ਕਰੋ"
+
+#: src/Gui/CaptureSettingsColumn.qml:66
+#, kde-format
+msgid "Wait for a mouse click before capturing the screenshot image."
+msgstr "ਸਕਰੀਨਸ਼ਾਟ ਚਿੱਤਰ ਖਿੱਚਣ ਤੋਂ ਪਹਿਲਾਂ ਮਾਊਸ ਕਲਿੱਕ ਕਰਨ ਦੀ ਉਡੀਕ ਕਰੋ।"
+
+#: src/Gui/CaptureSettingsColumn.qml:76
+#, kde-format
+msgid "Delay:"
+msgstr "ਦੇਰੀ:"
+
+#: src/Gui/CopyImageAction.qml:13
+#, fuzzy, kde-format
+#| msgid "Copy"
+msgctxt "@action"
+msgid "Copy"
+msgstr "ਕਾਪੀ ਕਰੋ"
+
+#: src/Gui/CopyLocationAction.qml:9
+#, fuzzy, kde-format
+#| msgid "Copy Location"
+msgctxt "@action"
+msgid "Copy Location"
+msgstr "ਟਿਕਾਣੇ ਨੂੰ ਕਾਪੀ ਕਰੋ"
+
+#: src/Gui/DelaySpinBox.qml:15
+#, kde-format
+msgctxt "0 second delay"
+msgid "No Delay"
+msgstr "ਕੋਈ ਦੇਰੀ ਨਹੀਂ"
+
+#: src/Gui/DelaySpinBox.qml:24
+#, kde-format
+msgctxt "Integer number of seconds"
+msgid "%2 second"
+msgid_plural "%2 seconds"
+msgstr[0] "%2 ਸਕਿੰਟ"
+msgstr[1] "%2 ਸਕਿੰਟ"
+
+#: src/Gui/DelaySpinBox.qml:26
+#, kde-format
+msgctxt "Decimal number of seconds"
+msgid "%1 seconds"
+msgstr "%1 ਸਕਿੰਟ"
+
+#: src/Gui/DialogPage.qml:53
+#, kde-format
+msgid "Configure Spectacle…"
+msgstr "ਸਪੈਕਟਾਕਲ ਸੰਰਚਨਾ…"
+
+#: src/Gui/DialogPage.qml:61
+#, kde-format
+msgid "Help"
+msgstr "ਮਦਦ"
+
+#: src/Gui/DialogPage.qml:80
+#, kde-format
+msgctxt "@title:group"
+msgid "Take a Screenshot:"
+msgstr "ਸਕਰੀਨਸ਼ਾਟ ਲਵੋ:"
+
+#: src/Gui/DialogPage.qml:95 src/Gui/DialogPage.qml:136
+#, kde-format
+msgctxt "@title:group"
+msgid "Options"
+msgstr "ਚੋਣਾਂ"
+
+#: src/Gui/DialogPage.qml:121
+#, kde-format
+msgctxt "@title:group"
+msgid "Make a Recording:"
+msgstr "ਰਿਕਾਰਡ ਕਰੋ:"
+
+#: src/Gui/DialogPage.qml:163
+#, kde-format
+msgctxt "@title:tab"
+msgid "Screenshot"
+msgstr "ਸਕਰੀਨਸ਼ਾਟ"
+
+#: src/Gui/DialogPage.qml:168
+#, kde-format
+msgctxt "@title:tab"
+msgid "Recording"
+msgstr "ਰਿਕਾਰਡ ਕਰੋ"
+
+#: src/Gui/EditAction.qml:11
+#, fuzzy, kde-format
+#| msgctxt "@action:button edit screenshot"
+#| msgid "Edit…"
+msgctxt "@action edit screenshot"
+msgid "Edit…"
+msgstr "…ਸੋਧੋ"
+
+#: src/Gui/ExportMenu.cpp:45
+#, fuzzy, kde-format
+#| msgid "Export"
+msgctxt "@title:menu"
+msgid "Export"
+msgstr "ਐਕਸਪੋਰਟ"
+
+#: src/Gui/ExportMenu.cpp:48
+#, kde-format
+msgid "Open Default Screenshots Folder"
+msgstr "ਮੂਲ ਸਕਰੀਨਸ਼ਾਟ ਫੋਲਡਰ ਨੂੰ ਖੋਲ੍ਹੋ"
+
+#: src/Gui/ExportMenu.cpp:134
+#, fuzzy, kde-format
+#| msgid "Other Application..."
+msgctxt "@action:button open screenshot in other application"
+msgid "Other Application…"
+msgstr "...ਹੋਰ ਐਪਲੀਕੇਸ਼ਨ"
+
+#: src/Gui/ExportMenu.cpp:166
+#, kde-format
+msgid "Share"
+msgstr "ਸਾਂਝਾ ਕਰੋ"
+
+#: src/Gui/ExportMenu.cpp:259
+#, kde-format
+msgctxt "@action:menu"
+msgid "Extract Text by Language"
+msgstr ""
+
+#: src/Gui/ExportMenu.cpp:295
+#, fuzzy, kde-format
+#| msgctxt "@info"
+#| msgid "Screen recording is not available on X11."
+msgid "OCR engine is not available."
+msgstr "X11 ਉੱਤੇ ਸਕਰੀਨ ਰਿਕਾਰਡਿੰਗ ਕਰਨਾ ਸੰਭਵ ਨਹੀਂ ਹੈ।"
+
+#: src/Gui/ExportMenu.cpp:303
+#, kde-format
+msgid "OCR is not available. Please install Tesseract OCR."
+msgstr ""
+
+#: src/Gui/ExportMenu.cpp:304
+#, kde-format
+msgid "OCR engine is initializing…"
+msgstr ""
+
+#: src/Gui/ExportMenu.cpp:314
+#, fuzzy, kde-format
+#| msgid "No KIPI plugins available"
+msgid "No OCR language data available."
+msgstr "ਕੋਈ KIPI ਪਲੱਗਇਨ ਮੌਜੂਦ ਨਹੀਂ ਹੈ"
+
+#: src/Gui/ExportMenuButton.qml:13
+#, fuzzy, kde-format
+#| msgid "Export"
+msgctxt "@action"
+msgid "Export"
+msgstr "ਐਕਸਪੋਰਟ"
+
+#: src/Gui/HelpMenu.cpp:40
+#, fuzzy, kde-format
+#| msgid "Help"
+msgctxt "@title:menu"
+msgid "Help"
+msgstr "ਮਦਦ"
+
+#: src/Gui/HelpMenuButton.qml:10
+#, fuzzy, kde-format
+#| msgid "Help"
+msgctxt "@action"
+msgid "Help"
+msgstr "ਮਦਦ"
+
+#: src/Gui/InlineMessageList.qml:129
+#, fuzzy, kde-format
+#| msgid "Open Containing Folder"
+msgctxt "@action:button"
+msgid "Open Containing Folder"
+msgstr "ਰੱਖਣ ਵਾਲਾ ਫੋਲਡਰ ਖੋਲ੍ਹੋ"
+
+#: src/Gui/InlineMessageList.qml:139
+#, fuzzy, kde-format
+#| msgid "Copy Image to Clipboard"
+msgctxt "@action:button"
+msgid "Copy to Clipboard"
+msgstr "ਚਿੱਤਰ ਨੂੰ ਕਲਿੱਪਬੋਰਡ ਵਿੱਚ ਕਾਪੀ ਕਰੋ"
+
+#: src/Gui/InlineMessageList.qml:149
+#, kde-format
+msgctxt "@action:button close inline notification"
+msgid "Close"
+msgstr ""
+
+#: src/Gui/NewScreenshotToolButton.qml:27
+#, kde-format
+msgid "New Screenshot"
+msgstr "ਨਵਾਂ ਸਕਰੀਨਸ਼ਾਟ"
+
+#: src/Gui/OcrAction.qml:15
+#, kde-format
+msgctxt "@action"
+msgid "Extract Text"
+msgstr ""
+
+#: src/Gui/OptionsMenu.cpp:38
+#, fuzzy, kde-format
+#| msgctxt "@title:group"
+#| msgid "Screenshot Settings"
+msgctxt "@title:menu"
+msgid "Screenshot Settings"
+msgstr "ਸਕਰੀਨਸ਼ਾਟ ਦੀਆਂ ਸੈਟਿੰਗਾਂ"
+
+#: src/Gui/OptionsMenu.cpp:40
+#, fuzzy, kde-format
+#| msgid "Include mouse pointer"
+msgctxt "@option:check for screenshots"
+msgid "Include mouse pointer"
+msgstr "ਮਾਊਸ ਪੁਆਇੰਟਰ ਸਮੇਤ"
+
+#: src/Gui/OptionsMenu.cpp:41
+#, fuzzy, kde-format
+#| msgid "Show the mouse cursor in the screenshot image"
+msgctxt "@info:tooltip"
+msgid "Show the mouse cursor in the screenshot image"
+msgstr "ਸਕਰੀਨਸ਼ਾਟ ਚਿੱਤਰ ਵਿੱਚ ਮਾਊਸ ਕਰਸਰ ਵੇਖਾਓ"
+
+#: src/Gui/OptionsMenu.cpp:49
+#, fuzzy, kde-format
+#| msgid "Include window titlebar and borders"
+msgctxt "@option:check"
+msgid "Include window titlebar and borders"
+msgstr "ਵਿੰਡੋ ਟਾਈਟਲ-ਪੱਟੀ ਤੇ ਹਾਸ਼ੀਏ ਸਮੇਤ"
+
+#: src/Gui/OptionsMenu.cpp:50
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Show the window title bar, the minimize/maximize/close buttons, and the "
+"window border"
+msgstr ""
+
+#: src/Gui/OptionsMenu.cpp:58
+#, fuzzy, kde-format
+#| msgid "Include window shadow"
+msgctxt "@option:check"
+msgid "Include window shadow"
+msgstr "ਵਿੰਡੋ ਸ਼ੈਡੋ ਸਮੇਤ"
+
+#: src/Gui/OptionsMenu.cpp:59
+#, fuzzy, kde-format
+#| msgid "Show the window shadow"
+msgctxt "@info:tooltip"
+msgid "Show the window shadow"
+msgstr "ਵਿੰਡੋ ਸ਼ੈਡੋ ਨੂੰ ਵੇਖਾਓ"
+
+#: src/Gui/OptionsMenu.cpp:69
+#, fuzzy, kde-format
+#| msgid "Capture the current pop-up only"
+msgctxt "@option:check"
+msgid "Capture the current pop-up only"
+msgstr "ਸਿਰਫ਼ ਮੌਜੂਦਾ ਪੌਪ-ਅੱਪ ਲਈ ਹੀ ਤਸਵੀਰ ਲਵੋ"
+
+#: src/Gui/OptionsMenu.cpp:71
+#, fuzzy, kde-format
+#| msgid "Capture the current pop-up only"
+msgctxt "@info:tooltip"
+msgid ""
+"Capture only the current pop-up window (like a menu, tooltip etc).\n"
+"If disabled, the pop-up is captured along with the parent window"
+msgstr "ਸਿਰਫ਼ ਮੌਜੂਦਾ ਪੌਪ-ਅੱਪ ਲਈ ਹੀ ਖਿੱਚੋ"
+
+#: src/Gui/OptionsMenu.cpp:81
+#, fuzzy, kde-format
+#| msgid "Quit after manual Save or Copy"
+msgctxt "@option:check"
+msgid "Quit after manual Save or Copy"
+msgstr "ਖੁਦ ਸੰਭਾਲਣ ਜਾਂ ਕਾਪੀ ਕਰਨ ਦੇ ਬਾਅਦ ਬਾਹਰ ਜਾਓ"
+
+#: src/Gui/OptionsMenu.cpp:82
+#, fuzzy, kde-format
+#| msgid "Quit Spectacle after manually saving or copying the image"
+msgctxt "@info:tooltip"
+msgid "Quit Spectacle after manually saving or copying the image"
+msgstr "ਚਿੱਤਰ ਨੂੰ ਖੁਦ ਸੰਭਾਲਣ ਜਾਂ ਕਾਪੀ ਕਰਨ ਦੇ ਬਾਅਦ ਸਪੈਕਟਾਕਲ ਤੋਂ ਬਾਹਰ ਜਾਓ"
+
+#: src/Gui/OptionsMenu.cpp:94
+#, fuzzy, kde-format
+#| msgid "Capture On Click"
+msgctxt "@option:check"
+msgid "Capture On Click"
+msgstr "ਕਲਿੱਕ ਕਰਨ ਉੱਤੇ ਕੈਪਚਰ"
+
+#: src/Gui/OptionsMenu.cpp:109
+#, fuzzy, kde-format
+#| msgid "Delay:"
+msgctxt "@label:spinbox"
+msgid "Delay:"
+msgstr "ਦੇਰੀ:"
+
+#: src/Gui/OptionsMenu.cpp:114
+#, fuzzy, kde-format
+#| msgid "No Delay"
+msgctxt "@item 0 delay special value"
+msgid "No Delay"
+msgstr "ਕੋਈ ਦੇਰੀ ਨਹੀਂ"
+
+#: src/Gui/OptionsMenu.cpp:133
+#, fuzzy, kde-format
+#| msgid "Recording Settings"
+msgctxt "@title:menu"
+msgid "Recording Settings"
+msgstr "ਰਿਕਾਰਡ ਕਰਨ ਦੀਆਂ ਸੈਟਿੰਗਾਂ"
+
+#: src/Gui/OptionsMenu.cpp:135
+#, fuzzy, kde-format
+#| msgid "Include mouse pointer"
+msgctxt "@option:check for recordings"
+msgid "Include mouse pointer"
+msgstr "ਮਾਊਸ ਪੁਆਇੰਟਰ ਸਮੇਤ"
+
+#: src/Gui/OptionsMenu.cpp:136
+#, fuzzy, kde-format
+#| msgid "Show the mouse cursor in the screen recording."
+msgctxt "@info:tooltip"
+msgid "Show the mouse cursor in the recording"
+msgstr "ਸਕਰੀਨ ਰਿਕਾਰਡ ਕਰਨ ਵਿੱਚ ਮਾਊਸ ਕਰਸਰ ਵੇਖਾਓ"
+
+#: src/Gui/OptionsMenuButton.qml:10
+#, fuzzy, kde-format
+#| msgid "Options"
+msgctxt "@action"
+msgid "Options"
+msgstr "ਚੋਣਾਂ"
+
+#: src/Gui/RecordAction.qml:11
+#, fuzzy, kde-format
+#| msgid "Recording"
+msgctxt "@action start recording"
+msgid "Record"
+msgstr "ਰਿਕਾਰਡ ਕਰੋ"
+
+#: src/Gui/RecordingModeMenu.cpp:16
+#, fuzzy, kde-format
+#| msgctxt "@title:group"
+#| msgid "Recording Modes"
+msgctxt "@title:menu"
+msgid "Recording Modes"
+msgstr "ਰਿਕਾਰਡ ਕਰਨ ਦੇ ਢੰਗ"
+
+#: src/Gui/RecordingModeMenuButton.qml:11
+#, fuzzy, kde-format
+#| msgid "Recording"
+msgctxt "@action select new recording mode"
+msgid "New Recording"
+msgstr "ਰਿਕਾਰਡ ਕਰੋ"
+
+#: src/Gui/RecordingSettingsColumn.qml:17
+#, kde-format
+msgid "Show the mouse cursor in the screen recording."
+msgstr "ਸਕਰੀਨ ਰਿਕਾਰਡ ਕਰਨ ਵਿੱਚ ਮਾਊਸ ਕਰਸਰ ਵੇਖਾਓ"
+
+#: src/Gui/RecordingView.qml:85
+#, fuzzy, kde-format
+#| msgid ""
+#| "Recording:\n"
+#| "%1"
+msgctxt "Recording in progress, %1 is the length of the recording so far"
+msgid ""
+"Recording:\n"
+"%1"
+msgstr ""
+"ਰਿਕਾਰਡ ਕਰੋ:\n"
+"%1"
+
+#: src/Gui/RecordingView.qml:124
+#, kde-format
+msgid "Pause"
+msgstr "ਵਿਰਾਮ"
+
+#: src/Gui/RecordingView.qml:124
+#, kde-format
+msgid "Play"
+msgstr "ਚਲਾਓ"
+
+#: src/Gui/RecordOptions.qml:23
+#, kde-format
+msgid "Recording Settings"
+msgstr "ਰਿਕਾਰਡ ਕਰਨ ਦੀਆਂ ਸੈਟਿੰਗਾਂ"
+
+#: src/Gui/RecordOptions.qml:37
+#, kde-format
+msgid "Finish recording"
+msgstr "ਰਿਕਾਰਡਿੰਗ ਪੂਰੀ"
+
+#: src/Gui/SaveAction.qml:13
+#, fuzzy, kde-format
+#| msgid "Save"
+msgctxt "@action"
+msgid "Save"
+msgstr "ਸੰਭਾਲੋ"
+
+#: src/Gui/SaveAsAction.qml:9
+#, fuzzy, kde-format
+#| msgid "Save As..."
+msgctxt "@action"
+msgid "Save As…"
+msgstr "...ਵਜੋਂ ਸੰਭਾਲੋ"
+
+#: src/Gui/ScreenshotModeMenu.cpp:16
+#, fuzzy, kde-format
+#| msgctxt "@title:group"
+#| msgid "Screenshot Modes"
+msgctxt "@title:menu"
+msgid "Screenshot Modes"
+msgstr "ਸਕਰੀਨਸ਼ਾਟ ਦੇ ਢੰਗ"
+
+#: src/Gui/ScreenshotModeMenuButton.qml:11
+#, fuzzy, kde-format
+#| msgid "New Screenshot"
+msgctxt "@action select new screenshot mode"
+msgid "New Screenshot"
+msgstr "ਨਵਾਂ ਸਕਰੀਨਸ਼ਾਟ"
+
+#: src/Gui/ScreenshotView.qml:196
+#, kde-format
+msgctxt "@info crop tool explanation"
+msgid ""
+"Click and drag to make a selection.\n"
+"Double click the selection to accept and crop.\n"
+"Right click to clear the selection."
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, launchActionSpectacleLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:17
+#, kde-format
+msgid "When launching Spectacle:"
+msgstr "ਜਦੋਂ ਸਪੈਕਟਾਕਲ ਚਲਾਇਆ ਜਾਵੇ:"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_launchAction)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:25
+#, fuzzy, kde-format
+#| msgid "Take a new screenshot"
+msgid "Take rectangular screenshot"
+msgstr "ਨਵਾਂ ਸਕਰੀਨਸ਼ਾਟ ਲਵੋ"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_launchAction)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:30
+#, kde-format
+msgid "Take full screen screenshot"
+msgstr "ਪੂਰੀ ਸਕਰੀਨ ਦਾ ਸਕਰੀਨਸ਼ਾਟ ਲਵੋ"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_launchAction)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:35
+#, kde-format
+msgid "Use last-used capture mode"
+msgstr "ਪਿਛਲੀ ਵਾਰ ਵਰਤੇ ਕੈਪਚਰ ਕਰਨ ਦਾ ਢੰਗ ਵਰਤੋਂ"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_launchAction)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:40
+#, kde-format
+msgid "Do not take a screenshot automatically"
+msgstr "ਆਪਣੇ-ਆਪ ਸਕਰੀਨਸ਼ਾਟ ਨਾ ਲਵੋ"
+
+#. i18n: ectx: property (text), widget (QLabel, afterScreenshotLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:64
+#, kde-format
+msgid "After taking a screenshot:"
+msgstr "ਸਕਰੀਨਸ਼ਾਟ ਲੈਣ ਦੇ ਬਾਅਦ:"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_autoSaveImage)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:71
+#, kde-format
+msgid "Save file to default folder"
+msgstr "ਫ਼ਾਇਲ ਨੂੰ ਮੂਲ ਫੋਲਡਰ ਵਿੱਚ ਸੰਭਾਲੋ"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_clipboardGroup)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:82
+#, kde-format
+msgid "Do not copy anything"
+msgstr "ਕੁਝ ਵੀ ਕਾਪੀ ਨਾ ਕਰੋ"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_clipboardGroup)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:87
+#, kde-format
+msgid "Copy image to clipboard"
+msgstr "ਚਿੱਤਰ ਨੂੰ ਕਲਿੱਪਬੋਰਡ ਵਿੱਚ ਕਾਪੀ ਕਰੋ"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_clipboardGroup)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:92
+#, kde-format
+msgid "Copy file location to clipboard"
+msgstr "ਫ਼ਾਇਲ ਟਿਕਾਣੇ ਨੂੰ ਕਲਿੱਪਬੋਰਡ ਵਿੱਚ ਕਾਪੀ ਕਰੋ"
+
+#. i18n: ectx: property (text), widget (KTitleWidget, runningTitle)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:116
+#, kde-format
+msgid "While Spectacle is running"
+msgstr "ਜਦੋਂ ਸਪੈਕਟਾਕਲ ਚੱਲ ਰਿਹਾ ਹੈ"
+
+#. i18n: ectx: property (text), widget (QLabel, printKeyActionLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:123
+#, kde-format
+msgid "Press screenshot key to:"
+msgstr "ਇਸ ਲਈ ਸਕਰੀਨਸ਼ਾਟ ਸਵਿੱਚ ਦੱਬੋ:"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_printKeyRunningAction)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:131
+#, kde-format
+msgid "Take a new Screenshot"
+msgstr "ਨਵਾਂ ਸਕਰੀਨਸ਼ਾਟ ਲਵੋ"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_printKeyRunningAction)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:136
+#, kde-format
+msgid "Open a new Spectacle window"
+msgstr "ਨਵੀਂ ਸਪੈਕਟਾਕਲ ਵਿੰਡੋ ਖੋਲ੍ਹੋ"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_printKeyRunningAction)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:141
+#, kde-format
+msgid "Return focus to Spectacle"
+msgstr "ਸਪੈਕਟਾਕਲ ਉੱਤੇ ਮੁੜ ਫੋਕਸ ਕਰੋ"
+
+#. i18n: ectx: property (text), widget (KTitleWidget, regionTitle)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:165
+#, kde-format
+msgid "Rectangular Region Selection"
+msgstr "ਆਇਤਾਕਾਰ ਖੇਤਰ ਦੀ ਚੋਣ"
+
+#. i18n: ectx: property (text), widget (QLabel, generalLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:172
+#, kde-format
+msgid "General:"
+msgstr "ਆਮ:"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_useLightMaskColor)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:179
+#, kde-format
+msgid "Use light background"
+msgstr "ਹਲਕੀ ਬੈਕਗਰਾਊਂਡ ਵਰਤੋਂ"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_useReleaseToCapture)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:186
+#, kde-format
+msgid "Accept on click-and-release"
+msgstr "ਕਲਿੱਕ-ਤੇ-ਰੀਲਿਜ਼ ਉੱਤੇ ਮਨਜ਼ੂਰ"
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:193
+#, kde-format
+msgid "Show magnifier:"
+msgstr "ਵੱਡਦਰਸ਼ੀ ਵੇਖਾਓ:"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_showMagnifier)
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_rememberSelectionRect)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:201
+#: src/Gui/SettingsDialog/GeneralOptions.ui:227
+#, kde-format
+msgid "Never"
+msgstr "ਕਦੇ ਨਹੀਂ"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_showMagnifier)
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_rememberSelectionRect)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:206
+#: src/Gui/SettingsDialog/GeneralOptions.ui:232
+#, kde-format
+msgid "Always"
+msgstr "ਹਮੇਸ਼ਾ"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_showMagnifier)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:211
+#, kde-format
+msgid "While holding Shift"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, rememberLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:219
+#, kde-format
+msgid "Remember selected area:"
+msgstr "ਚੁਣੇ ਗਏ ਖੇਤਰ ਨੂੰ ਯਾਦ ਰੱਖੋ:"
+
+#. i18n: ectx: property (text), item, widget (QComboBox, kcfg_rememberSelectionRect)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:237
+#, kde-format
+msgid "Until Spectacle is closed"
+msgstr "ਸਪੈਕਟਾਕਲ ਬੰਦ ਹੋਣ ਤੱਕ"
+
+#. i18n: ectx: property (text), widget (KTitleWidget, ocrTitle)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:261
+#, kde-format
+msgid "Text Recognition (OCR)"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, ocrLanguageLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:268
+#, kde-format
+msgid "Languages for OCR:"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, closeAfterOcrLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:306
+#, fuzzy, kde-format
+#| msgid "Reset selection:"
+msgid "Text extraction:"
+msgstr "ਚੋਣ ਨੂੰ ਮੁੜ-ਸੈੱਟ ਕਰੋ:"
+
+#. i18n: ectx: label, entry (closeAfterOcr), group (General)
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_closeAfterOcr)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:327
+#: src/Gui/SettingsDialog/spectacle.kcfg:38
+#, kde-format
+msgid "Close after extraction (skips auto-save)"
+msgstr ""
+
+#. i18n: ectx: property (toolTip), widget (QLabel, closeAfterOcrInfo)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:334
+#, kde-format
+msgid ""
+"Spectacle will close after text extraction and automatic saving will be "
+"skipped."
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, ocrUnavailableLabel)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:395
+#, kde-format
+msgid "OCR functionality is not available"
+msgstr ""
+
+#. i18n: ectx: property (toolTip), widget (QLabel, ocrInfoIcon)
+#: src/Gui/SettingsDialog/GeneralOptions.ui:413
+#, kde-format
+msgid ""
+"Please install the required packages:\n"
+"• tesseract\n"
+"• tesseract language data (e.g., tesseract-ocr-eng for English)"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, saveLocationLabel)
+#: src/Gui/SettingsDialog/ImageSaveOptions.ui:9
+#, kde-format
+msgid "Save Location:"
+msgstr "ਸੰਭਾਲਣ ਲਈ ਟਿਕਾਣਾ:"
+
+#. i18n: ectx: property (text), widget (QLabel, qualityLabel)
+#: src/Gui/SettingsDialog/ImageSaveOptions.ui:26
+#, kde-format
+msgid "Compression Quality:"
+msgstr "ਨਪੀੜਨ ਕੁਆਲਟੀ:"
+
+#. i18n: ectx: property (text), widget (QLabel, imageCompressionQualityHelpLable)
+#: src/Gui/SettingsDialog/ImageSaveOptions.ui:53
+#, kde-format
+msgid "For lossy image formats like JPEG"
+msgstr ""
+
+#. i18n: ectx: property (suffix), widget (QSpinBox, qualitySpinner)
+#: src/Gui/SettingsDialog/ImageSaveOptions.ui:62
+#, no-c-format, kde-format
+msgid "%"
+msgstr "%"
+
+#. i18n: ectx: property (text), widget (QLabel, filenameLabel)
+#: src/Gui/SettingsDialog/ImageSaveOptions.ui:74
+#: src/Gui/SettingsDialog/VideoSaveOptions.ui:26
+#, kde-format
+msgid "Filename:"
+msgstr "ਫ਼ਾਇਲ ਦਾ ਨਾਂ:"
+
+#. i18n: ectx: property (text), widget (QLabel, PreviewLabel)
+#. i18n: ectx: property (text), widget (QLabel, previewLabel)
+#: src/Gui/SettingsDialog/ImageSaveOptions.ui:103
+#: src/Gui/SettingsDialog/VideoSaveOptions.ui:47
+#, kde-format
+msgctxt "Preview of the user configured filename"
+msgid "Preview:"
+msgstr "ਝਲਕ:"
+
+#: src/Gui/SettingsDialog/SaveOptionsUtils.h:40
+#, kde-kuit-format
+msgctxt "@info"
+msgid "<filename>%1</filename>"
+msgstr "<filename>%1</filename>"
+
+#: src/Gui/SettingsDialog/SaveOptionsUtils.h:72
+#, kde-format
+msgid ""
+"You can use the following placeholders in the filename, which will be "
+"replaced with actual text when the file is saved:"
+msgstr ""
+
+#: src/Gui/SettingsDialog/SaveOptionsUtils.h:87
+#, kde-format
+msgid "To save to a sub-folder"
+msgstr "ਅਧੀਨ-ਫੋਲਡਰ ਵਿੱਚ ਸੰਭਾਲਣ ਲਈ"
+
+#: src/Gui/SettingsDialog/SaveOptionsUtils.h:90
+#, kde-format
+msgctxt "show fewer filename placeholder templates"
+msgid "Show Fewer"
+msgstr "ਘੱਟ ਵੇਖਾਓ"
+
+#: src/Gui/SettingsDialog/SaveOptionsUtils.h:92
+#, kde-format
+msgctxt "show more filename placeholder templates"
+msgid "Show More"
+msgstr "ਹੋਰ ਵੇਖਾਓ"
+
+#: src/Gui/SettingsDialog/SettingsDialog.cpp:37
+#, kde-format
+msgctxt "Settings category"
+msgid "General"
+msgstr "ਆਮ"
+
+#: src/Gui/SettingsDialog/SettingsDialog.cpp:38
+#, kde-format
+msgctxt "Settings category"
+msgid "Image Saving"
+msgstr "ਚਿੱਤਰ ਸੰਭਾਲਣਾ"
+
+#: src/Gui/SettingsDialog/SettingsDialog.cpp:39
+#, kde-format
+msgctxt "Settings category"
+msgid "Video Saving"
+msgstr "ਵੀਡੀਓ ਸੰਭਾਲਣਾ"
+
+#: src/Gui/SettingsDialog/SettingsDialog.cpp:40
+#, kde-format
+msgctxt "Settings category"
+msgid "Shortcuts"
+msgstr "ਸ਼ਾਰਟਕੱਟ"
+
+#: src/Gui/SettingsDialog/SettingsDialog.cpp:104
+#, kde-format
+msgid "Shortcuts"
+msgstr "ਸ਼ਾਰਟਕੱਟ"
+
+#. i18n: ectx: label, entry (launchAction), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:15
+#, kde-format
+msgid "What to do when Spectacle is launched"
+msgstr "ਜਦੋਂ ਸਪੈਕਟਾਕਲ ਚੱਲੇ ਤਾਂ ਕੀ ਕਰਨਾ ਹੈ"
+
+#. i18n: ectx: label, entry (printKeyRunningAction), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:25
+#, kde-format
+msgid ""
+"What should happen if print key is pressed when Spectacle is already running"
+msgstr "ਜੇ ਸਪੈਕਟਾਕਲ ਚੱਲ ਰਿਹਾ ਹੋਵੇ ਤਾਂ ਪਰਿੰਟ ਕੁੰਜੀ ਦਬਾਉਣ ਨਾਲ ਕੀ ਵਾਪਰਨਾ ਚਾਹੀਦਾ ਹੈ"
+
+#. i18n: ectx: label, entry (autoSaveImage), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:34
+#, kde-format
+msgid "Save screenshot automatically after it is taken"
+msgstr "ਸਕਰੀਨਸ਼ਾਟ ਲੈਣ ਦੇ ਬਾਅਦ ਇਸ ਨੂੰ ਆਪਣੇ-ਆਪ ਸੰਭਾਲੋ"
+
+#. i18n: ectx: label, entry (clipboardGroup), group (General)
+#. i18n: ectx: label, entry (showMagnifier), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:42
+#: src/Gui/SettingsDialog/spectacle.kcfg:55
+#, kde-format
+msgid "Clipboard action which should be executed after the screenshot is taken"
+msgstr "ਕਲਿੱਪਬੋਰਡ ਕਾਰਵਾਈ, ਜੋ ਕਿ ਸਕਰੀਨਸ਼ਾਟ ਲੈਣ ਦੌਰਾਨ ਕੀਤੀ ਜਾਣੀ ਚਾਹੀਦੀ ਹੈ"
+
+#. i18n: ectx: label, entry (useLightMaskColor), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:51
+#, kde-format
+msgid "Whether to use a light color mask in the region selection dialog"
+msgstr ""
+
+#. i18n: ectx: label, entry (useReleaseToCapture), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:64
+#, kde-format
+msgid ""
+"Whether the screenshot should be captured after selecting the region and "
+"releasing the mouse"
+msgstr "ਕੀ ਖੇਤਰ ਚੁਣਨ ਅਤੇ ਮਾਊਸ ਨੂੰ ਛੱਡਣ ਦੇ ਬਾਅਦ ਸਕਰੀਨਸ਼eਟ ਲੈਣਾ ਚਾਹੀਦਾ ਹੈ"
+
+#. i18n: ectx: label, entry (rememberSelectionRect), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:68
+#, kde-format
+msgid "Remember the last rectangular region"
+msgstr "ਪਿਛਲੀ ਵਾਰ ਵਾਲੇ ਆਇਤਾਕਾਰ ਖੇਤਰ ਨੂੰ ਯਾਦ ਰੱਖੋ"
+
+#. i18n: ectx: label, entry (ocrLanguages), group (General)
+#: src/Gui/SettingsDialog/spectacle.kcfg:77
+#, kde-format
+msgid "Default languages for OCR text recognition"
+msgstr ""
+
+#. i18n: ectx: label, entry (selectionRect), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:83
+#, kde-format
+msgid "The last used region the user selected"
+msgstr "ਵਰਤੋਂਕਾਰ ਵਲੋਂ ਪਿਛਲੇ ਚੁਣੇ ਖੇਤਰ ਨੂੰ ਚੁਣਿਆ"
+
+#. i18n: ectx: label, entry (captureOnClick), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:87
+#, kde-format
+msgid "Take screenshot on click"
+msgstr "ਕਲਿੱਕ ਕਰਨ ਉੱਤੇ ਸਕਰੀਨਸ਼ਾਟ ਲਵੋ"
+
+#. i18n: ectx: label, entry (includePointer), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:91
+#, kde-format
+msgid "Whether the mouse cursor is included in the screenshot"
+msgstr "ਕੀ ਸਕਰੀਨਸ਼ਾਟ ਵਿੱਚ ਮਾਊਸ ਕਰਸਰ ਨੂੰ ਸ਼ਾਮਲ ਕਰਨਾ ਹੈ"
+
+#. i18n: ectx: label, entry (videoIncludePointer), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:95
+#, kde-format
+msgid "Whether the mouse cursor is included in the video"
+msgstr "ਕੀ ਵੀਡੀਓ ਵਿੱਚ ਮਾਊਸ ਕਰਸਰ ਨੂੰ ਸ਼ਾਮਲ ਕਰਨਾ ਹੈ"
+
+#. i18n: ectx: label, entry (includeDecorations), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:99
+#, kde-format
+msgid "Whether the window decorations are included in the screenshot"
+msgstr "ਕੀ ਸਕਰੀਨਸ਼ਾਟ ਵਿੱਚ ਵਿੰਡੋ ਸਜਾਵਟਾਂ ਨੂੰ ਸ਼ਾਮਲ ਕਰਨਾ ਹੈ"
+
+#. i18n: ectx: label, entry (includeShadow), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:103
+#, kde-format
+msgid "Whether the window shadow is included in the screenshot"
+msgstr "ਕੀ ਸਕਰੀਨਸ਼ਾਟ ਵਿੱਚ ਵਿੰਡੋ ਦੇ ਸ਼ੈਡੋ ਨੂੰ ਸ਼ਾਮਲ ਕਰਨਾ ਹੈ"
+
+#. i18n: ectx: label, entry (transientOnly), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:107
+#, kde-format
+msgid "Only capture the current pop up menu"
+msgstr "ਸਿਰਫ਼ ਮੌਜੂਦਾ ਪੌਪ-ਅੱਪ ਮੇਨੂ ਦੀ ਹੀ ਤਸਵੀਰ ਲਵੋ"
+
+#. i18n: ectx: label, entry (quitAfterSaveCopyExport), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:111
+#, kde-format
+msgid "Quit after saving or copying an image"
+msgstr "ਚਿੱਤਰ ਸੰਭਾਲਣ ਜਾਂ ਕਾਪੀ ਕਰਨ ਦੇ ਬਾਅਦ ਬੰਦ ਕਰੋ"
+
+#. i18n: ectx: label, entry (captureDelay), group (GuiConfig)
+#: src/Gui/SettingsDialog/spectacle.kcfg:115
+#, kde-format
+msgid "Delay"
+msgstr "ਦੇਰੀ"
+
+#. i18n: ectx: label, entry (imageSaveLocation), group (ImageSave)
+#. i18n: ectx: label, entry (videoSaveLocation), group (VideoSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:126
+#: src/Gui/SettingsDialog/spectacle.kcfg:172
+#, kde-format
+msgid "Default filename"
+msgstr "ਮੂਲ ਫ਼ਾਇਲ ਦਾ ਨਾਂ"
+
+#. i18n: ectx: label, entry (imageCompressionQuality), group (ImageSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:143
+#, kde-format
+msgid "Compression quality for lossy file formats"
+msgstr ""
+
+#. i18n: ectx: label, entry (preferredImageFormat), group (ImageSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:151
+#, kde-format
+msgid "Default save image format"
+msgstr "ਸੰਭਾਲਣ ਲਈ ਮੂਲ ਚਿੱਤਰ ਫਾਰਮੈਟ"
+
+#. i18n: ectx: label, entry (imageFilenameTemplate), group (ImageSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:155
+#, kde-format
+msgid "The filename template used when saving screenshots"
+msgstr "ਸਕਰੀਨਸ਼ਾਟ ਸੰਭਾਲਣ ਦੌਰਾਨ ਫਾਇਲ-ਨਾਂ ਦਾ ਟੈਂਪਲੇਟ"
+
+#. i18n: ectx: label, entry (lastImageSaveLocation), group (ImageSave)
+#. i18n: ectx: label, entry (lastVideoSaveLocation), group (VideoSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:162
+#: src/Gui/SettingsDialog/spectacle.kcfg:201
+#, kde-format
+msgid "The path of the file saved last"
+msgstr "ਪਿਛਲੀ ਵਾਰ ਸੰਭਾਲੀ ਫਾਇਲ ਦਾ ਮਾਰਗ"
+
+#. i18n: ectx: label, entry (lastImageSaveAsLocation), group (ImageSave)
+#. i18n: ectx: label, entry (lastVideoSaveAsLocation), group (VideoSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:166
+#: src/Gui/SettingsDialog/spectacle.kcfg:205
+#, kde-format
+msgid "Last path used for \"save as\" action"
+msgstr "\"ਇੰਜ ਸੰਭਾਲੋ\" ਕਾਰਵਾਈ ਲਈ ਪਿਛਲੀ ਵਾਰ ਚੁਣਿਆ ਮਾਰਗ"
+
+#. i18n: ectx: label, entry (preferredVideoFormat), group (VideoSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:189
+#, kde-format
+msgid "Default video format"
+msgstr "ਮੂਲ ਵੀਡੀਓ ਫਾਰਮੈਟ"
+
+#. i18n: ectx: label, entry (videoFilenameTemplate), group (VideoSave)
+#: src/Gui/SettingsDialog/spectacle.kcfg:194
+#, kde-format
+msgid "The filename template used when saving screencasts"
+msgstr "ਸਕਰੀਨ-ਕਾਸਟ ਸੰਭਾਲਣ ਦੌਰਾਨ ਫਾਇਲ-ਨਾਂ ਦਾ ਟੈਂਪਲੇਟ"
+
+#. i18n: ectx: property (text), widget (QLabel, saveLocationLabel)
+#: src/Gui/SettingsDialog/VideoSaveOptions.ui:9
+#, kde-format
+msgid "Save &Location:"
+msgstr "ਟਿਕਾਣਾ ਸੰਭਾਲੋ(&L):"
+
+#: src/Gui/ShortcutsTextBox.qml:13
+#, kde-format
+msgid "Take Screenshot:"
+msgstr "ਸਕਰੀਨਸ਼ਾਟ ਲਵੋ:"
+
+#: src/Gui/ShortcutsTextBox.qml:15
+#, kde-format
+msgid "Create new selection rectangle:"
+msgstr "ਨਵੀਂ ਚੋਣ ਆਇਤ ਬਣਾਓ:"
+
+#: src/Gui/ShortcutsTextBox.qml:20
+#, kde-format
+msgid "Move selection rectangle:"
+msgstr "ਚੁਣੀ ਆਇਤ ਨੂੰ ਹਿਲਾਓ:"
+
+#: src/Gui/ShortcutsTextBox.qml:23
+#, kde-format
+msgid "Resize selection rectangle:"
+msgstr "ਚੋਣ ਆਇਤ ਦਾ ਆਕਾਰ ਬਦਲੋ:"
+
+#: src/Gui/ShortcutsTextBox.qml:26
+#, kde-format
+msgid "Reset selection:"
+msgstr "ਚੋਣ ਨੂੰ ਮੁੜ-ਸੈੱਟ ਕਰੋ:"
+
+#: src/Gui/ShortcutsTextBox.qml:28
+#, kde-format
+msgid "Cancel:"
+msgstr "ਰੱਦ ਕਰੋ:"
+
+#: src/Gui/ShortcutsTextBox.qml:33
+#, kde-format
+msgctxt "Mouse action"
+msgid "Release left-click"
+msgstr "ਖੱਬਾ-ਕਲਿੱਕ ਛੱਡੋ"
+
+#: src/Gui/ShortcutsTextBox.qml:33
+#, kde-format
+msgctxt "Mouse action"
+msgid "Double-click"
+msgstr "ਦੂਹਰਾ ਕਲਿੱਕ"
+
+#: src/Gui/ShortcutsTextBox.qml:34
+#, kde-format
+msgctxt "Keyboard action"
+msgid "Enter"
+msgstr "Enter"
+
+#: src/Gui/ShortcutsTextBox.qml:35
+#, kde-format
+msgctxt "Mouse action"
+msgid "Drag outside selection rectangle"
+msgstr "ਚੁਣੀ ਆਇਤ ਤੋਂ ਬਾਹਰ ਖਿੱਚੋ"
+
+#: src/Gui/ShortcutsTextBox.qml:37
+#, kde-format
+msgctxt "Keyboard action"
+msgid "+ Shift: Magnifier"
+msgstr ""
+
+#: src/Gui/ShortcutsTextBox.qml:40
+#, kde-format
+msgctxt "Mouse action"
+msgid "Drag inside selection rectangle"
+msgstr "ਚੁਣੇ ਆਇਤ ਖੇਤਰ ਵਿੱਚ ਖਿੱਚੋ"
+
+#: src/Gui/ShortcutsTextBox.qml:41
+#, kde-format
+msgctxt "Keyboard action"
+msgid "Arrow keys"
+msgstr "ਤੀਰ ਵਾਲੀਆਂ ਸਵਿੱਚਾਂ"
+
+#: src/Gui/ShortcutsTextBox.qml:42
+#, kde-format
+msgctxt "Keyboard action"
+msgid "+ Shift: Move in 1 pixel steps"
+msgstr ""
+
+#: src/Gui/ShortcutsTextBox.qml:43
+#, kde-format
+msgctxt "Mouse action"
+msgid "Drag handles"
+msgstr "ਹੈਂਡਲ ਖਿੱਚੋ"
+
+#: src/Gui/ShortcutsTextBox.qml:44
+#, kde-format
+msgctxt "Keyboard action"
+msgid "Arrow keys + Alt"
+msgstr ""
+
+#: src/Gui/ShortcutsTextBox.qml:45
+#, kde-format
+msgctxt "Keyboard action"
+msgid "+ Shift: Resize in 1 pixel steps"
+msgstr ""
+
+#: src/Gui/ShortcutsTextBox.qml:46
+#, kde-format
+msgctxt "Mouse action"
+msgid "Right-click"
+msgstr "ਸੱਜਾ-ਕਲਿੱਕ"
+
+#: src/Gui/ShortcutsTextBox.qml:48
+#, kde-format
+msgctxt "Keyboard action"
+msgid "Escape"
+msgstr "Esc"
+
+#: src/Gui/SizeLabel.qml:13
+#, fuzzy, kde-format
+#| msgid "%1×%2"
+msgctxt "Size, width×height"
+msgid "%1×%2"
+msgstr "%1×%2"
+
+#: src/Gui/SmartSpinBox.cpp:30
+#, kde-format
+msgctxt "Integer number of seconds"
+msgid " second"
+msgid_plural " seconds"
+msgstr[0] " ਸਕਿੰਟ"
+msgstr[1] " ਸਕਿੰਟ"
+
+#: src/Gui/SmartSpinBox.cpp:32
+#, kde-format
+msgctxt "Decimal number of seconds"
+msgid " seconds"
+msgstr " ਸਕਿੰਟ"
+
+#: src/Gui/SpectacleWindow.cpp:173
+#, kde-format
+msgctxt "@title:window"
+msgid "%1 second"
+msgid_plural "%1 seconds"
+msgstr[0] "%1 ਸਕਿੰਟ"
+msgstr[1] "%1 ਸਕਿੰਟ"
+
+#: src/Gui/SpectacleWindow.cpp:176
+#, kde-format
+msgctxt "@title:window Unsaved Screenshot"
+msgid "Unsaved"
+msgstr "ਨਾ-ਸੰਭਾਲੇ"
+
+#: src/Gui/UndoRedoGroup.qml:31
+#, kde-format
+msgid "Undo"
+msgstr "ਵਾਪਸ ਲਵੋ"
+
+#: src/Gui/UndoRedoGroup.qml:42
+#, kde-format
+msgid "Redo"
+msgstr "ਪਰਤਾਓ"
+
+#: src/Gui/ViewerPage.qml:188
+#, kde-format
+msgid "Zoom:"
+msgstr "ਜ਼ੂਮ:"
+
+#: src/Gui/ViewerPage.qml:202
+#, kde-format
+msgid "Image Zoom"
+msgstr "ਚਿੱਤਰ ਜ਼ੂਮ"
+
+#: src/Gui/ViewerWindow.cpp:53
+#, fuzzy, kde-format
+#| msgctxt "@info"
+#| msgid "There was a problem sharing the image: %1"
+msgctxt "@info, %1 is the error message"
+msgid "There was a problem sharing the image: %1"
+msgstr "ਚਿੱਤਰ ਸਾਂਝਾ ਕਰਨ ਦੌਰਾਨ ਸਮੱਸਿਆ ਸੀ: %1"
+
+#: src/Gui/ViewerWindow.cpp:56
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The shared image link (<a href=\"%1\">%1</a>) has been copied to the "
+"clipboard."
+msgstr ""
+"ਸਾਂਝੇ ਕੀਤੇ ਚਿੱਤਰ ਲਿੰਕ (<a href=\"%1\">%1</a>) ਨੂੰ ਕਲਿੱਪਬੋਰਡ ਵਿੱਚ ਕਾਪੀ ਕੀਤਾ ਗਿਆ ਹੈ।"
+
+#: src/Main.cpp:44
+#, kde-format
+msgid "Spectacle"
+msgstr "ਸਪੈਕਟਾਕਲ"
+
+#: src/Main.cpp:46
+#, kde-format
+msgid "KDE Screenshot Utility"
+msgstr "ਕੇਡੀਈ ਸਕਰੀਨਸ਼ਾਟ ਲੈਣ ਵਾਲੀ ਸਹੂਲਤ"
+
+#: src/Main.cpp:48
+#, fuzzy, kde-format
+#| msgid "(C) 2015 Boudhayan Gupta"
+msgid "© 2015 Boudhayan Gupta"
+msgstr "(C) 2015 Boudhayan Gupta"
+
+#: src/Main.cpp:52
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "ਅਮਨਪਰੀਤ ਸਿੰਘ ਆਲਮ ੨੦੨੧-੨੦੨੩"
+
+#: src/Main.cpp:52
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "aalam@punlinux.org"
+
+#: src/Main.cpp:70
+#, kde-format
+msgid ""
+"On Wayland, Spectacle requires KDE Plasma's KWin compositor, which does not "
+"seem to be available. Use Spectacle on KDE Plasma, or use a different "
+"screenshot tool."
+msgstr ""
+
+#: src/OcrManager.cpp:609
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Orientation and Script Detection"
+msgstr ""
+
+#: src/OcrManager.cpp:650
+#, kde-format
+msgid "Math/Equation Detection"
+msgstr ""
+
+#: src/OcrManager.cpp:653
+#, kde-format
+msgid "Orientation and Script Detection"
+msgstr ""
+
+#: src/Platforms/ImagePlatformKWin.cpp:143
+#, fuzzy, kde-format
+#| msgid "After taking a screenshot:"
+msgctxt "@info, %1 is the width"
+msgid "Bad width for KWin screenshot: %1"
+msgstr "ਸਕਰੀਨਸ਼ਾਟ ਲੈਣ ਦੇ ਬਾਅਦ:"
+
+#: src/Platforms/ImagePlatformKWin.cpp:148
+#, fuzzy, kde-format
+#| msgid "After taking a screenshot:"
+msgctxt "@info, %1 is the height"
+msgid "Bad height for KWin screenshot: %1"
+msgstr "ਸਕਰੀਨਸ਼ਾਟ ਲੈਣ ਦੇ ਬਾਅਦ:"
+
+#: src/Platforms/ImagePlatformKWin.cpp:159
+#, fuzzy, kde-format
+#| msgid "After taking a screenshot:"
+msgctxt "@info, %1 is a file format like 'png', 'jpg'"
+msgid "Bad format for KWin screenshot: %1"
+msgstr "ਸਕਰੀਨਸ਼ਾਟ ਲੈਣ ਦੇ ਬਾਅਦ:"
+
+#: src/Platforms/ImagePlatformKWin.cpp:177
+#, kde-format
+msgctxt "@info"
+msgid "Could not open file descriptor for reading KWin screenshot."
+msgstr ""
+
+#: src/Platforms/ImagePlatformKWin.cpp:245
+#, fuzzy, kde-format
+#| msgid "After taking a screenshot:"
+msgctxt "@info, %1 is an error code"
+msgid "pipe2() failed for KWin screenshot: %1"
+msgstr "ਸਕਰੀਨਸ਼ਾਟ ਲੈਣ ਦੇ ਬਾਅਦ:"
+
+#: src/Platforms/ImagePlatformKWin.cpp:301
+#, kde-format
+msgctxt "@info, %1 is an error message"
+msgid ""
+"KWin screenshot request failed:\n"
+"%1"
+msgstr ""
+
+#: src/Platforms/ImagePlatformKWin.cpp:303
+#, kde-format
+msgctxt "@info"
+msgid ""
+"Potentially relevant information:\n"
+"%1"
+msgstr ""
+"ਸੰਭਾਵਿਤ ਢੁੱਕਵੀਂ ਜਾਣਕਾਰੀ:\n"
+"%1"
+
+#: src/Platforms/ImagePlatformKWin.cpp:311
+#, kde-format
+msgctxt "@info"
+msgid "Unsupported KWin screenshot type metadata: %1"
+msgstr ""
+
+#: src/Platforms/PlatformLoader.cpp:97
+#, kde-format
+msgctxt "@info"
+msgid "Screen recording is not available on X11."
+msgstr "X11 ਉੱਤੇ ਸਕਰੀਨ ਰਿਕਾਰਡਿੰਗ ਕਰਨਾ ਸੰਭਵ ਨਹੀਂ ਹੈ।"
+
+#: src/Platforms/VideoPlatformWayland.cpp:160
+#, kde-format
+msgctxt "@info"
+msgid "KWin Screencasting is not available."
+msgstr ""
+
+#: src/Platforms/VideoPlatformWayland.cpp:173
+#, kde-format
+msgctxt "@info:shell"
+msgid "Failed to record: File URL is not a local file"
+msgstr "ਰਿਕਾਰਡ ਕਰਨ ਲਈ ਫੇਲ੍ਹ: ਫਾਇਲ ਦਾ URL ਲੋਕਲ ਫਾਇਲ ਨਹੀਂ ਹੈ "
+
+#: src/Platforms/VideoPlatformWayland.cpp:264
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The stream closed because the target screen changed in a way that disrupted "
+"the recording."
+msgstr ""
+
+#: src/Platforms/VideoPlatformWayland.cpp:266
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The stream closed because the target window changed in a way that disrupted "
+"the recording."
+msgstr ""
+
+#: src/Platforms/VideoPlatformWayland.cpp:268
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The stream closed because a screen containing the target region changed in a "
+"way that disrupted the recording."
+msgstr ""
+
+#: src/Platforms/VideoPlatformWayland.cpp:282
+#, fuzzy, kde-format
+#| msgctxt "@info:shell"
+#| msgid "Failed to record: Temporary file URL is not a local file (%1)"
+msgctxt "@info:shell, %1 is the temporary URL"
+msgid "Failed to record: Temporary file URL is not a local file (%1)"
+msgstr "ਰਿਕਾਰਡ ਕਰਨ ਲਈ ਫੇਲ੍ਹ: ਆਰਜ਼ੀ ਫਾਇਲ ਦਾ URL ਲੋਕਲ ਫਾਇਲ (%1) ਨਹੀਂ ਹੈ "
+
+#: src/Platforms/VideoPlatformWayland.cpp:292
+#, fuzzy, kde-format
+#| msgctxt "@info:shell"
+#| msgid "Failed to record: Output file URL is not a local file (%1)"
+msgctxt "@info:shell, %1 is the output file URL"
+msgid "Failed to record: Output file URL is not a local file (%1)"
+msgstr "ਰਿਕਾਰਡ ਕਰਨ ਲਈ ਫੇਲ੍ਹ: ਆਉਟਪੁੱਟ ਫਾਇਲ ਦਾ URL ਲੋਕਲ ਫਾਇਲ (%1) ਨਹੀਂ ਹੈ "
+
+#: src/Platforms/VideoPlatformWayland.cpp:346
+#, fuzzy, kde-format
+#| msgctxt "@info:shell"
+#| msgid "Failed to record: Unable to create folder (%1)"
+msgctxt "@info:shell, %1 is a directory path"
+msgid "Failed to record: Unable to create folder (%1)"
+msgstr "ਰਿਕਾਰਡ ਕਰਨ ਲਈ ਫੇਲ੍ਹ: ਫੋਲਡਰ (%1) ਬਣਾਉਣ ਲਈ ਅਸਮਰੱਥ "
+
+#: src/Platforms/VideoPlatformWayland.cpp:374
+#, kde-format
+msgctxt "@info:shell"
+msgid "Screen recording canceled"
+msgstr "ਸਕਰੀਨ ਰਿਕਾਰਡਿੰਗ ਨੂੰ ਰੱਦ ਕੀਤਾ"
+
+#: src/Platforms/VideoPlatformWayland.cpp:376
+#, kde-format
+msgctxt "@info:shell"
+msgid "Window recording canceled"
+msgstr "ਵਿੰਡੋ ਰਿਕਾਰਡਿੰਗ ਨੂੰ ਰੱਦ ਕੀਤਾ"
+
+#: src/Platforms/VideoPlatformWayland.cpp:382
+#, fuzzy, kde-format
+#| msgctxt "@info:shell"
+#| msgid "Failed to select screen: %1"
+msgctxt "@info:shell, %1 is an error message"
+msgid "Failed to select screen: %1"
+msgstr "ਸਕਰੀਨ ਚੁਣਨ ਲਈ ਅਸਫ਼ਲ ਹੈ: %1"
+
+#: src/Platforms/VideoPlatformWayland.cpp:384
+#, fuzzy, kde-format
+#| msgctxt "@info:shell"
+#| msgid "Failed to select window: %1"
+msgctxt "@info:shell, %1 is an error message"
+msgid "Failed to select window: %1"
+msgstr "ਵਿੰਡੋ ਚੁਣਨ ਲਈ ਫੇਲ੍ਹ ਹੈ: %1"
+
+#: src/Platforms/VideoPlatformWayland.cpp:412
+#, kde-format
+msgctxt "@info:shell"
+msgid "Failed to select screen: No screen contained the mouse cursor position"
+msgstr "ਸਕਰੀਨ ਚੁਣਨ ਲਈ ਫੇਲ੍ਹ ਹੈ: ਕੋਈ ਵੀ ਸਕਰੀਨ ਮਾਊਸ ਕਰਸਰ ਸਥਿਤੀ ਨੂੰ ਨਹੀਂ ਰੱਖਦਾ ਹੈ"
+
+#: src/Platforms/VideoPlatformWayland.cpp:419
+#, kde-format
+msgctxt "@info:shell"
+msgid "Failed to select window: No window found"
+msgstr "ਵਿੰਡੋ ਚੁਣਨ ਲਈ ਫੇਲ੍ਹ ਹੈ: ਕੋਈ ਵਿੰਡੋ ਨਹੀਂ ਲੱਭੀ"
+
+#: src/RecordingModeModel.cpp:105
+#, kde-format
+msgctxt "@item recording mode"
+msgid "Rectangular Region"
+msgstr "ਆਇਤਾਕਾਰ ਖੇਤਰ"
+
+#: src/RecordingModeModel.cpp:107
+#, kde-format
+msgctxt "@item recording mode"
+msgid "Window"
+msgstr "ਵਿੰਡੋ"
+
+#: src/RecordingModeModel.cpp:109
+#, kde-format
+msgctxt "@item recording mode"
+msgid "Full Screen"
+msgstr "ਪੂਰੀ ਸਕਰੀਨ"
+
+#: src/ShortcutActions.cpp:38
+#, fuzzy, kde-format
+#| msgid "Launch Spectacle"
+msgctxt "@action global shortcut"
+msgid "Launch Spectacle"
+msgstr "ਸਪੈਕਟਾਕਲ ਚਲਾਓ"
+
+#: src/ShortcutActions.cpp:44
+#, fuzzy, kde-format
+#| msgid "Capture Entire Desktop"
+msgctxt "@action global shortcut"
+msgid "Capture Entire Desktop"
+msgstr "ਪੂਰੇ ਡੈਸਕਟਾਪ ਦੀ ਫ਼ੋਟੋ ਖਿੱਚੋ"
+
+#: src/ShortcutActions.cpp:50
+#, fuzzy, kde-format
+#| msgid "Capture Current Monitor"
+msgctxt "@action global shortcut"
+msgid "Capture Current Monitor"
+msgstr "ਮੌਜੂਦਾ ਮਾਨੀਟਰ ਦੀ ਫ਼ੋਟੋ ਖਿੱਚੋ"
+
+#: src/ShortcutActions.cpp:56
+#, fuzzy, kde-format
+#| msgid "Capture Active Window"
+msgctxt "@action global shortcut"
+msgid "Capture Active Window"
+msgstr "ਸਰਗਰਮ ਵਿੰਡੋ ਦੀ ਫ਼ੋਟੋ ਖਿੱਚੋ"
+
+#: src/ShortcutActions.cpp:62
+#, fuzzy, kde-format
+#| msgid "Capture Rectangular Region"
+msgctxt "@action global shortcut"
+msgid "Capture Rectangular Region"
+msgstr "ਆਇਤਾਕਾਰ ਖੇਤਰ ਦੀ ਫ਼ੋਟੋ ਖਿੱਚੋ"
+
+#: src/ShortcutActions.cpp:69
+#, fuzzy, kde-format
+#| msgid "Capture Active Window"
+msgctxt "@action global shortcut"
+msgid "Capture Selected Window"
+msgstr "ਸਰਗਰਮ ਵਿੰਡੋ ਦੀ ਫ਼ੋਟੋ ਖਿੱਚੋ"
+
+#: src/ShortcutActions.cpp:69
+#, fuzzy, kde-format
+#| msgid "Capture Window Under Cursor"
+msgctxt "@action global shortcut"
+msgid "Capture Window Under Cursor"
+msgstr "ਕਰਸਰ ਹੇਠਲੀ ਵਿੰਡੋ ਕਰਸਰ"
+
+#: src/ShortcutActions.cpp:76
+#, fuzzy, kde-format
+#| msgctxt "@info:tooltip title for recording tray icon"
+#| msgid "Spectacle is Recording"
+msgctxt "@action global shortcut"
+msgid "Start/Stop Screen Recording"
+msgstr "ਸਪੈਕਟਾਕਲ ਰਿਕਾਰਡ ਕਰ ਰਿਹਾ ਹੈ"
+
+#: src/ShortcutActions.cpp:82
+#, fuzzy, kde-format
+#| msgctxt "@info:tooltip title for recording tray icon"
+#| msgid "Spectacle is Recording"
+msgctxt "@action global shortcut"
+msgid "Start/Stop Window Recording"
+msgstr "ਸਪੈਕਟਾਕਲ ਰਿਕਾਰਡ ਕਰ ਰਿਹਾ ਹੈ"
+
+#: src/ShortcutActions.cpp:88
+#, fuzzy, kde-format
+#| msgctxt "@info:tooltip title for recording tray icon"
+#| msgid "Spectacle is Recording"
+msgctxt "@action global shortcut"
+msgid "Start/Stop Region Recording"
+msgstr "ਸਪੈਕਟਾਕਲ ਰਿਕਾਰਡ ਕਰ ਰਿਹਾ ਹੈ"
+
+#: src/ShortcutActions.cpp:94
+#, fuzzy, kde-format
+#| msgid "Launch Spectacle without capturing"
+msgctxt "@action global shortcut"
+msgid "Launch Spectacle without capturing"
+msgstr "ਬਿਨਾਂ ਕੈਪਚਰ ਕੀਤੇ ਸਪੈਕਟਾਕਲ ਨੂੰ ਚਲਾਓ"
+
+#: src/SpectacleCore.cpp:264
+#, kde-format
+msgctxt "@info"
+msgid "An error occurred while taking a screenshot."
+msgstr "ਸਕਰੀਨਸ਼ਾਟ ਲੈਣ ਲਈ ਗਲਤੀ ਆਈ ਹੈ।"
+
+#: src/SpectacleCore.cpp:293
+#, kde-format
+msgctxt "@info:tooltip title for recording tray icon"
+msgid "Spectacle is Recording"
+msgstr "ਸਪੈਕਟਾਕਲ ਰਿਕਾਰਡ ਕਰ ਰਿਹਾ ਹੈ"
+
+#: src/SpectacleCore.cpp:298
+#, kde-format
+msgctxt "recording notification title"
+msgid "Spectacle is Recording"
+msgstr "ਸਪੈਕਟਾਕਲ ਰਿਕਾਰਡ ਕਰ ਰਿਹਾ ਹੈ"
+
+#: src/SpectacleCore.cpp:324
+#, kde-format
+msgctxt "recording notification message without shortcut"
+msgid "To finish the recording, click the pulsing red System Tray icon."
+msgstr ""
+
+#: src/SpectacleCore.cpp:325
+#, kde-kuit-format
+msgctxt "recording notification message with shortcut"
+msgid ""
+"To finish the recording, click the pulsing red System Tray icon or press "
+"<shortcut>%1</shortcut>."
+msgstr ""
+
+#: src/SpectacleCore.cpp:342
+#, kde-format
+msgctxt "missing webp support notification title"
+msgid "WebP support is missing."
+msgstr ""
+
+#: src/SpectacleCore.cpp:343
+#, kde-format
+msgctxt "missing webp support notification message"
+msgid ""
+"Please install Qt Image Formats to get animated system tray icons for "
+"Spectacle, and then report this packaging issue to your distributor."
+msgstr ""
+
+#: src/SpectacleCore.cpp:379
+#, fuzzy, kde-format
+#| msgctxt "recording notification title"
+#| msgid "Spectacle is Recording"
+msgctxt "recording notification title"
+msgid "Spectacle is Finishing the Recording"
+msgstr "ਸਪੈਕਟਾਕਲ ਰਿਕਾਰਡ ਕਰ ਰਿਹਾ ਹੈ"
+
+#: src/SpectacleCore.cpp:380
+#, fuzzy, kde-format
+#| msgid "Please wait..."
+msgctxt "recording notification message"
+msgid "Please wait"
+msgstr "...ਉਡੀਕੋ ਜੀ"
+
+#: src/SpectacleCore.cpp:382
+#, fuzzy, kde-format
+#| msgctxt "recording notification title"
+#| msgid "Spectacle is Recording"
+msgctxt "@info:tooltip title for rendering tray icon"
+msgid "Spectacle is Finishing the Recording"
+msgstr "ਸਪੈਕਟਾਕਲ ਰਿਕਾਰਡ ਕਰ ਰਿਹਾ ਹੈ"
+
+#: src/SpectacleCore.cpp:384
+#, fuzzy, kde-format
+#| msgctxt "@info:tooltip subtitle for recording tray icon"
+#| msgid ""
+#| "Time recorded: %1\n"
+#| "Click to finish recording"
+msgctxt "@info:tooltip subtitle for rendering tray icon"
+msgid ""
+"Time recorded: %1\n"
+"Click to stop rendering early (this will lose data)"
+msgstr ""
+"ਸਮਾਂ ਰਿਕਾਰਡ ਕੀਤਾ: %1\n"
+"ਰਿਕਾਰਡਿੰਗ ਪੂਰੀ ਕਰਨ ਲਈ ਕਲਿੱਕ ਕਰੋ"
+
+#: src/SpectacleCore.cpp:410
+#, kde-format
+msgctxt "@info:tooltip subtitle for recording tray icon"
+msgid ""
+"Time recorded: %1\n"
+"Click to finish recording"
+msgstr ""
+"ਸਮਾਂ ਰਿਕਾਰਡ ਕੀਤਾ: %1\n"
+"ਰਿਕਾਰਡਿੰਗ ਪੂਰੀ ਕਰਨ ਲਈ ਕਲਿੱਕ ਕਰੋ"
+
+#: src/SpectacleCore.cpp:435
+#, kde-format
+msgctxt "@info"
+msgid "An error occurred while attempting to record the screen."
+msgstr "ਸਕਰੀਨ ਰਿਕਾਰਡ ਕਰਨ ਦੀ ਕੋਸ਼ਿਸ਼ ਦੌਰਾਨ ਗਲਤੀ ਆਈ ਹੈ।"
+
+#: src/SpectacleCore.cpp:479
+#, fuzzy, kde-kuit-format
+#| msgid ""
+#| "The screenshot was copied to the clipboard and saved as <a href=\"%1\">"
+#| "%2</a>"
+msgctxt "@info"
+msgid ""
+"The screenshot was copied to the clipboard and saved as <link url=\"%1\">%2</"
+"link>"
+msgstr ""
+"ਸਕਰੀਨਸ਼ਾਟ ਨੂੰ ਕਲਿੱਪਬੋਰਡ ਵਿੱਚ ਕਾਪੀ ਕੀਤਾ ਅਤੇ <a href=\"%1\">%2</a> ਵਜੋਂ ਸੰਭਾਲਿਆ ਗਿਆ"
+
+#: src/SpectacleCore.cpp:482
+#, fuzzy, kde-kuit-format
+#| msgid ""
+#| "The screenshot has been saved as <a href=\"%1\">%2</a> and its location "
+#| "has been copied to clipboard"
+msgctxt "@info"
+msgid ""
+"The screenshot has been saved as <link url=\"%1\">%2</link> and its location "
+"has been copied to clipboard"
+msgstr ""
+"ਸਕਰੀਨਸ਼ਾਟ ਨੂੰ <a href=\"%1\">%2</a> ਵਜੋਂ ਸੰਭਾਲਿਆ ਗਿਆ ਹੈ ਅਤੇ ਇਸ ਦੇ ਟਿਕਾਣੇ ਨੂੰ ਕਲਿੱਪਬੋਰਡ ਵਿੱਚ "
+"ਕਾਪੀ ਕੀਤਾ ਗਿਆ ਹੈ"
+
+#: src/SpectacleCore.cpp:485
+#, fuzzy, kde-kuit-format
+#| msgid "The screenshot was saved as <a href=\"%1\">%2</a>"
+msgctxt "@info"
+msgid "The screenshot was saved as <link url=\"%1\">%2</link>"
+msgstr "ਸਕਰੀਨਸ਼ਾਟ ਨੂੰ <a href=\"%1\">%2</a> ਵਜੋਂ ਸੰਭਾਲਿਆ ਗਿਆ"
+
+#: src/SpectacleCore.cpp:489
+#, fuzzy, kde-format
+#| msgid "The screenshot has been copied to the clipboard."
+msgctxt "@info"
+msgid "The screenshot has been copied to the clipboard."
+msgstr "ਸਕਰੀਨਸ਼ਾਟ ਨੂੰ ਕਲਿੱਪਬੋਰਡ ਵਿੱਚ ਕਾਪੀ ਕੀਤਾ ਜਾ ਚੁੱਕਾ ਹੈ।"
+
+#: src/SpectacleCore.cpp:520
+#, fuzzy, kde-kuit-format
+#| msgid ""
+#| "The video has been saved as <a href=\"%1\">%2</a> and its location has "
+#| "been copied to clipboard"
+msgctxt "@info"
+msgid ""
+"The video has been saved as <link url=\"%1\">%2</link> and its location has "
+"been copied to clipboard"
+msgstr ""
+"ਵੀਡੀਓ ਨੂੰ <a href=\"%1\">%2</a> ਵਜੋਂ ਸੰਭਾਲਿਆ ਗਿਆ ਹੈ ਅਤੇ ਇਸ ਦੇ ਟਿਕਾਣੇ ਨੂੰ ਕਲਿੱਪਬੋਰਡ ਵਿੱਚ "
+"ਕਾਪੀ ਕੀਤਾ ਗਿਆ ਹੈ"
+
+#: src/SpectacleCore.cpp:523
+#, fuzzy, kde-kuit-format
+#| msgid "The video was saved as <a href=\"%1\">%2</a>"
+msgctxt "@info"
+msgid "The video was saved as <link url=\"%1\">%2</link>"
+msgstr "ਵੀਡੀਓ ਨੂੰ <a href=\"%1\">%2</a> ਵਜੋਂ ਸੰਭਾਲਿਆ ਗਿਆ"
+
+#: src/SpectacleCore.cpp:527
+#, kde-format
+msgctxt "@info"
+msgid "The video location has been copied to the clipboard."
+msgstr "ਵੀਡੀਓ ਟਿਕਾਣੇ ਨੂੰ ਕਲਿੱਪਬੋਰਡ ਵਿੱਚ ਕਾਪੀ ਕੀਤਾ ਜਾ ਚੁੱਕਾ ਹੈ।"
+
+#. i18nc because it doesn't work with the link replacement logic.
+#. Also see https://invent.kde.org/graphics/spectacle/-/merge_requests/432#note_1111125
+#.
+#: src/SpectacleCore.cpp:547
+#, fuzzy, kde-format
+#| msgid "QR Code found: %1"
+msgctxt "@info"
+msgid "Code found: %1"
+msgstr "QR ਕੋਡ ਮਿਲਿਆ: %1"
+
+#: src/SpectacleCore.cpp:551
+#, fuzzy, kde-format
+#| msgid "Found QR code with binary content."
+msgctxt "@info"
+msgid "Found QR code with binary content."
+msgstr "ਬਾਈਨਰੀ ਸਮੱਗਰੀ ਨਾਲ QR ਕੋਡ ਮਿਲਿਆ।"
+
+#: src/SpectacleCore.cpp:560
+#, kde-format
+msgctxt "@info"
+msgid "Text extraction failed"
+msgstr ""
+
+#: src/SpectacleCore.cpp:566
+#, kde-format
+msgctxt "@info"
+msgid "No text found in the image"
+msgstr ""
+
+#: src/SpectacleCore.cpp:571
+#, kde-format
+msgctxt "@info"
+msgid "Text extraction completed"
+msgstr ""
+
+#: src/SpectacleCore.cpp:579
+#, kde-format
+msgctxt "@info:notification title"
+msgid "Text Extracted"
+msgstr ""
+
+#: src/SpectacleCore.cpp:598
+#, kde-format
+msgctxt "@info The variables are language names, e.g. 'English and German'"
+msgid "%1 and %2"
+msgstr ""
+
+#: src/SpectacleCore.cpp:603
+#, fuzzy, kde-kuit-format
+#| msgid "Copy image to clipboard"
+msgctxt "@info:notification"
+msgid "Text copied to clipboard.<nl/>Languages used: %1"
+msgstr "ਚਿੱਤਰ ਨੂੰ ਕਲਿੱਪਬੋਰਡ ਵਿੱਚ ਕਾਪੀ ਕਰੋ"
+
+#: src/SpectacleCore.cpp:608
+#, kde-format
+msgctxt "@action:button"
+msgid "Open in Text Editor"
+msgstr ""
+
+#: src/SpectacleCore.cpp:749
+#, kde-format
+msgctxt "@info"
+msgid "Please select a region before extracting text"
+msgstr ""
+
+#: src/SpectacleCore.cpp:771
+#, kde-format
+msgctxt "@info"
+msgid "OCR is not available."
+msgstr ""
+
+#: src/SpectacleCore.cpp:777
+#, fuzzy, kde-format
+#| msgid "No KIPI plugins available"
+msgctxt "@info"
+msgid "No screenshot available."
+msgstr "ਕੋਈ KIPI ਪਲੱਗਇਨ ਮੌਜੂਦ ਨਹੀਂ ਹੈ"
+
+#: src/SpectacleCore.cpp:781
+#, kde-format
+msgctxt "@info"
+msgid "Extracting text from image..."
+msgstr ""
+
+#: src/SpectacleCore.cpp:1045
+#, kde-format
+msgctxt "@info:shell"
+msgid "%1 is not a valid mode for --record"
+msgstr "%1 --record ਲਈ ਵਾਜਬ ਮੋਡ ਨਹੀਂ ਹੈ"
+
+#: src/SpectacleCore.cpp:1279
+#, fuzzy, kde-format
+#| msgid ""
+#| "A screenshot was saved as '%1' to '%2' and the file path of the "
+#| "screenshot has been saved to your clipboard."
+msgctxt "%1 is the filename, %2 the path to the save location"
+msgid ""
+"A screenshot was saved as '%1' to '%2' and the file path of the screenshot "
+"has been saved to your clipboard."
+msgstr ""
+"ਸਕਰੀਨਸ਼ਾਟ ਨੂੰ '%2' ਵਿੱਚ '%1' ਵਜੋਂ ਸੰਭਾਲਿਆ ਗਿਆ ਸੀ ਅਤੇ ਸਕਰੀਨਸ਼ਾਟ ਦੇ ਫਾਇਲ ਦੇ ਪਾਥ ਨੂੰ ਤੁਹਾਡੇ "
+"ਕਲਿੱਪਬੋਰਡ ਵਿੱਚ ਕਾਪੀ ਕੀਤਾ ਜਾ ਚੁੱਕਾ ਹੈ।"
+
+#: src/SpectacleCore.cpp:1283
+#, fuzzy, kde-format
+#| msgctxt "Placeholder is filename"
+#| msgid "A screenshot was saved as '%1' to your Pictures folder."
+msgctxt "%1 is the filename"
+msgid "A screenshot was saved as '%1' to your Pictures folder."
+msgstr "ਸਕਰੀਨਸ਼ਾਟ ਨੂੰ ਤੁਹਾਡੇ ਤਸਵੀਰਾਂ ਫੋਲਡਰ ਵਿੱਚ '%1' ਵਜੋਂ ਸੰਭਾਲਿਆ ਗਿਆ ਸੀ।"
+
+#: src/SpectacleCore.cpp:1286
+#, fuzzy, kde-format
+#| msgid "A screenshot was saved as '%1' to '%2'."
+msgctxt "%1 is the filename, %2 the path to the save location"
+msgid "A screenshot was saved as '%1' to '%2'."
+msgstr "ਸਕਰੀਨਸ਼ਾਟ ਨੂੰ '%2' ਵਿੱਚ '%1' ਵਜੋਂ ਸੰਭਾਲਿਆ ਗਿਆ ਸੀ।"
+
+#: src/SpectacleCore.cpp:1290
+#, kde-format
+msgid "A screenshot was saved to your clipboard."
+msgstr "ਸਕਰੀਨਸ਼ਾਟ ਨੂੰ ਤੁਹਾਡੇ ਕਲਿੱਪਬੋਰਡ ਵਿੱਚ ਸੰਭਾਲਿਆ ਗਿਆ ਸੀ।"
+
+#: src/SpectacleCore.cpp:1295
+#, fuzzy, kde-format
+#| msgid ""
+#| "A recording was saved as '%1' to '%2' and the file path of the recording "
+#| "has been saved to your clipboard."
+msgctxt "%1 is the filename, %2 the path to the save location"
+msgid ""
+"A recording was saved as '%1' to '%2' and the file path of the recording has "
+"been saved to your clipboard."
+msgstr ""
+"ਰਿਕਾਰਡਿੰਗ ਨੂੰ '%2' ਵਿੱਚ '%1' ਵਜੋਂ ਸੰਭਾਲਿਆ ਗਿਆ ਸੀ ਅਤੇ ਰਿਕਾਰਡਿੰਗ ਦੇ ਫਾਇਲ ਦੇ ਪਾਥ ਨੂੰ ਤੁਹਾਡੇ "
+"ਕਲਿੱਪਬੋਰਡ ਵਿੱਚ ਕਾਪੀ ਕੀਤਾ ਜਾ ਚੁੱਕਾ ਹੈ।"
+
+#: src/SpectacleCore.cpp:1297
+#, fuzzy, kde-format
+#| msgctxt "Placeholder is filename"
+#| msgid "A recording was saved as '%1' to your Videos folder."
+msgctxt "%1 is the filename"
+msgid "A recording was saved as '%1' to your Videos folder."
+msgstr "ਰਿਕਾਰਡਿੰਗ ਨੂੰ ਤੁਹਾਡੇ ਵੀਡੀਓ ਫੋਲਡਰ ਵਿੱਚ '%1' ਵਜੋਂ ਸੰਭਾਲਿਆ ਗਿਆ ਸੀ।"
+
+#: src/SpectacleCore.cpp:1299
+#, fuzzy, kde-format
+#| msgid "A recording was saved as '%1' to '%2'."
+msgctxt "%1 is the filename, %2 the path to the save location"
+msgid "A recording was saved as '%1' to '%2'."
+msgstr "ਰਿਕਾਰਡਿੰਗ ਨੂੰ '%2' ਵਿੱਚ '%1' ਵਜੋਂ ਸੰਭਾਲਿਆ ਗਿਆ ਸੀ।"
+
+#: src/SpectacleCore.cpp:1310
+#, kde-format
+msgctxt "Open the screenshot we just saved"
+msgid "Open"
+msgstr "ਖੋਲ੍ਹੋ"
+
+#: src/SpectacleCore.cpp:1324
+#, kde-format
+msgid "Annotate"
+msgstr "ਟਿੱਪਣੀ"
+
+#: src/VideoFormatModel.cpp:31
+#, kde-format
+msgctxt "@item:inlistbox Container/encoder"
+msgid "WebM/VP9"
+msgstr "WebM/VP9"
+
+#: src/VideoFormatModel.cpp:38
+#, kde-format
+msgctxt "@item:inlistbox Container/encoder"
+msgid "MP4/H.264"
+msgstr "MP4/H.264"
+
+#: src/VideoFormatModel.cpp:45
+#, kde-format
+msgctxt "@item:inlistbox Container/encoder"
+msgid "Animated WebP (better than GIF)"
+msgstr ""
+
+#: src/VideoFormatModel.cpp:52
+#, kde-format
+msgctxt "@item:inlistbox Container/encoder"
+msgid "GIF (compatible, but inefficient)"
+msgstr ""
+
+#, fuzzy
+#~| msgid "Open Containing Folder"
+#~ msgctxt "@action"
+#~ msgid "Open Containing Folder"
+#~ msgstr "ਰੱਖਣ ਵਾਲਾ ਫੋਲਡਰ ਖੋਲ੍ਹੋ"
+
+#~ msgid "The last used annotation tool type"
+#~ msgstr "ਪਿਛਲੀ ਵਾਰ ਵਰਤੇ ਟਿੱਪਣੀ ਟੂਲ ਦੀ ਕਿਸਮ"
+
+#~ msgid "Stroke width for freehand annotation tool"
+#~ msgstr "ਹੱਥ ਨਾਲ ਵਾਹੇ ਜਾਣ ਵਾਲੇ ਟਿੱਪਣੀ ਟੂਲ ਲਈ ਸਟਰੋਕ ਦੀ ਚੌੜਾਈ"
+
+#~ msgid "Stroke width for highlighter annotation tool"
+#~ msgstr "ਹਾਈਲਾਈਟਰ ਵਾਲੇ ਟਿੱਪਣੀ ਟੂਲ ਲਈ ਸਟਰੋਕ ਦੀ ਚੌੜਾਈ"
+
+#~ msgid "Stroke width for line annotation tool"
+#~ msgstr "ਲਾਈਨ ਵਾਲੇ ਟਿੱਪਣੀ ਟੂਲ ਲਈ ਸਟਰੋਕ ਦੀ ਚੌੜਾਈ"
+
+#~ msgid "Stroke width for arrow annotation tool"
+#~ msgstr "ਤੀਰ ਵਾਲੇ ਟਿੱਪਣੀ ਟੂਲ ਲਈ ਸਟਰੋਕ ਦੀ ਚੌੜਾਈ"
+
+#~ msgid "Stroke width for rectangle annotation tool"
+#~ msgstr "ਚਤੁਰਭੁਜ ਵਾਲੇ ਟਿੱਪਣੀ ਟੂਲ ਲਈ ਸਟਰੋਕ ਦੀ ਚੌੜਾਈ"
+
+#~ msgid "Stroke width for ellipse annotation tool"
+#~ msgstr "ਅੰਡਾਕਾਰ ਵਾਲੇ ਟਿੱਪਣੀ ਟੂਲ ਲਈ ਸਟਰੋਕ ਦੀ ਚੌੜਾਈ"
+
+#~ msgid "Stroke color for freehand annotation tool"
+#~ msgstr "ਹੱਥ ਨਾਲ ਵਾਹੇ ਜਾਣ ਵਾਲੇ ਟਿੱਪਣੀ ਟੂਲ ਲਈ ਸਟਰੋਕ ਦਾ ਰੰਗ"
+
+#~ msgid "Stroke color for highlighter annotation tool"
+#~ msgstr "ਹਾਈਲਾਈਟਰ ਵਾਲੇ ਟਿੱਪਣੀ ਟੂਲ ਲਈ ਸਟਰੋਕ ਦਾ ਰੰਗ"
+
+#~ msgid "Stroke color for line annotation tool"
+#~ msgstr "ਲਾਈਨ ਵਾਲੇ ਟਿੱਪਣੀ ਟੂਲ ਲਈ ਸਟਰੋਕ ਦਾ ਰੰਗ"
+
+#~ msgid "Stroke color for arrow annotation tool"
+#~ msgstr "ਤੀਰ ਵਾਲੇ ਟਿੱਪਣੀ ਟੂਲ ਲਈ ਸਟਰੋਕ ਦਾ ਰੰਗ"
+
+#~ msgid "Stroke color for rectangle annotation tool"
+#~ msgstr "ਚਤੁਰਭੁਜ ਵਾਲੇ ਟਿੱਪਣੀ ਟੂਲ ਲਈ ਸਟਰੋਕ ਦਾ ਰੰਗ"
+
+#~ msgid "Stroke color for ellipse annotation tool"
+#~ msgstr "ਅੰਡਾਕਾਰ ਵਾਲੇ ਟਿੱਪਣੀ ਟੂਲ ਲਈ ਸਟਰੋਕ ਦਾ ਰੰਗ"
+
+#~ msgid "Fill color for rectangle annotation tool"
+#~ msgstr "ਚਤੁਰਭੁਜ ਵਾਲੇ ਟਿੱਪਣੀ ਟੂਲ ਲਈ ਭਰਨ ਵਾਲਾ ਰੰਗ"
+
+#~ msgid "Fill color for ellipse annotation tool"
+#~ msgstr "ਅੰਡਾਕਾਰ ਵਾਲੇ ਟਿੱਪਣੀ ਟੂਲ ਲਈ ਭਰਨ ਵਾਲਾ ਰੰਗ"
+
+#~ msgid "Fill color for number annotation tool"
+#~ msgstr "ਨੰਬਰ ਟਿੱਪਣੀ ਟੂਲ ਲਈ ਭਰਨ ਵਾਲਾ ਰੰਗ"
+
+#~ msgid "The strength of the blur effect."
+#~ msgstr "ਧੁੰਦਲੇ ਪ੍ਰਭਾਵ ਦੀ ਮਜ਼ਬੂਤੀ ਹੈ।"
+
+#~ msgid "The strength of the pixelate effect."
+#~ msgstr "ਪਿਕਸ ਕੀਤੇ ਪ੍ਰਭਾਵ ਦੀ ਮਜ਼ਬੂਤੀ ਹੈ।"
+
+#~ msgid "Font for text annotations"
+#~ msgstr "ਲਿਖਤ ਵਿਆਖਿਆ ਲਈ ਫ਼ੋਂਟ"
+
+#~ msgid "Font for number annotations"
+#~ msgstr "ਨੰਬਰ ਟਿੱਪਣੀਆਂ ਲਈ ਫ਼ੋਂਟ"
+
+#~ msgid "Font color for annotations"
+#~ msgstr "ਵਿਆਖਿਆ ਲਈ ਫ਼ੋਂਟ ਦਾ ਰੰਗ"
+
+#~ msgid "Show capture instructions"
+#~ msgstr "ਕੈਪਚਰ ਹਦਾਇਤਾਂ ਨੂੰ ਵੇਖਾਓ"
+
+#~ msgid "Whether to show capture instructions in the region selection"
+#~ msgstr "ਕੀ ਖੇਤਰ ਚੋਣ ਵਿੱਚ ਕੈਪਚਰ ਹਦਾਇਤਾਂ ਨੂੰ ਵਿਖਾਉਣਾ ਹੈ"
+
+#, fuzzy
+#~| msgid "Record Screen"
+#~ msgctxt "@action global shortcut"
+#~ msgid "Record Screen"
+#~ msgstr "ਸਕਰੀਨ ਰਿਕਾਰਡ ਕਰੋ"
+
+#, fuzzy
+#~| msgid "Record Window"
+#~ msgctxt "@action global shortcut"
+#~ msgid "Record Window"
+#~ msgstr "ਵਿੰਡੋ ਰਿਕਾਰਡ ਕਰੋ"
+
+#, fuzzy
+#~| msgid "Record Rectangular Region"
+#~ msgctxt "@action global shortcut"
+#~ msgid "Record Rectangular Region"
+#~ msgstr "ਆਇਤਾਕਾਰ ਖੇਤਰ ਰਿਕਾਰਡ ਕਰੋ"
+
+#~ msgctxt "recording notification message"
+#~ msgid "Click the system tray icon to finish recording"
+#~ msgstr "ਰਿਕਾਰਡਿੰਗ ਪੂਰੀ ਕਰਨ ਲਈ ਸਿਸਟਮ ਟਰੇ ਆਈਕਾਨ ਨੂੰ ਕਲਿੱਕ ਕਰੋ"
+
+#~ msgctxt "@info"
+#~ msgid "The screenshot location has been copied to the clipboard."
+#~ msgstr "ਸਕਰੀਨਸ਼ਾਟ ਦੇ ਟਿਕਾਣੇ ਨੂੰ ਕਲਿੱਪਬੋਰਡ ਵਿੱਚ ਕਾਪੀ ਕੀਤਾ ਜਾ ਚੁੱਕਾ ਹੈ।"
+
+#~ msgctxt "@info"
+#~ msgid "Video shared"
+#~ msgstr "ਵੀਡੀਓ ਸਾਂਝੀ ਕੀਤੀ"
+
+#~ msgctxt "@info"
+#~ msgid "Image shared"
+#~ msgstr "ਚਿੱਤਰ ਸਾਂਝਾ ਕੀਤਾ"
+
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "The shared video link (<a href=\"%1\">%1</a>) has been copied to the "
+#~ "clipboard."
+#~ msgstr ""
+#~ "ਸਾਂਝੇ ਕੀਤੇ ਵੀਡੀਓ ਲਿੰਕ (<a href=\"%1\">%1</a>) ਨੂੰ ਕਲਿੱਪਬੋਰਡ ਵਿੱਚ ਕਾਪੀ ਕੀਤਾ ਗਿਆ ਹੈ।"
+
+#~ msgctxt "@info"
+#~ msgid "There was a problem sharing the video: %1"
+#~ msgstr "ਵੀਡੀਓ ਸਾਂਝਾ ਕਰਨ ਦੌਰਾਨ ਸਮੱਸਿਆ ਸੀ: %1"
+
+#~ msgid "Screenshot"
+#~ msgstr "ਸਕਰੀਨਸ਼ਾਟ"
+
+#~ msgid "Configure..."
+#~ msgstr "...ਸੰਰਚਨਾ"
+
+#~ msgid "Capture Mode"
+#~ msgstr "ਕੈਪਚਰ ਦਾ ਢੰਗ"
+
+#~ msgid "Capture Settings"
+#~ msgstr "ਕੈਪਚਰ ਦੀਆਂ ਸੈਟਿੰਗਾਂ"
+
+#~ msgctxt "@title:group"
+#~ msgid "Recording Settings"
+#~ msgstr "ਰਿਕਾਰਡ ਕਰਨ ਦੀਆਂ ਸੈਟਿੰਗਾਂ"
+
+#~ msgid ""
+#~ "Could not take a screenshot. Please report this bug here: <a href="
+#~ "\"https://bugs.kde.org/enter_bug.cgi?product=Spectacle\">create a "
+#~ "spectacle bug</a>"
+#~ msgstr ""
+#~ "ਸਕਰੀਨਸ਼ਾਟ ਲਿਆ ਨਹੀ ਜਾ ਸਕਿਆ ਹੈ। ਇਸ ਬੱਗ ਬਾਰੇ ਰਿਪੋਰਟ ਕਰੋ: <a href=\"https://bugs."
+#~ "kde.org/enter_bug.cgi?product=Spectacle\">ਸਪੈਕਟਲ ਬੱਗ ਦਿਓ (ਅੰਗਰੇਜ਼ੀ)</a>"
+
+#~ msgid "Screenshot capture canceled or failed"
+#~ msgstr "ਸਕਰੀਨਸ਼ਾਟ ਖਿੱਚਣਾ ਰੱਦ ਕੀਤਾ ਜਾਂ ਫੇਲ੍ਹ ਹੋਇਆ"
+
+#~ msgid "Show Annotation Tools"
+#~ msgstr "ਟਿੱਪਣੀ ਕਰਨ ਵਾਲਾ ਟੂਲ ਵੇਖਾਓ"
+
+#~ msgid "Capture Modes"
+#~ msgstr "ਕੈਪਚਰ ਦੇ ਢੰਗ"
+
+#~ msgctxt "Decimal number of seconds"
+#~ msgid "%2 seconds"
+#~ msgstr "%2 ਸਕਿੰਟ"
+
+#~ msgctxt ""
+#~ "A placeholder in the user configurable filename will replaced by the "
+#~ "specified value"
+#~ msgid "Day"
+#~ msgstr "ਦਿਨ"
+
+#~ msgctxt ""
+#~ "A placeholder in the user configurable filename will replaced by the "
+#~ "specified value"
+#~ msgid "Month"
+#~ msgstr "ਮਹੀਨਾ"
+
+#~ msgctxt ""
+#~ "A placeholder in the user configurable filename will replaced by the "
+#~ "specified value"
+#~ msgid "Hour"
+#~ msgstr "ਘੰਟਾ"
+
+#~ msgctxt ""
+#~ "A placeholder in the user configurable filename will replaced by the "
+#~ "specified value"
+#~ msgid "Minute"
+#~ msgstr "ਮਿੰਟ"
+
+#~ msgctxt ""
+#~ "A placeholder in the user configurable filename will replaced by the "
+#~ "specified value"
+#~ msgid "Second"
+#~ msgstr "ਸਕਿੰਟ"
+
+#~ msgctxt ""
+#~ "A placeholder in the user configurable filename will replaced by the "
+#~ "specified value"
+#~ msgid "Timezone"
+#~ msgstr "ਸਮਾਂ-ਖੇਤਰ"
+
+#~ msgctxt ""
+#~ "A placeholder in the user configurable filename will replaced by the "
+#~ "specified value"
+#~ msgid "Sequential numbering"
+#~ msgstr "ਲੜੀ ਨੰਬਰ"
+
+#~ msgid "The default filename used when recording a video"
+#~ msgstr "ਵੀਡੀਓ ਰਿਕਾਰਡ ਕਰਨ ਲਈ ਵਰਤਿਆ ਜਾਣ ਵਾਲਾ ਮੂਲ ਫ਼ਾਈਲ-ਨਾਂ"
+
+#, fuzzy
+#~| msgid "Screenshot"
+#~ msgctxt "@item recording mode"
+#~ msgid "Screen"
+#~ msgstr "ਸਕਰੀਨਸ਼ਾਟ"
+
+#~ msgid "Workspace"
+#~ msgstr "ਵਰਕਸਪੇਸ"
+
+#~ msgid "Failed to select output"
+#~ msgstr "ਆਉਟਪੁੱਟ ਚੁਣਨ ਲਈ ਅਸਫ਼ਲ ਹੈ"
+
+#~ msgctxt "@label:listbox"
+#~ msgid "Video format:"
+#~ msgstr "ਵੀਡੀਓ ਫਾਰਮੈਟ:"
+
+#, fuzzy
+#~| msgid "Save"
+#~ msgctxt "Settings category"
+#~ msgid "Save"
+#~ msgstr "ਸੰਭਾਲੋ"
+
+#~ msgid "File format for saved screen recordings"
+#~ msgstr "ਸੰਭਾਲੀ ਸਕਰੀਨ ਰਿਕਾਰਡਿੰਗ ਲਈ ਫ਼ਾਇਲ ਫ਼ਾਰਮੈਟ"
+
+#~ msgid "On Click"
+#~ msgstr "ਕਲਿੱਕ ਕਰਨ ਉੱਤੇ"
+
+#~ msgid "Take a New Screenshot"
+#~ msgstr "ਨਵਾਂ ਸਕਰੀਨਸ਼ਾਟ ਲਵੋ"
+
+#~ msgid "Full Screen (All Monitors)"
+#~ msgstr "ਪੂਰੀ ਸਕਰੀਨ (ਸਾਰੇ ਮਾਨੀਟਰ)"
+
+#~ msgid "Full Screen (All Monitors, scaled)"
+#~ msgstr "ਪੂਰੀ ਸਕਰੀਨ (ਸਾਰੇ ਮਾਨੀਟਰ, ਸਕੇਲ ਕੀਤੇ)"
+
+#~ msgid "Image Size: %1x%2 pixels"
+#~ msgstr "ਚਿੱਤਰ ਆਕਾਰ: %1x%2 ਪਿਕਸਲ"
+
+#~ msgid "Change Spectacle's settings."
+#~ msgstr "ਸਪੈਕਟਾਕਲ ਦੀਆਂ ਸੈਟਿੰਗਾਂ ਬਦਲੋ।"
+
+#~ msgid "Add annotation to the screenshot"
+#~ msgstr "ਸਕਰੀਨਸ਼ਾਟ ਲਈ ਟਿੱਪਣੀ ਜੋੜੋ"
+
+#~ msgid "Tools"
+#~ msgstr "ਟੂਲ"
+
+#, fuzzy
+#~| msgid "After taking a screenshot:"
+#~ msgid "Ready to take a screenshot"
+#~ msgstr "ਸਕਰੀਨਸ਼ਾਟ ਲੈਣ ਦੇ ਬਾਅਦ:"
+
+#, fuzzy
+#~| msgid "Annotate"
+#~ msgctxt "@action:button"
+#~ msgid "Annotate"
+#~ msgstr "ਟਿੱਪਣੀ"
+
+#~ msgid "Area:"
+#~ msgstr "ਖੇਤਰ:"
+
+#~ msgctxt "The entire screen area was captured, heading"
+#~ msgid "Full Screen Captured"
+#~ msgstr "ਪੂਰੀ ਸਕਰੀਨ ਲਈ ਗਈ"
+
+#~ msgctxt "The current screen was captured, heading"
+#~ msgid "Current Screen Captured"
+#~ msgstr "ਮੌਜੂਦਾ ਸਕਰੀਨ ਲਈ ਗਈ"
+
+#~ msgctxt "The active window was captured, heading"
+#~ msgid "Active Window Captured"
+#~ msgstr "ਸਰਗਰਮ ਵਿੰਡੋ ਲਈ ਗਈ"
+
+#~ msgctxt "The window under the mouse was captured, heading"
+#~ msgid "Window Under Cursor Captured"
+#~ msgstr "ਕਰਸਰ ਹੇਠਲੀ ਵਿੰਡੋ ਲਈ ਗਈ"
+
+#~ msgctxt "A rectangular region was captured, heading"
+#~ msgid "Rectangular Region Captured"
+#~ msgstr "ਆਇਤਾਕਾਰ ਖੇਤਰ ਲਿਆ ਗਿਆ"
+
+#~ msgid "More Online Services"
+#~ msgstr "ਹੋਰ ਆਨਲਾਈਨ ਸੇਵਾਵਾਂ"
+
+#~ msgid "Autosave the image to the default location"
+#~ msgstr "ਚਿੱਤਰ ਨੂੰ ਮੂਲ ਟਿਕਾਣੇ ਉੱਤੇ ਆਪਣੇ-ਆਪ ਸੰਭਾਲੋ"
+
+#~ msgid "Copy file location to clipboard after saving"
+#~ msgstr "ਸੰਭਾਲਣ ਦੇ ਬਾਅਦ ਫ਼ਾਇਲ ਟਿਕਾਣੇ ਨੂੰ ਕਾਪੀ ਕਰੋ"
+
+#~ msgctxt "%1 is collection name, %2 is image count in collection"
+#~ msgid "%1 (%2 image)"
+#~ msgid_plural "%1 (%2 images)"
+#~ msgstr[0] "%1 (%2 ਚਿੱਤਰ)"
+#~ msgstr[1] "%1 (%2 ਚਿੱਤਰ)"
+
+#~ msgid "Taken with Spectacle"
+#~ msgstr "ਸਪੈਕਟਾਕਲ ਨਾਲ ਲਿਆ"

@@ -1,0 +1,371 @@
+.TH LVM-CATEGORIES 7 "LVM TOOLS #VERSION#" "Red Hat, Inc."
+.
+.ie t \{\
+.\" PostScript/PDF with tabs
+. ds TT \t
+. ds DTT \t\t
+.\}
+.el \{\
+. ds TT \&
+. ds DTT \0\0\0
+.\}
+.
+.de OPT
+.ie \\n(.$>1 \\*[TT]\fB-\\$1\fP|\\*[TT]\fB--\\$2\fP\c
+.el \\*[DTT]\fB--\\$1\fP\c
+..
+.
+.de OPA
+.OPT \\$*
+\ \c
+..
+.de OPS
+.OPT \\$*
+\&
+..
+.
+.
+.SH NAME
+.
+lvm-categories \(em LVM command categories
+.
+.SH DESCRIPTION
+.
+This page provides categorized list of LVM manual pages.
+.
+.SH CATEGORIES
+\&
+.
+.SH Core Commands
+.PD 0
+.TP 20
+.B lvm
+LVM tools
+.PD
+.
+.SH Builtin Commands
+.PD 0
+.TP 20
+.B config
+Display and manipulate configuration information
+.TP 20
+.B devtypes
+Display recognised built-in block device types
+.TP 20
+.B dumpconfig
+Display and manipulate configuration information
+.TP 20
+.B formats
+List available metadata formats
+.TP 20
+.B fullreport
+Display full report
+.TP 20
+.B help
+Display help for commands
+.TP 20
+.B lastlog
+Display last command's log report
+.TP 20
+.B lvpoll
+Continue already initiated poll operation on a logical volume
+.TP 20
+.B segtypes
+List available segment types
+.TP 20
+.B systemid
+Display the system ID, if any, currently set on this host
+.TP 20
+.B tags
+List tags defined on this host
+.TP 20
+.B version
+Display software and driver version information
+.PD
+.
+.SH Concepts
+.PD 0
+.TP 20
+.B lvmautoactivation
+LVM autoactivation
+.\" CONDITION_BEGIN lvmcache.7
+.TP 20
+.B lvmcache
+LVM caching
+.\" CONDITION_END lvmcache.7
+.TP 20
+.B lvmraid
+LVM RAID
+.TP 20
+.B lvmreport
+LVM reporting and related features
+.TP 20
+.B lvmsystemid
+LVM system ID
+.\" CONDITION_BEGIN lvmthin.7
+.TP 20
+.B lvmthin
+LVM thin provisioning
+.\" CONDITION_END lvmthin.7
+.\" CONDITION_BEGIN lvmvdo.7
+.TP 20
+.B lvmvdo
+Support for Virtual Data Optimizer in LVM
+.\" CONDITION_END lvmvdo.7
+.PD
+.
+.SH Configuration
+.PD 0
+.TP 20
+.B lvm.conf
+Configuration file for LVM2
+.TP 20
+.B lvmconfig
+Display and manipulate configuration information
+.PD
+.
+.SH Devices File Management
+.PD 0
+.TP 20
+.B lvmdevices
+Manage the devices file
+.TP 20
+.B vgimportdevices
+Add devices for a VG to the devices file
+.PD
+.
+.SH Physical Volume Commands
+.PD 0
+.TP 20
+.B pvchange
+Change attributes of physical volume(s)
+.TP 20
+.B pvcreate
+Initialize physical volume(s) for use by LVM
+.TP 20
+.B pvmove
+Move extents from one physical volume to another
+.TP 20
+.B pvremove
+Remove LVM label(s) from physical volume(s)
+.TP 20
+.B pvresize
+Resize physical volume(s)
+.PD
+.
+.SH Volume Group Commands
+.PD 0
+.TP 20
+.B vgcfgbackup
+Backup volume group configuration(s)
+.TP 20
+.B vgcfgrestore
+Restore volume group configuration
+.TP 20
+.B vgchange
+Change volume group attributes
+.TP 20
+.B vgconvert
+Removed: vgconvert has been removed along with the lvm1 format
+.TP 20
+.B vgcreate
+Create a volume group
+.TP 20
+.B vgexport
+Unregister volume group(s) from the system
+.TP 20
+.B vgextend
+Add physical volumes to a volume group
+.TP 20
+.B vgimport
+Register exported volume group with system
+.TP 20
+.B vgimportclone
+Import a VG from cloned PVs
+.TP 20
+.B vgmerge
+Merge volume groups
+.TP 20
+.B vgmknodes
+Create the special files for volume group devices in /dev
+.TP 20
+.B vgreduce
+Remove physical volume(s) from a volume group
+.TP 20
+.B vgremove
+Remove volume group(s)
+.TP 20
+.B vgrename
+Rename a volume group
+.TP 20
+.B vgsplit
+Move physical volumes into a new or existing volume group
+.PD
+.
+.SH Logical Volume Commands
+.PD 0
+.TP 20
+.B lvchange
+Change the attributes of logical volume(s)
+.TP 20
+.B lvconvert
+Change logical volume layout
+.TP 20
+.B lvcreate
+Create a logical volume
+.TP 20
+.B lvextend
+Add space to a logical volume
+.TP 20
+.B lvreduce
+Reduce the size of a logical volume
+.TP 20
+.B lvremove
+Remove logical volume(s) from the system
+.TP 20
+.B lvrename
+Rename a logical volume
+.TP 20
+.B lvresize
+Resize a logical volume
+.PD
+.
+.SH Reporting Commands
+.PD 0
+.TP 20
+.B lvdisplay
+Display information about a logical volume
+.TP 20
+.B lvs
+Display information about logical volumes
+.TP 20
+.B pvdisplay
+Display various attributes of physical volume(s)
+.TP 20
+.B pvs
+Display information about physical volumes
+.TP 20
+.B vgdisplay
+Display volume group information
+.TP 20
+.B vgs
+Display information about volume groups
+.PD
+.
+.SH Scanning Commands
+.PD 0
+.TP 20
+.B lvmdiskscan
+List devices that may be used as physical volumes
+.TP 20
+.B lvscan
+List all logical volumes in all volume groups
+.TP 20
+.B pvscan
+List all physical volumes
+.TP 20
+.B vgscan
+Search for all volume groups
+.PD
+.
+.SH Check Commands
+.PD 0
+.TP 20
+.B pvck
+Check metadata on physical volumes
+.TP 20
+.B vgck
+Check the consistency of volume group(s)
+.PD
+.
+.SH Daemons
+.PD 0
+.\" CONDITION_BEGIN cmirrord.8
+.TP 20
+.B cmirrord
+cluster mirror log daemon
+.\" CONDITION_END cmirrord.8
+.\" CONDITION_BEGIN dmeventd.8
+.TP 20
+.B dmeventd
+Device-mapper event daemon
+.\" CONDITION_END dmeventd.8
+.\" CONDITION_BEGIN dmfilemapd.8
+.TP 20
+.B dmfilemapd
+Device-mapper filemap monitoring daemon
+.\" CONDITION_END dmfilemapd.8
+.\" CONDITION_BEGIN lvmdbusd.8
+.TP 20
+.B lvmdbusd
+LVM D-Bus daemon
+.\" CONDITION_END lvmdbusd.8
+.\" CONDITION_BEGIN lvmlockd.8
+.TP 20
+.B lvmlockd
+LVM locking daemon
+.\" CONDITION_END lvmlockd.8
+.\" CONDITION_BEGIN lvmpolld.8
+.TP 20
+.B lvmpolld
+LVM poll daemon
+.\" CONDITION_END lvmpolld.8
+.PD
+.
+.SH Utility Commands
+.PD 0
+.\" CONDITION_BEGIN blkdeactivate.8
+.TP 20
+.B blkdeactivate
+Utility to deactivate block devices
+.\" CONDITION_END blkdeactivate.8
+.\" CONDITION_BEGIN fsadm.8
+.TP 20
+.B fsadm
+Utility to resize or check filesystem on a device
+.\" CONDITION_END fsadm.8
+.\" CONDITION_BEGIN lvm_import_vdo.8
+.TP 20
+.B lvm_import_vdo
+Utility to import VDO volumes into a new volume group
+.\" CONDITION_END lvm_import_vdo.8
+.TP 20
+.B lvmdump
+Create lvm2 information dumps for diagnostic purposes
+.\" CONDITION_BEGIN lvmlockctl.8
+.TP 20
+.B lvmlockctl
+Control for lvmlockd
+.\" CONDITION_END lvmlockctl.8
+.TP 20
+.B lvmpersist
+Manage persistent reservations on a group of block devices
+.PD
+.
+.SH Device-Mapper Commands
+.PD 0
+.TP 20
+.B dmsetup
+Low level logical volume management
+.TP 20
+.B dmstats
+Device-mapper statistics management
+.TP 20
+.B dmvdostats
+Display VDO statistics for device-mapper devices
+.PD
+.
+.SH Obsolete
+.PD 0
+.TP 20
+.B lvmsadc
+LVM system activity data collector
+.TP 20
+.B lvmsar
+LVM system activity reporter
+.PD
+.
+.SH SEE ALSO
+.
+.BR lvm (8),
+.BR lvm-index (7)

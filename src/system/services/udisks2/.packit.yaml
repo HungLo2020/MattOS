@@ -1,0 +1,86 @@
+actions:
+  post-upstream-clone:
+    - './autogen.sh --disable-modules --disable-daemon'
+  create-archive:
+    # FIXME: just calling `make dist` doesn't build udisks/libudisks2.la for gtk-doc
+    - 'make'
+    - 'make dist'
+    - 'bash -c "ls *.tar*"'
+  get-current-version:
+    - 'bash -c "./configure --version | head -n1 | cut -f3 -d\" \""'
+
+jobs:
+- job: copr_build
+  branch: master
+  trigger: pull_request
+  targets:
+    - fedora-rawhide-aarch64
+    - fedora-rawhide-ppc64le
+    - fedora-rawhide-x86_64
+    - fedora-latest-aarch64
+    - fedora-latest-ppc64le
+    - fedora-latest-x86_64
+    - fedora-latest-stable-aarch64
+    - fedora-latest-stable-ppc64le
+    - fedora-latest-stable-x86_64
+  additional_repos:
+  - "copr://@storage/udisks-daily"
+
+- job: tests
+  trigger: pull_request
+  targets:
+    - fedora-latest-stable
+  tf_extra_params:
+    environments:
+      - artifacts:
+        - type: repository-file
+          id: https://copr.fedorainfracloud.org/coprs/g/storage/udisks-daily/repo/fedora-$releasever/group_storage-udisks-daily-fedora-$releasever.repo
+
+# run tests for udisks consumers, see plans/ with `revdeps == yes`
+- job: tests
+  identifier: revdeps
+  trigger: pull_request
+  notifications:
+    failure_comment:
+      message: "Cockpit tests failed for commit {commit_sha}. @martinpitt, @jelly, @mvollmer please check."
+  targets:
+    - fedora-rawhide-x86_64
+    - fedora-latest-x86_64
+    - fedora-latest-stable-x86_64
+  tf_extra_params:
+    environments:
+      - artifacts:
+        - type: repository-file
+          id: https://copr.fedorainfracloud.org/coprs/g/cockpit/main-builds/repo/fedora-$releasever/group_cockpit-main-builds-fedora-$releasever.repo
+        - type: repository-file
+          id: https://copr.fedorainfracloud.org/coprs/g/storage/udisks-daily/repo/fedora-$releasever/group_storage-udisks-daily-fedora-$releasever.repo
+        tmt:
+          context:
+            revdeps: "yes"
+
+- job: copr_build
+  trigger: commit
+  owner: "@storage"
+  project: udisks-daily
+  branch: master
+  preserve_project: true
+
+srpm_build_deps:
+ - gcc
+ - make
+ - libtool
+ - autoconf
+ - automake
+ - glib2-devel
+ - gtk-doc
+ - gobject-introspection-devel
+ - polkit-devel
+ - systemd
+ - systemd-devel
+ - systemd-rpm-macros
+ - gettext-devel
+ - redhat-rpm-config
+ - libmount-devel
+
+downstream_package_name: udisks2
+specfile_path: packaging/udisks2.spec

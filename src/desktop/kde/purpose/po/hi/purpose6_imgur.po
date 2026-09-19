@@ -1,0 +1,43 @@
+# Hindi translations for purpose package.
+# Copyright (C) 2024 This file is copyright:
+# This file is distributed under the same license as the purpose package.
+# Kali <EMAIL@ADDRESS>, 2024.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: purpose\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-11-17 11:49+0000\n"
+"PO-Revision-Date: 2024-12-15 17:35+0530\n"
+"Last-Translator: Kali <EMAIL@ADDRESS>\n"
+"Language-Team: Hindi <fedora-trans-hi@redhat.com>\n"
+"Language: hi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: imgurplugin.cpp:68 imgurplugin.cpp:70
+#, kde-format
+msgid "Upload failed: %1"
+msgstr "अपलोड विफल: %1"
+
+#: imgurplugin.cpp:91
+#, kde-format
+msgid "Uploading files to imgur..."
+msgstr "इमेज पर फ़ाइलें अपलोड की जा रही हैं..."
+
+#: imgurplugin.cpp:143
+#, kde-format
+msgid "Imgur Upload"
+msgstr "Imgur अपलोड करें"
+
+#: imgurplugin.cpp:144
+#, kde-format
+msgid ""
+"The shared image link (<a href=\"%1\">%1</a>) has been copied to the "
+"clipboard.<br><br>If you would like to remove the uploaded image, visit <a "
+"href=\"%2\">%2</a>"
+msgstr ""
+"साझा छवि लिंक ( <a href=\"%1\">%1</a> ) को क्लिपबोर्ड पर कॉपी कर दिया गया है."
+"<br><br> यदि आप अपलोड की गई छवि हटाना चाहते हैं, तो <a href=\"%2\">%2</a> पर जाएं"

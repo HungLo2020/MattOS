@@ -1,0 +1,280 @@
+#!/bin/bash
+#
+# lvmtestscp - SCP files to/from a cluster test node
+#
+# Usage: lvmtestscp [-i cluster_id] <source> <destination> [scp-options...]
+#        lvmtestscp file.txt 1:/tmp/
+#        lvmtestscp -i foo 0:/var/log/messages /tmp/
+#        lvmtestscp config.txt all:/etc/app/ -r
+#
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Source cluster library for cluster_validate_cluster_id
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/cluster-test-lib.sh"
+
+cluster_init_privileges
+SSH_KEY="${HOME}/.ssh/cluster_test_rsa"
+SSH_USER="${CLUSTER_SSH_USER:-root}"
+
+usage() {
+    cat <<EOF
+Usage: $0 [-i cluster_id] <source> <destination> [scp-options...]
+
+Copy files to/from cluster test nodes using scp.
+
+Options:
+  -i cluster_id  Cluster ID (default: auto-detect most recent)
+                 Simple names auto-expand: "foo" -> "lvmtest-foo"
+
+Arguments:
+  source         Source file/directory (prefix with node: for remote)
+  destination    Destination (prefix with node: for remote)
+  scp-options    Optional scp flags (e.g., -r for recursive)
+
+Node specification:
+  0:/path        Node 0 (storage exporter)
+  1:/path        Node 1 (test node)
+  2:/path        Node 2 (test node)
+  all:/path      All test nodes (1..N, excludes node 0)
+
+Examples:
+  $0 file.txt 1:/tmp/                    # Copy to node 1 (auto-detect cluster)
+  $0 -i foo 1:/var/log/messages .        # Copy from node 1 in lvmtest-foo
+  $0 -i bar 0:/etc/lvm/lvm.conf /tmp/    # Copy from node 0 in lvmtest-bar
+  $0 mydir/ 1:/root/ -r                  # Recursive copy to node 1
+  $0 -i foo config.txt all:/etc/app/     # Copy to all test nodes in lvmtest-foo
+  $0 scripts/ all:/root/tests/ -r        # Deploy to all test nodes
+  $0 "1:/path with spaces/file" .        # Use quotes for spaces
+
+Notes:
+  - Prefix remote paths with node_number: (like hostname in scp)
+  - "all" copies to all test nodes (1..N), excluding node 0
+  - "all" only works for copying TO nodes (not FROM)
+
+EOF
+    exit 1
+}
+
+# Parse path and extract node number if present
+# Returns: node_number path (or "local path" if no node prefix)
+parse_path() {
+    local input="$1"
+
+    # Check if path starts with node:/
+    if [[ "$input" =~ ^([0-9]+|all):(.+)$ ]]; then
+        echo "${BASH_REMATCH[1]} ${BASH_REMATCH[2]}"
+    else
+        echo "local $input"
+    fi
+}
+
+# Parse options
+CLUSTER_ID=""
+while getopts "i:h" opt; do
+    case $opt in
+        i)
+            CLUSTER_ID="$OPTARG"
+            ;;
+        h)
+            usage
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+
+shift $((OPTIND - 1))
+
+# Parse arguments
+if [ $# -lt 2 ]; then
+    usage
+fi
+
+SOURCE="$1"
+DESTINATION="$2"
+shift 2
+SCP_ARGS=("$@")  # Any additional scp arguments (like -r)
+
+# Normalize cluster ID if specified (foo -> lvmtest-foo)
+if [ -n "$CLUSTER_ID" ]; then
+    normalized_id=$(cluster_validate_cluster_id "$CLUSTER_ID" 0 2>&1)  # 0 = don't check if exists
+    if [ $? -ne 0 ]; then
+        echo "Error: Invalid cluster ID: $CLUSTER_ID" >&2
+        exit 1
+    fi
+    CLUSTER_ID="$normalized_id"
+fi
+
+# Parse source and destination
+read -r SRC_NODE SRC_PATH <<< "$(parse_path "$SOURCE")"
+read -r DST_NODE DST_PATH <<< "$(parse_path "$DESTINATION")"
+
+# Validate usage
+if [ "$SRC_NODE" = "all" ]; then
+    echo "Error: 'all' cannot be used to copy FROM nodes" >&2
+    echo "Use a specific node number to copy from a remote node" >&2
+    exit 1
+fi
+
+if [ "$SRC_NODE" != "local" ] && [ "$DST_NODE" != "local" ]; then
+    echo "Error: Cannot copy between two remote nodes" >&2
+    echo "One of source or destination must be local" >&2
+    exit 1
+fi
+
+if [ "$SRC_NODE" = "local" ] && [ "$DST_NODE" = "local" ]; then
+    echo "Error: Both source and destination are local" >&2
+    echo "Use regular cp for local-to-local copy, or specify node: prefix" >&2
+    exit 1
+fi
+
+# Find cluster ID
+if [ -z "${CLUSTER_ID:-}" ]; then
+    # Auto-detect most recent cluster
+    if [ ! -d "$CLUSTER_STATE_DIR" ]; then
+        echo "Error: No cluster state directory found: $CLUSTER_STATE_DIR" >&2
+        echo "Have you created a cluster yet?" >&2
+        exit 1
+    fi
+
+    # Find most recently modified state file
+    CLUSTER_ID=$(ls -t "$CLUSTER_STATE_DIR"/*.state 2>/dev/null | head -1 | xargs -r basename -s .state)
+
+    if [ -z "$CLUSTER_ID" ]; then
+        echo "Error: No cluster state files found in $CLUSTER_STATE_DIR" >&2
+        echo "Please create a cluster first with: ./cluster-test-main.sh create" >&2
+        exit 1
+    fi
+
+    echo "Auto-detected cluster: $CLUSTER_ID" >&2
+fi
+
+# Load cluster state
+STATE_FILE="${CLUSTER_STATE_DIR}/${CLUSTER_ID}.state"
+if [ ! -f "$STATE_FILE" ]; then
+    echo "Error: Cluster state file not found: $STATE_FILE" >&2
+    exit 1
+fi
+
+# Source the state file to get node IPs
+# shellcheck disable=SC1090
+source "$STATE_FILE"
+
+# Check if CLUSTER_NODE_IPS is set
+if [ "${#CLUSTER_NODE_IPS[@]}" -eq 0 ]; then
+    echo "Error: No node IPs found in cluster state" >&2
+    exit 1
+fi
+
+# Check if SSH key exists
+if [ ! -f "$SSH_KEY" ]; then
+    echo "Error: SSH key not found: $SSH_KEY" >&2
+    exit 1
+fi
+
+# Helper function to get node IP and validate node number
+get_node_ip() {
+    local node_num="$1"
+
+    if [ "$node_num" -lt "${#CLUSTER_NODE_IPS[@]}" ]; then
+        echo "${CLUSTER_NODE_IPS[$node_num]}"
+    else
+        echo "Error: Node $node_num does not exist in cluster $CLUSTER_ID" >&2
+        echo "Available nodes: 0 to $((${#CLUSTER_NODE_IPS[@]} - 1))" >&2
+        exit 1
+    fi
+}
+
+# Handle "all" destination - copy to all test nodes (1..N, excluding node 0)
+if [ "$DST_NODE" = "all" ]; then
+    # Get number of test nodes (total nodes - 1 for node 0)
+    num_test_nodes=$((${#CLUSTER_NODE_IPS[@]} - 1))
+
+    if [ "$num_test_nodes" -lt 1 ]; then
+        echo "Error: No test nodes found in cluster $CLUSTER_ID" >&2
+        exit 1
+    fi
+
+    echo "Copying to all $num_test_nodes test nodes in cluster $CLUSTER_ID..." >&2
+
+    # Loop through test nodes (1..N)
+    success_count=0
+    fail_count=0
+
+    for node_num in $(seq 1 "$num_test_nodes"); do
+        node_ip=$(get_node_ip "$node_num")
+
+        if [ -z "$node_ip" ]; then
+            echo "  Warning: No IP for node $node_num, skipping" >&2
+            ((fail_count++)) || true
+            continue
+        fi
+
+        # Build destination for this node
+        node_dest="${SSH_USER}@${node_ip}:${DST_PATH}"
+
+        echo "  → Node $node_num ($node_ip)..." >&2
+
+        if scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR \
+            -i "$SSH_KEY" "${SCP_ARGS[@]}" "$SRC_PATH" "$node_dest"; then
+            ((success_count++)) || true
+        else
+            echo "    Failed to copy to node $node_num" >&2
+            ((fail_count++)) || true
+        fi
+    done
+
+    echo "" >&2
+    echo "Copy complete: $success_count successful, $fail_count failed" >&2
+
+    # Exit with error if any copies failed
+    if [ "$fail_count" -gt 0 ]; then
+        exit 1
+    fi
+
+    exit 0
+fi
+
+# Handle single node copy
+# Build source path
+if [ "$SRC_NODE" != "local" ]; then
+    src_ip=$(get_node_ip "$SRC_NODE")
+    if [ -z "$src_ip" ]; then
+        echo "Error: No IP address found for node $SRC_NODE" >&2
+        exit 1
+    fi
+    SRC_FULL="${SSH_USER}@${src_ip}:${SRC_PATH}"
+else
+    SRC_FULL="$SRC_PATH"
+fi
+
+# Build destination path
+if [ "$DST_NODE" != "local" ]; then
+    dst_ip=$(get_node_ip "$DST_NODE")
+    if [ -z "$dst_ip" ]; then
+        echo "Error: No IP address found for node $DST_NODE" >&2
+        exit 1
+    fi
+    DST_FULL="${SSH_USER}@${dst_ip}:${DST_PATH}"
+else
+    DST_FULL="$DST_PATH"
+fi
+
+# Determine which node for logging
+if [ "$SRC_NODE" != "local" ]; then
+    LOG_NODE="$SRC_NODE"
+    LOG_IP="$src_ip"
+else
+    LOG_NODE="$DST_NODE"
+    LOG_IP="$dst_ip"
+fi
+
+# SCP to/from the node
+echo "Copying via node $LOG_NODE ($LOG_IP) in cluster $CLUSTER_ID..." >&2
+exec scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR \
+    -i "$SSH_KEY" "${SCP_ARGS[@]}" "$SRC_FULL" "$DST_FULL"

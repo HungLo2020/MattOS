@@ -1,0 +1,28 @@
+# Known test failures
+#
+# Tests listed here will use KNOWN_ prefix instead of FAILED_ for
+# result log files and debug directories when they fail.
+#
+# Format:
+#   <test_name>  [<program><op><version>]  [# comment]
+#
+# test_name    basename without path or .sh extension
+# program      kernel, lvm, sanlock, dlm, mdadm
+# op           < (bug present in versions less than this)
+# version      dotted version string, e.g. 6.12 or 3.9.1
+#
+# No version condition = unconditional known failure.
+# Lines starting with # are comments.  Empty lines are ignored.
+#
+# Examples:
+#   shared-vg-raid-repair       kernel<6.12    # md-raid flush deadlock
+#   shared-vg-shared-concurrent sanlock<3.9.1  # race in lock renewal
+#   shared-vg-thin-ops                         # thin pool reporting bug
+
+shared-vg-adopt                lvm<2.03.42   # lvmlockd adopt failure when gl not found
+shared-vg-cache-writecache     lvm<2.03.40   # shared activation of writecache lv allowed
+shared-vg-lock-recovery-pr     lvm<2.03.42   # lvmpersist stale key registration after reserve failure
+shared-vg-lvextend-pools       lvm<2.03.40   # COW snapshot origin LV not locked
+shared-vg-snapshot-cow-parent  lvm<2.03.41   # snapshot merge not requiring exclusive origin lock
+
+local-vg-boot-activation  mdadm<4.4  # buffer overflow in mdadm --create

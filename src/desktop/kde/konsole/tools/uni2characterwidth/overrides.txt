@@ -1,0 +1,6 @@
+000AD        ; 1    # (­) Soft Hyphen (originally 0)
+04DC0..04DFF ; 2    # YIJING hexagrams
+01160..011FF ; 0    # (ᅟᅠ..ᅟᅠᇿ) Hangul Jamo Jungseong and Jongseong (originally 1)
+0D7B0..0D7C6 ; 0    # (ᅟힰ..ᅟퟆ) Hangul Jamo Jungseong (complex vowels) for Old Korean (originally 1)
+0D7CB..0D7FB ; 0    # (ᅟᅠퟋ..ᅟᅠퟻ) Hangul Jamo Jongseong (trailing consonants) for Old Korean (originally 1)
+1F1E6..1F1FF ; 2    # (🇦..🇿) Regional indicators/flag codes (originally 1)

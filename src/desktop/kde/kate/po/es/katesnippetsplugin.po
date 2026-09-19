@@ -1,0 +1,385 @@
+# Spanish translations for katesnippetsplugin.po package.
+# Copyright (C) 2013-2025 This file is copyright:
+# This file is distributed under the same license as the kate package.
+#
+# SPDX-FileCopyrightText: 2013, 2014, 2016, 2020, 2024, 2025 Eloy Cuadra <ecuadra@eloihr.net>
+# SPDX-FileCopyrightText: 2014, 2015 Rocio Gallego <traducciones@rociogallego.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: katesnippetsplugin\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-07-04 00:47+0000\n"
+"PO-Revision-Date: 2025-06-11 15:59+0100\n"
+"Last-Translator: Eloy Cuadra <ecuadra@eloihr.net>\n"
+"Language-Team: Spanish <kde-l10n-es@kde.org>\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 25.04.1\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Eloy Cuadra,Rocío Gallego,Cristina Yenyxe González García"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr ""
+"ecuadra@eloihr.net,traducciones@rociogallego.com,the.blue.valkyrie@gmail.com"
+
+#: editrepository.cpp:80 editrepository.cpp:125
+#, kde-format
+msgid "Edit Snippet Repository %1"
+msgstr "Editar el repositorio de fragmentos de código %1"
+
+#: editrepository.cpp:82
+#, kde-format
+msgid "Create New Snippet Repository"
+msgstr "Crear nuevo repositorio de fragmentos de código"
+
+#: editrepository.cpp:141
+#, kde-format
+msgid "<i>leave empty for general purpose snippets</i>"
+msgstr "<i>dejar vacío para fragmentos de código de propósito general</i>"
+
+#. i18n: ectx: property (text), widget (QLabel, repoNameLabel)
+#. i18n: ectx: property (text), widget (QLabel, snippetName)
+#: editrepository.ui:29 editsnippet.ui:37
+#, kde-format
+msgid "Name:"
+msgstr "Nombre:"
+
+#. i18n: ectx: property (text), widget (QLabel, repoNamespaceLabel)
+#: editrepository.ui:36
+#, kde-format
+msgid "Namespace:"
+msgstr "Espacio de nombres:"
+
+#. i18n: ectx: property (text), widget (QLabel, repoLicenseLabel)
+#: editrepository.ui:43
+#, kde-format
+msgid "&License:"
+msgstr "&Licencia:"
+
+#. i18n: ectx: property (text), widget (QLabel, repoAuthorsLabel)
+#: editrepository.ui:56
+#, kde-format
+msgid "&Authors:"
+msgstr "&Autores:"
+
+#. i18n: ectx: property (text), widget (QLabel, repoFileTypesLabel)
+#: editrepository.ui:69
+#, kde-format
+msgid "&File types:"
+msgstr "&Tipos de archivos:"
+
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, repoNameEdit)
+#: editrepository.ui:96
+#, kde-format
+msgid "A short name for the repository"
+msgstr "Un nombre corto para el repositorio"
+
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, repoNamespaceEdit)
+#: editrepository.ui:103
+#, kde-format
+msgid "Prefix to show in code completion"
+msgstr "Prefijo a mostrar en la completación de código"
+
+#: editsnippet.cpp:73
+#, kde-format
+msgid ""
+"Text to insert into the document (see the <a href=\"help:/kate/kate-"
+"application-plugin-snippets.html#snippet-input-template\">handbook</a> for "
+"special fields)."
+msgstr ""
+"Texto que se insertará en el documento (consulte el <a href=\"help:/kate/"
+"kate-application-plugin-snippets.html#snippet-input-template\">manual</a> "
+"para más información sobre los campos especiales)."
+
+#: editsnippet.cpp:79
+#, kde-format
+msgid ""
+"JavaScript code to evaluate (see the <a href=\"help:/kate/kate-application-"
+"plugin-snippets.html#snippet-input-script\">handbook</a> for details)."
+msgstr ""
+"Código JavaScript que se evaluará (consulte el <a href=\"help:/kate/kate-"
+"application-plugin-snippets.html#snippet-input-script\">manual</a> para más "
+"detalles)."
+
+#: editsnippet.cpp:86
+#, kde-format
+msgid "Text template"
+msgstr "Plantilla de texto"
+
+#: editsnippet.cpp:87
+#, kde-format
+msgid "Script"
+msgstr "Script"
+
+#: editsnippet.cpp:99
+#, kde-format
+msgid ""
+"JavaScript functions shared between all snippets in this repository (see the "
+"<a href=\"help:/kate/kate-application-plugin-snippets.html#snippet-input-"
+"library\">handbook</a>)."
+msgstr ""
+"Funciones JavaScript compartidas por todos los fragmentos de código de este "
+"repositorio (consulte el <a href=\"help:/kate/kate-application-plugin-"
+"snippets.html#snippet-input-library\">manual</a>)."
+
+#: editsnippet.cpp:103
+#, kde-format
+msgid ""
+"Optional description to show in tooltips. You may use basic HTML formatting."
+msgstr ""
+"Descripción opcional que se muestra en las ayudas emergentes. Se puede usar "
+"formato HTML básico."
+
+#: editsnippet.cpp:125 editsnippet.cpp:218
+#, kde-format
+msgid "Edit Snippet %1 in %2"
+msgstr "Editar fragmento de código %1 en %2"
+
+#: editsnippet.cpp:138
+#, kde-format
+msgid "Create New Snippet in Repository %1"
+msgstr "Crear nuevo fragmento de código en el repositorio %1"
+
+#: editsnippet.cpp:188
+#, kde-format
+msgid "Snippet names with spaces may not work well in completions"
+msgstr ""
+"Es posible que los nombres de fragmentos de código con espacios no funcionen "
+"correctamente en terminaciones"
+
+#: editsnippet.cpp:230
+#, kde-format
+msgid ""
+"The snippet contains unsaved changes. Do you want to discard all changes?"
+msgstr ""
+"El fragmento de código contiene cambios sin guardar. ¿Desea descartar todos "
+"los cambios?"
+
+#: editsnippet.cpp:231
+#, kde-format
+msgid "Warning - Unsaved Changes"
+msgstr "Advertencia: cambios sin guardar"
+
+#: editsnippet.cpp:233
+#, kde-format
+msgid "Continue editing"
+msgstr "Continuar la edición"
+
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, snippetNameEdit)
+#: editsnippet.ui:44
+#, kde-format
+msgid "Name to be shown in the completion list (required)"
+msgstr "Nombre que se mostrará en la lista de completación (requerido)"
+
+#. i18n: ectx: property (text), widget (QLabel, modeComboBoxLabel)
+#: editsnippet.ui:55
+#, kde-format
+msgid "Snippet Mode:"
+msgstr "Modo de fragmentos de código:"
+
+#. i18n: ectx: property (text), widget (QLabel, snippetShortcutLabel)
+#: editsnippet.ui:78
+#, kde-format
+msgid "Keyboard shortcut:"
+msgstr "Atajo de teclado:"
+
+#. i18n: ectx: attribute (title), widget (QWidget, snippetTab)
+#: editsnippet.ui:100
+#, kde-format
+msgid "&Snippet"
+msgstr "&Fragmento de código"
+
+#. i18n: ectx: attribute (title), widget (QWidget, scriptTab)
+#: editsnippet.ui:117
+#, kde-format
+msgid "S&cript Library"
+msgstr "Biblioteca de scripts"
+
+#. i18n: ectx: attribute (title), widget (QWidget, descriptionTab)
+#: editsnippet.ui:131
+#, kde-format
+msgid "Description"
+msgstr "Descripción"
+
+#. i18n: ectx: property (text), widget (QPushButton, dotest_button)
+#: editsnippet.ui:151
+#, kde-format
+msgid "Test this snippet"
+msgstr "Probar este fragmento de código"
+
+#: katesnippetglobal.cpp:101
+#, kde-format
+msgctxt "Autogenerated repository name for a programming language"
+msgid "%1 snippets"
+msgstr "%1 fragmentos de código"
+
+#: katesnippets.cpp:42 katesnippets.cpp:50 snippetcompletionmodel.cpp:43
+#: snippetview.cpp:76 snippetview.cpp:202
+#, kde-format
+msgid "Snippets"
+msgstr "Fragmentos de código"
+
+#: katesnippets.cpp:61
+#, kde-format
+msgid "Create Snippet"
+msgstr "Crear fragmento de código"
+
+#: snippet.cpp:22
+#, kde-format
+msgid "<empty snippet>"
+msgstr "<fragmento de código vacío>"
+
+#: snippet.cpp:91
+#, kde-format
+msgid "insert snippet %1"
+msgstr "insertar fragmento de código %1"
+
+#: snippet.cpp:108
+#, kde-format
+msgid ""
+"Kate needs to be compiled against KTExtEditor version 6.15.0 or higher, to "
+"use this type of snippet."
+msgstr ""
+"Kate debe estar compilado con la versión 6.15.0 o superior de KTextEditor "
+"para usar este tipo de fragmento de código."
+
+#: snippetrepository.cpp:45
+#, kde-format
+msgid "<empty repository>"
+msgstr "<repositorio vacío>"
+
+#: snippetrepository.cpp:232
+#, kde-format
+msgid ""
+"You have edited a snippet repository file not located in your personal "
+"directory; as such, a copy of the original file has been created within your "
+"personal data directory."
+msgstr ""
+"Ha editado un archivo de repositorio de fragmentos de código que no está "
+"situado en su directorio personal; por ello, se ha creado una copia del "
+"archivo original en su directorio personal de datos."
+
+#: snippetrepository.cpp:238
+#, kde-format
+msgid "Output file '%1' could not be opened for writing"
+msgstr "El archivo de salida «%1» no se puede abrir para escritura"
+
+#: snippetrepository.cpp:273
+#, kde-format
+msgid "Cannot open snippet repository %1."
+msgstr "No se puede abrir el repositorio de fragmentos de código %1."
+
+#: snippetrepository.cpp:280
+#, kde-format
+msgid ""
+"<qt>The error <b>%4</b><br /> has been detected in the file %1 at %2/%3</qt>"
+msgstr ""
+"<qt>Se ha detectado el error <b>%4</b><br /> en el archivo %1 en %2%3</qt>"
+
+#: snippetrepository.cpp:291
+#, kde-format
+msgid "Invalid XML snippet file: %1"
+msgstr "Archivo XML de fragmentos de código no válido: %1"
+
+#: snippetrepository.cpp:360
+#, kde-format
+msgid ""
+"Repository is disabled, the contained snippets will not be shown during code-"
+"completion."
+msgstr ""
+"El repositorio está desactivado: los fragmentos de código que contiene no se "
+"mostrarán durante la completación de código."
+
+#: snippetrepository.cpp:363
+#, kde-format
+msgid "Applies to all filetypes"
+msgstr "Se aplica a todos los tipos de archivos"
+
+#: snippetrepository.cpp:365
+#, kde-format
+msgid "Applies to the following filetypes: %1"
+msgstr "Se aplica a los siguientes tipos de archivos: %1"
+
+#: snippetview.cpp:93
+#, kde-format
+msgid "Add Repository"
+msgstr "Añadir repositorio"
+
+#: snippetview.cpp:96
+#, kde-format
+msgid "Edit Repository"
+msgstr "Editar repositorio"
+
+#: snippetview.cpp:99
+#, kde-format
+msgid "Remove Repository"
+msgstr "Eliminar repositorio"
+
+#: snippetview.cpp:109
+#, kde-format
+msgid "Add Snippet"
+msgstr "Añadir fragmento de código"
+
+#: snippetview.cpp:112
+#, kde-format
+msgid "Edit Snippet"
+msgstr "Editar fragmento de código"
+
+#: snippetview.cpp:115
+#, kde-format
+msgid "Remove Snippet"
+msgstr "Eliminar fragmento de código"
+
+#: snippetview.cpp:121
+#, kde-format
+msgid "Get New Snippets"
+msgstr "Obtener nuevos fragmentos de código"
+
+#: snippetview.cpp:210
+#, kde-format
+msgid "Snippet: %1"
+msgstr "Fragmento de código: %1"
+
+#: snippetview.cpp:218
+#, kde-format
+msgid "Repository: %1"
+msgstr "Repositorio: %1"
+
+#: snippetview.cpp:283
+#, kde-format
+msgid "Do you really want to delete the snippet \"%1\"?"
+msgstr "¿Realmente desea borrar el fragmento de código «%1»?"
+
+#: snippetview.cpp:327
+#, kde-format
+msgid ""
+"Do you really want to delete the repository \"%1\" with all its snippets?"
+msgstr ""
+"¿Realmente desea borrar el repositorio «%1» con todos sus fragmentos de "
+"código?"
+
+#. i18n: ectx: property (toolTip), widget (KLineEdit, filterText)
+#: snippetview.ui:35
+#, kde-format
+msgid "Define filter here"
+msgstr "Defina un filtro aquí"
+
+#. i18n: ectx: property (placeholderText), widget (KLineEdit, filterText)
+#: snippetview.ui:38
+#, kde-format
+msgid "Filter..."
+msgstr "Filtro…"
+
+#. i18n: ectx: Menu (tools)
+#: ui.rc:6
+#, kde-format
+msgid "&Tools"
+msgstr "&Herramientas"

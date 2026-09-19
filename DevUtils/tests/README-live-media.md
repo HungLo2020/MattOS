@@ -24,7 +24,7 @@ writer, not by copying its files into an existing filesystem. Double-check the
 destination model/serial/capacity first; raw writing destroys its existing data.
 Compare the written image bytes with the ISO, safely eject, and select the
 USB's UEFI entry with Secure Boot disabled (these are not Secure Boot-signed
-release images). Choose Start MattOS Live. Test keyboard/mouse, the COSMIC
+release images). Choose Start MattOS Live. Test keyboard/mouse, the Plasma
 desktop, wired/Wi-Fi networking and installer disk discovery before installing.
 
 The ISO9660 volume label is `MATTOS_LIVE`. Early userspace probes enumerated
@@ -62,7 +62,7 @@ findmnt / /run/mattos/medium
 sudo dmesg
 systemctl --failed --no-pager
 systemctl status systemd-udevd NetworkManager display-manager --no-pager
-pgrep -a cosmic
+pgrep -a kwin_wayland; pgrep -a plasmashell
 ip address
 journalctl -b --no-pager
 ```
@@ -74,7 +74,7 @@ wireless firmware, or firmware implementation works.
 ## Graphics-start recovery regression
 
 After building the image, run `python3 DevUtils/tests/validate_graphics_recovery.py`.
-It starts one disposable USB-topology VM, proves a responsive COSMIC output,
+It starts one disposable USB-topology VM, proves a responsive Plasma session,
 stops that guest's compositor, and exercises the actual 120-second watchdog.
 It requires preserved failure logs, active tty1, and a QMP-typed shell command
 acknowledged over serial, then shuts down. Evidence is in
@@ -84,6 +84,6 @@ the ISO, installed-test disk, host services, or GPU settings.
 The **MattOS AMD graphics diagnostics (CLI)** boot entry enables extra DRM and
 AMDGPU logging without disabling acceleration. Live boots save root-readable
 reports in `/run/mattos-graphics/`; copy that directory with sudo to writable
-external storage before rebooting. See the packaged COSMIC integration README
+external storage before rebooting. See the packaged Plasma integration files
 for capture/recovery semantics. A successful output-management round trip does
 not prove that a physical monitor is displaying frames correctly.

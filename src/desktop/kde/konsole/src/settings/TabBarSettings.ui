@@ -1,0 +1,894 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>TabBarSettings</class>
+ <widget class="QWidget" name="TabBarSettings">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>507</width>
+    <height>618</height>
+   </rect>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QTabWidget" name="tabs">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <property name="documentMode">
+      <bool>true</bool>
+     </property>
+     <widget class="QWidget" name="appearanceTab">
+      <attribute name="title">
+       <string comment="@title:tab Tab bar settings">Appearance</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <item>
+        <layout class="QGridLayout" name="appearanceTabLayout" columnstretch="0,0,1">
+         <property name="spacing">
+          <number>6</number>
+         </property>
+         <item row="0" column="0">
+          <widget class="QLabel" name="showTabBarLabel">
+           <property name="text">
+            <string>Show:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1" colspan="2">
+          <widget class="QRadioButton" name="ShowTabBarWhenNeeded">
+           <property name="text">
+            <string>When needed</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">kcfg_TabBarVisibility</string>
+           </attribute>
+          </widget>
+         </item>
+         <item row="1" column="1" colspan="2">
+          <widget class="QRadioButton" name="AlwaysShowTabBar">
+           <property name="text">
+            <string>Alwa&amp;ys</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">kcfg_TabBarVisibility</string>
+           </attribute>
+          </widget>
+         </item>
+         <item row="2" column="1" colspan="2">
+          <widget class="QRadioButton" name="AlwaysHideTabBar">
+           <property name="text">
+            <string>&amp;Never</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">kcfg_TabBarVisibility</string>
+           </attribute>
+          </widget>
+         </item>
+         <item row="3" column="1" colspan="2">
+          <spacer>
+           <property name="orientation">
+            <enum>Qt::Orientation::Vertical</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Policy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>16</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="positionLabel">
+           <property name="text">
+            <string>Position:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1" colspan="2">
+          <widget class="QRadioButton" name="Top">
+           <property name="text">
+            <string>Above terminal area</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">kcfg_TabBarPosition</string>
+           </attribute>
+          </widget>
+         </item>
+         <item row="5" column="1" colspan="2">
+          <widget class="QRadioButton" name="Bottom">
+           <property name="text">
+            <string>Be&amp;low terminal area</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">kcfg_TabBarPosition</string>
+           </attribute>
+          </widget>
+         </item>
+         <item row="6" column="1" colspan="2">
+          <widget class="QRadioButton" name="Left">
+           <property name="text">
+            <string>To the left of terminal area</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">kcfg_TabBarPosition</string>
+           </attribute>
+          </widget>
+         </item>
+         <item row="7" column="1" colspan="2">
+          <widget class="QRadioButton" name="Right">
+           <property name="text">
+            <string>To the &amp;right of terminal area</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">kcfg_TabBarPosition</string>
+           </attribute>
+          </widget>
+         </item>
+         <item row="8" column="1" colspan="2">
+          <spacer>
+           <property name="orientation">
+            <enum>Qt::Orientation::Vertical</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Policy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>16</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="9" column="0" alignment="Qt::AlignmentFlag::AlignRight">
+          <widget class="QLabel" name="showCloseTabButtonLabel">
+           <property name="text">
+            <string>Show Close Tab button:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="9" column="1" colspan="2">
+          <widget class="QRadioButton" name="OnEachTab">
+           <property name="text">
+            <string>On ea&amp;ch tab</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">kcfg_CloseTabButton</string>
+           </attribute>
+          </widget>
+         </item>
+         <item row="10" column="1" colspan="2">
+          <widget class="QRadioButton" name="OnTabBar">
+           <property name="text">
+            <string>On &amp;the tab bar</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">kcfg_CloseTabButton</string>
+           </attribute>
+          </widget>
+         </item>
+         <item row="11" column="1" colspan="2">
+          <widget class="QRadioButton" name="None">
+           <property name="text">
+            <string comment="Do not show a close button">None</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">kcfg_CloseTabButton</string>
+           </attribute>
+          </widget>
+         </item>
+         <item row="12" column="1" colspan="2">
+          <spacer>
+           <property name="orientation">
+            <enum>Qt::Orientation::Vertical</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Policy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>16</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="13" column="0">
+          <widget class="QLabel" name="showSearchTabsButtonLabel">
+           <property name="text">
+            <string>Show Search Tabs button:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="13" column="1" colspan="2">
+          <widget class="QRadioButton" name="ShowSearchTabsButton">
+           <property name="text">
+            <string>Always</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">kcfg_SearchTabsButton</string>
+           </attribute>
+          </widget>
+         </item>
+         <item row="14" column="1" colspan="2">
+          <widget class="QRadioButton" name="HideSearchTabsButton">
+           <property name="text">
+            <string>Never</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">kcfg_SearchTabsButton</string>
+           </attribute>
+          </widget>
+         </item>
+         <item row="15" column="1" colspan="2">
+          <spacer>
+           <property name="orientation">
+            <enum>Qt::Orientation::Vertical</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Policy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>16</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="16" column="0">
+          <widget class="QLabel" name="miscellaneousAppearanceLabel">
+           <property name="text">
+            <string comment="@item:intext Miscellaneous Options">Miscellaneous:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="16" column="1" colspan="2">
+          <widget class="QCheckBox" name="kcfg_NewTabButton">
+           <property name="text">
+            <string>Show 'New Tab' button</string>
+           </property>
+          </widget>
+         </item>
+         <item row="17" column="1" colspan="2">
+          <widget class="QCheckBox" name="kcfg_ExpandTabWidth">
+           <property name="text">
+            <string>Expand individual tab widths to full window</string>
+           </property>
+          </widget>
+         </item>
+         <item row="18" column="1" colspan="2">
+          <widget class="QCheckBox" name="kcfg_TabBarUseUserStyleSheet">
+           <property name="text">
+            <string>Use user-defined stylesheet:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="19" column="1">
+          <spacer>
+           <property name="orientation">
+            <enum>Qt::Orientation::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Policy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>16</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="19" column="2">
+          <widget class="KUrlRequester" name="kcfg_TabBarUserStyleSheetFile">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="placeholderText">
+            <string comment="@item:intext Optional file path is empty">(none)</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <spacer>
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="behaviorTab">
+      <attribute name="title">
+       <string comment="@title:tab Tab bar settings">Behavior</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <item>
+        <layout class="QGridLayout" name="behaviorTabLayout" columnstretch="0,0,1">
+         <property name="spacing">
+          <number>6</number>
+         </property>
+         <item row="0" column="0">
+          <widget class="QLabel" name="putNewTabsLabel">
+           <property name="text">
+            <string>Put new tabs:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1" colspan="2">
+          <widget class="QRadioButton" name="PutNewTabAtTheEnd">
+           <property name="text">
+            <string>At &amp;the end</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">kcfg_NewTabBehavior</string>
+           </attribute>
+          </widget>
+         </item>
+         <item row="1" column="1" colspan="2">
+          <widget class="QRadioButton" name="PutNewTabAfterCurrentTab">
+           <property name="text">
+            <string>After current &amp;tab</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">kcfg_NewTabBehavior</string>
+           </attribute>
+          </widget>
+         </item>
+         <item row="2" column="1" colspan="2">
+          <spacer>
+           <property name="orientation">
+            <enum>Qt::Orientation::Vertical</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Policy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>16</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="miscellaneousBehaviorLabel">
+           <property name="text">
+            <string comment="@item:intext Miscellaneous Options">Miscellaneous:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1" colspan="2">
+          <widget class="QCheckBox" name="kcfg_CloseTabOnMiddleMouseButton">
+           <property name="text">
+            <string>Close tab on middle-click</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <spacer>
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="splitTab">
+      <attribute name="title">
+       <string>Splits</string>
+      </attribute>
+      <layout class="QFormLayout" name="formLayout">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Show Header:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QRadioButton" name="ShowSplitHeaderWhenNeeded">
+         <property name="text">
+          <string comment="@option:radio When needed show the split header">When needed</string>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">kcfg_SplitViewVisibility</string>
+         </attribute>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QRadioButton" name="AlwaysHideSplitHeader">
+         <property name="text">
+          <string comment="@option:radio Never show the split header">Never</string>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">kcfg_SplitViewVisibility</string>
+         </attribute>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Policy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>16</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Drag Handle Size:</string>
+         </property>
+         <property name="margin">
+          <number>0</number>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QRadioButton" name="SplitDragHandleSmall">
+         <property name="text">
+          <string comment="@option:radio Small height/width of splitter widget">Small</string>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">kcfg_SplitDragHandleSize</string>
+         </attribute>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QRadioButton" name="SplitDragHandleMedium">
+         <property name="text">
+          <string comment="@option:radio Medium height/width of splitter widget">Medium</string>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">kcfg_SplitDragHandleSize</string>
+         </attribute>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QRadioButton" name="SplitDragHandleLarge">
+         <property name="text">
+          <string comment="@option:radio Large height/width of splitter widget">Large</string>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">kcfg_SplitDragHandleSize</string>
+         </attribute>
+        </widget>
+       </item>
+       <item row="7" column="1">
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="1" column="1">
+        <widget class="QRadioButton" name="AlwaysShowSplitHeader">
+         <property name="text">
+          <string comment="@option:radio Always show the split header">Always</string>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">kcfg_SplitViewVisibility</string>
+         </attribute>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>KUrlRequester</class>
+   <extends>QWidget</extends>
+   <header>kurlrequester.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <tabstops>
+  <tabstop>tabs</tabstop>
+  <tabstop>ShowTabBarWhenNeeded</tabstop>
+  <tabstop>AlwaysShowTabBar</tabstop>
+  <tabstop>AlwaysHideTabBar</tabstop>
+  <tabstop>Top</tabstop>
+  <tabstop>Bottom</tabstop>
+  <tabstop>Left</tabstop>
+  <tabstop>Right</tabstop>
+  <tabstop>OnEachTab</tabstop>
+  <tabstop>OnTabBar</tabstop>
+  <tabstop>None</tabstop>
+  <tabstop>ShowSearchTabsButton</tabstop>
+  <tabstop>HideSearchTabsButton</tabstop>
+  <tabstop>kcfg_NewTabButton</tabstop>
+  <tabstop>kcfg_ExpandTabWidth</tabstop>
+  <tabstop>kcfg_TabBarUseUserStyleSheet</tabstop>
+  <tabstop>kcfg_TabBarUserStyleSheetFile</tabstop>
+  <tabstop>kcfg_CloseTabOnMiddleMouseButton</tabstop>
+  <tabstop>PutNewTabAtTheEnd</tabstop>
+  <tabstop>PutNewTabAfterCurrentTab</tabstop>
+  <tabstop>ShowSplitHeaderWhenNeeded</tabstop>
+  <tabstop>AlwaysHideSplitHeader</tabstop>
+  <tabstop>SplitDragHandleSmall</tabstop>
+  <tabstop>SplitDragHandleMedium</tabstop>
+  <tabstop>SplitDragHandleLarge</tabstop>
+  <tabstop>AlwaysShowSplitHeader</tabstop>
+ </tabstops>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>AlwaysHideTabBar</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>Bottom</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>AlwaysHideTabBar</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>kcfg_TabBarUseUserStyleSheet</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>AlwaysHideTabBar</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>miscellaneousAppearanceLabel</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>AlwaysHideTabBar</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>kcfg_ExpandTabWidth</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>AlwaysHideTabBar</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>OnEachTab</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>AlwaysHideTabBar</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>positionLabel</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>kcfg_TabBarUseUserStyleSheet</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>kcfg_TabBarUserStyleSheetFile</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>AlwaysHideTabBar</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>Top</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>AlwaysHideTabBar</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>Left</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>AlwaysHideTabBar</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>Right</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>AlwaysHideTabBar</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>showCloseTabButtonLabel</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>AlwaysHideTabBar</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>OnTabBar</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>AlwaysHideTabBar</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>None</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>AlwaysHideTabBar</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>kcfg_CloseTabOnMiddleMouseButton</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>AlwaysHideTabBar</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>miscellaneousBehaviorLabel</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>AlwaysHideTabBar</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>showSearchTabsButtonLabel</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>89</x>
+     <y>429</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>AlwaysHideTabBar</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>ShowSearchTabsButton</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>AlwaysHideTabBar</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>HideSearchTabsButton</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <buttongroups>
+  <buttongroup name="kcfg_SplitViewVisibility"/>
+  <buttongroup name="kcfg_SearchTabsButton"/>
+  <buttongroup name="kcfg_CloseTabButton"/>
+  <buttongroup name="kcfg_NewTabBehavior"/>
+  <buttongroup name="kcfg_SplitDragHandleSize"/>
+  <buttongroup name="kcfg_TabBarVisibility"/>
+  <buttongroup name="kcfg_TabBarPosition"/>
+ </buttongroups>
+</ui>

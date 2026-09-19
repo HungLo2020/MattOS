@@ -1,0 +1,388 @@
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+# Safa Alfulaij <safa1996alfulaij@gmail.com>, 2014, 2016, 2017.
+# SPDX-FileCopyrightText: 2021, 2022, 2023, 2024, 2025 Zayed Al-Saidi <zayed.alsaidi@gmail.com>
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-04-25 02:45+0000\n"
+"PO-Revision-Date: 2025-11-12 18:51+0400\n"
+"Last-Translator: Zayed Al-Saidi <zayed.alsaidi@gmail.com>\n"
+"Language-Team: ar\n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
+"&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
+"X-Generator: Lokalize 23.08.5\n"
+
+#: ConnectionItem.qml:62
+#, kde-format
+msgid "Connect"
+msgstr "اتّصل"
+
+#: ConnectionItem.qml:62
+#, kde-format
+msgid "Disconnect"
+msgstr "اقطع الاتصال"
+
+#: ConnectionItem.qml:90
+#, kde-format
+msgctxt "Share Wi-Fi network's password or QR code"
+msgid "Share"
+msgstr "شارك"
+
+#: ConnectionItem.qml:96
+#, kde-format
+msgid "Configure…"
+msgstr "اضبط…"
+
+#: ConnectionItem.qml:136
+#, kde-format
+msgid "Speed"
+msgstr "السرعة"
+
+#: ConnectionItem.qml:141
+#, kde-format
+msgid "Details"
+msgstr "التّفاصيل"
+
+#: ConnectionItem.qml:188
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Current download speed is %1 kibibytes per second; current upload speed is "
+"%2 kibibytes per second"
+msgstr ""
+"سرعة التحميل الحالية %1 كيلوبايت في الثانية، سرعة الرفع الحالية %2 كيلوبايت "
+"في الثانية، "
+
+#: ConnectionItem.qml:302
+#, kde-format
+msgctxt "Download and upload rates in some unit per second"
+msgid "↓ %1/s, ↑ %2/s"
+msgstr "↓%1/ث، ↑ %2/ث"
+
+#: ConnectionListPage.qml:33
+#, kde-format
+msgid "You need to log in to this network"
+msgstr "عليك أن تلج في هذه الشبكة"
+
+#: ConnectionListPage.qml:37
+#, kde-format
+msgctxt "@action:button"
+msgid "Log in"
+msgstr "لِج"
+
+#: ConnectionListPage.qml:118
+#, kde-format
+msgid "Airplane mode is enabled"
+msgstr "وضع الطائرة ممكن"
+
+#: ConnectionListPage.qml:122
+#, kde-format
+msgid "Wi-Fi and mobile data are deactivated"
+msgstr "شبكة واي فاي والبيانات الجوال معطلة"
+
+#: ConnectionListPage.qml:124
+#, kde-format
+msgid "Wi-Fi is deactivated"
+msgstr "شبكة واي فاي معطلة"
+
+#: ConnectionListPage.qml:127
+#, kde-format
+msgid "Looking for Wi-Fi networks"
+msgstr "يبحث عن شبكات واي فاي"
+
+#: ConnectionListPage.qml:130
+#, kde-format
+msgid "Mobile data is deactivated"
+msgstr "البيانات الجوال معطلة"
+
+#: ConnectionListPage.qml:133
+#, kde-format
+msgid "No matches"
+msgstr "لا يوجد تطابق"
+
+#: ConnectionListPage.qml:136
+#, kde-format
+msgid "No available connections"
+msgstr "لا تتوفر اتصالات"
+
+#: ConnectionListPage.qml:145
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn off airplane mode to search for networks"
+msgstr "أوقف تشغيل وضع الطيران للبحث عن الشبكات"
+
+#: ConnectionListPage.qml:149
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on Wi-Fi or mobile data to search for networks"
+msgstr "شغّل شبكة واي فاي أو بيانات الجوال للبحث عن الشبكات"
+
+#: ConnectionListPage.qml:151
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on Wi-Fi to search for networks"
+msgstr "شغّل شبكة واي فاي للبحث عن الشبكات"
+
+#: ConnectionListPage.qml:154
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on mobile data to search for networks"
+msgstr "شغّل بيانات الجوال للبحث عن الشبكات"
+
+#: DetailsText.qml:40
+#, kde-format
+msgid "Copy"
+msgstr "انسخ"
+
+#: main.qml:32
+#, kde-format
+msgid "Networks"
+msgstr "الشّبكات"
+
+#: main.qml:41
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Middle-click to turn off Airplane Mode"
+msgstr "انقر بالزر الأوسط تعطيل نمط الطيران"
+
+#: main.qml:43
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Middle-click to turn on Airplane Mode"
+msgstr "انقر بالزر الأوسط تفعيل نمط الطيران"
+
+#: main.qml:71 Toolbar.qml:74
+#, kde-format
+msgid "Enable Wi-Fi"
+msgstr "مكّن واي فاي"
+
+#: main.qml:82
+#, kde-format
+msgid "Enable Mobile Data"
+msgstr "مكّن بيانات الجوال"
+
+#: main.qml:94
+#, kde-format
+msgid "Enable Airplane Mode"
+msgstr "مكن وضع الطيران"
+
+#: main.qml:106
+#, kde-format
+msgid "Open Network Login Page…"
+msgstr "افتح صفحة ولوج الشبكة..."
+
+#: main.qml:116
+#, kde-format
+msgid "&Configure Network Connections…"
+msgstr "ا&ضبط اتّصالات الشّبكة..."
+
+#: PopupDialog.qml:51
+#, kde-format
+msgctxt "@action:button"
+msgid "Return to Network Connections"
+msgstr "ارجع إلى اتّصالات الشّبكة"
+
+#: ShareNetworkQrCodePage.qml:33
+#, kde-format
+msgid "Scan this QR code with another device to connect to the \"%1\" network."
+msgstr "امحُ رمز QR هذا ضوئيًا باستخدام جهاز آخر للاتصال بالشبكة \"%1\"."
+
+#: ShareNetworkQrCodePage.qml:108
+#, kde-format
+msgid "Wi-Fi password:"
+msgstr "كلمة سر واي-فاي:"
+
+#: Toolbar.qml:124
+#, kde-format
+msgid "Enable mobile data"
+msgstr "مكّن بيانات الجوال"
+
+#: Toolbar.qml:147
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Disable airplane mode<nl/><nl/>This will enable Wi-Fi and Bluetooth"
+msgstr "عطل وضع الطيران <nl/><nl/> هذا سيمكن الواي فاي و البلوتوث"
+
+#: Toolbar.qml:148
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Enable airplane mode<nl/><nl/>This will disable Wi-Fi and Bluetooth"
+msgstr "مكن وضع الطيران <nl/><nl/> هذا سيعطل الواي فاي و البلوتوث"
+
+#: Toolbar.qml:176
+#, kde-format
+msgid "Hotspot"
+msgstr "نقطة اتصال"
+
+#: Toolbar.qml:193
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot create a hotspot because Wi-Fi is disabled."
+msgstr "لا يمكن إنشاء نقطة اتصال لأن شبكة واي فاي معطلة."
+
+#: Toolbar.qml:195
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Cannot create a hotspot because all wireless radios are in use. Disconnect "
+"from the current Wi-Fi network or connect another wireless radio."
+msgstr ""
+"لا يمكن إنشاء نقطة اتصال لأن جميع أجهزة الراديو اللاسلكية في الاستخدام. افصل "
+"شبكة واي فاي الحالية أو صِل راديو لاسلكي آخر."
+
+#: Toolbar.qml:197
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Disable Hotspot"
+msgstr "عطّل نقطة الاتصال"
+
+#: Toolbar.qml:199
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Create Hotspot"
+msgstr "أنشئ نقطة اتصال"
+
+#: Toolbar.qml:227
+#, kde-format
+msgctxt "@action:button"
+msgid "Scan Wi-Fi QR Code"
+msgstr "امسح رمز الاستجابة السريع للواي فاي"
+
+#: Toolbar.qml:232
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Scan QR Code to connect to a Wi-Fi network"
+msgstr "امسح رمز الاستجابة السريعة للاتصال للاتصال بشبكة واي فاي"
+
+#: Toolbar.qml:234
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Install QRCA Barcode Scanner to scan for a QR Code that connects to a Wi-Fi "
+"network"
+msgstr ""
+"ثبّت ماسح الرمز QRCA لمسح رمز الاستجابة السريعة الذي يتصل بشبكة واي فاي."
+
+#: Toolbar.qml:253
+#, kde-format
+msgid "Configure network connections…"
+msgstr "اضبط اتّصالات الشّبكة..."
+
+#~ msgid "/s"
+#~ msgstr "/ث"
+
+#~ msgid "Upload"
+#~ msgstr "الرّفع"
+
+#~ msgid "Download"
+#~ msgstr "التّنزيل"
+
+#~ msgid "Show Network's QR Code"
+#~ msgstr "أظهر شفرة QR للشبكة"
+
+#~ msgid "Connected"
+#~ msgstr "متّصل"
+
+#~ msgid "Password…"
+#~ msgstr "كلمة المرور..."
+
+#~ msgctxt "@title:window"
+#~ msgid "QR Code for %1"
+#~ msgstr "شفرة كيو أر لـ%1"
+
+#~ msgctxt "@info:tooltip %1 is the name of a network connection"
+#~ msgid "Connect to %1"
+#~ msgstr "اتّصل بـ%1"
+
+#~ msgctxt "@info:tooltip %1 is the name of a network connection"
+#~ msgid "Disconnect from %1"
+#~ msgstr "اقطع الاتصال بـ%1"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is ADSL"
+#~ msgstr "نوع الاتصال اي دي اس ال"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Bluetooth"
+#~ msgstr "نوع الاتصال بلوتوث"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Bridge"
+#~ msgstr "نوع الاتصال جسر"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is CDMA"
+#~ msgstr "نوع الاتصال CDMA"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is GSM"
+#~ msgstr "نوع الاتصال جي اس ام"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Infiniband"
+#~ msgstr "نوع الاتصال Infiniband"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is OLPC Mesh"
+#~ msgstr "نوع الاتصال شبكة  OLPC"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is PPOPE"
+#~ msgstr "نوع الاتصال PPOPE"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is VLAN"
+#~ msgstr "نوع الاتصال VLAN"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is VPN"
+#~ msgstr "نوع الاتصال شبكة خاصة افتراضية"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Wimax"
+#~ msgstr "نوع الاتصال واي ماكس"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Wired"
+#~ msgstr "نوع الاتصال سلكي"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Wireless"
+#~ msgstr "نوع الاتصال لاسلكي"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Unknown"
+#~ msgstr "نوع الاتصال مجهول"
+
+#~ msgctxt "text field placeholder text"
+#~ msgid "Search…"
+#~ msgstr "ابحث..."
+
+#, fuzzy
+#~| msgid "Available connections"
+#~ msgctxt "button tooltip"
+#~ msgid "Search the connections"
+#~ msgstr "الاتصالات المتوفّرة"
+
+#, fuzzy
+#~| msgid ""
+#~| "Connected, <font color='%1'>⬇</font> %2/s, <font color='%3'>⬆</font> %4/s"
+#~ msgid ""
+#~ "Connected, <font color='%1'>⬇</font> %2/s, <font color='%3'>⬆</font> %4/s"
+#~ msgstr ""
+#~ "متّصل، <font color='%1'>⬇</font> %2/ثا، <font color='%3'>⬆</font> %4/ثا"
+
+#~ msgid "Available connections"
+#~ msgstr "الاتصالات المتوفّرة"
+
+#, fuzzy
+#~| msgid "Configure network connections..."
+#~ msgid "Show virtual connections"
+#~ msgstr "اضبط اتّصالات الشّبكة..."

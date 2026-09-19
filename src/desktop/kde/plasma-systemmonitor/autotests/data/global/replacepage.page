@@ -1,0 +1,68 @@
+# SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
+# SPDX-FileCopyrightText: 2025 Arjen Hiemstra <ahiemstra@heimr.nl>
+
+[Face-99321327401776][Appearance]
+chartFace=org.kde.ksysguard.linechart
+title=Test
+
+[Face-99321327401776][Sensors]
+highPrioritySensorIds=["cpu/all/usage"]
+
+[page]
+Title=Replace Page
+Title[ar]=استبدل الصفحة
+Title[bg]=Замяна на страницата
+Title[ca]=Pàgina de substitució
+Title[ca@valencia]=Pàgina de substitució
+Title[cs]=Nahradit stránku
+Title[de]=Seite ersetzen
+Title[es]=Sustituir página
+Title[eu]=Ordeztu orria
+Title[fi]=Korvaa sivu
+Title[fr]=Remplacer la page
+Title[gl]=Páxina de substitución
+Title[he]=החלפת עמוד
+Title[hu]=Oldal cseréje
+Title[ia]=Reimplacia Pagina
+Title[is]=Skipta út síðu
+Title[it]=Sostituisci pagina
+Title[ka]=გვერდის ჩანაცვლება
+Title[ko]=페이지 교체
+Title[lt]=Pakeisti puslapį
+Title[lv]=Aizvietot lapu
+Title[nl]=Pagina vervangen
+Title[pa]=ਸਫ਼ੇ ਨੂੰ ਬਦਲੋ
+Title[pl]=Zastąp stronę
+Title[pt_BR]=Substituir página
+Title[ro]=Înlocuiește pagina
+Title[ru]=Замена страницы
+Title[sk]=Replace Page
+Title[sl]=Zamenjaj stran
+Title[sv]=Ersätt sida
+Title[tr]=Sayfayı Değiştir
+Title[uk]=Замінити сторінку
+Title[zh_CN]=替换页面
+Title[zh_TW]=取代頁面
+actionsFace=
+icon=ksysguardd
+loadType=onstart
+margin=2
+version=1
+
+[page][row-0]
+Title=
+heightMode=balanced
+isTitle=false
+name=row-0
+
+[page][row-0][column-0]
+name=column-0
+noMargins=
+showBackground=true
+
+[page][row-0][column-0][section-0]
+face=Face-99321327401776
+isSeparator=false
+name=section-0
+
+

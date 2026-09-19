@@ -1,0 +1,13 @@
+# This is a simple ansible playbook for installing packages needed by the
+# libbytesize test suite.
+# You can do this by using 'make install-requires' or manually using
+# 'ansible-playbook -K -i "localhost," -c local install-test-dependencies.yml'
+# Currently only Fedora and Debian/Ubuntu are supported by this playbook.
+
+---
+- hosts: all
+  become: true
+
+  tasks:
+    - name: Include tasks from libbytesize-tasks.yml
+      ansible.builtin.include_tasks: libbytesize-tasks.yml

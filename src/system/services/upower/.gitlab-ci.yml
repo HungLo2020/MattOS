@@ -1,0 +1,301 @@
+include:
+  - project: 'freedesktop/ci-templates'
+    ref: 799270f0e582ec6bbf460680c9a4f8f0d2ce7517
+    file:
+      - '/templates/fedora.yml'
+      - '/templates/debian.yml'
+      - '/templates/ci-fairy.yml'
+
+variables:
+  FEDORA_VERSION: 44
+  DEBIAN_VERSION: trixie
+  # Opaque tag without meaning. Change whenever we want our images to be rebuilt
+  FDO_DISTRIBUTION_TAG: "2026-05-28.7"
+  FDO_UPSTREAM_REPO: "upower/$CI_PROJECT_NAME"
+  FDO_DISTRIBUTION_EXEC: curl https://gitlab.freedesktop.org/hadess/check-abi/-/raw/main/contrib/check-abi-fedora.sh | bash
+  FEDORA_DEPENDENCIES:
+    gtk-doc
+    meson
+    gettext-devel
+    gcc
+    redhat-rpm-config
+    gcc-c++
+    glibc-devel
+    systemd
+    sqlite-devel
+    gobject-introspection-devel
+    libgudev-devel
+    libimobiledevice-devel
+    glib2-devel
+    libplist-devel
+    umockdev
+    dbus-x11
+    polkit-devel
+    python3-gobject
+    python3-dbusmock
+    python3-pip
+    python3-packaging
+    git
+    clang
+    glibc-langpack-fr
+    umockdev-devel
+  # Needed for libgudev from git and for pre-commit
+  FEDORA_EXTRA_DEPENDENCIES:
+    git
+    glibc-langpack-fr
+    umockdev-devel
+    libatomic
+    pre-commit
+  DEBIAN_DEPENDENCIES:
+    autoconf
+    automake
+    autopoint
+    autotools-dev
+    binutils
+    binutils-common
+    binutils-x86-64-linux-gnu
+    bsdextrautils
+    build-essential
+    bzip2
+    ca-certificates
+    cpp
+    cpp-14
+    cpp-14-x86-64-linux-gnu
+    cpp-x86-64-linux-gnu
+    curl
+    debhelper
+    git
+    g++
+    g++-14
+    g++-14-x86-64-linux-gnu
+    g++-x86-64-linux-gnu
+    gcc
+    gcc-14
+    gcc-14-x86-64-linux-gnu
+    gcc-x86-64-linux-gnu
+    libgirepository-1.0-dev
+    libimobiledevice-dev
+    m4
+    make
+    meson
+    systemd-dev
+    gobject-introspection
+    python3-dbus
+    python3-packaging
+    python3-dbusmock
+    gir1.2-upowerglib-1.0
+    libpolkit-gobject-1-dev
+    xsltproc
+    gtk-doc-tools
+  # Needed for libgudev from git
+  DEBIAN_EXTRA_DEPENDENCIES:
+    git
+    umockdev
+    libgudev-1.0-dev
+    libumockdev-dev
+    libumockdev0
+    libsystemd-dev
+    systemd
+  MESON_BUILDDIR: 'build'
+  LAST_ABI_BREAK: '9058d45685d1c7c08d52fb64c393fed9eeed542b'
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_PIPELINE_SOURCE == 'push'
+    - if: $CI_PIPELINE_SOURCE == 'schedule'
+
+stages:
+  - container-prep
+  - pre-commit
+  - check-source
+  - build
+  - test
+  - deploy
+
+.fedora-defaults:
+  extends:
+    - .fdo.distribution-image@fedora
+  variables:
+    FDO_DISTRIBUTION_VERSION: $FEDORA_VERSION
+
+.debian-defaults:
+  extends:
+    - .fdo.distribution-image@debian
+  variables:
+    FDO_DISTRIBUTION_VERSION: $DEBIAN_VERSION
+
+container_fedora_build:
+  extends:
+    - .fedora-defaults
+    - .fdo.container-build@fedora
+  stage: container-prep
+  variables:
+    GIT_STRATEGY: none # no need to pull the whole tree for rebuilding the image
+    FDO_DISTRIBUTION_PACKAGES: $FEDORA_DEPENDENCIES $FEDORA_EXTRA_DEPENDENCIES
+
+container_debian_build:
+  extends:
+    - .debian-defaults
+    - .fdo.container-build@debian
+  stage: container-prep
+  variables:
+    GIT_STRATEGY: none # no need to pull the whole tree for rebuilding the image
+    FDO_DISTRIBUTION_PACKAGES: $DEBIAN_DEPENDENCIES $DEBIAN_EXTRA_DEPENDENCIES
+
+verify_signoff:
+  extends:
+    - .fdo.ci-fairy
+  stage: pre-commit
+  allow_failure: true
+  script:
+    - ci-fairy -vv check-commits --signed-off-by --textwidth 100 --junit-xml=results.xml
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  variables:
+    GIT_DEPTH: 100
+  artifacts:
+    reports:
+      junit: results.xml
+
+pre_commit:
+  extends:
+    - .fedora-defaults
+  stage: pre-commit
+  script:
+    - pre-commit run --all-files
+  needs:
+    - container_fedora_build
+
+test_nut_hwdb:
+  extends:
+    - .fedora-defaults
+  stage: check-source
+  allow_failure: true
+  script:
+    - curl https://raw.githubusercontent.com/networkupstools/nut/master/scripts/upower/95-upower-hid.hwdb >rules/95-upower-hid.hwdb
+    - git diff --exit-code
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  needs:
+    - container_fedora_build
+
+# We should really cache this between jobs but a quick clone shouldn't hurt us
+.install_libgudev_from_git: &install_libgudev_from_git
+  - git -c http.sslVerify=false clone --depth=1 https://gitlab.gnome.org/GNOME/libgudev.git libgudev-"$CI_JOB_ID"
+  - cd libgudev-"$CI_JOB_ID"
+  - meson "$MESON_BUILDDIR" -Dprefix=/usr
+  - ninja -C "$MESON_BUILDDIR" install
+  - cd ..
+
+.build:
+  stage: build
+  before_script:
+    - *install_libgudev_from_git
+  script:
+    - .ci/meson-build.sh --skip-test
+  # avoid recompiling in test stage
+  artifacts:
+    name: untracked
+    paths:
+     - "${CI_PROJECT_DIR}"
+    expire_in: 3h30min
+  variables:
+    MESON_ARGS: '-Dintrospection=enabled -Dman=true -Dgtk-doc=true -Didevice=enabled'
+  needs:
+    - container_fedora_build
+
+build_fedora:
+  extends:
+    - .fedora-defaults
+    - .build
+  needs:
+    - container_fedora_build
+
+build_debian:
+  extends:
+    - .debian-defaults
+    - .build
+  needs:
+    - container_debian_build
+
+# Compile test the other backends (they don't have extra dependencies currently)
+build_backend:
+  parallel:
+    matrix:
+      - BACKEND: [dummy, freebsd, openbsd]
+  extends:
+    - .fedora-defaults
+  stage: build
+  script:
+    - .ci/meson-build.sh --skip-test
+  variables:
+    CFLAGS: '-DUPOWER_CI_DISABLE_PLATFORM_CODE=1'
+    MESON_ARGS: '-Dos_backend=$BACKEND'
+
+.test:
+  stage: test
+  before_script:
+    - git clone https://github.com/zatrazz/glibc-tools.git
+    - cd glibc-tools
+    - ./configure
+    - make install
+    - cd ..
+  script:
+    - catchsegv meson test -C "$MESON_BUILDDIR" --print-errorlogs --no-stdsplit
+    - .ci/fail_skipped_tests.py "$MESON_BUILDDIR"/meson-logs/testlog.junit.xml
+  artifacts:
+    when: always
+    expire_in: 1 week
+    paths:
+      - "${CI_PROJECT_DIR}/$MESON_BUILDDIR/meson-logs/"
+
+test_fedora:
+  extends:
+    - .fedora-defaults
+    - .test
+  needs:
+    - build_fedora
+
+test_debian:
+  extends:
+    - .debian-defaults
+    - .test
+  needs:
+    - build_debian
+
+check_abi:
+  extends:
+    - .fedora-defaults
+  stage: test
+  before_script:
+    - *install_libgudev_from_git
+  script:
+    - check-abi --suppr .ci/upower.suppr --parameters="-Dman=false -Dgtk-doc=false -Didevice=enabled"  ${LAST_ABI_BREAK} $(git rev-parse HEAD)
+  needs:
+    - build_fedora
+
+# Create docs artifact for the website.
+# Note that the last successful artifact build is always kept, so 1 day as
+# expiry is completely fine.
+docs:
+  extends:
+    - .fedora-defaults
+  stage: deploy
+  needs:
+   - build_fedora
+  script:
+    - .ci/meson-build.sh --skip-test
+  artifacts:
+    name: "docs"
+    when: always
+    expire_in: 1 day
+    paths:
+      - "$MESON_BUILDDIR/doc/html"
+  only:
+    - master
+  variables:
+    MESON_ARGS: '-Dintrospection=enabled -Dman=true -Dgtk-doc=true -Didevice=enabled'
+    NINJA_ARGS: 'UPower-doc'

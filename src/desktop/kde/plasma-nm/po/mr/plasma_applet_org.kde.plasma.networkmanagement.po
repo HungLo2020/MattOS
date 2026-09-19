@@ -1,0 +1,808 @@
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Chetan Khona <chetan@kompkin.com>, 2013, 2014.
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-04-25 02:45+0000\n"
+"PO-Revision-Date: 2014-10-28 10:24+0530\n"
+"Last-Translator: Chetan Khona <chetan@kompkin.com>\n"
+"Language-Team: Marathi <kde-i18n-doc@kde.org>\n"
+"Language: mr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+"X-Generator: Lokalize 1.5\n"
+
+#: ConnectionItem.qml:62
+#, kde-format
+msgid "Connect"
+msgstr "जोडा"
+
+#: ConnectionItem.qml:62
+#, kde-format
+msgid "Disconnect"
+msgstr "तोडा"
+
+#: ConnectionItem.qml:90
+#, kde-format
+msgctxt "Share Wi-Fi network's password or QR code"
+msgid "Share"
+msgstr ""
+
+#: ConnectionItem.qml:96
+#, kde-format
+msgid "Configure…"
+msgstr ""
+
+#: ConnectionItem.qml:136
+#, kde-format
+msgid "Speed"
+msgstr ""
+
+#: ConnectionItem.qml:141
+#, kde-format
+msgid "Details"
+msgstr ""
+
+#: ConnectionItem.qml:188
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Current download speed is %1 kibibytes per second; current upload speed is "
+"%2 kibibytes per second"
+msgstr ""
+
+#: ConnectionItem.qml:302
+#, fuzzy, kde-format
+#| msgid "Connected, ⬇ %1/s, ⬆ %2/s"
+msgctxt "Download and upload rates in some unit per second"
+msgid "↓ %1/s, ↑ %2/s"
+msgstr "जुळलेले, ⬇ %1/s, ⬆ %2/s"
+
+#: ConnectionListPage.qml:33
+#, kde-format
+msgid "You need to log in to this network"
+msgstr ""
+
+#: ConnectionListPage.qml:37
+#, kde-format
+msgctxt "@action:button"
+msgid "Log in"
+msgstr ""
+
+#: ConnectionListPage.qml:118
+#, fuzzy, kde-format
+#| msgid "Wireless enabled"
+msgid "Airplane mode is enabled"
+msgstr "वायरलेस कार्यान्वित केले"
+
+#: ConnectionListPage.qml:122
+#, kde-format
+msgid "Wi-Fi and mobile data are deactivated"
+msgstr ""
+
+#: ConnectionListPage.qml:124
+#, fuzzy, kde-format
+#| msgid "Wireless enabled"
+msgid "Wi-Fi is deactivated"
+msgstr "वायरलेस कार्यान्वित केले"
+
+#: ConnectionListPage.qml:127
+#, kde-format
+msgid "Looking for Wi-Fi networks"
+msgstr ""
+
+#: ConnectionListPage.qml:130
+#, fuzzy, kde-format
+#| msgid "Wireless enabled"
+msgid "Mobile data is deactivated"
+msgstr "वायरलेस कार्यान्वित केले"
+
+#: ConnectionListPage.qml:133
+#, kde-format
+msgid "No matches"
+msgstr ""
+
+#: ConnectionListPage.qml:136
+#, fuzzy, kde-format
+#| msgid "Available connections"
+msgid "No available connections"
+msgstr "उपलब्ध जुळवण्या"
+
+#: ConnectionListPage.qml:145
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn off airplane mode to search for networks"
+msgstr ""
+
+#: ConnectionListPage.qml:149
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on Wi-Fi or mobile data to search for networks"
+msgstr ""
+
+#: ConnectionListPage.qml:151
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on Wi-Fi to search for networks"
+msgstr ""
+
+#: ConnectionListPage.qml:154
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on mobile data to search for networks"
+msgstr ""
+
+#: DetailsText.qml:40
+#, kde-format
+msgid "Copy"
+msgstr ""
+
+#: main.qml:32
+#, kde-format
+msgid "Networks"
+msgstr "नेटवर्क्स"
+
+#: main.qml:41
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Middle-click to turn off Airplane Mode"
+msgstr ""
+
+#: main.qml:43
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Middle-click to turn on Airplane Mode"
+msgstr ""
+
+#: main.qml:71 Toolbar.qml:74
+#, kde-format
+msgid "Enable Wi-Fi"
+msgstr ""
+
+#: main.qml:82
+#, kde-format
+msgid "Enable Mobile Data"
+msgstr ""
+
+#: main.qml:94
+#, fuzzy, kde-format
+#| msgid "Wireless enabled"
+msgid "Enable Airplane Mode"
+msgstr "वायरलेस कार्यान्वित केले"
+
+#: main.qml:106
+#, kde-format
+msgid "Open Network Login Page…"
+msgstr ""
+
+#: main.qml:116
+#, fuzzy, kde-format
+#| msgid "Edit connections..."
+msgid "&Configure Network Connections…"
+msgstr "जुळवण्या संपादित करा..."
+
+#: PopupDialog.qml:51
+#, fuzzy, kde-format
+#| msgid "Edit connections..."
+msgctxt "@action:button"
+msgid "Return to Network Connections"
+msgstr "जुळवण्या संपादित करा..."
+
+#: ShareNetworkQrCodePage.qml:33
+#, kde-format
+msgid "Scan this QR code with another device to connect to the \"%1\" network."
+msgstr ""
+
+#: ShareNetworkQrCodePage.qml:108
+#, fuzzy, kde-format
+#| msgid "Show password"
+msgid "Wi-Fi password:"
+msgstr "गुप्तशब्द दर्शवा"
+
+#: Toolbar.qml:124
+#, fuzzy, kde-format
+#| msgid "Wireless enabled"
+msgid "Enable mobile data"
+msgstr "वायरलेस कार्यान्वित केले"
+
+#: Toolbar.qml:147
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Disable airplane mode<nl/><nl/>This will enable Wi-Fi and Bluetooth"
+msgstr ""
+
+#: Toolbar.qml:148
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Enable airplane mode<nl/><nl/>This will disable Wi-Fi and Bluetooth"
+msgstr ""
+
+#: Toolbar.qml:176
+#, kde-format
+msgid "Hotspot"
+msgstr ""
+
+#: Toolbar.qml:193
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot create a hotspot because Wi-Fi is disabled."
+msgstr ""
+
+#: Toolbar.qml:195
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Cannot create a hotspot because all wireless radios are in use. Disconnect "
+"from the current Wi-Fi network or connect another wireless radio."
+msgstr ""
+
+#: Toolbar.qml:197
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Disable Hotspot"
+msgstr ""
+
+#: Toolbar.qml:199
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Create Hotspot"
+msgstr ""
+
+#: Toolbar.qml:227
+#, kde-format
+msgctxt "@action:button"
+msgid "Scan Wi-Fi QR Code"
+msgstr ""
+
+#: Toolbar.qml:232
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Scan QR Code to connect to a Wi-Fi network"
+msgstr ""
+
+#: Toolbar.qml:234
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Install QRCA Barcode Scanner to scan for a QR Code that connects to a Wi-Fi "
+"network"
+msgstr ""
+
+#: Toolbar.qml:253
+#, fuzzy, kde-format
+#| msgid "Edit connections..."
+msgid "Configure network connections…"
+msgstr "जुळवण्या संपादित करा..."
+
+#, fuzzy
+#~| msgid "Connection speed:"
+#~ msgid "Show Network's QR Code"
+#~ msgstr "जुळवणी वेग :"
+
+#~ msgid "Connected"
+#~ msgstr "जुळलेले"
+
+#, fuzzy
+#~| msgid "Password..."
+#~ msgid "Password…"
+#~ msgstr "गुप्तशब्द..."
+
+#, fuzzy
+#~| msgid "Connected (via %1)"
+#~ msgctxt "@info:tooltip %1 is the name of a network connection"
+#~ msgid "Connect to %1"
+#~ msgstr "जुळलेले (द्वारे %1)"
+
+#, fuzzy
+#~| msgid "Disconnect"
+#~ msgctxt "@info:tooltip %1 is the name of a network connection"
+#~ msgid "Disconnect from %1"
+#~ msgstr "तोडा"
+
+#, fuzzy
+#~| msgid "Edit connections..."
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is ADSL"
+#~ msgstr "जुळवण्या संपादित करा..."
+
+#, fuzzy
+#~| msgid "Edit connections..."
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Bridge"
+#~ msgstr "जुळवण्या संपादित करा..."
+
+#, fuzzy
+#~| msgid "Edit connections..."
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is CDMA"
+#~ msgstr "जुळवण्या संपादित करा..."
+
+#, fuzzy
+#~| msgid "Edit connections..."
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is GSM"
+#~ msgstr "जुळवण्या संपादित करा..."
+
+#, fuzzy
+#~| msgid "Edit connections..."
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is PPOPE"
+#~ msgstr "जुळवण्या संपादित करा..."
+
+#, fuzzy
+#~| msgid "Edit connections..."
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is VLAN"
+#~ msgstr "जुळवण्या संपादित करा..."
+
+#, fuzzy
+#~| msgid "Edit connections..."
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is VPN"
+#~ msgstr "जुळवण्या संपादित करा..."
+
+#, fuzzy
+#~| msgid "Edit connections..."
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Wimax"
+#~ msgstr "जुळवण्या संपादित करा..."
+
+#, fuzzy
+#~| msgid "Connection speed:"
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Wired"
+#~ msgstr "जुळवणी वेग :"
+
+#, fuzzy
+#~| msgid "Edit connections..."
+#~ msgctxt "@info:tooltip"
+#~ msgid "The connection type is Unknown"
+#~ msgstr "जुळवण्या संपादित करा..."
+
+#, fuzzy
+#~| msgid "Edit connections..."
+#~ msgctxt "button tooltip"
+#~ msgid "Search the connections"
+#~ msgstr "जुळवण्या संपादित करा..."
+
+#~ msgid "Available connections"
+#~ msgstr "उपलब्ध जुळवण्या"
+
+#, fuzzy
+#~| msgid "Edit connections..."
+#~ msgid "Show virtual connections"
+#~ msgstr "जुळवण्या संपादित करा..."
+
+#, fuzzy
+#~| msgid "Edit connections..."
+#~ msgid "Show sections"
+#~ msgstr "जुळवण्या संपादित करा..."
+
+#, fuzzy
+#~| msgid "Connection speed:"
+#~ msgid "Connection Details"
+#~ msgstr "जुळवणी वेग :"
+
+#~ msgid "Wireless enabled"
+#~ msgstr "वायरलेस कार्यान्वित केले"
+
+#~ msgid "Mobile broadband enabled"
+#~ msgstr "मोबाईल ब्रॉडबैंड कार्यान्वित केले"
+
+#, fuzzy
+#~| msgid "Mobile broadband enabled"
+#~ msgid "Mobile broadband disabled"
+#~ msgstr "मोबाईल ब्रॉडबैंड कार्यान्वित केले"
+
+#, fuzzy
+#~| msgid "Connecting"
+#~ msgid "VPN Connection"
+#~ msgstr "जुळवत आहे"
+
+#, fuzzy
+#~| msgid "Connected (via %1)"
+#~ msgid "Connecting to %1"
+#~ msgstr "जुळलेले (द्वारे %1)"
+
+#, fuzzy
+#~| msgid "Network management"
+#~ msgid "NetworkManager not running"
+#~ msgstr "संजाळ व्यवस्थापन"
+
+#, fuzzy
+#~| msgid "Network management"
+#~ msgid "NetworkManager 0.9.8 required, found %1."
+#~ msgstr "संजाळ व्यवस्थापन"
+
+#, fuzzy
+#~| msgid "Unknown"
+#~ msgctxt "global connection state"
+#~ msgid "Unknown"
+#~ msgstr "अपरिचीत"
+
+#, fuzzy
+#~| msgid "Connection speed:"
+#~ msgid "Connection name"
+#~ msgstr "जुळवणी वेग :"
+
+#, fuzzy
+#~| msgid "Mobile broadband enabled"
+#~ msgctxt "title of the interface widget in nm's popup"
+#~ msgid "Mobile Broadband"
+#~ msgstr "मोबाईल ब्रॉडबैंड कार्यान्वित केले"
+
+#, fuzzy
+#~| msgid "Mobile broadband enabled"
+#~ msgid "Mobile broadband"
+#~ msgstr "मोबाईल ब्रॉडबैंड कार्यान्वित केले"
+
+#, fuzzy
+#~| msgid "Wireless enabled"
+#~ msgid "Wireless Interface (%1)"
+#~ msgstr "वायरलेस कार्यान्वित केले"
+
+#, fuzzy
+#~| msgid "Unknown"
+#~ msgctxt "description of unknown network interface state"
+#~ msgid "Unknown"
+#~ msgstr "अपरिचीत"
+
+#, fuzzy
+#~| msgid "Disconnected"
+#~ msgctxt "description of unconnected network interface state"
+#~ msgid "Not connected"
+#~ msgstr "जुळवणी तुटली"
+
+#, fuzzy
+#~| msgid "Edit connections..."
+#~ msgctxt "description of preparing to connect network interface state"
+#~ msgid "Preparing to connect"
+#~ msgstr "जुळवण्या संपादित करा..."
+
+#, fuzzy
+#~| msgid "Disconnected"
+#~ msgctxt "network interface connected state label"
+#~ msgid "Connected"
+#~ msgstr "जुळवणी तुटली"
+
+#, fuzzy
+#~| msgid "Connected (via %1)"
+#~ msgctxt "network interface connected state label"
+#~ msgid "Connected to %1"
+#~ msgstr "जुळलेले (द्वारे %1)"
+
+#, fuzzy
+#~| msgid "Edit connections..."
+#~ msgctxt "network interface disconnecting state label"
+#~ msgid "Deactivating connection"
+#~ msgstr "जुळवण्या संपादित करा..."
+
+#, fuzzy
+#~| msgid "Connection speed:"
+#~ msgctxt "network interface connection failed state label"
+#~ msgid "Connection Failed"
+#~ msgstr "जुळवणी वेग :"
+
+#, fuzzy
+#~| msgid "Unknown"
+#~ msgctxt "The state of the VPN connection is unknown"
+#~ msgid "Unknown"
+#~ msgstr "अपरिचीत"
+
+#, fuzzy
+#~| msgid "Edit connections..."
+#~ msgctxt "The VPN connection is preparing to connect"
+#~ msgid "Preparing to connect"
+#~ msgstr "जुळवण्या संपादित करा..."
+
+#, fuzzy
+#~| msgid "Connecting"
+#~ msgctxt "The VPN connection is being established"
+#~ msgid "Connecting"
+#~ msgstr "जुळवत आहे"
+
+#, fuzzy
+#~| msgid "Unknown"
+#~ msgctxt "wireless network operation mode"
+#~ msgid "Unknown"
+#~ msgstr "अपरिचीत"
+
+#, fuzzy
+#~| msgid "Access point (SSID):"
+#~ msgctxt "wireless network operation mode"
+#~ msgid "Access point"
+#~ msgstr "प्रवेश बिंदू (SSID):"
+
+#, fuzzy
+#~| msgid "Unknown"
+#~ msgctxt "Unknown cellular access technology"
+#~ msgid "Unknown"
+#~ msgstr "अपरिचीत"
+
+#, fuzzy
+#~| msgid "Edit connections..."
+#~ msgctxt "Unknown"
+#~ msgid "Unknown Wimax NSP type"
+#~ msgstr "जुळवण्या संपादित करा..."
+
+#, fuzzy
+#~| msgid "Edit connections..."
+#~ msgctxt "@label unknown security"
+#~ msgid "Unknown security type"
+#~ msgstr "जुळवण्या संपादित करा..."
+
+#, fuzzy
+#~| msgid "Edit connections..."
+#~ msgctxt "@info:tooltip unknown security"
+#~ msgid "Unknown security type"
+#~ msgstr "जुळवण्या संपादित करा..."
+
+#~ msgid "IPv4 Address:"
+#~ msgstr "IPv4 पत्ता :"
+
+#~ msgid "IPv6 Address:"
+#~ msgstr "IPv6 पत्ता :"
+
+#~ msgid "MAC Address:"
+#~ msgstr "Mac पत्ता :"
+
+#~ msgid "Connection speed:"
+#~ msgstr "जुळवणी वेग :"
+
+#~ msgid "Access point (SSID):"
+#~ msgstr "प्रवेश बिंदू (SSID):"
+
+#~ msgid "Access point (BSSID):"
+#~ msgstr "प्रवेश बिंदू (BSSID):"
+
+#, fuzzy
+#~| msgid "%1 Mhz"
+#~ msgid "%1 (%2 MHz)"
+#~ msgstr "%1 Mhz"
+
+#, fuzzy
+#~| msgctxt "Wifi AP frequency"
+#~| msgid "Frequency:"
+#~ msgid "Frequency band:"
+#~ msgstr "फ्रीक्वेन्सी :"
+
+#, fuzzy
+#~| msgid "Connection speed:"
+#~ msgid "Connection speed"
+#~ msgstr "जुळवणी वेग :"
+
+#, fuzzy
+#~| msgid "MAC Address:"
+#~ msgid "MAC Address"
+#~ msgstr "Mac पत्ता :"
+
+#, fuzzy
+#~| msgid "IPv4 Address:"
+#~ msgid "IPv4 Address"
+#~ msgstr "IPv4 पत्ता :"
+
+#, fuzzy
+#~| msgid "IPv4 Address:"
+#~ msgid "IP version 4 address"
+#~ msgstr "IPv4 पत्ता :"
+
+#, fuzzy
+#~| msgid "IPv6 Address:"
+#~ msgid "IPv6 Address"
+#~ msgstr "IPv6 पत्ता :"
+
+#, fuzzy
+#~| msgid "IPv6 Address:"
+#~ msgid "IP version 6 address"
+#~ msgstr "IPv6 पत्ता :"
+
+#, fuzzy
+#~| msgid "Access point (SSID):"
+#~ msgid "Access Point (SSID)"
+#~ msgstr "प्रवेश बिंदू (SSID):"
+
+#, fuzzy
+#~| msgid "Access point (SSID):"
+#~ msgid "Wireless Access Point's SSID"
+#~ msgstr "प्रवेश बिंदू (SSID):"
+
+#, fuzzy
+#~| msgid "Access point (SSID):"
+#~ msgid "Wireless Access Point's signal strength"
+#~ msgstr "प्रवेश बिंदू (SSID):"
+
+#, fuzzy
+#~| msgid "Access point (SSID):"
+#~ msgid "Access Point (MAC)"
+#~ msgstr "प्रवेश बिंदू (SSID):"
+
+#, fuzzy
+#~| msgid "Wireless enabled"
+#~ msgid "Wireless Band"
+#~ msgstr "वायरलेस कार्यान्वित केले"
+
+#, fuzzy
+#~| msgctxt "Wifi AP frequency"
+#~| msgid "Frequency:"
+#~ msgid "Wireless Frequency Band"
+#~ msgstr "फ्रीक्वेन्सी :"
+
+#, fuzzy
+#~| msgid "Wireless enabled"
+#~ msgid "Wireless Channel"
+#~ msgstr "वायरलेस कार्यान्वित केले"
+
+#, fuzzy
+#~| msgid "Wireless enabled"
+#~ msgid "Wireless Frequency Channel"
+#~ msgstr "वायरलेस कार्यान्वित केले"
+
+#, fuzzy
+#~| msgid "Wireless enabled"
+#~ msgid "Wireless Security"
+#~ msgstr "वायरलेस कार्यान्वित केले"
+
+#, fuzzy
+#~| msgid "Wireless enabled"
+#~ msgid "Wireless Mode"
+#~ msgstr "वायरलेस कार्यान्वित केले"
+
+#, fuzzy
+#~| msgid "Connection speed:"
+#~ msgid "VPN connection banner"
+#~ msgstr "जुळवणी वेग :"
+
+#~ msgid "Inactive"
+#~ msgstr "निष्क्रिय"
+
+#~ msgid "Disconnected"
+#~ msgstr "जुळवणी तुटली"
+
+#~ msgid "Disconnecting"
+#~ msgstr "जुळवणी तोडत आहे"
+
+#~ msgid "Connecting"
+#~ msgstr "जुळवत आहे"
+
+#, fuzzy
+#~| msgid "Unknown"
+#~ msgid "Unknown"
+#~ msgstr "अपरिचीत"
+
+#~ msgctxt "type of network device"
+#~ msgid "Type:"
+#~ msgstr "प्रकार :"
+
+#, fuzzy
+#~| msgctxt "type of network device"
+#~| msgid "Type:"
+#~ msgid "Type"
+#~ msgstr "प्रकार :"
+
+#, fuzzy
+#~| msgid "Connection speed:"
+#~ msgid "Connection State"
+#~ msgstr "जुळवणी वेग :"
+
+#, fuzzy
+#~| msgid "Connection speed:"
+#~ msgid "Connection state"
+#~ msgstr "जुळवणी वेग :"
+
+#, fuzzy
+#~| msgid "Unknown"
+#~ msgctxt "Unknown cellular type"
+#~ msgid "Unknown"
+#~ msgstr "अपरिचीत"
+
+#, fuzzy
+#~| msgid "Unknown"
+#~ msgctxt "Unknown cellular frequency band"
+#~ msgid "Unknown"
+#~ msgstr "अपरिचीत"
+
+#, fuzzy
+#~| msgctxt "Wifi AP frequency"
+#~| msgid "Frequency:"
+#~ msgid "Frequency Band:"
+#~ msgstr "फ्रीक्वेन्सी :"
+
+#, fuzzy
+#~| msgctxt "Wifi AP frequency"
+#~| msgid "Frequency:"
+#~ msgid "Mobile Frequency Band"
+#~ msgstr "फ्रीक्वेन्सी :"
+
+#, fuzzy
+#~| msgid "Mobile broadband enabled"
+#~ msgctxt "Mobile Connection Wizard"
+#~ msgid "New Mobile Broadband Connection"
+#~ msgstr "मोबाईल ब्रॉडबैंड कार्यान्वित केले"
+
+#, fuzzy
+#~| msgid "Unknown"
+#~ msgctxt "Mobile Connection Wizard"
+#~ msgid "Unknown Provider"
+#~ msgstr "अपरिचीत"
+
+#, fuzzy
+#~| msgid "Mobile broadband enabled"
+#~ msgctxt "Mobile Connection Wizard"
+#~ msgid "Set up a Mobile Broadband Connection"
+#~ msgstr "मोबाईल ब्रॉडबैंड कार्यान्वित केले"
+
+#, fuzzy
+#~| msgid "Mobile broadband enabled"
+#~ msgctxt "Mobile Connection Wizard"
+#~ msgid "Confirm Mobile Broadband Settings"
+#~ msgstr "मोबाईल ब्रॉडबैंड कार्यान्वित केले"
+
+#, fuzzy
+#~| msgid "Edit connections..."
+#~ msgid "Previous connections"
+#~ msgstr "जुळवण्या संपादित करा..."
+
+#, fuzzy
+#~| msgid "Connection speed:"
+#~ msgid "Connect automatically"
+#~ msgstr "जुळवणी वेग :"
+
+#, fuzzy
+#~| msgid "Edit connections..."
+#~ msgid "Edit connection"
+#~ msgstr "जुळवण्या संपादित करा..."
+
+#~ msgid "Networking enabled"
+#~ msgstr "संजाळ कार्यान्वित केले"
+
+#, fuzzy
+#~| msgid "Wireless enabled"
+#~ msgid "Wimax enabled"
+#~ msgstr "वायरलेस कार्यान्वित केले"
+
+#, fuzzy
+#~| msgctxt "Wifi AP frequency"
+#~| msgid "Frequency:"
+#~ msgid "Frequency Bands:"
+#~ msgstr "फ्रीक्वेन्सी :"
+
+#~ msgid "Back"
+#~ msgstr "मागे"
+
+#~ msgid "Edit"
+#~ msgstr "संपादन"
+
+#~ msgid "Remove"
+#~ msgstr "काढून टाका"
+
+#~ msgid "Do you really want to remove connection %1?"
+#~ msgstr "तुम्हाला नक्की जुळवणी %1 काढून टाकायची आहे का?"
+
+#~ msgid "Cancel"
+#~ msgstr "रद्द करा"
+
+#~ msgid "Connected (via %1)"
+#~ msgstr "जुळलेले (द्वारे %1)"
+
+#~ msgid "%1 Mb/s"
+#~ msgstr "%1 Mb/s"
+
+#~ msgid "%1 Gb/s"
+#~ msgstr "%1 Gb/s"
+
+#~ msgid "%1 Kb/s"
+#~ msgstr "%1 Kb/s"
+
+#~ msgid ""
+#~ "For accessing the wireless network '%1' you need to provide a password "
+#~ "below"
+#~ msgstr ""
+#~ "'%1' या वायरलेस संजाळात प्रवेश करण्याकरिता तुम्ही गुप्तशब्द खाली दाखल करणे गरजेचे आहे"
+
+#~ msgid "Please provide a password below"
+#~ msgstr "कृपया गुप्तशब्द खाली दाखल करा"

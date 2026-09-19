@@ -1,0 +1,88 @@
+.\" ModemManager(8) manual page
+.\"
+.\" Copyright (C) 2011 Aleksander Morgado
+.\"
+
+.TH MODEMMANAGER "8" "5 September 2014"
+
+.SH NAME
+ModemManager \- mobile broadband modem management daemon
+
+.SH SYNOPSIS
+\fBModemManager\fR [\fIOPTION\fR...]
+
+.SH DESCRIPTION
+ModemManager provides a unified high level API for communicating with mobile
+broadband modems, regardless of the protocol used to communicate with the
+actual device (Generic AT, vendor-specific AT, QCDM, QMI, MBIM...).
+
+ModemManager is a DBus-based system daemon and is not meant to be used directly
+from the command line.
+
+.SH APPLICATION OPTIONS
+.TP
+.B \-\-filter\-policy=<policy>
+Specify which ports are probed and how:
+.RS 9
+.TP
+\fB'ALLOWLIST-ONLY'\fR
+Only devices or ports explicitly allowlisted with the 'ID_MM_DEVICE_PROCESS' udev tag are probed.
+.TP
+\fB'STRICT'\fR
+Only the TTY ports that are heuristically determined to be very likely to be modem ports are probed. Nay end up ignoring some devices.
+.RE
+.TP
+.B \-\-no\-auto\-scan
+Fully disable udev-based auto-scan looking for devices.
+.TP
+.B \-\-initial\-kernel\-events=<filename>
+Specify location of the file where the list of initial kernel events is
+available. The ModemManager daemon will process this file on startup.
+.TP
+.B \-\-debug
+Runs ModemManager with "DEBUG" log level and without daemonizing. This is useful
+for debugging, as it directs log output to the controlling terminal in addition to
+syslog.
+.TP
+.B \-V, \-\-version
+Print the ModemManager software version and exit.
+.TP
+.B \-h, \-\-help
+Show application options.
+
+.SH LOGGING OPTIONS
+.TP
+.B \-\-log\-level=<level>
+Sets how much information ModemManager sends to the log destination (usually
+syslog's "daemon" facility). By default, only informational, warning, and error
+messages are logged. Given level must be one of "ERR", "WARN", "INFO" or "DEBUG".
+.TP
+.B \-\-log\-file=<filename>
+Specify location of the file where ModemManager will dump its log messages,
+instead of syslog.
+.TP
+.B \-\-log\-journal
+Output log message to the systemd journal.
+.TP
+.B \-\-log\-timestamps
+Include absolute timestamps in the log output.
+.TP
+.B \-\-log\-relative\-timestamps
+Include timestamps, relative to the start time of the daemon, in the log output.
+
+.SH TEST OPTIONS
+.TP
+.B \-\-test\-session
+Run the ModemManager daemon in the Session bus instead of the System bus.
+.TP
+.B \-\-test\-enable
+Enable the Test DBus interface in the daemon.
+.TP
+.B \-\-test\-plugin\-dir=[PATH]
+Specify an alternate directory where the daemon should look for vendor plugins.
+
+.SH AUTHOR
+Aleksander Morgado <aleksander@aleksander.es>
+
+.SH SEE ALSO
+\fBmmcli\fR(1), \fBNetworkManager\fR(8)

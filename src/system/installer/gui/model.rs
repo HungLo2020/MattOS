@@ -86,7 +86,11 @@ impl InstallerFrontendModel {
         if optional_package(id).is_none() {
             bail!("unknown optional package {id}");
         }
-        if let Some(index) = self.optional_packages.iter().position(|selected| selected == id) {
+        if let Some(index) = self
+            .optional_packages
+            .iter()
+            .position(|selected| selected == id)
+        {
             self.optional_packages.remove(index);
         } else {
             self.optional_packages.push(id.to_owned());
@@ -309,16 +313,20 @@ mod tests {
         assert_eq!(model.optional_packages, ["firefox"]);
         model.toggle_optional_package("firefox").unwrap();
         assert!(model.optional_packages.is_empty());
-        assert!(model
-            .toggle_optional_package("not-in-catalog")
-            .unwrap_err()
-            .to_string()
-            .contains("unknown optional package"));
-        assert!(model
-            .plan(None, RootCredentialPolicy::SameAsUser)
-            .unwrap()
-            .optional_packages
-            .is_empty());
+        assert!(
+            model
+                .toggle_optional_package("not-in-catalog")
+                .unwrap_err()
+                .to_string()
+                .contains("unknown optional package")
+        );
+        assert!(
+            model
+                .plan(None, RootCredentialPolicy::SameAsUser)
+                .unwrap()
+                .optional_packages
+                .is_empty()
+        );
 
         model.select_profile(InstalledProfile::Cli);
         assert!(model.optional_packages.is_empty());

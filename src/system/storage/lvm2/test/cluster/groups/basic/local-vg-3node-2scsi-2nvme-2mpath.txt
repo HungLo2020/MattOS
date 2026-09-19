@@ -1,0 +1,7 @@
+config local-vg-3node-2scsi-2nvme-2mpath.conf
+run shell/local-vg-pr.sh
+run shell/local-vg-lvmpersist.sh
+run shell/local-vg-multipath.sh
+run shell/local-vg-device-id.sh
+run shell/local-vg-boot-activation.sh
+run shell/local-vg-devices-import.sh

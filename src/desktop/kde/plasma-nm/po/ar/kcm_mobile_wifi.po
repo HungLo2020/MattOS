@@ -1,0 +1,253 @@
+# Copyright (C) 2025 This file is copyright:
+# This file is distributed under the same license as the plasma-mobile package.
+# SPDX-FileCopyrightText: 2023, 2025, 2026 Zayed Al-Saidi <zayed.alsaidi@gmail.com>
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma-mobile\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-29 03:06+0000\n"
+"PO-Revision-Date: 2025-08-20 18:40+0400\n"
+"Last-Translator: Zayed Al-Saidi <zayed.alsaidi@gmail.com>\n"
+"Language-Team: ar\n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
+"&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
+"X-Generator: Lokalize 23.08.5\n"
+
+#: ui/ConnectDialog.qml:58
+#, kde-format
+msgid "Invalid input."
+msgstr "إدخال غير صحيح"
+
+#: ui/ConnectionInfo.qml:15
+#, kde-format
+msgctxt "kcm page title"
+msgid "Connection Info for \"%1\""
+msgstr "معلومات الاتصال لـ \"%1\""
+
+#: ui/ConnectionInfo.qml:22
+#, kde-format
+msgctxt "@title:group"
+msgid "Transfer Rates"
+msgstr "معدلات النقل"
+
+#: ui/ConnectionInfo.qml:38
+#, kde-format
+msgid "Connected, ↓ %1/s, ↑ %2/s"
+msgstr "متصل، ↓ %1/ث, ↑ %2/ث"
+
+#: ui/ConnectionInfo.qml:46
+#, kde-format
+msgctxt "@title:group"
+msgid "Connection Details"
+msgstr "تفاصيل الاتصال"
+
+#: ui/main.qml:26
+#, kde-format
+msgid "Edit"
+msgstr "حرّر"
+
+#: ui/main.qml:87
+#, kde-format
+msgid "Wi-Fi"
+msgstr "واي فاي"
+
+#: ui/main.qml:98
+#, kde-format
+msgctxt "@title:group"
+msgid "Saved Networks"
+msgstr "الشبكات المحفوظة"
+
+#: ui/main.qml:135
+#, kde-format
+msgid "Available Networks"
+msgstr "الشبكات المتوفّرة"
+
+#: ui/main.qml:169
+#, kde-format
+msgid "Add Custom Connection"
+msgstr "أضف اتّصالًا مخصصًا"
+
+#: ui/NetworkSettings.qml:15
+#, kde-format
+msgid "Add New Connection"
+msgstr "أضف اتصالاً جديداً"
+
+#: ui/NetworkSettings.qml:36
+#, kde-format
+msgid "Save"
+msgstr "احفظ"
+
+#: ui/NetworkSettings.qml:54
+#, kde-format
+msgctxt "@title:group"
+msgid "General"
+msgstr "عامّ"
+
+#: ui/NetworkSettings.qml:60
+#, kde-format
+msgid "SSID"
+msgstr "SSID"
+
+#: ui/NetworkSettings.qml:75
+#, kde-format
+msgid "Hidden Network"
+msgstr "شبكة مخفية"
+
+#: ui/NetworkSettings.qml:82
+#, kde-format
+msgctxt "@title:group"
+msgid "Security"
+msgstr "الأمن"
+
+#: ui/NetworkSettings.qml:89
+#, kde-format
+msgid "Security type"
+msgstr "نوع الأمن"
+
+#: ui/NetworkSettings.qml:99
+#, kde-format
+msgid "None"
+msgstr "لا شيء"
+
+#: ui/NetworkSettings.qml:100
+#, kde-format
+msgid "WEP Key"
+msgstr "مفتاح WEP"
+
+#: ui/NetworkSettings.qml:101
+#, kde-format
+msgid "Dynamic WEP"
+msgstr "WEP حركي"
+
+#: ui/NetworkSettings.qml:102
+#, kde-format
+msgid "WPA/WPA2 Personal"
+msgstr "‏WPA/WPA2 شخصي"
+
+#: ui/NetworkSettings.qml:103
+#, kde-format
+msgid "WPA/WPA2 Enterprise"
+msgstr "‏WPA/WPA2 للمؤسسات"
+
+#: ui/NetworkSettings.qml:104
+#, kde-format
+msgid "WPA3 Personal"
+msgstr "‏WPA/WPA2 شخصي"
+
+#: ui/NetworkSettings.qml:105
+#, kde-format
+msgid "WPA3 Enterprise"
+msgstr "‏WPA3 للمؤسسات"
+
+#: ui/NetworkSettings.qml:143
+#, kde-format
+msgid "Password"
+msgstr "كلمة السر"
+
+#: ui/NetworkSettings.qml:159
+#, kde-format
+msgid "Authentication:"
+msgstr "الاستيثاق:"
+
+#: ui/NetworkSettings.qml:163
+#, kde-format
+msgid "TLS"
+msgstr "TLS"
+
+#: ui/NetworkSettings.qml:163
+#, kde-format
+msgid "LEAP"
+msgstr "LEAP"
+
+#: ui/NetworkSettings.qml:163
+#, kde-format
+msgid "FAST"
+msgstr "FAST"
+
+#: ui/NetworkSettings.qml:164
+#, kde-format
+msgid "Tunneled TLS"
+msgstr "‏TLS عبر نفق"
+
+#: ui/NetworkSettings.qml:165
+#, kde-format
+msgid "Protected EAP"
+msgstr "‏EAP محمي"
+
+#: ui/NetworkSettings.qml:177
+#, kde-format
+msgctxt "@title:group"
+msgid "IP Settings"
+msgstr "إعدادات عنوان الإنترنت"
+
+#: ui/NetworkSettings.qml:183
+#, kde-format
+msgid "Method"
+msgstr "الطريقة"
+
+#: ui/NetworkSettings.qml:184
+#, kde-format
+msgid "Automatic"
+msgstr "آليّ"
+
+#: ui/NetworkSettings.qml:184
+#, kde-format
+msgid "Manual"
+msgstr "يدويّ"
+
+#: ui/NetworkSettings.qml:200
+#, kde-format
+msgid "IP Address"
+msgstr "عنوان IP"
+
+#: ui/NetworkSettings.qml:218
+#, kde-format
+msgid "Gateway"
+msgstr "البوّابة"
+
+#: ui/NetworkSettings.qml:236
+#, kde-format
+msgid "Network prefix length"
+msgstr "طول بادئة الشبكة"
+
+#: ui/NetworkSettings.qml:255
+#, kde-format
+msgid "DNS"
+msgstr "خادم أسماء النطاقات"
+
+#: ui/PasswordField.qml:13
+#, kde-format
+msgid "Password…"
+msgstr "كلمة السر..."
+
+#~ msgid "Connect"
+#~ msgstr "اتّصل"
+
+#~ msgid "Disconnect"
+#~ msgstr "اقطع الاتصال"
+
+#~ msgid "Configure"
+#~ msgstr "اضبط"
+
+#~ msgid "Delete"
+#~ msgstr "احذف"
+
+#~ msgid "Connect to"
+#~ msgstr "متصل ب"
+
+#~ msgid "/s"
+#~ msgstr "/ث"
+
+#~ msgid "Upload"
+#~ msgstr "الرفع"
+
+#~ msgid "Download"
+#~ msgstr "التنزيل"
+
+#~ msgid "Enable"
+#~ msgstr "مكّن"

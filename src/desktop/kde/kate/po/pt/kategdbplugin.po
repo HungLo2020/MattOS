@@ -1,0 +1,899 @@
+# SPDX-FileCopyrightText: 2026 César A. P. Cláudio <cesarapclaudio@gmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: kategdbplugin\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-06-25 00:47+0000\n"
+"PO-Revision-Date: 2026-01-30 23:32+0000\n"
+"Last-Translator: César A. P. Cláudio <cesarapclaudio@gmail.com>\n"
+"Language-Team: pt\n"
+"Language: pt\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-POFile-IgnoreConsistency: Frame\n"
+"X-POFile-SpellExtra: popupbreakpoint GDB popupruntocursor Kate gdb search\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-POFile-SpellExtra: dev prefix solib ttyUSB path Bauds absolute DAP post\n"
+"X-POFile-IgnoreConsistency: Debug\n"
+"X-POFile-SpellExtra: mortem JSON\n"
+"X-Generator: Lokalize 25.12.1\n"
+
+#: backend.cpp:48 dapbackend.cpp:175
+#, kde-format
+msgid ""
+"A debugging session is on course. Please, use re-run or stop the current "
+"session."
+msgstr ""
+"Uma sessão de depuração está em curso. Por favor, utilize a opção reiniciar "
+"ou pare a sessão atual."
+
+#: breakpointview.cpp:354
+#, kde-format
+msgid "Line Breakpoints"
+msgstr "Pontos de interrupção de linha"
+
+#: breakpointview.cpp:356
+#, kde-format
+msgid "Function Breakpoints"
+msgstr "Pontos de interrupção de função"
+
+#: breakpointview.cpp:358
+#, kde-format
+msgid "Exception Breakpoints"
+msgstr "Pontos de interrupção de exceção"
+
+#: breakpointview.cpp:417
+#, kde-format
+msgid "verified"
+msgstr "verificado"
+
+#: breakpointview.cpp:417 breakpointview.cpp:422
+#, kde-format
+msgid "pending"
+msgstr "pendente"
+
+#: breakpointview.cpp:965
+#, kde-format
+msgid "Add Function Breakpoint…"
+msgstr "Adicionar ponto de interrupção de função…"
+
+#: breakpointview.cpp:969
+#, kde-format
+msgid "Clear All Function Breakpoints"
+msgstr "Limpar todos os pontos de interrupção de função"
+
+#: breakpointview.cpp:976
+#, kde-format
+msgid "Remove Breakpoint"
+msgstr "Remover ponto de interrupção"
+
+#: breakpointview.cpp:1493
+#, kde-format
+msgid "Breakpoint"
+msgstr "Ponto de interrupção"
+
+#: breakpointview.cpp:1556
+#, kde-format
+msgid "line %1 already has a breakpoint"
+msgstr "a linha %1 já tem um ponto de interrupção"
+
+#: breakpointview.cpp:1565
+#, kde-format
+msgid "No breakpoints set"
+msgstr "Nenhum ponto de interrupção definido"
+
+#: breakpointview.cpp:1624
+#, kde-format
+msgid "Add Function Breakpoint"
+msgstr "Adicionar ponto de interrupção de função"
+
+#: breakpointview.cpp:1625
+#, kde-format
+msgid "Function name:"
+msgstr "Nome da função:"
+
+#: configview.cpp:92
+#, kde-format
+msgid "Add new target"
+msgstr "Adicionar novo alvo"
+
+#: configview.cpp:96
+#, kde-format
+msgid "Copy target"
+msgstr "Copiar alvo"
+
+#: configview.cpp:100
+#, kde-format
+msgid "Delete target"
+msgstr "Eliminar alvo"
+
+#: configview.cpp:104
+#, kde-format
+msgid "Reload launch.json targets"
+msgstr "Recarregar destinos de 'launch.json'"
+
+#: configview.cpp:109
+#, kde-format
+msgid "Executable:"
+msgstr "Executável:"
+
+#: configview.cpp:129
+#, kde-format
+msgid "Working Directory:"
+msgstr "Pasta de trabalho:"
+
+#: configview.cpp:137
+#, kde-format
+msgid "Process Id:"
+msgstr "ID do processo:"
+
+#: configview.cpp:142
+#, kde-format
+msgctxt "Program argument list"
+msgid "Arguments:"
+msgstr "Argumentos:"
+
+#: configview.cpp:145
+#, kde-format
+msgctxt "Checkbox to for keeping focus on the command line"
+msgid "Keep focus"
+msgstr "Manter foco"
+
+#: configview.cpp:146
+#, kde-format
+msgid "Keep the focus on the command line"
+msgstr "Manter o foco na linha de comandos"
+
+#: configview.cpp:148
+#, kde-format
+msgid "Redirect IO"
+msgstr "Redirecionar E/S"
+
+#: configview.cpp:149
+#, kde-format
+msgid "Redirect the debugged programs IO to a separate tab"
+msgstr "Redirecionar a E/S do programa depurado para um separador separado"
+
+#: configview.cpp:397
+#, kde-format
+msgctxt "Error message"
+msgid "No executable target set"
+msgstr "Nenhum destino executável definido"
+
+#: configview.cpp:407
+#, kde-format
+msgctxt "Error message"
+msgid "Invalid process id"
+msgstr "ID do processo inválido"
+
+#: configview.cpp:529 configview.cpp:542
+#, kde-format
+msgid "Target %1"
+msgstr "Alvo %1"
+
+#: configview.cpp:765
+#, kde-format
+msgid "Select Executable"
+msgstr "Selecionar executável"
+
+#: configview.cpp:778
+#, kde-format
+msgid "Select Working Directory"
+msgstr "Selecionar pasta de trabalho"
+
+#: dapbackend.cpp:187
+#, kde-format
+msgid "DAP backend '%1' failed"
+msgstr "O 'backend' DAP '%1' falhou"
+
+#: dapbackend.cpp:238
+#, kde-format
+msgid "program terminated"
+msgstr "programa terminado"
+
+#: dapbackend.cpp:243
+#, kde-format
+msgid "Failed to terminate. Forcing shutdown..."
+msgstr "Falha ao terminar. A forçar encerramento..."
+
+#: dapbackend.cpp:254
+#, kde-format
+msgid "requesting disconnection"
+msgstr "a solicitar desconexão"
+
+#: dapbackend.cpp:269
+#, kde-format
+msgid "requesting shutdown"
+msgstr "a solicitar encerramento"
+
+#: dapbackend.cpp:294
+#, kde-format
+msgid "DAP backend: %1"
+msgstr "'Backend' DAP: %1"
+
+#: dapbackend.cpp:303
+#, kde-format
+msgid "stopped (%1)."
+msgstr "parado (%1)."
+
+#: dapbackend.cpp:311
+#, kde-format
+msgid "Active thread: %1 (all threads stopped)."
+msgstr "Tarefa ativa: %1 (todas as tarefas paradas)."
+
+#: dapbackend.cpp:313
+#, kde-format
+msgid "Active thread: %1."
+msgstr "Tarefa ativa: %1."
+
+#: dapbackend.cpp:318
+#, kde-format
+msgid "Breakpoint(s) reached:"
+msgstr "Ponto(s) de interrupção atingido(s):"
+
+#: dapbackend.cpp:344
+#, kde-format
+msgid "(continued) thread %1"
+msgstr "(retomada) tarefa %1"
+
+#: dapbackend.cpp:346
+#, kde-format
+msgid "all threads continued"
+msgstr "todas as tarefas retomadas"
+
+#: dapbackend.cpp:353
+#, kde-format
+msgid "(running)"
+msgstr "(em execução)"
+
+#: dapbackend.cpp:404
+#, kde-format
+msgid "*** connection with server closed ***"
+msgstr "*** ligação com o servidor fechada ***"
+
+#: dapbackend.cpp:411
+#, kde-format
+msgid "program exited with code %1"
+msgstr "o programa saiu com o código %1"
+
+#: dapbackend.cpp:433
+#, kde-format
+msgid "*** waiting for user actions ***"
+msgstr "*** a aguardar ações do utilizador ***"
+
+#: dapbackend.cpp:438
+#, kde-format
+msgid "error on response: %1"
+msgstr "erro na resposta: %1"
+
+#: dapbackend.cpp:454
+#, kde-format
+msgid "important"
+msgstr "importante"
+
+#: dapbackend.cpp:457
+#, kde-format
+msgid "telemetry"
+msgstr "telemetria"
+
+#: dapbackend.cpp:476
+#, kde-format
+msgid "debugging process [%1] %2"
+msgstr "a depurar o processo [%1] %2"
+
+#: dapbackend.cpp:478
+#, kde-format
+msgid "debugging process %1"
+msgstr "a depurar o processo %1"
+
+#: dapbackend.cpp:481
+#, kde-format
+msgid "Start method: %1"
+msgstr "Método de arranque: %1"
+
+#: dapbackend.cpp:496
+#, kde-format
+msgid "thread %1"
+msgstr "tarefa %1"
+
+#: dapbackend.cpp:577
+#, kde-format
+msgid "breakpoint set"
+msgstr "ponto de interrupção definido"
+
+#: dapbackend.cpp:611
+#, kde-format
+msgid "(%1) breakpoint"
+msgstr "(%1) ponto de interrupção"
+
+#: dapbackend.cpp:629
+#, kde-format
+msgid "<not evaluated>"
+msgstr "<não avaliado>"
+
+#: dapbackend.cpp:651
+#, kde-format
+msgid "server capabilities"
+msgstr "capacidades do servidor"
+
+#: dapbackend.cpp:653
+#, kde-format
+msgid "supported"
+msgstr "suportada"
+
+#: dapbackend.cpp:653
+#, kde-format
+msgid "unsupported"
+msgstr "não suportada"
+
+#: dapbackend.cpp:656
+#, kde-format
+msgid "conditional breakpoints"
+msgstr "pontos de interrupção condicionais"
+
+#: dapbackend.cpp:657
+#, kde-format
+msgid "function breakpoints"
+msgstr "pontos de interrupção de função"
+
+#: dapbackend.cpp:658
+#, kde-format
+msgid "hit conditional breakpoints"
+msgstr "pontos de interrupção condicionais por contagem"
+
+#: dapbackend.cpp:659
+#, kde-format
+msgid "log points"
+msgstr "pontos de registo"
+
+#: dapbackend.cpp:659
+#, kde-format
+msgid "modules request"
+msgstr "pedido de módulos"
+
+#: dapbackend.cpp:660
+#, kde-format
+msgid "goto targets request"
+msgstr "pedido de destinos de salto"
+
+#: dapbackend.cpp:661
+#, kde-format
+msgid "terminate request"
+msgstr "terminar pedido"
+
+#: dapbackend.cpp:662
+#, kde-format
+msgid "terminate debuggee"
+msgstr "terminar processo depurado"
+
+#: dapbackend.cpp:665
+#, kde-format
+msgid "exception breakpoint filters"
+msgstr "filtros de pontos de interrupção de exceção"
+
+#: dapbackend.cpp:812
+#, kde-format
+msgid "syntax error: expression not found"
+msgstr "erro de sintaxe: expressão não encontrada"
+
+#: dapbackend.cpp:831 dapbackend.cpp:867 dapbackend.cpp:907 dapbackend.cpp:942
+#: dapbackend.cpp:979 dapbackend.cpp:1016 dapbackend.cpp:1053
+#: dapbackend.cpp:1144 dapbackend.cpp:1198
+#, kde-format
+msgid "syntax error: %1"
+msgstr "erro de sintaxe: %1"
+
+#: dapbackend.cpp:839 dapbackend.cpp:875 dapbackend.cpp:1151
+#: dapbackend.cpp:1206
+#, kde-format
+msgid "invalid line: %1"
+msgstr "linha inválida: %1"
+
+#: dapbackend.cpp:847 dapbackend.cpp:852 dapbackend.cpp:883 dapbackend.cpp:888
+#: dapbackend.cpp:1176 dapbackend.cpp:1181 dapbackend.cpp:1214
+#: dapbackend.cpp:1219
+#, kde-format
+msgid "file not specified: %1"
+msgstr "ficheiro não especificado: %1"
+
+#: dapbackend.cpp:919 dapbackend.cpp:954 dapbackend.cpp:991 dapbackend.cpp:1028
+#: dapbackend.cpp:1065
+#, kde-format
+msgid "invalid thread id: %1"
+msgstr "ID de tarefa inválido: %1"
+
+#: dapbackend.cpp:925 dapbackend.cpp:960 dapbackend.cpp:997 dapbackend.cpp:1034
+#: dapbackend.cpp:1071
+#, kde-format
+msgid "thread id not specified: %1"
+msgstr "ID de tarefa não especificado: %1"
+
+#: dapbackend.cpp:1082
+#, kde-format
+msgid "Available commands:"
+msgstr "Comandos disponíveis:"
+
+#: dapbackend.cpp:1161
+#, kde-format
+msgid "conditional breakpoints are not supported by the server"
+msgstr "o servidor não suporta pontos de interrupção condicionais"
+
+#: dapbackend.cpp:1169
+#, kde-format
+msgid "hit conditional breakpoints are not supported by the server"
+msgstr "o servidor não suporta pontos de interrupção condicionais por contagem"
+
+#: dapbackend.cpp:1231
+#, kde-format
+msgid "Current thread: "
+msgstr "Tarefa atual: "
+
+#: dapbackend.cpp:1236 dapbackend.cpp:1243 dapbackend.cpp:1264
+#, kde-format
+msgid "none"
+msgstr "nenhuma"
+
+#: dapbackend.cpp:1239
+#, kde-format
+msgid "Current frame: "
+msgstr "Pilha atual: "
+
+#: dapbackend.cpp:1246
+#, kde-format
+msgid "Session state: "
+msgstr "Estado da sessão: "
+
+#: dapbackend.cpp:1249
+#, kde-format
+msgid "initializing"
+msgstr "a inicializar"
+
+#: dapbackend.cpp:1252
+#, kde-format
+msgid "running"
+msgstr "em execução"
+
+# Referente à "tarefa", daí o feminino
+#: dapbackend.cpp:1255
+#, kde-format
+msgid "stopped"
+msgstr "parada"
+
+# Referente à "tarefa", daí o feminino
+#: dapbackend.cpp:1258
+#, kde-format
+msgid "terminated"
+msgstr "terminada"
+
+# Referente à "tarefa", daí o feminino
+#: dapbackend.cpp:1261
+#, kde-format
+msgid "disconnected"
+msgstr "desligada"
+
+#: dapbackend.cpp:1319
+#, kde-format
+msgid "command not found"
+msgstr "comando não encontrado"
+
+#: dapbackend.cpp:1354
+#, kde-format
+msgid "missing thread id"
+msgstr "ID de tarefa em falta"
+
+#: dapbackend.cpp:1507
+#, kde-format
+msgid "Current frame [%3]: %1:%2 (%4)"
+msgstr "Pilha actual [%3]: %1:%2 (%4)"
+
+#: debugconfigpage.cpp:57 debugconfigpage.cpp:62
+#, kde-format
+msgid "Debugger"
+msgstr "Depurador"
+
+#: launch_json_reader.cpp:40
+#, kde-format
+msgctxt "%1 refers to filepath"
+msgid "Failed to parse .vscode/launch.json at %1. "
+msgstr "Falha ao analisar .vscode/launch.json em %1. "
+
+#: launch_json_reader.cpp:51
+#, kde-format
+msgctxt "at line no:column no"
+msgid " at %1:%2"
+msgstr " em %1:%2"
+
+#: localsview.cpp:39
+#, kde-format
+msgid "type"
+msgstr "tipo"
+
+#: localsview.cpp:48
+#, kde-format
+msgid "indexed items"
+msgstr "itens indexados"
+
+#: localsview.cpp:51
+#, kde-format
+msgid "named items"
+msgstr "itens com nome"
+
+#: localsview.cpp:67 localsview.cpp:68
+#, kde-format
+msgid "Loading..."
+msgstr "A carregar..."
+
+#: localsview.cpp:116
+#, kde-format
+msgid "Symbol"
+msgstr "Símbolo"
+
+#: localsview.cpp:117
+#, kde-format
+msgid "Type"
+msgstr "Tipo"
+
+#: localsview.cpp:118
+#, kde-format
+msgid "Value"
+msgstr "Valor"
+
+#: localsview.cpp:300
+#, kde-format
+msgid "Copy Symbol"
+msgstr "Copiar símbolo"
+
+#: localsview.cpp:315
+#, kde-format
+msgid "Copy Value"
+msgstr "Copiar valor"
+
+#: plugin_kategdb.cpp:112
+#, kde-format
+msgid "Kate Debug"
+msgstr "Depuração do Kate"
+
+#: plugin_kategdb.cpp:116
+#, kde-format
+msgid "Debug View"
+msgstr "Vista de depuração"
+
+#: plugin_kategdb.cpp:116 plugin_kategdb.cpp:347
+#, kde-format
+msgid "Debug"
+msgstr "Depurar"
+
+#: plugin_kategdb.cpp:119 plugin_kategdb.cpp:122
+#, kde-format
+msgid "Locals and Stack"
+msgstr "Locais e pilha"
+
+#: plugin_kategdb.cpp:128
+#, kde-format
+msgid "Breakpoints"
+msgstr "Pontos de interrupção"
+
+#: plugin_kategdb.cpp:215
+#, kde-kuit-format
+msgctxt "@info"
+msgid "<title>Could not open file:</title><nl/>%1"
+msgstr "<title>Não foi possível abrir o ficheiro:</title><nl/>%1"
+
+#: plugin_kategdb.cpp:229
+#, kde-format
+msgid "Targets"
+msgstr "Alvos"
+
+#: plugin_kategdb.cpp:234
+#, kde-format
+msgid "Start Debugging"
+msgstr "Iniciar depuração"
+
+#: plugin_kategdb.cpp:244
+#, kde-format
+msgid "Kill / Stop Debugging"
+msgstr "Terminar / Parar depuração"
+
+#: plugin_kategdb.cpp:251
+#, kde-format
+msgid "Continue"
+msgstr "Continuar"
+
+#: plugin_kategdb.cpp:257
+#, kde-format
+msgid "Toggle Breakpoint / Break"
+msgstr "Alternar ponto de interrupção / Interromper"
+
+#: plugin_kategdb.cpp:264
+#, kde-format
+msgid "Clear All Breakpoints"
+msgstr "Limpar todos os pontos de interrupção"
+
+#: plugin_kategdb.cpp:269
+#, kde-format
+msgid "Step In"
+msgstr "Entrar na função"
+
+#: plugin_kategdb.cpp:276
+#, kde-format
+msgid "Step Over"
+msgstr "Passar por cima da função"
+
+#: plugin_kategdb.cpp:283
+#, kde-format
+msgid "Step Out"
+msgstr "Sair da função"
+
+#: plugin_kategdb.cpp:290 plugin_kategdb.cpp:354
+#, kde-format
+msgid "Run To Cursor"
+msgstr "Executar até ao cursor"
+
+#: plugin_kategdb.cpp:297
+#, kde-format
+msgid "Restart Debugging"
+msgstr "Reiniciar depuração"
+
+#: plugin_kategdb.cpp:304
+#, kde-format
+msgid "Clear Output"
+msgstr "Limpar resultados"
+
+#: plugin_kategdb.cpp:312
+#, kde-format
+msgid "Hot Reload"
+msgstr "Atualização rápida"
+
+#: plugin_kategdb.cpp:319
+#, kde-format
+msgid "Hot Restart"
+msgstr "Reinício rápido"
+
+#: plugin_kategdb.cpp:328
+#, kde-format
+msgid "Enable Hot Reload on Save"
+msgstr "Ativar atualização rápida ao guardar"
+
+#: plugin_kategdb.cpp:337 plugin_kategdb.cpp:356
+#, kde-format
+msgctxt "Move Program Counter (next execution)"
+msgid "Move PC"
+msgstr "Mover contador de programa"
+
+#: plugin_kategdb.cpp:342
+#, kde-format
+msgid "Print Value"
+msgstr "Imprimir valor"
+
+#: plugin_kategdb.cpp:407
+#, kde-format
+msgid "Error: %1"
+msgstr "Erro: %1"
+
+#: plugin_kategdb.cpp:438
+#, kde-format
+msgid "Insert breakpoint"
+msgstr "Inserir ponto de interrupção"
+
+#: plugin_kategdb.cpp:444
+#, kde-format
+msgid "Toggle breakpoint"
+msgstr "Alternar ponto de interrupção"
+
+#: plugin_kategdb.cpp:559
+#, kde-format
+msgid "Execution point"
+msgstr "Ponto de execução"
+
+#: plugin_kategdb.cpp:668
+#, kde-format
+msgctxt "Tab label"
+msgid "Debug Output"
+msgstr "Saída de depuração"
+
+#: plugin_kategdb.cpp:669
+#, kde-format
+msgctxt "Tab label"
+msgid "Settings"
+msgstr "Definições"
+
+#: plugin_kategdb.cpp:704
+#, kde-format
+msgid "IO"
+msgstr "E/S"
+
+#: stackframe_model.cpp:95
+#, kde-format
+msgctxt "Column label (frame number)"
+msgid "Nr"
+msgstr "No"
+
+#: stackframe_model.cpp:97
+#, kde-format
+msgctxt "Column label"
+msgid "Function"
+msgstr "Função"
+
+#: stackframe_model.cpp:99
+#, kde-format
+msgctxt "Column label"
+msgid "Location"
+msgstr "Localização"
+
+#: stackview.cpp:96 stackview.cpp:128
+#, kde-format
+msgid "Thread %1"
+msgstr "Tarefa %1"
+
+#: stackview.cpp:167
+#, kde-format
+msgid "Copy Stack Trace"
+msgstr "Copiar rastreio da pilha"
+
+#: stackview.cpp:186
+#, kde-format
+msgid "Open Location"
+msgstr "Abrir localização"
+
+#: stackview.cpp:193
+#, kde-format
+msgid "Copy Location"
+msgstr "Copiar localização"
+
+#. i18n: ectx: Menu (debug)
+#: ui.rc:6
+#, kde-format
+msgid "&Debug"
+msgstr "&Depurar"
+
+#. i18n: ectx: ToolBar (gdbplugin)
+#: ui.rc:33
+#, kde-format
+msgid "Debug Plugin"
+msgstr "Suplemento de depuração"
+
+#~ msgid "User Debug Adapter Settings"
+#~ msgstr "Definições do adaptador de depuração do utilizador"
+
+#~ msgid "Settings File:"
+#~ msgstr "Ficheiro de definições:"
+
+#~ msgid "Default Debug Adapter Settings"
+#~ msgstr "Definições predefinidas do adaptador de depuração"
+
+#~ msgid "Failed to open file: %1"
+#~ msgstr "Não foi possível abrir o ficheiro: %1"
+
+#~ msgid "No JSON data to validate."
+#~ msgstr "Não existem dados JSON para validar."
+
+#~ msgid "JSON data is valid."
+#~ msgstr "Os dados JSON são válidos."
+
+#~ msgid "JSON data is invalid: no JSON object"
+#~ msgstr "Os dados JSON são inválidos: não existe nenhum objeto JSON."
+
+#~ msgid "JSON data is invalid: %1"
+#~ msgstr "Os dados JSON são inválidos: %1"
+
+#~ msgid "breakpoint cleared"
+#~ msgstr "ponto de paragem removido"
+
+#~ msgid "breakpoint not found (%1:%2)"
+#~ msgstr "o ponto de paragem não foi encontrado (%1:%2)"
+
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "<title>Could not open file:</title><nl/>%1<br/>Try adding a search path "
+#~ "to Advanced Settings -> Source file search paths"
+#~ msgstr ""
+#~ "<title>Não foi possível aceder ao ficheiro:</title><nl/>%1<br/>Tente "
+#~ "adicionar um local de pesquisa à Configuração Avançada -> Locais de "
+#~ "pesquisa do código-fonte"
+
+#~ msgctxt "Column label"
+#~ msgid "Frame"
+#~ msgstr "Nível de Chamadas"
+
+#~ msgid "killing backend"
+#~ msgstr "a terminar a infra-estrutura"
+
+#~ msgid "GDB command"
+#~ msgstr "Comando GDB"
+
+#~ msgid "..."
+#~ msgstr "..."
+
+#~ msgid "Source file search paths"
+#~ msgstr "Locais de pesquisa de ficheiros de código"
+
+#~ msgid "Remote TCP"
+#~ msgstr "TCP Remoto"
+
+#~ msgid "Remote Serial Port"
+#~ msgstr "Porta Série Remota"
+
+#~ msgid "Host"
+#~ msgstr "Máquina"
+
+#~ msgid "Port"
+#~ msgstr "Porto"
+
+#~ msgid "Baud"
+#~ msgstr "Bauds"
+
+#~ msgid "solib-absolute-prefix"
+#~ msgstr "solib-absolute-prefix"
+
+#~ msgid "solib-search-path"
+#~ msgstr "solib-search-path"
+
+#~ msgid "Custom Init Commands"
+#~ msgstr "Comandos de Inicialização Personalizados"
+
+#~ msgid "Advanced Settings"
+#~ msgstr "Configuração Avançada"
+
+#~ msgid "Locals"
+#~ msgstr "Locais"
+
+#~ msgid "CPU registers"
+#~ msgstr "Registos do CPU"
+
+#~ msgid ""
+#~ "Please set the executable in the 'Settings' tab in the 'Debug' panel."
+#~ msgstr ""
+#~ "Configure por favor o executável na página de 'Configuração' do painel de "
+#~ "'Depuração'."
+
+#~ msgid ""
+#~ "No debugger selected. Please select one in the 'Settings' tab in the "
+#~ "'Debug' panel."
+#~ msgstr ""
+#~ "Não está seleccionado nenhum depurador. Seleccione um por favor na página "
+#~ "de 'Configuração' do painel de 'Depuração'."
+
+#~ msgid ""
+#~ "Debugger not found. Please make sure you have it installed in your "
+#~ "system. The selected debugger is '%1'"
+#~ msgstr ""
+#~ "O depurador não foi encontrado. Certifique-se por favor que o tem "
+#~ "instalado no seu sistema. O depurador seleccionado é o '%1'"
+
+#~ msgid "Could not start debugger process"
+#~ msgstr "Não foi possível iniciar o processo do depurador"
+
+#~ msgid "*** gdb exited normally ***"
+#~ msgstr "*** o 'gdb' saiu normalmente ***"
+
+#~ msgid "all threads running"
+#~ msgstr "todas as tarefas em execução"
+
+#~ msgid "thread(s) running: %1"
+#~ msgstr "tarefas em execução: %1"
+
+#~ msgid "Current frame: %1:%2"
+#~ msgstr "Pilha actual: %1:%2"
+
+#~ msgid "Host: %1. Target: %1"
+#~ msgstr "Máquina: %1. Alvo: %1"
+
+#~ msgid ""
+#~ "gdb-mi: Could not parse last response: %1. Too many consecutive errors. "
+#~ "Shutting down."
+#~ msgstr ""
+#~ "gdb-mi: não foi possível processar a última resposta: %1. Ocorreram "
+#~ "vários erros consecutivos. A encerrar."
+
+#~ msgid "gdb-mi: Could not parse last response: %1"
+#~ msgstr "gdb-mi: não foi possível processar a última resposta: %1"
+
+#~ msgid "post mortem"
+#~ msgstr "'post-mortem'"
+
+#~ msgid "popup_breakpoint"
+#~ msgstr "popup_breakpoint"
+
+#~ msgid "popup_run_to_cursor"
+#~ msgstr "popup_run_to_cursor"

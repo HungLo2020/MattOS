@@ -1,0 +1,405 @@
+/* WirePlumber
+ *
+ * Copyright © 2022 Collabora Ltd.
+ *    @author Julian Bouzas <julian.bouzas@collabora.com>
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+#include <wp/wp.h>
+#include <wplua/wplua.h>
+
+#define WP_LOCAL_LOG_TOPIC log_topic_lua_scripting
+WP_LOG_TOPIC_EXTERN (log_topic_lua_scripting)
+
+/* API */
+
+/* TODO: deprecate / remove in the next major release.
+ *
+ * wp_spa_json_get_data() returns a pointer into a buffer that is NUL-terminated
+ * only at the end of the *buffer*, not at the end of the value. For a json that
+ * is a view into a larger document (anything constructed with the _wrap()
+ * variants, such as the sections returned by wp_conf_get_section()), the string
+ * pushed here therefore contains the value plus everything that follows it.
+ * The C API gets away with this because it always pairs get_data() with
+ * get_size(); Lua cannot pass such a pair to anything, so this method has no
+ * use case that to_string() does not cover better. It is only kept for
+ * compatibility with existing scripts. */
+static int
+spa_json_get_data (lua_State *L)
+{
+  WpSpaJson *json = wplua_checkboxed (L, 1, WP_TYPE_SPA_JSON);
+  lua_pushstring (L, wp_spa_json_get_data (json));
+  return 1;
+}
+
+static int
+spa_json_get_size (lua_State *L)
+{
+  WpSpaJson *json = wplua_checkboxed (L, 1, WP_TYPE_SPA_JSON);
+  lua_pushinteger (L, wp_spa_json_get_size (json));
+  return 1;
+}
+
+static int
+spa_json_to_string (lua_State *L)
+{
+  WpSpaJson *json = wplua_checkboxed (L, 1, WP_TYPE_SPA_JSON);
+  /* Instead of using wp_spa_json_to_string() and lua_pushstring, we can avoid
+   * an extra allocation if we use lua_pushlstring with wp_spa_json_get_data()
+   * and wp_spa_json_get_size () */
+  lua_pushlstring (L, wp_spa_json_get_data (json), wp_spa_json_get_size (json));
+  return 1;
+}
+
+static int
+spa_json_is_null (lua_State *L)
+{
+  WpSpaJson *json = wplua_checkboxed (L, 1, WP_TYPE_SPA_JSON);
+  lua_pushboolean (L, wp_spa_json_is_null (json));
+  return 1;
+}
+
+static int
+spa_json_is_boolean (lua_State *L)
+{
+  WpSpaJson *json = wplua_checkboxed (L, 1, WP_TYPE_SPA_JSON);
+  lua_pushboolean (L, wp_spa_json_is_boolean (json));
+  return 1;
+}
+
+static int
+spa_json_is_int (lua_State *L)
+{
+  WpSpaJson *json = wplua_checkboxed (L, 1, WP_TYPE_SPA_JSON);
+  lua_pushboolean (L, wp_spa_json_is_int (json));
+  return 1;
+}
+
+static int
+spa_json_is_float (lua_State *L)
+{
+  WpSpaJson *json = wplua_checkboxed (L, 1, WP_TYPE_SPA_JSON);
+  lua_pushboolean (L, wp_spa_json_is_float (json));
+  return 1;
+}
+
+static int
+spa_json_is_string (lua_State *L)
+{
+  WpSpaJson *json = wplua_checkboxed (L, 1, WP_TYPE_SPA_JSON);
+  lua_pushboolean (L, wp_spa_json_is_string (json));
+  return 1;
+}
+
+static int
+spa_json_is_array (lua_State *L)
+{
+  WpSpaJson *json = wplua_checkboxed (L, 1, WP_TYPE_SPA_JSON);
+  lua_pushboolean (L, wp_spa_json_is_array (json));
+  return 1;
+}
+
+static int
+spa_json_is_object (lua_State *L)
+{
+  WpSpaJson *json = wplua_checkboxed (L, 1, WP_TYPE_SPA_JSON);
+  lua_pushboolean (L, wp_spa_json_is_object (json));
+  return 1;
+}
+
+void
+push_luajson (lua_State *L, WpSpaJson *json, gint n_recursions)
+{
+  /* Null */
+  if (wp_spa_json_is_null (json)) {
+    lua_pushnil (L);
+  }
+
+  /* Boolean */
+  else if (wp_spa_json_is_boolean (json)) {
+    gboolean value = FALSE;
+    g_warn_if_fail (wp_spa_json_parse_boolean (json, &value));
+    lua_pushboolean (L, value);
+  }
+
+  /* Int */
+  else if (wp_spa_json_is_int (json)) {
+    gint value = 0;
+    g_warn_if_fail (wp_spa_json_parse_int (json, &value));
+    lua_pushinteger (L, value);
+  }
+
+  /* Float */
+  else if (wp_spa_json_is_float (json)) {
+    float value = 0;
+    g_warn_if_fail (wp_spa_json_parse_float (json, &value));
+    lua_pushnumber (L, value);
+  }
+
+  /* Array */
+  else if (wp_spa_json_is_array (json) && n_recursions > 0) {
+    g_auto (GValue) item = G_VALUE_INIT;
+    g_autoptr (WpIterator) it = wp_spa_json_new_iterator (json);
+    guint i = 1;
+    lua_newtable (L);
+    for (; wp_iterator_next (it, &item); g_value_unset (&item)) {
+      WpSpaJson *j = g_value_get_boxed (&item);
+      push_luajson (L, j, n_recursions - 1);
+      lua_rawseti (L, -2, i++);
+    }
+  }
+
+  /* Object */
+  else if (wp_spa_json_is_object (json) && n_recursions > 0) {
+    g_auto (GValue) item = G_VALUE_INIT;
+    g_autoptr (WpIterator) it = wp_spa_json_new_iterator (json);
+    lua_newtable (L);
+    for (; wp_iterator_next (it, &item); g_value_unset (&item)) {
+      WpSpaJson *key = g_value_get_boxed (&item);
+      g_autofree gchar *key_str = NULL;
+      WpSpaJson *value = NULL;
+      key_str = wp_spa_json_parse_string (key);
+      g_warn_if_fail (key_str);
+      g_value_unset (&item);
+      if (!wp_iterator_next (it, &item))
+        break;
+      value = g_value_get_boxed (&item);
+      push_luajson (L, value, n_recursions - 1);
+      lua_setfield (L, -2, key_str);
+    }
+  }
+
+  /* Otherwise always parse as String to allow parsing strings without quotes */
+  else {
+    g_autofree gchar *value = wp_spa_json_parse_string (json);
+    g_warn_if_fail (value);
+    lua_pushstring (L, value);
+  }
+}
+
+static int
+spa_json_merge (lua_State *L)
+{
+  WpSpaJson *a = wplua_checkboxed (L, 1, WP_TYPE_SPA_JSON);
+  WpSpaJson *b = wplua_checkboxed (L, 2, WP_TYPE_SPA_JSON);
+
+  WpSpaJson *merge =  wp_json_utils_merge_containers(a, b);
+  if(!merge)
+    luaL_error (L, "only Json container merge supported");
+
+  wplua_pushboxed (L, WP_TYPE_SPA_JSON, merge);
+  return 1;
+}
+
+static int
+spa_json_parse (lua_State *L)
+{
+  WpSpaJson *json = wplua_checkboxed (L, 1, WP_TYPE_SPA_JSON);
+  gint n_recursions = luaL_opt (L, luaL_checkinteger, 2, INT_MAX);
+  push_luajson (L, json, n_recursions);
+  return 1;
+}
+
+/* Raw */
+
+static int
+spa_json_raw_new (lua_State *L)
+{
+  const gchar *value = lua_tostring (L, 1);
+  wplua_pushboxed (L, WP_TYPE_SPA_JSON, wp_spa_json_new_from_string (value));
+  return 1;
+}
+
+/* None */
+
+static int
+spa_json_null_new (lua_State *L)
+{
+  wplua_pushboxed (L, WP_TYPE_SPA_JSON, wp_spa_json_new_null ());
+  return 1;
+}
+
+/* Boolean */
+
+static int
+spa_json_boolean_new (lua_State *L)
+{
+  gboolean value = lua_toboolean (L, 1);
+  wplua_pushboxed (L, WP_TYPE_SPA_JSON, wp_spa_json_new_boolean (value));
+  return 1;
+}
+
+/* Int */
+
+static int
+spa_json_int_new (lua_State *L)
+{
+  gint64 value = lua_tointeger (L, 1);
+  wplua_pushboxed (L, WP_TYPE_SPA_JSON, wp_spa_json_new_int (value));
+  return 1;
+}
+
+/* Float */
+
+static int
+spa_json_float_new (lua_State *L)
+{
+  float value = lua_tonumber (L, 1);
+  wplua_pushboxed (L, WP_TYPE_SPA_JSON, wp_spa_json_new_float (value));
+  return 1;
+}
+
+/* String */
+
+static int
+spa_json_string_new (lua_State *L)
+{
+  const gchar *value = lua_tostring (L, 1);
+  wplua_pushboxed (L, WP_TYPE_SPA_JSON, wp_spa_json_new_string (value));
+  return 1;
+}
+
+/* Array */
+
+static int
+spa_json_array_new (lua_State *L)
+{
+  g_autoptr (WpSpaJsonBuilder) builder = wp_spa_json_builder_new_array ();
+
+  luaL_checktype (L, 1, LUA_TTABLE);
+
+  lua_pushnil (L);
+  while (lua_next (L, -2)) {
+    /* We only add table values with integer keys */
+    if (lua_isinteger (L, -2)) {
+      switch (lua_type (L, -1)) {
+        case LUA_TBOOLEAN:
+          wp_spa_json_builder_add_boolean (builder, lua_toboolean (L, -1));
+          break;
+        case LUA_TNUMBER:
+          if (lua_isinteger (L, -1))
+            wp_spa_json_builder_add_int (builder, lua_tointeger (L, -1));
+          else
+            wp_spa_json_builder_add_float (builder, lua_tonumber (L, -1));
+          break;
+        case LUA_TSTRING:
+          wp_spa_json_builder_add_string (builder, lua_tostring (L, -1));
+          break;
+        case LUA_TUSERDATA: {
+          WpSpaJson *json = wplua_checkboxed (L, -1, WP_TYPE_SPA_JSON);
+          wp_spa_json_builder_add_json (builder, json);
+          break;
+        }
+        default:
+          luaL_error (L, "Json does not support lua type %s",
+              lua_typename(L, lua_type(L, -1)));
+          break;
+      }
+    }
+    lua_pop (L, 1);
+  }
+
+  wplua_pushboxed (L, WP_TYPE_SPA_JSON, wp_spa_json_builder_end (builder));
+  return 1;
+}
+
+/* Object */
+
+static int
+spa_json_object_new (lua_State *L)
+{
+  g_autoptr (WpSpaJsonBuilder) builder = wp_spa_json_builder_new_object ();
+
+  if (lua_istable (L, 1)) {
+    luaL_checktype (L, 1, LUA_TTABLE);
+
+    lua_pushnil (L);
+    while (lua_next (L, -2)) {
+      /* We only add table values with string keys */
+      if (lua_type (L, -2) == LUA_TSTRING) {
+        wp_spa_json_builder_add_property (builder, lua_tostring (L, -2));
+
+        switch (lua_type (L, -1)) {
+          case LUA_TBOOLEAN:
+            wp_spa_json_builder_add_boolean (builder, lua_toboolean (L, -1));
+            break;
+          case LUA_TNUMBER:
+            if (lua_isinteger (L, -1))
+              wp_spa_json_builder_add_int (builder, lua_tointeger (L, -1));
+            else
+              wp_spa_json_builder_add_float (builder, lua_tonumber (L, -1));
+            break;
+          case LUA_TSTRING:
+            wp_spa_json_builder_add_string (builder, lua_tostring (L, -1));
+            break;
+          case LUA_TUSERDATA: {
+            WpSpaJson *json = wplua_checkboxed (L, -1, WP_TYPE_SPA_JSON);
+            wp_spa_json_builder_add_json (builder, json);
+            break;
+          }
+          default:
+            luaL_error (L, "Json does not support lua type %s",
+                lua_typename(L, lua_type(L, -1)));
+            break;
+        }
+      }
+
+      lua_pop (L, 1);
+    }
+  } else {
+    WpProperties *props = wplua_checkboxed (L, 1, WP_TYPE_PROPERTIES);
+    g_autoptr (WpIterator) it = NULL;
+    g_auto (GValue) item = G_VALUE_INIT;
+    for (it = wp_properties_new_iterator (props); wp_iterator_next (it, &item);
+        g_value_unset (&item)) {
+      WpPropertiesItem *pi = g_value_get_boxed (&item);
+      const gchar *key = wp_properties_item_get_key (pi);
+      const gchar *value = wp_properties_item_get_value (pi);
+      wp_spa_json_builder_add_property (builder, key);
+      wp_spa_json_builder_add_string (builder, value);
+    }
+  }
+
+  wplua_pushboxed (L, WP_TYPE_SPA_JSON, wp_spa_json_builder_end (builder));
+  return 1;
+}
+
+/* Init */
+
+static const luaL_Reg spa_json_methods[] = {
+  { "get_data", spa_json_get_data },
+  { "get_size", spa_json_get_size },
+  { "to_string", spa_json_to_string },
+  { "is_null", spa_json_is_null },
+  { "is_boolean", spa_json_is_boolean },
+  { "is_int", spa_json_is_int },
+  { "is_float", spa_json_is_float },
+  { "is_string", spa_json_is_string },
+  { "is_array", spa_json_is_array },
+  { "is_object", spa_json_is_object },
+  { "parse", spa_json_parse },
+  { "merge", spa_json_merge },
+  { NULL, NULL }
+};
+
+static const luaL_Reg spa_json_constructors[] = {
+  { "Raw", spa_json_raw_new },
+  { "Null", spa_json_null_new },
+  { "Boolean", spa_json_boolean_new },
+  { "Int", spa_json_int_new },
+  { "Float", spa_json_float_new },
+  { "String", spa_json_string_new },
+  { "Array", spa_json_array_new },
+  { "Object", spa_json_object_new },
+  { NULL, NULL }
+};
+
+void
+wp_lua_scripting_json_init (lua_State *L)
+{
+  luaL_newlib (L, spa_json_constructors);
+  lua_setglobal (L, "WpSpaJson");
+
+  wplua_register_type_methods (L, WP_TYPE_SPA_JSON, NULL, spa_json_methods);
+}

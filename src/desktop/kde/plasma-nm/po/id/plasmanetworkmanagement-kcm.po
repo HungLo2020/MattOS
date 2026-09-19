@@ -1,0 +1,268 @@
+# Copyright (C) YEAR This file is copyright:
+# This file is distributed under the same license as the plasma-nm package.
+#
+# Wantoyo <wantoyek@gmail.com>, 2018, 2019, 2020.
+# Linerly <linerly@protonmail.com>, 2022.
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma-nm\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-29 03:06+0000\n"
+"PO-Revision-Date: 2022-03-03 12:25+0700\n"
+"Last-Translator: Linerly <linerly@protonmail.com>\n"
+"Language-Team: Indonesian <kde-i18n-doc@kde.org>\n"
+"Language: id\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: kcm.cpp:269
+#, kde-format
+msgid "Import the VPN configuration from \"%1\"?"
+msgstr ""
+
+#: kcm.cpp:270
+#, fuzzy, kde-format
+#| msgid "Import VPN Connection"
+msgctxt "@title:window"
+msgid "Import VPN Configuration"
+msgstr "Impor Koneksi VPN"
+
+#: kcm.cpp:271
+#, fuzzy, kde-format
+#| msgid "Export"
+msgid "Import"
+msgstr "Ekspor"
+
+#: kcm.cpp:278 kcm.cpp:351
+#, fuzzy, kde-format
+#| msgid "Import VPN Connection"
+msgid "Failed to import VPN connection: %1"
+msgstr "Impor Koneksi VPN"
+
+#: kcm.cpp:281 kcm.cpp:354
+#, fuzzy, kde-format
+#| msgid "Connected"
+msgid "Connection imported."
+msgstr "Terkoneksi"
+
+#: kcm.cpp:423
+#, kde-format
+msgid "my_shared_connection"
+msgstr "koneksi_berbagiku"
+
+#: kcm.cpp:495
+#, kde-format
+msgid "Export VPN Connection"
+msgstr "Ekspor Koneksi VPN"
+
+#: kcm.cpp:515
+#, kde-format
+msgid "Do you want to save changes made to the connection '%1'?"
+msgstr "Apakah kamu ingin menyimpan perubahan yang dibuat ke koneksi '%1'?"
+
+#: kcm.cpp:516
+#, kde-format
+msgctxt "@title:window"
+msgid "Save Changes"
+msgstr "Simpan Perubahan"
+
+#: kcm.cpp:611
+#, kde-format
+msgid "Import VPN Connection"
+msgstr "Impor Koneksi VPN"
+
+#: kcm.cpp:613
+#, fuzzy, kde-format
+#| msgid "Export VPN Connection"
+msgid "VPN connections (%1)"
+msgstr "Ekspor Koneksi VPN"
+
+#: kcm.cpp:616
+#, kde-format
+msgid "No file was provided"
+msgstr ""
+
+#: kcm.cpp:684
+#, kde-format
+msgid "Unknown VPN type"
+msgstr ""
+
+#: qml/AddConnectionDialog.qml:18
+msgctxt "@title:window"
+msgid "Choose a Connection Type"
+msgstr "Pilihlah sebuah Tipe Koneksi"
+
+#: qml/ConfigurationDialog.qml:20
+msgctxt "@title:window"
+msgid "Configuration"
+msgstr "Konfigurasi"
+
+#: qml/ConfigurationDialog.qml:35
+msgid "General"
+msgstr "Umum"
+
+#: qml/ConfigurationDialog.qml:43
+msgid "Ask for PIN on modem detection"
+msgstr "Tanyakan PIN saat deteksi modem"
+
+#: qml/ConfigurationDialog.qml:50
+msgid "Show virtual connections"
+msgstr "Tampilkan koneksi virtual"
+
+#: qml/ConfigurationDialog.qml:57
+msgid "Create new connections as system connections"
+msgstr ""
+
+#: qml/ConfigurationDialog.qml:62
+msgid "Hotspot"
+msgstr "Hotspot"
+
+#: qml/ConfigurationDialog.qml:70
+msgctxt "@label Hotspot name"
+msgid "Name:"
+msgstr ""
+
+#: qml/ConfigurationDialog.qml:76
+#, fuzzy
+#| msgid "Hotspot password:"
+msgctxt "@label Hotspot password"
+msgid "Password:"
+msgstr "Sandi hotspot:"
+
+#: qml/ConfigurationDialog.qml:95
+msgid "Hotspot name must not be empty"
+msgstr ""
+
+#: qml/ConfigurationDialog.qml:105
+msgid ""
+"Hotspot password must either be empty or consist of anywhere from 8 up to 64 "
+"characters"
+msgstr ""
+
+#: qml/ConfigurationDialog.qml:106
+msgid ""
+"Hotspot password must either be empty or consist of one of the following:"
+"<ul><li>Exactly 5 or 13 any characters</li><li>Exactly 10 or 26 hexadecimal "
+"characters:<br/>abcdef, ABCDEF or 0-9</li></ul>"
+msgstr ""
+
+#. i18n is a way to use something pre-exposed to QML.
+#: qml/ConnectionItem.qml:29
+msgctxt "@label/rich"
+msgid "%1"
+msgstr ""
+
+#: qml/ConnectionItem.qml:85
+msgid "Connect"
+msgstr "Koneksikan"
+
+#: qml/ConnectionItem.qml:85
+msgid "Disconnect"
+msgstr "Diskoneksikan"
+
+#: qml/ConnectionItem.qml:90
+msgctxt "@info:tooltip"
+msgid "Cannot connect to this network because it was not detected."
+msgstr ""
+
+#: qml/ConnectionItem.qml:95
+msgid "Delete"
+msgstr "Hapus"
+
+#: qml/ConnectionItem.qml:106
+msgid "Export"
+msgstr "Ekspor"
+
+#: qml/ConnectionItem.qml:120
+msgid "Connected"
+msgstr "Terkoneksi"
+
+#: qml/ConnectionItem.qml:122
+msgid "Connecting"
+msgstr "Mengkonek"
+
+#: qml/ConnectionItem.qml:124
+msgctxt "@title:column Available networks"
+msgid "Available"
+msgstr ""
+
+#: qml/main.qml:151
+msgid "Add new connection"
+msgstr "Tambahkan koneksi baru"
+
+#: qml/main.qml:169
+msgid "Remove selected connection"
+msgstr "Hapus koneksi terpilih"
+
+#: qml/main.qml:187
+msgid "Export selected connection"
+msgstr "Expor koneksi terpilih"
+
+#: qml/main.qml:212
+msgid "Configuration"
+msgstr "Konfigurasi"
+
+#: qml/main.qml:239
+msgctxt "@title:window"
+msgid "Remove Connection"
+msgstr "Hapus Koneksi"
+
+#: qml/main.qml:240
+msgid "Do you want to remove the connection '%1'?"
+msgstr "Apakah kamu ingin menghapus koneksi '%1'?"
+
+#: qml/main.qml:262
+#, fuzzy
+#| msgid "Connect"
+msgctxt "@action:button Connect to network"
+msgid "Connect"
+msgstr "Koneksikan"
+
+#: qml/main.qml:268
+#, fuzzy
+#| msgid "Cancel"
+msgctxt "@action:button Cancel connecting to network"
+msgid "Cancel"
+msgstr "Batal"
+
+#: qml/main.qml:274
+#, fuzzy
+#| msgid "Hotspot password:"
+msgctxt "@title:window"
+msgid "Enter Password"
+msgstr "Sandi hotspot:"
+
+#: qml/main.qml:280
+msgctxt "@label %1 is the name of the network the user is connecting to"
+msgid "Network: %1"
+msgstr ""
+
+#: qml/main.qml:301
+msgctxt "@label key is a passcode"
+msgid "Password must be a valid WEP key"
+msgstr ""
+
+#: qml/main.qml:302
+msgctxt "@label password invalid length message"
+msgid "Password must be between 8 and 64 characters"
+msgstr ""
+
+#~ msgid "Create"
+#~ msgstr "Ciptakan"
+
+#~ msgid "Cancel"
+#~ msgstr "Batal"
+
+#~ msgid "Hotspot name:"
+#~ msgstr "Nama hotspot:"
+
+#~ msgid "Ok"
+#~ msgstr "Oke"
+
+#~ msgid "Search…"
+#~ msgstr "Cari..."
+
+#~ msgid "Type here to search connections..."
+#~ msgstr "Ketik di sini untuk mencari koneksi..."

@@ -1,0 +1,703 @@
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Diego Iastrubni <elcuco@kde.org>, 2008, 2012, 2013.
+# Tahmar1900 <tahmar1900@gmail.com>, 2011.
+# elkana bardugo <ttv200@gmail.com>, 2016.
+# Elkana Bardugo <ttv200@gmail.com>, 2017. #zanata
+# SPDX-FileCopyrightText: 2023, 2024, 2025, 2026 Yaron Shahrabani <sh.yaron@gmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma_applet_org.kde.plasma.battery\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-03-17 02:42+0000\n"
+"PO-Revision-Date: 2026-01-10 13:18+0200\n"
+"Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
+"Language-Team: צוות התרגום של KDE ישראל\n"
+"Language: he\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n == 1) ? 0 : ((n == 2) ? 1 : ((n > 10 && "
+"n % 10 == 0) ? 2 : 3));\n"
+"X-Generator: Lokalize 25.12.1\n"
+
+#: BatteryItem.qml:99
+#, kde-format
+msgid "Charging"
+msgstr "בטעינה"
+
+#: BatteryItem.qml:101
+#, kde-format
+msgid "Discharging"
+msgstr "נפרקת"
+
+#: BatteryItem.qml:103 main.qml:122
+#, kde-format
+msgid "Fully Charged"
+msgstr "טעונה במלואה"
+
+#: BatteryItem.qml:105
+#, kde-format
+msgid "Not Charging"
+msgstr "לא בטעינה"
+
+#: BatteryItem.qml:108
+#, kde-format
+msgctxt "Battery is currently not present in the bay"
+msgid "Not present"
+msgstr "לא מחוברת"
+
+#: BatteryItem.qml:120
+#, kde-format
+msgctxt "Placeholder is battery percentage"
+msgid "%1%"
+msgstr "%1%"
+
+#: BatteryItem.qml:184
+#, kde-format
+msgid ""
+"This battery's health is at only %1% and it should be replaced. Contact the "
+"manufacturer."
+msgstr "בריאות הסוללה עומדת על %1% וכדאי להחליפה. נא ליצור קשר עם היצרן."
+
+#: BatteryItem.qml:203
+#, kde-format
+msgid "Time To Full:"
+msgstr "זמן לסיום הטעינה:"
+
+#: BatteryItem.qml:204
+#, kde-format
+msgid "Remaining Time:"
+msgstr "זמן שנותר:"
+
+#: BatteryItem.qml:210
+#, kde-format
+msgctxt "@info"
+msgid "Estimating…"
+msgstr "מתבצע שערוך…"
+
+#: BatteryItem.qml:220
+#, kde-format
+msgid "Battery Health:"
+msgstr "בריאות הסוללה:"
+
+#: BatteryItem.qml:226
+#, kde-format
+msgctxt "Placeholder is battery health percentage"
+msgid "%1%"
+msgstr "%1%"
+
+#: BatteryItem.qml:238
+#, kde-format
+msgid "Battery is configured to charge up to approximately %1%."
+msgstr "הסוללה מוגדרת להיטען עד %1% לכל היותר."
+
+#: CompactRepresentation.qml:101 CompactRepresentation.qml:150
+#, kde-format
+msgctxt "battery percentage below battery icon"
+msgid "%1%"
+msgstr "%1%"
+
+#: InhibitionItem.qml:53
+#, kde-format
+msgctxt "@title:group"
+msgid "Sleep and Screen Locking after Inactivity"
+msgstr "שינה ונעילת מסך לאחר חוסר פעילות"
+
+#: InhibitionItem.qml:60 main.qml:97 PowerProfileItem.qml:76
+#, kde-format
+msgid "Power Management"
+msgstr "ניהול צריכת חשמל"
+
+#: InhibitionItem.qml:65
+#, kde-format
+msgctxt "accessible-only status text"
+msgid "Automatic sleep and screen locking are currently blocked."
+msgstr "שינה ונעילת מסך אוטומטיות חסומות כרגע."
+
+#: InhibitionItem.qml:67
+#, kde-format
+msgctxt "accessible-only status text"
+msgid ""
+"Screen locking is currently blocked. Sleep is automatic after inactivity."
+msgstr "נעילת מסך חסומה כרגע. תתבצע שינה אוטומטית לאחר חוסר פעילות."
+
+#: InhibitionItem.qml:69
+#, kde-format
+msgctxt "accessible-only status text"
+msgid ""
+"Sleep is currently blocked. Screen locking is automatic after inactivity."
+msgstr "שינה חסומה כרגע. נעילת מסך מתבצעת אוטומטית לאחר חוסר פעילות."
+
+#: InhibitionItem.qml:71
+#, kde-format
+msgctxt "accessible-only status text"
+msgid "Sleep and screen locking are automatic after inactivity."
+msgstr "שינה ונעילת מסך מתבצעות אוטומטית לאחר חוסר פעילות."
+
+#: InhibitionItem.qml:95
+#, kde-format
+msgctxt "@action:button Block sleep and screen locking after inactivity"
+msgid "Manually Block Sleep and Screen Locking"
+msgstr "חסימת שינה ונעילת מסך ידנית"
+
+#: InhibitionItem.qml:118
+#, kde-format
+msgid "Failed to unblock automatic sleep and screen locking"
+msgstr "ביטול חסימת שינה ונעילת מסך אוטומטית נכשלה"
+
+#: InhibitionItem.qml:121
+#, kde-format
+msgid "Failed to block automatic sleep and screen locking"
+msgstr "חסימת שינה ונעילת מסך אוטומטית נכשלה"
+
+#: InhibitionItem.qml:135
+#, kde-format
+msgctxt ""
+"@label corresponding to Manually Block Sleep and Screen Locking toggle"
+msgid "This will result in higher energy consumption."
+msgstr "הפעולה הזאת תגביר את צריכת החשמל."
+
+#: InhibitionItem.qml:136
+#, kde-format
+msgctxt ""
+"@label accessible - the sentence about higher energy consumption must be "
+"included (EU regulations)"
+msgid ""
+"You have manually blocked automatic sleep and screen locking. This will "
+"result in higher energy consumption."
+msgstr ""
+"חסמת ידנית שינה ונעילת מסך אוטומטיות. הפעולה הזאת תגביר את צריכת החשמל."
+
+#: InhibitionItem.qml:143
+#, kde-format
+msgctxt "Minimize the length of this string as much as possible"
+msgid ""
+"Your laptop is configured not to sleep when closing the lid while an "
+"external monitor is connected."
+msgstr ""
+"המחשב הנייד שלך מוגדר לא לישון כשהמסך הפנימי נסגר בזמן שמחובר צג חיצוני."
+
+#: InhibitionItem.qml:162
+#, kde-format
+msgctxt "An application's reason for inhibiting sleep and/or screen locking"
+msgid "Unknown reason."
+msgstr "סיבה לא ידועה."
+
+#: InhibitionItem.qml:169
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) has been prevented from blocking this "
+"inactivity behavior. The user can choose to allow it again."
+msgid "%1 wants to block sleep and screen locking. (%2)"
+msgstr "%1 רוצה לחסום שינה ונעילת מסך. (%2)"
+
+#: InhibitionItem.qml:171
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) has been prevented from blocking this "
+"inactivity behavior. The user can choose to allow it again."
+msgid "%1 wants to block screen locking. (%2)"
+msgstr "%1 רוצה לחסום נעילת מסך. (%2)"
+
+#: InhibitionItem.qml:173
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) has been prevented from blocking this "
+"inactivity behavior. The user can choose to allow it again."
+msgid "%1 wants to block sleep. (%2)"
+msgstr "%1 רוצה לחסום שינה. (%2)"
+
+#: InhibitionItem.qml:177
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, in addition to the user's manual block switch."
+msgid "%1 is also blocking sleep and screen locking. (%2)"
+msgstr "%1 גם חוסם שינה ונעילת מסך. (%2)"
+
+#: InhibitionItem.qml:179
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, in addition to the user's manual block switch."
+msgid "%1 is also blocking screen locking. (%2)"
+msgstr "%1 גם חוסם נעילת מסך. (%2)"
+
+#: InhibitionItem.qml:181
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, in addition to the user's manual block switch."
+msgid "%1 is also blocking sleep. (%2)"
+msgstr "%1 גם חוסם שינה. (%2)"
+
+#: InhibitionItem.qml:185
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, the user can choose to unblock it."
+msgid "%1 is blocking sleep and screen locking. (%2)"
+msgstr "%1 חוסם שינה ונעילת מסך. (%2)"
+
+#: InhibitionItem.qml:187
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, the user can choose to unblock it."
+msgid "%1 is blocking screen locking. (%2)"
+msgstr "%1 חוסם נעילת מסך. (%2)"
+
+#: InhibitionItem.qml:189
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, the user can choose to unblock it."
+msgid "%1 is blocking sleep. (%2)"
+msgstr "%1 חוסם שינה. (%2)"
+
+#: InhibitionItem.qml:197
+#, kde-format
+msgctxt ""
+"@action:button Prevent an app from blocking automatic sleep and screen "
+"locking after inactivity"
+msgid "Unblock"
+msgstr "שחרור חסימה"
+
+#: InhibitionItem.qml:205
+#, kde-format
+msgctxt ""
+"@action:button Undo preventing an app from blocking automatic sleep and "
+"screen locking after inactivity"
+msgid "Allow"
+msgstr "לאפשר"
+
+#: main.qml:76
+#, kde-format
+msgid "The battery applet has enabled suppressing sleep and screen locking"
+msgstr "יישומון הסוללה הפעיל בלימה של שינה ונעילת מסך"
+
+#: main.qml:97
+#, kde-format
+msgid "Power and Battery"
+msgstr "צריכת חשמל וסוללה"
+
+#: main.qml:116
+#, kde-format
+msgid "Battery is not present in the bay"
+msgstr "אין סוללה בחלל הייעודי"
+
+#: main.qml:129
+#, kde-format
+msgid "Battery at %1%, not Charging"
+msgstr "סוללה על %1%, לא נטענת"
+
+#: main.qml:131
+#, kde-format
+msgid "Battery at %1%, plugged in but still discharging"
+msgstr "סוללה על %1%, מחוברת לחשמל אך עדיין נפרקת"
+
+#: main.qml:133
+#, kde-format
+msgid "Battery at %1%, Charging"
+msgstr "סוללה על %1%, נטענת"
+
+#: main.qml:136
+#, kde-format
+msgid "Battery at %1%"
+msgstr "הסוללה טעונה ב־%1%"
+
+#: main.qml:144
+#, kde-format
+msgid "The power supply is not powerful enough to charge the battery"
+msgstr "המטען לא מספיק חזק כדי לטעון את הסוללה"
+
+#: main.qml:148
+#, kde-format
+msgid "No Batteries Available"
+msgstr "סוללה לא זמינה"
+
+#: main.qml:155
+#, kde-format
+msgctxt "time until fully charged - HH:MM"
+msgid "%1 until fully charged"
+msgstr "%1 עד לטעינה מלאה"
+
+#: main.qml:157
+#, kde-format
+msgctxt "remaining time left of battery usage - HH:MM"
+msgid "%1 remaining"
+msgstr "נותרו %1"
+
+#: main.qml:160
+#, kde-format
+msgid "Not charging"
+msgstr "לא נטענת"
+
+#: main.qml:165
+#, kde-format
+msgid ""
+"Automatic sleep and screen locking are disabled; middle-click to re-enable"
+msgstr "שינה ונעילת מסך אוטומטית מושבתות, לחיצת עכבר אמצעית תפעיל מחדש"
+
+#: main.qml:167
+#, kde-format
+msgid "Middle-click to disable automatic sleep and screen locking"
+msgstr "לחיצת עכבר אמצעית תשבית שינה ונעילת מסך"
+
+#: main.qml:172
+#, kde-format
+msgid "An application has requested activating Performance mode"
+msgid_plural "%1 applications have requested activating Performance mode"
+msgstr[0] "יישום ביקש להפעיל מצב ביצועים משופרים"
+msgstr[1] "שני יישומים ביקשו להפעיל מצב ביצועים משופרים"
+msgstr[2] "%1 יישומים ביקשו להפעיל מצב ביצועים משופרים"
+msgstr[3] "%1 יישומים ביקשו להפעיל מצב ביצועים משופרים"
+
+#: main.qml:176
+#, kde-format
+msgid "System is in Performance mode; scroll to change"
+msgstr "המערכת במצב ביצועים משופרים, אפשר לשנות בגלילה"
+
+#: main.qml:180
+#, kde-format
+msgid "An application has requested activating Power Save mode"
+msgid_plural "%1 applications have requested activating Power Save mode"
+msgstr[0] "יישום ביקש להפעיל מצב חיסכון בחשמל"
+msgstr[1] "שני יישומים ביקשו להפעיל מצב חיסכון בחשמל"
+msgstr[2] "%1 יישומים ביקשו להפעיל מצב חיסכון בחשמל"
+msgstr[3] "%1 יישומים ביקשו להפעיל מצב חיסכון בחשמל"
+
+#: main.qml:184
+#, kde-format
+msgid "System is in Power Save mode; scroll to change"
+msgstr "המערכת במצב חיסכון בחשמל, אפשר לשנות בגלילה"
+
+#: main.qml:187
+#, kde-format
+msgid "System is in Balanced Power mode; scroll to change"
+msgstr "המערכת במצב חשמלי מאוזן, אפשר לשנות בגלילה"
+
+#: main.qml:301
+#, kde-format
+msgid "&Show Energy Information…"
+msgstr "ה&צגת פרטי אנרגיה…"
+
+#: main.qml:307
+#, kde-format
+msgid "Show Battery Percentage on Icon When Not Fully Charged"
+msgstr "הצגת אחוזי הטעונה על הסמל כשהסוללה טעונה חלקית"
+
+#: main.qml:320
+#, kde-format
+msgid "&Configure Power Management…"
+msgstr "ניהול צריכת &חשמל…"
+
+#: PowerProfileItem.qml:41
+#, kde-format
+msgid "Power Save"
+msgstr "חיסכון בחשמל"
+
+#: PowerProfileItem.qml:45
+#, kde-format
+msgid "Balanced"
+msgstr "מאוזן"
+
+#: PowerProfileItem.qml:49
+#, kde-format
+msgid "Performance"
+msgstr "ביצועים משופרים"
+
+#: PowerProfileItem.qml:66
+#, kde-format
+msgid "Power Profile"
+msgstr "פרופיל צריכת חשמל"
+
+#: PowerProfileItem.qml:110
+#, kde-format
+msgctxt "Power profile"
+msgid "Automatic"
+msgstr "אוטומטי"
+
+#: PowerProfileItem.qml:111
+#, kde-format
+msgctxt "Power profile"
+msgid "Not available"
+msgstr "לא זמין"
+
+#: PowerProfileItem.qml:151
+#, kde-format
+msgid "Failed to activate %1 mode"
+msgstr "הפעלת מצב %1 נכשלה"
+
+#: PowerProfileItem.qml:228
+#, kde-format
+msgid ""
+"Performance mode has been disabled to reduce heat generation because the "
+"computer has detected that it may be sitting on your lap."
+msgstr ""
+"מצב ביצועים משופרים הושבת כדי להפחית את החום שנוצר כיוון שהמחשב זיהה שהוא "
+"כנראה על הירכיים שלך."
+
+#: PowerProfileItem.qml:230
+#, kde-format
+msgid ""
+"Performance mode is unavailable because the computer is running too hot."
+msgstr "מצב ביצועים משופרים לא זמין כיוון שהמחשב שלך חם מדי."
+
+#: PowerProfileItem.qml:232
+#, kde-format
+msgid "Performance mode is unavailable."
+msgstr "מצב ביצועים משופרים אינו זמין."
+
+#: PowerProfileItem.qml:248
+#, kde-format
+msgid ""
+"Performance may be lowered to reduce heat generation because the computer "
+"has detected that it may be sitting on your lap."
+msgstr ""
+"הביצועים כנראה מצומצמים כדי להפחית את החום שנוצר כיוון שהמחשב זיהה שהוא "
+"כנראה על הירכיים שלך."
+
+#: PowerProfileItem.qml:250
+#, kde-format
+msgid "Performance may be reduced because the computer is running too hot."
+msgstr "הביצועים כנראה מצומצמים כיוון שהמחשב חם מדי."
+
+#: PowerProfileItem.qml:252
+#, kde-format
+msgid "Performance may be reduced."
+msgstr "הביצועים כנראה מצומצמים."
+
+#: PowerProfileItem.qml:265
+#, kde-format
+msgid "One application has requested activating %2:"
+msgid_plural "%1 applications have requested activating %2:"
+msgstr[0] "יישום אחד ביקש להפעיל %2:"
+msgstr[1] "שני יישומים ביקשו להפעיל %2:"
+msgstr[2] "%1 יישומים ביקשו להפעיל %2:"
+msgstr[3] "%1 יישומים ביקשו להפעיל %2:"
+
+#: PowerProfileItem.qml:284
+#, kde-format
+msgctxt ""
+"%1 is the name of the application, %2 is the reason provided by it for "
+"activating performance mode"
+msgid "%1: %2"
+msgstr "%1: %2"
+
+#: PowerProfileItem.qml:302
+#, kde-format
+msgid "The TLP service automatically controls power profiles"
+msgstr "שירות TLP שולט אוטומטית בפרופילי צריכת החשמל"
+
+#: PowerProfileItem.qml:304
+#, kde-format
+msgid "Power profiles are not supported on your device."
+msgstr "אין תמיכה בפרופילים של ניהול חשמל במכשיר שלך."
+
+#: PowerProfileItem.qml:305
+#, kde-kuit-format
+msgid ""
+"Power profiles may be supported on your device.<nl/>Try installing the "
+"<command>power-profiles-daemon</command> package using your distribution's "
+"package manager and restarting the system."
+msgstr ""
+"יכול להיות שיש תמיכה בפרופילי צריכת חשמל במכשיר שלך.<nl/>כדאי לנסות להתקין "
+"את החבילה <command>power-profiles-daemon</command> בעזרת מנהל החבילות של "
+"ההפצה שלך ולהפעיל את המערכת מחדש."
+
+#~ msgctxt "Sleep and Screen Locking after Inactivity"
+#~ msgid "Blocked"
+#~ msgstr "חסום"
+
+#~ msgctxt "Sleep and Screen Locking after Inactivity"
+#~ msgid "Automatic"
+#~ msgstr "אוטומטי"
+
+#~ msgid "%1 application currently wants to block sleep and screen locking:"
+#~ msgid_plural ""
+#~ "%1 applications currently want to block sleep and screen locking:"
+#~ msgstr[0] "יישום אחד רוצה כרגע לחסום שינה ונעילת מסך:"
+#~ msgstr[1] "שני יישומים רוצים כרגע לחסום שינה ונעילת מסך:"
+#~ msgstr[2] "%1 יישומים רוצים כרגע לחסום שינה ונעילת מסך:"
+#~ msgstr[3] "%1 יישומים רוצים כרגע לחסום שינה ונעילת מסך:"
+
+#~ msgctxt "Application name; reason"
+#~ msgid "%1 has been prevented from blocking sleep and screen locking for %2"
+#~ msgstr "נמנע מ־%1 לחסום שינה ונעילת מסך למשך %2"
+
+#~ msgid "%1 is currently blocking sleep and screen locking (unknown reason)"
+#~ msgstr "%1 חוסם כרגע שינה ונעילת מסך (מסיבה לא ידועה)"
+
+#~ msgid "An application is currently blocking sleep and screen locking (%1)"
+#~ msgstr "יישום חוסם כרגע שינה ונעילת מסך (%1)"
+
+#~ msgid ""
+#~ "An application is currently blocking sleep and screen locking (unknown "
+#~ "reason)"
+#~ msgstr "יישום חוסם כרגע שינה ונעילת מסך (מסיבה לא ידועה)"
+
+#~ msgctxt "Application name: reason for preventing sleep and screen locking"
+#~ msgid "%1: %2"
+#~ msgstr "%1: %2"
+
+#~ msgctxt "Application name: reason for preventing sleep and screen locking"
+#~ msgid "Unknown application: %1"
+#~ msgstr "יישום לא ידוע: %1"
+
+#~ msgctxt "Application name: reason for preventing sleep and screen locking"
+#~ msgid "Unknown application: unknown reason"
+#~ msgstr "יישום לא ידוע: סיבה לא ידועה"
+
+#~ msgctxt ""
+#~ "@action:button Undo preventing an app from blocking automatic sleep and "
+#~ "screen locking after inactivity"
+#~ msgid "Block Again"
+#~ msgstr "חסימה חוזרת"
+
+#~ msgctxt ""
+#~ "@action:button Undo blocking sleep and screen locking after inactivity"
+#~ msgid "Unblock"
+#~ msgstr "שחרור חסימה"
+
+#~ msgctxt "@action:button Block sleep and screen locking after inactivity"
+#~ msgid "Manually Block"
+#~ msgstr "חסימה ידנית"
+
+#~ msgctxt ""
+#~ "@action:button Prevent an app from blocking automatic sleep and screen "
+#~ "locking after inactivity"
+#~ msgid "Only this time"
+#~ msgstr "רק הפעם"
+
+#~ msgctxt ""
+#~ "@action:button Prevent an app from blocking automatic sleep and screen "
+#~ "locking after inactivity"
+#~ msgid "Every time for this app and reason"
+#~ msgstr "כל פעם ליישום הזה וסיבה"
+
+#~ msgid ""
+#~ "%1 application has been prevented from blocking sleep and screen locking:"
+#~ msgid_plural ""
+#~ "%1 applications have been prevented from blocking sleep and screen "
+#~ "locking:"
+#~ msgstr[0] "נמנע מ־%1 לחסום שינה ונעילת מסך למשך "
+#~ msgstr[1] "שני יישומים נחסמו למניעת שינה ונעילת מסך:"
+#~ msgstr[2] "%1 יישומים נחסמו למניעת שינה ונעילת מסך:"
+#~ msgstr[3] "%1 יישומים נחסמו למניעת שינה ונעילת מסך:"
+
+#~ msgctxt "Placeholder is the battery number"
+#~ msgid "Battery %1"
+#~ msgstr "סוללה %1"
+
+#~ msgid "Battery"
+#~ msgstr "סוללה"
+
+#~ msgctxt "Placeholder is brightness percentage"
+#~ msgid "%1%"
+#~ msgstr "%1%"
+
+#~ msgid "Battery and Brightness"
+#~ msgstr "סוללה ובהירות"
+
+#~ msgid "Brightness"
+#~ msgstr "בהירות"
+
+#~ msgid "Scroll to adjust screen brightness"
+#~ msgstr "גלילה כאן תכוון את בהירות המסך"
+
+#~ msgid "Display Brightness"
+#~ msgstr "בהירות תצוגה"
+
+#~ msgid "Keyboard Brightness"
+#~ msgstr "בהירות מקלדת"
+
+#, fuzzy
+#~| msgid "Power management is disabled"
+#~ msgid "Performance mode has been manually enabled"
+#~ msgstr "ניהול צריכת החשמל כבוי:"
+
+#~ msgid "General"
+#~ msgstr "כללי"
+
+#, fuzzy
+#~| msgctxt "short symbol to signal there is no battery curently available"
+#~| msgid "-"
+#~ msgctxt "short symbol to signal there is no battery currently available"
+#~ msgid "-"
+#~ msgstr "-"
+
+#~ msgid "Configure Power Saving..."
+#~ msgstr "הגדר חיסכון באנרגיה..."
+
+#~ msgid "Time To Empty:"
+#~ msgstr "זמן נותר לשימוש:"
+
+#~ msgid ""
+#~ "Disabling power management will prevent your screen and computer from "
+#~ "turning off automatically.\n"
+#~ "\n"
+#~ "Most applications will automatically suppress power management when they "
+#~ "don't want to have you interrupted."
+#~ msgstr ""
+#~ "ביטול מנהל צריכת החשמל יגרום למסך ולמחשב לא להתכונן אוטומטית.\n"
+#~ "\n"
+#~ "רוב הישומים ימנעו לבד את ניהול צריכת החשמל שהם לא מעוניינים שתפריע להם"
+
+#~ msgctxt "Some Application and n others are currently suppressing PM"
+#~ msgid ""
+#~ "%2 and %1 other application are currently suppressing power management."
+#~ msgid_plural ""
+#~ "%2 and %1 other applications are currently suppressing power management."
+#~ msgstr[0] "%2 ועוד %1 יישומים השהו את ניהול צריכת החשמל."
+#~ msgstr[1] "%2 ועוד %1 יישומים השהו את ניהול צריכת החשמל."
+
+#~ msgctxt "Some Application is suppressing PM"
+#~ msgid "%1 is currently suppressing power management."
+#~ msgstr "%1 כרגע השהה את ניהול צריכת החשמל."
+
+#~ msgctxt "Some Application is suppressing PM: Reason provided by the app"
+#~ msgid "%1 is currently suppressing power management: %2"
+#~ msgstr "%1 כרגע השהה את ניהול צריכת החשמל: %2"
+
+#~ msgctxt "Used for measurement"
+#~ msgid "100%"
+#~ msgstr "100%"
+
+#, fuzzy
+#~| msgid "%1%. Charging"
+#~ msgid "%1% Charging"
+#~ msgstr "%1%. נטען"
+
+#, fuzzy
+#~| msgid "%1%. Plugged in"
+#~ msgid "%1% Plugged in"
+#~ msgstr "%1%. מחובר"
+
+#~ msgid "%1% Battery Remaining"
+#~ msgstr "%1% אחוזי סוללה נותרו"
+
+#, fuzzy
+#~| msgid "Capacity:"
+#~ msgctxt "The degradation in the battery's energy capacity"
+#~ msgid "Capacity degradation:"
+#~ msgstr "כמות:"
+
+#, fuzzy
+#~| msgctxt "Placeholder is battery percentage"
+#~| msgid "%1%"
+#~ msgctxt "Placeholder is battery's capacity degradation"
+#~ msgid "%1%"
+#~ msgstr "%1%"
+
+#~ msgctxt "Placeholder is battery capacity"
+#~ msgid "%1%"
+#~ msgstr "%1%"
+
+#~ msgid "Vendor:"
+#~ msgstr "ספק:"
+
+#~ msgid "Model:"
+#~ msgstr "מודל:"

@@ -1,0 +1,50 @@
+/*
+ * Copyright (C) 2018 Red Hat, Inc. All rights reserved.
+ *
+ * This file is part of LVM2.
+ *
+ * This copyrighted material is made available to anyone wishing to use,
+ * modify, copy, or redistribute it subject to the terms and conditions
+ * of the GNU Lesser General Public License v.2.1.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+#ifndef LVM_HINTS_H
+#define LVM_HINTS_H
+
+#include "lib/commands/toolcontext.h"
+
+struct hint {
+	struct dm_list list;
+	dev_t devt;
+	char name[PATH_MAX]   __attribute__((aligned(8)));
+	char vgname[NAME_LEN] __attribute__((aligned(8)));
+	char pvid[ID_LEN + 1] __attribute__((aligned(8)));
+	unsigned chosen:1; /* this hint's dev was chosen for scanning */
+};
+
+void free_hints(struct dm_list *hints);
+
+int write_hint_file(struct cmd_context *cmd, int newhints);
+
+void clear_hint_file(struct cmd_context *cmd);
+
+void invalidate_hints(struct cmd_context *cmd);
+
+int get_hints(struct cmd_context *cmd, struct dm_list *hints_out, int *newhints,
+              struct dm_list *devs_in, struct dm_list *devs_out);
+
+int validate_hints(struct cmd_context *cmd, struct dm_list *hints);
+
+void hints_exit(struct cmd_context *cmd);
+
+void pvscan_recreate_hints_begin(struct cmd_context *cmd);
+
+void get_single_vgname_cmd_arg(struct cmd_context *cmd,
+                               struct dm_list *hints, char **vgname);
+
+#endif
+

@@ -1,0 +1,331 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: libknminternals\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-04-25 02:45+0000\n"
+"PO-Revision-Date: 2022-12-12 16:35+0000\n"
+"Last-Translator: José Nuno Coelho Pires <zepires@gmail.com>\n"
+"Language-Team: Portuguese <kde-i18n-pt@kde.org>\n"
+"Language: pt\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-POFile-Allow: 2\n"
+"X-POFile-SpellExtra: GPRS PAP LCP Network Duplex PEAP MSCHAPv Access HH\n"
+"X-POFile-SpellExtra: Deflate HSPA Bauds Ad BSSIDs TX hoc PIN MSCHAP MAC Wi\n"
+"X-POFile-SpellExtra: pe EAP VPN WPA AC UUID MRU VJ Wifi MTU UMTS DSL\n"
+"X-POFile-SpellExtra: Protected IPv Robust MPPE Secure PSK RSN SSID BSSID\n"
+"X-POFile-SpellExtra: PUK CRTSCTS CHAP LEAP EDGE APN Fi Gateway pre NAT\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-POFile-SpellExtra: wrap vpnc TAP space supplicant create firmware\n"
+"X-POFile-SpellExtra: openvpn white NT pppoe Stephenson PPTP TTLS wireless\n"
+"X-POFile-SpellExtra: AP cellular vpn VPNs MD CDMA SHA edit VPNC Will LZO\n"
+"X-POFile-SpellExtra: OpenVPN ethernet cdma gsm HMAC gateway PPPoE TKIP\n"
+"X-POFile-SpellExtra: UiUtils CCMP PFS PF Nortel DH XAUTH Novell Strong\n"
+"X-POFile-IgnoreConsistency: View:\n"
+"X-POFile-SpellExtra: Swan GBps bps MBps EVDO xRTT GTC GHz NetworkManager\n"
+"X-POFile-SpellExtra: PANU Dif DUN rfcomm ModemManager WifiPartilhada\n"
+"X-POFile-SpellExtra: LigaçãosemFiosPartilhada wpasupplicant MSS agent\n"
+"X-POFile-SpellExtra: Desktop HSUPA OpenConnect xFFFF SEP KBits AWS\n"
+"X-POFile-SpellExtra: Netscreen IKE CSD Roaming Proxies decrypt KBytes GPP\n"
+"X-POFile-SpellExtra: FSID MBit RIPEMD clonado WCDMA SOCKS HSDPA EMAIL nap\n"
+"X-POFile-SpellExtra: BlueZ NAP dun GBit Souza Sebastian Kügler Lamarque\n"
+"X-POFile-SpellExtra: Rajeesh Ilia Kats Nambiar firewalld IMEI PKCS IMSI\n"
+"X-POFile-SpellExtra: LigacaosemFiosPartilhada WiFi PAN MS secundária KBit\n"
+"X-POFile-SpellExtra: Kb ADSL Gb Mb LTE VLAN NM OLPC WiMax WiMAX InfiniBand\n"
+"X-POFile-SpellExtra: Infiniband NSP BSID roaming PH Edge HSxPA FSIM QR\n"
+"X-POFile-SpellExtra: kibibytes Wimax\n"
+
+#: ConnectionItem.qml:62
+#, kde-format
+msgid "Connect"
+msgstr "Ligar"
+
+#: ConnectionItem.qml:62
+#, kde-format
+msgid "Disconnect"
+msgstr "Desligar"
+
+#: ConnectionItem.qml:90
+#, kde-format
+msgctxt "Share Wi-Fi network's password or QR code"
+msgid "Share"
+msgstr ""
+
+#: ConnectionItem.qml:96
+#, kde-format
+msgid "Configure…"
+msgstr "Configurar…"
+
+#: ConnectionItem.qml:136
+#, kde-format
+msgid "Speed"
+msgstr "Velocidade"
+
+#: ConnectionItem.qml:141
+#, kde-format
+msgid "Details"
+msgstr "Detalhes"
+
+#: ConnectionItem.qml:188
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Current download speed is %1 kibibytes per second; current upload speed is "
+"%2 kibibytes per second"
+msgstr ""
+"A velocidade actual de recepção é de %1 kibibytes por segundo; a velocidade "
+"de envio actual é de %2 kibibytes por segundo"
+
+#: ConnectionItem.qml:302
+#, fuzzy, kde-format
+#| msgid "Connected, ⬇ %1/s, ⬆ %2/s"
+msgctxt "Download and upload rates in some unit per second"
+msgid "↓ %1/s, ↑ %2/s"
+msgstr "Ligada, ⬇ %1/s, ⬆ %2/s"
+
+#: ConnectionListPage.qml:33
+#, kde-format
+msgid "You need to log in to this network"
+msgstr ""
+
+#: ConnectionListPage.qml:37
+#, kde-format
+msgctxt "@action:button"
+msgid "Log in"
+msgstr ""
+
+#: ConnectionListPage.qml:118
+#, kde-format
+msgid "Airplane mode is enabled"
+msgstr "O modo de avião está activo"
+
+#: ConnectionListPage.qml:122
+#, fuzzy, kde-format
+#| msgid "Wireless and mobile networks are deactivated"
+msgid "Wi-Fi and mobile data are deactivated"
+msgstr "As redes móveis e sem-fios estão desactivadas"
+
+#: ConnectionListPage.qml:124
+#, fuzzy, kde-format
+#| msgid "Wireless is deactivated"
+msgid "Wi-Fi is deactivated"
+msgstr "A rede sem-fios está desactivada"
+
+#: ConnectionListPage.qml:127
+#, kde-format
+msgid "Looking for Wi-Fi networks"
+msgstr ""
+
+#: ConnectionListPage.qml:130
+#, fuzzy, kde-format
+#| msgid "Mobile network is deactivated"
+msgid "Mobile data is deactivated"
+msgstr "A rede móvel está desactivada"
+
+#: ConnectionListPage.qml:133
+#, kde-format
+msgid "No matches"
+msgstr "Sem correspondências"
+
+#: ConnectionListPage.qml:136
+#, kde-format
+msgid "No available connections"
+msgstr "Sem ligações disponíveis"
+
+#: ConnectionListPage.qml:145
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn off airplane mode to search for networks"
+msgstr ""
+
+#: ConnectionListPage.qml:149
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on Wi-Fi or mobile data to search for networks"
+msgstr ""
+
+#: ConnectionListPage.qml:151
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on Wi-Fi to search for networks"
+msgstr ""
+
+#: ConnectionListPage.qml:154
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Turn on mobile data to search for networks"
+msgstr ""
+
+#: DetailsText.qml:40
+#, kde-format
+msgid "Copy"
+msgstr "Copiar"
+
+#: main.qml:32
+#, kde-format
+msgid "Networks"
+msgstr "Redes"
+
+#: main.qml:41
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Middle-click to turn off Airplane Mode"
+msgstr "Carregue com o botão do meio para desactivar o Modo de Avião"
+
+#: main.qml:43
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Middle-click to turn on Airplane Mode"
+msgstr "Carregue com o botão do meio para activar o Modo de Avião"
+
+#: main.qml:71 Toolbar.qml:74
+#, kde-format
+msgid "Enable Wi-Fi"
+msgstr "Activar o Wi-Fi"
+
+#: main.qml:82
+#, fuzzy, kde-format
+#| msgid "Enable Mobile Network"
+msgid "Enable Mobile Data"
+msgstr "Activar a Rede Móvel"
+
+#: main.qml:94
+#, kde-format
+msgid "Enable Airplane Mode"
+msgstr "Activar o Modo de Avião"
+
+#: main.qml:106
+#, kde-format
+msgid "Open Network Login Page…"
+msgstr "Abrir a Página de Autenticação na Rede…"
+
+#: main.qml:116
+#, kde-format
+msgid "&Configure Network Connections…"
+msgstr "&Configurar as Ligações de Rede…"
+
+#: PopupDialog.qml:51
+#, fuzzy, kde-format
+#| msgid "&Configure Network Connections…"
+msgctxt "@action:button"
+msgid "Return to Network Connections"
+msgstr "&Configurar as Ligações de Rede…"
+
+#: ShareNetworkQrCodePage.qml:33
+#, kde-format
+msgid "Scan this QR code with another device to connect to the \"%1\" network."
+msgstr ""
+
+#: ShareNetworkQrCodePage.qml:108
+#, kde-format
+msgid "Wi-Fi password:"
+msgstr ""
+
+#: Toolbar.qml:124
+#, fuzzy, kde-format
+#| msgid "Enable mobile network"
+msgid "Enable mobile data"
+msgstr "Activar a rede móvel"
+
+#: Toolbar.qml:147
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Disable airplane mode<nl/><nl/>This will enable Wi-Fi and Bluetooth"
+msgstr ""
+"Desactiva o modo de avião<nl/><nl/>Isto irá activar o Wi-Fi e o Bluetooth"
+
+#: Toolbar.qml:148
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Enable airplane mode<nl/><nl/>This will disable Wi-Fi and Bluetooth"
+msgstr ""
+"Activa o modo de avião<nl/><nl/>Isto irá desactivar o Wi-Fi e o Bluetooth"
+
+#: Toolbar.qml:176
+#, kde-format
+msgid "Hotspot"
+msgstr "Ponto de Acesso"
+
+#: Toolbar.qml:193
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cannot create a hotspot because Wi-Fi is disabled."
+msgstr ""
+
+#: Toolbar.qml:195
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Cannot create a hotspot because all wireless radios are in use. Disconnect "
+"from the current Wi-Fi network or connect another wireless radio."
+msgstr ""
+
+#: Toolbar.qml:197
+#, fuzzy, kde-format
+#| msgid "Disable Hotspot"
+msgctxt "@info:tooltip"
+msgid "Disable Hotspot"
+msgstr "Desactivar o Ponto de Acesso"
+
+#: Toolbar.qml:199
+#, fuzzy, kde-format
+#| msgid "Create Hotspot"
+msgctxt "@info:tooltip"
+msgid "Create Hotspot"
+msgstr "Criar um Ponto de Acesso"
+
+#: Toolbar.qml:227
+#, kde-format
+msgctxt "@action:button"
+msgid "Scan Wi-Fi QR Code"
+msgstr ""
+
+#: Toolbar.qml:232
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Scan QR Code to connect to a Wi-Fi network"
+msgstr ""
+
+#: Toolbar.qml:234
+#, kde-format
+msgctxt "@info:tooltip"
+msgid ""
+"Install QRCA Barcode Scanner to scan for a QR Code that connects to a Wi-Fi "
+"network"
+msgstr ""
+
+#: Toolbar.qml:253
+#, kde-format
+msgid "Configure network connections…"
+msgstr "Configurar as ligações de rede…"
+
+#~ msgid "/s"
+#~ msgstr "/s"
+
+#~ msgid "Upload"
+#~ msgstr "Enviar"
+
+#~ msgid "Download"
+#~ msgstr "Obter"
+
+#~ msgid "Show Network's QR Code"
+#~ msgstr "Mostrar o Código QR da Rede"
+
+#~ msgid "Connected"
+#~ msgstr "Ligada"
+
+#~ msgid "Password…"
+#~ msgstr "Senha…"
+
+#~ msgctxt "@title:window"
+#~ msgid "QR Code for %1"
+#~ msgstr "Código QR de %1"
+
+#~ msgctxt "@info:tooltip %1 is the name of a network connection"
+#~ msgid "Connect to %1"
+#~ msgstr "Ligar a %1"
+
+#~ msgctxt "@info:tooltip %1 is the name of a network connection"
+#~ msgid "Disconnect from %1"
+#~ msgstr "Desligar de %1"

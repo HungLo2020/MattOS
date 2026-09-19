@@ -1,0 +1,2695 @@
+# translation of ark.po to Persian
+# Nazanin Kazemi <kazemi@itland.ir>, 2006, 2007.
+# MaryamSadat Razavi <razavi@itland.ir>, 2006.
+# Nasim Daniarzadeh <daniarzadeh@itland.ir>, 2006.
+# Tahereh Dadkhahfar <dadkhahfar@itland.ir>, 2006.
+# translation of ark.po to
+# SPDX-FileCopyrightText: 2026 Sohrab Behdani <behdanisohrab@proton.me>
+msgid ""
+msgstr ""
+"Project-Id-Version: ark\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-08-24 02:42+0000\n"
+"PO-Revision-Date: 2026-06-29 12:20+0330\n"
+"Last-Translator: Sohrab Behdani <behdanisohrab@proton.me>\n"
+"Language-Team: fa\n"
+"Language: fa\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 26.04.2\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "سهراب بهدانی"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "behdanisohrab@proton.me"
+
+#. i18n: ectx: Menu (archive)
+#: app/arkui.rc:5
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgctxt "Noun, not a verb. Top level menu item, i.e. like File"
+msgid "&Archive"
+msgstr "باز کردن بایگانی"
+
+#: app/batchextract.cpp:103 app/batchextract.cpp:174
+#, fuzzy, kde-format
+#| msgid "Extracting all files"
+msgid "Extracting Files"
+msgstr "استخراج همه پرونده‌ها"
+
+#: app/batchextract.cpp:104 app/batchextract.cpp:175
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgid "Source archive"
+msgstr "باز کردن بایگانی"
+
+#: app/batchextract.cpp:105 app/batchextract.cpp:176
+#, kde-format
+msgid "Destination"
+msgstr "مقصد"
+
+#: app/batchextract.cpp:117
+#, kde-format
+msgid "The following files could not be extracted:"
+msgstr "پرونده‌های زیر استخراج نشدند:"
+
+#: app/batchextract.cpp:137
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"There was an error while extracting <filename>%1</filename>. Any further "
+"archive will not be extracted."
+msgstr ""
+"هنگام استخراج <filename>%1</filename> خطایی رخ داد. هیچ بایگانی دیگری "
+"استخراج نخواهد شد."
+
+#: app/batchextract.cpp:139
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"There was an error while extracting <filename>%1</filename>:<nl/><message>"
+"%2</message><nl/>Any further archive will not be extracted."
+msgstr ""
+"در هنگام استخراج <filename>%1</filename> خطایی رخ داد:<message>%2</"
+"message>استخراج بایگانی‌های بعدی انجام نخواهد شد."
+
+#: app/batchextract.cpp:146
+#, fuzzy, kde-kuit-format
+msgctxt "@info"
+msgid "There was an error while extracting <filename>%1</filename>."
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: app/batchextract.cpp:148
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"There was an error while extracting <filename>%1</filename>:<nl/><message>"
+"%2</message>"
+msgstr ""
+"هنگام استخراج <filename>%1</filename> خطایی رخ داد:<message>%2</message>"
+
+#: app/batchextract.cpp:301
+#, fuzzy, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The archive could not be extracted to <filename>%1</filename> because Ark "
+"can only extract to local destinations."
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: app/compressfileitemaction.cpp:74
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgctxt "@action:inmenu Compress submenu in Dolphin context menu"
+msgid "Compress"
+msgstr "باز کردن بایگانی"
+
+#: app/compressfileitemaction.cpp:102
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgctxt "@action:inmenu Part of Compress submenu in Dolphin context menu"
+msgid "Compress to…"
+msgstr "باز کردن بایگانی"
+
+#: app/compressfileitemaction.cpp:105 app/compressfileitemaction.cpp:119
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgctxt ""
+"@action:inmenu Part of Compress submenu in Dolphin context menu, %1 filename"
+msgid "Compress to \"%1\""
+msgstr "باز کردن بایگانی"
+
+#: app/compressfileitemaction.cpp:111 kerfuffle/addtoarchive.cpp:269
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgctxt "Default name of a newly-created multi-file archive"
+msgid "Archive"
+msgstr "باز کردن بایگانی"
+
+#: app/extractfileitemaction.cpp:66
+#, fuzzy, kde-format
+#| msgid "Extract"
+msgctxt "@action:inmenu Part of Extract submenu in Dolphin context menu"
+msgid "Extract to…"
+msgstr "استخراج"
+
+#: app/extractfileitemaction.cpp:78
+#, fuzzy, kde-format
+#| msgid "Extract"
+msgctxt "@action:inmenu Part of Extract submenu in Dolphin context menu"
+msgid "Extract here"
+msgstr "استخراج"
+
+#: app/extractfileitemaction.cpp:84
+#, fuzzy, kde-format
+#| msgid "Extracting all files"
+msgctxt "@action:inmenu Part of Extract submenu in Dolphin context menu"
+msgid "Extract and trash archive"
+msgstr "استخراج همه پرونده‌ها"
+
+#: app/extractfileitemaction.cpp:91
+#, fuzzy, kde-format
+#| msgid "Extract"
+msgctxt "@action:inmenu Extract submenu in Dolphin context menu"
+msgid "Extract"
+msgstr "استخراج"
+
+#: app/extractHereDndPlugin.cpp:54
+#, fuzzy, kde-format
+#| msgid "Extract"
+msgctxt ""
+"@action:inmenu Context menu shown when an archive is being drag'n'dropped"
+msgid "Extract here"
+msgstr "استخراج"
+
+#: app/main.cpp:76
+#, kde-format
+msgid "Ark"
+msgstr "آرک"
+
+#: app/main.cpp:78
+#, kde-format
+msgid "KDE Archiving tool"
+msgstr "ابزار بایگانی KDE"
+
+#: app/main.cpp:80
+#, kde-format
+msgid "© 1997–2025 The Ark Developers"
+msgstr "© 1997–2025 توسعه دهندگان آرک"
+
+#: app/main.cpp:86
+#, kde-format
+msgid "Elvis Angelaccio"
+msgstr "Elvis Angelaccio"
+
+#: app/main.cpp:86
+#, kde-format
+msgid "Maintainer"
+msgstr "نگه‌دارنده"
+
+#: app/main.cpp:87
+#, kde-format
+msgid "Ragnar Thomsen"
+msgstr "Ragnar Thomsen"
+
+#: app/main.cpp:87
+#, fuzzy, kde-format
+#| msgid "Maintainer"
+msgid "Maintainer, KF5 port"
+msgstr "نگه‌دارنده"
+
+#: app/main.cpp:88
+#, kde-format
+msgid "Raphael Kubo da Costa"
+msgstr "Raphael Kubo da Costa"
+
+#: app/main.cpp:88 app/main.cpp:89 app/main.cpp:90
+#, fuzzy, kde-format
+#| msgid "Former maintainer"
+msgid "Former Maintainer"
+msgstr "نگه‌دارنده سابق"
+
+#: app/main.cpp:89
+#, kde-format
+msgid "Harald Hvaal"
+msgstr "Harald Hvaal"
+
+#: app/main.cpp:90
+#, kde-format
+msgid "Henrique Pinto"
+msgstr "Henrique Pinto"
+
+#: app/main.cpp:91
+#, kde-format
+msgid "Helio Chissini de Castro"
+msgstr "Helio Chissini de Castro"
+
+#: app/main.cpp:91
+#, kde-format
+msgid "Former maintainer"
+msgstr "نگه‌دارنده سابق"
+
+#: app/main.cpp:92
+#, kde-format
+msgid "Georg Robbers"
+msgstr "Georg Robbers"
+
+#: app/main.cpp:93
+#, kde-format
+msgid "Roberto Selbach Teixeira"
+msgstr "Roberto Selbach Teixeira"
+
+#: app/main.cpp:94
+#, kde-format
+msgid "Francois-Xavier Duranceau"
+msgstr "Francois-Xavier Duranceau"
+
+#: app/main.cpp:95
+#, kde-format
+msgid "Emily Ezust (Corel Corporation)"
+msgstr "Emily Ezust (Corel Corporation)"
+
+#: app/main.cpp:96
+#, kde-format
+msgid "Michael Jarrett (Corel Corporation)"
+msgstr "Michael Jarrett (Corel Corporation)"
+
+#: app/main.cpp:97
+#, kde-format
+msgid "Robert Palmbos"
+msgstr "Robert Palmbos"
+
+#: app/main.cpp:99
+#, kde-format
+msgid "Vladyslav Batyrenko"
+msgstr "Vladyslav Batyrenko"
+
+#: app/main.cpp:100
+#, kde-format
+msgid "Advanced editing functionalities"
+msgstr "امکانات پیشرفتهٔ ویرایش"
+
+#: app/main.cpp:103
+#, kde-format
+msgid "Bryce Corkins"
+msgstr "Bryce Corkins"
+
+#: app/main.cpp:103
+#, kde-format
+msgid "Icons"
+msgstr "شمایلها"
+
+#: app/main.cpp:104
+#, kde-format
+msgid "Liam Smit"
+msgstr "Liam Smit"
+
+#: app/main.cpp:104
+#, kde-format
+msgid "Ideas, help with the icons"
+msgstr "ایده‌ها و راهنمایی برای شمایل‌ها"
+
+#: app/main.cpp:105
+#, kde-format
+msgid "Andrew Smith"
+msgstr "Andrew Smith"
+
+#: app/main.cpp:105
+#, kde-format
+msgid "bkisofs code"
+msgstr "bkisofs code"
+
+#: app/main.cpp:114
+#, kde-format
+msgid "URLs to open."
+msgstr "پیوند‌ها برای بازکردن"
+
+#: app/main.cpp:117
+#, kde-format
+msgid ""
+"Show a dialog for specifying the options for the operation (extract/add)"
+msgstr "گفت‌وگویی برای تعیین گزینه‌های این عمل (استخراج/افزودن) نمایش می‌دهد."
+
+#: app/main.cpp:120
+#, kde-format
+msgid ""
+"Destination folder to extract to. Defaults to current path if not specified."
+msgstr ""
+"پوشهٔ مقصد برای استخراج. اگر مشخص نشود، مسیر کنونی به‌طور پیش‌فرض استفاده می‌شود."
+
+#. i18n: ectx: label, entry (openDestinationFolderAfterExtraction), group (Extraction)
+#: app/main.cpp:124 kerfuffle/ark.kcfg:23
+#, kde-format
+msgid "Open destination folder after extraction."
+msgstr "بازگشایی پوشه مقصد بعد از استخراج."
+
+#: app/main.cpp:127
+#, kde-format
+msgid ""
+"Query the user for an archive filename and add specified files to it. Quit "
+"when finished."
+msgstr ""
+"نام پروندهٔ بایگانی را از کاربر بپرس و پرونده‌های مشخص‌شده را به آن بیفزا. پس "
+"از پایان، خارج شو."
+
+#: app/main.cpp:130
+#, kde-format
+msgid ""
+"Add the specified files to 'filename'. Create archive if it does not exist. "
+"Quit when finished."
+msgstr ""
+"پرونده‌های مشخص‌شده را به 'filename' بیفزا. اگر بایگانی وجود نداشته باشد، آن "
+"را ایجاد کن. پس از پایان، خارج شو."
+
+#: app/main.cpp:134
+#, kde-format
+msgid ""
+"Change the current dir to the first entry and add all other entries relative "
+"to this one."
+msgstr ""
+"شاخهٔ کنونی را به نخستین مدخل تغییر بده و همهٔ مدخل‌های دیگر را نسبت به آن "
+"بیفزا."
+
+#: app/main.cpp:138
+#, kde-format
+msgid ""
+"Automatically choose a filename, with the selected suffix (for example rar, "
+"tar.gz, zip or any other supported types)"
+msgstr ""
+"نام پرونده را با پسوند انتخاب‌شده (برای نمونه rar، tar.gz، zip یا هر قالب "
+"پشتیبانی‌شدهٔ دیگر) به‌طور خودکار انتخاب کن."
+
+#: app/main.cpp:143
+#, kde-format
+msgid ""
+"Use the batch interface instead of the usual dialog. This option is implied "
+"if more than one url is specified."
+msgstr ""
+"به‌جای گفت‌وگوی معمول، از واسط دسته‌ای استفاده کن. اگر بیش از یک نشانی مشخص شده "
+"باشد، این گزینه به‌طور خودکار اعمال می‌شود."
+
+#: app/main.cpp:146
+#, kde-format
+msgid ""
+"The destination argument will be set to the path of the first file supplied."
+msgstr "آرگومان مقصد به مسیر نخستین پروندهٔ ارائه‌شده تنظیم خواهد شد."
+
+#: app/main.cpp:149
+#, kde-format
+msgid ""
+"Archive contents will be read, and if detected to not be a single folder or "
+"a single file archive, a subfolder with the name of the archive will be "
+"created."
+msgstr ""
+"محتویات بایگانی خوانده خواهد شد و اگر مشخص شود که بایگانی شامل تنها یک پوشه "
+"یا یک پرونده نیست، زیرپوشه‌ای با نام بایگانی ایجاد خواهد شد."
+
+#: app/main.cpp:152
+#, kde-format
+msgid "List supported MIME types."
+msgstr "فهرست قالب‌های MIME پشتیبانی‌شده."
+
+#: app/mainwindow.cpp:167
+#, kde-format
+msgid "Unable to find Ark's KPart component, please check your installation."
+msgstr "مؤلفهٔ KPart برنامهٔ آرک پیدا نشد، لطفاً نصب خود را بررسی کنید."
+
+#: app/mainwindow.cpp:182
+#, kde-format
+msgid "Sidebar"
+msgstr "میلهٔ کناری"
+
+#: app/mainwindow.cpp:285
+#, kde-format
+msgid "Welcome Page"
+msgstr "صفحه خوش‌آمد"
+
+#: app/mainwindow.cpp:287
+#, kde-format
+msgid "Show the welcome page"
+msgstr "صفحه خوش‌آمد را نشان بده"
+
+#: app/mainwindow.cpp:295
+#, kde-kuit-format
+msgctxt "@info:whatsthis"
+msgid ""
+"This switches between having a <emphasis>Menubar</emphasis> and having a "
+"<interface>Hamburger Menu</interface> button. Both contain mostly the same "
+"commands and configuration options."
+msgstr ""
+"این گزینه بین داشتن <emphasis>نوار منو</emphasis> و دکمهٔ <interface>منوی "
+"همبرگری</interface> جابه‌جا می‌کند. هر دو عمدتاً شامل همان فرمان‌ها و گزینه‌های "
+"پیکربندی هستند."
+
+#: app/mainwindow.cpp:315
+#, kde-format
+msgid "Lock Sidebar"
+msgstr "قفل کردن میلهٔ کناری"
+
+#: app/mainwindow.cpp:371
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgctxt "to open an archive"
+msgid "Open Archive"
+msgstr "باز کردن بایگانی"
+
+#: app/mainwindow.cpp:484
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgid "Create New Archive"
+msgstr "باز کردن بایگانی"
+
+#: app/welcomeview/welcomeview.cpp:50
+#, kde-format
+msgid "Welcome to %1"
+msgstr "به %1 خوش‌آمدید"
+
+#: app/welcomeview/welcomeview.cpp:55
+#, fuzzy, kde-format
+#| msgid "Add Files"
+msgid "No recent files"
+msgstr "افزودن پرونده‌ها"
+
+#: app/welcomeview/welcomeview.cpp:143
+#, kde-format
+msgid "Copy &Location"
+msgstr "رونوشت &مقصد"
+
+#: app/welcomeview/welcomeview.cpp:149
+#, kde-format
+msgid "&Open Containing Folder"
+msgstr "&باز کردن پوشهٔ حاوی"
+
+#: app/welcomeview/welcomeview.cpp:156
+#, kde-format
+msgid "&Remove"
+msgstr "&حذف"
+
+#. i18n: ectx: property (windowTitle), widget (QScrollArea, WelcomeView)
+#: app/welcomeview/welcomeview.ui:17
+#, kde-format
+msgid "Welcome"
+msgstr "خوش‌آمدید"
+
+#. i18n: ectx: property (text), widget (QPushButton, buttonOpenArchive)
+#: app/welcomeview/welcomeview.ui:179
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgid "Open Archive…"
+msgstr "باز کردن بایگانی"
+
+#. i18n: ectx: property (text), widget (QPushButton, buttonNewArchive)
+#: app/welcomeview/welcomeview.ui:186
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgid "New Archive"
+msgstr "باز کردن بایگانی"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, buttonClearRecentFiles)
+#: app/welcomeview/welcomeview.ui:193
+#, kde-format
+msgid "Clear Recent Files"
+msgstr "پاکسازی پروندهٔ‌های اخیر"
+
+#. i18n: ectx: property (text), widget (QLabel, labelRecentFiles)
+#: app/welcomeview/welcomeview.ui:222
+#, fuzzy, kde-format
+#| msgid "Add Files"
+msgid "Recent Files"
+msgstr "افزودن پرونده‌ها"
+
+#. i18n: ectx: property (text), widget (QLabel, labelHelp)
+#: app/welcomeview/welcomeview.ui:263
+#, kde-format
+msgid "Help"
+msgstr "راهنما"
+
+#. i18n: ectx: property (text), widget (KUrlLabel, labelHomepage)
+#: app/welcomeview/welcomeview.ui:273
+#, kde-format
+msgid "Visit homepage"
+msgstr "مشاهده صفحهٔ خانه"
+
+#. i18n: ectx: property (text), widget (KUrlLabel, labelHandbook)
+#: app/welcomeview/welcomeview.ui:286
+#, kde-format
+msgid "Read handbook"
+msgstr "مطالعه کتابچه"
+
+#. i18n: ectx: property (text), widget (QCheckBox, checkBoxShowOnStartup)
+#: app/welcomeview/welcomeview.ui:345
+#, kde-format
+msgid "Show on startup"
+msgstr "نمایش در اجرا"
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, buttonClose)
+#: app/welcomeview/welcomeview.ui:400
+#, kde-format
+msgid "Close Welcome Page"
+msgstr "بستن صفحهٔ خوش‌آمد"
+
+#: kerfuffle/adddialog.cpp:32 kerfuffle/adddialog.cpp:70
+#, kde-format
+msgid "Advanced Options"
+msgstr "تنظیمات پیشرفته"
+
+#: kerfuffle/adddialog.cpp:41
+#, kde-format
+msgctxt "@action:button"
+msgid "Add"
+msgstr "افزودن"
+
+#. i18n: ectx: property (title), widget (QGroupBox, groupCompressFiles)
+#: kerfuffle/adddialog.ui:35
+#, kde-format
+msgid "Files/Folders to Compress"
+msgstr "پرونده‌ها/پوشه‌ها برای فشرده‌سازی"
+
+#: kerfuffle/addtoarchive.cpp:78
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgid "Compress to Archive"
+msgstr "باز کردن بایگانی"
+
+#: kerfuffle/addtoarchive.cpp:132
+#, kde-format
+msgid "No input files were given."
+msgstr "هیچ پرونده‌ای به عنوان ورودی داده نشد."
+
+#: kerfuffle/addtoarchive.cpp:140
+#, kde-kuit-format
+msgid ""
+"You need to either supply a filename for the archive or a suffix (such as "
+"rar, tar.gz) with the <command>--autofilename</command> argument."
+msgstr ""
+"باید یا نامی برای بایگانی ارائه کنید، یا یک پسوند (مانند rar یا tar.gz) را "
+"همراه با آرگومان <command>--autofilename</command> مشخص کنید."
+
+#: kerfuffle/addtoarchive.cpp:206 part/part.cpp:830
+#, fuzzy, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The archive <filename>%1</filename> already exists. Do you wish to overwrite "
+"it?"
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: kerfuffle/addtoarchive.cpp:207 part/part.cpp:831
+#, kde-format
+msgctxt "@title:window"
+msgid "File Exists"
+msgstr "پروندهٔ موجود است"
+
+#. i18n: ectx: label, entry (showEncryptionWarning), group (General)
+#: kerfuffle/ark.kcfg:9
+#, kde-format
+msgid ""
+"Whether to show a warning when creating zip archives with AES encryption."
+msgstr ""
+"آیا هنگام ایجاد بایگانی‌های ZIP با رمزگذاری AES، هشدار نمایش داده شود یا نه."
+
+#. i18n: ectx: label, entry (defaultOpenAction), group (General)
+#: kerfuffle/ark.kcfg:13
+#, kde-format
+msgid "Default action when opening archive entries."
+msgstr "کنش پیش‌فرض هنگام باز کردن مدخل‌های بایگانی."
+
+#. i18n: ectx: label, entry (closeAfterExtraction), group (Extraction)
+#: kerfuffle/ark.kcfg:27
+#, kde-format
+msgid "Close Ark after extraction."
+msgstr "بستن آرک بعد از استخراج."
+
+#. i18n: ectx: label, entry (preservePaths), group (Extraction)
+#: kerfuffle/ark.kcfg:31
+#, kde-format
+msgid "Preserve paths when extracting."
+msgstr "حفظ مسیرها هنگام استخراج."
+
+#. i18n: ectx: label, entry (extractToSubfolder), group (Extraction)
+#: kerfuffle/ark.kcfg:35
+#, kde-format
+msgid ""
+"Extract to a subfolder if the archive has more than one top-level entry."
+msgstr ""
+"در صورت داشتن بیش از یک مدخل در سطح بالای بایگانی، در یک زیرپوشه استخراج شود."
+
+#. i18n: ectx: label, entry (splitterSizes), group (MainWindow)
+#: kerfuffle/ark.kcfg:41
+#, kde-format
+msgid "How the main window is divided."
+msgstr "نحوهٔ تقسیم پنجرهٔ اصلی."
+
+#. i18n: ectx: label, entry (showInfoPanel), group (MainWindow)
+#: kerfuffle/ark.kcfg:45
+#, kde-format
+msgid "Whether to show the information panel."
+msgstr "آیا تابلوی اطلاعات نمایش داده شود یا نه."
+
+#. i18n: ectx: label, entry (limitPreviewFileSize), group (Preview)
+#: kerfuffle/ark.kcfg:55
+#, kde-format
+msgid "Whether to limit the preview according to file size."
+msgstr "آیا پیش‌نمایش بر اساس اندازهٔ پرونده محدود شود یا نه."
+
+#. i18n: ectx: label, entry (previewFileSizeLimit), group (Preview)
+#: kerfuffle/ark.kcfg:59
+#, kde-format
+msgid "Preview file size limit in megabytes."
+msgstr "محدودیت اندازهٔ پیش‌نمایش پرونده بر حسب مگابایت."
+
+#: kerfuffle/cliinterface.cpp:236
+#, fuzzy, kde-kuit-format
+msgctxt "@info"
+msgid "Failed to locate program <filename>%1</filename> on disk."
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: kerfuffle/cliinterface.cpp:346
+#, kde-format
+msgid "Extraction failed. Make sure that enough space is available."
+msgstr "استخراج با شکست مواجه شد. بررسی کنید که فضای کافی موجود است."
+
+#: kerfuffle/cliinterface.cpp:349
+#, kde-format
+msgid ""
+"Extraction failed. Make sure you provided the correct password and that "
+"enough space is available."
+msgstr ""
+"استخراج ناموفق بود. مطمئن شوید گذرواژهٔ صحیح را وارد کرده‌اید و فضای کافی در "
+"دسترس است."
+
+#: kerfuffle/cliinterface.cpp:360 kerfuffle/cliinterface.cpp:481
+#, kde-format
+msgctxt "@info"
+msgid "Could not move the extracted file to the destination directory."
+msgid_plural "Could not move the extracted files to the destination directory."
+msgstr[0] "انتقال پروندهٔ استخراج‌شده به پوشهٔ مقصد ممکن نبود."
+msgstr[1] "انتقال پروندهٔ‌های استخراج‌شده به پوشهٔ مقصد ممکن نبود."
+
+#: kerfuffle/cliinterface.cpp:836
+#, kde-format
+msgctxt "@info"
+msgid "Extraction failed because the disk is full."
+msgstr "استخراج به علت پر بودن دیسک با خطا مواجه شد."
+
+#: kerfuffle/cliinterface.cpp:843 plugins/cliarjplugin/cliplugin.cpp:145
+#, kde-format
+msgctxt "@info"
+msgid "Extraction failed: Incorrect password"
+msgstr "استخراج با شکست مواجه شد: گذرواژه اشتباه"
+
+#: kerfuffle/cliinterface.cpp:877
+#, kde-format
+msgid "Incorrect password."
+msgstr "گذرواژه اشتباه."
+
+#: kerfuffle/cliinterface.cpp:899
+#, kde-format
+msgid "Ark does not currently support testing this archive."
+msgstr "در حال حاضر آرک از آزمودن این بایگانی پشتیبانی نمی‌کند."
+
+#: kerfuffle/compressionoptionswidget.cpp:133
+#, kde-format
+msgid "Protection of the list of files is not possible with the %1 format."
+msgstr "محافظت از فهرست پرونده‌ها در قالب %1 ممکن نیست."
+
+#: kerfuffle/compressionoptionswidget.cpp:141
+#, kde-format
+msgid ""
+"Protection of the archive with password is not possible with the %1 format."
+msgstr "محافظت از بایگانی با گذرواژه در قالب %1 ممکن نیست."
+
+#: kerfuffle/compressionoptionswidget.cpp:155
+#, kde-format
+msgid "It is not possible to set compression level for the %1 format."
+msgstr "تنظیم سطح فشرده‌سازی برای قالب %1 ممکن نیست."
+
+#: kerfuffle/compressionoptionswidget.cpp:174
+#, kde-format
+msgid "It is not possible to set compression method for the %1 format."
+msgstr "تنظیم روش فشرده‌سازی برای قالب %1 ممکن نیست."
+
+#: kerfuffle/compressionoptionswidget.cpp:195
+#, kde-format
+msgid "The %1 format does not support multi-volume archives."
+msgstr "قالب %1 از بایگانی‌های چندبخشی پشتیبانی نمی‌کند."
+
+#. i18n: ectx: property (title), widget (KCollapsibleGroupBox, collapsibleCompression)
+#: kerfuffle/compressionoptionswidget.ui:20
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgid "Compression"
+msgstr "باز کردن بایگانی"
+
+#. i18n: ectx: property (text), widget (QLabel, lblCompLevel1)
+#: kerfuffle/compressionoptionswidget.ui:35
+#, kde-format
+msgid "Level:"
+msgstr "سطح:"
+
+#. i18n: ectx: property (text), widget (QLabel, lblCompLevel2)
+#: kerfuffle/compressionoptionswidget.ui:45
+#, kde-format
+msgid "Min"
+msgstr "کمترین"
+
+#. i18n: ectx: property (text), widget (QLabel, lblCompMethod)
+#: kerfuffle/compressionoptionswidget.ui:83
+#, kde-format
+msgid "Method:"
+msgstr "متد:"
+
+#. i18n: ectx: property (text), widget (QLabel, lblCompLevel3)
+#: kerfuffle/compressionoptionswidget.ui:93
+#, kde-format
+msgid "Max"
+msgstr "بیشترین"
+
+#. i18n: ectx: property (title), widget (KCollapsibleGroupBox, collapsibleEncryption)
+#: kerfuffle/compressionoptionswidget.ui:118
+#, kde-format
+msgid "Password Protection"
+msgstr "محافظت با گذرواژه"
+
+#. i18n: ectx: property (text), widget (QLabel, lblEncMethod)
+#: kerfuffle/compressionoptionswidget.ui:130
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgid "Encryption method:"
+msgstr "باز کردن بایگانی"
+
+#. i18n: ectx: property (text), widget (QCheckBox, encryptHeaderCheckBox)
+#: kerfuffle/compressionoptionswidget.ui:160
+#, kde-format
+msgid "Ask for password before showing the list of files in the archive"
+msgstr "برای نشان دادن فهرست پروندهٔ‌های موجود در این بایگانی گذرواژه پرسیده شود"
+
+#. i18n: ectx: property (text), widget (KMessageWidget, warningMsgWidget)
+#: kerfuffle/compressionoptionswidget.ui:170
+#, kde-format
+msgid ""
+"This encryption method may not be supported by older archiving software."
+msgstr ""
+"این روش رمزگذاری ممکن است توسط نرم‌افزارهای بایگانی قدیمی‌تر پشتیبانی نشود."
+
+#. i18n: ectx: property (title), widget (KCollapsibleGroupBox, collapsibleMultiVolume)
+#: kerfuffle/compressionoptionswidget.ui:183
+#, kde-format
+msgid "Multi-volume Archive"
+msgstr "بایگانی چندبخشی"
+
+#. i18n: ectx: property (text), widget (QCheckBox, multiVolumeCheckbox)
+#: kerfuffle/compressionoptionswidget.ui:192
+#, fuzzy, kde-format
+#| msgid "Extracting all files"
+msgid "Create multi-volume archive"
+msgstr "استخراج همه پرونده‌ها"
+
+#. i18n: ectx: property (text), widget (QLabel, lblVolumeSize)
+#: kerfuffle/compressionoptionswidget.ui:210
+#, kde-format
+msgid "Volume size:"
+msgstr "اندازه بخش:"
+
+#. i18n: ectx: property (suffix), widget (QSpinBox, kcfg_previewFileSizeLimit)
+#. i18n: ectx: property (suffix), widget (QDoubleSpinBox, volumeSizeSpinbox)
+#: kerfuffle/compressionoptionswidget.ui:223
+#: kerfuffle/previewsettingspage.ui:32
+#, kde-format
+msgid " megabytes"
+msgstr " مگابایت"
+
+#: kerfuffle/createdialog.cpp:117
+#, kde-format
+msgctxt "the argument is a file extension (the period is not a typo)"
+msgid "Automatically add .%1"
+msgstr "خودکار %1 را بیفزا."
+
+#: kerfuffle/createdialog.cpp:204
+#, kde-format
+msgid "The chosen password does not match the given verification password."
+msgstr "گذرواژهٔ انتخاب‌شده با گذرواژهٔ تأییدشده مطابقت ندارد."
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: kerfuffle/createdialog.ui:30
+#, fuzzy, kde-format
+#| msgid "Add Folder"
+msgid "Folder:"
+msgstr "افزودن پوشه"
+
+#. i18n: ectx: property (text), widget (QLabel, label_3)
+#: kerfuffle/createdialog.ui:47
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgid "Filename:"
+msgstr "باز کردن بایگانی"
+
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, filenameLineEdit)
+#: kerfuffle/createdialog.ui:54
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgid "Type archive name…"
+msgstr "باز کردن بایگانی"
+
+#. i18n: ectx: property (text), widget (QLabel, label_2)
+#. i18n: ectx: property (text), widget (QLabel, m_typeLabel)
+#: kerfuffle/createdialog.ui:61 part/infopanel.ui:93
+#, kde-format
+msgid "Type:"
+msgstr "نوع:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_4)
+#: kerfuffle/createdialog.ui:78
+#, kde-format
+msgid "Extension:"
+msgstr "پسوند:"
+
+#: kerfuffle/extractiondialog.cpp:40
+#, fuzzy, kde-format
+#| msgid "Extract"
+msgctxt "@title:window"
+msgid "Extract"
+msgstr "استخراج"
+
+#: kerfuffle/extractiondialog.cpp:57
+#, fuzzy, kde-format
+#| msgid "Extract"
+msgid "Extract"
+msgstr "استخراج"
+
+#: kerfuffle/extractiondialog.cpp:91
+#, kde-format
+msgid "The subfolder name may not contain the character '/'."
+msgstr "نام زیرپوشه نمی‌تواند شامل نویسهٔ «/» باشد."
+
+#: kerfuffle/extractiondialog.cpp:111
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The folder <filename>%1</filename> already exists. Are you sure you want to "
+"extract here?"
+msgstr ""
+"پوشهٔ <filename>%1</filename> از پیش وجود دارد. آیا مطمئن هستید که می‌خواهید "
+"در اینجا استخراج کنید؟"
+
+#: kerfuffle/extractiondialog.cpp:112
+#, kde-format
+msgid "Folder exists"
+msgstr "پوشه وجود دارد"
+
+#: kerfuffle/extractiondialog.cpp:113
+#, fuzzy, kde-format
+#| msgid "Extract"
+msgid "Extract here"
+msgstr "استخراج"
+
+#: kerfuffle/extractiondialog.cpp:114
+#, kde-format
+msgid "Retry"
+msgstr "تلاش مجدد"
+
+#: kerfuffle/extractiondialog.cpp:124 kerfuffle/extractiondialog.cpp:130
+#, fuzzy, kde-kuit-format
+msgctxt "@info"
+msgid "The folder <filename>%1</filename> could not be created."
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: kerfuffle/extractiondialog.cpp:125
+#, fuzzy, kde-kuit-format
+msgctxt "@info"
+msgid "<filename>%1</filename> already exists, but is not a folder."
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: kerfuffle/extractiondialog.cpp:131
+#, kde-format
+msgid "Please check your permissions to create it."
+msgstr "لطفاً مجوزهای خود را برای ایجاد آن بررسی کنید."
+
+#: kerfuffle/extractiondialog.cpp:173
+#, fuzzy, kde-format
+#| msgid "Extracting all files"
+msgid "Extract multiple archives"
+msgstr "استخراج همه پرونده‌ها"
+
+#. i18n: ectx: property (windowTitle), widget (QWidget, ExtractionDialog)
+#: kerfuffle/extractiondialog.ui:21
+#, fuzzy, kde-format
+#| msgid "Extracting one file"
+#| msgid_plural "Extracting %1 files"
+msgid "Extraction Dialog"
+msgstr "استخراج %1 پرونده"
+
+#. i18n: ectx: property (text), widget (QLabel, extractAllLabel)
+#: kerfuffle/extractiondialog.ui:70
+#, fuzzy, kde-format
+#| msgid "Extracting all files"
+msgid "Extract All Files"
+msgstr "استخراج همه پرونده‌ها"
+
+#. i18n: ectx: property (title), widget (QGroupBox, singleFolderGroup)
+#: kerfuffle/extractiondialog.ui:79
+#, fuzzy, kde-format
+#| msgid "Extracting one file"
+#| msgid_plural "Extracting %1 files"
+msgid "E&xtraction into subfolder:"
+msgstr "استخراج %1 پرونده"
+
+#. i18n: ectx: property (title), widget (QGroupBox, groupBox)
+#: kerfuffle/extractiondialog.ui:116
+#, kde-format
+msgid "Options"
+msgstr "تنظیمات"
+
+#. i18n: ectx: property (text), widget (QCheckBox, openFolderCheckBox)
+#: kerfuffle/extractiondialog.ui:125
+#, kde-format
+msgid "Open &destination folder after extraction"
+msgstr "پوشه &مقصد را بعد از استخراج باز کن."
+
+#. i18n: ectx: property (text), widget (QCheckBox, closeAfterExtraction)
+#: kerfuffle/extractiondialog.ui:132
+#, kde-format
+msgid "Close &Ark after extraction"
+msgstr "آرک را بعد از استخراج ببند."
+
+#. i18n: ectx: property (text), widget (QCheckBox, preservePaths)
+#: kerfuffle/extractiondialog.ui:139
+#, kde-format
+msgid "&Preserve paths when extracting"
+msgstr "&حفظ مسیرها هنگام استخراج"
+
+#. i18n: ectx: property (text), widget (QCheckBox, autoSubfolders)
+#: kerfuffle/extractiondialog.ui:146
+#, kde-format
+msgid "&Automatically create subfolders"
+msgstr "&ایجاد خودکار زیرپوشه‌ها"
+
+#. i18n: ectx: property (title), widget (QGroupBox, filesToExtractGroupBox)
+#: kerfuffle/extractiondialog.ui:175
+#, fuzzy, kde-format
+#| msgid "Extract"
+msgctxt "@title:group"
+msgid "Extract"
+msgstr "استخراج"
+
+#. i18n: ectx: property (text), widget (QRadioButton, selectedFilesButton)
+#: kerfuffle/extractiondialog.ui:193
+#, fuzzy, kde-format
+#| msgid "Add Files"
+msgid "Sele&cted files only"
+msgstr "افزودن پرونده‌ها"
+
+#. i18n: ectx: property (text), widget (QRadioButton, allFilesButton)
+#: kerfuffle/extractiondialog.ui:209
+#, fuzzy, kde-format
+#| msgid "Add Files"
+msgid "All &files"
+msgstr "افزودن پرونده‌ها"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_openDestinationFolderAfterExtraction)
+#: kerfuffle/extractionsettingspage.ui:17
+#, kde-format
+msgid "Open destination folder after extraction"
+msgstr "پوشه مقصد را بعد از استخراج باز کن"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_closeAfterExtraction)
+#: kerfuffle/extractionsettingspage.ui:24
+#, kde-format
+msgid "Close Ark after extraction"
+msgstr "آرک را بعد از استخراج ببند"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_preservePaths)
+#: kerfuffle/extractionsettingspage.ui:31
+#, kde-format
+msgid "Preserve paths when extracting"
+msgstr "حفظ مسیرها هنگام استخراج"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, kcfg_extractToSubfolder)
+#: kerfuffle/extractionsettingspage.ui:41
+#, kde-format
+msgid ""
+"Whether to check by default the extraction into subfolder checkbox in the "
+"Extraction Dialog, when the archive has more than one top-level entry."
+msgstr ""
+"آیا در گفت‌وگوی استخراج، هنگام داشتن بیش از یک مدخل در سطح بالای بایگانی، "
+"گزینهٔ استخراج در زیرپوشه به‌طور پیش‌فرض بررسی شود یا نه."
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_extractToSubfolder)
+#: kerfuffle/extractionsettingspage.ui:44
+#, kde-format
+msgid "Extract to a subfolder if the archive has more than one top-level entry"
+msgstr ""
+"در صورت داشتن بیش از یک مدخل در سطح بالای بایگانی، در یک زیرپوشه استخراج شود."
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: kerfuffle/generalsettingspage.ui:17
+#, kde-format
+msgid "When clicking a file in an archive or pressing the Return key:"
+msgstr "هنگام کلیک روی یک پرونده در بایگانی یا فشردن کلید بازگشت:"
+
+#. i18n: ectx: property (text), widget (QRadioButton, radioButton)
+#: kerfuffle/generalsettingspage.ui:33
+#, kde-format
+msgid "Pre&view the file with internal previewer"
+msgstr "&پیش‌نمایش پرونده با پیش‌نمایش‌گر داخلی"
+
+#. i18n: ectx: property (text), widget (QRadioButton, radioButton_2)
+#: kerfuffle/generalsettingspage.ui:43
+#, fuzzy, kde-format
+#| msgid "Click to delete the selected files"
+msgid "Open the fi&le with associated application"
+msgstr "فشار برای حذف پرونده‌های برگزیده"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_showEncryptionWarning)
+#: kerfuffle/generalsettingspage.ui:60
+#, kde-format
+msgid "Show a warning when creating zip archives with AES encryption"
+msgstr "هنگام ایجاد بایگانی‌های ZIP با رمزگذاری AES هشدار نمایش داده شود"
+
+#: kerfuffle/jobs.cpp:100
+#, fuzzy, kde-format
+msgid "No suitable plugin found. Ark does not seem to support this file type."
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: kerfuffle/jobs.cpp:104
+#, fuzzy, kde-format
+msgid ""
+"Failed to load a suitable plugin. Make sure any executables needed to handle "
+"the archive type are installed."
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: kerfuffle/jobs.cpp:169
+#, kde-format
+msgid ""
+"Could not load the archive because it contains ill-formed entries and might "
+"be a malicious archive."
+msgstr ""
+"بارگذاری بایگانی ممکن نیست، زیرا شامل مدخل‌های نادرست است و ممکن است بایگانی "
+"مخربی باشد."
+
+#: kerfuffle/jobs.cpp:257
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgid "Loading archive"
+msgstr "باز کردن بایگانی"
+
+#: kerfuffle/jobs.cpp:257 kerfuffle/jobs.cpp:560 kerfuffle/jobs.cpp:742
+#: kerfuffle/jobs.cpp:794 kerfuffle/jobs.cpp:831 kerfuffle/jobs.cpp:862
+#: kerfuffle/jobs.cpp:908
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgid "Archive"
+msgstr "باز کردن بایگانی"
+
+#: kerfuffle/jobs.cpp:409 kerfuffle/jobs.cpp:591
+#, fuzzy, kde-kuit-format
+msgid "No space available on device <filename>%1</filename>"
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: kerfuffle/jobs.cpp:554
+#, kde-format
+msgid "Extracting all files"
+msgstr "استخراج همه پرونده‌ها"
+
+#. i18np on purpose so this translation may properly be reused.
+#: kerfuffle/jobs.cpp:556 kerfuffle/jobs.cpp:665
+#, kde-format
+msgid "Extracting one file"
+msgid_plural "Extracting %1 files"
+msgstr[0] "استخراج یک پرونده"
+msgstr[1] "استخراج %1 پرونده"
+
+#: kerfuffle/jobs.cpp:561
+#, kde-format
+msgctxt "extraction folder"
+msgid "Destination"
+msgstr "مقصد"
+
+#: kerfuffle/jobs.cpp:565
+#, kde-kuit-format
+msgid ""
+"Could not write to destination <filename>%1</filename>.<nl/>Check whether "
+"you have sufficient permissions."
+msgstr ""
+"نوشتن در مقصد <filename>%1</filename> ممکن نیست.<nl/>بررسی کنید که آیا "
+"مجوزهای کافی دارید یا نه."
+
+#: kerfuffle/jobs.cpp:741
+#, kde-format
+msgid "Compressing a file"
+msgid_plural "Compressing %1 files"
+msgstr[0] "فشرده‌سازی یک پروندهٔ"
+msgstr[1] "فشرده‌سازی %1 پروندهٔ"
+
+#: kerfuffle/jobs.cpp:793
+#, kde-format
+msgid "Moving a file"
+msgid_plural "Moving %1 files"
+msgstr[0] "انتقال یک پروندهٔ"
+msgstr[1] "انتقال %1 پروندهٔ"
+
+#: kerfuffle/jobs.cpp:830
+#, kde-format
+msgid "Copying a file"
+msgid_plural "Copying %1 files"
+msgstr[0] "رونوشت از یک پروندهٔ"
+msgstr[1] "رونوشت از %1 پروندهٔ"
+
+#: kerfuffle/jobs.cpp:861
+#, kde-format
+msgid "Deleting a file from the archive"
+msgid_plural "Deleting %1 files"
+msgstr[0] "حذف یک پرونده از بایگانی"
+msgstr[1] "حذف %1 پروندهٔ"
+
+#: kerfuffle/jobs.cpp:884
+#, kde-format
+msgid "Adding comment"
+msgstr "افزودن یک نظر"
+
+#: kerfuffle/jobs.cpp:908
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgid "Testing archive"
+msgstr "باز کردن بایگانی"
+
+#: kerfuffle/pluginsettingspage.cpp:33
+#, kde-format
+msgid ""
+"The plugin cannot be used because one or more required executables are "
+"missing. Check your installation."
+msgstr ""
+"این افزونه قابل استفاده نیست، زیرا یک یا چند برنامهٔ اجرایی موردنیاز موجود "
+"نیستند. نصب خود را بررسی کنید."
+
+#. i18n: @title:column
+#. i18n: ectx: property (text), widget (QTreeWidget, kcfg_disabledPlugins)
+#: kerfuffle/pluginsettingspage.ui:36
+#, fuzzy, kde-format
+#| msgctxt "Name of a file inside an archive"
+#| msgid "Name"
+msgid "Name"
+msgstr "نام"
+
+#. i18n: @title:column
+#. i18n: ectx: property (text), widget (QTreeWidget, kcfg_disabledPlugins)
+#: kerfuffle/pluginsettingspage.ui:41
+#, kde-format
+msgid "Description"
+msgstr "توضیحات"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_limitPreviewFileSize)
+#: kerfuffle/previewsettingspage.ui:22
+#, kde-format
+msgid "Disable preview for files larger than:"
+msgstr "غیرفعال کردن پیش‌نمایش برای پرونده‌های بزرگ‌تر از:"
+
+#: kerfuffle/propertiesdialog.cpp:41
+#, kde-format
+msgctxt "@title:window"
+msgid "Properties for %1"
+msgstr "ویژگی‌های %1"
+
+#. i18n: ectx: property (text), widget (KSqueezedTextLabel, m_passwordValueLabel)
+#: kerfuffle/propertiesdialog.cpp:49 kerfuffle/propertiesdialog.cpp:51
+#: part/infopanel.ui:195
+#, kde-format
+msgid "yes"
+msgstr "بله"
+
+#: kerfuffle/propertiesdialog.cpp:49 kerfuffle/propertiesdialog.cpp:50
+#: kerfuffle/propertiesdialog.cpp:51 kerfuffle/propertiesdialog.cpp:63
+#, kde-format
+msgid "no"
+msgstr "خیر"
+
+#: kerfuffle/propertiesdialog.cpp:50
+#, kde-format
+msgid "yes (%1 volumes)"
+msgstr "بله (%1 بخش)"
+
+#: kerfuffle/propertiesdialog.cpp:52
+#, kde-format
+msgid "%1 file"
+msgid_plural "%1 files"
+msgstr[0] "%1 پروندهٔ"
+msgstr[1] "%1 پروندهٔ"
+
+#: kerfuffle/propertiesdialog.cpp:52
+#, kde-format
+msgid ", %1 folder"
+msgid_plural ", %1 folders"
+msgstr[0] ", %1 پوشه"
+msgstr[1] ", %1 پوشه"
+
+#: kerfuffle/propertiesdialog.cpp:66
+#, kde-format
+msgid "only file contents (%1)"
+msgstr "فقط محتوای پرونده‌ها (%1)"
+
+#: kerfuffle/propertiesdialog.cpp:69
+#, kde-format
+msgid "yes (%1)"
+msgstr "بله (%1)"
+
+#: kerfuffle/propertiesdialog.cpp:86 kerfuffle/propertiesdialog.cpp:87
+#: kerfuffle/propertiesdialog.cpp:88
+#, kde-format
+msgid "Calculating…"
+msgstr "درحال محاسبه...."
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: kerfuffle/propertiesdialog.ui:37
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgid "Archive name:"
+msgstr "باز کردن بایگانی"
+
+#. i18n: ectx: property (text), widget (QLabel, label_4)
+#: kerfuffle/propertiesdialog.ui:54
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgid "Archive type:"
+msgstr "باز کردن بایگانی"
+
+#. i18n: ectx: property (text), widget (QLabel, label_11)
+#: kerfuffle/propertiesdialog.ui:71
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgid "Mime-type:"
+msgstr "باز کردن بایگانی"
+
+#. i18n: ectx: property (text), widget (QLabel, label_8)
+#: kerfuffle/propertiesdialog.ui:88
+#, kde-format
+msgid "Opened read-only:"
+msgstr "به صورت فقط خواندنی باز شد:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_2)
+#. i18n: ectx: property (text), widget (QLabel, m_passwordLabel)
+#: kerfuffle/propertiesdialog.ui:105 part/infopanel.ui:179
+#, kde-format
+msgid "Password-protected:"
+msgstr "محافظت شده با گذرواژه:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_10)
+#: kerfuffle/propertiesdialog.ui:122
+#, kde-format
+msgid "Has comment:"
+msgstr "دارای نظر:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_3)
+#: kerfuffle/propertiesdialog.ui:139
+#, kde-format
+msgid "Number of entries:"
+msgstr "تعداد مدخل‌ها:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_5)
+#: kerfuffle/propertiesdialog.ui:156
+#, kde-format
+msgid "Unpacked size:"
+msgstr "اندازه استخراج شده:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_7)
+#: kerfuffle/propertiesdialog.ui:173
+#, kde-format
+msgid "Packed size:"
+msgstr "اندازه فشرده:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_9)
+#: kerfuffle/propertiesdialog.ui:190
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgid "Compression ratio:"
+msgstr "باز کردن بایگانی"
+
+#. i18n: ectx: property (text), widget (QLabel, label_6)
+#: kerfuffle/propertiesdialog.ui:207
+#, kde-format
+msgid "Last modified:"
+msgstr "آخرین تغییر:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_12)
+#: kerfuffle/propertiesdialog.ui:224
+#, kde-format
+msgid "MD5 hash:"
+msgstr "هش MD5:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_13)
+#: kerfuffle/propertiesdialog.ui:244
+#, kde-format
+msgid "SHA-1 hash:"
+msgstr "هش SHA-1:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_14)
+#: kerfuffle/propertiesdialog.ui:261
+#, kde-format
+msgid "SHA-256 hash:"
+msgstr "SHA-256 هش:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_15)
+#: kerfuffle/propertiesdialog.ui:278
+#, kde-format
+msgid "Multi-volume:"
+msgstr "چند بخشی:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_16)
+#: kerfuffle/propertiesdialog.ui:295
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgid "Compression method(s):"
+msgstr "باز کردن بایگانی"
+
+#: kerfuffle/queries.cpp:88
+#, kde-format
+msgctxt "@title:window"
+msgid "File Already Exists"
+msgstr "پروندهٔ از قبل وجود دارد"
+
+#: kerfuffle/queries.cpp:199
+#, fuzzy, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The archive <filename>%1</filename> is password protected. Please enter the "
+"password."
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: kerfuffle/queries.cpp:203
+#, kde-format
+msgid "Incorrect password, please try again."
+msgstr "گذرواژه اشتباه است، لطفاً دوباره تلاش کنید."
+
+#: kerfuffle/queries.cpp:239
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The archive you're trying to open is corrupt.<nl/>Some files may be missing "
+"or damaged."
+msgstr ""
+"بایگانی‌ای که می‌خواهید باز کنید خراب است.<nl/>ممکن است برخی پرونده‌ها مفقود یا "
+"آسیب‌دیده باشند."
+
+#: kerfuffle/queries.cpp:241
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgctxt "@title:window"
+msgid "Corrupt archive"
+msgstr "باز کردن بایگانی"
+
+#: kerfuffle/queries.cpp:242
+#, kde-format
+msgctxt "@action:button"
+msgid "Open as Read-Only"
+msgstr "بازکردن به صورت فقط خواندنی"
+
+#: kerfuffle/queries.cpp:243
+#, kde-format
+msgctxt "@action:button"
+msgid "Don't Open"
+msgstr "باز نکن"
+
+#: kerfuffle/queries.cpp:253
+#, kde-format
+msgid "Don't ask again."
+msgstr "دیگر سوال نشود."
+
+#: kerfuffle/queries.cpp:265
+#, kde-format
+msgid "Error during extraction"
+msgstr "خطا درهنگام استخراج"
+
+#: kerfuffle/queries.cpp:266
+#, kde-kuit-format
+msgid ""
+"Extraction of the entry:<nl/>    <filename>%1</filename><nl/>failed with the "
+"error message:<nl/>    %2<nl/><nl/>Do you want to continue extraction?<nl/>"
+msgstr ""
+"استخراج مدخل:<nl/>    <filename>%1</filename><nl/>با پیام خطای زیر ناموفق "
+"بود:<nl/>    %2<nl/><nl/>آیا می‌خواهید استخراج را ادامه دهید؟<nl/>"
+
+#: part/archivemodel.cpp:154
+#, kde-format
+msgctxt "Name of a file inside an archive"
+msgid "Name"
+msgstr "نام"
+
+#: part/archivemodel.cpp:156
+#, kde-format
+msgctxt "Uncompressed size of a file inside an archive"
+msgid "Original Size"
+msgstr "اندازه اصلی"
+
+#: part/archivemodel.cpp:158
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgctxt "Compressed size of a file inside an archive"
+msgid "Compressed Size"
+msgstr "باز کردن بایگانی"
+
+#: part/archivemodel.cpp:160
+#, kde-format
+msgctxt "Compression rate of file"
+msgid "Rate"
+msgstr "رتبه"
+
+#: part/archivemodel.cpp:162
+#, kde-format
+msgctxt "File's owner username"
+msgid "Owner"
+msgstr "مالک"
+
+#: part/archivemodel.cpp:164
+#, kde-format
+msgctxt "File's group"
+msgid "Group"
+msgstr "گروه"
+
+#: part/archivemodel.cpp:166
+#, kde-format
+msgctxt "File permissions"
+msgid "Mode"
+msgstr "حالت"
+
+#: part/archivemodel.cpp:168
+#, kde-format
+msgctxt "CRC hash code"
+msgid "CRC checksum"
+msgstr "جمع‌بررسی CRC"
+
+#: part/archivemodel.cpp:170
+#, kde-format
+msgctxt "BLAKE2 hash code"
+msgid "BLAKE2 checksum"
+msgstr "جمع‌بررسی BLAKE2"
+
+#: part/archivemodel.cpp:172
+#, kde-format
+msgctxt "Compression method"
+msgid "Method"
+msgstr "نحوه"
+
+#: part/archivemodel.cpp:175
+#, kde-format
+msgctxt "File version"
+msgid "Version"
+msgstr "نگارش"
+
+#: part/archivemodel.cpp:177
+#, kde-format
+msgctxt "Timestamp"
+msgid "Date"
+msgstr "تاریخ"
+
+#: part/archivemodel.cpp:179
+#, kde-format
+msgctxt "Unnamed column"
+msgid "??"
+msgstr "؟؟"
+
+#: part/archivemodel.cpp:279
+#, kde-format
+msgid "Adding files is not supported for this archive."
+msgstr "افزودن پرونده‌ها برای این بایگانی پشتیبانی نمی‌شود."
+
+#: part/archivemodel.cpp:287
+#, fuzzy, kde-format
+#| msgid "Click to add files to the archive"
+msgid "You can only add local files to an archive."
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#. i18n: ectx: Menu (archive)
+#: part/ark_part.rc:5
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgid "&Archive"
+msgstr "باز کردن بایگانی"
+
+#. i18n: ectx: Menu (ark_file)
+#: part/ark_part.rc:15
+#, fuzzy, kde-format
+#| msgctxt "action, to open an archive"
+#| msgid "Open"
+msgid "&File"
+msgstr "باز کردن"
+
+#. i18n: ectx: Menu (settings)
+#: part/ark_part.rc:29
+#, kde-format
+msgid "&Settings"
+msgstr "تنظیمات"
+
+#. i18n: ectx: ToolBar (mainToolBar)
+#: part/ark_part.rc:34
+#, kde-format
+msgid "Main Toolbar"
+msgstr "نوار اصلی"
+
+#. i18n: ectx: Menu (help)
+#: part/ark_viewer.rc:5
+#, kde-format
+msgid "&Help"
+msgstr "راهنما"
+
+#: part/arkviewer.cpp:52
+#, kde-format
+msgid "Closing preview"
+msgstr "بستن پیش‌نمایش"
+
+#: part/arkviewer.cpp:53
+#, kde-format
+msgid "Please wait while the preview is being closed…"
+msgstr "لطفاً تا بسته شدن پیش‌نمایش منتظر بمانید...."
+
+#: part/arkviewer.cpp:99
+#, kde-format
+msgid "The internal viewer cannot preview this file."
+msgstr "نمایشگر داخلی نمی‌تواند از این پرونده پیش‌نمایش بگیرد."
+
+#: part/arkviewer.cpp:116
+#, kde-kuit-format
+msgid ""
+"The internal viewer cannot preview this type of file<nl/>(%1).<nl/><nl/>Do "
+"you want to try to view it as plain text?"
+msgstr ""
+"نمایشگر داخلی نمی‌تواند از این نوع پرونده پیش‌نمایش بگیرد<nl/>(%1).<nl/><nl/"
+">آیا می‌خواهید آن را به‌صورت متن ساده نمایش دهید؟"
+
+#: part/arkviewer.cpp:117 part/arkviewer.cpp:129
+#, kde-format
+msgctxt "@title:window"
+msgid "Cannot Preview File"
+msgstr "نمی‌توان پروندهٔ را پیش‌نمایش کرد"
+
+#: part/arkviewer.cpp:118 part/arkviewer.cpp:130
+#, fuzzy, kde-format
+#| msgctxt "to preview a file inside an archive"
+#| msgid "Pre&view"
+msgctxt "@action:button"
+msgid "Preview as Text"
+msgstr "&پیش‌نمایش‌"
+
+#: part/arkviewer.cpp:128
+#, kde-kuit-format
+msgid ""
+"The internal viewer cannot preview this unknown type of file.<nl/><nl/>Do "
+"you want to try to view it as plain text?"
+msgstr ""
+"نمایشگر داخلی نمی‌تواند از این نوع پروندهٔ ناشناخته پیش‌نمایش بگیرد.<nl/><nl/"
+">آیا می‌خواهید آن را به‌صورت متن ساده نمایش دهید؟"
+
+#: part/arkviewer.cpp:201
+#, kde-format
+msgctxt "@action"
+msgid "About Viewer Component"
+msgstr "دربارهٔ مؤلفهٔ نمایشگر"
+
+#: part/infopanel.cpp:53
+#, kde-format
+msgid "No archive loaded"
+msgstr "هیچ بایگانی بارگذاری نشده"
+
+#: part/infopanel.cpp:104
+#, kde-format
+msgid "Symbolic Link"
+msgstr "پیوند نمادین"
+
+#: part/infopanel.cpp:109
+#, kde-format
+msgid "Unknown size"
+msgstr "اندازه نامشخص"
+
+#: part/infopanel.cpp:126
+#, kde-format
+msgid "One file selected"
+msgid_plural "%1 files selected"
+msgstr[0] "یک پروندهٔ انتخاب شده"
+msgstr[1] "%1 پرونده انتخاب شده"
+
+#. i18n: ectx: property (windowTitle), widget (QWidget, InformationPanel)
+#: part/infopanel.ui:20
+#, kde-format
+msgid "Information Panel"
+msgstr "تابلوی اطلاعات"
+
+#. i18n: ectx: property (text), widget (QLabel, additionalInfo)
+#: part/infopanel.ui:64
+#, kde-format
+msgid "Unknown file type"
+msgstr "نوع پروندهٔ نامشخص"
+
+#. i18n: ectx: property (text), widget (QLabel, m_ownerLabel)
+#: part/infopanel.ui:113
+#, kde-format
+msgid "Owner:"
+msgstr "مالک:"
+
+#. i18n: ectx: property (text), widget (QLabel, m_groupLabel)
+#: part/infopanel.ui:133
+#, kde-format
+msgid "Group:"
+msgstr "گروه:"
+
+#. i18n: ectx: property (text), widget (QLabel, m_targetLabel)
+#: part/infopanel.ui:153
+#, kde-format
+msgid "Target:"
+msgstr "مقصد:"
+
+#. i18n: ectx: property (windowTitle), widget (QWidget, JobTrackerWidget)
+#: part/jobtracker.ui:14
+#, kde-format
+msgid "Job Tracker"
+msgstr "پیگیر کار"
+
+#. i18n: ectx: property (text), widget (QLabel, descriptionLabel)
+#: part/jobtracker.ui:44
+#, kde-format
+msgid "<b>Job Description</b>"
+msgstr "<b>توضیح کار</b>"
+
+#. i18n: ectx: property (text), widget (QLabel, informationLabel)
+#: part/jobtracker.ui:63
+#, kde-format
+msgid "Some Information about the job"
+msgstr "برخی اطلاعات دربارهٔ کار"
+
+#. i18n: ectx: property (format), widget (QProgressBar, progressBar)
+#: part/jobtracker.ui:88
+#, no-c-format, kde-format
+msgid "%p%"
+msgstr "%p%"
+
+#: part/overwritedialog.cpp:26
+#, kde-format
+msgid ""
+"Files with the following paths already exist. Remove them if you really want "
+"to overwrite."
+msgstr ""
+"پرونده‌هایی با مسیرهای زیر از پیش وجود دارند. اگر واقعاً می‌خواهید بازنویسی "
+"کنید، آن‌ها را حذف کنید."
+
+#: part/overwritedialog.cpp:28
+#, kde-format
+msgid ""
+"Files with the following paths already exist. Do you want to continue "
+"overwriting them?"
+msgstr ""
+"پرونده‌هایی با مسیرهای زیر از پیش وجود دارند. آیا می‌خواهید بازنویسی آن‌ها را "
+"ادامه دهید؟"
+
+#: part/part.cpp:112
+#, kde-format
+msgid "Comment"
+msgstr "نظر"
+
+#: part/part.cpp:125
+#, kde-format
+msgid "Comment has been modified."
+msgstr "نظر تغییر پیدا کرده است."
+
+#: part/part.cpp:130
+#, kde-format
+msgid "Save"
+msgstr "ذخیره"
+
+#: part/part.cpp:153
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgid "Type to search…"
+msgstr "باز کردن بایگانی"
+
+#: part/part.cpp:303
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Ark can extract archives to local destinations only."
+msgstr "آرک فقط می‌تواند بایگانی‌ها را در مقصدهای محلی استخراج کند."
+
+#: part/part.cpp:355
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Show Information Panel"
+msgstr "نمایش تابلوی اطلاعات"
+
+#: part/part.cpp:361
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Save Copy As…"
+msgstr "ذخیره رونوشت به عنوان...."
+
+#: part/part.cpp:365
+#, kde-format
+msgctxt "open a file with external program"
+msgid "&Open in External Application"
+msgstr "&باز کردن در برنامهٔ خارجی"
+
+#: part/part.cpp:372
+#, fuzzy, kde-format
+#| msgctxt "action, to open an archive"
+#| msgid "Open"
+msgctxt "open a file with external program"
+msgid "Open &With…"
+msgstr "باز کردن"
+
+#: part/part.cpp:374
+#, fuzzy, kde-format
+#| msgid "Click to delete the selected files"
+msgctxt "@info:tooltip"
+msgid "Click to open the selected file with an external program"
+msgstr "فشار برای حذف پرونده‌های برگزیده"
+
+#: part/part.cpp:380
+#, kde-format
+msgctxt "to preview a file inside an archive"
+msgid "Pre&view"
+msgstr "&پیش‌نمایش‌"
+
+#: part/part.cpp:382
+#, fuzzy, kde-format
+#| msgid "Click to delete the selected files"
+msgctxt "@info:tooltip"
+msgid "Click to preview the selected file"
+msgstr "فشار برای حذف پرونده‌های برگزیده"
+
+#: part/part.cpp:389
+#, fuzzy, kde-format
+#| msgid "Extract"
+msgctxt "@action:inmenu"
+msgid "E&xtract All"
+msgstr "استخراج"
+
+#: part/part.cpp:391
+#, kde-format
+msgid ""
+"Click to open an extraction dialog, where you can choose how to extract all "
+"the files in the archive"
+msgstr ""
+"برای باز کردن گفت‌وگوی استخراج کلیک کنید، جایی که می‌توانید نحوهٔ استخراج همهٔ "
+"پرونده‌های موجود در بایگانی را انتخاب کنید."
+
+#: part/part.cpp:396
+#, fuzzy, kde-format
+#| msgid "Extract"
+msgctxt "@action:inmenu"
+msgid "&Extract"
+msgstr "استخراج"
+
+#: part/part.cpp:399
+#, kde-format
+msgid ""
+"Click to open an extraction dialog, where you can choose to extract either "
+"all files or just the selected ones"
+msgstr ""
+"برای باز کردن گفت‌وگوی استخراج کلیک کنید. در آنجا می‌توانید همهٔ پرونده‌ها یا "
+"فقط پرونده‌های انتخاب‌شده را استخراج کنید."
+
+#: part/part.cpp:404
+#, fuzzy, kde-format
+#| msgid "Add Files"
+msgid "Add &Files…"
+msgstr "افزودن پرونده‌ها"
+
+#: part/part.cpp:405 part/part.cpp:466
+#, fuzzy, kde-format
+#| msgid "Click to add files to the archive"
+msgctxt "@info:tooltip"
+msgid "Click to add files to the archive"
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: part/part.cpp:412
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgctxt "@action"
+msgid "Remove from Archive"
+msgstr "باز کردن بایگانی"
+
+#: part/part.cpp:422
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "&Properties"
+msgstr "&ویژگی‌ها"
+
+#: part/part.cpp:424
+#, fuzzy, kde-format
+#| msgid "Click to add files to the archive"
+msgctxt "@info:tooltip"
+msgid "Click to see properties for archive"
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: part/part.cpp:430
+#, fuzzy, kde-format
+#| msgid "Click to add files to the archive"
+msgctxt "@info:tooltip"
+msgid "Click to add or edit comment"
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: part/part.cpp:435
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "&Test Integrity"
+msgstr "&آزمودن یکپارچگی"
+
+#: part/part.cpp:437 part/part.cpp:467
+#, fuzzy, kde-format
+#| msgid "Click to add files to the archive"
+msgctxt "@info:tooltip"
+msgid "Click to test the archive for integrity"
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: part/part.cpp:462
+#, kde-kuit-format
+msgctxt "@info:tooltip"
+msgid ""
+"Adding files to existing password-protected archives with no header-"
+"encryption is currently not supported.<nl/><nl/>Extract the files and create "
+"a new archive if you want to add files."
+msgstr ""
+"در حال حاضر افزودن پرونده‌ها به بایگانی‌های موجودِ محافظت‌شده با گذرواژه که از "
+"رمزگذاری سرآیند استفاده نمی‌کنند، پشتیبانی نمی‌شود.<nl/><nl/>اگر می‌خواهید "
+"پرونده‌ای بیفزایید، ابتدا پرونده‌ها را استخراج کرده و سپس یک بایگانی جدید "
+"ایجاد کنید."
+
+#: part/part.cpp:464
+#, kde-kuit-format
+msgctxt "@info:tooltip"
+msgid ""
+"Testing password-protected archives with no header-encryption is currently "
+"not supported."
+msgstr ""
+"در حال حاضر آزمودن بایگانی‌های محافظت‌شده با گذرواژه که از رمزگذاری سرآیند "
+"استفاده نمی‌کنند، پشتیبانی نمی‌شود."
+
+#: part/part.cpp:505
+#, kde-format
+msgctxt "@action:inmenu mutually exclusive with Add &Comment"
+msgid "Edit &Comment"
+msgstr "ویرایش &توضیح"
+
+#: part/part.cpp:506 part/part.cpp:512
+#, kde-format
+msgctxt "@action:inmenu mutually exclusive with Edit &Comment"
+msgid "Add &Comment"
+msgstr "افزودن &توضیح"
+
+#: part/part.cpp:612
+#, kde-format
+msgid "The archive passed the integrity test."
+msgstr "بایگانی آزمون یکپارچگی را با موفقیت گذراند."
+
+#: part/part.cpp:612 part/part.cpp:614
+#, kde-format
+msgid "Test Results"
+msgstr "نتایج آزمون"
+
+#: part/part.cpp:614
+#, kde-format
+msgid "The archive failed the integrity test."
+msgstr "این بایگانی در آزمون یکپارچگی شکست خورد."
+
+#: part/part.cpp:634
+#, fuzzy, kde-format
+#| msgid "Extract"
+msgid "Extract To…"
+msgstr "استخراج"
+
+#: part/part.cpp:646
+#, fuzzy, kde-format
+#| msgid "E&xtract..."
+msgid "Quick Extract To…"
+msgstr "&استخراج...‌"
+
+#: part/part.cpp:775
+#, fuzzy, kde-format
+#| msgctxt "to preview a file inside an archive"
+#| msgid "Pre&view"
+msgctxt "@title:tab"
+msgid "General"
+msgstr "&پیش‌نمایش‌"
+
+#: part/part.cpp:776
+#, fuzzy, kde-format
+#| msgid "Extract"
+msgctxt "@title:tab"
+msgid "Extraction"
+msgstr "استخراج"
+
+#: part/part.cpp:777
+#, fuzzy, kde-format
+#| msgctxt "to preview a file inside an archive"
+#| msgid "Pre&view"
+msgctxt "@title:tab"
+msgid "Plugins"
+msgstr "&پیش‌نمایش‌"
+
+#: part/part.cpp:778
+#, fuzzy, kde-format
+#| msgctxt "to preview a file inside an archive"
+#| msgid "Pre&view"
+msgctxt "@title:tab"
+msgid "Previews"
+msgstr "&پیش‌نمایش‌"
+
+#: part/part.cpp:794
+#, kde-kuit-format
+msgctxt "@info"
+msgid "<filename>%1</filename> is a directory."
+msgstr "<filename>%1</filename> یک پوشه است."
+
+#: part/part.cpp:802
+#, fuzzy, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Could not overwrite <filename>%1</filename>. Check whether you have write "
+"permission."
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: part/part.cpp:808
+#, fuzzy, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The archive <filename>%1</filename> will be created as soon as you add a "
+"file."
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: part/part.cpp:811
+#, kde-kuit-format
+msgctxt "@info"
+msgid "The archive <filename>%1</filename> was not found."
+msgstr "بایگانی <filename>%1</filename> یافت نشد."
+
+#: part/part.cpp:817
+#, fuzzy, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The archive <filename>%1</filename> could not be loaded, as it was not "
+"possible to read from it."
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: part/part.cpp:868
+#, kde-kuit-format
+msgctxt "@info"
+msgid "The archive is empty or Ark could not open its content."
+msgstr "بایگانی خالی است یا آرک نتوانست محتوای آن را باز کند."
+
+#: part/part.cpp:875
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Ark does not currently support ISO files with UDF filesystem."
+msgstr "آرک در حال حاضر از پرونده‌های ISO با سامانهٔ پروندهٔ UDF پشتیبانی نمی‌کند."
+
+#: part/part.cpp:907
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"Loading the archive <filename>%1</filename> failed with the following error:"
+"<nl/><message>%2</message>"
+msgstr ""
+"بارگذاری بایگانی <filename>%1</filename> با خطای زیر ناموفق بود:<nl/"
+"><message>%2</message>"
+
+#: part/part.cpp:967
+#, kde-format
+msgid "Ark cannot open symlinks."
+msgstr "آرک نمی‌تواند پیوندهای نمادین را باز کند."
+
+#: part/part.cpp:1094
+#, fuzzy, kde-kuit-format
+msgid ""
+"The file <filename>%1</filename> was modified. Do you want to update the "
+"archive?"
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: part/part.cpp:1095
+#, kde-format
+msgctxt "@title:window"
+msgid "File Modified"
+msgstr "تاریخ تغییر پرونده"
+
+#: part/part.cpp:1096
+#, kde-format
+msgctxt "@action:button"
+msgid "Update"
+msgstr "به‌روزرسانی"
+
+#: part/part.cpp:1097
+#, kde-format
+msgctxt "@action:button"
+msgid "Ignore"
+msgstr "نادیده‌گرفتن"
+
+#: part/part.cpp:1371
+#, fuzzy, kde-format
+#| msgid "Add Files"
+msgctxt "@title:window"
+msgid "Add Files"
+msgstr "افزودن پرونده‌ها"
+
+#: part/part.cpp:1376
+#, fuzzy, kde-format
+#| msgid "Add Files"
+msgctxt "@title:window"
+msgid "Add Files to %1"
+msgstr "افزودن پرونده‌ها"
+
+#: part/part.cpp:1436
+#, kde-format
+msgid "Filename can't contain slashes and can't be equal to \".\" or \"..\""
+msgstr ""
+"نام پرونده نمی‌تواند شامل «/» باشد و همچنین نمی‌تواند برابر «.» یا «..» باشد."
+
+#: part/part.cpp:1480
+#, kde-format
+msgid "Folders can't be moved into themselves."
+msgstr "پوشه‌ها را نمی‌توان به داخل خودشان منتقل کرد."
+
+#: part/part.cpp:1480
+#, kde-format
+msgid "Moving a folder into itself"
+msgstr "انتقال یک پوشه به داخل خودش"
+
+#: part/part.cpp:1508
+#, kde-format
+msgid "Entries with the same names can't be pasted to the same destination."
+msgstr "مدخل‌هایی با نام یکسان نمی‌توانند در یک مقصد یکسان جای‌گذاری شوند."
+
+#: part/part.cpp:1607
+#, kde-format
+msgctxt "@info"
+msgid "Deleting this file is not undoable. Are you sure you want to do this?"
+msgid_plural ""
+"Deleting these files is not undoable. Are you sure you want to do this?"
+msgstr[0] ""
+"حذف این پرونده قابل بازگشت نیست. آیا مطمئن هستید که می‌خواهید این کار را "
+"انجام دهید؟"
+msgstr[1] ""
+"حذف این پرونده‌ها قابل بازگشت نیست. آیا مطمئن هستید که می‌خواهید این کار را "
+"انجام دهید؟"
+
+#: part/part.cpp:1610
+#, kde-format
+msgctxt "@title:window"
+msgid "Delete File"
+msgid_plural "Delete Files"
+msgstr[0] "حذف پرونده"
+msgstr[1] "حذف پرونده‌ها"
+
+#: part/part.cpp:1649
+#, kde-format
+msgctxt "@title:window"
+msgid "Save Copy As"
+msgstr "ذخیره رونوشت به‌عنوان"
+
+#: part/part.cpp:1664
+#, fuzzy, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The archive could not be saved as <filename>%1</filename>. Try saving it to "
+"another location."
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: part/part.cpp:1669
+#, fuzzy, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"The archive <filename>%1</filename> does not exist anymore, therefore it "
+"cannot be copied to the specified location."
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: plugins/cli7zplugin/cliplugin.cpp:132
+#: plugins/cliunarchiverplugin/cliplugin.cpp:88
+#, fuzzy, kde-format
+#| msgid "Open an archive"
+msgid "Listing the archive failed."
+msgstr "باز کردن بایگانی"
+
+#: plugins/cli7zplugin/cliplugin.cpp:304
+#, fuzzy, kde-format
+#| msgid "Extracting one file"
+#| msgid_plural "Extracting %1 files"
+msgid "Extraction failed due to an unknown error."
+msgstr "استخراج %1 پرونده"
+
+#: plugins/cli7zplugin/cliplugin.cpp:309 plugins/clizipplugin/cliplugin.cpp:191
+#, kde-format
+msgid ""
+"Extraction failed due to one or more corrupt files. Any extracted files may "
+"be damaged."
+msgstr ""
+"استخراج به دلیل وجود یک یا چند پروندهٔ خراب ناموفق بود. ممکن است پرونده‌های "
+"استخراج‌شده آسیب‌دیده باشند."
+
+#: plugins/cli7zplugin/cliplugin.cpp:319
+#, kde-format
+msgid ""
+"Delete operation failed. Try upgrading 7z or disabling the 7z plugin in the "
+"configuration dialog."
+msgstr ""
+"عملیات حذف ناموفق بود. سعی کنید 7z را به‌روزرسانی کنید یا افزونهٔ 7z را در "
+"گفت‌وگوی پیکربندی غیرفعال کنید."
+
+#: plugins/cliarjplugin/cliplugin.cpp:321
+#, kde-format
+msgid "ARJ old"
+msgstr "ARJ قدیمی"
+
+#: plugins/cliarjplugin/cliplugin.cpp:322
+#, kde-format
+msgid "ARJ"
+msgstr "ARJ"
+
+#: plugins/cliarjplugin/cliplugin.cpp:323
+#, kde-format
+msgid "GOST256"
+msgstr "GOST256"
+
+#: plugins/cliarjplugin/cliplugin.cpp:324
+#, kde-format
+msgid "GOST256L"
+msgstr "GOST256L"
+
+#: plugins/cliarjplugin/cliplugin.cpp:325
+#, kde-format
+msgid "GOST 40-bit"
+msgstr "GOST 40-bit"
+
+#: plugins/cliarjplugin/cliplugin.cpp:327
+#, kde-format
+msgid "unknown"
+msgstr "نامشخص"
+
+#: plugins/clirarplugin/cliplugin.cpp:153
+#: plugins/clirarplugin/cliplugin.cpp:293
+#: plugins/clirarplugin/cliplugin.cpp:540
+#, kde-format
+msgid "Failed to find all archive volumes."
+msgstr "نمی‌توان تمامی بخش‌های بایگانی را پیدا کرد."
+
+#: plugins/clirarplugin/cliplugin.cpp:314
+#, kde-format
+msgid ""
+"Your unrar executable is version %1, which is too old to handle this "
+"archive. Please update to a more recent version."
+msgstr ""
+"نسخهٔ اجرایی unrar شما %1 است که برای مدیریت این بایگانی بیش از حد قدیمی است. "
+"لطفاً آن را به نسخهٔ جدیدتری به‌روزرسانی کنید."
+
+#: plugins/clirarplugin/cliplugin.cpp:320
+#, kde-format
+msgid ""
+"Unrar reported a non-RAR archive. The installed unrar version (%1) is old. "
+"Try updating your unrar."
+msgstr ""
+"ابزار unrar گزارش داده است که این یک بایگانی RAR نیست. نسخهٔ نصب‌شدهٔ unrar "
+"(%1) قدیمی است. لطفاً unrar را به‌روزرسانی کنید."
+
+#: plugins/clirarplugin/cliplugin.cpp:535
+#, kde-format
+msgid "One or more wrong checksums"
+msgstr "یک یا چند جمع‌بررسی نادرست است."
+
+#: plugins/cliunarchiverplugin/cliplugin.cpp:100
+#, fuzzy, kde-format
+#| msgid "Extracting one file"
+#| msgid_plural "Extracting %1 files"
+msgid "Extraction failed."
+msgstr "استخراج %1 پرونده"
+
+#: plugins/cliunarchiverplugin/cliplugin.cpp:134
+#, kde-format
+msgid "Not enough memory for loading the archive."
+msgstr "حافظهٔ کافی برای بارگذاری بایگانی وجود ندارد."
+
+#: plugins/cliunarchiverplugin/cliplugin.cpp:185
+#, kde-format
+msgid "Wrong password."
+msgstr "گذرواژه اشتباه"
+
+#: plugins/clizipplugin/cliplugin.cpp:181
+#, kde-format
+msgid "Extraction failed due to unsupported compression method (%1)."
+msgstr "استخراج به دلیل روش فشرده‌سازی پشتیبانی‌نشده (%1) ناموفق بود."
+
+#: plugins/clizipplugin/cliplugin.cpp:186
+#, kde-format
+msgid "Extraction failed due to unsupported encryption method."
+msgstr "استخراج به دلیل روش رمزگذاری پشتیبانی‌نشده ناموفق بود."
+
+#: plugins/clizipplugin/cliplugin.cpp:315
+#, kde-format
+msgctxt "referred to compression method"
+msgid "unknown"
+msgstr "نامشخص"
+
+#: plugins/libarchive/libarchiveplugin.cpp:123
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The archive may be corrupt or has header-encryption, which is currently not "
+"supported."
+msgstr ""
+"ممکن است بایگانی خراب باشد یا دارای رمزگذاری سرآیند باشد که در حال حاضر "
+"پشتیبانی نمی‌شود."
+
+#: plugins/libarchive/libarchiveplugin.cpp:526
+#, kde-format
+msgctxt "@info"
+msgid "Fatal error, extraction aborted."
+msgstr "خطای بحرانی، استخراج متوقف شد."
+
+#: plugins/libarchive/libarchiveplugin.cpp:552
+#, kde-format
+msgctxt "@info"
+msgid "Extraction of encrypted 7-zip entries is currently not supported."
+msgstr "استخراج مدخل‌های رمزگذاری‌شدهٔ 7-zip در حال حاضر پشتیبانی نمی‌شود."
+
+#: plugins/libarchive/libarchiveplugin.cpp:566
+#, kde-format
+msgid "The archive reader could not be initialized."
+msgstr "خوانندهٔ بایگانی قابل راه‌اندازی نیست."
+
+#: plugins/libarchive/libarchiveplugin.cpp:588
+#, kde-format
+msgctxt "@info"
+msgid "Archive corrupted or insufficient permissions."
+msgstr "بایگانی خراب است یا مجوزهای کافی وجود ندارد."
+
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:217
+#, fuzzy, kde-format
+msgctxt "@info"
+msgid "Failed to create a temporary file for writing data."
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:223
+#, kde-format
+msgid "The archive writer could not be initialized."
+msgstr "نویسندهٔ بایگانی قابل راه‌اندازی نیست."
+
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:240
+#, fuzzy, kde-format
+msgctxt "@info"
+msgid "Could not open the archive for writing entries."
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:287
+#, kde-format
+msgid "The compression type '%1' is not supported by Ark."
+msgstr "نوع فشرده‌سازی «%1» توسط آرک پشتیبانی نمی‌شود."
+
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:294
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:364
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:376
+#, fuzzy, kde-format
+msgctxt "@info"
+msgid "Could not set the compression method."
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:399
+#, fuzzy, kde-format
+msgctxt "@info"
+msgid "Could not set the compression level."
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:516
+#, kde-format
+msgctxt "@info"
+msgid "Could not compress entry, operation aborted."
+msgstr "فشرده‌سازی مدخل ممکن نیست، عملیات متوقف شد."
+
+#: plugins/libarchive/readwritelibarchiveplugin.cpp:559
+#, fuzzy, kde-format
+msgctxt "@info Error in a message box"
+msgid "Could not compress entry."
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: plugins/libzipplugin/libzipplugin.cpp:198
+#: plugins/libzipplugin/libzipplugin.cpp:297
+#: plugins/libzipplugin/libzipplugin.cpp:589
+#: plugins/libzipplugin/libzipplugin.cpp:637
+#: plugins/libzipplugin/libzipplugin.cpp:1004
+#: plugins/libzipplugin/libzipplugin.cpp:1058
+#, kde-kuit-format
+msgid "Failed to open archive: %1"
+msgstr "باز کردن بایگانی ناموفق بود: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:350
+#: plugins/libzipplugin/libzipplugin.cpp:621
+#: plugins/libzipplugin/libzipplugin.cpp:653
+#: plugins/libzipplugin/libzipplugin.cpp:1038
+#: plugins/libzipplugin/libzipplugin.cpp:1127
+#, fuzzy, kde-kuit-format
+#| msgid "Click to add files to the archive"
+msgid "Failed to write archive."
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: plugins/libzipplugin/libzipplugin.cpp:399
+#: plugins/libzipplugin/libzipplugin.cpp:1094
+#, kde-kuit-format
+msgid "Failed to add entry: %1"
+msgstr "افزودن مدخل ناموفق بود: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:454
+#, fuzzy, kde-kuit-format
+msgid "Failed to set compression options for entry: %1"
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: plugins/libzipplugin/libzipplugin.cpp:559
+#: plugins/libzipplugin/libzipplugin.cpp:938
+#: plugins/libzipplugin/libzipplugin.cpp:1103
+#, fuzzy, kde-kuit-format
+msgid "Failed to read metadata for entry: %1"
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: plugins/libzipplugin/libzipplugin.cpp:602
+#: plugins/libzipplugin/libzipplugin.cpp:607
+#, kde-kuit-format
+msgid "Failed to delete entry: %1"
+msgstr "حذف مدخل ناموفق بود: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:820
+#, kde-kuit-format
+msgid "Failed to create directory: %1"
+msgstr "ایجاد مسیر ناموفق بود: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:894
+#, kde-kuit-format
+msgid "Failed to open '%1':<nl/>%2"
+msgstr "باز کردن «%1» ناموفق بود:<nl/>%2"
+
+#: plugins/libzipplugin/libzipplugin.cpp:902
+#, fuzzy, kde-kuit-format
+msgid "Failed to open file for writing: %1"
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: plugins/libzipplugin/libzipplugin.cpp:915
+#, kde-kuit-format
+msgid "Failed to read data for entry: %1"
+msgstr "خواندن داده‌های مدخل ناموفق بود: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:920
+#, kde-kuit-format
+msgid "Failed to write data for entry: %1"
+msgstr "نوشتن داده‌های مدخل ناموفق بود: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:930
+#, fuzzy, kde-kuit-format
+msgid "Failed to locate entry: %1"
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#: plugins/libzipplugin/libzipplugin.cpp:1017
+#: plugins/libzipplugin/libzipplugin.cpp:1023
+#, kde-kuit-format
+msgid "Failed to move entry: %1"
+msgstr "انتقال مدخل ناموفق بود: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:1080
+#, kde-kuit-format
+msgid "Failed to copy entry: %1"
+msgstr "کپی مدخل ناموفق بود: %1"
+
+#: plugins/libzipplugin/libzipplugin.cpp:1110
+#, fuzzy, kde-kuit-format
+msgid "Failed to set metadata for entry: %1"
+msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#, fuzzy
+#~| msgid "Open an archive"
+#~ msgid "Open Archive..."
+#~ msgstr "باز کردن بایگانی"
+
+#, fuzzy
+#~| msgid "Add &File..."
+#~ msgid "Add &Files..."
+#~ msgstr "افزودن &پرونده...‌"
+
+#, fuzzy
+#~| msgid "E&xtract..."
+#~ msgid "Extract To..."
+#~ msgstr "&استخراج...‌"
+
+#, fuzzy
+#~| msgid "E&xtract..."
+#~ msgctxt "@action:inmenu Part of Extract submenu in Dolphin context menu"
+#~ msgid "Extract archive to..."
+#~ msgstr "&استخراج...‌"
+
+#, fuzzy
+#~| msgid "Extract"
+#~ msgctxt "@action:inmenu Part of Extract submenu in Dolphin context menu"
+#~ msgid "Extract archive here"
+#~ msgstr "استخراج"
+
+#, fuzzy
+#~| msgid "Extracting one file"
+#~| msgid_plural "Extracting %1 files"
+#~ msgctxt "@action:inmenu Part of Extract submenu in Dolphin context menu"
+#~ msgid "Extract archive here, autodetect subfolder"
+#~ msgstr "استخراج %1 پرونده"
+
+#, fuzzy
+#~| msgid "Open an archive"
+#~ msgid "Create New Archive..."
+#~ msgstr "باز کردن بایگانی"
+
+#, fuzzy
+#~ msgctxt "@info"
+#~ msgid "Ark could not extract <filename>%1</filename>."
+#~ msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#, fuzzy
+#~ msgctxt "@info"
+#~ msgid "Ark could not open <filename>%1</filename> for extraction."
+#~ msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#, fuzzy
+#~| msgctxt "action, to open an archive"
+#~| msgid "Open"
+#~ msgctxt "open a file with external program"
+#~ msgid "&Open"
+#~ msgstr "باز کردن"
+
+#, fuzzy
+#~| msgid "Click to delete the selected files"
+#~ msgctxt "@info:tooltip"
+#~ msgid "Click to open the selected file with the associated application"
+#~ msgstr "فشار برای حذف پرونده‌های برگزیده"
+
+#, fuzzy
+#~ msgctxt "Uncompressed size of a file inside an archive"
+#~ msgid "Size"
+#~ msgstr "اندازه"
+
+#~ msgctxt "action, to open an archive"
+#~ msgid "Open"
+#~ msgstr "باز کردن"
+
+#~ msgid "Open an archive"
+#~ msgstr "باز کردن بایگانی"
+
+#, fuzzy
+#~| msgid "Open an archive"
+#~ msgctxt "@title:window"
+#~ msgid "Save Archive As"
+#~ msgstr "باز کردن بایگانی"
+
+#, fuzzy
+#~| msgid "Extracting one file"
+#~| msgid_plural "Extracting %1 files"
+#~ msgctxt "@title:tab"
+#~ msgid "Extraction Settings"
+#~ msgstr "استخراج %1 پرونده"
+
+#, fuzzy
+#~| msgctxt "to preview a file inside an archive"
+#~| msgid "Pre&view"
+#~ msgctxt "@title:tab"
+#~ msgid "Preview Settings"
+#~ msgstr "&پیش‌نمایش‌"
+
+#, fuzzy
+#~| msgid "Open an archive"
+#~ msgid "&Rename"
+#~ msgstr "باز کردن بایگانی"
+
+#, fuzzy
+#~| msgid "Click to delete the selected files"
+#~ msgctxt "@info:tooltip"
+#~ msgid "Click to rename the selected file"
+#~ msgstr "فشار برای حذف پرونده‌های برگزیده"
+
+#~ msgid "De&lete"
+#~ msgstr "&حذف‌"
+
+#, fuzzy
+#~| msgid "Click to delete the selected files"
+#~ msgctxt "@info:tooltip"
+#~ msgid "Click to delete the selected files"
+#~ msgstr "فشار برای حذف پرونده‌های برگزیده"
+
+#, fuzzy
+#~| msgid "Click to delete the selected files"
+#~ msgctxt "@info:tooltip"
+#~ msgid "Click to cut the selected files"
+#~ msgstr "فشار برای حذف پرونده‌های برگزیده"
+
+#, fuzzy
+#~| msgid "Click to delete the selected files"
+#~ msgctxt "@info:tooltip"
+#~ msgid "Click to copy the selected files"
+#~ msgstr "فشار برای حذف پرونده‌های برگزیده"
+
+#, fuzzy
+#~| msgid "Click to add files to the archive"
+#~ msgctxt "@info:tooltip"
+#~ msgid "Click to paste the files here"
+#~ msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#, fuzzy
+#~| msgid "Add Files"
+#~ msgctxt "@action:inmenu"
+#~ msgid "&Find Files"
+#~ msgstr "افزودن پرونده‌ها"
+
+#, fuzzy
+#~| msgid "Click to add files to the archive"
+#~ msgctxt "@info:tooltip"
+#~ msgid "Click to search in archive"
+#~ msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#~ msgid "Adding a file"
+#~ msgid_plural "Adding %1 files"
+#~ msgstr[0] "افزودن %1 پرونده"
+
+#, fuzzy
+#~ msgctxt "@info"
+#~ msgid "Extraction failed at:<nl/><filename>%1</filename>"
+#~ msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#, fuzzy
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "Could not open the archive <filename>%1</filename>.<nl/>Check whether you "
+#~ "have sufficient permissions."
+#~ msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#, fuzzy
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "Failed to create a temporary file to compress <filename>%1</filename>."
+#~ msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#, fuzzy
+#~| msgid "Click to add files to the archive"
+#~ msgctxt "@info"
+#~ msgid "Could not read until the end of the archive"
+#~ msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#~ msgid "Add Fo&lder..."
+#~ msgstr "افزودن &پوشه...‌"
+
+#, fuzzy
+#~| msgid "Click to add files to the archive"
+#~ msgctxt "@info:tooltip"
+#~ msgid "Click to add a folder to the archive"
+#~ msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#, fuzzy
+#~| msgid "Add Folder"
+#~ msgctxt "@title:window"
+#~ msgid "Add Folder"
+#~ msgstr "افزودن پوشه"
+
+#, fuzzy
+#~| msgid "Deleting a file from the archive"
+#~| msgid_plural "Deleting %1 files"
+#~ msgid "Please select a filename for the archive."
+#~ msgstr "حذف %1 پرونده"
+
+#, fuzzy
+#~| msgctxt "action, to open an archive"
+#~| msgid "Open"
+#~ msgid "Open File"
+#~ msgstr "باز کردن"
+
+#, fuzzy
+#~| msgid "Extract"
+#~ msgctxt "@action:intoolbar"
+#~ msgid "E&xtract"
+#~ msgstr "استخراج"
+
+#, fuzzy
+#~| msgid "Open an archive"
+#~ msgctxt "@title:window"
+#~ msgid "Error Opening Archive"
+#~ msgstr "باز کردن بایگانی"
+
+#, fuzzy
+#~| msgid "Open an archive"
+#~ msgid "lblArchiveNamed"
+#~ msgstr "باز کردن بایگانی"
+
+#, fuzzy
+#~| msgid "Open an archive"
+#~ msgid "lblArchiveType"
+#~ msgstr "باز کردن بایگانی"
+
+#, fuzzy
+#~| msgid "Icons"
+#~ msgid "lblIcon"
+#~ msgstr "شمایلها"
+
+#, fuzzy
+#~ msgctxt "@info"
+#~ msgid "Could not open the archive <filename>%1</filename> for reading"
+#~ msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#, fuzzy
+#~ msgctxt "@info"
+#~ msgid "File <filename>%1</filename> not found in the archive"
+#~ msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#, fuzzy
+#~ msgctxt "@info"
+#~ msgid "Could not open the archive <filename>%1</filename> for writing."
+#~ msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#, fuzzy
+#~ msgctxt "@info"
+#~ msgid "Could not add the directory <filename>%1</filename> to the archive"
+#~ msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#, fuzzy
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "Could not open the archive <filename>%1</filename> after adding file."
+#~ msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#, fuzzy
+#~ msgctxt "@info"
+#~ msgid "Could not add the file <filename>%1</filename> to the archive."
+#~ msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#, fuzzy
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "Could not open the archive <filename>%1</filename>, libarchive cannot "
+#~ "handle it."
+#~ msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#, fuzzy
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "Found program <filename>%1</filename>, but failed to initialize the "
+#~ "process."
+#~ msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#~ msgid "One item"
+#~ msgid_plural "%1 items"
+#~ msgstr[0] "%1 فقره"
+
+#, fuzzy
+#~ msgid "Unable to open the file '%1', libarchive cannot handle it."
+#~ msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#, fuzzy
+#~| msgid "Add Folder"
+#~ msgid "Create Folder"
+#~ msgstr "افزودن پوشه"
+
+#, fuzzy
+#~ msgid "Could not locate file '%1' in the archive"
+#~ msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#, fuzzy
+#~ msgid "Could not find a file named %1 in the archive."
+#~ msgstr "حذف %1 پرونده"
+
+#, fuzzy
+#~ msgid "Couldn't open the file '%1', libarchive can't handle it."
+#~ msgstr "فشار برای افزودن پرونده‌ها به بایگانی"
+
+#~ msgid "Size"
+#~ msgstr "اندازه"

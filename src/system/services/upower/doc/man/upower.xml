@@ -1,0 +1,143 @@
+<refentry id="upower.1">
+  <refentryinfo>
+    <title>upower</title>
+    <date>April 2008</date>
+    <productname>upower</productname>
+  </refentryinfo>
+
+  <refmeta>
+    <refentrytitle>upower</refentrytitle>
+    <manvolnum>1</manvolnum>
+    <refmiscinfo class="version"></refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>upower</refname>
+    <refpurpose>UPower command line tool</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>upower</command>
+      <arg><option>--battery</option></arg>
+      <arg><option>--dump</option></arg>
+      <arg><option>--enumerate</option></arg>
+      <arg><option>--monitor-detail</option></arg>
+      <arg><option>--monitor</option></arg>
+      <arg><option>--show-info</option></arg>
+      <arg><option>--version</option></arg>
+      <arg><option>--help</option></arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+
+  <refsect1><title>DESCRIPTION</title>
+    <para>
+      <emphasis><refentrytitle>upower</refentrytitle></emphasis> is a
+      simple command line client for the
+      <citerefentry><refentrytitle>UPower</refentrytitle><manvolnum>7</manvolnum></citerefentry>
+      daemon.
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title>OPTIONS</title>
+    <variablelist>
+      <varlistentry>
+        <term><option>-b</option>, <option>--battery</option></term>
+        <listitem>
+          <para>
+            Dump all parameters for battery devices.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-d</option>, <option>--dump</option></term>
+        <listitem>
+          <para>
+            Dump all parameters for all devices.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-e</option>, <option>--enumerate</option></term>
+        <listitem>
+          <para>
+            Enumerate the object paths of all devices on the system.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-m</option>, <option>--monitor</option></term>
+        <listitem>
+          <para>
+            Connect to the UPower daemon and print a line
+            every time a power source is added, removed or changed.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--monitor-detail</option></term>
+        <listitem>
+          <para>
+            Like <option>--monitor</option> but prints the full
+            details of the power source whenever an event happens.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-i</option>, <option>--show-info</option> <varname>OBJECT_PATH</varname></term>
+        <listitem>
+          <para>
+            Show information about the given device.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-v</option>, <option>--version</option></term>
+        <listitem>
+          <para>
+            Print version information for the client and daemon.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-h</option>, <option>--help</option></term>
+        <listitem>
+          <para>
+            Show help options.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1><title>AUTHOR</title>
+    <para>
+      Written by David Zeuthen <email>davidz@redhat.com</email> with
+      a lot of help from many others.
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title>BUGS</title>
+    <para>
+      Please send bug reports to either the distribution or the
+      DeviceKit mailing list,
+      see <ulink url="http://lists.freedesktop.org/mailman/listinfo/devkit-devel"/>
+      on how to subscribe.
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+        <refentrytitle>upowerd</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+        <refentrytitle>UPower</refentrytitle><manvolnum>7</manvolnum>
+      </citerefentry>,
+    </para>
+  </refsect1>
+</refentry>

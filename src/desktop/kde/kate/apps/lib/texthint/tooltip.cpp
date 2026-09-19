@@ -1,0 +1,529 @@
+/*
+    SPDX-FileCopyrightText: 2021 Waqar Ahmed <waqar.17a@gmail.com>
+    SPDX-License-Identifier: LGPL-2.0-or-later
+*/
+#include "tooltip.h"
+#include "hintstate.h"
+
+#include <QApplication>
+#include <QEvent>
+#include <QFontMetrics>
+#include <QMenu>
+#include <QMouseEvent>
+#include <QPointer>
+#include <QScopedValueRollback>
+#include <QScreen>
+#include <QScrollBar>
+#include <QString>
+#include <QStyle>
+#include <QTextBrowser>
+#include <QTextTable>
+#include <QTimer>
+
+#include <KSyntaxHighlighting/Definition>
+#include <KSyntaxHighlighting/Format>
+#include <KSyntaxHighlighting/Repository>
+#include <KSyntaxHighlighting/SyntaxHighlighter>
+#include <KTextEditor/Document>
+#include <KTextEditor/Editor>
+#include <KTextEditor/View>
+#include <KWindowSystem>
+
+class TooltipHighlighter final : public KSyntaxHighlighting::SyntaxHighlighter
+{
+public:
+    using KSyntaxHighlighting::SyntaxHighlighter::SyntaxHighlighter;
+
+    void highlightBlock(const QString &text) override
+    {
+        QTextBlock block = currentBlock();
+        QTextBlockFormat fmt = block.blockFormat();
+        if (fmt.property(QTextFormat::BlockCodeLanguage).isValid()) {
+            // highlight blocks marked with BlockCodeLanguage format
+            KSyntaxHighlighting::SyntaxHighlighter::highlightBlock(text);
+            return;
+        }
+
+        const QList<QTextLayout::FormatRange> textFormats = block.textFormats();
+        for (const auto &f : textFormats) {
+            if (f.format.isAnchor()) {
+                QTextCharFormat charFmt = format(f.start);
+                charFmt.setFontUnderline(true);
+                // charFmt.setForeground(linkColor);
+                setFormat(f.start, f.length, charFmt);
+            } else if (f.format.fontFixedPitch()) {
+                QTextCharFormat charFmt = format(f.start);
+                charFmt.setBackground(m_inlineCodeSpanColor);
+                charFmt.setFont(m_editorFont);
+                setFormat(f.start, f.length, charFmt);
+            }
+        }
+    }
+
+    void applyFormat(int offset, int length, const KSyntaxHighlighting::Format &format) override
+    {
+        if (format.textStyle() == KSyntaxHighlighting::Theme::TextStyle::Error) {
+            return;
+        }
+        KSyntaxHighlighting::SyntaxHighlighter::applyFormat(offset, length, format);
+    }
+
+    QBrush m_inlineCodeSpanColor;
+    QFont m_editorFont;
+};
+
+class TooltipPrivate : public QTextBrowser
+{
+public:
+    void setView(KTextEditor::View *view)
+    {
+        // view changed?
+        // => update definition
+        // => update font
+        if (view != m_view) {
+            if (m_view && m_view->focusProxy()) {
+                m_view->focusProxy()->removeEventFilter(this);
+            }
+
+            m_view = view;
+
+            m_hl->setDefinition(KTextEditor::Editor::instance()->repository().definitionForFileName(m_view->document()->url().toString()));
+
+            if (m_view && m_view->focusProxy()) {
+                m_view->focusProxy()->installEventFilter(this);
+            }
+        }
+    }
+
+    TooltipPrivate(QWidget *parent, bool manual, KTextEditor::Range wordRange)
+        : QTextBrowser(parent)
+        , m_hl(new TooltipHighlighter(document()))
+        , m_manual(manual)
+        , m_hoveredWordRange(wordRange)
+    {
+        const auto margin = style()->pixelMetric(QStyle::PM_LayoutHorizontalSpacing, nullptr, this);
+        setWindowFlags(Qt::FramelessWindowHint | Qt::BypassGraphicsProxyWidget | Qt::ToolTip);
+        setAttribute(Qt::WA_DeleteOnClose, true);
+        document()->setDocumentMargin(margin);
+        document()->setTextWidth(-1);
+        setFrameStyle(QFrame::StyledPanel | QFrame::Sunken);
+        setProperty("_breeze_force_frame", true);
+        setAttribute(Qt::WA_TranslucentBackground);
+        connect(&m_hideTimer, &QTimer::timeout, this, &TooltipPrivate::hideTooltip);
+        setWordWrapMode(QTextOption::WordWrap);
+
+        setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+
+        // doc links
+        setOpenExternalLinks(true);
+        setOpenLinks(false);
+
+        auto updateColors = [this](KTextEditor::Editor *e) {
+            auto theme = e->theme();
+            m_hl->setTheme(theme);
+
+            auto pal = palette();
+            const QColor bg = theme.editorColor(KSyntaxHighlighting::Theme::BackgroundColor);
+            const QColor normal = theme.textColor(KSyntaxHighlighting::Theme::Normal);
+            const QColor separator = bg.lightness() < 127 ? normal.darker() : normal.lighter(180);
+            m_actionBarBgColor = theme.editorColor(KSyntaxHighlighting::Theme::CurrentLine);
+            m_actionBarFgColor = theme.textColor(KSyntaxHighlighting::Theme::Variable);
+
+            // Frame color
+            pal.setColor(QPalette::Dark, separator);
+            pal.setColor(QPalette::Light, separator);
+
+            pal.setColor(QPalette::Base, bg);
+            pal.setColor(QPalette::Text, normal);
+            setPalette(pal);
+
+            if (bg.lightness() < 127) {
+                m_hl->m_inlineCodeSpanColor = bg.lighter();
+            } else {
+                m_hl->m_inlineCodeSpanColor = bg.darker(120);
+            }
+
+            auto newFont = KTextEditor::Editor::instance()->font();
+            newFont.setPointSize(font().pointSize());
+            setFont(newFont);
+            m_hl->m_editorFont = newFont;
+        };
+        updateColors(KTextEditor::Editor::instance());
+        connect(KTextEditor::Editor::instance(), &KTextEditor::Editor::configChanged, this, updateColors);
+    }
+
+    double distance(QPoint p1, QPoint p2)
+    {
+        auto dx = (p1.x() - p2.x());
+        auto dy = (p1.y() - p2.y());
+        return sqrt((dx * dx) + (dy * dy));
+    }
+
+    bool eventFilter(QObject *o, QEvent *e) override
+    {
+        switch (e->type()) {
+        // only consider KeyPress
+        // a key release might get triggered by the trail of a shortcut key activation
+        case QEvent::KeyPress:
+            hideTooltip();
+            break;
+        case QEvent::WindowActivate:
+        case QEvent::WindowDeactivate:
+        case QEvent::FocusOut:
+        case QEvent::FocusIn:
+            if (!inContextMenu && !m_view->hasFocus()) {
+                hideTooltip();
+            }
+            break;
+        case QEvent::MouseMove: {
+            if (o == verticalScrollBar() || o == horizontalScrollBar()) {
+                return false;
+            }
+
+            // initialize distance between current mouse pos and top left corner of the tooltip
+            if (prevDistance == 0.0) {
+                auto pt = static_cast<QSinglePointEvent *>(e)->globalPosition().toPoint();
+                prevDistance = distance(pt, mapToGlobal(rect().topLeft()));
+                return false;
+            }
+
+            auto pt = static_cast<QSinglePointEvent *>(e)->globalPosition().toPoint();
+            auto cursor = m_view->coordinatesToCursor(m_view->mapFromGlobal(pt));
+            // we are hovering over the word for which this tooltip exists, dont hide
+            if (m_hoveredWordRange == m_view->document()->wordRangeAt(cursor)) {
+                return false;
+            }
+
+            auto newDistance = distance(pt, mapToGlobal(rect().topLeft()));
+            auto pos = mapFromGlobal(static_cast<QSinglePointEvent *>(e)->globalPosition()).toPoint();
+            if (!m_manual && !hasFocus() && !rect().contains(pos)) {
+                if (newDistance > prevDistance) {
+                    prevDistance = newDistance;
+                    hideTooltipWithDelay();
+                } else {
+                    prevDistance = newDistance;
+                }
+            }
+        } break;
+        case QEvent::MouseButtonPress:
+        case QEvent::MouseButtonRelease:
+        case QEvent::MouseButtonDblClick:
+        case QEvent::Wheel: {
+            auto pos = mapFromGlobal(static_cast<QSinglePointEvent *>(e)->globalPosition()).toPoint();
+            if (!rect().contains(pos)) {
+                hideTooltip();
+            }
+        } break;
+        default:
+            break;
+        }
+        return false;
+    }
+
+    void hideTooltip()
+    {
+        deleteLater();
+    }
+
+    void hideTooltipWithDelay()
+    {
+        m_hideTimer.start(100);
+    }
+
+    void resizeTip()
+    {
+        // get a natural size for the document
+        document()->adjustSize();
+        QSize size = document()->size().toSize();
+
+        const int contentsMarginsWidth = this->contentsMargins().left() + this->contentsMargins().right();
+        const int contentsMarginsHeight = this->contentsMargins().top() + this->contentsMargins().bottom();
+        const int docMargin = 2 * document()->documentMargin();
+        int wMargins = contentsMarginsWidth + docMargin;
+        int hMargins = contentsMarginsHeight;
+
+        // add internal document padding and possible scrollbars to size
+        size.setHeight(size.height() + hMargins);
+        size.setWidth(size.width() + wMargins);
+
+        int maxWidth = calcMaxWidth();
+        int maxHeight = calcMaxHeight();
+
+        // this makes it so the scrollbar margins are only added when we need a scrollbar
+        setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+        if ((size.height() - hMargins) > maxHeight) {
+            setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+            size.rwidth() += verticalScrollBar()->width();
+            maxWidth += horizontalScrollBar()->width();
+        }
+
+        if ((size.width() - wMargins) > maxWidth) {
+            setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+            size.rheight() += horizontalScrollBar()->height();
+            maxHeight += horizontalScrollBar()->height();
+        }
+
+        // limit the tool tip size; the resize call will respect these limits
+        setMaximumSize(maxWidth, maxHeight);
+
+        resize(size);
+    }
+
+    void place(QPoint p)
+    {
+        // snap the tooltip to the word we are hovering
+        auto wordRange = m_hoveredWordRange;
+        QPoint wordStart = m_view->mapToGlobal(m_view->cursorToCoordinate(wordRange.start()));
+        QPoint wordEnd = m_view->mapToGlobal(m_view->cursorToCoordinate(wordRange.end()));
+
+        // FIXME: need to account for line height multiplier but ktexteditor doesn't expose that apparently :/
+        auto fontConfig = m_view->configValue(QStringLiteral("font"));
+        int lineHeight = QFontMetrics(fontConfig.value<QFont>()).height();
+
+        // try to get right screen, important: QApplication::screenAt(p) might return nullptr
+        // see crash in bug 439804
+        const QScreen *screenForTooltip = QApplication::screenAt(p);
+        if (!screenForTooltip) {
+            screenForTooltip = screen();
+        }
+        QRect screen = screenForTooltip->availableGeometry();
+
+        // on wayland the tooltip can't overlap panels so it will get shifted and overlap the word we are hovering
+        // so by clipping it to the window it wont overlap the panel (assuming the kate window is not overlapping the panel) and get shifted
+        if (KWindowSystem::isPlatformWayland()) {
+            screen = m_view->window()->geometry();
+        }
+
+        p = QPoint(wordStart.x(), wordStart.y() + lineHeight);
+
+        if (p.x() + width() > screen.x() + screen.width()) {
+            p.setX(wordEnd.x() - width());
+        }
+        if (p.y() + this->height() > screen.y() + screen.height()) {
+            p.ry() -= lineHeight + this->height();
+        }
+        if (p.y() < screen.y()) {
+            p.setY(screen.y());
+        }
+        if (p.x() + this->width() > screen.x() + screen.width()) {
+            p.setX(screen.x() + screen.width() - this->width());
+        }
+        if (p.x() < screen.x()) {
+            p.setX(screen.x());
+        }
+        if (p.y() + this->height() > screen.y() + screen.height()) {
+            p.setY(screen.y() + screen.height() - this->height());
+        }
+
+        this->move(p);
+    }
+
+    void upsert(size_t instanceId, const QString &text, TextHintMarkupKind kind, const QList<HintAction> &actions)
+    {
+        m_hintState.upsert(instanceId, text, kind, actions);
+        triggerChange();
+    }
+
+    void remove(size_t instanceId)
+    {
+        m_hintState.remove(instanceId);
+        triggerChange();
+    }
+
+protected:
+    void enterEvent(QEnterEvent *event) override
+    {
+        m_hideTimer.stop();
+        QTextBrowser::enterEvent(event);
+    }
+
+    void leaveEvent(QEvent *event) override
+    {
+        if (!m_hideTimer.isActive() && !inContextMenu) {
+            hideTooltip();
+        }
+        QTextBrowser::leaveEvent(event);
+    }
+
+    void mouseMoveEvent(QMouseEvent *event) override
+    {
+        auto pos = event->pos();
+        if (rect().contains(pos)) {
+            QTextBrowser::mouseMoveEvent(event);
+            return;
+        }
+    }
+
+    void contextMenuEvent(QContextMenuEvent *e) override
+    {
+        QScopedValueRollback r(inContextMenu, true);
+        auto m = createStandardContextMenu();
+        m->setParent(this);
+        e->accept();
+        m->exec(mapToGlobal(e->pos()));
+
+        // if cursor has left the widget -> hide
+        if (!rect().contains(mapFromGlobal(QCursor::pos()))) {
+            hideTooltip();
+        }
+    }
+
+    void showEvent(QShowEvent *event) override
+    {
+        QTextBrowser::showEvent(event);
+        verticalScrollBar()->setValue(0);
+    }
+
+private:
+    void triggerChange()
+    {
+        m_hintState.render([this](const HintState::Hint &hintData) {
+            const auto &[text, kind, actions] = hintData;
+            if (kind == TextHintMarkupKind::PlainText) {
+                setPlainText(text);
+            } else {
+                setMarkdown(text);
+            }
+
+            disconnect(this, &QTextBrowser::anchorClicked, nullptr, nullptr);
+            connect(this, &QTextBrowser::anchorClicked, this, [this, actions](const QUrl &url) {
+                if (url.scheme() == QStringLiteral("action")) {
+                    int idx = url.path().toInt();
+                    if (idx >= 0 && idx < actions.size()) {
+                        hideTooltip();
+                        actions[idx].m_callback();
+                    }
+                }
+            });
+
+            const auto maxWidth = calcMaxWidth();
+
+            // the default width is too small and will make text wrap too often
+            // so we make its initial width be the max width used in resizeTip()
+            // 100 height is arbitrary, setting it to the default seems to give worse results
+            resize(maxWidth, 100);
+
+            // after enabling line break on a single block
+            // we apparently need to enable for all the next ones
+            // otherwise it won't line break the first one (?????)
+            bool shouldLineBreakNextBlocks = false;
+
+            auto block = document()->firstBlock();
+            for (int i = 0; i < document()->blockCount(); ++i) {
+                QTextCursor c(block);
+                auto bfmt = block.blockFormat();
+                // Fix some things for code blocks in markdown
+                if (bfmt.hasProperty(QTextFormat::BlockCodeLanguage)) {
+                    // allow word wrap
+                    // only do it if exceeds maximum width to avoid unnecessary wraps
+                    // because Qt sometimes makes stupid decisions and wraps 3 short words into 3 lines
+                    if (shouldLineBreakNextBlocks || block.layout()->boundingRect().width() > maxWidth) {
+                        bfmt.setNonBreakableLines(false);
+                        shouldLineBreakNextBlocks = true;
+                    }
+
+                    // fix the font, use our own mono font
+                    c.select(QTextCursor::BlockUnderCursor);
+                    auto cfmt = block.charFormat();
+                    cfmt.setFont(this->font());
+                    c.mergeBlockFormat(bfmt);
+                    c.setCharFormat(cfmt);
+                } else if (bfmt.headingLevel() != 0) {
+                    // Make all headings H3
+                    bfmt.setHeadingLevel(3);
+                    c.select(QTextCursor::BlockUnderCursor);
+                    QTextCharFormat cfmt = block.charFormat();
+                    cfmt.setProperty(QTextFormat::FontSizeAdjustment, 0);
+                    cfmt.setFontWeight(QFont::Bold);
+                    c.mergeBlockFormat(bfmt);
+                    c.setCharFormat(cfmt);
+                } else if (auto table = c.currentTable()) {
+                    auto fmt = table->format();
+                    auto bg = fmt.background().color();
+                    // Apply foreground and background color to actions bar
+                    if (bg == QColor(0x100001)) {
+                        QTextTableFormat newFmt = fmt;
+                        newFmt.setBackground(QColor(m_actionBarBgColor));
+                        table->setFormat(newFmt);
+                        // Update text color in all cells
+                        for (int row = 0; row < table->rows(); ++row) {
+                            for (int col = 0; col < table->columns(); ++col) {
+                                QTextTableCell cell = table->cellAt(row, col);
+                                QTextCursor cellCursor = cell.firstCursorPosition();
+                                QTextCursor endCursor = cell.lastCursorPosition();
+                                cellCursor.setPosition(endCursor.position(), QTextCursor::KeepAnchor);
+                                QTextCharFormat charFmt;
+                                charFmt.setForeground(QBrush(m_actionBarFgColor));
+                                cellCursor.mergeCharFormat(charFmt);
+                            }
+                        }
+                    }
+                }
+                block = block.next();
+            }
+
+            resizeTip();
+        });
+    }
+
+    [[nodiscard]] int calcMaxWidth() const
+    {
+        return (m_view->window() ? m_view->window()->width() : m_view->width()) / 2;
+    }
+
+    [[nodiscard]] int calcMaxHeight() const
+    {
+        return (m_view->window() ? m_view->window()->height() : m_view->height()) / 2;
+    }
+
+    bool inContextMenu = false;
+    QPointer<KTextEditor::View> m_view;
+    QTimer m_hideTimer;
+    TooltipHighlighter *m_hl;
+    bool m_manual;
+    HintState m_hintState;
+    double prevDistance = 0.0;
+    const KTextEditor::Range m_hoveredWordRange;
+    QColor m_actionBarBgColor;
+    QColor m_actionBarFgColor;
+};
+
+QObject *KateTooltip::show(size_t instanceId,
+                           const QString &text,
+                           TextHintMarkupKind kind,
+                           QPoint pos,
+                           KTextEditor::View *v,
+                           bool manual,
+                           KTextEditor::Range hoveredRange,
+                           const QList<HintAction> &actions)
+{
+    if (!v || !v->document()) {
+        return nullptr;
+    }
+
+    static QPointer<TooltipPrivate> tooltip = nullptr;
+    if (tooltip && tooltip->isVisible()) {
+        if (text.isEmpty() || text.trimmed().isEmpty()) {
+            tooltip->remove(instanceId);
+            return tooltip;
+        }
+
+        tooltip->upsert(instanceId, text, kind, actions);
+        return tooltip;
+    }
+    delete tooltip;
+
+    if (text.isEmpty() || text.trimmed().isEmpty()) {
+        return tooltip;
+    }
+
+    tooltip = new TooltipPrivate(v, manual, hoveredRange);
+    tooltip->setView(v);
+    tooltip->upsert(instanceId, text, kind, actions);
+    tooltip->place(pos);
+    tooltip->show();
+    return tooltip;
+}

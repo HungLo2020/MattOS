@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2020 Carl Schwan <carl@carlschwan.eu>
+#
+# SPDX-License-Identifier: CC0-1.0
+.vscode
+_build
+*.kate-swp
+*.swp
+build*/
+/.clang-format
+/compile_commands.json
+.clangd
+.cache
+.idea
+/cmake-build*
+CMakeLists.txt.user

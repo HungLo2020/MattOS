@@ -35,10 +35,10 @@ DEFAULT_VM_CPUS = 4
 # `virtio-vga-gl` is the one GPU that satisfies both development-launcher
 # requirements: its VGA compatibility gives firmware/GRUB a scanout before
 # Linux starts, and its VirtIO GL backend exposes the VirGL capset used later
-# by Mesa and the native COSMIC compositor.
+# by Mesa and the native Plasma compositor.
 # QEMU's virtio-vga-gl defaults to a 1280×800 firmware scanout. Do not pass
 # xres/yres explicitly: they are only firmware hints, not a Wayland policy,
-# and leaving the device defaults intact lets KMS/cosmic-comp select the
+# and leaving the device defaults intact lets KWin select the
 # preferred DRM mode exposed by the virtual output.
 VIRTIO_GPU_GL_DEVICE = "virtio-vga-gl,blob=true,hostmem=256M"
 QEMU_TABLET_CONTROLLER = "qemu-xhci,id=mattos-xhci"
@@ -219,7 +219,7 @@ def uefi_firmware_arguments(
 def choose_graphical_display(repo_root: Path) -> str:
     # VirGL scanout requires a GL-capable host display.  Plain GTK/SDL would
     # leave the guest's virtio GPU without the 3D capset that Mesa's source-
-    # built virgl driver needs for the COSMIC KMS path.
+    # built virgl driver needs for the KWin KMS path.
     try:
         output = run_command_capture(["qemu-system-x86_64", "-display", "help"], cwd=repo_root)
     except RepoError:
@@ -238,7 +238,7 @@ def graphical_gpu_device(repo_root: Path) -> str:
 
     `virtio-gpu-pci` is only a 2D VirtIO GPU.  The installer intentionally
     uses QEMU's GL variant so the ISO exercises the same DRM/GBM/EGL/dmabuf
-    path that the native COSMIC compositor requires.  Fail closed instead of
+    path that the native Plasma compositor requires.  Fail closed instead of
     silently booting a graphical installer configuration that cannot render.
     """
     try:
@@ -247,10 +247,10 @@ def graphical_gpu_device(repo_root: Path) -> str:
         raise RepoError("could not inspect QEMU VirtIO GPU support") from exc
     if "virtio-vga-gl" not in output:
         raise RepoError(
-            "this QEMU lacks virtio-vga-gl; the native COSMIC installer "
+            "this QEMU lacks virtio-vga-gl; the native Plasma session "
             "requires a VGA-compatible QEMU VirtIO GPU with GL/VirGL support"
         )
-    # VirGL alone provides an EGL context, but COSMIC's KMS renderer also
+    # VirGL alone provides an EGL context, but KWin's KMS renderer also
     # exports its scanout buffers as dmabufs.  Enable QEMU's VirtIO resource
     # blob backing and its bounded host-memory aperture so the guest advertises
     # resource_blob/host_visible instead of an unusable context-only device.
@@ -622,7 +622,7 @@ def _launch_one(
             f"and serial socket {control_serial} (DevUtils/qemu_test_control.py)"
         )
     if not args.headless:
-        # The native COSMIC installer is a DRM/KMS Wayland client session.
+        # The native Plasma session is a DRM/KMS Wayland client session.
         # Normal graphical runs deliberately use virtio-vga-gl and VirGL.
         # QEMU cannot expose a screendump surface for that GL display, so the
         # explicitly opt-in test-control mode uses a conventional VGA surface
@@ -637,7 +637,7 @@ def _launch_one(
         qemu_cmd.extend(["-device", gpu_device])
         # A graphical desktop guest needs an absolute pointer. The default
         # PS/2 mouse is relative-only and did not produce usable pointer
-        # motion in the COSMIC KMS session. One USB tablet is sufficient.
+        # motion in the Plasma KMS session. One USB tablet is sufficient.
         qemu_cmd.extend(["-device", QEMU_TABLET_CONTROLLER, "-device", QEMU_TABLET_DEVICE])
     if install_disk is None:
         install_disk = prepare_install_disk(repo_root, args)
@@ -649,7 +649,7 @@ def _launch_one(
         # Keep the graphical backend alive for the GL-only virtio-vga device
         # while routing the guest's serial console to the invoking terminal.
         # `-nographic` forcibly disables that backend and therefore cannot be
-        # combined with the normal COSMIC GPU configuration.
+        # combined with the normal Plasma GPU configuration.
         display = choose_graphical_display(repo_root)
         if display == "default":
             qemu_cmd.extend(["-display", "default"])
@@ -835,7 +835,7 @@ def _verify_installed_disk_boot(
         ("efi-mount", "findmnt -no SOURCE /boot/efi"),
         ("gpt", "lsblk -no PTTYPE /dev/vda"),
         ("graphical-target", "systemctl is-active graphical.target"),
-        ("compositor", "(for n in $(seq 1 90); do pgrep -x cosmic-comp >/dev/null && pgrep -x cosmic-panel >/dev/null && exit 0; sleep 1; done; exit 1)"),
+        ("compositor", "(for n in $(seq 1 90); do pgrep -x kwin_wayland >/dev/null && pgrep -x plasmashell >/dev/null && exit 0; sleep 1; done; exit 1)"),
         ("mattos-repository", "grep -q '^Enabled: yes' /etc/apt/sources.list.d/mattos-hosted.sources"),
     )
     result: dict[str, object] = {}

@@ -1,0 +1,965 @@
+# Chinese translations for plasma-systemmonitor package
+# plasma-systemmonitor 套件的正體中文翻譯.
+# Copyright (C) 2022 This file is copyright:
+# This file is distributed under the same license as the plasma-systemmonitor package.
+#
+# SPDX-FileCopyrightText: 2022, 2023, 2024, 2025, 2026 Kisaragi Hiu <mail@kisaragi-hiu.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma-systemmonitor\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-23 02:42+0000\n"
+"PO-Revision-Date: 2026-01-15 00:56+0900\n"
+"Last-Translator: Kisaragi Hiu <mail@kisaragi-hiu.com>\n"
+"Language-Team: Traditional Chinese <zh-l10n@lists.slat.org>\n"
+"Language: zh_TW\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Lokalize 26.03.70\n"
+
+#: src/GlobalMenu.qml:16
+#, kde-format
+msgctxt "@menu"
+msgid "File"
+msgstr "檔案"
+
+#: src/GlobalMenu.qml:19
+#, kde-format
+msgctxt "@menu-action"
+msgid "Add New Page…"
+msgstr "新增頁面…"
+
+#: src/GlobalMenu.qml:25
+#, kde-format
+msgctxt "@menu-action"
+msgid "Import Page…"
+msgstr "匯入頁面…"
+
+#: src/GlobalMenu.qml:31
+#, kde-format
+msgctxt "@menu-action"
+msgid "Export Current Page…"
+msgstr "匯出目前頁面…"
+
+#: src/GlobalMenu.qml:38
+#, kde-format
+msgctxt "@menu-action"
+msgid "Get New Pages…"
+msgstr "取得新頁面…"
+
+#: src/GlobalMenu.qml:55
+#, kde-format
+msgctxt "@menu-action"
+msgid "Quit"
+msgstr "離開"
+
+#: src/GlobalMenu.qml:63
+#, kde-format
+msgctxt "@menu"
+msgid "View"
+msgstr "檢視"
+
+#: src/GlobalMenu.qml:66
+#, kde-format
+msgctxt "@menu-action"
+msgid "Expand Sidebar"
+msgstr "展開側邊欄"
+
+#: src/GlobalMenu.qml:66
+#, kde-format
+msgctxt "@menu-action"
+msgid "Collapse Sidebar"
+msgstr "收起側邊欄"
+
+#: src/GlobalMenu.qml:73
+#, kde-format
+msgctxt "@menu"
+msgid "Settings"
+msgstr "設定"
+
+#: src/GlobalMenu.qml:76
+#, kde-format
+msgctxt "@menu-action"
+msgid "Edit or Remove pages…"
+msgstr "編輯或移除頁面…"
+
+#: src/GlobalMenu.qml:83
+#, kde-format
+msgctxt "@menu"
+msgid "Help"
+msgstr "說明"
+
+#: src/GlobalMenu.qml:86
+#, kde-format
+msgctxt "@menu-action"
+msgid "Report Bug…"
+msgstr "回報臭蟲…"
+
+#: src/GlobalMenu.qml:92
+#, kde-format
+msgctxt "@menu-action"
+msgid "About System Monitor"
+msgstr "關於系統監控"
+
+#: src/main.cpp:61
+#, kde-format
+msgid "System Monitor"
+msgstr "系統監控"
+
+#: src/main.cpp:63
+#, kde-format
+msgid "An application for monitoring system resources"
+msgstr "一個監控系統資源的應用程式"
+
+#: src/main.cpp:65
+#, kde-format
+msgid "© 2025 Plasma Development Team"
+msgstr "© 2025 Plasma 開發團隊"
+
+#: src/main.cpp:71
+#, kde-format
+msgid "Arjen Hiemstra"
+msgstr "Arjen Hiemstra"
+
+#: src/main.cpp:71 src/main.cpp:74 src/main.cpp:76 src/main.cpp:77
+#, kde-format
+msgid "Development"
+msgstr "開發"
+
+#: src/main.cpp:72
+#, kde-format
+msgid "Uri Herrera"
+msgstr "Uri Herrera"
+
+#: src/main.cpp:72
+#, kde-format
+msgid "Design"
+msgstr "設計"
+
+#: src/main.cpp:73
+#, kde-format
+msgid "Nate Graham"
+msgstr "Nate Graham"
+
+#: src/main.cpp:73 src/main.cpp:75
+#, kde-format
+msgid "Design and Quality Assurance"
+msgstr "設計與品質保證"
+
+#: src/main.cpp:74
+#, kde-format
+msgid "David Redondo"
+msgstr "David Redondo"
+
+#: src/main.cpp:75
+#, kde-format
+msgid "Noah Davis"
+msgstr "Noah Davis"
+
+#: src/main.cpp:76
+#, kde-format
+msgid "Marco Martin"
+msgstr "Marco Martin"
+
+#: src/main.cpp:77
+#, kde-format
+msgid "David Edmundson"
+msgstr "David Edmundson"
+
+#: src/main.cpp:79
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Kisaragi Hiu"
+
+#: src/main.cpp:79
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "mail@kisaragi-hiu.com"
+
+#: src/Main.qml:88
+#, kde-format
+msgctxt "@action"
+msgid "Tools"
+msgstr "工具"
+
+#: src/Main.qml:93
+#, kde-format
+msgctxt "@action"
+msgid "Add New Page…"
+msgstr "新增頁面…"
+
+#: src/Main.qml:100
+#, kde-format
+msgctxt "@action"
+msgid "Edit or Remove pages…"
+msgstr "編輯或移除頁面…"
+
+#: src/Main.qml:106
+#, kde-format
+msgctxt "@action"
+msgid "Export Current Page…"
+msgstr "匯出目前頁面…"
+
+#: src/Main.qml:114
+#, kde-format
+msgctxt "@action"
+msgid "Import Page…"
+msgstr "匯入頁面…"
+
+#: src/Main.qml:120
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Get New Pages…"
+msgstr "取得新頁面…"
+
+#: src/Main.qml:137
+#, kde-format
+msgctxt "@action"
+msgid "Expand Sidebar"
+msgstr "展開側邊欄"
+
+#: src/Main.qml:137
+#, kde-format
+msgctxt "@action"
+msgid "Collapse Sidebar"
+msgstr "收起側邊欄"
+
+#: src/Main.qml:147
+#, kde-format
+msgctxt "@action"
+msgid "Report Bug…"
+msgstr "回報臭蟲…"
+
+#: src/Main.qml:153
+#, kde-format
+msgctxt "@action"
+msgid "About System Monitor"
+msgstr "關於系統監控"
+
+#: src/Main.qml:160
+#, kde-format
+msgctxt "@action"
+msgid "About KDE"
+msgstr "關於 KDE"
+
+#: src/Main.qml:251
+#, kde-format
+msgctxt "@window:title"
+msgid "Add New Page"
+msgstr "新增頁面"
+
+#: src/Main.qml:272
+#, kde-format
+msgctxt "@window:title"
+msgid "Edit Pages"
+msgstr "編輯頁面"
+
+#: src/Main.qml:295
+#, kde-format
+msgctxt "@title:window %1 is the name of the page that is being exported"
+msgid "Export %1"
+msgstr "匯出 %1"
+
+#: src/Main.qml:297 src/Main.qml:307
+#, kde-format
+msgctxt "Name filter in file dialog"
+msgid "System Monitor page (*.page)"
+msgstr "系統監控頁面 (*.page)"
+
+#: src/Main.qml:305
+#, kde-format
+msgctxt "@title:window"
+msgid "Import Page"
+msgstr "匯入頁面"
+
+#: src/Main.qml:331
+#, kde-format
+msgid ""
+"System Monitor has fallen back to software rendering because hardware "
+"acceleration is not available, and visual glitches may appear. Please check "
+"your graphics drivers."
+msgstr ""
+"由於硬體加速無法使用，系統監控已經改用軟體算繪，而可能會出現視覺錯誤。請檢查"
+"您的顯示卡驅動程式。"
+
+#: src/page/ColumnControl.qml:117
+#, kde-format
+msgctxt "@action"
+msgid "Add Section"
+msgstr "新增區塊"
+
+#: src/page/ColumnControl.qml:121
+#, kde-format
+msgctxt "@action"
+msgid "Add Separator"
+msgstr "新增分隔器"
+
+#: src/page/ColumnControl.qml:130
+#, kde-format
+msgctxt "@action"
+msgid "Show Background"
+msgstr "顯示背景"
+
+#: src/page/ColumnControl.qml:137
+#, kde-format
+msgctxt "@action"
+msgid "Remove Background Margins"
+msgstr "移除背景邊界"
+
+#: src/page/EditablePage.qml:128
+#, kde-format
+msgctxt "@action"
+msgid "Edit Page"
+msgstr "編輯頁面"
+
+#: src/page/EditablePage.qml:138
+#, kde-format
+msgctxt "@action"
+msgid "Save Changes"
+msgstr "儲存變更"
+
+#: src/page/EditablePage.qml:148
+#, kde-format
+msgctxt "@action"
+msgid "Discard Changes"
+msgstr "捨棄變更"
+
+#: src/page/EditablePage.qml:159
+#, kde-format
+msgctxt "@action"
+msgid "Configure Page…"
+msgstr "設定頁面…"
+
+#: src/page/EditablePage.qml:168
+#, kde-format
+msgctxt "@action"
+msgid "Add Row"
+msgstr "新增列"
+
+#: src/page/EditablePage.qml:177
+#, kde-format
+msgctxt "@action"
+msgid "Add Title"
+msgstr "新增標題"
+
+#: src/page/EditablePage.qml:190
+#, kde-format
+msgctxt "@title:window %1 is page title"
+msgid "Configure Page \"%1\""
+msgstr "設定頁面「%1」"
+
+#: src/page/EditablePage.qml:192
+#, kde-format
+msgctxt "@action:button"
+msgid "Save"
+msgstr "儲存"
+
+#: src/page/EditorToolBar.qml:36
+#, kde-format
+msgctxt "@action"
+msgid "Add"
+msgstr "新增"
+
+#: src/page/EditorToolBar.qml:56
+#, kde-format
+msgctxt "@action"
+msgid "Remove"
+msgstr "移除"
+
+#: src/page/FaceConfigurationPage.qml:25
+#, kde-format
+msgctxt "@title:window %1 is face name"
+msgid "Configure %1"
+msgstr "設定 %1"
+
+#: src/page/FaceConfigurationPage.qml:32
+#, kde-format
+msgctxt "@action"
+msgid "Close"
+msgstr "關閉"
+
+#: src/page/FaceConfigurationPage.qml:39
+#, kde-format
+msgctxt "@action"
+msgid "Load Preset…"
+msgstr "載入預設檔…"
+
+#: src/page/FaceConfigurationPage.qml:45
+#, kde-format
+msgctxt "@action"
+msgid "Get New Presets…"
+msgstr "取得新預設檔…"
+
+#: src/page/FaceConfigurationPage.qml:56
+#, kde-format
+msgctxt "@action"
+msgid "Save Settings as Preset"
+msgstr "將設定儲存為預設檔"
+
+#: src/page/FaceConfigurationPage.qml:60
+#, kde-format
+msgctxt "@info:status %1 is preset name"
+msgid "Saved settings as preset %1."
+msgstr "已將設定存為 %1 預設檔。"
+
+#: src/page/FaceConfigurationPage.qml:66 src/page/PageContents.qml:357
+#, kde-format
+msgctxt "@action"
+msgid "Add Chart as Desktop Widget"
+msgstr "將圖表作為小元件新增至桌面"
+
+#: src/page/FaceConfigurationPage.qml:77
+#, kde-format
+msgctxt "@action"
+msgid "Get New Display Styles…"
+msgstr "取得新顯示風格…"
+
+#: src/page/FaceConfigurationPage.qml:100
+#, kde-format
+msgctxt "@info:status %1 is preset name"
+msgid "Loaded preset %1."
+msgstr "已載入 %1 預設檔。"
+
+#: src/page/FaceConfigurationPage.qml:117
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Title"
+msgstr "標題"
+
+#: src/page/FaceConfigurationPage.qml:123
+#, kde-format
+msgctxt "@option:check"
+msgid "Show Title"
+msgstr "顯示標題"
+
+#: src/page/FaceConfigurationPage.qml:141
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Display Style"
+msgstr "顯示模式"
+
+#: src/page/FaceConfigurationPage.qml:169
+#, kde-format
+msgctxt "@label"
+msgid "Minimum time between updates:"
+msgstr "更新間至少等待："
+
+#: src/page/FaceConfigurationPage.qml:186
+#, kde-format
+msgid "No Limit"
+msgstr "無限制"
+
+#. i18ndp doesn't handle floats :(
+#: src/page/FaceConfigurationPage.qml:190
+#, kde-format
+msgid "1 second"
+msgstr "1秒"
+
+#: src/page/FaceConfigurationPage.qml:192
+#, kde-format
+msgid "%1 seconds"
+msgstr "%1秒"
+
+#: src/page/FacesModel.cpp:46
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "No Chart"
+msgstr "無圖表"
+
+#: src/page/LoadPresetDialog.qml:23
+#, kde-format
+msgctxt "@title:window"
+msgid "Load Preset"
+msgstr "載入預設檔"
+
+#: src/page/LoadPresetDialog.qml:38
+#, kde-format
+msgctxt "@action:button"
+msgid "Load"
+msgstr "載入"
+
+#: src/page/MissingSensorsDialog.qml:23
+#, kde-format
+msgctxt "@title"
+msgid "Replace Missing Sensors"
+msgstr "替換遺失偵測器"
+
+#: src/page/MoveButton.qml:23
+#, kde-format
+msgctxt "@action"
+msgid "Move"
+msgstr "移動"
+
+#: src/page/PageContents.qml:107 src/page/PageEditor.qml:141
+#, kde-format
+msgid "This page is missing some sensors and will not display correctly."
+msgstr "本頁面遺失一些偵測器，因此顯示上會有錯誤。"
+
+#: src/page/PageContents.qml:112 src/page/PageEditor.qml:145
+#, kde-format
+msgctxt "@action:button"
+msgid "Fix…"
+msgstr "修正…"
+
+#: src/page/PageContents.qml:124
+#, kde-format
+msgid ""
+"A new version of this page was installed, but you made changes to this page. "
+"The changes have been copied to %1 (Old Version)."
+msgstr ""
+"已安裝了這個頁面的新版本，但您曾經變更過這個頁面。您先前變更的版本已複製到"
+"「%1（舊版）」。"
+
+#: src/page/PageContents.qml:125
+#, kde-format
+msgid ""
+"A new version of this page was installed, but you made changes to this page. "
+"Would you like to keep your changes or discard your changes and use the new "
+"version of the page?"
+msgstr ""
+"已安裝了這個頁面的新版本，但您曾經變更過這個頁面。您要保留您的變更，還是要捨"
+"棄變更並使用頁面的新版本？"
+
+#: src/page/PageContents.qml:133
+#, kde-format
+msgctxt "@action:button"
+msgid "Keep Changes"
+msgstr "保留變更"
+
+#: src/page/PageContents.qml:139
+#, kde-format
+msgctxt "@action:button"
+msgid "Discard Changes"
+msgstr "捨棄變更"
+
+#: src/page/PageDialog.qml:21
+#, kde-format
+msgctxt "@action:button"
+msgid "Add"
+msgstr "新增"
+
+#: src/page/PageDialog.qml:24
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "New Page"
+msgstr "新頁面"
+
+#: src/page/PageDialog.qml:85
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Name:"
+msgstr "名稱"
+
+#: src/page/PageDialog.qml:96
+#, kde-format
+msgctxt "@info:status"
+msgid "Name cannot be empty."
+msgstr "名稱不能是空白的。"
+
+#: src/page/PageDialog.qml:100
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Icon:"
+msgstr "圖示："
+
+#: src/page/PageDialog.qml:105
+#, kde-format
+msgctxt "@label:listbox"
+msgid "Page Margins:"
+msgstr "頁面邊界："
+
+#: src/page/PageDialog.qml:118
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "None"
+msgstr "無"
+
+#: src/page/PageDialog.qml:119
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Small"
+msgstr "小"
+
+#: src/page/PageDialog.qml:120
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Large"
+msgstr "大"
+
+#: src/page/PageDialog.qml:129
+#, kde-format
+msgctxt "@label:listbox"
+msgid "Use Actions From:"
+msgstr "動作來源："
+
+#: src/page/PageDialog.qml:147
+#, kde-format
+msgctxt "@label:listbox"
+msgid "Load this page:"
+msgstr "載入此頁面："
+
+#: src/page/PageDialog.qml:160
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "When needed"
+msgstr "有需要的時候"
+
+#: src/page/PageDialog.qml:161
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "During application startup"
+msgstr "應用程式啟動時"
+
+#: src/page/PageEditor.qml:191
+#, kde-format
+msgid "New Title"
+msgstr "新標題"
+
+#: src/page/PageSortDialog.qml:97
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Show Page"
+msgstr "顯示頁面"
+
+#: src/page/PageSortDialog.qml:98
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Hide Page"
+msgstr "隱藏頁面"
+
+#: src/page/PageSortDialog.qml:142
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Do not reset the page"
+msgstr "不要重設這個頁面"
+
+#: src/page/PageSortDialog.qml:146
+#, kde-format
+msgctxt "@item:intable"
+msgid "The page will be reset to its default state"
+msgstr "此頁面將被重設至預設"
+
+#: src/page/PageSortDialog.qml:155
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Reset the page to its default state"
+msgstr "將頁面重設至預設值"
+
+#: src/page/PageSortDialog.qml:164
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Do not remove this page"
+msgstr "不要移除這個頁面"
+
+#: src/page/PageSortDialog.qml:168
+#, kde-format
+msgctxt "@item:intable"
+msgid "The page will be removed"
+msgstr "此頁面將被移除"
+
+#: src/page/PageSortDialog.qml:177
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Remove this page"
+msgstr "移除這個頁面"
+
+#: src/page/PageSortDialog.qml:195
+#, kde-format
+msgctxt "@label:listbox"
+msgid "Start with:"
+msgstr "起始頁面："
+
+#: src/page/PageSortDialog.qml:204
+#, kde-format
+msgid "Last Visited Page"
+msgstr "上次檢視的頁面"
+
+#: src/page/RowControl.qml:127
+#, kde-format
+msgctxt "@action"
+msgid "Add Column"
+msgstr "新增欄位"
+
+#: src/page/RowControl.qml:136
+#, kde-format
+msgctxt "@action"
+msgid "Height"
+msgstr "高度"
+
+#: src/page/RowControl.qml:140
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Balanced"
+msgstr "平衡"
+
+#: src/page/RowControl.qml:141
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Try and use the same height across different rows."
+msgstr "試著讓每一列高度相同。"
+
+#: src/page/RowControl.qml:149
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Minimum"
+msgstr "最小化"
+
+#: src/page/RowControl.qml:150
+#, kde-format
+msgctxt "@info:tooltop"
+msgid "Use the minimum amount of height needed to display contents correctly."
+msgstr "在維持內容正常顯示的前提下儘量使用最小的高度。"
+
+#: src/page/RowControl.qml:158
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Maximum"
+msgstr "最大化"
+
+#: src/page/RowControl.qml:159
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Try to use as much height as possible."
+msgstr "使用最大可能使用的高度。"
+
+#: src/page/RowControl.qml:167
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Half Page Height"
+msgstr "半個頁面高度"
+
+#: src/page/RowControl.qml:168
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Use half the height of the page."
+msgstr "用頁面高度的一半。"
+
+#: src/table/ColumnConfigurationDialog.qml:29
+#, kde-format
+msgctxt "@window:title"
+msgid "Configure Columns"
+msgstr "設定欄位"
+
+#: src/table/ColumnConfigurationDialog.qml:106
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Enabled Columns"
+msgstr "已啟用欄位"
+
+#: src/table/ColumnConfigurationDialog.qml:106
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Disabled Columns"
+msgstr "已停用欄位"
+
+#: src/table/ColumnConfigurationDialog.qml:240
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Hidden"
+msgstr "隱藏"
+
+#: src/table/ColumnConfigurationDialog.qml:241
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Text Only"
+msgstr "只有文字"
+
+#: src/table/ColumnConfigurationDialog.qml:245
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Line Chart"
+msgstr "折線圖"
+
+#: src/table/ColumnConfigurationDialog.qml:249
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Text Only (Scaled to 100%)"
+msgstr "只有文字（縮放至 100%）"
+
+#: src/table/ColumnConfigurationDialog.qml:250
+#, kde-format
+msgctxt "@item:inlistbox"
+msgid "Line Chart (Scaled to 100%)"
+msgstr "折線圖（縮放至 100%）"
+
+#: src/table/ColumnConfigurationDialog.qml:287
+#, kde-format
+msgctxt "@info"
+msgid "No columns matched the search"
+msgstr "沒有符合搜尋字詞的欄位"
+
+#: src/table/KillDialog.qml:83
+#, kde-format
+msgctxt "@option:check"
+msgid "Do not ask again"
+msgstr "不要再詢問"
+
+#: src/table/ReniceDialog.qml:25
+#, kde-format
+msgctxt "@title:window"
+msgid "Set Priority"
+msgstr "設定優先權"
+
+#: src/table/ReniceDialog.qml:57
+#, kde-format
+msgctxt "@title:group"
+msgid "CPU Scheduler"
+msgstr "CPU 排程器"
+
+#: src/table/ReniceDialog.qml:83
+#, kde-format
+msgctxt "@option:radio for process scheduler mode"
+msgid "Normal"
+msgstr "一般"
+
+#: src/table/ReniceDialog.qml:84
+#, kde-format
+msgctxt "@info:tooltip from ContextualHelpButton"
+msgid ""
+"The standard time-sharing scheduler for processes without special "
+"requirements."
+msgstr "供沒有特殊需求的行程用的標準時間共享排程器。"
+
+#: src/table/ReniceDialog.qml:89
+#, kde-format
+msgctxt "@option:radio for process scheduler mode"
+msgid "Batch"
+msgstr "批次"
+
+#: src/table/ReniceDialog.qml:90
+#, kde-format
+msgctxt "@info:tooltip from ContextualHelpButton"
+msgid ""
+"Process is mildly disfavored in scheduling decisions, for CPU-intensive non-"
+"interactive processes."
+msgstr ""
+"行程在決定排程時會稍微比較不優先，適合需要 CPU 性能但不是互動式的行程。"
+
+#: src/table/ReniceDialog.qml:95
+#, kde-format
+msgctxt "@option:radio for process scheduler mode"
+msgid "Round robin"
+msgstr "循環排程"
+
+#: src/table/ReniceDialog.qml:96
+#, kde-format
+msgctxt "@info:tooltip from ContextualHelpButton"
+msgid "Process will run whenever runnable, with timeslicing."
+msgstr "行程只要能執行就會執行，並採分時機制。"
+
+#: src/table/ReniceDialog.qml:101
+#, kde-format
+msgctxt "@option:radio for process scheduler mode"
+msgid "FIFO"
+msgstr "先進先出(FIFO)"
+
+#: src/table/ReniceDialog.qml:102
+#, kde-format
+msgctxt "@info:tooltip from ContextualHelpButton"
+msgid "Process will run whenever runnable, with no timeslicing."
+msgstr "行程只要能執行就會執行，且不採分時機制。"
+
+#: src/table/ReniceDialog.qml:120
+#, kde-format
+msgctxt "@title:group"
+msgid "I/O Scheduler"
+msgstr "I/O 排程器"
+
+#: src/table/ReniceDialog.qml:146
+#, kde-format
+msgctxt "@option:radio for I/O scheduler mode"
+msgid "Normal"
+msgstr "一般"
+
+#: src/table/ReniceDialog.qml:147
+#, kde-format
+msgctxt "@info:tooltip from ContextualHelpButton"
+msgid "Process' priority is based on the CPU priority."
+msgstr "讓行程優先權取決於 CPU 優先權。"
+
+#: src/table/ReniceDialog.qml:152
+#, kde-format
+msgctxt "@option:radio for I/O scheduler mode"
+msgid "Idle"
+msgstr "閒置"
+
+#: src/table/ReniceDialog.qml:153
+#, kde-format
+msgctxt "@info:tooltip from ContextualHelpButton"
+msgid ""
+"Process can only use the hard disk when no other process has used it very "
+"recently."
+msgstr "行程只有在短時間內沒有其他行程剛使用硬碟時才能使用硬碟。"
+
+#: src/table/ReniceDialog.qml:158
+#, kde-format
+msgctxt "@option:radio for I/O scheduler mode"
+msgid "Best Effort"
+msgstr "最佳努力"
+
+#: src/table/ReniceDialog.qml:159
+#, kde-format
+msgctxt "@info:tooltip from ContextualHelpButton"
+msgid "Process is given higher priority to access the hard disk than normal."
+msgstr "讓行程有比平常更高的優先權來存取硬碟。"
+
+#: src/table/ReniceDialog.qml:164
+#, kde-format
+msgctxt "@option:radio for I/O scheduler mode"
+msgid "Real Time"
+msgstr "即時運作"
+
+#: src/table/ReniceDialog.qml:165
+#, kde-format
+msgctxt "@info:tooltip from ContextualHelpButton"
+msgid ""
+"Process gets immediate access to the hard disk whenever needed, regardless "
+"of what else is going on."
+msgstr "行程需要時馬上讓它存取硬碟，無論還有什麼事情在發生。"
+
+#: src/table/ReniceDialog.qml:211
+#, kde-format
+msgctxt "Lower process priority"
+msgid "Low priority"
+msgstr "低優先權"
+
+#: src/table/ReniceDialog.qml:218
+#, kde-format
+msgctxt "Higher process priority"
+msgid "High priority"
+msgstr "高優先權"
+
+#: src/table/ReniceDialog.qml:268
+#, kde-format
+msgctxt "Lower I/O priority"
+msgid "Low priority"
+msgstr "低優先權"
+
+#: src/table/ReniceDialog.qml:275
+#, kde-format
+msgctxt "Higher I/O priority"
+msgid "High priority"
+msgstr "高優先權"
+
+#: src/ToolsModel.cpp:37
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Kill a Window…"
+msgstr "強制停止視窗…"
+
+#: src/ToolsModel.cpp:115
+#, kde-format
+msgctxt "@action:inmenu %1 is application name"
+msgid "Launch %1"
+msgstr "啟動 %1"
+
+#~ msgid "Placeholder"
+#~ msgstr "佔位符"
+
+#~ msgctxt "@action:button"
+#~ msgid "Cancel"
+#~ msgstr "取消"

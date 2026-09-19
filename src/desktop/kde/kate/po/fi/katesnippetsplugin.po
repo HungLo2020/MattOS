@@ -1,0 +1,450 @@
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+# Lasse Liehu <lasse.liehu@gmail.com>, 2012, 2014, 2015.
+# SPDX-FileCopyrightText: 2014, 2017, 2020, 2024, 2025 Tommi Nieminen <translator@legisign.org>
+#
+# KDE Finnish translation sprint participants:
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-07-04 00:47+0000\n"
+"PO-Revision-Date: 2025-06-24 17:22+0300\n"
+"Last-Translator: Tommi Nieminen <translator@legisign.org>\n"
+"Language-Team: Finnish <kde-i18n-doc@kde.org>\n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 23.08.5\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Tommi Nieminen, Lasse Liehu"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "translator@legisign.org,lasse.liehu@gmail.com"
+
+#: editrepository.cpp:80 editrepository.cpp:125
+#, kde-format
+msgid "Edit Snippet Repository %1"
+msgstr "Muokkaa katkelmatietovarastoa %1"
+
+#: editrepository.cpp:82
+#, kde-format
+msgid "Create New Snippet Repository"
+msgstr "Luo uusi katkelmatietovarasto"
+
+#: editrepository.cpp:141
+#, kde-format
+msgid "<i>leave empty for general purpose snippets</i>"
+msgstr "<i>jätä tyhjäksi yleiskäyttöisille katkelmille</i>"
+
+#. i18n: ectx: property (text), widget (QLabel, repoNameLabel)
+#. i18n: ectx: property (text), widget (QLabel, snippetName)
+#: editrepository.ui:29 editsnippet.ui:37
+#, kde-format
+msgid "Name:"
+msgstr "Nimi:"
+
+#. i18n: ectx: property (text), widget (QLabel, repoNamespaceLabel)
+#: editrepository.ui:36
+#, kde-format
+msgid "Namespace:"
+msgstr "Nimiavaruus:"
+
+#. i18n: ectx: property (text), widget (QLabel, repoLicenseLabel)
+#: editrepository.ui:43
+#, kde-format
+msgid "&License:"
+msgstr "&Lisenssi:"
+
+#. i18n: ectx: property (text), widget (QLabel, repoAuthorsLabel)
+#: editrepository.ui:56
+#, kde-format
+msgid "&Authors:"
+msgstr "&Tekijät:"
+
+#. i18n: ectx: property (text), widget (QLabel, repoFileTypesLabel)
+#: editrepository.ui:69
+#, kde-format
+msgid "&File types:"
+msgstr "Tie&dostotyypit:"
+
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, repoNameEdit)
+#: editrepository.ui:96
+#, kde-format
+msgid "A short name for the repository"
+msgstr "Tietokannan lyhyt nimi"
+
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, repoNamespaceEdit)
+#: editrepository.ui:103
+#, kde-format
+msgid "Prefix to show in code completion"
+msgstr "Koodin täydennyksessä näytettävä etuliite"
+
+#: editsnippet.cpp:73
+#, kde-format
+msgid ""
+"Text to insert into the document (see the <a href=\"help:/kate/kate-"
+"application-plugin-snippets.html#snippet-input-template\">handbook</a> for "
+"special fields)."
+msgstr ""
+"Tiedostoon lisättävä teksti (muuttujista löytyy lisätietoa <a href=\"help:/"
+"kate/kate-application-plugin-snippets.html#snippet-input-template"
+"\">käsikirjasta</a>)."
+
+#: editsnippet.cpp:79
+#, kde-format
+msgid ""
+"JavaScript code to evaluate (see the <a href=\"help:/kate/kate-application-"
+"plugin-snippets.html#snippet-input-script\">handbook</a> for details)."
+msgstr ""
+"Suoritettava JavaScript-koodi (lisätietoa löytyy <a href=\"help:/kate/kate-"
+"application-plugin-snippets.html#snippet-input-script\">käsikirjasta</a>)."
+
+#: editsnippet.cpp:86
+#, kde-format
+msgid "Text template"
+msgstr "Tekstimalli"
+
+#: editsnippet.cpp:87
+#, kde-format
+msgid "Script"
+msgstr "Skripti"
+
+#: editsnippet.cpp:99
+#, kde-format
+msgid ""
+"JavaScript functions shared between all snippets in this repository (see the "
+"<a href=\"help:/kate/kate-application-plugin-snippets.html#snippet-input-"
+"library\">handbook</a>)."
+msgstr ""
+"Tämä tietolähteen kaikille katkelmille yhteiset JavaScript-funktiot (katso "
+"<a href=\"help:/kate/kate-application-plugin-snippets.html#snippet-input-"
+"library\">käsikirjaa</a>)."
+
+#: editsnippet.cpp:103
+#, kde-format
+msgid ""
+"Optional description to show in tooltips. You may use basic HTML formatting."
+msgstr ""
+"Työkaluvihjeissä näytettävät valinnaiset kuvaukset. Muotoiluun voi käyttää "
+"perus-HTML:ää."
+
+#: editsnippet.cpp:125 editsnippet.cpp:218
+#, kde-format
+msgid "Edit Snippet %1 in %2"
+msgstr "Muokkaa katkelmaa %1 tietovarastossa %2"
+
+#: editsnippet.cpp:138
+#, kde-format
+msgid "Create New Snippet in Repository %1"
+msgstr "Luo uusi katkelma tietovarastoon %1"
+
+#: editsnippet.cpp:188
+#, kde-format
+msgid "Snippet names with spaces may not work well in completions"
+msgstr "Sanavälit katkelmien nimissä eivät toimi kunnolla täydennyksessä"
+
+#: editsnippet.cpp:230
+#, kde-format
+msgid ""
+"The snippet contains unsaved changes. Do you want to discard all changes?"
+msgstr ""
+"Katkelmassa on muutoksia tallentamatta. Haluatko jatkaa menettäen muutokset?"
+
+#: editsnippet.cpp:231
+#, kde-format
+msgid "Warning - Unsaved Changes"
+msgstr "Varoitus: muutoksia tallentamatta"
+
+#: editsnippet.cpp:233
+#, kde-format
+msgid "Continue editing"
+msgstr "Jatka muokkausta"
+
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, snippetNameEdit)
+#: editsnippet.ui:44
+#, kde-format
+msgid "Name to be shown in the completion list (required)"
+msgstr "Täydennysluettelossa näytettävä nimi (vaaditaan)"
+
+#. i18n: ectx: property (text), widget (QLabel, modeComboBoxLabel)
+#: editsnippet.ui:55
+#, kde-format
+msgid "Snippet Mode:"
+msgstr "Katkelmatila:"
+
+#. i18n: ectx: property (text), widget (QLabel, snippetShortcutLabel)
+#: editsnippet.ui:78
+#, kde-format
+msgid "Keyboard shortcut:"
+msgstr "Pikanäppäin:"
+
+#. i18n: ectx: attribute (title), widget (QWidget, snippetTab)
+#: editsnippet.ui:100
+#, kde-format
+msgid "&Snippet"
+msgstr "&Katkelma"
+
+#. i18n: ectx: attribute (title), widget (QWidget, scriptTab)
+#: editsnippet.ui:117
+#, kde-format
+msgid "S&cript Library"
+msgstr "Skriptikirjasto"
+
+#. i18n: ectx: attribute (title), widget (QWidget, descriptionTab)
+#: editsnippet.ui:131
+#, kde-format
+msgid "Description"
+msgstr "Kuvaus"
+
+#. i18n: ectx: property (text), widget (QPushButton, dotest_button)
+#: editsnippet.ui:151
+#, kde-format
+msgid "Test this snippet"
+msgstr "Kokeile tätä katkelmaa"
+
+#: katesnippetglobal.cpp:101
+#, kde-format
+msgctxt "Autogenerated repository name for a programming language"
+msgid "%1 snippets"
+msgstr "%1-katkelmat"
+
+#: katesnippets.cpp:42 katesnippets.cpp:50 snippetcompletionmodel.cpp:43
+#: snippetview.cpp:76 snippetview.cpp:202
+#, kde-format
+msgid "Snippets"
+msgstr "Katkelmat"
+
+#: katesnippets.cpp:61
+#, kde-format
+msgid "Create Snippet"
+msgstr "Luo katkelma"
+
+#: snippet.cpp:22
+#, kde-format
+msgid "<empty snippet>"
+msgstr "<tyhjä katkelma>"
+
+#: snippet.cpp:91
+#, kde-format
+msgid "insert snippet %1"
+msgstr "lisää katkelma %1"
+
+#: snippet.cpp:108
+#, kde-format
+msgid ""
+"Kate needs to be compiled against KTExtEditor version 6.15.0 or higher, to "
+"use this type of snippet."
+msgstr ""
+"Kate tulee koostaa KTextEditorin version 6.15.0 tai myöhemmän kanssa tämän "
+"tyypin katkelmien käyttämiseksi."
+
+#: snippetrepository.cpp:45
+#, kde-format
+msgid "<empty repository>"
+msgstr "<tyhjä tietovarasto>"
+
+#: snippetrepository.cpp:232
+#, kde-format
+msgid ""
+"You have edited a snippet repository file not located in your personal "
+"directory; as such, a copy of the original file has been created within your "
+"personal data directory."
+msgstr ""
+"Olet muokannut katkelmatietovarastoa, joka ei sijaitse omassa kansiossasi. "
+"Alkuperäisestä tiedostosta on siksi tehty kopio omaan datakansioosi."
+
+#: snippetrepository.cpp:238
+#, kde-format
+msgid "Output file '%1' could not be opened for writing"
+msgstr "Tulostiedostoa ”%1” ei voitu avata kirjoitettavaksi"
+
+#: snippetrepository.cpp:273
+#, kde-format
+msgid "Cannot open snippet repository %1."
+msgstr "Katkelmatietovarastoa %1 ei voi avata."
+
+#: snippetrepository.cpp:280
+#, kde-format
+msgid ""
+"<qt>The error <b>%4</b><br /> has been detected in the file %1 at %2/%3</qt>"
+msgstr ""
+"<qt>Virhe <b>%4</b><br />on havaittu tiedostossa %1 kohdassa %2/%3</qt>"
+
+#: snippetrepository.cpp:291
+#, kde-format
+msgid "Invalid XML snippet file: %1"
+msgstr "Virheellinen XML-katkelmatiedosto: %1"
+
+#: snippetrepository.cpp:360
+#, kde-format
+msgid ""
+"Repository is disabled, the contained snippets will not be shown during code-"
+"completion."
+msgstr ""
+"Tietovarasto ei ole käytössä, joten sen katkelmia ei koodintäydennyksessä "
+"näytetä."
+
+#: snippetrepository.cpp:363
+#, kde-format
+msgid "Applies to all filetypes"
+msgstr "Koskee kaikkia tiedostotyyppejä"
+
+#: snippetrepository.cpp:365
+#, kde-format
+msgid "Applies to the following filetypes: %1"
+msgstr "Koskee tiedostotyyppejä: %1"
+
+#: snippetview.cpp:93
+#, kde-format
+msgid "Add Repository"
+msgstr "Lisää tietovarasto"
+
+#: snippetview.cpp:96
+#, kde-format
+msgid "Edit Repository"
+msgstr "Muokkaa tietovarastoa"
+
+#: snippetview.cpp:99
+#, kde-format
+msgid "Remove Repository"
+msgstr "Poista tietovarasto"
+
+#: snippetview.cpp:109
+#, kde-format
+msgid "Add Snippet"
+msgstr "Lisää katkelma"
+
+#: snippetview.cpp:112
+#, kde-format
+msgid "Edit Snippet"
+msgstr "Muokkaa katkelmaa"
+
+#: snippetview.cpp:115
+#, kde-format
+msgid "Remove Snippet"
+msgstr "Poista katkelma"
+
+#: snippetview.cpp:121
+#, kde-format
+msgid "Get New Snippets"
+msgstr "Hae uusia katkelmia"
+
+#: snippetview.cpp:210
+#, kde-format
+msgid "Snippet: %1"
+msgstr "Katkelma: %1"
+
+#: snippetview.cpp:218
+#, kde-format
+msgid "Repository: %1"
+msgstr "Tietovarasto: %1"
+
+#: snippetview.cpp:283
+#, kde-format
+msgid "Do you really want to delete the snippet \"%1\"?"
+msgstr "Haluatko varmasti poistaa katkelman ”%1”?"
+
+#: snippetview.cpp:327
+#, kde-format
+msgid ""
+"Do you really want to delete the repository \"%1\" with all its snippets?"
+msgstr "Haluatko varmasti poistaa tietovaraston ”%1” katkelmineen?"
+
+#. i18n: ectx: property (toolTip), widget (KLineEdit, filterText)
+#: snippetview.ui:35
+#, kde-format
+msgid "Define filter here"
+msgstr "Määritä suodatin tässä"
+
+#. i18n: ectx: property (placeholderText), widget (KLineEdit, filterText)
+#: snippetview.ui:38
+#, kde-format
+msgid "Filter..."
+msgstr "Suodata…"
+
+#. i18n: ectx: Menu (tools)
+#: ui.rc:6
+#, kde-format
+msgid "&Tools"
+msgstr "T&yökalut"
+
+#~ msgid ""
+#~ "The text your snippet will insert into the document. <a href=\"A snippet "
+#~ "can contain editable fields. They can be cycled by pressing Tab. The "
+#~ "following expressions can be used in the template text to create fields: "
+#~ "<br><tt>${field_name}</tt> creates a simple, editable field. All "
+#~ "subsequent occurrences of the same field_name create fields which mirror "
+#~ "the contents of the first during editing.<br><tt>${field_name=default}</"
+#~ "tt> can be used to specify a default value for the field. <tt>default</"
+#~ "tt> can be any JavaScript expression.<br>Use <tt>${field_name=text}</tt> "
+#~ "to specify a fixed string as default value.<br><tt>${func(other_field1, "
+#~ "other_field2, ...)}</tt> can be used to create a field which evaluates a "
+#~ "JavaScript function on each edit and contains its contents. See the "
+#~ "Scripts tab for more information.<br><tt>${cursor}</tt> can be used to "
+#~ "mark the end position of the cursor after everything else was filled in."
+#~ "\">More...</a>"
+#~ msgstr ""
+#~ "Teksti, jonka leike lisää tiedostoon. <a href=\"A snippet can contain "
+#~ "editable fields. They can be cycled by pressing Tab. The following "
+#~ "expressions can be used in the template text to create fields: <br><tt>"
+#~ "${kentän_nimi}</tt> luo yksinkertaisen, muokattavissa olevan kentän. "
+#~ "Kaikki saman kentän_nimen myöhemmät esiintymät luovat kenttiä, jotka "
+#~ "heijastavat ensimmäisen sisältöä.<br><tt>${kentän_nimi=oletus}</tt> antaa "
+#~ "määrittää kentälle oletusarvon. <tt>oletus</tt> voi olla mikä tahansa "
+#~ "JavaScript-lauseke.<br>Käytä <tt>${kentän_nimi=teksti}</tt> antaaksesi "
+#~ "oletusarvoksi kiinteän merkkijonon.<br><tt>${funktio(kenttä_1, kenttä_2, "
+#~ "…)}</tt> sallii luoda kentän, joka suorittaa JavaScript-funktion joka "
+#~ "muokkauksella ja käyttää sen arvoa sisältönään. Skriptit-välilehdeltä "
+#~ "löytyy lisätietoa.<br><tt>${kohdistin}</tt> antaa asettaa kohdistimen "
+#~ "loppusijainnin sen jälkeen, kun kaikki on täytetty.\">Lisätietoa...</a>"
+
+#~ msgid ""
+#~ "Write down JavaScript helper functions to use in your snippets here. <a "
+#~ "href=\"All JavaScript functions should return the contents you want to "
+#~ "place in a template field as a string.<br>Functions are called in a scope "
+#~ "which contains the contents of all editable template fields as local "
+#~ "variables. For example in a snippet containing <tt>${field}</tt>, a "
+#~ "variable called <tt>field</tt> will be present which contains the up-to-"
+#~ "date contents of the template field. Those variables can either be used "
+#~ "in the function statically or passed as arguments, by using the <tt>"
+#~ "${func(field)}</tt> or <tt>${field2=func(field)}</tt> syntax in the "
+#~ "snippet string.<br>You can use the kate scripting API to get the selected "
+#~ "text, full text, file name and more by using the appropriate methods of "
+#~ "the <tt>document</tt> and <tt>view</tt> objects. Refer to the scripting "
+#~ "API documentation for more information.\">More...</a>"
+#~ msgstr ""
+#~ "Kirjoita leikkeessä käytetyt JavaScript-apufunktiot tähän. <a href="
+#~ "\"Kaikkien JavaScript-funktioiden tulisi palauttaa merkkijonona sisältö, "
+#~ "jonka haluat sijoittaa mallin kenttään.<br> Funktioita kutsutaan "
+#~ "nimiavaruudessa, johon kuuluvat kaikkien muokattavissa olevat mallin "
+#~ "kentät paikallisina muuttujina. Esimerkiksi leikkeessä, joka sisältää "
+#~ "kentän <tt>${kentta}</tt>, muuttuja <tt>kentta</tt> sisältää kyseisen "
+#~ "mallin kentän ajantasaisen sisällön. Muuttujia voi käyttää funktioissa "
+#~ "staattisesti tai välittää parametreina käyttäen leikkeissä syntaksia <tt>"
+#~ "${funktio(kentta)}</tt> tai <tt>{kentta2=funktio(kentta)}</tt>.<br>Katen "
+#~ "skriptaus-APIlla voit saada valitun tekstin, koko tekstin, tiedoston "
+#~ "nimen ja muuta käyttäen vastaavia <tt>document</tt>- ja <tt>view</tt>-"
+#~ "olioiden metodeja. Lisätietoa löydät skriptaus-APIn ohjeista.\">Lisää…</a>"
+
+#~ msgid "Snippet name cannot contain spaces"
+#~ msgstr "Leikkeen nimessä ei voi olla välilyöntejä"
+
+#~ msgid "Snippets tool view"
+#~ msgstr "Leikenäkymä"
+
+#~ msgid "Publish Repository"
+#~ msgstr "Julkaise tietokanta"
+
+#~ msgid "Snippets..."
+#~ msgstr "Katkelmat…"
+
+#~ msgid "Help"
+#~ msgstr "Ohje"

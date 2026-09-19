@@ -1,0 +1,19 @@
+## UDisks libstoragemgmt module configuration
+## See udisks2_lsm.conf(5) manpage for details
+
+## Polling interval on supported libstoragemgmt drives in seconds.
+## unsigned integer (default = 30)
+refresh_interval = 30
+
+## [Developers only]
+## Valid values: "true", "false" (default = false)
+enable_sim = false
+
+## Defines whether to load the libstoragemgmt HP Smart Array plugin.
+## Valid values: "true", "false" (default = true)
+enable_hpsa = true
+
+## Extra URIs and passwords to load.  Should be quoted (") and be separated by comma (,)
+## By default, no extra URIs will be loaded.
+#extra_uris = ["ontap+ssl://root@na-sim"]
+#extra_passwords = ["password"]

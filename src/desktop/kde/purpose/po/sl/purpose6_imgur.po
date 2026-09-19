@@ -1,0 +1,49 @@
+# Slovenian translation of purpose
+# Copyright (C) YEAR This file is copyright:
+# This file is distributed under the same license as the purpose package.
+#
+# Matjaž Jeran <matjaz.jeran@amis.net>, 2019, 2021.
+msgid ""
+msgstr ""
+"Project-Id-Version: purpose\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-11-17 11:49+0000\n"
+"PO-Revision-Date: 2024-11-26 22:19+0100\n"
+"Last-Translator: Matjaž Jeran <matjaz.jeran@amis.net>\n"
+"Language-Team: Slovenian <lugos-slo@lugos.si>\n"
+"Language: sl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n%100==1 ? 1 : n%100==2 ? 2 : n%100==3 || n"
+"%100==4 ? 3 : 0);\n"
+"X-Generator: Poedit 3.5\n"
+
+#: imgurplugin.cpp:68 imgurplugin.cpp:70
+#, kde-format
+msgid "Upload failed: %1"
+msgstr "Prenos tja ni uspel: %1"
+
+#: imgurplugin.cpp:91
+#, kde-format
+msgid "Uploading files to imgur..."
+msgstr "Pošiljanje datotek imgurju..."
+
+#: imgurplugin.cpp:143
+#, kde-format
+msgid "Imgur Upload"
+msgstr "Prenos na Imgur"
+
+#: imgurplugin.cpp:144
+#, kde-format
+msgid ""
+"The shared image link (<a href=\"%1\">%1</a>) has been copied to the "
+"clipboard.<br><br>If you would like to remove the uploaded image, visit <a "
+"href=\"%2\">%2</a>"
+msgstr ""
+"Deljena povezava na sliko (<a href=\"%1\">%1</a>) je prekopirana na "
+"odložišče.<br><br>Če bi želeli odstraniti preneseno sliko, obiščite <a href="
+"\"%2\">%2</a>"
+
+#~ msgid "Error page returned"
+#~ msgstr "Vrnjena je stran z napako"

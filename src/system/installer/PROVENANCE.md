@@ -29,9 +29,3 @@ systemd-boot-specific behavior is intentionally not part of MattOS policy.
 
 Copyright and attribution remain with their respective upstream contributors.
 MattOS modifications are not represented as upstream System76/elementary work.
-
-## COSMIC boundary
-
-`cosmic-initial-setup` is not installer source and is not covered by this
-ownership transition. It remains a separately pinned normal upstream component
-for future first-login Desktop setup.

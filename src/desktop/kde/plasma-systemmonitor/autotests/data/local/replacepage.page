@@ -1,0 +1,68 @@
+# SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
+# SPDX-FileCopyrightText: 2025 Arjen Hiemstra <ahiemstra@heimr.nl>
+
+[Face-99321327401776][Appearance]
+chartFace=org.kde.ksysguard.linechart
+title=Test
+
+[Face-99321327401776][Sensors]
+highPrioritySensorIds=["cpu/all/usage"]
+
+[page]
+Title=Local Replaced Page
+Title[ar]=الصفحة المستبدلة المحلية
+Title[bg]=Локално заместена страница
+Title[ca]=Pàgina substituïda local
+Title[ca@valencia]=Pàgina substituïda local
+Title[cs]=Místní nahrazená stránka
+Title[de]=Lokale ersetzte Seite
+Title[es]=Página local sustituida
+Title[eu]=Ordeztutako orri lokala
+Title[fi]=Paikallinen korvattu sivu
+Title[fr]=Page locale remplacée
+Title[gl]=Páxina local substituída
+Title[he]=עמוד מקומי שהוחלף
+Title[hu]=Helyi cserélt oldal
+Title[ia]=Pagina Local Reimplaciate
+Title[is]=Staðbundin útskipt síða
+Title[it]=Pagina locale sostituita
+Title[ka]=ლოკალური ჩანაცვლებული გვერდი
+Title[ko]=로컬 교체된 페이지
+Title[lt]=Vietinis pakeistas puslapis
+Title[lv]=Lokāla aizvietota lapa
+Title[nl]=Lokaal vervangen pagina
+Title[pa]=ਲੋਕਲ ਬਦਲਿਆ ਸਫ਼ਾ
+Title[pl]=Zastąp stronę lokalną
+Title[pt_BR]=Página local substituída
+Title[ro]=Pagină înlocuită locală
+Title[ru]=Заменённая локальная страница
+Title[sk]=Local Replaced Page
+Title[sl]=Lokalna zamenjana stran
+Title[sv]=Lokal ersatt sida
+Title[tr]=Yerel Değiştirilmiş Sayfa
+Title[uk]=Локальна замінена сторінка
+Title[zh_CN]=本地替换页面
+Title[zh_TW]=本地已取代的頁面
+actionsFace=
+icon=ksysguardd
+loadType=onstart
+margin=2
+version=1
+
+[page][row-0]
+Title=
+heightMode=balanced
+isTitle=false
+name=row-0
+
+[page][row-0][column-0]
+name=column-0
+noMargins=
+showBackground=true
+
+[page][row-0][column-0][section-0]
+face=Face-99321327401776
+isSeparator=false
+name=section-0
+
+

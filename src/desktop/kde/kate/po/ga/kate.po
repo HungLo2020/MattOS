@@ -1,0 +1,3255 @@
+# translation of kate.po to Irish
+# Copyright (C) 2002 Free Software Foundation, Inc.
+# Séamus Ó Ciardhuáin <seoc@cnds.ucd.ie>, 2002
+# Kevin Scannell <kscanne@gmail.com>, 2009
+# Aindriú Mac Giolla Eoin <aindriu80@yahoo.com>, 2025, 2026.
+# SPDX-FileCopyrightText: 2026 deck <altronic25@protonmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: kate\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-07-17 02:43+0000\n"
+"PO-Revision-Date: 2026-07-04 12:52+0100\n"
+"Last-Translator: deck <altronic25@protonmail.com>\n"
+"Language-Team: Irish <gaeilge-gnulinux@lists.sourceforge.net>\n"
+"Language: ga\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=5; plural=n==1 ? 0 : n==2 ? 1 : n<7 ? 2 : n < 11 ? "
+"3 : 4\n"
+"X-Generator: Lokalize 25.04.3\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Séamus Ó Ciardhuáin,Kevin Scannell"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "seoc@iolfree.ie,kscanne@gmail.com"
+
+#: kate/main.cpp:119
+#, kde-format
+msgid "Kate"
+msgstr "Kate"
+
+#: kate/main.cpp:121
+#, kde-format
+msgid "Kate - Advanced Text Editor"
+msgstr "Kate - Ard-eagarthóir"
+
+#: kate/main.cpp:123 kwrite/main.cpp:50
+#, kde-format
+msgid "(c) 2000-2024 The Kate Authors"
+msgstr "(c) 2000-2024 Údair Kate"
+
+#: kate/main.cpp:169 lib/autotests/kate_view_mgmt_test2.cpp:220
+#: lib/autotests/kate_view_mgmt_test2.cpp:522
+#: lib/autotests/kate_view_mgmt_test2.cpp:558
+#, kde-format
+msgid "Start Kate with a given session."
+msgstr "Tosaigh Kate le seisiún ar leith."
+
+#: kate/main.cpp:170 lib/autotests/kate_view_mgmt_test2.cpp:221
+#: lib/autotests/kate_view_mgmt_test2.cpp:523
+#: lib/autotests/kate_view_mgmt_test2.cpp:559
+#, kde-format
+msgid "session"
+msgstr "seisiún"
+
+#: kate/main.cpp:175
+#, kde-format
+msgid "Start Kate with a new anonymous session, implies '-n'."
+msgstr "Tosaigh Kate le seisiún nua gan ainm, tugann sé '-n' le fios."
+
+#: kate/main.cpp:180
+#, kde-format
+msgid ""
+"Force start of a new kate instance (is ignored if start is used and another "
+"kate instance already has the given session opened), forced if no parameters "
+"and no URLs are given at all."
+msgstr ""
+"Tús fórsaithe d'eiseamal nua kate (déantar neamhaird de má úsáidtear tús "
+"agus má tá an seisiún tugtha oscailte ag eiseamal eile kate cheana féin), "
+"éigeantach mura dtugtar aon pharaiméadair ná aon URLanna ar chor ar bith."
+
+#: kate/main.cpp:186
+#, kde-format
+msgid ""
+"If using an already running kate instance, block until it exits, if URLs "
+"given to open."
+msgstr ""
+"Más rud é go bhfuil cás Kate á rith cheana féin in úsáid, blocáil é go dtí "
+"go scoireann sé, má thugtar URLanna le hoscailt."
+
+#: kate/main.cpp:192
+#, kde-format
+msgid ""
+"Only try to reuse kate instance with this pid (is ignored if start is used "
+"and another kate instance already has the given session opened)."
+msgstr ""
+"Déan iarracht ach sampla Kate a athúsáid leis an pid seo (ní thugtar aird "
+"air má úsáidtear tús agus má tá an seisiún tugtha oscailte ag sampla Kate "
+"eile cheana féin)."
+
+#: kate/main.cpp:193
+#, kde-format
+msgid "pid"
+msgstr "pid"
+
+#: kate/main.cpp:198 kwrite/main.cpp:101
+#, kde-format
+msgid "Set encoding for the file to open."
+msgstr "Socraigh ionchódú don chomhad atá le hoscailt."
+
+#: kate/main.cpp:199 kwrite/main.cpp:102
+#, kde-format
+msgid "encoding"
+msgstr "ionchódú"
+
+#: kate/main.cpp:203 kwrite/main.cpp:106
+#, kde-format
+msgid "Navigate to this line."
+msgstr "Téigh go dtí an líne seo."
+
+#: kate/main.cpp:203 kwrite/main.cpp:106
+#, kde-format
+msgid "line"
+msgstr "líne"
+
+#: kate/main.cpp:207 kwrite/main.cpp:110
+#, kde-format
+msgid "Navigate to this column."
+msgstr "Téigh go dtí an colún seo."
+
+#: kate/main.cpp:207 kwrite/main.cpp:110
+#, kde-format
+msgid "column"
+msgstr "colún"
+
+#: kate/main.cpp:211 kwrite/main.cpp:114
+#, kde-format
+msgid "Read the contents of stdin."
+msgstr "Léigh ábhar stdin."
+
+#: kate/main.cpp:216 kwrite/main.cpp:118
+#, kde-format
+msgid "The files/URLs opened by the application will be deleted after use"
+msgstr "Scriosfar na comhaid/URLanna a osclaíonn an feidhmchlár tar éis úsáide"
+
+#: kate/main.cpp:220 kwrite/main.cpp:122
+#, kde-format
+msgid "Documents to open."
+msgstr "Doiciméid le hoscailt."
+
+#: kate/main.cpp:220 kwrite/main.cpp:122
+#, kde-format
+msgid "[urls...]"
+msgstr "[URLanna...]"
+
+#: kwrite/main.cpp:46
+#, kde-format
+msgid "KWrite"
+msgstr "KWrite"
+
+#: kwrite/main.cpp:48
+#, kde-format
+msgid "KWrite - Text Editor"
+msgstr "KWrite - Eagarthóir Téacs"
+
+#: lib/commitfilesview.cpp:474 lib/diagnostics/diagnosticview.cpp:541
+#: lib/filehistorywidget.cpp:467 lib/kateconfigplugindialogpage.cpp:109
+#, kde-format
+msgid "Filter…"
+msgstr "Scagaire…"
+
+#: lib/commitfilesview.cpp:499 lib/kateviewmanager.cpp:369
+#: lib/kateviewmanager.cpp:371
+#, kde-format
+msgid "Open File"
+msgstr "Oscail Comhad"
+
+#: lib/commitfilesview.cpp:505 lib/katemainwindow.cpp:463
+#, kde-format
+msgid "Copy Location"
+msgstr "Cóipeáil Suíomh"
+
+#: lib/commitfilesview.cpp:528 lib/commitfilesview.cpp:645
+#: lib/commitfilesview.cpp:651 lib/filehistorywidget.cpp:693
+#, kde-format
+msgid "Git"
+msgstr "Git"
+
+#: lib/commitfilesview.cpp:625
+#, kde-format
+msgid "Renamed %1 => %2"
+msgstr "Athainmníodh %1 => %2"
+
+#: lib/commitfilesview.cpp:645
+#, kde-format
+msgid "Invalid hash"
+msgstr "Hais neamhbhailí"
+
+#: lib/commitfilesview.cpp:651 lib/filehistorywidget.cpp:693
+#, kde-format
+msgid "%1 doesn't exist in a git repo."
+msgstr "Níl %1 ann i stór git."
+
+#: lib/commitfilesview.cpp:661
+#, kde-format
+msgctxt "@title:tab"
+msgid "Commit %1"
+msgstr "Tiomnaigh %1"
+
+#: lib/commitfilesview.cpp:674
+#, kde-format
+msgctxt "@title:tab"
+msgid "Stash %1"
+msgstr "Folaigh %1"
+
+#. i18n: ectx: Menu (file)
+#: lib/data/kateui.rc:6
+#, kde-format
+msgid "&File"
+msgstr "&Comhad"
+
+#. i18n: ectx: Menu (file_file_actions)
+#: lib/data/kateui.rc:31
+#, kde-format
+msgid "File Act&ions"
+msgstr "Gníomhartha Comhaíid"
+
+#. i18n: ectx: Menu (edit)
+#: lib/data/kateui.rc:45
+#, kde-format
+msgid "&Edit"
+msgstr "&Eagar"
+
+#. i18n: ectx: Menu (selection)
+#: lib/data/kateui.rc:56
+#, kde-format
+msgid "Sele&ction"
+msgstr "Ro&ghnú"
+
+#. i18n: ectx: Menu (go)
+#: lib/data/kateui.rc:59
+#, kde-format
+msgid "&Go"
+msgstr "&Téigh"
+
+#. i18n: ectx: Menu (view)
+#: lib/data/kateui.rc:75
+#, kde-format
+msgid "&View"
+msgstr "&Amharc"
+
+#. i18n: ectx: Menu (view-split)
+#: lib/data/kateui.rc:77 lib/kateviewspace.cpp:152
+#, kde-format
+msgid "Split View"
+msgstr "Amharc Roinnte"
+
+#. i18n: ectx: Menu (tools)
+#: lib/data/kateui.rc:113 lib/diagnostics/ui.rc:6
+#, kde-format
+msgid "&Tools"
+msgstr "&Uirlisí"
+
+#. i18n: ectx: Menu (tools_diagnosticsview)
+#. i18n: ectx: Menu (tools)
+#: lib/data/kateui.rc:128 lib/diagnostics/diagnosticview.cpp:317
+#: lib/diagnostics/ui.rc:8
+#, kde-format
+msgid "Diagnostics View"
+msgstr "Radharc Diagnóisic"
+
+#. i18n: ectx: Menu (settings)
+#: lib/data/kateui.rc:133
+#, kde-format
+msgid "&Settings"
+msgstr "&Socruithe"
+
+#. i18n: ectx: Menu (help)
+#: lib/data/kateui.rc:142
+#, kde-format
+msgid "&Help"
+msgstr "Cab&hair"
+
+#. i18n: ectx: ToolBar (mainToolBar)
+#: lib/data/kateui.rc:147
+#, kde-format
+msgid "Main Toolbar"
+msgstr "Príomhbharra Uirlisí"
+
+#. i18n: ectx: ToolBar (hamburgerBar)
+#: lib/data/kateui.rc:163
+#, kde-format
+msgid "Hamburger Menu Toolbar"
+msgstr "Barra Uirlisí Roghchláir Hamburger"
+
+#. i18n: ectx: Menu (viewspace_popup_statusbar)
+#: lib/data/kateui.rc:177
+#, kde-format
+msgid "&Status Bar Items"
+msgstr "Míreanna Barra Stádais"
+
+#: lib/diagnostics/diagnostic_suppression.h:37
+#, kde-format
+msgctxt "@info"
+msgid ""
+"Error in regular expression: %1\n"
+"offset %2: %3"
+msgstr ""
+"Earráid sa ghnáthléiriú: %1\n"
+"fritháireamh %2: %3"
+
+#: lib/diagnostics/diagnosticview.cpp:63
+#, kde-format
+msgid "All"
+msgstr "Gach"
+
+#: lib/diagnostics/diagnosticview.cpp:324
+#, kde-format
+msgid ""
+"Diagnostics limit reached, ignoring further diagnostics. The limit can be "
+"configured in settings."
+msgstr ""
+"Teorainn diagnóisice sroichte, ag déanamh neamhaird ar dhiagnóisic bhreise. "
+"Is féidir an teorainn a chumrú sna socruithe."
+
+#: lib/diagnostics/diagnosticview.cpp:367
+#, kde-format
+msgctxt "@action:inmenu Diagnostics View actions menu"
+msgid "Diagnostics View"
+msgstr "Radharc Diagnóisic"
+
+#: lib/diagnostics/diagnosticview.cpp:372
+#, kde-format
+msgid "Quick Fix"
+msgstr "Réiteach Tapa"
+
+#: lib/diagnostics/diagnosticview.cpp:378
+#, kde-format
+msgid "Next Item"
+msgstr "An Chéad Mhír Eile"
+
+#: lib/diagnostics/diagnosticview.cpp:386
+#, kde-format
+msgid "Previous Item"
+msgstr "Mír Roimhe Seo"
+
+#: lib/diagnostics/diagnosticview.cpp:396
+#, kde-format
+msgid "Clear Diagnostics Filter"
+msgstr "Glan an Scagaire Diagnóisic"
+
+#: lib/diagnostics/diagnosticview.cpp:406
+#, kde-format
+msgid "Show Hover Info"
+msgstr "Taispeáin Eolas Luiche"
+
+#: lib/diagnostics/diagnosticview.cpp:465 lib/kateconfigdialog.cpp:394
+#, kde-format
+msgid "Diagnostics"
+msgstr "Diagnóisic"
+
+#: lib/diagnostics/diagnosticview.cpp:511
+#, kde-format
+msgid "Errors"
+msgstr "Earráidí"
+
+#: lib/diagnostics/diagnosticview.cpp:527
+#, kde-format
+msgid "Warnings"
+msgstr "Rabhaidh"
+
+#: lib/diagnostics/diagnosticview.cpp:547
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Clear diagnostics"
+msgstr "Diagnóisic shoiléir"
+
+#: lib/diagnostics/diagnosticview.cpp:1216 lib/kateconfigdialog.cpp:167
+#, kde-format
+msgid "Error"
+msgstr "Earráid"
+
+#: lib/diagnostics/diagnosticview.cpp:1220 lib/kateconfigdialog.cpp:167
+#: lib/kateconfigdialog.cpp:812
+#, kde-format
+msgid "Warning"
+msgstr "Rabhadh"
+
+#: lib/diagnostics/diagnosticview.cpp:1224
+#, kde-format
+msgid "Information"
+msgstr "Eolas"
+
+#: lib/diagnostics/diagnosticview.cpp:1353
+#, kde-format
+msgctxt "@info"
+msgid "%1 [suppressed: %2]"
+msgstr "%1 [coiscthe: %2]"
+
+#: lib/diagnostics/diagnosticview.cpp:1479
+#, kde-format
+msgid "Expand All"
+msgstr "Leathnaigh Uile"
+
+#: lib/diagnostics/diagnosticview.cpp:1480
+#, kde-format
+msgid "Collapse All"
+msgstr "Laghdaigh Gach Rud"
+
+#: lib/diagnostics/diagnosticview.cpp:1486
+#, kde-format
+msgid "Copy to Clipboard"
+msgstr "Cóipeáil chuig an nGearrthaisce"
+
+#: lib/diagnostics/diagnosticview.cpp:1528
+#, kde-format
+msgid "Remove Global Suppression"
+msgstr "Bain Cosc Domhanda"
+
+#: lib/diagnostics/diagnosticview.cpp:1530
+#, kde-format
+msgid "Add Global Suppression"
+msgstr "Cuir Cosc Domhanda leis"
+
+#: lib/diagnostics/diagnosticview.cpp:1534
+#, kde-format
+msgid "Remove Local Suppression"
+msgstr "Bain Cosc Áitiúil"
+
+#: lib/diagnostics/diagnosticview.cpp:1536
+#, kde-format
+msgid "Add Local Suppression"
+msgstr "Cuir Cosc Áitiúil leis"
+
+#: lib/diagnostics/diagnosticview.cpp:1551
+#, kde-format
+msgid "Disable Suppression"
+msgstr "Díchumasaigh Cosc"
+
+#: lib/diagnostics/diagnosticview.cpp:1553
+#, kde-format
+msgid "Enable Suppression"
+msgstr "Cumasaigh Cosc"
+
+#: lib/diagnostics/diagnosticview.cpp:1620
+#, kde-format
+msgid "Show fixes"
+msgstr "Taispeáin paiste"
+
+#: lib/diff/diffeditor.cpp:197
+#, kde-format
+msgid "Change Style"
+msgstr "Athraigh Stíl"
+
+#: lib/diff/diffeditor.cpp:199 lib/kateconfigdialog.cpp:374
+#, kde-format
+msgid "Side By Side"
+msgstr "Taobh le Taobh"
+
+#: lib/diff/diffeditor.cpp:202 lib/kateconfigdialog.cpp:375
+#, kde-format
+msgid "Unified"
+msgstr "Aontaithe"
+
+#: lib/diff/diffeditor.cpp:205 lib/kateconfigdialog.cpp:376
+#, kde-format
+msgid "Raw"
+msgstr "Amh"
+
+#: lib/diff/diffeditor.cpp:216
+#, kde-format
+msgid "Edit Line"
+msgstr "Líne a Chur in Eagar"
+
+#: lib/diff/diffeditor.cpp:281
+#, kde-format
+msgid "Stage Line"
+msgid_plural "Stage Lines"
+msgstr[0] "Líne an Stáitse"
+msgstr[1] "Línte Stáitse"
+msgstr[2] "Línte Stáitse"
+msgstr[3] "Línte Stáitse"
+msgstr[4] "Línte Stáitse"
+
+#: lib/diff/diffeditor.cpp:286
+#, kde-format
+msgid "Stage Hunk"
+msgstr "Hunk Céime"
+
+#: lib/diff/diffeditor.cpp:293
+#, kde-format
+msgid "Discard Line"
+msgid_plural "Discard Lines"
+msgstr[0] "Líne Scriosta"
+msgstr[1] "Línte a Scriosadh"
+msgstr[2] "Línte a Scriosadh"
+msgstr[3] "Línte a Scriosadh"
+msgstr[4] "Línte a Scriosadh"
+
+#: lib/diff/diffeditor.cpp:298
+#, kde-format
+msgid "Discard Hunk"
+msgstr "Scrios an Hunk"
+
+#: lib/diff/diffeditor.cpp:305
+#, kde-format
+msgid "Unstage Line"
+msgid_plural "Unstage Lines"
+msgstr[0] "Líne Gan Stádas"
+msgstr[1] "Línte Gan Stáid"
+msgstr[2] "Línte Gan Stáid"
+msgstr[3] "Línte Gan Stáid"
+msgstr[4] "Línte Gan Stáid"
+
+#: lib/diff/diffeditor.cpp:310
+#, kde-format
+msgid "Unstage Hunk"
+msgstr "Hunk Gan Stádas"
+
+#: lib/diff/diffwidget.cpp:51
+#, kde-format
+msgid "Diff - %1"
+msgstr "Difríocht - %1"
+
+#: lib/diff/diffwidget.cpp:54
+#, kde-format
+msgid "Diff - %1..%2"
+msgstr "Difríocht - %1..%2"
+
+#: lib/diff/diffwidget.cpp:60
+#, kde-format
+msgid ""
+"<b>git</b> not found. Git is needed to diff the documents. If git is already "
+"installed, make sure it is your PATH variable. See https://git-scm.com/"
+"downloads"
+msgstr ""
+"Níor aimsíodh <b>git</b>. Tá Git ag teastáil chun na doiciméid a dhifreáil. "
+"Má tá git suiteáilte cheana féin, déan cinnte gurb é d'athróg PATH é. Féach "
+"https://git-scm.com/downloads"
+
+#: lib/diff/diffwidget.cpp:63 lib/diff/diffwidget.cpp:1244
+#: lib/kateconfigdialog.cpp:368
+#, kde-format
+msgid "Diff"
+msgstr "Difríocht"
+
+#: lib/diff/diffwidget.cpp:122
+#, kde-format
+msgid "Diff %1 .. %2"
+msgstr "Difríocht %1 .. %2"
+
+#: lib/diff/diffwidget.cpp:152
+#, kde-format
+msgid "Show/Hide Commit Info"
+msgstr "Taispeáin/Folaigh Eolas Tiomnaithe"
+
+#: lib/diff/diffwidget.cpp:157
+#, kde-format
+msgid "Jump to Next File"
+msgstr "Léim go dtí an chéad chomhad eile"
+
+#: lib/diff/diffwidget.cpp:161
+#, kde-format
+msgid "Jump to Previous File"
+msgstr "Léim go dtí an Comhad Roimhe Seo"
+
+#: lib/diff/diffwidget.cpp:165
+#, kde-format
+msgid "Jump to Next Hunk"
+msgstr "Léim go dtí an chéad cheann eile"
+
+#: lib/diff/diffwidget.cpp:169
+#, kde-format
+msgid "Jump to Previous Hunk"
+msgstr "Léim go dtí an Hunk Roimhe Seo"
+
+#: lib/diff/diffwidget.cpp:173
+#, kde-format
+msgctxt "Tooltip for a button, clicking the button reloads the diff"
+msgid "Reload Diff"
+msgstr "Athlódáil Difríocht"
+
+#: lib/diff/diffwidget.cpp:177
+#, kde-format
+msgctxt "Tooltip for a button"
+msgid "Show diff with full context, not just the changed lines"
+msgstr ""
+"Taispeáin an difríocht leis an gcomhthéacs iomlán, ní hamháin na línte "
+"athraithe"
+
+#: lib/diff/diffwidget.cpp:852 lib/diff/diffwidget.cpp:1056
+#, kde-format
+msgid "New file %1"
+msgstr "Comhad nua %1"
+
+#: lib/diff/diffwidget.cpp:854 lib/diff/diffwidget.cpp:1058
+#, kde-format
+msgid "Deleted file %1"
+msgstr "Scriosadh an comhad %1"
+
+#: lib/diff/diffwidget.cpp:1227 lib/diff/diffwidget.cpp:1228
+#, kde-format
+msgid "No differences found"
+msgstr "Níor aimsíodh aon difríochtaí"
+
+#: lib/filehistorywidget.cpp:253
+#, kde-format
+msgctxt "error message"
+msgid "Invalid date: %1"
+msgstr "Dáta neamhbhailí: %1"
+
+#: lib/filehistorywidget.cpp:475
+#, kde-format
+msgctxt "Help text"
+msgid ""
+"Filter the log.<ul><li>Use <code>\"a:\"</code> prefix to filter by author "
+"name. For e.g., <b>a:john doe</b></li><li>Use <code>\"!a:\"</code> prefix to "
+"exclude an author. For e.g., <b>!a:john doe</b></li><li>Use <code>\"since:"
+"\"</code> prefix to show commits after the given date. The author date of "
+"each commit will be checked. The date format is yyyy-MM-dd For e.g., "
+"<b>since:2025-04-17</b></li><li>Use <code>\"until:\"</code> prefix to show "
+"commits before the given date. The author date of each commit will be "
+"checked. The date format is yyyy-MM-dd For e.g., <b>until:2025-04-17</b></"
+"li><li>To filter messages, just type the search term. If multiple search "
+"terms are given then messages matching all the search terms will be shown.</"
+"li></ul>To trigger the filter, press the <b>Enter</b> key."
+msgstr ""
+"Scag an log.<ul><li>Úsáid réimír <code>\"a:\"</code> chun scagadh de réir "
+"ainm an údair. Mar shampla, <b>a:john doe</b></li><li>Úsáid réimír <code>\"!"
+"a:\"</code> chun údar a eisiamh. Mar shampla, <b>!a:john doe</b></"
+"li><li>Úsáid réimír <code>\"since:\"</code> chun tiomantais tar éis an dáta "
+"tugtha a thaispeáint. Déanfar dáta údair gach tiomantais a sheiceáil. Is é "
+"an fhormáid dáta yyyy-MM-dd. Mar shampla, <b>since:2025-04-17</b></"
+"li><li>Úsáid réimír <code>\"until:\"</code> chun tiomantais roimh an dáta "
+"tugtha a thaispeáint. Déanfar dáta údair gach tiomantais a sheiceáil. Is é "
+"an fhormáid dáta bbbb-MM-dd Mar shampla, <b>go dtí:2025-04-17</b></"
+"li><li>Chun teachtaireachtaí a scagadh, níl le déanamh ach an téarma "
+"cuardaigh a chlóscríobh. Má thugtar téarmaí cuardaigh iolracha, taispeánfar "
+"teachtaireachtaí a mheaitseálann na téarmaí cuardaigh go léir.</li></ul>Chun "
+"an scagaire a ghníomhachtú, brúigh an eochair <b>Iontráil</b>."
+
+#: lib/filehistorywidget.cpp:537
+#, kde-format
+msgid "Failed to get file history: git executable not found in PATH"
+msgstr ""
+"Theip ar stair an chomhaid a fháil: ní bhfuarthas an comhad inrite git i PATH"
+
+#: lib/filehistorywidget.cpp:553
+#, kde-format
+msgid "Failed to get file history: %1"
+msgstr "Theip ar stair an chomhaid a fháil: %1"
+
+#: lib/filehistorywidget.cpp:568
+#, kde-format
+msgctxt "@menu:action"
+msgid "Copy Commit Hash"
+msgstr "Cóipeáil an Hais Tiomnaithe"
+
+#: lib/filehistorywidget.cpp:576
+#, kde-format
+msgctxt "@menu:action"
+msgid "Show Full Commit"
+msgstr "Taispeáin an Tiomantas Iomlán"
+
+#: lib/filehistorywidget.cpp:712
+#, kde-format
+msgctxt "@title:tab"
+msgid "History - %1"
+msgstr "Stair - %1"
+
+#: lib/jsonsettings.cpp:30
+#, kde-format
+msgid "User Settings"
+msgstr "Socruithe Úsáideora"
+
+#: lib/jsonsettings.cpp:39
+#, kde-format
+msgid "Settings file:"
+msgstr "Comhad socruithe:"
+
+#: lib/jsonsettings.cpp:75
+#, kde-format
+msgid "Default Settings"
+msgstr "Socruithe Réamhshocraithe"
+
+#: lib/jsonsettings.cpp:125
+#, kde-format
+msgid "No JSON data to validate."
+msgstr "Gan sonraí JSON a bhailíochtú."
+
+#: lib/jsonsettings.cpp:134
+#, kde-format
+msgid "JSON data is valid."
+msgstr "Tá an sonraí JSON bailí."
+
+#: lib/jsonsettings.cpp:136
+#, kde-format
+msgid "JSON data is invalid: no JSON object"
+msgstr "Tá an sonraí JSON neamhbhailí: gan ní JSON"
+
+#: lib/jsonsettings.cpp:139
+#, kde-format
+msgid "JSON data is invalid: %1"
+msgstr "Tá an sonraí JSON neamhbhailí: %1"
+
+#: lib/kateapp.cpp:147
+msgid ""
+"Running this editor with sudo can cause bugs and expose you to security "
+"vulnerabilities. Instead use this editor normally and you will be prompted "
+"for elevated privileges when saving documents if needed."
+msgstr ""
+"Is féidir le rith an eagarthóra seo le sudo fabhtanna a chruthú agus tú a "
+"nochtadh do leochaileachtaí slándála. Ina áit sin, bain úsáid as an "
+"eagarthóir seo de ghnáth agus iarrfar ort ceadanna ardaithe a thabhairt agus "
+"doiciméid á sábháil agat más gá."
+
+#: lib/kateapp.cpp:154
+msgid ""
+"Running this editor with kdesu can cause bugs and expose you to security "
+"vulnerabilities. Instead use this editor normally and you will be prompted "
+"for elevated privileges when saving documents if needed."
+msgstr ""
+"Is féidir le rith an eagarthóra seo le kdesu fabhtanna a chruthú agus tú a "
+"nochtadh do leochaileachtaí slándála. Ina áit sin, bain úsáid as an "
+"eagarthóir seo de ghnáth agus iarrfar ort ceadanna ardaithe a thabhairt agus "
+"doiciméid á sábháil agat más gá."
+
+#: lib/kateapp.cpp:381
+#, kde-format
+msgid "Christoph Cullmann"
+msgstr "Christoph Cullmann"
+
+#: lib/kateapp.cpp:381
+#, kde-format
+msgid "Maintainer"
+msgstr "Cothaitheoir"
+
+#: lib/kateapp.cpp:382
+#, kde-format
+msgid "Dominik Haumann"
+msgstr "Dominik Haumann"
+
+#: lib/kateapp.cpp:382 lib/kateapp.cpp:385 lib/kateapp.cpp:386
+#: lib/kateapp.cpp:387 lib/kateapp.cpp:388 lib/kateapp.cpp:394
+#, kde-format
+msgid "Core Developer"
+msgstr "Bunfhorbróir"
+
+#: lib/kateapp.cpp:383
+#, kde-format
+msgid "Sven Brauch"
+msgstr "Sven Brauch"
+
+#: lib/kateapp.cpp:383 lib/kateapp.cpp:384 lib/kateapp.cpp:389
+#, kde-format
+msgid "Developer"
+msgstr "Forbróir"
+
+#: lib/kateapp.cpp:384
+#, kde-format
+msgid "Kåre Särs"
+msgstr "Kåre Särs"
+
+#: lib/kateapp.cpp:385
+#, kde-format
+msgid "Waqar Ahmed"
+msgstr "Waqar Ahmed"
+
+#: lib/kateapp.cpp:386
+#, kde-format
+msgid "Anders Lund"
+msgstr "Anders Lund"
+
+#: lib/kateapp.cpp:387
+#, kde-format
+msgid "Joseph Wenninger"
+msgstr "Joseph Wenninger"
+
+#: lib/kateapp.cpp:388
+#, kde-format
+msgid "Hamish Rodda"
+msgstr "Hamish Rodda"
+
+#: lib/kateapp.cpp:389
+#, kde-format
+msgid "Alexander Neundorf"
+msgstr "Alexander Neundorf"
+
+#: lib/kateapp.cpp:390
+#, kde-format
+msgid "Waldo Bastian"
+msgstr "Waldo Bastian"
+
+#: lib/kateapp.cpp:390
+#, kde-format
+msgid "The cool buffersystem"
+msgstr "An córas maoláin thar barr"
+
+#: lib/kateapp.cpp:391
+#, kde-format
+msgid "Charles Samuels"
+msgstr "Charles Samuels"
+
+#: lib/kateapp.cpp:391
+#, kde-format
+msgid "The Editing Commands"
+msgstr "Na hOrduithe Eagarthóireachta"
+
+#: lib/kateapp.cpp:392
+#, kde-format
+msgid "Matt Newell"
+msgstr "Matt Newell"
+
+#: lib/kateapp.cpp:392
+#, kde-format
+msgid "Testing, ..."
+msgstr "Tástáil, ..."
+
+#: lib/kateapp.cpp:393
+#, kde-format
+msgid "Michael Bartl"
+msgstr "Michael Bartl"
+
+#: lib/kateapp.cpp:393
+#, kde-format
+msgid "Former Core Developer"
+msgstr "Iar-bhunfhorbhróir"
+
+#: lib/kateapp.cpp:394
+#, kde-format
+msgid "Michael McCallum"
+msgstr "Michael McCallum"
+
+#: lib/kateapp.cpp:395
+#, kde-format
+msgid "Jochen Wilhemly"
+msgstr "Jochen Wilhemly"
+
+#: lib/kateapp.cpp:395
+#, kde-format
+msgid "KWrite Author"
+msgstr "Údar KWrite"
+
+#: lib/kateapp.cpp:396
+#, kde-format
+msgid "Michael Koch"
+msgstr "Michael Koch"
+
+#: lib/kateapp.cpp:396
+#, kde-format
+msgid "KWrite port to KParts"
+msgstr "Leagan KWrite le haghaidh KParts"
+
+#: lib/kateapp.cpp:397
+#, kde-format
+msgid "Christian Gebauer"
+msgstr "Christian Gebauer"
+
+#: lib/kateapp.cpp:398
+#, kde-format
+msgid "Simon Hausmann"
+msgstr "Simon Hausmann"
+
+#: lib/kateapp.cpp:399
+#, kde-format
+msgid "Glen Parker"
+msgstr "Glen Parker"
+
+#: lib/kateapp.cpp:399
+#, kde-format
+msgid "KWrite Undo History, Kspell integration"
+msgstr "Stair Cealaithe KWrite, Comhtháthú Kspell"
+
+#: lib/kateapp.cpp:400
+#, kde-format
+msgid "Scott Manson"
+msgstr "Scott Manson"
+
+#: lib/kateapp.cpp:400
+#, kde-format
+msgid "KWrite XML Syntax highlighting support"
+msgstr "Aibhsiú Comhréire XML i KWrite"
+
+#: lib/kateapp.cpp:401
+#, kde-format
+msgid "John Firebaugh"
+msgstr "John Firebaugh"
+
+#: lib/kateapp.cpp:401
+#, kde-format
+msgid "Patches and more"
+msgstr "Paistí agus tuilleadh"
+
+#: lib/kateapp.cpp:402
+#, kde-format
+msgid "Pablo Martín"
+msgstr "Pablo Martín"
+
+#: lib/kateapp.cpp:403
+#, kde-format
+msgid "Python Plugin Developer"
+msgstr "Forbróir Breiseán Python"
+
+#: lib/kateapp.cpp:406
+#, kde-format
+msgid "Gerald Senarclens de Grancy"
+msgstr "Gearóid Seanclens de Grancy"
+
+#: lib/kateapp.cpp:406
+#, kde-format
+msgid "QA and Scripting"
+msgstr "QA agus Scriptiú"
+
+#: lib/kateapp.cpp:409
+#, kde-format
+msgid "Tyson Tan"
+msgstr "Tyson Tan"
+
+#: lib/kateapp.cpp:410
+#, kde-format
+msgid "Designer of Kate's mascot 'Kate the Cyber Woodpecker'"
+msgstr "Dearthóir mascot Kate 'Kate the Cyber ​​Woodpecker'"
+
+#: lib/kateapp.cpp:413
+#, kde-format
+msgid "Matteo Merli"
+msgstr "Matteo Merli"
+
+#: lib/kateapp.cpp:413
+#, kde-format
+msgid "Highlighting for RPM Spec-Files, Perl, Diff and more"
+msgstr "Aibhsiú le haghaidh comhad RPM, Perl, Diff, agus cinn eile"
+
+#: lib/kateapp.cpp:414
+#, kde-format
+msgid "Rocky Scaletta"
+msgstr "Rocky Scaletta"
+
+#: lib/kateapp.cpp:414
+#, kde-format
+msgid "Highlighting for VHDL"
+msgstr "Aibhsiú VHDL"
+
+#: lib/kateapp.cpp:415
+#, kde-format
+msgid "Yury Lebedev"
+msgstr "Yury Lebedev"
+
+#: lib/kateapp.cpp:415
+#, kde-format
+msgid "Highlighting for SQL"
+msgstr "Aibhsiú SQL"
+
+#: lib/kateapp.cpp:416
+#, kde-format
+msgid "Chris Ross"
+msgstr "Chris Ross"
+
+#: lib/kateapp.cpp:416
+#, kde-format
+msgid "Highlighting for Ferite"
+msgstr "Aibhsiú Ferite"
+
+#: lib/kateapp.cpp:417
+#, kde-format
+msgid "Nick Roux"
+msgstr "Nick Roux"
+
+#: lib/kateapp.cpp:417
+#, kde-format
+msgid "Highlighting for ILERPG"
+msgstr "Aibhsiú ILERPG"
+
+#: lib/kateapp.cpp:418
+#, kde-format
+msgid "Carsten Niehaus"
+msgstr "Carsten Niehaus"
+
+#: lib/kateapp.cpp:418
+#, kde-format
+msgid "Highlighting for LaTeX"
+msgstr "Aibhsiú LaTeX"
+
+#: lib/kateapp.cpp:419
+#, kde-format
+msgid "Per Wigren"
+msgstr "Per Wigren"
+
+#: lib/kateapp.cpp:419
+#, kde-format
+msgid "Highlighting for Makefiles, Python"
+msgstr "Aibhsiú Makefile, Python"
+
+#: lib/kateapp.cpp:420
+#, kde-format
+msgid "Jan Fritz"
+msgstr "Jan Fritz"
+
+#: lib/kateapp.cpp:420
+#, kde-format
+msgid "Highlighting for Python"
+msgstr "Aibhsiú Python"
+
+#: lib/kateapp.cpp:421
+#, kde-format
+msgid "Daniel Naber"
+msgstr "Daniel Naber"
+
+#: lib/kateapp.cpp:422
+#, kde-format
+msgid "Roland Pabel"
+msgstr "Roland Pabel"
+
+#: lib/kateapp.cpp:422
+#, kde-format
+msgid "Highlighting for Scheme"
+msgstr "Aibhsiú Scheme"
+
+#: lib/kateapp.cpp:423
+#, kde-format
+msgid "Cristi Dumitrescu"
+msgstr "Cristi Dumitrescu"
+
+#: lib/kateapp.cpp:423
+#, kde-format
+msgid "PHP Keyword/Datatype list"
+msgstr "Liosta lorgfhocal/cineálacha sonraí le haghaidh PHP"
+
+#: lib/kateapp.cpp:424
+#, kde-format
+msgid "Carsten Pfeiffer"
+msgstr "Carsten Pfeiffer"
+
+#: lib/kateapp.cpp:424
+#, kde-format
+msgid "Very nice help"
+msgstr "Cabhair an-deas"
+
+#: lib/kateapp.cpp:425
+#, kde-format
+msgid "All people who have contributed and I have forgotten to mention"
+msgstr "Na rannpháirtithe uile a rinne mé dearmaid glan iad a lua"
+
+#: lib/kateapp.cpp:591
+#, kde-format
+msgid "Folders can only be opened when the projects plugin is enabled"
+msgstr ""
+"Ní féidir fillteáin a oscailt ach amháin nuair a bhíonn an breiseán "
+"tionscadal cumasaithe"
+
+#: lib/kateapp.cpp:684
+#, kde-format
+msgid ""
+"The file '%1' could not be opened: it is not a normal file, it is a folder."
+msgstr ""
+"Níorbh fhéidir comhad '%1' a oscailt; ní gnáthchomhad é, is fillteán é."
+
+#: lib/kateconfigdialog.cpp:57
+#, kde-format
+msgid "Configure"
+msgstr "Cumraigh"
+
+#: lib/kateconfigdialog.cpp:113
+#, kde-format
+msgid "Behavior"
+msgstr "Oibriú"
+
+#: lib/kateconfigdialog.cpp:115
+#, kde-format
+msgid "Behavior Options"
+msgstr "Roghanna Iompraíochta"
+
+#: lib/kateconfigdialog.cpp:122
+#, kde-format
+msgid "PATH"
+msgstr "COSÁN"
+
+#: lib/kateconfigdialog.cpp:128
+#, kde-format
+msgid ""
+"List of %1 separated directories where Kate will look for programs to run. "
+"This list will be prepended to your PATH environment variable. E.g '/home/"
+"USER/myapps/bin/:/home/USER/.local/bin'"
+msgstr ""
+"Liosta de %1 chomhadlann scartha inar lorgóidh Kate cláir le rith. Cuirfear "
+"an liosta seo le do athróg timpeallachta PATH. M.sh. '/home/USER/myapps/"
+"bin/:/home/USER/.local/bin'"
+
+#: lib/kateconfigdialog.cpp:144
+#, kde-format
+msgid "&Behavior"
+msgstr "Oi&briú"
+
+#: lib/kateconfigdialog.cpp:149
+#, kde-format
+msgid "Open each document in its own window"
+msgstr "Oscail gach doiciméad ina fhuinneog féin"
+
+#: lib/kateconfigdialog.cpp:152
+#, kde-format
+msgid ""
+"If enabled, each document will be opened in its own window. If not enabled, "
+"each document will be opened in a new tab in the current window."
+msgstr ""
+"Má tá sé cumasaithe, osclófar gach doiciméad ina fhuinneog féin. Mura bhfuil "
+"sé cumasaithe, osclófar gach doiciméad i gcluaisín nua sa fhuinneog reatha."
+
+#: lib/kateconfigdialog.cpp:162
+#, kde-format
+msgid "&Switch to output view upon message type:"
+msgstr ""
+"&Athraigh go dtí an radharc aschuir nuair a dhéantar an teachtaireacht a "
+"chineáláil:"
+
+#: lib/kateconfigdialog.cpp:167
+#, kde-format
+msgid "Never"
+msgstr "NeverChoíche"
+
+#: lib/kateconfigdialog.cpp:167
+#, kde-format
+msgid "Info"
+msgstr "Eolas"
+
+#: lib/kateconfigdialog.cpp:167
+#, kde-format
+msgid "Log"
+msgstr "Logáil"
+
+#: lib/kateconfigdialog.cpp:173
+#, kde-format
+msgid "&Limit output view history:"
+msgstr "&Teorainn a chur le stair radhairc aschuir:"
+
+#: lib/kateconfigdialog.cpp:179 lib/kateconfigdialog.cpp:250
+#: lib/kateconfigdialog.cpp:402
+#, kde-format
+msgid "Unlimited"
+msgstr "Gan teorainn"
+
+#: lib/kateconfigdialog.cpp:186
+#, kde-format
+msgid "Use a separate &dialog for handling externally modified files"
+msgstr ""
+"Úsáid dialóg &ar leith chun comhaid atá modhnaithe go seachtrach a láimhseáil"
+
+#: lib/kateconfigdialog.cpp:189
+#, kde-format
+msgid ""
+"If enabled, a modal dialog will be used to show all of the modified files. "
+"If not enabled, you will be individually asked what to do for each modified "
+"file only when that file's view receives focus."
+msgstr ""
+"Má tá sé cumasaithe, úsáidfear dialóg mhódúil chun na comhaid uile atá "
+"modhnaithe a thaispeáint. Mura bhfuil sé cumasaithe, iarrfar ort ina n-aonar "
+"cad atá le déanamh do gach comhad modhnaithe ach amháin nuair a bheidh fócas "
+"ar radharc an chomhaid sin."
+
+#: lib/kateconfigdialog.cpp:194
+#, kde-format
+msgid "Output timestamps with date"
+msgstr "Aschur stampaí ama le dáta"
+
+#: lib/kateconfigdialog.cpp:196
+#, kde-format
+msgid ""
+"When enabled, the output line timestamp headers will be prefixed with date."
+msgstr ""
+"Nuair a bheidh sé cumasaithe, cuirfear dáta roimh cheanntásca stampa ama na "
+"líne aschuir."
+
+#: lib/kateconfigdialog.cpp:204
+#, kde-format
+msgid "&Sidebars"
+msgstr "&Barraí Taobh"
+
+#: lib/kateconfigdialog.cpp:207
+#, kde-format
+msgid "Sync section size with tab positions"
+msgstr "Sioncrónaigh méid na rannóige le suíomhanna na gcluaisíní"
+
+#: lib/kateconfigdialog.cpp:210
+#, kde-format
+msgid ""
+"When enabled the section size will be determined by the position of the "
+"tabs.\n"
+"This option does not affect the bottom sidebar."
+msgstr ""
+"Nuair a bheidh sé cumasaithe, cinnfidh suíomh na gcluaisíní méid na coda.\n"
+"Ní dhéanann an rogha seo difear don bharra taoibh bun."
+
+#: lib/kateconfigdialog.cpp:215
+#, kde-format
+msgid "Show text for left and right sidebar buttons"
+msgstr "Taispeáin téacs do na cnaipí taobhchláir chlé agus dheis"
+
+#: lib/kateconfigdialog.cpp:220
+#, kde-format
+msgid "Icon size for left and right sidebar buttons:"
+msgstr "Méid deilbhín do chnaipí taobhchláir chlé agus dheis:"
+
+#: lib/kateconfigdialog.cpp:240
+#, kde-format
+msgid "&Tabs"
+msgstr "&Cluaisíní"
+
+#: lib/kateconfigdialog.cpp:244
+#, kde-format
+msgid "&Limit number of tabs:"
+msgstr "&Teorainn a chur ar líon na gcluaisíní:"
+
+#: lib/kateconfigdialog.cpp:255
+#, kde-format
+msgid ""
+"A high limit can increase the window size, please enable 'Allow tab "
+"scrolling' to prevent it. Unlimited tabs are always scrollable."
+msgstr ""
+"Féadann teorainn ard méid na fuinneoige a mhéadú, cumasaigh 'Ceadaigh "
+"scrollú cluaisíní' le cosc ​​a chur air. Is féidir cluaisíní gan teorainn a "
+"scrollú i gcónaí."
+
+#: lib/kateconfigdialog.cpp:259
+#, kde-format
+msgid "&Auto hide tabs"
+msgstr "&Folaigh cluaisíní go huathoibríoch"
+
+#: lib/kateconfigdialog.cpp:261
+#, kde-format
+msgid "When checked tabs will be hidden if only one document is open."
+msgstr ""
+"Nuair a bheidh sé seo seiceáilte, beidh na cluaisíní i bhfolach mura bhfuil "
+"ach doiciméad amháin oscailte."
+
+#: lib/kateconfigdialog.cpp:265
+#, kde-format
+msgid "&Show close button"
+msgstr "&Taispeáin an cnaipe dúnta"
+
+#: lib/kateconfigdialog.cpp:267
+#, kde-format
+msgid "When checked each tab will display a close button."
+msgstr ""
+"Nuair a bheidh sé seiceáilte taispeánfar cnaipe dúnta i ngach cluaisín."
+
+#: lib/kateconfigdialog.cpp:271
+#, kde-format
+msgid "&Expand tabs"
+msgstr "&Leathnaigh na cluaisíní"
+
+#: lib/kateconfigdialog.cpp:273
+#, kde-format
+msgid "When checked tabs take as much size as possible."
+msgstr ""
+"Nuair a bhíonn siad seiceáilte, glacann na cluaisíní an oiread méide agus is "
+"féidir."
+
+#: lib/kateconfigdialog.cpp:277
+#, kde-format
+msgid "&Double click opens a new document"
+msgstr "Osclaíonn cliceáil faoi dhó doiciméad nua"
+
+#: lib/kateconfigdialog.cpp:279
+#, kde-format
+msgid "When checked double click opens a new document."
+msgstr ""
+"Nuair a dhéantar tic a chur leis, osclaítear doiciméad nua le cliceáil faoi "
+"dhó."
+
+#: lib/kateconfigdialog.cpp:283
+#, kde-format
+msgid "&Middle click closes a document"
+msgstr "Dúnann cliceáil lár doiciméad"
+
+#: lib/kateconfigdialog.cpp:285
+#, kde-format
+msgid "When checked middle click closes a document."
+msgstr "Nuair a bhíonn sé seiceáilte, dúnann cliceáil lár doiciméad."
+
+#: lib/kateconfigdialog.cpp:289
+#, kde-format
+msgid "Allow tab scrolling"
+msgstr "Ceadaigh scrollú cluaisíní"
+
+#: lib/kateconfigdialog.cpp:291
+#, kde-format
+msgid ""
+"When checked this will allow scrolling in tab bar when number of tabs is "
+"large."
+msgstr ""
+"Nuair a bheidh sé seo roghnaithe, ceadóidh sé scrollú sa bharra cluaisíní "
+"nuair a bhíonn líon mór cluaisíní ann."
+
+#: lib/kateconfigdialog.cpp:295
+#, kde-format
+msgid "Elide tab text"
+msgstr "Téacs cluaisín Elide"
+
+#: lib/kateconfigdialog.cpp:297
+#, kde-format
+msgid "When checked tab text might be elided if it is too long."
+msgstr ""
+"Nuair a bhíonn sé seo seiceáilte, d’fhéadfadh téacs an chluaisín a bheith ar "
+"lár má tá sé rófhada."
+
+#: lib/kateconfigdialog.cpp:301
+#, kde-format
+msgid "Open new tabs to the right of the current tab"
+msgstr "Oscail cluaisíní nua ar dheis an chluaisín reatha"
+
+#: lib/kateconfigdialog.cpp:303
+#, kde-format
+msgid "If unchecked the new tab will open at the end."
+msgstr "Mura bhfuil tic curtha ann, osclófar an cluaisín nua ag an deireadh."
+
+#: lib/kateconfigdialog.cpp:314
+#, kde-format
+msgid "Allow cycling through tabs"
+msgstr "Ceadaigh rothlú trí chluaisíní"
+
+#: lib/kateconfigdialog.cpp:316
+#, kde-format
+msgctxt "If 'Allow cycling through tabs' is disabled."
+msgid ""
+"If unchecked, the action '%1'/'%2' will not go to first/last tab after "
+"reaching the end."
+msgstr ""
+"Mura bhfuil an rogha seo roghnaithe, ní rachaidh an gníomh '%1'/'%2' go dtí "
+"an chéad chluaisín/an cluaisín deireanach tar éis an deireadh a bhaint amach."
+
+#: lib/kateconfigdialog.cpp:339
+#, kde-format
+msgid "&Mouse"
+msgstr "&Luch"
+
+#: lib/kateconfigdialog.cpp:344
+#, kde-format
+msgid "&Backward button pressed:"
+msgstr "Cnaipe &Ar Ais brúite:"
+
+#: lib/kateconfigdialog.cpp:349
+#, kde-format
+msgid "Previous tab"
+msgstr "Táb roimhe seo"
+
+#: lib/kateconfigdialog.cpp:349
+#, kde-format
+msgid "History back"
+msgstr "Stair siar"
+
+#: lib/kateconfigdialog.cpp:355
+#, kde-format
+msgid "&Forward button pressed:"
+msgstr "Cnaipe &Ar Aghaidh brúite:"
+
+#: lib/kateconfigdialog.cpp:360
+#, kde-format
+msgid "Next tab"
+msgstr "An chéad chluaisín eile"
+
+#: lib/kateconfigdialog.cpp:360
+#, kde-format
+msgid "History forward"
+msgstr "Stair ar aghaidh"
+
+#: lib/kateconfigdialog.cpp:377
+#, kde-format
+msgid "Diff Style:"
+msgstr "Stíl Difríochta:"
+
+#: lib/kateconfigdialog.cpp:384
+#, kde-format
+msgid "Navigation Bar"
+msgstr "Barra Nascleanúna"
+
+#: lib/kateconfigdialog.cpp:389
+#, kde-format
+msgid "Show current symbol in navigation bar"
+msgstr "Taispeáin an tsiombail reatha sa bharra nascleanúna"
+
+#: lib/kateconfigdialog.cpp:399
+#, kde-format
+msgid "Diagnostics limit:"
+msgstr "Teorainn diagnóisice:"
+
+#: lib/kateconfigdialog.cpp:404
+#, kde-format
+msgid "Max number of diagnostics allowed in the Diagnostics toolview."
+msgstr "Uasmhéid na ndiagnóisic a cheadaítear san amharc uirlis Diagnóisic."
+
+#: lib/kateconfigdialog.cpp:410 lib/texthint/hintview.cpp:25
+#, kde-format
+msgid "Context"
+msgstr "Comhthéacs"
+
+#: lib/kateconfigdialog.cpp:415
+#, kde-format
+msgid "Enable tool view"
+msgstr "Cumasaigh radharc uirlisí"
+
+#: lib/kateconfigdialog.cpp:417
+#, kde-format
+msgid ""
+"A tool view to display context associated with the current cursor position "
+"(LSP hints, diagnostics)"
+msgstr ""
+"Radharc uirlise chun comhthéacs a bhaineann le suíomh reatha an chúrsóra a "
+"thaispeáint (leideanna LSP, diagnóisic)"
+
+#: lib/kateconfigdialog.cpp:432
+#, kde-format
+msgid "Session"
+msgstr "Seisiún"
+
+#: lib/kateconfigdialog.cpp:434
+#, kde-format
+msgid "Session Management"
+msgstr "Bainisteoireacht an tSeisiúin"
+
+#: lib/kateconfigdialog.cpp:446
+#, kde-format
+msgctxt "The special case of 'Delete unused meta-information after'"
+msgid "(never)"
+msgstr "(riamh)"
+
+#: lib/kateconfigdialog.cpp:448
+#, kde-format
+msgctxt "The suffix of 'Delete unused meta-information after'"
+msgid "%v day"
+msgid_plural "%v days"
+msgstr[0] "%v lá"
+msgstr[1] "%v laethanta"
+msgstr[2] "%v laethanta"
+msgstr[3] "%v laethanta"
+msgstr[4] "%v laethanta"
+
+#: lib/kateconfigdialog.cpp:478
+#, kde-format
+msgid ""
+"When a window is closed the documents opened only in this window are closed "
+"as well."
+msgstr ""
+"Nuair a dhúntar fuinneog, dúntar na doiciméid nach n-osclaítear ach sa "
+"fhuinneog sin freisin."
+
+#: lib/kateconfigdialog.cpp:513
+#, kde-format
+msgid "Plugins"
+msgstr "Breiseáin"
+
+#: lib/kateconfigdialog.cpp:515
+#, kde-format
+msgid "Plugin Manager"
+msgstr "Bainisteoir Breiseán"
+
+#: lib/kateconfigdialog.cpp:533 lib/kateconfigdialog.cpp:535
+#, kde-format
+msgid "User Feedback"
+msgstr "Aiseolas Úsáideora"
+
+#: lib/kateconfigdialog.cpp:727
+#, kde-format
+msgid "Bad PATH value"
+msgstr "Drochluach PATH"
+
+#: lib/kateconfigdialog.cpp:727
+#, kde-format
+msgid "The path '%1' doesn't exist"
+msgstr "Níl an cosán '%1' ann"
+
+#: lib/kateconfigdialog.cpp:811
+#, kde-format
+msgid ""
+"You have unsaved changes. Do you want to apply the changes or discard them?"
+msgstr ""
+"Tá athruithe neamhshábháilte agat. Ar mhaith leat na hathruithe a chur i "
+"bhfeidhm nó iad a chaitheamh amach?"
+
+#: lib/kateconfigplugindialogpage.cpp:78
+#, kde-format
+msgid ""
+"Here you can see all available Kate plugins. Those with a check mark are "
+"loaded, and will be loaded again the next time Kate is started."
+msgstr ""
+"Anseo is féidir leat na breiseáin Kate uile atá ar fáil a fheiceáil. Tá na "
+"breiseáin a bhfuil ticmharc orthu luchtaithe, agus luchtófar arís iad an "
+"chéad uair eile a thosófar Kate."
+
+#: lib/kateconfigplugindialogpage.cpp:82
+#, kde-format
+msgid "Name"
+msgstr "Ainm"
+
+#: lib/kateconfigplugindialogpage.cpp:82
+#, kde-format
+msgid "Description"
+msgstr "Cur síos"
+
+#: lib/katedocmanager.cpp:352
+#, kde-format
+msgid "Starting Up"
+msgstr "Á Thosú"
+
+#: lib/katedocmanager.cpp:353
+#, kde-format
+msgid "Reopening files from the last session..."
+msgstr "Comhaid á n-athoscailt ón seisiún is déanaí..."
+
+#: lib/katedocmanager.cpp:528
+#, kde-format
+msgid "Cannot pin untitled documents."
+msgstr "Ní féidir doiciméid gan teideal a phionáil."
+
+#: lib/katedocmanager.cpp:533
+#, kde-format
+msgid "Cannot pin non local documents."
+msgstr "Ní féidir doiciméid nach doiciméid áitiúla a phionáil."
+
+#: lib/katefileactions.cpp:80
+#, kde-format
+msgid "Rename file"
+msgstr "Athainmnigh an comhad"
+
+#: lib/katefileactions.cpp:80
+#, kde-format
+msgid "New file name"
+msgstr "Ainm comhaid nua"
+
+#: lib/katefileactions.cpp:116
+#, kde-format
+msgid "File \"%1\" could not be moved to \"%2\""
+msgstr "Níorbh fhéidir an comhad \"%1\" a bhogadh go \"%2\""
+
+#: lib/katefileactions.cpp:137
+#, kde-format
+msgid "Do you really want to delete file \"%1\"?"
+msgstr "An bhfuil tú cinnte gur mhaith leat comhad \"%1\" a scriosadh?"
+
+#: lib/katefileactions.cpp:138
+#, kde-format
+msgid "Delete file"
+msgstr "Scrios comhad"
+
+#: lib/katefileactions.cpp:161
+#, kde-format
+msgid "File \"%1\" could not be deleted."
+msgstr "Níorbh fhéidir an comhad \"%1\" a scriosadh."
+
+#: lib/katefileactions.cpp:220
+#, kde-format
+msgid "&Other Application..."
+msgstr "Feidhmchlár Eile..."
+
+#: lib/katemainwindow.cpp:306
+#, kde-format
+msgid "Use this command to show or hide the view's statusbar"
+msgstr ""
+"Úsáid an t-ordú seo chun barra stádais an amhairc a thaispeáint nó a chur i "
+"bhfolach"
+
+#: lib/katemainwindow.cpp:312
+#, kde-format
+msgid "Show &Tabs"
+msgstr "Taispeáin &Cluaisíní"
+
+#: lib/katemainwindow.cpp:315
+#, kde-format
+msgid "Use this command to show or hide the tabs for the views"
+msgstr ""
+"Úsáid an t-ordú seo chun na cluaisíní do na radhairc a thaispeáint nó a "
+"cheilt"
+
+#: lib/katemainwindow.cpp:317
+#, kde-format
+msgid "Sho&w Path in Titlebar"
+msgstr "Taispeáin an Cosán sa Bharra Teidil"
+
+#: lib/katemainwindow.cpp:322
+#, kde-format
+msgid "Show the complete document path in the window caption"
+msgstr "Taispeáin conair iomlán na cáipéise i bhfotheideal na fuinneoige"
+
+#: lib/katemainwindow.cpp:324
+#, kde-format
+msgid "Show Navigation Bar"
+msgstr "Taispeáin Barra Nascleanúna"
+
+#: lib/katemainwindow.cpp:342
+#, kde-format
+msgid "&Window Color Scheme"
+msgstr "&Scéim Dathanna Fuinneoige"
+
+#: lib/katemainwindow.cpp:346
+#, kde-format
+msgid "&Previous Tab"
+msgstr "&Cluaisín Roimhe Seo"
+
+#: lib/katemainwindow.cpp:347
+#, kde-format
+msgid "Focus the previous tab."
+msgstr "Dírigh ar an táb roimhe seo."
+
+#: lib/katemainwindow.cpp:354
+#, kde-format
+msgid "&Next Tab"
+msgstr "&An Chéad Chluaisín Eile"
+
+#: lib/katemainwindow.cpp:355
+#, kde-format
+msgid "Focus the next tab."
+msgstr "Dírigh ar an chéad chluaisín eile."
+
+#: lib/katemainwindow.cpp:364
+#, kde-format
+msgctxt "@action Shortcut entry"
+msgid "Switch to Tab %1"
+msgstr "Athraigh go Tab %1"
+
+#: lib/katemainwindow.cpp:384
+#, kde-format
+msgid "&Quick Open"
+msgstr "Oscail go &Tapa"
+
+#: lib/katemainwindow.cpp:387
+#, kde-format
+msgid "Open a form to quick open documents."
+msgstr "Oscail foirm chun doiciméid a oscailt go tapa."
+
+#: lib/katemainwindow.cpp:424
+#, kde-format
+msgid "Output"
+msgstr "Aschur"
+
+#: lib/katemainwindow.cpp:435
+#, kde-format
+msgid "Create a new document"
+msgstr "Cruthaigh cáipéis nua"
+
+#: lib/katemainwindow.cpp:437
+#, kde-format
+msgid "Open an existing document for editing"
+msgstr "Oscail cáipéis atá ann cheana agus cuir í in eagar"
+
+#: lib/katemainwindow.cpp:447
+#, kde-format
+msgid ""
+"This lists files which you have opened recently, and allows you to easily "
+"open them again."
+msgstr ""
+"Taispeánann sé seo na comhaid a d'oscail tú le déanaí, agus ceadaíonn duit "
+"iad a oscailt arís gan stró."
+
+#: lib/katemainwindow.cpp:451
+#, kde-format
+msgid "Sa&ve All"
+msgstr "Sá&bháil Gach Rud"
+
+#: lib/katemainwindow.cpp:454
+#, kde-format
+msgid "Save all open, modified documents to disk."
+msgstr "Sábháil gach cáipéis atá oscailte agus athraithe ar an diosca."
+
+#: lib/katemainwindow.cpp:457
+#, kde-format
+msgid "Reload A&ll"
+msgstr "Athlódáil Gach Rud"
+
+#: lib/katemainwindow.cpp:459
+#, kde-format
+msgid "Reload all open documents."
+msgstr "Athluchtaigh gach cáipéis oscailte."
+
+#: lib/katemainwindow.cpp:468 lib/katemainwindow.cpp:478
+#: lib/katemainwindow.cpp:487
+#, kde-format
+msgid "Copies the file path of the current file to clipboard."
+msgstr "Cóipeálann sé cosán comhaid an chomhaid reatha chuig an ghearrthaisce."
+
+#: lib/katemainwindow.cpp:472
+#, kde-format
+msgid "Copy Filename"
+msgstr "Cóipeáil Ainm Comhaid"
+
+#: lib/katemainwindow.cpp:482 lib/welcomeview/welcomeview.cpp:268
+#, kde-format
+msgid "&Open Containing Folder"
+msgstr "&Oscail an Fillteán ina bhfuil"
+
+#: lib/katemainwindow.cpp:491
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Rename..."
+msgstr "Athainmnigh..."
+
+#: lib/katemainwindow.cpp:496
+#, kde-format
+msgid "Renames the file belonging to the current document."
+msgstr "Athainmníonn sé an comhad a bhaineann leis an doiciméad reatha."
+
+#: lib/katemainwindow.cpp:500
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Delete"
+msgstr "Scrios"
+
+#: lib/katemainwindow.cpp:505 lib/katemainwindow.cpp:514
+#, kde-format
+msgid "Deletes the file belonging to the current document."
+msgstr "Scriosann sé an comhad a bhaineann leis an doiciméad reatha."
+
+#: lib/katemainwindow.cpp:509
+#, kde-format
+msgid "Properties"
+msgstr "Airíonna"
+
+#: lib/katemainwindow.cpp:517 lib/katemainwindow.cpp:519
+#, kde-format
+msgid "Compare"
+msgstr "Déan comparáid"
+
+#: lib/katemainwindow.cpp:519
+#, kde-format
+msgid "Use the Tabbar context menu to compare two documents"
+msgstr ""
+"Úsáid roghchlár comhthéacs an Tabbar chun dhá dhoiciméad a chur i gcomparáid"
+
+#: lib/katemainwindow.cpp:521
+#, kde-format
+msgid "Shows a hint how to compare documents."
+msgstr "Taispeánann sé leid maidir le conas doiciméid a chur i gcomparáid."
+
+#: lib/katemainwindow.cpp:524
+#, kde-format
+msgid "Close Orp&haned"
+msgstr "Dún Orp&handed"
+
+#: lib/katemainwindow.cpp:526
+#, kde-format
+msgid ""
+"Close all documents in the file list that could not be reopened, because "
+"they are not accessible anymore."
+msgstr ""
+"Dún na doiciméid uile sa liosta comhad nárbh fhéidir a athoscailt, mar nach "
+"bhfuil rochtain orthu a thuilleadh."
+
+#: lib/katemainwindow.cpp:530
+#, kde-format
+msgid "Close the current document."
+msgstr "Dún an cháipéis reatha."
+
+#: lib/katemainwindow.cpp:533
+#, kde-format
+msgid "Close O&ther"
+msgstr "Dún &Eile"
+
+#: lib/katemainwindow.cpp:537
+#, kde-format
+msgid "Close other open documents."
+msgstr "Dún gach cáipéis eile atá oscailte."
+
+#: lib/katemainwindow.cpp:540
+#, kde-format
+msgid "Clos&e All"
+msgstr "Dún Uil&e"
+
+#: lib/katemainwindow.cpp:542
+#, kde-format
+msgid "Close all open documents."
+msgstr "Dún gach cáipéis oscailte."
+
+#: lib/katemainwindow.cpp:545
+#, kde-format
+msgid "&Reopen Latest Closed Document(s)"
+msgstr "&Athoscail an/na Doiciméad/na Doiciméid Dúnta is Déanaí"
+
+#: lib/katemainwindow.cpp:547
+#, kde-format
+msgid "Reopen the document or documents that were most recently closed"
+msgstr "Athoscail an doiciméad nó na doiciméid a dúnadh le déanaí"
+
+#: lib/katemainwindow.cpp:550
+#, kde-format
+msgid "Close &Window"
+msgstr "Dún &Fuinneog"
+
+#: lib/katemainwindow.cpp:554
+#, kde-format
+msgid "Close this window"
+msgstr "Dún an fhuinneog seo"
+
+#: lib/katemainwindow.cpp:559
+#, kde-format
+msgid "Quit the application"
+msgstr "Scoir an feidhmchlár"
+
+#: lib/katemainwindow.cpp:563
+#, kde-format
+msgid "New &Window"
+msgstr "&Fuinneog Nua"
+
+#: lib/katemainwindow.cpp:566
+#, kde-format
+msgid "Create a new window."
+msgstr "Cruthaigh fuinneog nua."
+
+#: lib/katemainwindow.cpp:577
+#, kde-format
+msgid "Open W&ith"
+msgstr "&Oscail le"
+
+#: lib/katemainwindow.cpp:579
+#, kde-format
+msgid ""
+"Open the current document using another application registered for its file "
+"type, or an application of your choice."
+msgstr ""
+"Oscail an doiciméad reatha ag baint úsáide as feidhmchlár eile atá cláraithe "
+"dá chineál comhaid, nó feidhmchlár de do rogha féin."
+
+#: lib/katemainwindow.cpp:587
+#, kde-format
+msgid "Configure the application's keyboard shortcut assignments."
+msgstr "Cumraigh aicearraí an fheidhmchláir."
+
+#: lib/katemainwindow.cpp:590
+#, kde-format
+msgid "Configure which items should appear in the toolbar(s)."
+msgstr "Cumraigh na míreanna a thaispeánfar sa bharra/sna barraí uirlisí."
+
+#: lib/katemainwindow.cpp:593
+#, kde-format
+msgid ""
+"Configure various aspects of this application and the editing component."
+msgstr ""
+"Cumraigh gnéithe éagsúla den fheidhmchlár seo agus den chomhpháirt "
+"eagarthóireachta."
+
+#: lib/katemainwindow.cpp:597
+#, kde-format
+msgid "&Plugins Handbook"
+msgstr "&Lámhleabhar na mBreiseán"
+
+#: lib/katemainwindow.cpp:599
+#, kde-format
+msgid "This shows help files for various available plugins."
+msgstr ""
+"Taispeánann sé seo comhaid chabhrach do bhreiseáin éagsúla atá ar fáil."
+
+#: lib/katemainwindow.cpp:620
+#, kde-format
+msgid "Sess&ions"
+msgstr "Se&isiúin"
+
+#: lib/katemainwindow.cpp:626
+#, kde-format
+msgctxt "Menu entry Session->New Session"
+msgid "&New Session"
+msgstr "Seisiún &Nua"
+
+#: lib/katemainwindow.cpp:631
+#, kde-format
+msgid "&Recent Sessions"
+msgstr "&Seisiúin Le Déanaí"
+
+#: lib/katemainwindow.cpp:636
+#, kde-format
+msgid "&All Sessions"
+msgstr "&Gach Seisiún"
+
+#: lib/katemainwindow.cpp:643
+#, kde-format
+msgid "&Manage Sessions..."
+msgstr "&Bainistigh Seisiúin..."
+
+#: lib/katemainwindow.cpp:652
+#, kde-format
+msgid "&Save Session"
+msgstr "&Sábháil an Seisiún"
+
+#: lib/katemainwindow.cpp:658
+#, kde-format
+msgid "Save Session &As..."
+msgstr "Sábháil an Seisiún M&ar..."
+
+#: lib/katemainwindow.cpp:666
+#, kde-format
+msgid "Pin/Unpin Active Document"
+msgstr "Priontáil/Díphionáil Doiciméad Gníomhach"
+
+#: lib/katemainwindow.cpp:675
+#, kde-format
+msgid "Open Next Pinned Document"
+msgstr "Oscail an Chéad Doiciméad Prionáilte Eile"
+
+#: lib/katemainwindow.cpp:682 lib/kateviewspace.cpp:70
+#, kde-format
+msgid "Go to Previous Location"
+msgstr "Téigh go dtí an Suíomh Roimhe Seo"
+
+#: lib/katemainwindow.cpp:691 lib/kateviewspace.cpp:82
+#, kde-format
+msgid "Go to Next Location"
+msgstr "Téigh go dtí an chéad suíomh eile"
+
+#: lib/katemainwindow.cpp:699
+#, kde-format
+msgid "Show File Git History"
+msgstr "Taispeáin Stair Git an Chomhaid"
+
+#: lib/katemainwindow.cpp:710
+#, kde-format
+msgid "&Windows"
+msgstr "&Fuinneoga"
+
+#: lib/katemainwindow.cpp:749
+#, kde-format
+msgid "This will close all open documents. Are you sure you want to continue?"
+msgstr ""
+"Dúnfaidh sé seo gach doiciméad oscailte. An bhfuil tú cinnte gur mian leat "
+"leanúint ar aghaidh?"
+
+#: lib/katemainwindow.cpp:750
+#, kde-format
+msgid "Close all documents?"
+msgstr "Gach doiciméad a dhúnadh?"
+
+#: lib/katemainwindow.cpp:751
+#, kde-format
+msgid "Close All"
+msgstr "Dún Gach Rud"
+
+#: lib/katemainwindow.cpp:765
+#, kde-format
+msgid ""
+"This will close all open documents beside the current one. Are you sure you "
+"want to continue?"
+msgstr ""
+"Dúnfaidh sé seo gach doiciméad oscailte seachas an ceann reatha. An bhfuil "
+"tú cinnte gur mian leat leanúint ar aghaidh?"
+
+#: lib/katemainwindow.cpp:766
+#, kde-format
+msgid "Close all documents beside current one?"
+msgstr "Gach doiciméad seachas an ceann reatha a dhúnadh?"
+
+#: lib/katemainwindow.cpp:767
+#, kde-format
+msgid "Close Others"
+msgstr "Dún Eile"
+
+#: lib/katemainwindow.cpp:842
+#, kde-format
+msgid "New file opened while trying to close Kate, closing aborted."
+msgstr ""
+"Osclaíodh comhad nua agus iarracht á déanamh Kate a dhúnadh, cuireadh "
+"deireadh leis an dúnadh."
+
+#: lib/katemainwindow.cpp:842
+#, kde-format
+msgid "Closing Aborted"
+msgstr "Dúnadh Ar Ceal"
+
+#: lib/katemainwindow.cpp:997
+#, kde-format
+msgid ""
+"This will hide the menu bar completely. You can show it again by typing %1."
+msgstr ""
+"Cuirfidh sé seo an barra roghchláir i bhfolach go hiomlán. Is féidir leat é "
+"a thaispeáint arís trí %1 a chlóscríobh."
+
+#: lib/katemainwindow.cpp:1000
+#, kde-format
+msgid "Hide menu bar"
+msgstr "Folaigh an barra roghchláir"
+
+#: lib/katemainwindow.cpp:1181
+#, kde-format
+msgid ""
+"You dropped the directory %1 into Kate. Do you want to open all files "
+"contained in it?"
+msgstr ""
+"Chuir tú an eolaire %1 i Kate. Ar mhaith leat na comhaid go léir atá ann a "
+"oscailt?"
+
+#: lib/katemainwindow.cpp:1184
+#, kde-format
+msgctxt "@title:window"
+msgid "Open Files Recursively"
+msgstr "Oscail Comhaid go hAthchúrsach"
+
+#: lib/katemainwindow.cpp:1185
+#, kde-format
+msgctxt "@action:button"
+msgid "Open All Files"
+msgstr "Oscail Gach Comhad"
+
+#: lib/katemainwindow.cpp:1393
+#, kde-format
+msgid " [read only]"
+msgstr " [léamh amháin]"
+
+#: lib/katemdi.cpp:83
+#, kde-format
+msgid "Toolview Manager"
+msgstr "Bainisteoir Amharc Uirlisí"
+
+#: lib/katemdi.cpp:101
+#, kde-format
+msgid "Sidebar Buttons"
+msgstr "Cnaipí Barra Taoibh"
+
+#: lib/katemdi.cpp:104
+#, kde-format
+msgid "Focus Toolview"
+msgstr "Radharc Uirlisí Fócas"
+
+#: lib/katemdi.cpp:107
+#, kde-format
+msgid "Tool &Views"
+msgstr "&Amhairc Uirlisí"
+
+#: lib/katemdi.cpp:109
+#, kde-format
+msgid "Show Side&bars"
+msgstr "Taispeáin &Barraí Taoibh"
+
+#: lib/katemdi.cpp:117
+#, kde-format
+msgid "Hide All Tool Views"
+msgstr "Folaigh Gach Radharc Uirlis"
+
+#: lib/katemdi.cpp:165
+#, kde-format
+msgid "Show %1"
+msgstr "Taispeáin %1"
+
+#: lib/katemdi.cpp:187
+#, kde-format
+msgid "Show %1 Button"
+msgstr "Taispeáin Cnaipe %1"
+
+#: lib/katemdi.cpp:206
+#, kde-format
+msgid "Focus %1"
+msgstr "Fócas %1"
+
+#: lib/katemdi.cpp:1124
+#, kde-format
+msgid "Configure..."
+msgstr "Cumraigh..."
+
+#: lib/katemdi.cpp:1128
+#, kde-format
+msgid "Hide Button"
+msgstr "Folaigh an Cnaipe"
+
+#: lib/katemdi.cpp:1130
+#, kde-format
+msgid "Move To"
+msgstr "Bog Go"
+
+#: lib/katemdi.cpp:1135
+#, kde-format
+msgid "Own Section"
+msgstr "Roinn Féin"
+
+#: lib/katemdi.cpp:1141 lib/katemdi.cpp:1149
+#, kde-format
+msgid "One Down"
+msgstr "Ceann Síos"
+
+#: lib/katemdi.cpp:1143 lib/katemdi.cpp:1154
+#, kde-format
+msgid "One Right"
+msgstr "Aon Cheart"
+
+#: lib/katemdi.cpp:1147
+#, kde-format
+msgid "One Up"
+msgstr "Ceann Suas"
+
+#: lib/katemdi.cpp:1152
+#, kde-format
+msgid "One Left"
+msgstr "Ceann amháin ar chlé"
+
+#: lib/katemdi.cpp:1161
+#, kde-format
+msgid "Left Sidebar"
+msgstr "Barra Taoibh Ar Chlé"
+
+#: lib/katemdi.cpp:1165
+#, kde-format
+msgid "Right Sidebar"
+msgstr "Barra Taoibh Ar Dheis"
+
+#: lib/katemdi.cpp:1169
+#, kde-format
+msgid "Top Sidebar"
+msgstr "Barra Taobh"
+
+#: lib/katemdi.cpp:1173
+#, kde-format
+msgid "Bottom Sidebar"
+msgstr "Barra Taobh Bun"
+
+#: lib/katemdi.cpp:1787
+#, kde-format
+msgid ""
+"<qt>You are about to hide the sidebars. With hidden sidebars it is not "
+"possible to directly access the tool views with the mouse anymore, so if you "
+"need to access the sidebars again invoke <b>View &gt; Tool Views &gt; Show "
+"Sidebars</b> in the menu. It is still possible to show/hide the tool views "
+"with the assigned shortcuts.</qt>"
+msgstr ""
+"<qt>Tá tú ar tí na barraí taoibh a cheilt. Le barraí taoibh i bhfolach ní "
+"féidir rochtain dhíreach a fháil ar na radhairc uirlisí leis an luch a "
+"thuilleadh, mar sin má theastaíonn uait rochtain a fháil ar na barraí taoibh "
+"arís glaoigh ar <b>Amharc &gt; Radhairc Uirlisí &gt; Taispeáin Barraí "
+"Taoibh</b> sa roghchlár. Is féidir fós na radhairc uirlisí a thaispeáint/a "
+"cheilt leis na haicearraí sannta.</qt>"
+
+#: lib/katemwmodonhddialog.cpp:54
+#, kde-format
+msgid "Documents Modified on Disk"
+msgstr "Cáipéisí Athraithe ar an Diosca"
+
+#: lib/katemwmodonhddialog.cpp:69
+#, kde-format
+msgid ""
+"<qt>The documents listed below have changed on disk.<p>Select one or more at "
+"once, and press an action button until the list is empty.</p></qt>"
+msgstr ""
+"<qt>Tá na doiciméid atá liostaithe thíos athraithe ar an diosca.<p>Roghnaigh "
+"ceann amháin nó níos mó ag an am céanna, agus brúigh cnaipe gníomhaíochta go "
+"dtí go mbeidh an liosta folamh.</p></qt>"
+
+#: lib/katemwmodonhddialog.cpp:79
+#, kde-format
+msgid "Filename"
+msgstr "Ainm comhaid"
+
+#: lib/katemwmodonhddialog.cpp:79
+#, kde-format
+msgid "Status on Disk"
+msgstr "Stádas ar an Diosca"
+
+#: lib/katemwmodonhddialog.cpp:84
+#, kde-format
+msgid "Modified"
+msgstr "Athraithe"
+
+#: lib/katemwmodonhddialog.cpp:84
+#, kde-format
+msgid "Created"
+msgstr "Cruthaithe"
+
+#: lib/katemwmodonhddialog.cpp:84
+#, kde-format
+msgid "Deleted"
+msgstr "Scriosta"
+
+#: lib/katemwmodonhddialog.cpp:107
+#, kde-format
+msgid "&View Difference"
+msgstr "A&mharc ar Dhifríochtaí"
+
+#: lib/katemwmodonhddialog.cpp:108
+#, kde-format
+msgid ""
+"Calculates the difference between the editor contents and the disk file for "
+"the selected document."
+msgstr ""
+"Ríomhann sé an difríocht idir ábhar an eagarthóra agus an comhad diosca don "
+"doiciméad roghnaithe."
+
+#: lib/katemwmodonhddialog.cpp:116
+#, kde-format
+msgid "&Ignore Changes"
+msgstr "Déan neamha&ird d'Athruithe"
+
+#: lib/katemwmodonhddialog.cpp:117
+#, kde-format
+msgid "Remove modified flag from selected documents"
+msgstr "Bain bratach mhodhnaithe de na doiciméid roghnaithe"
+
+#: lib/katemwmodonhddialog.cpp:123
+#, kde-format
+msgid "Overwrite selected documents, discarding disk changes"
+msgstr ""
+"Scríobh doiciméid roghnaithe thar ceal, ag fáil réidh le hathruithe ar an "
+"diosca"
+
+#: lib/katemwmodonhddialog.cpp:127
+#, kde-format
+msgid "&Reload"
+msgstr "&Athluchtaigh"
+
+#: lib/katemwmodonhddialog.cpp:129
+#, kde-format
+msgid "Reload selected documents from disk"
+msgstr "Athlódáil na doiciméid roghnaithe ón diosca"
+
+#: lib/katemwmodonhddialog.cpp:191
+#, kde-format
+msgid ""
+"Could not save the document \n"
+"'%1'"
+msgstr ""
+"Ní féidir an cháipéis a shábháil: \n"
+"'%1'"
+
+#: lib/katemwmodonhddialog.cpp:281
+#, kde-format
+msgid "Failed to create a temporary file"
+msgstr "Theip ar chomhad sealadach a chruthú"
+
+#: lib/katemwmodonhddialog.cpp:292
+#, kde-format
+msgid "Please install git to view diffs"
+msgstr "Suiteáil git le do thoil chun na difríochtaí a fheiceáil"
+
+#: lib/katemwmodonhddialog.cpp:316
+#, kde-format
+msgid ""
+"The diff command failed. Please make sure that git is installed and in your "
+"PATH."
+msgstr ""
+"Theip ar an ordú diff. Déan cinnte go bhfuil git suiteáilte agus i do PATH."
+
+#: lib/katemwmodonhddialog.cpp:318
+#, kde-format
+msgid "Error Creating Diff"
+msgstr "Earráid agus Diff á Chruthú"
+
+#: lib/katemwmodonhddialog.cpp:325
+#, kde-format
+msgid "[OLD]"
+msgstr "[SEAN]"
+
+#: lib/katemwmodonhddialog.cpp:326
+#, kde-format
+msgid "[NEW]"
+msgstr "[NUA]"
+
+#: lib/kateoutputview.cpp:176
+#, kde-format
+msgid "Search..."
+msgstr "Cuardaigh..."
+
+#: lib/kateoutputview.cpp:192
+#, kde-format
+msgid "Copy all text to clipboard"
+msgstr "Cóipeáil an téacs go léir chuig an ghearrthaisce"
+
+#: lib/kateoutputview.cpp:197
+#, kde-format
+msgid "Clear all messages"
+msgstr "Glan gach teachtaireacht"
+
+#: lib/kateoutputview.cpp:411
+#, kde-format
+msgctxt "@info"
+msgid "Error"
+msgstr "Earráid"
+
+#: lib/kateoutputview.cpp:415
+#, kde-format
+msgctxt "@info"
+msgid "Warning"
+msgstr "Rabhadh"
+
+#: lib/kateoutputview.cpp:419
+#, kde-format
+msgctxt "@info"
+msgid "Info"
+msgstr "Eolas"
+
+#: lib/kateoutputview.cpp:424
+#, kde-format
+msgctxt "@info"
+msgid "Log"
+msgstr "Logáil"
+
+#: lib/katesavemodifieddialog.cpp:81
+#, kde-format
+msgid "Save As (%1)"
+msgstr "Sábháil Mar (%1)"
+
+#: lib/katesavemodifieddialog.cpp:133
+#, kde-format
+msgid "Save Documents"
+msgstr "Sábháil Cáipéisí"
+
+#: lib/katesavemodifieddialog.cpp:133
+#, kde-format
+msgid "Close Document"
+msgstr "Dún an Cháipéis"
+
+#: lib/katesavemodifieddialog.cpp:157
+#, kde-format
+msgid ""
+"The document \"%1\" has been modified. Do you want to save your changes or "
+"discard them?"
+msgstr ""
+"Tá an doiciméad \"%1\" athraithe. Ar mhaith leat do chuid athruithe a "
+"shábháil nó iad a chaitheamh amach?"
+
+#: lib/katesavemodifieddialog.cpp:161
+#, kde-format
+msgid ""
+"<qt>The following documents have been modified. Do you want to save them "
+"before closing?</qt>"
+msgstr ""
+"<qt>Tá na doiciméid seo a leanas modhnaithe. Ar mhaith leat iad a shábháil "
+"sula ndúnfar iad?</qt>"
+
+#: lib/katesavemodifieddialog.cpp:170
+#, kde-format
+msgid "Documents"
+msgstr "Cáipéisí"
+
+#: lib/katesavemodifieddialog.cpp:170
+#, kde-format
+msgid "Location"
+msgstr "Suíomh"
+
+#: lib/katesavemodifieddialog.cpp:180
+#, kde-format
+msgid "Se&lect All"
+msgstr "Ro&ghnaigh Gach Rud"
+
+#: lib/katesavemodifieddialog.cpp:258
+#, kde-format
+msgid ""
+"Data you requested to be saved could not be written. Please choose how you "
+"want to proceed."
+msgstr ""
+"Níorbh fhéidir na sonraí a d'iarr tú a shábháil a scríobh. Roghnaigh conas "
+"is mian leat dul ar aghaidh, le do thoil."
+
+#: lib/kateurlbar.cpp:915
+#, kde-format
+msgctxt "@menu:action"
+msgid "Copy Location"
+msgstr "Cóipeáil Suíomh"
+
+#: lib/kateurlbar.cpp:920
+#, kde-format
+msgctxt "@menu:action"
+msgid "Copy Filename"
+msgstr "Cóipeáil Ainm Comhaid"
+
+#: lib/kateurlbar.cpp:926
+#, kde-format
+msgctxt "@menu:action"
+msgid "Copy Item"
+msgstr "Cóipeáil Mír"
+
+#: lib/kateviewmanager.cpp:150
+#, kde-format
+msgid "Split Ve&rtical"
+msgstr "Roinn go hIngea&rach"
+
+#: lib/kateviewmanager.cpp:154
+#, kde-format
+msgid "Split the currently active view vertically into two views."
+msgstr "Roinn an t-amharc reatha go hingearach i dhá amharc."
+
+#: lib/kateviewmanager.cpp:158
+#, kde-format
+msgid "Split &Horizontal"
+msgstr "Roinn &go Cothrománach"
+
+#: lib/kateviewmanager.cpp:162
+#, kde-format
+msgid "Split the currently active view horizontally into two views."
+msgstr "Roinn an t-amharc reatha go cothrománach i dhá amharc."
+
+#: lib/kateviewmanager.cpp:166
+#, kde-format
+msgid "Move Document to New Vertical Split"
+msgstr "Bog Doiciméad go Scoilt Ingearach Nua"
+
+#: lib/kateviewmanager.cpp:170
+#, kde-format
+msgid ""
+"Split the currently active view vertically into two views and move the "
+"currently active document to right view."
+msgstr ""
+"Roinn an radharc atá gníomhach faoi láthair go hingearach ina dhá radharc "
+"agus bog an doiciméad atá gníomhach faoi láthair go dtí an radharc ar dheis."
+
+#: lib/kateviewmanager.cpp:175
+#, kde-format
+msgid "Move Document to New Horizontal Split"
+msgstr "Bog Doiciméad go Scoilt Chothrománach Nua"
+
+#: lib/kateviewmanager.cpp:179
+#, kde-format
+msgid ""
+"Split the currently active view horizontally into two views and move the "
+"currently active document to view below."
+msgstr ""
+"Roinn an radharc atá gníomhach faoi láthair go cothrománach ina dhá radharc "
+"agus bog an doiciméad atá gníomhach faoi láthair go dtí an radharc thíos."
+
+#: lib/kateviewmanager.cpp:184
+#, kde-format
+msgid "Cl&ose Current View"
+msgstr "&Dún an tAmharc Reatha"
+
+#: lib/kateviewmanager.cpp:188
+#, kde-format
+msgid "Close the currently active split view"
+msgstr "Dún an t-amharc roinnte atá gníomhach faoi láthair"
+
+#: lib/kateviewmanager.cpp:192
+#, kde-format
+msgid "Close Inactive Views"
+msgstr "Dún Radharcanna Neamhghníomhacha"
+
+#: lib/kateviewmanager.cpp:195
+#, kde-format
+msgid "Close every view but the active one"
+msgstr "Dún gach radharc ach amháin an ceann gníomhach"
+
+#: lib/kateviewmanager.cpp:199
+#, kde-format
+msgid "Hide Inactive Views"
+msgstr "Folaigh Radharcanna Neamhghníomhacha"
+
+#: lib/kateviewmanager.cpp:203
+#, kde-format
+msgid "Hide every view but the active one"
+msgstr "Folaigh gach radharc ach amháin an ceann gníomhach"
+
+#: lib/kateviewmanager.cpp:206
+#, kde-format
+msgid "Toggle Orientation"
+msgstr "Treoshuíomh a Athrú"
+
+#: lib/kateviewmanager.cpp:209
+#, kde-format
+msgid "Toggles the orientation of the current split view"
+msgstr "Athraíonn treoshuíomh an radhairc scoilte reatha"
+
+#: lib/kateviewmanager.cpp:212
+#, kde-format
+msgid "Next Split View"
+msgstr "An Chéad Radharc Scoilte Eile"
+
+#: lib/kateviewmanager.cpp:217
+#, kde-format
+msgid "Make the next split view the active one."
+msgstr "Déan an chéad radharc scoilte eile mar an ceann gníomhach."
+
+#: lib/kateviewmanager.cpp:220
+#, kde-format
+msgid "Previous Split View"
+msgstr "Radharc Scoilte Roimhe Seo"
+
+#: lib/kateviewmanager.cpp:225
+#, kde-format
+msgid "Make the previous split view the active one."
+msgstr "Déan an radharc scoilte roimhe seo mar an ceann gníomhach."
+
+#: lib/kateviewmanager.cpp:228
+#, kde-format
+msgid "Left Split View"
+msgstr "Radharc Scoilte Ar Chlé"
+
+#: lib/kateviewmanager.cpp:233
+#, kde-format
+msgid "Make the split view intuitively on the left the active one."
+msgstr "Déan an radharc scoilte ar chlé go hintuigthe mar an ceann gníomhach."
+
+#: lib/kateviewmanager.cpp:236
+#, kde-format
+msgid "Right Split View"
+msgstr "Radharc Scoilte Ar Dheis"
+
+#: lib/kateviewmanager.cpp:241
+#, kde-format
+msgid "Make the split view intuitively on the right the active one."
+msgstr "Déan an radharc scoilte ar dheis go hintuigthe mar an ceann gníomhach."
+
+#: lib/kateviewmanager.cpp:244
+#, kde-format
+msgid "Upward Split View"
+msgstr "Radharc Scoilte Suas"
+
+#: lib/kateviewmanager.cpp:249
+#, kde-format
+msgid "Make the split view intuitively upward the active one."
+msgstr "Déan an radharc scoilte go hintuigthe suas an ceann gníomhach."
+
+#: lib/kateviewmanager.cpp:252
+#, kde-format
+msgid "Downward Split View"
+msgstr "Radharc Scoilte Anuas"
+
+#: lib/kateviewmanager.cpp:257
+#, kde-format
+msgid "Make the split view intuitively downward the active one."
+msgstr "Déan an radharc scoilte go hintuigthe síos an ceann gníomhach."
+
+#: lib/kateviewmanager.cpp:260
+#, kde-format
+msgid "Move Splitter Right"
+msgstr "Bog an Scoilteoir ar Dheis"
+
+#: lib/kateviewmanager.cpp:263
+#, kde-format
+msgid "Move the splitter of the current view to the right"
+msgstr "Bog scoilteoir an radhairc reatha ar dheis"
+
+#: lib/kateviewmanager.cpp:266
+#, kde-format
+msgid "Move Splitter Left"
+msgstr "Bog an Scoilteoir ar Chlé"
+
+#: lib/kateviewmanager.cpp:269
+#, kde-format
+msgid "Move the splitter of the current view to the left"
+msgstr "Bog scoilteoir an radhairc reatha ar chlé"
+
+#: lib/kateviewmanager.cpp:272
+#, kde-format
+msgid "Move Splitter Up"
+msgstr "Bog an Scoilteoir Suas"
+
+#: lib/kateviewmanager.cpp:275
+#, kde-format
+msgid "Move the splitter of the current view up"
+msgstr "Bog scoilteoir an radhairc reatha suas"
+
+#: lib/kateviewmanager.cpp:278
+#, kde-format
+msgid "Move Splitter Down"
+msgstr "Bog an Scoilteoir Síos"
+
+#: lib/kateviewmanager.cpp:281
+#, kde-format
+msgid "Move the splitter of the current view down"
+msgstr "Bog scoilteoir an radhairc reatha síos"
+
+#: lib/kateviewmanager.cpp:284
+#, kde-format
+msgid "Focus Navigation Bar"
+msgstr "Barra Nascleanúna Fócas"
+
+#: lib/kateviewmanager.cpp:285
+#, kde-format
+msgid "Focus the navigation bar"
+msgstr "Dírigh an barra nascleanúna"
+
+#: lib/kateviewmanager.cpp:292
+#, kde-format
+msgid "Welcome Page"
+msgstr "Leathanach Fáilte"
+
+#: lib/kateviewmanager.cpp:297
+#, kde-format
+msgid "Show the welcome page"
+msgstr "Taispeáin an leathanach fáilte"
+
+#: lib/kateviewmanager.cpp:303
+#, kde-format
+msgid "Toggle Scroll Synchronization"
+msgstr "Sioncrónú Scrollaigh a Athrú"
+
+#: lib/kateviewmanager.cpp:304
+#, kde-format
+msgid "Toggle scroll synchronization for the current view"
+msgstr "Scoránaigh sioncrónú scrolla don radharc reatha"
+
+#: lib/kateviewmanager.cpp:314
+#, kde-format
+msgid "Detach Active Document"
+msgstr "Dícheangail Doiciméad Gníomhach"
+
+#: lib/kateviewmanager.cpp:315
+#, kde-format
+msgid ""
+"Opens the active document in a new window and closes it in the current window"
+msgstr ""
+"Osclaíonn sé an doiciméad gníomhach i bhfuinneog nua agus dúnann sé é sa "
+"fhuinneog reatha"
+
+#: lib/kateviewmanager.cpp:390
+#, kde-format
+msgid ""
+"<p>You are attempting to open one or more large files:</p><ul>%1</ul><p>Do "
+"you want to proceed?</p><p><strong>Beware that kate may stop responding for "
+"some time when opening large files.</strong></p>"
+msgstr ""
+"<p>Tá tú ag iarraidh comhad mór amháin nó níos mó a oscailt:</p><ul>%1</"
+"ul><p>Ar mhaith leat dul ar aghaidh?</p><p><strong>Tabhair faoi deara go "
+"bhféadfadh Kate stopadh ag freagairt ar feadh tamaill agus comhaid mhóra á n-"
+"oscailt.</strong></p>"
+
+#: lib/kateviewmanager.cpp:393
+#, kde-format
+msgid "Opening Large File"
+msgstr "Ag Oscailt Comhaid Mhóir"
+
+#: lib/kateviewmanager.cpp:596
+#, kde-format
+msgid "%1 cannot open folders"
+msgstr "Ní féidir le %1 fillteáin a oscailt"
+
+#: lib/kateviewmanager.cpp:612
+#, kde-format
+msgid "The plugin required to open folders was not found"
+msgstr "Níor aimsíodh an breiseán a bhí riachtanach chun fillteáin a oscailt"
+
+#: lib/kateviewmanager.cpp:618
+#, kde-format
+msgid ""
+"In order to open folders, the <b>%1</b> plugin must be enabled. Enable it?"
+msgstr ""
+"Chun fillteáin a oscailt, ní mór an breiseán <b>%1</b> a bheith cumasaithe. "
+"Ar mhaith leat é a chumasú?"
+
+#: lib/kateviewmanager.cpp:621
+#, kde-format
+msgctxt "@title:window"
+msgid "Open Folder"
+msgstr "Oscail Fillteán"
+
+#: lib/kateviewmanager.cpp:622
+#, kde-format
+msgctxt "@action:button"
+msgid "Enable"
+msgstr "Cumasaigh"
+
+#: lib/kateviewmanager.cpp:629
+#, kde-format
+msgid "Failed to enable <b>%1</b> plugin"
+msgstr "Theip ar an mbreiseán <b>%1</b> a chumasú"
+
+#: lib/kateviewmanager.cpp:650
+#, kde-format
+msgid "The file '%1' does not exist"
+msgstr "Níl an comhad '%1' ann"
+
+#: lib/kateviewspace.cpp:107
+#, kde-format
+msgid "Synchronize Scrolling"
+msgstr "Sioncrónaigh Scrolláil"
+
+#: lib/kateviewspace.cpp:109
+#, kde-format
+msgid ""
+"Synchronize scrolling of this split-view with other synchronized split-views"
+msgstr ""
+"Sioncrónaigh scrollú an radhairc scoilte seo le radhairc scoilte "
+"sioncrónaithe eile"
+
+#: lib/kateviewspace.cpp:131
+#, kde-format
+msgctxt "indicator for more documents"
+msgid "+%1"
+msgstr "+%1"
+
+#: lib/kateviewspace.cpp:136 lib/kateviewspace.cpp:269
+#, kde-format
+msgid "Click here to switch to the Quick Open view."
+msgstr "Cliceáil anseo chun aistriú go dtí an radharc Oscailte Tapa."
+
+#: lib/kateviewspace.cpp:153
+#, kde-format
+msgid "Control view space splitting"
+msgstr "Rialú spáis radhairc scoilteadh"
+
+#: lib/kateviewspace.cpp:270
+#, kde-format
+msgid ""
+"Currently, there is one more document open. To see all open documents, "
+"switch to the Quick Open view by clicking here."
+msgid_plural ""
+"Currently, there are %1 more documents open. To see all open documents, "
+"switch to the Quick Open view by clicking here."
+msgstr[0] ""
+"Tá doiciméad amháin eile oscailte faoi láthair. Chun na doiciméid oscailte "
+"go léir a fheiceáil, aistrigh go dtí an radharc Oscailte Tapa trí chliceáil "
+"anseo."
+msgstr[1] ""
+"Faoi láthair, tá %1 doiciméad eile oscailte. Chun na doiciméid oscailte go "
+"léir a fheiceáil, aistrigh go dtí an radharc Oscailte Tapa trí chliceáil "
+"anseo."
+msgstr[2] ""
+"Faoi láthair, tá %1 doiciméad eile oscailte. Chun na doiciméid oscailte go "
+"léir a fheiceáil, aistrigh go dtí an radharc Oscailte Tapa trí chliceáil "
+"anseo."
+msgstr[3] ""
+"Faoi láthair, tá %1 doiciméad eile oscailte. Chun na doiciméid oscailte go "
+"léir a fheiceáil, aistrigh go dtí an radharc Oscailte Tapa trí chliceáil "
+"anseo."
+msgstr[4] ""
+"Faoi láthair, tá %1 doiciméad eile oscailte. Chun na doiciméid oscailte go "
+"léir a fheiceáil, aistrigh go dtí an radharc Oscailte Tapa trí chliceáil "
+"anseo."
+
+#: lib/kateviewspace.cpp:1135
+#, kde-format
+msgid "&Close Tab"
+msgstr "&Dún an Cluaisín"
+
+#: lib/kateviewspace.cpp:1142
+#, kde-format
+msgid "Close &Other Tabs"
+msgstr "Dún &Cluaisíní Eile"
+
+#: lib/kateviewspace.cpp:1156
+#, kde-format
+msgid "Close All &Tabs"
+msgstr "Dún Gach Cluaisín"
+
+#: lib/kateviewspace.cpp:1189
+#, kde-format
+msgid "D&etach Document"
+msgstr "Doiciméad a Dhícheangal"
+
+#: lib/kateviewspace.cpp:1194
+#, kde-format
+msgid "Opens the document in a new window and closes it in the current window"
+msgstr ""
+"Osclaíonn sé an doiciméad i bhfuinneog nua agus dúnann sé é sa fhuinneog "
+"reatha"
+
+#: lib/kateviewspace.cpp:1235
+#, kde-format
+msgid "Compare with Active Document"
+msgstr "Déan comparáid le Doiciméad Gníomhach"
+
+#: lib/kateviewspace.cpp:1241
+#, kde-format
+msgid "Compare with Active Document Using"
+msgstr "Déan comparáid le Doiciméad Gníomhach ag Úsáid"
+
+#: lib/kateviewspace.cpp:1249
+#, kde-format
+msgid "Unpin Document"
+msgstr "Díphionáil an Doiciméid"
+
+#: lib/kateviewspace.cpp:1251
+#, kde-format
+msgid "Pin Document"
+msgstr "Doiciméad bioráin"
+
+#: lib/ktexteditor_utils.cpp:244
+#, kde-format
+msgid "Can not open %1"
+msgstr "Ní féidir %1 a oscailt"
+
+#: lib/mainwindow_commands.cpp:45
+#, kde-format
+msgid ""
+"No toolview found for name: '%1'. Is the plugin for it disabled or the name "
+"is misspelled?"
+msgstr ""
+"Níor aimsíodh aon radharc uirlisí don ainm: '%1'. An bhfuil an breiseán dó "
+"díchumasaithe nó an bhfuil an t-ainm mílitrithe?"
+
+#: lib/mainwindow_commands.cpp:48
+#, kde-format
+msgid "Script error. Expected a toolview name. Available: %1"
+msgstr ""
+"Earráid scripte. Bhíothas ag súil le hainm radhairc uirlisí. Ar fáil: %1"
+
+#: lib/mainwindow_commands.cpp:56
+#, kde-format
+msgid "Scripting"
+msgstr "Scriptiú"
+
+#: lib/mainwindow_commands.cpp:77
+#, kde-format
+msgid ""
+"'showtoolview $toolview_name'. Show a toolview panel. Available panels: %1"
+msgstr ""
+"'showtoolview $toolview_name'. Taispeáin painéal radhairc uirlisí. Painéil "
+"atá ar fáil: %1"
+
+#: lib/mainwindow_commands.cpp:79
+#, kde-format
+msgid ""
+"'showtoolview $toolview_name'. Hide a toolview panel. Available panels: %1"
+msgstr ""
+"'showtoolview $toolview_name'. Folaigh painéal radhairc uirlisí. Painéil atá "
+"ar fáil: %1"
+
+#: lib/quickopen/katequickopenlineedit.cpp:47
+#, kde-format
+msgctxt ""
+"The text is shown as a placeholder in an input line edit, keep it short"
+msgid "Search files in all projects (right click to configure)"
+msgstr "Cuardaigh comhaid i ngach tionscadal (cliceáil ar dheis chun cumrú)"
+
+#: lib/quickopen/katequickopenlineedit.cpp:50
+#, kde-format
+msgctxt ""
+"The text is shown as a placeholder in an input line edit, keep it short"
+msgid "Search files in current project (right click to configure)"
+msgstr "Cuardaigh comhaid sa tionscadal reatha (cliceáil ar dheis chun cumrú)"
+
+#: lib/quickopen/katequickopenlineedit.cpp:72
+#, kde-format
+msgid "All Projects"
+msgstr "Gach Tionscadal"
+
+#: lib/quickopen/katequickopenlineedit.cpp:85
+#, kde-format
+msgid "Current Project"
+msgstr "Tionscadal Reatha"
+
+#: lib/quickopen/katequickopenlineedit.cpp:101
+#, kde-format
+msgid "Fuzzy Filtering"
+msgstr "Scagadh Doiléir"
+
+#: lib/quickopen/katequickopenlineedit.cpp:112
+#, kde-format
+msgid "Wildcard Filtering"
+msgstr "Scagadh Fiáin"
+
+#: lib/quickopen/katequickopenmodel.cpp:174
+#, kde-format
+msgid "Project: %1"
+msgstr "Tionscadal: %1"
+
+#: lib/session/katesessionmanagedialog.cpp:28
+#, kde-format
+msgid "Manage Sessions"
+msgstr "Bainistigh Seisiúin"
+
+#: lib/session/katesessionmanagedialog.cpp:68
+#, kde-format
+msgid "Session Chooser"
+msgstr "Roghnóir Seisiúin"
+
+#: lib/session/katesessionmanagedialog.cpp:152
+#, kde-format
+msgid "Restore"
+msgstr "Athchóirigh"
+
+#: lib/session/katesessionmanagedialog.cpp:316
+#, kde-format
+msgid "Session will be deleted on dialog close"
+msgstr "Scriosfar an seisiún nuair a dhúnfar an dialóg"
+
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, m_filterBox)
+#: lib/session/katesessionmanagedialog.ui:30
+#, kde-format
+msgid "Filter Sessions"
+msgstr "Scag Seisiúin"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, m_sessionList)
+#: lib/session/katesessionmanagedialog.ui:55
+#, kde-format
+msgid "Session Name"
+msgstr "Ainm an tSeisiúin"
+
+#. i18n: The number of open documents
+#. i18n: ectx: property (text), widget (QTreeWidget, m_sessionList)
+#: lib/session/katesessionmanagedialog.ui:60
+#, kde-format
+msgid "Files"
+msgstr "Comhaid"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, m_sessionList)
+#: lib/session/katesessionmanagedialog.ui:68
+#, kde-format
+msgid "Last opened"
+msgstr "Osclaíodh go deireanach"
+
+#. i18n: ectx: property (text), widget (QPushButton, m_openButton)
+#: lib/session/katesessionmanagedialog.ui:87
+#, kde-format
+msgid "&Open"
+msgstr "&Oscail"
+
+#. i18n: ectx: property (text), widget (QPushButton, buttonNewSession)
+#. i18n: ectx: property (text), widget (QPushButton, m_newButton)
+#: lib/session/katesessionmanagedialog.ui:97 lib/welcomeview/welcomeview.ui:363
+#, kde-format
+msgid "New Session"
+msgstr "Seisiún Nua"
+
+#. i18n: ectx: property (text), widget (QPushButton, m_templateButton)
+#: lib/session/katesessionmanagedialog.ui:107
+#, kde-format
+msgid "Open as Template"
+msgstr "Oscail mar Theimpléad"
+
+#. i18n: ectx: property (text), widget (QCheckBox, m_dontAskCheckBox)
+#: lib/session/katesessionmanagedialog.ui:114
+#, kde-format
+msgid "Don't ask again"
+msgstr "Ná fiafraigh arís"
+
+#. i18n: ectx: property (text), widget (QPushButton, m_copyButton)
+#: lib/session/katesessionmanagedialog.ui:134
+#, kde-format
+msgid "Duplicate..."
+msgstr "Dúblach..."
+
+#. i18n: ectx: property (text), widget (QPushButton, m_renameButton)
+#: lib/session/katesessionmanagedialog.ui:141
+#, kde-format
+msgid "&Rename..."
+msgstr "&Athainmnigh..."
+
+#. i18n: ectx: property (text), widget (QPushButton, m_deleteButton)
+#: lib/session/katesessionmanagedialog.ui:161
+#, kde-format
+msgid "Delete"
+msgstr "Scrios"
+
+#. i18n: ectx: property (text), widget (QPushButton, m_closeButton)
+#: lib/session/katesessionmanagedialog.ui:183
+#, kde-format
+msgid "Close"
+msgstr "Dún"
+
+#: lib/session/katesessionmanager.cpp:147
+#, kde-format
+msgid ""
+"Session '%1' is already opened in another Kate instance. Switch to that or "
+"reopen in this instance?"
+msgstr ""
+"Tá seisiún '%1' oscailte cheana féin in áit eile de chuid Kate. Athraigh go "
+"dtí sin nó athoscail sa áit seo?"
+
+#: lib/session/katesessionmanager.cpp:149
+#, kde-format
+msgctxt "@action:button"
+msgid "Switch to Instance"
+msgstr "Athraigh go dtí an Chás"
+
+#: lib/session/katesessionmanager.cpp:150
+#, kde-format
+msgctxt "@action:button"
+msgid "Reopen"
+msgstr "Athoscail"
+
+#: lib/session/katesessionmanager.cpp:366
+#, kde-format
+msgid "The session could not be renamed to \"%1\". Failed to write to \"%2\""
+msgstr ""
+"Níorbh fhéidir an seisiún a athainmniú go \"%1\". Theip ar scríobh chuig "
+"\"%2\"."
+
+#: lib/session/katesessionmanager.cpp:367
+#, kde-format
+msgid "Session Renaming"
+msgstr "Athainmniú Seisiúin"
+
+#: lib/session/katesessionmanager.cpp:535
+#, kde-format
+msgid "Session name:"
+msgstr "Ainm an tseisiúin:"
+
+#: lib/session/katesessionmanager.cpp:537
+#, kde-format
+msgid ""
+"There is already an existing session with your chosen name: %1\n"
+"Please choose a different one."
+msgstr ""
+"Tá seisiún ann cheana féin leis an ainm a roghnaigh tú: %1\n"
+"Roghnaigh ceann eile le do thoil."
+
+#: lib/session/katesessionmanager.cpp:539
+#, kde-format
+msgid "To save a session, you must specify a name."
+msgstr "Chun seisiún a shábháil, caithfidh tú ainm a shonrú."
+
+#: lib/session/katesessionmanager.cpp:566
+#, kde-format
+msgid "Specify a name for this session"
+msgstr "Sonraigh ainm don seisiún seo"
+
+#: lib/session/katesessionmanager.cpp:568
+#, kde-format
+msgid "Specify a new name for session: %1"
+msgstr "Sonraigh ainm nua don seisiún: %1"
+
+#. i18n: ectx: property (title), widget (QGroupBox, gbAppStartup)
+#: lib/ui/sessionconfigwidget.ui:17
+#, kde-format
+msgid "Application Startup Behavior"
+msgstr "Iompar Tosaithe Feidhmchláir"
+
+#. i18n: ectx: property (text), widget (QRadioButton, startNewSessionRadioButton)
+#: lib/ui/sessionconfigwidget.ui:23
+#, kde-format
+msgid "&Start new session"
+msgstr "To&saigh seisiún nua"
+
+#. i18n: ectx: property (text), widget (QRadioButton, loadLastUserSessionRadioButton)
+#: lib/ui/sessionconfigwidget.ui:30
+#, kde-format
+msgid "&Load last used session"
+msgstr "&Lódáil an seisiún deireanach a úsáideadh"
+
+#. i18n: ectx: property (text), widget (QRadioButton, manuallyChooseSessionRadioButton)
+#: lib/ui/sessionconfigwidget.ui:37
+#, kde-format
+msgid "&Manually choose a session"
+msgstr "Roghnaigh seisiún de lái&mh"
+
+#. i18n: ectx: property (title), widget (QGroupBox, groupBox)
+#: lib/ui/sessionconfigwidget.ui:47
+#, kde-format
+msgid "Application Startup/Shutdown Behavior"
+msgstr "Iompar Tosaithe/Múchta Feidhmchláir"
+
+#. i18n: ectx: property (text), widget (QLabel, label_4)
+#: lib/ui/sessionconfigwidget.ui:55
+#, kde-format
+msgid "Automatically save and restore:"
+msgstr "Sábháil agus athchóirigh go huathoibríoch:"
+
+#. i18n: ectx: property (text), widget (QCheckBox, stashNewUnsavedFiles)
+#: lib/ui/sessionconfigwidget.ui:67
+#, kde-format
+msgid "Newly-created unsaved files"
+msgstr "Comhaid neamhshábháilte nua-chruthaithe"
+
+#. i18n: ectx: property (text), widget (QCheckBox, stashUnsavedFilesChanges)
+#: lib/ui/sessionconfigwidget.ui:77
+#, kde-format
+msgid "Files with unsaved changes"
+msgstr "Comhaid le hathruithe neamhshábháilte"
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, showWelcomeViewForNewWindow)
+#: lib/ui/sessionconfigwidget.ui:88
+#, kde-format
+msgid "If disabled, an untitled document will be shown for new windows."
+msgstr ""
+"Mura bhfuil sé seo in úsáid, taispeánfar doiciméad gan teideal le haghaidh "
+"fuinneoga nua."
+
+#. i18n: ectx: property (text), widget (QCheckBox, showWelcomeViewForNewWindow)
+#: lib/ui/sessionconfigwidget.ui:91
+#, kde-format
+msgid "Show welcome view for new windows"
+msgstr "Taispeáin radharc fáilte do fhuinneoga nua"
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, modCloseAfterLast)
+#: lib/ui/sessionconfigwidget.ui:98
+#, kde-format
+msgid ""
+"If enabled, the application will shutdown when the last file being edited is "
+"closed, otherwise a blank page will open so that you can start a new file."
+msgstr ""
+"Má tá sé cumasaithe, múchfaidh an feidhmchlár nuair a dhúnfar an comhad "
+"deireanach atá á chur in eagar, nó osclófar leathanach bán ionas gur féidir "
+"leat comhad nua a thosú."
+
+#. i18n: ectx: property (text), widget (QCheckBox, modCloseAfterLast)
+#: lib/ui/sessionconfigwidget.ui:101
+#, kde-format
+msgid "Close the application entirely when the last file is closed"
+msgstr ""
+"Dún an feidhmchlár go hiomlán nuair a bhíonn an comhad deireanach dúnta"
+
+#. i18n: ectx: property (text), widget (QCheckBox, winClosesDocuments)
+#: lib/ui/sessionconfigwidget.ui:108
+#, kde-format
+msgid "Close documents with the window they belong to"
+msgstr "Dún na doiciméid leis an bhfuinneog lena mbaineann siad"
+
+#. i18n: ectx: property (title), widget (QGroupBox, gbElements)
+#: lib/ui/sessionconfigwidget.ui:118
+#, kde-format
+msgid "Session Elements"
+msgstr "Eilimintí Seisiúin"
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: lib/ui/sessionconfigwidget.ui:124
+#, kde-format
+msgid ""
+"The session contains the list of open documents, recently opened files list, "
+"bookmarks, cursor position etc. When the session is loaded all elements are "
+"restored."
+msgstr ""
+"Tá liosta na ndoiciméad oscailte, liosta na gcomhad a osclaíodh le déanaí, "
+"leabharmharcanna, suíomh an chúrsóra srl. sa seisiún. Nuair a luchtófar an "
+"seisiún, athchóirítear na heilimintí go léir."
+
+#. i18n: ectx: property (text), widget (QLabel, label_2)
+#: lib/ui/sessionconfigwidget.ui:136
+#, kde-format
+msgid "Maximum number of entries in recent file list:"
+msgstr "Uasmhéid na n-iontrálacha sa liosta comhad le déanaí:"
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, restoreVC)
+#: lib/ui/sessionconfigwidget.ui:164
+#, kde-format
+msgid ""
+"Check this if you want all your views and frames restored each time you open "
+"the application."
+msgstr ""
+"Seiceáil seo más mian leat do radhairc agus frámaí go léir a athbhunú gach "
+"uair a osclaíonn tú an feidhmchlár."
+
+#. i18n: ectx: property (text), widget (QCheckBox, restoreVC)
+#: lib/ui/sessionconfigwidget.ui:167
+#, kde-format
+msgid "Include &window configuration"
+msgstr "Cuir cumraíocht &fhuinneoige san áireamh"
+
+#. i18n: ectx: property (whatsThis), widget (QGroupBox, saveMetaInfos)
+#: lib/ui/sessionconfigwidget.ui:177
+#, kde-format
+msgid ""
+"Check this if you want document configuration like for example bookmarks to "
+"be saved past editor sessions. The configuration will be restored if the "
+"document has not changed when reopened."
+msgstr ""
+"Seiceáil seo más mian leat cumraíocht doiciméad, mar shampla "
+"leabharmharcanna, a shábháil i ndiaidh seisiúin an eagarthóra. Athchóireofar "
+"an chumraíocht mura n-athraítear an doiciméad nuair a athosclaítear é."
+
+#. i18n: ectx: property (title), widget (QGroupBox, saveMetaInfos)
+#: lib/ui/sessionconfigwidget.ui:180
+#, kde-format
+msgid "Keep &meta-information past sessions"
+msgstr "Coinnigh &meitea-fhaisnéis seisiúin roimhe seo"
+
+#. i18n: ectx: property (text), widget (QLabel, label_3)
+#: lib/ui/sessionconfigwidget.ui:191
+#, kde-format
+msgid "Delete unused meta-information after:"
+msgstr "Scrios meitea-fhaisnéis neamhúsáidte i ndiaidh:"
+
+#: lib/welcomeview/welcomeview.cpp:57
+#, kde-format
+msgid "Welcome to %1"
+msgstr "Fáilte go %1"
+
+#: lib/welcomeview/welcomeview.cpp:61
+#, kde-format
+msgid "Recent Documents and Projects"
+msgstr "Doiciméid agus Tionscadail Le Déanaí"
+
+#: lib/welcomeview/welcomeview.cpp:61
+#, kde-format
+msgid "Recent Documents"
+msgstr "Doiciméid Le Déanaí"
+
+#: lib/welcomeview/welcomeview.cpp:64
+#, kde-format
+msgid "No recent documents or projects"
+msgstr "Gan aon doiciméid ná tionscadail le déanaí"
+
+#: lib/welcomeview/welcomeview.cpp:64
+#, kde-format
+msgid "No recent documents"
+msgstr "Gan aon doiciméid le déanaí"
+
+#: lib/welcomeview/welcomeview.cpp:118
+#, kde-format
+msgid "No saved sessions"
+msgstr "Gan aon seisiúin shábháilte"
+
+#: lib/welcomeview/welcomeview.cpp:248
+#, kde-format
+msgid "Open Selected Files..."
+msgstr "Oscail Comhaid Roghnaithe..."
+
+#: lib/welcomeview/welcomeview.cpp:261
+#, kde-format
+msgid "Copy &Location"
+msgstr "Cóipeáil &Suíomh"
+
+#: lib/welcomeview/welcomeview.cpp:276
+#, kde-format
+msgid "&Remove"
+msgstr "&Bain"
+
+#. i18n: ectx: property (windowTitle), widget (QScrollArea, WelcomeView)
+#: lib/welcomeview/welcomeview.ui:17
+#, kde-format
+msgid "Welcome"
+msgstr "Fáilte"
+
+#. i18n: ectx: property (text), widget (QPushButton, buttonNewFile)
+#: lib/welcomeview/welcomeview.ui:179
+#, kde-format
+msgid "New File"
+msgstr "Comhad Nua"
+
+#. i18n: ectx: property (text), widget (QPushButton, buttonOpenFolder)
+#: lib/welcomeview/welcomeview.ui:186
+#, kde-format
+msgid "Open Folder..."
+msgstr "Oscail Fillteán..."
+
+#. i18n: ectx: property (text), widget (QLabel, labelRecentItems)
+#: lib/welcomeview/welcomeview.ui:193
+#, kde-format
+msgid "Recent Files"
+msgstr "Comhaid Le Déanaí"
+
+#. i18n: ectx: property (text), widget (QPushButton, buttonOpenFile)
+#: lib/welcomeview/welcomeview.ui:203
+#, kde-format
+msgid "Open File..."
+msgstr "Oscail Comhad..."
+
+#. i18n: ectx: property (toolTip), widget (QPushButton, buttonClearRecentItems)
+#: lib/welcomeview/welcomeview.ui:242
+#, kde-format
+msgid "Clear Recent Files"
+msgstr "Glan Comhaid Le Déanaí"
+
+#. i18n: ectx: property (text), widget (QLabel, labelHelp)
+#: lib/welcomeview/welcomeview.ui:270
+#, kde-format
+msgid "Help"
+msgstr "Cabhair"
+
+#. i18n: ectx: property (text), widget (KUrlLabel, labelHomepage)
+#: lib/welcomeview/welcomeview.ui:280
+#, kde-format
+msgid "Visit homepage"
+msgstr "Tabhair cuairt ar an leathanach baile"
+
+#. i18n: ectx: property (text), widget (KUrlLabel, labelContribute)
+#: lib/welcomeview/welcomeview.ui:293
+#, kde-format
+msgid "Get involved"
+msgstr "Bí páirteach"
+
+#. i18n: ectx: property (text), widget (KUrlLabel, labelHandbook)
+#: lib/welcomeview/welcomeview.ui:306
+#, kde-format
+msgid "Read handbook"
+msgstr "Léigh an lámhleabhar"
+
+#. i18n: ectx: property (text), widget (QLabel, labelSavedSessions)
+#: lib/welcomeview/welcomeview.ui:353
+#, kde-format
+msgid "Saved Sessions"
+msgstr "Seisiúin Shábháilte"
+
+#. i18n: ectx: property (text), widget (QPushButton, buttonManageSessions)
+#: lib/welcomeview/welcomeview.ui:389
+#, kde-format
+msgid "Manage Sessions..."
+msgstr "Bainistigh Seisiúin..."
+
+#. i18n: ectx: property (text), widget (QCheckBox, checkBoxShowForNewWindow)
+#: lib/welcomeview/welcomeview.ui:442
+#, kde-format
+msgid "Show welcome page for new window"
+msgstr "Taispeáin leathanach fáilte don fhuinneog nua"

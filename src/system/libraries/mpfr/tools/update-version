@@ -1,0 +1,62 @@
+#!/bin/sh
+
+# Run this script from the top or tools directory to update the MPFR version.
+
+set -e
+
+LC_ALL=C
+export LC_ALL
+
+if [ $# -lt 3 ] || [ $# -gt 5 ]; then
+  echo >&2 "Usage: $0 <major> <minor> <patchlevel> [ <suffix> [ - ] ]"
+  echo >&2 "(use 5 arguments to produce patches for releases)"
+  exit 1
+fi
+
+# Examples:
+#   ./update-version 2 3 0 dev
+#   ./update-version 2 3 0 rc1
+#   ./update-version 2 3 0
+#   ./update-version 2 3 0 p1 -
+
+dir=`pwd`
+[ -d src ] || [ "`basename \"$dir\"`" != tools ] || cd ..
+
+replace()
+{
+  if [ ! -h "$2" ] && [ -r "$2" ] && [ -w "$2" ]; then
+    set +e
+    err=`perl -p0i -e "$1" "$2" 2>&1 >/dev/null`
+    set -e
+    if [ -n "$err" ]; then
+      printf >&2 "Error from perl for file %s:\n%s\n" "$2" "$err"
+      exit 2
+    fi
+  else
+    printf >&2 "Error: %s is not a readable/writable file\n" "$2"
+    exit 2
+  fi
+}
+
+vers="$1.$2.$3"
+full="$vers${4:+-$4}"
+replace "s/(?<=^#define MPFR_VERSION_MAJOR ).*/$1/m or die 'err 1'; \
+         s/(?<=^#define MPFR_VERSION_MINOR ).*/$2/m or die 'err 2'; \
+         s/(?<=^#define MPFR_VERSION_PATCHLEVEL ).*/$3/m or die 'err 3'; \
+         s/(?<=^#define MPFR_VERSION_STRING ).*/\"$full\"/m or die 'err 4';" \
+  src/mpfr.h
+replace "s/(?<= return \").*\"/$full\"/m or die;" src/version.c
+echo $full > VERSION
+
+if [ $# -lt 5 ]; then
+  # Up to 4 arguments...
+  u="https://www.mpfr.org/mpfr-"
+  replace "s/(?<=^\@set VERSION ).*/$full/m or die 'err 1';" doc/mpfr.texi
+  replace "s<(MPFR\@tie\{\})[\d.]+( web page \@url\{$u)[\d.]+>
+            <\${1}$vers\${2}$vers>g == 2 or die 'err 2';" doc/mpfr.texi
+  replace "s/(?<=^AC_INIT).*/([MPFR],[$full])/m or die;" configure.ac
+  replace "s,(?<=$u).*?/,$vers/,g == 4 or die;" INSTALL
+fi
+
+echo "MPFR version successfully updated."
+echo "Don't forget to update MPFR libtool version in 'src/Makefile.am'."

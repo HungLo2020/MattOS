@@ -3,7 +3,7 @@
 This profile overlays the live ISO with:
 
 - automatic console login for `mattos` on tty1 and ttyS0;
-- an automatic native COSMIC session for the graphical live boot mode, opened
+- an automatic native Plasma session for the graphical live boot mode, opened
   by the production greetd/PAM/logind display-manager service;
 - temporary account database entries for `mattos`;
 - a live MOTD and ephemeral home-directory policy;

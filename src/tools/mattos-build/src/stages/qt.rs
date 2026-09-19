@@ -539,15 +539,31 @@ fn normalize_qt_target_metadata(repo_root: &Path, install: &Path) -> Result<()> 
     Ok(())
 }
 
+/// Keep CMake/Ninja's dependency graph and object files across invalidated Qt
+/// stage runs.  The stamp is an explicit recipe-layout contract: changing the
+/// generator/toolchain layout bumps it and deliberately starts clean, while
+/// ordinary source edits are handled incrementally by CMake and Ninja.
+fn prepare_incremental_qt_build(build: &Path, layout_identity: &str) -> Result<()> {
+    let stamp = build.join(".mattos-qt-build-layout");
+    let reusable = fs::read_to_string(&stamp)
+        .is_ok_and(|saved| saved.trim_end() == layout_identity)
+        && build.join("build.ninja").is_file();
+    if !reusable {
+        remove_path_if_exists(build)?;
+        fs::create_dir_all(build)?;
+        fs::write(&stamp, format!("{layout_identity}\n"))?;
+    }
+    Ok(())
+}
+
 fn build_qtbase(repo_root: &Path) -> Result<()> {
     let root = repo_root.join("out/build/qtbase");
     let source = root.join("source");
     let build = root.join("build");
     let install = root.join("install");
     sync_build_source(&repo_root.join("src/desktop/qt/qtbase"), &source)?;
-    remove_path_if_exists(&build)?;
     remove_path_if_exists(&install)?;
-    fs::create_dir_all(&build)?;
+    prepare_incremental_qt_build(&build, "qtbase-ninja-v1")?;
     let mut command = vec![
         "-S".into(), source.display().to_string(), "-B".into(), build.display().to_string(),
         "-G".into(), "Ninja".into(), "-DCMAKE_INSTALL_PREFIX=/usr".into(),
@@ -612,9 +628,8 @@ fn build_qt_module(repo_root: &Path, component: &str) -> Result<()> {
     let build = root.join("build");
     let install = root.join("install");
     sync_build_source(&repo_root.join("src/desktop/qt").join(component), &source)?;
-    remove_path_if_exists(&build)?;
     remove_path_if_exists(&install)?;
-    fs::create_dir_all(&build)?;
+    prepare_incremental_qt_build(&build, &format!("{component}-ninja-v1"))?;
     let qt = repo_root.join("out/build/qtbase/install/usr");
     let mut prefixes = vec![qt.clone()];
     let mut command = vec![
@@ -989,6 +1004,51 @@ fn build_qtspeech(repo_root: &Path) -> Result<()> { build_qt_module(repo_root, "
 mod qt_tests {
     use super::*;
     use crate::stage_graph::direct_dependencies;
+
+    #[test]
+    fn incremental_build_preserves_matching_ninja_state() {
+        let temporary = tempfile::tempdir().unwrap();
+        let build = temporary.path().join("build");
+        fs::create_dir_all(&build).unwrap();
+        fs::write(build.join("build.ninja"), "fixture").unwrap();
+        fs::write(build.join(".mattos-qt-build-layout"), "layout-v1\n").unwrap();
+        fs::write(build.join("compiled-object"), "keep").unwrap();
+
+        prepare_incremental_qt_build(&build, "layout-v1").unwrap();
+
+        assert_eq!(fs::read_to_string(build.join("compiled-object")).unwrap(), "keep");
+    }
+
+    #[test]
+    fn incremental_build_fails_closed_to_clean_state_for_changed_layout() {
+        let temporary = tempfile::tempdir().unwrap();
+        let build = temporary.path().join("build");
+        fs::create_dir_all(&build).unwrap();
+        fs::write(build.join("build.ninja"), "fixture").unwrap();
+        fs::write(build.join(".mattos-qt-build-layout"), "old-layout\n").unwrap();
+        fs::write(build.join("compiled-object"), "discard").unwrap();
+
+        prepare_incremental_qt_build(&build, "new-layout").unwrap();
+
+        assert!(!build.join("compiled-object").exists());
+        assert_eq!(
+            fs::read_to_string(build.join(".mattos-qt-build-layout")).unwrap(),
+            "new-layout\n"
+        );
+    }
+
+    #[test]
+    fn incremental_build_fails_closed_when_ninja_graph_is_missing() {
+        let temporary = tempfile::tempdir().unwrap();
+        let build = temporary.path().join("build");
+        fs::create_dir_all(&build).unwrap();
+        fs::write(build.join(".mattos-qt-build-layout"), "layout-v1\n").unwrap();
+        fs::write(build.join("compiled-object"), "discard").unwrap();
+
+        prepare_incremental_qt_build(&build, "layout-v1").unwrap();
+
+        assert!(!build.join("compiled-object").exists());
+    }
 
     #[test]
     fn qtsvg_declares_the_private_xkbcommon_input_it_resolves() {

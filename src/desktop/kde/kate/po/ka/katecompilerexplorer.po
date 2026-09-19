@@ -1,0 +1,157 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR This file is copyright:
+# This file is distributed under the same license as the kate package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: kate\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-03 00:46+0000\n"
+"PO-Revision-Date: 2025-03-03 04:27+0100\n"
+"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
+"Language-Team: Georgian <kde-i18n-doc@kde.org>\n"
+"Language: ka\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.5\n"
+
+#: AsmView.cpp:303
+#, kde-format
+msgid "Scroll to source"
+msgstr "გადახვევა წყარომდე"
+
+#: AsmView.cpp:313
+#, kde-format
+msgid "Jump to label"
+msgstr "გადასვლა ჭდეზე"
+
+#: AsmView.cpp:334
+#, kde-format
+msgid "Copy"
+msgstr "კოპირება"
+
+#: AsmView.cpp:346
+#, kde-format
+msgid "Select All"
+msgstr "ყველას მონიშვნა"
+
+#: ce_plugin.cpp:35
+#, kde-format
+msgid "Compiler Explorer"
+msgstr "Compiler Explorer"
+
+#: ce_plugin.cpp:38
+#, kde-format
+msgid "&Open Current File in Compiler Explorer"
+msgstr "&მიმდინარე ფაილის გახსნა Compile Explorer-ში"
+
+#: ce_plugin.cpp:54
+#, kde-format
+msgid "No file open"
+msgstr "ფაილი გახსნილი არაა"
+
+#: ce_plugin.cpp:54
+#, kde-format
+msgctxt "error category title"
+msgid "CompilerExplorer"
+msgstr "CompilerExplorer"
+
+#: ce_widget.cpp:145
+#, kde-format
+msgid "Do you really want to close %1?"
+msgstr "მართლა გნებავთ, %1 დახუროთ?"
+
+#: ce_widget.cpp:196
+#, kde-format
+msgctxt "@info:tooltip Languages like C, C++, Rust"
+msgid "Languages"
+msgstr "ენები"
+
+#: ce_widget.cpp:197
+#, kde-format
+msgctxt "@info:tooltip Compilers like GCC, Clang"
+msgid "Compilers"
+msgstr "კომპილატორები"
+
+#: ce_widget.cpp:198
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Compiler options…"
+msgstr "კომპილატორის პარამეტრები…"
+
+#: ce_widget.cpp:215
+#, kde-format
+msgid "Compile"
+msgstr "კომპილაცია"
+
+#: ce_widget.cpp:312
+#, kde-format
+msgid "Options"
+msgstr "მორგება"
+
+#: ce_widget.cpp:329
+#, kde-format
+msgid "Demangle Identifiers"
+msgstr "იდენტიფიკატორების მოხსნა"
+
+#: ce_widget.cpp:330
+#, kde-format
+msgid "Filter Library Functions"
+msgstr "ბიბლიოთეკის ფუნქციების გაფილტვრა"
+
+#: ce_widget.cpp:331
+#, kde-format
+msgid "Filter Unused Labels"
+msgstr "გამოუყენებელი ჭდეების გაფილტვრა"
+
+#: ce_widget.cpp:332
+#, kde-format
+msgid "Filter Comments"
+msgstr "კომენტარების გაფილტვრა"
+
+#: ce_widget.cpp:333
+#, kde-format
+msgid "Intel Syntax"
+msgstr "Intel-ის სინტაქსი"
+
+#: ce_widget.cpp:337
+#, kde-format
+msgid "Change URL…"
+msgstr "URL-ის შეცვლა…"
+
+#: ce_widget.cpp:343
+#, kde-format
+msgid "Enter URL"
+msgstr "შეიყვანეთ URL"
+
+#: ce_widget.cpp:344
+#, kde-format
+msgid ""
+"Enter URL for the CompilerExplorer instance, e.g. “http://localhost:10240”"
+msgstr ""
+"შეიყვანეთ URL CompileExplorer-ის გაშვებული ასლისთვის. მაგ: \"http://"
+"localhost:10240\""
+
+#: ce_widget.cpp:404
+#, kde-format
+msgid "Compiler returned: %1"
+msgstr "კომპილატორმა დააბრუნა: %1"
+
+#: ce_widget.cpp:554
+#, kde-format
+msgid "Reveal linked code"
+msgstr "მიბმული კოდის ჩვენება"
+
+#: ce_widget.cpp:576
+#, kde-format
+msgid "CompilerExplorer"
+msgstr "CompilerExplorer"
+
+#: ce_widget.cpp:592
+#, kde-format
+msgid "'%1' compiler flags were found. Output may not be useful."
+msgstr ""
+"აღმოჩენილია '%1' კომპილატორის ალამი. გამოტანა, შეიძლება, სასარგებლო არ იყოს."

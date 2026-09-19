@@ -1,0 +1,1737 @@
+/*
+ * SPDX-FileCopyrightText: 2017 Elvis Angelaccio <elvis.angelaccio@kde.org>
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
+
+#include "dolphinmainwindow.h"
+#include "dolphin_detailsmodesettings.h"
+#include "dolphin_generalsettings.h"
+#include "dolphinnewfilemenu.h"
+#include "dolphintabpage.h"
+#include "dolphintabwidget.h"
+#include "dolphinviewcontainer.h"
+#include "kitemviews/kfileitemmodel.h"
+#include "kitemviews/kfileitemmodelrolesupdater.h"
+#include "kitemviews/kitemlistcontainer.h"
+#include "kitemviews/kitemlistcontroller.h"
+#include "kitemviews/kitemlistselectionmanager.h"
+#include "kitemviews/kitemlistwidget.h"
+#include "settings/viewmodes/viewmodesettings.h"
+#include "testdir.h"
+#include "views/dolphinitemlistview.h"
+#include "views/viewproperties.h"
+#include "views/zoomlevelinfo.h"
+
+#include <KActionCollection>
+#include <KConfig>
+#include <KConfigGui>
+#include <KFileItem>
+
+#include <QAccessible>
+#include <QApplication>
+#include <QDomDocument>
+#include <QFileSystemWatcher>
+#include <QKeySequence>
+#include <QPixmap>
+#include <QScopeGuard>
+#include <QScopedPointer>
+#include <QSignalSpy>
+#include <QStandardPaths>
+#include <QTest>
+
+#include "testhelpers.h"
+
+#include <set>
+#include <unordered_set>
+
+class DolphinMainWindowTest : public QObject
+{
+    Q_OBJECT
+
+private Q_SLOTS:
+    void initTestCase();
+    void init();
+    void testSyncDesktopAndPhoneUi();
+    void testClosingTabsWithSearchBoxVisible();
+    void testActiveViewAfterClosingSplitView_data();
+    void testActiveViewAfterClosingSplitView();
+    void testUpdateWindowTitleAfterClosingSplitView();
+    void testUpdateWindowTitleAfterChangingSplitView();
+    void testOpenInNewTabTitle();
+    void testNewFileMenuEnabled_data();
+    void testNewFileMenuEnabled();
+    void testCreateDirectoryFocus_data();
+    void testCreateDirectoryFocus();
+    void testCreateSubdirectory();
+    void testCreateFileAction();
+    void testCreateFileActionRequiresWritePermission();
+    void testWindowTitle_data();
+    void testWindowTitle();
+    void testFocusLocationBar();
+    void testFocusPlacesPanel();
+    void testFocusOtherView();
+    void testPlacesPanelWidthResistance();
+    void testGoActions();
+    void testOpenFiles();
+    void testAccessibilityTree();
+    void testAutoSaveSession();
+    void testInlineRename();
+    void testThumbnailAfterRename();
+    void testViewModeAfterDynamicView();
+    void testActivationAndTabTitleAfterRenameOpeningFolder();
+    void testActiveViewAfterTabSwitchWithSplitView();
+    void testActiveViewFollowsTheActivatedView();
+    void cleanupTestCase();
+
+private:
+    bool createDirectory(QAction *action, const QString &name);
+
+    QScopedPointer<DolphinMainWindow> m_mainWindow;
+};
+
+void DolphinMainWindowTest::initTestCase()
+{
+    QStandardPaths::setTestModeEnabled(true);
+    TestHelpers::disableAnimations();
+    // Use fullWidth statusbar during testing, to test out most of the features.
+    GeneralSettings *settings = GeneralSettings::self();
+    settings->setShowStatusBar(GeneralSettings::EnumShowStatusBar::FullWidth);
+    settings->setShowZoomSlider(true);
+    settings->save();
+
+    // to save us from kxmlgui / KLocalized warning
+    KLocalizedString::setApplicationDomain({"dolphin"});
+}
+
+void DolphinMainWindowTest::init()
+{
+    m_mainWindow.reset(new DolphinMainWindow());
+}
+
+/**
+ * It is too easy to forget that most changes in dolphinui.rc should be mirrored in dolphinuiforphones.rc. This test makes sure that these two files stay
+ * mostly identical. Differences between those files need to be explicitly added as exceptions to this test. So if you land here after changing either
+ * dolphinui.rc or dolphinuiforphones.rc, then resolve this test failure either by making the exact same change to the other ui.rc file, or by adding the
+ * changed object to the `exceptions` variable below.
+ */
+void DolphinMainWindowTest::testSyncDesktopAndPhoneUi()
+{
+    std::unordered_set<QString> exceptions{{QStringLiteral("version"), QStringLiteral("ToolBar")}};
+
+    QDomDocument desktopUi;
+    QFile desktopUiXmlFile(":/kxmlgui5/dolphin/dolphinui.rc");
+    QVERIFY2(desktopUiXmlFile.open(QIODevice::ReadOnly), qPrintable(QStringLiteral("couldn't open %1").arg(desktopUiXmlFile.fileName())));
+    desktopUi.setContent(&desktopUiXmlFile);
+    desktopUiXmlFile.close();
+
+    QDomDocument phoneUi;
+    QFile phoneUiXmlFile(":/kxmlgui5/dolphin/dolphinuiforphones.rc");
+    QVERIFY2(phoneUiXmlFile.open(QIODevice::ReadOnly), qPrintable(QStringLiteral("couldn't open %1").arg(phoneUiXmlFile.fileName())));
+    phoneUi.setContent(&phoneUiXmlFile);
+    phoneUiXmlFile.close();
+
+    QDomElement desktopUiElement = desktopUi.documentElement();
+    QDomElement phoneUiElement = phoneUi.documentElement();
+
+    auto nextUiElement = [&exceptions](QDomElement uiElement) -> QDomElement {
+        QDomNode nextUiNode{uiElement};
+        do {
+            // If the current node is an exception, we skip its children as well.
+            if (exceptions.count(nextUiNode.nodeName()) == 0) {
+                auto firstChild{nextUiNode.firstChild()};
+                if (!firstChild.isNull()) {
+                    nextUiNode = firstChild;
+                    continue;
+                }
+            }
+            auto nextSibling{nextUiNode.nextSibling()};
+            if (!nextSibling.isNull()) {
+                nextUiNode = nextSibling;
+                continue;
+            }
+            auto parent{nextUiNode.parentNode()};
+            while (true) {
+                if (parent.isNull()) {
+                    return QDomElement();
+                }
+                auto nextParentSibling{parent.nextSibling()};
+                if (!nextParentSibling.isNull()) {
+                    nextUiNode = nextParentSibling;
+                    break;
+                }
+                parent = parent.parentNode();
+            }
+        } while (
+            !nextUiNode.isNull()
+            && (nextUiNode.toElement().isNull() || exceptions.count(nextUiNode.nodeName()))); // We loop until we either give up finding an element or find one.
+        if (nextUiNode.isNull()) {
+            return QDomElement();
+        }
+        return nextUiNode.toElement();
+    };
+
+    int totalComparisonsCount{0};
+    do {
+        QVERIFY2(desktopUiElement.tagName() == phoneUiElement.tagName(),
+                 qPrintable(QStringLiteral("Node mismatch: dolphinui.rc/%1::%2 and dolphinuiforphones.rc/%3::%4")
+                                .arg(desktopUiElement.parentNode().toElement().tagName(),
+                                     desktopUiElement.tagName(),
+                                     phoneUiElement.parentNode().toElement().tagName(),
+                                     phoneUiElement.tagName())));
+        QCOMPARE(desktopUiElement.text(), phoneUiElement.text());
+        const auto desktopUiElementAttributes = desktopUiElement.attributes();
+        const auto phoneUiElementAttributes = phoneUiElement.attributes();
+        for (int i = 0; i < desktopUiElementAttributes.count(); i++) {
+            QVERIFY2(phoneUiElementAttributes.count() >= i,
+                     qPrintable(QStringLiteral("Attribute mismatch: dolphinui.rc/%1::%2 has more attributes than dolphinuiforphones.rc/%3::%4")
+                                    .arg(desktopUiElement.parentNode().toElement().tagName(),
+                                         desktopUiElement.tagName(),
+                                         phoneUiElement.parentNode().toElement().tagName(),
+                                         phoneUiElement.tagName())));
+            if (exceptions.count(desktopUiElementAttributes.item(i).nodeName())) {
+                continue;
+            }
+            QCOMPARE(desktopUiElementAttributes.item(i).nodeName(), phoneUiElementAttributes.item(i).nodeName());
+            QCOMPARE(desktopUiElementAttributes.item(i).nodeValue(), phoneUiElementAttributes.item(i).nodeValue());
+            totalComparisonsCount++;
+        }
+        QVERIFY2(desktopUiElementAttributes.count() == phoneUiElementAttributes.count(),
+                 qPrintable(QStringLiteral("Attribute mismatch: dolphinui.rc/%1::%2 has fewer attributes than dolphinuiforphones.rc/%3::%4. %5 < %6")
+                                .arg(desktopUiElement.parentNode().toElement().tagName(),
+                                     desktopUiElement.tagName(),
+                                     phoneUiElement.parentNode().toElement().tagName(),
+                                     phoneUiElement.tagName())
+                                .arg(phoneUiElementAttributes.count(), desktopUiElementAttributes.count())));
+
+        desktopUiElement = nextUiElement(desktopUiElement);
+        phoneUiElement = nextUiElement(phoneUiElement);
+        totalComparisonsCount++;
+    } while (!desktopUiElement.isNull() || !phoneUiElement.isNull());
+    QVERIFY2(totalComparisonsCount > 200, qPrintable(QStringLiteral("There were only %1 comparisons. Did the test run correctly?").arg(totalComparisonsCount)));
+}
+
+// See https://bugs.kde.org/show_bug.cgi?id=379135
+void DolphinMainWindowTest::testClosingTabsWithSearchBoxVisible()
+{
+    m_mainWindow->openDirectories({QUrl::fromLocalFile(QDir::homePath())}, false);
+    m_mainWindow->show();
+    // Without this call the searchbox doesn't get FocusIn events.
+#ifdef Q_OS_WIN
+    if (!QTest::qWaitForWindowExposed(m_mainWindow.data())) {
+        QSKIP("Window not exposed on Windows, probably running in a headless CI environment.");
+    }
+#else
+    QVERIFY(QTest::qWaitForWindowExposed(m_mainWindow.data()));
+#endif
+    QVERIFY(m_mainWindow->isVisible());
+
+    auto tabWidget = m_mainWindow->findChild<DolphinTabWidget *>("tabWidget");
+    QVERIFY(tabWidget);
+
+    // Show search box on first tab.
+    tabWidget->currentTabPage()->activeViewContainer()->setSearchBarVisible(true);
+
+    tabWidget->openNewActivatedTab(QUrl::fromLocalFile(QDir::homePath()));
+    QCOMPARE(tabWidget->count(), 2);
+
+    // Triggers the crash in bug #379135.
+    tabWidget->closeTab();
+    QCOMPARE(tabWidget->count(), 1);
+}
+
+void DolphinMainWindowTest::testActiveViewAfterClosingSplitView_data()
+{
+    QTest::addColumn<bool>("closeLeftView");
+
+    QTest::newRow("close left view") << true;
+    QTest::newRow("close right view") << false;
+}
+
+void DolphinMainWindowTest::testActiveViewAfterClosingSplitView()
+{
+    m_mainWindow->openDirectories({QUrl::fromLocalFile(QDir::homePath())}, false);
+    m_mainWindow->show();
+#ifdef Q_OS_WIN
+    if (!QTest::qWaitForWindowExposed(m_mainWindow.data())) {
+        QSKIP("Window not exposed on Windows, probably running in a headless CI environment.");
+    }
+#else
+    QVERIFY(QTest::qWaitForWindowExposed(m_mainWindow.data()));
+#endif
+    QVERIFY(m_mainWindow->isVisible());
+
+    auto tabWidget = m_mainWindow->findChild<DolphinTabWidget *>("tabWidget");
+    QVERIFY(tabWidget);
+    QVERIFY(tabWidget->currentTabPage()->primaryViewContainer());
+    QVERIFY(!tabWidget->currentTabPage()->secondaryViewContainer());
+
+    // Open split view.
+    m_mainWindow->actionCollection()->action(QStringLiteral("split_view"))->trigger();
+    QVERIFY(tabWidget->currentTabPage()->splitViewEnabled());
+    QVERIFY(tabWidget->currentTabPage()->secondaryViewContainer());
+
+    // Make sure the right view is the active one.
+    auto leftViewContainer = tabWidget->currentTabPage()->primaryViewContainer();
+    auto rightViewContainer = tabWidget->currentTabPage()->secondaryViewContainer();
+    QVERIFY(!leftViewContainer->isActive());
+    QVERIFY(rightViewContainer->isActive());
+
+    QFETCH(bool, closeLeftView);
+    if (closeLeftView) {
+        // Activate left view.
+        leftViewContainer->setActive(true);
+        QVERIFY(leftViewContainer->isActive());
+        QVERIFY(!rightViewContainer->isActive());
+
+        // Close left view. The secondary view (which was on the right) will become the primary one and must be active.
+        m_mainWindow->actionCollection()->action(QStringLiteral("split_view"))->trigger();
+        QVERIFY(!leftViewContainer->isActive());
+        QVERIFY(rightViewContainer->isActive());
+        QCOMPARE(rightViewContainer, tabWidget->currentTabPage()->activeViewContainer());
+    } else {
+        // Close right view. The left view will become active.
+        m_mainWindow->actionCollection()->action(QStringLiteral("split_view"))->trigger();
+        QVERIFY(leftViewContainer->isActive());
+        QVERIFY(!rightViewContainer->isActive());
+        QCOMPARE(leftViewContainer, tabWidget->currentTabPage()->activeViewContainer());
+    }
+}
+
+// Test case for bug #385111
+void DolphinMainWindowTest::testUpdateWindowTitleAfterClosingSplitView()
+{
+    m_mainWindow->openDirectories({QUrl::fromLocalFile(QDir::homePath())}, false);
+    m_mainWindow->show();
+#ifdef Q_OS_WIN
+    if (!QTest::qWaitForWindowExposed(m_mainWindow.data())) {
+        QSKIP("Window not exposed on Windows, probably running in a headless CI environment.");
+    }
+#else
+    QVERIFY(QTest::qWaitForWindowExposed(m_mainWindow.data()));
+#endif
+    QVERIFY(m_mainWindow->isVisible());
+
+    auto tabWidget = m_mainWindow->findChild<DolphinTabWidget *>("tabWidget");
+    QVERIFY(tabWidget);
+    QVERIFY(tabWidget->currentTabPage()->primaryViewContainer());
+    QVERIFY(!tabWidget->currentTabPage()->secondaryViewContainer());
+
+    // Open split view.
+    m_mainWindow->actionCollection()->action(QStringLiteral("split_view"))->trigger();
+    QVERIFY(tabWidget->currentTabPage()->splitViewEnabled());
+    QVERIFY(tabWidget->currentTabPage()->secondaryViewContainer());
+
+    // Make sure the right view is the active one.
+    auto leftViewContainer = tabWidget->currentTabPage()->primaryViewContainer();
+    auto rightViewContainer = tabWidget->currentTabPage()->secondaryViewContainer();
+    QVERIFY(!leftViewContainer->isActive());
+    QVERIFY(rightViewContainer->isActive());
+
+    // Activate left view.
+    leftViewContainer->setActive(true);
+    QVERIFY(leftViewContainer->isActive());
+    QVERIFY(!rightViewContainer->isActive());
+
+    // Close split view. The secondary view (which was on the right) will become the primary one and must be active.
+    m_mainWindow->actionCollection()->action(QStringLiteral("split_view"))->trigger();
+    QVERIFY(!leftViewContainer->isActive());
+    QVERIFY(rightViewContainer->isActive());
+    QCOMPARE(rightViewContainer, tabWidget->currentTabPage()->activeViewContainer());
+
+    // Change URL and make sure we emit the currentUrlChanged signal (which triggers the window title update).
+    QSignalSpy currentUrlChangedSpy(tabWidget, &DolphinTabWidget::currentUrlChanged);
+    tabWidget->currentTabPage()->activeViewContainer()->setUrl(QUrl::fromLocalFile(QDir::rootPath()));
+    QCOMPARE(currentUrlChangedSpy.count(), 1);
+}
+
+// Test case for bug #402641
+void DolphinMainWindowTest::testUpdateWindowTitleAfterChangingSplitView()
+{
+    m_mainWindow->openDirectories({QUrl::fromLocalFile(QDir::homePath())}, false);
+    m_mainWindow->show();
+#ifdef Q_OS_WIN
+    if (!QTest::qWaitForWindowExposed(m_mainWindow.data())) {
+        QSKIP("Window not exposed on Windows, probably running in a headless CI environment.");
+    }
+#else
+    QVERIFY(QTest::qWaitForWindowExposed(m_mainWindow.data()));
+#endif
+    QVERIFY(m_mainWindow->isVisible());
+
+    auto tabWidget = m_mainWindow->findChild<DolphinTabWidget *>("tabWidget");
+    QVERIFY(tabWidget);
+
+    // Open split view.
+    m_mainWindow->actionCollection()->action(QStringLiteral("split_view"))->trigger();
+    QVERIFY(tabWidget->currentTabPage()->splitViewEnabled());
+
+    auto leftViewContainer = tabWidget->currentTabPage()->primaryViewContainer();
+    auto rightViewContainer = tabWidget->currentTabPage()->secondaryViewContainer();
+
+    // Store old window title.
+    const auto oldTitle = m_mainWindow->windowTitle();
+
+    // Change URL in the right view and make sure the title gets updated.
+    rightViewContainer->setUrl(QUrl::fromLocalFile(QDir::rootPath()));
+    QVERIFY(m_mainWindow->windowTitle() != oldTitle);
+
+    // Activate back the left view and check whether the old title gets restored.
+    leftViewContainer->setActive(true);
+    QCOMPARE(m_mainWindow->windowTitle(), oldTitle);
+}
+
+// Test case for bug #397910
+void DolphinMainWindowTest::testOpenInNewTabTitle()
+{
+    const QUrl homePathUrl{QUrl::fromLocalFile(QDir::homePath())};
+    m_mainWindow->openDirectories({homePathUrl}, false);
+    m_mainWindow->show();
+#ifdef Q_OS_WIN
+    if (!QTest::qWaitForWindowExposed(m_mainWindow.data())) {
+        QSKIP("Window not exposed on Windows, probably running in a headless CI environment.");
+    }
+#else
+    QVERIFY(QTest::qWaitForWindowExposed(m_mainWindow.data()));
+#endif
+    QVERIFY(m_mainWindow->isVisible());
+
+    auto tabWidget = m_mainWindow->findChild<DolphinTabWidget *>("tabWidget");
+    QVERIFY(tabWidget);
+
+    const QUrl tempPathUrl{QUrl::fromLocalFile(QDir::tempPath())};
+    tabWidget->openNewTab(tempPathUrl);
+    QCOMPARE(tabWidget->count(), 2);
+    QVERIFY(tabWidget->tabText(0) != tabWidget->tabText(1));
+
+    QVERIFY2(!tabWidget->tabIcon(0).isNull() && !tabWidget->tabIcon(1).isNull(), "Tabs are supposed to have icons.");
+    QCOMPARE(KIO::iconNameForUrl(homePathUrl), tabWidget->tabIcon(0).name());
+    QCOMPARE(KIO::iconNameForUrl(tempPathUrl), tabWidget->tabIcon(1).name());
+}
+
+void DolphinMainWindowTest::testNewFileMenuEnabled_data()
+{
+    QTest::addColumn<QUrl>("activeViewUrl");
+    QTest::addColumn<bool>("expectedEnabled");
+
+    QTest::newRow("home") << QUrl::fromLocalFile(QDir::homePath()) << true;
+    QTest::newRow("root") << QUrl::fromLocalFile(QDir::rootPath()) << false;
+    QTest::newRow("trash") << QUrl::fromUserInput(QStringLiteral("trash:/")) << false;
+}
+
+void DolphinMainWindowTest::testNewFileMenuEnabled()
+{
+    QFETCH(QUrl, activeViewUrl);
+    m_mainWindow->openDirectories({activeViewUrl}, false);
+    m_mainWindow->show();
+#ifdef Q_OS_WIN
+    if (!QTest::qWaitForWindowExposed(m_mainWindow.data())) {
+        QSKIP("Window not exposed on Windows, probably running in a headless CI environment.");
+    }
+#else
+    QVERIFY(QTest::qWaitForWindowExposed(m_mainWindow.data()));
+#endif
+    QVERIFY(m_mainWindow->isVisible());
+
+    auto newFileMenu = m_mainWindow->findChild<DolphinNewFileMenu *>("new_menu");
+    QVERIFY(newFileMenu);
+
+    QFETCH(bool, expectedEnabled);
+    QTRY_COMPARE(newFileMenu->isEnabled(), expectedEnabled);
+}
+
+bool DolphinMainWindowTest::createDirectory(QAction *action, const QString &name)
+{
+    if (!QTest::qWaitFor([this, action] {
+            return action->isEnabled() && !m_mainWindow->m_newFileMenu->isCreateDirectoryRunning();
+        })) {
+        return false;
+    }
+    action->trigger();
+    if (!QTest::qWaitFor([] {
+            return QApplication::activeModalWidget() != nullptr;
+        })) {
+        return false;
+    }
+    QWidget *dialog = QApplication::activeModalWidget()->focusWidget();
+    if (!dialog) {
+        return false;
+    }
+    QTest::keyClicks(dialog, name);
+    QTest::keyClick(dialog, Qt::Key_Enter);
+    return QTest::qWaitFor([] {
+        return QApplication::activeModalWidget() == nullptr;
+    });
+}
+
+void DolphinMainWindowTest::testCreateDirectoryFocus_data()
+{
+    QTest::addColumn<DolphinView::Mode>("viewMode");
+
+    QTest::newRow("icons") << DolphinView::IconsView;
+    QTest::newRow("expandable details") << DolphinView::DetailsView;
+}
+
+/**
+ * A new directory gets selected and focused in every view mode, even if something else was selected before.
+ */
+void DolphinMainWindowTest::testCreateDirectoryFocus()
+{
+    QFETCH(DolphinView::Mode, viewMode);
+
+    QScopedPointer<TestDir> testDir{new TestDir()};
+    testDir->createFile("selected-file");
+    const QUrl selectedFileUrl = QUrl::fromLocalFile(testDir->url().toLocalFile() + "/selected-file");
+    // sorts before "selected-file", so inserting it shifts the index of the pre-selected item
+    const QUrl newDirectoryUrl = QUrl::fromLocalFile(testDir->url().toLocalFile() + "/new-directory");
+
+    // this setting is global and persisted, so restore it even when the test aborts early
+    const bool expandableFoldersBefore = DetailsModeSettings::expandableFolders();
+    auto restoreExpandableFolders = qScopeGuard([expandableFoldersBefore] {
+        DetailsModeSettings::setExpandableFolders(expandableFoldersBefore);
+        DetailsModeSettings::self()->save();
+    });
+    DetailsModeSettings::setExpandableFolders(true);
+    DetailsModeSettings::self()->save();
+
+    m_mainWindow->openDirectories({QDir::cleanPath(testDir->url().toString())}, false);
+    m_mainWindow->show();
+#ifdef Q_OS_WIN
+    if (!QTest::qWaitForWindowExposed(m_mainWindow.data())) {
+        QSKIP("Window not exposed on Windows, probably running in a headless CI environment.");
+    }
+#else
+    QVERIFY(QTest::qWaitForWindowExposed(m_mainWindow.data()));
+#endif
+    QVERIFY(m_mainWindow->isVisible());
+
+    DolphinView *view = m_mainWindow->m_activeViewContainer->view();
+    view->setViewMode(viewMode);
+    QCOMPARE(view->m_view->supportsItemExpanding(), viewMode == DolphinView::DetailsView);
+
+    QTRY_COMPARE(view->items().count(), 1);
+
+    KItemListSelectionManager *selectionManager = view->m_container->controller()->selectionManager();
+    const auto currentItemUrl = [view, selectionManager]() {
+        return view->m_model->fileItem(selectionManager->currentItem()).url();
+    };
+
+    // a pre-existing selection used to prevent the new directory from being selected
+    view->forceUrlsSelection(selectedFileUrl, {selectedFileUrl});
+    view->updateViewState();
+    QCOMPARE(view->selectedItems().urlList(), QList<QUrl>{selectedFileUrl});
+    QCOMPARE(currentItemUrl(), selectedFileUrl);
+
+    QAction *createDirectoryAction = m_mainWindow->actionCollection()->action(QStringLiteral("create_dir"));
+    QVERIFY(createDirectoryAction);
+    QVERIFY(createDirectory(createDirectoryAction, QStringLiteral("new-directory")));
+
+    QTRY_COMPARE(view->items().count(), 2);
+
+    QTRY_COMPARE(view->selectedItems().urlList(), QList<QUrl>{newDirectoryUrl});
+    QTRY_COMPARE(currentItemUrl(), newDirectoryUrl);
+}
+
+void DolphinMainWindowTest::testCreateSubdirectory()
+{
+    QScopedPointer<TestDir> testDir{new TestDir()};
+    testDir->createDir("parent");
+    testDir->createFile("a-file");
+    const QUrl parentUrl = QUrl::fromLocalFile(testDir->url().toLocalFile() + "/parent");
+    const QUrl fileUrl = QUrl::fromLocalFile(testDir->url().toLocalFile() + "/a-file");
+
+    m_mainWindow->openDirectories({QDir::cleanPath(testDir->url().toString())}, false);
+    m_mainWindow->show();
+#ifdef Q_OS_WIN
+    if (!QTest::qWaitForWindowExposed(m_mainWindow.data())) {
+        QSKIP("Window not exposed on Windows, probably running in a headless CI environment.");
+    }
+#else
+    QVERIFY(QTest::qWaitForWindowExposed(m_mainWindow.data()));
+#endif
+
+    DolphinView *view = m_mainWindow->m_activeViewContainer->view();
+    QTRY_COMPARE(view->items().count(), 2);
+
+    QAction *createSubdir = m_mainWindow->actionCollection()->action(QStringLiteral("create_subdir"));
+    QVERIFY(createSubdir);
+    QAction *createInView = m_mainWindow->actionCollection()->action(QStringLiteral("create_dir"));
+    QVERIFY(createInView);
+
+    QVERIFY(createSubdir->shortcut().isEmpty());
+
+    // With nothing selected there is no subfolder to create in, so this acts like create_dir.
+    QTRY_VERIFY(createSubdir->isEnabled());
+    QVERIFY(createDirectory(createSubdir, QStringLiteral("no-selection")));
+    QTRY_VERIFY(QFileInfo::exists(testDir->url().toLocalFile() + QStringLiteral("/no-selection")));
+
+    view->forceUrlsSelection(fileUrl, {fileUrl});
+    view->updateViewState();
+    QTRY_COMPARE(view->selectedItems().urlList(), QList<QUrl>{fileUrl});
+    QTRY_VERIFY(!createSubdir->isEnabled());
+
+    view->forceUrlsSelection(parentUrl, {parentUrl});
+    view->updateViewState();
+    QTRY_COMPARE(view->selectedItems().urlList(), QList<QUrl>{parentUrl});
+    QTRY_VERIFY(createSubdir->isEnabled());
+
+    QVERIFY(createDirectory(createSubdir, QStringLiteral("child")));
+    QTRY_VERIFY(QFileInfo::exists(parentUrl.toLocalFile() + QStringLiteral("/child")));
+
+    QTRY_VERIFY(!view->selectedItems().isEmpty());
+
+    QVERIFY(createDirectory(createInView, QStringLiteral("sibling")));
+    QTRY_VERIFY(QFileInfo::exists(testDir->url().toLocalFile() + QStringLiteral("/sibling")));
+    QVERIFY(!QFileInfo::exists(parentUrl.toLocalFile() + QStringLiteral("/sibling")));
+    QVERIFY(!QFileInfo::exists(parentUrl.toLocalFile() + QStringLiteral("/child/sibling")));
+}
+
+void DolphinMainWindowTest::testCreateFileAction()
+{
+    QScopedPointer<TestDir> testDir{new TestDir()};
+    QString testDirUrl(QDir::cleanPath(testDir->url().toString()));
+    m_mainWindow->openDirectories({testDirUrl}, false);
+    m_mainWindow->show();
+#ifdef Q_OS_WIN
+    if (!QTest::qWaitForWindowExposed(m_mainWindow.data())) {
+        QSKIP("Window not exposed on Windows, probably running in a headless CI environment.");
+    }
+#else
+    QVERIFY(QTest::qWaitForWindowExposed(m_mainWindow.data()));
+#endif
+    QVERIFY(m_mainWindow->isVisible());
+
+    QCOMPARE(m_mainWindow->m_activeViewContainer->view()->items().count(), 0);
+
+    auto createFileAction = m_mainWindow->actionCollection()->action(QStringLiteral("create_file"));
+    QTRY_COMPARE(createFileAction->isEnabled(), true);
+
+    createFileAction->setShortcut(QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_N));
+
+    QSignalSpy createFileActionSpy(createFileAction, &QAction::triggered);
+
+    QTest::keyClick(QApplication::activeWindow(), Qt::Key_N, Qt::ControlModifier | Qt::AltModifier);
+
+    QTRY_COMPARE(createFileActionSpy.count(), 1);
+
+    QTRY_VERIFY(QApplication::activeModalWidget() != nullptr);
+
+    auto newFileDialog = QApplication::activeModalWidget()->focusWidget();
+    QTest::keyClick(newFileDialog, Qt::Key_X);
+    QTest::keyClick(newFileDialog, Qt::Key_Y);
+    QTest::keyClick(newFileDialog, Qt::Key_Z);
+    QTest::keyClick(newFileDialog, Qt::Key_Enter);
+
+    QTRY_COMPARE(m_mainWindow->m_activeViewContainer->view()->items().count(), 1);
+
+    QFile file(testDir->url().toLocalFile() + "/xyz.txt");
+    QVERIFY(file.exists());
+    QCOMPARE(file.size(), 0);
+}
+
+void DolphinMainWindowTest::testCreateFileActionRequiresWritePermission()
+{
+    QScopedPointer<TestDir> testDir{new TestDir()};
+    QString testDirUrl(QDir::cleanPath(testDir->url().toString()));
+    auto testDirAsFile = QFile(testDir->url().toLocalFile());
+
+    // make test dir read only
+    QVERIFY(testDirAsFile.setPermissions(QFileDevice::ReadOwner));
+
+    m_mainWindow->openDirectories({testDirUrl}, false);
+    m_mainWindow->show();
+#ifdef Q_OS_WIN
+    if (!QTest::qWaitForWindowExposed(m_mainWindow.data())) {
+        QSKIP("Window not exposed on Windows, probably running in a headless CI environment.");
+    }
+#else
+    QVERIFY(QTest::qWaitForWindowExposed(m_mainWindow.data()));
+#endif
+    QVERIFY(m_mainWindow->isVisible());
+
+    QTRY_VERIFY_WITH_TIMEOUT(QApplication::activeWindow() != nullptr, 100);
+
+    QCOMPARE(m_mainWindow->m_activeViewContainer->view()->items().count(), 0);
+
+    auto createFileAction = m_mainWindow->actionCollection()->action(QStringLiteral("create_file"));
+    QTRY_COMPARE(createFileAction->isEnabled(), false);
+
+    createFileAction->setShortcut(QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_N));
+    QTest::keyClick(QApplication::activeWindow(), Qt::Key_N, Qt::ControlModifier | Qt::AltModifier);
+
+    QTRY_COMPARE(QApplication::activeModalWidget(), nullptr);
+
+    QTRY_COMPARE(m_mainWindow->m_activeViewContainer->view()->items().count(), 0);
+
+    QTRY_COMPARE(createFileAction->isEnabled(), false);
+
+    QVERIFY(m_mainWindow->isVisible());
+}
+
+void DolphinMainWindowTest::testWindowTitle_data()
+{
+    QTest::addColumn<QUrl>("activeViewUrl");
+    QTest::addColumn<QString>("expectedWindowTitle");
+
+    // The English locale is forced in main(), so these titles are compared verbatim.
+    QTest::newRow("home") << QUrl::fromLocalFile(QDir::homePath()) << QStringLiteral("Home");
+    QTest::newRow("home with trailing slash") << QUrl::fromLocalFile(QStringLiteral("%1/").arg(QDir::homePath())) << QStringLiteral("Home");
+    QTest::newRow("trash") << QUrl::fromUserInput(QStringLiteral("trash:/")) << QStringLiteral("Trash");
+}
+
+void DolphinMainWindowTest::testWindowTitle()
+{
+    QFETCH(QUrl, activeViewUrl);
+    m_mainWindow->openDirectories({activeViewUrl}, false);
+    m_mainWindow->show();
+#ifdef Q_OS_WIN
+    if (!QTest::qWaitForWindowExposed(m_mainWindow.data())) {
+        QSKIP("Window not exposed on Windows, probably running in a headless CI environment.");
+    }
+#else
+    QVERIFY(QTest::qWaitForWindowExposed(m_mainWindow.data()));
+#endif
+    QVERIFY(m_mainWindow->isVisible());
+
+    QFETCH(QString, expectedWindowTitle);
+    QCOMPARE(m_mainWindow->windowTitle(), expectedWindowTitle);
+}
+
+void DolphinMainWindowTest::testFocusLocationBar()
+{
+    const QUrl homePathUrl{QUrl::fromLocalFile(QDir::homePath())};
+    m_mainWindow->openDirectories({homePathUrl}, false);
+    m_mainWindow->show();
+#ifdef Q_OS_WIN
+    if (!QTest::qWaitForWindowExposed(m_mainWindow.data())) {
+        QSKIP("Window not exposed on Windows, probably running in a headless CI environment.");
+    }
+#else
+    QVERIFY(QTest::qWaitForWindowExposed(m_mainWindow.data()));
+#endif
+    QVERIFY(m_mainWindow->isVisible());
+    QTRY_VERIFY_WITH_TIMEOUT(QApplication::activeWindow() != nullptr, 100);
+
+    QAction *replaceLocationAction = m_mainWindow->actionCollection()->action(QStringLiteral("replace_location"));
+    replaceLocationAction->trigger();
+    QVERIFY(m_mainWindow->activeViewContainer()->urlNavigator()->isAncestorOf(QApplication::focusWidget()));
+    replaceLocationAction->trigger();
+    QVERIFY(m_mainWindow->activeViewContainer()->view()->hasFocus());
+
+    QAction *editableLocationAction = m_mainWindow->actionCollection()->action(QStringLiteral("editable_location"));
+    editableLocationAction->trigger();
+    QVERIFY(m_mainWindow->activeViewContainer()->urlNavigator()->isAncestorOf(QApplication::focusWidget()));
+    QVERIFY(m_mainWindow->activeViewContainer()->urlNavigator()->isUrlEditable());
+    editableLocationAction->trigger();
+    QVERIFY(!m_mainWindow->activeViewContainer()->urlNavigator()->isUrlEditable());
+
+    replaceLocationAction->trigger();
+    QVERIFY(m_mainWindow->activeViewContainer()->urlNavigator()->isAncestorOf(QApplication::focusWidget()));
+
+    // Pressing Escape multiple times should eventually move the focus back to the active view.
+    QTest::keyClick(QApplication::focusWidget(), Qt::Key_Escape); // Focus might not go the view yet because it toggles the editable state of the location bar.
+    QTest::keyClick(QApplication::focusWidget(), Qt::Key_Escape);
+    QVERIFY(m_mainWindow->activeViewContainer()->view()->hasFocus());
+}
+
+void DolphinMainWindowTest::testFocusPlacesPanel()
+{
+    m_mainWindow->openDirectories({QUrl::fromLocalFile(QDir::homePath())}, false);
+    m_mainWindow->show();
+#ifdef Q_OS_WIN
+    if (!QTest::qWaitForWindowExposed(m_mainWindow.data())) {
+        QSKIP("Window not exposed on Windows, probably running in a headless CI environment.");
+    }
+#else
+    QVERIFY(QTest::qWaitForWindowExposed(m_mainWindow.data()));
+#endif
+    QVERIFY(m_mainWindow->isVisible());
+    m_mainWindow->windowHandle()->requestActivate();
+    QVERIFY(QTest::qWaitForWindowActive(m_mainWindow.data()));
+
+    QWidget *placesPanel = reinterpret_cast<QWidget *>(m_mainWindow->m_placesPanel);
+    QAction *showPlacesPanelAction = m_mainWindow->actionCollection()->action(QStringLiteral("show_places_panel"));
+    if (!showPlacesPanelAction->isChecked()) {
+        showPlacesPanelAction->trigger();
+        // trigger() moves focus to the panel; restore it so the test starts from a defined state.
+        m_mainWindow->activeViewContainer()->view()->setFocus();
+    }
+    QVERIFY2(QTest::qWaitFor(
+                 [&]() {
+                     return placesPanel && placesPanel->isVisible() && placesPanel->width() > 0 && placesPanel->height() > 0;
+                 },
+                 5000),
+             "The test couldn't be initialised properly. The places panel should be visible.");
+
+    QAction *focusPlacesPanelAction = m_mainWindow->actionCollection()->action(QStringLiteral("focus_places_panel"));
+
+    focusPlacesPanelAction->trigger();
+    QVERIFY(placesPanel->hasFocus());
+
+    focusPlacesPanelAction->trigger();
+    QVERIFY2(m_mainWindow->activeViewContainer()->isAncestorOf(QApplication::focusWidget()),
+             "Triggering focus_places_panel while the panel already has focus should return the focus to the view.");
+
+    focusPlacesPanelAction->trigger();
+    QVERIFY(placesPanel->hasFocus());
+
+    showPlacesPanelAction->trigger();
+    QVERIFY(!placesPanel->isVisible());
+    QVERIFY2(m_mainWindow->activeViewContainer()->isAncestorOf(QApplication::focusWidget()),
+             "Hiding the Places panel while it has focus should return the focus to the view.");
+
+    showPlacesPanelAction->trigger();
+    QVERIFY(placesPanel->isVisible());
+    QVERIFY2(placesPanel->hasFocus(), "Enabling the Places panel should move keyboard focus there.");
+
+    /// Test that activating a place always moves focus to the view.
+    QTest::keyClick(QApplication::focusWidget(), Qt::Key::Key_Enter);
+    QVERIFY2(m_mainWindow->activeViewContainer()->isAncestorOf(QApplication::focusWidget()),
+             "Activating a place should move focus to the view that loads that place.");
+
+    focusPlacesPanelAction->trigger();
+    QVERIFY(placesPanel->hasFocus());
+
+    QTest::keyClick(QApplication::focusWidget(), Qt::Key::Key_Enter);
+    QVERIFY2(m_mainWindow->activeViewContainer()->isAncestorOf(QApplication::focusWidget()),
+             "Activating a place should move focus to the view even if the view already has that place loaded.");
+}
+
+void DolphinMainWindowTest::testFocusOtherView()
+{
+    m_mainWindow->openDirectories({QUrl::fromLocalFile(QDir::homePath())}, false);
+    m_mainWindow->show();
+    QVERIFY(QTest::qWaitForWindowExposed(m_mainWindow.data()));
+    QVERIFY(m_mainWindow->isVisible());
+    QTRY_VERIFY_WITH_TIMEOUT(QApplication::activeWindow() != nullptr, 100);
+
+    QAction *const focusOtherViewAction = m_mainWindow->actionCollection()->action(QStringLiteral("focus_inactive_split_view"));
+
+    /** Triggering the "Focus Other View" action when there is no other view should create such a view and focus it. */
+    QVERIFY(!m_mainWindow->m_tabWidget->currentTabPage()->splitViewEnabled());
+    const DolphinViewContainer *const previouslyActiveView = m_mainWindow->activeViewContainer();
+    QVERIFY(previouslyActiveView->isAncestorOf(QApplication::focusWidget()));
+    focusOtherViewAction->trigger();
+    QVERIFY(m_mainWindow->m_tabWidget->currentTabPage()->splitViewEnabled());
+    QVERIFY(!previouslyActiveView->isAncestorOf(QApplication::focusWidget()));
+
+    const DolphinViewContainer *const otherView = m_mainWindow->activeViewContainer();
+    QVERIFY(previouslyActiveView != otherView);
+    QVERIFY(otherView->isAncestorOf(QApplication::focusWidget()));
+
+    /** "Focus Other View" and "Split" have the same behaviour when there is only one view. Make sure their default keyboard shortcuts stay similar. */
+    QVERIFY(focusOtherViewAction->shortcut().toString().contains(m_mainWindow->actionCollection()->action(QStringLiteral("split_view"))->shortcut().toString())
+            || focusOtherViewAction->shortcut().toString().contains(
+                m_mainWindow->actionCollection()->action(QStringLiteral("split_view_menu"))->shortcut().toString()));
+
+    /** Test the typical usage of "Focus Other View" */
+    QVERIFY(previouslyActiveView != otherView);
+    QVERIFY(otherView->isAncestorOf(QApplication::focusWidget()));
+    focusOtherViewAction->trigger();
+    QVERIFY(previouslyActiveView->isAncestorOf(QApplication::focusWidget()));
+    focusOtherViewAction->trigger();
+    QVERIFY(otherView->isAncestorOf(QApplication::focusWidget()));
+    focusOtherViewAction->trigger();
+    QVERIFY(previouslyActiveView->isAncestorOf(QApplication::focusWidget()));
+}
+
+/**
+ * The places panel will resize itself if any of the other widgets requires too much horizontal space
+ * but a user never wants the size of the places panel to change unless they resized it themselves explicitly.
+ */
+void DolphinMainWindowTest::testPlacesPanelWidthResistance()
+{
+    m_mainWindow->openDirectories({QUrl::fromLocalFile(QDir::homePath())}, false);
+    m_mainWindow->show();
+    m_mainWindow->resize(800, m_mainWindow->height()); // make sure the size is sufficient so a places panel resize shouldn't be necessary.
+#ifdef Q_OS_WIN
+    if (!QTest::qWaitForWindowExposed(m_mainWindow.data())) {
+        QSKIP("Window not exposed on Windows, probably running in a headless CI environment.");
+    }
+#else
+    QVERIFY(QTest::qWaitForWindowExposed(m_mainWindow.data()));
+#endif
+    QVERIFY(m_mainWindow->isVisible());
+
+    QWidget *placesPanel = reinterpret_cast<QWidget *>(m_mainWindow->m_placesPanel);
+    // ensure panel is visible even in a fresh env without a saved session.
+    {
+        QAction *showPlacesPanelAction = m_mainWindow->actionCollection()->action(QStringLiteral("show_places_panel"));
+        if (!showPlacesPanelAction->isChecked()) {
+            showPlacesPanelAction->trigger();
+        }
+    }
+    QVERIFY2(QTest::qWaitFor(
+                 [&]() {
+                     return placesPanel && placesPanel->isVisible() && placesPanel->width() > 0;
+                 },
+                 5000),
+             "The test couldn't be initialised properly. The places panel should be visible.");
+    QApplication::processEvents();
+    const int initialPlacesPanelWidth = placesPanel->width();
+
+    m_mainWindow->actionCollection()->action(QStringLiteral("split_view"))->trigger(); // enable split view (starts animation)
+    QApplication::processEvents();
+    QCOMPARE(placesPanel->width(), initialPlacesPanelWidth);
+
+    m_mainWindow->actionCollection()->action(QStringLiteral("show_filter_bar"))->trigger();
+    QCOMPARE(placesPanel->width(), initialPlacesPanelWidth);
+
+    // Make all selection mode bars appear and test for each that this doesn't affect the places panel's width.
+    // One of the bottom bars (SelectionMode::BottomBar::GeneralContents) only shows up when at least one item is selected so we do that before we begin iterating.
+    m_mainWindow->actionCollection()->action(KStandardAction::name(KStandardAction::SelectAll))->trigger();
+    for (int selectionModeStates = SelectionMode::BottomBar::CopyContents; selectionModeStates != SelectionMode::BottomBar::RenameContents;
+         selectionModeStates++) {
+        const auto contents = static_cast<SelectionMode::BottomBar::Contents>(selectionModeStates);
+        m_mainWindow->slotSetSelectionMode(true, contents);
+        QApplication::processEvents(); // give time for a paint/resize
+        QCOMPARE(placesPanel->width(), initialPlacesPanelWidth);
+    }
+
+    m_mainWindow->actionCollection()->action(KStandardAction::name(KStandardAction::Find))->trigger();
+    QCOMPARE(placesPanel->width(), initialPlacesPanelWidth);
+
+#if HAVE_BALOO
+    m_mainWindow->actionCollection()->action(QStringLiteral("show_information_panel"))->setChecked(true); // toggle visible
+    QCOMPARE(placesPanel->width(), initialPlacesPanelWidth);
+#endif
+
+#if HAVE_TERMINAL
+    m_mainWindow->actionCollection()->action(QStringLiteral("show_terminal_panel"))->setChecked(true); // toggle visible
+    QCOMPARE(placesPanel->width(), initialPlacesPanelWidth);
+#endif
+
+    m_mainWindow->actionCollection()->action(QStringLiteral("split_view"))->trigger(); // disable split view (starts animation)
+    QCOMPARE(placesPanel->width(), initialPlacesPanelWidth);
+
+#if HAVE_BALOO
+    m_mainWindow->actionCollection()->action(QStringLiteral("show_information_panel"))->trigger(); // toggle invisible
+    QCOMPARE(placesPanel->width(), initialPlacesPanelWidth);
+#endif
+
+#if HAVE_TERMINAL
+    m_mainWindow->actionCollection()->action(QStringLiteral("show_terminal_panel"))->trigger(); // toggle invisible
+    QCOMPARE(placesPanel->width(), initialPlacesPanelWidth);
+#endif
+
+    m_mainWindow->showMaximized();
+    QCOMPARE(placesPanel->width(), initialPlacesPanelWidth);
+
+    QApplication::processEvents(); // animations disabled via disableAnimations() in initTestCase()
+    QCOMPARE(placesPanel->width(), initialPlacesPanelWidth);
+}
+
+void DolphinMainWindowTest::testGoActions()
+{
+    QScopedPointer<TestDir> testDir{new TestDir()};
+    testDir->createDir("a");
+    testDir->createDir("b");
+    testDir->createDir("b/b-1");
+    testDir->createFile("b/b-2");
+    testDir->createDir("c");
+    const QUrl childDirUrl(QDir::cleanPath(testDir->url().toString() + "/b"));
+    m_mainWindow->openDirectories({childDirUrl}, false); // Open "b" dir
+    m_mainWindow->show();
+#ifdef Q_OS_WIN
+    if (!QTest::qWaitForWindowExposed(m_mainWindow.data())) {
+        QSKIP("Window not exposed on Windows, probably running in a headless CI environment.");
+    }
+#else
+    QVERIFY(QTest::qWaitForWindowExposed(m_mainWindow.data()));
+#endif
+    QVERIFY(m_mainWindow->isVisible());
+    QVERIFY(!m_mainWindow->actionCollection()->action(KStandardAction::name(KStandardAction::Forward))->isEnabled());
+
+    m_mainWindow->actionCollection()->action(KStandardAction::name(KStandardAction::Up))->trigger();
+    /**
+     * Now, after going "up" in the file hierarchy (to "testDir"), the folder one has emerged from ("b") should have keyboard focus.
+     * This is especially important when a user wants to peek into multiple folders in quick succession.
+     */
+    QSignalSpy spyDirectoryLoadingCompleted(m_mainWindow->m_activeViewContainer->view(), &DolphinView::directoryLoadingCompleted);
+    QVERIFY(spyDirectoryLoadingCompleted.wait());
+    QVERIFY(QTest::qWaitFor([&]() {
+        return !m_mainWindow->actionCollection()->action(QStringLiteral("stop"))->isEnabled();
+    })); // "Stop" command should be disabled because it finished loading
+    const QUrl parentDirUrl = m_mainWindow->activeViewContainer()->url();
+    QVERIFY(parentDirUrl != childDirUrl);
+
+    auto currentItemUrl = [this]() {
+        const int currentIndex = m_mainWindow->m_activeViewContainer->view()->m_container->controller()->selectionManager()->currentItem();
+        const KFileItem currentItem = m_mainWindow->m_activeViewContainer->view()->m_model->fileItem(currentIndex);
+        return currentItem.url();
+    };
+
+    QTRY_COMPARE(currentItemUrl(), childDirUrl); // The item we just emerged from should now have keyboard focus.
+    QCOMPARE(m_mainWindow->m_activeViewContainer->view()->selectedItems().count(), 1); // …and it should be selected, too.
+    // Pressing arrow keys should not only move the keyboard focus but also select the item.
+    // We press "Down" to select "c" below and then "Up" so the folder "b" we just emerged from is selected for the first time.
+    m_mainWindow->actionCollection()->action(QStringLiteral("compact"))->trigger();
+    QTest::keyClick(m_mainWindow->activeViewContainer()->view()->m_container, Qt::Key::Key_Down, Qt::NoModifier);
+    QCOMPARE(m_mainWindow->m_activeViewContainer->view()->selectedItems().count(), 1);
+    QVERIFY2(currentItemUrl() != childDirUrl, "The current item didn't change after pressing the 'Down' key.");
+    QTest::keyClick(m_mainWindow->activeViewContainer()->view()->m_container, Qt::Key::Key_Up, Qt::NoModifier);
+    QCOMPARE(m_mainWindow->m_activeViewContainer->view()->selectedItems().count(), 1);
+    QCOMPARE(currentItemUrl(), childDirUrl); // After pressing 'Down' and then 'Up' we should be back where we were.
+
+    // Enter the child folder "b".
+    QTest::keyClick(m_mainWindow->activeViewContainer()->view()->m_container, Qt::Key::Key_Enter, Qt::NoModifier);
+    QVERIFY(spyDirectoryLoadingCompleted.wait());
+    QCOMPARE(m_mainWindow->activeViewContainer()->url(), childDirUrl);
+    QVERIFY(m_mainWindow->isUrlOpen(childDirUrl.toString()));
+
+    // Go back to the parent folder.
+    m_mainWindow->actionCollection()->action(KStandardAction::name(KStandardAction::Back))->trigger();
+    QVERIFY(spyDirectoryLoadingCompleted.wait());
+    QCOMPARE(m_mainWindow->activeViewContainer()->url(), parentDirUrl);
+    QVERIFY(m_mainWindow->isUrlOpen(parentDirUrl.toString()));
+    // Going 'Back' means that the view should be in the same state it was in when we left.
+    QTRY_COMPARE(currentItemUrl(), childDirUrl); // The item we last interacted with in this location should still have keyboard focus.
+    QCOMPARE(m_mainWindow->m_activeViewContainer->view()->selectedItems().count(), 1);
+    QCOMPARE(m_mainWindow->m_activeViewContainer->view()->selectedItems().constFirst().url(), childDirUrl); // It should still be selected.
+
+    // Open a new tab for the "b" child dir and verify that this doesn't interfere with anything.
+    QTest::keyClick(m_mainWindow->activeViewContainer()->view()->m_container, Qt::Key::Key_Enter, Qt::ControlModifier); // Open new inactive tab
+    QVERIFY(m_mainWindow->m_tabWidget->count() == 2);
+    QCOMPARE(m_mainWindow->activeViewContainer()->url(), parentDirUrl);
+    QVERIFY(m_mainWindow->isUrlOpen(parentDirUrl.toString()));
+    QVERIFY(!m_mainWindow->actionCollection()->action(QStringLiteral("undo_close_tab"))->isEnabled());
+
+    // Go forward to the child folder.
+    m_mainWindow->actionCollection()->action(KStandardAction::name(KStandardAction::Forward))->trigger();
+    QVERIFY(spyDirectoryLoadingCompleted.wait());
+    QCOMPARE(m_mainWindow->activeViewContainer()->url(), childDirUrl);
+    QCOMPARE(m_mainWindow->m_activeViewContainer->view()->selectedItems().count(), 0); // There was no action in this view yet that would warrant a selection.
+    QCOMPARE(currentItemUrl(), QUrl(QDir::cleanPath(testDir->url().toString() + "/b/b-1"))); // The first item in the view should have keyboard focus.
+
+    // Press the 'Down' key in the child folder.
+    QTest::keyClick(m_mainWindow->activeViewContainer()->view()->m_container, Qt::Key::Key_Down, Qt::NoModifier);
+    // The second item in the view should have keyboard focus and be selected.
+    const QUrl secondItemInChildFolderUrl{QDir::cleanPath(testDir->url().toString() + "/b/b-2")};
+    QCOMPARE(currentItemUrl(), secondItemInChildFolderUrl);
+    QCOMPARE(m_mainWindow->m_activeViewContainer->view()->selectedItems().count(), 1);
+    QCOMPARE(m_mainWindow->m_activeViewContainer->view()->selectedItems().constFirst().url(), secondItemInChildFolderUrl);
+
+    // Go back to the parent folder and then re-enter the child folder.
+    m_mainWindow->actionCollection()->action(KStandardAction::name(KStandardAction::Back))->trigger();
+    QVERIFY(spyDirectoryLoadingCompleted.wait());
+    m_mainWindow->actionCollection()->action(KStandardAction::name(KStandardAction::Forward))->trigger();
+    QVERIFY(spyDirectoryLoadingCompleted.wait());
+    QCOMPARE(m_mainWindow->activeViewContainer()->url(), childDirUrl);
+    // The state of the view should be identical to how it was before we triggered "Back" and then "Forward".
+    QTRY_COMPARE(currentItemUrl(), secondItemInChildFolderUrl);
+    QCOMPARE(m_mainWindow->m_activeViewContainer->view()->selectedItems().count(), 1);
+    QCOMPARE(m_mainWindow->m_activeViewContainer->view()->selectedItems().constFirst().url(), secondItemInChildFolderUrl);
+
+    // Go back to the parent folder.
+    m_mainWindow->actionCollection()->action(KStandardAction::name(KStandardAction::Back))->trigger();
+    QVERIFY(spyDirectoryLoadingCompleted.wait());
+    QCOMPARE(m_mainWindow->activeViewContainer()->url(), parentDirUrl);
+    QVERIFY(m_mainWindow->isUrlOpen(parentDirUrl.toString()));
+
+    // Close current tab and see if the "go" actions are correctly disabled in the remaining tab that was never active until now and shows the "b" dir
+    m_mainWindow->actionCollection()->action(KStandardAction::name(KStandardAction::Close))->trigger(); // Close current tab
+    QVERIFY(m_mainWindow->m_tabWidget->count() == 1);
+    QCOMPARE(m_mainWindow->activeViewContainer()->url(), childDirUrl);
+    QCOMPARE(m_mainWindow->m_activeViewContainer->view()->selectedItems().count(), 0); // There was no action in this tab yet that would warrant a selection.
+    QVERIFY(!m_mainWindow->actionCollection()->action(KStandardAction::name(KStandardAction::Back))->isEnabled());
+    QVERIFY(!m_mainWindow->actionCollection()->action(KStandardAction::name(KStandardAction::Forward))->isEnabled());
+    QVERIFY(m_mainWindow->actionCollection()->action(QStringLiteral("undo_close_tab"))->isEnabled());
+}
+
+void DolphinMainWindowTest::testOpenFiles()
+{
+    QScopedPointer<TestDir> testDir{new TestDir()};
+    QString testDirUrl(QDir::cleanPath(testDir->url().toString()));
+    testDir->createDir("a");
+    testDir->createDir("a/b");
+    testDir->createDir("a/b/c");
+    testDir->createDir("a/b/c/d");
+    m_mainWindow->openDirectories({testDirUrl}, false);
+    m_mainWindow->show();
+
+    // We only see the unselected "a" folder in the test dir. There are no other tabs.
+    QVERIFY(m_mainWindow->isUrlOpen(testDirUrl));
+    QVERIFY(m_mainWindow->isItemVisibleInAnyView(testDirUrl + "/a"));
+    QVERIFY(!m_mainWindow->isUrlOpen(testDirUrl + "/a"));
+    QVERIFY(!m_mainWindow->isItemVisibleInAnyView(testDirUrl + "/a/b"));
+    QCOMPARE(m_mainWindow->m_tabWidget->count(), 1);
+    QCOMPARE(m_mainWindow->m_tabWidget->currentIndex(), 0);
+    QCOMPARE(m_mainWindow->m_activeViewContainer->view()->selectedItems().count(), 0);
+
+    // "a" is already in view, so "opening" "a" should simply select it without opening a new tab.
+    m_mainWindow->openFiles({testDirUrl + "/a"}, false);
+    QTRY_COMPARE(m_mainWindow->m_activeViewContainer->view()->selectedItems().count(), 1);
+    QCOMPARE(m_mainWindow->m_tabWidget->count(), 1);
+    QVERIFY(m_mainWindow->isItemVisibleInAnyView(testDirUrl + "/a"));
+
+    // "b" is not in view, so "opening" "b" should open a new active tab of the parent folder "a" and select "b" there.
+    m_mainWindow->openFiles({testDirUrl + "/a/b"}, false);
+    QTRY_VERIFY(m_mainWindow->isUrlOpen(testDirUrl + "/a"));
+    QCOMPARE(m_mainWindow->m_tabWidget->count(), 2);
+    QCOMPARE(m_mainWindow->m_tabWidget->currentIndex(), 1);
+    QTRY_VERIFY(m_mainWindow->isItemVisibleInAnyView(testDirUrl + "/a/b"));
+    QVERIFY2(!m_mainWindow->isUrlOpen(testDirUrl + "/a/b"), "The directory b is supposed to be visible but not open in its own tab.");
+    QTRY_COMPARE(m_mainWindow->m_activeViewContainer->view()->selectedItems().count(), 1);
+
+    QVERIFY(m_mainWindow->isUrlOpen(testDirUrl));
+    QVERIFY(m_mainWindow->isItemVisibleInAnyView(testDirUrl + "/a"));
+    // "a" is still in view in the first tab, so "opening" "a" should switch to the first tab and select "a" there.
+    m_mainWindow->openFiles({testDirUrl + "/a"}, false);
+    QCOMPARE(m_mainWindow->m_tabWidget->count(), 2);
+    QCOMPARE(m_mainWindow->m_tabWidget->currentIndex(), 0);
+    QVERIFY(m_mainWindow->isUrlOpen(testDirUrl));
+    QVERIFY(m_mainWindow->isUrlOpen(testDirUrl + "/a"));
+
+    // Directory "a" is already open in the second tab in which "b" is selected, so opening the directory "a" should switch to that tab.
+    m_mainWindow->openDirectories({testDirUrl + "/a"}, false);
+    QCOMPARE(m_mainWindow->m_tabWidget->count(), 2);
+    QCOMPARE(m_mainWindow->m_tabWidget->currentIndex(), 1);
+
+    // In the details view mode directories can be expanded, which changes if openFiles() needs to open a new tab or not to open a file.
+    m_mainWindow->actionCollection()->action(QStringLiteral("details"))->trigger();
+    QTRY_VERIFY(m_mainWindow->activeViewContainer()->view()->itemsExpandable());
+
+    // Expand the already selected "b" with the right arrow key. This should make "c" visible.
+    QVERIFY2(!m_mainWindow->isItemVisibleInAnyView(testDirUrl + "/a/b/c"), "The parent folder wasn't expanded yet, so c shouldn't be visible.");
+    QTest::keyClick(m_mainWindow->activeViewContainer()->view()->m_container, Qt::Key::Key_Right);
+    QTRY_VERIFY(m_mainWindow->isItemVisibleInAnyView(testDirUrl + "/a/b/c"));
+    QVERIFY2(!m_mainWindow->isUrlOpen(testDirUrl + "/a/b"), "b is supposed to be expanded, however it shouldn't be open in its own tab.");
+    QVERIFY(m_mainWindow->isUrlOpen(testDirUrl + "/a"));
+
+    // Switch to first tab by opening it even though it is already open.
+    m_mainWindow->openDirectories({testDirUrl}, false);
+    QCOMPARE(m_mainWindow->m_tabWidget->count(), 2);
+    QCOMPARE(m_mainWindow->m_tabWidget->currentIndex(), 0);
+
+    // "c" is in view in the second tab because "b" is expanded there, so "opening" "c" should switch to that tab and select "c" there.
+    m_mainWindow->openFiles({testDirUrl + "/a/b/c"}, false);
+    QCOMPARE(m_mainWindow->m_tabWidget->count(), 2);
+    QCOMPARE(m_mainWindow->m_tabWidget->currentIndex(), 1);
+    QTRY_COMPARE(m_mainWindow->m_activeViewContainer->view()->selectedItems().count(), 1);
+    QVERIFY(m_mainWindow->isUrlOpen(testDirUrl));
+    QVERIFY(m_mainWindow->isUrlOpen(testDirUrl + "/a"));
+
+    // Opening the directory "c" on the other hand will open it in a new tab even though it is already visible in the view
+    // because openDirecories() and openFiles() serve different purposes. One opens views at urls, the other selects files within views.
+    m_mainWindow->openDirectories({testDirUrl + "/a/b/c/d", testDirUrl + "/a/b/c"}, true);
+    QCOMPARE(m_mainWindow->m_tabWidget->count(), 3);
+    QCOMPARE(m_mainWindow->m_tabWidget->currentIndex(), 2);
+    QVERIFY(m_mainWindow->m_tabWidget->currentTabPage()->splitViewEnabled());
+    QVERIFY(m_mainWindow->isItemVisibleInAnyView(testDirUrl + "/a/b/c")); // It should still be visible in the second tab.
+    QTRY_COMPARE(m_mainWindow->m_activeViewContainer->view()->selectedItems().count(), 0);
+    QVERIFY(m_mainWindow->isUrlOpen(testDirUrl + "/a/b/c/d"));
+    QVERIFY(m_mainWindow->isUrlOpen(testDirUrl + "/a/b/c"));
+
+    // "c" is in view in the second tab because "b" is expanded there,
+    // so "opening" "c" should switch to that tab even though "c" as a directory is open in the current tab.
+    m_mainWindow->openFiles({testDirUrl + "/a/b/c"}, false);
+    QCOMPARE(m_mainWindow->m_tabWidget->count(), 3);
+    QCOMPARE(m_mainWindow->m_tabWidget->currentIndex(), 1);
+    QVERIFY2(m_mainWindow->isItemVisibleInAnyView(testDirUrl + "/a/b/c/d"), "It should be visible in the secondary view of the third tab.");
+
+    // Select "b" and un-expand it with the left arrow key. This should make "c" invisible.
+    m_mainWindow->openFiles({testDirUrl + "/a/b"}, false);
+    QTest::keyClick(m_mainWindow->activeViewContainer()->view()->m_container, Qt::Key::Key_Left);
+    QTRY_VERIFY(!m_mainWindow->isItemVisibleInAnyView(testDirUrl + "/a/b/c"));
+
+    // "d" is in view in the third tab in the secondary view, so "opening" "d" should select that view.
+    m_mainWindow->openFiles({testDirUrl + "/a/b/c/d"}, false);
+    QCOMPARE(m_mainWindow->m_tabWidget->count(), 3);
+    QCOMPARE(m_mainWindow->m_tabWidget->currentIndex(), 2);
+    QVERIFY(m_mainWindow->m_tabWidget->currentTabPage()->secondaryViewContainer()->isActive());
+    QTRY_COMPARE(m_mainWindow->m_activeViewContainer->view()->selectedItems().count(), 1);
+}
+
+void DolphinMainWindowTest::testAccessibilityTree()
+{
+    m_mainWindow->openDirectories({QUrl::fromLocalFile(QDir::homePath())}, false);
+    m_mainWindow->show();
+#ifdef Q_OS_WIN
+    if (!QTest::qWaitForWindowExposed(m_mainWindow.data())) {
+        QSKIP("Window not exposed on Windows, probably running in a headless CI environment.");
+    }
+#else
+    QVERIFY(QTest::qWaitForWindowExposed(m_mainWindow.data()));
+#endif
+    QVERIFY(m_mainWindow->isVisible());
+    QTRY_VERIFY_WITH_TIMEOUT(QApplication::activeWindow() != nullptr, 100);
+
+    QAccessibleInterface *accessibleInterfaceOfMainWindow = QAccessible::queryAccessibleInterface(m_mainWindow.get());
+    Q_ASSERT(accessibleInterfaceOfMainWindow);
+
+    /// Test the accessibility of objects while traversing forwards (Tab key) and backwards (Shift+Tab).
+    int testedObjectsSizeAfterTraversingForwards = 0;
+    for (int i = 0; i < 2; i++) {
+        std::tuple<Qt::Key, Qt::KeyboardModifier> focusChainTraversalKeyCombination = {Qt::Key::Key_Tab, Qt::NoModifier};
+        if (i) {
+            focusChainTraversalKeyCombination = {Qt::Key::Key_Tab, Qt::ShiftModifier};
+        }
+
+        /// @see firstNamedAncestor below.
+        QAccessibleInterface *firstNamedAncestorOfPreviousIteration = nullptr;
+
+        /// Perform accessibility checks for every object that gets focus. Focus will be changed using the focusChainTraversalKeyCombination.
+        std::set<const QObject *> testedObjects; // Makes sure we stop testing when we arrive at an item that was already tested.
+        while (qApp->focusObject() && !testedObjects.count(qApp->focusObject())) {
+            const auto currentlyFocusedObject = qApp->focusObject();
+            const QAccessibleInterface *accessibleIntefaceOfCurrentlyFocusedObject = QAccessible::queryAccessibleInterface(currentlyFocusedObject);
+            QVERIFY(accessibleIntefaceOfCurrentlyFocusedObject);
+
+            /// Test that each object reachable by Tab or Shift+Tab has at least some accessible information. Objects without any accessible information
+            /// are even less useful to accessibility software users than unlabeled buttons are e.g. to sighted users, because unlabeled buttons at least
+            /// convey some information through their placement and icon.
+            if (currentlyFocusedObject != m_mainWindow->m_activeViewContainer->view()->m_container) { // Skip the custom container widget which has no
+                                                                                                      // accessible name on purpose.
+                /**
+                 * The first ancestor with an accessible name is interesting because it is sometimes used to identify an object if the object itself has no
+                 * name. We keep it in mind to check if two subsequent objects without a name can at least be told apart by their first named ancestor.
+                 */
+                QAccessibleInterface *firstNamedAncestor = accessibleIntefaceOfCurrentlyFocusedObject->parent();
+                while (firstNamedAncestor) {
+                    if (!firstNamedAncestor->text(QAccessible::Name).isEmpty()) {
+                        break;
+                    }
+                    firstNamedAncestor = firstNamedAncestor->parent();
+                }
+                QTRY_VERIFY2(!accessibleIntefaceOfCurrentlyFocusedObject->text(QAccessible::Name).isEmpty()
+                                 || (firstNamedAncestor && firstNamedAncestor != firstNamedAncestorOfPreviousIteration),
+                             qPrintable(QStringLiteral("%1's accessibleInterface does not have an accessible name and can not be distinguished from the object"
+                                                       " that had focus previously. Please fix this. You can find this %1 within its parent %2.")
+                                            .arg(currentlyFocusedObject->metaObject()->className())
+                                            .arg(currentlyFocusedObject->parent()->metaObject()->className())));
+                firstNamedAncestorOfPreviousIteration = firstNamedAncestor;
+            }
+
+            /// Test that each accessible interface has the main window as its parent.
+            QAccessibleInterface *accessibleInterface = QAccessible::queryAccessibleInterface(currentlyFocusedObject);
+            // The accessibleInterfaces of focused objects might themselves have children.
+            // We go down that hierarchy as far as possible and then test the ancestor tree from there.
+            while (accessibleInterface->childCount() > 0) {
+                accessibleInterface = accessibleInterface->child(0);
+            }
+            while (accessibleInterface != accessibleInterfaceOfMainWindow) {
+                QVERIFY2(accessibleInterface,
+                         qPrintable(QStringLiteral("%1's accessibleInterface or one of its accessible children doesn't have the main window as an ancestor.")
+                                        .arg(currentlyFocusedObject->metaObject()->className())));
+                accessibleInterface = accessibleInterface->parent();
+            }
+
+            testedObjects.insert(currentlyFocusedObject); // Add it to testedObjects so we won't test it again later.
+            QTest::keyClick(m_mainWindow.get(), std::get<0>(focusChainTraversalKeyCombination), std::get<1>(focusChainTraversalKeyCombination));
+            QVERIFY2(currentlyFocusedObject != qApp->focusObject(),
+                     "The focus chain is broken. The focused object should have changed after pressing the focusChainTraversalKeyCombination.");
+        }
+
+        if (i == 0) {
+            testedObjectsSizeAfterTraversingForwards = testedObjects.size();
+        } else {
+            QCOMPARE(testedObjects.size(), testedObjectsSizeAfterTraversingForwards); // The size after traversing backwards is different than
+                                                                                      // after going forwards which is probably not intended.
+        }
+    }
+    QCOMPARE_GE(testedObjectsSizeAfterTraversingForwards, 10); // The test did not reach many objects while using the Tab key to move through Dolphin. Did the
+                                                               // test run correctly?
+}
+
+void DolphinMainWindowTest::testAutoSaveSession()
+{
+    m_mainWindow->openDirectories({QUrl::fromLocalFile(QDir::homePath())}, false);
+    m_mainWindow->show();
+#ifdef Q_OS_WIN
+    if (!QTest::qWaitForWindowExposed(m_mainWindow.data())) {
+        QSKIP("Window not exposed on Windows, probably running in a headless CI environment.");
+    }
+#else
+    QVERIFY(QTest::qWaitForWindowExposed(m_mainWindow.data()));
+#endif
+    QVERIFY(m_mainWindow->isVisible());
+
+    // Create config file
+    KConfigGui::setSessionConfig(QStringLiteral("dolphin"), QStringLiteral("dolphin"));
+    KConfig *config = KConfigGui::sessionConfig();
+    m_mainWindow->saveGlobalProperties(config);
+    m_mainWindow->savePropertiesInternal(config, 1);
+    config->sync();
+
+    // Setup watcher for config file changes
+    const QString configFileName = QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) + "/" + KConfigGui::sessionConfig()->name();
+    QFileSystemWatcher *configWatcher = new QFileSystemWatcher({configFileName}, this);
+    QSignalSpy spySessionSaved(configWatcher, &QFileSystemWatcher::fileChanged);
+
+    // Enable session autosave.
+    m_mainWindow->setSessionAutoSaveEnabled(true);
+    m_mainWindow->m_sessionSaveTimer->setInterval(200); // Lower the interval to speed up the testing
+
+    // Open a new tab
+    auto tabWidget = m_mainWindow->findChild<DolphinTabWidget *>("tabWidget");
+    QVERIFY(tabWidget);
+    tabWidget->openNewActivatedTab(QUrl::fromLocalFile(QDir::tempPath()));
+    QCOMPARE(tabWidget->count(), 2);
+
+    // Wait till a session save occurs
+    QVERIFY(spySessionSaved.wait(60000));
+
+    // Disable session autosave.
+    m_mainWindow->setSessionAutoSaveEnabled(false);
+}
+
+void DolphinMainWindowTest::testInlineRename()
+{
+    QScopedPointer<TestDir> testDir{new TestDir()};
+    testDir->createFiles({"aaaa", "bbbb", "cccc", "dddd"});
+    m_mainWindow->openDirectories({testDir->url()}, false);
+    m_mainWindow->show();
+#ifdef Q_OS_WIN
+    if (!QTest::qWaitForWindowExposed(m_mainWindow.data())) {
+        QSKIP("Window not exposed on Windows, probably running in a headless CI environment.");
+    }
+#else
+    QVERIFY(QTest::qWaitForWindowExposed(m_mainWindow.data()));
+#endif
+    QVERIFY(m_mainWindow->isVisible());
+
+    DolphinView *view = m_mainWindow->activeViewContainer()->view();
+    QSignalSpy viewDirectoryLoadingCompletedSpy(view, &DolphinView::directoryLoadingCompleted);
+    QSignalSpy itemsReorderedSpy(view->m_model, &KFileItemModel::itemsMoved);
+    QSignalSpy modelDirectoryLoadingCompletedSpy(view->m_model, &KFileItemModel::directoryLoadingCompleted);
+
+    QVERIFY(viewDirectoryLoadingCompletedSpy.wait());
+    QTest::qWait(500); // UNAVOIDABLE: view must be fully settled before inline rename sequence
+    view->markUrlsAsSelected({QUrl(testDir->url().toString() + "/aaaa")});
+    view->updateViewState();
+    view->renameSelectedItems();
+    QTest::keyClick(QApplication::focusWidget(), Qt::Key_Left);
+    QTest::keyClick(QApplication::focusWidget(), Qt::Key_E);
+    QTest::keyClick(QApplication::focusWidget(), Qt::Key_Down);
+
+    QVERIFY(itemsReorderedSpy.wait());
+    QVERIFY(view->m_view->m_editingRole);
+    KItemListWidget *widget = view->m_view->m_visibleItems.value(view->m_view->firstVisibleIndex());
+    QVERIFY(!widget->editedRole().isEmpty());
+
+    QTest::keyClick(QApplication::focusWidget(), Qt::Key_Left);
+    QTest::keyClick(QApplication::focusWidget(), Qt::Key_A);
+    QTest::keyClick(QApplication::focusWidget(), Qt::Key_Down);
+    QTest::keyClick(QApplication::focusWidget(), Qt::Key_Down);
+    QTest::keyClick(QApplication::focusWidget(), Qt::Key_Left);
+    QTest::keyClick(QApplication::focusWidget(), Qt::Key_A);
+    QTest::keyClick(QApplication::focusWidget(), Qt::Key_Down);
+
+    QVERIFY(itemsReorderedSpy.wait());
+    QVERIFY(view->m_view->m_editingRole);
+    widget = view->m_view->m_visibleItems.value(view->m_view->lastVisibleIndex());
+    QVERIFY(!widget->editedRole().isEmpty());
+
+    QTest::keyClick(QApplication::focusWidget(), Qt::Key_Escape);
+    QVERIFY(widget->isCurrent());
+    view->m_model->refreshDirectory(testDir->url());
+    QVERIFY(modelDirectoryLoadingCompletedSpy.wait());
+
+    QCOMPARE(view->m_model->fileItem(0).name(), "abbbb");
+    QCOMPARE(view->m_model->fileItem(1).name(), "adddd");
+    QCOMPARE(view->m_model->fileItem(2).name(), "cccc");
+    QCOMPARE(view->m_model->fileItem(3).name(), "eaaaa");
+    QCOMPARE(view->m_model->count(), 4);
+}
+
+void DolphinMainWindowTest::testThumbnailAfterRename()
+{
+    // Create testdir and red square jpg for testing
+    QScopedPointer<TestDir> testDir{new TestDir()};
+    QImage testImage(256, 256, QImage::Format_Mono);
+    testImage.setColorCount(1);
+    testImage.setColor(0, qRgba(255, 0, 0, 255)); // Index #0 = Red
+    for (short x = 0; x < 256; ++x) {
+        for (short y = 0; y < 256; ++y) {
+            testImage.setPixel(x, y, 0);
+        }
+    }
+    testImage.save(testDir.data()->path() + "/a.jpg");
+
+    // Open dir and show it
+    m_mainWindow->openDirectories({testDir->url()}, false);
+    DolphinView *view = m_mainWindow->activeViewContainer()->view();
+    // Prepare signal spies
+    QSignalSpy viewDirectoryLoadingCompletedSpy(view, &DolphinView::directoryLoadingCompleted);
+    QSignalSpy itemsChangedSpy(view->m_model, &KFileItemModel::itemsChanged);
+    QSignalSpy modelDirectoryLoadingCompletedSpy(view->m_model, &KFileItemModel::directoryLoadingCompleted);
+    QSignalSpy previewUpdatedSpy(view->m_view->m_modelRolesUpdater, &KFileItemModelRolesUpdater::previewJobFinished);
+    // Show window and check that our preview has been updated, then wait for it to appear
+    m_mainWindow->show();
+    QVERIFY(viewDirectoryLoadingCompletedSpy.wait());
+    QVERIFY(previewUpdatedSpy.wait());
+#ifdef Q_OS_WIN
+    if (!QTest::qWaitForWindowExposed(m_mainWindow.data())) {
+        QSKIP("Window not exposed on Windows, probably running in a headless CI environment.");
+    }
+#else
+    QVERIFY(QTest::qWaitForWindowExposed(m_mainWindow.data()));
+#endif
+    QVERIFY(m_mainWindow->isVisible());
+    QTRY_COMPARE(view->m_view->m_visibleItems.count(), view->m_model->count()); // wait for all file widgets to be laid out
+
+    // Set image selected and rename it to b.jpg, make sure editing role is working
+    view->markUrlsAsSelected({QUrl(testDir->url().toString() + "/a.jpg")});
+    view->updateViewState();
+    view->renameSelectedItems();
+    QVERIFY(view->m_view->m_editingRole);
+    QTest::keyClick(QApplication::focusWidget(), Qt::Key_B);
+    QTest::keyClick(QApplication::focusWidget(), Qt::Key_Enter);
+    QVERIFY(itemsChangedSpy.wait()); // Make sure that rename worked
+    QVERIFY(!view->m_view->m_editingRole);
+
+    // The renamed file must still show a thumbnail afterwards. Don't require a fresh preview
+    // job to run: a rename keeps the file's content and its already-correct thumbnail, so
+    // whether a new job is dispatched is timing- and platform-dependent.
+    const int renamedIndex = view->m_model->index(QUrl(testDir->url().toString() + "/b.jpg"));
+    QVERIFY(renamedIndex >= 0);
+    QTRY_VERIFY(!view->m_model->data(renamedIndex).value("iconPixmap").value<QPixmap>().isNull());
+    QCOMPARE(view->m_model->fileItem(renamedIndex).name(), "b.jpg");
+    QCOMPARE(view->m_model->count(), 1);
+}
+
+void DolphinMainWindowTest::testViewModeAfterDynamicView()
+{
+    GeneralSettings *settings = GeneralSettings::self();
+    settings->setGlobalViewProps(true);
+    settings->setDynamicView(true);
+    settings->save();
+
+    // prepare test data
+    QScopedPointer<TestDir> testDir{new TestDir()};
+    QString testDirUrl(QDir::cleanPath(testDir->url().toString()));
+    testDir->createDir("a");
+    QImage testImage(256, 256, QImage::Format_Mono);
+    testImage.setColorCount(1);
+    testImage.setColor(0, qRgba(255, 0, 0, 255)); // Index #0 = Red
+    for (short x = 0; x < 256; ++x) {
+        for (short y = 0; y < 256; ++y) {
+            testImage.setPixel(x, y, 0);
+        }
+    }
+    testImage.save(testDir->url().path() + "/a/1.jpg");
+
+    // open test dir and set default view mode to "Details"
+    m_mainWindow->openDirectories({testDirUrl}, false);
+    DolphinView *view = m_mainWindow->activeViewContainer()->view();
+    QSignalSpy viewDirectoryLoadingCompletedSpy(view, &DolphinView::directoryLoadingCompleted);
+    QSignalSpy modelDirectoryLoadingCompletedSpy(view->m_model, &KFileItemModel::directoryLoadingCompleted);
+    m_mainWindow->show();
+    QVERIFY(viewDirectoryLoadingCompletedSpy.wait());
+#ifdef Q_OS_WIN
+    if (!QTest::qWaitForWindowExposed(m_mainWindow.data())) {
+        QSKIP("Window not exposed on Windows, probably running in a headless CI environment.");
+    }
+#else
+    QVERIFY(QTest::qWaitForWindowExposed(m_mainWindow.data()));
+#endif
+    QVERIFY(m_mainWindow->isVisible());
+    m_mainWindow->actionCollection()->action(QStringLiteral("details"))->trigger();
+    QCOMPARE(view->m_mode, DolphinView::DetailsView);
+
+    // move to child folder and check that dynamic view changed view mode to icons
+    m_mainWindow->openFiles({testDirUrl + "/a"}, false);
+    view->m_model->loadDirectory(QUrl(testDirUrl + "/a"));
+    view->setUrl(QUrl(testDirUrl + "/a"));
+    QVERIFY(viewDirectoryLoadingCompletedSpy.wait());
+    QTRY_COMPARE_WITH_TIMEOUT(view->m_mode, DolphinView::IconsView, 200);
+
+    // go back to parent folder and check that view mode reverted to details
+    m_mainWindow->actionCollection()->action(KStandardAction::name(KStandardAction::Back))->trigger();
+    view->m_model->loadDirectory(testDir->url());
+    view->setUrl(testDir->url());
+    QVERIFY(viewDirectoryLoadingCompletedSpy.wait());
+    QTRY_COMPARE_WITH_TIMEOUT(view->m_mode, DolphinView::DetailsView, 200);
+
+    // test for local views
+    settings->setGlobalViewProps(false);
+    settings->save();
+
+    // go to child folder and check DynamicViewPassed key in view properties as well as view mode
+    m_mainWindow->openFiles({testDirUrl + "/a"}, false);
+    view->m_model->loadDirectory(QUrl(testDirUrl + "/a"));
+    view->setUrl(QUrl(testDirUrl + "/a"));
+    QVERIFY(viewDirectoryLoadingCompletedSpy.wait());
+    QTRY_COMPARE_WITH_TIMEOUT(view->m_mode, DolphinView::IconsView, 100);
+    QTRY_VERIFY_WITH_TIMEOUT(ViewProperties(view->viewPropertiesUrl()).dynamicViewPassed(), 200);
+
+    // change view mode of child folder to "Details"
+    m_mainWindow->actionCollection()->action(QStringLiteral("details"))->trigger();
+    QCOMPARE(view->m_mode, DolphinView::DetailsView);
+
+    // go back to parent folder
+    m_mainWindow->actionCollection()->action(KStandardAction::name(KStandardAction::Back))->trigger();
+    view->m_model->loadDirectory(testDir->url());
+    view->setUrl(testDir->url());
+    QVERIFY(modelDirectoryLoadingCompletedSpy.wait());
+    QCOMPARE(view->m_mode, DolphinView::DetailsView);
+    QVERIFY(!ViewProperties(view->viewPropertiesUrl()).dynamicViewPassed());
+
+    // store parent current zoom level
+    const int parentZoomLevel = view->zoomLevel();
+
+    // go to child folder and make sure view mode change to "Details" is permanent
+    m_mainWindow->openFiles({testDirUrl + "/a"}, false);
+    view->m_model->loadDirectory(QUrl(testDirUrl + "/a"));
+    view->setUrl(QUrl(testDirUrl + "/a"));
+    QVERIFY(modelDirectoryLoadingCompletedSpy.wait());
+    QCOMPARE(view->m_mode, DolphinView::DetailsView);
+    QVERIFY(ViewProperties(view->viewPropertiesUrl()).dynamicViewPassed());
+
+    // still on child, change view zoom level
+    const int childZoomLevel = view->zoomLevel() + 2;
+    view->setZoomLevel(childZoomLevel);
+
+    // go back to parent folder and check for zoom level
+    m_mainWindow->actionCollection()->action(KStandardAction::name(KStandardAction::Back))->trigger();
+    view->m_model->loadDirectory(testDir->url());
+    view->setUrl(testDir->url());
+    QVERIFY(modelDirectoryLoadingCompletedSpy.wait());
+    QCOMPARE(view->zoomLevel(), parentZoomLevel);
+    QVERIFY(!ViewProperties(view->viewPropertiesUrl()).dynamicViewPassed());
+
+    // go to child and check if zoom level is permanent
+    m_mainWindow->openFiles({testDirUrl + "/a"}, false);
+    view->m_model->loadDirectory(QUrl(testDirUrl + "/a"));
+    view->setUrl(QUrl(testDirUrl + "/a"));
+    QVERIFY(modelDirectoryLoadingCompletedSpy.wait());
+    QCOMPARE(view->zoomLevel(), childZoomLevel);
+    QVERIFY(ViewProperties(view->viewPropertiesUrl()).dynamicViewPassed());
+
+    // test for global views
+    settings->setGlobalViewProps(true);
+    settings->save();
+    QVERIFY(GeneralSettings::globalViewProps());
+
+    // go back to parent folder and set zoom level
+    m_mainWindow->actionCollection()->action(KStandardAction::name(KStandardAction::Back))->trigger();
+    view->m_model->loadDirectory(testDir->url());
+    view->setUrl(testDir->url());
+    QVERIFY(modelDirectoryLoadingCompletedSpy.wait());
+
+    // zoom isn't changed
+    QCOMPARE(view->zoomLevel(), childZoomLevel);
+
+    // change the zoom
+    view->setZoomLevel(parentZoomLevel + 1);
+    QCOMPARE(view->zoomLevel(), parentZoomLevel + 1);
+    QVERIFY(!ViewProperties(view->viewPropertiesUrl()).dynamicViewPassed());
+
+    // go to child and check if zoom level remains the same
+    m_mainWindow->openFiles({testDirUrl + "/a"}, false);
+    view->m_model->loadDirectory(QUrl(testDirUrl + "/a"));
+    view->setUrl(QUrl(testDirUrl + "/a"));
+    QVERIFY(modelDirectoryLoadingCompletedSpy.wait());
+
+    ViewModeSettings modeDefaultSettings{DolphinView::IconsView};
+    auto defaultPreviewIconSize = modeDefaultSettings.previewSize();
+    auto defaultPreviewZoom = ZoomLevelInfo::zoomLevelForIconSize(QSize(defaultPreviewIconSize, defaultPreviewIconSize));
+    // dynamic view works
+    QCOMPARE(view->m_mode, DolphinView::IconsView);
+    QCOMPARE(view->zoomLevel(), defaultPreviewZoom);
+    // that's the global settings, no dynamicViewPassed saved
+    QVERIFY(!ViewProperties(view->viewPropertiesUrl()).dynamicViewPassed());
+}
+
+void DolphinMainWindowTest::testActivationAndTabTitleAfterRenameOpeningFolder()
+{
+    QScopedPointer<TestDir> testDir{new TestDir()};
+    testDir->createDir("a");
+    const QUrl parentDirUrl = QUrl::fromLocalFile(testDir->url().toLocalFile());
+    const QUrl childDirUrl = QUrl::fromLocalFile(testDir->url().toLocalFile() + "/a");
+
+    auto tabWidget = m_mainWindow->findChild<DolphinTabWidget *>("tabWidget");
+    QVERIFY(tabWidget);
+
+    // Tab 0: Open childDirUrl
+    m_mainWindow->openDirectories({childDirUrl}, false);
+    m_mainWindow->show();
+#ifdef Q_OS_WIN
+    if (!QTest::qWaitForWindowExposed(m_mainWindow.data())) {
+        QSKIP("Window not exposed on Windows, probably running in a headless CI environment.");
+    }
+#else
+    QVERIFY(QTest::qWaitForWindowExposed(m_mainWindow.data()));
+#endif
+    QVERIFY(m_mainWindow->isVisible());
+
+    // Tab 0: Enable split view
+    m_mainWindow->actionCollection()->action(QStringLiteral("split_view"))->setChecked(true);
+    m_mainWindow->actionCollection()->action(QStringLiteral("split_view"))->trigger();
+    QVERIFY(tabWidget->currentTabPage()->splitViewEnabled());
+
+    // Tab 1: Open childDirUrl
+    tabWidget->openNewActivatedTab(childDirUrl);
+
+    // Tab 1: Open parentDirUrl in right view
+    m_mainWindow->actionCollection()->action(QStringLiteral("split_view"))->setChecked(true);
+    m_mainWindow->actionCollection()->action(QStringLiteral("split_view"))->trigger();
+    QVERIFY(tabWidget->currentTabPage()->splitViewEnabled());
+
+    DolphinView *view = m_mainWindow->activeViewContainer()->view();
+    view->m_model->loadDirectory(parentDirUrl);
+    view->setUrl(parentDirUrl);
+
+    // Check current view is right view
+    QVERIFY(tabWidget->currentTabPage()->secondaryViewContainer()->isActive());
+
+    // Check all tab titles are correct
+    // Tab 0: (a) | a
+    // Tab 1: (a) | parentDir
+    const QString parentDirName = QFileInfo(parentDirUrl.toString()).fileName();
+    const QString childDirName = QFileInfo(childDirUrl.toString()).fileName();
+    const QString expectedTab0Title = QStringLiteral("(%1) | %2").arg(childDirName, childDirName);
+    const QString expectedTab1Title = QStringLiteral("(%1) | %2").arg(childDirName, parentDirName);
+    QCOMPARE(tabWidget->tabText(0), expectedTab0Title);
+    QCOMPARE(tabWidget->tabText(1), expectedTab1Title);
+
+    // Prepare signal spies
+    QSignalSpy viewDirectoryLoadingCompletedSpy(view, &DolphinView::directoryLoadingCompleted);
+    QSignalSpy itemsChangedSpy(view->m_model, &KFileItemModel::itemsChanged);
+
+    QVERIFY(viewDirectoryLoadingCompletedSpy.wait());
+
+    // Rename child dir to "b"
+    view->markUrlsAsSelected({childDirUrl});
+    view->updateViewState();
+    view->renameSelectedItems(); // Rename inline
+
+    QTest::keyClick(QApplication::focusWidget(), Qt::Key_B);
+    QTest::keyClick(QApplication::focusWidget(), Qt::Key_Enter);
+    QVERIFY(itemsChangedSpy.wait()); // Make sure that rename worked
+    QVERIFY(viewDirectoryLoadingCompletedSpy.wait()); // and the directory has finished loading
+
+    // Check current view is right view
+    QVERIFY(tabWidget->currentTabPage()->secondaryViewContainer()->isActive());
+
+    // Check navigator in left view is inactive
+    auto leftViewNavigator = tabWidget->currentTabPage()->primaryViewContainer()->urlNavigator();
+    QVERIFY(!leftViewNavigator->isActive());
+
+    // Check all tab titles are correct after rename
+    // Tab 0: (b) | b
+    // Tab 1: (b) | parentDir
+    const QString newChildDirName = QStringLiteral("b");
+    const QString expectedNewTab0Title = QStringLiteral("(%1) | %2").arg(newChildDirName, newChildDirName);
+    const QString expectedNewTab1Title = QStringLiteral("(%1) | %2").arg(newChildDirName, parentDirName);
+    QCOMPARE(tabWidget->tabText(0), expectedNewTab0Title);
+    QCOMPARE(tabWidget->tabText(1), expectedNewTab1Title);
+}
+
+// slotViewActivated() must follow the view that emitted activated(). It used to toggle
+// m_primaryViewActive instead, so once that flag and a view's own active state disagreed, the
+// next activation set the other pane active and shortcuts went to the wrong one.
+void DolphinMainWindowTest::testActiveViewFollowsTheActivatedView()
+{
+    m_mainWindow->openDirectories({QUrl::fromLocalFile(QDir::homePath())}, false);
+    m_mainWindow->show();
+    QVERIFY(QTest::qWaitForWindowExposed(m_mainWindow.data()));
+
+    auto tabWidget = m_mainWindow->findChild<DolphinTabWidget *>("tabWidget");
+    QVERIFY(tabWidget);
+    m_mainWindow->actionCollection()->action(QStringLiteral("split_view"))->trigger();
+    auto tabPage = tabWidget->currentTabPage();
+    QVERIFY(tabPage->splitViewEnabled());
+
+    // Make the left pane the active one, as a click in it would.
+    tabPage->primaryViewContainer()->setActive(true);
+    QVERIFY(tabPage->primaryViewActive());
+
+    // Make the two disagree: the view is no longer active, but m_primaryViewActive still names it.
+    tabPage->primaryViewContainer()->view()->setActive(false);
+    QVERIFY(tabPage->primaryViewActive());
+
+    // Activating the left pane again must leave it active, not switch to the right one.
+    tabPage->primaryViewContainer()->view()->setActive(true);
+    QVERIFY(tabPage->primaryViewActive());
+    QCOMPARE(tabPage->activeViewContainer(), tabPage->primaryViewContainer());
+    QCOMPARE(m_mainWindow->activeViewContainer(), tabPage->primaryViewContainer());
+}
+
+// Test that switching tabs does not spuriously toggle which split-view pane is active.
+// Regression test for the bug where DolphinTabPage::setActive(true) during tab switch
+// caused DolphinView::activated() to reach slotViewActivated(), which toggled
+// m_primaryViewActive and connected MainWindow signals to the wrong view container.
+void DolphinMainWindowTest::testActiveViewAfterTabSwitchWithSplitView()
+{
+    m_mainWindow->openDirectories({QUrl::fromLocalFile(QDir::homePath())}, false);
+    m_mainWindow->show();
+#ifdef Q_OS_WIN
+    if (!QTest::qWaitForWindowExposed(m_mainWindow.data())) {
+        QSKIP("Window not exposed on Windows, probably running in a headless CI environment.");
+    }
+#else
+    QVERIFY(QTest::qWaitForWindowExposed(m_mainWindow.data()));
+#endif
+    QVERIFY(m_mainWindow->isVisible());
+
+    auto tabWidget = m_mainWindow->findChild<DolphinTabWidget *>("tabWidget");
+    QVERIFY(tabWidget);
+
+    // Enable split view on the first tab. After this, the secondary (right) pane
+    // becomes active via slotViewActivated(), so primaryViewActive() is false.
+    m_mainWindow->actionCollection()->action(QStringLiteral("split_view"))->trigger();
+    QVERIFY(tabWidget->currentTabPage()->splitViewEnabled());
+    QVERIFY(!tabWidget->currentTabPage()->primaryViewActive());
+    auto firstTabPage = tabWidget->currentTabPage();
+    auto firstTabSecondary = firstTabPage->secondaryViewContainer();
+    QVERIFY(firstTabSecondary->isActive());
+
+    // Open a second tab and switch to it.
+    tabWidget->openNewActivatedTab(QUrl::fromLocalFile(QDir::homePath()));
+    QCOMPARE(tabWidget->count(), 2);
+    QCOMPARE(tabWidget->currentIndex(), 1);
+
+    // Spy on activeViewChanged to count emissions during the tab switch back.
+    QSignalSpy activeViewChangedSpy(tabWidget, &DolphinTabWidget::activeViewChanged);
+
+    // Switch back to the first tab.
+    tabWidget->setCurrentIndex(0);
+    QCOMPARE(tabWidget->currentTabPage(), firstTabPage);
+
+    // activeViewChanged must be emitted exactly once — by currentTabChanged itself.
+    // A spurious second emission would indicate slotViewActivated() fired during
+    // the programmatic setActive(true) and toggled m_primaryViewActive.
+    QCOMPARE(activeViewChangedSpy.count(), 1);
+
+    // The secondary pane must still be the designated active one.
+    QVERIFY(!firstTabPage->primaryViewActive());
+    QCOMPARE(firstTabPage->activeViewContainer(), firstTabSecondary);
+    QVERIFY(firstTabSecondary->isActive());
+    QVERIFY(!firstTabPage->primaryViewContainer()->isActive());
+}
+
+void DolphinMainWindowTest::cleanupTestCase()
+{
+    m_mainWindow->showNormal();
+    m_mainWindow->actionCollection()->action(QStringLiteral("split_view"))->setChecked(false); // disable split view (starts animation)
+
+#if HAVE_BALOO
+    m_mainWindow->actionCollection()->action(QStringLiteral("show_information_panel"))->setChecked(false); // hide panel
+#endif
+
+#if HAVE_TERMINAL
+    m_mainWindow->actionCollection()->action(QStringLiteral("show_terminal_panel"))->setChecked(false); // hide panel
+#endif
+
+    // Quit Dolphin to save the hiding of panels and make sure that normal Quit doesn't crash.
+    m_mainWindow->actionCollection()->action(KStandardAction::name(KStandardAction::Quit))->trigger();
+}
+
+int main(int argc, char *argv[])
+{
+    // Force the English locale before QApplication and any translation lookup, so that
+    // tests comparing user-visible strings (such as window titles) do not depend on the
+    // language configured on the developer's or CI machine.
+    qputenv("LANG", "C.UTF-8");
+    qputenv("LANGUAGE", "en_US");
+    qputenv("LC_ALL", "C.UTF-8");
+
+    QApplication app(argc, argv);
+    app.setAttribute(Qt::AA_Use96Dpi, true);
+    QTEST_SET_MAIN_SOURCE_PATH
+    DolphinMainWindowTest tc;
+    return QTest::qExec(&tc, argc, argv);
+}
+
+#include "dolphinmainwindowtest.moc"

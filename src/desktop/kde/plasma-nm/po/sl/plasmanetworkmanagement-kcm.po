@@ -1,0 +1,269 @@
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Andrej Mernik <andrejm@ubuntu.si>, 2017, 2018.
+# Matjaž Jeran <matjaz.jeran@amis.net>, 2020, 2021, 2022, 2023.
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-29 03:06+0000\n"
+"PO-Revision-Date: 2025-11-20 07:30+0100\n"
+"Last-Translator: Matjaž Jeran <matjaz.jeran@amis.net>\n"
+"Language-Team: Slovenian <lugos-slo@lugos.si>\n"
+"Language: sl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n%100==1 ? 1 : n%100==2 ? 2 : n%100==3 || n"
+"%100==4 ? 3 : 0);\n"
+"Translator: Andrej Mernik <andrejm@ubuntu.si>\n"
+"X-Generator: Poedit 3.8\n"
+
+#: kcm.cpp:269
+#, kde-format
+msgid "Import the VPN configuration from \"%1\"?"
+msgstr "Uvozi konfiguracijo VPN iz \"%1\"?"
+
+#: kcm.cpp:270
+#, kde-format
+msgctxt "@title:window"
+msgid "Import VPN Configuration"
+msgstr "Uvozi konfiguracijo VPN"
+
+#: kcm.cpp:271
+#, kde-format
+msgid "Import"
+msgstr "Uvozi"
+
+#: kcm.cpp:278 kcm.cpp:351
+#, kde-format
+msgid "Failed to import VPN connection: %1"
+msgstr "Neuspel uvoz povezave VPN: %1"
+
+#: kcm.cpp:281 kcm.cpp:354
+#, kde-format
+msgid "Connection imported."
+msgstr "Povezava uvožena."
+
+#: kcm.cpp:423
+#, kde-format
+msgid "my_shared_connection"
+msgstr "moja_deljena_povezava"
+
+#: kcm.cpp:495
+#, kde-format
+msgid "Export VPN Connection"
+msgstr "Izvozi povezavo VPN"
+
+#: kcm.cpp:515
+#, kde-format
+msgid "Do you want to save changes made to the connection '%1'?"
+msgstr "Ali želite shraniti spremembe povezave '%1'?"
+
+#: kcm.cpp:516
+#, kde-format
+msgctxt "@title:window"
+msgid "Save Changes"
+msgstr "Shrani spremembe"
+
+#: kcm.cpp:611
+#, kde-format
+msgid "Import VPN Connection"
+msgstr "Uvozi povezavo VPN"
+
+#: kcm.cpp:613
+#, kde-format
+msgid "VPN connections (%1)"
+msgstr "Povezave VPN (%1)"
+
+#: kcm.cpp:616
+#, kde-format
+msgid "No file was provided"
+msgstr "Ni dane datoteke"
+
+#: kcm.cpp:684
+#, kde-format
+msgid "Unknown VPN type"
+msgstr "Neznana vrsta VPN"
+
+#: qml/AddConnectionDialog.qml:18
+msgctxt "@title:window"
+msgid "Choose a Connection Type"
+msgstr "Izberite vrsto povezave"
+
+#: qml/ConfigurationDialog.qml:20
+msgctxt "@title:window"
+msgid "Configuration"
+msgstr "Nastavitev"
+
+#: qml/ConfigurationDialog.qml:35
+msgid "General"
+msgstr "Splošno"
+
+#: qml/ConfigurationDialog.qml:43
+msgid "Ask for PIN on modem detection"
+msgstr "Pri zaznavanju modema vprašaj za PIN"
+
+#: qml/ConfigurationDialog.qml:50
+msgid "Show virtual connections"
+msgstr "Pokaži navidezne povezave"
+
+#: qml/ConfigurationDialog.qml:57
+msgid "Create new connections as system connections"
+msgstr "Ustvarjaj nove povezave kot sistemske povezave"
+
+#: qml/ConfigurationDialog.qml:62
+msgid "Hotspot"
+msgstr "Vroča točka"
+
+#: qml/ConfigurationDialog.qml:70
+msgctxt "@label Hotspot name"
+msgid "Name:"
+msgstr "Ime:"
+
+#: qml/ConfigurationDialog.qml:76
+msgctxt "@label Hotspot password"
+msgid "Password:"
+msgstr "Geslo:"
+
+#: qml/ConfigurationDialog.qml:95
+msgid "Hotspot name must not be empty"
+msgstr "Ime vroče točke ne sme biti prazno"
+
+#: qml/ConfigurationDialog.qml:105
+msgid ""
+"Hotspot password must either be empty or consist of anywhere from 8 up to 64 "
+"characters"
+msgstr ""
+"Geslo dostopne točke mora biti ali prazno ali pa mora vsebovati od 8 do 64 "
+"znakov"
+
+#: qml/ConfigurationDialog.qml:106
+msgid ""
+"Hotspot password must either be empty or consist of one of the following:"
+"<ul><li>Exactly 5 or 13 any characters</li><li>Exactly 10 or 26 hexadecimal "
+"characters:<br/>abcdef, ABCDEF or 0-9</li></ul>"
+msgstr ""
+"Geslo dostopne točke mora biti ali prazno ali sestavljeno iz enega od "
+"naslednjega:<ul><li>Natančno 5 ali 13 poljubnih znakov</li><li>Natančno 10 "
+"ali 26 šestnajstiških znakov:<br/>abcdef, ABCDEF ali 0- 9</li></ul>"
+
+#. i18n is a way to use something pre-exposed to QML.
+#: qml/ConnectionItem.qml:29
+msgctxt "@label/rich"
+msgid "%1"
+msgstr "%1"
+
+#: qml/ConnectionItem.qml:85
+msgid "Connect"
+msgstr "Poveži se"
+
+#: qml/ConnectionItem.qml:85
+msgid "Disconnect"
+msgstr "Prekini povezavo"
+
+#: qml/ConnectionItem.qml:90
+msgctxt "@info:tooltip"
+msgid "Cannot connect to this network because it was not detected."
+msgstr "S tem omrežjem se ni mogoče povezati, ker ni bilo zaznano."
+
+#: qml/ConnectionItem.qml:95
+msgid "Delete"
+msgstr "Izbriši"
+
+#: qml/ConnectionItem.qml:106
+msgid "Export"
+msgstr "Izvozi"
+
+#: qml/ConnectionItem.qml:120
+msgid "Connected"
+msgstr "Povezano"
+
+#: qml/ConnectionItem.qml:122
+msgid "Connecting"
+msgstr "Povezovanje"
+
+#: qml/ConnectionItem.qml:124
+msgctxt "@title:column Available networks"
+msgid "Available"
+msgstr "Na voljo"
+
+#: qml/main.qml:151
+msgid "Add new connection"
+msgstr "Dodaj novo povezavo"
+
+#: qml/main.qml:169
+msgid "Remove selected connection"
+msgstr "Odstrani izbrano povezavo"
+
+#: qml/main.qml:187
+msgid "Export selected connection"
+msgstr "Izvozi izbrano povezavo"
+
+#: qml/main.qml:212
+msgid "Configuration"
+msgstr "Nastavitev"
+
+#: qml/main.qml:239
+msgctxt "@title:window"
+msgid "Remove Connection"
+msgstr "Odstrani povezavo"
+
+#: qml/main.qml:240
+msgid "Do you want to remove the connection '%1'?"
+msgstr "Ali želite odstraniti povezavo '%1'?"
+
+#: qml/main.qml:262
+msgctxt "@action:button Connect to network"
+msgid "Connect"
+msgstr "Poveži se"
+
+#: qml/main.qml:268
+msgctxt "@action:button Cancel connecting to network"
+msgid "Cancel"
+msgstr "Prekliči"
+
+#: qml/main.qml:274
+msgctxt "@title:window"
+msgid "Enter Password"
+msgstr "Vnesite geslo"
+
+#: qml/main.qml:280
+msgctxt "@label %1 is the name of the network the user is connecting to"
+msgid "Network: %1"
+msgstr "Omrežje: %1"
+
+#: qml/main.qml:301
+msgctxt "@label key is a passcode"
+msgid "Password must be a valid WEP key"
+msgstr "Geslo mora biti veljaven ključ WEP"
+
+#: qml/main.qml:302
+msgctxt "@label password invalid length message"
+msgid "Password must be between 8 and 64 characters"
+msgstr "Geslo mora imeti med 8 in 64 znakov"
+
+#~ msgid "Create"
+#~ msgstr "Ustvari"
+
+#~ msgid "Cancel"
+#~ msgstr "Prekliči"
+
+#~ msgid "Hotspot name:"
+#~ msgstr "Ime vroče točke:"
+
+#~ msgid "OK"
+#~ msgstr "V redu"
+
+#~ msgid "Ok"
+#~ msgstr "Ok"
+
+#~ msgid "Search…"
+#~ msgstr "Poišči…"
+
+#~ msgid "Type here to search connections..."
+#~ msgstr "Tipkajte tukaj za iskanje povezav ..."
+
+#~ msgid "Close"
+#~ msgstr "Zapri"

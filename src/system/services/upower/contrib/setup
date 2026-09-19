@@ -1,0 +1,26 @@
+#!/usr/bin/env -S bash -e
+#set up local repository
+
+install_pip()
+{
+    package=$1
+    args=$2
+
+    python3 -m pip install $package $args
+}
+
+setup_precommit()
+{
+    echo "Configuring pre-commit hooks"
+    install_pip pre-commit
+    pre-commit install
+}
+
+setup_git()
+{
+    echo "Configuring git environment"
+    git config include.path ../.gitconfig
+}
+
+setup_git
+setup_precommit

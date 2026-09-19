@@ -1,0 +1,59 @@
+/*
+ * Copyright (C) 2003-2004 Sistina Software, Inc. All rights reserved.
+ * Copyright (C) 2004-2005 Red Hat, Inc. All rights reserved.
+ *
+ * This file is part of LVM2.
+ *
+ * This copyrighted material is made available to anyone wishing to use,
+ * modify, copy, or redistribute it subject to the terms and conditions
+ * of the GNU Lesser General Public License v.2.1.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+#ifndef LVM_TEXT_EXPORT_H
+#define LVM_TEXT_EXPORT_H
+
+#include <stdint.h>
+
+#define outsize(...) do {if (!out_size(__VA_ARGS__)) return_0;} while (0)
+#define outhint(...) do {if (!out_hint(__VA_ARGS__)) return_0;} while (0)
+#define outfc(...) do {if (!out_text_with_comment(__VA_ARGS__)) return_0;} while (0)
+#define outf(...) do {if (!out_text(__VA_ARGS__)) return_0;} while (0)
+#define outnl(f) do {if (!out_newline(f)) return_0;} while (0)
+
+struct formatter;
+struct lv_segment;
+struct dm_config_node;
+
+int out_size(struct formatter *f, uint64_t size, const char *fmt, ...)
+    __attribute__ ((format(printf, 3, 4)))
+    __attribute__ ((warn_unused_result));
+
+int out_hint(struct formatter *f, const char *fmt, ...)
+    __attribute__ ((format(printf, 2, 3)))
+    __attribute__ ((warn_unused_result));
+
+int out_text(struct formatter *f, const char *fmt, ...)
+    __attribute__ ((format(printf, 2, 3)))
+    __attribute__ ((warn_unused_result));
+
+int out_config_node(struct formatter *f, const struct dm_config_node *cn)
+    __attribute__ ((warn_unused_result));
+
+int out_areas(struct formatter *f, const struct lv_segment *seg,
+	      const char *type)
+    __attribute__ ((warn_unused_result));
+
+int out_text_with_comment(struct formatter *f, const char *comment, const char *fmt, ...)
+    __attribute__ ((format(printf, 3, 4)))
+    __attribute__ ((warn_unused_result));
+
+void out_inc_indent(struct formatter *f);
+void out_dec_indent(struct formatter *f);
+int out_newline(struct formatter *f)
+    __attribute__ ((warn_unused_result));
+
+#endif

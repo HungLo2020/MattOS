@@ -1,0 +1,8 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+find_dependency(KF6CoreAddons "@KF_DEP_VERSION@")
+
+set(KPty_HAVE_UTEMPTER "@UTEMPTER_FOUND@")
+
+include("${CMAKE_CURRENT_LIST_DIR}/KF6PtyTargets.cmake")

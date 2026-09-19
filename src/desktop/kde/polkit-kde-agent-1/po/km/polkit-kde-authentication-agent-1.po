@@ -1,0 +1,193 @@
+# translation of polkit-kde-authentication-agent-1.po to Khmer
+# Khoem Sokhem <khoemsokhem@khmeros.info>, 2010, 2012.
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+msgid ""
+msgstr ""
+"Project-Id-Version: polkit-kde-authentication-agent-1\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-11-17 11:54+0000\n"
+"PO-Revision-Date: 2012-07-09 11:09+0700\n"
+"Last-Translator: Khoem Sokhem <khoemsokhem@khmeros.info>\n"
+"Language-Team: Khmer <support@khmeros.info>\n"
+"Language: km\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: KBabel 1.11.4\n"
+"X-Language: km-KH\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "ខឹម សុខែម, ម៉ន ម៉េត, សេង សុត្ថា"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "khoemsokhem@khmeros.info,​​mornmet@khmeros.info,sutha@khmeros.info"
+
+#: IdentitiesModel.cpp:27
+#, kde-format
+msgid "Select User"
+msgstr "ជ្រើស​អ្នក​ប្រើ"
+
+#: IdentitiesModel.cpp:45
+#, kde-format
+msgctxt "%1 is the full user name, %2 is the user login name"
+msgid "%1 (%2)"
+msgstr "%1 (%2)"
+
+#: main.cpp:48
+#, kde-format
+msgid "(c) 2009 Red Hat, Inc."
+msgstr "រក្សាសិទ្ធិ​ឆ្នាំ ២០០៩ ដោយ Red Hat, Inc."
+
+#: main.cpp:49
+#, kde-format
+msgid "Lukáš Tinkl"
+msgstr ""
+
+#: main.cpp:49
+#, kde-format
+msgid "Maintainer"
+msgstr "អ្នកថែទាំ"
+
+#: main.cpp:50
+#, kde-format
+msgid "Jaroslav Reznik"
+msgstr "Jaroslav Reznik"
+
+#: main.cpp:50
+#, fuzzy, kde-format
+#| msgid "Maintainer"
+msgid "Former maintainer"
+msgstr "អ្នកថែទាំ"
+
+#: policykitlistener.cpp:90
+#, kde-format
+msgid "Another client is already authenticating, please try again later."
+msgstr "ម៉ាស៊ីន​ភ្ញៀវ​ផ្សេង​កំពុង​ផ្ទៀងផ្ទាត់​ភាព​ត្រឹមត្រូវ​រួច​ហើយ សូម​ព្យាយាម​ម្ដង​ទៀត​នៅ​ពេល​ក្រោយ ។"
+
+#: policykitlistener.cpp:97
+#, kde-format
+msgctxt "Error response when polkit calls us with an empty list of identities"
+msgid "No user to authenticate as. Please check your system configuration."
+msgstr ""
+
+#: qml/MobileQuickAuthDialog.qml:16 qml/MobileQuickAuthDialog.qml:108
+#: qml/QuickAuthDialog.qml:16 QuickAuthDialog.cpp:110
+#, kde-format
+msgid "Authentication Required"
+msgstr ""
+
+#: qml/MobileQuickAuthDialog.qml:57 qml/QuickAuthDialog.qml:72
+#, kde-format
+msgid "Authentication failure, please try again."
+msgstr "កា​រ​ផ្ទៀងផ្ទាត់​ភាព​ត្រឹមត្រូវ​បរាជ័យ សូម​ព្យាយាម​ម្ដង​ទៀត ។"
+
+#: qml/MobileQuickAuthDialog.qml:141
+#, kde-format
+msgid "User: %1"
+msgstr ""
+
+#: qml/MobileQuickAuthDialog.qml:146 qml/QuickAuthDialog.qml:181
+#, kde-format
+msgid "Switch…"
+msgstr ""
+
+#: qml/MobileQuickAuthDialog.qml:167 qml/QuickAuthDialog.qml:201
+#, fuzzy, kde-format
+#| msgid "Password:"
+msgid "Password…"
+msgstr "ពាក្យ​សម្ងាត់ ៖"
+
+#: qml/MobileQuickAuthDialog.qml:175 qml/QuickAuthDialog.qml:210
+#, kde-format
+msgid "Details"
+msgstr ""
+
+#: qml/MobileQuickAuthDialog.qml:185 qml/QuickAuthDialog.qml:222
+#, kde-format
+msgid "OK"
+msgstr ""
+
+#: qml/MobileQuickAuthDialog.qml:191 qml/QuickAuthDialog.qml:228
+#, kde-format
+msgid "Cancel"
+msgstr "បោះបង់​"
+
+#: qml/MobileQuickAuthDialog.qml:201 qml/QuickAuthDialog.qml:240
+#, kde-format
+msgid "Action:"
+msgstr "សកម្មភាព ៖"
+
+#: qml/MobileQuickAuthDialog.qml:205 qml/QuickAuthDialog.qml:244
+#, kde-format
+msgid "ID:"
+msgstr ""
+
+#: qml/MobileQuickAuthDialog.qml:209 qml/QuickAuthDialog.qml:248
+#, kde-format
+msgid "Vendor:"
+msgstr "ក្រុមហ៊ុនលក់ ៖"
+
+#: qml/QuickAuthDialog.qml:175
+#, kde-format
+msgid "Authenticating as %1"
+msgstr ""
+
+#, fuzzy
+#~| msgid "Action:"
+#~ msgid "Action ID:"
+#~ msgstr "សកម្មភាព ៖"
+
+#~ msgid "Password for root:"
+#~ msgstr "ពាក្យ​សម្ងាត់​សម្រាប់ root ៖"
+
+#~ msgid "Password for %1:"
+#~ msgstr "ពាក្យ​សម្ងាត់​សម្រាប់ %1 ៖"
+
+#~ msgid "Password or swipe finger for root:"
+#~ msgstr "ពាក្យ​សម្ងាត់ ឬ​ស្នាម​ម្រាមដៃ​សម្រាប់ root ៖"
+
+#~ msgid "Password or swipe finger for %1:"
+#~ msgstr "ពាក្យ​សម្ងាត់​ ឬ​ស្នាម​ម្រាមដៃ​សម្រាប់ %1 ៖"
+
+#~ msgid "Password or swipe finger:"
+#~ msgstr "ពាក្យ​សម្ងាត់ ឬ​ស្នាម​ម្រាមដៃ ៖​"
+
+#~ msgid ""
+#~ "An application is attempting to perform an action that requires "
+#~ "privileges. Authentication is required to perform this action."
+#~ msgstr ""
+#~ "កម្មវិធី​កំពុង​ប៉ុនប៉ង​អនុវត្ត​សកម្មភាព ដែល​ត្រូវការ​សិទ្ធិ ។ ត្រូវការ​ការ​ផ្ទៀងផ្ទាត់​ភាព​ត្រឹមត្រូវ​ ដើម្បី​"
+#~ "អនុវត្ត​សកម្មភាព​នេះ ។"
+
+#~ msgctxt ""
+#~ "%1 is the name of a detail about the current action provided by polkit"
+#~ msgid "%1:"
+#~ msgstr "%1 ៖"
+
+#~ msgid "Click to open %1"
+#~ msgstr "ចុច​ ដើម្បី​បើក %1"
+
+#, fuzzy
+#~| msgid "Password:"
+#~ msgid "P&assword:"
+#~ msgstr "ពាក្យ​សម្ងាត់ ៖"
+
+#, fuzzy
+#~| msgid "PolicyKit1-KDE"
+#~ msgid "PolicyKit1 KDE Agent"
+#~ msgstr "PolicyKit1-KDE"
+
+#~ msgid "Application:"
+#~ msgstr "ការ​អនុវត្ត ៖"
+
+#~ msgid "Click to edit %1"
+#~ msgstr "ចុច ដើម្បី​កែសម្រួល %1"
+
+#~ msgid "Switch to dialog"
+#~ msgstr "ប្ដូរ​ទៅ​ប្រអប់"

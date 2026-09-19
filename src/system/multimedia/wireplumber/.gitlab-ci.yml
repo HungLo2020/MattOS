@@ -1,0 +1,362 @@
+# Create merge request pipelines for open merge requests, branch pipelines
+# otherwise. This allows MRs for new users to run CI, and prevents duplicate
+# pipelines for branches with open MRs.
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+
+stages:
+  - container
+  - build
+  - analysis
+  - pages
+
+variables:
+  FDO_UPSTREAM_REPO: 'pipewire/wireplumber'
+  # change to build against a different tag or branch of pipewire
+  PIPEWIRE_HEAD: 'master'
+
+# ci-templates as of Feb 14th 2025
+.templates_sha: &templates_sha ef5e4669b7500834a17ffe9277e15fbb6d977fff
+
+include:
+  - project: 'freedesktop/ci-templates'
+    ref: *templates_sha
+    file: '/templates/fedora.yml'
+  - project: 'freedesktop/ci-templates'
+    ref: *templates_sha
+    file: '/templates/ubuntu.yml'
+  - project: 'freedesktop/ci-templates'
+    ref: *templates_sha
+    file: '/templates/alpine.yml'
+
+.fedora:
+  variables:
+    # Update this tag when you want to trigger a rebuild
+    FDO_DISTRIBUTION_TAG: '2025-03-05.1'
+    FDO_DISTRIBUTION_VERSION: '41'
+    # findutils: used by the .build script below
+    # dbus-devel: required by pipewire
+    # dbus-daemon: required by GDBus unit tests
+    # pip, doxygen: required for documentation
+    # ShellCheck, diffutils: required by the CI
+    FDO_DISTRIBUTION_PACKAGES: >-
+      findutils
+      gcc
+      gcc-c++
+      git
+      meson
+      glib2-devel
+      gobject-introspection-devel
+      dbus-devel
+      dbus-daemon
+      python3-pip
+      doxygen
+      ShellCheck
+      diffutils
+    # install Sphinx and Breathe to generate documentation
+    # also install glib2-doc (required to make documentation links to GLib work)
+    # manually, to remove the 'tsflags=nodocs' flag that is enabled by default
+    # in the fedora docker image
+    FDO_DISTRIBUTION_EXEC: >-
+      pip3 install lxml Sphinx sphinx-rtd-theme breathe ;
+      dnf -y install glib2-doc --setopt='tsflags='
+
+.ubuntu:
+  variables:
+    # Update this tag when you want to trigger a rebuild
+    FDO_DISTRIBUTION_TAG: '2023-06-16.1'
+    FDO_DISTRIBUTION_VERSION: '22.04'
+    FDO_DISTRIBUTION_PACKAGES: >-
+      debhelper-compat
+      findutils
+      git
+      meson
+      ninja-build
+      pkg-config
+      python3-pip
+      dbus
+      libdbus-1-dev
+      libglib2.0-dev
+      liblua5.3-dev
+      libgirepository1.0-dev
+      doxygen
+      python3-lxml
+
+.alpine:
+  variables:
+    # Update this tag when you want to trigger a rebuild
+    FDO_DISTRIBUTION_TAG: '2025-03-05.1'
+    FDO_DISTRIBUTION_VERSION: '3.21'
+    FDO_DISTRIBUTION_PACKAGES: >-
+      dbus
+      dbus-dev
+      doxygen
+      elogind-dev
+      findutils
+      g++
+      gcc
+      git
+      glib-dev
+      gobject-introspection-dev
+      lua5.4-dev
+      meson
+      py3-lxml
+      samurai
+
+.coverity:
+  variables:
+    FDO_REPO_SUFFIX: 'coverity'
+    FDO_BASE_IMAGE: registry.freedesktop.org/$FDO_UPSTREAM_REPO/fedora/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG
+    FDO_DISTRIBUTION_PACKAGES: >-
+      curl
+    FDO_DISTRIBUTION_EXEC: >-
+      mkdir -p /opt ;
+      cd /opt ;
+      curl -o /tmp/cov-analysis-linux64.tgz https://scan.coverity.com/download/cxx/linux64
+      --form project=$COVERITY_SCAN_PROJECT_NAME --form token=$COVERITY_SCAN_TOKEN ;
+      tar xf /tmp/cov-analysis-linux64.tgz ;
+      mv cov-analysis-linux64-* coverity ;
+      rm /tmp/cov-analysis-linux64.tgz
+
+.rules_on_success_except_coverity:
+  rules:
+    - if: $COVERITY
+      when: never
+    - when: on_success
+
+.rules_only_on_coverity:
+  rules:
+    - if: $COVERITY
+
+.rules_only_on_mr_and_branch:
+  rules:
+    - if: $COVERITY
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH != "master"
+
+.build:
+  before_script:
+    # setup the environment
+    - export BUILD_ID="$CI_JOB_ID"
+    - export PREFIX="$PWD/prefix-$BUILD_ID"
+    - export PW_BUILD_DIR="$PWD/build-pipewire-$BUILD_ID"
+    - |
+      if [ -n "$FDO_CI_CONCURRENT" ]; then
+         NINJA_ARGS="-j$FDO_CI_CONCURRENT $NINJA_ARGS"
+         export NINJA_ARGS
+      fi
+    # Build pipewire
+    # Fedora also ships that, but without the test plugins that we need...
+    - git clone --depth=1 --branch="$PIPEWIRE_HEAD"
+        https://gitlab.freedesktop.org/pipewire/pipewire.git
+    # Set build options based on PipeWire version
+    - |
+      case "$PIPEWIRE_HEAD" in
+        1.0|1.2|1.4)
+          export PIPEWIRE_BUILD_OPTIONS="-Dsystemd=disabled"
+          ;;
+        *)
+          export PIPEWIRE_BUILD_OPTIONS="-Dlibsystemd=disabled"
+          ;;
+      esac
+    - meson "$PW_BUILD_DIR" pipewire --prefix="$PREFIX" $PIPEWIRE_BUILD_OPTIONS
+        -Dpipewire-alsa=disabled -Dpipewire-jack=disabled -Dalsa=disabled
+        -Dv4l2=disabled -Djack=disabled -Dbluez5=disabled -Dvulkan=disabled
+        -Dgstreamer=disabled -Ddocs=disabled -Dman=disabled -Dexamples=disabled
+        -Dpw-cat=disabled -Dsdl2=disabled -Dsndfile=disabled -Dlibpulse=disabled
+        -Davahi=disabled -Decho-cancel-webrtc=disabled -Dsession-managers=[]
+        -Dvideotestsrc=enabled -Daudiotestsrc=enabled -Dtest=enabled
+    - ninja $NINJA_ARGS -C "$PW_BUILD_DIR" install
+    # misc environment only for wireplumber
+    - export WP_BUILD_DIR="$PWD/build-wireplumber-$BUILD_ID"
+    - export PKG_CONFIG_PATH="$(dirname $(find "$PREFIX" -name 'libpipewire-*.pc')):$PKG_CONFIG_PATH"
+  script:
+    # Build wireplumber
+    - meson "$WP_BUILD_DIR" . --prefix="$PREFIX" $BUILD_OPTIONS
+    - cd "$WP_BUILD_DIR"
+    - ninja $NINJA_ARGS
+    - ninja $NINJA_ARGS test
+    - ninja $NINJA_ARGS install
+  artifacts:
+    name: wireplumber-$CI_COMMIT_SHA
+    when: always
+    paths:
+      - build-*/meson-logs
+      - prefix-*
+
+container_fedora:
+  extends:
+    - .rules_on_success_except_coverity
+    - .fedora
+    - .fdo.container-build@fedora
+  stage: container
+  variables:
+    GIT_STRATEGY: none
+
+container_ubuntu:
+  extends:
+    - .rules_only_on_mr_and_branch
+    - .ubuntu
+    - .fdo.container-build@ubuntu
+  stage: container
+  variables:
+    GIT_STRATEGY: none
+
+container_alpine:
+  extends:
+    - .rules_only_on_mr_and_branch
+    - .alpine
+    - .fdo.container-build@alpine
+  stage: container
+  variables:
+    GIT_STRATEGY: none
+
+container_coverity:
+  extends:
+    - .rules_only_on_coverity
+    - .fedora
+    - .coverity
+    - .fdo.container-build@fedora
+  stage: container
+  variables:
+    GIT_STRATEGY: none
+
+build_on_fedora_with_docs:
+  extends:
+    - .rules_on_success_except_coverity
+    - .fedora
+    - .fdo.distribution-image@fedora
+    - .build
+  stage: build
+  variables:
+    BUILD_OPTIONS: -Dintrospection=enabled -Ddoc=enabled -Dsystem-lua=false
+
+build_on_fedora_no_docs:
+  extends:
+    - .rules_only_on_mr_and_branch
+    - .fedora
+    - .fdo.distribution-image@fedora
+    - .build
+  stage: build
+  variables:
+    BUILD_OPTIONS: -Dintrospection=enabled -Ddoc=disabled -Dsystem-lua=false
+  parallel:
+    matrix:
+      - PIPEWIRE_HEAD: ['master', '1.4', '1.2', '1.0']
+
+build_on_ubuntu_with_gir:
+  extends:
+    - .rules_only_on_mr_and_branch
+    - .ubuntu
+    - .fdo.distribution-image@ubuntu
+    - .build
+  stage: build
+  variables:
+    BUILD_OPTIONS: -Dintrospection=enabled -Ddoc=disabled -Dsystem-lua=true
+
+build_on_ubuntu_no_gir:
+  extends:
+    - .rules_only_on_mr_and_branch
+    - .ubuntu
+    - .fdo.distribution-image@ubuntu
+    - .build
+  stage: build
+  variables:
+    BUILD_OPTIONS: -Dintrospection=disabled -Ddoc=disabled -Dsystem-lua=true
+
+build_on_alpine:
+  extends:
+    - .rules_only_on_mr_and_branch
+    - .alpine
+    - .fdo.distribution-image@alpine
+    - .build
+  stage: build
+  variables:
+    BUILD_OPTIONS: -Dintrospection=enabled -Ddoc=disabled -Dsystem-lua=true -Delogind=disabled
+
+build_with_coverity:
+  extends:
+    - .rules_only_on_coverity
+    - .fedora
+    - .coverity
+    - .fdo.suffixed-image@fedora
+    - .build
+  stage: analysis
+  script:
+    - export PATH=/opt/coverity/bin:$PATH
+    - meson "$WP_BUILD_DIR" . --prefix="$PREFIX"
+        -Dintrospection=disabled -Ddoc=disabled
+    - cov-configure --config coverity_conf.xml
+        --comptype gcc --compiler cc --template
+        --xml-option=append_arg@C:--ppp_translator
+        --xml-option=append_arg@C:"replace/GLIB_(DEPRECATED|AVAILABLE)_ENUMERATOR_IN_\d_\d\d(_FOR\(\w+\)|)\s+=/ ="
+    - cov-build --dir cov-int --config coverity_conf.xml ninja $NINJA_ARGS -C "$WP_BUILD_DIR"
+    - tar caf wireplumber.tar.gz cov-int
+    - curl https://scan.coverity.com/builds?project=$COVERITY_SCAN_PROJECT_NAME
+        --form token=$COVERITY_SCAN_TOKEN --form email=$GITLAB_USER_EMAIL
+        --form file=@wireplumber.tar.gz --form version="`git describe --tags`"
+        --form description="`git describe --tags` / $CI_COMMIT_TITLE / $CI_COMMIT_REF_NAME:$CI_PIPELINE_ID "
+  artifacts:
+    name: wireplumber-coverity-$CI_COMMIT_SHA
+    when: always
+    paths:
+      - build-*/meson-logs
+      - cov-int/build-log.txt
+
+shellcheck:
+  extends:
+    - .fedora
+    - .fdo.distribution-image@fedora
+  stage: analysis
+  script:
+    - shellcheck $(git grep -l "#\!/.*bin/.*sh")
+  rules:
+    - if: $COVERITY
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - "**/*.sh"
+    - if: $CI_COMMIT_BRANCH != "master"
+      changes:
+        - "**/*.sh"
+
+linguas_check:
+  extends:
+    - .fedora
+    - .fdo.distribution-image@fedora
+  stage: analysis
+  script:
+    - cd po
+    - cat LINGUAS | sort > LINGUAS.sorted
+    - ls *.po | sed s/.po//g | sort > LINGUAS.new
+    - diff -u LINGUAS.sorted LINGUAS.new
+    - rm -f LINGUAS.*
+  rules:
+    - if: $COVERITY
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - po/*
+    - if: $CI_COMMIT_BRANCH != "master"
+      changes:
+        - po/*
+
+pages:
+  stage: pages
+  dependencies:
+    - build_on_fedora_with_docs
+  script:
+    - mkdir public
+    - cp -R prefix-*/share/doc/wireplumber/html/* public/
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $COVERITY
+      when: never
+    - if: $CI_COMMIT_BRANCH == "master"

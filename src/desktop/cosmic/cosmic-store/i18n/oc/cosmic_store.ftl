@@ -1,5 +1,0 @@
-appearance = Aparéncia
-theme = Tèma
-match-desktop = Assortir al burèu
-dark = Fosc
-light = Clar

@@ -95,12 +95,19 @@ pub(crate) fn package_set_entries(repo_root: &Path) -> Result<Vec<PackageSetEntr
         let version = package_version(repo_root, spec)?;
         let input = package_cache_input(repo_root, spec, &version, &mut source_digests)?;
         let manifest_path = package_cache_manifest_path(repo_root, name);
-        let manifest: PackageCacheManifest = serde_json::from_slice(
-            &fs::read(&manifest_path).with_context(|| {
-                format!("package cache manifest missing: {}", manifest_path.display())
-            })?,
-        )
-        .with_context(|| format!("package cache manifest is invalid: {}", manifest_path.display()))?;
+        let manifest: PackageCacheManifest =
+            serde_json::from_slice(&fs::read(&manifest_path).with_context(|| {
+                format!(
+                    "package cache manifest missing: {}",
+                    manifest_path.display()
+                )
+            })?)
+            .with_context(|| {
+                format!(
+                    "package cache manifest is invalid: {}",
+                    manifest_path.display()
+                )
+            })?;
         if manifest.schema_version != PACKAGE_CACHE_SCHEMA_VERSION
             || manifest.package != *name
             || manifest.cache_key != input.cache_key
@@ -333,6 +340,14 @@ pub(crate) fn package_recipe_revision(package: &str) -> u32 {
     match package {
         // Preserve the new components' upstream license texts in their native packages.
         "libnl-3-200" | "libnl-genl-3-200" | "wpasupplicant" => 2,
+        // Revision 2 omits install-info's generated aggregate index.  The
+        // index is rebuilt on the installed system and cannot be owned by
+        // each package that happens to ship an Info manual.
+        "libgmp10" => 2,
+        // Revision 2 ships e2fsprogs' source-built shared runtime libraries.
+        // Utilities such as chattr link libe2p and must never resolve it from
+        // the build host during the package/global ELF audit.
+        "e2fsprogs" => 2,
         // Revision 2 excludes Breeze's optional KCMUtils-backed settings
         // helper from the shell package; it is not part of the Wayland style
         // or decoration runtime and would otherwise leak an undeclared host
@@ -374,16 +389,6 @@ pub(crate) fn package_recipe_revision(package: &str) -> u32 {
         // Revision 2 includes Linux-PAM's source-built vendor pam_env.conf;
         // the revision-1 cache key tracked only MattOS /etc/pam.d policy.
         "libpam-runtime" => 2,
-        // Revision 5 exposes Flatpak export roots through the COSMIC session
-        // XDG_DATA_DIRS, so application desktop entries and their themed icons
-        // resolve. Revision 4 requires COSMIC Tweaks in the aggregate desktop
-        // payload.
-        // Revision 3 keeps the greeter daemon display-manager-scoped instead
-        // of enabling it in every multi-user/CLI boot. Revision 2 supplied the
-        // freedesktop hicolor fallback index.
-        // Revision 6 ships bounded, read-only physical graphics diagnostics.
-        // Revision 7 adds live startup evidence and bounded text recovery.
-        "cosmic-desktop" => 8,
         // Own libdrm's AMD device-name database as well as its SONAME.
         "libdrm-amdgpu1" => 2,
         "mattos-compat" => 3,
@@ -411,7 +416,7 @@ pub(crate) fn package_recipe_revision(package: &str) -> u32 {
         // portal package. The portal depends on Flatpak for that runtime
         // helper, leaving a single package owner for the executable.
         "xdg-desktop-portal" => 2,
-        "cosmic-edit" | "mattos-cozy" => 1,
+        "mattos-cozy" => 1,
         "libgpg-error0" | "libgcrypt20" | "libassuan9" | "libksba8" | "libnpth0" | "gpgv" => 2,
         _ => 1,
     }
@@ -449,7 +454,10 @@ pub(crate) fn package_cache_input(
     })
 }
 
-pub(crate) fn package_stage_dependency_digest(repo_root: &Path, source_component: &str) -> Result<String> {
+pub(crate) fn package_stage_dependency_digest(
+    repo_root: &Path,
+    source_component: &str,
+) -> Result<String> {
     let stage_dependencies = package_stage_dependencies(source_component);
     let mut dependency_values = BTreeMap::new();
     for dependency in stage_dependencies {

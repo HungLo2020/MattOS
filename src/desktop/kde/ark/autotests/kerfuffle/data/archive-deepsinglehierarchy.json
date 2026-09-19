@@ -1,0 +1,20 @@
+[
+    {
+        "fullPath": "aDir/",
+        "isDirectory": true
+    },
+    {
+        "fullPath": "aDir/b.txt"
+    },
+    {
+        "fullPath": "aDir/aDirInside/",
+        "isDirectory": true
+    },
+    {
+        "fullPath": "aDir/aDirInside/anotherDir/",
+        "isDirectory": true
+    },
+    {
+        "fullPath": "aDir/aDirInside/anotherDir/file.txt"
+    }
+]

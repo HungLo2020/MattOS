@@ -1,0 +1,834 @@
+.TH PVSCAN 8 "LVM TOOLS #VERSION#" "Red Hat, Inc."
+.
+.ie t \{\
+.\" PostScript/PDF with tabs
+. ds TT \t
+. ds DTT \t\t
+.\}
+.el \{\
+. ds TT \&
+. ds DTT \0\0\0
+.\}
+.
+.de OPT
+.ie \\n(.$>1 \\*[TT]\fB-\\$1\fP|\\*[TT]\fB--\\$2\fP\c
+.el \\*[DTT]\fB--\\$1\fP\c
+..
+.
+.de OPA
+.OPT \\$*
+\ \c
+..
+.de OPS
+.OPT \\$*
+\&
+..
+.
+.
+.\"List of all options as O_string.
+.
+.de O_activate
+.OPA a activate
+\fBy\fP|\fBn\fP|\fBay\fP
+..
+.de O_allpvs
+.OPS A allpvs
+..
+.de O_autoactivation
+.OPA autoactivation
+\fIString\fP
+..
+.de O_cache
+.OPS cache
+..
+.de O_checkcomplete
+.OPS checkcomplete
+..
+.de O_commandprofile
+.OPA commandprofile
+\fIString\fP
+..
+.de O_config
+.OPA config
+\fIString\fP
+..
+.de O_debug
+.OPA d debug
+\&\.\|.\|.\&
+..
+.de O_devices
+.OPA devices
+\fIPV\fP
+..
+.de O_devicesfile
+.OPA devicesfile
+\fIString\fP
+..
+.de O_driverloaded
+.OPA driverloaded
+\fBy\fP|\fBn\fP
+..
+.de O_exported
+.OPS e exported
+..
+.de O_help
+.OPS h help
+..
+.de O_ignorelockingfailure
+.OPS ignorelockingfailure
+..
+.de O_journal
+.OPA journal
+\fIString\fP
+..
+.de O_listlvs
+.OPS listlvs
+..
+.de O_listvg
+.OPS listvg
+..
+.de O_lockopt
+.OPA lockopt
+\fIString\fP
+..
+.de O_longhelp
+.OPS longhelp
+..
+.de O_major
+.OPA j major
+\fINumber\fP
+..
+.de O_minor
+.OPA minor
+\fINumber\fP
+..
+.de O_nohints
+.OPS nohints
+..
+.de O_nolocking
+.OPS nolocking
+..
+.de O_noudevsync
+.OPS noudevsync
+..
+.de O_novolumegroup
+.OPS n novolumegroup
+..
+.de O_profile
+.OPA profile
+\fIString\fP
+..
+.de O_quiet
+.OPA q quiet
+\&\.\|.\|.\&
+..
+.de O_reportformat
+.OPA reportformat
+\%\fBbasic\fP|\:\
+\fBjson\fP|\:\
+\fBjson_std\fP
+..
+.de O_short
+.OPS s short
+..
+.de O_test
+.OPS t test
+..
+.de O_udevoutput
+.OPS udevoutput
+..
+.de O_uuid
+.OPS u uuid
+..
+.de O_verbose
+.OPA v verbose
+\&\.\|.\|.\&
+..
+.de O_version
+.OPS version
+..
+.de O_vgonline
+.OPS vgonline
+..
+.de O_yes
+.OPS y yes
+..
+.
+.SH NAME
+.
+pvscan \(em List all physical volumes
+.
+.SH SYNOPSIS
+.
+.nh
+.TP
+\fBpvscan\fP \fIoption_args\fP \fIposition_args\fP
+[ \fIoption_args\fP ]
+.br
+[ \fIposition_args\fP ]
+.P
+.na
+.RS 5
+.if t .ta 3nR +1uL \" PostScript/PDF
+.PD 0
+.O_activate
+.br
+.O_allpvs
+.br
+.O_autoactivation
+.br
+.O_cache
+.br
+.O_checkcomplete
+.br
+.O_commandprofile
+.br
+.O_config
+.br
+.O_debug
+.br
+.O_devices
+.br
+.O_devicesfile
+.br
+.O_driverloaded
+.br
+.O_exported
+.br
+.O_help
+.br
+.O_ignorelockingfailure
+.br
+.O_journal
+.br
+.O_listlvs
+.br
+.O_listvg
+.br
+.O_lockopt
+.br
+.O_longhelp
+.br
+.O_major
+.br
+.O_minor
+.br
+.O_nohints
+.br
+.O_nolocking
+.br
+.O_noudevsync
+.br
+.O_novolumegroup
+.br
+.O_profile
+.br
+.O_quiet
+.br
+.O_reportformat
+.br
+.O_short
+.br
+.O_test
+.br
+.O_udevoutput
+.br
+.O_uuid
+.br
+.O_verbose
+.br
+.O_version
+.br
+.O_vgonline
+.br
+.O_yes
+.PD
+.if t .ta
+.RE
+.ad
+.hy
+.
+.ds TT \&
+.ds DTT \&
+.
+.
+.SH DESCRIPTION
+.
+When called without the --cache option, pvscan lists PVs on the system,
+like
+.BR pvs (8)
+or
+.BR pvdisplay (8).
+.P
+When --cache is used, pvscan updates runtime lvm state on the system, or
+with -aay performs autoactivation.
+.P
+.B pvscan --cache
+.I device
+.P
+If device is present, lvm records that the PV on device is online.
+If device is not present, lvm removes the online record for the PV.
+pvscan only reads the named device.
+.P
+.B pvscan --cache
+.P
+Updates the runtime state for all lvm devices.
+.P
+.B pvscan --cache -aay
+.I device
+.P
+Performs the --cache steps for the device, then checks if the VG using the
+device is complete.  If so, LVs in the VG are autoactivated, the same as
+vgchange -aay vgname would do.  (A device name may be replaced with major
+and minor numbers.)
+.P
+.B pvscan --cache -aay
+.P
+Performs the --cache steps for all devices,
+then autoactivates any complete VGs.
+.P
+.B pvscan --cache --listvg|--listlvs
+.I device
+.P
+Performs the --cache steps for the device, then prints the name of the VG
+using the device, or the names of LVs using the device.  --checkcomplete
+is usually included to check if all PVs for the VG or LVs are online.
+When this command is called by a udev rule, the output must conform to
+udev rule specifications (see --udevoutput.)  The udev rule will use the
+results to perform autoactivation.
+.P
+Autoactivation of VGs or LVs can be enabled/disabled using vgchange or
+lvchange with --setautoactivation y|n, or by adding names to
+.BR lvm.conf (5)
+.B activation/auto_activation_volume_list
+.P
+See
+.BR lvmautoactivation (7)
+for more information about how pvscan is used for autoactivation.
+.
+.SH USAGE
+.
+.nh
+.na
+Display PV information.
+.P
+.B pvscan
+.RS
+[
+.O_allpvs
+]
+.br
+[
+.O_exported
+]
+.br
+[
+.O_novolumegroup
+]
+.br
+[
+.O_short
+]
+.br
+[
+.O_uuid
+]
+.br
+[
+.O_ignorelockingfailure
+]
+.br
+[
+.O_reportformat
+]
+.br
+[ COMMON_OPTIONS ]
+.RE
+.
+.P
+\(em
+.P
+.
+Record that a PV is online or offline.
+.P
+.B pvscan
+.O_cache
+.RS
+[
+.O_major
+]
+.br
+[
+.O_ignorelockingfailure
+]
+.br
+[
+.O_minor
+]
+.br
+[
+.O_noudevsync
+]
+.br
+[
+.O_reportformat
+]
+.br
+[ COMMON_OPTIONS ]
+.br
+[ \fIString\fP|\fIPV\fP\ .\|.\|.\& ]
+.RE
+.
+.P
+\(em
+.P
+.
+Record that a PV is online and autoactivate the VG if complete.
+.P
+.B pvscan
+.O_cache
+.O_activate
+.RS
+[
+.O_major
+]
+.br
+[
+.O_autoactivation
+]
+.br
+[
+.O_ignorelockingfailure
+]
+.br
+[
+.O_minor
+]
+.br
+[
+.O_noudevsync
+]
+.br
+[
+.O_reportformat
+]
+.br
+[ COMMON_OPTIONS ]
+.br
+[ \fIString\fP|\fIPV\fP\ .\|.\|.\& ]
+.RE
+.
+.P
+\(em
+.P
+.
+Record that a PV is online and list the VG using the PV.
+.P
+.B pvscan
+.O_cache
+.O_listvg
+\fIPV\fP
+.RS
+[
+.O_autoactivation
+]
+.br
+[
+.O_checkcomplete
+]
+.br
+[
+.O_ignorelockingfailure
+]
+.br
+[
+.O_udevoutput
+]
+.br
+[
+.O_vgonline
+]
+.br
+[ COMMON_OPTIONS ]
+.RE
+.
+.P
+\(em
+.P
+.
+Record that a PV is online and list LVs using the PV.
+.P
+.B pvscan
+.O_cache
+.O_listlvs
+\fIPV\fP
+.RS
+[
+.O_checkcomplete
+]
+.br
+[
+.O_ignorelockingfailure
+]
+.br
+[
+.O_vgonline
+]
+.br
+[ COMMON_OPTIONS ]
+.RE
+.
+.P
+\(em
+.P
+.
+List LVs using the PV.
+.P
+.B pvscan
+.O_listlvs
+\fIPV\fP
+.RS
+[ COMMON_OPTIONS ]
+.RE
+.
+.P
+\(em
+.P
+.
+List the VG using the PV.
+.P
+.B pvscan
+.O_listvg
+\fIPV\fP
+.RS
+[ COMMON_OPTIONS ]
+.RE
+.P
+\(em
+.P
+Common options for lvm:
+.RS
+[
+.O_debug
+]
+.br
+[
+.O_help
+]
+.br
+[
+.O_quiet
+]
+.br
+[
+.O_test
+]
+.br
+[
+.O_verbose
+]
+.br
+[
+.O_yes
+]
+.br
+[
+.O_commandprofile
+]
+.br
+[
+.O_config
+]
+.br
+[
+.O_devices
+]
+.br
+[
+.O_devicesfile
+]
+.br
+[
+.O_driverloaded
+]
+.br
+[
+.O_journal
+]
+.br
+[
+.O_lockopt
+]
+.br
+[
+.O_longhelp
+]
+.br
+[
+.O_nohints
+]
+.br
+[
+.O_nolocking
+]
+.br
+[
+.O_profile
+]
+.br
+[
+.O_version
+]
+.RE
+.hy
+.ad
+.
+.SH OPTIONS
+.
+.TP
+.O_activate
+Auto-activate LVs in a VG when the PVs scanned have completed the VG.
+(Only \fBay\fP is applicable.)
+.
+.TP
+.O_allpvs
+Show information about PVs outside the devices file.
+Displays the device ID for PVs included in the devices file.
+.
+.TP
+.O_autoactivation
+Specify if autoactivation is being used from an event.
+This allows the command to apply settings that are specific
+to event activation, such as device scanning optimizations
+using pvs_online files created by event-based pvscans.
+.
+.TP
+.O_cache
+Scan one or more devices and record that they are online.
+.
+.TP
+.O_checkcomplete
+Check if all the devices used by a VG or LV are present,
+and print "complete" or "incomplete" for each listed
+VG or LV.  This option is used as a part of event-based
+autoactivation, so pvscan will do nothing if this option
+is set and event_activation=0 in the config settings.
+.
+.TP
+.O_commandprofile
+The command profile to use for command configuration.
+See \fBlvm.conf\fP(5) for more information about profiles.
+.
+.TP
+.O_config
+Config settings for the command. These override \fBlvm.conf\fP(5) settings.
+The String arg uses the same format as \fBlvm.conf\fP(5),
+or may use section/field syntax.
+See \fBlvm.conf\fP(5) for more information about config.
+.
+.TP
+.O_debug
+Set debug level. Repeat from 1 to 6 times to increase the detail of
+messages sent to the log file and/or syslog (if configured).
+.
+.TP
+.O_devices
+Restricts the devices that are visible and accessible to the command.
+Devices not listed will appear to be missing. This option can be
+repeated, or accepts a comma separated list of devices. This overrides
+the devices file.
+.
+.TP
+.O_devicesfile
+A file listing devices that LVM should use.
+The file must exist in \fI#DEFAULT_SYS_DIR#/devices/\fP and is managed
+with the \fBlvmdevices\fP(8) command.
+This overrides the \fBlvm.conf\fP(5) \fBdevices/devicesfile\fP and
+\fBdevices/use_devicesfile\fP settings.
+.
+.TP
+.O_driverloaded
+If set to no, the command will not attempt to use device-mapper.
+For testing and debugging.
+.
+.TP
+.O_exported
+Only show PVs belonging to exported VGs.
+.
+.TP
+.O_help
+Display help text.
+.
+.TP
+.O_ignorelockingfailure
+Allows a command to continue with read-only metadata
+operations after locking failures.
+.
+.TP
+.O_journal
+Record information in the systemd journal.
+This information is in addition to information
+enabled by the lvm.conf log/journal setting.
+command: record information about the command.
+output: record the default command output.
+debug: record full command debugging.
+.
+.TP
+.O_listlvs
+Print a list of LVs that use the device.
+.
+.TP
+.O_listvg
+Print the VG that uses the device.
+.
+.TP
+.O_lockopt
+Used to pass options for special cases to lvmlockd.
+See \fBlvmlockd\fP(8) for more information.
+.
+.TP
+.O_longhelp
+Display long help text.
+.
+.TP
+.O_major
+The major number of a device.
+.
+.TP
+.O_minor
+The minor number of a device.
+.
+.TP
+.O_nohints
+Do not use the hints file to locate devices for PVs. A command may read
+more devices to find PVs when hints are not used. The command will still
+perform standard hint file invalidation where appropriate.
+.
+.TP
+.O_nolocking
+Disable locking. Use with caution, concurrent commands may produce
+incorrect results.
+.
+.TP
+.O_noudevsync
+Disables udev synchronization. The process will not wait for notification
+from udev. It will continue irrespective of any possible udev processing
+in the background. Only use this if udev is not running or has rules that
+ignore the devices LVM creates.
+.
+.TP
+.O_novolumegroup
+Only show PVs not belonging to any VG.
+.
+.TP
+.O_profile
+An alias for --commandprofile or --metadataprofile, depending
+on the command.
+.
+.TP
+.O_quiet
+Suppress output and log messages. Overrides --debug and --verbose.
+Repeat once to also suppress any prompts with answer 'no'.
+.
+.TP
+.O_reportformat
+Overrides current output format for reports which is defined globally by
+the report/output_format setting in \fBlvm.conf\fP(5).
+\fBbasic\fP is the original format with columns and rows.
+If there is more than one report per command, each report is prefixed
+with the report name for identification. \fBjson\fP produces report
+output in JSON format. \fBjson_std\fP produces report output in
+JSON format which is more compliant with JSON standard.
+See \fBlvmreport\fP(7) for more information.
+.
+.TP
+.O_short
+Short listing format.
+.
+.TP
+.O_test
+Run in test mode. Commands will not update metadata.
+This is implemented by disabling all metadata writing but nevertheless
+returning success to the calling function. This may lead to unusual
+error messages in multi-stage operations if a tool relies on reading
+back metadata it believes has changed but hasn't.
+.
+.TP
+.O_udevoutput
+Command output is modified to be imported from a udev rule.
+.
+.TP
+.O_uuid
+Show UUIDs in addition to device names.
+.
+.TP
+.O_verbose
+Set verbose level. Repeat from 1 to 4 times to increase the detail
+of messages sent to stdout and stderr.
+.
+.TP
+.O_version
+Display version information.
+.
+.TP
+.O_vgonline
+The first command to see a complete VG will report it uniquely.
+Other commands to see the complete VG will report it differently.
+.
+.TP
+.O_yes
+Do not prompt for confirmation interactively but always assume the
+answer yes. Use with extreme caution.
+(For automatic no, see -qq.)
+.
+.SH VARIABLES
+.
+.TP
+.I PV
+Physical Volume name, a device path under /dev.
+For commands managing physical extents, a PV positional arg
+generally accepts a suffix indicating a range (or multiple ranges)
+of physical extents (PEs). When the first PE is omitted, it defaults
+to the start of the device, and when the last PE is omitted it defaults to end.
+.br
+Start and end range (inclusive):
+\fIPV\fP[\fB:\fP\fIPE\fP\fB-\fP\fIPE\fP]\ .\|.\|.\&
+.br
+Start and length range (counting from 0):
+\fIPV\fP[\fB:\fP\fIPE\fP\fB+\fP\fIPE\fP]\ .\|.\|.\&
+.
+.TP
+.I String
+See the option description for information about the string content.
+.
+.TP
+.IR Size [UNIT]
+Size is an input number that accepts an optional unit.
+Input units are always treated as base two values, regardless of
+capitalization, e.g. 'k' and 'K' both refer to 1024.
+The default input unit is specified by letter, followed by |UNIT.
+UNIT represents other possible input units:
+.BR b | B
+is bytes,
+.BR s | S
+is sectors of 512 bytes,
+.BR k | K
+is KiB,
+.BR m | M
+is MiB,
+.BR g | G
+is GiB,
+.BR t | T
+is TiB,
+.BR p | P
+is PiB,
+.BR e | E
+is EiB.
+(This should not be confused with the output control --units,
+where capital letters mean multiple of 1000.)
+.
+.SH ENVIRONMENT VARIABLES
+.
+See \fBlvm\fP(8) for information about environment variables used by lvm.
+For example, \fBLVM_VG_NAME\fP can generally be substituted
+for a required VG parameter.

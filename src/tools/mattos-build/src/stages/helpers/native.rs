@@ -40,7 +40,7 @@ fn source_lock_repo_root(source: &Path) -> Result<PathBuf> {
 }
 
 fn prune_derived_source_mirror_artifacts(repo_root: &Path) -> Result<()> {
-    let root = repo_root.join("out/build/cosmic-desktop/sources");
+    let root = repo_root.join("out/build/cargo-source-mirrors");
     if !root.is_dir() {
         return Ok(());
     }

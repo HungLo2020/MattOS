@@ -76,12 +76,12 @@ impl StageResourceProfile {
     pub(crate) fn memory_heavy() -> Self {
         Self {
             minimum_cpu_grant: 1,
-            useful_cpu_ceiling: Some(6),
+            useful_cpu_ceiling: None,
             preferred_child_jobs: 4,
             minimum_child_jobs: 1,
-            useful_child_job_ceiling: Some(6),
-            // Four safe jobs reserve 2 GiB; six useful jobs reserve 2.75 GiB.
-            // This is a scalable launch model, not a host-specific stage cap.
+            useful_child_job_ceiling: None,
+            // Memory, rather than an arbitrary workstation-sized CPU cap,
+            // bounds compiler parallelism on larger hosts.
             estimated_memory_bytes: 512 * Self::MIB,
             memory_per_child_job_bytes: 384 * Self::MIB,
             memory_heavy: true,
@@ -105,18 +105,16 @@ impl StageResourceProfile {
         }
     }
 
-    /// Large C++/Rust link steps need an explicit reservation and a modest
-    /// compiler cap. Four children keep incremental builds useful while a
-    /// conservative 6 GiB reservation prevents admission beside competing
-    /// heavy work while still leaving headroom when the invocation itself is
-    /// enclosed by the documented 10 GiB systemd memory ceiling.
+    /// Large C++/Rust builds use the same host-scaled CPU grant as other
+    /// parallel stages, with memory admission rather than a workstation-sized
+    /// fixed CPU ceiling providing the safety bound.
     pub(crate) fn high_memory_parallel() -> Self {
         Self {
             minimum_cpu_grant: 1,
-            useful_cpu_ceiling: Some(4),
+            useful_cpu_ceiling: None,
             preferred_child_jobs: 4,
             minimum_child_jobs: 1,
-            useful_child_job_ceiling: Some(4),
+            useful_child_job_ceiling: None,
 
             // These stages are expensive, but the reservation must scale down
             // with the granted compiler parallelism. A fixed 6 GiB reservation
@@ -131,8 +129,8 @@ impl StageResourceProfile {
             memory_per_child_job_bytes: 768 * Self::MIB,
 
             memory_heavy: true,
-            may_borrow_idle_cpu: false,
-            child_jobs: ChildJobPolicy::Capped(4),
+            may_borrow_idle_cpu: true,
+            child_jobs: ChildJobPolicy::SchedulerGrant,
         }
     }
 }
@@ -182,7 +180,7 @@ pub(crate) struct JobContext {
     permit: Receiver<Option<Allocation>>,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 struct Allocation {
     cpu_tokens: usize,
     child_jobs: usize,
@@ -506,7 +504,8 @@ pub(crate) fn simulate(
         let heavy_jobs = running.values().filter(|(_, _, _, heavy)| *heavy).count();
         let mut available_tokens = budget.cpu_tokens - used_tokens;
         let mut available_memory = budget.build_memory_bytes.saturating_sub(used_memory);
-        let mut available_heavy = heavy_limit(PressureLevel::Healthy).saturating_sub(heavy_jobs);
+        let mut available_heavy =
+            heavy_limit(PressureLevel::Healthy, budget).saturating_sub(heavy_jobs);
         for node in &stable_nodes {
             if complete.contains(&node.id)
                 || running.contains_key(&node.id)
@@ -585,9 +584,12 @@ pub(crate) fn standalone_grant(
         .unwrap_or(0)
 }
 
-fn heavy_limit(pressure: PressureLevel) -> usize {
+fn heavy_limit(pressure: PressureLevel, budget: ResourceBudget) -> usize {
     match pressure {
-        PressureLevel::Healthy => 2,
+        // Memory admission remains authoritative.  Do not impose a fixed
+        // two-stage ceiling on machines with tens or hundreds of cores and
+        // enough RAM to run more independent compilers safely.
+        PressureLevel::Healthy => budget.cpu_tokens.max(1),
         PressureLevel::Constrained => 1,
         PressureLevel::Critical => 0,
     }
@@ -624,13 +626,18 @@ fn admission_grant(
     if available_cpu < minimum {
         return Err("insufficient-cpu-or-memory-budget");
     }
-    let reserved_for_peers = waiting_profiles
+    let peer_minimum = waiting_profiles
         .filter(|peer| {
             peer.minimum_cpu_grant.max(peer.minimum_child_jobs) <= available_cpu
                 && memory_reservation(*peer, peer.minimum_child_jobs) <= available_memory
         })
         .map(|peer| peer.minimum_cpu_grant.max(peer.minimum_child_jobs))
         .sum::<usize>();
+    // Keep at most half of the currently idle machine for peers.  Reserving a
+    // token for every queued stage reduced the first large Ninja build to
+    // `-j1` even though most peers were themselves blocked by memory or shared
+    // prerequisites.  This bounded split is fair but remains work-conserving.
+    let reserved_for_peers = peer_minimum.min(available_cpu / 2);
     let maximum = profile.useful_cpu_ceiling.unwrap_or(budget.cpu_tokens).min(
         profile
             .useful_child_job_ceiling
@@ -653,6 +660,17 @@ fn admission_grant(
         .rev()
         .find(|jobs| memory_reservation(profile, *jobs) <= available_memory)
         .ok_or("insufficient-cpu-or-memory-budget")?;
+    // A launch grant cannot be enlarged after Ninja/Cargo starts.  If the
+    // whole host can support the profile's preferred baseline but temporary
+    // contention cannot, wait and re-evaluate instead of permanently
+    // condemning a multi-hour build to one worker.
+    let sustainable_baseline = (minimum..=preferred_baseline.min(budget.cpu_tokens))
+        .rev()
+        .find(|jobs| memory_reservation(profile, *jobs) <= budget.build_memory_bytes)
+        .unwrap_or(minimum);
+    if used_tokens > 0 && cpu_tokens < sustainable_baseline {
+        return Err("waiting-for-scalable-grant");
+    }
     Ok(Allocation {
         cpu_tokens,
         child_jobs: cpu_tokens,
@@ -797,7 +815,9 @@ where
                     trace.event(&format!(
                         "event=build-cancel stage={id} used_tokens={used_tokens} heavy_jobs={heavy_jobs}"
                     ));
-                } else if node.profile.memory_heavy && heavy_jobs >= heavy_limit(sampled.pressure) {
+                } else if node.profile.memory_heavy
+                    && heavy_jobs >= heavy_limit(sampled.pressure, admission_budget)
+                {
                     record_defer(
                         &mut trace,
                         &mut deferred,
@@ -1150,7 +1170,7 @@ mod tests {
     }
 
     #[test]
-    fn build_tokens_and_heavy_job_limit_are_enforced() {
+    fn build_tokens_and_dynamic_heavy_memory_limit_are_enforced() {
         let active = Arc::new(Mutex::new((0usize, 0usize)));
         let maximum = Arc::new(Mutex::new((0usize, 0usize)));
         let mut nodes = (0..4)
@@ -1183,7 +1203,7 @@ mod tests {
             },
         )
         .unwrap();
-        assert_eq!(*maximum.lock().unwrap(), (8, 2));
+        assert_eq!(*maximum.lock().unwrap(), (12, 3));
     }
 
     #[test]
@@ -1262,7 +1282,7 @@ mod tests {
     }
 
     #[test]
-    fn standard_peers_reserve_cpu_before_a_heavy_stage_borrows() {
+    fn standard_peers_reserve_their_real_minimum_without_starving_a_large_build() {
         let heavy = StageResourceProfile::memory_heavy();
         let peers = [
             StageResourceProfile::standard(),
@@ -1277,9 +1297,50 @@ mod tests {
             peers.into_iter(),
         )
         .unwrap();
+        assert_eq!(allocation.cpu_tokens, 10);
+    }
+
+    #[test]
+    fn a_large_ready_set_reserves_at_most_half_the_machine() {
+        let peers = std::iter::repeat_n(StageResourceProfile::standard(), 64);
+        let allocation = admission_grant(
+            StageResourceProfile::high_memory_parallel(),
+            budget(32, 64 * GIB, false),
+            PressureLevel::Healthy,
+            0,
+            0,
+            peers,
+        )
+        .unwrap();
+        assert_eq!(allocation.cpu_tokens, 16);
+    }
+
+    #[test]
+    fn transient_contention_defers_instead_of_freezing_a_large_build_at_one_job() {
+        let profile = StageResourceProfile::high_memory_parallel();
         assert_eq!(
-            allocation.cpu_tokens, 6,
-            "the generic measured heavy-work ceiling leaves capacity for peers"
+            admission_grant(
+                profile,
+                budget(12, 16 * GIB, false),
+                PressureLevel::Healthy,
+                11,
+                0,
+                std::iter::empty(),
+            ),
+            Err("waiting-for-scalable-grant")
+        );
+        assert!(
+            admission_grant(
+                profile,
+                budget(12, 16 * GIB, false),
+                PressureLevel::Healthy,
+                0,
+                0,
+                std::iter::empty(),
+            )
+            .unwrap()
+            .child_jobs
+                >= 4
         );
     }
 

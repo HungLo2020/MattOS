@@ -1,0 +1,89 @@
+{
+    "id": "org.kde.kate",
+    "branch": "master",
+    "runtime": "org.kde.Platform",
+    "runtime-version": "6.10",
+    "sdk": "org.kde.Sdk",
+    "command": "kate",
+    "tags": [
+        "nightly"
+    ],
+    "desktop-file-name-suffix": " (Nightly)",
+    "finish-args": [
+        "--device=dri",
+        "--filesystem=host",
+        "--share=ipc",
+        "--share=network",
+        "--socket=cups",
+        "--socket=fallback-x11",
+        "--socket=wayland",
+        "--system-talk-name=org.freedesktop.UDisks2",
+        "--talk-name=org.freedesktop.Flatpak",
+        "--talk-name=org.freedesktop.FileManager1"
+    ],
+    "modules": [
+        {
+            "name": "markdownpart",
+            "buildsystem": "cmake-ninja",
+            "sources": [
+                {
+                    "type": "git",
+                    "url": "https://invent.kde.org/utilities/markdownpart.git"
+                }
+            ]
+        },
+        {
+            "name": "kio-extras",
+            "buildsystem": "cmake-ninja",
+            "sources": [
+                {
+                    "type": "git",
+                    "url":"https://invent.kde.org/network/kio-extras.git"
+                }
+            ]  
+        },
+        {
+            "name": "libssh",
+            "buildsystem": "cmake-ninja",
+            "builddir": true,
+            "config-opts": [
+                "-DWITH_GSSAPI=OFF",
+                "-DWITH_EXAMPLES=OFF",
+                "-DCMAKE_BUILD_TYPE=Release"
+            ],
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://git.libssh.org/projects/libssh.git/snapshot/libssh-0.12.0.tar.gz",
+                    "sha256": "a93c97f539f23a213734fa4a1807c7da577ad155d78145d44fd2af26bfb0e2ea",
+                    "x-checker-data": {
+                        "type": "anitya",
+                        "project-id": 1729,
+                        "url-template": "https://git.libssh.org/projects/libssh.git/snapshot/libssh-$version.tar.gz"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "konsole",
+            "buildsystem": "cmake-ninja",
+            "sources": [
+                {
+                    "type": "git",
+                    "url": "https://invent.kde.org/utilities/konsole.git"
+                }
+            ]
+        },
+        {
+            "name": "kate",
+            "buildsystem": "cmake-ninja",
+            "builddir": true,
+            "sources": [
+                {
+                    "type": "dir",
+                    "path": "."
+                }
+            ]
+        }
+    ]
+}

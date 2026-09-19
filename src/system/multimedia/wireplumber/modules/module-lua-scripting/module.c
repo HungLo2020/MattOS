@@ -1,0 +1,254 @@
+/* WirePlumber
+ *
+ * Copyright © 2020 Collabora Ltd.
+ *    @author George Kiagiadakis <george.kiagiadakis@collabora.com>
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+#include <wp/wp.h>
+#include <wplua/wplua.h>
+#include <pipewire/keys.h>
+
+#include "script.h"
+
+#define WP_LOCAL_LOG_TOPIC log_topic_lua_scripting
+WP_LOG_TOPIC (log_topic_lua_scripting, "m-lua-scripting")
+
+void wp_lua_scripting_api_init (lua_State *L);
+
+struct _WpLuaScriptingPlugin
+{
+  WpPlugin parent;
+  WpLuaState *lua_state;
+  GPtrArray *scripts; /* List of all loaded WpLuaScript objects */
+};
+
+static int
+wp_lua_scripting_package_loader (lua_State *L)
+{
+  luaL_checktype (L, 2, LUA_TFUNCTION);
+  wplua_push_sandbox (L);
+  lua_pushvalue (L, 2);
+  lua_call (L, 1, 1);
+  return 1;
+}
+
+static int
+wp_lua_scripting_package_searcher (lua_State *L)
+{
+  const gchar *name = luaL_checkstring (L, 1);
+  g_autoptr (GError) error = NULL;
+  g_autofree gchar *filename = g_strdup_printf ("%s.lua", name);
+  g_autofree gchar *script =
+      wp_base_dirs_find_file (WP_BASE_DIRS_DATA, "scripts/lib", filename);
+
+  if (!script)  {
+    lua_pushliteral (L, "script not found");
+    return 1;
+  }
+
+  /* 1. loader (function) */
+  lua_pushcfunction (L, wp_lua_scripting_package_loader);
+
+  /* 2. loader data (param to 1) */
+  wp_debug ("Executing script %s", script);
+  if (!wplua_load_path (L, script, &error)) {
+    lua_pop (L, 1);
+    lua_pushstring (L, error->message);
+    return 1;
+  }
+
+  /* 3. script path */
+  lua_pushstring (L, script);
+  return 3;
+}
+
+static void
+wp_lua_scripting_enable_package_searcher (lua_State *L)
+{
+  /* table.insert(package.searchers, 2, wp_lua_scripting_package_searcher) */
+  lua_getglobal (L, "table");
+  lua_getfield (L, -1, "insert");
+  lua_remove (L, -2);
+  lua_getglobal (L, "package");
+  lua_getfield (L, -1, "searchers");
+  lua_remove (L, -2);
+  lua_pushinteger (L, 2);
+  lua_pushcfunction (L, wp_lua_scripting_package_searcher);
+  lua_call (L, 3, 0);
+}
+
+static void wp_lua_scripting_component_loader_init (WpComponentLoaderInterface * iface);
+
+G_DECLARE_FINAL_TYPE (WpLuaScriptingPlugin, wp_lua_scripting_plugin,
+                      WP, LUA_SCRIPTING_PLUGIN, WpPlugin)
+G_DEFINE_TYPE_WITH_CODE (WpLuaScriptingPlugin, wp_lua_scripting_plugin,
+                         WP_TYPE_PLUGIN, G_IMPLEMENT_INTERFACE (
+                            WP_TYPE_COMPONENT_LOADER,
+                            wp_lua_scripting_component_loader_init))
+
+static void
+wp_lua_scripting_plugin_init (WpLuaScriptingPlugin * self)
+{
+  self->scripts = g_ptr_array_new_with_free_func (g_object_unref);
+}
+
+static void
+wp_lua_scripting_plugin_enable (WpPlugin * plugin, WpTransition * transition)
+{
+  WpLuaScriptingPlugin * self = WP_LUA_SCRIPTING_PLUGIN (plugin);
+  g_autoptr (WpCore) core = wp_object_get_core (WP_OBJECT (plugin));
+  lua_State * L;
+
+  /* init lua engine */
+  self->lua_state = wplua_state_new ();
+  L = wplua_state_get (self->lua_state);
+
+  lua_pushliteral (L, "wireplumber_core");
+  lua_pushlightuserdata (L, core);
+  lua_settable (L, LUA_REGISTRYINDEX);
+
+  wp_lua_scripting_api_init (L);
+  wp_lua_scripting_enable_package_searcher (L);
+  wplua_enable_sandbox (L, WP_LUA_SANDBOX_ISOLATE_ENV);
+
+  wp_object_update_features (WP_OBJECT (self), WP_PLUGIN_FEATURE_ENABLED, 0);
+}
+
+static void
+wp_lua_scripting_plugin_disable (WpPlugin * plugin)
+{
+  WpLuaScriptingPlugin * self = WP_LUA_SCRIPTING_PLUGIN (plugin);
+
+  /* make sure all plugins are disabled before clearing the Lua state */
+  for (guint i = 0; i < self->scripts->len; i++) {
+    WpLuaScript *script = g_ptr_array_index (self->scripts, i);
+    wp_object_deactivate (WP_OBJECT (script), WP_OBJECT_FEATURES_ALL);
+  }
+
+  g_clear_object (&self->lua_state);
+}
+
+static gboolean
+wp_lua_scripting_plugin_supports_type (WpComponentLoader * cl,
+    const gchar * type)
+{
+  return g_str_equal (type, "script/lua");
+}
+
+static gchar *
+find_script (const gchar * script, WpCore *core)
+{
+  g_autoptr (WpProperties) p = wp_core_get_properties (core);
+  const gchar *str = wp_properties_get (p, "wireplumber.daemon");
+  gboolean daemon = !g_strcmp0 (str, "true");
+
+  if ((!daemon || g_path_is_absolute (script)) &&
+      g_file_test (script, G_FILE_TEST_IS_REGULAR))
+    return g_strdup (script);
+
+  return wp_base_dirs_find_file (WP_BASE_DIRS_DATA, "scripts", script);
+}
+
+static void
+wp_lua_scripting_plugin_load (WpComponentLoader * cl, WpCore * core,
+    const gchar * component, const gchar * type, WpSpaJson * args,
+    GCancellable * cancellable, GAsyncReadyCallback callback, gpointer data)
+{
+  WpLuaScriptingPlugin * self = WP_LUA_SCRIPTING_PLUGIN (cl);
+  g_autoptr (GTask) task = task = g_task_new (self, cancellable, callback, data);
+  g_autofree gchar *filepath = NULL;
+  g_autofree gchar *pluginname = NULL;
+  g_autoptr (WpPlugin) script = NULL;
+
+  g_task_set_source_tag (task, wp_lua_scripting_plugin_load);
+
+  /* make sure the component loader is activated */
+  if (!self->lua_state) {
+    g_task_return_new_error (task, G_IO_ERROR, G_IO_ERROR_NOT_FOUND,
+        "Lua script component loader cannot load Lua scripts if not enabled");
+    return;
+  }
+
+  /* make sure the type is supported */
+  if (!g_str_equal (type, "script/lua")) {
+    g_task_return_new_error (task, G_IO_ERROR, G_IO_ERROR_NOT_FOUND,
+        "Could not load script '%s' as its type is not 'script/lua'",
+        component);
+    return;
+  }
+
+  /* find the script */
+  filepath = find_script (component, core);
+  if (!filepath) {
+    g_task_return_new_error (task, G_IO_ERROR, G_IO_ERROR_NOT_FOUND,
+        "Could not locate script '%s'", component);
+    return;
+  }
+
+  pluginname = g_strdup_printf ("script:%s", component);
+
+  script = g_object_new (WP_TYPE_LUA_SCRIPT,
+      "core", core,
+      "name", pluginname,
+      "lua-engine", self->lua_state,
+      "filename", filepath,
+      "arguments", args,
+      NULL);
+
+  /* add the plugin to the list */
+  g_ptr_array_add (self->scripts, g_object_ref (script));
+
+  g_task_return_pointer (task, g_steal_pointer (&script), g_object_unref);
+}
+
+static GObject *
+wp_lua_scripting_plugin_load_finish (WpComponentLoader * self,
+    GAsyncResult * res, GError ** error)
+{
+  g_return_val_if_fail (
+    g_async_result_is_tagged (res, wp_lua_scripting_plugin_load), NULL);
+
+  return g_task_propagate_pointer (G_TASK (res), error);
+}
+
+static void
+wp_lua_scripting_plugin_finalize (GObject *object)
+{
+  WpLuaScriptingPlugin *self = WP_LUA_SCRIPTING_PLUGIN (object);
+
+  g_clear_pointer (&self->scripts, g_ptr_array_unref);
+
+  G_OBJECT_CLASS (wp_lua_scripting_plugin_parent_class)->finalize (object);
+}
+
+
+static void
+wp_lua_scripting_plugin_class_init (WpLuaScriptingPluginClass * klass)
+{
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  WpPluginClass *plugin_class = (WpPluginClass *) klass;
+
+  object_class->finalize = wp_lua_scripting_plugin_finalize;
+
+  plugin_class->enable = wp_lua_scripting_plugin_enable;
+  plugin_class->disable = wp_lua_scripting_plugin_disable;
+}
+
+static void
+wp_lua_scripting_component_loader_init (WpComponentLoaderInterface * iface)
+{
+  iface->supports_type = wp_lua_scripting_plugin_supports_type;
+  iface->load = wp_lua_scripting_plugin_load;
+  iface->load_finish = wp_lua_scripting_plugin_load_finish;
+}
+
+WP_PLUGIN_EXPORT GObject *
+wireplumber__module_init (WpCore * core, WpSpaJson * args, GError ** error)
+{
+  return G_OBJECT (g_object_new (wp_lua_scripting_plugin_get_type (),
+      "name", "lua-scripting",
+      "core", core,
+      NULL));
+}

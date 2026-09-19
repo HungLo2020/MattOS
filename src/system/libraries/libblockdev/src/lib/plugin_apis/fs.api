@@ -1,0 +1,2741 @@
+#include <glib.h>
+#include <glib-object.h>
+#include <blockdev/utils.h>
+
+#ifndef BD_FS_API
+#define BD_FS_API
+
+GQuark bd_fs_error_quark (void) {
+    return g_quark_from_static_string ("g-bd-fs-error-quark");
+}
+
+#define BD_FS_ERROR bd_fs_error_quark ()
+typedef enum {
+    BD_FS_ERROR_TECH_UNAVAIL,
+    BD_FS_ERROR_INVAL,
+    BD_FS_ERROR_PARSE,
+    BD_FS_ERROR_FAIL,
+    BD_FS_ERROR_NOFS,
+    BD_FS_ERROR_PIPE,
+    BD_FS_ERROR_UNMOUNT_FAIL,
+    BD_FS_ERROR_NOT_SUPPORTED,
+    BD_FS_ERROR_NOT_MOUNTED,
+    BD_FS_ERROR_AUTH,
+    BD_FS_ERROR_LABEL_INVALID,
+    BD_FS_ERROR_UUID_INVALID,
+    BD_FS_ERROR_UNKNOWN_FS,
+} BDFSError;
+
+/**
+ * BDFSMkfsOptions:
+ * @label: label of the filesystem
+ * @uuid: uuid of the filesystem
+ * @dry_run: whether to run mkfs in dry run mode (no changes written to the device)
+ * @no_discard: whether to avoid discarding blocks at mkfs time
+ * @force: whether to run mkfs with the `--force` (or similar) option, the behaviour of this
+ *         option depends on the filesystem, but in general it allows overwriting other
+ *         preexisting formats detected on the device
+ * @no_pt: whether to disable (protective) partition table creation during mkfs
+ * @reserve: reserve for future expansion
+ */
+typedef struct BDFSMkfsOptions {
+    const gchar *label;
+    const gchar *uuid;
+    gboolean dry_run;
+    gboolean no_discard;
+    gboolean force;
+    gboolean no_pt;
+    guint8 reserve[32];
+} BDFSMkfsOptions;
+
+/**
+ * bd_fs_mkfs_options_copy: (skip)
+ * @data: (nullable): %BDFSMkfsOptions to copy
+ *
+ * Creates a new copy of @data.
+ */
+BDFSMkfsOptions* bd_fs_mkfs_options_copy (BDFSMkfsOptions *data) {
+    if (data == NULL)
+        return NULL;
+
+    BDFSMkfsOptions *ret = g_new0 (BDFSMkfsOptions, 1);
+
+    ret->label = data->label;
+    ret->uuid = data->uuid;
+    ret->dry_run = data->dry_run;
+    ret->no_discard = data->no_discard;
+    ret->force = data->force;
+    ret->no_pt = data->no_pt;
+
+    return ret;
+}
+
+/**
+ * bd_fs_mkfs_options_free: (skip)
+ * @data: (nullable): %BDFSMkfsOptions to free
+ *
+ * Frees @data.
+ */
+void bd_fs_mkfs_options_free (BDFSMkfsOptions *data) {
+    if (data == NULL)
+        return;
+
+    g_free (data);
+}
+
+#define BD_FS_TYPE_MKFS_OPTIONS (bd_fs_mkfs_options_get_type ())
+
+GType bd_fs_mkfs_options_get_type () {
+    static GType type = 0;
+
+    if (G_UNLIKELY(type == 0)) {
+        type = g_boxed_type_register_static("BDFSMkfsOptions",
+                                            (GBoxedCopyFunc) bd_fs_mkfs_options_copy,
+                                            (GBoxedFreeFunc) bd_fs_mkfs_options_free);
+    }
+
+    return type;
+}
+
+#define BD_FS_TYPE_EXT2_INFO (bd_fs_ext2_info_get_type ())
+GType bd_fs_ext2_info_get_type();
+#define BD_FS_TYPE_EXT3_INFO (bd_fs_ext3_info_get_type ())
+GType bd_fs_ext3_info_get_type();
+#define BD_FS_TYPE_EXT4_INFO (bd_fs_ext4_info_get_type ())
+GType bd_fs_ext4_info_get_type();
+
+/**
+ * BDFSExtInfo:
+ * @label: label of the filesystem
+ * @uuid: uuid of the filesystem
+ * @state: state of the filesystem (e.g. "clean")
+ * @block_size: block size used by the filesystem
+ * @block_count: number of blocks in the filesystem
+ * @free_blocks: number of free blocks in the filesystem
+ */
+typedef struct BDFSExtInfo {
+    gchar *label;
+    gchar *uuid;
+    gchar *state;
+    guint64 block_size;
+    guint64 block_count;
+    guint64 free_blocks;
+} BDFSExtInfo;
+
+typedef struct BDFSExtInfo BDFSExt4Info;
+typedef struct BDFSExtInfo BDFSExt3Info;
+typedef struct BDFSExtInfo BDFSExt2Info;
+
+/**
+ * bd_fs_ext2_info_copy: (skip)
+ * @data: (nullable): %BDFSExt2Info to copy
+ *
+ * Creates a new copy of @data.
+ */
+BDFSExt2Info* bd_fs_ext2_info_copy (BDFSExt2Info *data) {
+    if (data == NULL)
+        return NULL;
+
+    BDFSExt2Info *ret = g_new0 (BDFSExt2Info, 1);
+
+    ret->label = g_strdup (data->label);
+    ret->uuid = g_strdup (data->uuid);
+    ret->state = g_strdup (data->state);
+    ret->block_size = data->block_size;
+    ret->block_count = data->block_count;
+    ret->free_blocks = data->free_blocks;
+
+    return ret;
+}
+
+/**
+ * bd_fs_ext3_info_copy: (skip)
+ * @data: (nullable): %BDFSExt3Info to copy
+ *
+ * Creates a new copy of @data.
+ */
+BDFSExt3Info* bd_fs_ext3_info_copy (BDFSExt3Info *data) {
+    return (BDFSExt3Info*) bd_fs_ext2_info_copy (data);
+}
+
+/**
+ * bd_fs_ext4_info_copy: (skip)
+ * @data: (nullable): %BDFSExt4Info to copy
+ *
+ * Creates a new copy of @data.
+ */
+BDFSExt4Info* bd_fs_ext4_info_copy (BDFSExt4Info *data) {
+    return (BDFSExt4Info*) bd_fs_ext2_info_copy (data);
+};
+
+/**
+ * bd_fs_ext2_info_free: (skip)
+ * @data: (nullable): %BDFSExt2Info to free
+ *
+ * Frees @data.
+ */
+void bd_fs_ext2_info_free (BDFSExt2Info *data) {
+    if (data == NULL)
+        return;
+
+    g_free (data->label);
+    g_free (data->uuid);
+    g_free (data->state);
+    g_free (data);
+}
+
+/**
+ * bd_fs_ext3_info_free: (skip)
+ * @data: (nullable): %BDFSExt3Info to free
+ *
+ * Frees @data.
+ */
+void bd_fs_ext3_info_free (BDFSExt3Info *data) {
+    bd_fs_ext2_info_free ((BDFSExt2Info*) data);
+}
+
+/**
+ * bd_fs_ext4_info_free: (skip)
+ * @data: (nullable): %BDFSExt4Info to free
+ *
+ * Frees @data.
+ */
+void bd_fs_ext4_info_free (BDFSExt4Info *data) {
+    bd_fs_ext2_info_free ((BDFSExt2Info*) data);
+}
+
+GType bd_fs_ext2_info_get_type () {
+    static GType type = 0;
+
+    if (G_UNLIKELY(type == 0)) {
+        type = g_boxed_type_register_static("BDFSExt2Info",
+                                            (GBoxedCopyFunc) bd_fs_ext2_info_copy,
+                                            (GBoxedFreeFunc) bd_fs_ext2_info_free);
+    }
+
+    return type;
+}
+
+GType bd_fs_ext3_info_get_type () {
+    static GType type = 0;
+
+    if (G_UNLIKELY(type == 0)) {
+        type = g_boxed_type_register_static("BDFSExt3Info",
+                                            (GBoxedCopyFunc) bd_fs_ext3_info_copy,
+                                            (GBoxedFreeFunc) bd_fs_ext3_info_free);
+    }
+
+    return type;
+}
+
+GType bd_fs_ext4_info_get_type () {
+    static GType type = 0;
+
+    if (G_UNLIKELY(type == 0)) {
+        type = g_boxed_type_register_static("BDFSExt4Info",
+                                            (GBoxedCopyFunc) bd_fs_ext4_info_copy,
+                                            (GBoxedFreeFunc) bd_fs_ext4_info_free);
+    }
+
+    return type;
+}
+
+#define BD_FS_TYPE_XFS_INFO (bd_fs_xfs_info_get_type ())
+GType bd_fs_xfs_info_get_type();
+
+/**
+ * BDFSXfsInfo:
+ * @label: label of the filesystem
+ * @uuid: uuid of the filesystem
+ * @block_size: block size used by the filesystem
+ * @block_count: number of blocks in the filesystem
+ */
+typedef struct BDFSXfsInfo {
+    gchar *label;
+    gchar *uuid;
+    guint64 block_size;
+    guint64 block_count;
+} BDFSXfsInfo;
+
+/**
+ * bd_fs_xfs_info_copy: (skip)
+ * @data: (nullable): %BDFSXfsInfo to copy
+ *
+ * Creates a new copy of @data.
+ */
+BDFSXfsInfo* bd_fs_xfs_info_copy (BDFSXfsInfo *data) {
+    if (data == NULL)
+        return NULL;
+
+    BDFSXfsInfo *ret = g_new0 (BDFSXfsInfo, 1);
+
+    ret->label = g_strdup (data->label);
+    ret->uuid = g_strdup (data->uuid);
+    ret->block_size = data->block_size;
+    ret->block_count = data->block_count;
+
+    return ret;
+}
+
+/**
+ * bd_fs_xfs_info_free: (skip)
+ * @data: (nullable): %BDFSXfsInfo to free
+ *
+ * Frees @data.
+ */
+void bd_fs_xfs_info_free (BDFSXfsInfo *data) {
+    if (data == NULL)
+        return;
+
+    g_free (data->label);
+    g_free (data->uuid);
+    g_free (data);
+}
+
+GType bd_fs_xfs_info_get_type () {
+    static GType type = 0;
+
+    if (G_UNLIKELY(type == 0)) {
+        type = g_boxed_type_register_static("BDFSXfsInfo",
+                                            (GBoxedCopyFunc) bd_fs_xfs_info_copy,
+                                            (GBoxedFreeFunc) bd_fs_xfs_info_free);
+    }
+
+    return type;
+}
+
+#define BD_FS_TYPE_VFAT_INFO (bd_fs_vfat_info_get_type ())
+GType bd_fs_vfat_info_get_type();
+
+/**
+ * BDFSVfatInfo:
+ * @label: label of the filesystem
+ * @uuid: uuid of the filesystem
+ * @cluster_size: cluster size used by the filesystem
+ * @cluster_count: number of clusters in the filesystem
+ * @free_cluster_count: number of free clusters in the filesystem
+ */
+typedef struct BDFSVfatInfo {
+    gchar *label;
+    gchar *uuid;
+    guint64 cluster_size;
+    guint64 cluster_count;
+    guint64 free_cluster_count;
+} BDFSVfatInfo;
+
+/**
+ * bd_fs_vfat_info_copy: (skip)
+ * @data: (nullable): %BDFSVfatInfo to copy
+ *
+ * Creates a new copy of @data.
+ */
+BDFSVfatInfo* bd_fs_vfat_info_copy (BDFSVfatInfo *data) {
+    if (data == NULL)
+        return NULL;
+
+    BDFSVfatInfo *ret = g_new0 (BDFSVfatInfo, 1);
+
+    ret->label = g_strdup (data->label);
+    ret->uuid = g_strdup (data->uuid);
+    ret->cluster_size = data->cluster_size;
+    ret->cluster_count = data->cluster_count;
+    ret->free_cluster_count = data->free_cluster_count;
+
+    return ret;
+}
+
+/**
+ * bd_fs_vfat_info_free: (skip)
+ * @data: (nullable): %BDFSVfatInfo to free
+ *
+ * Frees @data.
+ */
+void bd_fs_vfat_info_free (BDFSVfatInfo *data) {
+    if (data == NULL)
+        return;
+
+    g_free (data->label);
+    g_free (data->uuid);
+    g_free (data);
+}
+
+GType bd_fs_vfat_info_get_type () {
+    static GType type = 0;
+
+    if (G_UNLIKELY(type == 0)) {
+        type = g_boxed_type_register_static("BDFSVfatInfo",
+                                            (GBoxedCopyFunc) bd_fs_vfat_info_copy,
+                                            (GBoxedFreeFunc) bd_fs_vfat_info_free);
+    }
+
+    return type;
+}
+
+/**
+ * BDFSNtfsInfo:
+ * @label: label of the filesystem
+ * @uuid: uuid of the filesystem
+ * @size: size of the filesystem in bytes
+ * @free_space: number of free space in the filesystem in bytes
+ */
+typedef struct BDFSNtfsInfo {
+    gchar *label;
+    gchar *uuid;
+    guint64 size;
+    guint64 free_space;
+} BDFSNtfsInfo;
+
+/**
+ * bd_fs_ntfs_info_copy: (skip)
+ * @data: (nullable): %BDFSNtfsInfo to copy
+ *
+ * Creates a new copy of @data.
+ */
+BDFSNtfsInfo* bd_fs_ntfs_info_copy (BDFSNtfsInfo *data) {
+    if (data == NULL)
+        return NULL;
+
+    BDFSNtfsInfo *ret = g_new0 (BDFSNtfsInfo, 1);
+
+    ret->label = g_strdup (data->label);
+    ret->uuid = g_strdup (data->uuid);
+    ret->size = data->size;
+    ret->free_space = data->free_space;
+
+    return ret;
+}
+
+/**
+ * bd_fs_ntfs_info_free: (skip)
+ * @data: (nullable): %BDFSNtfsInfo to free
+ *
+ * Frees @data.
+ */
+void bd_fs_ntfs_info_free (BDFSNtfsInfo *data) {
+    if (data == NULL)
+        return;
+
+    g_free (data->label);
+    g_free (data->uuid);
+    g_free (data);
+}
+
+GType bd_fs_ntfs_info_get_type () {
+    static GType type = 0;
+
+    if (G_UNLIKELY(type == 0)) {
+        type = g_boxed_type_register_static("BDFSNtfsInfo",
+                                            (GBoxedCopyFunc) bd_fs_ntfs_info_copy,
+                                            (GBoxedFreeFunc) bd_fs_ntfs_info_free);
+    }
+
+    return type;
+}
+
+#define BD_FS_TYPE_F2FS_INFO (bd_fs_f2fs_info_get_type ())
+GType bd_fs_f2fs_info_get_type();
+
+/**
+ * BDFSF2FSInfo:
+ * @label: label of the filesystem
+ * @uuid: uuid of the filesystem
+ * @sector_size: sector size used by the filesystem
+ * @sector_count: number of sectors in the filesystem
+ * @features: features enabled for this filesystem, see #BDFSF2FSFeature
+ */
+typedef struct BDFSF2FSInfo {
+    gchar *label;
+    gchar *uuid;
+    guint64 sector_size;
+    guint64 sector_count;
+    guint64 features;
+} BDFSF2FSInfo;
+
+/**
+ * bd_fs_f2fs_info_copy: (skip)
+ * @data: (nullable): %BDFSF2FSInfo to copy
+ *
+ * Creates a new copy of @data.
+ */
+BDFSF2FSInfo* bd_fs_f2fs_info_copy (BDFSF2FSInfo *data) {
+    if (data == NULL)
+        return NULL;
+
+    BDFSF2FSInfo *ret = g_new0 (BDFSF2FSInfo, 1);
+
+    ret->label = g_strdup (data->label);
+    ret->uuid = g_strdup (data->uuid);
+    ret->sector_size = data->sector_size;
+    ret->sector_count = data->sector_count;
+    ret->features = data->features;
+
+    return ret;
+}
+
+/**
+ * bd_fs_f2fs_info_free: (skip)
+ * @data: (nullable): %BDFSF2FSInfo to free
+ *
+ * Frees @data.
+ */
+void bd_fs_f2fs_info_free (BDFSF2FSInfo *data) {
+    if (data == NULL)
+        return;
+
+    g_free (data->label);
+    g_free (data->uuid);
+    g_free (data);
+}
+
+GType bd_fs_f2fs_info_get_type () {
+    static GType type = 0;
+
+    if (G_UNLIKELY(type == 0)) {
+        type = g_boxed_type_register_static("BDFSF2FSInfo",
+                                            (GBoxedCopyFunc) bd_fs_f2fs_info_copy,
+                                            (GBoxedFreeFunc) bd_fs_f2fs_info_free);
+    }
+
+    return type;
+}
+
+typedef enum {
+    BD_FS_F2FS_FEATURE_ENCRYPT =                1 << 0,
+    BD_FS_F2FS_FEATURE_BLKZONED =               1 << 1,
+    BD_FS_F2FS_FEATURE_ATOMIC_WRITE =           1 << 2,
+    BD_FS_F2FS_FEATURE_EXTRA_ATTR =             1 << 3,
+    BD_FS_F2FS_FEATURE_PRJQUOTA =               1 << 4,
+    BD_FS_F2FS_FEATURE_INODE_CHKSUM =           1 << 5,
+    BD_FS_F2FS_FEATURE_FLEXIBLE_INLINE_XATTR =  1 << 6,
+    BD_FS_F2FS_FEATURE_QUOTA_INO =              1 << 7,
+    BD_FS_F2FS_FEATURE_INODE_CRTIME =           1 << 8,
+    BD_FS_F2FS_FEATURE_LOST_FOUND =             1 << 9,
+    BD_FS_F2FS_FEATURE_VERITY =                 1 << 10,
+    BD_FS_F2FS_FEATURE_SB_CHKSUM =              1 << 11,
+} BDFSF2FSFeature;
+
+typedef enum {
+    BD_FS_TECH_GENERIC = 0,
+    BD_FS_TECH_MOUNT,
+    BD_FS_TECH_EXT2,
+    BD_FS_TECH_EXT3,
+    BD_FS_TECH_EXT4,
+    BD_FS_TECH_XFS,
+    BD_FS_TECH_VFAT,
+    BD_FS_TECH_NTFS,
+    BD_FS_TECH_F2FS,
+    BD_FS_TECH_NILFS2,
+    BD_FS_TECH_EXFAT,
+    BD_FS_TECH_BTRFS,
+    BD_FS_TECH_UDF,
+} BDFSTech;
+
+typedef enum {
+    BD_FS_TECH_MODE_MKFS      = 1 << 0,
+    BD_FS_TECH_MODE_WIPE      = 1 << 1,
+    BD_FS_TECH_MODE_CHECK     = 1 << 2,
+    BD_FS_TECH_MODE_REPAIR    = 1 << 3,
+    BD_FS_TECH_MODE_SET_LABEL = 1 << 4,
+    BD_FS_TECH_MODE_QUERY     = 1 << 5,
+    BD_FS_TECH_MODE_RESIZE    = 1 << 6,
+    BD_FS_TECH_MODE_SET_UUID  = 1 << 7,
+} BDFSTechMode;
+
+#define BD_FS_TYPE_NILFS_INFO (bd_fs_nilfs2_info_get_type ())
+GType bd_fs_nilfs2_info_get_type();
+
+/**
+ * BDFSNILFS2Info:
+ * @label: label of the filesystem
+ * @uuid: uuid of the filesystem
+ * @block_size: block size used by the filesystem
+ * @size: size of the filesystem
+ * @free_blocks: number of free blocks in the filesystem
+ */
+typedef struct BDFSNILFS2Info {
+    gchar *label;
+    gchar *uuid;
+    guint64 size;
+    guint64 block_size;
+    guint64 free_blocks;
+} BDFSNILFS2Info;
+
+/**
+ * bd_fs_nilfs2_info_copy: (skip)
+ * @data: (nullable): %BDFSNILFS2Info to copy
+ *
+ * Creates a new copy of @data.
+ */
+BDFSNILFS2Info* bd_fs_nilfs2_info_copy (BDFSNILFS2Info *data) {
+    if (data == NULL)
+        return NULL;
+
+    BDFSNILFS2Info *ret = g_new0 (BDFSNILFS2Info, 1);
+
+    ret->label = g_strdup (data->label);
+    ret->uuid = g_strdup (data->uuid);
+    ret->size = data->size;
+    ret->block_size = data->block_size;
+    ret->free_blocks = data->free_blocks;
+
+    return ret;
+}
+
+/**
+ * bd_fs_nilfs2_info_free: (skip)
+ * @data: (nullable): %BDFSNILFS2Info to free
+ *
+ * Frees @data.
+ */
+void bd_fs_nilfs2_info_free (BDFSNILFS2Info *data) {
+    if (data == NULL)
+        return;
+
+    g_free (data->label);
+    g_free (data->uuid);
+    g_free (data);
+}
+
+GType bd_fs_nilfs2_info_get_type () {
+    static GType type = 0;
+
+    if (G_UNLIKELY(type == 0)) {
+        type = g_boxed_type_register_static("BDFSNILFS2Info",
+                                            (GBoxedCopyFunc) bd_fs_nilfs2_info_copy,
+                                            (GBoxedFreeFunc) bd_fs_nilfs2_info_free);
+    }
+
+    return type;
+}
+
+#define BD_FS_TYPE_EXFAT_INFO (bd_fs_exfat_info_get_type ())
+GType bd_fs_exfat_info_get_type();
+
+/**
+ * BDFSExfatInfo:
+ * @label: label of the filesystem
+ * @uuid: uuid of the filesystem
+ * @sector_size: sector size used by the filesystem
+ * @sector_count: number of sectors in the filesystem
+ * @cluster_count: number of clusters in the filesystem
+ */
+typedef struct BDFSExfatInfo {
+    gchar *label;
+    gchar *uuid;
+    guint64 sector_size;
+    guint64 sector_count;
+    guint64 cluster_count;
+} BDFSExfatInfo;
+
+/**
+ * bd_fs_exfat_info_free: (skip)
+ * @data: (nullable): %BDFSExfatInfo to free
+ *
+ * Frees @data.
+ */
+void bd_fs_exfat_info_free (BDFSExfatInfo *data) {
+    if (data == NULL)
+        return;
+
+    g_free (data->label);
+    g_free (data->uuid);
+    g_free (data);
+}
+
+/**
+ * bd_fs_exfat_info_copy: (skip)
+ * @data: (nullable): %BDFSExfatInfo to copy
+ *
+ * Creates a new copy of @data.
+ */
+BDFSExfatInfo* bd_fs_exfat_info_copy (BDFSExfatInfo *data) {
+    if (data == NULL)
+        return NULL;
+
+    BDFSExfatInfo *ret = g_new0 (BDFSExfatInfo, 1);
+
+    ret->label = g_strdup (data->label);
+    ret->uuid = g_strdup (data->uuid);
+    ret->sector_size = data->sector_size;
+    ret->sector_count = data->sector_count;
+    ret->cluster_count = data->cluster_count;
+
+    return ret;
+}
+
+GType bd_fs_exfat_info_get_type () {
+    static GType type = 0;
+
+    if (G_UNLIKELY(type == 0)) {
+        type = g_boxed_type_register_static("BDFSExfatInfo",
+                                            (GBoxedCopyFunc) bd_fs_exfat_info_copy,
+                                            (GBoxedFreeFunc) bd_fs_exfat_info_free);
+    }
+
+    return type;
+}
+
+/**
+ * BDFSBtrfsInfo:
+ * @label: label of the filesystem
+ * @uuid: uuid of the filesystem
+ * @size: size of the filesystem in bytes
+ * @free_space: free space on the filesystem in bytes
+ */
+typedef struct BDFSBtrfsInfo {
+    gchar *label;
+    gchar *uuid;
+    guint64 size;
+    guint64 free_space;
+} BDFSBtrfsInfo;
+
+/**
+ * bd_fs_btrfs_info_copy: (skip)
+ * @data: (nullable): %BDFSBtrfsInfo to copy
+ *
+ * Creates a new copy of @data.
+ */
+BDFSBtrfsInfo* bd_fs_btrfs_info_copy (BDFSBtrfsInfo *data) {
+    if (data == NULL)
+        return NULL;
+
+    BDFSBtrfsInfo *ret = g_new0 (BDFSBtrfsInfo, 1);
+
+    ret->label = g_strdup (data->label);
+    ret->uuid = g_strdup (data->uuid);
+    ret->size = data->size;
+    ret->free_space = data->free_space;
+
+    return ret;
+}
+
+/**
+ * bd_fs_btrfs_info_free: (skip)
+ * @data: (nullable): %BDFSBtrfsInfo to free
+ *
+ * Frees @data.
+ */
+void bd_fs_btrfs_info_free (BDFSBtrfsInfo *data) {
+    if (data == NULL)
+        return;
+
+    g_free (data->label);
+    g_free (data->uuid);
+    g_free (data);
+}
+
+GType bd_fs_btrfs_info_get_type () {
+    static GType type = 0;
+
+    if (G_UNLIKELY(type == 0)) {
+        type = g_boxed_type_register_static("BDFSBtrfsInfo",
+                                            (GBoxedCopyFunc) bd_fs_btrfs_info_copy,
+                                            (GBoxedFreeFunc) bd_fs_btrfs_info_free);
+    }
+
+    return type;
+}
+
+/**
+ * BDFSUdfInfo:
+ * @label: label of the filesystem
+ * @uuid: uuid of the filesystem
+ * @revision: UDF revision
+ * @lvid: Logical Volume Identifier (most UDF implementations use this identifier as a disk label)
+ * @vid: Volume Identifier
+ * @block_size: block size used by the filesystem
+ * @block_count: number of blocks in the filesystem
+ * @free_blocks: number of free blocks in the filesystem
+ */
+typedef struct BDFSUdfInfo {
+    gchar *label;
+    gchar *uuid;
+    gchar *revision;
+    gchar *lvid;
+    gchar *vid;
+    guint64 block_size;
+    guint64 block_count;
+    guint64 free_blocks;
+} BDFSUdfInfo;
+
+/**
+ * bd_fs_udf_info_free: (skip)
+ * @data: (nullable): %BDFSUdfInfo to free
+ *
+ * Frees @data.
+ */
+void bd_fs_udf_info_free (BDFSUdfInfo *data) {
+    if (data == NULL)
+        return;
+
+    g_free (data->label);
+    g_free (data->uuid);
+    g_free (data->revision);
+    g_free (data->lvid);
+    g_free (data->vid);
+    g_free (data);
+}
+
+/**
+ * bd_fs_udf_info_copy: (skip)
+ * @data: (nullable): %BDFSUdfInfo to copy
+ *
+ * Creates a new copy of @data.
+ */
+BDFSUdfInfo* bd_fs_udf_info_copy (BDFSUdfInfo *data) {
+    if (data == NULL)
+        return NULL;
+
+    BDFSUdfInfo *ret = g_new0 (BDFSUdfInfo, 1);
+
+    ret->label = g_strdup (data->label);
+    ret->uuid = g_strdup (data->uuid);
+    ret->revision = g_strdup (data->revision);
+    ret->lvid = g_strdup (data->lvid);
+    ret->vid = g_strdup (data->vid);
+    ret->block_size = data->block_size;
+    ret->block_count = data->block_count;
+    ret->free_blocks = data->free_blocks;
+
+    return ret;
+}
+
+GType bd_fs_udf_info_get_type () {
+    static GType type = 0;
+
+    if (G_UNLIKELY(type == 0)) {
+        type = g_boxed_type_register_static("BDFSUdfInfo",
+                                            (GBoxedCopyFunc) bd_fs_udf_info_copy,
+                                            (GBoxedFreeFunc) bd_fs_udf_info_free);
+    }
+
+    return type;
+}
+
+/**
+ * bd_fs_is_tech_avail:
+ * @tech: the queried tech
+ * @mode: a bit mask of queried modes of operation (#BDFSTechMode) for @tech
+ * @error: (out) (optional): place to store error (details about why the @tech-@mode combination is not available)
+ *
+ * Returns: whether the @tech-@mode combination is available -- supported by the
+ *          plugin implementation and having all the runtime dependencies available
+ */
+gboolean bd_fs_is_tech_avail (BDFSTech tech, guint64 mode, GError **error);
+
+/**
+ * bd_fs_supported_filesystems:
+ * @error: (out) (optional): currently unused
+ *
+ * Returns: (transfer container) (array zero-terminated=1): list of filesystems supported by this plugin
+ *
+ * Note: This returns filesystems supported by libblockdev, but not necessarily
+ *       by the systems this is running on, for this information you need to
+ *       run one of the `bd_fs_can_` functions.
+ *
+ * Tech category: always available
+ */
+const gchar** bd_fs_supported_filesystems (GError **error);
+
+/**
+ * bd_fs_wipe:
+ * @device: the device to wipe signatures from
+ * @all: whether to wipe all (%TRUE) signatures or just the first (%FALSE) one
+ * @force: whether to wipe signatures on a mounted @device
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether signatures were successfully wiped on @device or not
+ *
+ * Tech category: %BD_FS_TECH_GENERIC-%BD_FS_TECH_MODE_WIPE
+ */
+gboolean bd_fs_wipe (const gchar *device, gboolean all, gboolean force, GError **error);
+
+/**
+ * bd_fs_clean:
+ * @device: the device to clean
+ * @force: whether to wipe signatures on a mounted @device
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Clean all signatures from @device.
+ * Difference between this and bd_fs_wipe() is that this function doesn't
+ * return error if @device is already empty. This will also always remove
+ * all signatures from @device, not only the first one.
+ *
+ * Returns: whether @device was successfully cleaned or not
+ *
+ * Tech category: %BD_FS_TECH_GENERIC-%BD_FS_TECH_MODE_WIPE
+ */
+gboolean bd_fs_clean (const gchar *device, gboolean force, GError **error);
+
+/**
+ * bd_fs_get_fstype:
+ * @device: the device to probe
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Get first signature on @device as a string.
+ *
+ * Returns: (transfer full): type of filesystem found on @device, %NULL in case
+ *                           no signature has been detected or in case of error
+ *                           (@error is set in this case)
+ *
+ * Tech category: %BD_FS_TECH_GENERIC-%BD_FS_TECH_MODE_QUERY
+ */
+gchar* bd_fs_get_fstype (const gchar *device,  GError **error);
+
+/**
+ * bd_fs_freeze:
+ * @mountpoint: mountpoint of the device (filesystem) to freeze
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Freezes filesystem mounted on @mountpoint. The filesystem must
+ * support freezing.
+ *
+ * Returns: whether @mountpoint was successfully freezed or not
+ *
+ */
+gboolean bd_fs_freeze (const gchar *mountpoint, GError **error);
+
+/**
+ * bd_fs_unfreeze:
+ * @mountpoint: mountpoint of the device (filesystem) to un-freeze
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Un-freezes filesystem mounted on @mountpoint. The filesystem must
+ * support freezing.
+ *
+ * Returns: whether @mountpoint was successfully unfreezed or not
+ *
+ */
+gboolean bd_fs_unfreeze (const gchar *mountpoint, GError **error);
+
+/**
+ * bd_fs_unmount:
+ * @spec: mount point or device to unmount
+ * @lazy: enable/disable lazy unmount
+ * @force: enable/disable force unmount
+ * @extra: (nullable) (array zero-terminated=1): extra options for the unmount;
+ *                                               currently only 'run_as_uid'
+ *                                               and 'run_as_gid' are supported;
+ *                                               value must be a valid non zero
+ *                                               uid (gid), if you specify one of
+ *                                               these, the function will run in
+ *                                               a child process with real user
+ *                                               and/or group ID set to these values.
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether @spec was successfully unmounted or not
+ *
+ * Tech category: %BD_FS_TECH_MOUNT (no mode, ignored)
+ */
+gboolean bd_fs_unmount (const gchar *spec, gboolean lazy, gboolean force, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_mount:
+ * @device: (nullable): device to mount, if not specified @mountpoint entry
+ *                        from fstab will be used
+ * @mountpoint: (nullable): mountpoint for @device, if not specified @device
+ *                            entry from fstab will be used
+ * @fstype: (nullable): filesystem type
+ * @options: (nullable): comma delimited options for mount
+ * @extra: (nullable) (array zero-terminated=1): extra options for the mount;
+ *                                               currently only 'run_as_uid'
+ *                                               and 'run_as_gid' are supported;
+ *                                               value must be a valid non zero
+ *                                               uid (gid), if you specify one of
+ *                                               these, the function will run in
+ *                                               a child process with real user
+ *                                               and/or group ID set to these values.
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether @device (or @mountpoint) was successfully mounted or not
+ *
+ * Tech category: %BD_FS_TECH_MOUNT (no mode, ignored)
+ */
+gboolean bd_fs_mount (const gchar *device, const gchar *mountpoint, const gchar *fstype, const gchar *options, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_get_mountpoint:
+ * @device: device to find mountpoint for
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Get mountpoint for @device. If @device is mounted multiple times only
+ * one mountpoint will be returned.
+ *
+ * Returns: (transfer full): mountpoint for @device, %NULL in case device is
+ *                           not mounted or in case of an error (@error is set
+ *                           in this case)
+ *
+ * Tech category: %BD_FS_TECH_MOUNT (no mode, ignored)
+ */
+gchar* bd_fs_get_mountpoint (const gchar *device, GError **error);
+
+/**
+ * bd_fs_is_mountpoint:
+ * @path: path (folder) to check
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether @path is a mountpoint or not
+ *
+ * Tech category: %BD_FS_TECH_MOUNT (no mode, ignored)
+ */
+gboolean bd_fs_is_mountpoint (const gchar *path, GError **error);
+
+/**
+ * bd_fs_resize:
+ * @device: the device the file system of which to resize
+ * @new_size: new requested size for the file system (if 0, the file system is
+ *            adapted to the underlying block device)
+ * @fstype: (nullable): the filesystem type on @device or %NULL to detect
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Resize filesystem on @device. This calls other fs resize functions from this
+ * plugin based on provides or detected filesystem (e.g. bd_fs_xfs_resize for XFS).
+ * This function will return an error for unknown/unsupported filesystems.
+ *
+ * Note: This function will mount @device for filesystems that can be resized only
+ *       when mounted (like XFS or Btrfs).
+ *
+ * Returns: whether the file system on @device was successfully resized or not
+ *
+ * Tech category: %BD_FS_TECH_GENERIC-%BD_FS_TECH_MODE_RESIZE
+ */
+gboolean bd_fs_resize (const gchar *device, guint64 new_size, const gchar *fstype, GError **error);
+
+/**
+ * bd_fs_repair:
+ * @device: the device the file system of which to repair
+ * @fstype: (nullable): the filesystem type on @device or %NULL to detect
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Repair filesystem on @device. This calls other fs repair functions from this
+ * plugin based on detected filesystem (e.g. bd_fs_xfs_repair for XFS). This
+ * function will return an error for unknown/unsupported filesystems.
+ *
+ * Most filesystem tools typically require the filesystem not to be mounted.
+ *
+ * Returns: whether the file system on @device was successfully repaired or not
+ *
+ * Tech category: %BD_FS_TECH_GENERIC-%BD_FS_TECH_MODE_REPAIR
+ */
+gboolean bd_fs_repair (const gchar *device, const gchar *fstype, GError **error);
+
+/**
+ * bd_fs_check:
+ * @device: the device the file system of which to check
+ * @fstype: (nullable): the filesystem type on @device or %NULL to detect
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Check filesystem on @device avoiding any modifications or repairs.
+ * This calls other fs check functions from this plugin based on detected
+ * filesystem (e.g. bd_fs_xfs_check for XFS). This function will return
+ * an error for unknown/unsupported filesystems.
+ *
+ * Note that depending on a corresponding filesystem type and configured
+ * features running this function on a mounted filesystem may result
+ * in false errors reported.
+ *
+ * Returns: whether the file system on @device passed the consistency check or not
+ *
+ * Tech category: %BD_FS_TECH_GENERIC-%BD_FS_TECH_MODE_CHECK
+ */
+gboolean bd_fs_check (const gchar *device, const gchar *fstype, GError **error);
+
+/**
+ * bd_fs_check_label:
+ * @fstype: the filesystem type to check @label for
+ * @label: label to check
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * This calls other fs check label functions from this plugin based on the provided
+ * filesystem (e.g. bd_fs_xfs_check_label for XFS). This function will return
+ * an error for unknown/unsupported filesystems.
+ *
+ * Returns: whether @label is a valid label for the @fstype file system or not
+ *          (reason is provided in @error)
+ *
+ * Tech category: always available
+ */
+gboolean bd_fs_check_label (const gchar *fstype, const gchar *label, GError **error);
+
+/**
+ * bd_fs_set_label:
+ * @device: the device with file system to set the label for
+ * @label: label to set
+ * @fstype: (nullable): the filesystem type on @device or %NULL to detect
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Set label for filesystem on @device. This calls other fs label functions from this
+ * plugin based on detected filesystem (e.g. bd_fs_xfs_set_label for XFS). This
+ * function will return an error for unknown/unsupported filesystems.
+ *
+ * Note: This function will mount @device for filesystems that need to be mounted
+ *       to set label (like btrfs).
+ *
+ * Returns: whether the file system on @device was successfully relabeled or not
+ *
+ * Tech category: %BD_FS_TECH_GENERIC-%BD_FS_TECH_MODE_SET_LABEL
+ */
+gboolean bd_fs_set_label (const gchar *device, const gchar *label, const gchar *fstype, GError **error);
+
+/**
+ * bd_fs_check_uuid:
+ * @fstype: the filesystem type to check @uuid for
+ * @uuid: uuid to check
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * This calls other fs check uuid functions from this plugin based on the provided
+ * filesystem (e.g. bd_fs_xfs_check_uuid for XFS). This function will return
+ * an error for unknown/unsupported filesystems.
+ *
+ * Returns: whether @uuid is a valid UUID for the @fstype file system or not
+ *          (reason is provided in @error)
+ *
+ * Tech category: always available
+ */
+gboolean bd_fs_check_uuid (const gchar *fstype, const gchar *uuid, GError **error);
+
+/**
+ * bd_fs_set_uuid:
+ * @device: the device with file system to set the UUID for
+ * @uuid: (nullable): UUID to set or %NULL to generate a new one
+ * @fstype: (nullable): the filesystem type on @device or %NULL to detect
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Set UUID for filesystem on @device. This calls other fs UUID functions from this
+ * plugin based on detected filesystem (e.g. bd_fs_xfs_set_uuid for XFS). This
+ * function will return an error for unknown/unsupported filesystems.
+ *
+ * Returns: whether the UUID on the file system on @device was successfully changed or not
+ *
+ * Tech category: %BD_FS_TECH_GENERIC-%BD_FS_TECH_MODE_SET_UUID
+ */
+gboolean bd_fs_set_uuid (const gchar *device, const gchar *uuid, const gchar *fstype, GError **error);
+
+/**
+ * bd_fs_xfs_check_uuid:
+ * @uuid: UUID to check
+ * @error: (out) (optional): place to store error
+ *
+ * Returns: whether @uuid is a valid UUID for the xfs file system or not
+ *          (reason is provided in @error)
+ *
+ * Tech category: always available
+ */
+gboolean bd_fs_xfs_check_uuid (const gchar *uuid, GError **error);
+
+/**
+ * bd_fs_get_size:
+ * @device: the device with file system to get size for
+ * @fstype: (nullable): the filesystem type on @device or %NULL to detect
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Get size for filesystem on @device. This calls other fs info functions from this
+ * plugin based on detected filesystem (e.g. bd_fs_xfs_get_info for XFS). This
+ * function will return an error for unknown/unsupported filesystems.
+ *
+ * Note: This function will mount @device for filesystems that need to be mounted
+ *       to gather information (like btrfs).
+ *
+ * Returns: size of filesystem on @device, 0 in case of error.
+ *
+ * Tech category: %BD_FS_TECH_GENERIC-%BD_FS_TECH_MODE_QUERY
+ */
+guint64 bd_fs_get_size (const gchar *device, const gchar *fstype, GError **error);
+
+/**
+ * bd_fs_get_free_space:
+ * @device: the device with file system to get free space for
+ * @fstype: (nullable): the filesystem type on @device or %NULL to detect
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Get free space for filesystem on @device. This calls other fs info functions from this
+ * plugin based on detected filesystem (e.g. bd_fs_ext4_get_info for ext4). This
+ * function will return an error for unknown/unsupported filesystems.
+ *
+ * Returns: free space of filesystem on @device, 0 in case of error.
+ *
+ * Tech category: %BD_FS_TECH_GENERIC-%BD_FS_TECH_MODE_QUERY
+ */
+guint64 bd_fs_get_free_space (const gchar *device, const gchar *fstype, GError **error);
+
+/**
+ * bd_fs_get_min_size:
+ * @device: the device with file system to get minimum size for
+ * @fstype: (nullable): the filesystem type on @device or %NULL to detect
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Get minimum size for filesystem on @device. This calls other fs info functions from this
+ * plugin based on detected filesystem (e.g. bd_fs_ext4_get_min_size for ext4). This
+ * function will return an error for unknown/unsupported filesystems.
+ *
+ * Returns: minimum size of filesystem on @device, 0 in case of error.
+ *
+ * Tech category: %BD_FS_TECH_GENERIC-%BD_FS_TECH_MODE_RESIZE
+ */
+guint64 bd_fs_get_min_size (const gchar *device, const gchar *fstype, GError **error);
+
+/**
+ * bd_fs_can_get_info:
+ * @type: the filesystem type to be tested for info querying support
+ * @required_utility: (out) (transfer full): the utility binary which is required
+ *                                           for info querying (if missing i.e. return FALSE but no error)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Searches for the required utility to get info of the given filesystem and
+ * returns whether it is installed.
+ * Unknown filesystems or filesystems which do not support info querying result in errors.
+ *
+ * Returns: whether getting filesystem info is available
+ *
+ * Tech category: %BD_FS_TECH_GENERIC-%BD_FS_TECH_MODE_QUERY
+ */
+gboolean bd_fs_can_get_info (const gchar *type, gchar **required_utility, GError **error);
+
+/**
+ * BDFSMkfsOptionsFlags:
+ * Flags indicating mkfs options are available for given filesystem type.
+ */
+typedef enum {
+    BD_FS_MKFS_LABEL     = 1 << 0,
+    BD_FS_MKFS_UUID      = 1 << 1,
+    BD_FS_MKFS_DRY_RUN   = 1 << 2,
+    BD_FS_MKFS_NODISCARD = 1 << 3,
+    BD_FS_MKFS_FORCE     = 1 << 4,
+    BD_FS_MKFS_NOPT      = 1 << 5,
+} BDFSMkfsOptionsFlags;
+
+/**
+ * bd_fs_can_mkfs:
+ * @type: the filesystem type to be tested for installed mkfs support
+ * @options: (out): flags for allowed mkfs options (i.e. support for setting label or UUID when creating the filesystem)
+ * @required_utility: (out) (transfer full): the utility binary which is required for creating (if missing returns %FALSE but no @error)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Searches for the required utility to create the given filesystem and returns whether
+ * it is installed. The options flags indicate what additional options can be specified for @type.
+ * Unknown filesystems result in errors.
+ *
+ * Returns: whether filesystem mkfs tool is available
+ *
+ * Tech category: %BD_FS_TECH_GENERIC-%BD_FS_TECH_MODE_QUERY
+ */
+gboolean bd_fs_can_mkfs (const gchar *type, BDFSMkfsOptionsFlags *options, gchar **required_utility, GError **error);
+
+/**
+ * BDFSResizeFlags:
+ * Flags indicating whether a filesystem resize action supports growing and/or
+ * shrinking if mounted or unmounted.
+ */
+typedef enum {
+    BD_FS_OFFLINE_SHRINK = 1 << 1,
+    BD_FS_OFFLINE_GROW = 1 << 2,
+    BD_FS_ONLINE_SHRINK = 1 << 3,
+    BD_FS_ONLINE_GROW = 1 << 4
+} BDFSResizeFlags;
+
+/**
+ * bd_fs_can_resize:
+ * @type: the filesystem type to be tested for installed resize support
+ * @mode: (out): flags for allowed resizing (i.e. growing/shrinking support for online/offline)
+ * @required_utility: (out) (transfer full): the utility binary which is required for resizing (if missing i.e. returns FALSE but no error)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Searches for the required utility to resize the given filesystem and returns whether
+ * it is installed. The mode flags indicate if growing and/or shrinking resize is available if
+ * mounted/unmounted.
+ * Unknown filesystems or filesystems which do not support resizing result in errors.
+ *
+ * Returns: whether filesystem resize is available
+ *
+ * Tech category: %BD_FS_TECH_GENERIC-%BD_FS_TECH_MODE_QUERY
+ */
+gboolean bd_fs_can_resize (const gchar *type, BDFSResizeFlags *mode, gchar **required_utility, GError **error);
+
+/**
+ * bd_fs_can_check:
+ * @type: the filesystem type to be tested for installed consistency check support
+ * @required_utility: (out) (transfer full): the utility binary which is required for checking (if missing i.e. returns FALSE but no error)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Searches for the required utility to check the given filesystem and returns whether
+ * it is installed.
+ * Unknown filesystems or filesystems which do not support checking result in errors.
+ *
+ * Returns: whether filesystem check is available
+ *
+ * Tech category: %BD_FS_TECH_GENERIC-%BD_FS_TECH_MODE_QUERY
+ */
+gboolean bd_fs_can_check (const gchar *type, gchar **required_utility, GError **error);
+
+/**
+ * bd_fs_can_repair:
+ * @type: the filesystem type to be tested for installed repair support
+ * @required_utility: (out) (transfer full): the utility binary which is required for repairing (if missing i.e. return FALSE but no error)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Searches for the required utility to repair the given filesystem and returns whether
+ * it is installed.
+ * Unknown filesystems or filesystems which do not support reparing result in errors.
+ *
+ * Returns: whether filesystem repair is available
+ *
+ * Tech category: %BD_FS_TECH_GENERIC-%BD_FS_TECH_MODE_QUERY
+ */
+gboolean bd_fs_can_repair (const gchar *type, gchar **required_utility, GError **error);
+
+/**
+ * bd_fs_can_set_label:
+ * @type: the filesystem type to be tested for installed label support
+ * @required_utility: (out) (transfer full): the utility binary which is required for relabeling (if missing i.e. return FALSE but no error)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Searches for the required utility to set the label of the given filesystem and returns whether
+ * it is installed.
+ * Unknown filesystems or filesystems which do not support setting the label result in errors.
+ *
+ * Returns: whether setting filesystem label is available
+ *
+ * Tech category: %BD_FS_TECH_GENERIC-%BD_FS_TECH_MODE_QUERY
+ */
+gboolean bd_fs_can_set_label (const gchar *type, gchar **required_utility, GError **error);
+
+/**
+ * bd_fs_can_set_uuid:
+ * @type: the filesystem type to be tested for installed UUID support
+ * @required_utility: (out) (transfer full): the utility binary which is required for setting UUID (if missing i.e. return FALSE but no error)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Searches for the required utility to set the UUID of the given filesystem and returns whether
+ * it is installed.
+ * Unknown filesystems or filesystems which do not support setting the UUID result in errors.
+ *
+ * Returns: whether setting filesystem UUID is available
+ *
+ * Tech category: %BD_FS_TECH_GENERIC-%BD_FS_TECH_MODE_QUERY
+ */
+gboolean bd_fs_can_set_uuid (const gchar *type, gchar **required_utility, GError **error);
+
+/**
+ * bd_fs_can_get_size:
+ * @type: the filesystem type to be tested for installed size querying support
+ * @required_utility: (out) (transfer full): the utility binary which is required
+ *                                           for size querying (if missing i.e. return FALSE but no error)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Searches for the required utility to get size of the given filesystem and
+ * returns whether it is installed.
+ * Unknown filesystems or filesystems which do not support size querying result in errors.
+ *
+ * Returns: whether getting filesystem size is available
+ *
+ * Tech category: %BD_FS_TECH_GENERIC-%BD_FS_TECH_MODE_QUERY
+ */
+gboolean bd_fs_can_get_size (const gchar *type, gchar **required_utility, GError **error);
+
+/**
+ * bd_fs_can_get_free_space:
+ * @type: the filesystem type to be tested for installed free space querying support
+ * @required_utility: (out) (transfer full): the utility binary which is required
+ *                                           for free space querying (if missing i.e. return FALSE but no error)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Searches for the required utility to get free space of the given filesystem and
+ * returns whether it is installed.
+ * Unknown filesystems or filesystems which do not support free space querying result in errors.
+ *
+ * Returns: whether getting filesystem free space is available
+ *
+ * Tech category: %BD_FS_TECH_GENERIC-%BD_FS_TECH_MODE_QUERY
+ */
+gboolean bd_fs_can_get_free_space (const gchar *type, gchar **required_utility, GError **error);
+
+/**
+ * bd_fs_can_get_min_size:
+ * @type: the filesystem type to be tested for installed minimum size querying support
+ * @required_utility: (out) (transfer full): the utility binary which is required
+ *                                           for size querying (if missing i.e. return FALSE but no error)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Searches for the required utility to get minimum size of the given filesystem and
+ * returns whether it is installed.
+ * Unknown filesystems or filesystems which do not support minimum size querying result in errors.
+ *
+ * Returns: whether getting filesystem size is available
+ *
+ * Tech category: %BD_FS_TECH_GENERIC-%BD_FS_TECH_MODE_QUERY
+ */
+gboolean bd_fs_can_get_min_size (const gchar *type, gchar **required_utility, GError **error);
+
+/**
+ * bd_fs_mkfs:
+ * @device: the device to create the new filesystem on
+ * @fstype: name of the filesystem to create (e.g. "ext4")
+ * @options: additional options like label or UUID for the filesystem
+ * @extra: (nullable) (array zero-terminated=1): extra mkfs options not provided in @options
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * This is a helper function for creating filesystems with extra options.
+ * This is the same as running a filesystem-specific function like %bd_fs_ext4_mkfs
+ * and manually specifying the extra command line options. %BDFSMkfsOptions
+ * removes the need to specify supported options for selected filesystems,
+ * make sure to check whether @fstype supports these options (see %bd_fs_can_mkfs)
+ * for details.
+ *
+ * When specifying additional mkfs options using @extra, it's caller's
+ * responsibility to make sure these options do not conflict with options
+ * specified using @options. Extra options are added after the @options and
+ * there are no additional checks for duplicate and/or conflicting options.
+ *
+ * Returns: whether @fstype was successfully created on @device or not.
+ *
+ * Tech category: %BD_FS_TECH_GENERIC-%BD_FS_TECH_MODE_MKFS
+ *
+ */
+gboolean bd_fs_mkfs (const gchar *device, const gchar *fstype, BDFSMkfsOptions *options, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_ext2_mkfs:
+ * @device: the device to create a new ext2 fs on
+ * @extra: (nullable) (array zero-terminated=1): extra options for the creation (right now
+ *                                                 passed to the 'mke2fs' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether a new ext2 fs was successfully created on @device or not
+ *
+ * Tech category: %BD_FS_TECH_EXT2-%BD_FS_TECH_MODE_MKFS
+ */
+gboolean bd_fs_ext2_mkfs (const gchar *device, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_ext3_mkfs:
+ * @device: the device to create a new ext3 fs on
+ * @extra: (nullable) (array zero-terminated=1): extra options for the creation (right now
+ *                                                 passed to the 'mke2fs' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether a new ext3 fs was successfully created on @device or not
+ *
+ * Tech category: %BD_FS_TECH_EXT3-%BD_FS_TECH_MODE_MKFS
+ */
+gboolean bd_fs_ext3_mkfs (const gchar *device, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_ext4_mkfs:
+ * @device: the device to create a new ext4 fs on
+ * @extra: (nullable) (array zero-terminated=1): extra options for the creation (right now
+ *                                                 passed to the 'mkfs.ext4' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether a new ext4 fs was successfully created on @device or not
+ *
+ * Tech category: %BD_FS_TECH_EXT4-%BD_FS_TECH_MODE_MKFS
+ */
+gboolean bd_fs_ext4_mkfs (const gchar *device, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_ext2_check:
+ * @device: the device the file system on which to check
+ * @extra: (nullable) (array zero-terminated=1): extra options for the check (right now
+ *                                                 passed to the 'e2fsck' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether an ext2 file system on the @device is clean or not
+ *
+ * Tech category: %BD_FS_TECH_EXT2-%BD_FS_TECH_MODE_CHECK
+ */
+gboolean bd_fs_ext2_check (const gchar *device, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_ext3_check:
+ * @device: the device the file system on which to check
+ * @extra: (nullable) (array zero-terminated=1): extra options for the check (right now
+ *                                                 passed to the 'e2fsck' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether an ext3 file system on the @device is clean or not
+ *
+ * Tech category: %BD_FS_TECH_EXT3-%BD_FS_TECH_MODE_CHECK
+ */
+gboolean bd_fs_ext3_check (const gchar *device, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_ext4_check:
+ * @device: the device the file system on which to check
+ * @extra: (nullable) (array zero-terminated=1): extra options for the check (right now
+ *                                                 passed to the 'e2fsck' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether an ext4 file system on the @device is clean or not
+ *
+ * Tech category: %BD_FS_TECH_EXT4-%BD_FS_TECH_MODE_CHECK
+ */
+gboolean bd_fs_ext4_check (const gchar *device, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_ext2_repair:
+ * @device: the device the file system on which to repair
+ * @unsafe: whether to do unsafe operations too
+ * @extra: (nullable) (array zero-terminated=1): extra options for the repair (right now
+ *                                                 passed to the 'e2fsck' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether an ext2 file system on the @device was successfully repaired
+ *          (if needed) or not (error is set in that case)
+ *
+ * Tech category: %BD_FS_TECH_EXT2-%BD_FS_TECH_MODE_REPAIR
+ */
+gboolean bd_fs_ext2_repair (const gchar *device, gboolean unsafe, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_ext3_repair:
+ * @device: the device the file system on which to repair
+ * @unsafe: whether to do unsafe operations too
+ * @extra: (nullable) (array zero-terminated=1): extra options for the repair (right now
+ *                                                 passed to the 'e2fsck' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether an ext3 file system on the @device was successfully repaired
+ *          (if needed) or not (error is set in that case)
+ *
+ * Tech category: %BD_FS_TECH_EXT3-%BD_FS_TECH_MODE_REPAIR
+ */
+gboolean bd_fs_ext3_repair (const gchar *device, gboolean unsafe, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_ext4_repair:
+ * @device: the device the file system on which to repair
+ * @unsafe: whether to do unsafe operations too
+ * @extra: (nullable) (array zero-terminated=1): extra options for the repair (right now
+ *                                                 passed to the 'e2fsck' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether an ext4 file system on the @device was successfully repaired
+ *          (if needed) or not (error is set in that case)
+ *
+ * Tech category: %BD_FS_TECH_EXT4-%BD_FS_TECH_MODE_REPAIR
+ */
+gboolean bd_fs_ext4_repair (const gchar *device, gboolean unsafe, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_ext2_set_label:
+ * @device: the device the file system on which to set label for
+ * @label: label to set
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the label of ext2 file system on the @device was
+ *          successfully set or not
+ *
+ * Tech category: %BD_FS_TECH_EXT2-%BD_FS_TECH_MODE_SET_LABEL
+ */
+gboolean bd_fs_ext2_set_label (const gchar *device, const gchar *label, GError **error);
+
+/**
+ * bd_fs_ext3_set_label:
+ * @device: the device the file system on which to set label for
+ * @label: label to set
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the label of ext3 file system on the @device was
+ *          successfully set or not
+ *
+ * Tech category: %BD_FS_TECH_EXT3-%BD_FS_TECH_MODE_SET_LABEL
+ */
+gboolean bd_fs_ext3_set_label (const gchar *device, const gchar *label, GError **error);
+
+/**
+ * bd_fs_ext4_set_label:
+ * @device: the device the file system on which to set label for
+ * @label: label to set
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the label of ext4 file system on the @device was
+ *          successfully set or not
+ *
+ * Tech category: %BD_FS_TECH_EXT3-%BD_FS_TECH_MODE_SET_LABEL
+ */
+gboolean bd_fs_ext4_set_label (const gchar *device, const gchar *label, GError **error);
+
+/**
+ * bd_fs_ext2_check_label:
+ * @label: label to check
+ * @error: (out) (optional): place to store error
+ *
+ * Returns: whether @label is a valid label for the ext2 file system or not
+ *          (reason is provided in @error)
+ *
+ * Tech category: always available
+ */
+gboolean bd_fs_ext2_check_label (const gchar *label, GError **error);
+
+/**
+ * bd_fs_ext3_check_label:
+ * @label: label to check
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether @label is a valid label for the ext3 file system or not
+ *          (reason is provided in @error)
+ *
+ * Tech category: always available
+ */
+gboolean bd_fs_ext3_check_label (const gchar *label, GError **error);
+
+/**
+ * bd_fs_ext4_check_label:
+ * @label: label to check
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether @label is a valid label for the ext4 file system or not
+ *          (reason is provided in @error)
+ *
+ * Tech category: always available
+ */
+gboolean bd_fs_ext4_check_label (const gchar *label, GError **error);
+
+/**
+ * bd_fs_ext2_set_uuid:
+ * @device: the device the file system on which to set UUID for
+ * @uuid: (nullable): UUID to set %NULL to generate a new one
+ *                      UUID can also be one of "clear", "random" and "time" to clear,
+ *                      generate a new random/time-based UUID
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the UUID of ext2 file system on the @device was
+ *          successfully set or not
+ *
+ * Tech category: %BD_FS_TECH_EXT2-%BD_FS_TECH_MODE_SET_UUID
+ */
+gboolean bd_fs_ext2_set_uuid (const gchar *device, const gchar *uuid, GError **error);
+
+/**
+ * bd_fs_ext3_set_uuid:
+ * @device: the device the file system on which to set UUID for
+ * @uuid: (nullable): UUID to set %NULL to generate a new one
+ *                      UUID can also be one of "clear", "random" and "time" to clear,
+ *                      generate a new random/time-based UUID
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the UUID of ext3 file system on the @device was
+ *          successfully set or not
+ *
+ * Tech category: %BD_FS_TECH_EXT3-%BD_FS_TECH_MODE_SET_UUID
+ */
+gboolean bd_fs_ext3_set_uuid (const gchar *device, const gchar *uuid, GError **error);
+
+/**
+ * bd_fs_ext4_set_uuid:
+ * @device: the device the file system on which to set UUID for
+ * @uuid: (nullable): UUID to set %NULL to generate a new one
+ *                      UUID can also be one of "clear", "random" and "time" to clear,
+ *                      generate a new random/time-based UUID
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the UUID of ext4 file system on the @device was
+ *          successfully set or not
+ *
+ * Tech category: %BD_FS_TECH_EXT4-%BD_FS_TECH_MODE_SET_UUID
+ */
+gboolean bd_fs_ext4_set_uuid (const gchar *device, const gchar *uuid, GError **error);
+
+/**
+ * bd_fs_ext2_check_uuid:
+ * @uuid: UUID to check
+ * @error: (out) (optional): place to store error
+ *
+ * Returns: whether @uuid is a valid UUID for the ext2 file system or not
+ *          (reason is provided in @error)
+ *
+ * Tech category: always available
+ */
+gboolean bd_fs_ext2_check_uuid (const gchar *uuid, GError **error);
+
+/**
+ * bd_fs_ext3_check_uuid:
+ * @uuid: UUID to check
+ * @error: (out) (optional): place to store error
+ *
+ * Returns: whether @uuid is a valid UUID for the ext3 file system or not
+ *          (reason is provided in @error)
+ *
+ * Tech category: always available
+ */
+gboolean bd_fs_ext3_check_uuid (const gchar *uuid, GError **error);
+
+/**
+ * bd_fs_ext4_check_uuid:
+ * @uuid: UUID to check
+ * @error: (out) (optional): place to store error
+ *
+ * Returns: whether @uuid is a valid UUID for the ext4 file system or not
+ *          (reason is provided in @error)
+ *
+ * Tech category: always available
+ */
+gboolean bd_fs_ext4_check_uuid (const gchar *uuid, GError **error);
+
+/**
+ * bd_fs_ext2_get_info:
+ * @device: the device the file system of which to get info for
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: (transfer full): information about the file system on @device or
+ *                           %NULL in case of error
+ *
+ * Tech category: %BD_FS_TECH_EXT2-%BD_FS_TECH_MODE_QUERY
+ */
+BDFSExt2Info* bd_fs_ext2_get_info (const gchar *device, GError **error);
+
+/**
+ * bd_fs_ext3_get_info:
+ * @device: the device the file system of which to get info for
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: (transfer full): information about the file system on @device or
+ *                           %NULL in case of error
+ *
+ * Tech category: %BD_FS_TECH_EXT3-%BD_FS_TECH_MODE_QUERY
+ */
+BDFSExt3Info* bd_fs_ext3_get_info (const gchar *device, GError **error);
+
+/**
+ * bd_fs_ext4_get_info:
+ * @device: the device the file system of which to get info for
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: (transfer full): information about the file system on @device or
+ *                           %NULL in case of error
+ *
+ * Tech category: %BD_FS_TECH_EXT3-%BD_FS_TECH_MODE_QUERY
+ */
+BDFSExt4Info* bd_fs_ext4_get_info (const gchar *device, GError **error);
+
+/**
+ * bd_fs_ext2_resize:
+ * @device: the device the file system of which to resize
+ * @new_size: new requested size for the file system (if 0, the file system is
+ *            adapted to the underlying block device)
+ * @extra: (nullable) (array zero-terminated=1): extra options for the resize (right now
+ *                                                 passed to the 'resize2fs' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the file system on @device was successfully resized or not
+ *
+ * Tech category: %BD_FS_TECH_EXT2-%BD_FS_TECH_MODE_RESIZE
+ */
+gboolean bd_fs_ext2_resize (const gchar *device, guint64 new_size, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_ext3_resize:
+ * @device: the device the file system of which to resize
+ * @new_size: new requested size for the file system (if 0, the file system is
+ *            adapted to the underlying block device)
+ * @extra: (nullable) (array zero-terminated=1): extra options for the resize (right now
+ *                                                 passed to the 'resize2fs' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the file system on @device was successfully resized or not
+ *
+ * Tech category: %BD_FS_TECH_EXT3-%BD_FS_TECH_MODE_RESIZE
+ */
+gboolean bd_fs_ext3_resize (const gchar *device, guint64 new_size, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_ext4_resize:
+ * @device: the device the file system of which to resize
+ * @new_size: new requested size for the file system (if 0, the file system is
+ *            adapted to the underlying block device)
+ * @extra: (nullable) (array zero-terminated=1): extra options for the resize (right now
+ *                                                 passed to the 'resize2fs' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the file system on @device was successfully resized or not
+ *
+ * Tech category: %BD_FS_TECH_EXT4-%BD_FS_TECH_MODE_RESIZE
+ */
+gboolean bd_fs_ext4_resize (const gchar *device, guint64 new_size, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_ext2_get_min_size:
+ * @device: the device containing the file system to get min size for
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: smallest shrunken filesystem size as reported by resize2fs
+ *          in case of error 0 is returned and @error is set
+ *
+ * Tech category: %BD_FS_TECH_EXT2-%BD_FS_TECH_MODE_RESIZE
+ */
+guint64 bd_fs_ext2_get_min_size (const gchar *device, GError **error);
+
+/**
+ * bd_fs_ext3_get_min_size:
+ * @device: the device containing the file system to get min size for
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: smallest shrunken filesystem size as reported by resize2fs
+ *          in case of error 0 is returned and @error is set
+ *
+ * Tech category: %BD_FS_TECH_EXT3-%BD_FS_TECH_MODE_RESIZE
+ */
+guint64 bd_fs_ext3_get_min_size (const gchar *device, GError **error);
+
+/**
+ * bd_fs_ext4_get_min_size:
+ * @device: the device containing the file system to get min size for
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: smallest shrunken filesystem size as reported by resize2fs
+ *          in case of error 0 is returned and @error is set
+ *
+ * Tech category: %BD_FS_TECH_EXT4-%BD_FS_TECH_MODE_RESIZE
+ */
+guint64 bd_fs_ext4_get_min_size (const gchar *device, GError **error);
+
+/**
+ * bd_fs_xfs_mkfs:
+ * @device: the device to create a new xfs fs on
+ * @extra: (nullable) (array zero-terminated=1): extra options for the creation (right now
+ *                                                 passed to the 'mkfs.xfs' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether a new xfs fs was successfully created on @device or not
+ *
+ * Tech category: %BD_FS_TECH_XFS-%BD_FS_TECH_MODE_MKFS
+ */
+gboolean bd_fs_xfs_mkfs (const gchar *device, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_xfs_check:
+ * @device: the device containing the file system to check
+ * @extra: (nullable) (array zero-terminated=1): extra options for the repair (right now
+ *                                               passed to the 'xfs_repair' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether an xfs file system on the @device is clean or not
+ *
+ * Note: If the file system is mounted RW, it will always be reported as not
+ *       clean!
+ *
+ * Tech category: %BD_FS_TECH_XFS-%BD_FS_TECH_MODE_CHECK
+ */
+gboolean bd_fs_xfs_check (const gchar *device, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_xfs_repair:
+ * @device: the device containing the file system to repair
+ * @extra: (nullable) (array zero-terminated=1): extra options for the repair (right now
+ *                                                 passed to the 'xfs_repair' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether an xfs file system on the @device was successfully repaired
+ *          (if needed) or not (error is set in that case)
+ *
+ * Tech category: %BD_FS_TECH_XFS-%BD_FS_TECH_MODE_REPAIR
+ */
+gboolean bd_fs_xfs_repair (const gchar *device, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_xfs_set_label:
+ * @device: the device containing the file system to set label for
+ * @label: label to set
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the label of xfs file system on the @device was
+ *          successfully set or not
+ *
+ * Tech category: %BD_FS_TECH_XFS-%BD_FS_TECH_MODE_SET_LABEL
+ */
+gboolean bd_fs_xfs_set_label (const gchar *device, const gchar *label, GError **error);
+
+/**
+ * bd_fs_xfs_check_label:
+ * @label: label to check
+ * @error: (out) (optional): place to store error
+ *
+ * Returns: whether @label is a valid label for the xfs file system or not
+ *          (reason is provided in @error)
+ *
+ * Tech category: always available
+ */
+gboolean bd_fs_xfs_check_label (const gchar *label, GError **error);
+
+/**
+ * bd_fs_xfs_set_uuid:
+ * @device: the device containing the file system to set uuid for
+ * @uuid: (nullable): UUID to set %NULL to generate a new one
+ *                      UUID can also be one of "nil" and "generate" to clear or
+ *                      generate a new UUID
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the UUID of xfs file system on the @device was
+ *          successfully set or not
+ *
+ * Tech category: %BD_FS_TECH_XFS-%BD_FS_TECH_MODE_SET_UUID
+ */
+gboolean bd_fs_xfs_set_uuid (const gchar *device, const gchar *uuid, GError **error);
+
+/**
+ * bd_fs_xfs_get_info:
+ * @device: the device containing the file system to get info for (device must
+            be mounted, trying to get info for an unmounted device will result
+            in an error)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: (transfer full): information about the file system on @device or
+ *                           %NULL in case of error
+ *
+ * Tech category: %BD_FS_TECH_XFS-%BD_FS_TECH_MODE_QUERY
+ */
+BDFSXfsInfo* bd_fs_xfs_get_info (const gchar *device, GError **error);
+
+/**
+ * bd_fs_xfs_resize:
+ * @mpoint: the mount point of the file system to resize
+ * @new_size: new requested size for the file system *in file system blocks* (see bd_fs_xfs_get_info())
+ *            (if 0, the file system is adapted to the underlying block device)
+ * @extra: (nullable) (array zero-terminated=1): extra options for the resize (right now
+ *                                                 passed to the 'xfs_growfs' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the file system mounted on @mpoint was successfully resized or not
+ *
+ * Tech category: %BD_FS_TECH_XFS-%BD_FS_TECH_MODE_RESIZE
+ */
+gboolean bd_fs_xfs_resize (const gchar *mpoint, guint64 new_size, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_vfat_mkfs:
+ * @device: the device to create a new vfat fs on
+ * @extra: (nullable) (array zero-terminated=1): extra options for the creation (right now
+ *                                                 passed to the 'mkfs.vfat' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Please remember that FAT labels should always be uppercase.
+ *
+ * Returns: whether a new vfat fs was successfully created on @device or not
+ *
+ * Tech category: %BD_FS_TECH_VFAT-%BD_FS_TECH_MODE_MKFS
+ */
+gboolean bd_fs_vfat_mkfs (const gchar *device, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_vfat_check:
+ * @device: the device containing the file system to check
+ * @extra: (nullable) (array zero-terminated=1): extra options for the repair (right now
+ *                                                 passed to the 'fsck.vfat' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether an vfat file system on the @device is clean or not
+ *
+ * Tech category: %BD_FS_TECH_VFAT-%BD_FS_TECH_MODE_CHECK
+ */
+gboolean bd_fs_vfat_check (const gchar *device, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_vfat_repair:
+ * @device: the device containing the file system to repair
+ * @extra: (nullable) (array zero-terminated=1): extra options for the repair (right now
+ *                                                 passed to the 'fsck.vfat' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether an vfat file system on the @device was successfully repaired
+ *          (if needed) or not (error is set in that case)
+ *
+ * Tech category: %BD_FS_TECH_VFAT-%BD_FS_TECH_MODE_REPAIR
+ */
+gboolean bd_fs_vfat_repair (const gchar *device, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_vfat_set_label:
+ * @device: the device containing the file system to set label for
+ * @label: label to set
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the label of vfat file system on the @device was
+ *          successfully set or not
+ *
+ * Tech category: %BD_FS_TECH_VFAT-%BD_FS_TECH_MODE_SET_LABEL
+ */
+gboolean bd_fs_vfat_set_label (const gchar *device, const gchar *label, GError **error);
+
+/**
+ * bd_fs_vfat_check_label:
+ * @label: label to check
+ * @error: (out) (optional): place to store error
+ *
+ * Returns: whether @label is a valid label for the vfat file system or not
+ *          (reason is provided in @error)
+ *
+ * Tech category: always available
+ */
+gboolean bd_fs_vfat_check_label (const gchar *label, GError **error);
+
+
+/**
+ * bd_fs_vfat_set_uuid:
+ * @device: the device containing the file system to set uuid for
+ * @uuid: (nullable): volume ID to set or %NULL to generate a new one
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the volume ID of vfat file system on the @device was
+ *          successfully set or not
+ *
+ * Tech category: %BD_FS_TECH_VFAT-%BD_FS_TECH_MODE_SET_UUID
+ */
+gboolean bd_fs_vfat_set_uuid (const gchar *device, const gchar *uuid, GError **error);
+
+/**
+ * bd_fs_vfat_check_uuid:
+ * @uuid: UUID to check
+ * @error: (out) (optional): place to store error
+ *
+ * Returns: whether @uuid is a valid UUID for the vfat file system or not
+ *          (reason is provided in @error)
+ *
+ * Tech category: always available
+ */
+gboolean bd_fs_vfat_check_uuid (const gchar *uuid, GError **error);
+
+/**
+ * bd_fs_vfat_get_info:
+ * @device: the device containing the file system to get info for
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: (transfer full): information about the file system on @device or
+ *                           %NULL in case of error
+ *
+ * Tech category: %BD_FS_TECH_VFAT-%BD_FS_TECH_MODE_QUERY
+ */
+BDFSVfatInfo* bd_fs_vfat_get_info (const gchar *device, GError **error);
+
+/**
+ * bd_fs_vfat_resize:
+ * @device: the device the file system of which to resize
+ * @new_size: new requested size for the file system (if 0, the file system is
+ *            adapted to the underlying block device)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the file system on @device was successfully resized or not
+ *
+ * Tech category: %BD_FS_TECH_VFAT-%BD_FS_TECH_MODE_RESIZE
+ */
+gboolean bd_fs_vfat_resize (const gchar *device, guint64 new_size, GError **error);
+
+/**
+ * bd_fs_ntfs_mkfs:
+ * @device: the device to create a new ntfs fs on
+ * @extra: (nullable) (array zero-terminated=1): extra options for the creation (right now
+ *                                                 passed to the 'mkntfs' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether a new NTFS fs was successfully created on @device or not
+ *
+ * Tech category: %BD_FS_TECH_NTFS-%BD_FS_TECH_MODE_MKFS
+ */
+gboolean bd_fs_ntfs_mkfs (const gchar *device, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_ntfs_check:
+ * @device: the device containing the file system to check
+ * @extra: (nullable) (array zero-terminated=1): extra options for the repair (right now
+ *                                               passed to the 'ntfsfix' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether an ntfs file system on the @device is clean or not
+ *
+ * Tech category: %BD_FS_TECH_NTFS-%BD_FS_TECH_MODE_CHECK
+ */
+gboolean bd_fs_ntfs_check (const gchar *device, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_ntfs_repair:
+ * @device: the device containing the file system to repair
+ * @extra: (nullable) (array zero-terminated=1): extra options for the repair (right now
+ *                                               passed to the 'ntfsfix' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether an NTFS file system on the @device was successfully repaired
+ *          (if needed) or not (error is set in that case)
+ *
+ * Tech category: %BD_FS_TECH_NTFS-%BD_FS_TECH_MODE_REPAIR
+ */
+gboolean bd_fs_ntfs_repair (const gchar *device, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_ntfs_set_label:
+ * @device: the device containing the file system to set the label for
+ * @label: label to set
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the label of the NTFS file system on the @device was
+ *          successfully set or not
+ *
+ * Tech category: %BD_FS_TECH_NTFS-%BD_FS_TECH_MODE_SET_LABEL
+ */
+gboolean bd_fs_ntfs_set_label (const gchar *device, const gchar *label, GError **error);
+
+/**
+ * bd_fs_ntfs_check_label:
+ * @label: label to check
+ * @error: (out) (optional): place to store error
+ *
+ * Returns: whether @label is a valid label for the ntfs file system or not
+ *          (reason is provided in @error)
+ *
+ * Tech category: always available
+ */
+gboolean bd_fs_ntfs_check_label (const gchar *label, GError **error);
+
+/**
+ * bd_fs_ntfs_set_uuid:
+ * @device: the device containing the file system to set the UUID (serial number) for
+ * @uuid: (nullable): UUID to set or %NULL to generate a new one
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the UUID of the NTFS file system on the @device was
+ *          successfully set or not
+ *
+ * Tech category: %BD_FS_TECH_NTFS-%BD_FS_TECH_MODE_SET_UUID
+ */
+gboolean bd_fs_ntfs_set_uuid (const gchar *device, const gchar *uuid, GError **error);
+
+/**
+ * bd_fs_ntfs_check_uuid:
+ * @uuid: UUID to check
+ * @error: (out) (optional): place to store error
+ *
+ * Returns: whether @uuid is a valid UUID for the ntfs file system or not
+ *          (reason is provided in @error)
+ *
+ * Tech category: always available
+ */
+gboolean bd_fs_ntfs_check_uuid (const gchar *uuid, GError **error);
+
+/**
+ * bd_fs_ntfs_resize:
+ * @device: the device the file system of which to resize
+ * @new_size: new requested size for the file system in bytes (if 0, the file system
+ *            is adapted to the underlying block device)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the file system on @device was successfully resized or not
+ *
+ * Tech category: %BD_FS_TECH_NTFS-%BD_FS_TECH_MODE_RESIZE
+ */
+gboolean bd_fs_ntfs_resize (const gchar *device, guint64 new_size, GError **error);
+
+/**
+ * bd_fs_ntfs_get_info:
+ * @device: the device containing the file system to get info for (device must
+            not be mounted, trying to get info for a mounted device will result
+            in an error)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: (transfer full): information about the file system on @device or
+ *                           %NULL in case of error
+ *
+ * Tech category: %BD_FS_TECH_NTFS-%BD_FS_TECH_MODE_QUERY
+ */
+BDFSNtfsInfo* bd_fs_ntfs_get_info (const gchar *device, GError **error);
+
+/**
+ * bd_fs_ntfs_get_min_size:
+ * @device: the device containing the file system to get min size for
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: smallest shrunken filesystem size as reported by ntfsresize
+ *          in case of error 0 is returned and @error is set
+ *
+ * Tech category: %BD_FS_TECH_NTFS-%BD_FS_TECH_MODE_RESIZE
+ */
+guint64 bd_fs_ntfs_get_min_size (const gchar *device, GError **error);
+
+/**
+ * bd_fs_f2fs_mkfs:
+ * @device: the device to create a new f2fs fs on
+ * @extra: (nullable) (array zero-terminated=1): extra options for the creation (right now
+ *                                                 passed to the 'mkfs.f2fs' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether a new f2fs fs was successfully created on @device or not
+ *
+ * Tech category: %BD_FS_TECH_F2FS-%BD_FS_TECH_MODE_MKFS
+ */
+gboolean bd_fs_f2fs_mkfs (const gchar *device, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_f2fs_check:
+ * @device: the device containing the file system to check
+ * @extra: (nullable) (array zero-terminated=1): extra options for the repair (right now
+ *                                                 passed to the 'fsck.f2fs' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether an f2fs file system on the @device is clean or not
+ *
+ * Tech category: %BD_FS_TECH_F2FS-%BD_FS_TECH_MODE_CHECK
+ */
+gboolean bd_fs_f2fs_check (const gchar *device, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_f2fs_repair:
+ * @device: the device containing the file system to repair
+ * @extra: (nullable) (array zero-terminated=1): extra options for the repair (right now
+ *                                                 passed to the 'fsck.f2fs' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether an f2fs file system on the @device was successfully repaired
+ *          (if needed) or not (error is set in that case)
+ *
+ * Tech category: %BD_FS_TECH_F2FS-%BD_FS_TECH_MODE_REPAIR
+ */
+gboolean bd_fs_f2fs_repair (const gchar *device, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_f2fs_get_info:
+ * @device: the device containing the file system to get info for
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: (transfer full): information about the file system on @device or
+ *                           %NULL in case of error
+ *
+ * Tech category: %BD_FS_TECH_F2FS-%BD_FS_TECH_MODE_QUERY
+ */
+BDFSF2FSInfo* bd_fs_f2fs_get_info (const gchar *device, GError **error);
+
+/**
+ * bd_fs_f2fs_resize:
+ * @device: the device containing the file system to resize
+ * @new_size: new requested size for the file system *in file system sectors* (see bd_fs_f2fs_get_info())
+ *            (if 0, the file system is adapted to the underlying block device)
+ * @safe: whether to perform safe resize or not (does not resize metadata)
+ * @extra: (nullable) (array zero-terminated=1): extra options for the resize (right now
+ *                                                 passed to the 'resize.f2fs' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the file system on @device was successfully resized or not
+ *
+ * Tech category: %BD_FS_TECH_F2FS-%BD_FS_TECH_MODE_RESIZE
+ */
+gboolean bd_fs_f2fs_resize (const gchar *device, guint64 new_size, gboolean safe, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_f2fs_check_label:
+ * @label: label to check
+ * @error: (out) (optional): place to store error
+ *
+ * Returns: whether @label is a valid label for the f2fs file system or not
+ *          (reason is provided in @error)
+ *
+ * Tech category: always available
+ */
+gboolean bd_fs_f2fs_check_label (const gchar *label, GError **error);
+
+/**
+ * bd_fs_nilfs2_mkfs:
+ * @device: the device to create a new nilfs fs on
+ * @extra: (nullable) (array zero-terminated=1): extra options for the creation (right now
+ *                                                 passed to the 'mkfs.nilfs2' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether a new nilfs fs was successfully created on @device or not
+ *
+ * Tech category: %BD_FS_TECH_NILFS2-%BD_FS_TECH_MODE_MKFS
+ */
+gboolean bd_fs_nilfs2_mkfs (const gchar *device, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_nilfs2_set_label:
+ * @device: the device containing the file system to set label for
+ * @label: label to set
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the label of nilfs file system on the @device was
+ *          successfully set or not
+ *
+ * Tech category: %BD_FS_TECH_NILFS2-%BD_FS_TECH_MODE_SET_LABEL
+ */
+gboolean bd_fs_nilfs2_set_label (const gchar *device, const gchar *label, GError **error);
+
+/**
+ * bd_fs_nilfs2_check_label:
+ * @label: label to check
+ * @error: (out) (optional): place to store error
+ *
+ * Returns: whether @label is a valid label for the nilfs2 file system or not
+ *          (reason is provided in @error)
+ *
+ * Tech category: always available
+ */
+gboolean bd_fs_nilfs2_check_label (const gchar *label, GError **error);
+
+/**
+ * bd_fs_nilfs2_set_uuid:
+ * @device: the device containing the file system to set UUID for
+ * @uuid: (nullable): UUID to set or %NULL to generate a new one
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the uuid of nilfs file system on the @device was
+ *          successfully set or not
+ *
+ * Tech category: %BD_FS_TECH_NILFS2-%BD_FS_TECH_MODE_SET_UUID
+ */
+gboolean bd_fs_nilfs2_set_uuid (const gchar *device, const gchar *uuid, GError **error);
+
+/**
+ * bd_fs_nilfs2_check_uuid:
+ * @uuid: UUID to check
+ * @error: (out) (optional): place to store error
+ *
+ * Returns: whether @uuid is a valid UUID for the nilfs file system or not
+ *          (reason is provided in @error)
+ *
+ * Tech category: always available
+ */
+gboolean bd_fs_nilfs2_check_uuid (const gchar *uuid, GError **error);
+
+/**
+ * bd_fs_nilfs2_get_info:
+ * @device: the device containing the file system to get info for
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: (transfer full): information about the file system on @device or
+ *                           %NULL in case of error
+ *
+ * Tech category: %BD_FS_TECH_NILFS2-%BD_FS_TECH_MODE_QUERY
+ */
+BDFSNILFS2Info* bd_fs_nilfs2_get_info (const gchar *device, GError **error);
+
+/**
+ * bd_fs_nilfs2_resize:
+ * @device: the device the file system of which to resize
+ * @new_size: new requested size for the file system (if 0, the file system is
+ *            adapted to the underlying block device)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the file system on @device was successfully resized or not
+ *
+ * Tech category: %BD_FS_TECH_NILFS2-%BD_FS_TECH_MODE_RESIZE
+ */
+gboolean bd_fs_nilfs2_resize (const gchar *device, guint64 new_size, GError **error);
+
+/**
+ * bd_fs_exfat_mkfs:
+ * @device: the device to create a new exfat fs on
+ * @extra: (nullable) (array zero-terminated=1): extra options for the creation (right now
+ *                                                 passed to the 'mkexfatfs' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether a new exfat fs was successfully created on @device or not
+ *
+ * Tech category: %BD_FS_TECH_EXFAT-%BD_FS_TECH_MODE_MKFS
+ */
+gboolean bd_fs_exfat_mkfs (const gchar *device, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_exfat_check:
+ * @device: the device containing the file system to check
+ * @extra: (nullable) (array zero-terminated=1): extra options for the repair (right now
+ *                                                 passed to the 'exfatfsck' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the exfat file system on the @device is clean or not
+ *
+ * Tech category: %BD_FS_TECH_EXFAT-%BD_FS_TECH_MODE_CHECK
+ */
+gboolean bd_fs_exfat_check (const gchar *device, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_exfat_repair:
+ * @device: the device containing the file system to repair
+ * @extra: (nullable) (array zero-terminated=1): extra options for the repair (right now
+ *                                                 passed to the 'exfatfsck' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the exfat file system on the @device was successfully repaired
+ *          (if needed) or not (error is set in that case)
+ *
+ * Tech category: %BD_FS_TECH_EXFAT-%BD_FS_TECH_MODE_REPAIR
+ */
+gboolean bd_fs_exfat_repair (const gchar *device, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_exfat_set_label:
+ * @device: the device containing the file system to set label for
+ * @label: label to set
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the label of exfat file system on the @device was
+ *          successfully set or not
+ *
+ * Tech category: %BD_FS_TECH_EXFAT-%BD_FS_TECH_MODE_SET_LABEL
+ */
+gboolean bd_fs_exfat_set_label (const gchar *device, const gchar *label, GError **error);
+
+/**
+ * bd_fs_exfat_check_label:
+ * @label: label to check
+ * @error: (out) (optional): place to store error
+ *
+ * Returns: whether @label is a valid label for the exfat file system or not
+ *          (reason is provided in @error)
+ *
+ * Tech category: always available
+ */
+gboolean bd_fs_exfat_check_label (const gchar *label, GError **error);
+
+/**
+ * bd_fs_exfat_set_uuid:
+ * @device: the device containing the file system to set uuid for
+ * @uuid: (nullable): volume ID to set or %NULL to generate a new one
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the volume ID of exFAT file system on the @device was
+ *          successfully set or not
+ *
+ * Tech category: %BD_FS_TECH_EXFAT-%BD_FS_TECH_MODE_SET_UUID
+ */
+gboolean bd_fs_exfat_set_uuid (const gchar *device, const gchar *uuid, GError **error);
+
+/**
+ * bd_fs_exfat_check_uuid:
+ * @uuid: UUID to check
+ * @error: (out) (optional): place to store error
+ *
+ * Returns: whether @uuid is a valid UUID for the exFAT file system or not
+ *          (reason is provided in @error)
+ *
+ * Tech category: always available
+ */
+gboolean bd_fs_exfat_check_uuid (const gchar *uuid, GError **error);
+
+/**
+ * bd_fs_exfat_get_info:
+ * @device: the device containing the file system to get info for
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: (transfer full): information about the file system on @device or
+ *                           %NULL in case of error
+ * Tech category: %BD_FS_TECH_EXFAT-%BD_FS_TECH_MODE_QUERY
+ */
+BDFSExfatInfo* bd_fs_exfat_get_info (const gchar *device, GError **error);
+
+/**
+ * bd_fs_btrfs_mkfs:
+ * @device: the device to create a new btrfs fs on
+ * @extra: (nullable) (array zero-terminated=1): extra options for the creation (right now
+ *                                                 passed to the 'mkfs.btrfs' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether a new btrfs fs was successfully created on @device or not
+ *
+ * Tech category: %BD_FS_TECH_BTRFS-%BD_FS_TECH_MODE_MKFS
+ *
+ */
+gboolean bd_fs_btrfs_mkfs (const gchar *device, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_btrfs_check:
+ * @device: the device containing the file system to check
+ * @extra: (nullable) (array zero-terminated=1): extra options for the check (right now
+ *                                                 passed to the 'btrfsck' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the filesystem was successfully checked or not
+ *
+ * Tech category: %BD_FS_TECH_BTRFS-%BD_FS_TECH_MODE_CHECK
+ */
+gboolean bd_fs_btrfs_check (const gchar *device, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_btrfs_repair:
+ * @device: the device containing the file system to repair
+ * @extra: (nullable) (array zero-terminated=1): extra options for the repair (right now
+ *                                                 passed to the 'btrfs' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the filesystem was successfully checked and repaired or not
+ *
+ * Tech category: %BD_FS_TECH_BTRFS-%BD_FS_TECH_MODE_REPAIR
+ */
+gboolean bd_fs_btrfs_repair (const gchar *device, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_btrfs_set_label:
+ * @mpoint: the mount point of the file system to set label for
+ * @label: label to set
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the label of Btrfs file system on the @mpoint was
+ *          successfully set or not
+ *
+ * Note: This function is intended to be used for btrfs filesystem on a single device,
+ *       for more complicated setups use the btrfs plugin instead.
+ *
+ * Tech category: %BD_FS_TECH_BTRFS-%BD_FS_TECH_MODE_SET_LABEL
+ */
+gboolean bd_fs_btrfs_set_label (const gchar *mpoint, const gchar *label, GError **error);
+
+/**
+ * bd_fs_btrfs_check_label:
+ * @label: label to check
+ * @error: (out) (optional): place to store error
+ *
+ * Returns: whether @label is a valid label for the Btrfs file system or not
+ *          (reason is provided in @error)
+ *
+ * Note: This function is intended to be used for btrfs filesystem on a single device,
+ *       for more complicated setups use the btrfs plugin instead.
+ *
+ * Tech category: always available
+ */
+gboolean bd_fs_btrfs_check_label (const gchar *label, GError **error);
+
+/**
+ * bd_fs_btrfs_set_uuid:
+ * @device: the device containing the file system to set the UUID (serial number) for
+ * @uuid: (nullable): UUID to set or %NULL to generate a new one
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the UUID of the Btrfs file system on the @device was
+ *          successfully set or not
+ *
+ * Note: This function is intended to be used for btrfs filesystem on a single device,
+ *       for more complicated setups use the btrfs plugin instead.
+ *
+ * Tech category: %BD_FS_TECH_BTRFS-%BD_FS_TECH_MODE_SET_UUID
+ */
+gboolean bd_fs_btrfs_set_uuid (const gchar *device, const gchar *uuid, GError **error);
+
+/**
+ * bd_fs_btrfs_check_uuid:
+ * @uuid: UUID to check
+ * @error: (out) (optional): place to store error
+ *
+ * Returns: whether @uuid is a valid UUID for the Btrfs file system or not
+ *          (reason is provided in @error)
+ *
+ * Note: This function is intended to be used for btrfs filesystem on a single device,
+ *       for more complicated setups use the btrfs plugin instead.
+ *
+ * Tech category: always available
+ */
+gboolean bd_fs_btrfs_check_uuid (const gchar *uuid, GError **error);
+
+/**
+ * bd_fs_btrfs_get_info:
+ * @mpoint: a mountpoint of the btrfs filesystem to get information about
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: (transfer full): information about the file system on @device or
+ *                           %NULL in case of error
+ *
+ * Note: This function WON'T WORK for multi device btrfs filesystems,
+ *       for more complicated setups use the btrfs plugin instead.
+ *
+ * Tech category: %BD_FS_TECH_BTRFS-%BD_FS_TECH_MODE_QUERY
+ */
+BDFSBtrfsInfo* bd_fs_btrfs_get_info (const gchar *mpoint, GError **error);
+
+/**
+ * bd_fs_btrfs_resize:
+ * @mpoint: a mountpoint of the to be resized btrfs filesystem
+ * @new_size: requested new size
+ * @extra: (nullable) (array zero-terminated=1): extra options for the volume resize (right now
+ *                                                 passed to the 'btrfs' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the @mpoint filesystem was successfully resized to @new_size
+ * or not
+ *
+ * Note: This function WON'T WORK for multi device btrfs filesystems,
+ *       for more complicated setups use the btrfs plugin instead.
+ *
+ * Tech category: %BD_BTRFS_TECH_FS-%BD_BTRFS_TECH_MODE_MODIFY
+ */
+gboolean bd_fs_btrfs_resize (const gchar *mpoint, guint64 new_size, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_udf_mkfs:
+ * @device: the device to create a new UDF fs on
+ * @media_type: (nullable): specify the media type or %NULL for default ('hd')
+ * @revision: (nullable): UDF revision to use or %NULL for default ('2.01')
+ * @block_size: block size in bytes or 0 for auto detection (device logical block size)
+ * @extra: (nullable) (array zero-terminated=1): extra options for the creation (right now
+ *                                                 passed to the 'mkudffs' utility)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether a new UDF fs was successfully created on @device or not
+ *
+ * Tech category: %BD_FS_TECH_UDF-%BD_FS_TECH_MODE_MKFS
+ */
+gboolean bd_fs_udf_mkfs (const gchar *device, const gchar *media_type, gchar *revision, guint64 block_size, const BDExtraArg **extra, GError **error);
+
+/**
+ * bd_fs_udf_set_label:
+ * @device: the device containing the file system to set label for
+ * @label: label to set
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Note: This sets both Volume Identifier and Logical Volume Identifier. Volume Identifier
+ *       is truncated to 30 or 15 characters to accommodate to the different length limits
+ *       of these labels.
+ *
+ * Returns: whether the label of UDF file system on the @device was
+ *          successfully set or not
+ *
+ * Tech category: %BD_FS_TECH_UDF-%BD_FS_TECH_MODE_SET_LABEL
+ */
+gboolean bd_fs_udf_set_label (const gchar *device, const gchar *label, GError **error);
+
+/**
+ * bd_fs_udf_check_label:
+ * @label: label to check
+ * @error: (out) (optional): place to store error
+ *
+ * Note: This checks only whether @label adheres the length limits for Logical Volume Identifier,
+ *       not the stricter limits for Volume Identifier.
+ *
+ * Returns: whether @label is a valid label for the UDF file system or not
+ *          (reason is provided in @error)
+ *
+ * Tech category: always available
+ */
+gboolean bd_fs_udf_check_label (const gchar *label, GError **error);
+
+/**
+ * bd_fs_udf_set_uuid:
+ * @device: the device containing the file system to set the UUID (serial number) for
+ * @uuid: (nullable): UUID to set or %NULL to generate a new one
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the UUID of the UDF file system on the @device was
+ *          successfully set or not
+ *
+ * Tech category: %BD_FS_TECH_UDF-%BD_FS_TECH_MODE_SET_UUID
+ */
+gboolean bd_fs_udf_set_uuid (const gchar *device, const gchar *uuid, GError **error);
+
+/**
+ * bd_fs_udf_check_uuid:
+ * @uuid: UUID to check
+ * @error: (out) (optional): place to store error
+ *
+ * Returns: whether @uuid is a valid UUID for the UDF file system or not
+ *          (reason is provided in @error)
+ *
+ * Tech category: always available
+ */
+gboolean bd_fs_udf_check_uuid (const gchar *uuid, GError **error);
+
+/**
+ * bd_fs_udf_get_info:
+ * @device: the device containing the file system to get info for
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: (transfer full): information about the file system on @device or
+ *                           %NULL in case of error
+ *
+ * Tech category: %BD_FS_TECH_UDF-%BD_FS_TECH_MODE_QUERY
+ */
+BDFSUdfInfo* bd_fs_udf_get_info (const gchar *device, GError **error);
+
+typedef enum {
+    BD_FS_SUPPORT_SET_LABEL = 1 << 1,
+    BD_FS_SUPPORT_SET_UUID = 1 << 2
+} BDFSConfigureFlags;
+
+typedef enum {
+    BD_FS_FSCK_CHECK = 1 << 1,
+    BD_FS_FSCK_REPAIR = 1 << 2
+} BDFSFsckFlags;
+
+typedef enum {
+    BD_FS_FEATURE_OWNERS  = 1 << 1,
+    BD_FS_FEATURE_PARTITION_TABLE = 1 << 2
+} BDFSFeatureFlags;
+
+/**
+ * BDFSFeatures:
+ * @resize: supported resizes modes
+ * @mkfs: supported options for mkfs
+ * @fsck: support for fsck operations (check and repair)
+ * @configure: support for changing properties of an existing filesystem
+ * @features: other supported features
+ * @partition_id: partition ID used for this filesystem on MSDOS partitions
+ * @partition_type: partition type/GUID used for this filesystem GPT partitions
+ * @min_size: minimum size when creating this filesystem
+ * @max_size: maximum size when creating this filesystem
+ */
+typedef struct BDFSFeatures {
+    BDFSResizeFlags resize;
+    BDFSMkfsOptionsFlags mkfs;
+    BDFSFsckFlags fsck;
+    BDFSConfigureFlags configure;
+    BDFSFeatureFlags features;
+    const gchar *partition_id;
+    const gchar *partition_type;
+    guint64 min_size;
+    guint64 max_size;
+} BDFSFeatures;
+
+/**
+ * bd_fs_features_copy: (skip)
+ * @data: (allow-none): %BDFSFeatures to copy
+ *
+ * Creates a new copy of @data.
+ */
+BDFSFeatures* bd_fs_features_copy (BDFSFeatures *data) {
+    if (data == NULL)
+        return NULL;
+
+    BDFSFeatures *ret = g_new0 (BDFSFeatures, 1);
+
+    ret->resize = data->resize;
+    ret->mkfs = data->mkfs;
+    ret->fsck = data->fsck;
+    ret->configure = data->configure;
+    ret->features = data->features;
+    ret->partition_id = data->partition_id;
+    ret->partition_type = data->partition_type;
+    ret->min_size = data->min_size;
+    ret->max_size = data->max_size;
+
+    return ret;
+}
+
+/**
+ * bd_fs_features_free: (skip)
+ * @data: (allow-none): %BDFSFeatures to free
+ *
+ * Frees @data.
+ */
+void bd_fs_features_free (BDFSFeatures *data) {
+    if (data == NULL)
+        return;
+
+    g_free (data);
+}
+
+GType bd_fs_features_get_type () {
+    static GType type = 0;
+
+    if (G_UNLIKELY(type == 0)) {
+        type = g_boxed_type_register_static("BDFSFeatures",
+                                            (GBoxedCopyFunc) bd_fs_features_copy,
+                                            (GBoxedFreeFunc) bd_fs_features_free);
+    }
+
+    return type;
+}
+
+/**
+ * bd_fs_features:
+ * @fstype: name of the filesystem to get features for (e.g. "ext4")
+ * @error: (allow-none): (out): place to store error (if any)
+ *
+ * Returns (transfer-none): features supported by @fstype, see %BDFSFeatures for more information.
+ *
+ * Tech category: always available
+ *
+ */
+const BDFSFeatures* bd_fs_features (const gchar *fstype, GError **error);
+
+#endif  /* BD_FS_API */

@@ -1,0 +1,138 @@
+Copyright 2011, 2023 Free Software Foundation, Inc.
+
+This file is part of the GNU MP Library.
+
+The GNU MP Library is free software; you can redistribute it and/or modify
+it under the terms of either:
+
+  * the GNU Lesser General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+or
+
+  * the GNU General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any
+    later version.
+
+or both in parallel, as here.
+
+The GNU MP Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received copies of the GNU General Public License and the
+GNU Lesser General Public License along with the GNU MP Library.  If not,
+see https://www.gnu.org/licenses/.
+
+
+
+There are many generations of 64-bit s390 processors, z900, z990, z9, z10,
+z196, z12, z13, z14, z15, and z16.  The current GMP code was originally
+optimised for the two oldest, z900 and z990.  Better code for z13 and later can
+be found in aptly named subdirectories.
+
+
+STATUS
+
+mpn_copyi
+
+This code makes use of a loop around MVC.  It almost surely runs very
+close to optimally.  A small improvement could be done by using one
+MVC for size 256 bytes, now we use two (we use an extra MVC when
+copying any multiple of 256 bytes).
+
+
+mpn_copyd
+
+We have tried several feed-in variants here, branch tree, jump table
+and computed goto.  The fastest (on z990) turned out to be computed
+goto.
+
+An approach not tried is EX of LMG and STMG, modifying the register set
+on-the-fly.  Using that trick, we could completely avoid using
+separate feed-in paths.
+
+
+mpn_lshift, mpn_rshift
+
+The current code runs at pipeline decode bandwidth on z990.
+
+
+mpn_add_n, mpn_sub_n
+
+The current code is 4-way unrolled.  It should be unrolled more, at
+least 8x, in order to reach 2.5 c/l.
+
+
+mpn_mul_1, mpn_addmul_1, mpn_submul_1
+
+The current code is 4-way unrolled, but only timed on z15, where we anyway have
+better code.  It is believed to run well on older CPUs.
+
+
+mpn_mul_2, mpn_addmul_2
+
+These are really, really hard to write as the needed MLG clustering and the
+register shortage leave very little wiggle room.  Our attempts run slower than
+combinations of mul_1 and addmul_1.
+
+mpn_mul_basecase, mpn_sqr_basecase
+
+These use old un-unrolled mul_1 and addmul_1.
+
+
+TODO
+
+1. Somehow clean up instruction set differences.  The ad hoc test of
+   e.g. addmul_1 for playing with vl, vster, vpdi etc, is not great.
+   Then, we have code in the z14 and z15 subdirs which almost runs on
+   older CPUs, which is also not great.
+
+2. Support fat binaries.  Perhaps that's where to start, solving 1 at
+   the same time.
+
+3. Fix sqr_basecase's abysmal performance, both the top-level code and the z13
+   code.  Performance suffers due to branch prediction problems.  The top-level
+   code also needs the unrolled mul_1 and addmul_1.  (Branch prediction is hard
+   for sqr_basecase-type code as the inner loop trip count decreases with every
+   turn in the outer loop.  That plays very poorly with z15's apparent counting
+   branch predictors.  Induction variable detection branch predictors are
+   needed.)
+
+   So how to fix sqr_basecase's performance?  Supposedly by doing more work for
+   each inner loops invocation, thus diluting the branch prediction miss cost.
+   What?  For z13, probably just base it on addmul_2.
+
+   But this, writing sqr_basecase in general and addmul_2 based sqr_basecase in
+   particular, is really tricky asm programming.  The doubling-on-the fly
+   needed for sqr_basecase can be confusing with addmul_1 based code, and
+   becomes quite tricky when using addmul_2.
+
+Torbjörn has faster mul_2 and addmul_2, running at close to 2 cycles/limb on
+z15.  That's not a whole lot faster than mul_1 and addmul_1, and as
+sqr_basecase and mul_basecase are based on the _1 variants, we have not
+committed this faster _2 code.
+
+Here is how a new mul_basecase should be organised:
+
+  1. If the rp pointer is 128-bit aligned, start with mul_2 to keep alignment.
+     Else start with mul_1.  Now rp will be 128-bit aligned.
+
+  2. Loop over addmul_2.  Probably don't expand it into 4 variants (addmul_2 is
+     4-way unrolled) as that practice pays off less with the fewer outer loop
+     iterations which are the result of using addmul_2.  Instead, do the n mod
+     4 handling before each run.
+
+  3. If there is now anything to do, finish off with an addmul_1.
+
+This means that we will sometimes both do a mul_1 first and an addmul_1 last,
+even if bn mod 2 == 0.  It is expected that that will be beneficial,
+considering the alignment penalty for the 128-operations and the fact that the
+_2 functions are not dramatically faster than the _1 functions.
+
+A new sqr_basecase should use addmul_2 too, as mentioned above.  Here, we might
+get significant improvements as the branch predictor performs abysmally given
+the structure of sqr_basecase; an addmul_2 based variant should cut the number
+of mispredicted branches in half.

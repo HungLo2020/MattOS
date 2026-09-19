@@ -27,6 +27,10 @@ fn build_autotools_import(
         // so the build never depends on those stale host paths.
         "libcanberra" => "output-autoreconf-generated-build-aux-v1",
         "icu" => "output-icu-license-staging-v1",
+        "libblockdev" => "output-autoconf-archive-debug-macro-v1",
+        "bluez" => "host-configure-tools-and-readline-terminal-link-v2",
+        "udisks2" => "output-disable-unbuilt-gtk-doc-resources-and-normalize-build-dir-v4",
+        "gmp" => "skip-regenerated-info-docs-and-normalize-public-cflags-v2",
         _ => "",
     };
     let stamp = format!(
@@ -40,6 +44,67 @@ fn build_autotools_import(
     }
     fs::create_dir_all(&out_root)?;
     sync_build_source(&source, &source_copy)?;
+    if component == "libblockdev" {
+        // AX_CHECK_ENABLE_DEBUG is supplied by autoconf-archive and affects
+        // only compile-time debug defines. Keep that host build-tool macro
+        // out of the target closure by spelling out the release result in
+        // the disposable mirror before autoreconf.
+        let configure_ac = source_copy.join("configure.ac");
+        let body = fs::read_to_string(&configure_ac)?;
+        let old = "AX_CHECK_ENABLE_DEBUG([no], [DEBUG], [NDEBUG])";
+        if !body.contains(old) {
+            bail!("libblockdev debug macro layout changed unexpectedly");
+        }
+        fs::write(
+            configure_ac,
+            body.replace(old, "AC_DEFINE([NDEBUG], [1], [Disable debug assertions])")
+                .replace(
+                    "AX_RECURSIVE_EVAL([$with_drivedb], [drivedb_path])",
+                    "drivedb_path=\"$with_drivedb\"",
+                ),
+        )?;
+    }
+    if component == "udisks2" {
+        // Documentation is outside the runtime closure. The release tree
+        // expects gtk-doc's host Automake fragment even when disabled, so
+        // make only the disposable documentation makefile inert.
+        let configure_ac = source_copy.join("configure.ac");
+        let body = fs::read_to_string(&configure_ac)?;
+        let old = "GTK_DOC_CHECK([1.3],[--flavour no-tmpl])";
+        if !body.contains(old) {
+            bail!("UDisks2 gtk-doc configure layout changed unexpectedly");
+        }
+        fs::write(
+            configure_ac,
+            body.replace(old, "AM_CONDITIONAL([ENABLE_GTK_DOC], [false])"),
+        )?;
+        fs::write(source_copy.join("doc/Makefile.am"), "SUBDIRS =\n")?;
+        let makefile = source_copy.join("src/Makefile.am");
+        let body = fs::read_to_string(&makefile)?;
+        let adjusted = body.replace(
+            "--sourcedir=$(top_srcdir) udisks-daemon-resources.xml",
+            "--sourcedir=$(top_srcdir) $(srcdir)/udisks-daemon-resources.xml",
+        );
+        if adjusted == body {
+            bail!("UDisks2 out-of-tree resource adaptation no longer matches upstream");
+        }
+        fs::write(makefile, adjusted)?;
+        // UDisks compiles its build directory into the daemon for its
+        // explicit --uninstalled developer mode.  Keep that diagnostic mode
+        // deterministic without exposing the build machine in the shipped
+        // executable; installed operation never reads this path.
+        for relative in ["src/Makefile.am"] {
+            let path = source_copy.join(relative);
+            let body = fs::read_to_string(&path)?;
+            let old = "-DBUILD_DIR=\\\"$(abs_top_builddir)/\\\"";
+            let new = "-DBUILD_DIR=\\\"/usr/src/mattos/udisks2-build/\\\"";
+            let adjusted = body.replace(old, new);
+            if adjusted == body && !body.contains(new) {
+                bail!("UDisks2 BUILD_DIR normalization no longer matches {relative}");
+            }
+            fs::write(path, adjusted)?;
+        }
+    }
     if component == "icu" {
         // ICU's generated Makefile installs ../LICENSE relative to its
         // source directory.  The source stage intentionally builds only
@@ -189,6 +254,42 @@ fn build_autotools_import(
         run_cmd(&source_copy, "autoreconf", &["-fiv"])?;
     }
     let mut env = staged_library_environment(repo_root, dependencies)?;
+    if component == "gmp" {
+        // The immutable VCS snapshot intentionally has no generated
+        // version.texi. Documentation is outside the runtime/development
+        // package closure, so never regenerate it with a host makeinfo.
+        env.push(("MAKEINFO", "true".to_string()));
+    }
+    if component == "bluez" {
+        // Configure invokes host gawk while generating config.status. Never
+        // make host build tools load target readline/ncurses libraries;
+        // target linking remains governed by LDFLAGS/LIBRARY_PATH.
+        if let Some((_, value)) = env.iter_mut().find(|(key, _)| *key == "LD_LIBRARY_PATH") {
+            value.clear();
+        }
+        env.push(("LIBS", "-lncursesw -ltinfow".to_string()));
+    }
+    if component == "udisks2" {
+        // UDisks consumes libmount directly. util-linux's target pkg-config
+        // file exposes optional static SELinux metadata that is not part of
+        // this dynamic runtime closure, so provide the exact target ABI here.
+        let util_usr = repo_root.join("out/build/util-linux/install/usr");
+        env.push((
+            "LIBMOUNT_CFLAGS",
+            format!("-I{}", util_usr.join("include").display()),
+        ));
+        env.push((
+            "LIBMOUNT_LIBS",
+            "-lmount".to_string(),
+        ));
+        env.push((
+            "GETTEXTDATADIRS",
+            repo_root
+                .join("out/build/polkit/install/usr/share/gettext")
+                .display()
+                .to_string(),
+        ));
+    }
     if component == "ostree" {
         // libbsd's compatibility headers include the target libc headers by
         // their normal names.  Its nested `include/bsd` directory must not
@@ -237,6 +338,60 @@ fn build_autotools_import(
             }
         }
     }
+    if component == "libblockdev" {
+        // Upstream's custom header probe invokes ${CC} directly and omits
+        // CPPFLAGS, unlike normal Autoconf compile checks. That hides
+        // target-owned headers and can only succeed from a host installation.
+        let macros = source_copy.join("acinclude.m4");
+        let contents = fs::read_to_string(&macros)?;
+        let adjusted = contents
+            .replace(
+                "${CC} -c [$2] $temp_file",
+                "${CC} [$]{CPPFLAGS} -c [$2] $temp_file",
+            )
+            .replace(
+                "${CC} ${CPPFLAGS} -c [$2] $temp_file",
+                "${CC} [$]{CPPFLAGS} -c [$2] $temp_file",
+            );
+        if adjusted == contents
+            && !contents.contains("${CC} [$]{CPPFLAGS} -c [$2] $temp_file")
+        {
+            bail!("libblockdev header-probe isolation adaptation no longer matches upstream");
+        }
+        if adjusted != contents {
+            fs::write(macros, adjusted)?;
+        }
+        let configure_ac = source_copy.join("configure.ac");
+        let contents = fs::read_to_string(&configure_ac)?;
+        let adjusted = contents.replace(
+            "LIBBLOCKDEV_CHECK_HEADER([keyutils.h], [], [keyutils.h not available])",
+            "LIBBLOCKDEV_CHECK_HEADER([keyutils.h], [${CPPFLAGS}], [keyutils.h not available])",
+        );
+        if adjusted == contents
+            && !contents.contains("LIBBLOCKDEV_CHECK_HEADER([keyutils.h], [${CPPFLAGS}], [keyutils.h not available])")
+        {
+            bail!("libblockdev keyutils probe adaptation no longer matches upstream");
+        }
+        if adjusted != contents {
+            fs::write(configure_ac, adjusted)?;
+        }
+        // The source import does not carry generated configure output. The
+        // first autoreconf above necessarily ran before this isolated probe
+        // correction, so regenerate once with the corrected inputs.
+        run_cmd(&source_copy, "autoreconf", &["-fiv"])?;
+        // libmount's target .pc correctly records libselinux/libsepol as
+        // private static-link dependencies. libblockdev dynamically links
+        // libmount, so do not expand that unrelated static closure here.
+        let util_usr = repo_root.join("out/build/util-linux/install/usr");
+        env.push((
+            "MOUNT_CFLAGS",
+            format!("-I{}", util_usr.join("include/libmount").display()),
+        ));
+        env.push((
+            "MOUNT_LIBS",
+            "-lmount".to_string(),
+        ));
+    }
     fs::create_dir_all(&build_dir)?;
     if !build_dir.join("Makefile").is_file() {
         run_cmd_with_env_overrides(
@@ -246,14 +401,18 @@ fn build_autotools_import(
             &env,
         )?;
     }
-    run_cmd_with_env_overrides(&build_dir, "make", &["-j", "4"], &env)?;
+    if component == "lvm2" {
+        // Cryptsetup only requires libdevmapper.  Upstream explicitly
+        // supports this target without libaio; building the unrelated LVM
+        // command suite would add libaio and daemon policy to this closure.
+        run_cmd_with_env_overrides(&build_dir, "make", &["-j", "4", "device-mapper"], &env)?;
+    } else {
+        run_cmd_with_env_overrides(&build_dir, "make", &["-j", "4"], &env)?;
+    }
     remove_path_if_exists(&install_dir)?;
-    run_cmd_with_env_overrides(
-        &build_dir,
-        "make",
-        &["install", &format!("DESTDIR={}", install_dir.display())],
-        &env,
-    )?;
+    let destdir = format!("DESTDIR={}", install_dir.display());
+    let install_target = if component == "lvm2" { "install_device-mapper" } else { "install" };
+    run_cmd_with_env_overrides(&build_dir, "make", &[install_target, &destdir], &env)?;
     for relative in required_outputs {
         if !install_dir.join(relative).is_file() {
             bail!("{component} install did not produce {relative}");
@@ -385,7 +544,7 @@ fn build_libffi(repo_root: &Path) -> Result<()> {
     )
 }
 
-/// Build the Wayland client runtime needed by the native COSMIC installer.
+/// Build the Wayland client runtime used by native desktop clients.
 /// Winit loads libwayland-client with dlopen, so it is not visible to the ELF
 /// NEEDED audit and must be represented as an explicit source-built runtime
 /// dependency rather than falling back to a host library.
@@ -436,7 +595,7 @@ fn build_xkbcommon(repo_root: &Path) -> Result<()> {
         "-Denable-tools=false",
         "-Denable-x11=true",
         "-Denable-wayland=false",
-        "-Denable-xkbregistry=false",
+        "-Denable-xkbregistry=true",
         "-Denable-docs=false",
         "-Denable-bash-completion=false",
         "-Dxkb-config-root=/usr/share/X11/xkb",
@@ -449,7 +608,7 @@ fn build_xkbcommon(repo_root: &Path) -> Result<()> {
     }
     fs::create_dir_all(&out_root)?;
     sync_build_source(&source, &source_copy)?;
-    let env = staged_library_environment(repo_root, &["x11-compat"])?;
+    let env = staged_library_environment(repo_root, &["x11-compat", "libxml2"])?;
     if !build_dir.join("build.ninja").is_file() {
         let mut args = vec!["setup", path_str(&build_dir)?, path_str(&source_copy)?];
         args.extend(options);
@@ -475,6 +634,7 @@ fn build_xkbcommon(repo_root: &Path) -> Result<()> {
             path_str(&build_dir)?,
             "libxkbcommon.so.0.9.2",
             "libxkbcommon-x11.so.0.9.2",
+            "libxkbregistry.so.0.9.2",
         ],
         &env,
     )?;
@@ -500,7 +660,7 @@ fn build_xkbcommon(repo_root: &Path) -> Result<()> {
     }
     fs::write(&stamp_path, stamp)?;
     println!(
-        "xkbcommon origin: {}; features=x11 enabled, wayland/tools/registry/docs disabled",
+        "xkbcommon origin: {}; features=x11/registry enabled, wayland/tools/docs disabled",
         install_dir.display()
     );
     Ok(())

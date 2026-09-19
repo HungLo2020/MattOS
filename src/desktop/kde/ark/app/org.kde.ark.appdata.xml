@@ -1,0 +1,451 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component type="desktop-application">
+  <id>org.kde.ark.desktop</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-2.0+</project_license>
+  <launchable type="desktop-id">org.kde.ark.desktop</launchable>
+  <developer id="org.kde">
+    <name translate="no">KDE</name>
+    <url>https://kde.org</url>
+  </developer>
+  <name>Ark</name>
+  <name xml:lang="ar">آرك</name>
+  <name xml:lang="ast">Ark</name>
+  <name xml:lang="az">Ark</name>
+  <name xml:lang="be">Ark</name>
+  <name xml:lang="bg">Ark</name>
+  <name xml:lang="bs">Ark</name>
+  <name xml:lang="ca">Ark</name>
+  <name xml:lang="ca-valencia">Ark</name>
+  <name xml:lang="cs">Ark</name>
+  <name xml:lang="da">Ark</name>
+  <name xml:lang="de">Ark</name>
+  <name xml:lang="el">Ark</name>
+  <name xml:lang="en-GB">Ark</name>
+  <name xml:lang="eo">Ark</name>
+  <name xml:lang="es">Ark</name>
+  <name xml:lang="et">Ark</name>
+  <name xml:lang="eu">Ark</name>
+  <name xml:lang="fi">Ark</name>
+  <name xml:lang="fr">Ark</name>
+  <name xml:lang="gl">Ark</name>
+  <name xml:lang="he">Ark</name>
+  <name xml:lang="hu">Ark</name>
+  <name xml:lang="ia">Ark</name>
+  <name xml:lang="id">Ark</name>
+  <name xml:lang="ie">Ark</name>
+  <name xml:lang="is">Ark</name>
+  <name xml:lang="it">Ark</name>
+  <name xml:lang="ja">Ark</name>
+  <name xml:lang="ka">Ark</name>
+  <name xml:lang="ko">Ark</name>
+  <name xml:lang="lt">Ark</name>
+  <name xml:lang="lv">Ark</name>
+  <name xml:lang="nb">Ark</name>
+  <name xml:lang="nds">Ark</name>
+  <name xml:lang="nl">Ark</name>
+  <name xml:lang="nn">Ark</name>
+  <name xml:lang="pa">ਆਕ</name>
+  <name xml:lang="pl">Ark</name>
+  <name xml:lang="pt">Ark</name>
+  <name xml:lang="pt-BR">Ark</name>
+  <name xml:lang="ro">Ark</name>
+  <name xml:lang="ru">Ark</name>
+  <name xml:lang="sa">अर्क</name>
+  <name xml:lang="sk">Ark</name>
+  <name xml:lang="sl">Ark</name>
+  <name xml:lang="sr">Арк</name>
+  <name xml:lang="sr-Latn">Ark</name>
+  <name xml:lang="sr-ijekavian">Арк</name>
+  <name xml:lang="sr-ijekavianlatin">Ark</name>
+  <name xml:lang="sv">Ark</name>
+  <name xml:lang="ta">ஆர்க்</name>
+  <name xml:lang="tr">Ark</name>
+  <name xml:lang="uk">Ark</name>
+  <name xml:lang="zh-CN">Ark 压缩文件管理工具</name>
+  <name xml:lang="zh-TW">Ark</name>
+  <summary>Archiving Tool</summary>
+  <summary xml:lang="ar">أداة أرشفة</summary>
+  <summary xml:lang="ast">Ferramienta d'archivación</summary>
+  <summary xml:lang="az">Arxivləmə Aləti</summary>
+  <summary xml:lang="be">Інструмент архівавання</summary>
+  <summary xml:lang="bg">Работа с архиви</summary>
+  <summary xml:lang="bs">Alat za arhiviranje</summary>
+  <summary xml:lang="ca">Eina d'arxivament</summary>
+  <summary xml:lang="ca-valencia">Eina d'arxivament</summary>
+  <summary xml:lang="cs">Archivační nástroj</summary>
+  <summary xml:lang="da">Arkiveringsværktøj</summary>
+  <summary xml:lang="de">Archivprogramm</summary>
+  <summary xml:lang="el">Εργαλείο αρχειοθέτησης</summary>
+  <summary xml:lang="en-GB">Archiving Tool</summary>
+  <summary xml:lang="eo">Arkiva Ilo</summary>
+  <summary xml:lang="es">Herramienta de archivado</summary>
+  <summary xml:lang="et">Arhiivide haldamise rakendus</summary>
+  <summary xml:lang="eu">Artxibatzeko tresna</summary>
+  <summary xml:lang="fi">Pakkausohjelma</summary>
+  <summary xml:lang="fr">Outil d'archivage</summary>
+  <summary xml:lang="gl">Ferramenta para arquivar</summary>
+  <summary xml:lang="he">כלי לניהול ארכיונים</summary>
+  <summary xml:lang="hu">Fájltömörítő</summary>
+  <summary xml:lang="ia">Instrumento per archivar</summary>
+  <summary xml:lang="id">Alat Pengarsipan</summary>
+  <summary xml:lang="ie">Gerente de archives</summary>
+  <summary xml:lang="is">Safnskráaverkfæri</summary>
+  <summary xml:lang="it">Strumento di archiviazione</summary>
+  <summary xml:lang="ja">アーカイブツール</summary>
+  <summary xml:lang="ka">არქივატორი</summary>
+  <summary xml:lang="ko">압축 도구</summary>
+  <summary xml:lang="lt">Archyvavimo įrankis</summary>
+  <summary xml:lang="lv">Arhivēšanas rīks</summary>
+  <summary xml:lang="nb">Arkiveringsverktøy</summary>
+  <summary xml:lang="nds">Archievwarktüüch</summary>
+  <summary xml:lang="nl">Archiefgereedschap</summary>
+  <summary xml:lang="nn">Arkiverings­verktøy</summary>
+  <summary xml:lang="pa">ਅਕਾਇਵ ਬਣਾਉਣ ਟੂਲ</summary>
+  <summary xml:lang="pl">Narzędzie do archiwizowania</summary>
+  <summary xml:lang="pt">Ferramenta de Arquivamento</summary>
+  <summary xml:lang="pt-BR">Ferramenta de arquivamento</summary>
+  <summary xml:lang="ro">Utilitar de arhivare</summary>
+  <summary xml:lang="ru">Архиватор файлов</summary>
+  <summary xml:lang="sa">संग्रहणसाधनम्</summary>
+  <summary xml:lang="sk">Archivačný nástroj</summary>
+  <summary xml:lang="sl">Orodje za ravnanje z arhivi</summary>
+  <summary xml:lang="sr">Алатка за архивирање</summary>
+  <summary xml:lang="sr-Latn">Alatka za arhiviranje</summary>
+  <summary xml:lang="sr-ijekavian">Алатка за архивирање</summary>
+  <summary xml:lang="sr-ijekavianlatin">Alatka za arhiviranje</summary>
+  <summary xml:lang="sv">Arkiveringsverktyg</summary>
+  <summary xml:lang="ta">காப்பகச்செயலி</summary>
+  <summary xml:lang="tr">Arşivleme Aracı</summary>
+  <summary xml:lang="ug">ئارخىپ قورالى</summary>
+  <summary xml:lang="uk">Інструмент роботи з архівами</summary>
+  <summary xml:lang="zh-CN">压缩文件管理工具</summary>
+  <summary xml:lang="zh-TW">壓縮工具</summary>
+  <description>
+    <p>
+      Ark is a graphical file compression/decompression utility with support for multiple formats,
+      including tar, gzip, bzip2, rar and zip, as well as CD-ROM images.
+      Ark can be used to browse, extract, create, and modify archives.
+    </p>
+    <p xml:lang="ar">آرك أداة رسوميّة لضغط وفكّ ضغط الملفات مع دعم لصيغ متعدّدة، منها tar، وgzip، وbzip2، وrar، وzip، إضافة إلى صور الأقراص الضوئيّة. يمكن استخدام آرك لتصفح، واستخراج، وإنشاء، وتعديل الأرشيفات.</p>
+    <p xml:lang="ast">Ark ye una utilidá gráfica pa des/comprimir ficheros que sofita munchos formatos, incluyíos tar, gzip, bzip2, rar y zip, amás d'imáxenes de CD-ROM. Pues usar Ark pa restolar, estrayer, crear y modificar archivos.</p>
+    <p xml:lang="az">Ark, tar, gzip, bzip2, rar və zip və CD-ROM görünüşü də daxil olmaqla bir çox formatı dəstəkləyən qrafik, faylları sıxmaq/dekompressiya etmək üçün yardımçı proqramıdır. Ark arxivlərə baxmaq, çıxarmaq, onları yaratmaq və dəyişdirmək üçün istifadə edilə bilər.</p>
+    <p xml:lang="be">Ark - утыліта з графічным інтэрфейсам для запакоўвання і распакоўвання файлаў, якая падтрымлівае шмат фарматаў: tar, gzip, bzip2, rar, zip і вобразы дыскаў. Ark можна выкарыстоўваць для прагляду, распакоўвання, стварэння і змены архіваў.</p>
+    <p xml:lang="bg">Ark е графичен инструмент за архивиране/разархивиране, поддържащ множество формати, включително tar, gzip, bzip2, rar и zip, както и образи на CD-ROM. Ark може да се използва за разглеждане, извличане, създаване и променяне на архиви.</p>
+    <p xml:lang="bs">Ark je grafički alat za kompresiju/dekompresiju s podrškom za više formata, uključujući tar, gzip, bzip2, rar i zip, kao i CD-ROM slike. Ark se može koristiti za kreiranje, izdvjanje i modifikaciju arhiva.</p>
+    <p xml:lang="ca">L'Ark és una utilitat gràfica de compressió/descompressió de fitxers que admet múltiples formats, incloent-hi tar, gzip, bzip2, rar i zip, i també imatges de CD-ROM. L'Ark es pot utilitzar per a explorar, extreure, crear, i modificar arxius.</p>
+    <p xml:lang="ca-valencia">Ark és una utilitat gràfica de compressió/descompressió de fitxers que admet múltiples formats, incloent-hi tar, gzip, bzip2, rar i zip, i també imatges de CD-ROM. Ark es pot utilitzar per a explorar, extraure, crear, i modificar arxius.</p>
+    <p xml:lang="cs">Ark je grafický nástroj pro kompresi/dekompresi souborů s podporou formátů jako je tar, gzip, bzip2, rar a zip a obrazů disků CD-ROM. Ark lze použít k prohlížení, rozbalování a úpravám archivů.</p>
+    <p xml:lang="da">Ark er et grafisk værktøj til komprimering/dekomprimering, med understøttelse for flere formater, derunder tar, gzip, bzip2, rar og zip, såvel som cd-rom-imagefiler. Ark kan bruges til at gennemse, udtrække, oprette og redigere.</p>
+    <p xml:lang="de">Ark ist ein grafisches Dienstprogramm zum Packen/Entpacken von Dateien mit Unterstützung für mehrere Formate wie tar, gzip, bzip2, rar, zip und auch CD-Abbilder. Mit Ark können Sie können Sie Archive durchsehen, entpacken, erstellen und bearbeiten.</p>
+    <p xml:lang="el">Το Ark είναι ένα γραφικό εργαλείο συμπίεσης/αποσυμπίεσης αρχείων με υποστήριξη για πολλούς τύπους αποθήκευσης, όπως tar, gzip, bzip2, rar και zip, καθώς επίσης και εικόνες CD-ROM. Το Ark χρησιμεύει για την περιήγηση, εξαγωγή, δημιουργία και τροποποίηση αρχειοθηκών.</p>
+    <p xml:lang="en-GB">Ark is a graphical file compression/decompression utility with support for multiple formats, including tar, gzip, bzip2, rar and zip, as well as CD-ROM images. Ark can be used to browse, extract, create, and modify archives.</p>
+    <p xml:lang="eo">Ark estas grafika dosiero kunprema/malkunprema ilo kun subteno por pluraj formatoj, inkluzive de tar, gzip, bzip2, rar kaj zip, kaj ankaŭ KD-ROM-bildojn. Ark povas esti uzata por foliumi, ĉerpi, krei kaj modifi arkivojn.</p>
+    <p xml:lang="es">Ark es una utilidad gráfica de compresión y descompresión de archivos que permite usar diversos formatos, como tar, gzip, bzip2, rar y zip, así como imágenes de CD-ROM. Ark se puede usar para explorar, extraer, crear y modificar archivadores.</p>
+    <p xml:lang="et">Ark on graafiline failide tihendamise ehk kokkupakkimise ja nende lahtipakkimise tööriist, mis toetab väga paljusid vorminguid, sealhulgas tar, gzip, bzip2, rar and zip, samuti CD-ROM-i tõmmised. Arki abil saab arhiivifaile sirvida, lahti pakkida, luua ja muuta.</p>
+    <p xml:lang="eu">Ark fitxategien konprimatze-lanetarako utilitate grafiko bat da formatu ugari onartzen dituena, hauen artean tar, gzip, bzip2, rar eta zip, baita CD-ROM irudiak ere. Ark erabili daiteke artxiboak arakatu, erauzi, sortu eta aldatzeko.</p>
+    <p xml:lang="fi">Ark on graafinen tiedostojen pakkaus-/purkuohjelma, joka tukee useita tiedostomuotoja kuten tar, gzip, bzip2, rar and zip sekä myös CD-ROM-levykuvia. Arkilla voi selata, purkaa, luoda ja muuttaa arkistoja.</p>
+    <p xml:lang="fr">Ark est un utilitaire graphique de compression / décompression de fichiers prenant en charge de multiples formats, notamment tar, gzip, bzip2, rar et zip, ainsi que les images de CD-ROM. Ark peut être utilisé pour parcourir, extraire, créer et modifier des archives.</p>
+    <p xml:lang="gl">Ark é unha ferramenta gráfica de compresión e descompresión de ficheiros compatíbel con múltiplos formatos, como «tar», «gzip», «bzip2», «rar» e «zip», así como imaxes de CD-ROM. Ark pode usarse para navegar, extraer, crear e modificar arquivos.</p>
+    <p xml:lang="he">‏Ark הוא יישום גרפי לדחיסה וחילוץ ארכיונים עם תמיכה בפורמטים שונים, כולל tar, gzip, bzip2, rar ו־zip, כמו כן בקובצי תמונת דיסק. Ark משומש לדפדוף, חילוץ, יצירה ושינוי ארכיונים.</p>
+    <p xml:lang="hu">Az Ark egy grafikus fájltömörítő és kibontó segédprogram többféle formátum támogatásával, beleértve a tar, gzip, bzip2, rar és zip formátumokat, valamint a CD-ROM képfájlokat. Az Ark használható archívumok böngészéséhez, kibontásához, létrehozásához és módosításához.</p>
+    <p xml:lang="ia">Ark es un utilitate graphic de compression/decompression de file con supporto per formatos multiple, includente tar, gzip, bzip2, rar e zip, tal como images de CD-ROM. Ark pote esser usate per navigar, extraher, crear e modificar archivos.</p>
+    <p xml:lang="id">Ark adalah utilitas kompresi/dekompresi file grafis dengan dukungan untuk berbagai format, termasuk tar, gzip, bzip2, rar dan zip, serta citra CD-ROM. Ark dapat digunakan untuk menelusuri, mengekstrak, menciptakan, dan memodifikasi arsip.</p>
+    <p xml:lang="ie">Ark es un grafic utensile de compression e decompression de files quel supporte multiplic formates, includente tar, gzip, bzip2, rar, zip e images CD-ROM. On posse usar Ark por navigar, extraer, crear e modificar archives.</p>
+    <p xml:lang="is">Ark er myndrænt þjöppunar-/afþjöppunarforrit sem styður fjölmörgþjöppunarsnið, þ.á m. tar, gzip, bzip2, rar og zip, auk CD-ROM diskmynda. Ark má nota til að skoða, afþjappa, búa til og breyta safnskrám.</p>
+    <p xml:lang="it">Ark è uno strumento grafico per la compressione/decompressione dei file che supporta molti formati, tra i quali tar, gzip, bzip2, rar e zip, così come le immagini dei CD-ROM. Ark può essere utilizzato per sfogliare, estrarre, creare e modificare archivi.</p>
+    <p xml:lang="ja">Ark はグラフィカルなファイル圧縮/展開ユーティリティです。tar、gzip、bzip2、rar、zip そして CD-ROM イメージまで、複数の形式に対応しています。Ark ならアーカイブの閲覧、展開、作成、そして編集までこなせます。</p>
+    <p xml:lang="ka">Ark ფაილების გრაფიკულად შეკუმშვა/გაშლის ხელსაწყოა შეკუმშვის ისეთი ფორმატების მხარდაჭერით, როგორიცაა მაგალითად tar, gzip, bzip2, zip და CD-ROM-ის ასლები. Ark-ს ასევე ეუძლია დაათვალიეროს, გაშალოს, შექმნას და შეცვალოს არქივები.</p>
+    <p xml:lang="ko">Ark는 그래픽 압축 파일 관리 도구이며, tar, gzip, bzip2, rar, zip, CD-ROM 이미지 등 여러 파일 형식을 지원합니다. Ark를 사용하여 압축 파일을 열고, 생성하고, 수정하고, 압축을 풀 수 있습니다.</p>
+    <p xml:lang="lt">Ark yra grafinė failų glaudinimo/išskleidimo paslaugų programa, palaikanti daugybę formatų, įskaitant tar, gzip, bzip2, rar ir zip, o taip pat kompaktinių diskų atvaizdžius. Ark gali būti naudojama archyvų naršymui, išpakavimui, kūrimui bei modifikavimui.</p>
+    <p xml:lang="lv">„Ark“ ir grafisks datņu saspiešanas/atspiešanas rīks ar daudzu formātu atbalstu, tostarp tar, gzip, bzip2, rar un zip, kā arī CD-ROM attēlu. „Ark“ var izmantot, lai pārlūkotu, atspiestu, izveidotu un mainītu arhīvus.</p>
+    <p xml:lang="nb">Ark er et verktøy med grafisk brukerflate, for komprimering/dekomprimering, med støtte for mange formater, deriblant tar, gzip, rar og zip, samt CD-ROM-bilder. Ark kan brukes til å bla i, pakke opp, opprette og endre arkiver.</p>
+    <p xml:lang="nds">Ark is en graafsch Komprimeer- un Dekomprimeerwarktüüch, dat en Barg Formaten ünnerstütten deit. Dor sünd tar, gzip, bzip2, rar un zip bi, un ok CD-ROM-Afbiller. Mit Ark kannst Du Archiven dörkieken, opstellen un ännern un Dateien dor ruttrecken.</p>
+    <p xml:lang="nl">Ark is een grafisch hulpmiddel om bestanden te comprimeren/uit te pakken met ondersteuning van meerdere formaten, inclusief tar, gzip, bzip2, rar en zip, evenals cd-ROM images. Ark kan gebruikt worden om door archieven te bladeren, deze uit te pakken, te maken en te wijzigen.</p>
+    <p xml:lang="nn">Ark er eit grafisk filkomprimerings- og dekomprimeringsverktøy med støtte for ulike format, blant anna tar, gzip, bzip2, rar, zip og CD-ROM-bilete. Det kan brukast til å sjå gjennom, pakka ut, laga eller endra filarkiv.</p>
+    <p xml:lang="pl">Ark jest graficznym narzędziem do pakowania/rozpakowywania plików wraz z obsługą różnych formatów, włączając w to tar, gzip, bzip2, rar oraz zip, a także obrazy CD-ROM. Programu Ark można używać do przeglądania, tworzenia, zmieniania oraz wydobywania z archiwów</p>
+    <p xml:lang="pt">O Ark é um utilitário gráfico de compressão/descompressão de ficheiros com suporte para vários formatos, incluindo tar, gzip, bzip2, rar e zip, bem como imagens de CD-ROM. O Ark pode ser utilizado para navegar, extrair, criar e modificar arquivos.</p>
+    <p xml:lang="pt-BR">O Ark é um utilitário de compressão/descompressão com o suporte a diversos formatos, incluindo tar, gzip, bzip2, rar e zip, assim como imagens de CD-ROM. O Ark pode ser usado para navegar, extrair, criar e modificar esses arquivos.</p>
+    <p xml:lang="ro">Ark este un utilitar grafic de comprimare/decomprimare cu suport pentru formate multiple, inclusiv tar, gzip, bzip2, rar și zip, precum și imagini CD-ROM. Ark poate fi folosit pentru a răsfoi, extrage, crea și modifica arhive.</p>
+    <p xml:lang="ru">Ark — графическая утилита для упаковки и распаковки файлов, поддерживающая множество форматов архивов, включая TAR, GZIP, BZip2, RAR, ZIP и образы компакт-дисков. Ark позволяет просматривать, распаковывать, создавать и редактировать архивы.</p>
+    <p xml:lang="sa">आर्कः एकः चित्रात्मकः सञ्चिकासंपीडन/विसंपीडन-उपयोगिता अस्ति यस्य समर्थनं बहुस्वरूपेषु भवति, यत्र tar, gzip, bzip2, rar तथा zip, तथैव CD-ROM चित्राणि च सन्ति आर्क इत्यस्य उपयोगेन आर्काइव् ब्राउज् कर्तुं, निष्कासयितुं, निर्माणं कर्तुं, परिवर्तनं च कर्तुं शक्यते ।</p>
+    <p xml:lang="sk">Ark je grafický nástroj na kompresiu a dekompresiu súborov s podporou pre mnoho formátov, vrátane tar, gzip bzip2, rar a zip, ako ako CD-ROM obrazy. Ark sa dá použiť na prehliadanie, rozbaľovanie vytváranie a úpravu archívov.</p>
+    <p xml:lang="sl">Ark je grafično orodje za stiskanje/razširjanje datotek, ki podpira večje število arhivov (med podprtimi so tudi tar, gzip, bzip2, rar in zip) kot tudi odtise CD-ROM. Ark lahko uporabite za brskanje po, razširjanje, ustvarjanje in spreminjanje arhivov.</p>
+    <p xml:lang="sr">Арк је графичка алатка за компресовање и декомпресовање фајлова. Подржава више формата, међу њима и: тар, гзип, бзип2, РАР, ЗИП, као и ЦД одразе. Може се користити за прегледање, распакивање, стварање и мењање архива.</p>
+    <p xml:lang="sr-Latn">Ark je grafička alatka za kompresovanje i dekompresovanje fajlova. Podržava više formata, među njima i: tar, gzip, bzip2, RAR, ZIP, kao i CD odraze. Može se koristiti za pregledanje, raspakivanje, stvaranje i menjanje arhiva.</p>
+    <p xml:lang="sr-ijekavian">Арк је графичка алатка за компресовање и декомпресовање фајлова. Подржава више формата, међу њима и: тар, гзип, бзип2, РАР, ЗИП, као и ЦД одразе. Може се користити за прегледање, распакивање, стварање и мењање архива.</p>
+    <p xml:lang="sr-ijekavianlatin">Ark je grafička alatka za kompresovanje i dekompresovanje fajlova. Podržava više formata, među njima i: tar, gzip, bzip2, RAR, ZIP, kao i CD odraze. Može se koristiti za pregledanje, raspakivanje, stvaranje i menjanje arhiva.</p>
+    <p xml:lang="sv">Ark är ett grafiskt verktyg för komprimering och uppackning av filer med stöd för flera format, inklusive tar, gzip, bzip2, rar och zip, samt cd-rom avbilder. Ark kan användas för att bläddra i, packa upp, skapa och ändra arkiv.</p>
+    <p xml:lang="tr">Ark; tar, gzip, bzip2, rar ve zip dosyalarının yanında CD-ROM kalıplarını da destekleyen grafiksel bir dosya sıkıştırma/açma yardımcısıdır. Ark arşivlerde gezinmek, arşiv ayıklamak, oluşturmak ve değiştirmek için kullanılabilir.</p>
+    <p xml:lang="uk">Ark — програма з графічним інтерфейсом, призначена для стискання даних у архіви та видобування даних з архівів. Передбачено підтримку декількох форматів архівів, зокрема tar, gzip, bzip2, rar та zip, а також образів дисків. Ark можна використовувати для перегляду, видобування, створення та внесення змін до архівів.</p>
+    <p xml:lang="zh-CN">Ark 是一款图形界面的压缩文件管理工具。它支持多种格式的压缩/解压操作，包括 tar、gzip、bzip2、rar、zip 和 CD-ROM 镜像文件等。您可以使用 Ark 来浏览、解压、创建和修改各种压缩文件。</p>
+    <p xml:lang="zh-TW">Ark 是一套圖形介面的檔案壓縮/解壓縮工具，支援多種格式，包括 tar, gzip, bzip2, rar 與 zip 等，還有 CD-ROM 映像檔等。Ark 有瀏覽、解開、建立與變更壓縮檔的功能。</p>
+    <p>Features:</p>
+    <p xml:lang="ar">المزايا</p>
+    <p xml:lang="ast">Funciones:</p>
+    <p xml:lang="az">İmkanlar:</p>
+    <p xml:lang="be">Магчымасці:</p>
+    <p xml:lang="bg">Функции:</p>
+    <p xml:lang="bs">Svojstvo:</p>
+    <p xml:lang="ca">Característiques:</p>
+    <p xml:lang="ca-valencia">Característiques:</p>
+    <p xml:lang="cs">Vlastnosti:</p>
+    <p xml:lang="da">Funktioner:</p>
+    <p xml:lang="de">Leistungsmerkmale:</p>
+    <p xml:lang="el">Χαρακτηριστικά:</p>
+    <p xml:lang="en-GB">Features:</p>
+    <p xml:lang="eo">Trajtoj:</p>
+    <p xml:lang="es">Funcionalidades:</p>
+    <p xml:lang="et">Omadused:</p>
+    <p xml:lang="eu">Ezaugarriak:</p>
+    <p xml:lang="fi">Ominaisuudet:</p>
+    <p xml:lang="fr">Fonctionnalités :</p>
+    <p xml:lang="gl">Funcionalidades:</p>
+    <p xml:lang="he">תכונות:</p>
+    <p xml:lang="hu">Szolgáltatások:</p>
+    <p xml:lang="ia">Characteristicas:</p>
+    <p xml:lang="id">Fitur:</p>
+    <p xml:lang="ie">Caracteristicas:</p>
+    <p xml:lang="is">Eiginleikar:</p>
+    <p xml:lang="it">Funzionalità:</p>
+    <p xml:lang="ja">以下の機能に対応しています。</p>
+    <p xml:lang="ka">თვისებები:</p>
+    <p xml:lang="ko">기능:</p>
+    <p xml:lang="lt">Ypatybės:</p>
+    <p xml:lang="lv">Iespējas:</p>
+    <p xml:lang="nb">Egenskaper:</p>
+    <p xml:lang="nds">Markmalen:</p>
+    <p xml:lang="nl">Mogelijkheden:</p>
+    <p xml:lang="nn">Funksjonar:</p>
+    <p xml:lang="pa">ਲੱਛਣ:</p>
+    <p xml:lang="pl">Cechy:</p>
+    <p xml:lang="pt">Funcionalidades:</p>
+    <p xml:lang="pt-BR">Funcionalidades:</p>
+    <p xml:lang="ro">Caracteristici:</p>
+    <p xml:lang="ru">Возможности:</p>
+    <p xml:lang="sa">गुणाः:</p>
+    <p xml:lang="sk">Funkcie:</p>
+    <p xml:lang="sl">Zmožnosti:</p>
+    <p xml:lang="sr">Могућности:</p>
+    <p xml:lang="sr-Latn">Mogućnosti:</p>
+    <p xml:lang="sr-ijekavian">Могућности:</p>
+    <p xml:lang="sr-ijekavianlatin">Mogućnosti:</p>
+    <p xml:lang="sv">Funktioner:</p>
+    <p xml:lang="ta">அம்சங்கள்:</p>
+    <p xml:lang="tr">Özellikler:</p>
+    <p xml:lang="ug">ئىقتىدار:</p>
+    <p xml:lang="uk">Можливості:</p>
+    <p xml:lang="zh-CN">程序功能：</p>
+    <p xml:lang="zh-TW">功能：</p>
+    <ul>
+      <li>Several formats supported: gzip, bzip2, zip, rar, 7z and more</li>
+      <li xml:lang="ar">دعم صيغ متعدّدة: مثل gzip، و bzip2، و zip، و rar، و 7z وغيرها</li>
+      <li xml:lang="ast">Compatibilidá con dellos formatos: gzip, bzip2, zip, rar, 7z y más</li>
+      <li xml:lang="az">Bir neçə format dəstəklənir: gzip, bzip2, zip, rar, 7z və bir çoxları</li>
+      <li xml:lang="be">Падтрымліваецца некалькі фарматаў: gzip, bzip2, zip, rar, 7z і іншыя</li>
+      <li xml:lang="bg">Поддържани са много формати: gzip, bzip2, zip, rar, 7z и други</li>
+      <li xml:lang="bs">Više podržanih formata: gzip, bzip2, zip, rar, 7z i drui</li>
+      <li xml:lang="ca">Diversos formats admesos: gzip, bzip2, zip, rar, 7z i més</li>
+      <li xml:lang="ca-valencia">Diversos formats admesos: gzip, bzip2, zip, rar, 7z i més</li>
+      <li xml:lang="cs">Je podporováno několik formátů: gzip, bzip2, zip, rar, 7z a další</li>
+      <li xml:lang="da">Flere understøttede formater: gzip, bzip2, zip, rar, 7z og flere</li>
+      <li xml:lang="de">Mehrere unterstützte Formate wie gzip, bzip2, zip, rar, 7z und mehr</li>
+      <li xml:lang="el">Υποστηρίζονται πολλοί τύποι αποθήκευσης: gzip, bzip2, zip, rar, 7z και άλλοι</li>
+      <li xml:lang="en-GB">Several formats supported: gzip, bzip2, zip, rar, 7z and more</li>
+      <li xml:lang="eo">Pluraj formatoj subtenataj: gzip, bzip2, zip, rar, 7z kaj pli</li>
+      <li xml:lang="es">Permite el uso de diversos formatos: gzip, bzip2, zip, rar, 7z y más</li>
+      <li xml:lang="et">Paljude vormingute toetus: gzip, bzip2, zip, rar, 7z ja veel paljud.</li>
+      <li xml:lang="eu">Hainbat formatu onartuak: gzip, bzip2, zip, rar, 7z eta gehiago</li>
+      <li xml:lang="fi">Tukee useita tiedostomuotoja: gzip, bzip2, zip, rar, 7z ja monia muita</li>
+      <li xml:lang="fr">Plusieurs formats sont pris en charge : gzip, bzip2, zip, rar, 7z et d'autres</li>
+      <li xml:lang="gl">Compatíbel con moitos formatos: gzip, bzip2, zip, rar, 7z e máis.</li>
+      <li xml:lang="he">מספר פורמטים נתמכים: gzip, bzip2, zip, rar, 7z ועוד</li>
+      <li xml:lang="hu">Számos formátum támogatott: gzip, bzip2, zip, rar, 7z és továbbiak</li>
+      <li xml:lang="ia">Plure formatos supportate: gzip, bzip2, zip, rar, 7z e altere</li>
+      <li xml:lang="id">beberapa format yang didukung: gzip, bzip2, zip, rar, 7z dan banyak lagi</li>
+      <li xml:lang="ie">Multiplic formates es supportat: gzip, bzip2, zip, rar, 7z e plu</li>
+      <li xml:lang="is">Stuðningur við fjölmörg skráasnið: gzip, bzip2, zip, rar, 7z og fleiri</li>
+      <li xml:lang="it">Diversi formati supportati: gzip, bzip2, zip, rar, 7z e altri</li>
+      <li xml:lang="ja">さまざまな形式に対応: gzip、bzip2、zip、rar、7z など</li>
+      <li xml:lang="ka">მხარდაჭერილია რამდენიმე ფაილის ფორმატი: gzip, bzip2, rar, 7z და სხვა</li>
+      <li xml:lang="ko">다양한 형식 지원: gzip, bzip2, zip, rar, 7z 등</li>
+      <li xml:lang="lt">Palaikomi keli formatai: gzip, bzip2, zip, rar, 7z ir daugiau</li>
+      <li xml:lang="lv">Vairāki atbalstīti formāti: gzip, bzip2, zip, rar, 7z un citi</li>
+      <li xml:lang="nb">Mange formater støttet: gzip, bzip2, zip, rar, 7z og mer</li>
+      <li xml:lang="nds">En Reeg Fomaten warrt ünnerstütt: gzip, bzip2, zip, rar, 7z un anner</li>
+      <li xml:lang="nl">Ondersteuning voor een aantal formaten: gzip, bzip2, zip, rar, 7z en meer</li>
+      <li xml:lang="nn">Støtte for fleire format, blant anna gzip, bzip2, zip, rar og 7z</li>
+      <li xml:lang="pa">ਕਈ ਫਾਰਮੈਟ ਸਹਾਇਕ ਹਨ: gzip, bzip2, zip, rar, 7z ਅਤੇ ਹੋਰ</li>
+      <li xml:lang="pl">Obsługa kilku formatów: gzip, bzip2, zip, rar, 7z oraz więcej</li>
+      <li xml:lang="pt">Vários formatos suportados: gzip, bzip2, zip, rar, 7z e mais</li>
+      <li xml:lang="pt-BR">Diversos formatos suportados: gzip, bzip2, zip, rar, 7z, entre outros</li>
+      <li xml:lang="ro">Câteva formate susținute: gzip, bzip2, zip, rar, 7z și altele</li>
+      <li xml:lang="ru">Поддержка нескольких форматов: GZIP, BZip2, ZIP, RAR, 7z и другие</li>
+      <li xml:lang="sa">अनेकाः प्रारूपाः समर्थिताः: gzip, bzip2, zip, rar, 7z इत्यादयः</li>
+      <li xml:lang="sk">Niektoré z podporovaných formátov: gzip, bzip2, zip, rar, 7z a viac</li>
+      <li xml:lang="sl">Številne podprte vrste arhivov: gzip, bzip2, zip, rar, 7z in druge</li>
+      <li xml:lang="sr">Више подржаних формата: гзип, бзип2, ЗИП, РАР, 7зип, итд.</li>
+      <li xml:lang="sr-Latn">Više podržanih formata: gzip, bzip2, ZIP, RAR, 7zip, itd.</li>
+      <li xml:lang="sr-ijekavian">Више подржаних формата: гзип, бзип2, ЗИП, РАР, 7зип, итд.</li>
+      <li xml:lang="sr-ijekavianlatin">Više podržanih formata: gzip, bzip2, ZIP, RAR, 7zip, itd.</li>
+      <li xml:lang="sv">En mängd format stöds: gzip, bzip2, zip, rar, 7z med flera</li>
+      <li xml:lang="tr">Çeşitli biçimler desteklenir: gzip, bzip2, zip, rar, 7z ve dahası</li>
+      <li xml:lang="uk">Підтримка декількох форматів: gzip, bzip2, zip, rar, 7z тощо</li>
+      <li xml:lang="zh-CN">支持多种格式：gzip、bzip2、zip、rar 和 7z 等</li>
+      <li xml:lang="zh-TW">支援格式：gzip, bzip2, zip, rar, 7z 等等</li>
+      <li>Preview file contents without extracting files</li>
+      <li xml:lang="ar">استعراض محتوى الملف دون استخراج الملفات منه</li>
+      <li xml:lang="ast">Previsualización de los ficheros ensin descomprimilos</li>
+      <li xml:lang="az">Fayl tərkiblərini çıxartmadan onlara öncədən baxış</li>
+      <li xml:lang="be">Папярэдні прагляд змесціва файла без распакоўвання файлаў</li>
+      <li xml:lang="bg">Преглеждане съдържанието на файла, без извличане на файловете</li>
+      <li xml:lang="bs">Pregled sadržaja datoteka bez njihovog izdvajanja</li>
+      <li xml:lang="ca">Vista prèvia del contingut de fitxers sense extreure'ls</li>
+      <li xml:lang="ca-valencia">Vista prèvia del contingut de fitxers sense extraure'ls</li>
+      <li xml:lang="cs">Náhled obsahu souborů bez jejich rozbalení</li>
+      <li xml:lang="da">Forhåndsvis filindhold uden at udtrække filer</li>
+      <li xml:lang="de">Vorschau der Dateiinhalte ohne das Entpacken der Dateien</li>
+      <li xml:lang="el">Προεπισκόπηση περιεχομένων αρχείου χωρίς εξαγωγή αρχείων</li>
+      <li xml:lang="en-GB">Preview file contents without extracting files</li>
+      <li xml:lang="eo">Antaŭrigardu dosierenhavon sen ĉerpi dosierojn</li>
+      <li xml:lang="es">Vista previa del contenido de archivos sin extraerlos</li>
+      <li xml:lang="et">Failide sisu näitamine ilma neid lahti pakkimata.</li>
+      <li xml:lang="eu">Aurreikusi fitxategiaren edukia fitxategiak erauzi gabe</li>
+      <li xml:lang="fi">Tiedoston sisällön esikatselu purkamatta tiedostoa</li>
+      <li xml:lang="fr">Affichage du contenu des fichiers sans les extraire</li>
+      <li xml:lang="gl">Obteña unha vista previa dos ficheiros comprimidos sen extraelos.</li>
+      <li xml:lang="he">הצג את תוכן הקובץ ללא חילוץ הקבצים</li>
+      <li xml:lang="hu">Fájltartalom előnézete a fájlok kibontása nélkül</li>
+      <li xml:lang="ia">Contentos de file de previsualisation sin extraher files</li>
+      <li xml:lang="id">Pratinjau konten file tanpa mengekstrak filenya</li>
+      <li xml:lang="ie">Previder li contenete sin extraction de files</li>
+      <li xml:lang="is">Forskoðun á innihaldi skráa án þess að afþjappa skrám</li>
+      <li xml:lang="it">Anteprima dei file senza estrarre i file</li>
+      <li xml:lang="ja">ファイルを展開せずに内容をプレビュー</li>
+      <li xml:lang="ka">ნახეთ ფაილის შიგთავსი არქივების გაშლის გარეშე</li>
+      <li xml:lang="ko">압축 풀지 않고 파일 내용 미리 보기</li>
+      <li xml:lang="lt">Peržiūrėti failų turinį neišpakuojant failų</li>
+      <li xml:lang="lv">Datņu satura pārlūkošana, datnes neatspiežot</li>
+      <li xml:lang="nb">Forhåndsvis innhold uten å pakke ut filer</li>
+      <li xml:lang="nds">Datein ahn Ruttrecken vörweg ankieken</li>
+      <li xml:lang="nl">Voorvertoning van inhoud van bestand zonder bestanden uit te pakken</li>
+      <li xml:lang="nn">Førehandsvising av filinnhald utan fullstendig utpakking</li>
+      <li xml:lang="pa">ਬਿਨਾਂ ਫਾਇਲਾਂ ਨੂੰ ਖਿਲਾਰੇ ਫਾਇਲ ਸਮੱਗਰੀ ਦੀ ਝਲਕ</li>
+      <li xml:lang="pl">Podejrzyj zawartość pliku bez jego wypakowywania</li>
+      <li xml:lang="pt">Pré-visualizar o conteúdo dos ficheiros sem os extrair</li>
+      <li xml:lang="pt-BR">Visualização do conteúdo dos arquivos sem precisar extraí-los</li>
+      <li xml:lang="ro">Previzualizează conținutul fișierelor fără a le extrage</li>
+      <li xml:lang="ru">Предварительный просмотр содержимого файлов из архива без их сохранения на диск.</li>
+      <li xml:lang="sa">सञ्चिकानां निष्कासनं विना सञ्चिकासामग्रीणां पूर्वावलोकनं कुर्वन्तु</li>
+      <li xml:lang="sk">Náhľad obsahu súboru bez rozbalenia súborov</li>
+      <li xml:lang="sl">Predogled vsebine datoteke brez razširjanja</li>
+      <li xml:lang="sr">Преглед садржаја фајлова без распакивања.</li>
+      <li xml:lang="sr-Latn">Pregled sadržaja fajlova bez raspakivanja.</li>
+      <li xml:lang="sr-ijekavian">Преглед садржаја фајлова без распакивања.</li>
+      <li xml:lang="sr-ijekavianlatin">Pregled sadržaja fajlova bez raspakivanja.</li>
+      <li xml:lang="sv">Förhandsgranska filinnehåll utan att packa upp filer</li>
+      <li xml:lang="tr">Dosyaları ayıklamadan dosya içeriği önizlemesi</li>
+      <li xml:lang="uk">Попередній перегляд вмісту файлів без розпаковування</li>
+      <li xml:lang="zh-CN">无需解压即可预览压缩文件内容</li>
+      <li xml:lang="zh-TW">不需解壓縮即可預覽檔案內容</li>
+    </ul>
+  </description>
+  <screenshots>
+    <screenshot type="default">
+      <caption>Managing archives with Ark</caption>
+      <caption xml:lang="ar">يدير الأرشيفات بواسطة ارك</caption>
+      <caption xml:lang="ast">Xestión d'archivos con Ark</caption>
+      <caption xml:lang="az">Arxivlərin Ark ilə idarə edilməsi</caption>
+      <caption xml:lang="be">Кіраванне архівамі з дапамогай Ark</caption>
+      <caption xml:lang="bg">Управление на архиви с Ark</caption>
+      <caption xml:lang="ca">Gestió d'arxius amb l'Ark</caption>
+      <caption xml:lang="ca-valencia">Gestioneu arxius amb Ark</caption>
+      <caption xml:lang="cs">Správa archivů pomocí Ark</caption>
+      <caption xml:lang="da">Håndtering af arkiver med Ark</caption>
+      <caption xml:lang="de">Verwaltung von Archiven mit Ark</caption>
+      <caption xml:lang="el">Διαχείριση αρχειοθηκών με το Ark</caption>
+      <caption xml:lang="en-GB">Managing archives with Ark</caption>
+      <caption xml:lang="eo">Administri arkivojn kun Ark</caption>
+      <caption xml:lang="es">Gestión de archivadores con Ark</caption>
+      <caption xml:lang="et">Arhiivide haldamine Arkis</caption>
+      <caption xml:lang="eu">Ark erabiliz artxiboak kudeatzea</caption>
+      <caption xml:lang="fi">Hallitse arkistoja Arkilla</caption>
+      <caption xml:lang="fr">Gestion d'archives avec Ark</caption>
+      <caption xml:lang="gl">Xestionando arquivos con Ark.</caption>
+      <caption xml:lang="he">ניהול ארכיונים עם Ark</caption>
+      <caption xml:lang="hu">Archívumok kezelése az Arkkal</caption>
+      <caption xml:lang="ia">Gerer archivos con Ark</caption>
+      <caption xml:lang="id">Mengelola arsip dengan Ark</caption>
+      <caption xml:lang="ie">Gestion de archives med Ark</caption>
+      <caption xml:lang="is">Umsjón með safnskrám í Ark</caption>
+      <caption xml:lang="it">Gestione archivi con Ark</caption>
+      <caption xml:lang="ja">Ark でアーカイブを管理する様子</caption>
+      <caption xml:lang="ka">მართეთ არქივები Ark-თან ერთად</caption>
+      <caption xml:lang="ko">Ark로 압축 파일 관리</caption>
+      <caption xml:lang="lt">Archyvų tvarkymas naudojant Ark</caption>
+      <caption xml:lang="lv">Arhīvu pārvaldīšana ar „Ark“</caption>
+      <caption xml:lang="nl">Archieven beheren met Ark</caption>
+      <caption xml:lang="nn">Handsaming av arkiv med Ark</caption>
+      <caption xml:lang="pa">ਆਕ ਨਾਲ ਅਕਾਇਵ ਦਾ ਇੰਤਜ਼ਾਮ ਕਰੋ</caption>
+      <caption xml:lang="pl">Zarządzanie archiwami w Ark</caption>
+      <caption xml:lang="pt">Gerir arquivos com o Ark</caption>
+      <caption xml:lang="pt-BR">Gerenciando arquivos compactados com o Ark</caption>
+      <caption xml:lang="ro">Gestiunea arhivelor cu Ark</caption>
+      <caption xml:lang="ru">Управление архивами в Ark</caption>
+      <caption xml:lang="sa">आर्क इत्यनेन सह अभिलेखागारस्य प्रबन्धनम्</caption>
+      <caption xml:lang="sk">Spravovanie archívov s Ark</caption>
+      <caption xml:lang="sl">Upravljanje arhivov z Ark</caption>
+      <caption xml:lang="sv">Hantera arkiv med Ark</caption>
+      <caption xml:lang="tr">Ark ile arşivleri yönetme</caption>
+      <caption xml:lang="uk">Керування архівами за допомогою Ark</caption>
+      <caption xml:lang="zh-CN">使用 Ark 管理压缩文件</caption>
+      <caption xml:lang="zh-TW">使用 Ark 管理封存檔</caption>
+      <image>https://cdn.kde.org/screenshots/ark/ark.png</image>
+    </screenshot>
+  </screenshots>
+  <url type="homepage">https://apps.kde.org/ark</url>
+  <url type="bugtracker">https://bugs.kde.org/enter_bug.cgi?format=guided&amp;product=ark</url>
+  <url type="help">https://docs.kde.org/?application=ark</url>
+  <url type="donation">https://www.kde.org/community/donations/?app=ark&amp;source=appdata</url>
+  <project_group>KDE</project_group>
+  <update_contact>kde-utils-devel_AT_kde.org</update_contact>
+  <provides>
+    <binary>ark</binary>
+  </provides>
+  <releases>
+    <release version="26.08.1" date="2026-09-10"/>
+    <release version="26.08.0" date="2026-08-20"/>
+    <release version="26.04.3" date="2026-07-02"/>
+    <release version="26.04.2" date="2026-06-04"/>
+    <release version="26.04.1" date="2026-05-07"/>
+    <release version="26.04.0" date="2026-04-16"/>
+    <release version="25.12.3" date="2026-03-05"/>
+    <release version="25.12.2" date="2026-02-05"/>
+    <release version="25.12.1" date="2026-01-08"/>
+    <release version="25.12.0" date="2025-12-11"/>
+    <release version="25.08.3" date="2025-11-06"/>
+    <release version="25.08.2" date="2025-10-09"/>
+    <release version="25.08.1" date="2025-09-11"/>
+    <release version="25.08.0" date="2025-08-14"/>
+    <release version="25.04.3" date="2025-07-03"/>
+    <release version="25.04.2" date="2025-06-05"/>
+    <release version="25.04.1" date="2025-05-08"/>
+    <release version="25.04.0" date="2025-04-17"/>
+    <release version="24.12.3" date="2025-03-06"/>
+    <release version="24.12.2" date="2025-02-06"/>
+    <release version="24.12.1" date="2025-01-09"/>
+    <release version="24.12.0" date="2024-12-12"/>
+    <release version="24.08.3" date="2024-11-07"/>
+    <release version="24.08.2" date="2024-10-10"/>
+    <release version="24.08.1" date="2024-09-12"/>
+    <release version="24.08.0" date="2024-08-22"/>
+    <release version="24.05.2" date="2024-07-04"/>
+    <release version="24.05.1" date="2024-06-13"/>
+    <release version="24.05.0" date="2024-05-23"/>
+    <release version="24.02.2" date="2024-04-11"/>
+    <release version="24.02.1" date="2024-03-21"/>
+    <release version="24.02.0" date="2024-02-28"/>
+    <release version="23.08.5" date="2024-02-15"/>
+  </releases>
+  <content_rating type="oars-1.1"/>
+</component>

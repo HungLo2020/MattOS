@@ -1,0 +1,98 @@
+/*
+    SPDX-FileCopyrightText: 2012 Vishesh Handa <me@vhanda.in>
+    SPDX-FileCopyrightText: 2012 Jörg Ehrichs <joerg.ehrichs@gmx.de>
+
+    SPDX-License-Identifier: LGPL-2.1-or-later
+*/
+
+
+#include "kfilemetadata_debug.h"
+#include "popplerextractor.h"
+
+#include <poppler-qt6.h>
+#include <poppler-version.h>
+
+#include <QScopedPointer>
+#include <QDebug>
+#include <QDateTime>
+
+using namespace KFileMetaData;
+
+PopplerExtractor::PopplerExtractor(QObject* parent)
+    : ExtractorPlugin(parent)
+{
+
+}
+
+const QStringList supportedMimeTypes = {
+    QStringLiteral("application/pdf"),
+};
+
+QStringList PopplerExtractor::mimetypes() const
+{
+    return supportedMimeTypes;
+}
+
+void PopplerExtractor::extract(ExtractionResult* result)
+{
+    const QString fileUrl = result->inputUrl();
+    std::unique_ptr<Poppler::Document> pdfDoc(Poppler::Document::load(fileUrl, QByteArray(), QByteArray()));
+
+    if (!pdfDoc || pdfDoc->isLocked()) {
+        return;
+    }
+
+    result->addType(Type::Document);
+
+    if (result->inputFlags() & ExtractionResult::ExtractMetaData) {
+        const QString title = pdfDoc->title();
+        if (!title.isEmpty()) {
+            result->add(Property::Title, title);
+        }
+
+        const QString subject = pdfDoc->subject();
+        if (!subject.isEmpty()) {
+            result->add(Property::Subject, subject);
+        }
+
+        const QString author = pdfDoc->author();
+        if (!author.isEmpty()) {
+            result->add(Property::Author, author);
+        }
+
+        const QString generator = pdfDoc->producer();
+        if (!generator.isEmpty()) {
+            result->add(Property::Generator, generator);
+        }
+
+        const QDateTime creationDate = pdfDoc->creationDate();
+        if (!creationDate.isNull()) {
+            result->add(Property::CreationDate, creationDate);
+        }
+
+        const int numPages = pdfDoc->numPages();
+        if (numPages > 0) {
+            result->add(Property::PageCount, numPages);
+        }
+    }
+
+    if (!(result->inputFlags() & ExtractionResult::ExtractPlainText)) {
+        return;
+    }
+
+    for (int i = 0; i < pdfDoc->numPages(); i++) {
+        std::unique_ptr<Poppler::Page> page(pdfDoc->page(i));
+        if (!page) { // broken pdf files do not return a valid page
+            qCWarning(KFILEMETADATA_LOG) << "Could not read page content from" << fileUrl;
+            break;
+        }
+#if POPPLER_VERSION_MAJOR >= 26
+        // ReadingOrder is available since 26.01.00
+        result->append(page->text(QRectF(), Poppler::Page::TextLayout::ReadingOrder));
+#else
+        result->append(page->text(QRectF(), Poppler::Page::TextLayout::PhysicalLayout));
+#endif
+    }
+}
+
+#include "moc_popplerextractor.cpp"

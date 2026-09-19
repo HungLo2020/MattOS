@@ -1,0 +1,39 @@
+/*  This file is part of the KDE project
+    SPDX-FileCopyrightText: 2021 Aleix Pol Gonzalez <aleixpol@kde.org>
+
+    SPDX-License-Identifier: LGPL-2.0-or-later
+*/
+
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls as QQC2
+
+PortalDialog {
+    id: root
+
+    property alias description: desc.text
+    property alias allowRestore: allowRestoreItem.checked
+    property alias persistenceRequested: allowRestoreItem.visible
+
+    width: contentWidth
+    height: contentHeight
+    iconName: "krfb"
+
+    ColumnLayout {
+        QQC2.Label {
+            id: desc
+            textFormat: Text.MarkdownText
+            Layout.fillHeight: true
+        }
+        QQC2.CheckBox {
+            id: allowRestoreItem
+            checked: true
+            text: i18n("Allow restoring on future sessions")
+        }
+    }
+
+    Component.onCompleted: {
+        dialogButtonBox.standardButton(QQC2.DialogButtonBox.Ok).text = i18nc("@action:button Approve the application gaining extra privileges", "Approve")
+        dialogButtonBox.standardButton(QQC2.DialogButtonBox.Cancel).text = i18nc("@action:button Deny the application gaining extra privileges", "Deny")
+    }
+}

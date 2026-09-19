@@ -1,0 +1,801 @@
+# Translation of kategdbplugin.po to Catalan
+# Copyright (C) 2010-2025 This_file_is_part_of_KDE
+# This file is distributed under the license LGPL version 2.1 or
+# version 3 or later versions approved by the membership of KDE e.V.
+#
+# SPDX-FileCopyrightText: 2010 Manuel Tortosa Moreno <manutortosa@chakra-project.org>
+# SPDX-FileCopyrightText: 2012-2016 Antoni Bella Pérez <antonibella5@yahoo.com>
+# SPDX-FileCopyrightText: 2011-2015, 2020, 2022-2025 Josep M. Ferrer <txemaq@gmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: kate\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-06-25 00:47+0000\n"
+"PO-Revision-Date: 2025-12-23 09:43+0100\n"
+"Last-Translator: Josep M. Ferrer <txemaq@gmail.com>\n"
+"Language-Team: Catalan <kde-i18n-ca@kde.org>\n"
+"Language: ca\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 25.04.0\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Accelerator-Marker: &\n"
+
+#: backend.cpp:48 dapbackend.cpp:175
+#, kde-format
+msgid ""
+"A debugging session is on course. Please, use re-run or stop the current "
+"session."
+msgstr ""
+"Hi ha una sessió de depuració en curs. Torneu a executar o atureu la sessió "
+"actual."
+
+#: breakpointview.cpp:354
+#, kde-format
+msgid "Line Breakpoints"
+msgstr "Punt d'interrupció de línia"
+
+#: breakpointview.cpp:356
+#, kde-format
+msgid "Function Breakpoints"
+msgstr "Punts d'interrupció de funció"
+
+#: breakpointview.cpp:358
+#, kde-format
+msgid "Exception Breakpoints"
+msgstr "Punts d'interrupció d'excepció"
+
+#: breakpointview.cpp:417
+#, kde-format
+msgid "verified"
+msgstr "verificat"
+
+#: breakpointview.cpp:417 breakpointview.cpp:422
+#, kde-format
+msgid "pending"
+msgstr "pendent"
+
+#: breakpointview.cpp:965
+#, kde-format
+msgid "Add Function Breakpoint…"
+msgstr "Afegeix un punt d'interrupció de funció…"
+
+#: breakpointview.cpp:969
+#, kde-format
+msgid "Clear All Function Breakpoints"
+msgstr "Neteja tots els punts d'interrupció de funció"
+
+#: breakpointview.cpp:976
+#, kde-format
+msgid "Remove Breakpoint"
+msgstr "Elimina el punt d'interrupció"
+
+#: breakpointview.cpp:1493
+#, kde-format
+msgid "Breakpoint"
+msgstr "Punt d'interrupció"
+
+#: breakpointview.cpp:1556
+#, kde-format
+msgid "line %1 already has a breakpoint"
+msgstr "la línia %1 ja té un punt d'interrupció"
+
+#: breakpointview.cpp:1565
+#, kde-format
+msgid "No breakpoints set"
+msgstr "No s'ha establert cap punt d'interrupció"
+
+#: breakpointview.cpp:1624
+#, kde-format
+msgid "Add Function Breakpoint"
+msgstr "Afegeix un punt d'interrupció de funció"
+
+#: breakpointview.cpp:1625
+#, kde-format
+msgid "Function name:"
+msgstr "Nom de la funció:"
+
+#: configview.cpp:92
+#, kde-format
+msgid "Add new target"
+msgstr "Afegeix un objectiu nou"
+
+#: configview.cpp:96
+#, kde-format
+msgid "Copy target"
+msgstr "Copia un objectiu"
+
+#: configview.cpp:100
+#, kde-format
+msgid "Delete target"
+msgstr "Suprimeix un objectiu"
+
+#: configview.cpp:104
+#, kde-format
+msgid "Reload launch.json targets"
+msgstr "Torna a carregar els objectius de «launch.json»"
+
+#: configview.cpp:109
+#, kde-format
+msgid "Executable:"
+msgstr "Executable:"
+
+#: configview.cpp:129
+#, kde-format
+msgid "Working Directory:"
+msgstr "Directori de treball:"
+
+#: configview.cpp:137
+#, kde-format
+msgid "Process Id:"
+msgstr "ID del procés:"
+
+#: configview.cpp:142
+#, kde-format
+msgctxt "Program argument list"
+msgid "Arguments:"
+msgstr "Arguments:"
+
+#: configview.cpp:145
+#, kde-format
+msgctxt "Checkbox to for keeping focus on the command line"
+msgid "Keep focus"
+msgstr "Mantén el focus"
+
+#: configview.cpp:146
+#, kde-format
+msgid "Keep the focus on the command line"
+msgstr "Mantén el focus a la línia d'ordres"
+
+#: configview.cpp:148
+#, kde-format
+msgid "Redirect IO"
+msgstr "Redirigeix la E/S"
+
+#: configview.cpp:149
+#, kde-format
+msgid "Redirect the debugged programs IO to a separate tab"
+msgstr "Redirigeix la E/S dels programes depurats a una pestanya separada"
+
+#: configview.cpp:397
+#, kde-format
+msgctxt "Error message"
+msgid "No executable target set"
+msgstr "No s'ha establert cap objectiu executable"
+
+#: configview.cpp:407
+#, kde-format
+msgctxt "Error message"
+msgid "Invalid process id"
+msgstr "ID de procés no vàlid"
+
+#: configview.cpp:529 configview.cpp:542
+#, kde-format
+msgid "Target %1"
+msgstr "Objectiu %1"
+
+#: configview.cpp:765
+#, kde-format
+msgid "Select Executable"
+msgstr "Selecció de l'executable"
+
+#: configview.cpp:778
+#, kde-format
+msgid "Select Working Directory"
+msgstr "Selecció del directori de treball"
+
+#: dapbackend.cpp:187
+#, kde-format
+msgid "DAP backend '%1' failed"
+msgstr "Ha fallat el dorsal DAP «%1»"
+
+#: dapbackend.cpp:238
+#, kde-format
+msgid "program terminated"
+msgstr "programa terminat"
+
+#: dapbackend.cpp:243
+#, kde-format
+msgid "Failed to terminate. Forcing shutdown..."
+msgstr "Ha fallat en terminar. Es força l'aturada..."
+
+#: dapbackend.cpp:254
+#, kde-format
+msgid "requesting disconnection"
+msgstr "se sol·licita la desconnexió"
+
+#: dapbackend.cpp:269
+#, kde-format
+msgid "requesting shutdown"
+msgstr "se sol·licita l'aturada"
+
+#: dapbackend.cpp:294
+#, kde-format
+msgid "DAP backend: %1"
+msgstr "Dorsal DAP: %1"
+
+#: dapbackend.cpp:303
+#, kde-format
+msgid "stopped (%1)."
+msgstr "aturat (%1)."
+
+#: dapbackend.cpp:311
+#, kde-format
+msgid "Active thread: %1 (all threads stopped)."
+msgstr "Fil actiu: %1 (tots els fils aturats)."
+
+#: dapbackend.cpp:313
+#, kde-format
+msgid "Active thread: %1."
+msgstr "Fil actiu: %1."
+
+#: dapbackend.cpp:318
+#, kde-format
+msgid "Breakpoint(s) reached:"
+msgstr "S'ha arribat al/s punt/s d'interrupció:"
+
+#: dapbackend.cpp:344
+#, kde-format
+msgid "(continued) thread %1"
+msgstr "(ha continuat) fil %1"
+
+#: dapbackend.cpp:346
+#, kde-format
+msgid "all threads continued"
+msgstr "tots els fils han continuat"
+
+#: dapbackend.cpp:353
+#, kde-format
+msgid "(running)"
+msgstr "(en execució)"
+
+#: dapbackend.cpp:404
+#, kde-format
+msgid "*** connection with server closed ***"
+msgstr "*** s'ha tancat la connexió amb el servidor ***"
+
+#: dapbackend.cpp:411
+#, kde-format
+msgid "program exited with code %1"
+msgstr "el programa ha finalitzat amb el codi %1"
+
+#: dapbackend.cpp:433
+#, kde-format
+msgid "*** waiting for user actions ***"
+msgstr "*** en espera d'accions d'usuari ***"
+
+#: dapbackend.cpp:438
+#, kde-format
+msgid "error on response: %1"
+msgstr "error en la resposta: %1"
+
+#: dapbackend.cpp:454
+#, kde-format
+msgid "important"
+msgstr "important"
+
+#: dapbackend.cpp:457
+#, kde-format
+msgid "telemetry"
+msgstr "telemetria"
+
+#: dapbackend.cpp:476
+#, kde-format
+msgid "debugging process [%1] %2"
+msgstr "depuració del procés [%1] %2"
+
+#: dapbackend.cpp:478
+#, kde-format
+msgid "debugging process %1"
+msgstr "depuració del procés %1"
+
+#: dapbackend.cpp:481
+#, kde-format
+msgid "Start method: %1"
+msgstr "Mètode d'inici: %1"
+
+#: dapbackend.cpp:496
+#, kde-format
+msgid "thread %1"
+msgstr "fil %1"
+
+#: dapbackend.cpp:577
+#, kde-format
+msgid "breakpoint set"
+msgstr "s'ha establert un punt d'interrupció"
+
+#: dapbackend.cpp:611
+#, kde-format
+msgid "(%1) breakpoint"
+msgstr "(%1) punt d'interrupció"
+
+#: dapbackend.cpp:629
+#, kde-format
+msgid "<not evaluated>"
+msgstr "<no avaluat>"
+
+#: dapbackend.cpp:651
+#, kde-format
+msgid "server capabilities"
+msgstr "capacitats del servidor"
+
+#: dapbackend.cpp:653
+#, kde-format
+msgid "supported"
+msgstr "implementat"
+
+#: dapbackend.cpp:653
+#, kde-format
+msgid "unsupported"
+msgstr "no implementat"
+
+#: dapbackend.cpp:656
+#, kde-format
+msgid "conditional breakpoints"
+msgstr "punts d'interrupció condicionals"
+
+#: dapbackend.cpp:657
+#, kde-format
+msgid "function breakpoints"
+msgstr "punts d'interrupció de funció"
+
+#: dapbackend.cpp:658
+#, kde-format
+msgid "hit conditional breakpoints"
+msgstr "assoleix els punts d'interrupció condicionals"
+
+#: dapbackend.cpp:659
+#, kde-format
+msgid "log points"
+msgstr "punts de registre"
+
+#: dapbackend.cpp:659
+#, kde-format
+msgid "modules request"
+msgstr "sol·licitud de mòdul"
+
+#: dapbackend.cpp:660
+#, kde-format
+msgid "goto targets request"
+msgstr "sol·licitud d'anar a objectius"
+
+#: dapbackend.cpp:661
+#, kde-format
+msgid "terminate request"
+msgstr "sol·licitud de terminació"
+
+#: dapbackend.cpp:662
+#, kde-format
+msgid "terminate debuggee"
+msgstr "depuració de terminació"
+
+#: dapbackend.cpp:665
+#, kde-format
+msgid "exception breakpoint filters"
+msgstr "filtres de punts d'interrupció d'excepció"
+
+#: dapbackend.cpp:812
+#, kde-format
+msgid "syntax error: expression not found"
+msgstr "error de sintaxi: no s'ha trobat l'expressió"
+
+#: dapbackend.cpp:831 dapbackend.cpp:867 dapbackend.cpp:907 dapbackend.cpp:942
+#: dapbackend.cpp:979 dapbackend.cpp:1016 dapbackend.cpp:1053
+#: dapbackend.cpp:1144 dapbackend.cpp:1198
+#, kde-format
+msgid "syntax error: %1"
+msgstr "error de sintaxi: %1"
+
+#: dapbackend.cpp:839 dapbackend.cpp:875 dapbackend.cpp:1151
+#: dapbackend.cpp:1206
+#, kde-format
+msgid "invalid line: %1"
+msgstr "línia no vàlida: %1"
+
+#: dapbackend.cpp:847 dapbackend.cpp:852 dapbackend.cpp:883 dapbackend.cpp:888
+#: dapbackend.cpp:1176 dapbackend.cpp:1181 dapbackend.cpp:1214
+#: dapbackend.cpp:1219
+#, kde-format
+msgid "file not specified: %1"
+msgstr "fitxer no especificat: %1"
+
+#: dapbackend.cpp:919 dapbackend.cpp:954 dapbackend.cpp:991 dapbackend.cpp:1028
+#: dapbackend.cpp:1065
+#, kde-format
+msgid "invalid thread id: %1"
+msgstr "ID de fil no vàlid: %1"
+
+#: dapbackend.cpp:925 dapbackend.cpp:960 dapbackend.cpp:997 dapbackend.cpp:1034
+#: dapbackend.cpp:1071
+#, kde-format
+msgid "thread id not specified: %1"
+msgstr "ID de fil no especificat: %1"
+
+#: dapbackend.cpp:1082
+#, kde-format
+msgid "Available commands:"
+msgstr "Ordres disponibles:"
+
+#: dapbackend.cpp:1161
+#, kde-format
+msgid "conditional breakpoints are not supported by the server"
+msgstr ""
+"els punts d'interrupció condicionals no estan implementats en el servidor"
+
+#: dapbackend.cpp:1169
+#, kde-format
+msgid "hit conditional breakpoints are not supported by the server"
+msgstr ""
+"assoleix els punts d'interrupció condicionals no està implementat en el "
+"servidor"
+
+#: dapbackend.cpp:1231
+#, kde-format
+msgid "Current thread: "
+msgstr "Fil actual: "
+
+#: dapbackend.cpp:1236 dapbackend.cpp:1243 dapbackend.cpp:1264
+#, kde-format
+msgid "none"
+msgstr "cap"
+
+#: dapbackend.cpp:1239
+#, kde-format
+msgid "Current frame: "
+msgstr "Marc actual: "
+
+#: dapbackend.cpp:1246
+#, kde-format
+msgid "Session state: "
+msgstr "Estat de la sessió: "
+
+#: dapbackend.cpp:1249
+#, kde-format
+msgid "initializing"
+msgstr "s'està inicialitzant"
+
+#: dapbackend.cpp:1252
+#, kde-format
+msgid "running"
+msgstr "en execució"
+
+#: dapbackend.cpp:1255
+#, kde-format
+msgid "stopped"
+msgstr "aturada"
+
+#: dapbackend.cpp:1258
+#, kde-format
+msgid "terminated"
+msgstr "terminada"
+
+#: dapbackend.cpp:1261
+#, kde-format
+msgid "disconnected"
+msgstr "desconnectada"
+
+#: dapbackend.cpp:1319
+#, kde-format
+msgid "command not found"
+msgstr "no s'ha trobat l'ordre"
+
+#: dapbackend.cpp:1354
+#, kde-format
+msgid "missing thread id"
+msgstr "manca l'ID de fil"
+
+#: dapbackend.cpp:1507
+#, kde-format
+msgid "Current frame [%3]: %1:%2 (%4)"
+msgstr "Marc actual [%3]: %1:%2 (%4)"
+
+#: debugconfigpage.cpp:57 debugconfigpage.cpp:62
+#, kde-format
+msgid "Debugger"
+msgstr "Depurador"
+
+#: launch_json_reader.cpp:40
+#, kde-format
+msgctxt "%1 refers to filepath"
+msgid "Failed to parse .vscode/launch.json at %1. "
+msgstr "Ha fallat en analitzar .vscode/launch.json a %1. "
+
+#: launch_json_reader.cpp:51
+#, kde-format
+msgctxt "at line no:column no"
+msgid " at %1:%2"
+msgstr " a %1:%2"
+
+#: localsview.cpp:39
+#, kde-format
+msgid "type"
+msgstr "tipus"
+
+#: localsview.cpp:48
+#, kde-format
+msgid "indexed items"
+msgstr "elements indexats"
+
+#: localsview.cpp:51
+#, kde-format
+msgid "named items"
+msgstr "elements amb nom"
+
+#: localsview.cpp:67 localsview.cpp:68
+#, kde-format
+msgid "Loading..."
+msgstr "S'està carregant..."
+
+#: localsview.cpp:116
+#, kde-format
+msgid "Symbol"
+msgstr "Símbol"
+
+#: localsview.cpp:117
+#, kde-format
+msgid "Type"
+msgstr "Tipus"
+
+#: localsview.cpp:118
+#, kde-format
+msgid "Value"
+msgstr "Valor"
+
+#: localsview.cpp:300
+#, kde-format
+msgid "Copy Symbol"
+msgstr "Copia el símbol"
+
+#: localsview.cpp:315
+#, kde-format
+msgid "Copy Value"
+msgstr "Copia el valor"
+
+#: plugin_kategdb.cpp:112
+#, kde-format
+msgid "Kate Debug"
+msgstr "Depuració del Kate"
+
+#: plugin_kategdb.cpp:116
+#, kde-format
+msgid "Debug View"
+msgstr "Vista del depurador"
+
+#: plugin_kategdb.cpp:116 plugin_kategdb.cpp:347
+#, kde-format
+msgid "Debug"
+msgstr "Depura"
+
+#: plugin_kategdb.cpp:119 plugin_kategdb.cpp:122
+#, kde-format
+msgid "Locals and Stack"
+msgstr "Locals i pila"
+
+#: plugin_kategdb.cpp:128
+#, kde-format
+msgid "Breakpoints"
+msgstr "Punts d'interrupció"
+
+#: plugin_kategdb.cpp:215
+#, kde-kuit-format
+msgctxt "@info"
+msgid "<title>Could not open file:</title><nl/>%1"
+msgstr "<title>No s'ha pogut obrir el fitxer:</title><nl/>%1"
+
+#: plugin_kategdb.cpp:229
+#, kde-format
+msgid "Targets"
+msgstr "Objectius"
+
+#: plugin_kategdb.cpp:234
+#, kde-format
+msgid "Start Debugging"
+msgstr "Inicia la depuració"
+
+#: plugin_kategdb.cpp:244
+#, kde-format
+msgid "Kill / Stop Debugging"
+msgstr "Mata/atura la depuració"
+
+#: plugin_kategdb.cpp:251
+#, kde-format
+msgid "Continue"
+msgstr "Continua"
+
+# skip-rule: k-Break-1
+#: plugin_kategdb.cpp:257
+#, kde-format
+msgid "Toggle Breakpoint / Break"
+msgstr "Commuta entre punt d'interrupció/interrupció"
+
+#: plugin_kategdb.cpp:264
+#, kde-format
+msgid "Clear All Breakpoints"
+msgstr "Neteja tots els punts d'interrupció"
+
+#: plugin_kategdb.cpp:269
+#, kde-format
+msgid "Step In"
+msgstr "Avança per dins"
+
+#: plugin_kategdb.cpp:276
+#, kde-format
+msgid "Step Over"
+msgstr "Avança per sobre"
+
+#: plugin_kategdb.cpp:283
+#, kde-format
+msgid "Step Out"
+msgstr "Avança per fora"
+
+#: plugin_kategdb.cpp:290 plugin_kategdb.cpp:354
+#, kde-format
+msgid "Run To Cursor"
+msgstr "Executa fins al cursor"
+
+#: plugin_kategdb.cpp:297
+#, kde-format
+msgid "Restart Debugging"
+msgstr "Reinicia la depuració"
+
+#: plugin_kategdb.cpp:304
+#, kde-format
+msgid "Clear Output"
+msgstr "Neteja la sortida"
+
+#: plugin_kategdb.cpp:312
+#, kde-format
+msgid "Hot Reload"
+msgstr "Torna a carregar en calent"
+
+#: plugin_kategdb.cpp:319
+#, kde-format
+msgid "Hot Restart"
+msgstr "Reinicia en calent"
+
+#: plugin_kategdb.cpp:328
+#, kde-format
+msgid "Enable Hot Reload on Save"
+msgstr "Activa la recàrrega en calent en desar"
+
+#: plugin_kategdb.cpp:337 plugin_kategdb.cpp:356
+#, kde-format
+msgctxt "Move Program Counter (next execution)"
+msgid "Move PC"
+msgstr "Mou el CP"
+
+#: plugin_kategdb.cpp:342
+#, kde-format
+msgid "Print Value"
+msgstr "Imprimeix el valor"
+
+#: plugin_kategdb.cpp:407
+#, kde-format
+msgid "Error: %1"
+msgstr "Error: %1"
+
+#: plugin_kategdb.cpp:438
+#, kde-format
+msgid "Insert breakpoint"
+msgstr "Insereix un punt d'interrupció"
+
+#: plugin_kategdb.cpp:444
+#, kde-format
+msgid "Toggle breakpoint"
+msgstr "Commuta el punt d'interrupció"
+
+#: plugin_kategdb.cpp:559
+#, kde-format
+msgid "Execution point"
+msgstr "Punt d'execució"
+
+#: plugin_kategdb.cpp:668
+#, kde-format
+msgctxt "Tab label"
+msgid "Debug Output"
+msgstr "Sortida de depuració"
+
+#: plugin_kategdb.cpp:669
+#, kde-format
+msgctxt "Tab label"
+msgid "Settings"
+msgstr "Configuració"
+
+#: plugin_kategdb.cpp:704
+#, kde-format
+msgid "IO"
+msgstr "E/S"
+
+#: stackframe_model.cpp:95
+#, kde-format
+msgctxt "Column label (frame number)"
+msgid "Nr"
+msgstr "Núm"
+
+#: stackframe_model.cpp:97
+#, kde-format
+msgctxt "Column label"
+msgid "Function"
+msgstr "Funció"
+
+#: stackframe_model.cpp:99
+#, kde-format
+msgctxt "Column label"
+msgid "Location"
+msgstr "Ubicació"
+
+#: stackview.cpp:96 stackview.cpp:128
+#, kde-format
+msgid "Thread %1"
+msgstr "Fil %1"
+
+#: stackview.cpp:167
+#, kde-format
+msgid "Copy Stack Trace"
+msgstr "Copia la traça de la pila"
+
+#: stackview.cpp:186
+#, kde-format
+msgid "Open Location"
+msgstr "Obre la ubicació"
+
+#: stackview.cpp:193
+#, kde-format
+msgid "Copy Location"
+msgstr "Copia la ubicació"
+
+#. i18n: ectx: Menu (debug)
+#: ui.rc:6
+#, kde-format
+msgid "&Debug"
+msgstr "&Depura"
+
+#. i18n: ectx: ToolBar (gdbplugin)
+#: ui.rc:33
+#, kde-format
+msgid "Debug Plugin"
+msgstr "Connector de depuració"
+
+#~ msgid "User Debug Adapter Settings"
+#~ msgstr "Paràmetres d'usuari de l'adaptador de depuració"
+
+#~ msgid "Settings File:"
+#~ msgstr "Fitxer de configuració:"
+
+#~ msgid "Default Debug Adapter Settings"
+#~ msgstr "Paràmetres predeterminats de l'adaptador de depuració"
+
+#~ msgid "Failed to open file: %1"
+#~ msgstr "Ha fallat en obrir el fitxer: %1"
+
+#~ msgid "No JSON data to validate."
+#~ msgstr "No hi ha dades JSON a validar."
+
+#~ msgid "JSON data is valid."
+#~ msgstr "Les dades JSON són vàlides."
+
+#~ msgid "JSON data is invalid: no JSON object"
+#~ msgstr "Les dades JSON no són vàlides: no és un objecte JSON"
+
+#~ msgid "JSON data is invalid: %1"
+#~ msgstr "Les dades JSON no són vàlides: %1"
+
+#~ msgid "breakpoint cleared"
+#~ msgstr "s'ha netejat un punt d'interrupció"
+
+#~ msgid "breakpoint not found (%1:%2)"
+#~ msgstr "no s'ha trobat el punt d'interrupció (%1:%2)"
+
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "<title>Could not open file:</title><nl/>%1<br/>Try adding a search path "
+#~ "to Advanced Settings -> Source file search paths"
+#~ msgstr ""
+#~ "<title>No s'ha pogut obrir el fitxer:</title><nl/>%1<br/>Intenteu-ho "
+#~ "afegint un camí de cerca a Configuració avançada -> Camins de cerca de "
+#~ "fitxers de codi font"
+
+#~ msgctxt "Column label"
+#~ msgid "Frame"
+#~ msgstr "Marc"

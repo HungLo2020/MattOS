@@ -1,0 +1,114 @@
+/* WirePlumber
+ *
+ * Copyright © 2019 Collabora Ltd.
+ *    @author George Kiagiadakis <george.kiagiadakis@collabora.com>
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+#ifndef __WIREPLUMBER_REGISTRY_H__
+#define __WIREPLUMBER_REGISTRY_H__
+
+#include "core.h"
+#include "global-proxy.h"
+
+#include <pipewire/pipewire.h>
+
+G_BEGIN_DECLS
+
+typedef struct _WpRegistry WpRegistry;
+typedef struct _WpGlobal WpGlobal;
+
+/* registry */
+
+struct _WpRegistry
+{
+  struct pw_registry *pw_registry;
+  struct spa_hook listener;
+
+  GPtrArray *globals; // element-type: WpGlobal*
+  GPtrArray *tmp_globals; // element-type: WpGlobal*
+  GPtrArray *objects; // element-type: GObject*
+  GPtrArray *object_managers; // element-type: WpObjectManager*
+  GPtrArray *features; // element-type: gchar*
+  GPtrArray *owned_proxies; // element-type: WpGlobalProxy* (not ref'ed)
+};
+
+void wp_registry_init (WpRegistry *self);
+void wp_registry_clear (WpRegistry *self);
+void wp_registry_attach (WpRegistry *self, struct pw_core *pw_core);
+void wp_registry_detach (WpRegistry *self);
+
+void wp_registry_add_owned_proxy (WpRegistry * self, WpGlobalProxy * proxy);
+void wp_registry_rm_owned_proxy (WpRegistry * self, WpGlobalProxy * proxy);
+
+void wp_registry_prepare_new_global (WpRegistry * self, guint32 id,
+    guint32 permissions, guint32 flag, GType type,
+    WpGlobalProxy *proxy, const struct spa_dict *props,
+    WpGlobal ** new_global);
+
+void wp_registry_notify_add_object (WpRegistry * self, gpointer object);
+void wp_registry_notify_rm_object (WpRegistry * self, gpointer object);
+
+void wp_registry_install_object_manager (WpRegistry * self,
+    WpObjectManager * om);
+
+static inline void
+wp_registry_mark_feature_provided (WpRegistry * reg, const gchar * feature)
+{
+  g_ptr_array_add (reg->features, g_strdup (feature));
+}
+
+WpCore * wp_registry_get_core (WpRegistry * self) G_GNUC_CONST;
+
+/* core */
+
+WpRegistry * wp_core_get_registry (WpCore * self) G_GNUC_CONST;
+
+/* global */
+
+typedef enum {
+  WP_GLOBAL_FLAG_APPEARS_ON_REGISTRY = 0x1,
+  WP_GLOBAL_FLAG_OWNED_BY_PROXY = 0x2,
+} WpGlobalFlags;
+
+struct _WpGlobal
+{
+  guint32 flags;
+  guint32 id;
+  GType type;
+  guint32 permissions;
+  WpProperties *properties;
+  WpGlobalProxy *proxy;
+  WpRegistry *registry;
+};
+
+#define WP_TYPE_GLOBAL (wp_global_get_type ())
+GType wp_global_get_type (void);
+
+static inline void
+wp_global_clear (WpGlobal * self)
+{
+  g_clear_pointer (&self->properties, wp_properties_unref);
+}
+
+static inline WpGlobal *
+wp_global_ref (WpGlobal * self)
+{
+  return g_rc_box_acquire (self);
+}
+
+static inline void
+wp_global_unref (WpGlobal * self)
+{
+  g_rc_box_release_full (self, (GDestroyNotify) wp_global_clear);
+}
+
+void wp_global_rm_flag (WpGlobal *global, guint rm_flag);
+struct pw_proxy * wp_global_bind (WpGlobal * global);
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (WpGlobal, wp_global_unref)
+
+G_END_DECLS
+
+#endif

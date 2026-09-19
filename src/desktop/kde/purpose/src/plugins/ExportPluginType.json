@@ -1,0 +1,53 @@
+{
+    "KPlugin": {
+        "Icon": "edit-paste",
+        "Name": "Upload…",
+        "Name[ar]": "ارفع…",
+        "Name[bg]": "Качване…",
+        "Name[ca@valencia]": "Puja…",
+        "Name[ca]": "Puja…",
+        "Name[cs]": "Odeslat…",
+        "Name[da]": "Upload…",
+        "Name[de]": "Hochladen …",
+        "Name[el]": "Αποστολή…",
+        "Name[en_GB]": "Upload…",
+        "Name[eo]": "Alŝuti…",
+        "Name[es]": "Enviar…",
+        "Name[eu]": "Zama-igo...",
+        "Name[fi]": "Lähetä…",
+        "Name[fr]": "Envoyer…",
+        "Name[gl]": "Enviar…",
+        "Name[he]": "העלאה…",
+        "Name[hi]": "अपलोड करें…",
+        "Name[hu]": "Feltöltés…",
+        "Name[ia]": "Incarga…",
+        "Name[is]": "Senda inn…",
+        "Name[it]": "Carica…",
+        "Name[ja]": "アップロード…",
+        "Name[ka]": "ატვირთვა…",
+        "Name[ko]": "업로드…",
+        "Name[lt]": "Išsiųsti…",
+        "Name[lv]": "Augšupielādēt…",
+        "Name[nl]": "Uploaden…",
+        "Name[nn]": "Last opp …",
+        "Name[pl]": "Prześlij…",
+        "Name[pt_BR]": "Enviar…",
+        "Name[ru]": "Отправка…",
+        "Name[sa]": "अपलोड्...",
+        "Name[sk]": "Nahrať...",
+        "Name[sl]": "Prenesi…",
+        "Name[sv]": "Ladda upp…",
+        "Name[ta]": "பதிவேற்று…",
+        "Name[tr]": "Karşıya Yükle…",
+        "Name[uk]": "Вивантажити…",
+        "Name[zh_CN]": "上传…",
+        "Name[zh_TW]": "上傳…"
+    },
+    "X-Purpose-InboundArguments": [
+        "urls",
+        "mimeType"
+    ],
+    "X-Purpose-OutboundArguments": [
+        "url"
+    ]
+}

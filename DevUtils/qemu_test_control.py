@@ -5,11 +5,11 @@ This is deliberately development infrastructure, not guest software. Start a
 graphical ISO with ``DevUtils/run_qemu.py --test-control`` and use this helper
 while that QEMU process remains alive:
 
-  python3 DevUtils/qemu_test_control.py screenshot out/qemu/test-control/cosmic.ppm
+  python3 DevUtils/qemu_test_control.py screenshot out/qemu/test-control/plasma.ppm
   python3 DevUtils/qemu_test_control.py key ctrl-alt-t
   python3 DevUtils/qemu_test_control.py text 'flatpak --user list'
   python3 DevUtils/qemu_test_control.py click 640 400
-  python3 DevUtils/qemu_test_control.py serial 'pgrep -af cosmic-comp'
+  python3 DevUtils/qemu_test_control.py serial 'pgrep -af kwin_wayland'
 
 The QMP protocol is local Unix-socket only. Commands time out by default and
 never start or retain a guest-side automation service.

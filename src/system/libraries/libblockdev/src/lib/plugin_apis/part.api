@@ -1,0 +1,440 @@
+#include <glib.h>
+#include <glib-object.h>
+#include <blockdev/utils.h>
+
+#ifndef BD_PART_API
+#define BD_PART_API
+
+GQuark bd_part_error_quark (void) {
+    return g_quark_from_static_string ("g-bd-part-error-quark");
+}
+
+#define BD_PART_ERROR bd_part_error_quark ()
+typedef enum {
+    BD_PART_ERROR_TECH_UNAVAIL,
+    BD_PART_ERROR_FAIL,
+    BD_PART_ERROR_INVAL,
+    BD_PART_ERROR_EXISTS,
+} BDPartError;
+
+typedef enum {
+    BD_PART_TABLE_MSDOS,
+    BD_PART_TABLE_GPT,
+    BD_PART_TABLE_UNDEF,
+} BDPartTableType;
+
+typedef enum {
+    BD_PART_TYPE_NORMAL    = 0x00,
+    BD_PART_TYPE_LOGICAL   = 0x01,
+    BD_PART_TYPE_EXTENDED  = 0x02,
+    BD_PART_TYPE_FREESPACE = 0x04,
+    BD_PART_TYPE_METADATA  = 0x08,
+    BD_PART_TYPE_PROTECTED = 0x10
+} BDPartType;
+
+typedef enum {
+    BD_PART_TYPE_REQ_NORMAL   = 0x00,
+    BD_PART_TYPE_REQ_LOGICAL  = 0x01,
+    BD_PART_TYPE_REQ_EXTENDED = 0x02,
+    BD_PART_TYPE_REQ_NEXT     = 0x04
+} BDPartTypeReq;
+
+typedef enum {
+    BD_PART_ALIGN_NONE,
+    BD_PART_ALIGN_MINIMAL,
+    BD_PART_ALIGN_OPTIMAL,
+} BDPartAlign;
+
+#define BD_PART_TYPE_SPEC (bd_part_spec_get_type ())
+GType bd_part_spec_get_type();
+
+/**
+ * BDPartSpec:
+ * @path: path of the partition (block device)
+ * @name: name of the partition (for GPT partitions)
+ * @uuid: UUID of the partition (for GPT partitions)
+ * @id: id of the partition (for MSDOS partitions)
+ * @type_guid: GUID of the partition's type (GPT)
+ * @type: bit combination of partition's types (#BDPartType)
+ * @start: start of the partition
+ * @size: size of the partition
+ * @bootable: whether the bootable flag is set or not (for MSDOS partitions)
+ * @attrs: partition GPT attributes
+ * @type_name: human readable representation of @type_guid
+ */
+typedef struct BDPartSpec {
+    gchar *path;
+    gchar *name;
+    gchar *uuid;
+    gchar *id;
+    gchar *type_guid;
+    guint64 type;
+    guint64 start;
+    guint64 size;
+    gboolean bootable;
+    guint64 attrs;
+    gchar *type_name;
+} BDPartSpec;
+
+BDPartSpec* bd_part_spec_copy (BDPartSpec *data) {
+    if (data == NULL)
+        return NULL;
+
+    BDPartSpec *ret = g_new0 (BDPartSpec, 1);
+
+    ret->path = g_strdup (data->path);
+    ret->name = g_strdup (data->name);
+    ret->uuid = g_strdup (data->uuid);
+    ret->id = g_strdup (data->id);
+    ret->type_guid = g_strdup (data->type_guid);
+    ret->type_name = g_strdup (data->type_name);
+    ret->type = data->type;
+    ret->start = data->start;
+    ret->size = data->size;
+    ret->bootable = data->bootable;
+    ret->attrs = data->attrs;
+
+    return ret;
+}
+
+void bd_part_spec_free (BDPartSpec *data) {
+    if (data == NULL)
+        return;
+
+    g_free (data->path);
+    g_free (data->name);
+    g_free (data->uuid);
+    g_free (data->id);
+    g_free (data->type_guid);
+    g_free (data->type_name);
+    g_free (data);
+}
+
+GType bd_part_spec_get_type () {
+    static GType type = 0;
+
+    if (G_UNLIKELY(type == 0)) {
+        type = g_boxed_type_register_static("BDPartSpec",
+                                            (GBoxedCopyFunc) bd_part_spec_copy,
+                                            (GBoxedFreeFunc) bd_part_spec_free);
+    }
+
+    return type;
+}
+
+#define BD_PART_TYPE_DISK_SPEC (bd_part_disk_spec_get_type ())
+GType bd_part_disk_spec_get_type();
+
+/**
+ * BDPartDiskSpec:
+ * @path: path of the disk (block device)
+ * @table_type: type of the disk's partition table
+ * @size: size of the disk
+ * @sector_size: disk's sector size
+ */
+typedef struct BDPartDiskSpec {
+    gchar *path;
+    BDPartTableType table_type;
+    guint64 size;
+    guint64 sector_size;
+} BDPartDiskSpec;
+
+BDPartDiskSpec* bd_part_disk_spec_copy (BDPartDiskSpec *data) {
+    if (data == NULL)
+        return NULL;
+
+    BDPartDiskSpec *ret = g_new0 (BDPartDiskSpec, 1);
+
+    ret->path = g_strdup (data->path);
+    ret->table_type = data->table_type;
+    ret->size = data->size;
+    ret->sector_size = data->sector_size;
+
+    return ret;
+}
+
+void bd_part_disk_spec_free (BDPartDiskSpec *data) {
+    if (data == NULL)
+        return;
+
+    g_free (data->path);
+    g_free (data);
+}
+
+GType bd_part_disk_spec_get_type () {
+    static GType type = 0;
+
+    if (G_UNLIKELY(type == 0)) {
+        type = g_boxed_type_register_static("BDPartDiskSpec",
+                                            (GBoxedCopyFunc) bd_part_disk_spec_copy,
+                                            (GBoxedFreeFunc) bd_part_disk_spec_free);
+    }
+
+    return type;
+}
+
+typedef enum {
+    BD_PART_TECH_MBR = 0,
+    BD_PART_TECH_GPT,
+} BDPartTech;
+
+typedef enum {
+    BD_PART_TECH_MODE_CREATE_TABLE = 1 << 0,
+    BD_PART_TECH_MODE_MODIFY_TABLE = 1 << 1,
+    BD_PART_TECH_MODE_QUERY_TABLE  = 1 << 2,
+    BD_PART_TECH_MODE_MODIFY_PART  = 1 << 3,
+    BD_PART_TECH_MODE_QUERY_PART   = 1 << 4,
+} BDPartTechMode;
+
+/**
+ * bd_part_is_tech_avail:
+ * @tech: the queried tech
+ * @mode: a bit mask of queried modes of operation (#BDPartTechMode) for @tech
+ * @error: (out) (optional): place to store error (details about why the @tech-@mode combination is not available)
+ *
+ * Returns: whether the @tech-@mode combination is available -- supported by the
+ *          plugin implementation and having all the runtime dependencies available
+ */
+gboolean bd_part_is_tech_avail (BDPartTech tech, guint64 mode, GError **error);
+
+/**
+ * bd_part_create_table:
+ * @disk: path of the disk block device to create partition table on
+ * @type: type of the partition table to create
+ * @ignore_existing: whether to ignore/overwrite the existing table or not
+ *                   (reports an error if %FALSE and there's some table on @disk)
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the partition table was successfully created or not
+ *
+ * Tech category: %BD_PART_TECH_MODE_CREATE_TABLE + the tech according to @type
+ */
+gboolean bd_part_create_table (const gchar *disk, BDPartTableType type, gboolean ignore_existing, GError **error);
+
+/**
+ * bd_part_get_part_spec:
+ * @disk: disk to remove the partition from
+ * @part: partition to get spec for
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: (transfer full): spec of the @part partition from @disk or %NULL in case of error
+ *
+ * Tech category: %BD_PART_TECH_MODE_QUERY_PART + the tech according to the partition table type
+ */
+BDPartSpec* bd_part_get_part_spec (const gchar *disk, const gchar *part, GError **error);
+
+/**
+ * bd_part_get_part_by_pos:
+ * @disk: disk to remove the partition from
+ * @position: position (in bytes) determining the partition
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: (transfer full): spec of the partition from @disk spanning over the @position or %NULL if no such
+ *          partition exists or in case of error (@error is set)
+ *
+ * Tech category: %BD_PART_TECH_MODE_QUERY_PART + the tech according to the partition table type
+ */
+BDPartSpec* bd_part_get_part_by_pos (const gchar *disk, guint64 position, GError **error);
+
+/**
+ * bd_part_get_disk_spec:
+ * @disk: disk to get information about
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: (transfer full): information about the given @disk or %NULL (in case of error)
+ *
+ * Tech category: %BD_PART_TECH_MODE_QUERY_TABLE + the tech according to the partition table type
+ */
+BDPartDiskSpec* bd_part_get_disk_spec (const gchar *disk, GError **error);
+
+/**
+ * bd_part_get_disk_parts:
+ * @disk: disk to get information about partitions for
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: (transfer full) (array zero-terminated=1): specs of the partitions from @disk or %NULL in case of error
+ *
+ * Tech category: %BD_PART_TECH_MODE_QUERY_TABLE + the tech according to the partition table type
+ */
+BDPartSpec** bd_part_get_disk_parts (const gchar *disk, GError **error);
+
+/**
+ * bd_part_get_disk_free_regions:
+ * @disk: disk to get free regions for
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: (transfer full) (array zero-terminated=1): specs of the free regions from @disk or %NULL in case of error
+ *
+ * Tech category: %BD_PART_TECH_MODE_QUERY_TABLE + the tech according to the partition table type
+ */
+BDPartSpec** bd_part_get_disk_free_regions (const gchar *disk, GError **error);
+
+/**
+ * bd_part_get_best_free_region:
+ * @disk: disk to get the best free region for
+ * @type: type of the partition that is planned to be added
+ * @size: size of the partition to be added
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: (transfer full): spec of the best free region on @disk for a new partition of type @type
+ *                           with the size of @size or %NULL if there is none such region or if
+ *                           there was an error (@error gets populated)
+ *
+ * Note: For the @type %BD_PART_TYPE_NORMAL, the smallest possible space that *is not* in an extended partition
+ *       is found. For the @type %BD_PART_TYPE_LOGICAL, the smallest possible space that *is* in an extended
+ *       partition is found. For %BD_PART_TYPE_EXTENDED, the biggest possible space is found as long as there
+ *       is no other extended partition (there can only be one).
+ *
+ * Tech category: %BD_PART_TECH_MODE_QUERY_TABLE + the tech according to the partition table type
+ */
+BDPartSpec* bd_part_get_best_free_region (const gchar *disk, BDPartType type, guint64 size, GError **error);
+
+/**
+ * bd_part_create_part:
+ * @disk: disk to create partition on
+ * @type: type of the partition to create (if %BD_PART_TYPE_REQ_NEXT, the
+ *        partition type will be determined automatically based on the existing
+ *        partitions)
+ * @start: where the partition should start (i.e. offset from the disk start)
+ * @size: desired size of the partition (if 0, a max-sized partition is created)
+ * @align: alignment to use for the partition
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: (transfer full): specification of the created partition or %NULL in case of error
+ *
+ * NOTE: The resulting partition may start at a different position than given by
+ *       @start and can have different size than @size due to alignment.
+ *
+ * Tech category: %BD_PART_TECH_MODE_MODIFY_TABLE + the tech according to the partition table type
+ */
+BDPartSpec* bd_part_create_part (const gchar *disk, BDPartTypeReq type, guint64 start, guint64 size, BDPartAlign align, GError **error);
+
+/**
+ * bd_part_delete_part:
+ * @disk: disk to remove the partition from
+ * @part: partition to remove
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the @part partition was successfully deleted from @disk
+ *
+ * Tech category: %BD_PART_TECH_MODE_MODIFY_TABLE + the tech according to the partition table type
+ */
+gboolean bd_part_delete_part (const gchar *disk, const gchar *part, GError **error);
+
+/**
+ * bd_part_resize_part:
+ * @disk: disk containing the partition
+ * @part: partition to resize
+ * @size: new partition size, 0 for maximal size
+ * @align: alignment to use for the partition end
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the @part partition was successfully resized on @disk to @size
+ *
+ * NOTE: The resulting partition may be slightly bigger than requested due to alignment.
+ *
+ * Tech category: %BD_PART_TECH_MODE_MODIFY_TABLE + the tech according to the partition table type
+ */
+gboolean bd_part_resize_part (const gchar *disk, const gchar *part, guint64 size, BDPartAlign align, GError **error);
+
+/**
+ * bd_part_set_part_name:
+ * @disk: device the partition belongs to
+ * @part: partition the name should be set for
+ * @name: name to set
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the name was successfully set or not
+ *
+ * Tech category: %BD_PART_TECH_GPT-%BD_PART_TECH_MODE_MODIFY_PART
+ */
+gboolean bd_part_set_part_name (const gchar *disk, const gchar *part, const gchar *name, GError **error);
+
+/**
+ * bd_part_set_part_type:
+ * @disk: device the partition belongs to
+ * @part: partition the type should be set for
+ * @type_guid: GUID of the type
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the @type_guid type was successfully set for @part or not
+ *
+ * Tech category: %BD_PART_TECH_GPT-%BD_PART_TECH_MODE_MODIFY_PART
+ */
+gboolean bd_part_set_part_type (const gchar *disk, const gchar *part, const gchar *type_guid, GError **error);
+
+/**
+ * bd_part_set_part_id:
+ * @disk: device the partition belongs to
+ * @part: partition the ID should be set for
+ * @part_id: partition Id
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the @part_id type was successfully set for @part or not
+ *
+ * Tech category: %BD_PART_TECH_MBR-%BD_PART_TECH_MODE_MODIFY_PART
+ */
+gboolean bd_part_set_part_id (const gchar *disk, const gchar *part, const gchar *part_id, GError **error);
+
+/**
+ * bd_part_set_part_uuid:
+ * @disk: device the partition belongs to
+ * @part: partition the UUID should be set for
+ * @uuid: partition UUID to set
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the @uuid type was successfully set for @part or not
+ *
+ * Tech category: %BD_PART_TECH_GPT-%BD_PART_TECH_MODE_MODIFY_PART
+ */
+gboolean bd_part_set_part_uuid (const gchar *disk, const gchar *part, const gchar *uuid, GError **error);
+
+/**
+ * bd_part_set_part_bootable:
+ * @disk: device the partition belongs to
+ * @part: partition the bootable flag should be set for
+ * @bootable: whether to set or unset the bootable flag
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the @bootable flag was successfully set for @part or not
+ *
+ * Tech category: %BD_PART_TECH_MBR-%BD_PART_TECH_MODE_MODIFY_PART
+ */
+gboolean bd_part_set_part_bootable (const gchar *disk, const gchar *part, gboolean bootable, GError **error);
+
+/**
+ * bd_part_set_part_attributes:
+ * @disk: device the partition belongs to
+ * @part: partition the attributes should be set for
+ * @attrs: GPT attributes to set on @part
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: whether the @attrs GPT attributes were successfully set for @part or not
+ *
+ * Tech category: %BD_PART_TECH_GPT-%BD_PART_TECH_MODE_MODIFY_PART
+ */
+gboolean bd_part_set_part_attributes (const gchar *disk, const gchar *part, guint64 attrs, GError **error);
+
+/**
+ * bd_part_get_part_table_type_str:
+ * @type: table type to get string representation for
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: (transfer none): string representation of @table_type
+ *
+ * Tech category: the tech according to @type
+ */
+const gchar* bd_part_get_part_table_type_str (BDPartTableType type, GError **error);
+
+/**
+ * bd_part_get_type_str:
+ * @type: type to get string representation for
+ * @error: (out) (optional): place to store error (if any)
+ *
+ * Returns: (transfer none): string representation of @type
+ *
+ * Tech category: always available
+ */
+const gchar* bd_part_get_type_str (BDPartType type, GError **error);
+
+#endif  /* BD_PART_API */

@@ -1,0 +1,307 @@
+# Copyright (C) 2024 This file is copyright:
+# This file is distributed under the same license as the plasma-nm package.
+#
+# SPDX-FileCopyrightText: 2019, 2020, 2021, 2023, 2024, 2025, 2026 giovanni <g.sora@tiscali.it>
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma-nm\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-29 03:06+0000\n"
+"PO-Revision-Date: 2026-02-05 16:48+0100\n"
+"Last-Translator: giovanni <g.sora@tiscali.it>\n"
+"Language-Team: Interlingua <kde-i18n-doc@kde.org>\n"
+"Language: ia\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 23.08.5\n"
+
+#: ui/ConnectDialog.qml:58
+#, kde-format
+msgid "Invalid input."
+msgstr "Entrata invalide."
+
+#: ui/ConnectionInfo.qml:15
+#, kde-format
+msgctxt "kcm page title"
+msgid "Connection Info for \"%1\""
+msgstr "Info de connexion per \"%1\""
+
+#: ui/ConnectionInfo.qml:22
+#, kde-format
+msgctxt "@title:group"
+msgid "Transfer Rates"
+msgstr "Ratas de transferentia"
+
+#: ui/ConnectionInfo.qml:38
+#, kde-format
+msgid "Connected, ↓ %1/s, ↑ %2/s"
+msgstr "Connectite, ↓ %1/s, ↑ %2/s"
+
+#: ui/ConnectionInfo.qml:46
+#, kde-format
+msgctxt "@title:group"
+msgid "Connection Details"
+msgstr "Detalios de connexion"
+
+#: ui/main.qml:26
+#, kde-format
+msgid "Edit"
+msgstr "Modifica"
+
+#: ui/main.qml:87
+#, kde-format
+msgid "Wi-Fi"
+msgstr "Wi-Fi"
+
+#: ui/main.qml:98
+#, kde-format
+msgctxt "@title:group"
+msgid "Saved Networks"
+msgstr "Retes salveguardate"
+
+#: ui/main.qml:135
+#, kde-format
+msgid "Available Networks"
+msgstr "Retes disponibile"
+
+#: ui/main.qml:169
+#, kde-format
+msgid "Add Custom Connection"
+msgstr "Adde connexion personalisate"
+
+#: ui/NetworkSettings.qml:15
+#, kde-format
+msgid "Add New Connection"
+msgstr "Adde nove connexion"
+
+#: ui/NetworkSettings.qml:36
+#, kde-format
+msgid "Save"
+msgstr "Salveguarda"
+
+#: ui/NetworkSettings.qml:54
+#, kde-format
+msgctxt "@title:group"
+msgid "General"
+msgstr "General"
+
+#: ui/NetworkSettings.qml:60
+#, kde-format
+msgid "SSID"
+msgstr "SSID"
+
+#: ui/NetworkSettings.qml:75
+#, kde-format
+msgid "Hidden Network"
+msgstr "Rete celate"
+
+#: ui/NetworkSettings.qml:82
+#, kde-format
+msgctxt "@title:group"
+msgid "Security"
+msgstr "Securitate"
+
+#: ui/NetworkSettings.qml:89
+#, kde-format
+msgid "Security type"
+msgstr "Typo de securitate"
+
+#: ui/NetworkSettings.qml:99
+#, kde-format
+msgid "None"
+msgstr "Necun"
+
+#: ui/NetworkSettings.qml:100
+#, kde-format
+msgid "WEP Key"
+msgstr "Clave de WEP"
+
+#: ui/NetworkSettings.qml:101
+#, kde-format
+msgid "Dynamic WEP"
+msgstr "WEP dynamic"
+
+#: ui/NetworkSettings.qml:102
+#, kde-format
+msgid "WPA/WPA2 Personal"
+msgstr "WPA/WPA2 Personal"
+
+#: ui/NetworkSettings.qml:103
+#, kde-format
+msgid "WPA/WPA2 Enterprise"
+msgstr "WéA/WPA2 Interprisa"
+
+#: ui/NetworkSettings.qml:104
+#, kde-format
+msgid "WPA3 Personal"
+msgstr "WPA3 Personal"
+
+#: ui/NetworkSettings.qml:105
+#, kde-format
+msgid "WPA3 Enterprise"
+msgstr "WPA3 Interprisa"
+
+#: ui/NetworkSettings.qml:143
+#, kde-format
+msgid "Password"
+msgstr "Contrasigno"
+
+#: ui/NetworkSettings.qml:159
+#, kde-format
+msgid "Authentication:"
+msgstr "Authentication:"
+
+#: ui/NetworkSettings.qml:163
+#, kde-format
+msgid "TLS"
+msgstr "TLS"
+
+#: ui/NetworkSettings.qml:163
+#, kde-format
+msgid "LEAP"
+msgstr "LEAP"
+
+#: ui/NetworkSettings.qml:163
+#, kde-format
+msgid "FAST"
+msgstr "Rapide (FAST)"
+
+#: ui/NetworkSettings.qml:164
+#, kde-format
+msgid "Tunneled TLS"
+msgstr "Tunneled TLS"
+
+#: ui/NetworkSettings.qml:165
+#, kde-format
+msgid "Protected EAP"
+msgstr "EAP (PEAP) protegite"
+
+#: ui/NetworkSettings.qml:177
+#, kde-format
+msgctxt "@title:group"
+msgid "IP Settings"
+msgstr "Preferentias de IP"
+
+#: ui/NetworkSettings.qml:183
+#, kde-format
+msgid "Method"
+msgstr "Methodo"
+
+#: ui/NetworkSettings.qml:184
+#, kde-format
+msgid "Automatic"
+msgstr "Automatic"
+
+#: ui/NetworkSettings.qml:184
+#, kde-format
+msgid "Manual"
+msgstr "Manual"
+
+#: ui/NetworkSettings.qml:200
+#, kde-format
+msgid "IP Address"
+msgstr "Adresse IP"
+
+#: ui/NetworkSettings.qml:218
+#, kde-format
+msgid "Gateway"
+msgstr "Gateway"
+
+#: ui/NetworkSettings.qml:236
+#, kde-format
+msgid "Network prefix length"
+msgstr "Longitude de prefixo de rete"
+
+#: ui/NetworkSettings.qml:255
+#, kde-format
+msgid "DNS"
+msgstr "DNS"
+
+#: ui/PasswordField.qml:13
+#, kde-format
+msgid "Password…"
+msgstr "Contrasigno…"
+
+#, fuzzy
+#~| msgid "Connect to"
+#~ msgid "Connect"
+#~ msgstr "Connecte a"
+
+#, fuzzy
+#~| msgid "Connect to"
+#~ msgid "Disconnect"
+#~ msgstr "Connecte a"
+
+#~ msgid "Configure"
+#~ msgstr "Configura"
+
+#~ msgid "Delete"
+#~ msgstr "Dele"
+
+#~ msgid "Connect to"
+#~ msgstr "Connecte a"
+
+#~ msgid "/s"
+#~ msgstr "/s"
+
+#~ msgid "Upload"
+#~ msgstr "Incarga"
+
+#~ msgid "Download"
+#~ msgstr "Discarga"
+
+#~ msgid "Wi-Fi is disabled"
+#~ msgstr "Wi-Fi es dishabilitate"
+
+#~ msgid "Enable"
+#~ msgstr "Habilita"
+
+#~ msgid "Disable Wi-Fi"
+#~ msgstr "Disactivar Wi-Fi"
+
+#~ msgid "Show Saved Connections"
+#~ msgstr "Monstra connexiones salveguardate"
+
+#~ msgid "SSID:"
+#~ msgstr "SSID:"
+
+#~ msgid "DNS:"
+#~ msgstr "DNS:"
+
+#~ msgctxt "NAME OF TRANSLATORS"
+#~ msgid "Your names"
+#~ msgstr "Giovanni Sora"
+
+#~ msgctxt "EMAIL OF TRANSLATORS"
+#~ msgid "Your emails"
+#~ msgstr "g.sora@tiscali.it"
+
+#~ msgid "Wi-Fi networks"
+#~ msgstr "Retes Wi-Fi"
+
+#~ msgid "Martin Kacej"
+#~ msgstr "Martin Kacej"
+
+#~ msgctxt "@action:button"
+#~ msgid "Cancel"
+#~ msgstr "Cancella"
+
+#~ msgctxt "@action:button"
+#~ msgid "Done"
+#~ msgstr "Facite"
+
+#~ msgid "Password..."
+#~ msgstr "Contrasigno..."
+
+#~ msgid "(Unchanged)"
+#~ msgstr "(Non modificate)"
+
+#, fuzzy
+#~| msgid "Delete connection "
+#~ msgid "Delete connection %1 from device?"
+#~ msgstr "Dele connexion "
+
+#~ msgid "Wi-fi"
+#~ msgstr "Wi-fi"

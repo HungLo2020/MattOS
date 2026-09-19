@@ -1,0 +1,11 @@
+ACTION=="remove", GOTO="battery_end"
+
+SUBSYSTEM=="power_supply", TEST=="charge_control_start_threshold", \
+  IMPORT{builtin}="hwdb 'battery:$kernel:$attr{model_name}:$attr{[dmi/id]modalias}'", \
+  GOTO="battery_end"
+
+SUBSYSTEM=="power_supply", TEST=="charge_control_end_threshold", \
+  IMPORT{builtin}="hwdb 'battery:$kernel:$attr{model_name}:$attr{[dmi/id]modalias}'", \
+  GOTO="battery_end"
+
+LABEL="battery_end"

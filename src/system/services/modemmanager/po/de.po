@@ -1,0 +1,119 @@
+# German translation of Modem Manager
+# Copyright (C) 2013 Free Software Foundation, Inc.
+# This file is distributed under the same license as the Modem Manager package.
+#
+# Mario Blättermann <mario.blaettermann@gmail.com>, 2013.
+# Jürgen Benvenuti <gastornis@posteo.org>, 2022.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: ModemManager\n"
+"Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/mobile-broadband/"
+"ModemManager/issues\n"
+"POT-Creation-Date: 2022-09-09 15:25+0000\n"
+"PO-Revision-Date: 2022-09-10 21:20+0200\n"
+"Last-Translator: Jürgen Benvenuti <gastornis@posteo.org>\n"
+"Language-Team: German <gnome-de@gnome.org>\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.1.1\n"
+
+#: data/org.freedesktop.ModemManager1.policy.in.in:13
+msgid "Control the Modem Manager daemon"
+msgstr "Den Modem-Manager-Daemon steuern"
+
+#: data/org.freedesktop.ModemManager1.policy.in.in:14
+msgid "System policy prevents controlling the Modem Manager."
+msgstr "Die Systemrichtlinien verhindern die Steuerung von ModemManager."
+
+#: data/org.freedesktop.ModemManager1.policy.in.in:22
+msgid "Unlock and control a mobile broadband device"
+msgstr "Ein mobiles Breitbandgerät entsperren und steuern"
+
+#: data/org.freedesktop.ModemManager1.policy.in.in:23
+msgid ""
+"System policy prevents unlocking or controlling the mobile broadband device."
+msgstr ""
+"Die Systemrichtlinien verhindern das Entsperren oder Steuern des mobilen "
+"Breitbandgerätes."
+
+#: data/org.freedesktop.ModemManager1.policy.in.in:31
+msgid "Add, modify, and delete mobile broadband contacts"
+msgstr "Kontakte für mobiles Breitband hinzufügen, ändern und löschen"
+
+#: data/org.freedesktop.ModemManager1.policy.in.in:32
+msgid ""
+"System policy prevents adding, modifying, or deleting this device's contacts."
+msgstr ""
+"Die Systemrichtlinien verhindern das Hinzufügen, Ändern oder Löschen der "
+"Kontakte dieses Gerätes."
+
+#: data/org.freedesktop.ModemManager1.policy.in.in:40
+msgid "Send, save, modify, and delete text messages"
+msgstr "Textnachrichten senden, speichern, bearbeiten und löschen"
+
+#: data/org.freedesktop.ModemManager1.policy.in.in:41
+msgid ""
+"System policy prevents sending or manipulating this device's text messages."
+msgstr ""
+"Die Systemrichtlinien verhindern das Senden oder Bearbeiten der "
+"Textnachrichten dieses Gerätes."
+
+#: data/org.freedesktop.ModemManager1.policy.in.in:49
+msgid "Accept incoming voice calls or start outgoing voice calls."
+msgstr ""
+"Eingehende Sprachanrufe annehmen oder ausgehende Sprachanrufe beginnen."
+
+#: data/org.freedesktop.ModemManager1.policy.in.in:50
+msgid "System policy prevents voice calls."
+msgstr "Die Systemrichtlinien verhindern Sprachanrufe."
+
+#: data/org.freedesktop.ModemManager1.policy.in.in:58
+msgid "Query network time and timezone information"
+msgstr "Netzwerkzeit und Zeitzonen-Information abfragen"
+
+#: data/org.freedesktop.ModemManager1.policy.in.in:59
+msgid "System policy prevents querying network time information."
+msgstr ""
+"Die Systemrichtlinien verhindern die Abfrage der Netzwerkzeit-Information."
+
+#: data/org.freedesktop.ModemManager1.policy.in.in:67
+msgid "Enable and view geographic location and positioning information"
+msgstr ""
+"Informationen zum geografischen Standort und zur Positionierung aktivieren "
+"und anzeigen"
+
+#: data/org.freedesktop.ModemManager1.policy.in.in:68
+msgid ""
+"System policy prevents enabling or viewing geographic location information."
+msgstr ""
+"Die Systemrichtlinien verhindern das Aktivieren oder Anzeigen der "
+"Informationen zum geografischen Standort."
+
+#: data/org.freedesktop.ModemManager1.policy.in.in:76
+msgid "Query and utilize network information and services"
+msgstr "Netzwerkinformationen und -dienste abfragen und nutzen"
+
+#: data/org.freedesktop.ModemManager1.policy.in.in:77
+msgid ""
+"System policy prevents querying or utilizing network information and "
+"services."
+msgstr ""
+"Die Systemrichtlinien verhindern die Abfrage der Netzwerkinformationen und -"
+"dienste."
+
+#: data/org.freedesktop.ModemManager1.policy.in.in:85
+msgid "Query and manage firmware on a mobile broadband device"
+msgstr "Firmware auf mobilen Breitbandgeräten abfragen und verwalten"
+
+#: data/org.freedesktop.ModemManager1.policy.in.in:86
+msgid "System policy prevents querying or managing this device's firmware."
+msgstr ""
+"Die Systemrichtlinien verhindern die Abfrage oder Verwaltung der Firmware "
+"dieses Gerätes."
+
+#: src/mm-sleep-monitor-systemd.c:125
+msgid "ModemManager needs to reset devices"
+msgstr "ModemManager muss Geräte zurücksetzen"

@@ -1,0 +1,684 @@
+# translation of desktop_kdebase.po to Upper Sorbian
+# Prof. Dr. Eduard Werner <e.werner@rz.uni-leipzig.de>, 2003.
+# Eduard Werner <edi.werner@gmx.de>, 2005, 2008.
+# Bianka Šwejdźic <hertn@gmx.de>, 2005, 2007.
+msgid ""
+msgstr ""
+"Project-Id-Version: desktop_kdebase\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-03-17 02:42+0000\n"
+"PO-Revision-Date: 2008-11-13 00:41+0100\n"
+"Last-Translator: Eduard Werner <edi.werner@gmx.de>\n"
+"Language-Team: en_US <kde-i18n-doc@lists.kde.org>\n"
+"Language: hsb\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n"
+"%100==4 ? 2 : 3;\n"
+
+#: BatteryItem.qml:99
+#, fuzzy, kde-format
+#| msgid "<b>Battery:</b> %1% (discharging)<br />"
+msgid "Charging"
+msgstr "<b>Aku:</b> %1% (so wužiwa)<br />"
+
+#: BatteryItem.qml:101
+#, fuzzy, kde-format
+#| msgid "<b>Battery:</b> %1% (discharging)<br />"
+msgid "Discharging"
+msgstr "<b>Aku:</b> %1% (so wužiwa)<br />"
+
+#: BatteryItem.qml:103 main.qml:122
+#, fuzzy, kde-format
+#| msgid "<b>Battery:</b> %1% (fully charged)<br />"
+msgid "Fully Charged"
+msgstr "<b>Aku:</b> %1% (donabity)<br />"
+
+#: BatteryItem.qml:105
+#, fuzzy, kde-format
+#| msgid "<b>Battery:</b> %1% (discharging)<br />"
+msgid "Not Charging"
+msgstr "<b>Aku:</b> %1% (so wužiwa)<br />"
+
+#: BatteryItem.qml:108
+#, kde-format
+msgctxt "Battery is currently not present in the bay"
+msgid "Not present"
+msgstr ""
+
+#: BatteryItem.qml:120
+#, kde-format
+msgctxt "Placeholder is battery percentage"
+msgid "%1%"
+msgstr ""
+
+#: BatteryItem.qml:184
+#, kde-format
+msgid ""
+"This battery's health is at only %1% and it should be replaced. Contact the "
+"manufacturer."
+msgstr ""
+
+#: BatteryItem.qml:203
+#, kde-format
+msgid "Time To Full:"
+msgstr ""
+
+#: BatteryItem.qml:204
+#, kde-format
+msgid "Remaining Time:"
+msgstr ""
+
+#: BatteryItem.qml:210
+#, kde-format
+msgctxt "@info"
+msgid "Estimating…"
+msgstr ""
+
+#: BatteryItem.qml:220
+#, fuzzy, kde-format
+#| msgctxt "Battery is not plugged in"
+#| msgid "<b>Battery:</b> not present<br />"
+msgid "Battery Health:"
+msgstr "<b>Aku:</b> njeje tu<br />"
+
+#: BatteryItem.qml:226
+#, kde-format
+msgctxt "Placeholder is battery health percentage"
+msgid "%1%"
+msgstr ""
+
+#: BatteryItem.qml:238
+#, kde-format
+msgid "Battery is configured to charge up to approximately %1%."
+msgstr ""
+
+#: CompactRepresentation.qml:101 CompactRepresentation.qml:150
+#, kde-format
+msgctxt "battery percentage below battery icon"
+msgid "%1%"
+msgstr ""
+
+#: InhibitionItem.qml:53
+#, kde-format
+msgctxt "@title:group"
+msgid "Sleep and Screen Locking after Inactivity"
+msgstr ""
+
+#: InhibitionItem.qml:60 main.qml:97 PowerProfileItem.qml:76
+#, fuzzy, kde-format
+#| msgid "Power Management"
+msgid "Power Management"
+msgstr "Lutowanje miliny"
+
+#: InhibitionItem.qml:65
+#, kde-format
+msgctxt "accessible-only status text"
+msgid "Automatic sleep and screen locking are currently blocked."
+msgstr ""
+
+#: InhibitionItem.qml:67
+#, kde-format
+msgctxt "accessible-only status text"
+msgid ""
+"Screen locking is currently blocked. Sleep is automatic after inactivity."
+msgstr ""
+
+#: InhibitionItem.qml:69
+#, kde-format
+msgctxt "accessible-only status text"
+msgid ""
+"Sleep is currently blocked. Screen locking is automatic after inactivity."
+msgstr ""
+
+#: InhibitionItem.qml:71
+#, kde-format
+msgctxt "accessible-only status text"
+msgid "Sleep and screen locking are automatic after inactivity."
+msgstr ""
+
+#: InhibitionItem.qml:95
+#, kde-format
+msgctxt "@action:button Block sleep and screen locking after inactivity"
+msgid "Manually Block Sleep and Screen Locking"
+msgstr ""
+
+#: InhibitionItem.qml:118
+#, kde-format
+msgid "Failed to unblock automatic sleep and screen locking"
+msgstr ""
+
+#: InhibitionItem.qml:121
+#, kde-format
+msgid "Failed to block automatic sleep and screen locking"
+msgstr ""
+
+#: InhibitionItem.qml:135
+#, kde-format
+msgctxt ""
+"@label corresponding to Manually Block Sleep and Screen Locking toggle"
+msgid "This will result in higher energy consumption."
+msgstr ""
+
+#: InhibitionItem.qml:136
+#, kde-format
+msgctxt ""
+"@label accessible - the sentence about higher energy consumption must be "
+"included (EU regulations)"
+msgid ""
+"You have manually blocked automatic sleep and screen locking. This will "
+"result in higher energy consumption."
+msgstr ""
+
+#: InhibitionItem.qml:143
+#, kde-format
+msgctxt "Minimize the length of this string as much as possible"
+msgid ""
+"Your laptop is configured not to sleep when closing the lid while an "
+"external monitor is connected."
+msgstr ""
+
+#: InhibitionItem.qml:162
+#, kde-format
+msgctxt "An application's reason for inhibiting sleep and/or screen locking"
+msgid "Unknown reason."
+msgstr ""
+
+#: InhibitionItem.qml:169
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) has been prevented from blocking this "
+"inactivity behavior. The user can choose to allow it again."
+msgid "%1 wants to block sleep and screen locking. (%2)"
+msgstr ""
+
+#: InhibitionItem.qml:171
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) has been prevented from blocking this "
+"inactivity behavior. The user can choose to allow it again."
+msgid "%1 wants to block screen locking. (%2)"
+msgstr ""
+
+#: InhibitionItem.qml:173
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) has been prevented from blocking this "
+"inactivity behavior. The user can choose to allow it again."
+msgid "%1 wants to block sleep. (%2)"
+msgstr ""
+
+#: InhibitionItem.qml:177
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, in addition to the user's manual block switch."
+msgid "%1 is also blocking sleep and screen locking. (%2)"
+msgstr ""
+
+#: InhibitionItem.qml:179
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, in addition to the user's manual block switch."
+msgid "%1 is also blocking screen locking. (%2)"
+msgstr ""
+
+#: InhibitionItem.qml:181
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, in addition to the user's manual block switch."
+msgid "%1 is also blocking sleep. (%2)"
+msgstr ""
+
+#: InhibitionItem.qml:185
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, the user can choose to unblock it."
+msgid "%1 is blocking sleep and screen locking. (%2)"
+msgstr ""
+
+#: InhibitionItem.qml:187
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, the user can choose to unblock it."
+msgid "%1 is blocking screen locking. (%2)"
+msgstr ""
+
+#: InhibitionItem.qml:189
+#, kde-format
+msgctxt ""
+"Application (1) with reason (2) is currently blocking this inactivity "
+"behavior, the user can choose to unblock it."
+msgid "%1 is blocking sleep. (%2)"
+msgstr ""
+
+#: InhibitionItem.qml:197
+#, kde-format
+msgctxt ""
+"@action:button Prevent an app from blocking automatic sleep and screen "
+"locking after inactivity"
+msgid "Unblock"
+msgstr ""
+
+#: InhibitionItem.qml:205
+#, kde-format
+msgctxt ""
+"@action:button Undo preventing an app from blocking automatic sleep and "
+"screen locking after inactivity"
+msgid "Allow"
+msgstr ""
+
+#: main.qml:76
+#, kde-format
+msgid "The battery applet has enabled suppressing sleep and screen locking"
+msgstr ""
+
+#: main.qml:97
+#, fuzzy, kde-format
+#| msgid "Power Management"
+msgid "Power and Battery"
+msgstr "Lutowanje miliny"
+
+#: main.qml:116
+#, kde-format
+msgid "Battery is not present in the bay"
+msgstr ""
+
+#: main.qml:129
+#, fuzzy, kde-format
+#| msgid "<b>Battery:</b> %1% (discharging)<br />"
+msgid "Battery at %1%, not Charging"
+msgstr "<b>Aku:</b> %1% (so wužiwa)<br />"
+
+#: main.qml:131
+#, fuzzy, kde-format
+#| msgid "<b>Battery:</b> %1% (discharging)<br />"
+msgid "Battery at %1%, plugged in but still discharging"
+msgstr "<b>Aku:</b> %1% (so wužiwa)<br />"
+
+#: main.qml:133
+#, fuzzy, kde-format
+#| msgid "<b>Battery:</b> %1% (discharging)<br />"
+msgid "Battery at %1%, Charging"
+msgstr "<b>Aku:</b> %1% (so wužiwa)<br />"
+
+#: main.qml:136
+#, fuzzy, kde-format
+#| msgctxt "Battery is not plugged in"
+#| msgid "<b>Battery:</b> not present<br />"
+msgid "Battery at %1%"
+msgstr "<b>Aku:</b> njeje tu<br />"
+
+#: main.qml:144
+#, kde-format
+msgid "The power supply is not powerful enough to charge the battery"
+msgstr ""
+
+#: main.qml:148
+#, kde-format
+msgid "No Batteries Available"
+msgstr ""
+
+#: main.qml:155
+#, fuzzy, kde-format
+#| msgid "<b>Battery:</b> %1% (fully charged)<br />"
+msgctxt "time until fully charged - HH:MM"
+msgid "%1 until fully charged"
+msgstr "<b>Aku:</b> %1% (donabity)<br />"
+
+#: main.qml:157
+#, kde-format
+msgctxt "remaining time left of battery usage - HH:MM"
+msgid "%1 remaining"
+msgstr ""
+
+#: main.qml:160
+#, fuzzy, kde-format
+#| msgid "<b>Battery:</b> %1% (discharging)<br />"
+msgid "Not charging"
+msgstr "<b>Aku:</b> %1% (so wužiwa)<br />"
+
+#: main.qml:165
+#, kde-format
+msgid ""
+"Automatic sleep and screen locking are disabled; middle-click to re-enable"
+msgstr ""
+
+#: main.qml:167
+#, kde-format
+msgid "Middle-click to disable automatic sleep and screen locking"
+msgstr ""
+
+#: main.qml:172
+#, kde-format
+msgid "An application has requested activating Performance mode"
+msgid_plural "%1 applications have requested activating Performance mode"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#: main.qml:176
+#, kde-format
+msgid "System is in Performance mode; scroll to change"
+msgstr ""
+
+#: main.qml:180
+#, kde-format
+msgid "An application has requested activating Power Save mode"
+msgid_plural "%1 applications have requested activating Power Save mode"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#: main.qml:184
+#, kde-format
+msgid "System is in Power Save mode; scroll to change"
+msgstr ""
+
+#: main.qml:187
+#, kde-format
+msgid "System is in Balanced Power mode; scroll to change"
+msgstr ""
+
+#: main.qml:301
+#, kde-format
+msgid "&Show Energy Information…"
+msgstr ""
+
+#: main.qml:307
+#, kde-format
+msgid "Show Battery Percentage on Icon When Not Fully Charged"
+msgstr ""
+
+#: main.qml:320
+#, fuzzy, kde-format
+#| msgid "More..."
+msgid "&Configure Power Management…"
+msgstr "Dalše móžnosće..."
+
+#: PowerProfileItem.qml:41
+#, kde-format
+msgid "Power Save"
+msgstr ""
+
+#: PowerProfileItem.qml:45
+#, kde-format
+msgid "Balanced"
+msgstr ""
+
+#: PowerProfileItem.qml:49
+#, kde-format
+msgid "Performance"
+msgstr ""
+
+#: PowerProfileItem.qml:66
+#, fuzzy, kde-format
+#| msgid "Power Profile"
+msgid "Power Profile"
+msgstr "Milinowy profil"
+
+#: PowerProfileItem.qml:110
+#, kde-format
+msgctxt "Power profile"
+msgid "Automatic"
+msgstr ""
+
+#: PowerProfileItem.qml:111
+#, kde-format
+msgctxt "Power profile"
+msgid "Not available"
+msgstr ""
+
+#: PowerProfileItem.qml:151
+#, kde-format
+msgid "Failed to activate %1 mode"
+msgstr ""
+
+#: PowerProfileItem.qml:228
+#, kde-format
+msgid ""
+"Performance mode has been disabled to reduce heat generation because the "
+"computer has detected that it may be sitting on your lap."
+msgstr ""
+
+#: PowerProfileItem.qml:230
+#, kde-format
+msgid ""
+"Performance mode is unavailable because the computer is running too hot."
+msgstr ""
+
+#: PowerProfileItem.qml:232
+#, fuzzy, kde-format
+#| msgid "Power Management"
+msgid "Performance mode is unavailable."
+msgstr "Lutowanje miliny"
+
+#: PowerProfileItem.qml:248
+#, kde-format
+msgid ""
+"Performance may be lowered to reduce heat generation because the computer "
+"has detected that it may be sitting on your lap."
+msgstr ""
+
+#: PowerProfileItem.qml:250
+#, kde-format
+msgid "Performance may be reduced because the computer is running too hot."
+msgstr ""
+
+#: PowerProfileItem.qml:252
+#, fuzzy, kde-format
+#| msgid "Power Management"
+msgid "Performance may be reduced."
+msgstr "Lutowanje miliny"
+
+#: PowerProfileItem.qml:265
+#, kde-format
+msgid "One application has requested activating %2:"
+msgid_plural "%1 applications have requested activating %2:"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#: PowerProfileItem.qml:284
+#, kde-format
+msgctxt ""
+"%1 is the name of the application, %2 is the reason provided by it for "
+"activating performance mode"
+msgid "%1: %2"
+msgstr ""
+
+#: PowerProfileItem.qml:302
+#, kde-format
+msgid "The TLP service automatically controls power profiles"
+msgstr ""
+
+#: PowerProfileItem.qml:304
+#, kde-format
+msgid "Power profiles are not supported on your device."
+msgstr ""
+
+#: PowerProfileItem.qml:305
+#, kde-kuit-format
+msgid ""
+"Power profiles may be supported on your device.<nl/>Try installing the "
+"<command>power-profiles-daemon</command> package using your distribution's "
+"package manager and restarting the system."
+msgstr ""
+
+#, fuzzy
+#~| msgctxt "Battery is not plugged in"
+#~| msgid "<b>Battery:</b> not present<br />"
+#~ msgctxt "Placeholder is the battery number"
+#~ msgid "Battery %1"
+#~ msgstr "<b>Aku:</b> njeje tu<br />"
+
+#, fuzzy
+#~| msgctxt "Battery is not plugged in"
+#~| msgid "<b>Battery:</b> not present<br />"
+#~ msgid "Battery"
+#~ msgstr "<b>Aku:</b> njeje tu<br />"
+
+#, fuzzy
+#~| msgid "Screen Brightness"
+#~ msgid "Battery and Brightness"
+#~ msgstr "Swětłosć wobrazowki"
+
+#, fuzzy
+#~| msgid "Screen Brightness"
+#~ msgid "Brightness"
+#~ msgstr "Swětłosć wobrazowki"
+
+#, fuzzy
+#~| msgid "Screen Brightness"
+#~ msgid "Scroll to adjust screen brightness"
+#~ msgstr "Swětłosć wobrazowki"
+
+#, fuzzy
+#~| msgid "Screen Brightness"
+#~ msgid "Display Brightness"
+#~ msgstr "Swětłosć wobrazowki"
+
+#, fuzzy
+#~| msgid "Screen Brightness"
+#~ msgid "Keyboard Brightness"
+#~ msgstr "Swětłosć wobrazowki"
+
+#, fuzzy
+#~| msgid "Power Management"
+#~ msgid "Performance mode has been manually enabled"
+#~ msgstr "Lutowanje miliny"
+
+#, fuzzy
+#~| msgid "More..."
+#~ msgid "Configure Power Saving..."
+#~ msgstr "Dalše móžnosće..."
+
+#, fuzzy
+#~| msgid "<b>Battery:</b> %1% (discharging)<br />"
+#~ msgid "%1% Charging"
+#~ msgstr "<b>Aku:</b> %1% (so wužiwa)<br />"
+
+#, fuzzy
+#~| msgid "<b>AC Adapter:</b> Not plugged in"
+#~ msgid "%1% Plugged in"
+#~ msgstr "<b>Milinowy adapter:</b> njepřizamknjeny"
+
+#, fuzzy
+#~| msgid "<b>AC Adapter:</b> Plugged in"
+#~ msgid "AC Adapter"
+#~ msgstr "<b>Milinowy adapter:</b> přizamknjeny"
+
+#, fuzzy
+#~| msgid "<b>AC Adapter:</b> Not plugged in"
+#~ msgid "Not Plugged In"
+#~ msgstr "<b>Milinowy adapter:</b> njepřizamknjeny"
+
+#, fuzzy
+#~| msgid "<b>Battery:</b> %1% (fully charged)<br />"
+#~ msgid "%1% (charged)"
+#~ msgstr "<b>Aku:</b> %1% (donabity)<br />"
+
+#, fuzzy
+#~| msgid "<b>AC Adapter:</b> Plugged in"
+#~ msgctxt "tooltip"
+#~ msgid "AC Adapter:"
+#~ msgstr "<b>Milinowy adapter:</b> přizamknjeny"
+
+#, fuzzy
+#~| msgid "<b>AC Adapter:</b> Not plugged in"
+#~ msgctxt "tooltip"
+#~ msgid "<b>Not plugged in</b>"
+#~ msgstr "<b>Milinowy adapter:</b> njepřizamknjeny"
+
+#~ msgid "Configure Battery Monitor"
+#~ msgstr "Dohladowanje akuwa připrawić"
+
+#, fuzzy
+#~| msgid "Sleep"
+#~ msgctxt "Suspend the computer to RAM; translation should be short"
+#~ msgid "Sleep"
+#~ msgstr "Wusnyć"
+
+#, fuzzy
+#~| msgid "Hibernate"
+#~ msgctxt "Suspend the computer to disk; translation should be short"
+#~ msgid "Hibernate"
+#~ msgstr "Přezymować"
+
+#, fuzzy
+#~| msgid "<b>Battery:</b> %1% (fully charged)<br />"
+#~ msgid "<b>%1% (charged)</b>"
+#~ msgstr "<b>Aku:</b> %1% (donabity)<br />"
+
+#, fuzzy
+#~| msgid "<b>Battery:</b> %1% (discharging)<br />"
+#~ msgid "<b>%1% (discharging)</b>"
+#~ msgstr "<b>Aku:</b> %1% (so wužiwa)<br />"
+
+#, fuzzy
+#~| msgid "<b>Battery:</b> %1% (discharging)<br />"
+#~ msgid "<b>%1% (charging)</b>"
+#~ msgstr "<b>Aku:</b> %1% (so wužiwa)<br />"
+
+#~ msgid "Show the state for &each battery present"
+#~ msgstr "Staw &kóždeho akuwa pokazać"
+
+#, fuzzy
+#~| msgctxt "Battery is not plugged in"
+#~| msgid "<b>Battery:</b> not present<br />"
+#~ msgid "<b>Battery:</b>"
+#~ msgstr "<b>Aku:</b> njeje tu<br />"
+
+#, fuzzy
+#~| msgid "<b>AC Adapter:</b> Plugged in"
+#~ msgctxt "tooltip"
+#~ msgid "<b>AC Adapter:</b>"
+#~ msgstr "<b>Milinowy adapter:</b> přizamknjeny"
+
+#, fuzzy
+#~| msgid "Show the state for &each battery present"
+#~ msgid "Show remaining time for the battery"
+#~ msgstr "Staw &kóždeho akuwa pokazać"
+
+#, fuzzy
+#~| msgid "<b>Battery %1:</b> %2% (charging)<br />"
+#~ msgctxt "tooltip: placeholder is the battery ID"
+#~ msgid "<b>Battery %1:</b>"
+#~ msgstr "<b>Aku %1:</b> %2% (so nabiwa)<br />"
+
+#, fuzzy
+#~| msgid "<b>AC Adapter:</b> Plugged in"
+#~ msgid "AC Adapter: "
+#~ msgstr "<b>Milinowy adapter:</b> přizamknjeny"
+
+#, fuzzy
+#~| msgctxt "Battery is not plugged in"
+#~| msgid "<b>Battery:</b> not present<br />"
+#~ msgid "<b>Battery:</b> "
+#~ msgstr "<b>Aku:</b> njeje tu<br />"
+
+#, fuzzy
+#~| msgid "<b>Battery:</b> %1% (discharging)<br />"
+#~ msgctxt "state of battery"
+#~ msgid "%1% (discharging)"
+#~ msgstr "<b>Aku:</b> %1% (so wužiwa)<br />"
+
+#~ msgid "Actions"
+#~ msgstr "Akcije"
+
+#~ msgid "<b>Battery:</b> %1% (charging)<br />"
+#~ msgstr "<b>Aku:</b> %1% (so nabiwa)<br />"
+
+#~ msgid "<b>Battery %1:</b> %2% (fully charged)<br />"
+#~ msgstr "<b>Aku %1:</b> %2% (donabity)<br />"
+
+#~ msgid "<b>Battery %1:</b> %2% (discharging)<br />"
+#~ msgstr "<b>Aku %1:</b> %2% (so wužiwa)<br />"

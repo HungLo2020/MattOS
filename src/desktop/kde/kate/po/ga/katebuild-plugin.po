@@ -1,0 +1,606 @@
+# Irish translation of katebuild-plugin
+# Copyright (C) 2009 This_file_is_part_of_KDE
+# This file is distributed under the same license as the katebuild-plugin package.
+# Kevin Scannell <kscanne@gmail.com>, 2009.
+# Aindriú Mac Giolla Eoin <aindriu80@gmail.com>, 2025.
+msgid ""
+msgstr ""
+"Project-Id-Version: kdesdk/katebuild-plugin.po\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-06-27 00:47+0000\n"
+"PO-Revision-Date: 2025-11-30 14:13+0000\n"
+"Last-Translator: Aindriú Mac Giolla Eoin <aindriu80@gmail.com>\n"
+"Language-Team: Irish <gaeilge-gnulinux@lists.sourceforge.net>\n"
+"Language: ga\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=5; plural=n==1 ? 0 : n==2 ? 1 : n<7 ? 2 : n < 11 ? "
+"3 : 4\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Kevin Scannell"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "kscanne@gmail.com"
+
+#. i18n: ectx: attribute (title), widget (QWidget, buildOutput)
+#: build.ui:36
+#, kde-format
+msgid "Output"
+msgstr "Aschur"
+
+#. i18n: ectx: property (text), widget (QPushButton, buildAgainButton)
+#: build.ui:56
+#, kde-format
+msgid "Build Again"
+msgstr "Breiseán TógálaTóg Arís"
+
+#. i18n: ectx: property (text), widget (QPushButton, cancelBuildButton)
+#: build.ui:66
+#, kde-format
+msgid "Cancel"
+msgstr "Cealaigh"
+
+#: buildconfig.cpp:48
+#, kde-format
+msgid "Build & Run"
+msgstr "Breiseán TógálaTóg & Rith"
+
+#: buildconfig.cpp:54
+#, kde-format
+msgid "Build & Run Settings"
+msgstr "Socruithe Tógála & Rith"
+
+#: buildconfig.cpp:107
+#, kde-format
+msgid "Delete selected entries"
+msgstr "Socraithe Tógála & Rith"
+
+#: buildconfig.cpp:112
+#, kde-format
+msgid "Delete all entries"
+msgstr "Scrios gach iontráil"
+
+#. i18n: ectx: attribute (title), widget (QWidget, tab)
+#: buildconfigwidget.ui:33
+#, kde-format
+msgid "General Settings"
+msgstr "Socruithe Ginearálta"
+
+#. i18n: ectx: property (text), widget (QCheckBox, useDiagnosticsCB)
+#: buildconfigwidget.ui:50
+#, kde-format
+msgid "Add errors and warnings to Diagnostics"
+msgstr "Cuir earráidí agus rabhaidh le Diagnóisic"
+
+#. i18n: ectx: property (text), widget (QCheckBox, autoSwitchToOutput)
+#: buildconfigwidget.ui:57
+#, kde-format
+msgid "Automatically switch to output pane on executing the selected target"
+msgstr ""
+"Athraigh go huathoibríoch go dtí an painéal aschuir nuair a bhíonn an sprioc "
+"roghnaithe á fhorghníomhú"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, u_showProgressCB)
+#: buildconfigwidget.ui:77
+#, no-c-format, kde-format
+msgid ""
+"If the output lines start with [ # / ## ] or [ ## % ], display the latest as "
+"a message."
+msgstr ""
+"Má thosaíonn na línte aschuir le [ # / ## ] nó [ ## % ], taispeánfar an "
+"ceann is déanaí mar theachtaireacht."
+
+#. i18n: ectx: property (text), widget (QCheckBox, u_showProgressCB)
+#: buildconfigwidget.ui:80
+#, kde-format
+msgid "Show build progress as a message when the output pane is hidden"
+msgstr ""
+"Taispeáin dul chun cinn na tógála mar theachtaireacht nuair a bhíonn an "
+"painéal aschuir i bhfolach"
+
+#. i18n: ectx: attribute (title), widget (QWidget, tab_4)
+#: buildconfigwidget.ui:106
+#, kde-format
+msgid "Allowed && Blocked Commands"
+msgstr "Orduithe Ceadaithe && Blocáilte"
+
+#: plugin_katebuild.cpp:268 plugin_katebuild.cpp:275 plugin_katebuild.cpp:759
+#: plugin_katebuild.cpp:1000 plugin_katebuild.cpp:1013
+#, kde-format
+msgid "Build"
+msgstr "Tóg"
+
+#: plugin_katebuild.cpp:278
+#, kde-format
+msgid "Select Target..."
+msgstr "Roghnaigh Sprioc..."
+
+#: plugin_katebuild.cpp:283
+#, kde-format
+msgid "Build Selected Target"
+msgstr "Tóg Sprioc Roghnaithe"
+
+#: plugin_katebuild.cpp:288
+#, kde-format
+msgid "Build and Run Selected Target"
+msgstr "Tóg agus Rith Sprioc Roghnaithe"
+
+#: plugin_katebuild.cpp:293
+#, kde-format
+msgid "Compile Current File"
+msgstr "Tiomsaigh an Comhad Reatha"
+
+#: plugin_katebuild.cpp:294
+#, kde-format
+msgid "Try to compile the current file by searching a compile_commands.json"
+msgstr ""
+"Déan iarracht an comhad reatha a thiomsú trí chuardach a dhéanamh ar "
+"compile_commands.json"
+
+#: plugin_katebuild.cpp:299
+#, kde-format
+msgid "Stop"
+msgstr "Stad"
+
+#: plugin_katebuild.cpp:304
+#, kde-format
+msgid "Load targets from CMake Build Dir"
+msgstr "Luchtaigh spriocanna ó CMake Build Dir"
+
+#: plugin_katebuild.cpp:308
+#, kde-format
+msgctxt "Left is also left in RTL mode"
+msgid "Focus Next Tab to the Left"
+msgstr "Dírigh ar an gCluaisín Eile ar Chlé"
+
+#: plugin_katebuild.cpp:328
+#, kde-format
+msgctxt "Right is right also in RTL mode"
+msgid "Focus Next Tab to the Right"
+msgstr "Fócas ar an gCluaisín Eile ar Dheis"
+
+#: plugin_katebuild.cpp:361
+#, kde-format
+msgctxt "Tab label"
+msgid "Target Settings"
+msgstr "Socruithe Sprice"
+
+#: plugin_katebuild.cpp:410
+#, kde-format
+msgid ""
+"<b>File not found:</b> %1<br><b>Search paths:</b><br>%2<br>Try adding a "
+"search path to the \"Working Directory\""
+msgstr ""
+"<b>Comhad gan aimsiú:</b> %1<br><b>Conairí cuardaigh:</b><br>%2<br>Bain "
+"triail as cosán cuardaigh a chur leis an \"Eolaire Oibre\""
+
+#: plugin_katebuild.cpp:507
+#, kde-format
+msgid "Build Information"
+msgstr "Faisnéis Tógála"
+
+#: plugin_katebuild.cpp:766
+#, kde-format
+msgid "There is no file or directory specified for building."
+msgstr "Níor sonraíodh comhad nó comhadlann ar bith le tógáil ann."
+
+#: plugin_katebuild.cpp:770
+#, kde-format
+msgid ""
+"The file \"%1\" is not a local file. Non-local files cannot be compiled."
+msgstr "Ní comhad logánta é \"%1\". Ní féidir comhaid neamhlogánta a thiomsú."
+
+#: plugin_katebuild.cpp:841
+#, kde-format
+msgid "Create directory"
+msgstr "Cruthaigh eolaire"
+
+#: plugin_katebuild.cpp:844
+#, kde-format
+msgid ""
+"The configured working directory <b>%1</b> for the targetset <b>%2</b> does "
+"not exist.<br><br>Create the directory?"
+msgstr ""
+"Níl an t-eolaire oibre cumraithe <b>%1</b> don tacar spriocanna <b>%2</b> "
+"ann.<br><br>An bhfuil tú ag iarraidh an t-eolaire a chruthú?"
+
+#: plugin_katebuild.cpp:852
+#, kde-format
+msgid "Failed to create the directory <b>%1</b>"
+msgstr "Theip ar chruthú an eolaire <b>%1</b>"
+
+#: plugin_katebuild.cpp:877
+#, kde-format
+msgid "Failed to run \"%1\". exitStatus = %2"
+msgstr "Níorbh fhéidir \"%1\" a rith. Stádas scortha = %2"
+
+#: plugin_katebuild.cpp:893
+#, kde-format
+msgid "Building <b>%1: %2</b> cancelled"
+msgstr "Foirgneamh <b>%1: %2</b> curtha ar ceal"
+
+#: plugin_katebuild.cpp:999
+#, kde-format
+msgid "Did not find a compile_commands.json for file \"%1\". "
+msgstr "Níor aimsíodh compile_commands.json don chomhad \"%1\". "
+
+#: plugin_katebuild.cpp:1012
+#, kde-format
+msgid "Did not find a compile command for file \"%1\" in \"%2\". "
+msgstr "Níor aimsíodh ordú tiomsaithe don chomhad \"%1\" i \"%2\". "
+
+#: plugin_katebuild.cpp:1031
+#, kde-format
+msgid ""
+"Cannot make \"%f\" substitution. No open file or the current file is "
+"untitled!"
+msgstr ""
+"Ní féidir ionadú \"%f\" a dhéanamh. Níl aon chomhad oscailte nó níl teideal "
+"ar an gcomhad reatha!"
+
+#: plugin_katebuild.cpp:1035
+#, kde-format
+msgid ""
+"Cannot make \"%d\" substitution. No open file or the current file is "
+"untitled!"
+msgstr ""
+"Ní féidir ionadú \"%d\" a dhéanamh. Níl aon chomhad oscailte nó níl teideal "
+"ar an gcomhad reatha!"
+
+#: plugin_katebuild.cpp:1039
+#, kde-format
+msgid ""
+"Cannot make \"%n\" substitution. No open file or the current file is "
+"untitled!"
+msgstr ""
+"Ní féidir ionadú \"%n\" a dhéanamh. Níl aon chomhad oscailte nó níl teideal "
+"ar an gcomhad reatha!"
+
+#: plugin_katebuild.cpp:1050
+#, kde-format
+msgid "Cannot make project substitution (%B). No open project!"
+msgstr ""
+"Ní féidir ionadú tionscadail a dhéanamh (%B). Níl aon tionscadal oscailte!"
+
+#: plugin_katebuild.cpp:1063
+#, kde-format
+msgid "Already building..."
+msgstr "Ag tógáil cheana féin..."
+
+#: plugin_katebuild.cpp:1101
+#, kde-format
+msgid ""
+"Cannot execute: %1: %2 No working directory set.\n"
+"There is no local file or directory specified for building."
+msgstr ""
+"Ní féidir é a fhorghníomhú: %1: %2 Níl aon eolaire oibre socraithe.\n"
+"Níl aon chomhad nó eolaire áitiúil sonraithe le haghaidh tógála."
+
+#: plugin_katebuild.cpp:1222
+#, kde-format
+msgid "Building target <b>%1: %2</b> ..."
+msgstr "Sprioc tógála <b>%1: %2</b> ..."
+
+#: plugin_katebuild.cpp:1259
+#, kde-format
+msgid ""
+"Cannot load targets, the file %1 does not contain a proper CMAKE_COMMAND "
+"entry !"
+msgstr ""
+"Ní féidir spriocanna a luchtú, níl iontráil CMAKE_COMMAND cheart sa chomhad "
+"%1 !"
+
+#: plugin_katebuild.cpp:1272
+#, kde-format
+msgid "Could not write CMake File API query files for build directory %1 !"
+msgstr ""
+"Níorbh fhéidir comhaid iarratais API CMake File a scríobh don eolaire tógála "
+"%1 !"
+
+#: plugin_katebuild.cpp:1278
+#, kde-format
+msgid "Could not run CMake (%2) for build directory %1 !"
+msgstr "Níorbh fhéidir CMake (%2) a rith don eolaire tógála %1!"
+
+#: plugin_katebuild.cpp:1287
+#, kde-format
+msgid ""
+"Generating CMake File API reply files for build directory %1 failed (using "
+"%2) !"
+msgstr ""
+"Theip ar chomhaid freagartha API CMake File a ghiniúint don eolaire tógála "
+"%1 (ag baint úsáide as %2) !"
+
+#: plugin_katebuild.cpp:1412
+#, kde-format
+msgid "Build plugin wants to execute program"
+msgstr "Tá an breiseán tógála ag iarraidh clár a fhorghníomhú"
+
+#: plugin_katebuild.cpp:1415
+#, kde-format
+msgid ""
+"The Kate build plugin needs to execute an external command to read the "
+"targets from the build tree.<br><br>The full command line is:<br><br><b>%1</"
+"b><br><br>Proceed and allow to run this command ?<br><br>The choice can be "
+"altered via the config page of the plugin."
+msgstr ""
+"Caithfidh breiseán tógála Kate ordú seachtrach a fhorghníomhú chun na "
+"spriocanna ón gcrann tógála a léamh.<br><br>Seo an líne ordaithe iomlán:"
+"<br><br><b>%1</b><br><br>Lean ar aghaidh agus cead a thabhairt don ordú seo "
+"a rith?<br><br>Is féidir an rogha a athrú tríd an leathanach cumraíochta den "
+"bhreiseán."
+
+#: plugin_katebuild.cpp:1447
+#, kde-kuit-format
+msgctxt "@info"
+msgid "<title>Build Finished:</title>%1"
+msgstr "<title>Tógáil Críochnaithe:</title>%1"
+
+#: plugin_katebuild.cpp:1510
+#, kde-format
+msgid "Build <b>%1: %2</b> completed. %3 error(s), %4 warning(s), %5 note(s)"
+msgstr ""
+"Tógáil <b>%1: %2</b> críochnaithe. %3 earráid(í), %4 rabhadh(anna), %5 "
+"nóta(í)"
+
+#: plugin_katebuild.cpp:1522
+#, kde-format
+msgid "Found one error."
+msgid_plural "Found %1 errors."
+msgstr[0] "Aimsíodh earráid amháin."
+msgstr[1] "Aimsíodh %1 earráid."
+msgstr[2] "Aimsíodh %1 earráid."
+msgstr[3] "Aimsíodh %1 n-earráid."
+msgstr[4] "Aimsíodh %1 earráid."
+
+#: plugin_katebuild.cpp:1526
+#, kde-format
+msgid "Found one warning."
+msgid_plural "Found %1 warnings."
+msgstr[0] "Aimsíodh rabhadh amháin."
+msgstr[1] "Aimsíodh %1 rabhadh."
+msgstr[2] "Aimsíodh %1 rabhadh."
+msgstr[3] "Aimsíodh %1 rabhadh."
+msgstr[4] "Aimsíodh %1 rabhadh."
+
+#: plugin_katebuild.cpp:1529
+#, kde-format
+msgid "Found one note."
+msgid_plural "Found %1 notes."
+msgstr[0] "Aimsíodh nóta amháin."
+msgstr[1] "Aimsíodh %1 earráid."
+msgstr[2] "Aimsíodh %1 earráid."
+msgstr[3] "Aimsíodh %1 n-earráid."
+msgstr[4] "Aimsíodh %1 earráid."
+
+#: plugin_katebuild.cpp:1533
+#, kde-format
+msgid "Build canceled."
+msgstr "Cuireadh an tógáil ar ceal."
+
+#: plugin_katebuild.cpp:1537
+#, kde-format
+msgid "Build failed."
+msgstr "Theip ar thógáil."
+
+#: plugin_katebuild.cpp:1539
+#, kde-format
+msgid "Build completed without problems."
+msgstr "D'éirigh leis an tógáil gan fadhb ar bith."
+
+#: plugin_katebuild.cpp:1543
+#, kde-format
+msgid "Build <b>%1: %2 canceled</b>. %3 error(s), %4 warning(s), %5 note(s)"
+msgstr ""
+"Tógáil <b>%1: %2 curtha ar ceal</b>. %3 earráid(í), %4 rabhadh(anna), %5 "
+"nóta(í)"
+
+#: plugin_katebuild.cpp:1828
+#, kde-format
+msgctxt "The same word as 'gcc' uses for an error."
+msgid "error"
+msgstr "earráid"
+
+#: plugin_katebuild.cpp:1831
+#, kde-format
+msgctxt "The same word as 'gcc' uses for a warning."
+msgid "warning"
+msgstr "rabhadh"
+
+#: plugin_katebuild.cpp:1834
+#, kde-format
+msgctxt "The same words as 'gcc' uses for note or info."
+msgid "note|info"
+msgstr "nóta|eolas"
+
+#: plugin_katebuild.cpp:1837
+#, kde-format
+msgctxt "The same word as 'ld' uses to mark an ..."
+msgid "undefined reference"
+msgstr "tagairt gan sainmhíniú"
+
+#: plugin_katebuild.cpp:2141
+#, kde-format
+msgid "Cannot save build targets in: %1"
+msgstr "Ní féidir spriocanna tógála a shábháil i: %1"
+
+#: TargetHtmlDelegate.cpp:48
+#, kde-format
+msgctxt "T as in Target set"
+msgid "<B>T:</B> %1"
+msgstr "<B>T:</B> %1"
+
+#: TargetHtmlDelegate.cpp:50
+#, kde-format
+msgctxt "Dir as in working Directory"
+msgid "<B>Dir:</B> %1"
+msgstr "<B>Dir:</B> %1"
+
+#: TargetHtmlDelegate.cpp:95
+#, kde-format
+msgid ""
+"Leave empty to use the directory of the current document.\n"
+"Add search directories by adding paths separated by ';'"
+msgstr ""
+"Fág folamh chun eolaire an doiciméid reatha a úsáid.\n"
+"Cuir eolairí cuardaigh leis trí chosáin scartha le ';' a chur leis."
+
+#: TargetHtmlDelegate.cpp:102
+#, kde-format
+msgid ""
+"Use:\n"
+"\"%B\" for project base directory\n"
+"\"%b\" for name of project base directory"
+msgstr ""
+"Úsáid:\n"
+"\"%B\" don eolaire bonn tionscadail\n"
+"\"%b\" d'ainm an eolaire bonn tionscadail"
+
+#: TargetHtmlDelegate.cpp:106
+#, kde-format
+msgid ""
+"Use:\n"
+"\"%f\" for current file\n"
+"\"%d\" for directory of current file\n"
+"\"%n\" for current file name without suffix\n"
+"\"%B\" for current project's base directory\n"
+"\"%w\" for the working directory of the target"
+msgstr ""
+"Úsáid:\n"
+"\"%f\" don chomhad reatha\n"
+"\"%d\" don eolaire den chomhad reatha\n"
+"\"%n\" don ainm comhaid reatha gan an iarmhír\n"
+"\"%B\" don bhuneolaire den tionscadal reatha\n"
+"\"%w\" don eolaire oibre den sprioc"
+
+#: TargetModel.cpp:315 TargetModel.cpp:327 targets.cpp:254
+#, kde-format
+msgid "Target Set"
+msgstr "Tacar Sprioc"
+
+#: TargetModel.cpp:566
+#, kde-format
+msgid "Projects"
+msgstr "Tionscadail"
+
+#: TargetModel.cpp:566
+#, kde-format
+msgid "Session"
+msgstr "Seisiún"
+
+#: TargetModel.cpp:678
+#, kde-format
+msgid "Command/Target-set Name"
+msgstr "Ainm an Ordaithe/an Tacair Sprioc"
+
+#: TargetModel.cpp:681
+#, kde-format
+msgid "Build Command / Working Directory"
+msgstr "Tóg Ordú / Eolaire Oibre"
+
+#: TargetModel.cpp:684
+#, kde-format
+msgid "Run Command"
+msgstr "Rith Ordú"
+
+#: targets.cpp:28
+#, kde-format
+msgid "Filter targets, use arrow keys to select, Enter to execute"
+msgstr ""
+"Scag spriocanna, bain úsáid as na heochracha saigheada chun a roghnú, agus "
+"Iontráil chun é a fhorghníomhú"
+
+#: targets.cpp:32
+#, kde-format
+msgid "Create new set of targets"
+msgstr "Cruthaigh sraith spriocanna nua"
+
+#: targets.cpp:36
+#, kde-format
+msgid "Clone command or target set"
+msgstr "Ordú clónála nó tacar sprice"
+
+#: targets.cpp:40
+#, kde-format
+msgid "Delete current target or current set of targets"
+msgstr "Scrios an sprioc reatha nó an tacar spriocanna reatha"
+
+#: targets.cpp:45
+#, kde-format
+msgid "Add new target"
+msgstr "Cuir sprioc nua leis"
+
+#: targets.cpp:49
+#, kde-format
+msgid "Build selected target"
+msgstr "Tóg sprioc roghnaithe"
+
+#: targets.cpp:53
+#, kde-format
+msgid "Build and run selected target"
+msgstr "Tóg agus rith an sprioc roghnaithe"
+
+#: targets.cpp:57
+#, kde-format
+msgid "Move selected target up"
+msgstr "Bog an sprioc roghnaithe suas"
+
+#: targets.cpp:61
+#, kde-format
+msgid "Move selected target down"
+msgstr "Bog an sprioc roghnaithe síos"
+
+#: targets.cpp:203
+#, kde-format
+msgid "Copy"
+msgstr "Cóipeáil"
+
+#: targets.cpp:207
+#, kde-format
+msgid "Cut"
+msgstr "Gearr"
+
+#: targets.cpp:211
+#, kde-format
+msgid "Paste after"
+msgstr "Greamaigh ina dhiaidh"
+
+#: targets.cpp:229 targets.cpp:256
+#, kde-format
+msgctxt "Name/Label for a compilation or build command"
+msgid "Build Command"
+msgstr "Tóg Ordú"
+
+#: targets.cpp:255
+#, kde-format
+msgctxt "Name/Label for a command to configure a build"
+msgid "Configure"
+msgstr "Cumraigh"
+
+#. i18n: ectx: Menu (Build Menubar)
+#: ui.rc:6
+#, kde-format
+msgid "&Build"
+msgstr "&Tóg"
+
+#. i18n: ectx: ToolBar (mainToolBar)
+#: ui.rc:23
+#, kde-format
+msgid "Build Plugin Toolbar"
+msgstr "Breiseán TógálaBarra Uirlisí Breiseáin Tógála"
+
+#: UrlInserter.cpp:31
+#, kde-format
+msgid "Insert path"
+msgstr "Cuir cosán isteach"
+
+#: UrlInserter.cpp:50
+#, kde-format
+msgid "Select directory to insert"
+msgstr "Roghnaigh eolaire le cur isteach"

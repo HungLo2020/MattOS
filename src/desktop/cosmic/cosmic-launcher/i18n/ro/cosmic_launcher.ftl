@@ -1,3 +1,0 @@
-app-name = Lansator COSMIC
-type-to-search = Scrie pentru a căuta aplicații sau scrie „?” pentru mai multe opțiuni...
-

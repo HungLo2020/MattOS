@@ -1,0 +1,122 @@
+# French translation for upower
+# Copyright (C) 2010 The Free Software Foundation, Inc
+# This file is distributed under the same license as the polkit package.
+# Christoph J. Thompson <cjsthompson@gmail.com>, 2010.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: upower 0.9.6\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-05-17 10:52+0200\n"
+"PO-Revision-Date: 2010-11-01 08:21+0100\n"
+"Last-Translator: Christoph J. Thompson <cjsthompson@gmail.com>\n"
+"Language-Team: French <fr@li.org>\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. TRANSLATORS: exit after we've started up, used for user profiling
+#: src/up-main.c:190
+msgid "Exit after a small delay"
+msgstr "Terminer le processus après un court delai"
+
+#. TRANSLATORS: exit straight away, used for automatic profiling
+#: src/up-main.c:193
+msgid "Exit after the engine has loaded"
+msgstr "Terminer le processus après le chargement du moteur"
+
+#: src/up-main.c:195
+msgid "Replace the old daemon"
+msgstr ""
+
+#: src/up-main.c:197
+#, fuzzy
+msgid "Show extra debugging information"
+msgstr "Afficher les options de débogage"
+
+#: src/up-main.c:199
+msgid "Enable debugging (implies --verbose)"
+msgstr ""
+
+#: tools/up-tool.c:206
+msgid "Enumerate objects paths for devices"
+msgstr "Enumérer les chemins des objets des périphériques"
+
+#: tools/up-tool.c:207
+msgid "Dump all parameters for all objects"
+msgstr "Capturer tous les paramètres de tous les objets"
+
+#: tools/up-tool.c:208
+msgid "Monitor activity from the power daemon"
+msgstr "Contrôller l'activité du démon de l'alimentation"
+
+#: tools/up-tool.c:209
+msgid "Monitor with detail"
+msgstr "Contrôller dans les détails"
+
+#: tools/up-tool.c:210
+msgid "Show information about object path"
+msgstr "Afficher les informations sur le chemin de l'objet"
+
+#~ msgid "Authentication is required to hibernate the system"
+#~ msgstr "Vous devez vous identifier pour mettre le système en hibernation"
+
+#~ msgid "Authentication is required to suspend the system"
+#~ msgstr "Vous devez vous identifier pour mettre le système en veille"
+
+#~ msgid "Hibernate the system"
+#~ msgstr "Mettre le système en hibernation"
+
+#~ msgid "Suspend the system"
+#~ msgstr "Mettre le système en veille"
+
+#~ msgid "Authentication is required to cancel a latency request"
+#~ msgstr "Vous devez vous identifier pour annuler une demande de latence"
+
+#~ msgid "Authentication is required to set a persistent latency setting"
+#~ msgstr "Vous devez vous identifier pour définir de latence persistante"
+
+#~ msgid ""
+#~ "Authentication is required to set administrator settings for latency "
+#~ "control"
+#~ msgstr ""
+#~ "Vous devez vous identifier pour définir les paramètres administrateur de "
+#~ "contrôle de latence"
+
+#~ msgid ""
+#~ "Authentication is required to set the required latency of an application"
+#~ msgstr ""
+#~ "Vous devez vous identifier pour définir la latence requise d'une "
+#~ "application"
+
+#~ msgid "Cancel a latency request"
+#~ msgstr "Annuler une demande de latence"
+
+#~ msgid "Set a persistent latency setting"
+#~ msgstr "Définir une latence persistante"
+
+#~ msgid "Set administrator settings for latency control"
+#~ msgstr ""
+#~ "Définir les paramètres administrateur pour le contrôle de la latence"
+
+#~ msgid "Set the required latency of an application"
+#~ msgstr "Définir la latence requise d'une application"
+
+#~ msgid "Get the wakeup data"
+#~ msgstr "Obtenir les données de réveil"
+
+#~ msgid "Show debugging information for all files"
+#~ msgstr "Afficher les informations de débogage pour tous les fichiers"
+
+#~ msgid "Debug these specific modules"
+#~ msgstr "Déboguer les modules suivants"
+
+#~ msgid "Debug these specific functions"
+#~ msgstr "Déboguer les fonctions suivantes"
+
+#~ msgid "Log debugging data to a file"
+#~ msgstr "Consigner les données de débogage dans un fichier"
+
+#~ msgid "Debugging Options"
+#~ msgstr "Options de Débogage"

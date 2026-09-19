@@ -1,0 +1,492 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//KDE//DTD DocBook XML V4.5-Based Variant V1.1//EN" "dtd/kdedbx45.dtd" [
+  <!ENTITY % addindex "IGNORE">
+  <!ENTITY % English "INCLUDE" > <!-- change language only here -->
+  <!ENTITY Ragnar.Thomsen '<personname><firstname>Ragnar</firstname><surname>Thomsen</surname></personname>'>
+  <!ENTITY Ragnar.Thomsen.mail '<email>rthomsen6@gmail.com</email>'>
+  <!ENTITY Henrique.Pinto '<personname><firstname>Henrique</firstname><surname>Pinto</surname></personname>'>
+  <!ENTITY Henrique.Pinto.mail '<email>henrique.pinto@kdemail.net</email>'>
+]>
+
+<book id="ark" lang="&language;">
+
+<bookinfo>
+<title>The &ark; Handbook</title>
+
+<authorgroup>
+<author>
+&Matt.Johnston; &Matt.Johnston.mail;
+</author>
+<author>
+&Henrique.Pinto; &Henrique.Pinto.mail;
+</author>
+<author>
+&Ragnar.Thomsen; &Ragnar.Thomsen.mail;
+</author>
+
+<!-- TRANS:ROLES_OF_TRANSLATORS -->
+</authorgroup>
+
+<copyright>
+<year>2000</year>
+<holder>&Matt.Johnston;</holder>
+</copyright>
+
+<copyright>
+<year>2004</year>
+<holder>&Henrique.Pinto;</holder>
+</copyright>
+
+<copyright>
+<year>2015, 2016</year>
+<holder>&Ragnar.Thomsen;</holder>
+</copyright>
+
+<legalnotice>&FDLNotice;</legalnotice>
+
+<date>2016-09-10</date>
+<releaseinfo>Applications 16.12</releaseinfo>
+
+<abstract>
+<para>&ark; is an archive manager by &kde;.</para>
+</abstract>
+
+<keywordset>
+<keyword>KDE</keyword>
+<keyword>gzip</keyword>
+<keyword>gunzip</keyword>
+<keyword>tar</keyword>
+<keyword>archive</keyword>
+<keyword>zip</keyword>
+<keyword>compression</keyword>
+<keyword>7z</keyword>
+<keyword>kdeutils</keyword>
+<keyword>ark</keyword>
+</keywordset>
+</bookinfo>
+
+<chapter id="introduction">
+<title>Introduction</title>
+<para>&ark; is a program for viewing, extracting, creating and modifying
+archives.
+&ark; can handle various archive formats such as
+<command>tar</command>, <command>gzip</command>,
+<command>bzip2</command>, <command>zip</command>, <command>rar</command>, 
+<command>7zip</command>, <command>xz</command>, <command>rpm</command>, 
+<command>cab</command>, <command>deb</command>, <command>xar</command>
+and <command>AppImage</command> (support for certain archive formats depends on
+the appropriate command-line programs being installed).</para>
+
+<mediaobject>
+<imageobject>
+<imagedata fileref="ark-mainwindow.png" format="PNG"/>
+</imageobject>
+<textobject>
+<phrase>&ark;'s main window</phrase>
+</textobject>
+</mediaobject>
+
+<para>In order to successfully use &ark;, you need KDE Frameworks 5. The library libarchive
+version 3.1 or above is needed to handle most archive types, including tar,
+compressed tar, rpm, deb and cab archives. To handle other file formats, you
+need the appropriate command line programs, such as <command>zipinfo</command>,
+<command>zip</command>, <command>unzip</command>, <command>rar</command>,
+<command>unrar</command>, <command>7z</command>, <command>lsar</command>,
+<command>unar</command> and <command>lrzip</command>.</para>
+
+</chapter>
+
+<chapter id="using-ark">
+<title>Using &ark;</title>
+
+<sect1 id="ark-open">
+<title>Opening Archives</title>
+
+<para>To open an archive in &ark;, choose
+<guimenuitem>Open...</guimenuitem> (<keycombo
+action="simul">&Ctrl;<keycap>O</keycap></keycombo>) from the <guimenu>Archive</guimenu>
+menu. You can also open archive files by dragging and dropping from
+&dolphin;. Archive files should be associated with &ark;, so you can
+also <mousebutton>right</mousebutton> click a file in &dolphin; and
+select <guimenuitem>Open with &ark;</guimenuitem> to open it or select an extract action for this file.</para>
+
+<para>If you have enabled the information panel in the <guimenu>Settings</guimenu> menu 
+additional information about the selected folders or files in the archive is displayed.</para>
+
+<sect2 id="ark-archive-operations">
+<title>Archive Operations</title>
+
+<para>Various operations can be performed for an opened archive by using the <guimenu>Archive</guimenu> menu.
+For example, you can save the archive with a different name using <guimenuitem>Save As...</guimenuitem>.
+Archive properties such as type, size and MD5 hash can be viewed using the
+<guimenuitem>Properties</guimenuitem> item.</para>
+
+<para>&ark; has the ability to test archives for integrity. This functionality is currently available for
+<command>zip</command>, <command>rar</command> and <command>7z</command> archives.
+The test action can be found in the <guimenu>Archive</guimenu> menu.</para>
+
+</sect2>
+
+<sect2 id="ark-archive-comments">
+<title>Archive Comments</title>
+
+<para>&ark; can handle comments embedded in <literal role="extension">zip</literal> and <literal role="extension">rar</literal> archives.</para>
+
+<para>Comments embedded in <literal role="extension">zip</literal> archives are automatically displayed.</para>
+
+<para>Using <literal role="extension">rar</literal> archives you can modify a comment with the actions 
+<guimenuitem>Add Comment</guimenuitem> or <guimenuitem>Edit comment</guimenuitem> 
+(<keycombo action="simul">&Alt;<keycap>C</keycap></keycombo>) from the <guimenu>Archive</guimenu> menu.
+</para>
+
+<mediaobject>
+<imageobject>
+<imagedata fileref="ark-comment.png" format="PNG"/>
+</imageobject>
+<textobject>
+<phrase>Editing a comment</phrase>
+</textobject>
+</mediaobject>
+
+<note><para>The comment menu item is enabled only for <literal role="extension">rar</literal> archives.
+</para></note>
+
+<para>To remove a comment from a <literal role="extension">rar</literal> archive delete the text in 
+the comment window.</para>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="ark-work-files">
+<title>Working with Files</title>
+
+<para>Once an archive has been opened, you can perform various
+operations on the files inside the archive.  By
+selecting a file and using the <guimenu>File</guimenu>
+menu, you can choose different operations to perform:</para>
+
+<itemizedlist>
+<listitem>
+<para><guimenuitem>Preview</guimenuitem> (<keycombo
+action="simul">&Ctrl;<keycap>P</keycap></keycombo>) will open the file with &ark;'s internal viewer.
+This is a fast read-only viewer, but does not support all file types.</para>
+</listitem>
+<listitem>
+<para><guimenuitem>Open</guimenuitem> will open the file in the associated application for that
+file type.</para>
+</listitem>
+<listitem>
+<para><guimenuitem>Open With...</guimenuitem> allows you to choose which application to open
+the file with.</para>
+</listitem>
+<listitem>
+<para><guimenuitem>Rename</guimenuitem> (<keycombo action="simul">&Alt;<keycap>F2</keycap></keycombo>)
+This action allows to change names of both files and folders. As in the Dolphin file manager,
+this action can be called via a shortcut and renaming is done via inline editing.
+There are also filename checks provided, which prevent usage of invalid characters such as
+<userinput>/</userinput>, <userinput>.</userinput> and <userinput>..</userinput> in filenames.</para>
+</listitem>
+<listitem>
+<para><guimenuitem>Delete</guimenuitem> (<keycap>Del</keycap>) will remove the currently
+selected file(s) from the archive. Note that this action is undoable.</para>
+</listitem>
+<listitem>
+<para><guimenuitem>Extract</guimenuitem> (<keycombo
+action="simul">&Ctrl;<keycap>E</keycap></keycombo>) opens a submenu with previously accessed
+folders, and you can choose to quickly extract into any of these or browse to a non-listed
+folder. See the next section for more details on extraction.</para>
+</listitem>
+<listitem>
+<para><guimenuitem>Cut</guimenuitem> (<keycombo action="simul">&Ctrl;<keycap>X</keycap></keycombo>) /
+<guimenuitem>Copy</guimenuitem> (<keycombo action="simul">&Ctrl;<keycap>C</keycap></keycombo>) /
+<guimenuitem>Paste</guimenuitem> (<keycombo action="simul">&Ctrl;<keycap>V</keycap></keycombo>):
+As in typical file managers, moving, pasting and copying are provided. 
+Users can move or copy files from different folders (which are expandable in the tree view)
+and paste them to the same destination at once. A folder can be copied into itself, but can not be moved.
+There are also checks for conflicting filenames: You won't be able to copy or move files
+into a folder that has entries with the same names - that could lead to data loss.</para>
+</listitem>
+<listitem>
+<para><guimenuitem>Add Files</guimenuitem> (<keycombo action="simul">&Alt;<keycap>A</keycap></keycombo>)
+This action can be used to add files at any location within the archive.
+If you select a folder and use this action, files will be added to the selected folder.
+Otherwise, the new files will be added to the root of the archive.
+</para>
+</listitem>
+</itemizedlist>
+
+<sect2 id="ark-editing-files">
+<title>Editing Files</title>
+<para>If you edit and save a file which you opened using <guimenuitem>Open</guimenuitem> or
+<guimenuitem>Open With...</guimenuitem>, Ark will ask you if you want to update the file in
+the archive. If you answer Yes, the archive will be updated with the saved file.</para>
+
+</sect2>
+</sect1>
+
+<sect1 id="ark-extract">
+<title>Extracting Files</title>
+
+<para>Once an archive has been opened in &ark;, it can be extracted. This can be done by selecting
+<guisubmenu>Extract</guisubmenu> from the <guimenu>File</guimenu> menu. This opens a submenu with
+previously accessed folders, and you can choose to quickly extract into any of these. Alternatively,
+select the submenu item <guisubmenu>Extract To...</guisubmenu> to open the <guilabel>Extract</guilabel>
+dialog, where you can set various options that affect the extraction. See below for information on
+the available options in the Extract dialog.</para>
+
+<para>You can also use the <guibutton>Extract</guibutton> button in the toolbar to access the same
+extraction options.</para>
+
+<para>To extract the entire archive, you can select <guisubmenu>Extract All</guisubmenu> from the
+<guimenu>Archive</guimenu> menu. This action unconditionally extracts all files in the archive.</para>
+
+<para>It is possible to extract files and folders by simply dragging them with the mouse to a
+folder in &dolphin;.</para>
+
+<para>Note: Extracting files from an archive does not change the archive and its contents.</para>
+
+<sect2 id="ark-extract-dialog">
+<title>The Extract dialog</title>
+
+<para>The <guilabel>Extract</guilabel> dialog allows you to choose where the files will be extracted
+to. The default location is the folder the archive is in. The dialog can also be opened by pressing
+<keycombo action="simul">&Ctrl;<keycap>E</keycap></keycombo>.</para>
+
+<mediaobject>
+<imageobject>
+<imagedata fileref="extract-dialog.png" format="PNG"/>
+</imageobject>
+<textobject>
+<phrase>&ark;'s Extract dialog</phrase>
+</textobject>
+</mediaobject>
+
+<para>You can specify to extract the files into a subfolder. The default name of this
+subfolder is the archive name without the filename extension, but you can edit it to your needs.
+If you want to preserve paths when extracting, select the
+<guilabel>Preserve paths when extracting</guilabel> option. You may also choose to open the
+destination folder in &dolphin; or close &ark; once the extraction is complete.</para>
+
+<para>If one or more files in the archive list are highlighted, you can
+also select which files to extract:</para>
+<itemizedlist>
+<listitem>
+<para><guilabel>Selected files only</guilabel> extracts only the files
+which have been selected.</para>
+</listitem>
+<listitem>
+<para><guilabel>All files</guilabel> extracts the entire contents of the
+archive.</para>
+</listitem>
+</itemizedlist>
+
+</sect2>
+</sect1>
+
+<sect1 id="ark-create">
+<title>Creating Archives and Adding Files</title>
+
+<para>To create a new archive in &ark;, choose
+<guimenuitem>New</guimenuitem> (<keycombo action="simul">&Ctrl;<keycap>N</keycap></keycombo>)
+from the <guimenu>Archive</guimenu> menu.</para>
+
+<mediaobject>
+<imageobject>
+<imagedata fileref="create-archive.png" format="PNG"/>
+</imageobject>
+<textobject>
+<phrase>Create an archive</phrase>
+</textobject>
+</mediaobject>
+
+<para>You can then type the name of the archive, with the appropriate
+extension (<literal role="extension">tar.gz</literal>, <literal
+role="extension">zip</literal>, <literal role="extension">7z</literal>,
+&etc;) or select a supported format in the <guilabel>Filter</guilabel> combo box
+and check the <guilabel>Automatically add <replaceable>filename extension</replaceable></guilabel> option.</para>
+
+<para>To add files or folders to the new archive, choose <guimenuitem>Add
+Files...</guimenuitem> from the <guimenu>Archive</guimenu> menu.</para>
+
+<para>An alternative way to add files to an archive is to drag one or more files
+from e.g. &dolphin; into the main &ark; window, and it will
+be added to the current archive. Note that files added in this way will always be added
+to the root directory of the archive.</para>
+
+<para>Additional options are presented in collapsible groups at the bottom of the dialog.
+</para>
+
+<sect2 id="ark-compression">
+<title>Compression</title>
+<para>A higher value generates smaller archives, but results in longer compression and decompression times.
+The default compression level proposed by &ark; is usually a good compromise between size and (de)compression speed.
+For most formats the minimum compression level is equivalent to just storing the files, &ie; applying no compression.
+</para>
+<para>For <literal role="extension">rar</literal>, <literal role="extension">7z</literal> and <literal role="extension">zip</literal>
+archives you can select between different compression methods.
+</para>
+<para>Note that using compression methods other than the pre-selected defaults may limit compatibility with file archivers.
+For example, opening <literal role="extension">zip</literal> archives with compression methods other than <quote>Deflate</quote>
+requires newer archiving software.</para>
+</sect2>
+
+<sect2 id="ark-password-protection">
+<title>Password Protection</title>
+<para>If you create a <literal role="extension">zip</literal>, <literal
+role="extension">rar</literal>, <literal role="extension">7zip</literal> and
+<literal role="extension">jar</literal> archive you can protect it with a password.
+Currently, only the <literal role="extension">zip</literal> format supports multiple
+encryption methods. For other formats that support only one encryption
+method, the method is shown in the drop down box.</para>
+<para>Other encryption methods than the default <guilabel>ZipCrypto</guilabel> might
+not be supported by all file archivers.</para>
+
+<mediaobject>
+<imageobject>
+<imagedata fileref="create-protected-archive.png" format="PNG"/>
+</imageobject>
+<textobject>
+<phrase>Create a password protected archive</phrase>
+</textobject>
+</mediaobject>
+
+<para>Choose whether to require the password before showing the list of files.
+This is called header encryption and is available only with the
+<literal role="extension">rar</literal> and <literal role="extension">7zip</literal>
+formats. Header encryption is enabled by default (when available), in order to offer
+the maximum protection for novice users.</para>
+</sect2>
+
+<sect2 id="ark-multi-volume">
+<title>Multi-volume Archive</title>
+<para>With the <literal role="extension">zip</literal>, <literal role="extension">rar</literal>
+and <literal role="extension">7z</literal> formats you can create multi-volume archives, also
+known as multi-part or split archives.</para>
+<para>A multi-volume archive is one big compressed archive split into several files. This feature
+is useful if the maximum file size is limited, &eg; by the capacity of a storage medium
+or the maximal size of an email with attachments.</para>
+<para>To create a multi-volume archive, check the <guilabel>Create multi-volume archive</guilabel>
+checkbox and set a maximum <guilabel>Volume size</guilabel> in the dialog. Then add all files to
+the archive and &ark; will automatically generate the required number of archive volumes.
+Depending on the selected format the files have an extension with consecutively numbering
+scheme &eg; <filename>xxx.7z.001</filename>, <filename>xxx.7z.002</filename> or
+<filename>xxx.zip.001</filename>, <filename>xxx.zip.002</filename> or <filename>xxx.part1.rar</filename>,
+<filename>xxx.part2.rar</filename> &etc;.</para>
+<para>To extract a multi-volume archive, put all archive files into one folder and open the file
+with the lowest extension number in &ark; and all other parts of the split archive
+will be opened automatically.</para>
+</sect2>
+
+</sect1>
+
+</chapter>
+
+<chapter id="ark-in_filemanager">
+<title>Using &ark; in the File Manager</title>
+
+<para>Clicking with the &RMB; on an archive in a file manager like &dolphin;
+displays a context menu with an item <guimenuitem>Extract</guimenuitem>.
+The menu has these additional items to extract an archive using &ark;:
+</para>
+
+<itemizedlist>
+<listitem>
+<para><guimenuitem>Extract here</guimenuitem> creates a 
+subfolder in the folder with the archive and extracts the folders and files into it. In
+case the archive contains only one file or folder, no subfolder will be created.</para>
+</listitem>
+<listitem>
+<para><guimenuitem>Extract here and delete archive</guimenuitem> creates a 
+subfolder in the folder with the archive, extracts the folders and files into it and deletes the archive.</para>
+</listitem>
+<listitem>
+<para><guimenuitem>Extract to…</guimenuitem> opens the Extract dialog where you can choose the destination folder and various extraction options.</para>
+</listitem>
+</itemizedlist>
+
+<para>
+&dolphin;'s context menu for a selection of files and/or folders displays these actions in the
+<guimenu>Compress</guimenu> submenu:
+</para>
+
+<itemizedlist>
+<listitem>
+<para><guimenuitem>Compress to "Archive.tar.gz"</guimenuitem> and <guimenuitem>Compress to "Archive.zip"</guimenuitem> creates these archive types in the current folder.</para>
+</listitem>
+<listitem>
+<para><guimenuitem>Compress to...</guimenuitem> opens a dialog where you can select folder, name and archive type.</para>
+</listitem>
+</itemizedlist>
+
+</chapter>
+
+<chapter id="batchmode">
+<title>Advanced Batch Mode</title>
+<para>&ark; has an advanced batch mode to manage archives without launching a graphical user interface.
+This mode allows you to extract or create archives and add files to them.</para>
+
+<para>The batch mode is documented in <ulink url="man:/ark">&ark;'s man page</ulink>.
+</para>
+</chapter>
+
+<chapter id="credits">
+
+<title>Credits and License</title>
+
+<para>&ark; is Copyright &copy; 1997-2016, The &ark; Development Team.</para>
+
+<itemizedlist>
+<title>Authors:</title>
+<listitem><para>Elvis Angelaccio
+<email>elvis.angelaccio@kde.org</email></para></listitem>
+<listitem><para>Ragnar Thomsen
+<email>rthomsen6@gmail.com</email></para></listitem>
+<listitem><para>Raphael Kubo da Costa
+<email>rakuco@FreeBSD.org</email></para></listitem>
+<listitem><para>Harald Hvaal
+<email>haraldhv@stud.ntnu.no</email></para></listitem>
+<listitem><para>Helio Chissini de Castro
+<email>helio@conectiva.com.br</email></para></listitem>
+<listitem><para>Georg Robbers
+<email>Georg.Robbers@urz.uni-hd.de</email></para></listitem>
+<listitem><para>Henrique Pinto
+<email>henrique.pinto@kdemail.net</email></para></listitem>
+<listitem><para>Roberto Selbach Teixeira
+<email>maragato@kde.org</email></para></listitem>
+<listitem><para>Robert Palmbos
+<email>palm9744@kettering.edu</email></para></listitem>
+<listitem><para>Francois-Xavier Duranceau
+<email>duranceau@kde.org</email></para></listitem>
+<listitem><para>Corel Corporation (author: Emily Ezust)
+<email>emilye@corel.com</email></para></listitem>
+<listitem><para>Corel Corporation (author: Michael Jarrett)
+<email>michaelj@corel.com</email></para></listitem>
+</itemizedlist>
+
+<para>Documentation Copyright &copy; 2000 &Matt.Johnston;
+&Matt.Johnston.mail;</para>
+
+<para>Documentation updated for &kde; 3.3 by &Henrique.Pinto;
+&Henrique.Pinto.mail;.</para>
+
+<para>Documentation updated for KDE Applications 16.04 by &Ragnar.Thomsen;
+&Ragnar.Thomsen.mail;.</para>
+
+<!-- TRANS:CREDIT_FOR_TRANSLATORS -->
+&underFDL;
+&underGPL;
+
+</chapter>
+
+&documentation.index;
+</book>
+
+<!--
+Local Variables:
+mode: sgml
+sgml-minimize-attributes: nil
+sgml-general-insert-case: lower
+End:
+-->
+

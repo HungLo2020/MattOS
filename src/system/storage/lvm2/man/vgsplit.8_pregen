@@ -1,0 +1,530 @@
+.TH VGSPLIT 8 "LVM TOOLS #VERSION#" "Red Hat, Inc."
+.
+.ie t \{\
+.\" PostScript/PDF with tabs
+. ds TT \t
+. ds DTT \t\t
+.\}
+.el \{\
+. ds TT \&
+. ds DTT \0\0\0
+.\}
+.
+.de OPT
+.ie \\n(.$>1 \\*[TT]\fB-\\$1\fP|\\*[TT]\fB--\\$2\fP\c
+.el \\*[DTT]\fB--\\$1\fP\c
+..
+.
+.de OPA
+.OPT \\$*
+\ \c
+..
+.de OPS
+.OPT \\$*
+\&
+..
+.
+.
+.\"List of all options as O_string.
+.
+.de O_alloc
+.OPA alloc
+\%\fBcontiguous\fP|\:\
+\fBcling\fP|\:\
+\fBcling_by_tags\fP|\:\
+\fBnormal\fP|\:\
+\fBanywhere\fP|\:\
+\fBinherit\fP
+..
+.de O_autobackup
+.OPA A autobackup
+\fBy\fP|\fBn\fP
+..
+.de O_commandprofile
+.OPA commandprofile
+\fIString\fP
+..
+.de O_config
+.OPA config
+\fIString\fP
+..
+.de O_debug
+.OPA d debug
+\&\.\|.\|.\&
+..
+.de O_devices
+.OPA devices
+\fIPV\fP
+..
+.de O_devicesfile
+.OPA devicesfile
+\fIString\fP
+..
+.de O_driverloaded
+.OPA driverloaded
+\fBy\fP|\fBn\fP
+..
+.de O_help
+.OPS h help
+..
+.de O_journal
+.OPA journal
+\fIString\fP
+..
+.de O_lockopt
+.OPA lockopt
+\fIString\fP
+..
+.de O_longhelp
+.OPS longhelp
+..
+.de O_maxlogicalvolumes
+.OPA l maxlogicalvolumes
+\fINumber\fP
+..
+.de O_maxphysicalvolumes
+.OPA p maxphysicalvolumes
+\fINumber\fP
+..
+.de O_metadatatype
+.OPA M metadatatype
+\fBlvm2\fP
+..
+.de O_name
+.OPA n name
+\fIString\fP
+..
+.de O_nohints
+.OPS nohints
+..
+.de O_nolocking
+.OPS nolocking
+..
+.de O_poolmetadataspare
+.OPA poolmetadataspare
+\fBy\fP|\fBn\fP
+..
+.de O_profile
+.OPA profile
+\fIString\fP
+..
+.de O_quiet
+.OPA q quiet
+\&\.\|.\|.\&
+..
+.de O_test
+.OPS t test
+..
+.de O_verbose
+.OPA v verbose
+\&\.\|.\|.\&
+..
+.de O_version
+.OPS version
+..
+.de O_vgmetadatacopies
+.OPA \fP[\fBvg\fP]\fBmetadatacopies
+\%\fBall\fP|\:\
+\fBunmanaged\fP|\:\
+\fINumber\fP
+..
+.de O_yes
+.OPS y yes
+..
+.
+.SH NAME
+.
+vgsplit \(em Move physical volumes into a new or existing volume group
+.
+.SH SYNOPSIS
+.
+.nh
+.TP
+\fBvgsplit\fP \fIoption_args\fP \fIposition_args\fP
+[ \fIoption_args\fP ]
+.hy
+.
+.ds TT \&
+.ds DTT \&
+.
+.
+.SH DESCRIPTION
+.
+vgsplit moves one or more PVs from a source VG (the first VG arg) to a
+destination VG (the second VG arg).  The PV(s) to move are named after the
+source and destination VGs, or an LV is named, in which case the PVs
+underlying the LV are moved.
+.P
+If the destination VG does not exist, a new VG is created (command options
+can be used to specify properties of the new VG, also see
+\fBvgcreate\fP(8)).
+.P
+LVs cannot be split between VGs; each LV must be entirely on the PVs in
+the source or destination VG.
+.P
+vgsplit can only move complete PVs. (See \fBpvmove\fP(8) for moving part
+of a PV.)
+.
+.SH USAGE
+.
+.nh
+.na
+Split a VG by specified PVs.
+.P
+.B vgsplit
+\fIVG\fP \fIVG\fP \fIPV\fP\ .\|.\|.\&
+.RS
+[ COMMON_OPTIONS ]
+.RE
+.
+.P
+\(em
+.P
+.
+Split a VG by PVs in a specified LV.
+.P
+.B vgsplit
+\fB-n\fP|\fB--name\fP \fILV\fP
+\fIVG\fP \fIVG\fP
+.RS
+[ COMMON_OPTIONS ]
+.RE
+.P
+\(em
+.P
+Common options for command:
+.RS
+[
+.O_autobackup
+]
+.br
+[
+.O_maxlogicalvolumes
+]
+.br
+[
+.O_maxphysicalvolumes
+]
+.br
+[
+.O_metadatatype
+]
+.br
+[
+.O_alloc
+]
+.br
+[
+.O_poolmetadataspare
+]
+.br
+[
+.O_vgmetadatacopies
+]
+.RE
+.P
+Common options for lvm:
+.RS
+[
+.O_debug
+]
+.br
+[
+.O_help
+]
+.br
+[
+.O_quiet
+]
+.br
+[
+.O_test
+]
+.br
+[
+.O_verbose
+]
+.br
+[
+.O_yes
+]
+.br
+[
+.O_commandprofile
+]
+.br
+[
+.O_config
+]
+.br
+[
+.O_devices
+]
+.br
+[
+.O_devicesfile
+]
+.br
+[
+.O_driverloaded
+]
+.br
+[
+.O_journal
+]
+.br
+[
+.O_lockopt
+]
+.br
+[
+.O_longhelp
+]
+.br
+[
+.O_nohints
+]
+.br
+[
+.O_nolocking
+]
+.br
+[
+.O_profile
+]
+.br
+[
+.O_version
+]
+.RE
+.hy
+.ad
+.
+.SH OPTIONS
+.
+.TP
+.O_alloc
+Determines the allocation policy when a command needs to allocate
+Physical Extents (PEs) from the VG. Each VG and LV has an allocation policy
+which can be changed with vgchange/lvchange, or overridden on the
+command line.
+\fBnormal\fP applies common sense rules such as not placing parallel stripes
+on the same PV.
+\fBinherit\fP applies the VG policy to an LV.
+\fBcontiguous\fP requires new PEs to be placed adjacent to existing PEs.
+\fBcling\fP places new PEs on the same PV as existing PEs in the same
+stripe of the LV.
+If there are sufficient PEs for an allocation, but normal does not
+use them, \fBanywhere\fP will use them even if it reduces performance,
+e.g. by placing two stripes on the same PV.
+Optional positional PV args on the command line can also be used to limit
+which PVs the command will use for allocation.
+See \fBlvm\fP(8) for more information about allocation.
+.
+.TP
+.O_autobackup
+Specifies if metadata should be backed up automatically after a change.
+Enabling this is strongly advised!
+See \fBvgcfgbackup\fP(8) for more information.
+.
+.TP
+.O_commandprofile
+The command profile to use for command configuration.
+See \fBlvm.conf\fP(5) for more information about profiles.
+.
+.TP
+.O_config
+Config settings for the command. These override \fBlvm.conf\fP(5) settings.
+The String arg uses the same format as \fBlvm.conf\fP(5),
+or may use section/field syntax.
+See \fBlvm.conf\fP(5) for more information about config.
+.
+.TP
+.O_debug
+Set debug level. Repeat from 1 to 6 times to increase the detail of
+messages sent to the log file and/or syslog (if configured).
+.
+.TP
+.O_devices
+Restricts the devices that are visible and accessible to the command.
+Devices not listed will appear to be missing. This option can be
+repeated, or accepts a comma separated list of devices. This overrides
+the devices file.
+.
+.TP
+.O_devicesfile
+A file listing devices that LVM should use.
+The file must exist in \fI#DEFAULT_SYS_DIR#/devices/\fP and is managed
+with the \fBlvmdevices\fP(8) command.
+This overrides the \fBlvm.conf\fP(5) \fBdevices/devicesfile\fP and
+\fBdevices/use_devicesfile\fP settings.
+.
+.TP
+.O_driverloaded
+If set to no, the command will not attempt to use device-mapper.
+For testing and debugging.
+.
+.TP
+.O_help
+Display help text.
+.
+.TP
+.O_journal
+Record information in the systemd journal.
+This information is in addition to information
+enabled by the lvm.conf log/journal setting.
+command: record information about the command.
+output: record the default command output.
+debug: record full command debugging.
+.
+.TP
+.O_lockopt
+Used to pass options for special cases to lvmlockd.
+See \fBlvmlockd\fP(8) for more information.
+.
+.TP
+.O_longhelp
+Display long help text.
+.
+.TP
+.O_maxlogicalvolumes
+Sets the maximum number of LVs allowed in a VG.
+.
+.TP
+.O_maxphysicalvolumes
+Sets the maximum number of PVs that can belong to the VG.
+The value 0 removes any limitation.
+For large numbers of PVs, also see options --pvmetadatacopies,
+and --vgmetadatacopies for improving performance.
+.
+.TP
+.O_metadatatype
+Specifies the type of on-disk metadata to use.
+\fBlvm2\fP (or just \fB2\fP) is the current, standard format.
+\fBlvm1\fP (or just \fB1\fP) is no longer used.
+.
+.TP
+.O_name
+Move only PVs used by the named LV.
+.
+.TP
+.O_nohints
+Do not use the hints file to locate devices for PVs. A command may read
+more devices to find PVs when hints are not used. The command will still
+perform standard hint file invalidation where appropriate.
+.
+.TP
+.O_nolocking
+Disable locking. Use with caution, concurrent commands may produce
+incorrect results.
+.
+.TP
+.O_poolmetadataspare
+Enable or disable the automatic creation and management of a
+spare pool metadata LV in the VG. A spare metadata LV is reserved
+space that can be used when repairing a pool.
+.
+.TP
+.O_profile
+An alias for --commandprofile or --metadataprofile, depending
+on the command.
+.
+.TP
+.O_quiet
+Suppress output and log messages. Overrides --debug and --verbose.
+Repeat once to also suppress any prompts with answer 'no'.
+.
+.TP
+.O_test
+Run in test mode. Commands will not update metadata.
+This is implemented by disabling all metadata writing but nevertheless
+returning success to the calling function. This may lead to unusual
+error messages in multi-stage operations if a tool relies on reading
+back metadata it believes has changed but hasn't.
+.
+.TP
+.O_verbose
+Set verbose level. Repeat from 1 to 4 times to increase the detail
+of messages sent to stdout and stderr.
+.
+.TP
+.O_version
+Display version information.
+.
+.TP
+.O_vgmetadatacopies
+Number of copies of the VG metadata that are kept.
+VG metadata is kept in VG metadata areas on PVs in the VG,
+i.e. reserved space at the start and/or end of the PVs.
+Keeping a copy of the VG metadata on every PV can reduce performance
+in VGs containing a large number of PVs.
+When this number is set to a non-zero value, LVM will automatically
+choose PVs on which to store metadata, using the metadataignore flags
+on PVs to achieve the specified number.
+The number can also be replaced with special string values:
+\fBunmanaged\fP causes LVM to not automatically manage the PV
+metadataignore flags.
+\fBall\fP causes LVM to first clear the metadataignore flags on
+all PVs, and then to become unmanaged.
+.
+.TP
+.O_yes
+Do not prompt for confirmation interactively but always assume the
+answer yes. Use with extreme caution.
+(For automatic no, see -qq.)
+.
+.SH VARIABLES
+.
+.TP
+.I VG
+Volume Group name.  See \fBlvm\fP(8) for valid names.
+.
+.TP
+.I PV
+Physical Volume name, a device path under /dev.
+For commands managing physical extents, a PV positional arg
+generally accepts a suffix indicating a range (or multiple ranges)
+of physical extents (PEs). When the first PE is omitted, it defaults
+to the start of the device, and when the last PE is omitted it defaults to end.
+.br
+Start and end range (inclusive):
+\fIPV\fP[\fB:\fP\fIPE\fP\fB-\fP\fIPE\fP]\ .\|.\|.\&
+.br
+Start and length range (counting from 0):
+\fIPV\fP[\fB:\fP\fIPE\fP\fB+\fP\fIPE\fP]\ .\|.\|.\&
+.
+.TP
+.I String
+See the option description for information about the string content.
+.
+.TP
+.IR Size [UNIT]
+Size is an input number that accepts an optional unit.
+Input units are always treated as base two values, regardless of
+capitalization, e.g. 'k' and 'K' both refer to 1024.
+The default input unit is specified by letter, followed by |UNIT.
+UNIT represents other possible input units:
+.BR b | B
+is bytes,
+.BR s | S
+is sectors of 512 bytes,
+.BR k | K
+is KiB,
+.BR m | M
+is MiB,
+.BR g | G
+is GiB,
+.BR t | T
+is TiB,
+.BR p | P
+is PiB,
+.BR e | E
+is EiB.
+(This should not be confused with the output control --units,
+where capital letters mean multiple of 1000.)
+.
+.SH ENVIRONMENT VARIABLES
+.
+See \fBlvm\fP(8) for information about environment variables used by lvm.
+For example, \fBLVM_VG_NAME\fP can generally be substituted
+for a required VG parameter.

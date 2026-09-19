@@ -1,0 +1,758 @@
+# Copyright (C) 2023 This file is copyright:
+# This file is distributed under the same license as the kate package.
+# SPDX-FileCopyrightText: 2023, 2024, 2025 Adrián Chaves (Gallaecio)
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: kate\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-07-04 00:47+0000\n"
+"PO-Revision-Date: 2025-01-12 17:06+0100\n"
+"Last-Translator: Adrián Chaves (Gallaecio) <adrian@chaves.io>\n"
+"Language-Team: Proxecto Trasno (proxecto@trasno.gal)\n"
+"Language: gl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 24.12.0\n"
+
+#: gotosymboldialog.cpp:157 lspclientsymbolview.cpp:361
+#, kde-format
+msgid "Filter…"
+msgstr "Filtrar…"
+
+#: lspclientconfigpage.cpp:44
+#, kde-format
+msgid "User Server Settings"
+msgstr "Configuración do servidor da persoa usuaria"
+
+#: lspclientconfigpage.cpp:45
+#, kde-format
+msgid "Default Server Settings"
+msgstr "Configuración predeterminada do servidor"
+
+#: lspclientconfigpage.cpp:88 lspclientconfigpage.cpp:93
+#: lspclientpluginview.cpp:453 lspclientpluginview.cpp:602
+#, kde-format
+msgid "LSP Client"
+msgstr "Cliente de LSP"
+
+#: lspclientconfigpage.cpp:195
+#, kde-format
+msgid "Delete selected entries"
+msgstr "Eliminar as entradas escollidas"
+
+#: lspclientconfigpage.cpp:201
+#, kde-format
+msgid "Delete all entries"
+msgstr "Eliminar todas as entradas"
+
+#: lspclientplugin.cpp:237
+#, kde-format
+msgid "LSP server start requested"
+msgstr "Solicitouse iniciar o servidor de LSP"
+
+#: lspclientplugin.cpp:240
+#, kde-format
+msgid ""
+"Do you want the LSP server to be started?<br><br>The full command line is:"
+"<br><br><b>%1</b><br><br>The choice can be altered via the config page of "
+"the plugin."
+msgstr ""
+"Quere iniciar o servidor de LSP?<br><br>A liña de ordes completa é:"
+"<br><br><b>%1</b><br><br>A escolla pode alterarse desde a páxina de "
+"configuración do complemento."
+
+#: lspclientplugin.cpp:253
+#, kde-format
+msgid ""
+"User permanently blocked start of: '%1'.\n"
+"Use the config page of the plugin to undo this block."
+msgstr ""
+"A persoa usuaria bloqueou permanentemente o inicio de: «%1».\n"
+"Use a páxina de configuración do complemento para desfacer o bloqueo."
+
+#: lspclientpluginview.cpp:418 lspclientpluginview.cpp:663
+#, kde-format
+msgid "LSP"
+msgstr "LSP"
+
+#: lspclientpluginview.cpp:483
+#, kde-format
+msgid "Go to Definition"
+msgstr "Ir á definición"
+
+#: lspclientpluginview.cpp:485
+#, kde-format
+msgid "Go to Declaration"
+msgstr "Ir á declaración"
+
+#: lspclientpluginview.cpp:487
+#, kde-format
+msgid "Go to Type Definition"
+msgstr "Ir á definición do tipo"
+
+#: lspclientpluginview.cpp:489
+#, kde-format
+msgid "Find References"
+msgstr "Atopar referencias"
+
+#: lspclientpluginview.cpp:492
+#, kde-format
+msgid "Find Implementations"
+msgstr "Atopar as implementacións"
+
+#: lspclientpluginview.cpp:494
+#, kde-format
+msgid "Highlight"
+msgstr "Realzar"
+
+#: lspclientpluginview.cpp:496
+#, kde-format
+msgid "Symbol Info"
+msgstr "Información do símbolo"
+
+#: lspclientpluginview.cpp:498
+#, kde-format
+msgid "Search and Go to Symbol"
+msgstr "Buscar e ir ao símbolo"
+
+#: lspclientpluginview.cpp:503
+#, kde-format
+msgid "Format"
+msgstr "Formatar"
+
+#: lspclientpluginview.cpp:506
+#, kde-format
+msgid "Rename"
+msgstr "Renomear"
+
+#: lspclientpluginview.cpp:509
+#, kde-format
+msgid "Expand Selection"
+msgstr "Expandir a selección"
+
+#: lspclientpluginview.cpp:512
+#, kde-format
+msgid "Shrink Selection"
+msgstr "Reducir a selección"
+
+#: lspclientpluginview.cpp:515
+#, kde-format
+msgid "Switch Source Header"
+msgstr "Alternar a cabeceira e a fonte"
+
+#: lspclientpluginview.cpp:518
+#, kde-format
+msgid "Expand Macro"
+msgstr "Expandilo a macro"
+
+#: lspclientpluginview.cpp:520
+#, kde-format
+msgid "Code Action"
+msgstr "Acción de código"
+
+#: lspclientpluginview.cpp:535
+#, kde-format
+msgid "Show lsp completions"
+msgstr "Amosar as completacións de LSP"
+
+#: lspclientpluginview.cpp:538
+#, kde-format
+msgid "Show selected completion documentation"
+msgstr "Amosar a documentación do completado seleccionado"
+
+#: lspclientpluginview.cpp:541
+#, kde-format
+msgid "Enable signature help with auto completion"
+msgstr "Activar a axuda da sinatura con completación automática"
+
+#: lspclientpluginview.cpp:544
+#, kde-format
+msgid "Include declaration in references"
+msgstr "Incluír a declaración nas referencias"
+
+#. i18n: ectx: property (text), widget (QCheckBox, chkComplParens)
+#: lspclientpluginview.cpp:547 lspconfigwidget.ui:131
+#, kde-format
+msgid "Add parentheses upon function completion"
+msgstr "Engadir parénteses ao completar unha función."
+
+#: lspclientpluginview.cpp:550
+#, kde-format
+msgid "Show hover information"
+msgstr "Amosar información ao cubrir"
+
+#. i18n: ectx: property (text), widget (QCheckBox, chkOnTypeFormatting)
+#: lspclientpluginview.cpp:553 lspconfigwidget.ui:75
+#, kde-format
+msgid "Format on typing"
+msgstr "Formatar ao escribir."
+
+#: lspclientpluginview.cpp:556
+#, kde-format
+msgid "Incremental document synchronization"
+msgstr "Sincronización incremental dos documentos"
+
+#: lspclientpluginview.cpp:559
+#, kde-format
+msgid "Highlight goto location"
+msgstr "Realzar a localización dos «goto»."
+
+#: lspclientpluginview.cpp:568
+#, kde-format
+msgid "Show Inlay Hints"
+msgstr "Amosar consellos incrustados"
+
+#: lspclientpluginview.cpp:572
+#, kde-format
+msgid "Show Diagnostics Notifications"
+msgstr "Amosar notificacións do diagnóstico"
+
+#: lspclientpluginview.cpp:577
+#, kde-format
+msgid "Show Messages"
+msgstr "Amosar as mensaxes"
+
+#: lspclientpluginview.cpp:582
+#, kde-format
+msgid "Server Memory Usage"
+msgstr "Uso de memoria do servidor"
+
+#: lspclientpluginview.cpp:586
+#, kde-format
+msgid "Close All Dynamic Reference Tabs"
+msgstr "Pechar todas as lapelas de referencia dinámica"
+
+#: lspclientpluginview.cpp:588
+#, kde-format
+msgid "Restart LSP Server"
+msgstr "Reiniciar o servidor de LSP"
+
+#: lspclientpluginview.cpp:590
+#, kde-format
+msgid "Restart All LSP Servers"
+msgstr "Reiniciar todos os servidores de LSP"
+
+#: lspclientpluginview.cpp:594
+#, fuzzy, kde-format
+#| msgid "Expand All"
+msgid "Suspend All"
+msgstr "Expandilo todo"
+
+#: lspclientpluginview.cpp:598
+#, kde-format
+msgid "Go To"
+msgstr "Ir a"
+
+#: lspclientpluginview.cpp:618
+#, kde-format
+msgid "More options"
+msgstr "Máis opcións"
+
+#: lspclientpluginview.cpp:844 lspclientsymbolview.cpp:397
+#, kde-format
+msgid "Expand All"
+msgstr "Expandilo todo"
+
+#: lspclientpluginview.cpp:845 lspclientsymbolview.cpp:398
+#, kde-format
+msgid "Collapse All"
+msgstr "Pregalo todo"
+
+# skip-rule: trasno-highlight_reverse
+#: lspclientpluginview.cpp:1050
+#, kde-format
+msgid "RangeHighLight"
+msgstr "Realce de intervalo"
+
+#: lspclientpluginview.cpp:1335
+#, kde-format
+msgid "Line: %1: "
+msgstr "Liña: %1: "
+
+#: lspclientpluginview.cpp:1487 lspclientpluginview.cpp:1836
+#: lspclientpluginview.cpp:1956
+#, kde-format
+msgid "No results"
+msgstr "Non hai resultados"
+
+#: lspclientpluginview.cpp:1546
+#, kde-format
+msgctxt "@title:tab"
+msgid "Definition: %1"
+msgstr "Definición: %1"
+
+#: lspclientpluginview.cpp:1552
+#, kde-format
+msgctxt "@title:tab"
+msgid "Declaration: %1"
+msgstr "Declaración: %1"
+
+#: lspclientpluginview.cpp:1558
+#, kde-format
+msgctxt "@title:tab"
+msgid "Type Definition: %1"
+msgstr "Definición do tipo: %1"
+
+#: lspclientpluginview.cpp:1564
+#, kde-format
+msgctxt "@title:tab"
+msgid "References: %1"
+msgstr "Referencias: %1"
+
+#: lspclientpluginview.cpp:1576
+#, kde-format
+msgctxt "@title:tab"
+msgid "Implementation: %1"
+msgstr "Implementación: %1"
+
+#: lspclientpluginview.cpp:1589
+#, kde-format
+msgctxt "@title:tab"
+msgid "Highlight: %1"
+msgstr "Realzar: %1"
+
+#: lspclientpluginview.cpp:1613 lspclientpluginview.cpp:1624
+#: lspclientpluginview.cpp:1637
+#, kde-format
+msgid "No Actions"
+msgstr "Non hai accións"
+
+#: lspclientpluginview.cpp:1628
+#, kde-format
+msgid "Loading..."
+msgstr "Cargando…"
+
+#: lspclientpluginview.cpp:1720
+#, kde-format
+msgid "No edits"
+msgstr "Non hai edicións"
+
+#: lspclientpluginview.cpp:1795
+#, kde-format
+msgctxt "@title:window"
+msgid "Rename"
+msgstr "Renomear"
+
+#: lspclientpluginview.cpp:1796
+#, kde-format
+msgctxt "@label:textbox"
+msgid "New name (caution: not all references may be replaced)"
+msgstr "Novo nome (ollo: poden non substituírse todas as referencias)"
+
+#: lspclientpluginview.cpp:1842
+#, kde-format
+msgid "Not enough results"
+msgstr "Non hai resultados dabondo."
+
+#: lspclientpluginview.cpp:1911
+#, kde-format
+msgid "Corresponding Header/Source not found"
+msgstr "Non se atopou a cabeceira ou fonte correspondente."
+
+#: lspclientpluginview.cpp:2109 lspclientpluginview.cpp:2152
+#, kde-format
+msgctxt "@info"
+msgid "LSP Server"
+msgstr "Servidor de LSP"
+
+#: lspclientpluginview.cpp:2175
+#, kde-format
+msgctxt "@info"
+msgid "LSP Client"
+msgstr "Cliente de LSP"
+
+#: lspclientpluginview.cpp:2440
+#, kde-format
+msgid "Question from LSP server"
+msgstr "Pregunta do servidor de LSP"
+
+#: lspclientservermanager.cpp:630
+#, kde-format
+msgid "Restarting"
+msgstr "Reiniciando"
+
+#: lspclientservermanager.cpp:630
+#, kde-format
+msgid "NOT Restarting"
+msgstr "NON reiniciando"
+
+#: lspclientservermanager.cpp:631
+#, kde-format
+msgid "Server terminated unexpectedly ... %1 [%2] [homepage: %3] "
+msgstr "O servidor terminou inesperadamente… %1 [%2] [páxina principal: %3]"
+
+#: lspclientservermanager.cpp:903
+#, fuzzy, kde-format
+#| msgid "Failed to find server binary: %1"
+msgid "Failed to find server binary '%1' for language '%2'"
+msgstr "Non foi posíbel atopar o binario do servidor: %1"
+
+#: lspclientservermanager.cpp:906 lspclientservermanager.cpp:971
+#, kde-format
+msgid "Please check your PATH for the binary"
+msgstr "Revise o seu PATH en busca do binario."
+
+#: lspclientservermanager.cpp:907 lspclientservermanager.cpp:972
+#, kde-format
+msgid "See also %1 for installation or details"
+msgstr "Consulte tamén %1 sobre a instalación ou máis información."
+
+#: lspclientservermanager.cpp:968
+#, fuzzy, kde-format
+#| msgid "Failed to start server: %1"
+msgid "Failed to start server '%1' for language '%2'"
+msgstr "Non foi posíbel iniciar o servidor: %1"
+
+#: lspclientservermanager.cpp:976
+#, kde-format
+msgid "Started server %2: %1"
+msgstr "Iniciouse o servidor %2: %1"
+
+#: lspclientservermanager.cpp:1015
+#, kde-format
+msgid "Failed to parse server configuration '%1': no JSON object"
+msgstr ""
+"Non foi posíbel analizar a configuración de servidor «%1»: non é un obxecto "
+"JSON."
+
+#: lspclientservermanager.cpp:1018
+#, kde-format
+msgid "Failed to parse server configuration '%1': %2"
+msgstr "Non se puido analizar a configuración de servidor «%1»: %2"
+
+#: lspclientservermanager.cpp:1022
+#, kde-format
+msgid "Failed to read server configuration: %1"
+msgstr "Non foi posíbel ler a configuración do servidor: %1"
+
+#: lspclientsymbolhighlighter.cpp:30
+#, kde-format
+msgctxt "@action"
+msgid "Go to next symbol highlight"
+msgstr ""
+
+#: lspclientsymbolhighlighter.cpp:32
+#, kde-format
+msgctxt "@action"
+msgid "Go to previous symbol highlight"
+msgstr ""
+
+#: lspclientsymbolview.cpp:342
+#, kde-format
+msgid "Symbol Outline"
+msgstr "Esquema dos símbolos"
+
+#: lspclientsymbolview.cpp:388
+#, kde-format
+msgid "Tree Mode"
+msgstr "Modo de árbore"
+
+#: lspclientsymbolview.cpp:390
+#, kde-format
+msgid "Automatically Expand Tree"
+msgstr "Expandir a árbore automaticamente"
+
+#: lspclientsymbolview.cpp:392
+#, kde-format
+msgid "Sort Alphabetically"
+msgstr "Ordenar alfabeticamente"
+
+#: lspclientsymbolview.cpp:394
+#, kde-format
+msgid "Show Details"
+msgstr "Amosar os detalles"
+
+#: lspclientsymbolview.cpp:556
+#, kde-format
+msgid "Symbols"
+msgstr "Símbolos"
+
+# skip-rule: trasno-provide_reverse
+#: lspclientsymbolview.cpp:616
+#, kde-format
+msgid "LSP server does not support symbol outline."
+msgstr "O servidor de LSP non permite un esquema de símbolos."
+
+#: lspclientsymbolview.cpp:694
+#, kde-format
+msgid "No LSP server for this document."
+msgstr "Non hai un servidor de LSP para este documento."
+
+#. i18n: ectx: attribute (title), widget (QWidget, tab)
+#: lspconfigwidget.ui:33
+#, kde-format
+msgid "Client Settings"
+msgstr "Configuración do cliente"
+
+#. i18n: ectx: property (text), widget (QCheckBox, chkFmtOnSave)
+#: lspconfigwidget.ui:82
+#, kde-format
+msgid "Format on save"
+msgstr "Formatar ao gardar."
+
+#. i18n: ectx: property (text), widget (QCheckBox, chkSemanticHighlighting)
+#: lspconfigwidget.ui:89
+#, kde-format
+msgid "Enable semantic highlighting"
+msgstr "Activar o realce semántico."
+
+#. i18n: ectx: property (text), widget (QCheckBox, chkInlayHint)
+#: lspconfigwidget.ui:96
+#, kde-format
+msgid "Enable inlay hints"
+msgstr "Activar os consellos incrustados."
+
+#. i18n: ectx: property (text), widget (QLabel, label_2)
+#: lspconfigwidget.ui:103
+#, kde-format
+msgid "Completions:"
+msgstr "Completacións:"
+
+#. i18n: ectx: property (text), widget (QCheckBox, chkShowCompl)
+#: lspconfigwidget.ui:110
+#, kde-format
+msgid "Show completions"
+msgstr "Amosar as completacións."
+
+#. i18n: ectx: property (text), widget (QCheckBox, chkComplDoc)
+#: lspconfigwidget.ui:117
+#, kde-format
+msgid "Show inline docs for selected completion"
+msgstr "Amosar documentación in situ da completación seleccionada."
+
+#. i18n: ectx: property (text), widget (QCheckBox, chkSignatureHelp)
+#: lspconfigwidget.ui:124
+#, kde-format
+msgid "Show function signature when typing a function call"
+msgstr "Amosar a sinatura da función ao escribir a chamada dunha función."
+
+#. i18n: ectx: property (text), widget (QCheckBox, chkAutoImport)
+#: lspconfigwidget.ui:138
+#, kde-format
+msgid "Add imports automatically if needed upon completion"
+msgstr "Engadir automaticamente as importación que se necesiten ao completar."
+
+#. i18n: ectx: property (text), widget (QLabel, label_5)
+#: lspconfigwidget.ui:145
+#, kde-format
+msgid "Navigation:"
+msgstr "Navegación:"
+
+#. i18n: ectx: property (text), widget (QCheckBox, chkRefDeclaration)
+#: lspconfigwidget.ui:152
+#, kde-format
+msgid "Count declarations when searching for references to a symbol"
+msgstr "Contar as declaracións ao buscar referencias a un símbolo."
+
+#. i18n: ectx: property (text), widget (QCheckBox, chkAutoHover)
+#: lspconfigwidget.ui:159
+#, kde-format
+msgid "Show information about currently hovered symbol"
+msgstr "Amosar información sobre o símbolo que se estea a cubrir."
+
+#. i18n: ectx: property (text), widget (QCheckBox, chkHighlightGoto)
+#: lspconfigwidget.ui:166
+#, kde-format
+msgid "Highlight target line when hopping to it"
+msgstr "Realzar a liña de destino ao saltar a ela."
+
+#. i18n: ectx: property (text), widget (QLabel, label_3)
+#: lspconfigwidget.ui:173
+#, kde-format
+msgid "Server:"
+msgstr "Servidor:"
+
+#. i18n: ectx: property (text), widget (QCheckBox, chkDiagnostics)
+#: lspconfigwidget.ui:180
+#, kde-format
+msgid "Show program diagnostics"
+msgstr "Amosar o diagnóstico do programa."
+
+#. i18n: ectx: property (text), widget (QCheckBox, chkMessages)
+#: lspconfigwidget.ui:187
+#, kde-format
+msgid "Show notifications from the LSP server"
+msgstr "Amosar as notificacións do servidor de LSP."
+
+#. i18n: ectx: property (text), widget (QCheckBox, chkIncrementalSync)
+#: lspconfigwidget.ui:194
+#, kde-format
+msgid "Incrementally synchronize documents with the LSP server"
+msgstr "Sincronizar incrementalmente os documentos co servidor de LSP."
+
+#. i18n: ectx: property (text), widget (QLabel, label_6)
+#: lspconfigwidget.ui:201
+#, kde-format
+msgid "Document outline:"
+msgstr "Esquema do documento:"
+
+#. i18n: ectx: property (text), widget (QCheckBox, chkSymbolSort)
+#: lspconfigwidget.ui:208
+#, kde-format
+msgid "Sort symbols alphabetically"
+msgstr "Ordenar os símbolos alfabeticamente."
+
+#. i18n: ectx: property (text), widget (QCheckBox, chkSymbolDetails)
+#: lspconfigwidget.ui:215
+#, kde-format
+msgid "Display additional details for symbols"
+msgstr "Amosar detalles adicionais dos símbolos."
+
+#. i18n: ectx: property (text), widget (QCheckBox, chkSymbolTree)
+#: lspconfigwidget.ui:222
+#, kde-format
+msgid "Present symbols in a hierarchy instead of a flat list"
+msgstr "Presentar os símbolos nunha xerarquía en vez de como unha lista plana."
+
+#. i18n: ectx: property (text), widget (QCheckBox, chkHighlightSymbol)
+#: lspconfigwidget.ui:229
+#, kde-format
+msgid "Highlight symbol under cursor"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QCheckBox, chkSymbolExpand)
+#: lspconfigwidget.ui:257
+#, kde-format
+msgid "Automatically expand tree"
+msgstr "Expandir a árbore automaticamente."
+
+#. i18n: ectx: attribute (title), widget (QWidget, tab_4)
+#: lspconfigwidget.ui:271
+#, kde-format
+msgid "Allowed && Blocked Servers"
+msgstr "Servidores permitidos e bloqueados"
+
+#. i18n: ectx: Menu (LSPClient Menubar)
+#: ui.rc:6
+#, kde-format
+msgid "&LSP Client"
+msgstr "Cliente de &LSP"
+
+#. i18n: ectx: Menu (lspclient_more_options)
+#: ui.rc:32
+#, kde-format
+msgid "More Options"
+msgstr "Máis opcións"
+
+#~ msgid "No JSON data to validate."
+#~ msgstr "Non hai datos JSON para validar."
+
+#~ msgid "JSON data is valid."
+#~ msgstr "Os datos JSON son válidos."
+
+#~ msgid "JSON data is invalid: no JSON object"
+#~ msgstr "Os datos JSON non son válidos: non hai un obxecto JSON."
+
+#~ msgid "JSON data is invalid: %1"
+#~ msgstr "Os datos JSON non son válidos: %1"
+
+#~ msgid "Settings File:"
+#~ msgstr "Ficheiro de configuración:"
+
+#, fuzzy
+#~| msgid "Show diagnostics highlights"
+#~ msgid "Show Diagnostics Highlights"
+#~ msgstr "Mostrar realces do diagnóstico"
+
+#, fuzzy
+#~| msgid "Show diagnostics marks"
+#~ msgid "Show Diagnostics Marks"
+#~ msgstr "Mostrar marcas do diagnóstico"
+
+#, fuzzy
+#~| msgid "Show diagnostics marks"
+#~ msgid "Show Diagnostics on Hover"
+#~ msgstr "Mostrar marcas do diagnóstico"
+
+#, fuzzy
+#~| msgid "Switch to diagnostics tab"
+#~ msgid "Switch to Diagnostics Tab"
+#~ msgstr "Ir ao separador de diagnóstico"
+
+#~ msgctxt "@title:tab"
+#~ msgid "Diagnostics"
+#~ msgstr "Diagnóstico"
+
+#~ msgid "Error"
+#~ msgstr "Erro"
+
+#~ msgid "Warning"
+#~ msgstr "Aviso"
+
+#~ msgid "Information"
+#~ msgstr "Información"
+
+#, fuzzy
+#~| msgctxt "@title:tab"
+#~| msgid "Diagnostics"
+#~ msgid "Diagnostics:"
+#~ msgstr "Diagnóstico"
+
+#, fuzzy
+#~| msgid "Show diagnostics marks"
+#~ msgid "Show diagnostics on hover"
+#~ msgstr "Mostrar marcas do diagnóstico"
+
+#~ msgid "LSP Client Symbol Outline"
+#~ msgstr "Contorno dos símbolos do cliente de LSP"
+
+#~ msgid "General Options"
+#~ msgstr "Opcións xerais"
+
+#~ msgid "Add highlights"
+#~ msgstr "Engadir realces"
+
+#~ msgid "Add markers"
+#~ msgstr "Engadir marcadores"
+
+#, fuzzy
+#~| msgid "Hover"
+#~ msgid "On hover"
+#~ msgstr "Pasar por riba"
+
+#~ msgid "Tree mode outline"
+#~ msgstr "Contorno en modo de árbore"
+
+#~ msgid "Automatically expand nodes in tree mode"
+#~ msgstr "Expandir automaticamente os nodos no modo en árbore"
+
+#, fuzzy
+#~| msgid "Error"
+#~ msgctxt "@info"
+#~ msgid "Error"
+#~ msgstr "Erro"
+
+#, fuzzy
+#~| msgid "Warning"
+#~ msgctxt "@info"
+#~ msgid "Warning"
+#~ msgstr "Aviso"
+
+#, fuzzy
+#~| msgid "Information"
+#~ msgctxt "@info"
+#~ msgid "Information"
+#~ msgstr "Información"
+
+#, fuzzy
+#~| msgid "Switch to diagnostics tab"
+#~ msgid "Switch to messages tab"
+#~ msgstr "Ir ao separador de diagnóstico"
+
+#~ msgid "Hover"
+#~ msgstr "Pasar por riba"
+
+#~ msgctxt "@info"
+#~ msgid "<b>LSP Client:</b> %1"
+#~ msgstr "<b>Cliente de LSP:</b> %1"
+
+#~ msgid "Server Configuration"
+#~ msgstr "Configuración do servidor"
+
+#, fuzzy
+#~| msgid "Format"
+#~ msgid "Form"
+#~ msgstr "Formatar"

@@ -1,0 +1,487 @@
+.TH LVREMOVE 8 "LVM TOOLS #VERSION#" "Red Hat, Inc."
+.
+.ie t \{\
+.\" PostScript/PDF with tabs
+. ds TT \t
+. ds DTT \t\t
+.\}
+.el \{\
+. ds TT \&
+. ds DTT \0\0\0
+.\}
+.
+.de OPT
+.ie \\n(.$>1 \\*[TT]\fB-\\$1\fP|\\*[TT]\fB--\\$2\fP\c
+.el \\*[DTT]\fB--\\$1\fP\c
+..
+.
+.de OPA
+.OPT \\$*
+\ \c
+..
+.de OPS
+.OPT \\$*
+\&
+..
+.
+.
+.\"List of all options as O_string.
+.
+.de O_autobackup
+.OPA A autobackup
+\fBy\fP|\fBn\fP
+..
+.de O_commandprofile
+.OPA commandprofile
+\fIString\fP
+..
+.de O_config
+.OPA config
+\fIString\fP
+..
+.de O_debug
+.OPA d debug
+\&\.\|.\|.\&
+..
+.de O_devices
+.OPA devices
+\fIPV\fP
+..
+.de O_devicesfile
+.OPA devicesfile
+\fIString\fP
+..
+.de O_driverloaded
+.OPA driverloaded
+\fBy\fP|\fBn\fP
+..
+.de O_force
+.OPA f force
+\&\.\|.\|.\&
+..
+.de O_help
+.OPS h help
+..
+.de O_journal
+.OPA journal
+\fIString\fP
+..
+.de O_lockopt
+.OPA lockopt
+\fIString\fP
+..
+.de O_longhelp
+.OPS longhelp
+..
+.de O_nohints
+.OPS nohints
+..
+.de O_nohistory
+.OPS nohistory
+..
+.de O_nolocking
+.OPS nolocking
+..
+.de O_noudevsync
+.OPS noudevsync
+..
+.de O_profile
+.OPA profile
+\fIString\fP
+..
+.de O_quiet
+.OPA q quiet
+\&\.\|.\|.\&
+..
+.de O_reportformat
+.OPA reportformat
+\%\fBbasic\fP|\:\
+\fBjson\fP|\:\
+\fBjson_std\fP
+..
+.de O_select
+.OPA S select
+\fIString\fP
+..
+.de O_test
+.OPS t test
+..
+.de O_verbose
+.OPA v verbose
+\&\.\|.\|.\&
+..
+.de O_version
+.OPS version
+..
+.de O_yes
+.OPS y yes
+..
+.
+.SH NAME
+.
+lvremove \(em Remove logical volume(s) from the system
+.
+.SH SYNOPSIS
+.
+.nh
+.TP
+\fBlvremove\fP \fIposition_args\fP
+[ \fIoption_args\fP ]
+.hy
+.
+.ds TT \&
+.ds DTT \&
+.
+.
+.SH DESCRIPTION
+.
+lvremove removes one or more LVs. For standard LVs, this returns the
+logical extents that were used by the LV to the VG for use by other LVs.
+.P
+Confirmation will be requested before deactivating any active LV prior to
+removal.  LVs cannot be deactivated or removed while they are open (e.g.
+if they contain a mounted filesystem). Removing an origin LV will also
+remove all dependent snapshots.
+.P
+When a single force option is used, LVs are removed without confirmation,
+and the command will try to deactivate unused LVs.
+.P
+To remove damaged LVs, two force options may be required (\fB-ff\fP).
+.P
+\fBHistorical LVs\fP
+.P
+If the configuration setting \fBmetadata/record_lvs_history\fP is enabled
+and the LV being removed forms part of the history of at least one LV that
+is still present, then a simplified representation of the LV will be
+retained. This includes the time of removal (\fBlv_time_removed\fP
+reporting field), creation time (\fBlv_time\fP), name (\fBlv_name\fP), LV
+uuid (\fBlv_uuid\fP) and VG name (\fBvg_name\fP). This allows later
+reporting to see the ancestry chain of thin snapshot volumes, even after
+some intermediate LVs have been removed. The names of such historical LVs
+acquire a hyphen as a prefix (e.g. '-lvol1') and cannot be reactivated.
+Use lvremove a second time, with the hyphen, to remove the record of the
+former LV completely.
+.
+.SH USAGE
+.
+.nh
+.na
+.B lvremove
+\fIVG\fP|\fILV\fP|\fITag\fP|\fISelect\fP\ .\|.\|.\&
+.RS
+[
+.O_autobackup
+]
+.br
+[
+.O_force
+]
+.br
+[
+.O_select
+]
+.br
+[
+.O_nohistory
+]
+.br
+[
+.O_noudevsync
+]
+.br
+[
+.O_reportformat
+]
+.br
+[ COMMON_OPTIONS ]
+.RE
+.P
+\(em
+.P
+Common options for lvm:
+.RS
+[
+.O_debug
+]
+.br
+[
+.O_help
+]
+.br
+[
+.O_quiet
+]
+.br
+[
+.O_test
+]
+.br
+[
+.O_verbose
+]
+.br
+[
+.O_yes
+]
+.br
+[
+.O_commandprofile
+]
+.br
+[
+.O_config
+]
+.br
+[
+.O_devices
+]
+.br
+[
+.O_devicesfile
+]
+.br
+[
+.O_driverloaded
+]
+.br
+[
+.O_journal
+]
+.br
+[
+.O_lockopt
+]
+.br
+[
+.O_longhelp
+]
+.br
+[
+.O_nohints
+]
+.br
+[
+.O_nolocking
+]
+.br
+[
+.O_profile
+]
+.br
+[
+.O_version
+]
+.RE
+.hy
+.ad
+.
+.SH OPTIONS
+.
+.TP
+.O_autobackup
+Specifies if metadata should be backed up automatically after a change.
+Enabling this is strongly advised!
+See \fBvgcfgbackup\fP(8) for more information.
+.
+.TP
+.O_commandprofile
+The command profile to use for command configuration.
+See \fBlvm.conf\fP(5) for more information about profiles.
+.
+.TP
+.O_config
+Config settings for the command. These override \fBlvm.conf\fP(5) settings.
+The String arg uses the same format as \fBlvm.conf\fP(5),
+or may use section/field syntax.
+See \fBlvm.conf\fP(5) for more information about config.
+.
+.TP
+.O_debug
+Set debug level. Repeat from 1 to 6 times to increase the detail of
+messages sent to the log file and/or syslog (if configured).
+.
+.TP
+.O_devices
+Restricts the devices that are visible and accessible to the command.
+Devices not listed will appear to be missing. This option can be
+repeated, or accepts a comma separated list of devices. This overrides
+the devices file.
+.
+.TP
+.O_devicesfile
+A file listing devices that LVM should use.
+The file must exist in \fI#DEFAULT_SYS_DIR#/devices/\fP and is managed
+with the \fBlvmdevices\fP(8) command.
+This overrides the \fBlvm.conf\fP(5) \fBdevices/devicesfile\fP and
+\fBdevices/use_devicesfile\fP settings.
+.
+.TP
+.O_driverloaded
+If set to no, the command will not attempt to use device-mapper.
+For testing and debugging.
+.
+.TP
+.O_force
+Override various checks, confirmations and protections.
+Use with extreme caution.
+.
+.TP
+.O_help
+Display help text.
+.
+.TP
+.O_journal
+Record information in the systemd journal.
+This information is in addition to information
+enabled by the lvm.conf log/journal setting.
+command: record information about the command.
+output: record the default command output.
+debug: record full command debugging.
+.
+.TP
+.O_lockopt
+Used to pass options for special cases to lvmlockd.
+See \fBlvmlockd\fP(8) for more information.
+.
+.TP
+.O_longhelp
+Display long help text.
+.
+.TP
+.O_nohints
+Do not use the hints file to locate devices for PVs. A command may read
+more devices to find PVs when hints are not used. The command will still
+perform standard hint file invalidation where appropriate.
+.
+.TP
+.O_nohistory
+Do not record history of LVs being removed.
+This has no effect unless the configuration setting
+metadata/record_lvs_history is enabled.
+.
+.TP
+.O_nolocking
+Disable locking. Use with caution, concurrent commands may produce
+incorrect results.
+.
+.TP
+.O_noudevsync
+Disables udev synchronization. The process will not wait for notification
+from udev. It will continue irrespective of any possible udev processing
+in the background. Only use this if udev is not running or has rules that
+ignore the devices LVM creates.
+.
+.TP
+.O_profile
+An alias for --commandprofile or --metadataprofile, depending
+on the command.
+.
+.TP
+.O_quiet
+Suppress output and log messages. Overrides --debug and --verbose.
+Repeat once to also suppress any prompts with answer 'no'.
+.
+.TP
+.O_reportformat
+Overrides current output format for reports which is defined globally by
+the report/output_format setting in \fBlvm.conf\fP(5).
+\fBbasic\fP is the original format with columns and rows.
+If there is more than one report per command, each report is prefixed
+with the report name for identification. \fBjson\fP produces report
+output in JSON format. \fBjson_std\fP produces report output in
+JSON format which is more compliant with JSON standard.
+See \fBlvmreport\fP(7) for more information.
+.
+.TP
+.O_select
+Select objects for processing and reporting based on specified criteria.
+The criteria syntax is described by \fB--select help\fP
+and \fBlvmreport\fP(7).
+For reporting commands, one row is displayed
+for each object matching the criteria.
+See \fB--options help\fP for selectable object fields.
+Rows can be displayed with an additional "selected" field (-o selected)
+showing 1 if the row matches the selection and 0 otherwise.
+For non-reporting commands which process LVM entities, the selection is
+used to choose items to process.
+.
+.TP
+.O_test
+Run in test mode. Commands will not update metadata.
+This is implemented by disabling all metadata writing but nevertheless
+returning success to the calling function. This may lead to unusual
+error messages in multi-stage operations if a tool relies on reading
+back metadata it believes has changed but hasn't.
+.
+.TP
+.O_verbose
+Set verbose level. Repeat from 1 to 4 times to increase the detail
+of messages sent to stdout and stderr.
+.
+.TP
+.O_version
+Display version information.
+.
+.TP
+.O_yes
+Do not prompt for confirmation interactively but always assume the
+answer yes. Use with extreme caution.
+(For automatic no, see -qq.)
+.
+.SH VARIABLES
+.
+.TP
+.I VG
+Volume Group name.  See \fBlvm\fP(8) for valid names.
+.
+.TP
+.I LV
+Logical Volume name.  See \fBlvm\fP(8) for valid names.
+An LV positional arg generally includes the VG name and LV name, e.g. VG/LV.
+.
+.TP
+.I Tag
+Tag name.  See \fBlvm\fP(8) for information about tag names and using tags
+in place of a VG, LV or PV.
+.
+.TP
+.I Select
+Select indicates that a required positional parameter can
+be omitted if the \fB--select\fP option is used.
+No arg appears in this position.
+.
+.TP
+.I String
+See the option description for information about the string content.
+.
+.TP
+.IR Size [UNIT]
+Size is an input number that accepts an optional unit.
+Input units are always treated as base two values, regardless of
+capitalization, e.g. 'k' and 'K' both refer to 1024.
+The default input unit is specified by letter, followed by |UNIT.
+UNIT represents other possible input units:
+.BR b | B
+is bytes,
+.BR s | S
+is sectors of 512 bytes,
+.BR k | K
+is KiB,
+.BR m | M
+is MiB,
+.BR g | G
+is GiB,
+.BR t | T
+is TiB,
+.BR p | P
+is PiB,
+.BR e | E
+is EiB.
+(This should not be confused with the output control --units,
+where capital letters mean multiple of 1000.)
+.
+.SH ENVIRONMENT VARIABLES
+.
+See \fBlvm\fP(8) for information about environment variables used by lvm.
+For example, \fBLVM_VG_NAME\fP can generally be substituted
+for a required VG parameter.

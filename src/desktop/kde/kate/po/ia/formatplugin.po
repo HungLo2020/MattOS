@@ -1,0 +1,119 @@
+# Copyright (C) 2024 This file is copyright:
+# This file is distributed under the same license as the kate package.
+#
+# SPDX-FileCopyrightText: 2023, 2024, 2025, 2026 giovanni <g.sora@tiscali.it>
+msgid ""
+msgstr ""
+"Project-Id-Version: kate\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-04-07 00:47+0000\n"
+"PO-Revision-Date: 2026-02-05 10:50+0100\n"
+"Last-Translator: giovanni <g.sora@tiscali.it>\n"
+"Language-Team: Interlingua <kde-i18n-doc@kde.org>\n"
+"Language: ia\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 23.08.5\n"
+
+#: FormatApply.h:22 FormatApply.h:33 FormatApply.h:38 FormatPlugin.cpp:88
+#: FormatPlugin.cpp:245 Formatters.cpp:265 Formatters.cpp:285
+#: Formatters.cpp:308 Formatters.cpp:338
+#, kde-format
+msgid "Format"
+msgstr "Formato"
+
+#: FormatApply.h:22
+#, kde-format
+msgid "Failed to write a temp file"
+msgstr "Falleva a scriber un file temp"
+
+#: FormatApply.h:33
+#, kde-format
+msgid "Failed to run git diff: git not installed"
+msgstr "Falleva a executar un diff de git: git non installate"
+
+#: FormatApply.h:38
+#, kde-format
+msgid "Failed to run git diff: %1"
+msgstr "Falleva a executar un diff de git: %1"
+
+#: FormatConfig.h:18 FormatPlugin.cpp:118
+#, kde-format
+msgid "Formatting"
+msgstr "Fnormatation"
+
+#: FormatConfig.h:23
+#, kde-format
+msgid "Formatting Settings"
+msgstr "Preferentias de fnormatation"
+
+#: FormatPlugin.cpp:88
+#, kde-format
+msgid "Failed to read settings.json. Error: %1"
+msgstr "Falleva a leger settings.json. Error: %1"
+
+#: FormatPlugin.cpp:124
+#, kde-format
+msgid "Format Document"
+msgstr "Fnormata Documento"
+
+#: FormatPlugin.cpp:134
+#, kde-format
+msgid "Format on Save"
+msgstr "Fnormata sur salveguardar"
+
+#: FormatPlugin.cpp:137
+#, kde-format
+msgid "Disable formatting on save without persisting it in settings"
+msgstr ""
+"Dishabilita formttar sur salveguardar sin prerequirer lo in preferentias"
+
+#: Formatters.cpp:129
+#, kde-format
+msgid "%1: Unexpected empty command!"
+msgstr "%1: Impreviste commando vacue!"
+
+#: Formatters.cpp:136
+#, kde-format
+msgid ""
+"%1 is not installed, please install it to be able to format this document!"
+msgstr ""
+"%1 non es installate, pro favor tu installa lo pro poter fnormatar iste "
+"documento!"
+
+#: Formatters.cpp:265
+#, kde-format
+msgid "Unknown formatterForJson: %1"
+msgstr "FnormatatorPerJso incognoscite: %1 "
+
+#: Formatters.cpp:285
+#, kde-format
+msgid "Unknown formatterForPython: %1"
+msgstr "FnormatatorPerPython incognoscite: %1"
+
+#: Formatters.cpp:308
+#, kde-format
+msgid "Unknown formatterForYaml: %1, falling back to yamlfmt"
+msgstr "Incognoscite  formatterForYaml: %1, retorna a  yamlfmt"
+
+#: Formatters.cpp:338
+#, kde-format
+msgid "Failed to run formatter. Unsupported language %1"
+msgstr "Falleva a executar gnormatator (formatter). Linguage non supportate %1"
+
+#~ msgid "User Settings"
+#~ msgstr "Preferentias de usator"
+
+#~ msgid "Default Settings"
+#~ msgstr "Preferentias predefinite"
+
+#~ msgid "Please install node and prettier"
+#~ msgstr "Pro favor intalla nodo e prettier"
+
+#~ msgid "PrettierFormat: Failed to create temporary file"
+#~ msgstr "PrettierFormat: Falleva a crear file temporanee"
+
+#~ msgid "PrettierFormat: Failed to start 'node': %1"
+#~ msgstr "PrettierFormat: Falleva a crear 'nodo': %1"

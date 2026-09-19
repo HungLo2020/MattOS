@@ -1,0 +1,69 @@
+#!/bin/sh
+# Live-only startup observation/recovery; never modeset or choose a GPU.
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export LC_ALL=C
+export SYSTEMD_PAGER=cat
+umask 077
+reports=/run/mattos-graphics
+
+check_session() {
+    # Require KWin, the shell, its Wayland socket and the DRM card KWin opened.
+    for pid in $(pgrep -x kwin_wayland); do
+        uid=$(sed -n 's/^Uid:[[:space:]]*\([0-9]*\).*/\1/p' "/proc/$pid/status")
+        case "$uid" in ''|*[!0-9]*) continue ;; esac
+        runtime=$(tr '\000' '\n' < "/proc/$pid/environ" | sed -n 's/^XDG_RUNTIME_DIR=//p')
+        [ "$runtime" = "/run/user/$uid" ] || continue
+        pgrep -u "$uid" -x plasmashell >/dev/null || continue
+        ls -l "/proc/$pid/fd" 2>/dev/null | grep -q '/dev/dri/card[0-9]' || continue
+        for socket in "$runtime"/wayland-[0-9]*; do
+            [ -S "$socket" ] || continue
+            printf 'Responsive Plasma session: kwin_pid=%s uid=%s socket=%s\n' "$pid" "$uid" "$socket"
+            return 0
+        done
+    done
+    return 1
+}
+
+capture() {
+    timeout --kill-after=2s 60s /usr/bin/mattos-graphics-report > "$reports/report.txt" 2>&1
+    status=$?
+    printf '\nCapture exit=%s (124 means bounded partial report)\n' "$status" >> "$reports/report.txt"
+    timeout --kill-after=2s 10s journalctl -b --no-pager -o short-monotonic > "$reports/journal.txt" 2>&1
+    timeout --kill-after=2s 10s dmesg > "$reports/dmesg.txt" 2>&1
+    printf 'MattOS graphics diagnostics: %s/{report,journal,dmesg}.txt (copy with sudo before reboot)\n' "$reports"
+}
+
+[ -e /run/mattos-live ] || exit 0
+mkdir -p "$reports" || exit 1
+case "${1:-}" in
+    --before)
+        timeout --kill-after=1s 10s /usr/bin/mattos-graphics-report --brief > "$reports/before-plasma.txt" 2>&1
+        cat "$reports/before-plasma.txt"
+        exit 0 ;;
+    --capture) capture ;;
+    --check) check_session ;;
+    --wait)
+        echo 'MattOS: watching Plasma graphical startup for at most 120 seconds; no GPU selection overrides.'
+        while ! check_session; do sleep 2; done
+        echo 'MattOS: KWin owns DRM/Wayland and plasmashell is running.' ;;
+    --fallback)
+        echo 'MattOS: Plasma did not establish a responsive Wayland session within its deadline.'
+        echo 'Capturing the original failure, then opening the normal live text login on tty1.'
+        capture
+        timeout --kill-after=2s 15s systemctl stop plasma-greeter.service
+        timeout --kill-after=2s 10s systemctl start getty@tty1.service
+        for attempt in $(seq 1 15); do
+            for session in $(loginctl list-sessions --no-legend | sed -n 's/^[[:space:]]*\([^[:space:]]*\).*/\1/p'); do
+                if [ "$(loginctl show-session "$session" -p VTNr --value)" = 1 ] &&
+                   [ "$(loginctl show-session "$session" -p Type --value)" = tty ]; then
+                    loginctl activate "$session"
+                    printf 'Graphics recovery: tty1 active. sudo cat %s/report.txt\n' "$reports" > /dev/tty1
+                    exit 0
+                fi
+            done
+            sleep 1
+        done
+        echo 'Could not activate tty1. Use Ctrl+Alt+F1, serial, or the AMD graphics diagnostics CLI boot entry.'
+        exit 1 ;;
+    *) echo 'usage: mattos-graphics-startup --before|--capture|--check|--wait|--fallback' >&2; exit 2 ;;
+esac

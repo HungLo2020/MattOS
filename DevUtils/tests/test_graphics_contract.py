@@ -1,9 +1,6 @@
 """Physical GPU configuration contracts, not a substitute for AMD hardware tests."""
 import pathlib
 import subprocess
-import os
-import socket
-import tempfile
 import re
 import unittest
 
@@ -48,11 +45,11 @@ class GraphicsContractTests(unittest.TestCase):
             self.assertGreater(firmware.stat().st_size, 0, name)
 
     def test_report_is_bounded_read_only_and_covers_session_failure(self):
-        report = ROOT / "src/system/session/cosmic/mattos-graphics-report"
+        report = ROOT / "src/system/session/plasma/mattos-graphics-report"
         subprocess.run(["sh", "-n", str(report)], check=True)
         text = report.read_text()
         for required in ("timeout --kill-after=2s 15s", "device/uevent",
-                         "ExecMainStatus", "_COMM=cosmic-comp", "modprobe --show-depends",
+                         "ExecMainStatus", "_COMM=kwin_wayland", "modprobe --show-depends",
                          "ADVERTISED_NOT_PRESENT", "libgallium", "loginctl seat-status"):
             self.assertIn(required, text)
         for forbidden in ("nomodeset", "amdgpu.dc=0", "export LIBGL_ALWAYS_SOFTWARE=", "modprobe -r"):
@@ -69,7 +66,7 @@ class GraphicsContractTests(unittest.TestCase):
         self.assertNotIn("amdgpu.dc=0", grub)
 
     def test_watchdog_is_bounded_live_only_and_recovers_without_gpu_policy(self):
-        directory = ROOT / "src/system/session/cosmic"
+        directory = ROOT / "src/system/session/plasma"
         script = (directory / "mattos-graphics-startup").read_text()
         subprocess.run(["sh", "-n", str(directory / "mattos-graphics-startup")], check=True)
         self.assertIn('[ -e /run/mattos-live ] || exit 0', script)
@@ -80,54 +77,8 @@ class GraphicsContractTests(unittest.TestCase):
         self.assertIn("RemainAfterExit=yes", unit)
         self.assertIn("systemctl start getty@tty1.service", script)
         self.assertIn('loginctl activate "$session"', script)
-        self.assertLess(script.index("        capture\n"), script.index("systemctl stop cosmic-greeter"))
+        self.assertLess(script.index("        capture\n"), script.index("systemctl stop plasma-greeter"))
+        self.assertIn("pgrep -x kwin_wayland", script)
+        self.assertIn("pgrep -u \"$uid\" -x plasmashell", script)
         for forbidden in ("isolate", "modprobe -r", "amdgpu.dc=0", "LIBGL_ALWAYS_SOFTWARE="):
             self.assertNotIn(forbidden, '\n'.join(l for l in script.splitlines() if not l.lstrip().startswith('#')))
-
-    def test_readiness_requires_real_output_reply_current_mode_and_card(self):
-        """Execute the production check function with synthetic /proc + Wayland.
-
-        No VM/host service or GPU is touched. Failed/time-limited CLI replies,
-        disabled heads, mismatched head modes and missing card FDs fail closed.
-        """
-        original = (ROOT / "src/system/session/cosmic/mattos-graphics-startup").read_text()
-        function = original.split("enabled_current_mode() (", 1)[1].split("\ncapture() {", 1)[0]
-        with tempfile.TemporaryDirectory() as temporary:
-            tmp = pathlib.Path(temporary)
-            proc = tmp / "proc/123"
-            (proc / "fd").mkdir(parents=True)
-            (proc / "status").write_text("Uid:\t1000\t1000\t1000\t1000\n")
-            runtime = tmp / "run/user/1000"
-            runtime.mkdir(parents=True)
-            (proc / "environ").write_bytes(f"XDG_RUNTIME_DIR={runtime}\0".encode())
-            card = proc / "fd/8"
-            card.symlink_to("/dev/dri/card2")
-            replies = tmp / "reply"
-            bindir = tmp / "bin"
-            bindir.mkdir()
-            for name, body in {"pgrep": 'if [ "$1" = -u ] && [ "${NO_UI:-0}" = 1 ]; then exit 1; fi; echo 123', "sudo": f'cat "{replies}"; exit "${{PROBE_STATUS:-0}}"'}.items():
-                path = bindir / name
-                path.write_text("#!/bin/sh\n" + body + "\n")
-                path.chmod(0o755)
-            script = tmp / "check.sh"
-            function = function.replace("/proc/", str(tmp / "proc") + "/").replace("/run/user/", str(tmp / "run/user") + "/")
-            script.write_text(f'reports="{tmp}"\nenabled_current_mode() (' + function + "\ncheck_session\n")
-            env = {**os.environ, "PATH": str(bindir) + ":/usr/bin:/bin"}
-            with socket.socket(socket.AF_UNIX) as wayland:
-                wayland.bind(str(runtime / "wayland-1"))
-                valid = 'output "DP-2" enabled=#true {\n modes {\n mode 1920 1080 60000 current=#true\n }\n}\n'
-                cases = [(valid, 0), ('', 1), (valid.replace('#true', '#false'), 1),
-                         (valid.replace('1920', '0'), 1),
-                         ('output "DP-1" enabled=#true {\n}\n' + valid.replace('enabled=#true', 'enabled=#false'), 1)]
-                for reply, expected in cases:
-                    replies.write_text(reply)
-                    result = subprocess.run(["sh", str(script)], env=env, capture_output=True, timeout=10)
-                    self.assertEqual(result.returncode, expected, result.stderr)
-                replies.write_text(valid)
-                result = subprocess.run(["sh", str(script)], env={**env, "PROBE_STATUS": "124"}, capture_output=True, timeout=10)
-                self.assertEqual(result.returncode, 1)
-                result = subprocess.run(["sh", str(script)], env={**env, "NO_UI": "1"}, capture_output=True, timeout=10)
-                self.assertEqual(result.returncode, 1)
-                card.unlink()
-                result = subprocess.run(["sh", str(script)], env=env, capture_output=True, timeout=10)
-                self.assertEqual(result.returncode, 1)

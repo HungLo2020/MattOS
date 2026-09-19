@@ -1,0 +1,51 @@
+When called without the --cache option, pvscan lists PVs on the system,
+like
+.BR pvs (8)
+or
+.BR pvdisplay (8).
+.P
+When --cache is used, pvscan updates runtime lvm state on the system, or
+with -aay performs autoactivation.
+.P
+.B pvscan --cache
+.I device
+.P
+If device is present, lvm records that the PV on device is online.
+If device is not present, lvm removes the online record for the PV.
+pvscan only reads the named device.
+.P
+.B pvscan --cache
+.P
+Updates the runtime state for all lvm devices.
+.P
+.B pvscan --cache -aay
+.I device
+.P
+Performs the --cache steps for the device, then checks if the VG using the
+device is complete.  If so, LVs in the VG are autoactivated, the same as
+vgchange -aay vgname would do.  (A device name may be replaced with major
+and minor numbers.)
+.P
+.B pvscan --cache -aay
+.P
+Performs the --cache steps for all devices,
+then autoactivates any complete VGs.
+.P
+.B pvscan --cache --listvg|--listlvs
+.I device
+.P
+Performs the --cache steps for the device, then prints the name of the VG
+using the device, or the names of LVs using the device.  --checkcomplete
+is usually included to check if all PVs for the VG or LVs are online.
+When this command is called by a udev rule, the output must conform to
+udev rule specifications (see --udevoutput.)  The udev rule will use the
+results to perform autoactivation.
+.P
+Autoactivation of VGs or LVs can be enabled/disabled using vgchange or
+lvchange with --setautoactivation y|n, or by adding names to
+.BR lvm.conf (5)
+.B activation/auto_activation_volume_list
+.P
+See
+.BR lvmautoactivation (7)
+for more information about how pvscan is used for autoactivation.

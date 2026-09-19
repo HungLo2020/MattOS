@@ -1,0 +1,23 @@
+{
+  "name": "TEMPLATE_REPLACE_CORE_APPLICATION_NAME",
+  "files": [
+    { "git": 1 },
+    { "directory": "./", "recursive": 1 }
+  ],
+  "exclude_patterns": [ "build" ],
+  "build": {
+    "directory": "build",
+    "targets": [
+      {
+        "name": "Configure",
+        "build_cmd": "cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -G Ninja ../",
+        "run_cmd": ""
+      },
+      {
+        "name": "Compile",
+        "build_cmd": "ninja",
+        "run_cmd": "./TEMPLATE_REPLACE_CORE_APPLICATION_NAME"
+      }
+    ]
+  }
+}

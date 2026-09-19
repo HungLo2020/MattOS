@@ -1,0 +1,207 @@
+/*
+ * SPDX-FileCopyrightText: 2006-2012 Peter Penz <peter.penz19@gmail.com>
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
+
+#ifndef DOLPHINSTATUSBAR_H
+#define DOLPHINSTATUSBAR_H
+
+#include "animatedheightwidget.h"
+
+#include <KMessageWidget>
+
+class QUrl;
+class StatusBarSpaceInfo;
+class QLabel;
+class QProgressBar;
+class QToolButton;
+class QSlider;
+class QTimer;
+class KSqueezedTextLabel;
+class QHBoxLayout;
+
+/**
+ * @brief Represents the statusbar of a Dolphin view.
+ *
+ * The statusbar allows to show messages, progress
+ * information and space-information of a disk.
+ */
+class DolphinStatusBar : public AnimatedHeightWidget
+{
+    Q_OBJECT
+
+public:
+    explicit DolphinStatusBar(QWidget *parent);
+    ~DolphinStatusBar() override;
+
+    enum class CancelLoading {
+        Allowed,
+        Disallowed
+    };
+    /**
+     * Shows progress for a task on the status bar.
+     *
+     * Allows us to inform the user about various tasks progressing in the background.
+     * This method can be called from various places in any order but only the most recent call will be displayed.
+     * @param currentlyRunningTaskTitle The task that is currently progressing.
+     * @param progressPercent           The percent value shown in a progress bar next to the @p currentlyRunningTaskTitle.
+     *                                  A negative @p progressPercent value will be interpreted as indeterminate/unknown progress.
+     *                                  The progress is shown delayed by 500 milliseconds: If the progress does reach 100 % within 500 milliseconds,
+     *                                  the progress is not shown at all.
+     * @param cancelLoading             Whether a "Stop" button for cancelling the task should be available next to the progress reporting.
+     *
+     * @note Make sure you also hide the progress information by calling this with a @p progressPercent equal or greater than 100.
+     */
+    void showProgress(const QString &currentlyRunningTaskTitle, int progressPercent, CancelLoading cancelLoading = CancelLoading::Allowed);
+    QString progressText() const;
+    int progress() const;
+
+    /**
+     * Sets a text that is shown with priority as a Qt::RichText for a short amount of time.
+     */
+    void setTemporaryRichText(const QString &temporaryRichText);
+    /**
+     * Sets a text describing the hovered item. This text is immediately shown if no m_temporaryRichText is currently shown.
+     * When no item is hovered, call this method with an empty string so the m_defaultText is shown.
+     * @see setTemporaryRichText()
+     * @see setDefaultText()
+     */
+    void setHoveredItemText(const QString &hoveredItemText);
+    /**
+     * Sets the default text. This text is immediately shown if no m_temporaryRichText is currently shown.
+     * @see setTemporaryRichText()
+     */
+    void setDefaultText(const QString &text);
+
+    QUrl url() const;
+    int zoomLevel() const;
+
+    /**
+     * Refreshes the status bar to get synchronized with the (updated) Dolphin settings.
+     */
+    void readSettings();
+
+    /**
+     * Refreshes the disk space information.
+     */
+    void updateSpaceInfo();
+
+    /**
+     * Changes the statusbar between disabled, small, and full width
+     * depending on settings enabled.
+     */
+    void updateMode();
+
+    /**
+     * Updates the statusbar width to fit all content.
+     */
+    void updateWidthToContent();
+
+    /**
+     * @return The amount of clipping done to the small statusbar side and bottom.
+     */
+    int clippingAmount() const;
+
+public Q_SLOTS:
+    void setUrl(const QUrl &url);
+    void setZoomLevel(int zoomLevel);
+
+Q_SIGNALS:
+    /**
+     * Is emitted if the stop-button has been pressed during showing a progress.
+     */
+    void stopPressed();
+
+    void zoomLevelChanged(int zoomLevel);
+
+    /**
+     * Requests for @p message with the given @p messageType to be shown to the user in a non-modal way.
+     */
+    void showMessage(const QString &message, KMessageWidget::MessageType messageType);
+
+    /**
+     * Emitted when statusbar mode is changed.
+     */
+    void modeUpdated();
+
+    /**
+     * Emitted when statusbar width is updated to fit content.
+     */
+    void widthUpdated();
+
+    /**
+     * Emitted when statusbar url has changed.
+     */
+    void urlChanged();
+
+protected:
+    void contextMenuEvent(QContextMenuEvent *event) override;
+    void paintEvent(QPaintEvent *paintEvent) override;
+
+private Q_SLOTS:
+    void showZoomSliderToolTip(int zoomLevel);
+
+    void updateProgressInfo();
+
+    /**
+     * Replaces the text set by setTemporaryRichText() by the text set by setHoveredItemText() or setDefaultText().
+     * Is only called when m_clearTemporaryRichTextTimer times out.
+     */
+    void clearTemporaryRichText();
+
+    /**
+     * Updates the text for m_label and does an eliding in
+     * case if the text does not fit into the available width.
+     */
+    void updateLabelText();
+
+    /**
+     * Updates the text of the zoom slider tooltip to show
+     * the currently used size.
+     */
+    void updateZoomSliderToolTip(int zoomLevel);
+
+private:
+    /**
+     * Makes the space information widget and zoom slider widget
+     * visible, if \a visible is true and the settings allow to show
+     * the widgets. showUnknownProgressIf \a visible is false, it is assured that both
+     * widgets are hidden.
+     */
+    void setExtensionsVisible(bool visible);
+
+    void updateContentsMargins();
+
+    /** @see AnimatedHeightWidget::preferredHeight() */
+    int preferredHeight() const override;
+
+private:
+    /** @see setTemporaryRichText() */
+    QString m_temporaryRichText;
+    /** @see setHoveredItemText() */
+    QString m_hoveredItemText;
+    /** @see setDefaultText() */
+    QString m_defaultText;
+    KSqueezedTextLabel *m_label;
+    QLabel *m_zoomLabel;
+    StatusBarSpaceInfo *m_spaceInfo;
+
+    QSlider *m_zoomSlider;
+
+    QLabel *m_progressTextLabel;
+    CancelLoading m_cancelLoading = CancelLoading::Allowed;
+    QProgressBar *m_progressBar;
+    QToolButton *m_stopButton;
+    int m_progress;
+    QTimer *m_showProgressBarTimer;
+
+    /** Clears the temporary rich text from the status bar and shows a non-temporary text instead. */
+    QTimer *m_clearTemporaryRichTextTimer;
+    /** Very frequent updates to the status bar text look ugly. Most updates go through this timer to avoid this. */
+    QTimer *m_updateLabelTextTimer;
+
+    QHBoxLayout *m_topLayout;
+};
+
+#endif

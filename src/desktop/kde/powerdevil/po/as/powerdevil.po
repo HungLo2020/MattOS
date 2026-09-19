@@ -1,0 +1,559 @@
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Amitakhya Phukan <অমিতাক্ষ ফুকন>, 2009.
+msgid ""
+msgstr ""
+"Project-Id-Version: powerdevil\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-02-10 02:38+0000\n"
+"PO-Revision-Date: 2009-01-15 15:43+0530\n"
+"Last-Translator: Amitakhya Phukan <অমিতাক্ষ ফুকন>\n"
+"Language-Team: Assamese <fedora-trans-as@redhat.com>\n"
+"Language: as\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 0.2\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "অমিতাক্ষ ফুকন"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "aphukan@fedoraproject.org"
+
+#: actions/bundled/dpms.cpp:73 actions/bundled/handlebuttonevents.cpp:46
+#: actions/bundled/keyboardbrightnesscontrol.cpp:47
+#: actions/bundled/powerprofile.cpp:67 powerdevilscreenbrightnessagent.cpp:138
+#, fuzzy, kde-format
+#| msgid "A Power Management tool for KDE4"
+msgctxt "Name for powerdevil shortcuts category"
+msgid "Power Management"
+msgstr "KDE4 ৰ বাবে এটা শক্তি পৰিচালনৰ সৰঞ্জাম"
+
+#: actions/bundled/dpms.cpp:76
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Turn Off Screen"
+msgstr ""
+
+#: actions/bundled/handlebuttonevents.cpp:51
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Suspend"
+msgstr ""
+
+#: actions/bundled/handlebuttonevents.cpp:56
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Hibernate"
+msgstr ""
+
+#: actions/bundled/handlebuttonevents.cpp:61
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Power Off"
+msgstr ""
+
+#: actions/bundled/handlebuttonevents.cpp:75
+#, kde-format
+msgctxt ""
+"@action:inmenu Global shortcut, used for long presses of the power button"
+msgid "Power Down"
+msgstr ""
+
+#: actions/bundled/keyboardbrightnesscontrol.cpp:51
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Increase Keyboard Brightness"
+msgstr ""
+
+#: actions/bundled/keyboardbrightnesscontrol.cpp:56
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Decrease Keyboard Brightness"
+msgstr ""
+
+#: actions/bundled/keyboardbrightnesscontrol.cpp:61
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Toggle Keyboard Backlight"
+msgstr ""
+
+#: actions/bundled/powerprofile.cpp:70
+#, fuzzy, kde-format
+#| msgid "Import PowerDevil profiles"
+msgid "Switch Power Profile"
+msgstr "PowerDevil পাৰ্শ্বৰূপ আমদানি কৰক"
+
+#: controllers/backlightbrightness.cpp:190 controllers/kwinbrightness.cpp:51
+#, fuzzy, kde-format
+#| msgid "Lock Screen"
+msgctxt "Display label"
+msgid "Built-in Screen"
+msgstr "পৰ্দ্দা বন্ধ কৰক"
+
+#: controllers/kwinbrightness.cpp:55
+#, kde-format
+msgctxt "Display label: vendor + product name"
+msgid "%1 %2"
+msgstr ""
+
+#: powerdevilapp.cpp:102
+#, fuzzy, kde-format
+#| msgid "A Power Management tool for KDE4"
+msgid "KDE Power Management System"
+msgstr "KDE4 ৰ বাবে এটা শক্তি পৰিচালনৰ সৰঞ্জাম"
+
+#: powerdevilapp.cpp:104
+#, kde-format
+msgctxt "@title"
+msgid ""
+"PowerDevil, an advanced, modular and lightweight power management daemon"
+msgstr ""
+
+#: powerdevilapp.cpp:106
+#, kde-format
+msgctxt "@info:credit"
+msgid "© 2015–2019 Kai Uwe Broulik"
+msgstr ""
+
+#: powerdevilapp.cpp:107
+#, kde-format
+msgctxt "@info:credit"
+msgid "Kai Uwe Broulik"
+msgstr ""
+
+#: powerdevilapp.cpp:107
+#, fuzzy, kde-format
+#| msgid "Maintainer"
+msgctxt "@info:credit"
+msgid "Maintainer"
+msgstr "পৰিচালক"
+
+#: powerdevilapp.cpp:108
+#, fuzzy, kde-format
+#| msgid "Dario Freddi"
+msgctxt "@info:credit"
+msgid "Dario Freddi"
+msgstr "Dario Freddi"
+
+#: powerdevilapp.cpp:108
+#, fuzzy, kde-format
+#| msgid "Maintainer"
+msgctxt "@info:credit"
+msgid "Previous maintainer"
+msgstr "পৰিচালক"
+
+#: powerdevilapp.cpp:116
+#, kde-format
+msgid "Replace an existing instance"
+msgstr ""
+
+#: powerdevilcore.cpp:403 powerdevilcore.cpp:414
+#, kde-format
+msgid "Activity Manager"
+msgstr ""
+
+#: powerdevilcore.cpp:404
+#, kde-format
+msgid "This activity's policies prevent the system from going to sleep"
+msgstr ""
+
+#: powerdevilcore.cpp:415
+#, kde-format
+msgid "This activity's policies prevent screen power management"
+msgstr ""
+
+#: powerdevilcore.cpp:480
+#, kde-format
+msgid "Extra Battery Added"
+msgstr ""
+
+#: powerdevilcore.cpp:481
+#, kde-format
+msgid "The system will no longer go to sleep."
+msgstr ""
+
+#: powerdevilcore.cpp:545
+#, kde-format
+msgctxt "%1 is vendor name, %2 is product name"
+msgid "%1 %2"
+msgstr ""
+
+#: powerdevilcore.cpp:548
+#, kde-format
+msgctxt "The battery in an external device"
+msgid "Device Battery Low (%1% Remaining)"
+msgstr ""
+
+#: powerdevilcore.cpp:550
+#, kde-format
+msgctxt "Placeholder is device name"
+msgid ""
+"The battery in \"%1\" is running low, and the device may turn off at any "
+"time. Please recharge or replace the battery."
+msgstr ""
+
+#: powerdevilcore.cpp:557
+#, kde-format
+msgid "Mouse Battery Low (%1% Remaining)"
+msgstr ""
+
+#: powerdevilcore.cpp:561
+#, kde-format
+msgid "Keyboard Battery Low (%1% Remaining)"
+msgstr ""
+
+#: powerdevilcore.cpp:571
+#, kde-format
+msgid "Bluetooth Device Battery Low (%1% Remaining)"
+msgstr ""
+
+#: powerdevilcore.cpp:573
+#, kde-format
+msgctxt "Placeholder is device name"
+msgid ""
+"The battery in Bluetooth device \"%1\" is running low, and the device may "
+"turn off at any time. Please recharge or replace the battery."
+msgstr ""
+
+#: powerdevilcore.cpp:615
+#, kde-format
+msgid ""
+"Ensure that the power cord is plugged in all the way and provides enough "
+"power."
+msgstr ""
+
+#: powerdevilcore.cpp:617
+#, kde-format
+msgid "Plug in the power cord."
+msgstr ""
+
+#: powerdevilcore.cpp:637
+#, kde-format
+msgid "The system will shut down in 60 seconds."
+msgstr ""
+
+#: powerdevilcore.cpp:639
+#, fuzzy, kde-format
+#| msgid "Shutdown"
+msgctxt ""
+"@action:button Shut down without waiting for the battery critical timer"
+msgid "Shut Down Now"
+msgstr "বন্ধ কৰক"
+
+#: powerdevilcore.cpp:645
+#, kde-format
+msgid "The system will hibernate in 60 seconds."
+msgstr ""
+
+#: powerdevilcore.cpp:647
+#, kde-format
+msgctxt ""
+"@action:button Enter hibernation mode without waiting for the battery "
+"critical timer"
+msgid "Hibernate Now"
+msgstr ""
+
+#: powerdevilcore.cpp:653
+#, kde-format
+msgid "The system will go to sleep in 60 seconds."
+msgstr ""
+
+#: powerdevilcore.cpp:655
+#, kde-format
+msgctxt ""
+"@action:button Suspend to ram without waiting for the battery critical timer"
+msgid "Sleep Now"
+msgstr ""
+
+#: powerdevilcore.cpp:661
+#, kde-format
+msgid "Please save your work."
+msgstr ""
+
+#: powerdevilcore.cpp:667
+#, kde-format
+msgctxt ""
+"Cancel timeout that will automatically put system to sleep because of low "
+"battery"
+msgid "Cancel"
+msgstr ""
+
+#: powerdevilcore.cpp:682
+#, kde-format
+msgid "Battery Low (%1% Remaining)"
+msgstr ""
+
+#: powerdevilcore.cpp:686
+#, kde-format
+msgid "Battery Critical (%1% Remaining)"
+msgstr ""
+
+#: powerdevilcore.cpp:720
+#, fuzzy, kde-format
+#| msgid "The power adaptor has been unplugged"
+msgid "Power Cord Plugged In"
+msgstr "বিদ্যুৎ সংযোগৰ এডাপ্টৰ বিচ্ছিন্ন কৰা হৈছে"
+
+#: powerdevilcore.cpp:721
+#, kde-format
+msgid "The computer will no longer go to sleep."
+msgstr ""
+
+#: powerdevilcore.cpp:723
+#, kde-format
+msgid "Running on AC Power"
+msgstr ""
+
+#: powerdevilcore.cpp:724
+#, fuzzy, kde-format
+#| msgid "The power adaptor has been plugged in"
+msgid "The power cord has been plugged in."
+msgstr "বিদ্যুৎ সংযোগৰ এডাপ্টৰ সংযুক্ত কৰা হৈছে"
+
+#: powerdevilcore.cpp:736
+#, kde-format
+msgid "Running on Battery Power"
+msgstr ""
+
+#: powerdevilcore.cpp:737
+#, fuzzy, kde-format
+#| msgid "The power adaptor has been unplugged"
+msgid "The power cord has been unplugged."
+msgstr "বিদ্যুৎ সংযোগৰ এডাপ্টৰ বিচ্ছিন্ন কৰা হৈছে"
+
+#: powerdevilcore.cpp:800
+#, kde-format
+msgid "Charging Complete"
+msgstr ""
+
+#: powerdevilcore.cpp:800
+#, kde-format
+msgid "Battery now fully charged."
+msgstr ""
+
+#: powerdevilscreenbrightnessagent.cpp:141
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Increase Screen Brightness"
+msgstr ""
+
+#: powerdevilscreenbrightnessagent.cpp:148
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Increase Screen Brightness by 1%"
+msgstr ""
+
+#: powerdevilscreenbrightnessagent.cpp:155
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Decrease Screen Brightness"
+msgstr ""
+
+#: powerdevilscreenbrightnessagent.cpp:162
+#, kde-format
+msgctxt "@action:inmenu Global shortcut"
+msgid "Decrease Screen Brightness by 1%"
+msgstr ""
+
+#, fuzzy
+#~| msgid "min"
+#~ msgid " min"
+#~ msgstr "min"
+
+#~ msgid "Do nothing"
+#~ msgstr "একো নকৰিব"
+
+#, fuzzy
+#~| msgid "Shutdown"
+#~ msgid "Shut down"
+#~ msgstr "বন্ধ কৰক"
+
+#, fuzzy
+#~| msgid "Lock Screen"
+#~ msgid "Lock screen"
+#~ msgstr "পৰ্দ্দা বন্ধ কৰক"
+
+#, fuzzy
+#~| msgid "The power adaptor has been unplugged"
+#~ msgid "When laptop lid closed"
+#~ msgstr "বিদ্যুৎ সংযোগৰ এডাপ্টৰ বিচ্ছিন্ন কৰা হৈছে"
+
+#, fuzzy
+#~| msgid "PowerDevil"
+#~ msgid "Power Save"
+#~ msgstr "PowerDevil"
+
+#, fuzzy
+#~| msgid "Performance"
+#~ msgid "Performance"
+#~ msgstr "কর্মক্ষমতা"
+
+#, fuzzy
+#~| msgid ""
+#~| "Could not connect to battery interface!\n"
+#~| "Please check your system configuration"
+#~ msgid ""
+#~ "Could not connect to battery interface.\n"
+#~ "Please check your system configuration"
+#~ msgstr ""
+#~ "বেটেৰি সংযোগক্ষেত্ৰৰ সৈতে সংযোগ কৰিব নোৱাৰি!\n"
+#~ "অনুগ্ৰহ কৰি আপোনাৰ ব্যৱস্থাপ্ৰণালীৰ বিন্যাস পৰীক্ষা কৰক"
+
+#, fuzzy
+#~| msgid "The power adaptor has been plugged in"
+#~ msgid "All pending suspend actions have been canceled."
+#~ msgstr "বিদ্যুৎ সংযোগৰ এডাপ্টৰ সংযুক্ত কৰা হৈছে"
+
+#, fuzzy
+#~| msgid "The power adaptor has been plugged in"
+#~ msgid ""
+#~ "The power adaptor has been plugged in – all pending suspend actions have "
+#~ "been canceled."
+#~ msgstr "বিদ্যুৎ সংযোগৰ এডাপ্টৰ সংযুক্ত কৰা হৈছে"
+
+#, fuzzy
+#~| msgid "Main Developer"
+#~ msgid "Developer"
+#~ msgstr "প্রধান বিকাশক"
+
+#~ msgid ""
+#~ "The application %1 is inhibiting suspension for the following reason:\n"
+#~ "%2"
+#~ msgstr ""
+#~ "%1 অনুপ্ৰয়োগ এই কাৰণে স্থগিত হ'ব পৰা নাই:\n"
+#~ "%2"
+
+#, fuzzy
+#~| msgid "A Power Management tool for KDE4"
+#~ msgid "A Power Management tool for KDE4"
+#~ msgstr "KDE4 ৰ বাবে এটা শক্তি পৰিচালনৰ সৰঞ্জাম"
+
+#, fuzzy
+#~| msgid "(c), 2008 Dario Freddi"
+#~ msgid "(c) 2008 Dario Freddi"
+#~ msgstr "(c), 2008 Dario Freddi"
+
+#~ msgid "Standby"
+#~ msgstr "স্থগিত"
+
+#~ msgid "General Settings"
+#~ msgstr "সাধাৰণ বৈশিষ্ট্য"
+
+#~ msgid "Edit Profiles"
+#~ msgstr "পাৰ্শ্বৰূপ সম্পাদন কৰক"
+
+#~ msgid "Capabilities"
+#~ msgstr "ক্ষমতা"
+
+#~ msgid "PowerDevil Configuration"
+#~ msgstr "PowerDevil বিন্যাস"
+
+#~ msgid "(c), 2008 Dario Freddi"
+#~ msgstr "(c), 2008 Dario Freddi"
+
+#, fuzzy
+#~| msgid "PowerDevil Configuration"
+#~ msgid "Power Profiles Configuration"
+#~ msgstr "PowerDevil বিন্যাস"
+
+#, fuzzy
+#~| msgid "(c), 2008 Dario Freddi"
+#~ msgid "(c), 2010 Dario Freddi"
+#~ msgstr "(c), 2008 Dario Freddi"
+
+#, fuzzy
+#~| msgid "Please enter a name for this profile"
+#~ msgid "Please enter a name for the new profile:"
+#~ msgstr "অনুগ্ৰহ কৰি এই পাৰ্শ্বৰূপৰ বাবে এটা নাম দিয়ক"
+
+#~ msgid "The name for the new profile"
+#~ msgstr "নতুন পাৰ্শ্বৰূপৰ নাম"
+
+#, fuzzy
+#~| msgid "Please enter a name for this profile"
+#~ msgid "Please enter a name for this profile:"
+#~ msgstr "অনুগ্ৰহ কৰি এই পাৰ্শ্বৰূপৰ বাবে এটা নাম দিয়ক"
+
+#, fuzzy
+#~| msgid "Export PowerDevil profiles"
+#~ msgid "Export PowerDevil Profiles"
+#~ msgstr "PowerDevil পাৰ্শ্বৰূপ ৰপ্তানি কৰক"
+
+#~ msgid "Save Profile"
+#~ msgstr "পাৰ্শ্বৰূপ ৰক্ষা কৰক"
+
+#~ msgctxt "None"
+#~ msgid "No methods found"
+#~ msgstr "কোনো পদ্ধতি পোৱা ন'গ'ল"
+
+#, fuzzy
+#~| msgid "Save Profile"
+#~ msgid "Settings and Profile"
+#~ msgstr "পাৰ্শ্বৰূপ ৰক্ষা কৰক"
+
+#, fuzzy
+#~| msgid "Configure Notifications"
+#~ msgid "Configure Notifications..."
+#~ msgstr "সূচনাবাৰ্তা বিন্যাস কৰক"
+
+#, fuzzy
+#~| msgid "Edit Profiles"
+#~ msgid "Editing Profile"
+#~ msgstr "পাৰ্শ্বৰূপ সম্পাদন কৰক"
+
+#, fuzzy
+#~| msgid "Do nothing"
+#~ msgid "Do not wait"
+#~ msgstr "একো নকৰিব"
+
+#, fuzzy
+#~| msgid "Do nothing"
+#~ msgid "Do Nothing"
+#~ msgstr "একো নকৰিব"
+
+#~ msgid "Actions"
+#~ msgstr "কাৰ্য্য"
+
+#, fuzzy
+#~| msgctxt "Minutes"
+#~| msgid "min"
+#~ msgctxt "Minutes"
+#~ msgid " min"
+#~ msgstr "min"
+
+#, fuzzy
+#~| msgid "(c) 2008 Dario Freddi"
+#~ msgid "Copyright © 2008–2011 Dario Freddi"
+#~ msgstr "(c) 2008 Dario Freddi"
+
+#~ msgid "CPU <numid>%1</numid>"
+#~ msgstr "CPU <numid>%1</numid>"
+
+#~ msgid "Disable CPU <numid>%1</numid>"
+#~ msgstr "CPU <numid>%1</numid> নিষ্ক্ৰিয় কৰক"
+
+#~ msgid "Modules not found"
+#~ msgstr "অংশ পোনা নাযায়"
+
+#~ msgid "XSync Based (recommended)"
+#~ msgstr "XSync ভিত্তিক (প্রস্তাবিত)"
+
+#~ msgid "Timer Based"
+#~ msgstr "টাইমাৰ ভিত্তিক"
+
+#~ msgid "Grabber Widget Based"
+#~ msgstr "Grabber Widget ভিত্তিক"
+
+#, fuzzy
+#~| msgid "Actions"
+#~ msgctxt "Interrupts the suspension/shutdown process"
+#~ msgid "Abort Action"
+#~ msgstr "কাৰ্য্য"

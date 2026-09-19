@@ -1,0 +1,1111 @@
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+#
+# SPDX-FileCopyrightText: 2010, 2011, 2020, 2024, 2025 A S Alam <aalam@users.sf.net>
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-02-07 02:37+0000\n"
+"PO-Revision-Date: 2025-09-15 09:39-0500\n"
+"Last-Translator: A S Alam <aalam@punlinux.org>\n"
+"Language-Team: Punjabi <kde-i18n-doc@kde.org>\n"
+"Language: pa\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 25.08.0\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+#: PowerButtonActionModel.cpp:31
+#, kde-format
+msgid "Do nothing"
+msgstr "ਕੁਝ ਨਾ ਕਰੋ"
+
+#: PowerButtonActionModel.cpp:40
+#, kde-format
+msgctxt "Suspend to RAM"
+msgid "Sleep"
+msgstr "ਸਲੀਪ"
+
+#: PowerButtonActionModel.cpp:50
+#, kde-format
+msgid "Hibernate"
+msgstr "ਹਾਈਬਰਨੇਟ"
+
+#: PowerButtonActionModel.cpp:59
+#, kde-format
+msgctxt "Power down the computer"
+msgid "Shut down"
+msgstr "ਬੰਦ ਕਰੋ"
+
+#: PowerButtonActionModel.cpp:67
+#, kde-format
+msgid "Lock screen"
+msgstr "ਸਕਰੀਨ ਲਾਕ ਕਰੋ"
+
+#: PowerButtonActionModel.cpp:75
+#, kde-format
+msgid "Show logout screen"
+msgstr "ਲਾਗ ਆਉਟ ਸਕਰੀਨ ਵੇਖਾਓ"
+
+#: PowerButtonActionModel.cpp:83
+#, kde-format
+msgid "Turn off screen"
+msgstr "ਸਕਰੀਨ ਨੂੰ ਬੰਦ ਕਰੋ"
+
+#: PowerButtonActionModel.cpp:91
+#, kde-format
+msgid "Toggle screen on/off"
+msgstr "ਸਕਰੀਨ ਚਾਲ/ਬੰਦ ਨੂੰ ਬਦਲੋ"
+
+#: PowerKCM.cpp:460
+#, kde-format
+msgid "The Power Management Service appears not to be running."
+msgstr "ਪਾਵਰ ਮੈਨਿਜਮੈਂਟ ਸਰਵਿਸ ਚੱਲਦੀ ਨਹੀਂ ਜਾਪਦੀ ਹੈ।"
+
+#: PowerProfileModel.cpp:42
+#, kde-format
+msgctxt "@option:combobox Power profile"
+msgid "Power Save"
+msgstr "ਪਾਵਰ ਬੱਚਤ"
+
+#: PowerProfileModel.cpp:43
+#, kde-format
+msgctxt "@option:combobox Power profile"
+msgid "Balanced"
+msgstr "ਸੰਤੁਲਿਤ"
+
+#: PowerProfileModel.cpp:44
+#, kde-format
+msgctxt "@option:combobox Power profile"
+msgid "Performance"
+msgstr "ਕਾਰਗੁਜ਼ਾਰੀ"
+
+#: PowerProfileModel.cpp:48
+#, kde-format
+msgid "Leave unchanged"
+msgstr "ਬਿਨਾਂ-ਬਦਲੇ ਹੀ ਛੱਡੋ"
+
+#: SleepModeModel.cpp:20
+#, kde-format
+msgctxt "Suspend to RAM"
+msgid "Standby"
+msgstr "ਸਟੈਂਡਬਾਏ"
+
+#: SleepModeModel.cpp:21
+#, kde-format
+msgctxt "Subtitle description for 'Standby' sleep option"
+msgid "Save session to memory"
+msgstr "ਸ਼ੈਸ਼ਨ ਨੂੰ ਮੈਮੋਰੀ ਵਿੱਚ ਸੰਭਾਲੋ"
+
+#: SleepModeModel.cpp:28
+#, kde-format
+msgid "Hybrid sleep"
+msgstr "ਹਾਈਬਰਿੱਡ ਸਲੀਪ"
+
+#: SleepModeModel.cpp:29
+#, kde-format
+msgctxt "Subtitle description for 'Hybrid sleep' sleep option"
+msgid "Save session to both memory and disk"
+msgstr "ਸ਼ੈਸ਼ਨ ਨੂੰ ਮੈਮੋਰੀ ਅਤੇ ਡਿਸਕ ਦੋਵਾਂ ਉੱਤੇ ਸੰਭਾਲੋ"
+
+#: SleepModeModel.cpp:36
+#, kde-format
+msgid "Standby, then hibernate"
+msgstr "ਸਟੈਂਡਬਾਏ, ਫੇਰ ਹਾਈਬਰਨੇਟ"
+
+#: SleepModeModel.cpp:38
+#, kde-format
+msgctxt "Subtitle description for 'Standby, then hibernate' sleep option"
+msgid "Switch to hibernation when battery runs low"
+msgstr "ਜਦੋਂ ਬੈਟਰੀ ਘੱਟ ਹੋਵੇ ਤਾਂ ਹਾਈਬਰਨੇਟ ਲਈ ਬਦਲੋ"
+
+#: SleepModeModel.cpp:39
+#, kde-format
+msgctxt "Subtitle description for 'Standby, then hibernate' sleep option"
+msgid "Switch to hibernation after a period of inactivity"
+msgstr "ਨਾ-ਸਰਗਰਮ ਰਹਿਣ ਦੇ ਬਾਅਦ ਹਾਈਬਰਨੇਟ ਲਈ ਬਦਲੋ"
+
+#: ui/DurationPromptDialog.qml:130
+#, kde-format
+msgctxt "The unit of the time input field"
+msgid "millisecond"
+msgid_plural "milliseconds"
+msgstr[0] "ਮਿਲੀਸਕਿੰਟ"
+msgstr[1] "ਮਿਲੀਸਕਿੰਟ"
+
+#: ui/DurationPromptDialog.qml:132
+#, kde-format
+msgctxt "The unit of the time input field"
+msgid "second"
+msgid_plural "seconds"
+msgstr[0] "ਸਕਿੰਟ"
+msgstr[1] "ਸਕਿੰਟ"
+
+#: ui/DurationPromptDialog.qml:134
+#, kde-format
+msgctxt "The unit of the time input field"
+msgid "minute"
+msgid_plural "minutes"
+msgstr[0] "ਮਿੰਟ"
+msgstr[1] "ਮਿੰਟ"
+
+#: ui/DurationPromptDialog.qml:136
+#, kde-format
+msgctxt "The unit of the time input field"
+msgid "hour"
+msgid_plural "hours"
+msgstr[0] "ਘੰਟਾ"
+msgstr[1] "ਘੰਟੇ"
+
+#: ui/DurationPromptDialog.qml:138
+#, kde-format
+msgctxt "The unit of the time input field"
+msgid "day"
+msgid_plural "days"
+msgstr[0] "ਦਿਨ"
+msgstr[1] "ਦਿਨ"
+
+#: ui/DurationPromptDialog.qml:140
+#, kde-format
+msgctxt "The unit of the time input field"
+msgid "week"
+msgid_plural "weeks"
+msgstr[0] "ਹਫ਼ਤਾ"
+msgstr[1] "ਹਫ਼ਤੇ"
+
+#: ui/DurationPromptDialog.qml:142
+#, kde-format
+msgctxt "The unit of the time input field"
+msgid "month"
+msgid_plural "months"
+msgstr[0] "ਮਹੀਨਾ"
+msgstr[1] "ਮਹੀਨੇ"
+
+#: ui/DurationPromptDialog.qml:144
+#, kde-format
+msgctxt "The unit of the time input field"
+msgid "year"
+msgid_plural "years"
+msgstr[0] "ਸਾਲ"
+msgstr[1] "ਸਾਲ"
+
+#: ui/DurationPromptDialog.qml:168
+#, kde-format
+msgctxt "@text:radiobutton Unit of the time input field"
+msgid "milliseconds"
+msgstr "ਮਿਲੀਸਕਿੰਟ"
+
+#: ui/DurationPromptDialog.qml:170
+#, kde-format
+msgctxt "@text:radiobutton Unit of the time input field"
+msgid "seconds"
+msgstr "ਸਕਿੰਟ"
+
+#: ui/DurationPromptDialog.qml:172
+#, kde-format
+msgctxt "@text:radiobutton Unit of the time input field"
+msgid "minutes"
+msgstr "ਮਿੰਟ"
+
+#: ui/DurationPromptDialog.qml:174
+#, kde-format
+msgctxt "@text:radiobutton Unit of the time input field"
+msgid "hours"
+msgstr "ਘੰਟੇ"
+
+#: ui/DurationPromptDialog.qml:176
+#, kde-format
+msgctxt "@text:radiobutton Unit of the time input field"
+msgid "days"
+msgstr "ਦਿਨ"
+
+#: ui/DurationPromptDialog.qml:178
+#, kde-format
+msgctxt "@text:radiobutton Unit of the time input field"
+msgid "weeks"
+msgstr "ਹਫ਼ਤੇ"
+
+#: ui/DurationPromptDialog.qml:180
+#, kde-format
+msgctxt "@text:radiobutton Unit of the time input field"
+msgid "months"
+msgstr "ਮਹੀਨੇ"
+
+#: ui/DurationPromptDialog.qml:182
+#, kde-format
+msgctxt "@text:radiobutton Unit of the time input field"
+msgid "years"
+msgstr "ਸਾਲ"
+
+#: ui/GlobalConfig.qml:16
+#, kde-format
+msgctxt "@title"
+msgid "Advanced Power Settings"
+msgstr "ਤਕਨੀਕੀ ਊਰਜਾ ਸੈਟਿੰਗਾਂ"
+
+#: ui/GlobalConfig.qml:21
+#, kde-format
+msgctxt ""
+"Percentage value example, used for formatting battery levels in the power "
+"management settings"
+msgid "10%"
+msgstr "10%"
+
+#: ui/GlobalConfig.qml:57
+#, kde-format
+msgctxt "@title:group"
+msgid "Battery Levels"
+msgstr "ਬੈਟਰੀ ਪੱਧਰ"
+
+#: ui/GlobalConfig.qml:65
+#, kde-format
+msgctxt ""
+"@label:spinbox Low battery level percentage for the main power supply battery"
+msgid "&Low level:"
+msgstr "ਘੱਟ ਪੱਧਰ(&L):"
+
+#: ui/GlobalConfig.qml:73
+#, kde-format
+msgctxt "@accessible:name:spinbox"
+msgid "Low battery level"
+msgstr "ਘੱਟ ਬੈਟਰੀ ਲੈਵਲ"
+
+#: ui/GlobalConfig.qml:98
+#, kde-format
+msgctxt "@info:whatsthis"
+msgid ""
+"The battery charge will be considered low when it drops to this level. "
+"Settings for low battery will be used instead of regular battery settings."
+msgstr ""
+"ਜਦੋਂ ਬੈਟਰੀ ਚਾਰਜ ਇਸ ਪੱਧਰ ਤੋਂ ਘੱਟ ਜਾਵੇਗਾ ਤਾਂ ਇਸ ਨੂੰ ਘੱਟ ਮੰਨਿਆ ਜਾਵੇਗਾ। ਨਿਯਮਤ ਬੈਟਰੀ ਸੈਟਿੰਗਾਂ ਦੀ "
+"ਬਜਾਏ ਘੱਟ ਬੈਟਰੀ ਲਈ ਸੈਟਿੰਗਾਂ ਨੂੰ ਵਰਤਿਆ ਜਾਵੇਗਾ।"
+
+#: ui/GlobalConfig.qml:105
+#, kde-format
+msgctxt ""
+"@label:spinbox Critical battery level percentage for the main power supply "
+"battery"
+msgid "Cr&itical level:"
+msgstr "ਨਾਜ਼ੁਕ ਪੱਧਰ(&i):"
+
+#: ui/GlobalConfig.qml:113
+#, kde-format
+msgctxt "@accessible:name:spinbox"
+msgid "Critical battery level"
+msgstr "ਨਾਜ਼ੁਕ ਬੈਟਰੀ ਪੱਧਰ"
+
+#: ui/GlobalConfig.qml:138
+#, kde-format
+msgctxt "@info:whatsthis"
+msgid ""
+"The battery charge will be considered critical when it drops to this level. "
+"After a brief warning, the system will automatically suspend or shut down, "
+"according to the configured critical battery level action."
+msgstr ""
+"ਬੈਟਰੀ ਚਾਰਜ ਨੂੰ ਇਸ ਪੱਧਰ ਤੋਂ ਹੇਠਾਂ ਆਉਣ ਉੱਤੇ ਬੈਟਰੀ ਚਾਰਜ ਨੂੰ ਨਾਜ਼ੁਕ ਮੰਨਿਆ ਜਾਵੇਗਾ। ਸੰਖੇਪ ਚੇਤਾਵਨੀ ਤੋਂ "
+"ਬਾਅਦ ਸਿਸਟਮ ਆਪਣੇ-ਆਪ ਸਸਪੈਂਡ ਜਾਂ ਬੰਦ ਹੋਵੇਗਾ, ਜੋ ਕਿ ਸੰਰਚਨਾ ਕੀਤੀ ਨਾਜ਼ੁਕ ਬੈਟਰੀ ਪੱਧਰ ਕਾਰਵਾਈ ਦੇ "
+"ਮੁਤਾਬਕ ਹੁੰਦਾ ਹੈ।"
+
+#: ui/GlobalConfig.qml:147
+#, kde-format
+msgctxt "@info:status"
+msgid ""
+"The action you had previously configured for reaching the critical battery "
+"level is now unsupported on your system. Please select a different one."
+msgstr ""
+
+#: ui/GlobalConfig.qml:154
+#, kde-format
+msgctxt ""
+"@label:combobox Power action such as sleep/hibernate that will be executed "
+"when the critical battery level is reached"
+msgid "A&t critical level:"
+msgstr "ਨਾਜ਼ੁਕ ਪੱਧਰ ਉੱਤੇ(&t):"
+
+#: ui/GlobalConfig.qml:156
+#, kde-format
+msgctxt "@accessible:name:combobox"
+msgid "Action performed at critical battery level"
+msgstr "ਨਾਜ਼ੁਕ ਬੈਟਰੀ ਪੱਧਰ ਉੱਤੇ ਕੀਤੀ ਜਾਣ ਵਾਲੀ ਕਾਰਵਾਈ"
+
+#: ui/GlobalConfig.qml:181
+#, kde-format
+msgctxt "@label:spinbox Low battery level percentage for peripheral devices"
+msgid "Low level for peripheral d&evices:"
+msgstr "ਪੇਰੀਫੇਰਲ ਡਿਵਾਈਸ ਲਈ ਘੱਟ ਪੱਧਰ(&e):"
+
+#: ui/GlobalConfig.qml:189
+#, kde-format
+msgctxt "@accessible:name:spinbox"
+msgid "Low battery level for peripheral devices"
+msgstr "ਪੇਰੀਫੇਰਲ ਡਿਵਾਈਸ ਲਈ ਘੱਟ ਬੈਟਰੀ ਪੱਧਰ"
+
+#: ui/GlobalConfig.qml:214
+#, kde-format
+msgctxt "@info:whatsthis"
+msgid ""
+"The battery charge for peripheral devices will be considered low when it "
+"reaches this level."
+msgstr "ਪੇਰੀਫੇਰਲ ਡਿਵਾਈਸ ਲਈ ਬੈਟਰੀ ਚਾਰਜ ਨੂੰ ਘੱਟ ਮੰਨਿਆ ਜਾਵੇਗਾ, ਜਦੋਂ ਇਸ ਪੱਧਰ ਉੱਤੇ ਪਹੁੰਚ ਜਾਵੇਗੀ।"
+
+#: ui/GlobalConfig.qml:222
+#, kde-format
+msgctxt "@title:group"
+msgid "Charge Limit"
+msgstr "ਚਾਰਜ ਦੀ ਹੱਦ"
+
+#: ui/GlobalConfig.qml:233
+#, kde-format
+msgctxt "@label:checkbox"
+msgid "&Battery protection:"
+msgstr "ਬੈਟਰੀ ਸੁਰੱਖਿਆ(&B):"
+
+#: ui/GlobalConfig.qml:234
+#, kde-format
+msgctxt "@text:checkbox"
+msgid "Limit the maximum battery charge"
+msgstr "ਬੈਟਰੀ ਚਾਰਜ ਕਈ ਵੱਧ ਤੋਂ ਵੱਧ ਹੱਦ ਤੈਅ ਕਰੋ"
+
+#: ui/GlobalConfig.qml:242
+#, kde-format
+msgctxt ""
+"@label:spinbox Battery will stop charging when this charge percentage is "
+"reached"
+msgid "&Stop charging at:"
+msgstr "ਇਸ ਤੋਂ ਚਾਰਜ ਕਰਨ ਤੋਂ ਰੋਕੋ(&S):"
+
+#: ui/GlobalConfig.qml:268
+#, kde-format
+msgctxt ""
+"@label:spinbox Battery will start charging again when this charge percentage "
+"is reached, after having hit the stop-charging threshold earlier"
+msgid "Start charging once &below:"
+msgstr "ਜਦੋਂ ਇਸ ਤੋਂ ਘੱਟ ਹੋਵੇ ਤਾਂ ਚਾਰਜ ਕਰਨਾ ਸ਼ੁਰੂ ਕਰੋ(&b):"
+
+#: ui/GlobalConfig.qml:325
+#, kde-format
+msgctxt "@info:status"
+msgid ""
+"You might have to disconnect and re-connect the power source to start "
+"charging the battery again."
+msgstr ""
+"ਬੈਟਰੀ ਚਾਰਜ ਕਰਨ ਨੂੰ ਸ਼ੁਰੂ ਕਰਨ ਵਾਸਤੇ ਤੁਹਾਨੂੰ ਪਾਵਰ ਸਰੋਤ ਨਾਲੋਂ ਡਿਸ-ਕਨੈਕਟ ਕਰਕੇ ਮੁੜ-ਕਨੈਕਟ ਕਰਨਾ ਪੈ "
+"ਸਕਦਾ ਹੈ।"
+
+#: ui/GlobalConfig.qml:336
+#, kde-format
+msgctxt "@info"
+msgid ""
+"Regularly charging the battery close to 100%, or fully discharging it, may "
+"accelerate deterioration of battery health. By limiting the maximum battery "
+"charge, you can help extend the battery lifespan."
+msgstr ""
+"ਬੈਟਰੀ ਨੂੰ ਲਗਾਤਾਰ ਲਗਭਗ 100% ਚਾਰਜ ਜਾਂ ਪੂਰੀ ਤਰ੍ਹਾਂ ਡਿਸ-ਚਾਰਜ ਕਰਨ ਨਾਲ ਬੈਟਰੀ ਹਾਲਤ ਦੀ ਘਸਾਈ "
+"ਵਿੱਚ ਜ਼ਿਆਦਾ ਤੇਜ਼ੀ ਆ ਸਕਦੀ ਹੈ। ਬੈਟਰੀ ਦੇ ਵੱਧ ਤੋਂ ਵੱਧ ਚਾਰਜ ਹੋਣ ਨੂੰ ਸੀਮਤ ਕਰਕੇ ਤੁਸੀਂ ਬੈਟਰੀ ਦੀ ਉਮਰ "
+"ਵਿੱਚ ਵਾਧਾ ਕਰ ਸਕਦੇ ਹੋ।"
+
+#: ui/GlobalConfig.qml:344
+#, kde-format
+msgctxt ""
+"@title:group Miscellaneous power management settings that didn't fit "
+"elsewhere"
+msgid "Other Settings"
+msgstr "ਹੋਰ ਸੈਟਿੰਗਾਂ"
+
+#: ui/GlobalConfig.qml:352
+#, kde-format
+msgctxt "@label:checkbox"
+msgid "&Media playback:"
+msgstr "ਮੀਡੀਆ ਪਲੇਅਬੈਕ(&M):"
+
+#: ui/GlobalConfig.qml:353
+#, kde-format
+msgctxt "@text:checkbox"
+msgid "Pause media players when suspending"
+msgstr "ਜਦੋਂ ਸਸਪੈਂਡ ਕਰਨਾ ਹੋਵੇ ਤਾਂ ਸੰਗੀਤ ਪਲੇਅਰਾਂ ਨੂੰ ਵਿਰਾਮ ਕਰੋ"
+
+#: ui/GlobalConfig.qml:366
+#, kde-format
+msgctxt "@label:button"
+msgid "Related pages:"
+msgstr "ਸੰਬੰਧਿਤ ਸਫ਼ੇ:"
+
+#: ui/GlobalConfig.qml:383
+#, kde-format
+msgctxt "@text:button Name of KCM, plus Power Management notification category"
+msgid "Notifications: Power Management"
+msgstr "ਨੋਟੀਫਿਕੇਸ਼ਨ: ਪਾਵਰ ਇੰਤਜ਼ਾਮ"
+
+#: ui/GlobalConfig.qml:385
+#, kde-format
+msgid "Open \"Notifications\" settings page, \"Power Management\" section"
+msgstr "\"ਨੋਟੀਫਿਕੇਸ਼ਨ\" ਸੈਟਿੰਗਾਂ ਸਫ਼ੇ, \"ਪਾਵਰ ਇੰਤਜ਼ਾਮ\" ਭਾਗ ਨੂੰ ਖੋਲ੍ਹੋ"
+
+#: ui/GlobalConfig.qml:394
+#, kde-format
+msgctxt "@text:button Name of KCM, plus Power Management shortcut category"
+msgid "Shortcuts: Power Management"
+msgstr "ਸ਼ਾਰਟਕੱਟ: ਪਾਵਰ ਇੰਤਜ਼ਾਮ"
+
+#: ui/GlobalConfig.qml:396
+#, kde-format
+msgid "Open \"Shortcuts\" settings page, \"Power Management\" section"
+msgstr "\"ਸ਼ਾਰਟਕੱਟ\" ਸੈਟਿੰਗਾਂ ਸਫ਼ੇ, \"ਪਾਵਰ ਇੰਤਜ਼ਾਮ\" ਭਾਗ ਨੂੰ ਖੋਲ੍ਹੋ"
+
+#: ui/GlobalConfig.qml:403
+#, kde-format
+msgctxt "@text:button Name of KCM"
+msgid "Screen Locking"
+msgstr "ਸਕਰੀਨ ਲਾਕ"
+
+#: ui/GlobalConfig.qml:404
+#, kde-format
+msgid "Open \"Screen Locking\" settings page"
+msgstr "\"ਸਕਰੀਨ ਲਾਕ\" ਸੈਟਿੰਗਾਂ ਸਫ਼ੇ ਨੂੰ ਖੋਲ੍ਹੋ"
+
+#: ui/GlobalConfig.qml:411
+#, kde-format
+msgctxt "@text:button Name of KCM"
+msgid "Desktop Session"
+msgstr "ਡੈਸਕਟਾਪ ਸ਼ੈਸ਼ਨ"
+
+#: ui/GlobalConfig.qml:412
+#, kde-format
+msgid "Open \"Desktop Session\" settings page"
+msgstr "\"ਡੈਸਕਟਾਪ ਸ਼ੈਸ਼ਨ\" ਸੈਟਿੰਗਾਂ ਸਫ਼ੇ ਨੂੰ ਖੋਲ੍ਹੋ"
+
+#: ui/GlobalConfig.qml:419
+#, kde-format
+msgctxt "@text:button Name of KCM"
+msgid "Activities"
+msgstr "ਸਰਗਰਮੀਆਂ"
+
+#: ui/GlobalConfig.qml:420
+#, kde-format
+msgid "Open \"Activities\" settings page"
+msgstr "\"ਸਰਗਰਮੀਆਂ\" ਸੈਟਿੰਗਾਂ ਸਫ਼ੇ ਨੂੰ ਖੋਲ੍ਹੋ"
+
+#: ui/main.qml:19
+#, fuzzy, kde-format
+#| msgctxt "@action:button"
+#| msgid "Advanced Power &Settings…"
+msgctxt "@action:button"
+msgid "Configure Advanced &Settings…"
+msgstr "ਤਕਨੀਕੀ ਪਾਵਰ ਸੈਟਿੰਗਾਂ(&S)…"
+
+#: ui/main.qml:44
+#, kde-format
+msgctxt "@text:placeholdermessage"
+msgid "Power Management settings could not be loaded"
+msgstr "ਪਾਵਰ ਇੰਤਜ਼ਾਮ ਸੈਟਿੰਗਾਂ ਨੂੰ ਲੋਡ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਿਆ"
+
+#: ui/main.qml:66
+#, kde-format
+msgid "On AC Power"
+msgstr "AC ਪਾਵਰ ਉੱਤੇ"
+
+#: ui/main.qml:67
+#, kde-format
+msgid "On Battery"
+msgstr "ਬੈਟਰੀ ਉੱਤੇ"
+
+#: ui/main.qml:68
+#, kde-format
+msgid "On Low Battery"
+msgstr "ਘੱਟ ਬੈਟਰੀ ਉੱਤੇ"
+
+#: ui/ProfileConfig.qml:24
+#, kde-format
+msgctxt ""
+"Percentage value example, used for formatting brightness levels in the power "
+"management settings"
+msgid "10%"
+msgstr "10%"
+
+#: ui/ProfileConfig.qml:43
+#, kde-format
+msgctxt "@title:group"
+msgid "Suspend Session"
+msgstr "ਸ਼ੈਸ਼ਨ ਨੂੰ ਸਸਪੈਂਡ ਕਰੋ"
+
+#: ui/ProfileConfig.qml:58
+#, kde-format
+msgctxt "@info:status"
+msgid ""
+"The action you had previously configured to happen when inactive is now "
+"unsupported on your system. Please select a different one."
+msgstr ""
+
+#: ui/ProfileConfig.qml:65
+#, kde-format
+msgctxt ""
+"@label:combobox Suspend action such as sleep/hibernate to perform when the "
+"system is idle"
+msgid "When &inactive:"
+msgstr "ਜਦੋਂ ਨਾ-ਸਰਗਰਮ ਹੋਵੇ(&i):"
+
+#: ui/ProfileConfig.qml:74
+#, kde-format
+msgctxt "@accessible:name:combobox"
+msgid "Action to perform when the system is idle"
+msgstr "ਜਦੋਂ ਸਿਸਟਮ ਬਿਨਾਂ ਸਰਗਰਮ ਦੇ ਹੋਵੇ ਤਾਂ ਕਾਰਵਾਈ ਕਰੋ"
+
+#: ui/ProfileConfig.qml:105
+#, kde-format
+msgctxt "@option:combobox"
+msgid "After %1 second"
+msgid_plural "After %1 seconds"
+msgstr[0] "%1 ਸਕਿੰਟ ਬਾਅਦ"
+msgstr[1] "%1 ਸਕਿੰਟਾਂ ਬਾਅਦ"
+
+#: ui/ProfileConfig.qml:107
+#, kde-format
+msgctxt "@option:combobox"
+msgid "After %1 minute"
+msgid_plural "After %1 minutes"
+msgstr[0] "%1 ਮਿੰਟ ਬਾਅਦ"
+msgstr[1] "%1 ਮਿੰਟਾਂ ਬਾਅਦ"
+
+#: ui/ProfileConfig.qml:120 ui/ProfileConfig.qml:415 ui/ProfileConfig.qml:556
+#: ui/ProfileConfig.qml:865
+#, kde-format
+msgctxt ""
+"@option:combobox Choose a custom value outside the list of preset values"
+msgid "Custom…"
+msgstr "…ਕਸਟਮ"
+
+#: ui/ProfileConfig.qml:166
+#, kde-format
+msgctxt "@info:status"
+msgid "Disabling automatic suspend will result in higher energy consumption."
+msgstr ""
+
+#: ui/ProfileConfig.qml:168
+#, kde-format
+msgctxt "@info:status A long duration until suspend/shutdown"
+msgid "A long duration will result in higher energy consumption."
+msgstr ""
+
+#: ui/ProfileConfig.qml:180
+#, kde-format
+msgctxt "@info:status"
+msgid ""
+"The action you had previously configured for when the power button is "
+"pressed is now unsupported on your system. Please select a different one."
+msgstr ""
+
+#: ui/ProfileConfig.qml:187
+#, kde-format
+msgctxt ""
+"@label:combobox Suspend action such as sleep/hibernate to perform when the "
+"power button is pressed"
+msgid "When &power button pressed:"
+msgstr "ਜਦੋਂ ਪਾਵਰ ਬਟਨ ਦੱਬਿਆ ਜਾਵੇ(&p):"
+
+#: ui/ProfileConfig.qml:189
+#, kde-format
+msgctxt "@accessible:name:combobox"
+msgid "Action to perform when the power button is pressed"
+msgstr "ਜਦੋਂ ਪਾਵਰ ਬਟਨ ਦੱਬਿਆ ਜਾਂਦਾ ਹੈ ਤਾਂ ਕਾਰਵਾਈ ਕਰੋ"
+
+#: ui/ProfileConfig.qml:219
+#, kde-format
+msgctxt "@info:status"
+msgid ""
+"The action you had previously configured for when the lid is closed is now "
+"unsupported on your system. Please select a different one."
+msgstr ""
+
+#: ui/ProfileConfig.qml:226
+#, kde-format
+msgctxt ""
+"@label:combobox Suspend action such as sleep/hibernate to perform when the "
+"power button is pressed"
+msgid "When laptop &lid closed:"
+msgstr " ਜਦੋਂ ਲੈਪਟਾਪ ਦੀ &Lid ਨੂੰ ਬੰਦ ਕੀਤਾ ਜਾਵੇ:"
+
+#: ui/ProfileConfig.qml:228
+#, kde-format
+msgctxt "@accessible:name:combobox"
+msgid "Action to perform when the laptop lid is closed"
+msgstr "ਜਦੋਂ ਲੈਪਟਾਪ ਦੀ lid ਨੂੰ ਬੰਦ ਕੀਤਾ ਜਾਵੇ ਤਾਂ ਕਾਰਵਾਈ ਕਰੋ"
+
+#: ui/ProfileConfig.qml:257
+#, kde-format
+msgctxt ""
+"@text:checkbox Trigger laptop lid action even when an external monitor is "
+"connected"
+msgid "Even when an external monitor is connected"
+msgstr "ਭਾਵੇਂ ਕਿ ਬਾਹਰੀ ਮਾਨੀਟਰ ਕਨੈਕਟ ਹੋਵੇ"
+
+#: ui/ProfileConfig.qml:259
+#, kde-format
+msgid "Perform laptop lid action even when an external monitor is connected"
+msgstr "ਭਾਵੇਂ ਕਿ ਬਾਹਰੀ ਮਾਨੀਟਰ ਕਨੈਕਟ ਹੋਵੇ ਤਾਂ ਵੀ ਲੈਪਟਾਪ lid ਕਾਰਵਾਈ ਕਰੋ"
+
+#: ui/ProfileConfig.qml:277
+#, kde-format
+msgctxt "@info:status"
+msgid ""
+"The sleep mode you had previously configured is now unsupported on your "
+"system. Please select a different one."
+msgstr ""
+
+#: ui/ProfileConfig.qml:284
+#, kde-format
+msgctxt ""
+"@label:combobox Sleep mode selection - suspend to memory, disk or both"
+msgid "When sleeping, enter:"
+msgstr "ਜਦੋਂ ਸਲੀਪ ਹੋਵੇ ਤਾਂ ਕਰੋ:"
+
+#: ui/ProfileConfig.qml:286
+#, kde-format
+msgctxt "@accessible:name:combobox"
+msgid "When sleeping, enter this power-save mode"
+msgstr "ਜਦੋਂ ਸਲੀਪ ਹੋਵੇ ਤਾਂ ਇਹ ਪਾਵਰ-ਬੱਚਤ ਮੋਡ ਵਿੱਚ ਜਾਓ"
+
+#: ui/ProfileConfig.qml:335
+#, kde-format
+msgctxt "@title:group"
+msgid "Display and Brightness"
+msgstr "ਡਿਸਪਲੇਅ ਅਤੇ ਚਮਕ"
+
+#: ui/ProfileConfig.qml:345
+#, kde-format
+msgctxt "@label:slider Brightness level"
+msgid "Change scr&een brightness:"
+msgstr "ਸਕਰੀਨ ਦੀ ਚਮਕ ਨੂੰ ਬਦਲੋ(&e):"
+
+#: ui/ProfileConfig.qml:392
+#, kde-format
+msgctxt "@label:combobox Dim screen after X minutes"
+msgid "Di&m automatically:"
+msgstr "ਆਪਣੇ-ਆਪ ਡਿਮ ਕਰੋ(&m):"
+
+#: ui/ProfileConfig.qml:394
+#, kde-format
+msgctxt "@label:spinbox Dim screen after X minutes"
+msgid "Di&m automatically after:"
+msgstr "ਆਪਣੇ-ਆਪ ਡਿਮ ਇਸ ਦੇ ਬਾਅਦ ਕਰੋ(&m):"
+
+#: ui/ProfileConfig.qml:399
+#, kde-format
+msgctxt "@option:combobox"
+msgid "%1 second"
+msgid_plural "%1 seconds"
+msgstr[0] "%1 ਸਕਿੰਟ"
+msgstr[1] "%1 ਸਕਿੰਟ"
+
+#: ui/ProfileConfig.qml:401
+#, kde-format
+msgctxt "@option:combobox"
+msgid "%1 minute"
+msgid_plural "%1 minutes"
+msgstr[0] "%1 ਮਿੰਟ"
+msgstr[1] "%1 ਮਿੰਟ"
+
+#: ui/ProfileConfig.qml:408
+#, kde-format
+msgctxt "@option:combobox Dim screen automatically"
+msgid "Never"
+msgstr "ਕਦੇ ਨਹੀਂ"
+
+#: ui/ProfileConfig.qml:460
+#, kde-format
+msgctxt "@info:status"
+msgid ""
+"The screen will not be dimmed because it is configured to turn off sooner."
+msgstr ""
+
+#: ui/ProfileConfig.qml:465
+#, kde-format
+msgctxt "@label:combobox After X minutes"
+msgid "&Turn off screen:"
+msgstr "ਸਕਰੀਨ ਬੰਦ ਕਰੋ(&T):"
+
+#: ui/ProfileConfig.qml:477
+#, kde-format
+msgctxt "@label:spinbox After X minutes"
+msgid "Turn off screen after:"
+msgstr "ਇਸ ਦੇ ਬਾਅਦ ਸਕਰੀਨ ਬੰਦ ਕਰੋ:"
+
+#: ui/ProfileConfig.qml:481
+#, kde-format
+msgctxt "@option:combobox Turn off screen (caution: watch for string length)"
+msgid "%1 second"
+msgid_plural "%1 seconds"
+msgstr[0] "%1 ਸਕਿੰਟ"
+msgstr[1] "%1 ਸਕਿੰਟ"
+
+#: ui/ProfileConfig.qml:483
+#, kde-format
+msgctxt "@option:combobox Turn off screen (caution: watch for string length)"
+msgid "%1 minute"
+msgid_plural "%1 minutes"
+msgstr[0] "%1 ਮਿੰਟ"
+msgstr[1] "%1 ਮਿੰਟ"
+
+#: ui/ProfileConfig.qml:490
+#, kde-format
+msgctxt "@option:combobox Turn off screen (caution: watch for string length)"
+msgid "Never"
+msgstr "ਕਦੇ ਨਹੀਂ"
+
+#: ui/ProfileConfig.qml:497
+#, kde-format
+msgctxt ""
+"@option:combobox Choose a custom value outside the list of preset values "
+"(caution: watch for string length)"
+msgid "Custom…"
+msgstr "…ਕਸਟਮ"
+
+#: ui/ProfileConfig.qml:536
+#, kde-format
+msgctxt "@label:spinbox After X minutes"
+msgid "When locked, turn off screen after:"
+msgstr "ਜਦੋਂ ਲਾਕ ਹੋਵੇ ਤਾਂ ਸਕਰੀਨ ਨੂੰ ਇਸ ਦੇ ਬੰਦ ਕਰੋ:"
+
+#: ui/ProfileConfig.qml:540
+#, kde-format
+msgctxt "@option:combobox Turn off screen (caution: watch for string length)"
+msgid "When locked: %1 second"
+msgid_plural "When locked: %1 seconds"
+msgstr[0] "ਜਦੋਂ ਲਾਕ ਹੋਵੇ: %1 ਸਕਿੰਟ"
+msgstr[1] "ਜਦੋਂ ਲਾਕ ਹੋਵੇ: %1 ਸਕਿੰਟ"
+
+#: ui/ProfileConfig.qml:542
+#, kde-format
+msgctxt "@option:combobox Turn off screen (caution: watch for string length)"
+msgid "When locked: %1 minute"
+msgid_plural "When locked: %1 minutes"
+msgstr[0] "ਜਦੋਂ ਲਾਕ ਹੋਵੇ: %1 ਮਿੰਟ"
+msgstr[1] "ਜਦੋਂ ਲਾਕ ਹੋਵੇ: %1 ਮਿੰਟ"
+
+#: ui/ProfileConfig.qml:549
+#, kde-format
+msgctxt ""
+"@option:combobox Turn off screen after X minutes regardless of lock screen "
+"(caution: watch for string length)"
+msgid "When locked and unlocked"
+msgstr "ਜਦੋਂ ਲਾਕ ਅਤੇ ਅਣ-ਲਾਕ ਹੈ"
+
+#: ui/ProfileConfig.qml:551
+#, kde-format
+msgctxt "@option:combobox Turn off screen (caution: watch for string length)"
+msgid "When locked: Immediately"
+msgstr "ਜਦੋਂ ਲਾਕ ਹੋਵੇ: ਫ਼ੌਰਨ"
+
+#: ui/ProfileConfig.qml:590
+#, kde-format
+msgctxt "@label:slider Brightness level"
+msgid "Change key&board brightness:"
+msgstr "ਕੀਬੋਰ ਚਮਕ ਨੂੰ ਬਦਲੋ(&b):"
+
+#: ui/ProfileConfig.qml:638
+#, kde-format
+msgctxt "@title:group"
+msgid "Other Settings"
+msgstr "ਹੋਰ ਸੈਟਿੰਗਾਂ"
+
+#: ui/ProfileConfig.qml:646
+#, kde-format
+msgctxt ""
+"@label:combobox Power Save, Balanced or Performance profile - same options "
+"as in the Battery applet"
+msgid "Switch to po&wer profile:"
+msgstr "ਪਾਵਰ ਪਰੋਫਾਇਲ ਲਈ ਬਦਲੋ(&w):"
+
+#: ui/ProfileConfig.qml:650
+#, kde-format
+msgctxt ""
+"@accessible:name:combobox Power Save, Balanced or Performance profile - same "
+"options as in the Battery applet"
+msgid "Switch to power profile"
+msgstr "ਪਾਵਰ ਪਰੋਫਾਇਲ ਲਈ ਬਦਲੋ"
+
+#: ui/ProfileConfig.qml:677
+#, kde-format
+msgctxt "@label:button"
+msgid "Run command or script:"
+msgstr "ਕਮਾਂਡ ਜਾਂ ਸਕ੍ਰਿਪਟ ਨੂੰ ਚਲਾਓ:"
+
+#: ui/ProfileConfig.qml:687
+#, kde-format
+msgctxt ""
+"@text:button Determine what will trigger a command or script to run in this "
+"power state"
+msgid "Choose run conditions"
+msgstr "ਲਾਉਣ ਲਈ ਸ਼ਰਤਾਂ ਚੁਣੋ"
+
+#: ui/ProfileConfig.qml:689
+#, kde-format
+msgctxt "@accessible:name:button"
+msgid "Choose run conditions for command or script"
+msgstr "ਕਮਾਂਡ ਜਾਂ ਕਮਾਂਡ ਚਲਾਉਣ ਲਈ ਸ਼ਰਤਾਂ ਚੁਣੋ"
+
+#: ui/ProfileConfig.qml:709
+#, kde-format
+msgctxt ""
+"@text:action:menu Command or script to run for power state (On AC Power, On "
+"Battery, ...)"
+msgid "When entering \"%1\" state"
+msgstr "ਜਦੋਂ \"%1\" ਹਾਲਤ ਵਿੱਚ ਜਾਵੇ"
+
+#: ui/ProfileConfig.qml:727
+#, kde-format
+msgctxt ""
+"@text:action:menu Command or script to run for power state (On AC Power, On "
+"Battery, ...)"
+msgid "When exiting \"%1\" state"
+msgstr "ਜਦੋਂ \"%1\" ਹਾਲਤ ਤੋਂ ਬਾਹਰ ਆਉਣਾ ਹੋਵੇ"
+
+#: ui/ProfileConfig.qml:745
+#, kde-format
+msgctxt "@text:action:menu Command or script to run"
+msgid "When inactive"
+msgstr "ਜਦੋਂ ਨਾ-ਸਰਗਰਮ ਹੋਵੇ"
+
+#: ui/ProfileConfig.qml:768
+#, kde-format
+msgctxt ""
+"@label:textfield Command or script to run for power state (On AC Power, On "
+"Battery, ...)"
+msgid "When e&ntering \"%1\" state:"
+msgstr "ਜਦੋਂ \"%1\" ਹਾਲਤ ਵਿੱਚ ਜਾਵੇ:"
+
+#: ui/ProfileConfig.qml:772
+#, fuzzy, kde-format
+#| msgctxt "@label:textfield"
+#| msgid "Script command when entering this power state"
+msgctxt "@label:textfield for power state (On AC Power, On Battery, ...)"
+msgid "Command or script when entering \"%1\" state"
+msgstr "ਜਦੋਂ ਇਸ ਪਾਵਰ ਹਾਲਤ ਵਿੱਚ ਜਾਓ ਤਾਂ ਸਕ੍ਰਿਪਟ ਕਮਾਂਡ"
+
+#: ui/ProfileConfig.qml:803
+#, fuzzy, kde-format
+#| msgctxt "@label:textfield Script command to execute"
+#| msgid "When e&xiting this power state:"
+msgctxt ""
+"@label:textfield Command or script to run for power state (On AC Power, On "
+"Battery, ...)"
+msgid "When e&xiting \"%1\" state:"
+msgstr "ਜਦੋਂ ਇਹ ਪਾਵਰ ਹਾਲਤ ਤੋਂ ਬਾਹਰ ਜਾਓ(&x):"
+
+#: ui/ProfileConfig.qml:807
+#, fuzzy, kde-format
+#| msgctxt "@label:textfield"
+#| msgid "Script command when exiting this power state"
+msgctxt "@label:textfield for power state (On AC Power, On Battery, ...)"
+msgid "Command or script when exiting \"%1\" state"
+msgstr "ਜਦੋਂ ਇਸ ਪਾਵਰ ਹਾਲਤ ਤੋਂ ਬਾਹਰ ਜਾਓ ਤਾਂ ਸਕ੍ਰਿਪਟ ਕਮਾਂਡ"
+
+#: ui/ProfileConfig.qml:836
+#, fuzzy, kde-format
+#| msgctxt "@accessible:name:spinbox"
+#| msgid "Period of inactivity until the script command executes"
+msgctxt "@accessible:name:spinbox"
+msgid "Duration of inactivity before the command or script runs"
+msgstr "ਸਕ੍ਰਿਪਟ ਕਮਾਂਡ ਚਲਾਉਣ ਲਈ ਨਾ-ਸਰਗਰਮੀ ਦਾ ਸਮਾਂ"
+
+#: ui/ProfileConfig.qml:842
+#, kde-format
+msgctxt "@label:textfield Command or script to run"
+msgid "When i&nactive:"
+msgstr "ਜਦੋਂ ਨਾ-ਸਰਗਰਮ ਹੋਵੇ(&n):"
+
+#: ui/ProfileConfig.qml:845
+#, fuzzy, kde-format
+#| msgctxt "@label:button"
+#| msgid "Run custom script:"
+msgctxt "@label:spinbox After X minutes"
+msgid "Run command or script after:"
+msgstr "ਪਸੰਦੀਦਾ ਸਕ੍ਰਿਪਟ ਚਲਾਓ:"
+
+#: ui/ProfileConfig.qml:850
+#, kde-format
+msgctxt "@option:combobox"
+msgid "Run after %1 second"
+msgid_plural "Run after %1 seconds"
+msgstr[0] "%1 ਸਕਿੰਟ ਬਾਅਦ ਚਲਾਓ"
+msgstr[1] "%1 ਸਕਿੰਟਾਂ ਬਾਅਦ ਚਲਾਓ"
+
+#: ui/ProfileConfig.qml:852
+#, kde-format
+msgctxt "@option:combobox"
+msgid "Run after %1 minute"
+msgid_plural "Run after %1 minutes"
+msgstr[0] "%1 ਮਿੰਟ ਬਾਅਦ ਚਲਾਓ"
+msgstr[1] "%1 ਮਿੰਟ ਬਾਅਦ ਚਲਾਓ"
+
+#: ui/ProfileConfig.qml:894
+#, kde-format
+msgctxt "@accessible:name:textfield"
+msgid "Command or script when inactive"
+msgstr "ਜਦੋਂ ਨਾ-ਸਰਗਰਮ ਹੋਵੇ ਤਾਂ ਕਮਾਂਡ ਜਾਂ ਸਕ੍ਰਿਪਟ"
+
+#: ui/RunScriptEdit.qml:34
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Enter command or script file"
+msgstr "ਕਮਾਂਡ ਜਾਂ ਸਕ੍ਰਿਪਟ ਫਾਇਲ ਦਿਓ"
+
+#: ui/RunScriptEdit.qml:35
+#, kde-format
+msgctxt "@label:textbox accessible"
+msgid "Enter command or choose script file"
+msgstr "ਕਮਾਂਡ ਦਿਓ ਜਾਂ ਸਕ੍ਰਿਪਟ ਫਾਇਲ ਨੂੰ ਚੁਣੋ"
+
+#: ui/RunScriptEdit.qml:53
+#, kde-format
+msgctxt "@action:button opens file picker"
+msgid "Choose…"
+msgstr "…ਚੁਣੋ"
+
+#: ui/RunScriptEdit.qml:54
+#, kde-format
+msgctxt "@action:button opens file picker"
+msgid "Choose script file"
+msgstr "ਸਕ੍ਰਿਪਟ ਫ਼ਾਇਲ ਨੂੰ ਚੁਣੋ"
+
+#: ui/RunScriptEdit.qml:67
+#, kde-format
+msgctxt "@title:window"
+msgid "Choose script file"
+msgstr "ਸਕ੍ਰਿਪਟ ਫ਼ਾਇਲ ਨੂੰ ਚੁਣੋ"
+
+#: ui/TimeDurationComboBox.qml:21
+#, kde-format
+msgctxt "@title:window"
+msgid "Custom Duration"
+msgstr "ਪਸੰਦੀਦਾ ਅੰਤਰਾਲ"
+
+#~ msgctxt ""
+#~ "@label:combobox Suspend action such as sleep/hibernate to perform when "
+#~ "the system is idle"
+#~ msgid "A&fter a period of inactivity:"
+#~ msgstr "ਇਸ ਸਮੇਂ ਦੀ ਗ਼ੈਰ-ਸਰਗਰਮੀ ਦੇ ਬਾਅਦ(&f):"
+
+#~ msgctxt "@text:action:menu Script command to execute"
+#~ msgid "After a period of inactivity"
+#~ msgstr "ਇਸ ਸਮੇਂ ਦੀ ਗ਼ੈਰ-ਸਰਗਰਮੀ ਦੇ ਬਾਅਦ"
+
+#~ msgctxt "@label:textfield Script command to execute"
+#~ msgid "After a period of inacti&vity:"
+#~ msgstr "ਇਸ ਸਮੇਂ ਦੀ ਗ਼ੈਰ-ਸਰਗਰਮੀ ਦੇ ਬਾਅਦ(&v):"
+
+#~ msgid "Select executable file…"
+#~ msgstr "ਚੱਲਣਯੋਗ ਫਾਇਲ ਚੁਣੋ…"
+
+#~ msgid "Select executable file"
+#~ msgstr "ਚੱਲਣਯੋਗ ਫਾਇਲ ਚੁਣੋ"
+
+#~ msgctxt ""
+#~ "List of recognized strings for 'minutes' in a time delay expression such "
+#~ "as 'after 10 min'"
+#~ msgid "m|min|mins|minutes"
+#~ msgstr "ਮਿੰ|ਮਿੰਟ|ਮਿੰਟ|ਮਿੰਟ"
+
+#~ msgctxt ""
+#~ "List of recognized strings for 'seconds' in a time delay expression such "
+#~ "as 'after 10 sec'"
+#~ msgid "s|sec|secs|seconds"
+#~ msgstr "ਸ|ਸਕਿੰ|ਸਕਿੰ|ਸਕਿੰਟ"
+
+#~ msgctxt ""
+#~ "Validator/extractor regular expression for a time delay number and unit, "
+#~ "from e.g. 'after 10 min'. Uses recognized strings for minutes and seconds "
+#~ "as %1 and %2."
+#~ msgid "[^\\d]*(\\d+)\\s*(%1|%2)\\s*"
+#~ msgstr "[^\\d]*(\\d+)\\s*(%1|%2)\\s*"
+
+#~ msgctxt "NAME OF TRANSLATORS"
+#~ msgid "Your names"
+#~ msgstr "ਅਮਨਪਰੀਤ ਸਿੰਘ ਆਲਮ"
+
+#~ msgctxt "EMAIL OF TRANSLATORS"
+#~ msgid "Your emails"
+#~ msgstr "aalam@users.sf.net"
+
+#~ msgid ""
+#~ "The KDE Power Management System will now generate a set of defaults based "
+#~ "on your computer's capabilities. This will also erase all existing "
+#~ "modifications you made. Are you sure you want to continue?"
+#~ msgstr ""
+#~ "KDE ਪਾਵਰ ਮੈਨਜੇਮੈਂਟ ਸਿਸਟਮ ਹੁਣ ਤੁਹਾਡੀ ਕੰਪਿਊਟਰ ਦੀ ਸਮੱਰਥਾ ਮੁਤਾਬਕ ਡਿਫਾਲਟ ਸੈੱਟ ਤਿਆਰ ਕਰੇਗਾ। "
+#~ "ਇਸ ਨਾਲ ਸਭ ਮੌਜੂਦਾ ਬਦਲਾਅ ਸਾਫ਼ ਕਰ ਦਿੱਤੇ ਜਾਣਗੇ। ਕੀ ਤੁਸੀਂ ਜਾਰੀ ਰੱਖਣਾ ਚਾਹੁੰਦੇ ਹੋ?"
+
+#~ msgid "Restore Default Profiles"
+#~ msgstr "ਡਿਫਾਲਟ ਪਰੋਫਾਈਲ ਰੀ-ਸਟੋਰ ਕਰੋ["
+
+#~ msgid ""
+#~ "The Power Management Service appears not to be running.\n"
+#~ "This can be solved by starting or scheduling it inside \"Startup and "
+#~ "Shutdown\""
+#~ msgstr ""
+#~ "ਪਾਵਰ ਮੈਨੇਜਮੈਂਟ ਸਰਵਿਸ ਚੱਲਦੀ ਨਹੀਂ ਜਾਪਦੀ ਹੈ।\n"
+#~ "ਇਸ ਨੂੰ ਸ਼ੁਰੂ ਕਰਕੇ ਜਾਂ \"ਸਟਾਰਟਅੱਪ ਅਤੇ ਸੱਟਡਾਊਨ\" ਵਿੱਚ ਸੈਡਿਊਲ ਕਰਕੇ ਹੱਲ ਕੀਤਾ ਜਾ ਸਕਦਾ ਹੈ"
+
+#~ msgid "Power Profiles Configuration"
+#~ msgstr "ਪਾਵਰ ਪਰੋਫਾਈਲ ਸੰਰਚਨਾ"
+
+#~ msgid "A profile configurator for KDE Power Management System"
+#~ msgstr "KDE ਪਾਵਰ ਪਰਬੰਧ ਸਿਸਟਮ ਲਈ ਪਰੋਫਾਈਲ ਸੰਰਚਨਾ"
+
+#~ msgid "(c), 2010 Dario Freddi"
+#~ msgstr "(c), 2010 Dario Freddi"
+
+#~ msgid ""
+#~ "From this module, you can manage KDE Power Management System's power "
+#~ "profiles, by tweaking existing ones or creating new ones."
+#~ msgstr ""
+#~ "ਇਹ ਮੋਡੀਊਲ ਨਾਲ ਤੁਸੀਂ KDE ਪਾਵਰ ਮੈਨਜੇਮੈਂਟ ਸਿਸਟਮ ਦੇ ਪਾਵਰ ਪਰੋਫਾਈਲ ਦਾ ਪਰਬੰਧ ਕਰ ਸਕਦੇ ਹੋ, ਕਿਸੇ "
+#~ "ਨੂੰ ਸੋਧ ਸਕਦੇ ਹੋ ਜਾਂ ਨਵੇਂ ਵੀ ਬਣਾ ਸਕਦੇ ਹੋ।ਸਕਦੇ ਹੋ ਜਾਂ ਨਵੇਂ ਵੀ ਬਣਾ ਸਕਦੇ ਹਓਇਹ ਮੋਡੀਊਲ ਨਾਲ ਤੁਸੀਂ "
+#~ "KDE ਪਾਵਰ ਮੈਨਜੇਮੈਂਟ ਸਿਸਟਮ ਦੇ ਪਾਵਰ ਪਰੋਫਾਈਲ ਦਾ ਪਰਬੰਧ ਕਰ ਸਕਦੇ ਹੋ, ਇੱਕ ਜਾਂ ਵੱਇਹ ਮੋਡੀਊਲ ਲਈ, ਤੁ"
+
+#~ msgid "Dario Freddi"
+#~ msgstr "ਡਾਈਰੋ ਫਰਿੱਡੀ"
+
+#~ msgid "Maintainer"
+#~ msgstr "ਪਰਬੰਧਕ"
+
+#~ msgid "Please enter a name for the new profile:"
+#~ msgstr "ਨਵੇਂ ਪਰੋਫਾਈਲ ਲਈ ਇੱਕ ਨਾਂ ਦਿਓ ਜੀ:"
+
+#~ msgid "The name for the new profile"
+#~ msgstr "ਨਵੇਂ ਪਰੋਫਾਈਲ ਲਈ ਨਾਂ"
+
+#~ msgid "Enter here the name for the profile you are creating"
+#~ msgstr "ਬਣਾਉਣ ਵਾਲੇ ਪਰੋਫਾਈਲ ਲਈ ਨਾਂ ਇੱਥੇ ਦਿਓ"
+
+#~ msgid "Please enter a name for this profile:"
+#~ msgstr "ਇਸ ਪਰੋਫਾਈਲ ਲਈ ਇੱਕ ਨਾਂ ਦਿਓ ਜੀ:"
+
+#~ msgid "Export Power Management Profiles"
+#~ msgstr "ਪਾਵਰ ਪਰਬੰਧ ਪਰੋਫਾਈਲ ਐਕਸਪੋਰਟ"
+
+#~ msgid ""
+#~ "The current profile has not been saved.\n"
+#~ "Do you want to save it?"
+#~ msgstr ""
+#~ "ਮੌਜੂਦਾ ਪਰੋਫਾਈਲ ਸੰਭਾਲਿਆ ਨਹੀਂ ਗਿਆ ਹੈ।\n"
+#~ "ਕੀ ਤੁਸੀਂ ਸੰਭਾਲਣਾ ਚਾਹੁੰਦੇ ਹੋ?"
+
+#~ msgid "Save Profile"
+#~ msgstr "ਪਰੋਫਾਈਲ ਸੰਭਾਲੋ"
+
+#~ msgid "New Profile"
+#~ msgstr "ਨਵਾਂ ਪਰੋਫਾਈਲ"
+
+#~ msgid "Delete Profile"
+#~ msgstr "ਪਰੋਫਾਈਲ ਹਟਾਓ"
+
+#~ msgid "Import Profiles"
+#~ msgstr "ਪਰੋਫਾਈਲ ਇੰਪੋਰਟ"
+
+#~ msgid "Export Profiles"
+#~ msgstr "ਪਰੋਫਾਈਲ ਐਕਸਪੋਰਟ"
+
+#~ msgid "Edit Profile"
+#~ msgstr "ਪਰੋਫਾਈਲ ਸੋਧ"
