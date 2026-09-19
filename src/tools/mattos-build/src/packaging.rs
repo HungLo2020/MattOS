@@ -1021,6 +1021,7 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "icu" => &["icu"],
             "freetype" => &["freetype"],
             "fontconfig" => &["fontconfig"],
+            "pop-fonts" => &["pop-fonts"],
             "kdeclarative" => &["kdeclarative"],
             "kirigami-addons" => &["kirigami-addons"],
             "kquickcharts" => &["kquickcharts"],
@@ -1314,6 +1315,7 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "icu" => &["src/system/libraries/icu"],
         "freetype" => &["src/system/libraries/freetype"],
         "fontconfig" => &["src/system/libraries/fontconfig"],
+        "pop-fonts" => &["src/desktop/fonts/pop-fonts"],
         "kdeclarative" => &["src/desktop/kde/kdeclarative"],
         "qtbase" => &[
             "src/desktop/qt/qtbase",
@@ -1918,6 +1920,7 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "libexpat1" => component_snapshot_version(repo_root, "expat")?,
         "libfreetype6" => component_snapshot_version(repo_root, "freetype")?,
         "libfontconfig1" | "fontconfig" => component_snapshot_version(repo_root, "fontconfig")?,
+        "fonts-fira" => component_snapshot_version(repo_root, "pop-fonts")?,
         "libcap2" => component_snapshot_version(repo_root, "libcap")?,
         "libattr1" => component_snapshot_version(repo_root, "attr")?,
         "libacl1" => component_snapshot_version(repo_root, "acl")?,
@@ -2654,6 +2657,7 @@ fn normalize_package_modes(root: &Path) -> Result<()> {
                     | "usr/bin/sudo"
                     | "usr/bin/login"
                     | "usr/bin/su"
+                    | "usr/bin/pkexec"
                     | "usr/bin/fusermount3"
                     | "usr/lib/polkit-1/polkit-agent-helper-1"
             )
@@ -4455,7 +4459,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 312);
+        assert_eq!(PACKAGE_NAMES.len(), 313);
     }
 
     #[test]
@@ -4503,7 +4507,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 312);
+        assert_eq!(PACKAGE_NAMES.len(), 313);
         assert_eq!(
             UTIL_LINUX_BASE_PATHS,
             &[
@@ -4584,7 +4588,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 312);
+        assert_eq!(PACKAGE_NAMES.len(), 313);
         let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
         for dependency in [
             "libffi8",
@@ -5589,6 +5593,7 @@ mod tests {
             "usr/bin/sudo",
             "usr/bin/login",
             "usr/bin/su",
+            "usr/bin/pkexec",
             "usr/lib/polkit-1/polkit-agent-helper-1",
         ] {
             fs::create_dir_all(temp.path().join(rel).parent().unwrap()).unwrap();
@@ -5603,6 +5608,7 @@ mod tests {
             "usr/bin/sudo",
             "usr/bin/login",
             "usr/bin/su",
+            "usr/bin/pkexec",
             "usr/lib/polkit-1/polkit-agent-helper-1",
         ] {
             assert_eq!(

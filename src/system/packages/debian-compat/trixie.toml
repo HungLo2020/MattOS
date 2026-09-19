@@ -3785,3 +3785,15 @@ current_mattos_version = "6.26.0-1mattos1"
 expected_debian_role = "MattOS source-owned runtime package"
 classification = "mattos-extension"
 known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "fonts-fira"
+mattos_name = "fonts-fira"
+source_component = "pop-fonts"
+owned_paths = ["/usr/share/fonts/opentype/fira", "/usr/share/doc/fonts-fira"]
+provided_abi_or_commands = ["Fira Sans and Fira Mono desktop font families"]
+protected = false
+current_mattos_version = "0~git.2da23d5e76bf-1mattos1"
+expected_debian_role = "Source-owned desktop font payload"
+classification = "mattos-extension"
+known_gaps = ["MattOS carries a deliberately selected Fira runtime subset from Pop Fonts"]

@@ -550,6 +550,10 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::Libepoxy => &["src/system/graphics/libepoxy"],
         BuildStage::Freetype => &["src/system/libraries/freetype"],
         BuildStage::Fontconfig => &["src/system/libraries/fontconfig"],
+        BuildStage::PopFonts => &[
+            "src/desktop/fonts/pop-fonts",
+            "src/tools/mattos-build/src/stages/desktop_support.rs",
+        ],
         BuildStage::Libfontenc => &["src/system/graphics/libfontenc"],
         BuildStage::Libxfont => &["src/system/graphics/libxfont"],
         BuildStage::Libxcvt => &["src/system/graphics/libxcvt"],

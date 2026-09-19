@@ -74,6 +74,10 @@ mod wifi_grub_tests {
         let tools = spec("fontconfig");
         assert_eq!(tools.source_component, "fontconfig");
         assert!(tools.depends.contains(&"libfontconfig1"));
+        let fonts = spec("fonts-fira");
+        assert_eq!(fonts.source_component, "pop-fonts");
+        assert!(fonts.depends.contains(&"fontconfig"));
+        assert!(spec("plasma-desktop").depends.contains(&"fonts-fira"));
     }
 }
 
@@ -149,6 +153,7 @@ pub(crate) const PACKAGE_NAMES: &[&str] = &[
     "libfreetype6",
     "libfontconfig1",
     "fontconfig",
+    "fonts-fira",
     "libcap2",
     "libattr1",
     "libacl1",
@@ -1223,6 +1228,17 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             source_component: "fontconfig",
             depends: &["libfontconfig1", "libfreetype6"],
             provides: &["fontconfig"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "fonts-fira",
+            description: "Fira Sans and Fira Mono desktop fonts for MattOS",
+            source_component: "pop-fonts",
+            depends: &["fontconfig"],
+            provides: &["fonts-fira"],
             conflicts: &[],
             replaces: &[],
             essential: false,
@@ -3952,6 +3968,7 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
                 "kf6-kirigami-addons",
                 "greetd",
                 "libpam0g",
+                "fonts-fira",
             ],
             provides: &["plasma-desktop"],
             conflicts: &[],

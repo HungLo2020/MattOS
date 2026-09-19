@@ -175,6 +175,7 @@ pub(crate) enum BuildStage {
     Libepoxy,
     Freetype,
     Fontconfig,
+    PopFonts,
     Libfontenc,
     Libxfont,
     Libxcvt,
@@ -440,6 +441,7 @@ pub(crate) fn stage_id(stage: BuildStage) -> &'static str {
         BuildStage::Libepoxy => "libepoxy",
         BuildStage::Freetype => "freetype",
         BuildStage::Fontconfig => "fontconfig",
+        BuildStage::PopFonts => "pop-fonts",
         BuildStage::Libfontenc => "libfontenc",
         BuildStage::Libxfont => "libxfont",
         BuildStage::Libxcvt => "libxcvt",
@@ -2369,6 +2371,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         BuildStage::Libepoxy => &["formal-sysroot", "x11-compat", "libglvnd"],
         BuildStage::Freetype => &["formal-sysroot", "zlib"],
         BuildStage::Fontconfig => &["formal-sysroot", "expat", "freetype", "zlib"],
+        BuildStage::PopFonts => &[],
         // libfontenc's configure probe includes zlib.h; keep the target-owned
         // zlib development output in its explicit native build environment.
         BuildStage::Libfontenc => &["formal-sysroot", "x11-compat", "zlib"],
@@ -2909,6 +2912,7 @@ pub(crate) fn all_build_stages() -> &'static [BuildStage] {
         BuildStage::Libepoxy,
         BuildStage::Freetype,
         BuildStage::Fontconfig,
+        BuildStage::PopFonts,
         BuildStage::Libfontenc,
         BuildStage::Libxfont,
         BuildStage::Libxcvt,

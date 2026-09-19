@@ -1,3 +1,28 @@
+const POP_FIRA_RUNTIME_FONTS: &[&str] = &[
+    "FiraSans-Regular.otf",
+    "FiraSans-Bold.otf",
+    "FiraSans-Italic.otf",
+    "FiraSans-BoldItalic.otf",
+    "FiraMono-Regular.otf",
+    "FiraMono-Medium.otf",
+    "FiraMono-Bold.otf",
+];
+
+fn build_pop_fonts(repo_root: &Path) -> Result<()> {
+    let install = repo_root.join("out/build/pop-fonts/install");
+    remove_path_if_exists(&install)?;
+    let source = repo_root.join("src/desktop/fonts/pop-fonts/fira");
+    let destination = install.join("usr/share/fonts/opentype/fira");
+    for font in POP_FIRA_RUNTIME_FONTS {
+        stage_output_file(&source.join(font), &destination.join(font), 0o644)?;
+    }
+    stage_output_file(
+        &source.join("SIL Open Font License.txt"),
+        &install.join("usr/share/doc/fonts-fira/copyright"),
+        0o644,
+    )
+}
+
 fn build_cozy(repo_root: &Path) -> Result<()> {
     let out_root = repo_root.join("out/build/cozy");
     let install = out_root.join("install");

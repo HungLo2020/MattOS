@@ -187,6 +187,7 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             "libfontconfig1",
         )?,
         "fontconfig" => stage_fontconfig(repo_root, &staging)?,
+        "fonts-fira" => stage_pop_fonts(repo_root, &staging)?,
         "libcap2" => stage_imported_soname_library(
             repo_root,
             &staging,
@@ -1267,6 +1268,7 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             "polkit",
             &[
                 "usr/bin/pkcheck",
+                "usr/bin/pkexec",
                 "usr/lib/polkit-1/polkitd",
                 "usr/lib/polkit-1/polkit-agent-helper-1",
                 "usr/lib/systemd/system/polkit.service",
@@ -1288,9 +1290,10 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             ],
         )
         .and_then(|()| {
-            // Flatpak's system AppStream transaction authenticates through
-            // polkit-agent-helper-1. Preserve its upstream setuid-root
-            // contract when copying the runtime subset into the package.
+            // Preserve the upstream setuid-root contracts for the command
+            // front-end and authentication helper when copying the runtime
+            // subset into the package.
+            set_mode(staging.join("usr/bin/pkexec"), 0o4755)?;
             set_mode(
                 staging.join("usr/lib/polkit-1/polkit-agent-helper-1"),
                 0o4755,
@@ -3726,6 +3729,21 @@ fn stage_fontconfig(repo_root: &Path, staging: &Path) -> Result<()> {
     Ok(())
 }
 
+fn stage_pop_fonts(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = component_install(repo_root, "pop-fonts");
+    copy_tree_preserving(&install.join("usr"), &staging.join("usr"))?;
+    for font in POP_FIRA_RUNTIME_FONTS {
+        let path = staging.join("usr/share/fonts/opentype/fira").join(font);
+        if !path.is_file() {
+            bail!("fonts-fira package missing /usr/share/fonts/opentype/fira/{font}");
+        }
+    }
+    if !staging.join("usr/share/doc/fonts-fira/copyright").is_file() {
+        bail!("fonts-fira package missing its source-owned license");
+    }
+    Ok(())
+}
+
 pub(crate) fn stage_xdg_desktop_portal(repo_root: &Path, staging: &Path) -> Result<()> {
     // The generic broker and its GStreamer pbutils closure ship together. The
     // portal executes Bubblewrap at /usr/bin/bwrap, but Flatpak owns that
@@ -3930,6 +3948,39 @@ mod desktop_data_tests {
                 .join("usr/share/doc/qt6-declarative/licenses/Qt-LICENSE")
                 .is_file()
         );
+    }
+
+    #[test]
+    fn fira_staging_requires_complete_source_owned_runtime_set() {
+        let repo = tempfile::tempdir().unwrap();
+        let install = repo.path().join("out/build/pop-fonts/install");
+        for font in POP_FIRA_RUNTIME_FONTS {
+            let path = install.join("usr/share/fonts/opentype/fira").join(font);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(path, font.as_bytes()).unwrap();
+        }
+        let license = install.join("usr/share/doc/fonts-fira/copyright");
+        fs::create_dir_all(license.parent().unwrap()).unwrap();
+        fs::write(&license, b"OFL").unwrap();
+
+        let staging = repo.path().join("staged");
+        fs::create_dir_all(&staging).unwrap();
+        stage_pop_fonts(repo.path(), &staging).unwrap();
+        assert!(
+            staging
+                .join("usr/share/fonts/opentype/fira/FiraSans-Regular.otf")
+                .is_file()
+        );
+        assert_eq!(
+            fs::read(staging.join("usr/share/doc/fonts-fira/copyright")).unwrap(),
+            b"OFL"
+        );
+
+        fs::remove_file(install.join("usr/share/fonts/opentype/fira/FiraMono-Regular.otf"))
+            .unwrap();
+        let incomplete = repo.path().join("incomplete");
+        fs::create_dir_all(&incomplete).unwrap();
+        assert!(stage_pop_fonts(repo.path(), &incomplete).is_err());
     }
 }
 

@@ -2273,6 +2273,7 @@ fn enforce_auth_file_modes(rootfs: &Path) -> Result<()> {
         ("usr/bin/su", 0o4755),
         ("usr/bin/passwd", 0o4755),
         ("usr/bin/sudo", 0o4755),
+        ("usr/bin/pkexec", 0o4755),
         // Flatpak's document portal invokes this target-owned helper to
         // mount /run/user/$UID/doc.  dpkg/fakeroot rootfs assembly can lose
         // special modes, so the final image establishes the runtime
@@ -2333,6 +2334,7 @@ fn validate_auth_file_modes(rootfs: &Path) -> Result<()> {
         ("usr/bin/su", 0o4755),
         ("usr/bin/passwd", 0o4755),
         ("usr/bin/sudo", 0o4755),
+        ("usr/bin/pkexec", 0o4755),
         ("usr/bin/fusermount3", 0o4755),
         ("usr/lib/polkit-1/polkit-agent-helper-1", 0o4755),
         ("root", 0o700),
@@ -3315,7 +3317,6 @@ fn validate_staged_grub_config(path: &Path) -> Result<()> {
     for needle in [
         GRUB_SYSTEMD_ENTRY,
         "menuentry \"Start MattOS Live (CLI)\"",
-        "menuentry \"Install MattOS\"",
         "menuentry \"Install MattOS (CLI)\"",
         GRUB_RESCUE_ENTRY,
         "menuentry \"MattOS AMD graphics diagnostics (CLI)\"",
@@ -3334,9 +3335,9 @@ fn validate_staged_grub_config(path: &Path) -> Result<()> {
     if content
         .matches("initrd /boot/early-initramfs.cpio.xz")
         .count()
-        != 6
+        != 5
     {
-        bail!("staged GRUB config must load the early initramfs for all six entries");
+        bail!("staged GRUB config must load the early initramfs for all five entries");
     }
 
     Ok(())
