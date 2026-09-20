@@ -44,6 +44,7 @@ fn build_meson_runtime(
         // target headers and libraries, but those paths must not be compiled
         // into an installed GStreamer plugin.
         "gstreamer-base" => "output-target-gio-runtime-paths-v1",
+        "mesa" => "output-rust-path-remap-v1",
         _ => "",
     };
     // Meson stores compiler/build-tool state in build.dat.  A cache miss can

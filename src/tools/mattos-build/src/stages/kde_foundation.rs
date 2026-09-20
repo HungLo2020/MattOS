@@ -144,8 +144,21 @@ fn kde_host_ecm_dir(repo_root: &Path) -> Result<PathBuf> {
     Ok(result)
 }
 
-fn kde_target_environment(repo_root: &Path, build: &Path, components: &[&str]) -> Result<Vec<(&'static str, String)>> {
-    let mut environment = qt_target_environment(repo_root, build, Some(&repo_root.join("out/build/qtbase/install/usr")))?;
+fn kde_target_environment(
+    repo_root: &Path,
+    build: &Path,
+    components: &[&str],
+    qt_integration: bool,
+) -> Result<Vec<(&'static str, String)>> {
+    let mut environment = if qt_integration {
+        qt_target_environment(
+            repo_root,
+            build,
+            Some(&repo_root.join("out/build/qtbase/install/usr")),
+        )?
+    } else {
+        qt_build_tool_environment(build, None)?
+    };
     // KDE's generated imported targets intentionally keep many low-level
     // shared-library dependencies transitive.  The modern linker does not
     // resolve symbols through a DSO's DT_NEEDED chain, so expose the already
@@ -167,12 +180,14 @@ fn kde_target_environment(repo_root: &Path, build: &Path, components: &[&str]) -
     // the linker does not search a DSO's dependency directories when a KDE
     // executable links Qt6::Gui. Expose the complete target-owned QtGui
     // font closure to every KDE consumer; never let the host satisfy it.
-    for component in [
-        "freetype", "fontconfig", "expat", "systemd", "util-linux", "pcre2",
-        "zlib", "zstd", "bzip2", "xz", "openssl",
-    ] {
-        if !link_components.contains(&component) {
-            link_components.push(component);
+    if qt_integration {
+        for component in [
+            "freetype", "fontconfig", "expat", "systemd", "util-linux", "pcre2",
+            "zlib", "zstd", "bzip2", "xz", "openssl",
+        ] {
+            if !link_components.contains(&component) {
+                link_components.push(component);
+            }
         }
     }
     let target = staged_library_environment(repo_root, &link_components)?;
@@ -527,10 +542,70 @@ fn build_kde_cmake(
     options: &[&str],
     required_output: &str,
 ) -> Result<()> {
+    build_cmake_component(
+        repo_root,
+        component,
+        source,
+        components,
+        options,
+        required_output,
+        true,
+    )
+}
+
+fn build_non_qt_cmake(
+    repo_root: &Path,
+    component: &str,
+    source: &str,
+    components: &[&str],
+    options: &[&str],
+    required_output: &str,
+) -> Result<()> {
+    build_cmake_component(
+        repo_root,
+        component,
+        source,
+        components,
+        options,
+        required_output,
+        false,
+    )
+}
+
+fn build_cmake_component(
+    repo_root: &Path,
+    component: &str,
+    source: &str,
+    components: &[&str],
+    options: &[&str],
+    required_output: &str,
+    qt_integration: bool,
+) -> Result<()> {
     let root = repo_root.join("out/build").join(component);
     let source_copy = root.join("source");
     let build = root.join("build");
     let install = root.join("install");
+    let python_deps = root.join("python-deps");
+    if component == "breeze-icons" && !python_deps.join("lxml").is_dir() {
+        // Breeze generates its 24px icon variants with lxml. Keep this
+        // build-only Python dependency pinned and output-owned rather than
+        // requiring or modifying the host Python environment.
+        fs::create_dir_all(&python_deps)?;
+        run_cmd(
+            repo_root,
+            "python3",
+            &[
+                "-m",
+                "pip",
+                "install",
+                "--disable-pip-version-check",
+                "--no-deps",
+                "--target",
+                path_str(&python_deps)?,
+                "lxml==6.0.2",
+            ],
+        )?;
+    }
     sync_build_source(&repo_root.join(source), &source_copy)?;
     if component == "kfilemetadata" {
         // Upstream's legacy FindXattr module hard-codes host /usr paths and
@@ -1160,7 +1235,19 @@ public:
     remove_path_if_exists(&build)?;
     remove_path_if_exists(&install)?;
     fs::create_dir_all(&build)?;
-    let mut prefixes = kde_target_prefixes(repo_root, components);
+    let mut prefixes = if qt_integration {
+        kde_target_prefixes(repo_root, components)
+    } else {
+        components
+            .iter()
+            .map(|component| {
+                repo_root
+                    .join("out/build")
+                    .join(component)
+                    .join("install/usr")
+            })
+            .collect()
+    };
     let ecm = kde_host_ecm_dir(repo_root)?;
     let linguist = kde_linguist_tools_bridge(&build)?;
     let mut command = vec![
@@ -1193,7 +1280,11 @@ public:
             repo_root.join("out/build/kirigami-addons/install/usr").display()
         ));
     }
-    command.extend(qt_target_cmake_args(repo_root, &prefixes)?);
+    if qt_integration {
+        command.extend(qt_target_cmake_args(repo_root, &prefixes)?);
+    } else {
+        command.extend(isolated_target_cmake_args(&prefixes)?);
+    }
     if components.contains(&"qtbase") {
         let qtbase = repo_root.join("out/build/qtbase/install/usr");
         command.push(format!("-DQt6CorePrivate_DIR={}/lib/x86_64-linux-gnu/cmake/Qt6CorePrivate", qtbase.display()));
@@ -1647,7 +1738,10 @@ public:
         }
     }
     let refs = command.iter().map(String::as_str).collect::<Vec<_>>();
-    let environment = kde_target_environment(repo_root, &build, components)?;
+    let mut environment = kde_target_environment(repo_root, &build, components, qt_integration)?;
+    if component == "breeze-icons" {
+        environment.push(("PYTHONPATH", python_deps.display().to_string()));
+    }
     run_cmd_with_env_overrides(&build, "cmake", &refs, &environment)?;
     run_cmd_with_env_overrides(&build, "cmake", &["--build", "."], &environment)?;
     qt_install(repo_root, &build, &install)?;
@@ -2039,7 +2133,7 @@ fn build_kbookmarks(repo_root: &Path) -> Result<()> {
 }
 
 fn build_kcompletion(repo_root: &Path) -> Result<()> {
-    build_kde_cmake(repo_root, "kcompletion", "src/desktop/kde/kcompletion", &["qtbase", "qtdeclarative", "kcodecs", "kcoreaddons", "kconfig", "ki18n", "kwidgetsaddons"], &["-DBUILD_TESTING=OFF"], "usr/lib/x86_64-linux-gnu/libKF6Completion.so")
+    build_kde_cmake(repo_root, "kcompletion", "src/desktop/kde/kcompletion", &["qtbase", "qtdeclarative", "kcodecs", "kcoreaddons", "kconfig", "ki18n", "kwidgetsaddons"], &["-DBUILD_TESTING=OFF", "-DBUILD_DESIGNERPLUGIN=OFF"], "usr/lib/x86_64-linux-gnu/libKF6Completion.so")
 }
 
 fn build_kcodecs(repo_root: &Path) -> Result<()> {
@@ -2212,24 +2306,49 @@ fn build_kwindowsystem(repo_root: &Path) -> Result<()> {
 }
 
 fn build_plasma_wayland_protocols(repo_root: &Path) -> Result<()> {
-    build_kde_cmake(repo_root, "plasma-wayland-protocols", "src/desktop/kde/plasma-wayland-protocols", &[], &["-DBUILD_TESTING=OFF"], "usr/share/cmake/PlasmaWaylandProtocols/PlasmaWaylandProtocolsConfig.cmake")
+    build_non_qt_cmake(repo_root, "plasma-wayland-protocols", "src/desktop/kde/plasma-wayland-protocols", &[], &["-DBUILD_TESTING=OFF"], "usr/share/cmake/PlasmaWaylandProtocols/PlasmaWaylandProtocolsConfig.cmake")
 }
 
 fn build_wayland_protocols(repo_root: &Path) -> Result<()> {
     let source = repo_root.join("src/graphics/wayland-protocols");
     let root = repo_root.join("out/build/wayland-protocols");
+    let build = root.join("build");
     let install = root.join("install");
     fs::create_dir_all(&root)?;
     sync_build_source(&source, &root.join("source"))?;
+    remove_path_if_exists(&build)?;
     remove_path_if_exists(&install)?;
     fs::create_dir_all(&install)?;
-    let run = |args: &[String]| -> Result<()> {
-        let status = std::process::Command::new("meson").args(args).current_dir(repo_root).status()
-            .context("failed to run Meson for wayland-protocols")?;
-        if status.success() { Ok(()) } else { bail!("wayland-protocols Meson command failed: meson {}", args.join(" ")) }
-    };
-    run(&["setup".into(), "--prefix=/usr".into(), "--libdir=lib/x86_64-linux-gnu".into(), "--buildtype=release".into(), root.join("build").display().to_string(), root.join("source").display().to_string()])?;
-    run(&["install".into(), "-C".into(), root.join("build").display().to_string(), "--destdir".into(), install.display().to_string()])?;
+    let environment = staged_library_environment(repo_root, &["wayland", "expat", "libffi"])?;
+    run_cmd_with_env_overrides(
+        repo_root,
+        "meson",
+        &[
+            "setup",
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "--buildtype=release",
+            path_str(&build)?,
+            path_str(&root.join("source"))?,
+        ],
+        &environment,
+    )?;
+    run_cmd_with_env_overrides(
+        repo_root,
+        "meson",
+        &[
+            "install",
+            "-C",
+            path_str(&build)?,
+            "--destdir",
+            path_str(&install)?,
+        ],
+        &environment,
+    )?;
+    let required = install.join("usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml");
+    if !required.is_file() {
+        bail!("wayland-protocols build did not install {}", required.display());
+    }
     Ok(())
 }
 
@@ -2240,7 +2359,7 @@ fn build_polkit_qt6(repo_root: &Path) -> Result<()> {
 }
 
 fn build_yaml_cpp(repo_root: &Path) -> Result<()> {
-    build_kde_cmake(repo_root, "yaml-cpp", "src/system/libraries/yaml-cpp", &[],
+    build_non_qt_cmake(repo_root, "yaml-cpp", "src/system/libraries/yaml-cpp", &[],
         &["-DCMAKE_POLICY_VERSION_MINIMUM=3.5", "-DYAML_BUILD_SHARED_LIBS=ON", "-DYAML_CPP_BUILD_TESTS=OFF", "-DYAML_CPP_BUILD_TOOLS=OFF", "-DYAML_CPP_BUILD_CONTRIB=OFF", "-DYAML_CPP_FORMAT_SOURCE=OFF"],
         "usr/lib/x86_64-linux-gnu/libyaml-cpp.so")
 }

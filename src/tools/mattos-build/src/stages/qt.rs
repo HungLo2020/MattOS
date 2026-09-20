@@ -202,12 +202,13 @@ fn qt_target_environment(
     Ok(env)
 }
 
-fn qt_target_cmake_args(repo_root: &Path, extra_prefix: &[PathBuf]) -> Result<Vec<String>> {
-    let bridge = qt_opengl_bridge(repo_root)?;
-    let mut prefixes = vec![bridge, repo_root.join("out/build/libglvnd/install/usr"), repo_root.join("out/build/mesa/install/usr")];
-    prefixes.extend_from_slice(extra_prefix);
+fn isolated_target_cmake_args(prefixes: &[PathBuf]) -> Result<Vec<String>> {
     // CMake lists are semicolon-delimited; OS PATH delimiters are not valid.
-    let prefix = prefixes.iter().map(|path| path.display().to_string()).collect::<Vec<_>>().join(";");
+    let prefix = prefixes
+        .iter()
+        .map(|path| path.display().to_string())
+        .collect::<Vec<_>>()
+        .join(";");
     Ok(vec![
         format!("-DCMAKE_MAKE_PROGRAM={}", qt_host_tool("ninja")?.display()),
         format!("-DCMAKE_C_COMPILER={}", qt_host_tool("gcc")?.display()),
@@ -227,6 +228,13 @@ fn qt_target_cmake_args(repo_root: &Path, extra_prefix: &[PathBuf]) -> Result<Ve
         "-DCMAKE_BUILD_RPATH=".into(),
         "-DCMAKE_SKIP_RPATH=ON".into(),
     ])
+}
+
+fn qt_target_cmake_args(repo_root: &Path, extra_prefix: &[PathBuf]) -> Result<Vec<String>> {
+    let bridge = qt_opengl_bridge(repo_root)?;
+    let mut prefixes = vec![bridge, repo_root.join("out/build/libglvnd/install/usr"), repo_root.join("out/build/mesa/install/usr")];
+    prefixes.extend_from_slice(extra_prefix);
+    isolated_target_cmake_args(&prefixes)
 }
 
 fn qt_install(repo_root: &Path, build: &Path, install: &Path) -> Result<()> {

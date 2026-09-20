@@ -20,7 +20,7 @@ fn build_autotools_import(
     let adaptation_stamp = match component {
         "networkmanager" => "output-policy-install-adaptation-v4",
         "readline" => "output-pkgconfig-adaptation-v1",
-        "ostree" => "output-submodule-and-docs-staging-adaptation-v5",
+        "ostree" => "output-submodule-docs-and-owned-aclocal-adaptation-v6",
         // The libcanberra mirror carries generated Autotools files whose
         // build-aux entries are symlinks into the import host's automake
         // installation.  Regenerate them in the output-owned source mirror
@@ -28,6 +28,8 @@ fn build_autotools_import(
         "libcanberra" => "output-autoreconf-generated-build-aux-v1",
         "icu" => "output-icu-license-staging-v1",
         "libblockdev" => "output-autoconf-archive-debug-macro-v1",
+        "cryptsetup" => "output-autoconf-archive-macros-v1",
+        "openssh" => "output-autoreconf-generated-files-v1",
         "bluez" => "host-configure-tools-and-readline-terminal-link-v2",
         "udisks2" => "output-disable-unbuilt-gtk-doc-resources-and-normalize-build-dir-v4",
         "gmp" => "skip-regenerated-info-docs-and-normalize-public-cflags-v2",
@@ -108,14 +110,16 @@ fn build_autotools_import(
     if component == "icu" {
         // ICU's generated Makefile installs ../LICENSE relative to its
         // source directory.  The source stage intentionally builds only
-        // icu4c/source, so materialize the immutable imported license at the
-        // disposable build root rather than widening the staged source.
+        // icu4c/source, so materialize the imported icu4c/license.html at
+        // the disposable build root under the name expected by Make rather
+        // than widening or modifying the authoritative source.
         let license = source
             .parent()
-            .and_then(Path::parent)
-            .map(|root| root.join("LICENSE"))
+            .map(|root| root.join("license.html"))
             .ok_or_else(|| anyhow!("unable to locate ICU imported license"))?;
-        fs::copy(license, out_root.join("LICENSE"))?;
+        fs::copy(&license, out_root.join("LICENSE")).with_context(|| {
+            format!("failed to stage ICU license from {}", license.display())
+        })?;
     }
     if component == "libcanberra" {
         // This old release expects gtk-doc's aclocal fragment even when
@@ -250,8 +254,46 @@ fn build_autotools_import(
             "#ifndef MATTOS_OSTREE_ERR_COMPAT_H\n#define MATTOS_OSTREE_ERR_COMPAT_H\n#include <stdarg.h>\nvoid err(int, const char *, ...);\nvoid errx(int, const char *, ...);\n#endif\n",
         )?;
     }
-    if component == "libcanberra" || !source_copy.join("configure").is_file() {
-        run_cmd(&source_copy, "autoreconf", &["-fiv"])?;
+    if component == "libcanberra"
+        || component == "openssh"
+        || !source_copy.join("configure").is_file()
+    {
+        if component == "cryptsetup" {
+            run_cmd_with_env_overrides(
+                &source_copy,
+                "autoreconf",
+                &["-fiv"],
+                &[(
+                    "ACLOCAL_PATH",
+                    repo_root
+                        .join("src/build-support/autoconf-archive/m4")
+                        .display()
+                        .to_string(),
+                )],
+            )?;
+        } else if component == "ostree" {
+            // OSTree's VCS snapshot has no generated configure script. Feed
+            // autoreconf the macros from the owned GLib and GPGME snapshots
+            // instead of relying on development packages installed on the
+            // build host.
+            run_cmd_with_env_overrides(
+                &source_copy,
+                "autoreconf",
+                &["-fiv"],
+                &[(
+                    "ACLOCAL_PATH",
+                    format!(
+                        "{}:{}",
+                        repo_root
+                            .join("src/system/libraries/glib/m4macros")
+                            .display(),
+                        repo_root.join("src/system/security/gpgme/src").display()
+                    ),
+                )],
+            )?;
+        } else {
+            run_cmd(&source_copy, "autoreconf", &["-fiv"])?;
+        }
     }
     let mut env = staged_library_environment(repo_root, dependencies)?;
     if component == "gmp" {
@@ -553,7 +595,7 @@ fn build_wayland(repo_root: &Path) -> Result<()> {
         repo_root,
         "wayland",
         "src/system/libraries/wayland",
-        &["libffi"],
+        &["libffi", "expat"],
         &[
             "--prefix=/usr",
             "--libdir=lib/x86_64-linux-gnu",
@@ -568,7 +610,16 @@ fn build_wayland(repo_root: &Path) -> Result<()> {
         ],
         "usr/lib/x86_64-linux-gnu/libwayland-client.so.0",
         &[],
-    )
+    )?;
+    for required in [
+        "usr/bin/wayland-scanner",
+        "usr/lib/x86_64-linux-gnu/pkgconfig/wayland-scanner.pc",
+    ] {
+        if !repo_root.join("out/build/wayland/install").join(required).is_file() {
+            bail!("Wayland build did not install /{required}");
+        }
+    }
+    Ok(())
 }
 
 /// Build the xkbcommon runtime ABI used by both Wayland and KWin's Xwayland

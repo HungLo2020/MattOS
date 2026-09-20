@@ -430,6 +430,367 @@ fn gstreamer_base_declares_glibs_pcre2_link_requirement() {
 }
 
 #[test]
+fn corrected_native_library_recipes_keep_required_inputs_and_disable_tests() {
+    let libpng = build_stage_spec(BuildStage::Libpng);
+    assert!(libpng.dependencies.contains(&"zlib".to_string()));
+
+    let flatpak = include_str!("stages/flatpak.rs");
+    let libfyaml_start = flatpak.find("fn build_libfyaml(").unwrap();
+    let libfyaml_end = libfyaml_start
+        + flatpak[libfyaml_start..]
+            .find("\nfn build_libxmlb")
+            .unwrap();
+    let libfyaml = &flatpak[libfyaml_start..libfyaml_end];
+    assert!(libfyaml.contains("-DBUILD_TESTING=OFF"));
+    assert!(!libfyaml.contains("FYAML_BUILD_TESTS"));
+    assert!(libfyaml.contains("LIBFYAML_RELEASE_ARCHIVE_SHA256"));
+    assert!(libfyaml.contains("libfyaml-0.9.6/cmake/config.h.in"));
+
+    let autotools = include_str!("stages/helpers/autotools.rs");
+    let icu_start = autotools.find("if component == \"icu\"").unwrap();
+    let icu_end = icu_start
+        + autotools[icu_start..]
+            .find("\n    if component == \"libcanberra\"")
+            .unwrap();
+    let icu = &autotools[icu_start..icu_end];
+    assert!(icu.contains("root.join(\"license.html\")"));
+    assert!(icu.contains("out_root.join(\"LICENSE\")"));
+
+    let runtime = include_str!("stages/runtime_libraries.rs");
+    let sndfile_start = runtime.find("fn build_libsndfile(").unwrap();
+    let sndfile_end = sndfile_start
+        + runtime[sndfile_start..]
+            .find("\nfn build_libgudev")
+            .unwrap();
+    let sndfile = &runtime[sndfile_start..sndfile_end];
+    assert!(sndfile.contains("LIBSNDFILE_RELEASE_ARCHIVE_SHA256"));
+    assert!(sndfile.contains("libsndfile-1.2.2/include/sndfile.h"));
+}
+
+#[test]
+fn non_qt_cmake_stages_do_not_require_the_qt_opengl_bridge() {
+    let source = include_str!("stages/kde_foundation.rs");
+    for function in ["build_plasma_wayland_protocols", "build_yaml_cpp"] {
+        let start = source.find(&format!("fn {function}(")).unwrap();
+        let end = start
+            + source[start..]
+                .find("\nfn ")
+                .unwrap_or(source[start..].len());
+        assert!(source[start..end].contains("build_non_qt_cmake"));
+    }
+    let helper_start = source.find("fn build_cmake_component(").unwrap();
+    let helper_end = helper_start
+        + source[helper_start..]
+            .find("\nfn build_kcoreaddons")
+            .unwrap();
+    let helper = &source[helper_start..helper_end];
+    assert!(helper.contains("if qt_integration"));
+    assert!(helper.contains("isolated_target_cmake_args(&prefixes)"));
+
+    let protocols = build_stage_spec(BuildStage::PlasmaWaylandProtocols);
+    assert_eq!(protocols.dependencies, vec!["formal-sysroot".to_string()]);
+}
+
+#[test]
+fn wayland_protocols_uses_the_owned_native_scanner_closure() {
+    let wayland = build_stage_spec(BuildStage::Wayland);
+    assert!(wayland.dependencies.contains(&"expat".to_string()));
+
+    let protocols = build_stage_spec(BuildStage::WaylandProtocols);
+    for dependency in ["wayland", "expat", "libffi"] {
+        assert!(protocols.dependencies.contains(&dependency.to_string()));
+    }
+
+    let source = include_str!("stages/kde_foundation.rs");
+    let start = source.find("fn build_wayland_protocols(").unwrap();
+    let end = start + source[start..].find("\nfn build_polkit_qt6").unwrap();
+    let recipe = &source[start..end];
+    assert!(
+        recipe.contains(
+            "staged_library_environment(repo_root, &[\"wayland\", \"expat\", \"libffi\"])"
+        )
+    );
+    assert!(recipe.contains("usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml"));
+    assert!(!recipe.contains("std::process::Command"));
+}
+
+#[test]
+fn libarchive_uses_the_owned_libmd_dependency() {
+    assert!(stage_graph::direct_dependencies(BuildStage::Libarchive).contains(&"libmd"));
+    let recipe =
+        fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("src/stages/flatpak.rs"))
+            .unwrap();
+    assert!(
+        recipe.contains("&[\"zlib\", \"zstd\", \"bzip2\", \"xz\", \"lz4\", \"libcap\", \"libmd\"]")
+    );
+}
+
+#[test]
+fn autotools_regeneration_uses_owned_inputs_for_cryptsetup_and_openssh() {
+    let recipe = fs::read_to_string(
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("src/stages/helpers/autotools.rs"),
+    )
+    .unwrap();
+    assert!(recipe.contains("component == \"openssh\""));
+    assert!(recipe.contains("component == \"cryptsetup\""));
+    assert!(recipe.contains("src/build-support/autoconf-archive/m4"));
+    assert!(recipe.contains("src/system/libraries/glib/m4macros"));
+    assert!(recipe.contains("src/system/security/gpgme/src"));
+}
+
+#[test]
+fn xorg_autotools_regeneration_uses_declared_dependency_macros() {
+    let recipe = include_str!("stages/graphics.rs");
+    let start = recipe.find("fn build_xorg_autotools_component(").unwrap();
+    let end = start + recipe[start..].find("\nfn build_x11_compat").unwrap();
+    let helper = &recipe[start..end];
+    assert!(helper.contains("for dependency in dependencies"));
+    assert!(helper.contains("install/usr/share/aclocal"));
+    assert!(helper.contains("std::env::join_paths(aclocal_paths)"));
+}
+
+#[test]
+fn modemmanager_header_generation_has_no_host_python_module_dependency() {
+    let recipe = include_str!("stages/plasma_apps.rs");
+    let start = recipe.find("fn build_modemmanager(").unwrap();
+    let end = start + recipe[start..].find("\nfn build_modemmanager_qt").unwrap();
+    let modemmanager = &recipe[start..end];
+    assert!(modemmanager.contains("import xml.etree.ElementTree as etree"));
+    assert!(modemmanager.contains("header-generator.xsl"));
+    assert!(!modemmanager.contains("from lxml"));
+}
+
+#[test]
+fn breeze_icons_uses_a_pinned_output_owned_lxml() {
+    let recipe = include_str!("stages/kde_foundation.rs");
+    assert!(
+        recipe.contains("component == \"breeze-icons\" && !python_deps.join(\"lxml\").is_dir()")
+    );
+    assert!(recipe.contains("\"lxml==6.0.2\""));
+    assert!(
+        recipe.contains("environment.push((\"PYTHONPATH\", python_deps.display().to_string()))")
+    );
+}
+
+#[test]
+fn kcoreaddons_declares_its_enabled_qml_dependency() {
+    assert!(stage_graph::direct_dependencies(BuildStage::KCoreAddons).contains(&"qtdeclarative"));
+    let recipe = include_str!("stages/kde_foundation.rs");
+    let start = recipe.find("fn build_kcoreaddons(").unwrap();
+    let end = start + recipe[start..].find("\nfn build_ki18n").unwrap();
+    let kcoreaddons = &recipe[start..end];
+    assert!(kcoreaddons.contains("\"qtdeclarative\""));
+    assert!(kcoreaddons.contains("-DKCOREADDONS_USE_QML=ON"));
+}
+
+#[test]
+fn kcompletion_disables_the_optional_qt_designer_plugin() {
+    let recipe = include_str!("stages/kde_foundation.rs");
+    let start = recipe.find("fn build_kcompletion(").unwrap();
+    let end = start + recipe[start..].find("\nfn build_kcodecs").unwrap();
+    assert!(recipe[start..end].contains("-DBUILD_DESIGNERPLUGIN=OFF"));
+}
+
+#[test]
+fn ksystemstats_declares_its_intel_gpu_libdrm_dependency() {
+    assert!(stage_graph::direct_dependencies(BuildStage::KSystemStats).contains(&"libdrm"));
+
+    let recipe = include_str!("stages/plasma_apps.rs");
+    let start = recipe.find("fn build_ksystemstats(").unwrap();
+    let end = start
+        + recipe[start..]
+            .find("\nfn build_plasma_systemmonitor")
+            .unwrap();
+    assert!(recipe[start..end].contains("\"libdrm\""));
+}
+
+#[test]
+fn plasma_desktop_materializes_xkeyboard_config_before_configure() {
+    let recipe = include_str!("stages/plasma.rs");
+    let start = recipe.find("fn build_plasma_component(").unwrap();
+    let body = &recipe[start..recipe.find("fn build_plasma_framework").unwrap()];
+    assert!(body.contains("stage == \"plasma-desktop\""));
+    assert!(body.contains("build_xkeyboard_config(repo_root)?"));
+    assert!(body.contains("\"xkeyboard-config\""));
+}
+
+#[test]
+fn tzdata_build_supplies_ignored_license_in_disposable_tree() {
+    let staging = include_str!("packaging/staging.rs");
+    let start = staging.find("fn stage_tzdata(").unwrap();
+    let end = start + staging[start..].find("\n}\n\n").unwrap() + 2;
+    let body = &staging[start..end];
+    assert!(body.contains("build_source.join(\"LICENSE\")"));
+    assert!(
+        body.contains("fs::copy(source.join(\"README\"), &license)")
+            || body.contains("fs::copy(source.join(\"README\"), &license)?")
+    );
+}
+
+#[test]
+fn linux_firmware_staging_handles_ignored_aggregate_license() {
+    let staging = include_str!("packaging/staging.rs");
+    let start = staging.find("fn stage_linux_firmware(").unwrap();
+    let end = start + staging[start..].find("\n}\n\n").unwrap() + 2;
+    let body = &staging[start..end];
+    assert!(body.contains("let license = source.join(\"LICENSE\")"));
+    assert!(body.contains("documentation.join(\"LICENSE\")"));
+    assert!(body.contains("source.join(\"README.md\")"));
+}
+
+#[test]
+fn wireless_regdb_staging_handles_ignored_license() {
+    let staging = include_str!("packaging/staging.rs");
+    let start = staging.find("pub(crate) fn stage_wireless_regdb(").unwrap();
+    let end = start + staging[start..].find("\n}\n\n").unwrap() + 2;
+    let body = &staging[start..end];
+    assert!(body.contains("let license = source.join(\"LICENSE\")"));
+    assert!(body.contains("source.join(\"README\")"));
+}
+
+#[test]
+fn wireless_regdb_keeps_the_upstream_verification_key_in_the_import() {
+    let source = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../../src/system/data/wireless-regdb/wens.key.pub.pem");
+    assert!(source.is_file());
+}
+
+#[test]
+fn acl_uses_library_path_without_encoding_disposable_attr_runpath() {
+    let source = include_str!("stages/foundation_libraries.rs");
+    let start = source.find("fn build_acl(").unwrap();
+    let end = start
+        + source[start..]
+            .find("\nfn ensure_acl_release_archive")
+            .unwrap();
+    let body = &source[start..end];
+    assert!(body.contains("acl-link-isolation-v2"));
+    assert!(body.contains("LIBRARY_PATH"));
+    assert!(body.contains("libtool configuration"));
+    assert!(!body.contains("\"LDFLAGS\""));
+}
+
+#[test]
+fn libffi_package_uses_retained_license_notice() {
+    let staging = include_str!("packaging/staging.rs");
+    let start = staging
+        .find("\"libffi8\" => stage_imported_soname_library")
+        .unwrap();
+    let end = start + staging[start..].find("\n        )?,").unwrap();
+    assert!(staging[start..end].contains("libffi/libffi/README.md"));
+    assert!(staging.contains("usr/share/doc/libffi-dev/copyright"));
+}
+
+#[test]
+fn highway_package_uses_retained_bsd_license_notice() {
+    let staging = include_str!("packaging/staging.rs");
+    let start = staging.find("\"libhwy1\" => stage_multimedia_sdk").unwrap();
+    let end = start + staging[start..].find("\n        )?,").unwrap();
+    assert!(staging[start..end].contains("highway/LICENSE-BSD3"));
+}
+
+#[test]
+fn pulseaudio_package_uses_retained_lgpl_license_notice() {
+    let staging = include_str!("packaging/staging.rs");
+    let start = staging
+        .find("\"libpulse0\" => stage_multimedia_sdk")
+        .unwrap();
+    let end = start + staging[start..].find("\n        )?,").unwrap();
+    assert!(staging[start..end].contains("pulseaudio/LGPL"));
+}
+
+#[test]
+fn wireplumber_package_uses_retained_license_notice() {
+    let staging = include_str!("packaging/staging.rs");
+    let start = staging
+        .find("\"wireplumber\" => stage_multimedia_sdk")
+        .unwrap();
+    let end = start + staging[start..].find("\n        )?,").unwrap();
+    assert!(staging[start..end].contains("wireplumber/README.rst"));
+}
+
+#[test]
+fn lcms2_package_uses_retained_license_notice() {
+    let staging = include_str!("packaging/staging.rs");
+    let start = staging
+        .find("\"liblcms2-2\" => stage_imported_soname_library")
+        .unwrap();
+    let end = start + staging[start..].find("\n        )?,").unwrap();
+    assert!(staging[start..end].contains("lcms2/README.md"));
+}
+
+#[test]
+fn zxing_package_uses_retained_license_notice() {
+    let staging = include_str!("packaging/staging.rs");
+    let start = staging
+        .find("\"libzxing4\" => stage_multimedia_sdk")
+        .unwrap();
+    let end = start + staging[start..].find("\n        )?,").unwrap();
+    assert!(staging[start..end].contains("zxing-cpp/README.md"));
+}
+
+#[test]
+fn yaml_cpp_package_uses_retained_license_notice() {
+    let staging = include_str!("packaging/staging.rs");
+    let start = staging.find("fn stage_kde_module(").unwrap();
+    let end = start + staging[start..].find("fn stage_multimedia_sdk(").unwrap();
+    assert!(staging[start..end].contains("component == \"yaml-cpp\""));
+    assert!(staging[start..end].contains("README.md"));
+}
+
+#[test]
+fn xkbcommon_package_uses_retained_license_notice() {
+    let staging = include_str!("packaging/staging.rs");
+    let start = staging.find("\"libxkbcommon0\" => {").unwrap();
+    let end = start
+        + staging[start..]
+            .find("\n        }\n        \"libxml2-16\"")
+            .unwrap();
+    assert!(staging[start..end].contains("xkbcommon/README.md"));
+}
+
+#[test]
+fn seatd_package_uses_retained_license_notice() {
+    let staging = include_str!("packaging/staging.rs");
+    let start = staging
+        .find("\"libseat1\" => stage_imported_soname_library")
+        .unwrap();
+    let end = start + staging[start..].find("\n        )?,").unwrap();
+    assert!(staging[start..end].contains("seatd/README.md"));
+}
+
+#[test]
+fn display_info_package_uses_retained_license_notice() {
+    let staging = include_str!("packaging/staging.rs");
+    let start = staging
+        .find("\"libdisplay-info3\" => stage_imported_soname_library")
+        .unwrap();
+    let end = start + staging[start..].find("\n        )?,").unwrap();
+    assert!(staging[start..end].contains("libdisplay-info/README.md"));
+}
+
+#[test]
+fn mesa_remaps_rust_source_paths_in_disposable_builds() {
+    let graphics = include_str!("stages/graphics.rs");
+    let start = graphics.find("fn build_mesa(").unwrap();
+    assert!(graphics[start..].contains("RUSTFLAGS"));
+    assert!(graphics[start..].contains("remap-path-prefix"));
+}
+
+#[test]
+fn systemd_does_not_sysroot_output_owned_pkgconfig_paths() {
+    let recipe = fs::read_to_string(
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("src/stages/system_runtime.rs"),
+    )
+    .unwrap();
+    let systemd_recipe = recipe
+        .split("fn patch_systemd_osc_profile_for_posix_login_shell")
+        .next()
+        .unwrap();
+    assert!(!systemd_recipe.contains("PKG_CONFIG_SYSROOT_DIR"));
+}
+
+#[test]
 fn cmake_runtime_reconfigures_stale_host_discovery_from_target_prefixes() {
     let source = include_str!("stages/graphics.rs");
     let start = source.find("fn build_vulkan_cmake(").unwrap();
@@ -438,4 +799,6 @@ fn cmake_runtime_reconfigures_stale_host_discovery_from_target_prefixes() {
     assert!(helper.contains("cmake-prefix-path={cmake_prefix_path}"));
     assert!(helper.contains("-DCMAKE_PREFIX_PATH={cmake_prefix_path}"));
     assert!(helper.contains("CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY=OFF"));
+    assert!(helper.contains("release-sha256={}"));
+    assert!(helper.contains("release archive did not produce output-mirror file"));
 }

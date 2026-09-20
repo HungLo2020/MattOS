@@ -13,17 +13,61 @@ fn build_modemmanager(r: &Path) -> Result<()> {
     fs::create_dir_all(&tool_dir)?;
     let xsltproc = tool_dir.join("xsltproc");
     fs::write(&xsltproc, r#"#!/usr/bin/python3
+from pathlib import Path
 import sys
-from lxml import etree
+import xml.etree.ElementTree as etree
+
 args = [arg for arg in sys.argv[1:] if arg not in ("--xinclude", "--nonet")]
 if len(args) != 4 or args[0] != "--output":
     raise SystemExit("MattOS xsltproc shim expects: --xinclude --nonet --output OUTPUT STYLESHEET XML")
-parser = etree.XMLParser(no_network=True)
-document = etree.parse(args[3], parser)
-document.xinclude()
-transform = etree.XSLT(etree.parse(args[2], parser))
-with open(args[1], "wb") as output:
-    output.write(bytes(transform(document)))
+if Path(args[2]).name != "header-generator.xsl":
+    raise SystemExit("MattOS ModemManager generator received an unsupported stylesheet")
+
+xml_path = Path(args[3])
+root = etree.parse(xml_path).getroot()
+xi = "{http://www.w3.org/2001/XInclude}include"
+interfaces = []
+for include in root.findall(xi):
+    included = etree.parse(xml_path.parent / include.attrib["href"]).getroot()
+    interfaces.extend(included.findall("interface"))
+
+def macro_name(value):
+    return value.upper().replace(".", "_").replace(" ", "_")
+
+lines = ["""/* Generated Header file do not edit */
+
+#ifndef _MODEM_MANAGER_NAMES_H_
+#define _MODEM_MANAGER_NAMES_H_
+
+#define MM_DBUS_PATH    \"/org/freedesktop/ModemManager1\"
+#define MM_DBUS_SERVICE \"org.freedesktop.ModemManager1\"
+#define MM_DBUS_MODEM_PREFIX  MM_DBUS_PATH \"/Modem\"
+#define MM_DBUS_BEARER_PREFIX MM_DBUS_PATH \"/Bearer\"
+#define MM_DBUS_CBM_PREFIX    MM_DBUS_PATH \"/CBM\"
+#define MM_DBUS_SIM_PREFIX    MM_DBUS_PATH \"/SIM\"
+#define MM_DBUS_SMS_PREFIX    MM_DBUS_PATH \"/SMS\"
+#define MM_DBUS_CALL_PREFIX   MM_DBUS_PATH \"/Call\"
+#define MM_DBUS_ERROR_PREFIX \"org.freedesktop.ModemManager1.Error\"
+"""]
+prefix = "org.freedesktop.ModemManager1"
+for interface in interfaces:
+    name = interface.attrib["name"]
+    suffix = name[len(prefix):].lstrip(".") if name.startswith(prefix) else ""
+    macro = "MM_DBUS_INTERFACE" + ("_" + macro_name(suffix) if suffix else "")
+    lines.append(f'#define {macro} "{name}"')
+
+for interface in interfaces:
+    name = interface.attrib["name"]
+    suffix = name[len(prefix):].lstrip(".") if name.startswith(prefix + ".") else "MANAGER"
+    interface_macro = macro_name(suffix)
+    lines.append(f'\n/* Interface \'{name}\' */')
+    for tag, kind in (("method", "METHOD"), ("signal", "SIGNAL"), ("property", "PROPERTY")):
+        for member in interface.findall(tag):
+            member_name = member.attrib["name"]
+            lines.append(f'#define MM_{interface_macro}_{kind}_{macro_name(member_name)} "{member_name}"')
+
+lines.append("\n#endif /* _MODEM_MANAGER_NAMES_H_ */\n")
+Path(args[1]).write_text("\n".join(lines), encoding="ascii")
 "#)?;
     fs::set_permissions(&xsltproc, <fs::Permissions as std::os::unix::fs::PermissionsExt>::from_mode(0o755))?;
     let path = format!("{}:{}", tool_dir.display(), std::env::var("PATH").unwrap_or_default());
@@ -74,7 +118,7 @@ fn build_modemmanager_qt(r: &Path) -> Result<()> {
 fn build_purpose(r: &Path) -> Result<()> { build_plasma_app(r, "purpose", &["qtbase","qtdeclarative","karchive","kauth","kbookmarks","kcolorscheme","kcompletion","kconfig","kcoreaddons","kcrash","kdbusaddons","kguiaddons","ki18n","kiconthemes","kitemmodels","kitemviews","kjobwidgets","knotifications","kio","kservice","kwidgetsaddons","kwindowsystem","solid","util-linux","kirigami","prison","kcmutils"], &["-DBUILD_TESTING=OFF","-DBUILD_QCH=OFF"], "usr/lib/x86_64-linux-gnu/libKF6Purpose.so") }
 fn build_milou(r: &Path) -> Result<()> { build_plasma_app(r, "milou", &["qtbase","qtdeclarative","kconfig","kcoreaddons","ki18n","krunner","ksvg","kpackage","kirigami","kwindowsystem","plasma-framework"], &["-DBUILD_TESTING=OFF"], "usr/lib/x86_64-linux-gnu/qml/org/kde/milou/libmilou.so") }
 fn build_systemsettings(r: &Path) -> Result<()> { build_plasma_app(r, "systemsettings", &["qtbase","qtdeclarative","karchive","kauth","kbookmarks","kcodecs","kcolorscheme","kcompletion","kconfig","kconfigwidgets","kcoreaddons","kcrash","kdbusaddons","kglobalaccel","kguiaddons","ki18n","kiconthemes","breeze-icons","kitemmodels","kitemviews","kjobwidgets","knotifications","kcmutils","kio","kservice","ktextwidgets","kwidgetsaddons","kwindowsystem","kxmlgui","solid","util-linux","libffi","kirigami","krunner","plasma-activities"], &["-DBUILD_TESTING=OFF","-DBUILD_DOC=OFF"], "usr/bin/systemsettings") }
-fn build_ksystemstats(r: &Path) -> Result<()> { build_plasma_app(r, "ksystemstats", &["qtbase","qtdeclarative","kbookmarks","kcompletion","kconfig","kcoreaddons","kcrash","ki18n","kitemviews","kjobwidgets","kservice","kwidgetsaddons","kwindowsystem","kio","ksysguard","solid","networkmanager-qt","networkmanager","glib","dbus","pcre2","zlib","systemd","libnl","libffi","lm-sensors"], &["-DBUILD_TESTING=OFF"], "usr/bin/ksystemstats") }
+fn build_ksystemstats(r: &Path) -> Result<()> { build_plasma_app(r, "ksystemstats", &["qtbase","qtdeclarative","kbookmarks","kcompletion","kconfig","kcoreaddons","kcrash","ki18n","kitemviews","kjobwidgets","kservice","kwidgetsaddons","kwindowsystem","kio","ksysguard","solid","networkmanager-qt","networkmanager","glib","dbus","pcre2","zlib","systemd","libnl","libffi","lm-sensors","libdrm"], &["-DBUILD_TESTING=OFF"], "usr/bin/ksystemstats") }
 fn build_plasma_systemmonitor(r: &Path) -> Result<()> { build_plasma_app(r, "plasma-systemmonitor", &["qtbase","qtdeclarative","karchive","kauth","kbookmarks","kcodecs","kcolorscheme","kcompletion","kconfig","kconfigwidgets","kcoreaddons","kcrash","kdbusaddons","kglobalaccel","kguiaddons","ki18n","kiconthemes","kitemmodels","kitemviews","kjobwidgets","knotifications","kservice","ktextwidgets","kwidgetsaddons","kwindowsystem","kio","solid","util-linux","knewstuff","attica","kpackage","ksysguard","ksystemstats","kirigami","kirigami-addons","breeze-icons","libffi"], &["-DBUILD_TESTING=OFF","-DBUILD_DOC=OFF"], "usr/bin/plasma-systemmonitor") }
 fn build_polkit_kde_agent(r: &Path) -> Result<()> { build_plasma_app(r, "polkit-kde-agent-1", &["qtbase","qtdeclarative","kconfig","ki18n","kwindowsystem","knotifications","kdbusaddons","kcoreaddons","kcrash","libcanberra","polkit-qt-1","polkit","glib","dbus","zlib","libffi"], &["-DBUILD_TESTING=OFF"], "usr/lib/x86_64-linux-gnu/libexec/polkit-kde-authentication-agent-1") }
 fn build_kquickimageeditor(r: &Path) -> Result<()> { build_plasma_app(r, "kquickimageeditor", &["qtbase","qtdeclarative","qtshadertools","kconfig","kirigami","highway"], &["-DBUILD_TESTING=OFF"], "usr/lib/x86_64-linux-gnu/qml/org/kde/kquickimageeditor/libKQuickImageEditorplugin.so") }

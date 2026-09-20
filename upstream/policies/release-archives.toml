@@ -54,3 +54,21 @@ source_commit = "8bab26f4f68e0e26f0bb7960be334d5b520ea452"
 url = "https://static.rust-lang.org/dist/rustc-1.97.1-src.tar.xz"
 sha256 = "0ed06fdaffd4722a7702e0b4eebfafc897ab8f513e8e1b247cdd7e5c6df6ded2"
 staging_policy = "output-mirror-only"
+
+[[archive]]
+component = "libsndfile"
+version = "1.2.2"
+source_tag = "1.2.2"
+source_commit = "72f6af15e8f85157bd622ed45b979025828b7001"
+url = "https://github.com/libsndfile/libsndfile/releases/download/1.2.2/libsndfile-1.2.2.tar.xz"
+sha256 = "3799ca9924d3125038880367bf1468e53a1b7e3686a934f098b7e1d286cdb80e"
+staging_policy = "output-mirror-only"
+
+[[archive]]
+component = "libfyaml"
+version = "0.9.6"
+source_tag = "v0.9.6"
+source_commit = "1ed9bae3b1e5fc57e31a14a2ea12810fdf423473"
+url = "https://github.com/pantoniou/libfyaml/releases/download/v0.9.6/libfyaml-0.9.6.tar.gz"
+sha256 = "a59cc3331e2eb903ec36933ad52a45888041cac31e44f553a00511131242c483"
+staging_policy = "output-mirror-only"

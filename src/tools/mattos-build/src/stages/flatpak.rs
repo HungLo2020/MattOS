@@ -4,9 +4,16 @@ fn build_libfyaml(repo_root: &Path) -> Result<()> {
         "libfyaml",
         "src/system/libraries/libfyaml",
         &[],
-        &["-DFYAML_BUILD_TESTS=OFF".to_string()],
+        &["-DBUILD_TESTING=OFF".to_string()],
         &["usr/lib/x86_64-linux-gnu/libfyaml.so.0"],
         None,
+        Some(OutputMirrorReleaseFile {
+            filename: "libfyaml-0.9.6.tar.gz",
+            url: LIBFYAML_RELEASE_ARCHIVE_URL,
+            sha256: LIBFYAML_RELEASE_ARCHIVE_SHA256,
+            archive_member: "libfyaml-0.9.6/cmake/config.h.in",
+            destination: "cmake/config.h.in",
+        }),
     )
 }
 
@@ -328,7 +335,7 @@ fn build_libarchive(repo_root: &Path) -> Result<()> {
         repo_root,
         "libarchive",
         "src/system/libraries/libarchive",
-        &["zlib", "zstd", "bzip2", "xz", "lz4", "libcap"],
+        &["zlib", "zstd", "bzip2", "xz", "lz4", "libcap", "libmd"],
         &[
             "-DENABLE_TEST=OFF".to_string(),
             "-DENABLE_TAR=OFF".to_string(),
@@ -341,6 +348,7 @@ fn build_libarchive(repo_root: &Path) -> Result<()> {
             "-DENABLE_EXPAT=OFF".to_string(),
         ],
         &["usr/lib/x86_64-linux-gnu/libarchive.so.13"],
+        None,
         None,
     )
 }
@@ -359,6 +367,7 @@ fn build_libxml2(repo_root: &Path) -> Result<()> {
             "-DLIBXML2_WITH_ICU=OFF".to_string(),
         ],
         &["usr/lib/x86_64-linux-gnu/libxml2.so.16"],
+        None,
         None,
     )
 }

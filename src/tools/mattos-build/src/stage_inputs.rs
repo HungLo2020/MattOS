@@ -622,7 +622,10 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::Libxml2 => &["src/system/libraries/libxml2"],
         BuildStage::Libpng => &["src/system/libraries/libpng"],
         BuildStage::Fuse3 => &["src/system/libraries/fuse3"],
-        BuildStage::Libfyaml => &["src/system/libraries/libfyaml"],
+        BuildStage::Libfyaml => &[
+            "src/system/libraries/libfyaml",
+            "upstream/policies/release-archives.toml",
+        ],
         BuildStage::Libxmlb => &["src/system/libraries/libxmlb"],
         BuildStage::JsonGlib => &["src/system/libraries/json-glib"],
         BuildStage::Appstream => &["src/system/libraries/appstream"],
@@ -723,6 +726,7 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         ],
         BuildStage::SndFile => &[
             "src/system/multimedia/libsndfile",
+            "upstream/policies/release-archives.toml",
             "src/tools/mattos-build/src/stages/runtime_libraries.rs",
         ],
         BuildStage::PulseAudioClient => &[
@@ -1541,6 +1545,8 @@ mod tests {
             BuildStage::Patch,
             BuildStage::Less,
             BuildStage::Rust,
+            BuildStage::SndFile,
+            BuildStage::Libfyaml,
         ] {
             assert!(
                 source_inputs(stage)

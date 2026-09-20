@@ -619,7 +619,13 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             &["formal-sysroot", "qtbase", "qtdeclarative", "qtshadertools"]
         }
         BuildStage::Qca => &["formal-sysroot", "qtbase", "qt5compat"],
-        BuildStage::KCoreAddons => &["formal-sysroot", "qtbase", "systemd", "util-linux"],
+        BuildStage::KCoreAddons => &[
+            "formal-sysroot",
+            "qtbase",
+            "qtdeclarative",
+            "systemd",
+            "util-linux",
+        ],
         // iso-codes is runtime translation data; KI18n's compiled ABI does
         // not consume it at build time.
         BuildStage::KI18n => &["formal-sysroot", "qtbase", "qtdeclarative"],
@@ -1135,7 +1141,12 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "x11-compat",
         ],
         BuildStage::PlasmaWaylandProtocols => &["formal-sysroot"],
-        BuildStage::WaylandProtocols => &["formal-sysroot"],
+        // wayland-protocols 1.46 validates its XML with the native
+        // wayland-scanner.  The scanner is produced by the owned Wayland
+        // stage and links against the owned Expat runtime. Its pkg-config
+        // metadata also exposes Wayland's private libffi dependency while
+        // validating the protocol test client.
+        BuildStage::WaylandProtocols => &["formal-sysroot", "wayland", "expat", "libffi"],
         BuildStage::PolkitQt6 => &["formal-sysroot", "qtbase", "polkit", "glib", "dbus", "zlib"],
         BuildStage::YamlCpp => &["formal-sysroot"],
         // KPMCore's external-command helper links Polkit-Qt directly.  The
@@ -1738,6 +1749,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "libnl",
             "libffi",
             "lm-sensors",
+            "libdrm",
         ],
         BuildStage::PlasmaSystemMonitor => &[
             "formal-sysroot",
@@ -2342,7 +2354,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "libffi",
             "libarchive",
         ],
-        BuildStage::Wayland => &["formal-sysroot", "libffi"],
+        BuildStage::Wayland => &["formal-sysroot", "libffi", "expat"],
         BuildStage::Xkbcommon => &["formal-sysroot", "x11-compat", "libxml2"],
         // Unprivileged graphical sessions acquire DRM/input devices through
         // logind. The builtin libseat backend is only sufficient for the
@@ -2534,8 +2546,10 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "xz",
             "lz4",
             "libcap",
+            "libmd",
         ],
         BuildStage::Libxml2 => &["formal-sysroot", "zlib", "expat"],
+        BuildStage::Libpng => &["formal-sysroot", "zlib"],
         BuildStage::Fuse3 => &["formal-sysroot"],
         BuildStage::Libfyaml => &["formal-sysroot"],
         BuildStage::Libxmlb => &["formal-sysroot", "glib", "libffi", "xz", "zlib"],
@@ -3438,7 +3452,7 @@ mod tests {
                 259,
                 &["linux", "glibc", "linux-headers"],
             ),
-            ("zlib shared library", &["zlib"], 180, &["brush", "linux"]),
+            ("zlib shared library", &["zlib"], 181, &["brush", "linux"]),
             ("package metadata", &["packages"], 5, &["brush", "zlib"]),
             (
                 "repository policy",

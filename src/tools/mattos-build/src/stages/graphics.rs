@@ -98,7 +98,7 @@ fn build_xorg_autotools_component(
             .join(format!("{component}.toml")),
     )?;
     let stamp = format!(
-        "{state}\n{}\ndependencies={}\nxorg-compat-recipe=3\n",
+        "{state}\n{}\ndependencies={}\nxorg-compat-recipe=4\n",
         options.join("\n"),
         dependencies.join(",")
     );
@@ -114,6 +114,15 @@ fn build_xorg_autotools_component(
     let aclocal = repo_root.join("out/build/xorg-util-macros/install/usr/share/aclocal");
     if aclocal.is_dir() {
         aclocal_paths.push(aclocal);
+    }
+    for dependency in dependencies {
+        let aclocal = repo_root
+            .join("out/build")
+            .join(dependency)
+            .join("install/usr/share/aclocal");
+        if aclocal.is_dir() && !aclocal_paths.contains(&aclocal) {
+            aclocal_paths.push(aclocal);
+        }
     }
     let xcb_util_m4 = repo_root.join("src/system/graphics/xcb-util-m4");
     if xcb_util_m4.is_dir() {
@@ -1447,6 +1456,14 @@ fn vulkan_wayland_pkgconfig(repo_root: &Path) -> Result<PathBuf> {
     Ok(output)
 }
 
+struct OutputMirrorReleaseFile<'a> {
+    filename: &'a str,
+    url: &'a str,
+    sha256: &'a str,
+    archive_member: &'a str,
+    destination: &'a str,
+}
+
 fn build_vulkan_cmake(
     repo_root: &Path,
     component: &str,
@@ -1455,6 +1472,7 @@ fn build_vulkan_cmake(
     options: &[String],
     required_outputs: &[&str],
     pkgconfig_override: Option<&Path>,
+    release_file: Option<OutputMirrorReleaseFile<'_>>,
 ) -> Result<()> {
     let source = repo_root.join(source_relative);
     let out_root = repo_root.join("out/build").join(component);
@@ -1485,8 +1503,17 @@ fn build_vulkan_cmake(
             .join("upstream/state")
             .join(format!("{component}.toml")),
     )?;
+    let release_identity = release_file
+        .as_ref()
+        .map(|input| {
+            format!(
+                "release-url={}\nrelease-sha256={}\nrelease-member={}\n",
+                input.url, input.sha256, input.archive_member
+            )
+        })
+        .unwrap_or_default();
     let stamp = format!(
-        "{state}\ncmake-prefix-path={cmake_prefix_path}\n{}\n",
+        "{state}\ncmake-prefix-path={cmake_prefix_path}\n{release_identity}{}\n",
         options.join("\n")
     );
     if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
@@ -1497,6 +1524,45 @@ fn build_vulkan_cmake(
     fs::create_dir_all(&out_root)?;
     if !source_copy.join("CMakeLists.txt").is_file() {
         sync_build_source(&source, &source_copy)?;
+    }
+    if let Some(input) = release_file {
+        let destination = source_copy.join(input.destination);
+        if !destination.is_file() {
+            let archive = ensure_verified_release_archive(
+                &out_root,
+                input.filename,
+                input.url,
+                input.sha256,
+            )?;
+            fs::create_dir_all(
+                destination
+                    .parent()
+                    .context("release file destination has no parent")?,
+            )?;
+            let extract_flag = if input.filename.ends_with(".tar.gz") {
+                "-xzf"
+            } else {
+                "-xJf"
+            };
+            run_cmd(
+                &out_root,
+                "tar",
+                &[
+                    extract_flag,
+                    path_str(&archive)?,
+                    "--strip-components=1",
+                    "-C",
+                    path_str(&source_copy)?,
+                    input.archive_member,
+                ],
+            )?;
+            if !destination.is_file() {
+                bail!(
+                    "release archive did not produce output-mirror file {}",
+                    destination.display()
+                );
+            }
+        }
     }
     fs::create_dir_all(&build_dir)?;
     let mut env = staged_library_environment(repo_root, dependencies)?;
@@ -1579,6 +1645,7 @@ fn build_vulkan_headers(repo_root: &Path) -> Result<()> {
             "usr/share/vulkan/registry/vk.xml",
         ],
         None,
+        None,
     )
 }
 
@@ -1600,6 +1667,7 @@ fn build_vulkan_loader(repo_root: &Path) -> Result<()> {
             "-DBUILD_WSI_WAYLAND_SUPPORT=ON".to_string(),
         ],
         &["usr/lib/x86_64-linux-gnu/libvulkan.so.1"],
+        None,
         None,
     )
 }
@@ -1634,6 +1702,7 @@ fn build_vulkan_tools(repo_root: &Path) -> Result<()> {
         ],
         &["usr/bin/vulkaninfo", "usr/bin/vkcube"],
         Some(&pkgconfig),
+        None,
     )
 }
 
@@ -1836,6 +1905,13 @@ fn build_mesa(repo_root: &Path) -> Result<()> {
                     cbindgen_root.join("bin").display(),
                     llvm_tools.display(),
                     wayland_tools.display()
+                ),
+            ),
+            (
+                "RUSTFLAGS",
+                format!(
+                    "--remap-path-prefix={}=/usr/src/mattos",
+                    repo_root.display()
                 ),
             ),
         ],

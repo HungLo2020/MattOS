@@ -4,6 +4,13 @@
 // platform theme.  Their dependencies are declared in stage_graph.rs.
 
 fn build_plasma_component(repo_root: &Path, stage: &str, source: &str, components: &[&str], options: &[&str], required_output: &str) -> Result<()> {
+    if stage == "plasma-desktop" {
+        // plasma-desktop's keyboard-layout backend queries xkb_base from the
+        // output-owned xkeyboard-config pkg-config metadata at configure time.
+        // This data component is not a standalone BuildStage, so materialize
+        // its disposable install tree before constructing the KDE environment.
+        build_xkeyboard_config(repo_root)?;
+    }
     // polkit-qt's imported target retains GLib/polkit as private ELF
     // dependencies.  Keep those target-owned library directories available
     // to strict --no-undefined consumers without changing the upstream

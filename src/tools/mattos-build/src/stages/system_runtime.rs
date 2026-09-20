@@ -113,10 +113,6 @@ fn build_systemd(repo_root: &Path) -> Result<()> {
     let env_overrides = vec![
         ("PKG_CONFIG_PATH", pkgconfig_path.clone()),
         ("PKG_CONFIG_LIBDIR", pkgconfig_path),
-        (
-            "PKG_CONFIG_SYSROOT_DIR",
-            repo_root.join("out/sysroot").display().to_string(),
-        ),
         ("CFLAGS", cflags),
         ("LDFLAGS", ldflags),
         ("LIBRARY_PATH", system_library_path.clone()),
@@ -273,10 +269,8 @@ fn systemd_meson_options() -> Vec<String> {
         "-Dnsresourced=false".to_string(),
         "-Ddefault-network=false".to_string(),
         "-Ddbus=enabled".to_string(),
-        // The target dbus-1.pc is queried under PKG_CONFIG_SYSROOT_DIR while
-        // configuring systemd.  Do not let its absolute host/sysroot paths
-        // become Meson install destinations; these are target filesystem
-        // paths in the finished systemd package.
+        // The build-time pkg-config view uses output-owned absolute paths.
+        // Keep the installed D-Bus directories as target filesystem paths.
         "-Ddbussessionservicedir=/usr/share/dbus-1/services".to_string(),
         "-Ddbussystemservicedir=/usr/share/dbus-1/system-services".to_string(),
         "-Ddbus-interfaces-dir=/usr/share/dbus-1/interfaces".to_string(),

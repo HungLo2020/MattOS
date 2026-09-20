@@ -427,7 +427,10 @@ fn build_acl(repo_root: &Path) -> Result<()> {
         "--disable-static",
         "--disable-nls",
     ];
-    let stamp = format!("{state}\n{}\n", options.join("\n"));
+    let stamp = format!(
+        "{state}\n{}\nacl-link-isolation-v2\n",
+        options.join("\n")
+    );
     if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
         remove_path_if_exists(&source_copy)?;
         remove_path_if_exists(&build_dir)?;
@@ -447,23 +450,44 @@ fn build_acl(repo_root: &Path) -> Result<()> {
     if !build_dir.join("Makefile").is_file() {
         let configure = source_copy.join("configure");
         let attr = repo_root.join("out/build/attr/install/usr");
+        let attr_lib = attr.join("lib/x86_64-linux-gnu");
         run_cmd_with_env_overrides(
             &build_dir,
             path_str(&configure)?,
             &options,
             &[
                 ("CPPFLAGS", format!("-I{}", attr.join("include").display())),
-                (
-                    "LDFLAGS",
-                    format!("-L{}", attr.join("lib/x86_64-linux-gnu").display()),
-                ),
+                // Keep the target-owned attr library discoverable to the
+                // linker without passing its disposable absolute path as an
+                // -L flag; libtool would otherwise encode that path as the
+                // installed library's RUNPATH.
+                ("LIBRARY_PATH", attr_lib.display().to_string()),
             ],
         )?;
+        // Autoconf records LIBRARY_PATH entries in libtool's private search
+        // path and later promotes them to RUNPATH. Keep the target-owned
+        // attr path available during configure/link discovery, but remove
+        // that disposable absolute directory from libtool before compiling
+        // the installed ACL library.
+        let libtool = build_dir.join("libtool");
+        let contents = fs::read_to_string(&libtool)?;
+        let attr_lib = repo_root.join("out/build/attr/install/usr/lib/x86_64-linux-gnu");
+        let adjusted = contents.replace(&attr_lib.display().to_string(), "");
+        if adjusted == contents {
+            bail!("ACL libtool configuration did not contain the disposable attr path");
+        }
+        fs::write(libtool, adjusted)?;
     }
     // The pinned distribution archive already supplies Autotools-generated
     // files.  Keep maintainer regeneration disabled so timestamp differences
     // in this disposable mirror cannot require a host-versioned aclocal.
-    run_cmd(&build_dir, "make", &["-j", "4", "MAKE_MAINTAINER_MODE="])?;
+    let attr_lib = repo_root.join("out/build/attr/install/usr/lib/x86_64-linux-gnu");
+    run_cmd_with_env_overrides(
+        &build_dir,
+        "make",
+        &["-j", "4", "MAKE_MAINTAINER_MODE="],
+        &[("LIBRARY_PATH", attr_lib.display().to_string())],
+    )?;
     remove_path_if_exists(&install_dir)?;
     fs::create_dir_all(&install_dir)
         .with_context(|| format!("failed to create {}", install_dir.display()))?;

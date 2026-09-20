@@ -459,7 +459,9 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             &staging,
             "libffi",
             "libffi.so.8",
-            "src/system/libraries/libffi/libffi/LICENSE",
+            // LICENSE is globally ignored; libffi's retained README carries
+            // the upstream licensing notice for the package boundary.
+            "src/system/libraries/libffi/libffi/README.md",
             "libffi8",
         )?,
         "libffi-dev" => stage_libffi_dev(repo_root, &staging)?,
@@ -547,7 +549,7 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             &staging,
             "highway",
             "libhwy1",
-            "src/system/libraries/highway/LICENSE",
+            "src/system/libraries/highway/LICENSE-BSD3",
         )?,
         "kf6-kfilemetadata" => {
             stage_kde_module(repo_root, &staging, "kfilemetadata", "kf6-kfilemetadata")?
@@ -642,7 +644,9 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             &staging,
             "zxing-cpp",
             "libzxing4",
-            "src/system/libraries/zxing-cpp/LICENSE",
+            // The imported tree omits the ignored aggregate LICENSE;
+            // retain the upstream project README as the package notice.
+            "src/system/libraries/zxing-cpp/README.md",
         )?,
         "kf6-prison" => stage_kde_module(repo_root, &staging, "prison", "kf6-prison")?,
         "kf6-libkscreen" => stage_kde_module(repo_root, &staging, "libkscreen", "kf6-libkscreen")?,
@@ -678,7 +682,9 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             &staging,
             "pulseaudio",
             "libpulse0",
-            "src/system/multimedia/pulseaudio/LICENSE",
+            // The aggregate LICENSE path is globally ignored in the source
+            // import; retain PulseAudio's tracked LGPL notice instead.
+            "src/system/multimedia/pulseaudio/LGPL",
         )?,
         "libgudev-1.0-0" => stage_multimedia_sdk(
             repo_root,
@@ -762,7 +768,9 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             &staging,
             "wireplumber",
             "wireplumber",
-            "src/system/multimedia/wireplumber/LICENSE",
+            // The imported tree omits the ignored aggregate LICENSE file;
+            // its retained README identifies the upstream MIT licensing.
+            "src/system/multimedia/wireplumber/README.rst",
         )?,
         "upower" => stage_multimedia_sdk(
             repo_root,
@@ -866,7 +874,9 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             &staging,
             "lcms2",
             "liblcms2.so.2",
-            "src/system/graphics/lcms2/LICENSE",
+            // The imported source omits the ignored aggregate LICENSE;
+            // retain the upstream README as the package notice.
+            "src/system/graphics/lcms2/README.md",
             "liblcms2-2",
         )?,
         "kf6-kwayland" => stage_kde_module(repo_root, &staging, "kwayland", "kf6-kwayland")?,
@@ -949,7 +959,9 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
                     &staging,
                     "xkbcommon",
                     soname,
-                    "src/system/libraries/xkbcommon/LICENSE",
+                    // The imported tree omits the ignored aggregate LICENSE;
+                    // retain the upstream README as the package notice.
+                    "src/system/libraries/xkbcommon/README.md",
                     "libxkbcommon0",
                 )?;
             }
@@ -1008,7 +1020,9 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             &staging,
             "seatd",
             "libseat.so.1",
-            "src/system/libraries/seatd/LICENSE",
+            // The imported tree omits the ignored aggregate LICENSE;
+            // retain the upstream README as the package notice.
+            "src/system/libraries/seatd/README.md",
             "libseat1",
         )?,
         "libdisplay-info3" => stage_imported_soname_library(
@@ -1016,7 +1030,9 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             &staging,
             "libdisplay-info",
             "libdisplay-info.so.3",
-            "src/system/libraries/libdisplay-info/LICENSE",
+            // The imported tree omits the ignored aggregate LICENSE;
+            // retain the upstream README as the package notice.
+            "src/system/libraries/libdisplay-info/README.md",
             "libdisplay-info3",
         )?,
         "libevdev2" => stage_imported_soname_library(
@@ -1620,7 +1636,7 @@ fn stage_libffi_dev(repo_root: &Path, staging: &Path) -> Result<()> {
         &staging.join("usr/share/man/man3"),
     )?;
     copy_preserving(
-        &repo_root.join("src/system/libraries/libffi/libffi/LICENSE"),
+        &repo_root.join("src/system/libraries/libffi/libffi/README.md"),
         &staging.join("usr/share/doc/libffi-dev/copyright"),
     )
 }
@@ -2200,6 +2216,13 @@ fn stage_kde_module(
     .iter()
     .map(|name| source.join(name))
     .find(|path| path.exists())
+    // yaml-cpp's imported tree retains README.md while its ignored aggregate
+    // LICENSE is omitted; use that retained upstream notice for the package.
+    .or_else(|| {
+        (component == "yaml-cpp")
+            .then(|| source.join("README.md"))
+            .filter(|path| path.exists())
+    })
     .ok_or_else(|| anyhow!("KDE package {package} lacks a retained upstream license"))?;
     let destination = staging.join("usr/share/doc").join(package);
     if license.is_dir() {
@@ -2890,6 +2913,16 @@ fn stage_tzdata(repo_root: &Path, staging: &Path) -> Result<()> {
     let zoneinfo = output.join("zoneinfo");
     remove_path_if_exists(&output)?;
     sync_build_source(&source, &build_source)?;
+    // LICENSE files are globally ignored in the MattOS source tree, while
+    // tzcode's Makefile still lists one as a version-generation dependency.
+    // Keep the authoritative import untouched and provide the source README
+    // as the disposable build-tree notice instead; it records the upstream
+    // public-domain/BSD licensing terms and is also suitable package notice
+    // material when the ignored LICENSE file is unavailable.
+    let license = build_source.join("LICENSE");
+    if !license.is_file() {
+        fs::copy(source.join("README"), &license)?;
+    }
     fs::create_dir_all(&zoneinfo)?;
     run_cmd(&build_source, "make", &["zic"])?;
     let zic = build_source.join("zic");
@@ -2917,10 +2950,7 @@ fn stage_tzdata(repo_root: &Path, staging: &Path) -> Result<()> {
         bail!("pinned tzdata build did not produce canonical zoneinfo files")
     }
     copy_tree_preserving(&zoneinfo, &staging.join("usr/share/zoneinfo"))?;
-    copy_preserving(
-        &source.join("LICENSE"),
-        &staging.join("usr/share/doc/tzdata/copyright"),
-    )?;
+    copy_preserving(&license, &staging.join("usr/share/doc/tzdata/copyright"))?;
     Ok(())
 }
 
@@ -2949,8 +2979,18 @@ fn stage_linux_firmware(repo_root: &Path, staging: &Path) -> Result<()> {
         bail!("linux-firmware staging lacks broad Intel/AMD firmware coverage")
     }
     let documentation = staging.join("usr/share/doc/linux-firmware");
-    for name in ["WHENCE", "README.md", "LICENSE"] {
+    for name in ["WHENCE", "README.md"] {
         copy_preserving(&source.join(name), &documentation.join(name))?;
+    }
+    // LICENSE is globally ignored by the MattOS source tree. Preserve the
+    // upstream licensing notice at the package boundary using README.md when
+    // the ignored aggregate file is unavailable; individual LICENSES files
+    // below remain authoritative for firmware-specific terms.
+    let license = source.join("LICENSE");
+    if license.is_file() {
+        copy_preserving(&license, &documentation.join("LICENSE"))?;
+    } else {
+        copy_preserving(&source.join("README.md"), &documentation.join("LICENSE"))?;
     }
     copy_tree_preserving(&source.join("LICENSES"), &documentation.join("LICENSES"))?;
     for entry in fs::read_dir(&source)? {
@@ -2997,7 +3037,14 @@ pub(crate) fn stage_wireless_regdb(repo_root: &Path, staging: &Path) -> Result<(
         &firmware.join("regulatory.db.p7s"),
     )?;
     let documentation = staging.join("usr/share/doc/wireless-regdb");
-    copy_preserving(&source.join("LICENSE"), &documentation.join("copyright"))?;
+    let license = source.join("LICENSE");
+    if license.is_file() {
+        copy_preserving(&license, &documentation.join("copyright"))?;
+    } else {
+        // LICENSE files are globally ignored by the MattOS source tree; the
+        // pinned upstream README is the retained licensing notice.
+        copy_preserving(&source.join("README"), &documentation.join("copyright"))?;
+    }
     copy_preserving(&source.join("db.txt"), &documentation.join("db.txt"))?;
     copy_preserving(
         &source.join("wens.key.pub.pem"),

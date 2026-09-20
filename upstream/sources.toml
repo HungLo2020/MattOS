@@ -364,6 +364,14 @@ path = "src/system/security/qca"
 sync = "copy"
 
 [[component]]
+name = "qcoro"
+repo = "https://github.com/danvratil/qcoro.git"
+branch = "v0.13.0"
+revision = "98f23d8d8d67e9e24217d268927faec97c713fb0"
+path = "src/desktop/kde/qcoro"
+sync = "copy"
+
+[[component]]
 name = "qtmultimedia"
 repo = "https://code.qt.io/qt/qtmultimedia.git"
 branch = "v6.11.2"

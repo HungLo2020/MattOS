@@ -132,6 +132,14 @@ const MATTOS_GCC_INSTALL_DIR: &str = "/usr/lib/x86_64-linux-gnu/gcc/x86_64-pc-li
 const LESS_RELEASE_ARCHIVE_URL: &str = "https://www.greenwoodsoftware.com/less/less-704.tar.gz";
 const LESS_RELEASE_ARCHIVE_SHA256: &str =
     "20a0b0a2bb2525fa53c7eee9beb854b4c9cf172eabb209af7020743547bfe9fb";
+const LIBSNDFILE_RELEASE_ARCHIVE_URL: &str =
+    "https://github.com/libsndfile/libsndfile/releases/download/1.2.2/libsndfile-1.2.2.tar.xz";
+const LIBSNDFILE_RELEASE_ARCHIVE_SHA256: &str =
+    "3799ca9924d3125038880367bf1468e53a1b7e3686a934f098b7e1d286cdb80e";
+const LIBFYAML_RELEASE_ARCHIVE_URL: &str =
+    "https://github.com/pantoniou/libfyaml/releases/download/v0.9.6/libfyaml-0.9.6.tar.gz";
+const LIBFYAML_RELEASE_ARCHIVE_SHA256: &str =
+    "a59cc3331e2eb903ec36933ad52a45888041cac31e44f553a00511131242c483";
 const SUDO_RS_PROVIDER: &str = "sudo-rs";
 const KMOD_PROVIDER: &str = "kmod";
 const PROCPS_PROVIDER: &str = "procps-ng";
@@ -4901,7 +4909,7 @@ mod tests {
             policy
                 .matches("staging_policy = \"output-mirror-only\"")
                 .count(),
-            6
+            8
         );
         let source = include_str!("stages/helpers/native.rs");
         let start = source.find("fn build_release_autotools_program").unwrap();

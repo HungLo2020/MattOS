@@ -393,7 +393,10 @@ fn build_libsndfile(repo_root: &Path) -> Result<()> {
         "-DENABLE_PACKAGE_CONFIG=ON",
         "-DINSTALL_MANPAGES=OFF",
     ];
-    let stamp = format!("{state}\n{}\n", options.join("\n"));
+    let stamp = format!(
+        "{state}\n{LIBSNDFILE_RELEASE_ARCHIVE_URL}\n{LIBSNDFILE_RELEASE_ARCHIVE_SHA256}\n{}\n",
+        options.join("\n")
+    );
     let stamp_path = out_root.join("build-stamp.txt");
     if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
         remove_path_if_exists(&source_copy)?;
@@ -401,6 +404,40 @@ fn build_libsndfile(repo_root: &Path) -> Result<()> {
     }
     fs::create_dir_all(&out_root)?;
     sync_build_source(&source, &source_copy)?;
+    // The exact upstream Git tag intentionally ignores the generated public
+    // C header. Stage only that distribution input from the checksummed
+    // official release archive into the disposable source mirror.
+    let public_header = source_copy.join("include/sndfile.h");
+    if !public_header.is_file() {
+        let archive = ensure_verified_release_archive(
+            &out_root,
+            "libsndfile-1.2.2.tar.xz",
+            LIBSNDFILE_RELEASE_ARCHIVE_URL,
+            LIBSNDFILE_RELEASE_ARCHIVE_SHA256,
+        )?;
+        let release = out_root.join("bootstrap/release");
+        remove_path_if_exists(&release)?;
+        fs::create_dir_all(&release)?;
+        run_cmd(
+            &out_root,
+            "tar",
+            &[
+                "-xJf",
+                path_str(&archive)?,
+                "--strip-components=1",
+                "-C",
+                path_str(&release)?,
+                "libsndfile-1.2.2/include/sndfile.h",
+            ],
+        )?;
+        let release_header = release.join("include/sndfile.h");
+        fs::copy(&release_header, &public_header).with_context(|| {
+            format!(
+                "failed to stage libsndfile public header from {}",
+                release_header.display()
+            )
+        })?;
+    }
     let env = staged_library_environment(repo_root, &[])?;
     if !build.join("build.ninja").is_file() {
         let mut args = vec![
