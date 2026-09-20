@@ -21,6 +21,7 @@ from run_qemu import (
     launch_qemu,
     network_arguments,
     prepare_install_disk,
+    scheduled_poweroff_command,
     test_control_socket,
     uefi_firmware_arguments,
     validate_completed_install,
@@ -29,6 +30,16 @@ from run_qemu import (
 
 
 class QemuNetworkArgumentsTests(unittest.TestCase):
+    def test_shutdown_is_scheduled_after_serial_result_marker(self) -> None:
+        self.assertEqual(
+            scheduled_poweroff_command(),
+            "sudo systemd-run --on-active=1s --unit=mattos-test-poweroff systemctl poweroff",
+        )
+        password_command = scheduled_poweroff_command("test password")
+        self.assertIn("printf '%s\\n' 'test password'", password_command)
+        self.assertIn("sudo -S systemd-run --on-active=1s", password_command)
+        self.assertNotIn("systemctl --no-block poweroff", password_command)
+
     def test_forced_shutdown_is_failure_even_when_qemu_exits_zero(self) -> None:
         proc = mock.Mock()
         proc.poll.return_value = None

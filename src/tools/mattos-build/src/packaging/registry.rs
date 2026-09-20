@@ -5,6 +5,26 @@ use std::collections::{BTreeMap, BTreeSet};
 #[cfg(test)]
 mod wifi_grub_tests {
     use super::*;
+
+    fn closure(root: &'static str) -> BTreeSet<&'static str> {
+        let specs = package_specs();
+        let by_name = specs
+            .iter()
+            .map(|spec| (spec.name, spec))
+            .collect::<BTreeMap<_, _>>();
+        let mut pending = vec![root];
+        let mut result = BTreeSet::new();
+        while let Some(name) = pending.pop() {
+            if !result.insert(name) {
+                continue;
+            }
+            let spec = by_name
+                .get(name)
+                .unwrap_or_else(|| panic!("missing package {name}"));
+            pending.extend(spec.depends.iter().copied());
+        }
+        result
+    }
     #[test]
     fn wifi_and_bootloader_runtime_dependencies_are_complete() {
         let specs = package_specs();
@@ -79,6 +99,71 @@ mod wifi_grub_tests {
         assert!(fonts.depends.contains(&"fontconfig"));
         assert!(spec("plasma-desktop").depends.contains(&"fonts-fira"));
     }
+
+    #[test]
+    fn installed_profiles_have_distinct_deterministic_closures() {
+        let cli = closure("mattos-cli");
+        for required in [
+            "systemd",
+            "linux-modules-7.2.0-rc5-mattos",
+            "linux-firmware",
+            "network-manager",
+            "apt",
+            "dpkg",
+            "openssh-server",
+            "grub-efi-amd64",
+            "mattos-sudo-rs",
+        ] {
+            assert!(cli.contains(required), "CLI profile misses {required}");
+        }
+        for forbidden in [
+            "qt6-base",
+            "kwin",
+            "plasma-workspace",
+            "plasma-desktop",
+            "greetd",
+            "dolphin",
+            "konsole",
+            "systemsettings",
+        ] {
+            assert!(!cli.contains(forbidden), "CLI profile contains {forbidden}");
+        }
+
+        let plasma = closure("mattos-plasma");
+        let base = closure("mattos-base");
+        assert!(base.iter().all(|package| plasma.contains(package)));
+        for required in [
+            "qt6-base",
+            "qt6-declarative",
+            "kwin",
+            "plasma-framework",
+            "plasma-workspace",
+            "plasma-desktop",
+            "greetd",
+            "kf6-kpackage",
+            "kf6-kdeclarative",
+            "kf6-kirigami",
+            "kf6-qqc2-desktop-style",
+            "kactivitymanagerd",
+            "kglobalacceld",
+            "plasma-nm",
+            "plasma-pa",
+            "powerdevil",
+            "dolphin",
+            "konsole",
+            "kate",
+            "ark",
+            "spectacle",
+            "plasma-systemmonitor",
+            "systemsettings",
+        ] {
+            assert!(
+                plasma.contains(required),
+                "Plasma profile misses {required}"
+            );
+        }
+        assert!(plasma.len() > cli.len() + 50);
+    }
 }
 
 pub(crate) const PACKAGE_NAMES: &[&str] = &[
@@ -106,6 +191,11 @@ pub(crate) const PACKAGE_NAMES: &[&str] = &[
     "linux-firmware",
     "wireless-regdb",
     "mattos-base-files",
+    "systemd",
+    "mattos-base-runtime",
+    "mattos-base",
+    "mattos-cli",
+    "mattos-plasma",
     "ca-certificates",
     "mattos-brush",
     "coreutils",
@@ -410,6 +500,186 @@ pub(crate) struct PackageSpec {
     pub(super) priority: &'static str,
 }
 
+const MATTOS_BASE_DEPENDS: &[&str] = &[
+    "mattos-filesystem",
+    "mattos-base-files",
+    "mattos-base-runtime",
+    "systemd",
+    "libc-bin",
+    "locales",
+    "iso-codes",
+    "tzdata",
+    "linux-modules-7.2.0-rc5-mattos",
+    "linux-firmware",
+    "wireless-regdb",
+    "ca-certificates",
+    "mattos-brush",
+    "coreutils",
+    "curl",
+    "mount",
+    "util-linux",
+    "dpkg",
+    "apt",
+    "ncurses-base",
+    "ncurses-bin",
+    "kmod",
+    "procps",
+    "gzip",
+    "bzip2",
+    "xz-utils",
+    "tar",
+    "zstd",
+    "patch",
+    "file",
+    "less",
+    "openssh-client",
+    "openssh-server",
+    "dbus-broker",
+    "libpam-modules",
+    "libpam-runtime",
+    "passwd",
+    "mattos-sudo-rs",
+    "login",
+    "iproute2",
+    "iputils-ping",
+    "polkit",
+    "network-manager",
+    "wpasupplicant",
+    "btrfs-progs",
+    "dosfstools",
+    "e2fsprogs",
+    "grub-efi-amd64",
+];
+
+const MATTOS_PLASMA_DEPENDS: &[&str] = &[
+    "mattos-base",
+    // This meta-package is the installed Plasma profile authority.  Keep the
+    // complete desktop closure explicit here: individual upstream packages
+    // intentionally describe their direct ABI dependencies, while a usable
+    // desktop also requires QML modules, plugins, helpers, and services that
+    // are loaded dynamically and therefore cannot be inferred from ELF
+    // DT_NEEDED entries.
+    "qt6-base",
+    "qt6-shadertools",
+    "qt6-declarative",
+    "qt6-svg",
+    "qt6-wayland",
+    "qt6-tools",
+    "qt6-multimedia",
+    "qt6-speech",
+    "qt6-core5compat",
+    "qt6-positioning",
+    "qca-qt6",
+    "qcoro-qt6",
+    // KWin and Kirigami load these through runtime/graphics plugin paths.
+    // The profile must therefore include them even when a top-level desktop
+    // executable does not express the relationship through its own package.
+    "liblcms2-2",
+    "libinput10",
+    "libdisplay-info3",
+    "libgomp1",
+    "libegl1",
+    "kf6-kcoreaddons",
+    "kf6-ki18n",
+    "kf6-kwidgetsaddons",
+    "kf6-kconfig",
+    "kf6-kcmutils",
+    "kf6-knewstuffcore",
+    "kf6-attica",
+    "kf6-sonnet",
+    "kf6-kdbusaddons",
+    "kf6-kcrash",
+    "kf6-kwindowsystem",
+    "kf6-kpackage",
+    "kf6-karchive",
+    "kf6-kio",
+    "kf6-kunitconversion",
+    "kf6-ksvg",
+    "kf6-knotifications",
+    "kf6-knotifyconfig",
+    "kf6-kguiaddons",
+    "kf6-kitemmodels",
+    "kf6-kglobalaccel",
+    "kf6-kiconthemes",
+    "kf6-kcolorscheme",
+    "kf6-ksyntaxhighlighting",
+    "kf6-kcompletion",
+    "kf6-kdeclarative",
+    "kf6-kjobwidgets",
+    "kf6-kservice",
+    "kf6-solid",
+    "kf6-kcodecs",
+    "kf6-kdecoration",
+    "kf6-kidletime",
+    "kf6-kwayland",
+    "kf6-kwallet",
+    "kf6-knighttime",
+    "kf6-kholidays",
+    "kf6-kstatusnotifieritem",
+    "kf6-kxmlgui",
+    "kf6-kconfigwidgets",
+    "kf6-kitemviews",
+    "kf6-kbookmarks",
+    "kf6-kparts",
+    "kf6-ktextwidgets",
+    "kf6-ktexteditor",
+    "kf6-prison",
+    "kf6-libkscreen",
+    "kf6-modemmanager-qt",
+    "kf6-kirigami",
+    "kf6-qqc2-desktop-style",
+    "kf6-kirigami-addons",
+    "kf6-kquickcharts",
+    "kf6-kauth",
+    "kf6-kfilemetadata",
+    "kf6-kpty",
+    "kf6-networkmanager-qt",
+    "kf6-purpose",
+    "polkit-qt6-1",
+    "greetd",
+    "kwin",
+    "layer-shell-qt",
+    "plasma-framework",
+    "krunner",
+    "plasma-activities",
+    "kactivitymanagerd",
+    "kglobalacceld",
+    "plasma-activities-stats",
+    "plasma5support",
+    "libprocesscore10",
+    "plasma-workspace",
+    "plasma-desktop",
+    "breeze",
+    "breeze-icons",
+    "milou",
+    "plasma-nm",
+    "plasma-pa",
+    "powerdevil",
+    "polkit-kde-agent-1",
+    "xdg-desktop-portal",
+    "xdg-desktop-portal-kde",
+    "wireplumber",
+    "upower",
+    "udisks2",
+    "bluez",
+    "power-profiles-daemon",
+    "dolphin",
+    "konsole",
+    "kate",
+    "ark",
+    "spectacle",
+    "plasma-systemmonitor",
+    "ksystemstats",
+    "systemsettings",
+    "kquickimageeditor",
+    "kpipewire",
+    "pulseaudio-qt",
+    "modemmanager",
+    "lm-sensors",
+    "flatpak",
+    "xwayland",
+];
+
 pub(crate) fn package_specs() -> Vec<PackageSpec> {
     vec![
         PackageSpec {
@@ -684,6 +954,82 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             replaces: &["base-files"],
             essential: false,
             priority: "required",
+        },
+        PackageSpec {
+            name: "systemd",
+            description: "systemd service manager and system runtime built for MattOS",
+            source_component: "systemd",
+            depends: &[
+                "libc6",
+                "libsystemd0",
+                "libudev1",
+                "libcap2",
+                "libmount1",
+                "libblkid1",
+                "libpam0g",
+                "libcrypt1",
+                "libselinux1",
+                "liblzma5",
+                "libzstd1",
+            ],
+            provides: &["systemd", "systemd-sysv"],
+            conflicts: &[],
+            replaces: &[],
+            essential: true,
+            priority: "required",
+        },
+        PackageSpec {
+            name: "mattos-base-runtime",
+            description: "MattOS base runtime policy, commands, accounts, and service configuration",
+            source_component: "mattos-profiles",
+            depends: &[
+                "systemd",
+                "mattos-brush",
+                "coreutils",
+                "dbus-broker",
+                "network-manager",
+                "libpam-runtime",
+                "passwd",
+                "mattos-sudo-rs",
+            ],
+            provides: &["mattos-base-runtime"],
+            conflicts: &[],
+            replaces: &[],
+            essential: true,
+            priority: "required",
+        },
+        PackageSpec {
+            name: "mattos-base",
+            description: "MattOS base-system profile",
+            source_component: "mattos-profiles",
+            depends: MATTOS_BASE_DEPENDS,
+            provides: &["mattos-base-profile"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "required",
+        },
+        PackageSpec {
+            name: "mattos-cli",
+            description: "MattOS command-line installed-system profile",
+            source_component: "mattos-profiles",
+            depends: &["mattos-base"],
+            provides: &["mattos-installed-profile"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "mattos-plasma",
+            description: "MattOS Plasma Wayland desktop profile",
+            source_component: "mattos-profiles",
+            depends: MATTOS_PLASMA_DEPENDS,
+            provides: &["mattos-installed-profile", "mattos-desktop-profile"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
         },
         PackageSpec {
             name: "ca-certificates",

@@ -338,6 +338,11 @@ pub(crate) fn package_definition_digest(spec: &PackageSpec) -> Result<String> {
 
 pub(crate) fn package_recipe_revision(package: &str) -> u32 {
     match package {
+        // Revision 3 creates /run/dbus and carries the system/user service
+        // aliases plus socket enablement links.  The live root used to supply
+        // these incidentally; composed targets must obtain them from the
+        // D-Bus provider package itself.
+        "dbus-broker" => 3,
         // Preserve the new components' upstream license texts in their native packages.
         "libnl-3-200" | "libnl-genl-3-200" | "wpasupplicant" => 2,
         // Revision 2 omits install-info's generated aggregate index.  The
@@ -392,6 +397,20 @@ pub(crate) fn package_recipe_revision(package: &str) -> u32 {
         // Own libdrm's AMD device-name database as well as its SONAME.
         "libdrm-amdgpu1" => 2,
         "mattos-compat" => 3,
+        // Revision 2 keeps systemd-nspawn under mattos-compat's established
+        // ownership instead of duplicating it in the newly introduced base
+        // systemd runtime package. Revision 3 also leaves the effective
+        // systemd-user PAM stack solely with libpam-runtime.
+        "systemd" => 3,
+        // Revision 2 installs MattOS resolver/time policy as systemd drop-ins,
+        // leaving the upstream primary configuration files owned by systemd.
+        "mattos-base-runtime" => 2,
+        // Revision 2 gives the embedded installed-system repository a
+        // lexically earlier source filename than the hosted repository. At
+        // equal pin priority and package version, APT must select the
+        // coherent ISO package record rather than stale hosted metadata;
+        // newer hosted versions still win normally.
+        "apt" => 2,
         // Revision 2 preserves fuse3's documented setuid fusermount3 helper
         // in the Flatpak payload.  The document portal invokes this helper to
         // mount each user's document filesystem; a revision-1 package loses

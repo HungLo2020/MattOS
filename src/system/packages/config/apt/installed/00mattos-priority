@@ -1,3 +1,11 @@
+# Explanation: The embedded repository and hosted MattOS repository have equal
+# priority. APT therefore selects the newest Debian version while still being
+# able to resolve one coherent offline package closure from the installed
+# media repository when the hosted repository is stale or unreachable.
+Package: *
+Pin: release o=MattOS,l=MattOS Local,n=trixie
+Pin-Priority: 990
+
 # Explanation: A signed hosted MattOS repository wins over supplemental Debian.
 Package: *
 Pin: release o=MattOS,l=MattOS,n=trixie

@@ -592,13 +592,14 @@ fn validate_apt_compatibility_policy(repo_root: &Path, protected: &[String]) -> 
         bail!("Debian Trixie source scaffold is invalid")
     }
     let installed = config.join("installed");
-    let installed_local = fs::read_to_string(installed.join("mattos.sources"))?;
+    let installed_local = fs::read_to_string(installed.join("00-mattos-local.sources"))?;
     let installed_hosted = fs::read_to_string(installed.join("mattos-hosted.sources"))?;
     let installed_debian = fs::read_to_string(installed.join("debian-trixie.sources"))?;
     let installed_preferences = fs::read_to_string(installed.join("00mattos-priority"))?;
     let installed_conf = fs::read_to_string(installed.join("01mattos"))?;
-    if !installed_local.contains("Enabled: no")
+    if !installed_local.contains("Enabled: yes")
         || !installed_local.contains("URIs: file:/usr/share/mattos/repository")
+        || !installed_local.contains("Trusted: yes")
         || !installed_hosted.contains("Enabled: yes")
         || !installed_hosted.contains("URIs: https://packages.mattsherfey.com")
         || !installed_hosted.contains("Signed-By: /usr/share/keyrings/mattos-archive-keyring.asc")
@@ -609,7 +610,10 @@ fn validate_apt_compatibility_policy(repo_root: &Path, protected: &[String]) -> 
         || !installed_conf.contains("Acquire::https::Verify-Peer \"true\";")
         || !installed_conf.contains("Acquire::https::Verify-Host \"true\";")
         || !installed_conf.contains("Acquire::AllowInsecureRepositories \"false\";")
-        || !installed_preferences.contains("Pin-Priority: 990")
+        || !installed_preferences
+            .contains("Pin: release o=MattOS,l=MattOS Local,n=trixie\nPin-Priority: 990")
+        || !installed_preferences
+            .contains("Pin: release o=MattOS,l=MattOS,n=trixie\nPin-Priority: 990")
         || !installed_preferences.contains("Pin-Priority: 500")
         || installed_preferences.contains("Pin-Priority: 1001")
         || !installed_preferences.contains("Pin-Priority: -1")
@@ -971,6 +975,7 @@ fn build_packages(repo_root: &Path, names: &[String]) -> Result<()> {
 fn package_stage_dependencies(source_component: &str) -> &'static [&'static str] {
     match source_component {
         "MattOS" | "ca-certificates" | "test" => &[],
+        "mattos-profiles" => &["systemd", "grep", "sed", "findutils", "diffutils", "init"],
         "mattos-compat" => &["systemd"],
         "linux" => &["linux-headers"],
         "kernel-modules" => &["linux"],
@@ -1211,6 +1216,18 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
 
 fn package_source_roots(source_component: &str) -> &'static [&'static str] {
     match source_component {
+        "mattos-profiles" => &[
+            "src/system/packages/profiles",
+            "src/system/units",
+            "src/system/network",
+            "src/rootfs/skeleton",
+            "src/userland/init",
+            "src/userland/grep",
+            "src/userland/sed",
+            "src/userland/findutils",
+            "src/userland/diffutils",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
         "mattos-compat" => &["src/system/compat/mattos-compat"],
         "MattOS" => &[
             "src/rootfs/skeleton",
@@ -2159,6 +2176,8 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "dosfstools" => "4.2".to_string(),
         "e2fsprogs" => "1.47.2".to_string(),
         "mattos-installer" => "0.1".to_string(),
+        "systemd" => component_snapshot_version(repo_root, "systemd")?,
+        "mattos-base-runtime" | "mattos-base" | "mattos-cli" | "mattos-plasma" => "0.1".to_string(),
         _ => bail!("unknown package {}", spec.name),
     };
     let epoch = compatibility_epoch(repo_root, &spec.name)?;
@@ -4250,11 +4269,13 @@ mod tests {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
         let config = root.join("src/system/packages/config/apt");
         let live = fs::read_to_string(config.join("mattos.sources")).unwrap();
-        let installed = fs::read_to_string(config.join("installed/mattos.sources")).unwrap();
+        let installed =
+            fs::read_to_string(config.join("installed/00-mattos-local.sources")).unwrap();
         assert!(live.contains("Trusted: yes"));
         assert!(!live.contains("Enabled: no"));
-        assert!(installed.contains("Enabled: no"));
-        assert!(!installed.contains("Trusted: yes"));
+        assert!(installed.contains("Enabled: yes"));
+        assert!(installed.contains("Trusted: yes"));
+        assert!("00-mattos-local.sources" < "mattos-hosted.sources");
         let hosted = fs::read_to_string(config.join("installed/mattos-hosted.sources")).unwrap();
         let debian = fs::read_to_string(config.join("installed/debian-trixie.sources")).unwrap();
         assert!(hosted.contains("Enabled: yes"));
@@ -4459,7 +4480,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 313);
+        assert_eq!(PACKAGE_NAMES.len(), 318);
     }
 
     #[test]
@@ -4507,7 +4528,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 313);
+        assert_eq!(PACKAGE_NAMES.len(), 318);
         assert_eq!(
             UTIL_LINUX_BASE_PATHS,
             &[
@@ -4588,7 +4609,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 313);
+        assert_eq!(PACKAGE_NAMES.len(), 318);
         let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
         for dependency in [
             "libffi8",
@@ -5871,6 +5892,8 @@ mod tests {
     fn apt_sources_enable_hosted_mattos_and_never_trust_debian() {
         let hosted = include_str!("../../../system/packages/config/apt/mattos-hosted.sources");
         let debian = include_str!("../../../system/packages/config/apt/debian-trixie.sources");
+        let installed_preferences =
+            include_str!("../../../system/packages/config/apt/installed/00mattos-priority");
         assert!(hosted.contains("Enabled: yes"));
         assert!(hosted.contains("https://packages.mattsherfey.com"));
         assert!(hosted.contains("Signed-By:"));
@@ -5879,6 +5902,14 @@ mod tests {
         assert!(debian.contains("Signed-By:"));
         assert!(!hosted.contains("Trusted: yes"));
         assert!(!debian.contains("Trusted: yes"));
+        assert!(
+            installed_preferences
+                .contains("Pin: release o=MattOS,l=MattOS Local,n=trixie\nPin-Priority: 990")
+        );
+        assert!(
+            installed_preferences
+                .contains("Pin: release o=MattOS,l=MattOS,n=trixie\nPin-Priority: 990")
+        );
     }
 
     #[test]

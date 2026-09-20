@@ -32,6 +32,11 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         "linux-firmware" => stage_linux_firmware(repo_root, &staging)?,
         "wireless-regdb" => stage_wireless_regdb(repo_root, &staging)?,
         "mattos-base-files" => stage_base_files(repo_root, &staging)?,
+        "systemd" => stage_systemd_runtime(repo_root, &staging)?,
+        "mattos-base-runtime" => stage_mattos_base_runtime(repo_root, &staging)?,
+        "mattos-base" | "mattos-cli" | "mattos-plasma" => {
+            stage_profile_package(repo_root, &staging, spec.name)?
+        }
         "ca-certificates" => stage_ca_certificates(repo_root, &staging)?,
         "mattos-brush" => stage_brush(repo_root, &staging)?,
         "coreutils" => stage_coreutils(repo_root, &staging)?,
@@ -3157,6 +3162,154 @@ fn stage_base_files(repo_root: &Path, staging: &Path) -> Result<()> {
     Ok(())
 }
 
+fn stage_systemd_runtime(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = component_install(repo_root, "systemd");
+    copy_tree_filtered(&install, staging, &|relative, _| {
+        let path = relative.to_string_lossy();
+        !path.starts_with("usr/include/")
+            && !path.starts_with("usr/lib/x86_64-linux-gnu/pkgconfig/")
+            && !path.starts_with("usr/share/pkgconfig/")
+            && !path.starts_with("usr/lib/udev/hwdb.d/")
+            && path != UDEV_HWDB_UNIT_REL
+            && path != UDEV_HWDB_WANTS_REL
+            && path != "usr/lib/udev/hwdb.bin"
+            // mattos-compat deliberately owns the nspawn executable that it
+            // wraps.  Keep the base systemd package disjoint so installing
+            // both packages never creates a duplicate path owner.
+            && path != "usr/bin/systemd-nspawn"
+            // MattOS's libpam-runtime package owns the effective systemd-user
+            // stack in /etc.  Do not also ship systemd's optional vendor
+            // fallback, whose module closure is intentionally broader.
+            && path != "usr/lib/pam.d/systemd-user"
+            && !matches!(
+                path.as_ref(),
+                "usr/lib/x86_64-linux-gnu/libsystemd.so"
+                    | "usr/lib/x86_64-linux-gnu/libsystemd.so.0"
+                    | "usr/lib/x86_64-linux-gnu/libsystemd.so.0.44.0"
+                    | "usr/lib/x86_64-linux-gnu/libudev.so"
+                    | "usr/lib/x86_64-linux-gnu/libudev.so.1"
+                    | "usr/lib/x86_64-linux-gnu/libudev.so.1.7.14"
+            )
+    })?;
+    copy_preserving(
+        &repo_root.join("src/system/systemd/LICENSE.LGPL2.1"),
+        &staging.join("usr/share/doc/systemd/copyright"),
+    )
+}
+
+fn stage_mattos_base_runtime(repo_root: &Path, staging: &Path) -> Result<()> {
+    for (source, destination) in [
+        ("out/build/grep/cargo-target/release/grep", "usr/bin/grep"),
+        ("out/build/sed/cargo-target/release/sed", "usr/bin/sed"),
+        (
+            "out/build/findutils/cargo-target/release/find",
+            "usr/bin/find",
+        ),
+        (
+            "out/build/findutils/cargo-target/release/xargs",
+            "usr/bin/xargs",
+        ),
+        (
+            "out/build/findutils/cargo-target/release/locate",
+            "usr/bin/locate",
+        ),
+        (
+            "out/build/findutils/cargo-target/release/updatedb",
+            "usr/bin/updatedb",
+        ),
+        (
+            "out/build/diffutils/cargo-target/release/diffutils",
+            "usr/bin/diffutils",
+        ),
+        (
+            "target/release/mattos-init",
+            "usr/libexec/mattos/rescue-init",
+        ),
+    ] {
+        stage_executable(&repo_root.join(source), &staging.join(destination), 0o755)?;
+    }
+    for alias in ["diff", "cmp"] {
+        std::os::unix::fs::symlink("diffutils", staging.join("usr/bin").join(alias))?;
+    }
+    for relative in [
+        "usr/libexec/mattos/brush-login",
+        "usr/libexec/mattos/validate-shell-env",
+    ] {
+        copy_preserving(
+            &repo_root.join("src/rootfs/skeleton").join(relative),
+            &staging.join(relative),
+        )?;
+        set_mode(staging.join(relative), 0o755)?;
+    }
+    for unit in [
+        "mattos.target",
+        "mattos-shell.service",
+        "mattos-smoke.service",
+    ] {
+        copy_preserving(
+            &repo_root.join("src/system/units").join(unit),
+            &staging.join("usr/lib/systemd/system").join(unit),
+        )?;
+    }
+    for (source, destination) in [
+        (
+            "src/system/network/resolved.conf",
+            "etc/systemd/resolved.conf.d/10-mattos.conf",
+        ),
+        (
+            "src/system/network/timesyncd.conf",
+            "etc/systemd/timesyncd.conf.d/10-mattos.conf",
+        ),
+        ("src/system/network/nsswitch.conf", "etc/nsswitch.conf"),
+        ("src/system/network/hosts", "etc/hosts"),
+        ("src/system/network/networks", "etc/networks"),
+        (
+            "src/system/network/99-mattos-network.conf",
+            "etc/sysctl.d/99-mattos-network.conf",
+        ),
+    ] {
+        copy_preserving(&repo_root.join(source), &staging.join(destination))?;
+    }
+    Ok(())
+}
+
+const PLASMA_PROFILE_POSTINST: &str = "#!/bin/sh\nset -e\n[ -n \"${DPKG_ROOT:-}\" ] && exit 0\nif command -v systemctl >/dev/null 2>&1; then\n    systemctl enable plasma-greeter.service >/dev/null\n    systemctl set-default graphical.target >/dev/null\nfi\n";
+
+fn stage_profile_package(repo_root: &Path, staging: &Path, package: &str) -> Result<()> {
+    let profile = package.strip_prefix("mattos-").unwrap_or(package);
+    if matches!(profile, "base" | "cli" | "plasma") {
+        copy_preserving(
+            &repo_root
+                .join("src/system/packages/profiles")
+                .join(format!("{profile}.toml")),
+            &staging
+                .join("usr/share/mattos/install-profiles")
+                .join(format!("{profile}.toml")),
+        )?;
+    }
+    if package == "mattos-plasma" {
+        // Installing the desktop meta-package onto an existing CLI system is
+        // a supported profile transition.  Offline installer composition
+        // sets DPKG_ROOT and performs target activation itself; a normal APT
+        // transaction should make the newly installed graphical profile the
+        // next boot's default and enable its display-session service.
+        let postinst = staging.join("DEBIAN/postinst");
+        fs::write(&postinst, PLASMA_PROFILE_POSTINST)?;
+        set_mode(postinst, 0o755)?;
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+#[test]
+fn plasma_profile_package_activates_graphical_target_only_on_real_systems() {
+    let source = include_str!("../../../../system/packages/profiles/plasma.toml");
+    assert!(source.contains("meta_package = \"mattos-plasma\""));
+    assert!(PLASMA_PROFILE_POSTINST.contains("DPKG_ROOT"));
+    assert!(PLASMA_PROFILE_POSTINST.contains("systemctl enable plasma-greeter.service"));
+    assert!(PLASMA_PROFILE_POSTINST.contains("systemctl set-default graphical.target"));
+}
+
 pub(crate) fn stage_ca_certificates(repo_root: &Path, staging: &Path) -> Result<()> {
     let source = repo_root.join("src/system/network");
     let bundle = source.join("ca-certificates.crt");
@@ -3263,7 +3416,7 @@ fn stage_apt(repo_root: &Path, staging: &Path) -> Result<()> {
     for name in [
         "01mattos",
         "00mattos-priority",
-        "mattos.sources",
+        "00-mattos-local.sources",
         "mattos-hosted.sources",
         "debian-trixie.sources",
     ] {
@@ -4752,6 +4905,11 @@ fn stage_dbus_broker(repo_root: &Path, staging: &Path) -> Result<()> {
         &dbus.join("config/dbus.conf"),
         &staging.join("usr/lib/sysusers.d/dbus.conf"),
     )?;
+    fs::create_dir_all(staging.join("usr/lib/tmpfiles.d"))?;
+    fs::write(
+        staging.join("usr/lib/tmpfiles.d/dbus.conf"),
+        "d /run/dbus 0755 root root -\n",
+    )?;
     copy_tree_preserving(&dbus.join("units"), &staging.join("usr/lib/systemd/system"))?;
     let session = repo_root.join("src/system/session");
     copy_preserving(
@@ -4762,6 +4920,7 @@ fn stage_dbus_broker(repo_root: &Path, staging: &Path) -> Result<()> {
         &session.join("user-units"),
         &staging.join("usr/lib/systemd/user"),
     )?;
+    stage_dbus_service_links(staging)?;
     for rel in [
         "etc/dbus-1/system.d",
         "etc/dbus-1/session.d",
@@ -4777,6 +4936,63 @@ fn stage_dbus_broker(repo_root: &Path, staging: &Path) -> Result<()> {
         "/etc/dbus-1/system.conf\n",
     )?;
     Ok(())
+}
+
+#[cfg(unix)]
+fn stage_dbus_service_links(staging: &Path) -> Result<()> {
+    use std::os::unix::fs::symlink;
+
+    // These aliases and enablement links are part of the D-Bus provider, not
+    // an image-overlay concern. Package-composed targets never run the
+    // live-root overlay helper that previously supplied them.
+    symlink(
+        "dbus-broker.service",
+        staging.join("usr/lib/systemd/system/dbus.service"),
+    )?;
+    symlink(
+        "dbus-broker.service",
+        staging.join("usr/lib/systemd/user/dbus.service"),
+    )?;
+    let system_wants = staging.join("usr/lib/systemd/system/sockets.target.wants");
+    fs::create_dir_all(&system_wants)?;
+    symlink("../dbus.socket", system_wants.join("dbus.socket"))?;
+    let user_wants = staging.join("usr/lib/systemd/user/sockets.target.wants");
+    fs::create_dir_all(&user_wants)?;
+    symlink("../dbus.socket", user_wants.join("dbus.socket"))?;
+    Ok(())
+}
+
+#[cfg(not(unix))]
+fn stage_dbus_service_links(_staging: &Path) -> Result<()> {
+    bail!("D-Bus package service links require a Unix build host")
+}
+
+#[cfg(all(test, unix))]
+#[test]
+fn dbus_package_owns_provider_aliases_and_socket_enablement() {
+    let staging = tempfile::tempdir().expect("staging");
+    fs::create_dir_all(staging.path().join("usr/lib/systemd/system"))
+        .expect("system unit directory");
+    fs::create_dir_all(staging.path().join("usr/lib/systemd/user")).expect("user unit directory");
+    stage_dbus_service_links(staging.path()).expect("D-Bus service links");
+
+    for (path, target) in [
+        ("usr/lib/systemd/system/dbus.service", "dbus-broker.service"),
+        ("usr/lib/systemd/user/dbus.service", "dbus-broker.service"),
+        (
+            "usr/lib/systemd/system/sockets.target.wants/dbus.socket",
+            "../dbus.socket",
+        ),
+        (
+            "usr/lib/systemd/user/sockets.target.wants/dbus.socket",
+            "../dbus.socket",
+        ),
+    ] {
+        assert_eq!(
+            fs::read_link(staging.path().join(path)).expect("service link"),
+            Path::new(target)
+        );
+    }
 }
 
 fn stage_pam_modules(repo_root: &Path, staging: &Path) -> Result<()> {

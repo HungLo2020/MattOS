@@ -69,10 +69,10 @@ fn guided_install() -> Result<()> {
             candidate.model
         );
     }
-    let profile = match prompt("Installed profile (cli/desktop)")?.as_str() {
+    let profile = match prompt("Installed profile (cli/plasma)")?.as_str() {
         "cli" => InstalledProfile::Cli,
-        "desktop" => InstalledProfile::Desktop,
-        _ => bail!("profile must be cli or desktop"),
+        "plasma" | "desktop" => InstalledProfile::Desktop,
+        _ => bail!("profile must be cli or plasma"),
     };
     let defaults = optional_package_defaults(profile);
     let mut optional_packages = Vec::new();

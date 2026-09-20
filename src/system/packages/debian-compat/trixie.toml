@@ -689,6 +689,66 @@ classification = "debian-compatible"
 known_gaps = ["Snapshot version relies on repository policy"]
 
 [[package]]
+debian_name = "systemd"
+mattos_name = "systemd"
+source_component = "systemd"
+owned_paths = ["/usr/lib/systemd/systemd", "/usr/bin/systemctl"]
+provided_abi_or_commands = ["systemd PID 1 and service manager"]
+protected = false
+current_mattos_version = "0~git.91d2131e20ca-1mattos1"
+expected_debian_role = "system and service manager"
+classification = "debian-compatible"
+known_gaps = ["Development libraries remain in libsystemd0/libudev1 package boundaries"]
+
+[[package]]
+debian_name = "mattos-base-runtime"
+mattos_name = "mattos-base-runtime"
+source_component = "mattos-profiles"
+owned_paths = ["/usr/bin/grep", "/usr/lib/systemd/system/mattos.target"]
+provided_abi_or_commands = ["MattOS base runtime policy and required userland commands"]
+protected = false
+current_mattos_version = "0.1-1mattos1"
+expected_debian_role = "MattOS base runtime integration"
+classification = "mattos-specific"
+known_gaps = ["MattOS-specific integration has no Debian package identity"]
+
+[[package]]
+debian_name = "mattos-base"
+mattos_name = "mattos-base"
+source_component = "mattos-profiles"
+owned_paths = ["/usr/share/mattos/install-profiles/base.toml"]
+provided_abi_or_commands = ["MattOS base package profile"]
+protected = false
+current_mattos_version = "0.1-1mattos1"
+expected_debian_role = "MattOS base metapackage"
+classification = "mattos-specific"
+known_gaps = ["MattOS-specific profile has no Debian package identity"]
+
+[[package]]
+debian_name = "mattos-cli"
+mattos_name = "mattos-cli"
+source_component = "mattos-profiles"
+owned_paths = ["/usr/share/mattos/install-profiles/cli.toml"]
+provided_abi_or_commands = ["MattOS CLI installed-system profile"]
+protected = false
+current_mattos_version = "0.1-1mattos1"
+expected_debian_role = "MattOS CLI metapackage"
+classification = "mattos-specific"
+known_gaps = ["MattOS-specific profile has no Debian package identity"]
+
+[[package]]
+debian_name = "mattos-plasma"
+mattos_name = "mattos-plasma"
+source_component = "mattos-profiles"
+owned_paths = ["/usr/share/mattos/install-profiles/plasma.toml"]
+provided_abi_or_commands = ["MattOS Plasma Wayland desktop profile"]
+protected = false
+current_mattos_version = "0.1-1mattos1"
+expected_debian_role = "MattOS Plasma desktop metapackage"
+classification = "mattos-specific"
+known_gaps = ["MattOS-specific profile has no Debian package identity"]
+
+[[package]]
 debian_name = "libudev1"
 mattos_name = "libudev1"
 source_component = "systemd"

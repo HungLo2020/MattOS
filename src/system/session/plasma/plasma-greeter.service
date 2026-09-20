@@ -8,7 +8,7 @@ Conflicts=getty@tty1.service
 Type=simple
 ExecStartPre=/usr/bin/udevadm settle --timeout=180
 ExecStartPre=/usr/bin/mattos-graphics-startup --before
-ExecStart=/usr/bin/greetd --config /etc/greetd/plasma-live.toml
+ExecStart=/usr/bin/greetd --config /etc/greetd/plasma.toml
 Restart=on-failure
 RestartSec=2
 TimeoutStopSec=10s

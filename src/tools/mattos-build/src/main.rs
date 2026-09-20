@@ -6166,11 +6166,11 @@ mod tests {
         )
         .expect("networkd mask");
         write(
-            &rootfs.join("etc/systemd/resolved.conf"),
+            &rootfs.join("etc/systemd/resolved.conf.d/10-mattos.conf"),
             "[Resolve]\nDNSStubListener=yes\n",
         );
         write(
-            &rootfs.join("etc/systemd/timesyncd.conf"),
+            &rootfs.join("etc/systemd/timesyncd.conf.d/10-mattos.conf"),
             "[Time]\nNTP=time.example\n",
         );
         write(

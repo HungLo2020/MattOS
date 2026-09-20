@@ -3,6 +3,7 @@
 use crate::engine::{self, InstallPartition, MountStack};
 use anyhow::{Context, Result, bail};
 use serde::{Deserialize, Serialize};
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::os::unix::fs::{FileTypeExt, PermissionsExt};
 use std::path::{Path, PathBuf};
@@ -14,6 +15,8 @@ pub const EFI_MIB: u64 = 512;
 pub const LIVE_SOURCE: &str = "/run/mattos/lower";
 pub const TARGET_ROOT: &str = "/run/mattos-installer/target";
 const INSTALLED_APT_POLICY: &str = "/usr/share/mattos/apt/installed";
+const EMBEDDED_REPOSITORY: &str = "/usr/share/mattos/repository";
+const INSTALL_PROFILE_DIRECTORY: &str = "/usr/share/mattos/install-profiles";
 pub const BTRFS_MOUNT_OPTIONS: &str = "compress=zstd:3,noatime";
 pub const BTRFS_SUBVOLUMES: &[(&str, &str)] = &[
     ("@", "/"),
@@ -123,6 +126,26 @@ struct ResolvedStorage {
 pub enum InstalledProfile {
     Cli,
     Desktop,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[serde(deny_unknown_fields)]
+struct InstallProfileManifest {
+    schema_version: u32,
+    id: String,
+    #[serde(default)]
+    extends: Option<String>,
+    meta_package: String,
+    #[serde(default)]
+    default_target: Option<String>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct RepositoryPackage {
+    name: String,
+    depends: Vec<String>,
+    filename: PathBuf,
+    sha256: String,
 }
 
 /// Declarative installer-owned application metadata. The catalog is the only
@@ -1405,21 +1428,11 @@ fn populate_target<F>(
 where
     F: FnMut(InstallProgress),
 {
-    if !Path::new(LIVE_SOURCE)
-        .join("usr/lib/systemd/systemd")
-        .is_file()
-    {
+    let live_source = Path::new(LIVE_SOURCE);
+    if !live_source.join("usr/lib/systemd/systemd").is_file() {
         bail!("MattOS immutable live source is unavailable at {LIVE_SOURCE}");
     }
-    engine::run(
-        "cp",
-        &[
-            "-a".as_ref(),
-            "--reflink=auto".as_ref(),
-            format!("{LIVE_SOURCE}/.").as_ref(),
-            target.as_os_str(),
-        ],
-    )?;
+    compose_target_from_profile(plan.installed_profile, live_source, target)?;
     normalize_systemd_unit_permissions(target)?;
     progress(InstallProgress::new(
         InstallStage::ConfiguringSystem,
@@ -1428,6 +1441,7 @@ where
     ));
     remove_live_only_state(target)?;
     configure_installed_apt(target)?;
+    refresh_installed_local_apt_metadata(target)?;
     write_identity(plan, target)?;
     write_regional_identity(plan, target)?;
     let identity = storage_identity(storage)?;
@@ -1444,7 +1458,7 @@ where
         6,
         "Removing live-only installer state",
     ));
-    purge_live_installer(target)?;
+    ensure_live_installer_absent(target)?;
     progress(InstallProgress::new(
         InstallStage::CreatingUser,
         7,
@@ -1455,11 +1469,271 @@ where
         target.join("etc/mattos-installed-profile"),
         match plan.installed_profile {
             InstalledProfile::Cli => "cli\n",
-            InstalledProfile::Desktop => "desktop\n",
+            InstalledProfile::Desktop => "plasma\n",
         },
     )?;
     configure_installed_profile(plan, target)?;
     provision_optional_packages(plan, target, progress)?;
+    Ok(())
+}
+
+fn profile_id(profile: InstalledProfile) -> &'static str {
+    match profile {
+        InstalledProfile::Cli => "cli",
+        InstalledProfile::Desktop => "plasma",
+    }
+}
+
+fn parse_profile_manifest(body: &str, expected_id: &str) -> Result<InstallProfileManifest> {
+    let manifest: InstallProfileManifest = toml::from_str(body)
+        .with_context(|| format!("parse MattOS install profile {expected_id}"))?;
+    if manifest.schema_version != 1
+        || manifest.id != expected_id
+        || manifest.meta_package.trim().is_empty()
+    {
+        bail!("invalid MattOS install profile {expected_id}");
+    }
+    if expected_id != "base" && manifest.extends.as_deref() != Some("base") {
+        bail!("installed profile {expected_id} must extend the MattOS base profile");
+    }
+    Ok(manifest)
+}
+
+fn parse_repository_packages(
+    body: &str,
+    repository: &Path,
+) -> Result<BTreeMap<String, RepositoryPackage>> {
+    let mut result = BTreeMap::new();
+    for paragraph in body
+        .split("\n\n")
+        .filter(|paragraph| !paragraph.trim().is_empty())
+    {
+        let mut fields = BTreeMap::<String, String>::new();
+        let mut current = None::<String>;
+        for line in paragraph.lines() {
+            if line.starts_with(' ') {
+                let key = current
+                    .as_ref()
+                    .context("continued repository field without a key")?;
+                fields.entry(key.clone()).and_modify(|value| {
+                    value.push(' ');
+                    value.push_str(line.trim());
+                });
+                continue;
+            }
+            let (key, value) = line
+                .split_once(':')
+                .with_context(|| format!("invalid repository Packages line {line:?}"))?;
+            current = Some(key.to_owned());
+            fields.insert(key.to_owned(), value.trim().to_owned());
+        }
+        let name = fields
+            .remove("Package")
+            .context("repository package lacks Package")?;
+        let filename = fields
+            .remove("Filename")
+            .context("repository package lacks Filename")?;
+        let relative = Path::new(&filename);
+        if relative.is_absolute()
+            || relative
+                .components()
+                .any(|component| !matches!(component, std::path::Component::Normal(_)))
+        {
+            bail!("repository package {name} has unsafe Filename {filename}");
+        }
+        let artifact = repository.join(relative);
+        let canonical_repository = fs::canonicalize(repository)?;
+        let canonical_artifact = fs::canonicalize(&artifact)
+            .with_context(|| format!("repository artifact missing for {name}: {filename}"))?;
+        if !canonical_artifact.starts_with(&canonical_repository) || !canonical_artifact.is_file() {
+            bail!("repository artifact for {name} escapes the embedded repository");
+        }
+        let depends = fields
+            .remove("Depends")
+            .unwrap_or_default()
+            .split(',')
+            .filter_map(|dependency| {
+                let first = dependency.split('|').next()?.trim();
+                first.split_whitespace().next().map(str::to_owned)
+            })
+            .collect();
+        let sha256 = fields
+            .remove("SHA256")
+            .context("repository package lacks SHA256")?;
+        if sha256.len() != 64 || !sha256.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+            bail!("repository package {name} has invalid SHA256");
+        }
+        if result
+            .insert(
+                name.clone(),
+                RepositoryPackage {
+                    name: name.clone(),
+                    depends,
+                    filename: canonical_artifact,
+                    sha256,
+                },
+            )
+            .is_some()
+        {
+            bail!("embedded repository contains duplicate package {name}");
+        }
+    }
+    Ok(result)
+}
+
+fn resolve_profile_packages(
+    root: &str,
+    packages: &BTreeMap<String, RepositoryPackage>,
+) -> Result<Vec<RepositoryPackage>> {
+    fn visit(
+        name: &str,
+        packages: &BTreeMap<String, RepositoryPackage>,
+        visiting: &mut BTreeSet<String>,
+        installed: &mut BTreeSet<String>,
+        ordered: &mut Vec<RepositoryPackage>,
+    ) -> Result<()> {
+        if installed.contains(name) {
+            return Ok(());
+        }
+        if !visiting.insert(name.to_owned()) {
+            bail!("dependency cycle while resolving installed profile at {name}");
+        }
+        let package = packages.get(name).with_context(|| {
+            format!("installed profile requires absent repository package {name}")
+        })?;
+        for dependency in &package.depends {
+            visit(dependency, packages, visiting, installed, ordered)?;
+        }
+        visiting.remove(name);
+        installed.insert(name.to_owned());
+        ordered.push(package.clone());
+        Ok(())
+    }
+    let mut ordered = Vec::new();
+    visit(
+        root,
+        packages,
+        &mut BTreeSet::new(),
+        &mut BTreeSet::new(),
+        &mut ordered,
+    )?;
+    Ok(ordered)
+}
+
+fn verify_repository_artifact(package: &RepositoryPackage) -> Result<()> {
+    let output = Command::new("sha256sum")
+        .arg(&package.filename)
+        .output()
+        .with_context(|| format!("hash repository artifact for {}", package.name))?;
+    if !output.status.success() {
+        bail!("sha256sum failed for repository package {}", package.name);
+    }
+    let actual = String::from_utf8(output.stdout)?
+        .split_whitespace()
+        .next()
+        .context("sha256sum returned no digest")?
+        .to_owned();
+    if actual != package.sha256 {
+        bail!(
+            "embedded repository package {} is corrupt: expected {}, got {}",
+            package.name,
+            package.sha256,
+            actual
+        );
+    }
+    Ok(())
+}
+
+fn initialize_target_state(target: &Path) -> Result<()> {
+    for relative in [
+        "var/lib/dpkg/info",
+        "var/lib/dpkg/updates",
+        "var/lib/dpkg/triggers",
+        "var/lib/dpkg/parts",
+        "var/log",
+        "etc",
+        "root",
+        "home",
+        "run",
+        "tmp",
+    ] {
+        fs::create_dir_all(target.join(relative))?;
+    }
+    fs::write(target.join("var/lib/dpkg/status"), "")?;
+    fs::write(target.join("var/lib/dpkg/available"), "")?;
+    fs::write(target.join("var/log/dpkg.log"), "")?;
+    Ok(())
+}
+
+fn initialize_account_database(target: &Path) -> Result<()> {
+    fs::write(
+        target.join("etc/passwd"),
+        "root:x:0:0:root:/root:/usr/bin/bash\n",
+    )?;
+    fs::write(target.join("etc/group"), "root:x:0:\nsudo:x:27:\n")?;
+    fs::write(target.join("etc/shadow"), "root:*:0:0:99999:7:::\n")?;
+    fs::write(target.join("etc/gshadow"), "root:*::\nsudo:*::\n")?;
+    for name in ["shadow", "gshadow"] {
+        fs::set_permissions(
+            target.join("etc").join(name),
+            fs::Permissions::from_mode(0o640),
+        )?;
+    }
+    Ok(())
+}
+
+fn compose_target_from_profile(
+    profile: InstalledProfile,
+    live_source: &Path,
+    target: &Path,
+) -> Result<()> {
+    let profile_name = profile_id(profile);
+    let profile_path = live_source
+        .join(INSTALL_PROFILE_DIRECTORY.trim_start_matches('/'))
+        .join(format!("{profile_name}.toml"));
+    let manifest = parse_profile_manifest(&fs::read_to_string(&profile_path)?, profile_name)?;
+    let repository = live_source.join(EMBEDDED_REPOSITORY.trim_start_matches('/'));
+    let packages_path = repository.join("dists/trixie/main/binary-amd64/Packages");
+    let packages = parse_repository_packages(&fs::read_to_string(&packages_path)?, &repository)?;
+    let selection = resolve_profile_packages(&manifest.meta_package, &packages)?;
+    for package in &selection {
+        verify_repository_artifact(package)?;
+    }
+    initialize_target_state(target)?;
+    let admindir = target.join("var/lib/dpkg");
+    let mut command = Command::new("dpkg");
+    command
+        .arg(format!("--root={}", target.display()))
+        .arg(format!("--admindir={}", admindir.display()))
+        .arg(format!(
+            "--log={}",
+            target.join("var/log/dpkg.log").display()
+        ))
+        .args(["--force-bad-path", "--force-script-chrootless", "--install"]);
+    for package in &selection {
+        command.arg(&package.filename);
+    }
+    let status = command
+        .status()
+        .context("run offline profile package transaction")?;
+    if !status.success() {
+        bail!("offline {profile_name} package transaction failed with {status}");
+    }
+    initialize_account_database(target)?;
+    let target_repository = target.join(EMBEDDED_REPOSITORY.trim_start_matches('/'));
+    fs::create_dir_all(
+        target_repository
+            .parent()
+            .context("repository target has no parent")?,
+    )?;
+    engine::run(
+        "cp",
+        &[
+            "-a".as_ref(),
+            repository.as_os_str(),
+            target_repository.as_os_str(),
+        ],
+    )?;
     Ok(())
 }
 
@@ -1652,6 +1926,11 @@ fn normalize_systemd_unit_permissions(target: &Path) -> Result<()> {
 
 fn configure_installed_profile(plan: &InstallPlan, target: &Path) -> Result<()> {
     let default_target = target.join("etc/systemd/system/default.target");
+    fs::create_dir_all(
+        default_target
+            .parent()
+            .context("default target has no parent")?,
+    )?;
     remove_optional_file(&default_target)?;
     let unit = match plan.installed_profile {
         InstalledProfile::Cli => "/usr/lib/systemd/system/multi-user.target",
@@ -1659,6 +1938,16 @@ fn configure_installed_profile(plan: &InstallPlan, target: &Path) -> Result<()> 
     };
     #[cfg(unix)]
     std::os::unix::fs::symlink(unit, &default_target)?;
+
+    for (wanted_by, service) in [
+        ("multi-user.target", "NetworkManager.service"),
+        ("multi-user.target", "ssh.service"),
+        ("multi-user.target", "systemd-resolved.service"),
+        ("multi-user.target", "systemd-timesyncd.service"),
+        ("sockets.target", "dbus.socket"),
+    ] {
+        enable_system_unit(target, wanted_by, service)?;
+    }
 
     let greetd_config = target.join("etc/greetd/plasma.toml");
     if plan.installed_profile == InstalledProfile::Desktop && !greetd_config.is_file() {
@@ -1672,7 +1961,26 @@ fn configure_installed_profile(plan: &InstallPlan, target: &Path) -> Result<()> 
         ));
         fs::write(greetd_config, config)?;
     }
+    if plan.installed_profile == InstalledProfile::Desktop {
+        enable_system_unit(target, "graphical.target", "plasma-greeter.service")?;
+    }
     remove_optional_file(&target.join("etc/mattos-desktop-pending"))?;
+    Ok(())
+}
+
+fn enable_system_unit(target: &Path, wanted_by: &str, unit: &str) -> Result<()> {
+    let source = target.join("usr/lib/systemd/system").join(unit);
+    if !source.exists() {
+        bail!("profile requires missing systemd unit {unit}");
+    }
+    let wants = target
+        .join("etc/systemd/system")
+        .join(format!("{wanted_by}.wants"));
+    fs::create_dir_all(&wants)?;
+    let link = wants.join(unit);
+    remove_optional_file(&link)?;
+    #[cfg(unix)]
+    std::os::unix::fs::symlink(format!("/usr/lib/systemd/system/{unit}"), link)?;
     Ok(())
 }
 
@@ -1711,7 +2019,10 @@ fn configure_installed_apt(target: &Path) -> Result<()> {
             "00mattos-priority",
             etc.join("preferences.d/00mattos-priority"),
         ),
-        ("mattos.sources", etc.join("sources.list.d/mattos.sources")),
+        (
+            "00-mattos-local.sources",
+            etc.join("sources.list.d/00-mattos-local.sources"),
+        ),
         (
             "mattos-hosted.sources",
             etc.join("sources.list.d/mattos-hosted.sources"),
@@ -1740,12 +2051,13 @@ fn configure_installed_apt(target: &Path) -> Result<()> {
         })?;
     }
 
-    let local = fs::read_to_string(etc.join("sources.list.d/mattos.sources"))?;
+    let local = fs::read_to_string(etc.join("sources.list.d/00-mattos-local.sources"))?;
     let hosted = fs::read_to_string(etc.join("sources.list.d/mattos-hosted.sources"))?;
     let debian = fs::read_to_string(etc.join("sources.list.d/debian-trixie.sources"))?;
     let preferences = fs::read_to_string(etc.join("preferences.d/00mattos-priority"))?;
-    if !local.contains("Enabled: no")
+    if !local.contains("Enabled: yes")
         || !local.contains("file:/usr/share/mattos/repository")
+        || !local.contains("Trusted: yes")
         || !hosted.contains("Enabled: yes")
         || !hosted.contains("https://packages.mattsherfey.com")
         // MattOS's installed native policy deliberately exposes only the
@@ -1790,6 +2102,36 @@ fn configure_installed_apt(target: &Path) -> Result<()> {
     Ok(())
 }
 
+/// Seed the installed APT cache from the repository copied onto the target.
+/// Restrict this transaction to the local source: installation must remain
+/// offline and a hosted-repository outage must not affect target composition.
+fn refresh_installed_local_apt_metadata(target: &Path) -> Result<()> {
+    for relative in [
+        "var/lib/apt/lists/partial",
+        "var/cache/apt/archives/partial",
+    ] {
+        fs::create_dir_all(target.join(relative))?;
+    }
+    let status = Command::new("chroot")
+        .arg(target)
+        .args([
+            "/usr/bin/apt-get",
+            "-o",
+            "Dir::Etc::sourcelist=/etc/apt/sources.list.d/00-mattos-local.sources",
+            "-o",
+            "Dir::Etc::sourceparts=-",
+            "-o",
+            "APT::Get::List-Cleanup=0",
+            "update",
+        ])
+        .status()
+        .context("refresh installed local MattOS APT metadata")?;
+    if !status.success() {
+        bail!("installed local MattOS APT metadata refresh failed with {status}");
+    }
+    Ok(())
+}
+
 fn remove_optional_file(path: &Path) -> Result<()> {
     match fs::remove_file(path) {
         Ok(()) => Ok(()),
@@ -1822,19 +2164,19 @@ fn remove_account_from_database(path: &Path, username: &str) -> Result<()> {
     Ok(())
 }
 
-fn purge_live_installer(target: &Path) -> Result<()> {
-    let root = format!("--root={}", target.display());
-    let admindir = format!("--admindir={}", target.join("var/lib/dpkg").display());
-    engine::run(
-        "dpkg",
-        &[
-            root.as_ref(),
-            admindir.as_ref(),
-            "--purge".as_ref(),
-            "mattos-installer".as_ref(),
-        ],
-    )
-    .context("remove live-only installer package from installed target")
+fn ensure_live_installer_absent(target: &Path) -> Result<()> {
+    let output = Command::new("dpkg-query")
+        .arg(format!(
+            "--admindir={}",
+            target.join("var/lib/dpkg").display()
+        ))
+        .args(["-W", "-f=${db:Status-Status}", "mattos-installer"])
+        .output()
+        .context("query installed target for live-only installer package")?;
+    if output.status.success() && String::from_utf8_lossy(&output.stdout).trim() == "installed" {
+        bail!("explicit installed profile unexpectedly contains mattos-installer");
+    }
+    Ok(())
 }
 
 fn write_identity(plan: &InstallPlan, target: &Path) -> Result<()> {
@@ -2124,6 +2466,21 @@ fn render_installed_grub_defaults(identity: &StorageIdentity, serial: bool) -> S
 }
 
 fn create_user(plan: &InstallPlan, target: &Path) -> Result<()> {
+    // systemd-sysusers creates these hardware-access groups during the first
+    // boot, but the installer must assign the account before that boot.  Use
+    // the target's normal account-management policy to allocate them now;
+    // sysusers will then preserve the existing groups.
+    for group in required_installed_user_groups() {
+        engine::run(
+            "groupadd",
+            &[
+                "--root".as_ref(),
+                target.as_os_str(),
+                "--system".as_ref(),
+                group.as_ref(),
+            ],
+        )?;
+    }
     // Removing the live account also removes its private GID 1000.  Do not let
     // useradd consult the now-stale GROUP=1000 default before recreating it;
     // materialize the installed user's private group first and select both IDs
@@ -2158,9 +2515,7 @@ fn create_user(plan: &InstallPlan, target: &Path) -> Result<()> {
                 base.as_slice(),
                 &[
                     "--groups".as_ref(),
-                    "sudo".as_ref(),
-                    "video".as_ref(),
-                    "render".as_ref(),
+                    supplementary_groups(true).as_ref(),
                     plan.username.as_ref(),
                 ],
             ]
@@ -2173,8 +2528,7 @@ fn create_user(plan: &InstallPlan, target: &Path) -> Result<()> {
                 base.as_slice(),
                 &[
                     "--groups".as_ref(),
-                    "video".as_ref(),
-                    "render".as_ref(),
+                    supplementary_groups(false).as_ref(),
                     plan.username.as_ref(),
                 ],
             ]
@@ -2234,9 +2588,45 @@ fn create_user(plan: &InstallPlan, target: &Path) -> Result<()> {
     Ok(())
 }
 
+fn supplementary_groups(administrator: bool) -> &'static str {
+    if administrator {
+        "sudo,video,render"
+    } else {
+        "video,render"
+    }
+}
+
+fn required_installed_user_groups() -> [&'static str; 2] {
+    ["video", "render"]
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn useradd_receives_one_comma_separated_supplementary_group_argument() {
+        assert_eq!(supplementary_groups(true), "sudo,video,render");
+        assert_eq!(supplementary_groups(false), "video,render");
+        assert_eq!(required_installed_user_groups(), ["video", "render"]);
+    }
+
+    fn stage_profile_units(root: &Path, desktop: bool) {
+        let units = root.join("usr/lib/systemd/system");
+        fs::create_dir_all(&units).unwrap();
+        for unit in [
+            "NetworkManager.service",
+            "ssh.service",
+            "systemd-resolved.service",
+            "systemd-timesyncd.service",
+            "dbus.socket",
+        ] {
+            fs::write(units.join(unit), "[Unit]\n").unwrap();
+        }
+        if desktop {
+            fs::write(units.join("plasma-greeter.service"), "[Unit]\n").unwrap();
+        }
+    }
 
     fn plan(disk: &str, profile: InstalledProfile) -> InstallPlan {
         InstallPlan {
@@ -2301,7 +2691,7 @@ mod tests {
         for name in [
             "01mattos",
             "00mattos-priority",
-            "mattos.sources",
+            "00-mattos-local.sources",
             "mattos-hosted.sources",
             "debian-trixie.sources",
         ] {
@@ -2329,14 +2719,21 @@ mod tests {
 
         configure_installed_apt(target).unwrap();
         let local =
-            fs::read_to_string(target.join("etc/apt/sources.list.d/mattos.sources")).unwrap();
+            fs::read_to_string(target.join("etc/apt/sources.list.d/00-mattos-local.sources"))
+                .unwrap();
         let hosted =
             fs::read_to_string(target.join("etc/apt/sources.list.d/mattos-hosted.sources"))
                 .unwrap();
         let debian =
             fs::read_to_string(target.join("etc/apt/sources.list.d/debian-trixie.sources"))
                 .unwrap();
-        assert!(local.contains("Enabled: no"));
+        assert!(local.contains("Enabled: yes"));
+        assert!(local.contains("Trusted: yes"));
+        assert!(
+            target
+                .join("etc/apt/sources.list.d/00-mattos-local.sources")
+                .is_file()
+        );
         assert!(hosted.contains("Enabled: yes"));
         assert!(debian.contains("Enabled: no"));
         let enabled = target.join("etc/systemd/system/timers.target.wants/mattos-apt-daily.timer");
@@ -2808,7 +3205,7 @@ mod tests {
         assert!(source.contains("engine::run(\n        \"groupadd\""));
         assert!(source.contains("\"--uid\".as_ref()"));
         assert!(source.contains("\"--gid\".as_ref()"));
-        assert!(source.contains("\"sudo\".as_ref()"));
+        assert!(source.contains("supplementary_groups(true).as_ref()"));
         assert!(!source.contains("\"--user-group\".as_ref()"));
         assert!(!source.contains("\"wheel\".as_ref()"));
         assert!(source.contains("\"--shell\".as_ref()"));
@@ -2829,6 +3226,7 @@ mod tests {
         ] {
             let directory = tempfile::tempdir().unwrap();
             fs::create_dir_all(directory.path().join("etc/systemd/system")).unwrap();
+            stage_profile_units(directory.path(), profile == InstalledProfile::Desktop);
             fs::create_dir_all(directory.path().join("etc/greetd")).unwrap();
             fs::write(
                 directory.path().join("etc/greetd/plasma.toml"),
@@ -2849,6 +3247,7 @@ mod tests {
     fn desktop_autologin_uses_greetd_initial_session() {
         let directory = tempfile::tempdir().unwrap();
         fs::create_dir_all(directory.path().join("etc/systemd/system")).unwrap();
+        stage_profile_units(directory.path(), true);
         fs::create_dir_all(directory.path().join("etc/greetd")).unwrap();
         fs::write(
             directory.path().join("etc/greetd/plasma.toml"),
@@ -2865,6 +3264,21 @@ mod tests {
     }
 
     #[test]
+    fn packaged_greetd_unit_uses_installed_config_not_live_config() {
+        let unit = include_str!("../../session/plasma/plasma-greeter.service");
+        assert!(unit.contains("ExecStart=/usr/bin/greetd --config /etc/greetd/plasma.toml"));
+        assert!(!unit.contains("ExecStart=/usr/bin/greetd --config /etc/greetd/plasma-live.toml"));
+
+        let live_override = include_str!(
+            "../../profiles/live/etc/systemd/system/plasma-greeter.service.d/live.conf"
+        );
+        assert!(
+            live_override
+                .contains("ExecStart=/usr/bin/greetd --config /etc/greetd/plasma-live.toml")
+        );
+    }
+
+    #[test]
     fn optional_catalog_defaults_firefox_only_for_desktop() {
         let firefox = optional_package("firefox").expect("Firefox catalog entry");
         assert_eq!(firefox.display_name, "Firefox");
@@ -2877,6 +3291,46 @@ mod tests {
             ["firefox"]
         );
         assert!(optional_package_defaults(InstalledProfile::Cli).is_empty());
+    }
+
+    #[test]
+    fn profile_manifests_and_repository_closure_are_fail_closed() {
+        let cli = parse_profile_manifest(
+            "schema_version = 1\nid = \"cli\"\nextends = \"base\"\nmeta_package = \"mattos-cli\"\ndefault_target = \"multi-user.target\"\n",
+            "cli",
+        )
+        .unwrap();
+        assert_eq!(cli.meta_package, "mattos-cli");
+        assert!(
+            parse_profile_manifest(
+                "schema_version = 1\nid = \"cli\"\nmeta_package = \"mattos-cli\"\n",
+                "cli"
+            )
+            .is_err()
+        );
+
+        let repository = tempfile::tempdir().unwrap();
+        fs::create_dir_all(repository.path().join("pool/main")).unwrap();
+        for name in ["mattos-base", "mattos-cli"] {
+            fs::write(
+                repository.path().join(format!("pool/main/{name}.deb")),
+                name,
+            )
+            .unwrap();
+        }
+        let body = "Package: mattos-base\nDepends: libc6\nFilename: pool/main/mattos-base.deb\nSHA256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n\nPackage: mattos-cli\nDepends: mattos-base\nFilename: pool/main/mattos-cli.deb\nSHA256: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\n\nPackage: libc6\nFilename: pool/main/mattos-base.deb\nSHA256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n";
+        let packages = parse_repository_packages(body, repository.path()).unwrap();
+        let closure = resolve_profile_packages("mattos-cli", &packages).unwrap();
+        assert_eq!(
+            closure
+                .iter()
+                .map(|package| package.name.as_str())
+                .collect::<Vec<_>>(),
+            ["libc6", "mattos-base", "mattos-cli"]
+        );
+        assert!(resolve_profile_packages("missing", &packages).is_err());
+        let escaped = "Package: bad\nFilename: ../bad.deb\nSHA256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n";
+        assert!(parse_repository_packages(escaped, repository.path()).is_err());
     }
 
     #[test]

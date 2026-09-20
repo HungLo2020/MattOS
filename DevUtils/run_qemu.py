@@ -125,7 +125,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--install",
         action="store_true",
-        help="recreate the dedicated installed-test.qcow2 and install the Desktop profile",
+        help="recreate an installed-test disk and install the selected MattOS profile",
+    )
+    parser.add_argument(
+        "--install-profile",
+        choices=("cli", "plasma"),
+        default="plasma",
+        help="installed-system profile used by --install (default: plasma)",
     )
     parser.add_argument(
         "--run-installed",
@@ -147,10 +153,6 @@ def parse_args() -> argparse.Namespace:
     args = parser.parse_args()
     if args.build_only and (args.install or args.run_installed):
         parser.error("--build-only cannot be combined with --install or --run-installed")
-    if args.install and args.install_disk is not None:
-        parser.error("--install always uses the dedicated installed-test.qcow2 disk")
-    if args.run_installed and args.install_disk is not None:
-        parser.error("--run-installed always uses the dedicated installed-test.qcow2 disk")
     if args.run_installed and args.no_install_disk:
         parser.error("--run-installed requires the dedicated installed-test.qcow2 disk")
     if args.install and args.no_install_disk:
@@ -359,17 +361,19 @@ def cleanup_test_control_socket(socket_path: Path | None) -> None:
         cleanup_test_control_paths((socket_path, socket_path.with_name(".unused")))
 
 
-def install_completion_marker(repo_root: Path) -> Path:
-    return (repo_root / INSTALL_TEST_COMPLETION_RELATIVE).resolve()
+def install_completion_marker(repo_root: Path, disk: Path | None = None) -> Path:
+    if disk is None or disk.resolve() == (repo_root / INSTALL_TEST_DISK_RELATIVE).resolve():
+        return (repo_root / INSTALL_TEST_COMPLETION_RELATIVE).resolve()
+    return disk.resolve().with_suffix(disk.suffix + ".verified.json")
 
 
 def install_task_log(repo_root: Path) -> Path:
     return (repo_root / INSTALL_TEST_LOG_RELATIVE).resolve()
 
 
-def invalidate_install_completion(repo_root: Path) -> None:
+def invalidate_install_completion(repo_root: Path, disk: Path | None = None) -> None:
     """Remove only the dedicated success marker before a destructive install."""
-    marker = install_completion_marker(repo_root)
+    marker = install_completion_marker(repo_root, disk)
     if marker.exists() or marker.is_symlink():
         if marker.is_dir():
             raise RepoError(f"refusing to remove install completion directory: {marker}")
@@ -378,7 +382,7 @@ def invalidate_install_completion(repo_root: Path) -> None:
 
 def write_install_completion(repo_root: Path, disk: Path, verification: dict[str, object]) -> Path:
     """Publish completion metadata only after an independent UEFI disk boot."""
-    marker = install_completion_marker(repo_root)
+    marker = install_completion_marker(repo_root, disk)
     marker.parent.mkdir(parents=True, exist_ok=True)
     payload = {
         "schema": 1,
@@ -417,7 +421,7 @@ def qemu_disk_virtual_size(disk: Path) -> int:
 
 def validate_completed_install(repo_root: Path, disk: Path) -> dict[str, object]:
     """Refuse disk boots unless a prior real no-ISO boot published success."""
-    marker = install_completion_marker(repo_root)
+    marker = install_completion_marker(repo_root, disk)
     if not disk.is_file() or not marker.is_file():
         raise RepoError(
             "installed test disk is missing or has not completed installation verification; "
@@ -465,15 +469,18 @@ def prepare_install_disk(repo_root: Path, args: argparse.Namespace) -> Path | No
         return None
 
     if getattr(args, "install", False):
+        disk = args.install_disk or (repo_root / INSTALL_TEST_DISK_RELATIVE)
+        disk = disk if disk.is_absolute() else repo_root / disk
+        disk = disk.resolve()
         if not getattr(args, "dry_run", False):
-            invalidate_install_completion(repo_root)
-        disk = repo_root / INSTALL_TEST_DISK_RELATIVE
+            invalidate_install_completion(repo_root, disk)
         if not getattr(args, "dry_run", False) and (disk.exists() or disk.is_symlink()):
             if not disk.is_file():
                 raise RepoError(f"refusing to replace non-file install test disk: {disk}")
             disk.unlink()
     elif getattr(args, "run_installed", False):
-        disk = repo_root / INSTALL_TEST_DISK_RELATIVE
+        disk = args.install_disk or (repo_root / INSTALL_TEST_DISK_RELATIVE)
+        disk = disk if disk.is_absolute() else repo_root / disk
         disk = disk.resolve()
         validate_completed_install(repo_root, disk)
         return disk
@@ -728,11 +735,15 @@ def installed_grub_menu_probe() -> str:
     )
 
 
-def _test_install_plan() -> str:
+def _test_install_plan(profile: str = "plasma") -> str:
+    if profile not in {"cli", "plasma"}:
+        raise RepoError(f"unsupported test install profile: {profile}")
+    installer_profile = "cli" if profile == "cli" else "desktop"
+    optional_packages = "[]" if profile == "cli" else '["firefox"]'
     return "\n".join([
         'version = 6', 'target_disk = "/dev/vda"',
         'storage = { mode = "guided_whole_disk", filesystem = "btrfs", efi = { policy = "create" } }',
-        'installed_profile = "desktop"', 'optional_packages = ["firefox"]', 'hostname = "mattos-test"',
+        f'installed_profile = "{installer_profile}"', f'optional_packages = {optional_packages}', 'hostname = "mattos-test"',
         'full_name = "MattOS Test User"', 'username = "mattos"',
         f'password_hash = "{TEST_INSTALL_PASSWORD_HASH}"', 'administrator = true',
         'automatic_login = true', 'root_credential = { mode = "same_as_user" }',
@@ -741,13 +752,18 @@ def _test_install_plan() -> str:
     ])
 
 
-def _run_automatic_test_install(repo_root: Path, disk: Path, control_paths: tuple[Path, Path]) -> None:
+def _run_automatic_test_install(
+    repo_root: Path,
+    disk: Path,
+    control_paths: tuple[Path, Path],
+    profile: str = "plasma",
+) -> None:
     """Run the real installer with streamed, persistent, progress-aware logs."""
     wait_for_socket(control_paths[0], 120)
     log_path = install_task_log(repo_root)
     log_path.parent.mkdir(parents=True, exist_ok=True)
     log_path.write_text("MattOS automated installation log\n", encoding="utf-8")
-    encoded = base64.b64encode(_test_install_plan().encode()).decode()
+    encoded = base64.b64encode(_test_install_plan(profile).encode()).decode()
     command = (
         f"printf '%s' {encoded} | base64 -d > /tmp/mattos-test-plan.toml && "
         "sudo mattos-install install /tmp/mattos-test-plan.toml --yes-really-erase"
@@ -782,7 +798,7 @@ def _run_automatic_test_install(repo_root: Path, disk: Path, control_paths: tupl
         )
         serial_command_stream(
             control_paths[1].resolve(),
-            "sudo systemctl --no-block poweroff",
+            scheduled_poweroff_command(),
             INSTALL_BOOT_IDLE_SECONDS,
             on_output=stream,
         )
@@ -790,6 +806,14 @@ def _run_automatic_test_install(repo_root: Path, disk: Path, control_paths: tupl
         raise RepoError(
             f"automated MattOS installation failed; full guest log: {log_path}; error: {exc}"
         ) from exc
+
+
+def scheduled_poweroff_command(password: str | None = None) -> str:
+    """Schedule shutdown after the serial protocol has emitted its result marker."""
+    command = "sudo systemd-run --on-active=1s --unit=mattos-test-poweroff systemctl poweroff"
+    if password is None:
+        return command
+    return f"printf '%s\\n' {shlex.quote(password)} | {command.replace('sudo ', 'sudo -S ', 1)}"
 
 
 def _verify_installed_disk_boot(
@@ -818,10 +842,29 @@ def _verify_installed_disk_boot(
     # control to the mounted root.  The authoritative proof of its fallback
     # loader/config is therefore the observed UEFI -> GRUB boot, while the
     # installed root-side GRUB configuration is directly inspectable here.
+    profile = getattr(args, "install_profile", "plasma")
+    expected_profile = "cli" if profile == "cli" else "plasma"
+    profile_checks = (
+        (
+            "cli-package-boundary",
+            "dpkg-query -W mattos-cli >/dev/null 2>&1 && ! dpkg-query -W qt6-base kwin plasma-workspace plasma-desktop greetd dolphin konsole systemsettings >/dev/null 2>&1",
+        ),
+        ("cli-target", "systemctl is-active multi-user.target && ! systemctl is-active graphical.target"),
+    ) if profile == "cli" else (
+        ("plasma-package", "dpkg-query -W mattos-plasma kwin plasma-workspace plasma-desktop greetd dolphin konsole systemsettings"),
+        ("graphical-target", "systemctl is-active graphical.target"),
+        (
+            "compositor",
+            "(for n in $(seq 1 90); do pgrep -x kwin_wayland >/dev/null && pgrep -x plasmashell >/dev/null && exit 0; sleep 1; done; "
+            "systemctl --no-pager --full status plasma-greeter.service; "
+            "printf '%s\\n' mattos | sudo -S journalctl -b --no-pager -n 200 -u plasma-greeter.service; "
+            "exit 1)",
+        ),
+    )
     checks = (
         ("not-live", "test ! -e /run/mattos-live"),
         ("profile-file", "test -f /etc/mattos-installed-profile"),
-        ("profile-value", "test \"$(cat /etc/mattos-installed-profile)\" = desktop"),
+        ("profile-value", f"test \"$(cat /etc/mattos-installed-profile)\" = {expected_profile}"),
         ("hostname", "test \"$(cat /etc/hostname)\" = mattos-test"),
         ("user", "id mattos"),
         ("uefi", "test -d /sys/firmware/efi"),
@@ -834,8 +877,9 @@ def _verify_installed_disk_boot(
         ("root-mount", "findmnt -no SOURCE /"),
         ("efi-mount", "findmnt -no SOURCE /boot/efi"),
         ("gpt", "lsblk -no PTTYPE /dev/vda"),
-        ("graphical-target", "systemctl is-active graphical.target"),
-        ("compositor", "(for n in $(seq 1 90); do pgrep -x kwin_wayland >/dev/null && pgrep -x plasmashell >/dev/null && exit 0; sleep 1; done; exit 1)"),
+        *profile_checks,
+        ("local-repository", "grep -q '^Enabled: yes' /etc/apt/sources.list.d/00-mattos-local.sources && test -f /usr/share/mattos/repository/dists/trixie/main/binary-amd64/Packages"),
+        ("plasma-upgrade-candidate", "apt-cache show mattos-plasma >/dev/null"),
         ("mattos-repository", "grep -q '^Enabled: yes' /etc/apt/sources.list.d/mattos-hosted.sources"),
     )
     result: dict[str, object] = {}
@@ -861,7 +905,7 @@ def _verify_installed_disk_boot(
         result.update({"uefi_grub_boot": True, "serial_checks": "".join(completed_checks)})
         serial_command_stream(
             control_paths[1].resolve(),
-            f"printf '%s\\n' {shlex.quote(TEST_INSTALL_PASSWORD)} | sudo -S systemctl --no-block poweroff",
+            scheduled_poweroff_command(TEST_INSTALL_PASSWORD),
             INSTALL_BOOT_IDLE_SECONDS,
             on_output=stream,
         )
@@ -897,7 +941,9 @@ def launch_qemu(repo_root: Path, iso_path: Path | None, args: argparse.Namespace
             args,
             boot_iso=True,
             install_disk=disk,
-            lifecycle=lambda _proc, paths: _run_automatic_test_install(repo_root, disk, paths),
+            lifecycle=lambda _proc, paths: _run_automatic_test_install(
+                repo_root, disk, paths, args.install_profile
+            ),
         )
         if result != 0:
             raise RepoError(f"installer VM exited with status {result}")
@@ -905,7 +951,7 @@ def launch_qemu(repo_root: Path, iso_path: Path | None, args: argparse.Namespace
         marker = write_install_completion(repo_root, disk, verification)
         print(f"[qemu] installed disk validated: {disk} (completion marker: {marker})")
     except Exception:
-        invalidate_install_completion(repo_root)
+        invalidate_install_completion(repo_root, disk)
         print(f"[qemu] failed installation disk retained for diagnosis: {disk}", file=sys.stderr)
         raise
     if not args.run_installed:

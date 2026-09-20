@@ -573,9 +573,9 @@ fn validate_live_desktop_boot_contract(rootfs: &Path) -> Result<()> {
     let display_manager =
         fs::read_to_string(rootfs.join("usr/lib/systemd/system/plasma-greeter.service"))?;
     if !display_manager.contains("Wants=systemd-logind.service systemd-udev-trigger.service")
-        || !display_manager.contains("ExecStart=/usr/bin/greetd --config /etc/greetd/plasma-live.toml")
+        || !display_manager.contains("ExecStart=/usr/bin/greetd --config /etc/greetd/plasma.toml")
     {
-        bail!("Plasma display manager does not pull in logind/udev or its live configuration")
+        bail!("Plasma display manager does not pull in logind/udev or its installed configuration")
     }
     #[cfg(unix)]
     {
@@ -688,6 +688,12 @@ fn build_rootfs_into(repo_root: &Path, out: &Path) -> Result<()> {
     let package_owned = packaging::package_owned_paths(out)?;
     let package_snapshot = packaging::snapshot_package_files(out, &package_owned)?;
     for rel in LEGACY_SKELETON_FILES {
+        if package_owned.contains(Path::new(rel)) {
+            if fs::read(skeleton.join(rel))? != fs::read(out.join(rel))? {
+                bail!("package-owned legacy skeleton file /{rel} differs from its source");
+            }
+            continue;
+        }
         packaging::reject_legacy_collision(&package_owned, Path::new(rel))?;
         let source = skeleton.join(rel);
         let destination = out.join(rel);
@@ -751,12 +757,18 @@ fn build_rootfs_into(repo_root: &Path, out: &Path) -> Result<()> {
     }
 
     let rescue_init = out.join("usr/libexec/mattos/rescue-init");
-    fs::copy(&init_bin, &rescue_init).with_context(|| {
-        format!(
-            "failed to copy rescue init binary from {} into rootfs",
-            init_bin.display()
-        )
-    })?;
+    if package_owned.contains(Path::new("usr/libexec/mattos/rescue-init")) {
+        if !rescue_init.is_file() {
+            bail!("package-owned rescue-init is missing from the composed rootfs");
+        }
+    } else {
+        fs::copy(&init_bin, &rescue_init).with_context(|| {
+            format!(
+                "failed to copy rescue init binary from {} into rootfs",
+                init_bin.display()
+            )
+        })?;
+    }
     copy_runtime_dependencies(&rescue_init, &out)?;
     let mut inventory = UserlandInventory::default();
     inventory.add_implemented(UTIL_LINUX_PROVIDER, "agetty");
@@ -842,13 +854,21 @@ fn build_rootfs_into(repo_root: &Path, out: &Path) -> Result<()> {
     }
 
     for spec in USERLAND_BINARY_INSTALLS {
-        install_userland_binary(repo_root, &out, spec)?;
+        let destination = PathBuf::from("usr/bin").join(spec.install_name);
+        if !package_owned.contains(&destination) {
+            install_userland_binary(repo_root, &out, spec)?;
+        }
         inventory.add_implemented(spec.provider, spec.command_name);
         inventory.add_compiled(spec.provider, spec.command_name);
         inventory.add_installed(spec.provider, spec.command_name);
     }
 
-    create_command_aliases(&out, "diffutils", DIFFUTILS_AVAILABLE_ALIASES)?;
+    if !DIFFUTILS_AVAILABLE_ALIASES
+        .iter()
+        .all(|alias| package_owned.contains(&PathBuf::from("usr/bin").join(alias)))
+    {
+        create_command_aliases(&out, "diffutils", DIFFUTILS_AVAILABLE_ALIASES)?;
+    }
     for alias in DIFFUTILS_AVAILABLE_ALIASES {
         inventory.add_implemented(DIFFUTILS_PROVIDER, alias);
         inventory.add_installed(DIFFUTILS_PROVIDER, alias);
@@ -1480,7 +1500,24 @@ fn install_mattos_system_units(repo_root: &Path, rootfs: &Path) -> Result<()> {
     let units_dst = rootfs.join("usr/lib/systemd/system");
     fs::create_dir_all(&units_dst)
         .with_context(|| format!("failed to create {}", units_dst.display()))?;
-    copy_tree_excluding_dotgit(&units_src, &units_dst)?;
+    for entry in fs::read_dir(&units_src)? {
+        let entry = entry?;
+        let source = entry.path();
+        if !source.is_file() {
+            continue;
+        }
+        let destination = units_dst.join(entry.file_name());
+        if destination.is_file() {
+            if fs::read(&source)? != fs::read(&destination)? {
+                bail!(
+                    "package-owned MattOS unit {} differs from its source",
+                    destination.display()
+                );
+            }
+        } else {
+            fs::copy(&source, &destination)?;
+        }
+    }
 
     let default_target = rootfs.join("etc/systemd/system/default.target");
     if default_target.exists() {
@@ -1529,8 +1566,14 @@ fn install_network_configuration(repo_root: &Path, rootfs: &Path) -> Result<()> 
     // source and unit available for recovery, but do not install an active
     // .network policy that can race NetworkManager.
     for (source_name, destination) in [
-        ("resolved.conf", "etc/systemd/resolved.conf"),
-        ("timesyncd.conf", "etc/systemd/timesyncd.conf"),
+        (
+            "resolved.conf",
+            "etc/systemd/resolved.conf.d/10-mattos.conf",
+        ),
+        (
+            "timesyncd.conf",
+            "etc/systemd/timesyncd.conf.d/10-mattos.conf",
+        ),
         ("nsswitch.conf", "etc/nsswitch.conf"),
         ("hosts", "etc/hosts"),
         ("networks", "etc/networks"),
@@ -2135,8 +2178,8 @@ fn validate_executable_runtime_closure(binary: &Path, rootfs: &Path) -> Result<(
 
 fn validate_network_configuration(rootfs: &Path) -> Result<()> {
     for rel in [
-        "etc/systemd/resolved.conf",
-        "etc/systemd/timesyncd.conf",
+        "etc/systemd/resolved.conf.d/10-mattos.conf",
+        "etc/systemd/timesyncd.conf.d/10-mattos.conf",
         "etc/nsswitch.conf",
         "etc/ssl/certs/ca-certificates.crt",
         "run/systemd/resolve",

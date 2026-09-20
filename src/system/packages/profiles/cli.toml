@@ -1,0 +1,6 @@
+schema_version = 1
+id = "cli"
+extends = "base"
+meta_package = "mattos-cli"
+default_target = "multi-user.target"
+

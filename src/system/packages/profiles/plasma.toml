@@ -1,0 +1,6 @@
+schema_version = 1
+id = "plasma"
+extends = "base"
+meta_package = "mattos-plasma"
+default_target = "graphical.target"
+
