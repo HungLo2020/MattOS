@@ -16,7 +16,8 @@ pub use discovery::{
 pub use policy::{
     EncryptionPolicy, Filesystem, GuidedEfi, InstallPlan, InstallProgress, InstallStage,
     InstalledProfile, OptionalPackage, OptionalPackageBackend, PLAN_VERSION, PartitionAction,
-    PartitionOperation, RootCredentialPolicy, RootFilesystem, StoragePlan, execute,
-    execute_with_progress, optional_package, optional_package_catalog, optional_package_defaults,
-    render_plan, render_storage_plan,
+    PartitionOperation, RootCredentialPolicy, RootFilesystem, StoragePlan,
+    compose_profile_into_target, execute, execute_with_progress, finalize_calamares_target,
+    optional_package, optional_package_catalog, optional_package_defaults, render_plan,
+    render_storage_plan,
 };

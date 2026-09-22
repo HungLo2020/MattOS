@@ -337,6 +337,11 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "src/system/storage/kpmcore",
             "src/tools/mattos-build/src/stages/kde_foundation.rs",
         ],
+        BuildStage::Calamares => &[
+            "src/system/installer/calamares/upstream",
+            "src/system/installer/calamares/mattos",
+            "src/tools/mattos-build/src/stages/calamares.rs",
+        ],
         BuildStage::PlasmaKWin => &[
             "src/desktop/kde/kwin",
             "upstream/patches/kwin",
@@ -1088,7 +1093,8 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
         | BuildStage::KWidgetsAddons
         | BuildStage::PolkitQt6
         | BuildStage::YamlCpp
-        | BuildStage::KPMCore => &[
+        | BuildStage::KPMCore
+        | BuildStage::Calamares => &[
             "gcc",
             "g++",
             "ld",

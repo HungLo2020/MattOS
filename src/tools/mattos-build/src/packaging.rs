@@ -175,7 +175,12 @@ const SHADOW_RUNTIME_PATHS: &[&str] = &[
     "usr/bin/chage",
     "usr/bin/newgrp",
 ];
-const UTIL_LINUX_AUTH_PATHS: &[&str] = &["usr/sbin/agetty", "usr/bin/login", "usr/bin/su"];
+const UTIL_LINUX_AUTH_PATHS: &[&str] = &[
+    "usr/sbin/agetty",
+    "usr/sbin/sulogin",
+    "usr/bin/login",
+    "usr/bin/su",
+];
 const UTIL_LINUX_BASE_PATHS: &[&str] = &[
     "usr/bin/lsblk",
     "usr/bin/dmesg",
@@ -1133,6 +1138,7 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "polkit-qt-1" => &["polkit-qt-1"],
             "yaml-cpp" => &["yaml-cpp"],
             "kpmcore" => &["kpmcore"],
+            "calamares" => &["calamares"],
             "wayland" => &["wayland"],
             "xkbcommon" => &["xkbcommon"],
             "xkeyboard-config" => &[],
@@ -1688,6 +1694,12 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
             "src/system/storage/kpmcore",
             "src/tools/mattos-build/src/stages/kde_foundation.rs",
         ],
+        "calamares" => &[
+            "src/system/installer/calamares/upstream",
+            "src/system/installer/calamares/mattos",
+            "src/tools/mattos-build/src/stages/calamares.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
         "wayland" => &["src/system/libraries/wayland"],
         "xkbcommon" => &["src/system/libraries/xkbcommon"],
         "xkeyboard-config" => &["src/system/data/xkeyboard-config"],
@@ -2041,6 +2053,7 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "polkit-qt6-1" => component_snapshot_version(repo_root, "polkit-qt-1")?,
         "libyaml-cpp0.8" => component_snapshot_version(repo_root, "yaml-cpp")?,
         "libkpmcore13" => component_snapshot_version(repo_root, "kpmcore")?,
+        "calamares" => component_snapshot_version(repo_root, "calamares")?,
         "libwayland-client0" | "libwayland-cursor0" | "libwayland-server0" | "libwayland-egl1" => {
             component_snapshot_version(repo_root, "wayland")?
         }
@@ -4480,7 +4493,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 318);
+        assert_eq!(PACKAGE_NAMES.len(), 319);
     }
 
     #[test]
@@ -4528,7 +4541,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 318);
+        assert_eq!(PACKAGE_NAMES.len(), 319);
         assert_eq!(
             UTIL_LINUX_BASE_PATHS,
             &[
@@ -4609,7 +4622,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 318);
+        assert_eq!(PACKAGE_NAMES.len(), 319);
         let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
         for dependency in [
             "libffi8",

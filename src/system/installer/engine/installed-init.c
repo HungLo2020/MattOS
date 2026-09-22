@@ -59,9 +59,15 @@ static int storage_identity_matches(const char *expected_uuid) {
 static int try_installed_root(const char *device, const char *expected_uuid, const char *filesystem) {
     const char *options = strcmp(filesystem, "btrfs") == 0 ? "subvol=@,compress=zstd:3" : NULL;
     if (mount(device, "/newroot", filesystem, MS_NOATIME, options) < 0) return 0;
-    int valid = access("/newroot/usr/lib/systemd/systemd", X_OK) == 0
-        && access("/newroot/etc/mattos-installed-profile", R_OK) == 0
-        && storage_identity_matches(expected_uuid);
+    int has_systemd = access("/newroot/usr/lib/systemd/systemd", X_OK) == 0;
+    int has_profile = access("/newroot/etc/mattos-installed-profile", R_OK) == 0;
+    int identity_matches = storage_identity_matches(expected_uuid);
+    if (!has_systemd || !has_profile || !identity_matches) {
+        dprintf(2,
+                "mattos-installed-init: rejected %s (systemd=%d profile=%d identity=%d expected_uuid=%s)\n",
+                device, has_systemd, has_profile, identity_matches, expected_uuid);
+    }
+    int valid = has_systemd && has_profile && identity_matches;
     if (valid) return 1;
     if (umount("/newroot") < 0) fatal("unmount non-MattOS candidate");
     return 0;

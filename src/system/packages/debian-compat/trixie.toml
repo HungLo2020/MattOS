@@ -1542,6 +1542,18 @@ classification = "debian-compatible"
 known_gaps = ["Development files are not yet split from the command package"]
 
 [[package]]
+debian_name = "calamares"
+mattos_name = "calamares"
+source_component = "calamares"
+owned_paths = ["/usr/bin/calamares", "/usr/libexec/mattos/calamares-target-executor", "/etc/xdg/calamares"]
+provided_abi_or_commands = ["Qt6 graphical MattOS installer"]
+protected = false
+current_mattos_version = "3.4.3-1mattos1"
+expected_debian_role = "graphical installer"
+classification = "debian-compatible"
+known_gaps = ["MattOS-specific profile composition is delegated to the shared Rust installer policy"]
+
+[[package]]
 debian_name = "dosfstools"
 mattos_name = "dosfstools"
 source_component = "dosfstools"

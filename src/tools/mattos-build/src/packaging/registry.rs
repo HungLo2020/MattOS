@@ -125,6 +125,8 @@ mod wifi_grub_tests {
             "dolphin",
             "konsole",
             "systemsettings",
+            "mattos-installer",
+            "calamares",
         ] {
             assert!(!cli.contains(forbidden), "CLI profile contains {forbidden}");
         }
@@ -162,6 +164,14 @@ mod wifi_grub_tests {
                 "Plasma profile misses {required}"
             );
         }
+        assert!(
+            !plasma.contains("mattos-installer"),
+            "Plasma profile contains the live-only installer"
+        );
+        assert!(
+            !plasma.contains("calamares"),
+            "Plasma profile contains the live installer"
+        );
         assert!(plasma.len() > cli.len() + 50);
     }
 }
@@ -398,6 +408,7 @@ pub(crate) const PACKAGE_NAMES: &[&str] = &[
     "polkit-qt6-1",
     "libyaml-cpp0.8",
     "libkpmcore13",
+    "calamares",
     "libarchive13",
     "libwayland-client0",
     "libwayland-cursor0",
@@ -484,6 +495,8 @@ pub(crate) const PACKAGE_NAMES: &[&str] = &[
     "btrfs-progs",
     "dosfstools",
     "e2fsprogs",
+    // The graphical Calamares frontend runs this helper from the live image;
+    // profile composition deliberately excludes it from installed targets.
     "mattos-installer",
 ];
 
@@ -3002,6 +3015,37 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
                 "libstdc++6",
             ],
             provides: &["libkpmcore13", "libkpmcore-dev"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "calamares",
+            description: "MattOS-branded Qt6 graphical installer with source-owned KPMCore support",
+            source_component: "calamares",
+            depends: &[
+                "qt6-base",
+                "qt6-svg",
+                "qt6-wayland",
+                "kf6-kcoreaddons",
+                "kf6-ki18n",
+                "kf6-kwidgetsaddons",
+                "polkit-qt6-1",
+                "libyaml-cpp0.8",
+                "libkpmcore13",
+                "mattos-installer",
+                "polkit",
+                "libglib2.0-0t64",
+                "libdbus-1-3",
+                "systemd",
+                "libcrypt1",
+                "util-linux",
+                "btrfs-progs",
+                "libpython3.14",
+                "python3",
+            ],
+            provides: &["calamares", "mattos-graphical-installer"],
             conflicts: &[],
             replaces: &[],
             essential: false,

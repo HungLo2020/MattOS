@@ -837,6 +837,7 @@ fn build_util_linux(repo_root: &Path) -> Result<()> {
 
     for path in [
         install_dir.join("usr/sbin/agetty"),
+        install_dir.join("usr/sbin/sulogin"),
         install_dir.join("usr/bin/login"),
         install_dir.join("usr/bin/su"),
         install_dir.join("usr/bin/mount"),
@@ -891,6 +892,7 @@ fn util_linux_meson_options() -> Vec<String> {
         "--auto-features=disabled".to_string(),
         "-Dbuild-agetty=enabled".to_string(),
         "-Dbuild-login=enabled".to_string(),
+        "-Dbuild-sulogin=enabled".to_string(),
         "-Dbuild-su=enabled".to_string(),
         "-Dbuild-libblkid=enabled".to_string(),
         "-Dbuild-libmount=enabled".to_string(),

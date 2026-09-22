@@ -1737,6 +1737,162 @@ fn compose_target_from_profile(
     Ok(())
 }
 
+/// Compose one authoritative MattOS profile into a Calamares-mounted target.
+/// Calamares remains responsible for partitioning, mounts, accounts and boot
+/// metadata; this entry point owns only the offline profile/package closure.
+pub fn compose_profile_into_target(profile: InstalledProfile, target: &Path) -> Result<()> {
+    compose_target_from_profile(profile, Path::new(LIVE_SOURCE), target)
+}
+
+/// Finish a Calamares-mounted target after the profile composition job and
+/// Calamares' own users/locale/keyboard jobs have run.
+///
+/// Calamares owns the UI and partition/mount transaction.  This narrow phase
+/// reuses the same MattOS boot/profile policy as the Rust installer; it does
+/// not maintain a second package list or boot policy.
+pub fn finalize_calamares_target(profile: InstalledProfile, target: &Path) -> Result<()> {
+    let root_mount = mounted_device(target)?;
+    let efi_mount = mounted_device(&target.join("boot/efi"))?;
+    let root_filesystem = match mounted_filesystem(target)?.as_str() {
+        "btrfs" => Filesystem::Btrfs,
+        "ext4" => Filesystem::Ext4,
+        other => bail!("Calamares target uses unsupported root filesystem {other}"),
+    };
+    let storage = ResolvedStorage {
+        root: root_mount,
+        efi: efi_mount,
+        home: None,
+        root_filesystem,
+    };
+    let identity = storage_identity(&storage)?;
+    if root_filesystem == Filesystem::Btrfs {
+        // Calamares mounts the root subvolume (`@`) at `target`.  Creating
+        // `target/.snapshots` here would therefore create a nested directory,
+        // while the generated fstab correctly refers to the top-level
+        // `@snapshots` subvolume.  Create it from a temporary top-level
+        // (subvolid=5) mount instead.
+        ensure_btrfs_subvolume(&storage.root, "@snapshots")?;
+    }
+    write_storage_identity(&identity, target)?;
+    write_fstab(&identity, target)?;
+    install_boot_files(&identity, target)?;
+
+    let username = installed_target_username(target)?;
+    // The Rust installer writes this marker as part of account/profile
+    // finalization.  Calamares owns account creation, so its compose phase
+    // cannot use that path; write the same authoritative marker here before
+    // installing the boot files' target.  The installed initramfs uses it to
+    // reject unrelated filesystems during early-root discovery.
+    fs::write(
+        target.join("etc/mattos-installed-profile"),
+        match profile {
+            InstalledProfile::Cli => "cli\n",
+            InstalledProfile::Desktop => "plasma\n",
+        },
+    )?;
+    configure_installed_profile_values(profile, &username, false, target)?;
+    ensure_live_installer_absent(target)?;
+    Ok(())
+}
+
+fn ensure_btrfs_subvolume(device: &Path, name: &str) -> Result<()> {
+    let nonce = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|value| value.as_nanos())
+        .unwrap_or_default();
+    let mountpoint =
+        std::env::temp_dir().join(format!("mattos-btrfs-top-{}-{nonce}", std::process::id()));
+    fs::create_dir(&mountpoint)
+        .with_context(|| format!("create Btrfs top-level mountpoint {}", mountpoint.display()))?;
+    let mut mounts = MountStack::new();
+    let result = (|| -> Result<()> {
+        mounts.mount(
+            &[
+                "-t".as_ref(),
+                "btrfs".as_ref(),
+                "-o".as_ref(),
+                "subvolid=5".as_ref(),
+                device.as_os_str(),
+                mountpoint.as_os_str(),
+            ],
+            &mountpoint,
+        )?;
+        let path = mountpoint.join(name);
+        if path.exists() {
+            if engine::run(
+                "btrfs",
+                &["subvolume".as_ref(), "show".as_ref(), path.as_os_str()],
+            )
+            .is_ok()
+            {
+                return Ok(());
+            }
+            if fs::read_dir(&path)?.next().is_some() {
+                bail!("Calamares Btrfs top-level entry {name} is not an empty subvolume");
+            }
+            fs::remove_dir(&path)?;
+        }
+        engine::run(
+            "btrfs",
+            &["subvolume".as_ref(), "create".as_ref(), path.as_os_str()],
+        )
+        .with_context(|| format!("create MattOS Btrfs subvolume {name}"))
+    })();
+    let unmount_result = mounts
+        .unmount_all()
+        .context("unmount Btrfs top-level after creating snapshots subvolume");
+    let remove_result = fs::remove_dir(&mountpoint)
+        .with_context(|| format!("remove temporary mountpoint {}", mountpoint.display()));
+    result.and(unmount_result).and(remove_result)
+}
+
+fn mounted_device(path: &Path) -> Result<PathBuf> {
+    let value = engine::capture(
+        "findmnt",
+        &[
+            "--noheadings".as_ref(),
+            "--output".as_ref(),
+            "SOURCE".as_ref(),
+            "--target".as_ref(),
+            path.as_os_str(),
+        ],
+    )?;
+    let device = value.trim().split('[').next().unwrap_or_default();
+    if !device.starts_with("/dev/") || device.contains([' ', '\n']) {
+        bail!("Calamares mount source is not a block device: {value:?}");
+    }
+    Ok(device.into())
+}
+
+fn mounted_filesystem(path: &Path) -> Result<String> {
+    Ok(engine::capture(
+        "findmnt",
+        &[
+            "--noheadings".as_ref(),
+            "--output".as_ref(),
+            "FSTYPE".as_ref(),
+            "--target".as_ref(),
+            path.as_os_str(),
+        ],
+    )?
+    .trim()
+    .to_owned())
+}
+
+fn installed_target_username(target: &Path) -> Result<String> {
+    let passwd = fs::read_to_string(target.join("etc/passwd"))?;
+    let username = passwd
+        .lines()
+        .filter_map(|line| {
+            let fields = line.split(':').collect::<Vec<_>>();
+            (fields.len() > 6 && fields[2] == "1000").then_some(fields[0])
+        })
+        .next()
+        .context("Calamares users module did not create a UID 1000 account")?;
+    validate_identifier(username, "Calamares installed username")?;
+    Ok(username.to_owned())
+}
+
 /// Best-effort third-party application provisioning happens only after the
 /// deployed target has its normal Flatpak remote and installed-system policy.
 /// Each catalog entry is isolated: a network or transaction failure is logged
@@ -1925,6 +2081,20 @@ fn normalize_systemd_unit_permissions(target: &Path) -> Result<()> {
 }
 
 fn configure_installed_profile(plan: &InstallPlan, target: &Path) -> Result<()> {
+    configure_installed_profile_values(
+        plan.installed_profile,
+        &plan.username,
+        plan.automatic_login,
+        target,
+    )
+}
+
+fn configure_installed_profile_values(
+    installed_profile: InstalledProfile,
+    username: &str,
+    automatic_login: bool,
+    target: &Path,
+) -> Result<()> {
     let default_target = target.join("etc/systemd/system/default.target");
     fs::create_dir_all(
         default_target
@@ -1932,7 +2102,7 @@ fn configure_installed_profile(plan: &InstallPlan, target: &Path) -> Result<()> 
             .context("default target has no parent")?,
     )?;
     remove_optional_file(&default_target)?;
-    let unit = match plan.installed_profile {
+    let unit = match installed_profile {
         InstalledProfile::Cli => "/usr/lib/systemd/system/multi-user.target",
         InstalledProfile::Desktop => "/usr/lib/systemd/system/graphical.target",
     };
@@ -1950,18 +2120,44 @@ fn configure_installed_profile(plan: &InstallPlan, target: &Path) -> Result<()> 
     }
 
     let greetd_config = target.join("etc/greetd/plasma.toml");
-    if plan.installed_profile == InstalledProfile::Desktop && !greetd_config.is_file() {
+    if installed_profile == InstalledProfile::Desktop && !greetd_config.is_file() {
         bail!("desktop profile is missing Plasma greetd configuration")
     }
-    if plan.installed_profile == InstalledProfile::Desktop && plan.automatic_login {
+    if installed_profile == InstalledProfile::Desktop {
         let mut config = fs::read_to_string(&greetd_config)?;
-        config.push_str(&format!(
-            "\n[initial_session]\ncommand = \"/usr/bin/start-plasma\"\nuser = \"{}\"\n",
-            plan.username
-        ));
+        // The live image's default session intentionally names `mattos`, but
+        // an installed target has the account chosen in the installer.  Keep
+        // greetd's source-owned session command and replace only the account
+        // in the installed target; otherwise greetd exits successfully before
+        // KWin can start because the live-only user does not exist.
+        let mut in_default_session = false;
+        let mut replaced = false;
+        let mut rewritten = String::with_capacity(config.len() + username.len());
+        for line in config.lines() {
+            if line.starts_with('[') {
+                in_default_session = line.trim() == "[default_session]";
+            }
+            if in_default_session && line.trim_start().starts_with("user =") {
+                rewritten.push_str(&format!("user = \"{username}\""));
+                replaced = true;
+            } else {
+                rewritten.push_str(line);
+            }
+            rewritten.push('\n');
+        }
+        if !replaced {
+            bail!("installed Plasma greetd configuration lacks default-session user")
+        }
+        config = rewritten;
+        if automatic_login {
+            config.push_str(&format!(
+                "\n[initial_session]\ncommand = \"/usr/bin/start-plasma\"\nuser = \"{}\"\n",
+                username
+            ));
+        }
         fs::write(greetd_config, config)?;
     }
-    if plan.installed_profile == InstalledProfile::Desktop {
+    if installed_profile == InstalledProfile::Desktop {
         enable_system_unit(target, "graphical.target", "plasma-greeter.service")?;
     }
     remove_optional_file(&target.join("etc/mattos-desktop-pending"))?;
@@ -3240,6 +3436,12 @@ mod tests {
                 fs::read_link(directory.path().join("etc/systemd/system/default.target")).unwrap(),
                 PathBuf::from(expected)
             );
+            if profile == InstalledProfile::Desktop {
+                let config =
+                    fs::read_to_string(directory.path().join("etc/greetd/plasma.toml")).unwrap();
+                assert!(config.contains(&format!("user = \"{}\"", candidate.username)));
+                assert!(!config.contains("user = \"mattos\""));
+            }
         }
     }
 

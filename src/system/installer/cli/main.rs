@@ -33,6 +33,15 @@ enum Command {
         #[arg(long)]
         yes_really_erase: bool,
     },
+    /// Compose a shared MattOS profile into a Calamares-mounted target.
+    Calamares {
+        #[arg(long)]
+        profile: String,
+        #[arg(long)]
+        target: PathBuf,
+        #[arg(long, default_value = "compose")]
+        phase: String,
+    },
 }
 
 fn main() -> Result<()> {
@@ -54,6 +63,22 @@ fn main() -> Result<()> {
             execute(&plan)?;
             println!("MattOS installation completed successfully");
             Ok(())
+        }
+        Command::Calamares {
+            profile,
+            target,
+            phase,
+        } => {
+            let profile = match profile.as_str() {
+                "cli" => InstalledProfile::Cli,
+                "plasma" | "desktop" => InstalledProfile::Desktop,
+                _ => bail!("profile must be cli or plasma"),
+            };
+            match phase.as_str() {
+                "compose" => mattos_installer::compose_profile_into_target(profile, &target),
+                "finalize" => mattos_installer::finalize_calamares_target(profile, &target),
+                _ => bail!("phase must be compose or finalize"),
+            }
         }
     }
 }
@@ -355,14 +380,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn cli_exposes_permanent_guided_plan_and_install_modes() {
+    fn cli_exposes_frontends_and_shared_profile_adapter() {
         use clap::CommandFactory;
         let command = Cli::command();
         let names = command
             .get_subcommands()
             .map(|item| item.get_name())
             .collect::<Vec<_>>();
-        assert_eq!(names, ["guided", "plan", "install"]);
+        assert_eq!(names, ["guided", "plan", "install", "calamares"]);
     }
 
     #[test]

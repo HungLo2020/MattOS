@@ -10,6 +10,7 @@ strings:
     bootloaderEntryName: MattOS
 images:
     productLogo: ""
+slideshow: []
 style:
     sidebarBackground: "#1d2638"
     sidebarText: "#ffffff"

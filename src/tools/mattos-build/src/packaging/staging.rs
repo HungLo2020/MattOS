@@ -953,6 +953,7 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         "polkit-qt6-1" => stage_kde_module(repo_root, &staging, "polkit-qt-1", "polkit-qt6-1")?,
         "libyaml-cpp0.8" => stage_kde_module(repo_root, &staging, "yaml-cpp", "libyaml-cpp0.8")?,
         "libkpmcore13" => stage_kde_module(repo_root, &staging, "kpmcore", "libkpmcore13")?,
+        "calamares" => stage_calamares(repo_root, &staging)?,
         "libxkbcommon0" => {
             for soname in [
                 "libxkbcommon.so.0",
@@ -2234,6 +2235,107 @@ fn stage_kde_module(
         copy_tree_preserving(&license, &destination.join("licenses"))?;
     } else {
         copy_preserving(&license, &destination.join("copyright"))?;
+    }
+    Ok(())
+}
+
+fn stage_calamares(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = component_install(repo_root, "calamares").join("usr");
+    if !install.join("bin/calamares").is_file() {
+        bail!("Calamares package requires a completed calamares stage");
+    }
+    copy_tree_preserving(&install, &staging.join("usr"))?;
+    let integration = repo_root.join("src/system/installer/calamares/mattos");
+    // Calamares' normal, upstream configuration contract is
+    // /etc/calamares.  Keeping the MattOS configuration there means the
+    // packaged launcher does not depend on the debug-only/optional XDG
+    // search mode (-X), and avoids having two configuration authorities.
+    let config_root = staging.join("etc/calamares");
+    copy_tree_preserving(&integration.join("branding"), &config_root.join("branding"))?;
+    copy_preserving(
+        &integration.join("settings.conf"),
+        &config_root.join("settings.conf"),
+    )?;
+    copy_preserving(
+        &integration.join("modules/partition.conf"),
+        &config_root.join("modules/partition.conf"),
+    )?;
+    for module in ["mount", "fstab", "users", "locale", "keyboard"] {
+        copy_preserving(
+            &repo_root
+                .join("src/system/installer/calamares/upstream/src/modules")
+                .join(module)
+                .join(format!("{module}.conf")),
+            &config_root.join("modules").join(format!("{module}.conf")),
+        )?;
+    }
+    copy_preserving(
+        &integration.join("modules/users.conf"),
+        &config_root.join("modules/users.conf"),
+    )?;
+    copy_preserving(
+        &integration.join("modules/mattos-profile.conf"),
+        &config_root.join("modules/mattos-profile.conf"),
+    )?;
+    copy_preserving(
+        &integration.join("modules/mattos-finalize.conf"),
+        &config_root.join("modules/mattos-finalize.conf"),
+    )?;
+    // Use the upstream shellprocess plugin as the narrow MattOS adapter
+    // boundary.  The adapter is deliberately a separate executable so the
+    // graphical frontend cannot silently invent a package list or bypass the
+    // Rust installer policy.
+    fs::write(
+        config_root.join("modules/mattos-executor.conf"),
+        "dontChroot: true\ntimeout: 3600\nverbose: true\nscript: /usr/libexec/mattos/calamares-target-executor --phase compose --profile ${gs[packagechooser_profile]} --target ${ROOT}\n",
+    )?;
+    let executor = staging.join("usr/libexec/mattos/calamares-target-executor");
+    fs::create_dir_all(executor.parent().expect("executor parent"))?;
+    fs::write(
+        &executor,
+        r#"#!/bin/sh
+set -eu
+if [ $# -ne 6 ] || [ "$1" != "--phase" ] || [ "$3" != "--profile" ] || [ "$5" != "--target" ]; then
+  echo 'MattOS Calamares adapter: missing validated phase/profile/target from Calamares' >&2
+  exit 64
+fi
+exec /usr/bin/mattos-install calamares --phase "$2" --profile "$4" --target "$6"
+"#,
+    )?;
+    set_mode(executor, 0o755)?;
+    let launcher = staging.join("usr/bin/mattos-install-gui");
+    fs::create_dir_all(launcher.parent().expect("launcher parent"))?;
+    fs::write(
+        &launcher,
+        "#!/bin/sh\nset -eu\nexport XDG_CONFIG_DIRS=/etc/xdg${XDG_CONFIG_DIRS:+:$XDG_CONFIG_DIRS}\nexport XDG_DATA_DIRS=/usr/share${XDG_DATA_DIRS:+:$XDG_DATA_DIRS}\nexport QT_PLUGIN_PATH=/usr/lib/x86_64-linux-gnu/plugins${QT_PLUGIN_PATH:+:$QT_PLUGIN_PATH}\nexec /usr/bin/pkexec /usr/bin/env XDG_RUNTIME_DIR=\"${XDG_RUNTIME_DIR:-}\" WAYLAND_DISPLAY=\"${WAYLAND_DISPLAY:-}\" DBUS_SESSION_BUS_ADDRESS=\"${DBUS_SESSION_BUS_ADDRESS:-}\" XDG_CONFIG_DIRS=\"$XDG_CONFIG_DIRS\" XDG_DATA_DIRS=\"$XDG_DATA_DIRS\" QT_PLUGIN_PATH=\"$QT_PLUGIN_PATH\" /usr/bin/calamares \"$@\"\n",
+    )?;
+    set_mode(launcher, 0o755)?;
+    let desktop = staging.join("usr/share/applications/mattos-install-gui.desktop");
+    fs::create_dir_all(desktop.parent().expect("desktop parent"))?;
+    fs::write(
+        desktop,
+        "[Desktop Entry]\nType=Application\nName=Install MattOS\nComment=Install MattOS with the graphical installer\nExec=/usr/bin/mattos-install-gui\nIcon=system-software-install\nCategories=System;Settings;\nTerminal=false\n",
+    )?;
+    for required in [
+        "usr/bin/calamares",
+        "usr/bin/mattos-install-gui",
+        "usr/libexec/mattos/calamares-target-executor",
+        "etc/calamares/settings.conf",
+        "etc/calamares/modules/partition.conf",
+        "etc/calamares/modules/mount.conf",
+        "etc/calamares/modules/fstab.conf",
+        "etc/calamares/modules/users.conf",
+        "etc/calamares/modules/locale.conf",
+        "etc/calamares/modules/keyboard.conf",
+        "etc/calamares/modules/mattos-executor.conf",
+        "etc/calamares/modules/mattos-finalize.conf",
+        "etc/calamares/modules/mattos-profile.conf",
+        "etc/calamares/branding/mattos/branding.desc",
+        "usr/share/applications/mattos-install-gui.desktop",
+    ] {
+        if !staging.join(required).exists() {
+            bail!("Calamares package is missing /{required}");
+        }
     }
     Ok(())
 }

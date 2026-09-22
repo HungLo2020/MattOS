@@ -3,19 +3,21 @@
 `upstream/` is a pinned, unmodified Calamares 3.4 source import. `mattos/` is
 MattOS policy and branding, installed outside the upstream tree.
 
-The initial source-owned closure is Qt 6 Widgets/SVG/Wayland and KF6
-CoreAddons/I18n/WidgetsAddons, Polkit-Qt6, YAML-CPP and KPMCore. QML,
-Kirigami, Python, webview, package-manager and desktop-specific Calamares
-modules are deliberately excluded. This keeps the first installer UI limited
+The source-owned closure is Qt 6 Widgets/SVG/Wayland and KF6
+CoreAddons/I18n/WidgetsAddons, Polkit-Qt6, YAML-CPP, libxcrypt, CPython and KPMCore.
+QML, Kirigami, webview, package-manager and desktop-specific Calamares modules
+are deliberately excluded. Python is enabled only for upstream's mount/fstab
+job modules, while target composition remains Rust-owned. This keeps the first installer UI limited
 to welcome, locale, keyboard, partitioning, users, summary, progress and
 completion.
 
 Guided storage policy is GPT/UEFI with an EFI system partition and Btrfs root.
 The existing MattOS installer policy creates `@`, `@home` and `@snapshots`.
-Manual ext4 remains an existing Rust installer capability until the Calamares
-adapter has equivalent policy coverage. Calamares must not decide package or
-profile composition; the `mattos-executor` boundary delegates that to the
-existing Rust installer engine.
+Manual ext4 remains supported by the existing Calamares partition module.
+Calamares must not decide package closure: its MattOS profile chooser records
+`cli` or `plasma` in GlobalStorage and the `mattos-executor` shellprocess calls
+`mattos-install calamares`, which reuses the Rust profile resolver and offline
+repository transaction against the Calamares-mounted target.
 
 ## Closure classification
 

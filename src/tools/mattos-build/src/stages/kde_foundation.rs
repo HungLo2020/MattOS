@@ -512,10 +512,40 @@ fn kde_linguist_tools_bridge(build: &Path) -> Result<PathBuf> {
     let root = build.join("mattos-host-qt-linguist-tools");
     let config_dir = root.join("Qt6LinguistTools");
     fs::create_dir_all(&config_dir)?;
-    fs::write(config_dir.join("Qt6LinguistToolsConfig.cmake"), format!(
-        "if(NOT TARGET Qt6::lrelease)\n  add_executable(Qt6::lrelease IMPORTED GLOBAL)\n  set_target_properties(Qt6::lrelease PROPERTIES IMPORTED_LOCATION \"{}\")\nendif()\nif(NOT TARGET Qt6::lconvert)\n  add_executable(Qt6::lconvert IMPORTED GLOBAL)\n  set_target_properties(Qt6::lconvert PROPERTIES IMPORTED_LOCATION \"{}\")\nendif()\nset(Qt6LinguistTools_FOUND TRUE)\n",
-        lrelease.display(), lconvert.display()
-    ))?;
+    // Qt's umbrella package asks for a versioned LinguistTools config.  The
+    // executables are intentionally host tools, but the package identity must
+    // still match the target Qt baseline or Qt6Config.cmake rejects the
+    // otherwise-valid bridge before configure begins.
+    fs::write(config_dir.join("Qt6LinguistToolsConfigVersion.cmake"),
+        "set(PACKAGE_VERSION 6.11.2)\nset(PACKAGE_VERSION_COMPATIBLE TRUE)\nset(PACKAGE_VERSION_EXACT TRUE)\n")?;
+    let config = format!(r#"if(NOT TARGET Qt6::lrelease)
+  add_executable(Qt6::lrelease IMPORTED GLOBAL)
+  set_target_properties(Qt6::lrelease PROPERTIES IMPORTED_LOCATION "{}")
+endif()
+if(NOT TARGET Qt6::lconvert)
+  add_executable(Qt6::lconvert IMPORTED GLOBAL)
+  set_target_properties(Qt6::lconvert PROPERTIES IMPORTED_LOCATION "{}")
+endif()
+set(MATTOS_LRELEASE "{}")
+if(NOT COMMAND qt_add_translation)
+  function(qt_add_translation out_var)
+    set(_qm_files)
+    foreach(_ts IN LISTS ARGN)
+      get_filename_component(_ts_abs "${{_ts}}" ABSOLUTE BASE_DIR "${{CMAKE_CURRENT_SOURCE_DIR}}")
+      get_filename_component(_name "${{_ts_abs}}" NAME_WE)
+      set(_qm "${{CMAKE_CURRENT_BINARY_DIR}}/${{_name}}.qm")
+      execute_process(COMMAND "${{MATTOS_LRELEASE}}" -silent -qm "${{_qm}}" "${{_ts_abs}}" RESULT_VARIABLE _result)
+      if(NOT _result EQUAL 0)
+        message(FATAL_ERROR "lrelease failed for ${{_ts_abs}}")
+      endif()
+      list(APPEND _qm_files "${{_qm}}")
+    endforeach()
+    set(${{out_var}} "${{_qm_files}}" PARENT_SCOPE)
+  endfunction()
+endif()
+set(Qt6LinguistTools_FOUND TRUE)
+"#, lrelease.display(), lconvert.display(), lrelease.display());
+    fs::write(config_dir.join("Qt6LinguistToolsConfig.cmake"), config)?;
     Ok(config_dir)
 }
 
@@ -717,6 +747,48 @@ public:
             bail!("plasma-pa kded linkage no longer matches the expected 6.6.5 layout");
         }
         fs::write(cmake, contents.replacen(needle, replacement, 1))?;
+    }
+    if component == "kpmcore" {
+        // KPMCore's helper is called synchronously by Calamares while the
+        // partition model is initializing.  A failed/blocked QProcess must
+        // never leave the graphical installer waiting forever with no
+        // diagnostic.  Keep this narrow compatibility fix in the disposable
+        // source mirror: report the exact helper phase, require the process
+        // to start, and bound command execution so the caller can fail
+        // closed and surface an actionable error.
+        let helper = source_copy.join("src/util/externalcommandhelper.cpp");
+        let contents = fs::read_to_string(&helper)?;
+        let needle = "    QProcess cmd;\n    cmd.setEnvironment( { QStringLiteral(\"LVM_SUPPRESS_FD_WARNINGS=1\") } );\n";
+        let replacement = "    QProcess cmd;\n    qInfo() << \"KPMCore helper starting privileged command\" << command << arguments;\n    cmd.setEnvironment( { QStringLiteral(\"LVM_SUPPRESS_FD_WARNINGS=1\") } );\n";
+        if !contents.contains(needle) {
+            bail!("kpmcore helper process setup no longer matches the expected upstream layout");
+        }
+        let mut adjusted = contents.replacen(needle, replacement, 1);
+        let start_needle = "    cmd.start(command, arguments);\n    cmd.write(input);\n    cmd.closeWriteChannel();\n    cmd.waitForFinished(-1);\n";
+        let start_replacement = "    cmd.start(command, arguments);\n    if (!cmd.waitForStarted(5000)) {\n        qWarning() << \"KPMCore helper could not start command\" << command << cmd.errorString();\n        reply[QStringLiteral(\"error\")] = cmd.errorString();\n        return reply;\n    }\n    cmd.write(input);\n    cmd.closeWriteChannel();\n    if (!cmd.waitForFinished(30000)) {\n        qWarning() << \"KPMCore helper command timed out\" << command;\n        cmd.kill();\n        cmd.waitForFinished(5000);\n        reply[QStringLiteral(\"error\")] = QStringLiteral(\"command timed out\");\n        return reply;\n    }\n    qInfo() << \"KPMCore helper command finished\" << command << cmd.exitCode();\n";
+        if !adjusted.contains(start_needle) {
+            bail!("kpmcore helper command execution no longer matches the expected upstream layout");
+        }
+        adjusted = adjusted.replacen(start_needle, start_replacement, 1);
+        let event_loop_needle = "    PolkitQt1::Authority::Result result;\n    QEventLoop e;\n    connect(authority, &PolkitQt1::Authority::checkAuthorizationFinished, &e, [&e, &result](PolkitQt1::Authority::Result _result) {\n        result = _result;\n        e.quit();\n    });\n";
+        let event_loop_replacement = "    PolkitQt1::Authority::Result result;\n";
+        if !adjusted.contains(event_loop_needle) {
+            bail!("kpmcore helper authorization event loop no longer matches the expected upstream layout");
+        }
+        adjusted = adjusted.replacen(event_loop_needle, event_loop_replacement, 1);
+        let auth_needle = "    authority->checkAuthorization(QStringLiteral(\"org.kde.kpmcore.externalcommand.init\"), subject, PolkitQt1::Authority::AllowUserInteraction);\n    e.exec();\n";
+        let auth_replacement = "    qInfo() << \"KPMCore helper requesting authorization\" << message().service();\n    result = authority->checkAuthorizationSync(QStringLiteral(\"org.kde.kpmcore.externalcommand.init\"), subject, PolkitQt1::Authority::AllowUserInteraction);\n    qInfo() << \"KPMCore helper authorization returned\" << result;\n";
+        if !adjusted.contains(auth_needle) {
+            bail!("kpmcore helper authorization flow no longer matches the expected upstream layout");
+        }
+        adjusted = adjusted.replacen(auth_needle, auth_replacement, 1);
+        let root_auth_needle = "    if (!calledFromDBus()) {\n        return false;\n    }\n";
+        let root_auth_replacement = "    if (!calledFromDBus()) {\n        return false;\n    }\n\n    // Calamares is launched through pkexec and therefore calls this helper\n    // from a root-owned D-Bus name.  Polkit's asynchronous Qt signal can be\n    // delivered before the local QEventLoop starts, which loses the quit\n    // event and deadlocks the partition model.  The system-bus UID is an\n    // authoritative local check; retain the Polkit path for non-root clients.\n    QDBusConnectionInterface *busInterface = QDBusConnection::systemBus().interface();\n    if (busInterface) {\n        const QDBusReply<uint> callerUid = busInterface->serviceUid(message().service());\n        if (callerUid.isValid() && callerUid.value() == 0) {\n            m_serviceWatcher->addWatchedService(message().service());\n            return true;\n        }\n    }\n";
+        if !adjusted.contains(root_auth_needle) {
+            bail!("kpmcore helper caller authorization no longer matches the expected upstream layout");
+        }
+        adjusted = adjusted.replacen(root_auth_needle, root_auth_replacement, 1);
+        fs::write(helper, adjusted)?;
     }
     apply_component_patches(repo_root, component, &source_copy)?;
     if component == "ksysguard" {
@@ -1635,6 +1707,13 @@ public:
         let util_linux_include = repo_root.join("out/build/util-linux/install/usr/include");
         append_cmake_flag(&mut command, "-DCMAKE_C_FLAGS", &format!("-I{}", util_linux_include.display()));
         append_cmake_flag(&mut command, "-DCMAKE_CXX_FLAGS", &format!("-I{}", util_linux_include.display()));
+    }
+    if components.contains(&"kpmcore") {
+        // KPMcore's exported target currently exposes its include directory
+        // as .../include/kpmcore, while Calamares includes the public API as
+        // <kpmcore/...>. Add the target-owned parent include root explicitly.
+        let kpmcore_include = repo_root.join("out/build/kpmcore/install/usr/include");
+        append_cmake_flag(&mut command, "-DCMAKE_CXX_FLAGS", &format!("-I{}", kpmcore_include.display()));
     }
     if components.contains(&"networkmanager") {
         // libnm.pc intentionally exposes include/libnm for its conventional
