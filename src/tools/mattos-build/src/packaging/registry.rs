@@ -121,6 +121,7 @@ mod wifi_grub_tests {
             "kwin",
             "plasma-workspace",
             "plasma-desktop",
+            "libegl-mesa0",
             "greetd",
             "dolphin",
             "konsole",
@@ -141,6 +142,7 @@ mod wifi_grub_tests {
             "plasma-framework",
             "plasma-workspace",
             "plasma-desktop",
+            "libegl-mesa0",
             "greetd",
             "kf6-kpackage",
             "kf6-kdeclarative",
@@ -592,6 +594,10 @@ const MATTOS_PLASMA_DEPENDS: &[&str] = &[
     "libdisplay-info3",
     "libgomp1",
     "libegl1",
+    // libegl1 is the GLVND dispatcher; Plasma also needs a real EGL vendor.
+    // Without Mesa's vendor library/JSON, KWin cannot initialize OpenGL and
+    // falls back to the tty after greetd returns to its login prompt.
+    "libegl-mesa0",
     "kf6-kcoreaddons",
     "kf6-ki18n",
     "kf6-kwidgetsaddons",

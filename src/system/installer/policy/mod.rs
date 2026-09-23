@@ -2563,7 +2563,7 @@ fn install_boot_files(identity: &StorageIdentity, target: &Path) -> Result<()> {
             format!("initrd.img-{release}"),
         ),
     ] {
-        std::os::unix::fs::symlink(value, target.join("boot").join(link))?;
+        replace_expected_symlink(&target.join("boot").join(link), &value)?;
     }
     fs::create_dir_all(target.join("etc/default"))?;
     fs::write(
@@ -2577,28 +2577,36 @@ fn install_boot_files(identity: &StorageIdentity, target: &Path) -> Result<()> {
     // grub-probe needs real block nodes and mountinfo for the target, rather
     // than the live overlay. Track only our temporary nonrecursive mounts.
     let mut mounts = MountStack::new();
-    for name in ["dev", "sys"] {
+    for (name, expected_filesystems) in
+        [("dev", &["devtmpfs", "tmpfs"][..]), ("sys", &["sysfs"][..])]
+    {
         let destination = target.join(name);
         fs::create_dir_all(&destination)?;
-        mounts.mount(
+        mount_target_tree_if_missing(
+            &mut mounts,
+            &destination,
+            name,
+            expected_filesystems,
             &[
                 "--bind".as_ref(),
                 Path::new("/").join(name).as_os_str(),
                 destination.as_os_str(),
             ],
-            &destination,
         )?;
     }
     let proc = target.join("proc");
     fs::create_dir_all(&proc)?;
-    mounts.mount(
+    mount_target_tree_if_missing(
+        &mut mounts,
+        &proc,
+        "proc",
+        &["proc"],
         &[
             "-t".as_ref(),
             "proc".as_ref(),
             "proc".as_ref(),
             proc.as_os_str(),
         ],
-        &proc,
     )?;
     engine::run(
         "chroot",
@@ -2617,6 +2625,77 @@ fn install_boot_files(identity: &StorageIdentity, target: &Path) -> Result<()> {
         &[target.as_os_str(), "/usr/sbin/update-grub".as_ref()],
     )?;
     mounts.unmount_all()
+}
+
+/// Reuse Calamares' extra mounts when they already cover the target. In
+/// particular, rebinding the target's /sys hides the nested efivarfs mount;
+/// later unmounting that stacked /sys fails with EBUSY and aborts finalization
+/// after GRUB has been written. Only mounts created here are owned by our
+/// MountStack and will be unmounted here.
+fn mount_target_tree_if_missing(
+    mounts: &mut MountStack,
+    mountpoint: &Path,
+    name: &str,
+    expected_filesystems: &[&str],
+    mount_arguments: &[&std::ffi::OsStr],
+) -> Result<()> {
+    let output = Command::new("findmnt")
+        .args(["--noheadings", "--output", "FSTYPE", "--mountpoint"])
+        .arg(mountpoint)
+        .output()
+        .with_context(|| format!("inspect existing target /{name} mount"))?;
+    if output.status.success() {
+        let filesystem = String::from_utf8_lossy(&output.stdout).trim().to_owned();
+        should_reuse_target_mount(name, Some(&filesystem), expected_filesystems)?;
+        eprintln!("mattos-install: reusing Calamares target /{name} mount ({filesystem})");
+        return Ok(());
+    }
+    if output.status.code() != Some(1) {
+        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_owned();
+        bail!("findmnt failed while checking target /{name}: {stderr}");
+    }
+    mounts
+        .mount(mount_arguments, mountpoint)
+        .with_context(|| format!("mount required target /{name}"))
+}
+
+fn should_reuse_target_mount(
+    name: &str,
+    filesystem: Option<&str>,
+    expected_filesystems: &[&str],
+) -> Result<bool> {
+    let Some(filesystem) = filesystem else {
+        return Ok(false);
+    };
+    if expected_filesystems.contains(&filesystem) {
+        Ok(true)
+    } else {
+        bail!("target /{name} is already mounted with unexpected filesystem {filesystem:?}")
+    }
+}
+
+/// Install a compatibility link without making a retried Calamares run fail
+/// with EEXIST. Only an existing symlink may be replaced; a regular file at a
+/// boot compatibility path is refused so a damaged or foreign target is never
+/// silently overwritten.
+fn replace_expected_symlink(path: &Path, target: &str) -> Result<()> {
+    match fs::symlink_metadata(path) {
+        Ok(metadata) if metadata.file_type().is_symlink() => {
+            fs::remove_file(path)
+                .with_context(|| format!("replace existing boot symlink {}", path.display()))?;
+        }
+        Ok(_) => bail!(
+            "refusing to replace non-symlink boot compatibility path {}",
+            path.display()
+        ),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+        Err(error) => {
+            return Err(error)
+                .with_context(|| format!("inspect boot compatibility path {}", path.display()));
+        }
+    }
+    std::os::unix::fs::symlink(target, path)
+        .with_context(|| format!("create boot compatibility symlink {}", path.display()))
 }
 
 fn validate_kernel_release(release: &str) -> Result<&str> {
@@ -3047,6 +3126,42 @@ mod tests {
         let config = fs::read_to_string(directory.path().join("etc/mattos-storage.conf")).unwrap();
         assert!(config.contains("root_uuid=root-fs-uuid"));
         assert!(!config.contains("/dev/"));
+    }
+
+    #[test]
+    fn boot_compatibility_links_are_safe_to_replace_on_retried_finalize() {
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("vmlinuz");
+        std::os::unix::fs::symlink("old-kernel", &path).unwrap();
+        replace_expected_symlink(&path, "vmlinuz-7.2.0-rc5-mattos").unwrap();
+        assert_eq!(
+            fs::read_link(&path).unwrap(),
+            PathBuf::from("vmlinuz-7.2.0-rc5-mattos")
+        );
+
+        fs::write(directory.path().join("initrd.img"), b"not a link").unwrap();
+        let error = replace_expected_symlink(
+            &directory.path().join("initrd.img"),
+            "initrd.img-7.2.0-rc5-mattos",
+        )
+        .unwrap_err();
+        assert!(
+            error
+                .to_string()
+                .contains("non-symlink boot compatibility path")
+        );
+    }
+
+    #[test]
+    fn calamares_existing_extra_mounts_are_reused_without_stacking() {
+        assert!(!should_reuse_target_mount("proc", None, &["proc"]).unwrap());
+        assert!(should_reuse_target_mount("proc", Some("proc"), &["proc"]).unwrap());
+        assert!(should_reuse_target_mount("sys", Some("sysfs"), &["sysfs"]).unwrap());
+        assert!(
+            should_reuse_target_mount("dev", Some("devtmpfs"), &["devtmpfs", "tmpfs"]).unwrap()
+        );
+        let error = should_reuse_target_mount("sys", Some("tmpfs"), &["sysfs"]).unwrap_err();
+        assert!(error.to_string().contains("unexpected filesystem"));
     }
 
     #[test]

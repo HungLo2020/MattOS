@@ -340,6 +340,8 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::Calamares => &[
             "src/system/installer/calamares/upstream",
             "src/system/installer/calamares/mattos",
+            "upstream/patches/calamares",
+            "upstream/state/calamares.toml",
             "src/tools/mattos-build/src/stages/calamares.rs",
         ],
         BuildStage::PlasmaKWin => &[

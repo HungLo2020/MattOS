@@ -5,5 +5,5 @@ vt = 1
 service = "plasma-greeter"
 
 [default_session]
-command = "/usr/bin/start-plasma"
+command = "/usr/bin/mattos-plasma-greeter"
 user = "mattos"

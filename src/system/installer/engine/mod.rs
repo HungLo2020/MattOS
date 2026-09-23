@@ -3,7 +3,7 @@
 use anyhow::{Context, Result, anyhow, bail};
 use std::ffi::{CStr, CString, OsStr};
 use std::fs;
-use std::io::Write;
+use std::io::{self, Read, Write};
 use std::os::unix::fs::FileTypeExt;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
@@ -310,20 +310,61 @@ pub fn require_tools(tools: &[&str]) -> Result<()> {
 }
 
 pub fn run(program: &str, arguments: &[&OsStr]) -> Result<()> {
-    let status = Command::new(program)
+    let mut child = Command::new(program)
         .args(arguments)
-        .status()
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
         .with_context(|| format!("launch {program}"))?;
+    let mut stdout = child.stdout.take().context("capture child stdout")?;
+    let mut stderr = child.stderr.take().context("capture child stderr")?;
+    let stdout_thread = std::thread::spawn(move || forward_and_capture(&mut stdout, io::stdout()));
+    let stderr_thread = std::thread::spawn(move || forward_and_capture(&mut stderr, io::stderr()));
+    let status = child
+        .wait()
+        .with_context(|| format!("wait for {program}"))?;
+    let _stdout = stdout_thread
+        .join()
+        .map_err(|_| anyhow!("stdout forwarding thread for {program} panicked"))??;
+    let stderr = stderr_thread
+        .join()
+        .map_err(|_| anyhow!("stderr forwarding thread for {program} panicked"))??;
     if !status.success() {
-        bail!("{program} failed with {status}");
+        let stderr = String::from_utf8_lossy(&stderr).trim().to_owned();
+        if stderr.is_empty() {
+            bail!("{program} failed with {status}");
+        }
+        bail!("{program} failed with {status}: {stderr}");
     }
     Ok(())
+}
+
+fn forward_and_capture<R: Read, W: Write>(
+    input: &mut R,
+    mut output: W,
+) -> std::io::Result<Vec<u8>> {
+    let mut captured = Vec::new();
+    let mut buffer = [0_u8; 8192];
+    loop {
+        let count = input.read(&mut buffer)?;
+        if count == 0 {
+            break;
+        }
+        output.write_all(&buffer[..count])?;
+        output.flush()?;
+        captured.extend_from_slice(&buffer[..count]);
+    }
+    Ok(captured)
 }
 
 pub fn capture(program: &str, arguments: &[&OsStr]) -> Result<String> {
     let output = Command::new(program).args(arguments).output()?;
     if !output.status.success() {
-        bail!("{program} failed with {}", output.status);
+        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_owned();
+        if stderr.is_empty() {
+            bail!("{program} failed with {}", output.status);
+        }
+        bail!("{program} failed with {}: {stderr}", output.status);
     }
     Ok(String::from_utf8(output.stdout)?.trim().to_string())
 }
@@ -398,6 +439,24 @@ mod tests {
             partition_path(Path::new("/dev/loop7"), 2).unwrap(),
             Path::new("/dev/loop7p2")
         );
+    }
+
+    #[test]
+    fn installer_commands_stream_output_and_include_stderr_on_failure() {
+        let mut forwarded = Vec::new();
+        let captured = forward_and_capture(&mut &b"visible output"[..], &mut forwarded).unwrap();
+        assert_eq!(forwarded, b"visible output");
+        assert_eq!(captured, b"visible output");
+
+        let error = run(
+            "sh",
+            &[
+                "-c".as_ref(),
+                "printf 'specific install failure' >&2; exit 7".as_ref(),
+            ],
+        )
+        .unwrap_err();
+        assert!(error.to_string().contains("specific install failure"));
     }
 
     #[test]

@@ -2016,6 +2016,7 @@ fn stage_plasma_session_integration(repo_root: &Path, staging: &Path) -> Result<
         copy_preserving(&integration.join(source), &staging.join(destination))?;
     }
     for name in [
+        "mattos-plasma-greeter",
         "start-plasma",
         "mattos-graphics-report",
         "mattos-graphics-startup",
@@ -2044,6 +2045,7 @@ fn stage_plasma_session_integration(repo_root: &Path, staging: &Path) -> Result<
         "etc/greetd/plasma.toml",
         "etc/pam.d/plasma-greeter",
         "etc/systemd/system/display-manager.service",
+        "usr/bin/mattos-plasma-greeter",
         "usr/bin/start-plasma",
         "usr/bin/mattos-graphics-report",
         "usr/bin/mattos-graphics-startup",
@@ -2245,6 +2247,12 @@ fn stage_calamares(repo_root: &Path, staging: &Path) -> Result<()> {
         bail!("Calamares package requires a completed calamares stage");
     }
     copy_tree_preserving(&install, &staging.join("usr"))?;
+    // Upstream ships a generic desktop entry which runs `pkexec calamares`
+    // directly.  That bypasses the MattOS launcher environment and creates a
+    // second, unreliable installer entry beside the MattOS one.  Calamares
+    // remains source-owned here; only its generic launcher is replaced with
+    // the single MattOS-owned entry below.
+    remove_path_if_exists(&staging.join("usr/share/applications/calamares.desktop"))?;
     let integration = repo_root.join("src/system/installer/calamares/mattos");
     // Calamares' normal, upstream configuration contract is
     // /etc/calamares.  Keeping the MattOS configuration there means the
@@ -2299,22 +2307,45 @@ if [ $# -ne 6 ] || [ "$1" != "--phase" ] || [ "$3" != "--profile" ] || [ "$5" !=
   echo 'MattOS Calamares adapter: missing validated phase/profile/target from Calamares' >&2
   exit 64
 fi
-exec /usr/bin/mattos-install calamares --phase "$2" --profile "$4" --target "$6"
+exec /usr/bin/mattos-install calamares --phase "$2" --profile "$4" --target "$6" 2>&1
 "#,
     )?;
     set_mode(executor, 0o755)?;
     let launcher = staging.join("usr/bin/mattos-install-gui");
     fs::create_dir_all(launcher.parent().expect("launcher parent"))?;
+    // Generate one canonical launcher payload after the policy/environment setup.
+    // Keep the generated shell script free of Rust escape/continuation
+    // artifacts: the final write is the canonical launcher payload.
     fs::write(
         &launcher,
-        "#!/bin/sh\nset -eu\nexport XDG_CONFIG_DIRS=/etc/xdg${XDG_CONFIG_DIRS:+:$XDG_CONFIG_DIRS}\nexport XDG_DATA_DIRS=/usr/share${XDG_DATA_DIRS:+:$XDG_DATA_DIRS}\nexport QT_PLUGIN_PATH=/usr/lib/x86_64-linux-gnu/plugins${QT_PLUGIN_PATH:+:$QT_PLUGIN_PATH}\nexec /usr/bin/pkexec /usr/bin/env XDG_RUNTIME_DIR=\"${XDG_RUNTIME_DIR:-}\" WAYLAND_DISPLAY=\"${WAYLAND_DISPLAY:-}\" DBUS_SESSION_BUS_ADDRESS=\"${DBUS_SESSION_BUS_ADDRESS:-}\" XDG_CONFIG_DIRS=\"$XDG_CONFIG_DIRS\" XDG_DATA_DIRS=\"$XDG_DATA_DIRS\" QT_PLUGIN_PATH=\"$QT_PLUGIN_PATH\" /usr/bin/calamares \"$@\"\n",
+        r#"#!/bin/sh
+set -eu
+export XDG_CONFIG_DIRS=/etc/xdg${XDG_CONFIG_DIRS:+:$XDG_CONFIG_DIRS}
+export XDG_DATA_DIRS=/usr/share${XDG_DATA_DIRS:+:$XDG_DATA_DIRS}
+export QT_PLUGIN_PATH=/usr/lib/x86_64-linux-gnu/plugins:/usr/plugins${QT_PLUGIN_PATH:+:$QT_PLUGIN_PATH}
+export WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-wayland-0}"
+export QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-wayland}"
+# The live profile grants the logged-in installer user passwordless sudo.
+# Use it for the GUI itself so the desktop launcher cannot strand Calamares
+# behind an invisible/terminal-only Polkit authentication request.  Calamares
+# still performs its privileged work through KPMCore's normal helpers.
+exec /usr/bin/sudo -n /usr/bin/env \
+XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-}" \
+WAYLAND_DISPLAY="$WAYLAND_DISPLAY" \
+DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-}" \
+XDG_CONFIG_DIRS="$XDG_CONFIG_DIRS" \
+XDG_DATA_DIRS="$XDG_DATA_DIRS" \
+QT_PLUGIN_PATH="$QT_PLUGIN_PATH" \
+QT_QPA_PLATFORM="$QT_QPA_PLATFORM" \
+/usr/bin/calamares "$@"
+"#,
     )?;
     set_mode(launcher, 0o755)?;
-    let desktop = staging.join("usr/share/applications/mattos-install-gui.desktop");
+    let desktop = staging.join("usr/share/applications/calamares.desktop");
     fs::create_dir_all(desktop.parent().expect("desktop parent"))?;
     fs::write(
         desktop,
-        "[Desktop Entry]\nType=Application\nName=Install MattOS\nComment=Install MattOS with the graphical installer\nExec=/usr/bin/mattos-install-gui\nIcon=system-software-install\nCategories=System;Settings;\nTerminal=false\n",
+        "[Desktop Entry]\nType=Application\nVersion=1.0\nName=Install MattOS (Calamares)\nGenericName=MattOS Graphical Installer\nKeywords=calamares;MattOS;system;installer;\nTryExec=/usr/bin/mattos-install-gui\nExec=/usr/bin/mattos-install-gui\nComment=Install MattOS with the graphical Calamares installer\nIcon=calamares\nTerminal=false\nStartupNotify=true\nCategories=Qt;System;Settings;\nX-AppStream-Ignore=true\n",
     )?;
     for required in [
         "usr/bin/calamares",
@@ -2331,7 +2362,7 @@ exec /usr/bin/mattos-install calamares --phase "$2" --profile "$4" --target "$6"
         "etc/calamares/modules/mattos-finalize.conf",
         "etc/calamares/modules/mattos-profile.conf",
         "etc/calamares/branding/mattos/branding.desc",
-        "usr/share/applications/mattos-install-gui.desktop",
+        "usr/share/applications/calamares.desktop",
     ] {
         if !staging.join(required).exists() {
             bail!("Calamares package is missing /{required}");

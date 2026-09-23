@@ -1,0 +1,56 @@
+diff --git a/src/modules/partition/core/DeviceList.cpp b/src/modules/partition/core/DeviceList.cpp
+index 0000000..0000000 100644
+--- a/src/modules/partition/core/DeviceList.cpp
++++ b/src/modules/partition/core/DeviceList.cpp
+@@ -16,5 +16,7 @@
+ #include <kpmcore/core/partition.h>
+ 
++#include <QDir>
++#include <QFile>
+ #include <QProcess>
+ 
+ using Calamares::Partition::PartitionIterator;
+@@ -119,7 +121,33 @@ erase( DeviceList& l, DeviceList::iterator& it )
+     return r;
+ }
+ 
++// KPMCore's backend scan can wait on helper probes when a live ISO has no
++// writable installation disk.  Check the kernel's cheap block-device view
++// first; this preserves normal probing for real disks and makes the
++// no-target case fail closed in the partition model instead of blocking the
++// Calamares module requirement worker.
++static bool
++hasWritableBlockDevice()
++{
++    const QDir blockDir( QStringLiteral( "/sys/class/block" ) );
++    const QStringList entries = blockDir.entryList( QDir::Dirs | QDir::NoDotAndDotDot );
++    for ( const QString& name : entries )
++    {
++        if ( name.startsWith( QStringLiteral( "loop" ) ) || name.startsWith( QStringLiteral( "ram" ) )
++             || name.startsWith( QStringLiteral( "zram" ) ) || name.startsWith( QStringLiteral( "sr" ) ) )
++        {
++            continue;
++        }
++        QFile ro( blockDir.filePath( name ) + QStringLiteral( "/ro" ) );
++        if ( ro.open( QIODevice::ReadOnly ) && QByteArray( ro.readAll() ).trimmed() == QByteArrayLiteral( "0" ) )
++        {
++            return true;
++        }
++    }
++    return false;
++}
++
+ QList< Device* >
+ getDevices( DeviceType which )
+ {
+     CoreBackend* backend = CoreBackendManager::self()->backend();
+@@ -127,4 +154,9 @@ getDevices( DeviceType which )
+         cWarning() << "No KPM backend found.";
+         return {};
+     }
++    if ( !hasWritableBlockDevice() )
++    {
++        cDebug() << "No writable block device exposed by the kernel; skipping KPM backend scan.";
++        return {};
++    }
+     DeviceList devices = backend->scanDevices( /* not includeReadOnly, not includeLoopback */ ScanFlag( 0 ) );

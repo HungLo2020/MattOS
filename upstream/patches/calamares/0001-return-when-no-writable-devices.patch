@@ -1,0 +1,23 @@
+diff --git a/src/modules/partition/core/PartitionCoreModule.cpp b/src/modules/partition/core/PartitionCoreModule.cpp
+index 0000000..0000000 100644
+--- a/src/modules/partition/core/PartitionCoreModule.cpp
++++ b/src/modules/partition/core/PartitionCoreModule.cpp
+@@ -292,4 +292,16 @@ PartitionCoreModule::doInit()
+     }
+     cDebug() << Logger::SubEntry << devices.count() << "devices detected.";
+     m_deviceModel->init( devices );
++
++    // A live session may legitimately have no writable installation disk.
++    // Do not run the expensive os-prober/LVM/EFI discovery passes in that
++    // case: they can wait indefinitely for block-device helpers even though
++    // the partition model is already able to report the actionable
++    // "There are no partitions to install on" requirement failure.
++    if ( devices.isEmpty() )
++    {
++        cDebug() << "No writable devices detected; skipping secondary storage discovery.";
++        m_osproberLines.clear();
++        return;
++    }
+ 
+     // The following PartUtils::runOsprober call in turn calls PartUtils::canBeResized,
+     // which relies on a working DeviceModel.

@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eu
+
+# greetd's default_session must be a greeter implementing greetd IPC. Run the
+# bundled terminal greeter, and have it start the Plasma Wayland session only
+# after the user authenticates.
+exec /usr/bin/agreety --cmd /usr/bin/start-plasma

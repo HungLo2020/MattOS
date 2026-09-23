@@ -1697,6 +1697,8 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "calamares" => &[
             "src/system/installer/calamares/upstream",
             "src/system/installer/calamares/mattos",
+            "upstream/patches/calamares",
+            "upstream/state/calamares.toml",
             "src/tools/mattos-build/src/stages/calamares.rs",
             "src/tools/mattos-build/src/packaging/staging.rs",
         ],

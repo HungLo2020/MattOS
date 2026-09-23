@@ -325,6 +325,34 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
             self.assertEqual(serial, root / "out/qemu/test-control/serial.sock")
             run_qemu.cleanup_test_control_paths((qmp, serial))
 
+    def test_installed_graphics_verification_forces_the_production_virgl_path(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            disk = root / "out/qemu/installed-test.qcow2"
+            disk.parent.mkdir(parents=True)
+            disk.write_bytes(b"qcow2")
+            args = type(
+                "Args", (), {
+                    "install": True, "run_installed": False, "install_profile": "plasma",
+                    "test_control": False, "qmp_socket": None, "serial_console": False,
+                    "headless": False, "dry_run": False, "qemu_arg": [], "memory": 1024,
+                    "cpus": 1, "no_network": True,
+                }
+            )()
+            with mock.patch("run_qemu.install_task_log", return_value=root / "boot.log"), mock.patch(
+                "run_qemu.write_install_completion", return_value=root / "marker.json"
+            ), mock.patch("run_qemu._launch_one", return_value=0) as launched, mock.patch(
+                "run_qemu.wait_for_socket"
+            ), mock.patch("run_qemu.serial_command_stream", side_effect=["ok"] * 40), mock.patch(
+                "run_qemu.validate_completed_install", return_value={}
+            ):
+                run_qemu._verify_installed_disk_boot(root, disk, args)
+            verification_args = launched.call_args.args[2]
+            self.assertTrue(verification_args.test_control)
+            self.assertTrue(verification_args.require_virgl)
+            command = launched.call_args.args[1]
+            self.assertIsNone(command)
+
     def test_test_control_uses_scoped_qmp_socket_and_removes_stale_socket(self) -> None:
         with TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -444,6 +472,41 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
             self.assertIn("unix:" + str(root / "out/qemu/test-control/qmp.sock") + ",server=on,wait=off", command)
             self.assertIn("signal=off", command[command.index("-chardev") + 1])
             self.assertFalse((root / "out/qemu/test-control/qmp.sock").exists())
+
+    def test_installed_acceptance_keeps_virgl_even_with_qmp_control(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            args = type(
+                "Args", (), {
+                    "dry_run": False, "no_kvm": True, "memory": 1024, "cpus": 1,
+                    "headless": False, "test_control": True, "qmp_socket": None,
+                    "require_virgl": True, "run_installed": True, "install": False,
+                    "serial_console": False, "no_network": True, "qemu_arg": [],
+                    "live_media": "optical", "no_install_disk": False,
+                    "install_disk": Path("out/qemu/installed-test.qcow2"),
+                }
+            )()
+            process = mock.Mock()
+            process.wait.return_value = 0
+            with mock.patch("run_qemu.subprocess.Popen", return_value=process) as launched, mock.patch(
+                "run_qemu.mattos_build_environment", return_value={}
+            ), mock.patch(
+                "run_qemu.graphical_gpu_device",
+                return_value="virtio-vga-gl,blob=true,hostmem=256M",
+            ), mock.patch(
+                "run_qemu.choose_graphical_display", return_value="gtk,gl=on"
+            ):
+                run_qemu._launch_one(
+                    root,
+                    None,
+                    args,
+                    boot_iso=False,
+                    install_disk=root / "out/qemu/installed-test.qcow2",
+                )
+            command = launched.call_args.args[0]
+            self.assertIn("virtio-vga-gl,blob=true,hostmem=256M", command)
+            self.assertIn("gtk,gl=on", command)
+            self.assertNotIn("gtk,gl=off", command)
 
 
 @unittest.skipUnless(

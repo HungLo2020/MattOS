@@ -2806,9 +2806,40 @@ fn build_live_root(repo_root: &Path) -> Result<()> {
 
 fn validate_cached_live_root(repo_root: &Path) -> Result<()> {
     validate_squashfs_image(&repo_root.join(LIVE_ROOT_IMAGE_PATH))?;
+    validate_live_calamares_payload(&repo_root.join(LIVE_ROOT_IMAGE_PATH))?;
     let inventory = repo_root.join("out/reports/live-root-inventory.tsv");
     if !inventory.is_file() {
         bail!("live-root inventory is missing: {}", inventory.display());
+    }
+    Ok(())
+}
+
+fn validate_live_calamares_payload(path: &Path) -> Result<()> {
+    let output = Command::new("unsquashfs")
+        .args(["-ll"])
+        .arg(path)
+        .output()
+        .with_context(|| format!("failed to inspect Calamares payload {}", path.display()))?;
+    if !output.status.success() {
+        bail!("unsquashfs rejected Calamares payload {}", path.display());
+    }
+    let listing = String::from_utf8_lossy(&output.stdout);
+    for required in [
+        "squashfs-root/usr/share/applications/calamares.desktop",
+        "squashfs-root/usr/bin/mattos-install-gui",
+        "squashfs-root/usr/lib/x86_64-linux-gnu/plugins/kpmcore/pmsfdiskbackendplugin.so",
+    ] {
+        if !listing.lines().any(|line| line.contains(required)) {
+            bail!("live-root Calamares payload is missing /{}", required.trim_start_matches("squashfs-root/"));
+        }
+    }
+    if listing
+        .lines()
+        .filter(|line| line.contains("/usr/share/applications/") && line.ends_with("calamares.desktop"))
+        .count()
+        != 1
+    {
+        bail!("live-root must contain exactly one Calamares desktop entry");
     }
     Ok(())
 }
@@ -2923,6 +2954,10 @@ fn build_live_root_atomic(repo_root: &Path) -> Result<()> {
         return Err(error);
     }
     if let Err(error) = validate_squashfs_image(&temp) {
+        let _ = remove_path_if_exists(&temp);
+        return Err(error);
+    }
+    if let Err(error) = validate_live_calamares_payload(&temp) {
         let _ = remove_path_if_exists(&temp);
         return Err(error);
     }

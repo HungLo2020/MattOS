@@ -1,0 +1,47 @@
+diff --git a/src/modules/partition/core/PartitionCoreModule.cpp b/src/modules/partition/core/PartitionCoreModule.cpp
+index 0000000..0000000 100644
+--- a/src/modules/partition/core/PartitionCoreModule.cpp
++++ b/src/modules/partition/core/PartitionCoreModule.cpp
+@@ -57,6 +57,7 @@
+ // Qt
+ #include <QDir>
+ #include <QFutureWatcher>
++#include <QFile>
+ #include <QStandardItemModel>
+ #include <QtConcurrent/QtConcurrent>
+ 
+@@ -261,4 +262,32 @@ PartitionCoreModule::init()
+ 
+ void
+ PartitionCoreModule::doInit()
+ {
++    // A live ISO can expose only read-only loop/optical media.  Avoid
++    // initializing KPMCore's filesystem/backend machinery in that case;
++    // those helpers may wait for block-device probes even though the
++    // partition requirement can already report that no target exists.
++    const QDir blockDir( QStringLiteral( "/sys/class/block" ) );
++    const QStringList entries = blockDir.entryList( QDir::Dirs | QDir::NoDotAndDotDot );
++    bool hasWritableBlockDevice = false;
++    for ( const QString& name : entries )
++    {
++        if ( name.startsWith( QStringLiteral( "loop" ) ) || name.startsWith( QStringLiteral( "ram" ) )
++             || name.startsWith( QStringLiteral( "zram" ) ) || name.startsWith( QStringLiteral( "sr" ) ) )
++        {
++            continue;
++        }
++        QFile ro( blockDir.filePath( name ) + QStringLiteral( "/ro" ) );
++        if ( ro.open( QIODevice::ReadOnly ) && QByteArray( ro.readAll() ).trimmed() == QByteArrayLiteral( "0" ) )
++        {
++            hasWritableBlockDevice = true;
++            break;
++        }
++    }
++    if ( !hasWritableBlockDevice )
++    {
++        cDebug() << "No writable block device exposed by the kernel; skipping partition-core initialization.";
++        m_deviceModel->init( {} );
++        m_osproberLines.clear();
++        return;
++    }
++
+     FileSystemFactory::init();

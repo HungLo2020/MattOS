@@ -639,7 +639,10 @@ def _launch_one(
         # cleanly, but it must retain the real VirGL GPU.  Only the explicit
         # screenshot/test mode (and the non-user install lifecycle) switches
         # to the QMP-capturable conventional VGA surface.
-        use_capturable_gpu = getattr(args, "test_control", False) or getattr(args, "install", False)
+        use_capturable_gpu = (
+            (getattr(args, "test_control", False) or getattr(args, "install", False))
+            and not getattr(args, "require_virgl", False)
+        )
         gpu_device = "virtio-vga" if use_capturable_gpu else graphical_gpu_device(repo_root)
         qemu_cmd.extend(["-device", gpu_device])
         # A graphical desktop guest needs an absolute pointer. The default
@@ -674,7 +677,10 @@ def _launch_one(
         if lifecycle is None:
             qemu_cmd.append("-no-shutdown")
     else:
-        use_capturable_gpu = getattr(args, "test_control", False) or getattr(args, "install", False)
+        use_capturable_gpu = (
+            (getattr(args, "test_control", False) or getattr(args, "install", False))
+            and not getattr(args, "require_virgl", False)
+        )
         display = "gtk,gl=off" if use_capturable_gpu else choose_graphical_display(repo_root)
         if display == "default":
             qemu_cmd.extend(["-display", "default"])
@@ -826,6 +832,11 @@ def _verify_installed_disk_boot(
     verification_args.install = False
     verification_args.run_installed = False
     verification_args.test_control = True
+    # The installed graphical target must be verified with the same GL/VirGL
+    # capability required by the production Plasma session. The ordinary
+    # test-control VGA surface has GL disabled and can make KWin report that
+    # neither hardware acceleration nor software rendering is available.
+    verification_args.require_virgl = True
     verification_args.serial_console = False
     verification_args.headless = False
     output_path = install_task_log(repo_root).with_name("installed-test-boot.log")
@@ -855,8 +866,15 @@ def _verify_installed_disk_boot(
         ("graphical-target", "systemctl is-active graphical.target"),
         (
             "compositor",
-            "(for n in $(seq 1 90); do pgrep -x kwin_wayland >/dev/null && pgrep -x plasmashell >/dev/null && exit 0; sleep 1; done; "
+            "(for n in $(seq 1 90); do "
+            "pgrep -x kwin_wayland >/dev/null && pgrep -x plasmashell >/dev/null && "
+            "systemctl --user is-active --quiet plasma-workspace.target && "
+            "test -S \"${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/wayland-0\" && "
+            "busctl --user --no-pager list | grep -q '^org.kde.plasmashell[[:space:]]' && exit 0; "
+            "sleep 1; done; "
+            "echo 'Plasma compositor/session readiness timed out'; "
             "systemctl --no-pager --full status plasma-greeter.service; "
+            "systemctl --user --no-pager --full status plasma-workspace.target plasma-plasmashell.service; "
             "printf '%s\\n' mattos | sudo -S journalctl -b --no-pager -n 200 -u plasma-greeter.service; "
             "exit 1)",
         ),

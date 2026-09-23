@@ -1,0 +1,23 @@
+schema_version = 1
+component = "calamares"
+upstream_commit = "af2eaf829b7c60ae5b69b9fe68f9158dc98d3331"
+upstream_tree = "add63969af9258d1fe13efb87f215bb6ea63168a"
+application = "output-mirror-only"
+
+[[patch]]
+path = "upstream/patches/calamares/0001-return-when-no-writable-devices.patch"
+sha256 = "d2a0687a3d501fdd296269684ef0518f6e83a48d020fc076954f11de9ce67bbe"
+purpose = "Return promptly when a live session has no writable installation disk instead of waiting in secondary block-device discovery."
+documentation = "src/system/installer/calamares/mattos/settings.conf"
+
+[[patch]]
+path = "upstream/patches/calamares/0002-skip-kpm-scan-without-writable-block-device.patch"
+sha256 = "9ef758e6d6d7d7635cc8f171554cd11daee39814994b4fe953692079b31e009b"
+purpose = "Avoid entering the KPMCore backend scan when the kernel exposes no writable installation block device."
+documentation = "src/system/installer/calamares/mattos/settings.conf"
+
+[[patch]]
+path = "upstream/patches/calamares/0003-skip-partition-core-init-without-writable-disk.patch"
+sha256 = "09615d7a09b9f4366b5d4d63ed22cab9aaae076c75f450bc87d17d5e49de5eaa"
+purpose = "Skip KPMCore filesystem and partition-core initialization when a live session has no writable installation disk."
+documentation = "src/system/installer/calamares/mattos/settings.conf"

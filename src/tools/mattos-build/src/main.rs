@@ -3615,6 +3615,12 @@ mod tests {
         assert!(live_greetd.contains("[initial_session]"));
         assert!(live_greetd.contains("command = \"/usr/bin/start-plasma\""));
         assert!(live_greetd.contains("user = \"mattos\""));
+        let installed_greetd = include_str!("../../../system/session/plasma/plasma.toml");
+        assert!(installed_greetd.contains("command = \"/usr/bin/mattos-plasma-greeter\""));
+        assert!(installed_greetd.contains("user = \"mattos\""));
+        assert!(!installed_greetd.contains("command = \"/usr/bin/start-plasma\""));
+        let plasma_greeter = include_str!("../../../system/session/plasma/mattos-plasma-greeter");
+        assert!(plasma_greeter.contains("exec /usr/bin/agreety --cmd /usr/bin/start-plasma"));
         let live_override = include_str!(
             "../../../system/profiles/live/etc/systemd/system/plasma-greeter.service.d/live.conf"
         );
